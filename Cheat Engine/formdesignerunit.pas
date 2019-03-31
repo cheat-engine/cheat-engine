@@ -123,6 +123,9 @@ type
 
     //anchorEditor: TAnchorDesigner;
 
+    ObjectInspectorSelectionChangeCount: integer;
+    DesignerSelectionChangeCount: integer;
+
     procedure UpdateMethodListIfNeeded;
 
     procedure OIDDestroy(sender: Tobject);
@@ -657,6 +660,7 @@ begin
   ioclass:=componentToAdd;
   componentToAdd:='';
   NoSelection.down:=true;
+  oid.OnSelectPersistentsInOI:=nil;
 end;
 
 procedure TFormDesigner.ObjectInspectorSelectionChange(sender: tobject);
@@ -667,6 +671,11 @@ var s: TPersistentSelectionList;
 
   p: TPersistent;
 begin
+  if ObjectInspectorSelectionChangeCount<>0 then exit;
+
+  ObjectInspectorSelectionChangeCount:=1;
+
+
   if GlobalDesignHook.LookupRoot<>nil then
   begin
     surface:=TCEform(GlobalDesignHook.LookupRoot).designsurface;
@@ -696,6 +705,8 @@ begin
     end;
   end;
 
+  ObjectInspectorSelectionChangeCount:=0;
+
 end;
 
 
@@ -717,6 +728,9 @@ var s: TJvDesignObjectArray;
   sl: TPersistentSelectionList;
 begin
   //oid.
+  if DesignerSelectionChangeCount<>0 then exit;
+  DesignerSelectionChangeCount:=1;
+
   if GlobalDesignHook=nil then exit;
 
   surface:=TJvDesignSurface(sender);
@@ -769,12 +783,14 @@ begin
 //  sl.free;
 
   setFormName;
+
+  DesignerSelectionChangeCount:=0;
 end;
 
 procedure TFormDesigner.surfaceOnChange(sender: tobject);
 begin
+  oid.FillComponentList;
   oid.RefreshPropertyValues;
-
   oid.RefreshComponentTreeSelection;
 
   if GlobalDesignHook=nil then exit;
@@ -782,8 +798,7 @@ begin
   if (GlobalDesignHook.LookupRoot<>nil) and (GlobalDesignHook.LookupRoot is TCEForm) then
     TCEForm(GlobalDesignHook.LookupRoot).ResyncWithLua;
 
-
-
+  oid.OnSelectPersistentsInOI:=ObjectInspectorSelectionChange; //called after the object has been created
 end;
 
 function TFormDesigner.onCreateMethod(const Name: ShortString; ATypeInfo: PTypeInfo; APersistent: TPersistent; const APropertyPath: string): TMethod;
@@ -998,8 +1013,6 @@ begin
 
 end;
 
-
-
 procedure TFormDesigner.OnWriteMethod(Writer: TWriter; Instance: TPersistent; PropInfo: PPropInfo; const MethodValue, DefMethodValue: TMethod; var Handled: boolean);
 begin
   if (MethodValue.data<>nil) and (tobject(MethodValue.data) is TLuaCaller)  then
@@ -1091,6 +1104,8 @@ begin
 
   setFormName;
 
+//  f.designsurface.OnChange
+
   if oid=nil then //no oid yet
   begin
     oid:=TObjectInspectorDlg.Create(self);
@@ -1098,6 +1113,9 @@ begin
     oid.PropertyEditorHook:=GlobalDesignHook; //needs to be created
     oid.ShowFavorites:=false;
     oid.ComponentTree.PopupMenu:=popupmenu1; //nil;
+
+    oid.EnableHookGetSelection:=true;
+
 
 
     {$ifndef OLDLAZARUS11}
@@ -1133,7 +1151,7 @@ begin
     ComponentTreeWindowProc:=oid.ComponentTree.WindowProc;
 
 
-    oid.ComponentTree.WindowProc:=mousedownhack;
+    //oid.ComponentTree.WindowProc:=mousedownhack;
 
     oid.OnSelectPersistentsInOI:=ObjectInspectorSelectionChange;
 
@@ -1141,6 +1159,7 @@ begin
     if dpmi<>nil then
       dpmi.OnClick:=oidOnDelete;
     oid.ComponentTree.OnKeyDown:=oidComponentTreeKeyDown;
+    //oid.ComponentTree.PropertyEditorHook;
 
     oid.Selection.Add(f);
 

@@ -13,7 +13,7 @@ object FormDesigner: TFormDesigner
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   OnShow = FormShow
-  LCLVersion = '1.6.4.0'
+  LCLVersion = '2.0.0.4'
   object ToolBar1: TToolBar
     Left = 0
     Height = 34
@@ -42,7 +42,6 @@ object FormDesigner: TFormDesigner
       Left = 31
       Height = 32
       Top = 2
-      Width = 5
       Caption = 'ToolButton6'
       Grouped = True
       Style = tbsDivider
@@ -171,7 +170,6 @@ object FormDesigner: TFormDesigner
       Left = 696
       Height = 32
       Top = 2
-      Width = 5
       Caption = 'ToolButton1'
       Grouped = True
       Style = tbsDivider
