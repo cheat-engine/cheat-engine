@@ -307,9 +307,16 @@ begin
   //execute protection on by default on 64bit targets
   if processhandler.is64bit then
   begin
+    editstop.text:='7FFFFFFFFFFFFFFF';
+    editstart.Text:='0000000000000000';
     cbNoExecute.checked:=false;
     cbNoExecute.Enabled:=false;
     cbNoExecute.visible:=false;
+  end
+  else
+  begin
+    editstop.text:='7FFFFFFF';
+    editstart.Text:='00000000';
   end;
   b:=tbitmap.Create;
   b.canvas.Font:=editstart.font;

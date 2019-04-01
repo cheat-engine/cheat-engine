@@ -139,10 +139,13 @@ begin
     if processhandler.is64bit then
     begin
       editstop.text:='7FFFFFFFFFFFFFFF';
+      editstart.Text:='0000000000000000';
       editstart.clientwidth:=canvas.TextWidth('DDDDDDDDDDDDDDDD')+(m shr 16)+(m and $ffff);
     end
     else
     begin
+      editstop.text:='7FFFFFFF';
+      editstart.Text:='00000000';
       editstart.clientwidth:=canvas.TextWidth('DDDDDDDD')+(m shr 16)+(m and $ffff);
     end;
 

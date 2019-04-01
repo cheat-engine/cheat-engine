@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls,
-  ExtCtrls, CEFuncProc, Parsers, symbolhandler;
+  ExtCtrls, CEFuncProc, Parsers, symbolhandler, ProcessHandlerUnit;
 
 type
 
@@ -66,6 +66,17 @@ end;
 
 procedure TfrmAssemblyScan.FormShow(Sender: TObject);
 begin
+  if processhandler.is64bit then
+  begin
+    edtto.text:='7FFFFFFFFFFFFFFF';
+    edtfrom.Text:='0000000000000000';
+  end
+  else
+  begin
+    edtto.text:='7FFFFFFF';
+    edtfrom.Text:='00000000';
+  end;
+
   edtfrom.Constraints.MinWidth:=canvas.GetTextWidth('XXXXXXXXXXXXXXXX');
   edtTo.Constraints.MinWidth:=edtfrom.Constraints.MinWidth;
 
