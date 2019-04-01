@@ -43,6 +43,7 @@ type
     procedure Button1Click(Sender: TObject);
     procedure actCancelExecute(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
+    procedure FormShow(Sender: TObject);
   private
     { Private declarations }
     SaveDisassemblyThread: TSaveDisassemblyThread;
@@ -56,7 +57,7 @@ type
 
 implementation
 
-uses MemoryBrowserFormUnit, disassemblerComments;
+uses MemoryBrowserFormUnit, disassemblerComments, ProcessHandlerUnit;
 
 resourcestring
   rsCopyDisassembledOutput = 'Copy disassembled output';
@@ -294,6 +295,22 @@ begin
     SaveDisassemblyThread.WaitFor;
     freeandnil(SaveDisassemblyThread);
   end;
+end;
+
+procedure TfrmSavedisassembly.FormShow(Sender: TObject);
+begin
+    if processhandler.is64bit then
+    begin
+      edit2.text:='7FFFFFFFFFFFFFFF';
+      edit1.Text:='0000000000000000';
+    end
+    else
+    begin
+      edit2.text:='7FFFFFFF';
+      edit1.Text:='00000000';
+    end;
+  edit1.Constraints.MinWidth:=canvas.GetTextWidth('XXXXXXXXXXXXXXXX');
+  edit2.Constraints.MinWidth:=edit1.Constraints.MinWidth;
 end;
 
 procedure TfrmSavedisassembly.waittilldone;

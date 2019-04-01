@@ -9,7 +9,7 @@ object frmAssemblyScan: TfrmAssemblyScan
   ClientWidth = 451
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '1.6.4.0'
+  LCLVersion = '2.0.0.4'
   object Panel1: TPanel
     Left = 0
     Height = 185
@@ -88,7 +88,7 @@ object frmAssemblyScan: TfrmAssemblyScan
       BorderSpacing.Left = 4
       BorderSpacing.Right = 4
       TabOrder = 1
-      Text = '0000000000000000'
+      Text = '00000000'
     end
     object lblFrom: TLabel
       Left = 4
@@ -119,7 +119,7 @@ object frmAssemblyScan: TfrmAssemblyScan
       BorderSpacing.Left = 4
       BorderSpacing.Right = 4
       TabOrder = 2
-      Text = 'FFFFFFFFFFFFFFFF'
+      Text = '7FFFFFFF'
     end
   end
 end

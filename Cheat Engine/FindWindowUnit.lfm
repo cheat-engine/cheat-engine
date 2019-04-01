@@ -1,7 +1,7 @@
 object FindWindow: TFindWindow
-  Left = 727
+  Left = 610
   Height = 148
-  Top = 389
+  Top = 375
   Width = 294
   AutoSize = True
   BorderIcons = [biSystemMenu]
@@ -12,7 +12,7 @@ object FindWindow: TFindWindow
   OnDestroy = FormDestroy
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '1.6.4.0'
+  LCLVersion = '2.0.0.4'
   object Panel1: TPanel
     AnchorSideLeft.Control = Owner
     AnchorSideTop.Control = Owner
@@ -89,7 +89,7 @@ object FindWindow: TFindWindow
       BorderSpacing.Left = 2
       BorderSpacing.Right = 2
       TabOrder = 1
-      Text = '00400000'
+      Text = '00000000'
     end
     object EditStop: TEdit
       AnchorSideLeft.Control = editStart

@@ -19,7 +19,7 @@ You can also follow cheat engine on twitter: https://twitter.com/_cheatengine
 
 ## Build Instructions
 
-Download and install Lazarus **version 1.6.4** from [here](https://sourceforge.net/projects/lazarus/files/Lazarus%20Windows%2064%20bits/)
+Download and install Lazarus **version 2.0.0** from [here](https://sourceforge.net/projects/lazarus/files/Lazarus%20Windows%2064%20bits/)
 
 Run Lazarus and click on `Project->Open Project`.  Select
 `cheatengine.lpi` from the `Cheat Engine` folder as the project.
