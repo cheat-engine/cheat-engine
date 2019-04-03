@@ -301,13 +301,19 @@ procedure TfrmSavedisassembly.FormShow(Sender: TObject);
 begin
     if processhandler.is64bit then
     begin
-      edit2.text:='7FFFFFFFFFFFFFFF';
-      edit1.Text:='0000000000000000';
+      if (edit1.Text = '') or (edit2.Text = '') then
+       begin
+          edit2.text:='7FFFFFFFFFFFFFFF';
+          edit1.Text:='0000000000000000';
+       end;
     end
     else
     begin
-      edit2.text:='7FFFFFFF';
-      edit1.Text:='00000000';
+       if (edit1.Text = '') or (edit2.Text = '') then
+       begin
+          edit2.text:='7FFFFFFF';
+          edit1.Text:='00000000';
+       end;
     end;
   edit1.Constraints.MinWidth:=canvas.GetTextWidth('XXXXXXXXXXXXXXXX');
   edit2.Constraints.MinWidth:=edit1.Constraints.MinWidth;
