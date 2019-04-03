@@ -1,7 +1,7 @@
 object frmDisassemblyscan: TfrmDisassemblyscan
-  Left = 503
+  Left = 1079
   Height = 185
-  Top = 372
+  Top = 386
   Width = 447
   Caption = 'Assemblyscan'
   ClientHeight = 185

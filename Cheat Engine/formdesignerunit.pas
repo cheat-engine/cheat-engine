@@ -76,6 +76,7 @@ type
     SelectDirectoryDialog: TToolButton;
     RadioButton: TToolButton;
     ScrollBox: TToolButton;
+    CheckListBox: TToolButton;
     ToolButton6: TToolButton;
     CEImage: TToolButton;
     procedure controlPopupPopup(Sender: TObject);

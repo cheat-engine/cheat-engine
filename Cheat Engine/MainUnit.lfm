@@ -1,9 +1,9 @@
 object MainForm: TMainForm
   Tag = 2
-  Left = 370
+  Left = 402
   Height = 625
   Hint = ' '
-  Top = 107
+  Top = 109
   Width = 622
   HelpContext = 1
   HorzScrollBar.Visible = False
@@ -21,7 +21,7 @@ object MainForm: TMainForm
   OnDropFiles = FormDropFiles
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '1.6.4.0'
+  LCLVersion = '2.0.0.4'
   object Splitter1: TSplitter
     Cursor = crVSplit
     Left = 0
@@ -362,7 +362,7 @@ object MainForm: TMainForm
       AnchorSideTop.Side = asrBottom
       AnchorSideRight.Control = Panel9
       Left = 295
-      Height = 184
+      Height = 182
       Top = 178
       Width = 200
       Anchors = [akTop, akRight]
@@ -371,7 +371,7 @@ object MainForm: TMainForm
       BorderSpacing.Top = 6
       BorderSpacing.Right = 6
       Caption = 'Memory Scan Options'
-      ClientHeight = 164
+      ClientHeight = 162
       ClientWidth = 196
       Color = clBtnFace
       Constraints.MinWidth = 10
@@ -386,7 +386,7 @@ object MainForm: TMainForm
         AnchorSideRight.Side = asrBottom
         Left = 0
         Height = 38
-        Top = 64
+        Top = 62
         Width = 196
         Anchors = [akTop, akLeft, akRight]
         AutoSize = True
@@ -454,13 +454,13 @@ object MainForm: TMainForm
       object Panel3: TPanel
         AnchorSideRight.Side = asrBottom
         Left = 0
-        Height = 64
+        Height = 62
         Top = 0
         Width = 196
         Align = alTop
         AutoSize = True
         BevelOuter = bvNone
-        ClientHeight = 64
+        ClientHeight = 62
         ClientWidth = 196
         TabOrder = 0
         object Label2: TLabel
@@ -469,7 +469,7 @@ object MainForm: TMainForm
           AnchorSideTop.Side = asrCenter
           Left = 5
           Height = 15
-          Top = 41
+          Top = 40
           Width = 24
           BorderSpacing.Left = 5
           Caption = 'Stop'
@@ -498,8 +498,8 @@ object MainForm: TMainForm
           AnchorSideRight.Control = FromAddress
           AnchorSideRight.Side = asrBottom
           Left = 35
-          Height = 31
-          Top = 33
+          Height = 30
+          Top = 32
           Width = 155
           Alignment = taRightJustify
           Anchors = [akTop, akLeft, akRight]
@@ -519,7 +519,7 @@ object MainForm: TMainForm
           AnchorSideRight.Control = Panel3
           AnchorSideRight.Side = asrBottom
           Left = 35
-          Height = 31
+          Height = 30
           Top = 0
           Width = 155
           Alignment = taRightJustify
@@ -540,7 +540,7 @@ object MainForm: TMainForm
         AnchorSideRight.Side = asrBottom
         Left = 0
         Height = 62
-        Top = 102
+        Top = 100
         Width = 196
         Anchors = [akTop, akLeft, akRight]
         AutoSize = True

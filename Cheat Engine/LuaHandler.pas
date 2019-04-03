@@ -107,7 +107,7 @@ uses mainunit, mainunit2, luaclass, frmluaengineunit, plugin, pluginexports,
   DebuggerInterfaceAPIWrapper, Globals, math, speedhack2, CETranslator, binutils,
   xinput, winsapi, frmExeTrainerGeneratorUnit, CustomBase85, FileUtil, networkConfig,
   LuaCustomType, Filehandler, LuaSQL, frmSelectionlistunit, cpuidUnit, LuaRemoteThread,
-  LuaManualModuleLoader, pointervaluelist, frmEditHistoryUnit;
+  LuaManualModuleLoader, pointervaluelist, frmEditHistoryUnit, LuaCheckListBox;
 
   {$warn 5044 off}
 
@@ -8251,7 +8251,7 @@ begin
 
   s.add('stub:');
   if processhandler.is64Bit then
-    stackalloc:=s.add('sub rsp,'+inttohex(8+max(4,paramcount)*8,1))
+    stackalloc:=s.add('sub rsp,'+inttohex(align(max(4,paramcount)*8,$10)+8,1))
   else
     stackalloc:=s.add('sub esp,'+inttohex(paramcount*4,1));  //save this linenr in case doubles are used
 
@@ -8357,7 +8357,7 @@ begin
               else
               begin
                 s.add('mov rax,'+inttohex(lua_tointeger(L,-1),8));
-                s.add('mov qword ptr [rsp+'+inttohex(stackpointer,8)+'],rax');
+                s.add('mov qword ptr [rsp+'+inttohex(stackpointer*8,8)+'],rax');
               end;
             end;
           end
@@ -8382,7 +8382,7 @@ begin
             else
             begin
               s.add('mov eax,[floatvalue'+inttostr(stackpointer)+']');
-              s.add('mov qword ptr [rsp'+inttohex(stackpointer,8)+'],rax');
+              s.add('mov qword ptr [rsp+'+inttohex(stackpointer*8,8)+'],rax');
             end;
           end
           else
@@ -8404,7 +8404,7 @@ begin
             else
             begin
               s.add('mov rax,[floatvalue'+inttostr(stackpointer)+']');
-              s.add('mov qword ptr [rsp'+inttohex(stackpointer,8)+'],rax');
+              s.add('mov qword ptr [rsp+'+inttohex(stackpointer*8,8)+'],rax');
             end;
           end
           else
@@ -8435,7 +8435,7 @@ begin
     if processhandler.is64Bit then
     begin
       s.add('mov [result],rax');
-      s.add('add rsp,'+inttohex(8+max(4,paramcount)*8,1));
+      s.add('add rsp,'+inttohex(align(max(4,paramcount)*8,$10)+8,1));
       s.add('ret');
     end
     else
@@ -8454,7 +8454,7 @@ begin
     for i:=0 to floatvalues.count-1 do
       s.add(floatvalues[i]);
 
-    //Clipboard.AsText:=s.text;
+    Clipboard.AsText:=s.text;
     dontfree:=false;
 
     if autoassemble(s,false,true,false,false,allocs,exceptionlist) then
@@ -8468,7 +8468,17 @@ begin
           resultaddress:=allocs[i].address;
       end;
 
+      {
+      lua_pop(L,lua_gettop(L));
+      lua_pushstring(L,pchar('stub at '+inttohex(stubaddress,8)));
+      print(L);
+      dontfree:=true;
+      exit(0);
+                  }
+
+
       thread:=CreateRemoteThread(processhandle, nil, 0, pointer(stubaddress), nil, 0, y);
+
       if (thread<>0) then
       begin
         dontfree:=timeout=0;
@@ -11059,6 +11069,7 @@ begin
     initializeLuaCheckbox;
     initializeLuaRadioGroup;
     initializeLuaListbox;
+    initializeLuaCheckListbox;
     initializeLuaCombobox;
     initializeLuaProgressbar;
     initializeLuaTrackbar;

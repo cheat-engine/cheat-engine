@@ -117,7 +117,7 @@ end;
 
 function listbox_getSelected(L: PLua_State): integer; cdecl;
 var
-  listbox: Tlistbox;
+  listbox: Tcustomlistbox;
   index: integer;
 begin
   result:=0;
@@ -132,7 +132,7 @@ end;
 
 function listbox_setSelected(L: PLua_State): integer; cdecl;
 var
-  listbox: Tlistbox;
+  listbox: Tcustomlistbox;
   index: integer;
 begin
   result:=0;

@@ -2,9 +2,14 @@
 
 function genericJumpHandler(state)
   local origin=state.address
-  local destination=getAddressSafe(state.ldd.parameters) --find out the destination
+  local addressString=string.gsub(state.ldd.parameters,"qword ptr ","")
+  local addressString=string.gsub(addressString,"dword ptr ","")
+  local destination=getAddressSafe(addressString) --find out the destination
 
-  if destination==nil then return end
+  if destination==nil then
+    --in case of registers
+    return
+  end
 
 
 
@@ -71,7 +76,7 @@ plookup['ret']=function(state)
 end
 
 
-function parseFunction(startaddress)
+function parseFunction(startaddress, limit)
   local state={}
   print('parseFunction')
   state.branchDestinations={} --list of branch destinations
@@ -87,7 +92,8 @@ function parseFunction(startaddress)
 
   local d=createDisassembler()
   local done=false
-  local limit=100
+  if limit==nil then limit=1000 end
+
   local statechange, shouldexit
 
   while (not done) and (limit>0) do
@@ -140,4 +146,6 @@ function parseFunction(startaddress)
   return state
 end
 
---parseFunction(0x00413190) 
+--parseFunction(0x00413190)
+
+--even better: parsefunction(ntoskrnl.PspSetContextThreadInternal) it has a conditional codecave jmp way outside it's function range
