@@ -161,44 +161,6 @@ function scanModuleForPatches(modulepath, loadedModuleBase)
 
   end
 
-  local imports={}
-  if ImportTablePosition then
-    original.Position=ImportTablePosition
-    repeat
-      i=#imports+1
-      imports[i]={}
-      imports[i].ImportLookupTable=VirtualToFile(original.readDword())
-      imports[i].TimeDate=original.readDword()
-      imports[i].ForwarderChain=original.readDword()
-      imports[i].NamePosition=VirtualToFile(original.readDword())
-      imports[i].ImportAddressTable=VirtualToFile(original.readDword())
-
-      if imports[i].ImportLookupTable==nil then
-        imports[i]=nil
-      end
-    until original.Position>=ImportTablePosition+ImportTableSize
-
-    for i=1,#imports do
-      local reader
-
-      if Machine==0x8664 then
-        reader=original.readQword
-      else
-        reader=original.readDword
-      end
-
-      original.Position=imports[i].ImportAddressTable
-
-      while original.Position<original.Size-8 do
-        if reader()==0 then break end
-      end
-
-      imports[i].ImportAddressTableSize=original.Position-imports[i].ImportAddressTable
-
-      --local name
-      --name=readStringLocal(original.Memory+imports[i].NamePosition,256);
-    end
-  end
   --all information has been gathered. Now scan the code sections and compare against the target process
   --print("Scanning for differences...")
   local results={}
