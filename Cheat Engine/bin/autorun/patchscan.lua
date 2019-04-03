@@ -195,8 +195,8 @@ function scanModuleForPatches(modulepath, loadedModuleBase)
 
       imports[i].ImportAddressTableSize=original.Position-imports[i].ImportAddressTable
 
-      local name
-      name=readStringLocal(original.Memory+imports[i].NamePosition,256);
+      --local name
+      --name=readStringLocal(original.Memory+imports[i].NamePosition,256);
     end
   end
   --all information has been gathered. Now scan the code sections and compare against the target process
