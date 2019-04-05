@@ -86,6 +86,7 @@ type
       procedure MemScanGuiUpdateRoutine(sender: TObject; totaladdressestoscan: qword; currentlyscanned: qword; foundcount: qword);
 
       procedure HexViewTextRenderEvent(sender: TObject; address: ptruint; var text: string);
+      procedure DrawItemEvent(Control: TWinControl; Index: Integer; ARect: TRect; State: TOwnerDrawState);
 
       procedure synchronize;
 
@@ -1469,6 +1470,26 @@ begin
   end;
 end;
 
+procedure TLuaCaller.DrawItemEvent(Control: TWinControl; Index: Integer; ARect: TRect; State: TOwnerDrawState);
+var
+  oldstack: integer;
+  ti: PTypeInfo;
+begin
+  oldstack:=lua_gettop(Luavm);
+  try
+    pushFunction;
+    luaclass_newClass(LuaVM, Control);
+    lua_pushinteger(LuaVM, index);
+    lua_pushrect(LuaVM, arect);
+
+    ti:=typeinfo(TFormState);
+    lua_pushstring(LuaVM, SetToString(ti, integer(state),false));
+    lua_pcall(LuaVM, 4,0,0);
+  finally
+    lua_settop(LuaVM, oldstack);
+  end;
+end;
+
 //----------------------------Lua implementation-----------------------------
 function LuaCaller_NotifyEvent(L: PLua_state): integer; cdecl;
 var
@@ -2434,6 +2455,33 @@ begin
     lua_pop(L, lua_gettop(L));
 end;
 
+function LuaCaller_DrawItemEvent(L: PLua_state): integer; cdecl; //sender, index, rect, state
+var
+  Control: TWinControl;
+  index: ptruint;
+  rect: trect;
+  state: TOwnerDrawState;
+  m: TMethod;
+  ti: PTypeInfo;
+begin
+  result:=0;
+  if lua_gettop(L)=4 then
+  begin
+    m.code:=lua_touserdata(L, lua_upvalueindex(1));
+    m.data:=lua_touserdata(L, lua_upvalueindex(2));
+    control:=lua_ToCEUserData(L, 1);
+    index:=lua_tointeger(L,2);
+    rect:=lua_toRect(L,3);
+
+    ti:=typeinfo(TOwnerDrawState);
+    state:=TOwnerDrawState(StringToSet(ti,Lua_ToString(L,4)));
+
+    TDrawItemEvent(m)(Control, index, rect, state);
+  end
+  else
+    lua_pop(L, lua_gettop(L));
+end;
+
 procedure registerLuaCall(typename: string; getmethodprop: lua_CFunction; setmethodprop: pointer; luafunctionheader: string);
 var t: TLuaCallData;
 begin
@@ -2494,6 +2542,10 @@ initialization
   registerLuaCall('TMemScanGuiUpdateRoutine', LuaCaller_MemScanGuiUpdateRoutine, pointer(TLuaCaller.MemScanGuiUpdateRoutine),'function %s(Sender, TotalAddressesToScan, CurrentlyScanned, ResultsFound)'#13#10#13#10'end'#13#10);
   registerLuaCall('TProcessOpenedEvent', LuaCaller_ProcessOpenedEvent, pointer(TLuaCaller.ProcessOpenedEvent),'function %s(processid, handle, caption)'#13#10#13#10'end'#13#10);
   registerLuaCall('THexViewTextRenderEvent', LuaCaller_HexViewTextRenderEvent, pointer(TLuaCaller.HexViewTextRenderEvent),'function %s(sender, address, text)'#13#10#13#10'  return text'#13#10'end'#13#10);
+
+  registerLuaCall('TDrawItemEvent', LuaCaller_DrawItemEvent, pointer(TLuaCaller.DrawItemEvent),'function %s(sender, index, rect, state)'#13#10#13#10'end'#13#10);
+
+
 
 
 end.

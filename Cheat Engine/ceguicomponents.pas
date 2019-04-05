@@ -259,7 +259,7 @@ type TCEListBox=class(TCustomListBox)
     property OnDblClick;
   //  property OnDragDrop;
   //  property OnDragOver;
- //   property OnDrawItem;
+    property OnDrawItem;
     property OnEnter;
   //  property OnEndDrag;
     property OnExit;
@@ -328,7 +328,7 @@ published
   property OnDblClick;
 ////  property OnDragDrop;
  // property OnDragOver;
- // property OnDrawItem;
+  property OnDrawItem;
 //  property OnEndDrag;
   property OnDropDown;
   property OnEditingDone;

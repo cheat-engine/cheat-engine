@@ -19,8 +19,6 @@ type
   { TAdvancedOptions }
 
   TAdvancedOptions = class(TForm)
-    Button2: TButton;
-    Button3: TButton;
     miDBVMFindWhatCodeAccesses: TMenuItem;
     PopupMenu2: TPopupMenu;
     miReplaceWithNops: TMenuItem;
@@ -39,7 +37,6 @@ type
     Button1: TButton;
     Panel2: TPanel;
     Pausebutton: TSpeedButton;
-    SaveButton: TSpeedButton;
     Label1: TLabel;
     N3: TMenuItem;
     Codelist2: TListView;
@@ -641,8 +638,7 @@ end;
 
 procedure TAdvancedOptions.SaveButtonClick(Sender: TObject);
 begin
- (* StandAlone.filename:=SaveDialog1.filename;
-  standAlone.showmodal; *)
+
 end;
 
 procedure TAdvancedOptions.PausebuttonClick(Sender: TObject);
@@ -830,7 +826,6 @@ begin
   {$endif}
   {$endif}
 
-  savebutton.Visible:=false;
  // pausebutton.Left:=savebutton.Left;
 
   setlength(x,0);

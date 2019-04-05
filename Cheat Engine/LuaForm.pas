@@ -326,8 +326,8 @@ var
   ti: PTypeInfo;
 begin
   form:=luaclass_getClassObject(L);
-  ti:=typeinfo(TFormState);
 
+  ti:=typeinfo(TFormState);
   lua_pushstring(L, SetToString(ti, integer(form.FormState),true));
   result:=1;
 end;

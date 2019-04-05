@@ -3,7 +3,7 @@ object AdvancedOptions: TAdvancedOptions
   Height = 303
   Top = 192
   Width = 571
-  Caption = 'Advanced Options'
+  Caption = 'Code list/Pause'
   ClientHeight = 303
   ClientWidth = 571
   OnCreate = FormCreate
@@ -11,7 +11,7 @@ object AdvancedOptions: TAdvancedOptions
   OnResize = FormResize
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '1.6.4.0'
+  LCLVersion = '2.0.0.4'
   object Panel1: TPanel
     Left = 0
     Height = 35
@@ -30,36 +30,18 @@ object AdvancedOptions: TAdvancedOptions
       AnchorSideTop.Control = Panel1
       AnchorSideBottom.Control = Panel1
       AnchorSideBottom.Side = asrBottom
-      Left = 239
+      Left = 248
       Height = 25
       Top = 5
-      Width = 92
+      Width = 75
       Anchors = [akTop, akLeft, akBottom]
+      AutoSize = True
       BorderSpacing.Top = 5
       BorderSpacing.Bottom = 5
       Caption = 'OK'
+      Constraints.MinWidth = 75
       OnClick = Button1Click
       TabOrder = 0
-    end
-    object Button2: TButton
-      Left = 0
-      Height = 25
-      Top = 0
-      Width = 75
-      Caption = 'Button2'
-      OnClick = Button2Click
-      TabOrder = 1
-      Visible = False
-    end
-    object Button3: TButton
-      Left = 96
-      Height = 25
-      Top = 0
-      Width = 75
-      Caption = 'Button3'
-      OnClick = Button3Click
-      TabOrder = 2
-      Visible = False
     end
   end
   object Panel2: TPanel
@@ -107,49 +89,6 @@ object AdvancedOptions: TAdvancedOptions
       OnClick = PausebuttonClick
       OnMouseMove = PausebuttonMouseMove
       ShowCaption = False
-      ShowHint = True
-      ParentShowHint = False
-    end
-    object SaveButton: TSpeedButton
-      AnchorSideLeft.Control = Pausebutton
-      AnchorSideLeft.Side = asrBottom
-      AnchorSideTop.Control = Pausebutton
-      AnchorSideBottom.Control = Panel2
-      AnchorSideBottom.Side = asrBottom
-      Left = 38
-      Height = 32
-      Hint = 'Create a standalone trainer'
-      Top = 4
-      Width = 32
-      BorderSpacing.Left = 2
-      BorderSpacing.Bottom = 4
-      Glyph.Data = {
-        CA020000424DCA0200000000000036000000280000000E0000000F0000000100
-        18000000000094020000C40E0000C40E00000000000000000000C0C0C0C0C0C0
-        C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0
-        C0C0C0C00000C0C0C00000000000000000000000000000000000000000000000
-        0000000000000000000000000000000000000000000084840084840000000000
-        00000000000000000000000000C6C6C6C6C6C600000000848400000000000000
-        00008484008484000000000000000000000000000000000000C6C6C6C6C6C600
-        0000008484000000000000000000848400848400000000000000000000000000
-        0000000000C6C6C6C6C6C6000000008484000000000000000000848400848400
-        0000000000000000000000000000000000000000000000000000008484000000
-        0000000000008484008484008484008484008484008484008484008484008484
-        0084840084840084840000000000000000008484008484000000000000000000
-        0000000000000000000000000000000084840084840000000000000000008484
-        000000C6C6C6C6C6C6C6C6C6C6C6C6C6C6C6C6C6C6C6C6C6C6C6C60000000084
-        840000000000000000008484000000C6C6C6C6C6C6C6C6C6C6C6C6C6C6C6C6C6
-        C6C6C6C6C6C6C60000000084840000000000000000008484000000C6C6C6C6C6
-        C6C6C6C6C6C6C6C6C6C6C6C6C6C6C6C6C6C6C600000000848400000000000000
-        00008484000000C6C6C6C6C6C6C6C6C6C6C6C6C6C6C6C6C6C6C6C6C6C6C6C600
-        00000084840000000000000000008484000000C6C6C6C6C6C6C6C6C6C6C6C6C6
-        C6C6C6C6C6C6C6C6C6C6C60000000000000000000000000000008484000000C6
-        C6C6C6C6C6C6C6C6C6C6C6C6C6C6C6C6C6C6C6C6C6C6C6000000C6C6C6000000
-        0000000000000000000000000000000000000000000000000000000000000000
-        0000000000000000000000000000
-      }
-      Visible = False
-      OnClick = SaveButtonClick
       ShowHint = True
       ParentShowHint = False
     end
