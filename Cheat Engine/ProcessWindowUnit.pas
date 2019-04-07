@@ -658,7 +658,7 @@ end;
 
 procedure TProcessWindow.PopupMenu1Popup(Sender: TObject);
 begin
-
+  miShowInvisibleItems.visible:=tabheader.TabIndex=2;
 end;
 
 procedure TProcessWindow.ProcessListDrawItem(Control: TWinControl;
