@@ -87,6 +87,7 @@ type
 
       procedure HexViewTextRenderEvent(sender: TObject; address: ptruint; var text: string);
       procedure DrawItemEvent(Control: TWinControl; Index: Integer; ARect: TRect; State: TOwnerDrawState);
+      procedure MenuDrawItemEvent(Sender: TObject; Canvas: TCanvas; ARect: TRect; State: TOwnerDrawState);
 
       procedure synchronize;
 
@@ -139,7 +140,7 @@ implementation
 uses
   luahandler, LuaByteTable, MainUnit, disassemblerviewunit,
   hexviewunit, d3dhookUnit, luaclass, debuggertypedefinitions, memscan,
-  symbolhandler, symbolhandlerstructs;
+  symbolhandler, symbolhandlerstructs, menus;
 
 resourcestring
   rsThisTypeOfMethod = 'This type of method:';
@@ -1490,6 +1491,26 @@ begin
   end;
 end;
 
+procedure TLuaCaller.MenuDrawItemEvent(Sender: TObject; Canvas: TCanvas; ARect: TRect; State: TOwnerDrawState);
+var
+  oldstack: integer;
+  ti: PTypeInfo;
+begin
+  oldstack:=lua_gettop(Luavm);
+  try
+    pushFunction;
+    luaclass_newClass(LuaVM, Sender);
+    luaclass_newClass(LuaVM, Canvas);
+    lua_pushrect(LuaVM, arect);
+
+    ti:=typeinfo(TFormState);
+    lua_pushstring(LuaVM, SetToString(ti, integer(state),false));
+    lua_pcall(LuaVM, 4,0,0);
+  finally
+    lua_settop(LuaVM, oldstack);
+  end;
+end;
+
 //----------------------------Lua implementation-----------------------------
 function LuaCaller_NotifyEvent(L: PLua_state): integer; cdecl;
 var
@@ -2482,6 +2503,34 @@ begin
     lua_pop(L, lua_gettop(L));
 end;
 
+function LuaCaller_MenuDrawItemEvent(L: PLua_state): integer; cdecl; //sender, canvas, rect, state
+var
+  sender: TObject;
+  canvas: TCanvas;
+  rect: trect;
+  state: TOwnerDrawState;
+  m: TMethod;
+  ti: PTypeInfo;
+begin
+  result:=0;
+  if lua_gettop(L)=4 then
+  begin
+    m.code:=lua_touserdata(L, lua_upvalueindex(1));
+    m.data:=lua_touserdata(L, lua_upvalueindex(2));
+    sender:=lua_ToCEUserData(L, 1);
+    canvas:=lua_ToCEUserData(L, 2);
+    rect:=lua_toRect(L,3);
+
+    ti:=typeinfo(TOwnerDrawState);
+    state:=TOwnerDrawState(StringToSet(ti,Lua_ToString(L,4)));
+
+    TMenuDrawItemEvent(m)(sender, canvas, rect, state);
+  end
+  else
+    lua_pop(L, lua_gettop(L));
+end;
+
+
 procedure registerLuaCall(typename: string; getmethodprop: lua_CFunction; setmethodprop: pointer; luafunctionheader: string);
 var t: TLuaCallData;
 begin
@@ -2544,6 +2593,8 @@ initialization
   registerLuaCall('THexViewTextRenderEvent', LuaCaller_HexViewTextRenderEvent, pointer(TLuaCaller.HexViewTextRenderEvent),'function %s(sender, address, text)'#13#10#13#10'  return text'#13#10'end'#13#10);
 
   registerLuaCall('TDrawItemEvent', LuaCaller_DrawItemEvent, pointer(TLuaCaller.DrawItemEvent),'function %s(sender, index, rect, state)'#13#10#13#10'end'#13#10);
+  registerLuaCall('TMenuDrawItemEvent', LuaCaller_MenuDrawItemEvent, pointer(TLuaCaller.MenuDrawItemEvent),'function %s(sender, canvas, rect, state)'#13#10#13#10'end'#13#10);
+
 
 
 
