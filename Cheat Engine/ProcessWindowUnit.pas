@@ -31,6 +31,9 @@ type
     FontDialog1: TFontDialog;
     MainMenu1: TMainMenu;
     MenuItem1: TMenuItem;
+    MenuItem2: TMenuItem;
+    MenuItem3: TMenuItem;
+    miRefresh: TMenuItem;
     miCreateProcess: TMenuItem;
     miOpenFile: TMenuItem;
     N2: TMenuItem;
@@ -63,6 +66,7 @@ type
     procedure miProcessListLongClick(Sender: TObject);
     procedure miChangeFontClick(Sender: TObject);
     procedure miOwnProcessesOnlyClick(Sender: TObject);
+    procedure miRefreshClick(Sender: TObject);
     procedure OKButtonClick(Sender: TObject);
     procedure btnProcesslistClick(Sender: TObject);
     procedure btnWindowListClick(Sender: TObject);
@@ -370,6 +374,11 @@ procedure TProcessWindow.miOwnProcessesOnlyClick(Sender: TObject);
 begin
   ProcessesCurrentUserOnly:=miOwnProcessesOnly.checked;
   refreshlist;
+end;
+
+procedure TProcessWindow.miRefreshClick(Sender: TObject);
+begin
+  refreshList;
 end;
 
 procedure TProcessWindow.btnNetworkClick(Sender: TObject);

@@ -182,6 +182,11 @@ object ProcessWindow: TProcessWindow
       ShortCut = 16454
       OnClick = Filter1Click
     end
+    object miRefresh: TMenuItem
+      Caption = 'Refresh'
+      ShortCut = 116
+      OnClick = miRefreshClick
+    end
     object miShowInvisibleItems: TMenuItem
       AutoCheck = True
       Caption = 'Show invisible windows'
