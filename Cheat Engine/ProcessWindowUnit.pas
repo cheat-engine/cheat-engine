@@ -33,6 +33,7 @@ type
     MenuItem1: TMenuItem;
     MenuItem2: TMenuItem;
     MenuItem3: TMenuItem;
+    miConvertPIDToDecimal: TMenuItem;
     miRefresh: TMenuItem;
     miCreateProcess: TMenuItem;
     miOpenFile: TMenuItem;
@@ -672,7 +673,14 @@ end;
 
 procedure TProcessWindow.ProcessListDrawItem(Control: TWinControl;
   Index: Integer; Rect: TRect; State: TOwnerDrawState);
-var i: integer;
+var
+  i: integer;
+  t: string;
+
+  sep: integer;
+
+  pids: string;
+  pid: dword;
 begin
   wantedheight:=ProcessList.canvas.TextHeight('QqJjWwSs')+3;
   {i:=ProcessList.canvas.TextHeight('QqJjWwSs')+3;
@@ -684,8 +692,23 @@ begin
   if processlist.itemheight<i then ProcessList.ItemHeight:=i;}
 
 
+  t:=processlist.Items[index];
+  if miConvertPIDToDecimal.checked then
+  begin
+    sep:=pos('-',t);
+    if sep<>0 then
+    begin
+      try
+        pids:=copy(t,1,sep-1);
+        pid:=strtoint('$'+pids);
+        t:=inttostr(pid)+copy(t,sep);
+      except
+      end;
+    end;
+  end;
 
-  processlist.Canvas.TextOut(rect.Left+rect.Bottom-rect.Top+3,rect.Top,processlist.Items[index]);
+
+  processlist.Canvas.TextOut(rect.Left+rect.Bottom-rect.Top+3,rect.Top,t);
 
   if (processlist.Items.Objects[index]<>nil) and (PProcessListInfo(processlist.Items.Objects[index])^.processIcon>0) then
     DrawIconEx(processlist.Canvas.Handle, rect.left, rect.Top, PProcessListInfo(processlist.Items.Objects[index])^.processIcon, rect.Bottom-rect.Top,rect.Bottom-rect.Top,0,0,DI_NORMAL);

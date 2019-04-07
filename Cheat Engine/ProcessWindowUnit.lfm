@@ -203,6 +203,11 @@ object ProcessWindow: TProcessWindow
       Caption = 'Only show non-system processes'
       OnClick = miOwnProcessesOnlyClick
     end
+    object miConvertPIDToDecimal: TMenuItem
+      AutoCheck = True
+      Caption = 'Convert PID to decimal'
+      OnClick = miRefreshClick
+    end
     object N1: TMenuItem
       Caption = '-'
     end
