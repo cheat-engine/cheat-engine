@@ -1933,7 +1933,7 @@ methods
   getHotkeyByID(integer): Returns the hotkey with the given id
 
   reinterpret()
-  createHotkey({keys}, action, value OPTIONAL): Returns a hotkey object 
+  createHotkey({keys}, action, value OPTIONAL, description OPTIONAL): Returns a hotkey object 
 
   disableWithoutExecute(): Sets the entry to disabled without executing the disable section
 
