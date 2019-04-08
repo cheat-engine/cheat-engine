@@ -701,7 +701,7 @@ begin
       try
         pids:=copy(t,1,sep-1);
         pid:=strtoint('$'+pids);
-        t:=inttostr(pid)+copy(t,sep);
+        t:=format('%.8d',[pid])+copy(t,sep);
       except
       end;
     end;
