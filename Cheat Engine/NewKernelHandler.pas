@@ -1268,7 +1268,7 @@ begin
     end;
   end
   else
-    result:=isRunningDBVM;
+    result:=result and isRunningDBVM;
 end;
 
 {$endif}
