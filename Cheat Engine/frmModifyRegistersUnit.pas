@@ -70,6 +70,7 @@ type
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure Button1Click(Sender: TObject);
     procedure FormCreate(Sender: TObject);
+    procedure FormResize(Sender: TObject);
     procedure FormShow(Sender: TObject);
   private
     { Private declarations }
@@ -84,7 +85,8 @@ var
 
 implementation
 
-uses formsettingsunit, MemoryBrowserFormUnit, debuggertypedefinitions, ProcessHandlerUnit;
+uses formsettingsunit, MemoryBrowserFormUnit, debuggertypedefinitions,
+  ProcessHandlerUnit, DPIHelper;
 
 resourcestring
   rsModifyRegistersSAt = 'Modify registers(s) at %s';
@@ -351,6 +353,10 @@ begin
   if isRunningDBVM and (debuggerthread=nil) then
     cbUseDBVM.checked:=true;
 
+
+  label10.visible:=cbUseDBVM.checked;
+  edtPA.visible:=cbUseDBVM.checked;
+
   if processhandler.is64bit then
   begin
     pref:='R'
@@ -369,6 +375,20 @@ begin
   label7.Caption:=pref+'BP';
   label8.Caption:=pref+'SP';
   label9.Caption:=pref+'IP';
+end;
+
+procedure TfrmModifyRegisters.FormResize(Sender: TObject);
+var d: integer;
+begin
+  BeginUpdateBounds;
+  LockRealizeBounds;
+
+  d:=clientwidth-(panel3.Left+panel3.width);
+  edtEAX.Width:=edtEAX.Width+d;
+
+
+  UnlockRealizeBounds;
+  EndUpdateBounds;
 end;
 
 procedure TfrmModifyRegisters.FormShow(Sender: TObject);
@@ -392,9 +412,12 @@ begin
     edtR13.visible:=false;
     edtR14.visible:=false;
     edtR15.visible:=false;
-
     DoAutoSize;
   end;
+
+  autosize:=false;
+
+
 end;
 
 initialization

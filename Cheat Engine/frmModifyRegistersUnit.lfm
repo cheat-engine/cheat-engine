@@ -2,17 +2,18 @@ object frmModifyRegisters: TfrmModifyRegisters
   Left = 772
   Height = 519
   Top = 135
-  Width = 261
+  Width = 365
   Anchors = [akTop]
   AutoSize = True
   Caption = 'Modify register(s) at xxxxxxxx'
   ClientHeight = 519
-  ClientWidth = 261
+  ClientWidth = 365
   OnClose = FormClose
   OnCreate = FormCreate
+  OnResize = FormResize
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '1.6.4.0'
+  LCLVersion = '2.0.0.4'
   object Label25: TLabel
     AnchorSideLeft.Control = Owner
     AnchorSideTop.Control = Owner
@@ -30,7 +31,7 @@ object frmModifyRegisters: TfrmModifyRegisters
     AnchorSideLeft.Side = asrCenter
     AnchorSideTop.Control = Panel2
     AnchorSideTop.Side = asrBottom
-    Left = 52
+    Left = 104
     Height = 25
     Top = 490
     Width = 157
@@ -112,7 +113,7 @@ object frmModifyRegisters: TfrmModifyRegisters
       object Label2: TLabel
         AnchorSideTop.Control = edtEBX
         AnchorSideTop.Side = asrCenter
-        AnchorSideRight.Control = edtEBX
+        AnchorSideRight.Control = edtEAX
         Left = 9
         Height = 15
         Top = 77
@@ -126,7 +127,7 @@ object frmModifyRegisters: TfrmModifyRegisters
       object Label3: TLabel
         AnchorSideTop.Control = edtECX
         AnchorSideTop.Side = asrCenter
-        AnchorSideRight.Control = edtECX
+        AnchorSideRight.Control = edtEAX
         Left = 8
         Height = 15
         Top = 102
@@ -140,7 +141,7 @@ object frmModifyRegisters: TfrmModifyRegisters
       object Label4: TLabel
         AnchorSideTop.Control = edtEDX
         AnchorSideTop.Side = asrCenter
-        AnchorSideRight.Control = edtEDX
+        AnchorSideRight.Control = edtEAX
         Left = 8
         Height = 15
         Top = 127
@@ -154,7 +155,7 @@ object frmModifyRegisters: TfrmModifyRegisters
       object Label5: TLabel
         AnchorSideTop.Control = edtESI
         AnchorSideTop.Side = asrCenter
-        AnchorSideRight.Control = edtESI
+        AnchorSideRight.Control = edtEAX
         Left = 14
         Height = 15
         Top = 152
@@ -168,7 +169,7 @@ object frmModifyRegisters: TfrmModifyRegisters
       object Label6: TLabel
         AnchorSideTop.Control = edtEDI
         AnchorSideTop.Side = asrCenter
-        AnchorSideRight.Control = edtEDI
+        AnchorSideRight.Control = edtEAX
         Left = 12
         Height = 15
         Top = 177
@@ -182,7 +183,7 @@ object frmModifyRegisters: TfrmModifyRegisters
       object Label7: TLabel
         AnchorSideTop.Control = edtEBP
         AnchorSideTop.Side = asrCenter
-        AnchorSideRight.Control = edtEBP
+        AnchorSideRight.Control = edtEAX
         Left = 9
         Height = 15
         Top = 202
@@ -196,7 +197,7 @@ object frmModifyRegisters: TfrmModifyRegisters
       object Label8: TLabel
         AnchorSideTop.Control = edtESP
         AnchorSideTop.Side = asrCenter
-        AnchorSideRight.Control = edtESP
+        AnchorSideRight.Control = edtEAX
         Left = 10
         Height = 15
         Top = 227
@@ -210,7 +211,7 @@ object frmModifyRegisters: TfrmModifyRegisters
       object Label9: TLabel
         AnchorSideTop.Control = edtEIP
         AnchorSideTop.Side = asrCenter
-        AnchorSideRight.Control = edtEIP
+        AnchorSideRight.Control = edtEAX
         Left = 13
         Height = 15
         Top = 252
@@ -235,113 +236,121 @@ object frmModifyRegisters: TfrmModifyRegisters
         TabOrder = 0
       end
       object edtEBX: TEdit
+        AnchorSideLeft.Control = edtEAX
         AnchorSideTop.Control = edtEAX
         AnchorSideTop.Side = asrBottom
-        AnchorSideRight.Control = Panel4
+        AnchorSideRight.Control = edtEAX
         AnchorSideRight.Side = asrBottom
         Left = 31
         Height = 23
         Top = 73
         Width = 171
-        Anchors = [akTop, akRight]
+        Anchors = [akTop, akLeft, akRight]
         BorderSpacing.Top = 2
         TabOrder = 1
       end
       object edtECX: TEdit
+        AnchorSideLeft.Control = edtEAX
         AnchorSideTop.Control = edtEBX
         AnchorSideTop.Side = asrBottom
-        AnchorSideRight.Control = Panel4
+        AnchorSideRight.Control = edtEAX
         AnchorSideRight.Side = asrBottom
         Left = 31
         Height = 23
         Top = 98
         Width = 171
-        Anchors = [akTop, akRight]
+        Anchors = [akTop, akLeft, akRight]
         BorderSpacing.Top = 2
         TabOrder = 2
       end
       object edtEDX: TEdit
+        AnchorSideLeft.Control = edtEAX
         AnchorSideTop.Control = edtECX
         AnchorSideTop.Side = asrBottom
-        AnchorSideRight.Control = Panel4
+        AnchorSideRight.Control = edtEAX
         AnchorSideRight.Side = asrBottom
         Left = 31
         Height = 23
         Top = 123
         Width = 171
-        Anchors = [akTop, akRight]
+        Anchors = [akTop, akLeft, akRight]
         BorderSpacing.Top = 2
         TabOrder = 3
       end
       object edtESI: TEdit
+        AnchorSideLeft.Control = edtEAX
         AnchorSideTop.Control = edtEDX
         AnchorSideTop.Side = asrBottom
-        AnchorSideRight.Control = Panel4
+        AnchorSideRight.Control = edtEAX
         AnchorSideRight.Side = asrBottom
         Left = 31
         Height = 23
         Top = 148
         Width = 171
-        Anchors = [akTop, akRight]
+        Anchors = [akTop, akLeft, akRight]
         BorderSpacing.Top = 2
         TabOrder = 4
       end
       object edtEDI: TEdit
+        AnchorSideLeft.Control = edtEAX
         AnchorSideTop.Control = edtESI
         AnchorSideTop.Side = asrBottom
-        AnchorSideRight.Control = Panel4
+        AnchorSideRight.Control = edtEAX
         AnchorSideRight.Side = asrBottom
         Left = 31
         Height = 23
         Top = 173
         Width = 171
-        Anchors = [akTop, akRight]
+        Anchors = [akTop, akLeft, akRight]
         BorderSpacing.Top = 2
         TabOrder = 5
       end
       object edtEBP: TEdit
+        AnchorSideLeft.Control = edtEAX
         AnchorSideTop.Control = edtEDI
         AnchorSideTop.Side = asrBottom
-        AnchorSideRight.Control = Panel4
+        AnchorSideRight.Control = edtEAX
         AnchorSideRight.Side = asrBottom
         Left = 31
         Height = 23
         Top = 198
         Width = 171
-        Anchors = [akTop, akRight]
+        Anchors = [akTop, akLeft, akRight]
         BorderSpacing.Top = 2
         TabOrder = 6
       end
       object edtESP: TEdit
+        AnchorSideLeft.Control = edtEAX
         AnchorSideTop.Control = edtEBP
         AnchorSideTop.Side = asrBottom
-        AnchorSideRight.Control = Panel4
+        AnchorSideRight.Control = edtEAX
         AnchorSideRight.Side = asrBottom
         Left = 31
         Height = 23
         Top = 223
         Width = 171
-        Anchors = [akTop, akRight]
+        Anchors = [akTop, akLeft, akRight]
         BorderSpacing.Top = 2
         TabOrder = 7
       end
       object edtEIP: TEdit
+        AnchorSideLeft.Control = edtEAX
         AnchorSideTop.Control = edtESP
         AnchorSideTop.Side = asrBottom
-        AnchorSideRight.Control = Panel4
+        AnchorSideRight.Control = edtEAX
         AnchorSideRight.Side = asrBottom
         Left = 31
         Height = 23
         Top = 248
         Width = 171
-        Anchors = [akTop, akRight]
+        Anchors = [akTop, akLeft, akRight]
         BorderSpacing.Top = 2
         TabOrder = 8
       end
       object Label17: TLabel
         AnchorSideTop.Control = edtR8
         AnchorSideTop.Side = asrCenter
-        AnchorSideRight.Control = edtR8
+        AnchorSideRight.Control = edtEAX
         Left = 16
         Height = 15
         Top = 277
@@ -353,22 +362,23 @@ object frmModifyRegisters: TfrmModifyRegisters
         ParentColor = False
       end
       object edtR8: TEdit
+        AnchorSideLeft.Control = edtEAX
         AnchorSideTop.Control = edtEIP
         AnchorSideTop.Side = asrBottom
-        AnchorSideRight.Control = Panel4
+        AnchorSideRight.Control = edtEAX
         AnchorSideRight.Side = asrBottom
         Left = 31
         Height = 23
         Top = 273
         Width = 171
-        Anchors = [akTop, akRight]
+        Anchors = [akTop, akLeft, akRight]
         BorderSpacing.Top = 2
         TabOrder = 9
       end
       object Label18: TLabel
         AnchorSideTop.Control = edtR9
         AnchorSideTop.Side = asrCenter
-        AnchorSideRight.Control = edtR9
+        AnchorSideRight.Control = edtEAX
         Left = 16
         Height = 15
         Top = 302
@@ -380,22 +390,23 @@ object frmModifyRegisters: TfrmModifyRegisters
         ParentColor = False
       end
       object edtR9: TEdit
+        AnchorSideLeft.Control = edtEAX
         AnchorSideTop.Control = edtR8
         AnchorSideTop.Side = asrBottom
-        AnchorSideRight.Control = Panel4
+        AnchorSideRight.Control = edtEAX
         AnchorSideRight.Side = asrBottom
         Left = 31
         Height = 23
         Top = 298
         Width = 171
-        Anchors = [akTop, akRight]
+        Anchors = [akTop, akLeft, akRight]
         BorderSpacing.Top = 2
         TabOrder = 10
       end
       object Label19: TLabel
         AnchorSideTop.Control = edtR10
         AnchorSideTop.Side = asrCenter
-        AnchorSideRight.Control = edtR10
+        AnchorSideRight.Control = edtEAX
         Left = 10
         Height = 15
         Top = 327
@@ -407,22 +418,23 @@ object frmModifyRegisters: TfrmModifyRegisters
         ParentColor = False
       end
       object edtR10: TEdit
+        AnchorSideLeft.Control = edtEAX
         AnchorSideTop.Control = edtR9
         AnchorSideTop.Side = asrBottom
-        AnchorSideRight.Control = Panel4
+        AnchorSideRight.Control = edtEAX
         AnchorSideRight.Side = asrBottom
         Left = 31
         Height = 23
         Top = 323
         Width = 171
-        Anchors = [akTop, akRight]
+        Anchors = [akTop, akLeft, akRight]
         BorderSpacing.Top = 2
         TabOrder = 11
       end
       object Label20: TLabel
         AnchorSideTop.Control = edtR11
         AnchorSideTop.Side = asrCenter
-        AnchorSideRight.Control = edtR11
+        AnchorSideRight.Control = edtEAX
         Left = 10
         Height = 15
         Top = 352
@@ -434,22 +446,23 @@ object frmModifyRegisters: TfrmModifyRegisters
         ParentColor = False
       end
       object edtR11: TEdit
+        AnchorSideLeft.Control = edtEAX
         AnchorSideTop.Control = edtR10
         AnchorSideTop.Side = asrBottom
-        AnchorSideRight.Control = Panel4
+        AnchorSideRight.Control = edtEAX
         AnchorSideRight.Side = asrBottom
         Left = 31
         Height = 23
         Top = 348
         Width = 171
-        Anchors = [akTop, akRight]
+        Anchors = [akTop, akLeft, akRight]
         BorderSpacing.Top = 2
         TabOrder = 12
       end
       object Label21: TLabel
         AnchorSideTop.Control = edtR12
         AnchorSideTop.Side = asrCenter
-        AnchorSideRight.Control = edtR12
+        AnchorSideRight.Control = edtEAX
         Left = 10
         Height = 15
         Top = 377
@@ -461,22 +474,23 @@ object frmModifyRegisters: TfrmModifyRegisters
         ParentColor = False
       end
       object edtR12: TEdit
+        AnchorSideLeft.Control = edtEAX
         AnchorSideTop.Control = edtR11
         AnchorSideTop.Side = asrBottom
-        AnchorSideRight.Control = Panel4
+        AnchorSideRight.Control = edtEAX
         AnchorSideRight.Side = asrBottom
         Left = 31
         Height = 23
         Top = 373
         Width = 171
-        Anchors = [akTop, akRight]
+        Anchors = [akTop, akLeft, akRight]
         BorderSpacing.Top = 2
         TabOrder = 13
       end
       object Label22: TLabel
         AnchorSideTop.Control = edtR13
         AnchorSideTop.Side = asrCenter
-        AnchorSideRight.Control = edtR13
+        AnchorSideRight.Control = edtEAX
         Left = 10
         Height = 15
         Top = 402
@@ -488,22 +502,23 @@ object frmModifyRegisters: TfrmModifyRegisters
         ParentColor = False
       end
       object edtR13: TEdit
+        AnchorSideLeft.Control = edtEAX
         AnchorSideTop.Control = edtR12
         AnchorSideTop.Side = asrBottom
-        AnchorSideRight.Control = Panel4
+        AnchorSideRight.Control = edtEAX
         AnchorSideRight.Side = asrBottom
         Left = 31
         Height = 23
         Top = 398
         Width = 171
-        Anchors = [akTop, akRight]
+        Anchors = [akTop, akLeft, akRight]
         BorderSpacing.Top = 2
         TabOrder = 14
       end
       object Label23: TLabel
         AnchorSideTop.Control = edtR14
         AnchorSideTop.Side = asrCenter
-        AnchorSideRight.Control = edtR14
+        AnchorSideRight.Control = edtEAX
         Left = 10
         Height = 15
         Top = 427
@@ -515,22 +530,23 @@ object frmModifyRegisters: TfrmModifyRegisters
         ParentColor = False
       end
       object edtR14: TEdit
+        AnchorSideLeft.Control = edtEAX
         AnchorSideTop.Control = edtR13
         AnchorSideTop.Side = asrBottom
-        AnchorSideRight.Control = Panel4
+        AnchorSideRight.Control = edtEAX
         AnchorSideRight.Side = asrBottom
         Left = 31
         Height = 23
         Top = 423
         Width = 171
-        Anchors = [akTop, akRight]
+        Anchors = [akTop, akLeft, akRight]
         BorderSpacing.Top = 2
         TabOrder = 15
       end
       object Label24: TLabel
         AnchorSideTop.Control = edtR15
         AnchorSideTop.Side = asrCenter
-        AnchorSideRight.Control = edtR15
+        AnchorSideRight.Control = edtEAX
         Left = 10
         Height = 15
         Top = 452
@@ -542,15 +558,16 @@ object frmModifyRegisters: TfrmModifyRegisters
         ParentColor = False
       end
       object edtR15: TEdit
+        AnchorSideLeft.Control = edtEAX
         AnchorSideTop.Control = edtR14
         AnchorSideTop.Side = asrBottom
-        AnchorSideRight.Control = Panel4
+        AnchorSideRight.Control = edtEAX
         AnchorSideRight.Side = asrBottom
         Left = 31
         Height = 23
         Top = 448
         Width = 171
-        Anchors = [akTop, akRight]
+        Anchors = [akTop, akLeft, akRight]
         BorderSpacing.Top = 2
         TabOrder = 16
       end
