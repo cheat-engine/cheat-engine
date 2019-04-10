@@ -127,6 +127,7 @@ end;
 procedure TFindWindow.FormShow(Sender: TObject);
 const EM_GETMARGINS=$d4;
 var m: DWord;
+ start: qword;
 begin
   if firstscan then
   begin
@@ -139,13 +140,19 @@ begin
     if processhandler.is64bit then
     begin
       editstop.text:='7FFFFFFFFFFFFFFF';
-      editstart.Text:='0000000000000000';
+      //initialization needed?
+      start:=StrToQWordEx('$'+editstart.text);
+      if not (start <> 0) then // if not --> findwindow.editStart.text:=inttohex(hexview.SelectionStart,8)
+         editstart.Text:='0000000000000000'; //init
       editstart.clientwidth:=canvas.TextWidth('DDDDDDDDDDDDDDDD')+(m shr 16)+(m and $ffff);
     end
     else
     begin
       editstop.text:='7FFFFFFF';
-      editstart.Text:='00000000';
+      //initialization needed?
+      start:=StrToQWordEx('$'+editstart.text);
+      if not (start <> 0) then // if not --> findwindow.editStart.text:=inttohex(hexview.SelectionStart,8)
+         editstart.Text:='00000000'; //init
       editstart.clientwidth:=canvas.TextWidth('DDDDDDDD')+(m shr 16)+(m and $ffff);
     end;
 
