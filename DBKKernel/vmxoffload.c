@@ -4,7 +4,7 @@ copies dbvm into physical memory
 jumps into dbvm's os entry point
 
 */
-#pragma warning( disable: 4100 4103 4152 4456)
+#pragma warning( disable: 4100 4103 4152 4189 4456)
 
 #ifndef AMD64
 #pragma warning( disable: 4740)

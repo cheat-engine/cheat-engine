@@ -45,7 +45,7 @@ BOOL NoExceptions_Enter()
 		{
 			//initialize the list
 			MaxCPUCount = (int)KeQueryActiveProcessorCount(NULL);
-			cpustate = ExAllocatePoolWithTag(NonPagedPool, MaxCPUCount*sizeof(CPUSTATE), 'cece');
+			cpustate = ExAllocatePoolWithTag(NonPagedPool, MaxCPUCount*sizeof(CPUSTATE), 0);
 
 			if (cpustate)
 			{

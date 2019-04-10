@@ -3,6 +3,7 @@
 #include <ntddk.h>
 #include <windef.h>
 #include "vmxhelper.h"
+#include "DBKFunc.h"
 
 #ifdef AMD64
 extern UINT_PTR dovmcall_intel(void *vmcallinfo, unsigned int level1pass);
