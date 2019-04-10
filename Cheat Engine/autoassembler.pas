@@ -3085,7 +3085,7 @@ begin
                   //try a bigger one
                   assemble(s1,assembled[labels[j].references[k]].address,nops, apLong);
                   if length(nops)=a then //found a match size
-                    copymemory(@assembled[labels[j].references[k]].bytes[0], @nops[0], b);
+                    copymemory(@assembled[labels[j].references[k]].bytes[0], @nops[0], a);
 
                   b:=a;
                 end;
