@@ -89,7 +89,6 @@ object FindWindow: TFindWindow
       BorderSpacing.Left = 2
       BorderSpacing.Right = 2
       TabOrder = 1
-      Text = '00000000'
     end
     object EditStop: TEdit
       AnchorSideLeft.Control = editStart
@@ -104,7 +103,6 @@ object FindWindow: TFindWindow
       Anchors = [akTop, akLeft, akRight]
       BorderSpacing.Top = 2
       TabOrder = 2
-      Text = '7FFFFFFF'
     end
     object rbText: TRadioButton
       AnchorSideLeft.Control = Panel1

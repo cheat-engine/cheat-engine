@@ -1,7 +1,7 @@
 object frmCodecaveScanner: TfrmCodecaveScanner
-  Left = 916
+  Left = 1147
   Height = 323
-  Top = 339
+  Top = 225
   Width = 512
   AutoSize = True
   Caption = 'Scan for codecaves'
@@ -163,7 +163,6 @@ object frmCodecaveScanner: TfrmCodecaveScanner
         Font.Name = 'Courier New'
         ParentFont = False
         TabOrder = 1
-        Text = '00000000'
       end
       object editStop: TEdit
         AnchorSideLeft.Control = Panel1
@@ -182,7 +181,6 @@ object frmCodecaveScanner: TfrmCodecaveScanner
         Font.Name = 'Courier New'
         ParentFont = False
         TabOrder = 2
-        Text = '7FFFFFFF'
       end
       object editSize: TEdit
         AnchorSideLeft.Control = Panel1
