@@ -68,13 +68,21 @@ procedure TfrmAssemblyScan.FormShow(Sender: TObject);
 begin
   if processhandler.is64bit then
   begin
-    edtto.text:='7FFFFFFFFFFFFFFF';
-    edtfrom.Text:='0000000000000000';
+    //init just once if needed
+    if (edtto.Text = '') or (edtfrom.Text = '') then   // if not initialized
+     begin
+        edtto.text:='7FFFFFFFFFFFFFFF';
+        edtfrom.Text:='0000000000000000';
+     end;
   end
   else
   begin
-    edtto.text:='7FFFFFFF';
-    edtfrom.Text:='00000000';
+    //init just once if needed
+    if (edtto.Text = '') or (edtfrom.Text = '') then   // if not initialized
+    begin
+       edtto.text:='7FFFFFFF';
+       edtfrom.Text:='00000000';
+    end;
   end;
 
   edtfrom.Constraints.MinWidth:=canvas.GetTextWidth('XXXXXXXXXXXXXXXX');

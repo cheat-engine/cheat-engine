@@ -301,7 +301,8 @@ procedure TfrmSavedisassembly.FormShow(Sender: TObject);
 begin
     if processhandler.is64bit then
     begin
-      if (edit1.Text = '') or (edit2.Text = '') then
+      //init just once if needed
+      if (edit1.Text = '') or (edit2.Text = '') then  // if not initialized
        begin
           edit2.text:='7FFFFFFFFFFFFFFF';
           edit1.Text:='0000000000000000';
@@ -309,7 +310,8 @@ begin
     end
     else
     begin
-       if (edit1.Text = '') or (edit2.Text = '') then
+       //init just once if needed
+       if (edit1.Text = '') or (edit2.Text = '') then  // if not initialized
        begin
           edit2.text:='7FFFFFFF';
           edit1.Text:='00000000';

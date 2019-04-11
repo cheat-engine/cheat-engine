@@ -150,7 +150,6 @@ object frmSavedisassembly: TfrmSavedisassembly
       Anchors = [akTop, akLeft, akRight]
       BorderSpacing.Top = 3
       TabOrder = 0
-      Text = '7FFFFFFF'
     end
     object Edit1: TEdit
       AnchorSideTop.Control = Panel2
@@ -162,7 +161,6 @@ object frmSavedisassembly: TfrmSavedisassembly
       Width = 149
       Anchors = [akTop, akRight]
       TabOrder = 1
-      Text = '00000000'
     end
   end
   object SaveDialog1: TSaveDialog
