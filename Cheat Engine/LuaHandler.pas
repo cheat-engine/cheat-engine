@@ -10885,6 +10885,106 @@ begin
   end;
 end;
 
+function lua_duplicateHandle(L: PLua_state): integer; cdecl;
+//three formats:
+//(handle): Duplicates a CE handle to the target process
+//(handle, mode) : where mode is 0: CE to Target, 1: Target to CE
+//(handle, frompid,topid)
+var
+  fromprocess: THandle;
+  toprocess: THandle;
+
+  sourcehandle: THandle;
+  newhandle: THandle;
+
+  frompid, topid: qword;
+
+  openedfromprocess: boolean=false;
+  openedtoprocess: boolean=false;
+begin
+  try
+    result:=0;
+    fromprocess:=GetCurrentProcess;
+    toprocess:=processhandle;
+    if lua_gettop(L)>=1 then
+    begin
+      sourcehandle:=lua_tointeger(L,1);
+
+      if lua_gettop(L)>=2 then
+      begin
+        if lua_gettop(L)>=3 then
+        begin
+          //frompid,topid
+          frompid:=lua_tointeger(L,2);
+          topid:=lua_tointeger(L,3);
+
+          if frompid=GetCurrentProcessId then
+            fromprocess:=GetCurrentProcess
+          else
+          if frompid=processid then
+            fromprocess:=processhandle
+          else
+          begin
+            fromprocess:=newkernelhandler.openProcess(PROCESS_DUP_HANDLE,false,frompid);
+            if fromprocess<>0 then
+              openedfromprocess:=true
+            else
+            begin
+              lua_pushnil(L);
+              lua_pushstring(L,'Failure opening process '+inttostr(frompid)+' ('+SysErrorMessage(GetLastOSError)+')');
+              exit(2); //failed to open the process
+            end;
+          end;
+
+          if topid=GetCurrentProcessId then
+            toprocess:=GetCurrentProcess
+          else
+          if topid=processid then
+            toprocess:=processhandle
+          else
+          begin
+            toprocess:=newkernelhandler.openProcess(PROCESS_DUP_HANDLE,false,topid);
+            if toprocess<>0 then
+              openedtoprocess:=true
+            else
+            begin
+              lua_pushnil(L);
+              lua_pushstring(L,'Failure opening process '+inttostr(topid)+' ('+SysErrorMessage(GetLastOSError)+')');
+              exit(2); //failed to open the process
+            end;
+          end;
+        end
+        else
+        begin
+          //mode
+          if lua_tointeger(L,2)=1 then //target to CE, so switch processes
+          begin
+            toprocess:=GetCurrentProcess;
+            fromprocess:=processhandle;
+          end; //else as it was
+        end;
+      end;
+
+      if DuplicateHandle(fromprocess, sourcehandle,toprocess,@newhandle, 0, false, DUPLICATE_SAME_ACCESS) then
+      begin
+        lua_pushinteger(L,newhandle);
+        exit(1);
+      end
+      else
+      begin
+        lua_pushnil(L);
+        lua_pushstring(L, 'Duplication failed due to :'+SysErrorMessage(GetLastOSError));
+        exit(2);
+      end;
+
+    end;
+
+  finally
+    if openedfromprocess then closehandle(fromprocess);
+    if openedtoprocess then closehandle(toprocess);
+  end;
+end;
+
 procedure InitializeLua;
 var
   s: tstringlist;
@@ -11476,6 +11576,7 @@ begin
     lua_register(L, 'compareMemory', lua_compareMemory);
 
     lua_register(L, 'enumExports', lua_enumExports);
+    lua_register(L, 'duplicateHandle', lua_duplicateHandle);
 
     initializeLuaRemoteThread;
 

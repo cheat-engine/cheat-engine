@@ -300,6 +300,11 @@ getHandleList(filter OPTIONAL): returns a table with all the handles in the syst
 
 closeRemoteHandle(handle, processid OPTIONAL): Closes the handle of a process.
 
+duplicateHandle(handle): Duplicates the provided CE based handle into the target process (You still need tell the target about this handle, like an injected dll data block)
+duplicateHandle(handle, Mode (0/1) ): If mode is 0 then it's the same as just duplicateHandle(handle), but if it's 1 it duplicates the target process handle into CE's process
+duplicateHandle(handle, fromPID, toPID): Copies the handle from the given process to the target process. 
+
+
 
 function onOpenProcess(processid):
   If this function is defined it will be called whenever cheat engine opens a process.
@@ -2790,6 +2795,8 @@ createPipe(pipename, inputsize OPTIONAL, outputsize OPTIONAL) : Creates a LuaPip
 
 properties
   valid: boolean - Returns true if the pipe has been created properly. False on failure (e.g wrong pipename)
+  handle: integer - The handle of the pipe serverside (this can be used with duplicateHandle to get a handle into the target process)
+
 
 methods
   acceptConnection() - Waits for a client to connect to this pipe (Warning: Freezes the thread this is executed in)
