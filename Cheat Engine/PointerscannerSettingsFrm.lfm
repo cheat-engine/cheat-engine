@@ -12,7 +12,7 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
   OnDestroy = FormDestroy
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '1.6.4.0'
+  LCLVersion = '2.0.0.4'
   object cbValueType: TComboBox
     AnchorSideLeft.Control = cbAddress
     AnchorSideLeft.Side = asrBottom
@@ -24,7 +24,6 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
     Top = 43
     Width = 124
     Anchors = [akTop, akRight]
-    BorderSpacing.Left = 3
     BorderSpacing.Right = 3
     ItemHeight = 15
     ItemIndex = 0
@@ -549,13 +548,14 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
     Left = 8
     Height = 21
     Top = 43
-    Width = 544
+    Width = 543
     Anchors = [akTop, akLeft, akRight]
+    BorderSpacing.Right = 4
     DropDownCount = 0
     ItemHeight = 15
     OnChange = edtAddressChange
     OnDrawItem = cbAddressDrawItem
-    Style = csOwnerDrawFixed
+    Style = csOwnerDrawEditableFixed
     TabOrder = 6
   end
   object Panel1: TPanel
