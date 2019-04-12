@@ -9,12 +9,10 @@ uses
 
 type
   TDiagramBlock=class;
-  TDiagramBlockSideDescriptor=object
-  public
+  TDiagramBlockSideDescriptor=record
     block: TDiagramBlock;
     side: TDiagramBlockSide;
     sideposition: integer; //0 is center, -1 is one pixel to the left, 1 is one pixel to the rigth
-    constructor init;
   end;
 
   TDiagramBlock=class
@@ -51,12 +49,14 @@ type
     procedure setData(s: TStrings);
     procedure dblClick(xpos,ypos: integer);
 
-    function IsAtBorder(xpos, ypos: integer; var side: TDiagramBlockSide): boolean;
+    function IsAtBorder(xpos, ypos: integer; out side: TDiagramBlockSide): boolean;
     function IsInsideHeader(xpos,ypos: integer):boolean;
     function IsInsideBody(xpos,ypos: integer):boolean;
     function IsInside(xpos,ypos: integer):boolean;
     procedure resize(xpos, ypos: integer; side: TDiagramBlockSide);
     function getConnectPosition(side: TDiagramBlockSide; position: integer=0): tpoint;
+    function getClosestSideDescriptor(xpos,ypos: integer): TDiagramBlockSideDescriptor;
+
     procedure render;
     property OnDestroy: TNotifyEvent read fOnDestroy write fOnDestroy;
     constructor create(graphConfig: TDiagramConfig);
@@ -77,11 +77,6 @@ type
   end;
 
 implementation
-
-constructor TDiagramBlockSideDescriptor.init;
-begin
-  sideposition:=0;
-end;
 
 function TDiagramBlock.getBackgroundColor: TColor;
 begin
@@ -190,7 +185,7 @@ begin
   result:=PtInRect(r,point(xpos,ypos));
 end;
 
-function TDiagramBlock.IsAtBorder(xpos, ypos: integer; var side: TDiagramBlockSide): boolean;
+function TDiagramBlock.IsAtBorder(xpos, ypos: integer; out side: TDiagramBlockSide): boolean;
 var
   borderthickness: integer;
 begin
@@ -247,6 +242,162 @@ begin
     side:=dbsLeft;
     exit(true);
   end;
+end;
+
+function TDiagramBlock.getClosestSideDescriptor(xpos,ypos: integer): TDiagramBlockSideDescriptor;
+var
+  r: TDiagramBlockSideDescriptor;
+
+  cx,cy: integer;
+
+  p: tpoint;
+  closestpointdistance: ValReal;
+  distance: ValReal;
+begin
+  r.block:=self;
+  r.sideposition:=0;
+  cx:=x+width div 2;
+  cy:=y+height div 2;
+
+  //calculate the side and position closest to the given x/ypos
+
+  if ypos<y then
+  begin
+    //top
+    if xpos<x then
+    begin
+      //topleft
+      r.side:=dbsTopLeft;
+    end
+    else
+    if xpos>x+width then
+    begin
+      //topright
+      r.side:=dbsTopRight;
+    end
+    else
+    begin
+      //top
+      r.side:=dbsTop;
+      r.sideposition:=xpos-cx;
+    end;
+  end
+  else
+  if ypos>y+height then
+  begin
+    //bottom
+    if xpos<x then
+    begin
+      //bottomleft
+      r.side:=dbsBottomLeft;
+    end
+    else
+    if xpos>x+width then
+    begin
+      //bottomright
+      r.side:=dbsBottomRight;
+    end
+    else
+    begin
+      //bottom
+      r.side:=dbsBottom;
+      r.sideposition:=xpos-cx;
+    end;
+  end
+  else
+  begin
+    //left/right
+    if xpos<x then
+    begin
+      //left
+      r.side:=dbsLeft;
+      r.sideposition:=ypos-cy;
+    end
+    else
+    if xpos>x+width then
+    begin
+      //right
+      r.side:=dbsRight;
+      r.sideposition:=ypos-cy;
+    end
+    else
+    begin
+      //inside
+      //calculate which side is closest
+      //top
+      p:=point(xpos,ypos);
+      closestpointdistance:=point(xpos,y).Distance(p);
+      r.side:=dbsTop;
+      r.sideposition:=xpos-cx;
+
+
+
+      //topright
+      distance:=point(x+width,y).Distance(p);
+      if distance<closestpointdistance then
+      begin
+        closestpointdistance:=distance;
+        r.side:=dbsTopRight;
+        r.sideposition:=0;
+      end;
+
+      //right
+      distance:=point(x+width,ypos).Distance(p);
+      if distance<closestpointdistance then
+      begin
+        closestpointdistance:=distance;
+        r.side:=dbsRight;
+        r.sideposition:=ypos-cy;
+      end;
+
+      //bottomright
+      distance:=point(x+width,y+height).Distance(p);
+      if distance<closestpointdistance then
+      begin
+        closestpointdistance:=distance;
+        r.side:=dbsBottomRight;
+        r.sideposition:=0;
+      end;
+
+      //bottom
+      distance:=point(xpos,y+height).Distance(p);
+      if distance<closestpointdistance then
+      begin
+        closestpointdistance:=distance;
+        r.side:=dbsBottom;
+        r.sideposition:=xpos-cx;
+      end;
+
+      //bottomleft
+      distance:=point(x,y+height).Distance(p);
+      if distance<closestpointdistance then
+      begin
+        closestpointdistance:=distance;
+        r.side:=dbsBottomRight;
+        r.sideposition:=0;
+      end;
+
+      //left
+      distance:=point(x,ypos).Distance(p);
+      if distance<closestpointdistance then
+      begin
+        closestpointdistance:=distance;
+        r.side:=dbsLeft;
+        r.sideposition:=ypos-cy;
+      end;
+
+      //topleft
+      distance:=point(x,y).Distance(p);
+      if distance<closestpointdistance then
+      begin
+        closestpointdistance:=distance;
+        r.side:=dbsTopLeft;
+        r.sideposition:=0;
+      end;
+    end;
+  end;
+
+  result:=r;
 end;
 
 function TDiagramBlock.getConnectPosition(side: TDiagramBlockSide; position: integer=0): tpoint;

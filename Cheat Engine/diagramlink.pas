@@ -9,7 +9,7 @@ uses
 
 type
 
-  TGraphLink=class
+  TDiagramLink=class
   private
     config: TDiagramConfig;
     origin: TDiagramBlockSideDescriptor;
@@ -50,17 +50,21 @@ type
 
     procedure createPoint(p: tpoint);
     function isOverLine(x,y: integer): boolean;
+    function isAtAttachPoint(x,y: integer; out bsd: TDiagramBlockSideDescriptor): boolean;
     function getPointIndexAt(x,y: integer): integer;
     function getPoint(index: integer): TPoint;
     function getPointCount: integer;
 
     function hasLinkToBlock(b: TDiagramBlock):boolean;
     procedure updatePointPosition(index: integer; newpos: TPoint);
+
+    procedure updateSide(descriptor: TDiagramBlockSideDescriptor);
+
     procedure RemoveAllPlotPoints;
     procedure ResetToDefault;
 
     property PlotPoints[index: integer]: TPoint read getPoint write updatePointPosition;
-    constructor create(graphconfig: TDiagramConfig; _origin,_destination: TDiagramBlockSideDescriptor);
+    constructor create(diagramconfig: TDiagramConfig; _origin,_destination: TDiagramBlockSideDescriptor);
     destructor destroy; override;
   published
     property LineColor: TColor read getLineColor write setLineColor;
@@ -74,7 +78,7 @@ implementation
 
 uses math, types;
 
-function TGraphLink.getLineThickness: integer;
+function TDiagramLink.getLineThickness: integer;
 begin
   if useCustomLineThickness then
     result:=fCustomLineThickness
@@ -82,14 +86,14 @@ begin
     result:=config.LineThickness;
 end;
 
-procedure TGraphLink.setLineThickness(i: integer);
+procedure TDiagramLink.setLineThickness(i: integer);
 begin
   fCustomLineThickness:=i;
   useCustomLineThickness:=true;
 end;
 
 
-function TGraphLink.getLineColor: TColor;
+function TDiagramLink.getLineColor: TColor;
 begin
   if useCustomColor then
     result:=fCustomColor
@@ -97,13 +101,13 @@ begin
     result:=config.LineColor;
 end;
 
-procedure TGraphLink.setLineColor(c: TColor);
+procedure TDiagramLink.setLineColor(c: TColor);
 begin
   fCustomColor:=c;
   useCustomColor:=true;
 end;
 
-function TGraphLink.getArrowStyles: TArrowStyles;
+function TDiagramLink.getArrowStyles: TArrowStyles;
 begin
   if useCustomArrowStyles then
     result:=fCustomArrowStyles
@@ -111,7 +115,7 @@ begin
     result:=config.arrowStyles;
 end;
 
-procedure TGraphLink.setArrowStyles(s: TArrowStyles);
+procedure TDiagramLink.setArrowStyles(s: TArrowStyles);
 begin
   fCustomArrowStyles:=s;
   useCustomArrowStyles:=true;
@@ -119,7 +123,7 @@ end;
 
 
 
-function TGraphLink.getYPosFromX(x: single; linestart: tpoint; lineend: tpoint): double;
+function TDiagramLink.getYPosFromX(x: single; linestart: tpoint; lineend: tpoint): double;
 var
   deltax,deltay: integer;
   slope: double;
@@ -138,7 +142,7 @@ begin
   end;
 end;
 
-function TGraphLink.getXPosFromY(y: single; linestart: tpoint; lineend: tpoint): double;
+function TDiagramLink.getXPosFromY(y: single; linestart: tpoint; lineend: tpoint): double;
 var
   deltax,deltay: integer;
   slope: double;
@@ -156,7 +160,7 @@ begin
   // config.canvas.Pixels[trunc(result),y]:=$00ff00;
 end;
 
-function TGraphLink.getCenterPoint(linestart: tpoint; lineend: tpoint): tpoint;
+function TDiagramLink.getCenterPoint(linestart: tpoint; lineend: tpoint): tpoint;
 //calculate the center between two lines and return the x,y position
 var x1,x2: integer;
   _x: single;
@@ -173,7 +177,7 @@ begin
     result.y:=trunc(getYPosFromX(_x,linestart,lineend));
 end;
 
-function TGraphLink.ptInLine(pt: tpoint; linestart: tpoint; lineend: tpoint): boolean;
+function TDiagramLink.ptInLine(pt: tpoint; linestart: tpoint; lineend: tpoint): boolean;
 var
   r: trect;
   a: double;
@@ -215,7 +219,7 @@ const arrow:array [0..2] of TPoint =(
   (x:-5;y:5)
 );
 
-function TGraphLink.getCenterAdjustForBorderSide(side: TDiagramBlockSide): TPoint;
+function TDiagramLink.getCenterAdjustForBorderSide(side: TDiagramBlockSide): TPoint;
 begin
   case side of
     dbsTop: exit(point(0,-5));
@@ -230,7 +234,7 @@ begin
   end;
 end;
 
-function TGraphLink.getAngle(originpoint: TPoint; destinationpoint: TPoint): single;
+function TDiagramLink.getAngle(originpoint: TPoint; destinationpoint: TPoint): single;
 var dx,dy: integer;
 begin
   dx:=destinationpoint.x-originpoint.x;
@@ -239,7 +243,7 @@ begin
   result:=arctan2(dy,dx);
 end;
 
-procedure TGraphLink.DrawArrow(originpoint: TPoint; rot: single; centerAdjust: TPoint);
+procedure TDiagramLink.DrawArrow(originpoint: TPoint; rot: single; centerAdjust: TPoint);
 var
   c: tcanvas;
 
@@ -270,7 +274,7 @@ begin
   c.Polygon(arr);
 end;
 
-procedure TGraphLink.drawArrowInCenter;
+procedure TDiagramLink.drawArrowInCenter;
 {
 get the full distance of the all lines between origin and destination
 get the half of this
@@ -353,7 +357,7 @@ begin
 
 end;
 
-procedure TGraphLink.render;
+procedure TDiagramLink.render;
 var
   oldw: integer;
   oldc: tcolor;
@@ -480,7 +484,7 @@ begin
   c.pen.color:=oldc;
 end;
 
-function TGraphLink.isOverLine(x,y: integer): boolean;
+function TDiagramLink.isOverLine(x,y: integer): boolean;
 var
   i: integer;
   start: tpoint;
@@ -499,7 +503,28 @@ begin
   result:=ptInLine(point(x,y),start,dest);
 end;
 
-function TGraphLink.getPointIndexAt(x,y: integer): integer;
+function TDiagramLink.isAtAttachPoint(x,y: integer; out bsd: TDiagramBlockSideDescriptor): boolean;
+var
+  ap: Tpoint;
+begin
+  ap:=origin.block.getConnectPosition(origin.side,origin.sideposition);
+  if ap.Distance(point(x,y))<=config.PlotPointSize then
+  begin
+    bsd:=origin;
+    exit(true);
+  end;
+
+  ap:=destination.block.getConnectPosition(destination.side,destination.sideposition);
+  if ap.Distance(point(x,y))<=config.PlotPointSize then
+  begin
+    bsd:=destination;
+    exit(true);
+  end;
+
+  exit(false);
+end;
+
+function TDiagramLink.getPointIndexAt(x,y: integer): integer;
 var
   p: tpoint;
   i: integer;
@@ -517,7 +542,7 @@ end;
 
 
 
-procedure TGraphLink.createPoint(p: tpoint);
+procedure TDiagramLink.createPoint(p: tpoint);
 var
   i: integer;
   start: tpoint;
@@ -560,51 +585,65 @@ begin
   points[index]:=p;
 end;
 
-procedure TGraphLink.RemoveAllPlotPoints;
+procedure TDiagramLink.RemoveAllPlotPoints;
 begin
   setlength(points,0);
 end;
 
-function TGraphLink.getPointCount: integer;
+function TDiagramLink.getPointCount: integer;
 begin
   result:=length(points);
 end;
 
-procedure TGraphLink.updatePointPosition(index: integer; newpos: TPoint);
+procedure TDiagramLink.updatePointPosition(index: integer; newpos: TPoint);
 begin
   if (index<0) or (index>=length(points)) then exit;
 
   points[index]:=newpos;
 end;
 
-function TGraphLink.getPoint(index: integer): tpoint;
+function TDiagramLink.getPoint(index: integer): tpoint;
 begin
   if (index<0) or (index>=length(points)) then raise exception.create('Index out of bounds');
 
   result:=points[index];
 end;
 
-procedure TGraphLink.ResetToDefault;
+procedure TDiagramLink.updateSide(descriptor: TDiagramBlockSideDescriptor);
+begin
+  if descriptor.block=origin.block then
+  begin
+    origin.side:=descriptor.side;
+    origin.sideposition:=descriptor.sideposition;
+  end
+  else if descriptor.block=destination.block then
+  begin
+    destination.side:=descriptor.side;
+    destination.sideposition:=descriptor.sideposition;
+  end;
+end;
+
+procedure TDiagramLink.ResetToDefault;
 begin
   useCustomColor:=false;
   useCustomLineThickness:=false;
   useCustomArrowStyles:=false;
 end;
 
-function TGraphLink.hasLinkToBlock(b: TDiagramBlock):boolean;
+function TDiagramLink.hasLinkToBlock(b: TDiagramBlock):boolean;
 begin
   result:=(b=origin.block) or (b=destination.block);
 end;
 
-constructor TGraphLink.create(graphconfig: TDiagramConfig; _origin,_destination: TDiagramBlockSideDescriptor);
+constructor TDiagramLink.create(diagramconfig: TDiagramConfig; _origin,_destination: TDiagramBlockSideDescriptor);
 begin
-  config:=graphconfig;
+  config:=diagramconfig;
 
   origin:=_origin;
   destination:=_destination;
 end;
 
-destructor TGraphLink.destroy;
+destructor TDiagramLink.destroy;
 begin
   inherited destroy;
 end;

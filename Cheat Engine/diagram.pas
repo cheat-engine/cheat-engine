@@ -19,8 +19,13 @@ type
     end;
 
     draggedPoint: record
-      link: TGraphLink;
+      link: TDiagramLink;
       pointindex: integer;
+    end;
+
+    draggedSideAttachPoint: record
+      block: TDiagramBlock;
+      link: TDiagramLink;
     end;
 
     resizing: record
@@ -32,12 +37,14 @@ type
     fAllowUserToMovePlotPoints: boolean;
     fAllowUserToResizeBlocks: boolean;
     fAllowUserToMoveBlocks: boolean;
+    fAllowUserToChangeAttachPoints: boolean;
 
     graphConfig: TDiagramConfig;
     procedure NotifyBlockDestroy(sender: TObject);
     procedure updateBlockDragPosition(xpos,ypos: integer);
     procedure updateResizePosition(xpos,ypos: integer);
     procedure updatePointDragPosition(xpos,ypos: integer);
+    procedure updateAttachPointDragPosition(xpos,ypos: integer);
     function getLineThickness: integer;
     procedure setLineThickness(t: integer);
     function getDefaultLineColor: TColor;
@@ -61,7 +68,7 @@ type
     //procedure DblClick; override;
   public
     function createBlock: TDiagramBlock;
-    function addConnection(origin, destination: TDiagramBlockSideDescriptor): TGraphLink;
+    function addConnection(origin, destination: TDiagramBlockSideDescriptor): TDiagramLink;
     constructor Create(TheOwner: TComponent); override;
     destructor Destroy; override;
   published
@@ -73,6 +80,7 @@ type
     property AllowUserToMovePlotPoints: boolean read fAllowUserToMovePlotPoints write fAllowUserToMovePlotPoints;
     property AllowUserToResizeBlocks: boolean read fAllowUserToResizeBlocks write fAllowUserToResizeBlocks;
     property AllowUserToMoveBlocks: boolean read fAllowUserToMoveBlocks write fAllowUserToMoveBlocks;
+    property allowUserToChangeAttachPoints: boolean read fallowUserToChangeAttachPoints write fallowUserToChangeAttachPoints;
 
     property ArrowStyle: TArrowStyles read getArrowStyles write setArrowStyles;
     property BlockBackground: TColor read getBlockBackground write setBlockBackground;
@@ -155,7 +163,7 @@ end;
 
 procedure TDiagram.NotifyBlockDestroy(sender: TObject);
 var
-  l: TGraphLink;
+  l: TDiagramLink;
   b: TDiagramBlock;
   i: integer;
 begin
@@ -167,7 +175,7 @@ begin
     i:=0;
     while i<links.count do
     begin
-      l:=TGraphLink(links[i]);
+      l:=TDiagramLink(links[i]);
       if l.hasLinkToBlock(b) then
       begin
         l.free;
@@ -185,11 +193,17 @@ var
   i: integer;
   b:TDiagramBlock;
   side: TDiagramBlockSide;
-  l: TGraphLink;
+  l: TDiagramLink;
+
+  bsd: TDiagramBlockSideDescriptor;
 
   pointindex: integer;
+
+  startedresizing: boolean;
 begin
   inherited mousedown(Button, Shift, X,Y);
+
+  startedresizing:=false;
   for i:=blocks.count-1 downto 0 do
   begin
     b:=TDiagramBlock(blocks[i]);
@@ -204,13 +218,18 @@ begin
     begin
       resizing.block:=b;
       resizing.side:=side;
-      exit;
+      startedresizing:=true; //just gotta check the lines first
+
+      if allowUserToChangeAttachPoints then
+        break
+      else
+        exit;
     end;
   end;
 
   for i:=links.count-1 downto 0 do
   begin
-    l:=TGraphLink(links[i]);
+    l:=TDiagramLink(links[i]);
 
     if AllowUserToMovePlotPoints then
     begin
@@ -221,6 +240,14 @@ begin
         draggedPoint.PointIndex:=PointIndex;
         exit;
       end;
+    end;
+
+    if allowUserToChangeAttachPoints and l.isAtAttachPoint(x,y, bsd) then
+    begin
+      if startedresizing then resizing.block:=nil; //nope, attachpoint changing takes priority
+      draggedSideAttachPoint.block:=bsd.block;
+      draggedSideAttachPoint.link:=l;
+      exit;
     end;
 
     if allowUserToCreatePlotPoints and l.isOverLine(x,y) then
@@ -243,6 +270,18 @@ begin
 
 end;
 
+procedure TDiagram.updateAttachPointDragPosition(xpos,ypos: integer);
+var b: TDiagramBlockSideDescriptor;
+begin
+  //get the nearest attachpoint
+  b:=draggedSideAttachPoint.block.getClosestSideDescriptor(xpos,ypos);
+  if b.block=nil then exit; //don't update
+
+  draggedSideAttachPoint.link.updateSide(b);
+
+  repaint;
+end;
+
 procedure TDiagram.updateBlockDragPosition(xpos,ypos: integer);
 begin
   draggedBlock.Block.x:=xpos-draggedBlock.point.x;
@@ -252,8 +291,11 @@ end;
 
 procedure TDiagram.updatePointDragPosition(xpos,ypos: integer);
 begin
-  draggedPoint.link.updatePointPosition(draggedPoint.pointindex, point(xpos,ypos));
-  repaint;
+  if draggedPoint.link<>nil then
+  begin
+    draggedPoint.link.updatePointPosition(draggedPoint.pointindex, point(xpos,ypos));
+    repaint;
+  end;
 end;
 
 procedure TDiagram.updateResizePosition(xpos,ypos: integer);
@@ -262,7 +304,6 @@ begin
   if resizing.block=nil then exit;
 
   resizing.block.Resize(xpos,ypos,resizing.side);
-
 
   repaint;
 end;
@@ -309,6 +350,13 @@ begin
     draggedpoint.link:=nil;
   end;
 
+  if draggedSideAttachPoint.link<>nil then
+  begin
+    updateAttachPointDragPosition(x,y);
+    draggedSideAttachPoint.link:=nil;
+    draggedSideAttachPoint.block:=nil;
+  end;
+
 
 end;
 
@@ -317,7 +365,8 @@ var
   i: integer;
   b: TDiagramBlock;
   borderside: TDiagramBlockSide;
-  l: TGraphLink;
+  bsd: TDiagramBlockSideDescriptor;
+  l: TDiagramLink;
 
   newcursor: TCursor;
 begin
@@ -334,7 +383,8 @@ begin
   if draggedPoint.link<>nil then
     updatePointDragPosition(x,y);
 
-
+  if draggedSideAttachPoint.link<>nil then
+    updateAttachPointDragPosition(x,y);
 
 
   //check if the mouse is over a block
@@ -366,7 +416,7 @@ begin
   //check if over a line
   for i:=links.count-1 downto 0 do
   begin
-    l:=TGraphLink(links[i]);
+    l:=TDiagramLink(links[i]);
     if AllowUserToMovePlotPoints and (l.getPointIndexAt(x,y)<>-1) then
     begin
       newcursor:=crSize;
@@ -377,6 +427,10 @@ begin
     if AllowUserToCreatePlotPoints and l.isOverLine(x,y) then
     begin
       newcursor:=crCross;
+
+      if allowUserToChangeAttachPoints and l.isAtAttachPoint(x,y,bsd) then
+        newcursor:=crSize;
+
       break;
     end;
   end;
@@ -395,7 +449,7 @@ begin
 
   //draw the lines
   for i:=0 to links.count-1 do
-    TGraphLink(links[i]).render;
+    TDiagramLink(links[i]).render;
 
 
   //draw the visible blocks
@@ -416,10 +470,10 @@ begin
   result:=b;
 end;
 
-function TDiagram.addConnection(origin, destination: TDiagramBlockSideDescriptor): TGraphLink;
-var l: TGraphLink;
+function TDiagram.addConnection(origin, destination: TDiagramBlockSideDescriptor): TDiagramLink;
+var l: TDiagramLink;
 begin
-  l:=TGraphLink.create(graphconfig,origin, destination);
+  l:=TDiagramLink.create(graphconfig,origin, destination);
   links.add(l);
 
   result:=l;
@@ -436,6 +490,7 @@ begin
   fAllowUserToMovePlotPoints:=true;
   fAllowUserToResizeBlocks:=true;
   fAllowUserToMoveBlocks:=true;
+  fAllowUserToChangeAttachPoints:=true;
 
   //scrollx:=10;
   inherited create(TheOwner);
