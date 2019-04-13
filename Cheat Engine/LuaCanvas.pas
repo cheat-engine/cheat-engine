@@ -15,7 +15,7 @@ procedure drawWithMask(DestCanvas:TCanvas; Dx,Dy,Dw,Dh:integer; graph:TRasterIma
 
 implementation
 
-uses luaclass, luaobject;
+uses luaclass, luaobject, textrender;
 
 
 
@@ -167,6 +167,26 @@ begin
     text:=lua_tostring(L, -1);
     canvas.TextOut(x,y,text);
   end;
+end;
+
+function canvas_textRect(L: PLua_State): integer; cdecl;
+var
+  canvas: TCanvas;
+  rect: TRect;
+  x,y: integer;
+  text: string;
+begin
+  result:=0;
+  canvas:=luaclass_getClassObject(L);
+  if lua_gettop(L)>=4 then
+  begin
+    rect:=lua_toRect(L,1);
+    x:=lua_tointeger(L,2);
+    y:=lua_tointeger(L,3);
+    text:=Lua_ToString(L,4);
+    renderFormattedText(canvas,rect,x,y,text);
+  end;
+
 end;
 
 function canvas_getTextWidth(L: PLua_State): integer; cdecl;
@@ -456,6 +476,7 @@ begin
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'rect', canvas_rect);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'fillRect', canvas_fillRect);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'textOut', canvas_textOut);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'textRect', canvas_textRect);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'getTextWidth', canvas_getTextWidth);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'getTextHeight', canvas_getTextHeight);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'getPixel', canvas_getPixel);
@@ -469,6 +490,7 @@ begin
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'getPenPosition', canvas_getPenPosition);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'setPenPosition', canvas_setPenPosition);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'getClipRect', canvas_getClipRect);
+
 
   Luaclass_addPropertyToTable(L, metatable, userdata, 'Brush', canvas_getBrush, nil);
   Luaclass_addPropertyToTable(L, metatable, userdata, 'Pen', canvas_getPen, nil);
