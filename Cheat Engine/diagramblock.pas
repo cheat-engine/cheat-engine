@@ -5,15 +5,19 @@ unit diagramblock;
 interface
 
 uses
-  Classes, SysUtils, Controls, types, DiagramTypes, Graphics, textrender;
+  Classes, SysUtils, Controls, types, DiagramTypes, Graphics, textrender, ComCtrls;
 
 type
+
   TDiagramBlock=class;
   TDiagramBlockSideDescriptor=record
     block: TDiagramBlock;
     side: TDiagramBlockSide;
     sideposition: integer; //0 is center, -1 is one pixel to the left, 1 is one pixel to the rigth
   end;
+
+  TDBCustomDrawEvent=procedure(Sender: TDiagramBlock; const ARect: TRect; Stage: TCustomDrawStage; var DefaultDraw: Boolean) of object;
+
 
   TDiagramBlock=class
   private
@@ -26,6 +30,8 @@ type
 
     fOnDoubleClickHeader: TNotifyEvent;
     fOnDoubleClickBody: TNotifyEvent;
+    fOnRenderHeader: TDBCustomDrawEvent;
+    fOnRenderBody: TDBCustomDrawEvent;
 
     data: tstringlist;
 
@@ -43,6 +49,7 @@ type
     procedure setBackgroundColor(c: TColor);
     function getDefaultTextColor: TColor;
     procedure setDefaultTextColor(c: TColor);
+    function getCanvas: TCanvas;
   public
 
     function getData: TStrings;
@@ -62,6 +69,7 @@ type
     constructor create(graphConfig: TDiagramConfig);
     destructor destroy; override;
   published
+    property Canvas: TCanvas read getCanvas;
     property X: integer read fx write fx;
     property Y: integer read fy write fy;
     property Width: integer read fwidth write fwidth;
@@ -73,6 +81,8 @@ type
     property Name: string read fname write fname;
     property OnDoubleClickHeader: TNotifyEvent read fOnDoubleClickHeader write fOnDoubleClickHeader;
     property OnDoubleClickBody: TNotifyEvent read fOnDoubleClickBody write fOnDoubleClickBody;
+    property OnRenderHeader: TDBCustomDrawEvent read fOnRenderHeader write fOnRenderHeader;
+    property OnRenderBody: TDBCustomDrawEvent read fOnRenderBody write fOnRenderBody;
 
   end;
 
@@ -106,20 +116,27 @@ begin
   useCustomDefaultTextColor:=true;
 end;
 
+function TDiagramBlock.getCanvas: TCanvas;
+begin
+  result:=config.canvas;
+end;
+
 procedure TDiagramBlock.render;
 var
   c: TCanvas;
   oldbgc: TColor;
   oldfontcolor: TColor;
+  renderOriginal: boolean;
 begin
   //render the block at the given location
   c:=config.canvas;
 
   oldbgc:=c.brush.color;
   c.brush.color:=BackgroundColor;
-  c.FillRect(x,y,x+width,y+height);
 
+  c.FillRect(x,y,x+width,y+height);
   c.Rectangle(x,y,x+width,y+height);
+
 
   if captionheight=0 then
     captionheight:=c.GetTextHeight('XxYyJjQq')+4;
@@ -129,12 +146,26 @@ begin
   oldfontcolor:=c.font.color;
   c.font.color:=defaultTextColor;
 
+  renderOriginal:=true;
+  if assigned(fOnRenderHeader) then
+    fOnRenderHeader(self,rect(x,y,x+width-1,y+captionheight),cdPrePaint, renderOriginal);
 
-  renderFormattedText(c, rect(x,y,x+width,y+captionheight),x+1,y,caption);
-  //c.TextRect(rect(x,y,x+width,y+captionheight),x,y,caption);
+  if renderOriginal then
+    renderFormattedText(c, rect(x,y,x+width-1,y+captionheight),x+1,y,caption);
 
-  renderFormattedText(c, rect(x,y+captionheight,x+width,y+height-2),x+1,y+captionheight,data.text);
-  //c.TextRect(rect(x,y+captionheight,x+width,y+height-2),x,y+captionheight,data.text);
+  if assigned(fOnRenderHeader) then
+    fOnRenderHeader(self,rect(x,y,x+width-1,y+captionheight),cdPostPaint, renderOriginal);
+
+  renderOriginal:=true;
+  if assigned(fOnRenderBody) then
+    fOnRenderBody(self,rect(x,y,x+width-1,y+captionheight),cdPrePaint, renderOriginal);
+
+  if renderOriginal then
+    renderFormattedText(c, rect(x,y+captionheight,x+width-1,y+height-2),x+1,y+captionheight,data.text);
+
+  if assigned(fOnRenderBody) then
+    fOnRenderBody(self,rect(x,y,x+width-1,y+captionheight),cdPostPaint, renderOriginal);
+
 
   c.font.color:=oldfontcolor;
   c.brush.color:=oldbgc;
@@ -329,7 +360,6 @@ begin
       closestpointdistance:=point(xpos,y).Distance(p);
       r.side:=dbsTop;
       r.sideposition:=xpos-cx;
-
 
 
       //topright
