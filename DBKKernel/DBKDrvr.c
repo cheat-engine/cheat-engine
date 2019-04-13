@@ -1,4 +1,4 @@
-#pragma warning( disable: 4100 4101 4103)
+#pragma warning( disable: 4100 4101 4103 4189)
 
 #include "DBKFunc.h"
 #include <ntifs.h>
@@ -662,7 +662,10 @@ void UnloadDriver(PDRIVER_OBJECT DriverObject)
 
 #ifndef CETC_RELEASE
 	DbgPrint("DeviceString=%S\n",uszDeviceString.Buffer);
-	DbgPrint("IoDeleteSymbolicLink: %x\n", IoDeleteSymbolicLink(&uszDeviceString));
+	{
+		NTSTATUS r = IoDeleteSymbolicLink(&uszDeviceString);
+		DbgPrint("IoDeleteSymbolicLink: %x\n", r);
+	}
 	ExFreePool(BufDeviceString);
 #endif
 
