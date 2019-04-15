@@ -175,7 +175,6 @@ var
     slope: double;
     bsd: TDiagramBlockSideDescriptor;
   end;
-  ai,nr: integer;
 
   s1,s2: TDiagramBlockSideDescriptor;
   destination: TDiagramBlockSideDescriptor;
@@ -192,10 +191,8 @@ var
   distance: double;
 
   dx,dy: integer;
-  dx2,dy2: integer;
   inserted: boolean;
 
-  split: double;
   slope: double;
 
   procedure insertAt(arrayindex: integer; index: integer);
@@ -554,7 +551,6 @@ begin
 end;
 
 procedure TDiagram.updateResizePosition(xpos,ypos: integer);
-var dx,dy: integer;
 begin
   if resizing.block=nil then exit;
 
