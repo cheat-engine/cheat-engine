@@ -43,6 +43,4 @@ add  access rights for the windows app user to pipes
 formdesigner: copy from outside a panel and paste into the panel will paste in the old location
 a timer causing a lua_error will eventually show c stack overflow
 
-if a memoryregion is selected in the disassembler or hexview then on "file->save memory region" fill in this region
-
 dbvm: add maps and use them for cloaked regions

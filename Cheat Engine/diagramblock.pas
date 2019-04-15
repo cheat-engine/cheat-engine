@@ -45,6 +45,9 @@ type
     useCustomDefaultTextColor: boolean;
     CustomDefaultTextColor: Tcolor;
 
+    fAutoSide: boolean;
+    fAutoSideDistance: integer;
+
     function getBackgroundColor: TColor;
     procedure setBackgroundColor(c: TColor);
     function getDefaultTextColor: TColor;
@@ -79,6 +82,8 @@ type
     property BackgroundColor: TColor read getBackgroundColor write setBackgroundColor;
     property DefaultTextColor: TColor read getDefaultTextColor write setDefaultTextColor;
     property Name: string read fname write fname;
+    property AutoSide: boolean read fAutoSide write fAutoSide;
+    property AutoSideDistance: integer read fAutoSideDistance write fAutoSideDistance;
     property OnDoubleClickHeader: TNotifyEvent read fOnDoubleClickHeader write fOnDoubleClickHeader;
     property OnDoubleClickBody: TNotifyEvent read fOnDoubleClickBody write fOnDoubleClickBody;
     property OnRenderHeader: TDBCustomDrawEvent read fOnRenderHeader write fOnRenderHeader;
@@ -130,6 +135,7 @@ var
 begin
   //render the block at the given location
   c:=config.canvas;
+
 
   oldbgc:=c.brush.color;
   c.brush.color:=BackgroundColor;

@@ -59,6 +59,8 @@ type
 
     function getBlockBackground: TColor;
     procedure setBlockBackground(c: TColor);
+
+    procedure DoAutoSideUpdate;
   protected
     procedure paint; override;
     procedure MouseMove(Shift: TShiftState; X, Y: Integer); override;
@@ -68,7 +70,8 @@ type
     //procedure DblClick; override;
   public
     function createBlock: TDiagramBlock;
-    function addConnection(origin, destination: TDiagramBlockSideDescriptor): TDiagramLink;
+    function addConnection(origin, destination: TDiagramBlockSideDescriptor): TDiagramLink; overload;
+    function addConnection(originBlock, destinationBlock: TDiagramBlock): TDiagramLink; overload;
     constructor Create(TheOwner: TComponent); override;
     destructor Destroy; override;
   published
@@ -160,6 +163,254 @@ begin
     repaint;
 end;
 
+procedure TDiagram.DoAutoSideUpdate;
+var
+  i,j,k: integer;
+  b: TDiagramBlock;
+  l: TDiagramLink;
+
+  sides: array [0..3] of array of record
+    link: TDiagramLink;
+    destp: TPoint;
+    slope: double;
+    bsd: TDiagramBlockSideDescriptor;
+  end;
+  ai,nr: integer;
+
+  s1,s2: TDiagramBlockSideDescriptor;
+  destination: TDiagramBlockSideDescriptor;
+
+  dp: tpoint;
+  op: tpoint;
+
+  bsd: TDiagramBlockSideDescriptor;
+
+  closestSide: TDiagramBlockSide;
+  closestSideDistance: double;
+  closestPoint: TPoint;
+
+  distance: double;
+
+  dx,dy: integer;
+  dx2,dy2: integer;
+  inserted: boolean;
+
+  split: double;
+  slope: double;
+
+  procedure insertAt(arrayindex: integer; index: integer);
+  var ind: integer;
+  begin
+    setlength(sides[arrayindex],length(sides[arrayindex])+1);
+    for ind:=length(sides[arrayindex])-1 downto index+1 do
+      sides[arrayindex][ind]:=sides[arrayindex][ind-1];
+
+    sides[arrayindex][index].destp:=closestpoint;
+    sides[arrayindex][index].slope:=slope;
+    sides[arrayindex][index].bsd:=bsd;
+    sides[arrayindex][index].link:=l;
+
+    inserted:=true;
+  end;
+begin
+  for i:=0 to blocks.count-1 do
+  begin
+    b:=TDiagramBlock(blocks[i]);
+
+
+    if b.AutoSide then
+    begin
+      for j:=0 to 3 do
+        setlength(sides[j],0);
+
+      for j:=0 to links.count-1 do
+      begin
+        l:=TDiagramLink(links[j]);
+
+        if l.hasLinkToBlock(b) then
+        begin
+          destination.block:=nil;
+
+          s1:=l.getOriginDescriptor;
+          s2:=l.getDestinationDescriptor;
+          if b=s1.Block then
+          begin
+            //origin->destination
+            if l.getPointCount>0 then
+              dp:=l.getPoint(0)
+            else
+              destination:=s2
+          end
+          else
+          begin
+            //destination->origin
+            if l.getPointCount>0 then
+              dp:=l.getpoint(l.getpointcount-1)
+            else
+              destination:=s1;
+          end;
+
+          if destination.block<>nil then
+          begin
+            if destination.block.autoside then
+              destination:=destination.block.getClosestSideDescriptor(b.x+b.Width div 2,b.y+b.height div 2);
+
+            dp:=destination.block.getConnectPosition(destination.side,destination.sideposition);
+          end;
+
+          if b.AutoSideDistance<0 then //just directly
+          begin
+            bsd:=b.getClosestSideDescriptor(dp.x,dp.y);
+            l.updateSide(bsd)
+          end
+          else
+          begin
+            //center of sides only , pick the closest one
+            closestside:=dbsTop;
+            closestPoint:=b.getConnectPosition(dbstop);
+            closestSideDistance:=closestPoint.Distance(dp);
+
+            op:=b.getConnectPosition(dbsRight);
+            distance:=op.Distance(dp);
+            if distance<closestSideDistance then
+            begin
+              closestSide:=dbsRight;
+              closestSideDistance:=distance;
+              closestPoint:=op;
+            end;
+
+            op:=b.getConnectPosition(dbsBottom);
+            distance:=op.Distance(dp);
+            if distance<closestSideDistance then
+            begin
+              closestSide:=dbsBottom;
+              closestSideDistance:=distance;
+              closestPoint:=op;
+            end;
+
+            op:=b.getConnectPosition(dbsLeft);
+            distance:=op.Distance(dp);
+            if distance<closestSideDistance then
+            begin
+              closestSide:=dbsLeft;
+              closestSideDistance:=distance;
+              closestpoint:=op;
+            end;
+
+            bsd.block:=b;
+            bsd.side:=closestSide;
+            bsd.sideposition:=0; //set the position after checking number of lines
+
+            l.updateSide(bsd);
+
+            //find the best location in this array
+            //based on the slope of the line
+            dx:=dp.x-closestPoint.x;
+            dy:=dp.y-closestpoint.y;
+
+            inserted:=false;
+
+            case closestSide of  //pick an array index
+              dbsTop:
+              begin
+                //top:
+                if dy=0 then
+                  slope:=99999999
+                else
+                  slope:=(-dx)/dy;
+
+                for k:=0 to length(sides[0])-1 do
+                begin
+                  if slope<sides[0][k].slope then
+                  begin
+                    insertAt(0,k);
+                    break;
+                  end;
+                end;
+                if not inserted then
+                  insertAt(0,length(sides[0]));
+              end;
+
+              dbsRight:
+              begin
+                if dx=0 then
+                  slope:=99999999
+                else
+                  slope:=dy/dx;
+
+                for k:=0 to length(sides[1])-1 do
+                begin
+                  if slope<sides[1][k].slope then
+                  begin
+                    insertAt(1,k);
+                    break;
+                  end;
+                end;
+                if not inserted then
+                  insertAt(1,length(sides[1]));
+              end;
+
+              dbsBottom:
+              begin
+                if dy=0 then
+                  slope:=99999999
+                else
+                  slope:=dx/dy;
+
+                for k:=0 to length(sides[2])-1 do
+                begin
+                  if slope<sides[2][k].slope then
+                  begin
+                    insertAt(2,k);
+                    break;
+                  end;
+                end;
+                if not inserted then
+                  insertAt(2,length(sides[2]));
+              end;
+
+              dbsLeft:
+              begin
+                if dx=0 then
+                  slope:=99999999
+                else
+                  slope:=(-dy)/dx;
+
+                for k:=0 to length(sides[3])-1 do
+                begin
+                  if slope<sides[3][k].slope then
+                  begin
+                    insertAt(3,k);
+                    break;
+                  end;
+                end;
+                if not inserted then
+                  insertAt(3,length(sides[3]));
+              end;
+            end;
+          end; //autodistance<>0
+        end; //haslinktoblock
+      end; //link enum
+
+      //all links have been enumerated and sorted
+
+      if b.AutoSideDistance>=0 then
+      begin
+        //calculate which line comes in front of which one
+        for j:=0 to 3 do
+        begin
+          for k:=0 to length(sides[j])-1 do
+          begin
+            sides[j][k].bsd.sideposition:=trunc((b.AutoSideDistance*k) - ((b.AutoSideDistance*(length(sides[j])-1)) / 2));
+            sides[j][k].link.updateSide(sides[j][k].bsd);
+          end;
+
+        end;
+      end;
+    end;
+  end;
+
+end;
 
 procedure TDiagram.NotifyBlockDestroy(sender: TObject);
 var
@@ -286,6 +537,7 @@ procedure TDiagram.updateBlockDragPosition(xpos,ypos: integer);
 begin
   draggedBlock.Block.x:=xpos-draggedBlock.point.x;
   draggedBlock.Block.y:=ypos-draggedBlock.point.y;
+  DoAutoSideUpdate;
   repaint;
 end;
 
@@ -294,7 +546,10 @@ begin
   if draggedPoint.link<>nil then
   begin
     draggedPoint.link.updatePointPosition(draggedPoint.pointindex, point(xpos,ypos));
+    DoAutoSideUpdate;
     repaint;
+
+
   end;
 end;
 
@@ -304,7 +559,7 @@ begin
   if resizing.block=nil then exit;
 
   resizing.block.Resize(xpos,ypos,resizing.side);
-
+  DoAutoSideUpdate;
   repaint;
 end;
 
@@ -468,6 +723,27 @@ begin
   blocks.Add(b);
 
   result:=b;
+end;
+
+function TDiagram.addConnection(originBlock, destinationBlock: TDiagramBlock): TDiagramLink;
+var
+  o,d: TDiagramBlockSideDescriptor;
+  l: TDiagramlink;
+begin
+  originblock.AutoSide:=true;
+  destinationblock.autoside:=true;
+
+  o.block:=originBlock;
+  o.side:=dbsTop;
+  o.sideposition:=0;
+
+  d.block:=destinationblock;
+  d.side:=dbsTop;
+  d.sideposition:=0;
+  l:=TDiagramLink.create(graphconfig,o, d);
+
+  links.add(l);
+  result:=l;
 end;
 
 function TDiagram.addConnection(origin, destination: TDiagramBlockSideDescriptor): TDiagramLink;

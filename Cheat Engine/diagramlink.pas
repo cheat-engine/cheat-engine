@@ -63,6 +63,9 @@ type
     procedure RemoveAllPlotPoints;
     procedure ResetToDefault;
 
+    function getOriginDescriptor: TDiagramBlockSideDescriptor;
+    function getDestinationDescriptor: TDiagramBlockSideDescriptor;
+
     property PlotPoints[index: integer]: TPoint read getPoint write updatePointPosition;
     constructor create(diagramconfig: TDiagramConfig; _origin,_destination: TDiagramBlockSideDescriptor);
     destructor destroy; override;
@@ -71,7 +74,6 @@ type
     property LineThickness: integer read getLineThickness write setLineThickness;
     property ArrowStyles: TArrowStyles read getArrowStyles write setArrowStyles;
     property Name: string read fName write fName;
-
   end;
 
 implementation
@@ -633,6 +635,16 @@ end;
 function TDiagramLink.hasLinkToBlock(b: TDiagramBlock):boolean;
 begin
   result:=(b=origin.block) or (b=destination.block);
+end;
+
+function TDiagramLink.getOriginDescriptor: TDiagramBlockSideDescriptor;
+begin
+  result:=origin;
+end;
+
+function TDiagramLink.getDestinationDescriptor: TDiagramBlockSideDescriptor;
+begin
+  result:=destination;
 end;
 
 constructor TDiagramLink.create(diagramconfig: TDiagramConfig; _origin,_destination: TDiagramBlockSideDescriptor);
