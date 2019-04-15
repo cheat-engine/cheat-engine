@@ -8,8 +8,8 @@ uses
   cthreads,
   {$ENDIF}{$ENDIF}
   Interfaces, {CEInterfaces,} // this includes the LCL widgetset
-  controls, sysutils, Forms, LazUTF8, dialogs,SynCompletion,MainUnit,CEDebugger,
-  NewKernelHandler, CEFuncProc, ProcessHandlerUnit, symbolhandler,
+  controls, sysutils, Forms, LazUTF8, dialogs, SynCompletion, MainUnit,
+  CEDebugger, NewKernelHandler, CEFuncProc, ProcessHandlerUnit, symbolhandler,
   Assemblerunit, hypermode, byteinterpreter, addressparser, autoassembler,
   ProcessWindowUnit, MainUnit2, Filehandler, dbvmPhysicalMemoryHandler,
   frameHotkeyConfigUnit, formsettingsunit, HotkeyHandler, formhotkeyunit,
@@ -100,7 +100,8 @@ uses
   LuaManualModuleLoader, symbolhandlerstructs, frmOpenFileAsProcessDialogUnit,
   BetterDLLSearchPath, UnexpectedExceptionsHelper, frmExceptionRegionListUnit,
   frmExceptionIgnoreListUnit, frmcodefilterunit, CodeFilterCallOrAllDialog,
-  frmBranchMapperUnit, frmSymbolEventTakingLongUnit, LuaCheckListBox;
+  frmBranchMapperUnit, frmSymbolEventTakingLongUnit, LuaCheckListBox,
+  textrender, diagramtypes, diagramlink, diagramblock, diagram, LuaDiagram;
 
 {$R cheatengine.res}
 {$R manifest.res}  //lazarus now has this build in (but sucks as it explicitly turns of dpi aware)

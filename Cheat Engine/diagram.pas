@@ -60,6 +60,9 @@ type
     function getBlockBackground: TColor;
     procedure setBlockBackground(c: TColor);
 
+    function getBackgroundColor: TColor;
+    procedure setBackGroundColor(c: TColor);
+
     procedure DoAutoSideUpdate;
   protected
     procedure paint; override;
@@ -87,6 +90,9 @@ type
 
     property ArrowStyle: TArrowStyles read getArrowStyles write setArrowStyles;
     property BlockBackground: TColor read getBlockBackground write setBlockBackground;
+    property BackGroundColor: TColor read getBackGroundColor write setBackGroundColor;
+    property Align;
+    property Anchors;
   end;
 
 implementation
@@ -159,6 +165,18 @@ end;
 procedure TDiagram.setBlockBackground(c: TColor);
 begin
   graphconfig.BlockBackground:=c;
+  if parent<>nil then
+    repaint;
+end;
+
+function TDiagram.getBackgroundColor: TColor;
+begin
+  result:=graphConfig.backgroundColor;
+end;
+
+procedure TDiagram.setBackGroundColor(c: TColor);
+begin
+  graphconfig.backgroundColor:=c;
   if parent<>nil then
     repaint;
 end;
@@ -421,18 +439,20 @@ begin
     b:=TDiagramBlock(sender);
 
     i:=0;
-    while i<links.count do
+    if links<>nil then
     begin
-      l:=TDiagramLink(links[i]);
-      if l.hasLinkToBlock(b) then
+      while i<links.count do
       begin
-        l.free;
-        links.Delete(i);
-      end
-      else
-        inc(i);
+        l:=TDiagramLink(links[i]);
+        if l.hasLinkToBlock(b) then
+        begin
+          l.free;
+          links.Delete(i);
+        end
+        else
+          inc(i);
+      end;
     end;
-
   end;
 end;
 
@@ -695,6 +715,8 @@ var i: integer;
 begin
   inherited paint;
 
+  color:=graphconfig.backgroundColor;
+
   if graphconfig.canvas=nil then
     graphconfig.canvas:=canvas;
 
@@ -769,8 +791,21 @@ begin
 end;
 
 destructor TDiagram.Destroy;
+var i: integer;
 begin
+  for i:=0 to links.count-1 do
+    TDiagramLink(links[i]).free;
+
+  links.free;
+  links:=nil;
+
+  for i:=0 to blocks.count-1 do
+    TDiagramBlock(blocks[i]).free;
+
   blocks.Free;
+  blocks:=nil;
+
+  inherited destroy;
 end;
 
 end.

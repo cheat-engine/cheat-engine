@@ -455,7 +455,7 @@ begin
 
 
 
-  while i<length(formattedtext) do
+  while i<=length(formattedtext) do
   begin
     case formattedtext[i] of
       #27:   //escape character

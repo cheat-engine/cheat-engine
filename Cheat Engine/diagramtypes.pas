@@ -43,6 +43,7 @@ begin
   PlotPointSize:=4;
   backgroundcolor:=clGreen;
   drawPlotPoints:=true;
+  BlockBackground:=$d0d0d0;
 
   blockTextColorNoMarkup:=clBlack;
 end;
