@@ -5,7 +5,7 @@ unit diagramtypes;
 interface
 
 uses
-  Classes, SysUtils, Graphics;
+  Classes, SysUtils, Graphics, Controls;
 
 type
   TDiagramBlockSide=(dbsTop, dbsLeft, dbsRight, dbsBottom, dbsTopLeft, dbsTopRight, dbsBottomLeft, dbsBottomRight);
@@ -16,6 +16,7 @@ type
 
   TDiagramConfig=class
   public
+    owner: TCustomControl;
     canvas: TCanvas;
     LineThickness: integer;
     LineColor: TColor;
@@ -29,14 +30,15 @@ type
 
     arrowStyles: TArrowStyles;
 
-    constructor create(_canvas: TCanvas);
+    constructor create(_owner: TCustomControl);
   end;
 
 implementation
 
-constructor TDiagramConfig.create(_canvas: TCanvas);
+constructor TDiagramConfig.create(_owner: TCustomControl);
 begin
-  canvas:=_canvas;
+  owner:=_owner;
+  canvas:=_owner.Canvas;
   LineThickness:=3;
   LineColor:=clBlack;
   PlotPointColor:=3;

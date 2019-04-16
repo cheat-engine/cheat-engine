@@ -143,6 +143,36 @@ begin
   result:=1;
 end;
 
+function diagram_getLink(L: PLua_state): integer; cdecl;
+var
+  diagram: TDiagram;
+  i: integer;
+begin
+  result:=0;
+  diagram:=luaclass_getClassObject(L);
+  if lua_gettop(L)>0 then
+  begin
+    i:=lua_tointeger(L,1);
+    luaclass_newClass(L, diagram.Link[i]);
+    result:=1;
+  end;
+end;
+
+function diagram_getBlock(L: PLua_state): integer; cdecl;
+var
+  diagram: TDiagram;
+  i: integer;
+begin
+  result:=0;
+  diagram:=luaclass_getClassObject(L);
+  if lua_gettop(L)>0 then
+  begin
+    i:=lua_tointeger(L,1);
+    luaclass_newClass(L, diagram.Block[i]);
+    result:=1;
+  end;
+end;
+
 function createDiagram(L: PLua_state): integer; cdecl;
 var
   d: TDiagram;
@@ -158,8 +188,8 @@ begin
   lua_pop(L, lua_gettop(L));
 
   d:=TDiagram.Create(owner);
-  d.width:=10;
-  d.height:=10;
+  d.width:=100;
+  d.height:=100;
 
   if owner<>nil then
     d.Parent:=owner;
@@ -173,12 +203,25 @@ begin
   customcontrol_addMetaData(L, metatable, userdata);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'createBlock', diagram_createBlock);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'addConnection', diagram_addConnection);
+  luaclass_addArrayPropertyToTable(L, metatable, userdata, 'Link', diagram_getLink);
+  luaclass_addArrayPropertyToTable(L, metatable, userdata, 'Block', diagram_getBlock);
 end;
 
 
 procedure initializeLuaDiagram;
+var
+  i: TDiagramBlockSide;
+  ti: pTypeInfo;
 begin
   lua_register(LuaVM, 'createDiagram', createDiagram);
+
+  ti:=typeinfo(TDiagramBlockSide);
+  for i:=dbsTop to dbsBottomRight do
+  begin
+    lua_pushinteger(LuaVM,integer(i));
+    lua_setglobal(LuaVM,pchar(GetEnumName(ti,integer(i))));
+  end;
+
 end;
 
 initialization

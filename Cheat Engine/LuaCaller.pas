@@ -13,7 +13,7 @@ uses
   Classes, Controls, SysUtils, ceguicomponents, forms, lua, lualib, lauxlib,
   comctrls, StdCtrls, CEFuncProc, typinfo, Graphics, disassembler, LuaDisassembler,
   LastDisassembleData, Assemblerunit, commonTypeDefs, ExtCtrls, addresslist,
-  MemoryRecordUnit, math;
+  MemoryRecordUnit, math, diagramblock;
 
 type
   TLuaCaller=class
@@ -88,6 +88,7 @@ type
       procedure HexViewTextRenderEvent(sender: TObject; address: ptruint; var text: string);
       procedure DrawItemEvent(Control: TWinControl; Index: Integer; ARect: TRect; State: TOwnerDrawState);
       procedure MenuDrawItemEvent(Sender: TObject; Canvas: TCanvas; ARect: TRect; State: TOwnerDrawState);
+      procedure DBCustomDrawEvent(Sender: TDiagramBlock; const ARect: TRect; beforePaint: boolean; var DefaultDraw: Boolean);
 
       procedure synchronize;
 
@@ -1511,6 +1512,23 @@ begin
   end;
 end;
 
+procedure TLuaCaller.DBCustomDrawEvent(Sender: TDiagramBlock; const ARect: TRect; beforePaint: boolean; var DefaultDraw: Boolean);
+var
+  oldstack: integer;
+begin
+  oldstack:=lua_gettop(Luavm);
+  try
+    pushFunction;
+    luaclass_newClass(LuaVM, Sender);
+    lua_pushrect(LuaVM, ARect);
+    lua_pushboolean(LuaVM,beforePaint);
+    lua_pcall(LuaVM, 3,1,0);
+    DefaultDraw:=lua_toboolean(LuaVM,-1);
+  finally
+    lua_settop(LuaVM, oldstack);
+  end;
+end;
+
 //----------------------------Lua implementation-----------------------------
 function LuaCaller_NotifyEvent(L: PLua_state): integer; cdecl;
 var
@@ -2530,6 +2548,31 @@ begin
     lua_pop(L, lua_gettop(L));
 end;
 
+function LuaCaller_DBCustomDrawEvent(L: PLua_state): integer; cdecl; //sender, rect, before
+var
+  sender: TDiagramBlock;
+  rect: trect;
+  before: boolean;
+  m: TMethod;
+  r: boolean;
+begin
+  result:=0;
+  if lua_gettop(L)=3 then
+  begin
+    m.code:=lua_touserdata(L, lua_upvalueindex(1));
+    m.data:=lua_touserdata(L, lua_upvalueindex(2));
+    sender:=lua_ToCEUserData(L, 1);
+    rect:=lua_toRect(L,2);
+    before:=lua_toboolean(L,3);
+    r:=before;
+    TDBCustomDrawEvent(m)(sender, rect, before,r);
+
+    lua_pushboolean(L,r);
+    result:=1;
+  end
+  else
+    lua_pop(L, lua_gettop(L));
+end;
 
 procedure registerLuaCall(typename: string; getmethodprop: lua_CFunction; setmethodprop: pointer; luafunctionheader: string);
 var t: TLuaCallData;
@@ -2595,9 +2638,6 @@ initialization
   registerLuaCall('TDrawItemEvent', LuaCaller_DrawItemEvent, pointer(TLuaCaller.DrawItemEvent),'function %s(sender, index, rect, state)'#13#10#13#10'end'#13#10);
   registerLuaCall('TMenuDrawItemEvent', LuaCaller_MenuDrawItemEvent, pointer(TLuaCaller.MenuDrawItemEvent),'function %s(sender, canvas, rect, state)'#13#10#13#10'end'#13#10);
 
-
-
-
-
+  registerLuaCall('TDBCustomDrawEvent', LuaCaller_DBCustomDrawEvent, pointer(TLuaCaller.DBCustomDrawEvent),'function %s(sender, rect, beforedraw)'#13#10#13#10'  return text'#13#10'end'#13#10);
 end.
 

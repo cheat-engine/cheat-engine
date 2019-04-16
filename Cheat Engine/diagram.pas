@@ -39,7 +39,7 @@ type
     fAllowUserToMoveBlocks: boolean;
     fAllowUserToChangeAttachPoints: boolean;
 
-    graphConfig: TDiagramConfig;
+    diagramConfig: TDiagramConfig;
     procedure NotifyBlockDestroy(sender: TObject);
     procedure updateBlockDragPosition(xpos,ypos: integer);
     procedure updateResizePosition(xpos,ypos: integer);
@@ -47,12 +47,12 @@ type
     procedure updateAttachPointDragPosition(xpos,ypos: integer);
     function getLineThickness: integer;
     procedure setLineThickness(t: integer);
-    function getDefaultLineColor: TColor;
-    procedure setDefaultLineColor(c: tcolor);
+    function getLineColor: TColor;
+    procedure setLineColor(c: tcolor);
     function getDrawPlotPoints: boolean;
     procedure setDrawPlotPoints(state: boolean);
-    function getDefaultPlotPointColor: TColor;
-    procedure setDefaultPlotPointColor(c: tcolor);
+    function getPlotPointColor: TColor;
+    procedure setPlotPointColor(c: tcolor);
 
     function getArrowStyles: TArrowStyles;
     procedure setArrowStyles(s: TArrowStyles);
@@ -63,6 +63,10 @@ type
     function getBackgroundColor: TColor;
     procedure setBackGroundColor(c: TColor);
 
+    function getBlockCount: integer;
+    function getBlock(index: integer): TDiagramBlock;
+    function getLinkCount: integer;
+    function getLink(index: integer): TDiagramLink;
     procedure DoAutoSideUpdate;
   protected
     procedure paint; override;
@@ -75,111 +79,164 @@ type
     function createBlock: TDiagramBlock;
     function addConnection(origin, destination: TDiagramBlockSideDescriptor): TDiagramLink; overload;
     function addConnection(originBlock, destinationBlock: TDiagramBlock): TDiagramLink; overload;
+    procedure getConnectionsToBlock(b: TDiagramBlock; list: TList);
+    procedure getConnectionsFromBlock(b: TDiagramBlock; list: TList);
+
+    property Block[index: integer]: TDiagramBlock read getBlock;
+    property Link[index: integer]:TDiagramLink read getLink;
+
     constructor Create(TheOwner: TComponent); override;
     destructor Destroy; override;
   published
     property LineThickness: integer read getLineThickness write setLineThickness;
-    property DefaultLineColor: Tcolor read getDefaultLineColor write setDefaultLineColor;
+    property LineColor: Tcolor read getLineColor write setLineColor;
     property DrawPlotPoints: boolean read getDrawPlotPoints write setDrawPlotPoints;
-    property DefaultPlotPointColor: TColor read getDefaultPlotPointColor write setDefaultPlotPointColor;
+    property PlotPointColor: TColor read getPlotPointColor write setPlotPointColor;
     property AllowUserToCreatePlotPoints: boolean read fAllowUserToCreatePlotPoints write fAllowUserToCreatePlotPoints;
     property AllowUserToMovePlotPoints: boolean read fAllowUserToMovePlotPoints write fAllowUserToMovePlotPoints;
     property AllowUserToResizeBlocks: boolean read fAllowUserToResizeBlocks write fAllowUserToResizeBlocks;
     property AllowUserToMoveBlocks: boolean read fAllowUserToMoveBlocks write fAllowUserToMoveBlocks;
-    property allowUserToChangeAttachPoints: boolean read fallowUserToChangeAttachPoints write fallowUserToChangeAttachPoints;
+    property AllowUserToChangeAttachPoints: boolean read fallowUserToChangeAttachPoints write fallowUserToChangeAttachPoints;
 
-    property ArrowStyle: TArrowStyles read getArrowStyles write setArrowStyles;
+    property ArrowStyles: TArrowStyles read getArrowStyles write setArrowStyles;
     property BlockBackground: TColor read getBlockBackground write setBlockBackground;
     property BackGroundColor: TColor read getBackGroundColor write setBackGroundColor;
+
+    property BlockCount: integer read getBlockCount;
+
+    property LinkCount: integer read getLinkCount;
+
+
+    property Canvas;
+    property OnPaint;
     property Align;
     property Anchors;
+    property OnMouseDown;
+    property OnMouseMove;
+    property OnMouseUp;
+    property OnEnter;
+    property OnExit;
+    property OnClick;
+    property OnDblClick;
+    property OnContextPopup;
+    property PopupMenu;
+    property ShowHint;
+    property OnShowHint;
   end;
 
 implementation
 
-function TDiagram.getDefaultPlotPointColor: TColor;
+function TDiagram.getPlotPointColor: TColor;
 begin
-  result:=graphconfig.PlotPointColor;
+  result:=diagramConfig.PlotPointColor;
 end;
 
-procedure TDiagram.setDefaultPlotPointColor(c: tcolor);
+procedure TDiagram.setPlotPointColor(c: tcolor);
 begin
-  graphconfig.PlotPointColor:=c;
+  diagramConfig.PlotPointColor:=c;
   if parent<>nil then
     repaint;
 end;
 
 function TDiagram.getArrowStyles: TArrowStyles;
 begin
-  result:=graphconfig.ArrowStyles;
+  result:=diagramConfig.ArrowStyles;
 end;
 
 procedure TDiagram.setArrowStyles(s: TArrowStyles);
 begin
-  graphconfig.ArrowStyles:=s;
+  diagramConfig.ArrowStyles:=s;
   if parent<>nil then
     repaint;
 end;
 
 function TDiagram.getDrawPlotPoints: boolean;
 begin
-  result:=graphconfig.drawPlotPoints;
+  result:=diagramConfig.drawPlotPoints;
 end;
 
 procedure TDiagram.setDrawPlotPoints(state: boolean);
 begin
-  graphconfig.drawPlotPoints:=state;
+  diagramConfig.drawPlotPoints:=state;
   if parent<>nil then
     repaint;
 end;
 
-function TDiagram.getDefaultLineColor: tcolor;
+function TDiagram.getLineColor: tcolor;
 begin
-  result:=graphconfig.LineColor;
+  result:=diagramConfig.LineColor;
 end;
 
-procedure TDiagram.setDefaultLineColor(c: tcolor);
+procedure TDiagram.setLineColor(c: tcolor);
 begin
-  graphconfig.linecolor:=c;
+  diagramConfig.linecolor:=c;
   if parent<>nil then
     repaint;
 end;
 
 function TDiagram.getLineThickness: integer;
 begin
-  result:=graphconfig.LineThickness;
+  result:=diagramConfig.LineThickness;
 end;
 
 procedure TDiagram.setLineThickness(t: integer);
 begin
-  graphconfig.LineThickness:=t;
+  diagramConfig.LineThickness:=t;
   if parent<>nil then
     repaint;
 end;
 
 function TDiagram.getBlockBackground: TColor;
 begin
-  result:=graphconfig.BlockBackground;
+  result:=diagramConfig.BlockBackground;
 end;
 
 procedure TDiagram.setBlockBackground(c: TColor);
 begin
-  graphconfig.BlockBackground:=c;
+  diagramConfig.BlockBackground:=c;
   if parent<>nil then
     repaint;
 end;
 
 function TDiagram.getBackgroundColor: TColor;
 begin
-  result:=graphConfig.backgroundColor;
+  result:=diagramConfig.backgroundColor;
 end;
 
 procedure TDiagram.setBackGroundColor(c: TColor);
 begin
-  graphconfig.backgroundColor:=c;
+  diagramConfig.backgroundColor:=c;
   if parent<>nil then
     repaint;
 end;
+
+function TDiagram.getBlockCount: integer;
+begin
+  result:=blocks.Count;
+end;
+
+function TDiagram.getBlock(index: integer): TDiagramBlock;
+begin
+  if (index>=0) and (index<blocks.count) then
+    result:=TDiagramBlock(blocks[index])
+  else
+    result:=nil;
+end;
+
+function TDiagram.getLinkCount: integer;
+begin
+  result:=links.Count;
+end;
+
+function TDiagram.getLink(index: integer): TDiagramLink;
+begin
+  if (index>=0) and (index<links.count) then
+    result:=TDiagramLink(links[index])
+  else
+    result:=nil;
+end;
+
+
 
 procedure TDiagram.DoAutoSideUpdate;
 var
@@ -715,10 +772,10 @@ var i: integer;
 begin
   inherited paint;
 
-  color:=graphconfig.backgroundColor;
+  color:=diagramConfig.backgroundColor;
 
-  if graphconfig.canvas=nil then
-    graphconfig.canvas:=canvas;
+  if diagramConfig.canvas=nil then
+    diagramConfig.canvas:=canvas;
 
   //draw the lines
   for i:=0 to links.count-1 do
@@ -736,7 +793,7 @@ end;
 function TDiagram.createBlock: TDiagramBlock;
 var b: TDiagramBlock;
 begin
-  b:=TDiagramBlock.create(graphconfig);
+  b:=TDiagramBlock.create(diagramConfig);
   b.OnDestroy:=@NotifyBlockDestroy;
   blocks.Add(b);
 
@@ -758,7 +815,7 @@ begin
   d.block:=destinationblock;
   d.side:=dbsTop;
   d.sideposition:=0;
-  l:=TDiagramLink.create(graphconfig,o, d);
+  l:=TDiagramLink.create(diagramConfig,o, d);
 
   links.add(l);
   result:=l;
@@ -767,15 +824,33 @@ end;
 function TDiagram.addConnection(origin, destination: TDiagramBlockSideDescriptor): TDiagramLink;
 var l: TDiagramLink;
 begin
-  l:=TDiagramLink.create(graphconfig,origin, destination);
+  l:=TDiagramLink.create(diagramConfig,origin, destination);
   links.add(l);
 
   result:=l;
 end;
 
+procedure TDiagram.getConnectionsToBlock(b: TDiagramBlock; list: TList);
+var
+  i: integer;
+begin
+  for i:=0 to links.count-1 do
+    if TdiagramLink(links[i]).getDestinationDescriptor.block=b then
+      list.add(links[i]);
+end;
+
+procedure TDiagram.getConnectionsFromBlock(b: TDiagramBlock; list: TList);
+var
+  i: integer;
+begin
+  for i:=0 to links.count-1 do
+    if TdiagramLink(links[i]).getOriginDescriptor.block=b then
+      list.add(links[i]);
+end;
+
 constructor TDiagram.Create(TheOwner: TComponent);
 begin
-  graphConfig:=TDiagramConfig.create(canvas);
+  diagramConfig:=TDiagramConfig.create(self);
 
   blocks:=tlist.create;
   links:=tlist.create;

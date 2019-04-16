@@ -16,7 +16,7 @@ type
     sideposition: integer; //0 is center, -1 is one pixel to the left, 1 is one pixel to the rigth
   end;
 
-  TDBCustomDrawEvent=procedure(Sender: TDiagramBlock; const ARect: TRect; Stage: TCustomDrawStage; var DefaultDraw: Boolean) of object;
+  TDBCustomDrawEvent=procedure(Sender: TDiagramBlock; const ARect: TRect; beforePaint: boolean; var DefaultDraw: Boolean) of object;
 
 
   TDiagramBlock=class
@@ -42,17 +42,18 @@ type
     useCustomBackgroundColor: boolean;
     customBackgroundColor: tcolor;
 
-    useCustomDefaultTextColor: boolean;
-    CustomDefaultTextColor: Tcolor;
+    useCustomTextColor: boolean;
+    CustomTextColor: Tcolor;
 
     fAutoSide: boolean;
     fAutoSideDistance: integer;
 
     function getBackgroundColor: TColor;
     procedure setBackgroundColor(c: TColor);
-    function getDefaultTextColor: TColor;
-    procedure setDefaultTextColor(c: TColor);
+    function getTextColor: TColor;
+    procedure setTextColor(c: TColor);
     function getCanvas: TCanvas;
+    function getOwner: TCustomControl;
   public
 
     function getData: TStrings;
@@ -72,6 +73,7 @@ type
     constructor create(graphConfig: TDiagramConfig);
     destructor destroy; override;
   published
+    property Owner: TCustomControl read getOwner;
     property Canvas: TCanvas read getCanvas;
     property X: integer read fx write fx;
     property Y: integer read fy write fy;
@@ -80,7 +82,7 @@ type
     property Caption: string read fcaption write fcaption;
     property Strings: TStrings read getData write setData;
     property BackgroundColor: TColor read getBackgroundColor write setBackgroundColor;
-    property DefaultTextColor: TColor read getDefaultTextColor write setDefaultTextColor;
+    property TextColor: TColor read getTextColor write setTextColor;
     property Name: string read fname write fname;
     property AutoSide: boolean read fAutoSide write fAutoSide;
     property AutoSideDistance: integer read fAutoSideDistance write fAutoSideDistance;
@@ -107,19 +109,25 @@ begin
   useCustomBackgroundColor:=true;
 end;
 
-function TDiagramBlock.getDefaultTextColor: TColor;
+function TDiagramBlock.getTextColor: TColor;
 begin
-  if useCustomDefaultTextColor then
-    result:=CustomDefaultTextColor
+  if useCustomTextColor then
+    result:=CustomTextColor
   else
     result:=config.blockTextColorNoMarkup;
 end;
 
-procedure TDiagramBlock.setDefaultTextColor(c: TColor);
+procedure TDiagramBlock.setTextColor(c: TColor);
 begin
-  CustomDefaultTextColor:=c;
-  useCustomDefaultTextColor:=true;
+  CustomTextColor:=c;
+  useCustomTextColor:=true;
 end;
+
+function TDiagramBlock.getOwner: TCustomControl;
+begin
+  result:=config.owner;
+end;
+
 
 function TDiagramBlock.getCanvas: TCanvas;
 begin
@@ -150,27 +158,30 @@ begin
   c.Rectangle(x,y,x+width,y+captionheight);
 
   oldfontcolor:=c.font.color;
-  c.font.color:=defaultTextColor;
+  c.font.color:=TextColor;
 
   renderOriginal:=true;
   if assigned(fOnRenderHeader) then
-    fOnRenderHeader(self,rect(x,y,x+width-1,y+captionheight),cdPrePaint, renderOriginal);
+    fOnRenderHeader(self,rect(x,y,x+width-1,y+captionheight),true, renderOriginal);
 
   if renderOriginal then
+  begin
     renderFormattedText(c, rect(x,y,x+width-1,y+captionheight),x+1,y,caption);
+    if assigned(fOnRenderHeader) then
+      fOnRenderHeader(self,rect(x,y,x+width-1,y+captionheight),false, renderOriginal);
+  end;
 
-  if assigned(fOnRenderHeader) then
-    fOnRenderHeader(self,rect(x,y,x+width-1,y+captionheight),cdPostPaint, renderOriginal);
 
   renderOriginal:=true;
   if assigned(fOnRenderBody) then
-    fOnRenderBody(self,rect(x,y,x+width-1,y+captionheight),cdPrePaint, renderOriginal);
+    fOnRenderBody(self,rect(x,y,x+width-1,y+captionheight),true, renderOriginal);
 
   if renderOriginal then
+  begin
     renderFormattedText(c, rect(x,y+captionheight,x+width-1,y+height-2),x+1,y+captionheight,data.text);
-
-  if assigned(fOnRenderBody) then
-    fOnRenderBody(self,rect(x,y,x+width-1,y+captionheight),cdPostPaint, renderOriginal);
+    if assigned(fOnRenderBody) then
+      fOnRenderBody(self,rect(x,y,x+width-1,y+captionheight),false, renderOriginal);
+  end;
 
 
   c.font.color:=oldfontcolor;

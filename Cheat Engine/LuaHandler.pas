@@ -60,7 +60,9 @@ function lua_ToCEUserData(L: PLua_state; i: integer): pointer;
 function lua_tovariant(L: PLua_state; i: integer): variant;
 procedure lua_pushvariant(L: PLua_state; v: variant);
 procedure lua_pushrect(L: PLua_state; r: TRect);
+procedure lua_pushpoint(L: PLua_state; r: TPoint);
 function lua_toRect(L: PLua_State; index: integer): TRect;
+function lua_toPoint(L: PLua_State; index: integer): TPoint;
 function lua_toaddress(L: PLua_state; i: integer; self: boolean=false): ptruint;
 procedure InitializeLuaScripts;
 procedure InitializeLua;
@@ -300,10 +302,7 @@ var i: integer;
 begin
   ZeroMemory(@result,sizeof(trect));
 
-  if index<0 then
-    i:=(lua_gettop(L)+1)+index
-  else
-    i:=index;
+  i:=lua_absindex(L,index);
 
   if lua_istable(L, i) then
   begin
@@ -347,6 +346,34 @@ begin
 
   lua_pushstring(L, 'Bottom');
   lua_pushinteger(L, r.bottom);
+  lua_settable(L, -3);
+end;
+
+function lua_toPoint(L: PLua_State; index: integer): TPoint;
+var i: integer;
+begin
+  i:=lua_absindex(L,index);
+  if lua_istable(L, i) then
+  begin
+    lua_pushstring(L,'x');
+    lua_gettable(L,i);
+    result.x:=lua_tointeger(L,-1);
+
+    lua_pushstring(L,'y');
+    lua_gettable(L,i);
+    result.y:=lua_tointeger(L,-1);
+  end;
+end;
+
+procedure lua_pushpoint(L: PLua_state; r: TPoint);
+begin
+  lua_createtable(L, 0,2);
+  lua_pushstring(L,'x');
+  lua_pushinteger(L,r.x);
+  lua_settable(L, -3);
+
+  lua_pushstring(L,'y');
+  lua_pushinteger(L,r.y);
   lua_settable(L, -3);
 end;
 

@@ -48,7 +48,7 @@ type
   public
     procedure render;
 
-    procedure createPoint(p: tpoint);
+    procedure createPoint(p: tpoint; insertAt: integer=-1);
     function isOverLine(x,y: integer): boolean;
     function isAtAttachPoint(x,y: integer; out bsd: TDiagramBlockSideDescriptor): boolean;
     function getPointIndexAt(x,y: integer): integer;
@@ -66,10 +66,17 @@ type
     function getOriginDescriptor: TDiagramBlockSideDescriptor;
     function getDestinationDescriptor: TDiagramBlockSideDescriptor;
 
+    procedure setOriginDescriptor(d: TDiagramBlockSideDescriptor);
+    procedure setDestinationDescriptor(d: TDiagramBlockSideDescriptor);
+
+
     property PlotPoints[index: integer]: TPoint read getPoint write updatePointPosition;
     constructor create(diagramconfig: TDiagramConfig; _origin,_destination: TDiagramBlockSideDescriptor);
     destructor destroy; override;
   published
+    property OriginBlock: TDiagramBlock read origin.Block write origin.block;
+    property DestinationBlock: TDiagramBlock read destination.Block write destination.block;
+    property PointCount: integer read getPointCount;
     property LineColor: TColor read getLineColor write setLineColor;
     property LineThickness: integer read getLineThickness write setLineThickness;
     property ArrowStyles: TArrowStyles read getArrowStyles write setArrowStyles;
@@ -544,40 +551,52 @@ end;
 
 
 
-procedure TDiagramLink.createPoint(p: tpoint);
+procedure TDiagramLink.createPoint(p: tpoint; insertAt: integer=-1);
 var
   i: integer;
   start: tpoint;
   dest: tpoint;
   index: integer;
 begin
-  //figure out where in the line this is, or if it's already a point
-  for i:=0 to length(points)-1 do
-    if points[i].Distance(p)<(config.LineThickness*2) then exit; //already a point here
-
-  //no point here yet, find where in the line this is (assuming it is)
-  index:=-1;
-  start:=origin.block.getConnectPosition(origin.side, origin.sideposition);
-  for i:=0 to length(points)-1 do
+  if insertat=-1 then
   begin
-    dest:=points[i];
-    if ptInLine(p,start,dest) then
+    //figure out where in the line this is, or if it's already a point
+    for i:=0 to length(points)-1 do
+      if points[i].Distance(p)<(config.LineThickness*2) then exit; //already a point here
+
+
+
+    //no point here yet, find where in the line this is (assuming it is)
+    index:=-1;
+    start:=origin.block.getConnectPosition(origin.side, origin.sideposition);
+    for i:=0 to length(points)-1 do
     begin
-      index:=i;
-      break;
+      dest:=points[i];
+      if ptInLine(p,start,dest) then
+      begin
+        index:=i;
+        break;
+      end;
+      start:=dest;
     end;
-    start:=dest;
-  end;
 
-  if index=-1 then
+    if index=-1 then
+    begin
+      dest:=destination.block.getConnectPosition(destination.side, destination.sideposition);
+      if ptInLine(p,start,dest) then
+        index:=length(points);
+    end;
+
+    if index=-1 then exit; //something went wrong
+
+
+  end
+  else
   begin
-    dest:=destination.block.getConnectPosition(destination.side, destination.sideposition);
-    if ptInLine(p,start,dest) then
+    index:=insertAt;
+    if index>length(points) then
       index:=length(points);
   end;
-
-  if index=-1 then exit; //something went wrong
-
 
   //add it after the current index
   setlength(points, length(points)+1);
@@ -642,9 +661,19 @@ begin
   result:=origin;
 end;
 
+procedure TDiagramLink.setOriginDescriptor(d: TDiagramBlockSideDescriptor);
+begin
+  origin:=d;
+end;
+
 function TDiagramLink.getDestinationDescriptor: TDiagramBlockSideDescriptor;
 begin
   result:=destination;
+end;
+
+procedure TDiagramLink.setDestinationDescriptor(d: TDiagramBlockSideDescriptor);
+begin
+  destination:=d;
 end;
 
 constructor TDiagramLink.create(diagramconfig: TDiagramConfig; _origin,_destination: TDiagramBlockSideDescriptor);
