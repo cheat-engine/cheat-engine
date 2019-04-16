@@ -112,6 +112,7 @@ type TDisassemblerview=class(TPanel)
     procedure setJumpLines(state: boolean);
     procedure setJumplineState(state: tshowjumplinestate);
     procedure synchronizeDisassembler;
+    procedure StatusInfoLabelCopy(sender: TObject);
   protected
     procedure HandleSpecialKey(key: word);
     procedure WndProc(var msg: TMessage); override;
@@ -172,7 +173,7 @@ end;
 
 implementation
 
-uses processhandlerunit, parsers;
+uses processhandlerunit, parsers, Clipbrd;
 
 resourcestring
   rsSymbolsAreBeingLoaded = 'Symbols are being loaded (%d %%)';
@@ -181,6 +182,7 @@ resourcestring
   rsBytes = 'Bytes';
   rsOpcode = 'Opcode';
   rsComment = 'Comment';
+  rsCopy = 'Copy';
 
 procedure TDisassemblerview.SetOriginalPopupMenu(p: Tpopupmenu);
 begin
@@ -628,6 +630,11 @@ procedure TDisassemblerview.synchronizeDisassembler;
 begin
   visibleDisassembler.showmodules:=symhandler.showModules;
   visibleDisassembler.showsymbols:=symhandler.showsymbols;
+end;
+
+procedure TDisassemblerview.StatusInfoLabelCopy(sender: TObject);
+begin
+  Clipboard.AsText:=statusinfolabel.Caption;
 end;
 
 function TDisassemblerview.ClientToCanvas(p: tpoint): TPoint;
@@ -1092,7 +1099,9 @@ begin
 end;
 
 constructor TDisassemblerview.create(AOwner: TComponent);
-var emptymenu: TPopupMenu;
+var
+  emptymenu: TPopupMenu;
+  mi: TMenuItem;
 begin
   inherited create(AOwner);
 
@@ -1128,7 +1137,16 @@ begin
     //font.Size:=25;
     //transparent:=false;
     parent:=statusinfo;
-    PopupMenu:=emptymenu;
+    PopupMenu:=TPopupMenu.Create(statusinfolabel);
+    with popupmenu do
+    begin
+      name:='StatusInfoLabelPopupMenu';
+      mi:=tmenuitem.create(PopupMenu);
+      mi.caption:=rsCopy;
+      mi.OnClick:=StatusInfoLabelCopy;
+      mi.name:='miStatusInfoLabelCopy';
+      items.Add(mi);
+    end;
   end;
 
   disassembleDescription:=Tpanel.Create(self);
