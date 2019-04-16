@@ -4973,6 +4973,8 @@ begin
 
   if _debuggerthread<>nil then _debuggerthread.execlocation:=41304;
 
+  ToolBar1.Visible:=true; //show toolbar
+
   miDebugRun.Enabled:=true;
   ToolButton1.Enabled:=true; //toolbar run button
 
