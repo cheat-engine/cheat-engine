@@ -187,6 +187,10 @@ type
     miDebugStepOver: TMenuItem;
     miDebugRunTill: TMenuItem;
     miDebugToggleBreakpoint: TMenuItem;
+    ToolBar1: TToolBar;
+    ToolButton1: TToolButton;
+    ToolButton2: TToolButton;
+    ToolButton3: TToolButton;
     View1: TMenuItem;
     Stacktrace1: TMenuItem;
     ScrollBox1: TScrollBox;
@@ -4970,6 +4974,7 @@ begin
   if _debuggerthread<>nil then _debuggerthread.execlocation:=41304;
 
   miDebugRun.Enabled:=true;
+  ToolButton1.Enabled:=true; //toolbar run button
 
   if debuggerthread.CurrentThread=nil then
   begin
@@ -4983,7 +4988,9 @@ begin
   if _debuggerthread<>nil then _debuggerthread.execlocation:=41305;
   miRunUnhandled.Visible:=miRunUnhandled.Enabled;
   miDebugStep.Enabled:=true;
+  ToolButton2.Enabled:=true; //toolbar step button
   miDebugStepOver.Enabled:=true;
+  ToolButton3.Enabled:=true; //toolbar step over button
   miDebugRunTill.Enabled:=true;
   miDebugSetAddress.enabled:=true;
   stacktrace1.Enabled:=true;
