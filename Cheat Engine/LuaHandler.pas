@@ -11141,6 +11141,9 @@ begin
     lua_register(L, 'getModuleSize', getModuleSize);
     lua_register(L, 'getAddressSafe', getAddressSafe);
 
+    lua_register(L, 'waitForExports', waitForExports);
+    lua_register(L, 'waitForDotNet', waitForDotNet);
+    lua_register(L, 'waitForPDB', waitForPDB);
     lua_register(L, 'waitforExports', waitForExports);
     lua_register(L, 'waitforDotNet', waitForDotNet);
     lua_register(L, 'waitforPDB', waitForPDB);
