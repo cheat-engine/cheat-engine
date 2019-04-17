@@ -70,6 +70,7 @@ object MemoryBrowser: TMemoryBrowser
         Caption = 'ToolBar1'
         ShowCaptions = True
         TabOrder = 0
+        Visible = False
         object ToolButton1: TToolButton
           Left = 1
           Top = 2
