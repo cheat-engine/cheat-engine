@@ -64,9 +64,10 @@ object MemoryBrowser: TMemoryBrowser
       OnClick = Panel5Click
       object tbDebug: TToolBar
         Left = 0
-        Height = 40
+        Height = 42
         Top = 0
         Width = 402
+        AutoSize = True
         ButtonHeight = 40
         ButtonWidth = 23
         Caption = 'tbDebug'

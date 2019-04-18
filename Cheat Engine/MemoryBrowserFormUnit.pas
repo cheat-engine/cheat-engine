@@ -556,6 +556,8 @@ type
 
     StackReference: ptruint;
 
+    adjustedsize: boolean;
+
     procedure SetStacktraceSize(size: integer);
     procedure setShowDebugPanels(state: boolean);
     function getShowValues: boolean;
@@ -656,7 +658,7 @@ uses Valuechange, MainUnit, debugeventhandler, findwindowunit,
   AccessedMemory, Parsers, GnuAssembler, frmEditHistoryUnit, frmWatchlistUnit,
   vmxfunctions, frmstructurecompareunit, globals, UnexpectedExceptionsHelper,
   frmExceptionRegionListUnit, frmExceptionIgnoreListUnit, frmcodefilterunit,
-  frmDBVMWatchConfigUnit, DBK32functions;
+  frmDBVMWatchConfigUnit, DBK32functions, DPIHelper;
 
 
 resourcestring
@@ -2069,6 +2071,13 @@ begin
 
   if hexview<>nil then
     hexview.statusbar.Height:=Canvas.TextHeight('BLAy9qrSTt')+3+hexview.statusbar.BorderWidth;
+
+  if adjustedsize=false then
+  begin
+    dpihelper.AdjustToolbar(tbDebug);
+
+    adjustedsize:=true;
+  end;
 end;
 
 procedure TMemoryBrowser.disassemblerviewDblClick(Sender: TObject);
