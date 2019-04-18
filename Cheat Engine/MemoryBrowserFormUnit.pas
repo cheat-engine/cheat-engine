@@ -48,6 +48,7 @@ type
     MenuItem13: TMenuItem;
     MenuItem14: TMenuItem;
     DBVMFindoutwhataddressesthisinstructionaccesses: TMenuItem;
+    miHideToolbar: TMenuItem;
     miDBVMActivateCloak: TMenuItem;
     miDBVMDisableCloak: TMenuItem;
     miUltimap: TMenuItem;
@@ -163,6 +164,7 @@ type
     Panel7: TPanel;
     pflabel: TLabel;
     pmRegisters: TPopupMenu;
+    pmDebugToolbar: TPopupMenu;
     sbShowFloats: TButton;
     sflabel: TLabel;
     SSlabel: TLabel;
@@ -188,10 +190,10 @@ type
     miDebugStepOver: TMenuItem;
     miDebugRunTill: TMenuItem;
     miDebugToggleBreakpoint: TMenuItem;
-    ToolBar1: TToolBar;
-    ToolButton1: TToolButton;
-    ToolButton2: TToolButton;
-    ToolButton3: TToolButton;
+    tbDebug: TToolBar;
+    tbRun: TToolButton;
+    tbStep: TToolButton;
+    tbStepOver: TToolButton;
     View1: TMenuItem;
     Stacktrace1: TMenuItem;
     ScrollBox1: TScrollBox;
@@ -314,6 +316,7 @@ type
     procedure miCodeFilterClick(Sender: TObject);
     procedure miDBVMActivateCloakClick(Sender: TObject);
     procedure miDBVMDisableCloakClick(Sender: TObject);
+    procedure miHideToolbarClick(Sender: TObject);
     procedure miUltimapClick(Sender: TObject);
     procedure MenuItem17Click(Sender: TObject);
     procedure MenuItem18Click(Sender: TObject);
@@ -721,6 +724,7 @@ resourcestring
   rsMBCreationOfTheRemoteThreadFailed = 'Creation of the remote thread failed';
   rsMBThreadCreated = 'Thread Created';
   rsBecauseOfUnhandledExeption = 'Because of unhandled exception %s';
+  rsSomethingHappened = 'something happened';
 
 //property functions:
 function TMemoryBrowser.getShowValues: boolean;
@@ -1079,6 +1083,11 @@ begin
     if GetPhysicalAddress(processhandle,pointer(VA),int64(PA)) then
       dbvm_cloak_deactivate(PA);
   end;
+end;
+
+procedure TMemoryBrowser.miHideToolbarClick(Sender: TObject);
+begin
+  tbDebug.Visible:=false;
 end;
 
 procedure TMemoryBrowser.miUltimapClick(Sender: TObject);
@@ -4791,10 +4800,10 @@ end;
 procedure TMemoryBrowser.OnMemoryViewerRunning;
 begin
   {Disable debug functions & toolbar}
-  ToolBar1.Visible:=false; //hide toolbar
-  ToolButton1.Enabled:=false; //disable toolbar run button
-  ToolButton2.Enabled:=false; //disable toolbar step button
-  ToolButton3.Enabled:=false; //disable toolbar step over button
+  //tbDebug.enabled:=false; //disable toolbar
+  tbRun.Enabled:=false; //disable toolbar run button
+  tbStep.Enabled:=false; //disable toolbar step button
+  tbStepOver.Enabled:=false; //disable toolbar step over button
   miDebugRun.Enabled:=false;
   miRunUnhandled.Enabled:=false;
   miRunUnhandled.Visible:=false;
@@ -5000,15 +5009,16 @@ begin
 
   if _debuggerthread<>nil then _debuggerthread.execlocation:=41304;
 
-  ToolBar1.Visible:=true; //show toolbar
+  //tbDebug.enabled:=true;
+  if tbDebug.visible=false then
+    tbDebug.Visible:=true; //show toolbar
 
   miDebugRun.Enabled:=true;
-  ToolButton1.Enabled:=true; //enable toolbar run button
+  tbRun.Enabled:=true; //enable toolbar run button
 
   if debuggerthread.CurrentThread=nil then
   begin
-    showmessage('shit happened');
-
+    showmessage(rsSomethingHappened);
     beep;
   end;
 
@@ -5017,9 +5027,9 @@ begin
   if _debuggerthread<>nil then _debuggerthread.execlocation:=41305;
   miRunUnhandled.Visible:=miRunUnhandled.Enabled;
   miDebugStep.Enabled:=true;
-  ToolButton2.Enabled:=true; //enable toolbar step button
+  tbStep.Enabled:=true; //enable toolbar step button
   miDebugStepOver.Enabled:=true;
-  ToolButton3.Enabled:=true; //enable toolbar step over button
+  tbStepOver.Enabled:=true; //enable toolbar step over button
   miDebugRunTill.Enabled:=true;
   miDebugSetAddress.enabled:=true;
   stacktrace1.Enabled:=true;
