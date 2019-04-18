@@ -15,7 +15,6 @@ graphical memory view:
   change format makes it black sometimes(loses position ?)
   sometimes the x position is not 0, but can't be changed back
 
-memview debugging toolbar: use icons
 
 dbvm_speedhack
 
