@@ -601,6 +601,8 @@ type
     procedure reloadStacktrace;
     function GetReturnaddress: ptrUint;
 
+    procedure OnMemoryViewerRunning;
+
     procedure UpdateDebugContext(threadhandle: THandle; threadid: dword; changeSelection: boolean=true; _debuggerthread: TDebuggerthread=nil);
     procedure miLockOnClick(Sender: TObject);
     procedure miLockMemviewClick(sender: TObject);
@@ -1204,7 +1206,7 @@ begin
   if debuggerthread<>nil then
     debuggerthread.continueDebugging(co_run, 0, false);
 
-
+  OnMemoryViewerRunning;
   caption:=rsMemoryViewerRunning;
 end;
 
@@ -2707,6 +2709,7 @@ begin
     if debuggerthread<>nil then
       debuggerthread.ContinueDebugging(co_run);
 
+    OnMemoryViewerRunning;
     caption:=rsMemoryViewerRunning;
 
     reloadstacktrace;
@@ -2719,6 +2722,7 @@ begin
     if debuggerthread<>nil then
       debuggerthread.ContinueDebugging(co_stepinto);
 
+    OnMemoryViewerRunning;
     caption:=rsMemoryViewerRunning;
 
     reloadstacktrace;
@@ -2734,6 +2738,7 @@ var x: ptrUint;
 begin
   debuggerthread.continueDebugging(co_stepover);
   reloadstacktrace;
+  OnMemoryViewerRunning;
   caption:=rsMemoryViewerRunning;
 end;
 
@@ -2748,6 +2753,7 @@ begin
     if debuggerthread<>nil then
       debuggerthread.ContinueDebugging(co_runtill, disassemblerview.SelectedAddress);
 
+    OnMemoryViewerRunning;
     caption:=rsMemoryViewerRunning;
   end;
 
@@ -4781,6 +4787,26 @@ begin
     result:=0;
 end;
 
+procedure TMemoryBrowser.OnMemoryViewerRunning;
+begin
+  {Disable debug functions & toolbar}
+  ToolBar1.Visible:=false; //hide toolbar
+  ToolButton1.Enabled:=false; //disable toolbar run button
+  ToolButton2.Enabled:=false; //disable toolbar step button
+  ToolButton3.Enabled:=false; //disable toolbar step over button
+  miDebugRun.Enabled:=false;
+  miRunUnhandled.Enabled:=false;
+  miRunUnhandled.Visible:=false;
+  miDebugStep.Enabled:=false;
+  miDebugStepOver.Enabled:=false;
+  miDebugRunTill.Enabled:=false;
+  miDebugSetAddress.enabled:=false;
+  stacktrace1.Enabled:=false;
+  miDebugExecuteTillReturn.Enabled:=false;
+  {Other tasks}
+  //...
+end;
+
 procedure TMemoryBrowser.UpdateDebugContext(threadhandle: THandle; threadid: dword; changeselection: boolean=true; _debuggerthread: TDebuggerThread=nil);
 var temp: string='';
     temp2: string;
@@ -4976,7 +5002,7 @@ begin
   ToolBar1.Visible:=true; //show toolbar
 
   miDebugRun.Enabled:=true;
-  ToolButton1.Enabled:=true; //toolbar run button
+  ToolButton1.Enabled:=true; //enable toolbar run button
 
   if debuggerthread.CurrentThread=nil then
   begin
@@ -4990,9 +5016,9 @@ begin
   if _debuggerthread<>nil then _debuggerthread.execlocation:=41305;
   miRunUnhandled.Visible:=miRunUnhandled.Enabled;
   miDebugStep.Enabled:=true;
-  ToolButton2.Enabled:=true; //toolbar step button
+  ToolButton2.Enabled:=true; //enable toolbar step button
   miDebugStepOver.Enabled:=true;
-  ToolButton3.Enabled:=true; //toolbar step over button
+  ToolButton3.Enabled:=true; //enable toolbar step over button
   miDebugRunTill.Enabled:=true;
   miDebugSetAddress.enabled:=true;
   stacktrace1.Enabled:=true;
