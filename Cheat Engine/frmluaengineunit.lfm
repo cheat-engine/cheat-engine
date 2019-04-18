@@ -12,7 +12,7 @@ object frmLuaEngine: TfrmLuaEngine
   OnDestroy = FormDestroy
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '1.6.4.0'
+  LCLVersion = '2.0.0.4'
   object GroupBox1: TGroupBox
     Left = 0
     Height = 177
@@ -46,9 +46,10 @@ object frmLuaEngine: TfrmLuaEngine
     TabOrder = 0
     object tbDebug: TToolBar
       Left = 0
-      Height = 26
+      Height = 24
       Top = 0
       Width = 570
+      AutoSize = True
       Caption = 'tbDebug'
       Enabled = False
       Images = ilLuaDebug
@@ -78,7 +79,6 @@ object frmLuaEngine: TfrmLuaEngine
         Left = 47
         Height = 22
         Top = 2
-        Width = 5
         Caption = 'ToolButton1'
         Style = tbsDivider
       end
@@ -95,23 +95,23 @@ object frmLuaEngine: TfrmLuaEngine
     end
     object Panel2: TPanel
       Left = 0
-      Height = 104
-      Top = 26
+      Height = 106
+      Top = 24
       Width = 570
       Align = alClient
       BevelOuter = bvNone
-      ClientHeight = 104
+      ClientHeight = 106
       ClientWidth = 570
       TabOrder = 0
       object Panel3: TPanel
         Left = 489
-        Height = 104
+        Height = 106
         Top = 0
         Width = 81
         Align = alRight
         AutoSize = True
         BevelOuter = bvNone
-        ClientHeight = 104
+        ClientHeight = 106
         ClientWidth = 81
         TabOrder = 1
         OnResize = Panel2Resize
@@ -121,7 +121,7 @@ object frmLuaEngine: TfrmLuaEngine
           AnchorSideBottom.Control = Panel3
           AnchorSideBottom.Side = asrBottom
           Left = 3
-          Height = 64
+          Height = 66
           Top = 20
           Width = 75
           Anchors = [akTop, akLeft, akBottom]
@@ -138,13 +138,14 @@ object frmLuaEngine: TfrmLuaEngine
       end
       inline mScript: TSynEdit
         Left = 0
-        Height = 104
+        Height = 106
         Top = 0
         Width = 489
         Align = alClient
         Font.Height = -13
         Font.Name = 'Courier New'
         Font.Pitch = fpFixed
+        Font.Quality = fqNonAntialiased
         ParentColor = False
         ParentFont = False
         ParentShowHint = False
@@ -913,8 +914,6 @@ object frmLuaEngine: TfrmLuaEngine
     end
   end
   object dlgReplace: TReplaceDialog
-    Width = 480
-    Height = 385
     Options = [frDown, frReplaceAll]
     OnFind = dlgReplaceFind
     OnReplace = dlgReplaceReplace
@@ -1217,6 +1216,7 @@ object frmLuaEngine: TfrmLuaEngine
     OnCodeCompletion = scLuaCompleterCodeCompletion
     ExecCommandID = ecSynCompletionExecute
     Editor = mScript
+    ToggleReplaceWhole = False
     left = 416
     top = 184
   end

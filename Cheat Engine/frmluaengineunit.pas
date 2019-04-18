@@ -113,6 +113,7 @@ type
     hintwindow:THintWindow;
     continuemethod: integer;
     AutoCompleteStartLine: string;
+    adjustedsize: boolean;
     procedure ContinueAutoComplete;
     procedure ContinueAutoComplete2(Sender: TObject);
   public
@@ -127,7 +128,7 @@ implementation
 
 { TfrmLuaEngine }
 
-uses luaclass, SynEditTypes, globals;
+uses luaclass, SynEditTypes, globals, DPIHelper;
 
 resourcestring
   rsError = 'Script Error';
@@ -1352,6 +1353,13 @@ begin
   i:=GetFontData(font.reference.handle).Height;
   if i<mScript.Font.Height then
     mScript.Font.Height:=i;
+
+  if adjustedSize=false then
+  begin
+    dpihelper.AdjustToolbar(tbDebug);
+    AdjustImageList(ilSyneditDebug);
+    adjustedSize:=true;
+  end;
 
 end;
 
