@@ -39,7 +39,7 @@ interface
 
 uses
   Classes, SysUtils, LResources, GetText, Controls, typinfo, FileUtil, LCLProc,
-  Translations, forms, IniFiles;
+  Translations, forms, IniFiles, LazUTF8, LazFileUtils;
 
 type
   TDefaultTranslator = class(TAbstractTranslator)
@@ -128,7 +128,7 @@ begin
   end;
 
   if Lang = '' then
-    LCLGetLanguageIDs(Lang, T);
+    LazGetLanguageIDs(Lang, T);
 
   Result := GetLocaleFileName(Lang, LCExt);
   if Result <> '' then
