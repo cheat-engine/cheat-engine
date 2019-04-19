@@ -3669,7 +3669,7 @@ int handle_rdtsc(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
     t=currentcpuinfo->lowestTSC+off;
     //t=lTSC+off;
 
-    writeMSR(0x838, readMSR(0x838));
+    //writeMSR(0x838, readMSR(0x838));
 
     //lockedQwordIncrement(&lowestTSC,off);
     currentcpuinfo->lowestTSC=t;
