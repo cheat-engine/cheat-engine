@@ -260,6 +260,7 @@ type
     MenuItem12: TMenuItem;
     MenuItem14: TMenuItem;
     MenuItem15: TMenuItem;
+    Copyselectedaddresses1: TMenuItem;
     miAutoAssembleErrorMessage: TMenuItem;
     miLuaDocumentation: TMenuItem;
     miForgotScan: TMenuItem;
@@ -496,6 +497,7 @@ type
     procedure cbPercentageOnChange(Sender: TObject);
     procedure cbCodePageChange(Sender: TObject);
     procedure cbUnicodeChange(Sender: TObject);
+    procedure Copyselectedaddresses1Click(Sender: TObject);
     procedure EnableLCLClick(Sender: TObject);
     procedure cbFastScanChange(Sender: TObject);
     procedure cbUnrandomizerChange(Sender: TObject);
@@ -3002,6 +3004,21 @@ end;
 procedure TMainForm.cbUnicodeChange(Sender: TObject);
 begin
   if cbunicode.checked then cbCodePage.checked:=false;
+end;
+
+procedure TMainForm.Copyselectedaddresses1Click(Sender: TObject);
+var i: qword;
+begin
+     if foundlist3.SelCount = 1 then  clipboard.AsText := symhandler.getNameFromAddress(StrToQWordEx('$'+foundlist3.Items[foundlist3.itemindex].Caption))
+     else if foundlist3.SelCount > 1 then
+     begin
+        clipboard.AsText:=''; //clear
+        for i:=0 to foundlist3.Items.count-1 do
+        begin
+          if foundlist3.items[i].Selected then
+             clipboard.AsText := clipboard.AsText + symhandler.getNameFromAddress(StrToQWordEx('$'+foundlist3.Items[i].Caption)) + sLineBreak;
+        end;
+     end;
 end;
 
 procedure TMainForm.EnableLCLClick(Sender: TObject);

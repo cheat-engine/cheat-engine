@@ -194,6 +194,8 @@ type
     tbRun: TToolButton;
     tbStep: TToolButton;
     tbStepOver: TToolButton;
+    tbSeparator1: TToolButton;
+    tbExecuteTillReturn: TToolButton;
     View1: TMenuItem;
     Stacktrace1: TMenuItem;
     ScrollBox1: TScrollBox;
@@ -4813,6 +4815,7 @@ begin
   tbRun.Enabled:=false; //disable toolbar run button
   tbStep.Enabled:=false; //disable toolbar step button
   tbStepOver.Enabled:=false; //disable toolbar step over button
+  tbExecuteTillReturn.Enabled:=false; //disable toolbar execute till return button
   miDebugRun.Enabled:=false;
   miRunUnhandled.Enabled:=false;
   miRunUnhandled.Visible:=false;
@@ -5040,6 +5043,7 @@ begin
   miDebugStepOver.Enabled:=true;
   tbStepOver.Enabled:=true; //enable toolbar step over button
   miDebugRunTill.Enabled:=true;
+  tbExecuteTillReturn.Enabled:=true; //enable toolbar execute till return button
   miDebugSetAddress.enabled:=true;
   stacktrace1.Enabled:=true;
   miDebugExecuteTillReturn.Enabled:=true;
