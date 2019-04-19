@@ -42,4 +42,7 @@ add  access rights for the windows app user to pipes
 formdesigner: copy from outside a panel and paste into the panel will paste in the old location
 a timer causing a lua_error will eventually show c stack overflow
 
+add copy to clipboard to found addresslist (using modulename+offset for statics)
+
+
 dbvm: add maps and use them for cloaked regions
