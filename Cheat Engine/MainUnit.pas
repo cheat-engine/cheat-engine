@@ -3007,17 +3007,18 @@ begin
 end;
 
 procedure TMainForm.Copyselectedaddresses1Click(Sender: TObject);
-var i: qword;
+var    i: qword;
+    temp: string;
 begin
      if foundlist3.SelCount = 1 then  clipboard.AsText := symhandler.getNameFromAddress(StrToQWordEx('$'+foundlist3.Items[foundlist3.itemindex].Caption))
      else if foundlist3.SelCount > 1 then
      begin
-        clipboard.AsText:=''; //clear
         for i:=0 to foundlist3.Items.count-1 do
         begin
           if foundlist3.items[i].Selected then
-             clipboard.AsText := clipboard.AsText + symhandler.getNameFromAddress(StrToQWordEx('$'+foundlist3.Items[i].Caption)) + sLineBreak;
+              temp := temp + symhandler.getNameFromAddress(StrToQWordEx('$'+foundlist3.Items[i].Caption)) + sLineBreak;
         end;
+        clipboard.AsText := temp;
      end;
 end;
 
