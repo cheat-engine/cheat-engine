@@ -48,6 +48,7 @@ type
     MenuItem13: TMenuItem;
     MenuItem14: TMenuItem;
     DBVMFindoutwhataddressesthisinstructionaccesses: TMenuItem;
+    miCopyAddressesOnly: TMenuItem;
     miHideToolbar: TMenuItem;
     miDBVMActivateCloak: TMenuItem;
     miDBVMDisableCloak: TMenuItem;
@@ -192,10 +193,11 @@ type
     miDebugToggleBreakpoint: TMenuItem;
     tbDebug: TToolBar;
     tbRun: TToolButton;
-    tbStep: TToolButton;
+    tbStepInto: TToolButton;
     tbStepOver: TToolButton;
     tbSeparator1: TToolButton;
-    tbExecuteTillReturn: TToolButton;
+    tbStepOut: TToolButton;
+    tbSeparator2: TToolButton;
     View1: TMenuItem;
     Stacktrace1: TMenuItem;
     ScrollBox1: TScrollBox;
@@ -4813,9 +4815,9 @@ begin
   {Disable debug functions & toolbar}
   //tbDebug.enabled:=false; //disable toolbar
   tbRun.Enabled:=false; //disable toolbar run button
-  tbStep.Enabled:=false; //disable toolbar step button
+  tbStepInto.Enabled:=false; //disable toolbar step into button
   tbStepOver.Enabled:=false; //disable toolbar step over button
-  tbExecuteTillReturn.Enabled:=false; //disable toolbar execute till return button
+  tbStepOut.Enabled:=false; //disable toolbar step out button
   miDebugRun.Enabled:=false;
   miRunUnhandled.Enabled:=false;
   miRunUnhandled.Visible:=false;
@@ -5039,11 +5041,11 @@ begin
   if _debuggerthread<>nil then _debuggerthread.execlocation:=41305;
   miRunUnhandled.Visible:=miRunUnhandled.Enabled;
   miDebugStep.Enabled:=true;
-  tbStep.Enabled:=true; //enable toolbar step button
+  tbStepInto.Enabled:=true; //enable toolbar step into button
   miDebugStepOver.Enabled:=true;
   tbStepOver.Enabled:=true; //enable toolbar step over button
   miDebugRunTill.Enabled:=true;
-  tbExecuteTillReturn.Enabled:=true; //enable toolbar execute till return button
+  tbStepOut.Enabled:=true; //enable toolbar step out button
   miDebugSetAddress.enabled:=true;
   stacktrace1.Enabled:=true;
   miDebugExecuteTillReturn.Enabled:=true;
