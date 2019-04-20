@@ -48,6 +48,7 @@ type
     MenuItem13: TMenuItem;
     MenuItem14: TMenuItem;
     DBVMFindoutwhataddressesthisinstructionaccesses: TMenuItem;
+    Showdebugtoolbar1: TMenuItem;
     miCopyAddressesOnly: TMenuItem;
     miHideToolbar: TMenuItem;
     miDBVMActivateCloak: TMenuItem;
@@ -198,6 +199,7 @@ type
     tbSeparator1: TToolButton;
     tbStepOut: TToolButton;
     tbSeparator2: TToolButton;
+    tbToggleBreakpoint: TToolButton;
     View1: TMenuItem;
     Stacktrace1: TMenuItem;
     ScrollBox1: TScrollBox;
@@ -377,6 +379,7 @@ type
     procedure RegisterMouseDown(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
     procedure miLockRowsizeClick(Sender: TObject);
+    procedure Showdebugtoolbar1Click(Sender: TObject);
     procedure Splitter1Moved(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -385,6 +388,9 @@ type
     procedure Splitter2Moved(Sender: TObject);
     procedure Timer2Timer(Sender: TObject);
     procedure miReplacewithnopsClick(Sender: TObject);
+
+    procedure ShowDebugToolbar;
+    procedure HideDebugToolbar;
 
     procedure FControl1KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure FControl1KeyPress(Sender: TObject; var Key: Char);
@@ -806,6 +812,24 @@ begin
     hexview.UnlockRowsize;
 end;
 
+procedure TMemoryBrowser.ShowDebugToolbar;
+begin
+  tbDebug.Visible:=true;
+  Showdebugtoolbar1.Checked:=true;
+end;
+
+procedure TMemoryBrowser.HideDebugToolbar;
+begin
+  tbDebug.Visible:=false;
+  Showdebugtoolbar1.Checked:=false;
+end;
+
+procedure TMemoryBrowser.Showdebugtoolbar1Click(Sender: TObject);
+begin
+  if tbDebug.Visible=false then ShowDebugToolbar
+  else HideDebugToolbar;
+end;
+
 procedure TMemoryBrowser.RegisterMouseDown(Sender: TObject;
   Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 var s: string;
@@ -1093,7 +1117,7 @@ end;
 
 procedure TMemoryBrowser.miHideToolbarClick(Sender: TObject);
 begin
-  tbDebug.Visible:=false;
+  if tbDebug.Visible=true then HideDebugToolbar;
 end;
 
 procedure TMemoryBrowser.miUltimapClick(Sender: TObject);
@@ -5025,7 +5049,7 @@ begin
 
   //tbDebug.enabled:=true;
   if tbDebug.visible=false then
-    tbDebug.Visible:=true; //show toolbar
+    ShowDebugToolbar; //show toolbar
 
   miDebugRun.Enabled:=true;
   tbRun.Enabled:=true; //enable toolbar run button

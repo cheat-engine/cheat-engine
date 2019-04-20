@@ -1,7 +1,7 @@
 object MemoryBrowser: TMemoryBrowser
-  Left = 831
+  Left = 826
   Height = 460
-  Top = 358
+  Top = 186
   Width = 622
   HelpContext = 12
   Caption = 'Memory Viewer'
@@ -77,7 +77,7 @@ object MemoryBrowser: TMemoryBrowser
         TabOrder = 0
         Visible = False
         object tbRun: TToolButton
-          Left = 9
+          Left = 114
           Top = 2
           Caption = 'Run'
           Enabled = False
@@ -85,7 +85,7 @@ object MemoryBrowser: TMemoryBrowser
           OnClick = miDebugRunClick
         end
         object tbStepInto: TToolButton
-          Left = 38
+          Left = 143
           Top = 2
           Caption = 'Step Into'
           Enabled = False
@@ -93,7 +93,7 @@ object MemoryBrowser: TMemoryBrowser
           OnClick = miDebugStepClick
         end
         object tbStepOver: TToolButton
-          Left = 93
+          Left = 198
           Top = 2
           Caption = 'Step Over'
           Enabled = False
@@ -101,14 +101,14 @@ object MemoryBrowser: TMemoryBrowser
           OnClick = miDebugStepOverClick
         end
         object tbSeparator1: TToolButton
-          Left = 1
+          Left = 106
           Height = 40
           Top = 2
           Caption = 'tbSeparator1'
           Style = tbsSeparator
         end
         object tbStepOut: TToolButton
-          Left = 152
+          Left = 257
           Top = 2
           Caption = 'Step Out'
           Enabled = False
@@ -116,11 +116,19 @@ object MemoryBrowser: TMemoryBrowser
           OnClick = miDebugExecuteTillReturnClick
         end
         object tbSeparator2: TToolButton
-          Left = 206
+          Left = 311
           Height = 40
           Top = 2
           Caption = 'tbSeparator2'
           Style = tbsSeparator
+          Visible = False
+        end
+        object tbToggleBreakpoint: TToolButton
+          Left = 1
+          Top = 2
+          Caption = 'Toggle Breakpoint'
+          ImageIndex = 4
+          OnClick = miTogglebreakpointClick
         end
       end
     end
@@ -940,6 +948,7 @@ object MemoryBrowser: TMemoryBrowser
     end
   end
   object debuggerpopup: TPopupMenu
+    Images = ImageList1
     OnPopup = debuggerpopupPopup
     left = 112
     top = 176
@@ -1143,6 +1152,7 @@ object MemoryBrowser: TMemoryBrowser
     end
     object miTogglebreakpoint: TMenuItem
       Caption = 'Toggle breakpoint'
+      ImageIndex = 4
       OnClick = miTogglebreakpointClick
     end
     object Breakandtraceinstructions1: TMenuItem
@@ -1354,6 +1364,10 @@ object MemoryBrowser: TMemoryBrowser
         ShortCut = 16470
         OnClick = Showvaluesofstaticaddresses1Click
       end
+      object Showdebugtoolbar1: TMenuItem
+        Caption = 'Show debug toolbar'
+        OnClick = Showdebugtoolbar1Click
+      end
       object Jumplines1: TMenuItem
         Caption = 'Jumplines'
         object Showjumplines1: TMenuItem
@@ -1463,6 +1477,7 @@ object MemoryBrowser: TMemoryBrowser
       end
       object miDebugToggleBreakpoint: TMenuItem
         Caption = 'Toggle breakpoint'
+        ImageIndex = 4
         ShortCut = 116
         OnClick = miTogglebreakpointClick
       end
@@ -1799,7 +1814,7 @@ object MemoryBrowser: TMemoryBrowser
     left = 297
     top = 160
     Bitmap = {
-      4C69040000001000000010000000000000000000000000000000000000000000
+      4C69050000001000000010000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
@@ -1927,6 +1942,38 @@ object MemoryBrowser: TMemoryBrowser
       000000000000FF9A34B1FF9933FFFF9933FFFF9A34B100000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
       00000000000040260D07804C196A804C196A40260D0700000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000906
+      3B071B14B180241CECDC241CECFF241CECF1241BECC0120D7638000000000000
+      000000000000000000000000000000000000000000000000000009063B1C241B
+      EDDC241CECFF241CECFF241CECFF241CECFF241CECFF241CECFF1B14B2780000
+      0000000000000000000000000000000000000000000000000000241BEDCE241C
+      ECFF241CECFF241CECFF241CECFF241CECFF241CECFF241CECFF241CECFF120D
+      764E0000000000000000000000000000000000000000120D763F241CECFF241C
+      ECFF241CECFF241CECFF241CECFF241CECFF241CECFF241CECFF241CECFF241B
+      ECBF0000000000000000000000000000000000000000120E7678241CECFF241C
+      ECFF241CECFF241CECFF241CECFF241CECFF241CECFF241CECFF241CECFF241C
+      ECF80000000000000000000000000000000000000000120E7678241CECFF241C
+      ECFF241CECFF241CECFF241CECFF241CECFF241CECFF241CECFF241CECFF241C
+      ECF80000000000000000000000000000000000000000120D763F241CECFF241C
+      ECFF241CECFF241CECFF241CECFF241CECFF241CECFF241CECFF241CECFF241B
+      ECBF000000000000000000000000000000000000000000000000241BEDCE241C
+      ECFF241CECFF241CECFF241CECFF241CECFF241CECFF241CECFF241CECFF120D
+      764E00000000000000000000000000000000000000000000000009063B1C241B
+      EDDC241CECFF241CECFF241CECFF241CECFF241CECFF241CECFF1B14B2780000
+      0000000000000000000000000000000000000000000000000000000000000906
+      3B0E1B14B17F241CECDC241CECFF241CECF8241CECAA120D7640000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000
     }
   end
