@@ -1364,6 +1364,10 @@ object MemoryBrowser: TMemoryBrowser
         ShortCut = 16470
         OnClick = Showvaluesofstaticaddresses1Click
       end
+      object Showdebugtoolbar1: TMenuItem
+        Caption = 'Show debug toolbar'
+        OnClick = Showdebugtoolbar1Click
+      end
       object Jumplines1: TMenuItem
         Caption = 'Jumplines'
         object Showjumplines1: TMenuItem
