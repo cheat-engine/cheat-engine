@@ -175,7 +175,7 @@ typedef BOOL (__stdcall *CEP_UNFREEZEMEM) (int freezeID);
 typedef BOOL (__stdcall *CEP_FIXMEM) (void);
 typedef BOOL (__stdcall *CEP_PROCESSLIST) (char *listbuffer, int listsize);
 typedef BOOL (__stdcall *CEP_RELOADSETTINGS) (void);
-typedef DWORD (__stdcall *CEP_GETADDRESSFROMPOINTER) (UINT_PTR baseaddress, int offsetcount, int* offsets);  
+typedef UINT_PTR (__stdcall *CEP_GETADDRESSFROMPOINTER) (UINT_PTR baseaddress, int offsetcount, int* offsets);  
 typedef BOOL (__stdcall *CEP_GENERATEAPIHOOKSCRIPT) (char *address, char *addresstojumpto, char *addresstogetnewcalladdress, char *script, int maxscriptsize);
 typedef BOOL (__stdcall *CEP_ADDRESSTONAME) (UINT_PTR address, char *name, int maxnamesize);
 typedef BOOL (__stdcall *CEP_NAMETOADDRESS) (char *name, UINT_PTR *address);
