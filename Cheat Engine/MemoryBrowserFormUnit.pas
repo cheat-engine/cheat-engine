@@ -198,6 +198,7 @@ type
     tbSeparator1: TToolButton;
     tbStepOut: TToolButton;
     tbSeparator2: TToolButton;
+    tbToggleBreakpoint: TToolButton;
     View1: TMenuItem;
     Stacktrace1: TMenuItem;
     ScrollBox1: TScrollBox;
