@@ -2271,8 +2271,8 @@ initialization
     end;
   end;
 
-  cloakedregionscs:=TCriticalSection.Create;
-  breakpointscs:=TCriticalSection.Create;
 
   {$endif}
+  cloakedregionscs:=TCriticalSection.Create;
+  breakpointscs:=TCriticalSection.Create;
 end.

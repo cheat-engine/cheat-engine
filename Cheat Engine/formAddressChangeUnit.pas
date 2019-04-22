@@ -1193,7 +1193,7 @@ begin
       size:=ct.bytesize;
 
     s:='='+readAndParseAddress(a, vartype, TcustomType(cbvarType.items.objects[cbvarType.ItemIndex]),false, false, size);
-    if size<>wantedsize then
+    if edtSize.visible and (size<>wantedsize) then
       s:=s+'...';
 
     lblValue.caption:=s;
