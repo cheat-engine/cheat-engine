@@ -1,25 +1,37 @@
---in development
-
-function genericJumpHandler(state)
+function genericJumpHandler(state, alwaystaken)
   local origin=state.address
   local addressString=string.gsub(state.ldd.parameters,"qword ptr ","")
   local addressString=string.gsub(addressString,"dword ptr ","")
   local destination=getAddressSafe(addressString) --find out the destination
+  local destination2
 
   if destination==nil then
     --in case of registers
     return
   end
 
+  if not alwaystaken then
+    destination2=origin+state.parsed[origin].bytesize
+  end;
 
 
+  state.branchOrigins[origin]={}
+  state.branchOrigins[origin].destinationtaken=destination
+  state.branchOrigins[origin].destinationnottaken=destination2
 
-  state.branchOrigins[origin]=destination  --just for extra info, not that useful
   if state.branchDestinations[destination]==nil then --list of destinations and their origin(s)
     state.branchDestinations[destination]={}
   end
 
   table.insert(state.branchDestinations[destination], origin)
+
+  if not alwaystaken then
+    if state.branchDestinations[destination2]==nil then --list of destinations and their origin(s)
+      state.branchDestinations[destination2]={}
+    end
+
+    table.insert(state.branchDestinations[destination2], origin)
+  end
 
   return destination
 end
@@ -42,15 +54,31 @@ end
 
 
 plookup={}
-plookup['je']=function(state)
+plookup['jo']=function(state)
   genericJumpHandler(state) --the conditional ones do not change the state, but will store the destination
 end
 
-plookup['jne']=function(state)
+plookup['jno']=function(state)
   genericJumpHandler(state)
 end
 
-plookup['jo']=function(state)
+plookup['jb']=function(state)
+  genericJumpHandler(state) --the conditional ones do not change the state, but will store the destination
+end
+
+plookup['jnb']=function(state)
+  genericJumpHandler(state) --the conditional ones do not change the state, but will store the destination
+end
+
+plookup['jae']=function(state)
+  genericJumpHandler(state)
+end
+
+plookup['je']=function(state)
+  genericJumpHandler(state)
+end
+
+plookup['jne']=function(state)
   genericJumpHandler(state)
 end
 
@@ -58,9 +86,49 @@ plookup['ja']=function(state)
   genericJumpHandler(state)
 end
 
+plookup['jna']=function(state)
+  genericJumpHandler(state)
+end
+
+plookup['js']=function(state)
+  genericJumpHandler(state)
+end
+
+plookup['jns']=function(state)
+  genericJumpHandler(state)
+end
+
+plookup['jp']=function(state)
+  genericJumpHandler(state)
+end
+
+plookup['jnp']=function(state)
+  genericJumpHandler(state)
+end
+
+plookup['jl']=function(state)
+  genericJumpHandler(state)
+end
+
+plookup['jnl']=function(state)
+  genericJumpHandler(state)
+end
+
+plookup['jle']=function(state)
+  genericJumpHandler(state)
+end
+
+plookup['jg']=function(state)
+  genericJumpHandler(state)
+end
+
+plookup['jng']=function(state)
+  genericJumpHandler(state)
+end
+
 
 plookup['jmp']=function(state)
-  state.address=genericJumpHandler(state)
+  state.address=genericJumpHandler(state, true)
   return true
 end
 
@@ -84,7 +152,6 @@ function parseFunction(startaddress, limit)
 
   state.parsed={} --list of addresses parsed (to track holes, etc...)
 
-  state.paths={}
   local currentpath={}
   currentpath.asm={}
 
@@ -110,15 +177,19 @@ function parseFunction(startaddress, limit)
       a=state.address
     end
 
+    s=d.disassemble(a)
+
+    state.parsed[a]={}
+    state.parsed[a].instruction=s
 
 
-    d.disassemble(a)
-
-    state.parsed[a]=true
 
     local ldd=d.getLastDisassembleData()
     table.insert(currentpath.asm, ldd)
     state.ldd=ldd
+
+    state.parsed[a].bytesize=#ldd.bytes
+
 
     local statechange
     local f=plookup[ldd.opcode]
@@ -146,6 +217,76 @@ function parseFunction(startaddress, limit)
   return state
 end
 
---parseFunction(0x00413190)
+function createBlocks(state)
+  local blocks={}
+
+  --first sort the parsed instruction list
+  local sal={} --sorted address list
+  for n in pairs(state.parsed) do
+    table.insert(sal,n);
+  end
+
+  table.sort(sal)
+
+  blocks[1]={}
+  blocks[1].start=sal[1]
+
+  blocks[1].getsJumpedToBy=state.branchDestinations[sal[1]]
+
+  for i=2,#sal do
+    local address=sal[i]
+    if state.branchDestinations[address] then --first check this
+      --this is a destination, so cut off at the previous one
+      blocks[#blocks].stop=sal[i-1]
+      blocks[#blocks].jumpsTo=state.branchOrigins[blocks[#blocks].stop]
+
+      if blocks[#blocks].jumpsTo==nil then
+        blocks[#blocks].jumpsTo={}
+        blocks[#blocks].jumpsTo.destinationtaken=address
+        blocks[#blocks].jumpsTo.logicalFollow=true
+      end
+
+      blocks[#blocks+1]={}
+      blocks[#blocks].start=address
+      blocks[#blocks].getsJumpedToBy=state.branchDestinations[address]
+    end
+  end
+
+  blocks[#blocks].stop=sal[#sal]
+
+  return blocks
+end
+
+--[[
+z=parseFunction(0x00413190)
+
+b=createBlocks(z)
+for i=1,#b do
+  local from='               '
+  local to=''
+
+  if b[i].getsJumpedToBy then
+    from=''
+    for j=1,#b[i].getsJumpedToBy do
+      from=from..string.format("%.8x ",b[i].getsJumpedToBy[j])
+    end
+  end
+
+  if b[i].jumpsTo then
+    if b[i].jumpsTo.destinationtaken then
+      to=string.format("%.8x ",b[i].jumpsTo.destinationtaken)
+    end
+
+    if b[i].jumpsTo.destinationnottaken then
+      to=to..string.format("else %.8x",b[i].jumpsTo.destinationnottaken)
+    end
+  end
+
+  print(string.format("%.8x-%.8x  Linked From: %s Links To: %s", b[i].start, b[i].stop, from,to))
+end
+--]]
+
+--return z
 
 --even better: parsefunction(ntoskrnl.PspSetContextThreadInternal) it has a conditional codecave jmp way outside it's function range
+
