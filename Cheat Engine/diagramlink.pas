@@ -40,7 +40,7 @@ type
     function getArrowStyles: TArrowStyles;
     procedure setArrowStyles(s: TArrowStyles);
 
-    function getCenterAdjustForBorderSide(side: TDiagramBlockSide): TPoint;
+
     function getAngle(originpoint: TPoint; destinationpoint: TPoint): single;
     procedure DrawArrow(originpoint: TPoint; rot: single; centeradjust: tpoint);
 
@@ -170,9 +170,10 @@ begin
 end;
 
 function TDiagramLink.getCenterPoint(linestart: tpoint; lineend: tpoint): tpoint;
-//calculate the center between two lines and return the x,y position
-var x1,x2: integer;
+//calculate the center between two points and return the x,y position
+var x1,x2,y1,y2: integer;
   _x: single;
+  _y: single;
 begin
   x1:=min(linestart.x,lineend.x);
   x2:=max(linestart.x,lineend.x);
@@ -180,10 +181,11 @@ begin
   _x:=single(x1)+(single(x2-x1) / 2);
   result.x:=trunc(_x);
 
-  if x2-x1=0 then
-    result.y:=linestart.y+((max(linestart.y,lineend.y)-min(linestart.y,lineend.y)) div 2)
-  else
-    result.y:=trunc(getYPosFromX(_x,linestart,lineend));
+  y1:=min(linestart.y,lineend.y);
+  y2:=max(linestart.y,lineend.y);
+
+  _y:=single(y1)+(single(y2-y1) / 2);
+  result.y:=trunc(_y);
 end;
 
 function TDiagramLink.ptInLine(pt: tpoint; linestart: tpoint; lineend: tpoint): boolean;
@@ -222,26 +224,6 @@ begin
 
 end;
 
-const arrow:array [0..2] of TPoint =(
-  (x:-5;y:-5),
-  (x:5;y:0),
-  (x:-5;y:5)
-);
-
-function TDiagramLink.getCenterAdjustForBorderSide(side: TDiagramBlockSide): TPoint;
-begin
-  case side of
-    dbsTop: exit(point(0,-5));
-    dbsTopRight: exit(point(5,-5));
-    dbsRight: exit(point(5,0));
-    dbsBottomRight: exit(point(5,5));
-    dbsBottom: exit(point(0,5));
-    dbsBottomLeft: exit(point(-5,5));
-    dbsLeft: exit(point(-5,0));
-    dbsTopLeft: exit(point(-5,-5));
-    else exit(point(0,0)); //never
-  end;
-end;
 
 function TDiagramLink.getAngle(originpoint: TPoint; destinationpoint: TPoint): single;
 var dx,dy: integer;
@@ -251,6 +233,13 @@ begin
 
   result:=arctan2(dy,dx);
 end;
+
+
+const arrow:array [0..2] of TPoint =(
+  (x:-5;y:-5),
+  (x:5;y:0),
+  (x:-5;y:5)
+);
 
 procedure TDiagramLink.DrawArrow(originpoint: TPoint; rot: single; centerAdjust: TPoint);
 var
@@ -421,7 +410,7 @@ begin
     else
       directionpoint:=destinationpoint;
 
-    drawArrow(originpoint, getAngle(originpoint,directionpoint),getCenterAdjustForBorderSide(origin.side));
+    drawArrow(originpoint, getAngle(originpoint,directionpoint),point(5,0));
   end;
 
   if asDestination in ArrowStyles then
@@ -431,7 +420,7 @@ begin
     else
       directionpoint:=originpoint;
 
-    drawArrow(destinationpoint, getAngle(directionpoint,destinationpoint),getCenterAdjustForBorderSide(destination.side));
+    drawArrow(destinationpoint, getAngle(directionpoint,destinationpoint),point(-5,0)); //getCenterAdjustForBorderSide(destination.side));
   end;
 
   if asPoints in arrowstyles then
