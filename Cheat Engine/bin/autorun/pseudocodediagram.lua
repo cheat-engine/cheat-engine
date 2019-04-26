@@ -103,7 +103,7 @@ function fillDiagramBlocks(diagram, state, diagramblocks, blocks)
   for i,block in pairs(blocks) do
     if state.parsed[block.start] then
       --create block
-      diagramblocks[i] = createDiagramBlock(diagram, string.format("%X", block.start))
+      diagramblocks[i] = createDiagramBlock(diagram, string.char(27) .. symbolstyle .. getNameFromAddress(block.start))
       --fill block
       local current = block.start
       local line = 1
