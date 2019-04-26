@@ -8,14 +8,14 @@ local nottakencolor = 0x000000FF --red
 local takencolor = 0x00FF0000 --blue
 
 
-function createPseudocodeForm(name)
+function createDiagramForm(name)
   local form = createForm()
   form.BorderStyle='bsSizeable'
   form.Caption=name
   return form
 end
 
-function createPseudocodeDiagram(form)
+function createDiagramDiagram(form)
   local diagram = createDiagram(form)
   diagram.Align='alClient'
   diagram.ArrowStyles='[asDestination,asPoints,asCenter]'
@@ -28,7 +28,7 @@ function adjustBlockHeightWidth(diagram, diagramblock, blockline, instruction)
   diagramblock.height = (blockline+2)*diagram.Canvas.getTextHeight("gjaGWqQ")
 end
 
-function decorateInstruction(instruction) --todo: customizable
+function decorateBlockInstruction(instruction) --todo: customizable
   local i, j, result = 0, 0
 
   for word in string.gmatch(instruction,'[^-]*') do
@@ -108,7 +108,7 @@ function fillDiagramBlocks(diagram, state, diagramblocks, blocks)
       local current = block.start
       local line = 1
       while (current <= block.stop) do
-        diagramblocks[i].Strings.add(decorateInstruction(disassembler.disassemble(current)))
+        diagramblocks[i].Strings.add(decorateBlockInstruction(disassembler.disassemble(current)))
         adjustBlockHeightWidth(diagram, diagramblocks[i], line, current)
         current = current + state.parsed[current].bytesize
         line = line + 1
@@ -138,9 +138,9 @@ function linkDiagramBlocks(diagram, state, diagramblocks, blocks)
   end
 end
 
-function spawnPseudocode(start, limit)
-  local dForm = createPseudocodeForm('Diagram')
-  local dDiagram = createPseudocodeDiagram(dForm)
+function spawnDiagram(start, limit)
+  local dForm = createDiagramForm('Diagram')
+  local dDiagram = createDiagramDiagram(dForm)
   local state = parseFunction(start, limit)
   local blocks = createBlocks(state)
   local diagramblocks = {}
