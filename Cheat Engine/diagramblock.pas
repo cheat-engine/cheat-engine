@@ -18,7 +18,6 @@ type
 
   TDBCustomDrawEvent=procedure(Sender: TDiagramBlock; const ARect: TRect; beforePaint: boolean; var DefaultDraw: Boolean) of object;
 
-
   TDiagramBlock=class
   private
     fx,fy: integer;
@@ -33,7 +32,7 @@ type
     fOnRenderHeader: TDBCustomDrawEvent;
     fOnRenderBody: TDBCustomDrawEvent;
 
-    data: tstringlist;
+    data: TStringList;
 
     captionheight: integer;
     config: TDiagramConfig;
@@ -48,12 +47,16 @@ type
     fAutoSide: boolean;
     fAutoSideDistance: integer;
 
+    fAutoSize: boolean;
+
     function getBackgroundColor: TColor;
     procedure setBackgroundColor(c: TColor);
     function getTextColor: TColor;
     procedure setTextColor(c: TColor);
     function getCanvas: TCanvas;
     function getOwner: TCustomControl;
+    procedure setCaption(c: string);
+    procedure DataChange(sender: TObject);
   public
 
     function getData: TStrings;
@@ -68,6 +71,9 @@ type
     function getConnectPosition(side: TDiagramBlockSide; position: integer=0): tpoint;
     function getClosestSideDescriptor(xpos,ypos: integer): TDiagramBlockSideDescriptor;
 
+    procedure setAutoSize(state: boolean);
+    procedure DoAutoSize;
+
     procedure render;
     property OnDestroy: TNotifyEvent read fOnDestroy write fOnDestroy;
     constructor create(graphConfig: TDiagramConfig);
@@ -79,11 +85,12 @@ type
     property Y: integer read fy write fy;
     property Width: integer read fwidth write fwidth;
     property Height: integer read fheight write fheight;
-    property Caption: string read fcaption write fcaption;
+    property Caption: string read fcaption write setCaption;
     property Strings: TStrings read getData write setData;
     property BackgroundColor: TColor read getBackgroundColor write setBackgroundColor;
     property TextColor: TColor read getTextColor write setTextColor;
     property Name: string read fname write fname;
+    property AutoSize: boolean read fAutoSize write setAutoSize;
     property AutoSide: boolean read fAutoSide write fAutoSide;
     property AutoSideDistance: integer read fAutoSideDistance write fAutoSideDistance;
     property OnDoubleClickHeader: TNotifyEvent read fOnDoubleClickHeader write fOnDoubleClickHeader;
@@ -94,6 +101,8 @@ type
   end;
 
 implementation
+
+uses math;
 
 function TDiagramBlock.getBackgroundColor: TColor;
 begin
@@ -132,6 +141,58 @@ end;
 function TDiagramBlock.getCanvas: TCanvas;
 begin
   result:=config.canvas;
+end;
+
+procedure TDiagramBlock.setCaption(c: string);
+begin
+  fcaption:=c;
+  if fAutoSize then
+    DoAutoSize;
+end;
+
+procedure TDiagramBlock.DataChange(sender: TObject);
+begin
+  if fAutoSize then
+    DoAutoSize;
+end;
+
+procedure TDiagramBlock.setAutoSize(state: boolean);
+begin
+  fAutoSize:=state;
+  if state then
+    DoAutoSize;
+end;
+
+procedure TDiagramBlock.DoAutoSize;
+var
+  minwidth: integer;
+  c: TCanvas;
+
+  tw: integer;
+
+  lh: integer;
+  i: integer;
+begin
+  if fAutoSize=false then exit;
+
+  c:=config.canvas;
+  if c=nil then exit;
+
+  lh:=c.GetTextHeight('AFgGjJ');
+
+  minwidth:=min(10, c.GetTextWidth(fcaption));
+  for i:=0 to data.Count-1 do
+  begin
+    tw:=c.GetTextWidth(data[i]);
+    if tw>minwidth then
+      minwidth:=tw;
+  end;
+  width:=minwidth+10;
+
+  if captionheight=0 then
+    captionheight:=c.GetTextHeight('XxYyJjQq')+4;
+
+  height:=captionheight+lh*(data.count+1);
 end;
 
 procedure TDiagramBlock.render;
@@ -570,7 +631,9 @@ end;
 
 constructor TDiagramBlock.create(graphConfig: TDiagramConfig);
 begin
-  data:=tstringlist.create;
+  data:=TStringList.create;
+  data.OnChange:=@DataChange;
+
   config:=GraphConfig;
   x:=0;
   y:=0;

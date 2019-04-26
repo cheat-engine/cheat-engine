@@ -74,6 +74,8 @@ type
     procedure MouseDown(Button: TMouseButton; Shift: TShiftState; X, Y: Integer); override;
     procedure MouseUp(Button: TMouseButton; Shift: TShiftState; X, Y: Integer); override;
     procedure WMLButtonDBLCLK(var Message: TLMLButtonDblClk); message LM_LBUTTONDBLCLK;
+
+    procedure SetParent(NewParent: TWinControl); override;
     //procedure DblClick; override;
   public
     function createBlock: TDiagramBlock;
@@ -122,6 +124,7 @@ type
     property PopupMenu;
     property ShowHint;
     property OnShowHint;
+    property Parent;
   end;
 
 implementation
@@ -765,6 +768,12 @@ begin
 
   if newcursor<>cursor then
     cursor:=newcursor;
+end;
+
+procedure TDiagram.SetParent(NewParent: TWinControl);
+begin
+  inherited SetParent(NewParent);
+  diagramConfig.Canvas:=canvas;
 end;
 
 procedure TDiagram.paint;
