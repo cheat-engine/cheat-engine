@@ -1,22 +1,21 @@
 --[[pseudocodediagram.lua]]--
 
-local start = 0x7FF64377AE6F
-local limit = 50
 local registerstyle = '[31;1m' --red + bold
 local hexstyle = '[34;1m' --blue + bold
 local symbolstyle = '[32;1m' --green + bold
 local opcodestyle = '[1m' --bold
-local red, blue = 0x000000FF, 0x00FF0000
+local nottakencolor = 0x000000FF --red
+local takencolor = 0x00FF0000 --blue
 
 
-function createDiagramForm(name)
+function createPseudocodeForm(name)
   local form = createForm()
   form.BorderStyle='bsSizeable'
   form.Caption=name
   return form
 end
 
-function createFormDiagram(form)
+function createPseudocodeDiagram(form)
   local diagram = createDiagram(form)
   diagram.Align='alClient'
   diagram.ArrowStyles='[asDestination,asPoints,asCenter]'
@@ -35,7 +34,7 @@ function decorateInstruction(instruction) --todo: customizable
   for word in string.gmatch(instruction,'[^-]*') do
      if result then
        if (i == 2) then --=Opcode
-         result = result .. string.char(27)..'[1m' .. word --bold
+         result = result .. string.char(27).. opcodestyle .. word --bold
        elseif (i > 2) then
          for ward in string.gmatch(word,'[^ ]*') do
            if (j == 1) then
@@ -69,9 +68,7 @@ function decorateInstruction(instruction) --todo: customizable
        elseif word == 'N' then --{N}=Nothing special
           result = result .. string.char(27) .. 'c' --nothing
        else
-          if word ~= ' ' then
-            result = result .. word
-          end
+          result = result .. word
        end
     else
        result = word
@@ -127,7 +124,7 @@ function linkDiagramBlocks(diagram, state, diagramblocks, blocks)
     if (i > 1) then --skip starting block
       for j,source in pairs(blocks[i].getsJumpedToBy) do
         if (source == blocks[i-1].stop) then
-          createDiagramLink(diagram, diagramblocks[i-1], diagramblock, red) --not taken branches
+          createDiagramLink(diagram, diagramblocks[i-1], diagramblock, nottakencolor) --not taken branches
         end
       end
     end
@@ -135,15 +132,15 @@ function linkDiagramBlocks(diagram, state, diagramblocks, blocks)
     if (blocks[i].jumpsTo) then --skip leaf blocks
       destinationblock_index = blockAddressToBlockIndex(blocks, blocks[i].jumpsTo.destinationtaken)
       if (destinationblock_index) then
-        createDiagramLink(diagram, diagramblock, diagramblocks[destinationblock_index], blue) --taken branches
+        createDiagramLink(diagram, diagramblock, diagramblocks[destinationblock_index], takencolor) --taken branches
       end
     end
   end
 end
 
-function spawnDiagram()
-  local dForm = createDiagramForm('Diagram')
-  local dDiagram = createFormDiagram(dForm)
+function spawnPseudocode(start, limit)
+  local dForm = createPseudocodeForm('Diagram')
+  local dDiagram = createPseudocodeDiagram(dForm)
   local state = parseFunction(start, limit)
   local blocks = createBlocks(state)
   local diagramblocks = {}
