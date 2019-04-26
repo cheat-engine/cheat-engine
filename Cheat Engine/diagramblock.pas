@@ -172,27 +172,37 @@ var
 
   lh: integer;
   i: integer;
+
+  temp: TBitmap;
+
+  cr: trect;
+  tr: trect;
 begin
   if fAutoSize=false then exit;
 
-  c:=config.canvas;
+  temp:=tbitmap.Create;
+  c:=temp.canvas;
   if c=nil then exit;
+  if canvas=nil then exit;
 
-  lh:=c.GetTextHeight('AFgGjJ');
-
-  minwidth:=min(10, c.GetTextWidth(fcaption));
-  for i:=0 to data.Count-1 do
-  begin
-    tw:=c.GetTextWidth(data[i]);
-    if tw>minwidth then
-      minwidth:=tw;
-  end;
-  width:=minwidth+10;
+  c.pen.Assign(Canvas.pen);
+  c.brush.Assign(Canvas.brush);
+  c.font.Assign(Canvas.font);
 
   if captionheight=0 then
-    captionheight:=c.GetTextHeight('XxYyJjQq')+4;
+    captionheight:=canvas.GetTextHeight('XxYyJjQq')+4;
 
-  height:=captionheight+lh*(data.count+1);
+
+  cr:=renderFormattedText(c,rect(0,0,0,0),0,0,fcaption);
+  tr:=renderFormattedText(c,rect(0,0,0,0),0,captionheight,data.Text);
+
+  minwidth:=cr.Right;
+  if minwidth<tr.right then minwidth:=tr.right;
+
+  width:=minwidth+10;
+  height:=tr.Bottom+10;
+
+  temp.free;
 end;
 
 procedure TDiagramBlock.render;

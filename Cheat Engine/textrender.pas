@@ -7,7 +7,7 @@ interface
 uses
   Classes, SysUtils, graphics, math;
 
-procedure renderFormattedText(canvas: TCanvas; rect: Trect; x,y: integer; formattedtext: string);
+function renderFormattedText(canvas: TCanvas; rect: Trect; x,y: integer; formattedtext: string): trect;
 
 implementation
 
@@ -430,7 +430,7 @@ begin
   end;
 end;
 
-procedure renderFormattedText(canvas: TCanvas; rect: Trect; x,y: integer; formattedtext: string);
+function renderFormattedText(canvas: TCanvas; rect: Trect; x,y: integer; formattedtext: string): trect;
 var
   i: integer;
   _x: integer;
@@ -441,6 +441,8 @@ var
   w: integer;
 
   temprect: trect;
+
+  maxx, maxy: integer;
 begin
   i:=1;
   original.font:=tfont.create;
@@ -450,10 +452,10 @@ begin
   _x:=x;
   _y:=y;
 
+  maxx:=_x;
+  maxy:=_y;
+
   lineheight:=canvas.GetTextHeight('AFgGjJ');
-
-
-
 
   while i<=length(formattedtext) do
   begin
@@ -462,12 +464,16 @@ begin
       begin
         inc(i);
         handleEscapeSequence(canvas, rect, formattedtext, original, i,_x,_y);
+
+        maxx:=max(maxx, _x);
+        maxx:=max(maxy, _x);
       end;
 
       #13: //return
       begin
         _x:=x;
         inc(_y, lineheight);
+        maxy:=max(maxy, _y);
         inc(i);
       end;
 
@@ -483,6 +489,8 @@ begin
           if temprect.left>rect.right then
           begin
             inc(_x,w);
+
+            maxx:=max(maxx, _x);
             inc(i);
             continue;
           end;
@@ -494,6 +502,7 @@ begin
         canvas.TextRect(rect,_x,_y,formattedtext[i]);
 
         inc(_x,w);
+        maxx:=max(maxx, _x);
         inc(i);
       end;
     end;
@@ -501,6 +510,11 @@ begin
 
   restoreOriginalState(canvas, original);
   original.font.free;
+
+  result.left:=x;
+  result.top:=y;
+  result.right:=maxx;
+  result.bottom:=maxy;
 end;
 
 
