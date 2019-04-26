@@ -3323,6 +3323,7 @@ properties
   BackgroundColor: integer - When set overrides the default color for the block to the given one
   TextColor: Integer - The starting/default textcolor
   Name: string - The name of the block
+  AutoSize: boolean - If true the width and height of the box will adjust to the given Caption and Strings
   AutoSide: boolean - If true the connection side of a link will be picked for you instead of providing the side yourself
   AutoSideDistance: integer - If autoside is true and there are multiple lines on the same side, this determines the distance between
   OnDoubleClickHeader: function(sender) - Function to call when the block's header is doubleclicked
