@@ -15014,6 +15014,9 @@ begin
                           if (memory[1]=$15) and (pdword(@memory[2])^=2) and (pword(@memory[6])^=$8eb) then //special 16 byte call
                           begin
                             lastdisassembledata.parameters:=inttohexs(pqword(@memory[8])^,8);
+                            LastDisassembleData.parameterValue:=pqword(@memory[8])^;
+                            LastDisassembleData.parameterValueType:=dvtAddress;
+
                             inc(last,8+4+2+2);
 
                             LastDisassembleData.Seperators[0]:=2;
