@@ -879,13 +879,14 @@ begin
       exit(-1);
   end;
 
-
   result:=-1;
   for i:=0 to DropDownCount-1 do
   begin
     if lowercase(Value)=lowercase(DropDownValue[i]) then
       result:=i;
   end;
+
+
 end;
 
 function TMemoryRecord.getDropDownReadOnly: boolean;
@@ -2727,27 +2728,44 @@ function TMemoryRecord.GetDisplayValue: string;
 var
   i: integer;
   c: integer;
+  found: boolean;
+  hasNotFoundResult: boolean;
+  notfoundresult: string;
 begin
   result:=getValue;
   if assigned(fOnGetDisplayValue) and fOnGetDisplayValue(self, result) then exit;
 
   c:=DropDowncount;
 
+
   if getDisplayAsDropDownListItem and (c>0) then
   begin
+    notfoundresult:='';
+    found:=false;
+    hasNotFoundResult:=false;
+
     //convert the value to a dropdown list item value
     for i:=0 to c-1 do
     begin
+      if DropDownReadOnly and DropDownDescriptionOnly and DisplayAsDropDownListItem and (DropDownValue[i]='*') then
+      begin
+        hasNotFoundResult:=true;
+        notfoundresult:=DropDownDescription[i];
+      end;
+
       if uppercase(utf8toansi(DropDownValue[i]))=uppercase(result) then
       begin
+        found:=true;
         if getDropDownDescriptionOnly then
           result:=utf8toansi(DropDownDescription[i])
         else
           result:=result+' : '+utf8toansi(DropDownDescription[i]);
       end;
 
-      //still here. The value couldn't be found in the list , so just display the value
     end;
+
+    if (not found) and DropDownReadOnly and DropDownDescriptionOnly and DisplayAsDropDownListItem and hasNotFoundResult then
+      result:=notfoundresult;
   end;
 end;
 

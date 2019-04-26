@@ -1054,9 +1054,6 @@ var
 
   frmMemrecCombobox: TfrmMemrecCombobox;
 begin
-
-
-
   if memrec.DropDownCount=0 then
   begin
     value:=AnsiToUtf8(memrec.value);
@@ -1075,7 +1072,11 @@ begin
     frmMemrecCombobox:=TfrmMemrecCombobox.Create(memrec);
     canceled:=frmMemrecCombobox.showmodal<>mrok;
 
-    value:=utf8toansi(frmMemrecCombobox.value);
+    if memrec.DropDownReadOnly and memrec.DropDownDescriptionOnly and memrec.DisplayAsDropDownListItem and (frmMemrecCombobox.value='*') then
+      canceled:=true;
+
+    if not canceled then
+      value:=utf8toansi(frmMemrecCombobox.value);
 
     frmMemrecCombobox.free;
   end;
