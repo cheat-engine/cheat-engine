@@ -1,12 +1,13 @@
 --[[pseudocodediagram.lua]]--
 
-local registerstyle = '[31;1m' --red + bold
-local hexstyle = '[34;1m' --blue + bold
-local symbolstyle = '[32;1m' --green + bold
-local opcodestyle = '[1m' --bold
-local link
-local nottakencolor = 0x000000FF --red
-local takencolor = 0x00FF0000 --blue
+local instructionstyle = {}
+instructionstyle.registerstyle = '[31;1m' --red + bold
+instructionstyle.hexstyle = '[34;1m' --blue + bold
+instructionstyle.symbolstyle = '[32;1m' --green + bold
+instructionstyle.opcodestyle = '[1m' --bold
+local linkstyle = {}
+linkstyle.nottakencolor = 0x000000FF --red
+linkstyle.takencolor = 0x00FF0000 --blue
 local blockstyle = {}
 blockstyle.headerShowSymbol = true
 blockstyle.bodyShowAddresses = false
@@ -14,16 +15,20 @@ blockstyle.bodyShowAddresses = false
 
 function editDiagramStyle(table_blockstyle, table_linkstyle, table_instructionstyle)
   if (table_blockstyle) then
-     blockstyle.headerShowSymbol = table_blockstyle.headerShowSymbol
-     blockstyle.bodyShowAddresses = table_blockstyle.bodyShowAddresses
+    blockstyle.headerShowSymbol = table_blockstyle.headerShowSymbol
+    blockstyle.bodyShowAddresses = table_blockstyle.bodyShowAddresses
   end
 
   if (table_linkstyle) then
-   --in development
+    linkstyle.nottakencolor = table_linkstyle.nottakencolor
+    linkstyle.takencolor = table_linkstyle.takencolor
   end
 
   if (table_instructionstyle) then
-   --in development
+    instructionstyle.registerstyle = table_instructionstyle.registerstyle
+    instructionstyle.hexstyle = table_instructionstyle.hexstyle
+    instructionstyle.symbolstyle = table_instructionstyle.symbolstyle
+    instructionstyle.opcodestyle = table_instructionstyle.opcodestyle
   end 
 end
 
@@ -50,7 +55,7 @@ function decorateBlockInstruction(instruction) --todo: customizable
   local i, j, result = 0, 0, ' '
   for word in string.gmatch(instruction,'[^-]*') do
       if (i == 2 and word ~= '') then --=Opcode
-        result =  result .. ' ' .. string.char(27).. opcodestyle --bold
+        result =  result .. ' ' .. string.char(27).. instructionstyle.opcodestyle --bold
         for ward in string.gmatch(word,'[^ ]*') do
           if (j == 2) then
             result = result .. ' ' .. ward .. string.char(27) .. '[0m' --terminator
@@ -72,11 +77,11 @@ function decorateBlockInstruction(instruction) --todo: customizable
   for word in string.gmatch(instruction,'[^{*}]*') do
     if result then
        if word == 'R' then --{R}=Register
-          result = result .. string.char(27) .. registerstyle
+          result = result .. string.char(27) .. instructionstyle.registerstyle
        elseif word == 'H' then --{H}=Hex value
-          result = result .. string.char(27) .. hexstyle
+          result = result .. string.char(27) .. instructionstyle.hexstyle
        elseif word == 'S' then --{S}=Symbol
-          result = result .. string.char(27) .. symbolstyle
+          result = result .. string.char(27) .. instructionstyle.symbolstyle
        elseif word == 'N' then --{N}=Nothing special
           result = result .. string.char(27) .. 'c' --nothing
        else
@@ -116,7 +121,7 @@ function fillDiagramBlocks(diagram, state, diagramblocks, blocks)
     if state.parsed[block.start] then
       --create block
       if (blockstyle.headerShowSymbol) then
-        diagramblocks[i] = createDiagramBlock(diagram, ' ' .. string.char(27) .. symbolstyle .. getNameFromAddress(block.start))
+        diagramblocks[i] = createDiagramBlock(diagram, ' ' .. string.char(27) .. instructionstyle.symbolstyle .. getNameFromAddress(block.start))
       else
         diagramblocks[i] = createDiagramBlock(diagram, ' ' .. string.format('0x%X', block.start))
       end
@@ -141,7 +146,7 @@ function linkDiagramBlocks(diagram, state, diagramblocks, blocks)
     if (i > 1) then --skip starting block
       for j,source in pairs(blocks[i].getsJumpedToBy) do
         if (source == blocks[i-1].stop) then
-          createDiagramLink(diagram, diagramblocks[i-1], diagramblock, nottakencolor) --not taken branches
+          createDiagramLink(diagram, diagramblocks[i-1], diagramblock, linkstyle.nottakencolor) --not taken branches
         end
       end
     end
@@ -149,7 +154,7 @@ function linkDiagramBlocks(diagram, state, diagramblocks, blocks)
     if (blocks[i].jumpsTo) then --skip leaf blocks
       destinationblock_index = blockAddressToBlockIndex(blocks, blocks[i].jumpsTo.destinationtaken)
       if (destinationblock_index) then
-        createDiagramLink(diagram, diagramblock, diagramblocks[destinationblock_index], takencolor) --taken branches
+        createDiagramLink(diagram, diagramblock, diagramblocks[destinationblock_index], linkstyle.takencolor) --taken branches
       end
     end
   end
