@@ -1,12 +1,36 @@
 --[[pseudocodediagram.lua]]--
 
-local registerstyle = '[31;1m' --red + bold
-local hexstyle = '[34;1m' --blue + bold
-local symbolstyle = '[32;1m' --green + bold
-local opcodestyle = '[1m' --bold
-local nottakencolor = 0x000000FF --red
-local takencolor = 0x00FF0000 --blue
+local instructionstyle = {}
+instructionstyle.registerstyle = '[31;1m' --red + bold
+instructionstyle.hexstyle = '[34;1m' --blue + bold
+instructionstyle.symbolstyle = '[32;1m' --green + bold
+instructionstyle.opcodestyle = '[1m' --bold
+local linkstyle = {}
+linkstyle.nottakencolor = 0x000000FF --red
+linkstyle.takencolor = 0x00FF0000 --blue
+local blockstyle = {}
+blockstyle.headerShowSymbol = true
+blockstyle.bodyShowAddresses = false
 
+
+function editDiagramStyle(table_blockstyle, table_linkstyle, table_instructionstyle)
+  if (table_blockstyle) then
+    blockstyle.headerShowSymbol = table_blockstyle.headerShowSymbol
+    blockstyle.bodyShowAddresses = table_blockstyle.bodyShowAddresses
+  end
+
+  if (table_linkstyle) then
+    linkstyle.nottakencolor = table_linkstyle.nottakencolor
+    linkstyle.takencolor = table_linkstyle.takencolor
+  end
+
+  if (table_instructionstyle) then
+    instructionstyle.registerstyle = table_instructionstyle.registerstyle
+    instructionstyle.hexstyle = table_instructionstyle.hexstyle
+    instructionstyle.symbolstyle = table_instructionstyle.symbolstyle
+    instructionstyle.opcodestyle = table_instructionstyle.opcodestyle
+  end 
+end
 
 function createDiagramForm(name)
   local form = createForm()
@@ -22,36 +46,29 @@ function createDiagramDiagram(form)
   return diagram
 end
 
-function adjustBlockHeightWidth(diagram, diagramblock, blockline, instruction)
-  local disassembler = getVisibleDisassembler()
-  diagramblock.width = math.max(diagramblock.width, diagram.Canvas.getTextWidth(disassembler.disassemble(instruction))+5)
+function adjustBlockHeightWidth(diagram, diagramblock, blockline, string)
+  diagramblock.width = math.max(diagramblock.width, diagram.Canvas.getTextWidth(string))
   diagramblock.height = (blockline+2)*diagram.Canvas.getTextHeight("gjaGWqQ")
 end
 
 function decorateBlockInstruction(instruction) --todo: customizable
-  local i, j, result = 0, 0
-
+  local i, j, result = 0, 0, ' '
   for word in string.gmatch(instruction,'[^-]*') do
-     if result then
-       if (i == 2) then --=Opcode
-         result = result .. string.char(27).. opcodestyle .. word --bold
-       elseif (i > 2) then
-         for ward in string.gmatch(word,'[^ ]*') do
-           if (j == 1) then
-             result = result .. ' ' .. ward .. string.char(27) .. '[0m' .. ' ' --terminator
-           else
-             result = result .. ward .. ' '
-           end
-           j = j + 1
-         end
-       else
-         result = result .. word .. '-'
-       end
-       if (j ~= 0) then break end
-       i = i + 1
-     else
-       result = word
-     end
+      if (i == 2 and word ~= '') then --=Opcode
+        result =  result .. ' ' .. string.char(27).. instructionstyle.opcodestyle --bold
+        for ward in string.gmatch(word,'[^ ]*') do
+          if (j == 2) then
+            result = result .. ' ' .. ward .. string.char(27) .. '[0m' --terminator
+          else
+            if (ward ~= '') then result = result .. ward .. ' ' end
+          end
+          j = j + 1
+        end
+      else
+        if (word ~= '' and blockstyle.bodyShowAddresses) then result = result .. word .. '-' end
+      end
+      if (j ~= 0) then break end
+      if (word ~= '') then i = i + 1 end
   end
 
   instruction = result
@@ -60,11 +77,11 @@ function decorateBlockInstruction(instruction) --todo: customizable
   for word in string.gmatch(instruction,'[^{*}]*') do
     if result then
        if word == 'R' then --{R}=Register
-          result = result .. string.char(27) .. registerstyle
+          result = result .. string.char(27) .. instructionstyle.registerstyle
        elseif word == 'H' then --{H}=Hex value
-          result = result .. string.char(27) .. hexstyle
+          result = result .. string.char(27) .. instructionstyle.hexstyle
        elseif word == 'S' then --{S}=Symbol
-          result = result .. string.char(27) .. symbolstyle
+          result = result .. string.char(27) .. instructionstyle.symbolstyle
        elseif word == 'N' then --{N}=Nothing special
           result = result .. string.char(27) .. 'c' --nothing
        else
@@ -99,17 +116,22 @@ function blockAddressToBlockIndex(blocks, address)
 end
 
 function fillDiagramBlocks(diagram, state, diagramblocks, blocks)
-  local disassembler = getVisibleDisassembler()
+  local disassembler, temp = getVisibleDisassembler()
   for i,block in pairs(blocks) do
     if state.parsed[block.start] then
       --create block
-      diagramblocks[i] = createDiagramBlock(diagram, string.char(27) .. symbolstyle .. getNameFromAddress(block.start))
+      if (blockstyle.headerShowSymbol) then
+        diagramblocks[i] = createDiagramBlock(diagram, ' ' .. string.char(27) .. instructionstyle.symbolstyle .. getNameFromAddress(block.start))
+      else
+        diagramblocks[i] = createDiagramBlock(diagram, ' ' .. string.format('0x%X', block.start))
+      end
       --fill block
       local current = block.start
       local line = 1
       while (current <= block.stop) do
-        diagramblocks[i].Strings.add(decorateBlockInstruction(disassembler.disassemble(current)))
-        adjustBlockHeightWidth(diagram, diagramblocks[i], line, current)
+        temp = decorateBlockInstruction(disassembler.disassemble(current))
+        diagramblocks[i].Strings.add(temp)
+        adjustBlockHeightWidth(diagram, diagramblocks[i], line, temp)
         current = current + state.parsed[current].bytesize
         line = line + 1
       end
@@ -124,7 +146,7 @@ function linkDiagramBlocks(diagram, state, diagramblocks, blocks)
     if (i > 1) then --skip starting block
       for j,source in pairs(blocks[i].getsJumpedToBy) do
         if (source == blocks[i-1].stop) then
-          createDiagramLink(diagram, diagramblocks[i-1], diagramblock, nottakencolor) --not taken branches
+          createDiagramLink(diagram, diagramblocks[i-1], diagramblock, linkstyle.nottakencolor) --not taken branches
         end
       end
     end
@@ -132,7 +154,7 @@ function linkDiagramBlocks(diagram, state, diagramblocks, blocks)
     if (blocks[i].jumpsTo) then --skip leaf blocks
       destinationblock_index = blockAddressToBlockIndex(blocks, blocks[i].jumpsTo.destinationtaken)
       if (destinationblock_index) then
-        createDiagramLink(diagram, diagramblock, diagramblocks[destinationblock_index], takencolor) --taken branches
+        createDiagramLink(diagram, diagramblock, diagramblocks[destinationblock_index], linkstyle.takencolor) --taken branches
       end
     end
   end
