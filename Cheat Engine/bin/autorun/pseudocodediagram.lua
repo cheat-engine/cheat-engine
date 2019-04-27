@@ -4,9 +4,28 @@ local registerstyle = '[31;1m' --red + bold
 local hexstyle = '[34;1m' --blue + bold
 local symbolstyle = '[32;1m' --green + bold
 local opcodestyle = '[1m' --bold
+local link
 local nottakencolor = 0x000000FF --red
 local takencolor = 0x00FF0000 --blue
+local blockstyle = {}
+blockstyle.headerShowSymbol = true
+blockstyle.bodyShowAddresses = false
 
+
+function editDiagramStyle(table_blockstyle, table_linkstyle, table_instructionstyle)
+  if (table_blockstyle) then
+     blockstyle.headerShowSymbol = table_blockstyle.headerShowSymbol
+     blockstyle.bodyShowAddresses = table_blockstyle.bodyShowAddresses
+  end
+
+  if (table_linkstyle) then
+   --in development
+  end
+
+  if (table_instructionstyle) then
+   --in development
+  end 
+end
 
 function createDiagramForm(name)
   local form = createForm()
@@ -22,36 +41,29 @@ function createDiagramDiagram(form)
   return diagram
 end
 
-function adjustBlockHeightWidth(diagram, diagramblock, blockline, instruction)
-  local disassembler = getVisibleDisassembler()
-  diagramblock.width = math.max(diagramblock.width, diagram.Canvas.getTextWidth(disassembler.disassemble(instruction))+5)
+function adjustBlockHeightWidth(diagram, diagramblock, blockline, string)
+  diagramblock.width = math.max(diagramblock.width, diagram.Canvas.getTextWidth(string))
   diagramblock.height = (blockline+2)*diagram.Canvas.getTextHeight("gjaGWqQ")
 end
 
 function decorateBlockInstruction(instruction) --todo: customizable
-  local i, j, result = 0, 0
-
+  local i, j, result = 0, 0, ' '
   for word in string.gmatch(instruction,'[^-]*') do
-     if result then
-       if (i == 2) then --=Opcode
-         result = result .. string.char(27).. opcodestyle .. word --bold
-       elseif (i > 2) then
-         for ward in string.gmatch(word,'[^ ]*') do
-           if (j == 1) then
-             result = result .. ' ' .. ward .. string.char(27) .. '[0m' .. ' ' --terminator
-           else
-             result = result .. ward .. ' '
-           end
-           j = j + 1
-         end
-       else
-         result = result .. word .. '-'
-       end
-       if (j ~= 0) then break end
-       i = i + 1
-     else
-       result = word
-     end
+      if (i == 2 and word ~= '') then --=Opcode
+        result =  result .. ' ' .. string.char(27).. opcodestyle --bold
+        for ward in string.gmatch(word,'[^ ]*') do
+          if (j == 2) then
+            result = result .. ' ' .. ward .. string.char(27) .. '[0m' --terminator
+          else
+            if (ward ~= '') then result = result .. ward .. ' ' end
+          end
+          j = j + 1
+        end
+      else
+        if (word ~= '' and blockstyle.bodyShowAddresses) then result = result .. word .. '-' end
+      end
+      if (j ~= 0) then break end
+      if (word ~= '') then i = i + 1 end
   end
 
   instruction = result
@@ -99,17 +111,22 @@ function blockAddressToBlockIndex(blocks, address)
 end
 
 function fillDiagramBlocks(diagram, state, diagramblocks, blocks)
-  local disassembler = getVisibleDisassembler()
+  local disassembler, temp = getVisibleDisassembler()
   for i,block in pairs(blocks) do
     if state.parsed[block.start] then
       --create block
-      diagramblocks[i] = createDiagramBlock(diagram, string.char(27) .. symbolstyle .. getNameFromAddress(block.start))
+      if (blockstyle.headerShowSymbol) then
+        diagramblocks[i] = createDiagramBlock(diagram, ' ' .. string.char(27) .. symbolstyle .. getNameFromAddress(block.start))
+      else
+        diagramblocks[i] = createDiagramBlock(diagram, ' ' .. string.format('0x%X', block.start))
+      end
       --fill block
       local current = block.start
       local line = 1
       while (current <= block.stop) do
-        diagramblocks[i].Strings.add(decorateBlockInstruction(disassembler.disassemble(current)))
-        adjustBlockHeightWidth(diagram, diagramblocks[i], line, current)
+        temp = decorateBlockInstruction(disassembler.disassemble(current))
+        diagramblocks[i].Strings.add(temp)
+        adjustBlockHeightWidth(diagram, diagramblocks[i], line, temp)
         current = current + state.parsed[current].bytesize
         line = line + 1
       end
