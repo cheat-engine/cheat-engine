@@ -55,8 +55,8 @@ function decorateBlockInstruction(instruction)
   for word in string.gmatch(instruction,'[^-]*') do
     if (i == 2 and word ~= '') then temp = word
     else
-      if (word ~= '' and temp ~= nil) then temp = temp .. word
-        elseif (word ~= '' and diagramstyle.block_bodyshowaddresses) then result = result .. word .. '-' end
+      if (word ~= '' and temp ~= nil) then temp = temp .. '-' .. word
+      elseif (word ~= '' and diagramstyle.block_bodyshowaddresses) then result = result .. word .. '-' end
     end
     if (word ~= '') then i = i + 1 end
   end
