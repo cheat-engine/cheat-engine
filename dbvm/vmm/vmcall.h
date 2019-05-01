@@ -83,7 +83,8 @@
 
 #define VMCALL_WATCH_EXECUTES 60
 
-
+#define VMCALL_KERNELMODE 100
+#define VMCALL_USERMODE 101
 
 
 extern int hasEPTsupport;
