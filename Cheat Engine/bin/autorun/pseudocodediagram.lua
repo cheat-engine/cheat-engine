@@ -10,24 +10,24 @@ diagramstyle.link_takencolor = 0x00FF0000 --blue
 diagramstyle.block_headershowsymbol = true
 diagramstyle.block_bodyshowaddresses = false
 
-function editDiagramStyle(table_diagramstyle)
-  if (table_diagramstyle) then
-    if (table_diagramstyle.instruction_registerstyle) then 
-      diagramstyle.instruction_registerstyle = table_diagramstyle.instruction_registerstyle end
-    if (table_diagramstyle.instruction_hexstyle) then 
-      diagramstyle.instruction_hexstyle = table_diagramstyle.instruction_hexstyle end
-    if (table_diagramstyle.instruction_symbolstyle) then 
-      diagramstyle.instruction_symbolstyle = table_diagramstyle.instruction_symbolstyle end
-    if (table_diagramstyle.instruction_opcodestyle) then 
-      diagramstyle.instruction_opcodestyle = table_diagramstyle.instruction_opcodestyle end
-    if (table_diagramstyle.link_nottakencolor) then
-      diagramstyle.link_nottakencolor = table_diagramstyle.link_nottakencolor end
-    if (table_diagramstyle.link_takencolor) then
-      diagramstyle.link_takencolor = table_diagramstyle.link_takencolor end
-    if (table_diagramstyle.block_headershowsymbol) then
-      diagramstyle.block_headershowsymbol = table_diagramstyle.block_headershowsymbol end
-    if (table_diagramstyle.block_bodyshowaddresses) then
-      diagramstyle.block_bodyshowaddresses = table_diagramstyle.block_bodyshowaddresses end
+function editDiagramStyle(new_diagramstyle)
+  if (new_diagramstyle) then
+    if (new_diagramstyle.instruction_registerstyle) then 
+      diagramstyle.instruction_registerstyle = new_diagramstyle.instruction_registerstyle end
+    if (new_diagramstyle.instruction_hexstyle) then 
+      diagramstyle.instruction_hexstyle = new_diagramstyle.instruction_hexstyle end
+    if (new_diagramstyle.instruction_symbolstyle) then 
+      diagramstyle.instruction_symbolstyle = new_diagramstyle.instruction_symbolstyle end
+    if (new_diagramstyle.instruction_opcodestyle) then 
+      diagramstyle.instruction_opcodestyle = new_diagramstyle.instruction_opcodestyle end
+    if (new_diagramstyle.link_nottakencolor) then
+      diagramstyle.link_nottakencolor = new_diagramstyle.link_nottakencolor end
+    if (new_diagramstyle.link_takencolor) then
+      diagramstyle.link_takencolor = new_diagramstyle.link_takencolor end
+    if (new_diagramstyle.block_headershowsymbol) then
+      diagramstyle.block_headershowsymbol = new_diagramstyle.block_headershowsymbol end
+    if (new_diagramstyle.block_bodyshowaddresses) then
+      diagramstyle.block_bodyshowaddresses = new_diagramstyle.block_bodyshowaddresses end
   end
 end
 
@@ -109,37 +109,37 @@ function createDiagramLink(diagram, sourceblock, destinationblock, color)
   return diagramlink
 end
 
-function fillDiagramBlocks(diagram, state, diagramblocks, blocks)
+function fillDiagramBlocks(diagram, state, dblocks, blocks)
   local disassembler, temp = getVisibleDisassembler()
   for i,block in pairs(blocks) do
     if state.parsed[block.start] then
       --create block
       if (diagramstyle.block_headershowsymbol) then
-        diagramblocks[i] = createDiagramBlock(diagram, ' ' .. string.char(27) .. diagramstyle.instruction_symbolstyle .. getNameFromAddress(block.start))
+        dblocks[i] = createDiagramBlock(diagram, ' ' .. string.char(27) .. diagramstyle.instruction_symbolstyle .. getNameFromAddress(block.start))
       else
-        diagramblocks[i] = createDiagramBlock(diagram, ' ' .. string.format('0x%X', block.start))
+        dblocks[i] = createDiagramBlock(diagram, ' ' .. string.format('0x%X', block.start))
       end
       --fill block
       local current = block.start
       while (current <= block.stop) do
         temp = decorateBlockInstruction(disassembler.disassemble(current))
-        diagramblocks[i].Strings.add(temp)
+        dblocks[i].Strings.add(temp)
         if state.parsed[current].bytesize ~= 0 then current = current + state.parsed[current].bytesize
         else break end  
       end
-      diagramblocks[i].AutoSize = true
+      dblocks[i].AutoSize = true
     end
   end
 end
 
-function linkDiagramBlocks(diagram, state, diagramblocks, blocks)
+function linkDiagramBlocks(diagram, state, dblocks, blocks)
   local destinationblock_index
   local istaken = {}
-  for i,diagramblock in pairs(diagramblocks) do
+  for i,diagramblock in pairs(dblocks) do
     if (i > 1) then --skip starting block
       for j,source in pairs(blocks[i].getsJumpedToBy) do
         if (source == blocks[i-1].stop) then
-          createDiagramLink(diagram, diagramblocks[i-1], diagramblock, diagramstyle.link_nottakencolor) --not taken branches
+          createDiagramLink(diagram, dblocks[i-1], diagramblock, diagramstyle.link_nottakencolor) --not taken branches
           istaken[i] = false
         end
       end
@@ -147,7 +147,7 @@ function linkDiagramBlocks(diagram, state, diagramblocks, blocks)
     if (blocks[i].jumpsTo) then --skip leaf blocks
       destinationblock_index = blockAddressToBlockIndex(blocks, blocks[i].jumpsTo.destinationtaken)
       if (destinationblock_index) then
-        createDiagramLink(diagram, diagramblock, diagramblocks[destinationblock_index], diagramstyle.link_takencolor) --taken branches
+        createDiagramLink(diagram, diagramblock, dblocks[destinationblock_index], diagramstyle.link_takencolor) --taken branches
         istaken[destinationblock_index] = true
       end
     end
@@ -155,14 +155,14 @@ function linkDiagramBlocks(diagram, state, diagramblocks, blocks)
   return istaken
 end
 
-function arrangeDiagramBlocks(diagram, state, diagramblocks, blocks, istaken)
-  for i,diagramblock in pairs(diagramblocks) do
+function arrangeDiagramBlocks(dblocks, istaken)
+  for i,dblock in pairs(dblocks) do
     if (i > 1) then
       if (istaken[i]) then
-        diagramblock.y = diagramblocks[i-1].y + diagramblocks[i-1].height + 50
+        dblock.y = dblocks[i-1].y + dblocks[i-1].height + 50
         else
-        diagramblock.x = diagramblocks[i-1].x + diagramblocks[i-1].width + 50
-        diagramblock.y = diagramblocks[i-1].y + diagramblocks[i-1].height + 50
+        dblock.x = dblocks[i-1].x + dblocks[i-1].width + 50
+        dblock.y = dblocks[i-1].y + dblocks[i-1].height + 50
       end
     end
   end
@@ -173,11 +173,11 @@ function spawnDiagram(start, limit)
   local ddiagram = createDiagramDiagram(dform)
   local state = parseFunction(start, limit)
   local blocks = createBlocks(state)
-  local diagramblocks = {}
+  local dblocks = {}
   local istaken = {}
-  fillDiagramBlocks(ddiagram, state, diagramblocks, blocks)
-  istaken = linkDiagramBlocks(ddiagram, state, diagramblocks, blocks)
-  arrangeDiagramBlocks(ddiagram, state, diagramblocks, blocks, istaken)
+  fillDiagramBlocks(ddiagram, state, dblocks, blocks)
+  istaken = linkDiagramBlocks(ddiagram, state, dblocks, blocks)
+  arrangeDiagramBlocks(dblocks, istaken)
 end
 
 

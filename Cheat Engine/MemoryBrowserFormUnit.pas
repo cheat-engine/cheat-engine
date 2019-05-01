@@ -3812,6 +3812,7 @@ var x: ptrUint;
 begin
   Breakandtraceinstructions1.Enabled:=processhandle<>0;
   miTogglebreakpoint.Enabled:=processhandle<>0;
+  tbToggleBreakpoint.Enabled:=processhandle<>0;
   Changestateofregisteratthislocation1.Enabled:=processhandle<>0;
   Findoutwhataddressesthisinstructionaccesses1.enabled:=processhandle<>0;
 
