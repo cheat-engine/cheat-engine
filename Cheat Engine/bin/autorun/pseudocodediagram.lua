@@ -7,8 +7,11 @@ diagramstyle.instruction_symbolstyle = '[32;1m' --green + bold
 diagramstyle.instruction_opcodestyle = '[1m' --bold
 diagramstyle.link_nottakencolor = 0x000000FF --red
 diagramstyle.link_takencolor = 0x00FF0000 --blue
+diagramstyle.link_linethickness = 2
 diagramstyle.block_headershowsymbol = true
 diagramstyle.block_bodyshowaddresses = false
+diagramstyle.block_backgroundcolor = 0x00FFFFFF
+diagramstyle.diagram_blackgroundcolor = 0x00808080
 
 function editDiagramStyle(new_diagramstyle)
   if (new_diagramstyle) then
@@ -28,6 +31,12 @@ function editDiagramStyle(new_diagramstyle)
       diagramstyle.block_headershowsymbol = new_diagramstyle.block_headershowsymbol end
     if (new_diagramstyle.block_bodyshowaddresses) then
       diagramstyle.block_bodyshowaddresses = new_diagramstyle.block_bodyshowaddresses end
+    if (new_diagramstyle.block_backgroundcolor) then
+      diagramstyle.block_backgroundcolor = new_diagramstyle.block_backgroundcolor end
+    if (new_diagramstyle.diagram_blackgroundcolor) then
+      diagramstyle.diagram_blackgroundcolor = new_diagramstyle.diagram_blackgroundcolor end
+    if (new_diagramstyle.link_linethickness) then
+      diagramstyle.link_linethickness = new_diagramstyle.link_linethickness end
   end
 end
 
@@ -40,24 +49,28 @@ function blockAddressToBlockIndex(blocks, address)
   return nil
 end
 
-function decorateBlockInstruction(instruction) --todo: customizable
-  local i, j, result = 0, 0, ' '
+function decorateBlockInstruction(instruction)
+  local i, result, temp = 0, ' '
+
   for word in string.gmatch(instruction,'[^-]*') do
-      if (i == 2 and word ~= '') then --=Opcode
-        result =  result .. ' ' .. string.char(27).. diagramstyle.instruction_opcodestyle --bold
-        for ward in string.gmatch(word,'[^ ]*') do
-          if (j == 2) then
-            result = result .. ' ' .. ward .. string.char(27) .. '[0m' --terminator
-          else
-            if (ward ~= '') then result = result .. ward .. ' ' end
-          end
-          j = j + 1
-        end
-      else
-        if (word ~= '' and diagramstyle.block_bodyshowaddresses) then result = result .. word .. '-' end
-      end
-      if (j ~= 0) then break end
-      if (word ~= '') then i = i + 1 end
+    if (i == 2 and word ~= '') then temp = word
+    else
+      if (word ~= '' and temp ~= nil) then temp = temp .. '-' .. word
+      elseif (word ~= '' and diagramstyle.block_bodyshowaddresses) then result = result .. word .. '-' end
+    end
+    if (word ~= '') then i = i + 1 end
+  end
+
+  i = 0
+  result =  result .. ' ' .. string.char(27).. diagramstyle.instruction_opcodestyle --bold
+
+  for word in string.gmatch(temp,'[^ ]*') do
+    if (i == 0 and word ~= '') then
+      result = result .. ' ' .. word .. string.char(27) .. '[0m' .. ' ' --terminator
+    else
+      if (word ~= '') then result = result .. word .. ' ' end
+    end
+    if (word ~= '') then  i = i + 1 end
   end
 
   instruction = result
@@ -94,6 +107,9 @@ function createDiagramDiagram(form)
   local diagram = createDiagram(form)
   diagram.Align='alClient'
   diagram.ArrowStyles='[asDestination,asPoints,asCenter]'
+  diagram.BackgroundColor=diagramstyle.diagram_blackgroundcolor
+  diagram.BlockBackground=diagramstyle.block_backgroundcolor
+  diagram.LineThickness=diagramstyle.link_linethickness
   return diagram
 end
 
@@ -109,8 +125,9 @@ function createDiagramLink(diagram, sourceblock, destinationblock, color)
   return diagramlink
 end
 
-function fillDiagramBlocks(diagram, state, dblocks, blocks)
+function createDiagramBlocks(diagram, state, blocks)
   local disassembler, temp = getVisibleDisassembler()
+  local dblocks = {}
   for i,block in pairs(blocks) do
     if state.parsed[block.start] then
       --create block
@@ -130,6 +147,7 @@ function fillDiagramBlocks(diagram, state, dblocks, blocks)
       dblocks[i].AutoSize = true
     end
   end
+  return dblocks
 end
 
 function linkDiagramBlocks(diagram, state, dblocks, blocks)
@@ -175,15 +193,13 @@ function spawnDiagram(start, limit)
   local blocks = createBlocks(state)
   local dblocks = {}
   local istaken = {}
-  fillDiagramBlocks(ddiagram, state, dblocks, blocks)
+  dblocks = createDiagramBlocks(ddiagram, state, blocks)
   istaken = linkDiagramBlocks(ddiagram, state, dblocks, blocks)
   arrangeDiagramBlocks(dblocks, istaken)
 end
 
 
-
 --[[todolist]]
---blocks auto position
 --put incoming lines in the top and outgoing lines in the bottom, add points to lines, etc...
 --have a rightclick on an address function, then find the start of the function and then parse and display the diagram
 --incorporate frmtracer results in it, or ultimap traces
