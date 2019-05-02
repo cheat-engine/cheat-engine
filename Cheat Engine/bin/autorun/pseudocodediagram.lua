@@ -10,33 +10,39 @@ diagramstyle.link_takencolor = 0x00FF0000 --blue
 diagramstyle.link_linethickness = 2
 diagramstyle.block_headershowsymbol = true
 diagramstyle.block_bodyshowaddresses = false
-diagramstyle.block_backgroundcolor = 0x00FFFFFF
-diagramstyle.diagram_blackgroundcolor = 0x00808080
+diagramstyle.block_bodyshowaddressesassymbol = true
+diagramstyle.block_bodyshowbytes = false
+diagramstyle.block_backgroundcolor = 0x00FFFFFF --white
+diagramstyle.diagram_blackgroundcolor = 0x00808080 --grey
 
 function editDiagramStyle(new_diagramstyle)
   if (new_diagramstyle) then
-    if (new_diagramstyle.instruction_registerstyle) then 
+    if (new_diagramstyle.instruction_registerstyle ~= nil) then 
       diagramstyle.instruction_registerstyle = new_diagramstyle.instruction_registerstyle end
-    if (new_diagramstyle.instruction_hexstyle) then 
+    if (new_diagramstyle.instruction_hexstyle ~= nil) then 
       diagramstyle.instruction_hexstyle = new_diagramstyle.instruction_hexstyle end
-    if (new_diagramstyle.instruction_symbolstyle) then 
+    if (new_diagramstyle.instruction_symbolstyle ~= nil) then 
       diagramstyle.instruction_symbolstyle = new_diagramstyle.instruction_symbolstyle end
-    if (new_diagramstyle.instruction_opcodestyle) then 
+    if (new_diagramstyle.instruction_opcodestyle ~= nil) then 
       diagramstyle.instruction_opcodestyle = new_diagramstyle.instruction_opcodestyle end
-    if (new_diagramstyle.link_nottakencolor) then
+    if (new_diagramstyle.link_nottakencolor ~= nil) then
       diagramstyle.link_nottakencolor = new_diagramstyle.link_nottakencolor end
-    if (new_diagramstyle.link_takencolor) then
+    if (new_diagramstyle.link_takencolor ~= nil) then
       diagramstyle.link_takencolor = new_diagramstyle.link_takencolor end
-    if (new_diagramstyle.block_headershowsymbol) then
-      diagramstyle.block_headershowsymbol = new_diagramstyle.block_headershowsymbol end
-    if (new_diagramstyle.block_bodyshowaddresses) then
-      diagramstyle.block_bodyshowaddresses = new_diagramstyle.block_bodyshowaddresses end
-    if (new_diagramstyle.block_backgroundcolor) then
-      diagramstyle.block_backgroundcolor = new_diagramstyle.block_backgroundcolor end
-    if (new_diagramstyle.diagram_blackgroundcolor) then
-      diagramstyle.diagram_blackgroundcolor = new_diagramstyle.diagram_blackgroundcolor end
-    if (new_diagramstyle.link_linethickness) then
+    if (new_diagramstyle.link_linethickness ~= nil) then
       diagramstyle.link_linethickness = new_diagramstyle.link_linethickness end
+    if (new_diagramstyle.block_headershowsymbol ~= nil) then
+      diagramstyle.block_headershowsymbol = new_diagramstyle.block_headershowsymbol end
+    if (new_diagramstyle.block_bodyshowaddresses ~= nil) then
+      diagramstyle.block_bodyshowaddresses = new_diagramstyle.block_bodyshowaddresses end
+    if (new_diagramstyle.block_backgroundcolor ~= nil) then
+      diagramstyle.block_backgroundcolor = new_diagramstyle.block_backgroundcolor end
+    if (new_diagramstyle.block_bodyshowaddressesassymbol ~= nil) then
+      diagramstyle.block_bodyshowaddressesassymbol = new_diagramstyle.block_bodyshowaddressesassymbol end
+    if (new_diagramstyle.block_bodyshowbytes ~= nil) then
+      diagramstyle.block_bodyshowbytes = new_diagramstyle.block_bodyshowbytes end
+    if (new_diagramstyle.diagram_blackgroundcolor ~= nil) then
+      diagramstyle.diagram_blackgroundcolor = new_diagramstyle.diagram_blackgroundcolor end
   end
 end
 
@@ -49,34 +55,22 @@ function blockAddressToBlockIndex(blocks, address)
   return nil
 end
 
-function decorateBlockInstruction(instruction)
-  local i, result, temp = 0, ' '
+function disassembleDecoratedInstruction(address)
+  local disassembler, result, bytes, temp = getVisibleDisassembler(), ' '
+  temp = disassembler.disassemble(address)
+  temp, temp, bytes, temp = splitDisassembledString(temp)
+  if (diagramstyle.block_bodyshowaddresses and diagramstyle.block_bodyshowaddressesassymbol and inModule(address)) then result = result .. 
+                                                          string.char(27) .. diagramstyle.instruction_symbolstyle ..
+                                                          getNameFromAddress(disassembler.LastDisassembleData.address) .. 
+                                                          string.char(27) .. '[0m' ..  ' - '
 
-  for word in string.gmatch(instruction,'[^-]*') do
-    if (i == 2 and word ~= '') then temp = word
-    else
-      if (word ~= '' and temp ~= nil) then temp = temp .. '-' .. word
-      elseif (word ~= '' and diagramstyle.block_bodyshowaddresses) then result = result .. word .. '-' end
-    end
-    if (word ~= '') then i = i + 1 end
-  end
-
-  i = 0
-  result =  result .. ' ' .. string.char(27).. diagramstyle.instruction_opcodestyle --bold
-
-  for word in string.gmatch(temp,'[^ ]*') do
-    if (i == 0 and word ~= '') then
-      result = result .. ' ' .. word .. string.char(27) .. '[0m' .. ' ' --terminator
-    else
-      if (word ~= '') then result = result .. word .. ' ' end
-    end
-    if (word ~= '') then  i = i + 1 end
-  end
-
-  instruction = result
-  result = nil
-
-  for word in string.gmatch(instruction,'[^{*}]*') do
+  elseif (diagramstyle.block_bodyshowaddresses) then result = result .. 
+                                                          string.format('%X', disassembler.LastDisassembleData.address) .. ' - ' end
+  if (diagramstyle.block_bodyshowbytes) then result = result .. bytes .. ' -'  end
+  result =  result .. string.char(27).. diagramstyle.instruction_opcodestyle .. 
+                                        disassembler.LastDisassembleData.opcode ..
+                      string.char(27) .. '[0m' .. ' '
+  for word in string.gmatch(disassembler.LastDisassembleData.parameters,'[^{*}]*') do
     if result then
        if word == 'R' then --{R}=Register
           result = result .. string.char(27) .. diagramstyle.instruction_registerstyle
@@ -98,6 +92,7 @@ end
 
 function createDiagramForm(name)
   local form = createForm()
+  form.AutoSize=true
   form.BorderStyle='bsSizeable'
   form.Caption=name
   return form
@@ -121,26 +116,25 @@ end
 
 function createDiagramLink(diagram, sourceblock, destinationblock, color)
   local diagramlink = diagram.addConnection(sourceblock, destinationblock)
-  diagramlink.LineColor = color
+  diagramlink.LineColor=color
   return diagramlink
 end
 
 function createDiagramBlocks(diagram, state, blocks)
-  local disassembler, temp = getVisibleDisassembler()
   local dblocks = {}
   for i,block in pairs(blocks) do
     if state.parsed[block.start] then
       --create block
-      if (diagramstyle.block_headershowsymbol) then
-        dblocks[i] = createDiagramBlock(diagram, ' ' .. string.char(27) .. diagramstyle.instruction_symbolstyle .. getNameFromAddress(block.start))
+      if (diagramstyle.block_headershowsymbol and inModule(block.start)) then
+        dblocks[i] = createDiagramBlock(diagram, ' ' .. string.char(27) .. diagramstyle.instruction_symbolstyle .. 
+                                                        getNameFromAddress(block.start))
       else
-        dblocks[i] = createDiagramBlock(diagram, ' ' .. string.format('0x%X', block.start))
+        dblocks[i] = createDiagramBlock(diagram, ' ' .. string.format('%X', block.start))
       end
       --fill block
       local current = block.start
       while (current <= block.stop) do
-        temp = decorateBlockInstruction(disassembler.disassemble(current))
-        dblocks[i].Strings.add(temp)
+        dblocks[i].Strings.add(disassembleDecoratedInstruction(current))
         if state.parsed[current].bytesize ~= 0 then current = current + state.parsed[current].bytesize
         else break end  
       end
@@ -177,27 +171,35 @@ function arrangeDiagramBlocks(dblocks, istaken)
   for i,dblock in pairs(dblocks) do
     if (i > 1) then
       if (istaken[i]) then
-        dblock.y = dblocks[i-1].y + dblocks[i-1].height + 50
+        dblock.y = dblocks[i-1].y + dblocks[i-1].height + 25
         else
-        dblock.x = dblocks[i-1].x + dblocks[i-1].width + 50
-        dblock.y = dblocks[i-1].y + dblocks[i-1].height + 50
+        dblock.x = dblocks[i-1].x + dblocks[i-1].width + 25
+        dblock.y = dblocks[i-1].y + dblocks[i-1].height + 25
       end
     end
   end
 end
 
 function spawnDiagram(start, limit)
+  local dblocks = {}
+  local istaken = {}
   local dform = createDiagramForm('Diagram')
   local ddiagram = createDiagramDiagram(dform)
   local state = parseFunction(start, limit)
   local blocks = createBlocks(state)
-  local dblocks = {}
-  local istaken = {}
   dblocks = createDiagramBlocks(ddiagram, state, blocks)
   istaken = linkDiagramBlocks(ddiagram, state, dblocks, blocks)
   arrangeDiagramBlocks(dblocks, istaken)
 end
 
+--[[
+local new_diagramstyle = {}
+new_diagramstyle.block_bodyshowaddresses = true
+new_diagramstyle.block_bodyshowaddressesassymbol = true
+new_diagramstyle.block_bodyshowbytes = true
+editDiagramStyle(new_diagramstyle)
+spawnDiagram(0x100016914, 50)
+]]--
 
 --[[todolist]]
 --put incoming lines in the top and outgoing lines in the bottom, add points to lines, etc...
