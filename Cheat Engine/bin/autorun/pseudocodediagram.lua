@@ -66,7 +66,7 @@ function disassembleDecoratedInstruction(address)
 
   elseif (diagramstyle.block_bodyshowaddresses) then result = result .. 
                                                           string.format('%X', disassembler.LastDisassembleData.address) .. ' - ' end
-  if (diagramstyle.block_bodyshowbytes) then result = result .. bytes .. ' -'  end
+  if (diagramstyle.block_bodyshowbytes) then result = result .. bytes .. ' - '  end
   result =  result .. string.char(27).. diagramstyle.instruction_opcodestyle .. 
                                         disassembler.LastDisassembleData.opcode ..
                       string.char(27) .. '[0m' .. ' '
@@ -191,6 +191,18 @@ function spawnDiagram(start, limit)
   istaken = linkDiagramBlocks(ddiagram, state, dblocks, blocks)
   arrangeDiagramBlocks(dblocks, istaken)
 end
+
+function MenuSpawnDiagram()
+  local mv=getMemoryViewForm()
+  spawnDiagram(mv.DisassemblerView.SelectedAddress,100000)
+end
+
+local mv=getMemoryViewForm()
+local mi=createMenuItem(mv.Menu)
+mi.Caption='Spawn diagram'
+mi.Shortcut='Ctrl+Shift+D'
+mi.OnClick=MenuSpawnDiagram
+mv.debuggerpopup.Items.insert(mv.MenuItem2.MenuIndex+1, mi)
 
 --[[
 local new_diagramstyle = {}
