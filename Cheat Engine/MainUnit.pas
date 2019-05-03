@@ -255,6 +255,7 @@ type
     CreateGroup: TMenuItem;
     FromAddress: TEdit;
     andlabel: TLabel;
+    mfImageList: TImageList;
     lblSigned: TLabel;
     MainMenu2: TMainMenu;
     MenuItem12: TMenuItem;
