@@ -10551,6 +10551,14 @@ begin
   end else lua_pop(L, parameters);
 end;
 
+
+function lua_getScreenDPI(l: Plua_State): integer; cdecl;
+begin
+  lua_pushinteger(L, Screen.PixelsPerInch);
+  result:=1;
+end;
+
+
 function lua_getScreenHeight(l: Plua_State): integer; cdecl;
 begin
   lua_pushinteger(L, screen.Height);
@@ -11587,6 +11595,7 @@ begin
 
     lua_register(L, 'getScreenHeight', lua_getScreenHeight);
     lua_register(L, 'getScreenWidth', lua_getScreenWidth);
+    lua_register(L, 'getScreenDPI', lua_getScreenDPI);
 
     lua_register(L, 'getWorkAreaHeight', lua_getWorkAreaHeight);
     lua_register(L, 'getWorkAreaWidth', lua_getWorkAreaWidth);

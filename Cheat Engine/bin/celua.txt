@@ -336,6 +336,7 @@ gc_setActive(state: boolean, interval: integer, minsize: integer): enables/disab
 getSystemMetrics(index): Retrieves the specified system metric or system configuration setting
 (https://msdn.microsoft.com/en-us/library/windows/desktop/ms724385.aspx)
 
+getScreenDPI(): Returns the Dots/Pixels Per Inch of the screen
 getScreenHeight(): Returns the screen height
 getScreenWidth(): Returns the screen  width
 
