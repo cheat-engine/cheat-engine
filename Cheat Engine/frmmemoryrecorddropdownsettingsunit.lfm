@@ -1,28 +1,28 @@
 object FrmMemoryRecordDropdownSettings: TFrmMemoryRecordDropdownSettings
   Left = 675
-  Height = 176
+  Height = 191
   Top = 250
   Width = 386
   AutoSize = True
   Caption = 'Dropdown options'
-  ClientHeight = 176
+  ClientHeight = 191
   ClientWidth = 386
   OnClose = FormClose
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '1.6.4.0'
+  LCLVersion = '2.0.0.4'
   object Panel0: TPanel
     AnchorSideLeft.Control = Owner
-    AnchorSideTop.Control = Label2
+    AnchorSideTop.Control = Label3
     AnchorSideTop.Side = asrBottom
     AnchorSideRight.Control = Owner
     AnchorSideRight.Side = asrBottom
     AnchorSideBottom.Control = cbDisallowUserInput
     Left = 0
     Height = 49
-    Top = 30
+    Top = 45
     Width = 386
     Anchors = [akTop, akLeft, akRight, akBottom]
     AutoSize = True
@@ -45,7 +45,7 @@ object FrmMemoryRecordDropdownSettings: TFrmMemoryRecordDropdownSettings
     AnchorSideBottom.Side = asrBottom
     Left = 0
     Height = 33
-    Top = 136
+    Top = 151
     Width = 386
     Anchors = [akLeft, akRight, akBottom]
     AutoSize = True
@@ -109,21 +109,24 @@ object FrmMemoryRecordDropdownSettings: TFrmMemoryRecordDropdownSettings
     AnchorSideBottom.Control = cbOnlyShowDescription
     Left = 0
     Height = 19
-    Top = 79
+    Top = 94
     Width = 163
     Anchors = [akLeft, akBottom]
     Caption = 'Disallow manual user input'
+    OnChange = cbDisallowUserInputChange
     TabOrder = 1
   end
   object Label2: TLabel
-    AnchorSideLeft.Control = Label1
+    AnchorSideLeft.Control = lblFormat
+    AnchorSideLeft.Side = asrBottom
     AnchorSideTop.Control = Label1
     AnchorSideTop.Side = asrBottom
-    Left = 0
+    Left = 45
     Height = 15
     Top = 15
-    Width = 267
-    Caption = 'Format:  Value:Description or (memrecdescription)'
+    Width = 219
+    BorderSpacing.Left = 4
+    Caption = 'Value:Description or (memrecdescription)'
     ParentColor = False
   end
   object cbOnlyShowDescription: TCheckBox
@@ -133,10 +136,11 @@ object FrmMemoryRecordDropdownSettings: TFrmMemoryRecordDropdownSettings
     AnchorSideBottom.Control = cbDisplayAsDropdownItem
     Left = 0
     Height = 19
-    Top = 98
+    Top = 113
     Width = 182
     Anchors = [akLeft, akBottom]
     Caption = 'Only show the description part'
+    OnChange = cbDisallowUserInputChange
     TabOrder = 2
   end
   object cbDisplayAsDropdownItem: TCheckBox
@@ -146,15 +150,39 @@ object FrmMemoryRecordDropdownSettings: TFrmMemoryRecordDropdownSettings
     AnchorSideBottom.Control = Panel1
     Left = 0
     Height = 19
-    Top = 117
+    Top = 132
     Width = 299
     Anchors = [akLeft, akBottom]
     Caption = 'Make the record display values like the dropdown list'
+    OnChange = cbDisallowUserInputChange
     TabOrder = 3
   end
+  object Label3: TLabel
+    AnchorSideLeft.Control = Label2
+    AnchorSideTop.Control = Label2
+    AnchorSideTop.Side = asrBottom
+    Left = 45
+    Height = 15
+    Top = 30
+    Width = 269
+    Caption = '*:Text Value to display if no value in the list is found'
+    ParentColor = False
+    Visible = False
+  end
+  object lblFormat: TLabel
+    AnchorSideLeft.Control = Owner
+    AnchorSideTop.Control = Label1
+    AnchorSideTop.Side = asrBottom
+    Left = 0
+    Height = 15
+    Top = 15
+    Width = 41
+    Caption = 'Format:'
+    ParentColor = False
+  end
   object PopupMenu1: TPopupMenu
-    left = 8
-    top = 32
+    left = 40
+    top = 48
     object Cut1: TMenuItem
       Caption = 'Cut'
       OnClick = Cut1Click
