@@ -466,7 +466,7 @@ begin
         handleEscapeSequence(canvas, rect, formattedtext, original, i,_x,_y);
 
         maxx:=max(maxx, _x);
-        maxx:=max(maxy, _x);
+        maxy:=max(maxy, _y);
       end;
 
       #13: //return
