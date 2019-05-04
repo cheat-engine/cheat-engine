@@ -95,6 +95,7 @@ function createDiagramForm(name)
   --form.AutoSize=true
   form.BorderStyle='bsSizeable'
   form.Caption=name
+  form.width=1000
   form.height=800
   return form
 end
