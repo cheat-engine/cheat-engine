@@ -7571,10 +7571,23 @@ begin
 
 
   AdjustSpeedButtonSize(sbOpenProcess);
-  AdjustSpeedButtonSize(LoadButton);
-  AdjustSpeedButtonSize(SaveButton);
-  AdjustSpeedButtonSize(SpeedButton2);
-  AdjustSpeedButtonSize(SpeedButton3);
+  LoadButton.width:=sbOpenProcess.width;
+  LoadButton.height:=sbOpenProcess.Height;
+
+  SaveButton.width:=sbOpenProcess.width;
+  SaveButton.height:=sbOpenProcess.height;
+
+  SpeedButton2.width:=sbOpenProcess.width;
+  SpeedButton2.height:=sbOpenProcess.height;
+
+  SpeedButton3.width:=sbOpenProcess.width;
+  SpeedButton3.height:=sbOpenProcess.height;
+
+
+ // AdjustSpeedButtonSize(LoadButton);
+ // AdjustSpeedButtonSize(SaveButton);
+ // AdjustSpeedButtonSize(SpeedButton2);
+ // AdjustSpeedButtonSize(SpeedButton3);
 
 
   if panel7.Height>ProgressBar.Top+ProgressBar.Height then
