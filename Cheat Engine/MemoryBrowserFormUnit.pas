@@ -40,7 +40,7 @@ type
     ESPlabel: TLabel;
     FSlabel: TLabel;
     GSlabel: TLabel;
-    ImageList1: TImageList;
+    mwImageList: TImageList;
     MenuItem1: TMenuItem;
     MenuItem10: TMenuItem;
     MenuItem11: TMenuItem;

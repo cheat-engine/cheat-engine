@@ -92,9 +92,10 @@ end
 
 function createDiagramForm(name)
   local form = createForm()
-  form.AutoSize=true
+  --form.AutoSize=true
   form.BorderStyle='bsSizeable'
   form.Caption=name
+  form.height=800
   return form
 end
 
@@ -167,13 +168,17 @@ function linkDiagramBlocks(diagram, state, dblocks, blocks)
   return istaken
 end
 
-function arrangeDiagramBlocks(dblocks, istaken)
+function arrangeDiagramBlocks(dform, dblocks, istaken)
+  local links
+  dblocks[1].x = dform.width / 2 - dblocks[1].width / 2
   for i,dblock in pairs(dblocks) do
     if (i > 1) then
-      if (istaken[i]) then
+      links = dblock.getLinks()
+      if (istaken[i]) then 
+        dblock.x = links.asDestination[1].OriginBlock.x - links.asDestination[1].OriginBlock.width - 25
         dblock.y = dblocks[i-1].y + dblocks[i-1].height + 25
-        else
-        dblock.x = dblocks[i-1].x + dblocks[i-1].width + 25
+      else
+        dblock.x = links.asDestination[1].OriginBlock.x + links.asDestination[1].OriginBlock.width + 25
         dblock.y = dblocks[i-1].y + dblocks[i-1].height + 25
       end
     end
@@ -189,7 +194,7 @@ function spawnDiagram(start, limit)
   local blocks = createBlocks(state)
   dblocks = createDiagramBlocks(ddiagram, state, blocks)
   istaken = linkDiagramBlocks(ddiagram, state, dblocks, blocks)
-  arrangeDiagramBlocks(dblocks, istaken)
+  arrangeDiagramBlocks(dform, dblocks, istaken)
 end
 
 function MenuSpawnDiagram()
