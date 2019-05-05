@@ -514,7 +514,7 @@ begin
   result.left:=x;
   result.top:=y;
   result.right:=maxx;
-  result.bottom:=maxy;
+  result.bottom:=maxy+lineheight;
 end;
 
 

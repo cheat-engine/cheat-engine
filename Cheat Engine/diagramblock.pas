@@ -50,6 +50,9 @@ type
     fAutoSize: boolean;
     preferedWidth, preferedHeight: integer;
 
+    hasChanged: boolean;
+    cachedBlock: TBitmap; //Cache the block image and only update when changes happen
+
     function getBackgroundColor: TColor;
     procedure setBackgroundColor(c: TColor);
     function getTextColor: TColor;
@@ -57,6 +60,10 @@ type
     function getCanvas: TCanvas;
     function getOwner: TCustomControl;
     procedure setCaption(c: string);
+
+    procedure setWidth(w: integer);
+    procedure setHeight(h: integer);
+
     procedure DataChange(sender: TObject);
   public
 
@@ -84,8 +91,8 @@ type
     property Canvas: TCanvas read getCanvas;
     property X: integer read fx write fx;
     property Y: integer read fy write fy;
-    property Width: integer read fwidth write fwidth;
-    property Height: integer read fheight write fheight;
+    property Width: integer read fwidth write setWidth;
+    property Height: integer read fheight write setHeight;
     property Caption: string read fcaption write setCaption;
     property Strings: TStrings read getData write setData;
     property BackgroundColor: TColor read getBackgroundColor write setBackgroundColor;
@@ -98,7 +105,6 @@ type
     property OnDoubleClickBody: TNotifyEvent read fOnDoubleClickBody write fOnDoubleClickBody;
     property OnRenderHeader: TDBCustomDrawEvent read fOnRenderHeader write fOnRenderHeader;
     property OnRenderBody: TDBCustomDrawEvent read fOnRenderBody write fOnRenderBody;
-
   end;
 
 implementation
@@ -147,12 +153,28 @@ end;
 procedure TDiagramBlock.setCaption(c: string);
 begin
   fcaption:=c;
+  hasChanged:=true;
+
   if fAutoSize then
     DoAutoSize;
+
+end;
+
+procedure TDiagramBlock.setWidth(w: integer);
+begin
+  fwidth:=w;
+  hasChanged:=true;
+end;
+
+procedure TDiagramBlock.setHeight(h: integer);
+begin
+  fheight:=h;
+  hasChanged:=true;
 end;
 
 procedure TDiagramBlock.DataChange(sender: TObject);
 begin
+  hasChanged:=true;
   if fAutoSize then
     DoAutoSize;
 end;
@@ -161,7 +183,10 @@ procedure TDiagramBlock.setAutoSize(state: boolean);
 begin
   fAutoSize:=state;
   if state then
+  begin
+    hasChanged:=true;
     DoAutoSize;
+  end;
 end;
 
 procedure TDiagramBlock.DoAutoSize;
@@ -171,7 +196,8 @@ begin
   render;
 
   width:=preferedwidth+10;
-  height:=preferedheight+10;
+  height:=preferedheight;
+
 end;
 
 procedure TDiagramBlock.render;
@@ -184,56 +210,78 @@ var
   cr,tr: TRect;
 begin
   //render the block at the given location
-  c:=config.canvas;
-
-
-  oldbgc:=c.brush.color;
-  c.brush.color:=BackgroundColor;
-
-  c.FillRect(x,y,x+width,y+height);
-  c.Rectangle(x,y,x+width,y+height);
-
-
-  if captionheight=0 then
-    captionheight:=c.GetTextHeight('XxYyJjQq')+4;
-
-  c.Rectangle(x,y,x+width,y+captionheight);
-
-  oldfontcolor:=c.font.color;
-  c.font.color:=TextColor;
-
-  renderOriginal:=true;
-  if assigned(fOnRenderHeader) then
-    fOnRenderHeader(self,rect(x,y,x+width-1,y+captionheight),true, renderOriginal);
-
-  if renderOriginal then
+  if hasChanged then
   begin
-    cr:=renderFormattedText(c, rect(x,y,x+width-1,y+captionheight),x+1,y,caption);
+    //render
+    if cachedBlock=nil then
+    begin
+      cachedblock:=tbitmap.Create;
+      cachedblock.width:=width;
+      cachedblock.height:=height;
+    end;
+
+    if cachedblock.width<>width then cachedblock.width:=width;
+    if cachedblock.height<>height then cachedblock.height:=height;
+
+    c:=cachedblock.Canvas;
+    cachedblock.Canvas.brush.Assign(config.canvas.brush);
+    cachedblock.Canvas.pen.Assign(config.canvas.pen);
+    cachedblock.Canvas.font.Assign(config.canvas.font);
+
+    oldbgc:=c.brush.color;
+    c.brush.color:=BackgroundColor;
+
+    c.FillRect(0,0,width,height);
+    c.Rectangle(0,0,width,height);
+
+
+    if captionheight=0 then
+      captionheight:=c.GetTextHeight('XxYyJjQq')+4;
+
+    c.Rectangle(0,0,width,captionheight);
+
+    oldfontcolor:=c.font.color;
+    c.font.color:=TextColor;
+
+    renderOriginal:=true;
     if assigned(fOnRenderHeader) then
-      fOnRenderHeader(self,rect(x,y,x+width-1,y+captionheight),false, renderOriginal);
-  end;
+      fOnRenderHeader(self,rect(0,0,width-1,captionheight),true, renderOriginal);
+
+    if renderOriginal then
+    begin
+      cr:=renderFormattedText(c, rect(0,0,width-1,captionheight),1,0,caption);
+      if assigned(fOnRenderHeader) then
+        fOnRenderHeader(self,rect(0,0,width-1,captionheight),false, renderOriginal);
+    end;
 
 
-  renderOriginal:=true;
-  if assigned(fOnRenderBody) then
-    fOnRenderBody(self,rect(x,y,x+width-1,y+captionheight),true, renderOriginal);
-
-  if renderOriginal then
-  begin
-    tr:=renderFormattedText(c, rect(x,y+captionheight,x+width-1,y+height-2),x+1,y+captionheight,data.text);
+    renderOriginal:=true;
     if assigned(fOnRenderBody) then
-      fOnRenderBody(self,rect(x,y,x+width-1,y+captionheight),false, renderOriginal);
+      fOnRenderBody(self,rect(0,0,width-1,captionheight),true, renderOriginal);
+
+    if renderOriginal then
+    begin
+      tr:=renderFormattedText(c, rect(0,captionheight,width-1,height-2),1,captionheight,data.text);
+      if assigned(fOnRenderBody) then
+        fOnRenderBody(self,rect(0,0,width-1,captionheight),false, renderOriginal);
+    end;
+
+
+    preferedwidth:=cr.Width;
+    if preferedwidth<tr.Width then preferedwidth:=tr.Width;
+
+    preferedheight:=captionheight+tr.height;
+
+
+    c.font.color:=oldfontcolor;
+    c.brush.color:=oldbgc;
+
+    haschanged:=false;
+
   end;
 
-
-  preferedwidth:=cr.Width;
-  if preferedwidth<tr.Width then preferedwidth:=tr.Width;
-
-  preferedheight:=tr.height+cr.height;
-
-
-  c.font.color:=oldfontcolor;
-  c.brush.color:=oldbgc;
+  //draw the cached block
+  config.canvas.Draw(x,y,cachedBlock);
 end;
 
 function TDiagramBlock.getData: TStrings;
@@ -245,6 +293,7 @@ procedure TDiagramBlock.setData(s: TStrings);
 begin
   data.clear;
   data.Assign(s);
+  hasChanged:=true;
 end;
 
 procedure TDiagramBlock.dblClick(xpos,ypos: integer);
@@ -637,6 +686,9 @@ begin
   //owner.NotifyBlockDestroy(self);
 
   data.free;
+
+  if cachedblock<>nil then
+    freeandnil(cachedblock);
 
   inherited destroy;
 end;
