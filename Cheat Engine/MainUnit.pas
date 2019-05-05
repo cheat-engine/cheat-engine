@@ -7571,20 +7571,20 @@ begin
 
 
   //AdjustSpeedButtonSize(sbOpenProcess);
-  sbOpenProcess.width:=48;
-  sbOpenProcess.height:=48;
+  sbOpenProcess.width:=32;
+  sbOpenProcess.height:=32;
 
-  LoadButton.width:=48;
-  LoadButton.height:=48;
+  LoadButton.width:=32;
+  LoadButton.height:=32;
 
-  SaveButton.width:=48;
-  SaveButton.height:=48;
+  SaveButton.width:=32;
+  SaveButton.height:=32;
 
-  SpeedButton2.width:=48;
-  SpeedButton2.height:=48;
+  SpeedButton2.width:=32;
+  SpeedButton2.height:=32;
 
-  SpeedButton3.width:=48;
-  SpeedButton3.height:=48;
+  SpeedButton3.width:=32;
+  SpeedButton3.height:=32;
 
 
  // AdjustSpeedButtonSize(LoadButton);
