@@ -7570,18 +7570,21 @@ begin
   logo.Height:=trunc((logo.Width / logo.picture.Width)*logo.picture.Height);
 
 
-  AdjustSpeedButtonSize(sbOpenProcess);
-  LoadButton.width:=sbOpenProcess.width;
-  LoadButton.height:=sbOpenProcess.Height;
+  //AdjustSpeedButtonSize(sbOpenProcess);
+  sbOpenProcess.width:=48;
+  sbOpenProcess.height:=48;
 
-  SaveButton.width:=sbOpenProcess.width;
-  SaveButton.height:=sbOpenProcess.height;
+  LoadButton.width:=48;
+  LoadButton.height:=48;
 
-  SpeedButton2.width:=sbOpenProcess.width;
-  SpeedButton2.height:=sbOpenProcess.height;
+  SaveButton.width:=48;
+  SaveButton.height:=48;
 
-  SpeedButton3.width:=sbOpenProcess.width;
-  SpeedButton3.height:=sbOpenProcess.height;
+  SpeedButton2.width:=48;
+  SpeedButton2.height:=48;
+
+  SpeedButton3.width:=48;
+  SpeedButton3.height:=48;
 
 
  // AdjustSpeedButtonSize(LoadButton);
