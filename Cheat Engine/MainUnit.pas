@@ -7569,28 +7569,24 @@ begin
 
   logo.Height:=trunc((logo.Width / logo.picture.Width)*logo.picture.Height);
 
-
-  //AdjustSpeedButtonSize(sbOpenProcess);
-  sbOpenProcess.width:=32;
-  sbOpenProcess.height:=32;
-
-  LoadButton.width:=32;
-  LoadButton.height:=32;
-
-  SaveButton.width:=32;
-  SaveButton.height:=32;
-
-  SpeedButton2.width:=32;
-  SpeedButton2.height:=32;
-
-  SpeedButton3.width:=32;
-  SpeedButton3.height:=32;
+  sbOpenProcess.BorderSpacing.Around:=ScaleX(sbOpenProcess.BorderSpacing.Around, 96);
 
 
- // AdjustSpeedButtonSize(LoadButton);
- // AdjustSpeedButtonSize(SaveButton);
- // AdjustSpeedButtonSize(SpeedButton2);
- // AdjustSpeedButtonSize(SpeedButton3);
+  //because the images have no empty border autosize is out of the question as that makes them hug the border. So, scale them manually
+  sbOpenProcess.Width:=scalex(sbOpenProcess.Width, 96);
+  sbOpenProcess.Height:=scaley(sbOpenProcess.Height, 96);
+
+  LoadButton.Width:=scalex(LoadButton.Width, 96);
+  LoadButton.Height:=scaley(LoadButton.Height, 96);
+
+  SaveButton.Width:=scalex(SaveButton.Width, 96);
+  SaveButton.Height:=scaley(SaveButton.Height, 96);
+
+  SpeedButton2.Width:=scalex(SpeedButton2.Width, 96);
+  SpeedButton2.Height:=scaley(SpeedButton2.Height, 96);
+
+  SpeedButton3.Width:=scalex(SpeedButton3.Width, 96);
+  SpeedButton3.Height:=scaley(SpeedButton3.Height, 96);
 
 
   if panel7.Height>ProgressBar.Top+ProgressBar.Height then
