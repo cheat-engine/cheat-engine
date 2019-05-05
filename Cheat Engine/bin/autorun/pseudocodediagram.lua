@@ -143,7 +143,11 @@ function createDiagramBlocks(diagram, state, blocks)
       dblocks[i].AutoSize = true
     end
   end
+  
+  _G.blocks=dblocks
+  
   return dblocks
+  
 end
 
 function linkDiagramBlocks(diagram, state, dblocks, blocks)
@@ -196,11 +200,19 @@ function spawnDiagram(start, limit)
   dblocks = createDiagramBlocks(ddiagram, state, blocks)
   istaken = linkDiagramBlocks(ddiagram, state, dblocks, blocks)
   arrangeDiagramBlocks(dform, dblocks, istaken)
+  
+  ddiagram.repaint()
 end
 
 function MenuSpawnDiagram()
   local mv=getMemoryViewForm()
-  spawnDiagram(mv.DisassemblerView.SelectedAddress,100000)
+  
+  local a=mv.DisassemblerView.SelectedAddress
+  local b=mv.DisassemblerView.SelectedAddress2 or a
+  
+  a=math.min(a,b);
+  
+  spawnDiagram(a,100000)
 end
 
 local mv=getMemoryViewForm()

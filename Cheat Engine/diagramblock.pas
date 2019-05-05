@@ -48,6 +48,7 @@ type
     fAutoSideDistance: integer;
 
     fAutoSize: boolean;
+    preferedWidth, preferedHeight: integer;
 
     function getBackgroundColor: TColor;
     procedure setBackgroundColor(c: TColor);
@@ -164,45 +165,13 @@ begin
 end;
 
 procedure TDiagramBlock.DoAutoSize;
-var
-  minwidth: integer;
-  c: TCanvas;
-
-  tw: integer;
-
-  lh: integer;
-  i: integer;
-
-  temp: TBitmap;
-
-  cr: trect;
-  tr: trect;
 begin
   if fAutoSize=false then exit;
 
-  temp:=tbitmap.Create;
-  c:=temp.canvas;
-  if c=nil then exit;
-  if canvas=nil then exit;
+  render;
 
-  c.pen.Assign(Canvas.pen);
-  c.brush.Assign(Canvas.brush);
-  c.font.Assign(Canvas.font);
-
-  if captionheight=0 then
-    captionheight:=canvas.GetTextHeight('XxYyJjQq')+4;
-
-
-  cr:=renderFormattedText(c,rect(0,0,0,0),0,0,fcaption);
-  tr:=renderFormattedText(c,rect(0,0,0,0),0,captionheight,data.Text);
-
-  minwidth:=cr.Right;
-  if minwidth<tr.right then minwidth:=tr.right;
-
-  width:=minwidth+10;
-  height:=tr.Bottom+10;
-
-  temp.free;
+  width:=preferedwidth+10;
+  height:=preferedheight+10;
 end;
 
 procedure TDiagramBlock.render;
@@ -211,6 +180,8 @@ var
   oldbgc: TColor;
   oldfontcolor: TColor;
   renderOriginal: boolean;
+
+  cr,tr: TRect;
 begin
   //render the block at the given location
   c:=config.canvas;
@@ -237,7 +208,7 @@ begin
 
   if renderOriginal then
   begin
-    renderFormattedText(c, rect(x,y,x+width-1,y+captionheight),x+1,y,caption);
+    cr:=renderFormattedText(c, rect(x,y,x+width-1,y+captionheight),x+1,y,caption);
     if assigned(fOnRenderHeader) then
       fOnRenderHeader(self,rect(x,y,x+width-1,y+captionheight),false, renderOriginal);
   end;
@@ -249,10 +220,16 @@ begin
 
   if renderOriginal then
   begin
-    renderFormattedText(c, rect(x,y+captionheight,x+width-1,y+height-2),x+1,y+captionheight,data.text);
+    tr:=renderFormattedText(c, rect(x,y+captionheight,x+width-1,y+height-2),x+1,y+captionheight,data.text);
     if assigned(fOnRenderBody) then
       fOnRenderBody(self,rect(x,y,x+width-1,y+captionheight),false, renderOriginal);
   end;
+
+
+  preferedwidth:=cr.Width;
+  if preferedwidth<tr.Width then preferedwidth:=tr.Width;
+
+  preferedheight:=tr.height+cr.height;
 
 
   c.font.color:=oldfontcolor;
