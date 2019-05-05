@@ -264,7 +264,7 @@ object MainForm: TMainForm
       Anchors = [akLeft, akBottom]
       Images = mfImageList
       ImageIndex = 0
-      ImageWidth = 23
+      ImageWidth = 22
       OnClick = SpeedButton2Click
       ShowHint = True
       ParentFont = False
@@ -283,7 +283,7 @@ object MainForm: TMainForm
       Anchors = [akLeft, akBottom]
       Images = mfImageList
       ImageIndex = 1
-      ImageWidth = 23
+      ImageWidth = 22
       OnClick = SpeedButton3Click
       ShowHint = True
       ParentFont = False
