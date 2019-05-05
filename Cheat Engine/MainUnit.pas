@@ -7570,6 +7570,8 @@ begin
   logo.Height:=trunc((logo.Width / logo.picture.Width)*logo.picture.Height);
 
   sbOpenProcess.BorderSpacing.Around:=ScaleX(sbOpenProcess.BorderSpacing.Around, 96);
+  loadbutton.BorderSpacing.Top:=sbOpenProcess.BorderSpacing.Around;
+  savebutton.BorderSpacing.Top:=sbOpenProcess.BorderSpacing.Around;
 
 
   //because the images have no empty border autosize is out of the question as that makes them hug the border. So, scale them manually
