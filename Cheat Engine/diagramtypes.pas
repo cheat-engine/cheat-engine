@@ -29,6 +29,7 @@ type
     BlockBackground: tcolor;
 
     arrowStyles: TArrowStyles;
+    scrollx, scrolly: integer;
 
     constructor create(_owner: TCustomControl);
   end;

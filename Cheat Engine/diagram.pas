@@ -5,8 +5,8 @@ unit diagram;
 interface
 
 uses
-  Classes, SysUtils, controls,Types, graphics, diagramblock, diagramlink, diagramtypes,
-  LMessages;
+  windows, Classes, SysUtils, controls,Types, graphics, diagramblock, diagramlink, diagramtypes,
+  LMessages, GL, glu, GLext, dialogs, StdCtrls, ExtCtrls;
 
 type
   TDiagram=class(TCustomControl)
@@ -39,7 +39,20 @@ type
     fAllowUserToMoveBlocks: boolean;
     fAllowUserToChangeAttachPoints: boolean;
 
+    osb: TBitmap;
+
+    //ogl
+    fUseOpenGL: boolean;
+    hglrc: HGLRC;
+    fzoom: single;
+
     diagramConfig: TDiagramConfig;
+
+    scrollbarbottompanel: TPanel;
+    hscrollbar: TScrollBar;
+    vscrollbar: TScrollbar;
+
+    procedure scrollbarchange(sender: TObject);
     procedure NotifyBlockDestroy(sender: TObject);
     procedure updateBlockDragPosition(xpos,ypos: integer);
     procedure updateResizePosition(xpos,ypos: integer);
@@ -67,13 +80,27 @@ type
     function getBlock(index: integer): TDiagramBlock;
     function getLinkCount: integer;
     function getLink(index: integer): TDiagramLink;
+
+    function getScrollX: integer;
+    procedure setScrollX(x: integer);
+    function getScrollY: integer;
+    procedure setScrollY(y: integer);
+
+
+    procedure setUseOpenGl(state: boolean);
+
     procedure DoAutoSideUpdate;
+    procedure RepaintOrRender;
   protected
+   // procedure WMPaint(var Message: TLMPaint); message LM_PAINT;
     procedure paint; override;
     procedure MouseMove(Shift: TShiftState; X, Y: Integer); override;
     procedure MouseDown(Button: TMouseButton; Shift: TShiftState; X, Y: Integer); override;
     procedure MouseUp(Button: TMouseButton; Shift: TShiftState; X, Y: Integer); override;
     procedure WMLButtonDBLCLK(var Message: TLMLButtonDblClk); message LM_LBUTTONDBLCLK;
+
+
+    procedure updateScrollbars(maxx,maxy: integer); virtual;
 
     procedure SetParent(NewParent: TWinControl); override;
     //procedure DblClick; override;
@@ -83,6 +110,7 @@ type
     function addConnection(originBlock, destinationBlock: TDiagramBlock): TDiagramLink; overload;
     procedure getConnectionsToBlock(b: TDiagramBlock; list: TList);
     procedure getConnectionsFromBlock(b: TDiagramBlock; list: TList);
+    procedure render;
 
     property Block[index: integer]: TDiagramBlock read getBlock;
     property Link[index: integer]:TDiagramLink read getLink;
@@ -90,6 +118,8 @@ type
     constructor Create(TheOwner: TComponent); override;
     destructor Destroy; override;
   published
+    property ScrollX: integer read getScrollX write setScrollX;
+    property ScrollY: integer read getScrollY write setScrollY;
     property LineThickness: integer read getLineThickness write setLineThickness;
     property LineColor: Tcolor read getLineColor write setLineColor;
     property DrawPlotPoints: boolean read getDrawPlotPoints write setDrawPlotPoints;
@@ -107,6 +137,7 @@ type
     property BlockCount: integer read getBlockCount;
 
     property LinkCount: integer read getLinkCount;
+    property UseOpenGL: boolean read fUseOpenGL write setUseOpenGL;
 
 
     property Canvas;
@@ -129,6 +160,8 @@ type
 
 implementation
 
+uses math, GraphType, Forms;
+
 function TDiagram.getPlotPointColor: TColor;
 begin
   result:=diagramConfig.PlotPointColor;
@@ -138,7 +171,7 @@ procedure TDiagram.setPlotPointColor(c: tcolor);
 begin
   diagramConfig.PlotPointColor:=c;
   if parent<>nil then
-    repaint;
+    repaintOrRender;
 end;
 
 function TDiagram.getArrowStyles: TArrowStyles;
@@ -150,7 +183,7 @@ procedure TDiagram.setArrowStyles(s: TArrowStyles);
 begin
   diagramConfig.ArrowStyles:=s;
   if parent<>nil then
-    repaint;
+    repaintOrRender;
 end;
 
 function TDiagram.getDrawPlotPoints: boolean;
@@ -162,7 +195,7 @@ procedure TDiagram.setDrawPlotPoints(state: boolean);
 begin
   diagramConfig.drawPlotPoints:=state;
   if parent<>nil then
-    repaint;
+    repaintOrRender;
 end;
 
 function TDiagram.getLineColor: tcolor;
@@ -174,7 +207,7 @@ procedure TDiagram.setLineColor(c: tcolor);
 begin
   diagramConfig.linecolor:=c;
   if parent<>nil then
-    repaint;
+    repaintOrRender;
 end;
 
 function TDiagram.getLineThickness: integer;
@@ -186,7 +219,7 @@ procedure TDiagram.setLineThickness(t: integer);
 begin
   diagramConfig.LineThickness:=t;
   if parent<>nil then
-    repaint;
+    repaintOrRender;
 end;
 
 function TDiagram.getBlockBackground: TColor;
@@ -198,7 +231,7 @@ procedure TDiagram.setBlockBackground(c: TColor);
 begin
   diagramConfig.BlockBackground:=c;
   if parent<>nil then
-    repaint;
+    repaintOrRender;
 end;
 
 function TDiagram.getBackgroundColor: TColor;
@@ -210,7 +243,7 @@ procedure TDiagram.setBackGroundColor(c: TColor);
 begin
   diagramConfig.backgroundColor:=c;
   if parent<>nil then
-    repaint;
+    repaintOrRender;
 end;
 
 function TDiagram.getBlockCount: integer;
@@ -237,6 +270,34 @@ begin
     result:=TDiagramLink(links[index])
   else
     result:=nil;
+end;
+
+function TDiagram.getScrollX: integer;
+begin
+  if UseOpenGL then
+    result:=0
+  else
+    result:=hscrollbar.Position;
+end;
+
+procedure TDiagram.setScrollX(x: integer);
+begin
+  hscrollbar.Position:=x;
+  RepaintOrRender;
+end;
+
+function TDiagram.getScrollY: integer;
+begin
+  if useOpenGL then
+    result:=0
+  else
+    result:=vscrollbar.Position;
+end;
+
+procedure TDiagram.setScrollY(y: integer);
+begin
+  vscrollbar.position:=y;
+  RepaintOrRender;
 end;
 
 
@@ -487,6 +548,16 @@ begin
 
 end;
 
+var ScrollbarchangeLock: boolean;
+procedure TDiagram.scrollbarchange(sender: TObject);
+begin
+  if ScrollbarchangeLock then exit;
+
+  ScrollbarchangeLock:=true;
+  RepaintOrRender;
+  ScrollbarchangeLock:=false;
+end;
+
 procedure TDiagram.NotifyBlockDestroy(sender: TObject);
 var
   l: TDiagramLink;
@@ -530,6 +601,10 @@ var
   startedresizing: boolean;
 begin
   inherited mousedown(Button, Shift, X,Y);
+
+  inc(x,scrollx);
+  inc(y,scrolly);
+
 
   startedresizing:=false;
   for i:=blocks.count-1 downto 0 do
@@ -589,7 +664,7 @@ begin
         draggedPoint.PointIndex:=pointindex;
       end;
 
-      repaint;
+      repaintOrRender;
 
       exit;
     end;
@@ -607,7 +682,7 @@ begin
 
   draggedSideAttachPoint.link.updateSide(b);
 
-  repaint;
+  repaintOrRender;
 end;
 
 procedure TDiagram.updateBlockDragPosition(xpos,ypos: integer);
@@ -615,7 +690,7 @@ begin
   draggedBlock.Block.x:=xpos-draggedBlock.point.x;
   draggedBlock.Block.y:=ypos-draggedBlock.point.y;
   DoAutoSideUpdate;
-  repaint;
+  repaintOrRender;
 end;
 
 procedure TDiagram.updatePointDragPosition(xpos,ypos: integer);
@@ -624,7 +699,7 @@ begin
   begin
     draggedPoint.link.updatePointPosition(draggedPoint.pointindex, point(xpos,ypos));
     DoAutoSideUpdate;
-    repaint;
+    repaintOrRender;
 
 
   end;
@@ -636,7 +711,63 @@ begin
 
   resizing.block.Resize(xpos,ypos,resizing.side);
   DoAutoSideUpdate;
-  repaint;
+  repaintOrRender;
+end;
+
+procedure TDiagram.updateScrollbars(maxx,maxy: integer);
+var
+  vwasvisible: boolean;
+  hwasvisible: boolean;
+begin
+  vwasvisible:=vscrollbar.visible;
+  hwasvisible:=scrollbarbottompanel.visible;
+
+  vscrollbar.visible:=maxy>height-hscrollbar.Height;
+  scrollbarbottompanel.visible:=maxx>width-vscrollbar.width;
+
+  vscrollbar.PageSize:=height-hscrollbar.height;
+  hscrollbar.pagesize:=width-vscrollbar.width;
+
+  vscrollbar.LargeChange:=vscrollbar.PageSize div 2;
+  hscrollbar.LargeChange:=hscrollbar.PageSize div 2;
+
+  vscrollbar.SmallChange:=diagramconfig.canvas.GetTextWidth('XXX');
+  hscrollbar.SmallChange:=vscrollbar.SmallChange;
+
+  vscrollbar.Max:=maxy;
+  hscrollbar.max:=maxx;
+
+
+  if vscrollbar.visible and scrollbarbottompanel.visible then
+  begin
+    //both visible
+    vscrollbar.AnchorSideBottom.control:=scrollbarbottompanel;
+    vscrollbar.AnchorSideBottom.side:=asrTop;
+
+    hscrollbar.BorderSpacing.Right:=vscrollbar.width;
+
+
+  end
+  else
+  begin
+    //only one or none visible
+    if scrollbarbottompanel.visible then
+    begin
+      hscrollbar.BorderSpacing.right:=0;
+    end
+    else
+    if vscrollbar.visible then
+    begin
+      vscrollbar.AnchorSideBottom.control:=self;
+      vscrollbar.AnchorSideBottom.side:=asrBottom;
+    end;
+  end;
+
+  if vwasvisible and (vscrollbar.visible=false) then
+    vscrollbar.Position:=0;
+
+  if hwasvisible and (scrollbarbottompanel.visible=false) then
+    hscrollbar.Position:=0;
 end;
 
 procedure TDiagram.WMLButtonDBLCLK(var Message: TLMLButtonDblClk);
@@ -647,6 +778,8 @@ begin
   inherited WMLButtonDBLCLK(message);
 
   pt := GetMousePosFromMessage(Message.Pos);
+  inc(pt.x,scrollx);
+  inc(pt.y,scrolly);
 
   for i:=blocks.count-1 downto 0 do
   begin
@@ -663,6 +796,10 @@ end;
 procedure TDiagram.MouseUp(Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 begin
   inherited mouseup(Button, Shift, X,Y);
+
+  inc(x,scrollx);
+  inc(y,scrolly);
+
   if draggedblock.block<>nil then
   begin
     updateBlockDragPosition(x,y);
@@ -702,6 +839,10 @@ var
   newcursor: TCursor;
 begin
   inherited mousemove(Shift, X,Y);
+
+  //adjust for scroll
+  inc(x,scrollx);
+  inc(y,scrolly);
 
   newcursor:=crdefault;
 
@@ -770,31 +911,254 @@ begin
     cursor:=newcursor;
 end;
 
-procedure TDiagram.SetParent(NewParent: TWinControl);
+procedure TDiagram.setUseOpenGl(state: boolean);
+var
+  pfd: TPixelFormatDescriptor;
+  i: integer;
 begin
-  inherited SetParent(NewParent);
-  diagramConfig.Canvas:=canvas;
+  fUseOpenGL:=state;
+
+  if state and (parent<>nil) then //already has a parent so canvas is usable
+  begin
+    hglrc:=wglCreateContext(canvas.handle);
+
+    if hglrc=0 then
+    begin
+      pfd.nSize:=sizeof(pfd);
+      pfd.nVersion:=1;
+      pfd.dwFlags:=PFD_DRAW_TO_WINDOW or PFD_SUPPORT_OPENGL or PFD_DOUBLEBUFFER;
+      pfd.iPixelType:=PFD_TYPE_RGBA;
+      pfd.cColorBits:=24;
+      pfd.cRedBits:=0;
+      pfd.cRedShift:=0;
+      pfd.cGreenBits:=0;
+      pfd.cGreenShift:=0;
+      pfd.cBlueBits:=0;
+      pfd.cBlueShift:=0;
+      pfd.cAlphaBits:=0;
+      pfd.cAlphaShift:=0;
+      pfd.cAccumBits:=0;
+      pfd.cAccumRedBits:=0;
+      pfd.cAccumGreenBits:=0;
+      pfd.cAccumBlueBits:=0;
+      pfd.cAccumAlphaBits:=0;
+      pfd.cDepthBits:=16;
+      pfd.cStencilBits:=0;
+      pfd.cAuxBuffers:=0;
+      pfd.iLayerType:=PFD_MAIN_PLANE;
+      pfd.bReserved:=0;
+      pfd.dwLayerMask:=0;
+      pfd.dwVisibleMask:=0;
+      pfd.dwDamageMask:=0;
+
+      i:=ChoosePixelFormat(canvas.handle, @pfd);
+      SetPixelFormat(canvas.handle, i, @pfd);
+
+      hglrc:=wglCreateContext(canvas.handle);
+    end;
+
+    if hglrc=0 then
+      fUseOpenGL:=false;
+  end;
 end;
 
-procedure TDiagram.paint;
-var i: integer;
+procedure TDiagram.SetParent(NewParent: TWinControl);
+var
+  oldparent: TWinControl;
+  pfd: TPixelFormatDescriptor;
+  i: integer;
 begin
-  inherited paint;
+  oldparent:=parent;
+  inherited SetParent(NewParent);
 
+  diagramConfig.canvas:=canvas;
+
+
+  if UseOpenGL and assigned(ChoosePixelFormat) and (NewParent<>nil) and (oldparent=nil) then
+  begin
+    hglrc:=wglCreateContext(canvas.handle);
+
+    if hglrc=0 then
+    begin
+      pfd.nSize:=sizeof(pfd);
+      pfd.nVersion:=1;
+      pfd.dwFlags:=PFD_DRAW_TO_WINDOW or PFD_SUPPORT_OPENGL or PFD_DOUBLEBUFFER;
+      pfd.iPixelType:=PFD_TYPE_RGBA;
+      pfd.cColorBits:=24;
+      pfd.cRedBits:=0;
+      pfd.cRedShift:=0;
+      pfd.cGreenBits:=0;
+      pfd.cGreenShift:=0;
+      pfd.cBlueBits:=0;
+      pfd.cBlueShift:=0;
+      pfd.cAlphaBits:=0;
+      pfd.cAlphaShift:=0;
+      pfd.cAccumBits:=0;
+      pfd.cAccumRedBits:=0;
+      pfd.cAccumGreenBits:=0;
+      pfd.cAccumBlueBits:=0;
+      pfd.cAccumAlphaBits:=0;
+      pfd.cDepthBits:=16;
+      pfd.cStencilBits:=0;
+      pfd.cAuxBuffers:=0;
+      pfd.iLayerType:=PFD_MAIN_PLANE;
+      pfd.bReserved:=0;
+      pfd.dwLayerMask:=0;
+      pfd.dwVisibleMask:=0;
+      pfd.dwDamageMask:=0;
+
+      i:=ChoosePixelFormat(canvas.handle, @pfd);
+      SetPixelFormat(canvas.handle, i, @pfd);
+
+      hglrc:=wglCreateContext(canvas.handle);
+    end;
+  end;
+end;
+
+procedure TDiagram.RepaintOrRender;
+begin
+  if UseOpenGL then render else repaint;
+end;
+
+procedure TDiagram.render;
+var
+  i: integer;
+  b: TDiagramBlock;
+  maxw,maxh: integer;
+  p: pbyte;
+
+  rid: TRawImageDescription;
+  iw: integer;
+  maxx,maxy: integer;
+begin
   color:=diagramConfig.backgroundColor;
 
-  if diagramConfig.canvas=nil then
-    diagramConfig.canvas:=canvas;
+  if useopengl and (hglrc<>0) then
+  begin
+    wglMakeCurrent(canvas.handle, hglrc);
+    maxw:=10;
+    maxh:=10;
+    for i:=0 to blocks.count-1 do
+    begin
+      b:=TDiagramBlock(blocks[i]);
+      maxw:=max(maxw,b.x+b.Width);
+      maxh:=max(maxh,b.y+b.height);
+    end;
+
+    if osb=nil then
+    begin
+      osb:=tbitmap.Create;
+      osb.PixelFormat:=pf24bit;
+    end;
+
+    osb.canvas.brush.Assign(canvas.brush);
+    osb.canvas.pen.assign(canvas.pen);
+    osb.canvas.Font.assign(canvas.font);
+
+
+    if osb.width<maxw then
+      osb.width:=system.align(osb.width+256,64);
+
+    if osb.height<maxh then
+      osb.height:=system.align(osb.height+256,64);
+
+    //todo: only redraw OSB when something has actually changed
+
+    osb.canvas.brush.color:=diagramConfig.backgroundColor;
+    osb.canvas.FillRect(0,0,osb.width,osb.height);
+//    osb.Canvas.Clear;
+
+    diagramConfig.canvas:=osb.Canvas;
+  end
+  else
+  begin
+    diagramconfig.canvas:=canvas;
+  end;
+
+  diagramconfig.scrollx:=ScrollX;
+  diagramconfig.scrolly:=ScrollY;
+
+
+  maxx:=width-hscrollbar.Width;
+  maxy:=height-vscrollbar.Height;
 
   //draw the lines
   for i:=0 to links.count-1 do
+  begin
     TDiagramLink(links[i]).render;
+    maxx:=max(maxx, TDiagramLink(links[i]).maxx);
+    maxy:=max(maxy, TDiagramLink(links[i]).maxy);
+  end;
 
 
   //draw the visible blocks
   for i:=0 to blocks.count-1 do
+  begin
     TDiagramBlock(blocks[i]).render;
+    maxx:=max(maxx, TDiagramBlock(blocks[i]).x+TDiagramBlock(blocks[i]).width);
+    maxy:=max(maxy, TDiagramBlock(blocks[i]).y+TDiagramBlock(blocks[i]).height);
+  end;
 
+  if useopengl and (hglrc<>0) then
+  begin
+    glPixelTransferf(GL_ALPHA_SCALE, 0.0);
+    glPixelTransferf(GL_ALPHA_BIAS,  1.0);
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+    glClearIndex(0.0);
+    glClear(GL_COLOR_BUFFER_BIT);
+
+   // glPixelTransferi(GL_MAP_COLOR, GL_FALSE);
+
+    glDisable(GL_DITHER);
+    glShadeModel(GL_FLAT);
+    glClearColor(0.0, 0.0, 0.5, 0.5);
+    glClearDepth(1.0);
+    //glEnable(GL_DEPTH_TEST);
+    glDisable(GL_DITHER);
+    //glDepthFunc(GL_LEQUAL);
+    //glHint(GL_PERSPECTIVE_CORRECTION_HINT,GL_NICEST);
+
+    glViewport(0, 0, Width, Height);
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+
+    gluOrtho2D(0, width, height,0);
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity;
+
+    gluLookAt (0.0, 0.0, 0.0,
+               0.0, 1.0, 0.0,
+               0.0, 0.0, -1.0);
+
+    glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT);
+    glLoadIdentity();
+
+    glViewport(0, 0, width, height);
+    glPixelZoom(fzoom,-fzoom);
+    glRasterPos2f(0,0);
+
+    p:=osb.RawImage.Data;
+
+    rid:=osb.RawImage.Description;
+    iw:=osb.width;
+
+    glDrawPixels(osb.width, osb.height, GL_BGR,GL_UNSIGNED_BYTE, p);
+    //glDrawPixels(20,20,GL_BGR,GL_UNSIGNED_BYTE, @fck[0]);
+    //end;
+    SwapBuffers(canvas.handle);
+
+    wglMakeCurrent(0,0);
+  end;
+
+  updateScrollbars(maxx,maxy);
+end;
+
+
+procedure TDiagram.paint;
+begin
+  inherited paint;
+
+  render;
 
 
 end;
@@ -859,6 +1223,8 @@ end;
 
 constructor TDiagram.Create(TheOwner: TComponent);
 begin
+  inherited create(TheOwner);
+
   diagramConfig:=TDiagramConfig.create(self);
 
   blocks:=tlist.create;
@@ -870,8 +1236,46 @@ begin
   fAllowUserToMoveBlocks:=true;
   fAllowUserToChangeAttachPoints:=true;
 
+  fzoom:=1;
+
+  scrollbarbottompanel:=tpanel.Create(self);
+  scrollbarbottompanel.BevelOuter:=bvNone;
+  scrollbarbottompanel.align:=alBottom;
+  scrollbarbottompanel.parent:=self;
+  scrollbarbottompanel.color:=clBtnFace;
+
+  hscrollbar:=TScrollBar.Create(self);
+  hscrollbar.Parent:=scrollbarbottompanel;
+  hscrollbar.AnchorSideLeft.Control:=scrollbarbottompanel;
+  hscrollbar.anchorsideLeft.Side:=asrLeft;
+  hscrollbar.AnchorSideTop.Control:=scrollbarbottompanel;
+  hscrollbar.anchorsideTop.Side:=asrTop;
+  hscrollbar.AnchorSideRight.Control:=scrollbarbottompanel;
+  hscrollbar.anchorsideRight.Side:=asrRight;
+  hscrollbar.Anchors:=[akLeft, akTop, akRight];
+  scrollbarbottompanel.autosize:=true;
+
+  vscrollbar:=TScrollBar.Create(self);
+  vscrollbar.kind:=sbVertical;
+  vscrollbar.Parent:=self;
+  vscrollbar.AnchorSideTop.Control:=self;
+  vscrollbar.anchorsideTop.Side:=asrTop;
+  vscrollbar.AnchorSideRight.Control:=self;
+  vscrollbar.anchorsideRight.Side:=asrRight;
+  vscrollbar.AnchorSideBottom.Control:=scrollbarbottompanel;
+  vscrollbar.anchorsideBottom.Side:=asrTop;
+
+  vscrollbar.Anchors:=[akTop, akRight, akBottom];
+
+
+  hscrollbar.BorderSpacing.Right:=hscrollbar.Height;
+
   //scrollx:=10;
-  inherited create(TheOwner);
+
+  hscrollbar.OnChange:=@scrollbarchange;
+  vscrollbar.OnChange:=@scrollbarchange;
+
+
 end;
 
 destructor TDiagram.Destroy;

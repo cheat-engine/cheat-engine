@@ -210,6 +210,8 @@ var
   cr,tr: TRect;
 begin
   //render the block at the given location
+  //if config.canvas=nil then exit;
+
   if hasChanged then
   begin
     //render
@@ -277,11 +279,10 @@ begin
     c.brush.color:=oldbgc;
 
     haschanged:=false;
-
   end;
 
   //draw the cached block
-  config.canvas.Draw(x,y,cachedBlock);
+  config.canvas.Draw(x-config.scrollx,y-config.scrolly,cachedBlock);
 end;
 
 function TDiagramBlock.getData: TStrings;

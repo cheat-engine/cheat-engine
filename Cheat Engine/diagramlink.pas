@@ -27,6 +27,9 @@ type
 
     fName: string;
 
+    fmaxx: integer; //set after render
+    fmaxy: integer;
+
     function getYPosFromX(x: single; linestart: tpoint; lineend: tpoint): double;
     function getXPosFromY(y: single; linestart: tpoint; lineend: tpoint): double;
 
@@ -81,6 +84,8 @@ type
     property LineThickness: integer read getLineThickness write setLineThickness;
     property ArrowStyles: TArrowStyles read getArrowStyles write setArrowStyles;
     property Name: string read fName write fName;
+    property maxx: integer read fmaxx;
+    property maxy: integer read fmaxy;
   end;
 
 implementation
@@ -299,7 +304,12 @@ var
 
   xpos,ypos: single;
   i: integer;
+
+  adjust: Tpoint;
 begin
+  adjust.x:=config.scrollx;
+  adjust.y:=config.scrolly;
+
   originpoint:=origin.block.getConnectPosition(origin.side, origin.sideposition);
   destinationpoint:=destination.block.getConnectPosition(destination.side,destination.sideposition);
 
@@ -344,7 +354,7 @@ begin
       ypos:=getYPosFromX(linelist[i].p2.x-xpos,linelist[i].p1, linelist[i].p2);
       if ypos=Infinity then ypos:=linelist[i].p2.y;
 
-      drawArrow(point(linelist[i].p2.x-trunc(xpos),trunc(ypos)),getAngle(linelist[i].p1,linelist[i].p2),point(0,0));
+      drawArrow(point(linelist[i].p2.x-trunc(xpos),trunc(ypos))-adjust,getAngle(linelist[i].p1-adjust,linelist[i].p2-adjust),point(0,0));
 
       exit;
 
@@ -371,10 +381,16 @@ var
 
   p1,p2: tpoint;
 
+  mx,my: integer;
+
+  adjust: Tpoint;
 begin
+  adjust.x:=config.scrollx;
+  adjust.y:=config.scrolly;
+
+
+
   c:=config.canvas;
-
-
 
   oldw:=c.pen.Width;
   oldc:=c.pen.color;
@@ -385,22 +401,35 @@ begin
   originpoint:=origin.block.getConnectPosition(origin.side, origin.sideposition);
   destinationpoint:=destination.block.getConnectPosition(destination.side,destination.sideposition);
 
-  c.PenPos:=originpoint;
+  mx:=originpoint.x;
+  my:=originpoint.y;
+
+  mx:=max(mx, destinationpoint.x);
+  my:=max(my, destinationpoint.y);
+
+
+  c.PenPos:=originpoint-adjust;
 
   for i:=0 to Length(points)-1 do
   begin
-    c.LineTo(points[i]);
+    mx:=max(mx, points[i].x);
+    my:=max(my, points[i].y);
+
+    c.LineTo(points[i]-adjust);
 
     if config.DrawPlotPoints then
     begin
       oldbc:=c.Brush.Color;
       c.Brush.Color:=clred;
-      c.FillRect(points[i].x-config.PlotPointSize,points[i].y-config.PlotPointSize,points[i].x+config.PlotPointSize,points[i].y+config.PlotPointSize);
+      c.FillRect(points[i].x-config.PlotPointSize-config.scrollx,points[i].y-config.PlotPointSize-config.scrolly,points[i].x+config.PlotPointSize-config.scrollx,points[i].y+config.PlotPointSize-config.scrolly);
       c.brush.color:=oldbc;
     end;
   end;
 
-  c.LineTo(destinationpoint);
+  fmaxx:=mx;
+  fmaxy:=my;
+
+  c.LineTo(destinationpoint-adjust);
 
 
   if asOrigin in arrowStyles then
@@ -410,7 +439,7 @@ begin
     else
       directionpoint:=destinationpoint;
 
-    drawArrow(originpoint, getAngle(originpoint,directionpoint),point(5,0));
+    drawArrow(originpoint-adjust, getAngle(originpoint-adjust,directionpoint-adjust),point(5,0));
   end;
 
   if asDestination in ArrowStyles then
@@ -420,7 +449,7 @@ begin
     else
       directionpoint:=originpoint;
 
-    drawArrow(destinationpoint, getAngle(directionpoint,destinationpoint),point(-5,0)); //getCenterAdjustForBorderSide(destination.side));
+    drawArrow(destinationpoint-adjust, getAngle(directionpoint-adjust,destinationpoint-adjust),point(-5,0)); //getCenterAdjustForBorderSide(destination.side));
   end;
 
   if asPoints in arrowstyles then
@@ -432,7 +461,7 @@ begin
       else
         directionpoint:=destinationpoint;
 
-      drawArrow(points[i], getAngle(points[i],directionpoint),point(0,0));
+      drawArrow(points[i]-adjust, getAngle(points[i]-adjust,directionpoint-adjust),point(0,0));
     end;
   end;
 
@@ -442,7 +471,7 @@ begin
     begin
       p1:=originpoint;
       p2:=destinationpoint;
-      drawArrow(getCenterPoint(p1,p2), getAngle(p1,p2),point(0,0));
+      drawArrow(getCenterPoint(p1-adjust,p2-adjust), getAngle(p1-adjust,p2-adjust),point(0,0));
     end;
 
     for i:=0 to length(points)-1 do
@@ -452,7 +481,7 @@ begin
         p1:=originpoint;
         p2:=points[i];
 
-        drawArrow(getCenterPoint(p1,p2), getAngle(p1,p2),point(0,0));
+        drawArrow(getCenterPoint(p1-adjust,p2-adjust), getAngle(p1-adjust,p2-adjust),point(0,0));
       end
       else
       if i=length(points)-1 then
@@ -460,14 +489,14 @@ begin
         p1:=points[i];
         p2:=destinationpoint;
 
-        drawArrow(getCenterPoint(p1,p2), getAngle(p1,p2),point(0,0));
+        drawArrow(getCenterPoint(p1-adjust,p2-adjust), getAngle(p1-adjust,p2-adjust),point(0,0));
       end else
       begin
         p1:=points[i-1];
         p2:=points[i];
-        drawArrow(getCenterPoint(p1,p2), getAngle(p1,p2),point(0,0));
+        drawArrow(getCenterPoint(p1-adjust,p2-adjust), getAngle(p1-adjust,p2-adjust),point(0,0));
       end;
-      drawArrow(points[i], getAngle(points[i],directionpoint),point(0,0));
+      drawArrow(points[i]-adjust, getAngle(points[i]-adjust,directionpoint-adjust),point(0,0));
     end;
   end;
 
