@@ -126,6 +126,7 @@ end
 
 local mi=createMenuItem(MainForm.MainMenu)
 mi.Caption=translate('Check for new version')
+mi.ImageIndex=15
 -- also works: mi.Caption=translateID('VC-CFNV')
 mi.OnClick=function(mi) CheckVersion(false) end
 
