@@ -3654,6 +3654,7 @@ begin
 
 
     mi.Caption := f.Name;
+    mi.ImageIndex:=16;
     miTable.Insert(4, mi);
 
 
