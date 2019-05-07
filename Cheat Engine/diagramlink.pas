@@ -318,7 +318,7 @@ begin
     c:=config.canvas;
     oldbc:=c.Brush.Color;
     c.Brush.Color:=clred;
-    c.FillRect(point.x-config.PlotPointSize div 2,point.y-config.PlotPointSize div 2,point.x+config.PlotPointSize div 2,point.y+config.PlotPointSize div 2);
+    c.FillRect(point.x-trunc((config.PlotPointSize/2)*config.zoom),point.y-trunc((config.PlotPointSize/2)*config.zoom),point.x+ceil((config.PlotPointSize/2)*config.zoom),point.y+ceil((config.PlotPointSize/2)*config.zoom));
     c.brush.color:=oldbc;
   end;
 end;
@@ -341,21 +341,59 @@ var
 
  // oldp,oldb: tcolor;
   i: integer;
+
+  _r,_g,_b: byte;
 begin
   //calculate the angle to point at based from original to destination
   //originpoint.
-  c:=config.canvas;
-  arr:=arrow;
-
-  for i:=0 to 2 do
+  if config.UseOpenGL then
   begin
-    r:=sqrt(sqr(arr[i].X+centerAdjust.x) + sqr(arr[i].Y+centerAdjust.y));
-    p := rot + arcTan2(arr[i].Y+centerAdjust.y , arr[i].X+centerAdjust.x);
-    arr[i].X := Round(r * cos(p))+originpoint.x;
-    arr[i].Y := Round(r * sin(p))+originpoint.y;
-  end;
+    //glTranslatef(centeradjust.x,centeradjust.y,0);
 
-  c.Polygon(arr);
+    glLoadIdentity;
+
+
+    glTranslatef(originpoint.x,originpoint.y,0);
+    glRotatef(radtodeg(rot),0,0,1);
+    glTranslatef(centeradjust.x,centeradjust.y,0);
+    glScalef(config.zoom,config.zoom,1);
+
+    RedGreenBlue(linecolor,_r,_g,_b);
+
+    glColor3f(_r/255,_g/255,_b/255);
+    glBegin(GL_TRIANGLES);
+    glVertex2f(arrow[0].x, arrow[0].y);
+    glVertex2f(arrow[1].x, arrow[1].y);
+    glVertex2f(arrow[2].x, arrow[2].y);
+    //glVertex2f(arrow[0].x, arrow[0].y);
+    glEnd;
+
+    //glcolor3d(1,0,0);
+
+
+    glBegin(GL_LINE_STRIP);
+    glVertex2f(arrow[0].x, arrow[0].y);
+    glVertex2f(arrow[1].x, arrow[1].y);
+    glVertex2f(arrow[2].x, arrow[2].y);
+    glVertex2f(arrow[0].x, arrow[0].y);
+    glEnd;
+    glLoadIdentity;
+  end
+  else
+  begin
+    c:=config.canvas;
+    arr:=arrow;
+
+    for i:=0 to 2 do
+    begin
+      r:=sqrt(sqr(arr[i].X+centerAdjust.x) + sqr(arr[i].Y+centerAdjust.y));
+      p := rot + arcTan2(arr[i].Y+centerAdjust.y , arr[i].X+centerAdjust.x);
+      arr[i].X := Round(r * cos(p)*config.zoom)+originpoint.x;
+      arr[i].Y := Round(r * sin(p)*config.zoom)+originpoint.y;
+    end;
+
+    c.Polygon(arr);
+  end;
 end;
 
 procedure TDiagramLink.drawArrowInCenter;
@@ -503,7 +541,7 @@ begin
   if config.UseOpenGL then
   begin
     glBegin(GL_LINE_STRIP);
-    glVertex2f(originpoint.x*config.zoom, originpoint.y*config.zoom);
+    glVertex2f(originpoint.x*config.zoom-config.scrollx, originpoint.y*config.zoom-config.scrolly);
   end
   else
   begin
@@ -516,7 +554,7 @@ begin
     my:=max(my, points[i].y);
 
     if config.UseOpenGL then
-      glVertex2f(points[i].x*config.zoom, points[i].y*config.zoom)
+      glVertex2f(points[i].x*config.zoom-config.scrollx, points[i].y*config.zoom-config.scrolly)
     else
       c.LineTo(zoompoint(points[i])-adjust);
   end;
@@ -526,7 +564,7 @@ begin
 
   if config.UseOpenGL then
   begin
-    glVertex2f(destinationpoint.x*config.zoom, destinationpoint.y*config.zoom);
+    glVertex2f(destinationpoint.x*config.zoom-config.scrollx, destinationpoint.y*config.zoom-config.scrolly);
 
     glEnd;
   end
@@ -572,31 +610,31 @@ begin
 
   if asCenterBetweenPoints in arrowstyles then
   begin
-    p1:=originpoint-adjust;
+    p1:=zoompoint(originpoint)-adjust;
 
-    if length(points)=0 then
+   { if length(points)=0 then
     begin
       p2:=zoompoint(destinationpoint)-adjust;
       drawArrow(getCenterPoint(p1,p2), getAngle(p1,p2),point(0,0));
     end
     else
-    begin
+    begin  }
       for i:=0 to length(points)-1 do
       begin
         p2:=zoompoint(points[i])-adjust;
         drawArrow(getCenterPoint(p1,p2), getAngle(p1,p2),point(0,0));
 
-        p2:=zoompoint(points[i])-adjust;
-        drawArrow(getCenterPoint(p1,p2), getAngle(p1,p2),point(0,0));
+        //p2:=zoompoint(points[i])-adjust;
+        //drawArrow(getCenterPoint(p1,p2), getAngle(p1,p2),point(0,0));
 
-        p1:=zoompoint(points[i]);
+        p1:=p2;
       end;
       p2:=zoompoint(destinationpoint)-adjust;
       drawArrow(getCenterPoint(p1,p2), getAngle(p1,p2),point(0,0));
 
 
 
-    end;
+    //end;
   end;
 
   if asCenter in arrowstyles then

@@ -40,8 +40,6 @@ type
     fAllowUserToMoveBlocks: boolean;
     fAllowUserToChangeAttachPoints: boolean;
 
-    osb: TBitmap;
-
     //ogl
     fUseOpenGL: boolean;
     hglrc: HGLRC;
@@ -53,6 +51,11 @@ type
     hscrollbar: TScrollBar;
     vscrollbar: TScrollbar;
 
+    oldwindowproc: TWndMethod;
+
+    updater: TTimer;
+
+    procedure updaterTimerEvent(sender: TObject);
     procedure scrollbarchange(sender: TObject);
     procedure NotifyBlockDestroy(sender: TObject);
     procedure updateBlockDragPosition(xpos,ypos: integer);
@@ -98,6 +101,7 @@ type
   protected
     procedure WMPaint(var Message: TLMPaint); message LM_PAINT;
     procedure paint; override;
+    procedure Resize; override;
     procedure MouseMove(Shift: TShiftState; X, Y: Integer); override;
     procedure MouseDown(Button: TMouseButton; Shift: TShiftState; X, Y: Integer); override;
     procedure MouseUp(Button: TMouseButton; Shift: TShiftState; X, Y: Integer); override;
@@ -280,10 +284,7 @@ end;
 
 function TDiagram.getScrollX: integer;
 begin
-  if UseOpenGL then
-    result:=0
-  else
-    result:=hscrollbar.Position;
+  result:=hscrollbar.Position;
 end;
 
 procedure TDiagram.setScrollX(x: integer);
@@ -294,10 +295,7 @@ end;
 
 function TDiagram.getScrollY: integer;
 begin
-  if useOpenGL then
-    result:=0
-  else
-    result:=vscrollbar.Position;
+  result:=vscrollbar.Position;
 end;
 
 procedure TDiagram.setScrollY(y: integer);
@@ -564,6 +562,11 @@ begin
   ScrollbarchangeLock:=false;
 end;
 
+procedure TDiagram.updaterTimerEvent(sender: TObject);
+begin
+  RepaintOrRender;
+end;
+
 procedure TDiagram.NotifyBlockDestroy(sender: TObject);
 var
   l: TDiagramLink;
@@ -728,30 +731,35 @@ var
   vwasvisible: boolean;
   hwasvisible: boolean;
 begin
-  if useopengl then
-  begin
-    vscrollbar.visible:=false;
-    scrollbarbottompanel.visible:=false;
-    exit; //todo: later
-  end;
+
+
+  if (width=0) or (height=0) then exit;
+  if (maxx<0) or (maxy<0) then exit;
 
   vwasvisible:=vscrollbar.visible;
   hwasvisible:=scrollbarbottompanel.visible;
 
-  vscrollbar.visible:=maxy>height-hscrollbar.Height;
-  scrollbarbottompanel.visible:=maxx>width-vscrollbar.width;
-
-  vscrollbar.PageSize:=height-hscrollbar.height;
-  hscrollbar.pagesize:=width-vscrollbar.width;
-
+  vscrollbar.BeginUpdateBounds;
+  vscrollbar.visible:=maxy>((height-hscrollbar.Height)/zoom);
+  vscrollbar.PageSize:=ceil((height-hscrollbar.height)/zoom);
   vscrollbar.LargeChange:=vscrollbar.PageSize div 2;
-  hscrollbar.LargeChange:=hscrollbar.PageSize div 2;
-
   vscrollbar.SmallChange:=diagramconfig.canvas.GetTextWidth('XXX');
-  hscrollbar.SmallChange:=vscrollbar.SmallChange;
+  vscrollbar.Max:=trunc(maxy*zoom);
 
-  vscrollbar.Max:=maxy;
-  hscrollbar.max:=maxx;
+
+  scrollbarbottompanel.BeginUpdateBounds;
+  hscrollbar.BeginUpdateBounds;
+
+  hscrollbar.visible:=maxx>((width-vscrollbar.Width)/zoom);
+  hscrollbar.PageSize:=ceil((width-vscrollbar.Width)/zoom);
+  hscrollbar.LargeChange:=hscrollbar.PageSize div 2;
+  hscrollbar.SmallChange:=vscrollbar.SmallChange;
+  hscrollbar.Max:=trunc(maxx*zoom);
+
+
+
+ // exit;
+
 
 
   if vscrollbar.visible and scrollbarbottompanel.visible then
@@ -784,6 +792,12 @@ begin
 
   if hwasvisible and (scrollbarbottompanel.visible=false) then
     hscrollbar.Position:=0;
+
+
+    vscrollbar.EndUpdateBounds;
+  hscrollbar.EndUpdateBounds;
+  scrollbarbottompanel.EndUpdateBounds;
+
 end;
 
 procedure TDiagram.WMLButtonDBLCLK(var Message: TLMLButtonDblClk);
@@ -953,41 +967,51 @@ begin
     end;
   end
   else
+  if shift=[ssShift] then
   begin
-    if ssCtrl in shift then
+    if scrollbarbottompanel.Visible then
     begin
-      //zoom change
-      if wheeldelta>0 then
-      begin
-        //zoom in
-        if zoom<1 then
-          newzoom:=zoom*2
-        else
-          newzoom:=zoom+1;
+      newposition:=hscrollbar.position-wheeldelta;
+      if newposition<0 then newposition:=0;
+      if newposition>hscrollbar.Max-hscrollbar.PageSize then newposition:=hscrollbar.max-hscrollbar.PageSize;
 
-        if newzoom>16 then newzoom:=16;
-        zoom:=newzoom;
+      hscrollbar.position:=newposition;
+    end;
+  end
+  else
+  if ssCtrl in shift then
+  begin
+    //zoom change
+    if wheeldelta>0 then
+    begin
+      //zoom in
+      if zoom<1 then
+        newzoom:=zoom*2
+      else
+        newzoom:=zoom+1;
+
+      if newzoom>16 then newzoom:=16;
+      zoom:=newzoom;
+    end
+    else
+    if wheeldelta<0 then
+    begin
+      //zoom out
+      if zoom<=1 then
+      begin
+        newzoom:=zoom/2;
+
+        if newzoom<0.25 then
+          newzoom:=0.25;
+
       end
       else
-      if wheeldelta<0 then
-      begin
-        //zoom out
-        if zoom<=1 then
-        begin
-          newzoom:=zoom/2;
+        newzoom:=zoom-1;
 
-          if newzoom<0.25 then
-            newzoom:=0.25;
-
-        end
-        else
-          newzoom:=zoom-1;
-
-        zoom:=newzoom;
-      end;
+      zoom:=newzoom;
     end;
-
   end;
+
 
   RepaintOrRender;
 end;
@@ -1012,11 +1036,7 @@ begin
 
 
   if state and (parent<>nil) then //already has a parent so canvas is usable
-  begin
     InitializeOpenGL;
-
-
-  end;
 end;
 
 procedure TDiagram.SetParent(NewParent: TWinControl);
@@ -1087,6 +1107,15 @@ begin
   begin
     wglMakeCurrent(canvas.handle, hglrc);
     diagramConfig.CanUsebuffers:=Load_GL_version_1_5;
+
+    if updater=nil then
+    begin
+      updater:=TTimer.create(self);
+      updater.interval:=100;
+      updater.OnTimer:=@updaterTimerEvent;
+      updater.Enabled:=true;
+    end;
+
   end;
 end;
 
@@ -1100,6 +1129,10 @@ var
   iw: integer;
   maxx,maxy: integer;
 begin
+
+ // BeginUpdateBounds;
+  canvas.Lock;
+
   maxx:=10;
   maxy:=10;
 
@@ -1112,7 +1145,7 @@ begin
 
     if wglMakeCurrent(canvas.handle, hglrc)=false then
     begin
-      //ShowMessage('fuck');
+      ShowMessage('fuck');
     end;
 
     for i:=0 to blocks.count-1 do
@@ -1122,37 +1155,18 @@ begin
       maxy:=max(maxy,b.y+b.height);
     end;
 
-    if (osb<>nil) and ((osb.width<maxx) or (osb.height<maxy)) then
-      freeandnil(osb); //faster than resizing
 
-    if osb=nil then
-    begin
-      osb:=tbitmap.Create;
-      osb.PixelFormat:=pf24bit;
-      osb.canvas.brush.Assign(canvas.brush);
-      osb.canvas.pen.assign(canvas.pen);
-      osb.canvas.Font.assign(canvas.font);
-      osb.width:=system.align(maxx+256,64);
-      osb.height:=system.align(maxy+256,64);
-    end;
-
-    osb.canvas.brush.Assign(canvas.brush);
-    osb.canvas.pen.assign(canvas.pen);
-    osb.canvas.Font.assign(canvas.font);
-
-    //todo: only redraw OSB when something has actually changed
-
-    osb.canvas.brush.color:=diagramConfig.backgroundColor;
-    osb.canvas.FillRect(0,0,osb.width,osb.height);
-//    osb.Canvas.Clear;
-
-    diagramConfig.canvas:=osb.Canvas;
+    diagramConfig.canvas:=canvas;
 
     glPixelTransferf(GL_ALPHA_SCALE, 0.0);
     glPixelTransferf(GL_ALPHA_BIAS,  1.0);
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
     glClearIndex(0.0);
     glClear(GL_COLOR_BUFFER_BIT);
+
+    glEnable(GL_TEXTURE_2D);
+    glTexEnvf(GL_TEXTURE_2D,GL_TEXTURE_ENV_MODE,GL_MODULATE);
+
 
    // glPixelTransferi(GL_MAP_COLOR, GL_FALSE);
 
@@ -1185,6 +1199,9 @@ begin
     glRasterPos2f(0,0);
 
 
+    self.BeginUpdateBounds;
+
+
   end
   else
   begin
@@ -1197,10 +1214,11 @@ begin
   diagramconfig.zoom:=zoom;
 
 
-  maxx:=width-hscrollbar.Width;
-  maxy:=height-vscrollbar.Height;
+  maxx:=width-vscrollbar.Width;
+  maxy:=height-hscrollbar.Height;
 
   //draw the lines
+  glDisable(GL_TEXTURE_2D);
   for i:=0 to links.count-1 do
   begin
     TDiagramLink(links[i]).render;
@@ -1209,6 +1227,7 @@ begin
   end;
 
   //draw the blocks
+  glEnable(GL_TEXTURE_2D);
   for i:=0 to blocks.count-1 do
   begin
     TDiagramBlock(blocks[i]).render;
@@ -1217,29 +1236,7 @@ begin
   end;
 
   if useopengl and (hglrc<>0) then
-  begin
-
-
-
-    {
-    p:=osb.RawImage.Data;
-    rid:=osb.RawImage.Description;
-    iw:=osb.width;
-
-    glDrawPixels(osb.width, osb.height, GL_BGR,GL_UNSIGNED_BYTE, p);   }
-
-    {
-    glLineWidth(3);
-    glBegin(GL_LINES);
-        glVertex2f(10, 10);
-        glVertex2f(20, 20);
-    glEnd();  }
-
-
     SwapBuffers(canvas.handle);
-
-    //wglMakeCurrent(0,0);
-  end;
 
   updateScrollbars(maxx,maxy);
 end;
@@ -1248,7 +1245,6 @@ end;
 procedure TDiagram.WMPaint(var Message: TLMPaint);
 begin
   if UseOpenGL then render else inherited WMPaint(message);
-
 end;
 
 procedure TDiagram.paint;
@@ -1256,6 +1252,12 @@ begin
   inherited paint;
 
   render;
+end;
+
+procedure TDiagram.resize;
+begin
+  inherited resize;
+
 
 
 end;
@@ -1371,8 +1373,6 @@ begin
 
   hscrollbar.OnChange:=@scrollbarchange;
   vscrollbar.OnChange:=@scrollbarchange;
-
-
 end;
 
 destructor TDiagram.Destroy;
