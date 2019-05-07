@@ -282,7 +282,15 @@ begin
   end;
 
   //draw the cached block
-  config.canvas.Draw(x-config.scrollx,y-config.scrolly,cachedBlock);
+  if config.UseOpenGL then
+  begin
+
+  end
+  else
+  begin
+    config.canvas.StretchDraw(rect(trunc(x*config.zoom)-config.scrollx,trunc(y*config.zoom)-config.scrolly,ceil((x+width)*config.zoom)-config.scrollx,ceil((y+Height)*config.zoom)-config.scrolly),cachedblock);
+    //config.canvas.Draw(x-config.scrollx,y-config.scrolly,cachedBlock);
+  end;
 end;
 
 function TDiagramBlock.getData: TStrings;

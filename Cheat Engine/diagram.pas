@@ -18,6 +18,7 @@ type
       point: TPoint;
     end;
 
+
     draggedPoint: record
       link: TDiagramLink;
       pointindex: integer;
@@ -88,15 +89,19 @@ type
 
 
     procedure setUseOpenGl(state: boolean);
+    procedure setZoom(value: single);
 
     procedure DoAutoSideUpdate;
     procedure RepaintOrRender;
+
+    procedure InitializeOpenGL;
   protected
-   // procedure WMPaint(var Message: TLMPaint); message LM_PAINT;
+    procedure WMPaint(var Message: TLMPaint); message LM_PAINT;
     procedure paint; override;
     procedure MouseMove(Shift: TShiftState; X, Y: Integer); override;
     procedure MouseDown(Button: TMouseButton; Shift: TShiftState; X, Y: Integer); override;
     procedure MouseUp(Button: TMouseButton; Shift: TShiftState; X, Y: Integer); override;
+    function DoMouseWheel(Shift: TShiftState; WheelDelta: Integer; MousePos: TPoint): Boolean; override;
     procedure WMLButtonDBLCLK(var Message: TLMLButtonDblClk); message LM_LBUTTONDBLCLK;
 
 
@@ -138,6 +143,7 @@ type
 
     property LinkCount: integer read getLinkCount;
     property UseOpenGL: boolean read fUseOpenGL write setUseOpenGL;
+    property Zoom: single read fZoom write setZoom;
 
 
     property Canvas;
@@ -605,6 +611,9 @@ begin
   inc(x,scrollx);
   inc(y,scrolly);
 
+  //adjust for zoom
+  x:=trunc(x / fzoom);
+  y:=trunc(y / fzoom);
 
   startedresizing:=false;
   for i:=blocks.count-1 downto 0 do
@@ -719,6 +728,13 @@ var
   vwasvisible: boolean;
   hwasvisible: boolean;
 begin
+  if useopengl then
+  begin
+    vscrollbar.visible:=false;
+    scrollbarbottompanel.visible:=false;
+    exit; //todo: later
+  end;
+
   vwasvisible:=vscrollbar.visible;
   hwasvisible:=scrollbarbottompanel.visible;
 
@@ -800,6 +816,10 @@ begin
   inc(x,scrollx);
   inc(y,scrolly);
 
+  //adjust for zoom
+  x:=trunc(x / fzoom);
+  y:=trunc(y / fzoom);
+
   if draggedblock.block<>nil then
   begin
     updateBlockDragPosition(x,y);
@@ -843,6 +863,10 @@ begin
   //adjust for scroll
   inc(x,scrollx);
   inc(y,scrolly);
+
+  //adjust for zoom
+  x:=trunc(x / fzoom);
+  y:=trunc(y / fzoom);
 
   newcursor:=crdefault;
 
@@ -911,62 +935,94 @@ begin
     cursor:=newcursor;
 end;
 
+function TDiagram.DoMouseWheel(Shift: TShiftState; WheelDelta: Integer; MousePos: TPoint): Boolean;
+var
+  newposition: integer;
+  newzoom: single;
+begin
+  result:=false;
+  if shift=[] then
+  begin
+    if vscrollbar.Visible then
+    begin
+      newposition:=vscrollbar.position-wheeldelta;
+      if newposition<0 then newposition:=0;
+      if newposition>vscrollbar.Max-vscrollbar.PageSize then newposition:=vscrollbar.max-vscrollbar.PageSize;
+
+      vscrollbar.position:=newposition;
+    end;
+  end
+  else
+  begin
+    if ssCtrl in shift then
+    begin
+      //zoom change
+      if wheeldelta>0 then
+      begin
+        //zoom in
+        if zoom<1 then
+          newzoom:=zoom*2
+        else
+          newzoom:=zoom+1;
+
+        if newzoom>16 then newzoom:=16;
+        zoom:=newzoom;
+      end
+      else
+      if wheeldelta<0 then
+      begin
+        //zoom out
+        if zoom<=1 then
+        begin
+          newzoom:=zoom/2;
+
+          if newzoom<0.25 then
+            newzoom:=0.25;
+
+        end
+        else
+          newzoom:=zoom-1;
+
+        zoom:=newzoom;
+      end;
+    end;
+
+  end;
+
+  RepaintOrRender;
+end;
+
+procedure TDiagram.setZoom(value: single);
+begin
+  fzoom:=value;
+  RepaintOrRender; //perhaps (unlikely I add zoom to the non-opengl version)
+end;
+
 procedure TDiagram.setUseOpenGl(state: boolean);
 var
   pfd: TPixelFormatDescriptor;
   i: integer;
+
+  p: pointer;
 begin
   fUseOpenGL:=state;
+  diagramConfig.UseOpenGL:=state;
+
+  diagramConfig.CanUsebuffers:=assigned(glBindBuffer) and assigned(glBufferData);
+
 
   if state and (parent<>nil) then //already has a parent so canvas is usable
   begin
-    hglrc:=wglCreateContext(canvas.handle);
+    InitializeOpenGL;
 
-    if hglrc=0 then
-    begin
-      pfd.nSize:=sizeof(pfd);
-      pfd.nVersion:=1;
-      pfd.dwFlags:=PFD_DRAW_TO_WINDOW or PFD_SUPPORT_OPENGL or PFD_DOUBLEBUFFER;
-      pfd.iPixelType:=PFD_TYPE_RGBA;
-      pfd.cColorBits:=24;
-      pfd.cRedBits:=0;
-      pfd.cRedShift:=0;
-      pfd.cGreenBits:=0;
-      pfd.cGreenShift:=0;
-      pfd.cBlueBits:=0;
-      pfd.cBlueShift:=0;
-      pfd.cAlphaBits:=0;
-      pfd.cAlphaShift:=0;
-      pfd.cAccumBits:=0;
-      pfd.cAccumRedBits:=0;
-      pfd.cAccumGreenBits:=0;
-      pfd.cAccumBlueBits:=0;
-      pfd.cAccumAlphaBits:=0;
-      pfd.cDepthBits:=16;
-      pfd.cStencilBits:=0;
-      pfd.cAuxBuffers:=0;
-      pfd.iLayerType:=PFD_MAIN_PLANE;
-      pfd.bReserved:=0;
-      pfd.dwLayerMask:=0;
-      pfd.dwVisibleMask:=0;
-      pfd.dwDamageMask:=0;
 
-      i:=ChoosePixelFormat(canvas.handle, @pfd);
-      SetPixelFormat(canvas.handle, i, @pfd);
-
-      hglrc:=wglCreateContext(canvas.handle);
-    end;
-
-    if hglrc=0 then
-      fUseOpenGL:=false;
   end;
 end;
 
 procedure TDiagram.SetParent(NewParent: TWinControl);
 var
   oldparent: TWinControl;
-  pfd: TPixelFormatDescriptor;
-  i: integer;
+
 begin
   oldparent:=parent;
   inherited SetParent(NewParent);
@@ -975,44 +1031,7 @@ begin
 
 
   if UseOpenGL and assigned(ChoosePixelFormat) and (NewParent<>nil) and (oldparent=nil) then
-  begin
-    hglrc:=wglCreateContext(canvas.handle);
-
-    if hglrc=0 then
-    begin
-      pfd.nSize:=sizeof(pfd);
-      pfd.nVersion:=1;
-      pfd.dwFlags:=PFD_DRAW_TO_WINDOW or PFD_SUPPORT_OPENGL or PFD_DOUBLEBUFFER;
-      pfd.iPixelType:=PFD_TYPE_RGBA;
-      pfd.cColorBits:=24;
-      pfd.cRedBits:=0;
-      pfd.cRedShift:=0;
-      pfd.cGreenBits:=0;
-      pfd.cGreenShift:=0;
-      pfd.cBlueBits:=0;
-      pfd.cBlueShift:=0;
-      pfd.cAlphaBits:=0;
-      pfd.cAlphaShift:=0;
-      pfd.cAccumBits:=0;
-      pfd.cAccumRedBits:=0;
-      pfd.cAccumGreenBits:=0;
-      pfd.cAccumBlueBits:=0;
-      pfd.cAccumAlphaBits:=0;
-      pfd.cDepthBits:=16;
-      pfd.cStencilBits:=0;
-      pfd.cAuxBuffers:=0;
-      pfd.iLayerType:=PFD_MAIN_PLANE;
-      pfd.bReserved:=0;
-      pfd.dwLayerMask:=0;
-      pfd.dwVisibleMask:=0;
-      pfd.dwDamageMask:=0;
-
-      i:=ChoosePixelFormat(canvas.handle, @pfd);
-      SetPixelFormat(canvas.handle, i, @pfd);
-
-      hglrc:=wglCreateContext(canvas.handle);
-    end;
-  end;
+    InitializeOpenGL;
 end;
 
 procedure TDiagram.RepaintOrRender;
@@ -1020,47 +1039,106 @@ begin
   if UseOpenGL then render else repaint;
 end;
 
+procedure TDiagram.InitializeOpenGL;
+var
+  pfd: TPixelFormatDescriptor;
+  i: integer;
+begin
+  hglrc:=wglCreateContext(canvas.handle);
+
+  if hglrc=0 then
+  begin
+    pfd.nSize:=sizeof(pfd);
+    pfd.nVersion:=1;
+    pfd.dwFlags:=PFD_DRAW_TO_WINDOW or PFD_SUPPORT_OPENGL or PFD_DOUBLEBUFFER;
+    pfd.iPixelType:=PFD_TYPE_RGBA;
+    pfd.cColorBits:=24;
+    pfd.cRedBits:=0;
+    pfd.cRedShift:=0;
+    pfd.cGreenBits:=0;
+    pfd.cGreenShift:=0;
+    pfd.cBlueBits:=0;
+    pfd.cBlueShift:=0;
+    pfd.cAlphaBits:=0;
+    pfd.cAlphaShift:=0;
+    pfd.cAccumBits:=0;
+    pfd.cAccumRedBits:=0;
+    pfd.cAccumGreenBits:=0;
+    pfd.cAccumBlueBits:=0;
+    pfd.cAccumAlphaBits:=0;
+    pfd.cDepthBits:=16;
+    pfd.cStencilBits:=0;
+    pfd.cAuxBuffers:=0;
+    pfd.iLayerType:=PFD_MAIN_PLANE;
+    pfd.bReserved:=0;
+    pfd.dwLayerMask:=0;
+    pfd.dwVisibleMask:=0;
+    pfd.dwDamageMask:=0;
+
+    i:=ChoosePixelFormat(canvas.handle, @pfd);
+    SetPixelFormat(canvas.handle, i, @pfd);
+
+    hglrc:=wglCreateContext(canvas.handle);
+  end;
+
+  if hglrc=0 then
+    fUseOpenGL:=false
+  else
+  begin
+    wglMakeCurrent(canvas.handle, hglrc);
+    diagramConfig.CanUsebuffers:=Load_GL_version_1_5;
+  end;
+end;
+
 procedure TDiagram.render;
 var
   i: integer;
   b: TDiagramBlock;
-  maxw,maxh: integer;
-  p: pbyte;
+   p: pbyte;
 
   rid: TRawImageDescription;
   iw: integer;
   maxx,maxy: integer;
 begin
+  maxx:=10;
+  maxy:=10;
+
   color:=diagramConfig.backgroundColor;
 
   if useopengl and (hglrc<>0) then
   begin
-    wglMakeCurrent(canvas.handle, hglrc);
-    maxw:=10;
-    maxh:=10;
+    maxx:=width;
+    maxy:=height;
+
+    if wglMakeCurrent(canvas.handle, hglrc)=false then
+    begin
+      //ShowMessage('fuck');
+    end;
+
     for i:=0 to blocks.count-1 do
     begin
       b:=TDiagramBlock(blocks[i]);
-      maxw:=max(maxw,b.x+b.Width);
-      maxh:=max(maxh,b.y+b.height);
+      maxx:=max(maxx,b.x+b.Width);
+      maxy:=max(maxy,b.y+b.height);
     end;
+
+    if (osb<>nil) and ((osb.width<maxx) or (osb.height<maxy)) then
+      freeandnil(osb); //faster than resizing
 
     if osb=nil then
     begin
       osb:=tbitmap.Create;
       osb.PixelFormat:=pf24bit;
+      osb.canvas.brush.Assign(canvas.brush);
+      osb.canvas.pen.assign(canvas.pen);
+      osb.canvas.Font.assign(canvas.font);
+      osb.width:=system.align(maxx+256,64);
+      osb.height:=system.align(maxy+256,64);
     end;
 
     osb.canvas.brush.Assign(canvas.brush);
     osb.canvas.pen.assign(canvas.pen);
     osb.canvas.Font.assign(canvas.font);
-
-
-    if osb.width<maxw then
-      osb.width:=system.align(osb.width+256,64);
-
-    if osb.height<maxh then
-      osb.height:=system.align(osb.height+256,64);
 
     //todo: only redraw OSB when something has actually changed
 
@@ -1069,38 +1147,7 @@ begin
 //    osb.Canvas.Clear;
 
     diagramConfig.canvas:=osb.Canvas;
-  end
-  else
-  begin
-    diagramconfig.canvas:=canvas;
-  end;
 
-  diagramconfig.scrollx:=ScrollX;
-  diagramconfig.scrolly:=ScrollY;
-
-
-  maxx:=width-hscrollbar.Width;
-  maxy:=height-vscrollbar.Height;
-
-  //draw the lines
-  for i:=0 to links.count-1 do
-  begin
-    TDiagramLink(links[i]).render;
-    maxx:=max(maxx, TDiagramLink(links[i]).maxx);
-    maxy:=max(maxy, TDiagramLink(links[i]).maxy);
-  end;
-
-
-  //draw the visible blocks
-  for i:=0 to blocks.count-1 do
-  begin
-    TDiagramBlock(blocks[i]).render;
-    maxx:=max(maxx, TDiagramBlock(blocks[i]).x+TDiagramBlock(blocks[i]).width);
-    maxy:=max(maxy, TDiagramBlock(blocks[i]).y+TDiagramBlock(blocks[i]).height);
-  end;
-
-  if useopengl and (hglrc<>0) then
-  begin
     glPixelTransferf(GL_ALPHA_SCALE, 0.0);
     glPixelTransferf(GL_ALPHA_BIAS,  1.0);
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
@@ -1137,22 +1184,72 @@ begin
     glPixelZoom(fzoom,-fzoom);
     glRasterPos2f(0,0);
 
-    p:=osb.RawImage.Data;
 
+  end
+  else
+  begin
+    diagramconfig.canvas:=canvas;
+  end;
+
+  diagramconfig.scrollx:=ScrollX;
+  diagramconfig.scrolly:=ScrollY;
+
+  diagramconfig.zoom:=zoom;
+
+
+  maxx:=width-hscrollbar.Width;
+  maxy:=height-vscrollbar.Height;
+
+  //draw the lines
+  for i:=0 to links.count-1 do
+  begin
+    TDiagramLink(links[i]).render;
+    maxx:=max(maxx, TDiagramLink(links[i]).maxx);
+    maxy:=max(maxy, TDiagramLink(links[i]).maxy);
+  end;
+
+  //draw the blocks
+  for i:=0 to blocks.count-1 do
+  begin
+    TDiagramBlock(blocks[i]).render;
+    maxx:=max(maxx, TDiagramBlock(blocks[i]).x+TDiagramBlock(blocks[i]).width);
+    maxy:=max(maxy, TDiagramBlock(blocks[i]).y+TDiagramBlock(blocks[i]).height);
+  end;
+
+  if useopengl and (hglrc<>0) then
+  begin
+
+
+
+    {
+    p:=osb.RawImage.Data;
     rid:=osb.RawImage.Description;
     iw:=osb.width;
 
-    glDrawPixels(osb.width, osb.height, GL_BGR,GL_UNSIGNED_BYTE, p);
-    //glDrawPixels(20,20,GL_BGR,GL_UNSIGNED_BYTE, @fck[0]);
-    //end;
+    glDrawPixels(osb.width, osb.height, GL_BGR,GL_UNSIGNED_BYTE, p);   }
+
+    {
+    glLineWidth(3);
+    glBegin(GL_LINES);
+        glVertex2f(10, 10);
+        glVertex2f(20, 20);
+    glEnd();  }
+
+
     SwapBuffers(canvas.handle);
 
-    wglMakeCurrent(0,0);
+    //wglMakeCurrent(0,0);
   end;
 
   updateScrollbars(maxx,maxy);
 end;
 
+
+procedure TDiagram.WMPaint(var Message: TLMPaint);
+begin
+  if UseOpenGL then render else inherited WMPaint(message);
+
+end;
 
 procedure TDiagram.paint;
 begin

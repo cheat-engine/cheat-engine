@@ -5,7 +5,7 @@ unit diagramtypes;
 interface
 
 uses
-  Classes, SysUtils, Graphics, Controls;
+  Classes, SysUtils, Graphics, Controls, GL;
 
 type
   TDiagramBlockSide=(dbsTop, dbsLeft, dbsRight, dbsBottom, dbsTopLeft, dbsTopRight, dbsBottomLeft, dbsBottomRight);
@@ -30,6 +30,15 @@ type
 
     arrowStyles: TArrowStyles;
     scrollx, scrolly: integer;
+    zoom: single;
+
+    UseOpenGL: boolean;
+    CanUsebuffers: boolean;
+
+
+    plotpointvertexbuf: GLint;
+    plotpointindexbuf: GLint;
+
 
     constructor create(_owner: TCustomControl);
   end;
