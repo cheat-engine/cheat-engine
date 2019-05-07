@@ -107,11 +107,11 @@ msgstr "执行"
 
 #: lclstrconsts.ifsvk_final
 msgid "Final"
-msgstr ""
+msgstr "最后的"
 
 #: lclstrconsts.ifsvk_hanja
 msgid "Hanja"
-msgstr ""
+msgstr "汉字(Hanja)"
 
 #: lclstrconsts.ifsvk_help
 msgid "Help"
@@ -133,7 +133,7 @@ msgstr ""
 
 #: lclstrconsts.ifsvk_kana
 msgid "Kana"
-msgstr ""
+msgstr "Kana(假名)"
 
 #: lclstrconsts.ifsvk_lbutton
 msgid "Mouse Button Left"
@@ -265,7 +265,7 @@ msgstr "3D光线"
 
 #: lclstrconsts.rsacontrolcannothaveitselfasparent
 msgid "A control can't have itself as a parent"
-msgstr ""
+msgstr "一个控件不能由它自己作为一个父类(parent)"
 
 #: lclstrconsts.rsactivebordercolorcaption
 msgid "Active Border"
@@ -285,7 +285,7 @@ msgstr "应用程序工作区"
 
 #: lclstrconsts.rsaquacolorcaption
 msgid "Aqua"
-msgstr ""
+msgstr "水绿色"
 
 #: lclstrconsts.rsbackgroundcolorcaption
 msgid "Desktop"
@@ -358,11 +358,11 @@ msgstr ""
 
 #: lclstrconsts.rscontrolhasnoparentwindow
 msgid "Control '%s' has no parent window"
-msgstr ""
+msgstr "控件'%s'没有父类(parent)窗口"
 
 #: lclstrconsts.rscreamcolorcaption
 msgid "Cream"
-msgstr ""
+msgstr "奶油色"
 
 #: lclstrconsts.rscreatinggdbcatchableerror
 msgid "Creating gdb catchable error:"
@@ -432,7 +432,7 @@ msgstr "错误在LCL: "
 
 #: lclstrconsts.rserroroccurredinataddressframe
 msgid "Error occurred in %s at %sAddress %s%s Frame %s"
-msgstr ""
+msgstr "错误发生在%s中 在%s地址%s%s 框架(Frame)%s"
 
 #: lclstrconsts.rserrorreadingproperty
 msgid "Error reading %s%s%s: %s"
@@ -560,11 +560,11 @@ msgstr "--g-fatal-warnings   由Gtk+/GDK 产生的警告和错误终止应用程
 
 #: lclstrconsts.rsgradientactivecaptioncolorcaption
 msgid "Gradient Active Caption"
-msgstr ""
+msgstr "渐变活动标题"
 
 #: lclstrconsts.rsgradientinactivecaptioncolorcaption
 msgid "Gradient Inactive Caption"
-msgstr ""
+msgstr "渐变非活动标题"
 
 #: lclstrconsts.rsgraphic
 msgid "Graphic"
@@ -584,7 +584,7 @@ msgstr "绿色"
 
 #: lclstrconsts.rsgridfiledoesnotexists
 msgid "Grid file doesn't exists"
-msgstr ""
+msgstr "网格(Grid)文件不存在"
 
 #: lclstrconsts.rsgridindexoutofrange
 msgid "Grid index out of range."
@@ -592,7 +592,7 @@ msgstr "网格索引越界."
 
 #: lclstrconsts.rsgroupindexcannotbelessthanprevious
 msgid "GroupIndex cannot be less than a previous menu item's GroupIndex"
-msgstr ""
+msgstr "组索引不能少于一个上级(previous)菜单项目的组索引"
 
 #: lclstrconsts.rsgtkfilter
 msgid "Filter:"
@@ -620,7 +620,7 @@ msgstr "--gtk-module module   启动时加载指定模块."
 
 #: lclstrconsts.rsgtkoptionname
 msgid "--name programe       Set program name to \"progname\". If not specified, program name will be set to ParamStrUTF8(0)."
-msgstr ""
+msgstr "--name programe       设置程序名称到\"progname\".如果没有指定,程序名称将被设置到ParamStrUTF8(0)."
 
 #: lclstrconsts.rsgtkoptionnodebug
 msgid "--gtk-no-debug flags  Turn off specific Gtk+ trace/debug messages."
@@ -628,7 +628,7 @@ msgstr "--gtk-no-debug flags  关闭指定的Gtk+跟踪/调试信息."
 
 #: lclstrconsts.rsgtkoptionnotransient
 msgid "--lcl-no-transient    Do not set transient order for modal forms"
-msgstr ""
+msgstr "--lcl-no-transient    对于情态模式(modal forms)不能设置临时顺序"
 
 #: lclstrconsts.rsgtkoptionnoxshm
 msgid "--no-xshm             Disable use of the X Shared Memory Extension."
@@ -680,11 +680,11 @@ msgstr "帮助关键字%s%s%s未找到,在数据库%s%s%s."
 
 #: lclstrconsts.rshelphelpnodehasnohelpdatabase
 msgid "Help node %s%s%s has no Help Database"
-msgstr ""
+msgstr "帮助节点%s%s%s没有帮助数据库"
 
 #: lclstrconsts.rshelpnohelpfoundforsource
 msgid "No help found for line %d, column %d of %s."
-msgstr ""
+msgstr "没有帮助找到对于行%d,列%d属于%s."
 
 #: lclstrconsts.rshelpnohelpnodesavailable
 msgid "No help nodes available"
@@ -704,7 +704,7 @@ msgstr "帮助选择器错误"
 
 #: lclstrconsts.rshelpthereisnoviewerforhelptype
 msgid "There is no viewer for help type %s%s%s"
-msgstr ""
+msgstr "这里没有查看器对于帮助类型%s%s%s"
 
 #: lclstrconsts.rshelpviewererror
 msgid "Help Viewer Error"
@@ -1011,7 +1011,7 @@ msgstr "提交"
 
 #: lclstrconsts.rspressoktoignoreandriskdatacorruptionpresscanceltok
 msgid "%s%sPress OK to ignore and risk data corruption.%sPress Cancel to kill the program."
-msgstr ""
+msgstr "%s%s按 确认 来忽略并冒险数据损坏.%s按 取消 来杀死程序."
 
 #: lclstrconsts.rspriorrecordhint
 msgctxt "lclstrconsts.rspriorrecordhint"
@@ -1036,15 +1036,15 @@ msgstr ""
 
 #: lclstrconsts.rsqtoptionnograb
 msgid "-nograb, tells Qt that it must never grab the mouse or the keyboard. Need QT_DEBUG."
-msgstr ""
+msgstr "-nograb, 告诉Qt,它必需从不能抓取(grab)鼠标或键盘.需QT_DEBUG."
 
 #: lclstrconsts.rsqtoptionreverse
 msgid "-reverse, sets the application's layout direction to Qt::RightToLeft."
-msgstr ""
+msgstr "-reverse, 设置应用程序的布局方向为Qt::RightToLeft."
 
 #: lclstrconsts.rsqtoptionsession
 msgid "-session session, restores the application from an earlier session."
-msgstr ""
+msgstr "-session 会话,从一个早期的会话恢复应用程序."
 
 #: lclstrconsts.rsqtoptionstyle
 msgid "-style style or -style=style, sets the application GUI style. Possible values are motif, windows, and platinum. If you compiled Qt with additional styles or have additional styles as plugins these will be available to the -style  command line option. NOTE: Not all styles are available on all platforms. If style param does not exist Qt will start an application with default common style (windows)."
@@ -1056,7 +1056,7 @@ msgstr ""
 
 #: lclstrconsts.rsqtoptionsync
 msgid "-sync (only under X11), switches to synchronous mode for debugging."
-msgstr ""
+msgstr "-sync (仅在X11下),对调试切换到同步模式."
 
 #: lclstrconsts.rsqtoptionwidgetcount
 msgid "-widgetcount, prints debug message at the end about number of widgets left undestroyed and maximum number of widgets existed at the same time."
@@ -1064,7 +1064,7 @@ msgstr ""
 
 #: lclstrconsts.rsqtoptionx11bgcolor
 msgid "-bg or -background color, sets the default background color and an application palette (light and dark shades are calculated)."
-msgstr ""
+msgstr "-bg or -background color, 设置默认背景颜色和应用程序调色板(palette)(明和暗色度被计算)."
 
 #: lclstrconsts.rsqtoptionx11btncolor
 msgid "-btn or -button color, sets the default button color."
@@ -1072,11 +1072,11 @@ msgstr "-btn or -button color,设置默认button颜色."
 
 #: lclstrconsts.rsqtoptionx11cmap
 msgid "-cmap, causes the application to install a private color map on an 8-bit display."
-msgstr ""
+msgstr "-cmap, 在一个8-位显示器上,引起(causes)应用程序来安装一个私有的颜色地图."
 
 #: lclstrconsts.rsqtoptionx11display
 msgid "-display display, sets the X display (default is $DISPLAY)."
-msgstr ""
+msgstr "-display 显示器,设置X显示器(默认是$DISPLAY)."
 
 #: lclstrconsts.rsqtoptionx11fgcolor
 msgid "-fg or -foreground color, sets the default foreground color."
@@ -1084,7 +1084,7 @@ msgstr "-fg or -foreground color,设置默认foreground颜色."
 
 #: lclstrconsts.rsqtoptionx11font
 msgid "-fn or -font font, defines the application font. The font should be specified using an X logical font description."
-msgstr ""
+msgstr "-fn or -font 字体,定义应用程序字体.该字体应该被指定(specified)使用一个X逻辑字体描述(description)."
 
 #: lclstrconsts.rsqtoptionx11geometry
 msgid "-geometry geometry, sets the client geometry of the first window that is shown."
@@ -1092,7 +1092,7 @@ msgstr ""
 
 #: lclstrconsts.rsqtoptionx11im
 msgid "-im, sets the input method server (equivalent to setting the XMODIFIERS environment variable)."
-msgstr ""
+msgstr "-im, 设置输入方法(等于设置XMODIFIERS环境变量)."
 
 #: lclstrconsts.rsqtoptionx11inputstyle
 msgid "-inputstyle, defines how the input is inserted into the given widget, e.g. onTheSpot makes the input appear directly in the widget, while overTheSpot makes the input appear in a box floating over the widget and is not inserted until the editing is done."
@@ -1112,19 +1112,19 @@ msgstr "-title title,设置应用程序标题."
 
 #: lclstrconsts.rsqtoptionx11visual
 msgid "-visual TrueColor, forces the application to use a TrueColor visual on an 8-bit display."
-msgstr ""
+msgstr "-visual TrueColor,在一个8位显示器上强制应用程序来使用一个真彩色画面."
 
 #: lclstrconsts.rsrasterimageendupdate
 msgid "Endupdate while no update in progress"
-msgstr ""
+msgstr "当没有更新在进程中时结束更新(Endupdate)"
 
 #: lclstrconsts.rsrasterimagesaveinupdate
 msgid "Cannot save image while update in progress"
-msgstr ""
+msgstr "更新时候不能保存图片"
 
 #: lclstrconsts.rsrasterimageupdateall
 msgid "Cannot begin update all when canvas only update in progress"
-msgstr ""
+msgstr "当canvas(画布)仅更新在进程中时,不能开始更新所有"
 
 #: lclstrconsts.rsredcolorcaption
 msgid "Red"
@@ -1213,11 +1213,11 @@ msgstr "不支持剪贴板格式: %s"
 
 #: lclstrconsts.rswarningunreleaseddcsdump
 msgid " WARNING: There are %d unreleased DCs, a detailed dump follows:"
-msgstr ""
+msgstr " 警告:这里有%d未释放的DCs,一个详细的转存(dump)如下(follows):"
 
 #: lclstrconsts.rswarningunreleasedgdiobjectsdump
 msgid " WARNING: There are %d unreleased GDIObjects, a detailed dump follows:"
-msgstr ""
+msgstr " 警告:这里有%d未释放的GDIObjects,一个详细的转存(dump)如下(follows):"
 
 #: lclstrconsts.rswarningunreleasedmessagesinqueue
 msgid " WARNING: There are %d messages left in the queue! I'll free them"
@@ -1265,7 +1265,7 @@ msgstr "黄色"
 
 #: lclstrconsts.scannotfocus
 msgid "Cannot focus a disabled or invisible window"
-msgstr ""
+msgstr "不能聚焦一个禁用的或不可视的窗口"
 
 #: lclstrconsts.sduplicatemenus
 msgid "Duplicate menus"
@@ -1404,7 +1404,7 @@ msgstr "无可用的计时器"
 
 #: lclstrconsts.sparexpected
 msgid "Wrong token type: %s expected"
-msgstr ""
+msgstr "不正确的标记(token)类型 : %s被要求"
 
 #: lclstrconsts.sparinvalidfloat
 msgid "Invalid floating point number: %s"
@@ -1416,20 +1416,20 @@ msgstr "无效的整型数: %s"
 
 #: lclstrconsts.sparlocinfo
 msgid " (at %d,%d, stream offset %.8x)"
-msgstr ""
+msgstr " (在%d,%d, 流偏移(offset) %.8x)"
 
 #: lclstrconsts.sparunterminatedbinvalue
 msgid "Unterminated byte value"
-msgstr ""
+msgstr "未结束的(Unterminated)字节值"
 
 #: lclstrconsts.sparunterminatedstring
 msgid "Unterminated string"
-msgstr ""
+msgstr "未结束的(Unterminated)字符串"
 
 #: lclstrconsts.sparwrongtokensymbol
 msgid "Wrong token symbol: %s expected but %s found"
-msgstr ""
+msgstr "不正确的标记符号(token symbol) : %s被要求 , 但%s找到"
 
 #: lclstrconsts.sparwrongtokentype
 msgid "Wrong token type: %s expected but %s found"
-msgstr ""
+msgstr "不正确的标记(token)类型 : %s被要求 , 但%s找到"
