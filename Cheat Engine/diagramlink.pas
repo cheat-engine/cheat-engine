@@ -473,7 +473,7 @@ begin
       ypos:=getYPosFromX(linelist[i].p2.x-xpos,linelist[i].p1, linelist[i].p2);
       if ypos=Infinity then ypos:=linelist[i].p2.y;
 
-      drawArrow(zoompoint(point(linelist[i].p2.x-trunc(xpos),trunc(ypos)))-adjust,getAngle(zoompoint(linelist[i].p1)-adjust,zoompoint(linelist[i].p2)-adjust),point(0,0));
+      drawArrow(zoompoint(point(linelist[i].p2.x-trunc(xpos),trunc(ypos))-adjust),getAngle(zoompoint(linelist[i].p1-adjust),zoompoint(linelist[i].p2-adjust)),point(0,0));
 
       exit;
 
@@ -541,11 +541,11 @@ begin
   if config.UseOpenGL then
   begin
     glBegin(GL_LINE_STRIP);
-    glVertex2f(originpoint.x*config.zoom-config.scrollx, originpoint.y*config.zoom-config.scrolly);
+    glVertex2f((originpoint.x-config.scrollx)*config.zoom, (originpoint.y-config.scrolly)*config.zoom);
   end
   else
   begin
-    c.PenPos:=zoompoint(originpoint)-adjust;
+    c.PenPos:=zoompoint(originpoint-adjust);
   end;
 
   for i:=0 to Length(points)-1 do
@@ -554,9 +554,9 @@ begin
     my:=max(my, points[i].y);
 
     if config.UseOpenGL then
-      glVertex2f(points[i].x*config.zoom-config.scrollx, points[i].y*config.zoom-config.scrolly)
+      glVertex2f((points[i].x-config.scrollx)*config.zoom, (points[i].y-config.scrolly)*config.zoom)
     else
-      c.LineTo(zoompoint(points[i])-adjust);
+      c.LineTo(zoompoint(points[i]-adjust));
   end;
 
   fmaxx:=mx;
@@ -564,16 +564,16 @@ begin
 
   if config.UseOpenGL then
   begin
-    glVertex2f(destinationpoint.x*config.zoom-config.scrollx, destinationpoint.y*config.zoom-config.scrolly);
+    glVertex2f((destinationpoint.x-config.scrollx)*config.zoom, (destinationpoint.y-config.scrolly)*config.zoom);
 
     glEnd;
   end
   else
-    c.LineTo(zoompoint(destinationpoint)-adjust);
+    c.LineTo(zoompoint(destinationpoint-adjust));
 
   if config.DrawPlotPoints then
     for i:=0 to length(points)-1 do
-      drawPlotPoint(zoompoint(points[i])-adjust);
+      drawPlotPoint(zoompoint(points[i]-adjust));
 
   if asOrigin in arrowStyles then
   begin
@@ -582,7 +582,7 @@ begin
     else
       directionpoint:=destinationpoint;
 
-    drawArrow(zoompoint(originpoint)-adjust, getAngle(zoompoint(originpoint)-adjust,zoompoint(directionpoint)-adjust),point(5,0));
+    drawArrow(zoompoint(originpoint-adjust), getAngle(zoompoint(originpoint-adjust),zoompoint(directionpoint-adjust)),point(5,0));
   end;
 
   if asDestination in ArrowStyles then
@@ -592,7 +592,7 @@ begin
     else
       directionpoint:=originpoint;
 
-    drawArrow(zoompoint(destinationpoint)-adjust, getAngle(zoompoint(directionpoint)-adjust,zoompoint(destinationpoint)-adjust),point(-5,0)); //getCenterAdjustForBorderSide(destination.side));
+    drawArrow(zoompoint(destinationpoint-adjust), getAngle(zoompoint(directionpoint-adjust),zoompoint(destinationpoint-adjust)),point(-5,0)); //getCenterAdjustForBorderSide(destination.side));
   end;
 
   if asPoints in arrowstyles then
@@ -604,37 +604,26 @@ begin
       else
         directionpoint:=destinationpoint;
 
-      drawArrow(zoompoint(points[i])-adjust, getAngle(zoompoint(points[i])-adjust,zoompoint(directionpoint)-adjust),point(0,0));
+      drawArrow(zoompoint(points[i]-adjust), getAngle(zoompoint(points[i]-adjust),zoompoint(directionpoint-adjust)),point(0,0));
     end;
   end;
 
   if asCenterBetweenPoints in arrowstyles then
   begin
-    p1:=zoompoint(originpoint)-adjust;
+    p1:=zoompoint(originpoint-adjust);
 
-   { if length(points)=0 then
+
+    for i:=0 to length(points)-1 do
     begin
-      p2:=zoompoint(destinationpoint)-adjust;
-      drawArrow(getCenterPoint(p1,p2), getAngle(p1,p2),point(0,0));
-    end
-    else
-    begin  }
-      for i:=0 to length(points)-1 do
-      begin
-        p2:=zoompoint(points[i])-adjust;
-        drawArrow(getCenterPoint(p1,p2), getAngle(p1,p2),point(0,0));
-
-        //p2:=zoompoint(points[i])-adjust;
-        //drawArrow(getCenterPoint(p1,p2), getAngle(p1,p2),point(0,0));
-
-        p1:=p2;
-      end;
-      p2:=zoompoint(destinationpoint)-adjust;
+      p2:=zoompoint(points[i]-adjust);
       drawArrow(getCenterPoint(p1,p2), getAngle(p1,p2),point(0,0));
 
+      p1:=p2;
+    end;
+    p2:=zoompoint(destinationpoint-adjust);
+    drawArrow(getCenterPoint(p1,p2), getAngle(p1,p2),point(0,0));
 
 
-    //end;
   end;
 
   if asCenter in arrowstyles then

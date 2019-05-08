@@ -293,6 +293,15 @@ end;
 
 procedure TDiagram.setScrollX(x: integer);
 begin
+  if scrollbarbottompanel.visible=false then
+    x:=0;
+
+  if x>hscrollbar.max-hscrollbar.PageSize then
+    x:=hscrollbar.max-hscrollbar.PageSize;
+
+  if x<0 then x:=0;
+
+
   hscrollbar.Position:=x;
   RepaintOrRender;
 end;
@@ -304,6 +313,14 @@ end;
 
 procedure TDiagram.setScrollY(y: integer);
 begin
+  if vscrollbar.visible=false then
+    y:=0;
+
+  if y>vscrollbar.max-vscrollbar.PageSize then
+    y:=vscrollbar.max-vscrollbar.PageSize;
+
+  if y<0 then y:=0;
+
   vscrollbar.position:=y;
   RepaintOrRender;
 end;
@@ -565,7 +582,7 @@ begin
   RepaintOrRender;
   ScrollbarchangeLock:=false;
 
-  twincontrol(owner).Caption:=inttostr(hscrollbar.Position);
+  twincontrol(owner).Caption:=inttostr(vscrollbar.Position);
 end;
 
 procedure TDiagram.updaterTimerEvent(sender: TObject);
@@ -617,12 +634,14 @@ var
 begin
   inherited mousedown(Button, Shift, X,Y);
 
-  inc(x,scrollx);
-  inc(y,scrolly);
+
 
   //adjust for zoom
   x:=trunc(x / fzoom);
   y:=trunc(y / fzoom);
+
+  inc(x,scrollx);
+  inc(y,scrolly);
 
   startedresizing:=false;
   for i:=blocks.count-1 downto 0 do
@@ -750,17 +769,17 @@ begin
   vscrollbar.PageSize:=ceil((height-hscrollbar.height)/zoom);
   vscrollbar.LargeChange:=vscrollbar.PageSize div 2;
   vscrollbar.SmallChange:=diagramconfig.canvas.GetTextWidth('XXX');
-  vscrollbar.Max:=trunc(maxy*zoom);
+  vscrollbar.Max:=maxy;
 
 
   scrollbarbottompanel.BeginUpdateBounds;
   hscrollbar.BeginUpdateBounds;
 
-  hscrollbar.visible:=maxx>((width-vscrollbar.Width)/zoom);
+  scrollbarbottompanel.visible:=maxx>((width-vscrollbar.Width)/zoom);
   hscrollbar.PageSize:=ceil((width-vscrollbar.Width)/zoom);
   hscrollbar.LargeChange:=hscrollbar.PageSize div 2;
   hscrollbar.SmallChange:=vscrollbar.SmallChange;
-  hscrollbar.Max:=trunc(maxx*zoom);
+  hscrollbar.Max:=maxx;
 
 
 
@@ -793,14 +812,13 @@ begin
     end;
   end;
 
-  if vwasvisible and (vscrollbar.visible=false) then
+  if vscrollbar.visible=false then
     vscrollbar.Position:=0;
 
-  if hwasvisible and (scrollbarbottompanel.visible=false) then
+  if scrollbarbottompanel.visible=false then
     hscrollbar.Position:=0;
 
-
-    vscrollbar.EndUpdateBounds;
+  vscrollbar.EndUpdateBounds;
   hscrollbar.EndUpdateBounds;
   scrollbarbottompanel.EndUpdateBounds;
 
@@ -833,12 +851,12 @@ procedure TDiagram.MouseUp(Button: TMouseButton; Shift: TShiftState; X, Y: Integ
 begin
   inherited mouseup(Button, Shift, X,Y);
 
-  inc(x,scrollx);
-  inc(y,scrolly);
-
   //adjust for zoom
   x:=trunc(x / fzoom);
   y:=trunc(y / fzoom);
+
+  inc(x,scrollx);
+  inc(y,scrolly);
 
   if draggedblock.block<>nil then
   begin
@@ -880,13 +898,14 @@ var
 begin
   inherited mousemove(Shift, X,Y);
 
-  //adjust for scroll
-  inc(x,scrollx);
-  inc(y,scrolly);
 
   //adjust for zoom
   x:=trunc(x / fzoom);
   y:=trunc(y / fzoom);
+
+  //adjust for scroll
+  inc(x,scrollx);
+  inc(y,scrolly);
 
   newcursor:=crdefault;
 
@@ -961,8 +980,9 @@ var
   newzoom: single;
 
   start: tpoint;
-  wantedx,wantedy: integer;
 
+  newscrollx: integer;
+  newscrolly: integer;
 begin
   result:=false;
   if shift=[] then
@@ -992,9 +1012,9 @@ begin
   if ssCtrl in shift then
   begin
     //zoom change
-    //get current x,y pos
-    start.x:=trunc((mousepos.x+scrollx) / fzoom);
-    start.y:=trunc((mousepos.y+scrolly) / fzoom);
+    //get current x,y pos (unzoomed/unscrolled)
+    start.x:=trunc(mousepos.x/zoom+scrollx);
+    start.y:=trunc(mousepos.y/zoom+scrolly);
 
     nopaint:=true;
 
@@ -1030,13 +1050,18 @@ begin
     //scroll so the point at the current mousepos will be the start X,Y
 
     updateScrollbars(lastmaxx,lastmaxy);
-    //RepaintOrRender;
 
-    wantedx:=trunc(start.x*zoom);
-    wantedy:=trunc(start.y*zoom);
+    //scroll so that the current cursorpos is at start
+    newscrollx:=start.x;
+    newscrolly:=start.y;
 
-    scrollx:=wantedx-mousepos.x;
-    scrolly:=wantedy-mousepos.y;
+    //scrollx and scrolly are now scrolled so that the selection is in the top left
+
+    newscrollx:=newscrollx-mousepos.x;
+    newscrolly:=newscrolly-mousepos.y;
+
+    scrollx:=newscrollx;
+    scrolly:=newscrolly;
 
     nopaint:=false;
 
@@ -1082,6 +1107,8 @@ begin
 
   if UseOpenGL and assigned(ChoosePixelFormat) and (NewParent<>nil) and (oldparent=nil) then
     InitializeOpenGL;
+
+ // UseOpenGL:=true; //test
 end;
 
 procedure TDiagram.RepaintOrRender;
@@ -1165,20 +1192,14 @@ begin
  // BeginUpdateBounds;
 //  canvas.Lock;
 
-  maxx:=10;
-  maxy:=10;
+  maxx:=4;
+  maxy:=4;
 
   color:=diagramConfig.backgroundColor;
 
   if useopengl and (hglrc<>0) then
   begin
-    maxx:=width;
-    maxy:=height;
-
-    if wglMakeCurrent(canvas.handle, hglrc)=false then
-    begin
-      ShowMessage('fuck');
-    end;
+    wglMakeCurrent(canvas.handle, hglrc);
 
     for i:=0 to blocks.count-1 do
     begin
@@ -1244,10 +1265,6 @@ begin
   diagramconfig.scrolly:=ScrollY;
 
   diagramconfig.zoom:=zoom;
-
-
-  maxx:=width-vscrollbar.Width;
-  maxy:=height-hscrollbar.Height;
 
   //draw the lines
   glDisable(GL_TEXTURE_2D);
@@ -1407,6 +1424,8 @@ begin
 
   hscrollbar.OnChange:=@scrollbarchange;
   vscrollbar.OnChange:=@scrollbarchange;
+
+
 end;
 
 destructor TDiagram.Destroy;

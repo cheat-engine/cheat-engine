@@ -67,6 +67,9 @@ type
     procedure setHeight(h: integer);
 
     procedure DataChange(sender: TObject);
+
+    procedure setx(newx: integer);
+    procedure sety(newy: integer);
   public
 
     function getData: TStrings;
@@ -91,8 +94,8 @@ type
   published
     property Owner: TCustomControl read getOwner;
     property Canvas: TCanvas read getCanvas;
-    property X: integer read fx write fx;
-    property Y: integer read fy write fy;
+    property X: integer read fx write setX;
+    property Y: integer read fy write setY;
     property Width: integer read fwidth write setWidth;
     property Height: integer read fheight write setHeight;
     property Caption: string read fcaption write setCaption;
@@ -112,6 +115,22 @@ type
 implementation
 
 uses math;
+
+procedure TDiagramBlock.setx(newx: integer);
+begin
+  if newx<=-width+2 then
+    newx:=-width+2;
+
+  fx:=newx;
+end;
+
+procedure TDiagramBlock.sety(newy: integer);
+begin
+  if newy<=-captionheight+2 then
+    newy:=-captionheight+2;
+
+  fy:=newy;
+end;
 
 function TDiagramBlock.getBackgroundColor: TColor;
 begin
@@ -317,9 +336,10 @@ begin
 
     glColor3f(1,1,1);
 
-    glTranslatef(-config.scrollx,-config.scrolly,0);
 
     glScalef(config.zoom, config.zoom,1);
+    glTranslatef(-config.scrollx,-config.scrolly,0);
+
 
     glBegin(GL_QUADS);              // Each set of 4 vertices form a quad
 
@@ -342,7 +362,7 @@ begin
   end
   else
   begin
-    config.canvas.StretchDraw(rect(trunc(x*config.zoom)-config.scrollx,trunc(y*config.zoom)-config.scrolly,ceil((x+width)*config.zoom)-config.scrollx,ceil((y+Height)*config.zoom)-config.scrolly),cachedblock);
+    config.canvas.StretchDraw(rect(trunc((x-config.scrollx)*config.zoom),trunc((y-config.scrolly)*config.zoom),ceil(((x-config.scrollx)+width)*config.zoom),ceil(((y-config.scrolly)+Height)*config.zoom)),cachedblock);
     //config.canvas.Draw(x-config.scrollx,y-config.scrolly,cachedBlock);
   end;
 end;
