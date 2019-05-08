@@ -53,7 +53,11 @@ type
 
     oldwindowproc: TWndMethod;
 
+    lastMaxX: integer;
+    lastMaxY: integer;
+
     updater: TTimer;
+    nopaint: boolean;
 
     procedure updaterTimerEvent(sender: TObject);
     procedure scrollbarchange(sender: TObject);
@@ -956,12 +960,9 @@ var
   newposition: integer;
   newzoom: single;
 
-  start,current: tpoint;
+  start: tpoint;
   wantedx,wantedy: integer;
-  sx: integer;
-  oldzoom: single;
 
-  oldscrollx, oldscrolly: integer;
 begin
   result:=false;
   if shift=[] then
@@ -994,9 +995,8 @@ begin
     //get current x,y pos
     start.x:=trunc((mousepos.x+scrollx) / fzoom);
     start.y:=trunc((mousepos.y+scrolly) / fzoom);
-    oldzoom:=zoom;
-    oldscrollx:=scrollx;
-    oldscrolly:=scrolly;
+
+    nopaint:=true;
 
     if wheeldelta>0 then
     begin
@@ -1028,13 +1028,17 @@ begin
     end;
 
     //scroll so the point at the current mousepos will be the start X,Y
-    RepaintOrRender;
+
+    updateScrollbars(lastmaxx,lastmaxy);
+    //RepaintOrRender;
 
     wantedx:=trunc(start.x*zoom);
     wantedy:=trunc(start.y*zoom);
 
     scrollx:=wantedx-mousepos.x;
     scrolly:=wantedy-mousepos.y;
+
+    nopaint:=false;
 
   end;
 
@@ -1082,6 +1086,8 @@ end;
 
 procedure TDiagram.RepaintOrRender;
 begin
+  if nopaint then exit;
+
   if UseOpenGL then render else repaint;
 end;
 
@@ -1155,9 +1161,9 @@ var
   iw: integer;
   maxx,maxy: integer;
 begin
-
+  if nopaint then exit;
  // BeginUpdateBounds;
-  canvas.Lock;
+//  canvas.Lock;
 
   maxx:=10;
   maxy:=10;
@@ -1264,6 +1270,8 @@ begin
   if useopengl and (hglrc<>0) then
     SwapBuffers(canvas.handle);
 
+  lastMaxX:=maxx;
+  lastMaxY:=maxy;
   updateScrollbars(maxx,maxy);
 end;
 
