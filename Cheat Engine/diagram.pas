@@ -560,6 +560,8 @@ begin
   ScrollbarchangeLock:=true;
   RepaintOrRender;
   ScrollbarchangeLock:=false;
+
+  twincontrol(owner).Caption:=inttostr(hscrollbar.Position);
 end;
 
 procedure TDiagram.updaterTimerEvent(sender: TObject);
@@ -953,6 +955,13 @@ function TDiagram.DoMouseWheel(Shift: TShiftState; WheelDelta: Integer; MousePos
 var
   newposition: integer;
   newzoom: single;
+
+  start,current: tpoint;
+  wantedx,wantedy: integer;
+  sx: integer;
+  oldzoom: single;
+
+  oldscrollx, oldscrolly: integer;
 begin
   result:=false;
   if shift=[] then
@@ -982,6 +991,13 @@ begin
   if ssCtrl in shift then
   begin
     //zoom change
+    //get current x,y pos
+    start.x:=trunc((mousepos.x+scrollx) / fzoom);
+    start.y:=trunc((mousepos.y+scrolly) / fzoom);
+    oldzoom:=zoom;
+    oldscrollx:=scrollx;
+    oldscrolly:=scrolly;
+
     if wheeldelta>0 then
     begin
       //zoom in
@@ -1010,6 +1026,16 @@ begin
 
       zoom:=newzoom;
     end;
+
+    //scroll so the point at the current mousepos will be the start X,Y
+    RepaintOrRender;
+
+    wantedx:=trunc(start.x*zoom);
+    wantedy:=trunc(start.y*zoom);
+
+    scrollx:=wantedx-mousepos.x;
+    scrolly:=wantedy-mousepos.y;
+
   end;
 
 
@@ -1199,7 +1225,7 @@ begin
     glRasterPos2f(0,0);
 
 
-    self.BeginUpdateBounds;
+    //self.BeginUpdateBounds;
 
 
   end
