@@ -1016,6 +1016,7 @@ begin
     start.x:=trunc(mousepos.x/zoom+scrollx);
     start.y:=trunc(mousepos.y/zoom+scrolly);
 
+
     nopaint:=true;
 
     if wheeldelta>0 then
@@ -1055,10 +1056,9 @@ begin
     newscrollx:=start.x;
     newscrolly:=start.y;
 
-    //scrollx and scrolly are now scrolled so that the selection is in the top left
 
-    newscrollx:=newscrollx-mousepos.x;
-    newscrolly:=newscrolly-mousepos.y;
+    newscrollx:=trunc((newscrollx-mousepos.x/zoom));
+    newscrolly:=trunc((newscrolly-mousepos.y/zoom));
 
     scrollx:=newscrollx;
     scrolly:=newscrolly;
