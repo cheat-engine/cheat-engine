@@ -5,7 +5,8 @@ unit diagramblock;
 interface
 
 uses
-  Classes, SysUtils, Controls, types, DiagramTypes, Graphics, textrender, ComCtrls;
+  Classes, SysUtils, Controls, types, DiagramTypes, Graphics, textrender,
+  ComCtrls, gl, glext;
 
 type
 
@@ -52,6 +53,7 @@ type
 
     hasChanged: boolean;
     cachedBlock: TBitmap; //Cache the block image and only update when changes happen
+    ftexture: glint;
 
     function getBackgroundColor: TColor;
     procedure setBackgroundColor(c: TColor);
@@ -65,6 +67,9 @@ type
     procedure setHeight(h: integer);
 
     procedure DataChange(sender: TObject);
+
+    procedure setx(newx: integer);
+    procedure sety(newy: integer);
   public
 
     function getData: TStrings;
@@ -89,8 +94,8 @@ type
   published
     property Owner: TCustomControl read getOwner;
     property Canvas: TCanvas read getCanvas;
-    property X: integer read fx write fx;
-    property Y: integer read fy write fy;
+    property X: integer read fx write setX;
+    property Y: integer read fy write setY;
     property Width: integer read fwidth write setWidth;
     property Height: integer read fheight write setHeight;
     property Caption: string read fcaption write setCaption;
@@ -110,6 +115,22 @@ type
 implementation
 
 uses math;
+
+procedure TDiagramBlock.setx(newx: integer);
+begin
+  if newx<=-width+2 then
+    newx:=-width+2;
+
+  fx:=newx;
+end;
+
+procedure TDiagramBlock.sety(newy: integer);
+begin
+  if newy<=-captionheight+2 then
+    newy:=-captionheight+2;
+
+  fy:=newy;
+end;
 
 function TDiagramBlock.getBackgroundColor: TColor;
 begin
@@ -208,11 +229,13 @@ var
   renderOriginal: boolean;
 
   cr,tr: TRect;
+
+  pp: PByte;
 begin
   //render the block at the given location
   //if config.canvas=nil then exit;
 
-  if hasChanged then
+  if hasChanged or (config.UseOpenGL and (ftexture=0)) then
   begin
     //render
     if cachedBlock=nil then
@@ -220,6 +243,7 @@ begin
       cachedblock:=tbitmap.Create;
       cachedblock.width:=width;
       cachedblock.height:=height;
+      cachedblock.PixelFormat:=pf32bit;
     end;
 
     if cachedblock.width<>width then cachedblock.width:=width;
@@ -279,10 +303,68 @@ begin
     c.brush.color:=oldbgc;
 
     haschanged:=false;
+
+    if config.UseOpenGL and (width>0) and (height>0) then
+    begin
+      if ftexture=0 then
+        glGenTextures(1, @ftexture);
+
+      glBindTexture(GL_TEXTURE_2D, ftexture);
+      glActiveTexture(GL_TEXTURE0);
+
+      pp:=cachedBlock.RawImage.Data;
+      glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, cachedBlock.Width, cachedBlock.height, 0, GL_BGRA,  GL_UNSIGNED_BYTE, pp);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    end;
   end;
 
   //draw the cached block
-  config.canvas.Draw(x-config.scrollx,y-config.scrolly,cachedBlock);
+  if config.UseOpenGL then
+  begin
+    if ftexture=0 then
+    begin
+      haschanged:=true;
+      exit; //should never happen
+    end;
+
+    //render a quad with this texture
+    glBindTexture(GL_TEXTURE_2D, ftexture);
+    glActiveTexture(GL_TEXTURE0);
+
+    glColor3f(1,1,1);
+
+
+    glScalef(config.zoom, config.zoom,1);
+    glTranslatef(-config.scrollx,-config.scrolly,0);
+
+
+    glBegin(GL_QUADS);              // Each set of 4 vertices form a quad
+
+    glTexCoord2f(0,0);
+    glVertex2f(x,y);
+
+    glTexCoord2f(0,1);
+    glVertex2f(x,y+height);
+
+    glTexCoord2f(1,1);
+    glVertex2f(x+width,y+height);
+
+    glTexCoord2f(1,0);
+    glVertex2f(x+width,y);
+
+    glEnd();
+
+    glLoadIdentity();
+
+  end
+  else
+  begin
+    config.canvas.StretchDraw(rect(trunc((x-config.scrollx)*config.zoom),trunc((y-config.scrolly)*config.zoom),ceil(((x-config.scrollx)+width)*config.zoom),ceil(((y-config.scrolly)+Height)*config.zoom)),cachedblock);
+    //config.canvas.Draw(x-config.scrollx,y-config.scrolly,cachedBlock);
+  end;
 end;
 
 function TDiagramBlock.getData: TStrings;

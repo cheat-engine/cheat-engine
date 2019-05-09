@@ -7,7 +7,7 @@ diagramstyle.instruction_symbolstyle = '[32;1m' --green + bold
 diagramstyle.instruction_opcodestyle = '[1m' --bold
 diagramstyle.link_nottakencolor = 0x000000FF --red
 diagramstyle.link_takencolor = 0x00FF0000 --blue
-diagramstyle.link_linethickness = 2
+diagramstyle.link_linethickness = 3
 diagramstyle.block_headershowsymbol = true
 diagramstyle.block_bodyshowaddresses = false
 diagramstyle.block_bodyshowaddressesassymbol = true
@@ -116,8 +116,20 @@ function createDiagramBlock(diagram, name)
   return diagramblock
 end
 
-function createDiagramLink(diagram, sourceblock, destinationblock, color)
-  local diagramlink = diagram.addConnection(sourceblock, destinationblock)
+function createDiagramLink(diagram, sourceblock, destinationblock, color,offset)
+  --local diagramlink = diagram.addConnection(sourceblock, destinationblock)
+  local sourceBSD={}
+  sourceBSD.Block=sourceblock
+  sourceBSD.Side=dbsBottom
+  sourceBSD.Position=offset 
+  
+  local destinationBSD={}
+  destinationBSD.Block=destinationblock
+  destinationBSD.Side=dbsTop
+  destinationBSD.Position=0
+  
+  local diagramlink = diagram.addConnection(sourceBSD, destinationBSD)
+  
   diagramlink.LineColor=color
   return diagramlink
 end
@@ -157,7 +169,7 @@ function linkDiagramBlocks(diagram, state, dblocks, blocks)
     if (i > 1) then --skip starting block
       for j,source in pairs(blocks[i].getsJumpedToBy) do
         if (source == blocks[i-1].stop) then
-          createDiagramLink(diagram, dblocks[i-1], diagramblock, diagramstyle.link_nottakencolor) --not taken branches
+          createDiagramLink(diagram, dblocks[i-1], diagramblock, diagramstyle.link_nottakencolor,10) --not taken branches
           istaken[i] = false
         end
       end
@@ -165,7 +177,7 @@ function linkDiagramBlocks(diagram, state, dblocks, blocks)
     if (blocks[i].jumpsTo) then --skip leaf blocks
       destinationblock_index = blockAddressToBlockIndex(blocks, blocks[i].jumpsTo.destinationtaken)
       if (destinationblock_index) then
-        createDiagramLink(diagram, diagramblock, dblocks[destinationblock_index], diagramstyle.link_takencolor) --taken branches
+        createDiagramLink(diagram, diagramblock, dblocks[destinationblock_index], diagramstyle.link_takencolor,-10) --taken branches
         istaken[destinationblock_index] = true
       end
     end
