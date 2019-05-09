@@ -82,7 +82,7 @@ begin
 
     lua_pushstring(L,'Position');
     lua_gettable(L,i);
-    r.position:=lua_tointeger(L,-1); //even if nil, result is ok
+    r.sideposition:=lua_tointeger(L,-1); //even if nil, result is ok
     lua_pop(l,1);
   end
   else
