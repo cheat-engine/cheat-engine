@@ -582,7 +582,7 @@ begin
   RepaintOrRender;
   ScrollbarchangeLock:=false;
 
-  twincontrol(owner).Caption:=inttostr(vscrollbar.Position);
+  //twincontrol(owner).Caption:=inttostr(vscrollbar.Position);
 end;
 
 procedure TDiagram.updaterTimerEvent(sender: TObject);
