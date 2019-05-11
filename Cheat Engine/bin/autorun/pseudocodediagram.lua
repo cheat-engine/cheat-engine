@@ -189,7 +189,8 @@ function arrangeDiagramBlocks(dform, dblocks, istaken)
   local links
   dblocks[1].x = dform.width / 2 - dblocks[1].width / 2
   for i,dblock in pairs(dblocks) do
-    if (i > 1) then
+   
+    if (i > 1) then      
       links = dblock.getLinks()
       if (istaken[i]) then 
         dblock.x = links.asDestination[1].OriginBlock.x - links.asDestination[1].OriginBlock.width - 25
@@ -197,6 +198,14 @@ function arrangeDiagramBlocks(dform, dblocks, istaken)
       else
         dblock.x = links.asDestination[1].OriginBlock.x + links.asDestination[1].OriginBlock.width + 25
         dblock.y = dblocks[i-1].y + dblocks[i-1].height + 25
+      end
+      
+      if dblock.x<0 then --too far too the left, move everything
+        local j
+        local offset=-dblock.x
+        for j=1,i do
+          dblocks[j].x=dblocks[j].x+offset
+        end
       end
     end
   end
