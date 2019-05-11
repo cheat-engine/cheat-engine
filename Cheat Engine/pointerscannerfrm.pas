@@ -167,6 +167,7 @@ type
     edtPassword: TEdit;
     edtPort: TEdit;
     gbNetwork: TGroupBox;
+    psImageList: TImageList;
     lblIP: TLabel;
     lblPort: TLabel;
     lblPassword: TLabel;

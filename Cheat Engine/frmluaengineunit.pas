@@ -19,6 +19,7 @@ type
     btnExecute: TButton;
     FindDialog1: TFindDialog;
     GroupBox1: TGroupBox;
+    leImageList: TImageList;
     MenuItem12: TMenuItem;
     MenuItem13: TMenuItem;
     miAutoComplete: TMenuItem;
