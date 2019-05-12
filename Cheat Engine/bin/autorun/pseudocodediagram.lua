@@ -5,6 +5,9 @@ diagramstyle.instruction_registerstyle = '[31;1m' --red + bold
 diagramstyle.instruction_hexstyle = '[34;1m' --blue + bold
 diagramstyle.instruction_symbolstyle = '[32;1m' --green + bold
 diagramstyle.instruction_opcodestyle = '[1m' --bold
+
+
+diagramstyle.link_defaultcolor = 0x00FF00FF 
 diagramstyle.link_nottakencolor = 0x000000FF --red
 diagramstyle.link_takencolor = 0x00FF0000 --blue
 diagramstyle.link_linethickness = 3
@@ -156,7 +159,7 @@ function createDiagramBlocks(diagram, state, blocks)
     end
   end
   
-  _G.blocks=dblocks
+  --_G.blocks=dblocks
   
   return dblocks
   
@@ -169,7 +172,12 @@ function linkDiagramBlocks(diagram, state, dblocks, blocks)
     if (i > 1) then --skip starting block
       for j,source in pairs(blocks[i].getsJumpedToBy) do
         if (source == blocks[i-1].stop) then
-          createDiagramLink(diagram, dblocks[i-1], diagramblock, diagramstyle.link_nottakencolor,10) --not taken branches
+          local link=createDiagramLink(diagram, dblocks[i-1], diagramblock, diagramstyle.link_nottakencolor,10) --not taken branches
+          local linkdata={}
+          linkdata.isTaken=true          
+          link.Tag=createRef(linkdata)
+          
+          
           istaken[i] = false
         end
       end
@@ -177,7 +185,21 @@ function linkDiagramBlocks(diagram, state, dblocks, blocks)
     if (blocks[i].jumpsTo) then --skip leaf blocks
       destinationblock_index = blockAddressToBlockIndex(blocks, blocks[i].jumpsTo.destinationtaken)
       if (destinationblock_index) then
-        createDiagramLink(diagram, diagramblock, dblocks[destinationblock_index], diagramstyle.link_takencolor,-10) --taken branches
+        local linkdata={}
+      
+        local color=diagramstyle.link_takencolor
+        if blocks[i].jumpsTo.logicalFollow then          
+          linkdata.logicalFollow=true
+          color=diagramstyle.link_defaultcolor
+          offset=0
+        end        
+          
+          
+        local link=createDiagramLink(diagram, diagramblock, dblocks[destinationblock_index], color,-10) --taken branches
+        
+        linkdata.isTaken=false
+        link.Tag=createRef(linkdata)
+        
         istaken[destinationblock_index] = true
       end
     end
