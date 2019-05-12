@@ -2102,7 +2102,7 @@ begin
 
   if adjustedsize=false then
   begin
-    //tbDebug.ButtonHeight:=scalex(tbDebug.ButtonHeight, DesignTimePPI);
+    tbDebug.ButtonHeight:=scaley(tbDebug.ButtonHeight, DesignTimePPI);
 
     //tbDebug.ButtonHeight:=trunc(tbDebug.ButtonHeight*fontmultiplication);
     ////dpihelper.AdjustToolbar(tbDebug);

@@ -201,7 +201,7 @@ begin
       listview1.Items.Add.Caption:=symhandler.getNameFromAddress(stackframe.AddrPC.Offset, true, true);
       listview1.items[listview1.Items.Count-1].SubItems.add(inttohex(stackframe.AddrStack.Offset,8));
       listview1.items[listview1.Items.Count-1].SubItems.add(inttohex(stackframe.AddrFrame.Offset,8));
-      listview1.items[listview1.Items.Count-1].SubItems.add(inttohex(stackframe.AddrReturn.Offset,8));
+      listview1.items[listview1.Items.Count-1].SubItems.add(symhandler.getNameFromAddress(stackframe.AddrReturn.Offset,true,true));
 
       a:=stackframe.Params[0];
       b:=stackframe.Params[1];
