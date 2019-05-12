@@ -184,10 +184,21 @@ function linkDiagramBlocks(diagram, state, dblocks, blocks)
     end
     if (blocks[i].jumpsTo) then --skip leaf blocks
       destinationblock_index = blockAddressToBlockIndex(blocks, blocks[i].jumpsTo.destinationtaken)
+      
+
+      
       if (destinationblock_index) then
         local linkdata={}
-      
         local color=diagramstyle.link_takencolor
+        
+        if blocks[i].jumpsTo.destinationnottaken==nil then
+          linkdata.unconditional=true  --also true for logicalFollow, but those where logicalFollow is false are jmp's
+          color=diagramstyle.link_defaultcolor
+          offset=0          
+        end
+      
+      
+        
         if blocks[i].jumpsTo.logicalFollow then          
           linkdata.logicalFollow=true
           color=diagramstyle.link_defaultcolor
