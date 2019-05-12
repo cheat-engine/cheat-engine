@@ -168,6 +168,7 @@ type
     edtBufSize: TEdit;
     edtCallCount: TEdit;
     gbRange: TGroupBox;
+    um2ImageList: TImageList;
     Label1: TLabel;
     Label2: TLabel;
     Label4: TLabel;

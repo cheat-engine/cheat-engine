@@ -329,6 +329,7 @@ type
 
   TfrmStructures2 = class(TForm)
     FindDialog1: TFindDialog;
+    sdImageList: TImageList;
     miCommonalityScan: TMenuItem;
     MenuItem5: TMenuItem;
     MenuItem6: TMenuItem;

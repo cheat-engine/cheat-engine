@@ -26,6 +26,7 @@ type
     Button1: TButton;
     frmLaunchBranchMapper: TButton;
     GroupBox1: TGroupBox;
+    cfImageList: TImageList;
     Label1: TLabel;
     Label3: TLabel;
     lblExecuteCount: TLabel;

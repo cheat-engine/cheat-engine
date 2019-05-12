@@ -237,6 +237,7 @@ type
     edtShadowSize2: TEdit;
     edtStructsize: TEdit;
     FindDialog1: TFindDialog;
+    spImageList: TImageList;
     lblBaseRegion: TLabel;
     lblInfo: TLabel;
     lblMaxLevel: TLabel;

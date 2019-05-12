@@ -267,6 +267,7 @@ type
     FindDialog1: TFindDialog;
     gbLF: TGroupBox;
     gbNLF: TGroupBox;
+    scImageList: TImageList;
     lblAlign: TLabel;
     lblInfo: TLabel;
     lblMaxLevel: TLabel;

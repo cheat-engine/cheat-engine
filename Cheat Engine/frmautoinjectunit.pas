@@ -79,6 +79,7 @@ type
   { TfrmAutoInject }
 
   TfrmAutoInject = class(TForm)
+    aaImageList: TImageList;
     MainMenu1: TMainMenu;
     File1: TMenuItem;
     menuAOBInjection: TMenuItem;
