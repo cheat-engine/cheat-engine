@@ -54,6 +54,7 @@ type
     cbSaveToDisk: TCheckBox;
     edtRegExp: TEdit;
     FindDialog1: TFindDialog;
+    smImageList: TImageList;
     lblStringCount: TLabel;
     ListView1: TListView;
     miFind: TMenuItem;

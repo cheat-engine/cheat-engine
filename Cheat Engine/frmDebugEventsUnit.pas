@@ -22,6 +22,7 @@ type
 
   TfrmDebugEvents = class(TForm)
     Button1: TButton;
+    deImageList: TImageList;
     lbDebugEvents: TListBox;
     MenuItem1: TMenuItem;
     Panel1: TPanel;

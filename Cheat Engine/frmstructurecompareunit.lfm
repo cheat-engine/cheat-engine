@@ -510,6 +510,7 @@ object frmStructureCompare: TfrmStructureCompare
     top = 112
     object miClearCache: TMenuItem
       Caption = 'Clear pointer cache'
+      ImageIndex = 6
       OnClick = miClearCacheClick
     end
     object miFind: TMenuItem

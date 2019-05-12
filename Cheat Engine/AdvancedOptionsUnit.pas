@@ -19,6 +19,7 @@ type
   { TAdvancedOptions }
 
   TAdvancedOptions = class(TForm)
+    aoImageList: TImageList;
     miDBVMFindWhatCodeAccesses: TMenuItem;
     PopupMenu2: TPopupMenu;
     miReplaceWithNops: TMenuItem;

@@ -24,6 +24,7 @@ type
   { TfrmReferencedStrings }
 
   TfrmReferencedStrings = class(TForm)
+    rsImageList: TImageList;
 
     lvStringlist: TListView;
     lbReflist: TListBox;
