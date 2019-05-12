@@ -28,6 +28,7 @@ type
 
   TfrmEnumerateDLLs = class(TForm)
     CopySymbolName: TAction;
+    edImageList: TImageList;
     Label2: TLabel;
     CopySymbolName1: TMenuItem;
     TreeView1: TTreeView;

@@ -13,6 +13,7 @@ type
   { TfrmSaveMemoryRegion }
 
   TfrmSaveMemoryRegion = class(TForm)
+    smrImageList: TImageList;
     miClearList: TMenuItem;
     Panel1: TPanel;
     Panel2: TPanel;

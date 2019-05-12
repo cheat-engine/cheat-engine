@@ -19,6 +19,7 @@ type
   { TfrmThreadlist }
 
   TfrmThreadlist = class(TForm)
+    tlImageList: TImageList;
     lblIsWOW64: TLabel;
     MenuItem1: TMenuItem;
     miCopyValueToClipboard: TMenuItem;

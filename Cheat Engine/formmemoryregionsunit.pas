@@ -20,6 +20,7 @@ type
 
   TFormMemoryRegions = class(TForm)
     Button1: TButton;
+    mrImageList: TImageList;
     ListView1: TListView;
     PopupMenu1: TPopupMenu;
     Saveselectedregions1: TMenuItem;
