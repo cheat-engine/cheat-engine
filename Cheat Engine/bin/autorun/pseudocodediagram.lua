@@ -152,7 +152,7 @@ function createDiagramBlocks(diagram, state, blocks)
       local current = block.start
       while (current <= block.stop) do
         dblocks[i].Strings.add(disassembleDecoratedInstruction(current))
-        if state.parsed[current].bytesize ~= 0 then current = current + state.parsed[current].bytesize
+        if state.parsed[current] ~= nil and state.parsed[current].bytesize ~= 0 then current = current + state.parsed[current].bytesize
         else break end  
       end
       dblocks[i].AutoSize = true
