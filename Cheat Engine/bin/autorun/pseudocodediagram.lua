@@ -227,10 +227,10 @@ function arrangeDiagramBlocks(dform, dblocks, istaken)
       links = dblock.getLinks()
       if (istaken[i]) then 
         dblock.x = links.asDestination[1].OriginBlock.x - links.asDestination[1].OriginBlock.width - 25
-        dblock.y = dblocks[i-1].y + dblocks[i-1].height + 25
+        dblock.y = dblocks[i-1].y + dblocks[i-1].height + 60
       else
         dblock.x = links.asDestination[1].OriginBlock.x + links.asDestination[1].OriginBlock.width + 25
-        dblock.y = dblocks[i-1].y + dblocks[i-1].height + 25
+        dblock.y = dblocks[i-1].y + dblocks[i-1].height + 60
       end
       
       if dblock.x<0 then --too far too the left, move everything
@@ -244,6 +244,27 @@ function arrangeDiagramBlocks(dform, dblocks, istaken)
   end
 end
 
+function arrangeDiagramLinks(dblocks)
+  local dlinks = {}
+  local links = {}
+  local k = 1
+
+  for i,dblock in pairs(dblocks) do --fetch the links
+    links = dblock.getLinks()
+    for j,dest in pairs(links.asDestination) do
+      dlinks[k] = dest
+      k = k + 1
+    end
+  end
+
+  for i,dlink in pairs(dlinks) do
+    dlink.addPoint(dlink.OriginBlock.X + (dlink.OriginBlock.Width / 2), dlink.OriginBlock.Y + dlink.OriginBlock.Height + 30, 1)
+    dlink.addPoint(dlink.DestinationBlock.X + (dlink.DestinationBlock.Width / 2), dlink.OriginBlock.Y + dlink.OriginBlock.Height + 30, 2)
+
+    --todo: wrap, fix outcoming lines
+  end
+end
+
 function spawnDiagram(start, limit)
   local dblocks = {}
   local istaken = {}
@@ -254,6 +275,8 @@ function spawnDiagram(start, limit)
   dblocks = createDiagramBlocks(ddiagram, state, blocks)
   istaken = linkDiagramBlocks(ddiagram, state, dblocks, blocks)
   arrangeDiagramBlocks(dform, dblocks, istaken)
+
+  arrangeDiagramLinks(dblocks)
   
   ddiagram.repaint()
 end
