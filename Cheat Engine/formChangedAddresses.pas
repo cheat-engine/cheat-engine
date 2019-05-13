@@ -45,6 +45,7 @@ type
   end;
 
   TfrmChangedAddresses = class(TForm)
+    caImageList: TImageList;
     lblInfo: TLabel;
     MenuItem1: TMenuItem;
     MenuItem2: TMenuItem;
