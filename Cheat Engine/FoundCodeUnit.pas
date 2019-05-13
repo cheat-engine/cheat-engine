@@ -58,6 +58,7 @@ type
 
   TFoundCodeDialog = class(TForm)
     FoundCodeList: TListView;
+    fcdImageList: TImageList;
     MenuItem1: TMenuItem;
     MenuItem2: TMenuItem;
     miFindWhatAccesses: TMenuItem;
