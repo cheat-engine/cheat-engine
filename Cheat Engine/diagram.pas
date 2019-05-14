@@ -66,6 +66,8 @@ type
     procedure updateResizePosition(xpos,ypos: integer);
     procedure updatePointDragPosition(xpos,ypos: integer);
     procedure updateAttachPointDragPosition(xpos,ypos: integer);
+    function getArrowSize: integer;
+    procedure setArrowSize(i: integer);
     function getLineThickness: integer;
     procedure setLineThickness(t: integer);
     function getLineColor: TColor;
@@ -133,6 +135,7 @@ type
   published
     property ScrollX: integer read getScrollX write setScrollX;
     property ScrollY: integer read getScrollY write setScrollY;
+    property ArrowSize: integer read getArrowSize write setArrowSize;
     property LineThickness: integer read getLineThickness write setLineThickness;
     property LineColor: Tcolor read getLineColor write setLineColor;
     property DrawPlotPoints: boolean read getDrawPlotPoints write setDrawPlotPoints;
@@ -220,6 +223,18 @@ end;
 procedure TDiagram.setLineColor(c: tcolor);
 begin
   diagramConfig.linecolor:=c;
+  if parent<>nil then
+    repaintOrRender;
+end;
+
+function TDiagram.getArrowSize: integer;
+begin
+  result:=diagramconfig.arrowSize;
+end;
+
+procedure TDiagram.setArrowSize(i: integer);
+begin
+  diagramconfig.arrowSize:=i;
   if parent<>nil then
     repaintOrRender;
 end;

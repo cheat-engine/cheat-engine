@@ -1,6 +1,8 @@
 --[[pseudocodediagram.lua]]--
+local DPIAdjust=getScreenDPI()/96
 
 local diagramstyle = {}
+
 diagramstyle.instruction_registerstyle = '[31;1m' --red + bold
 diagramstyle.instruction_hexstyle = '[34;1m' --blue + bold
 diagramstyle.instruction_symbolstyle = '[32;1m' --green + bold
@@ -10,13 +12,16 @@ diagramstyle.instruction_opcodestyle = '[1m' --bold
 diagramstyle.link_defaultcolor = 0x00FF00FF 
 diagramstyle.link_nottakencolor = 0x000000FF --red
 diagramstyle.link_takencolor = 0x00FF0000 --blue
-diagramstyle.link_linethickness = 3*(getScreenDPI()/96)
+diagramstyle.link_linethickness = 3*DPIAdjust
+diagramstyle.link_arrowsize = math.ceil(5*DPIAdjust)
 diagramstyle.block_headershowsymbol = true
 diagramstyle.block_bodyshowaddresses = false
 diagramstyle.block_bodyshowaddressesassymbol = true
 diagramstyle.block_bodyshowbytes = false
 diagramstyle.block_backgroundcolor = 0x00FFFFFF --white
 diagramstyle.diagram_blackgroundcolor = 0x00808080 --grey
+
+
 
 function editDiagramStyle(new_diagramstyle)
   if (new_diagramstyle) then
@@ -98,8 +103,8 @@ function createDiagramForm(name)
   --form.AutoSize=true
   form.BorderStyle='bsSizeable'
   form.Caption=name
-  form.width=1000
-  form.height=800
+  form.width=getScreenWidth() - (getScreenWidth() / 6)  --1000
+  form.height=getScreenHeight() - (getScreenHeight() / 6) --800
   return form
 end
 
@@ -110,6 +115,7 @@ function createDiagramDiagram(form)
   diagram.BackgroundColor=diagramstyle.diagram_blackgroundcolor
   diagram.BlockBackground=diagramstyle.block_backgroundcolor
   diagram.LineThickness=diagramstyle.link_linethickness
+  diagram.ArrowSize=diagramstyle.link_arrowsize
   return diagram
 end
 
@@ -172,7 +178,7 @@ function linkDiagramBlocks(diagram, state, dblocks, blocks)
     if (i > 1) then --skip starting block
       for j,source in pairs(blocks[i].getsJumpedToBy) do
         if (source == blocks[i-1].stop) then
-          local link=createDiagramLink(diagram, dblocks[i-1], diagramblock, diagramstyle.link_nottakencolor,10) --not taken branches
+          local link=createDiagramLink(diagram, dblocks[i-1], diagramblock, diagramstyle.link_nottakencolor,10*DPIAdjust) --not taken branches
           local linkdata={}
           linkdata.isTaken=true          
           link.Tag=createRef(linkdata)
@@ -190,7 +196,7 @@ function linkDiagramBlocks(diagram, state, dblocks, blocks)
       if (destinationblock_index) then
         local linkdata={}
         local color=diagramstyle.link_takencolor
-        local offset
+        local offset=-10*DPIAdjust
         
         if blocks[i].jumpsTo.destinationnottaken==nil then
           linkdata.unconditional=true  --also true for logicalFollow, but those where logicalFollow is false are jmp's
@@ -227,11 +233,11 @@ function arrangeDiagramBlocks(dform, dblocks, istaken)
     if (i > 1) then      
       links = dblock.getLinks()
       if (istaken[i]) then 
-        dblock.x = links.asDestination[1].OriginBlock.x - links.asDestination[1].OriginBlock.width - 25
-        dblock.y = dblocks[i-1].y + dblocks[i-1].height + 60
+        dblock.x = links.asDestination[1].OriginBlock.x - links.asDestination[1].OriginBlock.width - 25*DPIAdjust
+        dblock.y = dblocks[i-1].y + dblocks[i-1].height + 60*DPIAdjust
       else
-        dblock.x = links.asDestination[1].OriginBlock.x + links.asDestination[1].OriginBlock.width + 25
-        dblock.y = dblocks[i-1].y + dblocks[i-1].height + 60
+        dblock.x = links.asDestination[1].OriginBlock.x + links.asDestination[1].OriginBlock.width + 25*DPIAdjust
+        dblock.y = dblocks[i-1].y + dblocks[i-1].height + 60*DPIAdjust
       end
       
       if dblock.x<0 then --too far too the left, move everything
@@ -261,8 +267,8 @@ function arrangeDiagramLinks(dblocks)
   for i,dlink in pairs(dlinks) do
     local odesc=dlink.OriginDescriptor
     
-    dlink.addPoint(dlink.OriginBlock.X + (dlink.OriginBlock.Width / 2)+odesc.Position, dlink.OriginBlock.Y + dlink.OriginBlock.Height + 30, 1)       
-    dlink.addPoint(dlink.DestinationBlock.X + (dlink.DestinationBlock.Width / 2), dlink.OriginBlock.Y + dlink.OriginBlock.Height + 30, 2)
+    dlink.addPoint(dlink.OriginBlock.X + (dlink.OriginBlock.Width / 2)+odesc.Position, dlink.OriginBlock.Y + dlink.OriginBlock.Height + 30*DPIAdjust, 1)       
+    dlink.addPoint(dlink.DestinationBlock.X + (dlink.DestinationBlock.Width / 2), dlink.OriginBlock.Y + dlink.OriginBlock.Height + 30*DPIAdjust, 2)
 
     --todo: wrap, fix outcoming lines
   end
@@ -277,10 +283,10 @@ function spawnDiagram(start, limit)
   local blocks = createBlocks(state)
   dblocks = createDiagramBlocks(ddiagram, state, blocks)
   istaken = linkDiagramBlocks(ddiagram, state, dblocks, blocks)
-  arrangeDiagramBlocks(dform, dblocks, istaken)
+  maxx,maxy=arrangeDiagramBlocks(dform, dblocks, istaken)
 
   arrangeDiagramLinks(dblocks)
-  
+
   ddiagram.repaint()
 end
 

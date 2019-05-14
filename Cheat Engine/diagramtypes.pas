@@ -29,6 +29,7 @@ type
     BlockBackground: tcolor;
 
     arrowStyles: TArrowStyles;
+    arrowSize: integer;
     scrollx, scrolly: integer;
     zoom: single;
 
@@ -56,6 +57,8 @@ begin
   backgroundcolor:=clGreen;
   drawPlotPoints:=true;
   BlockBackground:=$d0d0d0;
+
+  arrowsize:=5;
 
   blockTextColorNoMarkup:=clBlack;
 end;

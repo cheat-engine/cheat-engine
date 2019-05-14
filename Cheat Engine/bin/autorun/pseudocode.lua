@@ -38,7 +38,7 @@ end
 
 function pfindNextSpot(state)
   --check if there are unreached branch destinations, if so, change the address to one of those
-  print('pfindNextSpot')
+  --print('pfindNextSpot')
 
   for destination,origins in pairs(state.branchDestinations) do
     if state.parsed[destination]==nil then
@@ -48,7 +48,7 @@ function pfindNextSpot(state)
   end
 
   --if not, return false,true to exit
-  print("no new point found")
+  --print("no new point found")
   return false,true
 end
 
@@ -139,14 +139,14 @@ end
 plookup['ret']=function(state)
   --end of the function (or some weird trick)
 
-  print('ret')
+  --print('ret')
   return pfindNextSpot(state)
 end
 
 
 function parseFunction(startaddress, limit)
   local state={}
-  print('parseFunction')
+  --print('parseFunction')
   state.branchDestinations={} --list of branch destinations
   state.branchOrigins={} --list of branch origins
 
@@ -166,7 +166,7 @@ function parseFunction(startaddress, limit)
   while (not done) and (limit>0) do
     local a=state.address
 
-    print(string.format('%x',a))
+   -- print(string.format('%x',a))
 
     if state.parsed[a] then
       --already parsed

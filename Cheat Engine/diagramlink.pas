@@ -25,6 +25,9 @@ type
     useCustomArrowStyles: boolean;
     fCustomArrowStyles: TArrowStyles;
 
+    useCustomArrowSize: boolean;
+    fCustomArrowSize: integer;
+
     fName: string;
 
     fmaxx: integer; //set after render
@@ -44,6 +47,9 @@ type
     procedure setLineThickness(i: integer);
     function getArrowStyles: TArrowStyles;
     procedure setArrowStyles(s: TArrowStyles);
+
+    function getArrowSize: integer;
+    procedure setArrowSize(i: integer);
 
 
     function getAngle(originpoint: TPoint; destinationpoint: TPoint): single;
@@ -87,6 +93,7 @@ type
     property LineColor: TColor read getLineColor write setLineColor;
     property LineThickness: integer read getLineThickness write setLineThickness;
     property ArrowStyles: TArrowStyles read getArrowStyles write setArrowStyles;
+    property ArrowSize: integer read getArrowSize write setArrowSize;
     property Name: string read fName write fName;
     property maxx: integer read fmaxx;
     property maxy: integer read fmaxy;
@@ -144,7 +151,19 @@ begin
   useCustomArrowStyles:=true;
 end;
 
+function TDiagramLink.getArrowSize: integer;
+begin
+  if useCustomArrowStyles then
+    result:=fCustomArrowSize
+  else
+    result:=config.arrowSize;
+end;
 
+procedure TDiagramLink.setArrowSize(i: integer);
+begin
+  fCustomArrowSize:=i;
+  useCustomArrowSize:=true;
+end;
 
 function TDiagramLink.getYPosFromX(x: single; linestart: tpoint; lineend: tpoint): double;
 var
@@ -343,9 +362,17 @@ var
   i: integer;
 
   _r,_g,_b: byte;
+
+  sizescale: single;
 begin
   //calculate the angle to point at based from original to destination
   //originpoint.
+
+  sizescale:=1;
+
+  if ArrowSize<>5 then
+    sizescale:=arrowsize/5;
+
   if config.UseOpenGL then
   begin
     //glTranslatef(centeradjust.x,centeradjust.y,0);
@@ -384,8 +411,15 @@ begin
     c:=config.canvas;
     arr:=arrow;
 
+
     for i:=0 to 2 do
     begin
+      if sizescale<>1 then
+      begin
+        arr[i].x:=ceil(arr[i].x*sizescale);
+        arr[i].y:=ceil(arr[i].y*sizescale);
+      end;
+
       r:=sqrt(sqr(arr[i].X+centerAdjust.x) + sqr(arr[i].Y+centerAdjust.y));
       p := rot + arcTan2(arr[i].Y+centerAdjust.y , arr[i].X+centerAdjust.x);
       arr[i].X := Round(r * cos(p)*config.zoom)+originpoint.x;
