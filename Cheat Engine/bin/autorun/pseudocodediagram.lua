@@ -190,6 +190,7 @@ function linkDiagramBlocks(diagram, state, dblocks, blocks)
       if (destinationblock_index) then
         local linkdata={}
         local color=diagramstyle.link_takencolor
+        local offset
         
         if blocks[i].jumpsTo.destinationnottaken==nil then
           linkdata.unconditional=true  --also true for logicalFollow, but those where logicalFollow is false are jmp's
@@ -206,7 +207,7 @@ function linkDiagramBlocks(diagram, state, dblocks, blocks)
         end        
           
           
-        local link=createDiagramLink(diagram, diagramblock, dblocks[destinationblock_index], color,-10) --taken branches
+        local link=createDiagramLink(diagram, diagramblock, dblocks[destinationblock_index], color,offset) --taken branches
         
         linkdata.isTaken=false
         link.Tag=createRef(linkdata)
