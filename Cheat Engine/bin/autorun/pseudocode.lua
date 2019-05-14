@@ -255,6 +255,10 @@ function createBlocks(state)
       blocks[#blocks].start=address
       blocks[#blocks].getsJumpedToBy=state.branchDestinations[address]
     end
+    
+    if (i==#sal) and (state.branchOrigins[address]) then
+      blocks[#blocks].jumpsTo=state.branchOrigins[address]
+    end    
   end
 
   blocks[#blocks].stop=sal[#sal]
@@ -263,7 +267,7 @@ function createBlocks(state)
 end
 
 --[[
-z=parseFunction(0x00413190)
+z=parseFunction('GetModuleHandleA')
 
 b=createBlocks(z)
 for i=1,#b do
