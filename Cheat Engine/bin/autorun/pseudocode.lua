@@ -140,6 +140,9 @@ plookup['ret']=function(state)
   --end of the function (or some weird trick)
 
   --print('ret')
+  
+  state.branchOrigins[state.address]={}
+  
   return pfindNextSpot(state)
 end
 
@@ -244,6 +247,8 @@ function createBlocks(state)
         blocks[#blocks].jumpsTo={}
         blocks[#blocks].jumpsTo.destinationtaken=address
         blocks[#blocks].jumpsTo.logicalFollow=true
+        
+        
       end
 
       blocks[#blocks+1]={}
