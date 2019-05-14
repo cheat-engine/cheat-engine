@@ -10,7 +10,7 @@ diagramstyle.instruction_opcodestyle = '[1m' --bold
 diagramstyle.link_defaultcolor = 0x00FF00FF 
 diagramstyle.link_nottakencolor = 0x000000FF --red
 diagramstyle.link_takencolor = 0x00FF0000 --blue
-diagramstyle.link_linethickness = 3
+diagramstyle.link_linethickness = 3*(getScreenDPI()/96)
 diagramstyle.block_headershowsymbol = true
 diagramstyle.block_bodyshowaddresses = false
 diagramstyle.block_bodyshowaddressesassymbol = true
@@ -259,7 +259,9 @@ function arrangeDiagramLinks(dblocks)
   end
 
   for i,dlink in pairs(dlinks) do
-    dlink.addPoint(dlink.OriginBlock.X + (dlink.OriginBlock.Width / 2), dlink.OriginBlock.Y + dlink.OriginBlock.Height + 30, 1)
+    local odesc=dlink.OriginDescriptor
+    
+    dlink.addPoint(dlink.OriginBlock.X + (dlink.OriginBlock.Width / 2)+odesc.Position, dlink.OriginBlock.Y + dlink.OriginBlock.Height + 30, 1)       
     dlink.addPoint(dlink.DestinationBlock.X + (dlink.DestinationBlock.Width / 2), dlink.OriginBlock.Y + dlink.OriginBlock.Height + 30, 2)
 
     --todo: wrap, fix outcoming lines
