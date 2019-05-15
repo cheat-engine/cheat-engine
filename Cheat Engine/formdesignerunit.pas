@@ -732,60 +732,72 @@ begin
   if DesignerSelectionChangeCount<>0 then exit;
   DesignerSelectionChangeCount:=1;
 
-  if GlobalDesignHook=nil then exit;
+  try
 
-  surface:=TJvDesignSurface(sender);
+    if GlobalDesignHook=nil then exit;
 
-  if GlobalDesignHook.LookupRoot<>nil then
-  begin
-    if GlobalDesignHook.LookupRoot<>surface.Container then //deselect the components on the other surface
+    surface:=TJvDesignSurface(sender);
+
+    if GlobalDesignHook.LookupRoot<>nil then
     begin
-      if (TCEform(GlobalDesignHook.LookupRoot).designsurface<>nil) and (TCEform(GlobalDesignHook.LookupRoot).designsurface.Selector<>nil) then
-        TCEform(GlobalDesignHook.LookupRoot).designsurface.Selector.ClearSelection;
+      if GlobalDesignHook.LookupRoot<>surface.Container then //deselect the components on the other surface
+      begin
+        if (TCEform(GlobalDesignHook.LookupRoot).designsurface<>nil) and (TCEform(GlobalDesignHook.LookupRoot).designsurface.Selector<>nil) then
+          TCEform(GlobalDesignHook.LookupRoot).designsurface.Selector.ClearSelection;
+      end;
+
     end;
 
-  end;
+
+    GlobalDesignHook.LookupRoot:=surface.Container;
+
+    surface.OnSelectionChange:=nil;
 
 
-  GlobalDesignHook.LookupRoot:=surface.Container;
+   // sl:=TPersistentSelectionList.Create;
 
-  surface.OnSelectionChange:=nil;
-
-
- // sl:=TPersistentSelectionList.Create;
-  s:=Surface.Selected;
-  if oid<>nil then
-  begin
-
-    oid.Selection.Clear;
-    if length(s)>0 then
+    s:=Surface.Selected;
+    if oid<>nil then
     begin
-      for i:=0 to length(s)-1 do
-      begin
-        oid.Selection.Add(TPersistent(s[i]));
-       // sl.Add(TPersistent(s[i]));
-      end;
-    end
-    else
-      oid.selection.add(GlobalDesignHook.LookupRoot);
 
-    oid.RefreshSelection;
+      oid.Selection.Clear;
+      if length(s)>0 then
+      begin
+        for i:=0 to length(s)-1 do
+        begin
+          oid.Selection.Add(TPersistent(s[i]));
+         // sl.Add(TPersistent(s[i]));
+        end;
+      end
+      else
+        oid.selection.add(GlobalDesignHook.LookupRoot);
+
+      oid.RefreshSelection;
+    end;
+
+    if AnchorDesigner<>nil then
+      GlobalDesignHook.SetSelection(oid.Selection);
+
+
+    //laz 2 not needed anymore. gets it from designhook
+ //   oid.Selection.Clear;
+    //if oid.Selection.Count=1 then
+     // oid.RefreshComponentTreeSelection;
+
+    oid.RefreshPropertyValues;
+
+
+    surface.OnSelectionChange:=DesignerSelectionChange;
+
+  //  sl.free;
+
+    setFormName;
+
+
+  finally
+    DesignerSelectionChangeCount:=0;
   end;
 
-
-  oid.RefreshComponentTreeSelection;
-  oid.RefreshPropertyValues;
-
-  if AnchorDesigner<>nil then
-    GlobalDesignHook.SetSelection(oid.Selection);
-
-  surface.OnSelectionChange:=DesignerSelectionChange;
-
-//  sl.free;
-
-  setFormName;
-
-  DesignerSelectionChangeCount:=0;
 end;
 
 procedure TFormDesigner.surfaceOnChange(sender: tobject);
