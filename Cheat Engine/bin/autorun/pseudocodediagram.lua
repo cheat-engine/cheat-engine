@@ -63,6 +63,26 @@ function blockAddressToBlockIndex(blocks, address)
   return nil
 end
 
+function diagramBlockToDiagramBlockIndex(dblocks, dblock)
+  for i,dblockA in pairs(dblocks) do
+    if (dblockA == dblock) then
+      return i
+    end
+  end
+  return nil
+end
+
+function diagramLayerBlockToDiagramLayer(dlayers, dlblock)
+  for i=1, #dlayers.layer do
+    for j=1, #dlayers.layer[i] do
+      if (dlayers.layer[i][j] == dlblock) then
+        return i
+      end
+    end
+  end
+  return nil
+end
+
 function disassembleDecoratedInstruction(address)
   local disassembler, result, bytes, temp = getVisibleDisassembler(), ' '
   temp = disassembler.disassemble(address)
@@ -225,38 +245,80 @@ function linkDiagramBlocks(diagram, state, dblocks, blocks)
   return istaken
 end
 
-
-function xOverlapped(x1, x2, width1, width2)
-  return (x1 >= x2 and x1 <= x2 + width2) or (x2 >= x1 and x2 <= x1 + width1)
-end
-
-function yOverlapped(y1, y2, height1, height2)
-  return (y1 >= y2 and y1 <= y2 + height2) or (y2 >= y1 and y2 <= y1 + height1)
-end
-
-function blocksOverlapped(block1, block2)
-  if (xOverlapped(block1.x, block2.x, block1.width, block2.width)) then
-    if (yOverlapped(block1.y, block2.y, block1.height, block2.height)) then
-      return true
-    end
-  end
-  return false
-end
-
 function fetchLinks(dblocks)
   local dlinks, links, k = {}, {}, 1
-  for i,dblock in pairs(dblocks) do
-    links = dblock.getLinks()
-    for j,dest in pairs(links.asDestination) do
-      dlinks[k] = dest
+  for i=1, #dblocks do
+    links = dblocks[i].getLinks()
+    for j=1, #links.asDestination do
+      dlinks[k] = links.asDestination[j]
       k = k + 1
     end
   end
   return dlinks
 end
 
-function arrangeDiagramBlocks(dform, dblocks, istaken)
+function generateLayers(dblocks)
   local links
+  local index
+  local max
+  local dlayers = {}
+  dlayers.layer = {}
+  dlayers.height = {}
+
+  dlayers.layer[1] = {}
+  dlayers.layer[1][1] = dblocks[1] --starting block
+  for i=2, #dblocks do --create layers
+    links = dblocks[i].getLinks()
+    index = diagramBlockToDiagramBlockIndex(dblocks, links.asDestination[1].OriginBlock)
+    index = diagramLayerBlockToDiagramLayer(dlayers, dblocks[index])
+    k = 1
+    if (dlayers.layer[index + 1] ~= nil) then
+      while dlayers.layer[index + 1][k] ~= nil do k = k + 1 end
+      dlayers.layer[index + 1][k] = dblocks[i]
+    else
+      dlayers.layer[index + 1] = {}
+      dlayers.layer[index + 1][k] = dblocks[i]
+    end
+  end
+  for i=1, #dlayers.layer do --get layers height
+    max = dlayers.layer[i][1].height
+    for j=2, #dlayers.layer[i] do
+      max = math.max(max, dlayers.layer[i][j].height)
+    end
+    dlayers.height[i] = max
+  end
+  return dlayers
+end
+
+function adjustLayerBlocks(dlayer, newdblock, overlapdblock)
+  --to fix/finish
+  local leftblocks = {}
+  local rightblocks = {}
+  local r = 1
+  local l = 1
+  for i=1, #dlayer do
+    if (dlayer[i].x >= newdblock.x) then
+      rightblocks[r] = dlayer[i]
+      r = r + 1
+    else
+      leftblocks[l] = dlayer[i]
+      l = l + 1
+    end
+  end
+  
+  if (overlapdblock.x >= newdblock.x) then
+    for i=1, #rightblocks do
+      rightblocks[i].x =  rightblocks[i].x + newdblock.width
+    end
+  else
+    for i=1, #leftblocks do
+      leftblocks[i].x =  leftblocks[i].x - newdblock.width
+    end
+  end
+end
+
+function arrangeDiagramBlocks(dform, dblocks, istaken, dlayers)
+  local links, index
   dblocks[1].x = dform.width / 2 - dblocks[1].width / 2
   for i,dblock in pairs(dblocks) do
    
@@ -268,51 +330,24 @@ function arrangeDiagramBlocks(dform, dblocks, istaken)
         dblock.x = links.asDestination[1].OriginBlock.x + links.asDestination[1].OriginBlock.width + 50*DPIAdjust
       end
       
-      dblock.y = dblocks[i-1].y + dblocks[i-1].height + 100*DPIAdjust
+      --dblock.y = dblocks[i-1].y + dblocks[i-1].height + 100*DPIAdjust
+
+      index = diagramBlockToDiagramBlockIndex(dblocks, links.asDestination[1].OriginBlock) 
+      index = diagramLayerBlockToDiagramLayer(dlayers, dblocks[index])
+      dblock.y = links.asDestination[1].OriginBlock.y + dlayers.height[index] + 100*DPIAdjust --arrange blocks into layers
+
+      for j=1, #dblocks do
+        if (dblock.overlapsWith(dblocks[j])) then
+          index = diagramLayerBlockToDiagramLayer(dlayers, dblocks[j])
+          adjustLayerBlocks(dlayers.layer[index], dblock, dblocks[j])
+        end
+      end
       
       if dblock.x<0 then --too far too the left, move everything
         local j
         local offset=-dblock.x
         for j=1,i do
           dblocks[j].x=dblocks[j].x+offset
-        end
-      end
-    end
-  end
-end
-
-function moveUpDiagramBlocks(dblocks)
-  local links = fetchLinks(dblocks)
-  for i,dblock in pairs(dblocks) do --move up if possible
-    if (i > 1) then
-      link = nil
-      canmove = false 
-      for i,dlink in pairs(links) do
-        if (dlink.DestinationBlock == dblock) then 
-          link = dlink
-          break
-        end
-      end
-      local temp1 = dblock.y
-      local temp2 = link.OriginBlock.y + link.OriginBlock.height + 100*DPIAdjust
-      local done
-      if link ~= nil then
-        dblock.y = temp2
-        for j,dblocky in pairs(dblocks) do
-          if dblock ~= dblocky then
-            if dblock ~= dblocky and blocksOverlapped(dblock, dblocky) then --check whether the spot next to the OriginBlock is occupied
-              dblock.y = temp1 --if so reset dblock to the current position
-              done = false
-              repeat --and try to move it as up as possible (makes the diagram more compact but fucks the performance up)
-                dblock.y = dblock.y - 1
-                for k,dblockx in pairs(dblocks) do
-                  if dblock.y == dblockx.y + dblockx.height + 100*DPIAdjust then done = true end
-                end
-              until done
-              dblock.y = dblock.y + 1
-              break
-            end
-          end
         end
       end
     end
@@ -356,9 +391,17 @@ function spawnDiagram(start, limit)
   local blocks = createBlocks(state)
   dblocks = createDiagramBlocks(ddiagram, state, blocks)
   istaken = linkDiagramBlocks(ddiagram, state, dblocks, blocks)
-  maxx,maxy=arrangeDiagramBlocks(dform, dblocks, istaken)
-
-  moveUpDiagramBlocks(dblocks)
+  local dlayers = generateLayers(dblocks)
+  maxx,maxy=arrangeDiagramBlocks(dform, dblocks, istaken, dlayers)
+  
+  print("--debug--")
+  for i=1, #dlayers.layer do
+    print(string.format("(layer #%d) height: %d", i, dlayers.height[i]))
+    print(string.format("(layer #%d) blocks:", i))
+    for j=1, #dlayers.layer[i] do
+      print(string.format("%s", dlayers.layer[i][j].Caption))
+    end
+  end
 
   arrangeDiagramLinks(dblocks)
 
