@@ -225,6 +225,36 @@ function linkDiagramBlocks(diagram, state, dblocks, blocks)
   return istaken
 end
 
+
+function xOverlapped(x1, x2, width1, width2)
+  return (x1 >= x2 and x1 <= x2 + width2) or (x2 >= x1 and x2 <= x1 + width1)
+end
+
+function yOverlapped(y1, y2, height1, height2)
+  return (y1 >= y2 and y1 <= y2 + height2) or (y2 >= y1 and y2 <= y1 + height1)
+end
+
+function blocksOverlapped(block1, block2)
+  if (xOverlapped(block1.x, block2.x, block1.width, block2.width)) then
+    if (yOverlapped(block1.y, block2.y, block1.height, block2.height)) then
+      return true
+    end
+  end
+  return false
+end
+
+function fetchLinks(dblocks)
+  local dlinks, links, k = {}, {}, 1
+  for i,dblock in pairs(dblocks) do
+    links = dblock.getLinks()
+    for j,dest in pairs(links.asDestination) do
+      dlinks[k] = dest
+      k = k + 1
+    end
+  end
+  return dlinks
+end
+
 function arrangeDiagramBlocks(dform, dblocks, istaken)
   local links
   dblocks[1].x = dform.width / 2 - dblocks[1].width / 2
@@ -233,12 +263,12 @@ function arrangeDiagramBlocks(dform, dblocks, istaken)
     if (i > 1) then      
       links = dblock.getLinks()
       if (istaken[i]) then 
-        dblock.x = links.asDestination[1].OriginBlock.x - links.asDestination[1].OriginBlock.width - 25*DPIAdjust
-        dblock.y = dblocks[i-1].y + dblocks[i-1].height + 60*DPIAdjust
+        dblock.x = links.asDestination[1].OriginBlock.x - dblock.width - 50*DPIAdjust
       else
-        dblock.x = links.asDestination[1].OriginBlock.x + links.asDestination[1].OriginBlock.width + 25*DPIAdjust
-        dblock.y = dblocks[i-1].y + dblocks[i-1].height + 60*DPIAdjust
+        dblock.x = links.asDestination[1].OriginBlock.x + links.asDestination[1].OriginBlock.width + 50*DPIAdjust
       end
+      
+      dblock.y = dblocks[i-1].y + dblocks[i-1].height + 100*DPIAdjust
       
       if dblock.x<0 then --too far too the left, move everything
         local j
@@ -251,26 +281,69 @@ function arrangeDiagramBlocks(dform, dblocks, istaken)
   end
 end
 
-function arrangeDiagramLinks(dblocks)
-  local dlinks = {}
-  local links = {}
-  local k = 1
-
-  for i,dblock in pairs(dblocks) do --fetch the links
-    links = dblock.getLinks()
-    for j,dest in pairs(links.asDestination) do
-      dlinks[k] = dest
-      k = k + 1
+function moveUpDiagramBlocks(dblocks)
+  local links = fetchLinks(dblocks)
+  for i,dblock in pairs(dblocks) do --move up if possible
+    if (i > 1) then
+      link = nil
+      canmove = false 
+      for i,dlink in pairs(links) do
+        if (dlink.DestinationBlock == dblock) then 
+          link = dlink
+          break
+        end
+      end
+      local temp1 = dblock.y
+      local temp2 = link.OriginBlock.y + link.OriginBlock.height + 100*DPIAdjust
+      local done
+      if link ~= nil then
+        dblock.y = temp2
+        for j,dblocky in pairs(dblocks) do
+          if dblock ~= dblocky then
+            if dblock ~= dblocky and blocksOverlapped(dblock, dblocky) then --check whether the spot next to the OriginBlock is occupied
+              dblock.y = temp1 --if so reset dblock to the current position
+              done = false
+              repeat --and try to move it as up as possible (makes the diagram more compact but fucks the performance up)
+                dblock.y = dblock.y - 1
+                for k,dblockx in pairs(dblocks) do
+                  if dblock.y == dblockx.y + dblockx.height + 100*DPIAdjust then done = true end
+                end
+              until done
+              dblock.y = dblock.y + 1
+              break
+            end
+          end
+        end
+      end
     end
   end
+end
+
+function arrangeDiagramLinks(dblocks)
+  local dlinks, k = fetchLinks(dblocks)
 
   for i,dlink in pairs(dlinks) do
     local odesc=dlink.OriginDescriptor
+    local ddesc=dlink.DestinationDescriptor
     
-    dlink.addPoint(dlink.OriginBlock.X + (dlink.OriginBlock.Width / 2)+odesc.Position, dlink.OriginBlock.Y + dlink.OriginBlock.Height + 30*DPIAdjust, 1)       
-    dlink.addPoint(dlink.DestinationBlock.X + (dlink.DestinationBlock.Width / 2), dlink.OriginBlock.Y + dlink.OriginBlock.Height + 30*DPIAdjust, 2)
+    if (dlink.DestinationBlock.Y > dlink.OriginBlock.Y) then --branching forward
+      dlink.addPoint(dlink.OriginBlock.X + (dlink.OriginBlock.Width / 2)+odesc.Position, dlink.OriginBlock.Y + dlink.OriginBlock.Height + 50*DPIAdjust, 1)       
+      dlink.addPoint(dlink.DestinationBlock.X + (dlink.DestinationBlock.Width / 2), dlink.OriginBlock.Y + dlink.OriginBlock.Height + 50*DPIAdjust, 2)
+      k = 3
+    else --branching backward
+      dlink.addPoint(dlink.OriginBlock.X + (dlink.OriginBlock.Width / 2)+odesc.Position, dlink.OriginBlock.Y + dlink.OriginBlock.Height + 50*DPIAdjust, 1)
+      if (dlink.DestinationBlock.X < dlink.OriginBlock.X) then
+        dlink.addPoint(dlink.DestinationBlock.X + dlink.DestinationBlock.Width + 50*DPIAdjust, dlink.OriginBlock.Y + dlink.OriginBlock.Height + 50*DPIAdjust, 2)
+        dlink.addPoint(dlink.DestinationBlock.X + dlink.DestinationBlock.Width + 50*DPIAdjust, dlink.DestinationBlock.Y - 50*DPIAdjust, 3)
+      else
+        dlink.addPoint(dlink.DestinationBlock.X - 50*DPIAdjust, dlink.OriginBlock.Y + dlink.OriginBlock.Height + 50*DPIAdjust, 2)
+        dlink.addPoint(dlink.DestinationBlock.X - 50*DPIAdjust, dlink.DestinationBlock.Y - 50*DPIAdjust, 3)
+      end
+      dlink.addPoint(dlink.DestinationBlock.X + (dlink.DestinationBlock.Width / 2), dlink.DestinationBlock.Y - 50*DPIAdjust, 4)
+      k = 4
+    end
 
-    --todo: wrap, fix outcoming lines
+    --wrap
   end
 end
 
@@ -284,6 +357,8 @@ function spawnDiagram(start, limit)
   dblocks = createDiagramBlocks(ddiagram, state, blocks)
   istaken = linkDiagramBlocks(ddiagram, state, dblocks, blocks)
   maxx,maxy=arrangeDiagramBlocks(dform, dblocks, istaken)
+
+  moveUpDiagramBlocks(dblocks)
 
   arrangeDiagramLinks(dblocks)
 
