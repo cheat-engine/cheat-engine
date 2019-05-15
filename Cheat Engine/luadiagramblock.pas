@@ -12,6 +12,21 @@ implementation
 
 uses controls, luaclass, LuaCustomControl, LuaObject, LuaDiagram;
 
+
+function diagramBlock_overlapsWith(L: PLua_state): integer; cdecl;
+var
+  b1,b2: TDiagramBlock;
+  r: boolean;
+begin
+  b1:=luaclass_getClassObject(L);
+  if lua_Gettop(L)>=1 then
+    b2:=lua_ToCEUserData(L,1);
+
+  r:=b1.OverlapsWith(b2);
+  lua_pushboolean(L, r);
+  result:=1;
+end;
+
 function diagramBlock_getLinks(L: PLua_state): integer; cdecl;
 var
   db: TDiagramBlock;
@@ -64,6 +79,8 @@ procedure diagramBlock_addMetaData(L: PLua_state; metatable: integer; userdata: 
 begin
   object_addMetaData(L, metatable, userdata);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'getLinks', diagramBlock_getLinks);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'overlapsWith', diagramBlock_overlapsWith);
+
 end;
 
 initialization

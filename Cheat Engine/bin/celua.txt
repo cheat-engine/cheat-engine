@@ -3335,7 +3335,7 @@ properties
 
 methods
   getLinks(): table - Returns a table two elements: 'asSource' and 'asDestination'. each of those will have a table with DiagramLinks linking with the box
-
+  overlapsWith(block): boolean - Returns true if the two blocks overlap
 
 
 DiagramLink class:

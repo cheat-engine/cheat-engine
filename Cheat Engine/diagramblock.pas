@@ -70,6 +70,8 @@ type
 
     procedure setx(newx: integer);
     procedure sety(newy: integer);
+    function getRect: trect;
+    procedure setRect(r: trect);
   public
 
     function getData: TStrings;
@@ -80,6 +82,7 @@ type
     function IsInsideHeader(xpos,ypos: integer):boolean;
     function IsInsideBody(xpos,ypos: integer):boolean;
     function IsInside(xpos,ypos: integer):boolean;
+    function OverlapsWith(otherBlock: TDiagramBlock): boolean;
     procedure resize(xpos, ypos: integer; side: TDiagramBlockSide);
     function getConnectPosition(side: TDiagramBlockSide; position: integer=0): tpoint;
     function getClosestSideDescriptor(xpos,ypos: integer): TDiagramBlockSideDescriptor;
@@ -89,6 +92,7 @@ type
 
     procedure render;
     property OnDestroy: TNotifyEvent read fOnDestroy write fOnDestroy;
+    property BlockRect: TRect read getRect write setRect;
     constructor create(graphConfig: TDiagramConfig);
     destructor destroy; override;
   published
@@ -387,6 +391,30 @@ begin
   if assigned(fOnDoubleClickHeader) and IsInsideHeader(xpos,ypos) then
     fOnDoubleClickHeader(self);
 
+end;
+
+function TDiagramBlock.getRect: trect;
+begin
+  result.Left:=x;
+  result.top:=y;
+  result.Right:=x+width;
+  result.height:=y+height;
+end;
+
+procedure TDiagramBlock.setRect(r: trect);
+begin
+  x:=r.left;
+  y:=r.top;
+  width:=r.width;
+  height:=r.height;
+end;
+
+function TDiagramBlock.OverlapsWith(otherBlock: TDiagramBlock): boolean;
+var r1,r2: Trect;
+begin
+  r1:=blockrect;
+  r2:=otherblock.blockrect;
+  result:=r1.IntersectsWith(r2);
 end;
 
 function TDiagramBlock.IsInsideHeader(xpos,ypos: integer):boolean;
