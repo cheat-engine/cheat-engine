@@ -14,11 +14,17 @@ diagramstyle.link_nottakencolor = 0x000000FF --red
 diagramstyle.link_takencolor = 0x00FF0000 --blue
 diagramstyle.link_linethickness = 3*DPIAdjust
 diagramstyle.link_arrowsize = math.ceil(5*DPIAdjust)
+diagramstyle.link_pointdepth = {}
+diagramstyle.link_pointdepth[true] = 50*DPIAdjust --taken
+diagramstyle.link_pointdepth[false] = 60*DPIAdjust --not taken
+diagramstyle.link_pointdepth['backward'] = 40*DPIAdjust --backward
+
 diagramstyle.block_headershowsymbol = true
 diagramstyle.block_bodyshowaddresses = false
 diagramstyle.block_bodyshowaddressesassymbol = true
 diagramstyle.block_bodyshowbytes = false
 diagramstyle.block_backgroundcolor = 0x00FFFFFF --white
+
 diagramstyle.diagram_blackgroundcolor = 0x00808080 --grey
 
 
@@ -33,12 +39,19 @@ function editDiagramStyle(new_diagramstyle)
       diagramstyle.instruction_symbolstyle = new_diagramstyle.instruction_symbolstyle end
     if (new_diagramstyle.instruction_opcodestyle ~= nil) then 
       diagramstyle.instruction_opcodestyle = new_diagramstyle.instruction_opcodestyle end
+
+    if (new_diagramstyle.link_defaultcolor ~= nil) then
+      diagramstyle.link_defaultcolor = new_diagramstyle.link_defaultcolor end
     if (new_diagramstyle.link_nottakencolor ~= nil) then
       diagramstyle.link_nottakencolor = new_diagramstyle.link_nottakencolor end
     if (new_diagramstyle.link_takencolor ~= nil) then
       diagramstyle.link_takencolor = new_diagramstyle.link_takencolor end
     if (new_diagramstyle.link_linethickness ~= nil) then
       diagramstyle.link_linethickness = new_diagramstyle.link_linethickness end
+    if (new_diagramstyle.link_arrowsize ~= nil) then
+      diagramstyle.link_arrowsize = new_diagramstyle.link_arrowsize end
+
+
     if (new_diagramstyle.block_headershowsymbol ~= nil) then
       diagramstyle.block_headershowsymbol = new_diagramstyle.block_headershowsymbol end
     if (new_diagramstyle.block_bodyshowaddresses ~= nil) then
@@ -49,6 +62,7 @@ function editDiagramStyle(new_diagramstyle)
       diagramstyle.block_bodyshowaddressesassymbol = new_diagramstyle.block_bodyshowaddressesassymbol end
     if (new_diagramstyle.block_bodyshowbytes ~= nil) then
       diagramstyle.block_bodyshowbytes = new_diagramstyle.block_bodyshowbytes end
+
     if (new_diagramstyle.diagram_blackgroundcolor ~= nil) then
       diagramstyle.diagram_blackgroundcolor = new_diagramstyle.diagram_blackgroundcolor end
   end
@@ -192,7 +206,6 @@ function createDiagramBlocks(diagram, state, blocks)
 end
 
 function linkDiagramBlocks(diagram, state, dblocks, blocks)
-  local destinationblock_index
   local istaken = {}
   for i,diagramblock in pairs(dblocks) do
     if (i > 1) then --skip starting block
@@ -209,7 +222,7 @@ function linkDiagramBlocks(diagram, state, dblocks, blocks)
       end
     end
     if (blocks[i].jumpsTo) then --skip leaf blocks
-      destinationblock_index = blockAddressToBlockIndex(blocks, blocks[i].jumpsTo.destinationtaken)
+      local destinationblock_index = blockAddressToBlockIndex(blocks, blocks[i].jumpsTo.destinationtaken)
       
 
       
@@ -246,9 +259,9 @@ function linkDiagramBlocks(diagram, state, dblocks, blocks)
 end
 
 function fetchLinks(dblocks)
-  local dlinks, links, k = {}, {}, 1
+  local dlinks, k = {}, 1
   for i=1, #dblocks do
-    links = dblocks[i].getLinks()
+    local links = dblocks[i].getLinks()
     for j=1, #links.asDestination do
       dlinks[k] = links.asDestination[j]
       k = k + 1
@@ -258,9 +271,6 @@ function fetchLinks(dblocks)
 end
 
 function generateLayers(dblocks)
-  local links
-  local index
-  local max
   local dlayers = {}
   dlayers.layer = {}
   dlayers.height = {}
@@ -268,9 +278,9 @@ function generateLayers(dblocks)
   dlayers.layer[1] = {}
   dlayers.layer[1][1] = dblocks[1] --layer 1 = starting block
   for i=2, #dblocks do --create subsequent layers
-    links = dblocks[i].getLinks()
+    local links = dblocks[i].getLinks()
     --get the previous layer index (new layer = previous + 1)
-    index = diagramLayerBlockToDiagramLayer(dlayers, links.asDestination[1].OriginBlock) 
+    local index = diagramLayerBlockToDiagramLayer(dlayers, links.asDestination[1].OriginBlock) 
     k = 1
     if (dlayers.layer[index + 1] ~= nil) then --first block in the current layer?
       while dlayers.layer[index + 1][k] ~= nil do k = k + 1 end 
@@ -280,6 +290,7 @@ function generateLayers(dblocks)
       dlayers.layer[index + 1][k] = dblocks[i]
     end
   end
+  local max
   for i=1, #dlayers.layer do --get layers height
     max = dlayers.layer[i][1].height
     for j=2, #dlayers.layer[i] do
@@ -296,7 +307,7 @@ function adjustLayerBlocks(dlayer, newdblock, overlapdblock)
   local rightblocks = {}
   local r = 1
   local l = 1
-  
+
   --move the layer blocks at the right/left of the new block based on the conflict
   for i=1, #dlayer do
     if (dlayer[i].x >= newdblock.x) then
@@ -324,19 +335,16 @@ function adjustLayerBlocks(dlayer, newdblock, overlapdblock)
 end
 
 function arrangeDiagramBlocks(dform, dblocks, istaken, dlayers)
-  local links
   dblocks[1].x = dform.width / 2 - dblocks[1].width / 2
   for i,dblock in pairs(dblocks) do
    
     if (i > 1) then      
-      links = dblock.getLinks()
+      local links = dblock.getLinks()
       if (istaken[i]) then 
         dblock.x = links.asDestination[1].OriginBlock.x - dblock.width - 50*DPIAdjust
       else
         dblock.x = links.asDestination[1].OriginBlock.x + links.asDestination[1].OriginBlock.width + 50*DPIAdjust
       end
-      
-      --dblock.y = dblocks[i-1].y + dblocks[i-1].height + 100*DPIAdjust
 
       --fetch the previous layer in order to evaluate where the current layer starts
       local previous_layer_index = diagramLayerBlockToDiagramLayer(dlayers, links.asDestination[1].OriginBlock)
@@ -364,27 +372,29 @@ function arrangeDiagramBlocks(dform, dblocks, istaken, dlayers)
   end
 end
 
-function arrangeDiagramLinks(dblocks)
+function arrangeDiagramLinks(dblocks, istaken)
   local dlinks, k = fetchLinks(dblocks)
 
   for i,dlink in pairs(dlinks) do
     local odesc=dlink.OriginDescriptor
     local ddesc=dlink.DestinationDescriptor
+
+    local index = diagramBlockToDiagramBlockIndex(dblocks, dlink.DestinationBlock)
     
     if (dlink.DestinationBlock.Y > dlink.OriginBlock.Y) then --branching forward
-      dlink.addPoint(dlink.OriginBlock.X + (dlink.OriginBlock.Width / 2)+odesc.Position, dlink.OriginBlock.Y + dlink.OriginBlock.Height + 50*DPIAdjust, 1)       
-      dlink.addPoint(dlink.DestinationBlock.X + (dlink.DestinationBlock.Width / 2), dlink.OriginBlock.Y + dlink.OriginBlock.Height + 50*DPIAdjust, 2)
+      dlink.addPoint(dlink.OriginBlock.X + (dlink.OriginBlock.Width / 2)+odesc.Position, dlink.OriginBlock.Y + dlink.OriginBlock.Height + diagramstyle.link_pointdepth[istaken[index]], 1)       
+      dlink.addPoint(dlink.DestinationBlock.X + (dlink.DestinationBlock.Width / 2), dlink.OriginBlock.Y + dlink.OriginBlock.Height + diagramstyle.link_pointdepth[istaken[index]], 2)
       k = 3
     else --branching backward
-      dlink.addPoint(dlink.OriginBlock.X + (dlink.OriginBlock.Width / 2)+odesc.Position, dlink.OriginBlock.Y + dlink.OriginBlock.Height + 50*DPIAdjust, 1)
+      dlink.addPoint(dlink.OriginBlock.X + (dlink.OriginBlock.Width / 2)+odesc.Position, dlink.OriginBlock.Y + dlink.OriginBlock.Height + diagramstyle.link_pointdepth["backward"], 1)
       if (dlink.DestinationBlock.X < dlink.OriginBlock.X) then
-        dlink.addPoint(dlink.DestinationBlock.X + dlink.DestinationBlock.Width + 50*DPIAdjust, dlink.OriginBlock.Y + dlink.OriginBlock.Height + 50*DPIAdjust, 2)
-        dlink.addPoint(dlink.DestinationBlock.X + dlink.DestinationBlock.Width + 50*DPIAdjust, dlink.DestinationBlock.Y - 50*DPIAdjust, 3)
+        dlink.addPoint(dlink.DestinationBlock.X + dlink.DestinationBlock.Width + 50*DPIAdjust, dlink.OriginBlock.Y + dlink.OriginBlock.Height + diagramstyle.link_pointdepth["backward"], 2)
+        dlink.addPoint(dlink.DestinationBlock.X + dlink.DestinationBlock.Width + 50*DPIAdjust, dlink.DestinationBlock.Y - diagramstyle.link_pointdepth["backward"], 3)
       else
-        dlink.addPoint(dlink.DestinationBlock.X - 50*DPIAdjust, dlink.OriginBlock.Y + dlink.OriginBlock.Height + 50*DPIAdjust, 2)
-        dlink.addPoint(dlink.DestinationBlock.X - 50*DPIAdjust, dlink.DestinationBlock.Y - 50*DPIAdjust, 3)
+        dlink.addPoint(dlink.DestinationBlock.X - 50*DPIAdjust, dlink.OriginBlock.Y + dlink.OriginBlock.Height + diagramstyle.link_pointdepth["backward"], 2)
+        dlink.addPoint(dlink.DestinationBlock.X - 50*DPIAdjust, dlink.DestinationBlock.Y - diagramstyle.link_pointdepth["backward"], 3)
       end
-      dlink.addPoint(dlink.DestinationBlock.X + (dlink.DestinationBlock.Width / 2), dlink.DestinationBlock.Y - 50*DPIAdjust, 4)
+      dlink.addPoint(dlink.DestinationBlock.X + (dlink.DestinationBlock.Width / 2), dlink.DestinationBlock.Y - diagramstyle.link_pointdepth["backward"], 4)
       k = 4
     end
 
@@ -393,27 +403,16 @@ function arrangeDiagramLinks(dblocks)
 end
 
 function spawnDiagram(start, limit)
-  local dblocks = {}
-  local istaken = {}
   local dform = createDiagramForm('Diagram')
   local ddiagram = createDiagramDiagram(dform)
   local state = parseFunction(start, limit)
   local blocks = createBlocks(state)
-  dblocks = createDiagramBlocks(ddiagram, state, blocks)
-  istaken = linkDiagramBlocks(ddiagram, state, dblocks, blocks)
+  local dblocks = createDiagramBlocks(ddiagram, state, blocks)
+  local istaken = linkDiagramBlocks(ddiagram, state, dblocks, blocks)
   local dlayers = generateLayers(dblocks)
   maxx,maxy=arrangeDiagramBlocks(dform, dblocks, istaken, dlayers)
 
-  print("--debug--")
-  for i=1, #dlayers.layer do
-    print(string.format("(layer #%d) height: %d", i, dlayers.height[i]))
-    print(string.format("(layer #%d) blocks:", i))
-    for j=1, #dlayers.layer[i] do
-      print(string.format("%s", dlayers.layer[i][j].Caption))
-    end
-  end
-
-  arrangeDiagramLinks(dblocks)
+  arrangeDiagramLinks(dblocks, istaken)
 
   ddiagram.repaint()
 end
@@ -444,6 +443,17 @@ new_diagramstyle.block_bodyshowbytes = true
 editDiagramStyle(new_diagramstyle)
 spawnDiagram(0x100016914, 50)
 ]]--
+
+  --[[
+  print("--debug--")
+  for i=1, #dlayers.layer do
+    print(string.format("(layer #%d) height: %d", i, dlayers.height[i]))
+    print(string.format("(layer #%d) blocks:", i))
+    for j=1, #dlayers.layer[i] do
+      print(string.format("%s", dlayers.layer[i][j].Caption))
+    end
+  end
+  ]]--
 
 --[[todolist]]
 --put incoming lines in the top and outgoing lines in the bottom, add points to lines, etc...
