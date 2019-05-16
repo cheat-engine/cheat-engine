@@ -332,6 +332,7 @@ function adjustLayerBlocks(dlayer, newdblock, overlapdblock)
       leftblocks[i].x =  leftblocks[i].x - newdblock.width
     end
   end
+ 
 end
 
 function arrangeDiagramBlocks(dform, dblocks, istaken, dlayers)
@@ -355,7 +356,8 @@ function arrangeDiagramBlocks(dform, dblocks, istaken, dlayers)
       dblock.y = current_layer_start --insert the block into the current layer
 
       for j=1, #dblocks do --check for eventual overlaps
-        if (dblock.overlapsWith(dblocks[j])) then
+       
+        if (dblock~=dblocks[j]) and (dblock.overlapsWith(dblocks[j])) then
           index = diagramLayerBlockToDiagramLayer(dlayers, dblocks[j])
           adjustLayerBlocks(dlayers.layer[index], dblock, dblocks[j]) --adjust all the blocks of the current layer when inserting a new one (in case of overlap)
         end
