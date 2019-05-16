@@ -266,14 +266,14 @@ function generateLayers(dblocks)
   dlayers.height = {}
 
   dlayers.layer[1] = {}
-  dlayers.layer[1][1] = dblocks[1] --starting block
-  for i=2, #dblocks do --create layers
+  dlayers.layer[1][1] = dblocks[1] --layer 1 = starting block
+  for i=2, #dblocks do --create subsequent layers
     links = dblocks[i].getLinks()
-    index = diagramBlockToDiagramBlockIndex(dblocks, links.asDestination[1].OriginBlock)
-    index = diagramLayerBlockToDiagramLayer(dlayers, dblocks[index])
+    --get the previous layer index (new layer = previous + 1)
+    index = diagramLayerBlockToDiagramLayer(dlayers, links.asDestination[1].OriginBlock) 
     k = 1
-    if (dlayers.layer[index + 1] ~= nil) then
-      while dlayers.layer[index + 1][k] ~= nil do k = k + 1 end
+    if (dlayers.layer[index + 1] ~= nil) then --first block in the current layer?
+      while dlayers.layer[index + 1][k] ~= nil do k = k + 1 end 
       dlayers.layer[index + 1][k] = dblocks[i]
     else
       dlayers.layer[index + 1] = {}
@@ -296,13 +296,19 @@ function adjustLayerBlocks(dlayer, newdblock, overlapdblock)
   local rightblocks = {}
   local r = 1
   local l = 1
+  
+  --move the layer blocks at the right/left of the new block based on the conflict
   for i=1, #dlayer do
     if (dlayer[i].x >= newdblock.x) then
-      rightblocks[r] = dlayer[i]
-      r = r + 1
-    else
+      if dlayer[i] ~= newdblock then
+        rightblocks[r] = dlayer[i]
+        r = r + 1
+      end
+    elseif (dlayer[i].x < newdblock.x) then
       leftblocks[l] = dlayer[i]
       l = l + 1
+    else
+      --nothing
     end
   end
   
@@ -318,7 +324,7 @@ function adjustLayerBlocks(dlayer, newdblock, overlapdblock)
 end
 
 function arrangeDiagramBlocks(dform, dblocks, istaken, dlayers)
-  local links, index
+  local links
   dblocks[1].x = dform.width / 2 - dblocks[1].width / 2
   for i,dblock in pairs(dblocks) do
    
@@ -332,14 +338,18 @@ function arrangeDiagramBlocks(dform, dblocks, istaken, dlayers)
       
       --dblock.y = dblocks[i-1].y + dblocks[i-1].height + 100*DPIAdjust
 
-      index = diagramBlockToDiagramBlockIndex(dblocks, links.asDestination[1].OriginBlock) 
-      index = diagramLayerBlockToDiagramLayer(dlayers, dblocks[index])
-      dblock.y = links.asDestination[1].OriginBlock.y + dlayers.height[index] + 100*DPIAdjust --arrange blocks into layers
+      --fetch the previous layer in order to evaluate where the current layer starts
+      local previous_layer_index = diagramLayerBlockToDiagramLayer(dlayers, links.asDestination[1].OriginBlock)
+      local previous_layer_start = links.asDestination[1].OriginBlock.y --fetch the previous layer start
+      local previous_layer_stop = dlayers.height[previous_layer_index] --fetch the previous layer stop
+      --previous_layer_start + previous_layer_stop + 100*DPIAdjust leads to the current layer start 
+      local current_layer_start = previous_layer_start + previous_layer_stop + 100*DPIAdjust
+      dblock.y = current_layer_start --insert the block into the current layer
 
-      for j=1, #dblocks do
+      for j=1, #dblocks do --check for eventual overlaps
         if (dblock.overlapsWith(dblocks[j])) then
           index = diagramLayerBlockToDiagramLayer(dlayers, dblocks[j])
-          adjustLayerBlocks(dlayers.layer[index], dblock, dblocks[j])
+          adjustLayerBlocks(dlayers.layer[index], dblock, dblocks[j]) --adjust all the blocks of the current layer when inserting a new one (in case of overlap)
         end
       end
       
@@ -393,7 +403,7 @@ function spawnDiagram(start, limit)
   istaken = linkDiagramBlocks(ddiagram, state, dblocks, blocks)
   local dlayers = generateLayers(dblocks)
   maxx,maxy=arrangeDiagramBlocks(dform, dblocks, istaken, dlayers)
-  
+
   print("--debug--")
   for i=1, #dlayers.layer do
     print(string.format("(layer #%d) height: %d", i, dlayers.height[i]))
