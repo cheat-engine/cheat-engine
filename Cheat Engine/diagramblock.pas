@@ -398,7 +398,7 @@ begin
   result.Left:=x;
   result.top:=y;
   result.Right:=x+width;
-  result.height:=y+height;
+  result.Bottom:=y+height;
 end;
 
 procedure TDiagramBlock.setRect(r: trect);
