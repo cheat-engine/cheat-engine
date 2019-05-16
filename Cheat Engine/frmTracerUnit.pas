@@ -7,9 +7,10 @@ interface
 uses
   windows, NewKernelHandler, LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, ExtCtrls, Buttons, LResources, commonTypeDefs, frmFindDialogUnit,
-  clipbrd, Menus, ComCtrls, frmStackviewunit, frmFloatingPointPanelUnit;
+  clipbrd, Menus, ComCtrls, frmStackviewunit, frmFloatingPointPanelUnit, LuaByteTable;
 
-type TTraceDebugInfo=class
+type
+  TTraceDebugInfo=class
   private
   public
     instruction: string;
@@ -179,6 +180,9 @@ type
     procedure RealignTVAddressScan(Sender: TCustomTreeView;
               Node: TTreeNode; State: TCustomDrawState; Stage: TCustomDrawStage;
               var PaintImages, DefaultDraw: Boolean);
+
+    function getEntry(index: integer): TTraceDebugInfo;
+    function getCount: integer;
   public
     { Public declarations }
     returnfromignore: boolean;
@@ -187,7 +191,10 @@ type
     procedure addRecord;
     procedure finish;
     property savestack: boolean read fsavestack write setSavestack;
+    property Entry[index: integer]: TTraceDebugInfo read getEntry;
     constructor create(Owner: TComponent; DataTrace: boolean=false; skipconfig: boolean=false); overload;
+  published
+    property count: integer read getCount;
   end;
 
 implementation
@@ -197,7 +204,7 @@ uses cedebugger, debughelper, MemoryBrowserFormUnit, frmTracerConfigUnit,
   debuggertypedefinitions, processhandlerunit, Globals, Parsers,
   disassembler,   strutils, cefuncproc,
   luahandler, symbolhandler, byteinterpreter,
-  tracerIgnore;
+  tracerIgnore, LuaForm, lua, lualib,lauxlib, LuaClass;
 
 resourcestring
   rsSearch = 'Search';
@@ -477,6 +484,18 @@ procedure TfrmTracer.setSavestack(x: boolean);
 begin
   fsavestack:=x;
   sbShowstack.visible:=x;
+end;
+
+function TfrmTracer.getEntry(index: integer): TTraceDebugInfo;
+begin
+  result:=nil;
+  if (index>=0) and (index<count) then
+    result:=TTraceDebugInfo(lvTracer.Items[index]);
+end;
+
+function TfrmTracer.getCount: integer;
+begin
+  result:=lvTracer.Items.count;
 end;
 
 procedure TfrmTracer.FormCreate(Sender: TObject);
@@ -1720,8 +1739,86 @@ begin
   updatestackview;
 end;
 
+function frmTracer_getEntry(L: PLua_state): integer; cdecl;
+var
+  f: TfrmTracer;
+  i: integer;
+
+  e: TTraceDebugInfo;
+  t: integer;
+
+  ct: integer;
+begin
+  f:=luaclass_getClassObject(L);
+  i:=lua_tointeger(L,1);
+
+  result:=0;
+  e:=f.Entry[i];
+  if e=nil then
+    exit(0);
+
+  lua_newtable(L);
+  t:=lua_gettop(L);
+
+  lua_pushstring(L,'instruction');
+  lua_pushstring(L,e.instruction);
+  lua_settable(L,t);
+
+  lua_pushstring(L,'instructionSize');
+  lua_pushinteger(L,e.instructionsize);
+  lua_settable(L,t);
+
+  lua_pushstring(L,'referencedAddress');
+  lua_pushinteger(L,e.referencedAddress);
+  lua_settable(L,t);
+
+  lua_pushstring(L,'context');
+  lua_pushcontext(L,@e.c);
+  lua_settable(L,t);
+
+
+  lua_pushstring(L,'referencedData');
+  CreateByteTableFromPointer(L,e.bytes,e.bytesize);
+  lua_settable(L,t);
+
+  lua_pushstring(L,'hasStackSnapshot');
+  lua_pushboolean(L, e.stack.stack<>nil);
+  lua_settable(L,t);
+
+  result:=1;
+end;
+
+function frmTracer_getStack(L: PLua_state): integer; cdecl;
+var
+  f: TfrmTracer;
+  i: integer;
+
+  e: TTraceDebugInfo;
+begin
+  f:=luaclass_getClassObject(L);
+  i:=lua_tointeger(L,1);
+
+  result:=0;
+  e:=f.Entry[i];
+  if (e=nil) or (e.stack.stack=nil) then
+    exit(0);
+
+  CreateByteTableFromPointer(L,pbytearray(e.stack.stack),e.stack.savedsize);
+  result:=1;
+end;
+
+procedure frmTracer_addMetaData(L: PLua_state; metatable: integer; userdata: integer );
+begin
+  customform_addMetaData(L, metatable, userdata);
+  luaclass_addArrayPropertyToTable(L, metatable, userdata, 'Entry', frmTracer_getEntry, nil);
+  luaclass_addArrayPropertyToTable(L, metatable, userdata, 'StackEntry', frmTracer_getStack, nil);
+
+end;
+
 initialization
   registerclass(TfrmTracer);
+  luaclass_register(TfrmTracer, frmTracer_addMetaData);
+
   {$i frmTracerUnit.lrs}
 
 end.

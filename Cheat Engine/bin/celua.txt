@@ -2949,6 +2949,25 @@ methods
   byteTableToValue({bytetable},Address Optional)
   valueToByteTable(value, Address Optional)
 
+TFrmTracer class (Inheritance: Form->ScrollingWinControl->CustomControl->WinControl->Control->Component->Object)
+
+properties
+  Count: integer - number of entries in the list
+  Entry[index]: table - Information about each entry. Read only. (Index starts at 0)
+    table is formatted as:
+    {
+      instruction: string - disassembled instruction
+      instructionSize: integer - bytesize of the instruction
+      referencedAddress: integer - address the code references
+      referencedData: bytearray - The bytes of the referenced data at the time of tracing
+      context: contexttable - the state of the cpu when this instruction got executed (contains registers(EAX/RAX, ...), floating points(FP) and XMM values
+      hasStackSnapshot: boolean - set to true if there is a stack entry      
+
+    }
+  StackEntry[index]: bytearray - The stacksnapshot of that entry. Nil if not available
+
+methods
+
 ----SQL Classes----
 CustomConnection class (Inheritance: Component->Object)
 properties

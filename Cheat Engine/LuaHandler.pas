@@ -64,6 +64,7 @@ procedure lua_pushpoint(L: PLua_state; r: TPoint);
 function lua_toRect(L: PLua_State; index: integer): TRect;
 function lua_toPoint(L: PLua_State; index: integer): TPoint;
 function lua_toaddress(L: PLua_state; i: integer; self: boolean=false): ptruint;
+procedure lua_pushcontext(L: PLua_state; context: PContext);
 procedure InitializeLuaScripts;
 procedure InitializeLua;
 
@@ -348,6 +349,7 @@ begin
   lua_pushinteger(L, r.bottom);
   lua_settable(L, -3);
 end;
+
 
 function lua_toPoint(L: PLua_State; index: integer): TPoint;
 var i: integer;
@@ -710,6 +712,209 @@ begin
   end;
 end;
 
+procedure lua_pushcontext(L: PLua_state; context: PContext);
+var
+  t: integer;
+  i: integer;
+begin
+  lua_newtable(L);
+  t:=lua_gettop(L);
+
+  lua_pushstring(L, 'ContextFlags');
+  lua_pushinteger(L,context^.ContextFlags);
+  lua_settable(L,t);
+
+  lua_pushstring(L, 'CS');
+  lua_pushinteger(L,context^.SegCs);
+  lua_settable(L,t);
+
+  lua_pushstring(L, 'DS');
+  lua_pushinteger(L,context^.SegDs);
+  lua_settable(L,t);
+
+  lua_pushstring(L, 'ES');
+  lua_pushinteger(L,context^.SegEs);
+  lua_settable(L,t);
+
+  lua_pushstring(L, 'FS');
+  lua_pushinteger(L,context^.SegFs);
+  lua_settable(L,t);
+
+  lua_pushstring(L, 'GS');
+  lua_pushinteger(L,context^.SegGs);
+  lua_settable(L,t);
+
+  lua_pushstring(L, 'SS');
+  lua_pushinteger(L,context^.SegSs);
+  lua_settable(L,t);
+
+  lua_pushstring(L, 'EFlags');
+  lua_pushinteger(L,context^.EFlags);
+  lua_settable(L,t);
+
+  {$ifdef cpu64}
+  lua_pushstring(L, 'RAX');
+  lua_pushinteger(L,context^.Rax);
+  lua_settable(L,t);
+
+  lua_pushstring(L, 'RBX');
+  lua_pushinteger(L,context^.Rbx);
+  lua_settable(L,t);
+
+  lua_pushstring(L, 'RCX');
+  lua_pushinteger(L,context^.Rcx);
+  lua_settable(L,t);
+
+  lua_pushstring(L, 'RDX');
+  lua_pushinteger(L,context^.Rdx);
+  lua_settable(L,t);
+
+  lua_pushstring(L, 'RSI');
+  lua_pushinteger(L,context^.Rsi);
+  lua_settable(L,t);
+
+  lua_pushstring(L, 'RDI');
+  lua_pushinteger(L,context^.Rdi);
+  lua_settable(L,t);
+
+  lua_pushstring(L, 'RBP');
+  lua_pushinteger(L,context^.Rbp);
+  lua_settable(L,t);
+
+  lua_pushstring(L, 'RSP');
+  lua_pushinteger(L,context^.Rsp);
+  lua_settable(L,t);
+
+  lua_pushstring(L, 'RIP');
+  lua_pushinteger(L,context^.Rip);
+  lua_settable(L,t);
+
+  lua_pushstring(L, 'R8');
+  lua_pushinteger(L,context^.R8);
+  lua_settable(L,t);
+
+  lua_pushstring(L, 'R9');
+  lua_pushinteger(L,context^.R9);
+  lua_settable(L,t);
+
+  lua_pushstring(L, 'R10');
+  lua_pushinteger(L,context^.R10);
+  lua_settable(L,t);
+
+  lua_pushstring(L, 'R11');
+  lua_pushinteger(L,context^.R11);
+  lua_settable(L,t);
+
+  lua_pushstring(L, 'R12');
+  lua_pushinteger(L,context^.R12);
+  lua_settable(L,t);
+
+  lua_pushstring(L, 'R13');
+  lua_pushinteger(L,context^.R13);
+  lua_settable(L,t);
+
+  lua_pushstring(L, 'R14');
+  lua_pushinteger(L,context^.R14);
+  lua_settable(L,t);
+
+  lua_pushstring(L, 'R15');
+  lua_pushinteger(L,context^.R15);
+  lua_settable(L,t);
+  {$endif}
+
+  if processhandler.is64Bit=false then
+  begin
+    lua_pushstring(L, 'EAX');
+    lua_pushinteger(L,context^.{$ifdef cpu64}Rax{$else}eax{$endif} and $ffffffff);
+    lua_settable(L,t);
+
+    lua_pushstring(L, 'EBX');
+    lua_pushinteger(L,context^.{$ifdef cpu64}Rbx{$else}ebx{$endif} and $ffffffff);
+    lua_settable(L,t);
+
+    lua_pushstring(L, 'ECX');
+    lua_pushinteger(L,context^.{$ifdef cpu64}Rcx{$else}ecx{$endif} and $ffffffff);
+    lua_settable(L,t);
+
+    lua_pushstring(L, 'EDX');
+    lua_pushinteger(L,context^.{$ifdef cpu64}Rdx{$else}edx{$endif} and $ffffffff);
+    lua_settable(L,t);
+
+    lua_pushstring(L, 'ESI');
+    lua_pushinteger(L,context^.{$ifdef cpu64}Rsi{$else}esi{$endif} and $ffffffff);
+    lua_settable(L,t);
+
+    lua_pushstring(L, 'EDI');
+    lua_pushinteger(L,context^.{$ifdef cpu64}Rdi{$else}edi{$endif} and $ffffffff);
+    lua_settable(L,t);
+
+    lua_pushstring(L, 'EBP');
+    lua_pushinteger(L,context^.{$ifdef cpu64}Rbp{$else}ebp{$endif} and $ffffffff);
+    lua_settable(L,t);
+
+    lua_pushstring(L, 'ESP');
+    lua_pushinteger(L,context^.{$ifdef cpu64}Rsp{$else}esp{$endif} and $ffffffff);
+    lua_settable(L,t);
+
+    lua_pushstring(L, 'EIP');
+    lua_pushinteger(L,context^.{$ifdef cpu64}Rip{$else}eip{$endif} and $ffffffff);
+    lua_settable(L,t);
+  end;
+
+  lua_pushstring(L, 'DR0');
+  lua_pushinteger(L,context^.DR0);
+  lua_settable(L,t);
+
+  lua_pushstring(L, 'DR1');
+  lua_pushinteger(L,context^.DR1);
+  lua_settable(L,t);
+
+  lua_pushstring(L, 'DR2');
+  lua_pushinteger(L,context^.DR2);
+  lua_settable(L,t);
+
+  lua_pushstring(L, 'DR3');
+  lua_pushinteger(L,context^.DR3);
+  lua_settable(L,t);
+
+  lua_pushstring(L, 'DR6');
+  lua_pushinteger(L,context^.DR6);
+  lua_settable(L,t);
+
+  lua_pushstring(L, 'DR7');
+  lua_pushinteger(L,context^.DR7);
+  lua_settable(L,t);
+
+
+  for i:=0 to 7 do
+  begin
+    lua_pushstring(L,'FP'+inttostr(i));
+    {$ifdef cpu32}
+    CreateByteTableFromPointer(L, @context^.FloatSave.RegisterArea[10*i], 10);
+    {$else}
+    CreateByteTableFromPointer(L, @context^.FltSave.FloatRegisters[i], 10);
+    {$endif}
+    lua_settable(L,t);
+  end;
+
+  //xmm regs
+
+  for i:=0 to 15 do
+  begin
+    if (i>=8) and (not processhandler.is64Bit) then break;
+
+    lua_pushstring(L,'XMM'+inttostr(i));
+
+    {$ifdef cpu32}
+    CreateByteTableFromPointer(luavm, @context^.ext.XMMRegisters.LegacyXMM[i], 16);
+    {$else}
+    CreateByteTableFromPointer(luavm, @context^.FltSave.XmmRegisters[i], 16);
+    {$endif}
+    lua_settable(L,t);
+  end;
+
+end;
+
 procedure LUA_SetCurrentContextState(tid: dword; context: PContext; extraregs: boolean=false);
 var i: integer;
 begin
@@ -717,101 +922,101 @@ begin
   lua_setglobal(luavm, 'THREADID');
 
   {$ifdef cpu64}
-  lua_pushinteger(luavm, context.{$ifdef cpu64}Rax{$else}eax{$endif});
+  lua_pushinteger(luavm, context^.{$ifdef cpu64}Rax{$else}eax{$endif});
   lua_setglobal(luavm, 'RAX');
   {$endif}
-  lua_pushinteger(luavm, context.{$ifdef cpu64}Rax{$else}eax{$endif} and $ffffffff);
+  lua_pushinteger(luavm, context^.{$ifdef cpu64}Rax{$else}eax{$endif} and $ffffffff);
   lua_setglobal(luavm, 'EAX');
 
   {$ifdef cpu64}
-  lua_pushinteger(luavm, context.{$ifdef cpu64}Rbx{$else}ebx{$endif});
+  lua_pushinteger(luavm, context^.{$ifdef cpu64}Rbx{$else}ebx{$endif});
   lua_setglobal(luavm, 'RBX');
   {$endif}
-  lua_pushinteger(luavm, context.{$ifdef cpu64}Rbx{$else}ebx{$endif} and $ffffffff);
+  lua_pushinteger(luavm, context^.{$ifdef cpu64}Rbx{$else}ebx{$endif} and $ffffffff);
   lua_setglobal(luavm, 'EBX');
 
 
   {$ifdef cpu64}
-  lua_pushinteger(luavm, context.{$ifdef cpu64}Rcx{$else}ecx{$endif});
+  lua_pushinteger(luavm, context^.{$ifdef cpu64}Rcx{$else}ecx{$endif});
   lua_setglobal(luavm, 'RCX');
   {$endif}
-  lua_pushinteger(luavm, context.{$ifdef cpu64}Rcx{$else}ecx{$endif} and $ffffffff);
+  lua_pushinteger(luavm, context^.{$ifdef cpu64}Rcx{$else}ecx{$endif} and $ffffffff);
   lua_setglobal(luavm, 'ECX');
 
   {$ifdef cpu64}
-  lua_pushinteger(luavm, context.{$ifdef cpu64}Rdx{$else}edx{$endif});
+  lua_pushinteger(luavm, context^.{$ifdef cpu64}Rdx{$else}edx{$endif});
   lua_setglobal(luavm, 'RDX');
   {$endif}
-  lua_pushinteger(luavm, context.{$ifdef cpu64}Rdx{$else}edx{$endif} and $ffffffff);
+  lua_pushinteger(luavm, context^.{$ifdef cpu64}Rdx{$else}edx{$endif} and $ffffffff);
   lua_setglobal(luavm, 'EDX');
 
 
   {$ifdef cpu64}
-  lua_pushinteger(luavm, context.{$ifdef cpu64}Rsi{$else}esi{$endif});
+  lua_pushinteger(luavm, context^.{$ifdef cpu64}Rsi{$else}esi{$endif});
   lua_setglobal(luavm, 'RSI');
   {$endif}
-  lua_pushinteger(luavm, context.{$ifdef cpu64}Rsi{$else}esi{$endif} and $ffffffff);
+  lua_pushinteger(luavm, context^.{$ifdef cpu64}Rsi{$else}esi{$endif} and $ffffffff);
   lua_setglobal(luavm, 'ESI');
 
 
   {$ifdef cpu64}
-  lua_pushinteger(luavm, context.{$ifdef cpu64}Rdi{$else}edi{$endif});
+  lua_pushinteger(luavm, context^.{$ifdef cpu64}Rdi{$else}edi{$endif});
   lua_setglobal(luavm, 'RDI');
   {$endif}
-  lua_pushinteger(luavm, context.{$ifdef cpu64}Rdi{$else}edi{$endif} and $ffffffff);
+  lua_pushinteger(luavm, context^.{$ifdef cpu64}Rdi{$else}edi{$endif} and $ffffffff);
   lua_setglobal(luavm, 'EDI');
 
 
   {$ifdef cpu64}
-  lua_pushinteger(luavm, context.{$ifdef cpu64}Rbp{$else}ebp{$endif});
+  lua_pushinteger(luavm, context^.{$ifdef cpu64}Rbp{$else}ebp{$endif});
   lua_setglobal(luavm, 'RBP');
   {$endif}
-  lua_pushinteger(luavm, context.{$ifdef cpu64}RBP{$else}eBP{$endif} and $ffffffff);
+  lua_pushinteger(luavm, context^.{$ifdef cpu64}RBP{$else}eBP{$endif} and $ffffffff);
   lua_setglobal(luavm, 'EBP');
 
 
   {$ifdef cpu64}
-  lua_pushinteger(luavm, context.{$ifdef cpu64}RSP{$else}eSP{$endif});
+  lua_pushinteger(luavm, context^.{$ifdef cpu64}RSP{$else}eSP{$endif});
   lua_setglobal(luavm, 'RSP');
   {$endif}
-  lua_pushinteger(luavm, context.{$ifdef cpu64}RSP{$else}eSP{$endif} and $ffffffff);
+  lua_pushinteger(luavm, context^.{$ifdef cpu64}RSP{$else}eSP{$endif} and $ffffffff);
   lua_setglobal(luavm, 'ESP');
 
   {$ifdef cpu64}
-  lua_pushinteger(luavm, context.{$ifdef cpu64}RIP{$else}eIP{$endif});
+  lua_pushinteger(luavm, context^.{$ifdef cpu64}RIP{$else}eIP{$endif});
   lua_setglobal(luavm, 'RIP');
   {$endif}
-  lua_pushinteger(luavm, context.{$ifdef cpu64}RIP{$else}eIP{$endif} and $ffffffff);
+  lua_pushinteger(luavm, context^.{$ifdef cpu64}RIP{$else}eIP{$endif} and $ffffffff);
   lua_setglobal(luavm, 'EIP');
 
-  lua_pushinteger(luavm, context.EFlags);
+  lua_pushinteger(luavm, context^.EFlags);
   lua_setglobal(luavm, 'EFLAGS');
 
 
 
   {$ifdef cpu64}
-  lua_pushinteger(luavm, context.r8);
+  lua_pushinteger(luavm, context^.r8);
   lua_setglobal(luavm, 'R8');
 
-  lua_pushinteger(luavm, context.r9);
+  lua_pushinteger(luavm, context^.r9);
   lua_setglobal(luavm, 'R9');
 
-  lua_pushinteger(luavm, context.r10);
+  lua_pushinteger(luavm, context^.r10);
   lua_setglobal(luavm, 'R10');
 
-  lua_pushinteger(luavm, context.r11);
+  lua_pushinteger(luavm, context^.r11);
   lua_setglobal(luavm, 'R11');
 
-  lua_pushinteger(luavm, context.r12);
+  lua_pushinteger(luavm, context^.r12);
   lua_setglobal(luavm, 'R12');
 
-  lua_pushinteger(luavm, context.r13);
+  lua_pushinteger(luavm, context^.r13);
   lua_setglobal(luavm, 'R13');
 
-  lua_pushinteger(luavm, context.r14);
+  lua_pushinteger(luavm, context^.r14);
   lua_setglobal(luavm, 'R14');
 
-  lua_pushinteger(luavm, context.r15);
+  lua_pushinteger(luavm, context^.r15);
   lua_setglobal(luavm, 'R15');
   {$endif}
 
@@ -820,9 +1025,9 @@ begin
     for i:=0 to 7 do
     begin
       {$ifdef cpu32}
-      CreateByteTableFromPointer(luavm, @context.FloatSave.RegisterArea[10*i], 10);
+      CreateByteTableFromPointer(luavm, @context^.FloatSave.RegisterArea[10*i], 10);
       {$else}
-      CreateByteTableFromPointer(luavm, @context.FltSave.FloatRegisters[i], 10);
+      CreateByteTableFromPointer(luavm, @context^.FltSave.FloatRegisters[i], 10);
       {$endif}
       lua_setglobal(luavm, pchar('FP'+inttostr(i)));
     end;
@@ -834,9 +1039,9 @@ begin
       if (i>=8) and (not processhandler.is64Bit) then break;
 
       {$ifdef cpu32}
-      CreateByteTableFromPointer(luavm, @context.ext.XMMRegisters.LegacyXMM[i], 16);
+      CreateByteTableFromPointer(luavm, @context^.ext.XMMRegisters.LegacyXMM[i], 16);
       {$else}
-      CreateByteTableFromPointer(luavm, @context.FltSave.XmmRegisters[i], 16);
+      CreateByteTableFromPointer(luavm, @context^.FltSave.XmmRegisters[i], 16);
       {$endif}
       lua_setglobal(luavm, pchar('XMM'+inttostr(i)));
     end;
