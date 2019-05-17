@@ -234,8 +234,6 @@ begin
     if (form is TsynCompletionForm)=false then   //dus nut wurk with this
       form.Font:=overridefont;
   end;
-
-
 end;
 
 
@@ -246,11 +244,13 @@ var
   r: TRegistry;
 
   path: string;
+  noautorun: boolean;
 begin
   Application.Title:='Cheat Engine 6.8.x';
   Application.Initialize;
 
   overridefont:=nil;
+  noautorun:=false;
 
   getcedir;
   doTranslation;
@@ -311,6 +311,9 @@ begin
       except
       end;
     end;
+
+    if uppercase(ParamStr(i))='NOAUTORUN' then  //don't load any extentions yet
+      noautorun:=true;
   end;
 
 
@@ -326,7 +329,7 @@ begin
   Application.CreateForm(TTypeForm, TypeForm);
 
   initcetitle;
-  InitializeLuaScripts;
+  InitializeLuaScripts(noautorun);
 
   handleparameters;
 

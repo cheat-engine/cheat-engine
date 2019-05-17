@@ -65,7 +65,7 @@ function lua_toRect(L: PLua_State; index: integer): TRect;
 function lua_toPoint(L: PLua_State; index: integer): TPoint;
 function lua_toaddress(L: PLua_state; i: integer; self: boolean=false): ptruint;
 procedure lua_pushcontext(L: PLua_state; context: PContext);
-procedure InitializeLuaScripts;
+procedure InitializeLuaScripts(noautorun: boolean=false);
 procedure InitializeLua;
 
 
@@ -531,7 +531,7 @@ begin
     result:='nil';
 end;
 
-procedure InitializeLuaScripts;
+procedure InitializeLuaScripts(noautorun: boolean=false);
 var f: string;
   i,r: integer;
   pc: pchar;
@@ -581,38 +581,41 @@ begin
   end;
 
   //autorun folder
-  ZeroMemory(@DirInfo,sizeof(TSearchRec));
-  r := FindFirst(CheatEngineDir+'autorun'+pathdelim+'*.lua', FaAnyfile, DirInfo);
-  while (r = 0) do
+
+  if noautorun=false then
   begin
-    if (DirInfo.Attr and FaVolumeId <> FaVolumeID) then
+    ZeroMemory(@DirInfo,sizeof(TSearchRec));
+    r := FindFirst(CheatEngineDir+'autorun'+pathdelim+'*.lua', FaAnyfile, DirInfo);
+    while (r = 0) do
     begin
-      if ((DirInfo.Attr and FaDirectory) <> FaDirectory) then
+      if (DirInfo.Attr and FaVolumeId <> FaVolumeID) then
       begin
-
-        i:=lua_dofile(luavm, pchar( UTF8ToWinCP(CheatEngineDir+'autorun'+pathdelim+DirInfo.name)));
-        if i<>0 then //error
+        if ((DirInfo.Attr and FaDirectory) <> FaDirectory) then
         begin
-          i:=lua_gettop(luavm);
-          if i>0 then
+
+          i:=lua_dofile(luavm, pchar( UTF8ToWinCP(CheatEngineDir+'autorun'+pathdelim+DirInfo.name)));
+          if i<>0 then //error
           begin
-            pc:=lua_tolstring(luavm, -1,nil);
-            if pc<>nil then
-              showmessage(DirInfo.name+rsError2+pc)
-            else
-              showmessage(DirInfo.name+rsError3);
-          end
-          else showmessage(DirInfo.name+rsError3);
+            i:=lua_gettop(luavm);
+            if i>0 then
+            begin
+              pc:=lua_tolstring(luavm, -1,nil);
+              if pc<>nil then
+                showmessage(DirInfo.name+rsError2+pc)
+              else
+                showmessage(DirInfo.name+rsError3);
+            end
+            else showmessage(DirInfo.name+rsError3);
+          end;
+
+          //reset stack
+          lua_pop(LuaVM, lua_gettop(luavm));
         end;
-
-        //reset stack
-        lua_pop(LuaVM, lua_gettop(luavm));
       end;
+      r := FindNext(DirInfo);
     end;
-    r := FindNext(DirInfo);
+    FindClose(DirInfo);
   end;
-  FindClose(DirInfo);
-
 
 
 end;
@@ -10144,6 +10147,8 @@ begin
   result:=0;
 end;
 
+
+
 function lua_encodeFunction(L: Plua_State): integer; cdecl;
 var
   s: TMemoryStream;
@@ -10158,7 +10163,7 @@ begin
   cs:=Tcompressionstream.create(clmax, s);
 
 
-  if (lua_gettop(L)=1) and (lua_isfunction(L, -1)) then
+  if (lua_gettop(L)=1) and (lua_isfunction(L, 1)) then
     lua_dump(L, @lwriter, cs, 1);
 
   cs.free;
@@ -10173,6 +10178,77 @@ begin
 
   result:=1;
 end;
+
+function lua_encodeFunctionEx(L: Plua_State): integer; cdecl;
+//takes a string and an optional lua dll and encode it with that dll instead
+var
+  s: TMemoryStream;
+  cs: Tcompressionstream;
+  script,luadll: string;
+  hm: HModule;
+
+  _luaL_newstate: function : Plua_State; cdecl;
+  _luaL_openlibs: procedure(L: Plua_State); cdecl;
+  _luaL_loadstring: function(L: Plua_State; const s: PChar): Integer; cdecl;
+  _lua_dump: function(L: Plua_State; writer: lua_Writer; data: Pointer; strip: integer): Integer; cdecl;
+  _lua_close: procedure(L: Plua_State); cdecl;
+
+  l2: Plua_State;
+  r: integer;
+
+  rs:  string;
+  output: pchar;
+begin
+  result:=0;
+  if lua_gettop(L)>=1 then
+  begin
+    script:=Lua_ToString(L,1);
+
+    if lua_gettop(L)>=2 then
+      luadll:=Lua_ToString(L,2)
+    else
+      luadll:=LUA_LIB_NAME;
+
+    hm:=LoadLibrary(pchar(luadll));
+    if hm<>0 then
+    begin
+      _luaL_newstate:=getprocaddress(hm,'luaL_newstate');
+      _luaL_openlibs:=getprocaddress(hm,'luaL_openlibs');
+      _luaL_loadstring:=getprocaddress(hm,'luaL_loadstring');
+      _lua_dump:=getprocaddress(hm,'lua_dump');
+      _lua_close:=getprocaddress(hm,'lua_close');
+
+
+
+      l2:=_luaL_newstate;
+      _luaL_openlibs(l2);
+      if _luaL_loadstring(l2, pchar(script))=0 then
+      begin
+        //encode the function.
+        s:=TMemoryStream.Create;
+        cs:=Tcompressionstream.create(clmax, s);
+
+        _lua_dump(L2, @lwriter, cs, 1);
+
+        cs.free;
+        getmem(output, (s.size div 4) * 5 + 5 );
+        BinToBase85(pchar(s.Memory), output, s.size);
+
+        lua_pushstring(L, output);
+        FreeMemAndNil(output);
+
+        s.free;
+
+        result:=1;
+
+        _lua_close(l2);
+
+        FreeLibrary(hm);
+      end;
+    end;
+  end;
+end;
+
 
 function lreader(L: Plua_State; ud: Pointer; sz: Psize_t): PChar; cdecl;
 var s: TMemoryStream;
@@ -11771,6 +11847,8 @@ begin
 
     lua_register(L, 'encodeFunction', lua_encodefunction);
     lua_register(L, 'decodeFunction', lua_decodeFunction);
+
+    lua_register(L, 'encodeFunctionEx', lua_encodefunctionEx);
 
     lua_register(L, 'getFileList', lua_getFileList);
     lua_register(L, 'getDirectoryList', lua_getDirectoryList);
