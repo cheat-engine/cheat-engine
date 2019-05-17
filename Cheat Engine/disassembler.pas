@@ -1911,7 +1911,7 @@ begin
         end;
 
         memory:=@memory[bytestomove];
-        inc(offset,2);
+        inc(offset,bytestomove);
       end;
 
       case opcodeflags.pp of
