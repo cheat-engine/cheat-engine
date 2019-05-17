@@ -6896,9 +6896,25 @@ begin
           if (opcodes[j].paramtype3=par_m128) and ((paramtype3=ttMemoryLocation128) or (ismemorylocationdefault(parameter3))) then
           begin
             //ymm,ymm,m128,
-            if opcodes[j].paramtype3=par_noparam then
+            if opcodes[j].paramtype4=par_noparam then
             begin
               //ymm,ymm,m128
+              if (opcodes[j].vexExtraParam=2) then
+              begin
+                addopcode(bytes,j);
+                VEXvvvv:=(not getreg(parameter2)) and $f;
+                result:=createmodrm(bytes,getreg(parameter1),parameter3);
+                exit;
+              end;
+            end;
+          end;
+
+          if (opcodes[j].paramtype3=par_m256) and ((paramtype3=ttMemoryLocation256) or (ismemorylocationdefault(parameter3))) then
+          begin
+            //ymm,ymm,m256,
+            if opcodes[j].paramtype4=par_noparam then
+            begin
+              //ymm,ymm,m256
               if (opcodes[j].vexExtraParam=2) then
               begin
                 addopcode(bytes,j);
