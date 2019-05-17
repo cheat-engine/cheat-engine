@@ -8,16 +8,16 @@ diagramstyle.instruction_hexstyle = '[34;1m' --blue + bold
 diagramstyle.instruction_symbolstyle = '[32;1m' --green + bold
 diagramstyle.instruction_opcodestyle = '[1m' --bold
 
-
 diagramstyle.link_defaultcolor = 0x00FF00FF 
 diagramstyle.link_nottakencolor = 0x000000FF --red
 diagramstyle.link_takencolor = 0x00FF0000 --blue
 diagramstyle.link_linethickness = 3*DPIAdjust
 diagramstyle.link_arrowsize = math.ceil(5*DPIAdjust)
 diagramstyle.link_pointdepth = {}
-diagramstyle.link_pointdepth[true] = 50*DPIAdjust --taken
-diagramstyle.link_pointdepth[false] = 60*DPIAdjust --not taken
-diagramstyle.link_pointdepth['backward'] = 40*DPIAdjust --backward
+diagramstyle.link_pointdepth[true] = 35*DPIAdjust --taken
+diagramstyle.link_pointdepth[false] = 85*DPIAdjust --not taken
+diagramstyle.link_pointdepth['backward'] = 55*DPIAdjust --backward
+diagramstyle.link_pointdepth['extra'] = 55*DPIAdjust --extra
 
 diagramstyle.block_headershowsymbol = true
 diagramstyle.block_bodyshowaddresses = false
@@ -26,6 +26,8 @@ diagramstyle.block_bodyshowbytes = false
 diagramstyle.block_backgroundcolor = 0x00FFFFFF --white
 
 diagramstyle.diagram_blackgroundcolor = 0x00808080 --grey
+
+diagramstyle.layer_spacebetweenlayers = 150*DPIAdjust
 
 
 
@@ -134,11 +136,10 @@ end
 
 function createDiagramForm(name)
   local form = createForm()
-  --form.AutoSize=true
   form.BorderStyle='bsSizeable'
   form.Caption=name
-  form.width=getScreenWidth() - (getScreenWidth() / 6)  --1000
-  form.height=getScreenHeight() - (getScreenHeight() / 6) --800
+  form.width=getScreenWidth() - (getScreenWidth() / 6)
+  form.height=getScreenHeight() - (getScreenHeight() / 6)
   return form
 end
 
@@ -160,7 +161,6 @@ function createDiagramBlock(diagram, name)
 end
 
 function createDiagramLink(diagram, sourceblock, destinationblock, color,offset)
-  --local diagramlink = diagram.addConnection(sourceblock, destinationblock)
   local sourceBSD={}
   sourceBSD.Block=sourceblock
   sourceBSD.Side=dbsBottom
@@ -215,16 +215,12 @@ function linkDiagramBlocks(diagram, state, dblocks, blocks)
           local linkdata={}
           linkdata.isTaken=true          
           link.Tag=createRef(linkdata)
-          
-          
           istaken[i] = false
         end
       end
     end
     if (blocks[i].jumpsTo) then --skip leaf blocks
       local destinationblock_index = blockAddressToBlockIndex(blocks, blocks[i].jumpsTo.destinationtaken)
-      
-
       
       if (destinationblock_index) then
         local linkdata={}
@@ -237,15 +233,12 @@ function linkDiagramBlocks(diagram, state, dblocks, blocks)
           offset=0          
         end
       
-      
-        
         if blocks[i].jumpsTo.logicalFollow then          
           linkdata.logicalFollow=true
           color=diagramstyle.link_defaultcolor
           offset=0
         end        
-          
-          
+              
         local link=createDiagramLink(diagram, diagramblock, dblocks[destinationblock_index], color,offset) --taken branches
         
         linkdata.isTaken=false
@@ -318,8 +311,7 @@ function generateLayers(dblocks)
   return dlayers
 end
 
-function adjustLayerBlocks(dlayer, newdblock, overlapdblock)
-  --to fix/finish
+function adjustLayerBlocks(dlayer, newdblock, overlapdblock) --to fix/finish
   local leftblocks = {}
   local rightblocks = {}
   local r = 1
@@ -332,11 +324,9 @@ function adjustLayerBlocks(dlayer, newdblock, overlapdblock)
         rightblocks[r] = dlayer[i]
         r = r + 1
       end
-    elseif (dlayer[i].x < newdblock.x) then
+    else
       leftblocks[l] = dlayer[i]
       l = l + 1
-    else
-      --nothing
     end
   end
   
@@ -368,8 +358,8 @@ function arrangeDiagramBlocks(dform, dblocks, istaken, dlayers)
       local previous_layer_index = diagramLayerBlockToDiagramLayer(dlayers, links.asDestination[1].OriginBlock)
       local previous_layer_start = links.asDestination[1].OriginBlock.y --fetch the previous layer start
       local previous_layer_stop = dlayers.height[previous_layer_index] --fetch the previous layer stop
-      --previous_layer_start + previous_layer_stop + 100*DPIAdjust leads to the current layer start 
-      local current_layer_start = previous_layer_start + previous_layer_stop + 100*DPIAdjust
+      --previous_layer_start + previous_layer_stop + diagramstyle.layer_spacebetweenlayers leads to the current layer start 
+      local current_layer_start = previous_layer_start + previous_layer_stop + diagramstyle.layer_spacebetweenlayers
       dblock.y = current_layer_start --insert the block into the current layer
 
       for j=1, #dblocks do --check for eventual overlaps
@@ -391,27 +381,28 @@ function arrangeDiagramBlocks(dform, dblocks, istaken, dlayers)
   end
 end
 
-function arrangeDiagramLinks(dblocks, istaken)
+function arrangeDiagramLinks(dblocks, istaken, dlayers)
   local dlinks, k = fetchLinks(dblocks)
 
   for i,dlink in pairs(dlinks) do
     local odesc=dlink.OriginDescriptor
     local ddesc=dlink.DestinationDescriptor
 
-    local index = diagramBlockToDiagramBlockIndex(dblocks, dlink.DestinationBlock)
+    local b_index = diagramBlockToDiagramBlockIndex(dblocks, dlink.DestinationBlock)
+    local l_index = diagramLayerBlockToDiagramLayer(dlayers, dlink.OriginBlock)
     
     if (dlink.DestinationBlock.Y > dlink.OriginBlock.Y) then --branching forward
-      dlink.addPoint(dlink.OriginBlock.X + (dlink.OriginBlock.Width / 2)+odesc.Position, dlink.OriginBlock.Y + dlink.OriginBlock.Height + diagramstyle.link_pointdepth[istaken[index]], 0)       
-      dlink.addPoint(dlink.DestinationBlock.X + (dlink.DestinationBlock.Width / 2), dlink.OriginBlock.Y + dlink.OriginBlock.Height + diagramstyle.link_pointdepth[istaken[index]], 1)
+      dlink.addPoint(dlink.OriginBlock.X + (dlink.OriginBlock.Width / 2)+odesc.Position, dlink.OriginBlock.Y + dlayers.height[l_index] + diagramstyle.link_pointdepth[istaken[b_index]], 0)       
+      dlink.addPoint(dlink.DestinationBlock.X + (dlink.DestinationBlock.Width / 2), dlink.OriginBlock.Y + dlayers.height[l_index] + diagramstyle.link_pointdepth[istaken[b_index]], 1)
       k = 2
     else --branching backward
-      dlink.addPoint(dlink.OriginBlock.X + (dlink.OriginBlock.Width / 2)+odesc.Position, dlink.OriginBlock.Y + dlink.OriginBlock.Height + diagramstyle.link_pointdepth["backward"], 0)
+      dlink.addPoint(dlink.OriginBlock.X + (dlink.OriginBlock.Width / 2)+odesc.Position, dlink.OriginBlock.Y + dlayers.height[l_index] + diagramstyle.link_pointdepth["backward"], 0)
       if (dlink.DestinationBlock.X < dlink.OriginBlock.X) then
-        dlink.addPoint(dlink.DestinationBlock.X + dlink.DestinationBlock.Width + 50*DPIAdjust, dlink.OriginBlock.Y + dlink.OriginBlock.Height + diagramstyle.link_pointdepth["backward"], 1)
-        dlink.addPoint(dlink.DestinationBlock.X + dlink.DestinationBlock.Width + 50*DPIAdjust, dlink.DestinationBlock.Y - diagramstyle.link_pointdepth["backward"], 2)
+        dlink.addPoint(dlink.DestinationBlock.X + dlink.DestinationBlock.Width + diagramstyle.link_pointdepth["backward"], dlink.OriginBlock.Y + dlayers.height[l_index] + diagramstyle.link_pointdepth["backward"], 1)
+        dlink.addPoint(dlink.DestinationBlock.X + dlink.DestinationBlock.Width + diagramstyle.link_pointdepth["backward"], dlink.DestinationBlock.Y - diagramstyle.link_pointdepth["backward"], 2)
       else
-        dlink.addPoint(dlink.DestinationBlock.X - 50*DPIAdjust, dlink.OriginBlock.Y + dlink.OriginBlock.Height + diagramstyle.link_pointdepth["backward"], 1)
-        dlink.addPoint(dlink.DestinationBlock.X - 50*DPIAdjust, dlink.DestinationBlock.Y - diagramstyle.link_pointdepth["backward"], 2)
+        dlink.addPoint(dlink.DestinationBlock.X - diagramstyle.link_pointdepth["backward"], dlink.OriginBlock.Y + dlayers.height[l_index] + diagramstyle.link_pointdepth["backward"], 1)
+        dlink.addPoint(dlink.DestinationBlock.X - diagramstyle.link_pointdepth["backward"], dlink.DestinationBlock.Y - diagramstyle.link_pointdepth["backward"], 2)
       end
       dlink.addPoint(dlink.DestinationBlock.X + (dlink.DestinationBlock.Width / 2), dlink.DestinationBlock.Y - diagramstyle.link_pointdepth["backward"], 3)
       k = 3
@@ -433,14 +424,17 @@ function arrangeDiagramLinks(dblocks, istaken)
                                                                            dlink.OriginBlock.Caption, 
                                                                            dblocks[j].Caption, 
                                                                            dlink.DestinationBlock.Caption))
+
           dblocks[j].BackgroundColor = 0
 
         end
       end
     end
 
+    print("\n")
+
     --vertical conflicts
-    print("\n\n\n\nvertical conflicts:")
+    print("vertical conflicts:")
     if (dlink.Points[0]) then
       local rect = {} 
       rect.x = math.min(dlink.Points[1].x, dlink.Points[0].x)
@@ -459,6 +453,7 @@ function arrangeDiagramLinks(dblocks, istaken)
 
         end
       end
+      print("\n\n\n\n")
     end
 
   end
@@ -474,7 +469,7 @@ function spawnDiagram(start, limit)
   local dlayers = generateLayers(dblocks)
   maxx,maxy=arrangeDiagramBlocks(dform, dblocks, istaken, dlayers)
 
-  arrangeDiagramLinks(dblocks, istaken)
+  arrangeDiagramLinks(dblocks, istaken, dlayers)
 
   ddiagram.repaint()
 end
