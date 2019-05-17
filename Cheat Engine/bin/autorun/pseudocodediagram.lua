@@ -416,7 +416,7 @@ function arrangeDiagramLinks(dblocks, istaken, dlayers)
         dlink.addPoint(dlink.DestinationBlock.X - offset, dlink.DestinationBlock.Y - offset, 2)
       end
       dlink.addPoint(dlink.DestinationBlock.X + (dlink.DestinationBlock.Width / 2), dlink.DestinationBlock.Y - offset, 3)
-      k = 3
+      k = 4
     end
 
     --vertical conflicts
@@ -432,7 +432,7 @@ function arrangeDiagramLinks(dblocks, istaken, dlayers)
           --[[
           if (math.abs(dblocks[j].x - rect.x) <= math.abs(dblocks[j].x + dblocks[j].width - rect.x) ) then
             if (dblocks[j].Y > dlink.Points[1].y) and (dblocks[j].Y + dblocks[j].height < dlink.DestinationBlock.y) then
-              dlink.addPoint(dlink.DestinationBlock.X + (dlink.DestinationBlock.Width / 2), dblocks[j].Y - diagramstyle.link_pointdepth["extra"], k)
+              dlink.addPoint(dlink.DestinationBlock.X + (dlink.DestinationBlock.Width / 2), dblocks[j].Y - 50*DPIAdjust, k)
               k = k + 1
             end
           end
