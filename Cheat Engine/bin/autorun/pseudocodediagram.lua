@@ -14,14 +14,15 @@ diagramstyle.link_takencolor = 0x00FF0000 --blue
 diagramstyle.link_linethickness = 3*DPIAdjust
 diagramstyle.link_arrowsize = math.ceil(5*DPIAdjust)
 diagramstyle.link_pointdepth = {}
-diagramstyle.link_pointdepth[true] = {}
-diagramstyle.link_pointdepth[false] = {}
-diagramstyle.link_pointdepth[true].start = 10*DPIAdjust --taken
-diagramstyle.link_pointdepth[true].stop = 100-10*DPIAdjust --taken
-diagramstyle.link_pointdepth[false].start = 100*DPIAdjust --not taken
-diagramstyle.link_pointdepth[false].stop = 200-10*DPIAdjust --not taken
-diagramstyle.link_pointdepth['backward'] = 55*DPIAdjust --backward
-diagramstyle.link_pointdepth['extra'] = 55*DPIAdjust --extra
+diagramstyle.link_pointdepth.taken = {}
+diagramstyle.link_pointdepth.nottaken = {}
+diagramstyle.link_pointdepth.backward = {}
+diagramstyle.link_pointdepth.backward.start = 10*DPIAdjust --backward
+diagramstyle.link_pointdepth.backward.stop = 50*DPIAdjust --backward
+diagramstyle.link_pointdepth.taken.start = 60*DPIAdjust --taken
+diagramstyle.link_pointdepth.taken.stop = 130*DPIAdjust --taken
+diagramstyle.link_pointdepth.nottaken.start = 140*DPIAdjust --not taken
+diagramstyle.link_pointdepth.nottaken.stop = 190*DPIAdjust --not taken
 
 diagramstyle.layer_spacebetweenlayers = 200*DPIAdjust
 
@@ -393,32 +394,32 @@ function arrangeDiagramLinks(dblocks, istaken, dlayers)
     local b_index = diagramBlockToDiagramBlockIndex(dblocks, dlink.DestinationBlock)
     local l_index, lb_index = diagramLayerBlockToDiagramLayer(dlayers, dlink.OriginBlock)
     local l_size = #dlayers.layer[l_index]
-    local yoffset
-    if (istaken[b_index]) then
-      yoffset = (diagramstyle.link_pointdepth[true].stop - diagramstyle.link_pointdepth[true].start) / l_size * lb_index + diagramstyle.link_pointdepth[true].start
-    else
-      yoffset = (diagramstyle.link_pointdepth[false].stop - diagramstyle.link_pointdepth[false].start) / l_size * lb_index + diagramstyle.link_pointdepth[false].start
-    end
+    local offset
     
     if (dlink.DestinationBlock.Y > dlink.OriginBlock.Y) then --branching forward
-      dlink.addPoint(dlink.OriginBlock.X + (dlink.OriginBlock.Width / 2)+odesc.Position, dlink.OriginBlock.Y + dlayers.height[l_index] + yoffset, 0)       
-      dlink.addPoint(dlink.DestinationBlock.X + (dlink.DestinationBlock.Width / 2), dlink.OriginBlock.Y + dlayers.height[l_index] + yoffset, 1)
+      if (istaken[b_index]) then
+        offset = (diagramstyle.link_pointdepth.taken.stop - diagramstyle.link_pointdepth.taken.start) / l_size * lb_index + diagramstyle.link_pointdepth.taken.start
+      else
+        offset = (diagramstyle.link_pointdepth.nottaken.stop - diagramstyle.link_pointdepth.nottaken.start) / l_size * lb_index + diagramstyle.link_pointdepth.nottaken.start
+      end
+      dlink.addPoint(dlink.OriginBlock.X + (dlink.OriginBlock.Width / 2)+odesc.Position, dlink.OriginBlock.Y + dlayers.height[l_index] + offset, 0)       
+      dlink.addPoint(dlink.DestinationBlock.X + (dlink.DestinationBlock.Width / 2), dlink.OriginBlock.Y + dlayers.height[l_index] + offset, 1)
       k = 2
     else --branching backward
-      dlink.addPoint(dlink.OriginBlock.X + (dlink.OriginBlock.Width / 2)+odesc.Position, dlink.OriginBlock.Y + dlayers.height[l_index] + diagramstyle.link_pointdepth["backward"], 0)
+      offset = (diagramstyle.link_pointdepth.backward.stop - diagramstyle.link_pointdepth.backward.start) / l_size * lb_index + diagramstyle.link_pointdepth.backward.start
+      dlink.addPoint(dlink.OriginBlock.X + (dlink.OriginBlock.Width / 2)+odesc.Position, dlink.OriginBlock.Y + dlayers.height[l_index] + offset, 0)
       if (dlink.DestinationBlock.X < dlink.OriginBlock.X) then
-        dlink.addPoint(dlink.DestinationBlock.X + dlink.DestinationBlock.Width + diagramstyle.link_pointdepth["backward"], dlink.OriginBlock.Y + dlayers.height[l_index] + diagramstyle.link_pointdepth["backward"], 1)
-        dlink.addPoint(dlink.DestinationBlock.X + dlink.DestinationBlock.Width + diagramstyle.link_pointdepth["backward"], dlink.DestinationBlock.Y - diagramstyle.link_pointdepth["backward"], 2)
+        dlink.addPoint(dlink.DestinationBlock.X + dlink.DestinationBlock.Width + offset, dlink.OriginBlock.Y + dlayers.height[l_index] + offset, 1)
+        dlink.addPoint(dlink.DestinationBlock.X + dlink.DestinationBlock.Width + offset, dlink.DestinationBlock.Y - offset, 2)
       else
-        dlink.addPoint(dlink.DestinationBlock.X - diagramstyle.link_pointdepth["backward"], dlink.OriginBlock.Y + dlayers.height[l_index] + diagramstyle.link_pointdepth["backward"], 1)
-        dlink.addPoint(dlink.DestinationBlock.X - diagramstyle.link_pointdepth["backward"], dlink.DestinationBlock.Y - diagramstyle.link_pointdepth["backward"], 2)
+        dlink.addPoint(dlink.DestinationBlock.X - offset, dlink.OriginBlock.Y + dlayers.height[l_index] + offset, 1)
+        dlink.addPoint(dlink.DestinationBlock.X - offset, dlink.DestinationBlock.Y - offset, 2)
       end
-      dlink.addPoint(dlink.DestinationBlock.X + (dlink.DestinationBlock.Width / 2), dlink.DestinationBlock.Y - diagramstyle.link_pointdepth["backward"], 3)
+      dlink.addPoint(dlink.DestinationBlock.X + (dlink.DestinationBlock.Width / 2), dlink.DestinationBlock.Y - offset, 3)
       k = 3
     end
 
-    --horizontal conflicts
-    print("horizontal conflicts:")
+    --vertical conflicts
     if (dlink.Points[1]) then
       local rect = {} 
       rect.x = dlink.Points[1].x
@@ -428,22 +429,19 @@ function arrangeDiagramLinks(dblocks, istaken, dlayers)
       for j=1, #dblocks do
         if rectOverlapped(rect, dblocks[j]) and dblocks[j] ~= dlink.DestinationBlock then
           --do stuff here...
-
-          print(string.format("origin%d: %s\nmiddle: %s\ndestination: %s", diagramBlockToDiagramBlockIndex(dblocks, dlink.OriginBlock), 
-                                                                           dlink.OriginBlock.Caption, 
-                                                                           dblocks[j].Caption, 
-                                                                           dlink.DestinationBlock.Caption))
-
-          dblocks[j].BackgroundColor = 0
-
+          --[[
+          if (math.abs(dblocks[j].x - rect.x) <= math.abs(dblocks[j].x + dblocks[j].width - rect.x) ) then
+            if (dblocks[j].Y > dlink.Points[1].y) and (dblocks[j].Y + dblocks[j].height < dlink.DestinationBlock.y) then
+              dlink.addPoint(dlink.DestinationBlock.X + (dlink.DestinationBlock.Width / 2), dblocks[j].Y - diagramstyle.link_pointdepth["extra"], k)
+              k = k + 1
+            end
+          end
+          ]]
         end
       end
     end
 
-    print("\n")
-
-    --vertical conflicts
-    print("vertical conflicts:")
+    --horizontal conflicts
     if (dlink.Points[0]) then
       local rect = {} 
       rect.x = math.min(dlink.Points[1].x, dlink.Points[0].x)
@@ -454,15 +452,8 @@ function arrangeDiagramLinks(dblocks, istaken, dlayers)
         if rectOverlapped(rect, dblocks[j]) and dblocks[j] ~= dlink.DestinationBlock then 
           --do stuff here...
 
-          print(string.format("origin%d: %s\nmiddle: %s\ndestination: %s", diagramBlockToDiagramBlockIndex(dblocks, dlink.OriginBlock), 
-                                                                           dlink.OriginBlock.Caption, 
-                                                                           dblocks[j].Caption, 
-                                                                           dlink.DestinationBlock.Caption))  
-          if dblocks[j].BackgroundColor ~= 0 then dblocks[j].BackgroundColor = 0x00ff00ff else dblocks[j].BackgroundColor = 0x000000ff end
-
         end
       end
-      print("\n\n\n\n")
     end
 
   end
