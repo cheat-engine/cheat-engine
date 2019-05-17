@@ -14,10 +14,16 @@ diagramstyle.link_takencolor = 0x00FF0000 --blue
 diagramstyle.link_linethickness = 3*DPIAdjust
 diagramstyle.link_arrowsize = math.ceil(5*DPIAdjust)
 diagramstyle.link_pointdepth = {}
-diagramstyle.link_pointdepth[true] = 35*DPIAdjust --taken
-diagramstyle.link_pointdepth[false] = 85*DPIAdjust --not taken
+diagramstyle.link_pointdepth[true] = {}
+diagramstyle.link_pointdepth[false] = {}
+diagramstyle.link_pointdepth[true].start = 10*DPIAdjust --taken
+diagramstyle.link_pointdepth[true].stop = 100-10*DPIAdjust --taken
+diagramstyle.link_pointdepth[false].start = 100*DPIAdjust --not taken
+diagramstyle.link_pointdepth[false].stop = 200-10*DPIAdjust --not taken
 diagramstyle.link_pointdepth['backward'] = 55*DPIAdjust --backward
 diagramstyle.link_pointdepth['extra'] = 55*DPIAdjust --extra
+
+diagramstyle.layer_spacebetweenlayers = 200*DPIAdjust
 
 diagramstyle.block_headershowsymbol = true
 diagramstyle.block_bodyshowaddresses = false
@@ -26,8 +32,6 @@ diagramstyle.block_bodyshowbytes = false
 diagramstyle.block_backgroundcolor = 0x00FFFFFF --white
 
 diagramstyle.diagram_blackgroundcolor = 0x00808080 --grey
-
-diagramstyle.layer_spacebetweenlayers = 150*DPIAdjust
 
 
 
@@ -92,7 +96,7 @@ function diagramLayerBlockToDiagramLayer(dlayers, dlblock)
   for i=1, #dlayers.layer do
     for j=1, #dlayers.layer[i] do
       if (dlayers.layer[i][j] == dlblock) then
-        return i
+        return i, j
       end
     end
   end
@@ -291,13 +295,11 @@ function generateLayers(dblocks)
     local links = dblocks[i].getLinks()
     --get the previous layer index (new layer = previous + 1)
     local index = diagramLayerBlockToDiagramLayer(dlayers, links.asDestination[1].OriginBlock) 
-    k = 1
     if (dlayers.layer[index + 1] ~= nil) then --first block in the current layer?
-      while dlayers.layer[index + 1][k] ~= nil do k = k + 1 end 
-      dlayers.layer[index + 1][k] = dblocks[i]
+      dlayers.layer[index + 1][#dlayers.layer[index + 1]+1] = dblocks[i]
     else
       dlayers.layer[index + 1] = {}
-      dlayers.layer[index + 1][k] = dblocks[i]
+      dlayers.layer[index + 1][1] = dblocks[i]
     end
   end
   local max
@@ -389,11 +391,18 @@ function arrangeDiagramLinks(dblocks, istaken, dlayers)
     local ddesc=dlink.DestinationDescriptor
 
     local b_index = diagramBlockToDiagramBlockIndex(dblocks, dlink.DestinationBlock)
-    local l_index = diagramLayerBlockToDiagramLayer(dlayers, dlink.OriginBlock)
+    local l_index, lb_index = diagramLayerBlockToDiagramLayer(dlayers, dlink.OriginBlock)
+    local l_size = #dlayers.layer[l_index]
+    local yoffset
+    if (istaken[b_index]) then
+      yoffset = (diagramstyle.link_pointdepth[true].stop - diagramstyle.link_pointdepth[true].start) / l_size * lb_index + diagramstyle.link_pointdepth[true].start
+    else
+      yoffset = (diagramstyle.link_pointdepth[false].stop - diagramstyle.link_pointdepth[false].start) / l_size * lb_index + diagramstyle.link_pointdepth[false].start
+    end
     
     if (dlink.DestinationBlock.Y > dlink.OriginBlock.Y) then --branching forward
-      dlink.addPoint(dlink.OriginBlock.X + (dlink.OriginBlock.Width / 2)+odesc.Position, dlink.OriginBlock.Y + dlayers.height[l_index] + diagramstyle.link_pointdepth[istaken[b_index]], 0)       
-      dlink.addPoint(dlink.DestinationBlock.X + (dlink.DestinationBlock.Width / 2), dlink.OriginBlock.Y + dlayers.height[l_index] + diagramstyle.link_pointdepth[istaken[b_index]], 1)
+      dlink.addPoint(dlink.OriginBlock.X + (dlink.OriginBlock.Width / 2)+odesc.Position, dlink.OriginBlock.Y + dlayers.height[l_index] + yoffset, 0)       
+      dlink.addPoint(dlink.DestinationBlock.X + (dlink.DestinationBlock.Width / 2), dlink.OriginBlock.Y + dlayers.height[l_index] + yoffset, 1)
       k = 2
     else --branching backward
       dlink.addPoint(dlink.OriginBlock.X + (dlink.OriginBlock.Width / 2)+odesc.Position, dlink.OriginBlock.Y + dlayers.height[l_index] + diagramstyle.link_pointdepth["backward"], 0)
