@@ -1,7 +1,7 @@
 object frmExeTrainerGenerator: TfrmExeTrainerGenerator
-  Left = 154
+  Left = 844
   Height = 252
-  Top = 333
+  Top = 387
   Width = 597
   AutoSize = True
   Caption = 'Exe Trainer Generator'
@@ -15,7 +15,7 @@ object frmExeTrainerGenerator: TfrmExeTrainerGenerator
   OnCreate = FormCreate
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '1.6.4.0'
+  LCLVersion = '2.0.0.4'
   object Panel1: TPanel
     Left = 0
     Height = 206
@@ -46,9 +46,8 @@ object frmExeTrainerGenerator: TfrmExeTrainerGenerator
         Width = 142
         BorderSpacing.Left = 8
         Caption = 'Target process is 32-bit'
-        Checked = True
+        ParentShowHint = False
         TabOrder = 0
-        TabStop = True
       end
       object rb64: TRadioButton
         AnchorSideLeft.Control = rb32
@@ -59,7 +58,9 @@ object frmExeTrainerGenerator: TfrmExeTrainerGenerator
         Top = 19
         Width = 142
         Caption = 'Target process is 64-bit'
+        Checked = True
         TabOrder = 1
+        TabStop = True
       end
     end
     object GroupBox2: TGroupBox
