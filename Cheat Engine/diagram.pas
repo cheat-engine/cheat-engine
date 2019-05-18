@@ -1000,7 +1000,7 @@ var
   newscrolly: integer;
 begin
   result:=false;
-  if shift=[] then
+  if shift<>[ssshift] then
   begin
     if vscrollbar.Visible then
     begin
@@ -1009,6 +1009,11 @@ begin
       if newposition>vscrollbar.Max-vscrollbar.PageSize then newposition:=vscrollbar.max-vscrollbar.PageSize;
 
       vscrollbar.position:=newposition;
+
+      if shift<>[] then
+      begin
+        MouseMove(shift,mousepos.x,mousepos.y);
+      end;
     end;
   end
   else
