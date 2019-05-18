@@ -13,18 +13,9 @@ diagramstyle.link_nottakencolor = 0x000000FF --red
 diagramstyle.link_takencolor = 0x00FF0000 --blue
 diagramstyle.link_linethickness = 3*DPIAdjust
 diagramstyle.link_arrowsize = math.ceil(5*DPIAdjust)
-diagramstyle.link_pointdepth = {}
-diagramstyle.link_pointdepth.taken = {}
-diagramstyle.link_pointdepth.nottaken = {}
-diagramstyle.link_pointdepth.backward = {}
-diagramstyle.link_pointdepth.backward.start = 10*DPIAdjust --backward
-diagramstyle.link_pointdepth.backward.stop = 50*DPIAdjust --backward
-diagramstyle.link_pointdepth.taken.start = 60*DPIAdjust --taken
-diagramstyle.link_pointdepth.taken.stop = 130*DPIAdjust --taken
-diagramstyle.link_pointdepth.nottaken.start = 140*DPIAdjust --not taken
-diagramstyle.link_pointdepth.nottaken.stop = 190*DPIAdjust --not taken
+diagramstyle.link_pointdepth = 10*DPIAdjust
 
-diagramstyle.layer_spacebetweenlayers = 200*DPIAdjust
+diagramstyle.layer_offsetbetweenlayers = 20*DPIAdjust
 
 diagramstyle.block_headershowsymbol = true
 diagramstyle.block_bodyshowaddresses = false
@@ -273,6 +264,15 @@ function rectOverlapped(rect1, rect2)
   return false
 end
 
+function blockDoesOverlap(dblocks, dblock)
+  for j=1, #dblocks do
+    if (dblock~=dblocks[j]) and (dblock.overlapsWith(dblocks[j])) then
+      return dblocks[j]
+    end
+  end
+  return nil
+end
+
 function fetchLinks(dblocks)
   local dlinks, k = {}, 1
   for i=1, #dblocks do
@@ -289,6 +289,7 @@ function generateLayers(dblocks)
   local dlayers = {}
   dlayers.layer = {}
   dlayers.height = {}
+  dlayers.y = {}
 
   dlayers.layer[1] = {}
   dlayers.layer[1][1] = dblocks[1] --layer 1 = starting block
@@ -314,13 +315,13 @@ function generateLayers(dblocks)
   return dlayers
 end
 
-function adjustLayerBlocks(dlayer, newdblock, overlapdblock) --to fix/finish
+function adjustLayerBlocks(dlayer, newdblock, overlapdblock, dblocks) --to fix/finish
   local leftblocks = {}
   local rightblocks = {}
   local r = 1
   local l = 1
-
-  --move the layer blocks at the right/left of the new block based on the conflict
+  
+  --move the layer blocks (+ roots) at the right/left of the new block based on the conflict
   for i=1, #dlayer do
     if (dlayer[i].x >= newdblock.x) then
       if dlayer[i] ~= newdblock then
@@ -332,17 +333,45 @@ function adjustLayerBlocks(dlayer, newdblock, overlapdblock) --to fix/finish
       l = l + 1
     end
   end
-  
+
+  local links, current, moved, index, temp --to improve
+  moved = {}
+  moved[1]=true --ignore starting block
+
   if (overlapdblock.x >= newdblock.x) then
     for i=1, #rightblocks do
-      rightblocks[i].x =  rightblocks[i].x + newdblock.width
+      rightblocks[i].x =  rightblocks[i].x + newdblock.width + 25*DPIAdjust
+      links = rightblocks[i].getLinks()
+      repeat
+        current = links.asDestination[1].OriginBlock
+        index = diagramBlockToDiagramBlockIndex(dblocks, current)
+        if (not moved[index]) then
+          temp = current.x
+          current.x = current.x + newdblock.width + 25*DPIAdjust
+          if blockDoesOverlap(dblocks, current) then current.x = temp end --temp solution
+          moved[index] = true
+        end
+        links = current.getLinks()
+      until (links.asDestination[1] == nil)
     end
   else
     for i=1, #leftblocks do
-      leftblocks[i].x =  leftblocks[i].x - newdblock.width
+      leftblocks[i].x =  leftblocks[i].x - newdblock.width - 25*DPIAdjust
+      links = leftblocks[i].getLinks()
+      repeat
+        current = links.asDestination[1].OriginBlock
+        index = diagramBlockToDiagramBlockIndex(dblocks, current)
+        if (not moved[index]) then
+          temp = current.x
+          current.x = current.x - newdblock.width - 25*DPIAdjust
+          if blockDoesOverlap(dblocks, current) then current.x = temp end --temp solution
+          moved[index] = true
+        end
+        links = current.getLinks()
+      until (links.asDestination[1] == nil)
     end
   end
- 
+
 end
 
 function arrangeDiagramBlocks(dform, dblocks, istaken, dlayers)
@@ -351,26 +380,25 @@ function arrangeDiagramBlocks(dform, dblocks, istaken, dlayers)
    
     if (i > 1) then      
       local links = dblock.getLinks()
+    
       if (istaken[i]) then 
-        dblock.x = links.asDestination[1].OriginBlock.x - dblock.width - 50*DPIAdjust
+        dblock.x = links.asDestination[1].OriginBlock.x - dblock.width + 50*DPIAdjust
       else
-        dblock.x = links.asDestination[1].OriginBlock.x + links.asDestination[1].OriginBlock.width + 50*DPIAdjust
+        dblock.x = links.asDestination[1].OriginBlock.x + links.asDestination[1].OriginBlock.width - 50*DPIAdjust
       end
 
       --fetch the previous layer in order to evaluate where the current layer starts
       local previous_layer_index = diagramLayerBlockToDiagramLayer(dlayers, links.asDestination[1].OriginBlock)
-      local previous_layer_start = links.asDestination[1].OriginBlock.y --fetch the previous layer start
-      local previous_layer_stop = dlayers.height[previous_layer_index] --fetch the previous layer stop
-      --previous_layer_start + previous_layer_stop + diagramstyle.layer_spacebetweenlayers leads to the current layer start 
-      local current_layer_start = previous_layer_start + previous_layer_stop + diagramstyle.layer_spacebetweenlayers
-      dblock.y = current_layer_start --insert the block into the current layer
+      local previous_layer_start = links.asDestination[1].OriginBlock.y--dlayers.y[previous_layer_index]
+      local previous_layer_stop = dlayers.height[previous_layer_index]
+      local previous_layer_size = #dlayers.layer[previous_layer_index]
+      local current_layer_start = previous_layer_start + previous_layer_stop + (diagramstyle.link_pointdepth * previous_layer_size * 2) + (diagramstyle.layer_offsetbetweenlayers * 6)
+      dblock.y = current_layer_start
 
-      for j=1, #dblocks do --check for eventual overlaps
-       
-        if (dblock~=dblocks[j]) and (dblock.overlapsWith(dblocks[j])) then
-          index = diagramLayerBlockToDiagramLayer(dlayers, dblocks[j])
-          adjustLayerBlocks(dlayers.layer[index], dblock, dblocks[j]) --adjust all the blocks of the current layer when inserting a new one (in case of overlap)
-        end
+      local overlap = blockDoesOverlap(dblocks, dblock) --check for eventual overlaps
+      if (overlap ~= nil) then
+        index = diagramLayerBlockToDiagramLayer(dlayers, overlap)
+        adjustLayerBlocks(dlayers.layer[index], dblock, overlap, dblocks) --adjust all the blocks of the current layer when inserting a new one (in case of overlap)
       end
       
       if dblock.x<0 then --too far too the left, move everything
@@ -390,23 +418,18 @@ function arrangeDiagramLinks(dblocks, istaken, dlayers)
   for i,dlink in pairs(dlinks) do
     local odesc=dlink.OriginDescriptor
     local ddesc=dlink.DestinationDescriptor
-
     local b_index = diagramBlockToDiagramBlockIndex(dblocks, dlink.DestinationBlock)
     local l_index, lb_index = diagramLayerBlockToDiagramLayer(dlayers, dlink.OriginBlock)
     local l_size = #dlayers.layer[l_index]
-    local offset
+    local l_conduit = (diagramstyle.link_pointdepth * l_size * 2) + diagramstyle.layer_offsetbetweenlayers
+    local offset = (l_conduit / l_size) * lb_index
     
     if (dlink.DestinationBlock.Y > dlink.OriginBlock.Y) then --branching forward
-      if (istaken[b_index]) then
-        offset = (diagramstyle.link_pointdepth.taken.stop - diagramstyle.link_pointdepth.taken.start) / l_size * lb_index + diagramstyle.link_pointdepth.taken.start
-      else
-        offset = (diagramstyle.link_pointdepth.nottaken.stop - diagramstyle.link_pointdepth.nottaken.start) / l_size * lb_index + diagramstyle.link_pointdepth.nottaken.start
-      end
+      if (istaken[b_index]) then offset = offset + diagramstyle.link_pointdepth end
       dlink.addPoint(dlink.OriginBlock.X + (dlink.OriginBlock.Width / 2)+odesc.Position, dlink.OriginBlock.Y + dlayers.height[l_index] + offset, 0)       
       dlink.addPoint(dlink.DestinationBlock.X + (dlink.DestinationBlock.Width / 2), dlink.OriginBlock.Y + dlayers.height[l_index] + offset, 1)
       k = 2
     else --branching backward
-      offset = (diagramstyle.link_pointdepth.backward.stop - diagramstyle.link_pointdepth.backward.start) / l_size * lb_index + diagramstyle.link_pointdepth.backward.start
       dlink.addPoint(dlink.OriginBlock.X + (dlink.OriginBlock.Width / 2)+odesc.Position, dlink.OriginBlock.Y + dlayers.height[l_index] + offset, 0)
       if (dlink.DestinationBlock.X < dlink.OriginBlock.X) then
         dlink.addPoint(dlink.DestinationBlock.X + dlink.DestinationBlock.Width + offset, dlink.OriginBlock.Y + dlayers.height[l_index] + offset, 1)
@@ -451,7 +474,6 @@ function arrangeDiagramLinks(dblocks, istaken, dlayers)
       for j=1, #dblocks do
         if rectOverlapped(rect, dblocks[j]) and dblocks[j] ~= dlink.DestinationBlock then 
           --do stuff here...
-
         end
       end
     end
@@ -468,20 +490,15 @@ function spawnDiagram(start, limit)
   local istaken = linkDiagramBlocks(ddiagram, state, dblocks, blocks)
   local dlayers = generateLayers(dblocks)
   maxx,maxy=arrangeDiagramBlocks(dform, dblocks, istaken, dlayers)
-
   arrangeDiagramLinks(dblocks, istaken, dlayers)
-
   ddiagram.repaint()
 end
 
 function MenuSpawnDiagram()
   local mv=getMemoryViewForm()
-  
   local a=mv.DisassemblerView.SelectedAddress
   local b=mv.DisassemblerView.SelectedAddress2 or a
-  
   a=math.min(a,b);
-  
   spawnDiagram(a,100000)
 end
 
