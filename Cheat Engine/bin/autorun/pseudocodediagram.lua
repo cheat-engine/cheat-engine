@@ -247,23 +247,6 @@ function linkDiagramBlocks(diagram, state, dblocks, blocks)
   return istaken
 end
 
-function xOverlapped(x1, x2, width1, width2)
-  return (x1 >= x2 and x1 <= x2 + width2) or (x2 >= x1 and x2 <= x1 + width1)
-end
-
-function yOverlapped(y1, y2, height1, height2)
-  return (y1 >= y2 and y1 <= y2 + height2) or (y2 >= y1 and y2 <= y1 + height1)
-end
-
-function rectOverlapped(rect1, rect2)
-  if (xOverlapped(rect1.x, rect2.x, rect1.width, rect2.width)) then
-    if (yOverlapped(rect1.y, rect2.y, rect1.height, rect2.height)) then
-      return true
-    end
-  end
-  return false
-end
-
 function blockDoesOverlap(dblocks, dblock)
   for j=1, #dblocks do
     if (dblock~=dblocks[j]) and (dblock.overlapsWith(dblocks[j])) then
@@ -271,6 +254,12 @@ function blockDoesOverlap(dblocks, dblock)
     end
   end
   return nil
+end
+
+function moveEverything(dblocks, offset)
+  for k=1,#dblocks do
+    dblocks[k].x=dblocks[k].x+offset
+  end
 end
 
 function fetchLinks(dblocks)
@@ -285,29 +274,42 @@ function fetchLinks(dblocks)
   return dlinks
 end
 
+function getLayers(dlayers, dblock, dblocks, layer, visited)
+  if (dblock ~= nil) then 
+    if (dlayers.layer[layer]== nil) then
+      dlayers.layer[layer] = {}
+      dlayers.layer[layer][1] = dblock
+    else
+      dlayers.layer[layer][#dlayers.layer[layer]+1] = dblock
+    end
+    local links = dblock.getLinks()
+    dblock.Caption = string.format("layer %d  -  block index %d", layer, #dlayers.layer[layer]) --debug
+    visited[diagramBlockToDiagramBlockIndex(dblocks, dblock)] = true
+    if links.asSource[1] then 
+      if (visited[diagramBlockToDiagramBlockIndex(dblocks, links.asSource[1].DestinationBlock)] == nil) then
+        getLayers(dlayers, links.asSource[1].DestinationBlock, dblocks, layer+1, visited) --recursion
+      end
+    end
+    if links.asSource[2] then 
+      if (visited[diagramBlockToDiagramBlockIndex(dblocks, links.asSource[2].DestinationBlock)] == nil) then
+        getLayers(dlayers, links.asSource[2].DestinationBlock, dblocks, layer+1, visited) --recursion
+      end
+    end
+  end
+end
+
 function generateLayers(dblocks)
+  local visited = {}
   local dlayers = {}
   dlayers.layer = {}
   dlayers.height = {}
-  dlayers.y = {}
 
-  dlayers.layer[1] = {}
-  dlayers.layer[1][1] = dblocks[1] --layer 1 = starting block
-  for i=2, #dblocks do --create subsequent layers
-    local links = dblocks[i].getLinks()
-    --get the previous layer index (new layer = previous + 1)
-    local index = diagramLayerBlockToDiagramLayer(dlayers, links.asDestination[1].OriginBlock) 
-    if (dlayers.layer[index + 1] ~= nil) then --first block in the current layer?
-      dlayers.layer[index + 1][#dlayers.layer[index + 1]+1] = dblocks[i]
-    else
-      dlayers.layer[index + 1] = {}
-      dlayers.layer[index + 1][1] = dblocks[i]
-    end
-  end
+  getLayers(dlayers, dblocks[1], dblocks, 1, visited)
+
   local max
   for i=1, #dlayers.layer do --get layers height
     max = dlayers.layer[i][1].height
-    for j=2, #dlayers.layer[i] do
+    for j=1, #dlayers.layer[i] do
       max = math.max(max, dlayers.layer[i][j].height)
     end
     dlayers.height[i] = max
@@ -315,7 +317,7 @@ function generateLayers(dblocks)
   return dlayers
 end
 
-function adjustLayerBlocks(dlayer, newdblock, overlapdblock, dblocks) --to fix/finish
+function adjustLayerBlocks(dlayer, newdblock, overlapdblock, dblocks) --to fix/finish/improve/erase(when possible)
   local leftblocks = {}
   local rightblocks = {}
   local r = 1
@@ -376,107 +378,83 @@ end
 
 function arrangeDiagramBlocks(dform, dblocks, istaken, dlayers)
   dblocks[1].x = dform.width / 2 - dblocks[1].width / 2
-  for i,dblock in pairs(dblocks) do
-   
-    if (i > 1) then      
-      local links = dblock.getLinks()
-    
-      if (istaken[i]) then 
-        dblock.x = links.asDestination[1].OriginBlock.x - dblock.width + 50*DPIAdjust
-      else
-        dblock.x = links.asDestination[1].OriginBlock.x + links.asDestination[1].OriginBlock.width - 50*DPIAdjust
-      end
-
-      --fetch the previous layer in order to evaluate where the current layer starts
-      local previous_layer_index = diagramLayerBlockToDiagramLayer(dlayers, links.asDestination[1].OriginBlock)
-      local previous_layer_start = links.asDestination[1].OriginBlock.y--dlayers.y[previous_layer_index]
-      local previous_layer_stop = dlayers.height[previous_layer_index]
-      local previous_layer_size = #dlayers.layer[previous_layer_index]
-      local current_layer_start = previous_layer_start + previous_layer_stop + (diagramstyle.link_pointdepth * previous_layer_size * 2) + (diagramstyle.layer_offsetbetweenlayers * 6)
-      dblock.y = current_layer_start
-
-      local overlap = blockDoesOverlap(dblocks, dblock) --check for eventual overlaps
-      if (overlap ~= nil) then
-        index = diagramLayerBlockToDiagramLayer(dlayers, overlap)
-        adjustLayerBlocks(dlayers.layer[index], dblock, overlap, dblocks) --adjust all the blocks of the current layer when inserting a new one (in case of overlap)
-      end
-      
-      if dblock.x<0 then --too far too the left, move everything
-        local j
-        local offset=-dblock.x
-        for j=1,i do
-          dblocks[j].x=dblocks[j].x+offset
+  for i=2,#dlayers.layer do
+    for j=1,#dlayers.layer[i] do  
+      local links = dlayers.layer[i][j].getLinks()
+      if links ~= nil then
+        if (istaken[diagramBlockToDiagramBlockIndex(dblocks, dlayers.layer[i][j])]) then 
+          dlayers.layer[i][j].x = links.asDestination[1].OriginBlock.x - dlayers.layer[i][j].width + 50*DPIAdjust
+        else
+          dlayers.layer[i][j].x = links.asDestination[1].OriginBlock.x + links.asDestination[1].OriginBlock.width - 50*DPIAdjust
         end
+        --fetch the previous layer in order to evaluate where the current layer starts
+        local previous_layer_index = i-1
+        local previous_layer_start = dlayers.layer[previous_layer_index][1].y--dlayers.y[previous_layer_index]
+        local previous_layer_stop = dlayers.height[previous_layer_index]
+        local previous_layer_size = #dlayers.layer[previous_layer_index]
+        local current_layer_start = previous_layer_start + previous_layer_stop + (diagramstyle.link_pointdepth * previous_layer_size * 2) + (diagramstyle.layer_offsetbetweenlayers * 6)
+        dlayers.layer[i][j].y = current_layer_start
+  
+        local overlap = blockDoesOverlap(dblocks, dlayers.layer[i][j]) --check for eventual overlaps
+        if (overlap ~= nil) then
+          index = diagramLayerBlockToDiagramLayer(dlayers, overlap)
+          adjustLayerBlocks(dlayers.layer[index], dlayers.layer[i][j], overlap, dblocks) --adjust all the blocks of the current layer when inserting a new one (in case of overlap)
+        end
+
       end
+    end
+  end
+  for i=1,#dblocks do
+    if dblocks[i].x<0 then --too far too the left, move everything
+      moveEverything(dblocks, (-dblocks[i].x)+(100*DPIAdjust))
     end
   end
 end
 
 function arrangeDiagramLinks(dblocks, istaken, dlayers)
-  local dlinks, k = fetchLinks(dblocks)
+  local dlinks = fetchLinks(dblocks)
 
   for i,dlink in pairs(dlinks) do
     local odesc=dlink.OriginDescriptor
     local ddesc=dlink.DestinationDescriptor
     local b_index = diagramBlockToDiagramBlockIndex(dblocks, dlink.DestinationBlock)
-    local l_index, lb_index = diagramLayerBlockToDiagramLayer(dlayers, dlink.OriginBlock)
-    local l_size = #dlayers.layer[l_index]
+    local l_origin, lb_origin = diagramLayerBlockToDiagramLayer(dlayers, dlink.OriginBlock)
+    local l_dest, lb_dest = diagramLayerBlockToDiagramLayer(dlayers, dlink.DestinationBlock)
+    local l_size = #dlayers.layer[l_origin]
     local l_conduit = (diagramstyle.link_pointdepth * l_size * 2) + diagramstyle.layer_offsetbetweenlayers
-    local offset = (l_conduit / l_size) * lb_index
+    local offset = (l_conduit / l_size) * lb_origin
     
-    if (dlink.DestinationBlock.Y > dlink.OriginBlock.Y) then --branching forward
+    if (l_dest == l_origin + 1) then --branching forward
       if (istaken[b_index]) then offset = offset + diagramstyle.link_pointdepth end
-      dlink.addPoint(dlink.OriginBlock.X + (dlink.OriginBlock.Width / 2)+odesc.Position, dlink.OriginBlock.Y + dlayers.height[l_index] + offset, 0)       
-      dlink.addPoint(dlink.DestinationBlock.X + (dlink.DestinationBlock.Width / 2), dlink.OriginBlock.Y + dlayers.height[l_index] + offset, 1)
-      k = 2
-    else --branching backward
-      dlink.addPoint(dlink.OriginBlock.X + (dlink.OriginBlock.Width / 2)+odesc.Position, dlink.OriginBlock.Y + dlayers.height[l_index] + offset, 0)
-      if (dlink.DestinationBlock.X < dlink.OriginBlock.X) then
-        dlink.addPoint(dlink.DestinationBlock.X + dlink.DestinationBlock.Width + offset, dlink.OriginBlock.Y + dlayers.height[l_index] + offset, 1)
-        dlink.addPoint(dlink.DestinationBlock.X + dlink.DestinationBlock.Width + offset, dlink.DestinationBlock.Y - offset, 2)
+      dlink.addPoint(dlink.OriginBlock.X + (dlink.OriginBlock.Width / 2)+odesc.Position, dlink.OriginBlock.Y + dlayers.height[l_origin] + offset, 0)       
+      dlink.addPoint(dlink.DestinationBlock.X + (dlink.DestinationBlock.Width / 2), dlink.OriginBlock.Y + dlayers.height[l_origin] + offset, 1)
+    else --branching backward / far
+      if l_dest < l_origin then
+        local temp = l_dest
+        l_dest = l_origin
+        l_origin = temp
+      end
+      dlink.addPoint(dlink.OriginBlock.X + (dlink.OriginBlock.Width / 2)+odesc.Position, dlink.OriginBlock.Y + dlayers.height[l_origin] + offset, 0)
+      local max = dlayers.layer[l_origin][1]
+      local min = dlayers.layer[l_origin][1]
+      for j=l_origin, l_dest do
+        for l=1, #dlayers.layer[j] do
+          if dlayers.layer[j][l].x > max.x then max = dlayers.layer[j][l] end
+          if dlayers.layer[j][l].x < min.x then min = dlayers.layer[j][l] end
+        end
+      end
+      --math.abs(dlink.OriginBlock.X - min.x) <= math.abs(max.x - dlink.OriginBlock.X)
+      if istaken[b_index] then
+        dlink.addPoint(min.x - offset, dlink.OriginBlock.Y + dlayers.height[l_origin] + offset, 1)
+        dlink.addPoint(min.x - offset, dlink.DestinationBlock.y - offset, 2)
+        dlink.addPoint(dlink.DestinationBlock.X + (dlink.DestinationBlock.Width / 2), dlink.DestinationBlock.y - offset, 3)
       else
-        dlink.addPoint(dlink.DestinationBlock.X - offset, dlink.OriginBlock.Y + dlayers.height[l_index] + offset, 1)
-        dlink.addPoint(dlink.DestinationBlock.X - offset, dlink.DestinationBlock.Y - offset, 2)
-      end
-      dlink.addPoint(dlink.DestinationBlock.X + (dlink.DestinationBlock.Width / 2), dlink.DestinationBlock.Y - offset, 3)
-      k = 4
-    end
-
-    --vertical conflicts
-    if (dlink.Points[1]) then
-      local rect = {} 
-      rect.x = dlink.Points[1].x
-      rect.y = math.min(dlink.DestinationBlock.y, dlink.Points[1].y)
-      rect.height = math.max(dlink.DestinationBlock.y, dlink.Points[1].y) - rect.y
-      rect.width = 0
-      for j=1, #dblocks do
-        if rectOverlapped(rect, dblocks[j]) and dblocks[j] ~= dlink.DestinationBlock then
-          --do stuff here...
-          --[[
-          if (math.abs(dblocks[j].x - rect.x) <= math.abs(dblocks[j].x + dblocks[j].width - rect.x) ) then
-            if (dblocks[j].Y > dlink.Points[1].y) and (dblocks[j].Y + dblocks[j].height < dlink.DestinationBlock.y) then
-              dlink.addPoint(dlink.DestinationBlock.X + (dlink.DestinationBlock.Width / 2), dblocks[j].Y - 50*DPIAdjust, k)
-              k = k + 1
-            end
-          end
-          ]]
-        end
+        dlink.addPoint(max.x + max.width + offset, dlink.OriginBlock.Y + dlayers.height[l_origin] + offset, 1)
+        dlink.addPoint(max.x + max.width + offset, dlink.DestinationBlock.y - offset, 2)
+        dlink.addPoint(dlink.DestinationBlock.X + (dlink.DestinationBlock.Width / 2), dlink.DestinationBlock.y - offset, 3)
       end
     end
-
-    --horizontal conflicts
-    if (dlink.Points[0]) then
-      local rect = {} 
-      rect.x = math.min(dlink.Points[1].x, dlink.Points[0].x)
-      rect.y = dlink.Points[0].y
-      rect.height = 0
-      rect.width = math.max(dlink.Points[1].x, dlink.Points[0].x) - rect.x
-      for j=1, #dblocks do
-        if rectOverlapped(rect, dblocks[j]) and dblocks[j] ~= dlink.DestinationBlock then 
-          --do stuff here...
-        end
-      end
-    end
+    --todo: finish
 
   end
 end
