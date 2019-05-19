@@ -13,6 +13,36 @@ implementation
 uses controls, luaclass, LuaCustomControl, LuaObject, LuaDiagram;
 
 
+function diagramBlock_intersectsWithLine(L: PLua_state): integer; cdecl;
+var
+  b: TDiagramBlock;
+  p1: tpoint;
+  p2: tpoint;
+  r: tpoint;
+begin
+  result:=0;
+  b1:=luaclass_getClassObject(L);
+  if lua_gettop(L)>=2 then
+  begin
+    if lua_istable(L,1) and lua_istable(L,2) then
+    begin
+      p1:=lua_toPoint(L,1);
+      p2:=lua_toPoint(L,2);
+
+      if b.IntersectsWithLine(p1,p2,r) then
+      begin
+        lua_pushboolean(L,true);
+        lua_pushpoint(L,r);
+      end
+      else
+      begin
+        lua_pushboolean(L,false);
+        result:=1;
+      end;
+    end;
+  end;
+end;
+
 function diagramBlock_overlapsWith(L: PLua_state): integer; cdecl;
 var
   b1,b2: TDiagramBlock;
@@ -80,6 +110,7 @@ begin
   object_addMetaData(L, metatable, userdata);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'getLinks', diagramBlock_getLinks);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'overlapsWith', diagramBlock_overlapsWith);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'intersectsWithLine', diagramBlock_intersectsWithLine);
 
 end;
 

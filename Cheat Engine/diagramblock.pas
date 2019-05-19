@@ -90,6 +90,8 @@ type
     procedure setAutoSize(state: boolean);
     procedure DoAutoSize;
 
+    function IntersectsWithLine(startpoint, endpoint: tpoint; out intersectpoint: tpoint): boolean;
+
     procedure render;
     property OnDestroy: TNotifyEvent read fOnDestroy write fOnDestroy;
     property BlockRect: TRect read getRect write setRect;
@@ -119,6 +121,125 @@ type
 implementation
 
 uses math;
+
+//http://www.delphipages.com/tip/test_if_2_lines_cross_and_find_intersection-10800.html
+function LinesCross(LineAP1, LineAP2, LineBP1, LineBP2 : TPoint) : boolean;
+Var
+  diffLA, diffLB : TPoint;
+  CompareA, CompareB : integer;
+begin
+  Result := False;
+
+
+  diffLA := LineAP2.Subtract(LineAP1); //Subtract(LineAP2, LineAP1);
+  diffLB := LineBP2.Subtract(LineBP1); //Subtract(LineBP2, LineBP1);
+
+  CompareA := diffLA.X*LineAP1.Y - diffLA.Y*LineAP1.X;
+  CompareB := diffLB.X*LineBP1.Y - diffLB.Y*LineBP1.X;
+
+  if ( ((diffLA.X*LineBP1.Y - diffLA.Y*LineBP1.X) < CompareA) xor
+       ((diffLA.X*LineBP2.Y - diffLA.Y*LineBP2.X) < CompareA) ) and
+     ( ((diffLB.X*LineAP1.Y - diffLB.Y*LineAP1.X) < CompareB) xor
+       ((diffLB.X*LineAP2.Y - diffLB.Y*LineAP2.X) < CompareB) ) then
+    Result := True;
+end;
+
+function LineIntersect(LineAP1, LineAP2, LineBP1, LineBP2 : TPoint) : TPointF;
+Var
+  LDetLineA, LDetLineB, LDetDivInv : Real;
+  LDiffLA, LDiffLB : TPoint;
+begin
+  LDetLineA := LineAP1.X*LineAP2.Y - LineAP1.Y*LineAP2.X;
+  LDetLineB := LineBP1.X*LineBP2.Y - LineBP1.Y*LineBP2.X;
+
+  LDiffLA := LineAP1.Subtract(LineAP2); // Subtract(LineAP1, LineAP2);
+  LDiffLB := LineBP1.Subtract(LineBP2); // Subtract(LineBP1, LineBP2);
+
+  LDetDivInv := 1 / ((LDiffLA.X*LDiffLB.Y) - (LDiffLA.Y*LDiffLB.X));
+
+  Result.X := ((LDetLineA*LDiffLB.X) - (LDiffLA.X*LDetLineB)) * LDetDivInv;
+  Result.Y := ((LDetLineA*LDiffLB.Y) - (LDiffLA.Y*LDetLineB)) * LDetDivInv;
+end;
+
+function TDiagramBlock.IntersectsWithLine(startpoint, endpoint: tpoint; out intersectpoint: tpoint): boolean;
+var
+  r: trect;
+  ip: TPointF;
+
+  best: record
+    distance: single;
+    point: tpointf;
+  end;
+
+  distance: single;
+  startpointf: tpointf;
+
+begin
+  //check from where to where it goes and pick a
+  r:=getRect;
+
+  startpointf.x:=startpoint.x;
+  startpointf.y:=startpoint.y;
+
+  result:=false;
+
+  if LinesCross(startpoint,endpoint,point(r.left,r.top),point(r.right,r.top)) then //top
+  begin
+    ip:=LineIntersect(startpoint,endpoint,point(r.left,r.top),point(r.right,r.top));
+
+    best.distance:=ip.distance(startpointf);
+    best.point:=ip;
+    result:=true;
+  end;
+
+  if LinesCross(startpoint,endpoint,point(r.right,r.top),point(r.right,r.bottom)) then //right
+  begin
+    ip:=LineIntersect(startpoint,endpoint,point(r.right,r.top),point(r.right,r.bottom));
+    distance:=ip.Distance(startpointf);
+
+    if (result=false) or (distance<best.distance) then
+    begin
+      best.distance:=distance;
+      best.point:=ip;
+    end;
+    result:=true;
+  end;
+
+  if LinesCross(startpoint,endpoint,point(r.left,r.bottom),point(r.right,r.bottom)) then //bottom
+  begin
+    ip:=LineIntersect(startpoint,endpoint,point(r.left,r.bottom),point(r.right,r.bottom));
+    distance:=ip.Distance(startpointf);
+
+    if (result=false) or (distance<best.distance) then
+    begin
+      best.distance:=distance;
+      best.point:=ip;
+    end;
+    result:=true;
+  end;
+
+  if LinesCross(startpoint,endpoint,point(r.left,r.top),point(r.left,r.bottom)) then //left
+  begin
+    ip:=LineIntersect(startpoint,endpoint,point(r.left,r.top),point(r.left,r.bottom));
+    distance:=ip.Distance(startpointf);
+
+    if (result=false) or (distance<best.distance) then
+    begin
+      best.distance:=distance;
+      best.point:=ip;
+    end;
+    result:=true;
+  end;
+
+  if result then
+  begin
+    intersectpoint.x:=trunc(best.point.x);
+    intersectpoint.y:=trunc(best.point.y);
+  end;
+
+
+end;
+
 
 procedure TDiagramBlock.setx(newx: integer);
 begin

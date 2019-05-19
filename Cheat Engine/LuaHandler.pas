@@ -359,11 +359,28 @@ begin
   begin
     lua_pushstring(L,'x');
     lua_gettable(L,i);
+
+    if lua_isnil(L,-1) then
+    begin
+      lua_pop(L,1);
+      lua_pushinteger(L,1);
+      lua_gettable(L,i);
+    end;
+
     result.x:=lua_tointeger(L,-1);
+    lua_pop(L,1);
 
     lua_pushstring(L,'y');
     lua_gettable(L,i);
+    if lua_isnil(L,-1) then
+    begin
+      lua_pop(L,1);
+      lua_pushinteger(L,1);
+      lua_gettable(L,i);
+    end;
+
     result.y:=lua_tointeger(L,-1);
+    lua_pop(L,1);
   end;
 end;
 
