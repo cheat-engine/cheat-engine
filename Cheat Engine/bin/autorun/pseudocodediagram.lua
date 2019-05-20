@@ -381,7 +381,7 @@ function arrangeDiagramLinks(dblocks, istaken, dlayers)
     local l_hconduit = (diagramstyle.link_pointdepth * l_size * 2) + diagramstyle.layer_offsetbetweenlayers
     local l_vconduit = (diagramstyle.link_pointdepth * #dlayers.layer)
     local offset = (l_hconduit / l_size) * lb_origin
-    local offset2 = (l_hconduit / l_size) * lb_origin + (l_vconduit / l_origin)
+    local offset2 = (l_hconduit / l_size) * lb_origin + (l_vconduit / #dlayers.layer * l_origin)
     
     if (l_dest == l_origin + 1) then --branching forward
       if (istaken[b_index]) then offset = offset + diagramstyle.link_pointdepth end
