@@ -363,7 +363,7 @@ function arrangeDiagramBlocks(dform, dblocks, istaken, dlayers)
   end
   for i=1,#dblocks do
     if dblocks[i].x<0 then --too far too the left, move everything
-      moveEverything(dblocks, (-dblocks[i].x)+(diagramstyle.link_pointdepth * #dlayers.layer)+100*DPIAdjust)
+      moveEverything(dblocks, (-dblocks[i].x)+(diagramstyle.link_pointdepth * #dlayers.layer)+200*DPIAdjust)
     end
   end
 end
