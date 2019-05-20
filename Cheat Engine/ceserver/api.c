@@ -2281,8 +2281,6 @@ int ReadProcessMemoryDebug(HANDLE hProcess, PProcessData p, void *lpAddress, voi
      // printf("After WaitForDebugEventNative (tid=%d)\n", event.threadid);
     }
 
-    //0=>/proc/pid/mem
-    //1=>ptrace_peekdata
     if(MEMORY_SEARCH_OPTION== 0)
     {
       
