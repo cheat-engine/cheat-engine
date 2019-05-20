@@ -2280,66 +2280,123 @@ int ReadProcessMemoryDebug(HANDLE hProcess, PProcessData p, void *lpAddress, voi
 
      // printf("After WaitForDebugEventNative (tid=%d)\n", event.threadid);
     }
-    int inflooptest=0;
 
-    bytesread=-1;
-    while (bytesread==-1)
+    //0=>/proc/pid/mem
+    //1=>ptrace_peekdata
+    if(MEMORY_SEARCH_OPTION== 0)
     {
-      inflooptest++;
+      
+      int inflooptest=0;
 
-      if (inflooptest>10)
-        printf("FUUU");
-
-
-
-      //bytesread=pread(p->mem, buffer, size, (uintptr_t)lpAddress);
-
-      lseek64(p->mem, (uintptr_t)lpAddress, SEEK_SET);
-      bytesread=read(p->mem, buffer, size);
-
-
-      if ((bytesread<0) && (errno!=EINTR))
+      bytesread=-1;
+      while (bytesread==-1)
       {
-        /*
-        printf("pread failed and not due to a signal: %d  (isdebugged=%d)\n", errno, isdebugged);
-        if (isdebugged)
+        inflooptest++;
+
+        if (inflooptest>10)
+          printf("FUUU");
+
+
+
+        //bytesread=pread(p->mem, buffer, size, (uintptr_t)lpAddress);
+
+        lseek64(p->mem, (uintptr_t)lpAddress, SEEK_SET);
+        bytesread=read(p->mem, buffer, size);
+
+
+        if ((bytesread<0) && (errno!=EINTR))
         {
-          printf("event.threadid=%d devent=%d\n", (int)event.threadid, event.debugevent);
-        }
-        printf("lpAddress=%p\n", lpAddress);
-        printf("size=%d\n", size);
-        */
-
-        bytesread=0;
-
-        if (isdebugged)
-        {
-         // printf("trying to read from specific task\n");
-
-          int f;
-          char mempath[255];
-
-          sprintf(mempath,"/proc/%d/task/%d/mem", p->pid, (int)event.threadid);
-         // printf("Opening %s\n", mempath);
-          f=open(mempath, O_RDONLY);
-          printf("f=%d\n", f);
-          if (f>=0)
+          /*
+          printf("pread failed and not due to a signal: %d  (isdebugged=%d)\n", errno, isdebugged);
+          if (isdebugged)
           {
-            //bytesread=pread(f, buffer, size, (uintptr_t)lpAddress);
-            lseek64(p->mem, (uintptr_t)lpAddress, SEEK_SET);
-            bytesread=read(p->mem, buffer, size);
-
-            if ((bytesread<0) && (errno!=EINTR))
-            {
-            //  printf("Also failed on second try\n");
-              bytesread=0;
-            }
-            close(f);
+            printf("event.threadid=%d devent=%d\n", (int)event.threadid, event.debugevent);
           }
+          printf("lpAddress=%p\n", lpAddress);
+          printf("size=%d\n", size);
+          */
+
+          bytesread=0;
+
+          if (isdebugged)
+          {
+          // printf("trying to read from specific task\n");
+
+            int f;
+            char mempath[255];
+
+            sprintf(mempath,"/proc/%d/task/%d/mem", p->pid, (int)event.threadid);
+          // printf("Opening %s\n", mempath);
+            f=open(mempath, O_RDONLY);
+            printf("f=%d\n", f);
+            if (f>=0)
+            {
+              //bytesread=pread(f, buffer, size, (uintptr_t)lpAddress);
+              lseek64(p->mem, (uintptr_t)lpAddress, SEEK_SET);
+              bytesread=read(p->mem, buffer, size);
+
+              if ((bytesread<0) && (errno!=EINTR))
+              {
+              //  printf("Also failed on second try\n");
+                bytesread=0;
+              }
+              close(f);
+            }
+          }
+
+
+          break;
         }
+      }
+    }
+    else
+    {
 
+      int offset=0;
+      int max=size-sizeof(long int);
 
-        break;
+      long int *address = (long int *)buffer;
+
+      long int value = 0;
+
+      int is_readable = 1;
+
+      while(offset<max)
+      {
+        errno = 0;
+        value =  ptrace(PTRACE_PEEKDATA, pid, (void*)((uintptr_t)lpAddress+offset), (void *)0);
+
+        if(errno == 0)
+        {
+          *address = value;
+
+          address++;
+          offset+=sizeof(long int);
+
+          bytesread+=sizeof(long int);
+        }
+        else
+        {
+          is_readable = 0;
+          break;
+        }
+          
+      }
+
+      if(offset < size && is_readable)
+      {
+        errno = 0;
+        value =  ptrace(PTRACE_PEEKDATA, pid, (void*)((uintptr_t)lpAddress+offset), (void *)0);
+        
+        if(errno == 0)
+        {
+          memcpy(address,&value,size-offset);
+          
+          int i = size-offset;
+          if(i>=0)
+            bytesread+=size-offset;
+        }     
+
       }
     }
 
@@ -2478,19 +2535,75 @@ int ReadProcessMemory(HANDLE hProcess, void *lpAddress, void *buffer, int size)
 
           pid_t pid=wait(&status);
 
-          lseek64(p->mem, (uintptr_t)lpAddress, SEEK_SET);
-
-          bread=read(p->mem, buffer, size);
-
-          if (bread==-1)
+          if(MEMORY_SEARCH_OPTION == 0)
           {
-            bread=0;
-            //printf("pread error for address %p (errno=%d) ", lpAddress, errno);
-            //printf("\n");
+
+            lseek64(p->mem, (uintptr_t)lpAddress, SEEK_SET);
+
+            bread=read(p->mem, buffer, size);
+
+            if (bread==-1)
+            {
+              bread=0;
+              //printf("pread error for address %p (errno=%d) ", lpAddress, errno);
+              //printf("\n");
+            }
+
           }
+          else
+          {
+            
+            int offset=0;
+            int max=size-sizeof(long int);
 
+            long int *address = (long int *)buffer;
+
+            long int value = 0;
+
+            int is_readable = 1;
+
+            while(offset<max)
+            {
+              errno = 0;
+              value =  ptrace(PTRACE_PEEKDATA, pid, (void*)((uintptr_t)lpAddress+offset), (void *)0);
+
+              if(errno == 0)
+              {
+                *address = value;
+
+                address++;
+                offset+=sizeof(long int);
+
+                bread+=sizeof(long int);
+              }
+              else
+              {
+                is_readable = 0;
+                break;
+              }
+                
+            }
+
+            if(offset < size && is_readable)
+            {
+              errno = 0;
+              value =  ptrace(PTRACE_PEEKDATA, pid, (void*)((uintptr_t)lpAddress+offset), (void *)0);
+              
+              if(errno == 0)
+              {
+                memcpy(address,&value,size-offset);
+                
+                int i = size-offset;
+                if(i>=0)
+                  bread+=size-offset;
+              }     
+
+            }
+          
+          }
+          
           //printf("bread=%d size=%d\n", bread, size);
-
+          
 
           ptrace(PTRACE_DETACH, pid,0,0);
         }
@@ -2986,9 +3099,12 @@ HANDLE OpenProcess(DWORD pid)
     sprintf(processpath,"/proc/%d/maps", pid);
     p->maps=strdup(processpath);
 
-    sprintf(processpath,"/proc/%d/mem", pid);
-    p->mem=open(processpath, O_RDONLY);
-
+    if(MEMORY_SEARCH_OPTION == 0)
+    {
+      sprintf(processpath,"/proc/%d/mem", pid);
+      p->mem=open(processpath, O_RDONLY);
+    }
+    
 
     pthread_mutex_init(&p->extensionMutex, NULL);
     p->hasLoadedExtension=0;
