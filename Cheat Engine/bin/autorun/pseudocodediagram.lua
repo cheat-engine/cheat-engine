@@ -409,7 +409,6 @@ function arrangeDiagramLinks(dblocks, istaken, dlayers)
       local linkz = dlayers.layer[l_origin][l].getLinks()
       for m=1, #linkz.asSource do
         if linkz.asSource[m].DestinationBlock == dlink.DestinationBlock then 
-          print(dlayers.layer[l_origin][lb_origin].caption)
           offset1 = diagramstyle.layer_offsetbetweenlayers + diagramstyle.link_pointdepth * f
           break
         end
