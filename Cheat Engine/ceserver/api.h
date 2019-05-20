@@ -219,4 +219,5 @@ void initAPI();
 
 extern pthread_mutex_t debugsocketmutex;
 
+#define MEMORY_SEARCH_OPTION 0
 #endif /* API_H_ */
