@@ -394,8 +394,8 @@ function arrangeDiagramLinks(dblocks, istaken, dlayers)
         l_origin = temp
       end
       dlink.addPoint(dlink.OriginBlock.X + (dlink.OriginBlock.Width / 2)+odesc.Position, dlink.OriginBlock.Y + dlayers.height[l_origin] + offset, 0)
-      local max = dlayers.layer[l_origin][1]
-      local min = dlayers.layer[l_origin][1]
+      local max = dlayers.layer[l_origin+1][1]
+      local min = dlayers.layer[l_origin+1][1]
       for j=l_origin, l_dest do
         for l=1, #dlayers.layer[j] do
           if dlayers.layer[j][l].x > max.x then max = dlayers.layer[j][l] end
@@ -405,12 +405,12 @@ function arrangeDiagramLinks(dblocks, istaken, dlayers)
       --math.abs(dlink.OriginBlock.X - min.x) <= math.abs(max.x - dlink.OriginBlock.X)
       if istaken[b_index] then
         dlink.addPoint(min.x - offset2, dlink.OriginBlock.Y + dlayers.height[l_origin] + offset, 1)
-        dlink.addPoint(min.x - offset2, dlink.DestinationBlock.y - offset2, 2)
-        dlink.addPoint(dlink.DestinationBlock.X + (dlink.DestinationBlock.Width / 2), dlink.DestinationBlock.y - offset2, 3)
+        dlink.addPoint(min.x - offset2, dlink.DestinationBlock.y - offset, 2) --tmp
+        dlink.addPoint(dlink.DestinationBlock.X + (dlink.DestinationBlock.Width / 2), dlink.DestinationBlock.y - offset, 3) --tmp
       else
         dlink.addPoint(max.x + max.width + offset2, dlink.OriginBlock.Y + dlayers.height[l_origin] + offset, 1)
-        dlink.addPoint(max.x + max.width + offset2, dlink.DestinationBlock.y - offset2, 2)
-        dlink.addPoint(dlink.DestinationBlock.X + (dlink.DestinationBlock.Width / 2), dlink.DestinationBlock.y - offset2, 3)
+        dlink.addPoint(max.x + max.width + offset2, dlink.DestinationBlock.y - offset, 2) --tmp
+        dlink.addPoint(dlink.DestinationBlock.X + (dlink.DestinationBlock.Width / 2), dlink.DestinationBlock.y - offset, 3) --tmp
       end
     end
     --todo: finish
