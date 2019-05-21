@@ -310,10 +310,9 @@ function moveEverything(ddiagram, dblocks, offset)
     if link.Points ~= nil then
       for j=0, 3 do
         if link.Points[j] ~= nil then
-          local point = {}
-          point.x = link.Points[j].x+offset
-          point.y = link.Points[j].y
-          link.Points[j] = point
+          local point=link.Points[j]
+          point.x=point.x+offset
+          link.Points[j]=point
         end
       end
     end
@@ -489,7 +488,7 @@ function arrangeDiagramLinks(ddiagram, dblocks, istaken, dlayers)
 
   end
   local point_minx = computeVerticalPointDepth(dlayers, 1, #dlayers.layer, dlayers.layer[1][1].x)
-  moveEverything(ddiagram, dblocks, -point_minx)
+  moveEverything(ddiagram, dblocks, -(point_minx - diagramstyle.link_pointdepth))
 end
 
 function spawnDiagram(start, limit)
