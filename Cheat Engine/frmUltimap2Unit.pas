@@ -1,6 +1,6 @@
 unit frmUltimap2Unit;
 
-{$mode objfpc}{$H+}
+{$mode OBJFPC}{$H+}
 
 
 
@@ -11,7 +11,7 @@ uses
   ExtCtrls, StdCtrls, ComCtrls, EditBtn, Menus, libipt, ProcessHandlerUnit,
   DBK32functions, commonTypeDefs, MemFuncs, AvgLvlTree, Math, FileMapping,
   syncobjs, CEFuncProc, registry, NewKernelHandler, LazFileUtils, disassembler,
-  strutils, Clipbrd;
+  strutils, Clipbrd, lua, lualib, lauxlib, luaform, LuaClass;
 
 
 const
@@ -282,8 +282,10 @@ type
     { public declarations }
     allNewAreInvalid: boolean;
 
-    function IsMatchingAddress(address: ptruint): boolean;
+    function IsMatchingAddress(address: ptruint; count: pinteger=nil): boolean;
   end;
+
+procedure initializeLuaUltimap2;
 
 var
   frmUltimap2: TfrmUltimap2;
@@ -293,7 +295,7 @@ implementation
 {$R *.lfm}
 
 uses symbolhandler, symbolhandlerstructs, frmSelectionlistunit, cpuidUnit, MemoryBrowserFormUnit,
-  AdvancedOptionsUnit, vmxfunctions;
+  AdvancedOptionsUnit, vmxfunctions, LuaHandler;
 
 resourcestring
 rsRecording2 = 'Recording';
@@ -2207,7 +2209,7 @@ begin
   end;
 end;
 
-function TfrmUltimap2.IsMatchingAddress(address: ptruint): boolean;
+function TfrmUltimap2.IsMatchingAddress(address: ptruint; count: pinteger=nil): boolean;
 var
   s: TValidEntry;
   r: PValidEntry;
@@ -2229,6 +2231,9 @@ begin
           begin
             r:=n.Data;
             result:=(r^.byteInfo^.flags and bifInvalidated)=0;
+
+            if result and (count<>nil) then
+              count^:=r^.byteInfo^.count;
           end;
         end;
       finally
@@ -2468,7 +2473,54 @@ begin
     state:=rsStopped;
 end;
 
+function frmUltimap2_isMatchingAddress(L: PLua_state): integer; cdecl;
+var
+  f: TfrmUltimap2;
+  r: boolean;
+  count: integer;
+begin
+  result:=0;
+  f:=TfrmUltimap2(luaclass_getClassObject(L));
+  if lua_gettop(L)>=1 then
+  begin
+    r:=f.IsMatchingAddress(lua_tointeger(L,1), @count);
+    lua_pushboolean(L,r);
 
+    if r then
+    begin
+      lua_pushinteger(L,count);
+      result:=2;
+    end
+    else
+      result:=1;
+  end;
+end;
+
+function lua_getUltimap2(L: PLua_state): integer; cdecl;
+begin
+  if frmUltimap2=nil then
+    frmUltimap2:=TfrmUltimap2.Create(application);
+
+  luaclass_newClass(L,frmUltimap2);
+  result:=1;
+end;
+
+procedure frmUltimap2_addMetaData(L: PLua_state; metatable: integer; userdata: integer );
+begin
+  customform_addMetaData(L, metatable, userdata);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'isMatchingAddress', @frmUltimap2_isMatchingAddress);
+end;
+
+procedure initializeLuaUltimap2;
+begin
+  lua_register(LuaVM, 'getUltimap2', @lua_getUltimap2);
+end;
+
+
+initialization
+  registerclass(TfrmUltimap2);
+
+  luaclass_register(TfrmUltimap2, @frmUltimap2_addMetaData);
 
 end.
 

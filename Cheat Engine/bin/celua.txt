@@ -2973,6 +2973,14 @@ properties
 
 methods
 
+TfrmUltimap2 class(Inheritance: Form->ScrollingWinControl->CustomControl->WinControl->Control->Component->Object) 
+properties
+getUltimap2(): TfrmUltimap2 - Returns the ultimap2 form
+
+methods
+  IsMatchingAddress(address): boolean,count - returns true if the current address is in the list of addresses. In case of true, it also returns the count value (up to 255)
+
+
 ----SQL Classes----
 CustomConnection class (Inheritance: Component->Object)
 properties
