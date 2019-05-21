@@ -21,7 +21,7 @@ var
   r: tpoint;
 begin
   result:=0;
-  b1:=luaclass_getClassObject(L);
+  b:=luaclass_getClassObject(L);
   if lua_gettop(L)>=2 then
   begin
     if lua_istable(L,1) and lua_istable(L,2) then
