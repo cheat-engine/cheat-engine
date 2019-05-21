@@ -13,7 +13,7 @@ diagramstyle.link_nottakencolor = 0x000000FF --red
 diagramstyle.link_takencolor = 0x00FF0000 --blue
 diagramstyle.link_linethickness = 3*DPIAdjust
 diagramstyle.link_arrowsize = math.ceil(5*DPIAdjust)
-diagramstyle.link_pointdepth = 20*DPIAdjust
+diagramstyle.link_pointdepth = 15*DPIAdjust
 
 diagramstyle.layer_offsetbetweenlayers = 40*DPIAdjust
 
@@ -177,14 +177,12 @@ function createDiagramBlocks(diagram, state, blocks)
   local dblocks = {}
   for i,block in pairs(blocks) do
     if state.parsed[block.start] then
-      --create block
       if (diagramstyle.block_headershowsymbol and inModule(block.start)) then
         dblocks[i] = createDiagramBlock(diagram, ' ' .. string.char(27) .. diagramstyle.instruction_symbolstyle .. 
                                                         getNameFromAddress(block.start))
       else
         dblocks[i] = createDiagramBlock(diagram, ' ' .. string.format('%X', block.start))
       end
-      --fill block
       local current = block.start
       while (current <= block.stop) do
         dblocks[i].Strings.add(disassembleDecoratedInstruction(current))
@@ -263,19 +261,61 @@ function blockDoesOverlap(dblocks, dblock)
   return nil
 end
 
+function computeInputPointDepth(destination, origin)
+  local linkz = destination.getLinks()
+  for i=1, #linkz.asDestination do
+    if linkz.asDestination[i].OriginBlock == origin then
+      return diagramstyle.layer_offsetbetweenlayers + diagramstyle.link_pointdepth * i
+    end
+  end
+  return 0
+end
+
+function computeOutputPointDepth(dlayers, layer_origin, origin, destination)
+  local f = 1
+  for i=1, #dlayers.layer[layer_origin] do
+    local linkz = dlayers.layer[layer_origin][i].getLinks()
+    for j=1, #linkz.asSource do
+      if (origin == dlayers.layer[layer_origin][i]) and (linkz.asSource[j].DestinationBlock == destination) then 
+        return diagramstyle.layer_offsetbetweenlayers + diagramstyle.link_pointdepth * f
+      end
+      f = f + 1
+    end
+    f = f + 1
+  end
+  return diagramstyle.layer_offsetbetweenlayers + diagramstyle.link_pointdepth
+end
+
+function computeVerticalPointDepth(dlayers, layer_origin, layer_destination, min)
+  local result = min
+  for l=layer_origin, layer_destination do
+    for i=1, #dlayers.layer[l] do
+      local linkz = dlayers.layer[l][i].getLinks()
+      for j=1, #linkz.asSource do
+        if linkz.asSource[j].Points[1] ~= nil then
+          result = math.min(result, linkz.asSource[j].Points[1].x)
+        end
+      end
+    end
+  end
+  return result
+end
+
 function moveEverything(dblocks, offset)
-  for k=1,#dblocks do
-    dblocks[k].x=dblocks[k].x+offset
+  for i=1,#dblocks do
+    dblocks[i].x=dblocks[i].x+offset
   end
 end
 
-function fetchLinks(dblocks)
+function fetchLinks(dlayers)
   local dlinks, k = {}, 1
-  for i=1, #dblocks do
-    local links = dblocks[i].getLinks()
-    for j=1, #links.asDestination do
-      dlinks[k] = links.asDestination[j]
-      k = k + 1
+  for i=1, #dlayers.layer do
+    for j=1, #dlayers.layer[i] do
+      local linkz = dlayers.layer[i][j].getLinks()
+      for l=1, #linkz.asSource do
+        dlinks[k] = linkz.asSource[l]
+        k = k + 1
+      end
     end
   end
   return dlinks
@@ -305,7 +345,7 @@ function getLayers(dlayers, dblock, dblocks, layer, visited)
   end
 end
 
-function generateLayers(dblocks)
+function computeLayers(dblocks)
   local visited = {}
   local dlayers = {}
   dlayers.layer = {}
@@ -346,6 +386,7 @@ function arrangeDiagramBlocks(dform, dblocks, istaken, dlayers)
     for j=1,#dlayers.layer[i] do  
       local links = dlayers.layer[i][j].getLinks()
       if links ~= nil then
+        
         if (istaken[diagramBlockToDiagramBlockIndex(dblocks, dlayers.layer[i][j])]) then 
           dlayers.layer[i][j].x = links.asDestination[1].OriginBlock.x - dlayers.layer[i][j].width + 50*DPIAdjust
         else
@@ -386,75 +427,50 @@ function arrangeDiagramBlocks(dform, dblocks, istaken, dlayers)
       moveEverything(dblocks, -dblocks[i].x)
     end
   end
-  moveEverything(dblocks, (diagramstyle.link_pointdepth * #dblocks)) --horizontal conduit for links
+  moveEverything(dblocks, (diagramstyle.link_pointdepth * #dblocks)) --horizontal space for links (probably more than enough)
 end
 
 function arrangeDiagramLinks(dblocks, istaken, dlayers)
-  local dlinks = fetchLinks(dblocks)
+  local dlinks = fetchLinks(dlayers)
 
   for i,dlink in pairs(dlinks) do
     local odesc=dlink.OriginDescriptor
     local ddesc=dlink.DestinationDescriptor
-    local b_index = diagramBlockToDiagramBlockIndex(dblocks, dlink.DestinationBlock)
     local l_origin, lb_origin = diagramLayerBlockToDiagramLayer(dlayers, dlink.OriginBlock)
     local l_dest, lb_dest = diagramLayerBlockToDiagramLayer(dlayers, dlink.DestinationBlock)
-    local l_size = #dlayers.layer[l_origin]
+    local is_backward = l_dest < l_origin
 
-    local offset1 = 0
-    local offset2 = 0
-    local offset3 = 0
-   
-    local f = 1
-    for l=1, #dlayers.layer[l_origin] do
-      local linkz = dlayers.layer[l_origin][l].getLinks()
-      for m=1, #linkz.asSource do
-        if linkz.asSource[m].DestinationBlock == dlink.DestinationBlock then 
-          offset1 = diagramstyle.layer_offsetbetweenlayers + diagramstyle.link_pointdepth * f
-          break
-        end
-        f = f + 1
-      end
-      f = f + 1
+
+    if l_dest < l_origin then
+      local temp = l_dest
+      l_dest = l_origin
+      l_origin = temp
     end
 
-   offset2 = diagramstyle.link_pointdepth * lb_origin + (diagramstyle.link_pointdepth * l_origin) --vertical
-
-    local linkz = dlink.DestinationBlock.getLinks()
-    for k=1, #linkz.asDestination do
-      if linkz.asDestination[k].OriginBlock == dlink.OriginBlock then
-        offset3 = diagramstyle.layer_offsetbetweenlayers + diagramstyle.link_pointdepth * k
-        break
+    local max = dlayers.layer[l_origin][1]
+    local min = dlayers.layer[l_origin][1]
+    for j=l_origin, l_dest do
+      for l=1, #dlayers.layer[j] do
+        if dlayers.layer[j][l].x > max.x then max = dlayers.layer[j][l] end
+        if dlayers.layer[j][l].x < min.x then min = dlayers.layer[j][l] end
       end
     end
+
+    local vertical_pointdepth = computeVerticalPointDepth(dlayers, l_origin, l_dest, min.x - diagramstyle.link_pointdepth)
+    local output_pointdepth = computeOutputPointDepth(dlayers, l_origin, dlink.OriginBlock, dlink.DestinationBlock)
+    local input_pointdepth = computeInputPointDepth(dlink.DestinationBlock, dlink.OriginBlock)
     
-    if (l_dest == l_origin + 1) then --branching forward
-      dlink.addPoint(dlink.OriginBlock.X + (dlink.OriginBlock.Width / 2)+odesc.Position, dlink.OriginBlock.Y + dlayers.height[l_origin] + offset1, 0)       
-      dlink.addPoint(dlink.DestinationBlock.X + (dlink.DestinationBlock.Width / 2), dlink.OriginBlock.Y + dlayers.height[l_origin] + offset1, 1)
+    if (l_dest == l_origin + 1) and (not is_backward) then --branching forward
+      dlink.addPoint(dlink.OriginBlock.X + (dlink.OriginBlock.Width / 2)+odesc.Position, dlink.OriginBlock.Y + dlayers.height[l_origin] + output_pointdepth, 0)       
+      dlink.addPoint(dlink.DestinationBlock.X + (dlink.DestinationBlock.Width / 2), dlink.OriginBlock.Y + dlayers.height[l_origin] + output_pointdepth, 1)
     else --branching backward / far
-      if l_dest < l_origin then
-        local temp = l_dest
-        l_dest = l_origin
-        l_origin = temp
-      end
-      dlink.addPoint(dlink.OriginBlock.X + (dlink.OriginBlock.Width / 2)+odesc.Position, dlink.OriginBlock.Y + dlayers.height[l_origin] + offset1, 0)
-      local max = dlayers.layer[l_origin][1]
-      local min = dlayers.layer[l_origin][1]
-      for j=1, #dlayers.layer do --for j=l_origin, l_dest do
-        for l=1, #dlayers.layer[j] do
-          if dlayers.layer[j][l].x > max.x then max = dlayers.layer[j][l] end
-          if dlayers.layer[j][l].x < min.x then min = dlayers.layer[j][l] end
-        end
-      end
+      dlink.addPoint(dlink.OriginBlock.X + (dlink.OriginBlock.Width / 2)+odesc.Position, dlink.OriginBlock.Y + dlayers.height[l_origin] + output_pointdepth, 0)
+
       --math.abs(dlink.OriginBlock.X - min.x) <= math.abs(max.x - dlink.OriginBlock.X)
-      if istaken[b_index] then
-        dlink.addPoint(min.x - offset2, dlink.OriginBlock.Y + dlayers.height[l_origin] + offset1, 1)
-        dlink.addPoint(min.x - offset2, dlink.DestinationBlock.y - offset3, 2)
-        dlink.addPoint(dlink.DestinationBlock.X + (dlink.DestinationBlock.Width / 2), dlink.DestinationBlock.y - offset3, 3)
-      else
-        dlink.addPoint(max.x + max.width + offset2, dlink.OriginBlock.Y + dlayers.height[l_origin] + offset1, 1)
-        dlink.addPoint(max.x + max.width + offset2, dlink.DestinationBlock.y - offset3, 2)
-        dlink.addPoint(dlink.DestinationBlock.X + (dlink.DestinationBlock.Width / 2), dlink.DestinationBlock.y - offset3, 3)
-      end
+
+      dlink.addPoint(vertical_pointdepth - diagramstyle.link_pointdepth, dlink.OriginBlock.Y + dlayers.height[l_origin] + output_pointdepth, 1)
+      dlink.addPoint(vertical_pointdepth - diagramstyle.link_pointdepth, dlink.DestinationBlock.y - input_pointdepth, 2)
+      dlink.addPoint(dlink.DestinationBlock.X + (dlink.DestinationBlock.Width / 2), dlink.DestinationBlock.y - input_pointdepth, 3)
     end
     --todo: finish
 
@@ -468,7 +484,7 @@ function spawnDiagram(start, limit)
   local blocks = createBlocks(state)
   local dblocks = createDiagramBlocks(ddiagram, state, blocks)
   local istaken = linkDiagramBlocks(ddiagram, state, dblocks, blocks)
-  local dlayers = generateLayers(dblocks)
+  local dlayers = computeLayers(dblocks)
   maxx,maxy=arrangeDiagramBlocks(dform, dblocks, istaken, dlayers)
   arrangeDiagramLinks(dblocks, istaken, dlayers)
   ddiagram.repaint()
