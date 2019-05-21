@@ -301,9 +301,21 @@ function computeVerticalPointDepth(dlayers, layer_origin, layer_destination, min
   return result
 end
 
-function moveEverything(dblocks, offset)
+function moveEverything(ddiagram, dblocks, offset)
   for i=1,#dblocks do
     dblocks[i].x=dblocks[i].x+offset
+  end
+  for i=0, ddiagram.LinkCount-1 do
+    local link = ddiagram.Link[i]
+    if link.Points ~= nil then
+      for j=0, 3 do
+        if link.Points[j] ~= nil then
+          local point=link.Points[j]
+          point.x=point.x+offset
+          link.Points[j]=point
+        end
+      end
+    end
   end
 end
 
@@ -380,7 +392,7 @@ function adjustLayerBlocks(newdblock, overlapdblock, dblocks)
   end
 end
 
-function arrangeDiagramBlocks(dform, dblocks, istaken, dlayers)
+function arrangeDiagramBlocks(ddiagram, dform, dblocks, istaken, dlayers)
   dblocks[1].x = dform.width / 2 - dblocks[1].width / 2
   for i=2,#dlayers.layer do
     for j=1,#dlayers.layer[i] do  
@@ -424,13 +436,13 @@ function arrangeDiagramBlocks(dform, dblocks, istaken, dlayers)
   end
   for i=1,#dblocks do
     if dblocks[i].x<0 then --too far too the left, move everything
-      moveEverything(dblocks, -dblocks[i].x)
+      moveEverything(ddiagram, dblocks, -dblocks[i].x)
     end
   end
-  moveEverything(dblocks, (diagramstyle.link_pointdepth * #dblocks)) --horizontal space for links (probably more than enough)
+  moveEverything(ddiagram, dblocks, (diagramstyle.link_pointdepth * #dblocks)) --horizontal space for links (probably more than enough) --> adjusted later on
 end
 
-function arrangeDiagramLinks(dblocks, istaken, dlayers)
+function arrangeDiagramLinks(ddiagram, dblocks, istaken, dlayers)
   local dlinks = fetchLinks(dlayers)
 
   for i,dlink in pairs(dlinks) do
@@ -475,6 +487,8 @@ function arrangeDiagramLinks(dblocks, istaken, dlayers)
     --todo: finish
 
   end
+  local point_minx = computeVerticalPointDepth(dlayers, 1, #dlayers.layer, dlayers.layer[1][1].x)
+  moveEverything(ddiagram, dblocks, -(point_minx - diagramstyle.link_pointdepth))
 end
 
 function spawnDiagram(start, limit)
@@ -485,8 +499,8 @@ function spawnDiagram(start, limit)
   local dblocks = createDiagramBlocks(ddiagram, state, blocks)
   local istaken = linkDiagramBlocks(ddiagram, state, dblocks, blocks)
   local dlayers = computeLayers(dblocks)
-  maxx,maxy=arrangeDiagramBlocks(dform, dblocks, istaken, dlayers)
-  arrangeDiagramLinks(dblocks, istaken, dlayers)
+  maxx,maxy=arrangeDiagramBlocks(ddiagram, dform, dblocks, istaken, dlayers)
+  arrangeDiagramLinks(ddiagram, dblocks, istaken, dlayers)
   ddiagram.repaint()
 end
 
