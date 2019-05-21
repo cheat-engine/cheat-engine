@@ -55,6 +55,9 @@ type
     cachedBlock: TBitmap; //Cache the block image and only update when changes happen
     ftexture: glint;
 
+
+    fBlockId: integer;
+
     function getBackgroundColor: TColor;
     procedure setBackgroundColor(c: TColor);
     function getTextColor: TColor;
@@ -72,7 +75,11 @@ type
     procedure sety(newy: integer);
     function getRect: trect;
     procedure setRect(r: trect);
+
+    procedure createBlock(graphConfig: TDiagramConfig);
   public
+
+    BlockID: integer; //used for saving/loading. set by diagram
 
     function getData: TStrings;
     procedure setData(s: TStrings);
@@ -91,11 +98,14 @@ type
     procedure DoAutoSize;
 
     function IntersectsWithLine(startpoint, endpoint: tpoint; out intersectpoint: tpoint): boolean;
+    procedure saveToStream(f: TStream);
+    procedure loadFromStream(f: TStream);
 
     procedure render;
     property OnDestroy: TNotifyEvent read fOnDestroy write fOnDestroy;
     property BlockRect: TRect read getRect write setRect;
     constructor create(graphConfig: TDiagramConfig);
+    constructor createFromStream(graphConfig: TDiagramConfig; f: TStream);
     destructor destroy; override;
   published
     property Owner: TCustomControl read getOwner;
@@ -112,6 +122,7 @@ type
     property AutoSize: boolean read fAutoSize write setAutoSize;
     property AutoSide: boolean read fAutoSide write fAutoSide;
     property AutoSideDistance: integer read fAutoSideDistance write fAutoSideDistance;
+
     property OnDoubleClickHeader: TNotifyEvent read fOnDoubleClickHeader write fOnDoubleClickHeader;
     property OnDoubleClickBody: TNotifyEvent read fOnDoubleClickBody write fOnDoubleClickBody;
     property OnRenderHeader: TDBCustomDrawEvent read fOnRenderHeader write fOnRenderHeader;
@@ -344,6 +355,47 @@ begin
   width:=preferedwidth+10;
   height:=preferedheight;
 
+end;
+
+procedure TDiagramBlock.saveToStream(f: TStream);
+begin
+  f.WriteAnsiString('BLK');
+  f.WriteAnsiString(fname);
+  f.WriteAnsiString(fcaption);
+  f.WriteAnsiString(data.Text);
+  f.WriteDWord(fx);
+  f.WriteDWord(fy);
+  f.WriteDWord(fwidth);
+  f.WriteDWord(fheight);
+  f.WriteByte(ifthen(useCustomBackgroundColor, 1,0));
+  if useCustomBackgroundColor then f.WriteDWord(customBackgroundColor);
+  f.WriteByte(ifthen(useCustomTextColor, 1,0));
+  if useCustomTextColor then f.WriteDWord(CustomTextColor);
+
+  f.WriteByte(ifthen(AutoSize, 1,0));
+  f.WriteByte(ifthen(AutoSide, 1,0));
+  f.WriteWord(fAutoSideDistance);
+end;
+
+procedure TDiagramBlock.loadFromStream(f: TStream);
+begin
+  if f.ReadAnsiString<>'BLK' then raise exception.create('Block read error');
+  fname:=f.ReadAnsiString;
+  fcaption:=f.ReadAnsiString;
+  data.text:=f.ReadAnsiString;
+
+  fx:=f.ReadDWord;
+  fy:=f.ReadDWord;
+  fwidth:=f.ReadDWord;
+  fheight:=f.ReadDWord;
+  useCustomBackgroundColor:=f.readbyte=1;
+  if useCustomBackgroundColor then customBackgroundColor:=f.ReadDWord;
+  useCustomTextColor:=f.readByte=1;
+  if useCustomTextColor then CustomTextColor:=f.ReadDWord;
+
+  AutoSize:=f.readbyte=1;
+  autoside:=f.readbyte=1;
+  fAutoSideDistance:=f.readWord;
 end;
 
 procedure TDiagramBlock.render;
@@ -897,7 +949,7 @@ begin
 
 end;
 
-constructor TDiagramBlock.create(graphConfig: TDiagramConfig);
+procedure TDiagramBlock.createBlock(graphConfig: TDiagramConfig);
 begin
   data:=TStringList.create;
   data.OnChange:=@DataChange;
@@ -907,7 +959,17 @@ begin
   y:=0;
   width:=100;
   height:=100;
+end;
 
+constructor TDiagramBlock.create(graphConfig: TDiagramConfig);
+begin
+  createBlock(graphConfig);
+end;
+
+constructor TDiagramBlock.createFromStream(graphConfig: TDiagramConfig; f: TStream);
+begin
+  createBlock(graphConfig);
+  loadFromStream(f);
 end;
 
 destructor TDiagramBlock.destroy;

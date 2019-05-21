@@ -82,9 +82,13 @@ type
     procedure setOriginDescriptor(d: TDiagramBlockSideDescriptor);
     procedure setDestinationDescriptor(d: TDiagramBlockSideDescriptor);
 
+    procedure saveToStream(f: tstream);
+    procedure loadFromStream(f: tstream; blocks: tlist);
+
 
     property PlotPoints[index: integer]: TPoint read getPoint write updatePointPosition;
     constructor create(diagramconfig: TDiagramConfig; _origin,_destination: TDiagramBlockSideDescriptor);
+    constructor createFromStream(diagramconfig: TDiagramConfig; f: tstream; blocks: TList);
     destructor destroy; override;
   published
     property OriginBlock: TDiagramBlock read origin.Block write origin.block;
@@ -101,7 +105,7 @@ type
 
 implementation
 
-uses math, types;
+uses math, types, typinfo;
 
 var
   PlotPointVertices:array [0..3] of array [0..1] of single;
@@ -857,12 +861,106 @@ begin
   destination:=d;
 end;
 
+procedure TDiagramLink.saveToStream(f: tstream);
+var i: integer;
+begin
+  f.WriteAnsiString('LNK');
+
+  f.WriteAnsiString(fname);
+
+  f.WriteDWord(origin.block.BlockID);
+  f.WriteByte(integer(origin.side));
+  f.WriteDWord(integer(origin.sideposition));
+
+  f.WriteDWord(destination.block.BlockID);
+  f.WriteByte(integer(destination.side));
+  f.WriteDWord(integer(destination.sideposition));
+
+  f.WriteDWord(length(points));
+  for i:=0 to length(points)-1 do
+  begin
+    f.writeDword(points[i].x);
+    f.writeDword(points[i].y);
+  end;
+
+  f.writebyte(ifthen(useCustomColor,1,0));
+  if useCustomColor then f.WriteDWord(fCustomColor);
+
+  f.writebyte(ifthen(useCustomLineThickness,1,0));
+  if useCustomLineThickness then f.WriteDWord(fCustomLineThickness);
+
+  f.writebyte(ifthen(useCustomArrowSize,1,0));
+  if useCustomArrowSize then f.WriteDWord(fCustomArrowSize);
+
+  f.writebyte(ifthen(useCustomArrowStyles,1,0));
+  if useCustomArrowStyles then f.WriteByte(byte(fCustomArrowStyles));
+
+end;
+
+procedure TDiagramLink.loadFromStream(f: tstream; blocks: tlist);
+  function idToBlock(id: integer): TDiagramBlock;
+  var
+    i: integer;
+    b: TDiagramBlock;
+  begin
+    result:=nil;
+
+    for i:=0 to blocks.count-1 do
+    begin
+      b:=TDiagramBlock(blocks[i]);
+      if b.blockid=id then
+        exit(b);
+    end;
+  end;
+
+var  i: integer;
+begin
+  if f.ReadAnsiString<>'LNK' then raise exception.create('Link read error');
+
+  fname:=f.ReadAnsiString;
+
+  origin.block:=idToBlock(f.ReadDWord);
+  origin.side:=TDiagramBlockSide(f.ReadByte);
+  origin.sideposition:=f.ReadDWord;
+
+  destination.block:=idToBlock(f.ReadDWord);
+  destination.side:=TDiagramBlockSide(f.ReadByte);
+  destination.sideposition:=f.ReadDWord;
+
+  setlength(points, f.ReadDWord);
+  for i:=0 to length(points)-1 do
+  begin
+    points[i].x:=f.ReadDWord;
+    points[i].y:=f.ReadDWord;
+  end;
+
+  useCustomColor:=f.readbyte=1;
+  if useCustomColor then fCustomColor:=f.ReadDWord;
+
+  useCustomLineThickness:=f.readbyte=1;
+  if useCustomLineThickness then fCustomLineThickness:=f.ReadDWord;
+
+  useCustomArrowSize:=f.readbyte=1;
+  if useCustomArrowSize then fCustomArrowSize:=f.ReadDWord;
+
+  useCustomArrowStyles:=f.readbyte=1;
+  if useCustomArrowStyles then fCustomArrowStyles:=TArrowStyles(f.ReadByte);
+
+
+end;
+
 constructor TDiagramLink.create(diagramconfig: TDiagramConfig; _origin,_destination: TDiagramBlockSideDescriptor);
 begin
   config:=diagramconfig;
 
   origin:=_origin;
   destination:=_destination;
+end;
+
+constructor TDiagramLink.createFromStream(diagramconfig: TDiagramConfig; f: tstream; blocks: TList);
+begin
+  config:=diagramconfig;
+  loadFromStream(f,blocks);
 end;
 
 destructor TDiagramLink.destroy;

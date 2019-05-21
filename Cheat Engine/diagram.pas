@@ -8,6 +8,8 @@ uses
   windows, Classes, SysUtils, controls,Types, graphics, diagramblock, diagramlink, diagramtypes,
   LMessages, GL, glu, GLext, dialogs, StdCtrls, ExtCtrls;
 
+const diagramversion=1;
+
 type
   TDiagram=class(TCustomControl)
   private
@@ -58,6 +60,8 @@ type
 
     updater: TTimer;
     nopaint: boolean;
+
+    renderCanvas: TCanvas;
 
     procedure updaterTimerEvent(sender: TObject);
     procedure scrollbarchange(sender: TObject);
@@ -118,6 +122,7 @@ type
     procedure updateScrollbars(maxx,maxy: integer); virtual;
 
     procedure SetParent(NewParent: TWinControl); override;
+
     //procedure DblClick; override;
   public
     function createBlock: TDiagramBlock;
@@ -126,6 +131,10 @@ type
     procedure getConnectionsToBlock(b: TDiagramBlock; list: TList);
     procedure getConnectionsFromBlock(b: TDiagramBlock; list: TList);
     procedure render;
+
+    procedure saveToFile(filename: string);
+    procedure loadFromFile(filename: string);
+    procedure saveAsImage(filename: string);
 
     property Block[index: integer]: TDiagramBlock read getBlock;
     property Link[index: integer]:TDiagramLink read getLink;
@@ -1128,6 +1137,8 @@ begin
   if UseOpenGL and assigned(ChoosePixelFormat) and (NewParent<>nil) and (oldparent=nil) then
     InitializeOpenGL;
 
+  rendercanvas:=canvas;
+
  // UseOpenGL:=true; //test
 end;
 
@@ -1196,6 +1207,96 @@ begin
     end;
 
   end;
+end;
+
+procedure TDiagram.saveToFile(filename: string);
+var
+  f: tfilestream;
+  i: integer;
+begin
+  //going for binary as that's faster to deal with multiple points. Perhaps in the future detect if the extension if XML and save as xml
+  f:=tfilestream.Create(filename, fmCreate);
+  try
+    f.WriteAnsiString('CEDIAG');
+    f.WriteWord(diagramversion);
+    f.WriteDWord(BlockCount);
+    for i:=0 to blockcount-1 do
+    begin
+      block[i].BlockID:=i;
+      Block[i].saveToStream(f);
+    end;
+
+    f.WriteDWord(LinkCount);
+    for i:=0 to LinkCount-1 do
+      Link[i].saveTostream(f);
+
+
+  finally
+    f.free;
+  end;
+end;
+
+procedure TDiagram.loadFromFile(filename: string);
+var
+  f: tfilestream;
+  i: integer;
+  c: integer;
+begin
+  f:=tfilestream.Create(filename, fmOpenRead);
+  try
+    if f.ReadAnsiString<>'CEDIAG' then raise exception.create('Invalid diagram file');
+    if f.ReadWord>diagramversion then
+      raise exception.create('Unknown diagram version');
+
+    for i:=0 to links.count-1 do
+      TDiagramLink(links[i]).Free;
+
+    links.Clear;
+
+    for i:=0 to blocks.Count-1 do
+      TDiagramBlock(blocks[i]).Free;
+
+    blocks.clear;
+
+    c:=f.ReadDWord;
+    for i:=0 to c-1 do
+      blocks.add(TDiagramBlock.createFromStream(diagramConfig, f));
+
+    c:=f.ReadDWord;
+    for i:=0 to c-1 do
+      links.add(TDiagramLink.createFromStream(diagramconfig, f, blocks));
+
+  finally
+    f.free;
+  end;
+end;
+
+procedure TDiagram.saveAsImage(filename: string);
+var
+  openglstatus: boolean;
+  img: TPortableNetworkGraphic;
+begin
+  openglstatus:=UseOpenGL;
+
+  UseOpenGL:=false;
+
+  render;
+  //width and hight are known now
+
+  img:=TPortableNetworkGraphic.Create;
+  img.Width:=lastMaxX+8;
+  img.Height:=lastMaxY+8;
+
+  img.canvas.Brush.Assign(canvas.brush);
+  img.canvas.pen.Assign(canvas.pen);
+  img.canvas.Font.Assign(canvas.font);
+
+  renderCanvas:=img.canvas;
+  render;
+  rendercanvas:=canvas;
+
+  img.SaveToFile(filename);
+  UseOpenGL:=openglstatus;
 end;
 
 procedure TDiagram.render;
@@ -1278,7 +1379,7 @@ begin
   end
   else
   begin
-    diagramconfig.canvas:=canvas;
+    diagramconfig.canvas:=rendercanvas;
   end;
 
   diagramconfig.scrollx:=ScrollX;

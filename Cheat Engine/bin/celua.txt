@@ -3332,6 +3332,9 @@ methods
          Position: integer - Position on the provided side based on the center. Only for Sides 0 to 3
       } 
 
+  saveAsImage(filenamepng): saves the current display as an PNG image
+  saveToFile(filename): Saves the state of the diagram to a file
+  loadFromFile(filename): loads the state of the diagram from a file
 
 
 DiagramBlock class:

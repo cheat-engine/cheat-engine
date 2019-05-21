@@ -173,6 +173,49 @@ begin
   end;
 end;
 
+function diagram_saveAsImage(L: PLua_state): integer; cdecl;
+var
+  diagram: TDiagram;
+  filename: string;
+begin
+  result:=0;
+  diagram:=luaclass_getClassObject(L);
+  if lua_gettop(L)>0 then
+  begin
+    filename:=Lua_ToString(L,1);
+    diagram.saveAsImage(filename);
+  end;
+end;
+
+function diagram_saveToFile(L: PLua_state): integer; cdecl;
+var
+  diagram: TDiagram;
+  filename: string;
+begin
+  result:=0;
+  diagram:=luaclass_getClassObject(L);
+  if lua_gettop(L)>0 then
+  begin
+    filename:=Lua_ToString(L,1);
+    diagram.saveToFile(filename);
+  end;
+end;
+
+function diagram_loadFromFile(L: PLua_state): integer; cdecl;
+var
+  diagram: TDiagram;
+  filename: string;
+begin
+  result:=0;
+  diagram:=luaclass_getClassObject(L);
+  if lua_gettop(L)>0 then
+  begin
+    filename:=Lua_ToString(L,1);
+    diagram.loadFromFile(filename);
+  end;
+end;
+
+
 function createDiagram(L: PLua_state): integer; cdecl;
 var
   d: TDiagram;
@@ -198,13 +241,19 @@ begin
   result:=1;
 end;
 
+
+
 procedure diagram_addMetaData(L: PLua_state; metatable: integer; userdata: integer );
 begin
   customcontrol_addMetaData(L, metatable, userdata);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'createBlock', diagram_createBlock);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'addConnection', diagram_addConnection);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'saveAsImage', diagram_saveAsImage);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'saveToFile', diagram_saveToFile);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'loadFromFile', diagram_loadFromFile);
   luaclass_addArrayPropertyToTable(L, metatable, userdata, 'Link', diagram_getLink);
   luaclass_addArrayPropertyToTable(L, metatable, userdata, 'Block', diagram_getBlock);
+
 end;
 
 
