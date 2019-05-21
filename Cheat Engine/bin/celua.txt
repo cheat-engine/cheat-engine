@@ -1591,6 +1591,9 @@ methods
   getPixelFormat(pixelformat):  Sets the pixelformat for this image. Will clear the current image if it had one. Supported pixelformats: pf1bit, pf4bit, pf8bit, pf15bit, pf16bit, pf24bit, pf32bit (recommended)
   setTransparentColor(integer): Sets the color that will be rendered as transparent when drawn
   getTransparentColor():  Returns the color set to be transparent
+  saveToStream(stream) : Saves the image to a stream object
+  loadFromStream(stream): Loads the image from a stream object
+
 
 
 Bitmap class: (Inheritance: CustomBitmap->RasterImage->Graphic->Object) : Bitmap based Graphic object
