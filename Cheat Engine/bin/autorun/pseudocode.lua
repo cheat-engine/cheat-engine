@@ -128,9 +128,16 @@ end
 
 
 plookup['jmp']=function(state)
-  state.address=genericJumpHandler(state, true)
-  return true
+  local newa
+  newa=genericJumpHandler(state, true)
+  if newa==nil then --register based jmp
+    state.branchOrigins[state.address]={} --jumps to 'nowhere and everywhere'
+  else
+    state.address=newa
+    return true
+  end
 end
+
 
 plookup['loop']=function(state)
   genericJumpHandler(state)
