@@ -447,7 +447,10 @@ function arrangeDiagramBlocks(dblocks, dpblocks)
   end
 
   for i=1, #dblocks do
-    dblocks[i].x = v_layer[dpblocks[i].v_layer].x + v_layer[dpblocks[i].v_layer+1].width + 50*DPIAdjust
+    dblocks[i].x = (v_layer[dpblocks[i].v_layer].x + v_layer[dpblocks[i].v_layer].width + 50*DPIAdjust) - (dblocks[i].width / 2)
+    if (dblocks[i].x + dblocks[i].width) > (v_layer[dpblocks[i].v_layer].x + v_layer[dpblocks[i].v_layer].width + v_layer[dpblocks[i].v_layer+1].width + 50*DPIAdjust) then
+      dblocks[i].x = (v_layer[dpblocks[i].v_layer].x + v_layer[dpblocks[i].v_layer].width + v_layer[dpblocks[i].v_layer+1].width + 50*DPIAdjust) - (dblocks[i].width)
+    end
     dblocks[i].y = layer[dpblocks[i].layer].y
   end
 
@@ -475,6 +478,12 @@ function spawnDiagram(start, limit)
   computeBetterEdges (dblocks, dpblocks)
   --printBetterEdges(dblocks, dpblocks, 1) --debug
   computeLayers(dblocks, dpblocks, 1)
+
+  for i=1, #dpblocks do
+    dblocks[i].caption = string.format("v_layer:%d--v_layer_count:%d--layer:%d--layer_count:%d",dpblocks[i].v_layer, dpblocks[i].v_layer_count, dpblocks[i].layer, dpblocks[i].layer_count)
+    dblocks[i].caption = string.format("v_layer:%d--v_layer_count:%d--layer:%d--layer_count:%d",dpblocks[i].v_layer, dpblocks[i].v_layer_count, dpblocks[i].layer, dpblocks[i].layer_count)
+  end
+
   arrangeDiagramBlocks(dblocks, dpblocks)
   --arrangeDiagramLinks(ddiagram, dblocks, istaken, dlayers)
   ddiagram.repaint()
