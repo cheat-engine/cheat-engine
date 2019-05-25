@@ -2390,7 +2390,7 @@ begin
 
                 $08 : begin
                         description:='invalidate internal caches';
-                        lastdisassembledata.opcode:='incd';
+                        lastdisassembledata.opcode:='invd';
                         inc(offset);
                       end;
 
