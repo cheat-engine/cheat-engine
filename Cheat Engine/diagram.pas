@@ -1009,7 +1009,7 @@ var
   newscrolly: integer;
 begin
   result:=false;
-  if (shift<>[ssshift]) and (not ssCtrl in shift) then
+  if (shift<>[ssshift]) and (not (ssCtrl in shift)) then
   begin
     if vscrollbar.Visible then
     begin
