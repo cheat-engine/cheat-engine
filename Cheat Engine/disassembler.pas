@@ -5144,6 +5144,17 @@ begin
                                    inc(offset,last-1);
                                  end;
                                end;
+
+                              else
+                              begin
+                                if hasvex then
+                                begin
+                                  LastDisassembleData.opcode:='unknown avx 0F38 '+inttohex(memory[2],2);
+                                  lastdisassembledata.parameters:=xmm(memory[3])+modrm(memory,prefix2,3,4,last,mRight);
+
+                                  inc(offset,last-1);
+                                end;
+                              end;
                         end;
                       end;
 
@@ -5761,6 +5772,17 @@ begin
 
 
 
+                          else
+                          begin
+                            if hasvex then
+                            begin
+                              LastDisassembleData.opcode:='unknown avx 0F3A '+inttohex(memory[2],2);
+                              lastdisassembledata.parameters:=xmm(memory[3])+modrm(memory,prefix2,3,4,last,mRight);
+                              lastdisassembledata.parameters:=lastdisassembledata.parameters+','+inttohex(memory[last],2);
+                              inc(last);
+                              inc(offset,last-1);
+                            end;
+                          end;
                         end;
                       end;
 
@@ -15131,7 +15153,12 @@ begin
 
     //copy the remaining bytes
     k:=length(LastDisassembleData.Bytes);
+
+    if int64(offset-initialoffset)<k then
+      offset:=initialoffset+k;
+
     setlength(LastDisassembleData.Bytes,offset-initialoffset);
+
 
     if (k>=32) or (k<0) then
     begin
