@@ -46,6 +46,8 @@ function editDiagramStyle(new_diagramstyle)
       diagramstyle.link_linethickness = new_diagramstyle.link_linethickness end
     if (new_diagramstyle.link_arrowsize ~= nil) then
       diagramstyle.link_arrowsize = new_diagramstyle.link_arrowsize end
+    if (new_diagramstyle.link_pointdepth ~= nil) then
+      diagramstyle.link_pointdepth = new_diagramstyle.link_pointdepth end
 
 
     if (new_diagramstyle.block_headershowsymbol ~= nil) then
@@ -279,12 +281,10 @@ end
 
 function computeBetterEdges(dblocks, dpblocks)
   local dvblocks = {}
-  initDiagramVisitedBlocks(dblocks, dvblocks)
-
   local more = true
+  local branchqueue = createQueue()
+  initDiagramVisitedBlocks(dblocks, dvblocks)
   dvblocks[1].visited = true
-
-  branchqueue = createQueue()
   pushLeft(branchqueue, 1) --starting block
 
   while (more) do 
@@ -335,14 +335,6 @@ function computeBetterEdges(dblocks, dpblocks)
   end
 end
 
-
-function printBetterEdges(dblocks, dpblocks, dpblock) --debug purposes
-  for i=1, dpblocks[dpblock].betteroutput_count do
-    print(string.format("%s --> %s", dblocks[dpblock].caption, dblocks[dpblocks[dpblock].betteroutput[i]].caption))
-    printBetterEdges(dblocks, dpblocks, dpblocks[dpblock].betteroutput[i])
-  end
-end
-
 function adjustEverything(dpblocks, dpblock, v_layer, layer)
   dpblocks[dpblock].v_layer = dpblocks[dpblock].v_layer + v_layer
   dpblocks[dpblock].layer = dpblocks[dpblock].layer + layer
@@ -367,14 +359,14 @@ function computeLayers(dblocks, dpblocks, dpblock)
   if dpblocks[dpblock].betteroutput_count == 2 then
     local better1 = dpblocks[dpblock].betteroutput[1]
     local better2 = dpblocks[dpblock].betteroutput[2]
-    local v_layer_offset = {}
+    local offset
 
     if (dpblocks[better1].betteroutput_count == 0) then
       dpblocks[better1].v_layer = dpblocks[better2].v_layer - 2
-      if dpblocks[better1].v_layer < 0 then v_layer_offset[1] = -dpblocks[better1].v_layer else v_layer_offset[1] = 0 end
-      adjustEverything(dpblocks, better1, v_layer_offset[1], 1)
-      adjustEverything(dpblocks, better2, v_layer_offset[1], 1)
-      v_layer = dpblocks[better2].v_layer_count + v_layer_offset[1]
+      if dpblocks[better1].v_layer < 0 then offset = -dpblocks[better1].v_layer else offset = 0 end
+      adjustEverything(dpblocks, better1, offset, 1)
+      adjustEverything(dpblocks, better2, offset, 1)
+      v_layer = dpblocks[better2].v_layer_count + offset
     elseif (dpblocks[better2].betteroutput_count == 0) then
       adjustEverything(dpblocks, better1, 0, 1)
       adjustEverything(dpblocks, better2, dpblocks[better1].v_layer + 2, 1)
@@ -385,7 +377,7 @@ function computeLayers(dblocks, dpblocks, dpblock)
       v_layer = dpblocks[better1].v_layer_count + dpblocks[better1].v_layer_count
     end
     dpblocks[dpblock].v_layer_count = math.max(2, v_layer)
-    dpblocks[dpblock].v_layer = math.ceil((dpblocks[better1].v_layer + dpblocks[better2].v_layer) / 2)
+    dpblocks[dpblock].v_layer = math.floor((dpblocks[better1].v_layer + dpblocks[better2].v_layer) / 2)
   else
     for i=1, dpblocks[dpblock].betteroutput_count do
       local edge = dpblocks[dpblock].betteroutput[i]
@@ -396,7 +388,7 @@ function computeLayers(dblocks, dpblocks, dpblock)
       if dpblocks[dpblock].betteroutput_count == 1 then
         dpblocks[dpblock].v_layer = child_v_layer
       else
-        dpblocks[dpblock].v_layer = math.ceil((v_layer - 2) / 2)
+        dpblocks[dpblock].v_layer = math.floor((v_layer - 2) / 2)
       end
       dpblocks[dpblock].v_layer_count = v_layer
     else
@@ -428,32 +420,17 @@ function initPoints(dpblocks, points)
 end
 
 function initLinkCounts(dpblocks, h_links_count, v_links_count)
-  for i=0, dpblocks.layer_count+1 do
+  for i=0, dpblocks.layer_count do
     v_links_count[i] = {}
     v_links_count[i].link = {}
   end
-  for i=0, dpblocks.v_layer_count+1 do
+  for i=0, dpblocks.v_layer_count do
     h_links_count[i] = {}
     h_links_count[i].link = {}
   end
 end
 
-function createValidityMatrix(dpblocks)
-  local vmatrix = {}
-  for i=0, dpblocks.layer_count+1 do
-    vmatrix[i] = {}
-    for j=0, dpblocks.v_layer_count+1 do
-      vmatrix[i][j] = true
-    end
-  end
-  for i=1, #dpblocks do
-    vmatrix[dpblocks[i].layer][dpblocks[i].v_layer] = false
-  end
-  return vmatrix
-end
-
-
-function computePoints(dblocks, dpblocks, vmatrix)
+function computePoints(dblocks, dpblocks)
   local v_links_count, h_links_count, points = {}, {}, {}
   initLinkCounts(dpblocks, h_links_count, v_links_count)
   initPoints(dpblocks, points)
@@ -552,7 +529,7 @@ function diagramBlockInputToInputIndex(dblock, iblock)
   return 0
 end
 
-function arrangeDiagramLinks(dblocks, dpblocks, links_v_layer, links_layer, layer, v_layer, points)
+function arrangeDiagramLinks(dblocks, dpblocks, links_v_layer, links_layer, points)
   for i=1, #dblocks do
     local linkz = dblocks[i].getLinks()
     for j=1, #linkz.asSource do
@@ -591,12 +568,10 @@ function spawnDiagram(start, limit)
   computeBetterEdges (dblocks, dpblocks)
   computeLayers(dblocks, dpblocks, 1)
   getLayerCounts(dpblocks)
-  local vmatrix = createValidityMatrix(dpblocks)
-  local v_links_count, h_links_count, points = computePoints(dblocks, dpblocks, vmatrix)
+  local v_links_count, h_links_count, points = computePoints(dblocks, dpblocks)
   local v_layer, layer, links_v_layer, links_layer = arrangeDiagramLayers(dblocks, dpblocks, v_links_count, h_links_count)
   arrangeDiagramBlocks(dblocks, dpblocks, v_layer, layer, v_links_count)
-
-  arrangeDiagramLinks(dblocks, dpblocks, links_v_layer, links_layer, layer, v_layer, points)
+  arrangeDiagramLinks(dblocks, dpblocks, links_v_layer, links_layer, points)
   ddiagram.repaint()
 end
 
@@ -623,44 +598,6 @@ new_diagramstyle.block_bodyshowbytes = true
 editDiagramStyle(new_diagramstyle)
 spawnDiagram(0x100016914, 50)
 ]]--
-
-  --[[
-  print("--debug--")
-  for i=1, #dlayers.layer do
-    print(string.format("(layer #%d) height: %d", i, dlayers.height[i]))
-    print(string.format("(layer #%d) blocks:", i))
-    for j=1, #dlayers.layer[i] do
-      print(string.format("%s", dlayers.layer[i][j].Caption))
-    end
-  end
-  ]]--
-
- --debug--------------------------------------------------------------------------------------------------------------------
-  --[[
-  for i=1, #dpblocks do
-    dblocks[i].caption = string.format("(v_layer:%d - count:%d) | (layer:%d - layer_count:%d)", dpblocks[i].v_layer, 
-                                                                                                dpblocks[i].v_layer_count, 
-                                                                                                dpblocks[i].layer, 
-                                                                                                dpblocks[i].layer_count)
-  end
-  local blockx = {}
-  for i=0, dpblocks.v_layer_count do
-   blockx[i] = createDiagramBlock(ddiagram, "lol")
-   blockx[i].width = 10
-   blockx[i].height = 100000
-   blockx[i].x = v_layer[i].x
-   blockx[i].y = 20
-  end
-  local blocky = {}
-  for i=0, dpblocks.layer_count do
-   blocky[i] = createDiagramBlock(ddiagram, "lol")
-   blocky[i].width = 100000
-   blocky[i].height = 10
-   blocky[i].x = 20
-   blocky[i].y = layer[i].y
-  end
-  --]]
-  --debug--------------------------------------------------------------------------------------------------------------------
 
 --[[todolist]]
 --have a rightclick on an address function, then find the start of the function and then parse and display the diagram
