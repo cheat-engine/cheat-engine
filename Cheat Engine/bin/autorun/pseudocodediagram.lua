@@ -13,7 +13,7 @@ diagramstyle.link_nottakencolor = 0x000000FF --red
 diagramstyle.link_takencolor = 0x00FF0000 --blue
 diagramstyle.link_linethickness = 3*DPIAdjust
 diagramstyle.link_arrowsize = math.ceil(5*DPIAdjust)
-diagramstyle.link_pointdepth = 20*DPIAdjust
+diagramstyle.link_pointdepth = 20*DPIAdjust --distance between links
 
 diagramstyle.block_headershowsymbol = true
 diagramstyle.block_bodyshowaddresses = false
@@ -185,6 +185,16 @@ function diagramBlockToDiagramBlockIndex(dblocks, dblock)
   return nil
 end
 
+function diagramBlockInputToInputIndex(dblock, iblock)
+  local linkz = dblock.getLinks()
+  for i=1, #linkz.asDestination do
+    if (linkz.asDestination[i].OriginBlock == iblock) then 
+      return i 
+    end
+  end
+  return 0
+end
+
 function linkDiagramBlocks(diagram, dblocks, blocks)
   for i,diagramblock in pairs(dblocks) do
     if (i > 1) then --skip starting block
@@ -234,15 +244,15 @@ function createDiagramPseudoBlocks(dblocks)
     dpblocks.layer_count = 0
     dpblocks[i] = {}
     dpblocks[i].input_count = #linkz.asDestination
-    dpblocks[i].output_count = #linkz.asSource
-    dpblocks[i].betteroutput_count = 0
     dpblocks[i].input = {}
+    dpblocks[i].output_count = #linkz.asSource
     dpblocks[i].output = {}
+    dpblocks[i].betteroutput_count = 0
     dpblocks[i].betteroutput = {}
-    dpblocks[i].v_layer = 0
     dpblocks[i].v_layer_count = 0
-    dpblocks[i].layer = 0
+    dpblocks[i].v_layer = 0
     dpblocks[i].layer_count = 0
+    dpblocks[i].layer = 0
     for j=1, #linkz.asDestination do 
       dpblocks[i].input[j] = diagramBlockToDiagramBlockIndex(dblocks, linkz.asDestination[j].OriginBlock)
     end
@@ -272,7 +282,9 @@ end
 
 function popRight (queue)
   local last = queue.last
-  if queue.first > last then return nil end
+  if queue.first > last then 
+    return nil 
+  end
   local value = queue[last]
   queue[last] = nil
   queue.last = last - 1
@@ -514,19 +526,11 @@ function arrangeDiagramLayers(dblocks, dpblocks, v_links_count, h_links_count)
   return v_layer, layer, links_v_layer, links_layer
 end
 
-function arrangeDiagramBlocks(dblocks, dpblocks, v_layer, layer, v_links_count)
+function arrangeDiagramBlocks(dblocks, dpblocks, v_layer, layer)
   for i=1, #dblocks do
     dblocks[i].x = v_layer[dpblocks[i].v_layer].x
     dblocks[i].y = layer[dpblocks[i].layer].y
   end
-end
-
-function diagramBlockInputToInputIndex(dblock, iblock)
-  local linkz = dblock.getLinks()
-  for i=1, #linkz.asDestination do
-    if (linkz.asDestination[i].OriginBlock == iblock) then return i end
-  end
-  return 0
 end
 
 function arrangeDiagramLinks(dblocks, dpblocks, links_v_layer, links_layer, points)
@@ -540,7 +544,7 @@ function arrangeDiagramLinks(dblocks, dpblocks, links_v_layer, links_layer, poin
       local ovlayer=dpblocks[i].v_layer
       local dvlayer=dpblocks[dpblocks[i].output[j]].v_layer
       local link=linkz.asSource[j]
-
+      
       link.addPoint(link.OriginBlock.X + (link.OriginBlock.Width / 2)+odesc.Position, links_layer[olayer].y + diagramstyle.link_pointdepth * points[i].output_input[j].point, 0)
 
       local k = diagramBlockToDiagramBlockIndex(dblocks, link.DestinationBlock)
@@ -570,7 +574,7 @@ function spawnDiagram(start, limit)
   getLayerCounts(dpblocks)
   local v_links_count, h_links_count, points = computePoints(dblocks, dpblocks)
   local v_layer, layer, links_v_layer, links_layer = arrangeDiagramLayers(dblocks, dpblocks, v_links_count, h_links_count)
-  arrangeDiagramBlocks(dblocks, dpblocks, v_layer, layer, v_links_count)
+  arrangeDiagramBlocks(dblocks, dpblocks, v_layer, layer)
   arrangeDiagramLinks(dblocks, dpblocks, links_v_layer, links_layer, points)
   ddiagram.repaint()
 end
