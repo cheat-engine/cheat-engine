@@ -459,7 +459,6 @@ function computePoints(dblocks, dpblocks, vmatrix)
   for i=1, #dpblocks do
     local origin = i
     for j=1, #dpblocks[i].output do
-      local destination = dpblocks[i].output[j]
       v_links_count[dpblocks[origin].layer].link[#v_links_count[dpblocks[origin].layer].link+1] = i
       points[i].output_input[j].point = #v_links_count[dpblocks[origin].layer].link
     end
@@ -468,14 +467,12 @@ function computePoints(dblocks, dpblocks, vmatrix)
   for i=1, #dpblocks do
     local destination = i
     for j=1, #dpblocks[i].input do
-      local origin = dpblocks[i].input[j]
       v_links_count[dpblocks[destination].layer-1].link[#v_links_count[dpblocks[destination].layer-1].link+1] = i
       points[i].output_input[j+#dpblocks[i].output].point = #v_links_count[dpblocks[destination].layer-1].link
     end
   end
   --remaining horizontal points
   for i=1, #dpblocks do
-    local origin = i
     for j=1, #dpblocks[i].output do
       local destination = dpblocks[i].output[j]
       h_links_count[dpblocks[destination].v_layer].link[#h_links_count[dpblocks[destination].v_layer].link+1] = i
@@ -573,8 +570,8 @@ function arrangeDiagramLinks(dblocks, dpblocks, links_v_layer, links_layer, laye
       if (olayer + 1 == dlayer) then
         link.addPoint(link.DestinationBlock.X + (link.DestinationBlock.Width / 2), links_layer[olayer].y + diagramstyle.link_pointdepth * points[i].output_input[j].point, 1)
       else
-        link.addPoint(links_v_layer[points[k].v_layer].x + diagramstyle.link_pointdepth * points[i].v_layer_point, links_layer[olayer].y + diagramstyle.link_pointdepth * points[i].output_input[j].point, 1)
-        link.addPoint(links_v_layer[points[k].v_layer].x + diagramstyle.link_pointdepth * points[i].v_layer_point, links_layer[dlayer-1].y + diagramstyle.link_pointdepth * points[k].output_input[input_index].point, 2)
+        link.addPoint(links_v_layer[points[i].v_layer].x + diagramstyle.link_pointdepth * points[i].v_layer_point, links_layer[olayer].y + diagramstyle.link_pointdepth * points[i].output_input[j].point, 1)
+        link.addPoint(links_v_layer[points[i].v_layer].x + diagramstyle.link_pointdepth * points[i].v_layer_point, links_layer[dlayer-1].y + diagramstyle.link_pointdepth * points[k].output_input[input_index].point, 2)
         link.addPoint(link.DestinationBlock.X + (link.DestinationBlock.Width / 2), links_layer[dlayer-1].y + diagramstyle.link_pointdepth * points[k].output_input[input_index].point, 3)
       end
     end
