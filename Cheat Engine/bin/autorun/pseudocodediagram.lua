@@ -224,7 +224,8 @@ function linkDiagramBlocks(diagram, dblocks, blocks)
   end
 end
 
-function initDiagramPseudoBlocks(dblocks, dpblocks)
+function createDiagramPseudoBlocks(dblocks)
+  local dpblocks = {}
   for i=1, #dblocks do
     local linkz = dblocks[i].getLinks()
     dpblocks.v_layer_count = 0
@@ -234,6 +235,7 @@ function initDiagramPseudoBlocks(dblocks, dpblocks)
     dpblocks[i].output_count = #linkz.asSource
     dpblocks[i].betteroutput_count = 0
     dpblocks[i].input = {}
+    dpblocks[i].output = {}
     dpblocks[i].betteroutput = {}
     dpblocks[i].v_layer = 0
     dpblocks[i].v_layer_count = 0
@@ -242,11 +244,11 @@ function initDiagramPseudoBlocks(dblocks, dpblocks)
     for j=1, #linkz.asDestination do 
       dpblocks[i].input[j] = diagramBlockToDiagramBlockIndex(dblocks, linkz.asDestination[j].OriginBlock)
     end
-    dpblocks[i].output = {}
     for j=1, #linkz.asSource do 
       dpblocks[i].output[j] = diagramBlockToDiagramBlockIndex(dblocks, linkz.asSource[j].DestinationBlock)
     end
   end
+  return dpblocks
 end
 
 function initDiagramVisitedBlocks(dblocks, dvblocks)
@@ -283,7 +285,7 @@ function computeBetterEdges(dblocks, dpblocks)
   dvblocks[1].visited = true
 
   branchqueue = createQueue()
-  pushLeft(branchqueue, 1) --starting blocks
+  pushLeft(branchqueue, 1) --starting block
 
   while (more) do 
     more = false
@@ -409,17 +411,16 @@ end
 function initPoints(dpblocks, points)
   for i=1, #dpblocks do
     points[i] = {}
-    points[i].output = {}
-    points[i].input = {}
-    points[i].v_layer = nil
-    points[i].v_layer_point = nil
+    points[i].output_input = {}
+    points[i].v_layer = 0
+    points[i].v_layer_point = 0
     for j=1, #dpblocks[i].output do
-      points[i].output[j] = {}
-      points[i].output[j].point = nil
+      points[i].output_input[j] = {}
+      points[i].output_input[j].point = 0
     end
-    for j=1, #dpblocks[i].input do
-      points[i].input[j] = {}
-      points[i].input[j].point = nil
+    for j=#dpblocks[i].output+1, #dpblocks[i].output+#dpblocks[i].input do
+      points[i].output_input[j] = {}
+      points[i].output_input[j].point = 0
     end
   end
 end
@@ -435,7 +436,22 @@ function initLinkCounts(dpblocks, h_links_count, v_links_count)
   end
 end
 
-function computePoints(dblocks, dpblocks)
+function createValidityMatrix(dpblocks)
+  local vmatrix = {}
+  for i=0, dpblocks.layer_count+1 do
+    vmatrix[i] = {}
+    for j=0, dpblocks.v_layer_count+1 do
+      vmatrix[i][j] = true
+    end
+  end
+  for i=1, #dpblocks do
+    vmatrix[dpblocks[i].layer][dpblocks[i].v_layer] = false
+  end
+  return vmatrix
+end
+
+
+function computePoints(dblocks, dpblocks, vmatrix)
   local v_links_count, h_links_count, points = {}, {}, {}
   initLinkCounts(dpblocks, h_links_count, v_links_count)
   initPoints(dpblocks, points)
@@ -445,7 +461,7 @@ function computePoints(dblocks, dpblocks)
     for j=1, #dpblocks[i].output do
       local destination = dpblocks[i].output[j]
       v_links_count[dpblocks[origin].layer].link[#v_links_count[dpblocks[origin].layer].link+1] = i
-      points[i].output[j].point = #v_links_count[dpblocks[origin].layer].link
+      points[i].output_input[j].point = #v_links_count[dpblocks[origin].layer].link
     end
   end
   --input vertical points
@@ -453,8 +469,8 @@ function computePoints(dblocks, dpblocks)
     local destination = i
     for j=1, #dpblocks[i].input do
       local origin = dpblocks[i].input[j]
-      v_links_count[dpblocks[destination].layer].link[#v_links_count[dpblocks[destination].layer].link+1] = i
-      points[i].input[j].point = #v_links_count[dpblocks[destination].layer].link
+      v_links_count[dpblocks[destination].layer-1].link[#v_links_count[dpblocks[destination].layer-1].link+1] = i
+      points[i].output_input[j+#dpblocks[i].output].point = #v_links_count[dpblocks[destination].layer-1].link
     end
   end
   --remaining horizontal points
@@ -462,28 +478,9 @@ function computePoints(dblocks, dpblocks)
     local origin = i
     for j=1, #dpblocks[i].output do
       local destination = dpblocks[i].output[j]
-      local max_layer = math.max(dpblocks[origin].layer, dpblocks[destination].layer)
-      local min_layer = math.min(dpblocks[origin].layer, dpblocks[destination].layer)
-      local max_v_layer = math.max(dpblocks[origin].v_layer, dpblocks[destination].v_layer)
-      local min_v_layer = math.min(dpblocks[origin].v_layer, dpblocks[destination].v_layer)
-  
-      local available = 0
-  
-      for i=min_v_layer, max_v_layer do
-        for j=min_layer, max_layer do
-          available = i
-          for k=1, #dpblocks do
-            if (dpblocks[k].v_layer == i) and (dpblocks[k].layer == j) then
-              available = 0
-              break
-            end
-          end
-        end
-        if (available > 0) then break end
-      end
-      h_links_count[available].link[#h_links_count[available].link+1] = i
-      points[i].v_layer = available
-      points[i].v_layer_point = #h_links_count[available].link
+      h_links_count[dpblocks[destination].v_layer].link[#h_links_count[dpblocks[destination].v_layer].link+1] = i
+      points[i].v_layer = dpblocks[destination].v_layer
+      points[i].v_layer_point = #h_links_count[dpblocks[destination].v_layer].link
     end
   end
   return v_links_count, h_links_count, points
@@ -496,52 +493,56 @@ function getLayerCounts(dpblocks)
   end
 end
 
-function initHorizontalAndVerticalLayers(dpblocks, v_layer, layer)
+function initHorizontalAndVerticalLayers(dpblocks, v_layer, layer, links_v_layer, links_layer)
   for i=0, dpblocks.v_layer_count+1 do
     v_layer[i] = {}
+    links_v_layer[i] = {}
     v_layer[i].width = 0
     v_layer[i].x = 0
+    links_v_layer.x = 0
   end
   for i=0, dpblocks.layer_count+1 do
     layer[i] = {}
+    links_layer[i] = {}
     layer[i].height = 0
     layer[i].y = 0
+    links_layer.y = 0
   end
 end
 
-
-function arrangeDiagramBlocks(dblocks, dpblocks, v_links_count, h_links_count)
-  local v_layer, layer = {}, {}
-
-  initHorizontalAndVerticalLayers(dpblocks, v_layer, layer)
-
+function arrangeDiagramLayers(dblocks, dpblocks, v_links_count, h_links_count)
+  local v_layer, layer, links_v_layer, links_layer = {}, {}, {}, {}
+  initHorizontalAndVerticalLayers(dpblocks, v_layer, layer, links_v_layer, links_layer)
   for i=1, #dpblocks do
-    v_layer[dpblocks[i].v_layer].width = math.max(math.ceil(dblocks[i].width / 2), v_layer[dpblocks[i].v_layer].width)
-    v_layer[dpblocks[i].v_layer+1].width = math.max(math.ceil(dblocks[i].width / 2), v_layer[dpblocks[i].v_layer+1].width)
+    v_layer[dpblocks[i].v_layer].width = math.max(dblocks[i].width, v_layer[dpblocks[i].v_layer].width)
     layer[dpblocks[i].layer].height = math.max(dblocks[i].height, layer[dpblocks[i].layer].height)
   end
-  v_layer[0].x = 20*DPIAdjust
-  for i=1, dpblocks.v_layer_count do
-    v_layer[i].x = v_layer[i-1].x + v_layer[i-1].width + 50*DPIAdjust
+  local x = 20*DPIAdjust
+  for i=0, dpblocks.v_layer_count-1 do
+    v_layer[i].x = x
+    x = x + v_layer[i].width
+    links_v_layer[i].x = x
+    x = x + (diagramstyle.link_pointdepth * (#h_links_count[i].link)) + diagramstyle.link_pointdepth
   end
-  layer[0].y = 20*DPIAdjust
-  for i=1, dpblocks.layer_count do
-    if (#v_links_count[i].link > 0) then
-      layer[i].y = layer[i-1].y + layer[i-1].height + (diagramstyle.link_pointdepth * (#v_links_count[i].link + 1))
-    else
-      layer[i].y = layer[i-1].y + layer[i-1].height + diagramstyle.link_pointdepth
-    end
+  local y = 20*DPIAdjust
+  for i=0, dpblocks.layer_count-1 do
+    layer[i].y = y 
+    y = y + layer[i].height
+    links_layer[i].y = y
+    y = y + (diagramstyle.link_pointdepth * (#v_links_count[i].link)) + diagramstyle.link_pointdepth
   end
+  v_layer[dpblocks.v_layer_count].x = x
+  layer[dpblocks.layer_count].y = y
+  links_v_layer[dpblocks.v_layer_count].x = x + v_layer[dpblocks.v_layer_count].width
+  links_layer[dpblocks.layer_count].y = y + layer[dpblocks.layer_count].height
+  return v_layer, layer, links_v_layer, links_layer
+end
+
+function arrangeDiagramBlocks(dblocks, dpblocks, v_layer, layer, v_links_count)
   for i=1, #dblocks do
-    dblocks[i].x = (v_layer[dpblocks[i].v_layer].x + v_layer[dpblocks[i].v_layer].width + 50*DPIAdjust) - (dblocks[i].width / 2)
-    if (dblocks[i].x + dblocks[i].width) > (v_layer[dpblocks[i].v_layer].x + v_layer[dpblocks[i].v_layer].width + v_layer[dpblocks[i].v_layer+1].width + 50*DPIAdjust) then
-      dblocks[i].x = (v_layer[dpblocks[i].v_layer].x + v_layer[dpblocks[i].v_layer].width + v_layer[dpblocks[i].v_layer+1].width + 50*DPIAdjust) - (dblocks[i].width)
-    end
+    dblocks[i].x = v_layer[dpblocks[i].v_layer].x
     dblocks[i].y = layer[dpblocks[i].layer].y
   end
-
-  --to finish
-  return v_layer, layer
 end
 
 function diagramBlockInputToInputIndex(dblock, iblock)
@@ -549,10 +550,10 @@ function diagramBlockInputToInputIndex(dblock, iblock)
   for i=1, #linkz.asDestination do
     if (linkz.asDestination[i].OriginBlock == iblock) then return i end
   end
-  return nil
+  return 0
 end
 
-function arrangeDiagramLinks(dblocks, dpblocks, v_layer, layer, points)
+function arrangeDiagramLinks(dblocks, dpblocks, links_v_layer, links_layer, layer, v_layer, points)
   for i=1, #dblocks do
     local linkz = dblocks[i].getLinks()
     for j=1, #linkz.asSource do
@@ -563,20 +564,19 @@ function arrangeDiagramLinks(dblocks, dpblocks, v_layer, layer, points)
       local ovlayer=dpblocks[i].v_layer
       local dvlayer=dpblocks[dpblocks[i].output[j]].v_layer
       local link=linkz.asSource[j]
-      link.addPoint(link.OriginBlock.X + (link.OriginBlock.Width / 2)+odesc.Position, link.OriginBlock.Y + layer[olayer].height + diagramstyle.link_pointdepth * points[i].output[j].point, 0)
 
-      local input_index = diagramBlockInputToInputIndex(link.DestinationBlock, link.OriginBlock)
+      link.addPoint(link.OriginBlock.X + (link.OriginBlock.Width / 2)+odesc.Position, links_layer[olayer].y + diagramstyle.link_pointdepth * points[i].output_input[j].point, 0)
+
       local k = diagramBlockToDiagramBlockIndex(dblocks, link.DestinationBlock)
+      local input_index = diagramBlockInputToInputIndex(link.DestinationBlock, link.OriginBlock) + #dpblocks[k].output
 
       if (olayer + 1 == dlayer) then
-        link.addPoint(link.DestinationBlock.X + (link.DestinationBlock.Width / 2), link.OriginBlock.Y + layer[olayer].height + diagramstyle.link_pointdepth * points[i].output[j].point, 1)
+        link.addPoint(link.DestinationBlock.X + (link.DestinationBlock.Width / 2), links_layer[olayer].y + diagramstyle.link_pointdepth * points[i].output_input[j].point, 1)
       else
-        link.addPoint(v_layer[points[i].v_layer].x + diagramstyle.link_pointdepth * points[i].v_layer_point, link.OriginBlock.Y + layer[olayer].height + diagramstyle.link_pointdepth * points[i].output[j].point, 1)
-        link.addPoint(v_layer[points[i].v_layer].x + diagramstyle.link_pointdepth * points[i].v_layer_point, layer[dlayer-1].y + layer[dlayer-1].height + diagramstyle.link_pointdepth * points[k].input[input_index].point, 2)
-        link.addPoint(link.DestinationBlock.X + (link.DestinationBlock.Width / 2), layer[dlayer-1].y + layer[dlayer-1].height + diagramstyle.link_pointdepth * points[k].input[input_index].point, 3)
+        link.addPoint(links_v_layer[points[k].v_layer].x + diagramstyle.link_pointdepth * points[i].v_layer_point, links_layer[olayer].y + diagramstyle.link_pointdepth * points[i].output_input[j].point, 1)
+        link.addPoint(links_v_layer[points[k].v_layer].x + diagramstyle.link_pointdepth * points[i].v_layer_point, links_layer[dlayer-1].y + diagramstyle.link_pointdepth * points[k].output_input[input_index].point, 2)
+        link.addPoint(link.DestinationBlock.X + (link.DestinationBlock.Width / 2), links_layer[dlayer-1].y + diagramstyle.link_pointdepth * points[k].output_input[input_index].point, 3)
       end
-
-      
     end
   end
 end
@@ -588,22 +588,16 @@ function spawnDiagram(start, limit)
   local blocks = createBlocks(state)
   local dblocks = createDiagramBlocks(ddiagram, state, blocks)
   linkDiagramBlocks(ddiagram, dblocks, blocks)
-  local dpblocks = {}
-  initDiagramPseudoBlocks(dblocks, dpblocks)
+  local dpblocks = createDiagramPseudoBlocks(dblocks)
   computeBetterEdges (dblocks, dpblocks)
   computeLayers(dblocks, dpblocks, 1)
-
-  for i=1, #dpblocks do
-    dblocks[i].caption = string.format("(v_layer:%d - count:%d) | (layer:%d - layer_count:%d)",dpblocks[i].v_layer, 
-                                                                                                dpblocks[i].v_layer_count, 
-                                                                                                dpblocks[i].layer, 
-                                                                                                dpblocks[i].layer_count)
-  end
-
   getLayerCounts(dpblocks)
-  local v_links_count, h_links_count, points = computePoints(dblocks, dpblocks)
-  local v_layer, layer = arrangeDiagramBlocks(dblocks, dpblocks, v_links_count, h_links_count)
-  arrangeDiagramLinks(dblocks, dpblocks, v_layer, layer, points)
+  local vmatrix = createValidityMatrix(dpblocks)
+  local v_links_count, h_links_count, points = computePoints(dblocks, dpblocks, vmatrix)
+  local v_layer, layer, links_v_layer, links_layer = arrangeDiagramLayers(dblocks, dpblocks, v_links_count, h_links_count)
+  arrangeDiagramBlocks(dblocks, dpblocks, v_layer, layer, v_links_count)
+
+  arrangeDiagramLinks(dblocks, dpblocks, links_v_layer, links_layer, layer, v_layer, points)
   ddiagram.repaint()
 end
 
@@ -642,12 +636,32 @@ spawnDiagram(0x100016914, 50)
   end
   ]]--
 
-    --[[
+ --debug--------------------------------------------------------------------------------------------------------------------
+  --[[
   for i=1, #dpblocks do
-    dblocks[i].caption = string.format("v_layer:%d--v_layer_count:%d--layer:%d--layer_count:%d",dpblocks[i].v_layer, dpblocks[i].v_layer_count, dpblocks[i].layer, dpblocks[i].layer_count)
-    dblocks[i].caption = string.format("v_layer:%d--v_layer_count:%d--layer:%d--layer_count:%d",dpblocks[i].v_layer, dpblocks[i].v_layer_count, dpblocks[i].layer, dpblocks[i].layer_count)
+    dblocks[i].caption = string.format("(v_layer:%d - count:%d) | (layer:%d - layer_count:%d)", dpblocks[i].v_layer, 
+                                                                                                dpblocks[i].v_layer_count, 
+                                                                                                dpblocks[i].layer, 
+                                                                                                dpblocks[i].layer_count)
   end
-  ]]
+  local blockx = {}
+  for i=0, dpblocks.v_layer_count do
+   blockx[i] = createDiagramBlock(ddiagram, "lol")
+   blockx[i].width = 10
+   blockx[i].height = 100000
+   blockx[i].x = v_layer[i].x
+   blockx[i].y = 20
+  end
+  local blocky = {}
+  for i=0, dpblocks.layer_count do
+   blocky[i] = createDiagramBlock(ddiagram, "lol")
+   blocky[i].width = 100000
+   blocky[i].height = 10
+   blocky[i].x = 20
+   blocky[i].y = layer[i].y
+  end
+  --]]
+  --debug--------------------------------------------------------------------------------------------------------------------
 
 --[[todolist]]
 --have a rightclick on an address function, then find the start of the function and then parse and display the diagram
