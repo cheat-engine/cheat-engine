@@ -105,8 +105,9 @@ function createDiagramForm(name)
   local diagramform = createForm()
   diagramform.BorderStyle='bsSizeable'
   diagramform.Caption=name
-  diagramform.width=getScreenWidth() - (getScreenWidth() / 6)
-  diagramform.height=getScreenHeight() - (getScreenHeight() / 6)
+  diagramform.Width=getScreenWidth() - (getScreenWidth() / 6)
+  diagramform.Height=getScreenHeight() - (getScreenHeight() / 6)
+  diagramform.Visible=false
   return diagramform
 end
 
@@ -548,13 +549,13 @@ function arrangeDiagramLinks(dblocks, dpblocks, links_v_layer, links_layer, poin
       local destination_index = dpblocks[i].output[j]
       local input_index = diagramBlockInputToInputIndex(link.DestinationBlock, link.OriginBlock) + #dpblocks[destination_index].output
       
-      link.addPoint(link.OriginBlock.X + (link.OriginBlock.Width / 2) + dpblocks[i].odescriptor[j].Position, links_layer[origin_layer].y + diagramstyle.link_pointdepth * points[i].output_input[j].point, 0)
+      link.addPoint(link.OriginBlock.X + (link.OriginBlock.Width / 2) + dpblocks[origin_index].odescriptor[j].Position, links_layer[origin_layer].y + diagramstyle.link_pointdepth * points[origin_index].output_input[j].point, 0)
 
       if (origin_layer + 1 == destination_layer) then
-        link.addPoint(link.DestinationBlock.X + (link.DestinationBlock.Width / 2), links_layer[origin_layer].y + diagramstyle.link_pointdepth * points[i].output_input[j].point, 1)
+        link.addPoint(link.DestinationBlock.X + (link.DestinationBlock.Width / 2), links_layer[origin_layer].y + diagramstyle.link_pointdepth * points[origin_index].output_input[j].point, 1)
       else
-        link.addPoint(links_v_layer[dpblocks[destination_index].v_layer].x + diagramstyle.link_pointdepth * points[i].v_layer[j].point, links_layer[origin_layer].y + diagramstyle.link_pointdepth * points[i].output_input[j].point, 1)
-        link.addPoint(links_v_layer[dpblocks[destination_index].v_layer].x + diagramstyle.link_pointdepth * points[i].v_layer[j].point, links_layer[destination_layer-1].y + diagramstyle.link_pointdepth * points[destination_index].output_input[input_index].point, 2)
+        link.addPoint(links_v_layer[dpblocks[destination_index].v_layer].x + diagramstyle.link_pointdepth * points[origin_index].v_layer[j].point, links_layer[origin_layer].y + diagramstyle.link_pointdepth * points[origin_index].output_input[j].point, 1)
+        link.addPoint(links_v_layer[dpblocks[destination_index].v_layer].x + diagramstyle.link_pointdepth * points[origin_index].v_layer[j].point, links_layer[destination_layer-1].y + diagramstyle.link_pointdepth * points[destination_index].output_input[input_index].point, 2)
         link.addPoint(link.DestinationBlock.X + (link.DestinationBlock.Width / 2), links_layer[destination_layer-1].y + diagramstyle.link_pointdepth * points[destination_index].output_input[input_index].point, 3)
       end
     end
@@ -585,6 +586,7 @@ function spawnDiagram(start, limit)
   else
     if #dblocks > 0 then centerDiagramBlock(dform, dblocks[1]) end
   end
+  dform.Visible = true
   ddiagram.repaint()
 end
 
