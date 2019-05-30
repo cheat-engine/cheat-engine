@@ -125,6 +125,12 @@ end
 function createDiagramBlock(diagram, name)
   local diagramblock = diagram.createBlock()
   diagramblock.Caption=name
+  diagramblock.OnDoubleClickHeader = function()
+    local mwform = getMemoryViewForm()
+    local dview = mwform.DisassemblerView
+    dview.SelectedAddress = getAddressSafe(getRef(diagramblock.Tag))
+    mwform.show()
+  end
   return diagramblock
 end
 
@@ -155,6 +161,10 @@ function createDiagramBlocks(diagram, state, blocks)
       else
         diagramblocks[i] = createDiagramBlock(diagram, ' ' .. string.format('%X', block.start))
       end
+
+      local blockaddress = block.start
+      diagramblocks[i].Tag = createRef(blockaddress)
+
       local current = block.start
       while (current <= block.stop) do
         diagramblocks[i].Strings.add(disassembleDecoratedInstruction(current))
