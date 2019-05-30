@@ -1890,7 +1890,7 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 				for (i = 0; i < (int)(inp->RangeCount); i++)
 					DbgPrint("%d=%p -> %p", i, (PVOID)(UINT_PTR)inp->Ranges[i].StartAddress, (PVOID)(UINT_PTR)inp->Ranges[i].EndAddress);
 
-				SetupUltimap2(inp->PID, inp->Size, inp->OutputPath, inp->RangeCount, inp->Ranges, inp->NoPMI, inp->KernelMode, inp->UserMode);
+				SetupUltimap2(inp->PID, inp->Size, inp->OutputPath, inp->RangeCount, inp->Ranges, inp->NoPMI, inp->UserMode, inp->KernelMode);
 
 				ntStatus = STATUS_SUCCESS;
 				break;
