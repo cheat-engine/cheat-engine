@@ -2120,17 +2120,16 @@ int WriteProcessMemoryDebug(HANDLE hProcess, PProcessData p, void *lpAddress, vo
       uint32_t pHandle;  //5
       uint64_t address;  //13
       uint32_t size;     //17
-      unsigned char data[size]; //not sure if this works. need testing
     } wpm;
 #pragma pack()
 
-
+    unsigned char data [size];
     printf("sizeof wpm=%d\n", sizeof(wpm));
     wpm.command=CMD_WRITEPROCESSMEMORY;
     wpm.pHandle=hProcess;
     wpm.address=(uintptr_t)lpAddress;
     wpm.size=size;
-    memcpy(wpm.data, buffer, size);
+    memcpy(data, buffer, size);
 
 
 
@@ -2139,6 +2138,7 @@ int WriteProcessMemoryDebug(HANDLE hProcess, PProcessData p, void *lpAddress, vo
     if (pthread_mutex_lock(&debugsocketmutex) == 0)
     {
       sendall(p->debuggerClient, &wpm, sizeof(wpm), 0);
+      sendall (p-> debuggerClient, &data, size, 0);
       WakeDebuggerThread();
 
       recvall(p->debuggerClient, &byteswritten, sizeof(byteswritten), MSG_WAITALL);
@@ -2362,7 +2362,7 @@ int ReadProcessMemoryDebug(HANDLE hProcess, PProcessData p, void *lpAddress, voi
       while(offset<max)
       {
         errno = 0;
-        value =  ptrace(PTRACE_PEEKDATA, pid, (void*)((uintptr_t)lpAddress+offset), (void *)0);
+        value =  ptrace(PTRACE_PEEKDATA, p->pid, (void*)((uintptr_t)lpAddress+offset), (void *)0);
 
         if(errno == 0)
         {
@@ -2384,7 +2384,7 @@ int ReadProcessMemoryDebug(HANDLE hProcess, PProcessData p, void *lpAddress, voi
       if(offset < size && is_readable)
       {
         errno = 0;
-        value =  ptrace(PTRACE_PEEKDATA, pid, (void*)((uintptr_t)lpAddress+offset), (void *)0);
+        value =  ptrace(PTRACE_PEEKDATA, p->pid, (void*)((uintptr_t)lpAddress+offset), (void *)0);
         
         if(errno == 0)
         {
@@ -2624,23 +2624,10 @@ int ReadProcessMemory(HANDLE hProcess, void *lpAddress, void *buffer, int size)
   return bread;
 }
 
-#ifdef __aarch64__
-char *index(const char *s, int c)
-{
-  int i=0;
-  for (i=0; s[i]!=0; i++)
-  {
-    if (s[i]==c)
-      return &s[i];
-  }
-
-  return NULL;
-}
-#endif
 
 DWORD ProtectionStringToType(char *protectionstring)
 {
-  if (index(protectionstring, 's'))
+  if (strstr(protectionstring, 's'))
     return MEM_MAPPED;
   else
     return MEM_PRIVATE;
@@ -2650,12 +2637,12 @@ uint32_t ProtectionStringToProtection(char *protectionstring)
 {
   int w,x;
 
-  if (index(protectionstring, 'x'))
+  if (strstr(protectionstring, 'x'))
     x=1;
   else
     x=0;
 
-  if (index(protectionstring, 'w'))
+  if (strstr(protectionstring, 'w'))
     w=1;
   else
     w=0;
