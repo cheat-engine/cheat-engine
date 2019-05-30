@@ -2627,7 +2627,7 @@ int ReadProcessMemory(HANDLE hProcess, void *lpAddress, void *buffer, int size)
 
 DWORD ProtectionStringToType(char *protectionstring)
 {
-  if (strstr(protectionstring, 's'))
+  if (strchr(protectionstring, 's'))
     return MEM_MAPPED;
   else
     return MEM_PRIVATE;
@@ -2637,12 +2637,12 @@ uint32_t ProtectionStringToProtection(char *protectionstring)
 {
   int w,x;
 
-  if (strstr(protectionstring, 'x'))
+  if (strchr(protectionstring, 'x'))
     x=1;
   else
     x=0;
 
-  if (strstr(protectionstring, 'w'))
+  if (strchr(protectionstring, 'w'))
     w=1;
   else
     w=0;
