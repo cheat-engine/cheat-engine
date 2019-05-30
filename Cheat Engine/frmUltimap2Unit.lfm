@@ -1,12 +1,13 @@
 object frmUltimap2: TfrmUltimap2
-  Left = 433
+  Left = 451
   Height = 688
-  Top = 617
+  Top = 235
   Width = 739
   AutoSize = True
   Caption = 'Ultimap 2'
-  ClientHeight = 688
+  ClientHeight = 668
   ClientWidth = 739
+  Menu = MainMenu1
   OnClose = FormClose
   OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
@@ -670,19 +671,19 @@ object frmUltimap2: TfrmUltimap2
   end
   object Panel2: TPanel
     Left = 0
-    Height = 167
+    Height = 147
     Top = 521
     Width = 739
     Align = alClient
     AutoSize = True
     BevelOuter = bvNone
     Caption = 'Panel2'
-    ClientHeight = 167
+    ClientHeight = 147
     ClientWidth = 739
     TabOrder = 1
     object ListView1: TListView
       Left = 0
-      Height = 122
+      Height = 102
       Top = 0
       Width = 739
       Align = alClient
@@ -713,7 +714,7 @@ object frmUltimap2: TfrmUltimap2
     object Panel3: TPanel
       Left = 0
       Height = 45
-      Top = 122
+      Top = 102
       Width = 739
       Align = alBottom
       AutoSize = True
@@ -882,5 +883,26 @@ object frmUltimap2: TfrmUltimap2
       F3327777DD994444D1DB3333CCFB3333CCFB4444D1DB7777DD99CDCDF332FFFF
       FF00FFFFFF00FFFFFF00FFFFFF00
     }
+  end
+  object MainMenu1: TMainMenu
+    left = 493
+    top = 249
+    object MenuItem2: TMenuItem
+      Caption = 'File'
+      object MenuItem3: TMenuItem
+        Caption = 'Open tracefile reader'
+      end
+      object MenuItem5: TMenuItem
+        Caption = 'Debug: Process tracefile'
+        OnClick = MenuItem5Click
+      end
+      object MenuItem4: TMenuItem
+        Caption = 'Close'
+        OnClick = MenuItem4Click
+      end
+    end
+  end
+  object OpenDialog1: TOpenDialog
+    left = 248
   end
 end
