@@ -139,11 +139,27 @@ function createDiagramLink(diagram, sourceblock, destinationblock, color, offset
   sourceBSD.Block=sourceblock
   sourceBSD.Side=dbsBottom
   sourceBSD.Position=offset 
+
+  local offset2 = 0
+  local linkz = destinationblock.getLinks()
+  if #linkz.asDestination > 0 then
+    if math.fmod(#linkz.asDestination + 1,2) == 0 then
+      offset2 = (diagramstyle.link_pointdepth/2)*(#linkz.asDestination + 1)
+    else
+      offset2 = -(diagramstyle.link_pointdepth/2)*(#linkz.asDestination)
+    end
+  end
+
+  if (destinationblock.x + (destinationblock.width / 2) + offset2) >= (destinationblock.x + destinationblock.width) then
+    destinationblock.width = destinationblock.width + math.abs((destinationblock.x + destinationblock.width) - (destinationblock.x + (destinationblock.width / 2) + offset2)) + 20*DPIAdjust
+  elseif (destinationblock.x + (destinationblock.width / 2) + offset2) <= destinationblock.x then
+    destinationblock.width = destinationblock.width + math.abs(destinationblock.x - (destinationblock.x + (destinationblock.width / 2) + offset2)) + 20*DPIAdjust
+  end
   
   local destinationBSD={}
   destinationBSD.Block=destinationblock
   destinationBSD.Side=dbsTop
-  destinationBSD.Position=0
+  destinationBSD.Position=offset2
   
   local diagramlink = diagram.addConnection(sourceBSD, destinationBSD)
   
@@ -562,11 +578,11 @@ function arrangeDiagramLinks(dblocks, dpblocks, links_v_layer, links_layer, poin
       link.addPoint(link.OriginBlock.X + (link.OriginBlock.Width / 2) + dpblocks[origin_index].odescriptor[j].Position, links_layer[origin_layer].y + diagramstyle.link_pointdepth * points[origin_index].output_input[j].point, 0)
 
       if (origin_layer + 1 == destination_layer) then
-        link.addPoint(link.DestinationBlock.X + (link.DestinationBlock.Width / 2), links_layer[origin_layer].y + diagramstyle.link_pointdepth * points[origin_index].output_input[j].point, 1)
+        link.addPoint(link.DestinationBlock.X + (link.DestinationBlock.Width / 2) + dpblocks[origin_index].ddescriptor[j].Position, links_layer[origin_layer].y + diagramstyle.link_pointdepth * points[origin_index].output_input[j].point, 1)
       else
         link.addPoint(links_v_layer[dpblocks[destination_index].v_layer].x + diagramstyle.link_pointdepth * points[origin_index].v_layer[j].point, links_layer[origin_layer].y + diagramstyle.link_pointdepth * points[origin_index].output_input[j].point, 1)
         link.addPoint(links_v_layer[dpblocks[destination_index].v_layer].x + diagramstyle.link_pointdepth * points[origin_index].v_layer[j].point, links_layer[destination_layer-1].y + diagramstyle.link_pointdepth * points[destination_index].output_input[input_index].point, 2)
-        link.addPoint(link.DestinationBlock.X + (link.DestinationBlock.Width / 2), links_layer[destination_layer-1].y + diagramstyle.link_pointdepth * points[destination_index].output_input[input_index].point, 3)
+        link.addPoint(link.DestinationBlock.X + (link.DestinationBlock.Width / 2) + dpblocks[origin_index].ddescriptor[j].Position, links_layer[destination_layer-1].y + diagramstyle.link_pointdepth * points[destination_index].output_input[input_index].point, 3)
       end
     end
   end
