@@ -802,7 +802,7 @@ void StoreAccessedRanges(UINT_PTR StartAddress, UINT_PTR EndAddress, struct PTES
 		{
 			//insert
 			PPENTRY e;
-			e = ExAllocatePoolWithTag(PagedPool, sizeof(PENTRY), 0);
+			e = ExAllocatePool(PagedPool, sizeof(PENTRY));
 			e->Range.StartAddress = StartAddress;
 			e->Range.EndAddress = EndAddress;
 			e->Next = AccessedList;
