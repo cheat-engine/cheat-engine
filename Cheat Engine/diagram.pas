@@ -852,6 +852,7 @@ procedure TDiagram.WMLButtonDBLCLK(var Message: TLMLButtonDblClk);
 var
   i: integer;
   pt: tpoint;
+  l: TDiagramLink;
 begin
   inherited WMLButtonDBLCLK(message);
 
@@ -868,7 +869,12 @@ begin
     end;
   end;
 
-
+  for i:=0 to links.count-1 do
+  begin
+    l:=TDiagramLink(links[i]);
+    if assigned(l.OnDblClick) and l.isOverLine(pt.x,pt.y) then
+      l.OnDblClick(l);
+  end;
 end;
 
 procedure TDiagram.MouseUp(Button: TMouseButton; Shift: TShiftState; X, Y: Integer);

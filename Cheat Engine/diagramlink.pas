@@ -33,6 +33,8 @@ type
     fmaxx: integer; //set after render
     fmaxy: integer;
 
+    fOnDblClick: TNotifyEvent;
+
 
 
     function getYPosFromX(x: single; linestart: tpoint; lineend: tpoint): double;
@@ -101,6 +103,7 @@ type
     property Name: string read fName write fName;
     property maxx: integer read fmaxx;
     property maxy: integer read fmaxy;
+    property OnDblClick: TNotifyEvent read fOnDblClick write fOnDblClick;
   end;
 
 implementation

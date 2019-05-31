@@ -3388,6 +3388,7 @@ properties
   Linethickness: integer - thickness of the line, when set overrides the default
   ArrowStyles: string - See diagram ArrowStyles
   Name: string - Name of the link
+  OnDblClick: function(sender) - Function to call when the link is doubleclicked
 
 methods
   hasLinkToBlock(DiagramBlock): boolean - Returns true/false depending on if this link has a connection to the provided block
