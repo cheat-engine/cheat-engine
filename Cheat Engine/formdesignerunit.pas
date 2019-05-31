@@ -135,6 +135,8 @@ type
 
     procedure OnComponentRenamed(AComponent: TComponent);
     procedure onRefreshPropertyValues;
+    function onMethodFromLookupRoot(const Method:TMethod):boolean;
+
     procedure setFormName;
     procedure mousedownhack(var TheMessage: TLMessage);
   public
@@ -166,11 +168,9 @@ type
     procedure onRenameMethod(const CurName, NewName: String);
     procedure onShowMethod(const Name: String);
     function onCreateMethod(const Name: ShortString; ATypeInfo: PTypeInfo; APersistent: TPersistent; const APropertyPath: string): TMethod;
-    {$if lcl_fullversion >= 1060400}
+
     function ogm(const Method: TMethod; CheckOwner: TObject; OrigLookupRoot: TPersistent): String;
-    {$else}
-    function ogm(const Method: TMethod; CheckOwner: TObject): String;
-    {$endif}
+
     procedure OnGetMethods(TypeData: PTypeData; Proc: TGetStrProc);
     procedure OnGetCompatibleMethods(InstProp: PInstProp; const Proc: TGetStrProc);
 
@@ -581,6 +581,11 @@ begin
  // showmessage('weee');
 end;
 
+function TFormDesigner.onMethodFromLookupRoot(const Method:TMethod):boolean;
+begin
+  result:=(method.code<>nil) and (TObject(method.data) is TLuaCaller);
+end;
+
 procedure TFormDesigner.FormCreate(Sender: TObject);
 var h: TPropertyEditorHook;
   gc: TOICustomPropertyGrid;
@@ -625,6 +630,8 @@ begin
   GlobalDesignHook.AddHandlerComponentRenamed(OnComponentRenamed);
 
   GlobalDesignHook.AddHandlerRefreshPropertyValues(onRefreshPropertyValues);
+
+  GlobalDesignHook.AddHandlerMethodFromLookupRoot(OnMethodFromLookuproot);
 
   setlength(x,0);
   loadedfromsave:=loadformposition(self, x);
@@ -826,9 +833,18 @@ var f: TLuaCaller;
 
   NeedsToBeCreated: boolean;
   header: tstringlist;
+
+  ns: string;
 begin
   f:=TLuaCaller.create;
-  f.luaroutine:=name;
+
+  ns:=name;
+  ns:=TComponent(GlobalDesignHook.LookupRoot).name+'_'+copy(ns, RPos('.',ns)+1);
+
+ // name:=ns;
+
+
+  f.luaroutine:=ns;
   f.owner:=APersistent;
 
   try
@@ -849,11 +865,11 @@ begin
     //failed to get the propertyname
   end;
 
-  i:=methodlist.IndexOf(name);
+  i:=methodlist.IndexOf(ns);
   NeedsToBeCreated:=i=-1;
 
   header:=tstringlist.create;
-  result:=luacaller_getFunctionHeaderAndMethodForType(ATypeInfo, f, name, header);
+  result:=luacaller_getFunctionHeaderAndMethodForType(ATypeInfo, f, ns, header);
 
   if NeedsToBeCreated then
   begin
@@ -863,7 +879,7 @@ begin
 
   header.free;
 
-  onShowMethod(Name);
+  onShowMethod(ns);
 
 end;
 
@@ -918,7 +934,6 @@ begin
 end;
 }
 
-{$if lcl_fullversion >= 1060400}
 function TFormDesigner.ogm(const Method: TMethod; CheckOwner: TObject; OrigLookupRoot: TPersistent): String;
 begin
   if method.code=nil then
@@ -931,20 +946,6 @@ begin
       result:=rsInvalidObject;
   end;
 end;
-{$else}
-function TFormDesigner.ogm(const Method: TMethod; CheckOwner: TObject): String;
-begin
-  if method.code=nil then
-    result:=''
-  else
-  begin
-    if tobject(method.data) is TLuaCaller then
-      result:=TLuaCaller(method.Data).luaroutine
-    else
-      result:=rsInvalidObject;
-  end;
-end;
-{$endif}
 
 procedure TFormDesigner.UpdateMethodListIfNeeded;
 var s: string;

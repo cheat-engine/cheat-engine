@@ -753,7 +753,6 @@ properties:
   Font: Font - The font class associated with the control
   OnClick: function - The function to call when a button is pressed
 
-
 methods:
   getLeft()
   setLeft(integer)
@@ -3328,6 +3327,12 @@ properties
   AllowUserToResizeBlocks: boolean - If true(default) will allow the user to resize blocks
   AllowUserToMoveBlocks: boolean - If true(default) will allow the user to move blocks around by draging the caption
   AllowUserToChangeAttachPoints: boolean - If true(default) will allow the user to move move the point where a line connects to the block by dragging it
+  ScrollX: integer - The horizontal scroll
+  ScrollY: integer - The vertical scroll
+  Zoom: float - The zoom level to use 
+
+
+
 
 methods
   createBlock(): DiagramBlock - Creates a new uninitialized block

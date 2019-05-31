@@ -89,6 +89,8 @@ type
       procedure DrawItemEvent(Control: TWinControl; Index: Integer; ARect: TRect; State: TOwnerDrawState);
       procedure MenuDrawItemEvent(Sender: TObject; Canvas: TCanvas; ARect: TRect; State: TOwnerDrawState);
       procedure DBCustomDrawEvent(Sender: TDiagramBlock; const ARect: TRect; beforePaint: boolean; var DefaultDraw: Boolean);
+      procedure ContextPopupEvent(Sender: TObject; MousePos: TPoint; var Handled: Boolean);
+
 
       procedure synchronize;
 
@@ -1529,6 +1531,22 @@ begin
   end;
 end;
 
+procedure TLuaCaller.ContextPopupEvent(Sender: TObject; MousePos: TPoint; var Handled: Boolean);
+var
+  oldstack: integer;
+begin
+  oldstack:=lua_gettop(Luavm);
+  try
+    pushFunction;
+    luaclass_newClass(LuaVM, Sender);
+    lua_pushpoint(LuaVM, MousePos);
+    lua_pcall(LuaVM, 2,1,0);
+    Handled:=lua_toboolean(LuaVM,-1);
+  finally
+    lua_settop(LuaVM, oldstack);
+  end;
+end;
+
 //----------------------------Lua implementation-----------------------------
 function LuaCaller_NotifyEvent(L: PLua_state): integer; cdecl;
 var
@@ -2574,6 +2592,34 @@ begin
     lua_pop(L, lua_gettop(L));
 end;
 
+
+
+
+function LuaCaller_ContextPopupEvent(L: PLua_state): integer; cdecl; //sender, mousepos
+var
+  sender: TDiagramBlock;
+  mousepos: tpoint;
+  m: TMethod;
+  handled: boolean;
+begin
+  result:=0;
+  if lua_gettop(L)=2 then
+  begin
+    m.code:=lua_touserdata(L, lua_upvalueindex(1));
+    m.data:=lua_touserdata(L, lua_upvalueindex(2));
+    sender:=lua_ToCEUserData(L, 1);
+    mousepos:=lua_toPoint(L,2);
+    handled:=true;
+    TContextPopupEvent(m)(sender, mousepos, handled);
+    lua_pushboolean(L,handled);
+    result:=1;
+  end
+  else
+    lua_pop(L, lua_gettop(L));
+end;
+
+
+
 procedure registerLuaCall(typename: string; getmethodprop: lua_CFunction; setmethodprop: pointer; luafunctionheader: string);
 var t: TLuaCallData;
 begin
@@ -2639,5 +2685,7 @@ initialization
   registerLuaCall('TMenuDrawItemEvent', LuaCaller_MenuDrawItemEvent, pointer(TLuaCaller.MenuDrawItemEvent),'function %s(sender, canvas, rect, state)'#13#10#13#10'end'#13#10);
 
   registerLuaCall('TDBCustomDrawEvent', LuaCaller_DBCustomDrawEvent, pointer(TLuaCaller.DBCustomDrawEvent),'function %s(sender, rect, beforedraw)'#13#10#13#10'  return text'#13#10'end'#13#10);
+  registerLuaCall('TContextPopupEvent', LuaCaller_ContextPopupEvent, pointer(TLuaCaller.ContextPopupEvent),'function %s(sender, mousepos)'#13#10'  local handled=true'#13#10'  return handled'#13#10'end'#13#10);
+
 end.
 
