@@ -21,7 +21,7 @@ diagramstyle.block_bodyshowaddressesassymbol = true
 diagramstyle.block_bodyshowbytes = false
 diagramstyle.block_backgroundcolor = 0x00FFFFFF --white
 
-diagramstyle.diagram_blackgroundcolor = 0x00808080 --grey
+diagramstyle.diagram_blackgroundcolor = 0x0099FFCC --light green
 
 
 
@@ -119,6 +119,9 @@ function createDiagramDiagram(form)
   diagramdiagram.BlockBackground=diagramstyle.block_backgroundcolor
   diagramdiagram.LineThickness=diagramstyle.link_linethickness
   diagramdiagram.ArrowSize=diagramstyle.link_arrowsize
+  --diagramdiagram.AllowUserToCreatePlotPoints = false
+  --diagramdiagram.AllowUserToMovePlotPoints = false
+  --diagramdiagram.AllowUserToChangeAttachPoints = false
   return diagramdiagram
 end
 
@@ -465,7 +468,7 @@ function initPoints(dpblocks, points)
 end
 
 function initLinkCounts(dpblocks, h_links_count, v_links_count)
-  for i=0, dpblocks.layer_count do
+  for i=-1, dpblocks.layer_count do
     v_links_count[i] = {}
     v_links_count[i].link = {}
   end
@@ -519,14 +522,14 @@ function initHorizontalAndVerticalLayers(dpblocks, v_layer, layer, links_v_layer
     links_v_layer[i] = {}
     v_layer[i].width = 0
     v_layer[i].x = 0
-    links_v_layer.x = 0
+    links_v_layer[i].x = 0
   end
-  for i=0, dpblocks.layer_count do
+  for i=-1, dpblocks.layer_count do
     layer[i] = {}
     links_layer[i] = {}
     layer[i].height = 0
     layer[i].y = 0
-    links_layer.y = 0
+    links_layer[i].y = 0
   end
 end
 
@@ -544,7 +547,9 @@ function arrangeDiagramLayers(dblocks, dpblocks, v_links_count, h_links_count)
     links_v_layer[i].x = x
     x = x + (diagramstyle.link_pointdepth * (#h_links_count[i].link)) + diagramstyle.link_pointdepth
   end
-  local y = 20*DPIAdjust
+  layer[-1].y = 0 --extra layer
+  layer[-1].height = diagramstyle.link_pointdepth * (#v_links_count[-1].link) --size = inputs * pointdepth
+  local y = layer[-1].height + diagramstyle.link_pointdepth
   for i=0, dpblocks.layer_count-1 do
     layer[i].y = y 
     y = y + layer[i].height
@@ -631,6 +636,14 @@ mi.Shortcut='Ctrl+Shift+D'
 mi.ImageIndex=33
 mi.OnClick=MenuSpawnDiagram
 mv.debuggerpopup.Items.insert(mv.MenuItem2.MenuIndex+1, mi)
+
+--[[
+diagram.ScrollX = sourceblock.x - math.abs((form.width / 2) - ((sourceblock.width) / 2))
+diagram.ScrollY = sourceblock.y - math.abs((form.height / 2) - ((sourceblock.height) / 2))
+
+diagram.ScrollX = destinationblock.x - math.abs((form.width / 2) - ((destinationblock.width) / 2))
+diagram.ScrollY = destinationblock.y - math.abs((form.height / 2) - ((destinationblock.height) / 2))
+]]
 
 --[[
 local new_diagramstyle = {}
