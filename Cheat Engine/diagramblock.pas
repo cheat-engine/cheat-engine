@@ -57,6 +57,8 @@ type
 
 
     fBlockId: integer;
+    fShowHeader: boolean;
+    fDragbody: boolean;
 
     function getBackgroundColor: TColor;
     procedure setBackgroundColor(c: TColor);
@@ -122,6 +124,8 @@ type
     property AutoSize: boolean read fAutoSize write setAutoSize;
     property AutoSide: boolean read fAutoSide write fAutoSide;
     property AutoSideDistance: integer read fAutoSideDistance write fAutoSideDistance;
+    property ShowHeader: boolean read fShowHeader write fShowHeader default true;
+    property DragBody: boolean read fDragbody write fDragBody;
 
     property OnDoubleClickHeader: TNotifyEvent read fOnDoubleClickHeader write fOnDoubleClickHeader;
     property OnDoubleClickBody: TNotifyEvent read fOnDoubleClickBody write fOnDoubleClickBody;
@@ -280,6 +284,8 @@ procedure TDiagramBlock.setBackgroundColor(c: TColor);
 begin
   customBackgroundColor:=c;
   useCustomBackgroundColor:=true;
+
+  hasChanged:=true;
 end;
 
 function TDiagramBlock.getTextColor: TColor;
@@ -372,6 +378,8 @@ begin
   f.WriteByte(ifthen(useCustomTextColor, 1,0));
   if useCustomTextColor then f.WriteDWord(CustomTextColor);
 
+  f.WriteByte(ifthen(ShowHeader, 1,0));
+  f.WriteByte(ifthen(DragBody, 1,0));
   f.WriteByte(ifthen(AutoSize, 1,0));
   f.WriteByte(ifthen(AutoSide, 1,0));
   f.WriteWord(fAutoSideDistance);
@@ -393,6 +401,8 @@ begin
   useCustomTextColor:=f.readByte=1;
   if useCustomTextColor then CustomTextColor:=f.ReadDWord;
 
+  ShowHeader:=f.readbyte=1;
+  DragBody:=f.readbyte=1;
   AutoSize:=f.readbyte=1;
   autoside:=f.readbyte=1;
   fAutoSideDistance:=f.readWord;
@@ -438,23 +448,31 @@ begin
     c.Rectangle(0,0,width,height);
 
 
-    if captionheight=0 then
-      captionheight:=c.GetTextHeight('XxYyJjQq')+4;
+    if fShowHeader then
+    begin
+      if (captionheight=0) then
+        captionheight:=c.GetTextHeight('XxYyJjQq')+4
+    end
+    else
+      captionheight:=0;
 
     c.Rectangle(0,0,width,captionheight);
 
     oldfontcolor:=c.font.color;
     c.font.color:=TextColor;
 
-    renderOriginal:=true;
-    if assigned(fOnRenderHeader) then
-      fOnRenderHeader(self,rect(0,0,width-1,captionheight),true, renderOriginal);
-
-    if renderOriginal then
+    if fShowHeader then
     begin
-      cr:=renderFormattedText(c, rect(0,0,width-1,captionheight),1,0,caption);
+      renderOriginal:=true;
       if assigned(fOnRenderHeader) then
-        fOnRenderHeader(self,rect(0,0,width-1,captionheight),false, renderOriginal);
+        fOnRenderHeader(self,rect(0,0,width-1,captionheight),true, renderOriginal);
+
+      if renderOriginal then
+      begin
+        cr:=renderFormattedText(c, rect(0,0,width-1,captionheight),1,0,caption);
+        if assigned(fOnRenderHeader) then
+          fOnRenderHeader(self,rect(0,0,width-1,captionheight),false, renderOriginal);
+      end;
     end;
 
 
@@ -951,6 +969,7 @@ end;
 
 procedure TDiagramBlock.createBlock(graphConfig: TDiagramConfig);
 begin
+  fShowHeader:=true;
   data:=TStringList.create;
   data.OnChange:=@DataChange;
 

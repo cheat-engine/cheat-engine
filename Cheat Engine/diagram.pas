@@ -671,7 +671,7 @@ begin
   for i:=blocks.count-1 downto 0 do
   begin
     b:=TDiagramBlock(blocks[i]);
-    if fAllowUserToMoveBlocks and b.IsInsideHeader(x,y) then
+    if fAllowUserToMoveBlocks and ((b.DragBody and b.IsInsideBody(x,y)) or (b.IsInsideHeader(x,y))) then
     begin
       draggedBlock.Block:=b;
       draggedBlock.Point:=point(x-b.x,y-b.y);
@@ -1417,6 +1417,9 @@ begin
   lastMaxX:=maxx;
   lastMaxY:=maxy;
   updateScrollbars(maxx,maxy);
+
+  if assigned(OnPaint) then
+    OnPaint(self);
 end;
 
 
