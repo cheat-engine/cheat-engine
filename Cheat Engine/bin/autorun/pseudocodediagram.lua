@@ -186,8 +186,7 @@ function createDiagramBlocks(diagram)
         diagram.dblocks[i] = createDiagramBlock(diagram, ' ' .. string.format('%X', diagram.blocks[i].start))
       end
 
-      local blockaddress = diagram.blocks[i].start
-      diagram.dblocks[i].Tag = createRef(blockaddress)
+      diagram.dblocks[i].Tag = createRef(diagram.blocks[i].start)
 
       local current = diagram.blocks[i].start
       while (current <= diagram.blocks[i].stop) do
@@ -221,7 +220,7 @@ end
 function diagramBlockInputToInputIndex(dblock, idblock)
   local linkz = dblock.getLinks()
   for i=1, #linkz.asDestination do
-    if (linkz.asDestination[i].OriginBlock == idblock) then 
+    if linkz.asDestination[i].OriginBlock == idblock then 
       return i 
     end
   end
@@ -230,9 +229,9 @@ end
 
 function linkDiagramBlocks(diagram)
   for i=1, #diagram.dblocks do
-    if (i > 1) then --skip starting block
+    if i > 1 then --skip starting block
       for j=1, #diagram.blocks[i].getsJumpedToBy do
-        if (diagram.blocks[i].getsJumpedToBy[j] == diagram.blocks[i-1].stop) then
+        if diagram.blocks[i].getsJumpedToBy[j] == diagram.blocks[i-1].stop then
           local link=createDiagramLink(diagram, i-1, i, diagramstyle.link_nottakencolor,10*DPIAdjust) --not taken branches
           local linkdata={}
           linkdata.isTaken=true          
@@ -242,7 +241,8 @@ function linkDiagramBlocks(diagram)
     end
     if (diagram.blocks[i].jumpsTo) then --skip leaf blocks
       local destinationblock = blockAddressToBlockIndex(diagram, diagram.blocks[i].jumpsTo.destinationtaken)
-      if (destinationblock) then
+
+      if destinationblock then
         local linkdata={}
         local color=diagramstyle.link_takencolor
         local offset=-10*DPIAdjust
@@ -264,6 +264,7 @@ function linkDiagramBlocks(diagram)
         linkdata.isTaken=false
         link.Tag=createRef(linkdata)
       end
+
     end
   end
 end
@@ -327,6 +328,10 @@ function popRight (queue)
   return value
 end
 
+--[[
+  makes all the multiple inputs block, single input blocks
+  the goal is to obtain a better block arrangement
+--]]
 function computeBetterEdges(diagram)
   local dvblocks = {}
   local more = true
@@ -392,6 +397,10 @@ function adjustEverything(diagram, dpblock, v_layer, layer)
   end
 end
 
+--[[
+  computes the diagram's rows and columns
+  we'll need them in order to arrange blocks, links and points
+--]]
 function computeLayers(diagram, dpblock)
   local v_layer, layer_count, child_v_layer = 0, 0, 0
 
@@ -467,31 +476,40 @@ function initPoints(diagram)
   end
 end
 
-function getLayerCounts(diagram)
+function initLayerRelatedStuff(diagram)
   diagram.v_layer_count = 0
   diagram.layer_count = 0
+  diagram.v_layer = {}
+  diagram.v_layer_links = {}
+  diagram.layer = {}
+  diagram.layer_links = {}
+  diagram.v_layer_links_count = {}
+  diagram.layer_links_count = {}
   for i=1, #diagram.dpblocks do
     diagram.v_layer_count = math.max(diagram.dpblocks[i].v_layer, diagram.v_layer_count)
     diagram.layer_count = math.max(diagram.dpblocks[i].layer, diagram.layer_count)
   end
-end
-
-function initLinkCounts(diagram)
-  diagram.v_layer_links_count = {}
-  diagram.layer_links_count = {}
   for i=-1, diagram.layer_count do
+    diagram.layer[i] = {}
+    diagram.layer_links[i] = {}
+    diagram.layer[i].height = 0
+    diagram.layer[i].y = 0
+    diagram.layer_links[i].y = 0
     diagram.v_layer_links_count[i] = {}
     diagram.v_layer_links_count[i].count = 0
   end
   for i=0, diagram.v_layer_count do
+    diagram.v_layer[i] = {}
+    diagram.v_layer_links[i] = {}
+    diagram.v_layer[i].width = 0
+    diagram.v_layer[i].x = 0
+    diagram.v_layer_links[i].x = 0
     diagram.layer_links_count[i] = {}
     diagram.layer_links_count[i].count = 0
   end
 end
 
 function computePoints(diagram)
-  initLinkCounts(diagram)
-  initPoints(diagram)
   --output vertical points
   for i=1, #diagram.dpblocks do
     local origin = i
@@ -518,29 +536,7 @@ function computePoints(diagram)
   end
 end
 
-function initHorizontalAndVerticalLayers(diagram)
-  diagram.v_layer = {}
-  diagram.v_layer_links = {}
-  diagram.layer = {}
-  diagram.layer_links = {}
-  for i=0, diagram.v_layer_count do
-    diagram.v_layer[i] = {}
-    diagram.v_layer_links[i] = {}
-    diagram.v_layer[i].width = 0
-    diagram.v_layer[i].x = 0
-    diagram.v_layer_links[i].x = 0
-  end
-  for i=-1, diagram.layer_count do
-    diagram.layer[i] = {}
-    diagram.layer_links[i] = {}
-    diagram.layer[i].height = 0
-    diagram.layer[i].y = 0
-    diagram.layer_links[i].y = 0
-  end
-end
-
 function arrangeDiagramLayers(diagram)
-  initHorizontalAndVerticalLayers(diagram)
   for i=1, #diagram.dpblocks do
     diagram.v_layer[diagram.dpblocks[i].v_layer].width = math.max(diagram.dblocks[i].width, diagram.v_layer[diagram.dpblocks[i].v_layer].width)
     diagram.layer[diagram.dpblocks[i].layer].height = math.max(diagram.dblocks[i].height, diagram.layer[diagram.dpblocks[i].layer].height)
@@ -623,9 +619,11 @@ end
 
 function createDiagramInfoBlock(diagram)
   local dinfoblock = createDiagramHeaderlessBlock(diagram)
-  dinfoblock.Strings.add(string.format("function start: %X", diagram.blocks[1].start))
-  dinfoblock.Strings.add(string.format("function stop: %X", diagram.blocks[#diagram.blocks].stop))
-  dinfoblock.Strings.add(string.format("diagram blocks count: %d", #diagram.dblocks))
+  dinfoblock.Strings.add(" " .. string.char(27) .. string.format("[1m[Diagram info]", diagram.blocks[1].start) .. string.char(27) .."[0m")
+  dinfoblock.Strings.add(string.format(" Function start: 0x%X", diagram.blocks[1].start))
+  dinfoblock.Strings.add(string.format(" Function stop: 0x%X", diagram.blocks[#diagram.blocks].stop))
+  dinfoblock.Strings.add(string.format(" Diagram blocks count: %d", #diagram.dblocks))
+  dinfoblock.Strings.add(string.format(" Diagram links count: %d", diagram.diagram.LinkCount))
   dinfoblock.AutoSize = true
   dinfoblock.x=0
   dinfoblock.y=0
@@ -644,7 +642,8 @@ function spawnDiagram(start, limit)
     createDiagramPseudoBlocks(diagram)
     computeBetterEdges (diagram)
     computeLayers(diagram, 1)
-    getLayerCounts(diagram)
+    initLayerRelatedStuff(diagram)
+    initPoints(diagram)
     computePoints(diagram)
     arrangeDiagramLayers(diagram)
     arrangeDiagramBlocks(diagram)
