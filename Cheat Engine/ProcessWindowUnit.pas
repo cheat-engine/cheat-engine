@@ -465,6 +465,9 @@ begin
 
     ProcessIDString:=copy(ProcessList.Items[Processlist.ItemIndex], 1, pos('-',ProcessList.Items[Processlist.ItemIndex])-1);
 
+    //IntStr -> Int -> HexStr
+    ProcessIDString := IntToHex(StrToInt(ProcessIDString),8);
+
     PWOP(ProcessIDString);
 
     if TabHeader.TabIndex=0 then
@@ -602,8 +605,11 @@ begin
   begin
     unpause;
     DetachIfPossible;
-
+    pid := IntToHex(StrToInt(pid),1);
     pwop(pid);
+
+
+
     MainForm.ProcessLabel.caption:=pid;
     modalresult:=mrok;
   end;
@@ -759,6 +765,121 @@ begin
     filter:=filter+key;
 end;
 
+Function StrLenA(Str :PAnsiChar):Integer;
+Begin
+  Result := 0;
+  while Str[Result] <> #$0 do Inc(Result)
+End;
+
+Function Char2Int(A :AnsiChar):Integer;
+Begin   //字符转整数
+  Result := -1;
+  if (Byte(A) > 47) And (Byte(A) < 58) Then
+  Begin   //0-9
+    Result := Byte(A) - 48;
+  End Else if (Byte(A) > 64) And (Byte(A) < 71) then
+  Begin   //A-F
+    Result := Byte(A) - 55;
+  End Else if (Byte(A) > 96) And (Byte(A) < 103) then
+  Begin  //a-f
+    Result := Byte(A) - 87;
+  End;
+End;
+
+Function HexPower(X, Y:Integer):UInt64;
+Var     //次方计算
+  I :Integer;
+Begin
+  Result := X;
+  for I := 1 to Y do
+  Begin
+    Result := Result * 16;
+  End;
+End;
+
+Function Hex2Int(HEX :PAnsiChar):UInt64;
+Var   //十六进制字符串转整数
+  iLen :Integer;
+  I    :Integer;
+Begin
+  iLen  := StrLenA(HEX);
+  Result:= 0;
+  for I:= 0 to iLen-2 do
+  Begin
+    Result := Result + HexPower(Char2Int(HEX[I]), iLen - (I + 1));
+  End;
+  Result := Result + Char2Int(HEX[iLen-1]);
+End;
+
+function MyTStringListSortComparePID(List: TStringList;Index1: Integer;Index2: Integer):Integer;
+var
+  a,b: Integer;
+  aa,bb: packed array [0..10] of char;
+begin
+
+  aa := List[Index1];
+  bb := List[Index2];
+
+  aa := copy(aa, 1, pos('-',aa)-1);
+  bb := copy(bb, 1, pos('-',bb)-1);
+  a := Hex2Int(aa);
+  b := Hex2Int(bb);
+
+  if(a >= b) then
+     result:=1
+  else
+     result:=0;
+end;
+
+function SortProcessList(ProcessList: TStrings; sortType:Integer = 0):boolean ;
+var
+  tmplist : TStringList;
+  s: string;
+  i: Integer;
+  count : Integer;
+  pli : PProcessListInfo;
+begin
+  //0=sort by pid
+  //1=sort by name
+
+  tmplist := TStringList.Create();
+
+  count := ProcessList.Count - 1;
+
+  //copy
+
+  for i:=0 to count do
+  begin
+    pli := PProcessListInfo(ProcessList.Objects[i]);
+    if(pli = nil) then
+       tmplist.Add(ProcessList[i])
+    else
+       tmplist.AddObject(ProcessList[i],TObject(pli));
+  end;
+
+  //sort
+  if(sortType = 0 ) then
+     tmplist.CustomSort(MyTStringListSortComparePID);
+
+  //recopy
+  ProcessList.Clear();
+
+  for i:=0 to count do
+  begin
+    pli := PProcessListInfo(tmplist.Objects[i]);
+    //oldselection:=copy(oldselection,pos('-',oldselection)+1,length(oldselection));
+    s:=tmplist[i];
+    s:= copy(s, pos('-',s)+1,length(s));
+    s:= IntToStr(pli.processID) + '-' + s;
+
+    if(pli = nil) then
+       ProcessList.Add(s)
+    else
+       ProcessList.AddObject(s,TObject(pli));
+  end;
+
+  result:=true;
+end;
 procedure TProcessWindow.RefreshList;
 var
     i: integer;
@@ -796,7 +917,9 @@ begin
       end;
     end;
 
-    filterlist;
+    filterlist();
+
+    SortProcessList(processlist.Items);
 
     if oldselectionindex=-1 then
     begin
