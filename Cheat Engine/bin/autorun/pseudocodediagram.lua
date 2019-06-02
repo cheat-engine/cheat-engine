@@ -8,7 +8,7 @@ diagramstyle.instruction_hexstyle = '[34;1m' --blue + bold
 diagramstyle.instruction_symbolstyle = '[32;1m' --green + bold
 diagramstyle.instruction_opcodestyle = '[1m' --bold
 
-diagramstyle.link_defaultcolor = 0x00FF00FF 
+diagramstyle.link_defaultcolor = 0x00FF00FF --fuchsia
 diagramstyle.link_nottakencolor = 0x000000FF --red
 diagramstyle.link_takencolor = 0x00FF0000 --blue
 diagramstyle.link_linethickness = 3*DPIAdjust
@@ -102,12 +102,11 @@ function disassembleDecoratedInstruction(address)
 end
 
 function createDiagramForm(diagram, name)
-  diagram.form = createForm()
+  diagram.form = createForm(false)
   diagram.form.BorderStyle='bsSizeable'
   diagram.form.Caption=name
   diagram.form.Width=getScreenWidth() - (getScreenWidth() / 6)
   diagram.form.Height=getScreenHeight() - (getScreenHeight() / 6)
-  diagram.form.Visible=false
 end
 
 function createDiagramDiagram(diagram)
@@ -159,9 +158,9 @@ function createDiagramLink(diagram, sourceblock, destinationblock, color, offset
   end
 
   if (diagram.dblocks[destinationblock].x + (diagram.dblocks[destinationblock].width / 2) + offset2) >= (diagram.dblocks[destinationblock].x + diagram.dblocks[destinationblock].width) then
-    diagram.dblocks[destinationblock].width = diagram.dblocks[destinationblock].width + math.abs((diagram.dblocks[destinationblock].x + diagram.dblocks[destinationblock].width) - (diagram.dblocks[destinationblock].x + (diagram.dblocks[destinationblock].width / 2) + offset2)) + 20*DPIAdjust
+    diagram.dblocks[destinationblock].width = diagram.dblocks[destinationblock].width + math.abs((diagram.dblocks[destinationblock].x + diagram.dblocks[destinationblock].width) - (diagram.dblocks[destinationblock].x + (diagram.dblocks[destinationblock].width / 2) + offset2)) + 40*DPIAdjust
   elseif (diagram.dblocks[destinationblock].x + (diagram.dblocks[destinationblock].width / 2) + offset2) <= diagram.dblocks[destinationblock].x then
-    diagram.dblocks[destinationblock].width = diagram.dblocks[destinationblock].width + math.abs(diagram.dblocks[destinationblock].x - (diagram.dblocks[destinationblock].x + (diagram.dblocks[destinationblock].width / 2) + offset2)) + 20*DPIAdjust
+    diagram.dblocks[destinationblock].width = diagram.dblocks[destinationblock].width + math.abs(diagram.dblocks[destinationblock].x - (diagram.dblocks[destinationblock].x + (diagram.dblocks[destinationblock].width / 2) + offset2)) + 40*DPIAdjust
   end
   
   local destinationBSD={}
@@ -329,7 +328,7 @@ function popRight (queue)
 end
 
 --[[
-  makes all the multiple inputs block, single input blocks
+  makes all the multiple inputs blocks, single input blocks
   the goal is to obtain a better block arrangement
 --]]
 function computeBetterEdges(diagram)
@@ -627,7 +626,7 @@ function createDiagramInfoBlock(diagram)
   dinfoblock.AutoSize = true
   dinfoblock.x=0
   dinfoblock.y=0
-  moveEverything(diagram, dinfoblock.width + 20*DPIAdjust)
+  if #diagram.blocks > 1 then moveEverything(diagram, dinfoblock.width + 20*DPIAdjust) end
 end
 
 function spawnDiagram(start, limit)
