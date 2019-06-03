@@ -132,6 +132,8 @@ type
     procedure getConnectionsFromBlock(b: TDiagramBlock; list: TList);
     procedure render;
 
+    procedure saveToStream(s: TStream);
+    procedure loadFromStream(s: TStream);
     procedure saveToFile(filename: string);
     procedure loadFromFile(filename: string);
     procedure saveAsImage(filename: string);
@@ -1228,6 +1230,51 @@ begin
   end;
 end;
 
+procedure TDiagram.saveToStream(s: TStream);
+var i: integer;
+begin
+  s.WriteAnsiString('CEDIAG');
+  s.WriteWord(diagramversion);
+  s.WriteDWord(BlockCount);
+  for i:=0 to blockcount-1 do
+  begin
+    block[i].BlockID:=i;
+    Block[i].saveToStream(s);
+  end;
+
+  s.WriteDWord(LinkCount);
+  for i:=0 to LinkCount-1 do
+    Link[i].saveTostream(s);
+end;
+
+procedure TDiagram.loadFromStream(s: TStream);
+var
+  i: integer;
+  c: integer;
+begin
+  if s.ReadAnsiString<>'CEDIAG' then raise exception.create('Invalid diagram file');
+  if s.ReadWord>diagramversion then
+    raise exception.create('Unknown diagram version');
+
+  for i:=0 to links.count-1 do
+    TDiagramLink(links[i]).Free;
+
+  links.Clear;
+
+  for i:=0 to blocks.Count-1 do
+    TDiagramBlock(blocks[i]).Free;
+
+  blocks.clear;
+
+  c:=s.ReadDWord;
+  for i:=0 to c-1 do
+    blocks.add(TDiagramBlock.createFromStream(diagramConfig, s));
+
+  c:=s.ReadDWord;
+  for i:=0 to c-1 do
+    links.add(TDiagramLink.createFromStream(diagramconfig, s, blocks));
+end;
+
 procedure TDiagram.saveToFile(filename: string);
 var
   f: tfilestream;
@@ -1236,20 +1283,7 @@ begin
   //going for binary as that's faster to deal with multiple points. Perhaps in the future detect if the extension if XML and save as xml
   f:=tfilestream.Create(filename, fmCreate);
   try
-    f.WriteAnsiString('CEDIAG');
-    f.WriteWord(diagramversion);
-    f.WriteDWord(BlockCount);
-    for i:=0 to blockcount-1 do
-    begin
-      block[i].BlockID:=i;
-      Block[i].saveToStream(f);
-    end;
-
-    f.WriteDWord(LinkCount);
-    for i:=0 to LinkCount-1 do
-      Link[i].saveTostream(f);
-
-
+    savetostream(f);
   finally
     f.free;
   end;
@@ -1258,33 +1292,11 @@ end;
 procedure TDiagram.loadFromFile(filename: string);
 var
   f: tfilestream;
-  i: integer;
-  c: integer;
+
 begin
   f:=tfilestream.Create(filename, fmOpenRead);
   try
-    if f.ReadAnsiString<>'CEDIAG' then raise exception.create('Invalid diagram file');
-    if f.ReadWord>diagramversion then
-      raise exception.create('Unknown diagram version');
-
-    for i:=0 to links.count-1 do
-      TDiagramLink(links[i]).Free;
-
-    links.Clear;
-
-    for i:=0 to blocks.Count-1 do
-      TDiagramBlock(blocks[i]).Free;
-
-    blocks.clear;
-
-    c:=f.ReadDWord;
-    for i:=0 to c-1 do
-      blocks.add(TDiagramBlock.createFromStream(diagramConfig, f));
-
-    c:=f.ReadDWord;
-    for i:=0 to c-1 do
-      links.add(TDiagramLink.createFromStream(diagramconfig, f, blocks));
-
+    loadFromStream(f);
   finally
     f.free;
   end;

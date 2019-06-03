@@ -63,6 +63,9 @@ type
     fOnDragStart: TNotifyEvent;
     fOnDragEnd: TNotifyEvent;
 
+
+    fTag: qword;
+
     function getBackgroundColor: TColor;
     procedure setBackgroundColor(c: TColor);
     function getTextColor: TColor;
@@ -137,6 +140,7 @@ type
     property OnDrag: TNotifyEvent read fOnDrag write fOnDrag;
     property OnDragStart: TNotifyEvent read fOnDragStart write fOnDragStart;
     property OnDragEnd: TNotifyEvent read fOnDragEnd write fOnDragEnd;
+    property Tag: Qword read fTag write fTag;
   end;
 
 implementation
@@ -375,6 +379,8 @@ begin
   f.WriteAnsiString(fname);
   f.WriteAnsiString(fcaption);
   f.WriteAnsiString(data.Text);
+
+  f.WriteQWord(tag);
   f.WriteDWord(fx);
   f.WriteDWord(fy);
   f.WriteDWord(fwidth);
@@ -397,7 +403,7 @@ begin
   fname:=f.ReadAnsiString;
   fcaption:=f.ReadAnsiString;
   data.text:=f.ReadAnsiString;
-
+  tag:=f.ReadQWord;
   fx:=f.ReadDWord;
   fy:=f.ReadDWord;
   fwidth:=f.ReadDWord;

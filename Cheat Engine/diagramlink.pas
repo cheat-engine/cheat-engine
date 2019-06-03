@@ -34,6 +34,7 @@ type
     fmaxy: integer;
 
     fOnDblClick: TNotifyEvent;
+    ftag: qword;
 
 
 
@@ -104,6 +105,7 @@ type
     property maxx: integer read fmaxx;
     property maxy: integer read fmaxy;
     property OnDblClick: TNotifyEvent read fOnDblClick write fOnDblClick;
+    property Tag: qword read ftag write ftag;
   end;
 
 implementation

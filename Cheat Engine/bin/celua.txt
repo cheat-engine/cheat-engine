@@ -3369,6 +3369,7 @@ properties
   AutoSideDistance: integer - If autoside is true and there are multiple lines on the same side, this determines the distance between
   ShowHeader: boolean - If true show ther header. (default true)
   DragBody: boolean - If true allows dragging of the body. Useful when there is no header (default false)
+  Tag: integer - Use for whatever you like
   OnDoubleClickHeader: function(DiagramBlock) - Function to call when the block's header is doubleclicked
   OnDoubleClickBody: function(DiagramBlock) - Function to call when the block's body is doubleclick
   OnRenderHeader: function(sender,rect,beforeownerdraw): boolean - Function to call when the header is being rendered. This is called twice, before and after the normal painting code. In case of before and the function returns nil or false, the original text will not be drawn
@@ -3397,6 +3398,7 @@ properties
   Linethickness: integer - thickness of the line, when set overrides the default
   ArrowStyles: string - See diagram ArrowStyles
   Name: string - Name of the link
+  Tag: integer - Use for whatever youy like
   OnDblClick: function(sender) - Function to call when the link is doubleclicked
 
 methods
