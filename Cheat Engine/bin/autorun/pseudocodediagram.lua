@@ -128,13 +128,8 @@ function onBlockDrag(dblock)
   for i=1, #linkz.asDestination do
     if linkz.asDestination[i].Points ~= nil then
       point.x = dblock.x + (dblock.width / 2) + linkz.asDestination[i].DestinationDescriptor.Position
-      if linkz.asDestination[i].PointCount > 2 then
-        point.y = linkz.asDestination[i].Points[3].y
-        linkz.asDestination[i].Points[3] = point
-      else
-        point.y = linkz.asDestination[i].Points[1].y
-        linkz.asDestination[i].Points[1] = point
-      end
+      point.y = linkz.asDestination[i].Points[linkz.asDestination[i].PointCount-1].y
+      linkz.asDestination[i].Points[linkz.asDestination[i].PointCount-1] = point
     end
   end
   for i=1, #linkz.asSource do
@@ -196,6 +191,31 @@ function createDiagramLink(diagram, sourceblock, destinationblock, color, offset
   local diagramlink = diagram.diagram.addConnection(sourceBSD, destinationBSD)
   
   diagramlink.LineColor=color
+
+  --[[
+  local pm = createPopupMenu(diagramlink)
+  local items = menu_getItems(pm)
+
+  local miSource = createMenuItem(pm)
+  menuItem_setCaption(miSource,'go to source')
+  menuItem_onClick(miSource, function()
+    diagram.ScrollX = diagramlink.OriginBlock.x - math.abs((form.width / 2) - ((diagramlink.OriginBlock.width) / 2))
+    diagram.ScrollY = diagramlink.OriginBlock.y - math.abs((form.height / 2) - ((diagramlink.OriginBlock.height) / 2))
+  end)
+
+  local miDestination = createMenuItem(pm)
+  menuItem_setCaption(miDestination,'go to destination')
+  menuItem_onClick(miDestination, function()
+    diagram.ScrollX = diagramlink.DestinationBlock.x - math.abs((form.width / 2) - ((diagramlink.DestinationBlock.width) / 2))
+    diagram.ScrollY = diagramlink.DestinationBlock.y - math.abs((form.height / 2) - ((diagramlink.DestinationBlock.height) / 2))
+  end)
+
+  menuItem_add(items, miSource)
+  menuItem_add(items, miDestination)
+
+  control_setPopupMenu(diagramlink, pm)
+  --]]
+
   return diagramlink
 end
 
