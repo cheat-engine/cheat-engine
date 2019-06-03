@@ -109,6 +109,169 @@ function createDiagramForm(diagram, name)
   diagram.form.Height=getScreenHeight() - (getScreenHeight() / 6)
 end
 
+function createMenu(diagram)
+  local mm=createMainMenu(diagram.form)
+  local FileMenu=createMenuItem(mm)
+  FileMenu.Caption=translate('File')
+  FileMenu.Name='miFile'
+  
+  local miLoad=createMenuItem(mm)
+  miLoad.Caption=translate('Load from file')
+  miLoad.Name='miLoad'
+
+  local miSave=createMenuItem(mm)
+  miSave.Caption=translate('Save to file')
+  miSave.Name='miSave'
+  
+  local miSaveAsImage=createMenuItem(mm)
+  miSaveAsImage.Caption=translate('Save diagram to image')
+  miSaveAsImage.Name='miSaveAsImage'
+  
+  local miClose=createMenuItem(mm)
+  miClose.Caption=translate('Close')
+  miClose.OnClick=function(s) diagram.form.close() end
+  miClose.Name='miClose'
+  
+  local miSep=createMenuItem(mm)
+  miSep.Caption='-'
+  
+
+  FileMenu.add(miLoad)
+  FileMenu.add(miSave)
+  FileMenu.add(miSaveAsImage)
+  FileMenu.add(miSep)
+  FileMenu.add(miClose)
+  
+  
+  local DisplayMenu=createMenuItem(mm)  
+  DisplayMenu.Caption=translate('Display')
+  DisplayMenu.Name='miDisplay'
+  
+  local miPaths=createMenuItem(mm)
+  miPaths.Caption=translate('Show path from Ultimap1/2 or Codefilter')  
+  miPaths.AutoCheck=true
+  miPaths.Name='miPaths'
+  
+  local miTracerPaths=createMenuItem(mm)
+  miTracerPaths.Caption=translate('Show path from tracer window') --if more than 1 show a list of tracer windows and pick one 
+  miTracerPaths.AutoCheck=true    
+  miTracerPaths.Name='miTracerPaths'
+  
+  DisplayMenu.add(miPaths)
+  DisplayMenu.add(miTracerPaths)
+  
+  
+  mm.Items.add(FileMenu)
+  mm.Items.add(DisplayMenu)
+  
+  --todo, add code to the menu items
+end
+
+
+function DiagramContextPopup(sender, mousepos)
+  --sender is the diagram object
+  --showMessage('weee '..mousepos.x..','..mousepos.y)
+  local diagram=getRef(sender.Tag) --diagram has in it's tag value a reference to the diagram table
+
+  local islink=false
+  local isblock=false
+  
+  mousepos.x=(mousepos.x+diagram.diagram.ScrollX)/diagram.diagram.Zoom
+  mousepos.y=(mousepos.y+diagram.diagram.ScrollY)/diagram.diagram.Zoom  
+  
+  local obj=sender.getObjectAt(mousepos)
+  if (obj) then
+    islink=obj.ClassName=='TDiagramLink'
+    isblock=obj.ClassName=='TDiagramBlock'      
+  end
+  
+  
+  local i
+  
+  for i=1,#diagram.popup.LinkItems do diagram.popup.LinkItems[i].visible=islink end
+  for i=1,#diagram.popup.BlockItems do diagram.popup.BlockItems[i].visible=isblock end
+  
+  diagram.popup.lastobject=obj
+
+  return false
+end
+
+function PopupMenuLink1Click(sender)
+--example
+  local diagram=getRef(sender.Owner.Owner.Tag) --the owner of the menuitem is the popupmenu, and the owner of that is the diagram
+ 
+  --alternmatively, the menuitem tag could be set to the diagram table as well
+
+  diagram.popup.lastobject.LineColor=0xffffff
+  diagram.popup.lastobject.LineThickness=diagram.popup.lastobject.LineThickness+1
+  
+  diagram.diagram.repaint()
+end
+
+function createDiagramPopupMenu(diagram)
+  local pm = createPopupMenu(diagram.diagram)
+  diagram.diagram.PopupMenu=pm
+  diagram.diagram.OnContextPopup=DiagramContextPopup
+  
+  diagram.popup={}
+  diagram.popup.Menu=pm
+  diagram.popup.LinkItems={}
+  diagram.popup.LinkItems[1]=CreateMenuItem(pm)
+  diagram.popup.LinkItems[1].Caption=translate('Link menu item 1')
+  diagram.popup.LinkItems[1].OnClick=PopupMenuLink1Click --example
+
+  diagram.popup.LinkItems[2]=CreateMenuItem(pm)
+  diagram.popup.LinkItems[2].Caption=translate('Link menu item 2')
+  
+  diagram.popup.LinkItems[3]=CreateMenuItem(pm)
+  diagram.popup.LinkItems[3].Caption=translate('Link menu item 3')        
+  
+  pm.Items.add(diagram.popup.LinkItems[1])
+  pm.Items.add(diagram.popup.LinkItems[2])
+  pm.Items.add(diagram.popup.LinkItems[3])  
+  
+  
+  diagram.popup.BlockItems={}
+  diagram.popup.BlockItems[1]=CreateMenuItem(pm)
+  diagram.popup.BlockItems[1].Caption=translate('Block menu item 1')
+
+  diagram.popup.BlockItems[2]=CreateMenuItem(pm)
+  diagram.popup.BlockItems[2].Caption=translate('Block menu item 2')
+  
+  diagram.popup.BlockItems[3]=CreateMenuItem(pm)
+  diagram.popup.BlockItems[3].Caption=translate('Block menu item 3')        
+  
+  pm.Items.add(diagram.popup.BlockItems[1])
+  pm.Items.add(diagram.popup.BlockItems[2])
+  pm.Items.add(diagram.popup.BlockItems[3])    
+
+
+  --[[
+  local pm = createPopupMenu(diagramlink)
+  local items = menu_getItems(pm)
+
+  local miSource = createMenuItem(pm)
+  menuItem_setCaption(miSource,'go to source')
+  menuItem_onClick(miSource, function()
+    diagram.ScrollX = diagramlink.OriginBlock.x - math.abs((form.width / 2) - ((diagramlink.OriginBlock.width) / 2))
+    diagram.ScrollY = diagramlink.OriginBlock.y - math.abs((form.height / 2) - ((diagramlink.OriginBlock.height) / 2))
+  end)
+
+  local miDestination = createMenuItem(pm)
+  menuItem_setCaption(miDestination,'go to destination')
+  menuItem_onClick(miDestination, function()
+    diagram.ScrollX = diagramlink.DestinationBlock.x - math.abs((form.width / 2) - ((diagramlink.DestinationBlock.width) / 2))
+    diagram.ScrollY = diagramlink.DestinationBlock.y - math.abs((form.height / 2) - ((diagramlink.DestinationBlock.height) / 2))
+  end)
+
+  menuItem_add(items, miSource)
+  menuItem_add(items, miDestination)
+
+  control_setPopupMenu(diagramlink, pm)
+  --]]
+end
+
+
 function createDiagramDiagram(diagram)
   diagram.diagram = createDiagram(diagram.form)
   diagram.diagram.Align='alClient'
@@ -117,6 +280,8 @@ function createDiagramDiagram(diagram)
   diagram.diagram.BlockBackground=diagramstyle.block_backgroundcolor
   diagram.diagram.LineThickness=diagramstyle.link_linethickness
   diagram.diagram.ArrowSize=diagramstyle.link_arrowsize
+  
+  diagram.diagram.Tag=createRef(diagram)
   --diagram.diagram.AllowUserToCreatePlotPoints = false
   --diagram.diagram.AllowUserToMovePlotPoints = false
   --diagram.diagram.AllowUserToChangeAttachPoints = false
@@ -192,29 +357,7 @@ function createDiagramLink(diagram, sourceblock, destinationblock, color, offset
   
   diagramlink.LineColor=color
 
-  --[[
-  local pm = createPopupMenu(diagramlink)
-  local items = menu_getItems(pm)
 
-  local miSource = createMenuItem(pm)
-  menuItem_setCaption(miSource,'go to source')
-  menuItem_onClick(miSource, function()
-    diagram.ScrollX = diagramlink.OriginBlock.x - math.abs((form.width / 2) - ((diagramlink.OriginBlock.width) / 2))
-    diagram.ScrollY = diagramlink.OriginBlock.y - math.abs((form.height / 2) - ((diagramlink.OriginBlock.height) / 2))
-  end)
-
-  local miDestination = createMenuItem(pm)
-  menuItem_setCaption(miDestination,'go to destination')
-  menuItem_onClick(miDestination, function()
-    diagram.ScrollX = diagramlink.DestinationBlock.x - math.abs((form.width / 2) - ((diagramlink.DestinationBlock.width) / 2))
-    diagram.ScrollY = diagramlink.DestinationBlock.y - math.abs((form.height / 2) - ((diagramlink.DestinationBlock.height) / 2))
-  end)
-
-  menuItem_add(items, miSource)
-  menuItem_add(items, miDestination)
-
-  control_setPopupMenu(diagramlink, pm)
-  --]]
 
   return diagramlink
 end
@@ -679,7 +822,12 @@ function spawnDiagram(start, limit)
   diagram.state = parseFunction(start, limit)
   diagram.blocks = createBlocks(diagram.state)
   createDiagramForm(diagram, 'Diagram')
+  createMenu(diagram)   
+  
   createDiagramDiagram(diagram)
+  createDiagramPopupMenu(diagram)
+  
+  
   createDiagramBlocks(diagram)
   if #diagram.dblocks > 1 then
     linkDiagramBlocks(diagram)
@@ -698,6 +846,9 @@ function spawnDiagram(start, limit)
   createDiagramInfoBlock(diagram)
   diagram.form.Visible = true
   diagram.diagram.repaint()
+  
+
+  return diagram
 end
 
 function MenuSpawnDiagram()
