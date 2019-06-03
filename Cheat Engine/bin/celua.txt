@@ -860,6 +860,7 @@ methods
   add(menuitem) : Adds a menuItem as a submenu item
   insert(index, menuitem): Adds a menuItem as a submenu item at the given index
   delete(index)
+  clear() - Deletes all children under this menuitem (frees the menu item, so it's gone)
   setOnClick(function) : Sets an onClick event
   getOnClick()
   doClick(): Executes the onClick method if one is assigned
@@ -3348,6 +3349,10 @@ methods
   saveAsImage(filenamepng): saves the current display as an PNG image
   saveToFile(filename): Saves the state of the diagram to a file
   loadFromFile(filename): loads the state of the diagram from a file
+  saveToStream(stream): Saves the state of the diagram to a stream
+  loadFromStream(stream): loads the state of the diagram from a stream
+  getObjectAt({x,y}): Returns the object at this position. nil if nothing
+  
 
 
 DiagramBlock class:

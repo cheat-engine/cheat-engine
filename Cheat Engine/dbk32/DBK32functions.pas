@@ -13,7 +13,7 @@ uses jwawindows, windows, sysutils, classes, types, registry, multicpuexecution,
 
 
 
-const currentversion=2000024;
+const currentversion=2000025;
 
 const FILE_ANY_ACCESS=0;
 const FILE_SPECIAL_ACCESS=FILE_ANY_ACCESS;
@@ -565,6 +565,8 @@ begin
     inp.KernelMode:=1
   else
     inp.KernelMode:=0;
+
+  OutputDebugString(format('logUserMode=%d logKernelMode=%d', [inp.UserMode, inp.KernelMode]));
 
   for i:=0 to inp.rangecount-1 do
   begin

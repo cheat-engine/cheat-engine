@@ -891,9 +891,11 @@ object frmUltimap2: TfrmUltimap2
       Caption = 'File'
       object MenuItem3: TMenuItem
         Caption = 'Open tracefile reader'
+        Visible = False
       end
       object MenuItem5: TMenuItem
         Caption = 'Debug: Process tracefile'
+        Visible = False
         OnClick = MenuItem5Click
       end
       object MenuItem4: TMenuItem

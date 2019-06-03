@@ -215,6 +215,59 @@ begin
   end;
 end;
 
+function diagram_saveToStream(L: PLua_state): integer; cdecl;
+var
+  diagram: TDiagram;
+  s: tstream;
+begin
+  result:=0;
+  diagram:=luaclass_getClassObject(L);
+  if lua_gettop(L)>0 then
+  begin
+    s:=lua_ToCEUserData(L,1);
+    diagram.saveToStream(s);
+  end;
+end;
+
+function diagram_loadFromStream(L: PLua_state): integer; cdecl;
+var
+  diagram: TDiagram;
+  s: tstream;
+begin
+  result:=0;
+  diagram:=luaclass_getClassObject(L);
+  if lua_gettop(L)>0 then
+  begin
+    s:=lua_ToCEUserData(L,1);
+    diagram.loadFromStream(s);
+  end;
+end;
+
+function diagram_getObjectAt(L: PLua_state): integer; cdecl;
+var
+  d: TDiagram;
+  p: tpoint;
+  o: TObject;
+begin
+  result:=0;
+  d:=luaclass_getClassObject(L);
+  if lua_gettop(L)>0 then
+  begin
+    if lua_gettop(L)>=2 then
+    begin
+      p.x:=lua_tointeger(L,1);
+      p.y:=lua_tointeger(L,2);
+    end
+    else
+      p:=lua_toPoint(L,1);
+
+    o:=d.getObjectAt(p);
+    luaclass_newClass(L,o);
+    result:=1;
+  end;
+end;
+
+
 
 function createDiagram(L: PLua_state): integer; cdecl;
 var
@@ -251,6 +304,9 @@ begin
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'saveAsImage', diagram_saveAsImage);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'saveToFile', diagram_saveToFile);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'loadFromFile', diagram_loadFromFile);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'saveToStream', diagram_saveToStream);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'loadFromStream', diagram_loadFromStream);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'getObjectAt', diagram_getObjectAt);
   luaclass_addArrayPropertyToTable(L, metatable, userdata, 'Link', diagram_getLink);
   luaclass_addArrayPropertyToTable(L, metatable, userdata, 'Block', diagram_getBlock);
 

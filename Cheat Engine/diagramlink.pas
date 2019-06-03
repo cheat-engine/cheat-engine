@@ -567,7 +567,7 @@ begin
     oldw:=c.pen.Width;
     oldc:=c.pen.color;
 
-    c.pen.width:=ceil(config.LineThickness*config.zoom);
+    c.pen.width:=ceil(LineThickness*config.zoom);
     c.pen.color:=LineColor;
   end;
 

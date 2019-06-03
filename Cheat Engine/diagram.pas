@@ -138,6 +138,8 @@ type
     procedure loadFromFile(filename: string);
     procedure saveAsImage(filename: string);
 
+    function getObjectAt(p: TPoint): TObject;
+
     property Block[index: integer]: TDiagramBlock read getBlock;
     property Link[index: integer]:TDiagramLink read getLink;
 
@@ -660,83 +662,83 @@ var
 begin
   inherited mousedown(Button, Shift, X,Y);
 
-
-
-  //adjust for zoom
-  x:=trunc(x / fzoom);
-  y:=trunc(y / fzoom);
-
-  inc(x,scrollx);
-  inc(y,scrolly);
-
-  startedresizing:=false;
-  for i:=blocks.count-1 downto 0 do
+  if button=mbLeft then
   begin
-    b:=TDiagramBlock(blocks[i]);
-    if fAllowUserToMoveBlocks and ((b.DragBody and b.IsInsideBody(x,y)) or (b.IsInsideHeader(x,y))) then
+    //adjust for zoom
+    x:=trunc(x / fzoom);
+    y:=trunc(y / fzoom);
+
+    inc(x,scrollx);
+    inc(y,scrolly);
+
+    startedresizing:=false;
+    for i:=blocks.count-1 downto 0 do
     begin
-      draggedBlock.Block:=b;
-      draggedBlock.Point:=point(x-b.x,y-b.y);
+      b:=TDiagramBlock(blocks[i]);
+      if fAllowUserToMoveBlocks and ((b.DragBody and b.IsInsideBody(x,y)) or (b.IsInsideHeader(x,y))) then
+      begin
+        draggedBlock.Block:=b;
+        draggedBlock.Point:=point(x-b.x,y-b.y);
 
-      if assigned(b.OnDragStart) then
-        b.OnDragStart(b);
+        if assigned(b.OnDragStart) then
+          b.OnDragStart(b);
 
-      exit;
-    end
-    else
-    if allowUserToResizeBlocks and b.IsAtBorder(x,y,side) then
-    begin
-      resizing.block:=b;
-      resizing.side:=side;
-      startedresizing:=true; //just gotta check the lines first
-
-      if allowUserToChangeAttachPoints then
-        break
+        exit;
+      end
       else
-        exit;
-    end;
-  end;
-
-  for i:=links.count-1 downto 0 do
-  begin
-    l:=TDiagramLink(links[i]);
-
-    if AllowUserToMovePlotPoints then
-    begin
-      PointIndex:=l.getPointIndexAt(x,y);
-      if pointindex<>-1 then
+      if allowUserToResizeBlocks and b.IsAtBorder(x,y,side) then
       begin
-        draggedPoint.Link:=l;
-        draggedPoint.PointIndex:=PointIndex;
-        exit;
+        resizing.block:=b;
+        resizing.side:=side;
+        startedresizing:=true; //just gotta check the lines first
+
+        if allowUserToChangeAttachPoints then
+          break
+        else
+          exit;
       end;
     end;
 
-    if allowUserToChangeAttachPoints and l.isAtAttachPoint(x,y, bsd) then
+    for i:=links.count-1 downto 0 do
     begin
-      if startedresizing then resizing.block:=nil; //nope, attachpoint changing takes priority
-      draggedSideAttachPoint.block:=bsd.block;
-      draggedSideAttachPoint.link:=l;
-      exit;
-    end;
+      l:=TDiagramLink(links[i]);
 
-    if allowUserToCreatePlotPoints and l.isOverLine(x,y) then
-    begin
-      l.createPoint(point(x,y));
-
-      pointindex:=l.getPointIndexAt(x,y);
-      if pointindex<>-1 then
+      if AllowUserToMovePlotPoints then
       begin
-        draggedPoint.Link:=l;
-        draggedPoint.PointIndex:=pointindex;
+        PointIndex:=l.getPointIndexAt(x,y);
+        if pointindex<>-1 then
+        begin
+          draggedPoint.Link:=l;
+          draggedPoint.PointIndex:=PointIndex;
+          exit;
+        end;
       end;
 
-      repaintOrRender;
+      if allowUserToChangeAttachPoints and l.isAtAttachPoint(x,y, bsd) then
+      begin
+        if startedresizing then resizing.block:=nil; //nope, attachpoint changing takes priority
+        draggedSideAttachPoint.block:=bsd.block;
+        draggedSideAttachPoint.link:=l;
+        exit;
+      end;
 
-      exit;
+      if allowUserToCreatePlotPoints and l.isOverLine(x,y) then
+      begin
+        l.createPoint(point(x,y));
+
+        pointindex:=l.getPointIndexAt(x,y);
+        if pointindex<>-1 then
+        begin
+          draggedPoint.Link:=l;
+          draggedPoint.PointIndex:=pointindex;
+        end;
+
+        repaintOrRender;
+
+        exit;
+      end;
     end;
   end;
-
 
 end;
 
@@ -930,6 +932,7 @@ begin
 
 
 end;
+
 
 procedure TDiagram.MouseMove(Shift: TShiftState; X, Y: Integer);
 var
@@ -1143,6 +1146,32 @@ begin
   if state and (parent<>nil) then //already has a parent so canvas is usable
     InitializeOpenGL;
 end;
+
+
+function TDiagram.getObjectAt(p: TPoint): TObject;
+var
+  i: integer;
+  b: TDiagramBlock;
+  l: TDiagramLink;
+begin
+  for i:=blocks.count-1 downto 0 do
+  begin
+    b:=TDiagramBlock(blocks[i]);
+
+    if b.IsInside(p.x,p.y) then
+      exit(b);
+  end;
+
+  for i:=links.count-1 downto 0 do
+  begin
+    l:=TDiagramLink(links[i]);
+    if l.isOverLine(p.x,p.y) then
+      exit(l);
+  end;
+
+  result:=nil;
+end;
+
 
 procedure TDiagram.SetParent(NewParent: TWinControl);
 var

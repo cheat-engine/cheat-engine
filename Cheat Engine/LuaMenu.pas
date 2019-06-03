@@ -236,6 +236,15 @@ begin
   end;
 end;
 
+function menuItem_clear(L: PLua_State): integer; cdecl;
+var
+  menuitem: TMenuItem;
+begin
+  result:=0;
+  menuitem:=luaclass_getClassObject(L);
+  menuitem.Clear;
+end;
+
 function menuitem_getOnClick(L: PLua_State): integer; cdecl;
 var
   c: Tmenuitem;
@@ -310,6 +319,7 @@ begin
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'add', menuItem_add);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'insert', menuItem_insert);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'delete', menuItem_delete);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'clear', menuItem_clear);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'setOnClick', menuItem_setOnClick);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'getOnClick', menuItem_getOnClick);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'doClick', menuItem_doClick);
