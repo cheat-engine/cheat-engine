@@ -675,6 +675,10 @@ begin
     begin
       draggedBlock.Block:=b;
       draggedBlock.Point:=point(x-b.x,y-b.y);
+
+      if assigned(b.OnDragStart) then
+        b.OnDragStart(b);
+
       exit;
     end
     else
@@ -753,8 +757,8 @@ begin
   DoAutoSideUpdate;
 
 
-  if assigned(draggedBlock.block.OnBlockDrag) then
-    draggedBlock.block.OnBlockDrag(draggedBlock.block);
+  if assigned(draggedBlock.block.OnDrag) then
+    draggedBlock.block.OnDrag(draggedBlock.block);
 
   repaintOrRender;
 end;
@@ -896,6 +900,10 @@ begin
   if draggedblock.block<>nil then
   begin
     updateBlockDragPosition(x,y);
+
+    if assigned(draggedblock.block.OnDragEnd) then
+      draggedblock.block.OnDragStart(draggedblock.block);
+
     draggedBlock.block:=nil;
   end;
 

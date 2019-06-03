@@ -59,7 +59,9 @@ type
     fBlockId: integer;
     fShowHeader: boolean;
     fDragbody: boolean;
-    fOnBlockDrag: TNotifyEvent;
+    fOnDrag: TNotifyEvent;
+    fOnDragStart: TNotifyEvent;
+    fOnDragEnd: TNotifyEvent;
 
     function getBackgroundColor: TColor;
     procedure setBackgroundColor(c: TColor);
@@ -132,7 +134,9 @@ type
     property OnDoubleClickBody: TNotifyEvent read fOnDoubleClickBody write fOnDoubleClickBody;
     property OnRenderHeader: TDBCustomDrawEvent read fOnRenderHeader write fOnRenderHeader;
     property OnRenderBody: TDBCustomDrawEvent read fOnRenderBody write fOnRenderBody;
-    property OnBlockDrag: TNotifyEvent read fOnBlockDrag write fOnBlockDrag;
+    property OnDrag: TNotifyEvent read fOnDrag write fOnDrag;
+    property OnDragStart: TNotifyEvent read fOnDragStart write fOnDragStart;
+    property OnDragEnd: TNotifyEvent read fOnDragEnd write fOnDragEnd;
   end;
 
 implementation
