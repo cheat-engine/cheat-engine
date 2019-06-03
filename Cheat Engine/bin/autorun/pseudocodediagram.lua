@@ -122,6 +122,30 @@ function createDiagramDiagram(diagram)
   --diagram.diagram.AllowUserToChangeAttachPoints = false
 end
 
+function onBlockDrag(dblock)
+  local linkz = dblock.getLinks()
+  local point = {}
+  for i=1, #linkz.asDestination do
+    if linkz.asDestination[i].Points ~= nil then
+      point.x = dblock.x + (dblock.width / 2) + linkz.asDestination[i].DestinationDescriptor.Position
+      if linkz.asDestination[i].PointCount > 2 then
+        point.y = linkz.asDestination[i].Points[3].y
+        linkz.asDestination[i].Points[3] = point
+      else
+        point.y = linkz.asDestination[i].Points[1].y
+        linkz.asDestination[i].Points[1] = point
+      end
+    end
+  end
+  for i=1, #linkz.asSource do
+    if linkz.asSource[i].Points ~= nil then
+      point.x = dblock.x + (dblock.width / 2) + linkz.asSource[i].OriginDescriptor.Position
+      point.y = linkz.asSource[i].Points[0].y
+      linkz.asSource[i].Points[0] = point
+    end
+  end
+end
+
 function createDiagramBlock(diagram, name)
   local diagramblock = diagram.diagram.createBlock()
   diagramblock.Caption=name
@@ -131,6 +155,7 @@ function createDiagramBlock(diagram, name)
     dview.SelectedAddress = getAddressSafe(getRef(diagramblock.Tag))
     mwform.show()
   end
+  diagramblock.OnDrag = onBlockDrag
   return diagramblock
 end
 
@@ -604,7 +629,7 @@ function moveEverything(diagram, offset)
   for i=0, diagram.diagram.LinkCount-1 do
     local link = diagram.diagram.Link[i]
     if link.Points ~= nil then
-      for j=0, 3 do
+      for j=0, link.PointCount do
         if link.Points[j] ~= nil then
           local point = {}
           point.x = link.Points[j].x+offset
