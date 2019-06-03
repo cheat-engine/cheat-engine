@@ -751,6 +751,11 @@ begin
   draggedBlock.Block.x:=xpos-draggedBlock.point.x;
   draggedBlock.Block.y:=ypos-draggedBlock.point.y;
   DoAutoSideUpdate;
+
+
+  if assigned(draggedBlock.block.OnBlockDrag) then
+    draggedBlock.block.OnBlockDrag(draggedBlock.block);
+
   repaintOrRender;
 end;
 

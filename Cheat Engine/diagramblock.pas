@@ -59,6 +59,7 @@ type
     fBlockId: integer;
     fShowHeader: boolean;
     fDragbody: boolean;
+    fOnBlockDrag: TNotifyEvent;
 
     function getBackgroundColor: TColor;
     procedure setBackgroundColor(c: TColor);
@@ -131,6 +132,7 @@ type
     property OnDoubleClickBody: TNotifyEvent read fOnDoubleClickBody write fOnDoubleClickBody;
     property OnRenderHeader: TDBCustomDrawEvent read fOnRenderHeader write fOnRenderHeader;
     property OnRenderBody: TDBCustomDrawEvent read fOnRenderBody write fOnRenderBody;
+    property OnBlockDrag: TNotifyEvent read fOnBlockDrag write fOnBlockDrag;
   end;
 
 implementation
@@ -451,12 +453,14 @@ begin
     if fShowHeader then
     begin
       if (captionheight=0) then
-        captionheight:=c.GetTextHeight('XxYyJjQq')+4
+        captionheight:=c.GetTextHeight('XxYyJjQq')+4;
+
+      c.Rectangle(0,0,width,captionheight);
     end
     else
       captionheight:=0;
 
-    c.Rectangle(0,0,width,captionheight);
+
 
     oldfontcolor:=c.font.color;
     c.font.color:=TextColor;
