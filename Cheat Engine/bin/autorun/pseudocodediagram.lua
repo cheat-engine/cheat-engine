@@ -175,6 +175,7 @@ function DiagramContextPopup(sender, mousepos)
 
   local islink=false
   local isblock=false
+  local isheaderlessblock=false
   
   mousepos.x=(mousepos.x+diagram.diagram.ScrollX)/diagram.diagram.Zoom
   mousepos.y=(mousepos.y+diagram.diagram.ScrollY)/diagram.diagram.Zoom  
@@ -182,14 +183,16 @@ function DiagramContextPopup(sender, mousepos)
   local obj=sender.getObjectAt(mousepos)
   if (obj) then
     islink=obj.ClassName=='TDiagramLink'
-    isblock=obj.ClassName=='TDiagramBlock'      
+    isblock=(obj.ClassName=='TDiagramBlock') and (obj.ShowHeader)
+    isheaderlessblock=(obj.ClassName=='TDiagramBlock') and (not obj.ShowHeader)
   end
   
   local i
   
   for i=1,#diagram.popup.LinkItems do diagram.popup.LinkItems[i].visible=islink end
   for i=1,#diagram.popup.BlockItems do diagram.popup.BlockItems[i].visible=isblock end
-  
+  for i=1,#diagram.popup.HeaderlessBlockItems do diagram.popup.HeaderlessBlockItems[i].visible=isheaderlessblock end
+
   diagram.popup.lastobject=obj
 
   return false
@@ -232,7 +235,7 @@ function PopupMenuBlock3Click(sender)
   for i=1, #linkz.asDestination do
     stringlist.add(string.format('source #%d: ', i) .. getNameFromAddress(getRef(linkz.asDestination[i].OriginBlock.tag)))
   end
-  local index = showSelectionList("Destination list", "", stringlist)
+  local index = showSelectionList("Source list", "", stringlist)
   if linkz.asDestination[index+1] ~= nil then
     sourceblock = linkz.asDestination[index+1].OriginBlock
     diagram.diagram.ScrollX = sourceblock.x - math.abs((diagram.form.width / 2) - ((sourceblock.width) / 2))
@@ -247,7 +250,7 @@ function PopupMenuBlock4Click(sender)
   for i=1, #linkz.asSource do
     stringlist.add(string.format('destination #%d: ', i) .. getNameFromAddress(getRef(linkz.asSource[i].DestinationBlock.tag)))
   end
-  local index = showSelectionList("Source list", "", stringlist)
+  local index = showSelectionList("Destination list", "", stringlist)
   if linkz.asSource[index+1] ~= nil then
     destinationblock = linkz.asSource[index+1].DestinationBlock
     diagram.diagram.ScrollX = destinationblock.x - math.abs((diagram.form.width / 2) - ((destinationblock.width) / 2))
@@ -300,6 +303,13 @@ function createDiagramPopupMenu(diagram)
   pm.Items.add(diagram.popup.BlockItems[2])
   pm.Items.add(diagram.popup.BlockItems[3])   
   pm.Items.add(diagram.popup.BlockItems[4])
+
+  diagram.popup.HeaderlessBlockItems={}
+  diagram.popup.HeaderlessBlockItems[1]=CreateMenuItem(pm)
+  diagram.popup.HeaderlessBlockItems[1].Caption=translate('Edit block color') --to implement
+  --diagram.popup.HeaderlessBlockItems[1].OnClick=PopupMenuBlock2Click
+
+  pm.Items.add(diagram.popup.HeaderlessBlockItems[1])
 end
 
 
