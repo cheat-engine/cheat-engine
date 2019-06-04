@@ -232,7 +232,7 @@ function PopupMenuBlock3Click(sender)
   for i=1, #linkz.asDestination do
     stringlist.add(string.format('source #%d: ', i) .. getNameFromAddress(getRef(linkz.asDestination[i].OriginBlock.tag)))
   end
-  local index, str = showSelectionList("Destination list", "", stringlist)
+  local index = showSelectionList("Destination list", "", stringlist)
   if linkz.asDestination[index+1] ~= nil then
     sourceblock = linkz.asDestination[index+1].OriginBlock
     diagram.diagram.ScrollX = sourceblock.x - math.abs((diagram.form.width / 2) - ((sourceblock.width) / 2))
@@ -286,6 +286,7 @@ function createDiagramPopupMenu(diagram)
 
   diagram.popup.BlockItems[2]=CreateMenuItem(pm)
   diagram.popup.BlockItems[2].Caption=translate('Edit block color') --to implement
+  --diagram.popup.BlockItems[2].OnClick=PopupMenuBlock2Click  
   
   diagram.popup.BlockItems[3]=CreateMenuItem(pm)
   diagram.popup.BlockItems[3].Caption=translate('List sources')      
@@ -310,7 +311,6 @@ function createDiagramDiagram(diagram)
   diagram.diagram.BlockBackground=diagramstyle.block_backgroundcolor
   diagram.diagram.LineThickness=diagramstyle.link_linethickness
   diagram.diagram.ArrowSize=diagramstyle.link_arrowsize
-  
   diagram.diagram.Tag=createRef(diagram)
   --diagram.diagram.AllowUserToCreatePlotPoints = false
   --diagram.diagram.AllowUserToMovePlotPoints = false
