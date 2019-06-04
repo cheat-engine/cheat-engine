@@ -232,7 +232,7 @@ function PopupMenuBlock3Click(sender)
   for i=1, #linkz.asDestination do
     stringlist.add(string.format('source #%d: ', i) .. getNameFromAddress(getRef(linkz.asDestination[i].OriginBlock.tag)))
   end
-  local index = showSelectionList("Destination list", "", stringlist)
+  local index = showSelectionList("Source list", "", stringlist)
   if linkz.asDestination[index+1] ~= nil then
     sourceblock = linkz.asDestination[index+1].OriginBlock
     diagram.diagram.ScrollX = sourceblock.x - math.abs((diagram.form.width / 2) - ((sourceblock.width) / 2))
@@ -247,7 +247,7 @@ function PopupMenuBlock4Click(sender)
   for i=1, #linkz.asSource do
     stringlist.add(string.format('destination #%d: ', i) .. getNameFromAddress(getRef(linkz.asSource[i].DestinationBlock.tag)))
   end
-  local index = showSelectionList("Source list", "", stringlist)
+  local index = showSelectionList("Destination list", "", stringlist)
   if linkz.asSource[index+1] ~= nil then
     destinationblock = linkz.asSource[index+1].DestinationBlock
     diagram.diagram.ScrollX = destinationblock.x - math.abs((diagram.form.width / 2) - ((destinationblock.width) / 2))
