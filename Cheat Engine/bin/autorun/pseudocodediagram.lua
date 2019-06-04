@@ -185,7 +185,6 @@ function DiagramContextPopup(sender, mousepos)
     isblock=obj.ClassName=='TDiagramBlock'      
   end
   
-  
   local i
   
   for i=1,#diagram.popup.LinkItems do diagram.popup.LinkItems[i].visible=islink end
@@ -197,14 +196,22 @@ function DiagramContextPopup(sender, mousepos)
 end
 
 function PopupMenuLink1Click(sender)
---example
-  local diagram=getRef(sender.Owner.Owner.Tag) --the owner of the menuitem is the popupmenu, and the owner of that is the diagram
- 
-  --alternmatively, the menuitem tag could be set to the diagram table as well
+  local diagram=getRef(sender.Owner.Owner.Tag) --the owner of the menuitem is the popupmenu, and the owner of that is the diagram (alternatively, the menuitem tag could be set to the diagram table as well)
+  local sourceblock = diagram.popup.lastobject.OriginBlock
+  diagram.diagram.ScrollX = sourceblock.x - math.abs((diagram.form.width / 2) - ((sourceblock.width) / 2))
+  diagram.diagram.ScrollY = sourceblock.y - math.abs((diagram.form.height / 2) - ((sourceblock.height) / 2))
+end
 
-  diagram.popup.lastobject.LineColor=0xffffff
-  diagram.popup.lastobject.LineThickness=diagram.popup.lastobject.LineThickness+1
-  
+function PopupMenuLink2Click(sender)
+  local diagram=getRef(sender.Owner.Owner.Tag)
+  local destinationblock = diagram.popup.lastobject.DestinationBlock
+  diagram.diagram.ScrollX = destinationblock.x - math.abs((diagram.form.width / 2) - ((destinationblock.width) / 2))
+  diagram.diagram.ScrollY = destinationblock.y - math.abs((diagram.form.height / 2) - ((destinationblock.height) / 2))
+end
+
+function PopupMenuLink3Click(sender)
+  local diagram=getRef(sender.Owner.Owner.Tag)
+  diagram.popup.lastobject.removeAllPoints()
   diagram.diagram.repaint()
 end
 
@@ -217,14 +224,16 @@ function createDiagramPopupMenu(diagram)
   diagram.popup.Menu=pm
   diagram.popup.LinkItems={}
   diagram.popup.LinkItems[1]=CreateMenuItem(pm)
-  diagram.popup.LinkItems[1].Caption=translate('Link menu item 1')
-  diagram.popup.LinkItems[1].OnClick=PopupMenuLink1Click --example
+  diagram.popup.LinkItems[1].Caption=translate('Go to source')
+  diagram.popup.LinkItems[1].OnClick=PopupMenuLink1Click
 
   diagram.popup.LinkItems[2]=CreateMenuItem(pm)
-  diagram.popup.LinkItems[2].Caption=translate('Link menu item 2')
+  diagram.popup.LinkItems[2].Caption=translate('Go to destination')
+  diagram.popup.LinkItems[2].OnClick=PopupMenuLink2Click
   
   diagram.popup.LinkItems[3]=CreateMenuItem(pm)
-  diagram.popup.LinkItems[3].Caption=translate('Link menu item 3')        
+  diagram.popup.LinkItems[3].Caption=translate('Remove all points')      
+  diagram.popup.LinkItems[3].OnClick=PopupMenuLink3Click
   
   pm.Items.add(diagram.popup.LinkItems[1])
   pm.Items.add(diagram.popup.LinkItems[2])
@@ -243,32 +252,7 @@ function createDiagramPopupMenu(diagram)
   
   pm.Items.add(diagram.popup.BlockItems[1])
   pm.Items.add(diagram.popup.BlockItems[2])
-  pm.Items.add(diagram.popup.BlockItems[3])    
-
-
-  --[[
-  local pm = createPopupMenu(diagramlink)
-  local items = menu_getItems(pm)
-
-  local miSource = createMenuItem(pm)
-  menuItem_setCaption(miSource,'go to source')
-  menuItem_onClick(miSource, function()
-    diagram.ScrollX = diagramlink.OriginBlock.x - math.abs((form.width / 2) - ((diagramlink.OriginBlock.width) / 2))
-    diagram.ScrollY = diagramlink.OriginBlock.y - math.abs((form.height / 2) - ((diagramlink.OriginBlock.height) / 2))
-  end)
-
-  local miDestination = createMenuItem(pm)
-  menuItem_setCaption(miDestination,'go to destination')
-  menuItem_onClick(miDestination, function()
-    diagram.ScrollX = diagramlink.DestinationBlock.x - math.abs((form.width / 2) - ((diagramlink.DestinationBlock.width) / 2))
-    diagram.ScrollY = diagramlink.DestinationBlock.y - math.abs((form.height / 2) - ((diagramlink.DestinationBlock.height) / 2))
-  end)
-
-  menuItem_add(items, miSource)
-  menuItem_add(items, miDestination)
-
-  control_setPopupMenu(diagramlink, pm)
-  --]]
+  pm.Items.add(diagram.popup.BlockItems[3])   
 end
 
 
@@ -356,8 +340,6 @@ function createDiagramLink(diagram, sourceblock, destinationblock, color, offset
   local diagramlink = diagram.diagram.addConnection(sourceBSD, destinationBSD)
   
   diagramlink.LineColor=color
-
-
 
   return diagramlink
 end
@@ -873,6 +855,7 @@ diagram structure:
 diagram = {}
 diagram.form
 diagram.diagram
+diagram.popup = {}
 diagram.blocks = {}
 diagram.dblocks = {}
 diagram.dpblocks = {}
@@ -888,14 +871,6 @@ diagram.layer_links_count = {}
 ]]
 
 --[[
-diagram.ScrollX = sourceblock.x - math.abs((form.width / 2) - ((sourceblock.width) / 2))
-diagram.ScrollY = sourceblock.y - math.abs((form.height / 2) - ((sourceblock.height) / 2))
-
-diagram.ScrollX = destinationblock.x - math.abs((form.width / 2) - ((destinationblock.width) / 2))
-diagram.ScrollY = destinationblock.y - math.abs((form.height / 2) - ((destinationblock.height) / 2))
-]]
-
---[[
 local new_diagramstyle = {}
 new_diagramstyle.block_bodyshowaddresses = true
 new_diagramstyle.block_bodyshowaddressesassymbol = true
@@ -906,4 +881,3 @@ spawnDiagram(0x100016914, 50)
 
 --[[todolist]]
 --have a rightclick on an address function, then find the start of the function and then parse and display the diagram
---incorporate frmtracer results in it, or ultimap traces
