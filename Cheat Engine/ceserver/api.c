@@ -64,8 +64,9 @@
 
 
 #ifdef __arm__
-#include <linux/user.h>
-
+  #ifndef __ANDROID__
+    #include <linux/user.h>
+  #endif
 #endif
 
 //blatantly stolen from the kernel source
