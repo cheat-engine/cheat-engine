@@ -215,6 +215,46 @@ function PopupMenuLink3Click(sender)
   diagram.diagram.repaint()
 end
 
+function PopupMenuBlock1Click(sender)
+  local diagram=getRef(sender.Owner.Owner.Tag)
+  newheader = inputQuery("Edit", "new header", diagram.popup.lastobject.caption)
+  if newheader ~= nil then diagram.popup.lastobject.caption = newheader end
+end
+
+function PopupMenuBlock2Click(sender) --to implement
+
+end
+
+function PopupMenuBlock3Click(sender)
+  local diagram=getRef(sender.Owner.Owner.Tag)
+  local linkz = diagram.popup.lastobject.getLinks()
+  local stringlist = createStringlist()
+  for i=1, #linkz.asDestination do
+    stringlist.add(string.format('source #%d: ', i) .. getNameFromAddress(getRef(linkz.asDestination[i].OriginBlock.tag)))
+  end
+  local index, str = showSelectionList("Destination list", "", stringlist)
+  if linkz.asDestination[index+1] ~= nil then
+    sourceblock = linkz.asDestination[index+1].OriginBlock
+    diagram.diagram.ScrollX = sourceblock.x - math.abs((diagram.form.width / 2) - ((sourceblock.width) / 2))
+    diagram.diagram.ScrollY = sourceblock.y - math.abs((diagram.form.height / 2) - ((sourceblock.height) / 2))
+  end
+end
+
+function PopupMenuBlock4Click(sender)
+  local diagram=getRef(sender.Owner.Owner.Tag)
+  local linkz = diagram.popup.lastobject.getLinks()
+  local stringlist = createStringlist()
+  for i=1, #linkz.asSource do
+    stringlist.add(string.format('destination #%d: ', i) .. getNameFromAddress(getRef(linkz.asSource[i].DestinationBlock.tag)))
+  end
+  local index = showSelectionList("Source list", "", stringlist)
+  if linkz.asSource[index+1] ~= nil then
+    destinationblock = linkz.asSource[index+1].DestinationBlock
+    diagram.diagram.ScrollX = destinationblock.x - math.abs((diagram.form.width / 2) - ((destinationblock.width) / 2))
+    diagram.diagram.ScrollY = destinationblock.y - math.abs((diagram.form.height / 2) - ((destinationblock.height) / 2))
+  end
+end
+
 function createDiagramPopupMenu(diagram)
   local pm = createPopupMenu(diagram.diagram)
   diagram.diagram.PopupMenu=pm
@@ -237,22 +277,28 @@ function createDiagramPopupMenu(diagram)
   
   pm.Items.add(diagram.popup.LinkItems[1])
   pm.Items.add(diagram.popup.LinkItems[2])
-  pm.Items.add(diagram.popup.LinkItems[3])  
-  
+  pm.Items.add(diagram.popup.LinkItems[3])
   
   diagram.popup.BlockItems={}
   diagram.popup.BlockItems[1]=CreateMenuItem(pm)
-  diagram.popup.BlockItems[1].Caption=translate('Block menu item 1')
+  diagram.popup.BlockItems[1].Caption=translate('Edit block header')
+  diagram.popup.BlockItems[1].OnClick=PopupMenuBlock1Click
 
   diagram.popup.BlockItems[2]=CreateMenuItem(pm)
-  diagram.popup.BlockItems[2].Caption=translate('Block menu item 2')
+  diagram.popup.BlockItems[2].Caption=translate('Edit block color') --to implement
   
   diagram.popup.BlockItems[3]=CreateMenuItem(pm)
-  diagram.popup.BlockItems[3].Caption=translate('Block menu item 3')        
+  diagram.popup.BlockItems[3].Caption=translate('List sources')      
+  diagram.popup.BlockItems[3].OnClick=PopupMenuBlock3Click  
+  
+  diagram.popup.BlockItems[4]=CreateMenuItem(pm)
+  diagram.popup.BlockItems[4].Caption=translate('List destinations')      
+  diagram.popup.BlockItems[4].OnClick=PopupMenuBlock4Click    
   
   pm.Items.add(diagram.popup.BlockItems[1])
   pm.Items.add(diagram.popup.BlockItems[2])
   pm.Items.add(diagram.popup.BlockItems[3])   
+  pm.Items.add(diagram.popup.BlockItems[4])
 end
 
 
