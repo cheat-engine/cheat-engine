@@ -103,6 +103,7 @@ end
 
 function createDiagramForm(diagram, name)
   diagram.form = createForm(false)
+  diagram.form.PopupMode='pmNone'
   diagram.form.BorderStyle='bsSizeable'
   diagram.form.Caption=name
   diagram.form.Width=getScreenWidth() - (getScreenWidth() / 6)
@@ -130,6 +131,17 @@ function createMenu(diagram)
   local miSaveAsImage=createMenuItem(mm)
   miSaveAsImage.Caption=translate('Save diagram to image')
   miSaveAsImage.Name='miSaveAsImage'
+  miSaveAsImage.OnClick=function(s)
+    local fd=createSaveDialog()
+    fd.Title='Fill in the filename you wish to save this diagram image'
+    fd.DefaultExt='PNG'
+    fd.Filter='PNG files (*.PNG )|*.PNG'
+    if fd.Execute() then
+      diagram.diagram.saveAsImage(fd.FileName)    
+    end
+    
+    fd.destroy()    
+  end
   
   local miClose=createMenuItem(mm)
   miClose.Caption=translate('Close')

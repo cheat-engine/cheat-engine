@@ -1344,14 +1344,23 @@ begin
   //width and hight are known now
 
   img:=TPortableNetworkGraphic.Create;
-  img.Width:=lastMaxX+8;
-  img.Height:=lastMaxY+8;
+  img.Width:=max(lastMaxX+8, width);
+  img.Height:=max(lastMaxY+8, height);
+
 
   img.canvas.Brush.Assign(canvas.brush);
   img.canvas.pen.Assign(canvas.pen);
   img.canvas.Font.Assign(canvas.font);
 
+
+
   renderCanvas:=img.canvas;
+
+  renderCanvas.brush.color:=BackGroundColor;
+  renderCanvas.Clear;
+
+  renderCanvas.FillRect(0,0,img.Width,img.Height);
+
   render;
   rendercanvas:=canvas;
 
