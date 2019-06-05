@@ -341,14 +341,14 @@ end
 function onBlockDrag(dblock)
   local linkz, point = dblock.getLinks(), {}
   for i=1, #linkz.asDestination do
-    if linkz.asDestination[i].Points ~= nil then
+    if (linkz.asDestination[i].Points ~= nil) and (linkz.asDestination[i].PointCount >= 1) then
       point.x = dblock.x + (dblock.width / 2) + linkz.asDestination[i].DestinationDescriptor.Position
       point.y = linkz.asDestination[i].Points[linkz.asDestination[i].PointCount-1].y
       linkz.asDestination[i].Points[linkz.asDestination[i].PointCount-1] = point
     end
   end
   for i=1, #linkz.asSource do
-    if linkz.asSource[i].Points ~= nil then
+    if (linkz.asSource[i].Points ~= nil) and (linkz.asSource[i].PointCount >= 1) then
       point.x = dblock.x + (dblock.width / 2) + linkz.asSource[i].OriginDescriptor.Position
       point.y = linkz.asSource[i].Points[0].y
       linkz.asSource[i].Points[0] = point
