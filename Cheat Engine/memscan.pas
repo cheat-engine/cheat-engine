@@ -4208,7 +4208,7 @@ begin
       else
         floataccuracy:=0;
 
-      if not percentage then
+      if (floataccuracy<>0) and not percentage then
       begin
         svalue:=RoundTo(svalue,-floataccuracy);
         svalue2:=RoundTo(svalue2,-floataccuracy);
@@ -4216,10 +4216,21 @@ begin
         dvalue2:=RoundTo(dvalue2,-floataccuracy);
       end;
 
-      mindvalue:=dvalue-(1/(power(10,floataccuracy)));
-      maxdvalue:=dvalue+(1/(power(10,floataccuracy)));
-      minsvalue:=svalue-(1/(power(10,floataccuracy)));
-      maxsvalue:=svalue+(1/(power(10,floataccuracy)));
+      if floataccuracy<>0 then
+      begin
+        mindvalue:=dvalue-(1/(power(10,floataccuracy)));
+        maxdvalue:=dvalue+(1/(power(10,floataccuracy)));
+        minsvalue:=svalue-(1/(power(10,floataccuracy)));
+        maxsvalue:=svalue+(1/(power(10,floataccuracy)));
+      end
+      else
+      begin
+        mindvalue:=dvalue-1;
+        maxdvalue:=dvalue+1;
+
+        minsvalue:=svalue-1;
+        maxsvalue:=svalue+1;
+      end;
 
     end;
                   
