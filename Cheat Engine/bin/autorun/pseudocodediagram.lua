@@ -198,18 +198,21 @@ function DiagramContextPopup(sender, mousepos)
   return false
 end
 
+function scrollToDiagramBlock(diagram, dblock)
+  diagram.diagram.ScrollX = dblock.x - math.abs((diagram.form.width / 2) - ((dblock.width) / 2))
+  diagram.diagram.ScrollY = dblock.y - math.abs((diagram.form.height / 2) - ((dblock.height) / 2))
+end
+
 function PopupMenuLink1Click(sender)
   local diagram=getRef(sender.Owner.Owner.Tag) --the owner of the menuitem is the popupmenu, and the owner of that is the diagram (alternatively, the menuitem tag could be set to the diagram table as well)
   local sourceblock = diagram.popup.lastobject.OriginBlock
-  diagram.diagram.ScrollX = sourceblock.x - math.abs((diagram.form.width / 2) - ((sourceblock.width) / 2))
-  diagram.diagram.ScrollY = sourceblock.y - math.abs((diagram.form.height / 2) - ((sourceblock.height) / 2))
+  scrollToDiagramBlock(diagram, sourceblock)
 end
 
 function PopupMenuLink2Click(sender)
   local diagram=getRef(sender.Owner.Owner.Tag)
   local destinationblock = diagram.popup.lastobject.DestinationBlock
-  diagram.diagram.ScrollX = destinationblock.x - math.abs((diagram.form.width / 2) - ((destinationblock.width) / 2))
-  diagram.diagram.ScrollY = destinationblock.y - math.abs((diagram.form.height / 2) - ((destinationblock.height) / 2))
+  scrollToDiagramBlock(diagram, destinationblock)
 end
 
 function PopupMenuLink3Click(sender)
@@ -233,13 +236,12 @@ function PopupMenuBlock3Click(sender)
   local linkz = diagram.popup.lastobject.getLinks()
   local stringlist = createStringlist()
   for i=1, #linkz.asDestination do
-    stringlist.add(string.format('source #%d: ', i) .. getNameFromAddress(getRef(linkz.asDestination[i].OriginBlock.tag)))
+    stringlist.add(getNameFromAddress(getRef(linkz.asDestination[i].OriginBlock.tag)))
   end
   local index = showSelectionList("Source list", "", stringlist)
   if linkz.asDestination[index+1] ~= nil then
     sourceblock = linkz.asDestination[index+1].OriginBlock
-    diagram.diagram.ScrollX = sourceblock.x - math.abs((diagram.form.width / 2) - ((sourceblock.width) / 2))
-    diagram.diagram.ScrollY = sourceblock.y - math.abs((diagram.form.height / 2) - ((sourceblock.height) / 2))
+    scrollToDiagramBlock(diagram, sourceblock)
   end
 end
 
@@ -248,13 +250,12 @@ function PopupMenuBlock4Click(sender)
   local linkz = diagram.popup.lastobject.getLinks()
   local stringlist = createStringlist()
   for i=1, #linkz.asSource do
-    stringlist.add(string.format('destination #%d: ', i) .. getNameFromAddress(getRef(linkz.asSource[i].DestinationBlock.tag)))
+    stringlist.add(getNameFromAddress(getRef(linkz.asSource[i].DestinationBlock.tag)))
   end
   local index = showSelectionList("Destination list", "", stringlist)
   if linkz.asSource[index+1] ~= nil then
     destinationblock = linkz.asSource[index+1].DestinationBlock
-    diagram.diagram.ScrollX = destinationblock.x - math.abs((diagram.form.width / 2) - ((destinationblock.width) / 2))
-    diagram.diagram.ScrollY = destinationblock.y - math.abs((diagram.form.height / 2) - ((destinationblock.height) / 2))
+    scrollToDiagramBlock(diagram, destinationblock)
   end
 end
 
@@ -328,8 +329,7 @@ function createDiagramDiagram(diagram)
 end
 
 function onBlockDrag(dblock)
-  local linkz = dblock.getLinks()
-  local point = {}
+  local linkz, point = dblock.getLinks(), {}
   for i=1, #linkz.asDestination do
     if linkz.asDestination[i].Points ~= nil then
       point.x = dblock.x + (dblock.width / 2) + linkz.asDestination[i].DestinationDescriptor.Position
@@ -558,9 +558,7 @@ end
   the goal is to obtain a better block arrangement
 --]]
 function computeBetterEdges(diagram)
-  local dvblocks = {}
-  local more = true
-  local branchqueue = createQueue()
+  local dvblocks, more, branchqueue = {}, true, createQueue()
   initDiagramVisitedBlocks(diagram, dvblocks)
   dvblocks[1].visited = true
   pushLeft(branchqueue, 1) --starting block
@@ -639,9 +637,7 @@ function computeLayers(diagram, dpblock)
   end
 
   if diagram.dpblocks[dpblock].betteroutput_count == 2 then
-    local better1 = diagram.dpblocks[dpblock].betteroutput[1]
-    local better2 = diagram.dpblocks[dpblock].betteroutput[2]
-    local offset
+    local better1, better2, offset = diagram.dpblocks[dpblock].betteroutput[1], diagram.dpblocks[dpblock].betteroutput[2]
 
     if (diagram.dpblocks[better1].betteroutput_count == 0) then
       diagram.dpblocks[better1].v_layer = diagram.dpblocks[better2].v_layer - 2
@@ -674,12 +670,10 @@ function computeLayers(diagram, dpblock)
       end
       diagram.dpblocks[dpblock].v_layer_count = v_layer
     else
-      diagram.dpblocks[dpblock].v_layer = 0
-      diagram.dpblocks[dpblock].v_layer_count = 2
+      diagram.dpblocks[dpblock].v_layer, diagram.dpblocks[dpblock].v_layer_count = 0, 2
     end
   end
-  diagram.dpblocks[dpblock].layer = 0
-  diagram.dpblocks[dpblock].layer_count = layer_count
+  diagram.dpblocks[dpblock].layer, diagram.dpblocks[dpblock].layer_count = 0, layer_count
 end
 
 function initPoints(diagram)
@@ -861,11 +855,8 @@ function spawnDiagram(start, limit)
   diagram.blocks = createBlocks(diagram.state)
   createDiagramForm(diagram, 'Diagram')
   createMenu(diagram)   
-  
   createDiagramDiagram(diagram)
   createDiagramPopupMenu(diagram)
-  
-  
   createDiagramBlocks(diagram)
   if #diagram.dblocks > 1 then
     linkDiagramBlocks(diagram)
@@ -884,8 +875,6 @@ function spawnDiagram(start, limit)
   createDiagramInfoBlock(diagram)
   diagram.form.Visible = true
   diagram.diagram.repaint()
-  
-
   return diagram
 end
 
