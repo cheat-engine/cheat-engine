@@ -16,6 +16,7 @@ type
   TfrmStackView = class(TForm)
     ColorDialog1: TColorDialog;
     FindDialog1: TFindDialog;
+    svImageList: TImageList;
     lvStack: TListView;
     MenuItem1: TMenuItem;
     MenuItem2: TMenuItem;

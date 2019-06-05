@@ -110,18 +110,22 @@ function createDiagramForm(diagram, name)
 end
 
 function createMenu(diagram)
+  local mv=getMemoryViewForm()
   local mm=createMainMenu(diagram.form)
   local FileMenu=createMenuItem(mm)
+  mm.Images = mv.mvImageList --icons from the memoryviewer's form
   FileMenu.Caption=translate('File')
   FileMenu.Name='miFile'
   
   local miLoad=createMenuItem(mm)
   miLoad.Caption=translate('Load from file')
   miLoad.Name='miLoad'
+  miLoad.ImageIndex=23
 
   local miSave=createMenuItem(mm)
   miSave.Caption=translate('Save to file')
   miSave.Name='miSave'
+  miSave.ImageIndex=22
   
   local miSaveAsImage=createMenuItem(mm)
   miSaveAsImage.Caption=translate('Save diagram to image')
@@ -260,7 +264,9 @@ function PopupMenuBlock4Click(sender)
 end
 
 function createDiagramPopupMenu(diagram)
-  local pm = createPopupMenu(diagram.diagram)
+  local mv=getMemoryViewForm()
+  local pm=createPopupMenu(diagram.diagram)
+  pm.Images = mv.mvImageList --icons from the memoryviewer's form
   diagram.diagram.PopupMenu=pm
   diagram.diagram.OnContextPopup=DiagramContextPopup
   
@@ -277,6 +283,7 @@ function createDiagramPopupMenu(diagram)
   
   diagram.popup.LinkItems[3]=CreateMenuItem(pm)
   diagram.popup.LinkItems[3].Caption=translate('Remove all points')      
+  diagram.popup.LinkItems[3].ImageIndex=32
   diagram.popup.LinkItems[3].OnClick=PopupMenuLink3Click
   
   pm.Items.add(diagram.popup.LinkItems[1])
@@ -286,10 +293,12 @@ function createDiagramPopupMenu(diagram)
   diagram.popup.BlockItems={}
   diagram.popup.BlockItems[1]=CreateMenuItem(pm)
   diagram.popup.BlockItems[1].Caption=translate('Edit block header')
+  diagram.popup.BlockItems[1].ImageIndex=6
   diagram.popup.BlockItems[1].OnClick=PopupMenuBlock1Click
 
   diagram.popup.BlockItems[2]=CreateMenuItem(pm)
   diagram.popup.BlockItems[2].Caption=translate('Edit block color') --to implement
+  diagram.popup.BlockItems[2].ImageIndex=6
   --diagram.popup.BlockItems[2].OnClick=PopupMenuBlock2Click  
   
   diagram.popup.BlockItems[3]=CreateMenuItem(pm)
@@ -308,6 +317,7 @@ function createDiagramPopupMenu(diagram)
   diagram.popup.HeaderlessBlockItems={}
   diagram.popup.HeaderlessBlockItems[1]=CreateMenuItem(pm)
   diagram.popup.HeaderlessBlockItems[1].Caption=translate('Edit block color') --to implement
+  diagram.popup.HeaderlessBlockItems[1].ImageIndex=6
   --diagram.popup.HeaderlessBlockItems[1].OnClick=PopupMenuBlock2Click
 
   pm.Items.add(diagram.popup.HeaderlessBlockItems[1])

@@ -64,6 +64,7 @@ type
     ESPlabel: TLabel;
     FSlabel: TLabel;
     GSlabel: TLabel;
+    ftImageList: TImageList;
     lblInstruction: TLabel;
     lblAddressed: TLabel;
     lvTracer: TTreeView;
