@@ -5,11 +5,13 @@ unit textrender;
 interface
 
 uses
-  Classes, SysUtils, graphics, math;
+  Classes, SysUtils, graphics, math, LazUTF8;
 
 function renderFormattedText(canvas: TCanvas; rect: Trect; x,y: integer; formattedtext: string): trect;
 
 implementation
+
+uses windows;
 
 const altfonts: array [0..8] of string=('Consolas','Courier','Courier New','Fixedsys','Terminal','Arial','MS Sans Serif','Comic Sans MS','Wingdings');
 
@@ -443,6 +445,9 @@ var
   temprect: trect;
 
   maxx, maxy: integer;
+
+  charlength: integer;
+  c: string;
 begin
   i:=1;
   original.font:=tfont.create;
@@ -499,11 +504,21 @@ begin
           canvas.FillRect(temprect);
         end;
 
-        canvas.TextRect(rect,_x,_y,formattedtext[i]);
+        charlength:=UTF8CharacterLength(pchar(@formattedtext[i]));
+        if charlength>1 then
+        begin
+          setlength(c,charlength);
+
+          copymemory(@c[1], @formattedtext[i],charlength);
+          canvas.TextRect(rect,_x,_y,c);
+
+        end;
+        else
+          canvas.TextRect(rect,_x,_y,formattedtext[i]);
 
         inc(_x,w);
         maxx:=max(maxx, _x);
-        inc(i);
+        inc(i,charlength);
       end;
     end;
   end;
