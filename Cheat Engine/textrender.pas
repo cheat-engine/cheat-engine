@@ -485,8 +485,18 @@ begin
       #10: inc(i); //ignore (linefeed)
       else
       begin
-        w:=canvas.TextWidth(formattedtext[i]);
-
+        charlength:=UTF8CharacterLength(pchar(@formattedtext[i]));
+        if charlength>1 then
+        begin
+          setlength(c,charlength);
+          copymemory(@c[1], @formattedtext[i],charlength);
+          w:=canvas.TextWidth(c);
+        end
+        else
+        begin
+          canvas.TextRect(rect,_x,_y,formattedtext[i]);
+          w:=canvas.TextWidth(formattedtext[i]);
+        end;
 
         if canvas.brush.Color<>original.bgcolor then
         begin
@@ -504,17 +514,12 @@ begin
           canvas.FillRect(temprect);
         end;
 
-        charlength:=UTF8CharacterLength(pchar(@formattedtext[i]));
         if charlength>1 then
-        begin
-          setlength(c,charlength);
-
-          copymemory(@c[1], @formattedtext[i],charlength);
-          canvas.TextRect(rect,_x,_y,c);
-
-        end;
+          canvas.TextRect(rect,_x,_y,c)
         else
           canvas.TextRect(rect,_x,_y,formattedtext[i]);
+
+
 
         inc(_x,w);
         maxx:=max(maxx, _x);
