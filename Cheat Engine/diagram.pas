@@ -1365,6 +1365,8 @@ begin
   rendercanvas:=canvas;
 
   img.SaveToFile(filename);
+  img.free;
+
   UseOpenGL:=openglstatus;
 end;
 
