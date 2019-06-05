@@ -329,8 +329,7 @@ function createDiagramDiagram(diagram)
 end
 
 function onBlockDrag(dblock)
-  local linkz = dblock.getLinks()
-  local point = {}
+  local linkz, point = dblock.getLinks(), {}
   for i=1, #linkz.asDestination do
     if linkz.asDestination[i].Points ~= nil then
       point.x = dblock.x + (dblock.width / 2) + linkz.asDestination[i].DestinationDescriptor.Position
@@ -559,9 +558,7 @@ end
   the goal is to obtain a better block arrangement
 --]]
 function computeBetterEdges(diagram)
-  local dvblocks = {}
-  local more = true
-  local branchqueue = createQueue()
+  local dvblocks, more, branchqueue = {}, true, createQueue()
   initDiagramVisitedBlocks(diagram, dvblocks)
   dvblocks[1].visited = true
   pushLeft(branchqueue, 1) --starting block
@@ -640,9 +637,7 @@ function computeLayers(diagram, dpblock)
   end
 
   if diagram.dpblocks[dpblock].betteroutput_count == 2 then
-    local better1 = diagram.dpblocks[dpblock].betteroutput[1]
-    local better2 = diagram.dpblocks[dpblock].betteroutput[2]
-    local offset
+    local better1, better2, offset = diagram.dpblocks[dpblock].betteroutput[1], diagram.dpblocks[dpblock].betteroutput[2]
 
     if (diagram.dpblocks[better1].betteroutput_count == 0) then
       diagram.dpblocks[better1].v_layer = diagram.dpblocks[better2].v_layer - 2
@@ -675,12 +670,10 @@ function computeLayers(diagram, dpblock)
       end
       diagram.dpblocks[dpblock].v_layer_count = v_layer
     else
-      diagram.dpblocks[dpblock].v_layer = 0
-      diagram.dpblocks[dpblock].v_layer_count = 2
+      diagram.dpblocks[dpblock].v_layer, diagram.dpblocks[dpblock].v_layer_count = 0, 2
     end
   end
-  diagram.dpblocks[dpblock].layer = 0
-  diagram.dpblocks[dpblock].layer_count = layer_count
+  diagram.dpblocks[dpblock].layer, diagram.dpblocks[dpblock].layer_count = 0, layer_count
 end
 
 function initPoints(diagram)
