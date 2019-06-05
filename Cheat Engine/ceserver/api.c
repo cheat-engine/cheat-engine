@@ -135,6 +135,18 @@ typedef struct
 
 int VerboseLevel=0;
 
+//Implementation for consistency with Android Studio.
+long safe_ptrace(int request, pid_t pid, void * addr, void * data)
+{
+  int result;
+  errno = 0;
+  result = ptrace(request, pid, addr, data);
+  if(errno != 0)
+  {
+    printf("ptrace error(%d)!\n",errno);
+  }
+  return result;
+}
 
 int WakeDebuggerThread()
 {
@@ -195,7 +207,7 @@ int getBreakpointCapabilities(int tid, uint8_t *maxBreakpointCount, uint8_t *max
   HBP_RESOURCE_INFO hwbpcap;
 
   memset(&hwbpcap, 0, sizeof(HBP_RESOURCE_INFO));
-  if (ptrace(PTRACE_GETHBPREGS, tid, 0, &hwbpcap)==0)
+  if (safe_ptrace(PTRACE_GETHBPREGS, tid, 0, &hwbpcap)==0)
   {
     printf("hwbpcap:\n");
     printf("debug architecture:                %d\n", hwbpcap.debug_arch);
@@ -221,7 +233,7 @@ int getBreakpointCapabilities(int tid, uint8_t *maxBreakpointCount, uint8_t *max
   iov.iov_base=&hwd;
   iov.iov_len=sizeof(hwd);
 
-  if (ptrace(PTRACE_GETREGSET, tid, NT_ARM_HW_WATCH, &iov)==0)
+  if (safe_ptrace(PTRACE_GETREGSET, tid, NT_ARM_HW_WATCH, &iov)==0)
   {
     printf("NT_ARM_HW_WATCH: dbg_info=%x:\n", hwd.dbg_info);
     *maxWatchpointCount=hwd.dbg_info & 0xf;
@@ -231,7 +243,7 @@ int getBreakpointCapabilities(int tid, uint8_t *maxBreakpointCount, uint8_t *max
 
   iov.iov_base=&hwd;
   iov.iov_len=sizeof(hwd);
-  if (ptrace(PTRACE_GETREGSET, tid, NT_ARM_HW_BREAK, &iov)==0)
+  if (safe_ptrace(PTRACE_GETREGSET, tid, NT_ARM_HW_BREAK, &iov)==0)
   {
     printf("NT_ARM_HW_BREAK: dbg_info=%x:\n", hwd.dbg_info);
     *maxBreakpointCount=hwd.dbg_info & 0xf;
@@ -306,7 +318,7 @@ int StartDebug(HANDLE hProcess)
 
           pthread_mutex_lock(&memorymutex); //so there's no ptrace_attach busy when attaching after opening and reading memory
 
-          if (ptrace(PTRACE_ATTACH, tid,0,0)<0)
+          if (safe_ptrace(PTRACE_ATTACH, tid,0,0)<0)
             printf("Failed to attach to thread %d\n", tid);
           else
           {
@@ -335,7 +347,7 @@ int StartDebug(HANDLE hProcess)
 
 
 
-                ptrace(PTRACE_CONT, createProcessEvent.threadid, 0,0);
+                safe_ptrace(PTRACE_CONT, createProcessEvent.threadid, 0,0);
 
                 PThreadData _td=GetThreadData(p, createProcessEvent.threadid);
 
@@ -521,7 +533,7 @@ int SetBreakpoint(HANDLE hProcess, int tid, int debugreg, void *address, int bpt
         memset(&iov, 0, sizeof(iov));
         iov.iov_base=&regset;
         iov.iov_len=sizeof(regset);
-        int i=ptrace(PTRACE_GETREGSET, wtid, (void*)NT_PRSTATUS, &iov);
+        int i=safe_ptrace(PTRACE_GETREGSET, wtid, (void*)NT_PRSTATUS, &iov);
 
         printf("iov.iov_len=%d\n", (int)iov.iov_len);  //272=64 bit app. 72=32 bit app
         printf("i=%d\n", i);
@@ -549,7 +561,7 @@ int SetBreakpoint(HANDLE hProcess, int tid, int debugreg, void *address, int bpt
 
         iov.iov_base=&hwd;
         iov.iov_len=sizeof(hwd);
-        i=ptrace(PTRACE_GETREGSET, wtid, NT_ARM_HW_WATCH, &iov);
+        i=safe_ptrace(PTRACE_GETREGSET, wtid, NT_ARM_HW_WATCH, &iov);
 
 
         printf("iov.iov_len=%d\n", (int)iov.iov_len);  //272=64 bit app. 72=32 bit app
@@ -561,7 +573,7 @@ int SetBreakpoint(HANDLE hProcess, int tid, int debugreg, void *address, int bpt
 
         iov.iov_base=&hwd;
         iov.iov_len=sizeof(hwd);
-        i=ptrace(PTRACE_GETREGSET, wtid, NT_ARM_HW_BREAK, &iov);
+        i=safe_ptrace(PTRACE_GETREGSET, wtid, NT_ARM_HW_BREAK, &iov);
 
 
         printf("iov.iov_len=%d\n", (int)iov.iov_len);  //272=64 bit app. 72=32 bit app
@@ -598,18 +610,18 @@ int SetBreakpoint(HANDLE hProcess, int tid, int debugreg, void *address, int bpt
 
         }
 
-        i=ptrace(PTRACE_GETREGSET, wtid, bplist, &iov);
+        i=safe_ptrace(PTRACE_GETREGSET, wtid, bplist, &iov);
 
         hwd.dbg_regs[debugreg].addr=(uintptr_t)address;
         hwd.dbg_regs[debugreg].ctrl=encode_ctrl_reg(0, ARM_BREAKPOINT_LEN_4, btype, 0, 1);
 
-        i=ptrace(PTRACE_SETREGSET, wtid, bplist, &iov);
+        i=safe_ptrace(PTRACE_SETREGSET, wtid, bplist, &iov);
 
         printf("set=%d\n",i);
 
         memset(&hwd, 0, sizeof(hwd));
 
-        i=ptrace(PTRACE_GETREGSET, wtid, NT_ARM_HW_WATCH, &iov);
+        i=safe_ptrace(PTRACE_GETREGSET, wtid, NT_ARM_HW_WATCH, &iov);
 
         printf("get: iov.iov_len=%d\n", (int)iov.iov_len);  //272=64 bit app. 72=32 bit app
         printf("i=%d\n", i);
@@ -632,7 +644,7 @@ int SetBreakpoint(HANDLE hProcess, int tid, int debugreg, void *address, int bpt
 
         val=0;
 
-        if (ptrace(PTRACE_GETHBPREGS, wtid, 0, &val)==0)
+        if (safe_ptrace(PTRACE_GETHBPREGS, wtid, 0, &val)==0)
         {
           int i;
           unsigned int hwbpreg;
@@ -646,17 +658,17 @@ int SetBreakpoint(HANDLE hProcess, int tid, int debugreg, void *address, int bpt
           {
             //execute
             void *rv=NULL;
-           // ptrace(PTRACE_SETHBPREGS, wtid, bpindex, &rv);
-           // ptrace(PTRACE_SETHBPREGS, wtid, bpindex+1, &rv);
+           // safe_ptrace(PTRACE_SETHBPREGS, wtid, bpindex, &rv);
+           // safe_ptrace(PTRACE_SETHBPREGS, wtid, bpindex+1, &rv);
 
 
-            i=ptrace(PTRACE_GETHBPREGS, wtid, bpindex, &rv);
+            i=safe_ptrace(PTRACE_GETHBPREGS, wtid, bpindex, &rv);
             printf("%d: Before: %d=%p\n", i, bpindex, rv);
 
-            i=ptrace(PTRACE_SETHBPREGS, wtid, bpindex, &address);
+            i=safe_ptrace(PTRACE_SETHBPREGS, wtid, bpindex, &address);
             printf("i1=%d\n", i, hwbpreg);
 
-            i=ptrace(PTRACE_GETHBPREGS, wtid, bpindex, &rv);
+            i=safe_ptrace(PTRACE_GETHBPREGS, wtid, bpindex, &rv);
             printf("%d: After: %d=%p\n", i, bpindex, rv);
 
 
@@ -664,20 +676,20 @@ int SetBreakpoint(HANDLE hProcess, int tid, int debugreg, void *address, int bpt
             result=i==0;
 
             hwbpreg=encode_ctrl_reg(0, ARM_BREAKPOINT_LEN_4, ARM_BREAKPOINT_EXECUTE, 2, 1);
-            if (ptrace(PTRACE_SETHBPREGS, wtid, bpindex+1, &hwbpreg)<0) //according to my guess, this should usually work, but just in case...
+            if (safe_ptrace(PTRACE_SETHBPREGS, wtid, bpindex+1, &hwbpreg)<0) //according to my guess, this should usually work, but just in case...
             {
               printf("f1\n");
               hwbpreg=encode_ctrl_reg(0, ARM_BREAKPOINT_LEN_2, ARM_BREAKPOINT_EXECUTE, 2, 1);
-              if (ptrace(PTRACE_SETHBPREGS, wtid, bpindex+1, &hwbpreg)<0)
+              if (safe_ptrace(PTRACE_SETHBPREGS, wtid, bpindex+1, &hwbpreg)<0)
               {
                 printf("f2\n");
                 hwbpreg=encode_ctrl_reg(0, ARM_BREAKPOINT_LEN_1, ARM_BREAKPOINT_EXECUTE, 2, 1);
-                if (ptrace(PTRACE_SETHBPREGS, wtid, bpindex+1, &hwbpreg)<0)
+                if (safe_ptrace(PTRACE_SETHBPREGS, wtid, bpindex+1, &hwbpreg)<0)
                 {
                   printf("f3\n");
                   //last try, 8 ?
                   hwbpreg=encode_ctrl_reg(0, ARM_BREAKPOINT_LEN_8, ARM_BREAKPOINT_EXECUTE, 2, 1);
-                  if (ptrace(PTRACE_SETHBPREGS, wtid, bpindex+1, &hwbpreg)<0)
+                  if (safe_ptrace(PTRACE_SETHBPREGS, wtid, bpindex+1, &hwbpreg)<0)
                   {
                     printf("Failure to set breakpoint\n");
                     result=FALSE;
@@ -691,7 +703,7 @@ int SetBreakpoint(HANDLE hProcess, int tid, int debugreg, void *address, int bpt
 
             printf("hwbpreg=%x\n", hwbpreg);
 
-            i=ptrace(PTRACE_GETHBPREGS, wtid, bpindex+1, &hwbpreg);
+            i=safe_ptrace(PTRACE_GETHBPREGS, wtid, bpindex+1, &hwbpreg);
             printf("after=%x\n", hwbpreg);
 
           }
@@ -704,7 +716,7 @@ int SetBreakpoint(HANDLE hProcess, int tid, int debugreg, void *address, int bpt
 
             printf("watchpoint\n");
 
-            i=ptrace(PTRACE_SETHBPREGS, wtid, -bpindex, &address);
+            i=safe_ptrace(PTRACE_SETHBPREGS, wtid, -bpindex, &address);
             printf("i1=%d\n", i, hwbpreg);
 
             btype=0;
@@ -718,7 +730,7 @@ int SetBreakpoint(HANDLE hProcess, int tid, int debugreg, void *address, int bpt
               btype=ARM_BREAKPOINT_STORE | ARM_BREAKPOINT_LOAD;
 
             hwbpreg=encode_ctrl_reg(0, ARM_BREAKPOINT_LEN_4, btype, 0, 1);
-            i=ptrace(PTRACE_SETHBPREGS, wtid, -(bpindex+1), &hwbpreg);
+            i=safe_ptrace(PTRACE_SETHBPREGS, wtid, -(bpindex+1), &hwbpreg);
 
             printf("-bpindex=%d -(bpindex+1)=%d\n", -bpindex, -(bpindex+1));
             printf("i=%d  (hwbpreg=%x)\n", i, hwbpreg);
@@ -738,7 +750,7 @@ int SetBreakpoint(HANDLE hProcess, int tid, int debugreg, void *address, int bpt
         //PTRACE_SETREGS
         int r,r2;
 
-        uintptr_t newdr7=ptrace(PTRACE_PEEKUSER, wtid, offsetof(struct user, u_debugreg[7]), 0);
+        uintptr_t newdr7=safe_ptrace(PTRACE_PEEKUSER, wtid, offsetof(struct user, u_debugreg[7]), 0);
 
 
         newdr7=newdr7 | (1<<debugreg*2);
@@ -760,8 +772,8 @@ int SetBreakpoint(HANDLE hProcess, int tid, int debugreg, void *address, int bpt
           newdr7=newdr7 | (3 << (18+(debugreg*4)));
 
 
-        r=ptrace(PTRACE_POKEUSER, wtid, offsetof(struct user, u_debugreg[debugreg]), address);
-        r2=ptrace(PTRACE_POKEUSER, wtid, offsetof(struct user, u_debugreg[7]), newdr7);
+        r=safe_ptrace(PTRACE_POKEUSER, wtid, offsetof(struct user, u_debugreg[debugreg]), address);
+        r2=safe_ptrace(PTRACE_POKEUSER, wtid, offsetof(struct user, u_debugreg[7]), newdr7);
 
         result=(r==0) && (r2==0);
         if (!result)
@@ -794,7 +806,7 @@ int SetBreakpoint(HANDLE hProcess, int tid, int debugreg, void *address, int bpt
           else
           {
 
-            r=ptrace(PTRACE_CONT, wtid, 0,0);
+            r=safe_ptrace(PTRACE_CONT, wtid, 0,0);
             printf("PTRACE_CONT=%d\n", r);
 
             td->isPaused=0;
@@ -944,13 +956,13 @@ int RemoveBreakpoint(HANDLE hProcess, int tid, int debugreg,int wasWatchpoint)
 
         if (wasWatchpoint)
         {
-          i=ptrace(PTRACE_SETHBPREGS, wtid, -bpIndex, &bpreg);
-          i2=ptrace(PTRACE_SETHBPREGS, wtid, -(bpIndex+1), &bpreg);
+          i=safe_ptrace(PTRACE_SETHBPREGS, wtid, -bpIndex, &bpreg);
+          i2=safe_ptrace(PTRACE_SETHBPREGS, wtid, -(bpIndex+1), &bpreg);
         }
         else
         {
-          i=ptrace(PTRACE_SETHBPREGS, wtid, bpIndex, &bpreg);
-          i2=ptrace(PTRACE_SETHBPREGS, wtid, bpIndex+1, &bpreg);
+          i=safe_ptrace(PTRACE_SETHBPREGS, wtid, bpIndex, &bpreg);
+          i2=safe_ptrace(PTRACE_SETHBPREGS, wtid, bpIndex+1, &bpreg);
         }
 
 
@@ -961,7 +973,7 @@ int RemoveBreakpoint(HANDLE hProcess, int tid, int debugreg,int wasWatchpoint)
 
 
 
-        i3=ptrace(PTRACE_SETHBPREGS, wtid, 1, &a);
+        i3=safe_ptrace(PTRACE_SETHBPREGS, wtid, 1, &a);
 
         result=(i==0) && (i2==0) && (i3==0);
 #endif
@@ -983,14 +995,14 @@ int RemoveBreakpoint(HANDLE hProcess, int tid, int debugreg,int wasWatchpoint)
         else
           bplist=NT_ARM_HW_BREAK;
 
-        i=ptrace(PTRACE_GETREGSET, wtid, bplist, &iov);
+        i=safe_ptrace(PTRACE_GETREGSET, wtid, bplist, &iov);
         if (i!=0)
           printf("PTRACE_GETREGSET failed\n");
 
         hwd.dbg_regs[debugreg].addr=0;
         hwd.dbg_regs[debugreg].ctrl=0;
 
-        i=ptrace(PTRACE_SETREGSET, wtid, bplist, &iov);
+        i=safe_ptrace(PTRACE_SETREGSET, wtid, bplist, &iov);
         if (i!=0)
           printf("PTRACE_SETREGSET failed\n");
 
@@ -1002,16 +1014,16 @@ int RemoveBreakpoint(HANDLE hProcess, int tid, int debugreg,int wasWatchpoint)
         uintptr_t dr7=0;
         printf("x86\n");
 
-        dr7=ptrace(PTRACE_PEEKUSER, wtid, offsetof(struct user, u_debugreg[7]), 0);
+        dr7=safe_ptrace(PTRACE_PEEKUSER, wtid, offsetof(struct user, u_debugreg[7]), 0);
 
         dr7&=~(3 << (debugreg*2)); //disable G# and L#
         dr7&=~(15 << (16+debugreg*4)); //set len and type for this debugreg to 0
 
 
-        r=ptrace(PTRACE_POKEUSER, wtid, offsetof(struct user, u_debugreg[debugreg]), 0);
+        r=safe_ptrace(PTRACE_POKEUSER, wtid, offsetof(struct user, u_debugreg[debugreg]), 0);
 
 
-        r=ptrace(PTRACE_POKEUSER, wtid, offsetof(struct user, u_debugreg[7]), dr7);
+        r=safe_ptrace(PTRACE_POKEUSER, wtid, offsetof(struct user, u_debugreg[7]), dr7);
         if (r==0)
           result=TRUE;
         else
@@ -1037,7 +1049,7 @@ int RemoveBreakpoint(HANDLE hProcess, int tid, int debugreg,int wasWatchpoint)
           }
           else
           {
-            r=ptrace(PTRACE_CONT, wtid, 0,0);
+            r=safe_ptrace(PTRACE_CONT, wtid, 0,0);
             printf("PTRACE_CONT=%d\n", r);
 
             td->isPaused=0;
@@ -1143,7 +1155,7 @@ int GetThreadContext(HANDLE hProcess, int tid, PCONTEXT Context, int type)
         k=getRegisters(tid, &Context->regs);
 
 
-        //k=ptrace(PTRACE_GETREGS, tid, 0, &Context->regs);
+        //k=safe_ptrace(PTRACE_GETREGS, tid, 0, &Context->regs);
         printf("getRegisters() returned %d\n", k);
 
         if (k==0)
@@ -1167,7 +1179,7 @@ int GetThreadContext(HANDLE hProcess, int tid, PCONTEXT Context, int type)
           }
           else
           {
-            r=(r && (ptrace(PTRACE_CONT, de.threadid, 0,0)==0));
+            r=(r && (safe_ptrace(PTRACE_CONT, de.threadid, 0,0)==0));
 
 
             td->isPaused=0;
@@ -1389,7 +1401,7 @@ int ResumeThread(HANDLE hProcess, int tid)
           if (t->suspendedDevent.debugevent==SIGSTOP)
           {
             printf("SIGSTOP: Continue thread without queing\n");
-            ptrace(PTRACE_CONT, t->suspendedDevent.threadid, 0,0);
+            safe_ptrace(PTRACE_CONT, t->suspendedDevent.threadid, 0,0);
             td->isPaused=0;
           }
           else
@@ -1529,7 +1541,7 @@ void AddDebugEventToQueue(PProcessData p, PDebugEvent devent)
 int GetStopSignalFromThread(int tid)
 {
   siginfo_t si;
-  if (ptrace(PTRACE_GETSIGINFO, tid, NULL, &si)==0)
+  if (safe_ptrace(PTRACE_GETSIGINFO, tid, NULL, &si)==0)
     return si.si_signo;
   else
     return -1;
@@ -1798,7 +1810,7 @@ int WaitForDebugEvent(HANDLE hProcess, PDebugEvent devent, int timeout)
 
 #if (defined(__arm__) || defined(__aarch64__))
           //return si_addr of siginfo
-          if (ptrace(PTRACE_GETSIGINFO, p->debuggedThreadEvent.threadid, NULL, &si)==0)
+          if (safe_ptrace(PTRACE_GETSIGINFO, p->debuggedThreadEvent.threadid, NULL, &si)==0)
           {
 
             p->debuggedThreadEvent.address=(uintptr_t)si.si_addr;
@@ -1813,17 +1825,17 @@ int WaitForDebugEvent(HANDLE hProcess, PDebugEvent devent, int timeout)
           uintptr_t DR0,DR1,DR2,DR3,DR7, IP;
           regDR6 DR6;
 #if defined __i386__
-          IP=ptrace(PTRACE_PEEKUSER, p->debuggedThreadEvent.threadid, offsetof(struct user, regs.eip), 0);
+          IP=safe_ptrace(PTRACE_PEEKUSER, p->debuggedThreadEvent.threadid, offsetof(struct user, regs.eip), 0);
 #else
-          IP=ptrace(PTRACE_PEEKUSER, p->debuggedThreadEvent.threadid, offsetof(struct user, regs.rip), 0);
+          IP=safe_ptrace(PTRACE_PEEKUSER, p->debuggedThreadEvent.threadid, offsetof(struct user, regs.rip), 0);
 #endif
-          DR0=ptrace(PTRACE_PEEKUSER, p->debuggedThreadEvent.threadid, offsetof(struct user, u_debugreg[0]), 0);
-          DR1=ptrace(PTRACE_PEEKUSER, p->debuggedThreadEvent.threadid, offsetof(struct user, u_debugreg[1]), 0);
-          DR2=ptrace(PTRACE_PEEKUSER, p->debuggedThreadEvent.threadid, offsetof(struct user, u_debugreg[2]), 0);
-          DR3=ptrace(PTRACE_PEEKUSER, p->debuggedThreadEvent.threadid, offsetof(struct user, u_debugreg[3]), 0);
+          DR0=safe_ptrace(PTRACE_PEEKUSER, p->debuggedThreadEvent.threadid, offsetof(struct user, u_debugreg[0]), 0);
+          DR1=safe_ptrace(PTRACE_PEEKUSER, p->debuggedThreadEvent.threadid, offsetof(struct user, u_debugreg[1]), 0);
+          DR2=safe_ptrace(PTRACE_PEEKUSER, p->debuggedThreadEvent.threadid, offsetof(struct user, u_debugreg[2]), 0);
+          DR3=safe_ptrace(PTRACE_PEEKUSER, p->debuggedThreadEvent.threadid, offsetof(struct user, u_debugreg[3]), 0);
 
-          DR6.value=ptrace(PTRACE_PEEKUSER, p->debuggedThreadEvent.threadid, offsetof(struct user, u_debugreg[6]), 0);
-          DR7=ptrace(PTRACE_PEEKUSER, p->debuggedThreadEvent.threadid, offsetof(struct user, u_debugreg[7]), 0);
+          DR6.value=safe_ptrace(PTRACE_PEEKUSER, p->debuggedThreadEvent.threadid, offsetof(struct user, u_debugreg[6]), 0);
+          DR7=safe_ptrace(PTRACE_PEEKUSER, p->debuggedThreadEvent.threadid, offsetof(struct user, u_debugreg[7]), 0);
 
           printf("DR0=%lx\n",DR0);
           printf("DR1=%lx\n",DR1);
@@ -1850,7 +1862,7 @@ int WaitForDebugEvent(HANDLE hProcess, PDebugEvent devent, int timeout)
             p->debuggedThreadEvent.address=1;
 
 
-          ptrace(PTRACE_POKEUSER, p->debuggedThreadEvent.threadid, offsetof(struct user, u_debugreg[6]), 0); //not sure if needed, or if this should be moved to continuefromdebugevent
+          safe_ptrace(PTRACE_POKEUSER, p->debuggedThreadEvent.threadid, offsetof(struct user, u_debugreg[6]), 0); //not sure if needed, or if this should be moved to continuefromdebugevent
 
 #endif
           printf("p->debuggedThreadEvent.address=%lx\n", p->debuggedThreadEvent.address);
@@ -1917,7 +1929,7 @@ int ContinueFromDebugEvent(HANDLE hProcess, int tid, int ignoresignal)
 
 
 
-    if (ptrace(PTRACE_GETSIGINFO, tid, NULL, &si)==0)
+    if (safe_ptrace(PTRACE_GETSIGINFO, tid, NULL, &si)==0)
     {
       int signal=ignoresignal?0:si.si_signo;
 
@@ -1938,17 +1950,17 @@ int ContinueFromDebugEvent(HANDLE hProcess, int tid, int ignoresignal)
       {
         printf("Single step\n");
 
-        result=ptrace(PTRACE_SINGLESTEP, tid, 0,0);
+        result=safe_ptrace(PTRACE_SINGLESTEP, tid, 0,0);
         if (result!=0)
         {
           printf("PTRACE_SINGLESTEP failed (%d). Shit happens\n", errno);
-          result=ptrace(PTRACE_CONT, tid, 0,signal);
+          result=safe_ptrace(PTRACE_CONT, tid, 0,signal);
         }
 
       }
       else
       {
-        result=ptrace(PTRACE_CONT, tid, 0,signal);
+        result=safe_ptrace(PTRACE_CONT, tid, 0,signal);
       }
 
 
@@ -1989,7 +2001,7 @@ int StopDebug(HANDLE hProcess)
     PProcessData p=(PProcessData)GetPointerFromHandle(hProcess);
     int i;
     for (i=0; i<p->threadlistpos;i++)
-      if (ptrace(PTRACE_DETACH, p->threadlist[i].tid,0,0)<0)
+      if (safe_ptrace(PTRACE_DETACH, p->threadlist[i].tid,0,0)<0)
         printf("Failed to detach from %ld\n", p->threadlist[i].tid);
   }
 
@@ -2044,7 +2056,7 @@ int WriteProcessMemoryDebug(HANDLE hProcess, PProcessData p, void *lpAddress, vo
       while (offset<max)
       {
         printf("offset=%d max=%d\n", offset, max);
-        ptrace(PTRACE_POKEDATA, p->pid, (void*)((uintptr_t)lpAddress+offset), (void *)*address);
+        safe_ptrace(PTRACE_POKEDATA, p->pid, (void*)((uintptr_t)lpAddress+offset), (void *)*address);
 
         address++;
         offset+=sizeof(long int);
@@ -2055,7 +2067,7 @@ int WriteProcessMemoryDebug(HANDLE hProcess, PProcessData p, void *lpAddress, vo
       {
         printf("Still some bytes left: %d\n", size-offset);
         //still a few bytes left
-        long int oldvalue=ptrace(PTRACE_PEEKDATA, p->pid,  (void *)(uintptr_t)lpAddress+offset, (void*)0);
+        long int oldvalue=safe_ptrace(PTRACE_PEEKDATA, p->pid,  (void *)(uintptr_t)lpAddress+offset, (void*)0);
 
         unsigned char *oldbuf=(unsigned char *)&oldvalue;
         unsigned char *newmem=(unsigned char *)address;
@@ -2069,7 +2081,7 @@ int WriteProcessMemoryDebug(HANDLE hProcess, PProcessData p, void *lpAddress, vo
         printf("newvalue=%lx\n", oldvalue);
 
 
-        i=ptrace(PTRACE_POKEDATA, p->pid, (void*)((uintptr_t)lpAddress+offset), (void *)oldvalue);
+        i=safe_ptrace(PTRACE_POKEDATA, p->pid, (void*)((uintptr_t)lpAddress+offset), (void *)oldvalue);
 
         printf("ptrace poke returned %d\n", i);
         if (i>=0)
@@ -2091,7 +2103,7 @@ int WriteProcessMemoryDebug(HANDLE hProcess, PProcessData p, void *lpAddress, vo
 
       //  printf("Continue from sigstop\n");
 
-        ptrace(PTRACE_CONT, event.threadid, 0,0);
+        safe_ptrace(PTRACE_CONT, event.threadid, 0,0);
 
         if (td)
           td->isPaused=0;
@@ -2173,7 +2185,7 @@ int WriteProcessMemory(HANDLE hProcess, void *lpAddress, void *buffer, int size)
 
     if (pthread_mutex_lock(&memorymutex) == 0)
     {
-      if (ptrace(PTRACE_ATTACH, p->pid,0,0)==0)
+      if (safe_ptrace(PTRACE_ATTACH, p->pid,0,0)==0)
       {
         int status;
         pid_t pid=wait(&status);
@@ -2186,7 +2198,7 @@ int WriteProcessMemory(HANDLE hProcess, void *lpAddress, void *buffer, int size)
         while (offset<max)
         {
           printf("offset=%d max=%d\n", offset, max);
-          ptrace(PTRACE_POKEDATA, pid, (void*)((uintptr_t)lpAddress+offset), (void *)*address);
+          safe_ptrace(PTRACE_POKEDATA, pid, (void*)((uintptr_t)lpAddress+offset), (void *)*address);
 
           address++;
           offset+=sizeof(long int);
@@ -2198,7 +2210,7 @@ int WriteProcessMemory(HANDLE hProcess, void *lpAddress, void *buffer, int size)
         {
         	printf("Still some bytes left: %d\n", size-offset);
           //still a few bytes left
-          long int oldvalue=ptrace(PTRACE_PEEKDATA, pid,  (void *)(uintptr_t)lpAddress+offset, (void*)0);
+          long int oldvalue=safe_ptrace(PTRACE_PEEKDATA, pid,  (void *)(uintptr_t)lpAddress+offset, (void*)0);
 
           unsigned char *oldbuf=(unsigned char *)&oldvalue;
           unsigned char *newmem=(unsigned char *)address;
@@ -2212,7 +2224,7 @@ int WriteProcessMemory(HANDLE hProcess, void *lpAddress, void *buffer, int size)
           printf("newvalue=%lx\n", oldvalue);
 
 
-          i=ptrace(PTRACE_POKEDATA, pid, (void*)((uintptr_t)lpAddress+offset), (void *)oldvalue);
+          i=safe_ptrace(PTRACE_POKEDATA, pid, (void*)((uintptr_t)lpAddress+offset), (void *)oldvalue);
 
           printf("ptrace poke returned %d\n", i);
           if (i>=0)
@@ -2223,7 +2235,7 @@ int WriteProcessMemory(HANDLE hProcess, void *lpAddress, void *buffer, int size)
 
 
 
-        ptrace(PTRACE_DETACH, pid,0,0);
+        safe_ptrace(PTRACE_DETACH, pid,0,0);
       }
       //else
       //  printf("PTRACE ATTACH FAILED\n");
@@ -2363,7 +2375,7 @@ int ReadProcessMemoryDebug(HANDLE hProcess, PProcessData p, void *lpAddress, voi
       while(offset<max)
       {
         errno = 0;
-        value =  ptrace(PTRACE_PEEKDATA, p->pid, (void*)((uintptr_t)lpAddress+offset), (void *)0);
+        value =  safe_ptrace(PTRACE_PEEKDATA, p->pid, (void*)((uintptr_t)lpAddress+offset), (void *)0);
 
         if(errno == 0)
         {
@@ -2385,7 +2397,7 @@ int ReadProcessMemoryDebug(HANDLE hProcess, PProcessData p, void *lpAddress, voi
       if(offset < size && is_readable)
       {
         errno = 0;
-        value =  ptrace(PTRACE_PEEKDATA, p->pid, (void*)((uintptr_t)lpAddress+offset), (void *)0);
+        value =  safe_ptrace(PTRACE_PEEKDATA, p->pid, (void*)((uintptr_t)lpAddress+offset), (void *)0);
         
         if(errno == 0)
         {
@@ -2409,7 +2421,7 @@ int ReadProcessMemoryDebug(HANDLE hProcess, PProcessData p, void *lpAddress, voi
 
       //  printf("Continue from sigstop\n");
 
-        ptrace(PTRACE_CONT, event.threadid, 0,0);
+        safe_ptrace(PTRACE_CONT, event.threadid, 0,0);
 
         if (td)
           td->isPaused=0;
@@ -2528,7 +2540,7 @@ int ReadProcessMemory(HANDLE hProcess, void *lpAddress, void *buffer, int size)
     {
 
 
-        if (ptrace(PTRACE_ATTACH, p->pid,0,0)==0)
+        if (safe_ptrace(PTRACE_ATTACH, p->pid,0,0)==0)
         {
           int status;
 
@@ -2564,7 +2576,7 @@ int ReadProcessMemory(HANDLE hProcess, void *lpAddress, void *buffer, int size)
             while(offset<max)
             {
               errno = 0;
-              value =  ptrace(PTRACE_PEEKDATA, pid, (void*)((uintptr_t)lpAddress+offset), (void *)0);
+              value =  safe_ptrace(PTRACE_PEEKDATA, pid, (void*)((uintptr_t)lpAddress+offset), (void *)0);
 
               if(errno == 0)
               {
@@ -2586,7 +2598,7 @@ int ReadProcessMemory(HANDLE hProcess, void *lpAddress, void *buffer, int size)
             if(offset < size && is_readable)
             {
               errno = 0;
-              value =  ptrace(PTRACE_PEEKDATA, pid, (void*)((uintptr_t)lpAddress+offset), (void *)0);
+              value =  safe_ptrace(PTRACE_PEEKDATA, pid, (void*)((uintptr_t)lpAddress+offset), (void *)0);
               
               if(errno == 0)
               {
@@ -2604,7 +2616,7 @@ int ReadProcessMemory(HANDLE hProcess, void *lpAddress, void *buffer, int size)
           //printf("bread=%d size=%d\n", bread, size);
           
 
-          ptrace(PTRACE_DETACH, pid,0,0);
+          safe_ptrace(PTRACE_DETACH, pid,0,0);
         }
         else
           printf("ptrace attach failed (pid=%d). This system might not be properly rooted\n", p->pid);
