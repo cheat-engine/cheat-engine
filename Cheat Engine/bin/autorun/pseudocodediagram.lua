@@ -113,7 +113,7 @@ function createMenu(diagram)
   local mv=getMemoryViewForm()
   local mm=createMainMenu(diagram.form)
   local FileMenu=createMenuItem(mm)
-  mm.Images = mv.mwImageList --icons from the memoryviewer's form
+  mm.Images = mv.mvImageList --icons from the memoryviewer's form
   FileMenu.Caption=translate('File')
   FileMenu.Name='miFile'
   
@@ -266,7 +266,7 @@ end
 function createDiagramPopupMenu(diagram)
   local mv=getMemoryViewForm()
   local pm=createPopupMenu(diagram.diagram)
-  pm.Images = mv.mwImageList --icons from the memoryviewer's form
+  pm.Images = mv.mvImageList --icons from the memoryviewer's form
   diagram.diagram.PopupMenu=pm
   diagram.diagram.OnContextPopup=DiagramContextPopup
   
