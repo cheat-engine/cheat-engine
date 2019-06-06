@@ -122,18 +122,53 @@ function createMenu(diagram)
   miLoad.Caption=translate('Load from file')
   miLoad.Name='miLoad'
   miLoad.ImageIndex=23
+  miLoad.OnClick=function(s)
+    local fd=createOpenDialog()
+    fd.Title=translate('Select the file you wish to open')
+    fd.DefaultExt='CEDIAG'
+    fd.Filter='Diagram files (*.CEDIAG )|*.CEDIAG'
+    if fd.Execute() then
+      local fs=createFileStream(fd.FileName,fmOpenRead)
+      diagram.diagram.loadFromStream(fs)   
+      
+      --Todo: Perhaps load more
+      
+      fs.destroy()
+    end
+    
+    fd.destroy()    
+  end
 
   local miSave=createMenuItem(mm)
   miSave.Caption=translate('Save to file')
   miSave.Name='miSave'
   miSave.ImageIndex=22
+  miSave.OnClick=function(s)
+    
+    local fd=createSaveDialog()
+    fd.Title=translate('Fill in the filename you wish to save this diagram as')
+    fd.DefaultExt='CEDIAG'
+    fd.Filter='Diagram files (*.CEDIAG )|*.CEDIAG'
+    fd.Options='['..string.sub(string.sub(fd.Options,2),1,#fd.Options-2)..',ofOverwritePrompt'..']'
+    if fd.Execute() then
+      local fs=createFileStream(fd.FileName,fmCreate)
+      diagram.diagram.saveToStream(fs)
+      
+      --todo: Perhaps save more
+      
+      fs.destroy();
+      
+    end
+    
+    fd.destroy()    
+  end
   
   local miSaveAsImage=createMenuItem(mm)
   miSaveAsImage.Caption=translate('Save diagram to image')
   miSaveAsImage.Name='miSaveAsImage'
   miSaveAsImage.OnClick=function(s)
     local fd=createSaveDialog()
-    fd.Title='Fill in the filename you wish to save this diagram image'
+    fd.Title=translate('Fill in the filename you wish to save this diagram image')
     fd.DefaultExt='PNG'
     fd.Filter='PNG files (*.PNG )|*.PNG'
     if fd.Execute() then
@@ -889,7 +924,7 @@ function spawnDiagram(start, limit)
     initPoints(diagram)
     computePoints(diagram)
     arrangeDiagramLayers(diagram)
-    arrangeDiagramBlocks(diagram)
+    arrangeDiagramBlocks(diagram)    
     arrangeDiagramLinks(diagram)
   else
     if #diagram.dblocks > 0 then centerDiagramBlock(diagram, 1) end
