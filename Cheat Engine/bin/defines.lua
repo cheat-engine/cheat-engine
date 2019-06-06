@@ -406,3 +406,15 @@ drBounds=0
 drIcon=1
 drLabel=2
 drSelectBounds=3
+
+fmCreate        = 0xff00
+fmOpenRead      = 0x0000
+fmOpenWrite     = 0x0001
+fmOpenReadWrite = 0x0002
+
+fmShareCompat   = 0x0000
+fmShareExclusive= 0x0010
+fmShareDenyWrite= 0x0020
+fmShareDenyRead = 0x0030
+fmShareDenyNone = 0x0040
+
