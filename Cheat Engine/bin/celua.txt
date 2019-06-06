@@ -1503,10 +1503,13 @@ methods
   getPenPosition()
   setPenPosition(x,y)
   clear() - Clears the canvas
+
   line(sourcex, sourcey, destinationx, destinationy)
   lineTo(destinationx, destinationy)
-  rect(x1,y1,x2,y2)
-  fillRect(x1,y1,x2,y2)
+  rect(x1,y1,x2,y2) - Draws a rectangle
+  fillRect(x1,y1,x2,y2) - Draws a filled rectangle
+  roundRect(x1,y1,x2,y2,rx,ry) - Draws a rectangle with rounded corners
+  drawFocusRect(x1,y1,x2,y2) - Draws the focus rectangle shape
   textOut(x,y, text)
   textRect(rect,x,y,text): write the text within the given rectangle. The text supports some ansi escape characters
   getTextWidth(text)
