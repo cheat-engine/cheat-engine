@@ -87,7 +87,7 @@ type
     procedure createBlock(graphConfig: TDiagramConfig);
   public
 
-    BlockID: integer; //used for saving/loading. set by diagram
+
 
     function getData: TStrings;
     procedure setData(s: TStrings);
@@ -112,6 +112,7 @@ type
     procedure render;
     property OnDestroy: TNotifyEvent read fOnDestroy write fOnDestroy;
     property BlockRect: TRect read getRect write setRect;
+    property BlockID: integer read fBlockId write fBlockId; //used for saving/loading. set by diagram
     constructor create(graphConfig: TDiagramConfig);
     constructor createFromStream(graphConfig: TDiagramConfig; f: TStream);
     destructor destroy; override;
@@ -381,6 +382,7 @@ begin
   f.WriteAnsiString(data.Text);
 
   f.WriteQWord(tag);
+  f.WriteDWord(fBlockID);
   f.WriteDWord(fx);
   f.WriteDWord(fy);
   f.WriteDWord(fwidth);
@@ -404,6 +406,7 @@ begin
   fcaption:=f.ReadAnsiString;
   data.text:=f.ReadAnsiString;
   tag:=f.ReadQWord;
+  fBlockId:=f.ReadDWord;
   fx:=f.ReadDWord;
   fy:=f.ReadDWord;
   fwidth:=f.ReadDWord;

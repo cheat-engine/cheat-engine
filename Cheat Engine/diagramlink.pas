@@ -910,6 +910,10 @@ procedure TDiagramLink.loadFromStream(f: tstream; blocks: tlist);
   begin
     result:=nil;
 
+    if (id<blocks.count) and (TDiagramBlock(blocks[id]).BlockID=id) then exit(TDiagramBlock(blocks[id]));
+
+    //unexpected blockorder
+
     for i:=0 to blocks.count-1 do
     begin
       b:=TDiagramBlock(blocks[i]);
@@ -925,10 +929,15 @@ begin
   fname:=f.ReadAnsiString;
 
   origin.block:=idToBlock(f.ReadDWord);
+  if origin.block=nil then
+    raise exception.create('Link read error. Origin for a link not found');
+
   origin.side:=TDiagramBlockSide(f.ReadByte);
   origin.sideposition:=f.ReadDWord;
 
   destination.block:=idToBlock(f.ReadDWord);
+  if destination.block=nil then
+    raise exception.create('Link read error. Destination for a link not found');
   destination.side:=TDiagramBlockSide(f.ReadByte);
   destination.sideposition:=f.ReadDWord;
 
