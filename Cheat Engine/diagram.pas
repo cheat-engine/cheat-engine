@@ -1302,6 +1302,8 @@ begin
   c:=s.ReadDWord;
   for i:=0 to c-1 do
     links.add(TDiagramLink.createFromStream(diagramconfig, s, blocks));
+
+  RepaintOrRender;
 end;
 
 procedure TDiagram.saveToFile(filename: string);
