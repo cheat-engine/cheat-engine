@@ -1741,6 +1741,8 @@ methods
   writeDword(integer)
   readQword(): integer
   writeQword(integer)
+  readAnsiString(): string
+  writeAnsiString(string)
 
 
 MemoryStream Class (Inheritance: Stream->Object)

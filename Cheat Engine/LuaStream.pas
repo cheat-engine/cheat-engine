@@ -182,6 +182,24 @@ begin
   result:=0;
 end;
 
+function stream_readAnsiString(L: PLua_State): integer; cdecl;
+var
+  stream: Tstream;
+begin
+  stream:=luaclass_getClassObject(L);
+  lua_pushstring(L,stream.ReadAnsiString);
+  result:=1;
+end;
+
+function stream_writeAnsiString(L: PLua_State): integer; cdecl;
+var
+  stream: Tstream;
+begin
+  stream:=luaclass_getClassObject(L);
+  stream.WriteAnsiString(Lua_ToString(L,1));
+  result:=0;
+end;
+
 function stream_write(L: PLua_State): integer; cdecl;
 var
   stream: Tstream;
@@ -235,6 +253,8 @@ begin
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'writeDword', stream_writeDword);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'readQword', stream_readQword);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'writeQword', stream_writeQword);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'readAnsiString', stream_readAnsiString);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'writeAnsiString', stream_writeAnsiString);
 
   luaclass_addPropertyToTable(L, metatable, userdata, 'Size', stream_getSize, stream_setSize);
   luaclass_addPropertyToTable(L, metatable, userdata, 'Position', stream_getPosition, stream_setPosition);
