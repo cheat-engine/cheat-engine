@@ -36,10 +36,10 @@ int cenet_connect(void)
   addr.sin_port=htons(PORT);
   addr.sin_addr.s_addr=htonl(INADDR_LOOPBACK); //0x1600a8c0; //INADDR_LOOPBACK;
 
-  printf("calling connect...\n");
+  debug_log("calling connect...\n");
   i=connect(fd, (struct sockaddr *)&addr, sizeof(addr));
 
-  printf("after connect. %d\n", i);
+  debug_log("after connect. %d\n", i);
 
 
   return fd;
@@ -57,7 +57,7 @@ int cenet_OpenProcess(int fd, int pid)
 
   int pHandle;
 
-  printf("cenet_OpenProcess(%d,%d)\n", fd, pid);
+  debug_log("cenet_OpenProcess(%d,%d)\n", fd, pid);
 
 
 
@@ -121,7 +121,7 @@ int cenet_waitForDebugEvent(int fd, int pHandle, DebugEvent* devent, int timeout
   if (result)
     recv(fd, devent, sizeof(DebugEvent), MSG_WAITALL);
 
-  printf(">>>>>>>>>>>>>>>>>>cenet_waitForDebugEvent returned<<<<<<<<<<<<<<<<\n");
+  debug_log(">>>>>>>>>>>>>>>>>>cenet_waitForDebugEvent returned<<<<<<<<<<<<<<<<\n");
 
   return result;
 
@@ -167,7 +167,7 @@ int cenet_readProcessMemory(int fd, int pHandle, unsigned long long address, voi
 
   int result;
 
-  printf("cenet_readProcessMemory(%d, %d, %llx, %p, %d)", fd, pHandle, address, dest, size);
+  debug_log("cenet_readProcessMemory(%d, %d, %llx, %p, %d)", fd, pHandle, address, dest, size);
 
   rpm.command=CMD_READPROCESSMEMORY;
   rpm.pHandle=pHandle;
@@ -177,7 +177,7 @@ int cenet_readProcessMemory(int fd, int pHandle, unsigned long long address, voi
   sendall(fd, &rpm, sizeof(rpm), 0);
   recv(fd, &result, sizeof(result), MSG_WAITALL);
 
-  printf("result=%d\n", result);
+  debug_log("result=%d\n", result);
   recv(fd, dest, result, MSG_WAITALL);
 
 
@@ -201,7 +201,7 @@ int cenet_setBreakpoint(int fd, int pHandle, int tid, void *Address, int bptype,
 #pragma pack()
     int result;
 
-  printf("cenet_setBreakpoint sizeof(sb)=%d\n", sizeof(sb));
+  debug_log("cenet_setBreakpoint sizeof(sb)=%d\n", sizeof(sb));
   sb.command=CMD_SETBREAKPOINT;
   sb.hProcess=pHandle;
   sb.tid=tid;
@@ -232,7 +232,7 @@ int cenet_removeBreakpoint(int fd, int pHandle, int tid, int debugreg, int waswa
 #pragma pack()
     int result;
 
-  printf("cenet_removeBreakpoint\n");
+  debug_log("cenet_removeBreakpoint\n");
   rb.command=CMD_REMOVEBREAKPOINT;
   rb.hProcess=pHandle;
   rb.tid=tid;
@@ -279,7 +279,7 @@ void *CESERVERTEST_DEBUGGERTHREAD(void *arg)
   int dscr=0;
 #ifdef __arm__
   ARM_DBG_READ(c0, c1, 0, dscr);
-  printf("after: %x\n", dscr);
+  debug_log("after: %x\n", dscr);
 #endif
 
 
@@ -289,16 +289,16 @@ void *CESERVERTEST_DEBUGGERTHREAD(void *arg)
     int i;
     DebugEvent devent;
 
-    printf("cenet_startDebugger=true\n");
+    debug_log("cenet_startDebugger=true\n");
 
     while (1)
     {
       count++;
-      printf("count=%d\n", count);
+      debug_log("count=%d\n", count);
 
       if (count==4)
       {
-        printf("going to set breakpoint\n");
+        debug_log("going to set breakpoint\n");
 
         i=cenet_setBreakpoint(fd, pHandle, -1, 0x00ce0000, 3, 4,0);
         //cenet_setBreakpoint(fd, pHandle, -1, 0x85e4, 0, 1,2);
@@ -308,7 +308,7 @@ void *CESERVERTEST_DEBUGGERTHREAD(void *arg)
         //cenet_setBreakpoint(fd, pHandle, -1, 0xa000, 3, 4, 0);
 
 
-        printf("cenet_setBreakpoint returned %d\n",i);
+        debug_log("cenet_setBreakpoint returned %d\n",i);
       }
 
       i=cenet_waitForDebugEvent(fd, pHandle, &devent, 2000);
@@ -317,8 +317,8 @@ void *CESERVERTEST_DEBUGGERTHREAD(void *arg)
 
         if (devent.debugevent==5)
         {
-          printf("TRAP (thread %d)\n", devent.threadid);
-         // printf("Going to remove breakpoint\n");
+          debug_log("TRAP (thread %d)\n", devent.threadid);
+         // debug_log("Going to remove breakpoint\n");
           //cenet_removeBreakpoint(fd, pHandle, devent.threadid,0,1);
 
           //printf("After removeBreakpoint\n");
@@ -326,15 +326,15 @@ void *CESERVERTEST_DEBUGGERTHREAD(void *arg)
           cenet_continueFromDebugEvent(fd, pHandle, devent.threadid, 2); //single step
 
           i=cenet_waitForDebugEvent(fd, pHandle, &devent, 2000);
-          printf("after single step. i=%d\n",i);
-          printf("devent.debugevent=%d (thread %d)\n", devent.debugevent, devent.threadid);
+          debug_log("after single step. i=%d\n",i);
+          debug_log("devent.debugevent=%d (thread %d)\n", devent.debugevent, devent.threadid);
 
         //  cenet_setBreakpoint(fd, pHandle, devent.threadid,0xce0000, 3,4,0);
 
 
          // cenet_setBreakpoint(fd, pHandle, -1, 0xa000, 3, 4);
 
-         // printf("cenet_removeBreakpoint returned\n");
+         // debug_log("cenet_removeBreakpoint returned\n");
           cenet_continueFromDebugEvent(fd, pHandle, devent.threadid, 1); //continue unhandled/single step
         }
         else
@@ -345,7 +345,7 @@ void *CESERVERTEST_DEBUGGERTHREAD(void *arg)
   }
   else
   {
-    printf("Failed to start the debugger\n");
+    debug_log("Failed to start the debugger\n");
   }
 
   return NULL;
@@ -366,10 +366,10 @@ int hp;
 #else
     i=cenet_readProcessMemory(fd, pHandle, 0x601068, &hp, 4);
 #endif
-    printf("CESERVERTEST_RPMTHREAD:");
+    debug_log("CESERVERTEST_RPMTHREAD:");
 
-    printf("i=%d\n", i);
-    printf("hp=%d\n", hp);
+    debug_log("i=%d\n", i);
+    debug_log("hp=%d\n", hp);
     sleep(1);
   }
 }
@@ -380,18 +380,18 @@ void *CESERVERTEST(void *argv[])
 
   int pid=atoi(argv[2]);
   pthread_t pth;
-  printf("CESERVERTEST: running\n");
+  debug_log("CESERVERTEST: running\n");
 
   //sleep(2);
-  printf("connecting...\n");
+  debug_log("connecting...\n");
 
   fd=cenet_connect();
-  printf("fd=%d\n", fd);
-  printf("pid=%d\n", pid);
+  debug_log("fd=%d\n", fd);
+  debug_log("pid=%d\n", pid);
 
   pHandle=cenet_OpenProcess(fd, pid);
 
-  printf("pHandle=%d\n", pHandle);
+  debug_log("pHandle=%d\n", pHandle);
 
   //cenet_VirtualQueryExFull(fd, pHandle,  VQE_DIRTYONLY | VQE_PAGEDONLY);
 
