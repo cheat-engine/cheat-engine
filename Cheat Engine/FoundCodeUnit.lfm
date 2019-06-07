@@ -1,13 +1,12 @@
 object FoundCodeDialog: TFoundCodeDialog
   Left = 772
-  Height = 499
+  Height = 399
   Top = 427
-  Width = 538
+  Width = 430
   BorderIcons = [biSystemMenu]
   Caption = 'The following opcodes changed the selected address'
-  ClientHeight = 499
-  ClientWidth = 538
-  DesignTimePPI = 120
+  ClientHeight = 399
+  ClientWidth = 430
   OnClose = FormClose
   OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
@@ -16,22 +15,22 @@ object FoundCodeDialog: TFoundCodeDialog
   Position = poOwnerFormCenter
   LCLVersion = '2.0.0.4'
   object Panel1: TPanel
-    Left = 373
-    Height = 499
+    Left = 294
+    Height = 399
     Top = 0
-    Width = 165
+    Width = 136
     Align = alRight
     AutoSize = True
     BevelOuter = bvNone
-    ClientHeight = 499
-    ClientWidth = 165
+    ClientHeight = 399
+    ClientWidth = 136
     ParentFont = False
     TabOrder = 0
     object Description: TLabel
       Left = 0
-      Height = 273
-      Top = 176
-      Width = 165
+      Height = 219
+      Top = 140
+      Width = 136
       Align = alClient
       Alignment = taCenter
       AutoSize = False
@@ -41,31 +40,31 @@ object FoundCodeDialog: TFoundCodeDialog
     end
     object Panel2: TPanel
       Left = 0
-      Height = 50
-      Top = 449
-      Width = 165
+      Height = 40
+      Top = 359
+      Width = 136
       Align = alBottom
       AutoSize = True
       BevelOuter = bvNone
-      ClientHeight = 50
-      ClientWidth = 165
+      ClientHeight = 40
+      ClientWidth = 136
       ParentFont = False
       TabOrder = 0
       object btnOK: TButton
         AnchorSideLeft.Control = Panel2
         AnchorSideLeft.Side = asrCenter
         AnchorSideTop.Control = Panel2
-        Left = 35
-        Height = 38
-        Top = 6
-        Width = 94
+        Left = 31
+        Height = 30
+        Top = 5
+        Width = 75
         AutoSize = True
-        BorderSpacing.Top = 6
-        BorderSpacing.Bottom = 6
+        BorderSpacing.Top = 5
+        BorderSpacing.Bottom = 5
         Cancel = True
         Caption = 'OK'
-        Constraints.MinHeight = 38
-        Constraints.MinWidth = 94
+        Constraints.MinHeight = 30
+        Constraints.MinWidth = 75
         Default = True
         OnClick = btnOKClick
         ParentFont = False
@@ -74,14 +73,14 @@ object FoundCodeDialog: TFoundCodeDialog
     end
     object Panel3: TPanel
       Left = 0
-      Height = 176
+      Height = 140
       Top = 0
-      Width = 165
+      Width = 136
       Align = alTop
       AutoSize = True
       BevelOuter = bvNone
-      ClientHeight = 176
-      ClientWidth = 165
+      ClientHeight = 140
+      ClientWidth = 136
       ParentFont = False
       TabOrder = 1
       object btnExtraInfo: TButton
@@ -90,19 +89,19 @@ object FoundCodeDialog: TFoundCodeDialog
         AnchorSideTop.Side = asrBottom
         AnchorSideRight.Control = Panel3
         AnchorSideRight.Side = asrBottom
-        Left = 6
-        Height = 38
+        Left = 5
+        Height = 30
         Hint = 'Shows more information about the state of the system when that instruction got executed'
-        Top = 138
-        Width = 153
+        Top = 110
+        Width = 126
         Anchors = [akTop, akLeft, akRight]
         AutoSize = True
-        BorderSpacing.Left = 6
-        BorderSpacing.Top = 6
-        BorderSpacing.Right = 6
+        BorderSpacing.Left = 5
+        BorderSpacing.Top = 5
+        BorderSpacing.Right = 5
         Caption = 'More information'
-        Constraints.MinHeight = 38
-        Constraints.MinWidth = 125
+        Constraints.MinHeight = 30
+        Constraints.MinWidth = 100
         Enabled = False
         OnClick = btnExtraInfoClick
         ParentFont = False
@@ -116,19 +115,19 @@ object FoundCodeDialog: TFoundCodeDialog
         AnchorSideTop.Side = asrBottom
         AnchorSideRight.Control = Panel3
         AnchorSideRight.Side = asrBottom
-        Left = 6
-        Height = 38
+        Left = 5
+        Height = 30
         Hint = 'The selected addresses will be added to the code list in the advanced options window.'
-        Top = 94
-        Width = 153
+        Top = 75
+        Width = 126
         Anchors = [akTop, akLeft, akRight]
         AutoSize = True
-        BorderSpacing.Left = 6
-        BorderSpacing.Top = 6
-        BorderSpacing.Right = 6
+        BorderSpacing.Left = 5
+        BorderSpacing.Top = 5
+        BorderSpacing.Right = 5
         Caption = 'Add to the codelist'
-        Constraints.MinHeight = 38
-        Constraints.MinWidth = 125
+        Constraints.MinHeight = 30
+        Constraints.MinWidth = 100
         Enabled = False
         OnClick = btnAddToCodeListClick
         ParentFont = False
@@ -142,19 +141,19 @@ object FoundCodeDialog: TFoundCodeDialog
         AnchorSideTop.Side = asrBottom
         AnchorSideRight.Control = Panel3
         AnchorSideRight.Side = asrBottom
-        Left = 6
-        Height = 38
+        Left = 5
+        Height = 30
         Hint = 'This will open the memoryview and bring the disassemblerview to the selected address'
-        Top = 50
-        Width = 153
+        Top = 40
+        Width = 126
         Anchors = [akTop, akLeft, akRight]
         AutoSize = True
-        BorderSpacing.Left = 6
-        BorderSpacing.Top = 6
-        BorderSpacing.Right = 6
+        BorderSpacing.Left = 5
+        BorderSpacing.Top = 5
+        BorderSpacing.Right = 5
         Caption = 'Show disassembler'
-        Constraints.MinHeight = 38
-        Constraints.MinWidth = 125
+        Constraints.MinHeight = 30
+        Constraints.MinWidth = 100
         Enabled = False
         OnClick = btnOpenDisassemblerClick
         ParentFont = False
@@ -167,19 +166,19 @@ object FoundCodeDialog: TFoundCodeDialog
         AnchorSideTop.Control = Panel3
         AnchorSideRight.Control = Panel3
         AnchorSideRight.Side = asrBottom
-        Left = 6
-        Height = 38
+        Left = 5
+        Height = 30
         Hint = 'This will replace the selected addresses with code that does nothing. (Nops)'
-        Top = 6
-        Width = 153
+        Top = 5
+        Width = 126
         Anchors = [akTop, akLeft, akRight]
         AutoSize = True
-        BorderSpacing.Left = 6
-        BorderSpacing.Top = 6
-        BorderSpacing.Right = 6
+        BorderSpacing.Left = 5
+        BorderSpacing.Top = 5
+        BorderSpacing.Right = 5
         Caption = 'Replace'
-        Constraints.MinHeight = 38
-        Constraints.MinWidth = 125
+        Constraints.MinHeight = 30
+        Constraints.MinWidth = 100
         Enabled = False
         OnClick = btnReplacewithnopsClick
         ParentFont = False
@@ -191,30 +190,30 @@ object FoundCodeDialog: TFoundCodeDialog
   end
   object Panel4: TPanel
     Left = 0
-    Height = 499
+    Height = 399
     Top = 0
-    Width = 373
+    Width = 294
     Align = alClient
     BevelOuter = bvNone
-    ClientHeight = 499
-    ClientWidth = 373
+    ClientHeight = 399
+    ClientWidth = 294
     ParentFont = False
     TabOrder = 1
     object FoundCodeList: TListView
       Left = 0
-      Height = 297
+      Height = 237
       Top = 0
-      Width = 373
+      Width = 294
       Align = alClient
       AutoWidthLastColumn = True
       Columns = <      
         item
           Caption = 'Count'
-          Width = 38
+          Width = 30
         end      
         item
           Caption = 'Instruction'
-          Width = 331
+          Width = 260
         end>
       ColumnClick = False
       HideSelection = False
@@ -231,9 +230,9 @@ object FoundCodeDialog: TFoundCodeDialog
     end
     object mInfo: TMemo
       Left = 0
-      Height = 196
-      Top = 303
-      Width = 373
+      Height = 157
+      Top = 242
+      Width = 294
       Align = alBottom
       ParentFont = False
       ReadOnly = True
@@ -244,9 +243,9 @@ object FoundCodeDialog: TFoundCodeDialog
     object Splitter1: TSplitter
       Cursor = crVSplit
       Left = 0
-      Height = 6
-      Top = 297
-      Width = 373
+      Height = 5
+      Top = 237
+      Width = 294
       Align = alBottom
       ResizeAnchor = akBottom
     end
@@ -254,10 +253,11 @@ object FoundCodeDialog: TFoundCodeDialog
   object pmOptions: TPopupMenu
     Images = fcdImageList
     OnPopup = pmOptionsPopup
-    left = 80
-    top = 80
+    left = 64
+    top = 64
     object ReplacewithcodethatdoesnothingNOP1: TMenuItem
       Caption = 'Replace with code that does nothing (NOP)'
+      ImageIndex = 3
       OnClick = btnReplacewithnopsClick
     end
     object Showthisaddressinthedisassembler1: TMenuItem
@@ -285,6 +285,7 @@ object FoundCodeDialog: TFoundCodeDialog
     end
     object MenuItem1: TMenuItem
       Caption = 'Select all'
+      ImageIndex = 4
       ShortCut = 16449
       OnClick = MenuItem1Click
     end
@@ -305,14 +306,14 @@ object FoundCodeDialog: TFoundCodeDialog
   end
   object SaveDialog1: TSaveDialog
     Filter = 'Text files (*.txt)|*.txt'
-    left = 90
-    top = 190
+    left = 72
+    top = 152
   end
   object fcdImageList: TImageList
-    left = 248
-    top = 191
+    left = 198
+    top = 153
     Bitmap = {
-      4C69030000001000000010000000FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+      4C69050000001000000010000000FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
       FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
       FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
       FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
@@ -408,7 +409,71 @@ object FoundCodeDialog: TFoundCodeDialog
       C3FFE5E5C3FFE5E5C3FFE5E5C3FFE5E5C3FFE5E5C3FFE5E5C3FFE5E5C3FFE5E5
       C3FFF0F0CAFFCFD069FF9FA100FF9FA100FFAEB021FFC0C248FFC0C248FFC0C2
       48FFC0C248FFC0C248FFC0C248FFC0C248FFC0C248FFC0C248FFC0C248FFC0C2
-      48FFC0C248FFAEB021FF9FA100FF
+      48FFC0C248FFAEB021FF9FA100FFFFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+      FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+      FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+      FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+      FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+      FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+      FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+      FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+      FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00ECECEC14ECECEC10FFFFFF00F0F0
+      F010ECECEC14FFFFFF00F4F4F404E0E0E01CF8F8F803FFFFFF00ECECEC07E0E0
+      E01DE8E8E80EFFFFFF00FFFFFF00FFFFFF00606060A01C1C1CD7F4F4F4068080
+      8080606060A0ACACAC41101010E9000000F0101010E4BCBCBC34404040A81010
+      10F0000000F570707079FFFFFF00FFFFFF00606060A0000000FF747474798080
+      8080585858A1101010E27C7C7C6EFCFCFC006060608D282828CB404040A88080
+      80809C9C9C500C0C0CE2FFFFFF00FFFFFF00606060A0343434BD040404F55454
+      549F404040BC000000FFDCDCDC15FFFFFF00BCBCBC35000000FD404040A83C3C
+      3CC0303030C33C3C3CB0FFFFFF00FFFFFF00606060A080808080484848A40000
+      00FD4C4C4CAC000000FBB8B8B839FFFFFF009898985A0C0C0CE4404040A83030
+      30C48484846BECECEC0BFFFFFF00FFFFFF00606060A080808080DCDCDC180808
+      08F1606060A05C5C5C94141414E05C5C5C910C0C0CEC8080806D404040A88080
+      8080FFFFFF00FFFFFF00FFFFFF00FFFFFF00B0B0B050C0C0C040FFFFFF00ACAC
+      AC4AB0B0B050FCFCFC019C9C9C538080807BACACAC41FFFFFF00A0A0A054C0C0
+      C040FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+      FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+      FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+      FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+      FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+      FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+      FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+      FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+      FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+      FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+      FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+      FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+      FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF007474748CECECEC0A7474748CD8D8
+      D82888888878C4C4C43CB0B0B050B0B0B050C4C4C43C88888878D8D8D8287474
+      748CECECEC0A7474748CFFFFFF00FFFFFF00ECECEC0AFFFFFF00FFFFFF00FFFF
+      FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+      FF00FFFFFF00ECECEC0AFFFFFF00FFFFFF007474748CFFFFFF00FCFCFC04E0E0
+      E020E0E0E020E0E0E020E0E0E020E0E0E020E0E0E020E0E0E020E0E0E020FCFC
+      FC04FFFFFF007474748CFFFFFF00FFFFFF00D8D8D828FFFFFF00E0E0E020BC71
+      00FFBC7100FFBC7100FFBC7100FFBC7100FFBC7100FFBC7100FFBC7100FFE0E0
+      E020FFFFFF00D8D8D828FFFFFF00FFFFFF0088888878FFFFFF00E0E0E020BC71
+      00FFBC7100FFBC7100FFBC7100FFBC7100FFBC7100FFBC7100FFBC7100FFE0E0
+      E020FFFFFF0088888878FFFFFF00FFFFFF00C4C4C43CFFFFFF00E0E0E020BC71
+      00FFBC7100FFBC7100FFBC7100FFBC7100FFBC7100FFBC7100FFBC7100FFE0E0
+      E020FFFFFF00C4C4C43CFFFFFF00FFFFFF00B0B0B050FFFFFF00E0E0E020BC71
+      00FFBC7100FFBC7100FFBC7100FFBC7100FFBC7100FFBC7100FFBC7100FFE0E0
+      E020FFFFFF00B0B0B050FFFFFF00FFFFFF00B0B0B050FFFFFF00E0E0E020BC71
+      00FFBC7100FFBC7100FFBC7100FFBC7100FFBC7100FFBC7100FFBC7100FFE0E0
+      E020FFFFFF00B0B0B050FFFFFF00FFFFFF00C4C4C43CFFFFFF00E0E0E020BC71
+      00FFBC7100FFBC7100FFBC7100FFBC7100FFBC7100FFBC7100FFBC7100FFE0E0
+      E020FFFFFF00C4C4C43CFFFFFF00FFFFFF0088888878FFFFFF00E0E0E020BC71
+      00FFBC7100FFBC7100FFBC7100FFBC7100FFBC7100FFBC7100FFBC7100FFE0E0
+      E020FFFFFF0088888878FFFFFF00FFFFFF00D8D8D828FFFFFF00E0E0E020BC71
+      00FFBC7100FFBC7100FFBC7100FFBC7100FFBC7100FFBC7100FFBC7100FFE0E0
+      E020FFFFFF00D8D8D828FFFFFF00FFFFFF007474748CFFFFFF00FCFCFC04E0E0
+      E020E0E0E020E0E0E020E0E0E020E0E0E020E0E0E020E0E0E020E0E0E020FCFC
+      FC04FFFFFF007474748CFFFFFF00FFFFFF00ECECEC0AFFFFFF00FFFFFF00FFFF
+      FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+      FF00FFFFFF00ECECEC0AFFFFFF00FFFFFF007474748CECECEC0A7474748CD8D8
+      D82888888878C4C4C43CB0B0B050B0B0B050C4C4C43C88888878D8D8D8287474
+      748CECECEC0A7474748CFFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+      FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+      FF00FFFFFF00FFFFFF00FFFFFF00
     }
   end
 end
