@@ -29,6 +29,7 @@ type
     Button4: TButton;
     CancelButton: TButton;
     FontDialog1: TFontDialog;
+    plImageList: TImageList;
     MainMenu1: TMainMenu;
     MenuItem1: TMenuItem;
     MenuItem2: TMenuItem;
