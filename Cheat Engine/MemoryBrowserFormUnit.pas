@@ -3846,9 +3846,15 @@ begin
         inadvancedoptions:=true;
 
         if AdvancedOptions.code[i].changed then
-          miReplacewithnops.caption:=rsRestoreWithOrginalCode
+          begin
+            miReplacewithnops.caption:=rsRestoreWithOrginalCode;
+            miReplacewithnops.imageindex:=44;
+          end
         else
-          miReplacewithnops.caption:=rsReplaceWithCodeThatDoesNothing;
+          begin
+            miReplacewithnops.caption:=rsReplaceWithCodeThatDoesNothing;
+            miReplacewithnops.imageindex:=42;
+          end;
 
         break;
       end;
