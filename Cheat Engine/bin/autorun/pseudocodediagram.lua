@@ -146,7 +146,7 @@ function createMenu(diagram)
   miSave.OnClick=function(s)
     
     local fd=createSaveDialog()
-    fd.Title=translate('Fill in the filename you wish to save this diagram image')
+    fd.Title=translate('Fill in the filename you wish to save this diagram as')
     fd.DefaultExt='CEDIAG'
     fd.Filter='Diagram files (*.CEDIAG )|*.CEDIAG'
     fd.Options='['..string.sub(string.sub(fd.Options,2),1,#fd.Options-2)..',ofOverwritePrompt'..']'
