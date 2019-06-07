@@ -2982,11 +2982,19 @@ properties
 methods
 
 TfrmUltimap2 class(Inheritance: Form->ScrollingWinControl->CustomControl->WinControl->Control->Component->Object) 
-properties
-getUltimap2(): TfrmUltimap2 - Returns the ultimap2 form
+getUltimap2(): TfrmUltimap2 - Returns the ultimap2 form, nil if not open
 
+properties
+  Count: integer - The number of entries in the list (READONLY)
 methods
-  IsMatchingAddress(address): boolean,count - returns true if the current address is in the list of addresses. In case of true, it also returns the count value (up to 255)
+  isInList(address): boolean,count - returns true if the current address is in the list of addresses. In case of true, it also returns the count value (up to 255)
+
+TfrmCodeFilter class(Inheritance: Form->ScrollingWinControl->CustomControl->WinControl->Control->Component->Object) 
+getCodeFilter(): TfrmCodeFilter - Returns the codefilter form
+
+properties
+methods
+  isInList(address): boolean - Returns true if this address is in the list
 
 
 ----SQL Classes----

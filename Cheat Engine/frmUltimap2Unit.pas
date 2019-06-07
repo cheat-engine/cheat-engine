@@ -291,12 +291,16 @@ type
 
     procedure setState(state: TRecordState);
     function ModuleSelectEvent(index: integer; listText: string): string;
+    function getMatchCount: integer;
+
     property state:TRecordState read fstate write setState;
   public
     { public declarations }
     allNewAreInvalid: boolean;
 
     function IsMatchingAddress(address: ptruint; count: pinteger=nil): boolean;
+  published
+    property Count: integer read getMatchCount;
   end;
 
 procedure initializeLuaUltimap2;
@@ -1435,6 +1439,7 @@ end;
 
 
 procedure TfrmUltimap2.setState(state: TRecordState);
+var boxsize: integer;
 begin
   tProcessor.enabled:=false;
 
@@ -1464,6 +1469,13 @@ begin
       panel1.color:=$ff9900;
     end;
   end;
+
+  boxsize:=64;
+  boxsize:=max(boxsize, label1.width+4);
+  boxsize:=max(boxsize, label1.height+4);
+
+  panel1.Width:=boxsize;
+  panel1.Height:=boxsize;
 end;
 
 procedure TfrmUltimap2.cleanup;
@@ -2289,6 +2301,23 @@ begin
   end;
 end;
 
+function TfrmUltimap2.getMatchCount: integer;
+begin
+  result:=0;
+  if (self<>nil) and (regiontreemrew<>nil) then
+  begin
+    regiontreemrew.Beginread;
+    try
+      if validlist<>nil then
+      begin
+        result:=validlist.Count;
+      end;
+    finally
+      regiontreemrew.Endread;
+    end;
+  end;
+end;
+
 function TfrmUltimap2.IsMatchingAddress(address: ptruint; count: pinteger=nil): boolean;
 var
   s: TValidEntry;
@@ -2553,6 +2582,8 @@ begin
     state:=rsStopped;
 end;
 
+//lua
+
 function frmUltimap2_isMatchingAddress(L: PLua_state): integer; cdecl;
 var
   f: TfrmUltimap2;
@@ -2578,9 +2609,6 @@ end;
 
 function lua_getUltimap2(L: PLua_state): integer; cdecl;
 begin
-  if frmUltimap2=nil then
-    frmUltimap2:=TfrmUltimap2.Create(application);
-
   luaclass_newClass(L,frmUltimap2);
   result:=1;
 end;
@@ -2589,6 +2617,8 @@ procedure frmUltimap2_addMetaData(L: PLua_state; metatable: integer; userdata: i
 begin
   customform_addMetaData(L, metatable, userdata);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'isMatchingAddress', @frmUltimap2_isMatchingAddress);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'isInList', @frmUltimap2_isMatchingAddress);
+
 end;
 
 procedure initializeLuaUltimap2;
