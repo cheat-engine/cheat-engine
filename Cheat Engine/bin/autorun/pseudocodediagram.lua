@@ -130,12 +130,12 @@ function createMenu(diagram)
     if fd.Execute() then
       local fs=createFileStream(fd.FileName,fmOpenRead)
       diagram.diagram.loadFromStream(fs)   
-
+      
       --Todo: Perhaps load more
-
+      
       fs.destroy()
     end
-
+    
     fd.destroy()    
   end
 
@@ -144,7 +144,7 @@ function createMenu(diagram)
   miSave.Name='miSave'
   miSave.ImageIndex=22
   miSave.OnClick=function(s)
-
+    
     local fd=createSaveDialog()
     fd.Title=translate('Fill in the filename you wish to save this diagram image')
     fd.DefaultExt='CEDIAG'
@@ -153,13 +153,13 @@ function createMenu(diagram)
     if fd.Execute() then
       local fs=createFileStream(fd.FileName,fmCreate)
       diagram.diagram.saveToStream(fs)
-
+      
       --todo: Perhaps save more
-
+      
       fs.destroy();
-
+      
     end
-
+    
     fd.destroy()    
   end
   
@@ -168,13 +168,13 @@ function createMenu(diagram)
   miSaveAsImage.Name='miSaveAsImage'
   miSaveAsImage.OnClick=function(s)
     local fd=createSaveDialog()
-    fd.Title='Fill in the filename you wish to save this diagram image'
+    fd.Title=translate('Fill in the filename you wish to save this diagram image')
     fd.DefaultExt='PNG'
     fd.Filter='PNG files (*.PNG )|*.PNG'
     if fd.Execute() then
       diagram.diagram.saveAsImage(fd.FileName)    
     end
-
+    
     fd.destroy()    
   end
   
