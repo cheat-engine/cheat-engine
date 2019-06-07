@@ -15,7 +15,7 @@
 #include <errno.h>
 #include <elf.h>
 #include <signal.h>
-
+#include <sys/prctl.h>
 #include "ceserver.h"
 #include "porthelp.h"
 #include "api.h"
@@ -1105,7 +1105,11 @@ void *IdentifierThread(void *arg)
   return 0;
 }
 
+#ifdef SHARED_LIBRARY
+int ceserver()
+#else
 int main(int argc, char *argv[])
+#endif
 {
   int s;
   int b;
@@ -1122,8 +1126,11 @@ int main(int argc, char *argv[])
   done=0;
 
   debug_log("&s=%p\n", &s);
-  debug_log("main=%p\n", main);
-
+  #ifdef SHARED_LIBRARY
+    debug_log("ceserver=%p\n",ceserver);
+  #else
+    debug_log("main=%p\n", main);
+  #endif
   debug_log("sizeof(off_t)=%d\n",sizeof(off_t));
   debug_log("sizeof(off64_t)=%d\n",sizeof(off64_t));
 
@@ -1155,6 +1162,7 @@ int main(int argc, char *argv[])
     clisize=sizeof(addr_client);
     memset(&addr_client, 0, sizeof(addr_client));
 
+    #ifndef SHARED_LIBRARY
     if (argc>2)
     {
       debug_log("argv[0]=%s\n", argv[0]);
@@ -1165,6 +1173,7 @@ int main(int argc, char *argv[])
         pthread_create(&pth, NULL, (void *)CESERVERTEST, argv);
       }
     }
+    #endif
 
     fflush(stdout);
 
@@ -1192,3 +1201,25 @@ int main(int argc, char *argv[])
 
   return 0;
 }
+
+#ifdef SHARED_LIBRARY
+__attribute__((constructor))
+int fork_process()
+{
+    debug_log("main process pid: %d\n", getpid());
+
+    prctl(PR_SET_DUMPABLE, 1, 0, 0, 0);
+
+    pid_t pid = fork();
+    if (pid < 0) 
+    {
+        debug_log("fork");
+    } 
+    else if (pid == 0) 
+    {
+        debug_log("child process pid: %d\n", getpid());
+        ceserver();
+    }
+
+}
+#endif
