@@ -244,4 +244,8 @@ ssize_t recvall (int s, void *buf, size_t size, int flags);
 int DispatchCommand(int currentsocket, unsigned char command);
 int CheckForAndDispatchCommand(int currentsocket);
 
+
+//If you compile the shared library version, please uncomment it.
+//#define SHARED_LIBRARY
+
 #endif /* CESERVER_H_ */
