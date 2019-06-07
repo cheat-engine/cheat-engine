@@ -14,6 +14,7 @@ type
   { TfrmStacktrace }
 
   TfrmStacktrace = class(TForm)
+    stImageList: TImageList;
     ListView1: TListView;
     miManualStackwalk: TMenuItem;
     PopupMenu1: TPopupMenu;

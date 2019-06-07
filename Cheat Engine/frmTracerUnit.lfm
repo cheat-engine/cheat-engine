@@ -1,13 +1,12 @@
 object frmTracer: TfrmTracer
   Left = 1018
-  Height = 588
+  Height = 470
   Top = 282
-  Width = 639
+  Width = 511
   BorderIcons = [biSystemMenu]
   Caption = 'Tracer'
-  ClientHeight = 563
-  ClientWidth = 639
-  DesignTimePPI = 120
+  ClientHeight = 450
+  ClientWidth = 511
   Menu = MainMenu1
   OnClose = FormClose
   OnCreate = FormCreate
@@ -16,24 +15,24 @@ object frmTracer: TfrmTracer
   Position = poScreenCenter
   LCLVersion = '2.0.0.4'
   object Splitter1: TSplitter
-    Left = 350
-    Height = 563
+    Left = 280
+    Height = 450
     Top = 0
-    Width = 5
+    Width = 4
     Align = alRight
     ResizeAnchor = akRight
   end
   object Panel1: TPanel
-    Left = 355
-    Height = 563
+    Left = 284
+    Height = 450
     Top = 0
-    Width = 284
+    Width = 227
     Align = alRight
     BevelOuter = bvNone
-    ClientHeight = 563
-    ClientWidth = 284
-    Constraints.MinWidth = 25
-    Font.Height = -16
+    ClientHeight = 450
+    ClientWidth = 227
+    Constraints.MinWidth = 20
+    Font.Height = -13
     Font.Name = 'Courier New'
     ParentFont = False
     TabOrder = 0
@@ -44,15 +43,15 @@ object frmTracer: TfrmTracer
       AnchorSideLeft.Side = asrCenter
       AnchorSideBottom.Control = Panel1
       AnchorSideBottom.Side = asrBottom
-      Left = 95
-      Height = 30
-      Top = 529
-      Width = 94
+      Left = 76
+      Height = 25
+      Top = 422
+      Width = 75
       Anchors = [akLeft, akBottom]
       AutoSize = True
-      BorderSpacing.Bottom = 4
+      BorderSpacing.Bottom = 3
       Caption = 'Close'
-      Constraints.MinWidth = 94
+      Constraints.MinWidth = 75
       OnClick = Button1Click
       ParentFont = False
       TabOrder = 0
@@ -60,11 +59,11 @@ object frmTracer: TfrmTracer
     object lblInstruction: TLabel
       AnchorSideLeft.Control = Panel1
       AnchorSideTop.Control = Panel1
-      Left = 6
-      Height = 20
+      Left = 5
+      Height = 15
       Top = 1
-      Width = 69
-      BorderSpacing.Left = 6
+      Width = 57
+      BorderSpacing.Left = 5
       BorderSpacing.Top = 1
       Caption = 'Instruction'
       ParentColor = False
@@ -74,13 +73,13 @@ object frmTracer: TfrmTracer
       AnchorSideLeft.Control = lblInstruction
       AnchorSideTop.Control = lblInstruction
       AnchorSideTop.Side = asrBottom
-      Left = 6
-      Height = 18
-      Top = 23
-      Width = 170
+      Left = 5
+      Height = 16
+      Top = 18
+      Width = 136
       BorderSpacing.Top = 2
       Caption = 'Accesses Address:'
-      Font.Height = -16
+      Font.Height = -13
       Font.Name = 'Courier New'
       ParentColor = False
       ParentFont = False
@@ -89,19 +88,19 @@ object frmTracer: TfrmTracer
       AnchorSideLeft.Control = lblAddressed
       AnchorSideTop.Control = lblAddressed
       AnchorSideTop.Side = asrBottom
-      Left = 6
-      Height = 210
+      Left = 5
+      Height = 192
       Hint = 'Rightclick to copy to clipboard'#13#10'Middleclick to ignore it when comparing traces'
-      Top = 41
-      Width = 120
+      Top = 34
+      Width = 96
       AutoSize = True
       BevelOuter = bvNone
       ChildSizing.VerticalSpacing = 6
       ChildSizing.Layout = cclLeftToRightThenTopToBottom
       ChildSizing.ControlsPerLine = 1
-      ClientHeight = 210
-      ClientWidth = 120
-      Font.Height = -16
+      ClientHeight = 192
+      ClientWidth = 96
+      Font.Height = -13
       Font.Name = 'Courier New'
       ParentFont = False
       ParentShowHint = False
@@ -110,12 +109,12 @@ object frmTracer: TfrmTracer
       object EAXLabel: TLabel
         Cursor = crHandPoint
         Left = 0
-        Height = 18
+        Height = 16
         Top = 0
-        Width = 120
+        Width = 96
         AutoSize = False
         Caption = 'EAX 00000000'
-        Font.Height = -16
+        Font.Height = -13
         Font.Name = 'Courier New'
         ParentColor = False
         ParentFont = False
@@ -126,11 +125,11 @@ object frmTracer: TfrmTracer
         Tag = 1
         Cursor = crHandPoint
         Left = 0
-        Height = 18
-        Top = 24
-        Width = 120
+        Height = 16
+        Top = 22
+        Width = 96
         Caption = 'EBX 00000000'
-        Font.Height = -16
+        Font.Height = -13
         Font.Name = 'Courier New'
         ParentColor = False
         ParentFont = False
@@ -141,11 +140,11 @@ object frmTracer: TfrmTracer
         Tag = 2
         Cursor = crHandPoint
         Left = 0
-        Height = 18
-        Top = 48
-        Width = 120
+        Height = 16
+        Top = 44
+        Width = 96
         Caption = 'ECX 00000000'
-        Font.Height = -16
+        Font.Height = -13
         Font.Name = 'Courier New'
         ParentColor = False
         ParentFont = False
@@ -156,11 +155,11 @@ object frmTracer: TfrmTracer
         Tag = 3
         Cursor = crHandPoint
         Left = 0
-        Height = 18
-        Top = 72
-        Width = 120
+        Height = 16
+        Top = 66
+        Width = 96
         Caption = 'EDX 00000000'
-        Font.Height = -16
+        Font.Height = -13
         Font.Name = 'Courier New'
         ParentColor = False
         ParentFont = False
@@ -171,11 +170,11 @@ object frmTracer: TfrmTracer
         Tag = 4
         Cursor = crHandPoint
         Left = 0
-        Height = 18
-        Top = 96
-        Width = 120
+        Height = 16
+        Top = 88
+        Width = 96
         Caption = 'ESI 00000000'
-        Font.Height = -16
+        Font.Height = -13
         Font.Name = 'Courier New'
         ParentColor = False
         ParentFont = False
@@ -186,11 +185,11 @@ object frmTracer: TfrmTracer
         Tag = 5
         Cursor = crHandPoint
         Left = 0
-        Height = 18
-        Top = 120
-        Width = 120
+        Height = 16
+        Top = 110
+        Width = 96
         Caption = 'EDI 00000000'
-        Font.Height = -16
+        Font.Height = -13
         Font.Name = 'Courier New'
         ParentColor = False
         ParentFont = False
@@ -201,11 +200,11 @@ object frmTracer: TfrmTracer
         Tag = 6
         Cursor = crHandPoint
         Left = 0
-        Height = 18
-        Top = 144
-        Width = 120
+        Height = 16
+        Top = 132
+        Width = 96
         Caption = 'EBP 00000000'
-        Font.Height = -16
+        Font.Height = -13
         Font.Name = 'Courier New'
         ParentColor = False
         ParentFont = False
@@ -216,11 +215,11 @@ object frmTracer: TfrmTracer
         Tag = 7
         Cursor = crHandPoint
         Left = 0
-        Height = 18
-        Top = 168
-        Width = 120
+        Height = 16
+        Top = 154
+        Width = 96
         Caption = 'ESP 00000000'
-        Font.Height = -16
+        Font.Height = -13
         Font.Name = 'Courier New'
         ParentColor = False
         ParentFont = False
@@ -231,11 +230,11 @@ object frmTracer: TfrmTracer
         Tag = 8
         Cursor = crHandPoint
         Left = 0
-        Height = 18
-        Top = 192
-        Width = 120
+        Height = 16
+        Top = 176
+        Width = 96
         Caption = 'EIP 00000000'
-        Font.Height = -16
+        Font.Height = -13
         Font.Name = 'Courier New'
         ParentColor = False
         ParentFont = False
@@ -247,19 +246,19 @@ object frmTracer: TfrmTracer
       AnchorSideLeft.Control = Panel4
       AnchorSideTop.Control = Panel4
       AnchorSideTop.Side = asrBottom
-      Left = 6
-      Height = 138
-      Top = 289
-      Width = 70
+      Left = 5
+      Height = 126
+      Top = 256
+      Width = 56
       AutoSize = True
-      BorderSpacing.Top = 38
+      BorderSpacing.Top = 30
       BevelOuter = bvNone
       ChildSizing.VerticalSpacing = 6
       ChildSizing.Layout = cclLeftToRightThenTopToBottom
       ChildSizing.ControlsPerLine = 1
-      ClientHeight = 138
-      ClientWidth = 70
-      Font.Height = -16
+      ClientHeight = 126
+      ClientWidth = 56
+      Font.Height = -13
       Font.Name = 'Courier New'
       ParentFont = False
       TabOrder = 2
@@ -267,11 +266,11 @@ object frmTracer: TfrmTracer
         Tag = 9
         Cursor = crHandPoint
         Left = 0
-        Height = 18
+        Height = 16
         Top = 0
-        Width = 70
+        Width = 56
         Caption = 'CS 0000'
-        Font.Height = -16
+        Font.Height = -13
         Font.Name = 'Courier New'
         ParentColor = False
         ParentFont = False
@@ -280,11 +279,11 @@ object frmTracer: TfrmTracer
         Tag = 10
         Cursor = crHandPoint
         Left = 0
-        Height = 18
-        Top = 24
-        Width = 70
+        Height = 16
+        Top = 22
+        Width = 56
         Caption = 'SS 0000'
-        Font.Height = -16
+        Font.Height = -13
         Font.Name = 'Courier New'
         ParentColor = False
         ParentFont = False
@@ -293,11 +292,11 @@ object frmTracer: TfrmTracer
         Tag = 11
         Cursor = crHandPoint
         Left = 0
-        Height = 18
-        Top = 48
-        Width = 70
+        Height = 16
+        Top = 44
+        Width = 56
         Caption = 'DS 0000'
-        Font.Height = -16
+        Font.Height = -13
         Font.Name = 'Courier New'
         ParentColor = False
         ParentFont = False
@@ -306,11 +305,11 @@ object frmTracer: TfrmTracer
         Tag = 12
         Cursor = crHandPoint
         Left = 0
-        Height = 18
-        Top = 72
-        Width = 70
+        Height = 16
+        Top = 66
+        Width = 56
         Caption = 'ES 0000'
-        Font.Height = -16
+        Font.Height = -13
         Font.Name = 'Courier New'
         ParentColor = False
         ParentFont = False
@@ -319,11 +318,11 @@ object frmTracer: TfrmTracer
         Tag = 13
         Cursor = crHandPoint
         Left = 0
-        Height = 18
-        Top = 96
-        Width = 70
+        Height = 16
+        Top = 88
+        Width = 56
         Caption = 'FS 0000'
-        Font.Height = -16
+        Font.Height = -13
         Font.Name = 'Courier New'
         ParentColor = False
         ParentFont = False
@@ -332,11 +331,11 @@ object frmTracer: TfrmTracer
         Tag = 14
         Cursor = crHandPoint
         Left = 0
-        Height = 18
-        Top = 120
-        Width = 70
+        Height = 16
+        Top = 110
+        Width = 56
         Caption = 'GS 0000'
-        Font.Height = -16
+        Font.Height = -13
         Font.Name = 'Courier New'
         ParentColor = False
         ParentFont = False
@@ -348,96 +347,96 @@ object frmTracer: TfrmTracer
       AnchorSideTop.Control = Panel4
       AnchorSideRight.Control = Panel1
       AnchorSideRight.Side = asrBottom
-      Left = 232
-      Height = 162
-      Top = 41
-      Width = 40
+      Left = 185
+      Height = 148
+      Top = 34
+      Width = 32
       Anchors = [akTop, akRight]
       AutoSize = True
-      BorderSpacing.Right = 12
+      BorderSpacing.Right = 10
       BevelOuter = bvNone
       ChildSizing.VerticalSpacing = 6
       ChildSizing.Layout = cclLeftToRightThenTopToBottom
       ChildSizing.ControlsPerLine = 1
-      ClientHeight = 162
-      ClientWidth = 40
-      Font.Height = -16
+      ClientHeight = 148
+      ClientWidth = 32
+      Font.Height = -13
       Font.Name = 'Courier New'
       ParentFont = False
       TabOrder = 3
       object cflabel: TLabel
         Left = 0
-        Height = 18
+        Height = 16
         Top = 0
-        Width = 40
+        Width = 32
         Caption = 'CF 0'
-        Font.Height = -16
+        Font.Height = -13
         Font.Name = 'Courier New'
         ParentColor = False
         ParentFont = False
       end
       object pflabel: TLabel
         Left = 0
-        Height = 18
-        Top = 24
-        Width = 40
+        Height = 16
+        Top = 22
+        Width = 32
         Caption = 'PF 0'
-        Font.Height = -16
+        Font.Height = -13
         Font.Name = 'Courier New'
         ParentColor = False
         ParentFont = False
       end
       object aflabel: TLabel
         Left = 0
-        Height = 18
-        Top = 48
-        Width = 40
+        Height = 16
+        Top = 44
+        Width = 32
         Caption = 'AF 0'
-        Font.Height = -16
+        Font.Height = -13
         Font.Name = 'Courier New'
         ParentColor = False
         ParentFont = False
       end
       object zflabel: TLabel
         Left = 0
-        Height = 18
-        Top = 72
-        Width = 40
+        Height = 16
+        Top = 66
+        Width = 32
         Caption = 'ZF 0'
-        Font.Height = -16
+        Font.Height = -13
         Font.Name = 'Courier New'
         ParentColor = False
         ParentFont = False
       end
       object sflabel: TLabel
         Left = 0
-        Height = 18
-        Top = 96
-        Width = 40
+        Height = 16
+        Top = 88
+        Width = 32
         Caption = 'SF 0'
-        Font.Height = -16
+        Font.Height = -13
         Font.Name = 'Courier New'
         ParentColor = False
         ParentFont = False
       end
       object dflabel: TLabel
         Left = 0
-        Height = 18
-        Top = 120
-        Width = 40
+        Height = 16
+        Top = 110
+        Width = 32
         Caption = 'DF 0'
-        Font.Height = -16
+        Font.Height = -13
         Font.Name = 'Courier New'
         ParentColor = False
         ParentFont = False
       end
       object oflabel: TLabel
         Left = 0
-        Height = 18
-        Top = 144
-        Width = 40
+        Height = 16
+        Top = 132
+        Width = 32
         Caption = 'OF 0'
-        Font.Height = -16
+        Font.Height = -13
         Font.Name = 'Courier New'
         ParentColor = False
         ParentFont = False
@@ -448,16 +447,16 @@ object frmTracer: TfrmTracer
       AnchorSideTop.Side = asrCenter
       AnchorSideRight.Control = Panel1
       AnchorSideRight.Side = asrBottom
-      Left = 245
-      Height = 48
-      Top = 258
-      Width = 39
+      Left = 195
+      Height = 38
+      Top = 207
+      Width = 32
       Anchors = [akRight]
       AutoSize = True
       BevelOuter = bvNone
-      ClientHeight = 48
-      ClientWidth = 39
-      Font.Height = -16
+      ClientHeight = 38
+      ClientWidth = 32
+      Font.Height = -13
       Font.Name = 'Courier New'
       ParentFont = False
       TabOrder = 4
@@ -467,10 +466,10 @@ object frmTracer: TfrmTracer
         AnchorSideRight.Control = Panel7
         AnchorSideRight.Side = asrBottom
         Left = 0
-        Height = 24
+        Height = 19
         Hint = 'Floating point registers'
         Top = 0
-        Width = 39
+        Width = 32
         Anchors = [akTop, akLeft, akRight]
         AutoSize = True
         Caption = 'Float'
@@ -486,10 +485,10 @@ object frmTracer: TfrmTracer
         AnchorSideRight.Control = Panel7
         AnchorSideRight.Side = asrBottom
         Left = 0
-        Height = 24
+        Height = 19
         Hint = 'Stack'
-        Top = 24
-        Width = 39
+        Top = 19
+        Width = 32
         Anchors = [akTop, akLeft, akRight]
         AutoSize = True
         Caption = 'Stack'
@@ -503,26 +502,26 @@ object frmTracer: TfrmTracer
   end
   object Panel2: TPanel
     Left = 0
-    Height = 563
+    Height = 450
     Top = 0
-    Width = 350
+    Width = 280
     Align = alClient
     AutoSize = True
     BevelOuter = bvNone
-    ClientHeight = 563
-    ClientWidth = 350
+    ClientHeight = 450
+    ClientWidth = 280
     ParentFont = False
     TabOrder = 2
     object pnlSearch: TPanel
       Left = 0
-      Height = 58
-      Top = 505
-      Width = 350
+      Height = 48
+      Top = 402
+      Width = 280
       Align = alBottom
       AutoSize = True
       BevelOuter = bvNone
-      ClientHeight = 58
-      ClientWidth = 350
+      ClientHeight = 48
+      ClientWidth = 280
       ParentFont = False
       TabOrder = 0
       Visible = False
@@ -530,15 +529,15 @@ object frmTracer: TfrmTracer
         AnchorSideLeft.Control = pnlSearch
         AnchorSideLeft.Side = asrCenter
         AnchorSideTop.Control = pnlSearch
-        Left = 123
-        Height = 30
+        Left = 96
+        Height = 25
         Top = 2
-        Width = 105
+        Width = 88
         AutoSize = True
         BorderSpacing.Top = 2
         BorderSpacing.Bottom = 2
         Caption = 'Stop Search'
-        Constraints.MinWidth = 94
+        Constraints.MinWidth = 75
         OnClick = btnStopSearchClick
         ParentFont = False
         TabOrder = 0
@@ -552,21 +551,21 @@ object frmTracer: TfrmTracer
         AnchorSideBottom.Control = pnlSearch
         AnchorSideBottom.Side = asrBottom
         Left = 0
-        Height = 24
-        Top = 34
-        Width = 350
+        Height = 19
+        Top = 29
+        Width = 280
         Anchors = [akTop, akLeft, akRight, akBottom]
         AutoSize = True
         BevelOuter = bvNone
-        ClientHeight = 24
-        ClientWidth = 350
+        ClientHeight = 19
+        ClientWidth = 280
         ParentFont = False
         TabOrder = 1
         object ProgressBar1: TProgressBar
           Left = 0
-          Height = 24
+          Height = 19
           Top = 0
-          Width = 350
+          Width = 280
           Align = alBottom
           ParentFont = False
           TabOrder = 0
@@ -575,20 +574,20 @@ object frmTracer: TfrmTracer
     end
     object pnlTracer: TPanel
       Left = 0
-      Height = 457
+      Height = 364
       Top = 0
-      Width = 350
+      Width = 280
       Align = alClient
       BevelOuter = bvNone
-      ClientHeight = 457
-      ClientWidth = 350
+      ClientHeight = 364
+      ClientWidth = 280
       ParentFont = False
       TabOrder = 1
       object lvTracer: TTreeView
         Left = 0
-        Height = 457
+        Height = 364
         Top = 0
-        Width = 350
+        Width = 280
         Align = alClient
         HideSelection = False
         ParentFont = False
@@ -604,9 +603,9 @@ object frmTracer: TfrmTracer
     end
     object cbFPUXMM: TCheckBox
       Left = 0
-      Height = 24
-      Top = 481
-      Width = 350
+      Height = 19
+      Top = 383
+      Width = 280
       Align = alBottom
       Caption = 'Compare FPU/XMM'
       OnChange = cbFPUXMMChange
@@ -615,9 +614,9 @@ object frmTracer: TfrmTracer
     end
     object cbIgnoreStackPointers: TCheckBox
       Left = 0
-      Height = 24
-      Top = 457
-      Width = 350
+      Height = 19
+      Top = 364
+      Width = 280
       Align = alBottom
       Caption = 'Ignore stackpointers'
       Checked = True
@@ -629,8 +628,8 @@ object frmTracer: TfrmTracer
   end
   object MainMenu1: TMainMenu
     Images = ftImageList
-    left = 90
-    top = 70
+    left = 72
+    top = 56
     object MenuItem1: TMenuItem
       Caption = 'File'
       object miNewTrace: TMenuItem
@@ -670,6 +669,7 @@ object frmTracer: TfrmTracer
       Caption = 'Search'
       object MenuItem4: TMenuItem
         Caption = 'Find...'
+        ImageIndex = 3
         ShortCut = 16454
         OnClick = MenuItem4Click
       end
@@ -684,12 +684,12 @@ object frmTracer: TfrmTracer
     DefaultExt = '.cetrace'
     Filter = 'CE Trace (*.cetrace)|*.cetrace|All file (*.*)|*.*'
     Options = [ofOverwritePrompt, ofEnableSizing, ofViewDetail]
-    left = 90
-    top = 149
+    left = 72
+    top = 119
   end
   object pmTracer: TPopupMenu
-    left = 90
-    top = 230
+    left = 72
+    top = 184
     object MenuItem5: TMenuItem
       Caption = 'Expand all'
       OnClick = MenuItem5Click
@@ -708,14 +708,14 @@ object frmTracer: TfrmTracer
   object OpenDialog1: TOpenDialog
     DefaultExt = '.cetrace'
     Filter = 'CE Trace (*.cetrace)|*.cetrace|All file (*.*)|*.*'
-    left = 90
-    top = 310
+    left = 72
+    top = 248
   end
   object ftImageList: TImageList
-    left = 233
-    top = 231
+    left = 186
+    top = 185
     Bitmap = {
-      4C69030000001000000010000000FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+      4C69040000001000000010000000FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
       FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
       FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
       FF00FFFFFF00FFFFFF00FFFFFF00C9C5C33AB7B2B090B7B2B090B7B2B090B7B2
@@ -811,7 +811,39 @@ object frmTracer: TfrmTracer
       FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
       FFFFFFFFFFFF80808080FFFFFF00FFFFFF00A0A0A060808080C0808080C08080
       80C0808080C0808080C0808080C0808080C0808080C0808080C0808080C08080
-      80C0808080C0A0A0A060FFFFFF00
+      80C0808080C0A0A0A060FFFFFF00FFFFFF00A0A0A060808080C0808080C08080
+      80C0808080C0808080C0808080C0808080C0808080C0808080C0747474BFBCBC
+      BC35FFFFFF00FFFFFF00FFFFFF00FFFFFF0080808080FFFFFFFFFFFFFFFFFFFF
+      FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF6767
+      67E6D8D8D81BFFFFFF00FFFFFF00FFFFFF0080808080FFFFFFFFFFFFFFFFFFFF
+      FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF6F6
+      F6FF5C5C5CCCF0F0F009FFFFFF00FFFFFF0080808080FFFFFFFFFFFFFFFFFFFF
+      FFFFFFFFFFFFBABABAFF888888FF8C8C8CFF888888FFB7B7B7FFFFFFFFFFFFFF
+      FFFFE5E5E5FF84848476FFFFFF00FFFFFF0080808080FFFFFFFFFFFFFFFFF7F7
+      F7FF7D7D7DFFC3C3C3FFFFFFFFFFFFFFFFFFFFFFFFFFC6C6C6FF7B7B7BFFF6F6
+      F6FFFFFFFFFF80808080FFFFFF00FFFFFF0080808080FFFFFFFFFFFFFFFF8787
+      87FFE7E7E7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEAEAEAFF8484
+      84FFFFFFFFFF80808080FFFFFF00FFFFFF0080808080FFFFFFFFE4E4E4FF9C9C
+      9CFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFA2A2
+      A2FFDFDFDFFF80808080FFFFFF00FFFFFF0080808080FFFFFFFFAEAEAEFFDCDC
+      DCFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFE2E2
+      E2FFA7A7A7FF80808080FFFFFF00FFFFFF0080808080FFFFFFFFA5A5A5FFE6E6
+      E6FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEDED
+      EDFF9F9F9FFF80808080FFFFFF00FFFFFF0080808080FFFFFFFFCBCBCBFFBABA
+      BAFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFC0C0
+      C0FFC5C5C5FF80808080FFFFFF00FFFFFF0080808080FFFFFFFFFEFEFEFF7A7A
+      7AFFFEFEFEFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF7A7A
+      7AFFFDFDFDFF80808080FFFFFF00FFFFFF0080808080FFFFFFFFFFFFFFFFD5D5
+      D5FF858585FFFAFAFAFFFFFFFFFFFFFFFFFFFFFFFFFFFBFBFBFF7B7B7BFF8483
+      83FFFFFFFFFF80808080FFFFFF00FFFFFF0080808080FFFFFFFFFFFFFFFFFFFF
+      FFFFDFDFDFFF838383FF8E8E8EFFA4A4A4FF8F8F8FFF828282FF9E9E9EFF1F1E
+      1EFFA19E9DFF80808080FFFFFF00FFFFFF0080808080FFFFFFFFFFFFFFFFFFFF
+      FFFFFFFFFFFFFFFFFFFFF9F9F9FFE7E7E7FFF9F9F9FFFFFFFFFFFFFFFFFFB9B7
+      B6FF260D09FF746A6893FFFFFF00FFFFFF0080808080FFFFFFFFFFFFFFFFFFFF
+      FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+      FFFFBEB6B4FF1E0400FEA89D9C54FFFFFF00A0A0A060808080C0808080C08080
+      80C0808080C0808080C0808080C0808080C0808080C0808080C0808080C08080
+      80C0808080C06C656496D2CDCC25
     }
   end
 end

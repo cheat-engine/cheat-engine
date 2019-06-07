@@ -13,6 +13,7 @@ type
   { TfrmReferencedFunctions }
 
   TfrmReferencedFunctions = class(TForm)
+    rfImageList: TImageList;
     lbReflist: TListBox;
     lvCallList: TListView;
     MenuItem1: TMenuItem;

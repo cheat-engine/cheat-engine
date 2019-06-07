@@ -17,6 +17,7 @@ type
     Button1: TButton;
     cbLogWrites: TCheckBox;
     edtMaxWriteLogSize: TEdit;
+    wlImageList: TImageList;
     Label1: TLabel;
     lvWriteLog: TListView;
     miUndo: TMenuItem;

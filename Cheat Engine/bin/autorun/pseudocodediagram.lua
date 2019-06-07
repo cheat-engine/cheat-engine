@@ -103,6 +103,7 @@ end
 
 function createDiagramForm(diagram, name)
   diagram.form = createForm(false)
+  diagram.form.PopupMode='pmNone'
   diagram.form.BorderStyle='bsSizeable'
   diagram.form.Caption=name
   diagram.form.Width=getScreenWidth() - (getScreenWidth() / 6)
@@ -121,20 +122,67 @@ function createMenu(diagram)
   miLoad.Caption=translate('Load from file')
   miLoad.Name='miLoad'
   miLoad.ImageIndex=23
+  miLoad.OnClick=function(s)
+    local fd=createOpenDialog()
+    fd.Title=translate('Select the file you wish to open')
+    fd.DefaultExt='CEDIAG'
+    fd.Filter='Diagram files (*.CEDIAG )|*.CEDIAG'
+    if fd.Execute() then
+      local fs=createFileStream(fd.FileName,fmOpenRead)
+      diagram.diagram.loadFromStream(fs)   
+
+      --Todo: Perhaps load more
+
+      fs.destroy()
+    end
+
+    fd.destroy()    
+  end
 
   local miSave=createMenuItem(mm)
   miSave.Caption=translate('Save to file')
   miSave.Name='miSave'
   miSave.ImageIndex=22
+  miSave.OnClick=function(s)
+
+    local fd=createSaveDialog()
+    fd.Title=translate('Fill in the filename you wish to save this diagram image')
+    fd.DefaultExt='CEDIAG'
+    fd.Filter='Diagram files (*.CEDIAG )|*.CEDIAG'
+    fd.Options='['..string.sub(string.sub(fd.Options,2),1,#fd.Options-2)..',ofOverwritePrompt'..']'
+    if fd.Execute() then
+      local fs=createFileStream(fd.FileName,fmCreate)
+      diagram.diagram.saveToStream(fs)
+
+      --todo: Perhaps save more
+
+      fs.destroy();
+
+    end
+
+    fd.destroy()    
+  end
   
   local miSaveAsImage=createMenuItem(mm)
   miSaveAsImage.Caption=translate('Save diagram to image')
   miSaveAsImage.Name='miSaveAsImage'
+  miSaveAsImage.OnClick=function(s)
+    local fd=createSaveDialog()
+    fd.Title='Fill in the filename you wish to save this diagram image'
+    fd.DefaultExt='PNG'
+    fd.Filter='PNG files (*.PNG )|*.PNG'
+    if fd.Execute() then
+      diagram.diagram.saveAsImage(fd.FileName)    
+    end
+
+    fd.destroy()    
+  end
   
   local miClose=createMenuItem(mm)
   miClose.Caption=translate('Close')
   miClose.OnClick=function(s) diagram.form.close() end
   miClose.Name='miClose'
+  miClose.ImageIndex=37
   
   local miSep=createMenuItem(mm)
   miSep.Caption='-'
@@ -275,20 +323,26 @@ function createDiagramPopupMenu(diagram)
   diagram.popup.LinkItems={}
   diagram.popup.LinkItems[1]=CreateMenuItem(pm)
   diagram.popup.LinkItems[1].Caption=translate('Go to source')
+  diagram.popup.LinkItems[1].ImageIndex=34
   diagram.popup.LinkItems[1].OnClick=PopupMenuLink1Click
 
   diagram.popup.LinkItems[2]=CreateMenuItem(pm)
   diagram.popup.LinkItems[2].Caption=translate('Go to destination')
+  diagram.popup.LinkItems[2].ImageIndex=34
   diagram.popup.LinkItems[2].OnClick=PopupMenuLink2Click
-  
+
   diagram.popup.LinkItems[3]=CreateMenuItem(pm)
-  diagram.popup.LinkItems[3].Caption=translate('Remove all points')      
-  diagram.popup.LinkItems[3].ImageIndex=32
-  diagram.popup.LinkItems[3].OnClick=PopupMenuLink3Click
+  diagram.popup.LinkItems[3].Caption=translate('-') --separator
+  
+  diagram.popup.LinkItems[4]=CreateMenuItem(pm)
+  diagram.popup.LinkItems[4].Caption=translate('Remove all points')      
+  diagram.popup.LinkItems[4].ImageIndex=32
+  diagram.popup.LinkItems[4].OnClick=PopupMenuLink3Click
   
   pm.Items.add(diagram.popup.LinkItems[1])
   pm.Items.add(diagram.popup.LinkItems[2])
   pm.Items.add(diagram.popup.LinkItems[3])
+  pm.Items.add(diagram.popup.LinkItems[4])
   
   diagram.popup.BlockItems={}
   diagram.popup.BlockItems[1]=CreateMenuItem(pm)
@@ -300,19 +354,25 @@ function createDiagramPopupMenu(diagram)
   diagram.popup.BlockItems[2].Caption=translate('Edit block color') --to implement
   diagram.popup.BlockItems[2].ImageIndex=6
   --diagram.popup.BlockItems[2].OnClick=PopupMenuBlock2Click  
-  
+
   diagram.popup.BlockItems[3]=CreateMenuItem(pm)
-  diagram.popup.BlockItems[3].Caption=translate('List sources')      
-  diagram.popup.BlockItems[3].OnClick=PopupMenuBlock3Click  
+  diagram.popup.BlockItems[3].Caption=translate('-') --separator
   
   diagram.popup.BlockItems[4]=CreateMenuItem(pm)
-  diagram.popup.BlockItems[4].Caption=translate('List destinations')      
-  diagram.popup.BlockItems[4].OnClick=PopupMenuBlock4Click    
+  diagram.popup.BlockItems[4].Caption=translate('List sources')      
+  diagram.popup.BlockItems[4].ImageIndex=36
+  diagram.popup.BlockItems[4].OnClick=PopupMenuBlock3Click  
+  
+  diagram.popup.BlockItems[5]=CreateMenuItem(pm)
+  diagram.popup.BlockItems[5].Caption=translate('List destinations')  
+  diagram.popup.BlockItems[5].ImageIndex=36    
+  diagram.popup.BlockItems[5].OnClick=PopupMenuBlock4Click    
   
   pm.Items.add(diagram.popup.BlockItems[1])
   pm.Items.add(diagram.popup.BlockItems[2])
   pm.Items.add(diagram.popup.BlockItems[3])   
   pm.Items.add(diagram.popup.BlockItems[4])
+  pm.Items.add(diagram.popup.BlockItems[5])
 
   diagram.popup.HeaderlessBlockItems={}
   diagram.popup.HeaderlessBlockItems[1]=CreateMenuItem(pm)
@@ -516,10 +576,10 @@ function createDiagramPseudoBlocks(diagram)
     diagram.dpblocks[i].output = {}
     diagram.dpblocks[i].betteroutput_count = 0
     diagram.dpblocks[i].betteroutput = {}
-    diagram.dpblocks[i].v_layer_count = 0
-    diagram.dpblocks[i].v_layer = 0
-    diagram.dpblocks[i].layer_count = 0
-    diagram.dpblocks[i].layer = 0
+    diagram.dpblocks[i].column_count = 0
+    diagram.dpblocks[i].column = 0
+    diagram.dpblocks[i].row_count = 0
+    diagram.dpblocks[i].row = 0
     diagram.dpblocks[i].odescriptor = {}
     diagram.dpblocks[i].ddescriptor = {}
     diagram.dpblocks[i].link = {}
@@ -568,7 +628,7 @@ end
   the goal is to obtain a better block arrangement
 --]]
 function computeBetterEdges(diagram)
-  local dvblocks, more, branchqueue = {}, true, createQueue()
+  local dvblocks, more, branchqueue, nextbranch = {}, true, createQueue(), {}
   initDiagramVisitedBlocks(diagram, dvblocks)
   dvblocks[1].visited = true
   pushLeft(branchqueue, 1) --starting block
@@ -591,19 +651,18 @@ function computeBetterEdges(diagram)
       end
     end
 
-    local nextbranch = {}
     nextbranch.branch_min = nil
-    nextbranch.inputs_min = nil
+    nextbranch.input_count_min = nil
     nextbranch.input_min = nil
     
     for i=1, #diagram.dblocks do
       if dvblocks[i].visited then
         for j=1, diagram.dpblocks[i].output_count do
           if not dvblocks[diagram.dpblocks[i].output[j]].visited then
-            if (nextbranch.branch_min == nil) or (diagram.dpblocks[diagram.dpblocks[i].output[j]].input_count_extra == nextbranch.inputs_min) or 
-            ((diagram.dpblocks[diagram.dpblocks[i].output[j]].input_count_extra == nextbranch.inputs_min) and (diagram.dpblocks[i].output[j] < nextbranch.branch_min)) then
+            if (nextbranch.branch_min == nil) or (diagram.dpblocks[diagram.dpblocks[i].output[j]].input_count_extra == nextbranch.input_count_min) or 
+            ((diagram.dpblocks[diagram.dpblocks[i].output[j]].input_count_extra == nextbranch.input_count_min) and (diagram.dpblocks[i].output[j] < nextbranch.branch_min)) then
               nextbranch.branch_min = diagram.dpblocks[i].output[j]
-              nextbranch.inputs_min = diagram.dpblocks[diagram.dpblocks[i].output[j]].input_count_extra
+              nextbranch.input_count_min = diagram.dpblocks[diagram.dpblocks[i].output[j]].input_count_extra
               nextbranch.input_min = i
             end
           end
@@ -621,12 +680,12 @@ function computeBetterEdges(diagram)
   end
 end
 
-function adjustEverything(diagram, dpblock, v_layer, layer)
-  diagram.dpblocks[dpblock].v_layer = diagram.dpblocks[dpblock].v_layer + v_layer
-  diagram.dpblocks[dpblock].layer = diagram.dpblocks[dpblock].layer + layer
+function adjustEverything(diagram, dpblock, column, row)
+  diagram.dpblocks[dpblock].column = diagram.dpblocks[dpblock].column + column
+  diagram.dpblocks[dpblock].row = diagram.dpblocks[dpblock].row + row
   for i=1, diagram.dpblocks[dpblock].betteroutput_count do
     local edge = diagram.dpblocks[dpblock].betteroutput[i]
-    adjustEverything(diagram, edge, v_layer, layer)
+    adjustEverything(diagram, edge, column, row)
   end
 end
 
@@ -635,55 +694,52 @@ end
   we'll need them in order to arrange blocks, links and points
 --]]
 function computeLayers(diagram, dpblock)
-  local v_layer, layer_count, child_v_layer = 0, 0, 0
+  local column, row_count, child_column = 0, 0, 0
 
   for i=1, diagram.dpblocks[dpblock].betteroutput_count do
     local edge = diagram.dpblocks[dpblock].betteroutput[i] 
     computeLayers(diagram, edge)
-    if (diagram.dpblocks[edge].layer_count+1) > layer_count then
-      layer_count = diagram.dpblocks[edge].layer_count+1
+    if (diagram.dpblocks[edge].row_count+1) > row_count then
+      row_count = diagram.dpblocks[edge].row_count+1
     end
-    child_v_layer = diagram.dpblocks[edge].v_layer
+    child_column = diagram.dpblocks[edge].column
   end
 
   if diagram.dpblocks[dpblock].betteroutput_count == 2 then
     local better1, better2, offset = diagram.dpblocks[dpblock].betteroutput[1], diagram.dpblocks[dpblock].betteroutput[2]
 
     if (diagram.dpblocks[better1].betteroutput_count == 0) then
-      diagram.dpblocks[better1].v_layer = diagram.dpblocks[better2].v_layer - 2
-      if diagram.dpblocks[better1].v_layer < 0 then offset = -diagram.dpblocks[better1].v_layer else offset = 0 end
+      diagram.dpblocks[better1].column = diagram.dpblocks[better2].column - 2
+      if diagram.dpblocks[better1].column < 0 then offset = -diagram.dpblocks[better1].column else offset = 0 end
       adjustEverything(diagram, better1, offset, 1)
       adjustEverything(diagram, better2, offset, 1)
-      v_layer = diagram.dpblocks[better2].v_layer_count + offset
+      column = diagram.dpblocks[better2].column_count + offset
     elseif (diagram.dpblocks[better2].betteroutput_count == 0) then
       adjustEverything(diagram, better1, 0, 1)
-      adjustEverything(diagram, better2, diagram.dpblocks[better1].v_layer + 2, 1)
-      v_layer = math.max(diagram.dpblocks[better1].v_layer_count, diagram.dpblocks[better2].v_layer + 2)
+      adjustEverything(diagram, better2, diagram.dpblocks[better1].column + 2, 1)
+      column = math.max(diagram.dpblocks[better1].column_count, diagram.dpblocks[better2].column + 2)
     else
       adjustEverything(diagram, better1, 0, 1)
-      adjustEverything(diagram, better2, diagram.dpblocks[better1].v_layer_count, 1)
-      v_layer = diagram.dpblocks[better1].v_layer_count + diagram.dpblocks[better1].v_layer_count
+      adjustEverything(diagram, better2, diagram.dpblocks[better1].column_count, 1)
+      column = diagram.dpblocks[better1].column_count + diagram.dpblocks[better1].column_count
     end
-    diagram.dpblocks[dpblock].v_layer_count = math.max(2, v_layer)
-    diagram.dpblocks[dpblock].v_layer = math.floor((diagram.dpblocks[better1].v_layer + diagram.dpblocks[better2].v_layer) / 2)
+    diagram.dpblocks[dpblock].column_count = math.max(2, column)
+    diagram.dpblocks[dpblock].column = math.floor((diagram.dpblocks[better1].column + diagram.dpblocks[better2].column) / 2)
   else
-    for i=1, diagram.dpblocks[dpblock].betteroutput_count do
-      local edge = diagram.dpblocks[dpblock].betteroutput[i]
-      adjustEverything(diagram, edge, v_layer, 1)
-      v_layer = v_layer + diagram.dpblocks[edge].v_layer_count
+    if diagram.dpblocks[dpblock].betteroutput_count == 1 then
+      local edge = diagram.dpblocks[dpblock].betteroutput[1]
+      adjustEverything(diagram, edge, column, 1)
+      column = column + diagram.dpblocks[edge].column_count
     end
-    if v_layer >= 2 then
-      if diagram.dpblocks[dpblock].betteroutput_count == 1 then
-        diagram.dpblocks[dpblock].v_layer = child_v_layer
-      else
-        diagram.dpblocks[dpblock].v_layer = math.floor((v_layer - 2) / 2)
-      end
-      diagram.dpblocks[dpblock].v_layer_count = v_layer
+    if column >= 2 then
+      if diagram.dpblocks[dpblock].betteroutput_count == 1 then diagram.dpblocks[dpblock].column = child_column
+      else diagram.dpblocks[dpblock].column = math.floor((column - 2) / 2) end
+      diagram.dpblocks[dpblock].column_count = column
     else
-      diagram.dpblocks[dpblock].v_layer, diagram.dpblocks[dpblock].v_layer_count = 0, 2
+      diagram.dpblocks[dpblock].column, diagram.dpblocks[dpblock].column_count = 0, 2
     end
   end
-  diagram.dpblocks[dpblock].layer, diagram.dpblocks[dpblock].layer_count = 0, layer_count
+  diagram.dpblocks[dpblock].row, diagram.dpblocks[dpblock].row_count = 0, row_count
 end
 
 function initPoints(diagram)
@@ -691,12 +747,12 @@ function initPoints(diagram)
   for i=1, #diagram.dpblocks do
     diagram.points[i] = {}
     diagram.points[i].output_input = {}
-    diagram.points[i].v_layer = {}
+    diagram.points[i].column = {}
     for j=1, #diagram.dpblocks[i].output do
       diagram.points[i].output_input[j] = {}
       diagram.points[i].output_input[j].point = 0
-      diagram.points[i].v_layer[j] = {}
-      diagram.points[i].v_layer[j].point = 0
+      diagram.points[i].column[j] = {}
+      diagram.points[i].column[j].point = 0
     end
     for j=#diagram.dpblocks[i].output+1, #diagram.dpblocks[i].output+#diagram.dpblocks[i].input do
       diagram.points[i].output_input[j] = {}
@@ -706,35 +762,35 @@ function initPoints(diagram)
 end
 
 function initLayerRelatedStuff(diagram)
-  diagram.v_layer_count = 0
-  diagram.layer_count = 0
-  diagram.v_layer = {}
-  diagram.v_layer_links = {}
-  diagram.layer = {}
-  diagram.layer_links = {}
-  diagram.v_layer_links_count = {}
-  diagram.layer_links_count = {}
+  diagram.column_count = 0
+  diagram.row_count = 0
+  diagram.column = {}
+  diagram.column_links = {}
+  diagram.row = {}
+  diagram.row_links = {}
+  diagram.column_links_count = {}
+  diagram.row_links_count = {}
   for i=1, #diagram.dpblocks do
-    diagram.v_layer_count = math.max(diagram.dpblocks[i].v_layer, diagram.v_layer_count)
-    diagram.layer_count = math.max(diagram.dpblocks[i].layer, diagram.layer_count)
+    diagram.column_count = math.max(diagram.dpblocks[i].column, diagram.column_count)
+    diagram.row_count = math.max(diagram.dpblocks[i].row, diagram.row_count)
   end
-  for i=-1, diagram.layer_count do
-    diagram.layer[i] = {}
-    diagram.layer_links[i] = {}
-    diagram.layer[i].height = 0
-    diagram.layer[i].y = 0
-    diagram.layer_links[i].y = 0
-    diagram.v_layer_links_count[i] = {}
-    diagram.v_layer_links_count[i].count = 0
+  for i=-1, diagram.row_count do
+    diagram.row[i] = {}
+    diagram.row_links[i] = {}
+    diagram.row[i].height = 0
+    diagram.row[i].y = 0
+    diagram.row_links[i].y = 0
+    diagram.column_links_count[i] = {}
+    diagram.column_links_count[i].count = 0
   end
-  for i=0, diagram.v_layer_count do
-    diagram.v_layer[i] = {}
-    diagram.v_layer_links[i] = {}
-    diagram.v_layer[i].width = 0
-    diagram.v_layer[i].x = 0
-    diagram.v_layer_links[i].x = 0
-    diagram.layer_links_count[i] = {}
-    diagram.layer_links_count[i].count = 0
+  for i=0, diagram.column_count do
+    diagram.column[i] = {}
+    diagram.column_links[i] = {}
+    diagram.column[i].width = 0
+    diagram.column[i].x = 0
+    diagram.column_links[i].x = 0
+    diagram.row_links_count[i] = {}
+    diagram.row_links_count[i].count = 0
   end
 end
 
@@ -743,80 +799,80 @@ function computePoints(diagram)
   for i=1, #diagram.dpblocks do
     local origin = i
     for j=1, diagram.dpblocks[i].output_count do
-      diagram.v_layer_links_count[diagram.dpblocks[origin].layer].count = diagram.v_layer_links_count[diagram.dpblocks[origin].layer].count + 1
-      diagram.points[i].output_input[j].point = diagram.v_layer_links_count[diagram.dpblocks[origin].layer].count
+      diagram.column_links_count[diagram.dpblocks[origin].row].count = diagram.column_links_count[diagram.dpblocks[origin].row].count + 1
+      diagram.points[i].output_input[j].point = diagram.column_links_count[diagram.dpblocks[origin].row].count
     end
   end
   --input vertical points
   for i=1, #diagram.dpblocks do
     local destination = i
     for j=1, diagram.dpblocks[i].input_count do
-      diagram.v_layer_links_count[diagram.dpblocks[destination].layer-1].count = diagram.v_layer_links_count[diagram.dpblocks[destination].layer-1].count + 1
-      diagram.points[i].output_input[j+#diagram.dpblocks[i].output].point = diagram.v_layer_links_count[diagram.dpblocks[destination].layer-1].count
+      diagram.column_links_count[diagram.dpblocks[destination].row-1].count = diagram.column_links_count[diagram.dpblocks[destination].row-1].count + 1
+      diagram.points[i].output_input[j+#diagram.dpblocks[i].output].point = diagram.column_links_count[diagram.dpblocks[destination].row-1].count
     end
   end
   --remaining horizontal points
   for i=1, #diagram.dpblocks do
     for j=1, diagram.dpblocks[i].output_count do
       local destination = diagram.dpblocks[i].output[j]
-      diagram.layer_links_count[diagram.dpblocks[destination].v_layer].count = diagram.layer_links_count[diagram.dpblocks[destination].v_layer].count + 1
-      diagram.points[i].v_layer[j].point = diagram.layer_links_count[diagram.dpblocks[destination].v_layer].count
+      diagram.row_links_count[diagram.dpblocks[destination].column].count = diagram.row_links_count[diagram.dpblocks[destination].column].count + 1
+      diagram.points[i].column[j].point = diagram.row_links_count[diagram.dpblocks[destination].column].count
     end
   end
 end
 
 function arrangeDiagramLayers(diagram)
   for i=1, #diagram.dpblocks do
-    diagram.v_layer[diagram.dpblocks[i].v_layer].width = math.max(diagram.dblocks[i].width, diagram.v_layer[diagram.dpblocks[i].v_layer].width)
-    diagram.layer[diagram.dpblocks[i].layer].height = math.max(diagram.dblocks[i].height, diagram.layer[diagram.dpblocks[i].layer].height)
+    diagram.column[diagram.dpblocks[i].column].width = math.max(diagram.dblocks[i].width, diagram.column[diagram.dpblocks[i].column].width)
+    diagram.row[diagram.dpblocks[i].row].height = math.max(diagram.dblocks[i].height, diagram.row[diagram.dpblocks[i].row].height)
   end
   local x = 20*DPIAdjust
-  for i=0, diagram.v_layer_count-1 do
-    diagram.v_layer[i].x = x
-    x = x + diagram.v_layer[i].width
-    diagram.v_layer_links[i].x = x
-    x = x + (diagramstyle.link_pointdepth * (diagram.layer_links_count[i].count)) + diagramstyle.link_pointdepth
+  for i=0, diagram.column_count-1 do
+    diagram.column[i].x = x
+    x = x + diagram.column[i].width
+    diagram.column_links[i].x = x
+    x = x + (diagramstyle.link_pointdepth * (diagram.row_links_count[i].count)) + diagramstyle.link_pointdepth
   end
-  diagram.layer[-1].y = 0 --extra layer
-  diagram.layer[-1].height = diagramstyle.link_pointdepth * (diagram.v_layer_links_count[-1].count) --size = inputs * pointdepth
-  local y = diagram.layer[-1].height + diagramstyle.link_pointdepth
-  for i=0, diagram.layer_count-1 do
-    diagram.layer[i].y = y 
-    y = y + diagram.layer[i].height
-    diagram.layer_links[i].y = y
-    y = y + (diagramstyle.link_pointdepth * (diagram.v_layer_links_count[i].count)) + diagramstyle.link_pointdepth
+  diagram.row[-1].y = 0 --extra row
+  diagram.row[-1].height = diagramstyle.link_pointdepth * (diagram.column_links_count[-1].count) --size = inputs * pointdepth
+  local y = diagram.row[-1].height + diagramstyle.link_pointdepth
+  for i=0, diagram.row_count-1 do
+    diagram.row[i].y = y 
+    y = y + diagram.row[i].height
+    diagram.row_links[i].y = y
+    y = y + (diagramstyle.link_pointdepth * (diagram.column_links_count[i].count)) + diagramstyle.link_pointdepth
   end
-  diagram.v_layer[diagram.v_layer_count].x = x
-  diagram.layer[diagram.layer_count].y = y
-  diagram.v_layer_links[diagram.v_layer_count].x = x + diagram.v_layer[diagram.v_layer_count].width
-  diagram.layer_links[diagram.layer_count].y = y + diagram.layer[diagram.layer_count].height
+  diagram.column[diagram.column_count].x = x
+  diagram.row[diagram.row_count].y = y
+  diagram.column_links[diagram.column_count].x = x + diagram.column[diagram.column_count].width
+  diagram.row_links[diagram.row_count].y = y + diagram.row[diagram.row_count].height
 end
 
 function arrangeDiagramBlocks(diagram)
   for i=1, #diagram.dblocks do
-    diagram.dblocks[i].x = diagram.v_layer[diagram.dpblocks[i].v_layer].x
-    diagram.dblocks[i].y = diagram.layer[diagram.dpblocks[i].layer].y
+    diagram.dblocks[i].x = diagram.column[diagram.dpblocks[i].column].x + (diagram.column[diagram.dpblocks[i].column].width / 2) - (diagram.dblocks[i].width / 2)
+    diagram.dblocks[i].y = diagram.row[diagram.dpblocks[i].row].y
   end
 end
 
 function arrangeDiagramLinks(diagram)
   for i=1, #diagram.dblocks do
     for j=1, diagram.dpblocks[i].output_count do
-      local origin_layer=diagram.dpblocks[i].layer
-      local destination_layer=diagram.dpblocks[diagram.dpblocks[i].output[j]].layer
+      local origin_row=diagram.dpblocks[i].row
+      local destination_row=diagram.dpblocks[diagram.dpblocks[i].output[j]].row
       local link=diagram.dpblocks[i].link[j]
       local origin_index = i
       local destination_index = diagram.dpblocks[i].output[j]
       local input_index = diagramBlockInputToInputIndex(link.DestinationBlock, link.OriginBlock) + #diagram.dpblocks[destination_index].output
       
-      link.addPoint(link.OriginBlock.X + (link.OriginBlock.Width / 2) + diagram.dpblocks[origin_index].odescriptor[j].Position, diagram.layer_links[origin_layer].y + diagramstyle.link_pointdepth * diagram.points[origin_index].output_input[j].point, 0)
+      link.addPoint(link.OriginBlock.X + (link.OriginBlock.Width / 2) + diagram.dpblocks[origin_index].odescriptor[j].Position, diagram.row_links[origin_row].y + diagramstyle.link_pointdepth * diagram.points[origin_index].output_input[j].point, 0)
 
-      if (origin_layer + 1 == destination_layer) then
-        link.addPoint(link.DestinationBlock.X + (link.DestinationBlock.Width / 2) + diagram.dpblocks[origin_index].ddescriptor[j].Position, diagram.layer_links[origin_layer].y + diagramstyle.link_pointdepth * diagram.points[origin_index].output_input[j].point, 1)
+      if (origin_row + 1 == destination_row) then
+        link.addPoint(link.DestinationBlock.X + (link.DestinationBlock.Width / 2) + diagram.dpblocks[origin_index].ddescriptor[j].Position, diagram.row_links[origin_row].y + diagramstyle.link_pointdepth * diagram.points[origin_index].output_input[j].point, 1)
       else
-        link.addPoint(diagram.v_layer_links[diagram.dpblocks[destination_index].v_layer].x + diagramstyle.link_pointdepth * diagram.points[origin_index].v_layer[j].point, diagram.layer_links[origin_layer].y + diagramstyle.link_pointdepth * diagram.points[origin_index].output_input[j].point, 1)
-        link.addPoint(diagram.v_layer_links[diagram.dpblocks[destination_index].v_layer].x + diagramstyle.link_pointdepth * diagram.points[origin_index].v_layer[j].point, diagram.layer_links[destination_layer-1].y + diagramstyle.link_pointdepth * diagram.points[destination_index].output_input[input_index].point, 2)
-        link.addPoint(link.DestinationBlock.X + (link.DestinationBlock.Width / 2) + diagram.dpblocks[origin_index].ddescriptor[j].Position, diagram.layer_links[destination_layer-1].y + diagramstyle.link_pointdepth * diagram.points[destination_index].output_input[input_index].point, 3)
+        link.addPoint(diagram.column_links[diagram.dpblocks[destination_index].column].x + diagramstyle.link_pointdepth * diagram.points[origin_index].column[j].point, diagram.row_links[origin_row].y + diagramstyle.link_pointdepth * diagram.points[origin_index].output_input[j].point, 1)
+        link.addPoint(diagram.column_links[diagram.dpblocks[destination_index].column].x + diagramstyle.link_pointdepth * diagram.points[origin_index].column[j].point, diagram.row_links[destination_row-1].y + diagramstyle.link_pointdepth * diagram.points[destination_index].output_input[input_index].point, 2)
+        link.addPoint(link.DestinationBlock.X + (link.DestinationBlock.Width / 2) + diagram.dpblocks[origin_index].ddescriptor[j].Position, diagram.row_links[destination_row-1].y + diagramstyle.link_pointdepth * diagram.points[destination_index].output_input[input_index].point, 3)
       end
     end
   end
@@ -877,7 +933,7 @@ function spawnDiagram(start, limit)
     initPoints(diagram)
     computePoints(diagram)
     arrangeDiagramLayers(diagram)
-    arrangeDiagramBlocks(diagram)
+    arrangeDiagramBlocks(diagram)    
     arrangeDiagramLinks(diagram)
   else
     if #diagram.dblocks > 0 then centerDiagramBlock(diagram, 1) end
@@ -915,14 +971,14 @@ diagram.blocks = {}
 diagram.dblocks = {}
 diagram.dpblocks = {}
 diagram.points = {}
-diagram.v_layer_count
-diagram.layer_count
-diagram.v_layer = {}
-diagram.layer = {}
-diagram.v_layer_links = {}
-diagram.layer_links = {}
-diagram.v_layer_links_count = {}
-diagram.layer_links_count = {}
+diagram.column_count
+diagram.row_count
+diagram.column = {}
+diagram.row = {}
+diagram.column_links = {}
+diagram.row_links = {}
+diagram.column_links_count = {}
+diagram.row_links_count = {}
 ]]
 
 --[[
