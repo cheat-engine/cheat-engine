@@ -498,7 +498,7 @@ end;
 
 procedure THotKeyForm.FormCreate(Sender: TObject);
 begin
-  edtActivateText.Hint:=rsTextToSpeechHint); //make it easier for translators
+  edtActivateText.Hint:=rsTextToSpeechHint; //make it easier for translators
   edtDeactivateText.Hint:=edtActivateText.Hint;
 
   edtActivateText.Text:=format(rsDefaultActivated, ['{MRDescription}']);
