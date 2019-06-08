@@ -166,6 +166,7 @@ function createMenu(diagram)
   local miSaveAsImage=createMenuItem(mm)
   miSaveAsImage.Caption=translate('Save diagram to image')
   miSaveAsImage.Name='miSaveAsImage'
+  miSaveAsImage.ImageIndex=47
   miSaveAsImage.OnClick=function(s)
     local fd=createSaveDialog()
     fd.Title=translate('Fill in the filename you wish to save this diagram image')
