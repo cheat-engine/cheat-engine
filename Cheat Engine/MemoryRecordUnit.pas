@@ -739,6 +739,9 @@ begin
       s:=StringReplace(s,'{MRDescription}', fowner.Description,[rfIgnoreCase, rfReplaceAll]);
       s:=StringReplace(s,'{Description}', Description, [rfIgnoreCase, rfReplaceAll]);
 
+      s:=StringReplace(s,'{MRValue}', fowner.Value,[rfIgnoreCase, rfReplaceAll]);
+      s:=StringReplace(s,'{Value}', Value, [rfIgnoreCase, rfReplaceAll]);
+
 
 
       if ActivateSoundFlag=hksSpeakTextEnglish then
@@ -764,6 +767,9 @@ begin
       s:=DeactivateSound;
       s:=StringReplace(s,'{MRDescription}', fowner.Description,[rfIgnoreCase, rfReplaceAll]);
       s:=StringReplace(s,'{Description}', Description, [rfIgnoreCase, rfReplaceAll]);
+
+      s:=StringReplace(s,'{MRValue}', fowner.Value,[rfIgnoreCase, rfReplaceAll]);
+      s:=StringReplace(s,'{Value}', Value, [rfIgnoreCase, rfReplaceAll]);
 
       if DeactivateSoundFlag=hksSpeakTextEnglish then
         speak('<voice required="Language=409">'+s+'</voice>')
