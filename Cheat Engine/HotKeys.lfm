@@ -12,7 +12,7 @@ object HotKeyForm: THotKeyForm
   OnCreate = FormCreate
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '1.6.4.0'
+  LCLVersion = '2.0.0.4'
   object ListView1: TListView
     Left = 0
     Height = 173
@@ -157,7 +157,7 @@ object HotKeyForm: THotKeyForm
             Left = 4
             Height = 15
             Top = 2
-            Width = 229
+            Width = 228
             BorderSpacing.Left = 4
             BorderSpacing.Top = 2
             Caption = 'Type the keys you want to set the hotkey to'
@@ -444,7 +444,6 @@ object HotKeyForm: THotKeyForm
           Width = 149
           Anchors = [akTop, akLeft, akRight]
           ParentShowHint = False
-          ShowHint = True
           TabOrder = 5
           Text = '{MRDescription} Activated'
         end
@@ -479,7 +478,6 @@ object HotKeyForm: THotKeyForm
           Width = 149
           Anchors = [akTop, akLeft, akRight]
           ParentShowHint = False
-          ShowHint = True
           TabOrder = 7
           Text = '{MRDescription} Deactivated'
         end

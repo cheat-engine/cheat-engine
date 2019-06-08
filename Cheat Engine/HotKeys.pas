@@ -111,7 +111,7 @@ resourcestring
   rsIncreaseValueWith = 'Increase value with:';
   rsSpeakText = 'Speak Text';
 
-  rsTextToSpeechHint = 'The text to speak'#13#10'%s = The description field of the memory record'#13#10'%s = The description of the hotkey';
+  rsTextToSpeechHint = 'The text to speak'#13#10'{Description} = The description of the hotkey'#13#10'{MRDescription} = The description field of the memory record'#13#10'{MRValue} = The value of the memory record';
   rsDefaultActivated = '%s Activated';
   rsDefaultDeactivated = '%s Deactivated';
 
@@ -498,11 +498,14 @@ end;
 
 procedure THotKeyForm.FormCreate(Sender: TObject);
 begin
-  edtActivateText.Hint:=format(rsTextToSpeechHint, ['{MRDescription}','{Description}']); //make it easier for translators
+  edtActivateText.Hint:=rsTextToSpeechHint); //make it easier for translators
   edtDeactivateText.Hint:=edtActivateText.Hint;
 
   edtActivateText.Text:=format(rsDefaultActivated, ['{MRDescription}']);
   edtDeactivateText.Text:=format(rsDefaultDeactivated, ['{MRDescription}']);
+
+  edtActivateText.ShowHint:=true;
+  edtDeactivateText.ShowHint:=true;
 
 
   pagecontrol1.ActivePage:=tabsheet1;
