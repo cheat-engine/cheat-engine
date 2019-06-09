@@ -9,7 +9,11 @@ uses
   Dialogs, Menus, StdCtrls, LResources;
 
 type
+
+  { TfrmModuleSafety }
+
   TfrmModuleSafety = class(TForm)
+    msImageList: TImageList;
     ListBox1: TListBox;
     Edit1: TEdit;
     Button1: TButton;

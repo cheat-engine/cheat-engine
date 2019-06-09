@@ -120,6 +120,7 @@ type
   TformAddressChange = class(TForm)
     cbCodePage: TCheckBox;
     editDescription: TEdit;
+    caImageList: TImageList;
     Label12: TLabel;
     Label3: TLabel;
     lblValue: TLabel;

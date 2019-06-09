@@ -23,6 +23,7 @@ type
     EIPlabel: TLabel;
     ESIlabel: TLabel;
     ESPlabel: TLabel;
+    rImageList: TImageList;
     MenuItem1: TMenuItem;
     MenuItem2: TMenuItem;
     Panel1: TPanel;

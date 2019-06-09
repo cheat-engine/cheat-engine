@@ -35,6 +35,7 @@ type
 
   TfrmDisassemblyscan = class(TForm)
     btnCancel: TButton;
+    asImageList: TImageList;
     ListBox1: TListBox;
     Label1: TLabel;
     MenuItem1: TMenuItem;

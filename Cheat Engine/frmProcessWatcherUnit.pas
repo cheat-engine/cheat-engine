@@ -42,6 +42,7 @@ type
   TfrmProcessWatcher = class(TForm)
     btnAttach: TButton;
     btnOpen: TButton;
+    pwImageList: TImageList;
     Panel2: TPanel;
     tvProcesslist: TTreeView;
     Panel1: TPanel;

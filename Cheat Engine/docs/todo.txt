@@ -18,8 +18,6 @@ graphical memory view:
 
 dbvm_speedhack
 
-find higher resolution icons
-
 graphical tutorial: continue with it
 
 linux: make a 32-bit linux build with .so injection support

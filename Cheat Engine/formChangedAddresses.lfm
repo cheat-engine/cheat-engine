@@ -1,12 +1,11 @@
 object frmChangedAddresses: TfrmChangedAddresses
   Left = 635
-  Height = 356
+  Height = 285
   Top = 85
-  Width = 514
+  Width = 411
   Caption = 'Changed Addresses'
-  ClientHeight = 356
-  ClientWidth = 514
-  DesignTimePPI = 120
+  ClientHeight = 285
+  ClientWidth = 411
   OnClose = FormClose
   OnCreate = FormCreate
   OnDestroy = FormDestroy
@@ -15,9 +14,9 @@ object frmChangedAddresses: TfrmChangedAddresses
   LCLVersion = '2.0.0.4'
   object lblInfo: TLabel
     Left = 0
-    Height = 20
+    Height = 15
     Top = 0
-    Width = 514
+    Width = 411
     Align = alTop
     Caption = 'The following addresses have been accessed by the code you selected'
     ParentColor = False
@@ -26,29 +25,29 @@ object frmChangedAddresses: TfrmChangedAddresses
   end
   object Panel1: TPanel
     Left = 0
-    Height = 40
-    Top = 316
-    Width = 514
+    Height = 33
+    Top = 252
+    Width = 411
     Align = alBottom
     Anchors = [akRight, akBottom]
     AutoSize = True
-    ClientHeight = 40
-    ClientWidth = 514
+    ClientHeight = 33
+    ClientWidth = 411
     ParentFont = False
     TabOrder = 0
     object OKButton: TButton
       AnchorSideLeft.Control = Panel1
       AnchorSideTop.Control = Panel1
-      Left = 5
-      Height = 30
-      Top = 5
-      Width = 112
+      Left = 4
+      Height = 25
+      Top = 4
+      Width = 90
       AutoSize = True
-      BorderSpacing.Left = 4
-      BorderSpacing.Top = 4
-      BorderSpacing.Bottom = 4
+      BorderSpacing.Left = 3
+      BorderSpacing.Top = 3
+      BorderSpacing.Bottom = 3
       Caption = 'Stop'
-      Constraints.MinWidth = 112
+      Constraints.MinWidth = 90
       Default = True
       OnClick = OKButtonClick
       ParentFont = False
@@ -58,13 +57,13 @@ object frmChangedAddresses: TfrmChangedAddresses
       AnchorSideTop.Control = OKButton
       AnchorSideRight.Control = Panel1
       AnchorSideRight.Side = asrBottom
-      Left = 285
-      Height = 28
-      Top = 5
-      Width = 224
+      Left = 228
+      Height = 23
+      Top = 4
+      Width = 179
       Anchors = [akTop, akRight]
-      BorderSpacing.Right = 4
-      ItemHeight = 20
+      BorderSpacing.Right = 3
+      ItemHeight = 15
       ItemIndex = 2
       Items.Strings = (
         'Byte'
@@ -81,22 +80,21 @@ object frmChangedAddresses: TfrmChangedAddresses
   end
   object Changedlist: TListView
     Left = 0
-    Height = 296
-    Top = 20
-    Width = 514
+    Height = 237
+    Top = 15
+    Width = 411
     Align = alClient
     Columns = <    
       item
         Caption = 'Address'
-        Width = 154
+        Width = 123
       end    
       item
         Caption = 'Value'
-        Width = 250
+        Width = 200
       end    
       item
         Caption = 'Count'
-        Width = 62
       end>
     HideSelection = False
     MultiSelect = True
@@ -114,14 +112,14 @@ object frmChangedAddresses: TfrmChangedAddresses
   object Timer1: TTimer
     Interval = 500
     OnTimer = Timer1Timer
-    left = 70
-    top = 80
+    left = 56
+    top = 64
   end
   object PopupMenu1: TPopupMenu
     Images = caImageList
     OnPopup = PopupMenu1Popup
-    left = 50
-    top = 130
+    left = 40
+    top = 104
     object Showregisterstates1: TMenuItem
       Caption = 'Show register states'
       ShortCut = 16466
@@ -141,6 +139,7 @@ object frmChangedAddresses: TfrmChangedAddresses
     end
     object miDissect: TMenuItem
       Caption = 'Open dissect data with selected addresses'
+      ImageIndex = 5
       ShortCut = 16452
       OnClick = miDissectClick
     end
@@ -164,6 +163,7 @@ object frmChangedAddresses: TfrmChangedAddresses
       end
       object miGroupClear: TMenuItem
         Caption = 'Clear Selection'
+        ImageIndex = 1
         ShortCut = 49200
         OnClick = miGroupClearClick
       end
@@ -211,10 +211,10 @@ object frmChangedAddresses: TfrmChangedAddresses
     end
   end
   object caImageList: TImageList
-    left = 275
-    top = 120
+    left = 220
+    top = 96
     Bitmap = {
-      4C69050000001000000010000000FFFFFF00A0A0A060808080C0808080C08080
+      4C69060000001000000010000000FFFFFF00A0A0A060808080C0808080C08080
       80C0808080C0808080C0808080C0808080C0808080C0808080C0747474BFBCBC
       BC35FFFFFF00FFFFFF00FFFFFF00FFFFFF0080808080FFFFFFFFFFFFFFFFFFFF
       FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF6767
@@ -374,7 +374,39 @@ object frmChangedAddresses: TfrmChangedAddresses
       FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
       FFFFBEB6B4FF1E0400FEA89D9C54FFFFFF00A0A0A060808080C0808080C08080
       80C0808080C0808080C0808080C0808080C0808080C0808080C0808080C08080
-      80C0808080C06C656496D2CDCC25
+      80C0808080C06C656496D2CDCC25E7E3DE1ECFBCA950CFBCA950CFBCA950CFBC
+      A950CFBCA950C9B9A850FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+      FF00FFFFFF00FFFFFF00FFFFFF00E0C6AC60FF9933FFFF9933FFFF9933FFFF99
+      33FFFF9933FFE0862CFFFFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+      FF00FFFFFF00FFFFFF00FFFFFF00E0C6AC60FF9933FFFF9933FFFF9933FFFF99
+      33FFFF9933FFE0862CFFFFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+      FF00FFFFFF00FFFFFF00FFFFFF00E0C6AC60FF9933FFFF9933FFFF9933FFFF99
+      33FFFF9933FFE0862CFFFFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+      FF00FFFFFF00FFFFFF00FFFFFF00E0C6AC60FF9933FFFF9933FFFF9933FFFF99
+      33FFFF9933FFE0862CFFFFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+      FF00FFFFFF00FFFFFF00FFFFFF00EBEAE812CFC9C330CFC9C33087817B7ECFC9
+      C330CFC9C330CDC8C230FFFFFF00FFFFFF00BEAC817EC3AB7190C3AB7190C3AB
+      7190C3AB7190C3AB7190D5CCB648FFFFFF00FFFFFF00FFFFFF00A0A0A060FFFF
+      FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00CAA03EE0E2AB29FFE2AB29FFE2AB
+      29FFE2AB29FFE2AB29FFD5C08F80FFFFFF00FFFFFF00FFFFFF00A0A0A060A0A0
+      A060A0A0A060A0A0A060A0A0A060A0A0A060BE9432ECE2AB29FFE2AB29FFE2AB
+      29FFE2AB29FFE2AB29FFD5C08F80FFFFFF00FFFFFF00FFFFFF00A0A0A060FFFF
+      FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00CAA03EE0E2AB29FFE2AB29FFE2AB
+      29FFE2AB29FFE2AB29FFD5C08F80FFFFFF00FFFFFF00FFFFFF00A0A0A060FFFF
+      FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00AA8839D2B88B21F0B88B21F0B88B
+      21F0B88B21F0B88B21F0C5B48C78FFFFFF00FFFFFF00FFFFFF00A0A0A060FFFF
+      FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+      FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00A0A0A060FFFF
+      FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00AA8839D2B88B21F0B88B21F0B88B
+      21F0B88B21F0B88B21F0C5B48C78FFFFFF00FFFFFF00FFFFFF00A0A0A060FFFF
+      FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00CAA03EE0E2AB29FFE2AB29FFE2AB
+      29FFE2AB29FFE2AB29FFD5C08F80FFFFFF00FFFFFF00FFFFFF00D0D0D02D8080
+      806080808060808080608080806080808060BA902EECE2AB29FFE2AB29FFE2AB
+      29FFE2AB29FFE2AB29FFD5C08F80FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+      FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00CAA03EE0E2AB29FFE2AB29FFE2AB
+      29FFE2AB29FFE2AB29FFD5C08F80FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+      FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00BEAC817EC3AB7190C3AB7190C3AB
+      7190C3AB7190C3AB7190D5CCB648
     }
   end
 end

@@ -25,6 +25,7 @@ type
     cb64bit: TCheckBox;
     edtCR3: TEdit;
     FindDialog1: TFindDialog;
+    pImageList: TImageList;
     Label1: TLabel;
     frmPaging: TPanel;
     MenuItem1: TMenuItem;
