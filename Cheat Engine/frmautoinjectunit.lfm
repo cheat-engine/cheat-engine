@@ -91,6 +91,7 @@ object frmAutoInject: TfrmAutoInject
       end
       object Assigntocurrentcheattable1: TMenuItem
         Caption = 'Assign to current cheat table'
+        ImageIndex = 12
         OnClick = Assigntocurrentcheattable1Click
       end
       object N2: TMenuItem
