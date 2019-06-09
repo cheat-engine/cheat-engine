@@ -17,6 +17,7 @@ type
     cbAutoAddAllocs: TCheckBox;
     edtStart: TEdit;
     edtStop: TEdit;
+    erlImageList: TImageList;
     Label1: TLabel;
     Label2: TLabel;
     Label3: TLabel;

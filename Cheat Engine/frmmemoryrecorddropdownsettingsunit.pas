@@ -21,6 +21,7 @@ type
     cbDisallowUserInput: TCheckBox;
     cbOnlyShowDescription: TCheckBox;
     cbDisplayAsDropdownItem: TCheckBox;
+    doImageList: TImageList;
     Label1: TLabel;
     Label2: TLabel;
     Cut1: TMenuItem;

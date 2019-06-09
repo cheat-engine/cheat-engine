@@ -30,6 +30,7 @@ type
     edtDescription: TEdit;
     edtFreezeValue: TEdit;
     edtHotkey: TEdit;
+    schImageList: TImageList;
     Label1: TLabel;
     Label2: TLabel;
     lblActivateSound: TLabel;

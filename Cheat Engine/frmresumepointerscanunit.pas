@@ -29,6 +29,7 @@ type
     ComboBox1: TComboBox;
     edtDistributedPort: TEdit;
     edtThreadcount: TEdit;
+    rpsImageList: TImageList;
     Label1: TLabel;
     Label9: TLabel;
     lblPort: TLabel;
