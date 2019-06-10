@@ -256,35 +256,40 @@ function scrollToDiagramBlock(diagram, dblock)
   diagram.diagram.ScrollY = dblock.y - math.abs((diagram.form.height / 2) - ((dblock.height) / 2))
 end
 
-function PopupMenuLink1Click(sender)
+function PopupMenuGoToSourceClick(sender)
   local diagram=getRef(sender.Owner.Owner.Tag) --the owner of the menuitem is the popupmenu, and the owner of that is the diagram (alternatively, the menuitem tag could be set to the diagram table as well)
   local sourceblock = diagram.popup.lastobject.OriginBlock
   scrollToDiagramBlock(diagram, sourceblock)
 end
 
-function PopupMenuLink2Click(sender)
+function PopupMenuGoToDestinationClick(sender)
   local diagram=getRef(sender.Owner.Owner.Tag)
   local destinationblock = diagram.popup.lastobject.DestinationBlock
   scrollToDiagramBlock(diagram, destinationblock)
 end
 
-function PopupMenuLink3Click(sender)
+function PopupMenuRemoveAllPointsClick(sender)
   local diagram=getRef(sender.Owner.Owner.Tag)
   diagram.popup.lastobject.removeAllPoints()
   diagram.diagram.repaint()
 end
 
-function PopupMenuBlock1Click(sender)
+function PopupMenuEditBlockHeaderClick(sender)
   local diagram=getRef(sender.Owner.Owner.Tag)
-  newheader = inputQuery("Edit", "new header", diagram.popup.lastobject.caption)
+  local newheader = inputQuery("Edit", "new header", diagram.popup.lastobject.caption)
   if newheader ~= nil then diagram.popup.lastobject.caption = newheader end
 end
 
-function PopupMenuBlock2Click(sender) --to implement
-
+function PopupMenuEditBlockBackgroundColorClick(sender) --a color dialog would be better
+  local diagram=getRef(sender.Owner.Owner.Tag)
+  local newcolor = inputQuery("Edit", "new background color", string.format("%X", diagram.popup.lastobject.BackgroundColor))
+  if newcolor ~= nil then 
+    diagram.popup.lastobject.BackgroundColor = tonumber(newcolor, 16) 
+    diagram.diagram.repaint()
+  end
 end
 
-function PopupMenuBlock3Click(sender)
+function PopupMenuListSourcesClick(sender)
   local diagram=getRef(sender.Owner.Owner.Tag)
   local linkz = diagram.popup.lastobject.getLinks()
   local stringlist = createStringlist()
@@ -298,7 +303,7 @@ function PopupMenuBlock3Click(sender)
   end
 end
 
-function PopupMenuBlock4Click(sender)
+function PopupMenuListDestinationsClick(sender)
   local diagram=getRef(sender.Owner.Owner.Tag)
   local linkz = diagram.popup.lastobject.getLinks()
   local stringlist = createStringlist()
@@ -325,12 +330,12 @@ function createDiagramPopupMenu(diagram)
   diagram.popup.LinkItems[1]=CreateMenuItem(pm)
   diagram.popup.LinkItems[1].Caption=translate('Go to source')
   diagram.popup.LinkItems[1].ImageIndex=34
-  diagram.popup.LinkItems[1].OnClick=PopupMenuLink1Click
+  diagram.popup.LinkItems[1].OnClick=PopupMenuGoToSourceClick
 
   diagram.popup.LinkItems[2]=CreateMenuItem(pm)
   diagram.popup.LinkItems[2].Caption=translate('Go to destination')
   diagram.popup.LinkItems[2].ImageIndex=34
-  diagram.popup.LinkItems[2].OnClick=PopupMenuLink2Click
+  diagram.popup.LinkItems[2].OnClick=PopupMenuGoToDestinationClick
 
   diagram.popup.LinkItems[3]=CreateMenuItem(pm)
   diagram.popup.LinkItems[3].Caption=translate('-') --separator
@@ -338,7 +343,7 @@ function createDiagramPopupMenu(diagram)
   diagram.popup.LinkItems[4]=CreateMenuItem(pm)
   diagram.popup.LinkItems[4].Caption=translate('Remove all points')      
   diagram.popup.LinkItems[4].ImageIndex=32
-  diagram.popup.LinkItems[4].OnClick=PopupMenuLink3Click
+  diagram.popup.LinkItems[4].OnClick=PopupMenuRemoveAllPointsClick
   
   pm.Items.add(diagram.popup.LinkItems[1])
   pm.Items.add(diagram.popup.LinkItems[2])
@@ -349,12 +354,12 @@ function createDiagramPopupMenu(diagram)
   diagram.popup.BlockItems[1]=CreateMenuItem(pm)
   diagram.popup.BlockItems[1].Caption=translate('Edit block header')
   diagram.popup.BlockItems[1].ImageIndex=6
-  diagram.popup.BlockItems[1].OnClick=PopupMenuBlock1Click
+  diagram.popup.BlockItems[1].OnClick=PopupMenuEditBlockHeaderClick
 
   diagram.popup.BlockItems[2]=CreateMenuItem(pm)
-  diagram.popup.BlockItems[2].Caption=translate('Edit block color') --to implement
+  diagram.popup.BlockItems[2].Caption=translate('Edit block color')
   diagram.popup.BlockItems[2].ImageIndex=45
-  --diagram.popup.BlockItems[2].OnClick=PopupMenuBlock2Click  
+  diagram.popup.BlockItems[2].OnClick=PopupMenuEditBlockBackgroundColorClick
 
   diagram.popup.BlockItems[3]=CreateMenuItem(pm)
   diagram.popup.BlockItems[3].Caption=translate('-') --separator
@@ -362,12 +367,12 @@ function createDiagramPopupMenu(diagram)
   diagram.popup.BlockItems[4]=CreateMenuItem(pm)
   diagram.popup.BlockItems[4].Caption=translate('List sources')      
   diagram.popup.BlockItems[4].ImageIndex=36
-  diagram.popup.BlockItems[4].OnClick=PopupMenuBlock3Click  
+  diagram.popup.BlockItems[4].OnClick=PopupMenuListSourcesClick  
   
   diagram.popup.BlockItems[5]=CreateMenuItem(pm)
   diagram.popup.BlockItems[5].Caption=translate('List destinations')  
   diagram.popup.BlockItems[5].ImageIndex=36    
-  diagram.popup.BlockItems[5].OnClick=PopupMenuBlock4Click    
+  diagram.popup.BlockItems[5].OnClick=PopupMenuListDestinationsClick    
   
   pm.Items.add(diagram.popup.BlockItems[1])
   pm.Items.add(diagram.popup.BlockItems[2])
@@ -377,9 +382,9 @@ function createDiagramPopupMenu(diagram)
 
   diagram.popup.HeaderlessBlockItems={}
   diagram.popup.HeaderlessBlockItems[1]=CreateMenuItem(pm)
-  diagram.popup.HeaderlessBlockItems[1].Caption=translate('Edit block color') --to implement
+  diagram.popup.HeaderlessBlockItems[1].Caption=translate('Edit block color')
   diagram.popup.HeaderlessBlockItems[1].ImageIndex=45
-  --diagram.popup.HeaderlessBlockItems[1].OnClick=PopupMenuBlock2Click
+  diagram.popup.HeaderlessBlockItems[1].OnClick=PopupMenuEditBlockBackgroundColorClick
 
   pm.Items.add(diagram.popup.HeaderlessBlockItems[1])
 end
@@ -628,7 +633,7 @@ end
   makes all the multiple inputs blocks, single input blocks
   the goal is to obtain a better block arrangement
 --]]
-function computeBetterEdges(diagram)
+function ComputeBetterArrangement(diagram)
   local dvblocks, more, branchqueue, nextbranch = {}, true, createQueue(), {}
   initDiagramVisitedBlocks(diagram, dvblocks)
   dvblocks[1].visited = true
@@ -683,7 +688,7 @@ end
 
 function adjustEverything(diagram, dpblock, column, row)
   diagram.dpblocks[dpblock].column = diagram.dpblocks[dpblock].column + column
-  diagram.dpblocks[dpblock].row = diagram.dpblocks[dpblock].row + row
+  diagram.dpblocks[dpblock].row= diagram.dpblocks[dpblock].row + row
   for i=1, diagram.dpblocks[dpblock].betteroutput_count do
     local edge = diagram.dpblocks[dpblock].betteroutput[i]
     adjustEverything(diagram, edge, column, row)
@@ -824,14 +829,10 @@ function computePoints(diagram)
     for j=1, diagram.dpblocks[i].output_count do
       local destination, path = diagram.dpblocks[i].output[j], 0
       local rowto, rowfrom = math.max(diagram.dpblocks[destination].row, diagram.dpblocks[i].row), math.min(diagram.dpblocks[destination].row, diagram.dpblocks[i].row)
-      for i=rowfrom, rowto do
-        path = math.max(#diagram.paths[i][diagram.dpblocks[destination].column].path, path)
-        diagram.row_max_depth[diagram.dpblocks[destination].column].count = math.max(diagram.row_max_depth[diagram.dpblocks[destination].column].count, path+1)
-      end
-      for i=rowfrom, rowto do
-        diagram.paths[i][diagram.dpblocks[destination].column].path[path+1] = true
-      end
-      diagram.points[i].column[j].point = path+1
+      for i=rowfrom, rowto do path = math.max(#diagram.paths[i][diagram.dpblocks[destination].column].path, path) end
+      for i=rowfrom, rowto do diagram.paths[i][diagram.dpblocks[destination].column].path[path+1]=true end
+      diagram.row_max_depth[diagram.dpblocks[destination].column].count = math.max(diagram.row_max_depth[diagram.dpblocks[destination].column].count, path+1)
+      diagram.points[i].column[j].point=path+1
     end
   end
 end
@@ -904,9 +905,9 @@ function moveEverything(diagram, offset)
       for j=0, link.PointCount do
         if link.Points[j] ~= nil then
           local point = {}
-          point.x = link.Points[j].x+offset
-          point.y = link.Points[j].y
-          link.Points[j] = point
+          point.x=link.Points[j].x+offset
+          point.y=link.Points[j].y
+          link.Points[j]=point
         end
       end
     end
@@ -920,16 +921,16 @@ function createDiagramInfoBlock(diagram)
   dinfoblock.Strings.add(string.format(" Function stop: 0x%X", diagram.blocks[#diagram.blocks].stop))
   dinfoblock.Strings.add(string.format(" Diagram blocks count: %d", #diagram.dblocks))
   dinfoblock.Strings.add(string.format(" Diagram links count: %d", diagram.diagram.LinkCount))
-  dinfoblock.AutoSize = true
+  dinfoblock.AutoSize=true
   dinfoblock.x=0
   dinfoblock.y=0
-  if #diagram.blocks > 1 then moveEverything(diagram, dinfoblock.width + 20*DPIAdjust) end
+  if #diagram.blocks > 1 then moveEverything(diagram, dinfoblock.width + diagramstyle.link_pointdepth) end
 end
 
 function spawnDiagram(start, limit)
   local diagram = {}
-  diagram.state = parseFunction(start, limit)
-  diagram.blocks = createBlocks(diagram.state)
+  diagram.state=parseFunction(start, limit)
+  diagram.blocks=createBlocks(diagram.state)
   createDiagramForm(diagram, 'Diagram')
   createMenu(diagram)   
   createDiagramDiagram(diagram)
@@ -938,7 +939,7 @@ function spawnDiagram(start, limit)
   if #diagram.dblocks > 1 then
     linkDiagramBlocks(diagram)
     createDiagramPseudoBlocks(diagram)
-    computeBetterEdges (diagram)
+    ComputeBetterArrangement (diagram)
     computeLayers(diagram, 1)
     initLayerRelatedStuff(diagram)
     computePoints(diagram)
@@ -949,7 +950,7 @@ function spawnDiagram(start, limit)
     if #diagram.dblocks > 0 then centerDiagramBlock(diagram, 1) end
   end
   createDiagramInfoBlock(diagram)
-  diagram.form.Visible = true
+  diagram.form.Visible=true
   diagram.diagram.repaint()
   return diagram
 end
@@ -985,6 +986,7 @@ diagram.column_count
 diagram.row_count
 diagram.column = {}
 diagram.row = {}
+diagram.paths = {}
 diagram.links_column = {}
 diagram.links_row = {}
 diagram.column_links_count = {}
