@@ -743,9 +743,20 @@ function computeLayers(diagram, dpblock)
   diagram.dpblocks[dpblock].row, diagram.dpblocks[dpblock].row_count = 0, row_count
 end
 
-function initPoints(diagram)
+function initLayerRelatedStuff(diagram)
   diagram.points = {}
+  diagram.paths = {}
+  diagram.column_count = 0
+  diagram.row_count = 0
+  diagram.column = {}
+  diagram.links_column = {}
+  diagram.row = {}
+  diagram.links_row = {}
+  diagram.column_links_count = {}
+  diagram.row_max_depth = {}
   for i=1, #diagram.dpblocks do
+    diagram.column_count = math.max(diagram.dpblocks[i].column, diagram.column_count)
+    diagram.row_count = math.max(diagram.dpblocks[i].row, diagram.row_count)
     diagram.points[i] = {}
     diagram.points[i].output_input = {}
     diagram.points[i].column = {}
@@ -760,38 +771,34 @@ function initPoints(diagram)
       diagram.points[i].output_input[j].point = 0
     end
   end
-end
-
-function initLayerRelatedStuff(diagram)
-  diagram.column_count = 0
-  diagram.row_count = 0
-  diagram.column = {}
-  diagram.column_links = {}
-  diagram.row = {}
-  diagram.row_links = {}
-  diagram.column_links_count = {}
-  diagram.row_links_count = {}
-  for i=1, #diagram.dpblocks do
-    diagram.column_count = math.max(diagram.dpblocks[i].column, diagram.column_count)
-    diagram.row_count = math.max(diagram.dpblocks[i].row, diagram.row_count)
-  end
   for i=-1, diagram.row_count do
     diagram.row[i] = {}
-    diagram.row_links[i] = {}
+    diagram.links_row[i] = {}
     diagram.row[i].height = 0
     diagram.row[i].y = 0
-    diagram.row_links[i].y = 0
+    diagram.links_row[i].y = 0
     diagram.column_links_count[i] = {}
     diagram.column_links_count[i].count = 0
   end
   for i=0, diagram.column_count do
     diagram.column[i] = {}
-    diagram.column_links[i] = {}
+    diagram.links_column[i] = {}
     diagram.column[i].width = 0
     diagram.column[i].x = 0
-    diagram.column_links[i].x = 0
-    diagram.row_links_count[i] = {}
-    diagram.row_links_count[i].count = 0
+    diagram.links_column[i].x = 0
+    diagram.row_max_depth[i] = {}
+    diagram.row_max_depth[i].count = 0
+  end
+  for i=-1, diagram.row_count do
+    diagram.paths[i] = {}
+    for j=0, diagram.column_count do
+      diagram.paths[i][j] = {}
+      diagram.paths[i][j].path = {}
+    end
+  end
+  for i=1, #diagram.dpblocks do
+    diagram.column[diagram.dpblocks[i].column].width = math.max(diagram.dblocks[i].width, diagram.column[diagram.dpblocks[i].column].width)
+    diagram.row[diagram.dpblocks[i].row].height = math.max(diagram.dblocks[i].height, diagram.row[diagram.dpblocks[i].row].height)
   end
 end
 
@@ -815,24 +822,27 @@ function computePoints(diagram)
   --remaining horizontal points
   for i=1, #diagram.dpblocks do
     for j=1, diagram.dpblocks[i].output_count do
-      local destination = diagram.dpblocks[i].output[j]
-      diagram.row_links_count[diagram.dpblocks[destination].column].count = diagram.row_links_count[diagram.dpblocks[destination].column].count + 1
-      diagram.points[i].column[j].point = diagram.row_links_count[diagram.dpblocks[destination].column].count
+      local destination, path = diagram.dpblocks[i].output[j], 0
+      local rowto, rowfrom = math.max(diagram.dpblocks[destination].row, diagram.dpblocks[i].row), math.min(diagram.dpblocks[destination].row, diagram.dpblocks[i].row)
+      for i=rowfrom, rowto do
+        path = math.max(#diagram.paths[i][diagram.dpblocks[destination].column].path, path)
+        diagram.row_max_depth[diagram.dpblocks[destination].column].count = math.max(diagram.row_max_depth[diagram.dpblocks[destination].column].count, path+1)
+      end
+      for i=rowfrom, rowto do
+        diagram.paths[i][diagram.dpblocks[destination].column].path[path+1] = true
+      end
+      diagram.points[i].column[j].point = path+1
     end
   end
 end
 
 function arrangeDiagramLayers(diagram)
-  for i=1, #diagram.dpblocks do
-    diagram.column[diagram.dpblocks[i].column].width = math.max(diagram.dblocks[i].width, diagram.column[diagram.dpblocks[i].column].width)
-    diagram.row[diagram.dpblocks[i].row].height = math.max(diagram.dblocks[i].height, diagram.row[diagram.dpblocks[i].row].height)
-  end
   local x = 20*DPIAdjust
   for i=0, diagram.column_count-1 do
     diagram.column[i].x = x
     x = x + diagram.column[i].width
-    diagram.column_links[i].x = x
-    x = x + (diagramstyle.link_pointdepth * (diagram.row_links_count[i].count)) + diagramstyle.link_pointdepth
+    diagram.links_column[i].x = x
+    x = x + (diagramstyle.link_pointdepth * (diagram.row_max_depth[i].count)) + diagramstyle.link_pointdepth
   end
   diagram.row[-1].y = 0 --extra row
   diagram.row[-1].height = diagramstyle.link_pointdepth * (diagram.column_links_count[-1].count) --size = inputs * pointdepth
@@ -840,13 +850,13 @@ function arrangeDiagramLayers(diagram)
   for i=0, diagram.row_count-1 do
     diagram.row[i].y = y 
     y = y + diagram.row[i].height
-    diagram.row_links[i].y = y
+    diagram.links_row[i].y = y
     y = y + (diagramstyle.link_pointdepth * (diagram.column_links_count[i].count)) + diagramstyle.link_pointdepth
   end
   diagram.column[diagram.column_count].x = x
   diagram.row[diagram.row_count].y = y
-  diagram.column_links[diagram.column_count].x = x + diagram.column[diagram.column_count].width
-  diagram.row_links[diagram.row_count].y = y + diagram.row[diagram.row_count].height
+  diagram.links_column[diagram.column_count].x = x + diagram.column[diagram.column_count].width
+  diagram.links_row[diagram.row_count].y = y + diagram.row[diagram.row_count].height
 end
 
 function arrangeDiagramBlocks(diagram)
@@ -866,14 +876,14 @@ function arrangeDiagramLinks(diagram)
       local destination_index = diagram.dpblocks[i].output[j]
       local input_index = diagramBlockInputToInputIndex(link.DestinationBlock, link.OriginBlock) + #diagram.dpblocks[destination_index].output
       
-      link.addPoint(link.OriginBlock.X + (link.OriginBlock.Width / 2) + diagram.dpblocks[origin_index].odescriptor[j].Position, diagram.row_links[origin_row].y + diagramstyle.link_pointdepth * diagram.points[origin_index].output_input[j].point, 0)
+      link.addPoint(link.OriginBlock.X + (link.OriginBlock.Width / 2) + diagram.dpblocks[origin_index].odescriptor[j].Position, diagram.links_row[origin_row].y + diagramstyle.link_pointdepth * diagram.points[origin_index].output_input[j].point, 0)
 
       if (origin_row + 1 == destination_row) then
-        link.addPoint(link.DestinationBlock.X + (link.DestinationBlock.Width / 2) + diagram.dpblocks[origin_index].ddescriptor[j].Position, diagram.row_links[origin_row].y + diagramstyle.link_pointdepth * diagram.points[origin_index].output_input[j].point, 1)
+        link.addPoint(link.DestinationBlock.X + (link.DestinationBlock.Width / 2) + diagram.dpblocks[origin_index].ddescriptor[j].Position, diagram.links_row[origin_row].y + diagramstyle.link_pointdepth * diagram.points[origin_index].output_input[j].point, 1)
       else
-        link.addPoint(diagram.column_links[diagram.dpblocks[destination_index].column].x + diagramstyle.link_pointdepth * diagram.points[origin_index].column[j].point, diagram.row_links[origin_row].y + diagramstyle.link_pointdepth * diagram.points[origin_index].output_input[j].point, 1)
-        link.addPoint(diagram.column_links[diagram.dpblocks[destination_index].column].x + diagramstyle.link_pointdepth * diagram.points[origin_index].column[j].point, diagram.row_links[destination_row-1].y + diagramstyle.link_pointdepth * diagram.points[destination_index].output_input[input_index].point, 2)
-        link.addPoint(link.DestinationBlock.X + (link.DestinationBlock.Width / 2) + diagram.dpblocks[origin_index].ddescriptor[j].Position, diagram.row_links[destination_row-1].y + diagramstyle.link_pointdepth * diagram.points[destination_index].output_input[input_index].point, 3)
+        link.addPoint(diagram.links_column[diagram.dpblocks[destination_index].column].x + diagramstyle.link_pointdepth * diagram.points[origin_index].column[j].point, diagram.links_row[origin_row].y + diagramstyle.link_pointdepth * diagram.points[origin_index].output_input[j].point, 1)
+        link.addPoint(diagram.links_column[diagram.dpblocks[destination_index].column].x + diagramstyle.link_pointdepth * diagram.points[origin_index].column[j].point, diagram.links_row[destination_row-1].y + diagramstyle.link_pointdepth * diagram.points[destination_index].output_input[input_index].point, 2)
+        link.addPoint(link.DestinationBlock.X + (link.DestinationBlock.Width / 2) + diagram.dpblocks[origin_index].ddescriptor[j].Position, diagram.links_row[destination_row-1].y + diagramstyle.link_pointdepth * diagram.points[destination_index].output_input[input_index].point, 3)
       end
     end
   end
@@ -931,7 +941,6 @@ function spawnDiagram(start, limit)
     computeBetterEdges (diagram)
     computeLayers(diagram, 1)
     initLayerRelatedStuff(diagram)
-    initPoints(diagram)
     computePoints(diagram)
     arrangeDiagramLayers(diagram)
     arrangeDiagramBlocks(diagram)    
@@ -976,10 +985,10 @@ diagram.column_count
 diagram.row_count
 diagram.column = {}
 diagram.row = {}
-diagram.column_links = {}
-diagram.row_links = {}
+diagram.links_column = {}
+diagram.links_row = {}
 diagram.column_links_count = {}
-diagram.row_links_count = {}
+diagram.row_max_depth = {}
 ]]
 
 --[[
