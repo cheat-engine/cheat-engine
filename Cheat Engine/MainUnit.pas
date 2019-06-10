@@ -3667,6 +3667,7 @@ begin
 
     submenu := tmenuitem.Create(mi);
     submenu.Caption := rsEdit;
+    submenu.ImageIndex:=17;
     submenu.OnClick := EditFormClick;
     submenu.Tag := i;
     mi.Add(submenu);
@@ -3678,6 +3679,7 @@ begin
 
     submenu := tmenuitem.Create(mi);
     submenu.Caption := rsDelete;
+    submenu.ImageIndex:=22;
     submenu.OnClick := DeleteFormClick;
     submenu.Tag := i;
     mi.Add(submenu);
@@ -3698,12 +3700,14 @@ begin
 
     submenu := tmenuitem.Create(mi);
     submenu.Caption := rsRename;
+    submenu.ImageIndex:=17;
     submenu.OnClick := RenameFileClick;
     submenu.Tag := i;
     mi.Add(submenu);
 
     submenu := tmenuitem.Create(mi);
     submenu.Caption := rsSaveToDisk;
+    submenu.ImageIndex:=4;
     submenu.OnClick := SaveFileClick;
     submenu.Tag := i;
     mi.Add(submenu);
@@ -3714,6 +3718,7 @@ begin
 
     submenu := tmenuitem.Create(mi);
     submenu.Caption := rsDelete;
+    submenu.ImageIndex:=22;
     submenu.OnClick := DeleteFileClick;
     submenu.Tag := i;
     mi.Add(submenu);

@@ -5892,6 +5892,7 @@ begin
     s:=TDissectedStruct(DissectedStructs[i]).structname;
     mi:=tmenuitem.Create(Structures1);
     mi.Caption:=s;
+    mi.ImageIndex:=14;
     mi.OnClick:=miSelectStructureClick;
     mi.Tag:=ptruint(DissectedStructs[i]);
     mi.RadioItem:=true;

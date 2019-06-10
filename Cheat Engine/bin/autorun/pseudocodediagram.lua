@@ -213,9 +213,23 @@ function createMenu(diagram)
   DisplayMenu.add(miPaths)
   DisplayMenu.add(miTracerPaths)
   
+
+  local ViewMenu=createMenuItem(mm)  
+  ViewMenu.Caption=translate('View')
+  ViewMenu.Name='miView'
+
+  local miZoom100=createMenuItem(mm)
+  miZoom100.Caption=translate('Zoom 100%')  
+  miZoom100.Name='miZoom100'
+  miZoom100.OnClick=function()
+    diagram.diagram.Zoom=1
+  end
+
+  ViewMenu.add(miZoom100)
   
   mm.Items.add(FileMenu)
   mm.Items.add(DisplayMenu)
+  mm.Items.add(ViewMenu)
   
   --todo, add code to the menu items
 end
@@ -431,14 +445,14 @@ function createDiagramBlock(diagram, name)
     dview.SelectedAddress = getAddressSafe(getRef(diagramblock.Tag))
     mwform.show()
   end
-  diagramblock.OnDrag = onBlockDrag
+  diagramblock.OnDrag=onBlockDrag
   return diagramblock
 end
 
 function createDiagramHeaderlessBlock(diagram)
   local diagramheaderlessblock = diagram.diagram.createBlock()
-  diagramheaderlessblock.ShowHeader = false
-  diagramheaderlessblock.DragBody = true
+  diagramheaderlessblock.ShowHeader=false
+  diagramheaderlessblock.DragBody=true
   return diagramheaderlessblock
 end
 
@@ -492,7 +506,8 @@ function createDiagramBlocks(diagram)
       local current = diagram.blocks[i].start
       while (current <= diagram.blocks[i].stop) do
         diagram.dblocks[i].Strings.add(disassembleDecoratedInstruction(current))
-        if diagram.state.parsed[current] ~= nil and diagram.state.parsed[current].bytesize ~= 0 then current = current + diagram.state.parsed[current].bytesize
+        if diagram.state.parsed[current] ~= nil and diagram.state.parsed[current].bytesize ~= 0 then 
+          current = current + diagram.state.parsed[current].bytesize
         else break end  
       end
       diagram.dblocks[i].AutoSize = true
@@ -700,20 +715,16 @@ end
   we'll need them in order to arrange blocks, links and points
 --]]
 function computeLayers(diagram, dpblock)
-  local column, row_count, child_column = 0, 0, 0
-
+  local column, row_count, c_column = 0, 0, 0
   for i=1, diagram.dpblocks[dpblock].betteroutput_count do
-    local edge = diagram.dpblocks[dpblock].betteroutput[i] 
-    computeLayers(diagram, edge)
-    if (diagram.dpblocks[edge].row_count+1) > row_count then
-      row_count = diagram.dpblocks[edge].row_count+1
+    computeLayers(diagram, diagram.dpblocks[dpblock].betteroutput[i])
+    if (diagram.dpblocks[diagram.dpblocks[dpblock].betteroutput[i]].row_count+1) > row_count then
+      row_count = diagram.dpblocks[diagram.dpblocks[dpblock].betteroutput[i]].row_count+1
     end
-    child_column = diagram.dpblocks[edge].column
+    c_column = diagram.dpblocks[diagram.dpblocks[dpblock].betteroutput[i]].column
   end
-
   if diagram.dpblocks[dpblock].betteroutput_count == 2 then
     local better1, better2, offset = diagram.dpblocks[dpblock].betteroutput[1], diagram.dpblocks[dpblock].betteroutput[2]
-
     if (diagram.dpblocks[better1].betteroutput_count == 0) then
       diagram.dpblocks[better1].column = diagram.dpblocks[better2].column - 2
       if diagram.dpblocks[better1].column < 0 then offset = -diagram.dpblocks[better1].column else offset = 0 end
@@ -738,7 +749,7 @@ function computeLayers(diagram, dpblock)
       column = column + diagram.dpblocks[edge].column_count
     end
     if column >= 2 then
-      if diagram.dpblocks[dpblock].betteroutput_count == 1 then diagram.dpblocks[dpblock].column = child_column
+      if diagram.dpblocks[dpblock].betteroutput_count == 1 then diagram.dpblocks[dpblock].column = c_column
       else diagram.dpblocks[dpblock].column = math.floor((column - 2) / 2) end
       diagram.dpblocks[dpblock].column_count = column
     else
@@ -754,8 +765,8 @@ function initLayerRelatedStuff(diagram)
   diagram.column_count = 0
   diagram.row_count = 0
   diagram.column = {}
-  diagram.links_column = {}
   diagram.row = {}
+  diagram.links_column = {}
   diagram.links_row = {}
   diagram.column_links_count = {}
   diagram.row_max_depth = {}
@@ -812,7 +823,7 @@ function computePoints(diagram)
   for i=1, #diagram.dpblocks do
     local origin = i
     for j=1, diagram.dpblocks[i].output_count do
-      diagram.column_links_count[diagram.dpblocks[origin].row].count = diagram.column_links_count[diagram.dpblocks[origin].row].count + 1
+      diagram.column_links_count[diagram.dpblocks[origin].row].count = diagram.column_links_count[diagram.dpblocks[origin].row].count+1
       diagram.points[i].output_input[j].point = diagram.column_links_count[diagram.dpblocks[origin].row].count
     end
   end
@@ -820,7 +831,7 @@ function computePoints(diagram)
   for i=1, #diagram.dpblocks do
     local destination = i
     for j=1, diagram.dpblocks[i].input_count do
-      diagram.column_links_count[diagram.dpblocks[destination].row-1].count = diagram.column_links_count[diagram.dpblocks[destination].row-1].count + 1
+      diagram.column_links_count[diagram.dpblocks[destination].row-1].count = diagram.column_links_count[diagram.dpblocks[destination].row-1].count+1
       diagram.points[i].output_input[j+#diagram.dpblocks[i].output].point = diagram.column_links_count[diagram.dpblocks[destination].row-1].count
     end
   end
@@ -875,11 +886,9 @@ function arrangeDiagramLinks(diagram)
       local link=diagram.dpblocks[i].link[j]
       local origin_index = i
       local destination_index = diagram.dpblocks[i].output[j]
-      local input_index = diagramBlockInputToInputIndex(link.DestinationBlock, link.OriginBlock) + #diagram.dpblocks[destination_index].output
-      
+      local input_index = diagramBlockInputToInputIndex(link.DestinationBlock, link.OriginBlock) + #diagram.dpblocks[destination_index].output    
       link.addPoint(link.OriginBlock.X + (link.OriginBlock.Width / 2) + diagram.dpblocks[origin_index].odescriptor[j].Position, diagram.links_row[origin_row].y + diagramstyle.link_pointdepth * diagram.points[origin_index].output_input[j].point, 0)
-
-      if (origin_row + 1 == destination_row) then
+      if (origin_row+1 == destination_row) then
         link.addPoint(link.DestinationBlock.X + (link.DestinationBlock.Width / 2) + diagram.dpblocks[origin_index].ddescriptor[j].Position, diagram.links_row[origin_row].y + diagramstyle.link_pointdepth * diagram.points[origin_index].output_input[j].point, 1)
       else
         link.addPoint(diagram.links_column[diagram.dpblocks[destination_index].column].x + diagramstyle.link_pointdepth * diagram.points[origin_index].column[j].point, diagram.links_row[origin_row].y + diagramstyle.link_pointdepth * diagram.points[origin_index].output_input[j].point, 1)
@@ -891,8 +900,8 @@ function arrangeDiagramLinks(diagram)
 end
 
 function centerDiagramBlock(diagram, dblock)
-  diagram.dblocks[dblock].x = (diagram.form.width / 2) - (diagram.dblocks[dblock].width / 2)
-  diagram.dblocks[dblock].y = (diagram.form.height / 2) - (diagram.dblocks[dblock].height / 2)
+  diagram.dblocks[dblock].x = (diagram.form.width/2)-(diagram.dblocks[dblock].width/2)
+  diagram.dblocks[dblock].y = (diagram.form.height/2)-(diagram.dblocks[dblock].height/2)
 end
 
 function moveEverything(diagram, offset)
