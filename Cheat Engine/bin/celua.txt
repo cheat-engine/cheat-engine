@@ -1051,9 +1051,11 @@ createEdit(owner): Creates an Edit class object which belongs to the given owner
 
 properties
   Text: string - The current contents of the editfield
-  SelText: string - The current selected contents of the edit field (readonly)
-  SelStart: number - The starting index of the current selection (zero-indexed, readonly)
-  SelLength: number - The length of the current selection. (readonly)
+  CaretPos: Point - The posaition of the caret
+  PasswordChar: string[1] - When not set to char0 this will make the edit field show the character instead of the given text
+  SelText: string - The current selected contents of the edit field 
+  SelStart: number - The starting index of the current selection (zero-indexed)
+  SelLength: number - The length of the current selection. 
   OnChange: function - The function to call when the editfield is changed
   OnKeyPress: function - The function to call for the KeyPress event.
   OnKeyUp: function - The function to call for the KeyUp event.
@@ -2980,6 +2982,8 @@ properties
   StackEntry[index]: bytearray - The stacksnapshot of that entry. Nil if not available
 
 methods
+
+
 
 TfrmUltimap2 class(Inheritance: Form->ScrollingWinControl->CustomControl->WinControl->Control->Component->Object) 
 getUltimap2(): TfrmUltimap2 - Returns the ultimap2 form, nil if not open

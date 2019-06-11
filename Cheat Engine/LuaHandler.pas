@@ -111,7 +111,7 @@ uses mainunit, mainunit2, luaclass, frmluaengineunit, plugin, pluginexports,
   xinput, winsapi, frmExeTrainerGeneratorUnit, CustomBase85, FileUtil, networkConfig,
   LuaCustomType, Filehandler, LuaSQL, frmSelectionlistunit, cpuidUnit, LuaRemoteThread,
   LuaManualModuleLoader, pointervaluelist, frmEditHistoryUnit, LuaCheckListBox,
-  LuaDiagram, frmUltimap2Unit;
+  LuaDiagram, frmUltimap2Unit, frmcodefilterunit;
 
   {$warn 5044 off}
 
@@ -11959,6 +11959,7 @@ begin
 
     initializeLuaDiagram;
     initializeLuaUltimap2;
+    initializeLuaCodeFilter;
 
 
 
