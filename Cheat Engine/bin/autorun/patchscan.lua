@@ -351,8 +351,12 @@ Hold shift/ctrl to select multiple modules]]
     local miRestore=createMenuItem(pm)
     local miPatch=createMenuItem(pm)
 
+    pm.Images=getMemoryViewForm().mvImageList
+
     miRestore.Caption='Restore with original'
+    miRestore.ImageIndex=44
     miPatch.Caption='Reapply patch'
+    miPatch.ImageIndex=49
     pm.Items.add(miRestore)
     pm.Items.add(miPatch)
 
