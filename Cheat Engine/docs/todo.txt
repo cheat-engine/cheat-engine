@@ -42,3 +42,4 @@ a timer causing a lua_error will eventually show c stack overflow
 
 
 dbvm: add maps and use them for cloaked regions
+mono plugin: When enumerating classes instead of getting a class get the typedefs only and get the info from the typedef info until an actual class is requested/expanded
