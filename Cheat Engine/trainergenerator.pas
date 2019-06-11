@@ -47,7 +47,7 @@ type
     edtPopupHotkey: TEdit;
     fnXM: TFileNameEdit;
     GroupBox2: TGroupBox;
-    ImageList1: TImageList;
+    tgImageList: TImageList;
     Label1: TLabel;
     Label2: TLabel;
     Label3: TLabel;
@@ -522,8 +522,8 @@ begin
 
   playbitmap:=TBitmap.Create;
   stopbitmap:=TBitmap.Create;
-  ImageList1.GetBitmap(0, playbitmap);
-  ImageList1.GetBitmap(1, stopbitmap);
+  tgImageList.GetBitmap(0, playbitmap);
+  tgImageList.GetBitmap(1, stopbitmap);
 
   sbPlayStopXM.Glyph:=playbitmap;
 end;
