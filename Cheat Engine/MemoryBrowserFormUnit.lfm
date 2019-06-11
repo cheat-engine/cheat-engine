@@ -1,7 +1,7 @@
 object MemoryBrowser: TMemoryBrowser
-  Left = 1159
+  Left = 881
   Height = 460
-  Top = 233
+  Top = 264
   Width = 622
   HelpContext = 12
   Caption = 'Memory Viewer'
@@ -998,10 +998,12 @@ object MemoryBrowser: TMemoryBrowser
       ImageIndex = 4
       object MenuItem6: TMenuItem
         Caption = 'Break on Write'
+        ImageIndex = 11
         OnClick = MenuItem6Click
       end
       object MenuItem5: TMenuItem
         Caption = 'Break on Access'
+        ImageIndex = 11
         OnClick = MenuItem5Click
       end
       object MenuItem7: TMenuItem
@@ -1009,14 +1011,17 @@ object MemoryBrowser: TMemoryBrowser
       end
       object MenuItem8: TMenuItem
         Caption = 'Break and trace'
+        ImageIndex = 11
         OnClick = MenuItem8Click
       end
       object miFindWhatAccesses: TMenuItem
         Caption = 'Find out what accesses this address'
+        ImageIndex = 10
         OnClick = miFindWhatAccessesClick
       end
       object miFindWhatWrites: TMenuItem
         Caption = 'Find out what writes this address'
+        ImageIndex = 10
         OnClick = miFindWhatWritesClick
       end
     end
