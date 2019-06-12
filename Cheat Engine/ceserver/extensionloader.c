@@ -92,7 +92,7 @@ int WaitForPid()
     pid=waitpid(-1, &status, __WALL);
     if ((pid==-1) && (errno!=EINTR))
     {
-      printf("LoadExtension wait fail. :%d\n", errno);
+      debug_log("LoadExtension wait fail. :%d\n", errno);
       return -1; //something bad happened
     }
   }
@@ -120,25 +120,25 @@ int showRegisters(int pid)
 
   if (result!=0)
   {
-    printf("PTRACE_GETREGS FAILED (%d)\n", result);
+    debug_log("PTRACE_GETREGS FAILED (%d)\n", result);
     return result;
   }
 
 #ifdef __arm__
-  printf("r0=%lx\n", r.ARM_r0);
-  printf("orig_r0=%lx\n", r.ARM_ORIG_r0);
-  printf("pc=%lx\n", r.ARM_pc);
+  debug_log("r0=%lx\n", r.ARM_r0);
+  debug_log("orig_r0=%lx\n", r.ARM_ORIG_r0);
+  debug_log("pc=%lx\n", r.ARM_pc);
 #else
   #if defined(__x86_64__)
-    printf("RAX=%lx\n", r.rax);
-    printf("orig_rax=%lx\n", r.orig_rax);
-    printf("rip=%lx\n", r.rip);
+    debug_log("RAX=%lx\n", r.rax);
+    debug_log("orig_rax=%lx\n", r.orig_rax);
+    debug_log("rip=%lx\n", r.rip);
   #endif
 
   #if defined(__i386__)
-    printf("EAX=%lx\n", r.eax);
-    printf("orig_eax=%lx\n", r.orig_eax);
-    printf("eip=%lx\n", r.eip);
+    debug_log("EAX=%lx\n", r.eax);
+    debug_log("orig_eax=%lx\n", r.orig_eax);
+    debug_log("eip=%lx\n", r.eip);
   #endif
 #endif
 */
@@ -151,14 +151,14 @@ uintptr_t finddlopen(int pid)
     void *realdlopen;
   libdl=dlopen("libdl.so", RTLD_NOW);
 
-    printf("libdl=%p\n", libdl);
+    debug_log("libdl=%p\n", libdl);
 
     realdlopen=dlsym(libdl,"dlopen");
-    printf("dlopen=%p\n", dlopen);
-    printf("realdlopen=%p\n", realdlopen);
+    debug_log("dlopen=%p\n", dlopen);
+    debug_log("realdlopen=%p\n", realdlopen);
 #ifndef __arm__
     if (dlopen==realdlopen)
-      printf("Please tell db what you did to get this to function (excluding manually editing this if statement)\n");
+      debug_log("Please tell db what you did to get this to function (excluding manually editing this if statement)\n");
 #endif
 
 
@@ -179,7 +179,7 @@ uintptr_t finddlopen(int pid)
     {
       unsigned long long start;
       unsigned long long stop;
-      printf("%s", x);
+      debug_log("%s", x);
 
       sscanf(x, "%llx-%llx %*s %*s %*s %*s %s\n", &start, &stop, modulepath);
 
@@ -196,7 +196,7 @@ uintptr_t finddlopen(int pid)
       {
         unsigned int offset=(uintptr_t)realdlopen-currentmodulestart;
         char mapsfilename[255];
-        printf("found it. Module: %s Offset=%x\n", currentmodule, offset);
+        debug_log("found it. Module: %s Offset=%x\n", currentmodule, offset);
 
         //find this module in the target process and apply this offset to get the address of dlopen
         sprintf(mapsfilename, "/proc/%d/maps", pid);
@@ -220,15 +220,15 @@ uintptr_t finddlopen(int pid)
              }
 
 
-             printf("%s", y);
+             debug_log("%s", y);
 
              modulepath[0]='\0';
              sscanf(y, "%llx-%llx %*s %*s %*s %*s %s\n", &start, &stop, modulepath);
 
-             printf("Check if '%s' == '%s'\n", modulepath, currentmodule);
+             debug_log("Check if '%s' == '%s'\n", modulepath, currentmodule);
              if (strcmp(modulepath, currentmodule)==0)
              {
-                printf("found the module in the target process\n");
+                debug_log("found the module in the target process\n");
                 fclose(maps);
                 fclose(maps2);
                 return start+offset;
@@ -239,14 +239,14 @@ uintptr_t finddlopen(int pid)
         }
         else
         {
-           printf("Failure to open %s\n", mapsfilename);
+           debug_log("Failure to open %s\n", mapsfilename);
         }
 
 
         fclose(maps);
         return 0;
       }
-      else printf("Nope\n");
+      else debug_log("Nope\n");
 
     }
 
@@ -262,7 +262,7 @@ void writeString(int pid, uintptr_t address, char *string)
   int bs;
   i=0;
 
-  printf("l=%d\n", l);
+  debug_log("l=%d\n", l);
 
 
   while (i<l)
@@ -279,7 +279,7 @@ void writeString(int pid, uintptr_t address, char *string)
       bs=1;
     }
 
-    ptrace(PTRACE_POKEDATA, pid, address+i, v);
+    safe_ptrace(PTRACE_POKEDATA, pid, address+i, v);
     i+=bs;
   }
 }
@@ -291,7 +291,7 @@ int openExtension(int pid, int *openedSocket)
   int al;
   char name[256];
   s=socket(AF_UNIX, SOCK_STREAM, 0);
-  printf("s=%d\n", s);
+  debug_log("s=%d\n", s);
 
   sprintf(name, " ceserver_extension%d", pid);
 
@@ -306,7 +306,7 @@ int openExtension(int pid, int *openedSocket)
 
   if (i==0)
   {
-    printf("Successful connection\n");
+    debug_log("Successful connection\n");
     *openedSocket=s;
     return 1;
   }
@@ -336,38 +336,38 @@ int loadExtension(int pid, char *path, int isBeingDebugged)
     int status;
     int pathlen=strlen(path)+1; //0-terminater
 
-    printf("loadExtension(%d, %s, %d)\n", pid, path, isBeingDebugged);
+    debug_log("loadExtension(%d, %s, %d)\n", pid, path, isBeingDebugged);
 
-    printf("Phase 0: Check if it's already open\n");
+    debug_log("Phase 0: Check if it's already open\n");
     if (isExtensionLoaded(pid))
     {
-      printf("Already loaded\n");
+      debug_log("Already loaded\n");
       return TRUE;
     }
     else
-      printf("Not yet loaded\n");
+      debug_log("Not yet loaded\n");
 
 
 
-    printf("Phase 1: Find dlopen in target\n");
+    debug_log("Phase 1: Find dlopen in target\n");
 
     dlopen=finddlopen(pid);
-    printf("dlopen=%p\n", (void *)dlopen);
+    debug_log("dlopen=%p\n", (void *)dlopen);
 
     if (!isBeingDebugged)
     {
-      ptrace(PTRACE_ATTACH, pid, 0,0);
+      safe_ptrace(PTRACE_ATTACH, pid, 0,0);
 
       pid=WaitForPid();
-      printf("After wait. PID=%d\n", pid);
-      ptrace(PTRACE_CONT,pid,0,0);
+      debug_log("After wait. PID=%d\n", pid);
+      safe_ptrace(PTRACE_CONT,pid,0,0);
     }
 
-    printf("Killing pid %d\n", pid);
+    debug_log("Killing pid %d\n", pid);
     int e=kill(pid, SIGSTOP);
 
-    printf("kill returned %d\n", e);
-    printf("Waiting...\n");
+    debug_log("kill returned %d\n", e);
+    debug_log("Waiting...\n");
     pid=WaitForPid();
 
 
@@ -412,8 +412,8 @@ printf("After wait 2. PID=%d\n", pid);
       if (ptrace(PTRACE_GETREGS, pid, 0, &newregs)!=0)
 #endif
       {
-        printf("PTRACE_GETREGS FAILED\n");
-        ptrace(PTRACE_DETACH, pid,0,0);
+        debug_log("PTRACE_GETREGS FAILED\n");
+        safe_ptrace(PTRACE_DETACH, pid,0,0);
 
         return FALSE;
       }
@@ -426,8 +426,8 @@ printf("After wait 2. PID=%d\n", pid);
       if (ptrace(PTRACE_GETREGS, pid, 0, &origregs)!=0)
 #endif
       {
-        printf("PTRACE_GETREGS FAILED 2\n");
-        ptrace(PTRACE_DETACH, pid,0,0);
+        debug_log("PTRACE_GETREGS FAILED 2\n");
+        safe_ptrace(PTRACE_DETACH, pid,0,0);
 
         return FALSE;
       }
@@ -454,7 +454,7 @@ printf("After wait 2. PID=%d\n", pid);
       if (newregs.ARM_pc & 1)
       {
          //THUMB Address link
-         printf("THUMB destination\n");
+         debug_log("THUMB destination\n");
          newregs.ARM_cpsr=newregs.ARM_cpsr | (1 << 5);
 
          //not sure how to set the J bit (thumbee uses it...)
@@ -465,31 +465,31 @@ printf("After wait 2. PID=%d\n", pid);
       }
       else
       {
-        printf("ARM destination\n");
-        printf("newregs.ARM_cpsr was %x\n", newregs.ARM_cpsr);
+        debug_log("ARM destination\n");
+        debug_log("newregs.ARM_cpsr was %x\n", newregs.ARM_cpsr);
         newregs.ARM_cpsr=newregs.ARM_cpsr & (~(1<<5)); //unset T
         newregs.ARM_cpsr=newregs.ARM_cpsr & (~(1<<25)); //unset J
-        printf("newregs.ARM_cpsr is %x\n", newregs.ARM_cpsr);
+        debug_log("newregs.ARM_cpsr is %x\n", newregs.ARM_cpsr);
       }
 
-      printf("r0=%lx\n", origregs.ARM_r0);
-      printf("orig_r0=%lx\n", origregs.ARM_ORIG_r0);
-      printf("pc=%lx\n", origregs.ARM_pc);
-      printf("cpsr=%lx\n", origregs.ARM_cpsr);
+      debug_log("r0=%lx\n", origregs.ARM_r0);
+      debug_log("orig_r0=%lx\n", origregs.ARM_ORIG_r0);
+      debug_log("pc=%lx\n", origregs.ARM_pc);
+      debug_log("cpsr=%lx\n", origregs.ARM_cpsr);
 
 #endif
 
 #ifdef __aarch64__
-      printf("extensionloader is not implemented yet for aarch64\n");
+      debug_log("extensionloader is not implemented yet for aarch64\n");
       return FALSE;
 #endif
 
 #ifdef __x86_64__
-      printf("rax=%lx\n", origregs.rax);
-      printf("rbp=%lx\n", origregs.rbp);
-      printf("rsp=%lx\n", origregs.rsp);
-      printf("orig_rax=%lx\n", origregs.orig_rax);
-      printf("rip=%lx\n", origregs.rip);
+      debug_log("rax=%lx\n", origregs.rax);
+      debug_log("rbp=%lx\n", origregs.rbp);
+      debug_log("rsp=%lx\n", origregs.rsp);
+      debug_log("orig_rax=%lx\n", origregs.orig_rax);
+      debug_log("rip=%lx\n", origregs.rip);
 
 
 
@@ -499,37 +499,37 @@ printf("After wait 2. PID=%d\n", pid);
       //check that the first 4 bits of rsp are 1000 (8) (aligned with the function return push)
       if ((newregs.rsp & 0xf)!=8)
       {
-        printf("Aligning stack.  Was %llx", newregs.rsp);
+        debug_log("Aligning stack.  Was %llx", newregs.rsp);
         newregs.rsp-=8;
         newregs.rsp&=~(0xf); //clear the first 4 bits
 
         newregs.rsp=newregs.rsp | 8; //set to 8
 
-        printf(" is now %llx\n", newregs.rsp);
+        debug_log(" is now %llx\n", newregs.rsp);
       }
       //set the return address
 
-      printf("Writing 0x0ce0 to %lx\n", newregs.rsp);
+      debug_log("Writing 0x0ce0 to %lx\n", newregs.rsp);
       if (ptrace(PTRACE_POKEDATA, pid, newregs.rsp, returnaddress)!=0)
       {
-        printf("Failed to write return address\n");
-        ptrace(PTRACE_DETACH, pid,0,0);
+        debug_log("Failed to write return address\n");
+        safe_ptrace(PTRACE_DETACH, pid,0,0);
 
         return FALSE;
       }
 
       if (ptrace(PTRACE_POKEDATA, pid, newregs.rsp-8, returnaddress)!=0)
       {
-        printf("Fuck\n");
-        ptrace(PTRACE_DETACH, pid,0,0);
+        debug_log("Fuck\n");
+        safe_ptrace(PTRACE_DETACH, pid,0,0);
 
         return FALSE;
       }
 
       if (ptrace(PTRACE_POKEDATA, pid, newregs.rsp+8, returnaddress)!=0)
       {
-        printf("Fuck\n");
-        ptrace(PTRACE_DETACH, pid,0,0);
+        debug_log("Fuck\n");
+        safe_ptrace(PTRACE_DETACH, pid,0,0);
 
         return FALSE;
       }
@@ -540,12 +540,12 @@ printf("After wait 2. PID=%d\n", pid);
      str=newregs.rsp+0x18;
      writeString(pid, str, path);
 
-     printf("str=%p\n", (void *)str);
+     debug_log("str=%p\n", (void *)str);
 
 
 
      returnaddress=ptrace(PTRACE_PEEKDATA, pid, newregs.rsp, 0);
-     printf("[%lx]=%lx", newregs.rsp, returnaddress);
+     debug_log("[%lx]=%lx", newregs.rsp, returnaddress);
 
 
       newregs.rip=dlopen; //+2 //(test)
@@ -556,23 +556,23 @@ printf("After wait 2. PID=%d\n", pid);
 #endif
 
 #ifdef __i386__
-    printf("eax=%lx\n", origregs.eax);
-    printf("ebp=%lx\n", origregs.ebp);
-    printf("esp=%lx\n", origregs.esp);
-    printf("orig_eax=%lx\n", origregs.orig_eax);
-    printf("eip=%lx\n", origregs.eip);
+    debug_log("eax=%lx\n", origregs.eax);
+    debug_log("ebp=%lx\n", origregs.ebp);
+    debug_log("esp=%lx\n", origregs.esp);
+    debug_log("orig_eax=%lx\n", origregs.orig_eax);
+    debug_log("eip=%lx\n", origregs.eip);
 
     //allocate stackspace
     newregs.esp=newregs.esp-0x28-(8*((pathlen+7) / 8));
     if ((newregs.esp & 0xf)!=8)
     {
-      printf("Aligning stack.  Was %llx", newregs.esp);
+      debug_log("Aligning stack.  Was %llx", newregs.esp);
       newregs.esp-=8;
       newregs.esp&=~(0xf); //clear the first 4 bits
 
       newregs.esp=newregs.esp | 8; //set to 8
 
-      printf(" is now %llx\n", newregs.esp);
+      debug_log(" is now %llx\n", newregs.esp);
     }
 
     //in 32-bit the stack will have to look like:
@@ -586,24 +586,24 @@ printf("After wait 2. PID=%d\n", pid);
 
     if (ptrace(PTRACE_POKEDATA, pid, newregs.esp+0, returnaddress)!=0)
     {
-      printf("Fuck\n");
-      ptrace(PTRACE_DETACH, pid,0,0);
+      debug_log("Fuck\n");
+      safe_ptrace(PTRACE_DETACH, pid,0,0);
 
       return FALSE;
     }
 
     if (ptrace(PTRACE_POKEDATA, pid, newregs.esp+4, newregs.esp+12)!=0)
     {
-      printf("Fuck2\n");
-      ptrace(PTRACE_DETACH, pid,0,0);
+      debug_log("Fuck2\n");
+      safe_ptrace(PTRACE_DETACH, pid,0,0);
 
       return FALSE;
     }
 
     if (ptrace(PTRACE_POKEDATA, pid, newregs.esp+8, RTLD_NOW)!=0)
     {
-      printf("Fuck3\n");
-      ptrace(PTRACE_DETACH, pid,0,0);
+      debug_log("Fuck3\n");
+      safe_ptrace(PTRACE_DETACH, pid,0,0);
 
       return FALSE;
     }
@@ -622,8 +622,8 @@ printf("After wait 2. PID=%d\n", pid);
       if (ptrace(PTRACE_SETREGS, pid, 0, &newregs)!=0)
 #endif
       {
-        printf("PTRACE_SETREGS FAILED\n");
-        ptrace(PTRACE_DETACH, pid,0,0);
+        debug_log("PTRACE_SETREGS FAILED\n");
+        safe_ptrace(PTRACE_DETACH, pid,0,0);
 
         return FALSE;
       }
@@ -636,51 +636,51 @@ printf("After wait 2. PID=%d\n", pid);
       if (ptrace(PTRACE_GETREGS, pid, 0, &newregs)!=0)
 #endif
       {
-        printf("PTRACE_GETREGS FAILED 4\n");
-        ptrace(PTRACE_DETACH, pid,0,0);
+        debug_log("PTRACE_GETREGS FAILED 4\n");
+        safe_ptrace(PTRACE_DETACH, pid,0,0);
 
         return FALSE;
       }
 
-     printf("after setregs:\n");
+     debug_log("after setregs:\n");
 
 #ifdef __arm__
-     printf("r0=%lx\n", newregs.ARM_r0);
-     printf("orig_r0=%lx\n", newregs.ARM_ORIG_r0);
-     printf("pc=%lx\n", newregs.ARM_pc);
-     printf("cpsr=%lx\n", newregs.ARM_cpsr);
+     debug_log("r0=%lx\n", newregs.ARM_r0);
+     debug_log("orig_r0=%lx\n", newregs.ARM_ORIG_r0);
+     debug_log("pc=%lx\n", newregs.ARM_pc);
+     debug_log("cpsr=%lx\n", newregs.ARM_cpsr);
 #endif
 
 #ifdef __x86_64__
-     printf("rax=%lx\n", newregs.rax);
-     printf("rdi=%lx\n", newregs.rdi);
-     printf("rsi=%lx\n", newregs.rsi);
-     printf("rbp=%lx\n", newregs.rbp);
-     printf("rsp=%lx\n", newregs.rsp);
-     printf("orig_rax=%lx\n", newregs.orig_rax);
-     printf("rip=%lx\n", newregs.rip);
+     debug_log("rax=%lx\n", newregs.rax);
+     debug_log("rdi=%lx\n", newregs.rdi);
+     debug_log("rsi=%lx\n", newregs.rsi);
+     debug_log("rbp=%lx\n", newregs.rbp);
+     debug_log("rsp=%lx\n", newregs.rsp);
+     debug_log("orig_rax=%lx\n", newregs.orig_rax);
+     debug_log("rip=%lx\n", newregs.rip);
 #endif
 
 #ifdef __i386__
-     printf("eax=%lx\n", newregs.eax);
-     printf("edi=%lx\n", newregs.edi);
-     printf("esi=%lx\n", newregs.esi);
-     printf("ebp=%lx\n", newregs.ebp);
-     printf("esp=%lx\n", newregs.esp);
-     printf("orig_eax=%lx\n", newregs.orig_eax);
-     printf("eip=%lx\n", newregs.eip);
+     debug_log("eax=%lx\n", newregs.eax);
+     debug_log("edi=%lx\n", newregs.edi);
+     debug_log("esi=%lx\n", newregs.esi);
+     debug_log("ebp=%lx\n", newregs.ebp);
+     debug_log("esp=%lx\n", newregs.esp);
+     debug_log("orig_eax=%lx\n", newregs.orig_eax);
+     debug_log("eip=%lx\n", newregs.eip);
 #endif //__x86_64__
 
-    printf("\n\nContinuing thread\n");
+    debug_log("\n\nContinuing thread\n");
 
 
     int ptr;
     ptr=ptrace(PTRACE_CONT,pid,(void *)0,(void *)SIGCONT);
 
-    printf("PRACE_CONT=%d\n", ptr);
+    debug_log("PRACE_CONT=%d\n", ptr);
     if (ptr!=0)
       {
-        printf("PTRACE_CONT FAILED\n");
+        debug_log("PTRACE_CONT FAILED\n");
         return 1;
       }
 
@@ -693,28 +693,28 @@ printf("After wait 2. PID=%d\n", pid);
 
         if ((pid==-1) && (errno!=EINTR))
         {
-          printf("LoadExtension wait fail. :%d\n", errno);
+          debug_log("LoadExtension wait fail. :%d\n", errno);
 
           return FALSE;
         }
 
         if (pid==0)
           pid=-1;
-        printf(".");
+        debug_log(".");
       }
 
-     printf("after wait: pid=%d (status=%x)\n", pid, status);
+     debug_log("after wait: pid=%d (status=%x)\n", pid, status);
 
      siginfo_t si;
      if (ptrace(PTRACE_GETSIGINFO, pid, NULL, &si)!=0)
      {
-       printf("GETSIGINFO FAILED\n");
-       ptrace(PTRACE_DETACH, pid,0,0);
+       debug_log("GETSIGINFO FAILED\n");
+       safe_ptrace(PTRACE_DETACH, pid,0,0);
 
        return FALSE;
      }
 
-     printf("si.si_signo=%d\n", si.si_signo);
+     debug_log("si.si_signo=%d\n", si.si_signo);
 
 
 
@@ -726,38 +726,38 @@ printf("After wait 2. PID=%d\n", pid);
      if (ptrace(PTRACE_GETREGS, pid, 0, &newregs)!=0)
 #endif
      {
-       printf("PTRACE_GETREGS FAILED (2)\n");
-       ptrace(PTRACE_DETACH, pid,0,0);
+       debug_log("PTRACE_GETREGS FAILED (2)\n");
+       safe_ptrace(PTRACE_DETACH, pid,0,0);
 
        return FALSE;
      }
 
 #ifdef __arm__
-    printf("r0=%lx\n", newregs.ARM_r0);
-    printf("orig_r0=%lx\n", newregs.ARM_ORIG_r0);
-    printf("pc=%lx\n", newregs.ARM_pc);
-    printf("sp=%lx\n", newregs.ARM_sp);
-    printf("cpsr=%lx\n", newregs.ARM_cpsr);
+    debug_log("r0=%lx\n", newregs.ARM_r0);
+    debug_log("orig_r0=%lx\n", newregs.ARM_ORIG_r0);
+    debug_log("pc=%lx\n", newregs.ARM_pc);
+    debug_log("sp=%lx\n", newregs.ARM_sp);
+    debug_log("cpsr=%lx\n", newregs.ARM_cpsr);
 #endif
 
 #ifdef __x86_64__
-    printf("rax=%lx\n", newregs.rax);
-    printf("rdi=%lx\n", newregs.rdi);
-    printf("rsi=%lx\n", newregs.rsi);
-    printf("rbp=%lx\n", newregs.rbp);
-    printf("rsp=%lx\n", newregs.rsp);
-    printf("orig_rax=%lx\n", newregs.rax);
-    printf("rip=%lx\n", newregs.rip);
+    debug_log("rax=%lx\n", newregs.rax);
+    debug_log("rdi=%lx\n", newregs.rdi);
+    debug_log("rsi=%lx\n", newregs.rsi);
+    debug_log("rbp=%lx\n", newregs.rbp);
+    debug_log("rsp=%lx\n", newregs.rsp);
+    debug_log("orig_rax=%lx\n", newregs.rax);
+    debug_log("rip=%lx\n", newregs.rip);
 #endif
 
 #ifdef __i386__
-     printf("eax=%lx\n", newregs.eax);
-     printf("edi=%lx\n", newregs.edi);
-     printf("esi=%lx\n", newregs.esi);
-     printf("ebp=%lx\n", newregs.ebp);
-     printf("esp=%lx\n", newregs.esp);
-     printf("orig_eax=%lx\n", newregs.eax);
-     printf("eip=%lx\n", newregs.eip);
+     debug_log("eax=%lx\n", newregs.eax);
+     debug_log("edi=%lx\n", newregs.edi);
+     debug_log("esi=%lx\n", newregs.esi);
+     debug_log("ebp=%lx\n", newregs.ebp);
+     debug_log("esp=%lx\n", newregs.esp);
+     debug_log("orig_eax=%lx\n", newregs.eax);
+     debug_log("eip=%lx\n", newregs.eip);
 #endif
 
 
@@ -769,29 +769,29 @@ printf("After wait 2. PID=%d\n", pid);
      if (ptrace(PTRACE_SETREGS, pid, 0, &origregs)!=0)
 #endif
      {
-       printf("PTRACE_SETREGS FAILED (20\n");
+       debug_log("PTRACE_SETREGS FAILED (20\n");
      }
 
      if (!isBeingDebugged)
      {
-       printf("Detaching\n");
+       debug_log("Detaching\n");
        if (ptrace(PTRACE_DETACH, pid,0,0)!=0)
-         printf("PTRACE_DETACH FAILED\n");
+         debug_log("PTRACE_DETACH FAILED\n");
      }
      else
      {
        if (ptrace(PTRACE_CONT,pid,(void *)0,(void *)SIGCONT)!=0)
-         printf("PTRACE_CONT failed\n");
+         debug_log("PTRACE_CONT failed\n");
      }
 
 
-     printf("End...\n");
+     debug_log("End...\n");
 
 }
 
 int loadCEServerExtension(HANDLE hProcess)
 {
-  printf("loadCEServerExtension\n");
+  debug_log("loadCEServerExtension\n");
   if (GetHandleType(hProcess) == htProcesHandle )
   {
     PProcessData p=(PProcessData)GetPointerFromHandle(hProcess);
@@ -799,11 +799,11 @@ int loadCEServerExtension(HANDLE hProcess)
 
     if (p->isDebugged)
     {
-      printf("this process id being debugged\n");
+      debug_log("this process id being debugged\n");
       //make sure this is executed by the debugger thread
       if (p->debuggerThreadID!=pthread_self())
       {
-        printf("Not the debugger thread. Switching...\n");
+        debug_log("Not the debugger thread. Switching...\n");
         //tell the debugger thread to do this
         int result=0;
 #pragma pack(1)
@@ -822,7 +822,7 @@ int loadCEServerExtension(HANDLE hProcess)
           WakeDebuggerThread();
 
           recvall(p->debuggerClient, &result, sizeof(result), MSG_WAITALL);
-          printf("Returned from debugger thread. Result:%d\n", result);
+          debug_log("Returned from debugger thread. Result:%d\n", result);
 
           pthread_mutex_unlock(&debugsocketmutex);
         }
@@ -830,7 +830,7 @@ int loadCEServerExtension(HANDLE hProcess)
         return result;
       }
       else
-        printf("This is the debugger thread\n");
+        debug_log("This is the debugger thread\n");
     }
 
 
@@ -851,13 +851,13 @@ int loadCEServerExtension(HANDLE hProcess)
       if (l!=-1)
       {
         modulepath2[l]=0;
-        printf("modulepath2=%s\n", modulepath2);
+        debug_log("modulepath2=%s\n", modulepath2);
         sscanf(modulepath2,"%s", modulepath); //sometimes it has a (deleted) text after it
 
-        printf("modulepath=%s\n", modulepath);
+        debug_log("modulepath=%s\n", modulepath);
         mp=dirname(modulepath);
 
-        printf("after dirname: %s\n", mp);
+        debug_log("after dirname: %s\n", mp);
         strcpy(modulepath, mp);
         strcat(modulepath, "/libceserver-extension");
 
@@ -899,14 +899,14 @@ int loadCEServerExtension(HANDLE hProcess)
         strcat(modulepath,".so");
       }
 
-      printf("modulepath = %s\n", modulepath);
+      debug_log("modulepath = %s\n", modulepath);
 
 
 
 
       if (p->isDebugged)
       {
-        printf("This process is being debugged. Checking if it's already loaded\n");
+        debug_log("This process is being debugged. Checking if it's already loaded\n");
 
         pthread_mutex_lock(&p->extensionMutex);
         p->hasLoadedExtension=openExtension(p->pid, &p->extensionFD);
@@ -915,7 +915,7 @@ int loadCEServerExtension(HANDLE hProcess)
      // else
 
       if (p->hasLoadedExtension)
-        printf("The extension is already loaded\n");
+        debug_log("The extension is already loaded\n");
 
 
       {
@@ -925,10 +925,10 @@ int loadCEServerExtension(HANDLE hProcess)
 
           if (p->neverForceLoadExtension==0)
           {
-            printf("Calling loadExtension\n");
+            debug_log("Calling loadExtension\n");
             p->hasLoadedExtension=loadExtension(p->pid, modulepath, p->isDebugged);
 
-            printf("p->hasLoadedExtension=%d\n", p->hasLoadedExtension);
+            debug_log("p->hasLoadedExtension=%d\n", p->hasLoadedExtension);
           }
 
           if (p->hasLoadedExtension)
@@ -941,13 +941,13 @@ int loadCEServerExtension(HANDLE hProcess)
 
     }
     else
-      printf("Already loaded\n");
+      debug_log("Already loaded\n");
 
     return p->hasLoadedExtension;
   }
   else
   {
-    printf("Invalid handle type");
+    debug_log("Invalid handle type");
     return 0;
   }
 }
