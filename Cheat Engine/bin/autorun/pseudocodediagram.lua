@@ -1,86 +1,45 @@
 --[[pseudocodediagram.lua]]--
+
 local DPIAdjust=getScreenDPI()/96
 
-local diagramstyle = {}
-
-diagramstyle.instruction_registerstyle = '[31;1m' --red + bold
-diagramstyle.instruction_hexstyle = '[34;1m' --blue + bold
-diagramstyle.instruction_symbolstyle = '[32;1m' --green + bold
-diagramstyle.instruction_opcodestyle = '[1m' --bold
-
-diagramstyle.link_defaultcolor = 0x00FF00FF --fuchsia
-diagramstyle.link_nottakencolor = 0x000000FF --red
-diagramstyle.link_takencolor = 0x00FF0000 --blue
-diagramstyle.link_linethickness = 3*DPIAdjust
-diagramstyle.link_arrowsize = math.ceil(5*DPIAdjust)
-diagramstyle.link_pointdepth = 20*DPIAdjust --distance between links
-
-diagramstyle.block_headershowsymbol = true
-diagramstyle.block_bodyshowaddresses = false
+--Global
+diagramstyle = {}
+diagramstyle.instruction_registerstyle       = '[31;1m' --red + bold
+diagramstyle.instruction_hexstyle            = '[34;1m' --blue + bold
+diagramstyle.instruction_symbolstyle         = '[32;1m' --green + bold
+diagramstyle.instruction_opcodestyle         = '[1m' --bold
+diagramstyle.link_defaultcolor               = 0x00FF00FF --fuchsia
+diagramstyle.link_nottakencolor              = 0x000000FF --red
+diagramstyle.link_takencolor                 = 0x00FF0000 --blue
+diagramstyle.link_linethickness              = 3*DPIAdjust
+diagramstyle.link_arrowsize                  = math.ceil(5*DPIAdjust)
+diagramstyle.link_pointdepth                 = 20*DPIAdjust --distance between links
+diagramstyle.block_headershowsymbol          = true
+diagramstyle.block_bodyshowaddresses         = false
 diagramstyle.block_bodyshowaddressesassymbol = true
-diagramstyle.block_bodyshowbytes = false
-diagramstyle.block_backgroundcolor = 0x00FFFFFF --white
+diagramstyle.block_bodyshowbytes             = false
+diagramstyle.block_backgroundcolor           = 0x00FFFFFF --white
+diagramstyle.diagram_blackgroundcolor        = 0x0099FFCC --light green
 
-diagramstyle.diagram_blackgroundcolor = 0x0099FFCC --light green
-
-
-
-function editDiagramStyle(new_diagramstyle)
-  if (new_diagramstyle) then
-    if (new_diagramstyle.instruction_registerstyle ~= nil) then 
-      diagramstyle.instruction_registerstyle = new_diagramstyle.instruction_registerstyle end
-    if (new_diagramstyle.instruction_hexstyle ~= nil) then 
-      diagramstyle.instruction_hexstyle = new_diagramstyle.instruction_hexstyle end
-    if (new_diagramstyle.instruction_symbolstyle ~= nil) then 
-      diagramstyle.instruction_symbolstyle = new_diagramstyle.instruction_symbolstyle end
-    if (new_diagramstyle.instruction_opcodestyle ~= nil) then 
-      diagramstyle.instruction_opcodestyle = new_diagramstyle.instruction_opcodestyle end
-
-    if (new_diagramstyle.link_defaultcolor ~= nil) then
-      diagramstyle.link_defaultcolor = new_diagramstyle.link_defaultcolor end
-    if (new_diagramstyle.link_nottakencolor ~= nil) then
-      diagramstyle.link_nottakencolor = new_diagramstyle.link_nottakencolor end
-    if (new_diagramstyle.link_takencolor ~= nil) then
-      diagramstyle.link_takencolor = new_diagramstyle.link_takencolor end
-    if (new_diagramstyle.link_linethickness ~= nil) then
-      diagramstyle.link_linethickness = new_diagramstyle.link_linethickness end
-    if (new_diagramstyle.link_arrowsize ~= nil) then
-      diagramstyle.link_arrowsize = new_diagramstyle.link_arrowsize end
-    if (new_diagramstyle.link_pointdepth ~= nil) then
-      diagramstyle.link_pointdepth = new_diagramstyle.link_pointdepth end
-
-
-    if (new_diagramstyle.block_headershowsymbol ~= nil) then
-      diagramstyle.block_headershowsymbol = new_diagramstyle.block_headershowsymbol end
-    if (new_diagramstyle.block_bodyshowaddresses ~= nil) then
-      diagramstyle.block_bodyshowaddresses = new_diagramstyle.block_bodyshowaddresses end
-    if (new_diagramstyle.block_backgroundcolor ~= nil) then
-      diagramstyle.block_backgroundcolor = new_diagramstyle.block_backgroundcolor end
-    if (new_diagramstyle.block_bodyshowaddressesassymbol ~= nil) then
-      diagramstyle.block_bodyshowaddressesassymbol = new_diagramstyle.block_bodyshowaddressesassymbol end
-    if (new_diagramstyle.block_bodyshowbytes ~= nil) then
-      diagramstyle.block_bodyshowbytes = new_diagramstyle.block_bodyshowbytes end
-
-    if (new_diagramstyle.diagram_blackgroundcolor ~= nil) then
-      diagramstyle.diagram_blackgroundcolor = new_diagramstyle.diagram_blackgroundcolor end
-  end
-end
 
 function disassembleDecoratedInstruction(address)
   local disassembler, result, bytes, temp = getVisibleDisassembler(), ' '
   temp = disassembler.disassemble(address)
   temp, temp, bytes, temp = splitDisassembledString(temp)
-  if (diagramstyle.block_bodyshowaddresses and diagramstyle.block_bodyshowaddressesassymbol and inModule(address)) then result = result .. 
-                                                          string.char(27) .. diagramstyle.instruction_symbolstyle ..
-                                                          getNameFromAddress(disassembler.LastDisassembleData.address) .. 
-                                                          string.char(27) .. '[0m' ..  ' - '
-
-  elseif (diagramstyle.block_bodyshowaddresses) then result = result .. 
-                                                          string.format('%X', disassembler.LastDisassembleData.address) .. ' - ' end
+  if (diagramstyle.block_bodyshowaddresses and diagramstyle.block_bodyshowaddressesassymbol and inModule(address)) then 
+    result = result .. 
+             string.char(27) .. diagramstyle.instruction_symbolstyle ..
+             getNameFromAddress(disassembler.LastDisassembleData.address) .. 
+             string.char(27) .. '[0m' ..  ' - '
+  elseif (diagramstyle.block_bodyshowaddresses) then 
+    result = result .. 
+             string.format('%X', disassembler.LastDisassembleData.address) .. ' - ' 
+  end
   if (diagramstyle.block_bodyshowbytes) then result = result .. bytes .. ' - '  end
-  result =  result .. string.char(27).. diagramstyle.instruction_opcodestyle .. 
-                                        disassembler.LastDisassembleData.opcode ..
-                      string.char(27) .. '[0m' .. ' '
+  result =  result .. 
+            string.char(27).. diagramstyle.instruction_opcodestyle .. 
+            disassembler.LastDisassembleData.opcode ..
+            string.char(27) .. '[0m' .. ' '
   for word in string.gmatch(disassembler.LastDisassembleData.parameters,'[^{*}]*') do
     if result then
        if word == 'R' then --{R}=Register
@@ -102,12 +61,12 @@ function disassembleDecoratedInstruction(address)
 end
 
 function createDiagramForm(diagram, name)
-  diagram.form = createForm(false)
+  diagram.form=createForm(false)
   diagram.form.PopupMode='pmNone'
   diagram.form.BorderStyle='bsSizeable'
   diagram.form.Caption=name
-  diagram.form.Width=getScreenWidth() - (getScreenWidth() / 6)
-  diagram.form.Height=getScreenHeight() - (getScreenHeight() / 6)
+  diagram.form.Width=getScreenWidth()-(getScreenWidth()/6)
+  diagram.form.Height=getScreenHeight()-(getScreenHeight()/6)
 end
 
 function createMenu(diagram)
@@ -156,10 +115,8 @@ function createMenu(diagram)
       
       --todo: Perhaps save more
       
-      fs.destroy();
-      
+      fs.destroy() 
     end
-    
     fd.destroy()    
   end
   
@@ -175,7 +132,6 @@ function createMenu(diagram)
     if fd.Execute() then
       diagram.diagram.saveAsImage(fd.FileName)    
     end
-    
     fd.destroy()    
   end
   
@@ -233,7 +189,6 @@ function createMenu(diagram)
   
   --todo, add code to the menu items
 end
-
 
 function DiagramContextPopup(sender, mousepos)
   --sender is the diagram object
@@ -296,7 +251,7 @@ end
 
 function PopupMenuEditBlockBackgroundColorClick(sender) --a color dialog would be better
   local diagram=getRef(sender.Owner.Owner.Tag)
-  local newcolor = inputQuery("Edit", "new background color", string.format("%X", diagram.popup.lastobject.BackgroundColor))
+  local newcolor = inputQuery("Edit", "new block background color (0xBBGGRR)", string.format("%X", diagram.popup.lastobject.BackgroundColor))
   if newcolor ~= nil then 
     diagram.popup.lastobject.BackgroundColor = tonumber(newcolor, 16) 
     diagram.diagram.repaint()
@@ -310,7 +265,7 @@ function PopupMenuListSourcesClick(sender)
   for i=1, #linkz.asDestination do
     stringlist.add(getNameFromAddress(getRef(linkz.asDestination[i].OriginBlock.tag)))
   end
-  local index = showSelectionList("Source list", "", stringlist)
+  local index = showSelectionList("Sources list", "", stringlist)
   if linkz.asDestination[index+1] ~= nil then
     sourceblock = linkz.asDestination[index+1].OriginBlock
     scrollToDiagramBlock(diagram, sourceblock)
@@ -324,7 +279,7 @@ function PopupMenuListDestinationsClick(sender)
   for i=1, #linkz.asSource do
     stringlist.add(getNameFromAddress(getRef(linkz.asSource[i].DestinationBlock.tag)))
   end
-  local index = showSelectionList("Destination list", "", stringlist)
+  local index = showSelectionList("Destinations list", "", stringlist)
   if linkz.asSource[index+1] ~= nil then
     destinationblock = linkz.asSource[index+1].DestinationBlock
     scrollToDiagramBlock(diagram, destinationblock)
@@ -332,9 +287,8 @@ function PopupMenuListDestinationsClick(sender)
 end
 
 function createDiagramPopupMenu(diagram)
-  local mv=getMemoryViewForm()
   local pm=createPopupMenu(diagram.diagram)
-  pm.Images = mv.mvImageList --icons from the memoryviewer's form
+  pm.Images = getMemoryViewForm().mvImageList --icons from the memoryviewer's form
   diagram.diagram.PopupMenu=pm
   diagram.diagram.OnContextPopup=DiagramContextPopup
   
@@ -403,7 +357,6 @@ function createDiagramPopupMenu(diagram)
   pm.Items.add(diagram.popup.HeaderlessBlockItems[1])
 end
 
-
 function createDiagramDiagram(diagram)
   diagram.diagram = createDiagram(diagram.form)
   diagram.diagram.Align='alClient'
@@ -465,17 +418,14 @@ function createDiagramLink(diagram, sourceblock, destinationblock, color, offset
   local offset2 = 0
   local linkz = diagram.dblocks[destinationblock].getLinks()
   if #linkz.asDestination > 0 then
-    if math.fmod(#linkz.asDestination + 1,2) == 0 then
-      offset2 = (diagramstyle.link_pointdepth/2)*(#linkz.asDestination + 1)
-    else
-      offset2 = -(diagramstyle.link_pointdepth/2)*(#linkz.asDestination)
-    end
+    if math.fmod(#linkz.asDestination + 1,2) == 0 then offset2=(diagramstyle.link_pointdepth/2)*(#linkz.asDestination+1)
+    else offset2=-(diagramstyle.link_pointdepth/2)*(#linkz.asDestination) end
   end
 
-  if (diagram.dblocks[destinationblock].x + (diagram.dblocks[destinationblock].width / 2) + offset2) >= (diagram.dblocks[destinationblock].x + diagram.dblocks[destinationblock].width) then
-    diagram.dblocks[destinationblock].width = diagram.dblocks[destinationblock].width + math.abs((diagram.dblocks[destinationblock].x + diagram.dblocks[destinationblock].width) - (diagram.dblocks[destinationblock].x + (diagram.dblocks[destinationblock].width / 2) + offset2)) + 40*DPIAdjust
-  elseif (diagram.dblocks[destinationblock].x + (diagram.dblocks[destinationblock].width / 2) + offset2) <= diagram.dblocks[destinationblock].x then
-    diagram.dblocks[destinationblock].width = diagram.dblocks[destinationblock].width + math.abs(diagram.dblocks[destinationblock].x - (diagram.dblocks[destinationblock].x + (diagram.dblocks[destinationblock].width / 2) + offset2)) + 40*DPIAdjust
+  if (diagram.dblocks[destinationblock].x+(diagram.dblocks[destinationblock].width/2)+offset2) >= (diagram.dblocks[destinationblock].x+diagram.dblocks[destinationblock].width) then
+    diagram.dblocks[destinationblock].width=diagram.dblocks[destinationblock].width+math.abs((diagram.dblocks[destinationblock].x+diagram.dblocks[destinationblock].width)-(diagram.dblocks[destinationblock].x+(diagram.dblocks[destinationblock].width/2)+offset2))+40*DPIAdjust
+  elseif (diagram.dblocks[destinationblock].x+(diagram.dblocks[destinationblock].width / 2) + offset2) <= diagram.dblocks[destinationblock].x then
+    diagram.dblocks[destinationblock].width=diagram.dblocks[destinationblock].width+math.abs(diagram.dblocks[destinationblock].x-(diagram.dblocks[destinationblock].x+(diagram.dblocks[destinationblock].width / 2)+offset2))+40*DPIAdjust
   end
   
   local destinationBSD={}
@@ -655,26 +605,26 @@ function ComputeBetterArrangement(diagram)
   pushLeft(branchqueue, 1) --starting block
 
   while (more) do 
-    more = false
+    more=false
     while branchqueue.first <= branchqueue.last do
       local nextbranch = popRight(branchqueue)
       for j=1, diagram.dpblocks[nextbranch].output_count do
         if not dvblocks[diagram.dpblocks[nextbranch].output[j]].visited then
           if diagram.dpblocks[diagram.dpblocks[nextbranch].output[j]].input_count_extra == 1 then
-            diagram.dpblocks[nextbranch].betteroutput[#diagram.dpblocks[nextbranch].betteroutput+1] = diagram.dpblocks[nextbranch].output[j]
+            diagram.dpblocks[nextbranch].betteroutput[#diagram.dpblocks[nextbranch].betteroutput+1]=diagram.dpblocks[nextbranch].output[j]
             diagram.dpblocks[nextbranch].betteroutput_count = #diagram.dpblocks[nextbranch].betteroutput
-            dvblocks[diagram.dpblocks[nextbranch].output[j]].visited = true
+            dvblocks[diagram.dpblocks[nextbranch].output[j]].visited=true
             pushLeft(branchqueue, diagram.dpblocks[nextbranch].output[j])
             more = true
           end
-          diagram.dpblocks[diagram.dpblocks[nextbranch].output[j]].input_count_extra = diagram.dpblocks[diagram.dpblocks[nextbranch].output[j]].input_count_extra - 1
+          diagram.dpblocks[diagram.dpblocks[nextbranch].output[j]].input_count_extra = diagram.dpblocks[diagram.dpblocks[nextbranch].output[j]].input_count_extra-1
         end
       end
     end
 
-    nextbranch.branch_min = nil
-    nextbranch.input_count_min = nil
-    nextbranch.input_min = nil
+    nextbranch.branch_min=nil
+    nextbranch.input_count_min=nil
+    nextbranch.input_min=nil
     
     for i=1, #diagram.dblocks do
       if dvblocks[i].visited then
@@ -682,20 +632,20 @@ function ComputeBetterArrangement(diagram)
           if not dvblocks[diagram.dpblocks[i].output[j]].visited then
             if (nextbranch.branch_min == nil) or (diagram.dpblocks[diagram.dpblocks[i].output[j]].input_count_extra == nextbranch.input_count_min) or 
             ((diagram.dpblocks[diagram.dpblocks[i].output[j]].input_count_extra == nextbranch.input_count_min) and (diagram.dpblocks[i].output[j] < nextbranch.branch_min)) then
-              nextbranch.branch_min = diagram.dpblocks[i].output[j]
-              nextbranch.input_count_min = diagram.dpblocks[diagram.dpblocks[i].output[j]].input_count_extra
-              nextbranch.input_min = i
+              nextbranch.branch_min=diagram.dpblocks[i].output[j]
+              nextbranch.input_count_min=diagram.dpblocks[diagram.dpblocks[i].output[j]].input_count_extra
+              nextbranch.input_min=i
             end
           end
         end
       end
     end
     if nextbranch.branch_min ~= nil then
-      diagram.dpblocks[nextbranch.input_min].betteroutput[#diagram.dpblocks[nextbranch.input_min].betteroutput+1] = nextbranch.branch_min
-      diagram.dpblocks[nextbranch.input_min].betteroutput_count = #diagram.dpblocks[nextbranch.input_min].betteroutput
-      dvblocks[nextbranch.branch_min].visited = true
+      diagram.dpblocks[nextbranch.input_min].betteroutput[#diagram.dpblocks[nextbranch.input_min].betteroutput+1]=nextbranch.branch_min
+      diagram.dpblocks[nextbranch.input_min].betteroutput_count=#diagram.dpblocks[nextbranch.input_min].betteroutput
+      dvblocks[nextbranch.branch_min].visited=true
       pushLeft(branchqueue, nextbranch.branch_min)
-      diagram.dpblocks[nextbranch.branch_min].input_count_extra = diagram.dpblocks[nextbranch.branch_min].input_count_extra - 1
+      diagram.dpblocks[nextbranch.branch_min].input_count_extra=diagram.dpblocks[nextbranch.branch_min].input_count_extra-1
       more = true
     end
   end
@@ -851,30 +801,30 @@ end
 function arrangeDiagramLayers(diagram)
   local x = 20*DPIAdjust
   for i=0, diagram.column_count-1 do
-    diagram.column[i].x = x
-    x = x + diagram.column[i].width
-    diagram.links_column[i].x = x
-    x = x + (diagramstyle.link_pointdepth * (diagram.row_max_depth[i].count)) + diagramstyle.link_pointdepth
+    diagram.column[i].x=x
+    x=x+diagram.column[i].width
+    diagram.links_column[i].x=x
+    x=x+(diagramstyle.link_pointdepth*diagram.row_max_depth[i].count)+diagramstyle.link_pointdepth
   end
-  diagram.row[-1].y = 0 --extra row
-  diagram.row[-1].height = diagramstyle.link_pointdepth * (diagram.column_links_count[-1].count) --size = inputs * pointdepth
-  local y = diagram.row[-1].height + diagramstyle.link_pointdepth
+  diagram.row[-1].y=0 --extra row
+  diagram.row[-1].height=diagramstyle.link_pointdepth * (diagram.column_links_count[-1].count) --size = inputs * pointdepth
+  local y=diagram.row[-1].height+diagramstyle.link_pointdepth
   for i=0, diagram.row_count-1 do
-    diagram.row[i].y = y 
-    y = y + diagram.row[i].height
-    diagram.links_row[i].y = y
-    y = y + (diagramstyle.link_pointdepth * (diagram.column_links_count[i].count)) + diagramstyle.link_pointdepth
+    diagram.row[i].y=y 
+    y=y+diagram.row[i].height
+    diagram.links_row[i].y=y
+    y=y+(diagramstyle.link_pointdepth*diagram.column_links_count[i].count)+diagramstyle.link_pointdepth
   end
-  diagram.column[diagram.column_count].x = x
-  diagram.row[diagram.row_count].y = y
-  diagram.links_column[diagram.column_count].x = x + diagram.column[diagram.column_count].width
-  diagram.links_row[diagram.row_count].y = y + diagram.row[diagram.row_count].height
+  diagram.column[diagram.column_count].x=x
+  diagram.row[diagram.row_count].y=y
+  diagram.links_column[diagram.column_count].x=x+diagram.column[diagram.column_count].width
+  diagram.links_row[diagram.row_count].y=y+diagram.row[diagram.row_count].height
 end
 
 function arrangeDiagramBlocks(diagram)
   for i=1, #diagram.dblocks do
-    diagram.dblocks[i].x = diagram.column[diagram.dpblocks[i].column].x + (diagram.column[diagram.dpblocks[i].column].width / 2) - (diagram.dblocks[i].width / 2)
-    diagram.dblocks[i].y = diagram.row[diagram.dpblocks[i].row].y
+    diagram.dblocks[i].x=diagram.column[diagram.dpblocks[i].column].x+(diagram.column[diagram.dpblocks[i].column].width/2)-(diagram.dblocks[i].width/2)
+    diagram.dblocks[i].y=diagram.row[diagram.dpblocks[i].row].y
   end
 end
 
@@ -884,24 +834,24 @@ function arrangeDiagramLinks(diagram)
       local origin_row=diagram.dpblocks[i].row
       local destination_row=diagram.dpblocks[diagram.dpblocks[i].output[j]].row
       local link=diagram.dpblocks[i].link[j]
-      local origin_index = i
-      local destination_index = diagram.dpblocks[i].output[j]
-      local input_index = diagramBlockInputToInputIndex(link.DestinationBlock, link.OriginBlock) + #diagram.dpblocks[destination_index].output    
-      link.addPoint(link.OriginBlock.X + (link.OriginBlock.Width / 2) + diagram.dpblocks[origin_index].odescriptor[j].Position, diagram.links_row[origin_row].y + diagramstyle.link_pointdepth * diagram.points[origin_index].output_input[j].point, 0)
+      local origin_index=i
+      local destination_index=diagram.dpblocks[i].output[j]
+      local input_index=diagramBlockInputToInputIndex(link.DestinationBlock, link.OriginBlock)+#diagram.dpblocks[destination_index].output    
+      link.addPoint(link.OriginBlock.X+(link.OriginBlock.Width/2)+diagram.dpblocks[origin_index].odescriptor[j].Position, diagram.links_row[origin_row].y+diagramstyle.link_pointdepth*diagram.points[origin_index].output_input[j].point, 0)
       if (origin_row+1 == destination_row) then
-        link.addPoint(link.DestinationBlock.X + (link.DestinationBlock.Width / 2) + diagram.dpblocks[origin_index].ddescriptor[j].Position, diagram.links_row[origin_row].y + diagramstyle.link_pointdepth * diagram.points[origin_index].output_input[j].point, 1)
+        link.addPoint(link.DestinationBlock.X+(link.DestinationBlock.Width/2)+diagram.dpblocks[origin_index].ddescriptor[j].Position, diagram.links_row[origin_row].y+diagramstyle.link_pointdepth*diagram.points[origin_index].output_input[j].point, 1)
       else
-        link.addPoint(diagram.links_column[diagram.dpblocks[destination_index].column].x + diagramstyle.link_pointdepth * diagram.points[origin_index].column[j].point, diagram.links_row[origin_row].y + diagramstyle.link_pointdepth * diagram.points[origin_index].output_input[j].point, 1)
-        link.addPoint(diagram.links_column[diagram.dpblocks[destination_index].column].x + diagramstyle.link_pointdepth * diagram.points[origin_index].column[j].point, diagram.links_row[destination_row-1].y + diagramstyle.link_pointdepth * diagram.points[destination_index].output_input[input_index].point, 2)
-        link.addPoint(link.DestinationBlock.X + (link.DestinationBlock.Width / 2) + diagram.dpblocks[origin_index].ddescriptor[j].Position, diagram.links_row[destination_row-1].y + diagramstyle.link_pointdepth * diagram.points[destination_index].output_input[input_index].point, 3)
+        link.addPoint(diagram.links_column[diagram.dpblocks[destination_index].column].x+diagramstyle.link_pointdepth*diagram.points[origin_index].column[j].point, diagram.links_row[origin_row].y+diagramstyle.link_pointdepth*diagram.points[origin_index].output_input[j].point, 1)
+        link.addPoint(diagram.links_column[diagram.dpblocks[destination_index].column].x+diagramstyle.link_pointdepth*diagram.points[origin_index].column[j].point, diagram.links_row[destination_row-1].y+diagramstyle.link_pointdepth*diagram.points[destination_index].output_input[input_index].point, 2)
+        link.addPoint(link.DestinationBlock.X+(link.DestinationBlock.Width/2)+diagram.dpblocks[origin_index].ddescriptor[j].Position, diagram.links_row[destination_row-1].y+diagramstyle.link_pointdepth*diagram.points[destination_index].output_input[input_index].point, 3)
       end
     end
   end
 end
 
 function centerDiagramBlock(diagram, dblock)
-  diagram.dblocks[dblock].x = (diagram.form.width/2)-(diagram.dblocks[dblock].width/2)
-  diagram.dblocks[dblock].y = (diagram.form.height/2)-(diagram.dblocks[dblock].height/2)
+  diagram.dblocks[dblock].x=(diagram.form.width/2)-(diagram.dblocks[dblock].width/2)
+  diagram.dblocks[dblock].y=(diagram.form.height/2)-(diagram.dblocks[dblock].height/2)
 end
 
 function moveEverything(diagram, offset)
@@ -955,9 +905,7 @@ function spawnDiagram(start, limit)
     arrangeDiagramLayers(diagram)
     arrangeDiagramBlocks(diagram)    
     arrangeDiagramLinks(diagram)
-  else
-    if #diagram.dblocks > 0 then centerDiagramBlock(diagram, 1) end
-  end
+  elseif #diagram.dblocks > 0 then centerDiagramBlock(diagram, 1) end
   createDiagramInfoBlock(diagram)
   diagram.form.Visible=true
   diagram.diagram.repaint()
@@ -982,7 +930,6 @@ mv.debuggerpopup.Items.insert(mv.MenuItem2.MenuIndex+1, mi)
 
 --[[
 diagram structure:
-
 diagram = {}
 diagram.form
 diagram.diagram
@@ -1002,14 +949,7 @@ diagram.column_links_count = {}
 diagram.row_max_depth = {}
 ]]
 
---[[
-local new_diagramstyle = {}
-new_diagramstyle.block_bodyshowaddresses = true
-new_diagramstyle.block_bodyshowaddressesassymbol = true
-new_diagramstyle.block_bodyshowbytes = true
-editDiagramStyle(new_diagramstyle)
-spawnDiagram(0x100016914, 50)
-]]--
+--_G.diagramstyle.diagram_blackgroundcolor = 0xFFFFFF (edit style from the outside example)
 
 --[[todolist]]
 --have a rightclick on an address function, then find the start of the function and then parse and display the diagram
