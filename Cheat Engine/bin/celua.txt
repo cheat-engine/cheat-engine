@@ -967,6 +967,14 @@ methods
   getBorderStyle()
 
   printToRasterImage(rasterimage): Draws the contents of the form to a rasterimage class object
+
+  registerCreateCallback(function(f)): userdata - Registers a function to be called when the form has finished being created
+  unregisterCreateCallback(userdata) - removes the specific callback
+  registerFirstShowCallback(function(f)): userdata - Registers a function to be called when the form is show the first time
+  unregisterFirstShowCallback(userdata) - removes the specific callback
+  registerCloseCallback(function(f)): userdata - Registers a function to be called when the form has been closed
+  unregisterCloseCallback(userdata) - removes the specific callback
+
   dragNow():  Call this on mousedown on any object if you wish that the mousemove will drag the whole form arround. Useful for borderless windows (Dragging will stop when the mouse button is released)
 
 
@@ -2968,6 +2976,8 @@ TFrmTracer class (Inheritance: Form->ScrollingWinControl->CustomControl->WinCont
 
 properties
   Count: integer - number of entries in the list
+  SelectionCount: integer - The number of selected entries
+
   Entry[index]: table - Information about each entry. Read only. (Index starts at 0)
     table is formatted as:
     {
@@ -2978,8 +2988,11 @@ properties
       referencedData: bytearray - The bytes of the referenced data at the time of tracing
       context: contexttable - the state of the cpu when this instruction got executed (contains registers(EAX/RAX, ...), floating points(FP) and XMM values
       hasStackSnapshot: boolean - set to true if there is a stack entry      
+      selected: boolean - Set to true if the entry is selected
 
     }
+
+
   StackEntry[index]: bytearray - The stacksnapshot of that entry. Nil if not available
 
 methods

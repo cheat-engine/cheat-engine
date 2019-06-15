@@ -184,6 +184,7 @@ type
 
     function getEntry(index: integer): TTraceDebugInfo;
     function getCount: integer;
+    function getSelectionCount: integer;
   public
     { Public declarations }
     returnfromignore: boolean;
@@ -196,6 +197,7 @@ type
     constructor create(Owner: TComponent; DataTrace: boolean=false; skipconfig: boolean=false); overload;
   published
     property count: integer read getCount;
+    property selcopunt: integer read getSelectionCount;
   end;
 
 implementation
@@ -497,6 +499,11 @@ end;
 function TfrmTracer.getCount: integer;
 begin
   result:=lvTracer.Items.count;
+end;
+
+function TfrmTracer.getSelectionCount: integer;
+begin
+  result:=lvTracer.Items.SelectionCount;
 end;
 
 procedure TfrmTracer.FormCreate(Sender: TObject);
@@ -1765,6 +1772,12 @@ begin
   lua_pushinteger(L,{$ifdef cpu64}e.c.RIP{$else}e.c.EIP{$endif});
   lua_settable(L,t);
 
+  lua_pushstring(L,'selected');
+  if (i>=0) and (i<f.lvTracer.Items[i].count) then
+    lua_pushboolean(L, f.lvTracer.Items[i].Selected)
+  else
+    lua_pushboolean(L, false);
+
   lua_pushstring(L,'instruction');
   lua_pushstring(L,e.instruction);
   lua_settable(L,t);
@@ -1780,7 +1793,6 @@ begin
   lua_pushstring(L,'context');
   lua_pushcontext(L,@e.c);
   lua_settable(L,t);
-
 
   lua_pushstring(L,'referencedData');
   CreateByteTableFromPointer(L,e.bytes,e.bytesize);

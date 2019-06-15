@@ -590,6 +590,8 @@ object frmTracer: TfrmTracer
         Width = 280
         Align = alClient
         HideSelection = False
+        MultiSelect = True
+        MultiSelectStyle = [msShiftSelect]
         ParentFont = False
         PopupMenu = pmTracer
         ReadOnly = True
@@ -598,7 +600,7 @@ object frmTracer: TfrmTracer
         OnDblClick = lvTracerDblClick
         OnMouseMove = lvTracerMouseMove
         OnSelectionChanged = lvTracerClick
-        Options = [tvoAutoItemHeight, tvoKeepCollapsedNodes, tvoReadOnly, tvoShowButtons, tvoShowLines, tvoShowRoot, tvoToolTips]
+        Options = [tvoAllowMultiselect, tvoAutoItemHeight, tvoKeepCollapsedNodes, tvoReadOnly, tvoShowButtons, tvoShowLines, tvoShowRoot, tvoToolTips]
       end
     end
     object cbFPUXMM: TCheckBox
