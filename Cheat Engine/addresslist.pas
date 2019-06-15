@@ -380,9 +380,13 @@ end;
 procedure TAddresslist.DeactivateSelected;
 var i: integer;
 begin
-  for i:=0 to count-1 do
+  i:=0;
+  while i<count do
+  begin
     if memrecitems[i].isSelected then
       memrecitems[i].active:=false;    //this will also reset the allow* booleans
+    i:=i+1
+  end;
 end;
 
 
