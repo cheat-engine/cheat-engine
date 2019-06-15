@@ -240,7 +240,7 @@ function createBlocks(state)
 
   blocks[1]={}
   blocks[1].start=sal[1]
-  blocks[i].salstartindex=1
+  blocks[1].salstartindex=1
 
   blocks[1].getsJumpedToBy=state.branchDestinations[sal[1]]
 
