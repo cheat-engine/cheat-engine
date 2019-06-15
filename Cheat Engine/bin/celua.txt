@@ -2971,6 +2971,7 @@ properties
   Entry[index]: table - Information about each entry. Read only. (Index starts at 0)
     table is formatted as:
     {
+      address: integer - address of the instruction
       instruction: string - disassembled instruction
       instructionSize: integer - bytesize of the instruction
       referencedAddress: integer - address the code references

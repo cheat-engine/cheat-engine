@@ -1761,6 +1761,10 @@ begin
   lua_newtable(L);
   t:=lua_gettop(L);
 
+  lua_pushstring(L,'address');
+  lua_pushstring(L,{$ifdef cpu64}e.c.RIP{$else}e.c.EIP{$endif});
+  lua_settable(L,t);
+
   lua_pushstring(L,'instruction');
   lua_pushstring(L,e.instruction);
   lua_settable(L,t);
