@@ -87,9 +87,9 @@ type
     Panel1: TPanel;
     Panel2: TPanel;
     Panel3: TPanel;
-    Panel4: TPanel;
-    Panel5: TPanel;
-    Panel6: TPanel;
+    pnlRegisters: TPanel;
+    pnlSegments: TPanel;
+    pnlFlags: TPanel;
     Panel7: TPanel;
     pnlTracer: TPanel;
     pflabel: TLabel;
@@ -493,7 +493,7 @@ function TfrmTracer.getEntry(index: integer): TTraceDebugInfo;
 begin
   result:=nil;
   if (index>=0) and (index<count) then
-    result:=TTraceDebugInfo(lvTracer.Items[index]);
+    result:=TTraceDebugInfo(lvTracer.Items[index].Data);
 end;
 
 function TfrmTracer.getCount: integer;
@@ -1353,7 +1353,7 @@ begin
 
         with l do
         begin
-          parent:=panel4;
+          parent:=pnlRegisters;
           font:=eaxlabel.font;
           parentfont:=true;
           cursor:=eaxlabel.cursor;
@@ -1692,8 +1692,8 @@ end;
 procedure TfrmTracer.Panel1Resize(Sender: TObject);
 begin
   panel7.Top:=(panel1.ClientHeight div 2)-panel7.Height;
-  if panel7.top<(panel6.top+panel6.height) then
-    panel7.top:=panel6.top+panel6.height;
+  if panel7.top<(pnlFlags.top+pnlFlags.height) then
+    panel7.top:=pnlFlags.top+pnlFlags.height;
 end;
 
 procedure TfrmTracer.sbShowFloatsClick(Sender: TObject);
@@ -1714,15 +1714,19 @@ end;
 procedure TfrmTracer.FormShow(Sender: TObject);
 var minwidth: integer;
 begin
-  panel1.Font.Height:=GetFontData(font.Handle).Height;
-  if panel1.Font.Height>-13 then
-    panel1.Font.Height:=-13;
+  panel1.Font.Size:=10;
 
-  lblInstruction.font:=font;
-  sbShowFloats.font:=font;
-  sbShowstack.font:=font;
-  button1.Font:=font;;
+
+  lblInstruction.font.size:=10;
+  sbShowFloats.font.size:=10;
+  sbShowstack.font.size:=10;
+  button1.Font.size:=10;
+  pnlRegisters.font.size:=10;
+  pnlFlags.Font.size:=10;
+  pnlSegments.font.size:=10;
+
   Panel1Resize(panel1);
+
 
   if loadedformpos=false then
   begin
