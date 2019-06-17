@@ -1781,6 +1781,7 @@ begin
     lua_pushboolean(L, f.lvTracer.Items[i].Selected)
   else
     lua_pushboolean(L, false);
+  lua_settable(L,t);
 
   lua_pushstring(L,'instruction');
   lua_pushstring(L,e.instruction);
