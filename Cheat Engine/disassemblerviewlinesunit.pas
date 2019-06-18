@@ -893,7 +893,7 @@ begin
 
           s:=copy(text, start,i-start);
           fcanvas.TextRect(ARect,x,y,AnsiToUtf8(s));
-          x:=x+fcanvas.TextWidth(s);
+          x:=x+fcanvas.TextWidth(s)+1;
 
           inc(i);
           while i<=length(text) do
