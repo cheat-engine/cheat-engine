@@ -1339,6 +1339,7 @@ end;
 procedure TFoundCodeDialog.btnAddToCodeListClick(Sender: TObject);
 var i: integer;
     coderecord: TCodeRecord;
+    added: boolean=false;
 begin
 
   for i:=0 to foundcodelist.items.count-1 do
@@ -1346,10 +1347,14 @@ begin
     if foundcodelist.items[i].Selected then
     begin
       coderecord:=TcodeRecord(foundcodelist.items[i].data);
-      advancedoptions.AddToCodeList(coderecord.address,coderecord.size,false, foundcodelist.SelCount>1);
+      if advancedoptions.AddToCodeList(coderecord.address,coderecord.size,false, foundcodelist.SelCount>1) then
+        added:=true;
     end;
   end;
-  advancedoptions.Show;
+
+  if added then
+    advancedoptions.Show;
+
 end;
 
 procedure TFoundCodeDialog.FoundcodeListDblClick(Sender: TObject);

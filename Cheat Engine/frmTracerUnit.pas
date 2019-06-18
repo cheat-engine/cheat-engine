@@ -197,7 +197,7 @@ type
     constructor create(Owner: TComponent; DataTrace: boolean=false; skipconfig: boolean=false); overload;
   published
     property count: integer read getCount;
-    property selcopunt: integer read getSelectionCount;
+    property selectionCount: integer read getSelectionCount;
   end;
 
 implementation
@@ -1777,7 +1777,7 @@ begin
   lua_settable(L,t);
 
   lua_pushstring(L,'selected');
-  if (i>=0) and (i<f.lvTracer.Items[i].count) then
+  if (i>=0) and (i<f.lvTracer.Items.Count) then
     lua_pushboolean(L, f.lvTracer.Items[i].Selected)
   else
     lua_pushboolean(L, false);

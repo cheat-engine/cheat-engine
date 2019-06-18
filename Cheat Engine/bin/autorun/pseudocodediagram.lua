@@ -19,7 +19,13 @@ diagramstyle.block_bodyshowaddresses         = false
 diagramstyle.block_bodyshowaddressesassymbol = true
 diagramstyle.block_bodyshowbytes             = false
 diagramstyle.block_backgroundcolor           = 0x00FFFFFF --white
-diagramstyle.diagram_blackgroundcolor        = 0x0099FFCC --light green
+diagramstyle.diagram_backgroundcolor         = 0x0099FFCC --light green
+
+diagramstyle.highlight_linktakencolor        = 0x000000FF --red
+diagramstyle.highlight_linknottakencolor     = diagramstyle.diagram_backgroundcolor  --invisible
+diagramstyle.highlight_blockexecutedcolor    = diagramstyle.block_backgroundcolor 
+diagramstyle.highlight_blocknotexecutedcolor = 0 --black   
+
 
 
 function disassembleDecoratedInstruction(address)
@@ -67,6 +73,155 @@ function createDiagramForm(diagram, name)
   diagram.form.Caption=name
   diagram.form.Width=getScreenWidth()-(getScreenWidth()/6)
   diagram.form.Height=getScreenHeight()-(getScreenHeight()/6)
+end
+
+function calculateInbetweenColor(c1,c2,v)
+  --v=0 : c1
+  --v=1 : c2
+  if (c1==nil) or (c2==nil) or (v==nil) then
+    print("calculateInbetweenColor invalid paramer")
+    return nil  
+  end
+  --print(string.format('calculateInbetweenColor(%x,%x,%f)',c1,c2,v))
+
+  local r1=c1 & 0xFF
+  local g1=c1 >> 8 & 0xFF
+  local b1=c1 >> 16 & 0xFF
+
+  local r2=c2 & 0xFF
+  local g2=c2 >> 8 & 0xFF
+  local b2=c2 >> 16 & 0xFF
+
+
+  local rr=((r2-r1)/255 * v)*255
+  local rg=((g2-g1)/255 * v)*255
+  local rb=((b2-b1)/255 * v)*255
+
+  local newr=r1+rr
+  local newg=g1+rg
+  local newb=b1+rb
+
+ 
+  local newv=math.floor(newr)+(math.floor(newg)<<8)+(math.floor(newb)<<16)
+
+  return newv
+end
+
+
+function showTracerPath(diagram, tracerform)
+  --go through the blocklist and see if the start/stop address is in there
+  local blockheat={}
+  local linkheat={}
+  local linkstaken={} 
+  local maxblockheat=1
+  local maxlinkheat=1
+  local i
+  local acl={} --address count list
+  local selectedonly=tracerform.SelectionCount>1
+  for i=0,tracerform.Count-1 do
+    local e=tracerform.Entry[i]
+    
+    if (selectedonly==false) or e.selected then            
+      if diagram.state.branchOrigins[e.address] then
+        --branching address, check the next address
+        
+        if i<tracerform.Count-1 then        
+          local e2=tracerform.Entry[i+1]
+          
+          if linkstaken[e.address]==nil then --new originaddress
+            linkstaken[e.address]={} 
+          end
+          
+          if linkstaken[e.address][e2.address]==nil then --new destinationaddress
+            linkstaken[e.address][e2.address]=1 --start at 0
+          else
+            linkstaken[e.address][e2.address]=linkstaken[e.address][e2.address]+1
+          end
+        end
+      end
+    
+      if acl[e.address] == nil then
+        acl[e.address] = 1
+      else
+        acl[e.address] = acl[e.address]+1
+      end
+    end
+  end
+  
+  for i=1,#diagram.dblocks do
+    local blockdata=diagram.blocks[diagram.dblocks[i].tag] --diagram.dblocks[i].tag 'should' be i, but in case that ever changes use the tag
+    local count=acl[blockdata.start] or acl[blockdata.stop] --in case the trace starts from the center of a function    
+
+    blockheat[i]={}
+    blockheat[i].Block=diagram.dblocks[i]
+      
+    if count then
+      blockheat[i].Count=count                  
+    else
+      blockheat[i].Count=0
+    end
+    
+    maxblockheat=math.max(maxblockheat, blockheat[i].Count) 
+  end
+  
+  for i=0,diagram.diagram.LinkCount-1 do
+    local l=diagram.diagram.Link[i]    
+    local obt=l.OriginBlock.Tag
+    local dbt=l.DestinationBlock.Tag
+    
+    local originaddress=diagram.blocks[obt].stop
+    local destinationaddress=diagram.blocks[dbt].start
+    
+    
+    linkheat[i+1]={}
+    linkheat[i+1].Link=l        
+    
+    if linkstaken[originaddress] and linkstaken[originaddress][destinationaddress] then
+      linkheat[i+1].Count=linkstaken[originaddress][destinationaddress]      
+    else
+      linkheat[i+1].Count=0      
+    end  
+    
+    maxlinkheat=math.max(maxlinkheat, linkheat[i+1].Count)    
+  end
+  
+  --[[
+  local origin,destination
+  for origin,destination in pairs(linkstaken) do
+    for d2,count in pairs(destination) do
+      print(origin..'->'..destination..' '..count..' times')
+    end
+  end
+  --]]  
+  
+  --blockheat and linkheat are set
+  
+  --now apply colors to the links and blocks
+
+  
+  local v
+  for i=1,#blockheat do
+    v=blockheat[i].Count/maxblockheat --v now contains a value between 0 and 1, 0 is absolutely not executed, 1 is fully executed
+    blockheat[i].Block.BackgroundColor=calculateInbetweenColor(diagramstyle.highlight_blocknotexecutedcolor, diagramstyle.highlight_blockexecutedcolor, v)
+  end
+    
+  for i=1,#linkheat do
+    v=linkheat[i].Count/maxlinkheat --v now contains a value between 0 and 1, 0 is absolutely not executed, 1 is fully executed
+    linkheat[i].Link.LineColor=calculateInbetweenColor(diagramstyle.highlight_linknottakencolor, diagramstyle.highlight_linktakencolor, v)
+  end  
+  
+  diagram.diagram.DrawPlotPoints=false
+  
+  diagram.diagram.repaint()
+  return blockheat,linkheat
+end
+
+function showUltimap2Path(diagram, ultimapform)
+
+end
+
+function showCodeFilterPath(diagram, codefilterform)
+
 end
 
 function createMenu(diagram)
@@ -158,13 +313,66 @@ function createMenu(diagram)
   
   local miPaths=createMenuItem(mm)
   miPaths.Caption=translate('Show path from Ultimap1/2 or Codefilter')  
-  miPaths.AutoCheck=true
   miPaths.Name='miPaths'
+  miPaths.OnClick=function(sender)
+    local um=getUltimap2()
+    if um and (um.Count>0) then
+      showUltimap2Path(diagram, um)
+      return
+    end
+    
+    local cf=getCodeFilter()
+    if cf then
+      showCodeFilterPath(diagram, cf)
+    end
+  end
   
   local miTracerPaths=createMenuItem(mm)
   miTracerPaths.Caption=translate('Show path from tracer window') --if more than 1 show a list of tracer windows and pick one 
-  miTracerPaths.AutoCheck=true    
   miTracerPaths.Name='miTracerPaths'
+  miTracerPaths.OnClick=function(sender)
+    local i
+    local tracers={}
+    for i=0,getFormCount()-1 do
+      local f=getForm(i)
+      if f and f.ClassName=='TfrmTracer' then
+        if f.Count>0 then
+          tracers[#tracers+1]=f
+        end
+      end      
+    end
+    
+    if #tracers>0 then
+      local tracer=tracers[1]
+      if #tracers>1 then      
+        local list=createStringlist()
+        --create a list
+        
+        for i=1,#tracers do
+          if tracers[i].Count>0 then
+            local first
+            first=tracers[i].Entry[0].address
+          
+            list.add('Tracer starting at '..string.format("%s (%8x)", first, getNameFromAddress(first)))
+          end
+        end
+        
+        local r=showSelectionList('Tracer paths', 'Which tracer window shall be used?', list, false)
+        if r then
+          tracer=tracers[r+1]
+        end        
+        
+        list.destroy()
+      end
+      
+      if tracer then
+        print("Showing path")
+        showTracerPath(diagram, tracer)
+      end 
+    else      
+      showMessage('No tracerform with results visible');
+    end
+  end
   
   DisplayMenu.add(miPaths)
   DisplayMenu.add(miTracerPaths)
@@ -179,6 +387,8 @@ function createMenu(diagram)
   miZoom100.Name='miZoom100'
   miZoom100.OnClick=function()
     diagram.diagram.Zoom=1
+    diagram.diagram.ScrollX=0
+    diagram.diagram.ScrollY=0        
   end
 
   ViewMenu.add(miZoom100)
@@ -263,7 +473,7 @@ function PopupMenuListSourcesClick(sender)
   local linkz = diagram.popup.lastobject.getLinks()
   local stringlist = createStringlist()
   for i=1, #linkz.asDestination do
-    stringlist.add(getNameFromAddress(getRef(linkz.asDestination[i].OriginBlock.tag)))
+    stringlist.add(getNameFromAddress(diagram.blocks[linkz.asDestination[i].OriginBlock.tag].start))
   end
   local index = showSelectionList("Sources list", "", stringlist)
   if linkz.asDestination[index+1] ~= nil then
@@ -277,7 +487,7 @@ function PopupMenuListDestinationsClick(sender)
   local linkz = diagram.popup.lastobject.getLinks()
   local stringlist = createStringlist()
   for i=1, #linkz.asSource do
-    stringlist.add(getNameFromAddress(getRef(linkz.asSource[i].DestinationBlock.tag)))
+    stringlist.add(getNameFromAddress(diagram.blocks[linkz.asSource[i].DestinationBlock.tag].start))
   end
   local index = showSelectionList("Destinations list", "", stringlist)
   if linkz.asSource[index+1] ~= nil then
@@ -361,7 +571,7 @@ function createDiagramDiagram(diagram)
   diagram.diagram = createDiagram(diagram.form)
   diagram.diagram.Align='alClient'
   diagram.diagram.ArrowStyles='[asDestination,asOrigin]'
-  diagram.diagram.BackgroundColor=diagramstyle.diagram_blackgroundcolor
+  diagram.diagram.BackgroundColor=diagramstyle.diagram_backgroundcolor
   diagram.diagram.BlockBackground=diagramstyle.block_backgroundcolor
   diagram.diagram.LineThickness=diagramstyle.link_linethickness
   diagram.diagram.ArrowSize=diagramstyle.link_arrowsize
@@ -395,7 +605,7 @@ function createDiagramBlock(diagram, name)
   diagramblock.OnDoubleClickHeader = function()
     local mwform = getMemoryViewForm()
     local dview = mwform.DisassemblerView
-    dview.SelectedAddress = getAddressSafe(getRef(diagramblock.Tag))
+    dview.SelectedAddress = diagram.blocks[diagramblock.Tag].start
     mwform.show()
   end
   diagramblock.OnDrag=onBlockDrag
@@ -441,6 +651,7 @@ function createDiagramLink(diagram, sourceblock, destinationblock, color, offset
 end
 
 function createDiagramBlocks(diagram)
+ _G.d=diagram
   diagram.dblocks = {}
   for i=1, #diagram.blocks do
     if diagram.state.parsed[diagram.blocks[i].start] then
@@ -451,7 +662,7 @@ function createDiagramBlocks(diagram)
         diagram.dblocks[i] = createDiagramBlock(diagram, ' ' .. string.format('%X', diagram.blocks[i].start))
       end
 
-      diagram.dblocks[i].Tag = createRef(diagram.blocks[i].start)
+      diagram.dblocks[i].Tag = i
 
       local current = diagram.blocks[i].start
       while (current <= diagram.blocks[i].stop) do
@@ -889,7 +1100,7 @@ end
 function spawnDiagram(start, limit)
   local diagram = {}
   diagram.state=parseFunction(start, limit)
-  diagram.blocks=createBlocks(diagram.state)
+  diagram.blocks,diagram.sortedAddressList=createBlocks(diagram.state)
   createDiagramForm(diagram, 'Diagram')
   createMenu(diagram)   
   createDiagramDiagram(diagram)
@@ -928,6 +1139,57 @@ mi.ImageIndex=33
 mi.OnClick=MenuSpawnDiagram
 mv.debuggerpopup.Items.insert(mv.MenuItem2.MenuIndex+1, mi)
 
+
+registerFormAddNotification(function(f)
+  --watch for tracerforms and add a 'Spawn Diagram' option there as well
+  if f.ClassName=='TfrmTracer' then
+    local c=f.registerFirstShowCallback(function(f)
+      f.unregisterFirstShowCallback(c) --cleans up memory
+      
+      --add a spawn diagram option
+      local mi=createMenuItem(f.pmTracer)
+      mi.Caption='Spawn diagram'    
+      mi.Shortcut='Ctrl+Shift+D'
+      mi.OnClick=function(s)
+        local entrynr
+        local i
+        
+        print("Spawn Diagram menuitem")
+        print("f classname="..f.ClassName)
+        print("f.Count="..f.Count)
+        
+        if f.Count>0 then
+          local entrynr=0
+        
+          if f.lvTracer.Selected then 
+            --find the first selected entry
+            for i=0,f.Count-1 do
+              --print("Getting entry "..i)
+              local e=f.Entry[i]
+              if e==nil then
+                print("entry "..i.." is nil")
+                return
+              end
+              
+              if e.selected then
+                entrynr=i        
+                break            
+              end
+            end       
+          end
+          
+          print("calling spawnDiagram with entrynr "..entrynr..' which has address '..string.format('%x',f.Entry[entrynr].address ))
+          spawnDiagram(f.Entry[entrynr].address,100000)   
+        end        
+      end
+      
+      f.pmTracer.Items.add(mi)
+    
+    end)
+  end
+end)
+
+
 --[[
 diagram structure:
 diagram = {}
@@ -935,6 +1197,7 @@ diagram.form
 diagram.diagram
 diagram.popup = {}
 diagram.blocks = {}
+diagram.sortedAddressList = {} --array sorted from 1..#sortedAddressList containing addresses
 diagram.dblocks = {}
 diagram.dpblocks = {}
 diagram.points = {}
@@ -949,7 +1212,7 @@ diagram.column_links_count = {}
 diagram.row_max_depth = {}
 ]]
 
---_G.diagramstyle.diagram_blackgroundcolor = 0xFFFFFF (edit style from the outside example)
+--_G.diagramstyle.diagram_backgroundcolor = 0xFFFFFF (edit style from the outside example)
 
 --[[todolist]]
 --have a rightclick on an address function, then find the start of the function and then parse and display the diagram

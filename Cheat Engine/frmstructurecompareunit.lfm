@@ -1,7 +1,7 @@
 object frmStructureCompare: TfrmStructureCompare
-  Left = 650
+  Left = 652
   Height = 432
-  Top = 491
+  Top = 493
   Width = 695
   AutoSize = True
   Caption = 'Structure Compare'
@@ -62,7 +62,7 @@ object frmStructureCompare: TfrmStructureCompare
         AnchorSideRight.Side = asrBottom
         AnchorSideBottom.Control = Panel3
         AnchorSideBottom.Side = asrBottom
-        Left = 408
+        Left = 410
         Height = 57
         Top = 103
         Width = 124
@@ -193,12 +193,12 @@ object frmStructureCompare: TfrmStructureCompare
         AnchorSideTop.Control = Panel3
         AnchorSideBottom.Control = Panel3
         AnchorSideBottom.Side = asrBottom
-        Left = 293
+        Left = 295
         Height = 157
         Top = 0
         Width = 107
         Anchors = [akTop, akLeft, akBottom]
-        BorderSpacing.Left = 3
+        BorderSpacing.Left = 5
         BorderSpacing.Bottom = 3
         Caption = 'Group 2'
         ClientHeight = 137

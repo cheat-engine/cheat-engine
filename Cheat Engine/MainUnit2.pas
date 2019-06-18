@@ -885,6 +885,10 @@ end;
 procedure initcetitle;
 begin
   CEnorm:=cename+BETA;  //.';
+
+{$ifdef XDEBUG}
+  CEnorm:=CENorm+' Debug Build';
+{$endif}
   Application.Title:=CENorm;
 
 

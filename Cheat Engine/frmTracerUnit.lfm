@@ -538,12 +538,13 @@ object frmTracer: TfrmTracer
         ParentFont = False
         PopupMenu = pmTracer
         ReadOnly = True
+        RightClickSelect = True
         TabOrder = 0
         OnAdvancedCustomDrawItem = lvTracerAdvancedCustomDrawItem
         OnDblClick = lvTracerDblClick
         OnMouseMove = lvTracerMouseMove
         OnSelectionChanged = lvTracerClick
-        Options = [tvoAllowMultiselect, tvoAutoItemHeight, tvoKeepCollapsedNodes, tvoReadOnly, tvoShowButtons, tvoShowLines, tvoShowRoot, tvoToolTips]
+        Options = [tvoAllowMultiselect, tvoAutoItemHeight, tvoKeepCollapsedNodes, tvoReadOnly, tvoRightClickSelect, tvoShowButtons, tvoShowLines, tvoShowRoot, tvoToolTips]
       end
     end
     object cbFPUXMM: TCheckBox
