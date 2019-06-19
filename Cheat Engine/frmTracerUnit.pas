@@ -7,7 +7,8 @@ interface
 uses
   windows, NewKernelHandler, LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, ExtCtrls, Buttons, LResources, commonTypeDefs, frmFindDialogUnit,
-  clipbrd, Menus, ComCtrls, frmStackviewunit, frmFloatingPointPanelUnit, LuaByteTable;
+  clipbrd, Menus, ComCtrls, frmStackviewunit, frmFloatingPointPanelUnit, LuaByteTable,
+  disassembler;
 
 type
   TTraceDebugInfo=class
@@ -173,6 +174,8 @@ type
 
     registerCompareIgnore: array [0..16] of boolean;
 
+    da: TDisassembler;
+
     procedure configuredisplay;
     procedure setSavestack(x: boolean);
     procedure updatestackview;
@@ -205,7 +208,7 @@ implementation
 
 uses cedebugger, debughelper, MemoryBrowserFormUnit, frmTracerConfigUnit,
   debuggertypedefinitions, processhandlerunit, Globals, Parsers,
-  disassembler,   strutils, cefuncproc,
+  strutils, cefuncproc,
   luahandler, symbolhandler, byteinterpreter,
   tracerIgnore, LuaForm, lua, lualib,lauxlib, LuaClass;
 
@@ -346,8 +349,6 @@ var s,s2: string;
     haserror: boolean;
     thisnode, thatnode,x: TTreenode;
 
-    da: TDisassembler;
-
     datasize: integer;
     isfloat: boolean;
 begin
@@ -356,11 +357,14 @@ begin
   try
 
     address:=debuggerthread.CurrentThread.context.{$ifdef CPU64}rip{$else}eip{$endif};
-    a:=address;
-    s:=disassemble(a);
 
     a:=address;
-    da:=tdisassembler.Create;
+    if da=nil then
+    begin
+      da:=tdisassembler.Create;
+      da.showsymbols:=symhandler.showsymbols;
+      da.showmodules:=symhandler.showmodules;
+    end;
     s:=da.disassemble(a, s2);
 
     datasize:=da.LastDisassembleData.datasize;
@@ -368,10 +372,6 @@ begin
       datasize:=4;
 
     isfloat:=da.LastDisassembleData.isfloat;
-
-    da.free;
-
-
 
     referencedAddress:=0;
     if dereference then
@@ -401,7 +401,7 @@ begin
     if savestack then
       d.savestack;
 
-    s:=inttohex(address,8)+' - '+s;
+    s:=symhandler.getNameFromAddress(address)+' - '+s;
 
     if returnfromignore then
     begin
@@ -416,10 +416,10 @@ begin
     else
       thisnode:=lvTracer.Items.AddObject(nil,s,d);
 
-    if not stepover and defaultDisassembler.LastDisassembleData.iscall then
+    if not stepover and da.LastDisassembleData.iscall then
       currentAppendage:=thisnode;
 
-    if (defaultDisassembler.LastDisassembleData.isret) {or returnfromignore} then
+    if (da.LastDisassembleData.isret) {or returnfromignore} then
     begin
       returnfromignore:=false;
       if currentAppendage<>nil then
@@ -1328,8 +1328,10 @@ end;
 
 procedure TfrmTracer.FormDestroy(Sender: TObject);
 begin
-  saveformposition(self);
+  if da<>nil then
+    da.free;
 
+  saveformposition(self);
 end;
 
 procedure TfrmTracer.configuredisplay;

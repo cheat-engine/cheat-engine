@@ -121,7 +121,8 @@ function showTracerPath(diagram, tracerform)
   for i=0,tracerform.Count-1 do
     local e=tracerform.Entry[i]
     
-    if (selectedonly==false) or e.selected then            
+    
+    if e and ((selectedonly==false) or e.selected) then            
       if diagram.state.branchOrigins[e.address] then
         --branching address, check the next address
         
@@ -1159,27 +1160,32 @@ registerFormAddNotification(function(f)
         print("f.Count="..f.Count)
         
         if f.Count>0 then
-          local entrynr=0
+          local entrynr
         
           if f.lvTracer.Selected then 
             --find the first selected entry
             for i=0,f.Count-1 do
               --print("Getting entry "..i)
               local e=f.Entry[i]
-              if e==nil then
-                print("entry "..i.." is nil")
-                return
-              end
-              
-              if e.selected then
-                entrynr=i        
-                break            
+              if e then
+                if entrynr==nil then --get first valid entry
+                  entrynr=i
+                end
+                
+                if e.selected then --selections take precedence               
+                  entrynr=i        
+                  break            
+                end
               end
             end       
           end
           
-          print("calling spawnDiagram with entrynr "..entrynr..' which has address '..string.format('%x',f.Entry[entrynr].address ))
-          spawnDiagram(f.Entry[entrynr].address,100000)   
+          if entrynr then          
+            print("calling spawnDiagram with entrynr "..entrynr..' which has address '..string.format('%x',f.Entry[entrynr].address ))
+            spawnDiagram(f.Entry[entrynr].address,100000)   
+          else
+            print("No entrynr set")
+          end
         end        
       end
       
