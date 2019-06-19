@@ -484,8 +484,14 @@ function createMenu(diagram)
   ViewMenu.Caption=translate('View')
   ViewMenu.Name='miView'
 
+  local miZoom=createMenuItem(mm)
+  miZoom.Caption=translate('Zoom')
+  miZoom.ImageIndex=63
+  miZoom.Name='miZoom'
+
   local miZoom100=createMenuItem(mm)
-  miZoom100.Caption=translate('Zoom 100%')  
+  miZoom100.Caption=translate('100%')  
+  miZoom100.ImageIndex=63
   miZoom100.Name='miZoom100'
   miZoom100.OnClick=function()
     diagram.diagram.Zoom=1
@@ -493,7 +499,26 @@ function createMenu(diagram)
     diagram.diagram.ScrollY=0        
   end
 
-  ViewMenu.add(miZoom100)
+  local miZoomIn=createMenuItem(mm)
+  miZoomIn.Caption=translate('Zoom in')  
+  miZoomIn.ImageIndex=61
+  miZoomIn.Name='miZoomIn'
+  miZoomIn.OnClick=function()
+    --to implement
+  end
+
+  local miZoomOut=createMenuItem(mm)
+  miZoomOut.Caption=translate('Zoom out')  
+  miZoomOut.ImageIndex=62
+  miZoomOut.Name='miZoomOut'
+  miZoomOut.OnClick=function()
+    --to implement
+  end
+
+  ViewMenu.add(miZoom)
+  miZoom.add(miZoom100)
+  miZoom.add(miZoomIn)
+  miZoom.add(miZoomOut)
   
   mm.Items.add(FileMenu)
   mm.Items.add(DisplayMenu)
@@ -1256,6 +1281,7 @@ registerFormAddNotification(function(f)
       local mi=createMenuItem(f.pmTracer)
       mi.Caption='Spawn diagram'    
       mi.Shortcut='Ctrl+Shift+D'
+      mi.ImageIndex=4
       mi.OnClick=function(s)
         local entrynr
         local i
