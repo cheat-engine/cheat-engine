@@ -237,6 +237,8 @@ function createMenu(diagram)
   miLoad.Caption=translate('Load from file')
   miLoad.Name='miLoad'
   miLoad.ImageIndex=23
+  miLoad.Shortcut='Ctrl+O'
+  
   miLoad.OnClick=function(s)
     local fd=createOpenDialog()
     fd.Title=translate('Select the file you wish to open')
@@ -244,12 +246,58 @@ function createMenu(diagram)
     fd.Filter='Diagram files (*.CEDIAG )|*.CEDIAG'
     if fd.Execute() then
       local fs=createFileStream(fd.FileName,fmOpenRead)
+      
       diagram.diagram.loadFromStream(fs)   
       
-      --Todo: Perhaps load more
+      diagram.dblocks={}
+      
+      for i=0,diagram.diagram.BlockCount-1 do
+        diagram.dblocks[i+1]=diagram.diagram.Block[i]
+      end
+      
+      --Load sorted addresslist
+      diagram.sortedAddressList={}
+      local i
+      local count=fs.readDword()
+      print("sortedAddressList count = "..count)
+      for i=1,count do
+        diagram.sortedAddressList[i]=fs.readQword() 
+      end
+      
+      --Load diagram.blocks info
+      diagram.blocks={}
+      count=fs.readDword()
+      print("diagram.blocks count="..count)
+      for i=1,count do
+        print("loading block "..i)
+        diagram.blocks[i]={}
+        diagram.blocks[i].start=fs.readQword()
+        diagram.blocks[i].stop=fs.readQword()
+        diagram.blocks[i].salstopindex=fs.readDword()
+        local jc=fs.readWord()
+        if jc>0 then
+          diagram.blocks[i].getsJumpedToBy={}
+          local j
+          for j=1,jc do
+            diagram.blocks[i].getsJumpedToBy[j]=fs.readQword()
+          end          
+        end
+        
+        local jtc=fs.readByte()
+        if jtc>0 then
+          diagram.blocks[i].jumpsTo={}
+          diagram.blocks[i].jumpsTo.destinationtaken=fs.readQword()
+          diagram.blocks[i].jumpsTo.destinationtaken=fs.readByte()==1          
+        end        
+      end 
+
+      print("reached end of load file")      
       
       fs.destroy()
     end
+    
+
+    
     
     fd.destroy()    
   end
@@ -258,6 +306,7 @@ function createMenu(diagram)
   miSave.Caption=translate('Save to file')
   miSave.Name='miSave'
   miSave.ImageIndex=22
+  miSave.Shortcut='Ctrl+S'
   miSave.OnClick=function(s)
     
     local fd=createSaveDialog()
@@ -269,7 +318,52 @@ function createMenu(diagram)
       local fs=createFileStream(fd.FileName,fmCreate)
       diagram.diagram.saveToStream(fs)
       
-      --todo: Perhaps save more
+      local i
+      --save sorted addresslist
+
+      fs.writeDword(#diagram.sortedAddressList)
+      for i=1,#diagram.sortedAddressList do
+        fs.WriteQword(diagram.sortedAddressList[i])
+      end      
+      
+      
+      --save diagram.blocks info
+      
+      fs.writeDword(#diagram.blocks)
+      for i=1,#diagram.blocks do
+        --print("Saving block "..i)
+        fs.writeQword(diagram.blocks[i].start)
+        fs.writeQword(diagram.blocks[i].stop)
+        fs.writeDword(diagram.blocks[i].salstopindex)
+        if diagram.blocks[i].getsJumpedToBy then
+          fs.writeWord(#diagram.blocks[i].getsJumpedToBy)
+          local j          
+          for j=1,#diagram.blocks[i].getsJumpedToBy do
+            fs.writeQword(diagram.blocks[i].getsJumpedToBy[j])          
+          end
+          
+          
+        else 
+          fs.writeWord(0)
+        end
+        
+        if diagram.blocks[i].jumpsTo then
+          fs.writeByte(1)
+          fs.writeQword(diagram.blocks[i].jumpsTo.destinationtaken or 0)
+          if diagram.blocks[i].jumpsTo.destinationtaken then
+            fs.writeByte(1)
+          else
+            fs.writeByte(0)
+          end             
+
+        else 
+          fs.writeByte(0)
+        end        
+        
+        
+        
+      end
+      
       
       fs.destroy() 
     end
@@ -474,6 +568,10 @@ function PopupMenuListSourcesClick(sender)
   local linkz = diagram.popup.lastobject.getLinks()
   local stringlist = createStringlist()
   for i=1, #linkz.asDestination do
+    
+    if linkz.asDestination[i].OriginBlock==nil then
+      error('linkz.asDestination[i].OriginBlock is nil')
+    end
     stringlist.add(getNameFromAddress(diagram.blocks[linkz.asDestination[i].OriginBlock.tag].start))
   end
   local index = showSelectionList("Sources list", "", stringlist)
