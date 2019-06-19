@@ -413,6 +413,7 @@ end
 local mv=getMemoryViewForm()
 local mi=createMenuItem(mv.Menu)
 mi.Caption='Scan for patches'
+mi.ImageIndex=10
 mi.Shortcut='Ctrl+Shift+P'
 mi.OnClick=startPatchScan
 mv.Extra1.insert(mv.DissectPEheaders1.MenuIndex+1, mi)
