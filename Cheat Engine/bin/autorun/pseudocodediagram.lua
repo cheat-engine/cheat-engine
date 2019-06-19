@@ -118,12 +118,19 @@ function showTracerPath(diagram, tracerform)
   local i
   local acl={} --address count list
   local selectedonly=tracerform.SelectionCount>1
+  
+  local blockaddresses={}
+  for i=1,#diagram.blocks do
+    blockaddresses[diagram.blocks[i].stop]=diagram.blocks[i]
+  end
+  
   for i=0,tracerform.Count-1 do
     local e=tracerform.Entry[i]
     
     
     if e and ((selectedonly==false) or e.selected) then            
-      if diagram.state.branchOrigins[e.address] then
+      --if diagram.state.branchOrigins[e.address] then
+      if blockaddresses[e.address] then
         --branching address, check the next address
         
         if i<tracerform.Count-1 then        
