@@ -877,6 +877,7 @@ begin
   begin
     if TDiagramBlock(blocks[i]).isInside(pt.x,pt.y) then
     begin
+      draggedblock.block:=nil;
       TDiagramBlock(blocks[i]).DblClick(pt.x,pt.y);
       exit;
     end;
@@ -945,6 +946,8 @@ var
   newcursor: TCursor;
 begin
   inherited mousemove(Shift, X,Y);
+
+  if (links=nil) or (blocks=nil) then exit;
 
 
   //adjust for zoom

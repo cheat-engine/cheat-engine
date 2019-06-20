@@ -565,8 +565,9 @@ function DiagramContextPopup(sender, mousepos)
   local isheaderlessblock=false
   
   mousepos.x=(mousepos.x+diagram.diagram.ScrollX)/diagram.diagram.Zoom
-  mousepos.y=(mousepos.y+diagram.diagram.ScrollY)/diagram.diagram.Zoom  
-  
+  mousepos.y=(mousepos.y+diagram.diagram.ScrollY)/diagram.diagram.Zoom
+
+    
   local obj=sender.getObjectAt(mousepos)
   if (obj) then
     islink=obj.ClassName=='TDiagramLink'
@@ -580,7 +581,11 @@ function DiagramContextPopup(sender, mousepos)
   for i=1,#diagram.popup.BlockItems do diagram.popup.BlockItems[i].visible=isblock end
   for i=1,#diagram.popup.HeaderlessBlockItems do diagram.popup.HeaderlessBlockItems[i].visible=isheaderlessblock end
 
+  diagram.popup.All[1].Visible=islink or isblock
+
+
   diagram.popup.lastobject=obj
+  diagram.popup.lastpos=mousepos
 
   return false
 end
@@ -655,6 +660,99 @@ function PopupMenuListDestinationsClick(sender)
   end
 end
 
+function editBlockStrings(b)
+  local result=false
+  local mf=createForm(false)
+  mf.PopupMode=pmNone
+  mf.BorderStyle=bsSizeable
+  local m=createMemo(mf)
+  local bh=createPanel(mf)
+  local cbh=createPanel(bh)
+  cbh.BevelOuter='bvNone'
+  bh.Align=alBottom
+  m.Align=alClient
+  m.ScrollBars=ssAutoBoth
+  m.WordWrap=false
+  
+      
+  local btnOK=createButton(cbh)
+  local btnCancel=createButton(cbh)
+  
+  btnOK.Caption=translate('OK')
+  btnOK.Default=true
+  btnOK.ModalResult=mrOK
+  btnCancel.Caption=translate('Cancel')
+  btnCancel.Cancel=true
+  btnCancel.ModalResult=mrCancel  
+  
+  btnOK.AnchorSideLeft.Control=cbh
+  btnOK.AnchorSideLeft.Side=asrLeft
+  btnOK.AnchorSideTop.Control=cbh
+  btnOK.AnchorSideTop.Side=asrTop
+  
+  btnCancel.AnchorSideLeft.Control=btnOK
+  btnCancel.AnchorSideLeft.Side=asrRight
+  btnCancel.BorderSpacing.Left=DPIAdjust*5
+  
+  btnOK.AutoSize=true
+  btnCancel.AutoSize=true
+  cbh.AutoSize=true
+  bh.AutoSize=true
+  
+  cbh.AnchorSideLeft.Control=bh
+  cbh.AnchorSideLeft.Side=asrCenter
+  cbh.BorderSpacing.Top=3*DPIAdjust
+  cbh.BorderSpacing.Bottom=3*DPIAdjust
+  
+  
+  m.Lines.Text=b.Strings.Text
+  
+  mf.Position=poScreenCenter
+  if mf.showModal()==mrOK then
+    b.Strings.Text=m.Lines.Text
+    b.owner.repaint()
+    result=true
+  end   
+  mf.destroy()   
+
+  return result  
+end 
+
+function PopupMenuCreateAnnotationClick(sender)
+  --create a new dialog at the popup location
+  local diagram=getRef(sender.Owner.Owner.Tag)
+  local b=diagram.diagram.createBlock()
+  b.ShowHeader=false
+  b.DragBody=true
+  b.X=diagram.popup.lastpos.x
+  b.Y=diagram.popup.lastpos.y
+  b.Width=100*DPIAdjust
+  b.Height=100*DPIAdjust
+  
+  diagram.diagram.repaint() --show the new block
+  
+  b.OnDoubleClickBody=function(s)
+    return editBlockStrings(b)
+  end
+  local r=b.OnDoubleClickBody(b)
+  if r then
+    b.AutoSize=true
+  else
+    b.destroy()    
+  end
+  
+  diagram.diagram.repaint()
+end
+
+function PopupMenuDeleteAnnotationClick(sender)
+  local diagram=getRef(sender.Owner.Owner.Tag)
+  
+  if diagram.popup.lastobject and diagram.popup.lastobject.ShowHeader==false then
+    diagram.popup.lastobject.destroy()
+  end
+end
+
+
 function createDiagramPopupMenu(diagram)
   local pm=createPopupMenu(diagram.diagram)
   pm.Images = getMemoryViewForm().mvImageList --icons from the memoryviewer's form
@@ -675,7 +773,7 @@ function createDiagramPopupMenu(diagram)
   diagram.popup.LinkItems[2].OnClick=PopupMenuGoToDestinationClick
 
   diagram.popup.LinkItems[3]=CreateMenuItem(pm)
-  diagram.popup.LinkItems[3].Caption=translate('-') --separator
+  diagram.popup.LinkItems[3].Caption='-' --separator
   
   diagram.popup.LinkItems[4]=CreateMenuItem(pm)
   diagram.popup.LinkItems[4].Caption=translate('Remove all points')      
@@ -699,7 +797,7 @@ function createDiagramPopupMenu(diagram)
   diagram.popup.BlockItems[2].OnClick=PopupMenuEditBlockBackgroundColorClick
 
   diagram.popup.BlockItems[3]=CreateMenuItem(pm)
-  diagram.popup.BlockItems[3].Caption=translate('-') --separator
+  diagram.popup.BlockItems[3].Caption='-' --separator
   
   diagram.popup.BlockItems[4]=CreateMenuItem(pm)
   diagram.popup.BlockItems[4].Caption=translate('List sources')      
@@ -711,19 +809,37 @@ function createDiagramPopupMenu(diagram)
   diagram.popup.BlockItems[5].ImageIndex=36    
   diagram.popup.BlockItems[5].OnClick=PopupMenuListDestinationsClick    
   
+  
   pm.Items.add(diagram.popup.BlockItems[1])
   pm.Items.add(diagram.popup.BlockItems[2])
   pm.Items.add(diagram.popup.BlockItems[3])   
   pm.Items.add(diagram.popup.BlockItems[4])
   pm.Items.add(diagram.popup.BlockItems[5])
+  
 
+  
   diagram.popup.HeaderlessBlockItems={}
   diagram.popup.HeaderlessBlockItems[1]=CreateMenuItem(pm)
-  diagram.popup.HeaderlessBlockItems[1].Caption=translate('Edit block color')
+  diagram.popup.HeaderlessBlockItems[1].Caption=translate('Edit annotation color')
   diagram.popup.HeaderlessBlockItems[1].ImageIndex=45
   diagram.popup.HeaderlessBlockItems[1].OnClick=PopupMenuEditBlockBackgroundColorClick
 
+  diagram.popup.HeaderlessBlockItems[2]=CreateMenuItem(pm)
+  diagram.popup.HeaderlessBlockItems[2].Caption=translate('Delete annotation')
+  diagram.popup.HeaderlessBlockItems[2].OnClick=PopupMenuDeleteAnnotationClick
+
   pm.Items.add(diagram.popup.HeaderlessBlockItems[1])
+  pm.Items.add(diagram.popup.HeaderlessBlockItems[2])
+  
+  diagram.popup.All={}
+  diagram.popup.All[1]=CreateMenuItem(pm)
+  diagram.popup.All[1].Caption='-'
+  
+  diagram.popup.All[2]=CreateMenuItem(pm)
+  diagram.popup.All[2].Caption=translate('Create annotation')  
+  diagram.popup.All[2].OnClick=PopupMenuCreateAnnotationClick    
+  pm.Items.add(diagram.popup.All[1])
+  pm.Items.add(diagram.popup.All[2])    
 end
 
 function createDiagramDiagram(diagram)
