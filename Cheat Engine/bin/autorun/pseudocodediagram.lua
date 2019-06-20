@@ -225,10 +225,48 @@ function showTracerPath(diagram, tracerform)
 end
 
 function showUltimap2Path(diagram, ultimapform)
+  --no link data, it's non sequential data (yet, until I add seperate tracefile parsing which does contains sequential TNT packets)
+  local blockheat={}
+  local maxblockheat=1
+  
 
+--if diagram.addressToBlockList==nil then
+    --create an address to block lookup list
+--   diagram.addressToBlockList={}
+--   
+--    for i=1, #diagram.blocks do
+--      local j
+--      for j=diagram.blocks[i].salstartindex,diagram.blocks[i].salstopindex do
+--        diagram.addressToBlockList[diagram.sortedAddressList[j]]=i
+--      end
+--    end
+--  end
+  for i=1,#diagram.dblocks do    
+    local blockdata=diagram.blocks[diagram.dblocks[i].tag]
+    local isin,count=ultimapform.isInList(blockdata.start)
+    
+    blockheat[i]={} 
+    blockheat[i].Block=diagram.dblocks[i]
+    
+    if count then      
+      blockheat[i].Count=count
+    else
+      blockheat[i].Count=0
+    end
+    
+    maxblockheat=math.max(maxblockheat, blockheat[i].Count) 
+  end
+  
+  local v
+  for i=1,#blockheat do
+    v=blockheat[i].Count/maxblockheat --v now contains a value between 0 and 1, 0 is absolutely not executed, 1 is fully executed
+    blockheat[i].Block.BackgroundColor=calculateInbetweenColor(diagramstyle.highlight_blocknotexecutedcolor, diagramstyle.highlight_blockexecutedcolor, v)
+  end 
+  
 end
 
 function showCodeFilterPath(diagram, codefilterform)
+  --no link data 
 
 end
 
