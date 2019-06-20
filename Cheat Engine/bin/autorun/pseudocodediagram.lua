@@ -229,18 +229,6 @@ function showUltimap2Path(diagram, ultimapform)
   local blockheat={}
   local maxblockheat=1
   
-
---if diagram.addressToBlockList==nil then
-    --create an address to block lookup list
---   diagram.addressToBlockList={}
---   
---    for i=1, #diagram.blocks do
---      local j
---      for j=diagram.blocks[i].salstartindex,diagram.blocks[i].salstopindex do
---        diagram.addressToBlockList[diagram.sortedAddressList[j]]=i
---      end
---    end
---  end
   for i=1,#diagram.dblocks do    
     local blockdata=diagram.blocks[diagram.dblocks[i].tag]
     local isin,count=ultimapform.isInList(blockdata.start)
@@ -248,8 +236,8 @@ function showUltimap2Path(diagram, ultimapform)
     blockheat[i]={} 
     blockheat[i].Block=diagram.dblocks[i]
     
-    if count then      
-      blockheat[i].Count=count
+    if isin then      
+      blockheat[i].Count=count or 1
     else
       blockheat[i].Count=0
     end
@@ -263,11 +251,13 @@ function showUltimap2Path(diagram, ultimapform)
     blockheat[i].Block.BackgroundColor=calculateInbetweenColor(diagramstyle.highlight_blocknotexecutedcolor, diagramstyle.highlight_blockexecutedcolor, v)
   end 
   
+  diagram.diagram.repaint()
+  return blockheat
 end
 
 function showCodeFilterPath(diagram, codefilterform)
   --no link data 
-
+  return showUltimap2Path(diagram, codefilerform) --codefilterform also has isInList just count is nil
 end
 
 function createMenu(diagram)
