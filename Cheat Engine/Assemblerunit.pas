@@ -2756,7 +2756,7 @@ uses symbolhandler, assemblerArm, Parsers, NewKernelHandler;
 {$endif}
 
 {$ifdef windows}
-uses {$ifndef autoassemblerdll}CEFuncProc,{$endif}symbolhandler, lua, luahandler,
+uses windows, {$ifndef autoassemblerdll}CEFuncProc,{$endif}symbolhandler, lua, luahandler,
   lualib, assemblerArm, Parsers, NewKernelHandler, LuaCaller, math, cpuidUnit;
 {$endif}
 
@@ -2914,6 +2914,21 @@ begin
     bytes[j]:=ord(s[i]);
     inc(j);
   end;
+end;
+
+procedure AddWideString(var bytes: Tassemblerbytes; s: widestring);
+var
+  i,j: integer;
+  size: integer;
+
+begin
+  size:=ptruint(@s[length(s)])-ptruint(@s[2]);
+
+  j:=length(bytes);
+  setlength(bytes,length(bytes)+size);
+
+
+  copymemory(@bytes[j],@s[2],size);
 end;
 
 function SignedValueToType(value: ptrint): integer;
@@ -4516,6 +4531,7 @@ var tokens: ttokens;
     startoflist,endoflist: integer;
 
     tempstring: string;
+    tempwstring: widestring;
     overrideShort, overrideLong, overrideFar: boolean;
 
     is64bit: boolean;
@@ -4626,7 +4642,21 @@ begin
       if tokens[0]='DW' then
       begin
         for i:=1 to nroftokens-1 do
-          addword(bytes,HexStrToInt(tokens[i]));
+        begin
+          if tokens[i][1]='''' then //string
+          begin
+            j:=pos(tokens[i],uppercase(opcode));
+
+            if j>0 then
+            begin
+              tempwstring:=copy(opcode,j,length(tokens[i]));
+              addwidestring(bytes,tempwstring);
+            end
+            else addwidestring(bytes,tokens[i]);
+          end
+          else
+            addword(bytes,HexStrToInt(tokens[i]));
+        end;
 
         result:=true;
         exit;
