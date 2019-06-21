@@ -448,6 +448,7 @@ function createMenu(diagram)
   
   local miPaths=createMenuItem(mm)
   miPaths.Caption=translate('Show path from Ultimap1/2 or Codefilter')  
+  miPaths.ImageIndex=67
   miPaths.Name='miPaths'
   miPaths.OnClick=function(sender)
     local um=getUltimap2()
@@ -464,6 +465,7 @@ function createMenu(diagram)
   
   local miTracerPaths=createMenuItem(mm)
   miTracerPaths.Caption=translate('Show path from tracer window') --if more than 1 show a list of tracer windows and pick one 
+  miTracerPaths.ImageIndex=67
   miTracerPaths.Name='miTracerPaths'
   miTracerPaths.OnClick=function(sender)
     local i
