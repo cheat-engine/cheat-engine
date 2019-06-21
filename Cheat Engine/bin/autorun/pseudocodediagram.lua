@@ -1,3 +1,8 @@
+if getTranslationFolder()~='' then
+  loadPOFile(getTranslationFolder()..'pseudocodediagram.po')
+end
+
+
 --[[pseudocodediagram.lua]]--
 
 local DPIAdjust=getScreenDPI()/96
@@ -663,6 +668,7 @@ end
 function editBlockStrings(b)
   local result=false
   local mf=createForm(false)
+  mf.Caption=translate('Block editor')
   mf.PopupMode=pmNone
   mf.BorderStyle=bsSizeable
   local m=createMemo(mf)
