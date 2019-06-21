@@ -456,8 +456,9 @@ allocateMemory(size, BaseAddress OPTIONAL, Protection OPTIONAL): Allocates some 
 deAlloc(address, size OPTIONAL): Frees allocated memory
 
 allocateSharedMemory(name, size):
-  Creates a shared memory object of the given size if it doesn't exist yet. If size is not given and there is no shared region with this name then the default size of 4096 is used
+  Creates a shared memory object in the attached process of the given size if it doesn't exist yet. If size is not given and there is no shared region with this name then the default size of 4096 is used
   It then maps this shared memory block into the currently targeted process. It returns the address of mapped region in the target process
+allocateSharedMemoryLocal(name, size): Same as allocateSharedMemory but then for the Cheat Engine process itself
 
 
 createSection(size) : Creates a 'section' in memory

@@ -6037,6 +6037,47 @@ begin
   result:=1;
 end;
 
+function allocateSharedMemoryLocal(L: PLua_State): integer; cdecl;
+var
+  parameters: integer;
+  sharedmemoryname: string;
+  size: ptruint;
+  address: pointer;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters>=1 then
+  begin
+    sharedmemoryname:=Lua_ToString(L,1);
+
+    if parameters>=2 then
+      size:=lua_tointeger(L, 2)
+    else
+      size:=4096;
+
+    lua_pop(L, parameters);
+
+    address:=allocateSharedMemory(sharedmemoryname, size);
+    if address<>nil then
+    begin
+      lua_pushinteger(L, ptruint(address));
+      result:=1;
+    end;
+  end else lua_pop(L, parameters);
+end;
+
+function deallocateSharedMemoryLocal(L: PLua_State): integer; cdecl;
+var address: ptruint;
+begin
+  result:=0;
+  if lua_gettop(L)>=1 then
+  begin
+    address:=lua_tointeger(L,1);
+
+    UnmapViewOfFile(pointer(address));
+  end;
+end;
+
 function allocateSharedMemory(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
@@ -11652,6 +11693,10 @@ begin
     lua_register(L, 'readProcessMemoryCR3', lua_readProcessMemoryCR3);
     lua_register(L, 'writeProcessMemoryCR3', lua_writeProcessMemoryCR3);
 
+
+
+    lua_register(L, 'allocateSharedMemoryLocal', allocateSharedMemoryLocal);
+    lua_register(L, 'deallocateSharedMemoryLocal', deallocateSharedMemoryLocal);
 
     lua_register(L, 'allocateSharedMemory', allocateSharedMemory);
     lua_register(L, 'deallocateSharedMemory', deallocateSharedMemory);
