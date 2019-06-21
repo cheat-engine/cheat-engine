@@ -26,7 +26,7 @@ type
 
   TProcessWindow = class(TForm)
     btnNetwork: TButton;
-    Button4: TButton;
+    btnAttachDebugger: TButton;
     CancelButton: TButton;
     FontDialog1: TFontDialog;
     plImageList: TImageList;
@@ -73,7 +73,7 @@ type
     procedure btnProcesslistClick(Sender: TObject);
     procedure btnWindowListClick(Sender: TObject);
     procedure btnCreateThreadClick(Sender: TObject);
-    procedure Button4Click(Sender: TObject);
+    procedure btnAttachDebuggerClick(Sender: TObject);
     procedure btnOpenFileClick(Sender: TObject);
     procedure InputPIDmanually1Click(Sender: TObject);
     procedure Filter1Click(Sender: TObject);
@@ -525,7 +525,7 @@ begin
   end;
 end;
 
-procedure TProcessWindow.Button4Click(Sender: TObject);
+procedure TProcessWindow.btnAttachDebuggerClick(Sender: TObject);
 var ProcessIDString: String;
     i:               Integer;
 begin
@@ -718,6 +718,9 @@ end;
 
 procedure TProcessWindow.FormShow(Sender: TObject);
 begin
+  OKButton.Constraints.MinHeight:=trunc(1.2*btnAttachDebugger.height);
+  CancelButton.Constraints.MinHeight:=OKButton.Constraints.MinHeight;
+
   loadCommonProcessesList;
   errortrace:=100;
   try

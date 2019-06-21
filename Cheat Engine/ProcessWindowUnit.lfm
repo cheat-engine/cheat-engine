@@ -1,15 +1,14 @@
 object ProcessWindow: TProcessWindow
-  Left = 882
-  Height = 502
-  Top = 254
-  Width = 366
+  Left = 910
+  Height = 402
+  Top = 242
+  Width = 293
   HelpContext = 4
   AutoSize = True
   BorderIcons = [biSystemMenu]
   Caption = 'Process List'
-  ClientHeight = 477
-  ClientWidth = 366
-  DesignTimePPI = 120
+  ClientHeight = 382
+  ClientWidth = 293
   Menu = MainMenu1
   OnClose = FormClose
   OnCreate = FormCreate
@@ -19,31 +18,31 @@ object ProcessWindow: TProcessWindow
   LCLVersion = '2.0.0.4'
   object Panel1: TPanel
     Left = 0
-    Height = 138
-    Top = 339
-    Width = 366
+    Height = 112
+    Top = 270
+    Width = 293
     Align = alBottom
     AutoSize = True
     BevelInner = bvLowered
     BevelOuter = bvNone
-    ClientHeight = 138
-    ClientWidth = 366
+    ClientHeight = 112
+    ClientWidth = 293
     ParentFont = False
     TabOrder = 1
     object Panel5: TPanel
       AnchorSideLeft.Control = Panel1
       AnchorSideLeft.Side = asrCenter
-      Left = 74
-      Height = 120
-      Top = 9
-      Width = 219
+      Left = 59
+      Height = 98
+      Top = 7
+      Width = 175
       AutoSize = True
-      BorderSpacing.Top = 8
-      BorderSpacing.Bottom = 8
+      BorderSpacing.Top = 6
+      BorderSpacing.Bottom = 6
       BevelOuter = bvNone
-      ClientHeight = 120
-      ClientWidth = 219
-      Constraints.MinWidth = 219
+      ClientHeight = 98
+      ClientWidth = 175
+      Constraints.MinWidth = 175
       ParentFont = False
       TabOrder = 0
       object Panel3: TPanel
@@ -52,31 +51,32 @@ object ProcessWindow: TProcessWindow
         AnchorSideRight.Control = Panel5
         AnchorSideRight.Side = asrBottom
         Left = 0
-        Height = 38
-        Top = 5
-        Width = 219
+        Height = 30
+        Top = 4
+        Width = 175
         Anchors = [akTop, akLeft, akRight]
         AutoSize = True
-        BorderSpacing.Top = 5
+        BorderSpacing.Top = 4
         BevelOuter = bvNone
         ChildSizing.HorizontalSpacing = 8
         ChildSizing.EnlargeHorizontal = crsScaleChilds
         ChildSizing.Layout = cclLeftToRightThenTopToBottom
         ChildSizing.ControlsPerLine = 2
-        ClientHeight = 38
-        ClientWidth = 219
+        ClientHeight = 30
+        ClientWidth = 175
         ParentFont = False
         TabOrder = 0
         object OKButton: TButton
           Left = 0
-          Height = 38
+          Height = 30
           Top = 0
-          Width = 106
+          Width = 84
           AutoSize = True
           Caption = 'Open'
-          Constraints.MinHeight = 38
-          Constraints.MinWidth = 94
+          Constraints.MinHeight = 30
+          Constraints.MinWidth = 75
           Default = True
+          Font.Style = [fsBold]
           OnClick = OKButtonClick
           ParentFont = False
           TabOrder = 0
@@ -85,48 +85,49 @@ object ProcessWindow: TProcessWindow
           AnchorSideLeft.Side = asrBottom
           AnchorSideRight.Control = Panel3
           AnchorSideRight.Side = asrBottom
-          Left = 114
-          Height = 38
+          Left = 92
+          Height = 30
           Top = 0
-          Width = 105
+          Width = 83
+          AutoSize = True
           Cancel = True
           Caption = 'Cancel'
-          Constraints.MinHeight = 38
-          Constraints.MinWidth = 94
+          Constraints.MinHeight = 30
+          Constraints.MinWidth = 75
           OnClick = CancelButtonClick
           ParentFont = False
           TabOrder = 1
         end
       end
-      object Button4: TButton
+      object btnAttachDebugger: TButton
         AnchorSideLeft.Control = Panel5
         AnchorSideTop.Control = Panel3
         AnchorSideTop.Side = asrBottom
         Left = 0
-        Height = 30
-        Top = 54
-        Width = 219
+        Height = 25
+        Top = 43
+        Width = 175
         AutoSize = True
-        BorderSpacing.Top = 11
+        BorderSpacing.Top = 9
         Caption = 'Attach debugger to process'
-        Constraints.MinWidth = 219
-        OnClick = Button4Click
+        Constraints.MinWidth = 175
+        OnClick = btnAttachDebuggerClick
         ParentFont = False
         TabOrder = 1
       end
       object btnNetwork: TButton
-        AnchorSideLeft.Control = Button4
-        AnchorSideTop.Control = Button4
+        AnchorSideLeft.Control = btnAttachDebugger
+        AnchorSideTop.Control = btnAttachDebugger
         AnchorSideTop.Side = asrBottom
-        AnchorSideRight.Control = Button4
+        AnchorSideRight.Control = btnAttachDebugger
         AnchorSideRight.Side = asrBottom
         Left = 0
-        Height = 30
-        Top = 90
-        Width = 219
+        Height = 25
+        Top = 73
+        Width = 175
         Anchors = [akTop, akLeft, akRight]
         AutoSize = True
-        BorderSpacing.Top = 6
+        BorderSpacing.Top = 5
         Caption = 'Network'
         OnClick = btnNetworkClick
         ParentFont = False
@@ -141,9 +142,9 @@ object ProcessWindow: TProcessWindow
     AnchorSideRight.Side = asrBottom
     AnchorSideBottom.Control = Panel1
     Left = 0
-    Height = 339
+    Height = 270
     Top = 0
-    Width = 366
+    Width = 293
     OnChange = TabHeaderChange
     TabIndex = 0
     Tabs.Strings = (
@@ -156,9 +157,9 @@ object ProcessWindow: TProcessWindow
     TabOrder = 0
     object ProcessList: TListBox
       Left = 2
-      Height = 309
-      Top = 28
-      Width = 362
+      Height = 245
+      Top = 23
+      Width = 289
       Align = alClient
       ItemHeight = 0
       OnDblClick = OKButtonClick
@@ -176,13 +177,13 @@ object ProcessWindow: TProcessWindow
   end
   object OpenDialog2: TOpenDialog
     Filter = 'All files (*.*)|*.*'
-    left = 280
+    left = 224
   end
   object PopupMenu1: TPopupMenu
     Images = plImageList
     OnPopup = PopupMenu1Popup
-    left = 140
-    top = 70
+    left = 112
+    top = 56
     object InputPIDmanually1: TMenuItem
       Caption = 'Input PID manually'
       ShortCut = 16464
@@ -238,8 +239,8 @@ object ProcessWindow: TProcessWindow
   end
   object MainMenu1: TMainMenu
     Images = plImageList
-    left = 66
-    top = 136
+    left = 53
+    top = 109
     object MenuItem1: TMenuItem
       Caption = 'File'
       object miCreateProcess: TMenuItem
@@ -274,18 +275,18 @@ object ProcessWindow: TProcessWindow
   object FontDialog1: TFontDialog
     MinFontSize = 0
     MaxFontSize = 0
-    left = 240
-    top = 134
+    left = 192
+    top = 107
   end
   object Timer1: TTimer
     Interval = 100
     OnTimer = Timer1Timer
-    left = 108
-    top = 256
+    left = 86
+    top = 205
   end
   object plImageList: TImageList
-    left = 232
-    top = 264
+    left = 186
+    top = 211
     Bitmap = {
       4C69060000001000000010000000FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
       FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00D8D9D81D3E7133B9E8E8
