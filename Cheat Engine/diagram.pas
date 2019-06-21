@@ -1639,14 +1639,14 @@ end;
 destructor TDiagram.Destroy;
 var i: integer;
 begin
-  for i:=0 to links.count-1 do
-    TDiagramLink(links[i]).free;
+  while links.count>0 do
+    TDiagramLink(links[0]).free;
+
+  while blocks.count>0 do
+    TDiagramBlock(blocks[0]).free;
 
   links.free;
   links:=nil;
-
-  for i:=0 to blocks.count-1 do
-    TDiagramBlock(blocks[i]).free;
 
   blocks.Free;
   blocks:=nil;
