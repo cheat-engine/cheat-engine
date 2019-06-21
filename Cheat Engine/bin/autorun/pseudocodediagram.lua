@@ -834,6 +834,7 @@ function createDiagramPopupMenu(diagram)
 
   diagram.popup.HeaderlessBlockItems[2]=CreateMenuItem(pm)
   diagram.popup.HeaderlessBlockItems[2].Caption=translate('Delete annotation')
+  diagram.popup.HeaderlessBlockItems[2].ImageIndex=32
   diagram.popup.HeaderlessBlockItems[2].OnClick=PopupMenuDeleteAnnotationClick
 
   pm.Items.add(diagram.popup.HeaderlessBlockItems[1])
@@ -844,7 +845,8 @@ function createDiagramPopupMenu(diagram)
   diagram.popup.All[1].Caption='-'
   
   diagram.popup.All[2]=CreateMenuItem(pm)
-  diagram.popup.All[2].Caption=translate('Create annotation')  
+  diagram.popup.All[2].Caption=translate('Create annotation') 
+  diagram.popup.All[2].ImageIndex=65
   diagram.popup.All[2].OnClick=PopupMenuCreateAnnotationClick    
   pm.Items.add(diagram.popup.All[1])
   pm.Items.add(diagram.popup.All[2])    
