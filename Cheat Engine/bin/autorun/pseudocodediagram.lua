@@ -283,7 +283,7 @@ function createMenu(diagram)
     local fd=createOpenDialog()
     fd.Title=translate('Select the file you wish to open')
     fd.DefaultExt='CEDIAG'
-    fd.Filter='Diagram files (*.CEDIAG )|*.CEDIAG'
+    fd.Filter=translate('Diagram files (*.CEDIAG )|*.CEDIAG')
     if fd.Execute() then
       local fs=createFileStream(fd.FileName,fmOpenRead)
       
@@ -299,7 +299,7 @@ function createMenu(diagram)
       diagram.sortedAddressList={}
       local i
       local count=fs.readDword()
-      print("sortedAddressList count = "..count)
+      --print("sortedAddressList count = "..count)
       for i=1,count do
         diagram.sortedAddressList[i]=fs.readQword() 
       end
@@ -307,9 +307,9 @@ function createMenu(diagram)
       --Load diagram.blocks info
       diagram.blocks={}
       count=fs.readDword()
-      print("diagram.blocks count="..count)
+      --print("diagram.blocks count="..count)
       for i=1,count do
-        print("loading block "..i)
+        --print("loading block "..i)
         diagram.blocks[i]={}
         diagram.blocks[i].start=fs.readQword()
         diagram.blocks[i].stop=fs.readQword()
@@ -331,7 +331,7 @@ function createMenu(diagram)
         end        
       end 
 
-      print("reached end of load file")      
+      --print("reached end of load file")      
       
       fs.destroy()
     end
@@ -352,7 +352,7 @@ function createMenu(diagram)
     local fd=createSaveDialog()
     fd.Title=translate('Fill in the filename you wish to save this diagram as')
     fd.DefaultExt='CEDIAG'
-    fd.Filter='Diagram files (*.CEDIAG )|*.CEDIAG'
+    fd.Filter=translate('Diagram files (*.CEDIAG )|*.CEDIAG')
     fd.Options='['..string.sub(string.sub(fd.Options,2),1,#fd.Options-2)..',ofOverwritePrompt'..']'
     if fd.Execute() then
       local fs=createFileStream(fd.FileName,fmCreate)
@@ -488,11 +488,11 @@ function createMenu(diagram)
             local first
             first=tracers[i].Entry[0].address
           
-            list.add('Tracer starting at '..string.format("%s (%8x)", first, getNameFromAddress(first)))
+            list.add(string.format(translate('Tracer starting at %8x (%s)'), first, getNameFromAddress(first)))
           end
         end
         
-        local r=showSelectionList('Tracer paths', 'Which tracer window shall be used?', list, false)
+        local r=showSelectionList(translate('Tracer paths'), translate('Which tracer window shall be used?'), list, false)
         if r then
           tracer=tracers[r+1]
         end        
@@ -501,11 +501,11 @@ function createMenu(diagram)
       end
       
       if tracer then
-        print("Showing path")
+        --print("Showing path")
         showTracerPath(diagram, tracer)
       end 
     else      
-      showMessage('No tracerform with results visible');
+      showMessage(translate('No tracerform with results visible'));
     end
   end
   
@@ -620,15 +620,21 @@ end
 
 function PopupMenuEditBlockHeaderClick(sender)
   local diagram=getRef(sender.Owner.Owner.Tag)
-  local newheader = inputQuery("Edit", "new header", diagram.popup.lastobject.caption)
+  local newheader = inputQuery(translate("Edit"), translate("new header"), diagram.popup.lastobject.caption)
   if newheader ~= nil then diagram.popup.lastobject.caption = newheader end
 end
 
 function PopupMenuEditBlockBackgroundColorClick(sender) --a color dialog would be better
   local diagram=getRef(sender.Owner.Owner.Tag)
-  local newcolor = inputQuery("Edit", "new block background color (0xBBGGRR)", string.format("%X", diagram.popup.lastobject.BackgroundColor))
+  local newcolor = inputQuery(translate("Edit"), translate("new block background color (0xBBGGRR)"), string.format("%X", diagram.popup.lastobject.BackgroundColor))
   if newcolor ~= nil then 
-    diagram.popup.lastobject.BackgroundColor = tonumber(newcolor, 16) 
+    local newcolorint=tonumber(newcolor, 16)
+    if newcolorint==nil then
+      newcolorint=tonumber(newcolor)
+      if newcolorint==nil then return end
+    end
+    diagram.popup.lastobject.BackgroundColor = newcolorint
+
     diagram.diagram.repaint()
   end
 end
@@ -644,7 +650,7 @@ function PopupMenuListSourcesClick(sender)
     end
     stringlist.add(getNameFromAddress(diagram.blocks[linkz.asDestination[i].OriginBlock.tag].start))
   end
-  local index = showSelectionList("Sources list", "", stringlist)
+  local index = showSelectionList(translate("Sources list"), "", stringlist)
   if linkz.asDestination[index+1] ~= nil then
     sourceblock = linkz.asDestination[index+1].OriginBlock
     scrollToDiagramBlock(diagram, sourceblock)
@@ -658,7 +664,7 @@ function PopupMenuListDestinationsClick(sender)
   for i=1, #linkz.asSource do
     stringlist.add(getNameFromAddress(diagram.blocks[linkz.asSource[i].DestinationBlock.tag].start))
   end
-  local index = showSelectionList("Destinations list", "", stringlist)
+  local index = showSelectionList(translate("Destinations list"), "", stringlist)
   if linkz.asSource[index+1] ~= nil then
     destinationblock = linkz.asSource[index+1].DestinationBlock
     scrollToDiagramBlock(diagram, destinationblock)
