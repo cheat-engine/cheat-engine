@@ -1293,13 +1293,13 @@ begin
   if s.ReadWord>diagramversion then
     raise exception.create('Unknown diagram version');
 
-  for i:=0 to links.count-1 do
-    TDiagramLink(links[i]).Free;
+  while links.count>0 do
+    TDiagramLink(links[0]).Free;
 
   links.Clear;
 
-  for i:=0 to blocks.Count-1 do
-    TDiagramBlock(blocks[i]).Free;
+  while blocks.count>0 do
+    TDiagramBlock(blocks[0]).Free;
 
   blocks.clear;
 
