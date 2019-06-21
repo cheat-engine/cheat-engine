@@ -1015,7 +1015,8 @@ begin
 
   //owner.NotifyBlockDestroy(self);
 
-  data.free;
+  if data<>nil then
+    freeandnil(data);
 
   if cachedblock<>nil then
     freeandnil(cachedblock);

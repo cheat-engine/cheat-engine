@@ -749,6 +749,8 @@ function PopupMenuDeleteAnnotationClick(sender)
   
   if diagram.popup.lastobject and diagram.popup.lastobject.ShowHeader==false then
     diagram.popup.lastobject.destroy()
+    diagram.diagram.repaint()
+    diagram.popup.lastobject=nil
   end
 end
 

@@ -34,6 +34,7 @@ type
     fmaxy: integer;
 
     fOnDblClick: TNotifyEvent;
+    fOnDestroy: TNotifyEvent;
     ftag: qword;
 
 
@@ -90,6 +91,7 @@ type
 
 
     property PlotPoints[index: integer]: TPoint read getPoint write updatePointPosition;
+    property OnDestroy: TNotifyEvent read fOnDestroy write fOnDestroy;
     constructor create(diagramconfig: TDiagramConfig; _origin,_destination: TDiagramBlockSideDescriptor);
     constructor createFromStream(diagramconfig: TDiagramConfig; f: tstream; blocks: TList);
     destructor destroy; override;
@@ -979,6 +981,9 @@ end;
 
 destructor TDiagramLink.destroy;
 begin
+  if assigned(fOnDestroy) then
+    fOnDestroy(self);
+
   inherited destroy;
 end;
 

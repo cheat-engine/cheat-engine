@@ -66,6 +66,7 @@ type
     procedure updaterTimerEvent(sender: TObject);
     procedure scrollbarchange(sender: TObject);
     procedure NotifyBlockDestroy(sender: TObject);
+    procedure NotifyLinkDestroy(sender: TObject);
     procedure updateBlockDragPosition(xpos,ypos: integer);
     procedure updateResizePosition(xpos,ypos: integer);
     procedure updatePointDragPosition(xpos,ypos: integer);
@@ -618,6 +619,11 @@ begin
   RepaintOrRender;
 end;
 
+procedure TDiagram.NotifyLinkDestroy(sender: TObject);
+begin
+  links.Remove(sender);
+end;
+
 procedure TDiagram.NotifyBlockDestroy(sender: TObject);
 var
   l: TDiagramLink;
@@ -636,14 +642,13 @@ begin
       begin
         l:=TDiagramLink(links[i]);
         if l.hasLinkToBlock(b) then
-        begin
-          l.free;
-          links.Delete(i);
-        end
+          l.free
         else
           inc(i);
       end;
     end;
+
+    blocks.Remove(b);
   end;
 end;
 
@@ -1540,7 +1545,9 @@ begin
   d.sideposition:=0;
   l:=TDiagramLink.create(diagramConfig,o, d);
 
+
   links.add(l);
+  l.OnDestroy:=@NotifyLinkDestroy;
   result:=l;
 end;
 
@@ -1549,6 +1556,7 @@ var l: TDiagramLink;
 begin
   l:=TDiagramLink.create(diagramConfig,origin, destination);
   links.add(l);
+  l.OnDestroy:=@NotifyLinkDestroy;
 
   result:=l;
 end;
