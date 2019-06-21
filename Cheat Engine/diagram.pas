@@ -1288,6 +1288,8 @@ procedure TDiagram.loadFromStream(s: TStream);
 var
   i: integer;
   c: integer;
+  b: TDiagramBlock;
+  l: TDiagramLink;
 begin
   if s.ReadAnsiString<>'CEDIAG' then raise exception.create('Invalid diagram file');
   if s.ReadWord>diagramversion then
@@ -1305,11 +1307,19 @@ begin
 
   c:=s.ReadDWord;
   for i:=0 to c-1 do
-    blocks.add(TDiagramBlock.createFromStream(diagramConfig, s));
+  begin
+    b:=TDiagramBlock.createFromStream(diagramConfig, s);
+    blocks.add(b);
+    b.OnDestroy:=@NotifyBlockDestroy;
+  end;
 
   c:=s.ReadDWord;
   for i:=0 to c-1 do
-    links.add(TDiagramLink.createFromStream(diagramconfig, s, blocks));
+  begin
+    l:=TDiagramLink.createFromStream(diagramconfig, s, blocks);
+    links.add(l);
+    l.OnDestroy:=@NotifyLinkDestroy;
+  end;
 
   RepaintOrRender;
 end;
