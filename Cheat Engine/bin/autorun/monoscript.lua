@@ -221,6 +221,14 @@ function LaunchMonoDataCollector()
   else
     dllname=dllname.."32.dll"
   end
+  
+  autoAssemble([[ 
+mono-2.0-bdwgc.mono_error_ok: 
+mov eax,1 
+ret 
+]]) --don't care if it fails
+
+  
 
   if injectDLL(getCheatEngineDir()..[[\autorun\dlls\]]..dllname)==false then
     print(translate("Failure injecting the MonoDatacollector dll"))
