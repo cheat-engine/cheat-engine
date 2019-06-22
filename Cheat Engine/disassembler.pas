@@ -6207,7 +6207,7 @@ begin
                             lastdisassembledata.opcode:='vaddsd'
                           else
                             lastdisassembledata.opcode:='addsd';
-                          lastdisassembledata.parameters:=xmm(memory[2])+modrm(memory,prefix2,2,4,last,64,0,mRight);
+                          lastdisassembledata.parameters:=xmm(memory[2])+modrm(memory,prefix2,2,4,last,mRight);
 
                           description:='add the lower sp fp number from xmm2/mem to xmm1.';
                           inc(offset,last-1);
@@ -6221,7 +6221,7 @@ begin
                             lastdisassembledata.opcode:='vaddss'
                           else
                             lastdisassembledata.opcode:='addss';
-                          lastdisassembledata.parameters:=xmm(memory[2])+modrm(memory,prefix2,2,4,last,32,0,mRight);
+                          lastdisassembledata.parameters:=xmm(memory[2])+modrm(memory,prefix2,2,4,last,mRight);
                           lastdisassembledata.datasize:=4;
 
                           description:='add the lower sp fp number from xmm2/mem to xmm1.';

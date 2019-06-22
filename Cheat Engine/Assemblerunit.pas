@@ -4523,7 +4523,6 @@ var tokens: ttokens;
     v,v2: qword;
     mnemonic,nroftokens: integer;
     oldParamtype1, oldParamtype2: TTokenType;
-    realParamtype1, realParamtype2: TTokenType;
     paramtype1,paramtype2,paramtype3,paramtype4: TTokenType;
     parameter1,parameter2,parameter3,parameter4: string;
     vtype,v2type: integer;
@@ -4815,10 +4814,6 @@ begin
   paramtype3:=gettokentype(parameter3,'');
   paramtype4:=gettokentype(parameter4,'');
 
-  realparamtype1:=paramtype1;
-  realparamtype2:=paramtype2;
-
-
   if processhandler.is64Bit then
   begin
     if (paramtype1=ttRegister8BitWithPrefix) then
@@ -4857,7 +4852,7 @@ begin
       paramtype1:=ttMemoryLocation32;
     end;
 
-    if (paramtype2=ttMemoryLocation64) then
+    if paramtype2=ttMemoryLocation64 then
     begin
       REX_W:=true;
       paramtype2:=ttMemoryLocation32;
@@ -7393,7 +7388,7 @@ begin
           end;
         end;
 
-        if (opcodes[j].paramtype2=par_xmm_m64) and (isxmm_m64(realParamtype2) or ((realParamtype2=ttMemorylocation32) and (parameter2[1]='[')))  then
+        if (opcodes[j].paramtype2=par_xmm_m64) and (isxmm_m64(paramtype2) or ((paramtype2=ttMemorylocation32) and (parameter2[1]='[')))  then
         begin
           //even if the user didn't intend for it to be xmm,m64 it will be, that'll teach the lazy user to forget opperand size
           if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
