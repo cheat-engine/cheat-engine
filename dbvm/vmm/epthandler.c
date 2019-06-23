@@ -26,6 +26,8 @@ CloakedPageInfo *CloakedPages;
 int CloakedPagesSize;
 int CloakedPagesPos;
 
+int CloakedPagesUseMap; //set to true once cloakedPagesPos has grown over 10
+
 criticalSection ChangeRegBPListCS; //2
 ChangeRegBPEntry *ChangeRegBPList;
 int ChangeRegBPListSize;
@@ -107,9 +109,20 @@ BOOL ept_handleCloakEvent(pcpuinfo currentcpuinfo, QWORD Address, QWORD AddressV
     return FALSE;
 
   csEnter(&CloakedPagesCS);
+
+  if (CloakedPagesUseMap)
+  {
+    //use a map to get the information
+  }
+  else
+  {
+
+  }
+
+
   for (i=0; i<CloakedPagesPos; i++)
   {
-    if (currentcpuinfo->eptCloakListLength<=i)
+    if (currentcpuinfo->eptCloakListLength<=i) //error
       break;
 
     csEnter(&currentcpuinfo->EPTPML4CS);
