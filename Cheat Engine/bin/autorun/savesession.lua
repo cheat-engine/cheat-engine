@@ -331,6 +331,7 @@ SaveScanSession={}
 
 SaveScanSession.miSaveScanSession=createMenuItem(mf.Menu)
 SaveScanSession.miSaveScanSession.caption=translate('Save scan session')
+SaveScanSession.miSaveScanSession.ImageIndex=39
 SaveScanSession.miSaveScanSession.Shortcut='Ctrl+Alt+Shift+S'
 SaveScanSession.miSaveScanSession.OnClick=saveMemoryScan
 SaveScanSession.miSaveScanSession.Enabled=false
@@ -339,6 +340,7 @@ mf.Menu.Items[0].insert(9, SaveScanSession.miSaveScanSession)
 
 SaveScanSession.miLoadScanSession=createMenuItem(mf.Menu)
 SaveScanSession.miLoadScanSession.caption=translate('Load scan session')
+SaveScanSession.miLoadScanSession.ImageIndex=38
 SaveScanSession.miLoadScanSession.Shortcut='Ctrl+Alt+Shift+O'
 SaveScanSession.miLoadScanSession.OnClick=loadMemoryScan
 SaveScanSession.miLoadScanSession.Enabled=false

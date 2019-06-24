@@ -11,17 +11,17 @@ object frmStringPointerScan: TfrmStringPointerScan
   OnClose = FormClose
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '2.0.0.4'
+  LCLVersion = '2.0.2.0'
   object Panel1: TPanel
     Left = 0
     Height = 490
     Top = 0
-    Width = 188
+    Width = 189
     Align = alLeft
     AutoSize = True
     BevelOuter = bvNone
     ClientHeight = 490
-    ClientWidth = 188
+    ClientWidth = 189
     TabOrder = 0
     object edtStructsize: TEdit
       AnchorSideLeft.Control = lblStructsize
@@ -54,7 +54,7 @@ object frmStringPointerScan: TfrmStringPointerScan
       Left = 20
       Height = 23
       Top = 349
-      Width = 164
+      Width = 165
       Anchors = [akTop, akLeft, akRight]
       BorderSpacing.Right = 4
       Enabled = False
@@ -91,7 +91,7 @@ object frmStringPointerScan: TfrmStringPointerScan
       Left = 20
       Height = 19
       Top = 292
-      Width = 164
+      Width = 165
       BorderSpacing.Left = 16
       BorderSpacing.Right = 4
       Caption = 'Strings must match reg exp'
@@ -131,7 +131,7 @@ object frmStringPointerScan: TfrmStringPointerScan
       Left = 20
       Height = 23
       Top = 406
-      Width = 164
+      Width = 165
       Anchors = [akTop, akLeft, akRight]
       BorderSpacing.Right = 4
       Enabled = False
@@ -160,7 +160,7 @@ object frmStringPointerScan: TfrmStringPointerScan
       Left = 4
       Height = 23
       Top = 67
-      Width = 180
+      Width = 181
       Anchors = [akTop, akLeft, akRight]
       BorderSpacing.Right = 4
       Enabled = False
@@ -200,7 +200,7 @@ object frmStringPointerScan: TfrmStringPointerScan
       Left = 4
       Height = 23
       Top = 105
-      Width = 180
+      Width = 181
       Anchors = [akTop, akLeft, akRight]
       BorderSpacing.Right = 4
       Enabled = False
@@ -360,7 +360,7 @@ object frmStringPointerScan: TfrmStringPointerScan
         Left = 0
         Height = 15
         Top = 0
-        Width = 52
+        Width = 53
         Caption = 'Max Level'
         ParentColor = False
       end
@@ -376,18 +376,18 @@ object frmStringPointerScan: TfrmStringPointerScan
       Left = 0
       Height = 22
       Top = 468
-      Width = 188
+      Width = 189
       Anchors = [akTop, akLeft, akRight, akBottom]
       AutoSize = True
       BevelOuter = bvNone
       ClientHeight = 22
-      ClientWidth = 188
+      ClientWidth = 189
       TabOrder = 13
       object lblInfo: TLabel
         Left = 0
         Height = 15
         Top = 7
-        Width = 188
+        Width = 189
         Align = alBottom
         Caption = 'Info'
         ParentColor = False
@@ -402,7 +402,7 @@ object frmStringPointerScan: TfrmStringPointerScan
       Left = 0
       Height = 39
       Top = 429
-      Width = 188
+      Width = 189
       Anchors = [akTop, akLeft, akRight]
       AutoSize = True
       BevelOuter = bvNone
@@ -412,7 +412,7 @@ object frmStringPointerScan: TfrmStringPointerScan
       ChildSizing.Layout = cclLeftToRightThenTopToBottom
       ChildSizing.ControlsPerLine = 2
       ClientHeight = 39
-      ClientWidth = 188
+      ClientWidth = 189
       TabOrder = 14
       object btnNewScan: TButton
         AnchorSideLeft.Side = asrCenter
@@ -453,7 +453,7 @@ object frmStringPointerScan: TfrmStringPointerScan
       Left = 20
       Height = 19
       Top = 273
-      Width = 139
+      Width = 140
       BorderSpacing.Left = 16
       Caption = 'Use existing stringmap'
       Checked = True
@@ -463,20 +463,20 @@ object frmStringPointerScan: TfrmStringPointerScan
     end
   end
   object Panel2: TPanel
-    Left = 188
+    Left = 189
     Height = 490
     Top = 0
-    Width = 625
+    Width = 624
     Align = alClient
     BevelOuter = bvNone
     ClientHeight = 490
-    ClientWidth = 625
+    ClientWidth = 624
     TabOrder = 1
     object ListView1: TListView
       Left = 0
       Height = 354
       Top = 136
-      Width = 625
+      Width = 624
       Align = alClient
       Columns = <>
       HideSelection = False
@@ -494,12 +494,12 @@ object frmStringPointerScan: TfrmStringPointerScan
       Left = 0
       Height = 136
       Top = 0
-      Width = 625
+      Width = 624
       Align = alTop
       AutoSize = True
       BevelOuter = bvNone
       ClientHeight = 136
-      ClientWidth = 625
+      ClientWidth = 624
       TabOrder = 1
       OnClick = Panel3Click
       object lblExtra: TLabel
@@ -677,19 +677,19 @@ object frmStringPointerScan: TfrmStringPointerScan
         Left = 268
         Height = 136
         Top = 0
-        Width = 357
+        Width = 356
         Anchors = [akTop, akLeft, akRight, akBottom]
         AutoSize = True
         BorderSpacing.Left = 8
         BevelOuter = bvNone
         ClientHeight = 136
-        ClientWidth = 357
+        ClientWidth = 356
         TabOrder = 5
         object lblvds: TLabel
           AnchorSideTop.Control = Panel7
           AnchorSideRight.Control = Panel7
           AnchorSideRight.Side = asrBottom
-          Left = 250
+          Left = 249
           Height = 15
           Top = 8
           Width = 107
@@ -703,7 +703,7 @@ object frmStringPointerScan: TfrmStringPointerScan
           AnchorSideTop.Side = asrBottom
           AnchorSideRight.Control = Panel7
           AnchorSideRight.Side = asrBottom
-          Left = 233
+          Left = 232
           Height = 23
           Top = 23
           Width = 124
@@ -857,35 +857,35 @@ object frmStringPointerScan: TfrmStringPointerScan
       6CFFE0AA6CFFE0AA6CFFE0AA6CFFE0AA6CFFE0AA6CFFE0AA6CFFE0AA6CFFE0AA
       6CFFE0AA6CFFE0AA6CFFC48439FFFFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
       FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
-      FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00CACA
-      CA2F7B7B7B88535353AE5A5A5AA78D8D8D6FEAEAEA12FFFFFF00FFFFFF00FFFF
-      FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00F5F5F5036C6C6C923A3A
-      3ACD97979762C6C6C633BBBBBB3C7B7B7B80282828DEA6A6A64FFFFFFF00FFFF
-      FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF006C6C6C926565659CF8F8
-      F803FFFFFF00FFD9B34EFFE6CC2AFFFFFF00D8D8D81D2F2F2FD4B8B8B83EFFFF
-      FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00CACACA2D3A3A3ACFF8F8F803FFFF
-      FF00FFFFFF00FFB366C0FFCC9968FFFFFF00FFFFFF00CACACA2E333333D1FCFC
-      FC00FFFFFF00FFFFFF00FFFFFF00FFFFFF007B7B7B8597979765FFFFFF00FFFF
-      FF00FFFFFF00FFB366C0FFCC9968FFFFFF00FFFFFF00FFFFFF00484848BCCACA
-      CA2DFFFFFF00FFFFFF00FFFFFF00FFFFFF00575757ABC6C6C635FFD3A651FFA6
-      4CC8FFA64CC8FF9C39F2FF9F3FDEFFA64CC8FFA64CC8FFF4E90C7070708DA9A9
-      A954FFFFFF00FFFFFF00FFFFFF00FFFFFF00616161A2BBBBBB41FFE6CC2AFFCC
-      9968FFCC9968FFA64CDAFFB366A5FFCC9968FFCC9968FFF9F30669696998B0B0
-      B04BFFFFFF00FFFFFF00FFFFFF00FFFFFF009090906A7B7B7B86FFFFFF00FFFF
-      FF00FFFFFF00FFB366C0FFCC9968FFFFFF00FFFFFF00FCFCFC012F2F2FD8DFDF
-      DF16FFFFFF00FFFFFF00FFFFFF00FFFFFF00EAEAEA0F2C2C2CDDD8D8D821FFFF
-      FF00FFFFFF00FFB366C0FFCC9968FFFFFF00FFFFFF008D8D8D6A5A5A5AA3FFFF
-      FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00ADADAD49333333D7C2C2
-      C234FFFFFF00FFF6EC0CFFF9F306F8F8F8028989896B1A1A1AFAB4B4B44CFFFF
-      FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00BFBFBF393A3A
-      3ACC414141C2707070936565659C2C2C2CD9616161A1504E4EAF242424F2CAC7
-      C636FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
-      FF00D1D1D128A9A9A94EB0B0B047E3E3E313FFFFFF00F5F4F404524644AA2910
-      0CEFCBC5C434FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
-      FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00F5F4F403533F
-      3CA829100CEFCEC9C830FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
-      FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00F5F4
-      F4036C5B5892C0B9B834FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+      FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+      FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+      FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+      FF00FFFFFF00FFF4E90EFFA64CE0FFA64CE0FFF4E90EFFFFFF00FFFFFF00FFFF
+      FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+      FF00FFFFFF00FFF3E610FF9933FFFF9933FFFFF3E610FFFFFF00FFFFFF00FFFF
+      FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+      FF00FFFFFF00FFF3E610FF9933FFFF9933FFFFF3E610FFFFFF00FFFFFF00FFFF
+      FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+      FF00FFFFFF00FFF3E610FF9933FFFF9933FFFFF3E610FFFFFF00FFFFFF00FFFF
+      FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFF4E90EFFF3E610FFF3
+      E610FFF3E610FFE7D01FFF9933FFFF9933FFFFE7D01FFFF3E610FFF3E610FFF3
+      E610FFF4E90EFFFFFF00FFFFFF00FFFFFF00FFFFFF00FFA64CE0FF9933FFFF99
+      33FFFF9933FFFF9933FFFF9933FFFF9933FFFF9933FFFF9933FFFF9933FFFF99
+      33FFFFA64CE0FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFA64CE0FF9933FFFF99
+      33FFFF9933FFFF9933FFFF9933FFFF9933FFFF9933FFFF9933FFFF9933FFFF99
+      33FFFFA64CE0FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFF4E90EFFF3E610FFF3
+      E610FFF3E610FFE7D01FFF9933FFFF9933FFFFE7D01FFFF3E610FFF3E610FFF3
+      E610FFF4E90EFFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+      FF00FFFFFF00FFF3E610FF9933FFFF9933FFFFF3E610FFFFFF00FFFFFF00FFFF
+      FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+      FF00FFFFFF00FFF3E610FF9933FFFF9933FFFFF3E610FFFFFF00FFFFFF00FFFF
+      FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+      FF00FFFFFF00FFF3E610FF9933FFFF9933FFFFF3E610FFFFFF00FFFFFF00FFFF
+      FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+      FF00FFFFFF00FFF4E90EFFA64CE0FFA64CE0FFF4E90EFFFFFF00FFFFFF00FFFF
+      FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+      FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+      FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
       FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
       FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
       FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00D8D9D81D3E7133B9E8E8
