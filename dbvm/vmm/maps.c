@@ -77,7 +77,7 @@ int map_setEntry(PMapInfo map, QWORD address, void *data)
   }
 
   entrynr=(address >> (level*9)) & 0x1ff;
-  m[entrynr].Data=data;
+  m[entrynr].Data=data;  //EPT cloak: data is a pointer to an array of cpu's
 
   return 0;
 }
@@ -101,5 +101,13 @@ void *map_getEntry(PMapInfo map, QWORD address)
   }
 
   return m[entrynr].Data;
+}
+
+typedef void MAPCALLBACK(QWORD address, void *data);
+
+void map_foreach(PMapInfo map, MAPCALLBACK cb)
+{
+  cb(0,NULL);
+
 }
 
