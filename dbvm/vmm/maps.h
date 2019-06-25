@@ -31,6 +31,7 @@ PMapInfo createPhysicalMemoryMap();
 int map_setEntry(PMapInfo map, QWORD address, void *data);
 void *map_getEntry(PMapInfo map, QWORD address);
 
-
+typedef void(*MAPCALLBACK)(QWORD address, void *data);
+void map_foreach(PMapInfo map, MAPCALLBACK cb)
 
 #endif /* VMM_MAPS_H_ */
