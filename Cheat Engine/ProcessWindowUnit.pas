@@ -26,11 +26,16 @@ type
 
   TProcessWindow = class(TForm)
     btnNetwork: TButton;
-    Button4: TButton;
+    btnAttachDebugger: TButton;
     CancelButton: TButton;
     FontDialog1: TFontDialog;
+    plImageList: TImageList;
     MainMenu1: TMainMenu;
     MenuItem1: TMenuItem;
+    MenuItem2: TMenuItem;
+    MenuItem3: TMenuItem;
+    miConvertPIDToDecimal: TMenuItem;
+    miRefresh: TMenuItem;
     miCreateProcess: TMenuItem;
     miOpenFile: TMenuItem;
     N2: TMenuItem;
@@ -63,11 +68,12 @@ type
     procedure miProcessListLongClick(Sender: TObject);
     procedure miChangeFontClick(Sender: TObject);
     procedure miOwnProcessesOnlyClick(Sender: TObject);
+    procedure miRefreshClick(Sender: TObject);
     procedure OKButtonClick(Sender: TObject);
     procedure btnProcesslistClick(Sender: TObject);
     procedure btnWindowListClick(Sender: TObject);
     procedure btnCreateThreadClick(Sender: TObject);
-    procedure Button4Click(Sender: TObject);
+    procedure btnAttachDebuggerClick(Sender: TObject);
     procedure btnOpenFileClick(Sender: TObject);
     procedure InputPIDmanually1Click(Sender: TObject);
     procedure Filter1Click(Sender: TObject);
@@ -372,6 +378,11 @@ begin
   refreshlist;
 end;
 
+procedure TProcessWindow.miRefreshClick(Sender: TObject);
+begin
+  refreshList;
+end;
+
 procedure TProcessWindow.btnNetworkClick(Sender: TObject);
 begin
   if frmNetworkConfig=nil then
@@ -514,7 +525,7 @@ begin
   end;
 end;
 
-procedure TProcessWindow.Button4Click(Sender: TObject);
+procedure TProcessWindow.btnAttachDebuggerClick(Sender: TObject);
 var ProcessIDString: String;
     i:               Integer;
 begin
@@ -658,12 +669,19 @@ end;
 
 procedure TProcessWindow.PopupMenu1Popup(Sender: TObject);
 begin
-
+  miShowInvisibleItems.visible:=tabheader.TabIndex=2;
 end;
 
 procedure TProcessWindow.ProcessListDrawItem(Control: TWinControl;
   Index: Integer; Rect: TRect; State: TOwnerDrawState);
-var i: integer;
+var
+  i: integer;
+  t: string;
+
+  sep: integer;
+
+  pids: string;
+  pid: dword;
 begin
   wantedheight:=ProcessList.canvas.TextHeight('QqJjWwSs')+3;
   {i:=ProcessList.canvas.TextHeight('QqJjWwSs')+3;
@@ -675,8 +693,23 @@ begin
   if processlist.itemheight<i then ProcessList.ItemHeight:=i;}
 
 
+  t:=processlist.Items[index];
+  if miConvertPIDToDecimal.checked then
+  begin
+    sep:=pos('-',t);
+    if sep<>0 then
+    begin
+      try
+        pids:=copy(t,1,sep-1);
+        pid:=strtoint('$'+pids);
+        t:=format('%.8d',[pid])+copy(t,sep);
+      except
+      end;
+    end;
+  end;
 
-  processlist.Canvas.TextOut(rect.Left+rect.Bottom-rect.Top+3,rect.Top,processlist.Items[index]);
+
+  processlist.Canvas.TextOut(rect.Left+rect.Bottom-rect.Top+3,rect.Top,t);
 
   if (processlist.Items.Objects[index]<>nil) and (PProcessListInfo(processlist.Items.Objects[index])^.processIcon>0) then
     DrawIconEx(processlist.Canvas.Handle, rect.left, rect.Top, PProcessListInfo(processlist.Items.Objects[index])^.processIcon, rect.Bottom-rect.Top,rect.Bottom-rect.Top,0,0,DI_NORMAL);
@@ -685,6 +718,9 @@ end;
 
 procedure TProcessWindow.FormShow(Sender: TObject);
 begin
+  OKButton.Constraints.MinHeight:=trunc(1.2*btnAttachDebugger.height);
+  CancelButton.Constraints.MinHeight:=OKButton.Constraints.MinHeight;
+
   loadCommonProcessesList;
   errortrace:=100;
   try

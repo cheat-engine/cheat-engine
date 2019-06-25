@@ -7,7 +7,7 @@ interface
 uses
   LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls,CEFuncProc,ComCtrls, ExtCtrls, LResources, memscan,
-  commonTypeDefs, math, win32proc;
+  commonTypeDefs, math, win32proc, symbolhandler;
 
 const wm_fw_scandone=wm_user+1;
 type
@@ -15,7 +15,6 @@ type
   { TFindWindow }
 
   TFindWindow = class(TForm)
-    ProgressBar: TProgressBar;
     Panel1: TPanel;
     labelType: TLabel;
     Label2: TLabel;
@@ -26,18 +25,18 @@ type
     rbText: TRadioButton;
     rbArByte: TRadioButton;
     cbUnicode: TCheckBox;
-    Timer1: TTimer;
     Panel2: TPanel;
     btnOK: TButton;
     btnCancel: TButton;
     Scanvalue: TEdit;
-    procedure btnCancelClick(Sender: TObject);
     procedure btnOKClick(Sender: TObject);
+    procedure FormDestroy(Sender: TObject);
     procedure FormShow(Sender: TObject);
-    procedure Timer1Timer(Sender: TObject);
   private
     { Private declarations }
     memscan: TMemScan;
+    procedure scandone(Sender: TObject);
+
   public
     { Public declarations }
     firstscan: boolean;
@@ -55,36 +54,55 @@ resourcestring
   rsTheSpecifiedRangeIsInvalid = 'The specified range is invalid';
 
 
+procedure TFindWindow.scandone(sender: TObject);
+var x: ptruint;
+begin
+  if TMemScan(sender).GetOnlyOneResult(x) then
+  begin
+    MemoryBrowser.memoryaddress:=x;
+    modalresult:=mrok;
+  end else
+  begin
+    MessageDlg(rsNothingFound, mtError, [mbok], 0);
+  end;
+
+  if memscan=sender then
+    freeandnil(memscan);
+
+  btnOK.enabled:=true;
+end;
 
 procedure TFindWindow.btnOKClick(Sender: TObject);
-var start,stop,temp: ptruint;
+var startaddress,stopaddress: ptruint;
     //cb: TCheckbox;
     valtype: TVariableType;
     i: integer;
-    x: ptruint;
+
 begin
-
-
   if memscan<>nil then
     freeandnil(memscan);
   
   try
-    start:=StrToQWordEx('$'+editStart.text);
-    stop:=StrToQWordEx('$'+editstop.Text);
+    startaddress:=StrToQWordEx('$'+editstart.text);
   except
-    raise exception.Create(rsTheSpecifiedRangeIsInvalid);
+    startaddress:=symhandler.getAddressFromName(editstart.text);
   end;
 
-  if start>stop then
-  begin
-    temp:=start;
-    start:=stop;
-    stop:=temp;
+  try
+    stopaddress:=StrToQWordEx('$'+editstop.text);
+  except
+    stopaddress:=symhandler.getAddressFromName(editstop.text);
+  end;
+
+  if startaddress>stopaddress then
+  begin  //xor swap
+    startaddress:=startaddress xor stopaddress;
+    stopaddress:=stopaddress xor startaddress;
+    startaddress:=startaddress xor stopaddress;
   end;
 
 
   if rbText.checked then valtype:=vtString else valtype:=vtByteArray;
-
 
 
   memscan:=TMemscan.create(nil);
@@ -94,40 +112,23 @@ begin
   memscan.scanWritable:=scanDontCare;
 
 
-  try
-    memscan.firstscan(soExactValue, valtype, rtRounded, scanvalue.text, '', start, stop, true, false, cbunicode.checked, false, fsmNotAligned);
-    memscan.waittilldone;
+  memscan.firstscan(soExactValue, valtype, rtRounded, scanvalue.text, '', startaddress, stopaddress, true, false, cbunicode.checked, false, fsmNotAligned);
+  memscan.OnScanDone:=ScanDone;
 
-    if memscan.GetOnlyOneResult(x) then
-    begin
-      MemoryBrowser.memoryaddress:=x;
-      modalresult:=mrok;
-    end else
-    begin
-      //showmessage(rsNothingFound);
-      //wtf...
-      freeandnil(memscan);
-
-      MessageDlg(rsNothingFound, mtError, [mbok], 0);
-    end;
-  finally
-    if memscan<>nil then
-      freeandnil(memscan);
-  end;
-
+  btnOK.enabled:=false;
 end;
 
-procedure TFindWindow.btnCancelClick(Sender: TObject);
+procedure TFindWindow.FormDestroy(Sender: TObject);
 begin
-
+  if memscan<>nil then
+    freeandnil(memscan);
 end;
 
 procedure TFindWindow.FormShow(Sender: TObject);
 const EM_GETMARGINS=$d4;
-var m: DWord;
+var m: dword;
+
 begin
-  progressbar.Position:=0;
-  
   if firstscan then
   begin
 
@@ -138,18 +139,24 @@ begin
 
     if processhandler.is64bit then
     begin
-      editstop.text:='7FFFFFFFFFFFFFFF';
+       //init just once if needed
+       if (editstop.Text = '') or (editstart.Text = '') then  // if not initialized
+       begin
+          editstop.text:='7FFFFFFFFFFFFFFF';
+          editstart.Text:='0000000000000000';
+       end;
       editstart.clientwidth:=canvas.TextWidth('DDDDDDDDDDDDDDDD')+(m shr 16)+(m and $ffff);
     end
     else
     begin
+      //init just once if needed
+      if (editstop.Text = '') or (editstart.Text = '') then  // if not initialized
+      begin
+         editstop.text:='7FFFFFFF';
+         editstart.Text:='00000000';
+      end;
       editstart.clientwidth:=canvas.TextWidth('DDDDDDDD')+(m shr 16)+(m and $ffff);
     end;
-
-
-
-
-
 
     labelType.visible:=true;
     labelarray.visible:=true;
@@ -177,7 +184,6 @@ begin
     editStart.visible:=false;
     label2.Visible:=false;
     label3.Visible:=false;
-    timer1.enabled:=true; //bah, I wanted to do execute here but it seems thats not possible
   end;
 
   btnok.AutoSize:=true;
@@ -188,13 +194,6 @@ begin
 
   btnok.width:=max(btnok.width, btncancel.width);
   btncancel.width:=max(btnok.width, btncancel.width);
-end;
-
-procedure TFindWindow.Timer1Timer(Sender: TObject);
-begin
-  timer1.enabled:=false;
-  btnOK.click;
-  close;
 end;
 
 initialization

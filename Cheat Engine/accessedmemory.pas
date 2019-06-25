@@ -24,6 +24,7 @@ type
     Button3: TButton;
     Edit1: TEdit;
     Edit2: TEdit;
+    famrImageList: TImageList;
     Label1: TLabel;
     Label2: TLabel;
     Label3: TLabel;

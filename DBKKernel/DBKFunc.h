@@ -10,6 +10,10 @@
 
 #include "interruptHook.h"
 
+#ifdef RELEASE
+#define DbgPrint(...)
+#endif
+
 int _fltused;
 
 

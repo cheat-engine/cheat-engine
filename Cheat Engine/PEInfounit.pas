@@ -21,6 +21,7 @@ type
 
   TfrmPEInfo = class(TForm)
     GroupBox2: TGroupBox;
+    peiImageList: TImageList;
     miCopyTab: TMenuItem;
     miCopyEverything: TMenuItem;
     Panel1: TPanel;

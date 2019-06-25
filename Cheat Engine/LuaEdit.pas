@@ -131,6 +131,50 @@ begin
   result:=0;
 end;
 
+function edit_getPasswordChar(L: PLua_State): integer; cdecl;
+var
+  e: tcustomedit;
+begin
+  e:=luaclass_getClassObject(L);
+  lua_pushstring(L,e.PasswordChar);
+  result:=1;
+end;
+
+function edit_setPasswordChar(L: PLua_State): integer; cdecl;
+var
+  e: tcustomedit;
+  s: string;
+begin
+  e:=luaclass_getClassObject(L);
+  if lua_gettop(L)>0 then
+  begin
+    s:=Lua_ToString(L,1);
+    e.PasswordChar:=s[1];
+  end;
+
+  result:=1;
+end;
+
+function edit_getCaretPos(L: PLua_State): integer; cdecl;
+var
+  e: tcustomedit;
+begin
+  e:=luaclass_getClassObject(L);
+  lua_pushpoint(L,e.CaretPos);
+  result:=1;
+end;
+
+function edit_setCaretPos(L: PLua_State): integer; cdecl;
+var
+  e: tcustomedit;
+begin
+  e:=luaclass_getClassObject(L);
+  if lua_gettop(L)>0 then
+    e.caretpos:=lua_toPoint(L,1);
+
+  result:=1;
+end;
+
 function edit_getSelStart(L: PLua_State): integer; cdecl;
 var
   e: tcustomedit;
@@ -138,6 +182,17 @@ begin
   e:=luaclass_getClassObject(L);
   lua_pushinteger(L, e.SelStart);
   result:=1;
+end;
+
+function edit_setSelStart(L: PLua_State): integer; cdecl;
+var
+  e: tcustomedit;
+begin
+  e:=luaclass_getClassObject(L);
+  if lua_gettop(L)>0 then
+    e.SelStart:=lua_tointeger(L,1);
+
+  result:=0;
 end;
 
 function edit_getSelLength(L: PLua_State): integer; cdecl;
@@ -149,6 +204,16 @@ begin
   result:=1;
 end;
 
+function edit_setSelLength(L: PLua_State): integer; cdecl;
+var
+  e: tcustomedit;
+begin
+  e:=luaclass_getClassObject(L);
+  if lua_gettop(L)>0 then
+    e.SelLength:=lua_tointeger(L,1);
+  result:=0;
+end;
+
 function edit_getSelText(L: PLua_State): integer; cdecl;
 var
   e: tcustomedit;
@@ -157,6 +222,18 @@ begin
   lua_pushstring(L, e.SelText);
   result:=1;
 end;
+
+function edit_setSelText(L: PLua_State): integer; cdecl;
+var
+  e: tcustomedit;
+begin
+  e:=luaclass_getClassObject(L);
+  if lua_gettop(L)>0 then
+    e.SelText:=lua_tostring(L, 1);
+
+  result:=0;
+end;
+
 
 function edit_getOnChange(L: PLua_State): integer; cdecl;
 var
@@ -351,9 +428,13 @@ begin
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'setOnKeyUp', edit_setOnKeyUp);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'getOnKeyDown', edit_getOnKeyDown);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'setOnKeyDown', edit_setOnKeyDown);
-  luaclass_addPropertyToTable(L, metatable, userdata, 'SelStart', edit_getSelStart, nil);
-  luaclass_addPropertyToTable(L, metatable, userdata, 'SelLength', edit_getSelLength, nil);
-  luaclass_addPropertyToTable(L, metatable, userdata, 'SelText', edit_getSelText, nil);
+
+
+  luaclass_addPropertyToTable(L, metatable, userdata, 'SetPasswordChar', edit_setPasswordChar, edit_getPasswordChar);
+  luaclass_addPropertyToTable(L, metatable, userdata, 'CaretPos', edit_getCaretPos, edit_setCaretPos);
+  luaclass_addPropertyToTable(L, metatable, userdata, 'SelStart', edit_getSelStart, edit_setSelStart);
+  luaclass_addPropertyToTable(L, metatable, userdata, 'SelLength', edit_getSelLength, edit_setSelLength);
+  luaclass_addPropertyToTable(L, metatable, userdata, 'SelText', edit_getSelText, edit_setSelText);
   luaclass_addPropertyToTable(L, metatable, userdata, 'OnChange', edit_getOnChange, edit_setOnChange);
   luaclass_addPropertyToTable(L, metatable, userdata, 'OnKeyPress', edit_getOnKeyPress, edit_setOnKeyPress);
   luaclass_addPropertyToTable(L, metatable, userdata, 'OnKeyUp', edit_getOnKeyUp, edit_setOnKeyUp);

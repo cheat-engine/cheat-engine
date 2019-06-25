@@ -21,10 +21,13 @@ type
     cbDisallowUserInput: TCheckBox;
     cbOnlyShowDescription: TCheckBox;
     cbDisplayAsDropdownItem: TCheckBox;
+    doImageList: TImageList;
     Label1: TLabel;
     Label2: TLabel;
     Cut1: TMenuItem;
     Copy1: TMenuItem;
+    Label3: TLabel;
+    lblFormat: TLabel;
     Paste1: TMenuItem;
     Undo1: TMenuItem;
     Panel0: TPanel;
@@ -32,6 +35,7 @@ type
     Panel2: TPanel;
     PopupMenu1: TPopupMenu;
     procedure btnOkClick(Sender: TObject);
+    procedure cbDisallowUserInputChange(Sender: TObject);
     procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
@@ -142,9 +146,8 @@ begin
 end;
 
 procedure TFrmMemoryRecordDropdownSettings.btnOkClick(Sender: TObject);
+var i: integer;
 begin
-
-
   if linkedtomemrec then
   begin
     memrec.DropDownLinked:=true;
@@ -153,7 +156,12 @@ begin
   else
   begin
     memrec.DropDownLinked:=false;
-    memrec.DropDownList.Assign(synEditDropdownItems.Lines);
+
+    memrec.DropDownList.Clear;
+    for i:=0 to synEditDropdownItems.lines.Count-1 do
+      if pos(':', synEditDropdownItems.lines[i])>0 then
+        memrec.DropDownList.add(synEditDropdownItems.lines[i]);
+
     memrec.DropDownReadOnly:=cbDisallowUserInput.checked;
     memrec.DropDownDescriptionOnly:=cbOnlyShowDescription.checked;
     memrec.DisplayAsDropDownListItem:=cbDisplayAsDropdownItem.checked;
@@ -163,11 +171,22 @@ begin
   modalresult:=mrok;
 end;
 
+procedure TFrmMemoryRecordDropdownSettings.cbDisallowUserInputChange(
+  Sender: TObject);
+begin
+  label3.visible:=cbDisallowUserInput.checked and cbOnlyShowDescription.checked and cbDisplayAsDropdownItem.checked;
+
+end;
+
 constructor TFrmMemoryRecordDropdownSettings.create(memrec: TMemoryrecord);
-var multicaret: TSynPluginMultiCaret;
+var
+  multicaret: TSynPluginMultiCaret;
+  fs: integer;
 begin
   inherited create(Application);
 
+
+  fs:=font.size;
   self.memrec:=memrec;
 
   synEditDropdownItems:=TSynEdit.Create(Self);
@@ -186,6 +205,8 @@ begin
     Gutter.CodeFoldPart.Visible:=false;
     Gutter.MarksPart.Visible:=false;
     Gutter.SeparatorPart.Visible:=false;
+
+    font.size:=13;
   end;
 
   multicaret:=TSynPluginMultiCaret.Create(synEditDropdownItems);

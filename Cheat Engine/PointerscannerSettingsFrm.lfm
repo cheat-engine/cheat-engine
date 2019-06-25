@@ -12,7 +12,7 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
   OnDestroy = FormDestroy
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '1.6.4.0'
+  LCLVersion = '2.0.0.4'
   object cbValueType: TComboBox
     AnchorSideLeft.Control = cbAddress
     AnchorSideLeft.Side = asrBottom
@@ -24,7 +24,6 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
     Top = 43
     Width = 124
     Anchors = [akTop, akRight]
-    BorderSpacing.Left = 3
     BorderSpacing.Right = 3
     ItemHeight = 15
     ItemIndex = 0
@@ -160,12 +159,12 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
       AnchorSideLeft.Control = Panel3
       AnchorSideTop.Control = Panel3
       Left = 0
-      Height = 194
+      Height = 195
       Top = 0
       Width = 299
       AutoSize = True
       BevelOuter = bvNone
-      ClientHeight = 194
+      ClientHeight = 195
       ClientWidth = 299
       TabOrder = 0
       object cbIncludeSystemModules: TCheckBox
@@ -174,7 +173,7 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
         AnchorSideTop.Side = asrBottom
         Left = 7
         Height = 19
-        Top = 175
+        Top = 176
         Width = 148
         Caption = 'Include system modules'
         TabOrder = 0
@@ -186,7 +185,7 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
         Left = 23
         Height = 19
         Hint = 'If the address you search for isn''t a heap address, the scan will return 0 results'
-        Top = 156
+        Top = 157
         Width = 273
         BorderSpacing.Left = 16
         Caption = 'Only allow static and heap addresses in the path'
@@ -203,7 +202,7 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
         Left = 7
         Height = 19
         Hint = 'When this is checked the heap is used to figure out the offset sizes, instead of blindly guessing them.'#13#10'pro: Greatly improve speed and a lot less useless results'#13#10'con: if the game allocates gigantic chunks of heap memory, and then divides it up itself, this will give wrong results.'#13#10#13#10'In other cases this will give perfect pointers '
-        Top = 137
+        Top = 138
         Width = 260
         Caption = 'Improve pointerscan with gathered heap data'
         OnClick = cbUseHeapDataClick
@@ -292,12 +291,12 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
         AnchorSideTop.Control = Label13
         AnchorSideTop.Side = asrBottom
         Left = 7
-        Height = 46
+        Height = 47
         Top = 91
         Width = 110
         AutoSize = True
         BevelOuter = bvNone
-        ClientHeight = 46
+        ClientHeight = 47
         ClientWidth = 110
         TabOrder = 7
         object edtReverseStart: TEdit
@@ -335,9 +334,10 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
           AnchorSideRight.Side = asrBottom
           Left = 30
           Height = 23
-          Top = 23
+          Top = 24
           Width = 80
           Anchors = [akTop, akRight]
+          BorderSpacing.Top = 1
           CharCase = ecUppercase
           MaxLength = 8
           OnChange = canNotReuse
@@ -350,7 +350,7 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
           AnchorSideRight.Control = edtReverseStop
           Left = 14
           Height = 15
-          Top = 27
+          Top = 28
           Width = 16
           Anchors = [akTop, akRight]
           Caption = 'To:'
@@ -549,13 +549,14 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
     Left = 8
     Height = 21
     Top = 43
-    Width = 544
+    Width = 543
     Anchors = [akTop, akLeft, akRight]
+    BorderSpacing.Right = 4
     DropDownCount = 0
     ItemHeight = 15
     OnChange = edtAddressChange
     OnDrawItem = cbAddressDrawItem
-    Style = csOwnerDrawFixed
+    Style = csOwnerDrawEditableFixed
     TabOrder = 6
   end
   object Panel1: TPanel
@@ -625,7 +626,7 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
         Anchors = [akTop, akRight]
         BorderSpacing.Top = 10
         TabOrder = 1
-        Text = '2047'
+        Text = '4095'
       end
       object Label3: TLabel
         AnchorSideTop.Control = editStructsize
@@ -724,7 +725,7 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
         BorderSpacing.Top = 10
         Constraints.MinWidth = 80
         TabOrder = 1
-        Text = '5'
+        Text = '7'
       end
       object btnCancel: TButton
         AnchorSideLeft.Control = Panel7

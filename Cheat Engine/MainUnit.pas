@@ -255,11 +255,14 @@ type
     CreateGroup: TMenuItem;
     FromAddress: TEdit;
     andlabel: TLabel;
+    mfImageList: TImageList;
     lblSigned: TLabel;
     MainMenu2: TMainMenu;
     MenuItem12: TMenuItem;
     MenuItem14: TMenuItem;
     MenuItem15: TMenuItem;
+    Copyselectedaddresses1: TMenuItem;
+    miAutoAssembleErrorMessage: TMenuItem;
     miLuaDocumentation: TMenuItem;
     miForgotScan: TMenuItem;
     miDotNET: TMenuItem;
@@ -495,6 +498,7 @@ type
     procedure cbPercentageOnChange(Sender: TObject);
     procedure cbCodePageChange(Sender: TObject);
     procedure cbUnicodeChange(Sender: TObject);
+    procedure Copyselectedaddresses1Click(Sender: TObject);
     procedure EnableLCLClick(Sender: TObject);
     procedure cbFastScanChange(Sender: TObject);
     procedure cbUnrandomizerChange(Sender: TObject);
@@ -512,6 +516,7 @@ type
     procedure Label3Click(Sender: TObject);
     procedure MenuItem12Click(Sender: TObject);
     procedure MenuItem15Click(Sender: TObject);
+    procedure miAutoAssembleErrorMessageClick(Sender: TObject);
     procedure miHelpClick(Sender: TObject);
     procedure miLuaDocumentationClick(Sender: TObject);
     procedure miForgotScanClick(Sender: TObject);
@@ -738,7 +743,11 @@ type
     fOnProcessOpened: TProcessOpenedEvent;
 
     overlayid: integer;   //debug
-    lastAddedAddress: string;
+    lastAdded: record
+      Address: string;
+      vartype: TVariableType;
+    end;
+
 
     saveGotCanceled: boolean; //set to true if the last save button click was canceled
 
@@ -2998,6 +3007,22 @@ begin
   if cbunicode.checked then cbCodePage.checked:=false;
 end;
 
+procedure TMainForm.Copyselectedaddresses1Click(Sender: TObject);
+var    i: qword;
+    temp: string;
+begin
+     if foundlist3.SelCount = 1 then  clipboard.AsText := symhandler.getNameFromAddress(StrToQWordEx('$'+foundlist3.Items[foundlist3.itemindex].Caption))
+     else if foundlist3.SelCount > 1 then
+     begin
+        for i:=0 to foundlist3.Items.count-1 do
+        begin
+          if foundlist3.items[i].Selected then
+              temp := temp + symhandler.getNameFromAddress(StrToQWordEx('$'+foundlist3.Items[i].Caption)) + sLineBreak;
+        end;
+        clipboard.AsText := temp;
+     end;
+end;
+
 procedure TMainForm.EnableLCLClick(Sender: TObject);
 var llf: TLazLoggerFile;
 begin
@@ -3157,6 +3182,11 @@ begin
       exit;
     end;
   end;
+end;
+
+procedure TMainForm.miAutoAssembleErrorMessageClick(Sender: TObject);
+begin
+  addresslist.doValueChange;
 end;
 
 procedure TMainForm.miHelpClick(Sender: TObject);
@@ -3624,6 +3654,7 @@ begin
 
 
     mi.Caption := f.Name;
+    mi.ImageIndex:=16;
     miTable.Insert(4, mi);
 
 
@@ -3636,6 +3667,7 @@ begin
 
     submenu := tmenuitem.Create(mi);
     submenu.Caption := rsEdit;
+    submenu.ImageIndex:=17;
     submenu.OnClick := EditFormClick;
     submenu.Tag := i;
     mi.Add(submenu);
@@ -3647,6 +3679,7 @@ begin
 
     submenu := tmenuitem.Create(mi);
     submenu.Caption := rsDelete;
+    submenu.ImageIndex:=22;
     submenu.OnClick := DeleteFormClick;
     submenu.Tag := i;
     mi.Add(submenu);
@@ -3667,12 +3700,14 @@ begin
 
     submenu := tmenuitem.Create(mi);
     submenu.Caption := rsRename;
+    submenu.ImageIndex:=17;
     submenu.OnClick := RenameFileClick;
     submenu.Tag := i;
     mi.Add(submenu);
 
     submenu := tmenuitem.Create(mi);
     submenu.Caption := rsSaveToDisk;
+    submenu.ImageIndex:=4;
     submenu.OnClick := SaveFileClick;
     submenu.Tag := i;
     mi.Add(submenu);
@@ -3683,6 +3718,7 @@ begin
 
     submenu := tmenuitem.Create(mi);
     submenu.Caption := rsDelete;
+    submenu.ImageIndex:=22;
     submenu.OnClick := DeleteFileClick;
     submenu.Tag := i;
     mi.Add(submenu);
@@ -5071,6 +5107,8 @@ begin
   FromAddress.Font.Size:=font.size;
   if i=0 then beep;  }
 
+  lastAdded.vartype:=vtDword;
+
   miSignTable.visible:=canSignTables;
 
 
@@ -5759,9 +5797,12 @@ end;
 procedure TMainForm.btnAddAddressManuallyClick(Sender: TObject);
 var mr: Tmemoryrecord;
 begin
-  mr:=addresslist.addAddressManually(lastAddedAddress);
+  mr:=addresslist.addAddressManually(lastAdded.Address, lastAdded.vartype);
   if mr<>nil then
-    lastAddedAddress:=mr.interpretableaddress; //store the last used string
+  begin
+    lastAdded.Address:=mr.interpretableaddress; //store the last used string
+    lastAdded.vartype:=mr.VarType;
+  end;
 end;
 
 procedure TMainForm.ScanTypeChange(Sender: TObject);
@@ -6641,6 +6682,14 @@ begin
 
   miDBVMFindWhatWritesOrAccesses.visible:=isIntel and isDBVMCapable; //02/24/2019: Most cpu's support EPT now
   sep2.Visible:=miDBVMFindWhatWritesOrAccesses.Visible;
+
+
+  if (selectedrecord<>nil) and (selectedrecord.VarType=vtAutoAssembler) then
+  begin
+    miAutoAssembleErrorMessage.visible:=selectedrecord.LastAAExecutionFailed;
+    if selectedrecord.LastAAExecutionFailed then
+      miAutoAssembleErrorMessage.Caption:='<<'+selectedrecord.LastAAExecutionFailedReason+'>>';
+  end;
 end;
 
 procedure TMainForm.foundlistpopupPopup(Sender: TObject);
@@ -7526,12 +7575,25 @@ begin
 
   logo.Height:=trunc((logo.Width / logo.picture.Width)*logo.picture.Height);
 
+  sbOpenProcess.BorderSpacing.Around:=ScaleX(sbOpenProcess.BorderSpacing.Around, 96);
+  loadbutton.BorderSpacing.Top:=sbOpenProcess.BorderSpacing.Around;
 
-  AdjustSpeedButtonSize(sbOpenProcess);
-  AdjustSpeedButtonSize(LoadButton);
-  AdjustSpeedButtonSize(SaveButton);
-  AdjustSpeedButtonSize(SpeedButton2);
-  AdjustSpeedButtonSize(SpeedButton3);
+
+  //because the images have no empty border autosize is out of the question as that makes them hug the border. So, scale them manually
+  sbOpenProcess.Width:=scalex(sbOpenProcess.Width, 96);
+  sbOpenProcess.Height:=scaley(sbOpenProcess.Height, 96);
+
+  LoadButton.Width:=scalex(LoadButton.Width, 96);
+  LoadButton.Height:=scaley(LoadButton.Height, 96);
+
+  SaveButton.Width:=scalex(SaveButton.Width, 96);
+  SaveButton.Height:=scaley(SaveButton.Height, 96);
+
+  SpeedButton2.Width:=scalex(SpeedButton2.Width, 96);
+  SpeedButton2.Height:=scaley(SpeedButton2.Height, 96);
+
+  SpeedButton3.Width:=scalex(SpeedButton3.Width, 96);
+  SpeedButton3.Height:=scaley(SpeedButton3.Height, 96);
 
 
   if panel7.Height>ProgressBar.Top+ProgressBar.Height then

@@ -84,6 +84,26 @@ begin
     c.transparentColor:=lua_tointeger(L,-1);
 end;
 
+function rasterimage_loadFromStream(L: PLua_State): integer; cdecl;
+var
+  c: TrasterImage;
+begin
+  result:=0;
+  c:=luaclass_getClassObject(L);
+  if lua_gettop(L)>=1 then
+    c.LoadFromStream(lua_ToCEUserData(L,1));
+end;
+
+function rasterimage_saveToStream(L: PLua_State): integer; cdecl;
+var
+  c: TrasterImage;
+begin
+  result:=0;
+  c:=luaclass_getClassObject(L);
+  if lua_gettop(L)>=1 then
+    c.SaveToStream(lua_ToCEUserData(L,1));
+end;
+
 procedure rasterimage_addMetaData(L: PLua_state; metatable: integer; userdata: integer );
 begin
   graphic_addMetaData(L, metatable, userdata);
@@ -92,6 +112,8 @@ begin
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'setPixelFormat', rasterimage_setPixelFormat);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'getTransparentColor', rasterimage_getTransparentColor);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'setTransparentColor', rasterimage_setTransparentColor);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'loadFromStream', rasterimage_loadFromStream);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'saveToStream', rasterimage_saveToStream);
 
   Luaclass_addPropertyToTable(L, metatable, userdata, 'Canvas', rasterImage_getCanvas, nil);
   Luaclass_addPropertyToTable(L, metatable, userdata, 'PixelFormat', rasterimage_getPixelFormat, rasterimage_setPixelFormat);

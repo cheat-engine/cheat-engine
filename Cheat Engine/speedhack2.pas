@@ -46,6 +46,8 @@ var i: integer;
     err: boolean;
 
     path: string;
+
+    QPCAddress: ptruint;
 begin
   initaddress:=0;
 
@@ -67,12 +69,16 @@ begin
 
       symhandler.waitforsymbolsloaded(true, 'kernel32.dll'); //speed it up (else it'll wait inside the symbol lookup of injectdll)
 
-      symhandler.getAddressFromName('speedhackversion_GetTickCount',true,e);
+      symhandler.waitForExports;
+      symhandler.getAddressFromName('speedhackversion_GetTickCount',false,e);
       if e then
+      begin
         injectdll(CheatEngineDir+fname);
+        symhandler.reinitialize;
+        symhandler.waitforsymbolsloaded(true)
+      end;
 
-      symhandler.reinitialize;
-      symhandler.waitforsymbolsloaded(true)
+
     except
       on e: exception do
       begin
@@ -168,7 +174,7 @@ begin
         script.Add('alloc(init,512)');
       //check if it already has a a speedhack script running
 
-      a:=symhandler.getAddressFromName('realgettickcount') ;
+      a:=symhandler.getAddressFromName('realgettickcount', true) ;
       b:=0;
       readprocessmemory(processhandle,pointer(a),@b,processhandler.pointersize,x);
       if b<>0 then //already configured
@@ -216,14 +222,20 @@ begin
 
 
       //qpc
+      qpcaddress:=symhandler.getAddressFromName('ntdll.RtlQueryPerformanceCounter',true, err);
+      if err then
+        qpcaddress:=symhandler.getAddressFromName('kernel32.RtlQueryPerformanceCounter',true);
+
+
       script.clear;
       a:=symhandler.getAddressFromName('realQueryPerformanceCounter') ;
       b:=0;
       readprocessmemory(processhandle,pointer(a),@b,processhandler.pointersize,x);
+
       if b<>0 then //already configured
-        generateAPIHookScript(script, 'QueryPerformanceCounter', 'speedhackversion_QueryPerformanceCounter')
+        generateAPIHookScript(script, inttohex(qpcaddress,8), 'speedhackversion_QueryPerformanceCounter')
       else
-        generateAPIHookScript(script, 'QueryPerformanceCounter', 'speedhackversion_QueryPerformanceCounter', 'realQueryPerformanceCounter');
+        generateAPIHookScript(script, inttohex(qpcaddress,8), 'speedhackversion_QueryPerformanceCounter', 'realQueryPerformanceCounter');
 
       try
         autoassemble(script,false);

@@ -80,6 +80,7 @@ type
     edtFilename: TEdit;
     edtWorkerCount: TEdit;
     Flusher: TTimer;
+    umImageList: TImageList;
     Label1: TLabel;
     Label2: TLabel;
     Label3: TLabel;

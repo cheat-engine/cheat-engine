@@ -10,20 +10,36 @@ uses
 
 const FILE_MAP_EXECUTE = $20;
 
+function allocateSharedMemory(name: string; size: integer=4096): pointer;
 function allocateSharedMemoryIntoTargetProcess(name: string; size: integer=4096): pointer;
-procedure createSharedMemory(name: string; size: integer);
-
+function createSharedMemory(name: string; size: integer): THandle;
 
 implementation
 
 uses ProcessHandlerUnit;
 
 
-procedure createSharedMemory(name: string; size: integer);
+function createSharedMemory(name: string; size: integer): THandle;
 begin
-  CreateFileMapping(INVALID_HANDLE_VALUE,nil,PAGE_EXECUTE_READWRITE,0,size,pchar(name));
+  result:=CreateFileMapping(INVALID_HANDLE_VALUE,nil,PAGE_EXECUTE_READWRITE,0,size,pchar(name));
 end;
 
+function allocateSharedMemory(name: string; size: integer=4096): pointer;
+var
+  access: dword;
+  h: thandle;
+begin
+  access:=FILE_MAP_EXECUTE or FILE_MAP_READ or FILE_MAP_WRITE;
+
+
+  //if name does not exist allocate it first
+  h:=OpenFileMapping(access, false, pchar(name));
+
+  if h=0 then
+    h:=createSharedMemory(name, size);
+
+  result:=MapViewOfFile(h,access,0,0,0);
+end;
 
 function allocateSharedMemoryIntoTargetProcess(name: string; size: integer=4096): pointer;
 var s: tstringlist;
@@ -35,13 +51,17 @@ var s: tstringlist;
   address: ptruint;
 
   access: dword;
+
+  h: THandle;
 begin
   access:=FILE_MAP_EXECUTE or FILE_MAP_READ or FILE_MAP_WRITE;
 
 
   //if name does not exist allocate it first
-  if OpenFileMapping(access, false, pchar(name))=0 then
-    createSharedMemory(name, size);
+  h:=OpenFileMapping(access, false, pchar(name));
+
+  if h=0 then
+    h:=createSharedMemory(name, size);
 
 
   result:=nil;

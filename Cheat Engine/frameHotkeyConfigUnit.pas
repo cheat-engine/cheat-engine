@@ -17,6 +17,7 @@ type
 
   TframeHotkeyConfig = class(TFrame)
     cbStopOnRelease: TCheckBox;
+    fhcImageList: TImageList;
     MenuItem1: TMenuItem;
     Panel1: TPanel;
     Label1: TLabel;

@@ -17,7 +17,7 @@ uses windows, FileUtil, LCLIntf,sysutils, classes,ComCtrls,dialogs, NewKernelHan
      SyncObjs, windows7taskbar,SaveFirstScan, savedscanhandler, autoassembler,
      symbolhandler, CEFuncProc,shellapi, customtypehandler,lua,lualib,lauxlib,
      LuaHandler, fileaccess, groupscancommandparser, commonTypeDefs, LazUTF8,
-     forms, LazFileUtils, LCLProc;
+     forms, LazFileUtils, LCLProc, LCLVersion;
 {$define customtypeimplemented}
 {$endif}
 
@@ -4208,7 +4208,7 @@ begin
       else
         floataccuracy:=0;
 
-      if not percentage then
+      if (floataccuracy<>0) and not percentage then
       begin
         svalue:=RoundTo(svalue,-floataccuracy);
         svalue2:=RoundTo(svalue2,-floataccuracy);
@@ -4216,10 +4216,21 @@ begin
         dvalue2:=RoundTo(dvalue2,-floataccuracy);
       end;
 
-      mindvalue:=dvalue-(1/(power(10,floataccuracy)));
-      maxdvalue:=dvalue+(1/(power(10,floataccuracy)));
-      minsvalue:=svalue-(1/(power(10,floataccuracy)));
-      maxsvalue:=svalue+(1/(power(10,floataccuracy)));
+      if floataccuracy<>0 then
+      begin
+        mindvalue:=dvalue-(1/(power(10,floataccuracy)));
+        maxdvalue:=dvalue+(1/(power(10,floataccuracy)));
+        minsvalue:=svalue-(1/(power(10,floataccuracy)));
+        maxsvalue:=svalue+(1/(power(10,floataccuracy)));
+      end
+      else
+      begin
+        mindvalue:=dvalue-1;
+        maxdvalue:=dvalue+1;
+
+        minsvalue:=svalue-1;
+        maxsvalue:=svalue+1;
+      end;
 
     end;
                   
@@ -5194,8 +5205,11 @@ begin
 
       log('Scanner exception:'+errorstring);
 
+
+      {$if lcl_fullversion < 2000000}
       DebugLn('Scanner exception:'+errorstring);
       DumpExceptionBackTrace;
+      {$endif}
 
       //tell all siblings to terminate, something messed up
       //and I can just do this, since the ScanController is waiting for us, and terminate is pretty much atomic

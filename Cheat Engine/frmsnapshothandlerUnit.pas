@@ -57,6 +57,7 @@ type
 
   TfrmSnapshotHandler = class(TForm)
     btnCompare: TButton;
+    shImageList: TImageList;
     lblCompare: TLabel;
     MainMenu1: TMainMenu;
     MenuItem1: TMenuItem;

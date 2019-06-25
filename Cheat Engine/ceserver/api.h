@@ -17,6 +17,9 @@
 
 #include <sys/ptrace.h>
 
+#ifdef __ANDROID__
+  #include<android/log.h>
+#endif
 /*
 
 #if defined(__arm__) || defined(__ANDROID__)
@@ -219,4 +222,12 @@ void initAPI();
 
 extern pthread_mutex_t debugsocketmutex;
 
+#ifdef __ANDROID__
+  #define LOG_TAG "CESERVER"
+  #define LOGD(fmt, args...) __android_log_vprint(ANDROID_LOG_DEBUG, LOG_TAG, fmt, ##args)
+#endif
+
+int debug_log(const char * format , ...); 
+long safe_ptrace(int request, pid_t pid, void * addr, void * data);
+#define MEMORY_SEARCH_OPTION 0
 #endif /* API_H_ */

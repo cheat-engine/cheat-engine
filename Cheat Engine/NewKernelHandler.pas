@@ -1251,7 +1251,7 @@ begin
 
   //check if it can use EPT tables in dbvm:
   //first get the basic msr to see if TRUE procbasedctrls need to be used or old
-  if isIntel and isDriverLoaded(nil) then
+  if isIntel and assigned(isDriverLoaded) and isDriverLoaded(nil) then
   begin
     result:=false;
     if (readMSR(IA32_VMX_BASIC_MSR) and (1 shl 55))<>0 then
@@ -1266,7 +1266,9 @@ begin
       if ((readMSR(IA32_VMX_PROCBASED_CTLS2_MSR) shr 32) and (1 shl 1))<>0 then
         result:=true;
     end;
-  end;
+  end
+  else
+    result:=result and isRunningDBVM;
 end;
 
 {$endif}

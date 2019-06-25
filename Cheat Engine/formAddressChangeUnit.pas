@@ -11,7 +11,8 @@ uses
   Classes, Graphics, Controls, Forms, Dialogs, StdCtrls, ExtCtrls, ComCtrls,
   Buttons, Arrow, Spin, Menus, CEFuncProc, NewKernelHandler, symbolhandler,
   memoryrecordunit, types, byteinterpreter, math, CustomTypeHandler,
-  commonTypeDefs, lua, lualib, lauxlib, luahandler, CommCtrl, LuaClass, Clipbrd;
+  commonTypeDefs, lua, lualib, lauxlib, luahandler, CommCtrl, LuaClass, Clipbrd,
+  DPIHelper;
 
 const WM_disablePointer=WM_USER+1;
 
@@ -119,6 +120,7 @@ type
   TformAddressChange = class(TForm)
     cbCodePage: TCheckBox;
     editDescription: TEdit;
+    caImageList: TImageList;
     Label12: TLabel;
     Label3: TLabel;
     lblValue: TLabel;
@@ -509,6 +511,16 @@ begin
     lblPointerAddressToValue.parent:=owner;
     sbDecrease.parent:=owner;
     sbIncrease.parent:=owner;
+
+    AdjustEditBoxSize(edtOffset,owner.Canvas.GetTextWidth(' XXXX '));
+//  edtOffset.Width:=;
+
+  //  dpi
+
+    sbDecrease.height:=edtOffset.Height;
+    sbDecrease.Width:=sbDecrease.Height;
+    sbIncrease.height:=sbDecrease.Height;
+    sbIncrease.Width:=sbDecrease.height;
   end;
 
 
@@ -529,7 +541,8 @@ begin
   lblPointerAddressToValue.visible:=true;
 
 
-  newtop:=sbDecrease.top+sbDecrease.height+3;
+
+  newtop:=sbDecrease.top+sbDecrease.height+ceil(3*getDPIScaleFactor);
 end;
 
 destructor TOffsetInfo.destroy;
@@ -640,8 +653,9 @@ begin
 
   //two buttons, one for + and one for -
   sbDecrease:=TSpeedButton.create(parent);
-  sbDecrease.Width:=edtOffset.Height;
-  sbDecrease.Height:=edtOffset.Height;
+
+  sbDecrease.Width:=edtOffset.Height*8;
+  sbDecrease.Height:=edtOffset.Height*8;
   sbDecrease.AnchorSideTop.Control:=edtOffset;
   sbDecrease.AnchorSideTop.Side:=asrCenter;
   sbDecrease.AnchorSideLeft.Control:=parent;
@@ -665,7 +679,7 @@ begin
   sbIncrease.OnMouseDown:=IncreaseDown;
   sbIncrease.OnMouseUp:=IncreaseDecreaseUp;
 
-  edtOffset.width:=owner.baseAddress.Width-2*sbIncrease.Height-2;
+  edtOffset.width:=owner.canvas.GetTextWidth(' XXXX ');
 
 
   edtOffset.AnchorSideLeft.Control:=sbIncrease;
@@ -1158,8 +1172,12 @@ end;
 
 
 procedure Tformaddresschange.processaddress;
-var a: PtrUInt;
+var
+  a: PtrUInt;
   e: boolean;
+  s: string;
+  wantedsize, size: integer;
+  ct: TCustomType;
 begin
   //read the address and display the value it points to
 
@@ -1167,7 +1185,19 @@ begin
   if not e then
   begin
     //get the vartype and parse it
-    lblValue.caption:='='+readAndParseAddress(a, vartype, TcustomType(cbvarType.items.objects[cbvarType.ItemIndex]),false, false, StrToIntDef(edtSize.text,1));
+
+    wantedsize:=StrToIntDef(edtSize.text,1);
+    size:=max(30,wantedsize);
+
+    ct:=TcustomType(cbvarType.items.objects[cbvarType.ItemIndex]);
+    if ct<>nil then
+      size:=ct.bytesize;
+
+    s:='='+readAndParseAddress(a, vartype, TcustomType(cbvarType.items.objects[cbvarType.ItemIndex]),false, false, size);
+    if edtSize.visible and (size<>wantedsize) then
+      s:=s+'...';
+
+    lblValue.caption:=s;
   end
   else
     lblValue.caption:='=???';
@@ -1483,6 +1513,15 @@ begin
 
   btnok.width:=i;
   btncancel.width:=i;
+
+  autosize:=false;
+  AdjustHeightAndButtons;
+
+  processaddress;
+
+  Repaint;
+
+  autosize:=true;
 end;
 
 procedure TformAddressChange.FormWindowStateChange(Sender: TObject);

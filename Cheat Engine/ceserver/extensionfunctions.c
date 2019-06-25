@@ -23,7 +23,7 @@ int ext_speedhack_setSpeed(HANDLE hProcess, float speed)
 {
   uint32_t result=0;
 
-  printf("ext_speedhack_setSpeed(%d, %f)\n", hProcess, speed);
+  debug_log("ext_speedhack_setSpeed(%d, %f)\n", hProcess, speed);
 
   if (GetHandleType(hProcess) == htProcesHandle )
   {
@@ -38,10 +38,10 @@ int ext_speedhack_setSpeed(HANDLE hProcess, float speed)
 
     if (p->hasLoadedExtension==FALSE)
     {
-      printf("hasLoadedExtension == FALSE");
+      debug_log("hasLoadedExtension == FALSE");
       if (loadCEServerExtension(hProcess)==FALSE)
       {
-        printf("Failure to load the extension\n");
+        debug_log("Failure to load the extension\n");
         return 0;
       }
     }
@@ -65,7 +65,7 @@ int ext_speedhack_setSpeed(HANDLE hProcess, float speed)
 uint64_t ext_loadModule(HANDLE hProcess, char *modulepath)
 {
   uint64_t result=0;
-  printf("ext_loadModule(%d, \"%s\"\n", hProcess, modulepath);
+  debug_log("ext_loadModule(%d, \"%s\"\n", hProcess, modulepath);
 
   if (GetHandleType(hProcess) == htProcesHandle )
   {
@@ -80,10 +80,10 @@ uint64_t ext_loadModule(HANDLE hProcess, char *modulepath)
 
     if (p->hasLoadedExtension==FALSE)
     {
-      printf("hasLoadedExtension == FALSE");
+      debug_log("hasLoadedExtension == FALSE");
       if (loadCEServerExtension(hProcess)==FALSE)
       {
-        printf("Failure to load the extension\n");
+        debug_log("Failure to load the extension\n");
         return 0;
       }
     }
@@ -113,7 +113,7 @@ uint64_t ext_loadModule(HANDLE hProcess, char *modulepath)
 uint64_t ext_createThread(HANDLE hProcess, uint64_t startaddress, uint64_t parameter)
 {
   uint64_t result=0;
-  printf("ext_createThread(%d, %lx, %lx\n", hProcess, startaddress, parameter);
+  debug_log("ext_createThread(%d, %lx, %lx\n", hProcess, startaddress, parameter);
 
   if (GetHandleType(hProcess) == htProcesHandle )
   {
@@ -129,10 +129,10 @@ uint64_t ext_createThread(HANDLE hProcess, uint64_t startaddress, uint64_t param
 
     if (p->hasLoadedExtension==FALSE)
     {
-      printf("hasLoadedExtension == FALSE");
+      debug_log("hasLoadedExtension == FALSE");
       if (loadCEServerExtension(hProcess)==FALSE)
       {
-        printf("Failure to load the extension\n");
+        debug_log("Failure to load the extension\n");
         return 0;
       }
     }
@@ -158,7 +158,7 @@ int ext_free(HANDLE hProcess, uint64_t address, int size)
 {
   uint32_t result=0;
 
-  printf("ext_free(%d, %lx, %d)\n", hProcess, address, size);
+  debug_log("ext_free(%d, %lx, %d)\n", hProcess, address, size);
 
   if (GetHandleType(hProcess) == htProcesHandle )
   {
@@ -174,10 +174,10 @@ int ext_free(HANDLE hProcess, uint64_t address, int size)
 
     if (p->hasLoadedExtension==FALSE)
     {
-      printf("hasLoadedExtension == FALSE");
+      debug_log("hasLoadedExtension == FALSE");
       if (loadCEServerExtension(hProcess)==FALSE)
       {
-        printf("Failure to load the extension\n");
+        debug_log("Failure to load the extension\n");
         return 0;
       }
     }
@@ -202,7 +202,7 @@ int ext_free(HANDLE hProcess, uint64_t address, int size)
 uint64_t ext_alloc(HANDLE hProcess, uint64_t preferedBase, int size)
 {
   uint64_t result=0;
-  printf("ext_alloc(%d, %llx, %d)\n", hProcess, preferedBase, size);
+  debug_log("ext_alloc(%d, %llx, %d)\n", hProcess, preferedBase, size);
 
   if (GetHandleType(hProcess) == htProcesHandle )
   {
@@ -218,10 +218,10 @@ uint64_t ext_alloc(HANDLE hProcess, uint64_t preferedBase, int size)
 
     if (p->hasLoadedExtension==FALSE)
     {
-      printf("hasLoadedExtension == FALSE");
+      debug_log("hasLoadedExtension == FALSE");
       if (loadCEServerExtension(hProcess)==FALSE)
       {
-        printf("Failure to load the extension\n");
+        debug_log("Failure to load the extension\n");
         return 0;
       }
     }
@@ -238,7 +238,7 @@ uint64_t ext_alloc(HANDLE hProcess, uint64_t preferedBase, int size)
 
     pthread_mutex_unlock(&p->extensionMutex);
 
-    printf("Returned from extension with result %llx\n", result);
+    debug_log("Returned from extension with result %llx\n", result);
 
   }
 

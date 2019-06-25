@@ -106,7 +106,7 @@ published
   property OnClick;
   property OnColumnClick;
   property OnCompare;
-//  property OnContextPopup;
+  property OnContextPopup;
   property OnCustomDraw;
   property OnCustomDrawItem;
   property OnCustomDrawSubItem;
@@ -150,7 +150,7 @@ published
   property Max;
   property Min;
   property Position;
- // property OnContextPopup;
+  property OnContextPopup;
 //  property OnDragDrop;
 //  property OnDragOver;
 //  property OnEndDrag;
@@ -194,7 +194,7 @@ type TCETrackBar=class(TCustomTrackBar)
     property OnChange;
     property OnChangeBounds;
     property OnClick;
- //   property OnContextPopup;
+    property OnContextPopup;
 //    property OnDragDrop;
 //    property OnDragOver;
 //    property OnEndDrag;
@@ -255,11 +255,11 @@ type TCEListBox=class(TCustomListBox)
     property MultiSelect;
     property OnChangeBounds;
     property OnClick;
-    //property OnContextPopup;
+    property OnContextPopup;
     property OnDblClick;
   //  property OnDragDrop;
   //  property OnDragOver;
- //   property OnDrawItem;
+    property OnDrawItem;
     property OnEnter;
   //  property OnEndDrag;
     property OnExit;
@@ -324,11 +324,11 @@ published
   property OnChangeBounds;
   property OnClick;
   property OnCloseUp;
- // property OnContextPopup;
+  property OnContextPopup;
   property OnDblClick;
 ////  property OnDragDrop;
  // property OnDragOver;
- // property OnDrawItem;
+  property OnDrawItem;
 //  property OnEndDrag;
   property OnDropDown;
   property OnEditingDone;
@@ -393,7 +393,7 @@ published
   property Visible;
   property OnChangeBounds;
   property OnClick;
- // property OnContextPopup;
+  property OnContextPopup;
   property OnDblClick;
 //  property OnDragDrop;
 //  property OnDockDrop;
@@ -467,7 +467,7 @@ published
     property ParentFont;
     property ParentColor;
     property ParentShowHint;
-   property PopupMenu;
+    property PopupMenu;
     property ShowHint;
     property TabOrder;
     property TabStop;
@@ -498,7 +498,7 @@ type TCECheckBox=class(TCustomCheckBox)
     property OnChange;
     property OnChangeBounds;
     property OnClick;
-    //property OnContextPopup;
+    property OnContextPopup;
    // property OnDragDrop;
    // property OnDragOver;
    // property OnEditingDone;
@@ -563,7 +563,7 @@ type TCEEdit=class(TCustomEdit)
     property OnChange;
     property OnChangeBounds;
     property OnClick;
- //   property OnContextPopup;
+    property OnContextPopup;
     property OnDblClick;
  //   property OnDragDrop;
  //   property OnDragOver;
@@ -741,7 +741,7 @@ type TCEMemo=class(TCustomMemo)
     property MaxLength;
     property OnChange;
     property OnClick;
-  //  property OnContextPopup;
+    property OnContextPopup;
     property OnDblClick;
    // property OnDragDrop;
   //  property OnDragOver;
@@ -858,7 +858,7 @@ published
     property UseDockManager default True;
     property Visible;
     property OnClick;
-   // property OnContextPopup;
+    property OnContextPopup;
     property OnDockDrop;
     property OnDockOver;
     property OnDblClick;
@@ -920,7 +920,7 @@ published
   property OnMouseEnter;
   property OnMouseLeave;
   property OnChangeBounds;
-  //property OnContextPopup;
+  property OnContextPopup;
   property OnResize;
   property OnStartDrag;
   property OptimalFill;
@@ -949,7 +949,7 @@ type TCEButton=class(TCustomButton)
     property ModalResult;
     property OnChangeBounds;
     property OnClick;
-    //property OnContextPopup;
+    property OnContextPopup;
     //property OnDragDrop;
     //property OnDragOver;
     //property OnEndDrag;
@@ -1427,9 +1427,9 @@ begin
   if active then
   begin
     if color<>clDefault then
-      DesignPaintGrid(Canvas, ClientRect, ColorToRGB(color), InvertColor(ColorToRGB(color)))
+      DesignPaintGrid(Canvas, ClientRect, ColorToRGB(color), InvertColor(ColorToRGB(color)), scalex(8,96))
     else
-      DesignPaintGrid(Canvas, ClientRect);
+      DesignPaintGrid(Canvas, ClientRect, clBtnFace,clBlack, scalex(8,96));
   end;
 end;
 
@@ -1593,7 +1593,6 @@ initialization
   RegisterPropertyEditor(TypeInfo(TTVChangingEvent), nil, '', THiddenPropertyEditor);
   RegisterPropertyEditor(TypeInfo(TTVExpandedEvent), nil, '', THiddenPropertyEditor);
   RegisterPropertyEditor(TypeInfo(TTVCompareEvent), nil, '', THiddenPropertyEditor);
-  RegisterPropertyEditor(TypeInfo(TContextPopupEvent), nil, '', THiddenPropertyEditor);
   RegisterPropertyEditor(TypeInfo(TTVCreateNodeClassEvent), nil, '', THiddenPropertyEditor);
   RegisterPropertyEditor(TypeInfo(TTVCustomCreateNodeEvent), nil, '', THiddenPropertyEditor);
   RegisterPropertyEditor(TypeInfo(TTVExpandedEvent), nil, '', THiddenPropertyEditor);

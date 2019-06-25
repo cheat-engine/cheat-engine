@@ -51,6 +51,26 @@ begin
   result:=0;
 end;
 
+function listitem_getData(L: PLua_State): integer; cdecl;
+var
+  listitem: Tlistitem;
+begin
+  listitem:=luaclass_getClassObject(L);
+  lua_pushinteger(L, ptruint(listitem.Data));
+  result:=1;
+end;
+
+function listitem_setData(L: PLua_State): integer; cdecl;
+var
+  listitem: Tlistitem;
+begin
+  listitem:=luaclass_getClassObject(L);
+  if lua_gettop(L)>=1 then
+    listitem.Data:=pointer(lua_tointeger(L, -1));
+
+  result:=0;
+end;
+
 function listitem_getOwner(L: PLua_State): integer; cdecl;
 var
   listitem: Tlistitem;
@@ -192,6 +212,7 @@ begin
   Luaclass_addPropertyToTable(L, metatable, userdata, 'Index', listitem_getIndex, nil);
   Luaclass_addPropertyToTable(L, metatable, userdata, 'Selected', listitem_getSelected, listitem_setSelected);
   Luaclass_addPropertyToTable(L, metatable, userdata, 'Owner', listitem_getOwner, nil);
+  luaclass_addPropertyToTable(L, metatable, userdata, 'Data', listitem_getData, listitem_setData);
 
 end;
 

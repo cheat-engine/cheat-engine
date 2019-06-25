@@ -7,7 +7,8 @@ interface
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls,
   ComCtrls, ExtCtrls, maps, Menus, syncobjs, newkernelhandler,
-  ProcessHandlerUnit, CodeFilterCallOrAllDialog, PEInfoFunctions, PEInfounit;
+  ProcessHandlerUnit, CodeFilterCallOrAllDialog, PEInfoFunctions, PEInfounit,
+  lua, lualib, lauxlib, luaform, LuaClass;
 
 type
 
@@ -26,6 +27,7 @@ type
     Button1: TButton;
     frmLaunchBranchMapper: TButton;
     GroupBox1: TGroupBox;
+    cfImageList: TImageList;
     Label1: TLabel;
     Label3: TLabel;
     lblExecuteCount: TLabel;
@@ -108,10 +110,13 @@ type
 
   public
     { public declarations }
+    function isInList(address: ptruint): boolean;
     function isBreakpoint(address: ptruint; var originalbyte: byte): boolean;
     function handleBreakpoint(address: ptruint): boolean; //called by TDebugThreadHandler's. If true it knows it should just continue from here
     property hasBreakpointsSet: boolean read breakpointsSet;
   end;
+
+procedure initializeLuaCodeFilter;
 
 var
   frmCodeFilter: TfrmCodeFilter;
@@ -122,7 +127,7 @@ implementation
 
 uses CEFuncProc, DissectCodeunit, DissectCodeThread, frmDisassemblyscanunit,
   frmSelectionlistunit, commonTypeDefs, symbolhandler, MemoryBrowserFormUnit,
-  CEDebugger, frmBranchMapperUnit, symbolhandlerstructs;
+  CEDebugger, frmBranchMapperUnit, symbolhandlerstructs, LuaHandler;
 
 { TfrmCodeFilter }
 
@@ -550,6 +555,14 @@ begin
   end;
 end;
 
+
+function TfrmCodeFilter.isInList(address: ptruint): boolean;
+var bpinfo: Pbpinfo;
+begin
+  callMapMREW.Beginread;
+  result:=callmap.HasId(address);
+  callMapMREW.Endread;
+end;
 
 function TfrmCodeFilter.isBreakpoint(address: ptruint; var originalbyte: byte): boolean;
 var bpinfo: Pbpinfo;
@@ -1089,6 +1102,48 @@ begin
   addresslist.Clear;
   lvResults.items.count:=0;
 end;
+
+//lua
+function frmCodeFilter_isInList(L: PLua_state): integer; cdecl;
+var
+  f: TfrmCodeFilter;
+  r: boolean;
+  count: integer;
+begin
+  result:=0;
+  f:=TfrmCodeFilter(luaclass_getClassObject(L));
+  if lua_gettop(L)>=1 then
+  begin
+    lua_pushboolean(L,f.isInList(lua_tointeger(L,1)));
+    result:=1;
+  end;
+end;
+
+function lua_getUltimap2(L: PLua_state): integer; cdecl;
+begin
+  luaclass_newClass(L,frmCodeFilter);
+  result:=1;
+end;
+
+procedure frmCodeFilter_addMetaData(L: PLua_state; metatable: integer; userdata: integer );
+begin
+  customform_addMetaData(L, metatable, userdata);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'isInList', @frmCodeFilter_isInList);
+end;
+
+procedure initializeLuaCodeFilter;
+begin
+  lua_register(LuaVM, 'getCodeFilter', @lua_getUltimap2);
+end;
+
+
+initialization
+  registerclass(TfrmCodeFilter);
+
+  luaclass_register(TfrmCodeFilter, @frmCodeFilter_addMetaData);
+
+end.
+
 
 end.
 

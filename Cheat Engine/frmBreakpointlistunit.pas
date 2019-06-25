@@ -16,6 +16,7 @@ type
   { TfrmBreakpointlist }
 
   TfrmBreakpointlist = class(TForm)
+    bplImageList: TImageList;
     ListView1: TListView;
     MenuItem1: TMenuItem;
     MenuItem2: TMenuItem;

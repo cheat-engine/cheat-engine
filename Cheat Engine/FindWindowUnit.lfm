@@ -1,34 +1,18 @@
 object FindWindow: TFindWindow
-  Left = 727
-  Height = 167
-  Top = 389
+  Left = 610
+  Height = 148
+  Top = 375
   Width = 294
   AutoSize = True
   BorderIcons = [biSystemMenu]
   BorderStyle = bsDialog
   Caption = 'Find'
-  ClientHeight = 167
+  ClientHeight = 148
   ClientWidth = 294
+  OnDestroy = FormDestroy
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '1.6.4.0'
-  object ProgressBar: TProgressBar
-    AnchorSideLeft.Control = Owner
-    AnchorSideTop.Control = Panel1
-    AnchorSideTop.Side = asrBottom
-    AnchorSideRight.Control = Owner
-    AnchorSideRight.Side = asrBottom
-    Left = 5
-    Height = 20
-    Top = 106
-    Width = 284
-    Anchors = [akTop, akLeft, akRight]
-    BorderSpacing.Left = 5
-    BorderSpacing.Top = 5
-    BorderSpacing.Right = 5
-    Step = 1
-    TabOrder = 0
-  end
+  LCLVersion = '2.0.0.4'
   object Panel1: TPanel
     AnchorSideLeft.Control = Owner
     AnchorSideTop.Control = Owner
@@ -43,14 +27,14 @@ object FindWindow: TFindWindow
     BevelOuter = bvNone
     ClientHeight = 101
     ClientWidth = 294
-    TabOrder = 1
+    TabOrder = 0
     object labelType: TLabel
       AnchorSideLeft.Control = Panel1
       AnchorSideTop.Control = Panel1
       Left = 3
       Height = 15
       Top = 3
-      Width = 29
+      Width = 28
       BorderSpacing.Left = 3
       BorderSpacing.Top = 3
       Caption = 'Type:'
@@ -73,10 +57,10 @@ object FindWindow: TFindWindow
       AnchorSideTop.Control = EditStop
       AnchorSideTop.Side = asrCenter
       AnchorSideRight.Control = EditStop
-      Left = 168
+      Left = 169
       Height = 15
       Top = 44
-      Width = 14
+      Width = 13
       Anchors = [akTop, akRight]
       BorderSpacing.Right = 2
       Caption = 'To'
@@ -104,9 +88,7 @@ object FindWindow: TFindWindow
       Width = 109
       BorderSpacing.Left = 2
       BorderSpacing.Right = 2
-      MaxLength = 16
       TabOrder = 1
-      Text = '00400000'
     end
     object EditStop: TEdit
       AnchorSideLeft.Control = editStart
@@ -120,9 +102,7 @@ object FindWindow: TFindWindow
       Width = 109
       Anchors = [akTop, akLeft, akRight]
       BorderSpacing.Top = 2
-      MaxLength = 16
       TabOrder = 2
-      Text = '7FFFFFFF'
     end
     object rbText: TRadioButton
       AnchorSideLeft.Control = Panel1
@@ -184,18 +164,18 @@ object FindWindow: TFindWindow
   object Panel2: TPanel
     AnchorSideLeft.Control = Owner
     AnchorSideLeft.Side = asrCenter
-    AnchorSideTop.Control = ProgressBar
+    AnchorSideTop.Control = Panel1
     AnchorSideTop.Side = asrBottom
     Left = 88
     Height = 29
-    Top = 131
+    Top = 109
     Width = 119
     AutoSize = True
-    BorderSpacing.Top = 5
+    BorderSpacing.Top = 8
     BevelOuter = bvNone
     ClientHeight = 29
     ClientWidth = 119
-    TabOrder = 2
+    TabOrder = 1
     object btnOK: TButton
       Left = 2
       Height = 25
@@ -219,15 +199,7 @@ object FindWindow: TFindWindow
       Cancel = True
       Caption = 'Cancel'
       ModalResult = 2
-      OnClick = btnCancelClick
       TabOrder = 1
     end
-  end
-  object Timer1: TTimer
-    Enabled = False
-    Interval = 5
-    OnTimer = Timer1Timer
-    left = 128
-    top = 8
   end
 end

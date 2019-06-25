@@ -433,7 +433,7 @@ var vmcall :function(vmcallinfo:pointer; level1pass: dword): PtrUInt; stdcall;
 var vmcall2 :function(vmcallinfo:pointer; level1pass: dword; secondaryOut: pptruint): PtrUInt; stdcall;
 
 
-  cloakedregionsCS: TCriticalSection;
+  cloakedregionsCS: TCriticalSection=nil;
 
   cloakedregions: array of record //using an array instead of map as there will likely be less than 1000 entries
         VirtualAddress: qword;
@@ -443,7 +443,7 @@ var vmcall2 :function(vmcallinfo:pointer; level1pass: dword; secondaryOut: pptru
   cloakedregioncache: tmap;
 
   breakpoints: array of TDBVMBreakpoint;
-  breakpointsCS: TCriticalSection;
+  breakpointsCS: TCriticalSection=nil;
 
 type
   TCloakedMemInfo=record
@@ -2271,8 +2271,8 @@ initialization
     end;
   end;
 
-  cloakedregionscs:=TCriticalSection.Create;
-  breakpointscs:=TCriticalSection.Create;
 
   {$endif}
+  cloakedregionscs:=TCriticalSection.Create;
+  breakpointscs:=TCriticalSection.Create;
 end.

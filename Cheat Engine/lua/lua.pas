@@ -162,6 +162,7 @@ function lua_atpanic(L: Plua_State; panicf: lua_CFunction): lua_CFunction; cdecl
 procedure lua_rotate(L: Plua_State; idx: integer; n: integer); cdecl;
 procedure lua_copy(L: Plua_State; fromidx:integer; toidx: integer); cdecl;
 
+function lua_absindex(L: PLua_State; idx: Integer): integer; cdecl;
 
 function lua_gettop(L: Plua_State): Integer; cdecl;
 procedure lua_settop(L: Plua_State; idx: Integer); cdecl;
@@ -177,6 +178,7 @@ procedure lua_xmove(from, to_: Plua_State; n: Integer); cdecl;
 ** access functions (stack -> C)
 *)
 function lua_isnumber(L: Plua_State; idx: Integer): LongBool; cdecl;
+function lua_isinteger(L: Plua_State; idx: Integer): LongBool; cdecl;
 function lua_isstring(L: Plua_State; idx: Integer): LongBool; cdecl;
 function lua_iscfunction(L: Plua_State; idx: Integer): LongBool; cdecl;
 function lua_isuserdata(L: Plua_State; idx: Integer): LongBool; cdecl;
@@ -410,6 +412,7 @@ procedure lua_copy(L: Plua_State; fromidx:integer; toidx: integer); cdecl; exter
 
 function lua_rawlen(L: Plua_State; idx: integer):size_t; cdecl; external LUA_NAME;
 
+function lua_absindex(L: PLua_State; idx: Integer): integer; cdecl; external LUA_NAME;
 function lua_gettop(L: Plua_State): Integer; cdecl; external LUA_NAME;
 procedure lua_settop(L: Plua_State; idx: Integer); cdecl; external LUA_NAME;
 procedure lua_pushvalue(L: Plua_State; Idx: Integer); cdecl; external LUA_NAME;
@@ -434,6 +437,7 @@ function lua_checkstack(L: Plua_State; sz: Integer): LongBool; cdecl; external L
 procedure lua_xmove(from, to_: Plua_State; n: Integer); cdecl; external LUA_NAME;
 
 function lua_isnumber(L: Plua_State; idx: Integer): LongBool; cdecl; external LUA_NAME;
+function lua_isinteger(L: Plua_State; idx: Integer): LongBool; cdecl; external LUA_NAME;
 function lua_isstring(L: Plua_State; idx: Integer): LongBool; cdecl; external LUA_NAME;
 function lua_iscfunction(L: Plua_State; idx: Integer): LongBool; cdecl; external LUA_NAME;
 function lua_isuserdata(L: Plua_State; idx: Integer): LongBool; cdecl; external LUA_NAME;

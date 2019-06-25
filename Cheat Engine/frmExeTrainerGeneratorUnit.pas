@@ -76,6 +76,9 @@ type
 
     updatehandle: thandle;
     filecount: integer;
+
+    addedFiles: tstringlist;
+
     procedure addFile(filename: string; folder: string='');
   public
     { public declarations }
@@ -154,6 +157,12 @@ var
   i: qword;
   block: integer;
 begin
+  folder:=trim(folder);
+  if (folder[1]='\') or (folder[1]='/') then
+    folder:='';
+
+  if addedfiles.IndexOf(folder+filename)<>-1 then exit; //it was already added earlier by the user
+
   f:=TMemoryStream.create;
   try
     f.LoadFromFile(filename);
@@ -186,6 +195,8 @@ begin
       application.ProcessMessages;
     end;
     inc(filecount);
+
+    addedfiles.add(folder+filename);
   finally
     f.free;
     btnGenerateTrainer.caption:=rsGenerate;
@@ -214,6 +225,9 @@ var DECOMPRESSOR: TMemorystream;
   relpath: string;
 
 begin
+
+  addedfiles:=tstringlist.create;
+
   tiny:=cbTiny.Checked;
 
   CETRAINER:=ExtractFilePath(filename)+'CET_TRAINER.CETRAINER';
@@ -283,6 +297,7 @@ begin
           addfile(CETRAINER);
           deletefile(cetrainer);
 
+          //first the custom files (this way you can override files with your own from other folders)
           for i:=0 to listview1.Items.Count-1 do
             addfile(TFileData(listview1.items[i].data).filepath, TFileData(listview1.items[i].data).folder);
 
@@ -291,6 +306,7 @@ begin
           if rb32.checked then
           begin
             addfile(cheatenginedir+'cheatengine-i386.exe');
+
             addfile(cheatenginedir+'lua53-32.dll');
             addfile(cheatenginedir+'win32\dbghelp.dll','win32');
 
@@ -497,6 +513,8 @@ begin
     btnGenerateTrainer.enabled:=true;
 
 
+    if addedfiles<>nil then
+      freeandnil(addedfiles);
   end;
 end;
 

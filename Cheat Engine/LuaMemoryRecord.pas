@@ -496,7 +496,7 @@ var
 begin
   result:=0;
   memoryrecord:=luaclass_getClassObject(L);
-  if lua_gettop(L)=4 then
+  if lua_gettop(L)>=2 then
   begin
     if (not lua_istable(L, 1)) or (not lua_isnumber(L, 2)) then exit(0);
 
@@ -523,8 +523,16 @@ begin
 
     action:=TMemrecHotkeyAction(lua_tointeger(L, 2));
 
-    value:=Lua_ToString(L, 3);
-    description:=Lua_ToString(L, 4);
+    if lua_gettop(L)>=3 then
+      value:=Lua_ToString(L, 3)
+    else
+      value:='';
+
+
+    if lua_gettop(L)>=4 then
+      description:=Lua_ToString(L, 4)
+    else
+      description:='';
 
     hk:=memoryrecord.Addhotkey(keys, action, value, description);
     result:=1;

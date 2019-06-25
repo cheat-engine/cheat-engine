@@ -118,7 +118,9 @@ getRef(integer): ... - Returns whatever the reference points out
 destroyRef(integer) - Removes the reference
 
 encodeFunction(function): string - Converts a given function into an encoded string that you can pass on to decodeFunction
-decodeFunction(string): function - Converts an encoded string back into a function.  Note that the string must be made on the same architecture as it is currently running. 32-bit can onyl load 32-bit, 64-bit can only load 64-bit.  So either have two scripts ready, or limit to only one architecture. (Like .EXE trainers)
+decodeFunction(string): function - Converts an encoded string back into a function.  Note that the string must be made on the same architecture as it is currently running. 32-bit can only load 32-bit, 64-bit can only load 64-bit.  So either have two scripts ready, or limit to only one architecture. (Like .EXE trainers)
+
+encodeFunctionEx(string,pathtodll OPTIONAL) - See encodeFunction but uses a script instead of a function, and lets you specify which lua dll to use (Note: Still can't use 32-bit dll's in 64-bit and vice versa)
 
 
 getTranslationFolder(): Returns the path of the current translation files. Empty if there is no translation going on
@@ -152,13 +154,20 @@ getAddress(string, local OPTIONAL): returns the address of a symbol. Can be a mo
 getAddressSafe(string, local OPTIONAL): returns the address of a symbol, or nil if not found. Similar to getAddress when errorOnLookup is false, but returns nil instead
 getSymbolInfo(symbolname): Returns a table as defined by the SymbolList class object (modulename, searchkey, address, size)
 getModuleSize(modulename): Returns the size of a given module (Use getAddress to get the base address)
+
 reinitializeSymbolhandler(waittilldone: BOOLEAN OPTIONAL, default=TRUE): reinitializes the symbolhandler. E.g when new modules have been loaded
 reinitializeDotNetSymbolhandler(modulename OPTIONAL): Reinitializes only the DotNet part of the symbol list. (E.g After an ILCode has been JITed) (6.4+)
 reinitializeSelfSymbolhandler(waittilldone: BOOLEAN OPTIONAL, default=TRUE): reinitializes the selfsymbolhandler. E.g when new modules have been loaded to CE process
+waitForExports(): Waits till all DLL Exports are loaded 
+waitForDotNet(): Waits till all .NET symbols are loaded (this includes DLL Exports)
+waitForPDB(): Waits till all PDB symbols are loaded (this includes DLL Exports, and .NET)
+searchPDBWhileLoading(state: boolean): Will interrupt symbol enum to query the debughelp symbol handler about a specific symbol. This can take a while. Default is false
 
 errorOnLookupFailure(state): If set to true (default) address lookups in stringform will raise an error if it can not be looked up. This includes symbolnames that are not defined and pointers that are bad. If set to false it will return 0 in those cases
   (Useful for pointers that don't work 100% of the time)
 6.4+:Returns the original state
+
+waitforsymbols(state): If set to true looking up a symbol will wait for the symbol to be loaded(default true)
 
 generateAPIHookScript(address, addresstojumpto, addresstogetnewcalladdress OPT) : Generates an auto assembler script which will hook the given address when executed
 autoAssemble(text, targetself OPTIONAL, disableInfo OPTIONAL) : runs the auto assembler with the given text. Returns true on success, with as secondary a table you can use when disabling (if targetself is set it will assemble into Cheat Engine itself). If disableInfo is provided the [Disable] section will be handled
@@ -293,6 +302,11 @@ getHandleList(filter OPTIONAL): returns a table with all the handles in the syst
 
 closeRemoteHandle(handle, processid OPTIONAL): Closes the handle of a process.
 
+duplicateHandle(handle): Duplicates the provided CE based handle into the target process (You still need tell the target about this handle, like an injected dll data block)
+duplicateHandle(handle, Mode (0/1) ): If mode is 0 then it's the same as just duplicateHandle(handle), but if it's 1 it duplicates the target process handle into CE's process
+duplicateHandle(handle, fromPID, toPID): Copies the handle from the given process to the target process. 
+
+
 
 function onOpenProcess(processid):
   If this function is defined it will be called whenever cheat engine opens a process.
@@ -324,6 +338,7 @@ gc_setActive(state: boolean, interval: integer, minsize: integer): enables/disab
 getSystemMetrics(index): Retrieves the specified system metric or system configuration setting
 (https://msdn.microsoft.com/en-us/library/windows/desktop/ms724385.aspx)
 
+getScreenDPI(): Returns the Dots/Pixels Per Inch of the screen
 getScreenHeight(): Returns the screen height
 getScreenWidth(): Returns the screen  width
 
@@ -377,6 +392,9 @@ executeCode(address, parameter OPTIONAL, timeout OPTIONAL) : address - Executes 
 executeCodeLocal(addres, parameter OPTIONAL): address -  Executes a stdcall function with 1 parameter at the given address in the target process. The return value is the result of the function that was called
 
 executeCodeEx(callmethod, timeout, address, {type,value},{type,value},...)
+executeCodeEx(callmethod, timeout, address, param1, param2,...)
+executeCodeLocalEx(address, {type,value},{type,value},...)
+executeCodeLocalEx(address, param1, param2, ...)
   Calls a function using the given callmethod and parameters
   callmethod: 0=stdcall, 1=cdecl
   timeout: Number of milliseconds to wait for a result. nil or -1, infitely. 0 is no wait (will not free the call memory, so beware of it's memory leak)
@@ -391,8 +409,12 @@ executeCodeEx(callmethod, timeout, address, {type,value},{type,value},...)
      
     value: anything base type that lua can interpret
     }
+  
+  If a direct parameter is given instead of a table entry describing the type, CE will 'guess' the type it is
 
-   Returns the E/RAX value returned by the called function (if no timeout or other interruption)
+  Returns the E/RAX value returned by the called function (if no timeout or other interruption)
+
+
 
 
 
@@ -434,8 +456,9 @@ allocateMemory(size, BaseAddress OPTIONAL, Protection OPTIONAL): Allocates some 
 deAlloc(address, size OPTIONAL): Frees allocated memory
 
 allocateSharedMemory(name, size):
-  Creates a shared memory object of the given size if it doesn't exist yet. If size is not given and there is no shared region with this name then the default size of 4096 is used
+  Creates a shared memory object in the attached process of the given size if it doesn't exist yet. If size is not given and there is no shared region with this name then the default size of 4096 is used
   It then maps this shared memory block into the currently targeted process. It returns the address of mapped region in the target process
+allocateSharedMemoryLocal(name, size): Same as allocateSharedMemory but then for the Cheat Engine process itself
 
 
 createSection(size) : Creates a 'section' in memory
@@ -731,7 +754,6 @@ properties:
   Font: Font - The font class associated with the control
   OnClick: function - The function to call when a button is pressed
 
-
 methods:
   getLeft()
   setLeft(integer)
@@ -839,6 +861,7 @@ methods
   add(menuitem) : Adds a menuItem as a submenu item
   insert(index, menuitem): Adds a menuItem as a submenu item at the given index
   delete(index)
+  clear() - Deletes all children under this menuitem (frees the menu item, so it's gone)
   setOnClick(function) : Sets an onClick event
   getOnClick()
   doClick(): Executes the onClick method if one is assigned
@@ -945,6 +968,14 @@ methods
   getBorderStyle()
 
   printToRasterImage(rasterimage): Draws the contents of the form to a rasterimage class object
+
+  registerCreateCallback(function(f)): userdata - Registers a function to be called when the form has finished being created
+  unregisterCreateCallback(userdata) - removes the specific callback
+  registerFirstShowCallback(function(f)): userdata - Registers a function to be called when the form is show the first time
+  unregisterFirstShowCallback(userdata) - removes the specific callback
+  registerCloseCallback(function(f)): userdata - Registers a function to be called when the form has been closed
+  unregisterCloseCallback(userdata) - removes the specific callback
+
   dragNow():  Call this on mousedown on any object if you wish that the mousemove will drag the whole form arround. Useful for borderless windows (Dragging will stop when the mouse button is released)
 
 
@@ -1029,9 +1060,11 @@ createEdit(owner): Creates an Edit class object which belongs to the given owner
 
 properties
   Text: string - The current contents of the editfield
-  SelText: string - The current selected contents of the edit field (readonly)
-  SelStart: number - The starting index of the current selection (zero-indexed, readonly)
-  SelLength: number - The length of the current selection. (readonly)
+  CaretPos: Point - The posaition of the caret
+  PasswordChar: string[1] - When not set to char0 this will make the edit field show the character instead of the given text
+  SelText: string - The current selected contents of the edit field 
+  SelStart: number - The starting index of the current selection (zero-indexed)
+  SelLength: number - The length of the current selection. 
   OnChange: function - The function to call when the editfield is changed
   OnKeyPress: function - The function to call for the KeyPress event.
   OnKeyUp: function - The function to call for the KeyUp event.
@@ -1316,6 +1349,7 @@ properties
   Selected: boolean - Returns true if selected
   Index: integer - The index in the Items object of the owner of this listitem (readonly)
   Owner: ListItems - The ListItems object that owns this ListItem (readonly)
+  Data: integer - Read/Write value up to the user to implement
 
 methods
   delete()
@@ -1480,11 +1514,15 @@ methods
   getPenPosition()
   setPenPosition(x,y)
   clear() - Clears the canvas
+
   line(sourcex, sourcey, destinationx, destinationy)
   lineTo(destinationx, destinationy)
-  rect(x1,y1,x2,y2)
-  fillRect(x1,y1,x2,y2)
+  rect(x1,y1,x2,y2) - Draws a rectangle
+  fillRect(x1,y1,x2,y2) - Draws a filled rectangle
+  roundRect(x1,y1,x2,y2,rx,ry) - Draws a rectangle with rounded corners
+  drawFocusRect(x1,y1,x2,y2) - Draws the focus rectangle shape
   textOut(x,y, text)
+  textRect(rect,x,y,text): write the text within the given rectangle. The text supports some ansi escape characters
   getTextWidth(text)
   getTextHeight(text)
   getPixel(x,y)
@@ -1567,6 +1605,9 @@ methods
   getPixelFormat(pixelformat):  Sets the pixelformat for this image. Will clear the current image if it had one. Supported pixelformats: pf1bit, pf4bit, pf8bit, pf15bit, pf16bit, pf24bit, pf32bit (recommended)
   setTransparentColor(integer): Sets the color that will be rendered as transparent when drawn
   getTransparentColor():  Returns the color set to be transparent
+  saveToStream(stream) : Saves the image to a stream object
+  loadFromStream(stream): Loads the image from a stream object
+
 
 
 Bitmap class: (Inheritance: CustomBitmap->RasterImage->Graphic->Object) : Bitmap based Graphic object
@@ -1711,6 +1752,8 @@ methods
   writeDword(integer)
   readQword(): integer
   writeQword(integer)
+  readAnsiString(): string
+  writeAnsiString(string)
 
 
 MemoryStream Class (Inheritance: Stream->Object)
@@ -1725,7 +1768,10 @@ methods
 
 
 FileStream Class (Inheritance: HandleStream->Stream->Object)
-createFileStream(filename, mode)
+createFileStream(filename, mode)  - 
+  Creates a filestream object.  mode can be fmCreate(0xff00), fmOpenRead, fmOpenWrite or fmOpenReadWrite and can be or-ed with
+  fmShareCompat(0x0000), fmShareExclusive(0x0010), fmShareDenyWrite(0x0020), fmShareDenyRead(0x0030) or fmShareDenyNone(0x0040)
+
 
 StringStream Class (Inheritance: Stream->Object)
 createStringStream(string)
@@ -1918,7 +1964,7 @@ methods
   getHotkeyByID(integer): Returns the hotkey with the given id
 
   reinterpret()
-  createHotkey({keys}, action, value OPTIONAL): Returns a hotkey object 
+  createHotkey({keys}, action, value OPTIONAL, description OPTIONAL): Returns a hotkey object 
 
   disableWithoutExecute(): Sets the entry to disabled without executing the disable section
 
@@ -2775,6 +2821,8 @@ createPipe(pipename, inputsize OPTIONAL, outputsize OPTIONAL) : Creates a LuaPip
 
 properties
   valid: boolean - Returns true if the pipe has been created properly. False on failure (e.g wrong pipename)
+  handle: integer - The handle of the pipe serverside (this can be used with duplicateHandle to get a handle into the target process)
+
 
 methods
   acceptConnection() - Waits for a client to connect to this pipe (Warning: Freezes the thread this is executed in)
@@ -2924,6 +2972,49 @@ properties
 methods
   byteTableToValue({bytetable},Address Optional)
   valueToByteTable(value, Address Optional)
+
+TFrmTracer class (Inheritance: Form->ScrollingWinControl->CustomControl->WinControl->Control->Component->Object)
+
+properties
+  Count: integer - number of entries in the list
+  SelectionCount: integer - The number of selected entries
+
+  Entry[index]: table - Information about each entry. Read only. (Index starts at 0)
+    table is formatted as:
+    {
+      address: integer - address of the instruction
+      instruction: string - disassembled instruction
+      instructionSize: integer - bytesize of the instruction
+      referencedAddress: integer - address the code references
+      referencedData: bytearray - The bytes of the referenced data at the time of tracing
+      context: contexttable - the state of the cpu when this instruction got executed (contains registers(EAX/RAX, ...), floating points(FP) and XMM values
+      hasStackSnapshot: boolean - set to true if there is a stack entry      
+      selected: boolean - Set to true if the entry is selected
+
+    }
+
+
+  StackEntry[index]: bytearray - The stacksnapshot of that entry. Nil if not available
+
+methods
+
+
+
+TfrmUltimap2 class(Inheritance: Form->ScrollingWinControl->CustomControl->WinControl->Control->Component->Object) 
+getUltimap2(): TfrmUltimap2 - Returns the ultimap2 form, nil if not open
+
+properties
+  Count: integer - The number of entries in the list (READONLY)
+methods
+  isInList(address): boolean,count - returns true if the current address is in the list of addresses. In case of true, it also returns the count value (up to 255)
+
+TfrmCodeFilter class(Inheritance: Form->ScrollingWinControl->CustomControl->WinControl->Control->Component->Object) 
+getCodeFilter(): TfrmCodeFilter - Returns the codefilter form
+
+properties
+methods
+  isInList(address): boolean - Returns true if this address is in the list
+
 
 ----SQL Classes----
 CustomConnection class (Inheritance: Component->Object)
@@ -3234,9 +3325,126 @@ properties:
   
 
 WriteLog(Inheritence: -)
+The writelog is the log that keeps all writes (when enabled)
+
 properties
   status: boolean
   logsize: integer 
 
 methods
   getLog(): table - Returns an indexed table with the write logs. each entry has a table with the fields: address, original and new
+
+
+Diagram class(Inheritance: CustomControl->WinControl->Control->LclComponent->Component->Object):
+The diagram class lets you represent data using blocks and lines.
+
+createDiagram(owner)
+
+properties
+  LineThickness: integer - Default thickness of lines in pixels
+  LineColor: integer - Sets the default color of lines
+  PlotPointColor: integer - Sets the default color for points
+  BlockBackground: integer - Color of the diagramBlocks
+  BackgroundColor: integer - Color of the diagram background
+  ArrowStyles: string - can be one or more of the following between [ and ] : 
+                          asOrigin : There will be an arrow at the point of origin
+                          asDestination : There will be an arrow at the destination
+                          asPoints: There will be an arrow at plot point locations
+                          asCenterBetweenPoints: There will be an arrow between two points
+                          asCenter: There will be an arrow in the center of the line
+
+  BlockCount: integer - Returns the number of blocks in the diagram (readonly)
+  Block[index]: DiagramBlock - Returns the block at the specific index
+  LinkCount: integer - Returns the number of linkes in the diagram (readonly)
+  Link[index]: DiagramLink - Returns the link at the specific index
+  DrawPlotPoints: boolean - If set to true linkpoints will be shown
+  AllowUserToCreatePlotPoints: boolean - If true(default) will allow the user to create plotpoints by clicking on lines
+  AllowUserToMovePlotPoints: boolean - If true(default) will allow the user to move plotpoints by dragging them
+  AllowUserToResizeBlocks: boolean - If true(default) will allow the user to resize blocks
+  AllowUserToMoveBlocks: boolean - If true(default) will allow the user to move blocks around by draging the caption
+  AllowUserToChangeAttachPoints: boolean - If true(default) will allow the user to move move the point where a line connects to the block by dragging it
+  ScrollX: integer - The horizontal scroll
+  ScrollY: integer - The vertical scroll
+  Zoom: float - The zoom level to use 
+
+
+
+
+methods
+  createBlock(): DiagramBlock - Creates a new uninitialized block
+  addConnection(Source: DiagramBlock, Destination: DiagramBlock): DiagramLink - Creates a link between the two blocks
+  addConnection(Source: BlockSideDescriptorTable, Destination: BlockSideDescriptorTable) - Creates a link using the BlockSideDescritorTable table definition
+      BlockSideDescriptorTable=
+      {
+         Block: DiagramBlock - The block to attach to
+         Side: integer - One of the blockside typedefs: dbsTop=0, dbsLeft=1, dbsRight=2, dbsBottom=3, dbsTopLeft=4, dbsTopRight=5, dbsBottomLeft=6, dbsBottomRight=7
+         Position: integer - Position on the provided side based on the center. Only for Sides 0 to 3
+      } 
+
+  saveAsImage(filenamepng): saves the current display as an PNG image
+  saveToFile(filename): Saves the state of the diagram to a file
+  loadFromFile(filename): loads the state of the diagram from a file
+  saveToStream(stream): Saves the state of the diagram to a stream
+  loadFromStream(stream): loads the state of the diagram from a stream
+  getObjectAt({x,y}): Returns the object at this position. nil if nothing
+  
+
+
+DiagramBlock class:
+The diagramBlock is a block with a header and body which can contain text (ansi escape codes supported) 
+
+properties
+  Owner: Diagram - The diagram that this block is in
+  X: integer - x-position of the block
+  Y: integer - y-position of the block
+  Width: integer - Width of the block
+  Height: integer - Height of the block
+  Caption: string - Header of the block (ansi escape codes supported)
+  Strings: Strings - Strings object containing the lines of the block (ansi escape codes supported)
+  BackgroundColor: integer - When set overrides the default color for the block to the given one
+  TextColor: Integer - The starting/default textcolor
+  Name: string - The name of the block
+  AutoSize: boolean - If true the width and height of the box will adjust to the given Caption and Strings
+  AutoSide: boolean - If true the connection side of a link will be picked for you instead of providing the side yourself
+  AutoSideDistance: integer - If autoside is true and there are multiple lines on the same side, this determines the distance between
+  ShowHeader: boolean - If true show ther header. (default true)
+  DragBody: boolean - If true allows dragging of the body. Useful when there is no header (default false)
+  Tag: integer - Use for whatever you like
+  OnDoubleClickHeader: function(DiagramBlock) - Function to call when the block's header is doubleclicked
+  OnDoubleClickBody: function(DiagramBlock) - Function to call when the block's body is doubleclick
+  OnRenderHeader: function(sender,rect,beforeownerdraw): boolean - Function to call when the header is being rendered. This is called twice, before and after the normal painting code. In case of before and the function returns nil or false, the original text will not be drawn
+  OnRenderBody: function(sender,rect,beforeownerdraw): boolean - ^ but then for body
+  OnDragStart: funtion(DiagramBlock) - Called when a block starts getting dragged
+  OnDrag: function(DiagramBlock) - Called when a block is dragged around
+  OnDragEnd: function(DiagramBlock) - Called when a dragged block is released
+
+methods
+  getLinks(): table - Returns a table two elements: 'asSource' and 'asDestination'. each of those will have a table with DiagramLinks linking with the box
+  overlapsWith(block): boolean - Returns true if the two blocks overlap
+  intersectsWithLine({x,y},{x,y}): boolean,intersectpoint - Returns true and the point of intersection or false if no itersection
+
+
+DiagramLink class:
+Links between blocks
+
+properties
+  OriginBlock: DialogBlock - The source of the link 
+  DestinationBlock: DialogBlock - The destination of the link
+  OriginDescriptor: BlockSideDescriptorTable
+  DestinationDescriptor: BlockSideDescriptorTable   
+  PointCount: integer - The number of points in the table
+  Points[index]: table{x,y} - Return a table with x,y coordinates for the point at the given index (index starts at 0)
+  LineColor: integer - Color of the line , when set overrides the default
+  Linethickness: integer - thickness of the line, when set overrides the default
+  ArrowStyles: string - See diagram ArrowStyles
+  Name: string - Name of the link
+  Tag: integer - Use for whatever youy like
+  OnDblClick: function(sender) - Function to call when the link is doubleclicked
+
+methods
+  hasLinkToBlock(DiagramBlock): boolean - Returns true/false depending on if this link has a connection to the provided block
+  reset() - Sets all custom colors sizes back to default
+  updateSide(BlockSideDescriptorTable): Updates the side of the block described by the BlockSideDescriptorTable   
+  getPointIndexAt(x,y): integer - Returns the pointindex at the given x, y coordinate
+  addPoint(x,y,index OPTIONAL): creates a point. If no index is given if inside the line at that line index, else at the end of the list.  If a index is given at that specific index. 
+  removeAllPoints(): Removes all points

@@ -38,7 +38,7 @@ typedef struct _PLUGINTYPE0_RECORD
 
 //callback routines efinitions for registered plugin functions:
 typedef BOOL (__stdcall *CEP_PLUGINTYPE0)(PPLUGINTYPE0_RECORD SelectedRecord);
-typedef BOOL (__stdcall *CEP_PLUGINTYPE1)(ULONG *disassembleraddress, ULONG *selected_disassembler_address, ULONG *hexviewaddress);
+typedef BOOL (__stdcall *CEP_PLUGINTYPE1)(UINT_PTR *disassembleraddress, UINT_PTR *selected_disassembler_address, UINT_PTR *hexviewaddress);
 typedef int (__stdcall *CEP_PLUGINTYPE2)(LPDEBUG_EVENT DebugEvent);
 typedef void (__stdcall *CEP_PLUGINTYPE3)(ULONG processid, ULONG peprocess, BOOL Created);
 typedef void (__stdcall *CEP_PLUGINTYPE4)(int reserved);
@@ -175,17 +175,17 @@ typedef BOOL (__stdcall *CEP_UNFREEZEMEM) (int freezeID);
 typedef BOOL (__stdcall *CEP_FIXMEM) (void);
 typedef BOOL (__stdcall *CEP_PROCESSLIST) (char *listbuffer, int listsize);
 typedef BOOL (__stdcall *CEP_RELOADSETTINGS) (void);
-typedef DWORD (__stdcall *CEP_GETADDRESSFROMPOINTER) (UINT_PTR baseaddress, int offsetcount, int* offsets);  
+typedef UINT_PTR (__stdcall *CEP_GETADDRESSFROMPOINTER) (UINT_PTR baseaddress, int offsetcount, int* offsets);  
 typedef BOOL (__stdcall *CEP_GENERATEAPIHOOKSCRIPT) (char *address, char *addresstojumpto, char *addresstogetnewcalladdress, char *script, int maxscriptsize);
 typedef BOOL (__stdcall *CEP_ADDRESSTONAME) (UINT_PTR address, char *name, int maxnamesize);
 typedef BOOL (__stdcall *CEP_NAMETOADDRESS) (char *name, UINT_PTR *address);
 
 typedef VOID (__stdcall *CEP_LOADDBK32)(void);
 typedef BOOL (__stdcall *CEP_LOADDBVMIFNEEDED)(void);
-typedef DWORD (__stdcall *CEP_PREVIOUSOPCODE)(ULONG address);
-typedef DWORD (__stdcall *CEP_NEXTOPCODE)(ULONG address);
+typedef DWORD (__stdcall *CEP_PREVIOUSOPCODE)(UINT_PTR address);
+typedef DWORD (__stdcall *CEP_NEXTOPCODE)(UINT_PTR address);
 typedef BOOL (__stdcall *CEP_LOADMODULE)(char *modulepath, char *exportlist, int *maxsize);
-typedef BOOL (__stdcall *CEP_DISASSEMBLEEX)(ULONG address, char *output, int maxsize);
+typedef BOOL (__stdcall *CEP_DISASSEMBLEEX)(UINT_PTR address, char *output, int maxsize);
 typedef VOID (__stdcall *CEP_AA_ADDCOMMAND)(char *command);
 typedef VOID (__stdcall *CEP_AA_DELCOMMAND)(char *command);
 

@@ -6,20 +6,22 @@ interface
 
 uses
   jwawindows, windows, LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, ComCtrls{$ifdef netclient},netapis{$else},NewKernelHandler{$endif},CEFuncProc,
-  ExtCtrls, Menus, clipbrd, LResources, commonTypeDefs;
+  Dialogs, StdCtrls, ComCtrls,{$ifndef net}NewKernelHandler,{$endif}CEFuncProc,
+  ExtCtrls, Menus, Clipbrd, LResources, commonTypeDefs, symbolhandler;
 
 type TCodeCaveScanner=class(tthread)
   private
-    found: dword;
-    progress:ptrUint;
+    found:qword;
+    progress:integer;
+    curraddr:qword;
+    procedure updatelabel;
     procedure updateprogressbar;
     procedure done;
     procedure foundone;
   public
     startaddress:ptrUint;
     stopaddress:ptrUint;
-    size:dword;
+    size:qword;
     alsonx:boolean;
     procedure execute; override;
 end;
@@ -29,17 +31,20 @@ type
   { TfrmCodecaveScanner }
 
   TfrmCodecaveScanner = class(TForm)
-    lbCodecaveList: TListBox;
-    Panel1: TPanel;
+    btnStart: TButton;
+    editSize: TEdit;
+    editStart: TEdit;
+    editStop: TEdit;
+    sfcImageList: TImageList;
     Label1: TLabel;
     Label2: TLabel;
     Label3: TLabel;
-    btnStart: TButton;
-    editStart: TEdit;
-    editStop: TEdit;
-    editSize: TEdit;
+    Label4: TLabel;
+    lbCodecaveList: TListBox;
+    Panel1: TPanel;
     Panel2: TPanel;
     cbNoExecute: TCheckBox;
+    Panel3: TPanel;
     ProgressBar1: TProgressBar;
     PopupMenu1: TPopupMenu;
     Copytoclipboard1: TMenuItem;
@@ -62,7 +67,8 @@ var
 implementation
 
 
-uses MainUnit2, MemoryBrowserFormUnit, ProcessHandlerUnit, Globals, Parsers;
+uses MainUnit2, MemoryBrowserFormUnit, ProcessHandlerUnit, Globals, Parsers,
+  DPIHelper, Math;
 
 resourcestring
   rsPleaseProvideAValidStartAddress = 'Please provide a valid start address';
@@ -70,6 +76,12 @@ resourcestring
   rsPleaseTellMeYouDonTNeedACodeCaveThisSmall = 'Please tell me you don''t need a code cave this small!!!';
   rsPleaseProvideAValidSizeForTheWantedCodeCave = 'Please provide a valid size for the wanted code cave';
   rsClosingThisWindowWillAlsoStopTheScannerAreYouSure = 'Closing this window will also stop the scanner. Are you sure?';
+
+procedure TCodecavescanner.updatelabel;
+begin
+  if frmcodecavescanner<>nil then
+    frmcodecavescanner.Label4.Caption:=inttohex(curraddr,8);
+end;
 
 procedure TCodecavescanner.updateprogressbar;
 begin
@@ -93,6 +105,7 @@ begin
     frmCodecaveScanner.btnStart.caption:=strStart;
     frmCodecaveScanner.codecavescanner:=nil;
     frmCodecaveScanner.progressbar1.Position:=0;
+    frmCodecaveScanner.Label4.Caption:='';
   end;
 end;
 
@@ -118,16 +131,18 @@ begin
 
   while (not terminated) and (currentpos<stopaddress) do
   begin
-    progress:=currentpos-startaddress;
+    progress:=trunc(currentpos/stopaddress*1000);
+    curraddr:=currentpos;
     synchronize(updateprogressbar);
+    synchronize(updatelabel);
 
     //find the memoryranges to scan
     virtualqueryEx(processhandle,pointer(currentpos),mbi,sizeof(mbi));
 
     if alsonx then
-      a:=(mbi.AllocationProtect and (PAGE_EXECUTE or PAGE_EXECUTE_READ or PAGE_EXECUTE_READWRITE or PAGE_READONLY or PAGE_EXECUTE_WRITECOPY))>0
+      a:=(mbi.Protect and (PAGE_EXECUTE or PAGE_EXECUTE_READ or PAGE_EXECUTE_READWRITE or PAGE_EXECUTE_WRITECOPY or PAGE_READONLY or PAGE_READWRITE))>0
     else
-      a:=(mbi.AllocationProtect and (PAGE_EXECUTE or PAGE_EXECUTE_READ or PAGE_EXECUTE_READWRITE or PAGE_EXECUTE_WRITECOPY))>0;
+      a:=(mbi.Protect and (PAGE_EXECUTE or PAGE_EXECUTE_READ or PAGE_EXECUTE_READWRITE or PAGE_EXECUTE_WRITECOPY))>0;
 
     if not a then
     begin
@@ -163,8 +178,10 @@ begin
 
     while (not terminated) and (i<length(memoryregion)) do
     begin
-      progress:=memoryregion[i].BaseAddress-startaddress;
+      progress:=trunc(memoryregion[i].BaseAddress/stopaddress*1000);
+      curraddr:=memoryregion[i].BaseAddress;
       synchronize(updateprogressbar);
+      synchronize(updatelabel);
 
       //read the mem
       if ReadProcessmemory(processhandle,pointer(memoryregion[i].BaseAddress),@buf[0],memoryregion[i].MemorySize,x) then
@@ -191,8 +208,6 @@ begin
       inc(i);
     end;
 
-
-
     inc(currentpos,mbi.RegionSize);
   end;
 
@@ -203,7 +218,7 @@ end;
 
 procedure TfrmCodecaveScanner.btnStartClick(Sender: TObject);
 var startaddress,stopaddress:ptrUint;
-    bytelength: dword;
+    bytelength: Qword;
 begin
 {
 start the thread that scans the memory for a array of the same bytes in read-
@@ -214,13 +229,13 @@ only memory
     try
       startaddress:=StrToQWordEx('$'+editstart.text);
     except
-      raise exception.Create(rsPleaseProvideAValidStartAddress);
+      startaddress:=symhandler.getAddressFromName(editstart.text);
     end;
 
     try
-      stopaddress:=StrToQWordEx('$'+editStop.text);
+      stopaddress:=StrToQWordEx('$'+editstop.text);
     except
-      raise exception.Create(rsPleaseProvideAValidStopAddress);
+      stopaddress:=symhandler.getAddressFromName(editstop.text);
     end;
 
     try
@@ -229,14 +244,28 @@ only memory
     except
       raise exception.Create(rsPleaseProvideAValidSizeForTheWantedCodeCave);
     end;
+
+    if startaddress>stopaddress then
+    begin  //xor swap
+      startaddress:=startaddress xor stopaddress;
+      stopaddress:=stopaddress xor startaddress;
+      startaddress:=startaddress xor stopaddress;
+    end;
+
     codecavescanner:=TCodecavescanner.create(true);
     codecavescanner.startaddress:=startaddress;
     codecavescanner.stopaddress:=stopaddress;
     codecavescanner.size:=bytelength;
-    codecavescanner.AlsoNX:=cbnoexecute.checked;
 
+    //execute protection on by default on 64bit targets
+    if not processhandler.is64bit then
+       codecavescanner.AlsoNX:=cbnoexecute.checked
+    else
+       codecavescanner.AlsoNX:=false;
+
+    progressbar1.Min:=0;
+     progressbar1.Max:=1000;
     progressbar1.Position:=0;
-    progressbar1.Max:=stopaddress-startaddress;
     btnStart.caption:=strStop;
     lbCodecaveList.Clear;
     codecavescanner.start;
@@ -266,18 +295,63 @@ begin
 end;
 
 procedure TfrmCodecaveScanner.FormShow(Sender: TObject);
-var fh: integer;
+var
+  fh: integer;
+  b: TBitmap;
+  preferedwidth: integer;
 begin
   fh:=GetFontData(font.reference.Handle).Height;
   editstart.font.height:=fh;
   editstop.font.height:=fh;
   editsize.font.height:=fh;
+
+  //execute protection on by default on 64bit targets
+  if processhandler.is64bit then
+  begin
+    //init just once if needed
+    if (editstop.Text = '') or (editstart.Text = '') then   // if not initialized
+     begin
+        editstop.text:='7FFFFFFFFFFFFFFF';
+        editstart.Text:='0000000000000000';
+     end;
+    cbNoExecute.checked:=false;
+    cbNoExecute.Enabled:=false;
+    cbNoExecute.visible:=false;
+  end
+  else
+  begin
+    //init just once if needed
+    if (editstop.Text = '') or (editstart.Text = '') then   // if not initialized
+    begin
+       editstop.text:='7FFFFFFF';
+       editstart.Text:='00000000';
+    end;
+  end;
+  b:=tbitmap.Create;
+  b.canvas.Font:=editstart.font;
+
+  editStart.Constraints.MinWidth:=dpihelper.GetEditBoxMargins(editstart)+canvas.GetTextWidth(' XXXXXXXXXXXXXXXX ');
+  editStop.Constraints.MinWidth:= editStart.Constraints.MinWidth;
+
+  editStart.Width:=editStart.Constraints.MinWidth;
+  editStop.Width:=editStart.Constraints.MinWidth;
+
+  editSize.Constraints.MinWidth:=dpihelper.GetEditBoxMargins(editstart)+canvas.GetTextWidth(' XXXXX ');
+  editSize.Width:=editSize.Constraints.MinWidth;
+
+  progressbar1.height:=ceil(progressbar1.height*dpihelper.getDPIScaleFactor);
+
+  DoAutoSize;
+  autosize:=false;
+  preferedwidth:=canvas.GetTextWidth('XXXXXXXXXXXXXX - XXXXXX')+panel1.width;
+  if clientwidth<preferedwidth then
+    clientwidth:=preferedwidth;
 end;
 
 procedure TfrmCodecaveScanner.lbCodecaveListDblClick(Sender: TObject);
 begin
   if lbCodecaveList.ItemIndex<>-1 then
-    memorybrowser.memoryaddress:=StrToInt('$'+lbCodecaveList.Items[lbCodecaveList.itemindex]);
+    memorybrowser.memoryaddress:=StrToQwordEx('$'+lbCodecaveList.Items[lbCodecaveList.itemindex]);
 
 end;
 

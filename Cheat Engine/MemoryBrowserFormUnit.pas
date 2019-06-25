@@ -40,6 +40,7 @@ type
     ESPlabel: TLabel;
     FSlabel: TLabel;
     GSlabel: TLabel;
+    mvImageList: TImageList;
     MenuItem1: TMenuItem;
     MenuItem10: TMenuItem;
     MenuItem11: TMenuItem;
@@ -47,6 +48,9 @@ type
     MenuItem13: TMenuItem;
     MenuItem14: TMenuItem;
     DBVMFindoutwhataddressesthisinstructionaccesses: TMenuItem;
+    Showdebugtoolbar1: TMenuItem;
+    miCopyAddressesOnly: TMenuItem;
+    miHideToolbar: TMenuItem;
     miDBVMActivateCloak: TMenuItem;
     miDBVMDisableCloak: TMenuItem;
     miUltimap: TMenuItem;
@@ -162,6 +166,7 @@ type
     Panel7: TPanel;
     pflabel: TLabel;
     pmRegisters: TPopupMenu;
+    pmDebugToolbar: TPopupMenu;
     sbShowFloats: TButton;
     sflabel: TLabel;
     SSlabel: TLabel;
@@ -187,6 +192,14 @@ type
     miDebugStepOver: TMenuItem;
     miDebugRunTill: TMenuItem;
     miDebugToggleBreakpoint: TMenuItem;
+    tbDebug: TToolBar;
+    tbRun: TToolButton;
+    tbStepInto: TToolButton;
+    tbStepOver: TToolButton;
+    tbSeparator1: TToolButton;
+    tbStepOut: TToolButton;
+    tbSeparator2: TToolButton;
+    tbToggleBreakpoint: TToolButton;
     View1: TMenuItem;
     Stacktrace1: TMenuItem;
     ScrollBox1: TScrollBox;
@@ -309,6 +322,7 @@ type
     procedure miCodeFilterClick(Sender: TObject);
     procedure miDBVMActivateCloakClick(Sender: TObject);
     procedure miDBVMDisableCloakClick(Sender: TObject);
+    procedure miHideToolbarClick(Sender: TObject);
     procedure miUltimapClick(Sender: TObject);
     procedure MenuItem17Click(Sender: TObject);
     procedure MenuItem18Click(Sender: TObject);
@@ -365,6 +379,7 @@ type
     procedure RegisterMouseDown(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
     procedure miLockRowsizeClick(Sender: TObject);
+    procedure Showdebugtoolbar1Click(Sender: TObject);
     procedure Splitter1Moved(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -373,6 +388,9 @@ type
     procedure Splitter2Moved(Sender: TObject);
     procedure Timer2Timer(Sender: TObject);
     procedure miReplacewithnopsClick(Sender: TObject);
+
+    procedure ShowDebugToolbar;
+    procedure HideDebugToolbar;
 
     procedure FControl1KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure FControl1KeyPress(Sender: TObject; var Key: Char);
@@ -548,6 +566,8 @@ type
 
     StackReference: ptruint;
 
+    adjustedsize: boolean;
+
     procedure SetStacktraceSize(size: integer);
     procedure setShowDebugPanels(state: boolean);
     function getShowValues: boolean;
@@ -596,6 +616,8 @@ type
     property memoryaddress: ptrUint read getHexviewAddress write setHexviewAddress;
     procedure reloadStacktrace;
     function GetReturnaddress: ptrUint;
+
+    procedure OnMemoryViewerRunning;
 
     procedure UpdateDebugContext(threadhandle: THandle; threadid: dword; changeSelection: boolean=true; _debuggerthread: TDebuggerthread=nil);
     procedure miLockOnClick(Sender: TObject);
@@ -646,7 +668,7 @@ uses Valuechange, MainUnit, debugeventhandler, findwindowunit,
   AccessedMemory, Parsers, GnuAssembler, frmEditHistoryUnit, frmWatchlistUnit,
   vmxfunctions, frmstructurecompareunit, globals, UnexpectedExceptionsHelper,
   frmExceptionRegionListUnit, frmExceptionIgnoreListUnit, frmcodefilterunit,
-  frmDBVMWatchConfigUnit, DBK32functions;
+  frmDBVMWatchConfigUnit, DBK32functions, DPIHelper;
 
 
 resourcestring
@@ -714,6 +736,7 @@ resourcestring
   rsMBCreationOfTheRemoteThreadFailed = 'Creation of the remote thread failed';
   rsMBThreadCreated = 'Thread Created';
   rsBecauseOfUnhandledExeption = 'Because of unhandled exception %s';
+  rsSomethingHappened = 'something happened';
 
 //property functions:
 function TMemoryBrowser.getShowValues: boolean;
@@ -787,6 +810,24 @@ begin
     hexview.LockRowsize
   else
     hexview.UnlockRowsize;
+end;
+
+procedure TMemoryBrowser.ShowDebugToolbar;
+begin
+  tbDebug.Visible:=true;
+  Showdebugtoolbar1.Checked:=true;
+end;
+
+procedure TMemoryBrowser.HideDebugToolbar;
+begin
+  tbDebug.Visible:=false;
+  Showdebugtoolbar1.Checked:=false;
+end;
+
+procedure TMemoryBrowser.Showdebugtoolbar1Click(Sender: TObject);
+begin
+  if tbDebug.Visible=false then ShowDebugToolbar
+  else HideDebugToolbar;
 end;
 
 procedure TMemoryBrowser.RegisterMouseDown(Sender: TObject;
@@ -1074,6 +1115,11 @@ begin
   end;
 end;
 
+procedure TMemoryBrowser.miHideToolbarClick(Sender: TObject);
+begin
+  if tbDebug.Visible=true then HideDebugToolbar;
+end;
+
 procedure TMemoryBrowser.miUltimapClick(Sender: TObject);
 begin
   if frmUltimap=nil then
@@ -1200,7 +1246,7 @@ begin
   if debuggerthread<>nil then
     debuggerthread.continueDebugging(co_run, 0, false);
 
-
+  OnMemoryViewerRunning;
   caption:=rsMemoryViewerRunning;
 end;
 
@@ -2053,6 +2099,16 @@ begin
 
   if hexview<>nil then
     hexview.statusbar.Height:=Canvas.TextHeight('BLAy9qrSTt')+3+hexview.statusbar.BorderWidth;
+
+  if adjustedsize=false then
+  begin
+    tbDebug.ButtonHeight:=scaley(tbDebug.ButtonHeight, DesignTimePPI);
+
+    //tbDebug.ButtonHeight:=trunc(tbDebug.ButtonHeight*fontmultiplication);
+    ////dpihelper.AdjustToolbar(tbDebug);
+
+    adjustedsize:=true;
+  end;
 end;
 
 procedure TMemoryBrowser.disassemblerviewDblClick(Sender: TObject);
@@ -2246,13 +2302,13 @@ begin
     disassemblerview.setheaderWidth(2,x[2]);
     disassemblerview.setheaderWidth(3,x[3]);
 
-    if length(x)>4 then
+    if length(x)>=6 then
     begin
       panel1.height:=x[4];
       registerview.width:=x[5];
     end;
 
-    if length(x)>=7 then
+    if length(x)>=8 then
     begin
       Showsymbols1.checked:=x[6]=1;
       Showmoduleaddresses1.checked:=x[7]=1;
@@ -2261,7 +2317,7 @@ begin
       symhandler.showmodules:=Showmoduleaddresses1.Checked;
     end;
 
-    if length(x)>=9 then
+    if length(x)>=10 then
     begin
       if x[8]=1 then
       begin
@@ -2270,6 +2326,11 @@ begin
       end;
     end;
 
+    if length(x)>=11 then
+    begin
+      kernelmodesymbols1.checked:=x[10]=1;
+      symhandler.kernelsymbols:=kernelmodesymbols1.Checked;
+    end;
 
     setlength(x,0);
     posloadedfromreg:=true;
@@ -2328,10 +2389,14 @@ end;
 procedure TMemoryBrowser.Timer2Timer(Sender: TObject);
 var
   rollover: integer;
+  timetaken: qword;
 begin
   if Visible then
   begin
     try
+
+      timetaken:=GetTickCount64;
+
       if hexview<>nil then hexview.update;
       if disassemblerview<>nil then disassemblerview.Update;
 
@@ -2344,6 +2409,18 @@ begin
       lastmodulelistupdate:=(lastmodulelistupdate+1) mod rollover;
       if lastmodulelistupdate=0 then
         if symhandler<>nil then symhandler.loadmodulelist;
+
+      timetaken:=GetTickCount64-timetaken;
+      if (timetaken>timer2.interval) and (timer2.interval<5000) then
+      begin
+        timer2.enabled:=false;
+        timer2.interval:=timer2.interval+100; //this system can't handle the current speed
+        timer2.enabled:=true;
+      end;
+
+      if (timetaken<timer2.interval) and (timer2.Interval>200) then
+        timer2.interval:=max(250,timer2.interval-100);
+
     except
       on e:exception do
       begin
@@ -2682,6 +2759,7 @@ begin
     if debuggerthread<>nil then
       debuggerthread.ContinueDebugging(co_run);
 
+    OnMemoryViewerRunning;
     caption:=rsMemoryViewerRunning;
 
     reloadstacktrace;
@@ -2694,6 +2772,7 @@ begin
     if debuggerthread<>nil then
       debuggerthread.ContinueDebugging(co_stepinto);
 
+    OnMemoryViewerRunning;
     caption:=rsMemoryViewerRunning;
 
     reloadstacktrace;
@@ -2709,6 +2788,7 @@ var x: ptrUint;
 begin
   debuggerthread.continueDebugging(co_stepover);
   reloadstacktrace;
+  OnMemoryViewerRunning;
   caption:=rsMemoryViewerRunning;
 end;
 
@@ -2723,6 +2803,7 @@ begin
     if debuggerthread<>nil then
       debuggerthread.ContinueDebugging(co_runtill, disassemblerview.SelectedAddress);
 
+    OnMemoryViewerRunning;
     caption:=rsMemoryViewerRunning;
   end;
 
@@ -3209,6 +3290,21 @@ procedure TMemoryBrowser.Savememoryregion1Click(Sender: TObject);
 begin
   if frmSaveMemoryRegion=nil then
     frmSaveMemoryRegion:=TFrmSaveMemoryRegion.create(self);
+
+  if (disassemblerview.SelectedAddress <> disassemblerview.SelectedAddress2) then //disassembler view selection takes priority
+  begin
+     frmSaveMemoryRegion.editFrom.Text:=inttohex(minX(disassemblerview.SelectedAddress,disassemblerview.SelectedAddress2),8);
+     frmSaveMemoryRegion.editTo.Text:=inttohex(maxX(disassemblerview.SelectedAddress,disassemblerview.SelectedAddress2),8);
+  end
+  else if (hexview.SelectionStart <> hexview.SelectionStop) then
+  begin
+     frmSaveMemoryRegion.editFrom.Text:=inttohex(minX(hexview.SelectionStart,hexview.SelectionStop),8);
+     frmSaveMemoryRegion.editTo.Text:=inttohex(maxX(hexview.SelectionStart,hexview.SelectionStop),8);
+  end
+  else
+  begin
+     //leave blank
+  end;
 
   frmSaveMemoryRegion.show;
 end;
@@ -3750,9 +3846,15 @@ begin
         inadvancedoptions:=true;
 
         if AdvancedOptions.code[i].changed then
-          miReplacewithnops.caption:=rsRestoreWithOrginalCode
+          begin
+            miReplacewithnops.caption:=rsRestoreWithOrginalCode;
+            miReplacewithnops.imageindex:=44;
+          end
         else
-          miReplacewithnops.caption:=rsReplaceWithCodeThatDoesNothing;
+          begin
+            miReplacewithnops.caption:=rsReplaceWithCodeThatDoesNothing;
+            miReplacewithnops.imageindex:=42;
+          end;
 
         break;
       end;
@@ -3809,7 +3911,7 @@ begin
   begin
     if self.disassemblerview<>nil then
     begin
-      setlength(params,10);
+      setlength(params,11);
       //don't use [xx,xx,xx] crash
       params[0]:=self.disassemblerview.getheaderwidth(0);
       params[1]:=self.disassemblerview.getheaderwidth(1);
@@ -3821,6 +3923,7 @@ begin
       params[7]:=strtoint(BoolToStr(self.Showmoduleaddresses1.checked,'1','0'));
       params[8]:=strtoint(BoolToStr(self.miLockRowsize.Checked,'1','0'));
       params[9]:=self.hexview.LockedRowSize;
+      params[10]:=strtoint(BoolToStr(self.Kernelmodesymbols1.checked,'1','0'));
 
       saveformposition(self,params);
 
@@ -4740,6 +4843,27 @@ begin
     result:=0;
 end;
 
+procedure TMemoryBrowser.OnMemoryViewerRunning;
+begin
+  {Disable debug functions & toolbar}
+  //tbDebug.enabled:=false; //disable toolbar
+  tbRun.Enabled:=false; //disable toolbar run button
+  tbStepInto.Enabled:=false; //disable toolbar step into button
+  tbStepOver.Enabled:=false; //disable toolbar step over button
+  tbStepOut.Enabled:=false; //disable toolbar step out button
+  miDebugRun.Enabled:=false;
+  miRunUnhandled.Enabled:=false;
+  miRunUnhandled.Visible:=false;
+  miDebugStep.Enabled:=false;
+  miDebugStepOver.Enabled:=false;
+  miDebugRunTill.Enabled:=false;
+  miDebugSetAddress.enabled:=false;
+  stacktrace1.Enabled:=false;
+  miDebugExecuteTillReturn.Enabled:=false;
+  {Other tasks}
+  //...
+end;
+
 procedure TMemoryBrowser.UpdateDebugContext(threadhandle: THandle; threadid: dword; changeselection: boolean=true; _debuggerthread: TDebuggerThread=nil);
 var temp: string='';
     temp2: string;
@@ -4932,12 +5056,16 @@ begin
 
   if _debuggerthread<>nil then _debuggerthread.execlocation:=41304;
 
+  //tbDebug.enabled:=true;
+  if tbDebug.visible=false then
+    ShowDebugToolbar; //show toolbar
+
   miDebugRun.Enabled:=true;
+  tbRun.Enabled:=true; //enable toolbar run button
 
   if debuggerthread.CurrentThread=nil then
   begin
-    showmessage('shit happened');
-
+    showmessage(rsSomethingHappened);
     beep;
   end;
 
@@ -4946,8 +5074,11 @@ begin
   if _debuggerthread<>nil then _debuggerthread.execlocation:=41305;
   miRunUnhandled.Visible:=miRunUnhandled.Enabled;
   miDebugStep.Enabled:=true;
+  tbStepInto.Enabled:=true; //enable toolbar step into button
   miDebugStepOver.Enabled:=true;
+  tbStepOver.Enabled:=true; //enable toolbar step over button
   miDebugRunTill.Enabled:=true;
+  tbStepOut.Enabled:=true; //enable toolbar step out button
   miDebugSetAddress.enabled:=true;
   stacktrace1.Enabled:=true;
   miDebugExecuteTillReturn.Enabled:=true;

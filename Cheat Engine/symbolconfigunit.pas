@@ -15,6 +15,7 @@ type
 
   TfrmSymbolhandler = class(TForm)
     edtSymbolname: TEdit;
+    scImageList: TImageList;
     Label3: TLabel;
     MenuItem1: TMenuItem;
     Panel1: TPanel;

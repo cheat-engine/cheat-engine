@@ -494,7 +494,7 @@ begin
     c:=n.data;
     while c<>nil do
     begin
-      address:=symhandler.getAddressFromName(c.interpretableAddress, true, e);
+      address:=symhandler.getAddressFromName(c.interpretableAddress, false, e);
 
       if e then //couldn't get resolved
         address:=c.address;

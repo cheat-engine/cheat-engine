@@ -380,9 +380,13 @@ end;
 procedure TAddresslist.DeactivateSelected;
 var i: integer;
 begin
-  for i:=0 to count-1 do
+  i:=0;
+  while i<count do
+  begin
     if memrecitems[i].isSelected then
       memrecitems[i].active:=false;    //this will also reset the allow* booleans
+    i:=i+1
+  end;
 end;
 
 
@@ -1054,9 +1058,6 @@ var
 
   frmMemrecCombobox: TfrmMemrecCombobox;
 begin
-
-
-
   if memrec.DropDownCount=0 then
   begin
     value:=AnsiToUtf8(memrec.value);
@@ -1075,7 +1076,11 @@ begin
     frmMemrecCombobox:=TfrmMemrecCombobox.Create(memrec);
     canceled:=frmMemrecCombobox.showmodal<>mrok;
 
-    value:=utf8toansi(frmMemrecCombobox.value);
+    if memrec.DropDownReadOnly and memrec.DropDownDescriptionOnly and memrec.DisplayAsDropDownListItem and (frmMemrecCombobox.value='*') then
+      canceled:=true;
+
+    if not canceled then
+      value:=utf8toansi(frmMemrecCombobox.value);
 
     frmMemrecCombobox.free;
   end;

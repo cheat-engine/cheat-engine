@@ -45,6 +45,7 @@ type
   end;
 
   TfrmChangedAddresses = class(TForm)
+    caImageList: TImageList;
     lblInfo: TLabel;
     MenuItem1: TMenuItem;
     MenuItem2: TMenuItem;
@@ -1091,6 +1092,7 @@ procedure TfrmChangedAddresses.FormCreate(Sender: TObject);
 var x: array of integer;
     i: integer;
 begin
+  fdbvmwatchid:=-1;
   okbutton.caption:=rsStop;
 
   setlength(x, 0);

@@ -21,6 +21,7 @@ type
     edtHost: TEdit;
     edtPort: TEdit;
     GroupBox1: TGroupBox;
+    ctsImageList: TImageList;
     Label1: TLabel;
     Label2: TLabel;
     ListView1: TListView;

@@ -232,7 +232,7 @@ type
 implementation
 
 uses formsettingsunit, Valuechange, MainUnit, ProcessHandlerUnit, parsers,
-  StructuresFrm2;
+  StructuresFrm2, MemoryBrowserFormUnit;
 
 resourcestring
   rsBigFuckingError = 'Big fucking error';
@@ -726,7 +726,7 @@ start, stop: ptruint;
 gotoaddress: qword;
 begin
 
-  if shift=[] then
+  if (shift=[]) or (shift=[ssshift]) then
   begin
     case key of
       VK_DELETE:
@@ -907,8 +907,8 @@ begin
 
     end;
 
-  end
-  else
+  end;
+ // else
   begin
     if (ssCtrl in shift) and (not (ssAlt in shift)) then
     begin
@@ -2431,6 +2431,7 @@ procedure THexView.Follow;
 var
   gotoaddress: ptruint;
   x: ptruint;
+  mb: TMemoryBrowser;
 begin
   if canfollow then
   begin
@@ -2440,12 +2441,23 @@ begin
     if ReadProcessMemory(processhandle, pointer(getSelectionStart), @gotoaddress, processhandler.pointersize,x) then
     begin
       //save the current address in the history
-      backlist.push(pointer(address));
+      if ssshift in GetKeyShiftState then
+      begin
+        //spawn a new memoryview window and set the address to there
+        memorybrowser.Newwindow1.Click;
+        mb:=TMemoryBrowser(MemoryBrowsers[memorybrowsers.count-1]);
+        mb.hexview.Address:=gotoaddress;
+        mb.show;
+      end
+      else
+      begin
+        backlist.push(pointer(address));
 
-      //and go to this new address
-      address:=gotoaddress;
-      fhasSelection:=false;
-      isEditing:=false;
+        //and go to this new address
+        address:=gotoaddress;
+        fhasSelection:=false;
+        isEditing:=false;
+      end;
     end;
   end;
 

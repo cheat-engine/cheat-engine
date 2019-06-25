@@ -9,9 +9,12 @@ uses
 
 procedure AdjustSpeedButtonSize(sb: TSpeedButton);
 procedure AdjustToolbar(tb: TToolbar);
+procedure AdjustImageList(il: TImageList);
 procedure AdjustComboboxSize(cb: TComboBox; canvas: TCanvas);
 procedure AdjustEditBoxSize(editbox: TEdit; mintextwidth: integer);
 function GetEditBoxMargins(editbox: TEdit): integer;
+
+function getDPIScaleFactor: single;
 
 implementation
 
@@ -19,6 +22,11 @@ uses globals, win32proc;
 
 const
   designtimedpi=96;
+
+function getDPIScaleFactor: single;
+begin
+  result:=screen.PixelsPerInch/designtimedpi;
+end;
 
 function GetEditBoxMargins(editbox: TEdit): integer;
 var m: dword;
@@ -105,6 +113,19 @@ begin
     TempBmp1.Free;
     TempBmp2.Free;
   end;
+end;
+
+procedure AdjustImageList(il: TImageList);
+begin
+  if (screen.PixelsPerInch<>designtimedpi) then
+  begin
+    ScaleImageList(il, scalex(il.Height, designtimedpi), scaley(il.width,designtimedpi));
+  end
+  else
+  begin
+    ScaleImageList(il, trunc(il.Height*fontmultiplication), trunc(il.Width*fontmultiplication));
+  end;
+
 end;
 
 procedure AdjustToolbar(tb: TToolbar);

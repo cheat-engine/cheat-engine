@@ -329,6 +329,7 @@ type
 
   TfrmStructures2 = class(TForm)
     FindDialog1: TFindDialog;
+    sdImageList: TImageList;
     miCommonalityScan: TMenuItem;
     MenuItem5: TMenuItem;
     MenuItem6: TMenuItem;
@@ -5891,6 +5892,7 @@ begin
     s:=TDissectedStruct(DissectedStructs[i]).structname;
     mi:=tmenuitem.Create(Structures1);
     mi.Caption:=s;
+    mi.ImageIndex:=14;
     mi.OnClick:=miSelectStructureClick;
     mi.Tag:=ptruint(DissectedStructs[i]);
     mi.RadioItem:=true;

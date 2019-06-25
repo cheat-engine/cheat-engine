@@ -12,7 +12,7 @@ object frmSortPointerlist: TfrmSortPointerlist
   OnClose = FormClose
   OnDestroy = FormDestroy
   Position = poScreenCenter
-  LCLVersion = '1.6.0.4'
+  LCLVersion = '2.0.0.4'
   object Label1: TLabel
     Left = 0
     Height = 15
@@ -28,12 +28,13 @@ object frmSortPointerlist: TfrmSortPointerlist
     AnchorSideLeft.Side = asrCenter
     AnchorSideTop.Control = ProgressBar1
     AnchorSideTop.Side = asrBottom
-    Left = 123
+    Left = 129
     Height = 25
     Top = 53
-    Width = 75
+    Width = 62
+    AutoSize = True
     BorderSpacing.Top = 3
-    BorderSpacing.Bottom = 3
+    BorderSpacing.Bottom = 5
     Caption = 'Cancel'
     Default = True
     ModalResult = 2

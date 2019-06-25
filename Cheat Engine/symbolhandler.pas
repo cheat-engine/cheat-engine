@@ -51,6 +51,7 @@ type
   public
     symbolname: string;
     address: ptruint;
+    abandoned: boolean;
     procedure waittilldone;
     constructor create;
     destructor destroy; override;
@@ -93,18 +94,25 @@ type
       withdebuginfo: array of {$ifdef cpu32}IMAGEHLP_MODULE{$else}IMAGEHLP_MODULE64{$endif};
       withoutdebuginfo: array of {$ifdef cpu32}IMAGEHLP_MODULE{$else}IMAGEHLP_MODULE64{$endif};
     end;
+
+    symbolscleaned: boolean;
+    pdbonly: boolean; //tells enummodules to skip modules without pdb info
+    searchpdb: boolean;
+
     procedure processThreadEvents; //in case another thread is in a hurry and doesn't want to wait
 
     procedure EnumerateStructures;
     procedure EnumerateExtendedDebugSymbols;
 
-    procedure LoadDriverSymbols;
-    procedure LoadDLLSymbols;
+    procedure LoadDriverSymbols(loadpdb: boolean);
+    procedure LoadDLLSymbols(loadpdb: boolean; loadmodule: boolean);
     procedure finishedLoadingSymbols;
     function NetworkES(modulename: string; symbolname: string; address: ptruint; size: integer; secondary: boolean): boolean;
   public
     isloading: boolean;
     apisymbolsloaded: boolean;
+    pdbsymbolsloaded: boolean;
+    dotnetsymbolsloaded: boolean;
     error: boolean;
     symbolsloaded: boolean;
     DLLSymbolsLoaded: boolean;
@@ -227,6 +235,10 @@ type
     property progress: integer read getProgress;
 
     procedure waitforsymbolsloaded(apisymbolsonly: boolean=false; specificmodule: string='');
+    procedure waitForExports;
+    procedure waitForDotNet;
+    procedure waitForPDB;
+    procedure searchPDBWhileLoading(state: boolean);
 
     procedure EnumDotNetModule(m: TdotNetmodule; symbolhandler: TSymbolListHandler);
     procedure reinitializeDotNetSymbols(modulename: string='');
@@ -246,7 +258,7 @@ type
     function getNameFromAddress(address:ptrUint;symbols:boolean; modules: boolean; baseaddress: PUINT64=nil; found: PBoolean=nil; hexcharsize: integer=8; important: boolean=true):string; overload;
     function getExtraDataFromSymbolAtAddress(address: ptruint): TExtraSymbolData;
 
-    function getAddressFromNameL(name: string):ptrUint; //Called by lua. Looks at ExceptionOnLookup
+    function getAddressFromNameL(name: string; waitforsymbols: boolean=true):ptrUint; //Called by lua. Looks at ExceptionOnLookup
     function getAddressFromName(name: string):ptrUint; overload;
     function getAddressFromName(name: string; waitforsymbols: boolean):ptrUint; overload;
     function getAddressFromName(name: string; waitforsymbols: boolean; out haserror: boolean):ptrUint; overload;
@@ -360,6 +372,8 @@ var SymFromName: TSymFromName;
     SymSearch:  TSymSearch;
 
     StackWalkEx:function(MachineType:dword; hProcess:THANDLE; hThread:THANDLE; StackFrame:PStackframe_ex; ContextRecord:pointer; ReadMemoryRoutine:TREAD_PROCESS_MEMORY_ROUTINE64; FunctionTableAccessRoutine:TFUNCTION_TABLE_ACCESS_ROUTINE64; GetModuleBaseRoutine:TGET_MODULE_BASE_ROUTINE64; TranslateAddress:TTRANSLATE_ADDRESS_ROUTINE64; flags: dword):bool;stdcall;
+    SymLoadModuleEx:function(hProcess:THANDLE; hFile:THANDLE; ImageName:PSTR; ModuleName:PSTR; BaseOfDll:dword64; DllSize:dword; Data:pointer; Flags:dword):dword64;stdcall;
+
 
 {$endif}
 
@@ -395,6 +409,9 @@ const
   LIST_MODULES_32BIT=1;
   LIST_MODULES_64BIT=2;
   LIST_MODULES_ALL=3;
+
+  SLMFLAG_NO_SYMBOLS=4;
+
 
 {$IFNDEF UNIX}
 type TEnumProcessModulesEx=function(hProcess: HANDLE; lphModule: PHMODULE; cb: DWORD; var lpcbNeeded: DWORD; dwFilterFlag: DWORD): BOOL; stdcall;
@@ -568,6 +585,8 @@ begin
 
             if waitingfrm.cbSkipAllSymbols.checked then
               symhandler.symbolloaderthread.skipAllSymbols:=true;
+
+            abandoned:=true;
           end;
           break;
         end;
@@ -576,10 +595,7 @@ begin
   end;
 
   if waitingfrm<>nil then
-  begin
     freeandnil(waitingfrm);
-    waitingfrm.free;
-  end;
 end;
 
 constructor TSymbolLoaderThreadEvent.create;
@@ -610,7 +626,8 @@ begin
   result:=false;
 end;
 
-procedure TSymbolloaderthread.LoadDLLSymbols;
+
+procedure TSymbolloaderthread.LoadDLLSymbols(loadPDB: boolean; loadmodule: boolean);
 var need:dword;
     x: PPointerArray;
     i: integer;
@@ -642,29 +659,17 @@ begin
         for i:=0 to count-1 do
         begin
           GetModuleFileNameEx(thisprocesshandle,ptrUint(x[i]),modulename,200);
-          symLoadModule64(thisprocesshandle,0,pchar(modulename),nil,ptrUint(x[i]),0);
+          if loadmodule then
+          begin
+            if assigned(SymLoadModuleEx) then
+              symLoadModuleEx(thisprocesshandle,0,pchar(modulename),nil,ptrUint(x[i]),0,nil,ifthen(loadpdb,0,SLMFLAG_NO_SYMBOLS))
+            else
+              SymLoadModule64(thisprocesshandle,0,pchar(modulename),nil,ptrUint(x[i]),0);
+          end;
 
           mi.SizeOfStruct:=sizeof(mi);
           if SymGetModuleInfo(thisprocesshandle, ptruint(x[i]), @mi) then
           begin
-
-
-            //srv*c:\DownstreamStore*https://msdl.microsoft.com/download/symbols
-            //srv*c:\DownstreamStore
-            {
-            SymSetSearchPath(thisprocesshandle, 'srv*c:\DownstreamStore*https://msdl.microsoft.com/download/symbols');
-
-            if mi.SymType<>SymPdb then
-            begin
-              getmem(path,512);
-              if SymFindFileInPath(thisprocesshandle,pchar(searchpath),@mi.LoadedPdbName[0],@mi.PdbSig70,mi.PdbAge,0,SSRVOPT_GUIDPTR,path, cb,nil) then
-              begin
-                OutputDebugString(pchar('Loaded symbols for '+pchar(mi.LoadedImageName[0])+'+ at '+path));
-                mi.Symtype:=SymPdb;
-              end;
-              freemem(path);
-            end; }
-
             if mi.SymType in [SymExport, SymNone] then
             begin
               setlength(modulelist.withoutdebuginfo,length(modulelist.withoutdebuginfo)+1);
@@ -687,12 +692,12 @@ begin
 
   end;
 
-  DLLSymbolsLoaded:=true;
+
 
   {$endif}
 end;
 
-procedure TSymbolloaderthread.LoadDriverSymbols;
+procedure TSymbolloaderthread.LoadDriverSymbols(loadpdb: boolean);
 var need:dword;
     x: PPointerArray;
     i,c: integer;
@@ -730,7 +735,10 @@ begin
             driverpath:=StringReplace(driverpath,'\??\','',[]);
             driverpath:=StringReplace(driverpath,'\SystemRoot\',systemroot,[rfIgnoreCase]);
 
-            r:=symLoadModule64(thisprocesshandle,0,pchar(driverpath),pchar(extractfilename(driverpath)),ptrUint(x[i]),0);
+            if assigned(SymLoadModuleEx) then
+              r:=SymLoadModuleEx(thisprocesshandle,0,pchar(driverpath),pchar(extractfilename(driverpath)),ptrUint(x[i]),0,nil,ifthen(loadpdb,0, SLMFLAG_NO_SYMBOLS))
+            else
+              r:=SymLoadModule64(thisprocesshandle,0,pchar(driverpath),pchar(extractfilename(driverpath)),ptrUint(x[i]),0);
 
             mi.SizeOfStruct:=sizeof(mi);
             if SymGetModuleInfo(thisprocesshandle, ptruint(x[i]), @mi) then
@@ -1184,13 +1192,17 @@ begin
   self:=TSymbolloaderthread(UserContext);
   self.processThreadEvents;
 
-  {
-  while (true) do
-   begin
-     self.processThreadEvents;
-     if self.thisprocessid=GetCurrentProcessId then break;
-   end;
-   }
+     {
+  if self.thisprocessid<>GetCurrentProcessId then
+  begin
+    while true do
+    begin
+      self.processThreadEvents;
+      sleep(10);
+      if self.terminated then exit(false);
+    end;
+  end;  }
+
 
   if self.currentModuleIsNotStandard then
     s:='_'+s;
@@ -1206,13 +1218,7 @@ begin
   else
     extraSymbolData:=nil;
 
-  //don't add if it's a forwarder, but register a userdefined symbol
-  if TSymTagEnum(pSymInfo.Tag)<>SymTagPublicSymbol then
-  begin
-    asm
-    nop
-    end;
-  end;
+
   if (SYMFLAG_FORWARDER and pSymInfo.Flags)<>0 then
   begin
     extraSymbolData:=TExtraSymbolData.create;
@@ -1221,24 +1227,14 @@ begin
     extraSymbolData.forwarder:=true;
   end;
 
-  {if (uppercase(self.currentModuleName)='KERNEL32') and (s='HeapAlloc') then
-  begin
-    asm
-    int3
-    end;
-  end; }
+  if self.pdbonly then
+    if self.symbollist.FindSymbol(self.currentModuleName+'.'+s)<>nil then
+      exit(not self.terminated);
 
-  //if (pSymInfo.Flags and SYMFLAG_FORWARDER=0) then     //Problem: getJIT is marked as Forwarder, but it's not
-  begin
-    sym:=self.symbollist.AddSymbol(self.currentModuleName, self.currentModuleName+'.'+s, pSymInfo.Address, symbolsize,false, extraSymbolData);
-    sym:=self.symbollist.AddSymbol(self.currentModuleName, s, pSymInfo.Address, symbolsize,true, extraSymbolData); //don't add it as a address->string lookup  , (this way it always shows modulename+symbol)
-  end;
-
-
+  sym:=self.symbollist.AddSymbol(self.currentModuleName, self.currentModuleName+'.'+s, pSymInfo.Address, symbolsize,false, extraSymbolData);
+  sym:=self.symbollist.AddSymbol(self.currentModuleName, s, pSymInfo.Address, symbolsize,true, extraSymbolData); //don't add it as a address->string lookup  , (this way it always shows modulename+symbol)
 
   result:=not self.terminated;
-
-
 end;
 
 function ET(pSymInfo:PSYMBOL_INFO; SymbolSize:ULONG; UserContext:pointer):BOOL;stdcall;
@@ -1581,8 +1577,10 @@ end;
 
 
 function EM(ModuleName:PSTR; BaseOfDll:dword64; UserContext:pointer):bool;stdcall;
-var self: TSymbolloaderthread;
-    mi: tmoduleinfo;
+var
+  self: TSymbolloaderthread;
+  mi: tmoduleinfo;
+  i: integer;
 begin
   {$IFNDEF UNIX}
   self:=TSymbolloaderthread(UserContext);
@@ -1598,11 +1596,23 @@ begin
 
   self.processThreadEvents;
 
-
-  result:=(self.terminated=false) and (SymEnumSymbols(self.thisprocesshandle, baseofdll, nil, @ES, self));
+  if self.pdbonly then  //only files with a PDB
+  begin
+    for i:=0 to length(self.modulelist.withdebuginfo)-1 do
+      if self.ModuleList.withdebuginfo[i].BaseOfImage=baseofdll then
+      begin
+        result:=(self.terminated=false) and (SymEnumSymbols(self.thisprocesshandle, baseofdll, nil, @ES, self));
+        break;
+      end;
+  end
+  else
+    result:=(self.terminated=false) and (SymEnumSymbols(self.thisprocesshandle, baseofdll, nil, @ES, self));
 
   //mark this module as loaded
   self.processThreadEvents;
+
+  if self.terminated then exit;
+  if symhandler=nil then exit;
 
   symhandler.markModuleAsLoaded(baseofdll);
   inc(self.enumeratedModules);
@@ -1634,13 +1644,14 @@ function TSymbolloaderthread.getAddressFromSymbol(symbol: string): ptruint;
 //called from other threads, NOT the symbolloader thread
 var afste: TGetAddressFromSymbolThreadEvent;
 begin
-  if skipAllSymbols then exit(0);
-  if (skipList<>nil) and (skipList.Values[symbol]) then exit(0);
-
   if GetCurrentThreadId=self.ThreadID then raise exception.create('Do not call getAddressFromSymbol from inside the symbolloaderthread');
 
+  if skipAllSymbols then exit(0);
+  if (skipList<>nil) and (skipList.Values[symbol]) then exit(0);
   if (GetCurrentThread=MainThreadID) and (waitingfrm<>nil) then exit(0);
-
+  if trim(symbol)='' then exit(0);
+  if (symbol[1] in ['#','(']) then exit(0);
+  if (pos(' ',symbol)>0) then exit(0);
 
 
   //queue an getAddressFromSymbol event and wait for the result
@@ -1653,6 +1664,9 @@ begin
 
   afste.waittilldone;
   result:=afste.address;
+
+  if afste.abandoned=false then
+    freeandnil(afste);
 end;
 
 function TSymbolloaderthread.getSymbolFromAddress(address: ptruint): string;
@@ -1749,8 +1763,9 @@ begin
       if te is TGetAddressFromSymbolThreadEvent then
       begin
         //address from symbol
-        skip:=length(te.symbolname)=1;
+        skip:=length(te.symbolname)<=1;
         hasmodulespecifier:=false;
+
         for i:=1 to length(te.symbolname)-1 do
         begin
           if te.symbolname[i]='.' then
@@ -1782,24 +1797,22 @@ begin
               begin
                 symsearch(thisprocesshandle, modulelist.withoutdebuginfo[i].BaseOfImage,0,0,pchar(te.symbolname),0,SymbolSearch,@searchresult,0);
                 if searchresult<>0 then break;
+
+                if te.abandoned then break;
               end;
 
-              if searchresult=0 then //try the ones with debug info
+              if (searchresult=0) and (searchpdb) then //try the ones with debug info
               begin
                 for i:=0 to length(modulelist.withdebuginfo)-1 do
                 begin
-                  symsearch(thisprocesshandle, modulelist.withdebuginfo[i].BaseOfImage,0,0,pchar(te.symbolname),0,SymbolSearch,@searchresult,0);
-                  if searchresult<>0 then break;
-                  {
-                  symsearch(thisprocesshandle, modulelist.withdebuginfo[i].BaseOfImage,0,dword(SymTagPublicSymbol),pchar(te.symbolname),0,SymbolSearch,@searchresult,0);
+                  symsearch(thisprocesshandle, modulelist.withdebuginfo[i].BaseOfImage,0,dword(SymTagFunction),pchar(te.symbolname),0,SymbolSearch,@searchresult,8);
                   if searchresult<>0 then break;
 
-                  symsearch(thisprocesshandle, modulelist.withdebuginfo[i].BaseOfImage,0,dword(SymTagFunction),pchar(te.symbolname),0,SymbolSearch,@searchresult,0);
-                  if searchresult<>0 then break;
-                  }
+                  if te.abandoned then break;
                 end;
-
               end;
+
+
             end;
 
             if searchresult<>0 then
@@ -1872,8 +1885,10 @@ var sp: pchar;
     dotNetmodules: TDotNetModuleArray;
 
 
+    d: dword;
 
     modinfo: PModInfo;
+    needstoenumodules: boolean;
 begin
   debugpart:=0;
 
@@ -1981,34 +1996,57 @@ begin
         end;
 
         debugpart:=1;
+        if thisprocesshandle<>0 then
+        begin
+          symbolloaderthreadcs.Enter;
+          try
+            //get the export symbols first
 
-        symbolloaderthreadcs.Enter;
-        try
-          SymbolsLoaded:=SymInitialize(thisprocesshandle, sp, true);
-
-          if symbolsloaded=false then
-            SymbolsLoaded:=SymInitialize(thisprocesshandle, sp, false);
-
-          if symbolsloaded then
-          begin
-            debugpart:=2;
-            symsetoptions(symgetoptions or SYMOPT_CASE_INSENSITIVE);
-
-            if kernelsymbols then LoadDriverSymbols;
-
-            LoadDLLSymbols;
-
-            processThreadEvents;
+            d:=symgetoptions;
+            d:=d or SYMOPT_CASE_INSENSITIVE or SYMOPT_INCLUDE_32BIT_MODULES;
+            d:=d and not SYMOPT_DEFERRED_LOADS;
 
 
-            //enumerate the basic data from the symbols
-            enumeratedModules:=0;
-            SymEnumerateModules64(thisprocesshandle, @EM, self );
 
-            apisymbolsloaded:=true;
-            processThreadEvents;
+            symsetoptions(d);
 
-            debugpart:=3;
+            SymbolsLoaded:=SymInitialize(thisprocesshandle, pchar(''), true);
+            if symbolsloaded=false then
+            begin
+              SymbolsLoaded:=SymInitialize(thisprocesshandle, pchar(''), false);
+              needstoenumodules:=true;
+            end
+            else
+            begin
+              needstoenumodules:=false;
+            end;
+
+            if symbolsloaded then
+            begin
+              symbolscleaned:=false;
+
+              if kernelsymbols then LoadDriverSymbols(false);
+              LoadDLLSymbols(false, needstoenumodules);
+              enumeratedModules:=0;
+
+              if terminated then exit;
+              DLLSymbolsLoaded:=true;
+
+              processThreadEvents;
+
+              SymEnumerateModules64(thisprocesshandle, @EM, self );
+
+              processThreadEvents;
+
+              apisymbolsloaded:=true;
+              SymCleanup(thisprocesshandle);
+              symbolscleaned:=true;
+
+            end;
+
+
+
+            if terminated then exit;
 
             if owner.dotNetDataCollector.Attached then
             begin
@@ -2024,23 +2062,86 @@ begin
                 end;
               end;
             end;
+            dotnetsymbolsloaded:=true;
 
             //enumerate the extended debug symbols
-            processThreadEvents;
-            isloading:=false;
+            setlength(modulelist.withdebuginfo,0);
+            setlength(modulelist.withoutdebuginfo,0);
 
-            debugpart:=4;
-            EnumerateExtendedDebugSymbols;
-            debugpart:=5;
-            EnumerateStructures;
-            debugpart:=6;
-            Symcleanup(thisprocesshandle);
-            debugpart:=7;
-          end
-          else
-            error:=true;
-        finally
-          symbolloaderthreadcs.Leave;
+            if terminated then exit;
+
+            d:=symgetoptions;
+            d:=d or SYMOPT_CASE_INSENSITIVE or SYMOPT_INCLUDE_32BIT_MODULES;
+            d:=d or SYMOPT_DEFERRED_LOADS;
+            symsetoptions(d);
+
+            SymbolsLoaded:=SymInitialize(thisprocesshandle, sp, true);
+            if symbolsloaded=false then
+            begin
+              SymbolsLoaded:=SymInitialize(thisprocesshandle, sp, false);
+              needstoenumodules:=true;
+            end
+            else
+              needstoenumodules:=false;
+
+            if terminated then exit;
+
+            if symbolsloaded then
+            begin
+              symbolscleaned:=false;
+
+              debugpart:=2;
+              //symsetoptions(symgetoptions or SYMOPT_CASE_INSENSITIVE);
+
+              if kernelsymbols then LoadDriverSymbols(true);
+
+              LoadDLLSymbols(true, needstoenumodules);
+
+              processThreadEvents;
+
+              //enumerate the basic data from the symbols
+              enumeratedModules:=0;
+              pdbonly:=true;
+              SymEnumerateModules64(thisprocesshandle, @EM, self );
+
+              pdbsymbolsloaded:=true;
+
+
+              if terminated then exit;
+
+
+              processThreadEvents;
+
+              debugpart:=3;
+
+
+
+
+              processThreadEvents;
+              isloading:=false;
+
+              debugpart:=4;
+              EnumerateExtendedDebugSymbols;
+              debugpart:=5;
+              EnumerateStructures;
+              debugpart:=6;
+              Symcleanup(thisprocesshandle);
+              symbolscleaned:=true;
+              debugpart:=7;
+            end
+            else
+              error:=true;
+          finally
+            symbolloaderthreadcs.Leave;
+          end;
+        end
+        else
+        begin
+          symbolscleaned:=true;
+          isloading:=false;
+          DLLSymbolsLoaded:=true;
+          apisymbolsloaded:=true;
+          dotnetsymbolsloaded:=true;
         end;
         {$else}
           end;
@@ -2088,7 +2189,17 @@ begin
     finally
       isloading:=false;
 
-      //OutputDebugString('symbolloader thread finished');
+      if symbolscleaned=false then
+      begin
+        symbolloaderthreadcs.Enter;
+        try
+          Symcleanup(thisprocesshandle);
+        finally
+          symbolloaderthreadcs.Leave;
+        end;
+
+        symbolscleaned:=true;
+      end;
 
       owner.ReinitializeUserdefinedSymbolList;
 
@@ -2506,6 +2617,60 @@ begin
   end;
 
   ReinitializeUserdefinedSymbolList;
+end;
+
+procedure TSymhandler.searchPDBWhileLoading(state: boolean);
+begin
+  symbolloadervalid.beginread;
+  if symbolloaderthread<>nil then
+    symbolloaderthread.searchpdb:=state;
+
+  symbolloadervalid.Endread;
+end;
+
+procedure TSymhandler.WaitForExports;
+begin
+  symbolloadervalid.beginread;
+  if symbolloaderthread<>nil then
+  begin
+    while (not symbolloaderthread.Finished) and (not symbolloaderthread.apisymbolsloaded) do
+    begin
+      sleep(25);
+      if GetCurrentThreadID = MainThreadID then
+        CheckSynchronize;
+    end;
+  end;
+  symbolloadervalid.Endread;
+end;
+
+procedure TSymhandler.WaitForDotNet;
+begin
+  symbolloadervalid.beginread;
+  if symbolloaderthread<>nil then
+  begin
+    while (not symbolloaderthread.Finished) and (not symbolloaderthread.dotnetsymbolsloaded) do
+    begin
+      sleep(25);
+      if GetCurrentThreadID = MainThreadID then
+        CheckSynchronize;
+    end;
+  end;
+  symbolloadervalid.Endread;
+end;
+
+procedure TSymhandler.WaitForPDB;
+begin
+  symbolloadervalid.beginread;
+  if symbolloaderthread<>nil then
+  begin
+    while (not symbolloaderthread.Finished) and (not symbolloaderthread.pdbsymbolsloaded) do
+    begin
+      sleep(25);
+      if GetCurrentThreadID = MainThreadID then
+        CheckSynchronize;
+    end;
+  end;
+  symbolloadervalid.Endread;
 end;
 
 procedure TSymhandler.Waitforsymbolsloaded(apisymbolsonly: boolean=false; specificmodule: string='');
@@ -3579,10 +3744,10 @@ end;
 
 
 
-function TSymhandler.getAddressFromNameL(name: string):ptrUint;  //Lua
+function TSymhandler.getAddressFromNameL(name: string; waitforsymbols: boolean=true):ptrUint;  //Lua
 var e: boolean;
 begin
-  result:=getAddressFromName(name, true, e);
+  result:=getAddressFromName(name, waitforsymbols, e);
   if e then
   begin
     if ExceptionOnLuaLookup then
@@ -4843,6 +5008,8 @@ begin
   SymFromAddr:=GetProcAddress(dbghlp,'SymFromAddr');
   SymSearch:=GetProcAddress(dbghlp,'SymSearch');
   StackWalkEx:=GetProcAddress(dbghlp,'StackWalkEx');
+  SymLoadModuleEx:=GetProcAddress(dbghlp,'SymLoadModuleEx');
+
 
 
   psa:=loadlibrary('Psapi.dll');

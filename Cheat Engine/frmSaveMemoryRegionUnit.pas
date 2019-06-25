@@ -5,7 +5,7 @@ unit frmSaveMemoryRegionUnit;
 interface
 
 uses
-  LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
+  LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms, symbolhandler,
   Dialogs, StdCtrls, NewKernelHandler, CEFuncProc, ExtCtrls, LResources, Menus;
 
 type
@@ -13,6 +13,7 @@ type
   { TfrmSaveMemoryRegion }
 
   TfrmSaveMemoryRegion = class(TForm)
+    smrImageList: TImageList;
     miClearList: TMenuItem;
     Panel1: TPanel;
     Panel2: TPanel;
@@ -31,7 +32,6 @@ type
     editTo: TEdit;
     Button3: TButton;
     procedure Button2Click(Sender: TObject);
-    procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure Button1Click(Sender: TObject);
     procedure DontIncludeClick(Sender: TObject);
     procedure Button3Click(Sender: TObject);
@@ -70,12 +70,6 @@ begin
   fromaddress:=fa;
   toaddress:=ta;
   inherited create;
-end;
-
-procedure TfrmSaveMemoryRegion.FormClose(Sender: TObject;
-  var Action: TCloseAction);
-begin
-
 end;
 
 procedure TfrmSaveMemoryRegion.Button2Click(Sender: TObject);
@@ -183,26 +177,24 @@ end;
 
 procedure TfrmSaveMemoryRegion.Button3Click(Sender: TObject);
 var fromaddress,toaddress:qword;
-    temp:qword;
 begin
   try
-    fromaddress:=StrToQWordEx('$'+editFrom.Text);
+    fromaddress:=StrToQWordEx('$'+editfrom.Text);
   except
-    raise exception.Create(Format(rsIsNotAValidAddress, [editfrom.Text]));
+    fromaddress:=symhandler.getAddressFromName(editfrom.Text);
   end;
 
   try
-    toaddress:=StrToQWordEx('$'+editto.Text);
+    toaddress:=StrToQWordEx('$'+editto.text);
   except
-    raise exception.Create(Format(rsIsNotAValidAddress, [editto.Text]));
+    toaddress:=symhandler.getAddressFromName(editto.text);
   end;
 
-
-  if toaddress<fromaddress then
-  begin
-    temp:=fromaddress;
-    fromaddress:=toaddress;
-    toaddress:=temp;
+  if fromaddress>toaddress then
+  begin  //xor swap
+    fromaddress:=fromaddress xor toaddress;
+    toaddress:=toaddress xor fromaddress;
+    fromaddress:=fromaddress xor toaddress;
   end;
 
   lbregions.Items.AddObject(inttohex(fromaddress,8)+'-'+inttohex(toaddress,8),tregion.Create(fromaddress,toaddress));

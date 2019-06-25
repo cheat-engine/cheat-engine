@@ -13,7 +13,7 @@ object About: TAbout
   OnClose = FormClose
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '1.6.4.0'
+  LCLVersion = '2.0.0.4'
   object GroupBox1: TGroupBox
     Left = 0
     Height = 310
@@ -473,7 +473,7 @@ object About: TAbout
       Left = 5
       Height = 57
       Top = 145
-      Width = 349
+      Width = 357
       AutoSize = True
       BorderSpacing.Left = 5
       BorderSpacing.Top = 2
@@ -485,7 +485,7 @@ object About: TAbout
       ChildSizing.Layout = cclLeftToRightThenTopToBottom
       ChildSizing.ControlsPerLine = 5
       ClientHeight = 57
-      ClientWidth = 349
+      ClientWidth = 357
       TabOrder = 2
       object Label21: TLabel
         Left = 2
@@ -523,7 +523,7 @@ object About: TAbout
         Left = 302
         Height = 15
         Top = 2
-        Width = 45
+        Width = 53
         Caption = 'Psy'
         ParentColor = False
       end
@@ -563,7 +563,7 @@ object About: TAbout
         Left = 302
         Height = 15
         Top = 21
-        Width = 45
+        Width = 53
         Caption = 'Jgoemat'
         ParentColor = False
       end
@@ -597,6 +597,14 @@ object About: TAbout
         Top = 40
         Width = 69
         Caption = 'Atom0s'
+        ParentColor = False
+      end
+      object Label3: TLabel
+        Left = 302
+        Height = 15
+        Top = 40
+        Width = 53
+        Caption = 'supMarco'
         ParentColor = False
       end
     end

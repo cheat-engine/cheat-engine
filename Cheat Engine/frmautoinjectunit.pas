@@ -79,6 +79,7 @@ type
   { TfrmAutoInject }
 
   TfrmAutoInject = class(TForm)
+    aaImageList: TImageList;
     MainMenu1: TMainMenu;
     File1: TMenuItem;
     menuAOBInjection: TMenuItem;
@@ -512,7 +513,16 @@ begin
             if editscript2 or CustomTypeScript then close;
           end;
         end;
-      end else autoassemble(assemblescreen.lines,true);
+      end
+      else
+      begin
+        try
+          autoassemble(assemblescreen.lines,true);
+        except
+          on e:exception do
+            MessageDlg(e.message,mtError,[mbOK],0);
+        end;
+      end;
     end;
 
     smGnuAssembler:

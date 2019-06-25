@@ -14,6 +14,7 @@ type
   { TfrmStacktrace }
 
   TfrmStacktrace = class(TForm)
+    stImageList: TImageList;
     ListView1: TListView;
     miManualStackwalk: TMenuItem;
     PopupMenu1: TPopupMenu;
@@ -37,7 +38,8 @@ var
 
 implementation
 
-uses MemoryBrowserFormUnit, frmManualStacktraceConfigUnit, ProcessHandlerUnit, DBK32functions;
+uses MemoryBrowserFormUnit, frmManualStacktraceConfigUnit, ProcessHandlerUnit,
+  DBK32functions, symbolhandlerstructs, PEInfoFunctions;
 
 var
   useShadow: boolean;
@@ -69,6 +71,58 @@ end;
 
 
 
+function get_module_base_routine64(hProcess:THANDLE; Address:dword64):dword64;stdcall;
+var mi: TModuleInfo;
+begin
+  if symhandler.getmodulebyaddress(address,mi) then
+    result:=mi.baseaddress
+  else
+    result:=0;
+end;
+
+var
+  exceptionlists: array of TExceptionList;
+  exceptionlistPID: dword;
+
+function function_table_access_routine64(hProcess:THANDLE; AddrBase:dword64):pointer;stdcall;
+var
+  mb: qword;
+  mi: TModuleInfo;
+  i: integer;
+  rte: TRunTimeEntry;
+  el: TExceptionList;
+begin
+  result:=nil;
+  el:=nil;
+
+  if symhandler.getmodulebyaddress(AddrBase,mi) then
+  begin
+    //parse the
+    for i:=0 to length(exceptionlists)-1 do
+    begin
+      if exceptionlists[i].ModuleBase=mi.baseaddress then
+      begin
+        el:=exceptionlists[i];
+        break;
+      end;
+    end;
+
+
+    if el=nil then
+    begin
+      el:=peinfo_getExceptionList(mi.baseaddress);
+      if el<>nil then
+      begin
+        setlength(exceptionlists,length(exceptionlists)+1);
+        exceptionlists[length(exceptionlists)-1]:=el;
+      end;
+    end;
+
+    if el<>nil then
+      result:=el.getRunTimeEntry(addrbase);
+  end;
+end;
+
 
 procedure TfrmStacktrace.stacktrace(threadhandle:thandle;context:_context);
 {
@@ -86,7 +140,17 @@ var
     cp: pointer;
 
     found: boolean;
+    i: integer;
 begin
+
+  if (exceptionlistPID<>processid) and (length(exceptionlists)>0) then
+  begin
+    for i:=0 to length(exceptionlists)-1 do
+      exceptionlists[i].free;
+
+    setlength(exceptionlists,0);
+  end;
+
   getmem(cp,sizeof(_context)+4096);
   try
     zeromemory(cp,sizeof(_context)+4096);
@@ -131,14 +195,14 @@ begin
   {$endif}
 
     //because I provide a readprocessmemory the threadhandle just needs to be the unique for each thread. e.g threadid instead of threadhandle
-    while stackwalkex(machinetype,processhandle,threadhandle,@stackframe,cp, rpm64 ,SymFunctionTableAccess64,SymGetModuleBase64,nil,1) do
+    while stackwalk64(machinetype,processhandle,threadhandle,@stackframe,cp, rpm64 ,function_table_access_routine64, get_module_base_routine64,nil) do
     begin
 
 
       listview1.Items.Add.Caption:=symhandler.getNameFromAddress(stackframe.AddrPC.Offset, true, true);
       listview1.items[listview1.Items.Count-1].SubItems.add(inttohex(stackframe.AddrStack.Offset,8));
       listview1.items[listview1.Items.Count-1].SubItems.add(inttohex(stackframe.AddrFrame.Offset,8));
-      listview1.items[listview1.Items.Count-1].SubItems.add(inttohex(stackframe.AddrReturn.Offset,8));
+      listview1.items[listview1.Items.Count-1].SubItems.add(symhandler.getNameFromAddress(stackframe.AddrReturn.Offset,true,true));
 
       a:=stackframe.Params[0];
       b:=stackframe.Params[1];

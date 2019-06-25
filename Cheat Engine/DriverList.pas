@@ -20,6 +20,7 @@ type
     Button1: TButton;
     FindDialog1: TFindDialog;
     FindDialog2: TFindDialog;
+    dlImageList: TImageList;
     MenuItem1: TMenuItem;
     PopupMenu1: TPopupMenu;
     Find1: TMenuItem;

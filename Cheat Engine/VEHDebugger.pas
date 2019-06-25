@@ -489,15 +489,15 @@ begin
     HasHandledDebugEvent:=CreateEvent(nil, false, false, nil);
 
 
-    if not DuplicateHandle(GetCurrentProcess, HasDebugEvent, processhandle, @VEHDebugView^.HasDebugEvent, 0, false, DUPLICATE_SAME_ACCESS	) then
+    if not DuplicateHandle(GetCurrentProcess, HasDebugEvent, processhandle, @VEHDebugView^.HasDebugEvent, 0, false, DUPLICATE_SAME_ACCESS) then
       raise exception.Create(
         rsFailureDuplicatingTheEventHandlesToTheOtherProcess);
 
-    if not DuplicateHandle(GetCurrentProcess, HasHandledDebugEvent, processhandle, @VEHDebugView^.HasHandledDebugEvent, 0, false, DUPLICATE_SAME_ACCESS	) then
+    if not DuplicateHandle(GetCurrentProcess, HasHandledDebugEvent, processhandle, @VEHDebugView^.HasHandledDebugEvent, 0, false, DUPLICATE_SAME_ACCESS) then
       raise exception.Create(
         rsFailureDuplicatingTheEventHandlesToTheOtherProcess);
 
-    if not DuplicateHandle(GetCurrentProcess, ConfigFileMapping, processhandle, @cfm, 0, false, DUPLICATE_SAME_ACCESS	) then
+    if not DuplicateHandle(GetCurrentProcess, ConfigFileMapping, processhandle, @cfm, 0, false, DUPLICATE_SAME_ACCESS) then
       raise exception.Create(rsFailureDuplicatingTheFilemapping);
 
 

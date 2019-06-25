@@ -14,6 +14,7 @@ type
   { TfrmWatchlist }
 
   TfrmWatchlist = class(TForm)
+    wlImageList: TImageList;
     lvWatchlist: TListView;
     MenuItem1: TMenuItem;
     MenuItem2: TMenuItem;
