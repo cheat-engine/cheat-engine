@@ -71,6 +71,7 @@ int vmx_enableSingleStepMode(void);
 int vmx_disableSingleStepMode(void);
 
 int vmx_addSingleSteppingReason(pcpuinfo currentcpuinfo, int reason, int ID);
+int vmx_addSingleSteppingReasonEx(pcpuinfo currentcpuinfo, int reason, void *data);
 
 void vmx_setMSRReadExit(DWORD msrValue);
 void vmx_removeMSRReadExit(DWORD msrValue);

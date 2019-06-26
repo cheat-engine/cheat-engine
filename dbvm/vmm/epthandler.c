@@ -5,6 +5,9 @@
  *      Author: erich
  */
 
+#define MAXCLOAKLISTBEFORETRANFERTOMAP 40
+
+
 #include "epthandler.h"
 #include "main.h"
 #include "mm.h"
@@ -13,6 +16,8 @@
 #include "common.h"
 #include "vmpaging.h"
 #include "vmcall.h"
+#include "maps.h"
+#include "list.h"
 
 QWORD EPTMapPhysicalMemory(pcpuinfo currentcpuinfo, QWORD physicalAddress, int forcesmallpage);
 
@@ -21,12 +26,13 @@ PEPTWatchEntry eptWatchList;
 int eptWatchListSize;
 int eptWatchListPos;
 
-criticalSection CloakedPagesCS; //1
-CloakedPageInfo *CloakedPages;
-int CloakedPagesSize;
-int CloakedPagesPos;
 
-int CloakedPagesUseMap; //set to true once cloakedPagesPos has grown over 10
+criticalSection CloakedPagesCS; //1
+PAddressList CloakedPagesList; //up to 40 entries can be found in 5 steps (worst case scenario)
+PMapInfo CloakedPagesMap; //can be found in 5 steps, always (and eats memory) , so if CloakedPagesPos>40 then start using this (and move the old list over)
+
+
+
 
 criticalSection ChangeRegBPListCS; //2
 ChangeRegBPEntry *ChangeRegBPList;
@@ -67,6 +73,10 @@ void ept_invalidate()
 }
 
 
+void ept_reset_cb(QWORD address, void *data UNUSED)
+{
+  map_setEntry(CloakedPagesMap, address, NULL);
+}
 
 void ept_reset()
 /*
@@ -89,9 +99,14 @@ void ept_reset()
   csLeave(&ChangeRegBPListCS);
 
   csEnter(&CloakedPagesCS);
-  for (i=0; i<CloakedPagesPos; i++)
-    if (CloakedPages[i].Executable!=NULL)
-      ept_cloak_deactivate(CloakedPages[i].PhysicalAddressExecutable);
+
+  if (CloakedPagesMap)
+    map_foreach(CloakedPagesMap,ept_reset_cb);
+  else
+  {
+    while (CloakedPagesList->size)
+      ept_cloak_deactivate(CloakedPagesList->list[0].address);
+  }
 
   csLeave(&CloakedPagesCS);
 
@@ -102,113 +117,107 @@ BOOL ept_handleCloakEvent(pcpuinfo currentcpuinfo, QWORD Address, QWORD AddressV
  * Checks if the physical address is cloaked, if so handle it and return 1, else return 0
  */
 {
-  int i,result=0;
+  int result=0;
   QWORD BaseAddress=Address & MAXPHYADDRMASKPB;
+  PCloakedPageData cloakdata;
 
-  if (CloakedPagesPos==0)
+  if ((CloakedPagesList==NULL) && (CloakedPagesMap==NULL))
     return FALSE;
 
   csEnter(&CloakedPagesCS);
-
-  if (CloakedPagesUseMap)
-  {
-    //use a map to get the information
-  }
+  if (CloakedPagesMap)
+    cloakdata=map_getEntry(CloakedPagesMap, BaseAddress);
   else
+    cloakdata=addresslist_find(CloakedPagesList, BaseAddress);
+
+
+  if (cloakdata)
   {
-
-  }
-
-
-  for (i=0; i<CloakedPagesPos; i++)
-  {
-    if (currentcpuinfo->eptCloakListLength<=i) //error
-      break;
-
     csEnter(&currentcpuinfo->EPTPML4CS);
 
-    if (CloakedPages[i].PhysicalAddressExecutable==BaseAddress)
+
+    //it's a cloaked page
+    int isMegaJmp=0;
+    QWORD RIP=vmread(vm_guest_rip);
+
+    EPT_VIOLATION_INFO evi;
+    evi.ExitQualification=vmread(vm_exit_qualification);
+
+    sendstringf("ept_handleCloakEvent on the target\n");
+
+    //todo: keep a special list for physical address regions that can see 'the truth' (e.g ntoskrnl.exe and hal.dll on exported data pointers, but anything else will see the fake pointers)
+    //todo2: inverse cloak, always shows the real data except the list of physical address regions provided
+
+    //check for megajmp edits
+    //megajmp: ff 25 00 00 00 00 <address>
+    //So, if 6 bytes before the given address is ff 25 00 00 00 00 , it's a megajmp, IF the RIP is 6 bytes before the given address (and the bytes have changed from original)
+
+    if ((AddressVA-RIP)==6)
     {
-      //it's a cloaked page
-      int isMegaJmp=0;
-      QWORD RIP=vmread(vm_guest_rip);
+      //check if the bytes have been changed here
+      DWORD offset=RIP & 0xfff;
+      int size=min(14,0x1000-offset);
 
-      EPT_VIOLATION_INFO evi;
-      evi.ExitQualification=vmread(vm_exit_qualification);
+      unsigned char *new=(unsigned char *)((QWORD)cloakdata->Executable+offset);
+      unsigned char *original=(unsigned char *)((QWORD)cloakdata->Data+offset);
 
-      sendstringf("ept_handleCloakEvent on the target\n");
 
-      //todo: keep a special list for physical address regions that can see 'the truth' (e.g ntoskrnl.exe and hal.dll on exported data pointers, but anything else will see the fake pointers)
-      //todo2: inverse cloak, always shows the real data except the list of physical address regions provided
-
-      //check for megajmp edits
-      //megajmp: ff 25 00 00 00 00 <address>
-      //So, if 6 bytes before the given address is ff 25 00 00 00 00 , it's a megajmp, IF the RIP is 6 bytes before the given address (and the bytes have changed from original)
-
-      if ((AddressVA-RIP)==6)
+      if (new[0]==0xff) //starts with 0xff, so very likely, inspect more
       {
-        //check if the bytes have been changed here
-        DWORD offset=RIP & 0xfff;
-        int size=min(14,0x1000-offset);
-
-        unsigned char *new=(unsigned char *)((QWORD)CloakedPages[i].Executable+offset);
-        unsigned char *original=(unsigned char *)((QWORD)CloakedPages[i].Data+offset);
-
-
-        if (new[0]==0xff) //starts with 0xff, so very likely, inspect more
+        if (memcmp(new, original, size))
         {
-          if (memcmp(new, original, size))
+          //the memory in this range got changed, check if it's a full megajmp
+          unsigned char megajmpbytes[6]={0xff,0x25,0x00,0x00,0x00,0x00};
+
+          if (memcmp(new, megajmpbytes, min(6,size))==0)
           {
-            //the memory in this range got changed, check if it's a full megajmp
-            unsigned char megajmpbytes[6]={0xff,0x25,0x00,0x00,0x00,0x00};
-
-            if (memcmp(new, megajmpbytes, min(6,size))==0)
-            {
-              sendstring("Is megajmp");
-              isMegaJmp=1;
-            }
-
+            sendstring("Is megajmp");
+            isMegaJmp=1;
           }
+
         }
       }
-
-
-      //Check if this page has had a MEGAJUMP code edit, if so, check if this is a megajump and in that case on executable
-
-      if (evi.X) //looks like this cpu does not support execute only
-        *(QWORD *)(currentcpuinfo->eptCloakList[i])=CloakedPages[i].PhysicalAddressExecutable;
-      else
-      {
-        if (isMegaJmp==0)
-        {
-          //read/write the data
-          *(QWORD *)(currentcpuinfo->eptCloakList[i])=CloakedPages[i].PhysicalAddressData;
-        }
-        else
-        {
-          //read the executable code
-          *(QWORD *)(currentcpuinfo->eptCloakList[i])=CloakedPages[i].PhysicalAddressExecutable;
-        }
-
-      }
-      currentcpuinfo->eptCloakList[i]->WA=1;
-      currentcpuinfo->eptCloakList[i]->RA=1;
-      currentcpuinfo->eptCloakList[i]->XA=1;
-
-      vmx_enableSingleStepMode();
-      vmx_addSingleSteppingReason(currentcpuinfo, 2,i);
-
-      currentcpuinfo->eptCloak_LastOperationWasWrite=evi.W;
-      currentcpuinfo->eptCloak_LastWriteOffset=Address & 0xfff;
-
-      result=TRUE;
-
-
     }
 
-    csLeave(&currentcpuinfo->EPTPML4CS);
 
+    //Check if this page has had a MEGAJUMP code edit, if so, check if this is a megajump and in that case on executable
+
+
+    if (evi.X) //looks like this cpu does not support execute only
+      *(QWORD *)(cloakdata->eptentry[currentcpuinfo->cpunr])=cloakdata->PhysicalAddressExecutable;
+    else
+    {
+      if (isMegaJmp==0)
+      {
+        //read/write the data
+        *(QWORD *)(cloakdata->eptentry[currentcpuinfo->cpunr])=cloakdata->PhysicalAddressData;
+      }
+      else
+      {
+        //read the executable code
+        *(QWORD *)(cloakdata->eptentry[currentcpuinfo->cpunr])=cloakdata->PhysicalAddressExecutable;
+      }
+
+    }
+    cloakdata->eptentry[currentcpuinfo->cpunr]->WA=1;
+    cloakdata->eptentry[currentcpuinfo->cpunr]->RA=1;
+    cloakdata->eptentry[currentcpuinfo->cpunr]->XA=1;
+
+    vmx_enableSingleStepMode();
+    vmx_addSingleSteppingReasonEx(currentcpuinfo, 2,cloakdata);
+
+    currentcpuinfo->eptCloak_LastOperationWasWrite=evi.W;
+    currentcpuinfo->eptCloak_LastWriteOffset=Address & 0xfff;
+
+    result=TRUE;
+
+
+
+    csLeave(&currentcpuinfo->EPTPML4CS);
   }
+
+  //still here so not in the map (or no map used yet)
+
   csLeave(&CloakedPagesCS);
 
   ept_invalidate();
@@ -217,7 +226,7 @@ BOOL ept_handleCloakEvent(pcpuinfo currentcpuinfo, QWORD Address, QWORD AddressV
   return result;
 }
 
-int ept_handleCloakEventAfterStep(pcpuinfo currentcpuinfo,  int ID)
+int ept_handleCloakEventAfterStep(pcpuinfo currentcpuinfo,  PCloakedPageData cloakdata)
 {
   sendstringf("ept_handleCloakEventAfterStep\n");
   //back to execute only
@@ -225,35 +234,21 @@ int ept_handleCloakEventAfterStep(pcpuinfo currentcpuinfo,  int ID)
 
   if (currentcpuinfo->eptCloak_LastOperationWasWrite)
   {
-    //apply the write as well
-    if ((*(QWORD *)(currentcpuinfo->eptCloakList[ID]) & MAXPHYADDRMASKPB) == CloakedPages[ID].PhysicalAddressExecutable)
-    {
-      //this was a write and execute at the same time
-    }
-    else
-    {
-      //apply the changes to the executable as well
-    //  int start=currentcpuinfo->eptCloak_LastWriteOffset;
-    //  QWORD *source=&CloakedPages[ID].Data[start];
-    //  QWORD *destination=&CloakedPages[ID].Executable[start];
-
-      //todo:copy a few bytes
-      //todo: get a bitmask of changes by the user and protect them from being reverted
+    //todo: apply the write as well
 
 
-
-    }
   }
 
 
   csEnter(&currentcpuinfo->EPTPML4CS);
-  *(QWORD *)(currentcpuinfo->eptCloakList[ID])=CloakedPages[ID].PhysicalAddressExecutable; //back to the executable state
-  currentcpuinfo->eptCloakList[ID]->WA=0;
-  currentcpuinfo->eptCloakList[ID]->RA=0;
+
+  *(QWORD *)(cloakdata->eptentry[currentcpuinfo->cpunr])=cloakdata->PhysicalAddressExecutable; //back to the executable state
+  cloakdata->eptentry[currentcpuinfo->cpunr]->WA=0;
+  cloakdata->eptentry[currentcpuinfo->cpunr]->RA=0;
   if (has_EPT_ExecuteOnlySupport)
-    currentcpuinfo->eptCloakList[ID]->XA=1;
+    cloakdata->eptentry[currentcpuinfo->cpunr]->XA=1;
   else
-    currentcpuinfo->eptCloakList[ID]->XA=0;
+    cloakdata->eptentry[currentcpuinfo->cpunr]->XA=0;
   csLeave(&currentcpuinfo->EPTPML4CS);
 
 
@@ -269,81 +264,92 @@ int ept_handleCloakEventAfterStep(pcpuinfo currentcpuinfo,  int ID)
 int ept_cloak_activate(QWORD physicalAddress)
 {
   int i;
-  int ID=-1;
+  QWORD address;
+  PCloakedPageData data;
 
   sendstringf("ept_cloak_activate(%6)\n", physicalAddress);
 
   physicalAddress=physicalAddress & MAXPHYADDRMASKPB;
   csEnter(&CloakedPagesCS);
 
-  //check if this physical address is already cloaked and find a free position while doing so
-  for (i=0; i<CloakedPagesPos; i++)
+  //first run check
+  if (CloakedPagesMap==NULL)
   {
-    if (CloakedPages[i].PhysicalAddressExecutable==physicalAddress)
+    if (CloakedPagesList==NULL)
+      CloakedPagesList=addresslist_create();
+
+    if (CloakedPagesList->size>=MAXCLOAKLISTBEFORETRANFERTOMAP)
     {
-      csLeave(&CloakedPagesCS);
-      return 1; //already cloaked
-    }
-
-    if ((ID==-1) && (CloakedPages[i].PhysicalAddressExecutable==0) && (CloakedPages[i].PhysicalAddressData==0))
-      ID=i;
-  }
-
-  if (ID==-1) //new one
-  {
-    if (CloakedPagesPos==CloakedPagesSize) //need to reallocate the list
-    {
-      CloakedPagesSize=(CloakedPagesSize+2)*2;
-      CloakedPages=realloc(CloakedPages, sizeof(CloakedPageInfo)*CloakedPagesSize);
-
-      if (CloakedPages==NULL)
+      //convert the list to a map
+      if (CloakedPagesMap==NULL) //should be
       {
-        nosendchar[getAPICID()]=0;
-        sendstringf("CloakedPages realloc failed\n");
-        csLeave(&CloakedPagesCS);
-        return 0xcedead00;
+        CloakedPagesMap=createPhysicalMemoryMap();
+        for (i=0; i<CloakedPagesList->size; i++)
+        {
+          address=CloakedPagesList->list[i].address;
+          data=(PCloakedPageData)CloakedPagesList->list[i].data;
+
+          map_setEntry(CloakedPagesMap, address, data);
+          //just copy, no need to reactivate
+        }
+
+        addresslist_destroy(CloakedPagesList);
+        CloakedPagesList=NULL;
       }
     }
-
-    ID=CloakedPagesPos;
-    CloakedPagesPos++;
   }
 
-  CloakedPages[ID].Executable=mapPhysicalMemoryGlobal(physicalAddress, 4096);
-  CloakedPages[ID].Data=malloc(4096);
+
+  PCloakedPageData cloakdata;
+
+  if (CloakedPagesMap)
+    cloakdata=map_getEntry(CloakedPagesMap, physicalAddress);
+  else
+    cloakdata=addresslist_find(CloakedPagesList, physicalAddress);
 
 
-  if (CloakedPages[ID].Data==NULL)
+  if (cloakdata)
   {
-    if (CloakedPages[ID].Executable)
-      unmapPhysicalMemoryGlobal(CloakedPages[ID].Executable, 4096);
-
-    sendstringf("CloakedPages alloc data copy failed\n");
+    //already cloaked
     csLeave(&CloakedPagesCS);
-    return 0xcedead01;
+    return 1;
   }
-  copymem(CloakedPages[ID].Data, CloakedPages[ID].Executable, 4096);
-  CloakedPages[ID].PhysicalAddressExecutable=physicalAddress;
-  CloakedPages[ID].PhysicalAddressData=VirtualToPhysical(CloakedPages[ID].Data);
+
+  //new one, allocate and fill in a cloakdata structure
+  int cpucount=getCPUCount();
+  cloakdata=malloc(sizeof(CloakedPageData)+cpucount*sizeof(PEPT_PTE));
+  zeromemory(cloakdata,sizeof(CloakedPageData)+cpucount*sizeof(PEPT_PTE));
+
+
+  //fill in the data
+  cloakdata->Executable=mapPhysicalMemoryGlobal(physicalAddress, 4096);
+  cloakdata->Data=malloc(4096);
+
+  copymem(cloakdata->Data, cloakdata->Executable, 4096);
+  cloakdata->PhysicalAddressExecutable=physicalAddress;
+  cloakdata->PhysicalAddressData=VirtualToPhysical(cloakdata->Data);
 
   //map in the physical address descriptor for all CPU's as execute only
   pcpuinfo currentcpuinfo=firstcpuinfo;
+
   while (currentcpuinfo)
   {
-    csEnter(&currentcpuinfo->EPTPML4CS);
+    int cpunr=currentcpuinfo->cpunr;
 
-    //make sure that the eptCloakList is at least as big as CloakedPagesSize
-    if (currentcpuinfo->eptCloakListLength<CloakedPagesSize)
+    if (cpunr>=cpucount)
     {
-      currentcpuinfo->eptCloakList=realloc(currentcpuinfo->eptCloakList, CloakedPagesSize*sizeof(EPT_PTE));
-      currentcpuinfo->eptCloakListLength=CloakedPagesSize;
+      //'issue' with the cpucount or cpunumber
+      cpucount=cpunr*2;
+      cloakdata=realloc(cloakdata, cpucount*sizeof(PEPT_PTE));
     }
 
+    csEnter(&currentcpuinfo->EPTPML4CS);
+
     QWORD PA=EPTMapPhysicalMemory(currentcpuinfo, physicalAddress, 1);
-    currentcpuinfo->eptCloakList[ID]=mapPhysicalMemoryGlobal(PA, sizeof(EPT_PTE));
+    cloakdata->eptentry[cpunr]=mapPhysicalMemoryGlobal(PA, sizeof(EPT_PTE));
 
     //make it nonreadable
-    EPT_PTE temp=*(currentcpuinfo->eptCloakList[ID]);
+    EPT_PTE temp=*(cloakdata->eptentry[cpunr]);
     if (has_EPT_ExecuteOnlySupport)
       temp.XA=1;
     else
@@ -352,18 +358,20 @@ int ept_cloak_activate(QWORD physicalAddress)
     temp.RA=0;
     temp.WA=0;
 
+    *(cloakdata->eptentry[cpunr])=temp;
 
-    *(currentcpuinfo->eptCloakList[ID])=temp;
     _wbinvd();
     currentcpuinfo->eptUpdated=1;
 
     csLeave(&currentcpuinfo->EPTPML4CS);
 
     currentcpuinfo=currentcpuinfo->next;
-
   }
 
-
+  if (CloakedPagesMap)
+    map_setEntry(CloakedPagesMap, physicalAddress, (void*)cloakdata);
+  else
+    addresslist_add(CloakedPagesList, physicalAddress, (void*)cloakdata);
 
 
   ept_invalidate();
@@ -373,63 +381,75 @@ int ept_cloak_activate(QWORD physicalAddress)
   return 0;
 }
 
+
+
 int ept_cloak_deactivate(QWORD physicalAddress)
 {
   int i;
-  int found=0;
   physicalAddress=physicalAddress & MAXPHYADDRMASKPB;
+
+  PCloakedPageData cloakdata;
+
+
   csEnter(&CloakedPagesCS);
 
-  for (i=0; i<CloakedPagesPos; i++)
+  if (CloakedPagesMap)
+    cloakdata=map_getEntry(CloakedPagesMap, physicalAddress);
+  else
+    cloakdata=addresslist_find(CloakedPagesList, physicalAddress);
+
+  if (cloakdata)
   {
-    if (CloakedPages[i].PhysicalAddressExecutable==physicalAddress)
+    //check if there is a changereg on bp
+    csEnter(&ChangeRegBPListCS);
+    for (i=0; i<ChangeRegBPListPos; i++)
     {
-      //found it
-      //restore to the original unedited state
-      copymem(CloakedPages[i].Executable, CloakedPages[i].Data, 4096);
-
-      pcpuinfo currentcpuinfo=firstcpuinfo;
-      while (currentcpuinfo)
-      {
-        //mark as full access
-        EPT_PTE temp=*(currentcpuinfo->eptCloakList[i]);
-        temp.RA=1;
-        temp.WA=1;
-        temp.XA=1;
-        *(currentcpuinfo->eptCloakList[i])=temp;
-
-        unmapPhysicalMemoryGlobal(currentcpuinfo->eptCloakList[i], sizeof(EPT_PTE));
-        currentcpuinfo->eptCloakList[i]=NULL;
-        _wbinvd();
-        currentcpuinfo->eptUpdated=1;
-
-        currentcpuinfo=currentcpuinfo->next;
-      }
-
-      found=1;
-      CloakedPages[i].PhysicalAddressExecutable=0;
-      CloakedPages[i].PhysicalAddressData=0;
-      free(CloakedPages[i].Data);
-      CloakedPages[i].Data=NULL;
-      unmapPhysicalMemoryGlobal(CloakedPages[i].Executable, 4096);
-      CloakedPages[i].Executable=NULL;
-
-
+      if ((ChangeRegBPList[i].Active) && (ChangeRegBPList[i].cloakdata==cloakdata)) //delete this one first
+        ept_cloak_removechangeregonbp(ChangeRegBPList[i].PhysicalAddress);
     }
+
+    csLeave(&ChangeRegBPListCS);
+
+
+    copymem(cloakdata->Executable, cloakdata->Data, 4096);
+    pcpuinfo currentcpuinfo=firstcpuinfo;
+    while (currentcpuinfo)
+    {
+      EPT_PTE temp=*(cloakdata->eptentry[currentcpuinfo->cpunr]);
+      temp.RA=1;
+      temp.WA=1;
+      temp.XA=1;
+      *(cloakdata->eptentry[currentcpuinfo->cpunr])=temp;
+      _wbinvd();
+      currentcpuinfo->eptUpdated=1;
+
+      unmapPhysicalMemoryGlobal(cloakdata->eptentry[currentcpuinfo->cpunr], sizeof(EPT_PTE));
+      currentcpuinfo=currentcpuinfo->next;
+    }
+
+    unmapPhysicalMemoryGlobal(cloakdata->Executable, 4096);
+    free(cloakdata);
   }
+
+  if (CloakedPagesMap)
+    map_setEntry(CloakedPagesMap, physicalAddress, NULL);
+  else
+    addresslist_remove(CloakedPagesList, physicalAddress);
+
+
+
 
   csLeave(&CloakedPagesCS);
 
   ept_invalidate();
 
   //if there where cloak event events pending, then next time they violate, the normal handler will make it RWX on the address it should
-  return (found==1);
+  return (cloakdata!=NULL);
 }
 
 int ept_cloak_readOriginal(pcpuinfo currentcpuinfo,  VMRegisters *registers, QWORD physicalAddress, QWORD destination)
 {
   int error;
-  int i,ID=-1;
   physicalAddress=physicalAddress & MAXPHYADDRMASKPB;
 
   QWORD pagefault;
@@ -440,16 +460,17 @@ int ept_cloak_readOriginal(pcpuinfo currentcpuinfo,  VMRegisters *registers, QWO
     return raisePagefault(currentcpuinfo, pagefault);
 
   csEnter(&CloakedPagesCS);
-  for (i=0; i<CloakedPagesPos; i++)
-    if (CloakedPages[i].PhysicalAddressExecutable==physicalAddress)
-    {
-      ID=i;
-      break;
-    }
 
-  if (ID!=-1)
+  PCloakedPageData cloakdata;
+
+  if (CloakedPagesMap)
+    cloakdata=map_getEntry(CloakedPagesMap, physicalAddress);
+  else
+    cloakdata=addresslist_find(CloakedPagesList, physicalAddress);
+
+  if (cloakdata)
   {
-    void *src=mapPhysicalMemory(CloakedPages[i].PhysicalAddressExecutable, 4096);
+    void *src=mapPhysicalMemory(cloakdata->PhysicalAddressExecutable, 4096);
     copymem(dest,src,4096);
     registers->rax=0;
 
@@ -470,7 +491,6 @@ int ept_cloak_readOriginal(pcpuinfo currentcpuinfo,  VMRegisters *registers, QWO
 int ept_cloak_writeOriginal(pcpuinfo currentcpuinfo,  VMRegisters *registers, QWORD physicalAddress, QWORD source)
 {
   int error;
-  int i,ID=-1;
   physicalAddress=physicalAddress & MAXPHYADDRMASKPB;
 
   QWORD pagefault;
@@ -481,20 +501,21 @@ int ept_cloak_writeOriginal(pcpuinfo currentcpuinfo,  VMRegisters *registers, QW
     return raisePagefault(currentcpuinfo, pagefault);
 
   csEnter(&CloakedPagesCS);
-  for (i=0; i<CloakedPagesPos; i++)
-    if (CloakedPages[i].PhysicalAddressExecutable==physicalAddress)
-    {
-      ID=i;
-      break;
-    }
+  PCloakedPageData cloakdata;
 
-  if (ID!=-1)
+  if (CloakedPagesMap)
+    cloakdata=map_getEntry(CloakedPagesMap, physicalAddress);
+  else
+    cloakdata=addresslist_find(CloakedPagesList, physicalAddress);
+
+  if (cloakdata)
   {
-    void *dest=mapPhysicalMemory(CloakedPages[i].PhysicalAddressExecutable, 4096);
+    void *dest=mapPhysicalMemory(cloakdata->PhysicalAddressExecutable, 4096);
     copymem(dest,src,4096);
     registers->rax=0;
 
     unmapPhysicalMemory(dest,4096);
+
   }
   else
     registers->rax=1;
@@ -510,7 +531,6 @@ int ept_cloak_writeOriginal(pcpuinfo currentcpuinfo,  VMRegisters *registers, QW
 
 int ept_cloak_changeregonbp(QWORD physicalAddress, PCHANGEREGONBPINFO changereginfo)
 {
-  int i;
   int result=1;
 
 
@@ -569,52 +589,55 @@ int ept_cloak_changeregonbp(QWORD physicalAddress, PCHANGEREGONBPINFO changeregi
   sendstringf("  newR15:%d\n", changereginfo->newR15);
 
 
-
-
   csEnter(&CloakedPagesCS);
-  for (i=0; i<CloakedPagesPos; i++)
+
+  PCloakedPageData cloakdata;
+  if (CloakedPagesMap)
+    cloakdata=map_getEntry(CloakedPagesMap, physicalAddress);
+  else
+    cloakdata=addresslist_find(CloakedPagesList, physicalAddress);
+
+
+  if (cloakdata)
   {
-    if (CloakedPages[i].PhysicalAddressExecutable==physicalBase)
+    //found it.  Create an int3 bp at that spot
+    int ID=-1;
+    int offset=physicalAddress & 0xfff;
+    unsigned char *executable=cloakdata->Executable;
+
+    //
+    csEnter(&ChangeRegBPListCS);
+    int j;
+    for (j=0; j<ChangeRegBPListPos; j++)
     {
-      //found it.  Create an int3 bp at that spot
-      int ID=-1;
-      int offset=physicalAddress & 0xfff;
-      unsigned char *executable=CloakedPages[i].Executable;
-
-      //
-      csEnter(&ChangeRegBPListCS);
-      int j;
-      for (j=0; j<ChangeRegBPListPos; j++)
+      if (ChangeRegBPList[j].Active==0)
       {
-        if (ChangeRegBPList[j].Active==0)
-        {
-          ID=j;
-          break;
-        }
+        ID=j;
+        break;
       }
-      if (ID==-1)
-      {
-        ID=ChangeRegBPListPos;
-        ChangeRegBPListPos++;
-        if (ChangeRegBPListPos>=ChangeRegBPListSize) //realloc the list
-        {
-          ChangeRegBPListSize=(ChangeRegBPListSize+2)*2;
-          ChangeRegBPList=realloc(ChangeRegBPList, sizeof(ChangeRegBPEntry)*ChangeRegBPListSize);
-        }
-      }
-
-
-      ChangeRegBPList[ID].PhysicalAddress=physicalAddress;
-      ChangeRegBPList[ID].originalbyte=executable[offset];
-      ChangeRegBPList[ID].changereginfo=*changereginfo;
-      ChangeRegBPList[ID].CloakedRangeIndex=i;
-      ChangeRegBPList[ID].Active=1;
-
-      executable[offset]=0xcc; //int3 bp's will happen now (even on other CPU's)
-
-      csLeave(&ChangeRegBPListCS);
-      result=0;
     }
+    if (ID==-1)
+    {
+      ID=ChangeRegBPListPos;
+      ChangeRegBPListPos++;
+      if (ChangeRegBPListPos>=ChangeRegBPListSize) //realloc the list
+      {
+        ChangeRegBPListSize=(ChangeRegBPListSize+2)*2;
+        ChangeRegBPList=realloc(ChangeRegBPList, sizeof(ChangeRegBPEntry)*ChangeRegBPListSize);
+      }
+    }
+
+
+    ChangeRegBPList[ID].PhysicalAddress=physicalAddress;
+    ChangeRegBPList[ID].originalbyte=executable[offset];
+    ChangeRegBPList[ID].changereginfo=*changereginfo;
+    ChangeRegBPList[ID].cloakdata=cloakdata;
+    ChangeRegBPList[ID].Active=1;
+
+    executable[offset]=0xcc; //int3 bp's will happen now (even on other CPU's)
+
+    csLeave(&ChangeRegBPListCS);
+    result=0;
   }
 
   csLeave(&CloakedPagesCS);
@@ -632,7 +655,7 @@ int ept_cloak_removechangeregonbp(QWORD physicalAddress)
   {
     if ((ChangeRegBPList[i].Active) && (ChangeRegBPList[i].PhysicalAddress==physicalAddress))
     {
-      unsigned char *executable=(unsigned char *)CloakedPages[ChangeRegBPList[i].CloakedRangeIndex].Executable;
+      unsigned char *executable=(unsigned char *)ChangeRegBPList[i].cloakdata->Executable;
       executable[physicalAddress & 0xfff]=ChangeRegBPList[i].originalbyte;
       ChangeRegBPList[i].Active=0;
       result=0;
@@ -712,7 +735,8 @@ BOOL ept_handleSoftwareBreakpoint(pcpuinfo currentcpuinfo, VMRegisters *vmregist
             //restore the original byte
             int offset=ChangeRegBPList[i].PhysicalAddress & 0xfff;
 
-            unsigned char *executable=(unsigned char *)CloakedPages[ChangeRegBPList[i].CloakedRangeIndex].Executable;
+
+            unsigned char *executable=(unsigned char *)ChangeRegBPList[i].cloakdata->Executable;
             executable[offset]=ChangeRegBPList[i].originalbyte;
 
             //setup single step mode
@@ -754,24 +778,14 @@ int ept_handleSoftwareBreakpointAfterStep(pcpuinfo currentcpuinfo UNUSED,  int I
   csEnter(&ChangeRegBPListCS);
   if (ChangeRegBPList[ID].Active)
   {
-    int i;
+
     QWORD PA=ChangeRegBPList[ID].PhysicalAddress;
     QWORD PABase=PA & MAXPHYADDRMASKPB;
+    int offset=PA-PABase;
 
-    //find this PA in the cloaked pages list
-    for (i=0; i<CloakedPagesPos; i++)
-    {
-      if (CloakedPages[i].PhysicalAddressExecutable==PABase)
-      {
-        int offset=PA-PABase;
-        unsigned char *executable=(unsigned char*)CloakedPages[i].Executable;
-        executable[offset]=0xcc; //set the breakpoint back
-        result=0;
-        break;
-      }
-    }
-
-
+    unsigned char *executable=(unsigned char*)ChangeRegBPList[ID].cloakdata->Executable;
+    executable[offset]=0xcc; //set the breakpoint back
+    result=0;
   }
 
   csLeave(&ChangeRegBPListCS);

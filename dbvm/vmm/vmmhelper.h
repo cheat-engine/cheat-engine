@@ -378,7 +378,9 @@ typedef struct _singlestepreason
       //3=change reg on bp event (restored the int3 bp (0xcc))
 
 
-  int ID; //index of the array used for this reason (watchlist, cloaklist, changeregonbplist)
+  int ID; //index of the array used for this reason (watchlist, cloaklist, changeregonbplist) (About to become obsolete and replaced by the data pointer)
+
+  void* Data; //pointer to the object for this reason (watchlist, cloaklist, changeregonbplist)
 } SingleStepReason, *PSingleStepReason;
 
 typedef volatile struct tcpuinfo
@@ -577,8 +579,10 @@ typedef volatile struct tcpuinfo
 
   QWORD EPTPML4;
   criticalSection EPTPML4CS; // since other cpu's can map in pages for other cpu's as well, use a CS
+  /*
   PEPT_PTE *eptCloakList; //pointer to the EPT entry of the index related to CloakedPages
   int eptCloakListLength;
+  */
   int eptCloak_LastOperationWasWrite;
   QWORD eptCloak_LastWriteOffset;
 

@@ -1784,7 +1784,7 @@ int handleCPUID(VMRegisters *vmregisters)
 {
 //  sendstring("handling CPUID\n\r");
 
-  UINT64 oldeax=vmregisters->rax;
+  //UINT64 oldeax=vmregisters->rax;
   RFLAGS flags;
   flags.value=vmread(vm_guest_rflags);
 
@@ -3613,7 +3613,7 @@ int handleSingleStep(pcpuinfo currentcpuinfo)
     switch (currentcpuinfo->singleStepping.Reasons[i].Reason)
     {
       case 1: r=ept_handleWatchEventAfterStep(currentcpuinfo, currentcpuinfo->singleStepping.Reasons[i].ID); break;
-      case 2: r=ept_handleCloakEventAfterStep(currentcpuinfo, currentcpuinfo->singleStepping.Reasons[i].ID); break;
+      case 2: r=ept_handleCloakEventAfterStep(currentcpuinfo, (PCloakedPageData)currentcpuinfo->singleStepping.Reasons[i].Data); break;
       case 3: r=ept_handleSoftwareBreakpointAfterStep(currentcpuinfo, currentcpuinfo->singleStepping.Reasons[i].ID); break;
     }
 

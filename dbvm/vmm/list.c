@@ -113,6 +113,42 @@ void *addresslist_find(PAddressList l, QWORD address)
 
 }
 
+void addresslist_remove(PAddressList l, QWORD address)
+{
+  int begin, end;
+
+  if (l->size)
+  {
+    begin = 0;
+    end = l->size;
+
+    while (begin < end)
+    {
+      int d = end - begin;
+      int i = begin + (d / 2);
+      QWORD v = l->list[i].address;
+
+      if (v == address)
+      {
+        int j;
+        for (j = i; j < l->size-1; j++)
+          l->list[j] = l->list[j + 1];
+
+        l->size--;
+
+        return;
+      }
+
+      if (address < v)
+        end = i;
+      else
+        begin = i + 1;
+    }
+  }
+}
+
+
+
 PAddressList addresslist_create()
 {
   PAddressList self = (PAddressList)malloc(sizeof(AddressList));

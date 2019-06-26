@@ -15,7 +15,7 @@ typedef struct
 {
   QWORD address;
   void *data;
-} AddressListEntry, *PAddressListEntry;
+} AddressListEntry,*PAddressListEntry;
 
 typedef struct
 {
@@ -26,6 +26,7 @@ typedef struct
 
 
 void addresslist_add(PAddressList l, QWORD address, void *data);
+void addresslist_remove(PAddressList l, QWORD address);
 void *addresslist_find(PAddressList l, QWORD address);
 
 void addresslist_destroy(PAddressList l);

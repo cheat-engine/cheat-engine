@@ -282,6 +282,7 @@ typedef struct
   PPageEventListDescriptor Log;
 } EPTWatchEntry, *PEPTWatchEntry;
 
+/* obsolete
 typedef struct
 {
   QWORD PhysicalAddressExecutable; //the PA of the original page and used for execute
@@ -290,12 +291,24 @@ typedef struct
   void *Executable;
   //int *MegaJmpMap; //when the PhysicalAddressExecutable gets changed, it will keep track of code changes, including megajmp's
   //int MegaJmpCount;
+
 } CloakedPageInfo, *PCloakedPageInfo;
+*/
+
+typedef struct
+{
+  QWORD PhysicalAddressExecutable; //the PA of the original page and used for execute
+  QWORD PhysicalAddressData; //the PA of the page shown when read/write operations happen
+  void *Data;
+  void *Executable;
+  PEPT_PTE eptentry[0]; //for every cpu hold the ept entry
+} CloakedPageData, *PCloakedPageData;
+
 
 typedef struct
 {
   int Active;
-  int CloakedRangeIndex;
+  PCloakedPageData cloakdata;
   QWORD PhysicalAddress;
   unsigned char originalbyte;
   CHANGEREGONBPINFO changereginfo;

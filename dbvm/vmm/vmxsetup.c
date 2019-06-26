@@ -472,6 +472,28 @@ int vmx_disableNMIWindowExiting(void)
   return (a+b+c==3);
 }
 
+int vmx_addSingleSteppingReasonEx(pcpuinfo currentcpuinfo, int reason, void *data)
+{
+  if (currentcpuinfo->singleStepping.ReasonsPos>=currentcpuinfo->singleStepping.ReasonsLength) //realloc
+  {
+    currentcpuinfo->singleStepping.ReasonsLength=(currentcpuinfo->singleStepping.ReasonsLength+2)*2;
+    currentcpuinfo->singleStepping.Reasons=realloc(currentcpuinfo->singleStepping.Reasons, currentcpuinfo->singleStepping.ReasonsLength * sizeof(SingleStepReason));
+  }
+
+  //always add to the end
+  if (currentcpuinfo->singleStepping.ReasonsPos>=1)
+  {
+    sendstringf("Multiple single stepping reasons\n");
+  }
+
+  currentcpuinfo->singleStepping.Reasons[currentcpuinfo->singleStepping.ReasonsPos].Reason=reason;
+  currentcpuinfo->singleStepping.Reasons[currentcpuinfo->singleStepping.ReasonsPos].Data=data;
+  currentcpuinfo->singleStepping.ReasonsPos++;
+
+  return currentcpuinfo->singleStepping.ReasonsPos-1;
+
+}
+
 int vmx_addSingleSteppingReason(pcpuinfo currentcpuinfo, int reason, int ID)
 {
   if (currentcpuinfo->singleStepping.ReasonsPos>=currentcpuinfo->singleStepping.ReasonsLength) //realloc

@@ -37,7 +37,7 @@ void initMemTypeRanges();
 VMSTATUS handleEPTViolation(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, PFXSAVE64 fxsave);
 VMSTATUS handleEPTMisconfig(pcpuinfo currentcpuinfo, VMRegisters *vmregisters);
 int ept_handleWatchEventAfterStep(pcpuinfo currentcpuinfo, int ID);
-int ept_handleCloakEventAfterStep(pcpuinfo currentcpuinfo, int ID);
+int ept_handleCloakEventAfterStep(pcpuinfo currentcpuinfo, PCloakedPageData cloakdata);
 int ept_handleSoftwareBreakpointAfterStep(pcpuinfo currentcpuinfo,  int ID);
 
 int ept_watch_activate(QWORD PhysicalAddress, int Size, int Type, DWORD Options, int MaxEntryCount, int *outID);
