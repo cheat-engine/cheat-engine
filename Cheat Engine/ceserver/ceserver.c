@@ -1130,7 +1130,6 @@ int main(int argc, char *argv[])
   #ifndef SHARED_LIBRARY
   if(argc >1 ){
     errno = 0;
-    char *g=NULL;
     int argv_port = strtol(argv[1],NULL , 10);
     if(errno != ERANGE && errno != EINVAL && argv_port != 0)
       PORT = argv_port;
