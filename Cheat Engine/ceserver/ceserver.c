@@ -16,6 +16,10 @@
 #include <elf.h>
 #include <signal.h>
 #include <sys/prctl.h>
+
+#include <unistd.h>
+#include <errno.h>
+
 #include "ceserver.h"
 #include "porthelp.h"
 #include "api.h"
@@ -1123,6 +1127,20 @@ int main(int argc, char *argv[])
 
   PORT=52736;
 
+  #ifndef SHARED_LIBRARY
+  if(argc >1 ){
+    errno = 0;
+    char *g=NULL;
+    int argv_port = strtol(argv[1],NULL , 10);
+    if(errno != ERANGE && errno != EINVAL && argv_port != 0)
+      PORT = argv_port;
+    else
+      debug_log("cannot parse port from argument \"%s\". Usage: %s <port>",argv[1],argv[0]);
+  }
+  #endif
+
+  debug_log("listening on port %d\n",PORT);
+
   done=0;
 
   debug_log("&s=%p\n", &s);
@@ -1171,6 +1189,8 @@ int main(int argc, char *argv[])
       {
         debug_log("TESTMODE\n");
         pthread_create(&pth, NULL, (void *)CESERVERTEST, argv);
+      }else if((strcmp(argv[1], "PORT")==0)){
+        
       }
     }
     #endif
