@@ -1189,8 +1189,6 @@ int main(int argc, char *argv[])
       {
         debug_log("TESTMODE\n");
         pthread_create(&pth, NULL, (void *)CESERVERTEST, argv);
-      }else if((strcmp(argv[1], "PORT")==0)){
-        
       }
     }
     #endif
