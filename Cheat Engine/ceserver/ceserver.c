@@ -16,6 +16,10 @@
 #include <elf.h>
 #include <signal.h>
 #include <sys/prctl.h>
+
+#include <unistd.h>
+#include <errno.h>
+
 #include "ceserver.h"
 #include "porthelp.h"
 #include "api.h"
@@ -1122,6 +1126,19 @@ int main(int argc, char *argv[])
   struct sockaddr_in addr, addr_client;
 
   PORT=52736;
+
+  #ifndef SHARED_LIBRARY
+  if(argc >1 ){
+    errno = 0;
+    int argv_port = strtol(argv[1],NULL , 10);
+    if(errno != ERANGE && errno != EINVAL && argv_port != 0)
+      PORT = argv_port;
+    else
+      debug_log("cannot parse port from argument \"%s\". Usage: %s <port>",argv[1],argv[0]);
+  }
+  #endif
+
+  debug_log("listening on port %d\n",PORT);
 
   done=0;
 
