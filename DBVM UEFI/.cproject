@@ -83,7 +83,7 @@
                                 								
                                 <option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="gnu.c.compiler.option.preprocessor.def.symbols.1782683854" name="Defined symbols (-D)" superClass="gnu.c.compiler.option.preprocessor.def.symbols" useByScannerDiscovery="false" valueType="definedSymbols">
                                     									
-                                    <listOptionValue builtIn="false" value="EFI_FUNCTION_WRAPPER"/>
+                                    <listOptionValue builtIn="false" value="GNU_EFI_USE_MS_ABI"/>
                                     								
                                 </option>
                                 								

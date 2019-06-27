@@ -138,4 +138,6 @@ extern void enableInterrupts(void);
 
 extern UINT64 dovmcall(void *vmcallinfo, unsigned int level1pass);
 
+extern UINTN cpucount;
+
 #endif /* HELPERS_H_ */

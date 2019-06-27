@@ -240,7 +240,7 @@ void InitializeDBVM(UINT64 vmm, int vmmsize)
   GDTBase[9 ]=0;            //72:  ^   ^   ^
   //GDTBase[10]=0x00a09e0000000000ULL;  //80: 64-bit code
   GDTBase[10]=0x00af9b000000ffffULL;  //80: 64-bit code
-  GDTBase[11]=0;            //88:  ^   ^   ^
+  GDTBase[11]=0x00cf9b000000ffffULL;  //88: 32-bit code compat mode
   GDTBase[12]=0;            //96: 64-bit tss descriptor (2)
   GDTBase[13]=0;            //104: ^   ^   ^
 
@@ -464,7 +464,7 @@ void LaunchDBVM()
    }
 
    Print(L"Storing original state\n");
-   originalstate->cpucount=0;  //indicate that dbvm needs to initialize the secondary CPU's
+   originalstate->cpucount=cpucount;  //0 will indicate that dbvm needs to initialize the secondary CPU's
    //Print(L"originalstate->cpucount=%d",originalstate->cpucount);
 
    originalstate->originalEFER=readMSR(0xc0000080); //amd prefers this over an LME
@@ -647,7 +647,5 @@ void LaunchDBVM()
     //DbgPrint("cpunr=%d\n",cpunr());
 
 
-    Input(L"Type something : ", something, 200);
-    Print(L"Returning\n");
 
 }
