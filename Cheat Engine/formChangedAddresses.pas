@@ -139,6 +139,12 @@ resourcestring
   rsInvalidGroups = 'Invalid groups';
   rsDeleteAddresses = 'Delete addresses';
   rsAreYouWishToDelete = 'Are you sure you wish to delete these entries(s)?';
+  rsCodeAccessesSingleAddress = 'This address has been accessed by the code '
+    +'you selected';
+  rsCodeAccessesAddresses = 'The following %d addresses have been accessed by '
+    +'the code you selected';
+
+
 
 destructor TAddressEntry.destroy;
 begin
@@ -1022,8 +1028,21 @@ begin
 end;
 
 procedure TfrmChangedAddresses.Timer1Timer(Sender: TObject);
+var
+  c: integer;
+  s: string;
+
 begin
   refetchValues;
+  c:=changedlist.Items.Count;
+
+  if c=1 then
+    s:=rsCodeAccessesSingleAddress
+  else
+    s:=format(rsCodeAccessesAddresses, [c]);
+
+  lblInfo.caption:=s;
+
 end;
 
 procedure TfrmChangedAddresses.Showregisterstates1Click(Sender: TObject);
