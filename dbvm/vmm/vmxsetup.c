@@ -579,6 +579,7 @@ int setupEPT(pcpuinfo currentcpuinfo)
   sendstring("setupEPT\n");
 
   hasEPTsupport=0;
+  //return 0; //<-------------DEBUG
 
   if (IA32_VMX_PROCBASED_CTLS >> 63)
   {
@@ -1283,8 +1284,8 @@ void setupVMX(pcpuinfo currentcpuinfo)
     if ((readMSR(IA32_VMX_PROCBASED_CTLS_MSR)>>32) & RDTSC_EXITING)
       vmwrite(vm_execution_controls_cpu, vmread(vm_execution_controls_cpu) | RDTSC_EXITING);
 
-    //MSRBitmap[0x80/8]|=1 << (0x10 % 8); //read
-    //MSRBitmap[2048+0x80/8]|=1 << (0x10 % 8); //write
+    vmx_setMSRReadExit(IA32_TIME_STAMP_COUNTER);
+    vmx_setMSRWriteExit(IA32_TIME_STAMP_COUNTER);
   }
 #endif
 
@@ -1439,8 +1440,8 @@ void setupVMX(pcpuinfo currentcpuinfo)
       if (hasUnrestrictedSupport)
       {
         //if my assumption is correct only the bits masking the guest/host mask will be read from this
-        vmwrite(vm_cr0_read_shadow,originalstate->cr0 & vm_cr0_guest_host_mask); //cr0 read shadow
-        vmwrite(vm_cr4_read_shadow,originalstate->cr4 & vm_cr4_guest_host_mask); //cr4 read shadow
+        vmwrite(vm_cr0_read_shadow,originalstate->cr0 & vmread(vm_cr0_guest_host_mask)); //cr0 read shadow
+        vmwrite(vm_cr4_read_shadow,originalstate->cr4 & vmread(vm_cr4_guest_host_mask)); //cr4 read shadow
       }
       else
       {
