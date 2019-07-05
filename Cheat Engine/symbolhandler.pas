@@ -2075,7 +2075,7 @@ begin
             d:=d or SYMOPT_DEFERRED_LOADS;
             symsetoptions(d);
 
-            SymbolsLoaded:=SymInitialize(thisprocesshandle, sp, true);
+            SymbolsLoaded:=false; //SymInitialize(thisprocesshandle, sp, true);
             if symbolsloaded=false then
             begin
               SymbolsLoaded:=SymInitialize(thisprocesshandle, sp, false);
