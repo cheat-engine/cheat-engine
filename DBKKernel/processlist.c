@@ -41,7 +41,7 @@ PVOID NTAPI ProcessListAlloc(__in struct _RTL_GENERIC_TABLE *Table, __in CLONG B
 VOID NTAPI ProcessListDealloc(__in struct _RTL_GENERIC_TABLE *Table, __in __drv_freesMem(Mem) __post_invalid PVOID Buffer)
 {
 	//DbgPrint("ProcessListDealloc");
-	ExFreePoolWithTag(Buffer, 0);
+	ExFreePool(Buffer);
 }
 
 
@@ -411,7 +411,7 @@ VOID CleanProcessList()
 				RtlDeleteElementGenericTable(InternalProcessList, li);
 			}
 			
-			ExFreePoolWithTag(InternalProcessList, 0);
+			ExFreePool(InternalProcessList);
 			InternalProcessList = NULL;
 		}
 		ExReleaseResourceLite(&ProcesslistR);

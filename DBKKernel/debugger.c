@@ -810,7 +810,7 @@ int interrupt1_handler(UINT_PTR *stackpointer, UINT_PTR *currentdebugregs)
 		
 			//DbgPrint("handler: Setting fake dr6 to %x\n",*(UINT_PTR *)&_dr6);
 			
-			//DebuggerState.FakedDebugRegisterState[cpunr()].DR6=*(UINT_PTR *)&_dr6;
+			DebuggerState.FakedDebugRegisterState[cpunr()].DR6=*(UINT_PTR *)&_dr6;
 
 			for (instructionPointer=0; instruction[instructionPointer] != 0x0f; instructionPointer++) ; //find the start of the instruction, skipping prefixes etc...
 			
@@ -1077,7 +1077,7 @@ int interrupt1_handler(UINT_PTR *stackpointer, UINT_PTR *currentdebugregs)
 
 						gpvalue=(gpvalue | 0x400) & (~(1<<13)); //unset the GD value
 
-						gpvalue=0xf0401;
+						//gpvalue=0xf0401;
 						debugger_dr7_setValueDword(gpvalue);
 
 						DebuggerState.FakedDebugRegisterState[cpunr()].DR7=debugger_dr7_getValueDword();
