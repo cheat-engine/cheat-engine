@@ -4881,6 +4881,13 @@ begin
   result:=1;
 end;
 
+function lua_dbk_test(L: PLua_state): integer; cdecl;
+begin
+  result:=0;
+  dbk_test;
+end;
+
+
 function lua_dbvm_jtagbp(L: PLua_state): integer; cdecl;
 begin
   lua_pushboolean(L, dbvm_jtagbp);
@@ -5952,6 +5959,36 @@ begin
   lua_settable(L,2);
 
   result:=2;
+end;
+
+function lua_dbvm_setTSCAdjust(L: PLua_State): integer; cdecl;
+var
+  enabled:boolean;
+  timeout: integer;
+begin
+  result:=0;
+  if lua_gettop(L)>=1 then
+  begin
+    enabled:=lua_toboolean(L,1);
+    if enabled and (lua_gettop(L)>=2) then
+      timeout:=lua_tointeger(L,2)
+    else
+      timeout:=2000;
+
+    dbvm_setTSCAdjust(enabled, timeout);
+  end;
+end;
+
+function lua_dbvm_speedhack_setSpeed(L: PLua_State): integer; cdecl;
+var speed: double;
+begin
+  result:=0;
+  if lua_gettop(L)>=1 then
+  begin
+    speed:=lua_tonumber(L,1);
+    dbvm_speedhack_setSpeed(speed);
+  end;
+
 end;
 
 function dbk_readMSR(L: PLua_State): integer; cdecl;
@@ -11654,6 +11691,7 @@ begin
     lua_register(L, 'dbk_getCR0', dbk_getCR0);
     lua_register(L, 'dbk_getCR3', dbk_getCR3);
     lua_register(L, 'dbk_getCR4', dbk_getCR4);
+    lua_register(L, 'dbk_test', lua_dbk_test);
     lua_register(L, 'dbvm_getCR0', dbvm_getCR0);
     lua_register(L, 'dbvm_getCR3', dbvm_getCR3);
     lua_register(L, 'dbvm_getCR4', dbvm_getCR4);
@@ -11685,6 +11723,9 @@ begin
     lua_register(L, 'dbvm_raisePMI', lua_dbvm_raisePMI); //mostly just for debugging
     lua_register(L, 'dbvm_ultimap2_hideRangeUsage', lua_dbvm_ultimap2_hideRangeUsage); //same
     lua_register(L, 'dbvm_ultimap_getDebugInfo', lua_dbvm_ultimap_getDebugInfo); //more debugging
+
+    lua_register(L, 'dbvm_setTSCAdjust', lua_dbvm_setTSCAdjust);
+    lua_register(L, 'dbvm_speedhack_setSpeed', lua_dbvm_speedhack_setSpeed);
 
     lua_register(L, 'dbk_getPhysicalAddress', dbk_getPhysicalAddress);
     lua_register(L, 'dbk_writesIgnoreWriteProtection', dbk_writesIgnoreWriteProtection);

@@ -72,6 +72,9 @@ const
   VMCALL_GET_STATISTICS = 59;
   VMCALL_WATCH_EXECUTES = 60;
 
+  VMCALL_SETTSCADJUST = 61;
+  VMCALL_SETSPEEDHACK = 62;
+
 
 
   //---
@@ -390,6 +393,8 @@ procedure dbvm_ept_reset;
 
 function dbvm_get_statistics(out statistics: TDBVMStatistics):qword;
 
+procedure dbvm_setTSCAdjust(enabled: boolean; timeout: integer);
+procedure dbvm_speedhack_setSpeed(speed: double);
 
 
 function dbvm_log_cr3values_start: boolean;
@@ -1601,6 +1606,47 @@ begin
   CopyMemory(@statistics.eventCountersAllCPUS[0],@vmcallinfo.eventcounterall,sizeof(int)*56);
 end;
 
+procedure dbvm_setTSCAdjust(enabled: boolean; timeout: integer);
+var vmcallinfo: packed record
+  structsize: dword;
+  level2pass: dword;
+  command: dword;
+  enabled: integer;
+  timeout: integer;
+end;
+begin
+  vmcallinfo.structsize:=sizeof(vmcallinfo);
+  vmcallinfo.level2pass:=vmx_password2;
+  vmcallinfo.command:=VMCALL_SETTSCADJUST;
+  if enabled then
+  begin
+    vmcallinfo.enabled:=1;
+    vmcallinfo.timeout:=timeout;
+  end
+  else
+  begin
+    vmcallinfo.enabled:=0;
+    vmcallinfo.timeout:=2000;
+  end;
+
+  vmcall(@vmcallinfo,vmx_password1);
+end;
+
+procedure dbvm_speedhack_setSpeed(speed: double);
+var vmcallinfo: packed record
+  structsize: dword;
+  level2pass: dword;
+  command: dword;
+  speed: double;
+end;
+begin
+  vmcallinfo.structsize:=sizeof(vmcallinfo);
+  vmcallinfo.level2pass:=vmx_password2;
+  vmcallinfo.command:=VMCALL_SETSPEEDHACK;
+  vmcallinfo.speed:=speed;
+
+  vmcall(@vmcallinfo,vmx_password1);
+end;
 
 
 
