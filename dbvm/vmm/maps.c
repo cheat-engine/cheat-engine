@@ -109,8 +109,6 @@ void map_iterate(PMapData mapdata, QWORD baseaddress, int level, MAPCALLBACK cb)
 {
   int i;
 
-
-  QWORD address = baseaddress;
   int addresspart = level * 9;
 
 

@@ -1,5 +1,5 @@
 /* vmm.c: This is the virtual machine
- * It will be loaded at virtual address 0x00400000 (vmma.asm that is which just jumps short to intiialize paging)
+ * It will be loaded at virtual address 0x00400000 (vmma.asm that is which just jumps short to intialize paging)
  * On initialisation 0 to 4MB is identity mapped, to the stored memory regions are available to mess with
  */
 
@@ -220,13 +220,17 @@ int cinthandler(unsigned long long *stack, int intnr) //todo: move to it's own s
     cpuinfo->NMIOccured=1;
     NMIcount++;
 
+    cpuinfo->NMIOccured=2;
+    /*
+
     //set up NMI window exiting
 
-    if (vmx_enableNMIWindowExiting()==0)
+    if (vmx_enableNMIWindowExiting()==0) //todo: test this code. I think it enters an invalid state
     {
       sendstringf("NMI handling: failed to set PBEF_NMI_WINDOW_EXITING.  Raising NMI like a retard\n");
       cpuinfo->NMIOccured=2;
     }
+    */
 
     return 0;
   }
@@ -1076,7 +1080,7 @@ void vmm_entry(void)
       unmapPhysicalMemory(original, sizeof(OriginalState));
     }
 
-    if (needtospawnApplicationProcessors) //e.g UEFI boot
+    if (needtospawnApplicationProcessors) //e.g UEFI boot with missing mpsupport
     {
       sendstringf("needtospawnApplicationProcessors!=0\n");
 #ifndef NOMP

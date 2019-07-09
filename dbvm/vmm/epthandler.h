@@ -57,5 +57,6 @@ BOOL ept_handleSoftwareBreakpoint(pcpuinfo currentcpuinfo, VMRegisters *vmregist
 
 void ept_reset();
 void ept_invalidate();
+void vpid_invalidate();
 
 #endif /* VMM_EPTHANDLER_H_ */

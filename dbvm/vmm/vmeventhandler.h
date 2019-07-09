@@ -76,4 +76,11 @@ extern criticalSection CR3ValueLogCS;
 extern QWORD *CR3ValueLog; //if not NULL, record
 extern int CR3ValuePos;
 
+extern int adjustTimestampCounters;
+extern int adjustTimestampCounterTimeout;
+
+void speedhack_setspeed(double speed);
+
+
+
 #endif

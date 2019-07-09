@@ -201,5 +201,18 @@ typedef struct
 } __attribute__((__packed__)) VMCALL_GET_STATISTICS_PARAM, *PVMCALL_GET_STATISTICS_PARAM;
 #endif
 
+typedef struct
+{
+  VMCALL_BASIC vmcall;
+  int enabled;
+  int timeout;
+} __attribute__((__packed__)) VMCALL_SETTSCADJUST_PARAM, *PVMCALL_SETTSCADJUST_PARAM;
+
+typedef struct
+{
+  VMCALL_BASIC vmcall;
+  double speedhackspeed;
+} __attribute__((__packed__)) VMCALL_SETSPEEDHACK_PARAM, *PVMCALL_SETSPEEDHACK_PARAM;
+
 
 #endif /* VMM_VMCALLSTRUCTS_H_ */

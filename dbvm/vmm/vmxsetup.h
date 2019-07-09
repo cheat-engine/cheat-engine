@@ -81,6 +81,8 @@ void vmx_removeMSRWriteExit(DWORD msrValue);
 
 void setupVMX(pcpuinfo currentcpuinfo);
 
+void setup8086WaitForSIPI(pcpuinfo currentcpuinfo, int setupvmcontrols);
+
 QWORD realmode_inthook_calladdressPA;
 int realmode_inthook_calladdressJumpSize;
 

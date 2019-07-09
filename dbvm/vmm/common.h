@@ -162,7 +162,7 @@ extern ULONG getRSP(void);
 extern ULONG getRBP(void);
 
 int itoa(unsigned int value,int base, char *output,int maxsize);
-int lltoa(long long value,int base, char *output,int maxsize);
+int lltoa(unsigned long long value,int base, char *output,int maxsize);
 //int atoi(const char *nptr);
 unsigned long long atoi2(char* input, int base, int *err);
 unsigned long long int strtoull(const char *nptr, char **endptr, int base);

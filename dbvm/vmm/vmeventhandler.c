@@ -36,11 +36,23 @@ int CR3ValuePos;
 volatile QWORD globalTSC;
 volatile QWORD lowestTSC=0;
 
+int adjustTimestampCounters=1;
+int adjustTimestampCounterTimeout=2000;
+
+int useSpeedhack=0;
+double speedhackSpeed=1.0f;
+QWORD speedhackInitialOffset=0;
+QWORD speedhackInitialTime=0;
+
+
 //QWORD cpuidTime=6000; //todo: Make this changeable by the user after launch, or instead of using a TSCOffset just tell the next rdtsc calls to difference of 30 or less (focussing on the currentcpu, or just for 6000 actual ticks)
 //QWORD rdtscTime=6000;
 //QWORD rdtscpTime=10;
 
 criticalSection TSCCS;
+
+int handle_rdtsc(pcpuinfo currentcpuinfo, VMRegisters *vmregisters);
+
 
 int raiseNMI(void)
 {
@@ -639,6 +651,26 @@ void returnToRealmode(pcpuinfo currentcpuinfo) //obsolete with rm emu
     nosendchar[getAPICID()]=0;
     sendstringf("ERROR: Guest doesn't WANT to be in realmode\n\r");
   }
+}
+
+int handleINIT(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
+{
+  UINT64 a,b,c,d;
+  zeromemory(vmregisters,sizeof(VMRegisters));
+
+  //magic
+  a=1;
+  _cpuid(&a,&b,&c,&d);
+  vmregisters->rdx=a;
+
+
+  setup8086WaitForSIPI(currentcpuinfo,0);
+
+  vmwrite(vm_guest_rsp,0);
+  vmwrite(vm_guest_rip,0);
+
+
+  return 0;
 }
 
 int handleSIPI(void)
@@ -1565,8 +1597,28 @@ int handleWRMSR(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 
   switch (msr)
   {
+    case IA32_TIME_STAMP_COUNTER:
+      writeMSR(msr, newvalue);
+      //while (1); //<--test
+      currentcpuinfo->lowestTSC=0;
+      globalTSC=newvalue;
+      currentcpuinfo->lastTSCTouch=newvalue;
+
+      lowestTSC=0;
+
+      break;
+
     case IA32_FEATURE_CONTROL_MSR:
       return raiseGeneralProtectionFault(0); //this msr is locked
+      break;
+
+    case IA32_TSC_ADJUST:
+      writeMSR(msr, newvalue);
+      globalTSC=_rdtsc();
+      currentcpuinfo->lasttsc=_rdtsc();
+      currentcpuinfo->lastTSCTouch=globalTSC;
+      currentcpuinfo->lowestTSC=0;
+      lowestTSC=0;
       break;
 
     case 0x174: //sysenter_CS
@@ -1689,6 +1741,9 @@ int handleRDMSR(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 
   switch (msr)
   {
+    case IA32_TIME_STAMP_COUNTER:
+      return handle_rdtsc(currentcpuinfo, vmregisters); //handles the register setting and rip adjustment
+
 
 	  case IA32_FEATURE_CONTROL_MSR:
 	    result=readMSRSafe(IA32_FEATURE_CONTROL_MSR);
@@ -1868,11 +1923,13 @@ int handleCPUID(VMRegisters *vmregisters)
 
 
 //  lockedQwordIncrement(&TSCOffset, cpuidTime);
-  getcpuinfo()->lastTSCTouch=_rdtsc();
+
 
   //TSCOffset+=cpuidTime;
 
   vmwrite(vm_guest_rip,vmread(vm_guest_rip)+vmread(vm_exit_instructionlength));   //adjust eip to go after this instruction (we handled/emulated it)
+
+  getcpuinfo()->lastTSCTouch=_rdtsc();
   return 0;
 
 }
@@ -2017,8 +2074,12 @@ int setVM_CR0(pcpuinfo currentcpuinfo, UINT64 newcr0)
   UINT64 oldcr0=currentcpuinfo->guestCR0;//;vmread(0x6004); //fake cr0
   currentcpuinfo->guestCR0=newcr0;
 
+
   if (hasUnrestrictedSupport)
+  {
+    sendstring("setVM_CR0 in unrestricted mode\n");
     currentcpuinfo->efer=vmread(vm_guest_IA32_EFER);
+  }
 
   //hardcode ET (bit4) to 1
   newcr0=newcr0 | 0x10;
@@ -2083,6 +2144,11 @@ int setVM_CR0(pcpuinfo currentcpuinfo, UINT64 newcr0)
   {
     QWORD ActualFixed0=IA32_VMX_CR0_FIXED0&0xFFFFFFFF7FFFFFFEULL;  //PG and PE can be 0 in unrestricted guest mode
     vmwrite(vm_guest_cr0, newcr0 | ActualFixed0);
+
+    vpid_invalidate();
+    ept_invalidate();
+
+
 
     if ((vmread(vm_guest_cr0) & 0x80000001)==0x80000001)
     {
@@ -2655,7 +2721,7 @@ int handleCRaccess(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
   unsigned char general_purpose_register=(exit_qualification >> 8) & 0xf;
   unsigned char LMSW_sourcedata=(exit_qualification >> 16) & 0xFFFF;
 
-  sendstringf("Handling controll register access (CR_number=%d)\n\r",CR_number);
+  sendstringf("Handling control register access (CR_number=%d)\n\r",CR_number);
 
   switch (CR_number)
   {
@@ -2774,6 +2840,8 @@ int handleCRaccess(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
           {
             vmwrite(vm_guest_rip,vmread(vm_guest_rip)+vmread(vm_exit_instructionlength)); //adjust eip to go after this instruction (we handled/emulated it)
           }
+
+
 
 					return 0;
         }
@@ -3632,13 +3700,24 @@ int handleSingleStep(pcpuinfo currentcpuinfo)
   return 0;
 }
 
+void speedhack_setspeed(double speed)
+{
+  QWORD currentTime=_rdtsc();
+
+  QWORD initialoffset=(currentTime-speedhackInitialTime)*speedhackSpeed+speedhackInitialOffset;
+  QWORD speedhackInitialTime=currentTime;
+
+  speedhackInitialOffset=initialoffset;
+  speedhackSpeed=speed;
+
+  useSpeedhack=1; //once used it's always on
+}
 
 
 int handle_rdtsc(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 {
   QWORD t;
   double s;
-  double speedhackspeed=1.0f; //0.5f;
   QWORD lTSC=lowestTSC;
   QWORD realtime;
 
@@ -3651,11 +3730,19 @@ int handle_rdtsc(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
   //csEnter(&TSCCS);
 
 
+  if (currentcpuinfo->lowestTSC==0)
+    currentcpuinfo->lowestTSC=realtime;
+
+
 
   //speedhack:
-  s=(realtime-globalTSC)*speedhackspeed;
-
-  t=globalTSC+s;
+  if (useSpeedhack) //(useSpeedhack)
+  {
+    t=(realtime-speedhackInitialTime)*speedhackSpeed+speedhackInitialOffset;
+   // t=globalTSC+s;
+  }
+  else
+    t=realtime; //speedhack disabled ATM globalTSC+s;
 
   if (lTSC==0)
     lTSC=t;
@@ -3663,22 +3750,29 @@ int handle_rdtsc(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
   if (t<lTSC) lTSC=t; //overflow happened...
 
 
-  if ((realtime-currentcpuinfo->lastTSCTouch)<2000) //todo: and not a forbidden RIP
+  if (adjustTimestampCounters)
   {
-    int off=30+(realtime & 0xf);
-    t=currentcpuinfo->lowestTSC+off;
-    //t=lTSC+off;
+    if ((realtime-currentcpuinfo->lastTSCTouch)<(QWORD)adjustTimestampCounterTimeout) //todo: and not a forbidden RIP
+    {
 
-    //writeMSR(0x838, readMSR(0x838));
+      int off=20+(realtime & 0xf);
 
-    //lockedQwordIncrement(&lowestTSC,off);
-    currentcpuinfo->lowestTSC=t;
-  }
-  else
-  {
-    if (lowestTSC<t)
-      lowestTSC=t;
-    currentcpuinfo->lowestTSC=t;
+
+      t=currentcpuinfo->lowestTSC+off;
+      //t=lTSC+off;
+
+      //writeMSR(0x838, readMSR(0x838));
+
+      //lockedQwordIncrement(&lowestTSC,off);
+      currentcpuinfo->lowestTSC=t;
+
+    }
+    else
+    {
+      if (lowestTSC<t)
+        lowestTSC=t;
+      currentcpuinfo->lowestTSC=t;
+    }
   }
 
   vmregisters->rax=t & 0xffffffff;
@@ -3722,6 +3816,11 @@ int handleVMEvent(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, FXSAVE64 *f
 	  currentcpuinfo->eptUpdated=0;
 	  ept_invalidate();
   }
+
+  /*
+  vpid_invalidate(); //test
+  ept_invalidate(); //test
+  */
 
   switch (exit_reason) //exit reason
   {
@@ -3774,7 +3873,9 @@ int handleVMEvent(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, FXSAVE64 *f
 
 		case 3: //INIT SIGNAL
 		{
-			sendstring("Received a INIT signal\n\r"); //should enter wait-for-sipi mode
+		  //enter wait-for-sipi mode
+			sendstring("Received an INIT signal\n\r"); //should enter wait-for-sipi mode
+			handleINIT(currentcpuinfo, vmregisters);
 			return 0; //ignore?
 		}
 
@@ -3893,9 +3994,13 @@ int handleVMEvent(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, FXSAVE64 *f
 		{
 		  //TSCOffset+=rdtscTime;
 		  //lockedQwordIncrement(&TSCOffset, rdtscTime);
-		  currentcpuinfo->lastTSCTouch=_rdtsc();
+		  int r;
 
-		  return handle_rdtsc(currentcpuinfo, vmregisters);
+
+
+		  r=handle_rdtsc(currentcpuinfo, vmregisters);
+		  currentcpuinfo->lastTSCTouch=_rdtsc();
+		  return r;
 		}
 
 		case 17: //RSM
@@ -4085,20 +4190,30 @@ int handleVMEvent(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, FXSAVE64 *f
 
 		case 51:
 		{
+		  QWORD t;
 		  //RDTSCP
 		  //TSCOffset+=rdtscpTime;
 		  //lockedQwordIncrement(&TSCOffset, rdtscpTime);
 
 		  //if (currentcpuinfo->cpunr!=0)
-		  //todo: Callibrate at start to find the system rdtscp calls and don't touch those
+		  //todo: Calibrate at start to find the system rdtscp calls and don't touch those
 
 		  //IS
 		  //  currentcpuinfo->lastTSCTouch=_rdtsc();
 
+		 // t=_rdtsc();
+		 // currentcpuinfo->lowestTSC=t;
+		 // lowestTSC=t;
 
-		  handle_rdtsc(currentcpuinfo, vmregisters);
+		  //vmregisters->rax=t & 0xffffffff;
+		  //vmregisters->rdx=t >> 32;
+
+
+		  int r=handle_rdtsc(currentcpuinfo, vmregisters);
+		  currentcpuinfo->lastTSCTouch=_rdtsc();
+
 		  vmregisters->rcx=readMSR(IA32_TSC_AUX_MSR);
-		  return 0;
+		  return r;
 		}
 
 		case vm_exit_vmx_preemptiontimer_reachedzero:

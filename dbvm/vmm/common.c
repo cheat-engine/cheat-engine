@@ -1314,7 +1314,7 @@ unsigned long long atoi2(char* input, int base, int *err)
 	return result;
 }
 
-int lltoa(long long value,int base, char *output,int maxsize)
+int lltoa(unsigned long long value,int base, char *output,int maxsize)
 /* base: 10=decimal, 16=hexadecimal, 8 = octal, 2=binary */
 {
   char tempbuf[maxsize]; /* will get the string but in reverse */
@@ -1326,7 +1326,7 @@ int lltoa(long long value,int base, char *output,int maxsize)
   if (base>36)
     return -1;
 
-  if (value==0 && maxsize>1)
+  if ((value==0) && (maxsize>1))
   {
     output[0]='0';
     output[1]=0;

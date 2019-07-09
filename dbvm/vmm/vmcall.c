@@ -880,7 +880,7 @@ int _handleVMCallInstruction(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, 
 
   //sendstringf("_handleVMCallInstruction (%d)\n", vmcall_instruction[2]);
 
-
+  currentcpuinfo->LastVMCall=vmcall_instruction[2];
 
   switch (vmcall_instruction[2])
   {
@@ -1795,6 +1795,21 @@ int _handleVMCallInstruction(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, 
       break;
     }
 
+    case VMCALL_SETTSCADJUST:
+    {
+      PVMCALL_SETTSCADJUST_PARAM p=(PVMCALL_ADD_MEMORY_PARAM)vmcall_instruction;
+      adjustTimestampCounterTimeout=p->timeout;
+      adjustTimestampCounters=p->enabled;
+      break;
+    }
+
+    case VMCALL_SETSPEEDHACK:
+    {
+      PVMCALL_SETSPEEDHACK_PARAM p=(PVMCALL_ADD_MEMORY_PARAM)vmcall_instruction;
+      speedhack_setspeed(p->speedhackspeed);
+      break;
+    }
+
     /*
     case VMCALL_DISABLE_EPT:
     {
@@ -2049,6 +2064,8 @@ int handleVMCall(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
   }
   except
   {
+    int err=lastexception;
+
     nosendchar[getAPICID()]=0;
     sendstringf("Exception %x happened during handling of VMCALL\n", lastexception);
 

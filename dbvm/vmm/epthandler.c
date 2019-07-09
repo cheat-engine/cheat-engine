@@ -103,6 +103,7 @@ void ept_reset()
   if (CloakedPagesMap)
     map_foreach(CloakedPagesMap,ept_reset_cb);
   else
+  if (CloakedPagesList)
   {
     while (CloakedPagesList->size)
       ept_cloak_deactivate(CloakedPagesList->list[0].address);
@@ -1207,7 +1208,7 @@ int ept_handleWatchEventAfterStep(pcpuinfo currentcpuinfo,  int ID)
   	  {
   	    sendstringf("Write type. So making it unwritable\n");
   	    currentcpuinfo->eptWatchList[ID]->WA=0;
-  		break;
+  		  break;
   	  }
 
   	  case EPTW_READWRITE:
@@ -1220,17 +1221,20 @@ int ept_handleWatchEventAfterStep(pcpuinfo currentcpuinfo,  int ID)
   	    else
   	      currentcpuinfo->eptWatchList[ID]->XA=0;
 
-  		break;
+  		  break;
   	  }
 
   	  case EPTW_EXECUTE:
   	  {
-  		sendstringf("execute type. So making it non-executable\n");
-  		currentcpuinfo->eptWatchList[ID]->XA=0;
-  		break;
+  		  sendstringf("execute type. So making it non-executable\n");
+  		  currentcpuinfo->eptWatchList[ID]->XA=0;
+  		  break;
   	  }
-
   }
+
+  //todo: If enabled , and the watch actually got hit, trigger a DBG interrupt
+  //      Keep in mind that CE reading memory may also trigger access interrupts so those need to be
+  //      ignored by the driver
 
   ept_invalidate();
   return 0;
@@ -2152,8 +2156,8 @@ VMSTATUS handleEPTViolation(pcpuinfo currentcpuinfo, VMRegisters *vmregisters UN
     newintinfo.haserrorcode=idtvectorinfo.haserrorcode;
     newintinfo.valid=idtvectorinfo.valid; //should be 1...
     vmwrite(vm_entry_exceptionerrorcode, vmread(vm_idtvector_error)); //entry errorcode
-    vmwrite(0x4016, newintinfo.interruption_information); //entry info field
-    vmwrite(0x401a, vmread(vm_exit_instructionlength)); //entry instruction length
+    vmwrite(vm_entry_interruptioninfo, newintinfo.interruption_information); //entry info field
+    vmwrite(vm_entry_instructionlength, vmread(vm_exit_instructionlength)); //entry instruction length
   }
 
  //vi.ExitQualification=vmread(vm_exit_qualification);

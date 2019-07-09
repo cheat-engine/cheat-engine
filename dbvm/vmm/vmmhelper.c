@@ -128,6 +128,7 @@ char * getVMExitReassonString(void)
 	  case 9: return "Task switch";
 	  case 10: return "CPUID";
 	  case 14: return "INVLPG";
+	  case 16: return "RDTSC";
 	  case 17: return "VMREAD";
 	  case 18: return "VMCALL";
 	  case 19: return "VMCLEAR";
@@ -144,6 +145,7 @@ char * getVMExitReassonString(void)
 	  case 37: return "Monitor trap flag";
 	  case vm_exit_ept_violation: return "EPT Violation";
 	  case vm_exit_ept_misconfiguration: return "EPT Misconfiguration";
+	  case 51: return "RDTSCP";
 	  case 52: return "Preemption timer";
 	  case 55: return "XSETBV";
 	  default :return "NYI";
@@ -689,7 +691,6 @@ int vmexit_amd(pcpuinfo currentcpuinfo, UINT64 *registers, void *fxsave UNUSED)
 #endif
 
 
-
   return result;
 }
 
@@ -750,9 +751,24 @@ int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers, void *fxsave)
 
 int vmexit2(pcpuinfo currentcpuinfo, UINT64 *registers, void *fxsave)
 #else
+
+int lastexits[10];
+int lastexitsindex=0;
+
 int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers, void *fxsave)
 #endif
 {
+
+  int haspending=0;
+  VMExit_idt_vector_information idtvectorinfo;
+  idtvectorinfo.idtvector_info=vmread(vm_idtvector_information);
+
+
+  lastexits[lastexitsindex]=vmread(vm_exit_reason);
+  lastexitsindex++;
+  lastexitsindex=lastexitsindex % 10;
+
+
   if (dbvm_plugin_exit_pre)
   {
     BOOL r=dbvm_plugin_exit_pre(exportlist, currentcpuinfo, registers, fxsave);
@@ -829,11 +845,30 @@ int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers, void *fxsave)
     dbvm_plugin_exit_post(exportlist, currentcpuinfo, registers, fxsave, &result);
 
 
+  /*
+  if (idtvectorinfo.valid)
+  {
+    VMEntry_interruption_information entryintinfo;
+
+    entryintinfo.interruption_information=vmread(vm_entry_interruptioninfo);
+    if (entryintinfo.valid==0)
+    {
+      while (1);
+    }
+  }*/
+
+
+
+
+
   if (currentcpuinfo->NMIOccured==2) //nmi occured but no NMI window support
   {
     currentcpuinfo->NMIOccured=0;
     return raiseNMI();
   }
+
+  //currentcpuinfo->lastTSCTouch=_rdtsc();
+
 
   if ((result!=0) && ((result >> 8) != 0xce)  )//on release, if an unexpected event happens, just fail the instruction and hope the OS won't make a too big mess out of it
   {
@@ -988,11 +1023,6 @@ int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers, void *fxsave)
  // showall=1;
 
 
-  //if (currentcpuinfo->cpunr)
-  //  showall=1;
-
-
-
 
 
 
@@ -1002,7 +1032,7 @@ int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers, void *fxsave)
     verbosity=10;
   }
   else
-  if ((vmread(0x4402)==0) && ((vmread(vm_exit_interruptioninfo) & 0x8000000f)==0x80000001) )
+  if ((vmread(vm_exit_reason)==0) && ((vmread(vm_exit_interruptioninfo) & 0x8000000f)==0x80000001) )
   {
 	  //int1 bp
 	  //sendstringf("Int 1 bp");
@@ -1014,6 +1044,12 @@ int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers, void *fxsave)
 
     switch (vmread(vm_exit_reason))
     {
+
+     // case vm_exit_init:
+     //   verbosity=10;
+     //   skip=0;
+     //   break;
+//
 
       case vm_exit_vmresume:
         //skip=1;
@@ -1130,6 +1166,8 @@ int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers, void *fxsave)
       {
         //int cs=vmread(vm_guest_cs);
         //unsigned long long rip=vmread(vm_guest_rip);
+        skip=1;
+        verbosity=10;
 
         break;
       }
@@ -1186,13 +1224,14 @@ int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers, void *fxsave)
 
     }
 
+   // if (currentcpuinfo->cpunr) //debug code to test AP cpu's (only use if cpu0 boots properly)
+   //   skip-=5;
 
-   //if (currentcpuinfo->cpunr==0) //debug code to test AP cpu's (only use if cpu0 boots properly)
-     // skip=1;
-   //else
-     // skip=0;
 
     skip-=verbosity;
+
+
+
 
     if (skip>0)
     {
@@ -1282,15 +1321,6 @@ int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers, void *fxsave)
     sendstringf("ripaddress=%x\n", ripaddress);
 
     sendstringf("Rip=%6", vmread(vm_guest_cs_base)+vmread(vm_guest_rip));
-
-    if (notpaged)
-    {
-       sendstring("(physical = invalid)\n\r");
-    }
-    else
-    {
-      sendstringf("(physical=%6)\n\r", ripaddress);
-    }
 
   }
 

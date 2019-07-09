@@ -525,7 +525,7 @@ mov [rsp+11*8],rdx
 
 rdtsc
 
-mov dword [fs:0x18],eax
+mov dword [fs:0x18],eax ;lasttsc
 mov dword [fs:0x1c],edx
 
 
@@ -607,16 +607,17 @@ jae vmxloop_exitvm
 ;returned 0, so
 
 ;adjust the TSC
-rdtsc
+rdtsc  ;current time
 shl rdx,32
 or rax,rdx
 
-mov rdx,qword [fs:0x18]
+mov rdx,qword [fs:0x18] ;entry time
 
 ;rax is new timestamp
 ;rdx is old timestamp
 
 sub rax,rdx ;rax is now the difference
+add rax,100
 add qword [fs:0x20],rax ;add to the total delay
 
 

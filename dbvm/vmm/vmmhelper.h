@@ -609,6 +609,8 @@ typedef volatile struct tcpuinfo
     WORD CS, SS;
   } SwitchKernel;
 
+  int LastVMCall;
+
 } tcpuinfo, *pcpuinfo; //allocated when the number of cpu's is known
 
 typedef struct
