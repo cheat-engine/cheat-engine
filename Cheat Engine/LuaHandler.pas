@@ -11244,6 +11244,13 @@ begin
   result:=0;
 end;
 
+function lua_enableKernelSymbols(L: PLua_state): integer; cdecl;
+begin
+  symhandler.kernelsymbols:=true;
+  MemoryBrowser.Kernelmodesymbols1.checked:=true;
+  symhandler.reinitialize(true);
+end;
+
 function lua_enumExports(L: PLua_state): integer; cdecl;
 var
   address: ptruint;
@@ -11999,6 +12006,8 @@ begin
     lua_register(L, 'getHotkeyHandlerThread', lua_getHotkeyHandlerThread);
     lua_register(L, 'enumMemoryRegions', lua_enumMemoryRegions);
     lua_register(L, 'enableWindowsSymbols', lua_enableWindowsSymbols);
+    lua_register(L, 'enableKernelSymbols', lua_enableKernelSymbols);
+
     lua_register(L, 'compareMemory', lua_compareMemory);
 
     lua_register(L, 'enumExports', lua_enumExports);
