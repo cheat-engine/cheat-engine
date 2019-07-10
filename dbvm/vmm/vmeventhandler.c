@@ -3705,8 +3705,12 @@ void speedhack_setspeed(double speed)
   QWORD currentTime=_rdtsc();
 
   QWORD initialoffset=(currentTime-speedhackInitialTime)*speedhackSpeed+speedhackInitialOffset;
-  QWORD speedhackInitialTime=currentTime;
+  speedhackInitialTime=currentTime;
 
+  if (initialoffset<lowestTSC)
+    initialoffset=lowestTSC+1000;
+
+  lowestTSC=initialoffset;
   speedhackInitialOffset=initialoffset;
   speedhackSpeed=speed;
 
@@ -3747,7 +3751,11 @@ int handle_rdtsc(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
   if (lTSC==0)
     lTSC=t;
 
-  if (t<lTSC) lTSC=t; //overflow happened...
+  if (t<lTSC)
+  {
+    lTSC=t; //overflow happened... (bp here)
+
+  }
 
 
   if (adjustTimestampCounters)
@@ -3777,6 +3785,10 @@ int handle_rdtsc(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 
   vmregisters->rax=t & 0xffffffff;
   vmregisters->rdx=t >> 32;
+
+  if (lowestTSC<t)
+    lowestTSC=t;
+
 
 
 
