@@ -125,6 +125,7 @@ int raiseGeneralProtectionFault(UINT64 errorcode)
 }
 
 
+
 int emulateExceptionInterrupt(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, unsigned int cs, UINT64 rip, int haserrorcode, UINT64 errorcode, int isFault)
 {
   //this routine will let you call a routine as if it was called by a interrupt caused by a exception.

@@ -591,6 +591,8 @@ typedef volatile struct tcpuinfo
   int eptUpdated;
 
 
+
+
   struct //single stepping data
   {
     int Method;
@@ -599,6 +601,9 @@ typedef volatile struct tcpuinfo
     int ReasonsPos;
     int ReasonsLength;
   } singleStepping;
+
+  int BPAfterStep;
+  int BPCausedByDBVM; //gets read out by ce's driver to see if the bp was because of DBVM or not
 
 #ifdef STATISTICS
   int eventcounter[56];

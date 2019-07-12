@@ -301,7 +301,6 @@ int raiseInvalidOpcodeException(pcpuinfo currentcpuinfo)
     vmwrite(0x401a, vmread(0x440c)); //entry instruction length (not sure about this)
   }
 
-
   return 0;
 }
 
@@ -1797,7 +1796,7 @@ int _handleVMCallInstruction(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, 
 
     case VMCALL_SETTSCADJUST:
     {
-      PVMCALL_SETTSCADJUST_PARAM p=(PVMCALL_ADD_MEMORY_PARAM)vmcall_instruction;
+      PVMCALL_SETTSCADJUST_PARAM p=(PVMCALL_SETTSCADJUST_PARAM)vmcall_instruction;
       adjustTimestampCounterTimeout=p->timeout;
       adjustTimestampCounters=p->enabled;
       break;
@@ -1805,7 +1804,7 @@ int _handleVMCallInstruction(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, 
 
     case VMCALL_SETSPEEDHACK:
     {
-      PVMCALL_SETSPEEDHACK_PARAM p=(PVMCALL_ADD_MEMORY_PARAM)vmcall_instruction;
+      PVMCALL_SETSPEEDHACK_PARAM p=(PVMCALL_SETSPEEDHACK_PARAM)vmcall_instruction;
       speedhack_setspeed(p->speedhackspeed);
       break;
     }
@@ -1873,6 +1872,14 @@ int _handleVMCallInstruction(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, 
     	break;
     }
 #endif
+
+  case VMCALL_CAUSEDDEBUGBREAK:
+  {
+    vmregisters->rax=currentcpuinfo->BPCausedByDBVM;
+    currentcpuinfo->BPCausedByDBVM=0;
+    break;
+  }
+
 
 	case VMCALL_KERNELMODE:
 	{
@@ -2067,7 +2074,7 @@ int handleVMCall(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
     int err=lastexception;
 
     nosendchar[getAPICID()]=0;
-    sendstringf("Exception %x happened during handling of VMCALL\n", lastexception);
+    sendstringf("Exception %x happened during handling of VMCALL\n", err);
 
     try
     {

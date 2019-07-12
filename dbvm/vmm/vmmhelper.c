@@ -1316,7 +1316,6 @@ int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers, void *fxsave)
   sendstringf("rip=%6\n",vmread(vm_guest_rip));
 
   {
-    int notpaged=0;
     UINT64 ripaddress UNUSED=vmread(vm_guest_cs_base)+vmread(vm_guest_rip);
     sendstringf("ripaddress=%x\n", ripaddress);
 

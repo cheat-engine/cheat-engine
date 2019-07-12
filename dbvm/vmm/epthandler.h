@@ -26,6 +26,7 @@
 #define EPTO_SAVE_STACK     (1<<3) //logs contain a 4kb stack snapshot
 #define EPTO_PMI_WHENFULL   (1<<4) //triggers a PMI when full
 #define EPTO_GROW_WHENFULL  (1<<5) //grows the buffer when full
+#define EPTO_INTERRUPT      (1<<6) //raise interrupt on match instead of log
 
 #define EPTW_WRITE 0
 #define EPTW_READWRITE 1

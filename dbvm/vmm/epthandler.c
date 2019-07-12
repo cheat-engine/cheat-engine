@@ -1027,6 +1027,17 @@ BOOL ept_handleWatchEvent(pcpuinfo currentcpuinfo, VMRegisters *registers, PFXSA
   vmx_addSingleSteppingReason(currentcpuinfo, 1, ID);
 
 
+  if ((eptWatchList[ID].Options & EPTO_INTERRUPT) && (PhysicalAddress>=eptWatchList[ID].PhysicalAddress) && (PhysicalAddress<eptWatchList[ID].PhysicalAddress+eptWatchList[ID].Size))
+  {
+    //This is the specific address that was being requested
+    currentcpuinfo->BPAfterStep=1;
+    csLeave(&eptWatchListCS);
+    return TRUE; //no need to log it
+  }
+
+
+
+
   //save this state?
   if ((eptWatchList[ID].Type!=EPTW_EXECUTE) && (evi.R==0) && (evi.X==1))
   {
@@ -1052,6 +1063,7 @@ BOOL ept_handleWatchEvent(pcpuinfo currentcpuinfo, VMRegisters *registers, PFXSA
     csLeave(&eptWatchListCS);
     return TRUE; //no need to log it
   }
+
 
 
   //scan if this RIP is already in the list
@@ -1235,6 +1247,22 @@ int ept_handleWatchEventAfterStep(pcpuinfo currentcpuinfo,  int ID)
   //todo: If enabled , and the watch actually got hit, trigger a DBG interrupt
   //      Keep in mind that CE reading memory may also trigger access interrupts so those need to be
   //      ignored by the driver
+
+  if (currentcpuinfo->BPAfterStep)
+  {
+    if (int1redirection_idtbypass)
+    {
+      emulateExceptionInterrupt(currentcpuinfo, NULL, int1redirection_idtbypass_cs, int1redirection_idtbypass_rip, 0, 0, 0);
+    }
+    else
+    {
+      vmwrite(vm_pending_debug_exceptions,0x4000); //for OS'es without the need for int1 redirects
+    }
+
+    currentcpuinfo->BPAfterStep=0;
+    currentcpuinfo->BPCausedByDBVM=1;
+
+  }
 
   ept_invalidate();
   return 0;
