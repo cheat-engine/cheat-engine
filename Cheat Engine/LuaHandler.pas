@@ -8670,8 +8670,8 @@ begin
             begin
               //widestring
               wstr:=Lua_ToString(L,-1);
-              stringallocs[sai]:=virtualallocex(processhandle,nil,length(str)+2,MEM_COMMIT or MEM_RESERVE,PAGE_READWRITE);
-              WriteProcessMemory(processhandle, stringallocs[sai],@wstr[1],length(str)+2,x);
+              stringallocs[sai]:=virtualallocex(processhandle,nil,length(wstr)+2,MEM_COMMIT or MEM_RESERVE,PAGE_READWRITE);
+              WriteProcessMemory(processhandle, stringallocs[sai],@wstr[1],length(wstr)+2,x);
             end;
             value:=ptruint(stringallocs[sai]);
           end
