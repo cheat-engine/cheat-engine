@@ -388,6 +388,7 @@ type
 
 type TDebuggerstate=packed record
   threadid: uint64;
+  causedbydbvm: uint64;
 	eflags : uint64;
 	eax : uint64;
 	ebx : uint64;
@@ -744,6 +745,10 @@ var
   VirtualQueryEx_EndCache: TVirtualQueryEx_EndCache;
 
   GetRegionInfo: function (hProcess: THandle; lpAddress: Pointer; var lpBuffer: TMemoryBasicInformation; dwLength: DWORD; var mapsline: string): DWORD;  stdcall;
+
+  SetProcessDEPPolicy: function(dwFlags: DWORD): BOOL; stdcall;
+  GetProcessDEPPolicy: function(h: HANDLE; dwFlags: PDWORD; permanent: PBOOL):BOOL; stdcall;
+
 
 
 
@@ -1843,6 +1848,11 @@ initialization
     GetLargePageMinimum:=@GetLargePageMinimumStub;
 
 
+  SetProcessDEPPolicy:=GetProcAddress(WindowsKernel, 'SetProcessDEPPolicy');
+  GetProcessDEPPolicy:=GetProcAddress(WindowsKernel, 'GetProcessDEPPolicy');
+
+
+
 
   psa:=loadlibrary('Psapi.dll');
   EnumDeviceDrivers:=GetProcAddress(psa,'EnumDeviceDrivers');
@@ -1851,6 +1861,11 @@ initialization
   u32:=loadlibrary('user32.dll');
   PrintWindow:=GetProcAddress(u32,'PrintWindow');
   ChangeWindowMessageFilter:=GetProcAddress(u32,'ChangeWindowMessageFilter');
+
+
+
+
+
 
   {$ifdef windows}
   GetRegionInfo:=GetRegionInfo_Windows;

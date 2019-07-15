@@ -60,6 +60,8 @@
 
 #define VMCALL_ADD_MEMORY 57
 
+#define VMCALL_CAUSEDDEBUGBREAK 63
+
 
 typedef UINT64 QWORD;
 
@@ -313,6 +315,8 @@ unsigned int vmx_enable_dataPageFaults();
 unsigned int vmx_disable_dataPageFaults();
 
 unsigned int vmx_add_memory(UINT64 *list, int count);
+
+int vmx_causedCurrentDebugBreak();
 
 void vmx_init_dovmcall(int isIntel);
 

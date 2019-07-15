@@ -82,11 +82,10 @@
       <Unit0>
         <Filename Value="speedhack.lpr"/>
         <IsPartOfProject Value="True"/>
-        <IsVisibleTab Value="True"/>
         <EditorIndex Value="1"/>
-        <TopLine Value="6"/>
+        <TopLine Value="4"/>
         <CursorPos X="2" Y="36"/>
-        <UsageCount Value="43"/>
+        <UsageCount Value="44"/>
         <Loaded Value="True"/>
         <LoadedDesigner Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
@@ -94,9 +93,10 @@
       <Unit1>
         <Filename Value="speedhackmain.pas"/>
         <IsPartOfProject Value="True"/>
-        <TopLine Value="188"/>
-        <CursorPos X="16" Y="203"/>
-        <UsageCount Value="43"/>
+        <IsVisibleTab Value="True"/>
+        <TopLine Value="136"/>
+        <CursorPos X="3" Y="140"/>
+        <UsageCount Value="44"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit1>
@@ -142,7 +142,7 @@
         <UsageCount Value="10"/>
       </Unit7>
     </Units>
-    <JumpHistory Count="29" HistoryIndex="28">
+    <JumpHistory Count="30" HistoryIndex="29">
       <Position1>
         <Filename Value="speedhackmain.pas"/>
         <Caret Line="122" Column="11" TopLine="117"/>
@@ -259,6 +259,10 @@
         <Filename Value="speedhackmain.pas"/>
         <Caret Line="207" Column="21" TopLine="188"/>
       </Position29>
+      <Position30>
+        <Filename Value="speedhack.lpr"/>
+        <Caret Line="36" Column="2" TopLine="4"/>
+      </Position30>
     </JumpHistory>
   </ProjectOptions>
   <CompilerOptions>

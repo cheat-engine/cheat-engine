@@ -85,7 +85,7 @@ const
   EPTO_SAVE_STACK  =1 shl 3; //logs contain a 4kb stack snapshot
   EPTO_PMI_WHENFULL=1 shl 4; //Trigger a performance monitor interrupt when full (only use when you have a kernelmode driver)
   EPTO_GROW_WHENFULL=1 shl 5; //Grow if the given size is too small (beware, if DBVM runs out of memory, your system will crash)
-
+  EPTO_INTERRUPT   =1 shl 6; //Trigger a debug interrupt when hit, no logging
 
 type
   TOriginalState=packed record

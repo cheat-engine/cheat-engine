@@ -78,6 +78,10 @@ typedef void* (__cdecl *MONO_CLASS_FROM_NAME)(void *image, char *name_space, cha
 typedef char* (__cdecl *MONO_CLASS_GET_NAME)(void *klass);
 typedef char* (__cdecl *MONO_CLASS_GET_NAMESPACE)(void *klass);
 typedef void* (__cdecl *MONO_CLASS_GET)(void *image, UINT32 tokenindex);
+typedef void* (__cdecl *MONO_CLASS_FROM_TYPEREF)(void *image, UINT32 type_token);
+typedef char* (__cdecl *MONO_CLASS_NAME_FROM_TOKEN)(void *image, UINT32 token);
+
+
 typedef void* (__cdecl *MONO_CLASS_GET_METHODS)(void *klass, void *iter);
 typedef void* (__cdecl *MONO_CLASS_GET_METHOD_FROM_NAME)(void *klass, char *methodname, int paramcount);
 typedef void* (__cdecl *MONO_CLASS_GET_FIELDS)(void *klass, void *iter);
@@ -167,6 +171,7 @@ typedef void* (__cdecl *MONO_CLASS_GET_TYPE)(void *klass);
 
 
 
+
 class CPipeServer : Pipe
 {
 private:	
@@ -205,6 +210,9 @@ private:
 	MONO_METADATA_DECODE_ROW_COL mono_metadata_decode_row_col;
 	MONO_METADATA_STRING_HEAP mono_metadata_string_heap;
 	MONO_CLASS_GET mono_class_get;
+	MONO_CLASS_FROM_TYPEREF mono_class_from_typeref;
+	MONO_CLASS_NAME_FROM_TOKEN mono_class_name_from_token;
+
 	MONO_CLASS_FROM_NAME_CASE mono_class_from_name_case;
 	MONO_CLASS_FROM_NAME mono_class_from_name;
 

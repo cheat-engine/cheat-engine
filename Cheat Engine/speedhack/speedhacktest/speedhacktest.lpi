@@ -1,13 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CONFIG>
   <ProjectOptions>
-    <Version Value="9"/>
+    <Version Value="10"/>
     <PathDelim Value="\"/>
     <General>
       <MainUnit Value="0"/>
       <UseAppBundle Value="False"/>
       <UseXPManifest Value="True"/>
-      <ActiveWindowIndexAtStart Value="0"/>
     </General>
     <VersionInfo>
       <Language Value=""/>
@@ -39,10 +38,8 @@
         <Filename Value="speedhacktest.lpr"/>
         <IsPartOfProject Value="True"/>
         <EditorIndex Value="1"/>
-        <WindowIndex Value="0"/>
-        <TopLine Value="1"/>
         <CursorPos X="8" Y="11"/>
-        <UsageCount Value="88"/>
+        <UsageCount Value="89"/>
         <Loaded Value="True"/>
         <LoadedDesigner Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
@@ -53,20 +50,16 @@
         <ComponentName Value="Form1"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
-        <UnitName Value="Unit1"/>
         <IsVisibleTab Value="True"/>
-        <EditorIndex Value="0"/>
-        <WindowIndex Value="0"/>
-        <TopLine Value="76"/>
-        <CursorPos X="20" Y="92"/>
-        <UsageCount Value="88"/>
+        <TopLine Value="97"/>
+        <CursorPos X="16" Y="119"/>
+        <UsageCount Value="89"/>
         <Loaded Value="True"/>
         <LoadedDesigner Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit1>
       <Unit2>
         <Filename Value="C:\lazarus\fpc\2.4.1\source\rtl\objpas\classes\classesh.inc"/>
-        <WindowIndex Value="0"/>
         <TopLine Value="23"/>
         <CursorPos X="17" Y="27"/>
         <UsageCount Value="23"/>
@@ -85,7 +78,6 @@
       </Unit4>
       <Unit5>
         <Filename Value="C:\lazarus\fpc\2.4.1\source\rtl\win\wininc\base.inc"/>
-        <WindowIndex Value="0"/>
         <TopLine Value="83"/>
         <CursorPos X="25" Y="99"/>
         <UsageCount Value="23"/>
@@ -93,109 +85,153 @@
       <Unit6>
         <Filename Value="C:\lazarus\fpc\2.4.1\source\rtl\win64\classes.pp"/>
         <UnitName Value="Classes"/>
-        <WindowIndex Value="0"/>
-        <TopLine Value="1"/>
-        <CursorPos X="1" Y="1"/>
         <UsageCount Value="19"/>
       </Unit6>
       <Unit7>
         <Filename Value="C:\lazarus\fpc\2.4.1\source\rtl\win\sysosh.inc"/>
-        <WindowIndex Value="0"/>
         <TopLine Value="47"/>
         <CursorPos X="3" Y="19"/>
         <UsageCount Value="19"/>
       </Unit7>
       <Unit8>
         <Filename Value="C:\lazarus\fpc\2.4.1\source\rtl\win\wininc\redef.inc"/>
-        <WindowIndex Value="0"/>
-        <TopLine Value="1"/>
         <CursorPos X="10" Y="752"/>
         <UsageCount Value="7"/>
       </Unit8>
       <Unit9>
         <Filename Value="C:\lazarus\fpc\2.6.1\source\rtl\win\wininc\redef.inc"/>
-        <WindowIndex Value="0"/>
         <TopLine Value="734"/>
         <CursorPos X="10" Y="748"/>
         <UsageCount Value="27"/>
       </Unit9>
       <Unit10>
         <Filename Value="C:\lazarus\fpc\2.6.1\source\rtl\win\wininc\struct.inc"/>
-        <WindowIndex Value="0"/>
         <TopLine Value="2164"/>
         <CursorPos X="6" Y="2178"/>
         <UsageCount Value="27"/>
       </Unit10>
     </Units>
-    <JumpHistory Count="17" HistoryIndex="16">
+    <JumpHistory Count="30" HistoryIndex="29">
       <Position1>
         <Filename Value="Unit1.pas"/>
-        <Caret Line="45" Column="3" TopLine="26"/>
+        <Caret Line="96" Column="19" TopLine="63"/>
       </Position1>
       <Position2>
         <Filename Value="Unit1.pas"/>
-        <Caret Line="59" Column="20" TopLine="39"/>
+        <Caret Line="97" Column="19" TopLine="64"/>
       </Position2>
       <Position3>
         <Filename Value="Unit1.pas"/>
-        <Caret Line="56" Column="11" TopLine="39"/>
+        <Caret Line="96" Column="19" TopLine="63"/>
       </Position3>
       <Position4>
         <Filename Value="Unit1.pas"/>
-        <Caret Line="8" Column="14" TopLine="1"/>
+        <Caret Line="97" Column="19" TopLine="64"/>
       </Position4>
       <Position5>
         <Filename Value="Unit1.pas"/>
-        <Caret Line="56" Column="11" TopLine="37"/>
+        <Caret Line="122" Column="27" TopLine="105"/>
       </Position5>
       <Position6>
         <Filename Value="Unit1.pas"/>
-        <Caret Line="53" Column="18" TopLine="22"/>
+        <Caret Line="86" TopLine="78"/>
       </Position6>
       <Position7>
         <Filename Value="Unit1.pas"/>
-        <Caret Line="42" Column="3" TopLine="39"/>
+        <Caret Line="87" Column="26" TopLine="78"/>
       </Position7>
       <Position8>
         <Filename Value="Unit1.pas"/>
-        <Caret Line="43" Column="3" TopLine="39"/>
+        <Caret Line="89" TopLine="78"/>
       </Position8>
       <Position9>
         <Filename Value="Unit1.pas"/>
-        <Caret Line="47" Column="19" TopLine="25"/>
+        <Caret Line="90" TopLine="78"/>
       </Position9>
       <Position10>
         <Filename Value="Unit1.pas"/>
-        <Caret Line="52" Column="1" TopLine="38"/>
+        <Caret Line="117" Column="12" TopLine="91"/>
       </Position10>
       <Position11>
         <Filename Value="Unit1.pas"/>
-        <Caret Line="67" Column="22" TopLine="45"/>
+        <Caret Line="106" TopLine="88"/>
       </Position11>
       <Position12>
         <Filename Value="Unit1.pas"/>
-        <Caret Line="68" Column="14" TopLine="56"/>
+        <Caret Line="107" TopLine="88"/>
       </Position12>
       <Position13>
         <Filename Value="Unit1.pas"/>
-        <Caret Line="62" Column="18" TopLine="44"/>
+        <Caret Line="109" TopLine="88"/>
       </Position13>
       <Position14>
         <Filename Value="Unit1.pas"/>
-        <Caret Line="47" Column="10" TopLine="37"/>
+        <Caret Line="110" TopLine="88"/>
       </Position14>
       <Position15>
         <Filename Value="Unit1.pas"/>
-        <Caret Line="51" Column="34" TopLine="37"/>
+        <Caret Line="106" TopLine="88"/>
       </Position15>
       <Position16>
         <Filename Value="Unit1.pas"/>
-        <Caret Line="108" Column="39" TopLine="22"/>
+        <Caret Line="107" TopLine="88"/>
       </Position16>
       <Position17>
         <Filename Value="Unit1.pas"/>
-        <Caret Line="109" Column="39" TopLine="80"/>
+        <Caret Line="109" TopLine="88"/>
       </Position17>
+      <Position18>
+        <Filename Value="Unit1.pas"/>
+        <Caret Line="110" TopLine="88"/>
+      </Position18>
+      <Position19>
+        <Filename Value="Unit1.pas"/>
+        <Caret Line="111" TopLine="88"/>
+      </Position19>
+      <Position20>
+        <Filename Value="Unit1.pas"/>
+        <Caret Line="106" TopLine="88"/>
+      </Position20>
+      <Position21>
+        <Filename Value="Unit1.pas"/>
+        <Caret Line="107" TopLine="88"/>
+      </Position21>
+      <Position22>
+        <Filename Value="Unit1.pas"/>
+        <Caret Line="116" Column="14" TopLine="88"/>
+      </Position22>
+      <Position23>
+        <Filename Value="Unit1.pas"/>
+        <Caret Line="106" TopLine="88"/>
+      </Position23>
+      <Position24>
+        <Filename Value="Unit1.pas"/>
+        <Caret Line="107" TopLine="88"/>
+      </Position24>
+      <Position25>
+        <Filename Value="Unit1.pas"/>
+        <Caret Line="116" Column="10" TopLine="97"/>
+      </Position25>
+      <Position26>
+        <Filename Value="Unit1.pas"/>
+        <Caret Line="108" Column="21" TopLine="97"/>
+      </Position26>
+      <Position27>
+        <Filename Value="Unit1.pas"/>
+        <Caret Line="107" TopLine="97"/>
+      </Position27>
+      <Position28>
+        <Filename Value="Unit1.pas"/>
+        <Caret Line="111" TopLine="97"/>
+      </Position28>
+      <Position29>
+        <Filename Value="Unit1.pas"/>
+        <Caret Line="112" TopLine="97"/>
+      </Position29>
+      <Position30>
+        <Filename Value="Unit1.pas"/>
+        <Caret Line="113" TopLine="97"/>
+      </Position30>
     </JumpHistory>
   </ProjectOptions>
   <CompilerOptions>
@@ -214,6 +250,8 @@
       </SyntaxOptions>
     </Parsing>
     <CodeGeneration>
+      <TargetCPU Value="x86_64"/>
+      <TargetOS Value="win64"/>
       <Optimizations>
         <OptimizationLevel Value="3"/>
         <VariablesInRegisters Value="True"/>
@@ -221,9 +259,9 @@
     </CodeGeneration>
     <Linking>
       <Debugging>
-        <GenerateDebugInfo Value="False"/>
         <UseLineInfoUnit Value="False"/>
         <StripSymbols Value="True"/>
+        <UseExternalDbgSyms Value="True"/>
       </Debugging>
       <Options>
         <Win32>
@@ -239,7 +277,6 @@
         <ShowGenInfo Value="False"/>
       </Verbosity>
       <CustomOptions Value="-WB00400000"/>
-      <CompilerPath Value="$(CompPath)"/>
     </Other>
   </CompilerOptions>
   <Debugging>
@@ -255,5 +292,4 @@
       </Item3>
     </Exceptions>
   </Debugging>
-  <EditorMacros Count="0"/>
 </CONFIG>

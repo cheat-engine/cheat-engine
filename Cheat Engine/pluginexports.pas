@@ -124,9 +124,10 @@ function ce_getProperty(c: tobject; propertyname: pchar; value: pchar; maxsize: 
 
 implementation
 
-uses MainUnit,MainUnit2, AdvancedOptionsUnit, Assemblerunit,disassembler,frmModifyRegistersUnit,
-     formsettingsunit, symbolhandler,frmautoinjectunit, manualModuleLoader,
-     MemoryRecordUnit, MemoryBrowserFormUnit, LuaHandler, ProcessHandlerUnit, ProcessList;
+uses MainUnit,MainUnit2, AdvancedOptionsUnit, Assemblerunit,disassembler,
+     frmModifyRegistersUnit, formsettingsunit, symbolhandler,frmautoinjectunit,
+     manualModuleLoader, MemoryRecordUnit, MemoryBrowserFormUnit, LuaHandler,
+     ProcessHandlerUnit, ProcessList, BreakpointTypeDef;
 
 resourcestring
   rsLoadModuleFailed = 'LoadModule failed';

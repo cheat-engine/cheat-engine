@@ -4,17 +4,30 @@ LazarusResources.Add('TForm1','FORMDATA',[
   'TPF0'#6'TForm1'#5'Form1'#4'Left'#3'!'#1#6'Height'#3#202#0#3'Top'#3#177#0#5'W'
   +'idth'#3#219#1#7'Caption'#6#14'speedhack test'#12'ClientHeight'#3#202#0#11'C'
   +'lientWidth'#3#219#1#11'Font.Height'#2#245#9'Font.Name'#6#13'MS Sans Serif'#8
-  +'OnCreate'#7#10'FormCreate'#10'LCLVersion'#6#3'1.3'#0#6'TLabel'#6'Label1'#4
-  +'Left'#2#0#6'Height'#2#13#3'Top'#2' '#5'Width'#2' '#7'Caption'#6#6'Label1'#11
-  +'ParentColor'#8#0#0#6'TLabel'#6'Label2'#4'Left'#2#0#6'Height'#2#13#3'Top'#2
-  +'0'#5'Width'#2' '#7'Caption'#6#6'Label2'#11'ParentColor'#8#0#0#6'TLabel'#6'L'
-  +'abel3'#4'Left'#2#0#6'Height'#2#13#3'Top'#2'P'#5'Width'#2' '#7'Caption'#6#6
+  +'OnCreate'#7#10'FormCreate'#10'LCLVersion'#6#7'1.6.4.0'#0#6'TLabel'#6'Label1'
+  +#4'Left'#2#0#6'Height'#2#13#3'Top'#2' '#5'Width'#2' '#7'Caption'#6#6'Label1'
+  +#11'ParentColor'#8#0#0#6'TLabel'#6'Label2'#4'Left'#2#0#6'Height'#2#13#3'Top'
+  +#2'0'#5'Width'#2' '#7'Caption'#6#6'Label2'#11'ParentColor'#8#0#0#6'TLabel'#6
+  +'Label3'#4'Left'#2#0#6'Height'#2#13#3'Top'#2'P'#5'Width'#2' '#7'Caption'#6#6
   +'Label3'#11'ParentColor'#8#0#0#6'TLabel'#7'lblFail'#4'Left'#2#8#6'Height'#2
   +#24#3'Top'#2'p'#5'Width'#2','#7'Caption'#6#4'FAIL'#12'Font.CharSet'#7#12'ANS'
   +'I_CHARSET'#10'Font.Color'#7#5'clRed'#11'Font.Height'#2#237#9'Font.Name'#6#13
   +'MS Sans Serif'#10'Font.Pitch'#7#10'fpVariable'#12'Font.Quality'#7#7'fqDraft'
   +#10'Font.Style'#11#6'fsBold'#0#11'ParentColor'#8#10'ParentFont'#8#7'Visible'
   +#8#0#0#6'TLabel'#6'Label4'#4'Left'#2#0#6'Height'#2#13#3'Top'#2'@'#5'Width'#2
-  +' '#7'Caption'#6#6'Label4'#11'ParentColor'#8#0#0#6'TTimer'#6'Timer1'#8'Inter'
-  +'val'#2#10#7'OnTimer'#7#11'Timer1Timer'#0#0#0
+  +' '#7'Caption'#6#6'Label4'#11'ParentColor'#8#0#0#6'TLabel'#6'Label5'#4'Left'
+  +#2#8#6'Height'#2#13#3'Top'#3#152#0#5'Width'#2' '#7'Caption'#6#6'Label5'#11'P'
+  +'arentColor'#8#0#0#6'TLabel'#6'Label6'#4'Left'#2#8#6'Height'#2#13#3'Top'#3
+  +#168#0#5'Width'#2' '#7'Caption'#6#6'Label6'#11'ParentColor'#8#0#0#6'TLabel'#6
+  +'Label8'#4'Left'#3#208#0#6'Height'#2#13#3'Top'#2#17#5'Width'#2#29#7'Caption'
+  +#6#6'rdtsc='#11'ParentColor'#8#0#0#6'TLabel'#6'Label7'#4'Left'#3#209#0#6'Hei'
+  +'ght'#2#13#3'Top'#2' '#5'Width'#2'#'#7'Caption'#6#7'rdtscp='#11'ParentColor'
+  +#8#0#0#6'TLabel'#6'Label9'#4'Left'#3#209#0#6'Height'#2#13#3'Top'#2'0'#5'Widt'
+  +'h'#2')'#7'Caption'#6#8'cpuid 0='#11'ParentColor'#8#0#0#6'TLabel'#7'Label10'
+  +#4'Left'#3#209#0#6'Height'#2#13#3'Top'#2'@'#5'Width'#2')'#7'Caption'#6#8'cpu'
+  +'id 1='#11'ParentColor'#8#0#0#6'TLabel'#7'Label11'#4'Left'#3#209#0#6'Height'
+  +#2#13#3'Top'#2'P'#5'Width'#2')'#7'Caption'#6#8'cpuid 2='#11'ParentColor'#8#0
+  +#0#6'TLabel'#7'Label12'#4'Left'#3#209#0#6'Height'#2#13#3'Top'#2'`'#5'Width'#2
+  +')'#7'Caption'#6#8'cpuid 3='#11'ParentColor'#8#0#0#6'TTimer'#6'Timer1'#8'Int'
+  +'erval'#2#10#7'OnTimer'#7#11'Timer1Timer'#0#0#0
 ]);

@@ -12,6 +12,7 @@ todo: this whole thing can be moved to a few simple lines in dbvm...
 #include "interruptHook.h"
 
 #include "debugger.h"
+#include "vmxhelper.h"
 
 #ifdef AMD64 
 extern void interrupt1_asmentry( void ); //declared in debuggera.asm
@@ -40,6 +41,7 @@ volatile struct
 	UINT_PTR *LastStackPointer;
 	UINT_PTR *LastRealDebugRegisters;
 	HANDLE LastThreadID;
+	BOOL CausedByDBVM;
 	BOOL handledlastevent;
 	
 	BOOL storeLBR;
@@ -436,6 +438,7 @@ NTSTATUS debugger_getDebuggerState(PDebugStackState state)
 {
 	DbgPrint("debugger_getDebuggerState\n");
 	state->threadid=(UINT64)DebuggerState.LastThreadID;
+	state->causedbydbvm = (UINT64)DebuggerState.CausedByDBVM;
 	if (DebuggerState.LastStackPointer)
 	{
 		state->rflags=(UINT_PTR)DebuggerState.LastStackPointer[si_eflags];
@@ -602,7 +605,7 @@ NTSTATUS debugger_setDebuggerState(PDebugStackState state)
 	return STATUS_SUCCESS;
 }
 
-int breakpointHandler_kernel(UINT_PTR *stackpointer, UINT_PTR *currentdebugregs, UINT_PTR *LBR_Stack)
+int breakpointHandler_kernel(UINT_PTR *stackpointer, UINT_PTR *currentdebugregs, UINT_PTR *LBR_Stack, int causedbyDBVM)
 //Notice: This routine is called when interrupts are enabled and the GD bit has been set if globaL DEBUGGING HAS BEEN USED
 //Interrupts are enabled and should be at passive level, so taskswitching is possible
 {
@@ -623,6 +626,7 @@ int breakpointHandler_kernel(UINT_PTR *stackpointer, UINT_PTR *currentdebugregs,
 	DbgPrint("rbp=%llx\n", getRBP());
 
 	DbgPrint("gs:188=%llx\n", __readgsqword(0x188));
+	DbgPrint("causedbyDBVM=%d\n", causedbyDBVM);
 #endif
 	
 	if (KeGetCurrentIrql()==0)
@@ -656,6 +660,7 @@ int breakpointHandler_kernel(UINT_PTR *stackpointer, UINT_PTR *currentdebugregs,
 		DebuggerState.LastRealDebugRegisters=currentdebugregs;		
 		DebuggerState.LastLBRStack=LBR_Stack;
 		DebuggerState.LastThreadID=PsGetCurrentThreadId();
+		DebuggerState.CausedByDBVM = causedbyDBVM;
 		
 
 #ifdef AMD64
@@ -746,6 +751,7 @@ int interrupt1_handler(UINT_PTR *stackpointer, UINT_PTR *currentdebugregs)
 	UINT_PTR LBR_Stack[16]; //max 16
 //	DebugReg7 _dr7=*(DebugReg7 *)&currentdebugregs[5];
 
+	int causedbyDBVM = vmx_causedCurrentDebugBreak();
 
 	if (cpu_familyID==0x6)
 	{
@@ -1203,7 +1209,7 @@ int interrupt1_handler(UINT_PTR *stackpointer, UINT_PTR *currentdebugregs)
 				int rs=1;
 				//DbgPrint("calling breakpointHandler_kernel\n");
 				
-				rs=breakpointHandler_kernel(stackpointer, currentdebugregs, LBR_Stack);	
+				rs=breakpointHandler_kernel(stackpointer, currentdebugregs, LBR_Stack, causedbyDBVM);
 				//DbgPrint("After handler\n");
 
 				//DbgPrint("rs=%d\n",rs);

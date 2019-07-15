@@ -1,7 +1,7 @@
 object frmAccessedMemory: TfrmAccessedMemory
-  Left = 204
+  Left = 205
   Height = 305
-  Top = 301
+  Top = 302
   Width = 539
   AutoSize = True
   Caption = 'Find accessed memory regions'

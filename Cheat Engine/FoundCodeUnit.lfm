@@ -1,7 +1,7 @@
 object FoundCodeDialog: TFoundCodeDialog
-  Left = 772
+  Left = 773
   Height = 399
-  Top = 427
+  Top = 428
   Width = 430
   BorderIcons = [biSystemMenu]
   Caption = 'The following opcodes changed the selected address'

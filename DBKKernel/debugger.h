@@ -7,6 +7,7 @@
 #pragma pack(4)
 typedef struct {
 	UINT64 threadid;  //
+	UINT64 causedbydbvm;
 	UINT64 rflags;
 	UINT64 rax;//
 	UINT64 rbx;

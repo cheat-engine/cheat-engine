@@ -1,13 +1,14 @@
 object frmTracerConfig: TfrmTracerConfig
-  Left = 555
-  Height = 255
-  Top = 113
-  Width = 249
+  Left = 557
+  Height = 342
+  Top = 115
+  Width = 288
   AutoSize = True
   BorderStyle = bsSingle
   Caption = 'Break and Trace config'
-  ClientHeight = 255
-  ClientWidth = 249
+  ClientHeight = 342
+  ClientWidth = 288
+  OnCreate = FormCreate
   Position = poScreenCenter
   LCLVersion = '2.0.0.4'
   object edtMaxTrace: TEdit
@@ -30,7 +31,7 @@ object frmTracerConfig: TfrmTracerConfig
     Left = 16
     Height = 15
     Top = 8
-    Width = 217
+    Width = 256
     Anchors = [akTop, akLeft, akRight]
     BorderSpacing.Left = 16
     BorderSpacing.Top = 8
@@ -137,11 +138,11 @@ object frmTracerConfig: TfrmTracerConfig
   object Panel1: TPanel
     AnchorSideLeft.Control = Owner
     AnchorSideLeft.Side = asrCenter
-    AnchorSideTop.Control = rbBreakOnAccess
+    AnchorSideTop.Control = GroupBox1
     AnchorSideTop.Side = asrBottom
-    Left = 47
+    Left = 67
     Height = 30
-    Top = 222
+    Top = 280
     Width = 154
     AutoSize = True
     BorderSpacing.Top = 2
@@ -203,5 +204,54 @@ object frmTracerConfig: TfrmTracerConfig
     Width = 200
     BorderSpacing.Top = 1
     TabOrder = 9
+  end
+  object GroupBox1: TGroupBox
+    AnchorSideTop.Control = rbBreakOnAccess
+    AnchorSideTop.Side = asrBottom
+    Left = 18
+    Height = 58
+    Top = 220
+    Width = 261
+    AutoSize = True
+    Caption = 'Breakpoint method'
+    ChildSizing.Layout = cclLeftToRightThenTopToBottom
+    ChildSizing.ControlsPerLine = 2
+    ClientHeight = 38
+    ClientWidth = 257
+    TabOrder = 10
+    object rbBPHardware: TRadioButton
+      Left = 0
+      Height = 19
+      Top = 0
+      Width = 131
+      Caption = 'Hardware Breakpoint'
+      Checked = True
+      TabOrder = 3
+      TabStop = True
+    end
+    object rbBPSoftware: TRadioButton
+      Left = 131
+      Height = 19
+      Top = 0
+      Width = 126
+      Caption = 'Software breakpoint'
+      TabOrder = 0
+    end
+    object rbBPException: TRadioButton
+      Left = 0
+      Height = 19
+      Top = 19
+      Width = 131
+      Caption = 'Exception Breakpoint'
+      TabOrder = 1
+    end
+    object rbBPDBVM: TRadioButton
+      Left = 131
+      Height = 19
+      Top = 19
+      Width = 126
+      Caption = 'DBVM Breakpoint'
+      TabOrder = 2
+    end
   end
 end

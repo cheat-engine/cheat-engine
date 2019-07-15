@@ -1,7 +1,7 @@
 object frmDBVMWatchConfig: TfrmDBVMWatchConfig
-  Left = 925
+  Left = 926
   Height = 267
-  Top = 284
+  Top = 285
   Width = 311
   AutoSize = True
   BorderStyle = bsSingle
@@ -12,7 +12,7 @@ object frmDBVMWatchConfig: TfrmDBVMWatchConfig
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   Position = poScreenCenter
-  LCLVersion = '1.6.4.0'
+  LCLVersion = '2.0.0.4'
   object gbAccessType: TGroupBox
     AnchorSideLeft.Control = Owner
     AnchorSideTop.Control = Owner

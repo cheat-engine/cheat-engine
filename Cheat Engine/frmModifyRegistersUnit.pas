@@ -86,7 +86,7 @@ var
 implementation
 
 uses formsettingsunit, MemoryBrowserFormUnit, debuggertypedefinitions,
-  ProcessHandlerUnit, DPIHelper;
+  ProcessHandlerUnit, DPIHelper, BreakpointTypeDef;
 
 resourcestring
   rsModifyRegistersSAt = 'Modify registers(s) at %s';

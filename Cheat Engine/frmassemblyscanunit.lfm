@@ -1,7 +1,7 @@
 object frmAssemblyScan: TfrmAssemblyScan
-  Left = 681
+  Left = 682
   Height = 185
-  Top = 307
+  Top = 308
   Width = 451
   BorderIcons = [biSystemMenu]
   Caption = 'Assembly scan'

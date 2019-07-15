@@ -231,7 +231,8 @@ uses Assemblerunit, StrUtils, Parsers, memoryQuery;
 
 {$ifdef windows}
 uses Assemblerunit,CEDebugger, debughelper, StrUtils, debuggertypedefinitions,
-  Parsers, memoryQuery, binutils, luacaller, vmxfunctions, frmcodefilterunit;
+  Parsers, memoryQuery, binutils, luacaller, vmxfunctions, frmcodefilterunit,
+  BreakpointTypeDef;
 {$endif}
 
 

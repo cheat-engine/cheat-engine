@@ -553,17 +553,16 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 			{
 				UNICODE_STRING test;
 				PVOID x;
-				RtlInitUnicodeString(&test, L"NtProtectVirtualMemory");
-				x = MmGetSystemRoutineAddress(&test);
-				if (x)
-				{
-					DbgPrint("yes %p", x);
-				}
-					DbgPrint("no");
+				QWORD a, b;
 
+				_disable();
+				a = __rdtsc();
+				b = __rdtsc();
 
+				_enable();
 
 				
+				DbgPrint("%d\n", (int)(b - a));				
 				break;
 			}
 

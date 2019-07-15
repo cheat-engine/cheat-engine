@@ -111,7 +111,7 @@ uses mainunit, mainunit2, luaclass, frmluaengineunit, plugin, pluginexports,
   xinput, winsapi, frmExeTrainerGeneratorUnit, CustomBase85, FileUtil, networkConfig,
   LuaCustomType, Filehandler, LuaSQL, frmSelectionlistunit, cpuidUnit, LuaRemoteThread,
   LuaManualModuleLoader, pointervaluelist, frmEditHistoryUnit, LuaCheckListBox,
-  LuaDiagram, frmUltimap2Unit, frmcodefilterunit;
+  LuaDiagram, frmUltimap2Unit, frmcodefilterunit, BreakpointTypeDef;
 
   {$warn 5044 off}
 
@@ -354,6 +354,9 @@ end;
 function lua_toPoint(L: PLua_State; index: integer): TPoint;
 var i: integer;
 begin
+  result.x:=0;
+  result.y:=0;
+
   i:=lua_absindex(L,index);
   if lua_istable(L, i) then
   begin
@@ -11246,6 +11249,7 @@ end;
 
 function lua_enableKernelSymbols(L: PLua_state): integer; cdecl;
 begin
+  result:=0;
   symhandler.kernelsymbols:=true;
   MemoryBrowser.Kernelmodesymbols1.checked:=true;
   symhandler.reinitialize(true);

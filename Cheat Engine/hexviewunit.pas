@@ -232,7 +232,7 @@ type
 implementation
 
 uses formsettingsunit, Valuechange, MainUnit, ProcessHandlerUnit, parsers,
-  StructuresFrm2, MemoryBrowserFormUnit;
+  StructuresFrm2, MemoryBrowserFormUnit, BreakpointTypeDef;
 
 resourcestring
   rsBigFuckingError = 'Big fucking error';

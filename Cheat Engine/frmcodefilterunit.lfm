@@ -1,7 +1,7 @@
 object frmCodeFilter: TfrmCodeFilter
-  Left = 585
+  Left = 590
   Height = 356
-  Top = 471
+  Top = 476
   Width = 741
   AutoSize = True
   Caption = 'Code Filter'

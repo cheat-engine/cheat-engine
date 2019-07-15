@@ -93,7 +93,8 @@ implementation
 
 uses
   MemoryBrowserFormUnit, dissectCodeThread,debuggertypedefinitions,
-  dissectcodeunit, disassemblerviewunit, frmUltimap2Unit, frmcodefilterunit;
+  dissectcodeunit, disassemblerviewunit, frmUltimap2Unit, frmcodefilterunit,
+  BreakpointTypeDef;
 
 resourcestring
   rsUn = '(Unconditional)';
@@ -325,6 +326,7 @@ var
 
     b: byte;
 
+    inactive: boolean;
 begin
 
   iscurrentinstruction:=MemoryBrowser.lastdebugcontext.{$ifdef cpu64}rip{$else}EIP{$endif}=address;
@@ -528,12 +530,12 @@ begin
 
 
   if debuggerthread<>nil then
-    bp:=debuggerthread.isBreakpoint(faddress)
+    bp:=debuggerthread.isBreakpoint(faddress,0,true)
   else
     bp:=nil;
 
 
-  isbp:=(bp<>nil) and (bp.breakpointTrigger=bptExecute) and (bp.active) and (bp.markedfordeletion=false);
+  isbp:=(bp<>nil) and (bp.breakpointTrigger=bptExecute) and (bp.active or (bp.breakpointMethod=bpmException) ) and (bp.markedfordeletion=false);
   isultimap:=((frmUltimap2<>nil) and frmUltimap2.IsMatchingAddress(faddress)) or ((frmCodeFilter<>nil) and (frmCodeFilter.isBreakpoint(faddress,b) ));
 
 

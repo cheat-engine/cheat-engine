@@ -749,6 +749,24 @@ unsigned int vmx_add_memory(UINT64 *list, int count)
 	
 }
 
+int vmx_causedCurrentDebugBreak()
+{
+#pragma pack(1)
+	struct
+	{
+		unsigned int structsize;
+		unsigned int level2pass;
+		unsigned int command;
+	} vmcallinfo;
+#pragma pack()
+
+	vmcallinfo.structsize = sizeof(vmcallinfo);
+	vmcallinfo.level2pass = vmx_password2;
+	vmcallinfo.command = VMCALL_CAUSEDDEBUGBREAK;
+
+	return (int)dovmcall(&vmcallinfo, vmx_password1);
+}
+
 void vmx_init_dovmcall(int isIntel)
 {
 	if (isIntel)

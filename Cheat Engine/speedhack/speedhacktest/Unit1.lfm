@@ -9,7 +9,7 @@ object Form1: TForm1
   Font.Height = -11
   Font.Name = 'MS Sans Serif'
   OnCreate = FormCreate
-  LCLVersion = '1.3'
+  LCLVersion = '1.6.4.0'
   object Label1: TLabel
     Left = 0
     Height = 13
@@ -57,6 +57,70 @@ object Form1: TForm1
     Top = 64
     Width = 32
     Caption = 'Label4'
+    ParentColor = False
+  end
+  object Label5: TLabel
+    Left = 8
+    Height = 13
+    Top = 152
+    Width = 32
+    Caption = 'Label5'
+    ParentColor = False
+  end
+  object Label6: TLabel
+    Left = 8
+    Height = 13
+    Top = 168
+    Width = 32
+    Caption = 'Label6'
+    ParentColor = False
+  end
+  object Label8: TLabel
+    Left = 208
+    Height = 13
+    Top = 17
+    Width = 29
+    Caption = 'rdtsc='
+    ParentColor = False
+  end
+  object Label7: TLabel
+    Left = 209
+    Height = 13
+    Top = 32
+    Width = 35
+    Caption = 'rdtscp='
+    ParentColor = False
+  end
+  object Label9: TLabel
+    Left = 209
+    Height = 13
+    Top = 48
+    Width = 41
+    Caption = 'cpuid 0='
+    ParentColor = False
+  end
+  object Label10: TLabel
+    Left = 209
+    Height = 13
+    Top = 64
+    Width = 41
+    Caption = 'cpuid 1='
+    ParentColor = False
+  end
+  object Label11: TLabel
+    Left = 209
+    Height = 13
+    Top = 80
+    Width = 41
+    Caption = 'cpuid 2='
+    ParentColor = False
+  end
+  object Label12: TLabel
+    Left = 209
+    Height = 13
+    Top = 96
+    Width = 41
+    Caption = 'cpuid 3='
     ParentColor = False
   end
   object Timer1: TTimer

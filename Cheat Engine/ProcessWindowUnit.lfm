@@ -1,7 +1,7 @@
 object ProcessWindow: TProcessWindow
-  Left = 910
+  Left = 913
   Height = 402
-  Top = 242
+  Top = 245
   Width = 293
   HelpContext = 4
   AutoSize = True
@@ -15,7 +15,7 @@ object ProcessWindow: TProcessWindow
   OnDestroy = FormDestroy
   OnShow = FormShow
   Position = poMainFormCenter
-  LCLVersion = '2.0.2.0'
+  LCLVersion = '2.0.0.4'
   object Panel1: TPanel
     Left = 0
     Height = 112

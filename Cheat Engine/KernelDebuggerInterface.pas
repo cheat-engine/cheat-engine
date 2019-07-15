@@ -54,6 +54,7 @@ type
 
     procedure injectEvent(e: pointer);
     function DebugActiveProcess(dwProcessId: DWORD): WINBOOL; override;
+    function EventCausedByDBVM: boolean;
 
     destructor destroy; override;
     constructor create(globalDebug, canStepKernelcode: boolean);
@@ -335,6 +336,9 @@ begin
     {$endif}
 
     lpContext.ContextFlags:=0;
+
+    if currentdebuggerstate.causedbydbvm<>0 then
+      log('currentdebuggerstate.causedbydbvm<>0');
   end else
   begin
    // outputdebugstring('Use the default method');
@@ -428,6 +432,8 @@ begin
       //get the state and setup lpDebugEvent
       DBKDebug_GetDebuggerState(@currentdebuggerstate);
 
+      Log(format('currentdebuggerstate.eip=%8x',[currentdebuggerstate.eip]));
+
       //this is only a bp hit event
       lpDebugEvent.dwDebugEventCode:=EXCEPTION_DEBUG_EVENT;
 
@@ -438,6 +444,11 @@ begin
       lpDebugEvent.Exception.ExceptionRecord.ExceptionAddress:=pointer(ptrUint(currentdebuggerstate.eip));
     end;
   end;
+end;
+
+function TKernelDebugInterface.EventCausedByDBVM: boolean;
+begin
+  result:=currentdebuggerstate.causedbydbvm<>0;
 end;
 
 function TKernelDebugInterface.canReportExactDebugRegisterTrigger: boolean;
@@ -471,7 +482,7 @@ begin
   DBKDebug_SetGlobalDebugState(globalDebug);
   injectedEvents:=TQueue.Create;
 
-  fDebuggerCapabilities:=[dbcHardwareBreakpoint];
+  fDebuggerCapabilities:=[dbcHardwareBreakpoint, dbcDBVMBreakpoint];
   name:='Kernelmode Debugger';
 
   fmaxSharedBreakpointCount:=4;

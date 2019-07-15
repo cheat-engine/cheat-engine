@@ -9,6 +9,7 @@ void ErrorThrow(void)
 	throw ("Access violation caught");
 }
 
+int looper = 0;
 LONG NTAPI ErrorFilter(struct _EXCEPTION_POINTERS *ExceptionInfo)
 {
 	if ((ExpectingAccessViolations) && (GetCurrentThreadId() == ExpectingAccessViolationsThread) && (ExceptionInfo->ExceptionRecord->ExceptionCode == 0xc0000005))
@@ -175,6 +176,8 @@ void CPipeServer::InitMono()
 
 
 			mono_class_get = (MONO_CLASS_GET)GetProcAddress(hMono, "mono_class_get");
+			mono_class_from_typeref = (MONO_CLASS_FROM_TYPEREF)GetProcAddress(hMono, "mono_class_from_typeref");
+			mono_class_name_from_token = (MONO_CLASS_NAME_FROM_TOKEN)GetProcAddress(hMono, "mono_class_name_from_token");
 			mono_class_from_name_case = (MONO_CLASS_FROM_NAME_CASE)GetProcAddress(hMono, "mono_class_from_name_case");
 			mono_class_from_name = (MONO_CLASS_FROM_NAME_CASE)GetProcAddress(hMono, "mono_class_from_name");
 			mono_class_get_name = (MONO_CLASS_GET_NAME)GetProcAddress(hMono, "mono_class_get_name");			
@@ -410,41 +413,98 @@ void CPipeServer::EnumClassesInImage()
 {
 	int i;
 	void *image = (void *)ReadQword();
-	void *tdef = mono_image_get_table_info(image, MONO_TABLE_TYPEDEF);
-	int tdefcount = mono_table_info_get_rows(tdef);
-
-
-	WriteDword(tdefcount);
-
-	for (i = 0; i < tdefcount; i++)
+	if (image == NULL)
 	{
-		void *c = mono_class_get(image, MONO_TOKEN_TYPE_DEF | i + 1);
-		if (c != NULL)
-		{
-			char *name = mono_class_get_name(c);
-
-			WriteQword((UINT_PTR)c);
-
-			if (c)
-			{
-				WriteWord(strlen(name));
-				Write(name, strlen(name));
-			}
-			else
-				WriteWord(0);
-
-			name = mono_class_get_namespace(c);
-			if (name)
-			{
-				WriteWord(strlen(name));
-				Write(name, strlen(name));
-			}
-			else
-				WriteWord(0);			
-		}
-		else
-			WriteQword(0);
+		WriteDword(0);
 	}
+
+	void *tdef = mono_image_get_table_info(image, MONO_TABLE_TYPEDEF);
+	if (tdef)
+	{
+		int tdefcount = mono_table_info_get_rows(tdef);
+		WriteDword(tdefcount);
+
+		for (i = 0; i < tdefcount; i++)
+		{
+			void *c = mono_class_get(image, MONO_TOKEN_TYPE_DEF | i + 1);
+			if (c != NULL)
+			{
+				char *name = mono_class_get_name(c);
+
+				WriteQword((UINT_PTR)c);
+
+				if (c)
+				{
+					WriteWord(strlen(name));
+					Write(name, strlen(name));
+				}
+				else
+					WriteWord(0);
+
+				name = mono_class_get_namespace(c);
+				if (name)
+				{
+					WriteWord(strlen(name));
+					Write(name, strlen(name));
+				}
+				else
+					WriteWord(0);
+			}
+			else
+				WriteQword(0);
+		}
+	}
+	else
+	{
+		WriteDword(0);
+	}
+	
+
+	/*
+	void *tdef = mono_image_get_table_info(image, MONO_TABLE_TYPEREF);
+	if (tdef)
+	{
+		int tdefcount = mono_table_info_get_rows(tdef);
+		WriteDword(tdefcount);
+
+		for (i = 0; i < tdefcount; i++)
+		{
+			void *c;
+			char *name = mono_class_name_from_token(image, MONO_TOKEN_TYPE_REF | (i + 1));
+			
+			c = mono_class_from_typeref(image, MONO_TOKEN_TYPE_REF | (i + 1));
+			if (c != NULL)
+			{
+				char *name = mono_class_get_name(c);
+
+				WriteQword((UINT_PTR)c);
+
+				if (c)
+				{
+					WriteWord(strlen(name));
+					Write(name, strlen(name));
+				}
+				else
+					WriteWord(0);
+
+				name = mono_class_get_namespace(c);
+				if (name)
+				{
+					WriteWord(strlen(name));
+					Write(name, strlen(name));
+				}
+				else
+					WriteWord(0);
+			}
+			else
+				WriteQword(0);
+		}
+	}
+	else
+	{
+		WriteDword(0);
+	}
+	*/
 }
 
 void CPipeServer::EnumFieldsInClass()

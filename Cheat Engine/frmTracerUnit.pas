@@ -8,7 +8,7 @@ uses
   windows, NewKernelHandler, LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, ExtCtrls, Buttons, LResources, commonTypeDefs, frmFindDialogUnit,
   clipbrd, Menus, ComCtrls, frmStackviewunit, frmFloatingPointPanelUnit, LuaByteTable,
-  disassembler;
+  disassembler, debuggertypedefinitions;
 
 type
   TTraceDebugInfo=class
@@ -176,6 +176,8 @@ type
 
     da: TDisassembler;
 
+    defaultBreakpointMethod: TBreakpointmethod;
+
     procedure configuredisplay;
     procedure setSavestack(x: boolean);
     procedure updatestackview;
@@ -198,6 +200,7 @@ type
     property savestack: boolean read fsavestack write setSavestack;
     property Entry[index: integer]: TTraceDebugInfo read getEntry;
     constructor create(Owner: TComponent; DataTrace: boolean=false; skipconfig: boolean=false); overload;
+    constructor createWithBreakpointMethodSet(Owner: TComponent; DataTrace: boolean=false; skipconfig: boolean=false; breakpointmethod: tbreakpointmethod=bpmDebugRegister); overload;
   published
     property count: integer read getCount;
     property selectionCount: integer read getSelectionCount;
@@ -207,8 +210,7 @@ implementation
 
 
 uses cedebugger, debughelper, MemoryBrowserFormUnit, frmTracerConfigUnit,
-  debuggertypedefinitions, processhandlerunit, Globals, Parsers,
-  strutils, cefuncproc,
+  processhandlerunit, Globals, Parsers, strutils, cefuncproc,
   luahandler, symbolhandler, byteinterpreter,
   tracerIgnore, LuaForm, lua, lualib,lauxlib, LuaClass;
 
@@ -322,11 +324,20 @@ begin
 end;
 
 
+constructor TfrmTracer.createWithBreakpointMethodSet(Owner: TComponent; DataTrace: boolean=false; skipconfig: boolean=false; breakpointmethod: tbreakpointmethod=bpmDebugRegister); overload;
+begin
+  inherited create(owner);
+  fDataTrace:=Datatrace;
+  fSkipConfig:=skipconfig;
+  defaultBreakpointMethod:=breakpointmethod;
+end;
+
 constructor TfrmTracer.create(Owner: TComponent; DataTrace: boolean=false; skipconfig: boolean=false);
 begin
   inherited create(owner);
   fDataTrace:=Datatrace;
   fSkipConfig:=skipconfig;
+  defaultBreakpointMethod:=preferedBreakpointMethod;
 end;
 
 procedure TfrmTracer.finish;
@@ -817,6 +828,7 @@ begin
   with frmTracerConfig do
   begin
     DataTrace:=fDataTrace;
+    breakpointmethod:=defaultBreakpointMethod;
     if showmodal=mrok then
     begin
       if comparetv<>nil then
@@ -856,14 +868,14 @@ begin
             memorybrowser.hexview.GetSelectionRange(fromaddress,toaddress);
 
           //set the breakpoint
-          debuggerthread.setBreakAndTraceBreakpoint(self, fromaddress, bpTrigger, 1+(toaddress-fromaddress), tcount, startcondition, stopcondition, stepover, nosystem);
+          debuggerthread.setBreakAndTraceBreakpoint(self, fromaddress, bpTrigger, breakpointmethod, 1+(toaddress-fromaddress), tcount, startcondition, stopcondition, stepover, nosystem);
         end
         else
         begin
           if (owner is TMemoryBrowser) then
-            debuggerthread.setBreakAndTraceBreakpoint(self, (owner as TMemoryBrowser).disassemblerview.SelectedAddress, bptExecute, 1, tcount, startcondition, stopcondition, StepOver, Nosystem)
+            debuggerthread.setBreakAndTraceBreakpoint(self, (owner as TMemoryBrowser).disassemblerview.SelectedAddress, bptExecute, breakpointmethod, 1, tcount, startcondition, stopcondition, StepOver, Nosystem)
           else
-            debuggerthread.setBreakAndTraceBreakpoint(self, memorybrowser.disassemblerview.SelectedAddress, bptExecute,1, tcount, startcondition, stopcondition, StepOver, nosystem);
+            debuggerthread.setBreakAndTraceBreakpoint(self, memorybrowser.disassemblerview.SelectedAddress, bptExecute, breakpointmethod, 1, tcount, startcondition, stopcondition, StepOver, nosystem);
         end;
       end;
 

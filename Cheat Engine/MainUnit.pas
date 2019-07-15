@@ -3011,16 +3011,19 @@ procedure TMainForm.Copyselectedaddresses1Click(Sender: TObject);
 var    i: qword;
     temp: string;
 begin
-     if foundlist3.SelCount = 1 then  clipboard.AsText := symhandler.getNameFromAddress(StrToQWordEx('$'+foundlist3.Items[foundlist3.itemindex].Caption))
-     else if foundlist3.SelCount > 1 then
-     begin
-        for i:=0 to foundlist3.Items.count-1 do
-        begin
-          if foundlist3.items[i].Selected then
-              temp := temp + symhandler.getNameFromAddress(StrToQWordEx('$'+foundlist3.Items[i].Caption)) + sLineBreak;
-        end;
-        clipboard.AsText := temp;
-     end;
+  temp:='';
+  if foundlist3.SelCount = 1 then
+    clipboard.AsText := symhandler.getNameFromAddress(StrToQWordEx('$'+foundlist3.Items[foundlist3.itemindex].Caption))
+  else
+  if foundlist3.SelCount > 1 then
+  begin
+    for i:=0 to foundlist3.Items.count-1 do
+    begin
+      if foundlist3.items[i].Selected then
+        temp := temp + symhandler.getNameFromAddress(StrToQWordEx('$'+foundlist3.Items[i].Caption)) + sLineBreak;
+    end;
+    clipboard.AsText := temp;
+  end;
 end;
 
 procedure TMainForm.EnableLCLClick(Sender: TObject);
@@ -6680,7 +6683,7 @@ begin
 
   miSetDropdownOptions.visible:=addresslist.selcount > 0;
 
-  miDBVMFindWhatWritesOrAccesses.visible:=isIntel and isDBVMCapable; //02/24/2019: Most cpu's support EPT now
+  miDBVMFindWhatWritesOrAccesses.visible:=miChangeColor.Visible and isIntel and isDBVMCapable; //02/24/2019: Most cpu's support EPT now
   sep2.Visible:=miDBVMFindWhatWritesOrAccesses.Visible;
 
 
@@ -9073,9 +9076,7 @@ begin
 
     if attachlist.Count > 0 then
     begin
-      //in case there is no processwatcher this timer will be used to enumare the processlist every 2 seconds
-
-
+      //in case there is no processwatcher this timer will be used to enumerate the processlist every 2 seconds
       if pl=nil then
       begin
         pl := TStringList.Create;

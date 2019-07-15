@@ -101,8 +101,8 @@ uses
   BetterDLLSearchPath, UnexpectedExceptionsHelper, frmExceptionRegionListUnit,
   frmExceptionIgnoreListUnit, frmcodefilterunit, CodeFilterCallOrAllDialog,
   frmBranchMapperUnit, frmSymbolEventTakingLongUnit, LuaCheckListBox,
-  textrender, diagramtypes, diagramlink, diagramblock, diagram, LuaDiagram,
-  LuaDiagramBlock, LuaDiagramLink;
+  textrender, diagramtypes, diagramblock, diagram, LuaDiagram,
+  LuaDiagramBlock, LuaDiagramLink, diagramlink, BreakpointTypeDef;
 
 {$R cheatengine.res}
 {$R manifest.res}  //lazarus now has this build in (but sucks as it explicitly turns of dpi aware)

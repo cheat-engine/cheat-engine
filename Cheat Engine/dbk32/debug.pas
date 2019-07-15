@@ -8,6 +8,7 @@ uses windows, sysutils, dbk32functions, classes, multicpuexecution;
 
 type TDebuggerstate=packed record
   threadid: uint64;
+  causedbydbvm: uint64;
 	eflags : uint64;
 	eax : uint64;
 	ebx : uint64;

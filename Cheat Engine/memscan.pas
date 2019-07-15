@@ -4008,6 +4008,9 @@ begin
     if variableType in [vtByte,vtWord,vtDWord,vtQword,vtAll,vtCustom] then
     begin
       //parse scanvalue1
+
+      scanvalue1:=trim(scanvalue1);
+      scanvalue2:=trim(scanvalue2);
       try
         if hexadecimal then
           value:=StrToQWord('$'+scanvalue1)

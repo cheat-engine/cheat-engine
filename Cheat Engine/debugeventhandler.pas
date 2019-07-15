@@ -9,7 +9,8 @@ interface
 uses
   jwawindows, Windows, Classes, SysUtils, syncobjs, GuiSafeCriticalSection,
   disassembler, cefuncproc, newkernelhandler,debuggertypedefinitions, frmTracerUnit,
-  DebuggerInterfaceAPIWrapper, LuaHandler, lua, lauxlib, lualib, win32proc, tracerIgnore;
+  DebuggerInterfaceAPIWrapper, LuaHandler, lua, lauxlib, lualib, win32proc,
+  tracerIgnore, BreakpointTypeDef;
 
 type
   TDebugEventHandler = class;
@@ -883,6 +884,18 @@ begin
   end
   else
   begin
+    //no known single step happening
+
+    if (CurrentDebuggerInterface is TKernelDebugInterface) then
+    begin
+      //could be dbvm
+      if TKernelDebugInterface(CurrentDebuggerInterface).EventCausedByDBVM then
+      begin
+        handlebreak(nil, dwContinueStatus);
+        exit;
+      end;
+    end;
+
     if (not (hasSetInt3Back {$ifdef cpu32} or hasSetInt1Back{$endif})) then
     begin
       OutputDebugString('Not handled');
@@ -1379,10 +1392,12 @@ begin
         context^.EFlags:=eflags_setTF(context^.EFlags,0); //not needed in windows, but let's clear it anyhow
         setContext;
 
-        result:=DispatchBreakpoint(breakAddress, -1, dwContinueStatus);
+        if isSingleStepping then
+          result:=SingleStep(dwContinueStatus)
+        else
+          result:=DispatchBreakpoint(breakAddress, -1, dwContinueStatus);
 
         //reprotect the memory
-
 
         for i:=0 to temporaryDisabledExceptionBreakpoints.Count-1 do
         begin
@@ -1394,9 +1409,8 @@ begin
           dec(bp^.referencecount); //decrease referencecount so they can be deleted
         end;
 
-
-
-
+        context^.EFlags:=eflags_setRF(context^.EFlags,0);
+        setContext;
 
         SuspendThread(handle);
         NtResumeProcess(processhandle);
