@@ -1438,7 +1438,7 @@ int ept_watch_activate(QWORD PhysicalAddress, int Size, int Type, DWORD Options,
   int result=0;
   sendstringf("+ ept_watch_activate(%6, %d, %d, %x, %d, %6)\n", PhysicalAddress, Size, Options, MaxEntryCount, outID);
 
-  if (MaxEntryCount==0)
+  if ((MaxEntryCount==0) && ((EPTO_INTERRUPT & Options)==0) )
   {
     sendstringf("MaxEntryCount=0\n");
     return 1;
