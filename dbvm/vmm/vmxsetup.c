@@ -1299,7 +1299,7 @@ void setupVMX(pcpuinfo currentcpuinfo)
 
       //vmwrite(vm_cr0_guest_host_mask,(UINT64)IA32_VMX_CR0_FIXED0 & 0xFFFFFFFF7FFFFFFEULL); //cr0 guest/host mask 1=guest owned
       vmwrite(vm_cr0_guest_host_mask,(UINT64)0xFFFFFFFF7FFFFFFEULL);
-      vmwrite(vm_cr4_guest_host_mask,(UINT64)~IA32_VMX_CR4_FIXED0); //same with cr4 but do guard the VMX bit
+      vmwrite(vm_cr4_guest_host_mask,(UINT64)IA32_VMX_CR4_FIXED0); //same with cr4 but do guard the VMX bit
     }
     else
     {
