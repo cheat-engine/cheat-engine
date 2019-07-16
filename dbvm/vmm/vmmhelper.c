@@ -118,7 +118,7 @@ char * getVMExitReassonString(void)
   {
 	  case 0: return "Exception or NMI";
 	  case 1: return "External interrupt";
-	  case 2: return "Tripple fault";
+	  case 2: return "Triple fault";
 	  case 3: return "INIT Signal";
 	  case 4: return "Start-up IPI (SIPI)";
 	  case 5: return "SMI interrupt";
@@ -132,8 +132,10 @@ char * getVMExitReassonString(void)
 	  case 17: return "VMREAD";
 	  case 18: return "VMCALL";
 	  case 19: return "VMCLEAR";
+	  case 20: return "VMLAUNCH";
 	  case 21: return "VMPTRLD";
 	  case 23: return "VMREAD";
+    case 24: return "VMRESUME";
 	  case 25: return "VMWRITE";
 	  case 27: return "VMXON"; //or: omg it's one bee
 	  case 28: return "Controlregister access";
@@ -145,8 +147,10 @@ char * getVMExitReassonString(void)
 	  case 37: return "Monitor trap flag";
 	  case vm_exit_ept_violation: return "EPT Violation";
 	  case vm_exit_ept_misconfiguration: return "EPT Misconfiguration";
+	  case 50: return "INVEPT";
 	  case 51: return "RDTSCP";
 	  case 52: return "Preemption timer";
+	  case 53: return "INVVPID";
 	  case 55: return "XSETBV";
 	  default :return "NYI";
   }
@@ -694,6 +698,9 @@ int vmexit_amd(pcpuinfo currentcpuinfo, UINT64 *registers, void *fxsave UNUSED)
   return result;
 }
 
+int lastexits[10];
+int lastexitsindex=0;
+
 #ifdef DEBUG
 
 QWORD lastbeat=0;
@@ -752,8 +759,7 @@ int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers, void *fxsave)
 int vmexit2(pcpuinfo currentcpuinfo, UINT64 *registers, void *fxsave)
 #else
 
-int lastexits[10];
-int lastexitsindex=0;
+
 
 int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers, void *fxsave)
 #endif
@@ -767,6 +773,25 @@ int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers, void *fxsave)
   lastexits[lastexitsindex]=vmread(vm_exit_reason);
   lastexitsindex++;
   lastexitsindex=lastexitsindex % 10;
+
+#ifdef CHECKAPICID
+  if (currentcpuinfo)
+  {
+    if (getAPICID()!=currentcpuinfo->apicid)
+    {
+      sendstring("FUCK\n");
+      while(1);
+    }
+
+
+  }
+  else
+  {
+    sendstring("WTFOMG\n");
+    while (1);
+  }
+#endif
+
 
 
   if (dbvm_plugin_exit_pre)
@@ -1050,9 +1075,13 @@ int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers, void *fxsave)
      //   skip=0;
      //   break;
 //
+      case vm_exit_vmlaunch:
+        verbosity=10;
+        skip=0;
+        break;
 
       case vm_exit_vmresume:
-        //skip=1;
+        skip=currentcpuinfo->cpunr!=0;
         break;
 
       case vm_exit_vmcall:
@@ -1062,7 +1091,11 @@ int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers, void *fxsave)
     	break;
 
       case vm_exit_vmread:
-        //skip=1;
+        skip=1;
+        break;
+
+      case vm_exit_vmwrite:
+        skip=1;
         break;
 
       case vm_exit_vmptrld:
@@ -1070,9 +1103,14 @@ int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers, void *fxsave)
 
         break;
 
-      case vm_exit_vmwrite:
-        //skip=1;
+      case vm_exit_invept:
+        skip=1;
         break;
+
+      case vm_exit_invvpid:
+        skip=1;
+        break;
+
 
       case vm_exit_cpuid:
         skip=2; //REALLY verbose
@@ -1177,6 +1215,7 @@ int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers, void *fxsave)
     	  VMRegisters* r=(VMRegisters*)registers;
         switch (r->rcx)
         {
+          case 0x10:
           case 0x176:
           case 0x175:
           case 0x174:
@@ -1195,6 +1234,7 @@ int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers, void *fxsave)
       	VMRegisters* r=(VMRegisters*)registers;
         switch (r->rcx)
         {
+          case 0x10:
           case 0x3a:
           case 0xc0000080:
             skip=1;
@@ -1206,6 +1246,10 @@ int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers, void *fxsave)
       }
 
       case vm_exit_xsetbv:
+        skip=1;
+        break;
+
+      case vm_exit_rdtsc:
         skip=1;
         break;
 

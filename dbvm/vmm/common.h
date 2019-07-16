@@ -12,11 +12,13 @@
 #if (defined SERIALPORT) && (SERIALPORT != 0)
   #define DEBUG //comment for release
   #define DEBUGINTHANDLER //comment for release
+  #define CHECKAPICID
 #endif
 
 #if (DISPLAYDEBUG==1)
   #define DEBUG
   #define DEBUGINTHANDLER
+  #define CHECKAPICID
 #endif
 
 #define ULTIMAPDEBUG //for debugging ultimap (I seem to have misplaced my serial port...)
@@ -80,6 +82,9 @@ typedef volatile struct _criticalSection
   volatile int locked;
   volatile int apicid;
   int lockcount;
+#ifdef DEBUG
+  int ignorelock;
+#endif
 } criticalSection, *PcriticalSection;
 
 

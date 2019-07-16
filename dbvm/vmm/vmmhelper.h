@@ -573,6 +573,7 @@ typedef volatile struct tcpuinfo
 
     int currenterrorcode; //if not 0, return this errorcode on vmread
     vmxhoststate originalhoststate;
+    vmxhoststate dbvmhoststate;
     int runningvmx; //1 if the previous call was a vmlaunch/vmresume and no vmexit happened yet
 
   } vmxdata;

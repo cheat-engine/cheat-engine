@@ -18,6 +18,7 @@ typedef struct _criticalSection
   int locked;
   int apicid;
   int lockcount;
+
 } criticalSection, *PcriticalSection;
 
 extern int debugzeromem;

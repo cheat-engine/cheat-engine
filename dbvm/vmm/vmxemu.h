@@ -17,9 +17,9 @@ typedef struct _instruction_info_vm
     struct {
       unsigned scaling    :2; //0-1 scaling
       unsigned reserved1  :1; //2
-      unsigned reg1       :4; //3-6
+      unsigned reg1       :4; //3-6  //invalid for INVEPT, INVPCID, and INVVPID
       unsigned addressSize:3; //7-9
-      unsigned usesreg    :1; //10
+      unsigned usesreg    :1; //10   //0 for INVEPT, INVPCID, and INVVPID
       unsigned undefined  :4; //11-14
       unsigned segmentReg :3; //15-17
       unsigned indexReg   :4; //18-21

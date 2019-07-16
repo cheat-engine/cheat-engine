@@ -4198,7 +4198,9 @@ int handleVMEvent(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, FXSAVE64 *f
 		case 50:
 		{
 		  sendstring("INVEPT\n\r");
-		  return 1;
+		  return handleIntelVMXInstruction(currentcpuinfo, vmregisters);
+
+		  //return 1;
 		}
 
 		case 51:
@@ -4239,14 +4241,22 @@ int handleVMEvent(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, FXSAVE64 *f
 		  return 0;
 		}
 
-		case 53:
+		case vm_exit_invvpid:
 		{
 		  sendstring("INVVPID\n\r");
+		  return handleIntelVMXInstruction(currentcpuinfo, vmregisters);
+
 #ifdef DEBUG
 		  while (1);
 #endif
-		  return 1;
+		 // return 1;
 		}
+
+    case vm_exit_invpcid:
+    {
+      while(1);
+      return 1;
+    }
 
 		case 54:
 		{

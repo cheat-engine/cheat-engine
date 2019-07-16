@@ -1026,6 +1026,11 @@ void mrewEndWrite(Pmultireadexclusivewritesychronizer MREW)
 
 void csEnter(PcriticalSection CS)
 {
+#ifdef DEBUG
+  if (CS->ignorelock)
+    return;
+#endif
+
   int apicid=getAPICID()+1; //+1 so it never returns 0
 
   if ((CS->locked) && (CS->apicid==apicid))
@@ -1046,6 +1051,11 @@ void csEnter(PcriticalSection CS)
 
 void csLeave(PcriticalSection CS)
 {
+#ifdef DEBUG
+  if (CS->ignorelock)
+    return;
+#endif
+
   int apicid=getAPICID()+1; //+1 so it never returns 0
 
 

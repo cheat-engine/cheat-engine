@@ -117,6 +117,11 @@ int cinthandler(unsigned long long *stack, int intnr) //todo: move to it's own s
   DWORD thisAPICID;
   int cpunr=0;
 
+#ifdef DEBUG
+  sendstringCS.ignorelock=1;
+  sendstringfCS.ignorelock=1;
+#endif
+
   if (readMSRSafe(IA32_FS_BASE_MSR)==0)
   {
     sendstringf("Invalid FS base during exception\n");
@@ -146,6 +151,18 @@ int cinthandler(unsigned long long *stack, int intnr) //todo: move to it's own s
 
   thisAPICID=getAPICID();
 
+#ifdef CHECKAPICID
+  if (thisAPICID!=cpuinfo->apicid)
+  {
+    sendstringCS.ignorelock=1;
+    sendstringfCS.ignorelock=1;
+    sendstringf("Interrupt %d. Invalid cpuinfo", intnr);
+    while(1);
+  }
+#endif
+
+
+
   sendstringCS.lockcount=0;
   sendstringCS.locked=0;
   sendstringfCS.lockcount=0;
@@ -154,7 +171,7 @@ int cinthandler(unsigned long long *stack, int intnr) //todo: move to it's own s
 
  // sendstringf("interrupt fired : %d (%x)\n\r", intnr,intnr);
 
-  sendstringf("cpunr=%d\n\r",cpunr);
+  sendstringf("cpunr=%d (apicid=%d)\n\r",cpunr, thisAPICID);
   sendstringf("intnr=%d\n\r",intnr);
   sendstringf("rsp=%x\n\r",getRSP());
   sendstringf("cr2=%6\n\r",getCR2());

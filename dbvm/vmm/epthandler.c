@@ -18,6 +18,7 @@
 #include "vmcall.h"
 #include "maps.h"
 #include "list.h"
+#include "vmeventhandler.h"
 
 QWORD EPTMapPhysicalMemory(pcpuinfo currentcpuinfo, QWORD physicalAddress, int forcesmallpage);
 
