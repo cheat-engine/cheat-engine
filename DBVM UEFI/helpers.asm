@@ -20,6 +20,58 @@ brk:
   ret
 
 
+global timeCheck
+timeCheck:
+  ;rdi is a pointer to an array of 5 qwords
+  sub rsp,64+8
+  mov [rsp+0],r8
+  mov [rsp+0x08],r9
+  mov [rsp+0x10],r10
+  mov [rsp+0x18],r11
+  mov [rsp+0x20],r12
+
+
+  rdtsc
+  mov r8d,edx
+  shl r8,32
+  or r8d,eax
+
+  rdtsc
+  mov r9d,edx
+  shl r9,32
+  or r9d,eax
+
+  rdtsc
+  mov r10d,edx
+  shl r10,32
+  or r10d,eax
+
+  rdtsc
+  mov r11d,edx
+  shl r11,32
+  or r11d,eax
+
+  rdtsc
+  mov r12d,edx
+  shl r12,32
+  mov r12d,eax
+
+  mov [rdi],r8
+  mov [rdi+0x8],r9
+  mov [rdi+0x10],r10
+  mov [rdi+0x18],r11
+  mov [rdi+0x20],r12
+
+
+  mov r8,[rsp+0]
+  mov r9,[rsp+0x08]
+  mov r10,[rsp+0x10]
+  mov r11,[rsp+0x18]
+  mov r12,[rsp+0x20]
+
+  add rsp,64+8
+  ret
+
 global readMSR
 readMSR:
   xchg ecx,edi
@@ -27,6 +79,25 @@ readMSR:
   shl rdx,32
   add rax,rdx
   xchg ecx,edi
+  ret
+
+
+global writeMSR
+writeMSR:
+  xchg ecx,edi
+  mov eax,esi
+  mov rdx,rsi
+  shr rdx,32
+
+  wrmsr ;write edx:eax into ecx
+
+  xchg ecx,edi
+  ret
+
+
+global setCR0
+setCR0:
+  mov cr0,rdi
   ret
 
 global getCR0
@@ -216,6 +287,16 @@ getR14:
 GLOBAL getR15
 getR15:
   mov rax,r15
+  ret
+
+GLOBAL getTSC
+getTSC:
+  xor rax,rax
+  xor rdx,rdx
+  rdtsc
+  shl rdx,32
+  or rax,rdx
+
   ret
 
 GLOBAL getAccessRights

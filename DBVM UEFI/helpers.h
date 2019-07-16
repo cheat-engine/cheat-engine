@@ -83,9 +83,11 @@ extern int testfunction(void);
 extern int brk(void);
 
 extern unsigned long long readMSR(int msr);
+extern void writeMSR(int msr, unsigned long long value);
 VOID *AllocatePersistentMemory(int size);
 
 EFI_STATUS AllocatePages(IN EFI_ALLOCATE_TYPE            Type,  IN EFI_MEMORY_TYPE              MemoryType,  IN UINTN                        NoPages,  OUT EFI_PHYSICAL_ADDRESS        *Memory  );
+extern void setCR0(UINT64 newcr0);
 extern UINT64 getCR0(void);
 extern UINT64 getCR2(void);
 extern UINT64 getCR3(void);
@@ -137,6 +139,9 @@ extern void disableInterrupts(void);
 extern void enableInterrupts(void);
 
 extern UINT64 dovmcall(void *vmcallinfo, unsigned int level1pass);
+extern UINT64 getTSC(void);
+
+extern void timeCheck(UINT64 *arr);
 
 extern UINTN cpucount;
 

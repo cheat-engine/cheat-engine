@@ -125,14 +125,33 @@ inline uint64_t rdmsr(uint32_t msr_id)
 
 EFIAPI VOID FunctionX (IN VOID *Buffer)
 {
-  Print(L"AP CPU %d: I am alive\n", (int)Buffer);
+  UINT64 t1,t2,t3, a;
+  t1=getTSC();
+  t2=readMSR(0x10);
+  t3=getTSC();
+  a=readMSR(0x3b);
+  Print(L"AP CPU %d:\n\t%ld - %ld - %ld\n\tAdjust:%ld\n", (int)Buffer, t1,t2,t3, a);
+
+  writeMSR(0x3b,-getTSC());
+
+  t1=getTSC();
+  t2=readMSR(0x10);
+  t3=getTSC();
+  a=readMSR(0x3b);
+
+  Print(L"AP CPU %d:\n\t%ld - %ld - %ld\n\tAdjust:%ld\n", (int)Buffer, t1,t2,t3, a);
 }
 
 
 EFIAPI VOID LaunchDBVMAP (IN VOID *Buffer)
 {
+  writeMSR(0x3b,0);
   Print(L"AP CPU %d entering DBVM mode\n", (int)Buffer);
+
+  Print(L"CR0 before = 0x%lx\n", getCR0());
   LaunchDBVM();
+  Print(L"CR0 after = 0x%lx\n", getCR0());
+
   Print(L"AP CPU %d is alive\n", (int)Buffer);
 }
 
@@ -152,23 +171,56 @@ efi_main (EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable)
   InitializeLib(ImageHandle, SystemTable);
   initFunctions(ImageHandle, SystemTable);
 
+  UINT64 tx[5];
+
+
 
   Print(L"efi_main at %lx\n",(UINT64)efi_main);
+  FunctionX(NULL);
+
+  tx[0]=0;
+  tx[1]=0;
+  tx[2]=0;
+  tx[3]=0;
+  tx[4]=0;
+
+  timeCheck(tx);
+
+  {
+    int i;
+
+    for (i=0; i<5; i++)
+    {
+      int delta;
+      if (i>0)
+      {
+        delta=tx[i]-tx[i-1];
+        Print(L"tx[%d]=%ld  (delta=%d)\n", i, tx[i], delta);
+      }
+      else
+        Print(L"tx[%d]=%ld\n", i, tx[i]);
+    }
+    int avg=(tx[4]-tx[0]) / 5;
+    Print(L"Avg time=%d\n", avg);
+  }
+
+
+
+  Input(L"Type something : ", something, 200);
+
+
   EFI_MP_SERVICES_PROTOCOL *MpProto=NULL;
-
   EFI_GUID z=EFI_MP_SERVICES_PROTOCOL_GUID;
-
 
   s=LocateProtocol(&z, NULL, (void *)&MpProto);
 
-
-  if(EFI_ERROR(s)){Print(L"Unable to locate the MpService procotol:%r\n",s);}
+  if(EFI_ERROR(s)){Print(L"Unable to locate the MpService protocol:%r\n",s);}
 
   Print(L"MpProto=%lx\n", (UINT64)MpProto);
 
   if (MpProto)
   {
-    UINTN NumProc, NumEnabled;
+    UINTN NumEnabled;
 
     //s=uefi_call_wrapper(MpProto->GetNumberOfProcessors,3,MpProto,&NumProc,&NumEnabled);
     s=MpProto->GetNumberOfProcessors(MpProto,&cpucount,&NumEnabled);
@@ -342,11 +394,24 @@ efi_main (EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable)
   if (StrnCmp(something,L"Q",2)!=0)
   {
     Print(L"launching DBVM\n");
+
+    writeMSR(0x3b,0);
+
+    setCR0(getCR0() | (1 << 5));
+    Print(L"WEEE\n");
+    Print(L"CR0 before = 0x%lx\n", getCR0());
     LaunchDBVM();
+    Print(L"CR0 after = 0x%lx\n", getCR0());
 
     Print(L"Main DBVM CPU loaded. Loading AP cpu\'s:");
 
+    Input(L"Type something : ", something, 200);
+
+
     int i;
+
+    //cpucount=1; //test while I fix something
+
     for (i=1; i<cpucount; i++)
     {
       s=MpProto->StartupThisAP(MpProto, LaunchDBVMAP,i,NULL,0,(void*)(uintptr_t)i,NULL);
