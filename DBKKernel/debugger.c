@@ -751,7 +751,7 @@ int interrupt1_handler(UINT_PTR *stackpointer, UINT_PTR *currentdebugregs)
 	UINT_PTR LBR_Stack[16]; //max 16
 //	DebugReg7 _dr7=*(DebugReg7 *)&currentdebugregs[5];
 
-	int causedbyDBVM = vmx_causedCurrentDebugBreak();
+	int causedbyDBVM = vmxusable && vmx_causedCurrentDebugBreak();
 
 	if (cpu_familyID==0x6)
 	{
