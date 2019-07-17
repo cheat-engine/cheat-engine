@@ -1271,9 +1271,9 @@ begin
       if ((readMSR(IA32_VMX_PROCBASED_CTLS2_MSR) shr 32) and (1 shl 1))<>0 then
         result:=true;
     end;
-  end
-  else
-    result:=result and isRunningDBVM;
+  end;
+  //else
+  //  result:=result and isRunningDBVM;
 end;
 
 {$endif}

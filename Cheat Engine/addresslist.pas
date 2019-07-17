@@ -1387,19 +1387,9 @@ procedure TAddresslist.sort(firstnode: ttreenode; compareRoutine: TListSortCompa
   sort from the first node till there is no more sibling
 }
 var
-  swapped: boolean;
-  lastnode: ttreenode;
   currentnode: ttreenode;
-  i,d: integer;
-
-  firstnodeindex: integer;
-
-  currentindex: integer;
-  sortedcount: integer;
-
+  i: integer;
   list: TList;
-
-
 begin
   treeview.BeginUpdate;
   try
@@ -1414,11 +1404,6 @@ begin
     end;
 
     //all the children have been sorted, so now sort myself
-
-    if direction then
-      d:=1
-    else
-      d:=-1;
 
     list:=tlist.create;
 

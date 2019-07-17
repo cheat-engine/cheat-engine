@@ -196,13 +196,24 @@ begin
 end;
 
 procedure TfrmModifyRegisters.cbUseDBVMChange(Sender: TObject);
-var pa: int64;
+var
+  pa: int64;
+  oldaz: boolean;
 begin
   if cbUseDBVM.checked then
   begin
     if GetPhysicalAddress(processhandle, pointer(address), PA) then
       edtPA.Text:=inttohex(pa,8);
   end;
+
+  label10.Visible:=cbUseDBVM.checked;
+  edtPA.visible:=cbUseDBVM.checked;
+
+  oldaz:=autosize;
+  autosize:=true;
+  DoAutoSize;
+
+  autosize:=oldaz;
 end;
 
 
