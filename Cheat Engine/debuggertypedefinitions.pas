@@ -171,6 +171,7 @@ resourcestring
   rsSoftwareBreakpoint = 'Software Breakpoint';
   rsHardwareBreakpoint = 'Hardware Breakpoint';
   rsExceptionBreakpoint = 'Exception Breakpoint';
+  rsDBVMBreakpoint = 'Exception Breakpoint';
   rsBreak = 'Break';
   rsChangeReg = 'Change reg';
   rsFindCode = 'Find code';
@@ -223,6 +224,7 @@ begin
     bpmInt3:           result:=rsSoftwareBreakpoint;
     bpmDebugRegister:  result:=rsHardwareBreakpoint;
     bpmException:      result:=rsExceptionBreakpoint;
+    bpmDBVM:           result:=rsDBVMBreakpoint;
     else
        result:='Error';
   end;
