@@ -336,7 +336,9 @@ begin
       changereginfo.newR14:=tempregedit.new_r14;
       changereginfo.newR15:=tempregedit.new_r15;
 
-      dbvm_cloak_changeregonbp(PA, changereginfo, address);
+      log('Calling dbvm_cloak_changeregonbp');
+      if dbvm_cloak_changeregonbp(PA, changereginfo, address)<>0 then
+        MessageDlg('Failure setting a DBVM ChangeRegOnBP breakpoint', mtError,[mbok],0);
 
       memorybrowser.disassemblerview.Update;
       modalresult:=mrok;

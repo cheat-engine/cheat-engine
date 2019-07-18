@@ -821,10 +821,12 @@ begin
       add('');
       add(addressstring+':');
       add('jmp newmem'+inttostr(injectnr)+'');
-      while codesize>5 do
+      if codesize>5 then
       begin
-        add('nop');
-        dec(codesize);
+        if codesize-5>1 then
+          add('nop '+inttohex(codesize-5,1))
+        else
+          add('nop');
       end;
 
       add('returnhere'+inttostr(injectnr)+':');
@@ -987,6 +989,7 @@ begin
   end;
 
   jumppart.Add('jmp '+inttohex(addressto,8));
+
 
   for i:=jumpsize to x-y-1 do
     jumppart.Add('nop');
@@ -2297,10 +2300,12 @@ begin
       add('');
       add('address'+nr+':');
       add('  jmp newmem'+nr+'');
-      while codesize>5 do
+      if codesize>5 then
       begin
-        add('  nop');
-        dec(codesize);
+        if codesize-5>1 then
+          add('  nop'+inttohex(codesize-5,1))
+        else
+          add('  nop');
       end;
 
       add('return'+nr+':');
@@ -2577,8 +2582,11 @@ begin
       add('');
       add(symbolNameWithOffset + ':');
       add('  jmp newmem' + nr + '');
-      for i := 6 to codesize do
+      if (codesize-5)>1 then
+        add('  nop '+inttohex(codesize-5,1))
+      else
         add('  nop');
+
       add('return' + nr + ':');
       add('registersymbol(' + symbolName + ')');
       add('');
