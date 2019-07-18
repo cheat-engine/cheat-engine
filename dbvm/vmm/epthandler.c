@@ -1253,6 +1253,12 @@ int ept_handleWatchEventAfterStep(pcpuinfo currentcpuinfo,  int ID)
   {
     if (int1redirection_idtbypass)
     {
+      regDR7 dr7;
+      //disable GD bit before int1
+      dr7.DR7=vmread(vm_guest_dr7);
+      dr7.GD=0;
+      vmwrite(vm_guest_dr7,dr7.DR7);
+
       emulateExceptionInterrupt(currentcpuinfo, NULL, int1redirection_idtbypass_cs, int1redirection_idtbypass_rip, 0, 0, 0);
     }
     else
