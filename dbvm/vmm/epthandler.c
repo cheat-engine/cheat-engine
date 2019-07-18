@@ -595,9 +595,9 @@ int ept_cloak_changeregonbp(QWORD physicalAddress, PCHANGEREGONBPINFO changeregi
 
   PCloakedPageData cloakdata;
   if (CloakedPagesMap)
-    cloakdata=map_getEntry(CloakedPagesMap, physicalAddress);
+    cloakdata=map_getEntry(CloakedPagesMap, physicalBase);
   else
-    cloakdata=addresslist_find(CloakedPagesList, physicalAddress);
+    cloakdata=addresslist_find(CloakedPagesList, physicalBase);
 
 
   if (cloakdata)
