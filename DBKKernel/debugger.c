@@ -1276,6 +1276,9 @@ int interrupt1_handler(UINT_PTR *stackpointer, UINT_PTR *currentdebugregs)
 				if ((dr6.B3) && (!(dr7.L3 || dr7.G3))) { DbgPrint("setting RF because of B3\n"); ((PEFLAGS)&stackpointer[si_eflags])->RF=1; return 1; }  //		...		DR3		...
 			}
 
+			if (causedbyDBVM)
+				return 1; //correct PA, bad PID, ignore BP
+
 			return 0; //still here, so let windows handle it
 
 		}
