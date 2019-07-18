@@ -1125,6 +1125,8 @@ begin
       3: bpm:=bpmDBVM;
     end;
 
+    preferedBreakpointMethod:=bpm;
+
     try
       DebuggerThread.SetOnExecuteBreakpoint(disassemblerview.SelectedAddress, bpm);
       disassemblerview.Update;
@@ -3940,7 +3942,7 @@ begin
   if miTogglebreakpoint.visible then
   begin
     if (debuggerthread=nil) or (debuggerthread.isBreakpoint(disassemblerview.SelectedAddress)=nil) then
-      miTogglebreakpoint.caption:=rsSetBreakpoint
+      miTogglebreakpoint.caption:=rsSetBreakpoint+' ('+breakpointMethodToString(preferedBreakpointMethod+')'
     else
       miTogglebreakpoint.caption:=rsRemoveBreakpoint;
   end;
