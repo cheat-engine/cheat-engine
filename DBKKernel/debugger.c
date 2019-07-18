@@ -63,6 +63,8 @@ volatile struct
 
 	volatile BYTE DECLSPEC_ALIGN(16) fxstate[512];
 
+	BOOL isSteppingTillClear; //when set the user has entered single stepping mode. This is a one thread only thing, so when it's active and another single step happens, discard it
+
 } DebuggerState;
 
 
@@ -1122,32 +1124,30 @@ int interrupt1_handler(UINT_PTR *stackpointer, UINT_PTR *currentdebugregs)
 			UINT_PTR originaldebugregs[6];
 			UINT64 oldDR7=getDR7();
 
-			if (CurrentProcessID==(HANDLE)(UINT_PTR)DebuggerState.debuggedProcessID)
+
+			if ((((PEFLAGS)&stackpointer[si_eflags])->IF==0) || (KeGetCurrentIrql() != PASSIVE_LEVEL))
 			{
-				
-
-				if (((PEFLAGS)&stackpointer[si_eflags])->IF==0)
+				//There's no way to display the state to the usermode part of CE
+				DbgPrint("int1 at unstoppable location");
+				if (!KernelCodeStepping)
 				{
-					if (!KernelCodeStepping)
-					{
-						((PEFLAGS)&stackpointer[si_eflags])->TF=0;
-						((PEFLAGS)&stackpointer[si_eflags])->RF=1;
-						debugger_dr6_setValue(0xffff0ff0);
-						return 1;
-					}
-
-					if (((PEFLAGS)&stackpointer[si_eflags])->IF==0) //no kernelcode stepping, but continue stepping until IF == 1
-					{
-						((PEFLAGS)&stackpointer[si_eflags])->TF=1;
-						((PEFLAGS)&stackpointer[si_eflags])->RF=1;
-						debugger_dr6_setValue(0xffff0ff0);
-						return 1;
-					}
-				
-					
+					((PEFLAGS)&stackpointer[si_eflags])->TF = 0; //just give up stepping
+					DbgPrint("Quitting this");
 				}
+				else
+				{
+					DbgPrint("Stepping until valid\n");
+					((PEFLAGS)&stackpointer[si_eflags])->TF = 1; //keep going until a valid state
+					DebuggerState.isSteppingTillClear = TRUE; //Just in case a taskswitch happens right after enabling passive level with interrupts
+				}
+
+				((PEFLAGS)&stackpointer[si_eflags])->RF=1;
+				debugger_dr6_setValue(0xffff0ff0);
+				return 1;
 			}
 
+			DebuggerState.isSteppingTillClear = FALSE;
+	
 
 
 			//DbgPrint("CurrentProcessID==(HANDLE)(UINT_PTR)DebuggerState.debuggedProcessID\n");
@@ -1270,14 +1270,23 @@ int interrupt1_handler(UINT_PTR *stackpointer, UINT_PTR *currentdebugregs)
 				DebugReg7 dr7=*(DebugReg7 *)&DebuggerState.FakedDebugRegisterState[cpunr()].DR7;
 
 				//real dr6		//fake dr7
-				if ((dr6.B0) && (!(dr7.L0 || dr7.G0))) { DbgPrint("setting RF because of B0\n"); ((PEFLAGS)&stackpointer[si_eflags])->RF=1; return 1; } //break caused by DR0 and not expected by the current process, ignore this bp and continue
-				if ((dr6.B1) && (!(dr7.L1 || dr7.G1))) { DbgPrint("setting RF because of B1\n"); ((PEFLAGS)&stackpointer[si_eflags])->RF=1; return 1; } //		...		DR1		...
-				if ((dr6.B2) && (!(dr7.L2 || dr7.G2))) { DbgPrint("setting RF because of B2\n"); ((PEFLAGS)&stackpointer[si_eflags])->RF=1; return 1; }  //		...		DR2		...
-				if ((dr6.B3) && (!(dr7.L3 || dr7.G3))) { DbgPrint("setting RF because of B3\n"); ((PEFLAGS)&stackpointer[si_eflags])->RF=1; return 1; }  //		...		DR3		...
+				if ((dr6.B0) && (!(dr7.L0 || dr7.G0))) { /*DbgPrint("setting RF because of B0\n");*/ ((PEFLAGS)&stackpointer[si_eflags])->RF=1; return 1; } //break caused by DR0 and not expected by the current process, ignore this bp and continue
+				if ((dr6.B1) && (!(dr7.L1 || dr7.G1))) { /*DbgPrint("setting RF because of B1\n");*/ ((PEFLAGS)&stackpointer[si_eflags])->RF=1; return 1; } //		...		DR1		...
+				if ((dr6.B2) && (!(dr7.L2 || dr7.G2))) { /*DbgPrint("setting RF because of B2\n");*/ ((PEFLAGS)&stackpointer[si_eflags])->RF=1; return 1; }  //		...		DR2		...
+				if ((dr6.B3) && (!(dr7.L3 || dr7.G3))) { /*DbgPrint("setting RF because of B3\n");*/ ((PEFLAGS)&stackpointer[si_eflags])->RF=1; return 1; }  //		...		DR3		...
 			}
 
 			if (causedbyDBVM)
 				return 1; //correct PA, bad PID, ignore BP
+
+			if (DebuggerState.isSteppingTillClear) //shouldn't happen often
+			{
+				DbgPrint("That thing that shouldn\'t happen often happened\n");
+				((PEFLAGS)&stackpointer[si_eflags])->TF = 0;
+
+				DebuggerState.isSteppingTillClear = 0;
+				return 1; //ignore
+			}
 
 			return 0; //still here, so let windows handle it
 
