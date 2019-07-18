@@ -1491,6 +1491,7 @@ var
   PhysicalBase: qword;
   i: integer;
 begin
+  log('dbvm_cloak_changeregonbp');
   vmcallinfo.structsize:=sizeof(vmcallinfo);
   vmcallinfo.level2pass:=vmx_password2;
   vmcallinfo.command:=VMCALL_CLOAK_CHANGEREGONBP;
@@ -1529,7 +1530,9 @@ begin
 
     if (GetCurrentThreadId=MainThreadID) and (frmbreakPointList<>nil) and (frmbreakPointList.visible) then
       frmbreakPointList.updatebplist;
-  end;
+  end
+  else
+    log('VMCALL_CLOAK_CHANGEREGONBP failed. it returned '+inttostr(result));
 end;
 
 function dbvm_cloak_removechangeregonbp(PhysicalAddress: QWORD): integer;

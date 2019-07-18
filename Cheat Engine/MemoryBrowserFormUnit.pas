@@ -1159,11 +1159,7 @@ procedure TMemoryBrowser.miDBVMDisableCloakClick(Sender: TObject);
 var PA,VA: Qword;
 begin
   if isRunningDBVM and hasEPTSupport and (hasCloakedRegionInRange(disassemblerview.SelectedAddress,1,VA,PA)) then
-  begin
-    VA:=disassemblerview.SelectedAddress;
-    if GetPhysicalAddress(processhandle,pointer(VA),int64(PA)) then
-      dbvm_cloak_deactivate(PA);
-  end;
+    dbvm_cloak_deactivate(PA);
 end;
 
 procedure TMemoryBrowser.miHideToolbarClick(Sender: TObject);
