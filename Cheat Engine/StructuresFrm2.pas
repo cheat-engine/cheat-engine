@@ -1598,7 +1598,7 @@ begin
         begin
           i:=4096-((baseaddress+o) and $fff) ;
 
-          i:=min(i,bytesize-o);
+          i:=min(i,bytesize-integer(o));
 
           readprocessmemory(processhandle,pointer(baseaddress+o),@buf[o],i,x);
           inc(o,x);

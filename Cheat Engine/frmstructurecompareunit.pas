@@ -1992,7 +1992,7 @@ begin
 
 
 
-  lvResults.items.count:=min(1000000, pointerfilereader.count);
+  lvResults.items.count:=dword(min(dword(1000000), dword(pointerfilereader.count)));
   lblInfo.caption:=inttostr(pointerfilereader.count);
 end;
 

@@ -2082,5 +2082,8 @@ begin
 
 end;
 
+initialization
+  outputdebugstring('arm disassembler');
+
 end.
 

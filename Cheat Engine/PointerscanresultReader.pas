@@ -46,7 +46,7 @@ type
     end;
 
     cacheStart: integer;
-    cacheSize: integer;
+    cacheSize: size_t;
     cache: pointer;
 
     cacheStart2: integer;
@@ -315,7 +315,7 @@ begin
         offset:=wantedoffset;
 
 
-      cachesize:=min(files[j].filesize-offset, systeminfo.dwAllocationGranularity*32);    //normally 2MB
+      cachesize:=min(files[j].filesize-offset, qword(systeminfo.dwAllocationGranularity*32));    //normally 2MB
       if cache2<>nil then
         unmapviewoffile(cache2);
 

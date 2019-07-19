@@ -779,7 +779,7 @@ begin
       begin
         names:=TStringList.create;
         try
-          reg.GetValueNames(names);
+          reg.GetValueNames(names); //fpc 3.2.0 can raise an exception here as well
           names.sort;
           for i:=0 to names.count-1 do
           begin
@@ -804,9 +804,9 @@ begin
             except
             end;
           end;
-        finally
-          names.free;
+        except
         end;
+        freeandnil(names);
       end;
       UpdateToolsMenu;
 

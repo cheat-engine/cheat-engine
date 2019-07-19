@@ -32,7 +32,7 @@ procedure getRegisterListFromParams(params: string; registerlist: Tstrings);
 
 implementation
 
-uses symbolhandler, assemblerunit;
+uses windows, symbolhandler, assemblerunit;
 
 resourcestring
    rsInvalidInteger = 'Invalid integer';
@@ -534,6 +534,10 @@ function HexStrToInt64(const S: string): Int64;
 begin
   result:=StrToQWordEx(ConvertHexStrToRealStr(s));
 end;
+
+initialization
+  outputdebugstring('parsers');
+
 
 end.
 

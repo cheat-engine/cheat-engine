@@ -933,7 +933,7 @@ begin
     changedlist.Column[1].Width:=max(changedlist.Column[1].Width, canvas.TextWidth('9999999.999'));
     changedlist.Column[2].Width:=max(changedlist.Column[2].Width, canvas.TextWidth('999999'));
 
-    ClientWidth:=max(clientwidth, changedlist.Column[0].Width+changedlist.Column[1].Width+changedlist.Column[2].Width+20);
+    ClientWidth:=max(clientwidth, integer(changedlist.Column[0].Width+changedlist.Column[1].Width+changedlist.Column[2].Width+20));
     hassetsizes:=true;
   end;
 end;

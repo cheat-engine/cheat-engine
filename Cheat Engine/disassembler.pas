@@ -1520,7 +1520,7 @@ begin
   begin
     p1:=0;
     repeat
-      i:=min(size, 4096-(address and $fff));
+      i:=min(size, integer(4096-(address and $fff)));
       actualread:=0;
       ReadProcessMemoryWithCloakSupport(processhandle,pointer(address),destination,i,actualread);
 

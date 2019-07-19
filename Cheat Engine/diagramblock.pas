@@ -868,6 +868,9 @@ function TDiagramBlock.getConnectPosition(side: TDiagramBlockSide; position: int
 var
   hc,vc: integer;
 begin
+  result.x:=0;
+  result.y:=0;
+
   case side of
     dbsTopLeft: exit(point(x,y));
     dbsTop:

@@ -175,7 +175,7 @@ end;
 
 procedure TStringScan.execute;
 var buf: PByteArray;
-  maxbuf: integer;
+  maxbuf: uint64;
   address: ptruint;
 
   total: ptruint;
@@ -215,7 +215,7 @@ begin
         if maxbuf=0 then
           raise exception.create(rsNoReadableMemoryFound);
 
-        maxbuf:=min(maxbuf, 512*1024);
+        maxbuf:=min(maxbuf, qword(512*1024));
 
         getmem(buf, maxbuf);
 

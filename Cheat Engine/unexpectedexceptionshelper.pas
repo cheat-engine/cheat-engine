@@ -215,14 +215,19 @@ begin
     if reg.OpenKey('\Software\Cheat Engine\Ignored Exceptions\',false) then
     begin
       l:=tstringlist.create;
-      reg.GetValueNames(l);
 
-      for i:=0 to l.count-1 do
-      begin
-        try
-          AddIgnoredExceptionCode(strtoint('0x'+l[i]));
-        except
+      try
+        reg.GetValueNames(l);
+
+        for i:=0 to l.count-1 do
+        begin
+          try
+            AddIgnoredExceptionCode(strtoint('0x'+l[i]));
+          except
+          end;
         end;
+      except
+        OutputDebugString('No exceptioncode ignore list');
       end;
 
     end;

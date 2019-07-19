@@ -92,6 +92,9 @@ initialization
         r.WriteBool('DPI Aware', true);
       end;
     end;
+
+    r.free;
+    r:=nil;
   end;
 
 
