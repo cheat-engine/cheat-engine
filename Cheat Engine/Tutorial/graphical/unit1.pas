@@ -51,7 +51,7 @@ implementation
 
 { TForm1 }
 
-uses registry, md5;
+uses registry, md5, frmHelpUnit;
 
 type
   TIntegrityCheckThread=class(tthread)
@@ -312,6 +312,8 @@ begin
   caption:='Step 3';
   currentgame:=TGame3.create(p);
   currentgame.OnWin:=@finishedTutorial;    //todo someday: rpg kinda game, followed by an online 'game' (chatgame more likely)
+
+  frmHelp.Attach(self,'G3');
 end;
 
 procedure TForm1.startgame2(sender: TObject);
@@ -322,6 +324,7 @@ begin
   caption:='Step 2';
   currentgame:=TGame2.create(p);
   currentgame.OnWin:=@startgame3;
+  frmHelp.Attach(self,'G2');
 end;
 
 procedure TForm1.GameSelect(sender: TObject);
@@ -379,6 +382,7 @@ begin
   begin
     currentGame:=TGame1.create(p);
     currentGame.OnWin:=@startGame2;
+    frmHelp.Attach(self,'G1');
   end;
 
   p.AddKeyEventHandler(@keyhandler);

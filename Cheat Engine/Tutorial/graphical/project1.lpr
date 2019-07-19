@@ -10,8 +10,9 @@ uses
   Forms, sysutils, fpvectorialpkg, Unit1, gamepanel, renderobject, player,
   gameobject, animationobject, guiobject, scoreboard, guitextobject, target,
   bullet, guidialog, globals, staticguiobject, GameTutorial1, GameBase,
-  GameTutorial2, PlayerWithHealth, gameobjectwithhealth, particle, 
-  movingparticle, gametutorial3, gamecube, platformenemy, LevelSelect
+  GameTutorial2, PlayerWithHealth, gameobjectwithhealth, particle,
+  movingparticle, gametutorial3, gamecube, platformenemy, LevelSelect,
+  frmHelpUnit
   { you can add units after this };
 
 {$R *.res}
@@ -23,6 +24,7 @@ begin
 
   //assetsfolder:=extractfiledir(application.ExeName)+'\badassets\';
   Application.CreateForm(TForm1, Form1);
+  Application.CreateForm(TfrmHelp, frmHelp);
   Application.Run;
 end.
 

@@ -40,7 +40,7 @@ var
 
 implementation
 
-uses Unit3;
+uses Unit3, frmHelpUnit;
 
 resourcestring
   rsAwYouReDeathLetMeReviveYou = 'Aw, you''re dead! Let me revive you';
@@ -135,6 +135,7 @@ begin
   health:=100;
 
   font.size:=12;
+  frmHelp.attach(self,'2');
 end;
 
 procedure TForm2.Timer1Timer(Sender: TObject);

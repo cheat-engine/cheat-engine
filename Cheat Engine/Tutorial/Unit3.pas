@@ -38,7 +38,7 @@ var
 
 implementation
 
-uses Unit4, Unit5;
+uses Unit4, Unit5, frmHelpUnit;
 
 resourcestring
   rsStep3UnknownInitialValuePW = 'Step 3: Unknown initial value (PW=';
@@ -87,6 +87,7 @@ begin
   memo1.Lines.Insert(0, rsStep3UnknownInitialValuePW+inttostr(419482)+')');
   memo1.SelStart:=0;
   font.size:=12;
+  frmHelp.attach(self,'3');
 end;
 
 procedure TForm3.Button2Click(Sender: TObject);

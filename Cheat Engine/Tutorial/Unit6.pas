@@ -33,7 +33,7 @@ var
 
 implementation
 
-uses Unit4, Unit7;
+uses Unit4, Unit7, frmHelpUnit;
 
 resourcestring
   rsWellDoneYouScrewedUpTheTutorial = 'Well done, you screwed up the tutorial!!!!';
@@ -115,6 +115,7 @@ begin
   memo1.Lines.Insert(0, Format(rsStep5CodeFinderPW, [inttostr(888899)]));
   memo1.SelStart:=0;
   font.size:=12;
+  frmHelp.attach(self,'5');
 end;
 
 procedure TForm6.FormClose(Sender: TObject; var Action: TCloseAction);

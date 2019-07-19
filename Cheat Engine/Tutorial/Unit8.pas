@@ -33,7 +33,7 @@ var
 
 implementation
 
-uses Unit4, Unit9;
+uses Unit4, Unit9, frmHelpUnit;
 
 resourcestring
   rsHealth = 'Health';
@@ -110,6 +110,7 @@ begin
   memo1.Lines.Insert(0, Format(rsStep7CodeInjectionPW, [inttostr(0)+inttostr(13370)]));
   memo1.SelStart:=0;
   font.size:=12;
+  frmHelp.attach(self,'7');
 end;
 
 procedure TForm8.Button2Click(Sender: TObject);

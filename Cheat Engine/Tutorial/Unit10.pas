@@ -75,7 +75,7 @@ var
 
 implementation
 
-uses Unit4;
+uses Unit4, frmHelpUnit;
 
 resourcestring
   rsThisPlayerIsAlreadyDeadRestartTheGame = 'This player is already dead. Restart the game';
@@ -173,6 +173,9 @@ begin
   hide;
   form4:=tform4.create(self);
   form4.show;
+
+  frmHelp.free;
+  frmHelp:=nil;
 end;
 
 procedure TForm10.Button1Click(Sender: TObject);
@@ -301,6 +304,7 @@ begin
 
   button3.Click;
   font.size:=12;
+  frmHelp.attach(self,'9');
 end;
 
 procedure TForm10.SpeedButton1Click(Sender: TObject);

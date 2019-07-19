@@ -37,7 +37,7 @@ var
 
 implementation
 
-uses Unit4, Unit8;
+uses Unit4, Unit8, frmHelpUnit;
 
 resourcestring
   rsWellDoneYouScrewedUpTheTutorial = 'Well done, you screwed up the tutorial!!!!';
@@ -205,6 +205,7 @@ begin
   memo1.Lines.Insert(0, Format(rsStep6PointersPW, [inttostr(0)+inttostr(98712)]));
   memo1.SelStart:=0;
   font.size:=12;
+  frmHelp.attach(self,'6');
 end;
 
 

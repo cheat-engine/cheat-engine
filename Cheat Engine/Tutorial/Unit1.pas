@@ -37,13 +37,13 @@ var
 
 implementation
 
-uses Unit2, Unit3, Unit4, Unit5, Unit6, Unit7, Unit8, Unit9, Unit10, cetranslator;
+uses Unit2, Unit3, Unit4, Unit5, Unit6, Unit7, Unit8, Unit9, Unit10, cetranslator, frmHelpUnit;
 
 resourcestring
   rsFirstStepTooHardBetterGiveUpNow =
     'First step too hard? Go to forum.cheatengine.org, then click on "Tutorials" for helpful guides!';
 
-  rsTutorial1='Welcome to the Cheat Engine Tutorial (v3.3)'+#13#10+
+  rsTutorial1='Welcome to the Cheat Engine Tutorial (v3.4)'+#13#10+
               ''+#13#10+
               'This tutorial will teach you the basics of cheating in video games. It will also show you foundational aspects of using Cheat Engine (or CE for short). Follow the steps below to get started.'+#13#10+
               ''+#13#10+
@@ -61,6 +61,7 @@ resourcestring
 
 procedure TForm1.Button1Click(Sender: TObject);
 begin
+
   self.hide;
 
   form2:=Tform2.create(self);
@@ -85,6 +86,8 @@ begin
 
   if memo1.height<th*10 then
     height:=height+(th*10-memo1.height);
+
+
 end;
 
 procedure TForm1.Timer1Timer(Sender: TObject);
@@ -136,6 +139,7 @@ begin
 
   font.size:=12;
 
+  //frmHelp:=TfrmHelp.Create(application);
 end;
 
 procedure TForm1.btnOKClick(Sender: TObject);
