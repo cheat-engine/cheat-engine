@@ -3008,8 +3008,9 @@ begin
 end;
 
 procedure TMainForm.Copyselectedaddresses1Click(Sender: TObject);
-var    i: qword;
-    temp: string;
+var
+  i: ptruint;
+  temp: string;
 begin
   temp:='';
   if foundlist3.SelCount = 1 then

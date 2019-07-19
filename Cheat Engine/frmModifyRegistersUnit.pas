@@ -296,6 +296,7 @@ begin
       changereginfo.Flags.changeRBP:=ifthen(tempregedit.change_ebp,1,0);
       changereginfo.Flags.changeRSP:=ifthen(tempregedit.change_esp,1,0);
       changereginfo.Flags.changeRIP:=ifthen(tempregedit.change_eip,1,0);
+{$ifdef cpu64}
       changereginfo.Flags.changeR8:=ifthen(tempregedit.change_r8,1,0);
       changereginfo.Flags.changeR9:=ifthen(tempregedit.change_r9,1,0);
       changereginfo.Flags.changeR10:=ifthen(tempregedit.change_r10,1,0);
@@ -304,6 +305,16 @@ begin
       changereginfo.Flags.changeR13:=ifthen(tempregedit.change_r13,1,0);
       changereginfo.Flags.changeR14:=ifthen(tempregedit.change_r14,1,0);
       changereginfo.Flags.changeR15:=ifthen(tempregedit.change_r15,1,0);
+{$else}
+      changereginfo.Flags.changeR8:=0;
+      changereginfo.Flags.changeR9:=0;
+      changereginfo.Flags.changeR10:=0;
+      changereginfo.Flags.changeR11:=0;
+      changereginfo.Flags.changeR12:=0;
+      changereginfo.Flags.changeR13:=0;
+      changereginfo.Flags.changeR14:=0;
+      changereginfo.Flags.changeR15:=0;
+{$endif}
       changereginfo.Flags.changeCF:=ifthen(tempregedit.change_cf,1,0);
       changereginfo.Flags.changePF:=ifthen(tempregedit.change_pf,1,0);
       changereginfo.Flags.changeAF:=ifthen(tempregedit.change_af,1,0);
@@ -327,6 +338,7 @@ begin
       changereginfo.newRBP:=tempregedit.new_ebp;
       changereginfo.newRSP:=tempregedit.new_esp;
       changereginfo.newRIP:=tempregedit.new_eip;
+{$ifdef cpu64}
       changereginfo.newR8:=tempregedit.new_r8;
       changereginfo.newR9:=tempregedit.new_r9;
       changereginfo.newR10:=tempregedit.new_r10;
@@ -335,6 +347,7 @@ begin
       changereginfo.newR13:=tempregedit.new_r13;
       changereginfo.newR14:=tempregedit.new_r14;
       changereginfo.newR15:=tempregedit.new_r15;
+{$endif}
 
       log('Calling dbvm_cloak_changeregonbp');
       if dbvm_cloak_changeregonbp(PA, changereginfo, address)<>0 then

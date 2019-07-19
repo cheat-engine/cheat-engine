@@ -752,7 +752,8 @@ properties:
   Parent: WinControl - The owner of this control
   PopupMenu: PopupMenu - The popup menu that shows when rightclicking the control
   Font: Font - The font class associated with the control
-  OnClick: function - The function to call when a button is pressed
+  OnClick: function(sender) - The function to call when a button is pressed
+  OnChangeBounds:function(sender) - Called when the size or position of the control changes
 
 methods:
   getLeft()
@@ -1928,7 +1929,7 @@ properties
   Count: Number of children
   Child[index] : Array to access the child records
   [index] = Child[index]
-  Parent: MemoryRecord - self explanatory
+  Parent: MemoryRecord - The parent of the memory record (RO)
 
   HotkeyCount: integer - Number of hotkeys attached to this memory record
   Hotkey[] : Array to index the hotkeys

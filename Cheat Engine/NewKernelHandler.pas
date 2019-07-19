@@ -1138,6 +1138,11 @@ begin
   result:=false;
 end;
 
+function hasEPTSupport: boolean;
+begin
+  result:=false;
+end;
+
 {$else}
 function isIntel: boolean;
 var a,b,c,d: dword;
