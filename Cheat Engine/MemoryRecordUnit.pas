@@ -276,6 +276,8 @@ type
     function hasSelectedParent: boolean;
     function hasParent: boolean;
 
+    procedure appendToEntry(memrec: TMemoryrecord);
+
 
     function isBeingEdited: boolean;
     procedure beginEdit;
@@ -372,7 +374,7 @@ type
     property DropDownCount: integer read getDropDownCount;
     property DropDownValue[index:integer]: string read getDropDownValue;
     property DropDownDescription[index:integer]: string read getDropDownDescription;
-    property Parent: TMemoryRecord read getParent;
+    property Parent: TMemoryRecord read getParent write appendToEntry;
     property OnActivate: TMemoryRecordActivateEvent read fOnActivate write fOnActivate;
     property OnDeactivate: TMemoryRecordActivateEvent read fOnDeActivate write fOndeactivate;
     property OnDestroy: TNotifyEvent read fOnDestroy write fOnDestroy;
@@ -1531,6 +1533,14 @@ begin
 
 
 end;
+
+
+procedure TMemoryRecord.appendToEntry(memrec: TMemoryrecord);
+begin
+  treenode.MoveTo(memrec.treenode, naAddChild);
+  memrec.SetVisibleChildrenState;
+end;
+
 
 function TMemoryRecord.getParent: TMemoryRecord;
 {$IFNDEF UNIX}

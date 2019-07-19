@@ -171,7 +171,7 @@ resourcestring
   rsSoftwareBreakpoint = 'Software Breakpoint';
   rsHardwareBreakpoint = 'Hardware Breakpoint';
   rsExceptionBreakpoint = 'Exception Breakpoint';
-  rsDBVMBreakpoint = 'Exception Breakpoint';
+  rsDBVMBreakpoint = 'DBVM Breakpoint';
   rsBreak = 'Break';
   rsChangeReg = 'Change reg';
   rsFindCode = 'Find code';

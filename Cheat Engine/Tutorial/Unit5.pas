@@ -43,7 +43,7 @@ var
 
 implementation
 
-uses Unit4, Unit6;
+uses Unit4, Unit6, frmHelpUnit;
 
 resourcestring
   rsStep4FloatingPointsPW = 'Step 4: Floating points (PW=';
@@ -101,6 +101,7 @@ begin
   memo1.Lines.Insert(0, rsStep4FloatingPointsPW+inttostr(890124)+')');
   memo1.SelStart:=0;
   font.size:=12;
+  frmHelp.attach(self,'4');
 end;
 
 procedure TForm5.Button1Click(Sender: TObject);

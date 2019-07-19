@@ -3942,7 +3942,7 @@ begin
   if miTogglebreakpoint.visible then
   begin
     if (debuggerthread=nil) or (debuggerthread.isBreakpoint(disassemblerview.SelectedAddress)=nil) then
-      miTogglebreakpoint.caption:=rsSetBreakpoint+' ('+breakpointMethodToString(preferedBreakpointMethod+')'
+      miTogglebreakpoint.caption:=rsSetBreakpoint+' ('+breakpointMethodToString(preferedBreakpointMethod)+')'
     else
       miTogglebreakpoint.caption:=rsRemoveBreakpoint;
   end;
