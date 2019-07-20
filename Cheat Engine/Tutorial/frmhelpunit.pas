@@ -81,7 +81,7 @@ end;
 
 procedure TfrmHelp.Image1Click(Sender: TObject);
 begin
-  ShellExecute(0, PChar('open'), PChar('https://cheatengine.org/tutorial.php?tutorial='+ftutorialtag),PChar(''), PChar(''), SW_MAXIMIZE);
+  ShellExecute(0, PChar('open'), PChar('https://cheatengine.org/tutorial.php?tutorial='+ftutorialtag),PChar(''), PChar(''), SW_SHOW);
 end;
 
 initialization
