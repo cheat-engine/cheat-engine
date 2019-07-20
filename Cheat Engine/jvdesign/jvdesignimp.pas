@@ -3,7 +3,7 @@ unit JvDesignImp;
 {$mode objfpc}{$H+}
 
 {$warn 3057 off}
-
+{$WARN 2005 off : Comment level $1 found}
 interface
 
 uses

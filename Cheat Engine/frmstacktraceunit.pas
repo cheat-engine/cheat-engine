@@ -84,6 +84,18 @@ var
   exceptionlists: array of TExceptionList;
   exceptionlistPID: dword;
 
+procedure cleanupExceptionList;
+var i: integer;
+begin
+  if (length(exceptionlists)>0) then
+  begin
+    for i:=0 to length(exceptionlists)-1 do
+      exceptionlists[i].free;
+
+    setlength(exceptionlists,0);
+  end;
+end;
+
 function function_table_access_routine64(hProcess:THANDLE; AddrBase:dword64):pointer;stdcall;
 var
   mb: qword;
@@ -97,7 +109,7 @@ begin
 
   if symhandler.getmodulebyaddress(AddrBase,mi) then
   begin
-    //parse the
+    //find the module
     for i:=0 to length(exceptionlists)-1 do
     begin
       if exceptionlists[i].ModuleBase=mi.baseaddress then
@@ -107,8 +119,7 @@ begin
       end;
     end;
 
-
-    if el=nil then
+    if el=nil then //not cached yet
     begin
       el:=peinfo_getExceptionList(mi.baseaddress);
       if el<>nil then
@@ -116,6 +127,7 @@ begin
         setlength(exceptionlists,length(exceptionlists)+1);
         exceptionlists[length(exceptionlists)-1]:=el;
       end;
+
     end;
 
     if el<>nil then
@@ -125,9 +137,6 @@ end;
 
 
 procedure TfrmStacktrace.stacktrace(threadhandle:thandle;context:_context);
-{
-}
-
 var
     cxt:_context;
     stackframe: TSTACKFRAME_EX;
@@ -144,12 +153,9 @@ var
 begin
 
   if (exceptionlistPID<>processid) and (length(exceptionlists)>0) then
-  begin
-    for i:=0 to length(exceptionlists)-1 do
-      exceptionlists[i].free;
+    cleanupExceptionList;
 
-    setlength(exceptionlists,0);
-  end;
+  exceptionlistPID:=processid;
 
   getmem(cp,sizeof(_context)+4096);
   try
@@ -301,6 +307,9 @@ end;
 initialization
   {$i frmstacktraceunit.lrs}
 
+
+finalization
+  cleanupExceptionList;
 
 
 end.

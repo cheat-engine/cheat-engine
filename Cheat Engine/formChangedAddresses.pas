@@ -143,6 +143,8 @@ resourcestring
     +'you selected';
   rsCodeAccessesAddresses = 'The following %d addresses have been accessed by '
     +'the code you selected';
+  rsValueChange = 'Value Change';
+  rsGiveTheNewValue = 'Give the new value';
 
 
 
@@ -701,11 +703,12 @@ var
   vartype: TVariableType;
   ct: TCustomType;
 begin
+  value:='';
   if changedlist.ItemIndex<>-1 then
-  begin
     value:=changedlist.Items[changedlist.ItemIndex].SubItems[0];
-    if InputQuery('Value Change','Give the new value',value)=false then exit;
-  end;
+
+  if InputQuery(rsValueChange, rsGiveTheNewValue, value)=false then exit;
+
 
   for i:=0 to changedlist.Items.Count-1 do
   begin
@@ -982,6 +985,7 @@ var i: integer;
     startindex: integer;
     stopindex: integer;
 begin
+  s:='';
   if changedlist.Items.Count>0 then
   begin
     if Changedlist.TopItem=nil then exit;

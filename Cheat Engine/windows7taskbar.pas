@@ -1,7 +1,7 @@
 unit windows7taskbar;
 
 {$MODE Delphi}
-
+{$WARN 5044 off : Symbol "$1" is not portable}   //Windows 7 taskbar, says enough
 interface
 
 //credits to http://alex.ciobanu.org/?p=215

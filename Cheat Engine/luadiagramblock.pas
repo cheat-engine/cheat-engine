@@ -50,11 +50,14 @@ var
 begin
   b1:=luaclass_getClassObject(L);
   if lua_Gettop(L)>=1 then
+  begin
     b2:=lua_ToCEUserData(L,1);
-
-  r:=b1.OverlapsWith(b2);
-  lua_pushboolean(L, r);
-  result:=1;
+    r:=b1.OverlapsWith(b2);
+    lua_pushboolean(L, r);
+    result:=1;
+  end
+  else
+    result:=0;
 end;
 
 function diagramBlock_getLinks(L: PLua_state): integer; cdecl;

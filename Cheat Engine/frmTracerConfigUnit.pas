@@ -56,6 +56,8 @@ uses NewKernelHandler, DebugHelper, debuggerinterface, DebuggerInterfaceAPIWrapp
 
 function TfrmTracerConfig.getBreakpointmethod: TBreakpointmethod;
 begin
+  result:=bpmDebugRegister;
+
   if rbBPHardware.checked then
     result:=bpmDebugRegister
   else

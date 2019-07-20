@@ -3932,10 +3932,10 @@ begin
   miConditionalBreak.visible:=miConditionalBreak.enabled;
 
   miDBVMActivateCloak.visible:=isRunningDBVM and hasEPTSupport and (not hasCloakedRegionInRange(disassemblerview.SelectedAddress, 1, VA,PA));
-  miDBVMActivateCloak.enabled:=miDBVMActivateCloak.visible;
+  miDBVMActivateCloak.enabled:=miDBVMActivateCloak.visible and DBKLoaded;
 
   miDBVMDisableCloak.visible:=isRunningDBVM and hasEPTSupport and (hasCloakedRegionInRange(disassemblerview.SelectedAddress, 1, VA,PA));
-  miDBVMDisableCloak.enabled:=miDBVMDisableCloak.visible;
+  miDBVMDisableCloak.enabled:=miDBVMDisableCloak.visible and DBKLoaded;
 
   miTogglebreakpoint.visible:=(not ischild);
 
@@ -3981,7 +3981,7 @@ begin
   miAddToTheCodelist.visible:=not inadvancedoptions;
 
   DBVMFindoutwhataddressesthisinstructionaccesses.visible:=isIntel and isDBVMCapable;
-
+  DBVMFindoutwhataddressesthisinstructionaccesses.enabled:=DBVMFindoutwhataddressesthisinstructionaccesses.visible and DBKLoaded;
 
   //
   miSetBreakpointHW.enabled:=(CurrentDebuggerInterface=nil) or (dbcHardwareBreakpoint in CurrentDebuggerInterface.DebuggerCapabilities);
@@ -3990,6 +3990,8 @@ begin
   miSetBreakpointDBVMExec.enabled:=((CurrentDebuggerInterface=nil) and (formsettings.cbKDebug.Checked)) or ((CurrentDebuggerInterface<>nil) and (dbcDBVMBreakpoint in CurrentDebuggerInterface.DebuggerCapabilities));
 
   miSetBreakpointDBVMExec.visible:=hasEPTSupport;
+
+
 end;
 
 procedure TMemoryBrowser.GDTlist1Click(Sender: TObject);

@@ -190,8 +190,6 @@ begin
   begin
     slope:=deltay/deltax;
     result:=slope*double(x-linestart.x)+double(linestart.y);
-
-
   end;
 end;
 
@@ -206,9 +204,12 @@ begin
   if deltay=0 then
     result:=Infinity
   else
+  begin
     slope:=deltax/deltay;
+    result:=slope*double(y-linestart.y)+double(linestart.x);
+  end;
 
-  result:=slope*double(y-linestart.y)+double(linestart.x);
+
 
   // config.canvas.Pixels[trunc(result),y]:=$00ff00;
 end;
@@ -561,6 +562,9 @@ begin
     RedGreenBlue(linecolor,r,g,b);
     glColor3ub(r,g,b);
     glLineWidth(LineThickness*config.zoom);
+    oldw:=0;
+    oldc:=0;
+    c:=nil;
   end
   else
   begin

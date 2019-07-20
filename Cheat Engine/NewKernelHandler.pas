@@ -796,7 +796,7 @@ uses
      dbvmPhysicalMemoryHandler, //'' for physical mem
      {$endif}
      filehandler,  //so I can let readprocessmemory point to ReadProcessMemoryFile in filehandler
-     autoassembler, frmEditHistoryUnit, frmautoinjectunit, cpuidUnit;
+     autoassembler, frmEditHistoryUnit, frmautoinjectunit, cpuidUnit, MemoryBrowserFormUnit;
 {$endif}
 
 
@@ -1385,6 +1385,8 @@ begin
     if pluginhandler<>nil then
       pluginhandler.handlechangedpointers(0);
     {$endif}
+
+    MemoryBrowser.Kerneltools1.Enabled:=DBKLoaded;
 
   end;
 {$endif}

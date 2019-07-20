@@ -403,6 +403,9 @@ var
     inserted:=true;
   end;
 begin
+  dp.x:=0;
+  dp.y:=0;
+
   for i:=0 to blocks.count-1 do
   begin
     b:=TDiagramBlock(blocks[i]);
