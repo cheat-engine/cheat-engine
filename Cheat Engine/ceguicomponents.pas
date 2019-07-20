@@ -609,13 +609,15 @@ type TCEForm=class(TCustomForm)
     fVisible: boolean;
     saveddesign: TMemorystream;
     fDoNotSaveInTable: boolean;
-    procedure paint; override;
+
     procedure OnWriteMethod(Writer: TWriter; Instance: TPersistent; PropInfo: PPropInfo; const MethodValue, DefMethodValue: TMethod; var Handled: boolean);
     procedure WriteComponentAsBinaryToStreamWithMethods(Astream: TStream);
     procedure setActive(state: boolean);
     function getActive: boolean;
 
     procedure SetMethodProperty(Reader: TReader; Instance: TPersistent; PropInfo: PPropInfo; const TheMethodName: string; var Handled: boolean);
+  protected
+    procedure paint; override;
   public
     designsurface: TJvDesignSurface;
     procedure ResyncWithLua(Base: TComponent); overload;

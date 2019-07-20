@@ -752,6 +752,8 @@ function TfrmCodeFilter.ModuleListSelectionListSelToText(index: integer; listTex
 begin
   if modulelist<>nil then
     result:=inttohex(tmoduledata(modulelist.Objects[index]).moduleaddress,8)+'-'+inttohex(tmoduledata(modulelist.Objects[index]).moduleaddress+tmoduledata(modulelist.Objects[index]).modulesize,8)
+  else
+    result:='';
 end;
 
 procedure TfrmCodeFilter.btnLoadAddressesByDisassemblingClick(Sender: TObject);

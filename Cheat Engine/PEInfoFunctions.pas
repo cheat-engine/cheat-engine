@@ -245,7 +245,7 @@ type
     fmodulebase: ptruint;
     exceptionAddress: ptruint;
     size: integer;
-    listAddress: ptruint;
+
 
     list: PRuntimeList;
   public
@@ -407,7 +407,6 @@ var
   ImageNtHeader: PImageNtHeaders;
   OptionalHeader: PImageOptionalHeader;
   OptionalHeader64: PImageOptionalHeader64 absolute OptionalHeader;
-  ImageExportDirectory: PImageExportDirectory;
   is64bit: boolean;
 begin
   result:=nil;
@@ -433,7 +432,7 @@ begin
 end;
 
 function peinfo_getExportList(modulebase: ptruint; dllList: Tstrings): boolean;
-var fmap: TFileMapping;
+var
     header: pointer;
     ImageNtHeader: PImageNtHeaders;
     OptionalHeader: PImageOptionalHeader;
@@ -448,8 +447,6 @@ var fmap: TFileMapping;
     ar:ptruint;
 
     imagesize: dword;
-
-    diff: qword;
 begin
   result:=false;
 
@@ -483,15 +480,10 @@ begin
     if OptionalHeader=nil then raise exception.Create(strInvalidFile);
 
     if is64bit then
-    begin
-      diff:=ptruint(header)-OptionalHeader64^.ImageBase;
-      ImageExportDirectory:=PImageExportDirectory(ptruint(header)+OptionalHeader64^.DataDirectory[0].VirtualAddress);
-    end
+      ImageExportDirectory:=PImageExportDirectory(ptruint(header)+OptionalHeader64^.DataDirectory[0].VirtualAddress)
     else
-    begin
-      diff:=ptruint(header)-OptionalHeader^.ImageBase;
       ImageExportDirectory:=PImageExportDirectory(ptruint(header)+OptionalHeader^.DataDirectory[0].VirtualAddress);
-    end;
+
 
     if (ptruint(ImageExportDirectory)<=ptruint(header)) or (ptruint(ImageExportDirectory)>=(ptruint(header)+imagesize)) then
       raise exception.create(rsPEIFNoExports);

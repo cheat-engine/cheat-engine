@@ -207,6 +207,7 @@ begin
   startpointf.x:=startpoint.x;
   startpointf.y:=startpoint.y;
 
+  best.distance:=0;
   result:=false;
 
   if LinesCross(startpoint,endpoint,point(r.left,r.top),point(r.right,r.top)) then //top
@@ -436,6 +437,17 @@ var
 begin
   //render the block at the given location
   //if config.canvas=nil then exit;
+  cr.Left:=0;
+  cr.Top:=0;
+  cr.Width:=0;
+  cr.height:=0;
+  tr.left:=0;
+  tr.top:=0;
+  tr.width:=0;
+  tr.height:=0;
+
+
+
 
   if hasChanged or (config.UseOpenGL and (ftexture=0)) then
   begin
@@ -478,6 +490,7 @@ begin
     oldfontcolor:=c.font.color;
     c.font.color:=TextColor;
 
+
     if fShowHeader then
     begin
       renderOriginal:=true;
@@ -503,6 +516,7 @@ begin
       if assigned(fOnRenderBody) then
         fOnRenderBody(self,rect(0,0,width-1,captionheight),false, renderOriginal);
     end;
+
 
 
     preferedwidth:=cr.Width;

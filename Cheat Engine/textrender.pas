@@ -56,6 +56,8 @@ end;
 
 function getAnsiColor(c: integer): tcolor;
 begin
+  result:=0;
+
   case c of
     0: result:=RGBToColor(0,0,0);
     1: result:=RGBToColor(128,0,0);
@@ -309,7 +311,7 @@ procedure handleCSISequence(canvas: TCanvas; rect: Trect; const formattedtext: s
   end;
 
 var
-  lastvalue: integer;
+  lastvalue: integer=0;
   valuelist: array of TParsedValueInformation;
 
   s: string;
