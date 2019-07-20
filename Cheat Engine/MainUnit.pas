@@ -9179,8 +9179,7 @@ begin
 
   if btnFirst.tag = 0 then
   begin
-    if ScanTabList <> nil then
-      ScanTabList.Enabled := False;
+
 
     ProgressBar.min := 0;
     ProgressBar.max := 1000;
@@ -9231,7 +9230,8 @@ begin
     memscan.inversescan:=cbNot.Checked and cbnot.Visible;
 
     memscan.codePage:=cbCodePage.checked;
-
+    if ScanTabList <> nil then
+      ScanTabList.Enabled := False;
 
     memscan.firstscan(GetScanType2, getVarType2, roundingtype,
       scanvalue.Text, svalue2, scanStart, scanStop,
@@ -9449,6 +9449,9 @@ begin
   memscan.floatscanWithoutExponents:=cbFloatSimple.checked;
   memscan.inverseScan:=cbNot.Checked and cbnot.Visible;
   memscan.codePage:=cbCodePage.checked;
+
+  if ScanTabList <> nil then
+    ScanTabList.Enabled := False;
 
   memscan.nextscan(GetScanType2, roundingtype, scanvalue.Text,
     svalue2, cbHexadecimal.Checked, rbdec.Checked,
