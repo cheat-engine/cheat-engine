@@ -314,7 +314,7 @@ begin
       else
         offset:=wantedoffset;
 
-{$ifdef FPC_FULLVERSION <30200}
+{$if FPC_FULLVERSION<30200}
       cachesize:=min(files[j].filesize-offset, systeminfo.dwAllocationGranularity*32);    //normally 2MBZ
 {$else}
       cachesize:=min(files[j].filesize-offset, qword(systeminfo.dwAllocationGranularity*32));    //normally 2MBZ

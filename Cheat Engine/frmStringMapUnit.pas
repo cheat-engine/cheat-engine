@@ -210,7 +210,7 @@ begin
       begin
         maxbuf:=0; //find the max size
         for i:=0 to length(mr)-1 do
-{$ifdef FPC_FULLVERSION <30200}
+{$if FPC_FULLVERSION<30200}
           maxbuf:=max(int64(mr[i].MemorySize), maxbuf);
 {$else}
           maxbuf:=max(mr[i].MemorySize, maxbuf);
@@ -219,7 +219,7 @@ begin
         if maxbuf=0 then
           raise exception.create(rsNoReadableMemoryFound);
 
-{$ifdef FPC_FULLVERSION <30200}
+{$if FPC_FULLVERSION<30200}
         maxbuf:=min(maxbuf, 512*1024);
 {$else}
         maxbuf:=min(maxbuf, qword(512*1024));
