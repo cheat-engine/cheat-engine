@@ -4669,6 +4669,77 @@ begin
   result:=0;
 end;
 
+function dbk_usePhysicalMemoryAccess(L: Plua_State): integer; cdecl;
+begin
+  if dbvm_version<>0 then
+    DBKPhysicalMemoryDBVM
+  else
+    DBKPhysicalMemory;
+end;
+
+function dbk_setSaferPhysicalMemoryScanning(L: Plua_State): integer; cdecl;
+begin
+  saferQueryPhysicalMemory:=lua_toboolean(L,1);
+end;
+
+
+function lua_dbk_readphysicalmemory(L: PLua_state): integer; cdecl;
+var
+  PhysicalAddress: qword;
+  buffer:pointer;
+  size:integer;
+  i: integer;
+  br: ptruint;
+begin
+  if lua_gettop(L)<2 then raise exception.create('not all parameters given');
+  PhysicalAddress:=lua_tointeger(L,1);
+  size:=lua_tointeger(L,2);
+  getmem(buffer,size);
+
+  br:=0;
+  ReadPhysicalMemory(-1,pointer(PhysicalAddress), buffer, size, br);
+  if size=br then
+  begin
+    CreateByteTableFromPointer(L, buffer,size);
+    freemem(buffer);
+    exit(1);
+  end
+  else
+  begin
+    freemem(buffer);
+    exit(0);
+  end;
+end;
+
+function lua_dbk_writephysicalmemory(L: PLua_state): integer; cdecl;
+var
+  PhysicalAddress: qword;
+  buffer:pointer;
+  size:integer;
+  i: integer;
+  bw: ptruint;
+begin
+  if lua_gettop(L)<2 then raise exception.create('not all parameters given');
+  PhysicalAddress:=lua_tointeger(L,1);
+  if lua_istable(L,2)=false then raise exception.create('2nd parameter needs to be a bytetable');
+  size:=lua_objlen(L, 2);
+  getmem(buffer,size);
+  readBytesFromTable(L,2,buffer,size);
+
+  bw:=0;
+  WritePhysicalMemory(-1,pointer(PhysicalAddress), buffer, size, bw);
+  if size=bw then
+    lua_pushboolean(L,true)
+  else
+    lua_pushboolean(L,false);
+
+  freemem(buffer);
+
+  exit(1);
+
+end;
+
+
 function dbk_getPEProcess(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
@@ -11692,6 +11763,14 @@ begin
     lua_register(L, 'dbk_useKernelmodeOpenProcess', dbk_useKernelmodeOpenProcess);
     lua_register(L, 'dbk_useKernelmodeProcessMemoryAccess', dbk_useKernelmodeProcessMemoryAccess);
     lua_register(L, 'dbk_useKernelmodeQueryMemoryRegions', dbk_useKernelmodeQueryMemoryRegions);
+    lua_register(L, 'dbk_usePhysicalMemoryAccess', dbk_usePhysicalMemoryAccess);
+    lua_register(L, 'dbk_setSaferPhysicalMemoryScanning', dbk_setSaferPhysicalMemoryScanning);
+
+
+    lua_register(L ,'dbk_readPhysicalMemory', lua_dbk_readphysicalmemory);
+    lua_register(L ,'dbk_writePhysicalMemory', lua_dbk_writephysicalmemory);
+
+
     lua_register(L, 'dbk_getPEProcess', dbk_getPEProcess);
     lua_register(L, 'dbk_getPEThread', dbk_getPEThread);
     lua_register(L, 'dbk_executeKernelMemory', dbk_executeKernelMemory);

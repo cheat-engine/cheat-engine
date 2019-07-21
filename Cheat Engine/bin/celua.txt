@@ -2442,6 +2442,10 @@ dbk_initialize() : Returns true if the dbk driver is loaded in memory. False if 
 dbk_useKernelmodeOpenProcess() : Switches the internal pointer of the OpenProcess api to dbk_OpenProcess
 dbk_useKernelmodeProcessMemoryAccess() : Switches the internal pointer to the ReadProcessMemory and WriteProcessMemory apis to dbk_ReadProcessMemory and dbk_WriteProcessMemory
 dbk_useKernelmodeQueryMemoryRegions() : Switches the internal pointer to the QueryVirtualMemory api to dbk_QueryVirtualMemory
+dbk_usePhysicalMemoryAccess() : Changes all memory access to physical memory
+dbk_setSaferPhysicalMemoryScanning(state: BOOLEAN): When set to true CE's memory scanner will skip hardware device owned memory. Default state is true
+dbk_readPhysicalMemory(address, size): bytetable
+dbk_writePhysicalMemory(address, size): boolean
 dbk_getPEProcess(processid) : Returns the pointer of the EProcess structure of the selected processid
 dbk_getPEThread(threadid) : Gets the pointer to the EThread  structure
 

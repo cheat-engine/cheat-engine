@@ -296,8 +296,8 @@ function GetDebugportOffset: DWORD; stdcall;
 function GetThreadsProcessOffset: dword; stdcall;
 function GetThreadListEntryOffset: dword; stdcall;
 
-function ReadPhysicalMemory(hProcess:THANDLE;lpBaseAddress:pointer;lpBuffer:pointer;nSize:DWORD;var NumberOfBytesRead:DWORD):BOOL; stdcall;
-function WritePhysicalMemory(hProcess:THANDLE;lpBaseAddress:pointer;lpBuffer:pointer;nSize:DWORD;var NumberOfBytesWritten:DWORD):BOOL; stdcall;
+function ReadPhysicalMemory(hProcess:THANDLE;lpBaseAddress:pointer;lpBuffer:pointer;nSize:DWORD;var NumberOfBytesRead:PTRUINT):BOOL; stdcall;
+function WritePhysicalMemory(hProcess:THANDLE;lpBaseAddress:pointer;lpBuffer:pointer;nSize:DWORD;var NumberOfBytesWritten:PTRUINT):BOOL; stdcall;
 function GetPhysicalAddress(hProcess:THandle;lpBaseAddress:pointer;var Address:int64): BOOL; stdcall;
 function GetMemoryRanges(var ranges: TPhysicalMemoryRanges): boolean;
 function VirtualQueryExPhysical(hProcess: THandle; lpAddress: Pointer; var lpBuffer: TMemoryBasicInformation; dwLength: DWORD): DWORD; stdcall;
@@ -1278,7 +1278,7 @@ begin
 end;
 
 
-function WritePhysicalMemory(hProcess:THANDLE;lpBaseAddress:pointer;lpBuffer:pointer;nSize:DWORD;var NumberOfBytesWritten:DWORD):BOOL; stdcall;
+function WritePhysicalMemory(hProcess:THANDLE;lpBaseAddress:pointer;lpBuffer:pointer;nSize:DWORD;var NumberOfBytesWritten:PTRUINT):BOOL; stdcall;
 type TInputstruct=record
   startaddress: uint64;
   bytestowrite: uint64;
@@ -1338,7 +1338,7 @@ begin
 end;
 
 
-function ReadPhysicalMemory(hProcess:THANDLE;lpBaseAddress:pointer;lpBuffer:pointer;nSize:DWORD;var NumberOfBytesRead:DWORD):BOOL; stdcall;
+function ReadPhysicalMemory(hProcess:THANDLE;lpBaseAddress:pointer;lpBuffer:pointer;nSize:DWORD;var NumberOfBytesRead:PTRUINT):BOOL; stdcall;
 type TInputstruct=packed record
   startaddress: qword;
   bytestoread: qword;
