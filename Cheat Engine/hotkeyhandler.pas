@@ -524,7 +524,8 @@ begin
         end;
 
         //now go through the activeHotkeyList looking for a keycount of maxActiveKeyCount
-        for i:=0 to activeHotkeyList.count-1 do
+        i:=0;
+        while i<activeHotkeyList.count do
         begin
           temphotkey:=PActiveHotkeyData(activeHotkeyList[i]);
           if temphotkey.keycount=maxActiveKeyCount then //it belongs to the max complex hotkey count
@@ -543,7 +544,10 @@ begin
                 if tempHotkey.hotkeylistItem.memrechotkey<>nil then
                 begin
                   memrechk:=tempHotkey.hotkeylistItem.memrechotkey;
+
+                  CSKeys.leave;
                   Synchronize(memrechotkey);
+                  cskeys.enter;
                 end
                 else
                 if tempHotkey.hotkeylistItem.generichotkey<>nil then
@@ -560,7 +564,7 @@ begin
 
           //cleanup the memory as well while we're at it
           freememandnil(temphotkey);
-
+          inc(i);
         end;
         activeHotkeyList.clear;
 

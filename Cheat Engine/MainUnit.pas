@@ -6687,7 +6687,7 @@ begin
 
   miSetDropdownOptions.visible:=addresslist.selcount > 0;
 
-  miDBVMFindWhatWritesOrAccesses.visible:=miChangeColor.Visible and isIntel and isDBVMCapable; //02/24/2019: Most cpu's support EPT now
+  miDBVMFindWhatWritesOrAccesses.visible:=Findoutwhataccessesthisaddress1.Visible and isIntel and isDBVMCapable; //02/24/2019: Most cpu's support EPT now
   sep2.Visible:=miDBVMFindWhatWritesOrAccesses.Visible;
 
   miDBVMFindWhatWritesOrAccesses.enabled:=DBKLoaded;
