@@ -4675,11 +4675,15 @@ begin
     DBKPhysicalMemoryDBVM
   else
     DBKPhysicalMemory;
+
+  MainForm.ProcessLabel.Caption:=strPhysicalMemory;
+  result:=0;
 end;
 
 function dbk_setSaferPhysicalMemoryScanning(L: Plua_State): integer; cdecl;
 begin
   saferQueryPhysicalMemory:=lua_toboolean(L,1);
+  result:=0;
 end;
 
 
@@ -4697,7 +4701,7 @@ begin
   getmem(buffer,size);
 
   br:=0;
-  ReadPhysicalMemory(-1,pointer(PhysicalAddress), buffer, size, br);
+  ReadPhysicalMemory(qword(-1),pointer(PhysicalAddress), buffer, size, br);
   if size=br then
   begin
     CreateByteTableFromPointer(L, buffer,size);
@@ -4727,7 +4731,7 @@ begin
   readBytesFromTable(L,2,buffer,size);
 
   bw:=0;
-  WritePhysicalMemory(-1,pointer(PhysicalAddress), buffer, size, bw);
+  WritePhysicalMemory(qword(-1),pointer(PhysicalAddress), buffer, size, bw);
   if size=bw then
     lua_pushboolean(L,true)
   else

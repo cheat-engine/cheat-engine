@@ -958,6 +958,9 @@ var
   ToggleWindows: TTogglewindows;
   AutoAttachThread: TAutoAttachThread;
 
+resourcestring
+  strPhysicalMemory = 'Physical Memory';
+
 implementation
 
 
@@ -1000,7 +1003,7 @@ resourcestring
   strErrorwhileOpeningProcess = 'Error while opening this process';
   strKeepList = 'Keep the current address list/code list?';
   strInfoAboutTable = 'Info about this table:';
-  strPhysicalMemory = 'Physical Memory';
+
   strSaferPhysicalMemory = 'Safer memory access';
   rsThereAreOneOrMoreAutoAssemblerEntriesOrCodeChanges =
     'There are one or more auto assembler entries or code changes enabled in this table. Do you want them disabled? (without '
@@ -6688,7 +6691,6 @@ begin
   sep2.Visible:=miDBVMFindWhatWritesOrAccesses.Visible;
 
   miDBVMFindWhatWritesOrAccesses.enabled:=DBKLoaded;
-
 
   if (selectedrecord<>nil) and (selectedrecord.VarType=vtAutoAssembler) then
   begin
