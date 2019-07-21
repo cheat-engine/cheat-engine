@@ -85,6 +85,12 @@ type
       visible: boolean;
     end;
 
+    cbRepeatUntilStopped: record
+      checked: boolean;
+      visible: boolean;
+    end;
+
+
     cbCaseSensitive: record
       checked: boolean;
       visible: boolean;
@@ -251,6 +257,7 @@ type
     cbpercentage: TCheckBox;
     cbNot: TCheckBox;
     cbCodePage: TCheckBox;
+    cbRepeatUntilStopped: TCheckBox;
     ColorDialog1: TColorDialog;
     CreateGroup: TMenuItem;
     FromAddress: TEdit;
@@ -2467,6 +2474,10 @@ begin
 
     UpdateFloatRelatedPositions;
 
+
+    cbRepeatUntilStopped.visible:=GetScanType=soUnchanged;
+
+
   finally
     scantype.OnChange := old;
     scantype.OnSelect := old2;
@@ -4373,6 +4384,10 @@ begin
 
   scanstate.cbunicode.Visible := cbunicode.visible;
   scanstate.cbunicode.checked := cbunicode.checked;
+
+  scanstate.cbRepeatUntilStopped.visible:=cbRepeatUntilStopped.visible;
+  scanstate.cbRepeatUntilStopped.checked:=cbRepeatUntilStopped.Checked;
+
   scanstate.cbcodepage.Visible := cbcodepage.visible;
   scanstate.cbcodepage.checked := cbcodepage.checked;
   scanstate.cbCaseSensitive.Visible := cbCaseSensitive.visible;
@@ -4548,6 +4563,8 @@ begin
     rbdec.Onclick := rbDecClick;
     cbHexadecimal.OnClick := cbHexadecimalClick;
 
+
+
     mainform.EndFormUpdate;
 
 
@@ -4600,6 +4617,9 @@ begin
     cbCaseSensitive.Visible := newstate.cbCaseSensitive.visible;
     cbCaseSensitive.checked := newstate.cbCaseSensitive.checked;
 
+
+    cbRepeatUntilStopped.visible:=newstate.cbRepeatUntilStopped.visible;
+    cbRepeatUntilStopped.Checked:=newstate.cbRepeatUntilStopped.checked;
 
     if newstate.foundlist3.ItemIndex=-1 then
       newstate.foundlist3.ItemIndex:=0;
@@ -9365,6 +9385,9 @@ begin
 
   if error and (memscan.lastscantype = stFirstScan) then //firstscan failed
     btnNewScan.Click;
+
+  if (GetScanType=soUnchanged) and (cbRepeatUntilStopped.checked) then
+    btnNext.Click;
 end;
 
 procedure TMainForm.CancelbuttonClick(Sender: TObject);

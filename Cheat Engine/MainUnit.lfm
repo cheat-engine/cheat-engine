@@ -311,7 +311,7 @@ object MainForm: TMainForm
       AnchorSideTop.Side = asrBottom
       AnchorSideRight.Control = Panel9
       Left = 293
-      Height = 184
+      Height = 182
       Top = 178
       Width = 200
       Anchors = [akTop, akRight]
@@ -320,7 +320,7 @@ object MainForm: TMainForm
       BorderSpacing.Top = 6
       BorderSpacing.Right = 6
       Caption = 'Memory Scan Options'
-      ClientHeight = 164
+      ClientHeight = 162
       ClientWidth = 196
       Color = clBtnFace
       Constraints.MinWidth = 10
@@ -336,7 +336,7 @@ object MainForm: TMainForm
         AnchorSideRight.Side = asrBottom
         Left = 0
         Height = 38
-        Top = 64
+        Top = 62
         Width = 196
         Anchors = [akTop, akLeft, akRight]
         AutoSize = True
@@ -408,13 +408,13 @@ object MainForm: TMainForm
       object Panel3: TPanel
         AnchorSideRight.Side = asrBottom
         Left = 0
-        Height = 64
+        Height = 62
         Top = 0
         Width = 196
         Align = alTop
         AutoSize = True
         BevelOuter = bvNone
-        ClientHeight = 64
+        ClientHeight = 62
         ClientWidth = 196
         ParentFont = False
         TabOrder = 0
@@ -424,7 +424,7 @@ object MainForm: TMainForm
           AnchorSideTop.Side = asrCenter
           Left = 5
           Height = 15
-          Top = 41
+          Top = 40
           Width = 24
           BorderSpacing.Left = 5
           Caption = 'Stop'
@@ -455,8 +455,8 @@ object MainForm: TMainForm
           AnchorSideRight.Control = FromAddress
           AnchorSideRight.Side = asrBottom
           Left = 35
-          Height = 31
-          Top = 33
+          Height = 30
+          Top = 32
           Width = 155
           Alignment = taRightJustify
           Anchors = [akTop, akLeft, akRight]
@@ -476,7 +476,7 @@ object MainForm: TMainForm
           AnchorSideRight.Control = Panel3
           AnchorSideRight.Side = asrBottom
           Left = 35
-          Height = 31
+          Height = 30
           Top = 0
           Width = 155
           Alignment = taRightJustify
@@ -497,7 +497,7 @@ object MainForm: TMainForm
         AnchorSideRight.Side = asrBottom
         Left = 0
         Height = 62
-        Top = 102
+        Top = 100
         Width = 196
         Anchors = [akTop, akLeft, akRight]
         AutoSize = True
@@ -1258,13 +1258,13 @@ object MainForm: TMainForm
       AnchorSideRight.Control = Panel5
       AnchorSideRight.Side = asrBottom
       Left = 499
-      Height = 311
+      Height = 330
       Top = 124
       Width = 121
       Anchors = [akTop, akRight]
       AutoSize = True
       BevelOuter = bvNone
-      ClientHeight = 311
+      ClientHeight = 330
       ClientWidth = 121
       ParentFont = False
       TabOrder = 8
@@ -1274,13 +1274,13 @@ object MainForm: TMainForm
         AnchorSideRight.Control = Panel9
         AnchorSideRight.Side = asrBottom
         Left = 0
-        Height = 171
+        Height = 190
         Top = 0
         Width = 121
         AutoSize = True
         BorderSpacing.Bottom = 4
         BevelOuter = bvNone
-        ClientHeight = 171
+        ClientHeight = 190
         ClientWidth = 121
         Constraints.MinHeight = 100
         ParentFont = False
@@ -1292,7 +1292,7 @@ object MainForm: TMainForm
           AnchorSideRight.Side = asrBottom
           Left = 0
           Height = 57
-          Top = 95
+          Top = 114
           Width = 121
           AutoSize = True
           BevelOuter = bvNone
@@ -1335,11 +1335,12 @@ object MainForm: TMainForm
           end
         end
         object cbUnicode: TCheckBox
+          AnchorSideLeft.Control = cbCodePage
           AnchorSideTop.Control = cbCodePage
           AnchorSideTop.Side = asrBottom
           Left = 0
           Height = 19
-          Top = 57
+          Top = 76
           Width = 58
           Caption = 'UTF-16'
           OnChange = cbUnicodeChange
@@ -1353,7 +1354,7 @@ object MainForm: TMainForm
           AnchorSideTop.Side = asrBottom
           Left = 0
           Height = 19
-          Top = 76
+          Top = 95
           Width = 93
           Caption = 'Case sensitive'
           Checked = True
@@ -1373,7 +1374,7 @@ object MainForm: TMainForm
           AnchorSideRight.Side = asrBottom
           Left = 0
           Height = 19
-          Top = 152
+          Top = 171
           Width = 118
           Caption = 'Simple values only'
           ParentFont = False
@@ -1382,11 +1383,11 @@ object MainForm: TMainForm
         end
         object cbpercentage: TCheckBox
           AnchorSideLeft.Control = pnlScanOptions
-          AnchorSideTop.Control = cbNot
+          AnchorSideTop.Control = cbRepeatUntilStopped
           AnchorSideTop.Side = asrBottom
           Left = 0
           Height = 19
-          Top = 19
+          Top = 38
           Width = 60
           Caption = 'Percent'
           OnChange = cbPercentageOnChange
@@ -1415,12 +1416,27 @@ object MainForm: TMainForm
           AnchorSideTop.Side = asrBottom
           Left = 0
           Height = 19
-          Top = 38
+          Top = 57
           Width = 74
           Caption = 'Codepage'
           OnChange = cbCodePageChange
           ParentFont = False
           TabOrder = 2
+          Visible = False
+        end
+        object cbRepeatUntilStopped: TCheckBox
+          AnchorSideLeft.Control = cbNot
+          AnchorSideTop.Control = cbNot
+          AnchorSideTop.Side = asrBottom
+          Left = 0
+          Height = 19
+          Hint = 'Repeats the unchanged value scan until it gets stopped'
+          Top = 19
+          Width = 56
+          Caption = 'Repeat'
+          ParentShowHint = False
+          ShowHint = True
+          TabOrder = 7
           Visible = False
         end
       end
@@ -1434,7 +1450,7 @@ object MainForm: TMainForm
         AnchorSideBottom.Side = asrBottom
         Left = 0
         Height = 136
-        Top = 175
+        Top = 194
         Width = 115
         Anchors = [akTop, akLeft, akBottom]
         AutoSize = True
