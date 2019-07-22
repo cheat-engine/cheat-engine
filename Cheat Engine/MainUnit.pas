@@ -1768,10 +1768,14 @@ begin
 
         if btnNextScan.Enabled then
         begin
-          scantype.ItemIndex := scantype.Items.IndexOf(StrChangedValue);
-          scantype.OnChange(scantype);
+          i:=scantype.Items.IndexOf(StrChangedValue);
+          if i<>-1 then
+          begin
+            scantype.ItemIndex := i;
+            scantype.OnChange(scantype);
 
-          btnNextScan.click;
+            btnNextScan.click;
+          end;
         end
         else
           Errorbeep;
@@ -1786,10 +1790,14 @@ begin
 
         if btnNextScan.Enabled then
         begin
-          scantype.ItemIndex := scantype.Items.IndexOf(StrUnchangedValue);
-          scantype.OnChange(scantype);
+          i:=scantype.Items.IndexOf(StrUnchangedValue);
+          if i<>-1 then
+          begin
+            scantype.ItemIndex := i;
+            scantype.OnChange(scantype);
 
-          btnNextScan.click;
+            btnNextScan.click;
+          end;
         end
         else
           Errorbeep;

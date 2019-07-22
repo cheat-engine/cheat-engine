@@ -1880,6 +1880,9 @@ begin
   if defaultDisassembler.LastDisassembleData.isfloat then
     frmchangedaddresses.cbDisplayType.ItemIndex:=3;
 
+  if defaultDisassembler.LastDisassembleData.isfloat64 then
+    frmchangedaddresses.cbDisplayType.ItemIndex:=4;
+
 
   if uppercase(defaultDisassembler.LastDisassembleData.opcode)='RET' then
   begin

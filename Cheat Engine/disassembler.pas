@@ -1573,6 +1573,7 @@ var
 begin
   try
   LastDisassembleData.isfloat:=false;
+  LastDisassembleData.isfloat64:=false;
   LastDisassembleData.iscloaked:=false;
   LastDisassembleData.commentsoverride:='';
   {$ifndef unix}
@@ -2434,6 +2435,7 @@ begin
                           description:='move scalar double-fp';
                           opcodeflags.L:=false; //LIG
                           opcodeflags.skipExtraRegOnMemoryAccess:=true;
+                          lastdisassembledata.isfloat64:=true;
 
                           if hasvex then
                             lastdisassembledata.opcode:='vmovsd'
@@ -2495,6 +2497,8 @@ begin
                             lastdisassembledata.opcode:='vmovsd'
                           else
                             lastdisassembledata.opcode:='movsd';
+
+                          lastdisassembledata.isfloat64:=true;
 
                           opcodeflags.skipExtraRegOnMemoryAccess:=true;
                           lastdisassembledata.parameters:=modrm(memory,prefix2,2,4,last,mLeft)+xmm(memory[2]);
