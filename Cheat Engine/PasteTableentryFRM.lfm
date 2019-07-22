@@ -1,28 +1,27 @@
 object frmPasteTableentry: TfrmPasteTableentry
   Left = 730
-  Height = 133
+  Height = 153
   Top = 406
-  Width = 330
+  Width = 346
   AutoSize = True
+  BorderStyle = bsSingle
   Caption = 'Paste table entries'
-  ClientHeight = 133
-  ClientWidth = 330
+  ClientHeight = 153
+  ClientWidth = 346
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '1.6.0.4'
+  LCLVersion = '2.0.0.4'
   object GroupBox1: TGroupBox
     AnchorSideLeft.Control = Owner
     AnchorSideTop.Control = Owner
-    AnchorSideRight.Control = Panel1
     Left = 0
     Height = 101
     Top = 0
-    Width = 163
-    Anchors = [akTop, akLeft, akRight]
+    Width = 170
     AutoSize = True
     Caption = 'Description'
     ClientHeight = 81
-    ClientWidth = 159
+    ClientWidth = 166
     TabOrder = 0
     object Label1: TLabel
       AnchorSideLeft.Control = GroupBox1
@@ -30,7 +29,7 @@ object frmPasteTableentry: TfrmPasteTableentry
       Left = 0
       Height = 15
       Top = 0
-      Width = 63
+      Width = 62
       Caption = 'Text to find:'
       ParentColor = False
     end
@@ -54,8 +53,7 @@ object frmPasteTableentry: TfrmPasteTableentry
       Left = 3
       Height = 23
       Top = 15
-      Width = 153
-      Anchors = [akTop, akLeft, akRight]
+      Width = 160
       BorderSpacing.Left = 3
       BorderSpacing.Right = 3
       TabOrder = 0
@@ -69,8 +67,7 @@ object frmPasteTableentry: TfrmPasteTableentry
       Left = 3
       Height = 23
       Top = 53
-      Width = 153
-      Anchors = [akTop, akLeft, akRight]
+      Width = 160
       BorderSpacing.Left = 3
       BorderSpacing.Right = 3
       BorderSpacing.Bottom = 5
@@ -78,28 +75,33 @@ object frmPasteTableentry: TfrmPasteTableentry
     end
   end
   object GroupBox2: TGroupBox
-    AnchorSideLeft.Control = Panel1
+    AnchorSideLeft.Control = GroupBox1
     AnchorSideLeft.Side = asrBottom
+    AnchorSideTop.Control = GroupBox1
     AnchorSideRight.Control = Owner
     AnchorSideRight.Side = asrBottom
     AnchorSideBottom.Control = GroupBox1
     AnchorSideBottom.Side = asrBottom
-    Left = 167
-    Height = 100
-    Top = 1
-    Width = 163
-    Anchors = [akTop, akLeft, akRight, akBottom]
+    Left = 173
+    Height = 101
+    Top = 0
+    Width = 170
+    Anchors = [akTop, akLeft, akBottom]
+    AutoSize = True
+    BorderSpacing.Left = 3
     Caption = 'Address'
-    ClientHeight = 80
-    ClientWidth = 159
+    ClientHeight = 81
+    ClientWidth = 166
     TabOrder = 1
-    OnClick = GroupBox2Click
     object Label3: TLabel
+      AnchorSideLeft.Control = GroupBox2
       AnchorSideTop.Control = GroupBox2
-      Left = 8
+      Left = 4
       Height = 15
       Top = 0
       Width = 99
+      BorderSpacing.Left = 4
+      BorderSpacing.Right = 4
       Caption = 'Adjust address by: '
       ParentColor = False
     end
@@ -112,55 +114,73 @@ object frmPasteTableentry: TfrmPasteTableentry
       Left = 3
       Height = 23
       Top = 15
-      Width = 153
-      Anchors = [akTop, akLeft, akRight]
+      Width = 160
       BorderSpacing.Left = 3
       BorderSpacing.Right = 3
       TabOrder = 0
       Text = '0'
     end
   end
-  object Button1: TButton
+  object cbChildrenAsWell: TCheckBox
+    AnchorSideLeft.Control = GroupBox1
     AnchorSideTop.Control = GroupBox1
     AnchorSideTop.Side = asrBottom
-    AnchorSideRight.Control = Panel1
-    Left = 88
-    Height = 25
-    Top = 105
-    Width = 75
-    Anchors = [akTop, akRight]
-    AutoSize = True
-    BorderSpacing.Top = 4
-    BorderSpacing.Bottom = 4
-    Caption = 'Paste'
-    Constraints.MinWidth = 75
-    Default = True
-    ModalResult = 1
+    Left = 5
+    Height = 19
+    Top = 101
+    Width = 138
+    BorderSpacing.Left = 5
+    Caption = 'Adjust children as well'
+    Checked = True
+    State = cbChecked
     TabOrder = 2
-  end
-  object Button2: TButton
-    AnchorSideLeft.Control = Panel1
-    AnchorSideLeft.Side = asrBottom
-    AnchorSideTop.Control = Button1
-    Left = 167
-    Height = 25
-    Top = 105
-    Width = 75
-    AutoSize = True
-    Cancel = True
-    Caption = 'Cancel'
-    Constraints.MinWidth = 75
-    ModalResult = 2
-    TabOrder = 3
   end
   object Panel1: TPanel
     AnchorSideLeft.Control = Owner
     AnchorSideLeft.Side = asrCenter
-    Left = 163
-    Height = 70
-    Top = 8
-    Width = 4
+    AnchorSideTop.Control = cbChildrenAsWell
+    AnchorSideTop.Side = asrBottom
+    Left = 97
+    Height = 29
+    Top = 123
+    Width = 153
+    AutoSize = True
+    BorderSpacing.Top = 3
+    BorderSpacing.Bottom = 3
     BevelOuter = bvNone
-    TabOrder = 4
+    ClientHeight = 29
+    ClientWidth = 153
+    TabOrder = 3
+    object Button1: TButton
+      AnchorSideLeft.Control = Panel1
+      AnchorSideTop.Control = Panel1
+      Left = 0
+      Height = 25
+      Top = 0
+      Width = 75
+      AutoSize = True
+      BorderSpacing.Bottom = 4
+      Caption = 'Paste'
+      Constraints.MinWidth = 75
+      Default = True
+      ModalResult = 1
+      TabOrder = 0
+    end
+    object Button2: TButton
+      AnchorSideLeft.Control = Button1
+      AnchorSideLeft.Side = asrBottom
+      AnchorSideTop.Control = Panel1
+      Left = 78
+      Height = 25
+      Top = 0
+      Width = 75
+      AutoSize = True
+      BorderSpacing.Left = 3
+      Cancel = True
+      Caption = 'Cancel'
+      Constraints.MinWidth = 75
+      ModalResult = 2
+      TabOrder = 1
+    end
   end
 end

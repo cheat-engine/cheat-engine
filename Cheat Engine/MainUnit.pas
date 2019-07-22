@@ -8365,6 +8365,7 @@ var
   changeoffset, x: int64;
   i, j: integer;
   hasselected: boolean;
+  childrenaswell: boolean;
 begin
   if addresslist.Count = 0 then
     exit;
@@ -8388,6 +8389,8 @@ begin
     except
       changeoffset := 0;
     end;
+
+    childrenaswell:=frmPasteTableentry.cbChildrenAsWell.checked;
   finally
     frmPasteTableentry.Free;
   end;
@@ -8407,17 +8410,10 @@ begin
   begin
     if (hasselected and addresslist[i].isSelected) or (not hasselected) then
     begin
-      addresslist[i].Description :=
-        StringReplace(addresslist[i].Description, replace_find, replace_with,
-        [rfReplaceAll, rfIgnoreCase]);
+      addresslist[i].replaceDescription(replace_find, replace_with, childrenaswell);
 
-      try
-        x := symhandler.getAddressFromName(addresslist[i].interpretableaddress);
-        x := x + changeoffset;
-        addresslist[i].interpretableaddress := symhandler.getNameFromAddress(x, True, True)
-      except
-
-      end;
+      if changeoffsetstring<>'' then
+        addresslist[i].adjustAddressby(changeoffset, childrenaswell);
     end;
   end;
 end;

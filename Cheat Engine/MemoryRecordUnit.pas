@@ -245,6 +245,7 @@ type
     procedure SetCollapsed(state: boolean);
 
     procedure processingDone; //called by the processingThread when finished
+
   public
 
 
@@ -329,6 +330,9 @@ type
 
     function getlinkedDropDownMemrec: TMemoryRecord;
     function getlinkedDropDownMemrec_LoopDetected: boolean;
+
+    procedure replaceDescription(replace_find, replace_with: string; childrenaswell: boolean);
+    procedure adjustAddressby(offset: qword; childrenaswell: boolean);
 
     constructor Create(AOwner: TObject);
     destructor destroy; override;
@@ -961,6 +965,48 @@ begin
   else
   {$ENDIF}
     result:=nil;
+end;
+
+procedure TMemoryRecord.replaceDescription(replace_find, replace_with: string; childrenaswell: boolean);
+var i: integer;
+begin
+  Description:=stringreplace(Description,replace_find,replace_with,[rfReplaceAll,rfIgnoreCase]);
+  if childrenaswell then
+  begin
+    for i:=0 to Count-1 do
+      Child[i].replaceDescription(replace_find, replace_with, childrenaswell);
+  end;
+end;
+
+procedure TMemoryRecord.adjustAddressby(offset: qword; childrenaswell: boolean);
+var
+  s: string;
+  x: ptruint;
+  i: integer;
+begin
+  if interpretableaddress<>'' then //always true
+  begin
+    try
+      s:=trim(interpretableaddress);
+      if s<>'' then
+      begin
+        if not (s[1] in ['-', '+']) then //don't do relative addresses
+        begin
+          x:=symhandler.getAddressFromName(interpretableaddress);
+          x:=x+offset;
+          interpretableaddress:=symhandler.getNameFromAddress(x,true,true)
+        end;
+      end;
+    except
+      interpretableaddress:=inttohex(getBaseAddress+offset,8);
+    end;
+
+    ReinterpretAddress;
+  end;
+
+  if childrenaswell then
+    for i:=0 to count-1 do
+      Child[i].adjustAddressby(offset, childrenaswell);
 end;
 
 function TMemoryRecord.getHotkeyCount: integer;

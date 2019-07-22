@@ -571,6 +571,7 @@ var doc: TXMLDocument;
     changeoffset: ptrUint;
     x: ptrUint;
     i: integer;
+    childrenaswell: boolean;
 begin
   doc:=nil;
   s:=nil;
@@ -611,6 +612,7 @@ begin
                 changeoffset:=0;
               end;
 
+              childrenaswell:=frmPasteTableentry.cbChildrenAsWell.Checked;
             finally
               freeandnil(frmPasteTableentry);
             end;
@@ -636,23 +638,10 @@ begin
 
 
               if replace_find<>'' then
-                memrec.Description:=stringreplace(memrec.Description,replace_find,replace_with,[rfReplaceAll,rfIgnoreCase]);
+                memrec.replaceDescription(replace_find, replace_with, childrenaswell);
 
               if changeoffset<>0 then
-              begin
-                if memrec.interpretableaddress<>'' then //always true
-                begin
-                  try
-                    x:=symhandler.getAddressFromName(memrec.interpretableaddress);
-                    x:=x+changeoffset;
-                    memrec.interpretableaddress:=symhandler.getNameFromAddress(x,true,true)
-                  except
-                    memrec.interpretableaddress:=inttohex(memrec.getBaseAddress+changeoffset,8);
-                  end;
-
-                  memrec.ReinterpretAddress;
-                end;
-              end;
+                memrec.adjustAddressBy(changeoffset, childrenaswell);
             end;
             currentEntry:=currentEntry.NextSibling;
           end;
