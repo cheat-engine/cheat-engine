@@ -158,6 +158,7 @@ var parameters: integer;
 
   pinfo: PPropInfo;
   m: tmethod;
+  kind: TTypeKind;
 begin
   result:=0;
   parameters:=lua_gettop(L);
@@ -193,8 +194,8 @@ begin
                          tkDynArray,tkInterfaceRaw,tkProcVar,tkUString,tkUChar,
                          tkHelper
       }
-
-      case pinfo.PropType.Kind of
+      kind:=pinfo^.PropType.Kind;
+      case kind of
         tkInteger,tkInt64,tkQWord: lua_pushinteger(L, GetPropValue(c, p,false));
         tkBool: lua_pushboolean(L, GetPropValue(c, p, false));
         tkFloat: lua_pushnumber(L, GetPropValue(c, p, false));
