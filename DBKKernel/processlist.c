@@ -145,47 +145,54 @@ VOID CreateProcessNotifyRoutine(IN HANDLE  ParentId, IN HANDLE  ProcessId, IN BO
 		//aquire a spinlock
 		if (ExAcquireResourceExclusiveLite(&ProcesslistR, TRUE))
 		{
+
+			if (PsLookupProcessByProcessId((PVOID)ProcessId, &CurrentProcess) != STATUS_SUCCESS)
+			{
+				ExReleaseResourceLite(&ProcesslistR);
+				return;
+			}
+
 			if ((ProcessWatcherOpensHandles) && (WatcherProcess))
 			{
-				if (PsLookupProcessByProcessId((PVOID)ProcessId, &CurrentProcess) == STATUS_SUCCESS)
+				
+				
+				if (Create)
 				{
-					if (Create)
+					//Open a handle to this process
+
+					/*
+						
+					HANDLE ph = 0;
+					NTSTATUS r = ObOpenObjectByPointer(CurrentProcess, 0, NULL, PROCESS_ALL_ACCESS, *PsProcessType, KernelMode, &ph);
+
+					DbgPrint("CreateProcessNotifyRoutine: ObOpenObjectByPointer=%x  ph=%x", r, ph);
+					r = ZwDuplicateObject(ZwCurrentProcess(), ph, WatcherHandle, &ProcessHandle, PROCESS_ALL_ACCESS, 0, DUPLICATE_CLOSE_SOURCE);
+
+					DbgPrint("CreateProcessNotifyRoutine: ZwDuplicateObject=%x (handle=%x)", r, ProcessHandle);
+					*/
+						
+					KAPC_STATE oldstate;
+
+						
+					KeStackAttachProcess((PKPROCESS)WatcherProcess, &oldstate);						
+					__try
 					{
-						//Open a handle to this process
-
-						/*
-						
-						HANDLE ph = 0;
-						NTSTATUS r = ObOpenObjectByPointer(CurrentProcess, 0, NULL, PROCESS_ALL_ACCESS, *PsProcessType, KernelMode, &ph);
-
-						DbgPrint("CreateProcessNotifyRoutine: ObOpenObjectByPointer=%x  ph=%x", r, ph);
-						r = ZwDuplicateObject(ZwCurrentProcess(), ph, WatcherHandle, &ProcessHandle, PROCESS_ALL_ACCESS, 0, DUPLICATE_CLOSE_SOURCE);
-
-						DbgPrint("CreateProcessNotifyRoutine: ZwDuplicateObject=%x (handle=%x)", r, ProcessHandle);
-						*/
-						
-						KAPC_STATE oldstate;
-
-						
-						KeStackAttachProcess((PKPROCESS)WatcherProcess, &oldstate);						
 						__try
 						{
-							__try
-							{
-								ObOpenObjectByPointer(CurrentProcess, 0, NULL, PROCESS_ALL_ACCESS, *PsProcessType, KernelMode, &ProcessHandle);
-							}
-							__except (1)
-							{
-								DbgPrint("Exception during ObOpenObjectByPointer");
-							}
+							ObOpenObjectByPointer(CurrentProcess, 0, NULL, PROCESS_ALL_ACCESS, *PsProcessType, KernelMode, &ProcessHandle);
 						}
-						__finally
+						__except (1)
 						{
-							KeUnstackDetachProcess(&oldstate);
+							DbgPrint("Exception during ObOpenObjectByPointer");
 						}
-					
 					}
+					__finally
+					{
+						KeUnstackDetachProcess(&oldstate);
+					}
+					
 				}
+				
 
 				if (InternalProcessList == NULL)
 				{
