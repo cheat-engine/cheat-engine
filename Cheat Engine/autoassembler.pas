@@ -240,16 +240,59 @@ end;
 procedure tokenize(input: string; tokens: tstringlist);
 var i: integer;
     a: integer;
+    inquote: boolean=false;
+    inquote2: boolean=false;
 begin
 
   tokens.clear;
   a:=-1;
   for i:=1 to length(input) do
   begin
+    if inquote and (input[i]<>'''') then continue;
+    if inquote2 and (input[i]<>'"') then continue;
+
     case input[i] of
       'a'..'z','A'..'Z','0'..'9','.', '_','#','@': if a=-1 then a:=i;
       else
       begin
+        if (input[i]='''') then
+        begin
+          if inquote then
+          begin
+            if a<>-1 then
+              tokens.AddObject(copy(input,a,i-a),tobject(a));
+
+            a:=-1;
+            inquote:=false;
+          end
+          else
+          begin
+            inquote:=true;
+            a:=i;
+          end;
+
+          continue;
+        end;
+
+        if (input[i]='"') then
+        begin
+          if inquote2 then
+          begin
+            if a<>-1 then
+              tokens.AddObject(copy(input,a,i-a),tobject(a));
+
+            a:=-1;
+            inquote2:=false;
+          end
+          else
+          begin
+            inquote2:=true;
+            a:=i;
+          end;
+
+          continue;
+        end;
+
         if a<>-1 then
           tokens.AddObject(copy(input,a,i-a),tobject(a));
         a:=-1;
