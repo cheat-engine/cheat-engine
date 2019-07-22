@@ -76,6 +76,7 @@ type
     cbNeverChangeProtection: TCheckBox;
     cbAlwaysForceLoad: TCheckBox;
     cbAllocsAddToWatchedRegions: TCheckBox;
+    cbSkip_PAGE_WRITECOMBINE: TCheckBox;
     combothreadpriority: TComboBox;
     defaultbuffer: TPopupMenu;
     Default1: TMenuItem;
@@ -604,6 +605,7 @@ begin
         reg.WriteBool('Pointer appending', cbOldPointerAddMethod.checked);
 
         reg.writebool('skip PAGE_NOCACHE',cbSkip_PAGE_NOCACHE.Checked);
+        reg.writebool('skip PAGE_WRITECOMBINE',cbSkip_PAGE_WRITECOMBINE.Checked);
         reg.writebool('Pause when scanning on by default',cbPauseWhenScanningOnByDefault.Checked);
 
 
@@ -976,6 +978,7 @@ begin
     savedStackSize:=stacksize;
 
     Skip_PAGE_NOCACHE:=cbSkip_PAGE_NOCACHE.Checked;
+    Skip_PAGE_WRITECOMBINE:=cbSkip_PAGE_WRITECOMBINE.checked;
 
     {$ifndef net}
     Scan_MEM_PRIVATE:=cbMemPrivate.checked;

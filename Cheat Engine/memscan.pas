@@ -6023,6 +6023,8 @@ begin
       validRegion:=validRegion and (not (not scan_mem_private and (mbi._type=mem_private)));
       validRegion:=validregion and (not (not scan_mem_image and (mbi._type=mem_image)));
       validRegion:=validregion and (not (not scan_mem_mapped and (mbi._type=mem_mapped)));
+      validRegion:=validregion and (not (Skip_PAGE_NOCACHE and ((mbi._type and PAGE_NOCACHE)>0)));
+      validRegion:=validregion and (not (Skip_PAGE_WRITECOMBINE and ((mbi._type and PAGE_WRITECOMBINE)>0)));
 
 
 

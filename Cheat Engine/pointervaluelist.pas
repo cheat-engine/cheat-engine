@@ -1058,6 +1058,7 @@ begin
       if (includeSystemModules or (not symhandler.inSystemModule(ptrUint(mbi.baseAddress))) ) and (not (not scan_mem_private and (mbi._type=mem_private))) and (not (not scan_mem_image and (mbi._type=mem_image))) and (not (not scan_mem_mapped and ((mbi._type and mem_mapped)>0))) and (mbi.State=mem_commit) and ((mbi.Protect and page_guard)=0) and ((mbi.protect and page_noaccess)=0) then  //look if it is commited
       begin
         if (Skip_PAGE_NOCACHE and ((mbi.AllocationProtect and PAGE_NOCACHE)=PAGE_NOCACHE)) or
+           (Skip_PAGE_WRITECOMBINE and ((mbi.AllocationProtect and PAGE_WRITECOMBINE)=PAGE_WRITECOMBINE)) or
            (noreadonly and (mbi.protect in [PAGE_READONLY, PAGE_EXECUTE, PAGE_EXECUTE_READ]))  then
           valid:=false
         else

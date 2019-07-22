@@ -567,6 +567,12 @@ begin
             
           Skip_PAGE_NOCACHE:=cbSkip_PAGE_NOCACHE.Checked;
 
+          if reg.ValueExists('skip PAGE_WRITECOMBINE') then
+            cbSkip_PAGE_WRITECOMBINE.Checked:=reg.readbool('skip PAGE_WRITECOMBINE');
+
+          Skip_PAGE_WRITECOMBINE:=cbSkip_PAGE_WRITECOMBINE.Checked;
+
+
           if reg.ValueExists('Pause when scanning on by default') then
             cbPauseWhenScanningOnByDefault.Checked:=reg.readbool('Pause when scanning on by default');
 

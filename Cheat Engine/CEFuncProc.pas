@@ -200,6 +200,8 @@ const
 
   WM_HOTKEY2=$8000;
 
+  PAGE_WRITECOMBINE=$400;
+
 type
   MemoryRecordcet3 = record
         Description : string[50];
@@ -3099,7 +3101,7 @@ begin
   if (protect and PAGE_WRITECOPY) = PAGE_WRITECOPY then result:=result+'PAGE_WRITECOPY+';
   if (protect and PAGE_GUARD) = PAGE_GUARD then result:=result+'PAGE_GUARD+';
   if (protect and PAGE_NOCACHE) = PAGE_NOCACHE then result:=result+'PAGE_NOCACHE+';
-  if (protect and $400) > 0 then result:=result+'PAGE_WRITECOMBINE+';
+  if (protect and PAGE_WRITECOMBINE) > 0 then result:=result+'PAGE_WRITECOMBINE+';
 
   if length(result)>0 then
     result:=Copy(result,1,length(result)-1)+'('+inttohex(protect,1)+')';

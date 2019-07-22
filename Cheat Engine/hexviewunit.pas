@@ -252,6 +252,7 @@ resourcestring
   rsExecuteWriteCopy = 'Execute/Write Copy';
   rsGuarded = 'Guarded';
   rsNotCached = 'Not Cached';
+  rsWriteCombine = 'Write Combine';
   rsBase = 'Base';
   rsSize = 'Size';
   rsPhysicalAddress = 'Physical Address';
@@ -1485,6 +1486,8 @@ begin
     if (mbi.Protect and PAGE_EXECUTE_WRITECOPY)>0 then memoryInfo:=memoryInfo+rsExecuteWriteCopy+' ';
     if (mbi.Protect and PAGE_GUARD)>0 then memoryInfo:=memoryInfo+rsGuarded+' ';
     if (mbi.Protect and PAGE_NOCACHE)>0 then memoryInfo:=memoryInfo+rsNotCached;
+    if (mbi.Protect and PAGE_WRITECOMBINE)>0 then memoryInfo:=memoryInfo+rsWriteCombine;
+
 
     memoryInfo:=memoryInfo+' ';
 
