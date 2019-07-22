@@ -4393,16 +4393,24 @@ begin
 end;
 
 procedure TMemoryBrowser.sbShowFloatsClick(Sender: TObject);
-  var x: tpoint;
-z: trect;
+var
+  x: tpoint;
+  z: trect;
+  newleft: integer;
 begin
 
   if frmFloatingPointPanel=nil then
     frmFloatingPointPanel:=TfrmFloatingPointPanel.create(self);
 
-  frmFloatingPointPanel.Left:=self.left+self.Width;
+
+  newleft:=left+Width;
+  if newleft+frmFloatingPointPanel.Width>screen.Width then newleft:=screen.width-frmFloatingPointPanel.width;
+
+  frmFloatingPointPanel.Left:=newleft;
   frmFloatingPointPanel.Top:=self.top+(self.ClientOrigin.y-self.top)-(frmFloatingPointPanel.ClientOrigin.y-frmFloatingPointPanel.top);
   frmFloatingPointPanel.ClientHeight:=scrollbox1.Height;
+
+
 
   frmFloatingPointPanel.SetContextPointer(@lastdebugcontext);
   frmFloatingPointPanel.show;//pop to foreground
