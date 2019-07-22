@@ -679,14 +679,21 @@ end;
 procedure TAddresslist.CreateGroup(groupname: string);
 var
   memrec: TMemoryRecord;
+  n: TTreenode;
 begin
+
   memrec:=TMemoryrecord.Create(self);
   memrec.id:=GetUniqueMemrecId;
   memrec.isGroupHeader:=true;
   memrec.Description:=groupname;
-  memrec.treenode:=Treeview.Items.AddObject(nil,'',memrec);
-  memrec.treenode.DropTarget:=true;
 
+  if SelectedRecord<>nil then
+    memrec.treenode:=Treeview.Items.InsertObjectBehind(SelectedRecord.treenode,'', memrec)
+  else
+    memrec.treenode:=Treeview.Items.AddObject(nil,'',memrec);
+
+
+  memrec.treenode.DropTarget:=true;
   MainForm.editedsincelastsave:=true;
 end;
 
