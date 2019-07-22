@@ -60,6 +60,7 @@ resourcestring
 
   strChangedValue='Changed value';
   strUnchangedValue='Unchanged value';
+  strIgnoreValue='Ignore value';
   strUnknownInitialValue='Unknown initial value';
   strCompareToFirstScan='Compare to first scan';
   strCompareToLastScan='Compare to last scan';

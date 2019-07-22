@@ -52,10 +52,12 @@ type
     compareToSavedScan: boolean;
     currentlySelectedSavedResultname: string; //I love long variable names
 
+    cbCompareToSavedScan: record
+      visible: boolean;
+    end;
     lblcompareToSavedScan: record
       Caption: string;
       Visible: boolean;
-      left: integer;
     end;
 
 
@@ -258,10 +260,12 @@ type
     cbNot: TCheckBox;
     cbCodePage: TCheckBox;
     cbRepeatUntilStopped: TCheckBox;
+    cbCompareToSavedScan: TCheckBox;
     ColorDialog1: TColorDialog;
     CreateGroup: TMenuItem;
     FromAddress: TEdit;
     andlabel: TLabel;
+    lblcompareToSavedScan: TLabel;
     mfImageList: TImageList;
     lblSigned: TLabel;
     MainMenu2: TMainMenu;
@@ -296,7 +300,6 @@ type
     Label1: TLabel;
     Label2: TLabel;
     Label54: TLabel;
-    lblcompareToSavedScan: TLabel;
     lblSH0: TLabel;
     lblSH20: TLabel;
     MenuItem1: TMenuItem;
@@ -502,6 +505,7 @@ type
     procedure actOpenDissectStructureExecute(Sender: TObject);
     procedure actOpenLuaEngineExecute(Sender: TObject);
     procedure Address1Click(Sender: TObject);
+    procedure cbCompareToSavedScanChange(Sender: TObject);
     procedure cbPercentageOnChange(Sender: TObject);
     procedure cbCodePageChange(Sender: TObject);
     procedure cbUnicodeChange(Sender: TObject);
@@ -1066,7 +1070,6 @@ resourcestring
   strMorePointers2 =
     'You have selected one or more pointers. Do you want to change them as well?';
   strNotAValidValue = 'This is not an valid value';
-  rsComparingToF = 'Comparing to first scan results';
   rsTheRecordWithDescriptionHasAsInterpretableAddressT =
     'The record with description ''%s'' has as interpretable address ''%s''. The recalculation will change it to %s. Do you '
     + 'want to edit it to the new address?';
@@ -1197,6 +1200,7 @@ resourcestring
   rsInvalidScanFolder = '%s is not accessible like it should.  Please '
     +'configure a proper location in the settings';
   rsProcessing = '<Processing>';
+  rsCompareToSavedScan = 'Compare to first/saved scan';
 
 var
   ncol: TColor;
@@ -2355,21 +2359,17 @@ begin
         ScanType.Items.Add(strDecreasedValueBy);
         ScanType.Items.add(strChangedValue);
         ScanType.Items.Add(strUnchangedValue);
+        ScanType.Items.Add(strIgnoreValue);
 
-        if compareToSavedScan then
-          ScanType.Items.Add(strCompareToLastScan)
+
+        cbCompareToSavedScan.visible:=true;
+        t:=tstringlist.create;
+        if memscan.getsavedresults(t)>1 then
+          cbCompareToSavedScan.caption:=rsCompareToSavedScan
         else
-        begin
-          t := TStringList.Create;
-          if memscan.getsavedresults(t) > 1 then
-            ScanType.Items.Add(strcompareToSavedScan)
-          else
-            ScanType.Items.Add(strCompareToFirstScan);
+          cbCompareToSavedScan.caption:=strCompareToFirstScan;
 
-          freeandnil(t);
-
-        end;
-
+        t.free;
       end
       else
       begin
@@ -2435,7 +2435,7 @@ begin
 
     if (scantype.Text = strIncreasedValue) or (scantype.Text = strDecreasedValue) or
       (scantype.Text = strChangedValue) or (scantype.Text = strUnchangedValue) or
-      (scantype.Text = strUnknownInitialValue) then
+      (scantype.Text = strUnknownInitialValue) or (scantype.Text = strIgnoreValue) then
     begin
       Scantext.Visible := False;
       Scanvalue.Visible := False;
@@ -3009,6 +3009,76 @@ end;
 procedure TMainForm.Address1Click(Sender: TObject);
 begin
   addresslist.doAddressChange;
+end;
+
+procedure TMainForm.cbCompareToSavedScanChange(Sender: TObject);
+var
+  s: tstringlist;
+  l: TfrmSelectionList;
+
+begin
+  if cbCompareToSavedScan.checked then
+  begin
+    s := TStringList.Create;
+    try
+      if (memscan.getsavedresults(s) > 1) then
+      begin
+        //popup a window where the user can select the scanresults
+        //currentlySelectedSavedResultname
+        l := TfrmSelectionList.Create(self, s);
+        l.Caption := rsSavedScanResults;
+        l.label1.Caption := rsSelectTheSavedScanResultFromTheListBelow;
+        l.ItemIndex := 0;
+
+        if (l.showmodal = mrOk) and (l.ItemIndex <> -1) then
+          currentlySelectedSavedResultname := l.selected
+        else
+          exit;
+      end
+      else
+        currentlySelectedSavedResultname := 'First';
+
+      compareToSavedScan := True;
+      lblcompareToSavedScan.Visible := s.Count>1;
+      lblcompareToSavedScan.Caption := '('+currentlySelectedSavedResultname+')';
+    finally
+      freeandnil(s);
+    end;
+
+
+    try
+      if PreviousResults<>nil then
+        freeandnil(PreviousResults);
+
+      PreviousResults:=TSavedScanHandler.create(memscan.getScanFolder, currentlySelectedSavedResultname);
+      PreviousResults.AllowNotFound:=true;
+      PreviousResults.AllowRandomAccess:=true;
+      foundlist3.Refresh;
+    except
+    end;
+
+    foundlist3.Column[2].Caption:=rsSaved;
+
+  end
+  else
+  begin
+    compareToSavedScan := False;
+    lblcompareToSavedScan.Visible := False;
+
+    try
+      if PreviousResults<>nil then
+        freeandnil(PreviousResults);
+
+      PreviousResults:=TSavedScanHandler.create(memscan.getScanFolder, 'TMP');
+      PreviousResults.AllowNotFound:=true;
+      PreviousResults.AllowRandomAccess:=true;
+      foundlist3.Refresh;
+    except
+    end;
+
+    foundlist3.Column[2].Caption:=rsPrevious;
+
+  end;
 end;
 
 procedure TMainForm.cbCodePageChange(Sender: TObject);
@@ -4312,9 +4382,11 @@ begin
   scanstate.currentlySelectedSavedResultname := currentlySelectedSavedResultname;
   //I love long variable names
 
+  scanstate.cbCompareToSavedScan.visible := cbCompareToSavedScan.Visible;
+
   scanstate.lblcompareToSavedScan.Caption := lblcompareToSavedScan.Caption;
   scanstate.lblcompareToSavedScan.Visible := lblcompareToSavedScan.Visible;
-  scanstate.lblcompareToSavedScan.left := lblcompareToSavedScan.left;
+
 
 
   if not skipuservalues then
@@ -4441,6 +4513,7 @@ begin
   savecurrentstate(scanstate);
 
   //initial scans don't have a previous scan
+  scanstate.cbCompareToSavedScan.visible:=false;
   scanstate.lblcompareToSavedScan.Visible := False;
   scanstate.compareToSavedScan := False;
 
@@ -4492,10 +4565,10 @@ begin
     currentlySelectedSavedResultname := newstate.currentlySelectedSavedResultname;
     //I love long variable names
 
+    cbCompareToSavedScan.visible := newstate.cbCompareToSavedScan.visible;
+
     lblcompareToSavedScan.Caption := newstate.lblcompareToSavedScan.Caption;
     lblcompareToSavedScan.Visible := newstate.lblcompareToSavedScan.Visible;
-    lblcompareToSavedScan.left := newstate.lblcompareToSavedScan.left;
-
 
 
     scantype.items.Text := newstate.scantype.options;
@@ -4800,7 +4873,7 @@ begin
     if inputquery(rsSaveScanResults, rsWhatNameDoYouWantToGiveToTheseScanresults, n) then
     begin
       memscan.saveresults(n);
-      UpdateScanType;
+      cbCompareToSavedScan.caption:=rsCompareToSavedScan;
     end;
   end;
 end;
@@ -5036,6 +5109,9 @@ begin
 
   compareToSavedScan := False;
   lblcompareToSavedScan.Visible := False;
+  cbCompareToSavedScan.Checked:=false;
+  cbCompareToSavedScan.Caption:=strCompareToFirstScan;
+  cbCompareToSavedScan.Visible:=true;
 
   miDisplayDefault.checked:=true;
   foundlistDisplayOverride:=0;
@@ -5833,113 +5909,8 @@ begin
 end;
 
 procedure TMainForm.ScanTypeChange(Sender: TObject);
-var
-  old, old2: TNotifyEvent;
-  s: TStringList;
-  l: TfrmSelectionList;
 begin
-  old := scantype.OnChange;
-  old2 := scantype.OnSelect;
-  scantype.OnChange := nil;
-  scantype.OnSelect := nil;
-
-  try
-    if (scantype.ItemIndex <> -1) then
-    begin
-      //currentlySelectedSavedResultname
-      if (scantype.Items[scantype.ItemIndex] = strcompareToSavedScan) or
-        (scantype.Items[scantype.ItemIndex] = strCompareToFirstScan) then
-      begin
-        s := TStringList.Create;
-        try
-          if (not scantypechangedbyhotkey) and (memscan.getsavedresults(s) > 1) then
-          begin
-            //popup a window where the user can select the scanresults
-            //currentlySelectedSavedResultname
-            l := TfrmSelectionList.Create(self, s);
-            l.Caption := rsSavedScanResults;
-            l.label1.Caption := rsSelectTheSavedScanResultFromTheListBelow;
-            l.ItemIndex := 0;
-
-            if (l.showmodal = mrOk) and (l.ItemIndex <> -1) then
-            begin
-              currentlySelectedSavedResultname := l.selected;
-              if l.ItemIndex = 0 then
-                lblcompareToSavedScan.Caption := rsComparingToF
-              else
-                lblcompareToSavedScan.Caption :=
-                  Format(rsComparingTo, [currentlySelectedSavedResultname]);
-            end
-            else
-            begin
-              scantype.ItemIndex := lastscantype;
-              exit;
-            end;
-          end
-          else
-          begin
-            currentlySelectedSavedResultname := 'FIRST';
-            lblcompareToSavedScan.Caption := rsComparingToF;
-          end;
-        finally
-          freeandnil(s);
-        end;
-
-        scantype.Items[scantype.ItemIndex] := strCompareToLastScan;
-        scantype.ItemIndex := lastscantype;
-        compareToSavedScan := True;
-
-        lblcompareToSavedScan.Visible := True;
-        lblcompareToSavedScan.left :=
-          btnNewScan.left + ((((btnNextScan.left + btnNextScan.Width) - btnNewScan.left) div 2) -
-          (lblcompareToSavedScan.Width div 2));
-
-        try
-          if PreviousResults<>nil then
-            freeandnil(PreviousResults);
-
-          PreviousResults:=TSavedScanHandler.create(memscan.getScanFolder, currentlySelectedSavedResultname);
-          PreviousResults.AllowNotFound:=true;
-          PreviousResults.AllowRandomAccess:=true;
-          foundlist3.Refresh;
-        except
-        end;
-
-        foundlist3.Column[2].Caption:=rsSaved;
-
-
-      end
-      else
-      if scantype.Items[scantype.ItemIndex] = strCompareToLastScan then
-      begin
-        scantype.Items[scantype.ItemIndex] := strcompareToSavedScan;
-        scantype.ItemIndex := lastscantype;
-        compareToSavedScan := False;
-        lblcompareToSavedScan.Visible := False;
-
-        try
-          if PreviousResults<>nil then
-            freeandnil(PreviousResults);
-
-          PreviousResults:=TSavedScanHandler.create(memscan.getScanFolder, 'TMP');
-          PreviousResults.AllowNotFound:=true;
-          PreviousResults.AllowRandomAccess:=true;
-          foundlist3.Refresh;
-        except
-        end;
-
-        foundlist3.Column[2].Caption:=rsPrevious;
-
-      end;
-    end;
-
-    updatescantype;
-  finally
-    scantype.OnSelect := old2;
-    scantype.OnChange := old;
-
-  end;
-
+  updatescantype;
 end;
 
 procedure TMainForm.Value1Click(Sender: TObject);
@@ -9368,8 +9339,6 @@ begin
     btnNewScan.Caption := strNewScan;
   end;
 
-  beep;
-  //let the blind user know the scan has finished (See, I'm thinking about the visually impeared users...)
 
   ProgressBar.Position := 0;
   UpdateFoundlisttimer.Enabled := True;
@@ -9387,7 +9356,10 @@ begin
     btnNewScan.Click;
 
   if (GetScanType=soUnchanged) and (cbRepeatUntilStopped.checked) then
-    btnNext.Click;
+    btnNext.Click
+  else
+    beep; //let the blind user know the scan has finished (See, I'm thinking about the visually impeared users...)
+
 end;
 
 procedure TMainForm.CancelbuttonClick(Sender: TObject);
@@ -9932,6 +9904,7 @@ begin
           7: result:=soDecreasedValueBy;
           8: result:=soChanged;
           9: result:=soUnchanged;
+          10: result:=soForgot;
         end;
       end;
     end;
