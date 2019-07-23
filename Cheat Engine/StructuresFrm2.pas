@@ -3522,6 +3522,11 @@ begin
       if (struct=nil) or (struct.structelementlist=nil) then exit; //this whole structure is destroyed
 
       //now get the element this node represents and check if it is a pointer
+      if node.Index>=struct.count then
+      begin
+        outputdebugstring('Error at tvStructureViewCollapsed. node.Index>=struct.count');
+        exit;
+      end;
       node.HasChildren:=struct[node.Index].isPointer;
 
       if miAutoDestroyLocal.checked then //delete autocreated local structs when closed
@@ -4158,6 +4163,9 @@ begin
     else
       i:=0;
 
+    if node.index+i>=nodestruct.count then
+      exit(nil);
+
     result:=nodestruct[node.index+i];
   end;
 end;
@@ -4382,8 +4390,8 @@ begin
         structElement.ExpandChangesAddress:=ExpandChangesAddress;
 
 
-
-        tvStructureView.Items.SelectOnlyThis(n.Items[structElement.Index]);
+        if structElement.index<n.Count then
+          tvStructureView.Items.SelectOnlyThis(n.Items[structElement.Index]);
       end;
 
       free;
