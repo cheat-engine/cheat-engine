@@ -1223,6 +1223,8 @@ begin
 
     lua_setPrintOutput(oldprintoutput);
   end;
+
+  mScript.SetFocus;
 end;
 
 procedure TfrmLuaEngine.Button1Click(Sender: TObject);
