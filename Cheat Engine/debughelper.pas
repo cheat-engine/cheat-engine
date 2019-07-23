@@ -2642,7 +2642,7 @@ begin
   end;
 
   fRunning:=true;
-  lockSettings;
+
 
   createProcess:=true;
   self.filename:=filename;
@@ -2651,6 +2651,8 @@ begin
 
   start;
   WaitTillAttachedOrError;
+
+  if not terminated then lockSettings;
 end;
 
 constructor TDebuggerthread.MyCreate2(processID: THandle);
