@@ -785,7 +785,7 @@ int interrupt1_handler(UINT_PTR *stackpointer, UINT_PTR *currentdebugregs)
 	}
 	
 
-	//DbgPrint("interrupt1_handler\n");
+	DbgPrint("interrupt1_handler. DR6=%x (%x)\n", originaldr6, debugger_dr6_getValueDword());
 	
 	//check if this break should be handled or not
 	
@@ -1113,11 +1113,24 @@ int interrupt1_handler(UINT_PTR *stackpointer, UINT_PTR *currentdebugregs)
 		}
 	}
 
+	if (DebuggerState.isSteppingTillClear) //this doesn't really work because when the state comes back to interruptable the system has a critical section lock on the GUI, so yeah... I really need a DBVM display driver for this
+	{
 	
+		if ((((PEFLAGS)&stackpointer[si_eflags])->IF == 0) || (KeGetCurrentIrql() != PASSIVE_LEVEL))
+		{
+			((PEFLAGS)&stackpointer[si_eflags])->TF = 1;
+			((PEFLAGS)&stackpointer[si_eflags])->RF = 1;
+			debugger_dr6_setValue(0xffff0ff0);
+			return 1;
+		}
+
+		DebuggerState.isSteppingTillClear = FALSE;	
+	}
+
 	
 	if (DebuggerState.isDebugging)
 	{
-		//DbgPrint("DebuggerState.isDebugging\n");
+		DbgPrint("DebuggerState.isDebugging\n");
 		//check if this should break
 		if (CurrentProcessID==(HANDLE)(UINT_PTR)DebuggerState.debuggedProcessID)
 		{	
@@ -1259,7 +1272,7 @@ int interrupt1_handler(UINT_PTR *stackpointer, UINT_PTR *currentdebugregs)
 		}
 		else 
 		{
-			//DbgPrint("Not the debugged process (%x != %x)\n",CurrentProcessID,DebuggerState.debuggedProcessID );
+			DbgPrint("Not the debugged process (%x != %x)\n",CurrentProcessID,DebuggerState.debuggedProcessID );
 			//check if this break is due to a breakpoint ce has set. (during global debug threadsurfing))
 			//do that by checking if the breakpoint condition exists in the FAKE dr7 registers
 			//if so, let windows handle it, if not, it is caused by ce, which then means, skip (so execute normally)
@@ -1288,6 +1301,8 @@ int interrupt1_handler(UINT_PTR *stackpointer, UINT_PTR *currentdebugregs)
 				return 1; //ignore
 			}
 
+			DbgPrint("Returning unhandled. DR6=%x", debugger_dr6_getValueDword());
+			
 			return 0; //still here, so let windows handle it
 
 		}
@@ -1496,7 +1511,8 @@ int interrupt1_centry(UINT_PTR *stackpointer) //code segment 8 has a 32-bit stac
 	else
 	{
 		//not global debug, just clear all flags and be done with it
-		debugger_dr6_setValue(0xffff0ff0);
+		if (handled)
+			debugger_dr6_setValue(0xffff0ff0);
 	
 	}
 
