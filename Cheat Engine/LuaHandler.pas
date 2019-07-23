@@ -5903,7 +5903,7 @@ begin
   if lua_gettop(L)>=1 then
   begin
     PA:=lua_tointeger(L,1);
-    lua_pushinteger(L, dbvm_cloak_removechangeregonbp(PA));
+    lua_pushboolean(L, dbvm_cloak_removechangeregonbp(PA)=0);
     result:=1;
   end;
 end;

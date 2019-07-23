@@ -2516,6 +2516,8 @@ dbvm_changeregonbp(physicaladdress, changereginfo, virtualaddress OPTIONAL): boo
       newR14: integer
       newR15: integer
 
+dbvm_removechangeregonbp(physicaladdress) : Disables the changeregonbp breakpoint
+
 dbvm_log_cr3_start() : Tells DBVM to record (up to 512) unique CR3 values it encounters
 dbvm_log_cr3_stop() : Stops the logging and returns the results as a table
 
