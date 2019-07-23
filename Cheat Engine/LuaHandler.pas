@@ -673,7 +673,12 @@ begin
     begin
       s2:=lua_gettop(luavm);
       if (s2-stackpos)>0 then
-        result:=lua_tointeger(luavm, stackpos-s2)
+      begin
+        if lua_isnil(luavm,-1)=false then
+          result:=lua_tointeger(luavm, stackpos-s2)
+        else
+          raise exception.create(rsInvalidInt);
+      end
       else
         raise exception.create(Format(rsInvalidInt, [s]));
     end
