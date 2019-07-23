@@ -539,8 +539,6 @@ begin
   isultimap:=((frmUltimap2<>nil) and frmUltimap2.IsMatchingAddress(faddress)) or ((frmCodeFilter<>nil) and (frmCodeFilter.isBreakpoint(faddress,b) ));
 
 
-
-
   if selected then
   begin
     if not isbp then

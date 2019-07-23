@@ -115,7 +115,7 @@ type
     function  SetOnAccessBreakpoint(address: ptrUint; size: integer; tid: dword=0; OnBreakpoint: TBreakpointEvent=nil): PBreakpoint; overload;
     function  SetOnExecuteBreakpoint(address: ptrUint; bpm: TBreakpointMethod; askforsoftwarebp: boolean = false; tid: dword=0; OnBreakpoint: TBreakpointEvent=nil): PBreakpoint; overload;
     function  SetOnExecuteBreakpoint(address: ptrUint; askforsoftwarebp: boolean = false; tid: dword=0; OnBreakpoint: TBreakpointEvent=nil): PBreakpoint; overload;
-    function  ToggleOnExecuteBreakpoint(address: ptrUint; tid: dword=0): PBreakpoint;
+    function  ToggleOnExecuteBreakpoint(address: ptrUint; breakpointmethod: TBreakpointMethod; tid: dword=0): PBreakpoint;
 
     procedure UpdateDebugRegisterBreakpointsForThread(t: TDebugThreadHandler);
     procedure RemoveBreakpoint(breakpoint: PBreakpoint);
@@ -2060,7 +2060,7 @@ begin
     OutputDebugString('Going to toggle bp');
 
     try
-      bp:=ToggleOnExecuteBreakpoint(code);
+      bp:=ToggleOnExecuteBreakpoint(code, bpmInt3);
 
       if bp<>nil then
         bp^.OneTimeOnly:=true;
@@ -2323,7 +2323,7 @@ end;
 
 
 
-function TDebuggerthread.ToggleOnExecuteBreakpoint(address: ptrUint; tid: dword=0): PBreakpoint;
+function TDebuggerthread.ToggleOnExecuteBreakpoint(address: ptrUint; breakpointmethod: TBreakpointMethod; tid: dword=0): PBreakpoint;
 {Only called from the main thread}
 var
   i: integer;
@@ -2355,7 +2355,7 @@ begin
 
     if not found then
     begin
-      method := preferedBreakpointMethod;
+      method := breakpointmethod;
 
       if method = bpmDebugRegister then
       begin

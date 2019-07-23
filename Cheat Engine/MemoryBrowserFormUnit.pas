@@ -580,6 +580,9 @@ type
     adjustedsize: boolean;
     registerpanelfont: TFont;
 
+    overridebreakpointmethod: boolean;
+    preferedF5BreakpointMethod: TBreakpointMethod;
+
     procedure SetStacktraceSize(size: integer);
     procedure setShowDebugPanels(state: boolean);
     function getShowValues: boolean;
@@ -612,6 +615,7 @@ type
 
     ischild: boolean; //determines if it's the main memorybrowser or a child
     backlist: TStack;
+
 
 
 
@@ -1125,7 +1129,8 @@ begin
       3: bpm:=bpmDBVM;
     end;
 
-    preferedBreakpointMethod:=bpm;
+    overridebreakpointmethod:=true;
+    preferedF5BreakpointMethod:=bpm;
 
     try
       DebuggerThread.SetOnExecuteBreakpoint(disassemblerview.SelectedAddress, bpm);
@@ -3649,11 +3654,17 @@ begin
 end;
 
 procedure TMemoryBrowser.miTogglebreakpointClick(Sender: TObject);
+var bpm: TBreakpointMethod;
 begin
   try
     if startdebuggerifneeded(true) then
     begin
-      DebuggerThread.ToggleOnExecuteBreakpoint(disassemblerview.SelectedAddress);
+      if overridebreakpointmethod then
+        bpm:=preferedF5BreakpointMethod
+      else
+        bpm:=preferedBreakpointMethod;
+
+      DebuggerThread.ToggleOnExecuteBreakpoint(disassemblerview.SelectedAddress,bpm);
       disassemblerview.Update;
     end;
   except
@@ -3917,6 +3928,7 @@ var x: ptrUint;
   inadvancedoptions: boolean;
   e: boolean;
   VA,PA: QWORD;
+  bpm: TBreakpointMethod;
 begin
   Breakandtraceinstructions1.Enabled:=processhandle<>0;
   miTogglebreakpoint.Enabled:=processhandle<>0;
@@ -3942,7 +3954,14 @@ begin
   if miTogglebreakpoint.visible then
   begin
     if (debuggerthread=nil) or (debuggerthread.isBreakpoint(disassemblerview.SelectedAddress)=nil) then
-      miTogglebreakpoint.caption:=rsSetBreakpoint+' ('+breakpointMethodToString(preferedBreakpointMethod)+')'
+    begin
+      if overridebreakpointmethod then
+        bpm:=preferedF5BreakpointMethod
+      else
+        bpm:=preferedBreakpointMethod;
+
+      miTogglebreakpoint.caption:=rsSetBreakpoint+' ('+breakpointMethodToString(bpm)+')'
+    end
     else
       miTogglebreakpoint.caption:=rsRemoveBreakpoint;
   end;

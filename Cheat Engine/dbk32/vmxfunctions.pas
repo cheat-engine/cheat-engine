@@ -1567,6 +1567,28 @@ begin
   breakpointsCS.Leave;
 end;
 
+
+function dbvm_isBreakpoint(virtualAddress: ptruint; out physicalAddress: qword; out breakoption: integer): boolean;
+var i: integer;
+begin
+  result:=false;
+  breakpointsCS.Enter;
+  try
+    for i:=0 to length(breakpoints)-1 do
+    begin
+      if breakpoints[i].VirtualAddress=virtualAddress then
+      begin
+        physicaladdress:=breakpoints[i].PhysicalAddress;
+        breakoption:=breakpoints[i].breakoption;
+        result:=true;
+      end;
+    end;
+  finally
+    breakpointscs.leave;
+  end;
+
+end;
+
 procedure dbvm_getBreakpointList(l: TStrings);
 //gets the breakpoint list, the caller will need to free the entries after call
 var
