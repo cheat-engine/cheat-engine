@@ -50,6 +50,7 @@ type
     procedure Button1Click(Sender: TObject);
     procedure cbCodePageChange(Sender: TObject);
     procedure cbunicodeChange(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
     procedure VarTypeChange(Sender: TObject);
     procedure FormShow(Sender: TObject);
   private
@@ -71,7 +72,7 @@ implementation
 {$ifdef net}
 uses Unit2;
 {$else}
-uses MainUnit;
+uses MainUnit, vartypestrings;
 {$endif}
 
 resourcestring
@@ -243,6 +244,20 @@ end;
 procedure TTypeForm.cbunicodeChange(Sender: TObject);
 begin
   if cbunicode.checked then cbCodePage.checked:=false;
+end;
+
+procedure TTypeForm.FormCreate(Sender: TObject);
+begin
+  VarType.Items.Clear;
+  vartype.items.add(rs_vtBinary);
+  vartype.items.add(rs_vtByte);
+  vartype.items.add(rs_vtWord);
+  vartype.items.add(rs_vtDword);
+  vartype.items.add(rs_vtQword);
+  vartype.items.add(rs_vtSingle);
+  vartype.items.add(rs_vtDouble);
+  vartype.items.add(rs_vtString);
+  vartype.items.add(rs_vtByteArray);
 end;
 
 procedure TTypeForm.VarTypeChange(Sender: TObject);
