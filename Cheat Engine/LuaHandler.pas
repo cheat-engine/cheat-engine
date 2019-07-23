@@ -638,6 +638,17 @@ begin
   end;
 
 
+
+  if translationfilepath<>'' then
+  begin
+    if FileExists(translationfilepath+'init.lua') then
+    begin
+      lua_dofile(luavm, pchar(translationfilepath+'init.lua'));
+      lua_pop(LuaVM, lua_gettop(luavm));
+    end;
+  end;
+
+
 end;
 
 function lua_strtofloat(s: string): double;

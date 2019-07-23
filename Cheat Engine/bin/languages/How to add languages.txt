@@ -24,6 +24,8 @@ The lclstrconsts.po file belongs to the LCL that the Cheat Engine GUI is build u
 Custom name for your translation:
 place a name.txt file in your translation folder and name it anything you like instead of the language code
 
+Custom lua script for your translation:
+place an init.lua file in the translation folder and the code in there will be executed when CE starts. You can use this to shift objects around or adjust anchors to make space for your text
 
 ----
 example for dutch
