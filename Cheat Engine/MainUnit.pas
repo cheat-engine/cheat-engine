@@ -87,6 +87,16 @@ type
       visible: boolean;
     end;
 
+    cbnot: record
+      checked: boolean;
+      visible: boolean;
+    end;
+
+    cbLuaformula: record
+      checked: boolean;
+      visible: boolean;
+    end;
+
     cbRepeatUntilStopped: record
       checked: boolean;
       visible: boolean;
@@ -188,10 +198,6 @@ type
     foundlistDisplayOverride: integer;
 
 
-    cbNot:record
-      Checked: boolean;
-    end;
-
     cbfloatSimple: record
       Checked: boolean;
     end;
@@ -261,6 +267,7 @@ type
     cbCodePage: TCheckBox;
     cbRepeatUntilStopped: TCheckBox;
     cbCompareToSavedScan: TCheckBox;
+    cbLuaFormula: TCheckBox;
     ColorDialog1: TColorDialog;
     CreateGroup: TMenuItem;
     FromAddress: TEdit;
@@ -2124,6 +2131,7 @@ begin
   undoscan.Enabled := False;
 
   cbNot.Enabled:=false;
+  cbLuaFormula.enabled:=false;
 end;
 
 procedure TMainForm.enableGui(isnextscan: boolean);
@@ -2162,6 +2170,7 @@ begin
   cbHexadecimal.Enabled := True;
   cbCaseSensitive.Enabled := True;
   cbNot.enabled:=true;
+  cbLuaFormula.enabled:=true;
 
 
   scanvalue.Visible := True;
@@ -2485,6 +2494,7 @@ begin
 
     cbRepeatUntilStopped.visible:=GetScanType=soUnchanged;
 
+    cbLuaFormula.visible:=(GetScanType=soExactValue) and (getVarType in [vtByte, vtWord, vtDword, vtQword, vtSingle, vtDouble, vtCustom, vtAll])
 
   finally
     scantype.OnChange := old;
@@ -4472,7 +4482,10 @@ begin
   scanstate.cbcodepage.checked := cbcodepage.checked;
   scanstate.cbCaseSensitive.Visible := cbCaseSensitive.visible;
   scanstate.cbCaseSensitive.checked := cbCaseSensitive.checked;
-
+  scanstate.cbNot.visible:=cbNot.visible;
+  scanstate.cbnot.checked:=cbNot.checked;
+  scanstate.cbLuaformula.visible:=cbLuaFormula.Visible;
+  scanstate.cbLuaformula.checked:=cbLuaFormula.Checked;
 
   if cbpercentage <> nil then
   begin
@@ -4701,6 +4714,10 @@ begin
 
     cbRepeatUntilStopped.visible:=newstate.cbRepeatUntilStopped.visible;
     cbRepeatUntilStopped.Checked:=newstate.cbRepeatUntilStopped.checked;
+    cbNot.visible:=newstate.cbNot.visible;
+    cbNot.checked:=newstate.cbNot.Checked;
+    cbLuaFormula.visible:=newstate.cbLuaformula.visible;
+    cbLuaFormula.checked:=newstate.cbLuaformula.checked;
 
     if newstate.foundlist3.ItemIndex=-1 then
       newstate.foundlist3.ItemIndex:=0;
@@ -9230,6 +9247,8 @@ begin
     if ScanTabList <> nil then
       ScanTabList.Enabled := False;
 
+    memscan.luaformula:=cbLuaFormula.visible and cbLuaFormula.checked;
+
     memscan.firstscan(GetScanType2, getVarType2, roundingtype,
       scanvalue.Text, svalue2, scanStart, scanStop,
       cbHexadecimal.Checked, rbdec.Checked, cbunicode.Checked, cbCaseSensitive.Checked, fastscanmethod, edtAlignment.Text,
@@ -9450,6 +9469,8 @@ begin
   memscan.floatscanWithoutExponents:=cbFloatSimple.checked;
   memscan.inverseScan:=cbNot.Checked and cbnot.Visible;
   memscan.codePage:=cbCodePage.checked;
+  memscan.luaformula:=cbLuaFormula.visible and cbLuaFormula.checked;
+
 
   if ScanTabList <> nil then
     ScanTabList.Enabled := False;

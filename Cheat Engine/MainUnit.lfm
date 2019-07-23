@@ -1243,13 +1243,13 @@ object MainForm: TMainForm
       AnchorSideRight.Control = Panel5
       AnchorSideRight.Side = asrBottom
       Left = 499
-      Height = 330
+      Height = 349
       Top = 124
       Width = 121
       Anchors = [akTop, akRight]
       AutoSize = True
       BevelOuter = bvNone
-      ClientHeight = 330
+      ClientHeight = 349
       ClientWidth = 121
       ParentFont = False
       TabOrder = 8
@@ -1259,13 +1259,13 @@ object MainForm: TMainForm
         AnchorSideRight.Control = Panel9
         AnchorSideRight.Side = asrBottom
         Left = 0
-        Height = 190
+        Height = 209
         Top = 0
         Width = 121
         AutoSize = True
         BorderSpacing.Bottom = 4
         BevelOuter = bvNone
-        ClientHeight = 190
+        ClientHeight = 209
         ClientWidth = 121
         Constraints.MinHeight = 100
         ParentFont = False
@@ -1277,7 +1277,7 @@ object MainForm: TMainForm
           AnchorSideRight.Side = asrBottom
           Left = 0
           Height = 57
-          Top = 114
+          Top = 133
           Width = 121
           AutoSize = True
           BevelOuter = bvNone
@@ -1325,7 +1325,7 @@ object MainForm: TMainForm
           AnchorSideTop.Side = asrBottom
           Left = 0
           Height = 19
-          Top = 76
+          Top = 95
           Width = 58
           Caption = 'UTF-16'
           OnChange = cbUnicodeChange
@@ -1339,7 +1339,7 @@ object MainForm: TMainForm
           AnchorSideTop.Side = asrBottom
           Left = 0
           Height = 19
-          Top = 95
+          Top = 114
           Width = 93
           Caption = 'Case sensitive'
           Checked = True
@@ -1359,7 +1359,7 @@ object MainForm: TMainForm
           AnchorSideRight.Side = asrBottom
           Left = 0
           Height = 19
-          Top = 171
+          Top = 190
           Width = 118
           Caption = 'Simple values only'
           ParentFont = False
@@ -1372,7 +1372,7 @@ object MainForm: TMainForm
           AnchorSideTop.Side = asrBottom
           Left = 0
           Height = 19
-          Top = 38
+          Top = 57
           Width = 60
           Caption = 'Percent'
           OnChange = cbPercentageOnChange
@@ -1381,11 +1381,12 @@ object MainForm: TMainForm
         end
         object cbNot: TCheckBox
           AnchorSideLeft.Control = pnlScanOptions
-          AnchorSideTop.Control = pnlScanOptions
+          AnchorSideTop.Control = cbLuaFormula
+          AnchorSideTop.Side = asrBottom
           Left = 0
           Height = 19
           Hint = 'When checked CE will find everything EXCEPT the value/range you''ve given'
-          Top = 0
+          Top = 19
           Width = 40
           Caption = 'Not'
           Enabled = False
@@ -1396,12 +1397,12 @@ object MainForm: TMainForm
           Visible = False
         end
         object cbCodePage: TCheckBox
-          AnchorSideLeft.Control = cbpercentage
+          AnchorSideLeft.Control = pnlScanOptions
           AnchorSideTop.Control = cbpercentage
           AnchorSideTop.Side = asrBottom
           Left = 0
           Height = 19
-          Top = 57
+          Top = 76
           Width = 74
           Caption = 'Codepage'
           OnChange = cbCodePageChange
@@ -1410,19 +1411,33 @@ object MainForm: TMainForm
           Visible = False
         end
         object cbRepeatUntilStopped: TCheckBox
-          AnchorSideLeft.Control = cbNot
+          AnchorSideLeft.Control = pnlScanOptions
           AnchorSideTop.Control = cbNot
           AnchorSideTop.Side = asrBottom
           Left = 0
           Height = 19
           Hint = 'Repeats the unchanged value scan until it gets stopped'
-          Top = 19
+          Top = 38
           Width = 56
           Caption = 'Repeat'
           ParentShowHint = False
           ShowHint = True
           TabOrder = 7
           Visible = False
+        end
+        object cbLuaFormula: TCheckBox
+          AnchorSideLeft.Control = pnlScanOptions
+          AnchorSideTop.Control = pnlScanOptions
+          Left = 0
+          Height = 19
+          Hint = 'When checked the value will be interpreted as a Lua script. '#13#10'local variables available: '#13#10'value, previousvalue'#13#10#13#10'example:'#13#10'value>5 and value~=8'
+          Top = 0
+          Width = 84
+          Caption = 'Lua formula'
+          Enabled = False
+          ParentShowHint = False
+          ShowHint = True
+          TabOrder = 8
         end
       end
       object Panel10: TPanel
@@ -1435,7 +1450,7 @@ object MainForm: TMainForm
         AnchorSideBottom.Side = asrBottom
         Left = 0
         Height = 136
-        Top = 194
+        Top = 213
         Width = 115
         Anchors = [akTop, akLeft, akBottom]
         AutoSize = True

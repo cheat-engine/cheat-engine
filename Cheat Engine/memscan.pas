@@ -150,6 +150,8 @@ type
     savedscanhandler: Tsavedscanhandler;
     scandir: string;
 
+    L: Plua_State;
+
     previousmemoryfile: TFilestream;
 
     found :dword;
@@ -225,6 +227,7 @@ type
     function ByteDecreasedValueByPercentage(newvalue,oldvalue: pointer): boolean;
     function ByteChanged(newvalue,oldvalue: pointer): boolean;
     function ByteUnChanged(newvalue,oldvalue: pointer): boolean;
+    function ByteLuaFormula(newvalue,oldvalue: pointer): boolean;
 
     function WordExact(newvalue,oldvalue: pointer): boolean;
     function WordBetween(newvalue,oldvalue: pointer): boolean;
@@ -240,6 +243,7 @@ type
     function WordDecreasedValueByPercentage(newvalue,oldvalue: pointer): boolean;
     function WordChanged(newvalue,oldvalue: pointer): boolean;
     function WordUnChanged(newvalue,oldvalue: pointer): boolean;
+    function WordLuaFormula(newvalue,oldvalue: pointer): boolean;
 
     function DWordExact(newvalue,oldvalue: pointer): boolean;
     function DWordBetween(newvalue,oldvalue: pointer): boolean;
@@ -255,7 +259,7 @@ type
     function DWordDecreasedValueByPercentage(newvalue,oldvalue: pointer): boolean;
     function DwordChanged(newvalue,oldvalue: pointer): boolean;
     function DwordUnChanged(newvalue,oldvalue: pointer): boolean;
-
+    function DWordLuaFormula(newvalue,oldvalue: pointer): boolean;
 
     function QWordExact(newvalue,oldvalue: pointer): boolean;
     function QWordBetween(newvalue,oldvalue: pointer): boolean;
@@ -271,6 +275,7 @@ type
     function QWordDecreasedValueByPercentage(newvalue,oldvalue: pointer): boolean;
     function QWordChanged(newvalue,oldvalue: pointer): boolean;
     function QwordUnChanged(newvalue,oldvalue: pointer): boolean;
+    function QWordLuaFormula(newvalue,oldvalue: pointer): boolean;
 
     function SingleExact(newvalue,oldvalue: pointer): boolean;
     function SingleBetween(newvalue,oldvalue: pointer): boolean;
@@ -285,6 +290,7 @@ type
     function SingleDecreasedValueByPercentage(newvalue,oldvalue: pointer): boolean;
     function SingleChanged(newvalue,oldvalue: pointer): boolean;
     function singleUnChanged(newvalue,oldvalue: pointer): boolean;
+    function SingleLuaFormula(newvalue,oldvalue: pointer): boolean;
 
     function DoubleExact(newvalue,oldvalue: pointer): boolean;
     function DoubleBetween(newvalue,oldvalue: pointer): boolean;
@@ -299,6 +305,7 @@ type
     function DoubleDecreasedValueByPercentage(newvalue,oldvalue: pointer): boolean;
     function DoubleChanged(newvalue,oldvalue: pointer): boolean;
     function DoubleUnChanged(newvalue,oldvalue: pointer): boolean;
+    function DoubleLuaFormula(newvalue,oldvalue: pointer): boolean;
 
     function AllUnknown(newvalue,oldvalue: pointer):boolean; //check byte,word,dword,qword,single and float
     function AllExact(newvalue,oldvalue: pointer):boolean; //check byte,word,dword,qword,single and float
@@ -315,6 +322,7 @@ type
     function AllDecreasedValueByPercentage(newvalue,oldvalue: pointer): boolean;
     function AllChanged(newvalue,oldvalue: pointer): boolean;
     function AllUnchanged(newvalue,oldvalue: pointer): boolean;
+    function AllLuaFormula(newvalue,oldvalue: pointer):boolean; //check byte,word,dword,qword,single and float
 
     function CustomExact(newvalue,oldvalue: pointer): boolean;
     function CustomBetween(newvalue,oldvalue: pointer): boolean;
@@ -330,6 +338,7 @@ type
     function CustomDecreasedValueByPercentage(newvalue,oldvalue: pointer): boolean;
     function CustomChanged(newvalue,oldvalue: pointer): boolean;
     function CustomUnChanged(newvalue,oldvalue: pointer): boolean;
+    function CustomLuaFormula(newvalue,oldvalue: pointer): boolean;
 
     function CustomFloatExact(newvalue,oldvalue: pointer): boolean;
     function CustomFloatBetween(newvalue,oldvalue: pointer): boolean;
@@ -344,6 +353,7 @@ type
     function CustomFloatDecreasedValueByPercentage(newvalue,oldvalue: pointer): boolean;
     function CustomFloatChanged(newvalue,oldvalue: pointer): boolean;
     function CustomFloatUnChanged(newvalue,oldvalue: pointer): boolean;
+    function CustomFloatLuaFormula(newvalue,oldvalue: pointer): boolean;
 
 
     function ArrayOfBytesExact_NibbleWildcardSupport(newvalue: pointer; mabsindex: integer):boolean;
@@ -406,7 +416,7 @@ type
 
     PreviousOffsetCount: integer; //holds the offsecount of the previous scan (for calculating the entry position)
 
-
+    luaformula: boolean;
     unicode: boolean;
     caseSensitive: boolean;
     percentage: boolean;
@@ -546,6 +556,7 @@ type
 
     floatscanWithoutExponents: boolean;
     inverseScan: boolean;
+    luaformula: boolean;
 
     procedure execute; override;
     constructor create(suspended: boolean);
@@ -602,6 +613,7 @@ type
     fscanresultfolder: string; //the location where all the scanfiles will be stored
 
     fCodePage: boolean;
+    fLuaFormula: boolean;
 
     fnextscanCount: integer;
 
@@ -676,6 +688,7 @@ type
     property VarType: TVariableType read currentVariableType;
     property CustomType: TCustomType read currentCustomType;
     property codePage: boolean read fCodePage write fCodePage;
+    property LuaFormula: boolean read fLuaFormula write fLuaFormula;
     property lastScanWasRegionScan: boolean read getLastScanWasRegionScan;
     property isUnicode: boolean read stringUnicode;
     property isHexadecimal: boolean read fisHexadecimal; //gui
@@ -1409,6 +1422,51 @@ begin
         customtypesmatch[j]:=customtypesmatch[j] and (CustomFloatExact(newvalue,oldvalue) xor inverseScan)
       else
         customtypesmatch[j]:=customtypesmatch[j] and (CustomExact(newvalue,oldvalue) xor inverseScan)
+    end;
+  end;
+  {$ENDIF}
+
+  result:=false;
+  for i:=vtbyte to vtdouble do
+    if typesmatch[i] then
+    begin
+      result:=true;
+      exit;
+    end;
+
+  if allCustom then
+    for j:=0 to customtypecount-1 do
+      if customtypesmatch[j] then
+      begin
+        result:=true;
+        exit;
+      end;
+
+end;
+
+function TScanner.AllLuaFormula(newvalue,oldvalue: pointer):boolean;
+var i: TVariableType;
+  j: integer;
+begin
+  typesmatch[vtByte]:=typesmatch[vtByte] and (ByteLuaFormula(newvalue,oldvalue) xor inverseScan); //oldvalue=nil, but give it anyhow
+  typesmatch[vtWord]:=typesmatch[vtWord] and (WordLuaFormula(newvalue,oldvalue) xor inverseScan);
+  typesmatch[vtDword]:=typesmatch[vtDword] and (DwordLuaFormula(newvalue,oldvalue) xor inverseScan);
+  typesmatch[vtQword]:=typesmatch[vtQword] and (qwordLuaFormula(newvalue,oldvalue) xor inverseScan);
+  typesmatch[vtSingle]:=typesmatch[vtSingle] and (singleLuaFormula(newvalue,oldvalue) xor inverseScan);
+  typesmatch[vtDouble]:=typesmatch[vtDouble] and (doubleLuaFormula(newvalue,oldvalue) xor inverseScan);
+
+  {$ifdef customtypeimplemented}
+  if allCustom then
+  begin
+    //also scan custom types
+    for j:=0 to customtypecount-1 do
+    begin
+      customtype:=tcustomtype(customTypes[j]);
+
+      if customtype.scriptUsesFloat then
+        customtypesmatch[j]:=customtypesmatch[j] and (CustomFloatLuaFormula(newvalue,oldvalue) xor inverseScan)
+      else
+        customtypesmatch[j]:=customtypesmatch[j] and (CustomLuaFormula(newvalue,oldvalue) xor inverseScan)
     end;
   end;
   {$ENDIF}
@@ -2170,6 +2228,21 @@ begin
   result:=pbyte(newvalue)^=byte(value);
 end;
 
+function TScanner.ByteLuaFormula(newvalue,oldvalue: pointer): boolean;
+begin
+  lua_pushvalue(L,-1);
+  lua_pushinteger(L,pbyte(newvalue)^);
+  if oldvalue<>nil then
+    lua_pushinteger(L,pbyte(oldvalue)^)
+  else
+    lua_pushnil(L);
+
+  lua_call(L,2,1);
+
+  result:=lua_toboolean(L,-1);
+  lua_pop(L,1);
+end;
+
 function TScanner.ByteBetween(newvalue,oldvalue: pointer):boolean;
 begin
   result:=(pbyte(newvalue)^>=byte(value)) and (pbyte(newvalue)^<=byte(value2));
@@ -2244,6 +2317,21 @@ begin
   result:=pword(newvalue)^=word(value);
 end;
 
+function TScanner.WordLuaFormula(newvalue,oldvalue: pointer): boolean;
+begin
+  lua_pushvalue(L,-1);
+  lua_pushinteger(L,pword(newvalue)^);
+  if oldvalue<>nil then
+    lua_pushinteger(L,pword(oldvalue)^)
+  else
+    lua_pushnil(L);
+
+  lua_call(L,2,1);
+
+  result:=lua_toboolean(L,-1);
+  lua_pop(L,1);
+end;
+
 function TScanner.WordBetween(newvalue,oldvalue: pointer):boolean;
 begin
   result:=(pword(newvalue)^>=word(value)) and (pword(newvalue)^<=word(value2));
@@ -2316,6 +2404,21 @@ begin
   {$ifdef customtypeimplemented}
   result:=customType.ConvertDataToInteger(newvalue, currentAddress)=integer(value);
   {$ENDIF}
+end;
+
+function TScanner.CustomLuaFormula(newvalue,oldvalue: pointer): boolean;
+begin
+  lua_pushvalue(L,-1);
+  lua_pushinteger(L,customType.ConvertDataToInteger(newvalue, currentAddress));
+  if oldvalue<>nil then
+    lua_pushinteger(L,customType.ConvertDataToInteger(oldvalue, currentAddress))
+  else
+    lua_pushnil(L);
+
+  lua_call(L,2,1);
+
+  result:=lua_toboolean(L,-1);
+  lua_pop(L,1);
 end;
 
 function TScanner.CustomBetween(newvalue,oldvalue: pointer): boolean;
@@ -2433,6 +2536,22 @@ begin
   {$ENDIF}
 
 end;
+
+function TScanner.CustomFloatLuaFormula(newvalue,oldvalue: pointer): boolean;
+begin
+  lua_pushvalue(L,-1);
+  lua_pushnumber(L,customType.ConvertDataToFloat(newvalue, currentAddress));
+  if oldvalue<>nil then
+    lua_pushnumber(L,customType.ConvertDataToFloat(oldvalue, currentAddress))
+  else
+    lua_pushnil(L);
+
+  lua_call(L,2,1);
+
+  result:=lua_toboolean(L,-1);
+  lua_pop(L,1);
+end;
+
 
 function TScanner.CustomFloatBetween(newvalue,oldvalue: pointer):boolean;
 var f: single;
@@ -2554,6 +2673,22 @@ begin
   result:=pdword(newvalue)^=dword(value);
 end;
 
+function TScanner.DWordLuaFormula(newvalue,oldvalue: pointer): boolean;
+begin
+  lua_pushvalue(L,-1);
+
+  lua_pushinteger(L,pdword(newvalue)^);
+  if oldvalue<>nil then
+    lua_pushinteger(L,pdword(oldvalue)^)
+  else
+    lua_pushnil(L);
+
+  lua_call(L,2,1);
+
+  result:=lua_toboolean(L,-1);
+  lua_pop(L,1);
+end;
+
 function TScanner.DWordBetween(newvalue,oldvalue: pointer):boolean;
 begin
   result:=(pdword(newvalue)^>=dword(value)) and (pdword(newvalue)^<=dword(value2));
@@ -2625,6 +2760,21 @@ end;
 function TScanner.QWordExact(newvalue,oldvalue: pointer): boolean;
 begin
   result:=PQWORD(newvalue)^=QWORD(value);
+end;
+
+function TScanner.QWordLuaFormula(newvalue,oldvalue: pointer): boolean;
+begin
+  lua_pushvalue(L,-1);
+  lua_pushinteger(L,pqword(newvalue)^);
+  if oldvalue<>nil then
+    lua_pushinteger(L,pqword(oldvalue)^)
+  else
+    lua_pushnil(L);
+
+  lua_call(L,2,1);
+
+  result:=lua_toboolean(L,-1);
+  lua_pop(L,1);
 end;
 
 function TScanner.QWordBetween(newvalue,oldvalue: pointer):boolean;
@@ -2712,6 +2862,21 @@ begin
 
 end;
 
+function TScanner.SingleLuaFormula(newvalue,oldvalue: pointer): boolean;
+begin
+  lua_pushvalue(L,-1);
+  lua_pushnumber(L,psingle(newvalue)^);
+  if oldvalue<>nil then
+    lua_pushnumber(L,psingle(oldvalue)^)
+  else
+    lua_pushnil(L);
+
+  lua_call(L,2,1);
+
+  result:=lua_toboolean(L,-1);
+  lua_pop(L,1);
+end;
+
 function TScanner.SingleBetween(newvalue,oldvalue: pointer):boolean;
 begin
   result:=(psingle(newvalue)^>=svalue) and (psingle(newvalue)^<=svalue2);
@@ -2786,6 +2951,21 @@ begin
     rtTruncated:
       result:=(pdouble(newvalue)^>=dvalue) and (pdouble(newvalue)^<maxdvalue);
   end;
+end;
+
+function TScanner.DoubleLuaFormula(newvalue,oldvalue: pointer): boolean;
+begin
+  lua_pushvalue(L,-1);
+  lua_pushnumber(L,pdouble(newvalue)^);
+  if oldvalue<>nil then
+    lua_pushnumber(L,pdouble(oldvalue)^)
+  else
+    lua_pushnil(L);
+
+  lua_call(L,2,1);
+
+  result:=lua_toboolean(L,-1);
+  lua_pop(L,1);
 end;
 
 function TScanner.DoubleBetween(newvalue,oldvalue: pointer):boolean;
@@ -4005,7 +4185,8 @@ begin
     //user input is given
     if scanvalue1='' then raise exception.Create(rsPleaseFillSomethingIn);
 
-    if variableType in [vtByte,vtWord,vtDWord,vtQword,vtAll,vtCustom] then
+
+    if (not luaformula) and (variableType in [vtByte,vtWord,vtDWord,vtQword,vtAll,vtCustom]) then
     begin
       //parse scanvalue1
 
@@ -4119,7 +4300,7 @@ begin
       end;
     end;
 
-    if percentage or (variableType in [vtsingle,vtDouble,vtAll, vtCustom]) then
+    if (not luaformula) and (percentage or (variableType in [vtsingle,vtDouble,vtAll, vtCustom])) then
     begin
       try
         if hexadecimal then
@@ -4369,6 +4550,7 @@ begin
   if (scanOption in [soIncreasedValueBy, soDecreasedValueBy]) and (value=0) and (dvalue=0) then
     scanOption:=soUnchanged;
 
+
   case variableType of
     vtByte:
     begin
@@ -4378,7 +4560,10 @@ begin
 
       case scanOption of
         soForgot:           CheckRoutine:=Unknown;
-        soExactValue:       checkRoutine:=byteExact;
+        soExactValue:       if luaformula then
+                              CheckRoutine:=ByteLuaFormula
+                            else
+                              checkRoutine:=byteExact;
         soValueBetween:     if percentage then
                               checkroutine:=byteBetweenPercentage
                             else
@@ -4413,7 +4598,10 @@ begin
 
       case scanOption of
         soForgot:           CheckRoutine:=Unknown;
-        soExactValue:       checkRoutine:=wordExact;
+        soExactValue:       if luaformula then
+                              checkroutine:=WordLuaFormula
+                            else
+                              checkRoutine:=wordExact;
         soValueBetween:     if percentage then
                               checkroutine:=wordBetweenPercentage
                             else
@@ -4450,7 +4638,10 @@ begin
 
       case scanOption of
         soForgot:           CheckRoutine:=Unknown;
-        soExactValue:       checkRoutine:=dwordExact;
+        soExactValue:       if luaformula then
+                              checkroutine:=DWordLuaFormula
+                            else
+                              checkRoutine:=dwordExact;
         soValueBetween:     if percentage then
                               checkroutine:=dwordBetweenPercentage
                             else
@@ -4487,7 +4678,10 @@ begin
 
       case scanOption of
         soForgot:           CheckRoutine:=Unknown;
-        soExactValue:       checkRoutine:=qwordExact;
+        soExactValue:       if luaformula then
+                              checkRoutine:=QWordLuaFormula
+                            else
+                              checkRoutine:=qwordExact;
         soValueBetween:     if percentage then
                               checkroutine:=qwordBetweenPercentage
                             else
@@ -4522,7 +4716,10 @@ begin
 
       case scanOption of
         soForgot:           CheckRoutine:=Unknown;
-        soExactValue:       checkRoutine:=singleExact;
+        soExactValue:       if luaformula then
+                              checkroutine:=SingleLuaFormula
+                            else
+                              checkRoutine:=singleExact;
         soValueBetween:     if percentage then
                               checkroutine:=singleBetweenPercentage
                             else
@@ -4553,7 +4750,10 @@ begin
 
       case scanOption of
         soForgot:           CheckRoutine:=Unknown;
-        soExactValue:       checkRoutine:=doubleExact;
+        soExactValue:       if luaformula then
+                              checkRoutine:=DoubleLuaFormula
+                            else
+                              checkRoutine:=doubleExact;
         soValueBetween:     if percentage then
                               checkroutine:=DoubleBetweenPercentage
                             else
@@ -4646,7 +4846,10 @@ begin
       FlushRoutine:=allFlush;
       case scanOption of
         soForgot:           CheckRoutine:=allUnknown;
-        soExactValue:       checkRoutine:=allExact;
+        soExactValue:       if luaformula then
+                              checkRoutine:=AllLuaFormula
+                            else
+                              checkRoutine:=allExact;
         soValueBetween:     if percentage then
                               checkroutine:=allBetweenPercentage
                             else
@@ -4691,7 +4894,10 @@ begin
       begin
         case scanOption of
           soForgot:           CheckRoutine:=Unknown;
-          soExactValue:       checkRoutine:=customFloatExact;
+          soExactValue:       if luaformula then
+                                checkRoutine:=customFloatExact
+                              else
+                                checkRoutine:=customFloatExact;
           soValueBetween:     if percentage then
                                 checkroutine:=customFloatBetweenPercentage
                               else
@@ -4716,7 +4922,10 @@ begin
       begin
         case scanOption of
           soForgot:           CheckRoutine:=Unknown;
-          soExactValue:       checkRoutine:=customExact;
+          soExactValue:       if luaformula then
+                                checkRoutine:=CustomLuaFormula
+                              else
+                                checkRoutine:=customExact;
           soValueBetween:     if percentage then
                                 checkroutine:=customBetweenPercentage
                               else
@@ -4777,6 +4986,32 @@ begin
   getmem(SecondaryFoundBuffer,FoundBufferSize);
 
   //OutputDebugString('configurescanroutine: Normal exit');
+
+  if luaformula then
+  begin
+    l:=LuaVM;
+
+    i:=luaL_loadstring(L, pchar('return function(value,previousvalue) return ('+scanvalue1+') end')); //pushed this function on the lua stack which will be reused indefinitrelly
+    if i=0 then
+    begin
+      if lua_isfunction(L,-1)=false then
+        raise exception.create('Invalid formula ( '+Lua_ToString(L,-1)+' )');
+
+      if lua_pcall(L,0,1,0)<>0 then
+        raise exception.create('Invalid formula ( '+Lua_ToString(L,-1)+' )');
+
+      if lua_isfunction(L,-1)=false then
+        raise exception.create('Invalid formula ( '+Lua_ToString(L,-1)+' )');
+    end
+    else
+    begin
+      if i=LUA_ERRSYNTAX then
+        raise exception.create('Invalid formula Syntax Error: '+Lua_ToString(L,-1))
+      else
+        raise exception.create('Invalid formula Unknown '+Lua_ToString(L,-1))
+
+    end;
+  end;
 end;
 
 procedure TScanner.nextNextscan;
@@ -5259,6 +5494,9 @@ begin
 
   if savedscanhandler<>nil then freeandnil(savedscanhandler);
 
+  if luaformula and (L<>nil) then
+    lua_pop(L, lua_gettop(L));
+
   inherited destroy;
 end;
 
@@ -5491,6 +5729,9 @@ begin
   {$ENDIF}
     threadcount:=GetCPUCount;
 
+  if luaformula then
+    threadcount:=1;
+
   
   //read the results and split up
 
@@ -5577,6 +5818,7 @@ begin
           scanners[i].useNextNextscan:=true; //address result scan so nextnextscan
           scanners[i].floatscanWithoutExponents:=floatscanWithoutExponents;
           scanners[i].inverseScan:=inverseScan;
+          scanners[i].luaformula:=luaformula;
 
           if variableType=vtGrouped then
             scanners[i].PreviousOffsetCount:=offsetcount;
@@ -5675,6 +5917,10 @@ begin
   if (variableType=vtCustom) and (customType<>nil) and (customtype.CustomTypeType=cttLuaScript) then
     threadcount:=1;
   {$ENDIF}
+
+  if luaformula then
+    threadcount:=1;
+
 
   totalProcessMemorySize:=0;
 
@@ -5813,6 +6059,7 @@ begin
       scanners[i].useNextNextscan:=false; //region scan so firstnextscan
       scanners[i].floatscanWithoutExponents:=floatscanWithoutExponents;
       scanners[i].inverseScan:=inverseScan;
+      scanners[i].luaformula:=luaformula;
 
       if i=0 then //first thread gets the header part
       begin
@@ -5938,6 +6185,9 @@ begin
   if (variableType=vtCustom) and (customType<>nil) and (customtype.CustomTypeType=cttLuaScript) then
     threadcount:=1;
   {$ENDIF}
+
+  if luaformula then
+    threadcount:=1;
     
   totalProcessMemorySize:=0;
 
@@ -6281,6 +6531,7 @@ begin
       scanners[i].variablesize:=variablesize;
       scanners[i].floatscanWithoutExponents:=floatscanWithoutExponents;
       scanners[i].inverseScan:=inverseScan;
+      scanners[i].luaformula:=luaformula;
 
 
       if i=0 then //first thread gets the header part
@@ -7215,6 +7466,7 @@ begin
   scancontroller.floatscanWithoutExponents:=floatscanWithoutExponents;
   scancontroller.inverseScan:=inverseScan;
   scancontroller.percentage:=percentage;
+  scancontroller.luaformula:=fLuaFormula;
 
   fLastscantype:=stNextScan;
   fLastScanValue:=scanvalue1;
@@ -7307,6 +7559,7 @@ begin
   scancontroller.floatscanWithoutExponents:=floatscanWithoutExponents;
   scancontroller.inverseScan:=InverseScan;
   scancontroller.percentage:=false; //first scan does not have a percentage scan
+  scancontroller.luaformula:=fLuaFormula;
 
   scanController.OnlyOne:=onlyone;
 
