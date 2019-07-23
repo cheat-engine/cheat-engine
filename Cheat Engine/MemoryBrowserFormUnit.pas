@@ -3654,8 +3654,23 @@ begin
 end;
 
 procedure TMemoryBrowser.miTogglebreakpointClick(Sender: TObject);
-var bpm: TBreakpointMethod;
+var
+  bpm: TBreakpointMethod;
+  b: byte;
+  PA: qword;
+  bo: integer;
 begin
+  //first check if it's a dbvm changeregonbp bp, and if so, disable it
+  if dbvm_isBreakpoint(disassemblerview.SelectedAddress, PA, BO, b) then
+  begin
+    if bo=1 then //changeregonbp
+    begin
+      dbvm_cloak_removechangeregonbp(PA);
+      disassemblerview.Update;
+      exit;
+    end;
+  end;
+
   try
     if startdebuggerifneeded(true) then
     begin
@@ -3928,7 +3943,10 @@ var x: ptrUint;
   inadvancedoptions: boolean;
   e: boolean;
   VA,PA: QWORD;
+  BO: integer;
   bpm: TBreakpointMethod;
+  b: byte;
+  dbvmbp: boolean;
 begin
   Breakandtraceinstructions1.Enabled:=processhandle<>0;
   miTogglebreakpoint.Enabled:=processhandle<>0;
@@ -3953,18 +3971,47 @@ begin
 
   if miTogglebreakpoint.visible then
   begin
-    if (debuggerthread=nil) or (debuggerthread.isBreakpoint(disassemblerview.SelectedAddress)=nil) then
+    dbvmbp:=dbvm_isBreakpoint(disassemblerview.SelectedAddress,PA,BO,b);
+    if dbvmbp then
+      outputdebugstring('DBVMBP=true')
+    else
+      outputdebugstring('DBVMBP=false');
+
+    if ((debuggerthread=nil) or (debuggerthread.isBreakpoint(disassemblerview.SelectedAddress)=nil)) and (not dbvmbp) then
     begin
       if overridebreakpointmethod then
         bpm:=preferedF5BreakpointMethod
       else
         bpm:=preferedBreakpointMethod;
 
-      miTogglebreakpoint.caption:=rsSetBreakpoint+' ('+breakpointMethodToString(bpm)+')'
+      miTogglebreakpoint.caption:=rsSetBreakpoint+' ('+breakpointMethodToString(bpm)+')';
+
+      Changestateofregisteratthislocation1.visible:=true; //setting of bp's is OK
+      miSetSpecificBreakpoint.visible:=true;
+      Breakandtraceinstructions1.visible:=true;
+      Findoutwhataddressesthisinstructionaccesses1.visible:=true;
     end
     else
+    begin
       miTogglebreakpoint.caption:=rsRemoveBreakpoint;
+
+      Changestateofregisteratthislocation1.visible:=false; //can't set a changeregonbp at this time. Already a bp here
+      miSetSpecificBreakpoint.visible:=false;
+      Breakandtraceinstructions1.visible:=false;
+      Findoutwhataddressesthisinstructionaccesses1.visible:=false;
+    end;
+  end
+  else
+  begin
+    Changestateofregisteratthislocation1.visible:=false;
+    miSetSpecificBreakpoint.visible:=false;
+    Breakandtraceinstructions1.visible:=false;
+    Findoutwhataddressesthisinstructionaccesses1.visible:=false;
   end;
+
+
+
+  Changestateofregisteratthislocation1.enabled:=Changestateofregisteratthislocation1.visible;
 
 
   inadvancedoptions:=false;
@@ -3999,7 +4046,7 @@ begin
 
   miAddToTheCodelist.visible:=not inadvancedoptions;
 
-  DBVMFindoutwhataddressesthisinstructionaccesses.visible:=isIntel and isDBVMCapable;
+  DBVMFindoutwhataddressesthisinstructionaccesses.visible:=isIntel and isDBVMCapable and miSetSpecificBreakpoint.visible;
   DBVMFindoutwhataddressesthisinstructionaccesses.enabled:=DBVMFindoutwhataddressesthisinstructionaccesses.visible and DBKLoaded;
 
   //

@@ -94,7 +94,7 @@ implementation
 uses
   MemoryBrowserFormUnit, dissectCodeThread,debuggertypedefinitions,
   dissectcodeunit, disassemblerviewunit, frmUltimap2Unit, frmcodefilterunit,
-  BreakpointTypeDef;
+  BreakpointTypeDef, vmxfunctions;
 
 resourcestring
   rsUn = '(Unconditional)';
@@ -324,6 +324,8 @@ var
 
     iscurrentinstruction: boolean;
 
+    PA: qword;
+    BO: integer;
     b: byte;
 
     inactive: boolean;
@@ -537,6 +539,7 @@ begin
 
   isbp:=(bp<>nil) and (bp.breakpointTrigger=bptExecute) and (bp.active or (bp.breakpointMethod=bpmException) ) and (bp.markedfordeletion=false);
   isultimap:=((frmUltimap2<>nil) and frmUltimap2.IsMatchingAddress(faddress)) or ((frmCodeFilter<>nil) and (frmCodeFilter.isBreakpoint(faddress,b) ));
+  isultimap:=isultimap or dbvm_isBreakpoint(faddress,PA,BO, b); //mark dbvm internal breakpoints with the same color as an ultimap bp
 
 
   if selected then

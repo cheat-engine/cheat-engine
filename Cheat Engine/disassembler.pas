@@ -1471,19 +1471,27 @@ end;
 procedure repairbreakbyte(address: ptruint; var b: byte);
 {changes the given byte to the original byte if it is in fact a int3 breakpoint}
 //pre: debuggerthread is valid
-var bp: pbreakpoint;
+var
+  bp: pbreakpoint;
+  PA: qword;
+  BO: integer;
 begin
-  debuggerthread.lockbplist;
-  bp:=debuggerthread.isBreakpoint(address);
-  if bp<>nil then
+  if debuggerthread<>nil then
   begin
-    if bp.breakpointMethod=bpmInt3 then
-      b:=bp.originalbyte;
+    debuggerthread.lockbplist;
+    bp:=debuggerthread.isBreakpoint(address);
+    if bp<>nil then
+    begin
+      if bp.breakpointMethod=bpmInt3 then
+        b:=bp.originalbyte;
+    end;
+    debuggerthread.unlockbplist;
+
+    if (frmCodeFilter<>nil) then frmcodefilter.isBreakpoint(address, b);
   end;
-  debuggerthread.unlockbplist;
 
-  if (frmCodeFilter<>nil) then frmcodefilter.isBreakpoint(address, b);
 
+  dbvm_isbreakpoint(address,PA,BO,b);
 end;
 {$endif}
 
@@ -1828,7 +1836,7 @@ begin
     end;
 
     {$ifdef windows}
-    if (memory[0]=$cc) and (debuggerthread<>nil) then //if it's a int3 breakpoint and there is a debugger attached check if it's a bp
+    if (memory[0]=$cc) then //if it's a int3 breakpoint and there is a debugger attached check if it's a bp
       repairbreakbyte(startoffset, memory[0]);
     {$endif}
 

@@ -326,7 +326,8 @@ type
   TDBVMBreakpoint=record
     VirtualAddress: qword;
     PhysicalAddress: qword;
-    breakoption: integer;
+    breakoption: integer; //1: changeregon bp , nothing else yet
+    originalbyte: byte; //in case of breakoption0 (changeregonbp)
   end;
   PDBVMBreakpoint=^TDBVMBreakpoint;
 
@@ -412,6 +413,7 @@ function WriteProcessMemoryWithCloakSupport(hProcess: THandle; lpBaseAddress, lp
 function hasCloakedRegionInRange(virtualAddress: qword; size: integer; out VA:qword; out PA: qword): boolean;
 
 procedure dbvm_getBreakpointList(l: TStrings);
+function dbvm_isBreakpoint(virtualAddress: ptruint; out physicalAddress: qword; out breakoption: integer; var originalbyte: byte): boolean;
 
 var
   vmx_password1: dword;
@@ -447,6 +449,7 @@ var vmcall2 :function(vmcallinfo:pointer; level1pass: dword; secondaryOut: pptru
 
   cloakedregioncache: tmap;
 
+  hassetbp: boolean;
   breakpoints: array of TDBVMBreakpoint;
   breakpointsCS: TCriticalSection=nil;
 
@@ -456,6 +459,41 @@ type
     time: qword;
   end;
   PCloakedMemInfo=^TCloakedMemInfo;
+
+procedure flushCloakedMemoryCache(address: ptruint=0);
+var
+  mi: TMapIterator;
+  cmi: PCloakedMemInfo;
+  id: qword;
+begin
+  address:=address and MAXPHYADDRMASKPB;
+
+  if cloakedregioncache<>nil then
+  begin
+    if address=0 then
+    begin
+      mi:=TMapIterator.Create(cloakedregioncache);
+      mi.First;
+      while not mi.EOM do
+      begin
+        mi.GetData(cmi);
+        freemem(cmi);
+        mi.Next;
+      end;
+
+      mi.free;
+      cloakedregioncache.Clear;
+    end
+    else
+    begin
+      if cloakedregioncache.GetData(address,cmi) then
+      begin
+        freemem(cmi);
+        cloakedregioncache.Delete(address);
+      end;
+    end;
+  end;
+end;
 
 function getCloakedMemory(PhysicalAddress: qword; VirtualAddress: ptruint; destination: pointer; size: integer): integer;
 //read the dbvm cloaked memory (assuming it is cloaked) and returns the number of bytes read. (can be less than size)
@@ -1411,7 +1449,7 @@ var vmcallinfo: packed record
   command: dword;
   PhysicalBase: QWORD;
 end;
-i,j: integer;
+i,j,k: integer;
 begin
   PhysicalBase:=PhysicalBase and MAXPHYADDRMASKPB;
   vmcallinfo.structsize:=sizeof(vmcallinfo);
@@ -1434,6 +1472,37 @@ begin
             cloakedregions[i]:=cloakedregions[i+1];
 
           setlength(cloakedregions, length(cloakedregions)-1);
+
+          //remove changeregonbp's from the list if it had one (already deleted in dbvm)
+          outputdebugstring('Checking if there is a changereg at this location');
+
+          breakpointscs.enter;
+          try
+            j:=0;
+            outputdebugstring(format('length(breakpoints)=%d',[length(breakpoints)]));
+            while j<length(breakpoints) do
+            begin
+              OutputDebugString(format('Is %.8x inside %.8x to %.8x? (BO=%d)',[breakpoints[j].PhysicalAddress, PhysicalBase,PhysicalBase+4095, breakpoints[j].breakoption]));
+
+              if (breakpoints[j].breakoption=integer(bo_ChangeRegister)) and inrangex(breakpoints[j].PhysicalAddress, PhysicalBase, physicalbase+4095) then  //changeregonbp bp and inside this range
+              begin
+                OutputDebugString('Yes, deleting changeregonbp in this range');
+                for k:=j to length(breakpoints)-2 do
+                  breakpoints[k]:=breakpoints[k+1];
+
+                setlength(breakpoints, length(breakpoints)-1);
+              end
+              else
+              begin
+                OutputDebugString('No');
+                inc(j);
+              end;
+            end
+          finally
+            hassetbp:=length(breakpoints)<>0;
+            breakpointscs.leave;
+          end;
+
           exit;
         end;
       end;
@@ -1490,8 +1559,15 @@ var
 
   PhysicalBase: qword;
   i: integer;
+
+  ob: byte;
+  br: size_t;
 begin
   log('dbvm_cloak_changeregonbp');
+
+  if virtualaddress<>0 then
+    ReadProcessMemory(processhandle, pointer(virtualaddress), @ob,1,br);
+
   vmcallinfo.structsize:=sizeof(vmcallinfo);
   vmcallinfo.level2pass:=vmx_password2;
   vmcallinfo.command:=VMCALL_CLOAK_CHANGEREGONBP;
@@ -1506,6 +1582,8 @@ begin
     breakpoints[length(breakpoints)-1].PhysicalAddress:=PhysicalAddress;
     breakpoints[length(breakpoints)-1].VirtualAddress:=virtualAddress;
     breakpoints[length(breakpoints)-1].BreakOption:=integer(bo_ChangeRegister);
+    breakpoints[length(breakpoints)-1].originalbyte:=ob;
+    hassetbp:=true;
     breakpointscs.leave;
 
     if (VirtualAddress<>0) then
@@ -1564,29 +1642,38 @@ begin
   if (GetCurrentThreadId=MainThreadID) and (frmbreakPointList<>nil) and (frmbreakPointList.visible) then
     frmbreakPointList.updatebplist;
 
+  hassetbp:=length(breakpoints)<>0;
+
   breakpointsCS.Leave;
+
+  flushCloakedMemoryCache(PhysicalAddress); //flush out that int3 which will confuse users for half a second
+
 end;
 
 
-function dbvm_isBreakpoint(virtualAddress: ptruint; out physicalAddress: qword; out breakoption: integer): boolean;
+function dbvm_isBreakpoint(virtualAddress: ptruint; out physicalAddress: qword; out breakoption: integer; var originalbyte: byte): boolean;
 var i: integer;
 begin
   result:=false;
-  breakpointsCS.Enter;
-  try
-    for i:=0 to length(breakpoints)-1 do
-    begin
-      if breakpoints[i].VirtualAddress=virtualAddress then
+  if hassetbp then
+  begin
+    breakpointsCS.Enter;
+    try
+      for i:=0 to length(breakpoints)-1 do
       begin
-        physicaladdress:=breakpoints[i].PhysicalAddress;
-        breakoption:=breakpoints[i].breakoption;
-        result:=true;
+        if breakpoints[i].VirtualAddress=virtualAddress then
+        begin
+          physicaladdress:=breakpoints[i].PhysicalAddress;
+          breakoption:=breakpoints[i].breakoption;
+          originalbyte:=breakpoints[i].originalbyte;
+          result:=true;
+        end;
       end;
+    finally
+      breakpointscs.leave;
     end;
-  finally
-    breakpointscs.leave;
-  end;
 
+  end;
 end;
 
 procedure dbvm_getBreakpointList(l: TStrings);
@@ -1610,7 +1697,6 @@ begin
     breakpointscs.leave;
   end;
 end;
-
 
 function dbvm_get_statistics(out statistics: TDBVMStatistics):qword;
 var
