@@ -2863,6 +2863,9 @@ begin
   else
   begin
     cbSpeedhack.Checked:=false;
+    addresslist.disableAllWithoutExecute;
+    for i := 0 to length(AdvancedOptions.code) - 1 do
+      AdvancedOptions.code[i].changed := False;
   end;
 
   enablegui(btnNextScan.Enabled);
