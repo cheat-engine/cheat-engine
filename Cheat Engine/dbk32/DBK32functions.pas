@@ -144,6 +144,8 @@ const IOCTL_CE_QUERYINFORMATIONPROCESS= (IOCTL_UNKNOWN_BASE shl 16) or ($085e sh
 const IOCTL_CE_LOCK_MEMORY            = (IOCTL_UNKNOWN_BASE shl 16) or ($0860 shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
 const IOCTL_CE_UNLOCK_MEMORY          = (IOCTL_UNKNOWN_BASE shl 16) or ($0861 shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
 
+const IOCTL_CE_ALLOCATE_MEMORY_FOR_DBVM = (IOCTL_UNKNOWN_BASE shl 16) or ($0862 shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
+
 
 type TDeviceIoControl=function(hDevice: THandle; dwIoControlCode: DWORD; lpInBuffer: Pointer; nInBufferSize: DWORD; lpOutBuffer: Pointer; nOutBufferSize: DWORD; var lpBytesReturned: DWORD; lpOverlapped: POverlapped): BOOL; stdcall;
 
@@ -390,6 +392,8 @@ const IOCTL_CE_ULTIMAP2_RESUME        = (IOCTL_UNKNOWN_BASE shl 16) or ($0855 sh
 procedure dbk_test;
 
 procedure LaunchDBVM(cpuid: integer); stdcall;
+procedure allocateMemoryForDBVM(pagecount: QWORD);
+
 
 function GetGDT(limit: pword):ptruint; stdcall;
 
@@ -2842,6 +2846,11 @@ begin
   end;
 end;
 
+procedure allocateMemoryForDBVM(pagecount: qword);
+var br: dword;
+begin
+  if hdevice<>INVALID_HANDLE_VALUE then deviceiocontrol(hdevice,IOCTL_CE_ALLOCATE_MEMORY_FOR_DBVM,@pagecount,sizeof(pagecount),nil,0,br,nil);
+end;
 
 function RewriteKernel32:boolean; stdcall;
 begin

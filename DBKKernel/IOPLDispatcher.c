@@ -1828,12 +1828,12 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 			{
 				DWORD msr=*(PDWORD)Irp->AssociatedIrp.SystemBuffer;
 
-				DbgPrint("IOCTL_CE_READMSR: msr=%x\n", msr);
+				//DbgPrint("IOCTL_CE_READMSR: msr=%x\n", msr);
 
 				__try
 				{
 					*(PUINT64)Irp->AssociatedIrp.SystemBuffer=__readmsr(msr);
-					DbgPrint("Output: %llx\n",*(PUINT64)Irp->AssociatedIrp.SystemBuffer); 
+					//DbgPrint("Output: %llx\n",*(PUINT64)Irp->AssociatedIrp.SystemBuffer); 
 
 					ntStatus=STATUS_SUCCESS;
 				}
@@ -2411,6 +2411,97 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 		{
 
 			
+			break;
+		}
+
+		case IOCTL_CE_ALLOCATE_MEMORY_FOR_DBVM:
+		{
+			PHYSICAL_ADDRESS LowAddress, HighAddress, SkipBytes;
+			PMDL mdl;
+			QWORD pagecount = *(QWORD*)Irp->AssociatedIrp.SystemBuffer;
+			PFN_NUMBER *pfnlist;
+			DbgPrint("IOCTL_CE_ALLOCATE_MEMORY_FOR_DBVM(%d)\n", pagecount);
+
+			if (!vmxusable)
+			{
+				DbgPrint("This only works when DBVM is present\n");
+				ntStatus = STATUS_INVALID_DEVICE_STATE;
+				break;
+			}
+
+			LowAddress.QuadPart = 0;
+			HighAddress.QuadPart = 0xffffffffffffffffI64;
+			SkipBytes.QuadPart = 0;
+			mdl = MmAllocatePagesForMdl(LowAddress, HighAddress, SkipBytes, pagecount * 4096); //do not free this, EVER
+			if (mdl)
+			{
+				int i;
+				PDBVMOffloadMemInfo mi;
+
+				pagecount = MmGetMdlByteCount(mdl) / 4096;
+				DbgPrint("Allocated %d pages\n", pagecount);
+
+				pfnlist = MmGetMdlPfnArray(mdl);
+
+				if (pfnlist)
+				{
+					//convert the pfnlist to a list dbvm understands, and go in blocks of 32
+					mi = ExAllocatePool(PagedPool, sizeof(DBVMOffloadMemInfo));
+					if (mi)
+					{
+						mi->List = ExAllocatePool(PagedPool, sizeof(UINT64) * 32);
+						if (mi->List)
+						{
+							mi->Count = 0;
+							for (i = 0; i < pagecount; i++)
+							{
+								mi->List[mi->Count] = pfnlist[i] << 12;
+								mi->Count++;
+
+								if (mi->Count == 32)
+								{
+									int j;
+									int r = vmx_add_memory(mi->List, mi->Count);
+									DbgPrint("vmx_add_memory for %d pages returned %d\n", mi->Count, r);
+
+									for (j = 0; j < mi->Count; j++)
+									{
+										DbgPrint("%d : %p\n", j, (void*)mi->List[j]);
+									}
+
+
+									mi->Count = 0;
+								}
+							}
+
+							if (mi->Count)
+							{
+								int r = vmx_add_memory(mi->List, mi->Count);
+								DbgPrint("vmx_add_memory for %d pages returned %d\n", mi->Count, r);
+							}
+							ExFreePool(mi->List);
+						}
+						else
+							DbgPrint("Failure allocating mi->List");
+						ExFreePool(mi);
+					}
+					else
+						DbgPrint("Failure allocting mi");
+
+				}
+				else
+					DbgPrint("Failure getting pfn list");
+				ExFreePool(mdl); //only free the mdl, the rest belongs to dbvm now
+
+				ntStatus = STATUS_SUCCESS;
+			}
+			else
+			{
+				DbgPrint("Failure allocating MDL");
+				ntStatus = STATUS_MEMORY_NOT_ALLOCATED;
+			}
+
+
 			break;
 		}
 

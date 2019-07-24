@@ -6796,6 +6796,23 @@ begin
   lua_pushboolean(L, dbvm_version>0);
 end;
 
+function dbvm_addMemory(L: PLua_State): integer; cdecl;
+var pagecount: qword;
+begin
+  LoadDBK32;
+  if lua_gettop(L)>=1 then
+  begin
+    pagecount:=lua_tointeger(L,1);
+    allocateMemoryForDBVM(pagecount);
+
+    dbvm_getMemory(pagecount);  //get the new count
+    lua_pushinteger(L, pagecount);
+    result:=1;
+  end
+  else
+    result:=0;
+end;
+
 function shellExecute(L: PLua_State): integer; cdecl;
 var
   pcount: integer;
@@ -11889,6 +11906,7 @@ begin
     lua_register(L, 'setAPIPointer', setAPIPointer);
 
     lua_register(L, 'dbvm_initialize', dbvm_initialize);
+    lua_register(L, 'dbvm_addMemory', dbvm_addMemory);
 
     lua_register(L, 'shellExecute', shellExecute);
     lua_register(L, 'getTickCount', getTickCount_lua);
