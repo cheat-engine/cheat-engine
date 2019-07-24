@@ -20,6 +20,10 @@ const opcodecount=1910;  //I wish there was a easier way than to handcount
   //1112
 
 
+type
+  EAssemblerException=class(Exception);
+
+
 
 type TTokenType=(
   ttInvalidtoken, ttRegister8Bit, ttRegister16Bit, ttRegister32Bit, ttRegister64Bit, ttRegister8BitWithPrefix, //ttRegister64Bit and ttRegister8BitWithPrefix is just internal to set the rexflags
@@ -3041,7 +3045,7 @@ begin
   if (reg='R14') then result:=14;
   if (reg='R15') then result:=15;
 
-  if (result=-1) and exceptonerror then raise exception.Create(rsInvalidRegister);
+  if (result=-1) and exceptonerror then raise EAssemblerException.create(rsInvalidRegister);
 end;
 
 function getreg(reg: string): integer; overload;
@@ -3077,7 +3081,7 @@ begin
     if (reg='R15') or (reg='R15D') or (reg='R15W') or (reg='R15L') or (reg='MM15') or (reg='XMM15') or (reg='YMM15') or (reg='ST(15)') or (reg='PS') or (reg='CR15') or (reg='DR15') then exit(15);
   end;
 
-  if (result=1000) and exceptonerror then raise exception.Create(rsInvalidRegister);
+  if (result=1000) and exceptonerror then raise EAssemblerException.create(rsInvalidRegister);
 end;
 
 function TSingleLineAssembler.getreg(reg: string): integer; overload;
@@ -3455,7 +3459,7 @@ begin
     if not haserror then
       token:=temp
     else
-      raise exception.create(rsInvalid);
+      raise EAssemblerException.create(rsInvalid);
   end;
 
 
@@ -3849,12 +3853,12 @@ begin
         '4': setsibscale(sib, 2); //*4
         '8': setsibscale(sib, 3); //*8
         else
-          raise exception.create(rsInvalidMultiplier);
+          raise EAssemblerException.create(rsInvalidMultiplier);
 
       end;
 
       if length(reg)>i+1 then
-        raise exception.create(rsInvalidMultiplier);
+        raise EAssemblerException.create(rsInvalidMultiplier);
 
       break;
     end;
@@ -3875,7 +3879,7 @@ begin
     if pos('EBP',reg)>0 then setsibindex(sib,5) else
     if pos('ESI',reg)>0 then setsibindex(sib,6) else
     if pos('EDI',reg)>0 then setsibindex(sib,7) else
-      raise exception.Create(rsWTFIsA+reg);
+      raise EAssemblerException.create(rsWTFIsA+reg);
   end
   else
   begin
@@ -3905,7 +3909,7 @@ begin
       if pos('EBP',reg)>0 then setsibindex(sib,5) else
       if pos('ESI',reg)>0 then setsibindex(sib,6) else
       if pos('EDI',reg)>0 then setsibindex(sib,7) else
-        raise exception.Create(rsWTFIsA+reg);
+        raise EAssemblerException.create(rsWTFIsA+reg);
 
       //still here, so I guess so
       needsAddressSwitchPrefix:=true;
@@ -3979,13 +3983,13 @@ begin
         break;
       end;
 
-    if length(temp)=0 then raise exception.Create(rsIDontUnderstandWhatYouMeanWith+address);
+    if length(temp)=0 then raise EAssemblerException.create(rsIDontUnderstandWhatYouMeanWith+address);
     if temp[1]='$' then val(temp,test,j) else val('$'+temp,test,j);
 
     if j>0 then //a register or a stupid user
     begin
       if increase=false then
-        raise exception.create(rsNegativeRegistersCanNotBeEncoded);
+        raise EAssemblerException.create(rsNegativeRegistersCanNotBeEncoded);
       regs:=regs+temp+'+';
     end
     else
@@ -4007,7 +4011,7 @@ begin
     if regs[i]='*' then inc(k);
   end;
 
-  if (j>1) or (k>1) then raise exception.Create(rsIDontUnderstandWhatYouMeanWith+address);
+  if (j>1) or (k>1) then raise EAssemblerException.create(rsIDontUnderstandWhatYouMeanWith+address);
 
   if disp=0 then setmod(modrm[0],0) else
   if (integer(disp)>=-128) and (integeR(disp)<=127) then setmod(modrm[0],1) else setmod(modrm[0],2);
@@ -4346,7 +4350,7 @@ begin
 
 
   finally
-    if not found then raise exception.create(rsInvalidAddress);
+    if not found then raise EAssemblerException.create(rsInvalidAddress);
 
     i:=getmod(modrm[0]);
     if i=1 then add(modrm,[byte(disp)]);
@@ -4388,7 +4392,7 @@ begin
     if (param='R13') or (param='R13D') or (param='R13W') or (param='R13L') or (param='MM13') or (param='XMM13') or (param='YMM13') then setrm(modrm[0],13) else
     if (param='R14') or (param='R14D') or (param='R14W') or (param='R14L') or (param='MM14') or (param='XMM14') or (param='YMM14') then setrm(modrm[0],14) else
     if (param='R15') or (param='R15D') or (param='R15W') or (param='R15L') or (param='MM15') or (param='XMM15') or (param='YMM15') then setrm(modrm[0],15) else
-    raise exception.Create(rsIDontUnderstandWhatYouMeanWith+param);
+    raise EAssemblerException.create(rsIDontUnderstandWhatYouMeanWith+param);
   end else setmodrm(modrm,address, length(bytes));
 
   //setreg
@@ -4399,7 +4403,7 @@ begin
       REX_R:=true;
     end
     else
-      raise exception.Create(rsTheAssemblerTriedToSetARegisteValueThatIsTooHigh);
+      raise EAssemblerException.create(rsTheAssemblerTriedToSetARegisteValueThatIsTooHigh);
   end;
   if reg=-1 then reg:=0;
 
@@ -4872,7 +4876,7 @@ begin
         'W' : i:=2; //2 byte long entries
         'D' : i:=4; //4 byte long entries
         'Q' : i:=8; //8 byte long entries
-        else raise exception.create(rsInvalid);
+        else raise EAssemblerException.create(rsInvalid);
       end;
 
       i:=i*strtoint(tokens[1]);
@@ -5193,7 +5197,7 @@ begin
             begin
               if (opcodes[k].paramtype1=par_imm32) then
               begin
-                if (signedvtype=64) and rex_w then raise exception.create(rsInvalidValueFor32Bit);
+                if (signedvtype=64) and rex_w then raise EAssemblerException.create(rsInvalidValueFor32Bit);
 
                 addopcode(bytes,k);
                 adddword(bytes,v);
@@ -5229,7 +5233,7 @@ begin
             begin
               if (opcodes[k].paramtype1=par_imm32) then
               begin
-                if (signedvtype=64) and rex_w then raise exception.create(rsInvalidValueFor32Bit);
+                if (signedvtype=64) and rex_w then raise EAssemblerException.create(rsInvalidValueFor32Bit);
 
                 addopcode(bytes,k);
                 adddword(bytes,v);
@@ -5267,7 +5271,7 @@ begin
         if (opcodes[j].paramtype2=par_noparam) and (parameter2='') then
         begin
           //imm32
-          if (signedvtype=64) and rex_w then raise exception.create(rsInvalidValueFor32Bit);
+          if (signedvtype=64) and rex_w then raise EAssemblerException.create(rsInvalidValueFor32Bit);
 
           addopcode(bytes,j);
           addDword(bytes,v);
@@ -5570,7 +5574,7 @@ begin
 
             if (opcodes[j].opcode1=eo_id) and (opcodes[j].opcode2=eo_none) then
             begin
-              if (signedvtype=64) and rex_w then raise exception.create(rsInvalidValueFor32Bit);
+              if (signedvtype=64) and rex_w then raise EAssemblerException.create(rsInvalidValueFor32Bit);
 
               addopcode(bytes,j);
               adddword(bytes,v);
@@ -6180,7 +6184,7 @@ begin
                      (opcodes[k].paramtype2=par_rm32) and
                      (opcodes[k].paramtype3=par_imm32) then
                   begin
-                    if (signedvtype=64) and rex_w then raise exception.create(rsInvalidValueFor32Bit);
+                    if (signedvtype=64) and rex_w then raise EAssemblerException.create(rsInvalidValueFor32Bit);
 
                     addopcode(bytes,k);
                     result:=createmodrm(bytes,getreg(parameter1),parameter2);
@@ -6259,7 +6263,7 @@ begin
                 end;
               end;
 
-              if (signedvtype=64) and rex_w then raise exception.create(rsInvalidValueFor32Bit);
+              if (signedvtype=64) and rex_w then raise EAssemblerException.create(rsInvalidValueFor32Bit);
 
               addopcode(bytes,j);
               createmodrm(bytes,getreg(parameter1),parameter1);
@@ -6566,7 +6570,7 @@ begin
                 if ((opcodes[k].paramtype1=par_rm32) and (opcodes[k].paramtype2=par_imm32)) and ((opcodes[k].paramtype3=par_noparam) and (parameter3='')) then
                 begin
                   //yes, there is
-                  if (signedvtype=64) and rex_w then raise exception.create(rsInvalidValueFor32Bit);
+                  if (signedvtype=64) and rex_w then raise EAssemblerException.create(rsInvalidValueFor32Bit);
 
                   addopcode(bytes,k);
                   createmodrm(bytes,eoToReg(opcodes[k].opcode1),parameter1);
@@ -6613,7 +6617,7 @@ begin
               end;
             end;
             //no there's none
-            if (signedvtype=64) and rex_w then raise exception.create(rsInvalidValueFor32Bit);
+            if (signedvtype=64) and rex_w then raise EAssemblerException.create(rsInvalidValueFor32Bit);
 
             addopcode(bytes,j);
             createmodrm(bytes,eoToReg(opcodes[j].opcode1),parameter1);
@@ -7829,7 +7833,7 @@ begin
 
         if RexPrefix<>0 then
         begin
-          if RexPrefixLocation=-1 then raise exception.create(rsAssemblerError);
+          if RexPrefixLocation=-1 then raise EAssemblerException.create(rsAssemblerError);
           RexPrefix:=RexPrefix or $40; //just make sure this is set
           setlength(bytes,length(bytes)+1);
           for i:=length(bytes)-1 downto RexPrefixLocation+1 do
@@ -7855,7 +7859,7 @@ begin
             //result:=HandleTooBigAddress(opcode,address, bytes, actualdisplacement);
 
             if skiprangecheck=false then  //for syntax checking
-              raise exception.create(rsOffsetTooBig);
+              raise EAssemblerException.create(rsOffsetTooBig);
           end
           else
             pdword(@bytes[relativeAddressLocation])^:=actualdisplacement-(address+length(bytes));
@@ -7882,7 +7886,7 @@ begin
         bytes[0]:=$67;
       end
       else
-        raise exception.create('Invalid address');
+        raise EAssemblerException.create('Invalid address');
     end;
   end;
 end;

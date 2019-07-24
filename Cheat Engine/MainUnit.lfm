@@ -2111,6 +2111,13 @@ object MainForm: TMainForm
       ShortCut = 16501
       OnClick = miFlFindWhatWritesClick
     end
+    object N2: TMenuItem
+      Caption = '-'
+    end
+    object miFoundListPreferences: TMenuItem
+      Caption = 'Preferences'
+      OnClick = miFoundListPreferencesClick
+    end
     object MenuItem19: TMenuItem
       Caption = '-'
     end

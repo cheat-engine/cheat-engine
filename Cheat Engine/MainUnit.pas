@@ -273,6 +273,8 @@ type
     FromAddress: TEdit;
     andlabel: TLabel;
     lblcompareToSavedScan: TLabel;
+    miFoundListPreferences: TMenuItem;
+    N2: TMenuItem;
     mfImageList: TImageList;
     lblSigned: TLabel;
     MainMenu2: TMainMenu;
@@ -534,6 +536,7 @@ type
     procedure Label3Click(Sender: TObject);
     procedure MenuItem12Click(Sender: TObject);
     procedure MenuItem15Click(Sender: TObject);
+    procedure miFoundListPreferencesClick(Sender: TObject);
     procedure miAutoAssembleErrorMessageClick(Sender: TObject);
     procedure miHelpClick(Sender: TObject);
     procedure miLuaDocumentationClick(Sender: TObject);
@@ -766,6 +769,13 @@ type
       vartype: TVariableType;
     end;
 
+    foundlistColors: record
+      NormalValueColor: TColor;
+      ChangedValueColor: TColor;
+      StaticColor: TColor;
+      DynamicColor: TColor;
+    end;
+
 
     saveGotCanceled: boolean; //set to true if the last save button click was canceled
 
@@ -994,7 +1004,8 @@ uses mainunit2, ProcessWindowUnit, MemoryBrowserFormUnit, TypePopup, HotKeys,
   frmNetworkDataCompressionUnit, ProcessHandlerUnit, ProcessList, pointeraddresslist,
   PointerscanresultReader, Parsers, Globals, GnuAssembler, xinput, DPIHelper,
   multilineinputqueryunit, winsapi, LuaClass, Filehandler, feces,
-  frmDBVMWatchConfigUnit, frmDotNetObjectListUnit, ceregistry, UnexpectedExceptionsHelper;
+  frmDBVMWatchConfigUnit, frmDotNetObjectListUnit, ceregistry, UnexpectedExceptionsHelper,
+  frmFoundlistPreferencesUnit, fontSaveLoadRegistry;
 
 resourcestring
   rsInvalidStartAddress = 'Invalid start address: %s';
@@ -3291,6 +3302,54 @@ begin
       exit;
     end;
   end;
+end;
+
+procedure TMainForm.miFoundListPreferencesClick(Sender: TObject);
+var
+  f: TfrmFoundlistPreferences;
+  reg: TRegistry;
+begin
+  f:=TfrmFoundlistPreferences.Create(self);
+
+  f.Font.assign(foundlist3.font);
+  f.NormalValueColor:=GetSysColor(COLOR_WINDOWTEXT);
+  f.ChangedValueColor:=clRed;
+  f.BackgroundColor:=foundlist3.color;
+  f.StaticColor:=clGreen;
+  f.DynamicColor:=GetSysColor(COLOR_WINDOWTEXT);
+  if f.showmodal=mrok then
+  begin
+    foundlist3.font.Assign(f.font);
+    foundlist3.Color:=f.BackgroundColor;
+
+    foundlistColors.NormalValueColor:=f.NormalValueColor;
+    foundlistColors.ChangedValueColor:=f.ChangedValueColor;
+    foundlistColors.StaticColor:=f.StaticColor;
+    foundlistColors.DynamicColor:=f.DynamicColor;
+
+
+    reg := Tregistry.Create;
+    try
+      Reg.RootKey := HKEY_CURRENT_USER;
+
+      if Reg.OpenKey('\Software\Cheat Engine\FoundList', True) then
+      begin
+        reg.WriteInteger('FoundList.NormalValueColor', foundlistcolors.NormalValueColor);
+        reg.WriteInteger('FoundList.ChangedValueColor', foundlistcolors.ChangedValueColor);
+        reg.WriteInteger('FoundList.StaticColor', foundlistcolors.StaticColor);
+        reg.WriteInteger('FoundList.DynamicColor', foundlistcolors.DynamicColor);
+        reg.WriteInteger('FoundList.BackgroundColor',foundlist3.Color);
+
+        SaveFontToRegistry(foundlist3.font, reg);
+      end;
+    finally
+      reg.free;
+    end;
+  end;
+
+  f.free;
+
+
 end;
 
 procedure TMainForm.miAutoAssembleErrorMessageClick(Sender: TObject);
@@ -5634,6 +5693,13 @@ begin
   end;
 
 
+  foundlistColors.NormalValueColor:=GetSysColor(COLOR_WINDOWTEXT);
+  foundlistColors.ChangedValueColor:=clRed;
+  foundlistColors.StaticColor:=clGreen;
+  foundlistColors.DynamicColor:=GetSysColor(COLOR_WINDOWTEXT);
+
+
+
 
 end;
 
@@ -7486,6 +7552,8 @@ begin
 
 
 
+
+
   //  animatewindow(mainform.Handle,10000,AW_CENTER);
   //mainform.repaint;
   fronttext := rsBringsCheatEngineToFront;
@@ -7648,8 +7716,18 @@ begin
   panel6.clientheight:=cbPauseWhileScanning.top+cbPauseWhileScanning.height+2;
   gbScanOptions.ClientHeight:=panel6.top+panel6.height+2;
 
-  if reg<>nil then
-    freeandnil(reg);
+  if Reg.OpenKey('\Software\Cheat Engine\FoundList', false) then
+  begin
+    if reg.ValueExists('FoundList.NormalValueColor') then foundlistcolors.NormalValueColor:=reg.ReadInteger('FoundList.NormalValueColor');
+    if reg.ValueExists('FoundList.ChangedValueColor') then foundlistcolors.ChangedValueColor:=reg.ReadInteger('FoundList.ChangedValueColor');
+    if reg.ValueExists('FoundList.StaticColor') then foundlistcolors.StaticColor:=reg.ReadInteger('FoundList.StaticColor');
+    if reg.ValueExists('FoundList.DynamicColor') then foundlistcolors.DynamicColor:=reg.ReadInteger('FoundList.DynamicColor');
+    if reg.ValueExists('FoundList.BackgroundColor') then foundlist3.color:=reg.ReadInteger('FoundList.BackgroundColor');
+
+    LoadFontFromRegistry(foundlist3.font,reg);
+  end;
+  freeandnil(reg);
+
 
   btnNewScan.autosize:=true;
   btnNextScan.AutoSize:=true;
@@ -7836,6 +7914,8 @@ begin
     MessageDlg(Format(rsInvalidScanFolder, [memscan.GetScanFolder]), mtError, [mbOk], 0);
 
  // ImageList2.GetBitmap(0);
+
+
 
 end;
 
