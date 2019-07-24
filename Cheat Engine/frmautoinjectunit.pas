@@ -2582,10 +2582,13 @@ begin
       add('');
       add(symbolNameWithOffset + ':');
       add('  jmp newmem' + nr + '');
-      if (codesize-5)>1 then
-        add('  nop '+inttohex(codesize-5,1))
-      else
-        add('  nop');
+      if codesize>5 then
+      begin
+        if codesize-5>1 then
+          add('  nop'+inttohex(codesize-5,1))
+        else
+          add('  nop');
+      end;
 
       add('return' + nr + ':');
       add('registersymbol(' + symbolName + ')');
