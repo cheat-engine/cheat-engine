@@ -3558,6 +3558,8 @@ begin
     end
     else
     begin
+
+      lastpart:=10210;
       while (ptruint(p)<=lastmem) do
       begin
         if checkroutine(p,nil) xor inv then //found one
@@ -3572,6 +3574,7 @@ begin
 
         inc(p,stepsize);
       end;
+      lastpart:=10211;
     end;
 
   end;
@@ -5277,6 +5280,9 @@ begin
     begin
       //not unknown initial
       memorybuffer:=virtualAlloc(nil,maxregionsize+variablesize+16,MEM_COMMIT or MEM_RESERVE or MEM_TOP_DOWN	, PAGE_READWRITE);
+      //test:
+      //FillMemory(memorybuffer, maxregionsize+variablesize+16, $CE);
+
       configurescanroutine;
     end
     else //it is a unknown initial value
@@ -5332,6 +5338,9 @@ begin
         else
           _size:=size;
 
+        if (_size>buffersize) then _size:=buffersize;
+
+
         ReadProcessMemory(phandle,pointer(currentbase),memorybuffer,_size,actualread);
 
         //sanitize the results
@@ -5369,7 +5378,10 @@ begin
         else
         begin
           //scan the buffer
+
+          lastpart:=1021;
           firstscanmem(currentbase,memorybuffer,actualread);
+          lastpart:=1022;
 
         end;
 

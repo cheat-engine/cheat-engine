@@ -224,6 +224,7 @@ type
     procedure CheckBox1Change(Sender: TObject);
     procedure EditBufSizeKeyPress(Sender: TObject; var Key: Char);
     procedure Default1Click(Sender: TObject);
+    procedure FormChangeBounds(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure cbShowDisassemblerClick(Sender: TObject);
@@ -1220,9 +1221,25 @@ begin
   editbufsize.Text:='512';
 end;
 
+procedure TformSettings.FormChangeBounds(Sender: TObject);
+var off: integer;
+begin
+  OnChangeBounds:=nil;
+  if top<0 then
+  begin
+    top:=0;
+    if height+top>screen.WorkAreaHeight then
+      height:=screen.WorkAreaHeight;
+  end;
+  OnChangeBounds:=FormChangeBounds;
+end;
+
+
+
 procedure TformSettings.FormDestroy(Sender: TObject);
 begin
   formSettings:=nil;
+  SaveFormPosition(self);
 end;
 
 procedure TformSettings.FormShow(Sender: TObject);
@@ -1777,6 +1794,9 @@ begin
   cbInjectDLLWithAPC.visible:=true;
   {$endif}
 
+
+  if LoadFormPosition(self) then
+    autosize:=false;
 end;
 
 procedure TformSettings.cbKernelQueryMemoryRegionClick(Sender: TObject);

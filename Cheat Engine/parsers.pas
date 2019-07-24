@@ -242,7 +242,7 @@ This routine will use StrToQword unless it is a negative value, in which case it
 begin
   s:=trim(s);
   if length(s)=0 then
-    raise exception.create(rsInvalidInteger)
+    raise EParserError.create(rsInvalidInteger)
   else
   begin
     try
