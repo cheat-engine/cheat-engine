@@ -2548,27 +2548,30 @@ var codelength: dword;
 
     mbi : _MEMORY_BASIC_INFORMATION;
   //set the protectionlabel
+  e: boolean;
 begin
   a:=disassemblerview.SelectedAddress;
 
   for i:=0 to AdvancedOptions.numberofcodes-1 do
   begin
-    a2:=symhandler.getAddressFromName(AdvancedOptions.code[i].symbolname);
-
-    if InRangeX(disassemblerview.SelectedAddress, a2, a2+length(AdvancedOptions.code[i].actualopcode)-1 ) then
+    a2:=symhandler.getAddressFromName(AdvancedOptions.code[i].symbolname,false,e);
+    if not e then
     begin
-      for j:=0 to AdvancedOptions.Codelist2.Items.count-1 do
-        AdvancedOptions.Codelist2.Items[j].Selected:=false;
+      if InRangeX(disassemblerview.SelectedAddress, a2, a2+length(AdvancedOptions.code[i].actualopcode)-1 ) then
+      begin
+        for j:=0 to AdvancedOptions.Codelist2.Items.count-1 do
+          AdvancedOptions.Codelist2.Items[j].Selected:=false;
 
-      AdvancedOptions.Codelist2.Items[i].Selected:=true;
-      AdvancedOptions.Codelist2.ItemIndex:=i;
+        AdvancedOptions.Codelist2.Items[i].Selected:=true;
+        AdvancedOptions.Codelist2.ItemIndex:=i;
 
-      if AdvancedOptions.code[i].changed then
-        AdvancedOptions.miRestoreWithOriginal.OnClick(AdvancedOptions.miRestoreWithOriginal)
-      else
-        AdvancedOptions.miReplaceWithNops.onclick(AdvancedOptions.miReplaceWithNops);
+        if AdvancedOptions.code[i].changed then
+          AdvancedOptions.miRestoreWithOriginal.OnClick(AdvancedOptions.miRestoreWithOriginal)
+        else
+          AdvancedOptions.miReplaceWithNops.onclick(AdvancedOptions.miReplaceWithNops);
 
-      exit;
+        exit;
+      end;
     end;
   end;
 
