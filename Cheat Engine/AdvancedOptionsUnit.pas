@@ -75,6 +75,7 @@ type
 
     red: boolean;
     oldpausestate: boolean;
+    loadedFormPosition: boolean;
     procedure hotkey(var Message: TMessage); message WM_HOTKEY;
   public
     { Public declarations }
@@ -304,7 +305,20 @@ end;
 
 procedure TAdvancedOptions.FormShow(Sender: TObject);
 begin
+  if loadedFormPosition=false then
+  begin
+    Position := podesigned;
+    Left := mainform.left - Width;
+    Top := mainform.Top + mainform.Height - Height;
 
+    if (Left < 0) or (Top + Height > screen.Height) then
+    begin
+      left := 0;
+      Top := screen.Height - advancedoptions.Height;
+    end;
+
+    loadedFormPosition:=true;
+  end;
 end;
 
 procedure TAdvancedOptions.miDBVMFindWhatCodeAccessesClick(Sender: TObject);
@@ -830,7 +844,7 @@ begin
  // pausebutton.Left:=savebutton.Left;
 
   setlength(x,0);
-  loadformposition(self,x);
+  loadedFormPosition:=loadformposition(self,x);
 end;
 
 procedure TAdvancedOptions.Button2Click(Sender: TObject);

@@ -8233,24 +8233,8 @@ begin
   end
   else Opendialog1.FileName:=oldFileName;
 
-  if advancedoptions <> nil then
-  begin
-    if advancedoptions.codelist2.items.Count > 0 then
-    begin
-      advancedoptions.Position := podesigned;
-      advancedoptions.Left := mainform.left - advancedoptions.Width;
-      advancedoptions.Top := mainform.Top + mainform.Height - advancedoptions.Height;
-
-      if (advancedoptions.Left < 0) or
-        (advancedoptions.Top + advancedoptions.Height > screen.Height) then
-      begin
-        advancedoptions.left := 0;
-        advancedoptions.Top := screen.Height - advancedoptions.Height;
-
-      end;
-      advancedoptions.Show;
-    end;
-  end;
+  if (advancedoptions <> nil) and (advancedoptions.codelist2.items.Count>0) then
+    advancedoptions.Show;
 end;
 
 
