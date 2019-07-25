@@ -8,6 +8,7 @@ object formSettings: TformSettings
   Caption = 'Cheat Engine settings'
   ClientHeight = 672
   ClientWidth = 810
+  OnChangeBounds = FormChangeBounds
   OnClose = FormClose
   OnCreate = FormCreate
   OnDestroy = FormDestroy
@@ -62,9 +63,9 @@ object formSettings: TformSettings
       Height = 633
       Top = 1
       Width = 660
-      ActivePage = ScanSettings
+      ActivePage = Assembler
       Align = alClient
-      TabIndex = 3
+      TabIndex = 6
       TabOrder = 1
       OnChange = pcSettingChange
       object GeneralSettings: TTabSheet
@@ -644,35 +645,35 @@ object formSettings: TformSettings
       end
       object tsHotkeys: TTabSheet
         Caption = 'Hotkeys'
-        ClientHeight = 602
-        ClientWidth = 643
+        ClientHeight = 605
+        ClientWidth = 652
         ImageIndex = 7
         inline frameHotkeyConfig: TframeHotkeyConfig
-          Height = 602
-          Width = 643
+          Height = 605
+          Width = 652
           Align = alClient
-          ClientHeight = 602
-          ClientWidth = 643
+          ClientHeight = 605
+          ClientWidth = 652
           DesignLeft = 737
           DesignTop = 306
           inherited Panel1: TPanel
-            Height = 552
-            Width = 417
-            ClientHeight = 552
-            ClientWidth = 417
+            Height = 555
+            Width = 426
+            ClientHeight = 555
+            ClientWidth = 426
             inherited Label1: TLabel
-              Width = 417
+              Width = 426
             end
             inherited ListBox1: TListBox
-              Height = 537
-              Width = 417
+              Height = 540
+              Width = 426
             end
           end
           inherited Panel2: TPanel
-            Left = 417
-            Height = 552
+            Left = 426
+            Height = 555
             Width = 226
-            ClientHeight = 552
+            ClientHeight = 555
             ClientWidth = 226
             inherited Edit1: TEdit
               Width = 222
@@ -693,8 +694,8 @@ object formSettings: TformSettings
             end
           end
           inherited Panel5: TPanel
-            Width = 643
-            ClientWidth = 643
+            Width = 652
+            ClientWidth = 652
             inherited Label4: TLabel
               Left = 121
             end
@@ -712,8 +713,8 @@ object formSettings: TformSettings
       end
       object Unrandomizer: TTabSheet
         Caption = 'Unrandomizer'
-        ClientHeight = 602
-        ClientWidth = 643
+        ClientHeight = 605
+        ClientWidth = 652
         ImageIndex = 8
         object Label5: TLabel
           AnchorSideLeft.Control = Unrandomizer

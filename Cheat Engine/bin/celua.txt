@@ -391,12 +391,8 @@ injectDLL(filename): Injects a dll, and returns true on success
 executeCode(address, parameter OPTIONAL, timeout OPTIONAL) : address - Executes a stdcall function with 1 parameter at the given address in the target process  and wait for it to return. The return value is the result of the function that was called
 executeCodeLocal(addres, parameter OPTIONAL): address -  Executes a stdcall function with 1 parameter at the given address in the target process. The return value is the result of the function that was called
 
-executeCodeEx(callmethod, timeout, address, {type,value},{type,value},...)
-executeCodeEx(callmethod, timeout, address, param1, param2,...)
-executeCodeLocalEx(address, {type,value},{type,value},...)
-executeCodeLocalEx(address, param1, param2, ...)
-  Calls a function using the given callmethod and parameters
-  callmethod: 0=stdcall, 1=cdecl
+executeCodeEx(callmethod, timeout, address, {type=x,value=param1} or param1,{type=x,value=param2} or param2,...)
+callmethod: 0=stdcall, 1=cdecl
   timeout: Number of milliseconds to wait for a result. nil or -1, infitely. 0 is no wait (will not free the call memory, so beware of it's memory leak)
   address: Address to execute
   {type,value} : Table containing the value type, and the value
@@ -409,6 +405,34 @@ executeCodeLocalEx(address, param1, param2, ...)
      
     value: anything base type that lua can interpret
     }
+  if just param is provided CE will guess the type based on the provided type
+
+executeMethod(callmethod, timeout, address, {regnr=0..15,classinstance=xxxxxxxx} or classinstance, {type=x,value=param1} or param1, {type=x,value=param2} or param2,...) - Executes a method.
+  regnr can be:
+    0: R/EAX
+    1: R/ECX
+    2: R/EDX
+    3: R/EBX
+    4: R/ESP
+    5: R/EBP
+    6: R/ESI
+    7: R/EDI
+    8: R8
+    9: R9
+    10: R10
+    11: R11
+    12: R12
+    13: R13
+    14: R14
+    15: R15
+  
+
+  If no register number is provided then ECX(1) is picked
+  If instance is nil it is the same as executeCodeEx
+
+executeCodeLocalEx(address, {type=x,value=param1} or param1,{type=x,value=param2} or param2,...)
+  Calls a function using the given callmethod and parameters
+  
   
   If a direct parameter is given instead of a table entry describing the type, CE will 'guess' the type it is
 
@@ -1407,6 +1431,27 @@ methods
   getCanvas() : Canvas - Returns the canvas object used to render the listview
   beginUpdate() - Tells the listview to stop updating while you're busy
   endUpdate() - Applies all updates between beginUpdate and endUpdate
+
+
+HeaderSection class : (Inheritance: CollectionItem)
+properties
+  Alignment: string - 'taLeftJustify', 'taRightJustify', 'taCenter'
+  ImageIndex: imageindex
+  MaxWidth: integer
+  MinWidth: integer
+  Text: String - The text of the headersection
+  Width: integer - The width of the headersection
+  Visible: boolean - Determines if the headersection is visible
+  OriginalIndex: integer - The original index ignoring user reorganization (READONLY)
+methods
+
+
+HeaderSections class : (Inheritance: Collection->TObject)
+properties
+methods
+  add(): THeaderSection - Adds a new header and returns it
+  insert(index): THeaderSection - inserts a new header at the index and returns it
+  delete(index) - deletes(and frees) the headersection at the given index
 
 
 TreeNode class : (Inheritance: TObject)
@@ -2457,6 +2502,7 @@ dbk_executeKernelMemory(address, parameter) :
 
 
 dbvm_initialize(offloados:Boolean OPTIONAL, reason:String OPTIONAL) : Initializes the dbvm functions (dbk_initialize also calls this) offloados is a boolean that when set will offload the system onto dbvm if it's not yet running (and only IF the dbk driver is loaded)
+dbvm_addMemory(pagecount): Adds memory to DBVM (one page is 4096 bytes)
 dbvm_readMSR(msr): See dbk_readMSR but then using dbvm
 dbvm_writeMSR(msr, value): See dbk_writeMSR
 dbvm_getCR4(): Returns the real Control Register 4 state

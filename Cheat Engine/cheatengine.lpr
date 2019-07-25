@@ -101,8 +101,9 @@ uses
   BetterDLLSearchPath, UnexpectedExceptionsHelper, frmExceptionRegionListUnit,
   frmExceptionIgnoreListUnit, frmcodefilterunit, CodeFilterCallOrAllDialog,
   frmBranchMapperUnit, frmSymbolEventTakingLongUnit, LuaCheckListBox,
-  textrender, diagramtypes, diagramblock, diagram, LuaDiagram,
-  LuaDiagramBlock, LuaDiagramLink, diagramlink, BreakpointTypeDef, frmFoundlistPreferencesUnit;
+  textrender, diagramtypes, diagramblock, diagram, LuaDiagram, LuaDiagramBlock,
+  LuaDiagramLink, diagramlink, BreakpointTypeDef, frmFoundlistPreferencesUnit,
+  LuaHeaderSections;
 
 {$R cheatengine.res}
 {$R manifest.res}  //lazarus now has this build in (but sucks as it explicitly turns of dpi aware)
@@ -246,7 +247,7 @@ var
   path: string;
   noautorun: boolean;
 begin
-  Application.Title:='Cheat Engine 6.8.x';
+  Application.Title:='Cheat Engine 7.0 Beta';
   Application.Initialize;
 
   overridefont:=nil;

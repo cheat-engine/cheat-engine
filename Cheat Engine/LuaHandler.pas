@@ -8582,7 +8582,8 @@ begin
 end;
 
 
-function executeCodeEx(L:PLua_state): integer; cdecl; //executecodeex(callmethod, timeout, address, {param1},{param2},{param3},{...})
+
+function executeMethod(L:PLua_state): integer; cdecl; //executecodeex(callmethod, timeout, address, {instance},{param1},{param2},{param3},{...})
 //callmethod:
 //0: stdcall
 //1: cdecl
@@ -8614,6 +8615,10 @@ var
   stackalloc: integer;
   floatvalueallocs: integer;
 
+  instanceValue: ptruint;
+  instancereg: integer=1;
+  regstr: string;
+
   stackpointer: integer;
 
   value: qword;
@@ -8642,12 +8647,15 @@ var
   timeout: dword;
   thread:thandle;
 begin
-  if lua_gettop(L)<3 then
+  if lua_gettop(L)<4 then
   begin
     lua_pushnil(L);
-    lua_pushstring(L,'Not enough parameters. Minimum: callmethod, timeout, address');
+    lua_pushstring(L,'Not enough parameters. Minimum: callmethod, timeout, address, instance');
     exit(2);
   end;
+
+  paramcount:=lua_gettop(L)-4;
+
 
   setlength(stringallocs,0);
   setlength(allocs,0);
@@ -8667,7 +8675,7 @@ begin
     timeout:=lua_tointeger(L,2);
 
   address:=lua_toaddress(L,3);
-  paramcount:=lua_gettop(L)-3;
+
 
   s:=tstringlist.create;
   floatvalues:=tstringlist.create;
@@ -8697,11 +8705,94 @@ begin
   else
     stackalloc:=s.add('sub esp,'+inttohex(paramcount*4,1));  //save this linenr in case doubles are used
 
+
+  if lua_isnil(L,4)=false then  //check if instance is nil
+  begin
+    //instance is provided
+    if lua_istable(L,4) then
+    begin
+      //table
+      lua_pushstring(L,'regnr');
+      lua_gettable(L,4);
+      if lua_isnil(L,-1) then
+      begin
+        lua_pushinteger(L,1);
+        lua_gettable(L,4);
+        if not lua_isnil(L,-1) then
+          instancereg:=lua_tointeger(L,-1)
+        else
+          instancereg:=1; //assume the user used a table and left out the instancereg cause he wants ecx/rcx
+
+        lua_pop(L,1);
+      end
+      else
+        instanceReg:=lua_tointeger(L,-1);
+
+      lua_pop(L,1);
+
+      lua_pushstring(L,'classinstance');
+      lua_gettable(L,4);
+      if lua_isnil(L,-1) then
+      begin
+        //fu
+        lua_pushinteger(L,2);
+        lua_gettable(L,4);
+        if lua_isnil(L,-1) then
+        begin
+          lua_pushnil(L);
+          lua_pushstring(L,'Invalid instance');
+          exit(2);
+        end;
+
+        instanceValue:=lua_tointeger(L,-1);
+        lua_pop(L,1);
+      end
+      else
+        instanceValue:=lua_tointeger(L,-1);
+
+      lua_pop(L,1);
+
+    end
+    else
+    begin
+      instanceValue:=lua_tointeger(L,4);
+      instanceReg:=1; //ECX/RCX
+    end;
+
+    case instancereg of
+      0: regstr:='rax';
+      1: regstr:='rcx';
+      2: regstr:='rdx';
+      3: regstr:='rbx';
+      4: regstr:='rsp';
+      5: regstr:='rbp';
+      6: regstr:='rsi';
+      7: regstr:='rdi';
+      8: regstr:='r8';
+      9: regstr:='r9';
+      10: regstr:='r10';
+      11: regstr:='r11';
+      12: regstr:='r12';
+      13: regstr:='r13';
+      14: regstr:='r14';
+      15: regstr:='r15';
+    end;
+
+    if processhandler.is64Bit=false then
+    begin
+      if instancereg>=8 then raise exception.create('Invalid instance register');
+      regstr[1]:='e';
+    end;
+    s.add('mov '+regstr+','+inttohex(instanceValue,8));
+
+  end;
+
+
   try
 
     //setup the parameters:
     stackpointer:=0;
-    for i:=4 to lua_gettop(L) do
+    for i:=5 to lua_gettop(L) do
     begin
       valuetype:=0;
       if lua_istable(l,i) then
@@ -8716,7 +8807,7 @@ begin
           if lua_isnil(L,-1) then
           begin
             lua_pushnil(L);
-            lua_pushstring(L,'Invalid parametertype '+inttostr(i+2));
+            lua_pushstring(L,'Invalid parametertype '+inttostr(i+3));
             exit(2);
           end;
         end;
@@ -8733,7 +8824,7 @@ begin
           if lua_isnil(L,-1) then
           begin
             lua_pushnil(L);
-            lua_pushstring(L,'Invalid parametervalue '+inttostr(i+2));
+            lua_pushstring(L,'Invalid parametervalue '+inttostr(i+3));
             exit(2);
           end;
         end;
@@ -8862,7 +8953,7 @@ begin
         else
         begin
           lua_pushnil(L);
-          lua_pushstring(L,'Invalid parametertype '+inttostr(i+2)+'('+inttostr(valuetype)+')');
+          lua_pushstring(L,'Invalid parametertype '+inttostr(i+3)+'('+inttostr(valuetype)+')');
           exit(2);
         end;
       end;
@@ -8981,6 +9072,27 @@ begin
 
   end;
 
+end;
+
+function executeCodeEx(L:PLua_state): integer; cdecl;  //executecodeex(callmethod, timeout, address, {param1},{param2},{param3},{...})
+var
+  paramcount: integer;
+  i: integer;
+begin
+  //convert to
+  //executeMethod(callmethod, timeout, address, nil, param1, param2, param3, ...
+
+  paramcount:=lua_gettop(L);
+  if paramcount<3 then
+  begin
+    lua_pushnil(L);
+    lua_pushstring(L,'Not enough parameters. Minimum: callmethod, timeout, address');
+    exit(2);
+  end;
+
+  lua_pushnil(L);
+  lua_insert(L, 4); //instance=nil
+  exit(executeMethod(L));
 end;
 
 function executeCode(L:PLua_state): integer; cdecl; //executecode(address, parameter)
@@ -12024,6 +12136,8 @@ begin
 
     lua_register(L, 'executeCode', executeCode);
     lua_register(L, 'executeCodeEx', executeCodeEx);
+    lua_register(L, 'executeMethod', executeMethod);
+
 
     lua_register(L, 'executeCodeLocal', executeCodeLocal);
     lua_register(L, 'executeCodeLocalEx', executeCodeLocalEx);
