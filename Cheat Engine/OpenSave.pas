@@ -15,7 +15,7 @@ uses windows, forms, LCLIntf,registry, SysUtils,AdvancedOptionsUnit,CommentsUnit
      zstream, luafile, disassemblerComments, commonTypeDefs, lazutf8;
 
 
-var CurrentTableVersion: dword=28;
+var CurrentTableVersion: dword=29;
 procedure protecttrainer(filename: string);
 procedure unprotecttrainer(filename: string; stream: TStream);
 procedure SaveTable(Filename: string; protect: boolean=false; dontDeactivateDesignerForms: boolean=false);
