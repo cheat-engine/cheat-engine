@@ -132,11 +132,11 @@ object frmFoundlistPreferences: TfrmFoundlistPreferences
       Left = 0
       Height = 38
       Top = 0
-      Width = 100
+      Width = 96
       AutoSize = True
       BevelOuter = bvNone
       ClientHeight = 38
-      ClientWidth = 100
+      ClientWidth = 96
       TabOrder = 0
       object Label4: TLabel
         AnchorSideLeft.Control = pnlNormal
@@ -155,7 +155,8 @@ object frmFoundlistPreferences: TfrmFoundlistPreferences
         Left = 0
         Height = 22
         Top = 16
-        Width = 100
+        Width = 96
+        AutoSize = False
         BorderSpacing.Top = 1
         ItemHeight = 16
         OnChange = DisplayChange
@@ -166,7 +167,7 @@ object frmFoundlistPreferences: TfrmFoundlistPreferences
       AnchorSideLeft.Control = pnlNormal
       AnchorSideLeft.Side = asrBottom
       AnchorSideTop.Control = pnlNormal
-      Left = 104
+      Left = 100
       Height = 38
       Top = 0
       Width = 100
@@ -194,6 +195,7 @@ object frmFoundlistPreferences: TfrmFoundlistPreferences
         Height = 22
         Top = 16
         Width = 100
+        AutoSize = False
         BorderSpacing.Top = 1
         ItemHeight = 16
         OnChange = DisplayChange
@@ -232,6 +234,7 @@ object frmFoundlistPreferences: TfrmFoundlistPreferences
         Height = 22
         Top = 16
         Width = 100
+        AutoSize = False
         BorderSpacing.Top = 1
         ItemHeight = 16
         OnChange = DisplayChange
@@ -270,6 +273,7 @@ object frmFoundlistPreferences: TfrmFoundlistPreferences
         Height = 22
         Top = 16
         Width = 100
+        AutoSize = False
         BorderSpacing.Top = 1
         ItemHeight = 16
         OnChange = DisplayChange

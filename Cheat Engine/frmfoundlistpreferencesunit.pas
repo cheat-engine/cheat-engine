@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, LResources, Forms, Controls, Graphics, Dialogs, StdCtrls,
-  ColorBox, ComCtrls, ExtCtrls;
+  ColorBox, ComCtrls, ExtCtrls, math;
 
 type
 
@@ -145,7 +145,28 @@ begin
 end;
 
 procedure TfrmFoundlistPreferences.FormShow(Sender: TObject);
+var nw: integer;
 begin
+  //these colorboxes don't autosize properly in laz 2.0.0
+  cbNormal.ItemHeight:=max(cbNormal.canvas.TextHeight('QqJjWwSs')+3, canvas.TextHeight('QqJjWwSs')+3);
+  nw:=max(cbNormal.canvas.TextWidth('       XXXXXXXXXXXXXXXXXX'), canvas.TextWidth('       XXXXXXXXXXXXXXXXXX'));
+  if nw<label4.width then
+    nw:=label4.width;
+
+  cbNormal.Width:=nw;
+
+
+  cbChanged.ItemHeight:=cbNormal.ItemHeight;
+  cbChanged.Width:=cbNormal.Width;
+
+  cbStatic.ItemHeight:=cbNormal.ItemHeight;
+  cbStatic.Width:=cbNormal.Width;
+
+  cbDynamic.ItemHeight:=cbNormal.ItemHeight;
+  cbDynamic.Width:=cbNormal.Width;
+
+  cbBackground.ItemHeight:=cbNormal.ItemHeight;
+
   updateScreen;
 end;
 
