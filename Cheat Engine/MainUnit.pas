@@ -4847,7 +4847,7 @@ begin
     scantablist.Height := scantablist.Canvas.TextHeight('WwJjDdQq')+4;
 
     label6.AnchorSideTop.Control:=scantablist;
-    lblcompareToSavedScan.AnchorSideTop.Control:=scantablist;
+    //lblcompareToSavedScan.AnchorSideTop.Control:=scantablist;
 
 
     i := scantablist.AddTab(rsScan + ' 1'); //original scan
