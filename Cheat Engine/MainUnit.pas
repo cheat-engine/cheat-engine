@@ -1968,12 +1968,20 @@ begin
 end;
 
 procedure TMainForm.ShowError(var message: TMessage);
-var err: pchar;
+var
+  err: pchar;
+  errs: string;
 begin
   err:=pchar(message.lParam);
+
   if err<>nil then
   begin
-    MessageDlg(err, mtError, [mbOK], 0);
+    errs:=err;
+    if (errs='Access violation') and (miEnableLCLDebug.checked) then
+      errs:=errs+#13#10'Please send the errorlog.txt file to Dark Byte. Thanks';
+
+
+    MessageDlg(errs, mtError, [mbOK], 0);
     freememandnil(err);
   end
   else
@@ -2225,9 +2233,12 @@ procedure TMainForm.exceptionhandler(Sender: TObject; E: Exception);
 var err: pchar;
 begin
   //unhandled exeption. Also clean lua stack
+
   getmem(err, length(e.Message)+1);
   strcopy(err, pchar(e.message));
   err[length(e.message)]:=#0;
+
+
 
   PostMessage(handle, wm_showerror, 0, ptruint(err));
 end;
@@ -3156,7 +3167,8 @@ begin
       llf.LogName:='cedebug.txt';
       llf.Init;
 
-      DebugLn('First log message');
+
+      DebugLn('First log message: '+DateToStr(now));
     end
     else
       llf.Finish;
@@ -3264,9 +3276,9 @@ begin
 end;
 
 procedure TMainForm.Label3Click(Sender: TObject);
-var x:TChangeRegOnBPInfo;
+
 begin
- // x.changeRIP
+
 end;
 
 procedure TMainForm.MenuItem12Click(Sender: TObject);
@@ -5285,6 +5297,8 @@ var
   i: integer;
 
   dir: string;
+  createlog: boolean;
+  s: string;
 begin
   {$if (lcl_fullversion > 1060400) and (lcl_fullversion <=1080200)}
   Foundlist3.Dragmode:=dmManual; //perhaps this gets fixed in later lcl versions, but for now, it sucks
@@ -5362,7 +5376,19 @@ begin
   SaveDialog1.InitialDir:=dir;
   OpenDialog1.InitialDir:=dir;
 
-  miEnableLCLDebug.Checked:=cereg.readBool('Debug');
+
+
+
+
+//  if FileExists();
+  s:=ChangeFileExt(application.exename,'.DBG');
+  if FileExists(s) then
+    createlog:=true
+  else
+    createlog:=cereg.readBool('Debug');
+
+  miEnableLCLDebug.Checked:=createlog;
+
   if miEnableLCLDebug.Checked then
     EnableLCLClick(miEnableLCLDebug);
 
@@ -5684,7 +5710,7 @@ begin
   luaclass_newClass(luavm, addresslist);
   lua_setglobal(luavm,'AddressList');
 
-  miEnableLCLDebug.checked:=cereg.readBool('Debug');
+  miEnableLCLDebug.checked:=createlog;
   allocsAddToUnexpectedExceptionList:=cereg.readBool('Add Allocated Memory As Watched');
   case cereg.readInteger('Unexpected Breakpoint Behaviour',0) of
     0: UnexpectedExceptionAction:=ueaIgnore;

@@ -5,6 +5,7 @@ Auto repeat option for unchanged value scans
 Added lua formula scans
 Moved the compare to first/saved from scan type to a checkbox
 Added a scanner that can detect and undo memory changes in the target process code sections (patch scanner under tools in memview)
+The tutorial now has a link to online help for each step
 Added a toolbar for stepping while debugging
 When a memoryrecord fails to activate, you can rightclick it and see why it failed
 AutoAssembler will now cut down on the nop's used
@@ -25,12 +26,12 @@ When pressing shift+space instead of space to follow an instruction you will now
 Added *:undefined support for dropdown lists
 Added init.lua files for translations to use
 Stackview now shows symbolnames as well
-Some extra windows will not save their location
+Some extra windows will now save their location
 Exe trainer generator now lets you change the default files
 The description of conditional jumps is better to understand now
 Ultimap2 can now keep the tracer files and scan kernelmode memory as well if desired
 Groups now get created afgter the selected item
-Smartedit can not also 'smart'-edit children
+Smartedit can now also 'smart'-edit children
 You can now pick a breakpoint type without having to go to settings, and once picked it will be the default type for Toggle breakpoints until changes again
 Floating point screen will now stay within the screen
 Clicking execute in the lua engine will now change focus back to the editor field

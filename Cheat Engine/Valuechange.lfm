@@ -1,7 +1,7 @@
 object ValueChangeForm: TValueChangeForm
-  Left = 1245
+  Left = 1190
   Height = 106
-  Top = 568
+  Top = 541
   Width = 265
   AutoSize = True
   BorderIcons = [biSystemMenu]
@@ -13,7 +13,7 @@ object ValueChangeForm: TValueChangeForm
   OnCreate = FormCreate
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '1.6.0.4'
+  LCLVersion = '2.0.0.4'
   object cbVarType: TComboBox
     AnchorSideLeft.Control = Owner
     AnchorSideTop.Control = ValueText
@@ -56,7 +56,6 @@ object ValueChangeForm: TValueChangeForm
     BorderSpacing.Right = 6
     Constraints.MinWidth = 250
     TabOrder = 1
-    Text = 'ValueText'
   end
   object cbunicode: TCheckBox
     AnchorSideLeft.Control = cbVarType

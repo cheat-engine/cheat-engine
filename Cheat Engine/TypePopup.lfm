@@ -9,9 +9,10 @@ object TypeForm: TTypeForm
   Caption = 'Type'
   ClientHeight = 118
   ClientWidth = 764
+  OnCreate = FormCreate
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '1.6.0.4'
+  LCLVersion = '2.0.0.4'
   object Panel1: TPanel
     AnchorSideLeft.Control = Owner
     AnchorSideTop.Control = Owner

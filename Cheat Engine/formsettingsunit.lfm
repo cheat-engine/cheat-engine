@@ -1518,7 +1518,6 @@ object formSettings: TformSettings
               ClientHeight = 26
               ClientWidth = 225
               TabOrder = 2
-              OnClick = Panel11Click
               object btnMakeKernelDebugPossible: TButton
                 Left = 0
                 Height = 25

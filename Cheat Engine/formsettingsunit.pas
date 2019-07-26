@@ -231,7 +231,6 @@ type
     procedure Label3Click(Sender: TObject);
     procedure LoadButtonClick(Sender: TObject);
     procedure MenuItem1Click(Sender: TObject);
-    procedure Panel11Click(Sender: TObject);
     procedure Panel3Click(Sender: TObject);
     procedure Panel3Resize(Sender: TObject);
     procedure pcSettingChange(Sender: TObject);
@@ -1385,10 +1384,7 @@ begin
   ScanForLanguages;
 end;
 
-procedure TformSettings.Panel11Click(Sender: TObject);
-begin
 
-end;
 
 procedure TformSettings.Panel3Click(Sender: TObject);
 begin

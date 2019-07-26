@@ -15,7 +15,7 @@ object MemoryBrowser: TMemoryBrowser
   OnResize = FormResize
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '2.0.2.0'
+  LCLVersion = '2.0.0.4'
   object Splitter1: TSplitter
     Cursor = crVSplit
     Left = 0
@@ -81,7 +81,7 @@ object MemoryBrowser: TMemoryBrowser
         TabOrder = 0
         Visible = False
         object tbRun: TToolButton
-          Left = 113
+          Left = 114
           Top = 2
           Caption = 'Run'
           Enabled = False
@@ -89,7 +89,7 @@ object MemoryBrowser: TMemoryBrowser
           OnClick = miDebugRunClick
         end
         object tbStepInto: TToolButton
-          Left = 142
+          Left = 143
           Top = 2
           Caption = 'Step Into'
           Enabled = False
@@ -97,7 +97,7 @@ object MemoryBrowser: TMemoryBrowser
           OnClick = miDebugStepClick
         end
         object tbStepOver: TToolButton
-          Left = 197
+          Left = 198
           Top = 2
           Caption = 'Step Over'
           Enabled = False
@@ -105,14 +105,14 @@ object MemoryBrowser: TMemoryBrowser
           OnClick = miDebugStepOverClick
         end
         object tbSeparator1: TToolButton
-          Left = 105
+          Left = 106
           Height = 40
           Top = 2
           Caption = 'tbSeparator1'
           Style = tbsSeparator
         end
         object tbStepOut: TToolButton
-          Left = 256
+          Left = 257
           Top = 2
           Caption = 'Step Out'
           Enabled = False
@@ -120,7 +120,7 @@ object MemoryBrowser: TMemoryBrowser
           OnClick = miDebugExecuteTillReturnClick
         end
         object tbSeparator2: TToolButton
-          Left = 310
+          Left = 311
           Height = 40
           Top = 2
           Caption = 'tbSeparator2'
