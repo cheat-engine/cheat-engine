@@ -52,7 +52,8 @@ implementation
 
 { TfrmTracerConfig }
 
-uses NewKernelHandler, DebugHelper, debuggerinterface, DebuggerInterfaceAPIWrapper;
+uses NewKernelHandler, DebugHelper, debuggerinterface, DebuggerInterfaceAPIWrapper,
+  formsettingsunit;
 
 function TfrmTracerConfig.getBreakpointmethod: TBreakpointmethod;
 begin
@@ -93,10 +94,10 @@ begin
   if hasEPTSupport=false then
     rbBPDBVM.visible:=false;
 
-  rbBPHardware.enabled:=(CurrentDebuggerInterface<>nil) and (dbcHardwareBreakpoint in CurrentDebuggerInterface.DebuggerCapabilities);
-  rbBPSoftware.enabled:=(CurrentDebuggerInterface<>nil) and (dbcSoftwareBreakpoint in CurrentDebuggerInterface.DebuggerCapabilities);
-  rbBPException.enabled:=(CurrentDebuggerInterface<>nil) and (dbcExceptionBreakpoint in CurrentDebuggerInterface.DebuggerCapabilities);
-  rbBPDBVM.enabled:=(CurrentDebuggerInterface<>nil) and (dbcDBVMBreakpoint in CurrentDebuggerInterface.DebuggerCapabilities);
+  rbBPHardware.enabled:=true;
+  rbBPSoftware.enabled:=((CurrentDebuggerInterface<>nil) and (dbcSoftwareBreakpoint in CurrentDebuggerInterface.DebuggerCapabilities)) or (formsettings.cbKDebug.Checked=false);
+  rbBPException.enabled:=((CurrentDebuggerInterface<>nil) and (dbcExceptionBreakpoint in CurrentDebuggerInterface.DebuggerCapabilities)) or (formsettings.cbKDebug.Checked=false);
+  rbBPDBVM.enabled:=((CurrentDebuggerInterface<>nil) and (dbcDBVMBreakpoint in CurrentDebuggerInterface.DebuggerCapabilities)) or (formsettings.cbKDebug.Checked);
 end;
 
 procedure TfrmTracerConfig.setDataTrace(state: boolean);

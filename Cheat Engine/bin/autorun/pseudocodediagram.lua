@@ -1436,9 +1436,11 @@ mv.debuggerpopup.Items.insert(mv.MenuItem2.MenuIndex+1, mi)
 registerFormAddNotification(function(f)
   --watch for tracerforms and add a 'Spawn Diagram' option there as well
   if f.ClassName=='TfrmTracer' then
-    local c=f.registerFirstShowCallback(function(f)
-      f.unregisterFirstShowCallback(c) --cleans up memory
-      
+    local callback=123
+    callback=f.registerFirstShowCallback(function(f)
+      --print("calling unregisterFirstShowCallback using callback. ClassName="..callback.ClassName)
+      f.unregisterFirstShowCallback(callback) --cleans up memory
+
       --add a spawn diagram option
       local mi=createMenuItem(f.pmTracer)
       mi.Caption='Spawn diagram'    
@@ -1474,7 +1476,7 @@ registerFormAddNotification(function(f)
           end
           
           if entrynr then          
-            print("calling spawnDiagram with entrynr "..entrynr..' which has address '..string.format('%x',f.Entry[entrynr].address ))
+            --print("calling spawnDiagram with entrynr "..entrynr..' which has address '..string.format('%x',f.Entry[entrynr].address ))
             spawnDiagram(f.Entry[entrynr].address,100000)   
           else
             print("No entrynr set")
@@ -1485,6 +1487,9 @@ registerFormAddNotification(function(f)
       f.pmTracer.Items.add(mi)
     
     end)
+    
+    --print("Registered FirstShowCallback c.classname="..callback.ClassName)
+    --callback.OnDestroy=function(sender) print("I got destroyed") end
   end
 end)
 

@@ -414,6 +414,9 @@ function customform_unregisterFirstShowCallback(L: PLua_State): integer; cdecl;
 var
   lc: TLuacaller;
   form: TCustomForm;
+
+  m: TMethod;
+  nr: TNotifyEvent;
 begin
   result:=0;
   form:=luaclass_getClassObject(L);
@@ -422,9 +425,17 @@ begin
   begin
     lc:=lua_ToCEUserData(L, -1);
     if lc<>nil then
-      form.RemoveHandlerFirstShow(lc.NotifyEvent);
+    begin
+      nr:=lc.NotifyEvent;
+      m:=Tmethod(nr);
+      if tobject(m.data) is TLuaCaller then
+      begin
+        form.RemoveHandlerFirstShow(nr);
+        lc.Free;
+      end;
+    end;
 
-    lc.Free;
+
   end;
 end;
 

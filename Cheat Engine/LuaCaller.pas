@@ -18,6 +18,7 @@ uses
 type
   TLuaCaller=class
     private
+      fOnDestroy: TNotifyEvent;
       function canRun: boolean;
 
     public
@@ -99,6 +100,8 @@ type
 
       constructor create;
       destructor destroy; override;
+  published
+    property OnDestroy: TNotifyEvent read fOnDestroy write fOnDestroy;
   end;
 
 procedure CleanupLuaCall(event: TMethod);   //cleans up a luacaller class if it was assigned if it was set
@@ -297,6 +300,9 @@ end;
 destructor TLuaCaller.destroy;
 var vmused: Plua_State;
 begin
+  if assigned(OnDestroy) then
+    OnDestroy(Self);
+
   vmused:=syncvm;
   if vmused=nil then
     vmused:=luavm;
