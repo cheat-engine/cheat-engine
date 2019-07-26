@@ -139,6 +139,7 @@ resourcestring
   rsGetThreadlistTheProvidedListObjectIsNotValid = 'getThreadlist: the provided List object is not valid';
   rsPlaySoundTheParameterMustBeATableFileOrAMemoryStream = 'playSound: The parameter must be a table file or a memory stream. Nothing else';
   rsNumberRequired = 'Number required';
+  rsScriptCorruptedVar = '%s has corrupted the global %s variable. Many scripts will fail to load now';
 
 var
   printoutput: TStrings;
@@ -556,7 +557,24 @@ var f: string;
   i,r: integer;
   pc: pchar;
   DirInfo: TSearchRec;
+  mainformwasset: boolean=true;
+  addresslistwasset: boolean=true;
 begin
+  lua_getglobal(LuaVM,'MainForm');
+  if lua_isnil(LuaVM,-1) then
+  begin
+    MessageDlg('MainForm is undefined. Invalid CE Build', mtError, [mbok],0);
+    mainformwasset:=false;
+  end;
+  lua_pop(LuaVM,1);
+
+  lua_getglobal(LuaVM,'AddressList');
+  if lua_isnil(LuaVM,-1) then
+  begin
+    MessageDlg('AddressList is undefined. Invalid CE Build', mtError, [mbok],0);
+    addresslistwasset:=false;
+  end;
+  lua_pop(LuaVM,1);
 
 
   f:='main.lua';
@@ -630,6 +648,29 @@ begin
 
           //reset stack
           lua_pop(LuaVM, lua_gettop(luavm));
+
+          if mainformwasset then
+          begin
+            lua_getglobal(LuaVM,'MainForm');
+            if lua_isnil(LuaVM,-1) then
+            begin
+              MessageDlg(format(rsScriptCorruptedVar, [CheatEngineDir+'autorun'+pathdelim+DirInfo.name, 'MainForm']), mtError,[mbOK],0);
+              mainformwasset:=false;
+            end;
+            lua_pop(LuaVM,1);
+          end;
+
+          if addresslistwasset then
+          begin
+            lua_getglobal(LuaVM,'AddressList');
+            if lua_isnil(LuaVM,-1) then
+            begin
+              MessageDlg(format(rsScriptCorruptedVar, [CheatEngineDir+'autorun'+pathdelim+DirInfo.name, 'AddressList']), mtError,[mbOK],0);
+              addresslistwasset:=false;
+            end;
+            lua_pop(LuaVM,1);
+          end;
+
         end;
       end;
       r := FindNext(DirInfo);
@@ -645,10 +686,30 @@ begin
     begin
       lua_dofile(luavm, pchar(translationfilepath+'init.lua'));
       lua_pop(LuaVM, lua_gettop(luavm));
+
+      if mainformwasset then
+      begin
+        lua_getglobal(LuaVM,'MainForm');
+        if lua_isnil(LuaVM,-1) then
+        begin
+          MessageDlg(format(rsScriptCorruptedVar, [translationfilepath+'init.lua', 'MainForm']), mtError,[mbOK],0);
+          mainformwasset:=false;
+        end;
+        lua_pop(LuaVM,1);
+      end;
+
+      if addresslistwasset then
+      begin
+        lua_getglobal(LuaVM,'AddressList');
+        if lua_isnil(LuaVM,-1) then
+        begin
+          MessageDlg(format(rsScriptCorruptedVar, [translationfilepath+'init.lua', 'AddressList']), mtError,[mbOK],0);
+          addresslistwasset:=false;
+        end;
+        lua_pop(LuaVM,1);
+      end;
     end;
   end;
-
-
 end;
 
 function lua_strtofloat(s: string): double;
