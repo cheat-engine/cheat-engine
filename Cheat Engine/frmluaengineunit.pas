@@ -184,7 +184,13 @@ begin
   end
   else
   if keychar='(' then
-    value:=value+'('
+  begin
+    //keep the sourcevalue as well
+    SourceEnd.x:=SourceStart.x+length(value);
+    value:=value+'(';
+
+
+  end
   else
   if keychar='=' then
     value:=value+'=';
