@@ -102,6 +102,7 @@ type
       SourceValue: string; var SourceStart, SourceEnd: TPoint;
       KeyChar: TUTF8Char; Shift: TShiftState);
     procedure scLuaCompleterExecute(Sender: TObject);
+    procedure scLuaCompleterKeyCompletePrefix(Sender: TObject);
     procedure scLuaCompleterPositionChanged(Sender: TObject);
     procedure scLuaCompleterSearchPosition(var APosition: integer);
     procedure SQLConnector1AfterConnect(Sender: TObject);
@@ -193,7 +194,10 @@ begin
   end
   else
   if keychar='=' then
+  begin
+    SourceEnd.x:=SourceStart.x+length(value);
     value:=value+'=';
+  end;
 
 
 end;
@@ -392,6 +396,11 @@ begin
     on e:exception do
       messagedlg(e.message,mtError,[mbok],0);
   end;
+end;
+
+procedure TfrmLuaEngine.scLuaCompleterKeyCompletePrefix(Sender: TObject);
+begin
+
 end;
 
 procedure TfrmLuaEngine.scLuaCompleterPositionChanged(Sender: TObject);
