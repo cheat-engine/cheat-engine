@@ -162,6 +162,7 @@ object frmUltimap2: TfrmUltimap2
         BorderSpacing.Top = 2
         Caption = 'Code has been executed'
         OnClick = btnExecutedClick
+        PopupMenu = pmSetHotkey
         TabOrder = 6
       end
       object cbFilterFuturePaths: TCheckBox
@@ -305,6 +306,7 @@ object frmUltimap2: TfrmUltimap2
         end
       end
       object btnRecordPause: TButton
+        Tag = -1
         AnchorSideLeft.Control = Panel6
         AnchorSideTop.Control = Panel1
         AnchorSideTop.Side = asrCenter
@@ -318,6 +320,7 @@ object frmUltimap2: TfrmUltimap2
         BorderSpacing.Right = 5
         Caption = 'Record / Pause'
         OnClick = tbRecordPauseChange
+        PopupMenu = pmSetHotkey
         TabOrder = 1
       end
       object gbRange: TGroupBox
@@ -940,5 +943,21 @@ object frmUltimap2: TfrmUltimap2
   end
   object OpenDialog1: TOpenDialog
     left = 248
+  end
+  object pmSetHotkey: TPopupMenu
+    Images = um2ImageList
+    OnPopup = pmSetHotkeyPopup
+    left = 208
+    top = 456
+    object miSetHotkey: TMenuItem
+      Caption = 'Set hotkey'
+      ImageIndex = 1
+      OnClick = miSetHotkeyClick
+    end
+    object miRemoveHotkey: TMenuItem
+      Caption = 'Remove hotkey'
+      ImageIndex = 0
+      OnClick = miRemoveHotkeyClick
+    end
   end
 end

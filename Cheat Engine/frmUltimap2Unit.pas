@@ -11,7 +11,8 @@ uses
   ExtCtrls, StdCtrls, ComCtrls, EditBtn, Menus, libipt, ProcessHandlerUnit,
   DBK32functions, commonTypeDefs, MemFuncs, AvgLvlTree, Math, FileMapping,
   syncobjs, CEFuncProc, registry, NewKernelHandler, LazFileUtils, disassembler,
-  strutils, Clipbrd, lua, lualib, lauxlib, luaform, LuaClass;
+  strutils, Clipbrd, lua, lualib, lauxlib, luaform, LuaClass, frmUltimapUnit,
+  genericHotkey;
 
 
 const
@@ -179,7 +180,10 @@ type
     MenuItem3: TMenuItem;
     MenuItem4: TMenuItem;
     MenuItem5: TMenuItem;
+    miRemoveHotkey: TMenuItem;
+    miSetHotkey: TMenuItem;
     OpenDialog1: TOpenDialog;
+    pmSetHotkey: TPopupMenu;
     um2ImageList: TImageList;
     Label1: TLabel;
     Label2: TLabel;
@@ -240,8 +244,11 @@ type
     procedure miCloseClick(Sender: TObject);
     procedure miRangeDeleteSelectedClick(Sender: TObject);
     procedure miRangeDeleteAllClick(Sender: TObject);
+    procedure miRemoveHotkeyClick(Sender: TObject);
+    procedure miSetHotkeyClick(Sender: TObject);
     procedure Panel5Click(Sender: TObject);
     procedure pmRangeOptionsPopup(Sender: TObject);
+    procedure pmSetHotkeyPopup(Sender: TObject);
     procedure rbLogToFolderChange(Sender: TObject);
     procedure tActivatorTimer(Sender: TObject);
     procedure tbRecordPauseChange(Sender: TObject);
@@ -274,6 +281,8 @@ type
     ticks: integer;
     FlushInterval: integer;
     maxfilesize: integer;
+
+    filterHotkey: array [-1..1] of TGenericHotkey; //-1,0,1 due to existing tags
 
     function RegionCompare(Tree: TAvgLvlTree; Data1, Data2: pointer): integer;
 
@@ -313,7 +322,7 @@ implementation
 {$R *.lfm}
 
 uses symbolhandler, symbolhandlerstructs, frmSelectionlistunit, cpuidUnit, MemoryBrowserFormUnit,
-  AdvancedOptionsUnit, vmxfunctions, LuaHandler;
+  AdvancedOptionsUnit, vmxfunctions, LuaHandler, frmHotkeyExUnit;
 
 resourcestring
 rsRecording2 = 'Recording';
@@ -2504,6 +2513,47 @@ begin
   lbRange.clear;
 end;
 
+procedure TfrmUltimap2.miRemoveHotkeyClick(Sender: TObject);
+var
+  i: integer;
+begin
+  if pmSetHotkey.PopupComponent<>nil then
+  begin
+    i:=pmSetHotkey.PopupComponent.Tag;
+    if FilterHotkey[i]<>nil then
+      FreeAndNil(FilterHotkey[i]);
+  end;
+end;
+
+procedure TfrmUltimap2.miSetHotkeyClick(Sender: TObject);
+var
+  f: TfrmHotkeyEx;
+  i: integer;
+begin
+  if pmSetHotkey.PopupComponent<>nil then
+  begin
+    i:=pmSetHotkey.PopupComponent.Tag;
+
+    f:=TfrmHotkeyEx.Create(self);
+
+    if FilterHotkey[i]<>nil then
+    begin
+      f.newhotkey:=filterhotkey[i].keys;
+      f.edtHotkey.text:=ConvertKeyComboToString(f.newhotkey);
+    end;
+
+    if (f.showmodal = mrok) and (f.newhotkey[0]<>0) then
+    begin
+      if FilterHotkey[i]=nil then
+        FilterHotkey[i]:=TGenericHotkey.create(TButton(pmSetHotkey.PopupComponent).OnClick, f.newhotkey)
+      else
+        FilterHotkey[i].keys:=f.newhotkey;
+    end;
+
+    f.free;
+  end;
+end;
+
 procedure TfrmUltimap2.Panel5Click(Sender: TObject);
 begin
 
@@ -2513,6 +2563,29 @@ procedure TfrmUltimap2.pmRangeOptionsPopup(Sender: TObject);
 begin
   miRangeDeleteSelected.enabled:=lbrange.SelCount>0;
   miRangeDeleteAll.enabled:=lbrange.count>0;
+end;
+
+
+procedure TfrmUltimap2.pmSetHotkeyPopup(Sender: TObject);
+var i: integer;
+begin
+  if pmSetHotkey.PopupComponent<>nil then
+  begin
+    i:=pmSetHotkey.PopupComponent.Tag;
+
+   // showmessage(pmSetHotkey.PopupComponent.Name);
+
+    miSetHotkey.enabled:=FilterHotkey[i]=nil;
+    miRemoveHotkey.enabled:=not miSetHotkey.enabled;
+
+    if miRemoveHotkey.enabled then
+      miRemoveHotkey.Caption:=Format(rsRemoveHotkey, [ConvertKeyComboToString(FilterHotkey[i].keys)]);
+  end
+  else
+  begin
+    miSetHotkey.enabled:=false;
+    miRemoveHotkey.enabled:=false;
+  end;
 end;
 
 procedure TfrmUltimap2.rbLogToFolderChange(Sender: TObject);
