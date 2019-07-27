@@ -2,26 +2,26 @@ object frmFindStatics: TfrmFindStatics
   Left = 426
   Height = 320
   Top = 400
-  Width = 372
+  Width = 386
   AutoSize = True
   Caption = 'Find static addresses'
   ClientHeight = 320
-  ClientWidth = 372
+  ClientWidth = 386
   OnClose = FormClose
   OnCreate = FormCreate
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '1.6.0.4'
+  LCLVersion = '2.0.0.4'
   object ProgressBar1: TProgressBar
     Left = 0
     Height = 17
     Top = 303
-    Width = 372
+    Width = 386
     Align = alBottom
     TabOrder = 0
   end
   object Panel1: TPanel
-    Left = 273
+    Left = 287
     Height = 284
     Top = 0
     Width = 99
@@ -50,13 +50,13 @@ object frmFindStatics: TfrmFindStatics
       Left = 8
       Height = 15
       Top = 81
-      Width = 17
+      Width = 16
       BorderSpacing.Top = 2
       Caption = 'To:'
       ParentColor = False
     end
     object Label4: TLabel
-      AnchorSideLeft.Control = Label1
+      AnchorSideLeft.Control = Edit1
       AnchorSideTop.Control = Edit2
       AnchorSideTop.Side = asrBottom
       Left = 8
@@ -68,7 +68,7 @@ object frmFindStatics: TfrmFindStatics
       ParentColor = False
     end
     object Label5: TLabel
-      AnchorSideLeft.Control = Label4
+      AnchorSideLeft.Control = Edit1
       AnchorSideTop.Control = Label4
       AnchorSideTop.Side = asrBottom
       Left = 8
@@ -79,13 +79,13 @@ object frmFindStatics: TfrmFindStatics
       ParentColor = False
     end
     object Label6: TLabel
-      AnchorSideLeft.Control = Label4
+      AnchorSideLeft.Control = Edit1
       AnchorSideTop.Control = Edit3
       AnchorSideTop.Side = asrBottom
       Left = 8
       Height = 15
       Top = 206
-      Width = 17
+      Width = 16
       BorderSpacing.Top = 2
       Caption = 'To:'
       ParentColor = False
@@ -118,7 +118,8 @@ object frmFindStatics: TfrmFindStatics
       Height = 23
       Top = 56
       Width = 83
-      Anchors = [akTop, akLeft, akRight]
+      Anchors = [akTop, akRight]
+      BorderSpacing.Left = 8
       BorderSpacing.Right = 8
       CharCase = ecUppercase
       MaxLength = 8
@@ -126,7 +127,7 @@ object frmFindStatics: TfrmFindStatics
       Text = '00401000'
     end
     object Edit2: TEdit
-      AnchorSideLeft.Control = Label2
+      AnchorSideLeft.Control = Edit1
       AnchorSideTop.Control = Label2
       AnchorSideTop.Side = asrBottom
       AnchorSideRight.Control = Edit1
@@ -142,7 +143,7 @@ object frmFindStatics: TfrmFindStatics
       Text = '00700000'
     end
     object Edit3: TEdit
-      AnchorSideLeft.Control = Label4
+      AnchorSideLeft.Control = Edit1
       AnchorSideTop.Control = Label5
       AnchorSideTop.Side = asrBottom
       AnchorSideRight.Control = Edit1
@@ -158,7 +159,7 @@ object frmFindStatics: TfrmFindStatics
       Text = '00400000'
     end
     object Edit4: TEdit
-      AnchorSideLeft.Control = Label4
+      AnchorSideLeft.Control = Edit1
       AnchorSideTop.Control = Label6
       AnchorSideTop.Side = asrBottom
       AnchorSideRight.Control = Edit1
@@ -178,12 +179,12 @@ object frmFindStatics: TfrmFindStatics
     Left = 0
     Height = 19
     Top = 284
-    Width = 372
+    Width = 386
     Align = alBottom
     AutoSize = True
     BevelOuter = bvNone
     ClientHeight = 19
-    ClientWidth = 372
+    ClientWidth = 386
     TabOrder = 2
     object CheckBox1: TCheckBox
       AnchorSideLeft.Control = Panel2
@@ -192,7 +193,7 @@ object frmFindStatics: TfrmFindStatics
       Left = 0
       Height = 19
       Top = 0
-      Width = 372
+      Width = 386
       Anchors = [akTop, akLeft, akRight]
       Caption = 'Only disassemble and check executable code'
       Checked = True
@@ -204,17 +205,17 @@ object frmFindStatics: TfrmFindStatics
     Left = 0
     Height = 284
     Top = 0
-    Width = 273
+    Width = 287
     Align = alClient
     BevelOuter = bvNone
     ClientHeight = 284
-    ClientWidth = 273
+    ClientWidth = 287
     TabOrder = 3
     object ListView1: TListView
       Left = 0
       Height = 284
       Top = 0
-      Width = 273
+      Width = 287
       Align = alClient
       Columns = <      
         item
