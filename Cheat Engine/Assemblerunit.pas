@@ -2731,6 +2731,7 @@ type TSingleLineAssembler=class
     function getreg(reg: string): integer; overload;
 
     function HandleTooBigAddress(opcode: string; address: ptrUint;var bytes: TAssemblerBytes; actualdisplacement: integer): boolean;
+    procedure Invalid64BitValueFor32BitField(v: qword);
   public
     function Assemble(opcode:string; address: ptrUint;var bytes: TAssemblerBytes;assemblerPreference: TassemblerPreference=apNone; skiprangecheck: boolean=false): boolean;
 
@@ -2760,8 +2761,9 @@ uses symbolhandler, assemblerArm, Parsers, NewKernelHandler;
 {$endif}
 
 {$ifdef windows}
-uses windows, {$ifndef autoassemblerdll}CEFuncProc,{$endif}symbolhandler, lua, luahandler,
-  lualib, assemblerArm, Parsers, NewKernelHandler, LuaCaller, math, cpuidUnit;
+uses windows, {$ifndef autoassemblerdll}CEFuncProc,{$endif}symbolhandler, lua,
+luahandler, lualib, assemblerArm, Parsers, NewKernelHandler, LuaCaller, math,
+cpuidUnit, classes, controls;
 {$endif}
 
 resourcestring
@@ -2776,8 +2778,12 @@ resourcestring
   rsAssemblerError = 'Assembler error';
   rsOffsetTooBig = 'offset too big';
   rsInvalidValueFor32Bit = 'The value provided can not be encoded in a 32-bit field';
+  rsInvalid64BitValueFor32BitField = 'The value %.16x can not be encoded using a 32-bit signed value. But if you meant %.16x then that''s ok and you should have provided it like that in the first place.  Is it ok to change it to this?'#13#10'(This is the only time asked and will be remembered until you restart CE)';
 
-var ExtraAssemblers: array of TAssemblerEvent;
+var
+  ExtraAssemblers: array of TAssemblerEvent;
+  naggedTheUserAboutWrongSignedValue: boolean;
+  naggedTheUserAboutWrongSignedValueAnswer: boolean;
 
 
 function registerAssembler(m: TAssemblerEvent): integer;
@@ -4524,7 +4530,7 @@ end;
 function TSingleLineAssembler.Assemble(opcode:string; address: ptrUint;var bytes: TAssemblerBytes;assemblerPreference: TassemblerPreference=apNone; skiprangecheck: boolean=false): boolean;
 var tokens: ttokens;
     i,j,k,l: integer;
-    v,v2: qword;
+    v,v2, newv: qword;
     mnemonic,nroftokens: integer;
     oldParamtype1, oldParamtype2: TTokenType;
     paramtype1,paramtype2,paramtype3,paramtype4: TTokenType;
@@ -5197,7 +5203,7 @@ begin
             begin
               if (opcodes[k].paramtype1=par_imm32) then
               begin
-                if (signedvtype=64) and rex_w then raise EAssemblerException.create(rsInvalidValueFor32Bit);
+                if (signedvtype=64) and rex_w then Invalid64BitValueFor32BitField(v);
 
                 addopcode(bytes,k);
                 adddword(bytes,v);
@@ -5233,7 +5239,7 @@ begin
             begin
               if (opcodes[k].paramtype1=par_imm32) then
               begin
-                if (signedvtype=64) and rex_w then raise EAssemblerException.create(rsInvalidValueFor32Bit);
+                if (signedvtype=64) and rex_w then Invalid64BitValueFor32BitField(v);
 
                 addopcode(bytes,k);
                 adddword(bytes,v);
@@ -5271,7 +5277,7 @@ begin
         if (opcodes[j].paramtype2=par_noparam) and (parameter2='') then
         begin
           //imm32
-          if (signedvtype=64) and rex_w then raise EAssemblerException.create(rsInvalidValueFor32Bit);
+          if (signedvtype=64) and rex_w then Invalid64BitValueFor32BitField(v);
 
           addopcode(bytes,j);
           addDword(bytes,v);
@@ -5574,7 +5580,7 @@ begin
 
             if (opcodes[j].opcode1=eo_id) and (opcodes[j].opcode2=eo_none) then
             begin
-              if (signedvtype=64) and rex_w then raise EAssemblerException.create(rsInvalidValueFor32Bit);
+              if (signedvtype=64) and rex_w then Invalid64BitValueFor32BitField(v);
 
               addopcode(bytes,j);
               adddword(bytes,v);
@@ -6184,7 +6190,7 @@ begin
                      (opcodes[k].paramtype2=par_rm32) and
                      (opcodes[k].paramtype3=par_imm32) then
                   begin
-                    if (signedvtype=64) and rex_w then raise EAssemblerException.create(rsInvalidValueFor32Bit);
+                    if (signedvtype=64) and rex_w then Invalid64BitValueFor32BitField(v);
 
                     addopcode(bytes,k);
                     result:=createmodrm(bytes,getreg(parameter1),parameter2);
@@ -6263,7 +6269,7 @@ begin
                 end;
               end;
 
-              if (signedvtype=64) and rex_w then raise EAssemblerException.create(rsInvalidValueFor32Bit);
+              if (signedvtype=64) and rex_w then Invalid64BitValueFor32BitField(v);
 
               addopcode(bytes,j);
               createmodrm(bytes,getreg(parameter1),parameter1);
@@ -6570,7 +6576,7 @@ begin
                 if ((opcodes[k].paramtype1=par_rm32) and (opcodes[k].paramtype2=par_imm32)) and ((opcodes[k].paramtype3=par_noparam) and (parameter3='')) then
                 begin
                   //yes, there is
-                  if (signedvtype=64) and rex_w then raise EAssemblerException.create(rsInvalidValueFor32Bit);
+                  if (signedvtype=64) and rex_w then Invalid64BitValueFor32BitField(v);
 
                   addopcode(bytes,k);
                   createmodrm(bytes,eoToReg(opcodes[k].opcode1),parameter1);
@@ -6617,7 +6623,12 @@ begin
               end;
             end;
             //no there's none
-            if (signedvtype=64) and rex_w then raise EAssemblerException.create(rsInvalidValueFor32Bit);
+            if (signedvtype=64) and rex_w then
+            begin
+              //perhaps it's an old user and assumes it can be sign extended automagically
+              Invalid64BitValueFor32BitField(v);
+
+            end;
 
             addopcode(bytes,j);
             createmodrm(bytes,eoToReg(opcodes[j].opcode1),parameter1);
@@ -7892,6 +7903,24 @@ begin
 end;
 
 
+procedure TSingleLineAssembler.Invalid64BitValueFor32BitField(v: qword);
+var newv: qword;
+begin
+  if ((v shr 32)=0) and ((v shr 31 and 1)=1) then //could be saved
+  begin
+    newv:=qword($ffffffff00000000) or v;
+    if (naggedTheUserAboutWrongSignedValue=false) and (GetCurrentThreadId=MainThreadID) then
+    begin
+      naggedTheUserAboutWrongSignedValueAnswer:=MessageDlg(format(rsInvalid64BitValueFor32BitField, [v, newv]), mtWarning, [mbYes, mbNo], 0)=mrYes;
+      naggedTheUserAboutWrongSignedValue:=true;
+    end;
+
+    if naggedTheUserAboutWrongSignedValue and (naggedTheUserAboutWrongSignedValueAnswer=false) then
+      raise EAssemblerException.create(rsInvalidValueFor32Bit);
+  end
+  else
+    raise EAssemblerException.create(rsInvalidValueFor32Bit);
+end;
 
 //following routine is not finished and even when it is it's just useless
 function TSingleLineAssembler.HandleTooBigAddress(opcode: string; address: ptrUint;var bytes: TAssemblerBytes; actualdisplacement: integer): boolean;
