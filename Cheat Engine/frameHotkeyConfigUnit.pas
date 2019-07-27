@@ -173,7 +173,9 @@ end;
 
 procedure TFrameHotkeyConfig.updatehotkey;
 begin
-  edit1.Text:=ConvertKeyComboToString(newhotkeys[listbox1.ItemIndex]);
+  if (listbox1.ItemIndex>=0) and (listbox1.ItemIndex<listbox1.Items.Count) then
+    edit1.Text:=ConvertKeyComboToString(newhotkeys[listbox1.ItemIndex]);
+
   updatespeed;
 
 end;
