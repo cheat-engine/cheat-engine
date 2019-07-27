@@ -158,7 +158,7 @@ var
   block: integer;
 begin
   folder:=trim(folder);
-  if (folder[1]='\') or (folder[1]='/') then
+  if (folder<>'') and ((folder[1]='\') or (folder[1]='/')) then
     folder:='';
 
   if addedfiles.IndexOf(folder+filename)<>-1 then exit; //it was already added earlier by the user
