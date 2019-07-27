@@ -9614,15 +9614,20 @@ begin
 
 
   try
-    if scanvalue.Visible and scanvalue.Enabled then
+    if cbRepeatUntilStopped.checked=false then //don't focus. it takes way the click handlers which is needed for checkboxes
     begin
-      scanvalue.SetFocus;
-      scanvalue.SelectAll;
-    end
-    else
-    if not canceled then
-    begin
-      btnNextScan.SetFocus;
+
+      if scanvalue.Visible and scanvalue.Enabled then
+      begin
+        scanvalue.SetFocus;
+        scanvalue.SelectAll;
+      end
+      else
+      if not canceled then
+      begin
+        btnNextScan.SetFocus;
+      end;
+
     end;
   except
 
