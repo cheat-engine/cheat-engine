@@ -42,7 +42,8 @@ The foundlist colors can be customized now
 Improved DBVM cloak performance when more than 20 regions are cloaked
 Implemented DBVM based execute watch and "find what addresses this code accesses"
 Implemented DBVM breakpoints (They always execute afterwards, including execute bp's)
-
+Improved autocomplete so it now doesn't delete old code
+Added hotkeys to ultimap2
 
 
 Fixes:

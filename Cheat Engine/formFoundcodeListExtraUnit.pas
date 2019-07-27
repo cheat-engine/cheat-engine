@@ -188,15 +188,16 @@ end;
 
 procedure TFormFoundCodeListExtra.FormShow(Sender: TObject);
 begin
-  label3.font.color:=clRed;
-  label10.font.color:=clred;
-
-  panel1.Font.Height:=GetFontData(font.reference.Handle).Height;     ;
+  panel1.Font.Height:=GetFontData(font.reference.Handle).Height-5;
   pnlRegisters.Font.Height:=panel1.Font.Height;
 
-  label3.Font.Height:=GetFontData(font.reference.Handle).Height;     ;
-  label10.Font.Height:=panel1.Font.Height;
+  label3.parentfont:=false;
+  label10.parentfont:=false;
+  label3.font.assign(pnlRegisters.font);
+  label10.font.assign(pnlRegisters.font);
 
+  label3.font.color:=clRed;
+  label10.font.color:=clRed;
 
   Constraints.MaxHeight:=panel5.Top+panel5.height+10;
   Constraints.MinHeight:=Constraints.MaxHeight;

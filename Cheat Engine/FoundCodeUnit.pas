@@ -976,6 +976,9 @@ begin
           lblR8.OnMouseDown:=registerMouseDown;
           lblR8.OnDblClick:=RegisterDblClick;
           lblR8.Align:=lblrcx.Align;
+          lblR8.Color:=lblRAX.Color;
+          lblR8.Name:='lblR8';
+
 
 
           lblR9:=tlabel.Create(FormFoundCodeListExtra);
@@ -984,6 +987,8 @@ begin
           lblR9.OnMouseDown:=registerMouseDown;
           lblR9.OnDblClick:=RegisterDblClick;
           lblR9.Align:=lblrcx.Align;
+          lblR9.Color:=lblRAX.Color;
+
 
           lblR10:=tlabel.Create(FormFoundCodeListExtra);
           lblR10.caption:='R10='+IntToHex(coderecord.context.r10,8);
@@ -991,6 +996,8 @@ begin
           lblR10.OnMouseDown:=registerMouseDown;
           lblR10.OnDblClick:=RegisterDblClick;
           lblR10.Align:=lblrcx.Align;
+          lblR10.Color:=lblRAX.Color;
+
 
           lblR11:=tlabel.Create(FormFoundCodeListExtra);
           lblR11.caption:='R11='+IntToHex(coderecord.context.r11,8);
@@ -998,6 +1005,8 @@ begin
           lblR11.OnMouseDown:=registerMouseDown;
           lblR11.OnDblClick:=RegisterDblClick;
           lblR11.Align:=lblrcx.Align;
+          lblR11.Color:=lblRAX.Color;
+
 
           lblR12:=tlabel.Create(FormFoundCodeListExtra);
           lblR12.caption:='R12='+IntToHex(coderecord.context.r12,8);
@@ -1005,6 +1014,8 @@ begin
           lblR12.OnMouseDown:=registerMouseDown;
           lblR12.OnDblClick:=RegisterDblClick;
           lblR12.Align:=lblrcx.Align;
+          lblR12.Color:=lblRAX.Color;
+
 
           lblR13:=tlabel.Create(FormFoundCodeListExtra);
           lblR13.caption:='R13='+IntToHex(coderecord.context.r13,8);
@@ -1012,6 +1023,8 @@ begin
           lblR13.OnMouseDown:=registerMouseDown;
           lblR13.OnDblClick:=RegisterDblClick;
           lblR13.Align:=lblrcx.Align;
+          lblR13.Color:=lblRAX.Color;
+
 
           lblR14:=tlabel.Create(FormFoundCodeListExtra);
           lblR14.caption:='R14='+IntToHex(coderecord.context.r14,8);
@@ -1019,6 +1032,9 @@ begin
           lblR14.OnMouseDown:=registerMouseDown;
           lblR14.OnDblClick:=RegisterDblClick;
           lblR14.Align:=lblrcx.Align;
+          lblR14.Color:=lblRAX.Color;
+
+
 
           lblR15:=tlabel.Create(FormFoundCodeListExtra);
           lblR15.caption:='R15='+IntToHex(coderecord.context.r15,8);
@@ -1026,6 +1042,9 @@ begin
           lblR15.OnMouseDown:=registerMouseDown;
           lblR15.OnDblClick:=RegisterDblClick;
           lblR15.Align:=lblrcx.Align;
+          lblR15.Color:=lblRAX.Color;
+
+
 
           lblRBP.BringToFront;
           lblRSP.BringToFront;

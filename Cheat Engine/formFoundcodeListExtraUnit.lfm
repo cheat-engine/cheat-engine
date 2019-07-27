@@ -1,13 +1,12 @@
 object FormFoundCodeListExtra: TFormFoundCodeListExtra
   Left = 507
-  Height = 369
+  Height = 387
   Top = 312
-  Width = 544
+  Width = 625
   AutoSize = True
   Caption = 'Extra info'
-  ClientHeight = 369
-  ClientWidth = 544
-  DesignTimePPI = 120
+  ClientHeight = 387
+  ClientWidth = 625
   OnClose = FormClose
   OnCreate = FormCreate
   OnDestroy = FormDestroy
@@ -20,12 +19,12 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
     AnchorSideTop.Control = pnlEPTWatch
     AnchorSideTop.Side = asrBottom
     Left = 0
-    Height = 132
-    Top = 69
+    Height = 127
+    Top = 54
     Width = 98
     AutoSize = True
     BevelOuter = bvNone
-    ClientHeight = 132
+    ClientHeight = 127
     ClientWidth = 98
     Font.CharSet = ANSI_CHARSET
     Font.Name = 'Courier New'
@@ -37,13 +36,10 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
       AnchorSideTop.Side = asrCenter
       Left = 0
       Height = 22
-      Top = 58
+      Top = 55
       Width = 24
       Caption = '>>'
-      Font.CharSet = ANSI_CHARSET
-      Font.Name = 'Courier New'
       ParentColor = False
-      ParentFont = False
     end
     object Label3: TLabel
       AnchorSideLeft.Control = Label10
@@ -52,15 +48,12 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
       AnchorSideTop.Side = asrBottom
       Left = 26
       Height = 22
-      Top = 58
+      Top = 55
       Width = 72
       BorderSpacing.Left = 2
-      BorderSpacing.Top = 4
+      BorderSpacing.Top = 3
       Caption = 'Label3'
-      Font.CharSet = ANSI_CHARSET
-      Font.Name = 'Courier New'
       ParentColor = False
-      ParentFont = False
       OnDblClick = Label1DblClick
     end
     object Label4: TLabel
@@ -70,15 +63,12 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
       AnchorSideTop.Side = asrBottom
       Left = 26
       Height = 22
-      Top = 84
+      Top = 80
       Width = 72
       BorderSpacing.Left = 2
-      BorderSpacing.Top = 4
+      BorderSpacing.Top = 3
       Caption = 'Label4'
-      Font.CharSet = ANSI_CHARSET
-      Font.Name = 'Courier New'
       ParentColor = False
-      ParentFont = False
       OnDblClick = Label1DblClick
     end
     object Label5: TLabel
@@ -88,15 +78,12 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
       AnchorSideTop.Side = asrBottom
       Left = 26
       Height = 22
-      Top = 110
+      Top = 105
       Width = 72
       BorderSpacing.Left = 2
-      BorderSpacing.Top = 4
+      BorderSpacing.Top = 3
       Caption = 'Label5'
-      Font.CharSet = ANSI_CHARSET
-      Font.Name = 'Courier New'
       ParentColor = False
-      ParentFont = False
       OnDblClick = Label1DblClick
     end
     object Label2: TLabel
@@ -106,15 +93,12 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
       AnchorSideTop.Side = asrBottom
       Left = 26
       Height = 22
-      Top = 32
+      Top = 30
       Width = 72
       BorderSpacing.Left = 2
-      BorderSpacing.Top = 4
+      BorderSpacing.Top = 3
       Caption = 'Label2'
-      Font.CharSet = ANSI_CHARSET
-      Font.Name = 'Courier New'
       ParentColor = False
-      ParentFont = False
       OnDblClick = Label1DblClick
     end
     object Label1: TLabel
@@ -123,15 +107,12 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
       AnchorSideTop.Control = Panel1
       Left = 26
       Height = 22
-      Top = 6
+      Top = 5
       Width = 72
       BorderSpacing.Left = 2
-      BorderSpacing.Top = 6
+      BorderSpacing.Top = 5
       Caption = 'Label1'
-      Font.CharSet = ANSI_CHARSET
-      Font.Name = 'Courier New'
       ParentColor = False
-      ParentFont = False
       OnDblClick = Label1DblClick
     end
   end
@@ -140,38 +121,38 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
     AnchorSideTop.Control = Panel1
     AnchorSideTop.Side = asrBottom
     Left = 0
-    Height = 44
-    Top = 201
-    Width = 77
+    Height = 34
+    Top = 181
+    Width = 62
     AutoSize = True
     BevelOuter = bvNone
-    ClientHeight = 44
-    ClientWidth = 77
+    ClientHeight = 34
+    ClientWidth = 62
     ParentFont = False
     TabOrder = 1
     object Panel4: TPanel
       AnchorSideLeft.Control = Panel3
       AnchorSideTop.Control = Panel3
-      Left = 15
-      Height = 43
+      Left = 12
+      Height = 33
       Top = 1
-      Width = 47
+      Width = 38
       AutoSize = True
-      BorderSpacing.Left = 15
+      BorderSpacing.Left = 12
       BorderSpacing.Top = 1
-      BorderSpacing.Right = 15
+      BorderSpacing.Right = 12
       BevelOuter = bvNone
-      ClientHeight = 43
-      ClientWidth = 47
+      ClientHeight = 33
+      ClientWidth = 38
       ParentFont = False
       TabOrder = 0
       object Label6: TLabel
         AnchorSideLeft.Control = Panel4
         AnchorSideTop.Control = Panel4
         Left = 1
-        Height = 20
+        Height = 15
         Top = 1
-        Width = 45
+        Width = 33
         BorderSpacing.Left = 1
         BorderSpacing.Top = 1
         Caption = 'xxx123'
@@ -184,9 +165,9 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
         AnchorSideTop.Control = Label6
         AnchorSideTop.Side = asrBottom
         Left = 2
-        Height = 20
-        Top = 22
-        Width = 45
+        Height = 15
+        Top = 17
+        Width = 36
         BorderSpacing.Left = 1
         BorderSpacing.Top = 1
         BorderSpacing.Bottom = 1
@@ -202,31 +183,31 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
     AnchorSideTop.Control = Label18
     AnchorSideTop.Side = asrBottom
     Left = 0
-    Height = 44
-    Top = 357
-    Width = 544
+    Height = 36
+    Top = 315
+    Width = 625
     Anchors = [akTop, akLeft, akRight]
     AutoSize = True
     BevelOuter = bvNone
-    ClientHeight = 44
-    ClientWidth = 544
+    ClientHeight = 36
+    ClientWidth = 625
     ParentFont = False
     TabOrder = 2
     object Button1: TButton
       AnchorSideLeft.Control = Panel5
       AnchorSideLeft.Side = asrCenter
       AnchorSideTop.Control = Panel5
-      Left = 216
-      Height = 40
+      Left = 267
+      Height = 32
       Top = 2
-      Width = 112
+      Width = 90
       AutoSize = True
       BorderSpacing.Top = 2
       BorderSpacing.Bottom = 2
       Cancel = True
       Caption = 'OK'
-      Constraints.MinHeight = 40
-      Constraints.MinWidth = 112
+      Constraints.MinHeight = 32
+      Constraints.MinWidth = 90
       Default = True
       ModalResult = 1
       OnClick = Button1Click
@@ -240,17 +221,17 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
     AnchorSideTop.Side = asrBottom
     AnchorSideRight.Control = Owner
     AnchorSideRight.Side = asrBottom
-    Left = 5
-    Height = 76
-    Top = 251
-    Width = 539
+    Left = 4
+    Height = 72
+    Top = 220
+    Width = 621
     Anchors = [akTop, akLeft, akRight]
     AutoSize = True
-    BorderSpacing.Left = 5
-    BorderSpacing.Top = 6
+    BorderSpacing.Left = 4
+    BorderSpacing.Top = 5
     BevelOuter = bvNone
-    ClientHeight = 76
-    ClientWidth = 539
+    ClientHeight = 72
+    ClientWidth = 621
     ParentFont = False
     TabOrder = 3
     OnResize = Panel6Resize
@@ -260,10 +241,10 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
       Left = 0
       Height = 72
       Top = 0
-      Width = 508
+      Width = 596
       Anchors = [akTop, akLeft, akRight]
       AutoSize = True
-      BorderSpacing.Right = 5
+      BorderSpacing.Right = 4
       BevelOuter = bvNone
       ChildSizing.HorizontalSpacing = 20
       ChildSizing.VerticalSpacing = 3
@@ -271,7 +252,8 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
       ChildSizing.Layout = cclTopToBottomThenLeftToRight
       ChildSizing.ControlsPerLine = 3
       ClientHeight = 72
-      ClientWidth = 508
+      ClientWidth = 596
+      Font.CharSet = ANSI_CHARSET
       Font.Name = 'Courier New'
       ParentFont = False
       TabOrder = 0
@@ -279,11 +261,9 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
         Left = 0
         Height = 22
         Top = 0
-        Width = 156
+        Width = 186
         Caption = 'EAX=DDDDDDDD'
-        Font.Name = 'Courier New'
         ParentColor = False
-        ParentFont = False
         PopupMenu = pmEmpty
         OnDblClick = RegisterDblClick
         OnMouseDown = RegisterMouseDown
@@ -292,11 +272,9 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
         Left = 0
         Height = 22
         Top = 25
-        Width = 156
+        Width = 186
         Caption = 'EBX=DDDDDDDD'
-        Font.Name = 'Courier New'
         ParentColor = False
-        ParentFont = False
         PopupMenu = pmEmpty
         OnDblClick = RegisterDblClick
         OnMouseDown = RegisterMouseDown
@@ -305,89 +283,75 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
         Left = 0
         Height = 22
         Top = 50
-        Width = 156
+        Width = 186
         Caption = 'ECX=DDDDDDDD'
-        Font.Name = 'Courier New'
         ParentColor = False
-        ParentFont = False
         PopupMenu = pmEmpty
         OnDblClick = RegisterDblClick
         OnMouseDown = RegisterMouseDown
       end
       object lblRDX: TLabel
-        Left = 176
+        Left = 206
         Height = 22
         Top = 0
-        Width = 156
+        Width = 186
         Caption = 'EDX=DDDDDDDD'
-        Font.Name = 'Courier New'
         ParentColor = False
-        ParentFont = False
         PopupMenu = pmEmpty
         OnDblClick = RegisterDblClick
         OnMouseDown = RegisterMouseDown
       end
       object lblRSI: TLabel
-        Left = 176
+        Left = 206
         Height = 22
         Top = 25
-        Width = 156
+        Width = 186
         Caption = 'ESI=DDDDDDDD'
-        Font.Name = 'Courier New'
         ParentColor = False
-        ParentFont = False
         PopupMenu = pmEmpty
         OnDblClick = RegisterDblClick
         OnMouseDown = RegisterMouseDown
       end
       object lblRDI: TLabel
-        Left = 176
+        Left = 206
         Height = 22
         Top = 50
-        Width = 156
+        Width = 186
         Caption = 'EDI=DDDDDDDD'
-        Font.Name = 'Courier New'
         ParentColor = False
-        ParentFont = False
         PopupMenu = pmEmpty
         OnDblClick = RegisterDblClick
         OnMouseDown = RegisterMouseDown
       end
       object lblRBP: TLabel
-        Left = 352
+        Left = 412
         Height = 22
         Top = 0
-        Width = 156
+        Width = 184
         Caption = 'EBP=DDDDDDDD'
-        Font.Name = 'Courier New'
         ParentColor = False
-        ParentFont = False
         PopupMenu = pmEmpty
         OnDblClick = RegisterDblClick
         OnMouseDown = RegisterMouseDown
       end
       object lblRSP: TLabel
-        Left = 352
+        Left = 412
         Height = 22
         Top = 25
-        Width = 156
+        Width = 184
         Caption = 'ESP=DDDDDDDD'
-        Font.Name = 'Courier New'
         ParentColor = False
-        ParentFont = False
         PopupMenu = pmEmpty
         OnDblClick = RegisterDblClick
         OnMouseDown = RegisterMouseDown
       end
       object lblRIP: TLabel
-        Left = 352
+        Left = 412
         Height = 22
         Top = 50
-        Width = 156
+        Width = 184
         Caption = 'EIP=DDDDDDDD'
-        Font.Name = 'Courier New'
         ParentColor = False
-        ParentFont = False
         PopupMenu = pmEmpty
         OnDblClick = RegisterDblClick
         OnMouseDown = RegisterMouseDown
@@ -399,15 +363,15 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
       AnchorSideTop.Side = asrCenter
       AnchorSideRight.Control = Panel6
       AnchorSideRight.Side = asrBottom
-      Left = 513
-      Height = 76
-      Top = 0
-      Width = 26
+      Left = 600
+      Height = 60
+      Top = 6
+      Width = 21
       Anchors = [akTop, akRight]
       AutoSize = True
       BevelOuter = bvNone
-      ClientHeight = 76
-      ClientWidth = 26
+      ClientHeight = 60
+      ClientWidth = 21
       ParentFont = False
       TabOrder = 1
       object sbShowStack: TSpeedButton
@@ -416,10 +380,10 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
         AnchorSideRight.Control = Panel8
         AnchorSideRight.Side = asrBottom
         Left = 0
-        Height = 38
+        Height = 30
         Hint = 'Stack view'
         Top = 0
-        Width = 26
+        Width = 21
         Caption = 'S'
         OnClick = sbShowStackClick
         ShowHint = True
@@ -433,10 +397,10 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
         AnchorSideRight.Control = Panel8
         AnchorSideRight.Side = asrBottom
         Left = 0
-        Height = 38
+        Height = 30
         Hint = 'Floating point registers'
-        Top = 38
-        Width = 26
+        Top = 30
+        Width = 21
         Caption = 'F'
         OnClick = sbShowFloatsClick
         ShowHint = True
@@ -449,13 +413,13 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
     AnchorSideLeft.Control = Owner
     AnchorSideTop.Control = Panel6
     AnchorSideTop.Side = asrBottom
-    Left = 5
-    Height = 20
-    Top = 337
-    Width = 663
+    Left = 4
+    Height = 15
+    Top = 300
+    Width = 720
     Anchors = [akTop, akLeft, akRight]
-    BorderSpacing.Left = 5
-    BorderSpacing.Top = 10
+    BorderSpacing.Left = 4
+    BorderSpacing.Top = 8
     Caption = 'The registers shown here are AFTER the instruction has been executed'
     ParentColor = False
     ParentFont = False
@@ -468,34 +432,34 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
     AnchorSideRight.Control = Owner
     AnchorSideRight.Side = asrBottom
     Left = 0
-    Height = 69
+    Height = 54
     Top = 0
-    Width = 544
+    Width = 625
     Anchors = [akTop, akLeft, akRight]
     AutoSize = True
     ChildSizing.HorizontalSpacing = 30
     ChildSizing.VerticalSpacing = 4
     ChildSizing.Layout = cclLeftToRightThenTopToBottom
     ChildSizing.ControlsPerLine = 2
-    ClientHeight = 69
-    ClientWidth = 544
+    ClientHeight = 54
+    ClientWidth = 625
     ParentFont = False
     TabOrder = 4
     object lblPhysicalAddress: TLabel
       Left = 0
-      Height = 20
+      Height = 15
       Top = 0
-      Width = 191
+      Width = 152
       Caption = 'Physical Address=XXXXXXXX'
       ParentColor = False
       ParentFont = False
       OnMouseDown = RegisterMouseDown
     end
     object lblVirtualAddress: TLabel
-      Left = 221
-      Height = 20
+      Left = 182
+      Height = 15
       Top = 0
-      Width = 182
+      Width = 143
       Caption = 'Virtual Address=XXXXXXXX'
       ParentColor = False
       ParentFont = False
@@ -504,9 +468,9 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
     end
     object lblFSBase: TLabel
       Left = 0
-      Height = 20
-      Top = 24
-      Width = 191
+      Height = 15
+      Top = 19
+      Width = 152
       Caption = 'FSBase=XXXXXXXX'
       ParentColor = False
       ParentFont = False
@@ -514,10 +478,10 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
       OnMouseDown = RegisterMouseDown
     end
     object lblGSBase: TLabel
-      Left = 221
-      Height = 20
-      Top = 24
-      Width = 182
+      Left = 182
+      Height = 15
+      Top = 19
+      Width = 143
       Caption = 'GSBase=XXXXXXXX'
       ParentColor = False
       ParentFont = False
@@ -526,9 +490,9 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
     end
     object lblCR3: TLabel
       Left = 0
-      Height = 20
-      Top = 48
-      Width = 191
+      Height = 15
+      Top = 38
+      Width = 152
       Caption = 'CR3=XXXXXXXX'
       ParentColor = False
       ParentFont = False
@@ -537,8 +501,8 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
   end
   object pmCopy: TPopupMenu
     Images = eiImageList
-    left = 140
-    top = 140
+    left = 112
+    top = 112
     object Copyaddresstoclipboard1: TMenuItem
       Caption = 'Copy info to clipboard'
       ImageIndex = 0
@@ -548,8 +512,8 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
   end
   object pmCopy2: TPopupMenu
     Images = eiImageList
-    left = 238
-    top = 140
+    left = 190
+    top = 112
     object Copyguesstoclipboard1: TMenuItem
       Caption = 'Copy easy guess to clipboard'
       ImageIndex = 0
@@ -557,12 +521,12 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
     end
   end
   object pmEmpty: TPopupMenu
-    left = 350
-    top = 140
+    left = 280
+    top = 112
   end
   object eiImageList: TImageList
-    left = 260
-    top = 86
+    left = 208
+    top = 69
     Bitmap = {
       4C69010000001000000010000000606060C4808080E0808080E0808080E08080
       80E0808080E0808080E0777777E098989856FFFFFF00FFFFFF00FFFFFF00FFFF
