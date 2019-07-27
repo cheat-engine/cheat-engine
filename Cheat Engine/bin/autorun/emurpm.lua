@@ -78,12 +78,12 @@ autoAssemble([[
 
   EmuRPM:
   [64-bit]
-  sub rdx,80000000
+  sub rdx,ffffffff80000000
   add rdx,[EmuBaseAddress] //adjust the address
   [/64-bit]
 
   [32-bit]
-  sub [esp+8],80000000
+  sub [esp+8],ffffffff80000000
 
   mov eax,[EmuBaseAddress]
   add [esp+8], eax //adjust address to read
@@ -93,12 +93,12 @@ autoAssemble([[
 
   EmuWPM:
   [64-bit]
-  sub rdx,80000000
+  sub rdx,ffffffff80000000
   add rdx,[EmuBaseAddress] //adjust the address
   [/64-bit]
 
   [32-bit]
-  sub [esp+8],80000000
+  sub [esp+8],ffffffff80000000
 
   mov eax,[EmuBaseAddress]
   add [esp+8], eax //adjust address to read
@@ -128,7 +128,7 @@ autoAssemble([[
   mov [r8+10],0x40 //allocation protect: page execute read write (actually a dword, but store as qword to zero the unused bytes)
 
 
-  sub rdx,80000000
+  sub rdx,ffffffff80000000
   mov rax,[EmuSize]
   sub rax,rdx
 

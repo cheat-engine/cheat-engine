@@ -2303,7 +2303,7 @@ begin
       if codesize>5 then
       begin
         if codesize-5>1 then
-          add('  nop'+inttohex(codesize-5,1))
+          add('  nop '+inttohex(codesize-5,1))
         else
           add('  nop');
       end;
