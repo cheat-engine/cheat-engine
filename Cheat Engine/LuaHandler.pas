@@ -8384,7 +8384,7 @@ begin
       end;
     end;
 
-    lua_pushstring(L, r);
+    lua_pushstring(L, utf8towincp(r)); //laz 2.0.0 . I don't know why it needs utf8towincp when translate is usally used on utf8 fields like menu caption
     result:=1;
   end
   else
@@ -8414,7 +8414,7 @@ begin
       end;
     end;
 
-    lua_pushstring(L, r);
+    lua_pushstring(L, UTF8ToWinCP(r));
     result:=1;
   end
   else
