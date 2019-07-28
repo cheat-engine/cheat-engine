@@ -1276,8 +1276,8 @@ begin
       FreeMemAndNil(outputastext);
   end;
 
-  if dontdeactivate=false then
-    active:=wasactive;
+  //if dontdeactivate=false then
+  //  active:=wasactive;
 end;
 
 procedure TCEForm.LoadFromXML(Node: TDOMNode);
@@ -1367,7 +1367,7 @@ begin
   formnode:=xmldoc.appendchild(xmldoc.createElement('FormData'));
 
   SaveCurrentStateasDesign;
-  SaveToXML(formnode);
+  SaveToXML(formnode,true);
 
   WriteXML(xmldoc, filename);
 end;

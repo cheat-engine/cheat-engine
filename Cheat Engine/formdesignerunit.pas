@@ -379,14 +379,16 @@ end;
 procedure TFormDesigner.miSaveClick(Sender: TObject);
 var f: TCeform;
 begin
+
   SaveDialog1.DefaultExt := '.FRM';
   SaveDialog1.Filter := rsFormFilesFrmFRM;
   if (GlobalDesignHook.LookupRoot<>nil) and (GlobalDesignHook.LookupRoot is TCEForm) and (SaveDialog1.Execute) then
   begin
     f:=TCEForm(GlobalDesignHook.LookupRoot);
-
     f.SaveToFile(Utf8ToAnsi(Savedialog1.filename));
   end;
+
+
 end;
 
 procedure TFormDesigner.miSaveLFMClick(Sender: TObject);
@@ -668,7 +670,10 @@ begin
   ioclass:=componentToAdd;
   componentToAdd:='';
   NoSelection.down:=true;
-  oid.OnSelectPersistentsInOI:=nil;
+
+  if ioclass<>'' then
+    oid.OnSelectPersistentsInOI:=nil;
+
 end;
 
 procedure TFormDesigner.ObjectInspectorSelectionChange(sender: tobject);
