@@ -8342,7 +8342,7 @@ begin
         if (LRSTranslator is TPOTranslator) then
         begin
           pofile:=TPOTranslator(LRSTranslator).POFile;
-          pofile.ReadPOText(postrings.text);
+          pofile.ReadPOText(UTF8ToWinCP(postrings.text));
         end;
       end;
       lua_pushboolean(L, true);
