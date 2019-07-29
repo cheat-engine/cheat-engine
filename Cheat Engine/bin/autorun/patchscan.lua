@@ -1,3 +1,7 @@
+if getTranslationFolder()~='' then
+  loadPOFile(getTranslationFolder()..'patchscan.po')
+end
+
 local IMAGE_SCN_CNT_CODE=0x20
 local IMAGE_SCN_MEM_EXECUTE=0x20000000
 
@@ -23,7 +27,7 @@ function scanModuleForPatches(modulepath, loadedModuleBase)
 
   if (byteTableToString(original.read(2))~='MZ') then
     original.destroy()
-    return nil, 'Not a valid executable'
+    return nil,translate('Not a valid executable')
   end
 
   original.Position=60;
@@ -32,7 +36,7 @@ function scanModuleForPatches(modulepath, loadedModuleBase)
 
   if (byteTableToString(original.read(2))~='PE') then
     original.destroy()
-    return nil, 'Not a valid windows executable'
+    return nil,translate('Not a valid windows executable')
   end
 
   original.position=original.Position+2
@@ -73,7 +77,7 @@ function scanModuleForPatches(modulepath, loadedModuleBase)
 
   if RVACount~=16 then
     original.destroy()
-    return nil, 'This type of module is currently not supported'
+    return nil,translate('This type of module is currently not supported')
   end
 
   --DataDirectory follows
@@ -195,7 +199,7 @@ function scanModuleForPatches(modulepath, loadedModuleBase)
         end
 
         if result==nil then
-          return nil, "Compare error. "..bytesOK
+          return nil, translate("Compare error. ")..bytesOK
         end
       end
     end
@@ -224,12 +228,11 @@ function startPatchScan()
   end
 
   local msf=createForm(false)
-  msf.Caption='Module List'
+  msf.Caption=translate('Module List')
   local label=createLabel(msf)
   label.Align='alTop'
   label.WordWrap=false
-  label.Caption=[[Select the modules to scan for patches
-Hold shift/ctrl to select multiple modules]]
+  label.Caption=translate('Select the modules to scan for patches. Hold shift/ctrl to select multiple modules')
 
   local btnPanel=createPanel(msf)
   btnPanel.ChildSizing.ControlsPerLine=2
@@ -239,10 +242,10 @@ Hold shift/ctrl to select multiple modules]]
 
   local btnOk=createButton(btnPanel)
   local btnCancel=createButton(btnPanel)
-  btnOk.Caption='  OK  '
+  btnOk.Caption=translate('  OK  ')
   btnOk.Default=true
   btnOk.ModalResult=mrOK
-  btnCancel.Caption='Cancel'
+  btnCancel.Caption=translate('Cancel')
   btnCancel.Cancel=true
   btnCancel.ModalResult=mrCancel
 
@@ -285,7 +288,7 @@ Hold shift/ctrl to select multiple modules]]
     pform.show()
     for i=0,listbox.Items.Count-1 do
       psprogress.position = i
-      pform.Caption=string.format("Scanning: %s", l[i+1].Name)
+      pform.Caption=string.format(translate("Scanning: %s"), l[i+1].Name)
       if listbox.Selected[i] then
         local modulepatches,emsg=scanModuleForPatches(l[i+1].PathToFile, l[i+1].Address)
 
@@ -297,7 +300,7 @@ Hold shift/ctrl to select multiple modules]]
             allpatches[c].Modulename=l[i+1].Name --add the modulename (scanModuleForPatches doesn't add that)
           end
         else
-          print('Error in '..l[i].name..':'..emsg)
+          print(translate('Error in ')..l[i].name..':'..emsg)
         end
       end
     end
@@ -309,7 +312,7 @@ Hold shift/ctrl to select multiple modules]]
     local rform=createForm(false)
     local lv=createListView(rform)
 
-    rform.Caption='Patch list'
+    rform.Caption=translate('Patch list')
 
     lv.Align='alClient'
     lv.ViewStyle='vsReport'
@@ -322,11 +325,11 @@ Hold shift/ctrl to select multiple modules]]
     local cpatched=lv.Columns.add()
 
     caddress.Width=rform.Canvas.GetTextWidth('XXXXXXXXXXXXXXXXXXXXXXXX')
-    caddress.Caption='Address'
+    caddress.Caption=translate('Address')
     coriginal.Width=rform.Canvas.GetTextWidth('XX XX XX XX XX XX XX XX XX')
-    coriginal.Caption='Original'
+    coriginal.Caption=translate('Original')
     cpatched.Width=coriginal.Width
-    cpatched.Caption='Patched'
+    cpatched.Caption=translate('Patched')
 
     for i=1,#allpatches do
       local li=lv.Items.add()
@@ -353,9 +356,9 @@ Hold shift/ctrl to select multiple modules]]
 
     pm.Images=getMemoryViewForm().mvImageList
 
-    miRestore.Caption='Restore with original'
+    miRestore.Caption=translate('Restore with original')
     miRestore.ImageIndex=44
-    miPatch.Caption='Reapply patch'
+    miPatch.Caption=translate('Reapply patch')
     miPatch.ImageIndex=49
     pm.Items.add(miRestore)
     pm.Items.add(miPatch)
@@ -412,7 +415,7 @@ end
 
 local mv=getMemoryViewForm()
 local mi=createMenuItem(mv.Menu)
-mi.Caption='Scan for patches'
+mi.Caption=translate('Scan for patches')
 mi.ImageIndex=10
 mi.Shortcut='Ctrl+Shift+P'
 mi.OnClick=startPatchScan
