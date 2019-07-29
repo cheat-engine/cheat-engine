@@ -41,7 +41,7 @@ type
   TAddresses=array of PtrUInt;
 
 
-  TPostScanState=(psJustFinished, psOptimizingScanResults, psTerminatingThreads, psSavingFirstScanResults, psShouldBeFinished);
+  TPostScanState=(psJustFinished, psOptimizingScanResults, psTerminatingThreads, psSavingFirstScanResults, psShouldBeFinished, psSavingFirstScanResults2);
 
 type
   TMemScan=class;
@@ -7468,13 +7468,27 @@ begin
   begin
     if GUIScanner and (WaitForSingleObject(SaveFirstScanThread.handle, 500)<>WAIT_OBJECT_0) then
     begin
-      if frmBusy=nil then
+      postscanstate:=psSavingFirstScanResults2;
+      frmBusy:=TfrmBusy.create(nil);
+      frmBusy.WaitForHandle:=scancontroller.handle;
+      frmBusy.memscan:=self;
+      frmBusy.Reason:=postScanState;
+
+      if busyformIsModal then
+        r:=frmBusy.Showmodal
+      else
       begin
-        frmBusy:=TfrmBusy.create(nil);
-        frmBusy.WaitForHandle:=SaveFirstScanThread.handle;
-        frmBusy.Showmodal;
+        frmBusy.FormStyle:=fsStayOnTop;
+        frmBusy.Show;
+
+        while frmbusy.visible do
+        begin
+          Application.ProcessMessages;
+          CheckSynchronize(10);
+        end;
       end;
 
+      frmBusy.free;
     end;
 
     SaveFirstScanThread.WaitFor; //wait till it's done

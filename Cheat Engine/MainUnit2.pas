@@ -24,7 +24,7 @@ procedure initcetitle;
 
 
 
-const beta=' Beta 2'; //empty this for a release
+const beta=' Beta 4'; //empty this for a release
 
 var
   CEnorm:string;
@@ -577,6 +577,11 @@ begin
             cbPauseWhenScanningOnByDefault.Checked:=reg.readbool('Pause when scanning on by default');
 
           MainForm.cbPauseWhileScanning.Checked:=cbPauseWhenScanningOnByDefault.checked;
+
+          if reg.ValueExists('Repeat Delay') then
+            Globals.repeatDelay:=reg.ReadInteger('Repeat Delay');
+
+          formsettings.edtRepeatDelay.text:=inttostr(Globals.repeatDelay);
 
 
           if reg.ValueExists('Hide all windows') then

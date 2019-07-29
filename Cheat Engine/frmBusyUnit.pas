@@ -32,6 +32,13 @@ type
 
 resourcestring
   rsBusy='The previous scan is still being processed. Please wait';
+  rsJustFinished = '(Just starting to process)';
+  rsOptimizingScanResults = '(Optimizing result list for improved speed)';
+  rsTerminatingThreads = '(Freeing scannerthread memory)';
+  rsSavingFirstScanResults = '(Copying results for first scan scanner option)';
+  rsShouldBeFinished = '(There''s no reason to wait)';
+  rsSavingFirstScanResults2 = '(Still copying the results for the firsy scan '
+    +'scanner option)';
 
 implementation
 
@@ -49,11 +56,12 @@ begin
     reasonstr:=#13#10;
 
     case r of
-      psJustFinished: reasonstr:=reasonstr+'(Just starting to process)';
-      psOptimizingScanResults: reasonstr:=reasonstr+'(Optimizing result list for improved speed)';
-      psTerminatingThreads: reasonstr:=reasonstr+'(Freeing scannerthread memory)';
-      psSavingFirstScanResults: reasonstr:=reasonstr+'(Copying results for first scan scanner option)';
-      psShouldBeFinished: reasonstr:=reasonstr+'(There''s no reason to wait)';
+      psJustFinished: reasonstr:=reasonstr+rsJustFinished;
+      psOptimizingScanResults: reasonstr:=reasonstr+rsOptimizingScanResults;
+      psTerminatingThreads: reasonstr:=reasonstr+rsTerminatingThreads;
+      psSavingFirstScanResults: reasonstr:=reasonstr+rsSavingFirstScanResults;
+      psShouldBeFinished: reasonstr:=reasonstr+rsShouldBeFinished;
+      psSavingFirstScanResults2: reasonstr:=reasonstr+rsSavingFirstScanResults2
       else
         reasonstr:='';
     end;
