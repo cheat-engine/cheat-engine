@@ -1,0 +1,67 @@
+﻿#: patchscan-nave
+msgid "Not a valid executable"
+msgstr ""
+
+#: patchscan-navwe
+msgid "Not a valid windows executable"
+msgstr ""
+
+#: patchscan-ttomicns
+msgid "This type of module is currently not supported"
+msgstr ""
+
+#: patchscan-ce
+msgid "Compare error. "
+msgstr ""
+
+#: patchscan-ml
+msgid "Module List"
+msgstr ""
+
+#: patchscan-stmtsfp
+msgid "Select the modules to scan for patches. Hold shift/ctrl to select multiple modules"
+msgstr ""
+
+#: patchscan-ok
+msgid "  OK  "
+msgstr ""
+
+#: patchscan-cancel
+msgid "Cancel"
+msgstr ""
+
+#: patchscan-scanning
+msgid "Scanning: %s"
+msgstr ""
+
+#: patchscan-ei
+msgid "Error in "
+msgstr ""
+
+#: patchscan-pl
+msgid "Patch list"
+msgstr ""
+
+#: patchscan-address
+msgid "Address"
+msgstr ""
+
+#: patchscan-original
+msgid "Original"
+msgstr ""
+
+#: patchscan-patched
+msgid "Patched"
+msgstr ""
+
+#: patchscan-rwo
+msgid "Restore with original"
+msgstr ""
+
+#: patchscan-rp
+msgid "Reapply patch"
+msgstr ""
+
+#: patchscan-sfp
+msgid "Scan for patches"
+msgstr ""
