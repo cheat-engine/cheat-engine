@@ -329,6 +329,7 @@ type
 
   TfrmStructures2 = class(TForm)
     FindDialog1: TFindDialog;
+    miOpenInNewWindow: TMenuItem;
     sdImageList: TImageList;
     miCommonalityScan: TMenuItem;
     MenuItem5: TMenuItem;
@@ -416,6 +417,7 @@ type
     tmFixGui: TTimer;
     updatetimer: TTimer;
     tvStructureView: TTreeView;
+    procedure miOpenInNewWindowClick(Sender: TObject);
     procedure miCommonalityScanClick(Sender: TObject);
     procedure MenuItem8Click(Sender: TObject);
     procedure miViewClick(Sender: TObject);
@@ -4565,6 +4567,8 @@ begin
 
     end;
 
+    miOpenInNewWindow.visible:=(not miFullUpgrade.visible) and (childstruct<>nil);
+
     miAddElement.visible:=(ownerstruct<>nil) or (childstruct<>nil);
     miAddChildElement.visible:=(childstruct<>nil);
     miDeleteElement.visible:=selected<>nil;
@@ -4761,6 +4765,8 @@ begin
   end;
 
 end;
+
+
 
 procedure TfrmStructures2.miNewWindowClick(Sender: TObject);
 begin
@@ -5834,6 +5840,43 @@ begin
 
 end;
 
+
+procedure TfrmStructures2.miOpenInNewWindowClick(Sender: TObject);
+var
+  node: TTreenode;
+  childstruct: TDissectedStruct;
+  a,p: ptruint;
+  f: TfrmStructures2;
+  e: boolean;
+  x: ptruint;
+begin
+
+  node:=tvStructureView.GetLastMultiSelected;
+  childstruct:=getChildStructFromNode(node);
+  if childstruct.isInGlobalStructList then //should be true
+  begin
+    a:=getAddressFromNode(node, getFocusedColumn, e);
+    if not e then
+    begin
+      p:=0;
+      x:=0;
+      ReadProcessMemory(processhandle, pointer(a), @p, ProcessHandler.pointersize, x);
+      if x=ProcessHandler.pointersize then
+      begin
+        if p=0 then exit;
+        f:=tfrmstructures2.create(application);
+        f.initialaddress:=p;
+        f.mainStruct:=childstruct;
+        f.show;
+      end;
+    end;
+
+
+  end;
+
+
+
+end;
 
 
 procedure TfrmStructures2.miFullUpgradeClick(Sender: TObject);
