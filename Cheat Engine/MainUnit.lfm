@@ -1420,6 +1420,7 @@ object MainForm: TMainForm
           Top = 38
           Width = 56
           Caption = 'Repeat'
+          OnChange = cbRepeatUntilStoppedChange
           ParentShowHint = False
           ShowHint = True
           TabOrder = 7

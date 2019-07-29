@@ -63,9 +63,9 @@ object formSettings: TformSettings
       Height = 633
       Top = 1
       Width = 660
-      ActivePage = Assembler
+      ActivePage = ScanSettings
       Align = alClient
-      TabIndex = 6
+      TabIndex = 3
       TabOrder = 1
       OnChange = pcSettingChange
       object GeneralSettings: TTabSheet
@@ -765,7 +765,7 @@ object formSettings: TformSettings
           Width = 652
           HorzScrollBar.Page = 599
           HorzScrollBar.Tracking = True
-          VertScrollBar.Page = 375
+          VertScrollBar.Page = 413
           VertScrollBar.Tracking = True
           Align = alClient
           ClientHeight = 601
@@ -776,7 +776,7 @@ object formSettings: TformSettings
             AnchorSideTop.Side = asrBottom
             Left = 0
             Height = 15
-            Top = 337
+            Top = 375
             Width = 78
             BorderSpacing.Top = 5
             Caption = 'Thread priority'
@@ -812,7 +812,7 @@ object formSettings: TformSettings
             AnchorSideTop.Side = asrBottom
             Left = 0
             Height = 15
-            Top = 260
+            Top = 298
             Width = 217
             BorderSpacing.Top = 10
             Caption = 'Scan the following memory region types:'
@@ -823,7 +823,7 @@ object formSettings: TformSettings
             AnchorSideTop.Side = asrBottom
             Left = 0
             Height = 23
-            Top = 352
+            Top = 390
             Width = 122
             ItemHeight = 15
             ItemIndex = 4
@@ -871,7 +871,7 @@ object formSettings: TformSettings
             AnchorSideTop.Side = asrBottom
             Left = 0
             Height = 19
-            Top = 294
+            Top = 332
             Width = 397
             Caption = 'MEM_IMAGE:Memory that is mapped into the view of an image section'
             Checked = True
@@ -883,7 +883,7 @@ object formSettings: TformSettings
             AnchorSideTop.Side = asrBottom
             Left = 0
             Height = 19
-            Top = 313
+            Top = 351
             Width = 599
             Caption = 'MEM_MAPPED:Memory that is mapped into the view of a section. (E.g:File mapping, emulator memory, slow)'
             TabOrder = 4
@@ -893,7 +893,7 @@ object formSettings: TformSettings
             AnchorSideTop.Side = asrBottom
             Left = 0
             Height = 19
-            Top = 275
+            Top = 313
             Width = 223
             Caption = 'MEM_PRIVATE:Memory that is private.'
             Checked = True
@@ -917,7 +917,7 @@ object formSettings: TformSettings
             AnchorSideTop.Side = asrBottom
             Left = 0
             Height = 19
-            Top = 193
+            Top = 231
             Width = 332
             Caption = 'Don''t store the temporary scanfiles in the windows tempdir'
             OnChange = cbDontusetempdirChange
@@ -931,7 +931,7 @@ object formSettings: TformSettings
             AnchorSideRight.Side = asrBottom
             Left = 15
             Height = 23
-            Top = 227
+            Top = 265
             Width = 317
             Anchors = [akTop, akLeft, akRight]
             BorderSpacing.Left = 15
@@ -944,7 +944,7 @@ object formSettings: TformSettings
             AnchorSideTop.Side = asrBottom
             Left = 15
             Height = 15
-            Top = 212
+            Top = 250
             Width = 223
             BorderSpacing.Left = 15
             Caption = 'Store the temporary scanfiles here instead:'
@@ -960,7 +960,7 @@ object formSettings: TformSettings
             AnchorSideRight.Side = asrBottom
             Left = 332
             Height = 25
-            Top = 226
+            Top = 264
             Width = 25
             BorderSpacing.Right = 15
             Enabled = False
@@ -994,11 +994,11 @@ object formSettings: TformSettings
             ParentShowHint = False
           end
           object cgAllTypes: TCheckGroup
-            AnchorSideTop.Control = cbPauseWhenScanningOnByDefault
+            AnchorSideTop.Control = edtRepeatDelay
             AnchorSideTop.Side = asrBottom
             Left = 0
             Height = 89
-            Top = 104
+            Top = 142
             Width = 244
             AutoFill = True
             AutoSize = True
@@ -1051,6 +1051,31 @@ object formSettings: TformSettings
             Checked = True
             State = cbChecked
             TabOrder = 11
+          end
+          object lblRepeatDelay: TLabel
+            AnchorSideLeft.Control = cbPauseWhenScanningOnByDefault
+            AnchorSideTop.Control = cbPauseWhenScanningOnByDefault
+            AnchorSideTop.Side = asrBottom
+            Left = 0
+            Height = 15
+            Top = 104
+            Width = 94
+            Caption = 'Repeat scan delay'
+            ParentColor = False
+          end
+          object edtRepeatDelay: TEdit
+            AnchorSideLeft.Control = lblRepeatDelay
+            AnchorSideTop.Control = lblRepeatDelay
+            AnchorSideTop.Side = asrBottom
+            Left = 0
+            Height = 23
+            Hint = 'The delay in milliseconds to wait before starting a next scan when the ''repeat'' checkbox is ticked'
+            Top = 119
+            Width = 80
+            ParentShowHint = False
+            ShowHint = True
+            TabOrder = 12
+            Text = '0'
           end
         end
       end

@@ -517,6 +517,7 @@ type
     procedure cbCompareToSavedScanChange(Sender: TObject);
     procedure cbPercentageOnChange(Sender: TObject);
     procedure cbCodePageChange(Sender: TObject);
+    procedure cbRepeatUntilStoppedChange(Sender: TObject);
     procedure cbUnicodeChange(Sender: TObject);
     procedure Copyselectedaddresses1Click(Sender: TObject);
     procedure EnableLCLClick(Sender: TObject);
@@ -707,6 +708,7 @@ type
     procedure actOpenProcesslistExecute(Sender: TObject);
     procedure Type1Click(Sender: TObject);
   private
+    repeatscantimer: TTimer;
     onetimeonly: boolean; //to protect against make mainform visible (.show)
 
     scantimestart, scantimefinish: int64;
@@ -807,6 +809,7 @@ type
     procedure scanEpilogue(canceled: boolean);
     procedure CancelbuttonClick(Sender: TObject);
     procedure CancelbuttonenablerInterval(Sender: TObject);
+    procedure repeatScanTimerTimer(sender: TObject);
 
     procedure changeScriptCallback(memrec: TMemoryRecord; script: string;
       changed: boolean);
@@ -3127,6 +3130,12 @@ end;
 procedure TMainForm.cbCodePageChange(Sender: TObject);
 begin
   if cbCodePage.checked then cbunicode.Checked:=false;
+end;
+
+procedure TMainForm.cbRepeatUntilStoppedChange(Sender: TObject);
+begin
+  if (cbRepeatUntilStopped.checked=false) and (repeatscantimer<>nil) then
+    freeandnil(repeatscantimer);
 end;
 
 procedure TMainForm.cbUnicodeChange(Sender: TObject);
@@ -9341,6 +9350,7 @@ begin
       ScanTabList.Enabled := False;
 
     memscan.luaformula:=cbLuaFormula.visible and cbLuaFormula.checked;
+    memscan.busyformIsModal:=true;
 
     memscan.firstscan(GetScanType2, getVarType2, roundingtype,
       scanvalue.Text, svalue2, scanStart, scanStop,
@@ -9471,11 +9481,32 @@ begin
   if error and (memscan.lastscantype = stFirstScan) then //firstscan failed
     btnNewScan.Click;
 
-  if (GetScanType=soUnchanged) and (cbRepeatUntilStopped.checked) then
-    btnNext.Click
+  if (GetScanType=soUnchanged) and cbRepeatUntilStopped.visible and cbRepeatUntilStopped.checked then
+  begin
+    if repeatDelay<>0 then
+    begin
+      if repeatScanTimer<>nil then
+        freeandnil(repeatscantimer);
+
+      repeatScanTimer:=TTimer.create(self);
+      repeatscantimer.interval:=repeatdelay;
+      repeatscantimer.OnTimer:=repeatScanTimerTimer;
+
+
+    end
+    else
+      btnNext.Click;
+  end
   else
     beep; //let the blind user know the scan has finished (See, I'm thinking about the visually impeared users...)
 
+end;
+
+procedure TMainForm.repeatScanTimerTimer(sender: TObject);
+begin
+  freeandnil(repeatscantimer);
+  if cbRepeatUntilStopped.visible and cbRepeatUntilStopped.checked and (GetScanType=soUnchanged) then
+    btnNext.click;
 end;
 
 procedure TMainForm.CancelbuttonClick(Sender: TObject);
@@ -9563,6 +9594,8 @@ begin
   memscan.inverseScan:=cbNot.Checked and cbnot.Visible;
   memscan.codePage:=cbCodePage.checked;
   memscan.luaformula:=cbLuaFormula.visible and cbLuaFormula.checked;
+
+  memscan.busyformIsModal:=not ((GetScanType=soUnchanged) and cbRepeatUntilStopped.checked);
 
 
   if ScanTabList <> nil then

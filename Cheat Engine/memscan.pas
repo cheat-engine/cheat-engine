@@ -41,6 +41,8 @@ type
   TAddresses=array of PtrUInt;
 
 
+  TPostScanState=(psJustFinished, psOptimizingScanResults, psTerminatingThreads, psSavingFirstScanResults, psShouldBeFinished);
+
 type
   TMemScan=class;
   TScanController=class;
@@ -625,6 +627,9 @@ type
     ffloatscanWithoutExponents: boolean;
     fInverseScan: boolean;
     fGUIScanner: boolean;
+    fbusyformIsModal: boolean;
+
+
 
 
 
@@ -638,7 +643,7 @@ type
     procedure ScanDone; virtual; //called by the scancontroller
     procedure InitialScanDone; virtual;
   public
-
+    postScanState: TPostScanState;
 
 
     scanWritable: Tscanregionpreference;
@@ -646,6 +651,7 @@ type
     scanCopyOnWrite: Tscanregionpreference;
 
     attachedFoundlist: TObject;
+
 
     function GetLastScanWasRegionScan: boolean;
 
@@ -695,6 +701,7 @@ type
     property LastScanValue: string read fLastScanValue;
     property LastScanType: TScanType read FLastScanType;
     property ScanresultFolder: string read fScanResultFolder; //read only, it's configured during creation
+    property BusyformIsModal: boolean read fbusyformIsModal write fbusyformIsModal;
     property OnScanDone: TNotifyEvent read fOnScanDone write fOnScanDone;
     property OnInitialScanDone: TNotifyEvent read fOnInitialScanDone write fOnInitialScanDone;
     property OnGuiUpdate: TMemscanGuiUpdateRoutine read fOnGuiUpdate write fOnGuiUpdate;
@@ -707,7 +714,8 @@ type
 implementation
 
 {$ifdef windows}
-uses formsettingsunit, StrUtils, foundlisthelper, processhandlerunit, parsers,Globals, frmBusyUnit;
+uses formsettingsunit, StrUtils, foundlisthelper, processhandlerunit, parsers,
+     Globals, frmBusyUnit, controls;
 {$endif}
 
 {$ifdef android}
@@ -6838,6 +6846,7 @@ begin
     //todo: notify the caller the scan is done
   //  OutputDebugString('It actually finished');
 
+    owningmemscan.postScanState:=psJustFinished;
     isdoneevent.setevent;
 
     haserror2:=false;
@@ -6851,6 +6860,8 @@ begin
       try
         if savescannerresults and (addressfile<>nil) then //now actually save the scanner results
         begin
+          owningmemscan.postScanState:=psOptimizingScanResults;
+
           //AddressFile should already have been created with the correct datatype and opened as denynone
           AddressFile.Seek(oldpos,soFromBeginning);
           Memoryfile.seek(oldmempos,soFromBeginning);
@@ -6876,16 +6887,19 @@ begin
       end;
     end;
 
+
+
     isreallydoneevent.setEvent;
-
-
 
 
     //clean up secondary scanner threads, their destructor will close and delete their files
    // outputdebugstring('ScanController: Destroying scanner threads');
 
     scannersCS.enter;
+    owningmemscan.postScanState:=psTerminatingThreads;
+
     try
+
      // outputdebugstring('ScanController: Critical section "scannersCS" aquired');
       for i:=0 to length(scanners)-1 do
       begin
@@ -6912,6 +6926,8 @@ begin
 
         if not OnlyOne then
         begin
+          owningmemscan.postScanState:=psSavingFirstScanResults;
+
         //  outputdebugstring('ScanController: This was a first scan, so saving the First Scan results');
          // outputdebugstring('to:'+OwningMemScan.ScanresultFolder+'ADDRESSES.First');
 
@@ -6942,6 +6958,9 @@ begin
     end;
   end;
 
+  owningmemscan.postScanState:=psShouldBeFinished;
+
+
   {$IFNDEF UNIX}
   if haserror2 then
     MessageBox(0, pchar(errorstring),'Scancontroller cleanup error',  MB_ICONERROR or mb_ok);
@@ -6949,6 +6968,10 @@ begin
 
   //outputdebugstring('end of scancontroller reached');
   isreallydoneevent.setEvent;   //just set it again if it wasn't set
+
+
+
+
 
   {$IFNDEF UNIX}
   if assigned(OwningMemScan.OnScanDone) then
@@ -7392,6 +7415,9 @@ begin
 end;
 
 procedure TMemscan.NextScan(scanOption: TScanOption; roundingtype: TRoundingType; scanvalue1, scanvalue2: string; hexadecimal,binaryStringAsDecimal, unicode, casesensitive,percentage,compareToSavedScan: boolean; savedscanname: string);
+var
+  frmBusy: TfrmBusy;
+  r: TModalResult;
 begin
   fisHexadecimal:=hexadecimal;
 
@@ -7409,15 +7435,28 @@ begin
     {$ifdef windows}
     if GUIScanner and (WaitForSingleObject(scancontroller.handle, 500)<>WAIT_OBJECT_0) then
     begin
-      if frmBusy=nil then
-      begin
+      frmBusy:=TfrmBusy.create(nil);
+      frmBusy.WaitForHandle:=scancontroller.handle;
+      frmBusy.memscan:=self;
+      frmBusy.Reason:=postScanState;
 
-        frmBusy:=TfrmBusy.create(nil);
-        frmBusy.WaitForHandle:=scancontroller.handle;
-        frmBusy.Showmodal;
+      if busyformIsModal then
+        r:=frmBusy.Showmodal
+      else
+      begin
+        frmBusy.FormStyle:=fsStayOnTop;
+        frmBusy.Show;
+
+        while frmbusy.visible do
+        begin
+          Application.ProcessMessages;
+          CheckSynchronize(10);
+        end;
       end;
 
+      frmBusy.free;
     end;
+
     {$endif}
 
     scancontroller.WaitFor; //could be it's still saving the results of the previous scan
@@ -7633,6 +7672,7 @@ begin
   self.progressbar:=progressbar;
   //setup the location of the scan results
 
+  busyformIsModal:=true;
 
   CreateScanfolder;
 end;

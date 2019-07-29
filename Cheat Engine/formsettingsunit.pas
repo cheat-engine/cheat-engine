@@ -80,6 +80,7 @@ type
     combothreadpriority: TComboBox;
     defaultbuffer: TPopupMenu;
     Default1: TMenuItem;
+    edtRepeatDelay: TEdit;
     edtLuaCollectTimer: TEdit;
     edtLuaMinCollectSize: TEdit;
     EditAutoAttach: TEdit;
@@ -106,6 +107,7 @@ type
     Label16: TLabel;
     Label17: TLabel;
     Label20: TLabel;
+    lblRepeatDelay: TLabel;
     lblCurrentLanguage: TLabel;
     Label18: TLabel;
     Label19: TLabel;
@@ -431,6 +433,7 @@ var processhandle2: Thandle;
 
     networkupdateinterval,updateinterval,freezeinterval,FoundInterval: integer;
     collectgarbagetimer, collectgarbageminimumsize: integer;
+    repeatDelay: integer;
 
     stacksize: integer;
 
@@ -486,6 +489,10 @@ begin
     try bufsize:=StrToInt(editbufsize.text); except bufsize:=1024; end;
 
     if bufsize=0 then raise exception.create(rsTheScanbufferSizeHasToBeGreaterThan0);
+
+
+    val(edtRepeatDelay.text,repeatDelay,error);
+    if (error<>0) or (repeatDelay<=0) then raise exception.Create(Format(rsIsNotAValidInterval, [edtRepeatDelay.text]));
 
 
 
@@ -607,6 +614,10 @@ begin
         reg.writebool('skip PAGE_NOCACHE',cbSkip_PAGE_NOCACHE.Checked);
         reg.writebool('skip PAGE_WRITECOMBINE',cbSkip_PAGE_WRITECOMBINE.Checked);
         reg.writebool('Pause when scanning on by default',cbPauseWhenScanningOnByDefault.Checked);
+
+
+        reg.WriteInteger('Repeat Delay',repeatDelay);
+        Globals.repeatDelay:=repeatDelay;
 
 
         reg.WriteBool('Hide all windows',cbHideAllWindows.checked);

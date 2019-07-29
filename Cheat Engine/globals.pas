@@ -27,6 +27,8 @@ var
   Scan_MEM_IMAGE: boolean=true;
   Scan_MEM_MAPPED: boolean=false;
 
+  repeatDelay: integer=0;
+
   scan_dirtyonly: boolean=true;
   scan_pagedonly: boolean=true;
   fetchSymbols: boolean=true;   //set to false if you don't want the symbols to get enumerated

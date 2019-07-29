@@ -1,7 +1,7 @@
 object frmBusy: TfrmBusy
-  Left = 271
+  Left = 551
   Height = 34
-  Top = 412
+  Top = 369
   Width = 374
   AutoSize = True
   BorderIcons = []
@@ -10,18 +10,18 @@ object frmBusy: TfrmBusy
   ClientHeight = 34
   ClientWidth = 374
   FormStyle = fsStayOnTop
-  OnClose = FormClose
-  OnDestroy = FormDestroy
+  OnCloseQuery = FormCloseQuery
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '1.6.0.4'
+  LCLVersion = '2.0.0.4'
   object Label1: TLabel
     AnchorSideLeft.Control = Owner
     AnchorSideTop.Control = Owner
     Left = 0
-    Height = 20
+    Height = 15
     Top = 0
-    Width = 352
+    Width = 280
+    Alignment = taCenter
     Caption = 'The previous scan is still being processed. Please wait'
     ParentColor = False
   end
