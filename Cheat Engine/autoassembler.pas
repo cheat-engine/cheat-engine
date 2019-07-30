@@ -3373,7 +3373,14 @@ begin
     begin
       {$ifndef jni}
       if popupmessages then showmessage(rsNotAllInstructionsCouldBeInjected)
+      else
+      begin
+        if memrec<>nil then //there is an memrec provided, so also an ewxception handler
+          raise exception.create(rsNotAllInstructionsCouldBeInjected);
+      end;
       {$endif}
+
+
     end
     else
     begin
