@@ -1069,13 +1069,25 @@ object formSettings: TformSettings
             AnchorSideTop.Side = asrBottom
             Left = 0
             Height = 23
-            Hint = 'The delay in milliseconds to wait before starting a next scan when the ''repeat'' checkbox is ticked'
+            Hint = 'The delay in milliseconds to wait before starting a next scan when the ''repeat'' checkbox is ticked'#13#10#13#10'0=no wait'
             Top = 119
             Width = 80
             ParentShowHint = False
             ShowHint = True
             TabOrder = 12
             Text = '0'
+          end
+          object Label25: TLabel
+            AnchorSideLeft.Control = edtRepeatDelay
+            AnchorSideLeft.Side = asrBottom
+            AnchorSideTop.Control = edtRepeatDelay
+            AnchorSideTop.Side = asrCenter
+            Left = 80
+            Height = 15
+            Top = 123
+            Width = 16
+            Caption = 'ms'
+            ParentColor = False
           end
         end
       end

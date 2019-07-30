@@ -107,6 +107,7 @@ type
     Label16: TLabel;
     Label17: TLabel;
     Label20: TLabel;
+    Label25: TLabel;
     lblRepeatDelay: TLabel;
     lblCurrentLanguage: TLabel;
     Label18: TLabel;
@@ -492,7 +493,7 @@ begin
 
 
     val(edtRepeatDelay.text,repeatDelay,error);
-    if (error<>0) or (repeatDelay<=0) then raise exception.Create(Format(rsIsNotAValidInterval, [edtRepeatDelay.text]));
+    if (error<>0) or (repeatDelay<0) then raise exception.Create(Format(rsIsNotAValidInterval, [edtRepeatDelay.text]));
 
 
 
