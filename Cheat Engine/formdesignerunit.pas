@@ -302,9 +302,18 @@ begin
   OpenDialog1.Filter := rsFormFilesFrmFRM;
   if (GlobalDesignHook.LookupRoot<>nil) and (GlobalDesignHook.LookupRoot is TCEForm) and (OpenDialog1.Execute) then
   begin
+    //TCEForm(GlobalDesignHook.LookupRoot).Close;
+   // GlobalDesignHook.LookupRoot:=nil;
+
+   // f:=tceform.Create(application);
     f:=TCEForm(GlobalDesignHook.LookupRoot);
+    GlobalDesignHook.LookupRoot:=nil;
 
     f.LoadFromFile(UTF8ToAnsi(OpenDialog1.filename));
+    GlobalDesignHook.LookupRoot:=f;
+
+    surfaceOnChange(self);
+    //designForm(f);
     setFormName;
   end;
 end;
@@ -318,7 +327,11 @@ begin
   begin
     f:=TCEForm(GlobalDesignHook.LookupRoot);
 
+    GlobalDesignHook.LookupRoot:=nil;
     f.LoadFromFileLFM(UTF8ToAnsi(OpenDialog1.filename));
+    GlobalDesignHook.LookupRoot:=f;
+
+    surfaceOnChange(self);
     setFormName;
   end;
 end;
@@ -1231,6 +1244,8 @@ begin
     end;
   end;
 
+  oid.Selection.Clear;
+  oid.Selection.Add(f);
 
   f.active:=true;
 
