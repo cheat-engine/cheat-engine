@@ -418,7 +418,7 @@ function createMenu(diagram)
     local fd=createSaveDialog()
     fd.Title=translate('Fill in the filename you wish to save this diagram image')
     fd.DefaultExt='PNG'
-    fd.Filter='PNG files (*.PNG )|*.PNG'
+    fd.Filter=translate('PNG files (*.PNG )|*.PNG')
     if fd.Execute() then
       diagram.diagram.saveAsImage(fd.FileName)    
     end
@@ -1379,11 +1379,11 @@ end
 
 function createDiagramInfoBlock(diagram)
   local dinfoblock = createDiagramHeaderlessBlock(diagram)
-  dinfoblock.Strings.add(" " .. string.char(27) .. string.format("[1m[Diagram info]", diagram.blocks[1].start) .. string.char(27) .."[0m")
-  dinfoblock.Strings.add(string.format(" Function start: 0x%X", diagram.blocks[1].start))
-  dinfoblock.Strings.add(string.format(" Function stop: 0x%X", diagram.blocks[#diagram.blocks].stop))
-  dinfoblock.Strings.add(string.format(" Diagram blocks count: %d", #diagram.dblocks))
-  dinfoblock.Strings.add(string.format(" Diagram links count: %d", diagram.diagram.LinkCount))
+  dinfoblock.Strings.add(" " .. string.char(27) .. string.format("[1m"..translate("[Diagram info]"), diagram.blocks[1].start) .. string.char(27) .."[0m")
+  dinfoblock.Strings.add(string.format(translate(" Function start: 0x%X"), diagram.blocks[1].start))
+  dinfoblock.Strings.add(string.format(translate(" Function stop: 0x%X"), diagram.blocks[#diagram.blocks].stop))
+  dinfoblock.Strings.add(string.format(translate(" Diagram blocks count: %d"), #diagram.dblocks))
+  dinfoblock.Strings.add(string.format(translate(" Diagram links count: %d"), diagram.diagram.LinkCount))
   dinfoblock.AutoSize=true
   dinfoblock.x=0
   dinfoblock.y=0
@@ -1394,7 +1394,7 @@ function spawnDiagram(start, limit)
   local diagram = {}
   diagram.state=parseFunction(start, limit)
   diagram.blocks,diagram.sortedAddressList=createBlocks(diagram.state)
-  createDiagramForm(diagram, 'Diagram')
+  createDiagramForm(diagram, translate('Diagram'))
   createMenu(diagram)   
   createDiagramDiagram(diagram)
   createDiagramPopupMenu(diagram)
@@ -1426,7 +1426,7 @@ end
 
 local mv=getMemoryViewForm()
 local mi=createMenuItem(mv.Menu)
-mi.Caption='Spawn diagram'
+mi.Caption=translate('Spawn diagram')
 mi.Shortcut='Ctrl+Shift+D'
 mi.ImageIndex=33
 mi.OnClick=MenuSpawnDiagram
@@ -1443,7 +1443,7 @@ registerFormAddNotification(function(f)
 
       --add a spawn diagram option
       local mi=createMenuItem(f.pmTracer)
-      mi.Caption='Spawn diagram'    
+      mi.Caption=translate('Spawn diagram')    
       mi.Shortcut='Ctrl+Shift+D'
       mi.ImageIndex=4
       mi.OnClick=function(s)

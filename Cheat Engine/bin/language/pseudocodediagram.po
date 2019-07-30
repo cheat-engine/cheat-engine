@@ -1,0 +1,183 @@
+#: pseudocodediagram-file
+msgid "File"
+msgstr ""
+
+#: pseudocodediagram-lff
+msgid "Load from file"
+msgstr ""
+
+#: pseudocodediagram-stfywto
+msgid "Select the file you wish to open"
+msgstr ""
+
+#: pseudocodediagram-dfcc
+msgid "Diagram files (*.CEDIAG )|*.CEDIAG"
+msgstr ""
+
+#: pseudocodediagram-stf
+msgid "Save to file"
+msgstr ""
+
+#: pseudocodediagram-fitfywtstda
+msgid "Fill in the filename you wish to save this diagram as"
+msgstr ""
+
+#: pseudocodediagram-sdti
+msgid "Save diagram to image"
+msgstr ""
+
+#: pseudocodediagram-fitfywtstdi
+msgid "Fill in the filename you wish to save this diagram image"
+msgstr ""
+
+#: pseudocodediagram-pfpp
+msgid "PNG files (*.PNG )|*.PNG"
+msgstr ""
+
+#: pseudocodediagram-close
+msgid "Close"
+msgstr ""
+
+#: pseudocodediagram-display
+msgid "Display"
+msgstr ""
+
+#: pseudocodediagram-spfu2oc
+msgid "Show path from Ultimap1/2 or Codefilter"
+msgstr ""
+
+#: pseudocodediagram-spftw
+msgid "Show path from tracer window"
+msgstr ""
+
+#: pseudocodediagram-tsa
+msgid "Tracer starting at %8x (%s)"
+msgstr ""
+
+#: pseudocodediagram-tp
+msgid "Tracer paths"
+msgstr ""
+
+#: pseudocodediagram-wtwsbu
+msgid "Which tracer window shall be used?"
+msgstr ""
+
+#: pseudocodediagram-ntwrv
+msgid "No tracerform with results visible"
+msgstr ""
+
+#: pseudocodediagram-v
+msgid "View"
+msgstr ""
+
+#: pseudocodediagram-z
+msgid "Zoom"
+msgstr ""
+
+#: pseudocodediagram-zi
+msgid "Zoom in"
+msgstr ""
+
+#: pseudocodediagram-zo
+msgid "Zoom out"
+msgstr ""
+
+#: pseudocodediagram-e
+msgid "Edit"
+msgstr ""
+
+#: pseudocodediagram-nh
+msgid "new header"
+msgstr ""
+
+#: pseudocodediagram-nbbc
+msgid "new block background color (0xBBGGRR)"
+msgstr ""
+
+#: pseudocodediagram-sl
+msgid "Sources list"
+msgstr ""
+
+#: pseudocodediagram-dl
+msgid "Destinations list"
+msgstr ""
+
+#: pseudocodediagram-be
+msgid "Block editor"
+msgstr ""
+
+#: pseudocodediagram-ok
+msgid "OK"
+msgstr ""
+
+#: pseudocodediagram-cancel
+msgid "Cancel"
+msgstr ""
+
+#: pseudocodediagram-gts
+msgid "Go to source"
+msgstr ""
+
+#: pseudocodediagram-gtd
+msgid "Go to destination"
+msgstr ""
+
+#: pseudocodediagram-rap
+msgid "Remove all points"
+msgstr ""
+
+#: pseudocodediagram-ebh
+msgid "Edit block header"
+msgstr ""
+
+#: pseudocodediagram-ebc
+msgid "Edit block color"
+msgstr ""
+
+#: pseudocodediagram-ls
+msgid "List sources"
+msgstr ""
+
+#: pseudocodediagram-ld
+msgid "List destinations"
+msgstr ""
+
+#: pseudocodediagram-eac
+msgid "Edit annotation color"
+msgstr ""
+
+#: pseudocodediagram-da
+msgid "Delete annotation"
+msgstr ""
+
+#: pseudocodediagram-ca
+msgid "Create annotation"
+msgstr ""
+
+#: pseudocodediagram-mdi
+msgid "[Diagram info]"
+msgstr ""
+
+#: pseudocodediagram-fstart
+msgid " Function start: 0x%X"
+msgstr ""
+
+#: pseudocodediagram-fstop
+msgid " Function stop: 0x%X"
+msgstr ""
+
+#: pseudocodediagram-dbc
+msgid " Diagram blocks count: %d"
+msgstr ""
+
+#: pseudocodediagram-dlc
+msgid " Diagram links count: %d"
+msgstr ""
+
+#: pseudocodediagram-diagram
+msgid "Diagram"
+msgstr ""
+
+#: pseudocodediagram-sd
+msgid "Spawn diagram"
+msgstr ""
