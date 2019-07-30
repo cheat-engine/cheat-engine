@@ -1,0 +1,160 @@
+# AppVeyor build configuration
+# https://www.appveyor.com/docs/build-configuration
+# https://www.appveyor.com/docs/appveyor-yml/
+#---------------------------------#
+#      general configuration      #
+#---------------------------------#
+
+# CI build version format
+version: 1.0.1.0.0.7.{build}-{branch}
+
+#---------------------------------#
+#    environment configuration    #
+#---------------------------------#
+
+# Build worker image (VM template)
+image: Visual Studio 2017
+# Enable Windows RDP Client Access to Build Worker
+init:
+  - ps: iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
+
+#---------------------------------#
+#       build configuration       #
+#---------------------------------#
+
+# add several platforms to build matrix:
+platform:
+  - Win32
+
+# Scripts that run after cloning repository
+install:
+  - cmd: echo Download lazarus-1.6.4-fpc-3.0.2-win32
+  - cmd: curl -fsSL -o lazarus-1.6.4-fpc-3.0.2-win32.exe "https://www.dropbox.com/s/4l1h2ku0srtscfo/lazarus-1.6.4-fpc-3.0.2-win32.exe?dl=1"
+  - cmd: echo Installing lazarus-1.6.4-fpc-3.0.2-win32
+  - cmd: lazarus-1.6.4-fpc-3.0.2-win32.exe /verysilent
+  - cmd: echo Downloading lazarus-1.6.4-fpc-3.0.2-cross-x86_64-win64-win32
+  - cmd: curl -fsSL -o lazarus-1.6.4-fpc-3.0.2-cross-x86_64-win64-win32.exe "https://www.dropbox.com/s/vulmr71jdnokxuj/lazarus-1.6.4-fpc-3.0.2-cross-x86_64-win64-win32.exe?dl=1"
+  - cmd: echo Installing lazarus-1.6.4-fpc-3.0.2-cross-x86_64-win64-win32
+  - cmd: lazarus-1.6.4-fpc-3.0.2-cross-x86_64-win64-win32.exe /verysilent
+  - cmd: echo Downloading lazarus-1.6.4-fpc-3.0.2-cross-arm-wince-win32
+  - cmd: curl -fsSL -o lazarus-1.6.4-fpc-3.0.2-cross-arm-wince-win32.exe "https://www.dropbox.com/s/7vyye0rz6cj1ad0/lazarus-1.6.4-fpc-3.0.2-cross-arm-wince-win32.exe?dl=1"
+  - cmd: echo Installing lazarus-1.6.4-fpc-3.0.2-cross-arm-wince-win32.exe
+  - cmd: lazarus-1.6.4-fpc-3.0.2-cross-arm-wince-win32.exe /verysilent
+  - cmd: rmdir /S /Q c:\lazarus\docs
+  - cmd: rmdir /S /Q c:\lazarus\examples
+
+# Build scripts
+build_script:
+  - cmd: for /F "tokens=*" %%i in ('dir /A:-D /B /S "*.lpi"') do ("c:\lazarus\lazbuild" "%%i" --build-all)
+
+# scripts to run after build
+after_build:
+  # zip the build archive
+  - tree /F "Cheat Engine\bin"
+  - 7z a Cheat-Engine-%APPVEYOR_REPO_COMMIT%.zip "Cheat Engine\bin"
+
+#---------------------------------#
+#       tests configuration       #
+#---------------------------------#
+
+# to disable automatic tests
+test: off
+
+#---------------------------------#
+#      artifacts configuration    #
+#---------------------------------#
+
+#specify artifacts to upload
+artifacts:
+  - path: Cheat-Engine-%APPVEYOR_REPO_COMMIT%.zip
+    name: Cheat-Engine-%APPVEYOR_REPO_COMMIT%  
+
+#---------------------------------#
+#     deployment configuration    #
+#---------------------------------#
+
+# to disable deployment
+deploy: off
+
+#---------------------------------#
+#        global handlers          #
+#---------------------------------#
+
+# on successful build
+on_success:
+  - ECHO "BUILD VICTORY"
+
+# on build failure
+on_failure:
+  - ECHO "TRY AND TRY AGAIN"
+
+# after build failure or success
+on_finish:
+# Debug with blocked RDP Access
+#  - ps: $blockRdp = $true; iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
+# https://www.appveyor.com/docs/environment-variables/
+# Environment variables that are set by AppVeyor for every build:
+# APPVEYOR - True if build runs in AppVeyor environment;
+  - ECHO %APPVEYOR%
+# CI - True if build runs in AppVeyor environment;
+  - ECHO %CI%
+# APPVEYOR_API_URL - AppVeyor Build Agent API URL;
+  - ECHO %APPVEYOR_API_URL%
+# APPVEYOR_ACCOUNT_NAME - account name;
+  - ECHO %APPVEYOR_ACCOUNT_NAME%
+# APPVEYOR_PROJECT_ID - AppVeyor unique project ID;
+  - ECHO %APPVEYOR_PROJECT_ID%
+# APPVEYOR_PROJECT_NAME - project name;
+  - ECHO %APPVEYOR_PROJECT_NAME%
+# APPVEYOR_PROJECT_SLUG - project slug (as seen in project details URL);
+  - ECHO %APPVEYOR_PROJECT_SLUG%
+# APPVEYOR_BUILD_FOLDER - path to clone directory;
+  - ECHO %APPVEYOR_BUILD_FOLDER%
+# APPVEYOR_BUILD_ID - AppVeyor unique build ID;
+  - ECHO %APPVEYOR_BUILD_ID%
+# APPVEYOR_BUILD_NUMBER - build number;
+  - ECHO %APPVEYOR_BUILD_NUMBER%
+# APPVEYOR_BUILD_VERSION - build version;
+  - ECHO %APPVEYOR_BUILD_VERSION%
+# APPVEYOR_PULL_REQUEST_NUMBER - GitHub Pull Request number;
+  - ECHO %APPVEYOR_PULL_REQUEST_NUMBER%
+# APPVEYOR_PULL_REQUEST_TITLE - GitHub Pull Request title
+  - ECHO %APPVEYOR_PULL_REQUEST_TITLE%
+# APPVEYOR_JOB_ID - AppVeyor unique job ID;
+  - ECHO %APPVEYOR_JOB_ID%
+# APPVEYOR_JOB_NAME - job name;
+  - ECHO %APPVEYOR_JOB_NAME%
+# APPVEYOR_REPO_PROVIDER - github, bitbucket, kiln, vso or gitlab;
+  - ECHO %APPVEYOR_REPO_PROVIDER%
+# APPVEYOR_REPO_SCM - git or mercurial;
+  - ECHO %APPVEYOR_REPO_SCM%
+# APPVEYOR_REPO_NAME - repository name in format owner-name/repo-name;
+  - ECHO %APPVEYOR_REPO_NAME%
+# APPVEYOR_REPO_BRANCH - build branch. For Pull Request commits it is base branch PR is merging into;
+  - ECHO %APPVEYOR_REPO_BRANCH%
+# APPVEYOR_REPO_TAG - true if build has started by pushed tag; otherwise false;
+  - ECHO %APPVEYOR_REPO_TAG%
+# APPVEYOR_REPO_TAG_NAME - contains tag name for builds started by tag; otherwise this variable is undefined;
+  - ECHO %APPVEYOR_REPO_TAG_NAME%
+# APPVEYOR_REPO_COMMIT - commit ID (SHA);
+  - ECHO %APPVEYOR_REPO_COMMIT%
+# APPVEYOR_REPO_COMMIT_AUTHOR - commit author’s name;
+  - ECHO %APPVEYOR_REPO_COMMIT_AUTHOR%
+# APPVEYOR_REPO_COMMIT_AUTHOR_EMAIL - commit author’s email address;
+  - ECHO %APPVEYOR_REPO_COMMIT_AUTHOR_EMAIL%
+# APPVEYOR_REPO_COMMIT_TIMESTAMP - commit date/time;
+  - ECHO %APPVEYOR_REPO_COMMIT_TIMESTAMP%
+# APPVEYOR_REPO_COMMIT_MESSAGE - commit message;
+  - ECHO %APPVEYOR_REPO_COMMIT_MESSAGE%
+# APPVEYOR_REPO_COMMIT_MESSAGE_EXTENDED - the rest of commit message after line break (if exists);
+  - ECHO %APPVEYOR_REPO_COMMIT_MESSAGE_EXTENDED%
+# APPVEYOR_SCHEDULED_BUILD - True if the build runs by scheduler;
+  - ECHO %APPVEYOR_SCHEDULED_BUILD%
+# APPVEYOR_FORCED_BUILD (True or undefined) - builds started by “New build” button or from the same API;
+  - ECHO %APPVEYOR_FORCED_BUILD%
+# APPVEYOR_RE_BUILD (True or undefined) - build started by “Re-build commit/PR” button of from the same API;
+  - ECHO %APPVEYOR_RE_BUILD%
+# PLATFORM - platform name set on Build tab of project settings (or through platform parameter in appveyor.yml);
+  - ECHO %PLATFORM%
+# CONFIGURATION - configuration name set on Build tab of project settings (or through configuration parameter in appveyor.yml);
+  - ECHO %CONFIGURATION%
