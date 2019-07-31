@@ -7,8 +7,10 @@ interface
 uses
   jwawindows, windows, Classes, SysUtils;
 
+type
+  TUnexpectedExceptionAction=(ueaIgnore, ueaBreak, ueaBreakIfInRegion);
 var
-  UnexpectedExceptionAction: (ueaIgnore, ueaBreak, ueaBreakIfInRegion)=ueaIgnore;
+  UnexpectedExceptionAction: TUnexpectedExceptionAction=ueaIgnore;
   function IsInUnexpectedExceptionRegion(Address: ptruint): boolean;
   procedure AddUnexpectedExceptionRegion(Address: ptruint; size: integer);
   function RemoveUnexpectedExceptionRegion(Address: ptruint; size: integer): boolean;

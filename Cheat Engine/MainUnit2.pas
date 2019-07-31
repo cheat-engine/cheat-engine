@@ -90,7 +90,7 @@ implementation
 
 
 uses KernelDebugger,mainunit, DebugHelper, CustomTypeHandler, ProcessList, Globals,
-     frmEditHistoryUnit, DBK32functions, frameHotkeyConfigUnit;
+     frmEditHistoryUnit, DBK32functions, frameHotkeyConfigUnit, UnexpectedExceptionsHelper;
 
 procedure UpdateToolsMenu;
 var i: integer;
@@ -676,6 +676,29 @@ begin
           if reg.ValueExists('Wait After Gui Update') then
             waitafterguiupdate:=reg.ReadBool('Wait After Gui Update');
           cbWaitAfterGuiUpdate.checked:=waitafterguiupdate;
+
+          if reg.ValueExists('Unexpected Breakpoint Behaviour') then
+          begin
+            case reg.ReadInteger('Unexpected Breakpoint Behaviour') of
+              0:
+              begin
+                miUnexpectedBreakpointsIgnore.checked:=true;
+                UnexpectedExceptionAction:=ueaIgnore;
+              end;
+
+              1:
+              begin
+                miUnexpectedBreakpointsBreak.checked:=true;
+                UnexpectedExceptionAction:=ueaBreak;
+              end;
+
+              2:
+              begin
+                miUnexpectedBreakpointsBreakWhenInsideRegion.checked;
+                UnexpectedExceptionAction:=ueaBreakIfInRegion;
+              end;
+            end;
+          end;
 
 
           if reg.ValueExists('Use Global Debug Routines') then

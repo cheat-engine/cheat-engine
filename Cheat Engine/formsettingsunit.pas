@@ -234,6 +234,7 @@ type
     procedure Label3Click(Sender: TObject);
     procedure LoadButtonClick(Sender: TObject);
     procedure MenuItem1Click(Sender: TObject);
+    procedure miUnexpectedBreakpointsOptionChange(Sender: TObject);
     procedure Panel3Click(Sender: TObject);
     procedure Panel3Resize(Sender: TObject);
     procedure pcSettingChange(Sender: TObject);
@@ -285,6 +286,8 @@ type
 
     hasSetNewLanguage: boolean;
     newLanguage: string;
+
+    unexpectedExceptionHandlerChanged: boolean;
 
     procedure SetAssociations;
     procedure LanguageMenuItemClick(Sender: TObject);
@@ -443,6 +446,7 @@ var processhandle2: Thandle;
     cpu: string;
     WriteLogSize: integer;
     s: string;
+
 begin
   try
     {$ifdef cpu64}
@@ -811,7 +815,10 @@ begin
         if miUnexpectedBreakpointsBreak.checked then i:=1;
         if miUnexpectedBreakpointsBreakWhenInsideRegion.checked then i:=2;
 
-        if (reg.ValueExists('Unexpected Breakpoint Behaviour')=false) or (reg.ReadInteger('Unexpected Breakpoint Behaviour')<>i) then
+
+        reg.WriteInteger('Unexpected Breakpoint Behaviour', i);
+
+        if unexpectedExceptionHandlerChanged then //apply it
         begin
           case i of
             0: UnexpectedExceptionAction:=ueaIgnore;
@@ -819,7 +826,8 @@ begin
             2: UnexpectedExceptionAction:=ueaBreakIfInRegion;
           end;
         end;
-        reg.WriteInteger('Unexpected Breakpoint Behaviour', i);
+
+
 
         if (reg.ValueExists('Add Allocated Memory As Watched')=false) or (reg.ReadBool('Add Allocated Memory As Watched')<>cbAllocsAddToWatchedRegions.checked) then
           allocsAddToUnexpectedExceptionList:=cbAllocsAddToWatchedRegions.Checked;
@@ -1373,6 +1381,9 @@ begin
   end;
 
  // GroupBox2.top:=rbgDebuggerInterface.top+rbgDebuggerInterface.height+4;
+
+  unexpectedExceptionHandlerChanged:=false;
+
 end;
 
 procedure TformSettings.cbShowDisassemblerClick(Sender: TObject);
@@ -1394,6 +1405,11 @@ end;
 procedure TformSettings.MenuItem1Click(Sender: TObject);
 begin
   ScanForLanguages;
+end;
+
+procedure TformSettings.miUnexpectedBreakpointsOptionChange(Sender: TObject);
+begin
+  unexpectedExceptionHandlerChanged:=true;
 end;
 
 
