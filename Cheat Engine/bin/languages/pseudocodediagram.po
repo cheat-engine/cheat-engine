@@ -30,6 +30,10 @@ msgstr ""
 msgid "Fill in the filename you wish to save this diagram image"
 msgstr ""
 
+#: pseudocodediagram-pfpp
+msgid "PNG files (*.PNG )|*.PNG"
+msgstr ""
+
 #: pseudocodediagram-close
 msgid "Close"
 msgstr ""
@@ -148,4 +152,32 @@ msgstr ""
 
 #: pseudocodediagram-ca
 msgid "Create annotation"
+msgstr ""
+
+#: pseudocodediagram-mdi
+msgid "[Diagram info]"
+msgstr ""
+
+#: pseudocodediagram-fstart
+msgid " Function start: 0x%X"
+msgstr ""
+
+#: pseudocodediagram-fstop
+msgid " Function stop: 0x%X"
+msgstr ""
+
+#: pseudocodediagram-dbc
+msgid " Diagram blocks count: %d"
+msgstr ""
+
+#: pseudocodediagram-dlc
+msgid " Diagram links count: %d"
+msgstr ""
+
+#: pseudocodediagram-diagram
+msgid "Diagram"
+msgstr ""
+
+#: pseudocodediagram-sd
+msgid "Spawn diagram"
 msgstr ""
