@@ -7470,7 +7470,7 @@ begin
     begin
       postscanstate:=psSavingFirstScanResults2;
       frmBusy:=TfrmBusy.create(nil);
-      frmBusy.WaitForHandle:=scancontroller.handle;
+      frmBusy.WaitForHandle:=SaveFirstScanThread.handle;
       frmBusy.memscan:=self;
       frmBusy.Reason:=postScanState;
 
