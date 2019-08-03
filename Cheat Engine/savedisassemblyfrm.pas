@@ -19,6 +19,7 @@ type
     address: boolean;
     bytes: boolean;
     opcode: boolean;
+    comment: boolean;
     copymode: boolean;
     filename: string;
     form: TfrmSavedisassembly;
@@ -32,16 +33,18 @@ type
     cbAddress: TCheckBox;
     cbBytes: TCheckBox;
     cbOpcode: TCheckBox;
+    cbComment: TCheckBox;
     Edit1: TEdit;
     Edit2: TEdit;
     Label1: TLabel;
     Label2: TLabel;
     Panel1: TPanel;
     Panel2: TPanel;
-    SaveDialog1: TSaveDialog;
     ProgressBar1: TProgressBar;
+    SaveDialog1: TSaveDialog;
     procedure Button1Click(Sender: TObject);
     procedure actCancelExecute(Sender: TObject);
+    procedure cbCommentChange(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure FormShow(Sender: TObject);
   private
@@ -142,7 +145,7 @@ begin
     if specialpart='' then
       specialpart:=disassembler.DecodeLastParametersToString;
 
-    if specialpart<>'' then
+    if (comment) and (specialpart<>'') then
       opcodepart:=opcodepart+' { '+specialpart+' }';
 
 
@@ -258,11 +261,11 @@ begin
     SaveDisassemblyThread.address:=cbAddress.checked;
     SaveDisassemblyThread.bytes:=cbBytes.Checked;
     SaveDisassemblyThread.opcode:=cbOpcode.Checked;
+    SaveDisassemblyThread.comment:=cbComment.Checked;
     SaveDisassemblyThread.startaddress:=startaddress;
     SaveDisassemblyThread.stopaddress:=stopaddress;
     SaveDisassemblyThread.filename:=savedialog1.FileName;
     SaveDisassemblyThread.copymode:=fcopymode;
-
     SaveDisassemblyThread.form:=self;
 
     progressbar1.Min:=0;
@@ -285,6 +288,19 @@ end;
 procedure TfrmSavedisassembly.actCancelExecute(Sender: TObject);
 begin
   close;
+end;
+
+procedure TfrmSavedisassembly.cbCommentChange(Sender: TObject);
+begin
+  if cbComment.Checked then
+  begin
+    cbOpcode.Checked:=true;
+    cbOpcode.Enabled:=false;
+  end
+  else
+  begin
+    cbOpcode.Enabled:=true;
+  end;
 end;
 
 procedure TfrmSavedisassembly.FormDestroy(Sender: TObject);
