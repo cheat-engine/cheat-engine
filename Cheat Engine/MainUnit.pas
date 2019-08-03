@@ -4114,24 +4114,29 @@ begin
     if reg.OpenKey('\Software\Cheat Engine\CustomTypes\', False) then
     begin
       CustomTypes := TStringList.Create;
-      reg.GetKeyNames(CustomTypes);
-      for i := 0 to CustomTypes.Count - 1 do
-      begin
-        if reg.OpenKey('\Software\Cheat Engine\CustomTypes\' + CustomTypes[i], False) then
-        begin
-          try
-            islua := False;
-            if reg.ValueExists('lua') then
-              islua := reg.ReadBool('lua');
+      try
+        reg.GetKeyNames(CustomTypes);
 
-            CreateCustomType(nil, reg.ReadString('Script'), True, islua);
-          except
-            outputdebugstring('The custom type script ''' + CustomTypes[i] +
-              ''' could not be loaded');
+        for i := 0 to CustomTypes.Count - 1 do
+        begin
+          if reg.OpenKey('\Software\Cheat Engine\CustomTypes\' + CustomTypes[i], False) then
+          begin
+            try
+              islua := False;
+              if reg.ValueExists('lua') then
+                islua := reg.ReadBool('lua');
+
+              CreateCustomType(nil, reg.ReadString('Script'), True, islua);
+            except
+              outputdebugstring('The custom type script ''' + CustomTypes[i] +
+                ''' could not be loaded');
+            end;
           end;
         end;
-      end;
 
+      except
+        //empty customtype
+      end;
       freeandnil(CustomTypes);
     end;
     freeandnil(reg);

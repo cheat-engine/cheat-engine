@@ -2367,6 +2367,12 @@ begin
 //      scrollbox1.Font:=f;
 
       setRegisterPanelFont(f);
+    end
+    else
+    begin
+      f.assign(scrollbox1.font);
+      f.size:=12;
+      setRegisterPanelFont(f);
     end;
 
 
