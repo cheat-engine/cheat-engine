@@ -1,14 +1,13 @@
 object frmSavedisassembly: TfrmSavedisassembly
-  Left = 313
-  Height = 185
-  Top = 459
-  Width = 233
+  Left = 291
+  Height = 158
+  Top = 139
+  Width = 185
   AutoSize = True
   BorderStyle = bsDialog
   Caption = 'Save disassembled output'
-  ClientHeight = 185
-  ClientWidth = 233
-  DesignTimePPI = 120
+  ClientHeight = 158
+  ClientWidth = 185
   OnDestroy = FormDestroy
   OnShow = FormShow
   Position = poScreenCenter
@@ -18,21 +17,17 @@ object frmSavedisassembly: TfrmSavedisassembly
     AnchorSideLeft.Side = asrCenter
     AnchorSideTop.Control = Panel2
     AnchorSideTop.Side = asrBottom
-    AnchorSideRight.Control = Owner
-    AnchorSideRight.Side = asrCenter
-    Left = 69
-    Height = 30
-    Top = 120
-    Width = 94
-    Anchors = [akTop, akRight]
+    Left = 55
+    Height = 27
+    Top = 104
+    Width = 75
     AutoSize = True
-    BorderSpacing.Top = 4
-    BorderSpacing.Bottom = 4
+    BorderSpacing.Top = 3
+    BorderSpacing.Bottom = 3
     Caption = 'Save'
-    Constraints.MinWidth = 94
+    Constraints.MinWidth = 75
     Default = True
     OnClick = Button1Click
-    ParentFont = False
     TabOrder = 0
   end
   object ProgressBar1: TProgressBar
@@ -42,12 +37,11 @@ object frmSavedisassembly: TfrmSavedisassembly
     AnchorSideRight.Control = Owner
     AnchorSideRight.Side = asrBottom
     Left = 0
-    Height = 26
-    Top = 159
-    Width = 233
+    Height = 21
+    Top = 138
+    Width = 185
     Anchors = [akTop, akLeft, akRight]
-    BorderSpacing.Top = 9
-    ParentFont = False
+    BorderSpacing.Top = 7
     TabOrder = 1
   end
   object Panel1: TPanel
@@ -55,66 +49,59 @@ object frmSavedisassembly: TfrmSavedisassembly
     AnchorSideTop.Control = Owner
     AnchorSideRight.Control = Owner
     AnchorSideRight.Side = asrBottom
-    Left = 6
-    Height = 48
-    Top = 4
-    Width = 221
+    Left = 5
+    Height = 42
+    Top = 3
+    Width = 175
     Anchors = [akTop, akLeft, akRight]
     AutoSize = True
-    BorderSpacing.Left = 6
-    BorderSpacing.Top = 4
-    BorderSpacing.Right = 6
+    BorderSpacing.Left = 5
+    BorderSpacing.Top = 3
+    BorderSpacing.Right = 5
     BevelOuter = bvNone
     ChildSizing.EnlargeHorizontal = crsHomogenousChildResize
     ChildSizing.Layout = cclLeftToRightThenTopToBottom
     ChildSizing.ControlsPerLine = 2
-    ClientHeight = 48
-    ClientWidth = 221
-    ParentFont = False
+    ClientHeight = 42
+    ClientWidth = 175
     TabOrder = 2
     object cbAddress: TCheckBox
       Left = 0
-      Height = 24
+      Height = 21
       Top = 0
-      Width = 105
+      Width = 84
       Caption = 'Address'
       Checked = True
-      ParentFont = False
       State = cbChecked
       TabOrder = 2
     end
     object cbBytes: TCheckBox
-      Left = 105
-      Height = 24
+      Left = 84
+      Height = 21
       Top = 0
-      Width = 116
+      Width = 91
       Caption = 'bytes'
       Checked = True
-      ParentFont = False
       State = cbChecked
       TabOrder = 1
     end
     object cbOpcode: TCheckBox
       Left = 0
-      Height = 24
-      Top = 24
-      Width = 105
+      Height = 21
+      Top = 21
+      Width = 84
       Caption = 'opcode'
       Checked = True
-      Enabled = False
-      ParentFont = False
       State = cbChecked
       TabOrder = 0
     end
     object cbComment: TCheckBox
-      Left = 105
-      Height = 24
-      Top = 24
-      Width = 116
+      Left = 84
+      Height = 21
+      Top = 21
+      Width = 91
       Caption = 'Comment'
       Checked = True
-      OnChange = cbCommentChange
-      ParentFont = False
       State = cbChecked
       TabOrder = 3
     end
@@ -123,18 +110,17 @@ object frmSavedisassembly: TfrmSavedisassembly
     AnchorSideLeft.Control = Owner
     AnchorSideTop.Control = Panel1
     AnchorSideTop.Side = asrBottom
-    Left = 4
-    Height = 60
-    Top = 56
-    Width = 224
+    Left = 3
+    Height = 53
+    Top = 48
+    Width = 179
     AutoSize = True
-    BorderSpacing.Left = 4
-    BorderSpacing.Top = 4
-    BorderSpacing.Right = 4
+    BorderSpacing.Left = 3
+    BorderSpacing.Top = 3
+    BorderSpacing.Right = 3
     BevelOuter = bvNone
-    ClientHeight = 60
-    ClientWidth = 224
-    ParentFont = False
+    ClientHeight = 53
+    ClientWidth = 179
     TabOrder = 3
     object Label1: TLabel
       AnchorSideLeft.Control = Edit1
@@ -142,26 +128,24 @@ object frmSavedisassembly: TfrmSavedisassembly
       AnchorSideTop.Side = asrCenter
       AnchorSideRight.Control = Edit1
       Left = 0
-      Height = 20
+      Height = 17
       Top = 4
-      Width = 38
+      Width = 30
       Anchors = [akTop, akRight]
       Caption = 'From'
       ParentColor = False
-      ParentFont = False
     end
     object Label2: TLabel
       AnchorSideTop.Control = Edit2
       AnchorSideTop.Side = asrCenter
       AnchorSideRight.Control = Edit2
-      Left = 19
-      Height = 20
-      Top = 36
-      Width = 19
+      Left = 15
+      Height = 17
+      Top = 32
+      Width = 15
       Anchors = [akTop, akRight]
       Caption = 'To'
       ParentColor = False
-      ParentFont = False
     end
     object Edit2: TEdit
       AnchorSideLeft.Control = Edit1
@@ -169,25 +153,23 @@ object frmSavedisassembly: TfrmSavedisassembly
       AnchorSideTop.Side = asrBottom
       AnchorSideRight.Control = Edit1
       AnchorSideRight.Side = asrBottom
-      Left = 38
-      Height = 28
-      Top = 32
-      Width = 186
+      Left = 30
+      Height = 25
+      Top = 28
+      Width = 149
       Anchors = [akTop, akLeft, akRight]
-      BorderSpacing.Top = 4
-      ParentFont = False
+      BorderSpacing.Top = 3
       TabOrder = 0
     end
     object Edit1: TEdit
       AnchorSideTop.Control = Panel2
       AnchorSideRight.Control = Panel2
       AnchorSideRight.Side = asrBottom
-      Left = 38
-      Height = 28
+      Left = 30
+      Height = 25
       Top = 0
-      Width = 186
+      Width = 149
       Anchors = [akTop, akRight]
-      ParentFont = False
       TabOrder = 1
     end
   end
@@ -195,7 +177,7 @@ object frmSavedisassembly: TfrmSavedisassembly
     DefaultExt = '.txt'
     Filter = 'textfiles (*.txt)|*.txt'
     Options = [ofOverwritePrompt, ofHideReadOnly, ofEnableSizing]
-    left = 88
-    top = 160
+    left = 32
+    top = 128
   end
 end

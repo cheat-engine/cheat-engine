@@ -40,11 +40,10 @@ type
     Label2: TLabel;
     Panel1: TPanel;
     Panel2: TPanel;
-    ProgressBar1: TProgressBar;
     SaveDialog1: TSaveDialog;
+    ProgressBar1: TProgressBar;
     procedure Button1Click(Sender: TObject);
     procedure actCancelExecute(Sender: TObject);
-    procedure cbCommentChange(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure FormShow(Sender: TObject);
   private
@@ -145,10 +144,6 @@ begin
     if specialpart='' then
       specialpart:=disassembler.DecodeLastParametersToString;
 
-    if (comment) and (specialpart<>'') then
-      opcodepart:=opcodepart+' { '+specialpart+' }';
-
-
 
     if address then
     begin
@@ -167,9 +162,11 @@ begin
 
     if opcode then temps:=temps+opcodepart;
 
-    if (address or opcode) or (currentaddress>stopaddress) then
+    if (comment) and (specialpart<>'') then temps:=temps+' { '+specialpart+' }';
+
+    if (address or opcode or comment) or (currentaddress>stopaddress) then
     begin
-      //each line for address / opcode, and only one time at the and for bytes only
+      //each line for address/opcode/comment, and only one time at the and for bytes only
       if copymode then
       begin
         //save to clipboard
@@ -266,6 +263,7 @@ begin
     SaveDisassemblyThread.stopaddress:=stopaddress;
     SaveDisassemblyThread.filename:=savedialog1.FileName;
     SaveDisassemblyThread.copymode:=fcopymode;
+
     SaveDisassemblyThread.form:=self;
 
     progressbar1.Min:=0;
@@ -288,19 +286,6 @@ end;
 procedure TfrmSavedisassembly.actCancelExecute(Sender: TObject);
 begin
   close;
-end;
-
-procedure TfrmSavedisassembly.cbCommentChange(Sender: TObject);
-begin
-  if cbComment.Checked then
-  begin
-    cbOpcode.Checked:=true;
-    cbOpcode.Enabled:=false;
-  end
-  else
-  begin
-    cbOpcode.Enabled:=true;
-  end;
 end;
 
 procedure TfrmSavedisassembly.FormDestroy(Sender: TObject);
