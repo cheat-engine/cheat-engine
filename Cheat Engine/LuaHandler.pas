@@ -8336,13 +8336,13 @@ begin
     postrings:=Tstringlist.create;
     try
       filename:=Lua_ToString(L, 1);
-      postrings.LoadFromFile(filename);
+      postrings.LoadFromFile(filename, true);
       if assigned(LRSTranslator) then
       begin
         if (LRSTranslator is TPOTranslator) then
         begin
           pofile:=TPOTranslator(LRSTranslator).POFile;
-          pofile.ReadPOText(UTF8ToWinCP(postrings.text));
+          pofile.ReadPOText(postrings.text);
         end;
       end;
       lua_pushboolean(L, true);
