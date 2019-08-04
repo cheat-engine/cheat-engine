@@ -2839,7 +2839,8 @@ begin
     //disable everything
 
     foundcount := 0;
-    foundlist.Clear;
+    if foundlist<>nil then
+      foundlist.Clear;
 
     btnNewScan.Caption := strFirstScan;
 
@@ -2875,6 +2876,7 @@ begin
 
       processlabel.Caption := strError;
       raise Exception.Create(strErrorWhileOpeningProcess);
+
     end
     else
     begin

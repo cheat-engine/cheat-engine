@@ -1087,8 +1087,10 @@ begin
   else
     mainform.Commentbutton.font.style:=mainform.Commentbutton.font.style-[fsBold];
 
-  mainform.autoattachcheck; //check if it added an auto attach check and see if it's currently running
-
+  try
+    mainform.autoattachcheck; //check if it added an auto attach check and see if it's currently running
+  except
+  end;
 //  mainform.addresslist.needsToReinterpret:=true;
 end;
 
