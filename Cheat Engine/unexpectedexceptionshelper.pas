@@ -31,7 +31,7 @@ var
 implementation
 
 uses syncobjs, CEFuncProc, commonTypeDefs, maps, registry,
-  frmExceptionRegionListUnit;
+  frmExceptionRegionListUnit, frmExceptionIgnoreListUnit;
 
 var
   UnexpectedExceptionListCS: TCriticalsection;
@@ -145,6 +145,9 @@ begin
   finally
     IgnoredExceptionCodeListCS.Leave;
   end;
+
+  if (GetCurrentThreadId=MainThreadID) and (frmExceptionIgnoreList<>nil) then
+    frmExceptionIgnoreList.UpdateList;
 end;
 
 function RemoveIgnoredExceptionCode(code: DWORD): boolean;
@@ -160,6 +163,9 @@ begin
   finally
     IgnoredExceptionCodeListCS.Leave;
   end;
+
+  if (GetCurrentThreadId=MainThreadID) and (frmExceptionIgnoreList<>nil) then
+    frmExceptionIgnoreList.UpdateList;
 end;
 
 procedure getIgnoredExceptionCodeList(l:  tstrings);

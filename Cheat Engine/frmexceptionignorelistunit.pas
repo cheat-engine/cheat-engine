@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls,
-  ExtCtrls;
+  ExtCtrls, Menus;
 
 type
 
@@ -18,12 +18,15 @@ type
     Label1: TLabel;
     Label2: TLabel;
     lbExceptionCodeList: TListBox;
+    miDelete: TMenuItem;
     Panel1: TPanel;
     Panel2: TPanel;
+    PopupMenu1: TPopupMenu;
     procedure btnAddClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure lbExceptionCodeListDblClick(Sender: TObject);
+    procedure PopupMenu1Popup(Sender: TObject);
   private
     { private declarations }
   public
@@ -69,9 +72,14 @@ begin
   begin
     s:=lbExceptionCodeList.items[lbExceptionCodeList.itemindex];
     s:=copy(s,1,8);
-    c:=strtoint(s);
+    c:=strtoint('$'+s);
     RemoveIgnoredExceptionCode(c);
   end;
+end;
+
+procedure TfrmExceptionIgnoreList.PopupMenu1Popup(Sender: TObject);
+begin
+  midelete.visible:=lbExceptionCodeList.itemindex<>-1;
 end;
 
 procedure TfrmExceptionIgnoreList.updateList;
