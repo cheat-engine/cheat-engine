@@ -128,8 +128,14 @@ begin
   if lua_gettop(L)=1 then
   begin
     v:=lua_tonumber(L, 1);
+{$ifdef cpu64}
     doubletoextended(@v,@ex[0]);
     CreateByteTableFromPointer(L, @ex[0], 10);
+{$else}
+    e:=v;
+    CreateByteTableFromPointer(L, @e, sizeof(e));
+{$endif}
+
     result:=1;
   end;
 end;
@@ -229,13 +235,19 @@ function byteTableToExtended(L: PLua_state): integer; cdecl;
 var
   ex: array [0..9] of byte;
   v: double;
+  e: extended;
 begin
   result:=0;
   if lua_gettop(L)=1 then
   begin
+
+{$ifdef cpu64}
     readBytesFromTable(L, 1, @ex[0], 10);
     extendedtodouble(@ex[0],v);
-
+{$else}
+    readBytesFromTable(L, 1, @e, sizeof(e));
+    v:=e;
+{$endif}
     lua_pushnumber(L,v);
     result:=1;
   end;

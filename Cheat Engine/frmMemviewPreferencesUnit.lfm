@@ -12,7 +12,7 @@ object frmMemviewPreferences: TfrmMemviewPreferences
   OnShow = FormShow
   PopupMenu = pmColors
   Position = poScreenCenter
-  LCLVersion = '1.6.4.0'
+  LCLVersion = '2.0.0.4'
   object Button2: TButton
     AnchorSideTop.Control = GroupBox2
     AnchorSideTop.Side = asrBottom
@@ -614,6 +614,7 @@ object frmMemviewPreferences: TfrmMemviewPreferences
     Font.Quality = fqDraft
     MinFontSize = 0
     MaxFontSize = 0
+    Options = [fdNoStyleSel]
     PreviewText = 'mov'
     left = 224
     top = 248
@@ -634,7 +635,7 @@ object frmMemviewPreferences: TfrmMemviewPreferences
     Font.Quality = fqDraft
     MinFontSize = 0
     MaxFontSize = 0
-    Options = [fdEffects, fdFixedPitchOnly]
+    Options = [fdFixedPitchOnly]
     PreviewText = '10 aa cd 30 90 90 90'
     left = 296
     top = 248

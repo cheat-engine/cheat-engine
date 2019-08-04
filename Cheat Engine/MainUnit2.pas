@@ -803,6 +803,13 @@ begin
           end;
           mainform.tLuaGCActive.enabled:=cbLuaGarbageCollectAll.checked;
           mainform.tLuaGCPassive.enabled:=cbLuaPassiveGarbageCollection.checked;
+
+
+          if reg.ValueExists('use thread to freeze') then
+          begin
+            cbUseThreadForFreeze.checked:=reg.ReadBool('use thread to freeze');
+            mainform.UseThreadToFreeze:=cbUseThreadForFreeze.checked;
+          end;
         end;
 
 

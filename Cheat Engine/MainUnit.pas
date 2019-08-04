@@ -245,6 +245,16 @@ type
 
   { TMainForm }
 
+  TFreezeThread=class(TThread)
+  private
+    fAddressList: TAddresslist;
+    freezeInterval: integer;
+  public
+    procedure Execute; override;
+    constructor Create(AddressList: TAddresslist; interval: integer);
+  end;
+
+
   TMainForm = class(TForm)
     actOpenLuaEngine: TAction;
     actOpenDissectStructure: TAction;
@@ -784,6 +794,9 @@ type
     UserDefinedTableName: string; //set when a user opens a table (when set the filename prediction will be turned off)
 
     speedhackDisableTimer: TTimer;
+
+    freezeThread: TFreezeThread;
+
     procedure CheckForSpeedhackKey(sender: TObject);
 
     procedure doNewScan;
@@ -877,6 +890,8 @@ type
 
     procedure MemscanGuiUpdate(sender: TObject; totaladdressestoscan: qword; currentlyscanned: qword; foundcount: qword);
 
+    function getUseThreadToFreeze: boolean;
+    procedure setUseThreadToFreeze(state: boolean);
   public
     { Public declarations }
     addresslist: TAddresslist;
@@ -982,6 +997,7 @@ type
     property About1: TMenuItem read miAbout write miAbout;
     property Help1: TMenuItem read miHelp write miHelp;
     property OnProcessOpened: TProcessOpenedEvent read fOnProcessOpened write fOnProcessOpened;
+    property UseThreadToFreeze: boolean read getUseThreadToFreeze write setUseThreadToFreeze;
   end;
 
 var
@@ -1280,6 +1296,54 @@ procedure TToggleWindows.Execute;
 begin
   toggleotherwindows;
   togglewindows := nil;
+end;
+
+
+//--------------TFreezeThread------------
+procedure TFreezeThread.Execute;
+begin
+  while not terminated do
+  begin
+    faddresslist.ApplyFreeze;
+    sleep(freezeInterval);
+  end;
+end;
+
+constructor TFreezeThread.Create(AddressList: TAddresslist; interval: integer);
+begin
+  fAddressList:=addressList;
+  freezeInterval:=interval;
+  inherited create(false);
+end;
+
+//--------------TMainThread------------
+
+function TMainForm.getUseThreadToFreeze: boolean;
+begin
+  result:=freezeThread<>nil;
+end;
+
+procedure TMainForm.setUseThreadToFreeze(state: boolean);
+begin
+  if freezethread<>nil then
+  begin
+    if state then //update?
+    begin
+      if freezethread.freezeInterval<>freezetimer.interval then
+        freezethread.freezeInterval:=freezetimer.interval;
+    end
+    else
+      freeandnil(freezethread);
+  end
+  else
+  begin
+    if state then
+      freezethread:=TFreezeThread.Create(addresslist,freezetimer.interval);
+  end;
+
+
+
+  freezetimer.enabled:=not state;
 end;
 
 procedure TMainForm.setIsProtected(p: boolean); //super unhackable protection yeeeeeh

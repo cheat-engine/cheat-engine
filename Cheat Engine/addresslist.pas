@@ -438,17 +438,23 @@ var
   i: integer;
   oldlogWrites: boolean;
 begin
-  oldlogWrites:=logwrites;
+  if GetCurrentThreadId=MainThreadID then
+  begin
+    oldlogWrites:=logwrites;
 
-  //oldlogWrites:=false;
-  blockfilehandlerpopup:=true;
+    //oldlogWrites:=false;
+    blockfilehandlerpopup:=true;
+  end;
 
   try
     for i:=0 to count-1 do
       memrecitems[i].ApplyFreeze;
   finally
-    logWrites:=oldlogWrites;
-    blockfilehandlerpopup:=false;
+    if GetCurrentThreadId=MainThreadID then
+    begin
+      logWrites:=oldlogWrites;
+      blockfilehandlerpopup:=false;
+    end;
   end;
 end;
 

@@ -329,7 +329,10 @@ var
     b: byte;
 
     inactive: boolean;
+
 begin
+
+  fcanvas.font.style:=[];
 
   iscurrentinstruction:=MemoryBrowser.lastdebugcontext.{$ifdef cpu64}rip{$else}EIP{$endif}=address;
 

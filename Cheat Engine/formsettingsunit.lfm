@@ -63,9 +63,9 @@ object formSettings: TformSettings
       Height = 633
       Top = 1
       Width = 660
-      ActivePage = Assembler
+      ActivePage = GeneralSettings
       Align = alClient
-      TabIndex = 6
+      TabIndex = 0
       TabOrder = 1
       OnChange = pcSettingChange
       object GeneralSettings: TTabSheet
@@ -640,6 +640,19 @@ object formSettings: TformSettings
             ParentShowHint = False
             ShowHint = True
             TabOrder = 25
+          end
+          object cbUseThreadForFreeze: TCheckBox
+            AnchorSideLeft.Control = Label12
+            AnchorSideLeft.Side = asrBottom
+            AnchorSideTop.Control = Label12
+            AnchorSideTop.Side = asrCenter
+            Left = 258
+            Height = 19
+            Top = 549
+            Width = 128
+            BorderSpacing.Left = 8
+            Caption = 'Use thread for freeze'
+            TabOrder = 26
           end
         end
       end

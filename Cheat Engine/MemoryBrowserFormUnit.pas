@@ -2110,7 +2110,8 @@ begin
     if showmodal=mrok then
     begin
       //set the colors and save to registry
-      disassemblerview.Font:=fontdialog1.Font;
+      disassemblerview.Font.assign(fontdialog1.Font);
+      disassemblerview.Font.style:=[];
       disassemblerview.colors:=colors;
       disassemblerview.jlCallColor:=lblCall.font.color;
       disassemblerview.jlUnconditionalJumpColor:=lblUnconditionalJump.font.color;

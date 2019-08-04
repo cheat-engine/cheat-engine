@@ -77,6 +77,7 @@ type
     cbAlwaysForceLoad: TCheckBox;
     cbAllocsAddToWatchedRegions: TCheckBox;
     cbSkip_PAGE_WRITECOMBINE: TCheckBox;
+    cbUseThreadForFreeze: TCheckBox;
     combothreadpriority: TComboBox;
     defaultbuffer: TPopupMenu;
     Default1: TMenuItem;
@@ -887,19 +888,21 @@ begin
         reg.WriteBool('collectgarbage only when bigger', cbLuaOnlyCollectWhenLarger.checked);
         reg.WriteInteger('collectgarbage minsize', collectgarbageminimumsize);
 
+        reg.WriteBool('use thread to freeze', cbUseThreadForFreeze.checked);
+
+        mainform.FreezeTimer.Interval:=freezeinterval;
+        mainForm.UseThreadToFreeze:=cbUseThreadForFreeze.checked;
+
         if cbOverrideDefaultFont.checked then
         begin
           if reg.OpenKey('\Software\Cheat Engine\Font', true) then
             SaveFontToRegistry(fontdialog1.Font, reg);
         end;
 
+
       end
       else
         messagedlg(rsFailureToOpenRegistry, mtError, [mbok], 0);
-
-
-
-
 
 
       if cbLuaGarbageCollectAll.checked then
@@ -913,7 +916,6 @@ begin
       end;
       mainform.tLuaGCActive.enabled:=cbLuaGarbageCollectAll.checked;
       mainform.tLuaGCPassive.enabled:=cbLuaPassiveGarbageCollection.checked;
-
 
   {$ifndef net}
 
@@ -988,10 +990,8 @@ begin
 
 
     {$ifndef net}
-    mainform.FreezeTimer.Interval:=freezeinterval;
     mainform.UpdateTimer.Interval:=updateinterval;
     {$else}
-    mainform.FreezeTimer.Interval:=freezeinterval;
     mainform.UpdateTimer.Interval:=networkupdateinterval;
     {$endif}
 
