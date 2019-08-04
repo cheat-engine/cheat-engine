@@ -1487,12 +1487,16 @@ begin
 
   if dwContinueStatus=DBG_EXCEPTION_NOT_HANDLED then
   begin
-    if (UnexpectedExceptionAction=ueaBreak) or (UnexpectedExceptionAction=ueaBreakIfInRegion) and (IsInUnexpectedExceptionRegion(context^.{$ifdef cpu64}Rip{$else}Eip{$endif})) then
+    if (UnexpectedExceptionAction=ueaBreak) or ((UnexpectedExceptionAction=ueaBreakIfInRegion) and (IsInUnexpectedExceptionRegion(context^.{$ifdef cpu64}Rip{$else}Eip{$endif}))) then
     begin
-      unhandledException:=true;
-      unhandledExceptionCode:=debugEvent.Exception.ExceptionRecord.ExceptionCode;
-      handleBreak(nil, dwContinueStatus);
-      unhandledException:=false;
+      if IsIgnoredExceptionCode(debugEvent.Exception.ExceptionRecord.ExceptionCode)=false then
+      begin
+        unhandledException:=true;
+
+        unhandledExceptionCode:=debugEvent.Exception.ExceptionRecord.ExceptionCode;
+        handleBreak(nil, dwContinueStatus);
+        unhandledException:=false;
+      end;
     end;
 
   end;

@@ -230,7 +230,7 @@ begin
         for i:=0 to l.count-1 do
         begin
           try
-            AddIgnoredExceptionCode(strtoint('0x'+l[i]));
+            AddIgnoredExceptionCode(strtoint('0x'+copy(l[i],1,8)));
           except
           end;
         end;

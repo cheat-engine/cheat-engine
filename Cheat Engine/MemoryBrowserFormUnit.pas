@@ -1428,11 +1428,10 @@ end;
 procedure TMemoryBrowser.miBreakOnExceptionsClick(Sender: TObject);
 var n: TNotifyEvent;
 begin
-  miExceptionRegionSeperator.Visible:=UnexpectedExceptionAction=ueaBreakIfInRegion;
+  miExceptionRegionSeperator.Visible:=UnexpectedExceptionAction in [ueaBreak, ueaBreakIfInRegion];
   miExceptionRegionAutoAddAllocs.Visible:=UnexpectedExceptionAction=ueaBreakIfInRegion;
   miExceptionRegionManageList.Visible:=UnexpectedExceptionAction=ueaBreakIfInRegion;
   miExceptionIgnoreList.visible:=UnexpectedExceptionAction in [ueaBreak, ueaBreakIfInRegion];
-  miExceptionRegionManageList.visible:=miExceptionIgnoreList.visible;
 
   n:=miExceptionRegionAutoAddAllocs.OnClick;
   miExceptionRegionAutoAddAllocs.OnClick:=nil;
