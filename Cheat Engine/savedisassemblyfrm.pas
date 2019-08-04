@@ -19,6 +19,7 @@ type
     address: boolean;
     bytes: boolean;
     opcode: boolean;
+    comment: boolean;
     copymode: boolean;
     filename: string;
     form: TfrmSavedisassembly;
@@ -32,6 +33,7 @@ type
     cbAddress: TCheckBox;
     cbBytes: TCheckBox;
     cbOpcode: TCheckBox;
+    cbComment: TCheckBox;
     Edit1: TEdit;
     Edit2: TEdit;
     Label1: TLabel;
@@ -142,10 +144,6 @@ begin
     if specialpart='' then
       specialpart:=disassembler.DecodeLastParametersToString;
 
-    if specialpart<>'' then
-      opcodepart:=opcodepart+' { '+specialpart+' }';
-
-
 
     if address then
     begin
@@ -164,9 +162,11 @@ begin
 
     if opcode then temps:=temps+opcodepart;
 
-    if (address or opcode) or (currentaddress>stopaddress) then
+    if (comment) and (specialpart<>'') then temps:=temps+' { '+specialpart+' }';
+
+    if (address or opcode or comment) or (currentaddress>stopaddress) then
     begin
-      //each line for address / opcode, and only one time at the and for bytes only
+      //each line for address/opcode/comment, and only one time at the and for bytes only
       if copymode then
       begin
         //save to clipboard
@@ -258,6 +258,7 @@ begin
     SaveDisassemblyThread.address:=cbAddress.checked;
     SaveDisassemblyThread.bytes:=cbBytes.Checked;
     SaveDisassemblyThread.opcode:=cbOpcode.Checked;
+    SaveDisassemblyThread.comment:=cbComment.Checked;
     SaveDisassemblyThread.startaddress:=startaddress;
     SaveDisassemblyThread.stopaddress:=stopaddress;
     SaveDisassemblyThread.filename:=savedialog1.FileName;

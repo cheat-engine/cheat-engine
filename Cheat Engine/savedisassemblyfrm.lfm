@@ -1,13 +1,13 @@
 object frmSavedisassembly: TfrmSavedisassembly
-  Left = 489
-  Height = 124
-  Top = 276
-  Width = 191
+  Left = 291
+  Height = 158
+  Top = 139
+  Width = 185
   AutoSize = True
   BorderStyle = bsDialog
   Caption = 'Save disassembled output'
-  ClientHeight = 124
-  ClientWidth = 191
+  ClientHeight = 158
+  ClientWidth = 185
   OnDestroy = FormDestroy
   OnShow = FormShow
   Position = poScreenCenter
@@ -17,9 +17,9 @@ object frmSavedisassembly: TfrmSavedisassembly
     AnchorSideLeft.Side = asrCenter
     AnchorSideTop.Control = Panel2
     AnchorSideTop.Side = asrBottom
-    Left = 58
-    Height = 25
-    Top = 77
+    Left = 55
+    Height = 27
+    Top = 104
     Width = 75
     AutoSize = True
     BorderSpacing.Top = 3
@@ -38,8 +38,8 @@ object frmSavedisassembly: TfrmSavedisassembly
     AnchorSideRight.Side = asrBottom
     Left = 0
     Height = 21
-    Top = 109
-    Width = 191
+    Top = 138
+    Width = 185
     Anchors = [akTop, akLeft, akRight]
     BorderSpacing.Top = 7
     TabOrder = 1
@@ -50,9 +50,9 @@ object frmSavedisassembly: TfrmSavedisassembly
     AnchorSideRight.Control = Owner
     AnchorSideRight.Side = asrBottom
     Left = 5
-    Height = 19
+    Height = 42
     Top = 3
-    Width = 181
+    Width = 175
     Anchors = [akTop, akLeft, akRight]
     AutoSize = True
     BorderSpacing.Left = 5
@@ -61,39 +61,49 @@ object frmSavedisassembly: TfrmSavedisassembly
     BevelOuter = bvNone
     ChildSizing.EnlargeHorizontal = crsHomogenousChildResize
     ChildSizing.Layout = cclLeftToRightThenTopToBottom
-    ChildSizing.ControlsPerLine = 3
-    ClientHeight = 19
-    ClientWidth = 181
+    ChildSizing.ControlsPerLine = 2
+    ClientHeight = 42
+    ClientWidth = 175
     TabOrder = 2
     object cbAddress: TCheckBox
       Left = 0
-      Height = 19
+      Height = 21
       Top = 0
-      Width = 66
+      Width = 84
       Caption = 'Address'
       Checked = True
       State = cbChecked
       TabOrder = 2
     end
     object cbBytes: TCheckBox
-      Left = 66
-      Height = 19
+      Left = 84
+      Height = 21
       Top = 0
-      Width = 52
+      Width = 91
       Caption = 'bytes'
       Checked = True
       State = cbChecked
       TabOrder = 1
     end
     object cbOpcode: TCheckBox
-      Left = 118
-      Height = 19
-      Top = 0
-      Width = 63
+      Left = 0
+      Height = 21
+      Top = 21
+      Width = 84
       Caption = 'opcode'
       Checked = True
       State = cbChecked
       TabOrder = 0
+    end
+    object cbComment: TCheckBox
+      Left = 84
+      Height = 21
+      Top = 21
+      Width = 91
+      Caption = 'Comment'
+      Checked = True
+      State = cbChecked
+      TabOrder = 3
     end
   end
   object Panel2: TPanel
@@ -101,16 +111,16 @@ object frmSavedisassembly: TfrmSavedisassembly
     AnchorSideTop.Control = Panel1
     AnchorSideTop.Side = asrBottom
     Left = 3
-    Height = 49
-    Top = 25
-    Width = 177
+    Height = 53
+    Top = 48
+    Width = 179
     AutoSize = True
     BorderSpacing.Left = 3
     BorderSpacing.Top = 3
     BorderSpacing.Right = 3
     BevelOuter = bvNone
-    ClientHeight = 49
-    ClientWidth = 177
+    ClientHeight = 53
+    ClientWidth = 179
     TabOrder = 3
     object Label1: TLabel
       AnchorSideLeft.Control = Edit1
@@ -118,9 +128,9 @@ object frmSavedisassembly: TfrmSavedisassembly
       AnchorSideTop.Side = asrCenter
       AnchorSideRight.Control = Edit1
       Left = 0
-      Height = 15
+      Height = 17
       Top = 4
-      Width = 28
+      Width = 30
       Anchors = [akTop, akRight]
       Caption = 'From'
       ParentColor = False
@@ -130,9 +140,9 @@ object frmSavedisassembly: TfrmSavedisassembly
       AnchorSideTop.Side = asrCenter
       AnchorSideRight.Control = Edit2
       Left = 15
-      Height = 15
-      Top = 30
-      Width = 13
+      Height = 17
+      Top = 32
+      Width = 15
       Anchors = [akTop, akRight]
       Caption = 'To'
       ParentColor = False
@@ -143,9 +153,9 @@ object frmSavedisassembly: TfrmSavedisassembly
       AnchorSideTop.Side = asrBottom
       AnchorSideRight.Control = Edit1
       AnchorSideRight.Side = asrBottom
-      Left = 28
-      Height = 23
-      Top = 26
+      Left = 30
+      Height = 25
+      Top = 28
       Width = 149
       Anchors = [akTop, akLeft, akRight]
       BorderSpacing.Top = 3
@@ -155,8 +165,8 @@ object frmSavedisassembly: TfrmSavedisassembly
       AnchorSideTop.Control = Panel2
       AnchorSideRight.Control = Panel2
       AnchorSideRight.Side = asrBottom
-      Left = 28
-      Height = 23
+      Left = 30
+      Height = 25
       Top = 0
       Width = 149
       Anchors = [akTop, akRight]
