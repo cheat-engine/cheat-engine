@@ -44,7 +44,6 @@ object MainForm: TMainForm
     BevelOuter = bvNone
     BorderWidth = 1
     FullRepaint = False
-    ParentFont = False
     PopupMenu = PopupMenu2
     TabOrder = 0
     OnClick = Panel1Click
@@ -58,7 +57,6 @@ object MainForm: TMainForm
     AutoSize = True
     ClientHeight = 32
     ClientWidth = 620
-    ParentFont = False
     TabOrder = 1
     object advancedbutton: TSpeedButton
       Left = 1
@@ -72,7 +70,6 @@ object MainForm: TMainForm
       Flat = True
       OnClick = advancedbuttonClick
       ShowHint = True
-      ParentFont = False
       ParentShowHint = False
     end
     object CommentButton: TSpeedButton
@@ -85,7 +82,6 @@ object MainForm: TMainForm
       Caption = 'Table Extras'
       Flat = True
       OnClick = CommentButtonClick
-      ParentFont = False
       ParentShowHint = False
     end
     object lblSigned: TLabel
@@ -99,7 +95,6 @@ object MainForm: TMainForm
       Alignment = taCenter
       Caption = 'This table has been signed by'#13#10'Someone'
       ParentColor = False
-      ParentFont = False
       Visible = False
     end
   end
@@ -112,7 +107,6 @@ object MainForm: TMainForm
     BevelOuter = bvNone
     ClientHeight = 441
     ClientWidth = 620
-    ParentFont = False
     TabOrder = 2
     OnResize = Panel5Resize
     object ProcessLabel: TLabel
@@ -124,7 +118,6 @@ object MainForm: TMainForm
       Anchors = [akTop, akLeft, akRight]
       Caption = 'No Process Selected'
       ParentColor = False
-      ParentFont = False
       WordWrap = True
       OnDblClick = ProcessLabelDblClick
       OnMouseDown = ProcessLabelMouseDown
@@ -158,7 +151,6 @@ object MainForm: TMainForm
       Enabled = False
       ParentBidiMode = False
       ParentColor = False
-      ParentFont = False
     end
     object lblScanType: TLabel
       AnchorSideTop.Control = ScanType
@@ -173,7 +165,6 @@ object MainForm: TMainForm
       Caption = 'Scan Type'
       Enabled = False
       ParentColor = False
-      ParentFont = False
     end
     object lblValueType: TLabel
       AnchorSideTop.Control = VarType
@@ -188,7 +179,6 @@ object MainForm: TMainForm
       Caption = 'Value Type'
       Enabled = False
       ParentColor = False
-      ParentFont = False
     end
     object LoadButton: TSpeedButton
       AnchorSideLeft.Control = Panel7
@@ -285,7 +275,6 @@ object MainForm: TMainForm
       Constraints.MinWidth = 75
       Enabled = False
       OnClick = btnNewScanClick
-      ParentFont = False
       ParentShowHint = False
       TabOrder = 0
     end
@@ -311,7 +300,6 @@ object MainForm: TMainForm
       Constraints.MinWidth = 10
       Enabled = False
       ParentColor = False
-      ParentFont = False
       TabOrder = 2
       object Panel2: TPanel
         AnchorSideLeft.Control = gbScanOptions
@@ -342,7 +330,6 @@ object MainForm: TMainForm
           AllowGrayed = True
           BorderSpacing.Left = 2
           Caption = 'CopyOnWrite'
-          ParentFont = False
           ParentShowHint = False
           PopupMenu = pmScanRegion
           ShowHint = True
@@ -382,7 +369,6 @@ object MainForm: TMainForm
           Anchors = [akTop, akRight]
           BorderSpacing.Right = 2
           Caption = 'Executable'
-          ParentFont = False
           ParentShowHint = False
           PopupMenu = pmScanRegion
           ShowHint = True
@@ -505,7 +491,6 @@ object MainForm: TMainForm
           Checked = True
           Enabled = False
           OnChange = cbFastScanChange
-          ParentFont = False
           ParentShowHint = False
           ShowHint = True
           State = cbChecked
@@ -526,7 +511,6 @@ object MainForm: TMainForm
           Constraints.MinWidth = 10
           Enabled = False
           OnKeyPress = edtAlignmentKeyPress
-          ParentFont = False
           TabOrder = 1
           Text = '4'
         end
@@ -547,7 +531,6 @@ object MainForm: TMainForm
           Caption = 'Pause the game while scanning'
           Enabled = False
           OnClick = cbPauseWhileScanningClick
-          ParentFont = False
           TabOrder = 3
         end
         object Panel8: TPanel
@@ -566,7 +549,6 @@ object MainForm: TMainForm
           BevelOuter = bvNone
           ClientHeight = 38
           ClientWidth = 77
-          ParentFont = False
           TabOrder = 2
           object rbfsmLastDigts: TRadioButton
             AnchorSideLeft.Control = rbFsmAligned
@@ -580,7 +562,6 @@ object MainForm: TMainForm
             BorderSpacing.Right = 1
             Caption = 'Last Digits'
             OnChange = rbFsmAlignedChange
-            ParentFont = False
             ParentShowHint = False
             ShowHint = True
             TabOrder = 1
@@ -597,7 +578,6 @@ object MainForm: TMainForm
             Caption = 'Alignment'
             Checked = True
             OnChange = rbFsmAlignedChange
-            ParentFont = False
             ParentShowHint = False
             ShowHint = True
             TabOrder = 0
@@ -621,7 +601,6 @@ object MainForm: TMainForm
       Constraints.MinWidth = 75
       Enabled = False
       OnClick = btnNextScanClick
-      ParentFont = False
       TabOrder = 1
     end
     object ScanType: TComboBox
@@ -652,7 +631,6 @@ object MainForm: TMainForm
         'Unknown initial value'
       )
       OnChange = ScanTypeChange
-      ParentFont = False
       Style = csDropDownList
       TabOrder = 6
     end
@@ -686,7 +664,6 @@ object MainForm: TMainForm
       )
       OnChange = VarTypeChange
       OnDropDown = VarTypeDropDown
-      ParentFont = False
       PopupMenu = pmValueType
       Style = csDropDownList
       TabOrder = 7
@@ -724,7 +701,6 @@ object MainForm: TMainForm
       Caption = 'Undo Scan'
       Enabled = False
       OnClick = UndoScanClick
-      ParentFont = False
       TabOrder = 3
     end
     object scanvalue: TEdit
@@ -740,7 +716,6 @@ object MainForm: TMainForm
       BorderSpacing.Right = 5
       Enabled = False
       OnKeyPress = ScanvalueoldKeyPress
-      ParentFont = False
       PopupMenu = ccpmenu
       TabOrder = 4
     end
@@ -810,7 +785,6 @@ object MainForm: TMainForm
       ClientHeight = 83
       ClientWidth = 47
       FullRepaint = False
-      ParentFont = False
       TabOrder = 13
       object Logo: TImage
         AnchorSideLeft.Control = LogoPanel
@@ -1157,7 +1131,6 @@ object MainForm: TMainForm
         Caption = 'Settings'
         Flat = True
         OnClick = SettingsClick
-        ParentFont = False
       end
     end
     object pnlScanValueOptions: TPanel
@@ -1177,7 +1150,6 @@ object MainForm: TMainForm
       ClientHeight = 38
       ClientWidth = 63
       ParentColor = False
-      ParentFont = False
       TabOrder = 15
       object rbBit: TRadioButton
         AnchorSideLeft.Control = pnlScanValueOptions
@@ -1193,7 +1165,6 @@ object MainForm: TMainForm
         Anchors = [akTop, akLeft, akRight]
         Caption = 'Bits'
         OnClick = rbBitClick
-        ParentFont = False
         TabOrder = 0
         Visible = False
       end
@@ -1211,7 +1182,6 @@ object MainForm: TMainForm
         Anchors = [akTop, akRight]
         Caption = 'Decimal'
         OnClick = rbDecClick
-        ParentFont = False
         TabOrder = 1
         Visible = False
       end
@@ -1232,7 +1202,6 @@ object MainForm: TMainForm
         Caption = 'Hex'
         Enabled = False
         OnClick = cbHexadecimalClick
-        ParentFont = False
         ParentShowHint = False
         ShowHint = True
         TabOrder = 2
@@ -1251,7 +1220,6 @@ object MainForm: TMainForm
       BevelOuter = bvNone
       ClientHeight = 349
       ClientWidth = 121
-      ParentFont = False
       TabOrder = 8
       object pnlScanOptions: TPanel
         AnchorSideLeft.Control = Panel9
@@ -1268,7 +1236,6 @@ object MainForm: TMainForm
         ClientHeight = 209
         ClientWidth = 121
         Constraints.MinHeight = 100
-        ParentFont = False
         TabOrder = 0
         object pnlFloat: TPanel
           AnchorSideLeft.Control = pnlScanOptions
@@ -1283,7 +1250,6 @@ object MainForm: TMainForm
           BevelOuter = bvNone
           ClientHeight = 57
           ClientWidth = 121
-          ParentFont = False
           TabOrder = 5
           object rt3: TRadioButton
             AnchorSideTop.Control = rt2
@@ -1293,7 +1259,6 @@ object MainForm: TMainForm
             Top = 38
             Width = 74
             Caption = 'Truncated'
-            ParentFont = False
             TabOrder = 2
           end
           object rt1: TRadioButton
@@ -1302,7 +1267,6 @@ object MainForm: TMainForm
             Top = 0
             Width = 116
             Caption = 'Rounded (default)'
-            ParentFont = False
             TabOrder = 0
           end
           object rt2: TRadioButton
@@ -1314,7 +1278,6 @@ object MainForm: TMainForm
             Width = 121
             Caption = 'Rounded (extreme)'
             Checked = True
-            ParentFont = False
             TabOrder = 1
             TabStop = True
           end
@@ -1329,7 +1292,6 @@ object MainForm: TMainForm
           Width = 58
           Caption = 'UTF-16'
           OnChange = cbUnicodeChange
-          ParentFont = False
           TabOrder = 3
           Visible = False
         end
@@ -1345,7 +1307,6 @@ object MainForm: TMainForm
           Checked = True
           Enabled = False
           OnClick = cbCaseSensitiveClick
-          ParentFont = False
           ParentShowHint = False
           ShowHint = True
           State = cbChecked
@@ -1362,7 +1323,6 @@ object MainForm: TMainForm
           Top = 190
           Width = 118
           Caption = 'Simple values only'
-          ParentFont = False
           TabOrder = 6
           Visible = False
         end
@@ -1376,7 +1336,6 @@ object MainForm: TMainForm
           Width = 60
           Caption = 'Percent'
           OnChange = cbPercentageOnChange
-          ParentFont = False
           TabOrder = 1
         end
         object cbNot: TCheckBox
@@ -1390,7 +1349,6 @@ object MainForm: TMainForm
           Width = 40
           Caption = 'Not'
           Enabled = False
-          ParentFont = False
           ParentShowHint = False
           ShowHint = True
           TabOrder = 0
@@ -1406,7 +1364,6 @@ object MainForm: TMainForm
           Width = 74
           Caption = 'Codepage'
           OnChange = cbCodePageChange
-          ParentFont = False
           TabOrder = 2
           Visible = False
         end
@@ -1471,7 +1428,6 @@ object MainForm: TMainForm
           Enabled = False
           OnChange = cbUnrandomizerClick
           OnMouseDown = cbUnrandomizerMouseDown
-          ParentFont = False
           TabOrder = 0
         end
         object cbSpeedhack: TCheckBox
@@ -1487,7 +1443,6 @@ object MainForm: TMainForm
           Caption = 'Enable Speedhack'
           Enabled = False
           OnChange = cbSpeedhackChange
-          ParentFont = False
           ParentShowHint = False
           ShowHint = True
           TabOrder = 1
@@ -1507,7 +1462,6 @@ object MainForm: TMainForm
           BevelOuter = bvNone
           ClientHeight = 98
           ClientWidth = 115
-          ParentFont = False
           TabOrder = 2
           Visible = False
           object Label54: TLabel
@@ -1521,7 +1475,6 @@ object MainForm: TMainForm
             BorderSpacing.Left = 5
             Caption = 'Speed'
             ParentColor = False
-            ParentFont = False
           end
           object lblSH0: TLabel
             AnchorSideLeft.Control = tbSpeed
@@ -1534,7 +1487,6 @@ object MainForm: TMainForm
             BorderSpacing.Left = 6
             Caption = '0'
             ParentColor = False
-            ParentFont = False
           end
           object lblSH20: TLabel
             AnchorSideTop.Control = tbSpeed
@@ -1549,7 +1501,6 @@ object MainForm: TMainForm
             BorderSpacing.Right = 3
             Caption = '500'
             ParentColor = False
-            ParentFont = False
           end
           object btnSetSpeedhack2: TButton
             AnchorSideLeft.Control = lblSH0
@@ -1565,7 +1516,6 @@ object MainForm: TMainForm
             AutoSize = True
             Caption = 'Apply'
             OnClick = btnSetSpeedhack2Click
-            ParentFont = False
             TabOrder = 0
           end
           object editSH2: TEdit
@@ -1578,7 +1528,6 @@ object MainForm: TMainForm
             Top = 0
             Width = 40
             BorderSpacing.Left = 3
-            ParentFont = False
             TabOrder = 1
             Text = '1'
           end
@@ -1597,7 +1546,6 @@ object MainForm: TMainForm
             Position = 3
             Anchors = [akTop, akLeft, akRight]
             BorderSpacing.Top = 2
-            ParentFont = False
             TabOrder = 2
           end
         end
@@ -1618,7 +1566,6 @@ object MainForm: TMainForm
       BorderSpacing.Right = 5
       Enabled = False
       OnKeyPress = ScanvalueoldKeyPress
-      ParentFont = False
       PopupMenu = ccpmenu
       TabOrder = 5
     end
@@ -1633,7 +1580,6 @@ object MainForm: TMainForm
       Enabled = False
       ParentBidiMode = False
       ParentColor = False
-      ParentFont = False
     end
     object andlabel: TLabel
       AnchorSideTop.Control = scanvalue
@@ -1646,7 +1592,6 @@ object MainForm: TMainForm
       Anchors = [akTop, akRight]
       Caption = 'and'
       ParentColor = False
-      ParentFont = False
     end
     object Foundlist3: TListView
       AnchorSideTop.Control = Label6
@@ -1706,7 +1651,6 @@ object MainForm: TMainForm
       BorderSpacing.Bottom = 5
       Caption = 'Add Address Manually'
       OnClick = btnAddAddressManuallyClick
-      ParentFont = False
       TabOrder = 16
     end
     object btnMemoryView: TButton
@@ -1721,7 +1665,6 @@ object MainForm: TMainForm
       BorderSpacing.Bottom = 5
       Caption = 'Memory View'
       OnClick = btnMemoryViewClick
-      ParentFont = False
       TabOrder = 17
     end
     object cbCompareToSavedScan: TCheckBox
