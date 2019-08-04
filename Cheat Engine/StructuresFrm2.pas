@@ -5849,29 +5849,36 @@ var
   f: TfrmStructures2;
   e: boolean;
   x: ptruint;
+  i: integer;
 begin
 
   node:=tvStructureView.GetLastMultiSelected;
   childstruct:=getChildStructFromNode(node);
   if childstruct.isInGlobalStructList then //should be true
   begin
-    a:=getAddressFromNode(node, getFocusedColumn, e);
-    if not e then
+    for i:=0 to tvStructureView.SelectionCount-1 do
     begin
-      p:=0;
-      x:=0;
-      ReadProcessMemory(processhandle, pointer(a), @p, ProcessHandler.pointersize, x);
-      if x=ProcessHandler.pointersize then
+      node:=tvStructureView.Selections[i];
+      a:=getAddressFromNode(node, getFocusedColumn, e);
+      if not e then
       begin
-        if p=0 then exit;
-        f:=tfrmstructures2.create(application);
-        f.initialaddress:=p;
-        f.mainStruct:=childstruct;
-        f.show;
+        p:=0;
+        x:=0;
+        ReadProcessMemory(processhandle, pointer(a), @p, ProcessHandler.pointersize, x);
+        if x=ProcessHandler.pointersize then
+        begin
+          if p=0 then exit;
+          f:=tfrmstructures2.create(application);
+          f.initialaddress:=p;
+
+          f.show;
+          f.mainStruct:=childstruct;
+
+          f.InitializeFirstNode;
+          f.UpdateCurrentStructOptions;
+        end;
       end;
     end;
-
-
   end;
 
 
