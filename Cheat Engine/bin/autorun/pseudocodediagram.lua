@@ -677,7 +677,7 @@ function editBlockStrings(b)
   local result=false
   local mf=createForm(false)
   mf.Caption=translate('Block editor')
-  mf.PopupMode=pmNone
+  mf.PopupMode='pmNone'
   mf.BorderStyle=bsSizeable
   local m=createMemo(mf)
   local bh=createPanel(mf)
@@ -1479,7 +1479,7 @@ registerFormAddNotification(function(f)
             --print("calling spawnDiagram with entrynr "..entrynr..' which has address '..string.format('%x',f.Entry[entrynr].address ))
             spawnDiagram(f.Entry[entrynr].address,100000)   
           else
-            print("No entrynr set")
+            return
           end
         end        
       end

@@ -22,6 +22,7 @@ type
     leImageList: TImageList;
     MenuItem12: TMenuItem;
     MenuItem13: TMenuItem;
+    MenuItem14: TMenuItem;
     miAutoComplete: TMenuItem;
     miSaveCurrentScriptAs: TMenuItem;
     miShowScriptInOutput: TMenuItem;
@@ -73,6 +74,7 @@ type
     procedure MenuItem10Click(Sender: TObject);
     procedure MenuItem11Click(Sender: TObject);
     procedure MenuItem13Click(Sender: TObject);
+    procedure MenuItem14Click(Sender: TObject);
     procedure MenuItem2Click(Sender: TObject);
     procedure MenuItem3Click(Sender: TObject);
     procedure MenuItem5Click(Sender: TObject);
@@ -1399,6 +1401,11 @@ end;
 procedure TfrmLuaEngine.MenuItem13Click(Sender: TObject);
 begin
   finddialog1.Execute;
+end;
+
+procedure TfrmLuaEngine.MenuItem14Click(Sender: TObject);
+begin
+  mscript.redo;
 end;
 
 procedure TfrmLuaEngine.MenuItem2Click(Sender: TObject);

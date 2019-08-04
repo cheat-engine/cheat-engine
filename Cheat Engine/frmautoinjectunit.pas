@@ -85,6 +85,7 @@ type
     menuAOBInjection: TMenuItem;
     menuFullInjection: TMenuItem;
     MenuItem1: TMenuItem;
+    miRedo: TMenuItem;
     mifindNext: TMenuItem;
     miCallLua: TMenuItem;
     miNewWindow: TMenuItem;
@@ -114,10 +115,10 @@ type
     Injectincurrentprocess1: TMenuItem;
     Injectintocurrentprocessandexecute1: TMenuItem;
     Find1: TMenuItem;
-    Paste1: TMenuItem;
-    Copy1: TMenuItem;
-    Cut1: TMenuItem;
-    Undo1: TMenuItem;
+    miPaste: TMenuItem;
+    miCopy: TMenuItem;
+    miCut: TMenuItem;
+    miUndo: TMenuItem;
     N6: TMenuItem;
     FindDialog1: TFindDialog;
     undotimer: TTimer;
@@ -132,6 +133,7 @@ type
     procedure mifindNextClick(Sender: TObject);
     procedure miCallLuaClick(Sender: TObject);
     procedure miNewWindowClick(Sender: TObject);
+    procedure miRedoClick(Sender: TObject);
     procedure ReplaceDialog1Find(Sender: TObject);
     procedure ReplaceDialog1Replace(Sender: TObject);
     procedure Save1Click(Sender: TObject);
@@ -157,14 +159,14 @@ type
     procedure Close1Click(Sender: TObject);
     procedure Injectincurrentprocess1Click(Sender: TObject);
     procedure Injectintocurrentprocessandexecute1Click(Sender: TObject);
-    procedure Cut1Click(Sender: TObject);
-    procedure Copy1Click(Sender: TObject);
-    procedure Paste1Click(Sender: TObject);
+    procedure miCutClick(Sender: TObject);
+    procedure miCopyClick(Sender: TObject);
+    procedure miPasteClick(Sender: TObject);
     procedure Find1Click(Sender: TObject);
     procedure FindDialog1Find(Sender: TObject);
     procedure AAPref1Click(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
-    procedure Undo1Click(Sender: TObject);
+    procedure miUndoClick(Sender: TObject);
   private
     { Private declarations }
 
@@ -585,6 +587,11 @@ begin
   f.scriptmode:=ScriptMode;
 
   f.show;
+end;
+
+procedure TfrmAutoInject.miRedoClick(Sender: TObject);
+begin
+  assemblescreen.Redo;
 end;
 
 procedure TfrmAutoInject.ReplaceDialog1Find(Sender: TObject);
@@ -2062,17 +2069,17 @@ begin
   injectscript(true);
 end;
 
-procedure TfrmAutoInject.Cut1Click(Sender: TObject);
+procedure TfrmAutoInject.miCutClick(Sender: TObject);
 begin
   assemblescreen.CutToClipboard;
 end;
 
-procedure TfrmAutoInject.Copy1Click(Sender: TObject);
+procedure TfrmAutoInject.miCopyClick(Sender: TObject);
 begin
   assemblescreen.CopyToClipboard;
 end;
 
-procedure TfrmAutoInject.Paste1Click(Sender: TObject);
+procedure TfrmAutoInject.miPasteClick(Sender: TObject);
 begin
   assemblescreen.PasteFromClipboard;
 end;
@@ -2144,7 +2151,7 @@ begin
   end;
 end;
 
-procedure TfrmAutoInject.Undo1Click(Sender: TObject);
+procedure TfrmAutoInject.miUndoClick(Sender: TObject);
 begin
   assemblescreen.Undo;
 end;

@@ -186,29 +186,34 @@ object frmAutoInject: TfrmAutoInject
     Images = aaImageList
     left = 136
     top = 16
-    object Cut1: TMenuItem
+    object miCut: TMenuItem
       Caption = 'Cu&t'
       ImageIndex = 9
       ShortCut = 16472
-      OnClick = Cut1Click
+      OnClick = miCutClick
     end
-    object Copy1: TMenuItem
+    object miCopy: TMenuItem
       Caption = '&Copy'
       ImageIndex = 7
       ShortCut = 16451
-      OnClick = Copy1Click
+      OnClick = miCopyClick
     end
-    object Paste1: TMenuItem
+    object miPaste: TMenuItem
       Caption = '&Paste'
       ImageIndex = 8
       ShortCut = 16470
-      OnClick = Paste1Click
+      OnClick = miPasteClick
     end
-    object Undo1: TMenuItem
+    object miUndo: TMenuItem
       Caption = '&Undo'
       ImageIndex = 10
       ShortCut = 16474
-      OnClick = Undo1Click
+      OnClick = miUndoClick
+    end
+    object miRedo: TMenuItem
+      Caption = 'Redo'
+      ShortCut = 24666
+      OnClick = miRedoClick
     end
     object N6: TMenuItem
       Caption = '-'

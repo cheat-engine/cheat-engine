@@ -891,6 +891,11 @@ object frmLuaEngine: TfrmLuaEngine
       ShortCut = 16474
       OnClick = MenuItem10Click
     end
+    object MenuItem14: TMenuItem
+      Caption = 'Redo'
+      ShortCut = 24666
+      OnClick = MenuItem14Click
+    end
     object MenuItem13: TMenuItem
       Caption = 'Find'
       ImageIndex = 8
