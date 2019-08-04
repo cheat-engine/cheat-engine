@@ -1140,7 +1140,10 @@ begin
     if Reg.OpenKey('\Software\Cheat Engine\PSNNodeList', false) then
     begin
       oldlist:=tstringlist.create;
-      reg.GetKeyNames(oldlist);
+      try
+        reg.GetKeyNames(oldlist);
+      except
+      end;
 
       for i:=0 to oldlist.count-1 do
         reg.DeleteKey(oldlist[i]);
@@ -1334,7 +1337,10 @@ begin
   if Reg.OpenKey('\Software\Cheat Engine\PSNNodeList', false) then
   begin
     list:=tstringlist.create;
-    Reg.GetKeyNames(list);
+    try
+      Reg.GetKeyNames(list);
+    except
+    end;
 
 
     for i:=0 to list.count-1 do

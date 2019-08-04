@@ -88,6 +88,7 @@ dwordToByteTable(number): {}         - Converts a dword to a bytetable
 qwordToByteTable(number): {}         - Converts a qword to a bytetable
 floatToByteTable(number): {}         - Converts a float to a bytetable
 doubleToByteTable(number): {}        - Converts a double to a bytetable
+extendedToByteTable(number): {}      - Converts an extended to a bytetable
 stringToByteTable(string): {}        - Converts a string to a bytetable
 wideStringToByteTable(string): {}    - Converts a string to a widestring and converts that to a bytetable
 
@@ -96,8 +97,9 @@ byteTableToDword(table): number      - Converts a bytetable to a dword
 byteTableToQword(table): number      - Converts a bytetable to a qword
 byteTableToFloat(table): number      - Converts a bytetable to a float
 byteTableToDouble(table): number     - Converts a bytetable to a double
+byteTableToExtended(table): number   - Converts a bytetable to an extended and converts that to a double
 byteTableToString(table): string     - Converts a bytetable to a string
-byteTableToWideString(table): string - Converts a bytetable to a widestring and convets that to a string
+byteTableToWideString(table): string - Converts a bytetable to a widestring and converts that to a string
 
 bOr(int1, int2)   : Binary Or
 bXor(int1, int2)  : Binary Xor

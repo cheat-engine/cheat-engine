@@ -8,7 +8,6 @@ object frmHelp: TfrmHelp
   ClientHeight = 132
   ClientWidth = 157
   Color = clLime
-  FormStyle = fsStayOnTop
   OnCreate = FormCreate
   OnShow = FormShow
   LCLVersion = '2.0.0.4'

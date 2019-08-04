@@ -63,9 +63,9 @@ object formSettings: TformSettings
       Height = 633
       Top = 1
       Width = 660
-      ActivePage = ScanSettings
+      ActivePage = Assembler
       Align = alClient
-      TabIndex = 3
+      TabIndex = 6
       TabOrder = 1
       OnChange = pcSettingChange
       object GeneralSettings: TTabSheet
@@ -1739,6 +1739,7 @@ object formSettings: TformSettings
               Width = 353
               Caption = 'Ignore'
               Checked = True
+              OnChange = miUnexpectedBreakpointsOptionChange
               TabOrder = 3
               TabStop = True
             end
@@ -1748,6 +1749,7 @@ object formSettings: TformSettings
               Top = 19
               Width = 353
               Caption = 'Break'
+              OnChange = miUnexpectedBreakpointsOptionChange
               TabOrder = 0
             end
             object miUnexpectedBreakpointsBreakWhenInsideRegion: TRadioButton
@@ -1756,6 +1758,7 @@ object formSettings: TformSettings
               Top = 38
               Width = 353
               Caption = 'Break when inside specific regions'
+              OnChange = miUnexpectedBreakpointsOptionChange
               TabOrder = 1
             end
             object cbAllocsAddToWatchedRegions: TCheckBox

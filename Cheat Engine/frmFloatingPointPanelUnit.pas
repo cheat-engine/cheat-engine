@@ -46,6 +46,11 @@ type
     procedure SetContextPointer(context: PContext);
   end;
 
+
+procedure doubletoextended(float64:pointer; outextended:pointer); assembler;
+procedure extendedtodouble(float80:pointer;var outdouble:double); assembler;
+
+
 var frmFloatingPointPanel:TfrmFloatingPointPanel;
 
 implementation

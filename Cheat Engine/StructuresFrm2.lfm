@@ -33,7 +33,7 @@ object frmStructures2: TfrmStructures2
     HideSelection = False
     Indent = 19
     MultiSelect = True
-    MultiSelectStyle = [msShiftSelect, msVisibleOnly, msSiblingOnly]
+    MultiSelectStyle = [msControlSelect, msShiftSelect, msVisibleOnly, msSiblingOnly]
     ParentFont = False
     PopupMenu = pmStructureView
     ReadOnly = True
