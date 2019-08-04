@@ -1450,9 +1450,9 @@ registerFormAddNotification(function(f)
         local entrynr
         local i
         
-        print("Spawn Diagram menuitem")
-        print("f classname="..f.ClassName)
-        print("f.Count="..f.Count)
+        --print("Spawn Diagram menuitem")
+        --print("f classname="..f.ClassName)
+        --print("f.Count="..f.Count)
         
         if f.Count>0 then
           local entrynr
