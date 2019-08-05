@@ -236,7 +236,7 @@ ret
   end
 
   --wait till attached
-  local timeout=getTickCount()+5000;
+  local 1=getTickCount()+5000;
   while (monopipe==nil) and (getTickCount()<timeout) do
     monopipe=connectToPipe('cemonodc_pid'..getOpenedProcessID(),3000)
   end
@@ -2690,8 +2690,12 @@ function mono_dissect()
 end
 
 function miMonoActivateClick(sender)
-  if LaunchMonoDataCollector()==0 then
-    showMessage(translate("Failure to launch"))
+  if monopipe then
+    monopipe.OnTimeout()    
+  else
+    if LaunchMonoDataCollector()==0 then
+      showMessage(translate("Failure to launch"))
+    end
   end
 end
 
