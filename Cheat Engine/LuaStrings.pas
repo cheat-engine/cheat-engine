@@ -207,14 +207,18 @@ end;
 function strings_loadFromFile(L: Plua_State): integer; cdecl;
 var
   strings: TStrings;
+  ignoreencoding: boolean=true;
 begin
   result:=0;
   strings:=luaclass_getClassObject(L);
 
   if lua_gettop(L)>=1 then
   begin
+    if lua_Gettop(L)>=2 then
+      ignoreencoding:=lua_toboolean(L,2);
+
     try
-      strings.LoadFromFile(lua_tostring(L, -1));
+      strings.LoadFromFile(lua_tostring(L, 1), ignoreencoding);
       lua_pushboolean(L, true);
     except
       lua_pushboolean(L, false);

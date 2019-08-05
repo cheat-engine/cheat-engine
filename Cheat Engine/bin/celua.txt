@@ -929,7 +929,7 @@ methods
 
   getCount(): Returns the number is strings in the list
   remove(string); Removes the given string from the list
-  loadFromFile(filename) : Load the strings from a textfile
+  loadFromFile(filename, ignoreencoding OPTIONAL default true) : Load the strings from a textfile. If ignoreEncoding is false then the file will be loaded with the best encoding the loader can guess
   saveToFile(filename) : Save the strings to a textfile
 
   getString(index) : gets the string at the given index
