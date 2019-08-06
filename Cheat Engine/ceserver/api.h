@@ -229,5 +229,5 @@ extern pthread_mutex_t debugsocketmutex;
 
 int debug_log(const char * format , ...); 
 long safe_ptrace(int request, pid_t pid, void * addr, void * data);
-#define MEMORY_SEARCH_OPTION 0
+extern int MEMORY_SEARCH_OPTION;
 #endif /* API_H_ */
