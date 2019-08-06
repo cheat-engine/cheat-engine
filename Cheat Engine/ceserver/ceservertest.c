@@ -374,11 +374,10 @@ int hp;
   }
 }
 
-void *CESERVERTEST(void *argv[])
+void *CESERVERTEST(int pid )
 {
   int fd;
 
-  int pid=atoi(argv[2]);
   pthread_t pth;
   debug_log("CESERVERTEST: running\n");
 
