@@ -25,6 +25,7 @@ type
     procedure btnAddClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
+    procedure FormShow(Sender: TObject);
     procedure lbExceptionCodeListDblClick(Sender: TObject);
     procedure PopupMenu1Popup(Sender: TObject);
   private
@@ -60,6 +61,11 @@ end;
 procedure TfrmExceptionIgnoreList.FormDestroy(Sender: TObject);
 begin
   SaveFormPosition(self);
+end;
+
+procedure TfrmExceptionIgnoreList.FormShow(Sender: TObject);
+begin
+  updateList;
 end;
 
 procedure TfrmExceptionIgnoreList.lbExceptionCodeListDblClick(Sender: TObject);

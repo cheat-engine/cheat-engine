@@ -8,6 +8,7 @@ object frmExceptionIgnoreList: TfrmExceptionIgnoreList
   ClientWidth = 320
   OnCreate = FormCreate
   OnDestroy = FormDestroy
+  OnShow = FormShow
   Position = poScreenCenter
   LCLVersion = '2.0.0.4'
   object Panel1: TPanel
@@ -24,7 +25,7 @@ object frmExceptionIgnoreList: TfrmExceptionIgnoreList
       Left = 0
       Height = 225
       Top = 0
-      Width = 177
+      Width = 176
       Align = alClient
       ItemHeight = 0
       OnDblClick = lbExceptionCodeListDblClick
@@ -32,14 +33,14 @@ object frmExceptionIgnoreList: TfrmExceptionIgnoreList
       TabOrder = 0
     end
     object Panel2: TPanel
-      Left = 177
+      Left = 176
       Height = 225
       Top = 0
-      Width = 143
+      Width = 144
       Align = alRight
       AutoSize = True
       ClientHeight = 225
-      ClientWidth = 143
+      ClientWidth = 144
       TabOrder = 1
       object edtExceptionCode: TEdit
         AnchorSideLeft.Control = Label2
@@ -48,8 +49,9 @@ object frmExceptionIgnoreList: TfrmExceptionIgnoreList
         Left = 7
         Height = 23
         Top = 20
-        Width = 129
+        Width = 130
         BorderSpacing.Right = 6
+        Constraints.MinWidth = 130
         TabOrder = 0
       end
       object Label2: TLabel
@@ -69,12 +71,14 @@ object frmExceptionIgnoreList: TfrmExceptionIgnoreList
         AnchorSideLeft.Side = asrCenter
         AnchorSideTop.Control = edtExceptionCode
         AnchorSideTop.Side = asrBottom
-        Left = 34
+        Left = 35
         Height = 25
         Top = 48
         Width = 75
+        AutoSize = True
         BorderSpacing.Top = 5
         Caption = 'Add'
+        Constraints.MinWidth = 75
         OnClick = btnAddClick
         TabOrder = 1
       end

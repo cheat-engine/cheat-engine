@@ -53,7 +53,7 @@ type
 
 implementation
 
-uses ProcessHandlerUnit, Globals;
+uses ProcessHandlerUnit, Globals, dialogs;
 
 resourcestring
   rsErrorWhileTryingToCreateTheConfigurationStructure = 'Error while trying '
@@ -65,6 +65,8 @@ resourcestring
     +'the event handles to the other process';
   rsVEHDebugError = 'VEH Debug error';
   rsFailureDuplicatingTheFilemapping = 'Failure duplicating the filemapping';
+  rsTheVEHDllSeemsToHaveFailedToLoad = 'The VEH dll seems to have failed to load';
+  rsWrongVEHDllVersion = 'The version of the VEH dll inside the target process (%x) does not match what was expected %x';
 
 
 type
@@ -77,16 +79,34 @@ type
   THeartBeat=class(TThread)
   private
     owner: TVEHDebugInterface;
+    procedure invalidVersionMessage;
   protected
     procedure execute; override;
   end;
 
-procedure THeartBeat.execute;
+procedure THeartBeat.invalidVersionMessage;
 begin
+  if owner.VEHDebugView.VEHVersion=0 then
+    MessageDlg(rsTheVEHDllSeemsToHaveFailedToLoad, mtError, [mbok], 0)
+  else
+    MessageDlg(format(rsWrongVEHDllVersion, [owner.VEHDebugView.VEHVersion, DWORD($cece0000+VEHVERSION)]), mtWarning, [mbok], 0);
+end;
+
+procedure THeartBeat.execute;
+var invalidversion: integer;
+begin
+  invalidversion:=0;
   while not terminated do
   begin
     inc(owner.VEHDebugView.heartbeat);
-    sleep(500);
+    sleep(250);
+
+    if owner.VEHDebugView.VEHVersion<>$cece0000+VEHVERSION then
+    begin
+      inc(invalidversion);
+      if invalidversion=10 then //(10*500 ms=5 seconds);
+        synchronize(invalidVersionMessage);
+    end;
   end;
 end;
 
@@ -285,8 +305,6 @@ begin
   if result then
   begin
     ZeroMemory(@lpDebugEvent, sizeof(TdebugEvent));
-    //fetch the data from the debugged app
-
 
 
    // lpDebugEvent.dwDebugEventCode:=EXCEPTION_DEBUG_EVENT; //exception

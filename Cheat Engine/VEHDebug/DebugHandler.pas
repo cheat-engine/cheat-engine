@@ -114,6 +114,8 @@ begin
            handlerCS.Leave;
 
            OutputDebugString('VEH debug terminated because the heartbeat stopped');
+
+           MessageBoxA(0,'CE''s VEH heartbeat has stopped and an exception happened. Press OK to see what happens next','VEH Debug',MB_ICONERROR or MB_OK);
            exit;
            {$endif}
          end;

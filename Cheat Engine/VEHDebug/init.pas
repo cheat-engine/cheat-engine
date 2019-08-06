@@ -154,6 +154,8 @@ begin
     exit;
   end;
 
+  VEHSharedMem.VEHVersion:=$cece0000+VEHVERSION;
+
 
   OutputDebugString(pchar('HasDebugEvent='+inttohex(VEHSharedMem.HasDebugEvent,8)));
   OutputDebugString(pchar('HasHandledDebugEvent='+inttohex(VEHSharedMem.HasHandledDebugEvent,8)));
