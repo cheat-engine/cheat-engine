@@ -1128,13 +1128,42 @@ int main(int argc, char *argv[])
   PORT=52736;
 
   #ifndef SHARED_LIBRARY
-  if(argc >1 ){
-    errno = 0;
-    int argv_port = strtol(argv[1],NULL , 10);
-    if(errno != ERANGE && errno != EINVAL && argv_port != 0)
-      PORT = argv_port;
-    else
-      debug_log("cannot parse port from argument \"%s\". Usage: %s <port>",argv[1],argv[0]);
+  int TEST_MODE = 0;
+  int TEST_PID = 0;
+  int opt;
+
+  opterr = 0;
+
+  int argv_search_option;
+  int argv_port;
+  int argv_pid;
+  while((opt = getopt(argc, argv, "m:p:t:")) != -1) 
+  {
+    switch(opt)
+    {
+      case 'm':
+          errno = 0;
+          argv_search_option = strtol(optarg,NULL,10);
+          if(errno != ERANGE && errno != EINVAL)
+            MEMORY_SEARCH_OPTION = argv_search_option;
+          break;
+      case 'p':
+          errno = 0;
+          argv_port = strtol(optarg,NULL,10);
+          if(errno != ERANGE && errno != EINVAL && argv_port != 0)
+            PORT = argv_port;
+          break;
+      case 't':
+          errno = 0;
+          TEST_MODE = 1;
+          argv_pid = strtol(optarg,NULL,10);
+          if(errno != ERANGE && errno != EINVAL)
+            TEST_PID = argv_pid;
+          break;
+      default:
+          debug_log("Usage: %s [-m <search_option>] [-p <port>] [-t <pid>] arg1 ...\n", argv[0]);
+          break;
+    }
   }
   #endif
 
@@ -1180,15 +1209,10 @@ int main(int argc, char *argv[])
     memset(&addr_client, 0, sizeof(addr_client));
 
     #ifndef SHARED_LIBRARY
-    if (argc>2)
+    if (TEST_MODE == 1)
     {
-      debug_log("argv[0]=%s\n", argv[0]);
-      debug_log("argv[1]=%s\n", argv[1]);
-      if (strcmp(argv[1], "TEST")==0)
-      {
-        debug_log("TESTMODE\n");
-        pthread_create(&pth, NULL, (void *)CESERVERTEST, argv);
-      }
+      debug_log("TESTMODE\n");
+      pthread_create(&pth, NULL, (void *)CESERVERTEST, TEST_PID);     
     }
     #endif
 
