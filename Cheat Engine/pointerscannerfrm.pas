@@ -402,6 +402,8 @@ resourcestring
   rsPSDoYouWishToResumeTheCurrentPointerscanAtaLaterTime = 'Do you wish to resume the current pointerscan at a later time?';
   rsPSGeneratingPointermap = 'Generating pointermap';
   rsPSExportToDatabase = 'Export to database';
+  rsPSExportToDatabaseBiggerSizeOrNot = 'Do you want "result" table with indexes and keys? It will take up additional disk space.';
+  rsPSExportToDatabaseBiggerSizeOrNot_resultid = 'Do you want resultid column filled? It will take up additional disk space.';
   rsPSGiveaNameForTheseResults = 'Give a name for these results';
   rsPSExporting = 'Exporting...';
   rsPSThisDatabaseDoesntContainAnyPointerFiles = 'This database does not contain any pointer files';
@@ -409,6 +411,7 @@ resourcestring
   rsPSThereIsAlreadyaPointerFileWithThsiNamePresentinThisDatabase = 'There is already a pointerfile with this name present in this database. Replace it''s content with this one ?';
   rsPSExportAborted = 'Export aborted';
   rsPSImporting = 'Importing...';
+  rsPSImporting_sortOrNot = 'Do you wish to sort pointerlist by level, then module, then offsets?';
   rsPSStatistics = 'Statistics';
   rsPSUniquePointervaluesInTarget = 'Unique pointervalues in target:';
   rsPSScanDuration = 'Scan duration: ';
@@ -1313,6 +1316,7 @@ var
   ptrid: string;
   i: integer;
   j: qword;
+  resultidcolumnsave: boolean;
 
   p: PPointerscanResult;
   s: string;
@@ -1370,7 +1374,7 @@ begin
       	                      '  PRIMARY KEY(ptrid,offsetnr)'+
                               ');');
 
-        sqlite3.ExecuteDirect('CREATE UNIQUE INDEX "ptrid_idx" ON pointerfiles( "ptrid" );');
+        sqlite3.ExecuteDirect('CREATE UNIQUE INDEX "ptrid_idx" ON pointerfiles_endwithoffsetlist( "ptrid" );');
       end;
 
 
@@ -1389,9 +1393,14 @@ begin
           offsetlist:=offsetlist+', offset'+inttostr(i)+' integer';
 
 
-        sqlite3.ExecuteDirect('create table results(ptrid integer not null, resultid integer not null, offsetcount integer, moduleid integer, moduleoffset integer '+offsetlist+', primary key (ptrid, resultid) );');
-        sqlite3.ExecuteDirect('CREATE UNIQUE INDEX "ptr_res_id_idx" ON "results"( ptrid, resultid );');
-        sqlite3.ExecuteDirect('CREATE INDEX "modid_modoff_idx" ON "results"( moduleid, moduleoffset );');
+       if messagedlg(rsPSExportToDatabaseBiggerSizeOrNot, mtConfirmation, [mbyes, mbno], 0) = mryes then
+        begin
+          sqlite3.ExecuteDirect('create table results(ptrid integer not null, resultid integer, offsetcount integer, moduleid integer, moduleoffset integer '+offsetlist+', primary key (ptrid, resultid) );');
+          sqlite3.ExecuteDirect('CREATE UNIQUE INDEX "ptr_res_id_idx" ON "results"( ptrid, resultid );');
+          sqlite3.ExecuteDirect('CREATE INDEX "modid_modoff_idx" ON "results"( moduleid, moduleoffset );');
+        end
+        else
+          sqlite3.ExecuteDirect('create table results(ptrid integer not null, resultid integer, offsetcount integer, moduleid integer, moduleoffset integer '+offsetlist+');');
       end
       else
       begin
@@ -1497,6 +1506,9 @@ begin
       for i:=0 to Pointerscanresults.modulelistCount-1 do
         sqlite3.ExecuteDirect('INSERT INTO modules(ptrid, moduleid, name) values ('+ptrid+','+inttostr(i)+',"'+Pointerscanresults.getModulename(i)+'")');
 
+      resultidcolumnsave:=true;
+      if messagedlg(rsPSExportToDatabaseBiggerSizeOrNot_resultid, mtConfirmation, [mbyes, mbno], 0) = mrno then resultidcolumnsave:=false;
+
       //for j:=0 to Pointerscanresults.count-1 do
       j:=0;
       while j<=Pointerscanresults.count-1 do
@@ -1511,7 +1523,10 @@ begin
           offsetvalues:=offsetvalues+','+inttostr(p.offsets[i-1]);
         end;
 
-        s:='INSERT INTO results(ptrid, resultid, offsetcount, moduleid, moduleoffset'+offsetlist+') values ('+ptrid+','+inttostr(j)+','+inttostr(p.offsetcount)+','+inttostr(p.modulenr)+','+inttostr(p.moduleoffset)+offsetvalues+')';
+        if resultidcolumnsave then
+          s:='INSERT INTO results(ptrid, resultid, offsetcount, moduleid, moduleoffset'+offsetlist+') values ('+ptrid+','+inttostr(j)+','+inttostr(p.offsetcount)+','+inttostr(p.modulenr)+','+inttostr(p.moduleoffset)+offsetvalues+')'
+        else 
+          s:='INSERT INTO results(ptrid, offsetcount, moduleid, moduleoffset'+offsetlist+') values ('+ptrid+','+inttostr(p.offsetcount)+','+inttostr(p.modulenr)+','+inttostr(p.moduleoffset)+offsetvalues+')';
 
         sqlite3.ExecuteDirect(s);
 
@@ -1547,7 +1562,7 @@ procedure Tfrmpointerscanner.miImportFromsqliteClick(Sender: TObject);
 var
   l: TStringList;
   f: TfrmSelectionList;
-  name, filename: string;
+  name, filename, offsetlist: string;
 
   query2: TSQLQuery;
 
@@ -1779,7 +1794,14 @@ begin
     sqlquery.Active:=false;
 
 
-    sqlquery.sql.text:='select * from results where ptrid='+ptrid;
+    offsetlist:='';
+    for i:=1 to maxlevel do offsetlist:=offsetlist+', offset'+inttostr(i);
+
+    if messagedlg(rsPSImporting_sortOrNot, mtConfirmation, [mbyes, mbno], 0) = mryes then
+      sqlquery.sql.text:='select * from results where ptrid='+ptrid+' order by offsetcount, moduleid'+offsetlist
+    else
+      sqlquery.sql.text:='select * from results where ptrid='+ptrid;
+
     SQLQuery.active:=true;
     try
       resultptrfile:=tfilestream.create(filename+'.results.0', fmcreate);
