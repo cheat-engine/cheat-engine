@@ -2044,6 +2044,9 @@ begin
   if err<>nil then
   begin
     errs:=err;
+
+
+
     if (errs='Access violation') and (miEnableLCLDebug.checked) then
       errs:=errs+#13#10'Please send the errorlog.txt file to Dark Byte. Thanks';
 
@@ -2306,6 +2309,12 @@ begin
   err[length(e.message)]:=#0;
 
 
+  if miEnableLCLDebug.checked then
+  begin
+    DebugLn('Exception '+e.Message);
+    DumpExceptionBackTrace;
+
+  end;
 
   PostMessage(handle, wm_showerror, 0, ptruint(err));
 end;
