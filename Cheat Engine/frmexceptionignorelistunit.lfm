@@ -71,13 +71,13 @@ object frmExceptionIgnoreList: TfrmExceptionIgnoreList
         AnchorSideLeft.Side = asrCenter
         AnchorSideTop.Control = edtExceptionCode
         AnchorSideTop.Side = asrBottom
-        Left = 35
+        Left = 20
         Height = 25
         Top = 48
-        Width = 75
+        Width = 105
         AutoSize = True
         BorderSpacing.Top = 5
-        Caption = 'Add'
+        Caption = 'Add Exception '
         Constraints.MinWidth = 75
         OnClick = btnAddClick
         TabOrder = 1

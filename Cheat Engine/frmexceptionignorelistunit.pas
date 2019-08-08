@@ -54,7 +54,11 @@ end;
 procedure TfrmExceptionIgnoreList.btnAddClick(Sender: TObject);
 var code: dword;
 begin
-  code:=strtoint(edtExceptionCode.text);
+  try
+    code:=strtoint(edtExceptionCode.text);
+  except
+    code:=strtoint('$'+edtExceptionCode.text);
+  end;
   AddIgnoredExceptionCode(code);
 end;
 
@@ -66,6 +70,8 @@ end;
 procedure TfrmExceptionIgnoreList.FormShow(Sender: TObject);
 begin
   updateList;
+
+  edtExceptionCode.Width:=btnAdd.Width+2;
 end;
 
 procedure TfrmExceptionIgnoreList.lbExceptionCodeListDblClick(Sender: TObject);
