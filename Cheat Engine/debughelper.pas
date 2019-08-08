@@ -2564,18 +2564,23 @@ begin
       if result=wrSignaled then break;
     end;
 
-    frmDebuggerAttachTimeout:=tfrmDebuggerAttachTimeout.Create(application);
-    frmDebuggerAttachTimeout.event:=OnAttachEvent;
+    if result<>wrSignaled then
+    begin
+      frmDebuggerAttachTimeout:=tfrmDebuggerAttachTimeout.Create(application);
+      frmDebuggerAttachTimeout.event:=OnAttachEvent;
 
-    mresult:=frmDebuggerAttachTimeout.ShowModal;
-    frmDebuggerAttachTimeout.free;
+      mresult:=frmDebuggerAttachTimeout.ShowModal;
+      frmDebuggerAttachTimeout.free;
 
-    if mresult=mrAbort then
-      raise exception.create(rsDebuggerAttachAborted);
+      if mresult=mrAbort then
+        raise exception.create(rsDebuggerAttachAborted);
 
-    if mresult=mrok then break;
+      if mresult=mrok then break;
 
-    userWantsToAttach:=mresult<>mrCancel;
+      userWantsToAttach:=mresult<>mrCancel;
+    end
+    else
+      break;
     //userWantsToAttach:=(result<>wrSignaled) and (MessageDlg(rsDebuggerAttachTimeout, rsTheDebuggerAttachHasTimedOut, mtConfirmation, [mbyes, mbNo],0 )=mryes);
   end;
 
