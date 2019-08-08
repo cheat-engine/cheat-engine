@@ -111,7 +111,7 @@ uses mainunit, mainunit2, luaclass, frmluaengineunit, plugin, pluginexports,
   xinput, winsapi, frmExeTrainerGeneratorUnit, CustomBase85, FileUtil, networkConfig,
   LuaCustomType, Filehandler, LuaSQL, frmSelectionlistunit, cpuidUnit, LuaRemoteThread,
   LuaManualModuleLoader, pointervaluelist, frmEditHistoryUnit, LuaCheckListBox,
-  LuaDiagram, frmUltimap2Unit, frmcodefilterunit, BreakpointTypeDef;
+  LuaDiagram, frmUltimap2Unit, frmcodefilterunit, BreakpointTypeDef, LuaSyntax;
 
   {$warn 5044 off}
 
@@ -179,15 +179,22 @@ begin
 end;
 
 
+
 procedure lua_register(L: Plua_State; const n: PChar; f: lua_CFunction);
 //overriding the original lua_register to add both a lower and uppercase start
 var s: string;
 begin
+  if luasyntaxStringHashList<>nil then
+    luasyntaxStringHashList.Add(n);
+
   lua.lua_register(L, n, f);
   s:=n;
   s[1]:=chr(ord(s[1]) xor $20); //switch from uppercase to lowercase and lowercase to uppercase
 
   lua.lua_register(L, pchar(s), f);
+
+  if luasyntaxStringHashList<>nil then
+    luasyntaxStringHashList.Add(s);
 end;
 
 var luarefcs: TCriticalSection;

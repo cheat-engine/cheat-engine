@@ -1426,7 +1426,7 @@ begin
 
     EXCEPTION_SINGLE_STEP, STATUS_WX86_SINGLE_STEP:
     begin
-      OutputDebugString('EXCEPTION_SINGLE_STEP. Dr6='+inttohex(context^.dr6,8)+' Dr7='+inttohex(context^.dr7,8)+' RIP='+inttohex(context^.rip,8));
+      OutputDebugString('EXCEPTION_SINGLE_STEP. Dr6='+inttohex(context^.dr6,8)+' Dr7='+inttohex(context^.dr7,8)+' RIP='+inttohex(context^.{$ifdef cpu32}eip{$else}rip{$endif},8));
 
       if context^.dr6=0 then
       asm

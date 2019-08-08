@@ -205,7 +205,8 @@ uses
   SynEditHighlighter,
 {$ENDIF}
   SysUtils,
-  Classes;
+  Classes,
+  StringHashList;
 
 type
   TtkTokenKind = (
@@ -220,6 +221,7 @@ type
     tkFloat,
     tkSpace,
     tkString,
+    tkInternalFunction,
     tkUnknown);
 
   TRangeState = (rsUnKnown, rsLuaComment, rsLuaMComment, rsLuaMString, rsString1, rsString2);
@@ -254,6 +256,7 @@ type
     fNumberAttri: TSynHighlighterAttributes;
     fSpaceAttri: TSynHighlighterAttributes;
     fStringAttri: TSynHighlighterAttributes;
+    fInternalFunctionAttri: TSynHighlighterAttributes;
     function KeyHash(ToHash: PChar): Integer;
     function KeyComp(const aKey: string): Boolean;
     function Func17: TtkTokenKind;
@@ -330,11 +333,14 @@ type
     property CommentAttri: TSynHighlighterAttributes read fCommentAttri write fCommentAttri;
     property IdentifierAttri: TSynHighlighterAttributes read fIdentifierAttri write fIdentifierAttri;
     property KeyAttri: TSynHighlighterAttributes read fKeyAttri write fKeyAttri;
+    property InternalFunctionAttri: TSynHighlighterAttributes read fInternalFunctionAttri write fInternalFunctionAttri;
     property LuaMStringAttri: TSynHighlighterAttributes read fLuaMStringAttri write fLuaMStringAttri;
     property NumberAttri: TSynHighlighterAttributes read fNumberAttri write fNumberAttri;
     property SpaceAttri: TSynHighlighterAttributes read fSpaceAttri write fSpaceAttri;
     property StringAttri: TSynHighlighterAttributes read fStringAttri write fStringAttri;
   end;
+
+var luasyntaxStringHashList: TStringHashList;
 
 implementation
 
@@ -358,6 +364,9 @@ const
 var
   Identifiers: array[#0..#255] of ByteBool;
   mHashTable : array[#0..#255] of Integer;
+
+
+
 
 procedure MakeIdentTable;
 var
@@ -590,6 +599,12 @@ begin
     Result := fIdentFuncTable[HashKey]{$IFDEF FPC}(){$ENDIF}
   else
     Result := tkIdentifier;
+
+  if result=tkIdentifier then
+  begin
+    if luasyntaxStringHashList.Find(copy(maybe, 1,fstringLen))<>-1 then
+      result:=tkInternalFunction;
+  end;
 end;
 
 procedure TSynLuaSyn.MakeMethodTables;
@@ -962,12 +977,18 @@ begin
   fKeyAttri.Foreground:=clBlue;
   AddAttribute(fKeyAttri);
 
+  fInternalFunctionAttri := TSynHighLighterAttributes.Create(SYNS_AttrInternalFunction);
+  fInternalFunctionAttri.Style := [fsBold];
+  fInternalFunctionAttri.Foreground:=$c08000;
+  fInternalFunctionAttri.Background:=$eeeeee;
+  AddAttribute(fInternalFunctionAttri);
+
   fLuaMStringAttri := TSynHighLighterAttributes.Create(SYNS_AttrLuaMString);
   fLuaMStringAttri.Foreground := clNavy;
   AddAttribute(fLuaMStringAttri);
 
   fNumberAttri := TSynHighLighterAttributes.Create(SYNS_AttrNumber);
-  fNumberAttri.Foreground := clBlue;
+  fNumberAttri.Foreground := $f00000;
   AddAttribute(fNumberAttri);
 
   fSpaceAttri := TSynHighLighterAttributes.Create(SYNS_AttrSpace);
@@ -1088,6 +1109,7 @@ begin
     tkNumber, tkFloat: Result := fNumberAttri;
     tkSpace: Result := fSpaceAttri;
     tkString: Result := fStringAttri;
+    tkInternalFunction: result:= fInternalFunctionAttri;
     tkUnknown: Result := fIdentifierAttri;
   else
     Result := nil;
@@ -1143,6 +1165,8 @@ end;
 
 initialization
   MakeIdentTable;
+  luasyntaxStringHashList:=TStringHashList.Create(true);
+
 {$IFNDEF SYN_CPPB_1}
   RegisterPlaceableHighlighter(TSynLuaSyn);
 {$ENDIF}
