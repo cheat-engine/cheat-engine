@@ -1036,6 +1036,7 @@ begin
     miDeleteBP.visible:=hasbp;
 
     miHVFollow.Visible:=hexview.CanFollow;
+    Addthisaddresstothelist1.visible:=true;
   end
   else
   begin
@@ -1045,6 +1046,8 @@ begin
     MenuItem7.visible:=false;
     miBreakAndTrace.visible:=false;
     miDeleteBP.visible:=false;
+
+    Addthisaddresstothelist1.visible:=false;
   end;
 
   miHVBack.visible:=hexview.hasBackList;
