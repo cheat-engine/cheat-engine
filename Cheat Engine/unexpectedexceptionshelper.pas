@@ -200,10 +200,23 @@ begin
   try
     if reg.OpenKey('\Software\Cheat Engine\Ignored Exceptions\',true) then
     begin
-      l:=tstringlist.create;
-      getIgnoredExceptionCodeList(l);
-      for i:=0 to l.count-1 do
-        reg.WriteBool(l[i],true);
+      try
+        l:=tstringlist.create;
+
+        reg.GetValueNames(l);
+
+        for i:=0 to l.count-1 do
+          reg.DeleteValue(l[i]);
+
+        l.clear;
+
+
+        getIgnoredExceptionCodeList(l);
+        for i:=0 to l.count-1 do
+          reg.WriteBool(l[i],true);
+
+      except
+      end;
 
       l.free;
     end;

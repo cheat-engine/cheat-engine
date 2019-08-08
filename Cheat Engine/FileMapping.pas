@@ -13,7 +13,9 @@ interface
 
 uses windows, LCLIntf,classes,SysUtils;
 
-type TFileMapping=class
+type
+  EFileMapError=class(Exception);
+  TFileMapping=class
   private
     FileHandle: THandle;
     FileMapping: THandle;
@@ -63,7 +65,7 @@ begin
       FileHandle := CreateFile(PChar(filename), GENERIC_READ, FILE_SHARE_READ, nil, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
 
     if FileHandle = INVALID_HANDLE_VALUE then
-      raise exception.create(Format(rsDoesNotExist, [filename]));
+      raise EFileMapError.create(Format(rsDoesNotExist, [filename]));
 
 
     FFileSize:=0;
@@ -71,11 +73,11 @@ begin
 
     //still here, so create filemapping
     FileMapping := CreateFileMapping(FileHandle, nil, PAGE_WRITECOPY	, 0, 0, nil);
-    if FileMapping = 0 then raise exception.create(rsMappingFailed);
+    if FileMapping = 0 then raise EFileMapError.create(rsMappingFailed);
 
     //map it completely
     FFileContent:= MapViewOfFile(FileMapping, FILE_MAP_COPY , 0, 0, 0);
-    if FFileContent=nil then raise exception.Create(rsFailedCreatingAProperView);
+    if FFileContent=nil then raise EFileMapError.Create(rsFailedCreatingAProperView);
 
     ffilename:=filename;
   except
@@ -87,7 +89,7 @@ begin
       if (FileHandle<>0) and (FileHandle<>INVALID_HANDLE_VALUE) then
         CloseHandle(FileHandle);
 
-      raise exception.create(e.message);
+      raise EFileMapError.create(e.message);
     end;
   end;
 

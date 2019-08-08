@@ -1,0 +1,55 @@
+object frmDebuggerAttachTimeout: TfrmDebuggerAttachTimeout
+  Left = 546
+  Height = 272
+  Top = 137
+  Width = 402
+  AutoSize = True
+  BorderStyle = bsSingle
+  Caption = 'Debugger attach timeout'
+  ClientHeight = 272
+  ClientWidth = 402
+  OnShow = FormShow
+  Position = poScreenCenter
+  LCLVersion = '2.0.0.4'
+  object Label1: TLabel
+    AnchorSideLeft.Control = Owner
+    AnchorSideTop.Control = Owner
+    AnchorSideRight.Control = Owner
+    AnchorSideRight.Side = asrBottom
+    Left = 3
+    Height = 180
+    Top = 5
+    Width = 396
+    Anchors = [akTop, akLeft, akRight]
+    BorderSpacing.Left = 3
+    BorderSpacing.Top = 5
+    BorderSpacing.Right = 3
+    Caption = 'The debugger attach is taking a while. This is normal when there are many symbols or the system is slow so please be patient. But if you don''t have the time to wait or the program has crashed to desktop, then you can cancel this wait. '#13#10#13#10'Beware though that this will not stop the attaching process currently going on in the target process so you may have to restart the target process if you do wish to debug anyhow (and it may still freeze a few moments while symbols are being waited for)'#13#10#13#10'(This window will disappear automatically when attaching has finished. Closing it manually is the same as pressing cancel)'
+    ParentColor = False
+    WordWrap = True
+  end
+  object Button1: TButton
+    AnchorSideLeft.Control = Owner
+    AnchorSideLeft.Side = asrCenter
+    AnchorSideTop.Control = Label1
+    AnchorSideTop.Side = asrBottom
+    Left = 158
+    Height = 25
+    Top = 195
+    Width = 87
+    AutoSize = True
+    BorderSpacing.Top = 10
+    BorderSpacing.Bottom = 5
+    Cancel = True
+    Caption = 'Cancel wait'
+    Default = True
+    ModalResult = 3
+    TabOrder = 0
+  end
+  object Timer1: TTimer
+    Interval = 250
+    OnTimer = Timer1Timer
+    left = 14
+    top = 138
+  end
+end

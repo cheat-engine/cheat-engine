@@ -34,6 +34,7 @@ type
     function DebugActiveProcess(dwProcessId: DWORD): BOOL; virtual; abstract;
     function DebugActiveProcessStop(dwProcessID: DWORD): BOOL; virtual;
     function GetLastBranchRecords(lbr: pointer): integer; virtual;
+    function isInjectedEvent: boolean; virtual;
 
     function inNoBreakList(threadid: integer): boolean; virtual;
     procedure AddToNoBreakList(threadid: integer); virtual;
@@ -85,6 +86,11 @@ function TDebuggerInterface.GetLastBranchRecords(lbr: pointer): integer;
 begin
   //if implemented fill in the lbr pointer with the lbr records (array of qwords) and return the count (max 16)
   result:=-1;
+end;
+
+function TDebuggerInterface.isInjectedEvent: boolean;
+begin
+  result:=false;
 end;
 
 function TDebuggerInterface.inNoBreakList(threadid: integer): boolean;

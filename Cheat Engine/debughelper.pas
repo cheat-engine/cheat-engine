@@ -166,7 +166,7 @@ implementation
 uses cedebugger, kerneldebugger, formsettingsunit, FormDebugStringsUnit,
      frmBreakpointlistunit, plugin, memorybrowserformunit, autoassembler,
      pluginexports, networkInterfaceApi, processhandlerunit, Globals, LuaCaller,
-     vmxfunctions, LuaHandler;
+     vmxfunctions, LuaHandler, frmDebuggerAttachTimeoutUnit;
 
 //-----------Inside thread code---------
 
@@ -208,8 +208,7 @@ resourcestring
   rsBreakpointError = 'Breakpoint error:';
   rsNoForm = 'No form';
   rsDebuggerAttachTimeout = 'Debugger attach timeout';
-  rsTheDebuggerAttachHasTimedOut = 'The debugger attach has timed out. This could indicate that the target has crashed, or that your system is just slow. Do you wish to wait another ';
-  rsSeconds = ' seconds';
+  rsTheDebuggerAttachHasTimedOut = 'The debugger attach is taking a while. This is normal when there are many symbols or the system is slow so please be patient. But if you don''t have the time to wait or the program has crashes to desktop, then you can cancel this wait. Beware though that you may have to restart the target process if you do wish to debug anyhow.'#13#10'Do you wish to wait longer?';
   rsNoExecutePageExceptionsForYou = 'Execute page exception breakpoints are '
     +'not possible on your system';
   rsFailureGettingDEPInformation = 'Failure getting DEP information for this '
@@ -227,6 +226,7 @@ resourcestring
   rsFailedDEP = 'Failed enabling No Execute';
   rsDepSettingTimeout = 'Timeout while trying to set DEP policy. Continue with'
     +' the breakpoint?';
+  rsDebuggerAttachAborted = 'Debugger attach aborted';
 
 procedure TDebuggerthread.Execute;
 var
@@ -421,7 +421,7 @@ begin
         begin
           if not bp^.active then
           begin
-            if bp^.deletecountdown=0 then
+            if (bp^.deletecountdown=0) or ((CurrentThread<>nil) and (currentthread.ThreadId=bp^.threadid)) then  //if countdown is 0, of it's a threadspecific bp and it's comming from the current threadid
             begin
               outputdebugstring('cleanupDeletedBreakpoints: deleting bp');
               breakpointlist.Delete(i);
@@ -452,6 +452,7 @@ begin
           else
           begin
             //Some douche forgot to disable it first, waste of processing cycle  (or windows 7+ default windows debugger)
+
             UnsetBreakpoint(bp);
 
             bp^.deletecountdown:=10;
@@ -699,6 +700,8 @@ var
 
   PA: int64;
 
+  newdr7: qword;
+
 procedure displayDebugInfo(reason: string);
 var debuginfo:tstringlist;
 begin
@@ -795,11 +798,11 @@ begin
 
       Debugregistermask := (Debugregistermask shl (16 + 4 * breakpoint.debugRegister));
       //set the RWx amd LENx to the proper position
-      Debugregistermask := Debugregistermask or (3 shl (breakpoint.debugregister * 2));
+      Debugregistermask := Debugregistermask or (1 shl (breakpoint.debugregister * 2));
       //and set the Lx bit
       Debugregistermask := Debugregistermask or (1 shl 10); //and set bit 10 to 1
 
-      clearmask := (($F shl (16 + 4 * breakpoint.debugRegister)) or (3 shl (breakpoint.debugregister * 2))) xor $FFFFFFFF;
+      clearmask := (($F shl (16 + 4 * breakpoint.debugRegister)) or (1 shl (breakpoint.debugregister * 2))) xor $FFFFFFFF;
       //create a mask that can be used to undo the old settings
 
       outputdebugstring(PChar('3:Debugregistermask=' + inttohex(Debugregistermask, 8)));
@@ -898,8 +901,16 @@ begin
                 end;
 
                 currentthread.DebugRegistersUsedByCE:=currentthread.DebugRegistersUsedByCE or (1 shl breakpoint.debugregister);
-                currentthread.context.Dr7 := (currentthread.context.Dr7 and clearmask) or Debugregistermask;
+                newdr7:= (currentthread.context.Dr7 and clearmask) or Debugregistermask;     ;
+                currentthread.context.Dr7 := newdr7;
                 currentthread.setContext;
+                currentthread.fillContext;
+                if currentthread.context.Dr7<>newdr7 then
+                begin
+                  asm
+                  nop
+                  end;
+                end;
               end
               else
                 AllThreadsAreSet:=false;
@@ -1615,6 +1626,10 @@ begin
 
     if Result then
       RemoveBreakpoint(bp); //unsets and removes all breakpoints that belong to this
+
+    for i := 0 to BreakpointList.Count - 1 do
+      if (not PBreakpoint(breakpointlist[i]).markedfordeletion) and (PBreakpoint(breakpointlist[i]).isTracerStepOver) then
+        RemoveBreakpoint(PBreakpoint(breakpointlist[i]));
 
     for i:=0 to ThreadList.Count-1 do
       TDebugThreadHandler(ThreadList[i]).TracerQuit;
@@ -2510,18 +2525,21 @@ procedure TDebuggerthread.WaitTillAttachedOrError;
 var
   i: integer;
   Result: TWaitResult;
+  mresult: TModalResult;
   starttime: dword;
   currentloopstarttime: dword;
   timeout: dword;
 
   userWantsToAttach: boolean;
+
+  frmDebuggerAttachTimeout: TfrmDebuggerAttachTimeout;
 begin
 
 
   //if IsDebuggerPresent then //when debugging the debugger 10 seconds is too short
   //  timeout:=5000000
   //else
-    timeout:=10000;
+    timeout:=5000;
 
   OutputDebugString('WaitTillAttachedOrError');
 
@@ -2546,9 +2564,26 @@ begin
       if result=wrSignaled then break;
     end;
 
-    userWantsToAttach:=(result<>wrSignaled) and (MessageDlg(rsDebuggerAttachTimeout, rsTheDebuggerAttachHasTimedOut+inttostr(timeout div 1000)+rsSeconds, mtConfirmation, [mbyes,mbno],0 )=mryes);
+    frmDebuggerAttachTimeout:=tfrmDebuggerAttachTimeout.Create(application);
+    frmDebuggerAttachTimeout.event:=OnAttachEvent;
+
+    mresult:=frmDebuggerAttachTimeout.ShowModal;
+    frmDebuggerAttachTimeout.free;
+
+    if mresult=mrAbort then
+      raise exception.create(rsDebuggerAttachAborted);
+
+    if mresult=mrok then break;
+
+    userWantsToAttach:=mresult<>mrCancel;
+    //userWantsToAttach:=(result<>wrSignaled) and (MessageDlg(rsDebuggerAttachTimeout, rsTheDebuggerAttachHasTimedOut, mtConfirmation, [mbyes, mbNo],0 )=mryes);
   end;
 
+  Result := OnAttachEvent.WaitFor(50);
+  if result<>wrSignaled then
+  begin
+    raise exception.create(rsDebuggerFailedToAttach)
+  end;
 
 
   OutputDebugString('WaitTillAttachedOrError exit');
@@ -2667,9 +2702,9 @@ begin
   inherited Create(true);
 
   Start;
-
-
   WaitTillAttachedOrError;
+
+  if not terminated then lockSettings;
 end;
 
 destructor TDebuggerthread.Destroy;

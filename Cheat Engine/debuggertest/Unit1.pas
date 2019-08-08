@@ -363,6 +363,8 @@ end;
 procedure TForm1.Button11Click(Sender: TObject);
 begin
   TChangeHealthLikeAMofo.create(false);
+  TChangeHealthLikeAMofo.create(false);
+  TChangeHealthLikeAMofo.create(false);
   timer1.enabled:=true;
 end;
 

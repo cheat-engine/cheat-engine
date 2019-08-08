@@ -26,7 +26,7 @@ type
     is64bit: boolean; //stored local so it doesn't have to evaluate the property (saves some time)
     hasPausedProcess: boolean;
 
-    isInjectedEvent: boolean;
+    fisInjectedEvent: boolean;
     injectedEvents: TList;
 
     lastthreadlist: TStringList;
@@ -37,6 +37,7 @@ type
     procedure SynchronizeNoBreakList;
     procedure DoThreadPoll;
   public
+    function isInjectedEvent: boolean; override;
     function WaitForDebugEvent(var lpDebugEvent: TDebugEvent; dwMilliseconds: DWORD): BOOL; override;
     function ContinueDebugEvent(dwProcessId: DWORD; dwThreadId: DWORD; dwContinueStatus: DWORD): BOOL; override;
     function SetThreadContext(hThread: THandle; const lpContext: TContext; isFrozenThread: Boolean=false): BOOL; override;
@@ -79,10 +80,17 @@ type
   THeartBeat=class(TThread)
   private
     owner: TVEHDebugInterface;
+    doVersionCheck: boolean;
     procedure invalidVersionMessage;
+    procedure startVersionCheck;
   protected
     procedure execute; override;
   end;
+
+procedure THeartBeat.startVersionCheck;
+begin
+  doVersionCheck:=true;
+end;
 
 procedure THeartBeat.invalidVersionMessage;
 begin
@@ -101,11 +109,11 @@ begin
     inc(owner.VEHDebugView.heartbeat);
     sleep(250);
 
-    if owner.VEHDebugView.VEHVersion<>$cece0000+VEHVERSION then
+    if doVersionCheck and (owner.VEHDebugView.VEHVersion<>$cece0000+VEHVERSION) then
     begin
       inc(invalidversion);
       if invalidversion=10 then //(10*500 ms=5 seconds);
-        synchronize(invalidVersionMessage);
+        queue(invalidVersionMessage);
     end;
   end;
 end;
@@ -217,6 +225,7 @@ var c: PContext;
 begin
   if isFrozenThread then //use the VEHDebugView context
   begin
+    OutputDebugString('VEH GetThreadContext. From frozen');
     result:=true;
     c:=@VEHDebugView.CurrentContext[0];
     {$ifdef cpu64}
@@ -259,7 +268,15 @@ begin
 
   end
   else
+  begin
+    OutputDebugString('VEH GetThreadContext. not frozen');
     result:=NewKernelHandler.GetThreadContext(hThread,lpContext);
+  end;
+end;
+
+function TVEHDebugInterface.isInjectedEvent: boolean;
+begin
+  result:=fisInjectedEvent;
 end;
 
 function TVEHDebugInterface.WaitForDebugEvent(var lpDebugEvent: TDebugEvent; dwMilliseconds: DWORD): BOOL;
@@ -272,7 +289,7 @@ var i: integer;
 begin
   if injectedEvents.count>0 then
   begin
-    isInjectedEvent:=true;
+    fisInjectedEvent:=true;
     //fill in lpDebugEvent
 
     inj:=TInjectedEvent(injectedEvents[0]);
@@ -299,7 +316,9 @@ begin
 
     injectedEvents.Delete(0);
     exit(true);
-  end;
+  end
+  else
+    fisInjectedEvent:=false;
 
   result:=waitforsingleobject(HasDebugEvent, dwMilliseconds)=WAIT_OBJECT_0;
   if result then
@@ -421,8 +440,8 @@ begin
   hasPausedProcess:=false;
   VEHDebugView.ContinueMethod:=dwContinueStatus;
 
-  if isInjectedEvent then
-    isInjectedEvent:=false
+  if fisInjectedEvent then
+    fisInjectedEvent:=false
   else
     SetEvent(HasHandledDebugEvent);
 
@@ -530,6 +549,7 @@ begin
       except
       end;
     end;
+
     symhandler.reinitialize;
     symhandler.waitforsymbolsloaded(true,'vehdebug'+prefix+'.dll');
 
@@ -555,7 +575,7 @@ begin
       begin
         //debugger is attached and ready to go
         active:=true;
-
+        THeartBeat(Heartbeat).StartVersionCheck;
       end
       else
       begin
@@ -644,6 +664,7 @@ var
 
   inj: TInjectedEvent;
 begin
+
   currentlist:=tstringlist.create;
 
   GetThreadList(currentlist);

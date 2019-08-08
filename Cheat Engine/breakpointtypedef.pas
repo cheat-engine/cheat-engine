@@ -56,6 +56,8 @@ type
     tracestepOver: boolean; //when set the tracer will step over instead of single step
     traceNoSystem: boolean; //when set the tracer will step over system module addresses
 
+    isTracerStepOver: boolean; //
+
     //set if it's a bpaFetchRegistersandcontinue set on memory access
     //ChangedAddresses: TfrmChangedAddresses; //set if it's a bpaFetchRegistersandcontinue set on execute
     ThreadID: DWORD;
