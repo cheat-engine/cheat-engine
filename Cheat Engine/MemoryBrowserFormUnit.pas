@@ -4107,7 +4107,7 @@ begin
 
   //save position of window and other stuff
   //membrowser comes after formsettings so is destroyed before formsettings, so valid
-  if (not ischild) then
+  //if (not ischild) then
   begin
     if self.disassemblerview<>nil then
     begin
@@ -4142,11 +4142,15 @@ begin
 end;
 
 procedure TMemoryBrowser.Newwindow1Click(Sender: TObject);
+var
+  s: string;
+  ns: string;
+  i: integer;
 begin
   with tmemorybrowser.create(application) do
   begin
     inc(mbchildcount);
-    name:=rsMemoryBrowser+inttostr(mbchildcount);
+    //name:=rsMemoryBrowser+inttostr(mbchildcount);
     debug1.Visible:=false;
     debug1.enabled:=false;
     //registerview.Visible:=false;
@@ -4154,7 +4158,17 @@ begin
     sbShowFloats.Visible:=false;
     miDebugToggleBreakpoint.visible:=false;
 
-    caption:=caption+'* ('+inttostr(mbchildcount)+')';
+    s:=name;
+    ns:='';
+    for i:=length(s) downto 1 do
+    begin
+      if s[i] in ['0'..'9'] then
+        ns:=s[i]+ns
+      else
+        break;
+    end;
+
+    caption:=caption+'* ('+ns+')';
 
     Kerneltools1.enabled:=memorybrowser.Kerneltools1.enabled;
 
