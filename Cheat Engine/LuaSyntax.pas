@@ -959,6 +959,7 @@ begin
 
   fKeyAttri := TSynHighLighterAttributes.Create(SYNS_AttrReservedWord);
   fKeyAttri.Style := [fsBold];
+  fKeyAttri.Foreground:=clBlue;
   AddAttribute(fKeyAttri);
 
   fLuaMStringAttri := TSynHighLighterAttributes.Create(SYNS_AttrLuaMString);
