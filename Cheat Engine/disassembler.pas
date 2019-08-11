@@ -6341,7 +6341,7 @@ begin
                         begin
 
                           if hasvex then
-                            lastdisassembledata.opcode:='cvtss2sd'
+                            lastdisassembledata.opcode:='vcvtss2sd'
                           else
                             lastdisassembledata.opcode:='cvtss2sd';
 
@@ -6356,7 +6356,7 @@ begin
                           if $66 in prefix2 then
                           begin
                             if hasvex then
-                              lastdisassembledata.opcode:='cvtpd2ps'
+                              lastdisassembledata.opcode:='vcvtpd2ps'
                             else
                               lastdisassembledata.opcode:='cvtpd2ps';
                             opcodeflags.skipExtraReg:=true;
@@ -6369,9 +6369,9 @@ begin
                           else
                           begin
                             if hasvex then
-                              lastdisassembledata.opcode:='cvtps2pd'
+                              lastdisassembledata.opcode:='vcvtps2pd'
                             else
-                              lastdisassembledata.opcode:='vcvtps2pd';
+                              lastdisassembledata.opcode:='cvtps2pd';
 
                             opcodeflags.skipExtraReg:=true;
                             lastdisassembledata.parameters:=xmm(memory[2])+modrm(memory,prefix2,2,4,last,mRight);
