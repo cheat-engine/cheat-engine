@@ -4,7 +4,7 @@ LazarusResources.Add('TForm5','FORMDATA',[
   'TPF0'#6'TForm5'#5'Form5'#4'Left'#3#235#1#6'Height'#3#24#1#3'Top'#3'c'#1#5'Wi'
   +'dth'#3#128#2#7'Caption'#6#6'Step 4'#12'ClientHeight'#3#24#1#11'ClientWidth'
   +#3#128#2#5'Color'#7#9'clBtnFace'#7'OnClose'#7#9'FormClose'#12'OnCloseQuery'#7
-  +#14'FormCloseQuery'#8'OnCreate'#7#10'FormCreate'#10'LCLVersion'#6#7'1.6.0.4'
+  +#14'FormCloseQuery'#8'OnCreate'#7#10'FormCreate'#10'LCLVersion'#6#7'2.0.0.4'
   +#7'Visible'#9#0#6'TLabel'#6'Label1'#21'AnchorSideTop.Control'#7#7'Button1'#18
   +'AnchorSideTop.Side'#7#9'asrCenter'#23'AnchorSideRight.Control'#7#7'Button1'
   +#4'Left'#3#11#1#6'Height'#2#15#3'Top'#3#228#0#5'Width'#2#18#7'Anchors'#11#5

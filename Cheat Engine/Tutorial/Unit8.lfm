@@ -10,7 +10,7 @@ object Form8: TForm8
   OnClose = FormClose
   OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
-  LCLVersion = '1.6.4.0'
+  LCLVersion = '2.0.0.4'
   object Label1: TLabel
     AnchorSideLeft.Control = Memo1
     AnchorSideLeft.Side = asrCenter

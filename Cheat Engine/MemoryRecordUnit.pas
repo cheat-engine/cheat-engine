@@ -451,7 +451,7 @@ implementation
 
 {$ifdef windows}
 uses mainunit, addresslist, formsettingsunit, LuaHandler, lua, lauxlib, lualib,
-  processhandlerunit, Parsers, winsapi,autoassembler, globals;
+  processhandlerunit, Parsers, winsapi,autoassembler, globals, cheatecoins;
 {$endif}
 
 {$ifdef unix}
@@ -2413,6 +2413,8 @@ var f: string;
 
     p: boolean;
 begin
+  if state and aprilfools then decreaseCheatECoinCount;
+
   if state=fActive then exit; //no need to execute this is it's the same state
   if processingThread<>nil then exit; //don't change the state while processing
 

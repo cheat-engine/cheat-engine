@@ -48,6 +48,7 @@ Added hotkeys to ultimap2
 
 Fixes:
 fixed BSOD in recent windows updates
+fixed VEH debug not handling breakpoints when a thread is created/destroyed right at the same time as a breakpoint
 fixed the stacktrace in 64-bit targets
 fixed rounded Extreme for float and double scans
 speedhack now waits for proper dll injection
@@ -74,7 +75,7 @@ fixed loading dbvm inside dbvm inside dbvm inside dbvm
 fixed autoassembler replacing words in quoted strings
 fixed processwatcher not getting a proper PID
 fixed hotkeys triggering changed/unganged for types they aren't supposed to
-
+fixed showing dr2, dr3 and dr4 types in the threadlist
 
 lua:
   New functions:
@@ -88,6 +89,8 @@ lua:
     searchPDBWhileLoading
     duplicateHandle
     getScreenDPI
+    extendedToByteTable
+    byteTableToExtended
 
     executeCodeLocalEx
     executeMethod
@@ -105,6 +108,7 @@ lua:
     dbvm_removechangeregonbp
     dbvm_speedhack_setSpeed
     dbvm_setTSCAdjust
+
     
 
 

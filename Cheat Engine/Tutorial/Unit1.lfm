@@ -11,7 +11,7 @@ object Form1: TForm1
   OnCreate = FormCreate
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '1.6.4.0'
+  LCLVersion = '2.0.0.4'
   object Label1: TLabel
     AnchorSideLeft.Control = edtPassword
     AnchorSideLeft.Side = asrCenter

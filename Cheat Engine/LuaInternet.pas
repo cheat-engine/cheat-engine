@@ -9,10 +9,6 @@ uses
 
 procedure initializeLuaInternet;
 
-implementation
-
-uses mainunit2, lua, LuaClass, LuaObject, luahandler, URIParser;
-
 type
   TWinInternet=class
   private
@@ -26,6 +22,12 @@ type
   published
     property Header: string read fheader write fheader;
   end;
+
+implementation
+
+uses mainunit2, lua, LuaClass, LuaObject, luahandler, URIParser;
+
+
 
 function TWinInternet.postURL(urlstring: string; urlencodedpostdata: string; results: tstream): boolean;
 var

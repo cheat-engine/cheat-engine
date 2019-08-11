@@ -156,6 +156,7 @@ object frmFoundlistPreferences: TfrmFoundlistPreferences
         Height = 22
         Top = 16
         Width = 96
+        Style = [cbStandardColors, cbExtendedColors, cbSystemColors, cbCustomColor, cbPrettyNames]
         AutoSize = False
         BorderSpacing.Top = 1
         ItemHeight = 16
@@ -195,6 +196,7 @@ object frmFoundlistPreferences: TfrmFoundlistPreferences
         Height = 22
         Top = 16
         Width = 100
+        Style = [cbStandardColors, cbExtendedColors, cbSystemColors, cbCustomColor, cbPrettyNames]
         AutoSize = False
         BorderSpacing.Top = 1
         ItemHeight = 16
@@ -234,6 +236,7 @@ object frmFoundlistPreferences: TfrmFoundlistPreferences
         Height = 22
         Top = 16
         Width = 100
+        Style = [cbStandardColors, cbExtendedColors, cbSystemColors, cbCustomColor, cbPrettyNames]
         AutoSize = False
         BorderSpacing.Top = 1
         ItemHeight = 16
@@ -273,6 +276,7 @@ object frmFoundlistPreferences: TfrmFoundlistPreferences
         Height = 22
         Top = 16
         Width = 100
+        Style = [cbStandardColors, cbExtendedColors, cbSystemColors, cbCustomColor, cbPrettyNames]
         AutoSize = False
         BorderSpacing.Top = 1
         ItemHeight = 16
@@ -314,6 +318,7 @@ object frmFoundlistPreferences: TfrmFoundlistPreferences
     Height = 22
     Top = 140
     Width = 204
+    Style = [cbStandardColors, cbExtendedColors, cbSystemColors, cbCustomColor, cbPrettyNames]
     Anchors = [akTop, akLeft, akRight]
     BorderSpacing.Top = 1
     ItemHeight = 16

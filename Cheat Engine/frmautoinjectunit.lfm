@@ -110,6 +110,16 @@ object frmAutoInject: TfrmAutoInject
         Checked = True
         OnClick = Syntaxhighlighting1Click
       end
+      object MenuItem3: TMenuItem
+        Caption = 'Auto assembler syntax highlighting preferences'
+        ImageIndex = 5
+        OnClick = MenuItem3Click
+      end
+      object MenuItem2: TMenuItem
+        Caption = 'Lua syntax highlighting preferences'
+        ImageIndex = 5
+        OnClick = MenuItem2Click
+      end
       object AAPref1: TMenuItem
         Caption = 'Preferences'
         ImageIndex = 5

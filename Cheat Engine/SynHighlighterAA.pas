@@ -217,8 +217,8 @@ uses
   LuaSyntax;
 
 type
-  TtkTokenKind = (tkAsm, tkComment, tkIdentifier, tkKey, tkNull, tkNumber,
-    tkSpace, tkString, tkSymbol, tkUnknown, tkFloat, tkHex, tkDirec, tkChar,
+  TtkTokenKind = (tkAsm, tkComment, tkIdentifier, tkOpcode, tkKey, tkNull, tkNumber,
+    tkSpace, tkString, tkSymbol, tkUnknown, tkHex, tkDirec, tkChar,
     tkRegister, tkTryExcept);
 
   TRangeState = (rsANil, rsAnsi, rsAnsiAsm, rsAsm, rsBor, rsBorAsm, rsProperty,
@@ -255,9 +255,9 @@ type
     fStringAttri: TSynHighlighterAttributes;
     fCharAttri: TSynHighlighterAttributes;
     fNumberAttri: TSynHighlighterAttributes;
-    fFloatAttri: TSynHighlighterAttributes;
     fHexAttri: TSynHighlighterAttributes;
     fKeyAttri: TSynHighlighterAttributes;
+    fOpcodeAttri: TSynHighlighterAttributes;
     fSymbolAttri: TSynHighlighterAttributes;
     fAsmAttri: TSynHighlighterAttributes;
     fCommentAttri: TSynHighlighterAttributes;
@@ -379,6 +379,8 @@ type
     function GetRange: Pointer; override;
     procedure SetRange(Value: Pointer); override;
     property IdentChars;
+
+    function LoadFromRegistry(RootKey: HKEY; Key: string): boolean; override;
   published
     property AsmAttri: TSynHighlighterAttributes read fAsmAttri write fAsmAttri;
     property CommentAttri: TSynHighlighterAttributes read fCommentAttri
@@ -387,13 +389,12 @@ type
       write fDirecAttri;
     property IdentifierAttri: TSynHighlighterAttributes read fIdentifierAttri
       write fIdentifierAttri;
+    property OpcodeAttri:TSynHighlighterAttributes read fOpcodeAttri write fOpcodeAttri;
     property KeyAttri: TSynHighlighterAttributes read fKeyAttri write fKeyAttri;
     property RegisterAttri: TSynHighlighterAttributes read fRegisterAttri write fRegisterAttri;
     property TryExceptAttri: TSynHighlighterAttributes read fTryExceptAttri write fTryExceptAttri;
     property NumberAttri: TSynHighlighterAttributes read fNumberAttri
       write fNumberAttri;
-    property FloatAttri: TSynHighlighterAttributes read fFloatAttri
-      write fFloatAttri;
     property HexAttri: TSynHighlighterAttributes read fHexAttri
       write fHexAttri;
     property SpaceAttri: TSynHighlighterAttributes read fSpaceAttri
@@ -420,7 +421,7 @@ uses
 {$IFDEF SYN_CLX}
   QSynEditStrConst;
 {$ELSE}
-  SynEditStrConst;
+  SynEditStrConst, registry;
 {$ENDIF}
 
 var
@@ -1054,7 +1055,7 @@ begin
   begin
     ft:=getfirsttoken(maybe);
     if GetOpcodesIndex(ft)<>-1 then
-      result:=tkKey
+      result:=tkOpcode
     else
     if isExtraCommand(ft) then
       result:=tkKey;
@@ -1106,37 +1107,43 @@ begin
   fAutoAssemblerVersion := LastAutoAssemblerVersion;
   fPackageSource := True;
 
-  fAsmAttri := TSynHighlighterAttributes.Create(SYNS_AttrAssembler);
-  AddAttribute(fAsmAttri);
+  fAsmAttri := TSynHighlighterAttributes.Create('{$ASM}');
+  fAsmAttri.Foreground:=clred;
+
   fCommentAttri := TSynHighlighterAttributes.Create(SYNS_AttrComment);
   fCommentAttri.Style:= [fsItalic];
   fCommentAttri.Foreground:=clBlue;
-
   AddAttribute(fCommentAttri);
-  fDirecAttri := TSynHighlighterAttributes.Create(SYNS_AttrPreprocessor);
+
+  fDirecAttri := TSynHighlighterAttributes.Create(SYNS_AttrDirective);
   fDirecAttri.Style:= [fsItalic];
   AddAttribute(fDirecAttri);
+
   fIdentifierAttri := TSynHighlighterAttributes.Create(SYNS_AttrIdentifier);
   AddAttribute(fIdentifierAttri);
+
+  fOpcodeAttri := TSynHighlighterAttributes.Create('Mnemonic');
+  fOpcodeAttri.Style:= [fsBold];
+  AddAttribute(fOpcodeAttri);
+
   fKeyAttri := TSynHighlighterAttributes.Create(SYNS_AttrReservedWord);
+  fKeyAttri.Foreground:=$101080;
   fKeyAttri.Style:= [fsBold];
+  AddAttribute(fKeyAttri);
 
   fRegisterAttri := TSynHighlighterAttributes.Create('Register');
   fRegisterAttri.Style:= [fsBold];
   fRegisterAttri.Foreground:=$0080f0;
+  AddAttribute(fRegisterAttri);
 
-  fTryExceptAttri := TSynHighlighterAttributes.Create('TryExcept');
+  fTryExceptAttri := TSynHighlighterAttributes.Create('Try/Except');
   fTryExceptAttri.Style:= [fsBold, fsUnderline];
   fTryExceptAttri.Foreground:=$0080f0;
+  AddAttribute(fTryExceptAttri);
 
-  AddAttribute(fKeyAttri);
   fNumberAttri := TSynHighlighterAttributes.Create(SYNS_AttrNumber);
   fNumberAttri.Foreground:=clGreen;
-
   AddAttribute(fNumberAttri);
-  fFloatAttri := TSynHighlighterAttributes.Create(SYNS_AttrFloat);
-  fFloatAttri.Foreground:=clGreen;
-  AddAttribute(fFloatAttri);
 
   fHexAttri := TSynHighlighterAttributes.Create(SYNS_AttrHexadecimal);
   fHexAttri.Foreground:=clGreen;
@@ -1153,8 +1160,10 @@ begin
   fCharAttri := TSynHighlighterAttributes.Create(SYNS_AttrCharacter);
 //  fCharAttri.Foreground:=clRed;
   AddAttribute(fCharAttri);
+
   fSymbolAttri := TSynHighlighterAttributes.Create(SYNS_AttrSymbol);
   AddAttribute(fSymbolAttri);
+
   SetAttributesOnChange({$IFDEF FPC}@{$ENDIF}DefHighlightChange);
 
   InitIdent;
@@ -1228,7 +1237,7 @@ begin
   if uppercase(fLine)='{$ASM}' then
   begin
     inc(run,6);
-    fTokenID := tkIdentifier;
+    fTokenID := tkAsm;
     fRange:=rsUnKnown;
   end
   else
@@ -1267,9 +1276,12 @@ begin
   then
   begin
     inc(run,5);
-    FTokenID:=tkIdentifier;
+    FTokenID:=tkAsm;
     if fLuaSyntaxHighlighter=nil then
+    begin
       fLuaSyntaxHighlighter:=TSynLuaSyn.Create(self);
+      fLuaSyntaxHighlighter.LoadFromRegistry(HKEY_CURRENT_USER, '\Software\Cheat Engine\Lua Highlighter');
+    end;
 
     fLuaSyntaxHighlighter.AttachToLines(CurrentLines);
     fLuaSyntaxHighlighter.CurrentLines:=CurrentLines;
@@ -1341,7 +1353,7 @@ begin
 
   end;
   BorProc;
-end;
+ end;
 
 procedure TSynAASyn.ColonOrGreaterProc;
 begin
@@ -1724,20 +1736,17 @@ end;
 function TSynAASyn.GetTokenAttribute: TSynHighlighterAttributes;
 begin
   if fRange=rsLua then
-  begin
-    result:=fLuaSyntaxHighlighter.GetTokenAttribute;
-    exit;
-  end;
+    exit(fLuaSyntaxHighlighter.GetTokenAttribute);
 
   case GetTokenID of
     tkAsm: Result := fAsmAttri;
     tkComment: Result := fCommentAttri;
     tkDirec: Result := fDirecAttri;
     tkIdentifier: Result := fIdentifierAttri;
+    tkOpcode: Result := fOpcodeAttri;
     tkKey: Result := fKeyAttri;
     tkRegister: Result := fRegisterAttri;
     tkNumber: Result := fNumberAttri;
-    tkFloat: Result := fFloatAttri;
     tkHex: Result := fHexAttri;
     tkSpace: Result := fSpaceAttri;
     tkString: Result := fStringAttri;
@@ -1843,6 +1852,28 @@ begin
   end;
 end;
 
+function TSynAASyn.LoadFromRegistry(RootKey: HKEY; Key: string): boolean;
+var
+  reg: TRegistry;
+  i: integer;
+begin
+  reg:=tregistry.create;
+  reg.RootKey:=Rootkey;
+  result:=false;
+  if reg.OpenKey(Key,false) then
+  begin
+    result:=true;
+    for i:=0 to AttrCount-1 do
+      result:=result and Attribute[i].LoadFromRegistry(reg);
+  end;
+
+  reg.free;
+
+  if fLuaSyntaxHighlighter<>nil then
+    fLuaSyntaxHighlighter.LoadFromRegistry(HKEY_CURRENT_USER, '\Software\Cheat Engine\Lua Highlighter');  //perhaps make this a var
+
+  DefHighlightChange(self);
+end;
 
 initialization
   MakeIdentTable;

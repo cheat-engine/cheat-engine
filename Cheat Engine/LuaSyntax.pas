@@ -206,7 +206,10 @@ uses
 {$ENDIF}
   SysUtils,
   Classes,
-  StringHashList;
+  StringHashList,
+  SynEditHighlighterFoldBase,
+  LCLType,
+  Registry;
 
 type
   TtkTokenKind = (
@@ -235,18 +238,17 @@ const
   MaxKey = 110;
 
 type
-  TSynLuaSyn = class(TSynCustomHighlighter)
+  //TSynLuaSyn = class(TSynCustomHighlighter)
+  TSynLuaSyn = class(TSynCustomFoldHighlighter)
   private
-    fLineRef: string;
-    fLine: PChar;
-    fLineNumber: Integer;
+    FTokenPos, FTokenEnd: Integer;
+    FLineText: String;
+
+    //FCurRange: integer;
     fProcTable: array[#0..#255] of TProcTableProc;
-    fRange: TRangeState;
     fRangeExtended: ptrUInt;
-    Run: LongInt;
     fStringLen: Integer;
     fToIdent: PChar;
-    fTokenPos: Integer;
     fTokenID: TtkTokenKind;
     fIdentFuncTable: array[0 .. MaxKey] of TIdentFuncTableFunc;
     fCommentAttri: TSynHighlighterAttributes;
@@ -254,6 +256,7 @@ type
     fKeyAttri: TSynHighlighterAttributes;
     fLuaMStringAttri: TSynHighlighterAttributes;
     fNumberAttri: TSynHighlighterAttributes;
+    fHexAttri: TSynHighlighterAttributes;
     fSpaceAttri: TSynHighlighterAttributes;
     fStringAttri: TSynHighlighterAttributes;
     fInternalFunctionAttri: TSynHighlighterAttributes;
@@ -328,6 +331,10 @@ type
     function GetTokenAttribute: TSynHighlighterAttributes; override;
     function GetTokenKind: integer; override;
     function GetTokenPos: Integer; override;
+
+    function LoadFromRegistry(RootKey: HKEY; Key: string): boolean; override;
+
+
     procedure Next; override;
   published
     property CommentAttri: TSynHighlighterAttributes read fCommentAttri write fCommentAttri;
@@ -336,6 +343,7 @@ type
     property InternalFunctionAttri: TSynHighlighterAttributes read fInternalFunctionAttri write fInternalFunctionAttri;
     property LuaMStringAttri: TSynHighlighterAttributes read fLuaMStringAttri write fLuaMStringAttri;
     property NumberAttri: TSynHighlighterAttributes read fNumberAttri write fNumberAttri;
+    property HexAttri: TSynHighlighterAttributes read fHexAttri write fHexAttri;
     property SpaceAttri: TSynHighlighterAttributes read fSpaceAttri write fSpaceAttri;
     property StringAttri: TSynHighlighterAttributes read fStringAttri write fStringAttri;
   end;
@@ -346,9 +354,9 @@ implementation
 
 uses
 {$IFDEF SYN_CLX}
-  QSynEditStrConst;
+  QSynEditStrConst, math;
 {$ELSE}
-  SynEditStrConst;
+  SynEditStrConst, math;
 {$ENDIF}
 
 {$IFDEF SYN_COMPILER_3_UP}
@@ -358,7 +366,7 @@ const
 {$ENDIF}
   SYNS_FilterLua = 'Lua Files (*.lua, *.lpr)|*.lua;*.lpr';
   SYNS_LangLua = 'Lua';
-  SYNS_AttrLuaMString = 'LuaMString';
+  SYNS_AttrLuaMString = 'Multiline String';
   SYNS_AttrNumber = 'Numbers';
 
 var
@@ -463,12 +471,24 @@ end;
 
 function TSynLuaSyn.Func17: TtkTokenKind;
 begin
-  if KeyComp('if') then Result := tkKey else Result := tkIdentifier;
+  if KeyComp('if') then
+  begin
+    Result := tkKey;
+    StartCodeFoldBlock;
+  end
+  else Result := tkIdentifier;
+
 end;
 
 function TSynLuaSyn.Func21: TtkTokenKind;
 begin
-  if KeyComp('do') then Result := tkKey else Result := tkIdentifier;
+  if KeyComp('do') then
+  begin
+    Result := tkKey;
+    StartCodeFoldBlock;
+  end
+  else Result := tkIdentifier;
+
 end;
 
 function TSynLuaSyn.Func22: TtkTokenKind;
@@ -483,7 +503,13 @@ end;
 
 function TSynLuaSyn.Func26: TtkTokenKind;
 begin
-  if KeyComp('end') then Result := tkKey else Result := tkIdentifier;
+  if KeyComp('end') then
+  begin
+    Result := tkKey;
+    EndCodeFoldBlock;
+  end
+  else Result := tkIdentifier;
+
 end;
 
 function TSynLuaSyn.Func35: TtkTokenKind;
@@ -559,12 +585,22 @@ end;
 
 function TSynLuaSyn.Func71: TtkTokenKind;
 begin
-  if KeyComp('repeat') then Result := tkKey else Result := tkIdentifier;
+  if KeyComp('repeat') then
+  begin
+    Result := tkKey;
+    StartCodeFoldBlock;
+  end
+  else Result := tkIdentifier;
 end;
 
 function TSynLuaSyn.Func81: TtkTokenKind;
 begin
-  if KeyComp('until') then Result := tkKey else Result := tkIdentifier;
+  if KeyComp('until') then
+  begin
+    Result := tkKey;
+    EndCodeFoldBlock;
+  end
+  else Result := tkIdentifier;
 end;
 
 function TSynLuaSyn.Func82: TtkTokenKind;
@@ -581,7 +617,12 @@ end;
 
 function TSynLuaSyn.Func110: TtkTokenKind;
 begin
-  if KeyComp('function') then Result := tkKey else Result := tkIdentifier;
+  if KeyComp('function') then
+  begin
+    Result := tkKey;
+    StartCodeFoldBlock;
+  end
+  else Result := tkIdentifier;
 end;
 
 function TSynLuaSyn.AltFunc: TtkTokenKind;
@@ -632,8 +673,10 @@ procedure TSynLuaSyn.SpaceProc;
 begin
   fTokenID := tkSpace;
   repeat
-    inc(Run);
-  until not (fLine[Run] in [#1..#32]);
+    inc(FTokenEnd);
+    if fTokenEnd>length(FLineText) then break;
+
+  until (not (FLineText[FTokenEnd] in [#1..#32]));
 end;
 
 procedure TSynLuaSyn.NullProc;
@@ -644,46 +687,57 @@ end;
 procedure TSynLuaSyn.CRProc;
 begin
   fTokenID := tkSpace;
-  inc(Run);
-  if fLine[Run] = #10 then
-    inc(Run);
+  inc(FTokenEnd);
+  if FLineText[FTokenEnd] = #10 then
+    inc(FTokenEnd);
 end;
 
 procedure TSynLuaSyn.LFProc;
 begin
   fTokenID := tkSpace;
-  inc(Run);
+  inc(FTokenEnd);
 end;
 
 function TSynLuaSyn.LongDelimCheck(aRun: integer): integer;
-var sep: integer;
+var
+  sep: integer;
 begin
   sep:=1;
-  while (fLine[aRun+sep]='=') and (sep<255) do Inc(sep);
-  if fLine[aRun]=fLine[aRun+Sep] then exit(sep);
+  while ((aRun+sep)<length(FLineText)) and (FLineText[aRun+sep]='=') and (sep<255) do Inc(sep);
+  if ((aRun+sep)<=length(FLineText)) and (FLineText[aRun]=FLineText[aRun+Sep]) then exit(sep);
   result:=0;
 end;
 
 procedure TSynLuaSyn.LuaCommentOpenProc;
 var sep: Integer;
 begin
-  Inc(Run);
-  if (fLine[Run] = '-') and
-     (fLine[Run + 1] = '[') then
+  Inc(FTokenEnd);
+  //check for --[ or --
+
+  if FTokenEnd>length(FLineText) then
   begin
-    sep:=LongDelimCheck(Run+1);
+    fTokenID := tkIdentifier;
+    exit;
+  end;
+
+  if (length(FLineText)>FtokenEnd+1) and (FLineText[FTokenEnd] = '-') and
+     (FLineText[FTokenEnd + 1] = '[') then
+  begin
+    sep:=LongDelimCheck(FTokenEnd+1);
     if sep>0 then
     begin
-      Inc(Run, sep + 1);
+      Inc(FTokenEnd, sep + 1);
       fRangeExtended := PtrUInt(rsLuaMComment)+10*sep;
+      StartCodeFoldBlock;
+
       LuaMCommentOpenProc;
       exit;
     end;
   end;
 
-  if (fLine[Run] = '-') then
+  if (FTokenEnd<length(flinetext)) and (FLineText[FTokenEnd] = '-') then   //--
   begin
-    fRangeExtended := PtrUInt(rsLuaComment);
+    fRangeExtended := PtrUInt(0);
     LuaCommentProc;
     fTokenID := tkComment;
   end
@@ -694,23 +748,10 @@ end;
 procedure TSynLuaSyn.LuaCommentProc;
 begin
   fTokenID := tkComment;
-  repeat
-    if (fLine[Run] = '@') and
-       (fLine[Run + 1] = '') and
-       (fLine[Run + 2] = '') and
-       (fLine[Run + 3] = '') and
-       (fLine[Run + 4] = '@') and
-       (fLine[Run + 5] = '') and
-       (fLine[Run + 6] = '') and
-       (fLine[Run + 7] = '@') then
-    begin
-      Inc(Run, 8);
-      fRangeExtended := PtrUInt(rsUnKnown);
-      Break;
-    end;
-    if not (fLine[Run] in [#0, #10, #13]) then
-      Inc(Run);
-  until fLine[Run] in [#0, #10, #13];
+
+  FTokenEnd:=length(FLineText)+1;
+
+  fRangeExtended:=0;
 end;
 
 procedure TSynLuaSyn.LuaMCommentOpenProc;
@@ -722,7 +763,7 @@ end;
 procedure TSynLuaSyn.LuaMCommentProc;
 var sep: Integer;
 begin
-  case fLine[Run] of
+  case FLineText[FTokenEnd] of
      #0: NullProc;
     #10: LFProc;
     #13: CRProc;
@@ -730,19 +771,21 @@ begin
     begin
       fTokenID := tkComment;
       repeat
-        if (fLine[Run] = ']') then
+        if (FLineText[FTokenEnd] = ']') then
         begin
-          sep:=LongDelimCheck(Run);
+          sep:=LongDelimCheck(FTokenEnd);
           if (sep>0) and (sep=(fRangeExtended div 10)) then
           begin
-            Inc(Run, sep + 1);
+            Inc(FTokenEnd, sep + 1);
             fRangeExtended := PtrUInt(rsUnKnown);
+
+            EndCodeFoldBlock;
+
             Break;
           end;
         end;
-        if not (fLine[Run] in [#0, #10, #13]) then
-          Inc(Run);
-      until fLine[Run] in [#0, #10, #13];
+        Inc(FTokenEnd);
+      until FTokenEnd>length(FLineText);
     end;
   end;
 end;
@@ -750,14 +793,16 @@ end;
 procedure TSynLuaSyn.LuaMStringOpenProc;
 var sep: Integer;
 begin
-  Inc(Run);
-  sep:=LongDelimCheck(Run-1);
+  Inc(FTokenEnd);
+  sep:=LongDelimCheck(FTokenEnd-1);
   if sep>0 then
   begin
-    Inc(Run, sep - 1);
+    Inc(FTokenEnd, sep - 1);
     fRangeExtended := ptrUInt(rsLuaMString)+10*sep;
     LuaMStringProc;
     fTokenID := tkLuaMString;
+
+
   end
   else
     fTokenID := tkIdentifier;
@@ -766,7 +811,7 @@ end;
 procedure TSynLuaSyn.LuaMStringProc;
 var sep: Integer;
 begin
-  case fLine[Run] of
+  case FLineText[FTokenEnd] of
      #0: NullProc;
     #10: LFProc;
     #13: CRProc;
@@ -774,19 +819,20 @@ begin
     begin
       fTokenID := tkLuaMString;
       repeat
-        if (fLine[Run] = ']') then
+        if (FLineText[FTokenEnd] = ']') then
         begin
-          sep:=LongDelimCheck(Run);
+          sep:=LongDelimCheck(FTokenEnd);
           if (sep>0) and (sep=(fRangeExtended div 10)) then
           begin
-            Inc(Run, sep + 1);
+            Inc(FTokenEnd, sep + 1);
             fRangeExtended := PtrUInt(rsUnKnown);
             Break;
+
+            EndCodeFoldBlock;
           end;
         end;
-        if not (fLine[Run] in [#0, #10, #13]) then
-          Inc(Run);
-      until fLine[Run] in [#0, #10, #13];
+        Inc(FTokenEnd);
+      until FTokenEnd>=length(FLineText)
     end;
   end;
 end;
@@ -796,15 +842,15 @@ var
   idx1: Integer; // token[1]
   i: Integer;
 begin
-  idx1 := Run;
-  Inc(Run);
+  idx1 := FTokenEnd;
+  Inc(FTokenEnd);
   fTokenID := tkNumber;
-  while FLine[Run] in
-    ['0'..'9', 'A'..'F', 'a'..'f', '.', 'u', 'U', 'l', 'L', 'x', 'X', '-', '+'] do
+  while (FTokenEnd<=length(FLineText)) and (FLineText[FTokenEnd] in
+    ['0'..'9', 'A'..'F', 'a'..'f', '.', 'u', 'U', 'l', 'L', 'x', 'X', '-', '+']) do
   begin
-    case FLine[Run] of
+    case FLineText[FTokenEnd] of
       '.':
-        if FLine[Succ(Run)] = '.' then
+        if (FTokenEnd<Length(FLineText)) and (FLineText[Succ(FTokenEnd)] = '.') then
           Break
         else
           if (fTokenID <> tkHex) then
@@ -818,20 +864,20 @@ begin
         begin
           if fTokenID <> tkFloat then // number <> float. an arithmetic operator
             Exit;
-          if not (FLine[Pred(Run)] in ['e', 'E']) then
+          if not (FLineText[Pred(FTokenEnd)] in ['e', 'E']) then
             Exit; // number = float, but no exponent. an arithmetic operator
-          if not (FLine[Succ(Run)] in ['0'..'9', '+', '-']) then // invalid
+          if (FTokenEnd<Length(FLineText)) and (not (FLineText[Succ(FTokenEnd)] in ['0'..'9', '+', '-'])) then // invalid
           begin
-            Inc(Run);
+            Inc(FTokenEnd);
             fTokenID := tkUnknown;
             Exit;
           end
         end;
       '0'..'7':
-        if (Run = Succ(idx1)) and (FLine[idx1] = '0') then // octal number
+        if (FTokenEnd = Succ(idx1)) and (FLineText[idx1] = '0') then // octal number
           fTokenID := tkNumber; // Jean-Franois Goulet - Changed for token Number because token Octal was plain text and cannot be modified...
       '8', '9':
-        if (FLine[idx1] = '0') and
+        if (FLineText[idx1] = '0') and
            ((fTokenID <> tkHex) and (fTokenID <> tkFloat)) then // invalid octal char
              fTokenID := tkUnknown;
       'a'..'d', 'A'..'D':
@@ -839,15 +885,15 @@ begin
           Break;
       'e', 'E':
         if (fTokenID <> tkHex) then
-          if FLine[Pred(Run)] in ['0'..'9'] then // exponent
+          if FLineText[Pred(FTokenEnd)] in ['0'..'9'] then // exponent
           begin
-            for i := idx1 to Pred(Run) do
-              if FLine[i] in ['e', 'E'] then // too many exponents
+            for i := idx1 to Pred(FTokenEnd) do
+              if FLineText[i] in ['e', 'E'] then // too many exponents
               begin
                 fTokenID := tkUnknown;
                 Exit;
               end;
-            if not (FLine[Succ(Run)] in ['0'..'9', '+', '-']) then
+            if (FTokenEnd<Length(FLineText)) and (not (FLineText[Succ(FTokenEnd)] in ['0'..'9', '+', '-'])) then
               Break
             else
               fTokenID := tkFloat
@@ -857,15 +903,15 @@ begin
       'f', 'F':
         if fTokenID <> tkHex then
         begin
-          for i := idx1 to Pred(Run) do
-            if FLine[i] in ['f', 'F'] then // declaration syntax error
+          for i := idx1 to Pred(FTokenEnd) do
+            if FLineText[i] in ['f', 'F'] then // declaration syntax error
             begin
               fTokenID := tkUnknown;
               Exit;
             end;
           if fTokenID = tkFloat then
           begin
-            if fLine[Pred(Run)] in ['l', 'L'] then // can't mix
+            if FLineText[Pred(FTokenEnd)] in ['l', 'L'] then // can't mix
               Break;
           end
           else
@@ -873,51 +919,51 @@ begin
         end;
       'l', 'L':
         begin
-          for i := idx1 to Pred(Run) do
-            if FLine[i] in ['l', 'L'] then // declaration syntax error
+          for i := idx1 to Pred(FTokenEnd) do
+            if FLineText[i] in ['l', 'L'] then // declaration syntax error
             begin
               fTokenID := tkUnknown;
               Exit;
             end;
           if fTokenID = tkFloat then
-            if fLine[Pred(Run)] in ['f', 'F'] then // can't mix
+            if FLineText[Pred(FTokenEnd)] in ['f', 'F'] then // can't mix
               Break;
         end;
       'u', 'U':
         if fTokenID = tkFloat then // not allowed
           Break
         else
-          for i := idx1 to Pred(Run) do
-            if FLine[i] in ['u', 'U'] then // declaration syntax error
+          for i := idx1 to Pred(FTokenEnd) do
+            if FLineText[i] in ['u', 'U'] then // declaration syntax error
             begin
               fTokenID := tkUnknown;
               Exit;
             end;
       'x', 'X':
-        if (Run = Succ(idx1)) and   // 0x... 'x' must be second char
-           (FLine[idx1] = '0') and  // 0x...
-           (FLine[Succ(Run)] in ['0'..'9', 'a'..'f', 'A'..'F']) then // 0x... must be continued with a number
+        if (FTokenEnd<length(FLineText)) and (FTokenEnd = Succ(idx1)) and   // 0x... 'x' must be second char
+           (FLineText[idx1] = '0') and  // 0x...
+           (FLineText[Succ(FTokenEnd)] in ['0'..'9', 'a'..'f', 'A'..'F']) then // 0x... must be continued with a number
              fTokenID := tkHex
            else // invalid char
            begin
-             if (not Identifiers[fLine[Succ(Run)]]) and
-                (FLine[Succ(idx1)] in ['x', 'X']) then
+             if (FTokenEnd<length(FLineText)) and (not Identifiers[FLineText[Succ(FTokenEnd)]]) and
+                (FLineText[Succ(idx1)] in ['x', 'X']) then
              begin
-               Inc(Run); // highlight 'x' too
+               Inc(FTokenEnd); // highlight 'x' too
                fTokenID := tkUnknown;
              end;
              Break;
            end;
     end; // case
-    Inc(Run);
+    Inc(FTokenEnd);
   end; // while
-  if FLine[Run] in ['A'..'Z', 'a'..'z', '_'] then
+  if (FTokenEnd<=length(FlineText)) and (FLineText[FTokenEnd] in ['A'..'Z', 'a'..'z', '_']) then
     fTokenID := tkUnknown;
 end;
 
 procedure TSynLuaSyn.String1OpenProc;
 begin
-  Inc(Run);
+  Inc(FTokenEnd);
   fRangeExtended := PtrUInt(rsString1);
   String1Proc;
   fTokenID := tkString;
@@ -927,20 +973,20 @@ procedure TSynLuaSyn.String1Proc;
 begin
   fTokenID := tkString;
   repeat
-    if (((fLine[Run] = '"') and (fLine[Run - 1] <> '\')) or ((fLine[Run - 1] = '\') and (fLine[Run - 2] = '\') and (fLine[Run] = '"'))) then
+
+    if (FTokenEnd<=length(FLineText)) and (((FLineText[FTokenEnd] = '"') and (FLineText[FTokenEnd - 1] <> '\')) or ((FLineText[FTokenEnd - 1] = '\') and (FLineText[FTokenEnd - 2] = '\') and (FLineText[FTokenEnd] = '"'))) then
     begin
-      Inc(Run, 1);
+      Inc(FTokenEnd, 1);
       fRangeExtended := PtrUInt(rsUnKnown);
       Break;
     end;
-    if not (fLine[Run] in [#0, #10, #13]) then
-      Inc(Run);
-  until fLine[Run] in [#0, #10, #13];
+    Inc(FTokenEnd);
+  until ftokenend>length(flinetext);
 end;
 
 procedure TSynLuaSyn.String2OpenProc;
 begin
-  Inc(Run);
+  Inc(FTokenEnd);
   fRangeExtended := PtrUInt(rsString2);
   String2Proc;
   fTokenID := tkString;
@@ -950,15 +996,15 @@ procedure TSynLuaSyn.String2Proc;
 begin
   fTokenID := tkString;
   repeat
-    if (fLine[Run] = '''') then
+
+    if (ftokenEnd<length(FLineText)) and (FLineText[FTokenEnd] = '''') then
     begin
-      Inc(Run, 1);
+      Inc(FTokenEnd, 1);
       fRangeExtended := PtrUInt(rsUnKnown);
       Break;
     end;
-    if not (fLine[Run] in [#0, #10, #13]) then
-      Inc(Run);
-  until fLine[Run] in [#0, #10, #13];
+    Inc(FTokenEnd);
+  until FTokenEnd>length(FLineText);
 end;
 
 constructor TSynLuaSyn.Create(AOwner: TComponent);
@@ -984,18 +1030,22 @@ begin
   AddAttribute(fInternalFunctionAttri);
 
   fLuaMStringAttri := TSynHighLighterAttributes.Create(SYNS_AttrLuaMString);
-  fLuaMStringAttri.Foreground := clNavy;
+  fLuaMStringAttri.Foreground := $0000ff;
   AddAttribute(fLuaMStringAttri);
 
   fNumberAttri := TSynHighLighterAttributes.Create(SYNS_AttrNumber);
   fNumberAttri.Foreground := $f00000;
   AddAttribute(fNumberAttri);
 
+  fHexAttri := TSynHighLighterAttributes.Create(SYNS_AttrHexadecimal);
+  fHexAttri.Foreground := $708f00;
+  AddAttribute(fHexAttri);
+
   fSpaceAttri := TSynHighLighterAttributes.Create(SYNS_AttrSpace);
   AddAttribute(fSpaceAttri);
 
   fStringAttri := TSynHighLighterAttributes.Create(SYNS_AttrString);
-  fStringAttri.Foreground := clNavy;
+  fStringAttri.Foreground := $0505e0;
   AddAttribute(fStringAttri);
 
   SetAttributesOnChange({$IFDEF FPC}@{$ENDIF}DefHighlightChange);
@@ -1007,19 +1057,19 @@ end;
 
 procedure TSynLuaSyn.SetLine(const NewValue: String; LineNumber: Integer);
 begin
-  fLineRef := NewValue;
-  fLine := PChar(fLineRef);
-  Run := 0;
-  fLineNumber := LineNumber;
+  inherited;
+  FLineText := NewValue;
+  // Next will start at "FTokenEnd", so set this to 1
+  FTokenEnd := 1;
   Next;
 end;
 
 procedure TSynLuaSyn.IdentProc;
 begin
-  fTokenID := IdentKind((fLine + Run));
-  inc(Run, fStringLen);
-  while Identifiers[fLine[Run]] do
-    Inc(Run);
+  fTokenID := IdentKind(@FLineText[FTokenEnd]);
+  inc(FTokenEnd, fStringLen);
+  while (FTokenEnd<length(FLineText)) and Identifiers[FLineText[FTokenEnd]] do
+    Inc(FTokenEnd);
 end;
 
 procedure TSynLuaSyn.UnknownProc;
@@ -1029,24 +1079,37 @@ begin
     Inc(Run,2)
   else
 {$ENDIF}
-  if ord(fline[run])>$80 then
-    inc(Run,2)
+  if ord(FLineText[FTokenEnd])>$80 then
+    inc(FTokenEnd,2)
   else
-    inc(run);
+    inc(FTokenEnd);
 
   fTokenID := tkUnknown;
 end;
 
 procedure TSynLuaSyn.Next;
+var
+  l: Integer;
 begin
-  fTokenPos := Run;
+  ftokenid:=tkNull;
+
+  FTokenPos := FTokenEnd;
+  // assume empty, will only happen for EOL
+  FTokenEnd := FTokenPos;
+
+  l := length(FLineText);
+  If FTokenPos > l then
+    // At line end
+    exit
+  else
+
   case TRangeState(fRangeExtended mod 10) of
     rsLuaMComment: LuaMCommentProc;
     rsLuaMString: LuaMStringProc;
   else
     begin
       fRangeExtended := PtrUInt(rsUnknown);
-      fProcTable[fLine[Run]];
+      fProcTable[FLineText[FTokenEnd]];
     end;
   end;
 end;
@@ -1066,7 +1129,7 @@ end;
 
 function TSynLuaSyn.GetEol: Boolean;
 begin
-  Result := fTokenID = tkNull;
+  Result := FTokenPos > length(FLineText);
 end;
 
 function TSynLuaSyn.GetKeyWords: string;
@@ -1078,19 +1141,16 @@ begin
 end;
 
 function TSynLuaSyn.GetToken: String;
-var
-  Len: LongInt;
 begin
-  Len := Run - fTokenPos;
-  SetString(Result, (FLine + fTokenPos), Len);
+  Result := copy(FLineText, FTokenPos, FTokenEnd - FTokenPos);
 end;
 
 {$IFDEF SYN_LAZARUS}
 procedure TSynLuaSyn.GetTokenEx(out TokenStart: PChar;
   out TokenLength: integer);
 begin
-  TokenLength:=Run-fTokenPos;
-  TokenStart:=FLine + fTokenPos;
+  TokenStart := @FLineText[FTokenPos];
+  TokenLength := FTokenEnd - FTokenPos;
 end;
 {$ENDIF}
 
@@ -1107,6 +1167,7 @@ begin
     tkKey: Result := fKeyAttri;
     tkLuaMString: Result := fLuaMStringAttri;
     tkNumber, tkFloat: Result := fNumberAttri;
+    tkHex: result := fHexAttri;
     tkSpace: Result := fSpaceAttri;
     tkString: Result := fStringAttri;
     tkInternalFunction: result:= fInternalFunctionAttri;
@@ -1123,7 +1184,7 @@ end;
 
 function TSynLuaSyn.GetTokenPos: Integer;
 begin
-  Result := fTokenPos;
+  Result := FTokenPos - 1;
 end;
 
 function TSynLuaSyn.GetIdentChars: TSynIdentChars;
@@ -1150,18 +1211,54 @@ end;
 
 procedure TSynLuaSyn.ResetRange;
 begin
+  //
+  inherited ResetRange;
+//  FCurRange := 0;
   fRangeExtended := PtrUInt(rsUnknown);
 end;
 
 procedure TSynLuaSyn.SetRange(Value: Pointer);
 begin
-  fRangeExtended := PtrUInt(Value);
+  inherited SetRange(Value);
+  fRangeExtended := PtrInt(CodeFoldRange.RangeType);
+
 end;
 
 function TSynLuaSyn.GetRange: Pointer;
 begin
-  Result := Pointer(fRangeExtended);
+  //Result := Pointer(fRangeExtended);
+  CodeFoldRange.RangeType := Pointer(PtrInt(fRangeExtended));
+
+  result:=inherited GetRange;
+
+  if fRangeExtended<>0 then
+  asm
+  nop
+  end;
+
+
 end;
+
+function TSynLuaSyn.LoadFromRegistry(RootKey: HKEY; Key: string): boolean;
+var
+  reg: TRegistry;
+  i: integer;
+begin
+  reg:=tregistry.create;
+  reg.RootKey:=Rootkey;
+  result:=false;
+  if reg.OpenKey(Key,false) then
+  begin
+    result:=true;
+    for i:=0 to AttrCount-1 do
+      result:=result and Attribute[i].LoadFromRegistry(reg);
+  end;
+
+  reg.free;
+
+  DefHighlightChange(self);
+end;
+
 
 initialization
   MakeIdentTable;
@@ -1170,5 +1267,9 @@ initialization
 {$IFNDEF SYN_CPPB_1}
   RegisterPlaceableHighlighter(TSynLuaSyn);
 {$ENDIF}
+
+finalization
+  freeandnil(luasyntaxStringHashList);
+
 end.
 

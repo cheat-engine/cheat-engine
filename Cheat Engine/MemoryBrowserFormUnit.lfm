@@ -161,7 +161,7 @@ object MemoryBrowser: TMemoryBrowser
         AutoScroll = False
         ClientHeight = 358
         ClientWidth = 209
-        Font.Height = -16
+        Font.Height = -17
         Font.Name = 'Courier New'
         ParentFont = False
         TabOrder = 0

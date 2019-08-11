@@ -16,6 +16,7 @@ uses
 var
 //  AllIncludesCustomType: boolean;
   overridefont: TFont;
+  aprilfools: boolean;
 
   ScanAllTypes: TVariableTypes=[vtDword, vtSingle, vtDouble];
 

@@ -618,6 +618,7 @@ type
     procedure Panel5Resize(Sender: TObject);
     procedure pmTablistPopup(Sender: TObject);
     procedure pmValueTypePopup(Sender: TObject);
+    procedure ProcessLabelClick(Sender: TObject);
     procedure rbAllMemoryChange(Sender: TObject);
     procedure rbFsmAlignedChange(Sender: TObject);
     procedure Save1Click(Sender: TObject);
@@ -914,7 +915,7 @@ type
     fronttext: string;
 
 
-    aprilfools: boolean;
+
     editedsincelastsave: boolean;
 
     autoattachlist: TStringList;
@@ -1024,7 +1025,7 @@ uses mainunit2, ProcessWindowUnit, MemoryBrowserFormUnit, TypePopup, HotKeys,
   PointerscanresultReader, Parsers, Globals, GnuAssembler, xinput, DPIHelper,
   multilineinputqueryunit, winsapi, LuaClass, Filehandler, feces,
   frmDBVMWatchConfigUnit, frmDotNetObjectListUnit, ceregistry, UnexpectedExceptionsHelper,
-  frmFoundlistPreferencesUnit, fontSaveLoadRegistry;
+  frmFoundlistPreferencesUnit, fontSaveLoadRegistry, cheatecoins;
 
 resourcestring
   rsInvalidStartAddress = 'Invalid start address: %s';
@@ -2793,6 +2794,7 @@ var
   DoNotOpenAssociatedTable: boolean;
   //set to true if the table had AA scripts enabled or the code list had nopped instruction
 begin
+  if aprilfools then decreaseCheatECoinCount;
 
   DoNotOpenAssociatedTable:=false;
 
@@ -5195,6 +5197,11 @@ begin
 
 end;
 
+procedure TMainForm.ProcessLabelClick(Sender: TObject);
+begin
+
+end;
+
 procedure TMainForm.miShowCustomTypeDebugClick(Sender: TObject);
 var ct: TCustomType;
 begin
@@ -5228,7 +5235,6 @@ end;
 
 procedure TMainForm.aprilfoolsscan;
 begin
-
   if aprilfools then
   begin
     if messagedlg(rsThankYouForTryingOutCheatEngineBecauseItHasExpired,
@@ -7699,9 +7705,23 @@ begin
   if (month = 4) and (day = 1) then
     aprilfools := True;
 
-  if aprilfools = True then
+{  if aprilfools = True then
     Messagedlg(
       rsLicenseExpired, mtWarning, [mbOK], 0);
+}
+
+ // aprilfools:=true;
+  if aprilfools then  //what whould happen if this var is false?
+  begin
+    if copy(cenorm,1,5)='Cheat' then
+    begin
+      cenorm[3]:='E';
+      cenorm[4]:='A';
+      caption:=cenorm;
+    end;
+    EnableCheatECoinSystem;
+  end;
+
 
   //Load the table if one was suplied
   overridedebug := False;
@@ -7727,9 +7747,9 @@ begin
   vartypechange(vartype);
   adjustbringtofronttext;
 
-
+   {
   if aprilfools then
-    Caption := cenorm + ' ' + rsEXPIRED + '!';
+    Caption := cenorm + ' ' + rsEXPIRED + '!';}
 
   if autoattachtimer.Enabled then
     autoattachcheck
@@ -8029,7 +8049,6 @@ begin
     MessageDlg(Format(rsInvalidScanFolder, [memscan.GetScanFolder]), mtError, [mbOk], 0);
 
  // ImageList2.GetBitmap(0);
-
 
 
 end;
@@ -9356,6 +9375,8 @@ var
   percentage: boolean;
   fastscanmethod: TFastscanmethod;
 begin
+  if aprilfools then decreaseCheatECoinCount;
+
   QueryPerformanceCounter(scantimestart);
 
   if PreviousResults<>nil then
@@ -9632,7 +9653,9 @@ var
   totaldiskspacefree: LARGE_INTEGER;
   percentage: boolean;
 begin
- { estimateddiskspaceneeded:=foundcount*8*3;
+  if aprilfools then decreaseCheatECoinCount;
+
+  { estimateddiskspaceneeded:=foundcount*8*3;
   GetDiskFreeSpaceEx(pchar(memscan.ScanresultFolder), diskspacefree, totaldiskspace,@totaldiskspacefree);
 
 

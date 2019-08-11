@@ -11,7 +11,7 @@ object Form2: TForm2
   OnClose = FormClose
   OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
-  LCLVersion = '1.6.0.4'
+  LCLVersion = '2.0.0.4'
   object Label1: TLabel
     AnchorSideLeft.Control = Label2
     AnchorSideLeft.Side = asrBottom

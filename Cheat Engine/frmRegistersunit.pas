@@ -287,7 +287,7 @@ begin
   panel3.Font.Height:=i;
 
 
-  widthneeded:=canvas.TextWidth(' '+caption+' ');
+  widthneeded:=canvas.TextWidth('XX  '+caption+'  XX');
   constraints.MinWidth:=widthneeded;
 
   if WindowsVersion>=wvVista then

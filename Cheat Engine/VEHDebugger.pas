@@ -34,6 +34,8 @@ type
 
     Heartbeat: TThread;
 
+    CurrentThread: THandle;
+
     procedure SynchronizeNoBreakList;
     procedure DoThreadPoll;
   public
@@ -286,7 +288,10 @@ var i: integer;
     c32: PContext32 absolute c;
 {$endif}
     inj: TInjectedEvent;
+
 begin
+  currentThread:=0;  //just making sure
+
   if injectedEvents.count>0 then
   begin
     fisInjectedEvent:=true;
@@ -304,6 +309,9 @@ begin
 
       lpDebugEvent.CreateThread.lpStartAddress:=nil;
       lpDebugEvent.CreateThread.lpThreadLocalBase:=nil;
+
+      CurrentThread:=OpenThread(THREAD_ALL_ACCESS,false, lpDebugEvent.dwThreadId);
+      suspendThread(CurrentThread);
     end
     else
     begin
@@ -331,6 +339,8 @@ begin
     lpDebugEvent.dwThreadId:=VEHDebugView.ThreadID;
     lpDebugEvent.Exception.dwFirstChance:=1;
 
+
+
     case VEHDebugView.Exception64.ExceptionCode of
       $ce000000: //create process
       begin
@@ -344,11 +354,12 @@ begin
       begin
         lpDebugEvent.dwDebugEventCode:=CREATE_THREAD_DEBUG_EVENT;
         lpDebugEvent.CreateThread.hThread:=OpenThread(THREAD_ALL_ACCESS,false, lpDebugEvent.dwThreadId);
-
         lpDebugEvent.CreateThread.lpStartAddress:=nil;
         lpDebugEvent.CreateThread.lpThreadLocalBase:=nil;
         lastthreadlist.Add(inttohex(lpDebugEvent.dwThreadId,1));
         lastthreadpoll:=GetTickCount64;
+
+
       end;
 
       $ce000002: //destroy thread
@@ -444,6 +455,13 @@ begin
     fisInjectedEvent:=false
   else
     SetEvent(HasHandledDebugEvent);
+
+  if currentthread<>0 then
+  begin
+    resumeThread(currentThread);
+    closeHandle(currentThread);
+    currentThread:=0;
+  end;
 
   result:=true;
 end;
@@ -664,10 +682,10 @@ var
 
   inj: TInjectedEvent;
 begin
-
   currentlist:=tstringlist.create;
 
   GetThreadList(currentlist);
+
   for i:=0 to currentlist.count-1 do
   begin
     if lastthreadlist.IndexOf(currentlist[i])=-1 then

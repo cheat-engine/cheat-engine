@@ -103,7 +103,8 @@ uses
   frmBranchMapperUnit, frmSymbolEventTakingLongUnit, LuaCheckListBox,
   textrender, diagramtypes, diagramblock, diagram, LuaDiagram, LuaDiagramBlock,
   LuaDiagramLink, diagramlink, BreakpointTypeDef, frmFoundlistPreferencesUnit,
-  LuaHeaderSections, frmDebuggerAttachTimeoutUnit;
+  LuaHeaderSections, frmDebuggerAttachTimeoutUnit, cheatecoins,
+  frmMicrotransactionsUnit, frmSyntaxHighlighterEditor;
 
 {$R cheatengine.res}
 {$R manifest.res}  //lazarus now has this build in (but sucks as it explicitly turns of dpi aware)

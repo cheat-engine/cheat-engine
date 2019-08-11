@@ -972,8 +972,8 @@ begin
 
           if c.dr7 and 4=4 then
           begin
-            rw:=(c.dr7 shr 16) and 3;
-            len:=(c.dr7 shr 18) and 3;
+            rw:=(c.dr7 shr 20) and 3;
+            len:=(c.dr7 shr 22) and 3;
 
             drinfo:=drinfo+'2('+rw2str(rw)+' - '+len2str(len)+') ';
           end;
@@ -981,8 +981,8 @@ begin
           if c.dr7 and 16=16 then
           begin
             s:=s+'3(';
-            rw:=(c.dr7 shr 16) and 3;
-            len:=(c.dr7 shr 18) and 3;
+            rw:=(c.dr7 shr 24) and 3;
+            len:=(c.dr7 shr 26) and 3;
 
             drinfo:=drinfo+'3('+rw2str(rw)+' - '+len2str(len)+') ';
           end;
@@ -990,8 +990,8 @@ begin
           if c.dr7 and 64=64 then
           begin
 
-            rw:=(c.dr7 shr 16) and 3;
-            len:=(c.dr7 shr 18) and 3;
+            rw:=(c.dr7 shr 28) and 3;
+            len:=(c.dr7 shr 30) and 3;
 
             drinfo:=drinfo+'4('+rw2str(rw)+' - '+len2str(len)+') ';
           end;

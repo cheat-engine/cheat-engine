@@ -11,7 +11,7 @@ object Form3: TForm3
   OnClose = FormClose
   OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
-  LCLVersion = '1.6.0.4'
+  LCLVersion = '2.0.0.4'
   Visible = True
   object Label1: TLabel
     AnchorSideLeft.Control = Memo1

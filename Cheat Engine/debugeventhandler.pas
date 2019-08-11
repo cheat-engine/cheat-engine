@@ -1565,7 +1565,12 @@ begin
     if currentdebuggerinterface is TNetworkDebuggerInterface then
       handle  := debugevent.CreateThread.hThread
     else
+    begin
+      if debugevent.CreateThread.hThread<>0 then
+        closehandle(handle);
+
       handle  := OpenThread(THREAD_ALL_ACCESS, false, threadid );
+    end;
   end;
 
   Result    := true;
@@ -1761,6 +1766,10 @@ end;
 destructor TDebugThreadHandler.destroy;
 begin
   freememandnil(realcontextpointer);
+
+  if handle<>0 then
+    closehandle(handle);
+
   inherited destroy;
 end;
 
@@ -1865,6 +1874,10 @@ begin
       ThreadList.Remove(currentThread);
       currentThread.Free;
       currentthread:=nil;
+
+
+
+
     end;
 
     debuggercs.leave;
@@ -2005,8 +2018,6 @@ begin
 
 
   OutputDebugString('Returned from HandleDebugEvent');
-
-
 
 end;
 

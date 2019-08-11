@@ -159,9 +159,6 @@
       <Version Value="2"/>
     </PublishOptions>
     <RunParams>
-      <local>
-        <LaunchingApplication PathPlusParams="/usr/X11R6/bin/xterm -T 'Lazarus Run Output' -e $(LazarusDir)/tools/runwait.sh $(TargetCmdLine)"/>
-      </local>
       <FormatVersion Value="2"/>
       <Modes Count="1">
         <Mode0 Name="default">
@@ -176,13 +173,14 @@
         <PackageName Value="LCL"/>
       </Item1>
     </RequiredPackages>
-    <Units Count="32">
+    <Units Count="36">
       <Unit0>
         <Filename Value="tutorial.lpr"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="1"/>
-        <CursorPos X="20" Y="18"/>
-        <UsageCount Value="62"/>
+        <IsVisibleTab Value="True"/>
+        <EditorIndex Value="5"/>
+        <CursorPos Y="28"/>
+        <UsageCount Value="70"/>
         <Loaded Value="True"/>
       </Unit0>
       <Unit1>
@@ -191,9 +189,9 @@
         <ComponentName Value="Form1"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
-        <TopLine Value="62"/>
-        <CursorPos X="22" Y="68"/>
-        <UsageCount Value="62"/>
+        <TopLine Value="133"/>
+        <CursorPos X="5" Y="142"/>
+        <UsageCount Value="70"/>
         <Loaded Value="True"/>
         <LoadedDesigner Value="True"/>
       </Unit1>
@@ -203,10 +201,10 @@
         <ComponentName Value="Form2"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
-        <EditorIndex Value="2"/>
-        <TopLine Value="130"/>
-        <CursorPos Y="137"/>
-        <UsageCount Value="62"/>
+        <EditorIndex Value="6"/>
+        <TopLine Value="124"/>
+        <CursorPos X="3" Y="138"/>
+        <UsageCount Value="70"/>
         <Loaded Value="True"/>
         <LoadedDesigner Value="True"/>
       </Unit2>
@@ -216,10 +214,10 @@
         <ComponentName Value="Form3"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
-        <EditorIndex Value="3"/>
-        <TopLine Value="75"/>
-        <CursorPos Y="86"/>
-        <UsageCount Value="62"/>
+        <EditorIndex Value="7"/>
+        <TopLine Value="72"/>
+        <CursorPos X="10" Y="90"/>
+        <UsageCount Value="70"/>
         <Loaded Value="True"/>
         <LoadedDesigner Value="True"/>
       </Unit3>
@@ -229,10 +227,10 @@
         <ComponentName Value="Form4"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
-        <EditorIndex Value="4"/>
-        <TopLine Value="45"/>
-        <CursorPos X="52" Y="58"/>
-        <UsageCount Value="62"/>
+        <EditorIndex Value="8"/>
+        <TopLine Value="34"/>
+        <CursorPos X="16" Y="58"/>
+        <UsageCount Value="70"/>
         <Loaded Value="True"/>
         <LoadedDesigner Value="True"/>
       </Unit4>
@@ -242,10 +240,10 @@
         <ComponentName Value="Form5"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
-        <EditorIndex Value="6"/>
-        <TopLine Value="96"/>
-        <CursorPos Y="103"/>
-        <UsageCount Value="62"/>
+        <EditorIndex Value="10"/>
+        <TopLine Value="86"/>
+        <CursorPos X="26" Y="104"/>
+        <UsageCount Value="70"/>
         <Loaded Value="True"/>
         <LoadedDesigner Value="True"/>
       </Unit5>
@@ -255,10 +253,10 @@
         <ComponentName Value="Form6"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
-        <EditorIndex Value="7"/>
-        <TopLine Value="103"/>
-        <CursorPos X="3" Y="117"/>
-        <UsageCount Value="62"/>
+        <EditorIndex Value="11"/>
+        <TopLine Value="100"/>
+        <CursorPos X="26" Y="118"/>
+        <UsageCount Value="70"/>
         <Loaded Value="True"/>
         <LoadedDesigner Value="True"/>
       </Unit6>
@@ -268,10 +266,10 @@
         <ComponentName Value="Form7"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
-        <EditorIndex Value="8"/>
-        <TopLine Value="159"/>
-        <CursorPos X="17" Y="174"/>
-        <UsageCount Value="62"/>
+        <EditorIndex Value="12"/>
+        <TopLine Value="190"/>
+        <CursorPos X="26" Y="208"/>
+        <UsageCount Value="70"/>
         <Loaded Value="True"/>
         <LoadedDesigner Value="True"/>
       </Unit7>
@@ -281,10 +279,10 @@
         <ComponentName Value="Form8"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
-        <EditorIndex Value="10"/>
-        <TopLine Value="115"/>
-        <CursorPos X="33" Y="130"/>
-        <UsageCount Value="62"/>
+        <EditorIndex Value="14"/>
+        <TopLine Value="95"/>
+        <CursorPos X="26" Y="113"/>
+        <UsageCount Value="70"/>
         <Loaded Value="True"/>
         <LoadedDesigner Value="True"/>
       </Unit8>
@@ -294,10 +292,10 @@
         <ComponentName Value="Form9"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
-        <EditorIndex Value="11"/>
-        <TopLine Value="14"/>
-        <CursorPos Y="30"/>
-        <UsageCount Value="62"/>
+        <EditorIndex Value="15"/>
+        <TopLine Value="174"/>
+        <CursorPos X="23" Y="192"/>
+        <UsageCount Value="70"/>
         <Loaded Value="True"/>
         <LoadedDesigner Value="True"/>
       </Unit9>
@@ -307,10 +305,10 @@
         <ComponentName Value="Form10"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
-        <EditorIndex Value="13"/>
-        <TopLine Value="148"/>
-        <CursorPos X="48" Y="153"/>
-        <UsageCount Value="62"/>
+        <EditorIndex Value="17"/>
+        <TopLine Value="285"/>
+        <CursorPos X="26" Y="307"/>
+        <UsageCount Value="70"/>
         <Loaded Value="True"/>
         <LoadedDesigner Value="True"/>
       </Unit10>
@@ -323,11 +321,10 @@
       <Unit12>
         <Filename Value="cetranslator.pas"/>
         <IsPartOfProject Value="True"/>
-        <IsVisibleTab Value="True"/>
-        <EditorIndex Value="9"/>
+        <EditorIndex Value="13"/>
         <TopLine Value="25"/>
         <CursorPos X="41" Y="42"/>
-        <UsageCount Value="57"/>
+        <UsageCount Value="65"/>
         <Loaded Value="True"/>
       </Unit12>
       <Unit13>
@@ -463,140 +460,181 @@
       <Unit30>
         <Filename Value="C:\lazarus\lcl\graphics.pp"/>
         <UnitName Value="Graphics"/>
-        <EditorIndex Value="5"/>
+        <EditorIndex Value="9"/>
         <TopLine Value="569"/>
         <CursorPos X="14" Y="581"/>
-        <UsageCount Value="10"/>
+        <UsageCount Value="14"/>
         <Loaded Value="True"/>
       </Unit30>
       <Unit31>
         <Filename Value="C:\lazarus164\fpc\3.0.2\source\rtl\win\wininc\ascdef.inc"/>
-        <EditorIndex Value="12"/>
+        <EditorIndex Value="16"/>
         <TopLine Value="458"/>
         <CursorPos X="22" Y="470"/>
-        <UsageCount Value="10"/>
+        <UsageCount Value="14"/>
         <Loaded Value="True"/>
       </Unit31>
+      <Unit32>
+        <Filename Value="frmhelpunit.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="frmHelp"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+        <UnitName Value="frmHelpUnit"/>
+        <EditorIndex Value="1"/>
+        <TopLine Value="56"/>
+        <CursorPos X="132" Y="84"/>
+        <UsageCount Value="28"/>
+        <Loaded Value="True"/>
+        <LoadedDesigner Value="True"/>
+      </Unit32>
+      <Unit33>
+        <Filename Value="C:\lazarus200\lcl\controls.pp"/>
+        <UnitName Value="Controls"/>
+        <EditorIndex Value="3"/>
+        <TopLine Value="1683"/>
+        <CursorPos X="14" Y="1713"/>
+        <UsageCount Value="12"/>
+        <Loaded Value="True"/>
+      </Unit33>
+      <Unit34>
+        <Filename Value="C:\lazarus200\lcl\include\control.inc"/>
+        <EditorIndex Value="4"/>
+        <TopLine Value="4202"/>
+        <CursorPos X="3" Y="4207"/>
+        <UsageCount Value="12"/>
+        <Loaded Value="True"/>
+      </Unit34>
+      <Unit35>
+        <Filename Value="C:\lazarus200\lcl\forms.pp"/>
+        <UnitName Value="Forms"/>
+        <EditorIndex Value="2"/>
+        <TopLine Value="1597"/>
+        <CursorPos X="14" Y="1613"/>
+        <UsageCount Value="10"/>
+        <Loaded Value="True"/>
+      </Unit35>
     </Units>
     <JumpHistory Count="30" HistoryIndex="29">
       <Position1>
-        <Filename Value="Unit10.pas"/>
-        <Caret Line="308" Column="82" TopLine="293"/>
+        <Filename Value="Unit8.pas"/>
+        <Caret Line="113" Column="27" TopLine="104"/>
       </Position1>
       <Position2>
-        <Filename Value="Unit10.pas"/>
+        <Filename Value="Unit8.pas"/>
+        <Caret Line="118" Column="3" TopLine="104"/>
       </Position2>
       <Position3>
-        <Filename Value="Unit10.pas"/>
-        <Caret Line="309" TopLine="290"/>
+        <Filename Value="Unit9.pas"/>
+        <Caret Line="20" Column="21" TopLine="14"/>
       </Position3>
       <Position4>
-        <Filename Value="Unit10.pas"/>
-        <Caret Line="143" TopLine="131"/>
+        <Filename Value="Unit9.pas"/>
+        <Caret Line="192" Column="27" TopLine="181"/>
       </Position4>
       <Position5>
-        <Filename Value="Unit10.pas"/>
-        <Caret Line="144" TopLine="131"/>
+        <Filename Value="Unit9.pas"/>
+        <Caret Line="333" Column="3" TopLine="323"/>
       </Position5>
       <Position6>
         <Filename Value="Unit10.pas"/>
-        <Caret Line="145" Column="27" TopLine="131"/>
+        <Caret Line="61" Column="21" TopLine="41"/>
       </Position6>
       <Position7>
         <Filename Value="Unit10.pas"/>
-        <Caret Line="155" TopLine="135"/>
+        <Caret Line="304" Column="24" TopLine="281"/>
       </Position7>
       <Position8>
-        <Filename Value="Unit10.pas"/>
-        <Caret Line="144" TopLine="133"/>
+        <Filename Value="Unit1.pas"/>
+        <Caret Line="64" Column="3" TopLine="62"/>
       </Position8>
       <Position9>
-        <Filename Value="Unit10.pas"/>
-        <Caret Line="145" TopLine="133"/>
+        <Filename Value="Unit2.pas"/>
+        <Caret Line="138" Column="25" TopLine="124"/>
       </Position9>
       <Position10>
-        <Filename Value="Unit10.pas"/>
-        <Caret Line="147" TopLine="133"/>
+        <Filename Value="frmhelpunit.pas"/>
+        <Caret Line="23" Column="15" TopLine="5"/>
       </Position10>
       <Position11>
-        <Filename Value="Unit10.pas"/>
-        <Caret Line="155" TopLine="142"/>
+        <Filename Value="Unit2.pas"/>
+        <Caret Line="138" Column="12" TopLine="124"/>
       </Position11>
       <Position12>
-        <Filename Value="Unit10.pas"/>
-        <Caret Line="157" TopLine="148"/>
+        <Filename Value="frmhelpunit.pas"/>
+        <Caret Line="23" Column="15" TopLine="5"/>
       </Position12>
       <Position13>
-        <Filename Value="Unit10.pas"/>
-        <Caret Line="159" TopLine="148"/>
+        <Filename Value="frmhelpunit.pas"/>
+        <Caret Line="24" Column="9" TopLine="8"/>
       </Position13>
       <Position14>
-        <Filename Value="Unit10.pas"/>
-        <Caret Line="150" Column="93" TopLine="150"/>
+        <Filename Value="frmhelpunit.pas"/>
+        <Caret Line="82" Column="138"/>
       </Position14>
       <Position15>
-        <Filename Value="Unit10.pas"/>
-        <Caret Line="144" TopLine="132"/>
+        <Filename Value="frmhelpunit.pas"/>
+        <Caret Line="21" Column="26"/>
       </Position15>
       <Position16>
         <Filename Value="Unit10.pas"/>
-        <Caret Line="145" TopLine="132"/>
+        <Caret Line="307" Column="26" TopLine="285"/>
       </Position16>
       <Position17>
-        <Filename Value="Unit10.pas"/>
-        <Caret Line="147" TopLine="132"/>
+        <Filename Value="Unit9.pas"/>
+        <Caret Line="192" Column="23" TopLine="174"/>
       </Position17>
       <Position18>
-        <Filename Value="Unit10.pas"/>
-        <Caret Line="155" TopLine="145"/>
+        <Filename Value="Unit8.pas"/>
+        <Caret Line="113" Column="26" TopLine="95"/>
       </Position18>
       <Position19>
-        <Filename Value="Unit10.pas"/>
-        <Caret Line="157" TopLine="145"/>
+        <Filename Value="Unit7.pas"/>
+        <Caret Line="208" Column="26" TopLine="190"/>
       </Position19>
       <Position20>
-        <Filename Value="Unit10.pas"/>
-        <Caret Line="159" TopLine="145"/>
+        <Filename Value="Unit6.pas"/>
+        <Caret Line="118" Column="26" TopLine="100"/>
       </Position20>
       <Position21>
-        <Filename Value="Unit10.pas"/>
-        <Caret Line="161" TopLine="145"/>
+        <Filename Value="Unit5.pas"/>
+        <Caret Line="104" Column="26" TopLine="86"/>
       </Position21>
       <Position22>
-        <Filename Value="Unit10.pas"/>
-        <Caret Line="159" TopLine="142"/>
+        <Filename Value="Unit3.pas"/>
+        <Caret Line="90" Column="10" TopLine="72"/>
       </Position22>
       <Position23>
-        <Filename Value="Unit10.pas"/>
-        <Caret Line="157" TopLine="142"/>
+        <Filename Value="frmhelpunit.pas"/>
+        <Caret Line="73" Column="18" TopLine="38"/>
       </Position23>
       <Position24>
-        <Filename Value="Unit10.pas"/>
-        <Caret Line="159" TopLine="148"/>
+        <Filename Value="Unit1.pas"/>
+        <Caret Line="68" Column="18" TopLine="56"/>
       </Position24>
       <Position25>
         <Filename Value="Unit1.pas"/>
-        <Caret Line="46" Column="59" TopLine="46"/>
+        <Caret Line="64" Column="32" TopLine="47"/>
       </Position25>
       <Position26>
-        <Filename Value="Unit1.pas"/>
-        <Caret Line="78" TopLine="60"/>
+        <Filename Value="Unit2.pas"/>
+        <Caret Line="138" Column="3" TopLine="124"/>
       </Position26>
       <Position27>
-        <Filename Value="tutorial.lpr"/>
-        <Caret Line="27"/>
+        <Filename Value="frmhelpunit.pas"/>
+        <Caret Line="25" Column="15" TopLine="7"/>
       </Position27>
       <Position28>
-        <Filename Value="Unit7.pas"/>
-        <Caret Line="194" TopLine="179"/>
+        <Filename Value="Unit1.pas"/>
+        <Caret Line="64" TopLine="47"/>
       </Position28>
       <Position29>
-        <Filename Value="Unit7.pas"/>
-        <Caret Line="174" Column="17" TopLine="159"/>
+        <Filename Value="frmhelpunit.pas"/>
+        <Caret Line="81" Column="51" TopLine="50"/>
       </Position29>
       <Position30>
-        <Filename Value="cetranslator.pas"/>
-        <Caret Line="96" Column="48" TopLine="77"/>
+        <Filename Value="frmhelpunit.pas"/>
+        <Caret Line="84" Column="132" TopLine="56"/>
       </Position30>
     </JumpHistory>
   </ProjectOptions>

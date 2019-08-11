@@ -85,6 +85,8 @@ type
     menuAOBInjection: TMenuItem;
     menuFullInjection: TMenuItem;
     MenuItem1: TMenuItem;
+    MenuItem2: TMenuItem;
+    MenuItem3: TMenuItem;
     miRedo: TMenuItem;
     mifindNext: TMenuItem;
     miCallLua: TMenuItem;
@@ -130,6 +132,8 @@ type
     procedure menuAOBInjectionClick(Sender: TObject);
     procedure menuFullInjectionClick(Sender: TObject);
     procedure MenuItem1Click(Sender: TObject);
+    procedure MenuItem2Click(Sender: TObject);
+    procedure MenuItem3Click(Sender: TObject);
     procedure mifindNextClick(Sender: TObject);
     procedure miCallLuaClick(Sender: TObject);
     procedure miNewWindowClick(Sender: TObject);
@@ -213,6 +217,8 @@ type
     callbackroutine: TCallbackroutine;
     CustomTypeCallback: TCustomCallbackroutine;
     injectintomyself: boolean;
+
+    procedure reloadHighlighterSettings;
     procedure addTemplate(id: integer);
     procedure removeTemplate(id: integer);
     procedure loadfile(filename: string);
@@ -234,13 +240,16 @@ procedure unregisterAutoAssemblerTemplate(id: integer);
 function GetUniqueAOB(mi: TModuleInfo; address: ptrUint; codesize: Integer; var resultOffset: Integer) : string;
 
 
+procedure ReloadAllAutoInjectHighlighters;
+
 implementation
 
 
 uses frmAAEditPrefsUnit,MainUnit,memorybrowserformunit,APIhooktemplatesettingsfrm,
   Globals, Parsers, MemoryQuery, GnuAssembler, LuaCaller, SynEditTypes, CEFuncProc,
   StrUtils, types, ComCtrls, LResources, NewKernelHandler, MainUnit2, Assemblerunit,
-  autoassembler,  registry, luahandler, memscan, foundlisthelper, ProcessHandlerUnit;
+  autoassembler,  registry, luahandler, memscan, foundlisthelper, ProcessHandlerUnit,
+  frmLuaEngineUnit, frmSyntaxHighlighterEditor;
 
 resourcestring
   rsExecuteScript = 'Execute script';
@@ -274,7 +283,20 @@ var
   AutoAssemblerTemplates: TAutoAssemblerTemplates;
 
 
+procedure ReloadAllAutoInjectHighlighters;
+var
+  i: integer;
+  f: TCustomForm;
+  aif: TfrmAutoInject absolute f;
+begin
+  for i:=0 to screen.FormCount-1 do
+  begin
+    f:=screen.Forms[i];
+    if f is TfrmAutoInject then
+      aif.reloadHighlighterSettings;
+  end;
 
+end;
 
 function registerAutoAssemblerTemplate(name: string; m: TAutoAssemblerTemplateCallback): integer;
 var i: integer;
@@ -1754,7 +1776,7 @@ begin
   CPPHighlighter:=TSynCppSyn.create(self);
   LuaHighlighter:=TSynLuaSyn.Create(self);
 
-
+  reloadHighlighterSettings;
 
   assembleSearch:=TSyneditSearch.Create;
 
@@ -2427,6 +2449,46 @@ end;
 procedure TfrmAutoInject.MenuItem1Click(Sender: TObject);
 begin
   ReplaceDialog1.execute;
+end;
+
+procedure TfrmAutoInject.reloadHighlighterSettings;
+begin
+  LuaHighlighter.LoadFromRegistry(HKEY_CURRENT_USER, '\Software\Cheat Engine\Lua Highlighter');
+  AAHighlighter.LoadFromRegistry(HKEY_CURRENT_USER, '\Software\Cheat Engine\AA Highlighter');
+end;
+
+procedure TfrmAutoInject.MenuItem2Click(Sender: TObject);
+var
+  frmHighlighterEditor: TfrmHighlighterEditor;
+begin
+  frmHighlighterEditor:=TfrmHighlighterEditor.create(self);
+  LuaHighlighter.LoadFromRegistry(HKEY_CURRENT_USER, '\Software\Cheat Engine\Lua Highlighter');
+  frmHighlighterEditor.highlighter:=LuaHighlighter;
+  if frmHighlighterEditor.showmodal=mrok then
+  begin
+    LuaHighlighter.SaveToRegistry(HKEY_CURRENT_USER, '\Software\Cheat Engine\Lua Highlighter');
+    reloadHighlighterSettings;
+    ReloadAllLuaEngineHighlighters;
+  end;
+
+  frmHighlighterEditor.free;
+
+end;
+
+procedure TfrmAutoInject.MenuItem3Click(Sender: TObject);
+var
+  frmHighlighterEditor: TfrmHighlighterEditor;
+begin
+  frmHighlighterEditor:=TfrmHighlighterEditor.create(self);
+  AAHighlighter.LoadFromRegistry(HKEY_CURRENT_USER, '\Software\Cheat Engine\AA Highlighter');
+  frmHighlighterEditor.highlighter:=AAHighlighter;
+  if frmHighlighterEditor.showmodal=mrok then
+  begin
+    AAHighlighter.SaveToRegistry(HKEY_CURRENT_USER, '\Software\Cheat Engine\AA Highlighter');
+    ReloadAllAutoInjectHighlighters;
+  end;
+
+  frmHighlighterEditor.free;
 end;
 
 procedure GenerateAOBInjectionScript(script: TStrings; address: string; symbolname: string);
