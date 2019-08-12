@@ -5856,7 +5856,7 @@ var
   f: TfrmStructures2;
   e: boolean;
   x: ptruint;
-  i,j,k: integer;
+  i,j: integer;
 
 
 
@@ -5917,31 +5917,29 @@ begin
     begin
       node:=nodelist[j];
 
-      for k:=0 to columnCount-1 do
+      a:=getAddressFromNode(node, getFocusedColumn, e); //or only getFocusedColumn?
+      if not e then
       begin
-        a:=getAddressFromNode(node, columns[k], e); //or only getFocusedColumn?
-        if not e then
+        p:=0;
+        x:=0;
+
+
+        ReadProcessMemory(processhandle, pointer(a), @p, ProcessHandler.pointersize, x);
+        if x=ProcessHandler.pointersize then
         begin
-          p:=0;
-          x:=0;
-
-
-          ReadProcessMemory(processhandle, pointer(a), @p, ProcessHandler.pointersize, x);
-          if x=ProcessHandler.pointersize then
+          if p=0 then exit;
+          if f=nil then
           begin
-            if p=0 then exit;
-            if f=nil then
-            begin
-              f:=tfrmstructures2.create(application);
-              f.mainStruct:=struct;
-            end;
-
-            sc:=f.addColumn;
-            sc.AddressText:=inttohex(a,8);
-
+            f:=tfrmstructures2.create(application);
+            f.mainStruct:=struct;
           end;
+
+          sc:=f.addColumn;
+          sc.AddressText:=inttohex(a,8);
+
         end;
       end;
+
     end;
 
     if f<>nil then
