@@ -244,6 +244,9 @@ type
     FTokenPos, FTokenEnd: Integer;
     FLineText: String;
 
+    StartCodeFold: boolean;
+    EndCodeFold: boolean;
+
     //FCurRange: integer;
     fProcTable: array[#0..#255] of TProcTableProc;
     fRangeExtended: ptrUInt;
@@ -473,8 +476,8 @@ function TSynLuaSyn.Func17: TtkTokenKind;
 begin
   if KeyComp('if') then
   begin
+    StartCodeFold:=true;
     Result := tkKey;
-    StartCodeFoldBlock;
   end
   else Result := tkIdentifier;
 
@@ -484,8 +487,8 @@ function TSynLuaSyn.Func21: TtkTokenKind;
 begin
   if KeyComp('do') then
   begin
+    StartCodeFold:=true;
     Result := tkKey;
-    StartCodeFoldBlock;
   end
   else Result := tkIdentifier;
 
@@ -505,9 +508,9 @@ function TSynLuaSyn.Func26: TtkTokenKind;
 begin
   if KeyComp('end') then
   begin
+    EndCodeFold:=true;
     Result := tkKey;
-    EndCodeFoldBlock;
-  end
+   end
   else Result := tkIdentifier;
 
 end;
@@ -588,7 +591,7 @@ begin
   if KeyComp('repeat') then
   begin
     Result := tkKey;
-    StartCodeFoldBlock;
+    StartCodeFold:=true;
   end
   else Result := tkIdentifier;
 end;
@@ -598,7 +601,7 @@ begin
   if KeyComp('until') then
   begin
     Result := tkKey;
-    EndCodeFoldBlock;
+    EndCodeFold:=true;
   end
   else Result := tkIdentifier;
 end;
@@ -620,7 +623,8 @@ begin
   if KeyComp('function') then
   begin
     Result := tkKey;
-    StartCodeFoldBlock;
+    StartCodeFold:=true;
+
   end
   else Result := tkIdentifier;
 end;
@@ -779,7 +783,8 @@ begin
             Inc(FTokenEnd, sep + 1);
             fRangeExtended := PtrUInt(rsUnKnown);
 
-            EndCodeFoldBlock;
+            EndCodeFold:=true;
+
 
             Break;
           end;
@@ -1090,8 +1095,12 @@ end;
 procedure TSynLuaSyn.Next;
 var
   l: Integer;
+
+  s: string;
 begin
   ftokenid:=tkNull;
+  StartCodeFold:=false;
+  EndCodeFold:=false;
 
   FTokenPos := FTokenEnd;
   // assume empty, will only happen for EOL
@@ -1112,6 +1121,32 @@ begin
       fProcTable[FLineText[FTokenEnd]];
     end;
   end;
+
+  if startcodefold then
+    StartCodeFoldBlock;
+
+  if EndCodeFold then
+    EndCodeFoldBlock;
+
+        {
+  if (copy(FLineText, FTokenPos, FTokenEnd - FTokenPos) = 'if') then
+    StartCodeFoldBlock;
+  if (copy(FLineText, FTokenPos, FTokenEnd - FTokenPos) = 'do') then
+    StartCodeFoldBlock;
+  if (copy(FLineText, FTokenPos, FTokenEnd - FTokenPos) = 'function') then
+    StartCodeFoldBlock;
+  if (copy(FLineText, FTokenPos, FTokenEnd - FTokenPos) = 'end') then
+    EndCodeFoldBlock;
+
+
+
+  if (copy(FLineText, FTokenPos, FTokenEnd - FTokenPos) = 'repeat') then
+    StartCodeFoldBlock;
+
+  if (copy(FLineText, FTokenPos, FTokenEnd - FTokenPos) = 'until') then
+    EndCodeFoldBlock;   }
+
+
 end;
 
 function TSynLuaSyn.GetDefaultAttribute(Index: integer): TSynHighLighterAttributes;

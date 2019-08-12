@@ -76,6 +76,7 @@ type
 
     function getExpandChangedAddress: boolean;
     procedure setExpandChangedaddress(s: boolean);
+    procedure FillStructureList;
   public
     { public declarations }
     ChangedDescription: boolean;
@@ -127,6 +128,7 @@ begin
   if s<>nil then
     cbExpandChangesAddress.enabled:=true;
 
+  FillStructureList;
   for i:=0 to cbStructType.items.count-1 do
     if cbStructType.Items.Objects[i]=s then
     begin
@@ -313,18 +315,13 @@ end;
 procedure TfrmStructures2ElementInfo.FormCreate(Sender: TObject);
 var i: integer;
 begin
-  //fill the list of structures
   while cbStructType.items.count>1 do
     cbStructType.Items.Delete(1);
-
-  for i:=0 to DissectedStructs.Count-1 do
-    cbStructType.items.AddObject(TDissectedStruct(DissectedStructs[i]).name, DissectedStructs[i]);
-
-  cbStructType.DropDownCount:=min(16, cbStructType.items.count);
 
 
   //fill the type combobox (for translations)
 
+  cbtype.items.BeginUpdate;
   cbtype.Items.clear;
   //Note to others: Keep this order!
   cbtype.items.add(rs_vtByte);
@@ -338,11 +335,11 @@ begin
   cbtype.items.add(rs_vtByteArray);
   cbtype.items.add(rs_vtPointer);
 
-
   //add custom types
   for i:=0 to customTypes.count-1 do
     cbType.items.AddObject(TCustomType(customTypes[i]).name, customtypes[i]);
 
+  cbtype.items.EndUpdate;
 
   cbType.dropdowncount:=min(16, cbType.items.count);
 end;
@@ -354,6 +351,22 @@ begin
     pnlbackground.color:=colordialog1.color;
     ChangedBackgroundColor:=true;
   end;
+end;
+
+procedure TfrmStructures2ElementInfo.FillStructureList;
+var i: integer;
+begin
+  if cbStructType.Items.Count=1 then
+  begin
+    cbStructType.Items.BeginUpdate;
+
+    for i:=0 to DissectedStructs.Count-1 do
+      cbStructType.items.AddObject(TDissectedStruct(DissectedStructs[i]).name, DissectedStructs[i]);
+
+    cbStructType.DropDownCount:=min(16, cbStructType.items.count);
+    cbStructType.items.EndUpdate;
+  end;
+
 end;
 
 procedure TfrmStructures2ElementInfo.cbTypeChange(Sender: TObject);
@@ -380,6 +393,9 @@ begin
   end;
 
   ChangedVartype:=true;
+
+  if cbStructType.enabled then //fill the list of structures
+    FillStructureList;
 end;
 
 procedure TfrmStructures2ElementInfo.edtByteSizeChange(Sender: TObject);

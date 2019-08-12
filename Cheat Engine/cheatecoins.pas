@@ -180,7 +180,7 @@ begin
 
         if v2<>v then   //someone tried to tamper
         begin
-          MessageBoxA(0,pchar(format('Coin tamper detected %d <> %d (actualcount=%x)',[v2, v, actualcount])),'CECExceptionHandler 2',0);
+          //MessageBoxA(0,pchar(format('Coin tamper detected %d <> %d (actualcount=%x)',[v2, v, actualcount])),'CECExceptionHandler 2',0);
 
           v:=0 //goodbye coins
         end
@@ -203,7 +203,7 @@ begin
         v2:=dword(v) xor dword($deadf123);
         if dword(v2)<>dword(c2^) then
         begin
-          MessageBoxA(0,pchar(format('antidebug tamper detected %x<>%x',[v2,c2])),'CECExceptionHandler 2',0);
+         // MessageBoxA(0,pchar(format('antidebug tamper detected %x<>%x',[v2,c2])),'CECExceptionHandler 2',0);
 
           ExitProcess(2);
           asm

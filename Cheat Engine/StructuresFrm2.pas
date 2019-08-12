@@ -4567,7 +4567,7 @@ begin
 
     end;
 
-    miOpenInNewWindow.visible:=(not miFullUpgrade.visible) and (childstruct<>nil);
+    miOpenInNewWindow.visible:=((not miFullUpgrade.visible) and (childstruct<>nil)) or (tvStructureView.SelectionCount>1);
 
     miAddElement.visible:=(ownerstruct<>nil) or (childstruct<>nil);
     miAddChildElement.visible:=(childstruct<>nil);
@@ -5842,45 +5842,123 @@ end;
 
 
 procedure TfrmStructures2.miOpenInNewWindowClick(Sender: TObject);
+type
+  TStructListEntry=record
+    struct: TDissectedStruct;
+    nodelist: TList;
+  end;
+  PStructListEntry=^TStructListEntry;
+
 var
   node: TTreenode;
-  childstruct: TDissectedStruct;
+  childstruct, struct: TDissectedStruct;
   a,p: ptruint;
   f: TfrmStructures2;
   e: boolean;
   x: ptruint;
-  i: integer;
+  i,j,k: integer;
+
+
+
+  structlistentry: PStructListEntry;
+
+  slist: TList;
+
+  sli: integer;  //structlist[*]->nodelist[*]->node
+
+  nodelist: TList;
+
+
+  sc: TStructColumn;
 begin
+  slist:=tlist.create;
 
-  node:=tvStructureView.GetLastMultiSelected;
-  childstruct:=getChildStructFromNode(node);
-  if childstruct.isInGlobalStructList then //should be true
+  for i:=0 to tvStructureView.SelectionCount-1 do
   begin
-    for i:=0 to tvStructureView.SelectionCount-1 do
+    node:=tvStructureView.Selections[i];
+    childstruct:=getChildStructFromNode(node);
+
+    if childstruct<>nil then
     begin
-      node:=tvStructureView.Selections[i];
-      a:=getAddressFromNode(node, getFocusedColumn, e);
-      if not e then
-      begin
-        p:=0;
-        x:=0;
-        ReadProcessMemory(processhandle, pointer(a), @p, ProcessHandler.pointersize, x);
-        if x=ProcessHandler.pointersize then
+      sli:=-1;
+      for j:=0 to slist.count-1 do
+        if PStructListEntry(slist[j])^.struct=childstruct then
         begin
-          if p=0 then exit;
-          f:=tfrmstructures2.create(application);
-          f.initialaddress:=p;
-
-          f.show;
-          f.mainStruct:=childstruct;
-
-          f.InitializeFirstNode;
-          f.UpdateCurrentStructOptions;
+          sli:=j;
+          break;
         end;
-      end;
+
+      if sli=-1 then
+      begin
+        getmem(structlistentry,sizeof(TStructListEntry));
+
+        structlistentry^.struct:=childstruct;
+        structlistentry^.nodelist:=tlist.Create;
+
+        nodelist:=structlistentry^.nodelist;
+
+        slist.add(structlistentry);
+      end
+      else
+        nodelist:=slist[sli];
+
+      nodelist.add(node);
     end;
   end;
 
+  //all nodes are sorted and added
+
+  for i:=0 to slist.Count-1 do
+  begin
+    f:=nil;
+    struct:=PStructListEntry(slist[i])^.struct;
+    nodelist:=PStructListEntry(slist[i])^.nodelist;
+    for j:=0 to nodelist.Count-1 do
+    begin
+      node:=nodelist[j];
+
+      for k:=0 to columnCount-1 do
+      begin
+        a:=getAddressFromNode(node, columns[k], e); //or only getFocusedColumn?
+        if not e then
+        begin
+          p:=0;
+          x:=0;
+
+
+          ReadProcessMemory(processhandle, pointer(a), @p, ProcessHandler.pointersize, x);
+          if x=ProcessHandler.pointersize then
+          begin
+            if p=0 then exit;
+            if f=nil then
+            begin
+              f:=tfrmstructures2.create(application);
+              f.mainStruct:=struct;
+            end;
+
+            sc:=f.addColumn;
+            sc.AddressText:=inttohex(a,8);
+
+          end;
+        end;
+      end;
+    end;
+
+    if f<>nil then
+    begin
+      f.show;
+      f.InitializeFirstNode;
+      f.UpdateCurrentStructOptions;
+    end;
+
+  end;
+
+  for i:=0 to slist.count-1 do
+  begin
+    PStructListEntry(slist[i])^.nodelist.free;
+    freemem(slist[i]);
+  end;
+  slist.free;
 
 
 end;

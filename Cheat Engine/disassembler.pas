@@ -849,7 +849,9 @@ begin
            15:  result:=getsegmentoverride(prefix)+'['+colorreg+'r15'+endcolor+']';
         end;
 
-        LastDisassembleData.datasize:=opperandsize div 8;
+        if opperandsize<>0 then
+          LastDisassembleData.datasize:=opperandsize div 8;
+
         result:=operandstring+result;
 
       end;
@@ -10485,6 +10487,7 @@ begin
               if $66 in prefix2 then
                 lastdisassembledata.parameters:=modrm(memory,prefix2,1,1,last)+r16(memory[1]) else
                 lastdisassembledata.parameters:=modrm(memory,prefix2,1,0,last)+r32(memory[1]);
+
               inc(offset,last-1);
 
             end;
@@ -11502,7 +11505,10 @@ begin
                       begin
                         lastdisassembledata.opcode:='cmp';
                         if rex_w then
-                          lastdisassembledata.parameters:=modrm(memory,prefix2,1,0,last,64)
+                        begin
+                          lastdisassembledata.parameters:=modrm(memory,prefix2,1,0,last,64);
+                          lastdisassembledata.datasize:=8;;
+                        end
                         else
                           lastdisassembledata.parameters:=modrm(memory,prefix2,1,0,last);
                         dwordptr:=@memory[last];
