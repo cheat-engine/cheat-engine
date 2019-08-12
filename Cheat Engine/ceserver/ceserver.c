@@ -1134,13 +1134,20 @@ int main(int argc, char *argv[])
 
   opterr = 0;
 
+  int argv_attach_pid;
   int argv_search_option;
   int argv_port;
   int argv_pid;
-  while((opt = getopt(argc, argv, "m:p:t:")) != -1) 
+  while((opt = getopt(argc, argv, "a:m:p:t:")) != -1) 
   {
     switch(opt)
     {
+      case 'a':
+          errno = 0;
+          argv_attach_pid = strtol(optarg,NULL,10);
+          if(errno != ERANGE && errno != EINVAL)
+            ATTACH_PID = argv_attach_pid;
+          break;
       case 'm':
           errno = 0;
           argv_search_option = strtol(optarg,NULL,10);
@@ -1161,7 +1168,7 @@ int main(int argc, char *argv[])
             TEST_PID = argv_pid;
           break;
       default:
-          debug_log("Usage: %s [-m <search_option>] [-p <port>] [-t <pid>] arg1 ...\n", argv[0]);
+          debug_log("Usage: %s [-a <attach_pid>] [-m <search_option>] [-p <port>] [-t <pid>] arg1 ...\n", argv[0]);
           break;
     }
   }

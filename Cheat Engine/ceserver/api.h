@@ -230,4 +230,5 @@ extern pthread_mutex_t debugsocketmutex;
 int debug_log(const char * format , ...); 
 long safe_ptrace(int request, pid_t pid, void * addr, void * data);
 extern int MEMORY_SEARCH_OPTION;
+extern int ATTACH_PID;
 #endif /* API_H_ */

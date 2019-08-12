@@ -137,6 +137,7 @@ typedef struct
 int VerboseLevel=0;
 
 int MEMORY_SEARCH_OPTION = 0;
+int ATTACH_PID = 0;
 
 //Implementation for shared library version ceserver.
 int debug_log(const char * format , ...)
@@ -3338,7 +3339,7 @@ HANDLE CreateToolhelp32Snapshot(DWORD dwFlags, DWORD th32ProcessID)
     return CreateHandleFromPointer(pl, htTHSProcess);
   }
   else
-  if (dwFlags & TH32CS_SNAPMODULE)
+  if ((dwFlags & TH32CS_SNAPMODULE) && (ATTACH_PID == 0 ||(ATTACH_PID != 0 && (th32ProcessID == ATTACH_PID))))
   {
     //make a list of all the modules loaded by processid th32ProcessID
     //the module list
