@@ -730,7 +730,7 @@ begin
     sep:=LongDelimCheck(FTokenEnd+1);
     if sep>0 then
     begin
-      Inc(FTokenEnd, sep + 1);
+      Inc(FTokenEnd, sep + 2);
       fRangeExtended := PtrUInt(rsLuaMComment)+10*sep;
       StartCodeFoldBlock;
 
@@ -765,7 +765,7 @@ begin
 end;
 
 procedure TSynLuaSyn.LuaMCommentProc;
-var sep: Integer;
+var sep,tmp: Integer;
 begin
   case FLineText[FTokenEnd] of
      #0: NullProc;
@@ -780,10 +780,13 @@ begin
           sep:=LongDelimCheck(FTokenEnd);
           if (sep>0) and (sep=(fRangeExtended div 10)) then
           begin
+            tmp:=FTokenPos;
+            FTokenPos:=FTokenEnd;
             Inc(FTokenEnd, sep + 1);
             fRangeExtended := PtrUInt(rsUnKnown);
 
-            EndCodeFold:=true;
+            EndCodeFoldBlock;
+            FTokenPos:=tmp;
 
 
             Break;
@@ -802,19 +805,19 @@ begin
   sep:=LongDelimCheck(FTokenEnd-1);
   if sep>0 then
   begin
-    Inc(FTokenEnd, sep - 1);
+    Inc(FTokenEnd, sep);
     fRangeExtended := ptrUInt(rsLuaMString)+10*sep;
+    StartCodeFoldBlock;
+
     LuaMStringProc;
     fTokenID := tkLuaMString;
-
-
   end
   else
     fTokenID := tkIdentifier;
 end;
 
 procedure TSynLuaSyn.LuaMStringProc;
-var sep: Integer;
+var sep,tmp: Integer;
 begin
   case FLineText[FTokenEnd] of
      #0: NullProc;
@@ -829,11 +832,16 @@ begin
           sep:=LongDelimCheck(FTokenEnd);
           if (sep>0) and (sep=(fRangeExtended div 10)) then
           begin
+            tmp:=FTokenPos;
+            FTokenPos:=FTokenEnd;
             Inc(FTokenEnd, sep + 1);
             fRangeExtended := PtrUInt(rsUnKnown);
-            Break;
 
             EndCodeFoldBlock;
+            FTokenPos:=tmp;
+
+
+            Break;
           end;
         end;
         Inc(FTokenEnd);
