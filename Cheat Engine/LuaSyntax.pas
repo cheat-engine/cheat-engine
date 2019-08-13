@@ -767,6 +767,8 @@ end;
 procedure TSynLuaSyn.LuaMCommentProc;
 var sep,tmp: Integer;
 begin
+  if FTokenEnd>length(flinetext) then exit;
+
   case FLineText[FTokenEnd] of
      #0: NullProc;
     #10: LFProc;
@@ -819,6 +821,8 @@ end;
 procedure TSynLuaSyn.LuaMStringProc;
 var sep,tmp: Integer;
 begin
+  if FTokenEnd>length(FLineText) then exit;
+
   case FLineText[FTokenEnd] of
      #0: NullProc;
     #10: LFProc;
