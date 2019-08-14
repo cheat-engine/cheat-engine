@@ -5900,7 +5900,7 @@ begin
         slist.add(structlistentry);
       end
       else
-        nodelist:=slist[sli];
+        nodelist:=PStructListEntry(slist[sli])^.nodelist;
 
       nodelist.add(node);
     end;
@@ -5927,7 +5927,7 @@ begin
         ReadProcessMemory(processhandle, pointer(a), @p, ProcessHandler.pointersize, x);
         if x=ProcessHandler.pointersize then
         begin
-          if p=0 then exit;
+          if p=0 then continue;
           if f=nil then
           begin
             f:=tfrmstructures2.create(application);
@@ -5935,8 +5935,7 @@ begin
           end;
 
           sc:=f.addColumn;
-          sc.AddressText:=inttohex(a,8);
-
+          sc.AddressText:=inttohex(p,8);
         end;
       end;
 
