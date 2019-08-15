@@ -146,7 +146,10 @@ procedure TfrmHighlighterEditor.Button1Click(Sender: TObject);
 var i: integer;
 begin
   for i:=0 to pnlAttribs.ComponentCount-1 do
+  begin
     highlighter.Attribute[i].Assign(TSynHighlighterAttributes(pnlAttribs.Components[i].Tag));
+    highlighter.Attribute[i].StyleMask:=highlighter.Attribute[i].Style;
+  end;
 
   modalresult:=mrok;
 end;
