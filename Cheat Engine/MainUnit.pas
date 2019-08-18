@@ -5331,6 +5331,8 @@ end;
 procedure TMainForm.btnMemoryViewClick(Sender: TObject);
 begin
   memorybrowser.Show;
+  if memorybrowser.WindowState=wsMinimized then
+    memorybrowser.WindowState:=wsNormal;
 end;
 
 
