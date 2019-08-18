@@ -1075,13 +1075,16 @@ begin
   if cbCompareToOtherPointermaps.checked then
   begin
     pdatafilelist:=TPointerFileList.create(il, self, cbShowAdvancedOptions.left-cbCompareToOtherPointermaps.left-8);
+    pdatafilelist.Color:=clWindow;
+    pdatafilelist.BevelOuter:=bvNone;
+    pdatafilelist.BorderStyle:=bsSingle;
     pdatafilelist.AnchorSideTop.Control:=cbCompareToOtherPointermaps;
     pdatafilelist.AnchorSideTop.Side:=asrBottom;
     pdatafilelist.AnchorSideLeft.Control:=cbCompareToOtherPointermaps;
     pdatafilelist.AnchorSideLeft.Side:=asrLeft;
 
-    pdatafilelist.AnchorSideRight.Control:=cbShowAdvancedOptions;
-    pdatafilelist.AnchorSideRight.Side:=asrLeft;
+    pdatafilelist.AnchorSideRight.Control:=self;
+    pdatafilelist.AnchorSideRight.Side:=asrRight;
 
     pdatafilelist.OnEmptyList:=PointerFileListEmpty;
     pdatafilelist.OnResize:=PointerFileListResize;
@@ -1090,9 +1093,7 @@ begin
 
     pdatafilelist.AutoSize:=true;
 
-    panel3.AnchorSideTop.Control:=pdatafilelist;
-    panel3.AnchorSideTop.Side:=asrBottom;
-    panel3.BorderSpacing.Top:=5;;
+    cbShowAdvancedOptions.AnchorSideTop.Control:=pdatafilelist;
   end
   else
   begin
@@ -1103,9 +1104,7 @@ begin
     pdatafilelist.free;
     pdatafilelist:=nil;
 
-    panel3.AnchorSideTop.Control:=cbCompareToOtherPointermaps;
-    panel3.AnchorSideTop.Side:=asrBottom;
-        panel3.BorderSpacing.Top:=0;;
+    cbShowAdvancedOptions.AnchorSideTop.Control:=cbCompareToOtherPointermaps;
   end;
 
   //UpdateGuiBasedOnSavedPointerScanUsage;
