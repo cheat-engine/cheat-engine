@@ -212,7 +212,7 @@ int SuspendThread(HANDLE hProcess, int tid);
 int ResumeThread(HANDLE hProcess, int tid);
 
 int GetThreadContext(HANDLE hProcess, int tid, PCONTEXT Context, int type);
-
+int SetThreadContext(HANDLE hProcess, int tid, PCONTEXT Context, int type);
 
 PDebugEvent FindThreadDebugEventInQueue(PProcessData p, int tid);
 void AddDebugEventToQueue(PProcessData p, PDebugEvent devent);
