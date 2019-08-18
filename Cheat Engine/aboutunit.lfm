@@ -429,40 +429,62 @@ object About: TAbout
       AnchorSideTop.Control = GroupBox1
       AnchorSideRight.Control = GroupBox1
       AnchorSideRight.Side = asrBottom
-      Left = 404
-      Height = 41
+      Left = 400
+      Height = 60
       Top = 0
-      Width = 80
+      Width = 84
       Anchors = [akTop, akRight]
       AutoSize = True
-      ClientHeight = 41
-      ClientWidth = 80
+      ClientHeight = 60
+      ClientWidth = 84
       TabOrder = 1
       object Panel2: TPanel
         Left = 4
-        Height = 33
+        Height = 52
         Top = 4
-        Width = 72
+        Width = 76
         Align = alClient
         AutoSize = True
         BorderSpacing.Around = 3
-        ClientHeight = 33
-        ClientWidth = 72
+        ClientHeight = 52
+        ClientWidth = 76
         TabOrder = 0
         object Button2: TButton
-          Left = 4
+          AnchorSideLeft.Control = Panel2
+          AnchorSideTop.Control = Panel2
+          Left = 6
           Height = 25
           Hint = 'If you like Cheat Engine and want to contribute something to the development, just send a donation using Paypal.'
-          Top = 4
+          Top = 6
           Width = 64
-          Align = alClient
           AutoSize = True
+          BorderSpacing.Left = 2
+          BorderSpacing.Top = 2
+          BorderSpacing.Right = 2
           BorderSpacing.Around = 3
           Caption = 'Donate'
           OnClick = Button2Click
           ParentShowHint = False
           ShowHint = True
           TabOrder = 0
+        end
+        object Label4: TLabel
+          AnchorSideLeft.Control = Button2
+          AnchorSideLeft.Side = asrCenter
+          AnchorSideTop.Control = Button2
+          AnchorSideTop.Side = asrBottom
+          Cursor = crHandPoint
+          Left = 18
+          Height = 15
+          Top = 34
+          Width = 41
+          BorderSpacing.Bottom = 2
+          Caption = 'Patreon'
+          Font.Color = clBlue
+          Font.Style = [fsUnderline]
+          ParentColor = False
+          ParentFont = False
+          OnClick = Label4Click
         end
       end
     end

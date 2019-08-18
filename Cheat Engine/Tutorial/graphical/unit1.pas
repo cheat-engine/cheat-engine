@@ -28,6 +28,7 @@ type
 
 
     integrityCheckThread: TThread;
+    procedure integritycheckcheck;
 
     procedure startgame2(sender: TObject);
     procedure startgame3(sender: TObject);
@@ -65,8 +66,11 @@ type
     procedure valid;
     procedure invalid;
   public
+
+    heartbeat: qword;
     lastcheckwasvalid: boolean;
     procedure execute; override;
+    procedure docheck;
   end;
 
 
@@ -214,11 +218,32 @@ begin
     form1.caption:=form1.caption+' (Integrity check error)';
 end;
 
-procedure TIntegrityCheckThread.execute;
+procedure TIntegrityCheckThread.docheck;
 var
   c1,c2,c3: dword;
-
   cf: dword;
+begin
+  c1:=check1;
+  c2:=check2;
+  c3:=check3;
+
+  cf:=(c1 xor c2)+c3;
+  if cf=0 then inc(cf);
+
+  if integrityCheckValue=0 then
+    integrityCheckValue:=cf
+  else
+  begin
+    lastcheckwasvalid:=cf=integrityCheckValue;
+    if lastcheckwasvalid then
+      synchronize(@Valid)
+    else
+      synchronize(@Invalid);
+  end;
+end;
+
+procedure TIntegrityCheckThread.execute;
+var
 
   m: pointer;
 begin
@@ -229,23 +254,10 @@ begin
 
   while not terminated do
   begin
-    c1:=check1;
-    c2:=check2;
-    c3:=check3;
+    heartbeat:=GetTickCount64;
+    docheck;
 
-    cf:=(c1 xor c2)+c3;
-    if cf=0 then inc(cf);
 
-    if integrityCheckValue=0 then
-      integrityCheckValue:=cf
-    else
-    begin
-      lastcheckwasvalid:=cf=integrityCheckValue;
-      if lastcheckwasvalid then
-        synchronize(@Valid)
-      else
-        synchronize(@Invalid)
-    end;
     sleep(100);
   end;
 end;
@@ -277,6 +289,34 @@ begin
     result:=false;
 end;
 
+procedure TForm1.IntegrityCheckCheck;
+var
+  itt: TIntegrityCheckThread;
+  hb: qword;
+  startwait: qword;
+begin
+  itt:=TIntegrityCheckThread(integrityCheckThread);
+  itt.docheck;
+
+  hb:=itt.heartbeat;
+  if ((gettickcount64-hb)>1000) then
+  begin
+    startwait:=gettickcount64;
+    while (gettickcount64-startwait)<5000 do //wait 5 seconds max
+    begin
+      if itt.heartbeat>hb then exit;
+      CheckSynchronize(100);
+    end;
+
+    itt.Terminate;
+    itt.WaitFor;
+    itt.lastcheckwasvalid:=false;
+    form1.caption:=form1.caption+' (total integrity check failure)';
+  end;
+
+end;
+
+
 procedure TForm1.finishedTutorial(sender: TObject);
 var
   s,s2: string;
@@ -293,6 +333,8 @@ begin
   begin
     s:='beaten';
 
+    IntegrityCheckCheck;
+
     if TIntegrityCheckThread(integrityCheckThread).lastcheckwasvalid then
       s2:=#13#10', and you have beaten the integrity check!'#13#10#13#10'Really well done!'
     else
@@ -306,6 +348,8 @@ end;
 
 procedure TForm1.startgame3(sender: TObject);
 begin
+  IntegrityCheckCheck;
+
   if currentgame<>nil then
     freeandnil(currentGame);
 
@@ -316,8 +360,12 @@ begin
   frmHelp.Attach(self,'G3');
 end;
 
+
 procedure TForm1.startgame2(sender: TObject);
+
 begin
+  IntegrityCheckCheck;
+
   if currentgame<>nil then
     freeandnil(currentGame);
 
@@ -330,6 +378,8 @@ end;
 procedure TForm1.GameSelect(sender: TObject);
 var gs: TLevelSelect;
 begin
+  IntegrityCheckCheck;
+
   gs:=TLevelSelect(currentgame);
   case gs.level of
     1:
@@ -380,6 +430,8 @@ begin
   //still here, so game1:
   if currentgame=nil then
   begin
+    IntegrityCheckCheck;
+
     currentGame:=TGame1.create(p);
     currentGame.OnWin:=@startGame2;
     frmHelp.Attach(self,'G1');

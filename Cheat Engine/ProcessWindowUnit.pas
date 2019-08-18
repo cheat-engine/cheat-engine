@@ -432,6 +432,29 @@ begin
     end;
   end;
 
+  if (processid<>0) and (UseFileAsMemory or Usephysical or usephysicaldbvm) then
+  begin
+    //swap back to processmemory
+    UseFileAsMemory:=false;
+    Usephysical:=false;
+    usephysicaldbvm:=false;
+    if formsettings.cbKernelOpenProcess.checked then
+      UseDBKOpenProcess
+    else
+      DONTUseDBKOpenProcess;
+
+    if formsettings.cbKernelQueryMemoryRegion.checked then
+      UseDBKQueryMemoryRegion
+    else
+      DONTUseDBKQueryMemoryRegion;
+
+    if formsettings.cbKernelReadWriteProcessMemory.checked then
+      UseDBKReadWriteMemory
+    else
+      DONTUseDBKReadWriteMemory;
+  end;
+
+
   Open_Process;
 
   ProcessSelected:=true;

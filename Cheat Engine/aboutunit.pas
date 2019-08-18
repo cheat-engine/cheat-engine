@@ -31,6 +31,7 @@ type
     Label32: TLabel;
     Label33: TLabel;
     Label34: TLabel;
+    Label4: TLabel;
     Label5: TLabel;
     Image1: TImage;
     Button1: TButton;
@@ -47,6 +48,7 @@ type
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure Button2Click(Sender: TObject);
     procedure FormShow(Sender: TObject);
+    procedure Label4Click(Sender: TObject);
     procedure Label8Click(Sender: TObject);
     procedure Label9Click(Sender: TObject);
     procedure Image1MouseDown(Sender: TObject; Button: TMouseButton;
@@ -92,7 +94,6 @@ end;
 
 procedure TAbout.Button2Click(Sender: TObject);
 begin
-
   shellexecute(0,'open','https://www.paypal.com/xclick/business=dark_byte%40hotmail.com&no_note=1&tax=0&lc=US',nil,nil,sw_maximize);
 end;
 
@@ -125,9 +126,14 @@ begin
   UpdateDBVMStatus;
 end;
 
+procedure TAbout.Label4Click(Sender: TObject);
+begin
+  shellexecute(0,'open',pchar('https://www.patreon.com/cheatengine'),nil,nil,sw_maximize);
+end;
+
 procedure TAbout.Label8Click(Sender: TObject);
 begin
-  ShellExecute(0, pchar('open'),pchar('http://cheatengine.org/'), pchar(''),pchar(''), SW_MAXIMIZE	);
+  ShellExecute(0, pchar('open'),pchar('https://cheatengine.org/'), pchar(''),pchar(''), SW_MAXIMIZE	);
 end;
 
 procedure TAbout.Label9Click(Sender: TObject);

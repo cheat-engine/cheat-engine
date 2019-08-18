@@ -7710,7 +7710,7 @@ begin
       rsLicenseExpired, mtWarning, [mbOK], 0);
 }
 
- // aprilfools:=true;
+  //aprilfools:=true;
   if aprilfools then  //what whould happen if this var is false?
   begin
     if copy(cenorm,1,5)='Cheat' then
@@ -7987,7 +7987,7 @@ begin
   Foundlist3.Font.Height:=i;
 
 
-  panel5.Constraints.MinHeight := gbScanOptions.top + gbScanOptions.Height + max(speedbutton2.Height, btnAddAddressManually.height ) + 10;
+  panel5.Constraints.MinHeight := gbScanOptions.top + gbScanOptions.Height + max(speedbutton2.Height, btnAddAddressManually.height ) + 10+cbCompareToSavedScan.Height;
 
 
 
