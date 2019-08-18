@@ -316,6 +316,36 @@ int DispatchCommand(int currentsocket, unsigned char command)
 
     }
 
+case CMD_SETTHREADCONTEXT:
+    {
+#pragma pack(1)
+      struct
+      {
+        HANDLE hProcess;
+        int tid;
+        CONTEXT context;
+        int type;
+      } stc;
+#pragma pack()
+
+      int result;
+
+      debug_log("CMD_SETTHREADCONTEXT:\n");
+
+      recvall(currentsocket, &stc, sizeof(stc), MSG_WAITALL);
+
+      debug_log("Going to call SetThreadContext(%d, %d, %p, %d)\n", stc.hProcess, stc.tid, &stc.context, stc.type);
+
+      result=SetThreadContext(stc.hProcess, stc.tid, &stc.context, stc.type);
+
+      debug_log("result=%d\n", result);
+
+      sendall(currentsocket, &result, sizeof(result), 0);
+
+      break;
+
+    }
+
     case CMD_SUSPENDTHREAD:
     {
       CeSuspendThreadInput st;

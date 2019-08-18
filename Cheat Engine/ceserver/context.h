@@ -51,5 +51,5 @@ typedef struct
 
 
 int getRegisters(int tid, CONTEXT_REGS *registerstore);
-
+int setRegisters(int tid, CONTEXT_REGS *registerstore);
 #endif /* CONTEXT_H_ */

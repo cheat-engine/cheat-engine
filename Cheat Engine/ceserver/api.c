@@ -1260,13 +1260,100 @@ int GetThreadContext(HANDLE hProcess, int tid, PCONTEXT Context, int type)
   return r;
 }
 
-int SetThreadContext(HANDLE hProcess, int tid, void *Context, int type)
 /*
  * Sets the context of the given thread
  * Fails if the thread is not suspended first
  */
+int SetThreadContext(HANDLE hProcess, int tid, PCONTEXT Context, int type)
 {
+  int r=FALSE;
+  debug_log("SetThreadContext(%d)\n", tid);
 
+
+
+  if (tid<=0)
+  {
+    debug_log("Invalid tid\n");
+    return FALSE;
+  }
+
+  if (GetHandleType(hProcess) == htProcesHandle )
+  {
+    PProcessData p=(PProcessData)GetPointerFromHandle(hProcess);
+
+
+
+    if (p->debuggerThreadID==pthread_self())
+    {
+        PThreadData td=GetThreadData(p, tid);
+
+        debug_log("Inside debuggerthread\n");
+
+        if (td)
+        {
+          DebugEvent de;
+          int wasPaused=td->isPaused;
+          int k=0;
+
+
+          while ((td->isPaused==0) && (k<10))
+          {
+            debug_log("This thread was not paused. Pausing it\n");
+            syscall(__NR_tkill, tid, SIGSTOP);
+            if (WaitForDebugEventNative(p, &de, tid, 100))
+              break;
+
+            k++;
+          }
+
+          //the thread is paused, so fetch the data
+
+          k=setRegisters(tid, &Context->regs);
+
+
+          //k=safe_ptrace(PTRACE_SETREGS, tid, 0, &Context->regs);
+          debug_log("setRegisters() returned %d\n", k);
+
+          if (k==0)
+            r=TRUE;
+          else
+            r=FALSE;
+
+
+          if (!wasPaused)
+          {
+            //continue if sigstop
+            PThreadData td=GetThreadData(p, tid);
+
+            debug_log("The thread was not paused, so resuming it now\n");
+
+            if (de.debugevent!=SIGSTOP) //in case a breakpoint or something else happened before sigstop happened
+            {
+              debug_log("Not a SIGSTOP. Adding to queue and leave suspended\n");
+              AddDebugEventToQueue(p, &de);
+              td->isPaused=1;
+            }
+            else
+            {
+              r=(r && (safe_ptrace(PTRACE_CONT, de.threadid, 0,0)==0));
+
+
+              td->isPaused=0;
+              debug_log("r=%d\n", r);
+            }
+          }
+
+
+        }
+        else
+          debug_log("Invalid tid\n");
+
+      }
+    } 
+    else
+    debug_log("invalid handle\n");
+
+    return r;
 }
 
 int SuspendThread(HANDLE hProcess, int tid)
