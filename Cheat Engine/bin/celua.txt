@@ -1,10 +1,13 @@
 List of CE specific functions and variables:
 
+Global Variables:
 TrainerOrigin : A variable that contains the path of the trainer that launched cheat engine (Only set when launched as a trainer)
 process : A variable that contains the main modulename of the currently opened process
 MainForm: The main ce gui
 AddressList: The address list of the main ce gui
 
+
+Global Functions:
 getCEVersion(): Returns a floating point value specifying the version of cheat engine
 getCheatEngineFileVersion(): Returns the full version data of the cheat engine version. A raw integer, and a table containing major, minor, release and build
 
@@ -937,6 +940,13 @@ methods
   beginUpdate() : Stops updates from triggering other events (prevents flashing)
   endUpdate(): call after beginUpdate
 
+ImageList Class: (Inheritance: )
+List containing images.  Used by several components for images
+
+properties
+  Count: integer - Number of images in the list
+methods
+  add(bitmap, bitmapmask OPTIONAL):integer - Adds a new bitmap the list and returns the index of the newly added entry
 
 
 Stringlist Class: (Inheritance : Strings->Object)
@@ -3363,7 +3373,7 @@ properties
 methods
   -
 
-RemoteThread(Inheritance: -)
+RemoteThread class(Inheritance: -)
 createRemoteThread(address, parameter)
 
 properties
@@ -3381,7 +3391,7 @@ properties:
   entryPoint: integer - address of the entrypoint
   
 
-WriteLog(Inheritence: -)
+WriteLog class(Inheritence: -)
 The writelog is the log that keeps all writes (when enabled)
 
 properties
@@ -3390,6 +3400,8 @@ properties
 
 methods
   getLog(): table - Returns an indexed table with the write logs. each entry has a table with the fields: address, original and new
+
+
 
 
 Diagram class(Inheritance: CustomControl->WinControl->Control->LclComponent->Component->Object):

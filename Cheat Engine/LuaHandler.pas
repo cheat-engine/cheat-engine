@@ -4426,10 +4426,20 @@ var
   mode: word;
 begin
   result:=0;
-  if lua_gettop(L)=2 then
+  if lua_gettop(L)>=1 then
   begin
     filename:=lua_tostring(L, 1);
-    mode:=lua_tointeger(L, 2);
+    if lua_gettop(L)>=2 then
+      mode:=lua_tointeger(L, 2)
+    else
+    begin
+      //in case the user forgets or doesn't care
+      if FileExists(filename) then
+        mode:=fmOpenReadWrite or fmShareDenyNone
+      else
+        mode:=fmCreate;
+    end;
+
     luaclass_newClass(L, TFileStream.create(filename, mode));
     result:=1;
   end;

@@ -544,6 +544,7 @@ type
     procedure CreateGroupClick(Sender: TObject);
     procedure Foundlist3SelectItem(Sender: TObject; Item: TListItem;
       Selected: boolean);
+    procedure gbScanOptionsChangeBounds(Sender: TObject);
     procedure Label3Click(Sender: TObject);
     procedure MenuItem12Click(Sender: TObject);
     procedure MenuItem15Click(Sender: TObject);
@@ -3361,6 +3362,19 @@ begin
 
 end;
 
+procedure TMainForm.gbScanOptionsChangeBounds(Sender: TObject);
+var newminheight: integer;
+begin
+  newminheight:=gbScanOptions.top + gbScanOptions.Height + max(speedbutton2.Height, btnAddAddressManually.height ) + 10;
+
+  if newminheight<>panel5.Constraints.MinHeight then
+  begin
+    gbScanOptions.OnChangeBounds:=nil;
+    panel5.Constraints.MinHeight := gbScanOptions.top + gbScanOptions.Height + max(speedbutton2.Height, btnAddAddressManually.height ) + 10;
+    gbScanOptions.OnChangeBounds:=gbScanOptionsChangeBounds;
+  end;
+end;
+
 procedure TMainForm.Label3Click(Sender: TObject);
 
 begin
@@ -5292,7 +5306,6 @@ begin
   //enable the memory scan groupbox
   setGbScanOptionsEnabled(True);
 
-
   VartypeChange(vartype);
 
   if scanvalue.Visible and scanvalue.Enabled then
@@ -5305,7 +5318,7 @@ begin
   lblcompareToSavedScan.Visible := False;
   cbCompareToSavedScan.Checked:=false;
   cbCompareToSavedScan.Caption:=strCompareToFirstScan;
-  cbCompareToSavedScan.Visible:=true;
+  cbCompareToSavedScan.Visible:=false;
 
   miDisplayDefault.checked:=true;
   foundlistDisplayOverride:=0;
@@ -7989,7 +8002,7 @@ begin
   Foundlist3.Font.Height:=i;
 
 
-  panel5.Constraints.MinHeight := gbScanOptions.top + gbScanOptions.Height + max(speedbutton2.Height, btnAddAddressManually.height ) + 10+cbCompareToSavedScan.Height;
+
 
 
 
@@ -8039,6 +8052,9 @@ begin
   end;
 
   panel5.OnResize(panel5);
+
+  gbScanOptionsChangeBounds(panel5);
+
 
   btnSetSpeedhack2.AutoSize:=false;
   btnSetSpeedhack2.Height:=btnAddAddressManually.Height;

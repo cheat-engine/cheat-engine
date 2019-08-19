@@ -331,19 +331,33 @@ SaveScanSession={}
 
 SaveScanSession.miSaveScanSession=createMenuItem(mf.Menu)
 SaveScanSession.miSaveScanSession.caption=translate('Save scan session')
-SaveScanSession.miSaveScanSession.ImageIndex=39
+--SaveScanSession.miSaveScanSession.ImageIndex=39
 SaveScanSession.miSaveScanSession.Shortcut='Ctrl+Alt+Shift+S'
 SaveScanSession.miSaveScanSession.OnClick=saveMemoryScan
 SaveScanSession.miSaveScanSession.Enabled=false
+
+local s=createPicture()
+s.LoadFromFile(getCheatEngineDir()..[[autorun\images\export128x128.png]])
+local ii=MainForm.mfImageList.add(s.Bitmap)
+SaveScanSession.miSaveScanSession.ImageIndex=ii
+s.destroy()
+
 mf.Menu.Items[0].insert(9, SaveScanSession.miSaveScanSession)
 
 
 SaveScanSession.miLoadScanSession=createMenuItem(mf.Menu)
 SaveScanSession.miLoadScanSession.caption=translate('Load scan session')
-SaveScanSession.miLoadScanSession.ImageIndex=38
+--SaveScanSession.miLoadScanSession.ImageIndex=38
 SaveScanSession.miLoadScanSession.Shortcut='Ctrl+Alt+Shift+O'
 SaveScanSession.miLoadScanSession.OnClick=loadMemoryScan
 SaveScanSession.miLoadScanSession.Enabled=false
+
+local s=createPicture()
+s.LoadFromFile(getCheatEngineDir()..[[autorun\images\import128x128.png]])
+local ii=MainForm.mfImageList.add(s.Bitmap)
+SaveScanSession.miLoadScanSession.ImageIndex=ii
+s.destroy()
+
 mf.Menu.Items[0].insert(10, SaveScanSession.miLoadScanSession)
 
 mi=createMenuItem(mf.Menu) --seperator
