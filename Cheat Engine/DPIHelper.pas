@@ -11,8 +11,8 @@ procedure AdjustSpeedButtonSize(sb: TSpeedButton);
 procedure AdjustToolbar(tb: TToolbar);
 procedure AdjustImageList(il: TImageList);
 procedure AdjustComboboxSize(cb: TComboBox; canvas: TCanvas);
-procedure AdjustEditBoxSize(editbox: TEdit; mintextwidth: integer);
-function GetEditBoxMargins(editbox: TEdit): integer;
+procedure AdjustEditBoxSize(editbox: TCustomEdit; mintextwidth: integer);
+function GetEditBoxMargins(editbox: TCustomEdit): integer;
 
 function getDPIScaleFactor: single;
 
@@ -28,7 +28,7 @@ begin
   result:=screen.PixelsPerInch/designtimedpi;
 end;
 
-function GetEditBoxMargins(editbox: TEdit): integer;
+function GetEditBoxMargins(editbox: TCustomEdit): integer;
 var m: dword;
 begin
   if WindowsVersion>=wvVista then
@@ -39,7 +39,7 @@ begin
   result:=(m shr 16)+(m and $ffff);
 end;
 
-procedure AdjustEditBoxSize(editbox: TEdit; mintextwidth: integer);
+procedure AdjustEditBoxSize(editbox: TCustomEdit; mintextwidth: integer);
 var marginsize: integer;
 begin
   marginsize:=GetEditBoxMargins(editbox);

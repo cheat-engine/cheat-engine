@@ -198,7 +198,7 @@ implementation
 { TFormDesigner }
 
 
-uses mainunit, DPIHelper{$if lcl_fullversion>=2000000}, LazMsgDialogs{$endif};
+uses mainunit, DPIHelper{$if lcl_fullversion>=2000000}, LazMsgDialogs{$endif}, IDEImagesIntf;
 
 resourcestring
   rsInvalidObject = '{Invalid object}';
@@ -279,11 +279,69 @@ begin
 end;
 
 procedure TFormDesigner.miAnchorEditorClick(Sender: TObject);
+var defaultwidth: integer;
 begin
   if AnchorDesigner=nil then
   begin
     AnchorDesigner:=TAnchorDesigner.Create(self);
-    AnchorDesigner.show;
+
+    //this this is the most dpi unaware window I've seen
+    with AnchorDesigner do
+    begin
+      DPIHelper.AdjustSpeedButtonSize(LeftRefLeftSpeedButton);
+      DPIHelper.AdjustSpeedButtonSize(LeftRefCenterSpeedButton);
+      DPIHelper.AdjustSpeedButtonSize(LeftRefRightSpeedButton);
+      DPIHelper.AdjustSpeedButtonSize(RightRefLeftSpeedButton);
+      DPIHelper.AdjustSpeedButtonSize(RightRefCenterSpeedButton);
+      DPIHelper.AdjustSpeedButtonSize(RightRefRightSpeedButton);
+      DPIHelper.AdjustSpeedButtonSize(TopRefTopSpeedButton);
+      DPIHelper.AdjustSpeedButtonSize(TopRefCenterSpeedButton);
+      DPIHelper.AdjustSpeedButtonSize(TopRefBottomSpeedButton);
+      DPIHelper.AdjustSpeedButtonSize(BottomRefTopSpeedButton);
+      DPIHelper.AdjustSpeedButtonSize(BottomRefCenterSpeedButton);
+      DPIHelper.AdjustSpeedButtonSize(BottomRefBottomSpeedButton);
+
+      defaultWidth:=canvas.TextWidth('10    ');
+      DPIHelper.AdjustEditBoxSize(LeftBorderSpaceSpinEdit, defaultwidth);
+      DPIHelper.AdjustEditBoxSize(TopBorderSpaceSpinEdit, defaultwidth);
+      DPIHelper.AdjustEditBoxSize(RightBorderSpaceSpinEdit, defaultwidth);
+      DPIHelper.AdjustEditBoxSize(BottomBorderSpaceSpinEdit, defaultwidth);
+      DPIHelper.AdjustEditBoxSize(AroundBorderSpaceSpinEdit, defaultwidth);
+
+      BorderSpaceGroupBox.Width:=(AroundBorderSpaceSpinEdit.width+5)*3;
+      Constraints.MinWidth:=(BorderSpaceGroupBox.Width)*4;
+
+
+      IDEImages.AssignImage(LeftRefLeftSpeedButton, 'anchor_left_left');
+      IDEImages.AssignImage(LeftRefCenterSpeedButton, 'anchor_left_center');
+      IDEImages.AssignImage(LeftRefRightSpeedButton, 'anchor_left_right');
+      IDEImages.AssignImage(RightRefLeftSpeedButton, 'anchor_right_left');
+      IDEImages.AssignImage(RightRefCenterSpeedButton, 'anchor_right_center');
+      IDEImages.AssignImage(RightRefRightSpeedButton, 'anchor_right_right');
+      IDEImages.AssignImage(TopRefTopSpeedButton, 'anchor_top_top');
+      IDEImages.AssignImage(TopRefCenterSpeedButton, 'anchor_top_center');
+      IDEImages.AssignImage(TopRefBottomSpeedButton, 'anchor_top_bottom');
+      IDEImages.AssignImage(BottomRefTopSpeedButton, 'anchor_bottom_top');
+      IDEImages.AssignImage(BottomRefCenterSpeedButton, 'anchor_bottom_center');
+      IDEImages.AssignImage(BottomRefBottomSpeedButton, 'anchor_bottom_bottom');
+
+      show;
+
+      DoAutoSize;
+
+      TopGroupBox.left:=BorderSpaceGroupBox.left;
+      BottomGroupBox.Left:=BorderSpaceGroupBox.left;
+      TopGroupBox.width:=BorderSpaceGroupBox.Width;
+      BottomGroupBox.Width:=BorderSpaceGroupBox.Width;
+
+
+      Constraints.MinHeight:=trunc(TopGroupBox.Height*3.2);
+
+      if height<Constraints.MinHeight then
+        height:=Constraints.MinHeight;
+
+
+    end;
   end
   else
     AnchorDesigner.Show;
