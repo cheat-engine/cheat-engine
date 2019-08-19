@@ -350,6 +350,8 @@ mi=createMenuItem(mf.Menu) --seperator
 mi.caption='-'
 mf.Menu.Items[0].insert(11, mi)
 
+mi.Visible=MainForm.miSignTable.Visible
+
 local oldFileMenuClick=mf.Menu.Items[0].OnClick
 
 mf.Menu.Items[0].OnClick=function(sender)
