@@ -293,6 +293,12 @@ function createMenu(diagram)
       
       for i=0,diagram.diagram.BlockCount-1 do
         diagram.dblocks[i+1]=diagram.diagram.Block[i]
+        diagram.dblocks[i+1].OnDoubleClickHeader=function(bl)
+          local mwform = getMemoryViewForm()
+          local dview = mwform.DisassemblerView
+          dview.SelectedAddress = diagram.blocks[bl.Tag].start
+          mwform.show()
+        end
       end
       
       --Load sorted addresslist
@@ -895,10 +901,10 @@ end
 function createDiagramBlock(diagram, name)
   local diagramblock = diagram.diagram.createBlock()
   diagramblock.Caption=name
-  diagramblock.OnDoubleClickHeader = function()
+  diagramblock.OnDoubleClickHeader = function(bl)
     local mwform = getMemoryViewForm()
     local dview = mwform.DisassemblerView
-    dview.SelectedAddress = diagram.blocks[diagramblock.Tag].start
+    dview.SelectedAddress = diagram.blocks[bl.Tag].start
     mwform.show()
   end
   diagramblock.OnDrag=onBlockDrag
