@@ -124,22 +124,20 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
   end
   object cbShowAdvancedOptions: TCheckBox
     AnchorSideLeft.Control = cbCompareToOtherPointermaps
-    AnchorSideLeft.Side = asrBottom
     AnchorSideTop.Control = cbCompareToOtherPointermaps
-    AnchorSideBottom.Control = Panel3
+    AnchorSideTop.Side = asrBottom
     Left = 316
     Height = 19
     Top = 65
     Width = 146
-    Anchors = [akLeft, akBottom]
-    BorderSpacing.Left = 34
+    BorderSpacing.Top = 4
     Caption = 'Show advanced options'
     OnChange = cbShowAdvancedOptionsChange
     TabOrder = 4
   end
   object Panel3: TPanel
     AnchorSideLeft.Control = Panel2
-    AnchorSideTop.Control = cbCompareToOtherPointermaps
+    AnchorSideTop.Control = cbShowAdvancedOptions
     AnchorSideTop.Side = asrBottom
     Left = 8
     Height = 202
