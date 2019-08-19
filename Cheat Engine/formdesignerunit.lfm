@@ -3013,6 +3013,10 @@ object FormDesigner: TFormDesigner
       Caption = 'Move down'
       OnClick = miMenuMoveDownClick
     end
+    object miAnchorEditor2: TMenuItem
+      Caption = 'Anchor Editor'
+      OnClick = miAnchorEditorClick
+    end    
   end
   object MainMenu1: TMainMenu
     left = 1008

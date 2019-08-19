@@ -133,6 +133,7 @@ lua:
     Publish frmTracer
     Publish frmUltimap2
     Publish frmCodeFilter
+    Publish imagelist
     Added the DrawItemEvent general GUI property to Lua's callback system
     Added the MenuDrawItemEvent general GUI property to Lua's callback system
     Added the ContextPopupEvent general GUI property to Lua's callback system

@@ -27,6 +27,7 @@ type
     MenuItem1: TMenuItem;
     MenuItem2: TMenuItem;
     miAnchorEditor: TMenuItem;
+    miAnchorEditor2: TMenuItem;
     miMenuSep: TMenuItem;
     miMenuMoveUp: TMenuItem;
     miMenuMoveDown: TMenuItem;
@@ -460,6 +461,8 @@ begin
   miBringToFront.visible:=(oid.Selection.Count>0) and (oid.selection[0] is TControl);
   miSendToBack.visible:=miBringToFront.visible;
 
+  miAnchorEditor2.Visible:=miBringToFront.visible and not (oid.selection[0] is TCustomForm);;
+
   miMenuSep.visible:=miAddSubMenu.visible;
   miMenuMoveUp.visible:=miMenuSep.visible;
   miMenuMoveDown.visible:=miMenuSep.visible;
@@ -723,9 +726,10 @@ begin
             surface.Selector.AddToSelection(tcontrol(p));
         end;
 
+        if AnchorDesigner<>nil then
+          GlobalDesignHook.SetSelection(oid.Selection);
+          
         surface.onselectionchange:=designerSelectionChange;
-
-
       end;
 
     end;
