@@ -248,7 +248,7 @@ var
   path: string;
   noautorun: boolean;
 begin
-  Application.Title:='Cheat Engine 7.0 Beta';
+  Application.Title:='Cheat Engine 7.0';
   Application.Initialize;
 
   overridefont:=nil;
