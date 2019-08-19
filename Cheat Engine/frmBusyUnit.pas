@@ -34,10 +34,10 @@ resourcestring
   rsBusy='The previous scan is still being processed. Please wait';
   rsJustFinished = '(Just starting to process)';
   rsOptimizingScanResults = '(Optimizing result list for improved speed)';
-  rsTerminatingThreads = '(Freeing scannerthread memory)';
+  rsTerminatingThreads = '(Freeing scanner thread memory)';
   rsSavingFirstScanResults = '(Copying results for first scan scanner option)';
   rsShouldBeFinished = '(There''s no reason to wait)';
-  rsSavingFirstScanResults2 = '(Still copying the results for the firsy scan '
+  rsSavingFirstScanResults2 = '(Still copying the results for the first scan '
     +'scanner option)';
 
 implementation
