@@ -364,7 +364,7 @@ begin
   cbAddress.parent:=self;
   cbAddress.AnchorSideRight.Control:=btnDelete;
   cbAddress.AnchorSideRight.side:=asrLeft;
-  cbAddress.Constraints.MinWidth:=TPointerFileList(aowner).canvas.TextWidth('DDDDDDDDDDDD');
+  cbAddress.Constraints.MinWidth:=TPointerFileList(aowner).canvas.TextWidth(' DDDDDDDDDDDDDDDD ');
   //cbAddress.clientwidth:=tcustomform(aowner).canvas.TextWidth('DDDDDDDDDDDD');
   cbAddress.anchors:=[aktop, akright];
   cbAddress.BorderSpacing.Right:=8;
@@ -1083,15 +1083,17 @@ begin
     pdatafilelist.AnchorSideLeft.Control:=cbCompareToOtherPointermaps;
     pdatafilelist.AnchorSideLeft.Side:=asrLeft;
 
-    pdatafilelist.AnchorSideRight.Control:=self;
-    pdatafilelist.AnchorSideRight.Side:=asrRight;
+    //pdatafilelist.AnchorSideRight.Control:=self;
+    //pdatafilelist.AnchorSideRight.Side:=asrRight;
 
     pdatafilelist.OnEmptyList:=PointerFileListEmpty;
     pdatafilelist.OnResize:=PointerFileListResize;
 
-    pdatafilelist.Anchors:=[akTop, akLeft, akRight];
+    pdatafilelist.Anchors:=[akTop, akLeft]; //, akRight];
 
     pdatafilelist.AutoSize:=true;
+    pdatafilelist.DoAutoSize;
+    pdatafilelist.AdjustPos(pdatafilelist);
 
     cbShowAdvancedOptions.AnchorSideTop.Control:=pdatafilelist;
   end
