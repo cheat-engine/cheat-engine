@@ -60,8 +60,6 @@ begin
     begin
       if lpte.th32OwnerProcessID=cpid then
       begin
-
-
         if isfirst then
         begin
           //create process

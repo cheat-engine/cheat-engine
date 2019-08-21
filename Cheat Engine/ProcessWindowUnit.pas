@@ -205,7 +205,7 @@ begin
   begin
     if commonProcessesList=nil then commonProcessesList:=tstringlist.create;
     try
-      commonProcessesList.LoadFromFile(s);
+      commonProcessesList.LoadFromFile(s, true);
       for i:=commonProcessesList.Count-1 downto 0 do
       begin
         j:=pos('#', commonProcessesList[i]);

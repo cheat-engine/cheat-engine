@@ -29,7 +29,6 @@ implementation
 
 uses forms, frmMicrotransactionsUnit, ceregistry, luahandler;
 
-
 var
   _DecreaseCount: integer;
   something: integer;

@@ -1873,7 +1873,7 @@ begin
 
               include:=tstringlist.Create;
               try
-                include.LoadFromFile(s1);
+                include.LoadFromFile(s1, true);
                 removecomments(include);
                 unlabeledlabels(include);
 

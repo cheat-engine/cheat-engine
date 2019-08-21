@@ -165,7 +165,7 @@ begin
   if OpenDialog1.execute then
   begin
     s:=tstringlist.create;
-    s.LoadFromFile(opendialog1.FileName);
+    s.LoadFromFile(opendialog1.FileName, true);
 
     ClearUnexpectedExceptionRegions;
     for i:=0 to s.Count-1 do

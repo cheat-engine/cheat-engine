@@ -577,7 +577,7 @@ end;
 procedure TfrmAutoInject.loadFile(filename: string);
 begin
   assemblescreen.Lines.Clear;
-  assemblescreen.Lines.LoadFromFile(filename);
+  assemblescreen.Lines.LoadFromFile(filename, true);
   savedialog1.FileName:=filename;
   assemblescreen.AfterLoadFromFile;
 

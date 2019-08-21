@@ -866,7 +866,7 @@ begin
     if ext='.txt' then
     begin
       l:=tstringlist.create;
-      l.LoadFromFile(opendialog.FileName);
+      l.LoadFromFile(opendialog.FileName,true);
       for i:=0 to l.count-1 do
         addAddress(symhandler.getAddressFromName(trim(l[i])));
 

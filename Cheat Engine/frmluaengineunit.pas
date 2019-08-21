@@ -1456,7 +1456,7 @@ end;
 procedure TfrmLuaEngine.MenuItem2Click(Sender: TObject);
 begin
   if OpenDialog1.Execute then
-    mscript.Lines.LoadFromFile(opendialog1.filename);
+    mscript.Lines.LoadFromFile(opendialog1.filename, true);
 
 end;
 
