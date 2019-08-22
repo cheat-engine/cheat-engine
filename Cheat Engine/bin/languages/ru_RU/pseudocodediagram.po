@@ -1,0 +1,196 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"POT-Creation-Date: \n"
+"PO-Revision-Date: \n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: ru_RU\n"
+"X-Generator: Poedit 2.2.3\n"
+
+#: pseudocodediagram-file
+msgid "File"
+msgstr "Файл"
+
+#: pseudocodediagram-lff
+msgid "Load from file"
+msgstr "Загрузить из файла"
+
+#: pseudocodediagram-stfywto
+msgid "Select the file you wish to open"
+msgstr "Выберите файл, который вы хотите открыть"
+
+#: pseudocodediagram-dfcc
+msgid "Diagram files (*.CEDIAG )|*.CEDIAG"
+msgstr "Файлы диаграммы (*.CEDIAG )|*.CEDIAG"
+
+#: pseudocodediagram-stf
+msgid "Save to file"
+msgstr "Сохранить в файл"
+
+#: pseudocodediagram-fitfywtstda
+msgid "Fill in the filename you wish to save this diagram as"
+msgstr "Введите имя файла, под которым вы хотите сохранить эту диаграмму"
+
+#: pseudocodediagram-sdti
+msgid "Save diagram to image"
+msgstr "Сохранить диаграмму в виде изображения"
+
+#: pseudocodediagram-fitfywtstdi
+msgid "Fill in the filename you wish to save this diagram image"
+msgstr "Введите имя файла, под которым вы хотите сохранить изображение этой диаграммы"
+
+#: pseudocodediagram-pfpp
+msgid "PNG files (*.PNG )|*.PNG"
+msgstr "PNG файлы (*.PNG )|*.PNG"
+
+#: pseudocodediagram-close
+msgid "Close"
+msgstr "Закрыть"
+
+#: pseudocodediagram-display
+msgid "Display"
+msgstr "Отображение"
+
+#: pseudocodediagram-spfu2oc
+msgid "Show path from Ultimap1/2 or Codefilter"
+msgstr "Показать путь из Ultimap1/2 или Фильтра кода"
+
+#: pseudocodediagram-spftw
+msgid "Show path from tracer window"
+msgstr "Показать путь из окна трассировщика"
+
+#: pseudocodediagram-tsa
+msgid "Tracer starting at %8x (%s)"
+msgstr "Трассировщик начинает с %8x (%s)"
+
+#: pseudocodediagram-tp
+msgid "Tracer paths"
+msgstr "Пути трассировщика"
+
+#: pseudocodediagram-wtwsbu
+msgid "Which tracer window shall be used?"
+msgstr "Какое окно трассировщика должно использоваться?"
+
+#: pseudocodediagram-ntwrv
+msgid "No tracerform with results visible"
+msgstr "Отсутствует окно трассировщика с видимыми результатами"
+
+#: pseudocodediagram-v
+msgid "View"
+msgstr "Вид"
+
+#: pseudocodediagram-z
+msgid "Zoom"
+msgstr "Увеличение"
+
+#: pseudocodediagram-zi
+msgid "Zoom in"
+msgstr "Увеличить"
+
+#: pseudocodediagram-zo
+msgid "Zoom out"
+msgstr "Уменьшить"
+
+#: pseudocodediagram-e
+msgid "Edit"
+msgstr "Редактировать"
+
+#: pseudocodediagram-nh
+msgid "new header"
+msgstr "новый заголовок"
+
+#: pseudocodediagram-nbbc
+msgid "new block background color (0xBBGGRR)"
+msgstr "новый фоновый цвет блока (0xBBGGRR)"
+
+#: pseudocodediagram-sl
+msgid "Sources list"
+msgstr "Список источников"
+
+#: pseudocodediagram-dl
+msgid "Destinations list"
+msgstr "Список назначений"
+
+#: pseudocodediagram-be
+msgid "Block editor"
+msgstr "Редактор блока"
+
+#: pseudocodediagram-ok
+msgid "OK"
+msgstr "Подтвердить"
+
+#: pseudocodediagram-cancel
+msgid "Cancel"
+msgstr "Отмена"
+
+#: pseudocodediagram-gts
+msgid "Go to source"
+msgstr "Перейти к источнику"
+
+#: pseudocodediagram-gtd
+msgid "Go to destination"
+msgstr "Пойдите по месту назначения"
+
+#: pseudocodediagram-rap
+msgid "Remove all points"
+msgstr "Убрать все точки"
+
+#: pseudocodediagram-ebh
+msgid "Edit block header"
+msgstr "Редактировать заголовок блока"
+
+#: pseudocodediagram-ebc
+msgid "Edit block color"
+msgstr "Редактировать цвет блока"
+
+#: pseudocodediagram-ls
+msgid "List sources"
+msgstr "Список источников"
+
+#: pseudocodediagram-ld
+msgid "List destinations"
+msgstr "Список назначений"
+
+#: pseudocodediagram-eac
+msgid "Edit annotation color"
+msgstr "Редактировать цвет аннотации"
+
+#: pseudocodediagram-da
+msgid "Delete annotation"
+msgstr "Удалить аннотацию"
+
+#: pseudocodediagram-ca
+msgid "Create annotation"
+msgstr "Создать аннотацию"
+
+#: pseudocodediagram-mdi
+msgid "[Diagram info]"
+msgstr "[Информация о диограмме]"
+
+#: pseudocodediagram-fstart
+msgid " Function start: 0x%X"
+msgstr " Начало функции: 0x%X"
+
+#: pseudocodediagram-fstop
+msgid " Function stop: 0x%X"
+msgstr " Конец функции: 0x%X"
+
+#: pseudocodediagram-dbc
+msgid " Diagram blocks count: %d"
+msgstr " Количество блоков: %d"
+
+#: pseudocodediagram-dlc
+msgid " Diagram links count: %d"
+msgstr " Количество ссылок: %d"
+
+#: pseudocodediagram-diagram
+msgid "Diagram"
+msgstr "Диаграмма"
+
+#: pseudocodediagram-sd
+msgid "Spawn diagram"
+msgstr "Породить диаграмму"

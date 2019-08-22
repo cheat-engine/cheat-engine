@@ -1,0 +1,292 @@
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Project-Id-Version: java.lua;javaclass.lua;javaClassEditor.lua RU\n"
+"Language-Team: SER[G]ANT <rzn.dsa@gmail.com>\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: ru_RU\n"
+"X-Generator: Poedit 2.0.2\n"
+
+#: java-AAF
+msgid "Auto assembler failed:"
+msgstr "Автоассемблер потерпел неудачу:"
+
+#: java-JEST
+msgid "Java:eventserver terminated"
+msgstr "Java: eventserver завершил работу"
+
+#: java-JD
+msgid "Java:Disconnected"
+msgstr "Java: Отключен"
+
+#: java-JUER
+msgid "Java:Unexpected event received"
+msgstr "Java: Получено неожиданное событие"
+
+#: java-JEHT
+msgid "Java:Event handler terminating"
+msgstr "Java:Завершение обработчика событий"
+
+#: java-IJS
+msgid "Invalid java signature"
+msgstr "Недействительная сигнатура java"
+
+#: java-ARTANS
+msgid "Array return types are not supported"
+msgstr "Возвращаемый массив не поддерживается"
+
+#: java-PCDNM
+msgid "Parameter count does not match"
+msgstr "Количество параметров не совпадает"
+
+#: java-SWNS
+msgid "Scantype was not set"
+msgstr "Тип поиска не был установлен"
+
+#: java-Class
+msgid "Class"
+msgstr "Класс"
+
+#: java-Method
+msgid "Method"
+msgstr "Метод"
+
+#: java-Position
+msgid "Position"
+msgstr "Позиция"
+
+#: java-MI
+msgid "More info %s.%s(%d)"
+msgstr "Дополнительная информация %s.%s(%d)"
+
+#: java-TDMATGV
+msgid "The following methods accessed the given variable"
+msgstr "Следующие методы получили доступ к данной переменной"
+
+#: java-results
+msgid "results"
+msgstr "результаты"
+
+#: java-OWWTJAILAS
+msgid "java_find_what_writes only works when the jvmti agent is launched at start"
+msgstr "java_find_what_writes работает, только если JVMTI агент запущен при старте"
+
+#: java-Generic
+msgid "  Generic="
+msgstr "  Обобщения="
+
+#: java-SC
+msgid "superclass="
+msgstr "суперкласс="
+
+#: java-II
+msgid "---Implemented interfaces---"
+msgstr "---Реализованные интерфейсы---"
+
+#: java-Fields
+msgid "---Fields---"
+msgstr "---Поля---"
+
+#: java-Methods
+msgid "---Methods---"
+msgstr "---Методы---"
+
+#: java-SFC
+msgid "Search for class..."
+msgstr "Найти класс..."
+
+#: java-SF
+msgid "Search for..."
+msgstr "Найти..."
+
+#: java-NewS
+msgid "New Scan"
+msgstr "Снова"
+
+#: java-FS
+msgid "First Scan"
+msgstr "Поиск"
+
+#: java-JVScanner
+msgid "Java Variable Scanner"
+msgstr "Сканер Java переменных"
+
+#: java-Value
+msgid "Value"
+msgstr "Значение"
+
+#: java-NextS
+msgid "Next Scan"
+msgstr "Отсев"
+
+#: java-Found
+msgid "Found:"
+msgstr "Найдено:"
+
+#: java-FWATV
+msgid "Find what accesses this value"
+msgstr "Найти обращения к этому значению"
+
+#: java-Search
+msgid "Search"
+msgstr "Найти"
+
+#: java-FC
+msgid "Find Class"
+msgstr "Найти Класс"
+
+#: java-Finddotdotdot
+msgid "Find..."
+msgstr "Найти..."
+
+#: java-EM
+msgid "Edit method"
+msgstr "Изменить метод"
+
+#: java-AJF
+msgid "Activate java features"
+msgstr "Активировать java функции"
+
+#: java-DJC
+msgid "Dissect java classes"
+msgstr "Анализ java классов"
+
+#: java-JVScan
+msgid "Java variable scan"
+msgstr "Сканер Java переменных"
+
+#: java-DCP
+msgid "Debug child processes"
+msgstr "Отладка дочерних процессов"
+
+#: java-JHDTI
+msgid "The java handler failed to initialize"
+msgstr "Не удалось инициализировать java обработчик"
+
+#: java-SJMIEITTP
+msgid "Show java menu item even if the target process hasn't loaded jvm.dll (Used for the local setEnvironment option)"
+msgstr "Показывать меню «Java», даже если процесс не загрузил jvm.dll (Используется для локальной опции setEnvironment)"
+
+#: javaclass-ICPTE
+msgid "Invalid constant pool tag encountered: "
+msgstr "Повстречался неверный тег пула констант: "
+
+#: javaclass-Tag
+msgid " (tag="
+msgstr " (тег="
+
+#: javaclass-NAVC
+msgid "Not a valid classfile"
+msgstr "Недействительный файл класса"
+
+#: javaclasseditor-ICNI
+msgid " is currently not implemented"
+msgstr " в настоящее время не реализована"
+
+#: javaclasseditor-WCNBUW
+msgid "wide can not be used with "
+msgstr "ширина не может использоваться с "
+
+#: javaclasseditor-IAOPPF
+msgid "Invalid amount of parameters provided for "
+msgstr "Недопустимое количество параметров, предусмотренных для "
+
+#: javaclasseditor-TL
+msgid "The label "
+msgstr "Метка "
+
+#: javaclasseditor-INYD
+msgid "is not yet defined"
+msgstr "ещё не определена"
+
+#: javaclasseditor-TIICNI
+msgid "This instruction is currently not implemented"
+msgstr "Данная инструкция в настоящее время не реализована"
+
+#: javaclasseditor-UI
+msgid "unknown instruction:"
+msgstr "неизвестная инструкция:"
+
+#: javaclasseditor-YCORI
+msgid "You can only replace instructions on an instruction boundary"
+msgstr "Вы можете заменять инструкции только на границе инструкции"
+
+#: javaclasseditor-StartIndex
+msgid "si="
+msgstr "StartIndex"
+
+#: javaclasseditor-Offset
+msgid " offset="
+msgstr " смещение="
+
+#: javaclasseditor-IL
+msgid "Insert line"
+msgstr "Вставить строку"
+
+#: javaclasseditor-ITJAC
+msgid "Input the java assembly code you wish to insert at line "
+msgstr "Введите ассемблерный код, который вы хотите вставить в строку "
+
+#: javaclasseditor-EL
+msgid "Edit line"
+msgstr "Редактировать строку"
+
+#: javaclasseditor-DNL
+msgid "Define new label"
+msgstr "Определить новую метку"
+
+#: javaclasseditor-GALFL
+msgid "Give a labelname for line "
+msgstr "Задайте имя метки для строки "
+
+#: javaclasseditor-TIAALWTN
+msgid "There is already a label with this name"
+msgstr "Метка с таким именем уже существует"
+
+#: javaclasseditor-OBSNBS
+msgid "old bsize=%d new bsize=%d"
+msgstr "старый размер в байтах=%d новый размер в байтах=%d"
+
+#: javaclasseditor-OSNS
+msgid "old size=%d new size=%d"
+msgstr "старый размер=%d новый размер=%d"
+
+#: javaclasseditor-Method
+msgid "Method: "
+msgstr "Метод: "
+
+#: javaclasseditor-MS
+msgid "Max Stack"
+msgstr "Макс. стек"
+
+#: javaclasseditor-ML
+msgid "Max Locals"
+msgstr "Макс. локальных переменных"
+
+#: javaclasseditor-SC
+msgid "Save changes"
+msgstr "Сохранить изменения"
+
+#: javaclasseditor-Index
+msgid "Index"
+msgstr ""
+
+#: javaclasseditor-BI
+msgid "ByteIndex"
+msgstr ""
+
+#: javaclasseditor-Label
+msgid "Label"
+msgstr "Метка"
+
+#: javaclasseditor-Exception
+msgid "Exception"
+msgstr "Исключение"
+
+#: javaclasseditor-Instruction
+msgid "Instruction"
+msgstr "Инструкция"
+
+#: javaclasseditor-DL
+msgid "Define label"
+msgstr "Определить метку"

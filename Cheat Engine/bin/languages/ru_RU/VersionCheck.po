@@ -1,0 +1,48 @@
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Project-Id-Version: versioncheck.lua RU\n"
+"Language-Team: SER[G]ANT <rzn.dsa@gmail.com>\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: ru_RU\n"
+"X-Generator: Poedit 2.0.2\n"
+
+#: VC-U2CVICNEL
+msgid "Unable to check version (Invalid content, not enough lines)"
+msgstr "Не удалось проверить версию (Недействительное содержимое, не хватает строк)"
+
+#: VC-U2CVIC
+msgid "Unable to check version (Invalid content)"
+msgstr "Не удалось проверить версию (Недействительное содержимое)"
+
+#: VC-CFNV
+msgid "Check for new version"
+msgstr "Проверить наличие новой версии"
+
+#: VC-NCA
+msgid "Cheat Engine %s is available at www.cheatengine.org. Go there now?"
+msgstr "Cheat Engine %s доступен на www.cheatengine.org. Перейти на него сейчас?"
+
+#: VC-UP2D
+msgid "You are up to date. The latest version is %s"
+msgstr "Обновление не требуется. Последняя версия %s"
+
+#: VC-WTF
+msgid "Unable to check version (Can't connect)"
+msgstr "Не удалось проверить версию (Не удаётся подключиться)"
+
+#: VC-UPDATETO
+msgid "Update to %s"
+msgstr "Обновить до %s"
+
+#: VC-UPDATETO
+msgid "In how many days should I notify you again?"
+msgstr "Через сколько дней я снова должен вас уведомить?"
+
+#: VC-SETTINGS-TEXT
+msgid "Check for updates when Cheat Engine starts"
+msgstr "Проверять наличие обновлений при запуске Cheat Engine"
+
+#: VC-INTERVAL
+msgid "Interval(days):"
+msgstr "Интервал(в днях):"

@@ -1,0 +1,145 @@
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Project-Id-Version: monoscript.lua RU\n"
+"Language-Team: SER[G]ANT <rzn.dsa@gmail.com>\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: ru_RU\n"
+"X-Generator: Poedit 2.0.2\n"
+
+
+#: monoscript-FITM
+msgid "Failure injecting the MonoDatacollector dll"
+msgstr "Не удалось внедрить MonoDatacollector dll"
+
+#: monoscript-DYWTL
+msgid "Do you wish to let the mono extention figure out the name and start address? If it's not a proper object this may crash the target."
+msgstr "Вы хотите позволить Mono расширению выяснить имя и стартовый адрес? Если это не подходящий объект, то это может привести к сбою цели."
+
+#: monoscript-IO
+msgid "Instances of "
+msgstr "Экземпляры "
+
+#: monoscript-WTAJG
+msgid "Warning: These are just guesses. Validate them yourself"
+msgstr "Это просто предположения. Поверьте их самостоятельно"
+
+#: monoscript-AN
+msgid "address==nil"
+msgstr "адрес==nil"
+
+#: monoscript-Invoke
+msgid "Invoke "
+msgstr "Вызвать "
+
+#: monoscript-IA
+msgid "Instance address"
+msgstr "Адрес экземпляра"
+
+#: monoscript-PW
+msgid "<Please wait...>"
+msgstr "<Пожалуйста, подождите ...>"
+
+#: monoscript-Parameters
+msgid "Parameters"
+msgstr "Параметры"
+
+#: monoscript-OK
+msgid "OK"
+msgstr "Подтвердить"
+
+#: monoscript-Cancel
+msgid "Cancel"
+msgstr "Отмена"
+
+#: monoscript-Parameter
+msgid "parameter "
+msgstr "параметр "
+
+#: monoscript-INAVA
+msgid " is not a valid address"
+msgstr " не является допустимым адресом"
+
+#: monoscript-INAVV
+msgid "is not a valid value"
+msgstr "не является допустимым значением"
+
+#: monoscript-IFT
+msgid "ILCode from %x to %x"
+msgstr "ILCode от %x до %x"
+
+#: monoscript-OX
+msgid "Offset %x"
+msgstr "Смещение %x"
+
+#: monoscript-Resolve
+msgid "Resolve "
+msgstr "Разрешить "
+
+#: monoscript-XSTS
+msgid "%x : %s (type: %s)"
+msgstr "%x : %s (тип: %s)"
+
+#: monoscript-AYSYWTE
+msgid "Are you sure you wish to expand the whole tree? This can take a while and Cheat Engine may look like it has crashed (It has not)"
+msgstr "Вы уверены, что хотите развернуть всё «дерево»? Это может занять некоторое время, и Cheat Engine может выглядеть так, будто он завис (но это не так)"
+
+#: monoscript-FTL
+msgid "Failure to launch"
+msgstr "Отказ запуска"
+
+#: monoscript-Mono
+msgid "Mono"
+msgstr "Mono"
+
+#: monoscript-AMF
+msgid "Activate mono features"
+msgstr "Активировать Mono функции"
+
+#: monoscript-DM
+msgid "Dissect mono"
+msgstr "Mono анализ"
+
+#: monoscript-TMHFTI
+msgid "The mono handler failed to initialize"
+msgstr "Не удалось инициализировать Mono обработчик"
+
+#: monoscript-IPMN
+msgid "Invalid parameters (Methodname could not be determined)"
+msgstr "Недопустимые параметры (имя метода не может быть определён)"
+
+#: monoscript-IPCN
+msgid "Invalid parameters (Classname could not be determined)"
+msgstr "Недопустимые параметры (имя класса не может быть определено)"
+
+#: monoscript-IPN
+msgid "Invalid parameters (name could not be determined)"
+msgstr "Недопустимые параметры (имя не может быть определено)"
+
+#: monoscript-CNBF
+msgid " could not be found"
+msgstr " невозможно найти"
+
+#: monoscript-CNBJ
+msgid " could not be jitted"
+msgstr " невозможно откомпилировать «на лету»"
+
+#: monoscript-STFDNWY
+msgid "Sorry this feature does not work yet.  getStructureCount needs patching first."
+msgstr "К сожалению, эта функция пока не работает. Сначала нужно пропатчить  getStructureCount"
+
+#: monoscript-Removing
+msgid "Removing "
+msgstr "Удаление "
+
+#: monoscript-RS
+msgid "Reloading Structure "
+msgstr "Перезагрузка структуры "
+
+#: monoscript-TC
+msgid "The class "
+msgstr "Класс "
+
+#: monoscript-HNF
+msgid " has no fields"
+msgstr " не имеет полей"

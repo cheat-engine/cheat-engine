@@ -1,0 +1,79 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"POT-Creation-Date: \n"
+"PO-Revision-Date: \n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 2.2.3\n"
+"Language: ru_RU\n"
+
+msgid "Not a valid executable"
+msgstr "Неправильный исполняемый файл"
+
+#: patchscan-navwe
+msgid "Not a valid windows executable"
+msgstr "Неправильный исполняемый файл Windows"
+
+#: patchscan-ttomicns
+msgid "This type of module is currently not supported"
+msgstr "Данный тип модуля в настоящее время не поддерживается"
+
+#: patchscan-ce
+msgid "Compare error. "
+msgstr "Ошибка сравнения. "
+
+#: patchscan-ml
+msgid "Module List"
+msgstr "Список модулей"
+
+#: patchscan-stmtsfp
+msgid "Select the modules to scan for patches. Hold shift/ctrl to select multiple modules"
+msgstr "Выберите модули для поиска на наличие патчей. Удерживайте Shift/Ctrl для мультивыбора "
+
+#: patchscan-ok
+msgid "  OK  "
+msgstr "Подтвердить"
+
+#: patchscan-cancel
+msgid "Cancel"
+msgstr "Отмена"
+
+#: patchscan-scanning
+msgid "Scanning: %s"
+msgstr "Сканирование: %s"
+
+#: patchscan-ei
+msgid "Error in "
+msgstr "Ошибка в "
+
+#: patchscan-pl
+msgid "Patch list"
+msgstr "Список патчей"
+
+#: patchscan-address
+msgid "Address"
+msgstr "Адресс"
+
+#: patchscan-original
+msgid "Original"
+msgstr "Оригинал"
+
+#: patchscan-patched
+msgid "Patched"
+msgstr "Патч"
+
+#: patchscan-rwo
+msgid "Restore with original"
+msgstr "Восстановить оригиналом"
+
+#: patchscan-rp
+msgid "Reapply patch"
+msgstr "Пропатчить повторно"
+
+#: patchscan-sfp
+msgid "Scan for patches"
+msgstr "Поиск патчей"
