@@ -947,7 +947,7 @@ var
   ss: TStringStream;
   i: integer;
 begin
-  ss:=TStringStream.Create('');
+  ss:=TStringStream.Create;
   try
     PEItv.SaveToStream(ss);
 
@@ -987,7 +987,7 @@ begin
   case PageControl1.TabIndex of
     0:
       begin
-        ss:=TStringStream.Create('');
+        ss:=TStringStream.Create('',TEncoding.Default, false);
         PEItv.SaveToStream(ss);
         Clipboard.AsText:=ss.DataString;
 

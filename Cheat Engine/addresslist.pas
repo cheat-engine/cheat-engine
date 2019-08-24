@@ -507,13 +507,15 @@ var
   i: integer;
 
   s: TStringstream;
+  ms: TMemoryStream;
 
 
 begin
   result:='';
   doc:=TXMLDocument.Create;
-  s:=TStringstream.create('');
+  s:=TStringstream.create;
 
+  ms:=TMemorystream.Create;
 
   cheattable:=doc.CreateElement('CheatTable');
   doc.AppendChild(cheattable);
@@ -523,11 +525,15 @@ begin
 
   try
     saveTableXMLToNode(CheatEntries, selectedOnly);
-    WriteXMLFile(doc,s);
-    result:=s.DataString;
+    WriteXMLFile(doc,ms);
+
+    ms.Position:=0;
+    s.CopyFrom(ms,ms.size);
+    result:=pchar(ms.Memory); //s.UnicodeDataString;
   finally
     doc.free;
     s.free;
+    ms.free;
   end;
 end;
 
@@ -569,7 +575,7 @@ var doc: TXMLDocument;
 
     currentEntry: TDOMNode;
 
-    s: TStringStream;
+    s: TMemoryStream;
 
     replace_find: string;
     replace_with: string;
@@ -578,11 +584,16 @@ var doc: TXMLDocument;
     x: ptrUint;
     i: integer;
     childrenaswell: boolean;
+
+
 begin
   doc:=nil;
   s:=nil;
 
-  s:=TStringstream.Create(xml);
+  s:=TMemoryStream.Create;
+  s.WriteBuffer(xml[1],length(xml));
+  s.position:=0;
+
 
   try
     try

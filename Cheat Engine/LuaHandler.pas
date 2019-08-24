@@ -4447,21 +4447,30 @@ end;
 
 function createStringStream(L: Plua_State): integer; cdecl;
 var s: pchar;
-  sl: integer;
+  //sl: size_t;
   ss: TStringStream;
+  b: TBytes;
+
+  stringlength: psize_t;
 begin
-  sl:=0;
+  getmem(stringlength,16);
+
+
+
   if lua_gettop(L)>0 then
-    s:=lua_tolstring(L, 1, @sl)
+    s:=lua_tolstring(L, 1, stringlength)
   else
     s:=nil;
 
-  ss:=TStringStream.create; //(s);
-  if (s<>nil) and (sl>0) then
+  setlength(b,0);
+  ss:=TStringStream.create('',TEncoding.Default,false); //(s);
+  if (s<>nil) and (stringlength^>0) then
   begin
-    ss.WriteBuffer(s^, sl);
+    ss.WriteBuffer(s^, stringlength^);
     ss.position:=0;
   end;
+
+  freemem(stringlength);
 
   luaclass_newClass(L, ss);
   result:=1;
