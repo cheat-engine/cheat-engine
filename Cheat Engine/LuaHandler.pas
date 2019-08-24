@@ -4456,8 +4456,8 @@ begin
   else
     s:=nil;
 
-  ss:=TStringStream.create(s);
-  if s<>nil then
+  ss:=TStringStream.create; //(s);
+  if (s<>nil) and (sl>0) then
   begin
     ss.WriteBuffer(s^, sl);
     ss.position:=0;
