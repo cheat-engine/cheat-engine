@@ -5,9 +5,10 @@ unit LuaListbox;
 interface
 
 uses
-  Classes, SysUtils,lua, lualib, lauxlib, stdctrls, controls;
+  Classes, SysUtils, lua, lualib, lauxlib, stdctrls, controls;
 
 procedure initializeLuaListbox;
+procedure listbox_addMetaData(L: PLua_state; metatable: integer; userdata: integer);
 
 implementation
 

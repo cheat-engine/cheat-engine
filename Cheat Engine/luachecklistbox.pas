@@ -67,8 +67,7 @@ begin
   end;
 end;
 
-
-procedure listbox_addMetaData(L: PLua_state; metatable: integer; userdata: integer );
+procedure checklistbox_addMetaData(L: PLua_state; metatable: integer; userdata: integer );
 begin
   listbox_addMetaData(L, metatable, userdata);
   luaclass_addArrayPropertyToTable(L, metatable, userdata, 'Checked', checklistbox_getChecked, checklistbox_setChecked);
@@ -80,7 +79,7 @@ begin
 end;
 
 initialization
-  luaclass_register(TCustomCheckListBox, listbox_addMetaData);
+  luaclass_register(TCustomCheckListBox, checklistbox_addMetaData);
 
 end.
 
