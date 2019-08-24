@@ -579,7 +579,9 @@ begin
     else
       Deactivate;
     FActive := AValue;
-    SelectionChange;
+    if FActive then
+      SelectionChange;
+
     if Assigned(Container) then
       Container.Invalidate;
   end;

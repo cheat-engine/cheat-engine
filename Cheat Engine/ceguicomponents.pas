@@ -1102,12 +1102,20 @@ var
   Writer: TWriter;
   DestroyDriver: Boolean;
   g: tguid;
+  s: string;
+  i: integer;
 begin
   if name='' then
   begin
     //an object NEEDS a name
     CreateGUID(g);
-    name:='NoName_'+GUIDToString(g);
+
+    s:=GUIDToString(g);
+    for i:=1 to length(s)-1 do
+      if s[i] in ['{','}','-'] then
+        s[i]:='_';
+
+    name:='NoName_'+s;
   end;
 
   DestroyDriver:=false;
@@ -1149,6 +1157,8 @@ begin
   wasactive:=active;
   active:=false;
 
+  if designsurface<>nil then
+    freeandnil(designsurface);
 
   //RegisterPropertyToSkip(TCEForm, 'Visible', '','');
 
@@ -1176,7 +1186,6 @@ begin
   end;
 
   active:=wasactive;
-
   ResyncWithLua;
 end;
 
@@ -1198,9 +1207,6 @@ begin
   savedDesign.position:=0;
 
   ResyncWithLua;
- // ss:=tstringstream.create('');
- // LRSObjectBinaryToText(savedDesign, ss);
- // showmessage(ss.DataString);
 end;
 
 procedure TCEForm.SaveToXML(Node: TDOMNode; dontdeactivate: boolean=false);

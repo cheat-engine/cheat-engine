@@ -1196,6 +1196,7 @@ var x: array of integer;
 begin
   GlobalDesignHook.LookupRoot:=f;
 
+
   setFormName;
 
 //  f.designsurface.OnChange
@@ -1306,13 +1307,21 @@ begin
     end;
   end;
 
+
   oid.Selection.Clear;
   oid.Selection.Add(f);
 
-  f.active:=true;
+  oid.Refresh;
 
+
+
+  f.active:=true;
   f.designsurface.PopupMenu:=controlPopup;
   f.show;
+
+  TCEForm(GlobalDesignHook.LookupRoot).designsurface.Change;
+  oid.ComponentTree.RebuildComponentNodes;
+
 end;
 
 
