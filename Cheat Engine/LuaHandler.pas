@@ -111,7 +111,8 @@ uses mainunit, mainunit2, luaclass, frmluaengineunit, plugin, pluginexports,
   xinput, winsapi, frmExeTrainerGeneratorUnit, CustomBase85, FileUtil, networkConfig,
   LuaCustomType, Filehandler, LuaSQL, frmSelectionlistunit, cpuidUnit, LuaRemoteThread,
   LuaManualModuleLoader, pointervaluelist, frmEditHistoryUnit, LuaCheckListBox,
-  LuaDiagram, frmUltimap2Unit, frmcodefilterunit, BreakpointTypeDef, LuaSyntax;
+  LuaDiagram, frmUltimap2Unit, frmcodefilterunit, BreakpointTypeDef, LuaSyntax,
+  LazLogger;
 
   {$warn 5044 off}
 
@@ -235,6 +236,12 @@ begin
       lua_pop(L, lua_gettop(L));
       result:=LUA_ERRRUN;
       lua_pushstring(l, e.Message);
+
+      if (GetCurrentThreadId=MainThreadID) and (e.Message='Access Violation') and mainform.miEnableLCLDebug.checked then
+      begin
+        DebugLn('Lua Exception: '+e.Message);
+        lazlogger.DumpExceptionBackTrace;
+      end;
     end;
   end;
 
@@ -4445,6 +4452,7 @@ begin
   end;
 end;
 
+{
 function createStringStream(L: Plua_State): integer; cdecl;
 var s: pchar;
   //sl: size_t;
@@ -4475,6 +4483,30 @@ begin
   luaclass_newClass(L, ss);
   result:=1;
 end;
+}
+
+function createStringStream(L: Plua_State): integer; cdecl;
+var s: pchar;
+  sl: size_t=0;
+  ss: TStringStream;
+begin
+  if lua_gettop(L)>0 then
+    s:=lua_tolstring(L, 1, @sl)
+  else
+    s:=nil;
+
+  ss:=TStringStream.create('',TEncoding.Default,false);
+  if (s<>nil) and (sl>0) then
+  begin
+    ss.WriteBuffer(s^, sl);
+    ss.position:=0;
+  end;
+
+  luaclass_newClass(L, ss);       //lua_pushinteger(L,ptruint(ss));
+
+  result:=1;
+end;
+
 
 
 function readRegionFromFile(L: Plua_State): integer; cdecl;
@@ -8193,7 +8225,7 @@ end;
 
 function lua_stringToMD5String(L:PLua_State): integer; cdecl;
 var msg: pchar;
-    size: integer;
+    size: size_t;
 begin
   if lua_gettop(L)=1 then
   begin

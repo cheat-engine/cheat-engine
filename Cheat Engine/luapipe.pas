@@ -644,7 +644,7 @@ var
   p: TPipeconnection;
   paramcount: integer;
   s: pchar;
-  slength: integer;
+  slength: size_t;
   include0terminator: boolean;
 begin
   result:=0;
