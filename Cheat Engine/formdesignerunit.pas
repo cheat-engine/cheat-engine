@@ -909,7 +909,6 @@ var f: TLuaCaller;
   old: TMethod;
 
   pn: string;
-  i: integer;
 
   NeedsToBeCreated: boolean;
   header: tstringlist;
@@ -921,22 +920,18 @@ begin
   ns:=name;
   ns:=TComponent(GlobalDesignHook.LookupRoot).name+'_'+copy(ns, RPos('.',ns)+1);
 
- // name:=ns;
+  NeedsToBeCreated:=false;
 
+  if methodlist.IndexOf(name)<>-1 then
+    ns:=name
+  else
+    NeedsToBeCreated:=methodlist.IndexOf(ns)=-1;
 
   f.luaroutine:=ns;
   f.owner:=APersistent;
 
   try
-    pn:=APropertyPath;
-    i:=pos('.',pn);
-    while i>0 do
-    begin
-      pn:=copy(pn,i+1, length(pn));
-      i:=pos('.',pn)
-    end;
-
-
+    pn:=copy(APropertyPath, RPos('.', APropertyPath)+1);
     old:=GetMethodProp(APersistent, pn);
     if (old.code<>nil) and (tobject(old.Data) is TLuaCaller) then
       TLuaCaller(old.data).free;
@@ -945,16 +940,13 @@ begin
     //failed to get the propertyname
   end;
 
-  i:=methodlist.IndexOf(ns);
-  NeedsToBeCreated:=i=-1;
-
   header:=tstringlist.create;
   result:=luacaller_getFunctionHeaderAndMethodForType(ATypeInfo, f, ns, header);
 
   if NeedsToBeCreated then
   begin
-    mainform.frmLuaTableScript.assemblescreen.Lines.AddStrings(header);
     header.add('');
+    mainform.frmLuaTableScript.assemblescreen.Lines.AddStrings(header);
   end;
 
   header.free;
