@@ -1186,6 +1186,7 @@ var x: array of integer;
   i: integer;
   dpmi: tmenuitem;
 begin
+
   GlobalDesignHook.LookupRoot:=f;
 
 
@@ -1311,8 +1312,15 @@ begin
   f.designsurface.PopupMenu:=controlPopup;
   f.show;
 
+
+
   TCEForm(GlobalDesignHook.LookupRoot).designsurface.Change;
   oid.ComponentTree.RebuildComponentNodes;
+
+  oid.RefreshPropertyValues;
+  oid.RebuildPropertyLists;
+  oid.FillComponentList;
+  oid.UpdateComponentValues;
 
 end;
 
