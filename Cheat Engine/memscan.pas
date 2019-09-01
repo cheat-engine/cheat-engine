@@ -559,6 +559,7 @@ type
     floatscanWithoutExponents: boolean;
     inverseScan: boolean;
     luaformula: boolean;
+    isUnique: boolean;
 
     procedure execute; override;
     constructor create(suspended: boolean);
@@ -622,6 +623,7 @@ type
 
     savedresults: tstringlist;
     fonlyOne: boolean;
+    fIsUnique: boolean;
     fisHexadecimal: boolean;
 
     ffloatscanWithoutExponents: boolean;
@@ -695,6 +697,7 @@ type
     property CustomType: TCustomType read currentCustomType;
     property codePage: boolean read fCodePage write fCodePage;
     property LuaFormula: boolean read fLuaFormula write fLuaFormula;
+    property isUnique: boolean read fIsUnique write fIsUnique; //for AOB scans only
     property lastScanWasRegionScan: boolean read getLastScanWasRegionScan;
     property isUnicode: boolean read stringUnicode;
     property isHexadecimal: boolean read fisHexadecimal; //gui
@@ -5423,6 +5426,7 @@ begin
 end;
 
 procedure TScanner.execute;
+var i: integer;
 begin
   (*
   {$if defined(cpui386) or defined(cpux86_64)}
@@ -5455,6 +5459,14 @@ begin
 
     if scanwriter.writeError then
       raise exception.Create(Format(rsDiskWriteError, [scanwriter.errorString]));
+
+    if OnlyOne and (AddressFound<>0) then
+    begin
+      //tell siblings to go kill themselves. This one won the price
+      for i:=0 to length(OwningScanController.scanners)-1 do
+        OwningScanController.scanners[i].Terminate;
+    end;
+
   except
     on e: exception do
     begin
@@ -6195,7 +6207,7 @@ var
   vqecacheflag: dword;
 begin
  // OutputDebugString('TScanController.firstScan');
-  if OnlyOne then
+  if OnlyOne or luaformula then
     threadcount:=1
   else
     threadcount:=GetCPUCount;
@@ -6206,9 +6218,6 @@ begin
     threadcount:=1;
   {$ENDIF}
 
-  if luaformula then
-    threadcount:=1;
-    
   totalProcessMemorySize:=0;
 
 
@@ -6539,7 +6548,7 @@ begin
       scanners[i].scanValue1:=scanvalue1; //usual scanvalue
       scanners[i].scanValue2:=scanValue2; //2nd value for between scan
       scanners[i].unicode:=unicode;
-      scanners[i].OnlyOne:=OnlyOne;
+      scanners[i].OnlyOne:=OnlyOne or isUnique;
       scanners[i].caseSensitive:=caseSensitive;
       scanners[i].percentage:=percentage;
       scanners[i].hexadecimal:=hexadecimal;
@@ -6552,6 +6561,7 @@ begin
       scanners[i].floatscanWithoutExponents:=floatscanWithoutExponents;
       scanners[i].inverseScan:=inverseScan;
       scanners[i].luaformula:=luaformula;
+
 
 
       if i=0 then //first thread gets the header part
@@ -6611,8 +6621,16 @@ begin
         errorstring:=scanners[i].errorstring;
         break;
       end;
+
       inc(OwningMemScan.found,scanners[i].totalfound);
+
+      if IsUnique and (scanners[i].AddressFound<>0) then
+      begin
+        FoundSomething:=true;
+        AddressFound:=scanners[i].AddressFound;
+      end;
     end;
+
 
     if OnlyOne then
     begin
@@ -6626,8 +6644,8 @@ begin
       setlength(AddressesFound, length(scanners[0].mabs));
       for j:=0 to length(scanners[0].mabs)-1 do
         AddressesFound[j]:=scanners[0].mabs[j].foundaddress;
-
     end;
+
 
     if OwningMemScan.progressbar<>nil then
       synchronize(updategui);
@@ -6741,7 +6759,7 @@ begin
 
 
 
-    if OnlyOne then savescannerresults:=false; //DO NOT INTERFERE
+    if OnlyOne or isUnique then savescannerresults:=false; //DO NOT INTERFERE
 
 
     {$ifdef LOWMEMORYUSAGE}
@@ -6924,7 +6942,7 @@ begin
       if scantype=stFirstScan then
       begin
 
-        if not OnlyOne then
+        if not (OnlyOne or isUnique) then
         begin
           owningmemscan.postScanState:=psSavingFirstScanResults;
 
@@ -7625,8 +7643,8 @@ begin
   scancontroller.inverseScan:=InverseScan;
   scancontroller.percentage:=false; //first scan does not have a percentage scan
   scancontroller.luaformula:=fLuaFormula;
-
-  scanController.OnlyOne:=onlyone;
+  scancontroller.isUnique:=fIsUnique;
+  scanController.OnlyOne:=fOnlyOne;
 
   fLastscantype:=stFirstScan;
   fLastScanValue:=scanValue1;

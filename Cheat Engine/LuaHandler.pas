@@ -3761,6 +3761,53 @@ begin
   lua_pop(L, lua_gettop(L));
 end;
 
+function AOBScanUnique(L: PLua_state): integer; cdecl;
+var
+  scanstring: string;
+  protectionflags: string;
+  alignmentparam: string;
+  alignmenttype: TFastScanMethod;
+  list: tstringlist;
+  r: ptruint;
+  parameters: integer;
+begin
+  parameters:=lua_gettop(L);
+
+  if parameters=1 then
+  begin
+    scanstring:=Lua_ToString(L,1);
+    if parameters>=2 then
+      protectionflags:=Lua_ToString(L, 2);
+
+    if parameters>=3 then
+      alignmenttype:=TFastScanMethod(lua_tointeger(L, 3));
+
+    if parameters>=4 then
+      alignmentparam:=Lua_ToString(L, 4);
+
+    if scanstring='' then
+    begin
+      lua_pushstring(L,'Invalid parameter. Must be a string');
+      lua_pushnil(L);
+      result:=2;
+    end;
+
+    r:=findaob(scanstring, protectionflags, alignmenttype,alignmentparam,true);
+    if r=0 then
+      lua_pushnil(L)
+    else
+      lua_pushinteger(L,r);
+
+    result:=1;
+  end
+  else
+  begin
+    lua_pushstring(L,'Not enough parameters');
+    lua_pushnil(L);
+    result:=2;
+  end;
+
+end;
 
 function AOBScan(L: PLua_state): integer; cdecl;
 var
@@ -11870,6 +11917,7 @@ begin
     lua_register(L, 'generateAPIHookScript', generateAPIHookScript_lua);
     lua_register(L, 'createProcess', createProcess);
     lua_register(L, 'AOBScan', AOBScan);
+    lua_register(L, 'AOBScanUnique', AOBScanUnique);
     lua_register(L, 'getOpenedProcessID', getOpenedProcessID);
     lua_register(L, 'getAddress', getAddress);
     lua_register(L, 'getModuleSize', getModuleSize);

@@ -11,8 +11,8 @@ interface
 uses LCLIntf, memscan, sysutils, CEFuncProc, classes, foundlisthelper, commonTypeDefs;
 
 
-function findaobInModule(modulename: string; aobstring: string; protectionflags: string=''; alignmenttype: TFastScanMethod=fsmNotAligned; alignmentparam: string=''): ptruint;
-function findaob(aobstring: string; protectionflags: string=''; alignmenttype: TFastScanMethod=fsmNotAligned; alignmentparam: string=''): ptruint;
+function findaobInModule(modulename: string; aobstring: string; protectionflags: string=''; alignmenttype: TFastScanMethod=fsmNotAligned; alignmentparam: string=''; isUnique: boolean=false): ptruint;
+function findaob(aobstring: string; protectionflags: string=''; alignmenttype: TFastScanMethod=fsmNotAligned; alignmentparam: string=''; isUnique: boolean=false): ptruint;
 function getaoblist(aobstring: string; list: tstrings; protectionflags: string=''; alignmenttype: TFastScanMethod=fsmNotAligned; alignmentparam: string=''):boolean;
 
 implementation
@@ -56,7 +56,6 @@ begin
   end;
 
   ms.firstscan(soExactValue, vtByteArray, rtRounded, aobstring, '', 0, max, true,  false, false, false, alignmenttype, alignmentparam);
-
   ms.waittillreallydone; //wait till it's finished scanning AND saving
 
 
@@ -76,7 +75,7 @@ begin
   result:=list.count>0;
 end;
 
-function AsyncAOBScan(modulename: string; aobstring: string; protectionflags: string=''; alignmenttype: TFastScanMethod=fsmNotAligned; alignmentparam: string=''): TMemScan;
+function AsyncAOBScan(modulename: string; aobstring: string; protectionflags: string=''; alignmenttype: TFastScanMethod=fsmNotAligned; alignmentparam: string=''; isunique: boolean=false): TMemScan;
 //starts a scan and returns a memscan object.
 //It's recommended to use finishAOBScan(ms) to get the address and free the object
 var
@@ -133,18 +132,17 @@ begin
   ms.free;
 end;
 
-function findaobInModule(modulename: string; aobstring: string; protectionflags: string=''; alignmenttype: TFastScanMethod=fsmNotAligned; alignmentparam: string=''): ptruint;
+function findaobInModule(modulename: string; aobstring: string; protectionflags: string=''; alignmenttype: TFastScanMethod=fsmNotAligned; alignmentparam: string=''; isUnique: boolean=false): ptruint;
 var ms: TMemscan;
 begin
-  ms:=AsyncAOBScan(modulename, aobstring, protectionflags, alignmenttype, alignmentparam);
+  ms:=AsyncAOBScan(modulename, aobstring, protectionflags, alignmenttype, alignmentparam, isUnique);
   result:=finishAOBScan(ms);
 end;
 
-function findaob(aobstring: string; protectionflags: string=''; alignmenttype: TFastScanMethod=fsmNotAligned; alignmentparam: string=''): ptruint;
+function findaob(aobstring: string; protectionflags: string=''; alignmenttype: TFastScanMethod=fsmNotAligned; alignmentparam: string=''; isunique: boolean=false): ptruint;
 begin
   result:=findaobInModule('', aobstring, protectionflags, alignmenttype, alignmentparam);
 end;
-
 
 
 end.
