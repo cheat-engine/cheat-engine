@@ -796,6 +796,7 @@ type
     UserDefinedTableName: string; //set when a user opens a table (when set the filename prediction will be turned off)
 
     speedhackDisableTimer: TTimer;
+    boundsupdater: TTimer;
 
     freezeThread: TFreezeThread;
 
@@ -889,6 +890,9 @@ type
 
     procedure createGroupConfigButton;
     procedure destroyGroupConfigButton;
+
+    procedure BoundsUpdate(sender: TObject);
+    procedure SpawnBoundsUpdater;
 
     procedure MemscanGuiUpdate(sender: TObject; totaladdressestoscan: qword; currentlyscanned: qword; foundcount: qword);
 
@@ -3363,16 +3367,12 @@ begin
 end;
 
 procedure TMainForm.gbScanOptionsChangeBounds(Sender: TObject);
-var newminheight: integer;
-begin
-  newminheight:=gbScanOptions.top + gbScanOptions.Height + max(speedbutton2.Height, btnAddAddressManually.height ) + 10;
 
-  if newminheight<>panel5.Constraints.MinHeight then
-  begin
-    gbScanOptions.OnChangeBounds:=nil;
-    panel5.Constraints.MinHeight := gbScanOptions.top + gbScanOptions.Height + max(speedbutton2.Height, btnAddAddressManually.height ) + 10;
-    gbScanOptions.OnChangeBounds:=gbScanOptionsChangeBounds;
-  end;
+begin
+
+  spawnBoundsUpdater;
+
+
 end;
 
 procedure TMainForm.Label3Click(Sender: TObject);
@@ -4027,6 +4027,8 @@ var
   br: TRect;
 begin
   f := tceform.CreateNew(nil);
+
+
   f.autosize := False;
 
   j := 1;
@@ -10239,6 +10241,36 @@ end;
 procedure TMainForm.MemscanGuiUpdate(sender: TObject; totaladdressestoscan: qword; currentlyscanned: qword; foundcount: qword);
 begin
   self.foundcount:=foundcount;
+end;
+
+
+procedure TMainForm.BoundsUpdate(sender: TObject);
+var newminheight: integer;
+begin
+  newminheight:=gbScanOptions.top + gbScanOptions.Height + max(speedbutton2.Height, btnAddAddressManually.height ) + 10;
+
+  if newminheight<>panel5.Constraints.MinHeight then
+  begin
+    gbScanOptions.OnChangeBounds:=nil;
+    panel5.Constraints.MinHeight := gbScanOptions.top + gbScanOptions.Height + max(speedbutton2.Height, btnAddAddressManually.height ) + 10;
+    gbScanOptions.OnChangeBounds:=gbScanOptionsChangeBounds;
+  end;
+
+  boundsupdater.enabled:=false;
+end;
+
+procedure TMainForm.SpawnBoundsUpdater;
+begin
+  if boundsupdater=nil then
+  begin
+    boundsupdater:=TTimer.Create(self);
+    boundsupdater.Interval:=500;
+    boundsupdater.OnTimer:=BoundsUpdate;
+    boundsupdater.Enabled:=false;
+  end;
+
+  if boundsupdater.enabled=false then
+    boundsupdater.enabled:=true;
 end;
 
 initialization
