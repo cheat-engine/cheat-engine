@@ -1246,9 +1246,11 @@ begin
   OnChangeBounds:=nil;
   if top<0 then
   begin
-    top:=0;
-    if height+top>screen.WorkAreaHeight then
+    position:=poDesigned;
+    if height>screen.WorkAreaHeight then
       height:=screen.WorkAreaHeight;
+
+    top:=0;
   end;
   OnChangeBounds:=FormChangeBounds;
 end;
