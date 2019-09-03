@@ -179,6 +179,8 @@ var
 
   dbvmbpinfo: tdbvmbpinfo;
 begin
+  if (listview1.selected=nil) then exit;
+  
   bp:=listview1.selected.data;
   if bp=pointer(-1) then
   begin
