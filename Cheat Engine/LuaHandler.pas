@@ -2286,23 +2286,22 @@ begin
   result:=0;
   parameters:=lua_gettop(L);
 
-  if lua_isstring(L, -parameters) then
+  if lua_isstring(L, 1) then
   begin
     if processhandle=GetCurrentProcess then
-      addresstoread:=selfsymhandler.getAddressFromNameL(lua_tostring(L,-parameters), waitforsymbols)
+      addresstoread:=selfsymhandler.getAddressFromNameL(lua_tostring(L,1), waitforsymbols)
     else
-      addresstoread:=symhandler.getAddressFromNameL(lua_tostring(L,-parameters), waitforsymbols);
+      addresstoread:=symhandler.getAddressFromNameL(lua_tostring(L,1), waitforsymbols);
   end
   else
-    addresstoread:=lua_tointeger(L,-parameters);
+    addresstoread:=lua_tointeger(L,1);
 
   if parameters>1 then
   begin
-    bytestoread:=lua_tointeger(L,-parameters+1);
+    bytestoread:=lua_tointeger(L,2);
 
     if parameters>2 then
-      tableversion:=lua_toboolean(L, -parameters+2);
-
+      tableversion:=lua_toboolean(L, 3);
   end
   else
     bytestoread:=1;
@@ -2314,7 +2313,7 @@ begin
   x:=0;
   ReadProcessMemory(processhandle, pointer(addresstoread), @bytes[0], bytestoread, x);
 
-  if x>0 then
+  if (x>0) and (x<=bytestoread) then
   begin
     if tableversion then
     begin
