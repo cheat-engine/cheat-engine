@@ -7928,7 +7928,7 @@ begin
   vartype.Constraints.MinWidth:=i;
 
   i:=foundlist3.width;
-  if undoscan.left<btnNextScan.Left+btnNextScan.Width then
+  if undoscan.visible and (undoscan.left<btnNextScan.Left+btnNextScan.Width) then
   begin
     j:=(btnNextScan.Left+btnNextScan.Width)-undoscan.left;
     i:=foundlist3.width-j;
