@@ -7393,7 +7393,7 @@ begin
                         end
                         else
                         begin
-                          description:='empty mmx™ state';
+                          description:='empty mmxâ„¢ state';
                           lastdisassembledata.opcode:='emms';
                           inc(offset);
                         end;
@@ -13642,7 +13642,7 @@ begin
 
 
               $f0 : begin
-                      description:='compute 2^x–1';
+                      description:='compute 2^x-1';
                       lastdisassembledata.opcode:='f2xm1';
                       inc(offset);
                     end;
