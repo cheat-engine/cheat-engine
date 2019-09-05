@@ -15754,10 +15754,7 @@ begin
 
 
 
-    end
-    else
-    if (LastDisassembleData.opcode='nop') then
-      result:=inttostr(length(LastDisassembleData.Bytes));
+    end;
 
 
 
