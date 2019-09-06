@@ -60,7 +60,6 @@ const
 {$ENDIF}
 
 type
-  size_t = Cardinal;
   Psize_t = ^size_t;
 
 const
