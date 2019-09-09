@@ -6731,6 +6731,7 @@ begin
       end;
     end;
 
+  if node<>nil then node.Expand(false);
 end;
 
 procedure TMainForm.SpeedButton3Click(Sender: TObject);
