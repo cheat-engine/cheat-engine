@@ -46,25 +46,7 @@ In the above state, move to the ceserver folder and execute the `make` command.
 EXECUTABLE
  └─jni
           Android.mk
-          api.c
-          api.h
           Application.mk
-          ceserver.c
-          ceserver.h
-          ceservertest.c
-          ceservertest.h
-          context.c
-          context.h
-          extensionfunctions.c
-          extensionfunctions.h
-          extensionloader.c
-          extensionloader.h
-          porthelp.c
-          porthelp.h
-          symbols.c
-          symbols.h
-          threads.c
-          threads.h
 ```
 
 In the above state, move to the EXECUTABLE folder with Android Studio Terminal and execute `ndk-build`.
@@ -88,5 +70,9 @@ Perform module enumeration only for the specified process ID.
 If `1` is specified, memory is read and written only with the ptrace privilege, not via the virtual file system.
  - `-p`
 Listen on the specified port number instead of the default 52736.
+
+ - `-s`
+It is disassembled with the specified architecture regardless of the ceserver architecture. It is convenient to specify with Android emulator (x86 and ARM are mixed)etc. 
+
  - `-t`
 Start ceserver in test mode.

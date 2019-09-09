@@ -138,6 +138,7 @@ int VerboseLevel=0;
 
 int MEMORY_SEARCH_OPTION = 0;
 int ATTACH_PID = 0;
+unsigned char SPECIFIED_ARCH = 9;
 
 //Implementation for shared library version ceserver.
 int debug_log(const char * format , ...)

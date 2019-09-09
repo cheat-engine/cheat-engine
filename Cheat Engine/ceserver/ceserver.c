@@ -152,6 +152,10 @@ int DispatchCommand(int currentsocket, unsigned char command)
 #ifdef __aarch64__
       unsigned char arch=3;
 #endif
+      if(SPECIFIED_ARCH != 9)
+      {
+        arch = SPECIFIED_ARCH;
+      }
       sendall(currentsocket, &arch, sizeof(arch), 0);
       break;
     }
@@ -1167,8 +1171,9 @@ int main(int argc, char *argv[])
   int argv_attach_pid;
   int argv_search_option;
   int argv_port;
+  int argv_arch;
   int argv_pid;
-  while((opt = getopt(argc, argv, "a:m:p:t:")) != -1) 
+  while((opt = getopt(argc, argv, "a:m:p:s:t:")) != -1) 
   {
     switch(opt)
     {
@@ -1189,6 +1194,12 @@ int main(int argc, char *argv[])
           argv_port = strtol(optarg,NULL,10);
           if(errno != ERANGE && errno != EINVAL && argv_port != 0)
             PORT = argv_port;
+          break;
+      case 's':
+          errno = 0;
+          argv_arch = strtol(optarg,NULL,10);
+          if(errno != ERANGE && errno != EINVAL)
+             SPECIFIED_ARCH = argv_arch;
           break;
       case 't':
           errno = 0;
