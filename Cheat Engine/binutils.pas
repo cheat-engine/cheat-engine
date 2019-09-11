@@ -353,6 +353,14 @@ begin
       begin
         output:=TStringStream.create('');
         output.WriteString(os);
+      end
+      else
+      begin
+        //failure to run
+        ldd.opcode:='Invalid';
+        ldd.parameters:='binutils';
+        setlength(ldd.bytes,0);
+        exit;
       end;
 
 {
