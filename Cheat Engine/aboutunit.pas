@@ -185,8 +185,10 @@ begin
       end;
     end
     else
-      if frmDBVMLoadManual<>nil then frmDBVMLoadManual.SetFocus
-      else tfrmDBVMLoadManual.create(Application).Show;
+      if frmDBVMLoadManual<>nil then 
+        frmDBVMLoadManual.SetFocus
+      else 
+        tfrmDBVMLoadManual.create(Application).Show;
   end;
 end;
 
