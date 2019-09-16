@@ -1,25 +1,24 @@
 msgid ""
 msgstr ""
-"Project-Id-Version: 6.8.2\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"Project-Id-Version: \n"
 "POT-Creation-Date: \n"
 "PO-Revision-Date: \n"
-"Last-Translator: 郑建平@夏宗萍 aka  robsean <robsean@126.com>\n"
-"Language-Team: www.lazaruscn.top\n"
+"Last-Translator: \n"
+"Language-Team: \n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Language: zh_CN\n"
-"X-Generator: Poedit 2.0.8\n"
-"Plural-Forms: nplurals=1; plural=0;\n"
-"X-Poedit-SourceCharset: UTF-8\n"
+"X-Generator: Poedit 2.2.3\n"
 
 #: VC-U2CVICNEL
 msgid "Unable to check version (Invalid content, not enough lines)"
-msgstr "不能检查版本(无效连接,(lines)行不足够)"
+msgstr "无法检查版本 (无效的内容, 没有足够的行）"
 
 #: VC-U2CVIC
 msgid "Unable to check version (Invalid content)"
-msgstr "不能检查版本(无效连接)"
+msgstr "无法检查版本 (无效的内容）"
 
 #: VC-CFNV
 msgid "Check for new version"
@@ -27,28 +26,28 @@ msgstr "检查新版本"
 
 #: VC-NCA
 msgid "Cheat Engine %s is available at www.cheatengine.org. Go there now?"
-msgstr "Cheat Engine%s可用,在www.cheatengine.org.现在去这里?"
+msgstr "Cheat Engine %s 可在 www.cheatengine.org 下载，现在前往？"
 
 #: VC-UP2D
 msgid "You are up to date. The latest version is %s"
-msgstr "你是最新的.上一版本是%s"
+msgstr "已经是最新版本. 当前的最新版本是 %s"
 
 #: VC-WTF
 msgid "Unable to check version (Can't connect)"
-msgstr "不能检查版本(不能连接)"
+msgstr "无法检查版本 (无法连接)"
 
 #: VC-UPDATETO
 msgid "Update to %s"
-msgstr "更新到%s"
+msgstr "升级到 %s"
 
 #: VC-UPDATETO
 msgid "In how many days should I notify you again?"
-msgstr "在多少天后,我能再次通知你?"
+msgstr "我应该在多少天内再次通知你？"
 
 #: VC-SETTINGS-TEXT
 msgid "Check for updates when Cheat Engine starts"
-msgstr "检查更新,当Cheat Engine启动时"
+msgstr "在Cheat Engine启动时检查更新"
 
 #: VC-INTERVAL
 msgid "Interval(days):"
-msgstr "间隔(日):"
+msgstr "间隔(天)"
