@@ -328,6 +328,7 @@ type
     procedure MenuItem12Click(Sender: TObject);
     procedure MenuItem14Click(Sender: TObject);
     procedure DBVMFindoutwhataddressesthisinstructionaccessesClick(Sender: TObject);
+    procedure MenuItem4Click(Sender: TObject);
     procedure miSetSpecificBreakpointClick(Sender: TObject);
     procedure miSetBreakpointClick(Sender: TObject);
     procedure miCodeFilterClick(Sender: TObject);
@@ -838,6 +839,7 @@ end;
 procedure TMemoryBrowser.ShowDebugToolbar;
 begin
   tbDebug.Visible:=true;
+  tbDebug.Tag:=0;
   Showdebugtoolbar1.Checked:=true;
 end;
 
@@ -1113,6 +1115,12 @@ end;
 procedure TMemoryBrowser.DBVMFindoutwhataddressesthisinstructionaccessesClick(Sender: TObject);
 begin
   DBVMFindwhatThiscodeAccesses(disassemblerview.SelectedAddress);
+end;
+
+procedure TMemoryBrowser.MenuItem4Click(Sender: TObject);
+begin
+  if tbDebug.Visible=true then HideDebugToolbar;
+  tbDebug.Tag:=-1;
 end;
 
 procedure TMemoryBrowser.miSetSpecificBreakpointClick(Sender: TObject);
@@ -5318,7 +5326,7 @@ begin
   if _debuggerthread<>nil then _debuggerthread.execlocation:=41304;
 
   //tbDebug.enabled:=true;
-  if tbDebug.visible=false then
+  if (tbDebug.visible=false) and (tbDebug.Tag<>-1) then
     ShowDebugToolbar; //show toolbar
 
   miDebugRun.Enabled:=true;

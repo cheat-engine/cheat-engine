@@ -15,7 +15,7 @@ object MemoryBrowser: TMemoryBrowser
   OnResize = FormResize
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '2.0.0.4'
+  LCLVersion = '2.0.4.0'
   object Splitter1: TSplitter
     Cursor = crVSplit
     Left = 0
@@ -81,7 +81,7 @@ object MemoryBrowser: TMemoryBrowser
         TabOrder = 0
         Visible = False
         object tbRun: TToolButton
-          Left = 114
+          Left = 113
           Top = 2
           Caption = 'Run'
           Enabled = False
@@ -89,7 +89,7 @@ object MemoryBrowser: TMemoryBrowser
           OnClick = miDebugRunClick
         end
         object tbStepInto: TToolButton
-          Left = 143
+          Left = 142
           Top = 2
           Caption = 'Step Into'
           Enabled = False
@@ -97,7 +97,7 @@ object MemoryBrowser: TMemoryBrowser
           OnClick = miDebugStepClick
         end
         object tbStepOver: TToolButton
-          Left = 198
+          Left = 197
           Top = 2
           Caption = 'Step Over'
           Enabled = False
@@ -105,14 +105,14 @@ object MemoryBrowser: TMemoryBrowser
           OnClick = miDebugStepOverClick
         end
         object tbSeparator1: TToolButton
-          Left = 106
+          Left = 105
           Height = 40
           Top = 2
           Caption = 'tbSeparator1'
           Style = tbsSeparator
         end
         object tbStepOut: TToolButton
-          Left = 257
+          Left = 256
           Top = 2
           Caption = 'Step Out'
           Enabled = False
@@ -120,7 +120,7 @@ object MemoryBrowser: TMemoryBrowser
           OnClick = miDebugExecuteTillReturnClick
         end
         object tbSeparator2: TToolButton
-          Left = 311
+          Left = 310
           Height = 40
           Top = 2
           Caption = 'tbSeparator2'
@@ -733,8 +733,8 @@ object MemoryBrowser: TMemoryBrowser
   object memorypopup: TPopupMenu
     Images = mvImageList
     OnPopup = memorypopupPopup
-    left = 120
-    top = 368
+    Left = 120
+    Top = 368
     object Change1: TMenuItem
       Caption = 'Edit'
       ImageIndex = 6
@@ -1079,8 +1079,8 @@ object MemoryBrowser: TMemoryBrowser
   object debuggerpopup: TPopupMenu
     Images = mvImageList
     OnPopup = debuggerpopupPopup
-    left = 112
-    top = 176
+    Left = 112
+    Top = 176
     object Gotoaddress1: TMenuItem
       Caption = 'Go to address'
       ImageIndex = 35
@@ -1367,13 +1367,13 @@ object MemoryBrowser: TMemoryBrowser
   object Timer2: TTimer
     Interval = 100
     OnTimer = Timer2Timer
-    left = 272
-    top = 32
+    Left = 272
+    Top = 32
   end
   object MainMenu1: TMainMenu
     Images = mvImageList
-    left = 128
-    top = 8
+    Left = 128
+    Top = 8
     object File1: TMenuItem
       Caption = 'File'
       object Newwindow1: TMenuItem
@@ -1942,27 +1942,27 @@ object MemoryBrowser: TMemoryBrowser
     DefaultExt = '.CEM'
     Filter = 'Cheat Engine Memory file|*.CEM|All Files (*.*)|*.*'
     FilterIndex = 0
-    left = 152
-    top = 80
+    Left = 152
+    Top = 80
   end
   object SaveDialog1: TSaveDialog
     DefaultExt = '.txt'
     Filter = 'textfiles (*.txt)|*.txt'
-    left = 184
-    top = 80
+    Left = 184
+    Top = 80
   end
   object OpenDllDialog: TOpenDialog
     Title = 'Select the module you want to inject'
     DefaultExt = '.dll'
     Filter = 'Dll-file (*.dll)|*.dll|All files (*.*)|*.*'
-    left = 152
-    top = 104
+    Left = 152
+    Top = 104
   end
   object pmStacktrace: TPopupMenu
     Images = mvImageList
     OnPopup = pmStacktracePopup
-    left = 536
-    top = 360
+    Left = 536
+    Top = 360
     object All1: TMenuItem
       Caption = 'Full stack'
       GroupIndex = 1
@@ -2032,8 +2032,8 @@ object MemoryBrowser: TMemoryBrowser
   end
   object pmRegisters: TPopupMenu
     Images = mvImageList
-    left = 640
-    top = 192
+    Left = 640
+    Top = 192
     object miShowIndisassembler: TMenuItem
       Caption = 'Show in disassembler'
       ImageIndex = 35
@@ -2047,8 +2047,8 @@ object MemoryBrowser: TMemoryBrowser
   end
   object mvImageList: TImageList
     Scaled = True
-    left = 297
-    top = 160
+    Left = 297
+    Top = 160
     Bitmap = {
       4C694D0000001000000010000000FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
       FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
@@ -22875,11 +22875,16 @@ object MemoryBrowser: TMemoryBrowser
   end
   object pmDebugToolbar: TPopupMenu
     Images = mvImageList
-    left = 320
+    Left = 320
     object miHideToolbar: TMenuItem
       Caption = 'Hide toolbar'
       ImageIndex = 39
       OnClick = miHideToolbarClick
+    end
+    object MenuItem4: TMenuItem
+      Caption = 'Disable toolbar'
+      ImageIndex = 32
+      OnClick = MenuItem4Click
     end
   end
 end
