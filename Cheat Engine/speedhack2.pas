@@ -182,14 +182,14 @@ begin
       else
         generateAPIHookScript(script, 'GetTickCount', 'speedhackversion_GetTickCount', 'realgettickcount');
 
-      if ssCtrl in GetKeyShiftState then //debug code
-        Clipboard.AsText:=script.text;
+      //if ssCtrl in GetKeyShiftState then //debug code
+      //  Clipboard.AsText:=script.text;
 
       try
         setlength(AllocArray,0);
 
         autoassemble(script,false,true,false,false,AllocArray, exceptionlist);
-        clipboard.AsText:=script.text;
+        //clipboard.AsText:=script.text;
 
         //fill in the address for the init region
         for i:=0 to length(AllocArray)-1 do

@@ -3699,6 +3699,8 @@ var
   address: string;
   addressTo: string;
   addresstogetnewcalladdress: string;
+  ext: string='';
+  self: boolean=false;
   script: tstringlist;
 begin
   address:='';
@@ -3709,17 +3711,23 @@ begin
   parameters:=lua_gettop(L);
   if parameters>=2 then
   begin
-    address:=lua_tostring(L, -parameters);
-    addressTo:=lua_tostring(L, (-parameters)+1);
+    address:=lua_tostring(L, 1);
+    addressTo:=lua_tostring(L, 2);
 
-    if parameters=3 then
-      addresstogetnewcalladdress:=lua_tostring(L, (-parameters)+2);
+    if parameters>=3 then
+      addresstogetnewcalladdress:=lua_tostring(L, 3);
+
+    if parameters>=4 then
+      ext:=lua_tostring(L, 4);
+
+    if parameters>=5 then
+      self:=lua_toboolean(L,5);
 
     lua_pop(L, lua_gettop(L));
 
     script:=tstringlist.create;
     try
-      generateAPIHookScript(script, address, addressto, addresstogetnewcalladdress);
+      generateAPIHookScript(script, address, addressto, addresstogetnewcalladdress,ext,self);
       lua_pushstring(L, pchar(script.text));
       result:=1;
     finally

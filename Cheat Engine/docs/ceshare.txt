@@ -28,22 +28,20 @@ They can decide to have their entry editable by everyone, or only those in an
 specific access list. 
 
 database schema:
-
-  CheatList
+  CheatList  --list containing all cheat descriptors+who owns them
     id: integer
     owneruserid: integer
     lastEditorUserID: integer
-    lastEditorIP: integer    
+    lastEditorIP: string
     lastEditTime: integer    
     description: text
     public: bool - Editable by everyone, else editable only by the owner and by people in the accesslist
     processnamemd5: binary(16) (index)
     versionIndependant: bool --if set, only the processname matters
-    isRequest: bool --if set this is a request. In that case, rating(or just ratingcount) is used to determine if other people want it as well, and there will be no cheatData
     ratingtotal: integer
     ratingcount: integer    -ratingtotal/ratingcount = stars
-  
-    
+    accessCount: integer    -Number of times the cheatdata has been fetched (cheatlist won't count)  
+
     headermd5: binary(16) (index)
     fullfilehashmd5: binary(16) - if set, and there are multiple results, use this
     secondarymodulename: string -- if set, use this. (before fullfilehash)
@@ -59,7 +57,7 @@ database schema:
     olddatatype: integer
     olddata: BLOB    
     oldlastEditorUserID: integer;
-    oldlastEditorIP: integer
+    oldlastEditorIP: string
     
   Reports:
     -reportid: integer
@@ -88,6 +86,15 @@ database schema:
   CheatData
     -id: integer
     data: BLOB
+
+  Requests: 
+    -requestid
+    processnamemd5 
+    headermd5 --for specific versions
+    userid
+    commentsonwhat
+    time
+
     
   Sessions
     -sessionid: binary(16)
@@ -126,18 +133,26 @@ php api:
   Logout(sessionid):  
     Expires the session   
     
-  PublishCheat()
-  ModifyCheat()
+  PublishCheat(sessionid, cheatdata, processnamemd5, headermd5, versionindependant, description, public, datatype, fullfilehash OPT,secondarymodulename OPT, secondaryfullfilehashmd5 OPT, LuaScript OPT/ADMIN,  )
+    On success returns a cheatid
+
+  ModifyCheat(sessionid,cheatid,headermd5, versionindependant, description, public(only from 0 to 1), datatype, fullfilehash OPT,secondarymodulename OPT, secondaryfullfilehashmd5 OPT, LuaScript OPT/ADMIN)
   
-  PublishRequest()
-  
+
+  addAccess(sessionid,cheatid,username) 
+  revokeAccess(sessionid,cheatid,username)
+
+  PlaceRequest(sessionid, processnamemd5,headermd5 opt, comment)
+  RemoveReQuest(sessionid, requestid)
+     
+
   ReportCheat(cheatid, reason) --no need to login
   ReportComment(commentid, reason)
-  
-    
     
   GetComments(id, startcount, maxcount):
     Returns the comments
+
+  Rate(sessionid, cheatid, score1to5)
    
    
   CheckForUpdate()

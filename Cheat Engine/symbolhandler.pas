@@ -4080,7 +4080,7 @@ begin
                       continue;
                     end;
 
-                    if symbolloaderthread.isloading then
+                    if symbolloaderthread.isloading and (waitingfrm<>nil) then
                     begin
                       haserror:=true;
                       exit; //the user canceled it
@@ -4131,6 +4131,8 @@ begin
             end;
 
             //check if it's lua (old style)
+
+
             if tokens[i][1]='$' then
             begin
               //try lua
