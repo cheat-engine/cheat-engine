@@ -1,0 +1,40 @@
+name: main
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        os: [win64, win32]
+        include:
+          - os: win64
+            cpu: x86_64
+            arch: 64
+            lazarus-ver: lazarus-2.0.6-62131
+            fpc-ver: fpc-3.2.0-beta-43271
+          - os: win32
+            cpu: i386
+            arch: 32
+            lazarus-ver: lazarus-2.0.6-62131
+            fpc-ver: fpc-3.2.0-beta-43271
+    steps:
+    - uses: actions/checkout@master
+
+    - name: Setup
+      run: |
+          "%ProgramFiles%\Git\mingw64\bin\curl" -fLo ${{matrix.lazarus-ver}}-${{matrix.fpc-ver}}-${{matrix.os}}.exe "https://sourceforge.net/projects/lazarus-snapshots/files/Window ${{matrix.arch}}/${{matrix.lazarus-ver}}-${{matrix.fpc-ver}}/${{matrix.lazarus-ver}}-${{matrix.fpc-ver}}-${{matrix.os}}.exe/download"
+          echo Installing ${{matrix.lazarus-ver}}-${{matrix.fpc-ver}}-${{matrix.os}}..
+          ${{matrix.lazarus-ver}}-${{matrix.fpc-ver}}-${{matrix.os}}.exe /verysilent
+          if ${{matrix.arch}}==64 (rd "Cheat Engine\xmplayer" /s /q)
+      shell: cmd
+
+    - name: Build
+      run: for /F "tokens=*" %%i in ('dir /A:-D /B /S "*.lpi"') do ("c:\lazarus\lazbuild" "%%i" -B --cpu=${{matrix.cpu}} --os=${{matrix.os}})
+      shell: cmd
+
+    - uses: actions/upload-artifact@master
+      with:
+        name: CheatEngine-${{matrix.os}}
+        path: Cheat Engine\bin\
