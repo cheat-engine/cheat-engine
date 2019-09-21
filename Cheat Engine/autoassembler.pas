@@ -2189,7 +2189,8 @@ begin
 
               varsize:=length(s1);
 
-              while (j<length(labels)) and (length(labels[j].labelname)>varsize) do
+              j:=0;
+              while (j<length(labels)) and (length(labels[j].labelname)>=varsize) do
               begin
                 if labels[j].labelname=s1 then
                   raise exception.Create(Format(rsIsBeingRedeclared, [s1]));
