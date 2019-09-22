@@ -957,12 +957,15 @@ var
   end;
          }
 
-  var l: TObjectList;
+var l: TObjectList;
     i: integer;
+    newparent: TComponent;
 
 begin
   s:=TStringStream.Create(clipboard.AsText);
   ms:=TMemoryStream.Create;
+
+  newparent:=SelectedContainer;
 
   try
     LRSObjectTextToBinary(s,ms);
@@ -974,7 +977,7 @@ begin
     begin
       C:=nil;
       try
-        ReadComponentFromBinaryStream(ms, C, @fcce, container, SelectedContainer, container);
+        ReadComponentFromBinaryStream(ms, C, @fcce, container, newparent, container);
         l.add(c);
       except
         break;

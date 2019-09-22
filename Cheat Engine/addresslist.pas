@@ -505,15 +505,10 @@ var
   doc: TXMLDocument;
   cheattable,CheatEntries: TDOMNode;
   i: integer;
-
-  s: TStringstream;
   ms: TMemoryStream;
-
-
 begin
   result:='';
   doc:=TXMLDocument.Create;
-  s:=TStringstream.create;
 
   ms:=TMemorystream.Create;
 
@@ -526,13 +521,13 @@ begin
   try
     saveTableXMLToNode(CheatEntries, selectedOnly);
     WriteXMLFile(doc,ms);
+    ms.WriteByte(0);
 
     ms.Position:=0;
-    s.CopyFrom(ms,ms.size);
+
     result:=pchar(ms.Memory); //s.UnicodeDataString;
   finally
     doc.free;
-    s.free;
     ms.free;
   end;
 end;
