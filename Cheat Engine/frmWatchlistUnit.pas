@@ -177,7 +177,7 @@ end;
 
 procedure TfrmWatchlist.MenuItem4Click(Sender: TObject);
 var
-  a: integer;
+  a: ptruint;
   e: boolean;
 
 begin
