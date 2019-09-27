@@ -928,7 +928,7 @@ case CMD_SETTHREADCONTEXT:
       {
         char modulepath[c.modulepathlength+1];
 
-        if (recvall(currentsocket, &modulepath, sizeof(c.modulepathlength),0)>0)
+        if (recvall(currentsocket, &modulepath, c.modulepathlength,0)>0)
         {
           uint32_t result;
           modulepath[c.modulepathlength]=0;
