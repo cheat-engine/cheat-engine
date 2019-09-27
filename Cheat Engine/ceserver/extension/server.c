@@ -54,6 +54,26 @@ PAllocEntry allocList;
 int allocList_Max;
 int allocList_Pos;
 
+
+
+#ifdef __ANDROID__
+  #define LOG_TAG "CESERVER_EXTENSION"
+  #define LOGD(fmt, args...) __android_log_vprint(ANDROID_LOG_DEBUG, LOG_TAG, fmt, ##args)
+#endif
+
+int debug_log(const char * format , ...)
+{
+  va_list list;
+  va_start(list,format);
+  int ret = vprintf(format,list);
+
+  #ifdef __ANDROID__
+    LOGD(format,list);
+  #endif
+  va_end(list);
+  return ret;
+}
+
 void allocListAdd(uint64_t address, uint32_t size)
 {
   if (allocList==NULL)
@@ -127,21 +147,21 @@ ssize_t recvall (int s, void *buf, size_t size, int flags)
 
     if (i==0)
     {
-      printf("recv returned 0\n");
+      debug_log("recv returned 0\n");
       return i;
     }
 
     if (i==-1)
     {
-      printf("recv returned -1\n");
+      debug_log("recv returned -1\n");
       if (errno==EINTR)
       {
-        printf("errno = EINTR\n");
+        debug_log("errno = EINTR\n");
         i=0;
       }
       else
       {
-        printf("Error during recvall: %d. errno=%d\n",(int)i, errno);
+        debug_log("Error during recvall: %d. errno=%d\n",(int)i, errno);
         return i; //read error, or disconnected
       }
 
@@ -176,7 +196,7 @@ ssize_t sendall (int s, void *buf, size_t size, int flags)
         i=0;
       else
       {
-        printf("Error during sendall: %d. errno=%d\n",(int)i, errno);
+        debug_log("Error during sendall: %d. errno=%d\n",(int)i, errno);
         return i;
       }
     }
@@ -207,7 +227,7 @@ int DispatchCommand(int currentsocket, unsigned char command)
       if (recvall(currentsocket, &params, sizeof(params), 0)>0)
       {
 
-       // printf("params.preferedAddress=%lx\n", params.preferedAddress);
+       // debug_log("params.preferedAddress=%lx\n", params.preferedAddress);
         //printf("params.size=%d\n", params.size);
 
         uint64_t address=(uint64_t)mmap((void *)params.preferedAddress, params.size, PROT_READ | PROT_WRITE | PROT_EXEC, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
@@ -307,7 +327,7 @@ int DispatchCommand(int currentsocket, unsigned char command)
         if (recvall(currentsocket, modulepath, modulepathlength, 0)>0)
         {
           modulepath[modulepathlength]=0;
-          uint32_t result;
+          uint64_t result;
           result=(dlopen((const char *)modulepath, RTLD_NOW)!=NULL);
 
           sendall(currentsocket, &result, sizeof(result), 0);
@@ -364,7 +384,7 @@ void *newconnection(void *arg)
     {
       //printf("Peer has disconnected");
       //if (r==-1)
-      //  printf(" due to an error");
+      //  debug_log(" due to an error");
 
       //printf("\n");
 
@@ -373,7 +393,7 @@ void *newconnection(void *arg)
     }
   }
 
-  printf("Bye\n");
+  debug_log("Bye\n");
   return NULL;
 }
 
@@ -391,7 +411,7 @@ void *ServerThread(void *arg)
     //printf("accept returned %d\n", a);
     if (a==-1)
     {
-      printf("accept failed: %d\n", a);
+      debug_log("accept failed: %d\n", a);
       break;
     }
     else
@@ -444,7 +464,7 @@ __attribute__((constructor)) void moduleinit(void)
 
   //if (dvmJitStats)
  // {
- //   printf("Calling dvmJitStats\n");
+ //   debug_log("Calling dvmJitStats\n");
     //dvmJitStats();
  // }
 */
@@ -474,7 +494,7 @@ __attribute__((constructor)) void moduleinit(void)
 
     int l;
     l=listen(s, 32);
-    printf("listen=%d\n",l);
+    debug_log("listen=%d\n",l);
 
     if (l==0)
     {
@@ -482,9 +502,9 @@ __attribute__((constructor)) void moduleinit(void)
       pthread_t pth;
       pthread_create(&pth, NULL, (void *)ServerThread, (void *)(uintptr_t)s);
     }
-    else printf("listen failed: %d\n", errno);
+    else debug_log("listen failed: %d\n", errno);
   }
   else
-    printf("bind failed: %d\n", errno);
+    debug_log("bind failed: %d\n", errno);
 }
 

@@ -73,6 +73,10 @@ Listen on the specified port number instead of the default 52736.
 
  - `-s`
 It is disassembled with the specified architecture regardless of the ceserver architecture. It is convenient to specify with Android emulator (x86 and ARM are mixed)etc. 
+i386=>0  
+x86_64=>1  
+arm=>2  
+aarch64=>3  
 
  - `-t`
 Start ceserver in test mode.
