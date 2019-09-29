@@ -24,8 +24,8 @@ type
 {$endif}
   end;
 
-type TCESplitter=class(TCustomSplitter)
-  property Align;
+type TCESplitter=class(TSplitter);
+{  property Align;
   property Anchors;
   property AutoSnap;
   property Beveled;
@@ -45,15 +45,15 @@ type TCESplitter=class(TCustomSplitter)
   property ShowHint;
   property Visible;
   property Width;
-end;
+end;  }
 
 type TCETimer=class(Ttimer);
 
 type TCESaveDialog=class(TSaveDialog);
 type TCEOpenDialog=class(TOpendialog);
 
-type TCEListView=class(TCustomListView)
-published
+type TCEListView=class(TListView);
+{published
   property Align;
   property AllocBy;
   property Anchors;
@@ -133,10 +133,10 @@ published
  // property OnStartDock;
  // property OnStartDrag;
  // property OnUTF8KeyPress;
-end;
+end;  }
 
-type TCEProgressBar=class(TCustomProgressBar)
-published
+type TCEProgressBar=class(TProgressBar);
+{published
   property Align;
   property Anchors;
   property BorderSpacing;
@@ -175,10 +175,10 @@ published
   property TabStop;
   property Visible;
   property BarShowText;
-end;
+end;     }
 
-type TCETrackBar=class(TCustomTrackBar)
-  published
+type TCETrackBar=class(TTrackBar);
+{  published
     property Align;
     property Anchors;
     property BorderSpacing;
@@ -230,10 +230,10 @@ type TCETrackBar=class(TCustomTrackBar)
     property TickMarks;
     property TickStyle;
     property Visible;
-  end;
+  end;    }
 
-type TCEListBox=class(TCustomListBox)
-  published
+type TCEListBox=class(TListBox);
+{  published
     property Align;
     property Anchors;
     property BidiMode;
@@ -292,10 +292,10 @@ type TCEListBox=class(TCustomListBox)
     property TabStop;
     property TopIndex;
     property Visible;
-  end;
+  end; }
 
-type TCEComboBox=class(TcustomComboBox)
-published
+type TCEComboBox=class(TComboBox);
+{published
   property Align;
   property Anchors;
   property ArrowKeysTraverseList;
@@ -360,11 +360,11 @@ published
   property TabStop;
   property Text;
   property Visible;
-end;
+end; }
 
 
-type TCEGroupBox=class(TCustomGroupBox)
-published
+type TCEGroupBox=class(TGroupBox);
+{published
   property Align;
   property Anchors;
   property AutoSize;
@@ -417,10 +417,10 @@ published
 //  property OnStartDrag;
 //  property OnUnDock;
 //  property OnUTF8KeyPress;
-end;
+end;  }
 
-type TCERadioGroup=class(TCustomRadioGroup)
-published
+type TCERadioGroup=class(TRadioGroup);
+{published
     property Align;
     property Anchors;
     property AutoFill;
@@ -472,10 +472,10 @@ published
     property TabOrder;
     property TabStop;
     property Visible;
-end;
+end;    }
 
-type TCECheckBox=class(TCustomCheckBox)
-  public
+type TCECheckBox=class(TCheckBox);
+{  public
     constructor Create(TheOwner: TComponent); override;
   published
     //property Action;
@@ -526,13 +526,13 @@ type TCECheckBox=class(TCustomCheckBox)
     property TabOrder;
     property TabStop default True;
     property Visible;
-  end;
+  end;  }
 
 
 type TCEToggleBox=class(TToggleBox); //there is no custom...
 
 
-type TCEEdit=class(TCustomEdit)
+type TCEEdit=class(TEdit)
   private
     fTextHintFontColor: TColor;
     fTextHintFontStyle: TFontStyle;
@@ -540,7 +540,7 @@ type TCEEdit=class(TCustomEdit)
     property AutoSelected;
   published
   //  property Action;
-    property Align;
+  {  property Align;
     property Alignment;
     property Anchors;
     property AutoSize;
@@ -592,7 +592,7 @@ type TCEEdit=class(TCustomEdit)
     property TabStop;
     property TabOrder;
     property Text;
-    property Visible;
+    property Visible; }
 
     property SelStart;
     property SelLength;
@@ -691,7 +691,7 @@ type TCEForm=class(TCustomForm)
     property OnMouseLeave;
     property OnMouseMove;
     property OnMouseUp;
-//    property OnMouseWheel;
+    property OnMouseWheel;
     property OnMouseWheelDown;
     property OnMouseWheelUp;
     property OnPaint;
@@ -721,9 +721,9 @@ type TCEForm=class(TCustomForm)
     property DoNotSaveInTable: boolean read fDoNotSaveInTable write fDoNotSaveInTable default False;
 end;
 
-type TCEMemo=class(TCustomMemo)
+type TCEMemo=class(TMemo)
   published
-    property Align;
+ {   property Align;
     property Alignment;
     property Anchors;
     property BidiMode;
@@ -777,15 +777,15 @@ type TCEMemo=class(TCustomMemo)
     property Visible;
     property WantReturns;
     property WantTabs;
-    property WordWrap;
+    property WordWrap; }
     property SelStart;
     property SelLength;
     property SelText;
   end;
 
 
-type TCEImage=class(TCustomImage)
-  published
+type TCEImage=class(TImage);
+{  published
     property Align;
     property Anchors;
     property AutoSize;
@@ -821,10 +821,10 @@ type TCEImage=class(TCustomImage)
     property Stretch;
     property Transparent;
     property Visible;
-  end;
+  end; }
 
-type TCEPanel=class(TCustomPanel)
-published
+type TCEPanel=class(TPanel);
+{published
     property Align;
     property Alignment;
     property Anchors;
@@ -881,10 +881,10 @@ published
   //  property OnStartDock;
    // property OnStartDrag;
    // property OnUnDock;
-  end;
+  end; }
 
-type TCELabel=class(TCustomLabel)
-published
+type TCELabel=class(TLabel);
+{published
   property Align;
   property Alignment;
   property Anchors;
@@ -926,10 +926,10 @@ published
   property OnResize;
   property OnStartDrag;
   property OptimalFill;
-end;
+end;   }
 
-type TCEButton=class(TCustomButton)
-  private
+type TCEButton=class(TButton);
+ { private
   published
    //
     property Align;
@@ -975,7 +975,7 @@ type TCEButton=class(TCustomButton)
     property TabOrder;
     property TabStop;
     property Visible;
-end;
+end;  }
 
 
 implementation
@@ -999,14 +999,14 @@ begin
   inherited destroy;
 end;
 {$endif}
-
+        {
 constructor TCECheckBox.Create(TheOwner: TComponent);
 begin
   inherited Create(TheOwner);
   fCompStyle := csCheckbox;
   TabStop := True;
   AutoSize := True;
-end;
+end;  }
 
 //ceform
 
@@ -1599,17 +1599,14 @@ initialization
   RegisterPropertyEditor(TypeInfo(TTVAdvancedCustomDrawItemEvent), nil, '', THiddenPropertyEditor);
   RegisterPropertyEditor(TypeInfo(TTVChangedEvent), nil, '', THiddenPropertyEditor);
   RegisterPropertyEditor(TypeInfo(TTVChangingEvent), nil, '', THiddenPropertyEditor);
-  RegisterPropertyEditor(TypeInfo(TTVExpandedEvent), nil, '', THiddenPropertyEditor);
   RegisterPropertyEditor(TypeInfo(TTVCompareEvent), nil, '', THiddenPropertyEditor);
   RegisterPropertyEditor(TypeInfo(TTVCreateNodeClassEvent), nil, '', THiddenPropertyEditor);
   RegisterPropertyEditor(TypeInfo(TTVCustomCreateNodeEvent), nil, '', THiddenPropertyEditor);
-  RegisterPropertyEditor(TypeInfo(TTVExpandedEvent), nil, '', THiddenPropertyEditor);
   RegisterPropertyEditor(TypeInfo(TTVEditedEvent), nil, '', THiddenPropertyEditor);
   RegisterPropertyEditor(TypeInfo(TTVEditingEvent), nil, '', THiddenPropertyEditor);
   RegisterPropertyEditor(TypeInfo(TTVEditingEndEvent), nil, '', THiddenPropertyEditor);
   RegisterPropertyEditor(TypeInfo(TControlShowHintEvent), nil, '', THiddenPropertyEditor);
   RegisterPropertyEditor(TypeInfo(TUTF8KeyPressEvent), nil, '', THiddenPropertyEditor);
-  RegisterPropertyEditor(TypeInfo(TMouseWheelEvent), nil, '', THiddenPropertyEditor);
   RegisterPropertyEditor(TypeInfo(TTabChangingEvent), nil, '', THiddenPropertyEditor);
   RegisterPropertyEditor(TypeInfo(TTabGetImageEvent), nil, '', THiddenPropertyEditor);
   RegisterPropertyEditor(TypeInfo(TGetSiteInfoEvent), nil, '', THiddenPropertyEditor);
