@@ -24,10 +24,9 @@ function FillList()
   end
 end
 
-c.OnMouseEnter=function(d)
-  
+c.OnMouseEnter=function(d)  
   if c.Items.Count<=1 then
-    print("enter")
+    --print("enter")
     FillList()
     c.ItemIndex=0
   end
