@@ -4882,7 +4882,7 @@ begin
     end;
 
 
-    foundlist3.endupdate;
+
 
 
     cbunicode.Visible := newstate.cbunicode.visible;
@@ -4905,11 +4905,15 @@ begin
 
     if (newstate.foundlist3.ItemIndex < foundcount) then
     begin
+      foundlist3.multiselect:=false;   //laz2.0.0: If multiselect is true when itemindex gets set ALL entries get deselected one by one (+each one triggering ondata)
       foundlist3.ItemIndex := newstate.foundlist3.ItemIndex;
       foundlist3.Items[newstate.foundlist3.ItemIndex].Selected := True;
       foundlist3.Items[newstate.foundlist3.ItemIndex].MakeVisible(False);
       foundlist3.Items[newstate.foundlist3.ItemIndex].Top := 0;
+      foundlist3.multiselect:=true;
     end;
+
+    foundlist3.endupdate;
 
     foundlistDisplayOverride:=newstate.foundlistDisplayOverride;
 
@@ -9399,6 +9403,7 @@ begin
   if aprilfools then decreaseCheatECoinCount;
 
   QueryPerformanceCounter(scantimestart);
+
 
   if PreviousResults<>nil then
     freeandnil(PreviousResults);
