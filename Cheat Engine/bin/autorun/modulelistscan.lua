@@ -25,6 +25,19 @@ c.OnDropDown=function(d)
   end
 end
 
+function onOpenProcess(processId)
+    --fill the list when CE opens a process
+  while c.Items.Count>1 do
+    c.Items.delete(1)
+  end
+
+  modulelist=enumModules()
+  local i
+  for i=1, #modulelist do
+    c.Items.Add(modulelist[i].Name)
+  end
+end
+
 c.OnSelect=function(d)
   if c.ItemIndex>=1 then
     MainForm.FromAddress.Text=string.format("%.16x",modulelist[c.ItemIndex].Address)
