@@ -48,12 +48,14 @@ type
   TSymbolLoaderThreadEvent=class(tobject)
   private
     done: TEvent;
+    ownersymhandler: TSymHandler;
   public
     symbolname: string;
     address: ptruint;
     abandoned: boolean;
+
     procedure waittilldone;
-    constructor create;
+    constructor create(sh: TSymHandler);
     destructor destroy; override;
   end;
 
@@ -541,7 +543,7 @@ begin
   waitingtime:=0;
   if waitingfrm<>nil then exit; //don't bother
 
-  while (symhandler.symbolloaderthread<>nil) and symhandler.symbolloaderthread.isloading and (done.WaitFor(100)=wrTimeout) do
+  while (ownersymhandler.symbolloaderthread<>nil) and ownersymhandler.symbolloaderthread.isloading and (done.WaitFor(100)=wrTimeout) do
   begin
     if GetCurrentThreadId=MainThreadID then
     begin
@@ -572,19 +574,19 @@ begin
         if waitingfrm.ShowModal<>mrok then
         begin
           if self is  TGetSymbolFromAddressThreadEvent then
-            symhandler.symbolloaderthread.skipAddressToSymbol:=true
+            ownersymhandler.symbolloaderthread.skipAddressToSymbol:=true
           else
           begin
             if waitingfrm.cbSkipThisSymbol.checked then
             begin
-              if symhandler.symbolloaderthread.skipList=nil then
-                symhandler.symbolloaderthread.skipList:=TStringMap.Create(false);
+              if ownersymhandler.symbolloaderthread.skipList=nil then
+                ownersymhandler.symbolloaderthread.skipList:=TStringMap.Create(false);
 
-              symhandler.symbolloaderthread.skipList.Add(symbolname);
+              ownersymhandler.symbolloaderthread.skipList.Add(symbolname);
             end;
 
             if waitingfrm.cbSkipAllSymbols.checked then
-              symhandler.symbolloaderthread.skipAllSymbols:=true;
+              ownersymhandler.symbolloaderthread.skipAllSymbols:=true;
 
             abandoned:=true;
           end;
@@ -598,8 +600,9 @@ begin
     freeandnil(waitingfrm);
 end;
 
-constructor TSymbolLoaderThreadEvent.create;
+constructor TSymbolLoaderThreadEvent.create(sh: TSymhandler);
 begin
+  ownersymhandler:=sh;
   done:=tevent.Create(nil,true,false,'');
 end;
 
@@ -1656,9 +1659,11 @@ begin
   if (symbol[1] in ['#','(']) then exit(0);
   if (pos(' ',symbol)>0) then exit(0);
 
+  if (symbol='DWORD') or (symbol='PTR') then exit(0);
+
 
   //queue an getAddressFromSymbol event and wait for the result
-  afste:=TGetAddressFromSymbolThreadEvent.create;
+  afste:=TGetAddressFromSymbolThreadEvent.create(owner);
   afste.symbolname:=symbol;
 
   symbolloaderthreadeventqueueCS.enter;
@@ -1669,7 +1674,12 @@ begin
   result:=afste.address;
 
   if afste.abandoned=false then
+  begin
+    symbolloaderthreadeventqueueCS.enter;
+    symbolloaderthreadeventqueue.Remove(afste);
     freeandnil(afste);
+    symbolloaderthreadeventqueueCS.leave;
+  end;
 end;
 
 function TSymbolloaderthread.getSymbolFromAddress(address: ptruint): string;
@@ -1683,7 +1693,7 @@ begin
 
 
   //queue an GetSymbolFromAddress event and wait for the result
-  sfate:=TGetSymbolFromAddressThreadEvent.create;
+  sfate:=TGetSymbolFromAddressThreadEvent.create(owner);
   sfate.address:=address;
 
   symbolloaderthreadeventqueueCS.enter;
@@ -1722,7 +1732,6 @@ var
   skip: boolean;
 
   SearchResult: ptruint;
-
 begin
 //  sleep(5000);
 
@@ -1861,7 +1870,11 @@ begin
       symbolloaderthreadeventqueueCS.enter;
       queueindex:=symbolloaderthreadeventqueue.IndexOf(te);
       if queueindex<>-1 then
-        symbolloaderthreadeventqueue.Delete(queueindex);
+        symbolloaderthreadeventqueue.Delete(queueindex)
+      else
+      asm
+      nop
+      end;
       symbolloaderthreadeventqueueCS.leave;
     end;
   end;
@@ -3833,6 +3846,8 @@ var mi: tmoduleinfo;
 
     pointerstartlist: array of integer;
     pointerstartpos,pointerstartmax: integer;
+
+    v64: qword;
 begin
   pointerstartpos:=0;
   pointerstartmax:=16;
@@ -3901,7 +3916,9 @@ begin
     begin
       if not (tokens[i][1] in ['[',']','+','-','*']) then
       begin
-        val('$'+tokens[i],result,j);
+        val('$'+tokens[i],v64,j);
+        result:=v64;
+
         if j>0 then
         begin
           //not a hexadecimal value
