@@ -72,7 +72,7 @@ If `1` is specified, memory is read and written only with the ptrace privilege, 
 Listen on the specified port number instead of the default 52736.
 
  - `-s`
-It is disassembled with the specified architecture regardless of the ceserver architecture. It is convenient to specify with Android emulator (x86 and ARM are mixed)etc. 
+It is disassembled with the specified architecture regardless of the ceserver architecture. It is convenient to specify with Android emulator (x86 and ARM are mixed)etc.  
 i386=>0  
 x86_64=>1  
 arm=>2  
