@@ -3091,6 +3091,8 @@ begin
     if CheckIfSaved then
     begin
       LoadTable(filenames[0], False);
+      Savedialog1.FileName := filenames[0];
+      Opendialog1.FileName := filenames[0];
       reinterpretaddresses;
     end;
   end;
