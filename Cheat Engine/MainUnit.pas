@@ -3086,14 +3086,28 @@ end;
 
 procedure TMainForm.FormDropFiles(Sender: TObject; const FileNames: array of string);
 begin
+  merge:=false;
   if length(filenames) > 0 then
   begin
     if CheckIfSaved then
     begin
-      LoadTable(filenames[0], False);
-      Savedialog1.FileName := filenames[0];
-      Opendialog1.FileName := filenames[0];
+
+      app := messagedlg(rsDoYouWishToMergeTheCurrentTableWithThisTable,
+        mtConfirmation, mbYesNoCancel, 0);
+      case app of
+        mrCancel: exit;
+        mrYes: merge := True;
+        mrNo: merge := False;
+      end;
+
+      LoadTable(filenames[0], merge);
       reinterpretaddresses;
+
+      if not merge then
+      begin
+        Savedialog1.FileName := filenames[0];
+        Opendialog1.FileName := filenames[0];
+      end;
     end;
   end;
 end;
