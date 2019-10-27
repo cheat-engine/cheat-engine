@@ -3251,6 +3251,7 @@ begin
   llf:=GetDebugLogger;
   if llf<>nil then
   begin
+    llf.CloseLogFileBetweenWrites:=true; // change LazLogger to use non-buffered output
     if miEnableLCLDebug.checked then
     begin
       deletefile('cedebug.txt');
