@@ -643,7 +643,7 @@ end;
 function TSynLuaSyn.KeyHash(ToHash: PChar): Integer;
 begin
   Result := 0;
-  while ToHash^ in ['.', '_', 'a'..'z', 'A'..'Z'] do
+  while ToHash^ in ['.', '_', 'a'..'z', 'A'..'Z', '0'..'9'] do
   begin
     inc(Result, mHashTable[ToHash^]);
     inc(ToHash);
