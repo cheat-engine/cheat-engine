@@ -3085,6 +3085,9 @@ begin
 end;
 
 procedure TMainForm.FormDropFiles(Sender: TObject; const FileNames: array of string);
+var
+  merge: boolean;
+  app: word;
 begin
   merge:=false;
   if length(filenames) > 0 then
