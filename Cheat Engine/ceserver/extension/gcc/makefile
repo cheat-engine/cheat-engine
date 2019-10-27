@@ -1,13 +1,13 @@
 COMPILER  = gcc
-CFLAGS    =  -g -MMD -MP -Wall -Wextra -Winit-self -Wno-missing-field-initializers -Doff64_t=__off64_t 
+CFLAGS    = -fPIC -g -MMD -MP -Wall -Wextra -Winit-self -Wno-missing-field-initializers -Doff64_t=__off64_t 
 ifeq "$(shell getconf LONG_BIT)" "64"
-  LDFLAGS = -lz -ldl -pthread
+  LDFLAGS = -lz -ldl -pthread -lm -shared
 else
-  LDFLAGS = -lz -ldl -pthread
+  LDFLAGS = -lz -ldl -pthread -lm -shared
 endif
 LIBS      =
 INCLUDE   = -I./include
-TARGET    = ./bin/ceserver
+TARGET    = ./bin/libceserver-extension.so
 SRCDIR    = ./source
 ifeq "$(strip $(SRCDIR))" ""
   SRCDIR  = .

@@ -17,6 +17,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <dlfcn.h>
+#include <stdarg.h>
 #ifdef ANDROID
 #include <android/log.h>
 #endif
