@@ -1492,7 +1492,7 @@ begin
     lua_pushinteger(LuaVM, index);
     lua_pushrect(LuaVM, arect);
 
-    ti:=typeinfo(TFormState);
+    ti:=typeinfo(TOwnerDrawState);
     lua_pushstring(LuaVM, SetToString(ti, integer(state),false));
     lua_pcall(LuaVM, 4,0,0);
   finally
@@ -2526,6 +2526,8 @@ var
   state: TOwnerDrawState;
   m: TMethod;
   ti: PTypeInfo;
+
+  drawstatestring: string;
 begin
   result:=0;
   if lua_gettop(L)=4 then
@@ -2537,7 +2539,9 @@ begin
     rect:=lua_toRect(L,3);
 
     ti:=typeinfo(TOwnerDrawState);
-    state:=TOwnerDrawState(StringToSet(ti,Lua_ToString(L,4)));
+
+    drawstatestring:=Lua_ToString(L,4);
+    state:=TOwnerDrawState(StringToSet(ti,drawstatestring));
 
     TDrawItemEvent(m)(Control, index, rect, state);
   end
