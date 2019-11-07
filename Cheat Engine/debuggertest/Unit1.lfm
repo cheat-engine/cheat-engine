@@ -201,6 +201,22 @@ object Form1: TForm1
     TabOrder = 12
     Text = '0'
   end
+  object Label10: TLabel
+    Left = 688
+    Height = 16
+    Top = 200
+    Width = 48
+    Caption = 'Label10'
+    ParentColor = False
+  end
+  object Label11: TLabel
+    Left = 688
+    Height = 16
+    Top = 184
+    Width = 110
+    Caption = 'int3 bp exceptions:'
+    ParentColor = False
+  end
   object Timer1: TTimer
     OnTimer = Timer1Timer
     left = 184
@@ -211,5 +227,11 @@ object Form1: TForm1
     OnTimer = Timer2Timer
     left = 616
     top = 136
+  end
+  object Timer3: TTimer
+    Interval = 10
+    OnTimer = Timer3Timer
+    left = 656
+    top = 208
   end
 end

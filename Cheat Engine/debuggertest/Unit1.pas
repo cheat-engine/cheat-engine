@@ -37,6 +37,8 @@ type
     edtTimeout: TEdit;
     Label1: TLabel;
     Button3: TButton;
+    Label10: TLabel;
+    Label11: TLabel;
     Label2: TLabel;
     Button4: TButton;
     Label3: TLabel;
@@ -53,6 +55,7 @@ type
     Button9: TButton;
     Timer1: TTimer;
     Timer2: TTimer;
+    Timer3: TTimer;
     procedure Button10Click(Sender: TObject);
     procedure Button11Click(Sender: TObject);
     procedure Button12Click(Sender: TObject);
@@ -69,6 +72,7 @@ type
     procedure Button9Click(Sender: TObject);
     procedure Timer1Timer(Sender: TObject);
     procedure Timer2Timer(Sender: TObject);
+    procedure Timer3Timer(Sender: TObject);
   private
     { Private declarations }
     originalIntegrityValue: dword;
@@ -507,6 +511,20 @@ end;
 procedure TForm1.Timer2Timer(Sender: TObject);
 begin
   button10.click;
+end;
+
+var ec: integer;
+procedure TForm1.Timer3Timer(Sender: TObject);
+begin
+  try
+    asm
+    int3
+    sub [ec],1
+    end;
+  except
+    inc(ec);
+  end;
+  label10.caption:=inttostr(ec);
 end;
 
 end.
