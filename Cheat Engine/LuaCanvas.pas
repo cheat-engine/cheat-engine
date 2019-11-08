@@ -73,6 +73,27 @@ begin
   result:=1;
 end;
 
+function canvas_getHandle(L: PLua_State): integer; cdecl;
+var
+  canvas: TCanvas;
+begin
+  canvas:=luaclass_getClassObject(L);
+  lua_pushinteger(L, canvas.handle);
+  result:=1;
+end;
+
+function canvas_setHandle(L: PLua_State): integer; cdecl;
+var
+  canvas: TCanvas;
+begin
+  if lua_gettop(L)>=1 then
+  begin
+    canvas:=luaclass_getClassObject(L);
+    canvas.handle:=lua_tointeger(L,1);
+  end;
+  result:=0;
+end;
+
 function canvas_line(L: PLua_State): integer; cdecl;
 var
   canvas: TCanvas;
@@ -226,6 +247,8 @@ var
   rect: TRect;
   x,y: integer;
   text: string;
+
+  outrect: Trect;
 begin
   result:=0;
   canvas:=luaclass_getClassObject(L);
@@ -235,7 +258,10 @@ begin
     x:=lua_tointeger(L,2);
     y:=lua_tointeger(L,3);
     text:=Lua_ToString(L,4);
-    renderFormattedText(canvas,rect,x,y,text);
+    outrect:=renderFormattedText(canvas,rect,x,y,text);
+
+    lua_pushrect(L,outrect);
+    result:=1;
   end;
 
 end;
@@ -550,6 +576,7 @@ begin
   Luaclass_addPropertyToTable(L, metatable, userdata, 'Font', canvas_getFont, nil);
   Luaclass_addPropertyToTable(L, metatable, userdata, 'Width', canvas_getWidth, nil);
   Luaclass_addPropertyToTable(L, metatable, userdata, 'Height', canvas_getHeight, nil);
+  Luaclass_addPropertyToTable(L, metatable, userdata, 'Handle', canvas_getHandle, canvas_setHandle);
 
 end;
 
