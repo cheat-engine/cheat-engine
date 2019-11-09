@@ -1,0 +1,3 @@
+[submodule "Cheat Engine/ceserver/front-ceserver"]
+	path = Cheat Engine/ceserver/front-ceserver
+	url = https://github.com/KenjiroIchise/front-ceserver.git
