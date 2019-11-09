@@ -26,7 +26,7 @@
 #include "ceservertest.h"
 #include "symbols.h"
 #include "extensionfunctions.h"
-
+#include "native-api.h"
 pthread_t pth;
 pthread_t identifierthread;
 volatile int done;
@@ -956,6 +956,37 @@ case CMD_SETTHREADCONTEXT:
       break;
     }
 
+	case CMD_AOBSCAN:
+	{
+		CeAobScanInput c;
+		debug_log("CESERVER: CMD_AOBSCAN\n");
+		if (recvall(currentsocket, &c, sizeof(c), 0) > 0)
+		{
+	
+			int n = c.scansize;
+			char* data = (char*)malloc(n*2);
+			uint64_t* match_addr = (int*)malloc(sizeof(uint64_t) * MAX_HIT_COUNT);
+
+			if (recvall(currentsocket, data, n*2, 0)>0)
+			{
+				char* pattern = (char*)malloc(n);
+				char* mask = (char*)malloc(n);
+
+				memcpy(pattern, data, n);
+				memcpy(mask, &data[n], n);
+				int ret = AOBScan(c.hProcess, pattern, mask, c.start, c.end, c.inc,c.protection, match_addr);
+				debug_log("HIT_COUNT:%d\n", ret);
+				free(pattern);
+				free(mask);
+				sendall(currentsocket, &ret, 4, 0);
+				sendall(currentsocket, match_addr, sizeof(uint64_t)* ret, 0);
+			}
+			free(data);
+			free(match_addr);
+		}
+
+		break;
+	}
   }
 }
 
