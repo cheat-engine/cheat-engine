@@ -3498,10 +3498,18 @@ begin
         if temp<>'' then
         begin
           setlength(tokens,length(tokens)+1);
-          if token[i]=' ' then temp:=temp+' ';
+          //if token[i]=' ' then temp:=temp+' ';
           tokens[length(tokens)-1]:=temp;
           temp:='';
         end;
+
+        if (length(tokens)>0) and (token[i] in ['+','-']) and (tokens[length(tokens)-1]=' ') then //relative offset ' +xxx'
+        begin
+          temp:=temp+token[i];
+          inc(i);
+          continue;
+        end;
+
         setlength(tokens,length(tokens)+1);
         tokens[length(tokens)-1]:=token[i];
         inc(i);
@@ -3522,10 +3530,8 @@ begin
 
   for i:=0 to length(tokens)-1 do
   begin
-    if (length(tokens[i])>=1) and (not (tokens[i][1] in ['[',']','+','-','*'])) then //3/16/2011: 11:15 (replaced or with and)
+    if (length(tokens[i])>=1) and (not (tokens[i][1] in ['[',']','+','-','*',' '])) then //3/16/2011: 11:15 (replaced or with and)
     begin
-      val('$'+tokens[i],j,err);
-
       if (err<>0) and (getreg(tokens[i],false)=-1) then    //not a hexadecimal value and not a register
       begin
         temp:=inttohex(symhandler.getaddressfromname(tokens[i], true, haserror,nil),8);
