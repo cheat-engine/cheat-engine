@@ -3651,5 +3651,3 @@ void initAPI()
   sem_init(&sem_DebugThreadEvent, 0, 0); //locked by default
 
 }
-
-
