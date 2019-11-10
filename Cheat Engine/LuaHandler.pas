@@ -11505,6 +11505,9 @@ begin
     end;
   end;
 
+  if shi<>nil then
+    FreeMemAndNil(shi);
+
   result:=1;
 end;
 
