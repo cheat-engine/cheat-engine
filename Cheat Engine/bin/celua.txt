@@ -1561,6 +1561,7 @@ properties
   Font: Font - The font object
   Width: integer - Width of the canvas
   Height: integer - Height of the canvas
+  Handle: integer - DC handle of the canvas
 
 
 
