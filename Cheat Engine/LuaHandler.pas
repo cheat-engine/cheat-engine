@@ -11144,17 +11144,25 @@ var
   oldprocessname: string;
   oldprocess: dword;
   oldprocesshandle: thandle;
+  paramaters: integer;
+  startaddress: ptruint;
 
 begin
   result:=1;
-  if lua_gettop(L)>=1 then
+  paramaters:=lua_gettop(L);
+  if paramaters>=1 then
   begin
     filename:=Lua_ToString(L,1);
 
-    if lua_gettop(L)>=1 then
+    if paramaters>=2 then
       is64bit:=lua_toboolean(L,2)
     else
       is64bit:=false;
+
+    if paramaters>=3 then
+      startaddress:=lua_tointeger(L,3)
+    else
+      startaddress:=0;
 
     DetachIfPossible;
     oldprocessname := copy(mainform.ProcessLabel.Caption, pos('-', mainform.ProcessLabel.Caption) + 1, length(mainform.ProcessLabel.Caption));
@@ -11162,16 +11170,18 @@ begin
     oldprocesshandle := processhandle;
 
     try
-      DBKFileAsMemory(filename);
+      DBKFileAsMemory(filename,startaddress);
 
     except
       lua_pushboolean(L,false);
       exit;
     end;
 
-    ProcessHandler.ProcessHandle:=THandle(-1);
+    ProcessHandler.ProcessHandle:=THandle(-2);
 
     MainForm.ProcessLabel.caption:=extractfilename(filename);
+    MainForm.miSaveFile.visible:=true;
+
     ProcessHandler.processid:=$FFFFFFFF;
 
     ProcessHandler.is64Bit:=is64bit;
