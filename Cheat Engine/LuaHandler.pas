@@ -11173,22 +11173,22 @@ var
   oldprocessname: string;
   oldprocess: dword;
   oldprocesshandle: thandle;
-  paramaters: integer;
+  parameters: integer;
   startaddress: ptruint;
 
 begin
   result:=1;
-  paramaters:=lua_gettop(L);
-  if paramaters>=1 then
+  parameters:=lua_gettop(L);
+  if parameters>=1 then
   begin
     filename:=Lua_ToString(L,1);
 
-    if paramaters>=2 then
+    if parameters>=2 then
       is64bit:=lua_toboolean(L,2)
     else
       is64bit:=false;
 
-    if paramaters>=3 then
+    if parameters>=3 then
       startaddress:=lua_tointeger(L,3)
     else
       startaddress:=0;
