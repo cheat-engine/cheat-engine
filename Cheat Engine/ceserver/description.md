@@ -3,7 +3,7 @@
 # Build
 
   - Linux:gcc
-  - Android:Android Studio(ndk-build)
+  - AndroidNDK(ndk-build)
 
 The following explanation is for ceserver only.
 #### Linux
@@ -40,8 +40,8 @@ In the above state, move to the ceserver folder and execute the `make` command.
 
 
 #### Android
-・Android Studio(ndk-build)
-
+・AndroidNDK(ndk-build)
+Set the path to NDK with the system environment variable.  
 ```
 EXECUTABLE
  └─jni
@@ -49,7 +49,7 @@ EXECUTABLE
           Application.mk
 ```
 
-In the above state, move to the EXECUTABLE folder with Android Studio Terminal and execute `ndk-build`.
+In the above state, move to the EXECUTABLE folder at the command prompt and execute `ndk-build`.
 
 # Usage
 ### Linux
