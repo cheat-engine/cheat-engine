@@ -2829,10 +2829,14 @@ begin
       cbsaferPhysicalMemory:=tcheckbox.create(self);
       cbsaferPhysicalMemory.Caption:=strSaferPhysicalMemory;
       cbsaferPhysicalMemory.Checked:=dbk32functions.saferQueryPhysicalMemory;
-      cbsaferPhysicalMemory.Parent:=cbPauseWhileScanning.Parent;
-      cbsaferPhysicalMemory.left:=cbPauseWhileScanning.left;
-      cbsaferPhysicalMemory.Top:=cbPauseWhileScanning.top;
+      cbsaferPhysicalMemory.AnchorSame(akTop,cbPauseWhileScanning);                    // trick with AnchorSame
+      cbsaferPhysicalMemory.AnchorSame(akLeft,cbPauseWhileScanning);
+      cbsaferPhysicalMemory.AnchorSame(akRight,cbPauseWhileScanning);
+      cbsaferPhysicalMemory.AnchorSame(akBottom,cbPauseWhileScanning);
+      cbsaferPhysicalMemory.BorderSpacing.Assign(cbPauseWhileScanning.BorderSpacing);  // clone spacing
       cbsaferPhysicalMemory.OnChange:=cbSaferPhysicalMemoryChange;
+      cbsaferPhysicalMemory.Parent:=cbPauseWhileScanning.Parent;
+      cbsaferPhysicalMemory.Name:='cbsaferPhysicalMemory';
     end;
   end
   else
