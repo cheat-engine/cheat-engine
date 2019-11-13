@@ -37,7 +37,7 @@ type TFreezeType=(ftFrozen, ftAllowIncrease, ftAllowDecrease);
 
 
 
-type TMemrecOption=(moHideChildren, moActivateChildrenAsWell, moDeactivateChildrenAsWell, moRecursiveSetValue, moAllowManualCollapseAndExpand, moManualExpandCollapse);
+type TMemrecOption=(moHideChildren, moActivateChildrenAsWell, moDeactivateChildrenAsWell, moRecursiveSetValue, moAllowManualCollapseAndExpand, moManualExpandCollapse, moAlwaysHideChildren);
 type TMemrecOptions=set of TMemrecOption;
 
 type TMemrecStringData=record
@@ -1135,7 +1135,7 @@ procedure TMemoryRecord.SetVisibleChildrenState;
 {Called when options change and when children are assigned}
 begin
   {$IFNDEF UNIX}
-  if (not factive) and (moHideChildren in foptions) then
+  if ((not factive) and (moHideChildren in foptions)) or (moAlwaysHideChildren in fOptions) then
     treenode.Collapse(true)
   else
     treenode.Expand(true);
@@ -1143,8 +1143,18 @@ begin
 end;
 
 procedure TMemoryRecord.setOptions(newOptions: TMemrecOptions);
+var oldoptions: TMemrecOptions;
 begin
+  oldoptions:=foptions;
+
+  if (moHideChildren in options) and (moAlwaysHideChildren in newOptions) then //mutually exclusive
+    newOptions:=newOptions-[moHideChildren];
+
+  if (moAlwaysHideChildren in options) and (moHideChildren in newOptions) then
+    newoptions:=newoptions-[moAlwaysHideChildren];
+
   foptions:=newOptions;
+
   //apply changes (moHideChildren, moBindActivation, moRecursiveSetValue)
   SetVisibleChildrenState;
 
@@ -1273,6 +1283,9 @@ begin
       if (a<>nil) and (a.TextContent='1') then
         foptions:=foptions+[moManualExpandCollapse];
 
+      a:=tempnode.Attributes.GetNamedItem('moAlwaysHideChildren');
+      if (a<>nil) and (a.TextContent='1') then
+          foptions:=foptions+[moAlwaysHideChildren];
     end;
   end;
 
@@ -1718,6 +1731,13 @@ begin
     if moManualExpandCollapse in options then
     begin
       a:=doc.CreateAttribute('moManualExpandCollapse');
+      a.TextContent:='1';
+      opt.Attributes.SetNamedItem(a);
+    end;
+
+    if moAlwaysHideChildren in options then
+    begin
+      a:=doc.CreateAttribute('moAlwaysHideChildren');
       a.TextContent:='1';
       opt.Attributes.SetNamedItem(a);
     end;

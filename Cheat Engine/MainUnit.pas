@@ -283,6 +283,7 @@ type
     FromAddress: TEdit;
     andlabel: TLabel;
     lblcompareToSavedScan: TLabel;
+    miAlwaysHideChildren: TMenuItem;
     miFoundListPreferences: TMenuItem;
     N2: TMenuItem;
     mfImageList: TImageList;
@@ -556,6 +557,7 @@ type
     procedure miGetDotNetObjectListClick(Sender: TObject);
     procedure miChangeValueBackClick(Sender: TObject);
     procedure miDBVMFindWhatWritesOrAccessesClick(Sender: TObject);
+    procedure miAlwaysHideChildrenClick(Sender: TObject);
     procedure miSignTableClick(Sender: TObject);
     procedure miAsyncScriptClick(Sender: TObject);
     procedure miFlFindWhatAccessesClick(Sender: TObject);
@@ -6924,6 +6926,7 @@ begin
     miRecursiveSetValue.Checked := moRecursiveSetValue in selectedrecord.options;
     miAllowCollapse.checked := moAllowManualCollapseAndExpand in selectedrecord.options;
     miManualExpandCollapse.checked := moManualExpandCollapse in selectedrecord.options;
+    miAlwaysHideChildren.checked := moAlwaysHideChildren in selectedrecord.options;
   end
   else
     miGroupconfig.Visible := False;
@@ -7398,6 +7401,19 @@ begin
   end;
 
 
+end;
+
+procedure TMainForm.miAlwaysHideChildrenClick(Sender: TObject);
+begin
+  miAlwaysHideChildren.Checked := not miAlwaysHideChildren.Checked;
+
+  if addresslist.selectedRecord <> nil then
+  begin
+    if miAlwaysHideChildren.Checked then
+      addresslist.selectedRecord.options := addresslist.selectedRecord.options + [moAlwaysHideChildren]
+    else
+      addresslist.selectedRecord.options := addresslist.selectedRecord.options - [moAlwaysHideChildren];
+  end;
 end;
 
 procedure TMainForm.Findoutwhataccessesthisaddress1Click(Sender: TObject);

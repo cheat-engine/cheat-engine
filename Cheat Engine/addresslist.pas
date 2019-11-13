@@ -1196,7 +1196,7 @@ var r: TMemoryRecord;
 begin
   AllowCollapse:=false;
   r:=TMemoryRecord(node.data);
-  if ((moHideChildren in r.options) and (not r.active)) or (moAllowManualCollapseAndExpand in r.options) then //if not active then allow collapse, or if it's allowed to collapse
+  if ((moHideChildren in r.options) and (not r.active)) or (moAllowManualCollapseAndExpand in r.options) or (moAlwaysHideChildren in r.options)  then //if not active then allow collapse, or if it's allowed to collapse
     AllowCollapse:=true;
 end;
 

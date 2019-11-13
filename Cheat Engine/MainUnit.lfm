@@ -1960,6 +1960,10 @@ object MainForm: TMainForm
         Caption = 'Manual expand/collapse'
         OnClick = miManualExpandCollapseClick
       end
+      object miAlwaysHideChildren: TMenuItem
+        Caption = 'Always hide children'
+        OnClick = miAlwaysHideChildrenClick
+      end
     end
     object Plugins1: TMenuItem
       Caption = 'Plugins'
