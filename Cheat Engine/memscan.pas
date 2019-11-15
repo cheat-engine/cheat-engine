@@ -1,3 +1,5 @@
+// Copyright Cheat Engine. All Rights Reserved.
+
 unit memscan;
 
 {$MODE Delphi}
@@ -1161,7 +1163,7 @@ begin
   inc(current, startoffset);
   i:=startoffset;
 
-  while i<(blocksize-ct.bytesize-1) do
+  while i<(blocksize-(ct.bytesize-1)) do
   begin
     if ct.ConvertDataToInteger(current, fscanner.currentAddress)=value then
     begin
@@ -1194,7 +1196,7 @@ begin
   inc(current, startoffset);
   i:=startoffset;
 
-  while i<(blocksize-ct.bytesize-1) do
+  while i<(blocksize-(ct.bytesize-1)) do
   begin
     f:=ct.ConvertDataToFloat(current, fscanner.currentAddress);
     if (f>minf) and (f<maxf) then

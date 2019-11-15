@@ -347,6 +347,7 @@ begin
       while DissectedStructs.Count>0 do
         TDissectedStruct(DissectedStructs[0]).free;
 
+      mainform.addresslist.clear;
     end;
 
 

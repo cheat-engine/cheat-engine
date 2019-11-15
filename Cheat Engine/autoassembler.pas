@@ -1,3 +1,5 @@
+// Copyright Cheat Engine. All Rights Reserved.
+
 unit autoassembler;
 
 {$MODE Delphi}

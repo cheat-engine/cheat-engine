@@ -2533,6 +2533,8 @@ var
   userWantsToAttach: boolean;
 
   frmDebuggerAttachTimeout: TfrmDebuggerAttachTimeout;
+
+  seconds: dword;
 begin
 
 
@@ -2542,6 +2544,7 @@ begin
     timeout:=5000;
 
   OutputDebugString('WaitTillAttachedOrError');
+  result:=wrTimeout;
 
   userWantsToAttach:=true;
   while userWantsToAttach do
@@ -2590,6 +2593,23 @@ begin
     raise exception.create(rsDebuggerFailedToAttach)
   end;
 
+
+  if delayAfterDebuggerAttach>0 then
+  begin
+    starttime:=gettickcount;
+    seconds:=starttime;
+    while gettickcount<starttime+delayAfterDebuggerAttach do
+    begin
+      CheckSynchronize(100);
+
+      if gettickcount>seconds+1000 then
+      begin
+        seconds:=seconds+1000;
+        beep;
+      end;
+    end;
+    beep;
+  end;
 
   OutputDebugString('WaitTillAttachedOrError exit');
 

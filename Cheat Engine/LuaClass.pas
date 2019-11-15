@@ -460,7 +460,26 @@ begin
           lua_pushvalue(L, 2); //key
           lua_pushvalue(L, 3); //value
           lua_call(L, 2,0); //call __defaultintegersetindexhandler(key, value);
-        end;
+          exit;
+        end
+        else
+          lua_pop(L,1);
+      end;
+
+      if lua_type(L, 2)=LUA_TSTRING then
+      begin
+        //check if there is a __defaultstringsetindexhandler defined in the metatable
+        lua_pushstring(L, '__defaultstringsetindexhandler');
+        lua_gettable(L, metatable);
+        if lua_isfunction(L,-1) then
+        begin
+          lua_pushvalue(L, 2); //key
+          lua_pushvalue(L, 3); //value
+          lua_call(L, 2, 0); //call __defaultstringsetindexhandler(key, value)
+          exit;
+        end
+        else
+          lua_pop(L,1);
       end;
     end;
 

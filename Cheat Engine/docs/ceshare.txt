@@ -48,18 +48,12 @@ database schema:
     secondaryfullfilehashmd5: binary(16)  
     LuaScriptToCheckForMatch: string/blob --only for very trusted members, let the user execute this lua script. If it returns true, it's valid
     datatype: integer - 0=table, 1=URL, 2=Lua script
-
-  CheatRevisions
-    cheatid: integer
-    changedby: integer - userid of the person changing the code
-    changereason: text
-    original: longtext
-    
+    data: long text
     
   History
     Historyid: integer;
-    Id: integer    
-    edittime: integer    
+    cheatId: integer    
+    oldedittime: integer    
     olddescription: integer
     olddatatype: integer
     olddata: BLOB    
@@ -89,10 +83,7 @@ database schema:
   AccessList:
     -id: integer
     -userid: integer
-    
-  CheatData
-    -id: integer
-    data: BLOB
+
 
   Requests: 
     -requestid

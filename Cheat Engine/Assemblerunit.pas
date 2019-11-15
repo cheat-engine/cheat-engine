@@ -1,3 +1,6 @@
+// Copyright Cheat Engine. All Rights Reserved.
+
+
 unit Assemblerunit;
 
 //todo: case
