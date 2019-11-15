@@ -1,3 +1,5 @@
+// Copyright Cheat Engine. All Rights Reserved.
+
 unit Parsers;
 {General parsers}
 
@@ -447,7 +449,7 @@ begin
       begin
         if copy(s,1,5)='(INT)' then
         begin
-          t:=copy(s,6,length(s));
+          t:=copy(s,6);
           try
             q:=StrToQWordEx(t);
             result:='$'+inttohex(q,8);
@@ -458,7 +460,7 @@ begin
 
         if copy(s,1,8)='(DOUBLE)' then
         begin
-          t:=copy(s,9,length(s));
+          t:=copy(s,9);
           val(t, d,j);
           if j=0 then
           begin
@@ -474,9 +476,33 @@ begin
           end;
         end;
 
+        if copy(s,1,11)='(DOUBLE32L)' then
+        begin
+          t:=copy(s,12);
+          val(t, d,j);
+          if j=0 then
+          begin
+            q:=PINT64(@d)^ and $ffffffff;
+            result:='$'+inttohex(q,8);
+            exit;
+          end;
+        end;
+
+        if copy(s,1,11)='(DOUBLE32H)' then
+        begin
+          t:=copy(s,12);
+          val(t, d,j);
+          if j=0 then
+          begin
+            q:=PINT64(@d)^ shr 32;
+            result:='$'+inttohex(q,8);
+            exit;
+          end;
+        end;
+
         if copy(s,1,7)='(FLOAT)' then
         begin
-          t:=copy(s,8,length(s));
+          t:=copy(s,8);
           val(t, f,j);
           if j=0 then
           begin
@@ -504,16 +530,16 @@ begin
 
   if s[1]='-' then
   begin
-    result:='-'+ishex+copy(s,start+1,length(s))
+    result:='-'+ishex+copy(s,start+1)
   end
   else
   if s[1]='+' then
   begin
-    result:='+'+ishex+copy(s,start+1,length(s));
+    result:='+'+ishex+copy(s,start+1);
   end
   else
   begin
-    result:=ishex+copy(s,start,length(s));
+    result:=ishex+copy(s,start);
   end;
 end;
 
