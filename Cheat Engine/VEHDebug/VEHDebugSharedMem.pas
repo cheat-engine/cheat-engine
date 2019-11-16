@@ -13,7 +13,7 @@ uses
 
 const
   TPOLL_TCREATEREALCONTEXT=$00000001;
-  VEHVERSION=3;
+  VEHVERSION=4;
 
 type TVEHDebugSharedMem=packed record
   CurrentContext: array [0..8191] of byte; //should be enough for a context...
