@@ -1218,19 +1218,33 @@ begin
     OutputDebugString('Unexpected breakpoint');
     if not (CurrentDebuggerInterface is TKernelDebugInterface) then
     begin
-      onAttachEvent.SetEvent;
 
-      if TDebuggerthread(debuggerthread).InitialBreakpointTriggered then
-      begin
-        dwContinueStatus:=DBG_EXCEPTION_NOT_HANDLED;
-      end
-      else
-      begin
-        dwContinueStatus:=DBG_CONTINUE;
-        TDebuggerthread(debuggerthread).InitialBreakpointTriggered:=true;
+      dwContinueStatus:=DBG_EXCEPTION_NOT_HANDLED;
 
-        result:=false;
-        exit;
+      if TDebuggerthread(debuggerthread).InitialBreakpointTriggered=false then
+      begin
+
+        if (CurrentDebuggerInterface is TVEHDebugInterface) then
+        begin
+          if (context^.{$ifdef cpu64}Rip{$else}Eip{$endif}=$ffffffce) then
+          begin
+            dwContinueStatus:=DBG_CONTINUE;
+            TDebuggerthread(debuggerthread).InitialBreakpointTriggered:=true;
+
+            result:=false;
+            onAttachEvent.SetEvent;
+            exit;
+          end;
+        end
+        else
+        begin
+          dwContinueStatus:=DBG_CONTINUE;
+          TDebuggerthread(debuggerthread).InitialBreakpointTriggered:=true;
+
+          result:=false;
+          onAttachEvent.SetEvent;
+          exit;
+        end;
       end;
 
 

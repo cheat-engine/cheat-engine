@@ -13,7 +13,9 @@ function InternalHandler(ExceptionInfo: PEXCEPTION_POINTERS; threadid: dword): L
 procedure testandfixcs_start;
 procedure testandfixcs_final;
 
-var HandlerCS: TCRITICALSECTION;
+var
+  HandlerCS: TCRITICALSECTION;
+  HandlerLock: dword;
 
 implementation
 
@@ -50,8 +52,9 @@ begin
   if not vehdebugactive then exit(EXCEPTION_CONTINUE_SEARCH);
 
 
+  while (handlerlock<>0) and (handlerlock<>GetCurrentThreadId) do sleep(50);
 
-  HandlerCS.enter; //block any other thread that has an single step exception untill this is handled
+  HandlerCS.enter; //block any other thread that has an single step exception until this is handled
 
 
 

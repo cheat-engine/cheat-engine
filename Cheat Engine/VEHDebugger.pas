@@ -117,6 +117,8 @@ begin
       if invalidversion=10 then //(10*500 ms=5 seconds);
         queue(invalidVersionMessage);
     end;
+
+    inc(owner.VEHDebugView.VEHVersion);
   end;
 end;
 
@@ -397,6 +399,10 @@ begin
         {$ifdef cpu64}
         if is64bit then
         begin
+
+
+
+
           lpDebugEvent.Exception.ExceptionRecord.ExceptionCode:=VEHDebugView.Exception64.ExceptionCode;
           lpDebugEvent.Exception.ExceptionRecord.ExceptionFlags:=VEHDebugView.Exception64.ExceptionFlags;
           lpDebugEvent.Exception.ExceptionRecord.ExceptionRecord:=pointer(VEHDebugView.Exception64.ExceptionRecord);
@@ -530,6 +536,7 @@ begin
 
     Heartbeat:=THeartBeat.Create(true);
     THeartBeat(Heartbeat).owner:=self;
+    HeartBeat.Priority:=tpHighest;
     HeartBeat.Start;
 
     VEHDebugView.ThreadWatchMethod:=0; //vehthreadwatchmethod;

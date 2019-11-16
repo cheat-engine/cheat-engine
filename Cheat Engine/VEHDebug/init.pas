@@ -40,6 +40,8 @@ var ep: TEXCEPTIONPOINTERS;
     check: boolean;
     cpid: dword;
     isfirst: boolean;
+
+    bpc: TContext;
 begin
   //OutputDebugString('EmulateInitializeEvents');
   cpid:=GetCurrentProcessId;
@@ -47,6 +49,7 @@ begin
   ep.ExceptionRecord:=@er;
   er.NumberParameters:=0;
 
+  HandlerCS.Enter;
 
   ths:=CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD,0);
   if ths<>INVALID_HANDLE_VALUE then
@@ -89,8 +92,14 @@ begin
 //  GetThreadContext(GetCurrentThread, ep.ContextRecord);
 
   er.ExceptionCode:=EXCEPTION_BREAKPOINT;
+  ep.ContextRecord:=@bpc;
+  zeromemory(@bpc,sizeof(bpc));
+  bpc.{$ifdef cpu64}rip{$else}eip{$endif}:=$ffffffce;
+
   Handler(@ep); //don't really cause a breakpoint (while I could just do a int3 myself I think it's safer to just emulate the event)
 
+
+  HandlerCS.Leave;
 end;
 
 procedure InitializeVEH;
@@ -175,6 +184,7 @@ begin
 
     OutputDebugString('Calling EmulateInitializeEvents');
 
+    handlerlock:=GetCurrentThreadId;
     HandlerCS.enter; //do not handle any external exception while the threadlist is sent to ce
 
     OutputDebugString('Registering exception handler');
@@ -192,6 +202,7 @@ begin
     EmulateInitializeEvents;
 
     HandlerCS.leave;
+    handlerlock:=0;
 
 
     OutputDebugString('returned from EmulateInitializeEvents');

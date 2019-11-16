@@ -561,9 +561,5 @@ begin
   result:=StrToQWordEx(ConvertHexStrToRealStr(s));
 end;
 
-initialization
-  outputdebugstring('parsers');
-
-
 end.
 
