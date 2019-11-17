@@ -6361,7 +6361,7 @@ begin
         if memRegionPos>0 then
         begin
           //check if it can be appended to the previous region
-          if memRegion[memRegionPos-1].BaseAddress+memRegion[memRegionPos].MemorySize=PtrUint(mbi.baseaddress) then //yes, append
+          if memRegion[memRegionPos-1].BaseAddress+memRegion[memRegionPos-1].MemorySize=PtrUint(mbi.baseaddress) then //yes, append
           begin
             //yes, so append
             memRegion[memRegionPos-1].MemorySize:=memRegion[memRegionPos-1].MemorySize+mbi.RegionSize;
