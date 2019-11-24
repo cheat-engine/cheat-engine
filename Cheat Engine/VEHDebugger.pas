@@ -117,8 +117,6 @@ begin
       if invalidversion=10 then //(10*500 ms=5 seconds);
         queue(invalidVersionMessage);
     end;
-
-    inc(owner.VEHDebugView.VEHVersion);
   end;
 end;
 

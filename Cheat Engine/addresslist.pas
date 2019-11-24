@@ -142,7 +142,7 @@ type
     procedure DeactivateSelected;
     procedure CreateGroup(groupname: string);
     procedure addAutoAssembleScript(script: string);
-    function addAddressManually(initialaddress: string=''; vartype: TVariableType=vtDword): TMemoryRecord;
+    function addAddressManually(initialaddress: string=''; vartype: TVariableType=vtDword; CustomTypeName: string=''): TMemoryRecord;
     function addaddress(description: string; address: string; const offsets: array of integer; offsetcount: integer; vartype: TVariableType; customtypename: string=''; length: integer=0; startbit: integer=0; unicode: boolean=false; node: TTreenode=nil; attachmode: TNodeAttachMode=naAdd): TMemoryRecord;
     function getRecordWithDescription(description: string): TMemoryRecord;
     function getRecordWithID(id: integer): TMemoryRecord;
@@ -752,14 +752,14 @@ begin
 
 end;
 
-function TAddresslist.addAddressManually(initialaddress: string=''; vartype: TVariableType=vtDword): TMemoryRecord;
+function TAddresslist.addAddressManually(initialaddress: string=''; vartype: TVariableType=vtDword; CustomTypeName: string=''): TMemoryRecord;
 var mr: TMemoryRecord;
 begin
   result:=nil;
 
 
   Treeview.BeginUpdate;
-  mr:=addaddress(rsALNoDescription,initialaddress,[],0, vartype);
+  mr:=addaddress(rsALNoDescription,initialaddress,[],0, vartype, CustomTypeName);
   mr.visible:=false;
   Treeview.EndUpdate;
 

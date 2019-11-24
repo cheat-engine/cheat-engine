@@ -783,6 +783,7 @@ type
     lastAdded: record
       Address: string;
       vartype: TVariableType;
+      customTypeName: string;
     end;
 
     foundlistColors: record
@@ -6162,11 +6163,12 @@ end;
 procedure TMainForm.btnAddAddressManuallyClick(Sender: TObject);
 var mr: Tmemoryrecord;
 begin
-  mr:=addresslist.addAddressManually(lastAdded.Address, lastAdded.vartype);
+  mr:=addresslist.addAddressManually(lastAdded.Address, lastAdded.vartype, lastAdded.CustomTypeName);
   if mr<>nil then
   begin
     lastAdded.Address:=mr.interpretableaddress; //store the last used string
     lastAdded.vartype:=mr.VarType;
+    lastAdded.CustomTypeName:=mr.CustomTypeName;
   end;
 end;
 
