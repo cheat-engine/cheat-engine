@@ -3036,6 +3036,7 @@ begin
   if s='custom' then  Result :=vtCustom else
   if s='grouped' then result:=vtGrouped else
   if s='auto assembler script' then result:=vtAutoAssembler;
+  if s='structure' then result:=vtStructure;
 end;
 
 

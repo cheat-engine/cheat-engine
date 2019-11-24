@@ -420,6 +420,29 @@ begin
     if mainform.miResyncFormsWithLua<>nil then
       mainform.miResyncFormsWithLua.click;
 
+    if Structures<>nil then
+    begin
+      svstring:=TDOMElement(structures).GetAttribute('StructVersion');
+      if svstring='' then
+        sv:=1
+      else
+        sv:=StrToInt(svstring);
+
+      for i:=0 to Structures.ChildNodes.Count-1 do
+      begin
+        Structure:=Structures.ChildNodes[i];
+        if sv>=2 then
+          tempstruct:=TDissectedStruct.createFromXMLNode(structure)
+        else  //v1 structure(pre 6.2). Needs conversion
+          tempstruct:=TDissectedStruct.createFromOutdatedXMLNode(structure);
+
+        tempstruct.addToGlobalStructList;
+      end;
+
+      //fill in the structure references
+      for i:=0 to DissectedStructs.count-1 do
+        TDissectedStruct(DissectedStructs[i]).fillDelayLoadedChildstructs;
+    end;
 
     if entries<>nil then
       mainform.addresslist.loadTableXMLFromNode(entries);
@@ -597,32 +620,6 @@ begin
     end
     else
       setlength(definedstructures,0);  }
-
-    if Structures<>nil then
-    begin
-      svstring:=TDOMElement(structures).GetAttribute('StructVersion');
-      if svstring='' then
-        sv:=1
-      else
-        sv:=StrToInt(svstring);
-
-
-      for i:=0 to Structures.ChildNodes.Count-1 do
-      begin
-        Structure:=Structures.ChildNodes[i];
-        if sv>=2 then
-          tempstruct:=TDissectedStruct.createFromXMLNode(structure)
-        else  //v1 structure(pre 6.2). Needs conversion
-          tempstruct:=TDissectedStruct.createFromOutdatedXMLNode(structure);
-
-        tempstruct.addToGlobalStructList;
-      end;
-
-
-      //fill in the structure references
-      for i:=0 to DissectedStructs.count-1 do
-        TDissectedStruct(DissectedStructs[i]).fillDelayLoadedChildstructs;
-    end;
 
 
 

@@ -1234,6 +1234,7 @@ var
 
   hk: TMemoryRecordHotkey;
   memrec: TMemoryRecord;
+  struct: TDissectedStruct;
   a:TDOMNode;
 begin
   {$IFNDEF UNIX}
@@ -1448,6 +1449,16 @@ begin
 
           a:=tempnode.Attributes.GetNamedItem('Async');
           if (a<>nil) then fAsync:=a.TextContent='1';
+        end;
+      end;
+      vtStructure:
+      begin
+        tempnode:=CheatEntry.FindNode('Structure');
+        if tempnode<>nil then
+        begin
+          for struct in DissectedStructs do
+            if struct.GetName() = tempnode.TextContent then
+              extra.structureData.Struct:=struct;
         end;
       end;
 
@@ -1868,6 +1879,11 @@ begin
         end;
 
         n.TextContent:=AutoAssemblerData.script.Text;
+      end;
+      vtStructure:
+      begin
+        if(extra.structureData.Struct<>nil) then
+          cheatEntry.AppendChild(doc.CreateElement('Structure')).TextContent:=extra.structureData.Struct.GetName();
       end;
     end;
 
