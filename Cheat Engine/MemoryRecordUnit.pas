@@ -189,6 +189,7 @@ type
 
 
     fDontSave: boolean;
+    fReadonly: boolean;
 
     fAsync: boolean;
     processingThread: TMemoryRecordProcessingThread; //not nil when doing work
@@ -369,6 +370,8 @@ type
     property Value: string read GetValue write SetValue;
     property DisplayValue: string read GetDisplayValue;
     property DontSave: boolean read fDontSave write fDontSave;
+    property IsReadonly : boolean read fReadonly;
+    
     property AllowDecrease: boolean read fallowDecrease write setAllowDecrease;
     property AllowIncrease: boolean read fallowIncrease write setAllowIncrease;
     property ShowAsHex: boolean read fShowAsHex write setShowAsHex;
@@ -930,6 +933,7 @@ begin
       childRecord:=TMemoryRecord.create(fOwner);
 
     childRecord.DontSave := true;
+    childRecord.fReadonly := true;
     childRecord.Description := element.Name;
     childRecord.interpretableaddress := '+'+IntToHex(element.Offset, 8);
     childRecord.VarType := element.VarType;

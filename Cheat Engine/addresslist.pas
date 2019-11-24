@@ -921,6 +921,7 @@ var i: integer;
 begin
   if assigned(fOnDescriptionChange) and fOnDescriptionChange(self,tmemoryrecord(node.data)) then exit;
 
+  if TMemoryRecord(node.data).IsReadonly then exit;
 
   description:=tmemoryrecord(node.data).description;
 
@@ -947,7 +948,7 @@ procedure TAddresslist.addressdblclick(node: TTreenode);
 begin
   if assigned(fOnAddressChange) and fOnAddressChange(self,tmemoryrecord(treeview.selected.Data)) then exit;
 
-  if TMemoryRecord(node.data).isGroupHeader then exit;
+  if TMemoryRecord(node.data).isGroupHeader or TMemoryRecord(node.data).IsReadonly then exit;
 
   with TFormaddresschange.Create(self) do
   begin
@@ -973,6 +974,7 @@ begin
   TypeForm.RefreshCustomTypes;
   memrec:=TMemoryRecord(node.data);
 
+  if memrec.IsReadonly then exit;
   if assigned(fOnTypeChange) and fOnTypeChange(self,memrec) then exit;
 
 
