@@ -326,6 +326,7 @@ type
 
     function getCurrentDropDownIndex: integer;
 
+    procedure setStructure(structure : TDissectedStruct);
     procedure SetVisibleChildrenState;
 
     procedure cleanupPointerOffsets;
@@ -906,6 +907,42 @@ begin
 
 end;
 
+procedure TMemoryRecord.setStructure(structure : TDissectedStruct);
+var
+  element : TStructElement;
+  childRecord : TMemoryRecord;
+  i : integer;
+  elementCount : integer;
+begin
+  VarType := vtStructure;
+  extra.structureData.Struct := structure;
+  elementCount := structure.GetElements.Count;
+
+  while treenode.Count > elementCount do
+    TMemoryRecord(treenode[elementCount].Data).Free;
+
+  for i := 0 to elementCount-1 do
+  begin
+    element := structure.getElement(i);
+    if treenode.Count > i then
+      childRecord := TMemoryRecord(treenode.Items[i].Data)
+    else
+      childRecord:=TMemoryRecord.create(fOwner);
+
+    childRecord.DontSave := true;
+    childRecord.Description := element.Name;
+    childRecord.interpretableaddress := '+'+IntToHex(element.Offset, 8);
+    childRecord.VarType := element.VarType;
+    childRecord.ReinterpretAddress(true);
+    if(treenode.IndexOf(childRecord.treenode) = -1) then
+      begin
+          childRecord.treenode:=treenode.owner.AddObject(nil,'',childRecord);
+          childRecord.treenode.MoveTo(treenode, naAddChild); //make it the last child of this node
+      end;
+  end;
+  SetVisibleChildrenState;
+end;
+
 function TMemoryRecord.getDropDownReadOnly: boolean;
 var mr: TMemoryRecord;
 begin
@@ -1458,7 +1495,7 @@ begin
         begin
           for struct in DissectedStructs do
             if struct.GetName() = tempnode.TextContent then
-              extra.structureData.Struct:=struct;
+              setStructure(struct);
         end;
       end;
 

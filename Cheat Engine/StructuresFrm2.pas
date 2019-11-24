@@ -142,6 +142,8 @@ type
     procedure setName(newname: string);
     function getElementCount: integer;
     function getElement(index: integer): TStructelement;
+
+    function getElements: TList;
     procedure fillDelayLoadedChildstructs;
 
     procedure beginUpdate;
@@ -1211,6 +1213,11 @@ begin
     result:=TStructelement(structelementlist.Items[index])
   else
     result:=nil;
+end;
+
+function TDissectedStruct.getElements: TList;
+begin
+  result := structelementlist;
 end;
 
 function TDissectedStruct.isUpdating: boolean;

@@ -1418,7 +1418,7 @@ begin
     vtCustom:
       memoryrecord.CustomTypeName:=cbvarType.Caption;
     vtStructure:
-      memoryrecord.Extra.structureData.Struct:=TDissectedStruct(cbStructure.Items.Objects[cbStructure.ItemIndex]);
+      memoryrecord.SetStructure(TDissectedStruct(cbStructure.Items.Objects[cbStructure.ItemIndex]));
   end;
 
   memoryrecord.Description:=description;

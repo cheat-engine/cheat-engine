@@ -277,7 +277,7 @@ begin
   if memoryrecord.vartype=vtStructure then
   begin
       struct := TDissectedStruct(StructureType.Items.Objects[StructureType.ItemIndex]);
-      MemoryRecord.Extra.structureData.Struct:=struct;
+      MemoryRecord.SetStructure(struct);
   end;
 
   modalresult:=mryes;
