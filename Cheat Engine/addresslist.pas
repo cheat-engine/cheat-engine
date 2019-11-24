@@ -1021,6 +1021,13 @@ begin
       Typeform.cbunicode.visible:=false;
       Typeform.cbCodePage.visible:=false;
     end;
+    vtStructure:
+    begin
+      TypeForm.SetStructureType(memrec.Extra.structureData.Struct);
+      TypeForm.VarType.itemindex:=9;
+      Typeform.cbunicode.visible:=false;
+      Typeform.cbCodePage.visible:=false;
+    end;
   end;
 
   typeform.MemoryRecord:=memrec;
@@ -2098,7 +2105,14 @@ begin
               sender.Canvas.TextRect(rect(header.Sections[3].left, textrect.Top, header.Sections[3].right, textrect.bottom),header.sections[3].left, linetop, VariableTypeToTranslatedString(memrec.VarType)+':'+inttostr(memrec.Extra.bitData.Bit)+'->idiot')
             else
               sender.Canvas.TextRect(rect(header.Sections[3].left, textrect.Top, header.Sections[3].right, textrect.bottom),header.sections[3].left, linetop, VariableTypeToTranslatedString(memrec.VarType)+':'+inttostr(memrec.Extra.bitData.Bit)+'->'+inttostr(memrec.Extra.bitData.Bit+memrec.Extra.bitData.bitlength-1));
-          end
+          end;
+          vtStructure:
+          begin
+            if(memrec.Extra.structureData.Struct<>nil) then
+              sender.Canvas.TextRect(rect(header.Sections[3].left, textrect.Top, header.Sections[3].right, textrect.bottom),header.sections[3].left, linetop, memrec.Extra.structureData.Struct.GetName())
+            else
+              sender.Canvas.TextRect(rect(header.Sections[3].left, textrect.Top, header.Sections[3].right, textrect.bottom),header.sections[3].left, linetop, 'Unknown');
+          end;
           else
           begin
 

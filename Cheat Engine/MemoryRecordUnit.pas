@@ -8,7 +8,7 @@ interface
 uses
   Windows, forms, graphics, Classes, SysUtils, controls, stdctrls, comctrls,symbolhandler,
   cefuncproc,newkernelhandler, hotkeyhandler, dom, XMLRead,XMLWrite,
-  customtypehandler, fileutil, LCLProc, commonTypeDefs, pointerparser, LazUTF8, LuaClass;
+  customtypehandler, fileutil, LCLProc, commonTypeDefs, pointerparser, LazUTF8, LuaClass, StructuresFrm2;
 {$endif}
 
 {$ifdef unix}
@@ -57,6 +57,10 @@ type TMemRecByteData=record
       bytelength: integer;
     end;
 
+type TMemRecStructureData=record
+    Struct : TDissectedStruct;
+  end;
+
 type TMemRecAutoAssemblerData=record
       script: tstringlist;
       allocs: TCEAllocArray;
@@ -71,6 +75,7 @@ type TMemRecExtraData=record
       1: (stringData: TMemrecStringData); //if this is the last level (maxlevel) this is an PPointerList
       2: (bitData: TMemRecBitData);   //else it's a PReversePointerListArray
       3: (byteData: TMemRecByteData);
+      4: (structureData: TMemRecStructureData);
   end;
 
 

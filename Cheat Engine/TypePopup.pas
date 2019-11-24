@@ -8,7 +8,7 @@ interface
 
 uses
   LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  StdCtrls, ExtCtrls, LResources, MemoryRecordUnit, cefuncproc, customtypehandler, commonTypeDefs;
+  StdCtrls, ExtCtrls, LResources, MemoryRecordUnit, cefuncproc, customtypehandler, commonTypeDefs, StructuresFrm2;
 
 type
 
@@ -34,6 +34,8 @@ type
     Label9: TLabel;
     lengthlabel: TLabel;
     LengthPanel: TPanel;
+    StructurePanel: TPanel;
+    StructureType: TComboBox;
     Panel1: TPanel;
     Panel2: TPanel;
     Panel3: TPanel;
@@ -61,6 +63,8 @@ type
     nrofrecord: Integer;
     MemoryRecord: TMemoryRecord;
     procedure RefreshCustomTypes;
+
+    procedure SetStructureType(struct : TDissectedStruct);
   end;
 
 var
@@ -83,6 +87,7 @@ var old:  TNotifyEvent;
     i: integer;
 
     oldtype: string;
+  struct : TDissectedStruct;
 begin
   old:=VarType.OnChange;
   VarType.OnChange:=nil;
@@ -99,6 +104,23 @@ begin
       inc(i);
   end;
 
+  // Refresh structures as well
+  StructureType.Items.Clear;
+  for struct in DissectedStructs do
+    StructureType.AddItem(struct.getName(), struct);
+  if StructureType.Items.Count > 0 then
+  begin
+    if StructureType.ItemIndex < 0 then
+      StructureType.ItemIndex := 0;
+    if VarType.Items.IndexOf(rs_vtStructure) = -1 then
+      VarType.Items.Add(rs_vtStructure);
+  end
+  else
+  begin
+    if(VarType.Items.IndexOf(rs_vtStructure) <> -1) then
+      VarType.Items.Delete(VarType.Items.IndexOf(rs_vtStructure));
+  end;
+
   //now add the custom types back
   for i:=0 to customtypes.Count-1 do
     vartype.Items.AddObject(TcustomType(customtypes[i]).name,customtypes[i]);
@@ -113,8 +135,14 @@ begin
     vartype.itemindex:=3; //4 byte
 
   VarType.OnChange:=old;
+
+  VarType.DropDownCount:=VarType.Items.Count;
 end;
 
+procedure TTypeForm.SetStructureType(struct : TDissectedStruct);
+begin
+  StructureType.ItemIndex:=StructureType.Items.IndexOfObject(struct);
+end;
 
 Procedure TTypeForm.UpdateTypeForm;
 begin
@@ -125,6 +153,7 @@ begin
     lengthlabel.visible:=false;
     label2.Visible:=true;
     edit2.Visible:=true;
+    StructurePanel.Visible := false;
     clientwidth:=bitpanel.left+bitpanel.Width+vartype.left;
   end
   else
@@ -133,14 +162,25 @@ begin
     bitpanel.visible:=false;
     lengthpanel.visible:=true;
     lengthlabel.visible:=true;
+    StructurePanel.Visible := false;
+
     clientwidth:=lengthpanel.left+lengthpanel.Width;
     cbunicode.visible:=vartype.itemindex=7;
     cbCodePage.visible:=cbunicode.Visible;
-  end else
+  end else if Vartype.itemindex=9 then
+    begin
+      bitpanel.visible:=false;
+      lengthpanel.visible:=false;
+      lengthlabel.visible:=false;
+      StructurePanel.Visible := true;
+      clientwidth:=StructurePanel.left + StructurePanel.Width;
+    end
+  else
   begin
     bitpanel.visible:=false;
     lengthpanel.visible:=false;
     lengthlabel.visible:=false;
+    StructurePanel.Visible := false;
 
     TypeForm.width:=vartype.Left+vartype.Width+vartype.left;
   end;
@@ -156,6 +196,7 @@ var bit,bitl: Byte;
     err: integer;
     ct: TCustomType;
     wasNotAOB: boolean;
+    struct : TDissectedStruct;
 begin
   err:=0;
   bitl:=0;
@@ -233,6 +274,12 @@ begin
       MemoryRecord.showAsHex:=true;
   end;
 
+  if memoryrecord.vartype=vtStructure then
+  begin
+      struct := TDissectedStruct(StructureType.Items.Objects[StructureType.ItemIndex]);
+      MemoryRecord.Extra.structureData.Struct:=struct;
+  end;
+
   modalresult:=mryes;
 end;
 
@@ -258,6 +305,7 @@ begin
   vartype.items.add(rs_vtDouble);
   vartype.items.add(rs_vtString);
   vartype.items.add(rs_vtByteArray);
+  vartype.DropDownCount:=vartype.Items.Count;
 end;
 
 procedure TTypeForm.VarTypeChange(Sender: TObject);

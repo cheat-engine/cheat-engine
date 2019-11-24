@@ -2985,6 +2985,7 @@ begin
     vtPointer: result:=rs_vtPointer;
     vtAutoAssembler: Result:=rs_vtAutoAssembler;
     vtCustom: Result:=rs_vtCustom;
+    vtStructure: Result:=rs_vtStructure;
     else
      result:='Error';
   end;
@@ -3008,6 +3009,7 @@ begin
     vtPointer: result:='Pointer';
     vtAutoAssembler: Result:='Auto Assembler Script';
     vtCustom: Result:='Custom';
+    vtStructure: Result:='Structure';
     else
      result:='Error';
   end;
