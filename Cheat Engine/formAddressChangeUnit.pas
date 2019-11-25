@@ -1182,7 +1182,7 @@ begin
   //read the address and display the value it points to
 
   a:=symhandler.getAddressFromName(utf8toansi(editAddress.Text),false,e);
-  if not e then
+  if (not e) and (cbvarType.ItemIndex<>-1) then
   begin
     //get the vartype and parse it
 
@@ -1385,6 +1385,7 @@ var bit: integer;
     i: integer;
 begin
   memoryrecord.Vartype:=vartype;
+  memoryrecord.CustomTypeName:='';
 
 
   case vartype of
