@@ -1,3 +1,16 @@
+ceshare={}
+
+function ceshare.getInternet()
+  if ceshare.internet==nil then
+    ceshare.internet=getInternet('ceshare')
+  end
+  return ceshare.internet
+end
+
+ceshare.version=-1
+ceshare.path=getCheatEngineDir()..[[autorun\ceshare\]]
+ceshare.formpath=ceshare.path..[[\forms\]]
+
 if package.loaded.xmlSimple==nil then
   package.path=package.path..';'..getCheatEngineDir()..[[autorun\xml\?.lua]]
 else
@@ -6,14 +19,244 @@ end
 xmlParser = require("xmlSimple").newParser()
 
 
+package.path=package.path..';'..ceshare.path..[[?.lua]]
 
-ceshare={}
-ceshare.version=-1
-ceshare.base='http://cheatengine.org/ceshare/'
+function loadCEShare()
+  ceshare.settings=getSettings('ceshare')
 
-function ceshare:url_encode(str)
-  if (str) then
-    str = string.gsub (str, "\n", "\r\n")
+  require("ceshare_account")
+  require("ceshare_publish")
+  require("ceshare_querycheats")
+  require("ceshare_processlistextention")
+  require("ceshare_permissions")
+  require("ceshare_comments")
+  require("ceshare_requests")
+  
+  --add "CE Share menu items"
+  local miCESHARETopMenuItem=createMenuItem(MainForm)
+  miCESHARETopMenuItem.Caption='CE Share'
+  MainForm.Menu.Items.insert(2,miCESHARETopMenuItem) --in front of table
+
+  local miCheckForCheats=createMenuItem(MainForm)
+  miCheckForCheats.Caption='Check for mods/cheats for current process'
+  miCheckForCheats.OnClick=ceshare.CheckForCheatsClick
+  miCheckForCheats.Default=true
+  miCheckForCheats.Name='miCheckForCheats'
+  miCESHARETopMenuItem.add(miCheckForCheats)
+  
+  local miRequestCheats=createMenuItem(MainForm)
+  miRequestCheats.Caption='Request and check other requests for mods/cheats for current process'
+  miRequestCheats.OnClick=ceshare.RequestForCheatsClick
+  miRequestCheats.Name='miRequestCheats'
+  miCESHARETopMenuItem.add(miRequestCheats)  
+
+  local miLoginToSeeMoreOptions=createMenuItem(MainForm)
+  miLoginToSeeMoreOptions.Caption='Login to see more options'
+  miLoginToSeeMoreOptions.OnClick=ceshare.spawnLoginDialog
+  miLoginToSeeMoreOptions.Name='miLoginToSeeMoreOptions';
+  miLoginToSeeMoreOptions.Visible=true
+  miCESHARETopMenuItem.add(miLoginToSeeMoreOptions)
+
+  local miPublishCheat=createMenuItem(MainForm)
+  miPublishCheat.Caption='Publish table'
+  miPublishCheat.OnClick=ceshare.PublishCheatClick
+  miPublishCheat.Name='miPublishCheat';
+  miPublishCheat.Visible=false
+  miCESHARETopMenuItem.add(miPublishCheat)
+  
+  local miSeperator=createMenuItem(MainForm)
+  miSeperator.Caption='-'
+  miSeperator.Name='miCEShareUpdatePublicSeperator'
+  miSeperator.Visible=false
+  miCESHARETopMenuItem.add(miSeperator)
+  
+  local miUpdateCheat=createMenuItem(MainForm)
+  miUpdateCheat.Caption='Update table'
+  miUpdateCheat.OnClick=ceshare.UpdateCheatClick
+  miUpdateCheat.Name='miUpdateCheat'
+  miCESHARETopMenuItem.add(miUpdateCheat)
+  miUpdateCheat.Visible=false
+
+  --check requestsc
+  
+  miCESHARETopMenuItem.OnClick=function(s)      
+    loggedin=ceshare.LoggedIn or false
+    miLoginToSeeMoreOptions.Visible=not loggedin
+    miPublishCheat.Visible=loggedin
+    
+    local canUpdate=false    
+    if loggedin and ceshare.LoadedTable then
+      
+      if (ceshare.LoadedTable.Permissions==nil) or isKeyPressed(VK_CONTROL) then
+        ceshare.getPermissions(ceshare.LoadedTable, true) --don't show errors
+      end
+      
+      if ceshare.LoadedTable.Permissions then     
+        canUpdate=ceshare.LoadedTable.Permissions.canUpdate
+      end
+    end
+    miSeperator.Visible=canUpdate
+    miUpdateCheat.Visible=canUpdate
+  end
+
+  local originalLoadTable=loadTable
+  loadTable=function(streamorfilename,merge,ignoreluascriptdialog)
+    ceshare.ClearCredentials() --stupid if a user loads an unknown table with credentials stored but whatever
+    return originalLoadTable(streamorfilename,merge,ignoreluascriptdialog) 
+  end
+  
+  
+  
+end
+
+function loadCEShareServerListInCombobox(cb)
+--[[
+fills in ceshare.ceshareserverlist if needed and puts the list into the combobox
+--]]
+  
+  if ceshare.ceshareserverlist==nil then
+    local list=ceshare.getInternet().getURL('https://cheatengine.org/cesharelist.txt') --AKA: Eggbaskets
+    local sl=createStringList()
+    sl.Text=list
+    
+    
+    --parse the list and build a table
+    ceshare.ceshareserverlist={}
+    
+    local i
+    for i=0,sl.Count-1 do
+      if sl[i]:sub(1,1)~='#' then
+        local server=sl[i]
+        local sep,sep2=server:find(' #%-# ')
+        if sep then
+          local e={}
+          e.full=server
+          e.base=server:sub(1,sep-1)
+          e.description=server:sub(sep2+1)        
+          table.insert(ceshare.ceshareserverlist,e)
+        end
+      end
+    end    
+    sl.destroy()
+  end
+  
+  cb.Items.clear()
+  for i=1,#ceshare.ceshareserverlist do
+    cb.Items.add(ceshare.ceshareserverlist[i].description)
+  end  
+end
+
+local f=io.open(ceshare.path..[[server.txt]],'rb')
+if f then
+  ceshare.base=f:read("*all")
+  f:close()
+else
+  --first time setup, ask the user for a ceshare base url
+  ceshare.initialSetup=createFormFromFile(ceshare.formpath..'InitialSetup.FRM')
+  loadCEShareServerListInCombobox(ceshare.initialSetup.cbCEShareURL)
+ 
+  
+  ceshare.initialSetup.Position='poScreenCenter'
+  ceshare.initialSetup.AutoSize=true
+  if ceshare.initialSetup.showModal()==mrOK then
+    if ceshare.initialSetup.cbCEShareURL.ItemIndex==-1 then
+      ceshare.base=ceshare.initialSetup.cbCEShareURL.Text
+    else
+      ceshare.base=ceshare.ceshareserverlist[ceshare.initialSetup.cbCEShareURL.ItemIndex+1].base
+    end   
+  else
+    ceshare.base=''  
+  end
+  
+  f=io.open(ceshare.path..[[server.txt]],'wb')
+  f:write(ceshare.base)
+  f:close()  
+end
+
+ceshare.ceversion=getCEVersion()
+
+--add a ceshare config option to settings
+
+local sf=getSettingsForm()
+ceshare.settingsTab=sf.SettingsPageControl.addTab()
+
+
+ceshare.settingsCBBase=createComboBox(ceshare.settingsTab)
+ceshare.settingsCBBase.Text=ceshare.base
+ceshare.settingsCBBase.Align='alTop'
+
+local lblCEShareLabel=createLabel(ceshare.settingsTab)
+lblCEShareLabel.Caption='CEShare community URL'
+lblCEShareLabel.Align='alTop'
+
+
+
+ceshare.settingsTab.OnShow=function()
+  --fill the list
+  if ceshare.settingsCBBase.Items.Count==0 then
+    loadCEShareServerListInCombobox(ceshare.settingsCBBase)
+  end  
+end
+
+local insertNode=sf.SettingsTreeView.Items[3]  --insert it near the unrandomizer since it'd be used as often as that setting
+local node=sf.SettingsTreeView.Items.insert(insertNode, "CEShare")
+node.data=userDataToInteger(ceshare.settingsTab)
+
+local originalSettingsCloseEvent=sf.OnClose
+sf.OnClose=function(s)
+  local r=caHide
+  if originalSettingsCloseEvent then
+    r=originalSettingsCloseEvent(s)
+  end
+  
+  if s.ModalResult==mrOK then
+    --apply change
+    local newbase=''
+    if ceshare.settingsCBBase.ItemIndex==-1 then
+      newbase=ceshare.settingsCBBase.Text
+    else
+      newbase=ceshare.ceshareserverlist[ceshare.settingsCBBase.ItemIndex+1].base
+    end  
+    
+    if newbase~=ceshare.base then    
+      f=io.open(ceshare.path..[[server.txt]],'wb')
+      f:write(newbase)
+      f:close()   
+      
+      local needsload=(ceshare.base==nil) or (ceshare.base=='')
+      ceshare.base=newbase  
+
+      if needsload then   
+        loadCEShare()
+      end
+    end
+  end
+  
+  
+  return r  
+end
+
+
+
+
+
+
+function ceshare.showError(msg)
+  messageDialog(msg,mtError, mbOK)  
+end
+
+function ceshare.url_encode(str)
+  if type(str)=='boolean' then
+    if str then 
+      return '1'
+    else
+      return '0'
+    end
+  end
+ 
+  
+  if (str) then      
+    --str = string.gsub (str, "\n", "\r\n")
     str = string.gsub (str, "([^%w %-%_%.%~])",
         function (c) return string.format ("%%%02X", string.byte(c)) end)
     str = string.gsub (str, " ", "+")
@@ -21,119 +264,80 @@ function ceshare:url_encode(str)
   return str
 end
 
-function ceshare:getInternet()
-  if self.internet==nil then
-    self.internet=getInternet()
-  end
-  return self.internet
-end
-
-function ceshare:login(username,password)
-  local i=self:getInternet()  
-  local r=i.postURL(self.base..'login.php','username='..self:url_encode(username)..'&password='..self:url_encode(password))
-  if (r:sub(1,1)=='<') then
-    local s=xmlParser:ParseXmlText(r)
-    if s then
-      if s.Session then
-        self.sessionID=s.Session["@ID"]
-        return self.sessionID
-      else
-        if s.error then
-          showMessage(s.error:value())
+function ceshare.parseResult(r, skipErrorDialog)
+--parses the xml string and returns the xml object, or nil with a true/false.
+--true means, try again, false means give up
+  local xml
+  if r then
+    if (r:sub(1,2)=='<?') then
+      xml=xmlParser:ParseXmlText(r)
+      if xml then
+        if xml.invalidsession then --This requires a valid session. Spawn a login screen
+          if ceshare.spawnLoginDialog() then --try again after logging in
+            return nil,true
+          else 
+            return nil,false
+          end  
         end
-      end
-    else
-      showMessage(r)
-    end
-  else
-    showMessage(r);
-  end
-end
-
-function ceshare:logout()
-  if self.sessionID then
-    local r=self:getInternet().postURL(self.base..'logout.php','sessionid='..self.sessionID)
-    if (r:sub(1,1)=='<') then
-      local s=xmlParser:ParseXmlText(r)
-      if s then
-        if s.Session then
-          self.sessionID=nil
-          return true
-        else
-          if s.error then
-            showMessage(s.error:value())
+        
+        --[[ perhaps someday if there is a really trusted server
+        if xml.executeLua then
+          loadstring(xml.executeLua:value())()
+          return xml
+        end
+        --]]      
+        
+        
+        if xml.error then
+          if (skipErrorDialog==nil) or (skipErrorDialog==false) then
+            ceshare.showError(xml.error:value())        
           end
-        end
-      else
-        showMessage(r)
-      end
-    else
-      showMessage(r);
-    end
-  end
-end
-
-function ceshare:QueryProcessCheats(processnamemd5, headermd5)
-  --print("processnamemd5="..processnamemd5.." headermd5="..headermd5)
-  local result=nil
-  local r=self:getInternet().postURL(self.base..'QueryProcessCheats.php','processnamemd5='..processnamemd5..'&headermd5='..headermd5)
-  if (r:sub(1,1)=='<') then
-    local s=xmlParser:ParseXmlText(r)
-    if s then
-      if s.CheatList then
-        --parse the list
-        local i
-        if s.CheatList.CheatEntry then
-          --there are results
-          result={}
-          for i=1, #s.CheatList.CheatEntry do
-            local CheatEntry=s.CheatList.CheatEntry[i]
-            if CheatEntry then
-              local entry={}
-              entry.ID=tonumber(CheatEntry["@ID"])
-              entry.Owner=CheatEntry["@Owner"]
-              entry.VersionIndependant=CheatEntry["@VersionIndependant"]==1
-              entry.Public=CheatEntry["@Public"]==1
-              entry.Rating=tonumber(CheatEntry["@Rating"])
-              entry.RatingCount=tonumber(CheatEntry["@RatingCount"])
-              entry.LastUpdate=os.date("*t", CheatEntry["@LastUpdate"])                            
-              entry.FullFileHash=CheatEntry["@FullFileHash"]
-              entry.SecondaryModuleName=CheatEntry["@SecondaryModuleName"]
-              entry.SecondaryFullFileHash=CheatEntry["@SecondaryFullFileHash"]
-              entry.CheckCode=CheatEntry["@CheckCode"]
-              entry.Description=CheatEntry["@Description"]
-              entry.DataType=CheatEntry["@DataType"]              
-              
-              table.insert(result, entry)
-            end
           
-          end
+          return nil,false
+        else
+          return xml
         end
-     
+
       else
-        if s.error then
-          showMessage(s.error:value())
+        if (skipErrorDialog==nil) or (skipErrorDialog==false) then
+          ceshare.showError('Error:'..r)  
         end
-      end                
+        return nil,false     
+      end 
     else
-      showMessage(r);
-    end    
+      if (skipErrorDialog==nil) or (skipErrorDialog==false) then
+        ceshare.showError("Invalid reply from server:"..r)  
+      end
+      return nil,false
+    end
   else
-    showMessage(r);
+    if (skipErrorDialog==nil) or (skipErrorDialog==false) then
+      ceshare.showError("Server did not respond") --..ceshare.debug)
+    end
+    return nil,false
   end
-  
-  return result
 end
 
-function ceshare:QueryCurrentProcess()
-  local pid=getOpenedProcessID()
-  if (pid) and (pid~=0) then
-    local modulelist=enumModules()
-    if (modulelist) and (#modulelist>0) then
-      local processnamemd5=modulelist[1].Name:lower()
-      local headermd5=md5memory(modulelist[1].Address,4096)
-      self:QueryProcessCheats(processnamemd5, headermd5)
-    end
+function ceshare.QueryXURL(filename,parameters, skipErrorDialog)  
+  local tryagain=true
+  local xml
+  while tryagain==true do
+    local rawdata=ceshare.getInternet().postURL(ceshare.base..filename,parameters)
+    xml,tryagain=ceshare.parseResult(rawdata, skipErrorDialog)
+    if xml then
+      return xml
+    end   
   end
   
+  return nil
 end
+
+if (ceshare.base) and (ceshare.base~='') then
+  loadCEShare() 
+end 
+
+
+
+
+
+
