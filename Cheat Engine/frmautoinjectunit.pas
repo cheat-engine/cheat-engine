@@ -832,46 +832,46 @@ begin
         add('alloc(newmem'+inttostr(injectnr)+',2048,'+addressstring+') ')
       else
         add('alloc(newmem'+inttostr(injectnr)+',2048)');
-      add('label(return'+inttostr(injectnr)+')');
-      add('label(code'+inttostr(injectnr)+')');
+      add('label(returnhere'+inttostr(injectnr)+')');
+      add('label(originalcode'+inttostr(injectnr)+')');
       add('label(exit'+inttostr(injectnr)+')');
       add('');
       add('newmem'+inttostr(injectnr)+': //this is allocated memory, you have read,write,execute access');
       add('//place your code here');
 
       add('');
-      add('code'+inttostr(injectnr)+':');
+      add('originalcode'+inttostr(injectnr)+':');
       for i:=0 to length(originalcode)-1 do
-        add('  ' + originalcode[i]);
+        add(originalcode[i]);
       add('');
       add('exit'+inttostr(injectnr)+':');
-      add('  jmp return'+inttostr(injectnr)+'');
+      add('jmp returnhere'+inttostr(injectnr)+'');
 
       add('');
       add(addressstring+':');
-      add('  jmp newmem'+inttostr(injectnr)+'');
+      add('jmp newmem'+inttostr(injectnr)+'');
       if codesize>5 then
       begin
         if codesize-5>1 then
-          add('  nop '+inttohex(codesize-5,1))
+          add('nop '+inttohex(codesize-5,1))
         else
-          add('  nop');
+          add('nop');
       end;
 
-      add('return'+inttostr(injectnr)+':');
+      add('returnhere'+inttostr(injectnr)+':');
       add('');
     end;
 
     with disablecode do
     begin
+      add('dealloc(newmem'+inttostr(injectnr)+')');
       add(addressstring+':');
       for i:=0 to length(originalcode)-1 do
-        add('  ' + originalcode[i]);
-      x:='  db';
+        add(originalcode[i]);
+      x:='db';
       for i:=0 to length(originalbytes)-1 do
         x:=x+' '+inttohex(originalbytes[i],2);
       add('//Alt: '+x);
-      add('dealloc(newmem'+inttostr(injectnr)+')');
     end;
 
     getenableanddisablepos(script,enablepos,disablepos);
