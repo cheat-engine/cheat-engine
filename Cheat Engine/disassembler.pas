@@ -8696,7 +8696,7 @@ begin
 
                           lastdisassembledata.parametervaluetype:=dvtvalue;
                           lastdisassembledata.parametervalue:=memory[last];
-                          lastdisassembledata.parameters:=lastdisassembledata.parameters+inttohexs(lastdisassembledata.parametervalue,2);
+                          lastdisassembledata.parameters:=lastdisassembledata.parameters+','+inttohexs(lastdisassembledata.parametervalue,2);
                           inc(offset,last);
                         end
                         else
@@ -8710,7 +8710,7 @@ begin
                           lastdisassembledata.parameters:=xmm(memory[2])+modrm(memory,prefix2,2,4,last,128,0,mRight);
                           lastdisassembledata.parametervaluetype:=dvtvalue;
                           lastdisassembledata.parametervalue:=memory[last];
-                          lastdisassembledata.parameters:=lastdisassembledata.parameters+inttohexs(lastdisassembledata.parametervalue,2);
+                          lastdisassembledata.parameters:=lastdisassembledata.parameters+','+inttohexs(lastdisassembledata.parametervalue,2);
                           lastdisassembledata.datasize:=4;
                           inc(offset,last);
                         end
@@ -8726,7 +8726,7 @@ begin
                             lastdisassembledata.parameters:=xmm(memory[2])+modrm(memory,prefix2,2,4,last,128,0,mRight);
                             lastdisassembledata.parametervaluetype:=dvtvalue;
                             lastdisassembledata.parametervalue:=memory[last];
-                            lastdisassembledata.parameters:=lastdisassembledata.parameters+inttohexs(lastdisassembledata.parametervalue,2);
+                            lastdisassembledata.parameters:=lastdisassembledata.parameters+','+inttohexs(lastdisassembledata.parametervalue,2);
                             inc(offset,last);
                           end
                           else
@@ -8739,7 +8739,7 @@ begin
                             lastdisassembledata.parameters:=xmm(memory[2])+modrm(memory,prefix2,2,4,last,128,0,mRight);
                             lastdisassembledata.parametervaluetype:=dvtvalue;
                             lastdisassembledata.parametervalue:=memory[last];
-                            lastdisassembledata.parameters:=lastdisassembledata.parameters+inttohexs(lastdisassembledata.parametervalue,2);
+                            lastdisassembledata.parameters:=lastdisassembledata.parameters+','+inttohexs(lastdisassembledata.parametervalue,2);
                             lastdisassembledata.datasize:=4;
                             inc(offset,last);
                           end;
@@ -15293,9 +15293,9 @@ begin
     end;
   end;
 
-  for i:=32 to 63 do
+{  for i:=32 to 63 do
     if _memory[i]<>$ce then
-      raise exception.create('Memory corruption in the disassembler');
+      raise exception.create('Memory corruption in the disassembler'); }
   except
     on e:exception do
     begin
