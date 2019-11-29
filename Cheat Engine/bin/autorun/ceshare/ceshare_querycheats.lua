@@ -16,6 +16,17 @@ function ceshare.QueryProcessCheats(processname, headermd5)
   local parameters='processname='..ceshare.url_encode(processname)
   --print(url..'?'..parameters)
   
+  if isKeyPressed(VK_CONTROL)==false then  --control lets you get a new script if needed
+    local secondaryIdentifierCode=ceshare.secondaryIdentifierCode.Value[processname:lower()]
+    if secondaryIdentifierCode and secondaryIdentifierCode~='' then
+      local value,param=loadstring(secondaryIdentifierCode)()
+      if value and param then
+        parameters=parameters..'&secondaryidentifier='..ceshare.url_encode(param)
+      end
+    end
+  end
+
+  
   
   
   --local r=ceshare.getInternet().postURL(url,parameters)
@@ -138,9 +149,11 @@ function ceshare.QueryProcessCheats(processname, headermd5)
 
 
   --Sort the list by Match , Signed, and Score (in that order)
-  table.sort(result, function(a,b)
-    return a.sortscore>b.sortscore
-  end)
+  if result then
+    table.sort(result, function(a,b)
+      return a.sortscore>b.sortscore
+    end)
+  end
   
   return result
 end

@@ -23,6 +23,7 @@ package.path=package.path..';'..ceshare.path..[[?.lua]]
 
 function loadCEShare()
   ceshare.settings=getSettings('ceshare')
+  ceshare.secondaryIdentifierCode=getSettings('ceshare\\secondaryIdenfierCode')
 
   require("ceshare_account")
   require("ceshare_publish")
@@ -268,6 +269,8 @@ function ceshare.parseResult(r, skipErrorDialog)
 --parses the xml string and returns the xml object, or nil with a true/false.
 --true means, try again, false means give up
   local xml
+  
+  
   if r then
     if (r:sub(1,2)=='<?') then
       xml=xmlParser:ParseXmlText(r)
@@ -280,6 +283,81 @@ function ceshare.parseResult(r, skipErrorDialog)
           end  
         end
         
+        if xml.extraparamneeded then
+          local valid, functionresult
+          
+          local f=loadstring(xml.extraparamneeded:value())
+          
+          if f then
+            --check registry if it's ok to run this script, or ask if it should be loaded
+            local d=createForm(false)
+            d.Caption='Secondary identifier code'
+            d.BorderStyle='bsSizeable'
+            
+            local pnlBtns=createPanel(d)
+            btnAllow=createButton(pnlBtns)
+            btnCancel=createButton(pnlBtns)
+            
+            btnAllow.AutoSize=true
+            btnCancel.AutoSide=true
+            
+            btnAllow.Caption='Allow'
+            btnAllow.Default=true
+            btnAllow.ModalResult=mrOK
+            
+            btnCancel.Caption='Cancel'
+            btnCancel.Cancel=true
+            btnCancel.ModalResult=mrCancel
+            
+            pnlBtns.ChildSizing.ControlsPerLine=2
+            pnlBtns.ChildSizing.HorizontalSpacing=4
+            pnlBtns.ChildSizing.EnlargeHorizontal='crsHomogenousChildResize'
+            pnlBtns.ChildSizing.Layout='cclLeftToRightThenTopToBottom'
+            pnlBtns.AutoSize=true                        
+            pnlBtns.Align='alBottom'
+            
+            pnlHeaderAndEditor=createPanel(d)
+            pnlHeaderAndEditor.align='alClient'
+            
+            
+            local header=createLabel(pnlHeaderAndEditor)
+            header.caption='This process needs a special identifier to set it apart from others with the same name. To generate this identifier the below code is needed. Do you agree with the execution of this code to generate the identifier?'
+            header.align='alTop'
+            header.WordWrap=true
+            
+            local scriptviewer
+            if createSynEdit then
+              scriptviewer=createSynEdit(pnlHeaderAndEditor,0) --7.1+  ,0 means lua syntax
+              scriptviewer.Gutter.Parts.SynGutterMarks1.Visible=false
+              scriptviewer.Gutter.Parts.SynGutterChanges1.Visible=false
+              scriptviewer.Gutter.Parts.SynGutterSeparator1.Visible=true
+              scriptviewer.Gutter.Parts.SynGutterCodeFolding1.Visible=false
+              scriptviewer.Font.Size=10              
+            else
+              scriptviewer=createMemo(pnlHeaderAndEditor)              
+              scriptviewer.ScrollBars='ssAutoBoth'
+            end
+            scriptviewer.ReadOnly=true
+            scriptviewer.Lines.Text=xml.extraparamneeded:value()
+            scriptviewer.align='alClient'
+            
+            d.Width=d.Canvas.getTextWidth(header.Caption)/3
+            d.Height=d.Canvas.getTextHeight('Qwertyuiopjkl')*18            
+            d.position='poScreenCenter'
+            
+            if d.showModal()~=mrOK then return nil,false end
+          end
+          
+          --still here so ok
+          valid, functionresult=f()
+          
+          if valid then
+            ceshare.secondaryIdentifierCode.Value[process:lower()]=xml.extraparamneeded:value()
+          end
+          
+          return nil, valid, functionresult --try again with this extra parameter
+        
+        end
         --[[ perhaps someday if there is a really trusted server
         if xml.executeLua then
           loadstring(xml.executeLua:value())()
@@ -321,12 +399,22 @@ end
 function ceshare.QueryXURL(filename,parameters, skipErrorDialog)  
   local tryagain=true
   local xml
+  local extraparam
   while tryagain==true do
     local rawdata=ceshare.getInternet().postURL(ceshare.base..filename,parameters)
-    xml,tryagain=ceshare.parseResult(rawdata, skipErrorDialog)
+    xml,tryagain,extraparam=ceshare.parseResult(rawdata, skipErrorDialog)
     if xml then
       return xml
-    end   
+    end  
+
+    if tryagain and extraparam then   
+      local newparam='secondaryidentifier='..ceshare.url_encode(extraparam)
+      if parameters and parameters~='' then
+        parameters=parameters..'&'..newparam
+      else
+        parameters=extraparam
+      end
+    end
   end
   
   return nil

@@ -112,7 +112,7 @@ uses mainunit, mainunit2, luaclass, frmluaengineunit, plugin, pluginexports,
   LuaCustomType, Filehandler, LuaSQL, frmSelectionlistunit, cpuidUnit, LuaRemoteThread,
   LuaManualModuleLoader, pointervaluelist, frmEditHistoryUnit, LuaCheckListBox,
   LuaDiagram, frmUltimap2Unit, frmcodefilterunit, BreakpointTypeDef, LuaSyntax,
-  LazLogger;
+  LazLogger, LuaSynedit;
 
   {$warn 5044 off}
 
@@ -2333,8 +2333,6 @@ begin
       result:=x;
     end;
   end;
-
-
 end;
 
 
@@ -9162,7 +9160,7 @@ begin
     for i:=0 to floatvalues.count-1 do
       s.add(floatvalues[i]);
 
-    Clipboard.AsText:=s.text;
+
     dontfree:=false;
 
     if autoassemble(s,false,true,false,false,allocs,exceptionlist) then
@@ -12509,6 +12507,7 @@ begin
     initializeLuaDiagram;
     initializeLuaUltimap2;
     initializeLuaCodeFilter;
+    initializeLuaSynEdit;
 
 
 
