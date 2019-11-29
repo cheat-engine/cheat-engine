@@ -52,7 +52,7 @@ function loadCEShare()
   miCESHARETopMenuItem.add(miRequestCheats)  
 
   local miLoginToSeeMoreOptions=createMenuItem(MainForm)
-  miLoginToSeeMoreOptions.Caption='Login to see more options'
+  miLoginToSeeMoreOptions.Caption='Login to see more options (Like publish Table)'
   miLoginToSeeMoreOptions.OnClick=ceshare.spawnLoginDialog
   miLoginToSeeMoreOptions.Name='miLoginToSeeMoreOptions';
   miLoginToSeeMoreOptions.Visible=true
