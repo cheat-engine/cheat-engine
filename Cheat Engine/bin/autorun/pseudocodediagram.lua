@@ -1419,6 +1419,8 @@ function spawnDiagram(start, limit)
   createDiagramInfoBlock(diagram)
   diagram.form.Visible=true
   diagram.diagram.repaint()
+  --focus on first block
+  if #diagram.dblocks > 0 then scrollToDiagramBlock(diagram, diagram.dblocks[1]) end
   return diagram
 end
 
