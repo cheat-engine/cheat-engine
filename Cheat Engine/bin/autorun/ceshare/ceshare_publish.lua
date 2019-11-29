@@ -356,9 +356,9 @@ function ceshare.PublishCheatClick(sender, cheatinfo)
     ceshare.PublishCheatFrm.cbModuleName.OnChange(ceshare.PublishCheatFrm.cbModuleName)
     
     ceshare.PublishCheatFrm.cbVersionIndependent.Checked=cheatinfo.VersionIndependent
-    ceshare.PublishCheatFrm.cbVersionIndependent.OnChange(ceshare.PublishCheatFrm.cbVersionIndependent)
+   
   end
-  
+  ceshare.PublishCheatFrm.cbVersionIndependent.OnChange(ceshare.PublishCheatFrm.cbVersionIndependent)  
  
   if headermd5==nil then
     ceshare.PublishCheatFrm.lblHeaderMD5.Caption=''
