@@ -47,7 +47,18 @@ function ceshare.PublishCheat(data,title,processname, headermd5, versionindepend
   if fullfilehash~=nil then parameters=parameters..'&fullfilehash='..ceshare.url_encode(fullfilehash) end
   if secondarymodulename~=nil then parameters=parameters..'&secondarymodulename='..ceshare.url_encode(secondarymodulename) end
   if secondaryfullfilehashmd5~=nil then parameters=parameters..'&secondaryfullfilehashmd5='..ceshare.url_encode(secondaryfullfilehashmd5) end
+ 
+  if isKeyPressed(VK_CONTROL)==false then  --control lets you get a new script if needed
+    local secondaryIdentifierCode=ceshare.secondaryIdentifierCode.Value[processname:lower()]
+    if secondaryIdentifierCode and secondaryIdentifierCode~='' then
+      local value,param=loadstring(secondaryIdentifierCode)()
+      if value and param then
+        parameters=parameters..'&secondaryidentifier='..ceshare.url_encode(param)
+      end
+    end
+  end    
   
+ 
   local r=ceshare.QueryXURL('PublishTable.php',parameters)
   
   if r then
@@ -273,6 +284,8 @@ function ceshare.PublishCheatClick(sender, cheatinfo)
       secondarymodulename=ceshare.PublishCheatFrm.cbModuleName.Text 
       secondaryfullfilehash=ceshare.PublishCheatFrm.lblFullModuleHeaderMD5.caption
     end
+    
+
     
 
     if cheatinfo then
