@@ -5662,7 +5662,7 @@ var baseaddress: ptruint;
 
   sname: string;
   n: ttreenode;
-  name: string;
+  name, customtypename: string;
 
   i: integer;
 begin
@@ -5693,11 +5693,16 @@ begin
             n:=n.parent;
           end;
 
+          if element.CustomType<>nil then
+            customtypename:=element.CustomType.name
+          else
+            customtypename:='';
+
           name:=element.Name;
           if name='' then
             name:=VariableTypeToString(element.VarType);
 
-          mainform.addresslist.addaddress(name, inttohex(baseaddress,1), offsetlist, length(offsetlist), element.VarType,'',element.Bytesize);
+          mainform.addresslist.addaddress(name, inttohex(baseaddress,1), offsetlist, length(offsetlist), element.VarType, customtypename, element.Bytesize);
         end;
 
 
