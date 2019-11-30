@@ -1156,6 +1156,7 @@ begin
   Double
   Text
   Array of Bytes
+  Structure
   <custom types>
   }
   i:=cbvarType.ItemIndex;
@@ -1470,10 +1471,6 @@ begin
   cbvarType.items.add(rs_vtString);
   cbvarType.items.add(rs_vtByteArray);
 
-
-  for i:=0 to customTypes.Count-1 do
-    cbvarType.Items.AddObject(TCustomType(customtypes[i]).name, customtypes[i]);
-
   // Refresh structures as well
   cbStructure.Items.Clear;
   if DissectedStructs.Count > 0 then
@@ -1484,6 +1481,9 @@ begin
       cbStructure.ItemIndex := 0;
     cbvarType.Items.Add(rs_vtStructure);
   end;
+
+  for i:=0 to customTypes.Count-1 do
+    cbvarType.Items.AddObject(TCustomType(customtypes[i]).name, customtypes[i]);
 
   cbvarType.DropDownCount:=cbvarType.Items.Count;
 end;
