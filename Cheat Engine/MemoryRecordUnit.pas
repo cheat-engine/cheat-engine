@@ -970,13 +970,24 @@ begin
     childRecord.fReadonly := true;
     childRecord.Description := element.Name;
     childRecord.interpretableaddress := '+'+IntToHex(element.Offset, 8);
-    childRecord.VarType := element.VarType;
     childRecord.ReinterpretAddress(true);
+
     if(treenode.IndexOf(childRecord.treenode) = -1) then
-      begin
-          childRecord.treenode:=treenode.owner.AddObject(nil,'',childRecord);
-          childRecord.treenode.MoveTo(treenode, naAddChild); //make it the last child of this node
-      end;
+    begin
+        childRecord.treenode:=treenode.owner.AddObject(nil,'',childRecord);
+        childRecord.treenode.MoveTo(treenode, naAddChild); //make it the last child of this node
+    end;
+
+    if element.isPointer then
+    begin
+      childRecord.offsetCount:=1;
+      childRecord.offsets[0].setOffsetText(IntToStr(element.getOffset));
+      childRecord.SetStructure(element.ChildStruct);
+    end
+    else
+    begin
+      childRecord.VarType := element.VarType;
+    end;
   end;
   SetVisibleChildrenState;
   structure.addOnStructureChangeEventHandler(self);
