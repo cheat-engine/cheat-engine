@@ -986,7 +986,31 @@ begin
     end
     else
     begin
-      childRecord.VarType := element.VarType;
+      case element.VarType of
+        vtUnicodeString:
+        begin
+          childRecord.VarType := vtString;
+          childRecord.Extra.stringData.length := Trunc(element.Bytesize / 2);
+          childRecord.Extra.stringData.unicode := true;
+        end;
+        vtString:
+        begin
+          childRecord.VarType := vtString;
+          childRecord.Extra.stringData.length := element.Bytesize;
+        end;
+        vtByteArray:
+        begin
+          childRecord.VarType := vtByteArray;
+          childRecord.Extra.byteData.bytelength := element.Bytesize;
+        end;
+        vtCustom:
+        begin
+          childRecord.VarType := vtCustom;
+          childRecord.CustomTypeName := element.CustomType.name;
+        end;
+        else
+          childRecord.VarType := element.VarType;
+      end;
     end;
   end;
   SetVisibleChildrenState;
