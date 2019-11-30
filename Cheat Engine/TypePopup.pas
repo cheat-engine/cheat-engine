@@ -215,6 +215,7 @@ begin
     6: MemoryRecord.VarType:=vtDouble;
     7: MemoryRecord.Vartype:=vtString;
     8: MemoryRecord.VarType:=vtByteArray;
+    9: MemoryRecord.VarType:=vtStructure;
     else
     begin
       if Vartype.ItemIndex<>-1 then

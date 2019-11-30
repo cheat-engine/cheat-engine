@@ -1047,10 +1047,14 @@ begin
 
       if memrecitems[i].vartype<>newtype then
         MainForm.editedsincelastsave:=true;
-
-      MemRecItems[i].VarType:=newtype;
-      MemRecItems[i].Extra:=extra;
-      MemRecItems[i].CustomTypeName:=customtypename;
+      if newtype = vtStructure then
+        MemRecItems[i].SetStructure(extra.structureData.Struct)
+      else
+      begin
+        MemRecItems[i].VarType:=newtype;
+        MemRecItems[i].Extra:=extra;
+        MemRecItems[i].CustomTypeName:=customtypename;
+      end;
 
       MemRecItems[i].treenode.update;
     end;
