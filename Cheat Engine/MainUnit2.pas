@@ -427,16 +427,16 @@ begin
             checkkeycombo(temphotkeylist[i]);
           end;
 
-          if temphotkeylist[1][0]<>0 then
-            advancedoptions.pausehotkeystring:='('+ConvertKeyComboToString(temphotkeylist[1])+')'
+          if temphotkeylist[2][0]<>0 then
+            advancedoptions.pausehotkeystring:='('+ConvertKeyComboToString(temphotkeylist[2])+')'
           else
             advancedoptions.pausehotkeystring:=' ('+rsNoHotkey+')';
 
 
 
-          if temphotkeylist[2][0]<>0 then
+          if temphotkeylist[3][0]<>0 then
             mainform.cbSpeedhack.Hint:=rsEnableDisableSpeedhack+' ('+
-              ConvertKeyComboToString(temphotkeylist[2])+')'
+              ConvertKeyComboToString(temphotkeylist[3])+')'
           else
             mainform.cbSpeedhack.Hint:=rsEnableDisableSpeedhack+rsM2NoHotkey;
 
