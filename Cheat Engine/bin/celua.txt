@@ -1164,6 +1164,14 @@ methods
     ssAutoBoth: " " " " ...
 
 
+SynEdit class: 
+createSynEdit(owner,mode OPTIONAL): Creates a synedit object. mode: 0=Lua highlighting, 1=Auto Assembler highlighting
+properties
+  Lines: Stringlist - Contains the text
+  Gutter: Gutter - Gutter object
+  ReadOnly: Boolean - Set to true for read only
+
+methods
 
 
 
