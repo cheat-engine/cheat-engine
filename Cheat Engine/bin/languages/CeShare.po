@@ -1,6 +1,6 @@
 #: frmCEShareCheatBrowser.TTrainerForm.Caption
 msgid "Cheat Browser"
-msgstr "Cheat 浏览器"
+msgstr ""
 
 #: frmCEShareCheatBrowser.CELabel.Caption
 msgid "Processname:"
