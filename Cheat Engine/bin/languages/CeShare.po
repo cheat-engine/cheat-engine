@@ -1,0 +1,225 @@
+#: frmCEShareCheatBrowser.TTrainerForm.Caption
+msgid "Cheat Browser"
+msgstr ""
+
+#: frmCEShareCheatBrowser.CELabel.Caption
+msgid "Processname:"
+msgstr ""
+
+#: frmCEShareCheatBrowser.Title.Caption
+msgid "Title"
+msgstr ""
+
+#: frmCEShareCheatBrowser.Author.Caption
+msgid "Author"
+msgstr ""
+
+#: frmCEShareCheatBrowser.Public.Caption
+msgid "Public"
+msgstr ""
+
+#: frmCEShareCheatBrowser.Score.Caption
+msgid "Score"
+msgstr ""
+
+#: frmCEShareCheatBrowser.Version.Caption
+msgid "Version independent"
+msgstr ""
+
+#: frmCEShareCheatBrowser.Signed.Caption
+#msgid "Signed"
+#msgstr ""
+
+#: frmCEShareCheatBrowser.Match.Caption
+msgid "% Match"
+msgstr ""
+
+#: frmCEShareCheatBrowser.btnLoadTable.Caption
+msgid "    Load    "
+msgstr ""
+
+#: frmCEShareCheatBrowser.btnAddViewComments.Caption
+msgid "Add/View Comments"
+msgstr ""
+
+#: frmCEShareCheatBrowser.lblRate.Caption
+msgid "Rate:"
+msgstr ""
+
+#: frmCEShareCheatBrowser.btnViewHistory.Caption
+msgid "View History"
+msgstr ""
+
+#: ceshare_frmComments.lblPrevious25.Caption
+msgid "Previous 25"
+msgstr ""
+
+#: ceshare_frmComments.lblNext25.Caption
+msgid "Next 25"
+msgstr ""
+
+#: ceshare_frmComments.btnSend.Caption
+msgid "   Send   "
+msgstr ""
+
+#: ceshare_initiaISetup.Caption
+msgid "CEShare Initial Setup"
+msgstr ""
+
+#: ceshare_initiaISetup.CELabel1.Caption
+msgid "CEShare community URL:"
+msgstr ""
+
+#: ceshare_initiaISetup.CELabel2.Caption
+msgid "By entering a CEShare URL you will be able to upload and download Cheat Tables from a ceshare server community"
+msgstr ""
+
+#: ceshare_initiaISetup.CELabel3.Caption
+msgid "Disclaimer: These are third-party servers. They are not owned or maintained by the Cheat Engine project, and no warranty regarding their content is given. 
+
+Please contact the respective server owner for further inquiries."
+msgstr ""
+
+#: ceshare_initiaISetup.CEButton1.Caption
+msgid "OK"
+msgstr ""
+
+#: ceshare_initiaISetup.CEButton2.Caption
+msgid "Cancel"
+msgstr ""
+
+#: ceshare_initiaISetup.CELabel4.Caption
+msgid "Click cancel if you don't wish to use this"
+msgstr ""
+
+#: frmCESharePublishCheat.Caption
+msgid "Publish New Cheat"
+msgstr ""
+
+#: frmCESharePublishCheat.lblTitle.Caption
+msgid "Title:"
+msgstr ""
+
+#: frmCESharePublishCheat.cbVersionlndependent.Caption
+msgid "Version Independent"
+msgstr ""
+
+#: frmCESharePublishCheat.lblHeaderMD5.Caption
+msgid "lblHeaderMD5"
+msgstr ""
+
+#: frmCESharePublishCheat.lblHeaderMD5Text.Caption
+msgid "Header MD5:"
+msgstr ""
+
+#: frmCESharePublishCheat.cbNeedsFullFilrHash.Caption
+msgid "Needs full file hash"
+msgstr ""
+
+#: frmCESharePublishCheat.lblFullHeaderMD5Text.Caption
+msgid "Full file hash:"
+msgstr ""
+
+#: frmCESharePublishCheat.lblFullHeaderMD5.Caption
+msgid "lblFullHeaderMD5"
+msgstr ""
+
+#: frmCESharePublishCheat.cbUseSecondaryModule.Caption
+msgid "Needs secondary modulecheck"
+msgstr ""
+
+#: frmCESharePublishCheat.lblModulename.Caption
+msgid "Modulename"
+msgstr ""
+
+#: frmCESharePublishCheat.btnPublish.Caption
+msgid "Publish"
+msgstr ""
+
+#: frmCESharePublishCheat.cbPublic.Caption
+msgid "Allow everyone to edit this table"
+msgstr ""
+
+#: ceshare_permissions.Caption
+msgid "Update Permissions"
+msgstr ""
+
+#: ceshare_permissions.lblIDTxt.Caption
+msgid "ID"
+msgstr ""
+
+#: ceshare_permissions.lblID.Caption
+msgid "lblID"
+msgstr ""
+
+#: ceshare_permissions.lblTitle.Caption
+msgid "lblTitle"
+msgstr ""
+
+#: ceshare_permissions.lblOwnerTxt.Caption
+msgid "Owner"
+msgstr ""
+
+#: ceshare_permissions.mrOK.Caption
+msgid "  OK  "
+msgstr ""
+
+#: ceshare_permissions.lblTitle.Caption
+msgid "lblTitle"
+msgstr ""
+
+#: miCESHARETopMenuItem.Caption
+msgid "CE Share"
+msgstr ""
+
+#: miCheckForCheats.Caption
+msgid "Check for mods/cheats for current process"
+msgstr ""
+
+#: miRequestCheats.Caption
+msgid "Request and check other requests for mods/cheats for current process"
+msgstr ""
+
+#: miLoginToSeeMoreOptions.Caption
+msgid "Login to see more options (Like publish Table)"
+msgstr ""
+
+#: miPublishCheat.Caption
+msgid "Publish table"
+msgstr ""
+
+#: miUpdateCheat.Caption
+msgid "Update table"
+msgstr ""
+
+#: lblCEShareLabel.Caption
+msgid "CEShare community URL"
+msgstr ""
+
+#: d.Caption
+msgid "Secondary identifier code"
+msgstr ""
+
+#: btnAllow.Caption
+msgid "Allow"
+msgstr ""
+
+#: btnCancel.Caption
+msgid "Cancel"
+msgstr ""
+
+#: header.caption
+msgid "This process needs a special identifier to set it apart from others with the same name. To generate this identifier the below code is needed. Do you agree with the execution of this code to generate the identifier?"
+msgstr ""
+
+#: Error
+msgid "Error:"
+msgstr ""
+
+#: IRFS
+msgid "Invalid reply from server:"
+msgstr ""
+
+#: SDNR
+msgid "Server did not respond"
+msgstr ""
