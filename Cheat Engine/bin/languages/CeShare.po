@@ -1,0 +1,93 @@
+#: frmCEShareCheatBrowser.TTrainerForm.Caption
+msgid "Cheat Browser"
+msgstr "Cheat 浏览器"
+
+#: frmCEShareCheatBrowser.CELabel.Caption
+msgid "Processname:"
+msgstr ""
+
+#: frmCEShareCheatBrowser.Title.Caption
+msgid "Title"
+msgstr ""
+
+#: frmCEShareCheatBrowser.Author.Caption
+msgid "Author"
+msgstr ""
+
+#: frmCEShareCheatBrowser.Public.Caption
+msgid "Public"
+msgstr ""
+
+#: frmCEShareCheatBrowser.Score.Caption
+msgid "Score"
+msgstr ""
+
+#: frmCEShareCheatBrowser.Version.Caption
+msgid "Version independent"
+msgstr ""
+
+#: frmCEShareCheatBrowser.Signed.Caption
+msgid "Signed"
+msgstr ""
+
+#: frmCEShareCheatBrowser.Match.Caption
+msgid "% Match"
+msgstr ""
+
+#: frmCEShareCheatBrowser.btnLoadTable.Caption
+msgid "    Load    "
+msgstr ""
+
+#: frmCEShareCheatBrowser.btnAddViewComments.Caption
+msgid "Add/View Comments"
+msgstr ""
+
+#: frmCEShareCheatBrowser.lblRate.Caption
+msgid "Rate:"
+msgstr ""
+
+#: frmCEShareCheatBrowser.btnViewHistory.Caption
+msgid "View History"
+msgstr ""
+
+#: ceshare_frmComments.lblPrevious25.Caption
+msgid "Previous 25"
+msgstr ""
+
+#: ceshare_frmComments.lblNext25.Caption
+msgid "Next 25"
+msgstr ""
+
+#: ceshare_frmComments.btnSend.Caption
+msgid "   Send   "
+msgstr ""
+
+#: ceshare_initiaISetup.Caption
+msgid "CEShare Initial Setup"
+msgstr ""
+
+#: ceshare_initiaISetup.CELabel1.Caption
+msgid "CEShare community URL:"
+msgstr ""
+
+#: ceshare_initiaISetup.CELabel2.Caption
+msgid "By entering a CEShare URL you will be able to upload and download Cheat Tables from a ceshare server community"
+msgstr ""
+
+#: ceshare_initiaISetup.CELabel3.Caption
+msgid "Disclaimer: These are third-party servers. They are not owned or maintained by the Cheat Engine project, and no warranty regarding their content is given. 
+
+Please contact the respective server owner for further inquiries."
+msgstr ""
+
+#: ceshare_initiaISetup.CEButton1.Caption
+msgid "OK"
+msgstr ""
+
+#: ceshare_initiaISetup.CEButton2.Caption
+msgid "Cancel"
+msgstr ""
+
+#: ceshare_initiaISetup.CELabel4.Caption
+msgid "Click cancel if you don't wish to use this"
+msgstr ""
