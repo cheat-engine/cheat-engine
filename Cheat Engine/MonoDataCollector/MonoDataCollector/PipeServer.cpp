@@ -152,6 +152,8 @@ void CPipeServer::InitMono()
 
 			if (!g_free)
 				g_free = customfreeimplementation;
+
+			mono_free = (MONO_FREE)GetProcAddress(hMono, "mono_free");
 			
 			mono_get_root_domain = (MONO_GET_ROOT_DOMAIN)GetProcAddress(hMono, "mono_get_root_domain");
 			mono_thread_attach = (MONO_THREAD_ATTACH)GetProcAddress(hMono, "mono_thread_attach");
@@ -1067,7 +1069,13 @@ void CPipeServer::WriteObject(void* object)
 			void *string = mono_object_to_string(object, NULL);
 			char *ptr = mono_string_to_utf8(string);
 			WriteString(ptr);
-			mono_free(ptr);
+			if (mono_free)
+			  mono_free(ptr);
+			else
+			{
+				if (g_free)
+					g_free(ptr);
+			}
 		} break;
 		case MONO_TYPE_I1:
 		case MONO_TYPE_U1:
