@@ -6298,13 +6298,7 @@ begin
 
   while (Virtualqueryex(processhandle,pointer(currentBaseAddress),mbi,sizeof(mbi))<>0) and (currentBaseAddress<stopaddress) and ((currentBaseAddress+mbi.RegionSize)>currentBaseAddress) do   //last check is done to see if it wasn't a 64-bit overflow.
   begin
-    {if mbi.BaseAddress=pointer($10059E000) then
-    begin    //10059EE80
-
-      beep;
-    end;  }
-
-    OutputDebugString(format('R=%x-%x',[ptruint(mbi.BaseAddress), ptruint(mbi.BaseAddress)+mbi.RegionSize]));
+  //  OutputDebugString(format('R=%x-%x',[ptruint(mbi.BaseAddress), ptruint(mbi.BaseAddress)+mbi.RegionSize]));
 
 
    // if (not (not scan_mem_private and (mbi._type=mem_private))) and (not (not scan_mem_image and (mbi._type=mem_image))) and (not (not scan_mem_mapped and (mbi._type=mem_mapped))) and (mbi.State=mem_commit) and ((mbi.Protect and page_guard)=0) and ((mbi.protect and page_noaccess)=0) then  //look if it is commited
@@ -6375,27 +6369,21 @@ begin
           scanExclude: validregion:=validregion and (not isCopyOnWrite);
         end;
 
+        {$ifdef darwin}
         case scanDirty of
           scanInclude: validregion:=validregion and isDirty;
           scanExclude: validregion:=validregion and (not isDirty);
         end;
+        {$endif}
       end;
 
       if not validregion then
       begin
         //next
-        OutputDebugString('  invalid');
         currentBaseAddress:=PtrUint(mbi.BaseAddress)+mbi.RegionSize;
-
-       {if currentBaseAddress=$10059E000 then
-        begin
-          beep;
-        end; }
 
         continue;
       end;
-
-      OutputDebugString('  valid');
 
 
       //still here, so valid
@@ -6425,16 +6413,12 @@ begin
 
     currentBaseAddress:=PtrUint(mbi.baseaddress)+mbi.RegionSize;
 
-   { if currentBaseAddress=$10059E000 then
-    begin
-      beep;
-    end;   }
   end;
 
   {$ifndef darwin}
   VirtualQueryEx_EndCache(processhandle);
   {$endif}
-
+    {
   OutputDebugString(format('memRegionPos=%d',[memRegionPos]));
   for i:=0 to memRegionPos-1 do
   BEGIN
@@ -6456,7 +6440,7 @@ begin
       end;
     end;
   end;
-
+        }
 
   totalAddresses:=totalProcessMemorySize;
 
@@ -7775,11 +7759,13 @@ begin
         currentState:=scanDontCare;
       end;
 
+      {$ifdef darwin}
       'D':
       begin
         scanDirty:=currentState;
         currentState:=scanDontCare;
       end;
+      {$endif}
     end;
   end;
 end;
