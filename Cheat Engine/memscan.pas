@@ -6207,6 +6207,10 @@ var
   f: TFilestream;
 
   vqecacheflag: dword;
+
+  {$ifdef duplicatecheck}
+  starta,startb,stopa,stopb: ptruint;
+  {$endif}
 begin
  // OutputDebugString('TScanController.firstScan');
   if OnlyOne or luaformula then
@@ -6358,26 +6362,22 @@ begin
 
       //still here, so valid
       try
-        if memRegionPos>0 then
+        if (memRegionPos=0) or (memRegion[memRegionPos-1].BaseAddress+memRegion[memRegionPos-1].MemorySize<>PtrUint(mbi.baseaddress)) then
         begin
-          //check if it can be appended to the previous region
-          if memRegion[memRegionPos-1].BaseAddress+memRegion[memRegionPos-1].MemorySize=PtrUint(mbi.baseaddress) then //yes, append
-          begin
-            //yes, so append
-            memRegion[memRegionPos-1].MemorySize:=memRegion[memRegionPos-1].MemorySize+mbi.RegionSize;
-            continue;              
-          end;
+          //new region
+          memRegion[memRegionPos].BaseAddress:=PtrUint(mbi.baseaddress);  //just remember this location
+          memRegion[memRegionPos].MemorySize:=mbi.RegionSize;
+          memRegion[memRegionPos].startaddress:=pointer(ptrUint(totalProcessMemorySize)); //starts from 0, for unknown scans
+
+          inc(memRegionPos);
+          if (memRegionPos mod 16)=0 then //add another 16 to it
+            setlength(memRegion,length(memRegion)+16);
+        end
+        else
+        begin
+          //append
+          memRegion[memRegionPos-1].MemorySize:=memRegion[memRegionPos-1].MemorySize+mbi.RegionSize;
         end;
-
-        //still here, so a new region
-        memRegion[memRegionPos].BaseAddress:=PtrUint(mbi.baseaddress);  //just remember this location
-        memRegion[memRegionPos].MemorySize:=mbi.RegionSize;
-        memRegion[memRegionPos].startaddress:=pointer(ptrUint(totalProcessMemorySize)); //starts from 0, for unknown scans
-
-        inc(memRegionPos);
-        if (memRegionPos mod 16)=0 then //add another 16 to it
-          setlength(memRegion,length(memRegion)+16);
-
       finally
         inc(totalProcessMemorySize,mbi.RegionSize); //add this size to the total
 
@@ -6390,11 +6390,30 @@ begin
 
   VirtualQueryEx_EndCache(processhandle);
 
- // OutputDebugString(format('memRegionPos=%d',[memRegionPos]));
-//  for i:=0 to memRegionPos-1 do
- //   OutputDebugString(format('i: %d B=%x S=%x SA=%p',[i, memRegion[i].BaseAddress, memRegion[i].MemorySize, memRegion[i].startaddress]));
+  {$ifdef duplicatecheck}
+  OutputDebugString(format('memRegionPos=%d',[memRegionPos]));
+  for i:=0 to memRegionPos-1 do
+  BEGIN
+    OutputDebugString(format('i: %d R=%x-%x S=%x SA=%p',[i, memRegion[i].BaseAddress, memRegion[i].BaseAddress+memRegion[i].MemorySize, memRegion[i].MemorySize, memRegion[i].startaddress]));
 
- // OutputDebugString(format('totalProcessMemorySize=%x (%d)',[totalProcessMemorySize, totalProcessMemorySize]));
+    for j:=0 to memregionpos-1 do
+    begin
+      if i<>j then
+      begin
+        starta:=memRegion[i].BaseAddress;
+        startb:=memRegion[j].BaseAddress;
+        stopa:=memregion[i].BaseAddress+memregion[i].MemorySize;
+        stopb:=memregion[j].BaseAddress+memregion[j].MemorySize;
+
+        if ((starta < stopb) and (startb < stopa)) then
+        begin
+          OutputDebugString('  : overlaps with '+inttostr(j));
+        end;
+      end;
+    end;
+  end;
+  {$endif}
+
 
 
 
