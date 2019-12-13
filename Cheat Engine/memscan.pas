@@ -14,21 +14,25 @@ Special care should be taken to add multithreaded scanning routines
 
 interface
 
-{$ifdef windows}
-uses windows, FileUtil, LCLIntf,sysutils, classes,ComCtrls,dialogs, NewKernelHandler,math,
-     SyncObjs, windows7taskbar,SaveFirstScan, savedscanhandler, autoassembler,
-     symbolhandler, CEFuncProc,shellapi, customtypehandler,lua,lualib,lauxlib,
-     LuaHandler, fileaccess, groupscancommandparser, commonTypeDefs, LazUTF8,
-     forms, LazFileUtils, LCLProc, LCLVersion;
-{$define customtypeimplemented}
-{$endif}
 
-{$ifdef unix}
+{$ifdef jni}
 uses sysutils, unixporthelper, customtypehandler, commonTypeDefs, classes,
      syncobjs, math, groupscancommandparser, NewKernelHandler, strutils,
      savedscanhandler;
-
-
+{$else}
+uses
+     {$ifdef darwin}
+     macport, macportdefines, LCLType,
+     {$endif}
+     {$ifdef windows}
+     windows,
+     {$endif}
+     FileUtil, LCLIntf,sysutils, classes,ComCtrls,dialogs, NewKernelHandler,math,
+     SyncObjs {$ifdef windows},windows7taskbar{$endif},SaveFirstScan, savedscanhandler, autoassembler,
+     symbolhandler, CEFuncProc{$ifdef windows},shellapi{$endif}, CustomTypeHandler, lua,lualib,lauxlib,
+     LuaHandler, {$ifdef windows}fileaccess,{$endif} groupscancommandparser, commonTypeDefs, LazUTF8,
+     forms, LazFileUtils, LCLProc, LCLVersion;
+{$define customtypeimplemented}
 {$endif}
 
 
@@ -510,6 +514,9 @@ type
     scanWritable: Tscanregionpreference;
     scanExecutable: Tscanregionpreference;
     scanCopyOnWrite: Tscanregionpreference;
+    {$ifdef darwin}
+    scanDirty: Tscanregionpreference;
+    {$endif}
 
     roundingtype: TRoundingType;
     hexadecimal: boolean;
@@ -653,6 +660,9 @@ type
     scanWritable: Tscanregionpreference;
     scanExecutable: Tscanregionpreference;
     scanCopyOnWrite: Tscanregionpreference;
+    {$ifdef darwin}
+    scanDirty: Tscanregionpreference;
+    {$endif}
 
     attachedFoundlist: TObject;
 
@@ -718,13 +728,12 @@ type
 
 implementation
 
-{$ifdef windows}
-uses formsettingsunit, StrUtils, foundlisthelper, processhandlerunit, parsers,
-     Globals, frmBusyUnit, controls;
-{$endif}
 
 {$ifdef android}
 uses ProcessHandlerUnit, parsers, Globals;
+{$else}
+uses formsettingsunit, StrUtils, foundlisthelper, ProcessHandlerUnit, parsers,
+     Globals, {$ifdef windows}frmBusyUnit,{$endif} controls;
 {$endif}
 
 resourcestring
@@ -796,7 +805,7 @@ end;
 
 constructor TGroupData.create(parameters: string; scanner: TScanner);
 //todo: convert groupscancommandparser to unix
-{$ifndef unix}
+{$ifndef jni}
 var start, i: integer;
   p,s: string;
 
@@ -805,7 +814,7 @@ var start, i: integer;
   floatsettings: TFormatSettings;
 {$endif}
 begin
-{$ifndef unix}
+{$ifndef jni}
   floatsettings:=DefaultFormatSettings;
   fscanner:=scanner;
 
@@ -1152,7 +1161,7 @@ var current: pointer;
   align: integer;
 begin
 
-  {$IFNDEF UNIX}
+  {$IFNDEF jni}
   result:=false;
   if outoforder_aligned then
     align:=4
@@ -4231,13 +4240,13 @@ begin
               dvalue:=strtofloat(scanvalue1,FloatSettings);
             except
               //see if lua knows better
-              {$IFNDEF UNIX}
+              {$IFNDEF jni}
               try
                 dvalue:=lua_strtofloat(scanvalue1);
               except
               {$ENDIF}
                 raise exception.Create(Format(rsIsNotAValidValue, [scanvalue1]));
-              {$IFNDEF UNIX}
+              {$IFNDEF jni}
               end;
               {$ENDIF}
 
@@ -4248,13 +4257,13 @@ begin
         end else
         begin
           //not a float type, perhaps lua knows how to handle it
-          {$IFNDEF UNIX}
+          {$IFNDEF jni}
           try
             value:=lua_strtoint(scanvalue1);
           except
           {$ENDIF}
             raise exception.Create(Format(rsIsAnInvalidValue, [scanvalue1]));
-          {$IFNDEF UNIX}
+          {$IFNDEF jni}
           end;
           {$ENDIF}
         end;
@@ -4285,13 +4294,13 @@ begin
                 dvalue:=strtofloat(scanvalue2,FloatSettings);
               except
                 //see if lua knows better
-                {$IFNDEF UNIX}
+                {$IFNDEF jni}
                 try
                   dvalue:=lua_strtofloat(scanvalue2);
                 except
                 {$ENDIF}
                   raise exception.Create(Format(rsIsNotAValidValue, [scanvalue2]));
-                {$IFNDEF UNIX}
+                {$IFNDEF jni}
                 end;
                 {$ENDIF}
               end;
@@ -4301,13 +4310,13 @@ begin
           else
           begin
             //perhaps lua knows what it is
-            {$IFNDEF UNIX}
+            {$IFNDEF jni}
             try
               value2:=lua_strtoint(scanvalue2);
             except
             {$ENDIF}
               raise exception.Create(Format(rsIsAnInvalidValue, [scanvalue2]));
-            {$IFNDEF UNIX}
+            {$IFNDEF jni}
             end;
             {$ENDIF}
 
@@ -4334,13 +4343,13 @@ begin
           dvalue:=strtofloat(scanvalue1,FloatSettings);
         except
           //try lua
-          {$IFNDEF UNIX}
+          {$IFNDEF jni}
           try
             dvalue:=lua_strtofloat(scanvalue1);
           except
           {$ENDIF}
             raise exception.Create(Format(rsIsNotAValidValue, [scanvalue1]));
-          {$IFNDEF UNIX}
+          {$IFNDEF jni}
           end;
           {$ENDIF}
         end;
@@ -4364,13 +4373,13 @@ begin
             dvalue2:=strtofloat(scanvalue2,FloatSettings);
           except
             //and again
-            {$IFNDEF UNIX}
+            {$IFNDEF jni}
             try
               dvalue2:=lua_strtofloat(scanvalue2);
             except
             {$ENDIF}
               raise exception.Create(Format(rsIsNotAValidValue, [scanvalue2]));
-            {$IFNDEF UNIX}
+            {$IFNDEF jni}
             end;
             {$ENDIF}
           end;
@@ -5507,13 +5516,13 @@ begin
   if AddressFile<>nil then //can be made nil by the scancontroller
   begin
     freeandnil(Addressfile);
-    DeleteFile(scandir+'ADDRESSES-'+inttostr(ThreadID)+'.TMP');
+    DeleteFile(scandir+'ADDRESSES-'+inttostr(ptruint(ThreadID))+'.TMP');
   end;
 
   if MemoryFile<>nil then
   begin
     freeandnil(MemoryFile);
-    DeleteFile(scandir+'MEMORY-'+inttostr(ThreadID)+'.TMP');
+    DeleteFile(scandir+'MEMORY-'+inttostr(ptruint(ThreadID))+'.TMP');
   end;
 
   if scanwriter<>nil then
@@ -5540,8 +5549,8 @@ begin
 
   self.scandir:=scandir;
 
-  AddressFilename:=scandir+'ADDRESSES-'+inttostr(ThreadID)+'.TMP';
-  MemoryFilename:=scandir+'MEMORY-'+inttostr(ThreadID)+'.TMP';
+  AddressFilename:=scandir+'ADDRESSES-'+inttostr(ptruint(ThreadID))+'.TMP';
+  MemoryFilename:=scandir+'MEMORY-'+inttostr(ptruint(ThreadID))+'.TMP';
   AddressFile:=TFileStream.Create(AddressFilename,fmCreate or fmSharedenynone);
   MemoryFile:=TFileStream.Create(MemoryFilename,fmCreate or fmSharedenynone);
 
@@ -5579,7 +5588,7 @@ end;
 
 procedure TScanController.errorpopup;
 begin
-  {$IFNDEF UNIX}
+  {$IFNDEF jni}
   messagedlg(errorstring,mtError,[mbok],0);
   {$ENDIF}
 end;
@@ -6198,7 +6207,7 @@ var
   leftfromprevious: dword;
   offsetincurrentregion: qword;
 
-  isWritable, isExecutable, isCopyOnWrite: boolean;
+  isWritable, isExecutable, isCopyOnWrite{$ifdef darwin}, isDirty{$endif}: boolean;
 
   validRegion: boolean;
 
@@ -6208,9 +6217,7 @@ var
 
   vqecacheflag: dword;
 
-  {$ifdef duplicatecheck}
-  starta,startb,stopa,stopb: ptruint;
-  {$endif}
+  starta,startb, stopa,stopb: ptruint;
 begin
  // OutputDebugString('TScanController.firstScan');
   if OnlyOne or luaformula then
@@ -6277,18 +6284,29 @@ begin
   vqecacheflag:=0;
 
   if not Scan_MEM_MAPPED then
-    vqecacheflag:=vqecacheflag or VQE_NOSHARED;
+    vqecacheflag:=vqecacheflag or VQE_NOSHARED;   //4
 
   if scan_pagedonly then
-    vqecacheflag:=vqecacheflag or VQE_PAGEDONLY;
+    vqecacheflag:=vqecacheflag or VQE_PAGEDONLY;   //1
 
   if scan_dirtyonly and (scanWritable=scanInclude) then
-    vqecacheflag:=vqecacheflag or VQE_DIRTYONLY;
+    vqecacheflag:=vqecacheflag or VQE_DIRTYONLY;  //2
 
+  {$ifndef darwin}
   VirtualQueryEx_StartCache(processhandle, vqecacheflag);
+  {$endif}
 
   while (Virtualqueryex(processhandle,pointer(currentBaseAddress),mbi,sizeof(mbi))<>0) and (currentBaseAddress<stopaddress) and ((currentBaseAddress+mbi.RegionSize)>currentBaseAddress) do   //last check is done to see if it wasn't a 64-bit overflow.
   begin
+    {if mbi.BaseAddress=pointer($10059E000) then
+    begin    //10059EE80
+
+      beep;
+    end;  }
+
+    OutputDebugString(format('R=%x-%x',[ptruint(mbi.BaseAddress), ptruint(mbi.BaseAddress)+mbi.RegionSize]));
+
+
    // if (not (not scan_mem_private and (mbi._type=mem_private))) and (not (not scan_mem_image and (mbi._type=mem_image))) and (not (not scan_mem_mapped and (mbi._type=mem_mapped))) and (mbi.State=mem_commit) and ((mbi.Protect and page_guard)=0) and ((mbi.protect and page_noaccess)=0) then  //look if it is commited
     begin
       if PtrUint(mbi.BaseAddress)<startaddress then
@@ -6312,9 +6330,11 @@ begin
       validRegion:=validregion and (not (Skip_PAGE_WRITECOMBINE and ((mbi._type and PAGE_WRITECOMBINE)>0)));
 
 
+      {$ifdef windows}
 
       if usedbkquery and DBKLoaded then //small patch to fix an issue with the driver where it somehow sees a really big memory block
         validRegion:=validRegion and (mbi.RegionSize<qword($2ffffffff));
+      {$endif}
 
       if validregion then
       begin
@@ -6334,6 +6354,10 @@ begin
         isCopyOnWrite:=((mbi.protect and PAGE_WRITECOPY)>0) or
                        ((mbi.protect and PAGE_EXECUTE_WRITECOPY)>0);
 
+        {$ifdef darwin}
+        isdirty:=(mbi.protect and PAGE_DIRTY)>0;
+        {$endif}
+
 
 
         case scanWritable of
@@ -6350,47 +6374,67 @@ begin
           scanInclude: validregion:=validregion and isCopyOnWrite;
           scanExclude: validregion:=validregion and (not isCopyOnWrite);
         end;
+
+        case scanDirty of
+          scanInclude: validregion:=validregion and isDirty;
+          scanExclude: validregion:=validregion and (not isDirty);
+        end;
       end;
 
       if not validregion then
       begin
         //next
+        OutputDebugString('  invalid');
         currentBaseAddress:=PtrUint(mbi.BaseAddress)+mbi.RegionSize;
+
+       {if currentBaseAddress=$10059E000 then
+        begin
+          beep;
+        end; }
+
         continue;
       end;
 
+      OutputDebugString('  valid');
+
 
       //still here, so valid
-      try
-        if (memRegionPos=0) or (memRegion[memRegionPos-1].BaseAddress+memRegion[memRegionPos-1].MemorySize<>PtrUint(mbi.baseaddress)) then
-        begin
-          //new region
-          memRegion[memRegionPos].BaseAddress:=PtrUint(mbi.baseaddress);  //just remember this location
-          memRegion[memRegionPos].MemorySize:=mbi.RegionSize;
-          memRegion[memRegionPos].startaddress:=pointer(ptrUint(totalProcessMemorySize)); //starts from 0, for unknown scans
 
-          inc(memRegionPos);
-          if (memRegionPos mod 16)=0 then //add another 16 to it
-            setlength(memRegion,length(memRegion)+16);
-        end
-        else
-        begin
-          //append
-          memRegion[memRegionPos-1].MemorySize:=memRegion[memRegionPos-1].MemorySize+mbi.RegionSize;
-        end;
-      finally
-        inc(totalProcessMemorySize,mbi.RegionSize); //add this size to the total
+      if (memRegionPos=0) or (memRegion[memRegionPos-1].BaseAddress+memRegion[memRegionPos-1].MemorySize<>PtrUint(mbi.baseaddress)) then
+      begin
+        //new region
+        memRegion[memRegionPos].BaseAddress:=PtrUint(mbi.baseaddress);  //just remember this location
+        memRegion[memRegionPos].MemorySize:=mbi.RegionSize;
+        memRegion[memRegionPos].startaddress:=pointer(ptrUint(totalProcessMemorySize)); //starts from 0, for unknown scans
 
+        inc(memRegionPos);
+        if (memRegionPos mod 16)=0 then //add another 16 to it
+          setlength(memRegion,length(memRegion)+16);
+      end
+      else
+      begin
+        //append
+        memRegion[memRegionPos-1].MemorySize:=memRegion[memRegionPos-1].MemorySize+mbi.RegionSize;
       end;
+
+      inc(totalProcessMemorySize,mbi.RegionSize); //add this size to the total
+
+
     end;
 
 
     currentBaseAddress:=PtrUint(mbi.baseaddress)+mbi.RegionSize;
+
+   { if currentBaseAddress=$10059E000 then
+    begin
+      beep;
+    end;   }
   end;
 
+  {$ifndef darwin}
   VirtualQueryEx_EndCache(processhandle);
+  {$endif}
 
-  {$ifdef duplicatecheck}
   OutputDebugString(format('memRegionPos=%d',[memRegionPos]));
   for i:=0 to memRegionPos-1 do
   BEGIN
@@ -6412,9 +6456,6 @@ begin
       end;
     end;
   end;
-  {$endif}
-
-
 
 
   totalAddresses:=totalProcessMemorySize;
@@ -6618,9 +6659,10 @@ begin
       begin
 {$ifdef windows}
         WaitForSingleObject(scanners[i].Handle,25); //25ms, an eternity for a cpu
+{$else}
         if OwningMemScan.progressbar<>nil then
           synchronize(updategui);
-{$else}
+
         sleep(25)
 {$endif}
 
@@ -7000,7 +7042,7 @@ begin
   owningmemscan.postScanState:=psShouldBeFinished;
 
 
-  {$IFNDEF UNIX}
+  {$IFNDEF jni}
   if haserror2 then
     MessageBox(0, pchar(errorstring),'Scancontroller cleanup error',  MB_ICONERROR or mb_ok);
   {$ENDIF}
@@ -7012,7 +7054,7 @@ begin
 
 
 
-  {$IFNDEF UNIX}
+  {$IFNDEF jni}
   if assigned(OwningMemScan.OnScanDone) then
   {$endif}
   begin
@@ -7119,8 +7161,13 @@ begin
 
       if lastwait=wrTimeout then
       begin
-        {$IFNDEF UNIX}
+        {$IFNDEF jni}
+        {$ifdef windows}
         TerminateThread(scancontroller.Handle, $dead);
+        {$endif}
+        {$ifdef darwin}
+        KillThread(scancontroller.handle);
+        {$endif}
         messagedlg(rsMSTheScanWasForcedToTerminateSubsequentScansMayNotFunctionProperlyEtc, mtWarning, [mbok], 0);
         {$else}
         KillThread(scancontroller.handle);
@@ -7222,7 +7269,7 @@ end;
 
 procedure TMemscan.undoLastScan;
 begin
-  {$IFNDEF UNIX}
+  {$IFNDEF jni}
   if attachedFoundlist<>nil then
     TFoundList(Attachedfoundlist).Deinitialize;
   {$ENDIF}
@@ -7421,7 +7468,7 @@ end;
 procedure TMemscan.newscan;
 begin
   //OutputDebugString('TMemscan.newscan');
-  {$IFNDEF UNIX}
+  {$IFNDEF JNI}
   if attachedFoundlist<>nil then
     TFoundList(Attachedfoundlist).Deinitialize;
   {$ENDIF}
@@ -7455,12 +7502,14 @@ end;
 
 procedure TMemscan.NextScan(scanOption: TScanOption; roundingtype: TRoundingType; scanvalue1, scanvalue2: string; hexadecimal,binaryStringAsDecimal, unicode, casesensitive,percentage,compareToSavedScan: boolean; savedscanname: string);
 var
+  {$ifdef windows}
   frmBusy: TfrmBusy;
+  {$endif}
   r: TModalResult;
 begin
   fisHexadecimal:=hexadecimal;
 
-  {$IFNDEF UNIX}
+  {$IFNDEF jni}
   if attachedFoundlist<>nil then
     TFoundList(Attachedfoundlist).Deinitialize;
   {$ENDIF}
@@ -7472,6 +7521,7 @@ begin
   if scanController<>nil then
   begin
     {$ifdef windows}
+
     if GUIScanner and (WaitForSingleObject(scancontroller.handle, 500)<>WAIT_OBJECT_0) then
     begin
       frmBusy:=TfrmBusy.create(nil);
@@ -7505,6 +7555,7 @@ begin
   {$IFNDEF LOWMEMORYUSAGE}
   if SaveFirstScanThread<>nil then
   begin
+    {$ifdef windows}
     if GUIScanner and (WaitForSingleObject(SaveFirstScanThread.handle, 500)<>WAIT_OBJECT_0) then
     begin
       postscanstate:=psSavingFirstScanResults2;
@@ -7529,6 +7580,7 @@ begin
 
       frmBusy.free;
     end;
+    {$endif}
 
     SaveFirstScanThread.WaitFor; //wait till it's done
     freeandnil(SaveFirstScanThread);
@@ -7591,7 +7643,7 @@ begin
     raise exception.create('customType=nil');
 
 
-  {$IFNDEF UNIX}
+  {$IFNDEF jni}
   if attachedFoundlist<>nil then
     TFoundList(Attachedfoundlist).Deinitialize;
   {$ENDIF}
@@ -7636,6 +7688,9 @@ begin
   scancontroller.scanWritable:=scanWritable;
   scancontroller.scanExecutable:=scanExecutable;
   scancontroller.scanCopyOnWrite:=scanCopyOnWrite;
+  {$ifdef darwin}
+  scancontroller.scanDirty:=scanDirty;
+  {$endif}
 
   scanController.roundingtype:=roundingtype;
 
@@ -7685,10 +7740,13 @@ procedure TMemScan.parseProtectionflags(protectionflags: string);
 var i: integer;
     currentstate: Tscanregionpreference;
 begin
-  //parse the protectionflags string and set scanWritable, scanExecutable and scanCopyOnWrite;
+  //parse the protectionflags string and set scanWritable, scanExecutable and scanCopyOnWrite ;
   scanWritable:=scanDontCare;
   scanCopyOnWrite:=scanDontCare;
   scanExecutable:=scanDontCare;
+  {$ifdef darwin}
+  scanDirty:=scanDontCare;
+  {$endif}
 
   protectionflags:=uppercase(protectionflags);
 
@@ -7714,6 +7772,12 @@ begin
       'X':
       begin
         scanExecutable:=currentState;
+        currentState:=scanDontCare;
+      end;
+
+      'D':
+      begin
+        scanDirty:=currentState;
         currentState:=scanDontCare;
       end;
     end;
@@ -7764,7 +7828,7 @@ begin
     if (utf8 and (not CreateDirUTF8(fScanResultFolder))) or ((not utf8) and (not CreateDir(fScanResultFolder))) then
     begin
       //failure in creating the dir
-      {$IFNDEF UNIX}
+      {$IFDEF windows}
       MakePathAccessible(fScanResultFolder);
       {$ENDIF}
       if (utf8 and (not CreateDirUTF8(fScanResultFolder))) or ((not utf8) and (not CreateDirUTF8(fScanResultFolder))) then
@@ -7772,7 +7836,7 @@ begin
     end;
   end;
 
-  {$IFNDEF UNIX}
+  {$IFDEF windows}
   MakePathAccessible(fScanResultFolder);
   {$ENDIF}
 
@@ -7811,7 +7875,7 @@ begin
         usedtempdir:=GetTempDir;
 
 
-      if FindFirst(usedtempdir+'Cheat Engine\{*}',  faDirectory , info)=0 then
+      if FindFirst(usedtempdir+'Cheat Engine'+pathdelim+'{*}',  faDirectory , info)=0 then
       begin
         repeat
           if (info.Attr and faDirectory) = faDirectory then
@@ -7819,7 +7883,7 @@ begin
             if length(info.Name)>5 then
             begin
               //if found, delete them if older than 2 days
-              f:=usedtempdir+'Cheat Engine\'+info.name;
+              f:=usedtempdir+'Cheat Engine'+pathdelim+info.name;
 
 
               age:=info.time; //FileAge('"'+f+'"');
