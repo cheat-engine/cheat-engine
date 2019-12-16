@@ -141,7 +141,7 @@ end;
 
 function findaob(aobstring: string; protectionflags: string=''; alignmenttype: TFastScanMethod=fsmNotAligned; alignmentparam: string=''; isunique: boolean=false): ptruint;
 begin
-  result:=findaobInModule('', aobstring, protectionflags, alignmenttype, alignmentparam);
+  result:=findaobInModule('', aobstring, protectionflags, alignmenttype, alignmentparam, isunique);
 end;
 
 
