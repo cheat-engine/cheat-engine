@@ -5411,6 +5411,8 @@ begin
         currentbase:=currentbase+size;
         
         inc(scanned,size); //for the progressbar
+
+        sleep(200);
         dec(toread,size);
 
         if (OnlyOne and (found>0)) then exit;
@@ -6643,10 +6645,10 @@ begin
       begin
 {$ifdef windows}
         WaitForSingleObject(scanners[i].Handle,25); //25ms, an eternity for a cpu
-{$else}
+
         if OwningMemScan.progressbar<>nil then
           synchronize(updategui);
-
+{$else}
         sleep(25)
 {$endif}
 
