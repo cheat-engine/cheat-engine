@@ -5412,7 +5412,7 @@ begin
         
         inc(scanned,size); //for the progressbar
 
-        sleep(200);
+
         dec(toread,size);
 
         if (OnlyOne and (found>0)) then exit;
