@@ -87,6 +87,9 @@ type
     property ExpandChangesAddress: boolean read fExpandChangesAddress write fExpandChangesAddress;
   end;
 
+  IOnStructureChangeEventHandler = interface
+    procedure OnStructureChange (sender: TDissectedStruct);
+  end;
 
 
   TDissectedStruct=class
@@ -101,6 +104,7 @@ type
     fAutoFill: boolean;
     fDefaultHex: boolean;
     fRLECompression: boolean;
+    fListeners: TList;
 
 
     fUpdateCounter: integer;
@@ -117,6 +121,7 @@ type
     procedure DoOptionsChangedNotification;
     procedure DoFullStructChangeNotification;
     procedure DoDeleteStructNotification;
+    procedure UpdateListeners(struct : TDissectedStruct);
     procedure setupDefaultSettings;
 
     procedure setDoNotSaveLocal(state: boolean);
@@ -142,6 +147,8 @@ type
     procedure setName(newname: string);
     function getElementCount: integer;
     function getElement(index: integer): TStructelement;
+
+    function getElements: TList;
     procedure fillDelayLoadedChildstructs;
 
     procedure beginUpdate;
@@ -150,6 +157,8 @@ type
 
     procedure OnDeleteStructNotification(structtodelete: TDissectedStruct; path: TList);
 
+    procedure addOnStructureChangeEventHandler(handler: IOnStructureChangeEventHandler);
+    procedure removeOnStructureChangeEventHandler(handler: IOnStructureChangeEventHandler);
     procedure sortElements;
     function addElement(name: string=''; offset: integer=0; vartype: TVariableType=vtByte; customtype:TCustomtype=nil; bytesize: integer=0; childstruct: TDissectedStruct=nil): TStructelement;
     procedure removeElement(element: TStructelement);
@@ -1213,6 +1222,11 @@ begin
     result:=nil;
 end;
 
+function TDissectedStruct.getElements: TList;
+begin
+  result := structelementlist;
+end;
+
 function TDissectedStruct.isUpdating: boolean;
 begin
 
@@ -1257,12 +1271,15 @@ begin
   end
   else
     fullstructupdate:=true;
+  UpdateListeners(self);
 end;
 
 
 
 procedure TDissectedStruct.DoElementChangeNotification(element: TStructelement);
-var i: integer;
+var
+  i: integer;
+  listener : IOnStructureChangeEventHandler;
 begin
   mainform.editedsincelastsave:=true;
 
@@ -1278,6 +1295,7 @@ begin
 
     updateChangedInformation:=true;
   end;
+  UpdateListeners(self);
 end;
 
 procedure TDissectedStruct.beginUpdate;
@@ -1760,6 +1778,31 @@ begin
   endUpdate;
 end;
 
+procedure TDissectedStruct.addOnStructureChangeEventHandler(handler: IOnStructureChangeEventHandler);
+begin
+  if(fListeners.IndexOf(handler) = -1) then
+     fListeners.Add(handler);
+end;
+
+procedure TDissectedStruct.UpdateListeners(struct : TDissectedStruct);
+var
+  listener : IOnStructureChangeEventHandler;
+begin
+  if(fListeners <> nil) then
+  begin
+    for listener in fListeners do
+    begin
+      if assigned(listener) then
+         listener.OnStructureChange(struct);
+    end;
+  end;
+end;
+
+procedure TDissectedStruct.removeOnStructureChangeEventHandler(handler: IOnStructureChangeEventHandler);
+begin
+  fListeners.Remove(handler);
+end;
+
 procedure TDissectedStruct.DoDeleteStructNotification;
 var
   i: integer;
@@ -1784,7 +1827,7 @@ begin
   for i:=0 to frmStructures2.Count-1 do
     TfrmStructures2(frmStructures2[i]).OnStructureDelete(self);
 
-
+  UpdateListeners(nil);
 end;
 
 
@@ -1966,6 +2009,7 @@ begin
 
   self.name:='';
   structelementlist:=tlist.Create;
+  fListeners:=tlist.Create;
   autoCreateStructsize:=4096; //default autocreate size
   setupDefaultSettings;
 
@@ -2124,6 +2168,7 @@ var
 begin
   self.name:='';
   structelementlist:=tlist.Create;
+  fListeners:=tlist.Create;
   autoCreateStructsize:=4096; //default autocreate size
   setupDefaultSettings;
 
@@ -2176,6 +2221,7 @@ constructor TDissectedStruct.create(name: string);
 begin
   self.name:=name;
   structelementlist:=tlist.Create;
+  fListeners:=tlist.Create;
 
   autoCreateStructsize:=4096; //default autocreate size
   setupDefaultSettings;
@@ -2196,6 +2242,10 @@ begin
     freeandnil(structelementlist);
   end;
 
+  if fListeners<>nil then
+  begin
+    freeandnil(fListeners);
+  end;
 
   removeFromGlobalStructList;
 

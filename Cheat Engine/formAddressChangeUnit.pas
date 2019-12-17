@@ -12,7 +12,7 @@ uses
   Buttons, Arrow, Spin, Menus, CEFuncProc, NewKernelHandler, symbolhandler,
   memoryrecordunit, types, byteinterpreter, math, CustomTypeHandler,
   commonTypeDefs, lua, lualib, lauxlib, luahandler, CommCtrl, LuaClass, Clipbrd,
-  DPIHelper;
+  DPIHelper, StructuresFrm2;
 
 const WM_disablePointer=WM_USER+1;
 
@@ -132,6 +132,9 @@ type
     miUpdateAfterInterval: TMenuItem;
     pmPointerRow: TPopupMenu;
     pnlBitinfo: TPanel;
+    pnlStructure: TPanel;
+    lblStructure: TLabel;
+    cbStructure:TComboBox;
     cbunicode: TCheckBox;
     cbvarType: TComboBox;
     edtSize: TEdit;
@@ -1134,6 +1137,7 @@ begin
     vtDouble: cbvarType.ItemIndex:=6;
     vtString: cbvarType.ItemIndex:=7;
     vtByteArray: cbvarType.ItemIndex:=8;
+    vtStructure: cbvarType.ItemIndex:= 9;
   end;
   cbvarType.onchange:=cbvarTypeChange;
   cbvarTypeChange(cbvarType);
@@ -1152,6 +1156,7 @@ begin
   Double
   Text
   Array of Bytes
+  Structure
   <custom types>
   }
   i:=cbvarType.ItemIndex;
@@ -1165,6 +1170,7 @@ begin
     6: result:=vtDouble;
     7: result:=vtString;
     8: result:=vtByteArray;
+    9: result:=vtStructure;
     else
       result:=vtCustom;
   end;
@@ -1228,10 +1234,13 @@ end;
 
 procedure TformAddressChange.cbvarTypeChange(Sender: TObject);
 begin
-  pnlExtra.visible:=cbvarType.itemindex in [0,7,8];
+  pnlExtra.visible:=cbvarType.itemindex in [0,7,8,9];
   pnlBitinfo.visible:=cbvarType.itemindex = 0;
+  edtSize.visible:=cbvarType.itemindex in [0,7,8];
+  lengthlabel.Visible:=cbvarType.itemindex in [0,7,8];
   cbunicode.visible:=cbvarType.itemindex = 7;
   cbCodePage.visible:=cbunicode.Visible;
+  pnlStructure.visible:=cbvarType.itemindex = 9;
 
   AdjustHeightAndButtons;
 
@@ -1365,7 +1374,9 @@ begin
 
     vtCustom:
       cbvarType.ItemIndex:=cbvarType.Items.IndexOf(fMemoryRecord.CustomTypeName);
-
+    vtStructure:
+      if fMemoryRecord.Extra.structureData.Struct <> nil then
+        cbStructure.ItemIndex:=cbStructure.Items.IndexOfObject(fMemoryRecord.Extra.structureData.Struct);
   end;
 
 
@@ -1407,7 +1418,8 @@ begin
 
     vtCustom:
       memoryrecord.CustomTypeName:=cbvarType.Caption;
-
+    vtStructure:
+      memoryrecord.SetStructure(TDissectedStruct(cbStructure.Items.Objects[cbStructure.ItemIndex]));
   end;
 
   memoryrecord.Description:=description;
@@ -1445,6 +1457,7 @@ end;
 
 procedure TformAddressChange.FormCreate(Sender: TObject);
 var i: integer;
+var struct : TDissectedStruct;
 begin
   //fill the varlist with custom types
   cbvarType.Items.Clear;
@@ -1458,10 +1471,19 @@ begin
   cbvarType.items.add(rs_vtString);
   cbvarType.items.add(rs_vtByteArray);
 
+  // Refresh structures as well
+  cbStructure.Items.Clear;
+  if DissectedStructs.Count > 0 then
+  begin
+    for struct in DissectedStructs do
+      cbStructure.AddItem(struct.getName(), struct);
+    if cbStructure.ItemIndex < 0 then
+      cbStructure.ItemIndex := 0;
+    cbvarType.Items.Add(rs_vtStructure);
+  end;
 
   for i:=0 to customTypes.Count-1 do
     cbvarType.Items.AddObject(TCustomType(customtypes[i]).name, customtypes[i]);
-
 
   cbvarType.DropDownCount:=cbvarType.Items.Count;
 end;

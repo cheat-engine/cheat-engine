@@ -122,14 +122,18 @@ object formAddressChange: TformAddressChange
     AnchorSideLeft.Control = Label1
     AnchorSideTop.Control = cbvarType
     AnchorSideTop.Side = asrBottom
+    AnchorSideRight.Control = Owner
+    AnchorSideRight.Side = asrBottom
     Left = 8
     Height = 87
     Top = 118
-    Width = 190
+    Width = 185
+    Anchors = [akTop, akLeft, akRight]
     AutoSize = True
+    BorderSpacing.Right = 8
     BevelOuter = bvNone
     ClientHeight = 87
-    ClientWidth = 190
+    ClientWidth = 185
     TabOrder = 3
     Visible = False
     object cbunicode: TCheckBox
@@ -162,6 +166,50 @@ object formAddressChange: TformAddressChange
       Width = 37
       Caption = 'Length'
       ParentColor = False
+    end
+    object pnlStructure: TPanel
+      AnchorSideLeft.Control = pnlExtra
+      AnchorSideTop.Control = edtSize
+      AnchorSideTop.Side = asrBottom
+      AnchorSideRight.Control = pnlExtra
+      AnchorSideRight.Side = asrBottom
+      Left = 0
+      Height = 23
+      Top = 46
+      Width = 185
+      Anchors = [akTop, akLeft, akRight]
+      AutoSize = True
+      BorderSpacing.Top = 8
+      BevelOuter = bvNone
+      ClientHeight = 23
+      ClientWidth = 185
+      TabOrder = 0
+      object lblStructure: TLabel
+        AnchorSideLeft.Control = pnlStructure
+        AnchorSideTop.Control = pnlStructure
+        Left = 10
+        Height = 15
+        Top = 0
+        Width = 48
+        BorderSpacing.Left = 10
+        Caption = 'Structure'
+        ParentColor = False
+      end
+      object cbStructure: TComboBox
+        AnchorSideLeft.Control = pnlStructure
+        AnchorSideTop.Control = pnlStructure
+        AnchorSideRight.Control = pnlStructure
+        AnchorSideRight.Side = asrBottom
+        Left = 0
+        Height = 23
+        Top = 0
+        Width = 185
+        Anchors = [akTop, akLeft, akRight]
+        DropDownCount = 9
+        ItemHeight = 15
+        Style = csDropDownList
+        TabOrder = 0
+      end
     end
     object pnlBitinfo: TPanel
       AnchorSideLeft.Control = pnlExtra

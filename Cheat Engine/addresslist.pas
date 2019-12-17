@@ -921,6 +921,7 @@ var i: integer;
 begin
   if assigned(fOnDescriptionChange) and fOnDescriptionChange(self,tmemoryrecord(node.data)) then exit;
 
+  if TMemoryRecord(node.data).IsReadonly then exit;
 
   description:=tmemoryrecord(node.data).description;
 
@@ -947,7 +948,7 @@ procedure TAddresslist.addressdblclick(node: TTreenode);
 begin
   if assigned(fOnAddressChange) and fOnAddressChange(self,tmemoryrecord(treeview.selected.Data)) then exit;
 
-  if TMemoryRecord(node.data).isGroupHeader then exit;
+  if TMemoryRecord(node.data).isGroupHeader or TMemoryRecord(node.data).IsReadonly then exit;
 
   with TFormaddresschange.Create(self) do
   begin
@@ -973,6 +974,7 @@ begin
   TypeForm.RefreshCustomTypes;
   memrec:=TMemoryRecord(node.data);
 
+  if memrec.IsReadonly then exit;
   if assigned(fOnTypeChange) and fOnTypeChange(self,memrec) then exit;
 
 
@@ -1021,6 +1023,13 @@ begin
       Typeform.cbunicode.visible:=false;
       Typeform.cbCodePage.visible:=false;
     end;
+    vtStructure:
+    begin
+      TypeForm.SetStructureType(memrec.Extra.structureData.Struct);
+      TypeForm.VarType.itemindex:=9;
+      Typeform.cbunicode.visible:=false;
+      Typeform.cbCodePage.visible:=false;
+    end;
   end;
 
   typeform.MemoryRecord:=memrec;
@@ -1038,10 +1047,14 @@ begin
 
       if memrecitems[i].vartype<>newtype then
         MainForm.editedsincelastsave:=true;
-
-      MemRecItems[i].VarType:=newtype;
-      MemRecItems[i].Extra:=extra;
-      MemRecItems[i].CustomTypeName:=customtypename;
+      if newtype = vtStructure then
+        MemRecItems[i].SetStructure(extra.structureData.Struct)
+      else
+      begin
+        MemRecItems[i].VarType:=newtype;
+        MemRecItems[i].Extra:=extra;
+        MemRecItems[i].CustomTypeName:=customtypename;
+      end;
 
       MemRecItems[i].treenode.update;
     end;
@@ -2098,7 +2111,14 @@ begin
               sender.Canvas.TextRect(rect(header.Sections[3].left, textrect.Top, header.Sections[3].right, textrect.bottom),header.sections[3].left, linetop, VariableTypeToTranslatedString(memrec.VarType)+':'+inttostr(memrec.Extra.bitData.Bit)+'->idiot')
             else
               sender.Canvas.TextRect(rect(header.Sections[3].left, textrect.Top, header.Sections[3].right, textrect.bottom),header.sections[3].left, linetop, VariableTypeToTranslatedString(memrec.VarType)+':'+inttostr(memrec.Extra.bitData.Bit)+'->'+inttostr(memrec.Extra.bitData.Bit+memrec.Extra.bitData.bitlength-1));
-          end
+          end;
+          vtStructure:
+          begin
+            if(memrec.Extra.structureData.Struct<>nil) then
+              sender.Canvas.TextRect(rect(header.Sections[3].left, textrect.Top, header.Sections[3].right, textrect.bottom),header.sections[3].left, linetop, memrec.Extra.structureData.Struct.GetName())
+            else
+              sender.Canvas.TextRect(rect(header.Sections[3].left, textrect.Top, header.Sections[3].right, textrect.bottom),header.sections[3].left, linetop, 'Unknown');
+          end;
           else
           begin
 

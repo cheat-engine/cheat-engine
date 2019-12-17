@@ -2985,6 +2985,7 @@ begin
     vtPointer: result:=rs_vtPointer;
     vtAutoAssembler: Result:=rs_vtAutoAssembler;
     vtCustom: Result:=rs_vtCustom;
+    vtStructure: Result:=rs_vtStructure;
     else
      result:='Error';
   end;
@@ -3008,6 +3009,7 @@ begin
     vtPointer: result:='Pointer';
     vtAutoAssembler: Result:='Auto Assembler Script';
     vtCustom: Result:='Custom';
+    vtStructure: Result:='Structure';
     else
      result:='Error';
   end;
@@ -3034,6 +3036,7 @@ begin
   if s='custom' then  Result :=vtCustom else
   if s='grouped' then result:=vtGrouped else
   if s='auto assembler script' then result:=vtAutoAssembler;
+  if s='structure' then result:=vtStructure;
 end;
 
 

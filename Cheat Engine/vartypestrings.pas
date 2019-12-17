@@ -29,6 +29,7 @@ resourcestring
   rs_vtAutoAssembler='Auto Assembler Script';
   rs_vtCustom='Custom';
   rs_vtGrouped='Grouped';
+  rs_vtStructure='Structure';
 
 const
   eng_vtAll='All';

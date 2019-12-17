@@ -131,6 +131,58 @@ object TypeForm: TTypeForm
     ClientHeight = 76
     ClientWidth = 241
     TabOrder = 1
+    object StructurePanel: TPanel
+      AnchorSideLeft.Control = Panel3
+      AnchorSideTop.Control = Panel3
+      Left = 0
+      Height = 38
+      Top = 0
+      Width = 220
+      AutoSize = True
+      BevelOuter = bvNone
+      ClientHeight = 38
+      ClientWidth = 220
+      TabOrder = 2
+      object StructureLabel: TLabel
+        AnchorSideLeft.Control = StructurePanel
+        AnchorSideTop.Control = StructurePanel
+        Left = 10
+        Height = 15
+        Top = 0
+        Width = 48
+        BorderSpacing.Left = 10
+        Caption = 'Structure'
+        ParentColor = False
+      end
+      object StructureType: TComboBox
+        AnchorSideLeft.Control = StructurePanel
+        AnchorSideTop.Control = StructureLabel
+        AnchorSideTop.Side = asrBottom
+        Left = 10
+        Height = 23
+        Top = 15
+        Width = 200
+        BorderSpacing.Left = 10
+        BorderSpacing.Right = 10
+        Constraints.MinWidth = 200
+        DropDownCount = 9
+        ItemHeight = 15
+        Items.Strings = (
+          'Binary'
+          'Byte'
+          '2 Bytes'
+          '4 Bytes'
+          '8 Bytes'
+          'Float'
+          'Double'
+          'Text'
+          'Array of Bytes'
+        )
+        OnChange = VarTypeChange
+        Style = csDropDownList
+        TabOrder = 0
+      end
+    end
     object lengthlabel: TLabel
       AnchorSideLeft.Control = Panel3
       AnchorSideTop.Control = Panel3

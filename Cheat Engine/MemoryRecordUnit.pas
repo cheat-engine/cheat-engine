@@ -8,7 +8,7 @@ interface
 uses
   Windows, forms, graphics, Classes, SysUtils, controls, stdctrls, comctrls,symbolhandler,
   cefuncproc,newkernelhandler, hotkeyhandler, dom, XMLRead,XMLWrite,
-  customtypehandler, fileutil, LCLProc, commonTypeDefs, pointerparser, LazUTF8, LuaClass;
+  customtypehandler, fileutil, LCLProc, commonTypeDefs, pointerparser, LazUTF8, LuaClass, StructuresFrm2;
 {$endif}
 
 {$ifdef unix}
@@ -57,6 +57,10 @@ type TMemRecByteData=record
       bytelength: integer;
     end;
 
+type TMemRecStructureData=record
+    Struct : TDissectedStruct;
+  end;
+
 type TMemRecAutoAssemblerData=record
       script: tstringlist;
       allocs: TCEAllocArray;
@@ -71,6 +75,7 @@ type TMemRecExtraData=record
       1: (stringData: TMemrecStringData); //if this is the last level (maxlevel) this is an PPointerList
       2: (bitData: TMemRecBitData);   //else it's a PReversePointerListArray
       3: (byteData: TMemRecByteData);
+      4: (structureData: TMemRecStructureData);
   end;
 
 
@@ -130,7 +135,16 @@ type
   TMemoryRecordActivateEvent=function (sender: TObject; before, currentstate: boolean): boolean of object;
   TGetDisplayValueEvent=function(sender: TObject; var value: string): boolean of object;
 
-  TMemoryRecord=class
+  // As we are mixing interface and instance references we cannot use interface Ref counting
+  // This should not pose an issue as long as we clean up references to the interfaces.
+  TNonRefCountedInterfacedObject=class(TObject, IUnknown)
+    public
+      function QueryInterface({$IFDEF FPC_HAS_CONSTREF}constref{$ELSE}const{$ENDIF} iid : tguid;out obj) : longint;{$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
+      function _AddRef : longint;{$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
+      function _Release : longint;{$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
+    end;
+
+  TMemoryRecord= class(TNonRefCountedInterfacedObject, IOnStructureChangeEventHandler)
   private
     fID: integer;
     FrozenValue : string;
@@ -184,6 +198,7 @@ type
 
 
     fDontSave: boolean;
+    fReadonly: boolean;
 
     fAsync: boolean;
     processingThread: TMemoryRecordProcessingThread; //not nil when doing work
@@ -321,6 +336,7 @@ type
 
     function getCurrentDropDownIndex: integer;
 
+    procedure setStructure(structure : TDissectedStruct);
     procedure SetVisibleChildrenState;
 
     procedure cleanupPointerOffsets;
@@ -333,6 +349,7 @@ type
 
     procedure replaceDescription(replace_find, replace_with: string; childrenaswell: boolean);
     procedure adjustAddressby(offset: qword; childrenaswell: boolean);
+    procedure OnStructureChange (sender: TDissectedStruct);
 
     constructor Create(AOwner: TObject);
     destructor destroy; override;
@@ -363,6 +380,8 @@ type
     property Value: string read GetValue write SetValue;
     property DisplayValue: string read GetDisplayValue;
     property DontSave: boolean read fDontSave write fDontSave;
+    property IsReadonly : boolean read fReadonly;
+    
     property AllowDecrease: boolean read fallowDecrease write setAllowDecrease;
     property AllowIncrease: boolean read fallowIncrease write setAllowIncrease;
     property ShowAsHex: boolean read fShowAsHex write setShowAsHex;
@@ -788,6 +807,23 @@ begin
   {$endif}
 end;
 
+{--------------------------TNonRefCountedInterfacedObject----------------------}
+function TNonRefCountedInterfacedObject.QueryInterface(
+  {$IFDEF FPC_HAS_CONSTREF}constref{$ELSE}const{$ENDIF} iid : tguid;out obj) : longint;{$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
+begin
+          Result:=-1
+  end;
+
+function TNonRefCountedInterfacedObject._AddRef : longint;{$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
+begin
+         Result:=-1
+  end;
+
+function TNonRefCountedInterfacedObject._Release : longint;{$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
+begin
+           Result:=-1
+  end;
+
 
 {---------------------------------MemoryRecord---------------------------------}
 
@@ -899,6 +935,86 @@ begin
   end;
 
 
+end;
+
+procedure TMemoryRecord.setStructure(structure : TDissectedStruct);
+var
+  element : TStructElement;
+  childRecord : TMemoryRecord;
+  i : integer;
+  elementCount : integer;
+begin
+  VarType := vtStructure;
+
+  if (structure <> nil) and (structure = extra.structureData.Struct) then
+    elementCount := structure.GetElements.Count
+  else
+    elementCount := 0;
+
+  while treenode.Count > elementCount do
+    TMemoryRecord(treenode[elementCount].Data).Free;
+
+  extra.structureData.Struct := structure;
+
+  if structure = nil then exit;
+
+  for i := 0 to structure.GetElements.Count-1 do
+  begin
+    element := structure.getElement(i);
+    if treenode.Count > i then
+      childRecord := TMemoryRecord(treenode.Items[i].Data)
+    else
+      childRecord:=TMemoryRecord.create(fOwner);
+
+    childRecord.DontSave := true;
+    childRecord.fReadonly := true;
+    childRecord.Description := element.Name;
+    childRecord.interpretableaddress := '+'+IntToHex(element.Offset, 8);
+    childRecord.ReinterpretAddress(true);
+
+    if(treenode.IndexOf(childRecord.treenode) = -1) then
+    begin
+        childRecord.treenode:=treenode.owner.AddObject(nil,'',childRecord);
+        childRecord.treenode.MoveTo(treenode, naAddChild); //make it the last child of this node
+    end;
+
+    if element.isPointer then
+    begin
+      childRecord.offsetCount:=1;
+      childRecord.offsets[0].setOffsetText(IntToStr(element.getOffset));
+      childRecord.SetStructure(element.ChildStruct);
+    end
+    else
+    begin
+      case element.VarType of
+        vtUnicodeString:
+        begin
+          childRecord.VarType := vtString;
+          childRecord.Extra.stringData.length := Trunc(element.Bytesize / 2);
+          childRecord.Extra.stringData.unicode := true;
+        end;
+        vtString:
+        begin
+          childRecord.VarType := vtString;
+          childRecord.Extra.stringData.length := element.Bytesize;
+        end;
+        vtByteArray:
+        begin
+          childRecord.VarType := vtByteArray;
+          childRecord.Extra.byteData.bytelength := element.Bytesize;
+        end;
+        vtCustom:
+        begin
+          childRecord.VarType := vtCustom;
+          childRecord.CustomTypeName := element.CustomType.name;
+        end;
+        else
+          childRecord.VarType := element.VarType;
+      end;
+    end;
+  end;
+  SetVisibleChildrenState;
+  structure.addOnStructureChangeEventHandler(self);
 end;
 
 function TMemoryRecord.getDropDownReadOnly: boolean;
@@ -1108,11 +1224,16 @@ begin
   if autoassemblerdata.registeredsymbols<>nil then
     autoassemblerdata.registeredsymbols.free;
 
+  //remove struct listener
+  if (VarType = vtStructure)
+      and (extra.structureData.Struct <> nil)
+      and assigned(extra.structureData.Struct) then
+    extra.structureData.Struct.removeOnStructureChangeEventHandler(self);
+
   //free the group's children
   {$IFNDEF UNIX}
   while (treenode.count>0) do
     TMemoryRecord(treenode[0].data).free;
-
 
   if treenode<>nil then
     treenode.free;
@@ -1129,7 +1250,10 @@ begin
 
 end;
 
-
+procedure TMemoryRecord.OnStructureChange (sender: TDissectedStruct);
+begin
+  SetStructure(sender);
+end;
 
 procedure TMemoryRecord.SetVisibleChildrenState;
 {Called when options change and when children are assigned}
@@ -1169,6 +1293,20 @@ end;
 
 procedure TMemoryRecord.setVarType(v:  TVariableType);
 begin
+  //cleanup old type
+    case VarType of
+      vtStructure:
+      begin
+        if extra.structureData.Struct <> nil then
+          extra.structureData.Struct.removeOnStructureChangeEventHandler(self);
+        if v <> vtStructure then
+        begin
+          while treenode.Count > 0 do
+            TMemoryRecord(treenode[0].Data).Free;
+          treeNode.DeleteChildren;
+        end;
+      end;
+    end;
   //setup some of the default settings
   case v of
     vtUnicodeString: //this type was added later. convert it to a string
@@ -1229,6 +1367,7 @@ var
 
   hk: TMemoryRecordHotkey;
   memrec: TMemoryRecord;
+  struct: TDissectedStruct;
   a:TDOMNode;
 begin
   {$IFNDEF UNIX}
@@ -1443,6 +1582,16 @@ begin
 
           a:=tempnode.Attributes.GetNamedItem('Async');
           if (a<>nil) then fAsync:=a.TextContent='1';
+        end;
+      end;
+      vtStructure:
+      begin
+        tempnode:=CheatEntry.FindNode('Structure');
+        if tempnode<>nil then
+        begin
+          for struct in DissectedStructs do
+            if struct.GetName() = tempnode.TextContent then
+              setStructure(struct);
         end;
       end;
 
@@ -1863,6 +2012,11 @@ begin
         end;
 
         n.TextContent:=AutoAssemblerData.script.Text;
+      end;
+      vtStructure:
+      begin
+        if(extra.structureData.Struct<>nil) then
+          cheatEntry.AppendChild(doc.CreateElement('Structure')).TextContent:=extra.structureData.Struct.GetName();
       end;
     end;
 
