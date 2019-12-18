@@ -6,6 +6,18 @@ unit pointerscannerfrm;
 
 interface
 
+{$ifdef darwin}
+uses
+  macport, macportdefines, LCLIntf, lmessages, LResources, Messages, SysUtils, Variants,
+  Classes, Graphics, Controls, Forms, Dialogs, StdCtrls, ExtCtrls, ComCtrls,
+  syncobjs, syncobjs2, Menus, math, frmRescanPointerUnit, pointervaluelist,
+  rescanhelper, VirtualMemory, symbolhandler, MainUnit, disassembler,
+  CEFuncProc, NewKernelHandler, ValueFinder, PointerscanresultReader, maps,
+  zstream, Sockets, registry, PageMap, CELazySocket,
+  PointerscanNetworkCommands, resolve, pointeraddresslist, pointerscanworker,
+  PointerscanStructures, PointerscanController, sqlite3conn, sqldb,
+  frmSelectionlistunit, baseunix, commonTypeDefs;
+{$else}
 uses
   windows, LCLIntf, LResources, Messages, SysUtils, Variants, Classes, Graphics,
   Controls, Forms, Dialogs, StdCtrls, ExtCtrls, ComCtrls, syncobjs, syncobjs2,
@@ -17,6 +29,7 @@ uses
   PointerscanStructures, PointerscanController, sqlite3conn, sqldb,
   frmSelectionlistunit, commonTypeDefs;
 
+{$endif}
 
 
 const staticscanner_done=wm_user+1;
@@ -358,11 +371,11 @@ type
 implementation
 
 
-uses PointerscannerSettingsFrm, frmMemoryAllocHandlerUnit, frmSortPointerlistUnit,
-  LuaHandler, lauxlib, lua, frmPointerscanConnectDialogUnit,
-  frmpointerrescanconnectdialogunit, frmMergePointerscanResultSettingsUnit,
-  ProcessHandlerUnit, frmResumePointerscanUnit, PointerscanConnector,
-  frmSetupPSNNodeUnit, PointerscanNetworkStructures, parsers, byteinterpreter,
+uses PointerscannerSettingsFrm, {$ifdef windows}frmMemoryAllocHandlerUnit,frmSortPointerlistUnit, {$endif}
+  LuaHandler, lauxlib, lua, {$ifdef windows}frmPointerscanConnectDialogUnit,
+  frmpointerrescanconnectdialogunit, frmMergePointerscanResultSettingsUnit,  {$endif}
+  ProcessHandlerUnit, {$ifdef windows}frmResumePointerscanUnit,{$endif} PointerscanConnector,
+  {$ifdef windows}frmSetupPSNNodeUnit,{$endif} PointerscanNetworkStructures, parsers, byteinterpreter,
   CustomTypeHandler, ceregistry, vartypestrings;
 
 resourcestring
@@ -506,8 +519,10 @@ procedure Tfrmpointerscanner.m_staticscanner_done(var message: tmessage);
 begin
   if staticscanner=nil then exit;
 
+  {$ifdef windows}
   if staticscanner.useHeapData then
     frmMemoryAllocHandler.memrecCS.leave;  //continue adding new entries
+  {$endif}
 
   //update the treeview
   if staticscanner.haserror then
@@ -699,6 +714,7 @@ begin
 end;
 
 procedure Tfrmpointerscanner.miResumeClick(Sender: TObject);
+{$ifdef windows}
 var
   f: tfrmresumePointerScan;
   filename: string;
@@ -762,9 +778,10 @@ var
 
   pb: TProgressbar;
   lb: TLabel;
-
+{$endif}
 
 begin
+  {$ifdef windows}
   //show a dialog where the user can pick the number of threads to scan
   if (pointerscanresults<>nil) and Pointerscanresults.CanResume then
   begin
@@ -944,7 +961,7 @@ begin
   end
   else
     miResume.Visible:=false;
-
+  {$endif}
 end;
 
 procedure Tfrmpointerscanner.Method3Fastspeedandaveragememoryusage1Click(
@@ -1166,9 +1183,10 @@ begin
       staticscanner.useHeapData:=frmpointerscannersettings.cbUseHeapData.Checked;
       staticscanner.useOnlyHeapData:=frmpointerscannersettings.cbHeapOnly.checked;
 
-
+       {$ifdef windows}
       if staticscanner.useHeapData then
         frmMemoryAllocHandler.memrecCS.enter; //stop adding entries to the list
+       {$endif}
 
       //check if the user choose to scan for addresses or for values
       staticscanner.findValueInsteadOfAddress:=frmpointerscannersettings.rbFindValue.checked;
@@ -1910,8 +1928,11 @@ begin
 end;
 
 procedure Tfrmpointerscanner.miCreatePSNnodeClick(Sender: TObject);
+{$ifdef windows}
 var f: TfrmSetupPSNNode;
+  {$endif}
 begin
+  {$ifdef windows}
   f:=TfrmSetupPSNNode.Create(self);
   if f.showmodal=mrok then
   begin
@@ -1961,6 +1982,7 @@ begin
   end;
 
   f.free;
+  {$endif}
 end;
 
 procedure Tfrmpointerscanner.miInfoPopupPopup(Sender: TObject);
@@ -2105,6 +2127,7 @@ end;
 
 procedure Tfrmpointerscanner.lvResultsColumnClick(Sender: TObject; Column: TListColumn);
 //Using dark byte's super secret "Screw this, I'll just split it into chunks" algorithm
+{$ifdef windows}
 var
   c: integer;
   frmSortPointerlist: TfrmSortPointerlist;
@@ -2117,7 +2140,10 @@ var
   newname: string;
   i: integer;
   s: string;
+  {$endif}
 begin
+
+  {$ifdef windows}
   c:=column.index;
   if c=lvResults.ColumnCount-1 then exit; //raise exception.create('The result/value list is unsortable');
   if Pointerscanresults.count<=1 then exit; //don't even bother
@@ -2157,6 +2183,7 @@ begin
   oldlist.free;
 
   frmSortPointerlist.free;
+  {$endif}
 end;
 
 procedure Tfrmpointerscanner.Timer2Timer(Sender: TObject);
@@ -2947,7 +2974,7 @@ var
 
   blocksize: qword;
 
-  threadhandles: array of Thandle;
+  threadhandles: array of TThreadID;
   result: tfilestream;
 
 
@@ -2965,6 +2992,8 @@ var
   oldfiles: TStringList;
 
   ml: Tstringlist;
+
+  alldone: boolean;
 
 begin
   progressbar.Min:=0;
@@ -3077,8 +3106,7 @@ begin
 
 
 
-
-
+    {$ifdef windows}
     while WaitForMultipleObjects(rescanworkercount, @threadhandles[0], true, 250) = WAIT_TIMEOUT do      //wait
     begin
       //query all threads the number of pointers they have evaluated
@@ -3088,8 +3116,26 @@ begin
 
       progressbar.Position:=PointersEvaluated div (TotalPointersToEvaluate div 100);
     end;
+    {$else}
+    repeat
+      alldone:=true;
+      PointersEvaluated:=0;
+      for i:=0 to rescanworkercount-1 do
+      begin
+        inc(PointersEvaluated,rescanworkers[i].evaluated);
+        if rescanworkers[i].Finished=false then
+          alldone:=false;
+      end;
+
+      progressbar.Position:=PointersEvaluated div (TotalPointersToEvaluate div 100);
+      if not alldone then sleep(250);
+
+    until alldone;
+
+    {$endif}
 
     //no timeout, so finished or crashed
+
 
     //destroy workers
     for i:=0 to rescanworkercount-1 do

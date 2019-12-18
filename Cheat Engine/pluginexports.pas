@@ -4,7 +4,9 @@ unit pluginexports;
 
 interface
 
-uses jwawindows, windows, ExtCtrls , comctrls, Graphics, forms, StdCtrls,sysutils,Controls,
+uses {$ifdef darwin}macport,macportdefines,{$endif}
+     {$ifdef windows}jwawindows, windows,{$endif}
+     ExtCtrls , comctrls, Graphics, forms, StdCtrls,sysutils,Controls,
      SyncObjs,dialogs,LCLIntf,classes,autoassembler,
      CEFuncProc,NewKernelHandler,CEDebugger,kerneldebugger, plugin, math,
      debugHelper, debuggertypedefinitions, typinfo, ceguicomponents, strutils, commonTypeDefs;
@@ -126,7 +128,7 @@ implementation
 
 uses MainUnit,MainUnit2, AdvancedOptionsUnit, Assemblerunit,disassembler,
      frmModifyRegistersUnit, formsettingsunit, symbolhandler,frmautoinjectunit,
-     manualModuleLoader, MemoryRecordUnit, MemoryBrowserFormUnit, LuaHandler,
+     {$ifdef windows}manualModuleLoader,{$endif} MemoryRecordUnit, MemoryBrowserFormUnit, LuaHandler,
      ProcessHandlerUnit, ProcessList, BreakpointTypeDef;
 
 resourcestring
@@ -562,7 +564,12 @@ var SNAPHandle: THandle;
     Check: Boolean;
     s: string;
     s2: string;
+
+    {$ifdef darwin}
+    pl: tstringstream;
+    {$endif}
 begin
+  {$ifdef windows}
   result:=true;
   s2:='';
 
@@ -600,6 +607,11 @@ begin
   finally
     closehandle(snaphandle);
   end;
+  {$else}
+  result:=false;
+  {$endif}
+
+
 end;
 
 function ce_InjectDLL(dllname: pchar; functiontocall: pchar):BOOL; stdcall;
@@ -820,11 +832,14 @@ begin
 end;
 
 function ce_loadModule(modulepath: pchar; exportlist: pchar; maxsize: pinteger): BOOL; stdcall;
+{$ifdef windows}
 var
   ml: TModuleLoader;
   s: string;
   i: integer;
+  {$endif}
 begin
+  {$ifdef windows}
   result:=false;
   try
     ml:=TModuleLoader.create(modulepath);
@@ -845,6 +860,10 @@ begin
       messagebox(0, pchar(e.Message), pchar(rsLoadModuleFailed), MB_OK);
     end;
   end;
+  {$else}
+  result:=false;
+  {$endif}
+
 end;
 
 function pluginsync(func: TPluginFunc; parameters: pointer): pointer; stdcall;
@@ -1548,9 +1567,14 @@ begin
 
   if debuggerthread<>nil then
   begin
+    {$ifdef windows}
     if ContinueOption=co_stepover then
-      MemoryBrowser.miDebugStepOver.Click //use the memorybrowser step code for this case. Based on the debugstate and not gui state so should work
+    begin
+      MemoryBrowser.miDebugStepOver.OnClick(MemoryBrowser.miDebugStepOver);
+      //MemoryBrowser.miDebugStepOver.Click //use the memorybrowser step code for this case. Based on the debugstate and not gui state so should work
+    end
     else
+    {$endif}
       debuggerthread.ContinueDebugging(continueoption);
 
     result:=pointer(1);
@@ -2391,6 +2415,7 @@ begin
 end;
 
 function ce_createProcess2(params: pointer): pointer;
+{$ifdef windows}
 type Tp= record
   path,params: pchar;
   debug: boolean;
@@ -2400,7 +2425,9 @@ var p: ^tp;
 
   startupinfo: windows.STARTUPINFO;
   processinfo: windows.PROCESS_INFORMATION;
+{$endif}
 begin
+  {$ifdef windows}
   p:=params;
 
   try
@@ -2442,6 +2469,7 @@ begin
     result:=nil;
 
   end;
+  {$endif}
 end;
 
 function ce_createProcess(path,params: pchar; debug, breakonentry: BOOL): BOOL; stdcall;

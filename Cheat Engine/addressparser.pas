@@ -4,7 +4,9 @@ unit addressparser;
 
 interface
 
-uses LCLIntf,SysUtils,dialogs,symbolhandler, NewKernelHandler;
+uses
+  {$ifdef darwin}macport,{$endif}
+  LCLIntf,SysUtils,dialogs,symbolhandler, NewKernelHandler;
 
 resourcestring
   rsAPThisIsNotAValidAddress = 'This is not a valid address';

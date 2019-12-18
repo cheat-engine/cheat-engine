@@ -20,9 +20,11 @@ Lines contain he disassembled address and the description of that line
 
 interface
 
-uses jwawindows, windows, sysutils, LCLIntf,forms, classes, controls, comctrls, stdctrls, extctrls, symbolhandler,
+uses {$ifdef darwin}macport,messages,lcltype,{$endif}
+     {$ifdef windows}jwawindows, windows,commctrl,{$endif}
+     sysutils, LCLIntf, forms, classes, controls, comctrls, stdctrls, extctrls, symbolhandler,
      cefuncproc, NewKernelHandler, graphics, disassemblerviewlinesunit, disassembler,
-     math, lmessages, menus,commctrl, dissectcodethread;
+     math, lmessages, menus, dissectcodethread;
 
 
 
@@ -445,11 +447,11 @@ begin
 
   //outputdebugstring(inttohex(msg.msg,8));
 
-  if msg.msg=WM_MOUSEWHEEL then
+  {if msg.msg=WM_MOUSEWHEEL then
   begin
 //    messagebox(0,'wm_mousewheel','',0);
 
-  end;
+  end;}
   if msg.Msg=CN_KEYDOWN then
   begin
     // messagebox(0,pchar('1 : '+inttohex(ptrUint(@msg.msg),8)+' - '+inttohex(ptrUint(@msg.wparam),8)+' - '+inttohex(ptrUint(@msg.lparam),8)  ),'',0);

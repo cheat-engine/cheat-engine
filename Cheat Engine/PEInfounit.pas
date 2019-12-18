@@ -10,7 +10,13 @@ that 'some people' (idiots) would not understand that it isn't a packet editor
 interface
 
 uses
-  windows, LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
+  {$ifdef darwin}
+  macport,
+  {$endif}
+  {$ifdef windows}
+  windows,
+  {$endif}
+  LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
   Dialogs, CEFuncProc, NewKernelHandler, Buttons, StdCtrls, ExtCtrls,
   ComCtrls, LResources, Menus, symbolhandler, PEInfoFunctions, commonTypeDefs,
   Clipbrd;
@@ -210,9 +216,12 @@ resourcestring
   rsPEDebugfile = 'Debugfile =%s';
 
 function peinfo_getcodesize(header: pointer; headersize: integer=0): dword;
+{$ifdef windows}
 var
     ImageNTHeader: PImageNtHeaders;
+{$endif}
 begin
+  {$ifdef windows}
   result:=0;
 
   if (headersize=0) or (PImageDosHeader(header)^._lfanew<=headersize-sizeof(TImageNtHeaders)) then
@@ -220,49 +229,65 @@ begin
     ImageNTHeader:=PImageNtHeaders(ptrUint(header)+PImageDosHeader(header)^._lfanew);
     result:=ImageNTHeader.OptionalHeader.SizeOfCode;
   end;
+  {$endif}
 end;
 
 function peinfo_getdatabase(header: pointer; headersize: integer=0): ptrUint;
+{$ifdef windows}
 var
     ImageNTHeader: PImageNtHeaders;
+{$endif}
 begin
   result:=0;
+  {$ifdef windows}
   if (headersize=0) or (PImageDosHeader(header)^._lfanew<=headersize-sizeof(TImageNtHeaders)) then
   begin
     ImageNTHeader:=PImageNtHeaders(ptrUint(header)+PImageDosHeader(header)^._lfanew);
     result:=ImageNTHeader.OptionalHeader.BaseOfData;
   end;
+  {$endif}
 end;
 
 function peinfo_getcodebase(header: pointer; headersize: integer=0): ptrUint;
+{$ifdef windows}
 var
     ImageNTHeader: PImageNtHeaders;
+{$endif}
 begin
+{$ifdef windows}
   result:=0;
   if (headersize=0) or (PImageDosHeader(header)^._lfanew<=headersize-sizeof(TImageNtHeaders)) then
   begin
     ImageNTHeader:=PImageNtHeaders(ptrUint(header)+PImageDosHeader(header)^._lfanew);
     result:=ImageNTHeader.OptionalHeader.BaseOfCode;
   end;
+{$endif}
 end;
 
 function peinfo_getEntryPoint(header: pointer; headersize: integer=0): ptrUint;
+{$ifdef windows}
 var
     ImageNTHeader: PImageNtHeaders;
+{$endif}
 begin
+{$ifdef windows}
   result:=0;
   if (headersize=0) or (PImageDosHeader(header)^._lfanew<=headersize-sizeof(TImageNtHeaders)) then
   begin
     ImageNTHeader:=PImageNtHeaders(ptrUint(header)+PImageDosHeader(header)^._lfanew);
     result:=ImageNTHeader.OptionalHeader.AddressOfEntryPoint;
   end;
+{$endif}
 
 end;
 
 function peinfo_getheadersize(header: pointer): dword;
+{$IFDEF windows}
 var
     ImageNTHeader: PImageNtHeaders;
+{$ENDIF}
 begin
+  {$IFDEF windows}
   result:=0;
   if PImageDosHeader(header)^.e_magic<>IMAGE_DOS_SIGNATURE then exit;
 
@@ -271,14 +296,19 @@ begin
   if ImageNTHeader.Signature<>IMAGE_NT_SIGNATURE then exit;
 
   result:=ImageNTHeader.OptionalHeader.SizeOfHeaders;
+  {$ENDIF}
 end;
 
 function peinfo_getimagesize(header: pointer): dword;
+{$IFDEF windows}
 var
     ImageNTHeader: PImageNtHeaders;
+{$ENDIF}
 begin
+  {$IFDEF windows}
   ImageNTHeader:=PImageNtHeaders(ptrUint(header)+PImageDosHeader(header)^._lfanew);
   result:=ImageNTHeader.OptionalHeader.SizeOfImage;
+  {$ENDIF}
 end;
 
 procedure TfrmPEInfo.ParseFile(loaded: boolean);
@@ -287,6 +317,8 @@ This will parse the memorycopy and fill in the all data
 params:
   Loaded: Determines if the memory copy is from when it has been loaded or on file (IAT filled in, relocations done, etc...)
 }
+
+{$IFDEF windows}
 var MZheader: ttreenode;
     PEheader: ttreenode;
     datadir: ttreenode;
@@ -329,8 +361,10 @@ var MZheader: ttreenode;
     tempstring: pchar;
 
     s: string;
+{$ENDIF}
 begin
 
+  {$IFDEF windows}
   PEItv.Items.BeginUpdate;
   lbImports.Items.BeginUpdate;
   lbExports.Items.BeginUpdate;
@@ -890,6 +924,7 @@ begin
       loadedmodule:=nil;
     end;
   end;
+  {$ENDIF}
 end;
 
 procedure TfrmPEInfo.LoadButtonClick(Sender: TObject);
@@ -947,7 +982,7 @@ var
   ss: TStringStream;
   i: integer;
 begin
-  ss:=TStringStream.Create;
+  ss:=TStringStream.Create({$if FPC_FULLVERSION<030200}''{$endif});
   try
     PEItv.SaveToStream(ss);
 
@@ -987,7 +1022,7 @@ begin
   case PageControl1.TabIndex of
     0:
       begin
-        ss:=TStringStream.Create('',TEncoding.Default, false);
+        ss:=TStringStream.Create(''{$if FPC_FULLVERSION>=030200},TEncoding.Default, false{$endif});
         PEItv.SaveToStream(ss);
         Clipboard.AsText:=ss.DataString;
 

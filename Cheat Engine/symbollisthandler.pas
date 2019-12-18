@@ -13,9 +13,9 @@ uses
   windows, Classes, SysUtils, AvgLvlTree, math, fgl, cvconst, syncobjs, symbolhandlerstructs;
 {$endif}
 
-{$ifdef unix}
+{$ifdef darwin}
 uses
-  unixporthelper, Classes, SysUtils, AvgLvlTree, math, fgl, cvconst, syncobjs;
+  macport, Classes, SysUtils, AvgLvlTree, math, fgl, cvconst, syncobjs, symbolhandlerstructs;
 {$endif}
 
 type
@@ -156,13 +156,9 @@ type
 
 implementation
 
-{$ifdef windows}
-uses CEFuncProc, symbolhandler;
-{$endif}
 
-{$ifdef unix}
-uses symbolhandler;
-{$endif}
+uses CEFuncProc, symbolhandler;
+
 
 
 
@@ -685,7 +681,6 @@ end;
 destructor TSymbolListHandler.destroy;
 var i: integer;
 begin
-
   if symhandler<>nil then
     symhandler.RemoveSymbolList(self);
 

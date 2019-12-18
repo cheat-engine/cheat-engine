@@ -5,10 +5,16 @@ unit DebugHelper;
 interface
 
 uses
-  Windows, Classes, SysUtils, Controls, forms, syncobjs, guisafecriticalsection, Dialogs,
+  {$ifdef darwin}
+  macport,macexceptiondebuggerinterface, LCLIntf,LCLType,
+  {$endif}
+  {$ifdef windows}
+  Windows,  KernelDebuggerInterface, WindowsDebugger,
+  {$endif}
+  Classes, SysUtils, Controls, forms, syncobjs, guisafecriticalsection, Dialogs,
   foundcodeunit, debugeventhandler, cefuncproc, newkernelhandler, comctrls,
-  debuggertypedefinitions, formChangedAddresses, frmTracerUnit, KernelDebuggerInterface, VEHDebugger,
-  WindowsDebugger, debuggerinterfaceAPIWrapper, debuggerinterface,symbolhandler,
+  debuggertypedefinitions, formChangedAddresses, frmTracerUnit, VEHDebugger,
+  DebuggerInterfaceAPIWrapper, DebuggerInterface,symbolhandler,
   fgl, disassembler, NetworkDebuggerInterface, Clipbrd, commonTypeDefs ,BreakpointTypeDef;
 
 {$warn 4056 off}
@@ -163,7 +169,7 @@ resourcestring
 
 implementation
 
-uses cedebugger, kerneldebugger, formsettingsunit, FormDebugStringsUnit,
+uses cedebugger, KernelDebugger, formsettingsunit, FormDebugStringsUnit,
      frmBreakpointlistunit, plugin, memorybrowserformunit, autoassembler,
      pluginexports, networkInterfaceApi, processhandlerunit, Globals, LuaCaller,
      vmxfunctions, LuaHandler, frmDebuggerAttachTimeoutUnit;
@@ -234,8 +240,10 @@ var
   debugging: boolean;
   currentprocesid: dword;
   ContinueStatus: dword;
+  {$ifdef windows}
   startupinfo: windows.STARTUPINFO;
   processinfo: windows.PROCESS_INFORMATION;
+  {$endif}
   dwCreationFlags: dword;
   error: integer;
 
@@ -254,12 +262,15 @@ begin
   try
     try
       currentprocesid := 0;
+      {$ifdef windows}
       DebugSetProcessKillOnExit(False); //do not kill the attached processes on exit
+      {$endif}
 
 
 
       if createprocess then
       begin
+        {$ifdef windows}
         dwCreationFlags:=DEBUG_PROCESS or DEBUG_ONLY_THIS_PROCESS;
 
         zeromemory(@startupinfo,sizeof(startupinfo));
@@ -295,6 +306,10 @@ begin
         symhandler.reinitialize(true);
 
         closehandle(processinfo.hProcess);
+        {$else}
+        raise exception.create('Process creation with debugger is not yet supported');
+        {$endif}
+
       end else
       begin
         fNeedsToSetEntryPointBreakpoint:=false; //just be sure
@@ -810,12 +825,14 @@ begin
 
       breakpoint^.active := True;
 
+      {$ifdef windows}
       if (CurrentDebuggerInterface is TKernelDebugInterface) and globaldebug then
       begin
         //set the breakpoint using globaldebug
         DBKDebug_GD_SetBreakpoint(true, breakpoint.debugregister, breakpoint.address, BreakPointTriggerToBreakType(breakpoint.breakpointTrigger), SizeToBreakLength(breakpoint.size));
       end
       else
+      {$endif}
       begin
         if (breakpoint.ThreadID <> 0) or (UpdateForOneThread<>nil) then
         begin
@@ -833,6 +850,7 @@ begin
           currentthread.suspend;
           currentthread.fillContext;
 
+          {$ifdef windows}
           if CurrentDebuggerInterface is TWindowsDebuggerInterface then
           begin
             if (currentthread.context.Dr6<>0) and (word(currentthread.context.dr6)<>$0ff0) then
@@ -845,6 +863,7 @@ begin
               exit;
             end;
           end;
+          {$endif}
 
           if BPOverride or ((byte(currentthread.context.Dr7) and byte(Debugregistermask))=0) then
           begin
@@ -876,6 +895,7 @@ begin
               currentthread.suspend;
               currentthread.fillContext;
 
+              {$ifdef windows}
               if CurrentDebuggerInterface is TWindowsDebuggerInterface then
               begin
                 if (currentthread.context.Dr6<>0) and (word(currentthread.context.dr6)<>$0ff0) then
@@ -888,6 +908,7 @@ begin
 
                 end;
               end;
+              {$endif}
 
 
               if BPOverride or ((byte(currentthread.context.Dr7) and byte(Debugregistermask))=0) then
@@ -940,9 +961,15 @@ begin
     bpmException:
     begin
       //exception bp (slow)
-
+      {$ifdef darwin}
+      task_suspend(processhandle);
+      {$endif}
+      {$ifdef windows}
       if assigned(ntsuspendprocess) then
         ntSuspendProcess(processhandle);
+      {$endif}
+
+
 
       //Make the page(s) unreadable/unwritable based on the option and if other breakpoints are present
 
@@ -954,13 +981,20 @@ begin
 
       VirtualProtectEx(processhandle, pointer(breakpoint.address), breakpoint.size,newprotect, oldprotect); //throw oldprotect away
 
+      {$ifdef darwin}
+      task_resume(processhandle);
+      {$endif}
+
+      {$ifdef windows}
       if assigned(ntResumeProcess) then //Q: omg, but what if ntResumeProcess isn't available on the os but suspendprocess is? A:Then buy a new os
         ntResumeProcess(processhandle);
+      {$endif}
     end;
 
     bpmDBVM:
     begin
       Log('Setting DBVM Watch Breakpoint');
+      {$ifdef windows}
       loaddbvmifneeded;
 
       if GetPhysicalAddress(processhandle,pointer(breakpoint^.address),pa) then
@@ -978,6 +1012,7 @@ begin
       end
       else
         raise exception.create(format('Failure obtaining physical address for %8x',[breakpoint^.address]));
+      {$endif}
     end;
 
     //bpmDBVM2: //todo: in case of execute then instead of a no-execute page, make it a cloaked page with an int3 bp
@@ -1024,11 +1059,13 @@ begin
     Debugregistermask := not Debugregistermask; //inverse the bits
 
 
+    {$ifdef windows}
     if (CurrentDebuggerInterface is TKernelDebugInterface) and globaldebug then
     begin
       DBKDebug_GD_SetBreakpoint(false, breakpoint.debugregister, breakpoint.address, BreakPointTriggerToBreakType(breakpoint.breakpointTrigger), SizeToBreakLength(breakpoint.size));
     end
     else
+    {$endif}
     begin
       if (specificContext<>nil) then
       begin
@@ -1055,6 +1092,7 @@ begin
         currentthread.suspend;
         currentthread.fillContext;
 
+        {$ifdef windows}
         if CurrentDebuggerInterface is TWindowsDebuggerInterface then
         begin
           if (currentthread.context.Dr6<>0) and (word(currentthread.context.dr6)<>$0ff0) then
@@ -1068,6 +1106,7 @@ begin
             exit;
           end;
         end;
+        {$endif}
 
         //check if this breakpoint was set in this thread
         if (BPOverride) or ((currentthread.DebugRegistersUsedByCE and (1 shl breakpoint.debugregister))>0) then
@@ -1096,6 +1135,7 @@ begin
             currentthread.suspend;
             currentthread.fillContext;
 
+            {$ifdef windows}
             if CurrentDebuggerInterface is TWindowsDebuggerInterface then
             begin
               if (currentthread.context.Dr6<>0) and (word(currentthread.context.dr6)<>$0ff0) then
@@ -1108,6 +1148,7 @@ begin
 
               end;
             end;
+            {$endif}
 
 
             hasoldbp:=false; //now check if this thread actually has the breakpoint set (and not replaced or never even set)
@@ -1175,8 +1216,13 @@ begin
   if breakpoint^.breakpointMethod=bpmException then
   begin
     //check if there are other exception breakpoints
+    {$ifdef darwin}
+    task_suspend(processhandle);
+    {$endif}
+    {$ifdef windows}
     if assigned(ntsuspendProcess) then
       ntSuspendProcess(ProcessHandle);
+    {$endif}
 
     breakpoint^.active := False;
 
@@ -1188,8 +1234,13 @@ begin
     VirtualProtectEx(processhandle, pointer(breakpoint^.address), breakpoint^.size, AccessRightsToAllocationProtect(ar), oldprotect);
 
 
+    {$ifdef darwin}
+    task_resume(processhandle);
+    {$endif}
+    {$ifdef windows}
     if assigned(ntResumeProcess) then
       ntResumeProcess(ProcessHandle);
+    {$endif}
 
 
   end
@@ -1815,8 +1866,13 @@ begin
 
     if startcondition<>'' then
     begin
+      {$ifdef darwin}
+      task_suspend(processhandle);
+      {$endif}
+      {$ifdef windows}
       if assigned(ntSuspendProcess) then
         ntSuspendProcess(processhandle);
+      {$endif}
     end;
 
     bp:=AddBreakpoint(nil, address, bpsize, BreakpointTrigger, breakpointmethod, bo_BreakAndTrace, usedDebugRegister,  nil, 0, nil,frmTracer,count);
@@ -1826,8 +1882,13 @@ begin
       if bp<>nil then
         setbreakpointcondition(bp, true, startcondition);
 
+      {$ifdef darwin}
+      task_resume(processhandle);
+      {$endif}
+      {$ifdef windows}
       if assigned(ntResumeProcess) then
         ntResumeProcess(processhandle);
+      {$endif}
     end;
 
     if bp<>nil then
@@ -2120,6 +2181,7 @@ begin
   result:=nil;
   if bpm=bpmException then
   begin
+    {$ifdef windows}
     if not processhandler.is64Bit then
     begin
       //32 bit: check if it has noexecute support
@@ -2175,6 +2237,7 @@ begin
       else
         raise exception.create(rsNoExecutePageExceptionsForYou);
     end;
+    {$endif}
   end;
 
   debuggercs.enter;
@@ -2666,6 +2729,7 @@ begin
     CurrentDebuggerInterface:=TNetworkDebuggerInterface.create
   else
   begin
+    {$ifdef windows}
     if formsettings.cbUseWindowsDebugger.checked then
       CurrentDebuggerInterface:=TWindowsDebuggerInterface.create
     else if formsettings.cbUseVEHDebugger.checked then
@@ -2675,6 +2739,12 @@ begin
       globalDebug:=formsettings.cbGlobalDebug.checked;
       CurrentDebuggerInterface:=TKernelDebugInterface.create(globalDebug, formsettings.cbCanStepKernelcode.checked);
     end;
+    {$endif}
+
+    {$ifdef darwin}
+    outputdebugstring('Setting the CurrentDebuggerInterface to the MacException Debug interface');
+    CurrentDebuggerInterface:=TMacExceptionDebugInterface.create;
+    {$endif}
   end;
 
 

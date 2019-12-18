@@ -5,7 +5,10 @@ unit frmCapturedTimersUnit;
 interface
 
 uses
-  windows, LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
+  {$ifdef windows}
+  windows,
+  {$endif}
+  LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, ComCtrls, LResources, ExtCtrls;
 
 type TTimerMessage = record
@@ -34,8 +37,10 @@ type
     TimerMessages: array of TTimerMessage;
   public
     { Public declarations }
+    {$ifdef windows}
     windowhandle:thandle;
     procedure receivedtimermessage(var Message: TMessage); message WM_USER+1;
+    {$endif}
   end;
 
 var
@@ -45,6 +50,7 @@ implementation
 
 uses frmDissectwindowUnit;
 
+{$ifdef windows}
 
 procedure TfrmCapturedTimers.receivedtimermessage(var Message: TMessage);
 var i,j: integer;
@@ -106,6 +112,7 @@ begin
     freememandnil(classname);
   end;
 end;
+{$endif}
 
 procedure TfrmCapturedTimers.FormClose(Sender: TObject;
   var Action: TCloseAction);
@@ -122,6 +129,7 @@ procedure TfrmCapturedTimers.Button2Click(Sender: TObject);
 var i,j: integer;
     count: integer;
 begin
+  {$ifdef windows}
   val(edit1.Text,count,i);
   if i>0 then beep;
 
@@ -133,6 +141,7 @@ begin
         sendmessage(timermessages[j].handle,wm_timer,timermessages[j].TimerID,timermessages[j].Timerproc);
     end;
   end;
+  {$endif}
 end;
 
 initialization

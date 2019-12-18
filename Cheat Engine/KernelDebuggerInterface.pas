@@ -4,6 +4,7 @@ unit KernelDebuggerInterface;
 
 interface
 
+{$ifdef windows}
 uses
   jwawindows, windows, Classes, SysUtils,cefuncproc, newkernelhandler,DebuggerInterface,contnrs;
 
@@ -60,8 +61,11 @@ type
     constructor create(globalDebug, canStepKernelcode: boolean);
   end;
 
+{$endif}
+
 implementation
 
+{$ifdef windows}
 
 uses symbolhandler, ProcessHandlerUnit;
 
@@ -487,7 +491,7 @@ begin
 
   fmaxSharedBreakpointCount:=4;
 end;
-
+{$endif}
 
 end.
 

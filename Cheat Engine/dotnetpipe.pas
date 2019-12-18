@@ -3,15 +3,23 @@ unit DotNetPipe;
 {$mode objfpc}{$H+}
 
 interface
-{$ifdef windows}
-uses
-  jwawindows, windows, Classes, SysUtils, CEFuncProc, syncobjs, NewKernelHandler, Globals, maps;
-{$endif}
 
-{$ifdef unix}
+{$ifdef jni}
 //mainly for some defines for easy compilation
 uses unixporthelper, Unix, Classes, SysUtils, syncobjs, NewKernelHandler, Globals;
+
+{$else}
+uses
+  {$ifdef darwin}
+  macport, mactypes,
+  {$endif}
+  {$ifdef windows}
+  jwawindows, windows,
+  {$endif}
+  Classes, SysUtils, CEFuncProc, syncobjs, NewKernelHandler, Globals, maps;
 {$endif}
+
+
 
 
 

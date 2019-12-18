@@ -7,17 +7,20 @@ unit foundlisthelper;
 
 interface
 
-{$ifdef windows}
-uses LCLIntf,sysutils,classes,ComCtrls,StdCtrls,symbolhandler, symbolhandlerstructs, CEFuncProc,
-     NewKernelHandler, memscan, CustomTypeHandler, byteinterpreter,
-     groupscancommandparser, math, AvgLvlTree, commonTypeDefs, parsers;
-{$endif}
 
-{$ifdef unix}
+
+
+{$ifdef jni}
 //in cecore the foundlisthelper is data only. No link to a listview
 uses sysutils,classes, symbolhandler, ProcessHandlerUnit, NewKernelHandler, memscan,
      byteinterpreter, CustomTypeHandler, groupscancommandparser, math, AvgLvlTree,
      commonTypeDefs, parsers, unixporthelper;
+{$else}
+uses {$ifdef darwin}macport,{$endif}
+     LCLIntf,sysutils,classes,ComCtrls,StdCtrls,symbolhandler, symbolhandlerstructs, CEFuncProc,
+     NewKernelHandler, memscan, CustomTypeHandler, byteinterpreter,
+     groupscancommandparser, math, AvgLvlTree, commonTypeDefs, parsers;
+
 {$endif}
 
 type TScanType=(fs_advanced,fs_addresslist);
@@ -117,7 +120,7 @@ type Tscandisplayroutine=procedure(value: pointer; output: pchar);
 
 implementation
 
-{$ifdef windows}
+{$ifndef jni}
 uses mainunit, processhandlerunit;
 {$endif}
 

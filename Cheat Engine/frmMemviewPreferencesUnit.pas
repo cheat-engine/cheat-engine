@@ -7,7 +7,13 @@ interface
 uses
   Classes, SysUtils, FileUtil, LResources, Forms, Controls, Graphics, Dialogs,
   StdCtrls, Menus, ExtCtrls, disassemblerviewunit, disassemblerviewlinesunit,
-  windows;
+  LCLIntf, LCLType,
+  {$ifdef darwin}
+  macport, math
+  {$endif}
+  {$ifdef windows}
+  windows
+  {$endif};
 
 type
 
@@ -200,7 +206,9 @@ procedure TfrmMemviewPreferences.FormShow(Sender: TObject);
 var
   i: integer;
   extrasize: integer;
+  {$ifdef windows}
   cbi: TComboboxInfo;
+  {$endif}
 begin
   applyfont;
 
@@ -208,10 +216,12 @@ begin
   cbColorGroupChange(cbColorGroup);
 
   //
+  {$ifdef windows}
   cbi.cbSize:=sizeof(cbi);
   if GetComboBoxInfo(cbColorGroup.handle, @cbi) then
     extrasize:=cbi.rcButton.Right-cbi.rcButton.Left+cbi.rcItem.Left
   else
+  {$endif}
     extrasize:=16;
 
   i:=Canvas.TextWidth(rsDCNormal)+extrasize;

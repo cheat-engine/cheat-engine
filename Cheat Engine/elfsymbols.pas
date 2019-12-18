@@ -8,6 +8,9 @@ uses
 {$ifdef JNI}
   Classes, SysUtils, elftypes, elfconsts, networkInterface, unixporthelper, newkernelhandler, processhandlerunit;
 {$else}
+  {$ifdef darwin}
+  macport,
+  {$endif}
   Classes, SysUtils, elftypes, elfconsts, networkInterface, cefuncproc, newkernelhandler, processhandlerunit;
 {$endif}
 

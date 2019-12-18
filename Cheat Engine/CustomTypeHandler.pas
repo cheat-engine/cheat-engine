@@ -7,17 +7,19 @@ This class is used as a wrapper for different kinds of custom types
 
 interface
 
-{$ifdef windows}
-uses
-  dialogs, Classes, SysUtils,cefuncproc, autoassembler, lua, lauxlib, lualib,
-  math, commonTypeDefs;
-{$endif}
 
-{$ifdef unix} //not yet implemented, but the interface is available
+
+
+
+{$ifdef jni} //not yet implemented, but the interface is available
 uses
   Classes, SysUtils, math;
 
 type PLua_state=pointer;
+{$else}
+uses
+  dialogs, Classes, SysUtils,cefuncproc, autoassembler, lua, lauxlib, lualib,
+  math, commonTypeDefs;
 {$endif}
 
 type TConversionRoutine=function(data: pointer):integer; stdcall;

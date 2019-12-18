@@ -66,6 +66,7 @@ var limit: word;
 
     title: string;
 begin
+  {$ifdef windows}
   getidts(@address,1);
   limit:=256;
 
@@ -108,6 +109,7 @@ begin
   finally
     freememandnil(x);
   end;
+  {$endif}
 end;
 
 initialization

@@ -5,14 +5,17 @@ unit LuaRemoteThread;
 interface
 
 uses
-  Classes, SysUtils,lua, lualib, lauxlib,LuaHandler;
+  Classes, SysUtils,lua, lualib, lauxlib,LuaHandler, LCLType;
 
 
   procedure initializeLuaRemoteThread;
 
 implementation
 
-uses windows, ProcessHandlerUnit, luaclass, luaobject, NewKernelHandler;
+uses
+  {$ifdef darwin}macport,pthreads, macCreateRemoteThread, {$endif}
+  {$ifdef windows}windows,{$endif}
+  ProcessHandlerUnit, LuaClass, LuaObject, NewKernelHandler;
 
 type
   TRemoteThread=class
@@ -25,11 +28,12 @@ type
     constructor create(address: ptruint; parameter: ptruint);
   published
     property Result: integer read getResult;
-end;
+  end;
 
 function TRemoteThread.getResult: integer;
 var r: dword;
 begin
+
   if GetExitCodeThread(h, r) then
     result:=r
   else
@@ -39,7 +43,21 @@ end;
 
 function TRemoteThread.waitForThread(timeout: integer): integer;
 begin
+  result:=-1; //not yet implemented
+  {$ifdef windows}
   result:=WaitForSingleObject(h,timeout);
+  {$endif}
+
+  {$ifdef darwin}
+  if macWaitForRemoteThread(h, timeout) then
+    result:=WAIT_OBJECT_0
+  else
+    result:=WAIT_TIMEOUT;
+
+  {$endif}
+
+
+
 end;
 
 constructor TRemoteThread.create(address: ptruint; parameter: ptruint);

@@ -5,7 +5,13 @@ unit CEDebugger;
 
 interface
 
-uses windows, Classes,LCLIntf,sysutils,CEFuncProc,Messages,forms,SyncObjs,
+uses {$ifdef darwin}
+     macport, macportdefines,
+     {$endif}
+     {$ifdef windows}
+     windows,
+     {$endif}
+     Classes,LCLIntf,sysutils,CEFuncProc,Messages,forms,SyncObjs,
      dialogs,controls,Graphics,NewKernelHandler,symbolhandler,StrUtils,
      ComCtrls ,Assemblerunit,addressparser, debughelper;
 
@@ -53,7 +59,7 @@ type
       HandleAttributes: UCHAR;
       HandleValue: USHORT;
       obj: pointer;
-      GrantedAccess: ACCESS_MASK;
+      GrantedAccess: DWORD;
     end;
 
     SYSTEM_HANDLE_INFORMATION=record
@@ -142,7 +148,9 @@ type TNtQuerySystemInformation=function(infoClass : dword; systemInformation : P
 type TNtQueryInformationProcess=function(Handle : THandle; infoClass : TProcessInfoClass; processInformation : Pointer; processInformationLength : ULONG; returnLength : PULONG) : DWORD; stdcall;
 type TNtQueryInformationThread=function(Handle : THandle; infoClass : TThreadinfoClass; ThreadInformation: pointer; processInformationLength : ULONG; returnLength : PULONG) : DWORD; stdcall;
 
+
 var //DebuggerThread: TDebugger;
+   {$ifdef windows}
 
     DbgUIDebugActiveProcess:TDbgUIDebugActiveProcess;
     DebugBreakProcess:TDebugBreakProcess;
@@ -160,8 +168,10 @@ var //DebuggerThread: TDebugger;
 
     krn: thandle;
     ntdlllib: thandle;
-
+     {$endif}
     CRDebugging: TCriticalSection;
+
+
 
 
   function startdebuggerifneeded: boolean; overload;
@@ -213,9 +223,11 @@ begin
 
   if (debuggerthread=nil) then
   begin
+    {$ifdef windows}
     if @DebugActiveProcessStop=@DebugActiveProcessStopProstitute then
       mes:=rsThisWillAttachTheDebuggerOfCheatEngineToTheCurrent+' '+rsDoNotCloseCE
     else
+    {$endif}
       mes:=rsThisWillAttachTheDebuggerOfCheatEngineToTheCurrent+' '+rsContinue;
 
     if ask then
@@ -254,6 +266,7 @@ end;
 
 
 initialization
+  {$ifdef windows}
   CRDebugging:=TCriticalSection.Create;
 
   krn := LoadLibrary('Kernel32.dll');
@@ -297,6 +310,7 @@ initialization
     freelibrary(ntdlllib);
   end;
 
+  {$endif}
 
 finalization
   if CRDebugging<>nil then

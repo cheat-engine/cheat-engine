@@ -5,7 +5,13 @@ unit frmgroupscanalgoritmgeneratorunit;
 interface
 
 uses
-  windows, Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls,
+  {$ifdef darwin}
+  macport,
+  {$endif}
+  {$ifdef windows}
+  windows,
+  {$endif}
+  Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls,
   ExtCtrls, CustomTypeHandler, math, strutils, cefuncproc, groupscancommandparser,
   vartypestrings, commonTypeDefs;
 
@@ -204,7 +210,9 @@ var
   i: integer;
   maxwidth: integer;
 
+  {$ifdef windows}
   cbi: TComboboxInfo;
+  {$endif}
 begin
   inherited create(frm);
   AutoSize:=false;
@@ -314,6 +322,7 @@ begin
   edtValue.visible:=false;
 
 
+  {$ifdef windows}
   cbi.cbSize:=sizeof(cbi);
   if GetComboBoxInfo(cbVartype.Handle, @cbi) then
   begin
@@ -321,6 +330,7 @@ begin
 
     cbvartype.width:=cbvartype.width+i;
   end;
+  {$endif}
 
   edtValue.Constraints.MinWidth:=frm.Canvas.TextWidth('XXXXXXXXXXX');
 

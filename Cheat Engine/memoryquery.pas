@@ -14,13 +14,18 @@ uses
   Classes, SysUtils, windows, CEFuncProc, NewKernelHandler;
 {$endif}
 
+{$ifdef darwin}
+uses
+  Classes, SysUtils, macport, CEFuncProc, NewKernelHandler;
+{$endif}
+
 function FindFreeBlockForRegion(base: ptrUint; size: dword): pointer;
 function isAddress(address: ptrUint):boolean;
 function isExecutableAddress(address: ptrUint):boolean;
 
 implementation
 
-uses networkInterface, networkInterfaceApi, ProcessHandlerUnit;
+uses (*networkInterface, networkInterfaceApi,*) ProcessHandlerUnit;
 
 {$ifdef jni}
 var
@@ -38,19 +43,15 @@ var
     x: byte;
     br: ptruint;
 {$endif}
-{$ifdef windows}
-    mbi: TMemoryBasicInformation;
-{$endif}
+  mbi: TMemoryBasicInformation;
 begin
   {$ifdef jni}
   result:=ReadProcessMemory(processhandle, pointer(address), @x, 1, br);
   {$endif}
 
-  {$ifdef windows}
   result:=false;
   if VirtualQueryEx(processhandle, pointer(address), mbi, sizeof(mbi))>0 then
     result:=(mbi.State=MEM_COMMIT);// and (mbi.AllocationProtect<>PAGE_NOACCESS);
-  {$endif}
 end;
 
 function isExecutableAddress(address: ptrUint):boolean;
@@ -76,7 +77,9 @@ var
 
   minAddress,maxAddress: ptrUint;
 
+  {$ifdef windows}
   c: TCEConnection;
+  {$endif}
 begin
 
   //todo: Do some network specific stuff
@@ -93,12 +96,14 @@ begin
 
   if processhandler.is64Bit then
   begin
+    {$ifdef windows}
     if getConnection<>nil then
     begin
       minAddress:=$8000;
       maxAddress:=$7fffffffffffffff;
     end
     else
+    {$endif}
     begin
       if (minAddress>ptrUint(systeminfo.lpMaximumApplicationAddress)) or (minAddress<ptrUint(systeminfo.lpMinimumApplicationAddress)) then
         minAddress:=ptrUint(systeminfo.lpMinimumApplicationAddress);
@@ -192,7 +197,6 @@ initialization
   systeminfo.lpMinimumApplicationAddress:=$8000;
   systeminfo.lpMaximumApplicationAddress:=$7fffffffffffffff;
   systeminfo.dwAllocationGranularity:=0;
-
   {$endif}
 
 end.

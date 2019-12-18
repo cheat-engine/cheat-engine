@@ -169,13 +169,16 @@ begin
     if (parameters>=2) then
       changename:=lua_toboolean(L, 2);
 
+
     if symhandler.GetLayoutFromAddress(address, al) then
     begin
+
       struct.fillFromDotNetAddressData(al);
 
       if changename then
         struct.setName(al.classname);
     end;
+
 
   end;
 end;

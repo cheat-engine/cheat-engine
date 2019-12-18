@@ -8,7 +8,12 @@ Just some functions to make sockets easier
 interface
 
 uses
+  {$ifdef windows}
   Classes, SysUtils, Sockets, winsock, ssockets, NewKernelHandler;
+  {$endif}
+  {$ifdef darwin}
+  Classes, SysUtils, Sockets, ssockets, NewKernelHandler, ctypes, baseunix, macport;
+  {$endif}
 
 type
   TSocketException=class(Exception);
@@ -124,7 +129,9 @@ begin
 end;
 
 constructor TSocketStream.create(s: tsocket; becomeownerofsocket: boolean=true);
+{$ifdef windows}
 var bm: u_long;
+  {$endif}
 begin
   inherited create;
   writer:=TMemoryStream.create;
@@ -136,7 +143,7 @@ begin
     bm:=1;
     ioctlsocket(sockethandle, longint(FIONBIO), bm);
   {$else}
-    fcntl(fSocket, F_SETFL, fcntl(socketfd, F_GETFL, 0) | O_NONBLOCK);
+    FpFcntl(sockethandle, F_SETFL, FpFcntl(sockethandle, F_GETFL, 0) or O_NONBLOCK);
   {$endif}
 
 end;
@@ -173,17 +180,20 @@ begin
         if i=EsockEWOULDBLOCK then
         begin
           //wait till it's available
-          fdset.fd_count:=0;
-          FD_SET(socket, fdset);
+          zeromemory(@fdset,sizeof(fdset));
+//          fdset.fd_count:=0;
+
+          fpFD_SET(socket, fdset);
 
           if timeout>0 then
           begin
             t.tv_sec:=timeout;
             t.tv_usec:=0;
-            i:=select(socket, nil, @fdset, nil, @t);
+
+            i:=fpselect(socket, nil, @fdset, nil, @t);
           end
           else
-            i:=select(socket, nil, @fdset, nil, nil);
+            i:=fpselect(socket, nil, @fdset, nil, nil);
 
           if i=0 then
             raise TSocketException.create(rsTimeoutWhileSendingData);
@@ -234,18 +244,19 @@ begin
         if i=EsockEWOULDBLOCK then
         begin
           //wait till it's available
-          fdset.fd_count:=0;
-          FD_SET(socket, fdset);
+          zeromemory(@fdset,sizeof(fdset));
+//          fdset.fd_count:=0;
+          fpFD_SET(socket, fdset);
 
           if timeout>0 then
           begin
             t.tv_sec:=timeout;
             t.tv_usec:=0;
 
-            i:=select(socket, @fdset, nil, nil, @t);
+            i:=fpselect(socket, @fdset, nil, nil, @t);
           end
           else
-            i:=select(socket, @fdset, nil, nil, nil);
+            i:=fpselect(socket, @fdset, nil, nil, nil);
 
 
           if i=0 then

@@ -8,6 +8,8 @@ It's basically just a forward for everything
 
 interface
 
+{$ifdef windows}
+
 uses
   Classes, SysUtils, DebuggerInterface, windows, cefuncproc,newkernelhandler,
   symbolhandler, dialogs;
@@ -24,9 +26,11 @@ type TWindowsDebuggerInterface=class(TDebuggerInterface)
     constructor create;
 end;
 
+{$endif}
 
 implementation
 
+{$ifdef windows}
 uses autoassembler, pluginexports, CEDebugger, DebugHelper, processhandlerunit;
 
 resourcestring
@@ -112,6 +116,7 @@ begin
 
 end;
 
+{$endif}
 
 end.
 

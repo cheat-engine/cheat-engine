@@ -5,7 +5,13 @@ unit frmLuaEngineUnit;
 interface
 
 uses
-  windows, Classes, SysUtils, FileUtil, LResources, Forms, Controls, Graphics,
+  {$ifdef darwin}
+  macport, LCLIntf, LCLProc, Unix, registry, xmlreg,
+  {$endif}
+  {$ifdef windows}
+  windows,
+  {$endif}
+  Classes, SysUtils, FileUtil, LResources, Forms, Controls, Graphics,
   Dialogs, StdCtrls, Menus, ExtCtrls, SynMemo, SynCompletion, SynEdit, lua,
   lauxlib, lualib, LuaSyntax, luahandler, cefuncproc, sqldb, strutils,
   InterfaceBase, ComCtrls, SynGutterBase, SynEditMarks, PopupNotifier, ActnList,
@@ -1029,7 +1035,14 @@ begin
       end;
 
       if application.Terminated then
+      begin
+        {$ifdef windows}
         ExitProcess(UINT(-1)); //there's nothing to return to...
+        {$endif}
+        {$ifdef darwin}
+        KillThread(GetCurrentThreadId);
+        {$endif}
+      end;
 
       LuaDebugForm.mScript.ReadOnly:=false;
 
@@ -1456,7 +1469,7 @@ end;
 procedure TfrmLuaEngine.MenuItem2Click(Sender: TObject);
 begin
   if OpenDialog1.Execute then
-    mscript.Lines.LoadFromFile(opendialog1.filename, true);
+    mscript.Lines.LoadFromFile(opendialog1.filename{$if FPC_FULLVERSION>=030200}, true{$endif});
 
 end;
 

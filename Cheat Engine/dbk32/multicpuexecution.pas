@@ -7,7 +7,9 @@ This unit provides some routines that make it easier to pinpoint which cpu will 
 
 interface
 
-uses windows,classes, sysutils;
+uses
+  {$ifdef darwin}macport,{$endif}
+  {$ifdef windows}windows,{$endif}classes, sysutils, LCLIntf;
 
 type TCpuSpecificFunction=function(parameters: pointer): BOOL; stdcall;
 function foreachcpu(functionpointer: TCpuSpecificFunction; parameters: pointer) :boolean;
@@ -35,6 +37,7 @@ end;
 function forspecificcpu(cpunr: integer; functionpointer: TCpuSpecificFunction; parameters: pointer) :boolean;
 var PA,SA:DWORD_PTR;
 begin
+  {$ifdef windows}
   result:=true;
   GetProcessAffinityMask(getcurrentprocess,PA,SA);
 
@@ -59,6 +62,9 @@ begin
     free;
   end;
   SetProcessAffinityMask(GetCurrentProcess,PA);
+  {$else}
+  result:=false;
+  {$endif}
 end;
 
 function foreachcpu(functionpointer: TCpuSpecificFunction; parameters: pointer) :boolean;
@@ -66,6 +72,7 @@ var
   cpunr,PA,SA:DWORD_PTR;
   r: bool;
 begin
+  {$ifdef windows}
   result:=true;
   GetProcessAffinityMask(getcurrentprocess,PA,SA);
 
@@ -78,7 +85,9 @@ begin
 
   SetProcessAffinityMask(GetCurrentProcess,PA);
 
-
+  {$else}
+  result:=false;
+  {$endif}
 end;
 
 end.

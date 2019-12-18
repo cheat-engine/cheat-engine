@@ -5,7 +5,13 @@ unit FoundCodeUnit;
 interface
 
 uses
-  windows, LCLIntf, LResources, Messages, SysUtils, Variants, Classes, Graphics,
+  {$ifdef darwin}
+  macport, math,
+  {$endif}
+  {$ifdef windows}
+  windows,
+  {$endif}
+  LCLIntf, LResources, Messages, SysUtils, Variants, Classes, Graphics,
   Controls, Forms, Dialogs, StdCtrls, disassembler, ExtCtrls, Menus,
   NewKernelHandler, clipbrd, ComCtrls, fgl, formChangedAddresses, LastDisassembleData,
   vmxfunctions;
@@ -42,6 +48,7 @@ type
   { TFoundCodeDialog }
   TFoundCodeDialog=class;
 
+  {$ifdef windows}
   TDBVMWatchPollThread=class(TThread)
   private
     results: PPageEventListDescriptor;
@@ -54,6 +61,7 @@ type
     fcd: TfoundCodeDialog;
     procedure execute; override;
   end;
+  {$endif}
 
 
   TFoundCodeDialog = class(TForm)
@@ -109,7 +117,9 @@ type
     { Private declarations }
     setcountwidth: boolean;
     fdbvmwatchid: integer;
+    {$ifdef windows}
     dbvmwatchpollthread: TDBVMWatchPollThread;
+    {$endif}
 
     usedmiFindWhatAccesses: boolean; //debug
     procedure stopdbvmwatch;
@@ -147,6 +157,7 @@ uses CEFuncProc, CEDebugger,debughelper, debugeventhandler, MemoryBrowserFormUni
 
 
 
+{$IFDEF windows}
 procedure TDBVMWatchPollThread.execute;
 var
   i: integer;
@@ -207,6 +218,7 @@ begin
   freememandnil(results);
   freeandnil(cr3disassembler);
 end;
+{$ENDIF}
 
 destructor TCodeRecord.Destroy;
 begin
@@ -224,6 +236,8 @@ begin
   formChangedAddresses:=nil;
 end;
 
+
+{$IFDEF windows}
 procedure TDBVMWatchPollThread.addEntriesToList;
 var
   coderecord: TCodeRecord;
@@ -439,6 +453,7 @@ begin
       outputdebugstring('TDBVMWatchPollThread.addEntriesToList error: '+e.message);
   end;
 end;
+{$ENDIF}
 
 procedure TCodeRecord.savestack;
 var base: qword;
@@ -552,12 +567,14 @@ end;
 
 procedure TFoundCodeDialog.stopdbvmwatch;
 begin
+  {$IFDEF windows}
   if dbvmwatchpollthread<>nil then
   begin
     dbvmwatchpollthread.Terminate;
     dbvmwatchpollthread.WaitFor;
     freeandnil(dbvmwatchpollthread);
   end;
+
 
   if dbvmwatchid<>-1 then
   begin
@@ -570,10 +587,12 @@ begin
     UnlockMemory(dbvmwatch_unlock);
     dbvmwatch_unlock:=0;
   end;
+  {$endif}
 end;
 
 procedure TFoundCodedialog.setdbvmwatchid(id: integer);
 begin
+  {$IFDEF windows}
   fdbvmwatchid:=id;
 
   if id<>-1 then
@@ -588,6 +607,7 @@ begin
 
     useexceptions:=true;
   end;
+  {$ENDIF}
 end;
 
 
@@ -768,12 +788,14 @@ begin
 
 
     address:=coderecord.address;
+    {$IFDEF windows}
     if coderecord.dbvmcontextbasic<>nil then
     begin
       d:=TCR3Disassembler.Create;
       TCR3Disassembler(d).CR3:=coderecord.dbvmcontextbasic^.CR3;
     end
     else
+    {$ENDIF}
       d:=TDisassembler.Create;
 
 

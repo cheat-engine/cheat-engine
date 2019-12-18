@@ -5,9 +5,15 @@ unit ProcessWindowUnit;
 interface
 
 uses
-  jwawindows, windows, LCLIntf, Messages, SysUtils, Classes, Graphics, Controls,
+  {$ifdef darwin}
+  macport,
+  {$endif}
+  {$ifdef windows}
+  jwawindows, windows,
+  {$endif}
+  LCLIntf, Messages, SysUtils, Classes, Graphics, Controls,
   Forms, Dialogs, StdCtrls, ExtCtrls, CEFuncProc,CEDebugger, ComCtrls, ImgList,
-  filehandler, Menus, LResources,{tlhelp32,}vmxfunctions, NewKernelHandler,
+  Filehandler, Menus, LResources,{tlhelp32,}{$ifdef windows}vmxfunctions,{$endif} NewKernelHandler,
   debugHelper{, KIcon}, commonTypeDefs, math;
 
 type tprocesslistlong = class(tthread)
@@ -117,7 +123,7 @@ implementation
 
 
 uses MainUnit, formsettingsunit, advancedoptionsunit,frmProcessWatcherUnit,
-  memorybrowserformunit, networkConfig, ProcessHandlerUnit, processlist, globals,
+  memorybrowserformunit{$ifdef windows}, networkConfig{$endif}, ProcessHandlerUnit, processlist, globals,
   registry, fontSaveLoadRegistry, frmOpenFileAsProcessDialogUnit;
 
 resourcestring
@@ -164,6 +170,7 @@ var i: dword;
     x: pchar;
     modulename:string;
 begin
+  {$ifdef windows}
   i:=0;
 
 
@@ -193,6 +200,7 @@ begin
   end;
 
   if processcount>0 then synchronize(drawprocesses);
+  {$endif}
 end;
 
 procedure loadCommonProcessesList;
@@ -205,7 +213,7 @@ begin
   begin
     if commonProcessesList=nil then commonProcessesList:=tstringlist.create;
     try
-      commonProcessesList.LoadFromFile(s, true);
+      commonProcessesList.LoadFromFile(s{$if FPC_FULLVERSION >= 030200}, true{$endif});
       for i:=commonProcessesList.Count-1 downto 0 do
       begin
         j:=pos('#', commonProcessesList[i]);
@@ -216,6 +224,7 @@ begin
     except
     end;
   end;
+
 end;
 
 function isInCommonProcessesList(processname: string): boolean;
@@ -286,9 +295,26 @@ var
   x: array of integer;
   reg: tregistry;
 begin
+
+
+  {$ifdef darwin}
+  //tabheader is bugged
+  ProcessList.Parent:=self;
+  ProcessList.AnchorSideTop:=TabHeader.AnchorSideTop;
+  ProcessList.AnchorSideLeft:=TabHeader.AnchorSideLeft;
+  ProcessList.AnchorSideRight:=TabHeader.AnchorSideRight;
+  ProcessList.AnchorSideBottom:=TabHeader.AnchorSideBottom;
+  ProcessList.Anchors:=TabHeader.Anchors;
+  TabHeader.TabIndex:=1;
+  TabHeader.Visible:=false;
+  {$endif}
+
+  {$ifdef windows}
   TabHeader.Tabs[0]:=rsApplications;
   TabHeader.Tabs[1]:=rsProcesses;
   TabHeader.Tabs[2]:=rsWindows;
+
+
 
   setlength(x,0);
   if LoadFormPosition(self,x) then
@@ -319,7 +345,7 @@ begin
     reg.free;
   end;
 
-
+  {$endif}
 
 
 
@@ -385,6 +411,7 @@ end;
 
 procedure TProcessWindow.btnNetworkClick(Sender: TObject);
 begin
+  {$ifdef windows}
   if frmNetworkConfig=nil then
     frmNetworkConfig:=tfrmNetworkConfig.create(self);
 
@@ -395,6 +422,7 @@ begin
     else
       TabHeader.Tabindex:=1;
   end;
+  {$endif}
 end;
 
 procedure TProcessWindow.Button1Click(Sender: TObject);
@@ -432,6 +460,7 @@ begin
     end;
   end;
 
+  {$ifdef windows}
   if (processid<>0) and (UseFileAsMemory or Usephysical or usephysicaldbvm) then
   begin
     //swap back to processmemory
@@ -453,13 +482,13 @@ begin
     else
       DONTUseDBKReadWriteMemory;
   end;
-
+  {$endif}
 
   Open_Process;
 
   ProcessSelected:=true;
 
-
+  {$ifdef windows}
   if (processid=0) and ((formsettings.cbKernelReadWriteProcessMemory.checked) or (dbvm_version>=$ce000004)) then
   begin
     ProcessHandler.processid:=$FFFFFFFF;
@@ -475,6 +504,7 @@ begin
     if usephysical or usephysicaldbvm then
       DBKProcessMemory;
   end;
+  {$endif}
 
 end;
 
@@ -594,7 +624,7 @@ end;
 procedure TProcessWindow.btnOpenFileClick(Sender: TObject);
 begin
 
-
+   {$ifdef windows}
 
   if opendialog2.execute then
   begin
@@ -615,6 +645,7 @@ begin
       modalresult:=mrok;
     end;
   end;
+   {$endif}
 
 end;
 
@@ -733,14 +764,15 @@ begin
 
 
   processlist.Canvas.TextOut(rect.Left+rect.Bottom-rect.Top+3,rect.Top,t);
-
+  {$ifdef windows}
   if (processlist.Items.Objects[index]<>nil) and (PProcessListInfo(processlist.Items.Objects[index])^.processIcon>0) then
     DrawIconEx(processlist.Canvas.Handle, rect.left, rect.Top, PProcessListInfo(processlist.Items.Objects[index])^.processIcon, rect.Bottom-rect.Top,rect.Bottom-rect.Top,0,0,DI_NORMAL);
-
+  {$endif}
 end;
 
 procedure TProcessWindow.FormShow(Sender: TObject);
 begin
+
   OKButton.Constraints.MinHeight:=trunc(1.2*btnAttachDebugger.height);
   CancelButton.Constraints.MinHeight:=OKButton.Constraints.MinHeight;
 
@@ -769,12 +801,15 @@ begin
     end;
     errortrace:=106;
 
+
     processlist.SetFocus;
+
   except
     on e:exception do
       raise exception.create('FormShow exception ('+e.message+') at section '+inttostr(errortrace));
 
   end;
+
 end;
 
 procedure TProcessWindow.ProcessListKeyPress(Sender: TObject; var Key: char);
@@ -804,8 +839,10 @@ begin
     case TabHeader.TabIndex of
       0:
       begin
+        {$ifdef windows}
         getwindowlist2(processlist.Items);
         miSkipSystemProcesses.enabled:=true;
+        {$endif}
       end;
 
       1:
@@ -817,9 +854,11 @@ begin
 
       2:
       begin
+        {$ifdef windows}
         GetWindowList(processlist.Items, miShowInvisibleItems.Checked);
         miSkipSystemProcesses.enabled:=false;
         processlist.ItemIndex:=processlist.Items.Count-1;
+        {$endif}
       end;
     end;
 
@@ -861,10 +900,12 @@ begin
     else
       caption:=rsProcessList;
 
+    {$ifdef windows}
     if formsettings.cbKernelReadWriteProcessMemory.checked or (dbvm_version>=$ce000004) then //driver is active
     begin
       processlist.Items.Insert(0, '00000000-['+rsPhysicalMemory+']');
     end;
+    {$endif}
 
   finally
     processlist.items.EndUpdate;

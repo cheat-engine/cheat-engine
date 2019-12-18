@@ -7,7 +7,13 @@ unit LuaGenericHotkey;
 interface
 
 uses
-  windows, Classes, SysUtils, lua, lauxlib, lualib, genericHotkey, CEFuncProc,
+  {$ifdef darwin}
+  macport,
+  {$endif}
+  {$ifdef windows}
+  windows,
+  {$endif}
+  Classes, SysUtils, lua, lauxlib, lualib, genericHotkey, CEFuncProc,
   math, commonTypeDefs;
 
 

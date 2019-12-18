@@ -49,7 +49,7 @@ implementation
 
 { TfrmStructureLinker }
 
-uses ProcessHandlerUnit;
+uses ProcessHandlerUnit{$ifdef darwin},macport{$endif};
 
 resourcestring
   strIsNotAValidAddress = '%s is not a valid address';

@@ -5,12 +5,18 @@ unit trainergenerator;
 interface
 
 uses
-  windows, Classes, SysUtils, FileUtil, LResources, Forms, Controls, Graphics,
+  {$ifdef darwin}
+  macport,
+  {$endif}
+  {$ifdef windows}
+  windows,
+  {$endif}
+  Classes, SysUtils, FileUtil, LResources, Forms, Controls, Graphics,
   Dialogs, ceguicomponents, lclintf, StdCtrls, EditBtn, ExtCtrls, ExtDlgs,
-  ComCtrls, Buttons, Menus, ExtraTrainerComponents, cefuncproc, HotkeyHandler,
+  ComCtrls, Buttons, Menus, ExtraTrainerComponents, CEFuncProc, HotkeyHandler,
   HotKeys, symbolhandler, luacaller, formdesignerunit, opensave, luafile,
   frmAdConfigUnit, cesupport, IconStuff, memoryrecordunit, frmSelectionlistunit,
-  mainunit2, lua, luahandler, commonTypeDefs;
+  MainUnit2, lua, luahandler, commonTypeDefs, math;
 
 type
   TTrainerForm=class(TCEForm)
@@ -848,7 +854,7 @@ end;
 
 
 procedure TfrmTrainerGenerator.Button1Click(Sender: TObject);
-var hi: HICON;
+var
   i: integer;
 
 

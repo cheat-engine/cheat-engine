@@ -11,6 +11,8 @@ procedure initializeLuaOldD3DHook;
 
 implementation
 
+{$ifdef windows}
+
 uses d3dhookUnit, LuaCaller, LuaHandler, LuaClass;
 
 function d3dhook_getWidth(L: PLua_State): integer; cdecl;
@@ -878,8 +880,11 @@ begin
   lua_pop(L, parameters);
 end;
 
+{$endif}
+
 procedure initializeLuaOldD3DHook;
 begin
+  {$ifdef windows}
   lua_register(LuaVM, 'd3dhook_initializeHook', d3dhook_initializeHook);
   lua_register(LuaVM, 'd3dhook_onClick', d3dhook_onClick);
   lua_register(LuaVM, 'd3dhook_onKey', d3dhook_onKey);
@@ -927,7 +932,9 @@ begin
   lua_register(LuaVM, 'd3dhook_textcontainer_setFontMap', d3dhook_textcontainer_setFontMap);
   lua_register(LuaVM, 'd3dhook_textcontainer_getText', d3dhook_textcontainer_getText);
   lua_register(LuaVM, 'd3dhook_textcontainer_setText', d3dhook_textcontainer_setText);
+  {$endif}
 end;
+
 
 end.
 

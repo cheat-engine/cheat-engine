@@ -8,7 +8,7 @@ uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls,
   ComCtrls, ExtCtrls, maps, Menus, syncobjs, newkernelhandler,
   ProcessHandlerUnit, CodeFilterCallOrAllDialog, PEInfoFunctions, PEInfounit,
-  lua, lualib, lauxlib, luaform, LuaClass;
+  lua, lualib, lauxlib, luaform, LuaClass{$ifdef darwin},macport{$endif};
 
 type
 
@@ -866,7 +866,7 @@ begin
     if ext='.txt' then
     begin
       l:=tstringlist.create;
-      l.LoadFromFile(opendialog.FileName,true);
+      l.LoadFromFile(opendialog.FileName{$if FPC_FULLVERSION>=030200},true{$endif});
       for i:=0 to l.count-1 do
         addAddress(symhandler.getAddressFromName(trim(l[i])));
 

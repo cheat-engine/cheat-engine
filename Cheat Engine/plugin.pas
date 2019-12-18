@@ -4,7 +4,14 @@ unit plugin;
 
 interface
 
-uses lclproc, windows, classes, sysutils,LCLIntf,checklst,menus,dialogs,CEFuncProc,
+uses lclproc,
+     {$ifdef darwin}
+     macport, dynlibs,
+     {$endif}
+     {$ifdef windows}
+     windows,
+     {$endif}
+     classes, sysutils,LCLIntf,checklst,menus,dialogs,CEFuncProc,
      NewKernelHandler, graphics, syncobjs, commonTypeDefs;
 
 const CurrentPluginVersion=6;
@@ -882,7 +889,7 @@ var pluginhandler: TPluginhandler;
 implementation
 
 uses MainUnit,memorybrowserformunit,formsettingsunit, pluginexports, SynHighlighterAA,
-     DBK32functions, luahandler, processhandlerunit, BetterDLLSearchPath;
+     {$ifdef windows}DBK32functions,{$endif} luahandler, processhandlerunit{$ifdef windows}, BetterDLLSearchPath{$endif};
 
 resourcestring
   rsErrorEnabling = 'Error enabling %s';
@@ -1366,6 +1373,9 @@ begin
   pluginCS.Enter;
   try
     DisablePlugin(pluginid); //disable the plugin if it was active
+
+
+
     FreeLibrary(plugins[pluginid].hmodule);
     plugins[pluginid].dllname:='';
     plugins[pluginid].filepath:='';
@@ -1434,12 +1444,14 @@ begin
   if uppercase(extractfileext(dllname))<>'.DLL' then raise exception.Create(Format(rsErrorLoadingOnlyDLLFilesAreAllowed, [dllname]));
 
   hmodule:=loadlibrary(pchar(dllname));
+  {$ifdef windows}
   if (hmodule=0) and assigned(AddDllDirectory) then
   begin
     path:=extractfiledir(dllname);
     AddDllDirectory(pwidechar(@path[1]));
     hmodule:=loadlibrary(pchar(dllname));
   end;
+  {$endif}
 
   if hmodule=0 then
     raise exception.create(rsPlugThePluginDllCouldNotBeLoaded+inttostr(getlasterror));
@@ -1515,12 +1527,14 @@ begin
   end;
 
   hmodule:=loadlibrary(pchar(dllname));
+  {$ifdef windows}
   if (hmodule=0) and assigned(AddDllDirectory) then
   begin
     path:=ExtractFiledir(dllname);
     AddDllDirectory(pwidechar(@path[1]));
     hmodule:=loadlibrary(pchar(dllname));
   end;
+  {$endif}
 
   if hmodule=0 then
     exit;
@@ -1766,6 +1780,7 @@ begin
 
 
   //pointers to the address that contains the pointers to the functions
+  {$ifdef windows}
   exportedfunctions.ReadProcessMemory:=@@ReadProcessMemory;
   exportedfunctions.WriteProcessMemory:=@@WriteProcessMemoryActual;
   exportedfunctions.GetThreadContext:=@@GetThreadContext;
@@ -1831,6 +1846,7 @@ begin
   exportedfunctions.Module32Next:=@@Module32Next;
   exportedfunctions.Heap32ListFirst:=@@Heap32ListFirst;
   exportedfunctions.Heap32ListNext:=@@Heap32ListNext;
+  {$endif}
 
 
 
@@ -1844,8 +1860,10 @@ begin
   exportedfunctions.sym_generateAPIHookScript:=@ce_generateAPIHookScript;
 
   //version3 init
+  {$ifdef windows}
   exportedfunctions.loadDBK32:=@LoadDBK32;
   exportedfunctions.loaddbvmifneeded:=@loaddbvmifneeded;
+  {$endif}
   exportedfunctions.previousOpcode:=@ce_previousOpcode;
   exportedfunctions.nextOpcode:=@ce_nextOpcode;
   exportedfunctions.disassembleEx:=@ce_disassemble;
@@ -1923,8 +1941,10 @@ begin
   exportedfunctions.speedhack_setSpeed:=@ce_speedhack_setSpeed;
 
   //version 5
+  {$ifdef windows}
   exportedfunctions.ExecuteKernelCode:=@ExecuteKernelCode;
   exportedfunctions.UserdefinedInterruptHook:=@UserdefinedInterruptHook;
+  {$endif}
   exportedfunctions.GetLuaState:=@GetLuaState;
   exportedfunctions.MainThreadCall:=@pluginsync;
 end;

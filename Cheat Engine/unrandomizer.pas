@@ -6,7 +6,9 @@ unit unrandomizer;
 
 interface
 
-uses windows, CEFuncProc,dialogs,classes,comctrls,LCLIntf,sysutils,formsettingsunit,
+uses {$ifdef darwin}macport,{$endif}
+     {$ifdef windows}windows,{$endif}
+     CEFuncProc,dialogs,classes,comctrls,LCLIntf,sysutils,formsettingsunit,
      NewKernelHandler, commonTypeDefs, MemFuncs;
 
 type Tunrandomize=class(tthread)

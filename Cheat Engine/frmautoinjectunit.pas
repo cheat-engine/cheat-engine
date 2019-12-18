@@ -5,11 +5,16 @@ unit frmautoinjectunit;
 interface
 
 uses
-  windows, LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
+  {$ifdef darwin}
+  macport,
+  {$else}
+  windows,
+  {$endif}
+  LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
   StdCtrls, ExtCtrls, Menus, MemoryRecordUnit, commonTypeDefs, customtypehandler,
   disassembler, symbolhandler, symbolhandlerstructs, SynEdit, SynHighlighterCpp,
   SynHighlighterAA, LuaSyntax, SynPluginMultiCaret, SynEditSearch, tablist,
-  SynGutterBase, SynEditMarks;
+  SynGutterBase, SynEditMarks, math;
 
 
 type TCallbackRoutine=procedure(memrec: TMemoryRecord; script: string; changed: boolean) of object;
@@ -246,7 +251,7 @@ implementation
 
 
 uses frmAAEditPrefsUnit,MainUnit,memorybrowserformunit,APIhooktemplatesettingsfrm,
-  Globals, Parsers, MemoryQuery, GnuAssembler, LuaCaller, SynEditTypes, CEFuncProc,
+  Globals, Parsers, MemoryQuery, {$ifdef windows}GnuAssembler,{$endif} LuaCaller, SynEditTypes, CEFuncProc,
   StrUtils, types, ComCtrls, LResources, NewKernelHandler, MainUnit2, Assemblerunit,
   autoassembler,  registry, luahandler, memscan, foundlisthelper, ProcessHandlerUnit,
   frmLuaEngineUnit, frmSyntaxHighlighterEditor;
@@ -549,9 +554,12 @@ begin
       end;
     end;
 
+
     smGnuAssembler:
     begin
+      {$ifdef windows}
       GnuAssemble(assemblescreen.lines);
+      {$endif}
 
     end;
 
@@ -577,7 +585,7 @@ end;
 procedure TfrmAutoInject.loadFile(filename: string);
 begin
   assemblescreen.Lines.Clear;
-  assemblescreen.Lines.LoadFromFile(filename, true);
+  assemblescreen.Lines.LoadFromFile(filename{$if FPC_FULLVERSION > 030200}, true{$endif});
   savedialog1.FileName:=filename;
   assemblescreen.AfterLoadFromFile;
 

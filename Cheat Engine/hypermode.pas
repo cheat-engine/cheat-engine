@@ -6,7 +6,7 @@ unit hypermode;
 
 interface
 
-uses windows, classes,LCLIntf,sysutils,messages;
+uses classes,LCLIntf,sysutils,messages;
 
 implementation
 

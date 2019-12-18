@@ -6,7 +6,13 @@ unit VirtualMemory;
 
 interface
 
+{$ifdef darwin}
+uses macport, SysUtils,LCLIntf,NewKernelHandler,CEFuncProc,ComCtrls, symbolhandler, commonTypeDefs;
+{$endif}
+
+{$ifdef windows}
 uses windows, SysUtils,LCLIntf,NewKernelHandler,CEFuncProc,ComCtrls, symbolhandler, commonTypeDefs;
+{$endif}
 
 type TMemoryRegion2 = record
   Address: ptrUint;
@@ -194,12 +200,14 @@ begin
           continue;
         end;
 
+      {$ifdef windows}
       if Skip_PAGE_WRITECOMBINE then
         if (mbi.AllocationProtect and PAGE_WRITECOMBINE)=PAGE_WRITECOMBINE then
         begin
           address:=ptrUint(mbi.BaseAddress)+mbi.RegionSize;
           continue;
         end;
+      {$endif}
 
       setlength(memoryregion,length(memoryregion)+1);
 

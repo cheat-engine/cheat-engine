@@ -23,12 +23,12 @@
       <AutoIncrementBuild Value="True"/>
       <MajorVersionNr Value="7"/>
       <MinorVersionNr Value="1"/>
-      <BuildNr Value="6039"/>
+      <BuildNr Value="6044"/>
       <Language Value=""/>
       <CharSet Value=""/>
       <StringTable CompanyName="Cheat Engine" FileDescription="Cheat Engine" ProductVersion="7.1"/>
     </VersionInfo>
-    <BuildModes Count="7">
+    <BuildModes Count="8">
       <Item1 Name="Release 32-Bit" Default="True"/>
       <Item2 Name="Release 64-Bit">
         <CompilerOptions>
@@ -244,7 +244,56 @@
           </Other>
         </CompilerOptions>
       </Item5>
-      <Item6 Name="debug-nomt 32-bit">
+      <Item6 Name="debug-nomt mac">
+        <CompilerOptions>
+          <Version Value="11"/>
+          <PathDelim Value="\"/>
+          <Target>
+            <Filename Value="bin\cheatengine-$(TargetCPU)"/>
+          </Target>
+          <SearchPaths>
+            <IncludeFiles Value="$(ProjOutDir);$(LazarusDir)\ide\include\$(TargetOS);$(LazarusDir)\images;$(LazarusDir)\ideintf\images"/>
+            <OtherUnitFiles Value="VEHDebug;dbk32;luamac;jvdesign;$(LazarusDir)\designer;$(LazarusDir)\ide"/>
+            <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)"/>
+          </SearchPaths>
+          <Parsing>
+            <Style Value="1"/>
+            <SyntaxOptions>
+              <SyntaxMode Value="Delphi"/>
+            </SyntaxOptions>
+          </Parsing>
+          <CodeGeneration>
+            <Optimizations>
+              <OptimizationLevel Value="0"/>
+            </Optimizations>
+          </CodeGeneration>
+          <Linking>
+            <Debugging>
+              <DebugInfoType Value="dsDwarf3"/>
+            </Debugging>
+            <Options>
+              <PassLinkerOptions Value="True"/>
+              <LinkerOptions Value="-framework Security -framework CoreFoundation"/>
+              <Win32>
+                <GraphicApplication Value="True"/>
+              </Win32>
+            </Options>
+          </Linking>
+          <Other>
+            <Verbosity>
+              <ShowWarn Value="False"/>
+              <ShowNotes Value="False"/>
+              <ShowHints Value="False"/>
+            </Verbosity>
+            <WriteFPCLogo Value="False"/>
+            <ConfigFile>
+              <StopAfterErrCount Value="1000"/>
+            </ConfigFile>
+            <CustomOptions Value="-dNOTMULTITHREADED -dbenchmarkps -dcemain -dNDEBUG -dD3DDebug -dNOVMX -dCUSTOMFLOAT -dXDEBUG"/>
+          </Other>
+        </CompilerOptions>
+      </Item6>
+      <Item7 Name="debug-nomt 32-bit">
         <CompilerOptions>
           <Version Value="11"/>
           <PathDelim Value="\"/>
@@ -309,8 +358,8 @@
             </OtherDefines>
           </Other>
         </CompilerOptions>
-      </Item6>
-      <Item7 Name="debug-nomt 64-bit">
+      </Item7>
+      <Item8 Name="debug-nomt 64-bit">
         <CompilerOptions>
           <Version Value="11"/>
           <PathDelim Value="\"/>
@@ -383,20 +432,22 @@
             </OtherDefines>
           </Other>
         </CompilerOptions>
-      </Item7>
+      </Item8>
     </BuildModes>
     <PublishOptions>
       <Version Value="2"/>
     </PublishOptions>
     <RunParams>
       <local>
-        <LaunchingApplication PathPlusParams="/usr/X11R6/bin/xterm -T 'Lazarus Run Output' -e $(LazarusDir)/tools/runwait.sh $(TargetCmdLine)"/>
+        <CommandLineParams Value="hasrights"/>
+        <LaunchingApplication PathPlusParams="\usr\X11R6\bin\xterm -T 'Lazarus Run Output' -e $(LazarusDir)\tools\runwait.sh $(TargetCmdLine)"/>
       </local>
       <FormatVersion Value="2"/>
       <Modes Count="1">
         <Mode0 Name="default">
           <local>
-            <LaunchingApplication PathPlusParams="/usr/X11R6/bin/xterm -T 'Lazarus Run Output' -e $(LazarusDir)/tools/runwait.sh $(TargetCmdLine)"/>
+            <CommandLineParams Value="hasrights"/>
+            <LaunchingApplication PathPlusParams="\usr\X11R6\bin\xterm -T 'Lazarus Run Output' -e $(LazarusDir)\tools\runwait.sh $(TargetCmdLine)"/>
           </local>
         </Mode0>
       </Modes>
@@ -429,7 +480,7 @@
         <PackageName Value="LCL"/>
       </Item8>
     </RequiredPackages>
-    <Units Count="384">
+    <Units Count="389">
       <Unit0>
         <Filename Value="cheatengine.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -2068,6 +2119,7 @@
       <Unit313>
         <Filename Value="virtualqueryexcache.pas"/>
         <IsPartOfProject Value="True"/>
+        <UnitName Value="VirtualQueryExCache"/>
       </Unit313>
       <Unit314>
         <Filename Value="disassemblerthumb.pas"/>
@@ -2462,6 +2514,27 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="LuaSynedit"/>
       </Unit383>
+      <Unit384>
+        <Filename Value="macport.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit384>
+      <Unit385>
+        <Filename Value="macportdefines.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit385>
+      <Unit386>
+        <Filename Value="coresymbolication.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit386>
+      <Unit387>
+        <Filename Value="macexceptiondebuggerinterface.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit387>
+      <Unit388>
+        <Filename Value="maccreateremotethread.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="macCreateRemoteThread"/>
+      </Unit388>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
@@ -2511,20 +2584,6 @@
         <IgnoredMessages idx6058="True"/>
       </CompilerMessages>
       <CustomOptions Value="-dbenchmarkps -dcemain -WB00400000 -dNDEBUG"/>
-      <OtherDefines Count="12">
-        <Define0 Value="NOTMULTITHREADED"/>
-        <Define1 Value="benchmarkps"/>
-        <Define2 Value="cemain"/>
-        <Define3 Value="NDEBUG"/>
-        <Define4 Value="D3DDebug"/>
-        <Define5 Value="NOVMX"/>
-        <Define6 Value="CUSTOMFLOAT"/>
-        <Define7 Value="XDEBUG"/>
-        <Define8 Value="memleaksearch"/>
-        <Define9 Value="checkassembleralphabet"/>
-        <Define10 Value="memorymapped"/>
-        <Define11 Value="privatebuild"/>
-      </OtherDefines>
     </Other>
   </CompilerOptions>
   <Debugging>
@@ -2539,6 +2598,7 @@
       </Item2>
       <Item3>
         <Name Value="EFOpenError"/>
+        <Enabled Value="False"/>
       </Item3>
       <Item4>
         <Name Value="Unknown"/>
@@ -2553,9 +2613,11 @@
       </Item6>
       <Item7>
         <Name Value="EConvertError"/>
+        <Enabled Value="False"/>
       </Item7>
       <Item8>
         <Name Value="symexception"/>
+        <Enabled Value="False"/>
       </Item8>
       <Item9>
         <Name Value="External: SIGILL"/>
@@ -2573,15 +2635,19 @@
       </Item12>
       <Item13>
         <Name Value="EVariantError"/>
+        <Enabled Value="False"/>
       </Item13>
       <Item14>
         <Name Value="EFileMapError"/>
+        <Enabled Value="False"/>
       </Item14>
       <Item15>
         <Name Value="EParserError"/>
+        <Enabled Value="False"/>
       </Item15>
       <Item16>
         <Name Value="EProcess"/>
+        <Enabled Value="False"/>
       </Item16>
     </Exceptions>
   </Debugging>

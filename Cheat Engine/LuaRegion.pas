@@ -5,7 +5,7 @@ unit LuaRegion;
 interface
 
 uses
-  Windows, Classes, SysUtils, Graphics,lua, lualib, lauxlib, LuaHandler, RegionEx;
+  Classes, SysUtils, Graphics,lua, lualib, lauxlib, LuaHandler, RegionEx, LCLIntf, LCLType;
 
 procedure initializeLuaRegion;
 
@@ -46,7 +46,7 @@ var
   coordinateTable: integer;
 
 
-  c: array of POINT;
+  c: array of TPoint;
 
   tablesize: integer;
   coordinate: integer;

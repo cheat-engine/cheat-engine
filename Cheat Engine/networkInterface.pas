@@ -11,8 +11,14 @@ uses
   Classes, SysUtils, Sockets, resolve, ctypes,syncobjs, math, zstream,
   newkernelhandler, unixporthelper, processhandlerunit, gutil, gmap,VirtualQueryExCache;
   {$else}
-  jwawindows, windows, Classes, SysUtils, Sockets, resolve, ctypes, networkconfig,
-  cefuncproc, newkernelhandler, math, zstream, syncobjs, processhandlerunit,
+  {$ifdef darwin}
+  lcltype, MacTypes,macport,
+  {$endif}
+  {$ifdef windows}
+  jwawindows, windows,
+  {$endif}
+  Classes, SysUtils, Sockets, resolve, ctypes, networkconfig,
+  cefuncproc, newkernelhandler, math, zstream, syncobjs, ProcessHandlerUnit,
   VirtualQueryExCache, gutil, gmap;
   {$endif}
 
@@ -399,8 +405,12 @@ begin
 
   setlength(pages, pagecount);
 
+  {$ifdef windows}
   QueryPerformanceFrequency(freq);
   QueryPerformanceCounter(currenttime);
+  {$else}
+  currenttime:=gettickcount64;
+  {$endif}
 
   //if ptruint(lpBaseAddress)=$40000c then
 
@@ -421,7 +431,8 @@ begin
       if rpmcache[j].baseaddress=pages[i].startaddress then
       begin
         //check if the page is too old
-        if ((currenttime-rpmcache[j].lastupdate) / freq) > networkRPMCacheTimeout then //too old, refetch
+
+        if ((currenttime-rpmcache[j].lastupdate) {$ifdef windows}/ freq{$endif}) > networkRPMCacheTimeout then //too old, refetch
           oldest:=i //so it gets reused
         else //not too old, can still be used
           pages[i].memory:=@rpmcache[j].memory[0];
@@ -474,6 +485,8 @@ begin
   end;
 
   result:=true; //everything got copied
+
+
 end;
 
 function TCEConnection.NReadProcessMemory(hProcess: THandle; lpBaseAddress: Pointer; lpBuffer: Pointer; nSize: DWORD; var lpNumberOfBytesRead: PTRUINT): BOOL;

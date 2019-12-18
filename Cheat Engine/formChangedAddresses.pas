@@ -5,7 +5,13 @@ unit formChangedAddresses;
 interface
 
 uses
-  windows, LCLIntf, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  {$ifdef darwin}
+  macport,
+  {$endif}
+  {$ifdef windows}
+  windows,
+  {$endif}
+  LCLIntf, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls,CEFuncProc, ExtCtrls, ComCtrls, Menus, NewKernelHandler, LResources,
   disassembler, symbolhandler, byteinterpreter, CustomTypeHandler, maps, math, Clipbrd,
   addressparser, commonTypeDefs, DBK32functions, vmxfunctions;
@@ -31,6 +37,7 @@ type
   { TfrmChangedAddresses }
   TfrmChangedAddresses=class;
 
+  {$ifdef windows}
   TDBVMWatchExecutePollThread=class(TThread)
   private
     results: PPageEventListDescriptor;
@@ -43,6 +50,7 @@ type
     fca: TfrmChangedAddresses;
     procedure execute; override;
   end;
+  {$endif}
 
   TfrmChangedAddresses = class(TForm)
     caImageList: TImageList;
@@ -102,7 +110,9 @@ type
     defaultcolor: TColor;
 
     fdbvmwatchid: integer;
+    {$ifdef windows}
     dbvmwatchpollthread: TDBVMWatchExecutePollThread;
+    {$endif}
     procedure stopdbvmwatch;
     procedure refetchValues(specificaddress: ptruint=0;countonly: boolean=false);
     procedure setAddress(a: ptruint);
@@ -125,7 +135,7 @@ implementation
 
 uses CEDebugger, MainUnit, frmRegistersunit, MemoryBrowserFormUnit, debughelper,
   debugeventhandler, debuggertypedefinitions, FoundCodeUnit, StructuresFrm2,
-  processhandlerunit, Globals, Parsers, frmStackViewUnit, frmSelectionlistunit,
+  ProcessHandlerUnit, Globals, Parsers, frmStackViewUnit, frmSelectionlistunit,
   frmChangedAddressesCommonalityScannerUnit, LastDisassembleData;
 
 resourcestring
@@ -170,6 +180,7 @@ end;
 
 //-----------------------------
 
+{$IFDEF windows}
 procedure TDBVMWatchExecutePollThread.addEntriesToList;
 var
   c: TContext;
@@ -362,6 +373,7 @@ begin
   freememandnil(results);
   freeandnil(cr3disassembler);
 end;
+{$ENDIF}
 
 //-----------------------------
 
@@ -1140,6 +1152,7 @@ end;
 
 procedure TfrmChangedAddresses.stopdbvmwatch;
 begin
+  {$IFDEF windows}
   if dbvmwatchpollthread<>nil then
   begin
     dbvmwatchpollthread.Terminate;
@@ -1158,10 +1171,12 @@ begin
     UnlockMemory(dbvmwatch_unlock);
     dbvmwatch_unlock:=0;
   end;
+  {$ENDIF}
 end;
 
 procedure TfrmChangedAddresses.setdbvmwatchid(id: integer);
 begin
+  {$IFDEF windows}
   fdbvmwatchid:=id;
 
   if id<>-1 then
@@ -1174,6 +1189,7 @@ begin
     dbvmwatchpollthread.fca:=self;
     dbvmwatchpollthread.Start;
   end;
+  {$ENDIF}
 end;
 
 initialization

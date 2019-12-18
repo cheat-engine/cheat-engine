@@ -24,19 +24,7 @@ E
 interface
 
 uses
-  windows, LCLIntf, LMessages, Messages, SysUtils, Variants, Classes, Graphics, Controls,
-  Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls,CEFuncProc,NewKernelHandler,
-  symbolhandler, {XMLDoc, XMLIntf,} byteinterpreter, dom, xmlread, xmlwrite,
-  LResources, registry, scrollTreeView, commonTypeDefs;
-
-type
-  TfrmStructures = class(TForm)
-  private
-    { Private declarations }
-  public
-    { Public declarations }
-  end;
-
+  LCLIntf, LMessages, Messages, Classes;
 
 resourcestring
 
@@ -88,8 +76,6 @@ resourcestring
 
 implementation
 
-initialization
-  {$i Structuresfrm.lrs}
 
 end.
 

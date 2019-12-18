@@ -8,7 +8,14 @@ This unit could use a big update
 interface
 
 uses
-  jwawindows, windows, symbolhandler,symbolhandlerstructs,{tlhelp32,}LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
+  {$ifdef darwin}
+  macport, LCLType,
+  {$endif}
+  {$ifdef windows}
+  jwawindows, windows,
+  {$endif}
+
+  symbolhandler,symbolhandlerstructs,LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, Buttons,CEDebugger, Menus,CEFuncProc, ExtCtrls,disassembler,
   SyncObjs,registry, ComCtrls, LResources,NewKernelHandler{$ifdef windows},win32proc{$endif};
 
@@ -76,7 +83,7 @@ type
     red: boolean;
     oldpausestate: boolean;
     loadedFormPosition: boolean;
-    procedure hotkey(var Message: TMessage); message WM_HOTKEY;
+    procedure hotkey(var Message: TMessage); {$ifdef windows}message WM_HOTKEY;{$endif}
   public
     { Public declarations }
     pausehotkeystring: string;
@@ -123,7 +130,9 @@ uses MainUnit, MemoryBrowserFormUnit,
   formsettingsunit,
   MainUnit2,
   processhandlerunit,
+  {$ifdef windows}
   DBK32functions,
+  {$endif}
   globals;
 
 
@@ -323,10 +332,12 @@ end;
 
 procedure TAdvancedOptions.miDBVMFindWhatCodeAccessesClick(Sender: TObject);
 begin
+  {$ifdef windows}
   try
     MemoryBrowser.DBVMFindWhatThisCodeAccesses(symhandler.getAddressFromName(code[codelist2.ItemIndex].symbolname));
   except
   end;
+  {$endif}
 end;
 
 resourcestring
@@ -416,7 +427,7 @@ begin
     end;
   end;
 
-  miDBVMFindWhatCodeAccesses.Enabled:=isIntel and isDBVMCapable and Findoutwhatthiscodechanges1.enabled;
+  miDBVMFindWhatCodeAccesses.Enabled:={$ifdef windows}isIntel and isDBVMCapable and Findoutwhatthiscodechanges1.enabled{$else}false{$endif};
   miDBVMFindWhatCodeAccesses.Caption:='DBVM '+Findoutwhatthiscodechanges1.Caption;
 end;
 
@@ -496,7 +507,9 @@ begin
     //set back
     if vpe then VirtualProtectEx(processhandle,pointer(Address),lengthactualopcode,original,x);
 
+    {$ifdef windows}
     FlushInstructionCache(processhandle,pointer(Address),lengthactualopcode);
+    {$endif}
 
     code[i].changed:=false;
   end;
@@ -571,7 +584,9 @@ begin
     if vpe then
       VirtualProtectEx(processhandle,pointer(a),codelength,original,original);  //ignore a
 
+    {$ifdef windows}
     FlushInstructionCache(processhandle,pointer(a),codelength);
+    {$endif}
 
     code[index].changed:=true;
   end;
@@ -663,6 +678,7 @@ var i: integer;
     down: boolean;
     x: dword;
 begin
+  {$ifdef windows}
   down:=pausebutton.down;
   if down=oldpausestate then exit;
 
@@ -730,7 +746,7 @@ begin
   finally
     oldpausestate:=pausebutton.down;
   end;
-
+   {$endif}
 end;
 
 procedure TAdvancedOptions.PausebuttonMouseMove(Sender: TObject;
@@ -798,7 +814,9 @@ begin
     if vpe then
       VirtualProtectEx(processhandle,pointer(a),codelength,original,original);  //ignore a
 
+    {$ifdef windows}
     FlushInstructionCache(processhandle,pointer(a),codelength);
+    {$endif}
 
     code[index].changed:=true;
   end;
@@ -839,6 +857,8 @@ begin
     if WindowsVersion=wvVista then
       codelist2.OnCustomDrawItem:=nil;
   {$endif}
+  {$else}
+  Pausebutton.visible:=false;
   {$endif}
 
  // pausebutton.Left:=savebutton.Left;

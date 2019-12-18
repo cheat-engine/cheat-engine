@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, Controls, types, DiagramTypes, Graphics, textrender,
-  ComCtrls, gl, glext;
+  ComCtrls{$ifdef windows}, gl, glext{$endif};
 
 type
 
@@ -53,7 +53,9 @@ type
 
     hasChanged: boolean;
     cachedBlock: TBitmap; //Cache the block image and only update when changes happen
+    {$ifdef windows}
     ftexture: glint;
+    {$endif}
 
 
     fBlockId: integer;
@@ -449,7 +451,7 @@ begin
 
 
 
-  if hasChanged or (config.UseOpenGL and (ftexture=0)) then
+  if hasChanged {$ifdef windows} or (config.UseOpenGL and (ftexture=0)) {$endif} then
   begin
     //render
     if cachedBlock=nil then
@@ -530,6 +532,7 @@ begin
 
     haschanged:=false;
 
+    {$ifdef windows}
     if config.UseOpenGL and (width>0) and (height>0) then
     begin
       if ftexture=0 then
@@ -545,9 +548,11 @@ begin
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     end;
+    {$endif}
   end;
 
   //draw the cached block
+  {$ifdef windows}
   if config.UseOpenGL then
   begin
     if ftexture=0 then
@@ -587,6 +592,7 @@ begin
 
   end
   else
+  {$endif}
   begin
     config.canvas.StretchDraw(rect(trunc((x-config.scrollx)*config.zoom),trunc((y-config.scrolly)*config.zoom),ceil(((x-config.scrollx)+width)*config.zoom),ceil(((y-config.scrolly)+Height)*config.zoom)),cachedblock);
     //config.canvas.Draw(x-config.scrollx,y-config.scrolly,cachedBlock);
@@ -1044,4 +1050,5 @@ end;
 
 
 end.
+
 

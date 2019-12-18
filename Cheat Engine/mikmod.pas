@@ -10,7 +10,12 @@ half port of the MikMod header file to pascal
 interface
 
 uses
-  windows, Classes, SysUtils, syncobjs;
+  {$ifdef darwin}
+  mactypes, dynlibs, macport,
+  {$endif}
+  {$ifdef windows}
+  windows,
+  {$endif}Classes, SysUtils, syncobjs;
 
 
 type
@@ -583,89 +588,94 @@ end;
 function LoadMikMod: boolean;
 begin
   result:=libmikmod<>0;
+
   if result=false then
   begin
-    libmikmod:=loadlibrary('libmikmod'+{$ifdef cpu32}'32'{$else}'64'{$endif}+'.dll');
+    libmikmod:=loadlibrary('libmikmod'+{$ifdef cpu32}'32'{$else}'64'{$endif}+{$ifdef windows}'.dll'{$endif}{$ifdef darwin}'.dynlib'{$endif});
 
-    farproc(MikMod_RegisterAllDrivers):=GetProcAddress(libmikmod, 'MikMod_RegisterAllDrivers');
-    farproc(MikMod_RegisterAllLoaders):=GetProcAddress(libmikmod, 'MikMod_RegisterAllLoaders');
-
-
-    farproc(MikMod_InfoDriver):=GetProcAddress(libmikmod, 'MikMod_InfoDriver');
-    farproc(MikMod_RegisterDriver):=GetProcAddress(libmikmod, 'MikMod_RegisterDriver');
-    farproc(MikMod_RegisterAllDrivers):=GetProcAddress(libmikmod, 'MikMod_RegisterAllDrivers');
-    farproc(MikMod_DriverFromAlias):=GetProcAddress(libmikmod, 'MikMod_DriverFromAlias');
-    farproc(MikMod_Init):=GetProcAddress(libmikmod, 'MikMod_Init');
-
-    farproc(MikMod_Exit):=GetProcAddress(libmikmod, 'MikMod_Exit');
-    farproc(MikMod_Reset):=GetProcAddress(libmikmod, 'MikMod_Reset');
-    farproc(MikMod_SetNumVoices):=GetProcAddress(libmikmod, 'MikMod_SetNumVoices');
-    farproc(MikMod_Active):=GetProcAddress(libmikmod, 'MikMod_Active');
-    farproc(MikMod_EnableOutput):=GetProcAddress(libmikmod, 'MikMod_EnableOutput');
-    farproc(MikMod_DisableOutput):=GetProcAddress(libmikmod, 'MikMod_DisableOutput');
-    farproc(MikMod_Update):=GetProcAddress(libmikmod, 'MikMod_Update');
-    farproc(MikMod_InitThreads):=GetProcAddress(libmikmod, 'MikMod_InitThreads');
-    farproc(MikMod_Lock):=GetProcAddress(libmikmod, 'MikMod_Lock');
-    farproc(MikMod_Unlock):=GetProcAddress(libmikmod, 'MikMod_Unlock');
+    if libmikmod<>0 then
+    begin
+      farproc(MikMod_RegisterAllDrivers):=GetProcAddress(libmikmod, 'MikMod_RegisterAllDrivers');
+      farproc(MikMod_RegisterAllLoaders):=GetProcAddress(libmikmod, 'MikMod_RegisterAllLoaders');
 
 
-    farproc(Player_Load):=GetProcAddress(libmikmod, 'Player_Load');
-    farproc(Player_LoadFP):=GetProcAddress(libmikmod, 'Player_LoadFP');
-    farproc(Player_LoadGeneric):=GetProcAddress(libmikmod, 'Player_LoadGeneric');
-    farproc(Player_LoadTitle):=GetProcAddress(libmikmod, 'Player_LoadTitle');
-    farproc(Player_LoadTitleFP):=GetProcAddress(libmikmod, 'Player_LoadTitleFP');
-    farproc(Player_Free):=GetProcAddress(libmikmod, 'Player_Free');
-    farproc(Player_Start):=GetProcAddress(libmikmod, 'Player_Start');
-    farproc(Player_Active):=GetProcAddress(libmikmod, 'Player_Active');
-    farproc(Player_Stop):=GetProcAddress(libmikmod, 'Player_Stop');
-    farproc(Player_TogglePause):=GetProcAddress(libmikmod, 'Player_TogglePause');
-    farproc(Player_Paused):=GetProcAddress(libmikmod, 'Player_Paused');
-    farproc(Player_NextPosition):=GetProcAddress(libmikmod, 'Player_NextPosition');
-    farproc(Player_PrevPosition):=GetProcAddress(libmikmod, 'Player_PrevPosition');
-    farproc(Player_SetPosition):=GetProcAddress(libmikmod, 'Player_SetPosition');
-    farproc(Player_Muted):=GetProcAddress(libmikmod, 'Player_Muted');
-    farproc(Player_SetVolume):=GetProcAddress(libmikmod, 'Player_SetVolume');
-    farproc(Player_GetModule):=GetProcAddress(libmikmod, 'Player_GetModule');
-    farproc(Player_SetSpeed):=GetProcAddress(libmikmod, 'Player_SetSpeed');
-    farproc(Player_SetTempo):=GetProcAddress(libmikmod, 'Player_SetTempo');
+      farproc(MikMod_InfoDriver):=GetProcAddress(libmikmod, 'MikMod_InfoDriver');
+      farproc(MikMod_RegisterDriver):=GetProcAddress(libmikmod, 'MikMod_RegisterDriver');
+      farproc(MikMod_RegisterAllDrivers):=GetProcAddress(libmikmod, 'MikMod_RegisterAllDrivers');
+      farproc(MikMod_DriverFromAlias):=GetProcAddress(libmikmod, 'MikMod_DriverFromAlias');
+      farproc(MikMod_Init):=GetProcAddress(libmikmod, 'MikMod_Init');
+
+      farproc(MikMod_Exit):=GetProcAddress(libmikmod, 'MikMod_Exit');
+      farproc(MikMod_Reset):=GetProcAddress(libmikmod, 'MikMod_Reset');
+      farproc(MikMod_SetNumVoices):=GetProcAddress(libmikmod, 'MikMod_SetNumVoices');
+      farproc(MikMod_Active):=GetProcAddress(libmikmod, 'MikMod_Active');
+      farproc(MikMod_EnableOutput):=GetProcAddress(libmikmod, 'MikMod_EnableOutput');
+      farproc(MikMod_DisableOutput):=GetProcAddress(libmikmod, 'MikMod_DisableOutput');
+      farproc(MikMod_Update):=GetProcAddress(libmikmod, 'MikMod_Update');
+      farproc(MikMod_InitThreads):=GetProcAddress(libmikmod, 'MikMod_InitThreads');
+      farproc(MikMod_Lock):=GetProcAddress(libmikmod, 'MikMod_Lock');
+      farproc(MikMod_Unlock):=GetProcAddress(libmikmod, 'MikMod_Unlock');
 
 
-    farproc(Player_GetLoop):=GetProcAddress(libmikmod, 'Player_GetLoop');
-    farproc(Player_SetLoop):=GetProcAddress(libmikmod, 'Player_SetLoop');
-    farproc(Player_GetWrap):=GetProcAddress(libmikmod, 'Player_GetWrap');
-    farproc(Player_SetWrap):=GetProcAddress(libmikmod, 'Player_SetWrap');
+      farproc(Player_Load):=GetProcAddress(libmikmod, 'Player_Load');
+      farproc(Player_LoadFP):=GetProcAddress(libmikmod, 'Player_LoadFP');
+      farproc(Player_LoadGeneric):=GetProcAddress(libmikmod, 'Player_LoadGeneric');
+      farproc(Player_LoadTitle):=GetProcAddress(libmikmod, 'Player_LoadTitle');
+      farproc(Player_LoadTitleFP):=GetProcAddress(libmikmod, 'Player_LoadTitleFP');
+      farproc(Player_Free):=GetProcAddress(libmikmod, 'Player_Free');
+      farproc(Player_Start):=GetProcAddress(libmikmod, 'Player_Start');
+      farproc(Player_Active):=GetProcAddress(libmikmod, 'Player_Active');
+      farproc(Player_Stop):=GetProcAddress(libmikmod, 'Player_Stop');
+      farproc(Player_TogglePause):=GetProcAddress(libmikmod, 'Player_TogglePause');
+      farproc(Player_Paused):=GetProcAddress(libmikmod, 'Player_Paused');
+      farproc(Player_NextPosition):=GetProcAddress(libmikmod, 'Player_NextPosition');
+      farproc(Player_PrevPosition):=GetProcAddress(libmikmod, 'Player_PrevPosition');
+      farproc(Player_SetPosition):=GetProcAddress(libmikmod, 'Player_SetPosition');
+      farproc(Player_Muted):=GetProcAddress(libmikmod, 'Player_Muted');
+      farproc(Player_SetVolume):=GetProcAddress(libmikmod, 'Player_SetVolume');
+      farproc(Player_GetModule):=GetProcAddress(libmikmod, 'Player_GetModule');
+      farproc(Player_SetSpeed):=GetProcAddress(libmikmod, 'Player_SetSpeed');
+      farproc(Player_SetTempo):=GetProcAddress(libmikmod, 'Player_SetTempo');
 
 
-    farproc(Sample_Load):=GetProcAddress(libmikmod, 'Sample_Load');
-    farproc(Sample_LoadFP):=GetProcAddress(libmikmod, 'Sample_LoadFP');
-    farproc(Sample_LoadGeneric):=GetProcAddress(libmikmod, 'Sample_LoadGeneric');
-
-    farproc(Sample_Play):=GetProcAddress(libmikmod, 'Sample_Play');
-    farproc(Sample_Free):=GetProcAddress(libmikmod, 'Sample_Free');
-
-    farproc(Voice_Stopped):=GetProcAddress(libmikmod, 'Voice_Stopped');
+      farproc(Player_GetLoop):=GetProcAddress(libmikmod, 'Player_GetLoop');
+      farproc(Player_SetLoop):=GetProcAddress(libmikmod, 'Player_SetLoop');
+      farproc(Player_GetWrap):=GetProcAddress(libmikmod, 'Player_GetWrap');
+      farproc(Player_SetWrap):=GetProcAddress(libmikmod, 'Player_SetWrap');
 
 
+      farproc(Sample_Load):=GetProcAddress(libmikmod, 'Sample_Load');
+      farproc(Sample_LoadFP):=GetProcAddress(libmikmod, 'Sample_LoadFP');
+      farproc(Sample_LoadGeneric):=GetProcAddress(libmikmod, 'Sample_LoadGeneric');
 
+      farproc(Sample_Play):=GetProcAddress(libmikmod, 'Sample_Play');
+      farproc(Sample_Free):=GetProcAddress(libmikmod, 'Sample_Free');
 
+      farproc(Voice_Stopped):=GetProcAddress(libmikmod, 'Voice_Stopped');
 
 
 
 
 
-    md_volume:=GetProcAddress(libmikmod, 'md_volume');
-    md_musicvolume:=GetProcAddress(libmikmod, 'md_musicvolume');
-    md_sndfxvolume:=GetProcAddress(libmikmod, 'md_sndfxvolume');
-    md_reverb:=GetProcAddress(libmikmod, 'md_reverb');
-    md_pansep:=GetProcAddress(libmikmod, 'md_pansep');
 
-    md_device:=GetProcAddress(libmikmod, 'md_device');
-    md_mixfreq:=GetProcAddress(libmikmod, 'md_mixfreq');
-    md_mode:=GetProcAddress(libmikmod, 'md_mode');
 
-    MikMod_errno:=GetProcAddress(libmikmod, 'MikMod_errno');
 
-    result:=true;
+
+      md_volume:=GetProcAddress(libmikmod, 'md_volume');
+      md_musicvolume:=GetProcAddress(libmikmod, 'md_musicvolume');
+      md_sndfxvolume:=GetProcAddress(libmikmod, 'md_sndfxvolume');
+      md_reverb:=GetProcAddress(libmikmod, 'md_reverb');
+      md_pansep:=GetProcAddress(libmikmod, 'md_pansep');
+
+      md_device:=GetProcAddress(libmikmod, 'md_device');
+      md_mixfreq:=GetProcAddress(libmikmod, 'md_mixfreq');
+      md_mode:=GetProcAddress(libmikmod, 'md_mode');
+
+      MikMod_errno:=GetProcAddress(libmikmod, 'MikMod_errno');
+
+      result:=true;
+
+    end;
   end;
 end;
 

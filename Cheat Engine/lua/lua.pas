@@ -45,10 +45,20 @@ unit lua;
 
 interface
 
+{$ifdef darwin}
+uses dialogs, MacOSAll, MacOSXPosix, dynlibs, fileutil;
+
+{$endif}
+
 const
 {$IFDEF UNIX}
+  {$ifdef darwin}
+  LUA_NAME = 'liblua53.dylib';
+  LUA_LIB_NAME = 'liblua53.dylib';
+  {$else}
   LUA_NAME = 'liblua5.3.so';
   LUA_LIB_NAME = 'liblua5.3.so';
+  {$endif}
 {$ELSE}
   {$ifdef cpu64}
     LUA_NAME = 'lua53-64.dll';

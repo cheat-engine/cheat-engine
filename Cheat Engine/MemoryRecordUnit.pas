@@ -11,7 +11,14 @@ uses
   customtypehandler, fileutil, LCLProc, commonTypeDefs, pointerparser, LazUTF8, LuaClass;
 {$endif}
 
-{$ifdef unix}
+{$ifdef darwin}
+uses
+  macport, forms, graphics, Classes, SysUtils, controls, stdctrls, comctrls,symbolhandler,
+  cefuncproc,newkernelhandler, hotkeyhandler, dom, XMLRead,XMLWrite,
+  customtypehandler, fileutil, LCLProc, commonTypeDefs, pointerparser, LazUTF8, LuaClass, math;
+{$endif}
+
+{$ifdef jni}
 //only used as a class to store entries and freeze/setvalue. It won't have a link with the addresslist and does not decide it's position
 uses
   unixporthelper, Classes, sysutils, symbolhandler, NewKernelHandler, DOM,
@@ -260,7 +267,7 @@ type
     Extra: TMemRecExtraData;
     AutoAssemblerData: TMemRecAutoAssemblerData;
 
-    {$ifndef unix}
+    {$ifndef jni}
     treenode: TTreenode;
     autoAssembleWindow: TForm; //window storage for an auto assembler editor window
     {$endif}
@@ -449,14 +456,15 @@ function TextToMemRecHotkeyAction(text: string): TMemrecHotkeyAction;
 
 implementation
 
-{$ifdef windows}
+
+
+{$ifdef jni}
+uses processhandlerunit, Parsers;
+{$else}
 uses mainunit, addresslist, formsettingsunit, LuaHandler, lua, lauxlib, lualib,
-  processhandlerunit, Parsers, winsapi,autoassembler, globals, cheatecoins;
+  processhandlerunit, Parsers, {$ifdef windows}winsapi,{$endif}autoassembler, globals{$ifdef windows}, cheatecoins{$endif};
 {$endif}
 
-{$ifdef unix}
-uses processhandlerunit, Parsers;
-{$endif}
 
 {---------------------TMemoryRecordProcessingThread-------------------------}
 procedure TMemoryRecordProcessingThread.Execute;
@@ -2433,7 +2441,9 @@ var f: string;
 
     p: boolean;
 begin
+  {$ifdef windows}
   if state and aprilfools then decreaseCheatECoinCount;
+  {$endif}
 
   if state=fActive then exit; //no need to execute this is it's the same state
   if processingThread<>nil then exit; //don't change the state while processing

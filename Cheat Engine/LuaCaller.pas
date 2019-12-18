@@ -2289,6 +2289,7 @@ var
   x,y: integer;
 begin
   result:=0;
+  {$IFDEF windows}
   if lua_gettop(L)=3 then
   begin
     //(renderobject: TObject; x,y: integer);
@@ -2303,6 +2304,7 @@ begin
   end
   else
     lua_pop(L, lua_gettop(L));
+  {$ENDIF}
 end;
 
 function LuaCaller_D3DKeyDownEvent(L: PLua_state): integer; cdecl;
@@ -2314,6 +2316,7 @@ var
   r: boolean;
 begin
   result:=0;
+  {$IFDEF windows}
   if lua_gettop(L)=2 then
   begin
     //(VirtualKey: dword; char: pchar): boolean;
@@ -2332,6 +2335,7 @@ begin
   end
   else
     lua_pop(L, lua_gettop(L));
+  {$ENDIF}
 end;
 
 function LuaCaller_DisassembleEvent(L: PLua_state): integer; cdecl;

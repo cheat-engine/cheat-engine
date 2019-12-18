@@ -7,8 +7,15 @@ unit OpenSave;
 interface
 
 
-uses windows, forms, LCLIntf,registry, SysUtils,AdvancedOptionsUnit,CommentsUnit,
-     CEFuncProc,classes,{formmemorymodifier,formMemoryTrainerUnit,}shellapi,
+uses
+     {$ifdef darwin}
+     macport,
+     {$endif}
+     {$ifdef windows}
+     windows,
+     {$endif}
+     forms, LCLIntf,registry, SysUtils,AdvancedOptionsUnit,CommentsUnit,
+     CEFuncProc,classes,{formmemorymodifier,formMemoryTrainerUnit,}{$ifdef windows}shellapi,{$endif}
      {MemoryTrainerDesignUnit,}StdCtrls,{ExtraTrainerComponents,}Graphics,Controls,
      tableconverter, ExtCtrls,Dialogs,NewKernelHandler, hotkeyhandler, structuresfrm,
      StructuresFrm2, comctrls,dom, xmlread,xmlwrite, FileUtil, ceguicomponents,
@@ -183,8 +190,8 @@ resourcestring
 implementation
 
 uses MainUnit, mainunit2, symbolhandler, symbolhandlerstructs, LuaHandler,
-     formsettingsunit, frmExeTrainerGeneratorUnit, trainergenerator,
-     ProcessHandlerUnit, parsers, feces, askToRunLuaScript;
+     formsettingsunit {$ifdef windows},frmExeTrainerGeneratorUnit, trainergenerator{$endif},
+     ProcessHandlerUnit, parsers{$ifdef windows},feces{$endif} ,asktorunluascript;
 
 
 
@@ -305,7 +312,7 @@ var
 
     ask: TfrmLuaScriptQuestion;
     image: tpicture;
-    imagepos: integer;
+    imagepos: integer=0;
 begin
   LUA_DoScript('tableIsLoading=true');
   try
@@ -358,7 +365,7 @@ begin
     if CheatTable<>nil then
     begin
 
-      signed:=isProperlySigned(TDOMElement(cheattable), signedstring, imagepos, image);
+      signed:={$ifdef windows}isProperlySigned(TDOMElement(cheattable), signedstring, imagepos, image){$else}false{$endif};
 
       try
         tempnode:=CheatTable.Attributes.GetNamedItem('CheatEngineTableVersion');
@@ -407,7 +414,11 @@ begin
         form:=forms.ChildNodes.Item[i];
 
         if (form.Attributes<>nil) and (form.Attributes.GetNamedItem('Class')<>nil) and (uppercase(form.Attributes.GetNamedItem('Class').TextContent)='TTRAINERFORM') then
+          {$ifdef windows}
           f:=TTrainerForm.CreateNew(nil)
+          {$else}
+          raise exception.create('This CE version has no trainer support yet')
+          {$endif}
         else
           f:=TCEform.createnew(nil);
 
@@ -716,7 +727,9 @@ begin
             if isTrainer then
             begin
               MessageDlg(rsInvalidLuaForTrainer,mtError,[mbok],0);
-              ExitProcess(123);
+              Application.Terminate;
+              exit;
+              //ExitProcess(123);
             end
             else
               MessageDlg(Format(rsErrorExecutingThisTableSLuaScript, [e.message]), mtError, [mbok],0);
@@ -1265,8 +1278,10 @@ begin
     dassemblercomments.saveToXMLNode(dcomments);
   end;
 
+  {$ifdef windows}
   if cansigntables and formsettings.cbAlwaysSignTable.checked then
     signTable(cheattable);
+  {$endif}
 
   WriteXMLFile(doc, filename);
 
@@ -1294,6 +1309,7 @@ begin
     begin
       //trainer maker
       //show the trainer exegenerator form
+      {$ifdef windows}
 
       if (MainForm.LuaForms.Count=0) and (mainform.frmLuaTableScript.assemblescreen.Text='') then
         if MessageDlg(rsAskIfStupid, mtWarning, [mbyes, mbno], 0)<>mryes
@@ -1304,6 +1320,9 @@ begin
 
       frmExeTrainerGenerator.filename:=filename;
       frmExeTrainerGenerator.showmodal;
+      {$else}
+      raise exception.create('Not yet implemented');
+      {$endif}
     end;
     mainform.editedsincelastsave:=false;
   finally

@@ -11,7 +11,13 @@ version 0.2: copy on write, you can now write to it without actually messing up 
 
 interface
 
-uses windows, LCLIntf,classes,SysUtils;
+uses {$ifdef darwin}
+  macport,
+  {$endif}
+  {$ifdef windows}
+  windows,
+  {$endif}
+  LCLIntf,classes,SysUtils;
 
 type
   EFileMapError=class(Exception);

@@ -9,6 +9,9 @@ Wrapper to replace the creating and destroying of default level registry objects
 interface
 
 uses
+  {$ifdef darwin}
+  macPort,
+  {$endif}
   Classes, SysUtils, registry;
 
 type
@@ -55,6 +58,10 @@ begin
       else
         needsforce:=true;
     end;
+
+    {$ifdef darwin}
+    macPortFixRegPath;
+    {$endif}
   end;
 
   result:=openedregistry;
@@ -64,13 +71,23 @@ function TCEReg.readBool(registryValueName: string; def: boolean=false): boolean
 begin
   result:=def;
   if getregistry(false) and (reg.ValueExists(registryValueName)) then
-    result:=reg.ReadBool(registryValueName);
+  begin
+    try
+      result:=reg.ReadBool(registryValueName);
+    except
+    end;
+  end;
 end;
 
 procedure TCEReg.writeBool(registryValueName: string; value: boolean);
 begin
   if getregistry(true) then
-    reg.WriteBool(registryValueName, value);
+  begin
+    try
+      reg.WriteBool(registryValueName, value);
+    except
+    end;
+  end;
 end;
 
 function TCEReg.readInteger(registryValueName: string; def: integer=0): integer;

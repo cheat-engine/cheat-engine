@@ -10,9 +10,15 @@ unit frmStringPointerScanUnit;
 interface
 
 uses
-  windows, Classes, SysUtils, FileUtil, LResources, Forms, Controls, Graphics, Dialogs, StdCtrls, ExtCtrls, ComCtrls,
+  {$ifdef darwin}
+  macport,
+  {$endif}
+  {$ifdef windows}
+  windows,
+  {$endif}
+  Classes, SysUtils, FileUtil, LResources, Forms, Controls, Graphics, Dialogs, StdCtrls, ExtCtrls, ComCtrls,
   cefuncproc, newkernelhandler, frmStringMapUnit, MemFuncs, AvgLvlTree, Menus,
-  bigmemallochandler, math, maps, oldRegExpr, symbolhandler, commonTypeDefs;
+  bigmemallochandler, math, maps, oldRegExpr, symbolhandler, commonTypeDefs, lmessages, LCLIntf;
 
 const
   wm_sps_done=wm_user+1;

@@ -14,6 +14,10 @@ uses
   LastDisassembleData, DisassemblerThumb;
 {$endif}
 
+{$ifdef darwin}
+uses  macport, classes,SysUtils, newkernelhandler, cefuncproc,LastDisassembleData, DisassemblerThumb;
+{$endif}
+
 const ArmConditions: array [0..15] of string=('EQ','NE','CS', 'CC', 'MI', 'PL', 'VS', 'VC', 'HI', 'LS', 'GE', 'LT', 'GT', 'LE', '','NV');
 const DataProcessingOpcodes: array [0..15] of string=('AND','EOR','SUB', 'RSB', 'ADD', 'ADC', 'SBC', 'RSC', 'TST', 'TEQ', 'CMP', 'CMN', 'ORR', 'MOV', 'BIC','MVN');
 const ArmRegisters : array [0..15] of string=('R0','R1','R2','R3','R4','R5','R6','R7','R8','R9','R10','FP','IP','SP','LR','PC');
@@ -2083,7 +2087,7 @@ begin
 end;
 
 initialization
-  outputdebugstring('arm disassembler');
+  outputdebugstring('arm disassembler'); //runs
 
 end.
 

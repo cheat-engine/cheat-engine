@@ -66,12 +66,18 @@ end;   }
 
 interface
 
+{$ifdef darwin}
+uses macport, LCLIntf,classes,sysutils,syncobjs, CEFuncProc, CustomTypeHandler, commonTypeDefs;
+{$endif}
+
 {$ifdef windows}
 uses windows, LCLIntf,classes,sysutils,syncobjs, CEFuncProc, CustomTypeHandler, commonTypeDefs;
 
 {$define customtypeimplemented}
 
-{$else}
+{$endif}
+
+{$ifdef jni}
 uses Classes,sysutils,syncobjs,unixporthelper, CustomTypeHandler, commonTypeDefs;
 
 {$endif}

@@ -26,7 +26,14 @@ when the view is scrolled/collapsed/expanded the owner should call UpdatePositio
 interface
 
 uses
-  windows, Classes, SysUtils, ComCtrls, Controls, StdCtrls,  MemoryRecordUnit,
+  {$ifdef darwin}
+  macport, LCLIntf, LMEssages, messages,
+  {$endif}
+
+  {$ifdef windows}
+  windows,
+  {$endif}
+  Classes, SysUtils, ComCtrls, Controls, StdCtrls,  MemoryRecordUnit,
   Graphics, LCLType;
 
 type
@@ -121,6 +128,7 @@ begin
       //send an VK_UP to the owner
       SendMessage(TTreeView(Owner).Handle, WM_KEYDOWN, VK_UP, 0);
 
+
       TAddresslist(TTreeview(owner).Owner).doValueChange;
     end;
 
@@ -210,7 +218,9 @@ begin
 
 
   self.parent:=owner;
+  {$ifdef windows}
   SendMessage(Handle, EM_SETMARGINS, EC_LEFTMARGIN, 0);
+  {$endif}
 
   self.SetFocus;
 

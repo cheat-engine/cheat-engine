@@ -9,8 +9,14 @@ Note: The "Selected" part has been removed
 interface
 
 uses
+  {$ifdef darwin}
+  macport,
+  {$endif}
+  {$ifdef windows}
+  windows,
+  {$endif}
   Classes, SysUtils, FileUtil, LResources, Forms, Controls, Graphics, Dialogs,
-  ComCtrls, StdCtrls, ExtCtrls, registry, windows, fontSaveLoadRegistry;
+  ComCtrls, StdCtrls, ExtCtrls, registry, fontSaveLoadRegistry;
 
 type
 
@@ -333,7 +339,9 @@ end;
 procedure TfrmStructuresConfig.Button3Click(Sender: TObject);
 var
   i: integer;
+  {$ifdef windows}
   cbi: TComboboxInfo;
+  {$endif}
 begin
   fontdialog1.font.Assign(groupbox1.Font);
   if fontdialog1.Execute then
@@ -346,6 +354,7 @@ begin
     autosize:=false;
     autosize:=true;
 
+    {$ifdef windows}
     cbi.cbSize:=sizeof(cbi);
     if GetComboBoxInfo(comboBackground.Handle, @cbi) then
     begin
@@ -353,6 +362,7 @@ begin
       panel5.autosize:=false;
       panel5.clientheight:=i;
     end;
+    {$endif}
 
     fcustomfont:=true;
   end;

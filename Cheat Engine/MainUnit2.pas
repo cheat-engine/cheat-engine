@@ -6,7 +6,14 @@ unit MainUnit2;
 
 interface
 
-uses windows, dialogs,forms,classes,LCLIntf, LCLProc, sysutils,registry,ComCtrls, menus,
+uses
+     {$ifdef darwin}
+     macport,
+     {$endif}
+     {$ifdef windows}
+     windows,
+     {$endif}
+     dialogs,forms,classes,LCLIntf, LCLProc, sysutils,registry,ComCtrls, menus,
      formsettingsunit, cefuncproc,AdvancedOptionsUnit, MemoryBrowserFormUnit,
      memscan,plugin, hotkeyhandler,frmProcessWatcherunit, newkernelhandler,
      debuggertypedefinitions, commonTypeDefs;
@@ -399,32 +406,36 @@ begin
 
 
           //fill the hotkeylist
-          for i:=0 to cehotkeycount-1 do
+
+          if hotkeythread<>nil then
           begin
-            found:=false;
-
-            for j:=0 to length(hotkeythread.hotkeylist)-1 do
+            for i:=0 to cehotkeycount-1 do
             begin
-              if (hotkeythread.hotkeylist[j].id=i) and (hotkeythread.hotkeylist[j].handler2) then
+              found:=false;
+
+              for j:=0 to length(hotkeythread.hotkeylist)-1 do
               begin
-                //found it
-                hotkeythread.hotkeylist[j].keys:=temphotkeylist[i];
-                found:=true;
-                break;
+                if (hotkeythread.hotkeylist[j].id=i) and (hotkeythread.hotkeylist[j].handler2) then
+                begin
+                  //found it
+                  hotkeythread.hotkeylist[j].keys:=temphotkeylist[i];
+                  found:=true;
+                  break;
+                end;
               end;
-            end;
 
-            if not found then //add it
-            begin
-              j:=length(hotkeythread.hotkeylist);
-              setlength(hotkeythread.hotkeylist,j+1);
-              hotkeythread.hotkeylist[j].keys:=temphotkeylist[i];
-              hotkeythread.hotkeylist[j].windowtonotify:=mainform.Handle;
-              hotkeythread.hotkeylist[j].id:=i;
-              hotkeythread.hotkeylist[j].handler2:=true;
-            end;
+              if not found then //add it
+              begin
+                j:=length(hotkeythread.hotkeylist);
+                setlength(hotkeythread.hotkeylist,j+1);
+                hotkeythread.hotkeylist[j].keys:=temphotkeylist[i];
+                hotkeythread.hotkeylist[j].windowtonotify:=mainform.Handle;
+                hotkeythread.hotkeylist[j].id:=i;
+                hotkeythread.hotkeylist[j].handler2:=true;
+              end;
 
-            checkkeycombo(temphotkeylist[i]);
+              checkkeycombo(temphotkeylist[i]);
+            end;
           end;
 
           if temphotkeylist[2][0]<>0 then
@@ -618,6 +629,7 @@ begin
           try unrandomizersettings.defaultreturn:=reg.ReadInteger('Unrandomizer: default value'); except end;
           try unrandomizersettings.incremental:=reg.ReadBool('Unrandomizer: incremental'); except end;
 
+          {$ifdef windows}
           if reg.ValueExists('ModuleList as Denylist') then
             DenyList:=reg.ReadBool('ModuleList as Denylist')
           else
@@ -638,7 +650,7 @@ begin
 
           if reg.ValueExists('Module List') then
             reg.ReadBinaryData('Module List',ModuleList^,ModuleListSize);
-
+          {$endif}
 
 
           if reg.ValueExists('Don''t use tempdir') then
@@ -709,7 +721,7 @@ begin
 
           mainform.ools1.Visible:=cbShowTools.Checked;
 
-
+          {$ifdef windows}
 
           if cbKernelQueryMemoryRegion.checked then UseDBKQueryMemoryRegion else DontUseDBKQueryMemoryRegion;
           if cbKernelReadWriteProcessMemory.checked then UseDBKReadWriteMemory else DontUseDBKReadWriteMemory;
@@ -719,6 +731,7 @@ begin
             if (frmProcessWatcher=nil) then //probably yes
               frmProcessWatcher:=tfrmprocesswatcher.Create(mainform); //start the process watcher
 
+          {$endif}
 
 
           if reg.ValueExists('WriteLogging') then
@@ -749,6 +762,7 @@ begin
           if reg.ValueExists('Override Default Font') then
             cbOverrideDefaultFont.Checked:=reg.readbool('Override Default Font');
 
+          {$ifdef windows}
           {$ifdef privatebuild}
           if reg.ValueExists('DoNotOpenProcessHandles') then
             cbDontOpenHandle.Checked:=reg.readbool('DoNotOpenProcessHandles');
@@ -768,6 +782,7 @@ begin
           DoNotOpenProcessHandles:=false;
           ProcessWatcherOpensHandles:=false;
           useapctoinjectdll:=false;
+          {$endif}
           {$endif}
 
           if reg.ValueExists('Always Sign Table') then
@@ -907,8 +922,10 @@ begin
   {$ifdef net}
   MemoryBrowser.Kerneltools1.visible:=false;
   {$else}
-  MemoryBrowser.Kerneltools1.Enabled:=DBKLoaded;
+  MemoryBrowser.Kerneltools1.Enabled:={$ifdef windows}DBKLoaded{$else}false{$endif};
   {$endif}
+
+
 
   if mainform.autoattachlist<>nil then
   begin
@@ -940,6 +957,9 @@ begin
   CEWait:= ceregion;
   mainform.Caption:=CENorm;
 end;
+
+initialization
+  OutputDebugString('MainUnit2');
 
 end.
 

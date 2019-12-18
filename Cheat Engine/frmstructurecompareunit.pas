@@ -5,7 +5,12 @@ unit frmstructurecompareunit;
 interface
 
 uses
-  windows, Classes, SysUtils, FileUtil, LResources, Forms, Controls, Graphics, Dialogs, StdCtrls, ExtCtrls, ComCtrls,
+  {$ifdef darwin}
+  macport,
+  {$else}
+  windows,
+  {$endif}
+  Classes, SysUtils, FileUtil, LResources, Forms, Controls, Graphics, Dialogs, StdCtrls, ExtCtrls, ComCtrls,
   cefuncproc, newkernelhandler, frmStringMapUnit, MemFuncs, AvgLvlTree, Menus,
   bigmemallochandler, math, maps, oldRegExpr, symbolhandler, commonTypeDefs,
   pagemap, syncobjs2, syncobjs, Clipbrd;

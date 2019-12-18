@@ -30,10 +30,12 @@ type
     procedure TrackBar1Change(Sender: TObject);
   private
     { private declarations }
+    {$IFDEF windows}
     oldhook: td3dhook;
     oldpid: dword;
     crosshairTexture: TD3DHook_Texture;
     crosshairSprite: TD3dhook_Sprite;
+    {$ENDIF}
   public
     { public declarations }
   end; 
@@ -65,6 +67,7 @@ end;
 
 procedure TfrmSetCrosshair.TrackBar1Change(Sender: TObject);
 begin
+  {$IFDEF windows}
   safed3dhook;
 
   if (oldhook<>d3dhook) or (d3dhook.processid<>oldpid) then
@@ -78,10 +81,13 @@ begin
 
   if (d3dhook<>nil) and (crosshairSprite<>nil) then
     crosshairSprite.alphaBlend:=trackbar1.position / 100;
+  {$ENDIF}
 end;
 
 procedure TfrmSetCrosshair.btnApplyClick(Sender: TObject);
 begin
+
+  {$IFDEF windows}
   safed3dhook;
   if d3dhook<>nil then
   begin
@@ -109,6 +115,7 @@ begin
   end;
 
   TrackBar1Change(trackbar1);
+  {$ENDIF}
 end;
 
 {$R *.lfm}

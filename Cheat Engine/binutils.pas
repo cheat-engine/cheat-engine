@@ -8,7 +8,9 @@ unit binutils;
 interface
 
 uses
-  windows, newkernelhandler, forms, Classes, SysUtils, process, LastDisassembleData, strutils, maps;
+  {$ifdef darwin}macport,{$endif}
+  {$ifdef windows}windows, {$endif}
+  newkernelhandler, forms, Classes, SysUtils, process, LastDisassembleData, strutils, maps;
 
 type
   TSection=record

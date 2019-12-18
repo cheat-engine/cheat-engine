@@ -5,7 +5,13 @@ unit autoassemblerexeptionhandler;
 interface
 
 uses
-  windows, Classes, SysUtils, NewKernelHandler, Clipbrd;
+  {$ifdef darwin}
+  macport,
+  {$endif}
+  {$ifdef windows}
+  windows,
+  {$endif}
+  Classes, SysUtils, NewKernelHandler, Clipbrd;
 
 type
   TAAExceptionInfo=record
@@ -113,6 +119,8 @@ begin
   //setList
   InitializeAutoAssemblerExceptionHandler;
 
+  {$ifdef windows}
+
   oldlist:=0;
   readprocessmemory(processhandle, pointer(listaddress), @oldlist, 8,x);
 
@@ -168,6 +176,7 @@ begin
 
   //and the parameters
   VirtualFreeEx(processhandle, params, 0, MEM_RELEASE); //(not the list, on purpose)
+  {$endif}
 end;
 
 procedure InitializeAutoAssemblerExceptionHandler;
@@ -184,6 +193,7 @@ var
   i: integer;
 
 begin
+  {$ifdef windows}
   //check if CEAAExceptionHandler is already defined, and if not, define it here
 
   ehallocated:=false;
@@ -452,6 +462,9 @@ begin
 
     pid:=processid;
   end;
+  {$else}
+  raise exception.create('{$try}/{$except} is not yet implemented for this system');
+  {$endif}
 end;
 
 end.

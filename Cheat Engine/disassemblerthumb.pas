@@ -290,6 +290,9 @@ uses
 {$ifndef armdev}
 ,ProcessHandlerUnit, NewKernelHandler
 {$endif}
+  {$ifdef darwin}
+  ,macport, macportdefines
+  {$endif}
   ;
 
 
@@ -5270,6 +5273,9 @@ begin
 
   inc(address, length(LastDisassembleData.Bytes));
 end;
+
+initialization
+  OutputDebugString('DisassemblerThumb init');  //runs
 
 end.
 

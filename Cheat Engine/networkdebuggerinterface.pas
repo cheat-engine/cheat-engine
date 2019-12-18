@@ -5,8 +5,12 @@ unit NetworkDebuggerInterface;
 interface
 
 uses
-  jwawindows, windows, Classes, SysUtils,cefuncproc, newkernelhandler,
-  DebuggerInterface, networkInterface, networkInterfaceApi, contnrs;
+
+  {$ifdef windows}
+  jwawindows, windows,
+  {$endif}
+  Classes, SysUtils,cefuncproc, newkernelhandler,
+  DebuggerInterface, networkInterface, networkInterfaceApi, contnrs,{$ifdef darwin}macport, macportdefines{$endif};
 
 type
   TNetworkDebuggerInterface=class(TDebuggerInterface)
@@ -38,7 +42,7 @@ type
 
 implementation
 
-uses debuggertypedefinitions, processhandlerunit;
+uses debuggertypedefinitions, ProcessHandlerUnit;
 
 type
   TNetworkX86_32Context=packed record

@@ -4,14 +4,17 @@ unit DBK64SecondaryLoader;
 
 interface
 
+{$IFDEF windows}
 uses
   jwawindows, windows, Classes, SysUtils, cefuncproc, NewKernelHandler, dialogs;
 
 function SecondaryDriverLoad: THandle;
 function SecondaryDeviceIoControl(dwIoControlCode: DWORD; lpInBuffer: Pointer; nInBufferSize: DWORD; lpOutBuffer: Pointer; nOutBufferSize: DWORD; var lpBytesReturned: DWORD; lpOverlapped: POverlapped): BOOL; stdcall;
+{$ENDIF}
 
 implementation
 
+{$IFDEF windows}
 uses dbk32functions, vmxfunctions, ManualModuleLoader, ctypes, Globals;
 
 resourcestring
@@ -141,6 +144,7 @@ begin
   else
     outputdebugstring('Returned false');
 end;
+{$ENDIF}
 
 end.
 

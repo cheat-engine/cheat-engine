@@ -5,7 +5,9 @@ unit ProcessList;
 interface
 
 uses
-  {$ifdef windows}jwawindows, windows, cefuncproc, LazUTF8, {$endif}Classes, SysUtils{$ifndef JNI}, StdCtrls{$endif}, ProcessHandlerUnit {$ifndef windows},unixporthelper{$endif},newkernelhandler;
+  {$ifdef windows}jwawindows, windows, {$endif}
+  {$ifdef darwin}macport, macportdefines,{$endif}
+  cefuncproc, LazUTF8, Classes, SysUtils{$ifndef JNI}, StdCtrls{$endif}, ProcessHandlerUnit {$ifdef JNI},unixporthelper{$endif},newkernelhandler;
 
 {$ifndef jni}
 procedure GetProcessList(ProcessList: TListBox; NoPID: boolean=false); overload;
@@ -26,7 +28,7 @@ var
 
 implementation
 
-uses Globals, networkInterfaceApi;
+uses Globals{$ifdef windows}, networkInterfaceApi{$endif};
 
 resourcestring
     rsICanTGetTheProcessListYouArePropablyUsingWindowsNT = 'I can''t get the process list. You are propably using windows NT. Use the window list instead!';
@@ -102,6 +104,14 @@ var SNAPHandle: THandle;
     i,j: integer;
     s: string;
 begin
+  cleanProcessList(ProcessList);
+
+  {$ifdef darwin}
+  macport.GetProcessList(processlist);
+  {$endif}
+
+  {$ifdef windows}
+
 
   ProcessListInfo:=nil;
   HI:=0;
@@ -110,7 +120,7 @@ begin
 
 //  OutputDebugString('GetProcessList()');
 
-  cleanProcessList(ProcessList);
+
 
 
  // OutputDebugString('Calling CreateToolhelp32Snapshot');
@@ -224,6 +234,7 @@ begin
     raise exception.Create(rsICanTGetTheProcessListYouArePropablyUsingWindowsNT);
     {$endif}
   end;
+  {$endif}
 end;
 
 {$ifndef JNI}
@@ -232,6 +243,11 @@ var sl: tstringlist;
     i: integer;
     pli: PProcessListInfo;
 begin
+  {$ifdef darwin}
+  macport.GetProcessList(processlist.Items);
+  {$endif}
+
+  {$ifdef windows}
   sl:=tstringlist.create;
   try
     processlist.Sorted:=false;
@@ -258,6 +274,7 @@ begin
   finally
     sl.free;
   end;
+  {$endif}
 end;
 {$endif}
 

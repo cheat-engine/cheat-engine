@@ -4,6 +4,8 @@ unit bCrypt;
 
 interface
 
+{$ifdef windows}
+
 uses
   windows, Classes, SysUtils;
 
@@ -80,10 +82,13 @@ var BCryptDestroyHash: function(hKey: BCRYPT_HASH_HANDLE):NTSTATUS; stdcall;
 var BCryptEncrypt: function(hKey: BCRYPT_KEY_HANDLE; pbInput: pointer; cbInput: ULONG; pPaddingInfo: PVOID; pbIV: PUCHAR; cbIV: ULONG; pbOutput: PUCHAR; cbOutput: ULONG; pcbResult: PULONG; dwflags: DWORD): NTSTATUS; stdcall;
 var BCryptDecrypt: function(hKey: BCRYPT_KEY_HANDLE; pbInput: pointer; cbInput: ULONG; pPaddingInfo: PVOID; pbIV: PUCHAR; cbIV: ULONG; pbOutput: PUCHAR; cbOutput: ULONG; pcbResult: PULONG; dwflags: DWORD): NTSTATUS; stdcall;
 
+{$endif}
 
 implementation
 
 var bcryptlib: HModule=0;
+
+{$ifdef windows}
 
 function initialize_bCrypt: boolean;
 begin
@@ -115,8 +120,9 @@ begin
 
   result:=(bcryptlib<>0) and assigned(BCryptOpenAlgorithmProvider) and assigned(BCryptVerifySignature) and assigned(BCryptSignHash) and assigned(BCryptImportKeyPair);
 
-end;
 
+end;
+  {$endif}
 
 
 end.

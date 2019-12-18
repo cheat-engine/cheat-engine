@@ -13,7 +13,13 @@ Speed is not of essence here. Assumed it that only up to 8KB of memory will be u
 interface
 
 uses
-  windows, syncobjs, Classes, SysUtils, cefuncproc, newkernelhandler;
+  {$ifdef darwin}
+  macport,
+  {$endif}
+  {$ifdef windows}
+  windows,
+  {$endif}
+  syncobjs, Classes, SysUtils, cefuncproc, newkernelhandler;
 
 type
   TAllocs=record  //record describing each little allocated block of memory

@@ -6,7 +6,12 @@ unit PointerscannerSettingsFrm;
 interface
 
 uses
-  windows, LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
+  {$ifdef darwin}
+  macport,
+  {$else}
+  windows,
+  {$endif}
+  LCLIntf, LMessages, Messages, SysUtils, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, ComCtrls, ExtCtrls, LResources, EditBtn, Buttons, Contnrs,
   CEFuncProc, NewKernelHandler, symbolhandler, multilineinputqueryunit,
   registry, resolve, math, PointerscanSettingsIPConnectionList, types, commonTypeDefs;
@@ -243,8 +248,8 @@ var frmpointerscannersettings: tfrmpointerscannersettings;
 
 implementation
 
-uses MainUnit, frmMemoryAllocHandlerUnit, MemoryBrowserFormUnit, ProcessHandlerUnit,
-  Globals, parsers, DPIHelper;
+uses MainUnit, {$ifdef windows}frmMemoryAllocHandlerUnit,{$endif} MemoryBrowserFormUnit, ProcessHandlerUnit,
+  Globals, parsers{$ifdef windows}, DPIHelper{$endif};
 
 
 
@@ -301,7 +306,9 @@ begin
 
   combobox.DropDownCount:=max(16, combobox.Items.Count);
 
+  {$ifdef windows}
   SendMessage(combobox.Handle, CB_SETDROPPEDWIDTH, maxwidth+10, 0);
+  {$endif}
 end;
 
 
@@ -412,9 +419,10 @@ begin
 
 
 
-
+  {$ifdef windows}
   DPIHelper.AdjustSpeedButtonSize(btnSetFile);
   DPIHelper.AdjustSpeedButtonSize(btnDelete);
+  {$endif}
 
 
 end;
@@ -484,7 +492,7 @@ begin
   lblfilename.ShowHint:=true;
 
   if fileexists(filename+'.addresslist') then
-    tstrings(cbAddress.tag).LoadFromFile(filename+'.addresslist',true);
+    tstrings(cbAddress.tag).LoadFromFile(filename+'.addresslist');
 
   UpdateAddressList(cbAddress);
 
@@ -1036,7 +1044,7 @@ begin
 
         if fileexists(odLoadPointermap.FileName+'.addresslist') then
         begin
-          tstrings(cbAddress.tag).LoadFromFile(odLoadPointermap.FileName+'.addresslist', true);
+          tstrings(cbAddress.tag).LoadFromFile(odLoadPointermap.FileName+'.addresslist');
           UpdateAddressList(cbAddress);
         end;
 
@@ -1253,8 +1261,10 @@ begin
   edtReverseStop.clientwidth:=i;
 
 
+  {$ifdef windows}
   i:=max(canvas.TextWidth('XXXX')+DPIHelper.GetEditBoxMargins(editStructsize), editStructsize.clientwidth);
   editStructsize.clientwidth:=i;
+  {$endif}
 
   i:=max(btnOk.width, btnCancel.width);
   btnok.autosize:=false;
@@ -1269,13 +1279,15 @@ begin
   begin
     //get the addresslist from the scandata.addresslist file (if it exists)
     if fileexists(odLoadPointermap.filename+'.addresslist') then
-      tstrings(cbAddress.tag).LoadFromFile(odLoadPointermap.filename+'.addresslist', true);
+      tstrings(cbAddress.tag).LoadFromFile(odLoadPointermap.filename+'.addresslist');
   end
   else
     MainForm.addresslist.getAddressList(tstrings(cbAddress.tag));
 
   UpdateAddressList(cbAddress);
+  {$ifdef windows}
   AdjustComboboxSize(cbValueType, self.canvas);
+  {$endif}
   cbAddress.ItemHeight:=cbValueType.ItemHeight;
   cbAddress.height:=cbValueType.Height;
 
@@ -1437,6 +1449,7 @@ end;
 
 procedure TfrmPointerScannerSettings.cbUseHeapDataClick(Sender: TObject);
 begin
+  {$ifdef windows}
   cbHeapOnly.Enabled:=cbUseHeapData.Checked;
   if (frmMemoryAllocHandler<>nil) and (frmMemoryAllocHandler.hookedprocessid<>processid) then
     freeandnil(frmMemoryAllocHandler);
@@ -1445,6 +1458,7 @@ begin
   frmMemoryAllocHandler.WaitForInitializationToFinish;
 
   edtAddressChange(cbAddress);
+  {$endif}
 end;
 
 procedure TfrmPointerScannerSettings.Panel1Click(Sender: TObject);
@@ -1502,7 +1516,10 @@ begin
   if gpm then
     cbUseLoadedPointermap.checked:=false
   else
-    cbAddress.SetFocus
+  begin
+    if fsVisible in FormState then
+      cbAddress.SetFocus
+  end;
 
 end;
 
@@ -1511,6 +1528,7 @@ var haserror: boolean;
 begin
   automaticaddress:=symhandler.getAddressFromName(cbAddress.text, false,haserror); //ignore error
 
+  {$ifdef windows}
 
   if cbHeapOnly.Checked then
   begin
@@ -1519,6 +1537,8 @@ begin
    else
      cbAddress.Font.Color:=clRed; //BAD
   end else cbAddress.Font.Color:=clWindowText;
+
+  {$endif}
 
 end;
 

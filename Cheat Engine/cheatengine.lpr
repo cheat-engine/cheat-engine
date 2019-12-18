@@ -3,11 +3,19 @@ program cheatengine;
 {$mode objfpc}{$H+}
 
 uses
+  {$ifdef darwin}
+  cthreads,
+  {$endif}
   first,
   {$IFDEF UNIX}{$IFDEF UseCThreads}
   cthreads,
   {$ENDIF}{$ENDIF}
   Interfaces, {CEInterfaces,} // this includes the LCL widgetset
+  {$ifdef darwin}
+  //
+  macport, macportdefines,coresymbolication, macexceptiondebuggerinterface,
+  macCreateRemoteThread,
+  {$endif}
   controls, sysutils, Forms, LazUTF8, dialogs, SynCompletion, MainUnit,
   CEDebugger, NewKernelHandler, CEFuncProc, ProcessHandlerUnit, symbolhandler,
   Assemblerunit, hypermode, byteinterpreter, addressparser, autoassembler,
@@ -86,7 +94,7 @@ uses
   PointerscanWorker, PointerscanStructures, PointerscanController, zstreamext,
   PointerscanConnector, PointerscanNetworkStructures, AsyncTimer,
   PointerscanSettingsIPConnectionList, MemoryStreamReader, commonTypeDefs,
-  Parsers, Globals, NullStream, RipRelativeScanner, LuaRipRelativeScanner,
+  Parsers, Globals, NullStream, RipRelativeScanner, LuaRIPRelativeScanner,
   VirtualQueryExCache, disassemblerthumb, AccessedMemory, LuaStructureFrm,
   MemoryQuery, pointerparser, GnuAssembler, binutils, dbvmLoadManual, mikmod,
   frmEditHistoryUnit, LuaInternet, xinput, frmUltimap2Unit, cpuidunit, libipt,
@@ -107,15 +115,21 @@ uses
   frmMicrotransactionsUnit, frmSyntaxHighlighterEditor, LuaCustomImageList;
 
 {$R cheatengine.res}
+{$IFDEF windows}
 {$R manifest.res}  //lazarus now has this build in (but sucks as it explicitly turns of dpi aware)
 //{$R Sounds.rc}
 //{$R images.rc}
-{$R images.res}
-{$R Sounds.res}
-
 {$ifdef cpu32}
 {$SetPEFlags $20}
 {$endif}
+
+{$ENDIF}
+
+{$R sounds.res}
+{$R Images.res}
+
+
+
 
 procedure HandleParameters;
 {Keep in mind: Responsible for not making the mainform visible}
@@ -139,6 +153,10 @@ begin
 
       if p<>'' then
       begin
+        {$ifdef darwin}
+        if p='hasrights' then continue;
+        {$endif}
+
         if p[1]='-' then
         begin
           //could be -ORIGIN
@@ -248,8 +266,11 @@ var
   path: string;
   noautorun: boolean;
 begin
-  Application.Title:='Cheat Engine 7.0';
+  Application.Title:='Cheat Engine 7.1';
   Application.Initialize;
+  {$ifdef darwin}
+  macPortFixRegPath;
+  {$endif}
 
   overridefont:=nil;
   noautorun:=false;
@@ -331,9 +352,15 @@ begin
   Application.CreateForm(TTypeForm, TypeForm);
 
   initcetitle;
+  {$ifdef darwin}
+  macPortFixRegPath;
+  {$endif}
+
   InitializeLuaScripts(noautorun);
 
   handleparameters;
+
+  OutputDebugString('Starting CE');
 
   Application.Run;
 end.

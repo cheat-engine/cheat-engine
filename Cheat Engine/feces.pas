@@ -5,6 +5,7 @@ unit feces;
 
 interface
 
+{$ifdef windows}
 uses
   Classes, SysUtils, bcrypt, DOM, xmlutils, XmlRead, XMLWrite, dialogs, windows,
   graphics, math;
@@ -14,7 +15,11 @@ procedure signTable(cheattable: TDOMElement);
 procedure signTableFile(f: string);
 function isProperlySigned(cheattable: TDOMElement; out specialstring: string; out imagepos: integer; out image: tpicture): boolean;
 
+{$endif}
+
 implementation
+
+{$ifdef windows}
 
 uses cefuncproc, CustomBase85, registry, formsettingsunit;
 
@@ -772,6 +777,8 @@ initialization
 
   if not assigned(decodepointer) then
     (decodepointer):=@DecodePointerNI;
+
+{$endif}
 
 end.
 

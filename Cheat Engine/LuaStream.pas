@@ -11,7 +11,7 @@ procedure stream_addMetaData(L: PLua_state; metatable: integer; userdata: intege
 
 implementation
 
-uses LuaClass, LuaHandler, LuaObject;
+uses LuaClass, LuaHandler, LuaObject{$ifdef darwin},mactypes{$endif};
 
 function stream_getSize(L: PLua_State): integer; cdecl;
 var
@@ -216,7 +216,11 @@ begin
     if lua_istable(L, 1) then
     begin
       if lua_gettop(L)>=2 then
+      {$ifdef FPC_FULLVERSION < 030200}
+        count:=min(int64(lua_objlen(L, 1)), int64(lua_tointeger(L, 2)))
+      {$else}
         count:=min(lua_objlen(L, 1), lua_tointeger(L, 2)) //prevent the length from exeeding the table
+      {$endif}
       else
         count:=lua_objlen(L, 1);
 

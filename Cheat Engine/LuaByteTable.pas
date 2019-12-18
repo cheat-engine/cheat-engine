@@ -17,7 +17,7 @@ procedure CreateByteTableFromPointer(L: PLua_state; p: pbytearray; size: integer
 
 implementation
 
-uses luahandler, frmFloatingPointPanelUnit;
+uses luahandler, frmFloatingPointPanelUnit{$ifdef darwin},mactypes{$endif};
 
 procedure CreateByteTableFromPointer(L: PLua_state; p: pbytearray; size: integer );
 var t,i: integer;

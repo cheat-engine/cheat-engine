@@ -86,7 +86,11 @@ begin
   if CurrentDebuggerInterface<>nil then
     result:=CurrentDebuggerInterface.DebugActiveProcessStop(dwProcessID)
   else
+  {$ifdef windows}
     result:=cedebugger.DebugActiveProcessStop(dwProcessID);
+  {$else}
+    result:=false;
+  {$endif}
 end;
 
 

@@ -5,7 +5,13 @@ unit frmTracerUnit;
 interface
 
 uses
-  windows, NewKernelHandler, LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
+  {$ifdef darwin}
+  macport, macportdefines,
+  {$endif}
+  {$ifdef windows}
+  windows,
+  {$endif}
+  NewKernelHandler, LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, ExtCtrls, Buttons, LResources, commonTypeDefs, frmFindDialogUnit,
   clipbrd, Menus, ComCtrls, frmStackviewunit, frmFloatingPointPanelUnit, LuaByteTable,
   disassembler, debuggertypedefinitions;
@@ -209,9 +215,9 @@ type
 implementation
 
 
-uses cedebugger, debughelper, MemoryBrowserFormUnit, frmTracerConfigUnit,
-  processhandlerunit, Globals, Parsers, strutils, cefuncproc,
-  luahandler, symbolhandler, byteinterpreter,
+uses CEDebugger, debughelper, MemoryBrowserFormUnit, frmTracerConfigUnit,
+  ProcessHandlerUnit, Globals, Parsers, strutils, CEFuncProc,
+  LuaHandler, symbolhandler, byteinterpreter,
   tracerIgnore, LuaForm, lua, lualib,lauxlib, LuaClass;
 
 resourcestring
@@ -741,6 +747,9 @@ begin
             xmmcount:=16
           else
             xmmcount:=8;
+
+
+
 
           {$ifdef cpu64}
           different:=CompareMem(@compareinfo.c.FltSave.XmmRegisters[0], @thisinfo.c.FltSave.XmmRegisters[0], xmmcount*sizeof(M128A));

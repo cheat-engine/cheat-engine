@@ -5,7 +5,8 @@ unit frmSortPointerlistUnit;
 interface
 
 uses
-  windows, Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls,
+  {$ifdef darwin} macport, {$endif}
+  {$IFDEF windows} windows, {$ENDIF} Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls,
   ExtCtrls, PointerscanresultReader, maps, ComCtrls, math;
 
 type

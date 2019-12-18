@@ -4,13 +4,17 @@ unit LuaManualModuleLoader;
 
 interface
 
+
+{$IFDEF windows}
 uses
   windows, Classes, SysUtils;
 
 procedure initializeLuaModuleLoader;
+{$ENDIF}
 
 implementation
 
+{$IFDEF windows}
 uses ManualModuleLoader, lua, lauxlib, lualib, LuaClass, LuaHandler, LuaObject;
 
 function moduleloader_createModuleLoader(L: PLua_State): integer; cdecl;
@@ -124,6 +128,7 @@ end;
 
 initialization
   luaclass_register(TModuleLoader, moduleloader_addMetadata);
+{$ENDIF}
 
 end.
 

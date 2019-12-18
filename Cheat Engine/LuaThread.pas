@@ -9,8 +9,14 @@ This unit contains the class used to control the threads spawned by lua
 interface
 
 uses
-  windows, Classes, SysUtils,lua, lualib, lauxlib, LuaHandler, syncobjs,
-  SyncObjs2, comobj;
+  {$ifdef darwin}
+  macport,
+  {$endif}
+  {$ifdef windows}
+  windows, comobj,
+  {$endif}
+  Classes, SysUtils,lua, lualib, lauxlib, LuaHandler, syncobjs,
+  SyncObjs2;
 
 procedure initializeLuaThread;
 
@@ -75,7 +81,9 @@ var errorstring: string;
   extraparamcount: integer;
 begin
   //call the lua function
+  {$ifdef windows}
   CoInitializeEx(nil,0);
+  {$endif}
 
   try
     extraparamcount:=lua_gettop(L);

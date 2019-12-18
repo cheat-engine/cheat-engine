@@ -5,7 +5,14 @@ unit SaveFirstScan;
 
 interface
 
-uses windows, LCLIntf, classes, CEFuncProc, commonTypeDefs;
+uses
+  {$ifdef darwin}
+  macport, LCLType,
+  {$endif}
+  {$ifdef windows}
+  windows,
+  {$endif}
+  sysutils, fileutil, LCLIntf, classes, CEFuncProc, commonTypeDefs;
 
 type TSaveFirstScanThread=class(tthread)
   private
@@ -78,6 +85,7 @@ begin
     begin
       //exact value scan or other scan that gives addresses
       //copy the results to addressesfirst.tmp and memoryfirst.tmp
+
       copyfile(pchar(folder+'ADDRESSES.TMP'),pchar(folder+'ADDRESSES.FIRST'),false);
       if terminated then exit;
       copyfile(pchar(folder+'MEMORY.TMP'),pchar(folder+'MEMORY.FIRST'),false);

@@ -5,7 +5,13 @@ unit frmSetupPSNNodeUnit;
 interface
 
 uses
-  windows, Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs,
+  {$ifdef darwin}
+  macport, lclintf,
+  {$endif}
+  {$ifdef windows}
+  windows,
+  {$endif}
+  Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs,
   StdCtrls, ExtCtrls, math, registry;
 
 type
@@ -99,12 +105,15 @@ begin
 
   getmem(compname, 256);
   compnamesize:=255;
+
+  {$IFDEF windows}
   if GetComputerName(compname, compnamesize) then
   begin
     compname[compnamesize]:=#0;
     edtPublicname.text:=compname;
   end
   else
+  {$ENDIF}
     edtPublicname.text:=GetUserNameFromPID(GetProcessID)+'-'+inttohex(random(65536),1);
 
 

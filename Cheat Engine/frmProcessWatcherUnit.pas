@@ -5,10 +5,17 @@ unit frmProcessWatcherUnit;
 interface
 
 uses
-  jwawindows, windows, LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
-  Dialogs,NewKernelHandler, ExtCtrls, ComCtrls, StdCtrls,CEDebugger,kerneldebugger,
-  CEFuncProc, Menus, LResources,{tlhelp32,} symbolhandler, debugHelper, syncobjs;
+  {$ifdef darwin}
+  macport,
+  {$endif}
 
+  {$ifdef windows}
+  jwawindows, windows, kerneldebugger, CEDebugger, CEFuncProc, symbolhandler, debugHelper, NewKernelHandler, syncobjs
+  {$endif}
+  LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
+  Dialogs, ExtCtrls, ComCtrls, StdCtrls, Menus, LResources;
+
+{$ifdef windows}
 type tthreaddata=record
   threadid: dword;
 end;
@@ -34,6 +41,7 @@ type tprocesswatchthread=class(tthread)
     openedByAutoAttach: boolean;
     procedure execute; override;
   end;
+{$endif}
 
 type
 
@@ -57,12 +65,16 @@ type
     procedure Panel1Resize(Sender: TObject);
   private
     { Private declarations }
+    {$ifdef windows}
     processwatchthread: tprocesswatchthread;
+    {$endif}
     procedure PWOP(ProcessIDString:string);
   public
     { Public declarations }
+    {$ifdef windows}
     processes: array of tprocessdata;
     processesCS: TCriticalSection;
+    {$endif}
   end;
 
 var
@@ -70,8 +82,10 @@ var
 
 implementation
 
+{$ifdef windows}
 uses formsettingsunit, MainUnit,AdvancedOptionsUnit, MemoryBrowserFormUnit,
      frmProcesswatcherExtraUnit,plugin, processhandlerunit, Globals;
+{$endif}
 
 resourcestring
   rsProcesswatcherThreadError = 'processwatcher: thread error:%s';
@@ -83,6 +97,7 @@ resourcestring
   rsThreadID = 'ThreadID:';
   rsConventionalIDs = '----Conventional ID''s----';
 
+{$ifdef windows}
 procedure tprocesswatchthread.crash;
 begin
   showmessage(Format(rsProcesswatcherThreadError, [error]));
@@ -335,10 +350,13 @@ begin
   freememandnil(threadevents);
 end;
 
+{$endif}
+
 //-------------------------------------------------
 
 procedure TfrmProcessWatcher.FormCreate(Sender: TObject);
 begin
+  {$ifdef windows}
   if @startprocesswatch=nil then loaddbk32;
 
   if StartProcessWatch then
@@ -350,11 +368,13 @@ begin
 
 
   end else raise exception.Create(rsFailedStartingTheProcessWatcher);
+  {$endif}
 end;
 
 procedure TFrmProcessWatcher.PWOP(ProcessIDString:string);
 var i:integer;
 begin
+  {$ifdef windows}
   val('$'+ProcessIDString,ProcessHandler.processid,i);
   if i<>0 then raise exception.Create(Format(rsIsnTAValidProcessID, [processidstring]));
   if Processhandle<>0 then
@@ -375,19 +395,25 @@ begin
   end;
 
   Open_Process;
+  {$endif}
 end;
 
 procedure TfrmProcessWatcher.tvProcesslistDblClick(Sender: TObject);
 begin
+  {$ifdef windows}
   if (tvprocesslist.Selected<>nil) and (tvprocesslist.Selected.Level=0) then
     btnopen.Click;
+  {$endif}
 end;
 
 procedure TfrmProcessWatcher.btnOpenClick(Sender: TObject);
+{$ifdef windows}
 var ProcessIDString: String;
     i:               Integer;
     processnode:      ttreenode;
+{$endif}
 begin
+  {$ifdef windows}
   if (tvprocesslist.Selected<>nil) then
   begin
     unpause;
@@ -421,12 +447,14 @@ begin
     if self.visible then
       self.hide;
   end;
+  {$endif}
 end;
 
 procedure TfrmProcessWatcher.btnAttachClick(Sender: TObject);
 var ProcessIDString: String;
     i:               Integer;
 begin
+  {$ifdef windows}
   if tvprocesslist.Selected<>nil then
   begin
     unpause;
@@ -458,13 +486,17 @@ begin
     mainform.enableGui(false);
     close;
   end else showmessage(rsFirstSelectAProcess);
+  {$endif}
 end;
 
 procedure TfrmProcessWatcher.ShowThreadIDs1Click(Sender: TObject);
+{$ifdef windows}
 var i,j: integer;
     ths: thandle;
     tE: threadentry32;
+{$endif}
 begin
+  {$ifdef windows}
   if tvProcesslist.Selected<>nil then
   begin
     i:=tvProcesslist.Selected.AbsoluteIndex;
@@ -499,16 +531,19 @@ begin
     end;
 
   end;
+  {$endif}
 end;
 
 procedure TfrmProcessWatcher.FormDestroy(Sender: TObject);
 begin
+  {$ifdef windows}
   if processwatchthread<>nil then
   begin
     processwatchthread.Terminate;
     processwatchthread.WaitFor;
     processwatchthread.Free;
   end;
+  {$endif}
 end;
 
 procedure TfrmProcessWatcher.Panel1Resize(Sender: TObject);

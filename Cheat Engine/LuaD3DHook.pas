@@ -11,6 +11,7 @@ procedure initializeLuaD3dHook;
 
 implementation
 
+{$ifdef windows}
 uses luaclass, luahandler, d3dhookUnit, LuaObject;
 
 function createD3DHook(L: PLua_State): integer; cdecl;
@@ -255,19 +256,23 @@ end;
 //renderobject has only publised properties and inherits from object, no need to define
 //same for D3DHook_Sprite and textcontainer
 
-
+{$endif}
 
 
 procedure initializeLuaD3dHook;
 begin
+  {$ifdef windows}
   lua_register(LuaVM, 'createD3DHook', createD3DHook);
+  {$endif}
 
 end;
 
 initialization
+  {$ifdef windows}
   luaclass_register(TD3DHook, d3dhook_addMetaData);
   luaclass_register(TD3DHook_Texture, d3dhook_texture_addMetaData);
   luaclass_register(TD3DHook_FontMap, d3dhook_fontmap_addMetaData);
+  {$endif}
 
 
 end.

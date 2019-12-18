@@ -5,7 +5,12 @@ unit formsettingsunit;
 interface
 
 uses
-  windows, win32proc, LCLProc, LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
+  {$ifdef darwin}
+  macport,
+  {$endif}
+  {$ifdef windows}
+  windows, win32proc,
+  {$endif}LCLProc, LCLIntf, LCLType, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
   StdCtrls,registry, Menus,ComCtrls,CEFuncProc,ExtCtrls,{tlhelp32,}CheckLst,
   Buttons, LResources, frameHotkeyConfigUnit, math,
 
@@ -458,11 +463,13 @@ begin
 
   {$ifndef net}
 
+    {$ifdef windows}
     if cbProcessWatcher.checked and (frmprocesswatcher=nil) then
     begin
       loaddbk32;
       frmprocesswatcher:=tfrmprocesswatcher.Create(mainform); //start the process watcher
     end;
+    {$endif}
 
 
   {$endif}
@@ -1349,9 +1356,11 @@ begin
   tvMenuSelection.Width:=j;
 
 
+  {$ifdef windows}
   if WindowsVersion>=wvVista then
     m:=sendmessage(edtStacksize.Handle, EM_GETMARGINS, 0,0)
   else
+  {$endif}
     m:=0;
 
 
@@ -1612,7 +1621,9 @@ end;
 
 procedure TformSettings.FormCreate(Sender: TObject);
 var i: integer;
+  {$ifdef windows}
   osVerInfo: TOSVersionInfo;
+  {$endif}
 
   reg: Tregistry;
   v,m: integer;
@@ -1635,7 +1646,7 @@ begin
   tvMenuSelection.Items[10].Data:=tsSigning;
 
   tvMenuSelection.Items[6].Visible:=false;
-  tvMenuSelection.Items[10].Visible:=cansigntables;
+  tvMenuSelection.Items[10].Visible:={$ifdef windows}cansigntables{$else}false{$endif};
 
   pcSetting.ShowTabs:=false;
 
@@ -1749,7 +1760,7 @@ begin
 
 
 
-    cbKdebug.Enabled:=isRunningDBVM or isDBVMCapable;
+    cbKdebug.Enabled:={$ifdef windows}isRunningDBVM or isDBVMCapable{$else}false{$endif};
 
     cbKdebug.Caption:=cbKdebug.Caption+' '+rsRequiresDBVM;
     if not cbKdebug.Enabled then
@@ -1757,6 +1768,7 @@ begin
   end;
 
 
+  {$ifdef windows}
   if NtQuerySystemInformation(196, @KVAShadowInfo,4,@rl)=0 then
   begin
     //it knows this classID..
@@ -1766,6 +1778,7 @@ begin
       btnMakeKernelDebugPossible.visible:=true;
     end;
   end;
+  {$endif}
 
   //check if it should be disabled
   reg:=tregistry.create;

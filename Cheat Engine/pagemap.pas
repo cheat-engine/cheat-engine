@@ -8,7 +8,12 @@ A container specifically for storing and looking up pages
 interface
 
 uses
+  {$ifdef windows}
   windows, Classes, SysUtils;
+  {$endif}
+  {$ifdef darwin}
+  macport, Classes, SysUtils;
+  {$endif}
 
 type
   TPageInfo=record

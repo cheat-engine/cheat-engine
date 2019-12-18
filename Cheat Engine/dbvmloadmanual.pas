@@ -3,6 +3,7 @@ unit dbvmLoadManual;
 {$mode delphi}
 
 interface
+{$ifdef windows}
 
 uses
   windows, Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs,
@@ -28,6 +29,8 @@ type
 var
   frmDBVMLoadManual: TfrmDBVMLoadManual;
 
+{$endif}
+
 implementation
 
 {$R *.lfm}
@@ -42,6 +45,8 @@ resourcestring
   rsNotLoaded = 'Not loaded';
   
 { TfrmDBVMLoadManual }
+
+{$ifdef windows}
 
 procedure TfrmDBVMLoadManual.launchDBVMForCpuClick(Sender: TObject);
 var
@@ -192,6 +197,8 @@ begin
   if allactive and (about<>nil) then
     about.UpdateDBVMStatus;
 end;
+
+{$endif}
 
 end.
 

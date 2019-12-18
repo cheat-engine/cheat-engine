@@ -5,8 +5,11 @@ unit cesupport;
 interface
 
 uses
-  lclintf, Classes, SysUtils,forms, controls, windows, activex, comobj, LMessages,
-  ExtCtrls, Graphics, FileUtil, Dialogs;
+  {$ifdef windows}
+  windows, activex, comobj,
+  {$endif}
+  lclintf, Classes, SysUtils,forms, controls, LMessages,
+  ExtCtrls, Graphics, FileUtil, Dialogs, math;
 
 type TADWindow=class(TCustomForm)
   private
@@ -175,7 +178,7 @@ procedure TADWindow.LoadAd;
 var url: widestring;
   pid: dword;
 begin
-
+  {$ifdef windows}
   if (counter=0) or (secondsSinceLastShowAd>120) then
   begin
     GetWindowThreadProcessId(GetForegroundWindow,pid);
@@ -198,7 +201,7 @@ begin
       //showmessage(inttostr(browser.width));
     end;
   end;
-
+  {$endif}
 
 end;
 
@@ -253,6 +256,7 @@ end;
 
 destructor TADWindow.destroy;
 begin
+  {$ifdef windows}
   browser.Quit();
   browser:=NULL; //Unassigned;
 
@@ -261,6 +265,7 @@ begin
     attachedform.WindowProc:=attachedwindowproc;
 
   CoFreeUnusedLibraries;
+  {$endif}
 
   inherited destroy;
 end;

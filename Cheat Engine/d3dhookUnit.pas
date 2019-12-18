@@ -11,6 +11,8 @@ A shared object will be used for communicating states and data
 
 interface
 
+{$ifdef windows}
+
 uses
   windows, Classes, SysUtils, sharedMemory, forms, graphics, cefuncproc,
   newkernelhandler, controls, Clipbrd, strutils, LuaHandler, RemoteMemoryManager,
@@ -464,8 +466,11 @@ var D3DHook: TD3DHook;
 function safed3dhook(size: integer=16*1024*1024; hookwindow: boolean=true): TD3DHook;
 procedure FixAlpha(aPNG: TPortableNetworkGraphic);
 
+{$endif}
+
 implementation
 
+{$ifdef windows}
 uses frmautoinjectunit, autoassembler, MainUnit, frmSaveSnapshotsUnit,
   frmsnapshothandlerUnit, symbolhandler, ProcessHandlerUnit, Globals;
 
@@ -1814,6 +1819,8 @@ begin
   result:=d3dhook;
 
 end;
+
+{$endif}
 
 end.
 

@@ -66,7 +66,7 @@ implementation
 
 {$R *.lfm}
 
-uses math,NewKernelHandler, ProcessHandlerUnit, vmxfunctions, registry;
+uses math,NewKernelHandler, ProcessHandlerUnit, vmxfunctions, registry{$ifdef darwin},macport{$endif};
 
 function TfrmDBVMWatchConfig.getMaxEntries: integer;
 begin
@@ -205,6 +205,7 @@ var
   x: ptruint;
   temp: byte;
 begin
+  {$ifdef windows}
   faddress:=a;
   lblVirtualAddress.caption:=format('Virtual Address=%.8x',[a]);
 
@@ -227,6 +228,7 @@ begin
     lblPhysicalAddress.caption:='Physical Address=invalid';
     lblPhysicalAddress.font.color:=clRed;
   end;
+  {$endif}
 end;
 
 end.

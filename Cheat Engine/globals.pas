@@ -161,6 +161,9 @@ var
 
   allocsAddToUnexpectedExceptionList: boolean;
 
+  {$ifdef darwin}
+  speedhack_HookMachAbsoluteTime:boolean;
+  {$endif}
 
 
 

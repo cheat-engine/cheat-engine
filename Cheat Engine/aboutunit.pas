@@ -5,8 +5,13 @@ unit aboutunit;
 interface
 
 uses
-  windows, LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, ExtCtrls, LResources,shellapi, vmxfunctions, NewKernelHandler;
+  {$ifdef darwin}
+  macport,
+  {$endif}
+  {$ifdef windows}
+  windows,shellapi,
+  {$endif}LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
+  Dialogs, StdCtrls, ExtCtrls, LResources, vmxfunctions, NewKernelHandler;
 
 type
 
@@ -155,6 +160,7 @@ end;
 procedure TAbout.lblDBVMClick(Sender: TObject; Button: TMouseButton;
   Shift: TShiftState; X, Y: Integer);
 begin
+  {$ifdef windows}
   //if not isRunningDBVM then
   begin
     //if not isDBVMCapable then exit;
@@ -190,6 +196,7 @@ begin
       else 
         tfrmDBVMLoadManual.create(Application).Show;
   end;
+  {$endif}
 end;
 
 procedure TAbout.UpdateDBVMStatus;
@@ -204,6 +211,7 @@ var
   oldvmx_password2: DWORD;
 
 begin
+  {$ifdef windows}
   oldvmx_password1:=vmx_password1;
   oldvmx_password2:=vmx_password2;
   OutputDebugString('UpdateDBVMStatus');
@@ -258,6 +266,9 @@ begin
 
   vmx_password1:=oldvmx_password1;
   vmx_password2:=oldvmx_password2;
+  {$else}
+  lblDBVM.visible:=false;
+  {$endif}
 end;
 
 

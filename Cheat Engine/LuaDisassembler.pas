@@ -226,8 +226,11 @@ end;
 
 function createCR3Disassembler(L: PLua_State): integer; cdecl;
 begin
+  result:=0;
+  {$ifdef windows}
   luaclass_newClass(L, TCR3Disassembler.Create);
   result:=1;
+  {$endif}
 end;
 
 

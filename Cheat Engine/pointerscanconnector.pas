@@ -8,8 +8,8 @@ unit PointerscanConnector;
 interface
 
 uses
-  Classes, SysUtils, sockets, resolve, syncobjs, math, winsock2, CELazySocket,
-  PointerscanNetworkCommands, NewKernelHandler;
+  Classes, SysUtils, sockets, resolve, syncobjs, math, {$ifdef windows}winsock2,{$endif} CELazySocket,
+  PointerscanNetworkCommands, NewKernelHandler{$ifdef darwin},macport{$endif};
 
 
 type
@@ -234,7 +234,7 @@ begin
         if sockaddr.sin_addr.s_bytes[4]<>0 then
         begin
           //connect
-          sockethandle:=socket(AF_INET, SOCK_STREAM, 0);
+          sockethandle:=fpsocket(AF_INET, SOCK_STREAM, 0);
           if sockethandle=INVALID_SOCKET then
             raise exception.create(rsFailureCreatingSocket);
 
