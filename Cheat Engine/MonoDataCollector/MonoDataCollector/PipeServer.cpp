@@ -1038,6 +1038,14 @@ void* CPipeServer::ReadObject(void* domain, MonoTypeEnum type, void *addr)
 			Read(addr, size);
 		break;
 	case MONO_TYPE_PTR:
+	{
+		if (size > 0)
+		{
+			Read(addr, size);
+			result = (void *) *((UINT64*)addr);			
+		}
+		break;
+	}
 	case MONO_TYPE_BYREF:
 	case MONO_TYPE_CLASS:
 	case MONO_TYPE_FNPTR:
@@ -1066,8 +1074,8 @@ void CPipeServer::WriteObject(void* object)
 		{
 		case MONO_TYPE_STRING:
 		{
-			void *string = mono_object_to_string(object, NULL);
-			char *ptr = mono_string_to_utf8(string);
+			//void *string = mono_object_to_string(object, NULL);
+			char *ptr = mono_string_to_utf8(object);
 			WriteString(ptr);
 			if (mono_free)
 			  mono_free(ptr);
