@@ -199,7 +199,7 @@ type
 implementation
 
 uses dialogs, formAddressChangeUnit, TypePopup, PasteTableentryFRM, mainunit,
-  ProcessHandlerUnit, frmEditHistoryUnit, globals, filehandler;
+  ProcessHandlerUnit, frmEditHistoryUnit, globals, Filehandler;
 
 resourcestring
   rsDoYouWantToDeleteTheSelectedAddress = 'Do you want to delete the selected address?';
@@ -246,9 +246,11 @@ end;
 procedure TAddresslist.clear;
 var
   i: integer;
-  item: TObject;
+  item: TMemoryRecord;
 begin
   //first check if it's being edited/or busy
+  if self=nil then exit;
+
   for i:=0 to count-1 do
     if (MemRecItems[i].isBeingEdited) or (memrecitems[i].AsyncProcessing) then exit;
 

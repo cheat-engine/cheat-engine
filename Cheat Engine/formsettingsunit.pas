@@ -14,7 +14,7 @@ uses
   StdCtrls,registry, Menus,ComCtrls,CEFuncProc,ExtCtrls,{tlhelp32,}CheckLst,
   Buttons, LResources, frameHotkeyConfigUnit, math,
 
-  kerneldebugger,plugin,NewKernelHandler,CEDebugger,hotkeyhandler, debugHelper,
+  KernelDebugger,plugin,NewKernelHandler,CEDebugger,hotkeyhandler, debugHelper,
   formhotkeyunit, debuggertypedefinitions, FileUtil, IniFiles;
 
 

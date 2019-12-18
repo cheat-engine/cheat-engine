@@ -237,7 +237,9 @@ begin
       break;
     end;
 
+  {$ifdef windows}
   mainform.visible:=mainformvisible;
+  {$endif}
 end;
 
 type TFormFucker=class
@@ -267,10 +269,11 @@ var
   noautorun: boolean;
 begin
   Application.Title:='Cheat Engine 7.1';
-  Application.Initialize;
   {$ifdef darwin}
   macPortFixRegPath;
   {$endif}
+  Application.Initialize;
+
 
   overridefont:=nil;
   noautorun:=false;
@@ -343,7 +346,10 @@ begin
 
   symhandlerInitialize;
 
+  {$ifdef windows}
   Application.ShowMainForm:=false;
+  {$endif}
+
   Application.CreateForm(TMainForm, MainForm);
   Application.CreateForm(TMemoryBrowser, MemoryBrowser);
   Application.CreateForm(TformSettings, formSettings);
@@ -361,6 +367,15 @@ begin
   handleparameters;
 
   OutputDebugString('Starting CE');
+
+  if Application.MainForm<>MainForm then
+  begin
+    asm
+    nop
+    end;
+  end;
+  application.MainFormOnTaskBar:=true;
+
 
   Application.Run;
 end.

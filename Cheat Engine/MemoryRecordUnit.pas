@@ -1117,7 +1117,7 @@ begin
     autoassemblerdata.registeredsymbols.free;
 
   //free the group's children
-  {$IFNDEF UNIX}
+  {$IFNDEF JNI}
   while (treenode.count>0) do
     TMemoryRecord(treenode[0].data).free;
 
@@ -1128,7 +1128,7 @@ begin
 
   if fDropDownList<>nil then
     freeandnil(fDropDownList);
-  {$ifndef unix}
+  {$ifndef jni}
   if luaref<>-1 then
     luaL_unref(LuaVM, LUA_REGISTRYINDEX, luaref);
   {$endif}

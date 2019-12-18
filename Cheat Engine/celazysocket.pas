@@ -251,7 +251,7 @@ begin
           //wait till it's available
           zeromemory(@fdset,sizeof(fdset));
 //          fdset.fd_count:=0;
-          {$ifdef unix}fp{$endif}FD_SET(socket, fdset);
+          {$ifdef unix}fpFD_SET{$else}FD_SET{$endif}(socket, fdset);
 
           if timeout>0 then
           begin

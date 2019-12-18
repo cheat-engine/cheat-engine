@@ -8,7 +8,6 @@
       <MainUnit Value="0"/>
       <AutoCreateForms Value="False"/>
       <Title Value="Cheat Engine 7.1"/>
-      <UseAppBundle Value="False"/>
       <XPManifest>
         <ExecutionLevel Value="requireAdministrator"/>
       </XPManifest>
@@ -23,7 +22,7 @@
       <AutoIncrementBuild Value="True"/>
       <MajorVersionNr Value="7"/>
       <MinorVersionNr Value="1"/>
-      <BuildNr Value="6044"/>
+      <BuildNr Value="6050"/>
       <Language Value=""/>
       <CharSet Value=""/>
       <StringTable CompanyName="Cheat Engine" FileDescription="Cheat Engine" ProductVersion="7.1"/>
