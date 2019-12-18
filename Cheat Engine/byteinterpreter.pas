@@ -5,14 +5,20 @@ unit byteinterpreter;
 {$WARN 4104 off : Implicit string type conversion from "$1" to "$2"}
 interface
 
-{$ifdef windows}
-uses windows, LCLIntf, sysutils, symbolhandler, CEFuncProc, NewKernelHandler, math,
-  CustomTypeHandler, ProcessHandlerUnit, commonTypeDefs, LazUTF8;
-{$endif}
 
-{$ifdef unix}
+
+{$ifdef jni}
 uses unixporthelper, sysutils, symbolhandler, ProcessHandlerUnit, NewKernelHandler, math,
   CustomTypeHandler, commonTypeDefs;
+{$else}
+uses
+  {$ifdef darwin}
+  macport,
+  {$endif}
+  {$ifdef windows}
+  windows,
+  {$endif}LCLIntf, sysutils, symbolhandler, CEFuncProc, NewKernelHandler, math,
+  CustomTypeHandler, ProcessHandlerUnit, commonTypeDefs, LazUTF8;
 {$endif}
 
 resourcestring
@@ -47,7 +53,7 @@ uses parsers;
 
 {$ifdef unix}
 function isreadable(address: ptruint): boolean;
-var x: dword;
+var x: ptruint;
     t: byte;
 begin
   result:=ReadProcessMemory(processhandle, pointer(address), @t, 1, x);

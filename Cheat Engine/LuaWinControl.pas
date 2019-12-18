@@ -5,7 +5,9 @@ unit LuaWinControl;
 interface
 
 uses
-  windows, Classes, SysUtils, controls, lua, lualib, lauxlib,LuaHandler, graphics;
+  {$ifdef windows}windows,{$endif}
+
+  Classes, SysUtils, controls, lua, lualib, lauxlib,LuaHandler, graphics;
 
 procedure initializeLuaWinControl;
 procedure wincontrol_addMetaData(L: PLua_state; metatable: integer; userdata: integer );
@@ -226,6 +228,8 @@ begin
   //only works on forms in windows 7 and earlier, but also works on child components in windows 8 and later
   result:=0;
 
+  {$ifdef windows}
+
   if lua_gettop(L)>=3 then
   begin
     h:=twincontrol(luaclass_getClassObject(L)).handle;
@@ -243,6 +247,7 @@ begin
     result:=1;
     lua_pushboolean(L, SetLayeredWindowAttributes(h, key, alpha, flags));
   end;
+  {$endif}
 end;
 
 procedure wincontrol_addMetaData(L: PLua_state; metatable: integer; userdata: integer );

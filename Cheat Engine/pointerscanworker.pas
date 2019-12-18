@@ -6,9 +6,17 @@ unit PointerscanWorker;
 
 interface
 
+{$ifdef darwin}
+uses
+  macport, Classes, SysUtils, syncobjs, PointerscanStructures, ProcessHandlerUnit, pointervaluelist,
+  pointeraddresslist, NewKernelHandler, zstream, zstreamext, macportdefines, SyncObjs2, math;
+{$endif}
+
+{$ifdef windows}
 uses
   windows, Classes, SysUtils, syncobjs, PointerscanStructures, ProcessHandlerUnit, pointervaluelist,
   pointeraddresslist, NewKernelHandler, zstream, zstreamext;
+{$endif}
 
 type
   TPointerscanWorker = class (tthread)
@@ -32,7 +40,11 @@ type
     procedure flushifneeded; virtual;
   public
     pointerlisthandler: TReversePointerListHandler;
+    {$ifdef windows}
     pathqueuesemaphore: THandle;
+    {$else}
+    pathqueuesemaphore: TSemaphore;
+    {$endif}
     pathqueuelength: ^integer;
     pathqueueCS: TCriticalSection;
     pathqueue: PMainPathQueue;
@@ -170,7 +182,7 @@ type
 
 implementation
 
-uses frmMemoryAllocHandlerUnit, pointerscancontroller;
+uses {$ifdef windows}frmMemoryAllocHandlerUnit,{$endif} pointerscancontroller;
 
 //---------------Reversescanworker
 
@@ -367,13 +379,20 @@ begin
 
       while (not terminated) do
       begin
+        {$ifdef windows}
         wr:=WaitForSingleObject(pathqueueSemaphore, 500); //obtain semaphore
-
         if wr=WAIT_OBJECT_0 then
+        {$else}
+        if pathqueueSemaphore.TryAcquire(500) then
+        {$endif}
         begin
           if stop or terminated then
           begin
+            {$ifdef windows}
             ReleaseSemaphore(pathqueueSemaphore, 1, nil);
+            {$else}
+            pathqueueSemaphore.Release;
+            {$endif}
             exit;
           end;
 
@@ -381,7 +400,12 @@ begin
           //fetch the data from the queue and staticscanner
           if outofdiskspace^ then
           begin
+            {$ifdef windows}
             ReleaseSemaphore(pathqueueSemaphore, 1, nil); //don't use it. give the semaphore back
+            {$else}
+            pathqueueSemaphore.Release;
+            {$endif}
+
             sleep(2000);
             continue;
           end;
@@ -599,7 +623,9 @@ var p: ^byte;
 
 
     ExactOffset: boolean;
+    {$ifdef windows}
     mae: TMemoryAllocEvent;
+    {$endif}
 
   startvalue: ptrUint;
   stopvalue: ptrUint;
@@ -634,6 +660,7 @@ begin
 
     if startvalue>stopvalue then startvalue:=0;
 
+    {$ifdef windows}
     if useheapdata then
     begin
       mae:=frmMemoryAllocHandler.FindAddress(@frmMemoryAllocHandler.HeapBaselevel, valuetofind);
@@ -647,6 +674,7 @@ begin
        if useOnlyHeapData then
          exit;
     end;
+    {$endif}
   end;
 
 
@@ -761,7 +789,12 @@ begin
                         pathqueue[pathqueuelength^].valuetofind:=plist.list[j].address;
 
                         inc(pathqueuelength^);
+                        {$ifdef windows}
                         ReleaseSemaphore(pathqueueSemaphore, 1, nil);
+                        {$else}
+                        pathqueueSemaphore.Release;
+                        {$endif}
+
                         addedToQueue:=true;
                       end;
                       pathqueueCS.Leave;

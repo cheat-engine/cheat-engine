@@ -4,13 +4,16 @@ unit fileaccess;
 
 interface
 
+{$IFDEF windows}
 uses
   jwaWindows, windows,Classes, SysUtils;
 
 procedure MakePathAccessible(path: widestring);
+{$ENDIF}
 
 implementation
 
+{$IFDEF windows}
 resourcestring
   rsNoGetNamedSecurityInfo = 'no GetNamedSecurityInfo';
   rsNoGetSecurityInfo = 'no GetSecurityInfo';
@@ -118,6 +121,7 @@ begin
   end;
   //else raise exception.create('AllocateAndInitializeSid failed');
 end;
+{$ENDIF}
 
 end.
 

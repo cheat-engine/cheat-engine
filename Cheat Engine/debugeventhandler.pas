@@ -7,9 +7,15 @@ unit debugeventhandler;
 interface
 
 uses
-  jwawindows, Windows, Classes, SysUtils, syncobjs, GuiSafeCriticalSection,
+  {$ifdef darwin}
+  macport, lclproc,
+  {$endif}
+  {$ifdef windows}
+  jwawindows, Windows, win32proc,
+  {$endif}
+  Classes, SysUtils, syncobjs, GuiSafeCriticalSection,
   disassembler, cefuncproc, newkernelhandler,debuggertypedefinitions, frmTracerUnit,
-  DebuggerInterfaceAPIWrapper, LuaHandler, lua, lauxlib, lualib, win32proc,
+  DebuggerInterfaceAPIWrapper, LuaHandler, lua, lauxlib, lualib,
   tracerIgnore, BreakpointTypeDef;
 
 type
@@ -910,6 +916,7 @@ begin
   begin
     //no known single step happening
 
+    {$ifdef windows}
     if (CurrentDebuggerInterface is TKernelDebugInterface) then
     begin
       //could be dbvm
@@ -919,6 +926,7 @@ begin
         exit;
       end;
     end;
+    {$endif}
 
     if (not (hasSetInt3Back {$ifdef cpu32} or hasSetInt1Back{$endif})) then
     begin
@@ -1216,7 +1224,9 @@ begin
 
 
     OutputDebugString('Unexpected breakpoint');
+    {$ifdef windows}
     if not (CurrentDebuggerInterface is TKernelDebugInterface) then
+    {$endif}
     begin
 
       dwContinueStatus:=DBG_EXCEPTION_NOT_HANDLED;
@@ -1224,6 +1234,7 @@ begin
       if TDebuggerthread(debuggerthread).InitialBreakpointTriggered=false then
       begin
 
+        {$ifdef windows}
         if (CurrentDebuggerInterface is TVEHDebugInterface) then
         begin
           if (context^.{$ifdef cpu64}Rip{$else}Eip{$endif}=$ffffffce) then
@@ -1237,6 +1248,7 @@ begin
           end;
         end
         else
+        {$endif}
         begin
           dwContinueStatus:=DBG_CONTINUE;
           TDebuggerthread(debuggerthread).InitialBreakpointTriggered:=true;
@@ -1245,11 +1257,14 @@ begin
           onAttachEvent.SetEvent;
           exit;
         end;
+
       end;
 
 
     end
+    {$ifdef windows}
     else dwContinueStatus:=DBG_EXCEPTION_NOT_HANDLED; //not an expected breakpoint
+    {$endif}
   end;
 
 
@@ -1354,8 +1369,12 @@ begin
     setContext;
 
 
-
+    {$ifdef darwin}
+    task_suspend(processhandle);
+    {$endif}
+    {$ifdef windows}
     NtSuspendProcess(processhandle);
+    {$endif}
 
     ResumeThread(self.Handle);
 
@@ -1475,7 +1494,13 @@ begin
         setContext;
 
         SuspendThread(handle);
+
+        {$ifdef darwin}
+        task_resume(processhandle);
+        {$endif}
+        {$ifdef windows}
         NtResumeProcess(processhandle);
+        {$endif}
         dwContinueStatus:=DBG_CONTINUE;
         freeandnil(temporaryDisabledExceptionBreakpoints);
         exit;
@@ -1622,12 +1647,14 @@ begin
     end;
 
 
+    {$ifdef windows}
     if (CurrentDebuggerInterface is TKernelDebugInterface) or
        (CurrentDebuggerInterface is TNetworkDebuggerInterface) then //the kerneldebuginterface and networkdebuginterface do not give a breakpoint as init so use create as attachevent
       onAttachEvent.SetEvent;
 
     if (CurrentDebuggerInterface is TWindowsDebuggerInterface) and (debugEvent.CreateProcessInfo.hFile<>0) then
       closeHandle(debugEvent.CreateProcessInfo.hFile); //we don't need this
+    {$endif}
 
 
     secondcreateprocessdebugevent:=true;
@@ -1812,6 +1839,7 @@ begin
   zeromemory(realcontextpointer,sizeof(TCONTEXT)+4096);
 
 
+  {$ifdef windows}
   k:=GetModuleHandle('kernel32.dll');
   InitializeContext:=getprocaddress(k, 'InitializeContext');
   if assigned(initializeContext) then
@@ -1834,6 +1862,7 @@ begin
       end;
     end;
   end;
+  {$endif}
 
   if context=nil then
   begin

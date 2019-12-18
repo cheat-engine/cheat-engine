@@ -6,13 +6,17 @@ unit LuaPipeServer;
 
 interface
 
+{$ifdef windows}
 uses
   jwawindows, windows, Classes, SysUtils, lua, luaclass, luapipe;
 
+
 procedure initializeLuaPipeServer;
+{$endif}
 
 implementation
 
+{$ifdef windows}
 uses LuaHandler;
 
 type
@@ -119,6 +123,8 @@ end;
 
 initialization
   luaclass_register(TLuaPipeServer, luapipeserver_addMetaData );
+
+{$endif}
 
 end.
 

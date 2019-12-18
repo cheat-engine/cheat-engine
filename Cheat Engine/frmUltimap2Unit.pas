@@ -7,7 +7,13 @@ unit frmUltimap2Unit;
 interface
 
 uses
-  win32proc,  windows, Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs,
+  {$ifdef darwin}
+  macport, mactypes,
+  {$endif}
+  {$ifdef windows}
+  win32proc,  windows,
+  {$endif}
+  Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs,
   ExtCtrls, StdCtrls, ComCtrls, EditBtn, Menus, libipt, ProcessHandlerUnit,
   DBK32functions, commonTypeDefs, MemFuncs, AvgLvlTree, Math, FileMapping,
   syncobjs, CEFuncProc, registry, NewKernelHandler, LazFileUtils, disassembler,
@@ -607,6 +613,7 @@ end;
 
 function TUltimap2Worker.waitForData(timeout: dword; var e: TUltimap2DataEvent): boolean;
 begin
+  {$ifdef windows}
   result:=false;
   if fromfile then
   begin
@@ -648,11 +655,13 @@ begin
       OutputDebugString('ultimap2_waitForData returned true for cpu '+inttostr(e.Cpunr));
     end;
   end;
+  {$endif}
 end;
 
 procedure TUltimap2Worker.continueFromData(e: TUltimap2DataEvent);
 var fn: string;
 begin
+  {$ifdef windows}
   if fromfile then
   begin
     OutputDebugString(inttostr(e.cpunr)+' continueFromData for file');
@@ -677,6 +686,7 @@ begin
     outputdebugstring('Calling ultimap2_continue for cpu '+inttostr(e.cpunr));
     ultimap2_continue(e.Cpunr);
   end;
+  {$endif}
 end;
 
 procedure TUltimap2Worker.parseToStringlist(insn: pt_insn; output: Tstrings);
@@ -1103,6 +1113,8 @@ begin
   OutputDebugString(format('%d: FilterWorker alive',[GetCurrentThreadId]));
   done:=true;
 
+  {$ifdef windows}
+
   case filteroption of
     foExecuted: filterRoutine:=@FilterExecuted;//
     foNotExecuted: filterRoutine:=@FilterNotExecuted;
@@ -1143,6 +1155,7 @@ begin
       OutputDebugString(format('%d: FilterWorker returned properly. back to sleep',[GetCurrentThreadId]));
     end;
   end;
+  {$endif}
 end;
 
 {TUltimap2FilterThread}
@@ -1168,6 +1181,7 @@ var
   i: integer;
   count: integer;
 begin
+  {$ifdef windows}
   freeOnTerminate:=true;
 
   OutputDebugString('Filter thread alive. Spawning workers');
@@ -1282,6 +1296,7 @@ begin
     OutputDebugString('Filter thread cleanup done');
   end;
 
+  {$endif}
 end;
 
 { TfrmUltimap2 }
@@ -1385,6 +1400,7 @@ end;
 procedure TfrmUltimap2.FlushResults(f: TFilterOption=foNone);
 var i:integer;
 begin
+  {$ifdef windows}
   OutputDebugString('TfrmUltimap2.FlushResults');
   ultimap2_resetTraceSize;
 
@@ -1444,6 +1460,7 @@ begin
     end;
     OutputDebugString('11');
   end;
+  {$endif}
 end;
 
 
@@ -1490,6 +1507,7 @@ end;
 procedure TfrmUltimap2.cleanup;
 var i: integer;
 begin
+  {$ifdef windows}
   FreeValidList;
 
   //cleanup everything
@@ -1525,6 +1543,7 @@ begin
 
   ultimap2_disable;
   ultimap2Initialized:=0;
+  {$endif}
 end;
 
 procedure TfrmUltimap2.tbRecordPauseChange(Sender: TObject);
@@ -1546,6 +1565,7 @@ var
   cpuid14_0: TCPUIDResult;
   cpuid14_1: TCPUIDResult;
 begin
+  {$ifdef windows}
   OutputDebugString('tbRecordPauseChange click');
   if state=rsProcessing then exit;
 
@@ -1811,11 +1831,13 @@ begin
     on e: exception do
       messagedlg(e.message,mtError,[mbOK],0);
   end;
+  {$endif}
 end;
 
 procedure TfrmUltimap2.tProcessorTimer(Sender: TObject);
 begin
   //check the state
+  {$ifdef windows}
   inc(ticks);
 
   if cbTraceInterval.checked then
@@ -1834,6 +1856,7 @@ begin
  // FlushResults(foNone);
 
  // ultimap2_getTraceSize
+ {$endif}
 end;
 
 procedure TfrmUltimap2.FormCloseQuery(Sender: TObject; var CanClose: boolean);
@@ -1878,12 +1901,14 @@ end;
 procedure TfrmUltimap2.FormShow(Sender: TObject);
 var i, minwidth: integer;
 begin
+  {$ifdef windows}
   if WindowsVersion>=wvVista then
   begin
     i:=sendmessage(edtBufSize.Handle, EM_GETMARGINS, 0,0);
     i:=(i shr 16)+(i and $ffff);
   end
   else
+  {$endif}
     i:=8;
 
   minwidth:=i+canvas.GetTextWidth(edtBufSize.Text);

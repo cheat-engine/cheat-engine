@@ -91,6 +91,7 @@ var limit: word;
     aa,bb: uint64;
 begin
   limit:=0;
+  {$ifdef windows}
   address:=getgdt(@limit);
 
   outputdebugstring(format('gdt limit = %d',[limit]));
@@ -169,6 +170,8 @@ begin
   finally
     freememandnil(x);
   end;
+
+  {$endif}
 
 end;
 

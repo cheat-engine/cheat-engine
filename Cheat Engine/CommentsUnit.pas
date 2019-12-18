@@ -5,7 +5,10 @@ unit CommentsUnit;
 interface
 
 uses
-  windows, LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
+  {$ifdef windows}
+  windows,
+  {$endif}
+  LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, ExtCtrls, LResources, ComCtrls, LuaHandler, CEFuncProc;
 
 type
@@ -28,7 +31,9 @@ type
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
   private
     { Private declarations }
+    {$ifdef windows}
     procedure WMGetMinMaxInfo(var Message: TMessage); message WM_GETMINMAXINFO;
+    {$endif}
   public
     { Public declarations }
   end;
@@ -40,13 +45,14 @@ implementation
 
 uses MainUnit;
 
-
+{$ifdef windows}
 procedure TComments.WMGetMinMaxInfo(var Message: TMessage);
 var MMInfo: ^MINMAXINFO;
 begin //the constraint function of the form behaves weird when draging from the top or left side, so I have to do this myself.
   MMInfo:=pointer(message.LParam);
   MMInfo.ptMinTrackSize:=point(300,240);
 end;
+{$endif}
 
 
 procedure TComments.Button1Click(Sender: TObject);

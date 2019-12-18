@@ -206,7 +206,11 @@ uses
   QSynEditTypes,
   QSynEditHighlighter,
 {$ELSE}
+{$ifdef darwin}
+macport,  lcltype,
+{$else}
   Windows,
+{$endif}
   Graphics,
   SynEditTypes,
   SynEditHighlighter,

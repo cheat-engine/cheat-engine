@@ -8,6 +8,7 @@ unit xinput;
 
 interface
 
+{$ifdef windows}
 uses windows,classes, Controls;
 
   {**************************************************************************
@@ -205,9 +206,11 @@ var
   XInputGetCapabilities: function(dwUserIndex: dword; dwFlags: dword; pCapabilities: PXINPUT_CAPABILITIES): DWORD; stdcall;
   XInputGetKeystroke: function(dwUserIndex: dword; reserved: dword; pKeyStroke: PXINPUT_KEYSTROKE): DWORD; stdcall;
 
+  {$endif}
 
 implementation
 
+{$ifdef windows}
 uses forms;
 
 type TXBoxKeyDownThread=class(TThread)
@@ -314,6 +317,8 @@ begin
 
   result:=xih<>0;
 end;
+
+{$endif}
 
 end.
 

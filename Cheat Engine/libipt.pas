@@ -5,7 +5,13 @@ unit libipt;
 interface
 
 uses
-  Windows, Classes, SysUtils;
+  {$ifdef windows}
+  Windows,
+  {$endif}
+  {$ifdef darwin}
+  macport, dynlibs, mactypes,
+  {$endif}
+  Classes, SysUtils;
 
 const
   pt_asid_no_cr3  = QWORD($ffffffffffffffff);
@@ -223,6 +229,7 @@ function libIptInit: boolean;
 begin
   if hLibIPT=0 then
   begin
+    {$ifdef windows}
     hLibIPT:=LoadLibrary('libipt-64.dll');
     if hLibIPT=0 then hLibIPT:=LoadLibrary('D:\svn\Cheat Engine\bin\libipt-64.dll'); //during debug
 
@@ -252,7 +259,9 @@ begin
       pt_qry_event:=GetProcAddress(hLibIPT, 'pt_qry_event');
       pt_qry_cond_branch:=GetProcAddress(hLibIPT, 'pt_qry_cond_branch');
     end;
+      {$endif}
   end;
+
 
   result:=hLibIPT<>0;
 end;

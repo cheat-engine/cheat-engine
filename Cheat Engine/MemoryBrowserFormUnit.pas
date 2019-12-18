@@ -5,14 +5,20 @@ unit MemoryBrowserFormUnit;
 interface
 
 uses
-  jwawindows, windows, LCLProc, LCLIntf, Messages, SysUtils, Classes, Graphics,
+  {$ifdef darwin}
+  macport, LCLType,
+  {$endif}
+  {$ifdef windows}
+  jwawindows, windows,imagehlp,
+  {$endif}
+  LCLProc, LCLIntf, Messages, SysUtils, Classes, Graphics,
   Controls, Forms, Dialogs, frmMemoryAllocHandlerUnit, math, StdCtrls, Spin,
   ExtCtrls,CEFuncProc,symbolhandler,Clipbrd, Menus,plugin,CEDebugger,KernelDebugger,
-  Assemblerunit,disassembler,addressparser, Buttons,imagehlp, Contnrs,
+  Assemblerunit,disassembler,addressparser, Buttons, Contnrs,
   disassemblerviewunit, peinfofunctions ,dissectcodethread,stacktrace2,
   NewKernelHandler, ComCtrls, LResources, byteinterpreter, StrUtils, hexviewunit,
   debughelper, debuggertypedefinitions,frmMemviewPreferencesUnit, registry,
-  scrollboxex, disassemblercomments, multilineinputqueryunit, frmMemoryViewExUnit,
+  ScrollBoxEx, disassemblerComments, multilineinputqueryunit, frmMemoryViewExUnit,
   LastDisassembleData, ProcessHandlerUnit, commonTypeDefs, binutils,
   fontSaveLoadRegistry, LazFileUtils;
 
@@ -689,7 +695,7 @@ uses Valuechange, MainUnit, debugeventhandler, findwindowunit,
   AccessedMemory, Parsers, GnuAssembler, frmEditHistoryUnit, frmWatchlistUnit,
   vmxfunctions, frmstructurecompareunit, globals, UnexpectedExceptionsHelper,
   frmExceptionRegionListUnit, frmExceptionIgnoreListUnit, frmcodefilterunit,
-  frmDBVMWatchConfigUnit, DBK32functions, DPIHelper, debuggerinterface,
+  frmDBVMWatchConfigUnit, DBK32functions, DPIHelper, DebuggerInterface,
   DebuggerInterfaceAPIWrapper, BreakpointTypeDef;
 
 
@@ -1073,7 +1079,7 @@ begin
   miWatchBPHardware.enabled:=(CurrentDebuggerInterface=nil) or (dbcHardwareBreakpoint in CurrentDebuggerInterface.DebuggerCapabilities);
   miWatchBPException.enabled:=(CurrentDebuggerInterface=nil) or (dbcSoftwareBreakpoint in CurrentDebuggerInterface.DebuggerCapabilities);
   miWatchBPDBVM.enabled:=(CurrentDebuggerInterface=nil) or (dbcExceptionBreakpoint in CurrentDebuggerInterface.DebuggerCapabilities);
-  miWatchBPDBVM.visible:=hasEPTSupport;
+  miWatchBPDBVM.visible:={$ifdef windows}hasEPTSupport{$else}false{$endif};
 
 end;
 
@@ -1164,6 +1170,7 @@ procedure TMemoryBrowser.miDBVMActivateCloakClick(Sender: TObject);
 var
   PA,VA: qword;
 begin
+  {$ifdef windows}
   if isRunningDBVM and hasEPTSupport and (not hasCloakedRegionInRange(disassemblerview.SelectedAddress,1,VA,PA)) then
   begin
     VA:=disassemblerview.SelectedAddress;
@@ -1171,13 +1178,16 @@ begin
     if GetPhysicalAddress(processhandle,pointer(VA),int64(PA)) then
       dbvm_cloak_activate(PA,VA);
   end;
+  {$endif}
 end;
 
 procedure TMemoryBrowser.miDBVMDisableCloakClick(Sender: TObject);
 var PA,VA: Qword;
 begin
+  {$ifdef windows}
   if isRunningDBVM and hasEPTSupport and (hasCloakedRegionInRange(disassemblerview.SelectedAddress,1,VA,PA)) then
     dbvm_cloak_deactivate(PA);
+  {$endif}
 end;
 
 procedure TMemoryBrowser.miHideToolbarClick(Sender: TObject);
@@ -1517,7 +1527,6 @@ end;
 procedure TMemoryBrowser.SetBookmarkClick(Sender: TObject);
 var
   id: integer;
-  mi: TModuleInfo;
 begin
   if (sender=nil) or (not (sender is TMenuItem)) then exit;
   id:=TMenuItem(Sender).Tag;
@@ -2767,7 +2776,6 @@ end;
 
 procedure TMemoryBrowser.Gotoaddress1Click(Sender: TObject);
 var newaddress: string;
-    symbol :PImagehlpSymbol;
     oldoptions: dword;
     canceled: boolean;
     oldAddress: ptrUint;
@@ -3588,6 +3596,7 @@ var dll: string;
     dllList: tstringlist;
 begin
 
+  {$ifdef windows}
   functionname:='';
   dll:='';
 
@@ -3624,6 +3633,8 @@ begin
     symhandler.reinitialize(true);
     showmessage(rsDLLInjected);
   end;
+
+  {$endif}
 end;
 
 procedure TMemoryBrowser.AutoInject1Click(Sender: TObject);
@@ -3780,6 +3791,7 @@ var count: string;
     x: dword;
     s: string;
 begin
+  {$ifdef windows}
 {$ifndef net}
   count:='4096';
   if inputquery(rsAllocateMemory, rsHowMuchMemoryDoYouWishToAllocate, count) then
@@ -3802,6 +3814,7 @@ begin
     end;
   end;
   {$endif}
+  {$endif}
 end;
 
 procedure TMemoryBrowser.Getaddress1Click(Sender: TObject);
@@ -3810,6 +3823,7 @@ var p: pointer;
     ws: widestring;
     pws: pwidechar;
 begin
+  {$ifdef windows}
   if inputquery(rsGetKernelAddress, rsGiveTheNameOfTheFunctionYouWantToFindCaseSensitive, s) then
   begin
     ws:=s;
@@ -3818,6 +3832,7 @@ begin
 
     disassemblerview.SelectedAddress:=ptrUint(p);
   end;
+  {$endif}
 end;
 
 procedure TMemoryBrowser.Findmemory1Click(Sender: TObject);
@@ -3981,10 +3996,10 @@ begin
   miConditionalBreak.enabled:=(debuggerthread<>nil) and (debuggerthread.isBreakpoint(disassemblerview.SelectedAddress)<>nil);
   miConditionalBreak.visible:=miConditionalBreak.enabled;
 
-  miDBVMActivateCloak.visible:=isRunningDBVM and hasEPTSupport and (not hasCloakedRegionInRange(disassemblerview.SelectedAddress, 1, VA,PA));
+  miDBVMActivateCloak.visible:={$ifdef windows}isRunningDBVM and hasEPTSupport and (not hasCloakedRegionInRange(disassemblerview.SelectedAddress, 1, VA,PA)){$else}false{$endif};
   miDBVMActivateCloak.enabled:=miDBVMActivateCloak.visible and DBKLoaded;
 
-  miDBVMDisableCloak.visible:=isRunningDBVM and hasEPTSupport and (hasCloakedRegionInRange(disassemblerview.SelectedAddress, 1, VA,PA));
+  miDBVMDisableCloak.visible:={$ifdef windows}isRunningDBVM and hasEPTSupport and (hasCloakedRegionInRange(disassemblerview.SelectedAddress, 1, VA,PA)){$else}false{$endif};
   miDBVMDisableCloak.enabled:=miDBVMDisableCloak.visible and DBKLoaded;
 
   miTogglebreakpoint.visible:=(not ischild);
@@ -4066,7 +4081,7 @@ begin
 
   miAddToTheCodelist.visible:=not inadvancedoptions;
 
-  DBVMFindoutwhataddressesthisinstructionaccesses.visible:=isIntel and isDBVMCapable and miSetSpecificBreakpoint.visible;
+  DBVMFindoutwhataddressesthisinstructionaccesses.visible:={$ifdef windows}isIntel and isDBVMCapable and miSetSpecificBreakpoint.visible{$else}false{$endif};
   DBVMFindoutwhataddressesthisinstructionaccesses.enabled:=DBVMFindoutwhataddressesthisinstructionaccesses.visible and DBKLoaded;
 
   //
@@ -4075,7 +4090,7 @@ begin
   miSetBreakpointPE.enabled:=((CurrentDebuggerInterface=nil) and (not formsettings.cbKDebug.Checked)) or ((CurrentDebuggerInterface<>nil) and (dbcExceptionBreakpoint in CurrentDebuggerInterface.DebuggerCapabilities));
   miSetBreakpointDBVMExec.enabled:=((CurrentDebuggerInterface=nil) and (formsettings.cbKDebug.Checked)) or ((CurrentDebuggerInterface<>nil) and (dbcDBVMBreakpoint in CurrentDebuggerInterface.DebuggerCapabilities));
 
-  miSetBreakpointDBVMExec.visible:=hasEPTSupport;
+  miSetBreakpointDBVMExec.visible:={$ifdef windows}hasEPTSupport{$else}false{$endif};
 
 
 end;
@@ -4362,6 +4377,7 @@ var
   procbased1flags: dword;
   i: integer;
 begin
+  {$ifdef windows}
   LoadDBK32;
   canuseept:=false;
   if isDriverLoaded(nil) then
@@ -4476,6 +4492,7 @@ begin
 
 
   end;
+  {$endif}
 end;
 
 procedure TMemoryBrowser.Findoutwhataddressesthisinstructionaccesses1Click(

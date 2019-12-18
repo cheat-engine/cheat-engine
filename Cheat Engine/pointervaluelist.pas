@@ -12,10 +12,17 @@ result: tree/map was slower than my own non threadsafe implementation. After ini
 
 interface
 
-uses windows, LCLIntf, dialogs, SysUtils, classes, ComCtrls, CEFuncProc,
+uses
+  {$ifdef darwin}
+  macport,
+  {$endif}
+  {$ifdef windows}
+  windows,
+  {$endif}
+  LCLIntf, dialogs, SysUtils, classes, ComCtrls, CEFuncProc,
      NewKernelHandler, symbolhandler, symbolhandlerstructs, math,
      bigmemallochandler, maps, luahandler, lua, lauxlib, lualib, luaclass,
-     LuaObject, zstream;
+     LuaObject, zstream, commonTypeDefs;
 
 const scandataversion=1;
 
@@ -93,11 +100,14 @@ type
 
 
     useStacks: boolean;
-    threadStacks: integer;
     stacksAsStaticOnly: boolean;
+    {$ifdef windows}
+    threadStacks: integer;
+
     stacksize: integer;
 
     stacklist: array of ptruint;
+    {$endif}
 
     ScannablePages: TMap;
 
@@ -252,6 +262,7 @@ function TReversePointerListHandler.isStatic2(address: ptruint; var mi: TModuleI
 var i: integer;
 begin
   result:=false;
+  {$ifdef windows}
   if useStacks then
   begin
     for i:=0 to threadStacks-1 do
@@ -263,6 +274,7 @@ begin
       end;
     end;
   end;
+  {$endif}
 
   if (result=false) and (stacksAsStaticOnly=false) then
     result:=symhandler.getmodulebyaddress(address, mi);  //fills mi.baseaddress
@@ -977,15 +989,22 @@ begin
     symhandler.getModuleList(modulelist);
 
     self.useStacks:=useStacks;
+    {$ifdef windows}
+    self.useStacks:=useStacks;
     self.threadStacks:=threadStacks;
     self.stacksAsStaticOnly:=stacksAsStaticOnly;
     self.stacksize:=stacksize;
+    {$else}
+    self.useStacks:=false;
+    self.stacksAsStaticOnly:=false;
+    {$endif}
 
     self.specificBaseAsStaticOnly:=specificBaseAsStaticOnly;
     self.baseStart:=baseStart;
     self.baseStop:=baseStop;
 
     //fill the stacklist
+    {$ifdef windows}
     if useStacks then
     begin
       setlength(stacklist, threadstacks);
@@ -1002,6 +1021,7 @@ begin
 
 
     end;
+    {$endif}
 
     if processhandler.is64Bit then
     begin
@@ -1058,7 +1078,7 @@ begin
       if (includeSystemModules or (not symhandler.inSystemModule(ptrUint(mbi.baseAddress))) ) and (not (not scan_mem_private and (mbi._type=mem_private))) and (not (not scan_mem_image and (mbi._type=mem_image))) and (not (not scan_mem_mapped and ((mbi._type and mem_mapped)>0))) and (mbi.State=mem_commit) and ((mbi.Protect and page_guard)=0) and ((mbi.protect and page_noaccess)=0) then  //look if it is commited
       begin
         if (Skip_PAGE_NOCACHE and ((mbi.AllocationProtect and PAGE_NOCACHE)=PAGE_NOCACHE)) or
-           (Skip_PAGE_WRITECOMBINE and ((mbi.AllocationProtect and PAGE_WRITECOMBINE)=PAGE_WRITECOMBINE)) or
+           {$ifdef windows}(Skip_PAGE_WRITECOMBINE and ((mbi.AllocationProtect and PAGE_WRITECOMBINE)=PAGE_WRITECOMBINE)) or{$endif}
            (noreadonly and (mbi.protect in [PAGE_READONLY, PAGE_EXECUTE, PAGE_EXECUTE_READ]))  then
           valid:=false
         else

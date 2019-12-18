@@ -5,7 +5,13 @@ unit diagramlink;
 interface
 
 uses
-  windows, Classes, SysUtils, graphics, DiagramTypes, Diagramblock, gl, glu, GLext;
+  {$ifdef darwin}
+  macport,
+  {$endif}
+  {$ifdef windows}
+  windows,
+  {$endif}
+  Classes, SysUtils, graphics, DiagramTypes, Diagramblock{$ifdef windows}, gl, glu, GLext{$endif};
 
 type
 
@@ -288,6 +294,7 @@ var
   oldbc: TColor;
   pps: single;
 begin
+  {$ifdef windows}
   if config.UseOpenGL then
   begin
     glColor3ub(255,0,0);
@@ -345,6 +352,7 @@ begin
 
   end
   else
+  {$endif}
   begin
     c:=config.canvas;
     oldbc:=c.Brush.Color;
@@ -385,6 +393,7 @@ begin
   if ArrowSize<>5 then
     sizescale:=arrowsize/5;
 
+  {$ifdef windows}
   if config.UseOpenGL then
   begin
     //glTranslatef(centeradjust.x,centeradjust.y,0);
@@ -419,6 +428,7 @@ begin
     glLoadIdentity;
   end
   else
+  {$endif}
   begin
     c:=config.canvas;
     arr:=arrow;
@@ -552,11 +562,12 @@ var
 
   adjust: Tpoint;
   r,g,b: byte;
-  t: TColorref;
+  {$IFDEF windows} t: TColorref; {$ENDIF}
 begin
   adjust.x:=config.scrollx;
   adjust.y:=config.scrolly;
 
+  {$ifdef windows}
   if config.UseOpenGL then
   begin
     RedGreenBlue(linecolor,r,g,b);
@@ -567,6 +578,7 @@ begin
     c:=nil;
   end
   else
+  {$endif}
   begin
     c:=config.canvas;
 
@@ -587,12 +599,14 @@ begin
   mx:=max(mx, destinationpoint.x);
   my:=max(my, destinationpoint.y);
 
+  {$ifdef windows}
   if config.UseOpenGL then
   begin
     glBegin(GL_LINE_STRIP);
     glVertex2f((originpoint.x-config.scrollx)*config.zoom, (originpoint.y-config.scrolly)*config.zoom);
   end
   else
+  {$endif}
   begin
     c.PenPos:=zoompoint(originpoint-adjust);
   end;
@@ -602,15 +616,18 @@ begin
     mx:=max(mx, points[i].x);
     my:=max(my, points[i].y);
 
+    {$ifdef windows}
     if config.UseOpenGL then
       glVertex2f((points[i].x-config.scrollx)*config.zoom, (points[i].y-config.scrolly)*config.zoom)
     else
+    {$endif}
       c.LineTo(zoompoint(points[i]-adjust));
   end;
 
   fmaxx:=mx;
   fmaxy:=my;
 
+  {$IFDEF windows}
   if config.UseOpenGL then
   begin
     glVertex2f((destinationpoint.x-config.scrollx)*config.zoom, (destinationpoint.y-config.scrolly)*config.zoom);
@@ -618,6 +635,7 @@ begin
     glEnd;
   end
   else
+  {$ENDIF}
     c.LineTo(zoompoint(destinationpoint-adjust));
 
   if config.DrawPlotPoints then
@@ -682,11 +700,13 @@ begin
   end;
 
 
+  {$IFDEF windows}
   if not config.UseOpenGL then
   begin
     c.pen.Width:=oldw;
     c.pen.color:=oldc;
   end;
+  {$ENDIF}
 end;
 
 function TDiagramLink.isOverLine(x,y: integer): boolean;

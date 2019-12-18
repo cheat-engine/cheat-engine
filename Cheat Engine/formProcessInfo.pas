@@ -54,7 +54,7 @@ var
 implementation
 
 
-uses threadlistexfrm, dbk32functions, ProcessHandlerUnit, parsers;
+uses {$ifdef windows}threadlistexfrm, dbk32functions,{$endif} ProcessHandlerUnit, parsers;
 
 procedure TfrmProcessInfo.FormCreate(Sender: TObject);
 var cr3: QWORD;
@@ -63,6 +63,7 @@ var cr3: QWORD;
     limit: word;
 begin
 
+  {$ifdef windows}
   lblPEPROCESS.caption:=inttohex(GetPEProcess(processid),8);
   lblisvalid.caption:=booltostr(isvalidhandle(processhandle),true);
 
@@ -83,6 +84,8 @@ begin
 
   lblgdt.Caption:=inttohex(GetGDT(@limit),8);
 
+  {$endif}
+
 end;
 
 procedure TfrmProcessInfo.Button1Click(Sender: TObject);
@@ -93,11 +96,12 @@ end;
 procedure TfrmProcessInfo.FormClose(Sender: TObject;
   var Action: TCloseAction);
 begin
-
+   {$ifdef windows}
   action:=cafree;
   if frmThreadlistEx<>nil then
     frmThreadlistEx.close;
   frmThreadlistEx:=nil;
+  {$endif}
 end;
 
 procedure TfrmProcessInfo.lblclick(Sender: TObject);
@@ -125,6 +129,7 @@ end;
 procedure TfrmProcessInfo.Button2Click(Sender: TObject);
 begin
 
+  {$ifdef windows}
   if frmThreadlistEx=nil then
   begin
     frmThreadlistEx:=tfrmThreadlistEx.create(self);
@@ -134,6 +139,7 @@ begin
   end;
 
   frmThreadlistEx.updatelist;
+  {$endif}
 end;
 
 procedure TfrmProcessInfo.lblPEPROCESSClick(Sender: TObject);

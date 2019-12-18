@@ -8,6 +8,7 @@ unit LuaPipeClient;
 
 interface
 
+{$ifdef windows}
 uses
   windows, Classes, SysUtils, LuaPipe, lua, luaclass;
 
@@ -20,11 +21,14 @@ type
     constructor create(pipename: string; timeout: integer=0);
   end;
 
+  {$endif}
+
 implementation
 
 uses LuaHandler;
 
 
+{$ifdef windows}
 
 constructor TLuaPipeClient.create(pipename: string; timeout: integer=0);
 begin
@@ -67,10 +71,13 @@ begin
   end;
 end;
 
+
 procedure initializeLuaPipeClient;
 begin
   lua_register(LuaVM, 'connectToPipe', luapipeclient_connectToPipe);
 end;
+
+{$endif}
 
 
 end.

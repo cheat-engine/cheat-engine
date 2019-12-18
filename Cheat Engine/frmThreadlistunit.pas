@@ -7,7 +7,13 @@ unit frmThreadlistunit;
 interface
 
 uses
-  jwawindows, windows, LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
+  {$ifdef darwin}
+  macport,
+  {$endif}
+  {$ifdef windows}
+  jwawindows, windows,
+  {$endif}
+  LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
   Dialogs, ComCtrls, Menus, StdCtrls, LResources,cefuncproc, CEDebugger, debugHelper,
   newkernelhandler, networkInterface, networkInterfaceApi;
 
@@ -102,9 +108,11 @@ end;
 procedure TfrmThreadlist.MenuItem1Click(Sender: TObject);
 var
   c: TCONTEXT;
-{$ifdef cpu64}
+  {$ifdef windows}
+  {$ifdef cpu64}
   c32: TContext32;
-{$endif}
+  {$endif}
+  {$endif}
   i: integer;
   s: TTreeNode;
   threadlist: tlist;
@@ -138,6 +146,7 @@ begin
           if TDebugThreadHandler(threadlist[i]).ThreadId=tid then
           begin
             {$ifdef cpu64}
+            {$ifdef windows}
             if processhandler.is64Bit=false then
             begin
               ZeroMemory(@c32, sizeof(c32));
@@ -148,6 +157,7 @@ begin
               c.Rbp:=c32.ebp;
             end
             else
+            {$endif}
             {$endif}
             GetThreadContext(TDebugThreadHandler(threadlist[i]).handle, c);
             break;
@@ -163,6 +173,7 @@ begin
 
       if th<>0 then
       begin
+        {$ifdef windows}
         {$ifdef cpu64}
         if processhandler.is64Bit=false then
         begin
@@ -174,6 +185,7 @@ begin
           c.Rbp:=c32.ebp;
         end
         else
+        {$endif}
         {$endif}
         GetThreadContext(th, c);
 
@@ -208,10 +220,14 @@ var
 
   ths: THandle;
   te32: TThreadEntry32;
+  {$ifdef windows}
   p: PSystemProcesses;
+  {$endif}
   needed: dword;
 
+  {$ifdef windows}
   pp: PSystemProcesses;
+  {$endif}
 
   s: string;
 
@@ -430,6 +446,7 @@ var
   tid: dword;
   th: THandle;
 begin
+  {$ifdef windows}
   s:=threadTreeview.Selected;
   if s<>nil then
   begin
@@ -467,6 +484,7 @@ begin
     end;
 
   end;
+  {$endif}
 end;
 
 procedure TfrmThreadlist.miResumeThreadClick(Sender: TObject);
@@ -478,6 +496,7 @@ var
   tid: dword;
   th: Thandle;
 begin
+  {$ifdef windows}
   s:=threadTreeview.Selected;
   if s<>nil then
   begin
@@ -515,6 +534,7 @@ begin
     end;
 
   end;
+  {$endif}
 end;
 
 procedure TfrmThreadlist.PopupMenu1Popup(Sender: TObject);
@@ -540,9 +560,11 @@ var s: TTreeNode;
 
   ai: integer;
   x: boolean;
+  {$ifdef windows}
   {$ifdef cpu64}
   use32bitcontext: boolean;
   c32: TContext32;
+  {$endif}
   {$endif}
 
   isCurrentDebuggedThread: boolean;
@@ -561,7 +583,7 @@ begin
 
     tid:=integer(s.data);
 
-    if (tid=GetCurrentThreadId) then exit; //don't accidentally freeze the ce main thread
+    if (tid=dword(GetCurrentThreadId)) then exit; //don't accidentally freeze the ce main thread
 
     isCurrentDebuggedThread:=(debuggerthread<>nil) and debuggerthread.isWaitingToContinue and (debuggerthread.CurrentThread.ThreadId=tid);
 
@@ -587,6 +609,7 @@ begin
 
       try
         {$ifdef cpu64}
+        {$ifdef windows}
         use32bitcontext:=(not processhandler.is64Bit) and (ssctrl in GetKeyShiftState);
 
 
@@ -620,6 +643,7 @@ begin
           end;
         end
         else
+        {$endif}
         {$endif}
         begin
           if isCurrentDebuggedThread=false then
@@ -683,6 +707,7 @@ begin
             pdword(regaddress)^:=v;
 
           {$ifdef cpu64}
+          {$ifdef windows}
           if use32bitcontext then
           begin
             c32.ContextFlags:=CONTEXT_ALL;
@@ -706,6 +731,7 @@ begin
               showmessage(rsTLFailedErrorcode+inttostr(GetLastError));
           end
           else
+          {$endif}
           {$endif}
           begin
             if isCurrentDebuggedThread then
@@ -791,15 +817,19 @@ var
 
   drinfo: string;
 
+  {$ifdef windows}
   ldtentry: TLDTEntry;
+  {$endif}
   i: integer;
   x: boolean;
 
   tempp: ptruint;
 
+  {$ifdef windows}
   {$ifdef cpu64}
   use32bitcontext: boolean;
   c32: TContext32;
+  {$endif}
   {$endif}
 
   cenet: TCEconnection;
@@ -916,7 +946,9 @@ begin
         c.ContextFlags:=CONTEXT_ALL or CONTEXT_EXTENDED_REGISTERS;
 
         {$ifdef cpu64}
+        {$ifdef windows}
         use32bitcontext:=(not processhandler.is64Bit) and (ssctrl in GetKeyShiftState);
+
 
         if use32bitcontext then
         begin
@@ -949,6 +981,7 @@ begin
           end;
         end
         else
+        {$endif}
         {$endif}
         x:=getThreadContext(th, c);
 
@@ -1034,11 +1067,13 @@ begin
 
           threadTreeview.items.AddChild(node,'cs='+inttohex(c.SegCs,8));
 
-
+          {$ifdef windows}
           i:=NtQueryInformationThread(th, ThreadBasicInformation, @tbi, sizeof(tbi), @x);
           if i=0 then
             threadTreeview.items.AddChild(node,'TEB='+inttohex(qword(tbi.TebBaseAddress),8));
+          {$endif}
 
+          {$ifdef windows}
           if processhandler.is64Bit=false then
           begin
             if GetThreadSelectorEntry(th, c.segFs, ldtentry) then
@@ -1047,6 +1082,7 @@ begin
             if GetThreadSelectorEntry(th, c.SegGs, ldtentry) then
               threadTreeview.items.AddChild(node,'gsbase='+inttohex(ldtentry.BaseLow+ldtentry.HighWord.Bytes.BaseMid shl 16+ldtentry.HighWord.Bytes.BaseHi shl 24,8));
           end;
+          {$endif}
 
         end
         else threadTreeview.items.AddChild(node, rsCouldnTObtainContext);

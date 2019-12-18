@@ -9,10 +9,16 @@ This unit will create a map that holds the addresses of all the strings in the g
 interface
 
 uses
-  windows, Classes, SysUtils, FileUtil, LResources, Forms, Controls, Graphics,
+  {$ifdef darwin}
+  macport,
+  {$endif}
+  {$ifdef windows}
+  windows,
+  {$endif}
+  Classes, SysUtils, FileUtil, LResources, Forms, Controls, Graphics,
   Dialogs, math, ComCtrls, ExtCtrls, StdCtrls, maps, Menus, cefuncproc,
-  memfuncs, newkernelhandler, AvgLvlTree, bigmemallochandler, symbolhandler,
-  oldRegExpr, commonTypeDefs;
+  MemFuncs, NewKernelHandler, AvgLvlTree, bigmemallochandler, symbolhandler,
+  oldRegExpr, commonTypeDefs, LCLIntf, LCLType;
 
 type
 

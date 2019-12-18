@@ -6,8 +6,14 @@ unit StructuresFrm2;
 interface
 
 uses
-  windows, win32proc, Classes, LCLProc, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, ExtCtrls, math,
-  StdCtrls, ComCtrls, Menus, lmessages, scrolltreeview, byteinterpreter, symbolhandler, symbolhandlerstructs, cefuncproc,
+  {$ifdef darwin}
+  macport,
+  {$endif}
+  {$ifdef windows}
+  windows, win32proc,
+  {$endif}
+  Classes, LCLProc, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, ExtCtrls, math,
+  StdCtrls, ComCtrls, Menus, lmessages, scrollTreeView, byteinterpreter, symbolhandler, symbolhandlerstructs, cefuncproc,
   newkernelhandler, frmSelectionlistunit, frmStructuresConfigUnit, registry, Valuechange, DOM,
   XMLRead, XMLWrite, Clipbrd, CustomTypeHandler, strutils, dotnetpipe, DotNetTypes, commonTypeDefs,
   contnrs, cvconst, frmStructuresNewStructureUnit;
@@ -154,7 +160,9 @@ type
     function addElement(name: string=''; offset: integer=0; vartype: TVariableType=vtByte; customtype:TCustomtype=nil; bytesize: integer=0; childstruct: TDissectedStruct=nil): TStructelement;
     procedure removeElement(element: TStructelement);
     procedure delete(index: integer);
+
     procedure fillFromDotNetAddressData(const data: TAddressData);
+
     procedure autoGuessStruct(baseaddress: ptruint; offset: integer; bytesize: integer);
     procedure fillGaps(structbase: ptruint; askiftoobig: boolean);
     procedure addToGlobalStructList;
@@ -1079,7 +1087,9 @@ end;
 
 procedure TStructelement.AutoCreateChildStruct(name: string; address: ptruint);
 var c: TDissectedStruct;
+  {$ifdef windows}
   addressdata: TAddressData;
+  {$endif}
   UsedOverride: boolean;
   i: integer;
 begin
@@ -1087,6 +1097,7 @@ begin
   begin
     c:=TDissectedStruct.create(name);
 
+    {$ifdef windows}
     if symhandler.GetLayoutFromAddress(address, addressdata) then
     begin
       c.fillFromDotNetAddressData(addressdata);
@@ -1102,6 +1113,7 @@ begin
       end;
     end
     else
+    {$endif}
     begin
       UsedOverride:=false;
       for i:=0 to length(StructureDissectOverrides)-1 do
@@ -1408,6 +1420,7 @@ begin
   end;
 end;
 
+
 procedure TDissectedStruct.fillFromDotNetAddressData(const data: TAddressData);
 var
   i,j: integer;
@@ -1549,6 +1562,7 @@ begin
   end;
   DoFullStructChangeNotification;
 end;
+
 
 procedure TDissectedStruct.autoGuessStruct(baseaddress: ptruint; offset: integer; bytesize: integer);
 var
@@ -2776,12 +2790,14 @@ begin
   edtAddress.BorderSpacing.Right:=4;
 
 
+  {$ifdef windows}
   if WindowsVersion>=wvVista then
   begin
     marginsize:=sendmessage(edtAddress.Handle, EM_GETMARGINS, 0,0);
     marginsize:=(marginsize shr 16)+(marginsize and $ffff);
   end
   else
+  {$endif}
     marginsize:=8;
 
   edtAddress.ClientWidth:=parent.parent.Canvas.TextWidth('DDDDDDDDFFFF')+marginsize;
@@ -3873,8 +3889,11 @@ end;
 
 function TfrmStructures2.DefineNewStructureDialog(recommendedSize: integer=4096): TDissectedStruct;
 var
+  {$ifdef windows}
   addressdata: TAddressData;
+
   hasAddressData: boolean;
+  {$endif}
   i: integer;
 
   UsedOverride: boolean;
@@ -3890,11 +3909,13 @@ begin
   if columnCount > 0 then
   begin
     // try to determine structure name using extensions
+    {$ifdef windows}
     hasAddressData:=symhandler.GetLayoutFromAddress(TStructColumn(columns[0]).getAddress, addressdata);
 
     if hasAddressData then
       structName:=addressdata.classname
     else
+    {$endif}
     begin
       // try to determine structure name if there are LUA callbacks
       structName:=rsUnnamedStructure;
@@ -3987,6 +4008,7 @@ begin
 
     if guessFieldTypes then
     begin
+      {$ifdef windows}
       if hasAddressData then // Add "and useAutoTypes" if changing dialog to show it
       begin
         // use DotNetDataCollector to fill in addresses
@@ -3994,6 +4016,7 @@ begin
         mainStruct.FillFromDotNetAddressData(addressdata);
       end
       else
+      {$endif}
       begin
         // use LUA callbacks to try and define structure elements
         UsedOverride:=false;
@@ -4036,8 +4059,10 @@ var
   sstructsize: string;
   structsize: integer;
 
+  {$ifdef windows}
   addressdata: TAddressData;
   hasAddressData: boolean;
+  {$endif}
   i: integer;
 
   UsedOverride: boolean;
@@ -4046,11 +4071,13 @@ begin
   result:=nil;
   if columnCount>0 then
   begin
+    {$ifdef windows}
     hasAddressData:=symhandler.GetLayoutFromAddress(TStructColumn(columns[0]).getAddress, addressdata);
 
     if hasAddressData then
       structname:=addressdata.classname
     else
+    {$endif}
     begin
 
 
@@ -4095,12 +4122,14 @@ begin
 
     if autofillin=mryes then
     begin
+      {$ifdef windows}
       if hasAddressData then
       begin
         TStructColumn(columns[0]).setAddress(addressdata.startaddress);
         mainStruct.FillFromDotNetAddressData(addressdata);
       end
       else
+      {$endif}
       begin
         UsedOverride:=false;
         for i:=0 to length(StructureDissectOverrides)-1 do
@@ -4527,7 +4556,7 @@ end;
 procedure TfrmStructures2.Structures1Click(Sender: TObject);
 begin
   //check if miDefineNewStructureFromDebugData should be visible
-  miDefineNewStructureFromDebugData.visible:=symhandler.hasDefinedStructures;
+  miDefineNewStructureFromDebugData.visible:={$ifdef windows}symhandler.hasDefinedStructures{$else}false{$endif};
   miDefineNewStructureFromDebugData.enabled:=miDefineNewStructureFromDebugData.visible;
   miSeperatorStructCommandsAndList.visible:=DissectedStructs.count>0;
 end;
@@ -5227,6 +5256,7 @@ var structlist, elementlist: Tstringlist;
   struct: TDissectedStruct;
   vtype:TVariableType;
 begin
+  {$ifdef windows}
   //get the list of structures
   structlist:=tstringlist.create;
   elementlist:=tstringlist.create;
@@ -5284,6 +5314,7 @@ begin
 
     elementlist.free;
   end;
+  {$endif}
 end;
 
 
@@ -5387,7 +5418,8 @@ begin
         baseoffset:=e.Offset+e.Bytesize;
 
       doc:=nil;
-      ss:=TStringStream.create(clipboard.AsText,TEncoding.Default, false);
+
+      ss:=TStringStream.create(clipboard.AsText{$if FPC_FULLVERSION >= 030200},TEncoding.Default, false{$endif});
       try
         try
           ReadXMLFile(doc, ss);
@@ -5468,7 +5500,8 @@ begin
     end;
 
 
-    ms:=TStringStream.create('',TEncoding.Default,false);
+
+    ms:=TStringStream.create(''{$if FPC_FULLVERSION >= 030200},TEncoding.Default, false{$endif});
     WriteXML(elementnodes, ms);
 
     Clipboard.AsText:=ms.DataString;

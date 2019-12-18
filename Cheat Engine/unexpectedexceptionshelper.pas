@@ -5,7 +5,13 @@ unit UnexpectedExceptionsHelper;
 interface
 
 uses
-  jwawindows, windows, Classes, SysUtils;
+  {$ifdef darwin}
+  macport,
+  {$endif}
+  {$ifdef windows}
+  jwawindows, windows,
+  {$endif}
+  Classes, SysUtils;
 
 type
   TUnexpectedExceptionAction=(ueaIgnore, ueaBreak, ueaBreakIfInRegion);

@@ -5,7 +5,13 @@ unit HotKeys;
 interface
 
 uses
-  windows, LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
+  {$ifdef darwin}
+  macport, LCLType, math,
+  {$endif}
+  {$ifdef windows}
+  windows,
+  {$endif}
+  LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, Buttons, registry, CEFuncProc, ExtCtrls, LResources,
   comCtrls, menus, hotkeyhandler, MemoryRecordUnit, commonTypeDefs, strutils;
 
@@ -95,7 +101,7 @@ type
 
 implementation
 
-uses MainUnit, trainergenerator, luafile, LuaHandler, DPIHelper;
+uses MainUnit, {$ifdef windows}trainergenerator,{$endif} luafile, LuaHandler, DPIHelper;
 
 resourcestring
   rsHotkeyID = 'Hotkey ID=%s';
@@ -534,18 +540,28 @@ begin
   cbActivateSound.Items.add('');
   cbDeactivateSound.Items.add('');
 
+  {$ifdef windows}
   FillSoundList(cbActivateSound.Items);
   FillSoundList(cbDeactivateSound.Items);
 
+
   cbActivateSound.Items.Add(rsSpeakText);
   cbDeactivateSound.Items.Add(rsSpeakText);
+  {$else}
+  cbActivateSound.Enabled:=false;
+  cbDeactivateSound.Enabled:=false;
+  sbPlayActivate.enabled:=false;
+  sbPlayDeactivate.enabled:=false;
+  {$endif}
 end;
 
 procedure THotKeyForm.FormShow(Sender: TObject);
 var
   i, maxwidth: integer;
   s: string;
+  {$ifdef windows}
   cbi: TComboboxInfo;
+  {$endif}
 begin
   PageControl1.PageIndex:=1;
 
@@ -566,6 +582,7 @@ begin
     maxwidth:=max(maxwidth, Canvas.TextWidth(s));
   end;
 
+  {$ifdef windows}
   cbi.cbSize:=sizeof(cbi);
   if GetComboBoxInfo(cbFreezedirection.Handle, @cbi) then
   begin
@@ -574,6 +591,7 @@ begin
     cbFreezedirection.width:=cbFreezedirection.width+i;
   end
   else
+  {$endif}
     cbFreezedirection.width:=maxwidth+16;
 
   maxwidth:=0;
@@ -586,6 +604,7 @@ begin
   maxwidth:=max(maxwidth, canvas.TextWidth(edtActivateText.Text));
 
 
+  {$ifdef windows}
   cbi.cbSize:=sizeof(cbi);
   if GetComboBoxInfo(cbActivateSound.Handle, @cbi) then
   begin
@@ -594,6 +613,7 @@ begin
     cbActivateSound.width:=cbActivateSound.width+i;
   end
   else
+  {$endif}
     cbActivateSound.width:=maxwidth+16;
 
   if cbFreezedirection.width>edtHotkey.Width then
@@ -671,8 +691,10 @@ begin
     oldactivate:=cbActivateSound.text;
     olddeactivate:=cbDeactivateSound.Text;
 
+    {$ifdef windows}
     FillSoundList(cbActivateSound.Items);
     FillSoundList(cbDeactivateSound.Items);
+    {$endif}
 
     cbActivateSound.Items.Add(rsSpeakText);
     cbDeactivateSound.Items.Add(rsSpeakText);

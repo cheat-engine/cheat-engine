@@ -5,10 +5,14 @@ unit frmModifyRegistersUnit;
 interface
 
 uses
+  {$ifdef darwin}
+  {$endif}
+  {$ifdef windows}
+  DBK32functions, vmxfunctions,
+  {$endif}
   LCLIntf, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, CEDebugger, debughelper, KernelDebugger, CEFuncProc,
-  NewKernelHandler, symbolhandler, LResources, ExtCtrls, DBK32functions,
-  vmxfunctions, math;
+  NewKernelHandler, symbolhandler, LResources, ExtCtrls,  math;
 
 type
 
@@ -200,6 +204,7 @@ var
   pa: int64;
   oldaz: boolean;
 begin
+  {$ifdef windows}
   if cbUseDBVM.checked then
   begin
     if GetPhysicalAddress(processhandle, pointer(address), PA) then
@@ -214,6 +219,7 @@ begin
   DoAutoSize;
 
   autosize:=oldaz;
+  {$endif}
 end;
 
 
@@ -221,7 +227,9 @@ procedure TfrmModifyRegisters.Button1Click(Sender: TObject);
 var
   tempregedit:tregistermodificationBP;
 
+  {$ifdef windows}
   changereginfo: tchangeregonbpinfo;
+  {$endif}
   PA: qword;
   bpid: integer;
 begin
@@ -279,6 +287,7 @@ begin
   if tempregedit.change_sf then tempregedit.new_sf:=cbSF.checked;
   if tempregedit.change_of then tempregedit.new_of:=cbOF.checked;
 
+  {$ifdef windows}
 
   if cbUseDBVM.checked then
   begin
@@ -358,6 +367,7 @@ begin
       exit;
     end;
   end;
+  {$endif}
 
   //set a breakpoint at this spot
   if startdebuggerifneeded then
@@ -375,9 +385,14 @@ end;
 procedure TfrmModifyRegisters.FormCreate(Sender: TObject);
 var pref: string;
 begin
+  {$ifdef windows}
   cbUseDBVM.visible:=isDBVMCapable and hasEPTSupport;
   if isRunningDBVM and (debuggerthread=nil) then
     cbUseDBVM.checked:=true;
+  {$else}
+  cbUseDBVM.visible:=false;
+
+  {$endif}
 
 
   label10.visible:=cbUseDBVM.checked;

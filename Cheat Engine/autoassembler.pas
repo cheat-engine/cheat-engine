@@ -10,15 +10,23 @@ interface
 {$ifdef jni}
 uses unixporthelper, Assemblerunit, classes, symbolhandler, sysutils,
      NewKernelHandler, ProcessHandlerUnit, commonTypeDefs;
+{$else}
+
+
+
+uses
+   {$ifdef darwin}
+   macport, math,
+   {$endif}
+   {$ifdef windows}
+   jwawindows, windows,
+   {$endif}
+   Assemblerunit, classes, LCLIntf,symbolhandler, symbolhandlerstructs,
+   sysutils,dialogs,controls, CEFuncProc, NewKernelHandler ,plugin,
+   ProcessHandlerUnit, lua, lualib, lauxlib, luaclass, commonTypeDefs;
+
+
 {$endif}
-
-{$ifdef windows}
-uses jwawindows, windows, Assemblerunit, classes, LCLIntf,symbolhandler, symbolhandlerstructs,
-     sysutils,dialogs,controls, CEFuncProc, NewKernelHandler ,plugin,
-     ProcessHandlerUnit, lua, lualib, lauxlib, luaclass, commonTypeDefs;
-{$endif}
-
-
 
 
 function getenableanddisablepos(code:tstrings;var enablepos,disablepos: integer): boolean;
@@ -47,13 +55,12 @@ implementation
 {$ifdef jni}
 uses strutils, memscan, disassembler, networkInterface, networkInterfaceApi,
      Parsers, Globals, memoryQuery;
-{$endif}
+{$else}
 
 
-{$ifdef windows}
-uses simpleaobscanner, StrUtils, LuaHandler, memscan, disassembler, networkInterface,
-     networkInterfaceApi, LuaCaller, SynHighlighterAA, Parsers, Globals, memoryQuery,
-     MemoryBrowserFormUnit, MemoryRecordUnit, vmxfunctions, autoassemblerexeptionhandler,
+uses simpleaobscanner, StrUtils, LuaHandler, memscan, disassembler{$ifdef windows}, networkInterface{$endif},
+     {$ifdef windows}networkInterfaceApi,{$endif} LuaCaller, SynHighlighterAA, Parsers, Globals, memoryQuery,
+     MemoryBrowserFormUnit, MemoryRecordUnit{$ifdef windows}, vmxfunctions{$endif}, autoassemblerexeptionhandler,
      UnexpectedExceptionsHelper;
 {$endif}
 
@@ -1386,8 +1393,9 @@ var i,j,k,l,e: integer;
 
     potentiallabels: TStringlist;
 
-
+     {$ifdef windows}
     connection: TCEConnection;
+    {$endif}
 
     mi: TModuleInfo;
     aaid: longint;
@@ -1875,7 +1883,7 @@ begin
 
               include:=tstringlist.Create;
               try
-                include.LoadFromFile(s1, true);
+                include.LoadFromFile(s1{$if FPC_FULLVERSION >= 030200}, true{$endif});
                 removecomments(include);
                 unlabeledlabels(include);
 
@@ -1952,12 +1960,16 @@ begin
               begin
                 s2:=extractfilename(s1);
 
+                {$ifdef windows}
                 if getConnection=nil then //no connection, so local. Check if the file can be found locally and if so, set the specific path
                 begin
+                {$endif}
                   if fileexists(cheatenginedir+s2) then s1:=cheatenginedir+s2 else
-                    if fileexists(getcurrentdir+'\'+s2) then s1:=getcurrentdir+'\'+s2 else
+                    if fileexists(getcurrentdir+ PathDelim+s2) then s1:=getcurrentdir+PathDelim+s2 else
                       if fileexists(cheatenginedir+s1) then s1:=cheatenginedir+s1;
+                {$ifdef windows}
                 end;
+                {$endif}
 
                 //else just hope it's in the dll searchpath
               end; //else direct file path
@@ -2359,6 +2371,7 @@ begin
           {$ifndef net}
 
           //memory kalloc
+          {$ifdef windows}
           if uppercase(copy(currentline,1,7))='KALLOC(' then
           begin
             if not DBKReadWrite then raise exception.Create(rsNeedToUseKernelmodeReadWriteprocessmemory);
@@ -2408,10 +2421,12 @@ begin
               continue;
             end else raise exception.Create(rsWrongSyntaxKallocIdentifierSizeinbytes);
           end;
+          {$endif}
 
           {$endif}
 
           //replace KALLOC identifiers with values so the assemble error check doesnt crash on that
+          {$ifdef windows}
           if processhandler.is64bit then
           begin
             for j:=0 to length(kallocs)-1 do
@@ -2422,6 +2437,7 @@ begin
             for j:=0 to length(kallocs)-1 do
               currentline:=replacetoken(currentline,kallocs[j].varname,'00000000');
           end;
+          {$endif}
 
 
 
@@ -2877,6 +2893,7 @@ begin
       end;
     end;
 
+    {$ifdef windows}
     {$ifndef net}
     //kernel alloc
     if length(kallocs)>0 then
@@ -2885,11 +2902,12 @@ begin
       for i:=0 to length(kallocs)-1 do
        inc(x,kallocs[i].size);
 
-      kallocs[0].address:=ptrUint(KernelAlloc(x));
+      kallocs[0].address:=ptrUint(rsKernelAlloc(x));
 
       for i:=1 to length(kallocs)-1 do
         kallocs[i].address:=kallocs[i-1].address+kallocs[i-1].size;
     end;
+    {$endif}
     {$endif}
 
     //-----------------------2nd pass------------------------
@@ -3212,8 +3230,10 @@ begin
     begin
       virtualprotectex(processhandle,pointer(fullaccess[i].address),fullaccess[i].size,PAGE_EXECUTE_READWRITE,op);
 
+      {$ifdef windows}
       if (fullaccess[i].address>$80000000) and (DBKLoaded) then
         MakeWritable(fullaccess[i].address,(fullaccess[i].size div 4096)*4096,false);
+      {$endif}
     end;
 
     //load binaries
@@ -3291,10 +3311,11 @@ begin
       AutoAssemblerExceptionHandlerApplyChanges;
     end;
 
-
+    {$ifdef windows}
     connection:=getconnection;
     if connection<>nil then
       connection.beginWriteProcessMemory; //group all writes
+    {$endif}
 
     //combine assembly lines
     j:=0;
@@ -3328,7 +3349,7 @@ begin
       testptr:=assembled[i].address;
 
       vpe:=(SkipVirtualProtectEx=false) and virtualprotectex(processhandle,pointer(testptr),length(assembled[i].bytes),PAGE_EXECUTE_READWRITE,op);
-      ok1:=WriteProcessMemoryWithCloakSupport(processhandle, pointer(testptr),@assembled[i].bytes[0],length(assembled[i].bytes),x);
+      ok1:=WriteProcessMemory{$ifdef windows}WithCloakSupport{$endif}(processhandle, pointer(testptr),@assembled[i].bytes[0],length(assembled[i].bytes),x);
       if vpe then
         virtualprotectex(processhandle,pointer(testptr),length(assembled[i].bytes),op,op2);
 
@@ -3349,12 +3370,17 @@ begin
 
             if ok2 then
             begin
+              {$ifdef windows}
               try
                 if WaitForSingleObject(threadhandle, 5000)<>WAIT_OBJECT_0 then
                   raise EAssemblerException.create('createthreadandwait did not execute properly');
               finally
                 closehandle(threadhandle);
               end;
+              {$else}
+              sleep(5000); //todo: implement proper wait
+              {$endif}
+
             end;
 
             createthreadandwait[j].position:=-1; //mark it as handled
@@ -3363,11 +3389,13 @@ begin
       end;
     end;
 
+    {$ifdef windows}
     if connection<>nil then  //group all writes
     begin
       if connection.endWriteProcessMemory=false then
         ok2:=false;
     end;
+    {$endif}
 
 
 

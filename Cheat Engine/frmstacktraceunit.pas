@@ -5,8 +5,14 @@ unit frmstacktraceunit;
 interface
 
 uses
-  windows, LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
-  Dialogs,NewKernelHandler, CEFuncProc, ComCtrls,imagehlp,CEDebugger, KernelDebugger,
+  {$ifdef darwin}
+  macport, macportdefines,
+  {$endif}
+  {$ifdef windows}
+  windows, imagehlp,
+  {$endif}
+  LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
+  Dialogs,NewKernelHandler, CEFuncProc, ComCtrls,CEDebugger, KernelDebugger,
   Menus, LResources, debughelper, symbolhandler;
 
 type
@@ -47,12 +53,13 @@ var
   shadowNew: ptruint;
   shadowSize: integer;
 
-
+  {$ifdef windows}
 
 function rpm64(hProcess:THANDLE; qwBaseAddress:dword64; lpBuffer:pointer; nSize:dword; lpNumberOfBytesRead:lpdword):bool;stdcall; //should be lpptruint but the header file isn't correct
 var
     br: ptruint;
 begin
+
   result:=false;
   {$ifndef cpu64}
   if qwBaseAddress>$FFFFFFFF then exit;
@@ -135,8 +142,10 @@ begin
   end;
 end;
 
+{$endif}
 
 procedure TfrmStacktrace.stacktrace(threadhandle:thandle;context:_context);
+{$ifdef windows}
 var
     cxt:_context;
     stackframe: TSTACKFRAME_EX;
@@ -150,8 +159,9 @@ var
 
     found: boolean;
     i: integer;
+    {$endif}
 begin
-
+{$ifdef windows}
   if (exceptionlistPID<>processid) and (length(exceptionlists)>0) then
     cleanupExceptionList;
 
@@ -225,6 +235,7 @@ begin
   finally
     freememandnil(cp);
   end;
+  {$endif}
 end;
 
 procedure TfrmstackTrace.refreshtrace;
@@ -261,11 +272,15 @@ end;
 
 procedure TfrmStacktrace.shadowstacktrace(context: _context; stackcopy: pointer; stackcopysize: integer);
 begin
+  {$ifdef windows}
   useshadow:=true;
   shadowOrig:=context.{$ifdef cpu64}rsp{$else}esp{$endif};
   shadowNew:=ptruint(stackcopy);
   shadowSize:=stackcopysize;
+
+
   stacktrace(GetCurrentThread, context);
+  {$endif}
 end;
 
 
@@ -273,6 +288,7 @@ procedure TfrmStacktrace.miManualStackwalkClick(Sender: TObject);
 var c: _CONTEXT;
     frmManualStacktraceConfig: TfrmManualStacktraceConfig;
 begin
+  {$ifdef windows}
   zeromemory(@c, sizeof(_CONTEXT));
 
   frmManualStacktraceConfig:=tfrmManualStacktraceConfig.create(self);
@@ -295,7 +311,7 @@ begin
   end;
   frmManualStacktraceConfig.free;
 
-
+  {$endif}
 end;
 
 procedure TfrmStacktrace.Refresh1Click(Sender: TObject);
@@ -309,7 +325,9 @@ initialization
 
 
 finalization
+  {$ifdef windows}
   cleanupExceptionList;
+  {$endif}
 
 
 end.

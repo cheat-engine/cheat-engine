@@ -5,10 +5,13 @@ unit ServiceDescriptorTables;
 interface
 
 uses
-  windows, LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
-  Dialogs,CEFuncProc,NewKernelHandler, Menus, ComCtrls,symbolhandler,imagehlp,disassembler,
+  {$ifdef windows}
+  windows, imagehlp,
+  {$endif}LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
+  Dialogs,CEFuncProc,NewKernelHandler, Menus, ComCtrls,symbolhandler,disassembler,
   StdCtrls, LResources, commonTypeDefs;
 
+{$ifdef windows}
 type tenummodules= class(tthread)
   private
     symbolname: string;
@@ -18,6 +21,7 @@ type tenummodules= class(tthread)
   public
     procedure execute; override;
 end;
+{$endif}
 
 type
   TfrmServiceDescriptorTables = class(TForm)
@@ -101,6 +105,7 @@ var sdtstruct: tsdtstruct;
     s: string;
 begin
 //open own process in case kernelmode openprocess wasn't used
+  {$ifdef windows}
   p:=dbk32functions.OP(PROCESS_ALL_ACCESS,true,getcurrentprocessid);
 
   second:=true;
@@ -150,9 +155,11 @@ begin
 
   if IsValidHandle(p) then
     closehandle(p);
+  {$endif}
 end;
 
 
+{$ifdef windows}
 function ES(SymName: LPSTR; SymbolAddress, SymbolSize: ULONG; UserContext: Pointer): Bool; stdcall;
 var buf: array[0..14] of byte;
     ar: ptrUint;
@@ -176,6 +183,8 @@ begin
   result:=not canceled;
   SymEnumerateSymbols(processhandle,BaseOfDLL,@ES,usercontext);
 end;
+
+
 
 procedure tenummodules.foundone;
 var tablenr: integer;
@@ -230,14 +239,18 @@ begin
   synchronize(done);
 end;
 
+{$endif}
+
 
 procedure TfrmServiceDescriptorTables.Scancallnumbersandnames1Click(
   Sender: TObject);
 begin
+  {$ifdef windows}
   Scancallnumbersandnames1.Enabled:=false;
   cancelscan1.Visible:=true;
   canceled:=false;
   tenummodules.Create(false);
+  {$endif}
 end;
 
 procedure TfrmServiceDescriptorTables.CancelScan1Click(Sender: TObject);
@@ -376,6 +389,7 @@ var table: integer;
     x,y: ptrUint;
 
 begin
+  {$ifdef windows}
   if (treeview1.Selected=nil) or (treeview1.Selected.Level<>1) then exit;
   table:=treeview1.Selected.Parent.Index;
 
@@ -389,6 +403,7 @@ begin
   readprocessmemory(processhandle,pointer(a),@y,4,x);
   inc(y,treeview1.Selected.Index*4);
   memorybrowser.memoryaddress:=y;
+  {$endif}
 end;
 
 initialization

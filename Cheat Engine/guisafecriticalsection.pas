@@ -20,11 +20,11 @@ type
   private
     e: Tevent;
     haslock: boolean;
-    lockedthreadid: dword;
+    lockedthreadid: {$ifdef windows}dword{$else}TThreadID{$endif};
     lockcount: integer;
   public
-    procedure enter(maxtimeout: DWORD=INFINITE; currentThreadId: dword=0);
-    procedure leave(currentThreadId: dword=0);
+    procedure enter(maxtimeout: DWORD=INFINITE; currentThreadID: {$ifdef windpws}dword=0{$else}tthreadid=nil{$endif});
+    procedure leave(currentthreadid: {$ifdef windows}dword=0{$else}TThreadID=nil{$endif});
     constructor Create;
     destructor Destroy; override;
   end;
@@ -34,10 +34,10 @@ implementation
 resourcestring
   rsCriticalsectionLeaveWithoutEnter = 'Criticalsection leave without enter';
 
-procedure TGuiSafeCriticalSection.enter(maxtimeout: DWORD=INFINITE; currentThreadID: dword=0);
+procedure TGuiSafeCriticalSection.enter(maxtimeout: DWORD=INFINITE; currentThreadID: {$ifdef windpws}dword=0{$else}tthreadid=nil{$endif});
 var deadlockprevention: integer;
 begin
-  if currentThreadID=0 then
+  if currentThreadID={$ifdef windows}0{$else}nil{$endif} then
     currentThreadID:=GetCurrentThreadId;
 
   if haslock and (currentThreadID = lockedthreadid) then
@@ -69,9 +69,9 @@ begin
   lockcount := 1;
 end;
 
-procedure TGuiSafeCriticalSection.leave(currentthreadid: dword=0);
+procedure TGuiSafeCriticalSection.leave(currentthreadid: {$ifdef windows}dword=0{$else}TThreadID=nil{$endif});
 begin
-  if currentThreadID=0 then
+  if currentThreadID={$ifdef windows}0{$else}nil{$endif} then
     currentThreadID:=GetCurrentThreadId;
 
   if haslock and (currentThreadID <> lockedthreadid) then

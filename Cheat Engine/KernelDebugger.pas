@@ -6,13 +6,9 @@ unit KernelDebugger;
 
 interface
 
-uses jwawindows, windows, LCLIntf, classes, sysutils, syncobjs,dialogs,{classes,}CEDebugger,disassembler,NewKernelHandler,FoundCodeUnit,
-     {tlhelp32,}ComCtrls,addressparser, graphics, CEFuncProc, debughelper, debuggertypedefinitions;
+uses classes, sysutils;
 
 
 implementation
-
-uses frmProcessWatcherUnit,formchangedaddresses,memorybrowserformunit, frmstacktraceunit;
-
 
 end.

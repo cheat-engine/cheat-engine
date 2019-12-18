@@ -5,7 +5,13 @@ unit GnuAssembler;
 interface
 
 uses
-  windows, Classes, SysUtils, NewKernelHandler, ProcessHandlerUnit, strutils,
+  {$ifdef darwin}
+  macport,
+  {$endif}
+  {$ifdef windows}
+  windows,
+  {$endif}
+  Classes, SysUtils, NewKernelHandler, ProcessHandlerUnit, strutils,
   dialogs, commonTypeDefs;
 
 {

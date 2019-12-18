@@ -31,6 +31,7 @@ unit luaJit;
 
 interface
 
+{$IFDEF windows}
 uses
   windows, Classes, SysUtils, lua;
 
@@ -65,10 +66,12 @@ const LUAJIT_MODE_FLUSH = $0200; // Flush JIT-compiled code.
 
 //LuaJIT public C API.
 function luaJIT_setmode(L: Plua_State; idx: integer; mode: integer): integer;
+{$ENDIF}
 
 
 implementation
 
+{$IFDEF windows}
 var
   _luaJIT_setmode : function(L: Plua_State; idx: integer; mode: integer): integer; cdecl;
 
@@ -91,6 +94,7 @@ end;
 
 initialization
   InitializeLuaJIT;
+{$ENDIF}
 
 
 

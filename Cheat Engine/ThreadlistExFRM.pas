@@ -5,7 +5,13 @@ unit ThreadlistExFRM;
 interface
 
 uses
-  jwawindows, windows, LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
+  {$ifdef darwin}
+  macport,
+  {$endif}
+  {$ifdef windows}
+  jwawindows, windows,
+  {$endif}
+  LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, ComCtrls,NewKernelHandler,{tlhelp32,}CEFuncProc,
   ExtCtrls, LResources;
 
@@ -47,11 +53,11 @@ begin
     repeat
       if te32.th32OwnerProcessID=processid then
       begin
-        x:=treeview1.Items.Add(nil,inttohex(te32.th32ThreadID,8)+' ('+inttohex(getpethread(te32.th32ThreadID),8)+')');
+        x:=treeview1.Items.Add(nil,inttohex(te32.th32ThreadID,8){$IFDEF windows} +' ('+inttohex(getpethread(te32.th32ThreadID),8)+')' {$ENDIF});
 
-        if getcurrentthreadid<>te32.th32ThreadID then
+        if dword(getcurrentthreadid)<>te32.th32ThreadID then
         begin
-          th:=openthread(STANDARD_RIGHTS_REQUIRED or windows.synchronize or $3ff,true,te32.th32ThreadID);
+          th:=openthread({$IFDEF windows} STANDARD_RIGHTS_REQUIRED or windows.synchronize or {$ENDIF} $3ff,true,te32.th32ThreadID);
           try
             suspendthread(th);
             cont.ContextFlags:=CONTEXT_FULL or CONTEXT_DEBUG_REGISTERS;

@@ -6,7 +6,7 @@ unit frmDriverLoadedUnit;
 interface
 
 uses
-  windows, Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, ExtCtrls,
+  {$ifdef windows}windows,{$endif} LCLIntf, Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, ExtCtrls,
   StdCtrls;
 
 type
@@ -47,6 +47,7 @@ var
 
 begin
 //  TfrmDriverLoaded.ClassName;
+  {$IFDEF windows}
   s:='';
   s2:='';
   for i:=1 to 5+random(5) do
@@ -94,16 +95,19 @@ begin
   end;
 
   frmDriverLoaded.timer1.Enabled:=true;
+  {$ENDIF}
 
 end;
 
 procedure TfrmDriverLoaded.Timer1Timer(Sender: TObject);
 var s: integer;
 begin
+  {$IFDEF windows}
   s:=AlphaBlendValue-2;
   AlphaBlendValue:=s;
   if s<=0 then
     close;
+  {$ENDIF}
 end;
 
 procedure TfrmDriverLoaded.FormShow(Sender: TObject);

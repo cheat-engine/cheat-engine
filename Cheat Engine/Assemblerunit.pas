@@ -13,10 +13,9 @@ interface
 
 {$ifdef jni}
 uses  sysutils, ProcessHandlerUnit;
-{$endif}
-
-{$ifdef windows}
-uses dialogs,LCLIntf,sysutils,imagehlp, ProcessHandlerUnit,vextypedef;
+{$else}
+uses
+  dialogs,LCLIntf,sysutils{$ifdef windows},imagehlp{$endif}, ProcessHandlerUnit,vextypedef;
 {$endif}
 
 const opcodecount=1910;  //I wish there was a easier way than to handcount
@@ -2761,12 +2760,15 @@ implementation
 
 {$ifdef jni}
 uses symbolhandler, assemblerArm, Parsers, NewKernelHandler;
-{$endif}
-
-{$ifdef windows}
-uses windows, {$ifndef autoassemblerdll}CEFuncProc,{$endif}symbolhandler, lua,
-luahandler, lualib, assemblerArm, Parsers, NewKernelHandler, LuaCaller, math,
-cpuidUnit, classes, controls;
+{$else}
+uses {$ifdef darwin}
+  macport,
+  {$endif}
+  {$ifdef windows}
+  windows,
+  {$endif}
+  CEFuncProc, symbolhandler, lua, luahandler, lualib, assemblerArm, Parsers,
+  NewKernelHandler, LuaCaller, math, cpuidUnit, classes, controls;
 {$endif}
 
 resourcestring

@@ -33,7 +33,13 @@ If onData returns false, the scroll will not succeed and be put back to the max 
 interface
 
 uses
-  windows, Classes, SysUtils, ExtCtrls, Controls, LMessages, Graphics, GL, glu,
+  {$ifdef darwin}
+  macport,
+  {$endif}
+  {$ifdef windows}
+  windows,
+  {$endif}
+  Classes, SysUtils, ExtCtrls, Controls, LMessages, Graphics, GL, glu,
   math, dialogs, GLext;
 
 
@@ -53,9 +59,12 @@ type
 type
   TMemDisplay=class(Tcustompanel)
   private
+
     oldWndProc: TWndMethod;
 
+    {$ifdef windows}
     hglrc: HGLRC;
+    {$endif}
     updater: TIdleTimer;
 
     fType: integer;
@@ -439,7 +448,7 @@ procedure TMemDisplay.setupFont;
 var z: integer;
 begin
 
-
+    {$ifdef windows}
   z:=floor(fZoom/((fMaxCharCount+1)/2));
   if z>0 then
   begin
@@ -449,19 +458,24 @@ begin
   else
     hasFont:=false;
 
+  {$endif}
 end;
 
 procedure TMemDisplay.SetParent(NewParent: TWinControl);
+  {$ifdef windows}
 var
   pfd: TPixelFormatDescriptor;
   i: integer;
   oldparent: TWinControl;
+  {$endif}
 begin
+  {$ifdef windows}
   oldparent:=parent;
   inherited SetParent(NewParent);
 
   if (NewParent<>nil) and (oldparent=nil) then
   begin
+
     hglrc:=wglCreateContext(canvas.handle);
 
     if hglrc=0 then
@@ -504,6 +518,7 @@ begin
     if hglrc=0 then
       raise exception.create(rsFailureCreatingOpenglWindow);
   end;
+  {$endif}
 end;
 
 procedure TMemDisplay.resize;
@@ -547,6 +562,7 @@ var
   s: tstringlist;
 
 begin
+  {$ifdef windows}
   QueryPerformanceCounter(before);
 
   //render the memory bitmap
@@ -664,6 +680,7 @@ begin
   lastdiff:=after-before;
   inc(totaldiff, lastdiff);
   inc(ticks);
+  {$endif}
 end;
 
 constructor TMemDisplay.Create(TheOwner: TComponent);

@@ -5,7 +5,12 @@ unit DPIHelper;
 interface
 
 uses
-  Windows, Classes, controls, comctrls, SysUtils, Buttons, Graphics, forms, StdCtrls;
+  {$ifdef darwin}
+  macport, math,
+  {$endif}
+  {$ifdef windows}
+  Windows,
+  {$endif}Classes, controls, comctrls, SysUtils, Buttons, Graphics, forms, StdCtrls;
 
 procedure AdjustSpeedButtonSize(sb: TSpeedButton);
 procedure AdjustToolbar(tb: TToolbar);
@@ -18,7 +23,7 @@ function getDPIScaleFactor: single;
 
 implementation
 
-uses globals, win32proc;
+uses globals{$ifdef windows}, win32proc{$endif};
 
 const
   designtimedpi=96;
@@ -31,9 +36,11 @@ end;
 function GetEditBoxMargins(editbox: TCustomEdit): integer;
 var m: dword;
 begin
+  {$ifdef windows}
   if WindowsVersion>=wvVista then
     m:=sendmessage(editbox.Handle, EM_GETMARGINS, 0,0)
   else
+  {$endif}
     m:=10;
 
   result:=(m shr 16)+(m and $ffff);
@@ -48,7 +55,9 @@ end;
 
 procedure AdjustComboboxSize(cb: TComboBox; canvas: TCanvas);
 var
+  {$ifdef windows}
   cbi: TComboboxInfo;
+  {$endif}
   i: integer;
   s: string;
   maxwidth: integer;
@@ -62,6 +71,7 @@ begin
     maxwidth:=max(maxwidth, Canvas.TextWidth(s));
   end;
 
+  {$ifdef windows}
   cbi.cbSize:=sizeof(cbi);
   if GetComboBoxInfo(cb.Handle, @cbi) then
   begin
@@ -70,6 +80,7 @@ begin
     w:=cb.width+i;
   end
   else
+  {$endif}
     w:=maxwidth+16;
 
   cb.width:=w;

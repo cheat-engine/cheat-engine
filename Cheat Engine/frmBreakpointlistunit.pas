@@ -5,7 +5,7 @@ unit frmBreakpointlistunit;
 interface
 
 uses
-  LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
+  LCLIntf, Messages, LMessages, LCLType, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
   StdCtrls, CEDebugger, KernelDebugger, ExtCtrls, LResources, ComCtrls, Menus,
   debuggertypedefinitions, BreakpointTypeDef;
 

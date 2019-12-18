@@ -1,4 +1,4 @@
-unit LuaRipRelativeScanner;
+unit LuaRIPRelativeScanner;
 
 {$mode delphi}
 

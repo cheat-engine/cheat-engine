@@ -5,7 +5,10 @@ unit sharedMemory;
 interface
 
 uses
-  windows, Classes, SysUtils, symbolhandler, autoassembler, frmautoinjectunit,
+  {$ifdef windows}
+  windows,
+  {$endif}
+  Classes, SysUtils, symbolhandler, autoassembler, frmautoinjectunit,
   cefuncproc, NewKernelHandler, Clipbrd, commonTypeDefs;
 
 const FILE_MAP_EXECUTE = $20;
@@ -21,7 +24,11 @@ uses ProcessHandlerUnit;
 
 function createSharedMemory(name: string; size: integer): THandle;
 begin
+  {$ifdef windows}
   result:=CreateFileMapping(INVALID_HANDLE_VALUE,nil,PAGE_EXECUTE_READWRITE,0,size,pchar(name));
+  {$else}
+  result:=-1;
+  {$endif}
 end;
 
 function allocateSharedMemory(name: string; size: integer=4096): pointer;
@@ -29,6 +36,7 @@ var
   access: dword;
   h: thandle;
 begin
+  {$ifdef windows}
   access:=FILE_MAP_EXECUTE or FILE_MAP_READ or FILE_MAP_WRITE;
 
 
@@ -39,6 +47,9 @@ begin
     h:=createSharedMemory(name, size);
 
   result:=MapViewOfFile(h,access,0,0,0);
+  {$else}
+  result:=nil;
+  {$endif}
 end;
 
 function allocateSharedMemoryIntoTargetProcess(name: string; size: integer=4096): pointer;
@@ -54,6 +65,7 @@ var s: tstringlist;
 
   h: THandle;
 begin
+  {$ifdef windows}
   access:=FILE_MAP_EXECUTE or FILE_MAP_READ or FILE_MAP_WRITE;
 
 
@@ -182,6 +194,9 @@ begin
     end;
   except
   end;
+  {$else}
+  result:=nil;
+  {$endif}
 end;
 
 end.

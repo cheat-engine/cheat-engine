@@ -7,24 +7,24 @@ Extends the TRegion class by adding the AddPolygon method
 interface
 
 uses
-  windows, StdCtrls, Classes, controls, SysUtils, dialogs, Graphics;
+  LCLIntf, StdCtrls, Classes, controls, SysUtils, dialogs, Graphics, LCLType;
 
 type
  TRegionEx = class(TRegion)
  private
  public
-   procedure AddPolygon(polygon: array of POINT);
+   procedure AddPolygon(polygon: array of TPoint);
  published
  end;
 
 
 implementation
 
-procedure TRegionEx.AddPolygon(polygon: array of POINT);
+procedure TRegionEx.AddPolygon(polygon: array of TPoint);
 var
   lRGN: HRGN;
 begin
-  lRGN := CreatePolygonRgn(polygon[0], length(polygon), WINDING);
+  lRGN := CreatePolygonRgn(@polygon[0], length(polygon), WINDING);
   CombineRgn(Handle, Handle, lRGN, RGN_OR);
   DeleteObject(lRGN);
 end;

@@ -7,11 +7,17 @@ unit formAddressChangeUnit;
 interface
 
 uses
-  windows, win32proc, LCLIntf, LResources, Messages, SysUtils, Variants,
+  {$ifdef darwin}
+  macport, lcltype,
+  {$endif}
+  {$ifdef windows}
+  windows, win32proc,
+  {$endif}
+  LCLIntf, LResources, LMessages, Messages, SysUtils, Variants,
   Classes, Graphics, Controls, Forms, Dialogs, StdCtrls, ExtCtrls, ComCtrls,
   Buttons, Arrow, Spin, Menus, CEFuncProc, NewKernelHandler, symbolhandler,
   memoryrecordunit, types, byteinterpreter, math, CustomTypeHandler,
-  commonTypeDefs, lua, lualib, lauxlib, luahandler, CommCtrl, LuaClass, Clipbrd,
+  commonTypeDefs, lua, lualib, lauxlib, luahandler{$ifdef windows}, CommCtrl{$endif}, LuaClass, Clipbrd,
   DPIHelper;
 
 const WM_disablePointer=WM_USER+1;
@@ -917,9 +923,11 @@ begin
   baseAddress.AnchorSideLeft.Side:=asrLeft;
   //baseAddress.left:=0;
 
+  {$ifdef windows}
   if WindowsVersion>=wvVista then
     m:=sendmessage(baseAddress.Handle, EM_GETMARGINS, 0,0)
   else
+  {$endif}
     m:=10;
 
   m:=(m shr 16)+(m and $ffff);
@@ -1480,6 +1488,7 @@ var i: integer;
 begin
 
 
+  {$ifdef windows}
   if WindowsVersion>=wvVista then
   begin
     zeromemory(@r, sizeof(r));
@@ -1495,6 +1504,7 @@ begin
     m:=sendmessage(editAddress.Handle, EM_GETMARGINS, 0,0);
   end
   else
+  {$endif}
     m:=10;
 
   m:=(m shr 16)+(m and $ffff);

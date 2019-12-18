@@ -8,6 +8,8 @@ This routine will examine a module and then load it into memory, taking care of 
 
 interface
 
+{$ifdef windows}
+
 uses windows, LCLIntf, classes, sysutils, imagehlp, dialogs, PEInfoFunctions,CEFuncProc,
      NewKernelHandler, symbolhandler, dbk32functions, vmxfunctions, commonTypeDefs,
      SymbolListHandler, symbolhandlerstructs, StringHashList;
@@ -47,8 +49,12 @@ type TModuleLoader=class
     property SymbolList: TSymbollistHandler read fSymbolList;
 end;
 
+{$endif}
+
 implementation
 
+
+{$ifdef windows}
 uses ProcessHandlerUnit;
 
 procedure TModuleLoader.createSymbolListHandler;
@@ -412,5 +418,7 @@ begin
     cleanupExportList;
   end;
 end;
+
+{$endif}
 
 end.

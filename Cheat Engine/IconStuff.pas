@@ -5,7 +5,13 @@ unit IconStuff;
 interface
 
 uses
-  windows, Classes, SysUtils,controls, dialogs, Graphics, forms, ExtCtrls, StdCtrls, CommCtrl;
+  {$ifdef darwin}
+  macport, LCLIntf, math,
+  {$endif}
+  {$ifdef windows}
+  windows, CommCtrl,
+  {$endif}
+  Classes, SysUtils,controls, dialogs, Graphics, forms, ExtCtrls, StdCtrls;
 
 resourcestring
   rsFailureOpen = 'Failure opening ';
@@ -118,7 +124,7 @@ begin
 end;
 
 
-function enumfunc(hModule:HANDLE; lpszType:pchar; lpszName:pchar; lParam: LONG_PTR):WINBOOL;stdcall;
+function enumfunc(hModule:HANDLE; lpszType:pchar; lpszName:pchar; lParam: PtrInt):WINBOOL;stdcall;
 var
   allicons: tmemorystream;
   icon: TIcon;
@@ -171,18 +177,20 @@ begin
   begin
     filename:=OpenDialog.filename;
     ext:=lowercase(ExtractFileExt(filename));
+    {$ifdef windows}
     if (ext='.exe') or (ext='.dll') then
     begin
       modulehandle:=loadlibraryex(pchar(filename), 0, LOAD_LIBRARY_AS_DATAFILE);
       if modulehandle<>0 then
       begin
-        EnumResourceNames(modulehandle, RT_GROUP_ICON, enumfunc, ULONG_PTR(iconlist));
+        EnumResourceNames(modulehandle, RT_GROUP_ICON, enumfunc, PtrInt(iconlist));
         FreeLibrary(modulehandle);
       end
       else
         raise exception.create(rsFailureOpen+filename);
     end
     else
+    {$endif}
     if ext='.ico' then
     begin
       m:=tmemorystream.create;

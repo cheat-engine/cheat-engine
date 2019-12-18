@@ -6,6 +6,7 @@ unit LuaPipe;
 
 interface
 
+{$IFDEF windows}
 uses
   windows, Classes, SysUtils, lua, LuaClass, syncobjs;
 
@@ -55,9 +56,11 @@ type
   end;
 
 procedure pipecontrol_addMetaData(L: PLua_state; metatable: integer; userdata: integer );
+{$ENDIF}
 
 implementation
 
+{$IFDEF windows}
 uses LuaObject, LuaByteTable;
 
 destructor TPipeConnection.destroy;
@@ -761,6 +764,7 @@ end;
 
 initialization
   luaclass_register(TPipeConnection, pipecontrol_addMetaData );
+{$ENDIF}
 
 
 end.

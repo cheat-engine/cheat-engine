@@ -218,7 +218,7 @@ begin
       ignoreencoding:=lua_toboolean(L,2);
 
     try
-      strings.LoadFromFile(lua_tostring(L, 1), ignoreencoding);
+      strings.LoadFromFile(lua_tostring(L, 1){$if FPC_FULLVERSION>=30200}, ignoreencoding{$endif});
       lua_pushboolean(L, true);
     except
       lua_pushboolean(L, false);

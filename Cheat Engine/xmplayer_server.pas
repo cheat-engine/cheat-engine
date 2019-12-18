@@ -5,7 +5,13 @@ unit xmplayer_server;
 interface
 
 uses
-  windows, Classes, SysUtils, xmplayer_defines, cefuncproc, globals, mikmod;
+  {$ifdef darwin}
+  macport,
+  {$endif}
+  {$ifdef windows}
+  windows,
+  {$endif}
+  Classes, SysUtils, xmplayer_defines, cefuncproc, globals, mikmod;
 
 type TXMPlayer=class
   private

@@ -14,7 +14,12 @@ uses
   {$ifdef JNI}
   Classes, SysUtils, ctypes,syncobjs, newkernelhandler, unixporthelper;
   {$else}
-  jwawindows, windows, Classes, SysUtils, newkernelhandler, math;
+  {$ifdef darwin}
+  macport,
+  {$endif}
+  {$ifdef windows}
+  jwawindows, windows,
+  {$endif} Classes, SysUtils, newkernelhandler, math;
   {$endif}
 
 type

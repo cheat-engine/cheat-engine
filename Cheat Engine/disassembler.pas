@@ -17,6 +17,12 @@ uses windows, imagehlp,sysutils,LCLIntf,byteinterpreter, symbolhandler, symbolha
   commonTypeDefs, maps, math,vextypedef;
 {$endif}
 
+{$ifdef darwin}
+uses LCLIntf, LCLType, macport, macportdefines, sysutils,byteinterpreter, symbolhandler, symbolhandlerstructs,
+  CEFuncProc, NewKernelHandler, ProcessHandlerUnit, LastDisassembleData, disassemblerarm,
+  commonTypeDefs, maps, math,vextypedef;
+{$endif}
+
 //translation: There is no fucking way I change the descriptions to resource strings
 //if you're bored, go do this
 
@@ -171,6 +177,7 @@ type
   end;
 
 
+  {$ifdef windows}
   TCR3Disassembler=class(TDisassembler)
   private
     fcr3: QWORD;
@@ -181,6 +188,7 @@ type
     property CR3: QWORD read fCR3 write setCR3;
 
   end;
+  {$endif}
 
 
 
@@ -236,6 +244,13 @@ uses Assemblerunit,CEDebugger, debughelper, StrUtils, debuggertypedefinitions,
   Parsers, memoryQuery, binutils, luacaller, vmxfunctions, frmcodefilterunit,
   BreakpointTypeDef;
 {$endif}
+
+{$ifdef darwin}
+uses Assemblerunit,CEDebugger, debughelper, StrUtils, debuggertypedefinitions,
+  Parsers, memoryQuery, (*binutils,*) luacaller, (*vmxfunctions, frmcodefilterunit, *)
+  BreakpointTypeDef;
+{$endif}
+
 
 
 function registerGlobalDisassembleOverride(m: TDisassembleEvent): integer;
@@ -1491,11 +1506,14 @@ begin
     end;
     debuggerthread.unlockbplist;
 
+    {$ifdef windows}
     if (frmCodeFilter<>nil) then frmcodefilter.isBreakpoint(address, b);
+    {$endif}
   end;
 
-
+  {$ifdef windows}
   dbvm_isbreakpoint(address,PA,BO,b);
+  {$endif}
 end;
 {$endif}
 
@@ -1504,6 +1522,7 @@ begin
   result:=defaultDisassembler.disassemble(offset,description);
 end;
 
+{$ifdef windows}
 procedure TCR3Disassembler.setCR3(c: QWORD);
 begin
   fcr3:=c and MAXPHYADDRMASKPB;
@@ -1515,7 +1534,7 @@ begin
   ReadProcessMemoryCR3(fcr3,pointer(address), destination, size, actualread);
   result:=actualread;
 end;
-
+ {$endif}
 
 function TDisassembler.readMemory(address: ptruint; destination: pointer; size: integer): integer;
 //reads the bytes at the given address and returns the number of bytes read
@@ -1527,14 +1546,22 @@ var
 begin
   actualread:=0;
 
+  {$ifdef windows}
   ReadProcessMemoryWithCloakSupport(processhandle,pointer(address),destination,size,actualread);
+  {$else}
+  ReadProcessMemory(processhandle,pointer(address),destination,size,actualread);
+  {$endif}
   if (actualread=0) and ((address+size and qword($fffffffffffff000))>(address and qword($fffffffffffff000))) then //did not read a single byte and overlaps a pageboundary
   begin
     p1:=0;
     repeat
       i:=min(size, integer(4096-(address and $fff)));
       actualread:=0;
+      {$ifdef windows}
       ReadProcessMemoryWithCloakSupport(processhandle,pointer(address),destination,i,actualread);
+      {$else}
+      ReadProcessMemory(processhandle,pointer(address),destination,i,actualread);
+      {$endif}
 
       inc(p1,actualread);
       address:=address+actualread;
@@ -15215,6 +15242,7 @@ begin
         nop
         end;
         MessageBox(0,pchar(inttohex(startoffset,8)+'disassembler error 3'),'debug here',MB_OK);
+
       end;
     end;
 
@@ -15265,8 +15293,11 @@ begin
     LastDisassembleData.opcode:='??';
     inc(offset);
   end;
-
+{$ifdef windows}
   LastDisassembleData.iscloaked:=hasCloakedRegionInRange(LastDisassembleData.address, length(LastDisassembleData.Bytes), VA, PA);
+{$else}
+LastDisassembleData.iscloaked:=false;
+{$endif}
 
 
   if not dataonly then
@@ -15317,8 +15348,10 @@ begin
     if syntaxhighlighting and LastDisassembleData.iscloaked then
     begin
       //check if this byte is cloaked (due to pageboundaries)
+      {$ifdef windows}
       cloaked:=hasCloakedRegionInRange(LastDisassembleData.address+i, 1, VA, PA);
       if (cloaked) then result:=result+'{C00FF00}'; //green
+      {$endif}
     end;
 
     result:=result+inttohex(LastDisassembleData.Bytes[i],2);

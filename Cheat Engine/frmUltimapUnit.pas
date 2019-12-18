@@ -5,7 +5,13 @@ unit frmUltimapUnit;
 interface
 
 uses
-  windows, Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls,
+  {$ifdef darwin}
+  macport,
+  {$endif}
+  {$ifdef windows}
+  windows,
+  {$endif}
+  Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls,
   DBK32functions, NewKernelHandler, cefuncproc, AvgLvlTree, ExtCtrls, ComCtrls,
   math,  symbolhandler, maps, Menus, disassembler, multicpuexecution, syncobjs,
   genericHotkey, HotKeys, frmHotkeyExUnit, frmSelectionlistunit, commonTypeDefs;
@@ -326,6 +332,7 @@ var UltimapDataEvent: TUltimapDataEvent;
   i: integer;
   z: qword;
 begin
+  {$ifdef windows}
   while not terminated do
   begin
     if ultimap_waitForData(1000, @UltimapDataEvent) then
@@ -386,6 +393,7 @@ begin
   while ultimap_waitForData(10, @UltimapDataEvent) do
     ultimap_continue(@UltimapDataEvent);
 
+  {$endif}
 end;
 
 { TfrmUltimap }
@@ -414,6 +422,8 @@ begin
   {$endif}
 
   TotalBranches:=0;
+
+  {$ifdef windows}
 
   LoadDBK32;
 
@@ -476,11 +486,13 @@ begin
   btnstart.enabled:=false;
 
   beep;
+  {$endif}
 end;
 
 procedure TfrmUltimap.btnStopClick(Sender: TObject);
 var i: integer;
 begin
+  {$ifdef windows}
   ultimap_disable();
 
   for i:=0 to length(workers)-1 do
@@ -503,10 +515,12 @@ begin
   btnStart.enabled:=true;
 
   errorbeep;
+  {$endif}
 end;
 
 procedure TfrmUltimap.btnPauseClick(Sender: TObject);
 begin
+  {$ifdef windows}
   if not paused then
   begin
     ultimap_pause;
@@ -520,6 +534,7 @@ begin
     btnPause.caption:=rsUUPause;
   end;
   beep;
+  {$endif}
 end;
 
 procedure TfrmUltimap.btnFilterModuleClick(Sender: TObject);
@@ -673,8 +688,10 @@ end;
 
 procedure TfrmUltimap.Edit1KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
 begin
+  {$ifdef windows}
   if key=VK_RETURN then
     btnFilterCallCount.click;
+  {$endif}
 end;
 
 function TfrmUltimap.iscall(address: ptruint): boolean;
@@ -839,8 +856,10 @@ end;
 
 procedure TfrmUltimap.FlusherTimer(Sender: TObject);
 begin
+  {$ifdef windows}
   if btnStop.enabled then
     ultimap_flush;
+  {$endif}
 end;
 
 procedure TfrmUltimap.FormClose(Sender: TObject; var CloseAction: TCloseAction);
@@ -1076,6 +1095,8 @@ var i: integer;
 begin
   if workercount=0 then exit;
 
+  {$ifdef windows}
+
   isFlushing:=false;
 
 
@@ -1115,6 +1136,7 @@ begin
   //done flushing
   isFlushing:=false;  //no more wasted cycles checking the critical section
 
+  {$endif}
 end;
 
 initialization

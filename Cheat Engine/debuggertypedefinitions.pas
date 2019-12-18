@@ -5,7 +5,13 @@ unit debuggertypedefinitions;
 interface
 
 uses
-  Classes, SysUtils, Windows,
+  {$ifdef darwin}
+  macport,
+  {$endif}
+  {$ifdef windows}
+  Windows,
+  {$endif}
+  Classes, SysUtils,
   cefuncproc, NewKernelHandler, commonTypeDefs;
 
 type

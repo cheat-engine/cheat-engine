@@ -8,9 +8,7 @@ interface
 
 {$ifdef jni}
 uses classes, SysUtils, StrUtils, assemblerunit, symbolhandler;
-{$endif}
-
-{$ifdef windows}
+{$else}
 uses
   Classes, SysUtils, strutils{$ifndef ARMDEV}, assemblerunit{$endif}, dialogs,
   symbolhandler;

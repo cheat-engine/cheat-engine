@@ -4,8 +4,11 @@ unit VEHDebugger;
 
 interface
 
+{$ifdef windows}
 uses
-  jwaNtStatus, Windows, Classes, SysUtils,symbolhandler, symbolhandlerstructs,
+
+  jwaNtStatus, Windows,
+  Classes, SysUtils,symbolhandler, symbolhandlerstructs,
   VEHDebugSharedMem,cefuncproc, autoassembler,newkernelhandler,DebuggerInterface,
   Clipbrd;
 
@@ -53,9 +56,11 @@ type
     constructor create;
   end;
 
+{$endif}
 
 implementation
 
+{$ifdef windows}
 uses ProcessHandlerUnit, Globals, dialogs;
 
 resourcestring
@@ -726,6 +731,7 @@ begin
 
   lastthreadpoll:=GetTickCount64;
 end;
+{$endif}
 
 end.
 

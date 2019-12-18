@@ -5,7 +5,8 @@ unit BreakpointTypeDef;
 interface
 
 uses
-  Classes, SysUtils, windows, FoundCodeUnit, formchangedaddresses, frmTracerUnit,
+
+  Classes, SysUtils, {$ifdef windows}windows,{$endif} FoundCodeUnit, formchangedaddresses, frmTracerUnit,
   commonTypeDefs, debuggertypedefinitions;
 
 type
@@ -33,7 +34,7 @@ type
 
     owner: PBreakpoint;
     //in case of a multi DR/address breakpoint, removing one of these or the owner, affects the others
-    address: uint_ptr;
+    address: ptruint;
     size: integer; //size of this breakpoint (can be any size in case of exception bp)
     originalbyte: byte;
 
@@ -79,7 +80,7 @@ type
 
 
   TBreakpointSplit = record //the breakpointsplit type is used by GetBreakpointList
-    address: uint_ptr;      //address alligned on size
+    address: ptruint;      //address alligned on size
     size: integer;       //1, 2 or 4
   end;
   TBreakpointSplitArray = array of TBreakpointSplit;

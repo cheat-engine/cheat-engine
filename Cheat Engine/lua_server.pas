@@ -12,6 +12,8 @@ handles the communication while it itself is going back to listen to new connect
 
 interface
 
+{$ifdef windows}
+
 uses
   jwawindows, windows, Classes, SysUtils, lua, lauxlib, lualib, LuaHandler;
 
@@ -59,7 +61,11 @@ var luaservers: TList;
 
 function luaserverExists(name: string): boolean;
 
+{$endif}
+
 implementation
+
+{$ifdef windows}
 
 resourcestring
   rsALuaserverWithTheName = 'A luaserver with the name ';
@@ -634,8 +640,13 @@ begin
   inherited destroy;
 end;
 
+{$endif}
+
 initialization
+
+  {$ifdef windows}
   luaservers:=TList.create;
+  {$endif}
 
 
 end.

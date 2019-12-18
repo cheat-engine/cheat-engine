@@ -5,7 +5,13 @@ unit frmMemoryViewExUnit;
 interface
 
 uses
-  windows, Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs,
+  {$ifdef darwin}
+  macport, LCLType, LCLIntf,
+  {$endif}
+  {$ifdef windows}
+  windows,
+  {$endif}
+  Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs,
   ExtCtrls, StdCtrls, ComCtrls, Menus, memdisplay, newkernelhandler, cefuncproc,
   syncobjs, math, savedscanhandler, foundlisthelper, CustomTypeHandler,
   symbolhandler, inputboxtopunit, commonTypeDefs, GL, GLext, Types, DPIHelper;
@@ -1184,7 +1190,7 @@ begin
                     md.Height,
                     md.p]);
     msg:=msg+s;
-    MessageBox(self.Handle,PAnsiChar(msg),'MV HELP',MB_OK or MB_SYSTEMMODAL);
+    MessageBox(self.Handle,PAnsiChar(msg),'MV HELP',MB_OK {$ifdef windows}or MB_SYSTEMMODAL{$endif});
 end;
 
 procedure TfrmMemoryViewEx.mdRecenterDrag;

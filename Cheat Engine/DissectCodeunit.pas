@@ -5,7 +5,13 @@ unit DissectCodeunit;
 interface
 
 uses
-  jwawindows, windows, LCLIntf, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  {$ifdef darwin}
+  macport,
+  {$endif}
+  {$ifdef windows}
+  jwawindows, windows,
+  {$endif}
+  LCLIntf, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, ComCtrls, ExtCtrls,DissectCodeThread,CEFuncProc,
   symbolhandler, LResources, frmReferencedStringsUnit, newkernelhandler, MemFuncs,
   commonTypeDefs, ProcessHandlerUnit;

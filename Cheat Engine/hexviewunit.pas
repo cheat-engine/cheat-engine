@@ -5,10 +5,16 @@ unit hexviewunit;
 interface
 
 uses
-  windows, Classes, SysUtils, forms, controls, StdCtrls, ExtCtrls, comctrls, graphics,
-  lmessages, menus,commctrl, symbolhandler, symbolhandlerstructs, cefuncproc, newkernelhandler, math,
+  {$ifdef darwin}
+  macport,
+  {$endif}
+  {$ifdef windows}
+  windows, commctrl,
+  {$endif}
+  Classes, SysUtils, forms, controls, StdCtrls, ExtCtrls, comctrls, graphics,
+  lmessages, menus, symbolhandler, symbolhandlerstructs, cefuncproc, newkernelhandler, math,
   Clipbrd,dialogs, changelist, DebugHelper, debuggertypedefinitions, maps, contnrs,
-  strutils, byteinterpreter, commonTypeDefs, lazutf8, lazutf16, lcltype;
+  strutils, byteinterpreter, commonTypeDefs, lazutf8, lazutf16, lcltype, LCLIntf;
 
 type
   TDisplayType = (dtByte, dtByteDec, dtWord, dtWordDec, dtDword, dtDwordDec, dtQword, dtQwordDec, dtSingle, dtDouble);
@@ -1503,8 +1509,10 @@ begin
 
     memoryinfo:=memoryinfo+' '+rsSize+'='+IntTohex(mbi.RegionSize, 1);
 
+    {$ifdef windows}
     if (formsettings<>nil) and assigned(GetPhysicalAddress) and formsettings.cbKernelOpenProcess.checked and GetPhysicalAddress(processhandle,pointer(fAddress),a64) then
       memoryInfo:=memoryInfo+' '+rsPhysicalAddress+'='+IntToHex(a64, 8);
+    {$endif}
 
 
     if symhandler.getmodulebyaddress(fAddress,mi) then

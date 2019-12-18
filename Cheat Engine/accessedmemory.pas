@@ -83,13 +83,16 @@ uses ProcessHandlerUnit, CEFuncProc;
 
 procedure TfrmAccessedMemory.startMonitor(sender: TObject);
 begin
+  {$ifdef windows}
   DBK32Initialize;
   MarkAllPagesAsNonAccessed(ProcessHandle);
   button3.enabled:=true;
+  {$endif}
 end;
 
 procedure TfrmAccessedMemory.stopMonitor(sender: TObject);
 begin
+  {$ifdef windows}
   if button3.enabled then
   begin
     EnumAndGetAccessedPages(processhandle, ranges);
@@ -97,6 +100,7 @@ begin
 
     button3.enabled:=false;
   end;
+  {$endif}
 end;
 
 procedure TfrmAccessedMemory.FormCreate(Sender: TObject);

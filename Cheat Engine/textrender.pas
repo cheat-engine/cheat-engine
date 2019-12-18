@@ -11,7 +11,13 @@ function renderFormattedText(canvas: TCanvas; rect: Trect; x,y: integer; const f
 
 implementation
 
+{$ifdef windows}
 uses windows;
+{$endif}
+
+{$ifdef DARWIN}
+uses macport,CocoaAll;
+{$endif}
 
 const altfonts: array [0..8] of string=('Consolas','Courier','Courier New','Fixedsys','Terminal','Arial','MS Sans Serif','Comic Sans MS','Wingdings');
 

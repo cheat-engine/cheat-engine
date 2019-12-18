@@ -5,7 +5,13 @@ unit diagram;
 interface
 
 uses
-  windows, Classes, SysUtils, controls,Types, graphics, diagramblock, diagramlink, diagramtypes,
+  {$ifdef darwin}
+  macport, LCLIntf,
+  {$endif}
+  {$ifdef windows}
+  windows,
+  {$endif}
+  Classes, SysUtils, controls,Types, graphics, diagramblock, diagramlink, diagramtypes,
   LMessages, GL, glu, GLext, dialogs, StdCtrls, ExtCtrls;
 
 const diagramversion=1;
@@ -43,8 +49,10 @@ type
     fAllowUserToChangeAttachPoints: boolean;
 
     //ogl
+    {$IFDEF windows}
     fUseOpenGL: boolean;
     hglrc: HGLRC;
+    {$ENDIF}
     fzoom: single;
 
     diagramConfig: TDiagramConfig;
@@ -167,7 +175,9 @@ type
     property BlockCount: integer read getBlockCount;
 
     property LinkCount: integer read getLinkCount;
+    {$ifdef windows}
     property UseOpenGL: boolean read fUseOpenGL write setUseOpenGL;
+    {$endif}
     property Zoom: single read fZoom write setZoom;
 
 
@@ -1142,12 +1152,15 @@ begin
 end;
 
 procedure TDiagram.setUseOpenGl(state: boolean);
+{$IFDEF windows}
 var
   pfd: TPixelFormatDescriptor;
   i: integer;
 
   p: pointer;
+{$ENDIF}
 begin
+  {$IFDEF windows}
   fUseOpenGL:=state;
   diagramConfig.UseOpenGL:=state;
 
@@ -1156,6 +1169,7 @@ begin
 
   if state and (parent<>nil) then //already has a parent so canvas is usable
     InitializeOpenGL;
+  {$ENDIF}
 end;
 
 
@@ -1195,8 +1209,10 @@ begin
   diagramConfig.canvas:=canvas;
 
 
+  {$IFDEF windows}
   if UseOpenGL and assigned(ChoosePixelFormat) and (NewParent<>nil) and (oldparent=nil) then
     InitializeOpenGL;
+  {$ENDIF}
 
   rendercanvas:=canvas;
 
@@ -1207,14 +1223,17 @@ procedure TDiagram.RepaintOrRender;
 begin
   if nopaint then exit;
 
-  if UseOpenGL then render else repaint;
+  {$IFDEF windows} if UseOpenGL then render else {$ENDIF} repaint;
 end;
 
 procedure TDiagram.InitializeOpenGL;
+{$IFDEF windows}
 var
   pfd: TPixelFormatDescriptor;
   i: integer;
+{$ENDIF}
 begin
+  {$IFDEF windows}
   hglrc:=wglCreateContext(canvas.handle);
 
   if hglrc=0 then
@@ -1268,6 +1287,7 @@ begin
     end;
 
   end;
+  {$ENDIF}
 end;
 
 procedure TDiagram.saveToStream(s: TStream);
@@ -1359,9 +1379,11 @@ var
   openglstatus: boolean;
   img: TPortableNetworkGraphic;
 begin
+  {$IFDEF windows}
   openglstatus:=UseOpenGL;
 
   UseOpenGL:=false;
+  {$ENDIF}
 
   render;
   //width and hight are known now
@@ -1390,7 +1412,9 @@ begin
   img.SaveToFile(filename);
   img.free;
 
+  {$IFDEF windows}
   UseOpenGL:=openglstatus;
+  {$ENDIF}
 end;
 
 procedure TDiagram.render;
@@ -1412,7 +1436,8 @@ begin
 
   color:=diagramConfig.backgroundColor;
 
-  if useopengl and (hglrc<>0) then
+  {$IFDEF windows}
+if useopengl and (hglrc<>0) then
   begin
     wglMakeCurrent(canvas.handle, hglrc);
 
@@ -1472,6 +1497,7 @@ begin
 
   end
   else
+{$ENDIF}
   begin
     diagramconfig.canvas:=rendercanvas;
   end;
@@ -1499,8 +1525,10 @@ begin
     maxy:=max(maxy, TDiagramBlock(blocks[i]).y+TDiagramBlock(blocks[i]).height);
   end;
 
+  {$IFDEF windows}
   if useopengl and (hglrc<>0) then
     SwapBuffers(canvas.handle);
+  {$ENDIF}
 
   lastMaxX:=maxx;
   lastMaxY:=maxy;
@@ -1513,7 +1541,7 @@ end;
 
 procedure TDiagram.WMPaint(var Message: TLMPaint);
 begin
-  if UseOpenGL then render else inherited WMPaint(message);
+  {$IFDEF windows} if UseOpenGL then render else {$ENDIF} inherited WMPaint(message);
 end;
 
 procedure TDiagram.paint;

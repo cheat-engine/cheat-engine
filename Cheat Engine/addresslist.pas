@@ -244,7 +244,9 @@ begin
 end;
 
 procedure TAddresslist.clear;
-var i: integer;
+var
+  i: integer;
+  item: TObject;
 begin
   //first check if it's being edited/or busy
   for i:=0 to count-1 do
@@ -252,7 +254,11 @@ begin
 
   //still here so nothing is being edited, so, delete
   while count>0 do
-     MemRecItems[0].Free;
+  begin
+    item:=MemRecItems[0];
+    if item<>nil then
+      item.Free;
+  end;
 end;
 
 procedure TAddresslist.RefreshCustomTypes;

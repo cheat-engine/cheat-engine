@@ -1,7 +1,7 @@
 object frmAPIhookTemplateSettings: TfrmAPIhookTemplateSettings
-  Left = 759
+  Left = 528
   Height = 187
-  Top = 287
+  Top = 335
   Width = 334
   AutoSize = True
   BorderIcons = [biSystemMenu]
@@ -12,14 +12,14 @@ object frmAPIhookTemplateSettings: TfrmAPIhookTemplateSettings
   OnCreate = FormCreate
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '1.6.0.4'
+  LCLVersion = '2.0.6.0'
   object Label1: TLabel
     AnchorSideLeft.Control = Owner
     AnchorSideTop.Control = Owner
     Left = 8
-    Height = 15
+    Height = 16
     Top = 0
-    Width = 107
+    Width = 124
     BorderSpacing.Left = 8
     Caption = 'Original api address:'
     ParentColor = False
@@ -29,9 +29,9 @@ object frmAPIhookTemplateSettings: TfrmAPIhookTemplateSettings
     AnchorSideTop.Control = Edit1
     AnchorSideTop.Side = asrBottom
     Left = 8
-    Height = 15
-    Top = 38
-    Width = 89
+    Height = 16
+    Top = 37
+    Width = 104
     Caption = 'New api address:'
     ParentColor = False
   end
@@ -40,9 +40,9 @@ object frmAPIhookTemplateSettings: TfrmAPIhookTemplateSettings
     AnchorSideTop.Control = Edit2
     AnchorSideTop.Side = asrBottom
     Left = 8
-    Height = 15
-    Top = 80
-    Width = 251
+    Height = 16
+    Top = 78
+    Width = 290
     BorderSpacing.Top = 4
     BorderSpacing.Right = 4
     Caption = 'Address where to store the new original api call:'
@@ -53,9 +53,9 @@ object frmAPIhookTemplateSettings: TfrmAPIhookTemplateSettings
     AnchorSideTop.Control = Label3
     AnchorSideTop.Side = asrBottom
     Left = 8
-    Height = 15
-    Top = 95
-    Width = 275
+    Height = 16
+    Top = 94
+    Width = 318
     BorderSpacing.Right = 4
     Caption = '(optional, in case your dll uses a variable for the call)'
     ParentColor = False
@@ -73,9 +73,9 @@ object frmAPIhookTemplateSettings: TfrmAPIhookTemplateSettings
     AnchorSideBottom.Control = Owner
     AnchorSideBottom.Side = asrBottom
     Left = 8
-    Height = 15
-    Top = 163
-    Width = 277
+    Height = 16
+    Top = 156
+    Width = 324
     BorderSpacing.Top = 2
     BorderSpacing.Right = 4
     BorderSpacing.Bottom = 2
@@ -90,8 +90,8 @@ object frmAPIhookTemplateSettings: TfrmAPIhookTemplateSettings
     AnchorSideRight.Control = Owner
     AnchorSideRight.Side = asrBottom
     Left = 8
-    Height = 23
-    Top = 15
+    Height = 21
+    Top = 16
     Width = 318
     Anchors = [akTop, akLeft, akRight]
     BorderSpacing.Right = 8
@@ -104,7 +104,7 @@ object frmAPIhookTemplateSettings: TfrmAPIhookTemplateSettings
     AnchorSideRight.Control = Owner
     AnchorSideRight.Side = asrBottom
     Left = 8
-    Height = 23
+    Height = 21
     Top = 53
     Width = 318
     Anchors = [akTop, akLeft, akRight]
@@ -118,7 +118,7 @@ object frmAPIhookTemplateSettings: TfrmAPIhookTemplateSettings
     AnchorSideRight.Control = Edit1
     AnchorSideRight.Side = asrBottom
     Left = 8
-    Height = 23
+    Height = 21
     Top = 110
     Width = 318
     Anchors = [akTop, akLeft, akRight]
@@ -129,8 +129,8 @@ object frmAPIhookTemplateSettings: TfrmAPIhookTemplateSettings
     AnchorSideTop.Side = asrBottom
     AnchorSideRight.Control = Panel1
     Left = 87
-    Height = 25
-    Top = 136
+    Height = 20
+    Top = 134
     Width = 75
     Anchors = [akTop, akRight]
     AutoSize = True
@@ -147,8 +147,8 @@ object frmAPIhookTemplateSettings: TfrmAPIhookTemplateSettings
     AnchorSideTop.Control = Edit3
     AnchorSideTop.Side = asrBottom
     Left = 172
-    Height = 25
-    Top = 136
+    Height = 20
+    Top = 134
     Width = 75
     AutoSize = True
     BorderSpacing.Top = 3
@@ -165,7 +165,7 @@ object frmAPIhookTemplateSettings: TfrmAPIhookTemplateSettings
     AnchorSideTop.Side = asrBottom
     Left = 162
     Height = 11
-    Top = 133
+    Top = 131
     Width = 10
     BevelOuter = bvNone
     TabOrder = 5

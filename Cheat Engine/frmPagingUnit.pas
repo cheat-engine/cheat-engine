@@ -126,6 +126,7 @@ procedure TfrmPaging.FormCreate(Sender: TObject);
 var cr3: QWORD;
   cr4: DWORD;
 begin
+  {$ifdef windows}
   if getcr3(processhandle, cr3) then
     edtcr3.text:=inttohex(cr3,8);
 
@@ -138,6 +139,7 @@ begin
   cr4:=GetCR4;
   cb8byteentries.checked:=((cr4 shr 5) and 1)=1;
 
+  {$endif}
 
 
 end;
@@ -195,6 +197,7 @@ var
 
 begin
   //page table
+  {$ifdef windows}
 
   if node=nil then
   begin
@@ -268,6 +271,7 @@ begin
   finally
     freememandnil(buf);
   end;
+  {$endif}
 end;
 
 procedure TfrmPaging.FillNodeLevel2(node: TTreenode);
@@ -288,6 +292,7 @@ var
 
 begin
   //fill in the pagedir table
+  {$ifdef windows}
   if node=nil then
   begin
     virtualbase:=0;
@@ -383,7 +388,7 @@ begin
 
   if pd<>nil then
     freememandnil(pd);
-
+  {$endif}
 end;
 
 procedure TfrmPaging.FillNodeLevel3(node: TTreenode);
@@ -401,6 +406,7 @@ var pd: PPageData=nil;
   physicalbase: qword;
 begin
   //fill in the pagedir pointer table
+  {$ifdef windows}
   if node=nil then
   begin
     virtualbase:=0;
@@ -463,6 +469,7 @@ begin
   if pd<>nil then
     freememandnil(pd);
 
+  {$endif}
 
 end;
 
@@ -500,6 +507,7 @@ var x: ptrUint;
   pd: PPageData;
   cr4: ptruint;
 begin
+  {$ifdef windows}
   base:=StrToQWordEx('$'+edtcr3.text);
 
   cleanup;
@@ -545,6 +553,7 @@ begin
   finally
     freememandnil(buf);
   end;
+  {$endif}
 end;
 
 initialization

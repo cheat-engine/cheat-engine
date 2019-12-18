@@ -4,7 +4,14 @@ interface
 
 {$mode DELPHI}
 
-uses jwawindows, windows, classes, dialogs, sysutils;
+uses
+  {$ifdef darwin}
+  macport,
+  {$endif}
+  {$ifdef windows}
+  jwawindows, windows,
+  {$endif}
+  classes, dialogs, sysutils;
 
 const
   VMCALL_GETVERSION=0;
@@ -429,7 +436,7 @@ implementation
 
 uses DBK32functions, cefuncproc, PEInfoFunctions, NewKernelHandler, syncobjs,
   ProcessHandlerUnit, Globals, AvgLvlTree, maps, debuggertypedefinitions,
-  DebugHelper, frmBreakpointlistunit;
+  DebugHelper, frmBreakpointlistunit, math{$ifdef darwin},mactypes{$endif};
 
 resourcestring
 rsInvalidInstruction = 'Invalid instruction';
@@ -688,6 +695,7 @@ begin
   raise exception.create(rsInvalidInstruction);
 end;
 
+{$IFDEF windows}
 function vmcallexceptiontest(ExceptionInfo: PEXCEPTION_POINTERS): LONG; stdcall;
 begin
   result:=EXCEPTION_CONTINUE_SEARCH;
@@ -703,6 +711,7 @@ begin
   end;
 
 end;
+{$ENDIF}
 
 function vmcallSupported_amd(vmcallinfo:pointer; level1pass: dword): PtrUInt; stdcall;
 var
@@ -1883,6 +1892,7 @@ var i,j: integer;
     base: ptruint;
     hal: tstringlist;
 begin
+  {$IFDEF windows}
   if kernelfunctions=nil then
   begin
     kernelfunctions:=tstringlist.create;
@@ -1926,6 +1936,7 @@ begin
     if i<>-1 then
       ExAllocatePool:=pointer(kernelfunctions.Objects[i]);
   end;
+  {$ENDIF}
 
 end;
 
@@ -2391,10 +2402,11 @@ end;
 var cc: dword;
     x: TInput;
 begin
+  {$IFDEF windows}
   if (dbvm_version>$ce000000) then //tell the driver it can use vmcall instructions
   begin
     OutputDebugString('vmx_enabled=TRUE');
-    
+
     x.Virtualization_Enabled:=1;
     x.Password1:=vmx_password1;
     x.Password2:=vmx_password2;
@@ -2407,11 +2419,13 @@ begin
 
     vmx_enabled:=true;
   end else OutputDebugString('vmx_enabled=FALSE');
+  {$ENDIF}
 end;
 
 initialization
   vmcall:=vmcallUnSupported;
   vmcall2:=vmcall2Unsupported;
+  {$ifdef windows}
 
   {$ifndef NOVMX}
   if isDBVMCapable then
@@ -2429,6 +2443,7 @@ initialization
   end;
 
 
+  {$endif}
   {$endif}
   cloakedregionscs:=TCriticalSection.Create;
   breakpointscs:=TCriticalSection.Create;

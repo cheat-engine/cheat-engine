@@ -7,6 +7,7 @@ This unit it used by both CE and the VEHDebug project
 
 interface
 
+{$IFDEF windows}
 uses
   windows, Classes, SysUtils;
 
@@ -46,6 +47,7 @@ type TVEHDebugSharedMem=packed record
 
 end;
 type PVEHDebugSharedMem=^TVEHDebugSharedMem;
+{$ENDIF}
 
 
 

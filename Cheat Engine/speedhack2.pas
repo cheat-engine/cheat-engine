@@ -4,8 +4,8 @@ unit speedhack2;
 
 interface
 
-uses Classes,LCLIntf, SysUtils, NewKernelHandler,CEFuncProc, symbolhandler,
-     autoassembler, dialogs,Clipbrd, commonTypeDefs, controls;
+uses Classes,LCLIntf, SysUtils, NewKernelHandler,CEFuncProc, symbolhandler, symbolhandlerstructs,
+     autoassembler, dialogs,Clipbrd, commonTypeDefs, controls{$ifdef darwin},macport, FileUtil{$endif};
 
 type TSpeedhack=class
   private
@@ -48,6 +48,13 @@ var i: integer;
     path: string;
 
     QPCAddress: ptruint;
+    mi: TModuleInfo;
+    mat: qword;
+    machmodulebase: qword;
+    machmodulesize: qword;
+
+    HookMachAbsoluteTime: boolean;
+
 begin
   initaddress:=0;
 
@@ -62,6 +69,24 @@ begin
   else
   begin
     try
+      {$ifdef darwin}
+      if not FileExists('/usr/lib/libspeedhack.dylib') then
+      begin
+        if CopyFile(cheatenginedir+'libspeedhack.dylib', '/usr/lib/libspeedhack.dylib', true)=false then
+        begin
+          raise exception.create('Failure copying libspeedhack.dylib to /usr/lib');
+        end;
+      end;
+
+      if symhandler.getmodulebyname('libspeedhack.dylib', mi)=false then
+      begin
+        injectdll('/usr/lib/libspeedhack.dylib','');
+        symhandler.reinitialize;
+      end;
+
+      {$endif}
+
+      {$ifdef windows}
       if processhandler.is64bit then
         fname:='speedhack-x86_64.dll'
       else
@@ -77,6 +102,8 @@ begin
         symhandler.reinitialize;
         symhandler.waitforsymbolsloaded(true)
       end;
+      {$endif}
+
 
 
     except
@@ -167,7 +194,64 @@ begin
     end
     else
     begin
-      //windows
+      //local
+
+      {$ifdef darwin}
+      HookMachAbsoluteTime:=false;
+      if speedhack_HookMachAbsoluteTime then
+      begin
+
+        mat:=symhandler.getAddressFromName('mach_absolute_time', false, err);
+        if symhandler.getmodulebyaddress(mat,mi) then
+        begin
+          machmodulebase:=mi.baseaddress;
+          machmodulesize:=mi.basesize;
+
+
+          if processhandler.is64Bit then
+          begin
+            script.add('machmodulebase:');
+            script.add('dq '+inttohex(machmodulebase,8));
+
+            script.Add('machmodulesize:');
+            script.Add('dq '+inttohex(machmodulesize,8));
+          end
+          else
+          begin
+            script.add('machmodulebase:');
+            script.add('dd '+inttohex(machmodulebase,8));
+
+            script.add('machmodulesize:');
+            script.add('dd '+inttohex(machmodulesize,8));
+          end;
+
+          HookMachAbsoluteTime:=true;
+        end;
+        //  raise exception.create('mach_absolute_time not found');
+
+      end;
+
+
+      a:=symhandler.getAddressFromName('realGetTimeOfDay') ;
+      b:=0;
+      readprocessmemory(processhandle,pointer(a),@b,processhandler.pointersize,x);
+      if b<>0 then //already configured
+      begin
+        generateAPIHookScript(script, 'gettimeofday', 'speedhackversion_GetTimeOfDay','','1');
+        if HookMachAbsoluteTime then
+          generateAPiHookScript(script, 'mach_absolute_time', 'speedhackversion_MachAbsoluteTime','','2');
+      end
+      else
+      begin
+        generateAPIHookScript(script, 'gettimeofday', 'speedhackversion_GetTimeOfDay', 'realGetTimeOfDay','1');
+        if HookMachAbsoluteTime then
+          generateAPiHookScript(script, 'mach_absolute_time', 'speedhackversion_MachAbsoluteTime','realMachAbsoluteTime','2');
+      end;
+
+      {$endif}
+
+      {$ifdef windows}
+
       if processhandler.is64bit then
         script.Add('alloc(init,512, GetTickCount)')
       else
@@ -184,6 +268,7 @@ begin
 
       //if ssCtrl in GetKeyShiftState then //debug code
       //  Clipboard.AsText:=script.text;
+      {$endif}
 
       try
         setlength(AllocArray,0);
@@ -208,6 +293,8 @@ begin
         end;
       end;
 
+
+      {$ifdef windows}
       //timegettime
       if symhandler.getAddressFromName('timeGetTime',true,err)>0 then //might not be loaded
       begin
@@ -261,6 +348,7 @@ begin
           raise exception.Create(rsFailureConfiguringSpeedhackPart+' 3');
         end;
       end;
+      {$endif}
 
 
     end;
@@ -271,6 +359,7 @@ begin
 
   setspeed(1);
   fprocessid:=processhandlerunit.processid;
+
 end;
 
 destructor TSpeedhack.destroy;

@@ -5,7 +5,12 @@ unit PointerscanStructures;
 interface
 
 uses
+  {$ifdef darwin}
+  macport, Classes, SysUtils, Sockets, CELazySocket, commonTypeDefs;
+  {$endif}
+  {$ifdef windows}
   windows, Classes, SysUtils, winsock, CELazySocket, commonTypeDefs;
+  {$endif}
 
 const
   MAXQUEUESIZE=64;

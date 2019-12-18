@@ -15,6 +15,7 @@ Now if you didn't read this to bypass the cheat-e-coin system but just want to s
 
 interface
 
+{$IFDEF windows}
 uses
   jwawindows, windows, newkernelhandler, Classes, SysUtils, dialogs;
 
@@ -24,9 +25,11 @@ procedure decreaseCheatECoinCount; stdcall;
 function getCheatECoinCount: integer;
 
 function checkCoinStatus: integer;
+{$ENDIF}
 
 implementation
 
+{$IFDEF windows}
 uses forms, frmMicrotransactionsUnit, ceregistry, luahandler;
 
 var
@@ -449,6 +452,7 @@ end;
 
 finalization
   saveCoins;
+{$ENDIF}
 
 
 end.

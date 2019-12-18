@@ -7,7 +7,8 @@ unit LuaDebug;
 interface
 
 uses
-  Classes, SysUtils, newkernelhandler, debug, DebugHelper, DebuggerInterfaceAPIWrapper, lua, lualib, lauxlib, LuaHandler;
+  Classes, SysUtils, newkernelhandler, debug, DebugHelper,
+  DebuggerInterfaceAPIWrapper, lua, lualib, lauxlib, LuaHandler{$ifdef darwin},macport{$endif};
 
 procedure initializeLuaDebug;
 
@@ -20,12 +21,15 @@ var
 begin
   OutputDebugString('debug_setLastBranchRecording');
   result:=0;
+
   parameters:=lua_gettop(L);
+  {$ifdef windows}  b
   if parameters=1 then
   begin
     newstate:=lua_toboolean(L, -1);
     DBKDebug_SetStoreLBR(newstate);
   end;
+  {$endif}
 
   lua_pop(L, parameters);
 end;

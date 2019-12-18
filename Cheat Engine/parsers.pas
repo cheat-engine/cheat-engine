@@ -34,7 +34,14 @@ procedure getRegisterListFromParams(params: string; registerlist: Tstrings);
 
 implementation
 
-uses windows, symbolhandler, assemblerunit;
+uses
+  {$ifdef darwin}
+  macport,
+  {$endif}
+  {$ifdef windows}
+  windows,
+  {$endif}
+  symbolhandler, assemblerunit;
 
 resourcestring
    rsInvalidInteger = 'Invalid integer';

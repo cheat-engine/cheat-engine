@@ -9,7 +9,14 @@ reads/writes to the file instead
 
 interface
 
-uses jwawindows, windows, LCLIntf, syncobjs, sysutils, Classes;
+uses
+  {$ifdef darwin}
+  macport,
+  {$endif}
+  {$ifdef windows}
+  jwawindows, windows,
+  {$endif}
+  LCLIntf, syncobjs, sysutils, Classes;
 
 function ReadProcessMemoryFile(hProcess: THandle; const lpBaseAddress: Pointer; lpBuffer: Pointer;  nSize: DWORD; var lpNumberOfBytesRead: ptruint): BOOL; stdcall;
 function WriteProcessMemoryFile(hProcess: THandle; const lpBaseAddress: Pointer; lpBuffer: Pointer; nSize: DWORD; var lpNumberOfBytesWritten: ptruint): BOOL; stdcall;
@@ -55,8 +62,10 @@ var filesize,ignore:dword;
 
 begin
 //ignore hprocess
+  {$ifdef windows}
   if hprocess=GetCurrentProcess then
     exit(windows.ReadProcessMemory(hProcess, lpBaseAddress, lpBuffer, nSize, lpNumberOfBytesRead));
+  {$endif}
 
   result:=false;
   ba:=ptruint(lpBaseAddress);
@@ -141,8 +150,10 @@ var filesize,ignore:dword;
 
 begin
 //ignore hprocess
+  {$ifdef windows}
   if hprocess=GetCurrentProcess then
     exit(windows.WriteProcessMemory(hProcess, lpBaseAddress, lpBuffer, nSize, lpNumberOfBytesWritten));
+  {$endif}
 
   result:=false;
   ba:=ptruint(lpBaseAddress);

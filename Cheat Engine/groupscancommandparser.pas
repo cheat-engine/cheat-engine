@@ -8,12 +8,11 @@ This unit contains the class that reads a groupscan command and parses it. The r
 
 interface
 
-{$ifdef windows}
-uses Classes, SysUtils, cefuncproc, CustomTypeHandler, strutils, commonTypeDefs;
-{$endif}
 
-{$ifdef unix}
+{$ifdef jni}
 uses Classes, SysUtils, strutils, CustomTypeHandler, commonTypeDefs;
+{$else}
+uses Classes, SysUtils, cefuncproc, CustomTypeHandler, strutils, commonTypeDefs;
 {$endif}
 
 resourcestring

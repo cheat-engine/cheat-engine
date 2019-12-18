@@ -5,9 +5,14 @@ unit frameHotkeyConfigUnit;
 interface
 
 uses
-  windows, LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
+  {$ifdef darwin}
+  macport,
+  {$endif}
+  {$ifdef windows}
+  windows,
+  {$endif}LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, ExtCtrls, LResources, Menus, Buttons, CEFuncProc,
-  commonTypeDefs;
+  commonTypeDefs, LCLType;
 
 const cehotkeycount=32;
 

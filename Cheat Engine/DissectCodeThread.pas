@@ -5,7 +5,13 @@ unit DissectCodeThread;
 interface
 
 uses
-  windows, LCLIntf,sysutils,syncobjs,Classes,disassembler, NewKernelHandler, math,
+  {$ifdef darwin}
+  macport,
+  {$endif}
+  {$ifdef windows}
+  windows,
+  {$endif}
+  LCLIntf,sysutils,syncobjs,Classes,disassembler, NewKernelHandler, math,
   MemoryQuery, CEFuncProc, maps, LastDisassembleData, commonTypeDefs;
 
 

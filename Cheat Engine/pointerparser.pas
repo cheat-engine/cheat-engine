@@ -15,7 +15,11 @@ implementation
 uses newkernelhandler, ProcessHandlerUnit;
 {$endif}
 
-{$ifdef unix}
+{$ifdef darwin}
+uses macport,newkernelhandler, ProcessHandlerUnit;
+{$endif}
+
+{$ifdef jni}
 uses unixporthelper, newkernelhandler, ProcessHandlerUnit;
 {$endif}
 

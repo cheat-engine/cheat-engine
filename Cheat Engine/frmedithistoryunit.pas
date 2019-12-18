@@ -5,7 +5,13 @@ unit frmEditHistoryUnit;
 interface
 
 uses
-  Windows, Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs,
+  {$ifdef darwin}
+  macport,
+  {$endif}
+  {$ifdef windows}
+  windows,
+  {$endif}
+  Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs,
   StdCtrls, ComCtrls, ExtCtrls, Menus, NewKernelHandler, syncobjs,
   symbolhandler, lua, lauxlib, lualib;
 

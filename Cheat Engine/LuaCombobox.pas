@@ -5,7 +5,10 @@ unit LuaCombobox;
 interface
 
 uses
-  windows, Classes, SysUtils, lua, lualib, lauxlib, controls, StdCtrls, ExtCtrls, LuaWinControl;
+  {$ifdef windows}
+  windows,
+  {$endif}
+  Classes, SysUtils, lua, lualib, lauxlib, controls, StdCtrls, ExtCtrls, LuaWinControl;
 
 procedure initializeLuaCombobox;
 
@@ -101,16 +104,20 @@ end;
 function combobox_getExtraWidth(L: PLua_State): integer; cdecl;
 var
   combobox: TCustomcombobox;
+  {$ifdef windows}
   cbi: TComboboxInfo;
+  {$endif}
   extrasize: integer;
 begin
   combobox:=luaclass_getClassObject(L);
 
+  {$ifdef windows}
   zeromemory(@cbi,sizeof(cbi));
   cbi.cbSize:=sizeof(cbi);
   if GetComboBoxInfo(combobox.handle, @cbi) then
     extrasize:=cbi.rcButton.Right-cbi.rcButton.Left+cbi.rcItem.Left
   else
+  {$endif}
     extrasize:=16;
 
   lua_pushinteger(L, extrasize);

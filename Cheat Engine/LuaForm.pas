@@ -5,9 +5,12 @@ unit LuaForm;
 interface
 
 uses
-  jwawindows, windows, Classes, SysUtils, Controls, menus, lua, lualib, lauxlib, LuaHandler,
+  {$ifdef windows}
+  jwawindows, windows,
+  {$endif}
+  Classes, SysUtils, Controls, menus, lua, lualib, lauxlib, LuaHandler,
   LuaCaller, pluginexports, forms, dialogs, ceguicomponents, XMLWrite, XMLRead,
-  Graphics, DOM, cefuncproc, newkernelhandler, typinfo;
+  Graphics, DOM, cefuncproc, newkernelhandler, typinfo, LCLIntf, LCLProc;
 
 procedure initializeLuaForm;
 
@@ -142,7 +145,7 @@ var
 begin
   result:=1;
   f:=luaclass_getClassObject(L);
-  lua_pushboolean(L, GetForegroundWindow()=f.Handle);
+  lua_pushboolean(L, GetForegroundWindow=f.Handle);
 end;
 
 function customform_getMenu(L: PLua_State): integer; cdecl;
@@ -209,6 +212,7 @@ var
   ri: TRasterImage;
 begin
   result:=0;
+  {$ifdef windows}
   f:=luaclass_getClassObject(L);
 
 
@@ -221,6 +225,7 @@ begin
 
     printwindow(f.handle, ri.Canvas.Handle, PW_CLIENTONLY);
   end;
+  {$endif}
 end;
 
 function customform_dragNow(L: Plua_State): integer; cdecl;
@@ -228,9 +233,11 @@ var
   f: TCustomForm;
 begin
   result:=0;
+  {$ifdef windows}
   f:=luaclass_getClassObject(L);
   ReleaseCapture;
   SendMessageA(f.Handle,WM_SYSCOMMAND,$F012,0);
+  {$endif}
 end;
 
 

@@ -4,14 +4,16 @@ unit DBK32functions;
 
 interface
 
-uses jwawindows, windows, sysutils, classes, types, registry, multicpuexecution,
+{$ifdef windows}
+uses
+  jwawindows, windows, sysutils, classes, types, registry, multicpuexecution,
   forms,dialogs, controls, maps, globals;
 
 //xp sp2
 //ThreadsProcess=220
 //ThreadListEntry=22c
 
-
+{$endif}
 
 const currentversion=2000026;
 
@@ -146,11 +148,12 @@ const IOCTL_CE_UNLOCK_MEMORY          = (IOCTL_UNKNOWN_BASE shl 16) or ($0861 sh
 
 const IOCTL_CE_ALLOCATE_MEMORY_FOR_DBVM = (IOCTL_UNKNOWN_BASE shl 16) or ($0862 shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
 
-
+{$ifdef windows}
 type TDeviceIoControl=function(hDevice: THandle; dwIoControlCode: DWORD; lpInBuffer: Pointer; nInBufferSize: DWORD; lpOutBuffer: Pointer; nOutBufferSize: DWORD; var lpBytesReturned: DWORD; lpOverlapped: POverlapped): BOOL; stdcall;
-
-
 type TFNAPCProc = TFarProc;
+{$endif}
+
+
 
 type
   TPhysicalMemoryRange=packed record
@@ -238,7 +241,7 @@ type
 
   TPRangeDynArray=array of TPRange;
 
-
+{$ifdef windows}
 var hdevice: thandle=INVALID_HANDLE_VALUE; //handle to my the device driver
     hUltimapDevice: thandle=INVALID_HANDLE_VALUE;
     handlemap: TMap;
@@ -423,8 +426,11 @@ var kernel32dll: thandle;
     IsWow64Process: TIsWow64Process;
     failedduetodriversigning: boolean;
 
+{$endif}
+
 implementation
 
+{$ifdef windows}
 uses vmxfunctions, DBK64SecondaryLoader, NewKernelHandler, frmDriverLoadedUnit, CEFuncProc, Parsers;
 
 resourcestring
@@ -3445,4 +3451,5 @@ begin
   freeandnil(handlemap);
   freeandnil(handlemapmrew);
 end;
+{$endif}
 end.

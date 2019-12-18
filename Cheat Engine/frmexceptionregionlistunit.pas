@@ -80,12 +80,14 @@ end;
 procedure TfrmExceptionRegionList.cbAutoAddAllocsChange(Sender: TObject);
 var n: TNotifyEvent;
 begin
+  {$ifdef windows}
   n:=MemoryBrowser.miExceptionRegionAutoAddAllocs.OnClick;
   MemoryBrowser.miExceptionRegionAutoAddAllocs.OnClick:=nil;
   MemoryBrowser.miExceptionRegionAutoAddAllocs.checked:=cbAutoAddAllocs.Checked;
   MemoryBrowser.miExceptionRegionAutoAddAllocs.OnClick:=n;
 
   allocsAddToUnexpectedExceptionList:=cbAutoAddAllocs.Checked;
+  {$endif}
 end;
 
 procedure TfrmExceptionRegionList.FormCreate(Sender: TObject);
@@ -101,11 +103,15 @@ end;
 procedure TfrmExceptionRegionList.FormShow(Sender: TObject);
 var n: TNotifyEvent;
 begin
+
   updatelist;
+
+  {$ifdef windows}
   n:=cbAutoAddAllocs.OnChange;
   cbAutoAddAllocs.OnChange:=nil;
   cbAutoAddAllocs.Checked:=MemoryBrowser.miExceptionRegionAutoAddAllocs.checked;
   cbAutoAddAllocs.OnChange:=n;
+  {$endif}
 
   edtstart.Constraints.MinWidth:=canvas.TextWidth(' DDDDDDDDDDDDDDDD ');
 end;
@@ -165,7 +171,7 @@ begin
   if OpenDialog1.execute then
   begin
     s:=tstringlist.create;
-    s.LoadFromFile(opendialog1.FileName, true);
+    s.LoadFromFile(opendialog1.FileName{$if FPC_FULLVERSION>=030200}, true{$endif});
 
     ClearUnexpectedExceptionRegions;
     for i:=0 to s.Count-1 do

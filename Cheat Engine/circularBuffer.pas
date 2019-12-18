@@ -9,7 +9,10 @@ Do not use with multiple writers or multiple readers (or at least protect the re
 
 interface
 
-uses windows, LCLIntf, syncobjs,classes;
+uses
+  {$ifdef darwin}macport,{$endif}
+  {$ifdef windows}windows,{$endif}
+  LCLIntf, syncobjs,classes, sysutils;
 
 type TCircularObjectBuffer=class
   private

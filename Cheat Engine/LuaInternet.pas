@@ -4,6 +4,8 @@ unit LuaInternet;
 
 interface
 
+{$ifdef windows}
+
 uses
   Classes, SysUtils, wininet;
 
@@ -23,7 +25,11 @@ type
     property Header: string read fheader write fheader;
   end;
 
+  {$endif}
+
 implementation
+
+{$ifdef windows}
 
 uses mainunit2, lua, LuaClass, LuaObject, luahandler, URIParser;
 
@@ -255,6 +261,7 @@ var
 initialization
   luaclass_register(TWinInternet, wininternet_addMetaData);
 
+{$endif}
 
 
 end.
