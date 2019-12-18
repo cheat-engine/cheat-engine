@@ -237,9 +237,7 @@ begin
       break;
     end;
 
-  {$ifdef windows}
   mainform.visible:=mainformvisible;
-  {$endif}
 end;
 
 type TFormFucker=class
@@ -346,10 +344,7 @@ begin
 
   symhandlerInitialize;
 
-  {$ifdef windows}
   Application.ShowMainForm:=false;
-  {$endif}
-
   Application.CreateForm(TMainForm, MainForm);
   Application.CreateForm(TMemoryBrowser, MemoryBrowser);
   Application.CreateForm(TformSettings, formSettings);
@@ -368,13 +363,7 @@ begin
 
   OutputDebugString('Starting CE');
 
-  if Application.MainForm<>MainForm then
-  begin
-    asm
-    nop
-    end;
-  end;
-  application.MainFormOnTaskBar:=true;
+
 
 
   Application.Run;
