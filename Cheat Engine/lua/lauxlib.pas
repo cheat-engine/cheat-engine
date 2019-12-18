@@ -29,7 +29,7 @@ unit lauxlib;
 interface
 
 uses
-  Lua,{$ifdef darwin}mactypes{$endif};
+  Lua{$ifdef darwin},mactypes{$endif};
 
 // functions added for Pascal
 procedure lua_pushstring(L: Plua_State; const s: string);

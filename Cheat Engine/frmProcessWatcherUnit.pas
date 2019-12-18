@@ -10,7 +10,7 @@ uses
   {$endif}
 
   {$ifdef windows}
-  jwawindows, windows, kerneldebugger, CEDebugger, CEFuncProc, symbolhandler, debugHelper, NewKernelHandler, syncobjs
+  jwawindows, windows, kerneldebugger, CEDebugger, CEFuncProc, symbolhandler, debugHelper, NewKernelHandler, syncobjs,
   {$endif}
   LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
   Dialogs, ExtCtrls, ComCtrls, StdCtrls, Menus, LResources;

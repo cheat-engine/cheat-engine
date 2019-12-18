@@ -208,7 +208,7 @@ type
        // Vector registers.
        //
 
-       VectorRegister: array[0..25] of m128;
+       VectorRegister: array[0..25] of m128a;
        VectorControl: DWORD64;
 
        //
@@ -1327,7 +1327,7 @@ end;
 {$endif}
 
 
-{$ifdef windows}b
+{$ifdef windows}
 
 procedure LoadDBK32; stdcall;
 begin

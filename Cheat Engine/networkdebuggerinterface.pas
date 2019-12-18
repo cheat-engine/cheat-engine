@@ -10,7 +10,7 @@ uses
   jwawindows, windows,
   {$endif}
   Classes, SysUtils,cefuncproc, newkernelhandler,
-  DebuggerInterface, networkInterface, networkInterfaceApi, contnrs,{$ifdef darwin}macport, macportdefines{$endif};
+  DebuggerInterface, networkInterface, networkInterfaceApi, contnrs{$ifdef darwin},macport, macportdefines{$endif};
 
 type
   TNetworkDebuggerInterface=class(TDebuggerInterface)

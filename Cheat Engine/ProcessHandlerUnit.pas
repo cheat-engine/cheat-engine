@@ -48,7 +48,7 @@ implementation
 {$ifdef jni}
 uses networkinterface, networkInterfaceApi;
 {$else}
-uses LuaHandler, mainunit, (*networkinterface, networkInterfaceApi,*) ProcessList, lua, FileUtil;
+uses LuaHandler, mainunit, {$ifdef windows}networkinterface, networkInterfaceApi,{$endif} ProcessList, lua, FileUtil;
 {$endif}
 
 procedure TProcessHandler.overridePointerSize(newsize: integer);

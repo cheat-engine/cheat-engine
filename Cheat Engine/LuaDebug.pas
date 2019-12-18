@@ -23,7 +23,7 @@ begin
   result:=0;
 
   parameters:=lua_gettop(L);
-  {$ifdef windows}  b
+  {$ifdef windows}
   if parameters=1 then
   begin
     newstate:=lua_toboolean(L, -1);

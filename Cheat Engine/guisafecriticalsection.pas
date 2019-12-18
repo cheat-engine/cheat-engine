@@ -23,7 +23,7 @@ type
     lockedthreadid: {$ifdef windows}dword{$else}TThreadID{$endif};
     lockcount: integer;
   public
-    procedure enter(maxtimeout: DWORD=INFINITE; currentThreadID: {$ifdef windpws}dword=0{$else}tthreadid=nil{$endif});
+    procedure enter(maxtimeout: DWORD=INFINITE; currentThreadID: {$ifdef windows}dword=0{$else}tthreadid=nil{$endif});
     procedure leave(currentthreadid: {$ifdef windows}dword=0{$else}TThreadID=nil{$endif});
     constructor Create;
     destructor Destroy; override;
@@ -34,7 +34,7 @@ implementation
 resourcestring
   rsCriticalsectionLeaveWithoutEnter = 'Criticalsection leave without enter';
 
-procedure TGuiSafeCriticalSection.enter(maxtimeout: DWORD=INFINITE; currentThreadID: {$ifdef windpws}dword=0{$else}tthreadid=nil{$endif});
+procedure TGuiSafeCriticalSection.enter(maxtimeout: DWORD=INFINITE; currentThreadID: {$ifdef windows}dword=0{$else}tthreadid=nil{$endif});
 var deadlockprevention: integer;
 begin
   if currentThreadID={$ifdef windows}0{$else}nil{$endif} then

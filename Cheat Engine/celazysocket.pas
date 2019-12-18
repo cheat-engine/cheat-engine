@@ -9,7 +9,7 @@ interface
 
 uses
   {$ifdef windows}
-  Classes, SysUtils, Sockets, winsock, ssockets, NewKernelHandler;
+  windows, Classes, SysUtils, Sockets, winsock, ssockets, NewKernelHandler;
   {$endif}
   {$ifdef darwin}
   Classes, SysUtils, Sockets, ssockets, NewKernelHandler, ctypes, baseunix, macport;
@@ -183,17 +183,22 @@ begin
           zeromemory(@fdset,sizeof(fdset));
 //          fdset.fd_count:=0;
 
+{$ifdef windows}
+          FD_SET(socket, fdset);
+{$else}
           fpFD_SET(socket, fdset);
+{$endif}
 
           if timeout>0 then
           begin
             t.tv_sec:=timeout;
             t.tv_usec:=0;
 
-            i:=fpselect(socket, nil, @fdset, nil, @t);
+
+            i:={$ifdef unix}fpselect{$else}select{$endif}(socket, nil, @fdset, nil, @t);
           end
           else
-            i:=fpselect(socket, nil, @fdset, nil, nil);
+            i:={$ifdef unix}fpselect{$else}select{$endif}(socket, nil, @fdset, nil, nil);
 
           if i=0 then
             raise TSocketException.create(rsTimeoutWhileSendingData);
@@ -246,17 +251,17 @@ begin
           //wait till it's available
           zeromemory(@fdset,sizeof(fdset));
 //          fdset.fd_count:=0;
-          fpFD_SET(socket, fdset);
+          {$ifdef unix}fp{$endif}FD_SET(socket, fdset);
 
           if timeout>0 then
           begin
             t.tv_sec:=timeout;
             t.tv_usec:=0;
 
-            i:=fpselect(socket, @fdset, nil, nil, @t);
+            i:={$ifdef unix}fpselect{$else}select{$endif}(socket, @fdset, nil, nil, @t);
           end
           else
-            i:=fpselect(socket, @fdset, nil, nil, nil);
+            i:={$ifdef unix}fpselect{$else}select{$endif}(socket, @fdset, nil, nil, nil);
 
 
           if i=0 then

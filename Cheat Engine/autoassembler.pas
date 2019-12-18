@@ -2902,7 +2902,7 @@ begin
       for i:=0 to length(kallocs)-1 do
        inc(x,kallocs[i].size);
 
-      kallocs[0].address:=ptrUint(rsKernelAlloc(x));
+      kallocs[0].address:=ptrUint(KernelAlloc(x));
 
       for i:=1 to length(kallocs)-1 do
         kallocs[i].address:=kallocs[i-1].address+kallocs[i-1].size;
@@ -3349,7 +3349,7 @@ begin
       testptr:=assembled[i].address;
 
       vpe:=(SkipVirtualProtectEx=false) and virtualprotectex(processhandle,pointer(testptr),length(assembled[i].bytes),PAGE_EXECUTE_READWRITE,op);
-      ok1:=WriteProcessMemory{$ifdef windows}WithCloakSupport{$endif}(processhandle, pointer(testptr),@assembled[i].bytes[0],length(assembled[i].bytes),x);
+      ok1:={$ifdef windows}WriteProcessMemoryWithCloakSupport{$else}WriteProcessMemory{$endif}(processhandle, pointer(testptr),@assembled[i].bytes[0],length(assembled[i].bytes),x);
       if vpe then
         virtualprotectex(processhandle,pointer(testptr),length(assembled[i].bytes),op,op2);
 
