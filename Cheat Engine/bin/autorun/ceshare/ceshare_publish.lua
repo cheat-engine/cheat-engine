@@ -215,7 +215,7 @@ function ceshare.PublishCheatClick(sender, cheatinfo)
     ceshare.PublishCheatFrm.lblFullModuleHeaderMD5Text.visible=false
     ceshare.PublishCheatFrm.lblFullModuleHeaderMD5.visible=false    
     
-    ceshare.PublishCheatFrm.cbPublic.checked=true
+    ceshare.PublishCheatFrm.cbPublic.checked=false
     
     ceshare.Position='poScreenCenter'
     
