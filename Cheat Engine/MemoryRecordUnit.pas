@@ -15,7 +15,7 @@ uses
 uses
   macport, forms, graphics, Classes, SysUtils, controls, stdctrls, comctrls,symbolhandler,
   cefuncproc,newkernelhandler, hotkeyhandler, dom, XMLRead,XMLWrite,
-  customtypehandler, fileutil, LCLProc, commonTypeDefs, pointerparser, LazUTF8, LuaClass, math;
+  CustomTypeHandler, fileutil, LCLProc, commonTypeDefs, pointerparser, LazUTF8, LuaClass, math;
 {$endif}
 
 {$ifdef jni}
@@ -801,14 +801,14 @@ end;
 
 function TMemoryRecord.GetCollapsed: boolean;
 begin
-  {$ifndef unix}
+  {$ifndef jni}
   result:=not treenode.Expanded;
   {$endif}
 end;
 
 procedure TMemoryRecord.SetCollapsed(state: boolean);
 begin
-  {$ifndef unix}
+  {$ifndef jni}
   if state then
     treenode.Collapse(false)
   else
@@ -958,7 +958,7 @@ end;
 function TMemoryRecord.getChildCount: integer;
 begin
   result:=0;
-  {$ifndef unix}
+  {$ifndef jni}
   if treenode<>nil then
     result:=treenode.Count;
   {$endif}
@@ -967,7 +967,7 @@ end;
 function TMemoryRecord.getChild(index: integer): TMemoryRecord;
 begin
 
-  {$IFNDEF UNIX}
+  {$IFNDEF jni}
   if index<Count then
     result:=TMemoryRecord(treenode.Items[index].Data)
   else
@@ -1042,7 +1042,7 @@ end;
 
 function TMemoryRecord.getLuaRef: integer;
 begin
-  {$ifndef unix}
+  {$ifndef jni}
   if luaref=-1 then
   begin
     luaclass_newClass(luavm, self);
@@ -1142,7 +1142,7 @@ end;
 procedure TMemoryRecord.SetVisibleChildrenState;
 {Called when options change and when children are assigned}
 begin
-  {$IFNDEF UNIX}
+  {$IFNDEF jni}
   if ((not factive) and (moHideChildren in foptions)) or (moAlwaysHideChildren in fOptions) then
     treenode.Collapse(true)
   else
@@ -1222,7 +1222,7 @@ end;
 procedure TMemoryRecord.setColor(c: TColor);
 begin
   fColor:=c;
-  {$IFNDEF UNIX}
+  {$IFNDEF jni}
   TAddresslist(fOwner).Update;
   {$ENDIF}
 
@@ -1239,7 +1239,7 @@ var
   memrec: TMemoryRecord;
   a:TDOMNode;
 begin
-  {$IFNDEF UNIX}
+  {$IFNDEF jni}
   if TDOMElement(CheatEntry).TagName<>'CheatEntry' then exit; //invalid node type
 
   tempnode:=Cheatentry.FindNode('ID');
@@ -1610,11 +1610,11 @@ end;
 
 
 function TMemoryRecord.getParent: TMemoryRecord;
-{$IFNDEF UNIX}
+{$IFNDEF jni}
 var tn: TTreenode;
 {$ENDIF}
 begin
-  {$IFNDEF UNIX}
+  {$IFNDEF jni}
   result:=nil;
   tn:=treenode.parent;
   if tn<>nil then
@@ -1624,19 +1624,19 @@ end;
 
 function TMemoryRecord.hasParent: boolean;
 begin
-  {$IFNDEF UNIX}
+  {$IFNDEF jni}
   result:=(treenode<>nil) and (treenode.parent<>nil);
   {$ENDIF}
 end;
 
 function TMemoryRecord.hasSelectedParent: boolean;
-{$IFNDEF UNIX}
+{$IFNDEF jni}
 var tn: TTreenode;
   m: TMemoryRecord;
 {$ENDIF}
 begin
   //if this node has a direct parent that is selected it returns true, else it will ask the parent if that one has a selected parent etc... untill there is no more parent, or one is selected
-  {$IFNDEF UNIX}
+  {$IFNDEF jni}
   result:=false;
   tn:=treenode.Parent;
   if tn<>nil then
@@ -1651,7 +1651,7 @@ begin
 end;
 
 procedure TMemoryRecord.getXMLNode(node: TDOMNode; selectedOnly: boolean);
-{$IFNDEF UNIX}
+{$IFNDEF jni}
 var
   doc: TDOMDocument=nil;
   cheatEntry: TDOMNode=nil;
@@ -1674,7 +1674,7 @@ var
   offset: TDOMNode=nil;
 {$ENDIF}
 begin
-  {$IFNDEF UNIX}
+  {$IFNDEF JNI}
   if selectedonly then
   begin
     if (not isselected) then exit; //don't add if not selected and only the selected items should be added
@@ -1999,7 +1999,7 @@ end;
 
 procedure TMemoryRecord.refresh;
 begin
-{$IFNDEF UNIX}   treenode.Update;   {$ENDIF}
+{$IFNDEF jni}   treenode.Update;   {$ENDIF}
 end;
 
 
@@ -2012,7 +2012,7 @@ end;
 
 function TMemoryRecord.GetShowAsSigned: boolean;
 begin
-  {$IFNDEF UNIX}
+  {$IFNDEF jni}
   if fShowAsSignedOverride then
     result:=fShowAsSigned
   else
@@ -2089,18 +2089,18 @@ end;
 
 function TMemoryRecord.getIndex: integer;
 begin
-  {$IFNDEF UNIX}
+  {$IFNDEF jni}
   result:=treenode.AbsoluteIndex;
   {$ENDIF}
 end;
 
 procedure TMemoryRecord.setID(i: integer);
-{$IFNDEF UNIX}
+{$IFNDEF jni}
 var a: TAddresslist;
 {$ENDIF}
 
 begin
-  {$IFNDEF UNIX}
+  {$IFNDEF jni}
   if i<>fid then
   begin
     //new id, check fo duplicates (e.g copy/paste)
@@ -2231,7 +2231,7 @@ end;
 
 procedure TMemoryRecord.disablewithoutexecute;
 begin
-  {$IFNDEF UNIX}
+  {$IFNDEF jni}
   factive:=false;
   SetVisibleChildrenState;
   treenode.Update;
@@ -2343,7 +2343,7 @@ begin
     end;
   end;
 
-  {$IFNDEF UNIX}
+  {$IFNDEF jni}
   treenode.update;
   {$ENDIF}
 end;
@@ -2354,7 +2354,7 @@ begin
   if state then
     fAllowIncrease:=false; //at least one of the 2 must always be false
 
-  {$IFNDEF UNIX}
+  {$IFNDEF jni}
   treenode.update;
   {$ENDIF}
 end;
@@ -2365,7 +2365,7 @@ begin
   if state then
     fAllowDecrease:=false; //at least one of the 2 must always be false
 
-  {$IFNDEF UNIX}
+  {$IFNDEF jni}
   treenode.update;
   {$ENDIF}
 end;
@@ -2397,11 +2397,11 @@ begin
   if processingThread<>nil then
     freeandnil(processingThread);
 
-  {$IFNDEF UNIX}
+  {$IFNDEF jni}
   treenode.update;
   {$ENDIF}
 
-  {$IFNDEF UNIX}
+  {$IFNDEF jni}
   if active and (moActivateChildrenAsWell in options) then
   begin
     //apply this state to all the children
@@ -2413,7 +2413,7 @@ begin
   {$ENDIF}
 
   //6.5+
-{$ifndef unix}
+{$ifndef jni}
   LUA_functioncall('onMemRecPostExecute',[self, wantedstate, fActive=wantedstate]);
 {$endif}
 
@@ -2460,7 +2460,7 @@ begin
 }
 
   //6.5+
-  {$ifndef unix}
+  {$ifndef jni}
   LUA_functioncall('onMemRecPreExecute',[self, state]);
   {$endif}
 
@@ -2511,7 +2511,7 @@ begin
   begin
     if self.VarType = vtAutoAssembler then
     begin
-      {$IFNDEF UNIX}
+      {$IFNDEF jni}
       //aa script
       if autoassemblerdata.registeredsymbols=nil then
         autoassemblerdata.registeredsymbols:=tstringlist.create;
@@ -2596,7 +2596,7 @@ end;
 procedure TMemoryRecord.setVisible(state: boolean);
 begin
   fVisible:=state;
-  {$IFNDEF UNIX}
+  {$IFNDEF jni}
   if treenode<>nil then
     treenode.update;
   {$ENDIF}
@@ -2633,7 +2633,7 @@ begin
   end;
 
   fShowAsHex:=state;
-  {$IFNDEF UNIX}
+  {$IFNDEF jni}
   if treenode<>nil then
     treenode.Update;
   {$ENDIF}
@@ -3049,7 +3049,7 @@ begin
   begin
     v:=trim(v);
 
-    {$IFNDEF UNIX}
+    {$IFNDEF jni}
     if (length(v)>2) and (v[1]='(') and (v[length(v)]=')') then
     begin
       //yes, it's a (description)
@@ -3068,7 +3068,7 @@ begin
     undovalue:=GetValue;
 
 
-  {$IFNDEF UNIX}
+  {$IFNDEF jni}
   if (not isfreezer) and (moRecursiveSetValue in options) then //do this for all it's children
   begin
     for i:=0 to treenode.Count-1 do
@@ -3121,7 +3121,7 @@ begin
     if vartype in [vtBinary, vtByteArray] then //fill the buffer with the original byte
       if not check then exit;
 
-    {$IFNDEF UNIX}
+    {$IFNDEF jni}
     if (Vartype in [vtByte..vtDouble, vtCustom]) then
     begin
       //check if it's a bracket enclosed value [    ]

@@ -634,7 +634,7 @@ end;
 
 function EnumProcessModulesExNotImplemented(hProcess: HANDLE; lphModule: PHMODULE; cb: DWORD; var lpcbNeeded: DWORD; dwFilterFlag: DWORD): BOOL; stdcall;
 begin
-{$ifndef unix}
+{$ifndef jni}
   result:=EnumProcessModules(hProcess,lphModule,cb,lpcbNeeded);
 {$else}
   result:=false;
@@ -4764,7 +4764,7 @@ begin
   end;
 
 
-{$ifndef unix}
+{$ifndef jni}
   if result then
     reinitializeDisassemblerComments; //the comments list is depending on the modulelist since it is written using modulename+offset
 
@@ -4782,7 +4782,7 @@ var
 begin
   result:=false;
 
-  {$IFNDEF UNIX}
+  {$IFNDEF jni}
   i:=pos('.', s); //check for the .
   if i>0 then
   begin

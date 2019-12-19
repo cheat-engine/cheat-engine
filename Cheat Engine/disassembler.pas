@@ -275,7 +275,7 @@ procedure unregisterGlobalDisassembleOverride(id: integer);
 begin
   if id<length(GlobalDisassembleOverrides) then
   begin
-    {$ifndef unix}
+    {$ifndef jni}
     CleanupLuaCall(TMethod(GlobalDisassembleOverrides[id]));
     {$endif}
     GlobalDisassembleOverrides[id]:=nil;
@@ -1615,7 +1615,7 @@ begin
   LastDisassembleData.isfloat64:=false;
   LastDisassembleData.iscloaked:=false;
   LastDisassembleData.commentsoverride:='';
-  {$ifndef unix}
+  {$ifdef windows}
   if defaultBinutils<>nil then
   begin
     //use this

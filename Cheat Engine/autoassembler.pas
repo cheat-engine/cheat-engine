@@ -192,7 +192,7 @@ begin
 
   if id<=length(prologues^) then
   begin
-    {$ifndef unix}
+    {$ifndef jni}
     CleanupLuaCall(TMethod(prologues^[id-1]));
     {$endif}
     prologues^[id-1]:=nil;
@@ -3570,7 +3570,7 @@ begin
           end;
         end;
 
-      {$IFNDEF UNIX}
+      {$IFNDEF jni}
       if popupmessages then
       begin
         testPtr:=0;
@@ -3642,7 +3642,7 @@ begin
     if tokens<>nil then
       freeandnil(tokens);
 
-    {$IFNDEF UNIX}
+    {$IFNDEF jni}
     pluginhandler.handleAutoAssemblerPlugin(@currentlinep, 3,aaid); //tell the plugins to free their data
 
     if targetself then

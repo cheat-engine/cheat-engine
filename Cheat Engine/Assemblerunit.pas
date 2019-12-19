@@ -2813,7 +2813,7 @@ procedure unregisterAssembler(id: integer);
 begin
   if id<length(ExtraAssemblers) then
   begin
-    {$ifndef unix}
+    {$ifndef jni}
     CleanupLuaCall(TMethod(ExtraAssemblers[id]));
     {$endif}
     ExtraAssemblers[id]:=nil;

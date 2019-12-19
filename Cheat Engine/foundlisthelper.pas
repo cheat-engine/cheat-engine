@@ -605,7 +605,7 @@ begin
     if vartype=vtAll then
     begin
       //override vtype with the type it scanned
-      {$ifndef unix}
+      {$ifndef jni}
       if extra >=$1000 then
       begin
         fcustomtype:=tcustomtype(customTypes[extra-$1000]);

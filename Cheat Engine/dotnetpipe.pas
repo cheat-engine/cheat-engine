@@ -455,7 +455,7 @@ var
   _windir: pchar;
   windir: string;
 begin
-{$ifndef unix}
+{$ifdef windows}
   if fconnected=false then
   begin
     setlength(modules,0);
@@ -625,7 +625,7 @@ function TDotNetPipe.Connect(processid: dword; is64bit: boolean; timeout:dword=1
 {
 Connects to a dotnet data collector and tells it to open a specific process
 }
-{$ifndef unix}
+{$ifdef windows}
 var
   starttime: qword;
 
@@ -645,7 +645,7 @@ var
   me32: TModuleEntry32;
 {$endif}
 begin
-  {$IFNDEF UNIX}
+  {$IFDEF windows}
   if fConnected then
     disconnect;
 
@@ -739,7 +739,7 @@ var
   end;
   x: dword;
 begin
-  {$IFNDEF UNIX}
+  {$IFDEF windows}
   if fConnected then
   begin
     msg.command:=CMD_CLOSEPROCESSANDQUIT;

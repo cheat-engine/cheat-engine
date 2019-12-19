@@ -10,7 +10,7 @@ interface
 
 uses
   LCLIntf, LCLType, Classes, SysUtils, controls, stdctrls, comctrls, ExtCtrls, graphics,
-  math, MemoryRecordUnit, FPCanvas, cefuncproc, newkernelhandler, menus,dom,
+  math, MemoryRecordUnit, FPCanvas, CEFuncProc, NewKernelHandler, menus,dom,
   XMLRead,XMLWrite, symbolhandler, AddresslistEditor, inputboxtopunit,
   frmMemrecComboboxUnit, commonTypeDefs, multilineinputqueryunit, LazUTF8;
 
@@ -198,7 +198,7 @@ type
 
 implementation
 
-uses dialogs, formAddressChangeUnit, TypePopup, PasteTableentryFRM, mainunit,
+uses dialogs, formAddressChangeUnit, TypePopup, PasteTableentryFRM, MainUnit,
   ProcessHandlerUnit, frmEditHistoryUnit, globals, Filehandler;
 
 resourcestring
