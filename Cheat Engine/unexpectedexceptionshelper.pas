@@ -237,6 +237,9 @@ var
   l: tstringlist;
   i: integer;
 begin
+  {$ifdef darwin}
+  macPortFixRegPath;
+  {$endif}
   reg:=Tregistry.Create;
   try
     if reg.OpenKey('\Software\Cheat Engine\Ignored Exceptions\',false) then

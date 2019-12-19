@@ -309,6 +309,7 @@ end;
 
 
 
+function bintohexs(var buf; size: integer):string;
 function ConvertKeyComboToString(x: tkeycombo):string;
 
 {
@@ -481,6 +482,17 @@ begin
   except
     result:=rsNotConvertable;
   end;
+end;
+
+function bintohexs(var buf; size: integer): string;
+var hs: pchar;
+begin
+  getmem(hs,size*2+1);
+  BinToHex(@buf,hs,size);
+  hs[size*2]:=#0;
+  result:=hs;
+
+  freemem(hs);
 end;
 
 function ConvertKeyComboToString(x: tkeycombo):string;
@@ -2997,12 +3009,11 @@ var reg: tregistry;
     s: string;
     buf: PIntegerArray;
     i: integer;
-    z: integer;
-
     r: trect;
     m: TMonitor;
 begin
   result:=false;
+
   buf:=nil;
   try
     reg:=tregistry.create;
@@ -3026,7 +3037,11 @@ begin
 
           getmem(buf, i);
 
-          z:=reg.ReadBinaryData(s,buf[0],i);
+          {$ifdef windows}
+          reg.ReadBinaryData(s,buf[0],i);
+          {$else}
+          HexToBin(pchar(reg.ReadString(s)),pchar(@buf[0]),i);
+          {$endif}
 
           form.position:=poDesigned;
           form.top:=buf[0];
@@ -3082,6 +3097,7 @@ var reg: tregistry=nil;
     temp: integer;
     i: integer;
     s: string;
+    hs: pchar;
 begin
   //save window pos (only when it's in a normal state)
   if form.WindowState=wsNormal then
@@ -3142,7 +3158,13 @@ begin
           s:=form.Name;
           s:=s+rsPosition;
 
+
+
+          {$ifdef windows}
           reg.WriteBinaryData(s,buf.Memory^,buf.Size);
+          {$else}
+          reg.WriteString(s,bintohexs(buf.Memory^, buf.Size));
+          {$endif}
         finally
           if buf<>nil then
             freeandnil(buf);

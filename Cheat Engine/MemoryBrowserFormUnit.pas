@@ -2159,7 +2159,8 @@ begin
   try
     if reg.OpenKey('\Software\Cheat Engine\Disassemblerview '+inttostr(screen.PixelsPerInch)+'\',true) then
     begin
-      reg.WriteBinaryData('colors', disassemblerview.colors, sizeof(disassemblerview.colors));
+      reg.{$ifdef windows}WriteBinaryData{$else}WriteString{$endif}('colors', {$ifndef windows}bintohexs({$endif}disassemblerview.colors, sizeof(disassemblerview.colors)){$ifndef windows}){$endif};
+
       reg.WriteInteger('jlCallColor', integer(disassemblerview.jlCallColor));
       reg.WriteInteger('jlUnconditionalJumpColor', integer(disassemblerview.jlUnconditionalJumpColor));
       reg.WriteInteger('jlConditionalJumpColor', integer(disassemblerview.jlconditionalJumpColor));
@@ -2338,7 +2339,13 @@ begin
     if reg.OpenKey('\Software\Cheat Engine\Disassemblerview '+inttostr(screen.PixelsPerInch)+'\',false) then
     begin
       if reg.ValueExists('colors') then
+      begin
+        {$ifdef windows}
         reg.ReadBinaryData('colors', disassemblerview.colors, sizeof(disassemblerview.colors));
+        {$else}
+        HexToBin(pchar(reg.ReadString('colors')),pchar(@disassemblerview.colors),sizeof(disassemblerview.colors));
+        {$endif}
+      end;
 
 
       if reg.ValueExists('jlCallColor') then

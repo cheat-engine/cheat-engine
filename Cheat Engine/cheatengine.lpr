@@ -270,6 +270,8 @@ begin
   {$ifdef darwin}
   macPortFixRegPath;
   {$endif}
+  outputdebugstring('start');
+
   Application.Initialize;
 
 
@@ -298,7 +300,12 @@ begin
   if not istrainer then
   begin
     //check the user preferences
+    {$ifdef darwin}
+    macPortFixRegPath;
+    {$endif}
+
     r := TRegistry.Create;
+
     r.RootKey := HKEY_CURRENT_USER;
     if r.OpenKey('\Software\Cheat Engine',false) then
     begin

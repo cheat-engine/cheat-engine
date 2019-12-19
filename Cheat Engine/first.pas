@@ -4,8 +4,10 @@ unit first;
 
 interface
 
+{$ifdef windows}
 uses
   betterDLLSearchPath, Classes, SysUtils;
+{$endif}
 
 implementation
 
@@ -98,6 +100,9 @@ initialization
     r:=nil;
   end;
 {$endif}
+
+
+
 
 end.
 
