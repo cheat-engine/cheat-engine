@@ -121,6 +121,9 @@ var ok: boolean;
    d: string;
    y: string;
 
+   ignore: string;
+   opcode: string;
+
    i,j: integer;
    matchpos,offset: integer;
    address: ptruint;
@@ -133,6 +136,11 @@ begin
 
     //disassemble
     d:=uppercase(disassembler.disassemble(x,y));
+
+    //make sure to isolate the opcodes for the scan
+    splitDisassembledString(d,true,ignore,ignore,opcode,ignore);
+
+
     if i=0 then
     begin
       foundline:=d;
@@ -144,7 +152,8 @@ begin
     matchpos:=0;
     offset:=1;
 
-    ok:=regexpressions[i].Exec(d);
+    //ok:=regexpressions[i].Exec(d); //address + bytes + opcodes + special
+    ok:=regexpressions[i].Exec(opcode); //opcodes only
 
     if (not ok) or (regexpressions[i].MatchPos[0]=0) then exit;
 
