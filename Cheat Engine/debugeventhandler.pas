@@ -14,11 +14,12 @@ uses
   jwawindows, Windows, win32proc,
   {$endif}
   Classes, SysUtils, syncobjs, GuiSafeCriticalSection,
-  disassembler, cefuncproc, newkernelhandler,debuggertypedefinitions, frmTracerUnit,
+  disassembler, CEFuncProc, newkernelhandler,debuggertypedefinitions, frmTracerUnit,
   DebuggerInterfaceAPIWrapper, LuaHandler, lua, lauxlib, lualib,
   tracerIgnore, BreakpointTypeDef;
 
 type
+  TContextFields=(cfAll,cfDebug, cfRegisters, cfFloat);
   TDebugEventHandler = class;
 
   TDebugThreadHandler = class
@@ -125,7 +126,7 @@ type
     procedure suspend;
     procedure resume;
     procedure fillContext;
-    procedure setContext;
+    procedure setContext(fields: TContextFields=cfall);
     procedure breakThread;
     procedure clearDebugRegisters;
     procedure continueDebugging(continueOption: TContinueOption; handled: boolean=true);
@@ -300,7 +301,7 @@ begin
 
 end;
 
-procedure TDebugThreadHandler.setContext;
+procedure TDebugThreadHandler.setContext(fields: TContextFields=cfAll);
 var
   i: integer;
 begin
@@ -309,7 +310,13 @@ begin
   if handle<>0 then
   begin
     debuggercs.enter;
-    context^.ContextFlags := CONTEXT_ALL or CONTEXT_EXTENDED_REGISTERS;
+
+    case fields of
+      cfAll: context^.ContextFlags := CONTEXT_ALL or CONTEXT_EXTENDED_REGISTERS;
+      cfDebug: context^.ContextFlags := CONTEXT_DEBUG_REGISTERS;
+      cfFloat: context^.ContextFlags := CONTEXT_FLOATING_POINT or CONTEXT_EXTENDED_REGISTERS;
+      cfRegisters: context^.ContextFlags := CONTEXT_INTEGER or CONTEXT_CONTROL or CONTEXT_SEGMENTS;
+    end;
 
     //context.dr7:=context.dr7 or $300;
 
@@ -361,7 +368,7 @@ begin
   context^.dr7:=0;
   SingleStepping:=true;
 
-  setContext;
+  setContext(cfDebug);
   resume;
   debuggercs.leave;
 end;
@@ -636,7 +643,7 @@ begin
       if bp.breakpointMethod=bpmDebugRegister then
       begin
         context^.Dr6:=0;  //unset breakpoint relies on this being 0 of ffff0ff0 is handled
-        setContext;
+        setContext(cfDebug);
         TdebuggerThread(debuggerthread).UnsetBreakpoint(bp, context, threadid);
       end;
     end;
@@ -1097,7 +1104,7 @@ begin
       if bpp.active=false then
       begin
         TdebuggerThread(debuggerthread).UnsetBreakpoint(bpp, context);  //make sure it's disabled
-        setcontext;
+        setcontext(cfDebug);
       end;
 
       needstocleanup:=true;
@@ -2031,7 +2038,7 @@ begin
         currentthread.context^.dr3:=0;
         currentthread.context^.dr7:=$400;
 
-        currentThread.setContext;
+        currentThread.setContext(cfDebug);
       end
       else
       begin
@@ -2039,7 +2046,7 @@ begin
         for i:=0 to ActiveBPList.count-1 do
           TDebuggerthread(debuggerthread).UnsetBreakpoint(breakpointlist[i], currentthread.context);
 
-        currentthread.setContext;
+        currentthread.setContext(cfDebug);
       end;
 
       for i:=0 to ActiveBPList.count-1 do

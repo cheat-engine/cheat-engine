@@ -5,7 +5,7 @@ unit SyncObjs2;
 interface
 
 uses {$ifdef darwin}
-  macport, SyncObjs,
+  macport, SyncObjs, cthreads,
   {$else}
   windows,
   {$endif}classes, sysutils, LCLIntf;
@@ -50,6 +50,7 @@ begin
   h:=CreateSemaphore(nil,init,maxcount,nil);
   {$else}
   cs:=tcriticalsection.create;
+
   h:=SemaphoreInit;
 
   left:=init;

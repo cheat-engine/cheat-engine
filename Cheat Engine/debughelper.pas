@@ -12,7 +12,7 @@ uses
   Windows,  KernelDebuggerInterface, WindowsDebugger,
   {$endif}
   Classes, SysUtils, Controls, forms, syncobjs, guisafecriticalsection, Dialogs,
-  foundcodeunit, debugeventhandler, cefuncproc, newkernelhandler, comctrls,
+  foundcodeunit, debugeventhandler, CEFuncProc, newkernelhandler, comctrls,
   debuggertypedefinitions, formChangedAddresses, frmTracerUnit, VEHDebugger,
   DebuggerInterfaceAPIWrapper, DebuggerInterface,symbolhandler,
   fgl, disassembler, NetworkDebuggerInterface, Clipbrd, commonTypeDefs ,BreakpointTypeDef;
@@ -169,9 +169,9 @@ resourcestring
 
 implementation
 
-uses cedebugger, KernelDebugger, formsettingsunit, FormDebugStringsUnit,
+uses CEDebugger, KernelDebugger, formsettingsunit, FormDebugStringsUnit,
      frmBreakpointlistunit, plugin, memorybrowserformunit, autoassembler,
-     pluginexports, networkInterfaceApi, processhandlerunit, Globals, LuaCaller,
+     pluginexports, networkInterfaceApi, ProcessHandlerUnit, Globals, LuaCaller,
      vmxfunctions, LuaHandler, frmDebuggerAttachTimeoutUnit;
 
 //-----------Inside thread code---------
@@ -875,7 +875,7 @@ begin
             end;
             currentthread.DebugRegistersUsedByCE:=currentthread.DebugRegistersUsedByCE or (1 shl breakpoint.debugregister);
             currentthread.context.Dr7 :=(currentthread.context.Dr7 and clearmask) or Debugregistermask;
-            currentthread.setContext;
+            currentthread.setContext(cfDebug);
           end
           else
             AllThreadsAreSet:=false;
@@ -924,7 +924,7 @@ begin
                 currentthread.DebugRegistersUsedByCE:=currentthread.DebugRegistersUsedByCE or (1 shl breakpoint.debugregister);
                 newdr7:= (currentthread.context.Dr7 and clearmask) or Debugregistermask;     ;
                 currentthread.context.Dr7 := newdr7;
-                currentthread.setContext;
+                currentthread.setContext(cfDebug);
                 currentthread.fillContext;
                 if currentthread.context.Dr7<>newdr7 then
                 begin
@@ -1120,7 +1120,7 @@ begin
             3: currentthread.context.Dr3 := 0;
           end;
           currentthread.context.Dr7 := (currentthread.context.Dr7 and Debugregistermask);
-          currentthread.setContext;
+          currentthread.setContext(cfDebug);
 
         end;
         currentthread.resume;
@@ -1190,7 +1190,7 @@ begin
               if hasoldbp then
               begin
                 currentthread.context.Dr7 := (currentthread.context.Dr7 and Debugregistermask);
-                currentthread.setcontext;
+                currentthread.setcontext(cfDebug);
               end;
 
 
