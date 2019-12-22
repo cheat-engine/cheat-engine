@@ -2827,7 +2827,18 @@ begin
                           0:  begin
                                 description:='multibyte nop';
                                 lastdisassembledata.opcode:='nop';
-                                lastdisassembledata.parameters:=modrm(memory,prefix2,2,0,last);
+
+
+                                if Rex_W then
+                                  lastdisassembledata.parameters:=modrm(memory,prefix2,2,0,last,64)
+                                else
+                                begin
+                                  if $66 in prefix2 then
+                                    lastdisassembledata.parameters:=modrm(memory,prefix2,2,0,last,16)
+                                  else
+                                    lastdisassembledata.parameters:=modrm(memory,prefix2,2,0,last,32)
+                                end;
+
                                 inc(offset,last-1);
                               end;
                         end;
