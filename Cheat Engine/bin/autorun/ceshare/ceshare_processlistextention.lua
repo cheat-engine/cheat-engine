@@ -221,7 +221,18 @@ z=registerFormAddNotification(function(s)
       end
 
       s2.TabHeader.TabIndex=ProcessListLastTab
-      s2.TabHeader.OnChange(s2.TabHeader)           
+      s2.TabHeader.OnChange(s2.TabHeader)  
+
+      local oldOnShow=s2.OnShow
+      s2.OnShow=function(s)
+        if oldOnShow then
+          if s2.TabHeader.TabIndex==ci then
+            --reload
+            s2.TabHeader.OnChange(s2.TabHeader) 
+          end
+          oldOnShow(s)
+        end
+      end
     end) --s.registerFirstShowCallback(function(s2)
   end --if s.ClassName=='TProcessWindow' then
 end) --registerFormAddNotification(function(s)
