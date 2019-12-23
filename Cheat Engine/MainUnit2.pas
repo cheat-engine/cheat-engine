@@ -403,11 +403,11 @@ begin
             HexToBin(pchar(reg.ReadString('Binary Hotkey')),pchar(@temphotkeylist[11][0]),10);
             {$endif}
 
-          if reg.ValueExists('Binary Hotkey') then
+          if reg.ValueExists('Byte Hotkey') then
             {$ifdef windows}
-            reg.ReadBinaryData('Binary Hotkey',temphotkeylist[12][0],10);
+            reg.ReadBinaryData('Byte Hotkey',temphotkeylist[12][0],10);
             {$else}
-            HexToBin(pchar(reg.ReadString('Binary Hotkey')),pchar(@temphotkeylist[12][0]),10);
+            HexToBin(pchar(reg.ReadString('Byte Hotkey')),pchar(@temphotkeylist[12][0]),10);
             {$endif}
 
           if reg.ValueExists('2 Bytes Hotkey') then
