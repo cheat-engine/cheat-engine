@@ -174,7 +174,7 @@ errorOnLookupFailure(state): If set to true (default) address lookups in stringf
 
 waitforsymbols(state): If set to true looking up a symbol will wait for the symbol to be loaded(default true)
 
-generateAPIHookScript(address:string, addresstojumpto:string, addresstogetnewcalladdress:string OPT, ext:string OPT, targetself:boolean OPT) : Generates an auto assembler script which will hook the given address when executed
+generateAPIHookScript(address, addresstojumpto, addresstogetnewcalladdress OPT) : Generates an auto assembler script which will hook the given address when executed
 autoAssemble(text, targetself OPTIONAL, disableInfo OPTIONAL) : runs the auto assembler with the given text. Returns true on success, with as secondary a table you can use when disabling (if targetself is set it will assemble into Cheat Engine itself). If disableInfo is provided the [Disable] section will be handled
 autoAssemble(text, disableInfo OPTIONAL)
 
@@ -325,7 +325,7 @@ getOpenedProcessID() : Returns the currently opened process. If none is open, re
 getProcessIDFromProcessName(name) : returns a processid
 openProcess(processid) : causes cheat engine to open the given processid
 openProcess(processname): causes cheat engine to find and open the given process
-openFileAsProcess(filename,is64bit OPTIONAL,startaddress OPTIONAL): causes cheat engine to open the file with memory access as if it's a process
+openFileAsProcess(filename,is64bit): causes cheat engine to open the file with memory access as if it's a process
 saveOpenedFile(filename OPTIONAL): Saves the changes of the opened file, set filename if you want a different file
 setPointerSize(size): Sets the size cheat engine will deal with pointers in bytes. (Some 64-bit processes can only use 32-bit addresses)
 setAssemblerMode(int): 0=32-bit, 1=64-bit
@@ -1164,14 +1164,6 @@ methods
     ssAutoBoth: " " " " ...
 
 
-SynEdit class: 
-createSynEdit(owner,mode OPTIONAL): Creates a synedit object. mode: 0=Lua highlighting, 1=Auto Assembler highlighting
-properties
-  Lines: Stringlist - Contains the text
-  Gutter: Gutter - Gutter object
-  ReadOnly: Boolean - Set to true for read only
-
-methods
 
 
 
@@ -1569,7 +1561,6 @@ properties
   Font: Font - The font object
   Width: integer - Width of the canvas
   Height: integer - Height of the canvas
-  Handle: integer - DC handle of the canvas
 
 
 
@@ -1833,6 +1824,9 @@ properties
 methods
   loadFromFile(filename) : Replaces the contents in the memory stream with the contents of a file on disk
   saveToFile(filename) : Writes the contents of the memory stream to the specified file
+  loadFromFileNoError(filename):boolean,string - Replaces the contents in the memory stream with the contents of a file on disk. On success returns true, else false with a secondary return the error message
+  saveToFileNoError(filename):boolean,string - Writes the contents of the memory stream to the specified file. On success returns true, else false with a secondary return the error message
+
 
 
 FileStream Class (Inheritance: HandleStream->Stream->Object)
@@ -1979,7 +1973,7 @@ properties
   IsGroupHeader: boolean - Set to true if the record was created as a Group Header with no address or value info. (ReadOnly)
   IsReadable: boolean - Set to false if record contains an unreadable address. NOTE: This property will not be set until the value property is accessed at least once. (ReadOnly)
 
-  Options: String set - a string enclosed by square brackets filled with the options seperated by a comma. Valid options are: moHideChildren, moActivateChildrenAsWell, moDeactivateChildrenAsWell, moRecursiveSetValue, moAllowManualCollapseAndExpand, moManualExpandCollapse, moAlwaysHideChildren
+  Options: String set - a string enclosed by square brackets filled with the options seperated by a comma. Valid options are: moHideChildren, moActivateChildrenAsWell, moDeactivateChildrenAsWell, moRecursiveSetValue, moAllowManualCollapseAndExpand, moManualExpandCollapse
   
   DropDownLinked: boolean - if dropdown list refers to list of another memory record eg. (memrec name)
   DropDownLinkedMemrec: string - Description of linked memrec or emptystring if not linked

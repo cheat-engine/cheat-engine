@@ -80,7 +80,8 @@ object frmPointerScanner: TfrmPointerScanner
     Left = 184
     Height = 25
     Top = 0
-    Width = 144
+    Width = 114
+    AutoSize = True
     Caption = 'Stop rescan loop'
     OnClick = btnStopRescanLoopClick
     TabOrder = 2

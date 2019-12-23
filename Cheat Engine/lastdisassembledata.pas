@@ -57,12 +57,6 @@ type
 
 implementation
 
-var zqwex: integer;
-initialization
-  if zqwex<>0 then   //runs
-  asm
-  nop
-  end;
 
 end.
 
