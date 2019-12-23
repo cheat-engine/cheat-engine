@@ -311,6 +311,11 @@ begin
   begin
     debuggercs.enter;
 
+    {$ifdef windows}
+    fields:=cfall;
+    {$endif};
+
+
     case fields of
       cfAll: context^.ContextFlags := CONTEXT_ALL or CONTEXT_EXTENDED_REGISTERS;
       cfDebug: context^.ContextFlags := CONTEXT_DEBUG_REGISTERS;
