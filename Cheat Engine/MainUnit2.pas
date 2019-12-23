@@ -1084,6 +1084,10 @@ begin
 {$ifdef XDEBUG}
   CEnorm:=CENorm+' Debug Build';
 {$endif}
+{$ifdef darwin}
+  CEnorm:=CENorm+' MacOS version';
+{$endif}
+
   Application.Title:=CENorm;
 
 
