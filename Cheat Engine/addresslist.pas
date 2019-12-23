@@ -69,6 +69,9 @@ type
 
     animationtimer: TTimer;
     expandsignsize: integer;
+
+    sortlevel0only: boolean;
+
     procedure doAnimation(sender: TObject);
 
     function getTreeNodes: TTreenodes;
@@ -114,7 +117,7 @@ type
     function CheatTableNodeHasOnlyAutoAssemblerScripts(CheatTable: TDOMNode): boolean; //helperfunction
 
 
-    procedure sort(firstnode: ttreenode; compareRoutine: TListSortCompare; direction: boolean);
+    procedure sort(firstnode: ttreenode; compareRoutine: TTreeNodeCompare; direction: boolean);
     procedure SymbolsLoaded(sender: TObject);
   public
     //needsToReinterpret: boolean;
@@ -122,10 +125,15 @@ type
 
     function focused:boolean; override;
 
+    function activecompare(_a: TTreenode; _b: TTreenode): integer;
     procedure sortByActive;
+    function descriptioncompare(_a: TTreenode; _b: TTreenode): integer;
     procedure sortByDescription;
+    function addresscompare(_a: TTreenode; _b: TTreenode): integer;
     procedure sortByAddress;
+    function valuetypecompare(_a: TTreenode; _b: TTreenode): integer;
     procedure sortByValueType;
+    function valuecompare(_a: TTreenode; _b: TTreenode): integer;
     procedure sortByValue;
 
     procedure RefreshCustomTypes;
@@ -362,7 +370,10 @@ end;
 
 function TAddresslist.GetMemRecItemByIndex(i: integer): TMemoryRecord;
 begin
-  result:=TMemoryRecord(treeview.items[i].data);
+  if i<treeview.Items.Count then
+    result:=TMemoryRecord(treeview.items[i].data)
+  else
+    result:=nil;
 end;
 
 procedure TAddresslist.ActivateSelected(FreezeType: TFreezeType=ftFrozen);
@@ -1403,7 +1414,7 @@ end;   }
 
 
 
-procedure TAddresslist.sort(firstnode: ttreenode; compareRoutine: TListSortCompare; direction: boolean );
+procedure TAddresslist.sort(firstnode: ttreenode; compareRoutine: TTreeNodeCompare; direction: boolean );
 {
   sort from the first node till there is no more sibling
 }
@@ -1411,60 +1422,40 @@ var
   currentnode: ttreenode;
   i: integer;
   list: TList;
+
+  basenode: TMemoryrecord;
 begin
+
   treeview.BeginUpdate;
   try
-    //first sort all the children
-    currentnode:=firstnode;
-    while currentnode<>nil do
+    if firstnode.level>0 then
     begin
-      if currentnode.HasChildren then
-        sort(currentnode.GetFirstChild, compareRoutine, direction);
-
-      currentnode:=currentnode.GetNextSibling;
-    end;
-
-    //all the children have been sorted, so now sort myself
-
-    list:=tlist.create;
-
-    currentnode:=firstnode;
-    while currentnode<>nil do
-    begin
-      list.Add(currentnode.Data);
-      currentnode:=currentnode.GetNextSibling;
-    end;
-
-    list.Sort(compareRoutine);
-
-    currentnode:=firstnode;
-
-    if direction then
-      i:=0
+      sortlevel0only:=false;
+      firstnode.Parent.CustomSort(compareroutine)
+    end
     else
-      i:=list.count-1;
-
-    while currentnode<>nil do
     begin
-      currentnode.data:=list[i];
-      tmemoryrecord(list[i]).treenode:=currentnode;
-      currentnode:=currentnode.GetNextSibling;
-      if direction then
-        inc(i)
-      else
-        dec(i);
+      sortlevel0only:=true;
+      treeview.CustomSort(compareroutine);
+      //treeview.items.SortTopLevelNodes(compareroutine); //broken right now
     end;
 
-    list.free;
+
 
   finally
     treeview.EndUpdate;
   end;
 end;
 
-function activecompare(a: tmemoryrecord; b: tmemoryrecord): integer;
-var ra, rb: integer;
+function TAddresslist.activecompare(_a: TTreenode; _b: TTreenode): integer;
+var
+  ra, rb: integer;
+  a,b: TMemoryRecord;
 begin
+  if sortlevel0only and (_a.level<>0) and (_b.level<>0) then exit(0);
+
+  a:=TMemoryRecord(_a.data);
+  b:=TMemoryRecord(_b.data);
   if not a.active then ra:=0 else
     if a.allowdecrease then ra:=1 else
       if a.allowincrease then ra:=2 else
@@ -1475,73 +1466,131 @@ begin
       if b.allowincrease then rb:=2 else
         rb:=3;
 
-
-
   result:=rb-ra;
+
+  if not activesortdirection then
+    result:=-result;
 end;
 
 procedure TAddresslist.sortByActive;
 type TCompareState=(inactive, allowincrease, allowdecrease, active);
+var n: TTreenode;
 begin
+
   if count=0 then exit;
-  sort(treeview.items[0], TListSortCompare(activecompare), activesortdirection);
+
+  if treeview.Selected<>nil then n:=treeview.Selected else n:=treeview.Items[0];
+  sort(n, activecompare, activesortdirection);
   activesortdirection:=not activesortdirection;
 end;
 
-function descriptioncompare(a: tmemoryrecord; b: tmemoryrecord): integer;
+function TAddresslist.descriptioncompare(_a: TTreenode; _b: TTreenode): integer;
+var
+  a,b: TMemoryRecord;
 begin
+  if sortlevel0only and (_a.level<>0) and (_b.level<>0) then exit(0);
+
+  a:=TMemoryRecord(_a.data);
+  b:=TMemoryRecord(_b.data);
   result:=0; //equal
   if b.description>a.description then
     result:=1;
   if b.description<a.description then
     result:=-1;
+
+  if not descriptionsortdirection then
+    result:=-result;
 end;
 
 procedure TAddresslist.sortByDescription;
+var n: TTreenode;
 begin
   if count=0 then exit;
-  sort(treeview.items[0], TListSortCompare(descriptioncompare), descriptionsortdirection);
+
+  if treeview.Selected<>nil then n:=treeview.Selected else n:=treeview.Items[0];
+  sort(n, descriptioncompare, descriptionsortdirection);
   descriptionsortdirection:=not descriptionsortdirection;
 end;
 
-function addresscompare(a: tmemoryrecord; b: tmemoryrecord): integer;
+function TAddresslist.addresscompare(_a: TTreenode; _b: TTreenode): integer;
+var
+  a,b: TMemoryRecord;
 begin
+  if sortlevel0only and (_a.level<>0) and (_b.level<>0) then exit(0);
+
+  a:=TMemoryRecord(_a.data);
+  b:=TMemoryRecord(_b.data);
   result:=b.getRealAddress-a.GetRealAddress;
+
+  if not addresssortdirection then
+    result:=-result;
 end;
 
 procedure TAddresslist.sortByAddress;
+var n: TTreenode;
 begin
   if count=0 then exit;
-  sort(treeview.items[0], TListSortCompare(addresscompare), addresssortdirection);
+
+  if treeview.Selected<>nil then n:=treeview.Selected else n:=treeview.Items[0];
+  sort(n, addresscompare, addresssortdirection);
   addresssortdirection:=not addresssortdirection;
 end;
 
-function valuetypecompare(a: tmemoryrecord; b: tmemoryrecord): integer;
+function TAddresslist.valuetypecompare(_a: TTreenode; _b: TTreenode): integer;
+var
+  a,b: TMemoryRecord;
 begin
+  if sortlevel0only and (_a.level<>0) and (_b.level<>0) then exit(0);
+
+  a:=TMemoryRecord(_a.data);
+  b:=TMemoryRecord(_b.data);
   result:=integer(b.VarType)-integer(a.VarType);
+
+  if not valuetypesortdirection then
+    result:=-result;
 end;
 
 procedure TAddresslist.sortByValueType;
+var n: TTreenode;
 begin
   if count=0 then exit;
-  sort(treeview.items[0], TListSortCompare(valuetypecompare), valuetypesortdirection );
+
+  if treeview.Selected<>nil then n:=treeview.Selected else n:=treeview.Items[0];
+  sort(n, valuetypecompare, valuetypesortdirection );
   valuetypesortdirection:=not valuetypesortdirection;
 end;
 
-function valuecompare(a: tmemoryrecord; b: tmemoryrecord): integer;
-var va, vb: double;
-  oka,okb: boolean;
+function TAddresslist.valuecompare(_a: TTreenode; _b: TTreenode): integer;
+var
+  va, vb: double;
+  a,b: TMemoryRecord;
 begin
+  if sortlevel0only and (_a.level<>0) and (_b.level<>0) then exit(0);
+
+  a:=TMemoryRecord(_a.data);
+  b:=TMemoryRecord(_b.data);
   if not TryStrToFloat(a.value, va) then va:=0;
   if not TryStrToFloat(b.value, vb) then vb:=0;
-  result:=trunc(vb-va);
+
+  result:=0;
+  if vb>va then
+    result:=1;
+
+  if vb<va then
+    result:=-1;
+
+  if not valuesortdirection then
+    result:=-result;
 end;
 
 
 procedure TAddresslist.sortByValue;
+var n: TTreenode;
 begin
   if count=0 then exit;
-  sort(treeview.items[0], TListSortCompare(valuecompare), valuesortdirection);
+
+  if treeview.Selected<>nil then n:=treeview.Selected else n:=treeview.Items[0];
+  sort(n, valuecompare, valuesortdirection);
   valuesortdirection:=not valuesortdirection;
 end;
 
