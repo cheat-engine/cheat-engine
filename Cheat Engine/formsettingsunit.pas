@@ -727,6 +727,7 @@ begin
           reg.{$ifdef windows}WriteBinaryData{$else}WriteString{$endif}('Set Speedhack speed 2 Hotkey',{$ifndef windows}bintohexs({$endif}frameHotkeyConfig.newhotkeys[5][0],10){$ifndef windows}){$endif};
           reg.{$ifdef windows}WriteBinaryData{$else}WriteString{$endif}('Set Speedhack speed 3 Hotkey',{$ifndef windows}bintohexs({$endif}frameHotkeyConfig.newhotkeys[6][0],10){$ifndef windows}){$endif};
           reg.{$ifdef windows}WriteBinaryData{$else}WriteString{$endif}('Set Speedhack speed 4 Hotkey',{$ifndef windows}bintohexs({$endif}frameHotkeyConfig.newhotkeys[7][0],10){$ifndef windows}){$endif};
+          reg.{$ifdef windows}WriteBinaryData{$else}WriteString{$endif}('Set Speedhack speed 5 Hotkey',{$ifndef windows}bintohexs({$endif}frameHotkeyConfig.newhotkeys[8][0],10){$ifndef windows}){$endif};
 
 
 
