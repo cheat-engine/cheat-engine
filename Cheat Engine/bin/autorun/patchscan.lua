@@ -339,8 +339,8 @@ function startPatchScan()
       local li=lv.Items.add()
       local s=allpatches[i]
       li.Caption=getNameFromAddress(s.Address)
-      li.SubItems.Add(byteTableToHexString(s.OriginalBytes))
-      li.SubItems.Add(byteTableToHexString(s.PatchedBytes))
+      li.SubItems.Add(string.upper(byteTableToHexString(s.OriginalBytes)))
+      li.SubItems.Add(string.upper(byteTableToHexString(s.PatchedBytes)))
 
       li.Data=createRef(s)
     end
