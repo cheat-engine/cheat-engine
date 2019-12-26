@@ -3288,9 +3288,18 @@ begin
 end;
 
 function TMemoryRecord.getBaseAddress: ptrUint;
+var parentMR: TMemoryRecord;
 begin
   if fIsOffset and hasParent then
-    result:=parent.RealAddress+baseaddress //assuming that the parent has had it's real address calculated first
+  begin
+    parentMR:=parent;
+    while ((parentMR.interpretableaddress='') or (parentMR.interpretableaddress='0')) and parentMR.hasParent do parentMR:=parentMR.parent; // find first ancestor with interpretableaddress
+
+    if not ((parentMR.interpretableaddress='') or (parentMR.interpretableaddress='0')) then
+      result:=parentMR.RealAddress+baseaddress //assuming that the ancestor has had it's real address calculated first
+    else
+      result:=BaseAddress;
+  end
   else
     result:=BaseAddress;
 end;
