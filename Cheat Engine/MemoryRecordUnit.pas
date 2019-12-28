@@ -177,6 +177,7 @@ type
 
     Hotkeylist: tlist;
     fisGroupHeader: Boolean; //set if it's a groupheader, only the description matters then
+    fisAddressGroupHeader: Boolean; // AddressGroupHeader is a special case of GroupHeader
     fIsReadableAddress: boolean;
 
     fDropDownList: Tstringlist;
@@ -226,6 +227,7 @@ type
     function getHotkey(index: integer): TMemoryRecordHotkey;
     function GetshowAsSigned: boolean;
     procedure setShowAsSigned(state: boolean);
+    procedure setAddressGroupHeader(state: boolean);
 
 
     function getChildCount: integer;
@@ -356,6 +358,7 @@ type
 
   published
     property IsGroupHeader: boolean read fisGroupHeader write fisGroupHeader;
+    property IsAddressGroupHeader: boolean read fisAddressGroupHeader write setAddressGroupHeader;
     property IsReadableAddress: boolean read fIsReadableAddress; //gets set by getValue, so at least read the value once
     property IsReadable: boolean read fIsReadableAddress;
     property ID: integer read fID write setID;
@@ -798,6 +801,11 @@ end;
 
 
 {---------------------------------MemoryRecord---------------------------------}
+procedure TMemoryRecord.SetAddressGroupHeader(state: boolean);
+begin
+  fisGroupHeader:=true;
+  fisAddressGroupHeader:=state;
+end;
 
 function TMemoryRecord.GetCollapsed: boolean;
 begin
@@ -1458,7 +1466,10 @@ begin
 
     tempnode:=CheatEntry.FindNode('Address');
     if tempnode<>nil then
+    begin
       interpretableaddress:=tempnode.TextContent;
+      fisAddressGroupHeader:=fisGroupHeader;
+    end;
 
 
     tempnode:=CheatEntry.FindNode('Offsets');
@@ -1672,6 +1683,43 @@ var
 
   ddl: TDOMNode=nil;
   offset: TDOMNode=nil;
+
+  procedure AddressAndOffsets();
+  var i: integer;
+  begin
+    cheatEntry.AppendChild(doc.CreateElement('Address')).TextContent:=interpretableaddress;
+
+    if isPointer then
+    begin
+      Offsets:=cheatEntry.AppendChild(doc.CreateElement('Offsets'));
+
+      for i:=0 to offsetCount-1 do
+      begin
+        offset:=Offsets.AppendChild(doc.CreateElement('Offset'));
+        offset.TextContent:=fpointeroffsets[i].offsetText;
+
+        if fpointeroffsets[i].OnlyUpdateAfterInterval then
+        begin
+          a:=doc.CreateAttribute('Interval');
+          a.TextContent:=inttostr(fpointeroffsets[i].UpdateInterval);
+          offset.Attributes.SetNamedItem(a);
+
+
+        end;
+
+        if fpointeroffsets[i].OnlyUpdateWithReinterpret then
+        begin
+          a:=doc.CreateAttribute('UpdateOnFullRefresh');
+          a.TextContent:='1';
+          offset.Attributes.SetNamedItem(a);
+        end;
+
+
+      end;
+
+      cheatEntry.AppendChild(Offsets);
+    end;
+  end;
 {$ENDIF}
 begin
   {$IFNDEF JNI}
@@ -1829,6 +1877,7 @@ begin
   if fisGroupHeader then
   begin
     cheatEntry.AppendChild(doc.CreateElement('GroupHeader')).TextContent:='1';
+    if fisAddressGroupHeader then AddressAndOffsets;
   end
   else
   begin
@@ -1874,43 +1923,7 @@ begin
       end;
     end;
 
-    if VarType<>vtAutoAssembler then
-    begin
-      cheatEntry.AppendChild(doc.CreateElement('Address')).TextContent:=interpretableaddress;
-
-      if isPointer then
-      begin
-        Offsets:=cheatEntry.AppendChild(doc.CreateElement('Offsets'));
-
-        for i:=0 to offsetCount-1 do
-        begin
-          offset:=Offsets.AppendChild(doc.CreateElement('Offset'));
-          offset.TextContent:=fpointeroffsets[i].offsetText;
-
-          if fpointeroffsets[i].OnlyUpdateAfterInterval then
-          begin
-            a:=doc.CreateAttribute('Interval');
-            a.TextContent:=inttostr(fpointeroffsets[i].UpdateInterval);
-            offset.Attributes.SetNamedItem(a);
-
-
-          end;
-
-          if fpointeroffsets[i].OnlyUpdateWithReinterpret then
-          begin
-            a:=doc.CreateAttribute('UpdateOnFullRefresh');
-            a.TextContent:='1';
-            offset.Attributes.SetNamedItem(a);
-          end;
-
-
-        end;
-
-        cheatEntry.AppendChild(Offsets);
-      end;
-    end;
-
-
+    if VarType<>vtAutoAssembler then AddressAndOffsets;
   end;
 
   //hotkeys
