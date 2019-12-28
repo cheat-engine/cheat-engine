@@ -3067,6 +3067,7 @@ begin
   if (not isfreezer) then
     undovalue:=GetValue;
 
+  realAddress:=GetRealAddress; //quick update
 
   {$IFNDEF jni}
   if (not isfreezer) and (moRecursiveSetValue in options) then //do this for all it's children
@@ -3085,7 +3086,7 @@ begin
   //and now set it for myself
 
 
-  realAddress:=GetRealAddress; //quick update
+  if fisGroupHeader then exit;
 
 
   currentValue:={utf8toansi}(v);
