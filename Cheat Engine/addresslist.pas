@@ -148,7 +148,7 @@ type
     procedure DeleteSelected(ask: boolean=true);
     procedure ActivateSelected(FreezeType: TFreezeType=ftFrozen); //activates all selected entries in the addresslist
     procedure DeactivateSelected;
-    procedure CreateGroup(groupname: string);
+    procedure CreateGroup(groupname: string; withAddress: boolean=false);
     procedure addAutoAssembleScript(script: string);
     function addAddressManually(initialaddress: string=''; vartype: TVariableType=vtDword; CustomTypeName: string=''): TMemoryRecord;
     function addaddress(description: string; address: string; const offsets: array of integer; offsetcount: integer; vartype: TVariableType; customtypename: string=''; length: integer=0; startbit: integer=0; unicode: boolean=false; node: TTreenode=nil; attachmode: TNodeAttachMode=naAdd): TMemoryRecord;
@@ -696,7 +696,7 @@ begin
 
 end;
 
-procedure TAddresslist.CreateGroup(groupname: string);
+procedure TAddresslist.CreateGroup(groupname: string; withAddress: boolean=false);
 var
   memrec: TMemoryRecord;
   n: TTreenode;
@@ -705,6 +705,7 @@ begin
   memrec:=TMemoryrecord.Create(self);
   memrec.id:=GetUniqueMemrecId;
   memrec.isGroupHeader:=true;
+  memrec.isAddressGroupHeader:=withAddress;
   memrec.Description:=groupname;
 
   if SelectedRecord<>nil then
@@ -966,7 +967,7 @@ procedure TAddresslist.addressdblclick(node: TTreenode);
 begin
   if assigned(fOnAddressChange) and fOnAddressChange(self,tmemoryrecord(treeview.selected.Data)) then exit;
 
-  if TMemoryRecord(node.data).isGroupHeader then exit;
+  if TMemoryRecord(node.data).isGroupHeader and not TMemoryRecord(node.data).isAddressGroupHeader then exit;
 
   with TFormaddresschange.Create(self) do
   begin
@@ -1251,14 +1252,26 @@ begin
     for i:=0 to header.Sections.count-1 do
       if inrange(p.x,header.Sections[i].Left,header.Sections[i].right) then
       begin
+        //if GroupHeaderWithAddress do the description, address, value dblclick
+        if TMemoryRecord(node.data).isAddressGroupHeader then
+        begin
+          case i of
+            0: ; //frozen doubleclick
+            1: descriptiondblclick(node);
+            2: addressdblclick(node);
+            3: ; //typedblclick(node);
+            4: valuedblclick(node);
+          end;
+        end
+        else
         //if it's a auto assemble script only do the description and value
         if (TMemoryRecord(node.data).VarType=vtAutoAssembler) or (TMemoryRecord(node.data).isGroupHeader) then
         begin
           case i of
             0: ; //frozen doubleclick
             1: descriptiondblclick(node);
-            2: ; //valuedblclick(node);
-            3: ; //valuedblclick(node);
+            2: ; //addressdblclick(node);
+            3: ; //typedblclick(node);
             4: valuedblclick(node);
           end;
         end
@@ -2125,7 +2138,7 @@ begin
     linetop:=textrect.Top+1; ;//+((textrect.Bottom-textrect.Top) div 2)-(sender.canvas.TextHeight('DDDD') div 2);
 
 
-    if (memrec.isGroupHeader=false) and (memrec.VarType<>vtAutoAssembler) then //if it's not a groupheader of auto assemble script then show the extra data
+    if (not memrec.isGroupHeader or memrec.isAddressGroupHeader) and (memrec.VarType<>vtAutoAssembler) then //if it's not a groupheader of auto assemble script then show the extra data
     begin
       //limit how far the texts go depending on the sections
       sender.Canvas.TextRect(rect(descriptionstart, textrect.Top, header.Sections[1].right, textrect.bottom), descriptionstart, linetop, memrec.description);
@@ -2137,40 +2150,43 @@ begin
         //address
         sender.Canvas.TextRect(rect(header.Sections[2].left, textrect.Top, header.Sections[2].right, textrect.bottom),header.Sections[2].Left, linetop, ansitoutf8(memrec.addressString));
 
-        //type
-        case memrec.vartype of
-          vtCustom: sender.Canvas.TextRect(rect(header.Sections[3].left, textrect.Top, header.Sections[3].right, textrect.bottom),header.sections[3].left, linetop, memrec.CustomTypeName);
-          vtString:
-          begin
-            if not (memrec.Extra.stringData.unicode or memrec.Extra.stringData.codepage) then
-              sender.Canvas.TextRect(rect(header.Sections[3].left, textrect.Top, header.Sections[3].right, textrect.bottom),header.sections[3].left, linetop, VariableTypeToTranslatedString(memrec.VarType)+'['+inttostr(memrec.Extra.stringData.length)+']')
-            else if memrec.Extra.stringData.unicode then
-              sender.Canvas.TextRect(rect(header.Sections[3].left, textrect.Top, header.Sections[3].right, textrect.bottom),header.sections[3].left, linetop, VariableTypeToTranslatedString(vtUnicodeString)+'['+inttostr(memrec.Extra.stringData.length)+']')
+        if not memrec.isGroupHeader then
+        begin
+          //type
+          case memrec.vartype of
+            vtCustom: sender.Canvas.TextRect(rect(header.Sections[3].left, textrect.Top, header.Sections[3].right, textrect.bottom),header.sections[3].left, linetop, memrec.CustomTypeName);
+            vtString:
+            begin
+              if not (memrec.Extra.stringData.unicode or memrec.Extra.stringData.codepage) then
+                sender.Canvas.TextRect(rect(header.Sections[3].left, textrect.Top, header.Sections[3].right, textrect.bottom),header.sections[3].left, linetop, VariableTypeToTranslatedString(memrec.VarType)+'['+inttostr(memrec.Extra.stringData.length)+']')
+              else if memrec.Extra.stringData.unicode then
+                sender.Canvas.TextRect(rect(header.Sections[3].left, textrect.Top, header.Sections[3].right, textrect.bottom),header.sections[3].left, linetop, VariableTypeToTranslatedString(vtUnicodeString)+'['+inttostr(memrec.Extra.stringData.length)+']')
+              else
+                sender.Canvas.TextRect(rect(header.Sections[3].left, textrect.Top, header.Sections[3].right, textrect.bottom),header.sections[3].left, linetop, VariableTypeToTranslatedString(vtCodePageString)+'['+inttostr(memrec.Extra.stringData.length)+']');
+            end;
+            vtBinary:
+            begin
+              if memrec.Extra.bitData.bitlength=0 then
+                sender.Canvas.TextRect(rect(header.Sections[3].left, textrect.Top, header.Sections[3].right, textrect.bottom),header.sections[3].left, linetop, VariableTypeToTranslatedString(memrec.VarType)+':'+inttostr(memrec.Extra.bitData.Bit)+'->idiot')
+              else
+                sender.Canvas.TextRect(rect(header.Sections[3].left, textrect.Top, header.Sections[3].right, textrect.bottom),header.sections[3].left, linetop, VariableTypeToTranslatedString(memrec.VarType)+':'+inttostr(memrec.Extra.bitData.Bit)+'->'+inttostr(memrec.Extra.bitData.Bit+memrec.Extra.bitData.bitlength-1));
+            end
             else
-              sender.Canvas.TextRect(rect(header.Sections[3].left, textrect.Top, header.Sections[3].right, textrect.bottom),header.sections[3].left, linetop, VariableTypeToTranslatedString(vtCodePageString)+'['+inttostr(memrec.Extra.stringData.length)+']');
+            begin
+
+              sender.Canvas.TextRect(rect(header.Sections[3].left, textrect.Top, header.Sections[3].right, textrect.bottom),header.sections[3].left, linetop, VariableTypeToTranslatedString(memrec.VarType));
+            end
           end;
-          vtBinary:
-          begin
-            if memrec.Extra.bitData.bitlength=0 then
-              sender.Canvas.TextRect(rect(header.Sections[3].left, textrect.Top, header.Sections[3].right, textrect.bottom),header.sections[3].left, linetop, VariableTypeToTranslatedString(memrec.VarType)+':'+inttostr(memrec.Extra.bitData.Bit)+'->idiot')
-            else
-              sender.Canvas.TextRect(rect(header.Sections[3].left, textrect.Top, header.Sections[3].right, textrect.bottom),header.sections[3].left, linetop, VariableTypeToTranslatedString(memrec.VarType)+':'+inttostr(memrec.Extra.bitData.Bit)+'->'+inttostr(memrec.Extra.bitData.Bit+memrec.Extra.bitData.bitlength-1));
-          end
-          else
-          begin
 
-            sender.Canvas.TextRect(rect(header.Sections[3].left, textrect.Top, header.Sections[3].right, textrect.bottom),header.sections[3].left, linetop, VariableTypeToTranslatedString(memrec.VarType));
-          end
+
+          //value
+          sender.Canvas.TextRect(rect(header.Sections[4].left, textrect.top, header.Sections[4].right, textrect.bottom),header.sections[4].left, linetop, memrec.DisplayValue);
         end;
-
-
-        //value
-        sender.Canvas.TextRect(rect(header.Sections[4].left, textrect.top, header.Sections[4].right, textrect.bottom),header.sections[4].left, linetop, memrec.DisplayValue);
       end;
     end
     else
     begin
-      sender.Canvas.TextOut(descriptionstart, textrect.Top, memrec.description); //no limit on how far
+      sender.Canvas.TextOut(descriptionstart, linetop, memrec.description); //no limit on how far
 
       if (memrec.VarType=vtAutoAssembler) then //give it the <script> text for value
         sender.Canvas.TextRect(rect(header.Sections[4].left, textrect.Top, header.Sections[4].right, textrect.bottom), header.sections[4].left, linetop, rsScript);

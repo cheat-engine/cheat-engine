@@ -1089,6 +1089,7 @@ resourcestring
   rsGroup = 'Group %s';
   rsGroups = 'Groups';
   rsWhatDoYouWantTheGroupnameToBe = 'What do you want the groupname to be?';
+  rsDoYouWantTheGroupWithAddress = 'Do you want "address" version?';
   rsAreYouSureYouWantToDeleteThisForm = 'Are you sure you want to delete this form?';
   rsRenameFile = 'Rename file';
   rsGiveTheNewFilename = 'Give the new filename';
@@ -3343,7 +3344,10 @@ begin
 
   if frmStructures2.count>0 then
   begin
-    if addresslist.Focused and (addresslist.selectedRecord<>nil) and (addresslist.selectedRecord.isGroupHeader=false) and (addresslist.selectedRecord.VarType<>vtAutoAssembler) then
+    if addresslist.Focused and (addresslist.selectedRecord<>nil) and
+       (not addresslist.selectedRecord.isGroupHeader or addresslist.selectedRecord.isAddressGroupHeader) and
+       (addresslist.selectedRecord.VarType<>vtAutoAssembler)
+    then
     begin
       //add this address if it's not yet in the list
       found:=false;
@@ -3376,7 +3380,10 @@ begin
       //fill in the selected memoryrecord if there is one, else use the memoryview hexview address
       initialaddress:=MemoryBrowser.hexview.address;
 
-      if (addresslist.selectedRecord<>nil) and (addresslist.selectedRecord.isGroupHeader=false) and (addresslist.selectedRecord.VarType<>vtAutoAssembler) then
+      if (addresslist.selectedRecord<>nil) and
+         (not addresslist.selectedRecord.isGroupHeader or addresslist.selectedRecord.isAddressGroupHeader) and
+         (addresslist.selectedRecord.VarType<>vtAutoAssembler)
+      then
         initialaddress:=addresslist.selectedRecord.GetRealAddress;
 
       show;
@@ -3412,6 +3419,7 @@ var
   groupname: string;
   i: integer;
   Count: integer;
+  withAddress: boolean;
 begin
   //in rare cases you can use the treeview data data if you request so
   Count := 0;
@@ -3422,7 +3430,10 @@ begin
   groupname := Format(rsGroup, [IntToStr(Count + 1)]);
 
   if InputQuery(rsGroups, rsWhatDoYouWantTheGroupnameToBe, groupname) then
-    addresslist.CreateGroup(groupname);
+  begin
+    withAddress:=(messagedlg(rsDoYouWantTheGroupWithAddress, mtConfirmation, [mbYes, mbNo], 0)=mrYes);
+    addresslist.CreateGroup(groupname, withAddress);
+  end;
 end;
 
 procedure TMainForm.Foundlist3SelectItem(Sender: TObject; Item: TListItem;
@@ -6926,12 +6937,12 @@ begin
   DeleteThisRecord1.Visible := (addresslist.selectedRecord <> nil);
   Change1.Visible := (addresslist.selectedrecord <> nil) and
     (not (addresslist.selectedRecord.vartype = vtAutoAssembler));
-  address1.visible := (addresslist.selectedrecord <> nil) and (not addresslist.selectedRecord.isGroupHeader);
+  address1.visible := (addresslist.selectedrecord <> nil) and (not addresslist.selectedRecord.isGroupHeader or addresslist.selectedRecord.isAddressGroupHeader);
   Type1.visible := (addresslist.selectedrecord <> nil) and (not addresslist.selectedRecord.isGroupHeader);
   Value1.visible := (addresslist.selectedrecord <> nil);
-  Smarteditaddresses1.visible := (addresslist.selectedrecord <> nil) and (not addresslist.selectedRecord.isGroupHeader);
+  Smarteditaddresses1.visible := (addresslist.selectedrecord <> nil) and (not addresslist.selectedRecord.isGroupHeader or addresslist.selectedRecord.isAddressGroupHeader);
 
-  BrowseThisMemoryRegion1.Visible :=(addresslist.selectedRecord <> nil) and (not addresslist.selectedRecord.isGroupHeader) and (not (addresslist.selectedRecord.vartype = vtAutoAssembler));
+  BrowseThisMemoryRegion1.Visible :=(addresslist.selectedRecord <> nil) and (not addresslist.selectedRecord.isGroupHeader or addresslist.selectedRecord.isAddressGroupHeader) and (not (addresslist.selectedRecord.vartype = vtAutoAssembler));
   miDisassemble.Visible:=Browsethismemoryregion1.Visible;
 
   ShowAsHexadecimal1.Visible :=
@@ -6987,22 +6998,14 @@ begin
 
   n5.Visible := (addresslist.selectedRecord <> nil);
 
-  Pointerscanforthisaddress1.Visible :=
-    (addresslist.selectedRecord <> nil) and (not addresslist.selectedRecord.isGroupHeader) and
-    (not (addresslist.selectedRecord.vartype = vtAutoAssembler));
+  Pointerscanforthisaddress1.Visible := BrowseThisMemoryRegion1.Visible;
 
   miGeneratePointermap.Visible:=processid<>0;
 
-  Findoutwhataccessesthisaddress1.Visible :=
-    (addresslist.selectedRecord <> nil) and (not addresslist.selectedRecord.isGroupHeader) and
-    (not (addresslist.selectedRecord.vartype = vtAutoAssembler));
-  Setbreakpoint1.Visible := (addresslist.selectedRecord <> nil) and
-    (not addresslist.selectedRecord.isGroupHeader) and
-    (not (addresslist.selectedRecord.vartype = vtAutoAssembler));
+  Findoutwhataccessesthisaddress1.Visible := BrowseThisMemoryRegion1.Visible;
+  Setbreakpoint1.Visible := BrowseThisMemoryRegion1.Visible;
 
-  sep1.Visible := (addresslist.selectedRecord <> nil) and
-    (not addresslist.selectedRecord.isGroupHeader) and
-    (not (addresslist.selectedRecord.vartype = vtAutoAssembler));
+  sep1.Visible := BrowseThisMemoryRegion1.Visible;
   Calculatenewvaluepart21.Visible := (addresslist.Count > 0);
   Forcerechecksymbols1.Visible := addresslist.Count > 0;
 
