@@ -161,7 +161,7 @@ var
 
   size: dword;
   i: qword;
-  block: integer;
+  block: qword;
 begin
   folder:=trim(folder);
   if (folder<>'') and ((folder[1]='\') or (folder[1]='/')) then
@@ -193,7 +193,7 @@ begin
     i:=f.size;
     while i>0 do
     begin
-      block:=min(256*1024, i);
+      block:=min(qword(256*1024), i);
       archive.CopyFrom(f, block);
       dec(i,block);
 

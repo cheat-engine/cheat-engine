@@ -4,36 +4,71 @@ unit LuaInternet;
 
 interface
 
-{$ifdef windows}
+
+
 
 uses
-  Classes, SysUtils, wininet;
+  Classes, SysUtils
+  {$ifdef windows}, wininet
+  {$else}
+  , fphttpclient,opensslsockets
+
+  {$endif}
+  ;
 
 procedure initializeLuaInternet;
 
 type
   TWinInternet=class
   private
+    {$ifdef windows}
     internet: HINTERNET;
     fheader: string;
+    {$else}
+    internet: TFPHTTPClient;
+    procedure setHeader(s: string);
+    function getHeader: string;
+    {$endif}
   public
     function getURL(urlstring: string; results: tstream): boolean;
     function postURL(urlstring: string; urlencodedpostdata: string; results: tstream): boolean;
     constructor create(name: string);
     destructor destroy; override;
   published
+    {$ifdef windows}
     property Header: string read fheader write fheader;
+    {$else}
+    property Header: string read getHeader write setHeader;
+    {$endif}
   end;
 
-  {$endif}
 
 implementation
 
-{$ifdef windows}
+uses MainUnit2, lua, LuaClass, LuaObject, LuaHandler, URIParser;
 
-uses mainunit2, lua, LuaClass, LuaObject, luahandler, URIParser;
+{$ifndef windows}
+procedure TWinInternet.setHeader(s: string);
+begin
+  internet.RequestHeaders.Text:=s;
+end;
 
+function TWinInternet.getHeader: string;
+begin
+  result:=internet.RequestHeaders.Text;
+end;
 
+function TWinInternet.postURL(urlstring: string; urlencodedpostdata: string; results: tstream): boolean;
+begin
+
+end;
+
+function TWinInternet.getURL(urlstring: string; results: tstream): boolean;
+begin
+
+end;
+
+{$else}
 
 function TWinInternet.postURL(urlstring: string; urlencodedpostdata: string; results: tstream): boolean;
 var
@@ -173,16 +208,27 @@ begin
     InternetCloseHandle(url);
   end;
 end;
+{$endif}
 
 constructor TWinInternet.create(name: string);
 begin
+  {$ifdef windows}
   internet:=InternetOpen(pchar(name),0, nil, nil,0);
+  {$else}
+  internet:=TFPHTTPClient.Create(nil);
+  internet.AddHeader('User-Agent',name);
+  {$endif}
 end;
 
 destructor TWinInternet.destroy;
 begin
   if internet<>nil then
+  {$ifdef windows}
     InternetCloseHandle(internet);
+  {$else}
+    freeandnil(internet);
+  {$endif}
+
 
   inherited destroy;
 end;
@@ -260,9 +306,6 @@ var
 
 initialization
   luaclass_register(TWinInternet, wininternet_addMetaData);
-
-{$endif}
-
 
 end.
 

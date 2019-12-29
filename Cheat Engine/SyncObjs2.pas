@@ -5,7 +5,7 @@ unit SyncObjs2;
 interface
 
 uses {$ifdef darwin}
-  macport, SyncObjs, cthreads,
+  macport, SyncObjs, cthreads, unix, unixtype, pthreads,
   {$else}
   windows,
   {$endif}classes, sysutils, LCLIntf;
@@ -18,10 +18,8 @@ type TSemaphore=class
 
     max: integer;
     {$ifdef darwin}
-    h: pointer;
-    left: integer;
-
-    cs: TCriticalSection;
+    h: sem_t;
+    semaphorecount: cardinal;
     {$endif}
 
   public
@@ -49,14 +47,7 @@ begin
   {$ifdef windows}
   h:=CreateSemaphore(nil,init,maxcount,nil);
   {$else}
-  cs:=tcriticalsection.create;
-
-  h:=SemaphoreInit;
-
-  left:=init;
-
-  for i:=1 to left do
-    SemaphorePost(h);
+  sem_init(h,0,init);
   {$endif}
 end;
 
@@ -65,8 +56,7 @@ begin
   {$ifdef windows}
   closehandle(h);
   {$else}
-  SemaphoreDestroy(h);
-  cs.destroy;
+  sem_destroy(h);
   {$endif}
 
   inherited destroy;
@@ -77,10 +67,8 @@ begin
   {$ifdef windows}
   waitforsingleobject(h,infinite);
   {$else}
-  cs.enter;
-  SemaphoreWait(h);    //wait inside a critical section
-  dec(left);
-  cs.leave;
+  if sem_wait(h)=0 then //wait inside a critical section
+    InterlockedDecrement(semaphorecount);
   {$endif}
 end;
 
@@ -89,6 +77,9 @@ function TSemaphore.TryAcquire(time: integer=0):boolean;
 var
   t: TThread;
   starttime: qword;
+
+  abstime: timespec;
+  tspec: TTimeSpec;
 {$endif}
 begin
   {$ifdef windows}
@@ -97,27 +88,49 @@ begin
   starttime:=gettickcount64;
   result:=false;
 
+  if sem_trywait(h)=0 then
+  begin
+    InterlockedDecrement(semaphorecount);
+    exit(true);
+  end;
 
-  repeat
-    if cs.TryEnter then
+
+
+
+  if time>0 then
+  begin
+    {$ifndef darwin}
+    if clock_gettime(CLOCK_REALTIME, tspec)=0 then
     begin
-      if left>0 then
+      //1000000000=1 second
+      //100000000=100 milliseconds
+      //1000000=1 millisecond
+      inc(tspec.tv_nsec, time*1000000);
+      while (tv_nsec>=1000000000) do
       begin
-        result:=true;
-        SemaphoreWait(h); //wait inside a critical section
-        dec(left);
-      end;
-
-      cs.Leave;
+        inc(tspec.tv_sec);
+        dec(tspec.tv_nsec,1000000000);
+      end
+      result:=sem_timedwait(h,abstime)=0;
     end
-    else
-      result:=false;
+    else sleep(50);
+    {$else}
+    //mac
+    while (gettickcount64<starttime+time) do
+    begin
+      if sem_trywait(h)=0 then
+      begin
+        InterlockedDecrement(semaphorecount);
+        exit(true);
+      end;
+      sleep(50);
+    end;
 
-    if (not result) and (time>0) then
-      sleep(10);  //active'ish' wait
+    {$endif}
+
+  end;
 
 
-  until result or (gettickcount64>(starttime+time));
   {$endif}
 end;
 
@@ -132,19 +145,19 @@ begin
   else
     result:=-1;
   {$else}
-  result:=left;
+
+  result:=semaphorecount;
+
   for e:=1 to count do
   begin
-    if left<max then
+    if semaphorecount<max then
     begin
-      SemaphorePost(h);  //lets the cs in acquire get released
-
-      cs.enter;
-      inc(left);
-      cs.leave;
+      InterlockedIncrement(semaphorecount);
+      sem_post(h);
     end;
   end;
   {$endif}
+
 end;
 
 end.

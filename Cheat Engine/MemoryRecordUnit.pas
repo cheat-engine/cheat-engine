@@ -3227,7 +3227,7 @@ begin
         //copy the string to the buffer
         if extra.stringData.unicode then
         begin
-          x:=min(x,length(tempsw));
+          x:=min(x,PtrUInt(length(tempsw)));
           if extra.stringData.ZeroTerminate then
             inc(x); //include the zero terminator
 
@@ -3241,7 +3241,7 @@ begin
           if extra.stringData.codepage then
             tempsa:=UTF8ToWinCP(tempsa);
 
-          x:=min(x,length(tempsa));
+          x:=min(x,PtrUInt(length(tempsa)));
           if extra.stringData.ZeroTerminate then
             inc(x); //include the zero terminator
 
