@@ -11,7 +11,7 @@ uses
   Classes, SysUtils
   {$ifdef windows}, wininet
   {$else}
-  , fphttpclient,opensslsockets
+  , fphttpclient,opensslsockets,openssl
 
   {$endif}
   ;
@@ -59,12 +59,30 @@ begin
 end;
 
 function TWinInternet.postURL(urlstring: string; urlencodedpostdata: string; results: tstream): boolean;
+var response: tstrings;
 begin
+  result:=false;
+  response:=tstrings.Create;
+  try
+    internet.FormPost(urlstring,urlencodedpostdata,response);
+    result:=true;
+    results.WriteAnsiString(response.text);
+  except
+  end;
+
+  freeandnil(response);
 
 end;
 
 function TWinInternet.getURL(urlstring: string; results: tstream): boolean;
 begin
+  result:=false;
+  try
+    internet.Get(urlstring, results);
+    result:=true;
+  except
+
+  end;
 
 end;
 
@@ -215,6 +233,13 @@ begin
   {$ifdef windows}
   internet:=InternetOpen(pchar(name),0, nil, nil,0);
   {$else}
+
+  openssl.DLLVersions[1]:=openssl.DLLVersions[2];
+  openssl.DLLVersions[1]:='.46';
+  openssl.DLLVersions[2]:='.44';
+  InitSSLInterface;
+  openssl.ErrClearError;
+
   internet:=TFPHTTPClient.Create(nil);
   internet.AddHeader('User-Agent',name);
   {$endif}

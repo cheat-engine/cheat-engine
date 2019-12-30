@@ -5973,6 +5973,8 @@ begin
   cbDirty.AnchorSideLeft.Side:=asrLeft;
   cbDirty.Caption:=rsModified;
   cbDirty.State:=cbGrayed;
+
+  mi3d.Visible:=false;
   {$endif}
 end;
 
@@ -7944,8 +7946,9 @@ begin
 
 
   logo.Width:=settingsbutton.width;
-
+  {$ifdef windows}
   if logo.Width>=90 then
+  {$endif}
   begin
     rs := TResourceStream.Create(HInstance, 'IMAGES_CELOGO', RT_RCDATA);
     logopic:=TPicture.Create;

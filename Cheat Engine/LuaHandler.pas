@@ -118,7 +118,7 @@ uses mainunit, MainUnit2, LuaClass, frmluaengineunit, plugin, pluginexports,
   LuaCustomType, Filehandler, LuaSQL, frmSelectionlistunit, cpuidUnit, LuaRemoteThread,
   LuaManualModuleLoader, pointervaluelist, frmEditHistoryUnit, LuaCheckListBox,
   LuaDiagram, frmUltimap2Unit, frmcodefilterunit, BreakpointTypeDef, LuaSyntax,
-  LazLogger, LuaSynedit{$ifdef windows}, LuaRipRelativeScanner{$endif};
+  LazLogger, LuaSynedit, LuaRipRelativeScanner;
 
   {$warn 5044 off}
 
@@ -12751,14 +12751,11 @@ begin
     initializeLuaPageControl;
 
     initializeLuaCalendar;
-    {$IFDEF windows}
     initializeLuaRipRelativeScanner;
-    {$ENDIF}
+
 
     initializeLuaStructureFrm;
-    {$IFDEF windows}
     initializeLuaInternet;
-    {$ENDIF}
     initializeLuaCustomType;
     initializeLuaSQL;
     {$IFDEF windows}
