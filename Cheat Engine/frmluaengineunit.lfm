@@ -5,30 +5,31 @@ object frmLuaEngine: TfrmLuaEngine
   Width = 570
   HelpContext = 19
   Caption = 'Lua Engine'
-  ClientHeight = 312
+  ClientHeight = 332
   ClientWidth = 570
   Menu = MainMenu1
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '2.0.0.4'
+  LCLVersion = '2.0.6.0'
   object GroupBox1: TGroupBox
     Left = 0
-    Height = 177
+    Height = 197
     Top = 0
     Width = 570
     Align = alClient
     Caption = 'Output'
-    ClientHeight = 157
-    ClientWidth = 566
+    ClientHeight = 178
+    ClientWidth = 560
     TabOrder = 1
     object mOutput: TMemo
       Left = 0
-      Height = 157
+      Height = 178
       Top = 0
-      Width = 566
+      Width = 560
       Align = alClient
+      Lines.Strings = (      )
       ReadOnly = True
       ScrollBars = ssAutoBoth
       TabOrder = 0
@@ -37,7 +38,7 @@ object frmLuaEngine: TfrmLuaEngine
   object Panel1: TPanel
     Left = 0
     Height = 130
-    Top = 182
+    Top = 202
     Width = 570
     Align = alBottom
     BevelOuter = bvNone
@@ -781,7 +782,7 @@ object frmLuaEngine: TfrmLuaEngine
     Cursor = crVSplit
     Left = 0
     Height = 5
-    Top = 177
+    Top = 197
     Width = 570
     Align = alBottom
     ResizeAnchor = akBottom
@@ -874,50 +875,51 @@ object frmLuaEngine: TfrmLuaEngine
     Images = leImageList
     left = 59
     top = 184
-    object MenuItem7: TMenuItem
+    object miCut: TMenuItem
       Caption = 'Cut'
       ImageIndex = 7
       ShortCut = 16472
-      OnClick = MenuItem7Click
+      ShortCutKey2 = 4184
+      OnClick = miCutClick
     end
-    object MenuItem8: TMenuItem
+    object miCopy: TMenuItem
       Caption = 'Copy'
       ImageIndex = 5
       ShortCut = 16451
-      OnClick = MenuItem8Click
+      OnClick = miCopyClick
     end
-    object MenuItem9: TMenuItem
+    object miPaste: TMenuItem
       Caption = 'Paste'
       ImageIndex = 6
       ShortCut = 16470
-      OnClick = MenuItem9Click
+      OnClick = miPasteClick
     end
-    object MenuItem10: TMenuItem
+    object miUndo: TMenuItem
       Caption = 'Undo'
       ImageIndex = 9
       ShortCut = 16474
-      OnClick = MenuItem10Click
+      OnClick = miUndoClick
     end
-    object MenuItem14: TMenuItem
+    object miRedo: TMenuItem
       Caption = 'Redo'
       ImageIndex = 11
       ShortCut = 24666
-      OnClick = MenuItem14Click
+      OnClick = miRedoClick
     end
-    object MenuItem13: TMenuItem
+    object miFind: TMenuItem
       Caption = 'Find'
       ImageIndex = 8
       ShortCut = 16454
       ShortCutKey2 = 114
-      OnClick = MenuItem13Click
+      OnClick = miFindClick
     end
-    object MenuItem6: TMenuItem
+    object miFindReplace: TMenuItem
       Caption = 'Find/Replace'
       ImageIndex = 10
       ShortCut = 16466
-      OnClick = MenuItem6Click
+      OnClick = miFindReplaceClick
     end
-    object MenuItem12: TMenuItem
+    object miDebug: TMenuItem
       Caption = 'Debug'
       Visible = False
       object miRun: TMenuItem

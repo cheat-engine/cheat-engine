@@ -26,9 +26,9 @@ type
     FindDialog1: TFindDialog;
     GroupBox1: TGroupBox;
     leImageList: TImageList;
-    MenuItem12: TMenuItem;
-    MenuItem13: TMenuItem;
-    MenuItem14: TMenuItem;
+    miDebug: TMenuItem;
+    miFind: TMenuItem;
+    miRedo: TMenuItem;
     MenuItem15: TMenuItem;
     N1: TMenuItem;
     miAutoComplete: TMenuItem;
@@ -45,16 +45,16 @@ type
     ilLuaDebug: TImageList;
     ilSyneditDebug: TImageList;
     MainMenu1: TMainMenu;
-    MenuItem10: TMenuItem;
+    miUndo: TMenuItem;
     MenuItem11: TMenuItem;
     MenuItem4: TMenuItem;
     MenuItem5: TMenuItem;
-    MenuItem6: TMenuItem;
+    miFindReplace: TMenuItem;
     miView: TMenuItem;
     cbShowOnPrint: TMenuItem;
-    MenuItem7: TMenuItem;
-    MenuItem8: TMenuItem;
-    MenuItem9: TMenuItem;
+    miCut: TMenuItem;
+    miCopy: TMenuItem;
+    miPaste: TMenuItem;
     mOutput: TMemo;
     MenuItem1: TMenuItem;
     MenuItem2: TMenuItem;
@@ -79,18 +79,18 @@ type
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure FormShow(Sender: TObject);
-    procedure MenuItem10Click(Sender: TObject);
+    procedure miUndoClick(Sender: TObject);
     procedure MenuItem11Click(Sender: TObject);
-    procedure MenuItem13Click(Sender: TObject);
-    procedure MenuItem14Click(Sender: TObject);
+    procedure miFindClick(Sender: TObject);
+    procedure miRedoClick(Sender: TObject);
     procedure MenuItem15Click(Sender: TObject);
     procedure MenuItem2Click(Sender: TObject);
     procedure MenuItem3Click(Sender: TObject);
     procedure MenuItem5Click(Sender: TObject);
-    procedure MenuItem6Click(Sender: TObject);
-    procedure MenuItem7Click(Sender: TObject);
-    procedure MenuItem8Click(Sender: TObject);
-    procedure MenuItem9Click(Sender: TObject);
+    procedure miFindReplaceClick(Sender: TObject);
+    procedure miCutClick(Sender: TObject);
+    procedure miCopyClick(Sender: TObject);
+    procedure miPasteClick(Sender: TObject);
     procedure miResizeOutputClick(Sender: TObject);
     procedure miSaveCurrentScriptAsClick(Sender: TObject);
     procedure miSetBreakpointClick(Sender: TObject);
@@ -1420,7 +1420,7 @@ begin
 end;
 
 
-procedure TfrmLuaEngine.MenuItem10Click(Sender: TObject);
+procedure TfrmLuaEngine.miUndoClick(Sender: TObject);
 begin
   mscript.Undo;
 end;
@@ -1434,12 +1434,12 @@ begin
   f.show;
 end;
 
-procedure TfrmLuaEngine.MenuItem13Click(Sender: TObject);
+procedure TfrmLuaEngine.miFindClick(Sender: TObject);
 begin
   finddialog1.Execute;
 end;
 
-procedure TfrmLuaEngine.MenuItem14Click(Sender: TObject);
+procedure TfrmLuaEngine.miRedoClick(Sender: TObject);
 begin
   mscript.redo;
 end;
@@ -1486,22 +1486,22 @@ begin
   moutput.Clear;
 end;
 
-procedure TfrmLuaEngine.MenuItem6Click(Sender: TObject);
+procedure TfrmLuaEngine.miFindReplaceClick(Sender: TObject);
 begin
   dlgReplace.Execute;
 end;
 
-procedure TfrmLuaEngine.MenuItem7Click(Sender: TObject);
+procedure TfrmLuaEngine.miCutClick(Sender: TObject);
 begin
   mscript.CutToClipboard;
 end;
 
-procedure TfrmLuaEngine.MenuItem8Click(Sender: TObject);
+procedure TfrmLuaEngine.miCopyClick(Sender: TObject);
 begin
   mscript.CopyToClipboard;
 end;
 
-procedure TfrmLuaEngine.MenuItem9Click(Sender: TObject);
+procedure TfrmLuaEngine.miPasteClick(Sender: TObject);
 begin
   mscript.PasteFromClipboard;
 end;
