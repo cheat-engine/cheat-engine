@@ -72,7 +72,7 @@ begin
   if internet=nil then
     internet:=TWinInternet.Create('Cheat Engine microtransaction system');
 
-  ss:=tstringstream.create;
+  ss:=tstringstream.create({$if FPC_FULLVERSION<030200}''{$endif});
   try
     try
       internet.getURL('https://cheatengine.org/microtransaction.php?action=buy&amount='+inttostr(tbitbtn(sender).Tag), ss);
