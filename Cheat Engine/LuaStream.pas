@@ -216,7 +216,7 @@ begin
     if lua_istable(L, 1) then
     begin
       if lua_gettop(L)>=2 then
-      {$ifdef FPC_FULLVERSION < 030200}
+      {$if FPC_FULLVERSION < 030200}
         count:=min(int64(lua_objlen(L, 1)), int64(lua_tointeger(L, 2)))
       {$else}
         count:=min(lua_objlen(L, 1), lua_tointeger(L, 2)) //prevent the length from exeeding the table
