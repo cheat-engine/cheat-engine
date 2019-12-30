@@ -879,7 +879,6 @@ object frmLuaEngine: TfrmLuaEngine
       Caption = 'Cut'
       ImageIndex = 7
       ShortCut = 16472
-      ShortCutKey2 = 4184
       OnClick = miCutClick
     end
     object miCopy: TMenuItem

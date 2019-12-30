@@ -6,7 +6,7 @@ interface
 
 uses
   {$ifdef darwin}
-  macport,
+  macport, LCLProc,
   {$else}
   windows,
   {$endif}
@@ -89,7 +89,7 @@ type
     File1: TMenuItem;
     menuAOBInjection: TMenuItem;
     menuFullInjection: TMenuItem;
-    MenuItem1: TMenuItem;
+    miReplace: TMenuItem;
     MenuItem2: TMenuItem;
     MenuItem3: TMenuItem;
     miRedo: TMenuItem;
@@ -121,7 +121,7 @@ type
     Inject1: TMenuItem;
     Injectincurrentprocess1: TMenuItem;
     Injectintocurrentprocessandexecute1: TMenuItem;
-    Find1: TMenuItem;
+    miFind: TMenuItem;
     miPaste: TMenuItem;
     miCopy: TMenuItem;
     miCut: TMenuItem;
@@ -136,7 +136,7 @@ type
     procedure Load1Click(Sender: TObject);
     procedure menuAOBInjectionClick(Sender: TObject);
     procedure menuFullInjectionClick(Sender: TObject);
-    procedure MenuItem1Click(Sender: TObject);
+    procedure miReplaceClick(Sender: TObject);
     procedure MenuItem2Click(Sender: TObject);
     procedure MenuItem3Click(Sender: TObject);
     procedure mifindNextClick(Sender: TObject);
@@ -171,7 +171,7 @@ type
     procedure miCutClick(Sender: TObject);
     procedure miCopyClick(Sender: TObject);
     procedure miPasteClick(Sender: TObject);
-    procedure Find1Click(Sender: TObject);
+    procedure miFindClick(Sender: TObject);
     procedure FindDialog1Find(Sender: TObject);
     procedure AAPref1Click(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
@@ -1870,6 +1870,17 @@ begin
     addTemplate(i);
 
 {$endif}
+
+{$ifdef darwin}
+  miCut.ShortCut:=TextToShortCut('Meta+X');
+  miCopy.ShortCut:=TextToShortCut('Meta+C');
+  miPaste.ShortCut:=TextToShortCut('Meta+V');
+  miUndo.ShortCut:=TextToShortCut('Meta+Z');
+  miRedo.ShortCut:=TextToShortCut('Shift+Meta+X');
+  miFind.ShortCut:=TextToShortCut('Meta+F');
+  mifindNext.ShortCutKey2:=TextToShortcut('Meta+G');
+{$endif}
+
 end;
 
 procedure TfrmAutoInject.TabControl1Change(Sender: TObject);
@@ -2114,7 +2125,7 @@ begin
   assemblescreen.PasteFromClipboard;
 end;
 
-procedure TfrmAutoInject.Find1Click(Sender: TObject);
+procedure TfrmAutoInject.miFindClick(Sender: TObject);
 begin
   finddialog1.Options:=finddialog1.Options-[frFindNext];
   if finddialog1.Execute then
@@ -2454,7 +2465,7 @@ begin
     generateFullInjectionScript(assemblescreen.Lines, address);
 end;
 
-procedure TfrmAutoInject.MenuItem1Click(Sender: TObject);
+procedure TfrmAutoInject.miReplaceClick(Sender: TObject);
 begin
   ReplaceDialog1.execute;
 end;

@@ -13,7 +13,7 @@ uses
   {$endif}
   Classes, SysUtils, FileUtil, LResources, Forms, Controls, Graphics,
   Dialogs, StdCtrls, Menus, ExtCtrls, SynMemo, SynCompletion, SynEdit, lua,
-  lauxlib, lualib, LuaSyntax, luahandler, cefuncproc, sqldb, strutils,
+  lauxlib, lualib, LuaSyntax, luahandler, CEFuncProc, sqldb, strutils,
   InterfaceBase, ComCtrls, SynGutterBase, SynEditMarks, PopupNotifier, ActnList,
   SynEditHighlighter, AvgLvlTree, math, LazFileUtils, Types, LCLType, pluginexports;
 
@@ -144,7 +144,7 @@ implementation
 
 { TfrmLuaEngine }
 
-uses luaclass, SynEditTypes, globals, DPIHelper, frmSyntaxHighlighterEditor,
+uses LuaClass, SynEditTypes, globals, DPIHelper, frmSyntaxHighlighterEditor,
   frmautoinjectunit;
 
 resourcestring
@@ -206,6 +206,7 @@ begin
   if keychar='.' then
   begin
     value:=value+'.';
+
 //    TThread.Queue(nil, ContinueAutoComplete);
     t:=TTimer.Create(self);
     t.interval:=1;
@@ -1384,6 +1385,15 @@ begin
         miAutoComplete.checked:=x[3]=1;
     end;
   end;
+  {$ifdef darwin}
+  miCut.ShortCut:=TextToShortCut('Meta+X');
+  miCopy.ShortCut:=TextToShortCut('Meta+C');
+  miPaste.ShortCut:=TextToShortCut('Meta+V');
+  miUndo.ShortCut:=TextToShortCut('Meta+Z');
+  miRedo.ShortCut:=TextToShortCut('Shift+Meta+X');
+  miFind.ShortCut:=TextToShortCut('Meta+F');
+  miCut.ShortCut:=TextToShortCut('Meta+X');
+  {$endif}
 end;
 
 procedure TfrmLuaEngine.FormDestroy(Sender: TObject);
@@ -1639,8 +1649,9 @@ begin
   begin
     if key='.' then
     begin
-
+      {$ifdef windows} //perhaps fixed in laz 2.0.6 which I use for mac , or just a cocoa thing where the char is inserted first
       mscript.InsertTextAtCaret('.');
+      {$endif}
       p:=mscript.RowColumnToPixels(point(mscript.CaretX,mscript.CaretY+1));
       p2:=mscript.ClientToScreen(point(0,0));
       scLuaCompleter.Execute('.',p2+p);

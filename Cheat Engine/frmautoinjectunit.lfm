@@ -6,7 +6,7 @@ object frmAutoInject: TfrmAutoInject
   HelpContext = 1089
   AllowDropFiles = True
   Caption = 'Auto assemble'
-  ClientHeight = 311
+  ClientHeight = 331
   ClientWidth = 431
   Menu = MainMenu1
   OnClose = FormClose
@@ -15,11 +15,11 @@ object frmAutoInject: TfrmAutoInject
   OnDropFiles = FormDropFiles
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '2.0.0.4'
+  LCLVersion = '2.0.6.0'
   object Panel1: TPanel
     Left = 0
     Height = 35
-    Top = 276
+    Top = 296
     Width = 431
     Align = alBottom
     AutoSize = True
@@ -47,7 +47,7 @@ object frmAutoInject: TfrmAutoInject
   end
   object Panel2: TPanel
     Left = 0
-    Height = 276
+    Height = 296
     Top = 0
     Width = 431
     Align = alClient
@@ -228,11 +228,11 @@ object frmAutoInject: TfrmAutoInject
     object N6: TMenuItem
       Caption = '-'
     end
-    object Find1: TMenuItem
+    object miFind: TMenuItem
       Caption = '&Find...'
       ImageIndex = 6
       ShortCut = 16454
-      OnClick = Find1Click
+      OnClick = miFindClick
     end
     object mifindNext: TMenuItem
       Caption = 'Find Next'
@@ -240,11 +240,11 @@ object frmAutoInject: TfrmAutoInject
       Visible = False
       OnClick = mifindNextClick
     end
-    object MenuItem1: TMenuItem
+    object miReplace: TMenuItem
       Caption = 'Replace'
       ImageIndex = 11
       ShortCut = 16466
-      OnClick = MenuItem1Click
+      OnClick = miReplaceClick
     end
   end
   object closemenu: TPopupMenu
