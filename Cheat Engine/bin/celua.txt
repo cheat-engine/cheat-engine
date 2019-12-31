@@ -382,7 +382,7 @@ userDataToInteger(UserDataVar):  Converts a given userdata variable to an intege
 
 synchronize(function(...), ...): Calls the given function from the main thread. Returns the return value of the given function
 queue(function(...),...): calls the given function from the main thread. Does not wait for the result. Note: Be sure to synchronize and call checkSynchronize() before freeing the calling thread
-checkSynchronize(): Call this from an infinite loop in the main thread when using threading and synchronize calls. This will execute any queued synchronize calls
+checkSynchronize(timeout OPTIONAL): Call this from an infinite loop in the main thread when using threading and synchronize calls. This will execute any queued synchronize calls
 
 writeToClipboard(text):  Writes the given text to the clipboard
 readFromClipboard():  Reads the text from the clipboard
@@ -1979,8 +1979,7 @@ properties
   AllowIncrease: boolean - Allow value increasing, unfreeze will reset it to false
   AllowDecrease: boolean - Allow value decreasing, unfreeze will reset it to false
   Collapsed: boolean - Set to true to collapse this record or false to expand it. Use expand/collapse methods for recursive operations. 
-  IsGroupHeader: boolean - Set to true if the record was created as a Group Header with no address or value info.
-  IsAddressGroupHeader: boolean - Set to true if the record was created as a Group Header with address.
+  IsGroupHeader: boolean - Set to true if the record was created as a Group Header with no address or value info. (ReadOnly)
   IsReadable: boolean - Set to false if record contains an unreadable address. NOTE: This property will not be set until the value property is accessed at least once. (ReadOnly)
 
   Options: String set - a string enclosed by square brackets filled with the options seperated by a comma. Valid options are: moHideChildren, moActivateChildrenAsWell, moDeactivateChildrenAsWell, moRecursiveSetValue, moAllowManualCollapseAndExpand, moManualExpandCollapse, moAlwaysHideChildren

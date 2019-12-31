@@ -3253,9 +3253,13 @@ begin
 end;
 
 function lua_checkSynchronize(L: Plua_State): integer; cdecl;
+var timeout: integer=0;
 begin
   result:=0;
-  CheckSynchronize;
+  if lua_Gettop(L)>0 then
+    timeout:=lua_tointeger(L,1);
+
+  CheckSynchronize(timeout);
 end;
 
 function lua_queue(L: Plua_State): integer; cdecl;

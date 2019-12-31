@@ -312,7 +312,7 @@ begin
     debuggercs.enter;
 
     {$ifdef windows}
-    fields:=cfall;
+    fields:=cfall; //just for vehdebug
     {$endif};
 
 
