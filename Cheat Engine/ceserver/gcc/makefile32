@@ -1,0 +1,35 @@
+COMPILER  = gcc
+CFLAGS    =  -m32 -g -MMD -MP -Wall -Wextra -Winit-self -Wno-missing-field-initializers -Doff64_t=__off64_t 
+ifeq "$(shell getconf LONG_BIT)" "64"
+  LDFLAGS = -l:libz.so.1 -ldl -pthread
+else
+  LDFLAGS = -l:libz.so.1 -ldl -pthread
+endif
+LIBS      =
+INCLUDE   = -I./include
+TARGET    = ./bin/ceserver
+SRCDIR    = ./source
+ifeq "$(strip $(SRCDIR))" ""
+  SRCDIR  = .
+endif
+SOURCES   = $(wildcard $(SRCDIR)/*.c)
+OBJDIR    = ./obj
+ifeq "$(strip $(OBJDIR))" ""
+  OBJDIR  = .
+endif
+OBJECTS   = $(addprefix $(OBJDIR)/, $(notdir $(SOURCES:.c=.o)))
+DEPENDS   = $(OBJECTS:.o=.d)
+
+$(TARGET): $(OBJECTS) $(LIBS)
+	$(COMPILER) -m32 -o $@ $^ $(LDFLAGS)
+
+$(OBJDIR)/%.o: $(SRCDIR)/%.c
+	-mkdir -p $(OBJDIR)
+	$(COMPILER) $(CFLAGS) $(INCLUDE) -o $@ -c $<
+
+all: clean $(TARGET)
+
+clean:
+	-rm -f $(OBJECTS) $(DEPENDS) $(TARGET)
+
+-include $(DEPENDS)

@@ -382,8 +382,8 @@ printf("After wait 2. PID=%d\n", pid);
 
     //save the current state and set the state to what I need it to be
 #ifdef __i386__
-  struct pt_regs origregs;
-  struct pt_regs newregs;
+  struct user_regs_struct origregs;
+  struct user_regs_struct newregs;
 #endif
 
 #ifdef __x86_64__
