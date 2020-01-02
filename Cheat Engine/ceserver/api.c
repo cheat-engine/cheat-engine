@@ -44,7 +44,7 @@
 #include <signal.h>
 
 #ifndef __x86_64__
-#include <asm/signal.h>
+//#include <asm/signal.h>
 #endif
 
 
@@ -60,7 +60,7 @@
 
 #ifndef __x86_64__
 #include <linux/elf.h>
-#include <linux/uio.h>
+//#include <linux/uio.h>
 #endif
 
 
