@@ -63,12 +63,13 @@ function loadCEShare()
   miCESHARETopMenuItem.add(miLoginToSeeMoreOptions)
 
   local miPublishCheat=createMenuItem(MainForm)
-  miPublishCheat.Caption='Publish table'
+  miPublishCheat.Caption='Publish/Update table'
   miPublishCheat.OnClick=ceshare.PublishCheatClick
   miPublishCheat.Name='miPublishCheat';
   miPublishCheat.Visible=false
   miCESHARETopMenuItem.add(miPublishCheat)
   
+ --[[
   local miSeperator=createMenuItem(MainForm)
   miSeperator.Caption='-'
   miSeperator.Name='miCEShareUpdatePublicSeperator'
@@ -81,6 +82,7 @@ function loadCEShare()
   miUpdateCheat.Name='miUpdateCheat'
   miCESHARETopMenuItem.add(miUpdateCheat)
   miUpdateCheat.Visible=false
+  --]]
 
   --check requestsc
   

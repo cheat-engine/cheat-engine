@@ -16,7 +16,9 @@ uses
   {$endif}
   ;
 
+{$ifndef standalone}
 procedure initializeLuaInternet;
+{$endif}
 
 type
   TWinInternet=class
@@ -45,7 +47,7 @@ type
 
 implementation
 
-uses MainUnit2, lua, LuaClass, LuaObject, LuaHandler, URIParser;
+uses {$ifndef standalone}MainUnit2, lua, LuaClass, LuaObject, LuaHandler,{$endif} URIParser;
 
 {$ifndef windows}
 procedure TWinInternet.setHeader(s: string);
@@ -258,6 +260,8 @@ begin
   inherited destroy;
 end;
 
+{$ifndef standalone}
+
 function getInternet(L: Plua_State): integer; cdecl;
 begin
   if lua_gettop(l)>0 then
@@ -331,6 +335,7 @@ var
 
 initialization
   luaclass_register(TWinInternet, wininternet_addMetaData);
+{$endif}
 
 end.
 
