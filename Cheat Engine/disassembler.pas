@@ -11960,7 +11960,10 @@ begin
 
       $90 : begin
               description:='no operation';
-              lastdisassembledata.opcode:='nop';
+              if prefixsize>0 then
+                lastdisassembledata.opcode:='nop '+inttohexs(prefixsize+1,1)
+              else
+                lastdisassembledata.opcode:='nop';
             end;
 
       $91..$97:
