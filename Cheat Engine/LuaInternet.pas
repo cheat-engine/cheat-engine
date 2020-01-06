@@ -64,7 +64,7 @@ function TWinInternet.postURL(urlstring: string; urlencodedpostdata: string; res
 var response: tstrings;
 begin
   result:=false;
-  response:=tstrings.Create;
+  response:=tstringlist.Create;
   try
     internet.FormPost(urlstring,urlencodedpostdata,response);
     result:=true;
