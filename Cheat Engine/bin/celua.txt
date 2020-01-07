@@ -1828,7 +1828,7 @@ MemoryStream Class (Inheritance: Stream->Object)
 createMemoryStream()
 
 properties
-  Memory: Integer - The address in Cheat Engine's memory this stream is loaded (READONLY, tends to change)
+  Memory: Integer - The address in Cheat Engine's memory this stream is loaded (READONLY, tends to change on size change)
 
 methods
   loadFromFile(filename) : Replaces the contents in the memory stream with the contents of a file on disk
@@ -1979,7 +1979,8 @@ properties
   AllowIncrease: boolean - Allow value increasing, unfreeze will reset it to false
   AllowDecrease: boolean - Allow value decreasing, unfreeze will reset it to false
   Collapsed: boolean - Set to true to collapse this record or false to expand it. Use expand/collapse methods for recursive operations. 
-  IsGroupHeader: boolean - Set to true if the record was created as a Group Header with no address or value info. (ReadOnly)
+  IsGroupHeader: boolean - Set to true if the record was created as a Group Header with no address or value info. 
+  IsAddressGroupHeader: boolean - Set to true if the record was created as a Group Header with address.
   IsReadable: boolean - Set to false if record contains an unreadable address. NOTE: This property will not be set until the value property is accessed at least once. (ReadOnly)
 
   Options: String set - a string enclosed by square brackets filled with the options seperated by a comma. Valid options are: moHideChildren, moActivateChildrenAsWell, moDeactivateChildrenAsWell, moRecursiveSetValue, moAllowManualCollapseAndExpand, moManualExpandCollapse, moAlwaysHideChildren

@@ -55,41 +55,18 @@ function loadCEShare()
   miRequestCheats.Name='miRequestCheats'
   miCESHARETopMenuItem.add(miRequestCheats)  
 
-  local miLoginToSeeMoreOptions=createMenuItem(MainForm)
-  miLoginToSeeMoreOptions.Caption='Login to see more options (Like publish Table)'
-  miLoginToSeeMoreOptions.OnClick=ceshare.spawnLoginDialog
-  miLoginToSeeMoreOptions.Name='miLoginToSeeMoreOptions';
-  miLoginToSeeMoreOptions.Visible=true
-  miCESHARETopMenuItem.add(miLoginToSeeMoreOptions)
-
   local miPublishCheat=createMenuItem(MainForm)
   miPublishCheat.Caption='Publish/Update table'
   miPublishCheat.OnClick=ceshare.PublishCheatClick
   miPublishCheat.Name='miPublishCheat';
   miPublishCheat.Visible=false
   miCESHARETopMenuItem.add(miPublishCheat)
-  
- --[[
-  local miSeperator=createMenuItem(MainForm)
-  miSeperator.Caption='-'
-  miSeperator.Name='miCEShareUpdatePublicSeperator'
-  miSeperator.Visible=false
-  miCESHARETopMenuItem.add(miSeperator)
-  
-  local miUpdateCheat=createMenuItem(MainForm)
-  miUpdateCheat.Caption='Update table'
-  miUpdateCheat.OnClick=ceshare.UpdateCheatClick
-  miUpdateCheat.Name='miUpdateCheat'
-  miCESHARETopMenuItem.add(miUpdateCheat)
-  miUpdateCheat.Visible=false
-  --]]
 
   --check requestsc
   
   miCESHARETopMenuItem.OnClick=function(s)      
     loggedin=ceshare.LoggedIn or false
-    miLoginToSeeMoreOptions.Visible=not loggedin
-    miPublishCheat.Visible=loggedin
+    miPublishCheat.Visible=true
     
     local canUpdate=false    
     if loggedin and ceshare.LoadedTable then
@@ -102,16 +79,20 @@ function loadCEShare()
         canUpdate=ceshare.LoadedTable.Permissions.canUpdate
       end
     end
-    miSeperator.Visible=canUpdate
-    miUpdateCheat.Visible=canUpdate
+
   end
 
   local originalLoadTable=loadTable
   loadTable=function(streamorfilename,merge,ignoreluascriptdialog)
-    ceshare.ClearCredentials() --stupid if a user loads an unknown table with credentials stored but whatever
+   
+    if ceshare.settings.Value['logoutWhenLoadingTables']~='0' then 
+      ceshare.ClearCredentials() 
+    end
+    
+
+    
     return originalLoadTable(streamorfilename,merge,ignoreluascriptdialog) 
   end
-  
   
   
 end

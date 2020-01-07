@@ -1,13 +1,69 @@
+local function isWindowVisible(winhandle)
+  return executeCodeLocal('IsWindowVisible',winhandle)~=0
+end
+
+local function getBaseParentFromWindowHandle(winhandle)
+  local i=0
+  local last=winhandle
+
+  while winhandle and (winhandle~=0) and (i<10000) do
+    last=winhandle
+    winhandle=getWindow(winhandle, GW_HWNDOWNER)
+    i=i+1
+  end;
+
+  return last
+end
+
+function ceshare.getProcessTitle(pid)
+  local w=getWindow(getForegroundWindow(), GW_HWNDFIRST)
+
+  local bases={}
+
+  while w and (w~=0) do
+    if getWindowProcessID(w)==pid then
+      if isWindowVisible(w) then
+        local h=getBaseParentFromWindowHandle(w)
+        local c=getWindowCaption(h)
+        if isWindowVisible(h) and (c~='') then
+          bases[h]=c
+        end
+      end
+    end
+    w=getWindow(w,GW_HWNDNEXT)
+  end
+
+
+  for h,n in pairs(bases) do
+    return n --just hope for the best...
+  end
+end
+
+function ceshare.getCurrentProcessTitle()
+  return ceshare.getProcessTitle(getOpenedProcessID())
+end
+
+
+
 function ceshare.Delete(entry)
   if entry then
     local r=ceshare.QueryXURL('DeleteTable.php','id='..entry.ID)  
     if r then
+      if ceshare.CheatBrowserFrm and ceshare.CheatBrowserFrm.Visible then
+        ceshare.CheckForCheatsClick()
+      end
+      
+      if ceshare.UpdateOrNewFrm and ceshare.UpdateOrNewFrm.Visible then
+        ceshare.PublishCheatClick()
+      end      
       showMessage('Table successfuly deleted') --meanie
     end
   end
 end
 
 function ceshare.PublishCheat(data,title,processname, headermd5, versionindependent, description, public, fullfilehash, secondarymodulename, secondaryfullfilehashmd5)
+
+
   local parameters=''
    
   if (processname==nil) or (processname=='') then
@@ -30,12 +86,7 @@ function ceshare.PublishCheat(data,title,processname, headermd5, versionindepend
     return
   end
   
-  if ceshare.LoggedIn==nil then
-    if not ceshare.spawnLoginDialog() then 
-      return
-    end
-  end
-  
+
 
   parameters='data='..ceshare.url_encode(data)
   parameters=parameters..'&title='..ceshare.url_encode(title)
@@ -65,8 +116,6 @@ function ceshare.PublishCheat(data,title,processname, headermd5, versionindepend
     showMessage('Thank you, your table has been published');
     return true
   end
-  
-  ceshare.ClearCredentialsIfNeeded()  
 end
 
 function ceshare.UpdateCheat(id,data,title,headermd5, versionindependent, description, public, fullfilehash, secondarymodulename, secondaryfullfilehashmd5)
@@ -119,19 +168,148 @@ function ceshare.UpdateCheat(id,data,title,headermd5, versionindependent, descri
 
 end
 
-function ceshare.UpdateCheatClick(sender)
-  ceshare.PublishCheatClick(sender,ceshare.LoadedTable )
-end
-
 function ceshare.PublishCheatClick(sender, cheatinfo) 
-  if (cheatinfo==nil) and ceshare.LoadedTable and (messageDialog('Are you sure you wish to publish a new table instead of updating the existing one?', mtConfirmation, mbYes, mbNo)~=mrYes) then
-    return
+  --if not logged in, log in now
+  if ceshare.LoggedIn==nil then
+    if not ceshare.spawnLoginDialog() then 
+      return
+    end
   end
   
-  --if (cheatinfo~=nil) and (cheatinfo.HeaderMD5:lower()~=ceshare.PublishCheatFrm.lblHeaderMD5.Text.lower()) then
-  --  if messageDialog('The header has changed. Isn\'t it better to do a new table?', mtConfirmation,mbYes,mbNo)~=mrYes then return end
-  --end
+  if cheatinfo then
+    ceshare.publishOrUpdate(cheatinfo)  
+    return    
+  end
+  
+  --spawn a window that shows all tables with this processname that the current user has modify rights to
+ 
+  if ceshare.UpdateOrNewFrm==nil then
+    local f=createFormFromFile(ceshare.formpath..'UpdateOrNew.FRM') 
+    
+    f.AutoSize=true
+    f.AutoSize=false
+    
+    local h=f.lvCheats.Canvas.getTextHeight('XXX')*10
+    local hdelta=h-f.lvCheats.Height
+    
+    if hdelta>0 then
+      f.height=f.height+hdelta      
+    end
+    
+    local headerwidth=0
+    local i
+    for i=0,f.lvCheats.Columns.Count-1 do
+      local w=f.lvCheats.Columns[i].Width
+      local neededw=f.Canvas.getTextWidth(' '..f.lvCheats.Columns[i].Caption..' ')
+      if w<neededw then
+        f.lvCheats.Columns[i].Autosize=false
+        f.lvCheats.Columns[i].Width=neededw
+        w=neededw
+      end
+      headerwidth=headerwidth+w    
+      
+    end
+    f.ClientWidth=headerwidth+10
+    
+    f.lvCheats.OnDblClick=function(s)
+      f.btnChoose.doClick()
+    end
+    
+    f.rbUpdate.OnChange=function(s)
+      f.lvCheats.Enabled=s.Checked
+      f.btnChoose.Caption='Update table'
+    end
+    
+    f.rbPublish.OnChange=function(s)      
+      f.btnChoose.Caption='Publish new table'
+    end    
+   
+    f.btnChoose.OnClick=function(s)
+      local cheatinfo
+      
+      if f.rbUpdate.checked then
+        local itemindex=f.lvCheats.ItemIndex
+            
+        if itemindex==-1 and f.rbUpdate.checked then
+          messageDialog('Please select a cheattable to update', mtError, mbOK);
+          return
+        end
+        
+        if itemindex<#ceshare.CurrentUpdateQuery then
+          cheatinfo=ceshare.CurrentUpdateQuery[itemindex+1]                
+          ceshare.publishOrUpdate(cheatinfo)          
+        else
+          messageDialog('Invalid background update query list', mtError, mbOK);
+        end
+      else
+        ceshare.publishOrUpdate()
+      end     
+      
+      
+      f.hide()
+    end;
 
+    
+    ceshare.UpdateOrNewFrm=f
+  end;
+  
+  
+  
+  --get the table list of entries the user can change
+  
+  ceshare.CurrentUpdateQuery=ceshare.QueryCurrentProcess(true)
+  ceshare.UpdateOrNewFrm.rbUpdate.checked=true
+  ceshare.UpdateOrNewFrm.rbUpdate.OnChange(ceshare.UpdateOrNewFrm.rbUpdate)
+  
+  
+  if ceshare.CurrentUpdateQuery==nil or #ceshare.CurrentUpdateQuery==0 then
+    --skip to publish instantly
+    ceshare.UpdateOrNewFrm.rbPublish.Checked=true
+    ceshare.UpdateOrNewFrm.btnChoose.doClick()
+  else
+    ceshare.UpdateOrNewFrm.lvCheats.clear()
+    local i
+    for i=1,#ceshare.CurrentUpdateQuery do 
+      local li=ceshare.UpdateOrNewFrm.lvCheats.Items.add()
+      li.Caption=ceshare.CurrentUpdateQuery[i].Title
+      local owner=ceshare.CurrentUpdateQuery[i].Owner
+      local editor=ceshare.CurrentUpdateQuery[i].LastEditor
+      if editor==owner then 
+        li.SubItems.add(owner)
+      else
+        li.SubItems.add(editor..' (owner:'..owner..')')
+      end
+      
+      if ceshare.CurrentUpdateQuery[i].Public then
+        li.SubItems.add('     yes     ')
+      else
+        li.SubItems.add('     ')
+      end
+      
+      if ceshare.CurrentUpdateQuery[i].VersionIndependent then
+        li.SubItems.add('      yes      ')
+      else
+        li.SubItems.add('             ')
+      end 
+
+      if ceshare.CurrentUpdateQuery[i].Signed then
+        li.SubItems.add('     yes     ')
+      else    
+        li.SubItems.add('           ')  --signed
+      end
+      
+      if (ceshare.LoadedTable) and (ceshare.LoadedTable.ID==ceshare.CurrentUpdateQuery[i].ID) then
+        --select the table if a table was loaded and you have access to update
+        li.Selected=true
+        ceshare.UpdateOrNewFrm.lvCheats.ItemIndex=li.Index
+      end         
+    end
+    ceshare.UpdateOrNewFrm.show()    
+  end
+  
+end
+
+function ceshare.publishOrUpdate(cheatinfo) --cheatinfo isa set if an update
   if ceshare.PublishCheatFrm==nil then
     ceshare.PublishCheatFrm=createFormFromFile(ceshare.formpath..'PublishCheat.frm')    
     --configure base state and add events
@@ -214,9 +392,9 @@ function ceshare.PublishCheatClick(sender, cheatinfo)
     ceshare.PublishCheatFrm.pnlModuleFullHash.visible=false
     ceshare.PublishCheatFrm.lblFullModuleHeaderMD5Text.visible=false
     ceshare.PublishCheatFrm.lblFullModuleHeaderMD5.visible=false    
-    
+
     ceshare.PublishCheatFrm.cbPublic.checked=false
-    
+
     ceshare.Position='poScreenCenter'
     
     --position and size saving
@@ -242,7 +420,7 @@ function ceshare.PublishCheatClick(sender, cheatinfo)
     if newwidth~='' then ceshare.PublishCheatFrm.Width=newwidth end
     if newheight~='' then ceshare.PublishCheatFrm.Height=newheight end    
   end
-
+  
   ceshare.PublishCheatFrm.btnPublish.OnClick=function(sender)   
     if (AddressList.Count==0) and 
        (getApplication().AdvancedOptions.CodeList2.Items.Count==0) and
@@ -250,7 +428,7 @@ function ceshare.PublishCheatClick(sender, cheatinfo)
       if messageDialog('This looks like an empty table. Are you sure?',mtWarning,mbYes,mbNo)~=mrYes then return end
     end
 
-    if ceshare.PublishCheatFrm.cbPublic.Checked then
+    if ceshare.PublishCheatFrm.cbPublic.Enabled and ceshare.PublishCheatFrm.cbPublic.Checked then
       if messageDialog('Are you sure you wish to let \'Everyone\' overwrite your table in the ceshare system ?',mtWarning,mbYes,mbNo)~=mrYes then return end
     end
        
@@ -318,7 +496,9 @@ function ceshare.PublishCheatClick(sender, cheatinfo)
        
     s.destroy()
   
-  end  
+  end      
+
+  
   
   --fill in header and processname
   local headermd5
@@ -330,15 +510,28 @@ function ceshare.PublishCheatClick(sender, cheatinfo)
   for i=1,#ml do    
     ceshare.PublishCheatFrm.cbModuleName.Items.add(ml[i].Name)
   end
-  
+
+
+      
   if cheatinfo then
     ceshare.PublishCheatFrm.Caption='Update table'
     ceshare.PublishCheatFrm.edtTitle.Text=cheatinfo.Title
+    
+    if cheatinfo.public then
+      ceshare.PublishCheatFrm.cbPublic.checked=true
+      ceshare.PublishCheatFrm.cbPublic.enabled=false
+    else
+      ceshare.PublishCheatFrm.cbPublic.checked=false
+      ceshare.PublishCheatFrm.cbPublic.enabled=true    
+    end    
   else
+    ceshare.PublishCheatFrm.cbPublic.checked=false
+    ceshare.PublishCheatFrm.cbPublic.enabled=true
+  
     ceshare.PublishCheatFrm.Caption='Publish new table'
-    local wl=getWindowlist()[getOpenedProcessID()]
-    if wl and wl[1] then
-      ceshare.PublishCheatFrm.edtTitle.Text=wl[1]
+    local pt=ceshare.getCurrentProcessTitle()
+    if pt then
+      ceshare.PublishCheatFrm.edtTitle.Text=pt
     end
   end
 
@@ -369,6 +562,5 @@ function ceshare.PublishCheatClick(sender, cheatinfo)
   end
 
   ceshare.PublishCheatFrm.show() --clicking publish will do the rest
-  
-
+  --]]
 end

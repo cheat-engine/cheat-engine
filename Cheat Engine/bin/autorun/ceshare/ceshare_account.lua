@@ -1,7 +1,16 @@
 
 function ceshare.login(username,password)
-  local i=ceshare.getInternet()  
-  local r=i.postURL(ceshare.base..'login.php','username='..ceshare.url_encode(username)..'&password='..ceshare.url_encode(password))
+  local i=ceshare.getInternet()
+  local parameters='';
+  if username then
+    parameters=parameters..'username='..ceshare.url_encode(username)
+  end 
+  
+  if password then
+    parameters=parameters..'&password='..ceshare.url_encode(password)
+  end
+  
+  local r=i.postURL(ceshare.base..'login.php',parameters)
   if (r:sub(1,2)=='<?') then
     local s=xmlParser:ParseXmlText(r)
     if s then
@@ -22,11 +31,16 @@ function ceshare.login(username,password)
 end
 
 function ceshare.logout()
-  ceshare.QueryXURL('logout.php')
+  print('logout')
+  local i=ceshare.getInternet()
+  i.postURL(ceshare.base..'logout.php')
   ceshare.LoggedIn=false
 end
 
 function ceshare.spawnLoginDialog() --I could also use a frm for this, but just showing how to use pure lua for a dialog (designer is still easier though)
+  --check if already logged in (cookies)
+  if ceshare.login() then return true end
+  
   if ceshare.loginform==nil then 
     f=createForm(false)
     lblUsername=createLabel(f)
@@ -34,7 +48,7 @@ function ceshare.spawnLoginDialog() --I could also use a frm for this, but just 
     lblPassword=createLabel(f)
     edtPassword=createEdit(f)
     lblRegister=createLabel(f)
-    cbSaveCredentials=createCheckBox(f)
+    cbLogoutWhenLoadingTables=createCheckBox(f)
 
     pnlBtns=createPanel(f)
     pnlBtns.BevelOuter='bvNone'
@@ -124,18 +138,16 @@ function ceshare.spawnLoginDialog() --I could also use a frm for this, but just 
     pnlBtns.BorderSpacing.Top=6
     pnlBtns.BorderSpacing.Bottom=4
     
-    cbSaveCredentials.Caption='Store login until restart'
-    cbSaveCredentials.Name='savecredentials'
-    cbSaveCredentials.AnchorSideTop.Control=pnlBtns
-    cbSaveCredentials.AnchorSideTop.Side=asrBottom    
-    cbSaveCredentials.AnchorSideLeft.Control=lblUsername
-    cbSaveCredentials.AnchorSideLeft.Side=asrLeft
+    cbLogoutWhenLoadingTables.Caption='Logout when loading ceshare tables'
+    cbLogoutWhenLoadingTables.Name='cbLogoutWhenLoadingTables'
+    cbLogoutWhenLoadingTables.AnchorSideTop.Control=pnlBtns
+    cbLogoutWhenLoadingTables.AnchorSideTop.Side=asrBottom    
+    cbLogoutWhenLoadingTables.AnchorSideLeft.Control=lblUsername
+    cbLogoutWhenLoadingTables.AnchorSideLeft.Side=asrLeft
     
-    cbSaveCredentials.Hint='When checked CE will store the username, password and session info in memory. Warning: DO NOT LOAD UNKNOWN TABLES/LUA SCRIPTS if you use this'
-    cbSaveCredentials.ShowHint=true
-    
-  
-    cbSaveCredentials.Checked=ceshare.settings.Value.SaveCredentials=='1'
+    cbLogoutWhenLoadingTables.Hint='When checked you will get logged out when loading a ceshare table. This to prevent malicious tables from using your account';
+    cbLogoutWhenLoadingTables.ShowHint=true    
+    cbLogoutWhenLoadingTables.Checked=ceshare.settings.Value['logoutWhenLoadingTables']~='0'
     
 
     f.OnClose=nil --by default forms created with createForm will have an OnClose that will free themself on close. That's not needed in this case where the form needs to be reused
@@ -148,15 +160,15 @@ function ceshare.spawnLoginDialog() --I could also use a frm for this, but just 
   if ceshare.loginform.showModal()==mrOK then
     local username=ceshare.loginform.username.text
     local password=ceshare.loginform.password.text
+
+    ceshare.loginform.username.text=''
+    ceshare.loginform.password.text=''    
     
-  
-    
-    if ceshare.loginform.savecredentials.Checked==false then
-      ceshare.loginform.username.text=''
-      ceshare.loginform.password.text=''
-      ceshare.settings.Value.SaveCredentials='0'
+    local v
+    if ceshare.loginform.cbLogoutWhenLoadingTables.checked then    
+      ceshare.settings.Value['logoutWhenLoadingTables']='1'
     else
-      ceshare.settings.Value.SaveCredentials='1'
+      ceshare.settings.Value['logoutWhenLoadingTables']='0'
     end
     
     return ceshare.login(username, password)  
@@ -175,11 +187,5 @@ function ceshare.ClearCredentials()
     ceshare.loginform.username.Text=''
     ceshare.loginform.destroy()
     ceshare.loginform=nil
-  end
-end
-
-function ceshare.ClearCredentialsIfNeeded()
-  if ceshare.loginform and (ceshare.loginform.savecredentials.Checked==false) then
-    ceshare.ClearCredentials()
   end
 end

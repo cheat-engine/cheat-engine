@@ -9,7 +9,7 @@ function ceshare.enumModules2()
   return r
 end
 
-function ceshare.QueryProcessCheats(processname, headermd5)
+function ceshare.QueryProcessCheats(processname, headermd5, updatableOnly)
   local modulelist=ceshare.enumModules2()
   local result=nil
   --local url=ceshare.base..'QueryProcessCheats.php'
@@ -24,6 +24,10 @@ function ceshare.QueryProcessCheats(processname, headermd5)
         parameters=parameters..'&secondaryidentifier='..ceshare.url_encode(param)
       end
     end
+  end
+  
+  if updatableOnly then
+    parameters=parameters..'&updatableOnly=1';
   end
 
   
@@ -47,10 +51,12 @@ function ceshare.QueryProcessCheats(processname, headermd5)
               entry.Title=CheatEntry["@title"]
               entry.HeaderMD5=CheatEntry["@headermd5"]
               entry.Owner=CheatEntry["@username"]
+              entry.LastEditor=CheatEntry["@editorname"]
               entry.VersionIndependent=CheatEntry["@versionIndependent"]=='1'
               entry.Public=CheatEntry["@public"]=='1'
               entry.Rating=tonumber(CheatEntry["@ratingtotal"]) or 0
               entry.RatingCount=tonumber(CheatEntry["@ratingcount"]) or 0
+              entry.AccessCount=tonumber(CheatEntry["@accesscount"]) or 0
               entry.LastEditTime=CheatEntry["@lastEditTime"]
               entry.FullFileHash=CheatEntry["@fullfilehashmd5"]
               entry.SecondaryModuleName=CheatEntry["@secondarymodulename"]
@@ -172,13 +178,13 @@ function ceshare.getCurrentProcessHeaderMD5()
 
 end
 
-function ceshare.QueryCurrentProcess()
+function ceshare.QueryCurrentProcess(updatableOnly)
   local processnamemd5
   local headermd5
   headermd5=ceshare.getCurrentProcessHeaderMD5()
 
   if headermd5 then
-    return ceshare.QueryProcessCheats(process, headermd5)
+    return ceshare.QueryProcessCheats(process, headermd5, updatableOnly)
   end
 end
 
@@ -253,9 +259,6 @@ function ceshare.CheckForCheatsClick(s)
       
         ceshare.CheatBrowserFrm.close()
         ceshare.LoadedTable=ceshare.CurrentQuery[index+1]
-        
-        MainForm.miCEShareUpdatePublicSeperator.visible=true
-        MainForm.miUpdateCheat.Visible=true        
       end
     end
     
@@ -364,7 +367,7 @@ function ceshare.CheckForCheatsClick(s)
     ceshare.CheatBrowserFrm.miDeleteTable.OnClick=function(s)
       local index=ceshare.CheatBrowserFrm.lvCheats.ItemIndex
       if index~=-1 then
-        ceshare.DeleteTable(entry)
+        ceshare.Delete(entry)
       end    
     end    
     
@@ -421,11 +424,12 @@ function ceshare.CheckForCheatsClick(s)
     
   end
 
+  --get the table list
   ceshare.CheatBrowserFrm.lvCheats.clear()
   ceshare.CurrentQuery=ceshare.QueryCurrentProcess()
 
-  if ceshare.CurrentQuery==nil then
-    messageDialog('Sorry, but there are currently no tables for this process. Perhaps you can be the first',mtError,mbOK)
+  if ceshare.CurrentQuery==nil or #ceshare.CurrentQuery==0 then
+    messageDialog('Sorry, but there are currently no tables for this target. Perhaps you can be the first',mtError,mbOK)
     return
   end
 
@@ -434,7 +438,14 @@ function ceshare.CheckForCheatsClick(s)
   
     local li=ceshare.CheatBrowserFrm.lvCheats.Items.add()
     li.Caption=ceshare.CurrentQuery[i].Title
-    li.SubItems.add(ceshare.CurrentQuery[i].Owner);
+    local owner=ceshare.CurrentQuery[i].Owner
+    local editor=ceshare.CurrentQuery[i].LastEditor
+    if editor==owner then 
+      li.SubItems.add(owner)
+    else
+      li.SubItems.add(editor..' (owner='..owner..')')
+    end
+      
     if ceshare.CurrentQuery[i].Public then
       li.SubItems.add('     yes     ')
     else
