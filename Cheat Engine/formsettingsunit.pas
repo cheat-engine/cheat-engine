@@ -295,6 +295,8 @@ type
 
     unexpectedExceptionHandlerChanged: boolean;
 
+    hasNoteAboutDebuggerInterfaces: boolean;
+
     procedure SetAssociations;
     procedure LanguageMenuItemClick(Sender: TObject);
     {$ifdef darwin}
@@ -321,6 +323,7 @@ type
                           end;
 
     procedure cleanupLanguageList;
+    procedure setNoteAboutDebuggerInterfaces;
     procedure ScanForLanguages;
 
   published
@@ -363,6 +366,15 @@ begin
   end;
 end;
 
+
+procedure TFormSettings.setNoteAboutDebuggerInterfaces;
+begin
+  if hasNoteAboutDebuggerInterfaces=false then
+  begin
+    rbgDebuggerInterface.caption:=rbgDebuggerInterface.caption+' '+ rsWontHaveAnyEffectUntilYouOpenANewProcess;
+    hasNoteAboutDebuggerInterfaces:=true;
+  end;
+end;
 
 procedure TFormSettings.SetAssociations; //obsolete, done from installer
 begin

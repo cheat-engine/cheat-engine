@@ -81,6 +81,7 @@ resourcestring
   rsNoHotkey = 'No hotkey';
   rsEnableDisableSpeedhack = 'Enable/Disable speedhack.';
   rsM2NoHotkey = ' (No hotkey)';
+  rsWontHaveAnyEffectUntilYouOpenANewProcess = '(Won''t have any effect until you (re)open a process)';
 
 
   var

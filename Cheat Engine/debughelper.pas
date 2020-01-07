@@ -2702,10 +2702,7 @@ end;
 
 procedure TDebuggerThread.lockSettings;
 begin
-  //prevent the user from changing this setting till next restart
-  formsettings.cbUseWindowsDebugger.enabled:=false;
-  formsettings.cbUseVEHDebugger.enabled:=false;
-  formsettings.cbKDebug.enabled:=false;
+  formSettings.setNoteAboutDebuggerInterfaces;
 end;
 
 procedure TDebuggerthread.defaultConstructorcode;
