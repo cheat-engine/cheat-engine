@@ -248,6 +248,32 @@ end;
 
 //----------------------------
 
+function lastChanceAllocPrefered(prefered: ptruint; size: integer; protection:dword): ptruint;
+var
+  starttime: ptruint;
+  distance: qword;
+  address: ptruint;
+begin
+  starttime:=gettickcount64;
+
+  address:=0;
+  distance:=0;
+  if prefered mod systeminfo.dwAllocationGranularity>0 then
+    prefered:=prefered-(prefered mod systeminfo.dwAllocationGranularity);
+
+  while (address=0) and (gettickcount64<starttime+10000) and (distance<$80000000) do
+  begin
+    address:=ptrUint(virtualallocex(processhandle,pointer(prefered+distance),size, MEM_RESERVE or MEM_COMMIT,protection));
+    if (address=0) and (distance>0) then
+      address:=ptrUint(virtualallocex(processhandle,pointer(prefered-distance),size, MEM_RESERVE or MEM_COMMIT,protection));
+
+    if address=0 then
+      inc(distance, systeminfo.dwAllocationGranularity);
+  end;
+
+  result:=address;
+end;
+
 procedure tokenize(input: string; tokens: tstringlist);
 var i: integer;
     a: integer;
@@ -2832,10 +2858,15 @@ begin
               end;
 
               if allocs[j].address=0 then
+                allocs[j].address:=lastChanceAllocPrefered(prefered,x, protection);
+
+              if allocs[j].address=0 then
               begin
                 allocs[j].address:=ptrUint(virtualallocex(processhandle,nil,x, MEM_RESERVE or MEM_COMMIT,protection));
                 OutputDebugString(rsFailureToAllocateMemory+' 2');
               end;
+
+              if allocs[j].address=0 then raise EAssemblerException.create(rsFailureToAllocateMemory);
 
               //adjust the addresses of entries that are part of this block
               for k:=j+1 to i-1 do
@@ -2882,9 +2913,12 @@ begin
         end;
 
         if allocs[j].address=0 then
+          allocs[j].address:=lastChanceAllocPrefered(prefered,x, protection);
+
+        if allocs[j].address=0 then
           allocs[j].address:=ptrUint(virtualallocex(processhandle,nil,x, MEM_RESERVE or MEM_COMMIT,protection));
 
-        if allocs[j].address=0 then raise EAssemblerException.create(rsFailureToAllocateMemory+' 4');
+        if allocs[j].address=0 then raise EAssemblerException.create(rsFailureToAllocateMemory);
 
         for i:=j+1 to length(allocs)-1 do
           allocs[i].address:=allocs[i-1].address+allocs[i-1].size;
