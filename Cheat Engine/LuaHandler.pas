@@ -12086,6 +12086,12 @@ begin
   {$ENDIF}
 end;
 
+function lua_getOperatingSystem(L: PLua_state): integer; cdecl;
+begin
+  lua_pushinteger(L,{$ifdef windows}0{$else}1{$endif});
+  result:=1;
+end;
+
 procedure InitializeLua;
 var
   s: tstringlist;
@@ -12722,6 +12728,8 @@ begin
 
     lua_register(L, 'enumExports', lua_enumExports);
     lua_register(L, 'duplicateHandle', lua_duplicateHandle);
+
+    lua_register(L, 'getOperatingSystem', lua_getOperatingSystem);
 
 
     initializeLuaRemoteThread;
