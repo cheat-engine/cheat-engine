@@ -9726,19 +9726,19 @@ begin
         end;
 
         case valuetype of
-          0: pqword(ptruint(paramstart)+(i-2)*sizeof(pointer))^:=lua_tointeger(L,i);
-          1: psingle(ptruint(paramstart)+(i-2)*sizeof(pointer))^:=lua_tonumber(L,i);
-          2: pdouble(ptruint(paramstart)+(i-2)*sizeof(pointer))^:=lua_tonumber(L,i);
+          0: pqword(ptruint(paramstart)+(i-2)*sizeof(pointer))^:=lua_tointeger(L,-1);
+          1: psingle(ptruint(paramstart)+(i-2)*sizeof(pointer))^:=lua_tonumber(L,-1);
+          2: pdouble(ptruint(paramstart)+(i-2)*sizeof(pointer))^:=lua_tonumber(L,-1);
           3:
           begin
-            ts[i-2]:=Lua_ToString(L,i);
+            ts[i-2]:=Lua_ToString(L,-1);
             pqword(ptruint(paramstart)+(i-2)*sizeof(pointer))^:=ptruint(pchar(ts[i-2]));
             valuetype:=0;
           end;
 
           4:
           begin
-            tws[i-2]:=Lua_ToString(L,i);
+            tws[i-2]:=Lua_ToString(L,-1);
             pqword(ptruint(paramstart)+(i-2)*sizeof(pointer))^:=ptruint(pwidechar(tws[i-2]));
             valuetype:=0;
           end;
