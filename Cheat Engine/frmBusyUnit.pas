@@ -153,12 +153,8 @@ begin
   end;
 end;
 
-var zqwex: integer;
 initialization
-  if zqwex<>0 then
-  asm
-  nop
-  end;
+
 
 end.
 

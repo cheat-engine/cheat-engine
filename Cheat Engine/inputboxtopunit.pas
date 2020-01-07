@@ -166,6 +166,8 @@ begin
     end;
   end;
 
+  Constraints.MinWidth:=panel1.Width+8;
+
 end;
 
 procedure TInputboxTop.Timer1Timer(Sender: TObject);

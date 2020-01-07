@@ -11,14 +11,16 @@ object InputboxTop: TInputboxTop
   FormStyle = fsStayOnTop
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '1.6.4.0'
+  LCLVersion = '2.0.0.4'
   object Label1: TLabel
-    Left = 0
+    Left = 3
     Height = 15
     Top = 0
-    Width = 283
+    Width = 277
     Align = alTop
     Alignment = taCenter
+    BorderSpacing.Left = 3
+    BorderSpacing.Right = 3
     Caption = 'Label1'
     ParentColor = False
   end
