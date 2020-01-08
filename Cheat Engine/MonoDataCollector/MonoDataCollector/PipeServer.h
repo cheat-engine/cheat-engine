@@ -41,6 +41,7 @@
 #define MONOCMD_GETVTABLEFROMCLASS 35
 #define MONOCMD_GETMETHODPARAMETERS 36
 #define MONOCMD_ISCLASSGENERIC 37
+#define MONOCMD_ISIL2CPP 38
 
 
 typedef struct MonoType;
@@ -168,7 +169,19 @@ typedef void* (__cdecl *MONO_OBJECT_UNBOX)(void *obj);
 typedef void* (__cdecl *MONO_CLASS_GET_TYPE)(void *klass);
 
 
+//il2cpp:
+typedef UINT_PTR* (__cdecl *IL2CPP_DOMAIN_GET_ASSEMBLIES)(void * domain, SIZE_T *size);
 
+typedef int(__cdecl *IL2CPP_IMAGE_GET_CLASS_COUNT)(void* image);
+typedef void*(__cdecl *IL2CPP_IMAGE_GET_CLASS)(void *image, int index);
+
+typedef char*(__cdecl *IL2CPP_TYPE_GET_NAME)(void* ptype);
+typedef char*(__cdecl *IL2CPP_TYPE_GET_ASSEMBLY_QUALIFIED_NAME)(void* ptype);
+
+typedef int(__cdecl *IL2CPP_METHOD_GET_PARAM_COUNT)(void* method);
+typedef char*(__cdecl *IL2CPP_METHOD_GET_PARAM_NAME)(void *method, int index);
+typedef void*(__cdecl *IL2CPP_METHOD_GET_PARAM)(void *method, int index);
+typedef void*(__cdecl *IL2CPP_METHOD_GET_RETURN_TYPE)(void *method);
 
 
 
@@ -282,7 +295,22 @@ private:
 	MONO_RUNTIME_INVOKE mono_runtime_invoke;
 	MONO_RUNTIME_OBJECT_INIT mono_runtime_object_init;
 
+	//il2cpp
+	IL2CPP_DOMAIN_GET_ASSEMBLIES il2cpp_domain_get_assemblies;
+
+	IL2CPP_IMAGE_GET_CLASS_COUNT il2cpp_image_get_class_count;
+	IL2CPP_IMAGE_GET_CLASS il2cpp_image_get_class;
+
+	IL2CPP_TYPE_GET_NAME il2cpp_type_get_name;
+	IL2CPP_TYPE_GET_ASSEMBLY_QUALIFIED_NAME il2cpp_type_get_assembly_qualified_name;
+
+	IL2CPP_METHOD_GET_PARAM_COUNT il2cpp_method_get_param_count;
+	IL2CPP_METHOD_GET_PARAM_NAME il2cpp_method_get_param_name;
+	IL2CPP_METHOD_GET_PARAM il2cpp_method_get_param;
+	IL2CPP_METHOD_GET_RETURN_TYPE il2cpp_method_get_return_type;
+
 	BOOL attached;
+	BOOL il2cpp;
 
 	void CreatePipeandWaitForconnect(void);
 
@@ -323,6 +351,7 @@ private:
 	void Object_New();
 	void Object_Init();
 	void IsGenericClass();
+	void IsIL2CPP();
 
 public:
 	CPipeServer(void);
@@ -332,6 +361,7 @@ public:
 
 	char* ReadString(void);
 	void WriteString(const char*);
+	void WriteString1(const char*);
 	void FreeString(char*);
 
 	void *ReadObjectArray(void* domain);

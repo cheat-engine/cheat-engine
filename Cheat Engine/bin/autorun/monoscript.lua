@@ -43,6 +43,7 @@ MONOCMD_OBJECT_INIT=34
 MONOCMD_GETVTABLEFROMCLASS=35
 MONOCMD_GETMETHODPARAMETERS=36
 MONOCMD_ISCLASSGENERIC=37
+MONOCMD_ISIL2CPP=38
 
 
 
@@ -238,7 +239,7 @@ ret
   --wait till attached
   local timeout=getTickCount()+5000;
   while (monopipe==nil) and (getTickCount()<timeout) do
-    monopipe=connectToPipe('cemonodc_pid'..getOpenedProcessID(),3000)
+    monopipe=connectToPipe('cemonodc_pid'..getOpenedProcessID() ) --,3000)
   end
 
   if (monopipe==nil) then
@@ -292,6 +293,8 @@ ret
   end
   
   StructureElementCallbackID=registerStructureAndElementListCallback(mono_StructureListCallback, mono_ElementListCallback)
+
+  monopipe.IL2CPP=mono_isil2cpp()
 
   return monoBase
 end
@@ -577,7 +580,8 @@ function mono_image_enumClasses(image)
       classes[j].class=c 
       local classnamelength=monopipe.readWord()
       if classnamelength>0 then
-        classes[j].classname=monopipe.readString(classnamelength)
+        local n=monopipe.readString(classnamelength)
+        classes[j].classname=n
       else
         classes[j].classname=''
       end
@@ -604,6 +608,16 @@ function mono_class_isgeneric(class)
   monopipe.writeByte(MONOCMD_ISCLASSGENERIC)
   monopipe.writeQword(class)
 
+  result=monopipe.readByte()~=0 
+
+  monopipe.unlock()
+  return result;
+end
+
+function mono_isil2cpp(class)
+  local result=''
+  monopipe.lock()
+  monopipe.writeByte(MONOCMD_ISIL2CPP)
   result=monopipe.readByte()~=0 
 
   monopipe.unlock()
@@ -1481,10 +1495,32 @@ function mono_method_getSignature(method)
       parameternames[i]='param'..i
     end
   end
+  
+  if monopipe.IL2CPP then
+    result=''
+    
+    for i=1,paramcount do
+      local typenamelength=monopipe.readWord()
+      local typename
+      if typenamelength>0 then
+        typename=monopipe.readString(typenamelength)
+      else
+        typename='<undefined>'
+      end  
 
-
-  local resultlength=monopipe.readWord();
-  result=monopipe.readString(resultlength);
+      result=result..typename
+      if i<paramcount then
+        result=result..','
+      end      
+    end  
+    
+   
+    
+    --build a string with these typenames
+  else
+    local resultlength=monopipe.readWord();
+    result=monopipe.readString(resultlength);
+  end
 
   local returntypelength=monopipe.readByte()
   returntype=monopipe.readString(returntypelength)  
@@ -1964,10 +2000,6 @@ end
 
 --]]
 
-function monoform_killform(sender)
-  return caFree
-end
-
 function monoform_miShowMethodParametersClick(sender)  
   monoSettings.Value["ShowMethodParameters"]=sender.checked  
 end
@@ -2386,6 +2418,13 @@ function monoform_EnumClasses(node)
   if classes~=nil then
     for i=1, #classes do
       classes[i].fqname = mono_class_getFullName(classes[i].class)
+      if classes[i].fqname==nil or classes[i].fqname=='' then        
+        classes[i].fqname=classes[i].classname
+        
+        if classes[i].fqname==nil or classes[i].fqname=='' then  
+          classes[i].fqname='<unnamed>'
+        end
+      end
     end
   
     local monoform_class_compare = function (a,b)
@@ -2672,6 +2711,25 @@ function mono_dissect()
     end
   end
 
+  monoForm.OnDestroy=function(s)
+    if monoSettings then
+      monoSettings.Value['monoform.x']=s.left
+      monoSettings.Value['monoform.y']=s.top
+      monoSettings.Value['monoform.width']=s.width
+      monoSettings.Value['monoform.height']=s.height  
+    end
+  end
+
+  local newx=monoSettings.Value['monoform.x']
+  local newy=monoSettings.Value['monoform.y']
+  local newwidth=monoSettings.Value['monoform.width']
+  local newheight=monoSettings.Value['monoform.height']   
+  if newx~='' then monoForm.left=newx end
+  if newy~='' then monoForm.top=newy end
+  if newwidth~='' then monoForm.width=newwidth end
+  if newheight~='' then monoForm.height=newheight end
+ 
+  
   monoForm.show()
 
   monoForm.TV.Items.clear()
@@ -2716,7 +2774,7 @@ function mono_OpenProcessMT(t)
   local m=enumModules()
   local i
   for i=1, #m do
-    if (m[i].Name=='mono.dll') or (string.sub(m[i].Name,1,5)=='mono-') then
+    if (m[i].Name=='mono.dll') or (string.sub(m[i].Name,1,5)=='mono-') or (m[i].Name=='GameAssemble.dll') or (m[i].Name=='UnityPlayer.dll')  then
       usesmono=true
       break
     end
