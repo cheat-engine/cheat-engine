@@ -318,7 +318,7 @@ var
     imagepos: integer=0;
 begin
   LUA_DoScript('tableIsLoading=true');
-  LUA_DoScript('onTableLoad(true)');
+  LUA_functioncall('onTableLoad',[true]);
 
   try
     signed:=false;
@@ -894,7 +894,8 @@ begin
 
   finally
     LUA_DoScript('tableIsLoading=false');
-    LUA_DoScript('onTableLoad(false)');
+
+    LUA_functioncall('onTableLoad',[false]);
 
     if image<>nil then
       freeandnil(image);
