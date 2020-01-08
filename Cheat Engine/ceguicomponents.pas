@@ -1564,6 +1564,8 @@ initialization
   RegisterClass(TComboBox);
   RegisterClass(TListBox);
 
+
+
   RegisterClass(TCheckBox);
   RegisterClass(TGroupBox);
   RegisterClass(TRadioGroup);
@@ -1580,6 +1582,7 @@ initialization
   RegisterClass(TTrayIcon);
   registerclass(TStatusBar);
   registerclass(TCheckListBox);
+  registerclass(TColorDialog);
 
 
   RegisterPropertyEditor(ClassTypeInfo(TListItems), TCEListView, 'Items', TCEListViewItemsPropertyEditor);

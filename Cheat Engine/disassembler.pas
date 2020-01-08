@@ -10598,8 +10598,16 @@ begin
 
             //prefix bytes need fixing
       $3f : begin  //aas
-              lastdisassembledata.opcode:='aas';
-              description:='ascii adjust al after subtraction';
+              if processhandler.is64bit then
+              begin
+                lastdisassembledata.opcode:='db';
+                lastdisassembledata.parameters:=inttohexs($3f,1);
+              end
+              else
+              begin
+                lastdisassembledata.opcode:='aas';
+                description:='ascii adjust al after subtraction';
+              end;
             end;
 
       $40..$47 :

@@ -147,7 +147,7 @@ const opcodes: array [1..opcodecount] of topcode =(
 {ok}  (mnemonic:'AAD';opcode1:eo_ib;opcode2:eo_none;paramtype1:par_imm8;paramtype2:par_noparam;paramtype3:par_noparam;bytes:1;bt1:$d5;bt2:0;bt3:0),
 {ok}  (mnemonic:'AAM';opcode1:eo_none;paramtype1:par_noparam;bytes:2;bt1:$d4;bt2:$0a),
 {ok}  (mnemonic:'AAM';opcode1:eo_ib;paramtype1:par_imm8;bytes:1;bt1:$d4),
-{ok}  (mnemonic:'AAS';opcode1:eo_none;paramtype1:par_noparam;bytes:1;bt1:$3F),
+{ok}  (mnemonic:'AAS';opcode1:eo_none;paramtype1:par_noparam;bytes:1;bt1:$3F; invalidin64bit:true),
 {ok}  (mnemonic:'ADC';opcode1:eo_ib;paramtype1:par_AL;paramtype2:par_imm8;bytes:1;bt1:$14),
 {ok}  (mnemonic:'ADC';opcode1:eo_iw;paramtype1:par_AX;paramtype2:par_imm16;bytes:2;bt1:$66;bt2:$15),
 {ok}  (mnemonic:'ADC';opcode1:eo_id;paramtype1:par_EAX;paramtype2:par_imm32;bytes:1;bt1:$15),
