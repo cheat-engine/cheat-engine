@@ -12523,7 +12523,11 @@ begin
     lua_register(L, 'getCEVersion', getCEVersion);
 
     lua_register(L, 'utf8ToAnsi', lua_Utf8ToAnsi);
+    lua_register(L, 'UTF8ToAnsi', lua_Utf8ToAnsi);
     lua_register(L, 'ansiToUtf8', lua_AnsiToUtf8);
+    lua_register(L, 'ansiToUTF8', lua_AnsiToUtf8);
+
+
 
     lua_register(L, 'fullAccess', fullAccess);
 

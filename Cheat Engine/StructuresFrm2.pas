@@ -3068,19 +3068,31 @@ end;
 
 
 procedure TfrmStructures2.FormDestroy(Sender: TObject);
-var showaddress: integer;
+var
+  showaddress: integer;
   descriptionsize: integer;
   autoguess: integer;
   defaultstructsize: integer;
   x: array of integer;
+  s: THeaderSection;
 begin
-  frmStructures2.Remove(self);
+  if self=nil then exit;
+
+  if frmStructures2<>nil then
+    frmStructures2.Remove(self);
 
   //save the settings
   if miShowAddresses.checked then showaddress:=1 else showaddress:=0;
   if miAutoCreate.checked then autoguess:=1 else autoguess:=0;
 
-  descriptionsize:=HeaderControl1.Sections[0].Width;
+  descriptionsize:=100;
+  if (HeaderControl1<>nil) and (HeaderControl1.Sections.Count>0) then
+  begin
+    s:=HeaderControl1.Sections[0];
+    if s<>nil then
+      descriptionsize:=s.Width
+  end;
+
 
   setlength(x,3);
   x[0]:=showaddress;
