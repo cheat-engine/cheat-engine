@@ -209,6 +209,13 @@ object frmChangedAddresses: TfrmChangedAddresses
       ShortCut = 49234
       OnClick = miResetCountClick
     end
+    object N1: TMenuItem
+      Caption = '-'
+    end
+    object miSetFilter: TMenuItem
+      Caption = 'Filter'
+      OnClick = miSetFilterClick
+    end
   end
   object caImageList: TImageList
     left = 220
