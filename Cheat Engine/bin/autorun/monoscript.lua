@@ -147,6 +147,87 @@ function monoTypeToVarType(monoType)
   return result
 end
 
+function parseImage(t, image)
+  if image.parsed then return end
+  
+ 
+  local classes=mono_image_enumClasses(image.handle)
+  if t.Terminated then return end
+  
+  if classes then
+    --monoSymbolList.addSymbol('','Pen15',address,1)
+    local i
+    for i=1,#classes do
+      local classname=classes[i].classname
+      local namespace=classes[i].namespace
+      local methods=mono_class_enumMethods(classes[i].class)
+      
+      if methods then
+        local j
+        for j=1,#methods do
+          local address=readPointer(methods[j].method) --first pointer is a pointer to the code
+          local sname=classname..'.'..methods[j].name
+          
+          if namespace and namespace~='' then
+            sname=namespace..'.'..sname
+          end
+
+          monoSymbolList.addSymbol('',sname,address,1)
+        end      
+      end
+      
+      if t.Terminated then return end
+    end  
+  end 
+  
+end
+
+function monoIL2CPPSymbolEnum(t)
+  t.FreeOnTerminate=false
+  t.Name='monoIL2CPPSymbolEnum'
+  
+  --print("monoIL2CPPSymbolEnum");
+  
+  local priority=nil  
+  --first enum all images
+  local images={}
+  local assemblies=mono_enumAssemblies() 
+  if assemblies then
+    for i=1,#assemblies do
+      images[i]={}
+      images[i].handle=mono_getImageFromAssembly(assemblies[i])
+      images[i].name=mono_image_get_name(images[i].handle)
+      images[i].parsed=false
+      
+      if images[i].name=='Assembly-CSharp.dll' then
+        priority=i
+      end
+    end
+  end
+  
+  if t.Terminated then return end
+  
+  if priority then
+    --print("parsing "..images[priority].name..'(1/'..#images..')');
+  
+    parseImage(t, images[priority])
+  end
+  if t.Terminated then return end
+  
+  for i=1,#images do
+    local x=i
+    
+    if priority then x=x+1 end
+    
+    --print("parsing "..images[i].name..'('..x..'/'..#images..')');
+    parseImage(t, images[i])
+    if t.Terminated then return end
+  end
+
+  --print("all symbols loaded") --print is threadsafe
+  monoSymbolList.FullyLoaded=true
+end
+
 function mono_StructureListCallback()
   local r={}
   local ri=1;
@@ -201,6 +282,20 @@ end
 
 function LaunchMonoDataCollector()
   --if debug_canBreak() then return 0 end
+  
+  if monoSymbolEnum then
+    monoSymbolEnum.terminate()
+    monoSymbolEnum.waitfor()
+    monoSymbolEnum.destroy()
+    monoSymbolEnum=nil
+  end
+  
+  if monoSymbolList then  
+    if monoSymbolList.ProcessID~=getOpenedProcessID() or (monoSymbolList==false) then     
+      monoSymbolList.destroy()
+      monoSymbolList=nil
+    end
+  end
 
   if (monopipe~=nil) then
     if (mono_AttachedProcess==getOpenedProcessID()) then
@@ -295,6 +390,16 @@ ret
   StructureElementCallbackID=registerStructureAndElementListCallback(mono_StructureListCallback, mono_ElementListCallback)
 
   monopipe.IL2CPP=mono_isil2cpp()
+  
+  if monopipe.IL2CPP then
+    if monoSymbolList==nil then
+      monoSymbolList=createSymbolList()
+      monoSymbolList.register() 
+      monoSymbolList.ProcessID=getOpenedProcessID()
+      monoSymbolList.FullyLoaded=false        
+      monoSymbolEnum=createThread(monoIL2CPPSymbolEnum)
+    end
+  end
 
   return monoBase
 end

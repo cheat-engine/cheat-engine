@@ -2303,7 +2303,7 @@ createThreadSuspended(function(Thread,...), ...) :
 
 
 properties
-  name: string - This name will be shown when the thread terminated abnormally
+  Name: string - This name will be shown when the thread terminated abnormally
   Finished: boolean - Returns true if the thread has reached the end.  Do not rely on this if the thread is freeOnTerminate(true) (which is the default)
   Terminated: boolean - Returns true if the Terminate method has been called
 
