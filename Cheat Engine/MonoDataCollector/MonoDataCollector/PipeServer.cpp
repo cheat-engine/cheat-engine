@@ -296,18 +296,8 @@ void CPipeServer::InitMono()
 				il2cpp_method_get_param = (IL2CPP_METHOD_GET_PARAM)GetProcAddress(hMono, "il2cpp_method_get_param");
 				il2cpp_method_get_return_type = (IL2CPP_METHOD_GET_RETURN_TYPE)GetProcAddress(hMono, "il2cpp_method_get_return_type");
 
-
-
-
-				if (mono_get_root_domain == NULL) OutputDebugStringA("il2cpp_get_root_domain not assigned");
-				if (mono_thread_attach == NULL) OutputDebugStringA("il2cpp_thread_attach not assigned");
-				if (mono_object_get_class == NULL) OutputDebugStringA("il2cpp_object_get_class not assigned");
-				if (mono_class_get_name == NULL) OutputDebugStringA("il2cpp_class_get_name not assigned");
-				if (mono_domain_foreach == NULL) OutputDebugStringA("il2cpp_domain_foreach not assigned");
-				if (mono_domain_set == NULL) OutputDebugStringA("il2cpp_domain_set not assigned");
-				if (mono_assembly_foreach == NULL) OutputDebugStringA("il2cpp_assembly_foreach not assigned");
-				if (mono_assembly_get_image == NULL) OutputDebugStringA("il2cpp_assembly_get_image not assigned");
-				if (mono_image_get_name == NULL) OutputDebugStringA("il2cpp_image_get_name not assigned");
+				il2cpp_class_from_type = (IL2CPP_CLASS_FROM_TYPE)GetProcAddress(hMono, "il2cpp_class_from_type");
+				il2cpp_string_chars = (IL2CPP_STRING_CHARS)GetProcAddress(hMono, "il2cpp_string_chars");
 
 
 				mono_selfthread = mono_thread_attach(mono_domain_get());
@@ -451,7 +441,12 @@ void CPipeServer::InitMono()
 
 void CPipeServer::Object_New()
 {
-	void *domain = (void *)mono_get_root_domain();
+	void *domain;
+	if (mono_get_root_domain)
+		domain = (void *)mono_get_root_domain();
+	else
+		domain = (void *)mono_domain_get();
+
 	void *klass = (void *)ReadQword();
 	void *object=mono_object_new(domain, klass);
 	WriteQword((UINT64)object);
@@ -812,7 +807,7 @@ void CPipeServer::CompileMethod()
 
 	if (il2cpp)
 	{
-		WriteQword(*(PUINT_PTR)method); //fist pointer points to compiled data
+		WriteQword(*(PUINT_PTR)method); //fist pointer points to compiled code
 	}
 	else
 	{
@@ -844,27 +839,46 @@ void CPipeServer::CompileMethod()
 
 void CPipeServer::GetMethodHeader()
 {
-	void *method = (void *)ReadQword();
-	void *result = mono_method_get_header(method);
-	WriteQword((UINT_PTR)result);
+	if (mono_method_get_header)
+	{
+		void *method = (void *)ReadQword();
+		void *result = mono_method_get_header(method);
+		WriteQword((UINT_PTR)result);
+	}
+	else
+		WriteQword(0);
 }
 
 void CPipeServer::GetILCode()
 {
-	void *methodheader = (void *)ReadQword();
-	UINT32 code;
-	void *result = mono_method_header_get_code(methodheader, &code, NULL);
-	WriteQword((UINT_PTR)result);
-	WriteDword(code);
+	if (il2cpp)
+	{
+		WriteQword(0);
+		WriteDword(0);
+	}
+	else
+	{
+		void *methodheader = (void *)ReadQword();
+		UINT32 code;
+		void *result = mono_method_header_get_code(methodheader, &code, NULL);
+		WriteQword((UINT_PTR)result);
+		WriteDword(code);
+	}
 }
 
 void CPipeServer::RvaMap()
 {
-	void *image = (void *)ReadQword();
-	UINT32 offset = ReadDword();
-	void *result = mono_image_rva_map(image, offset);
+	if (mono_image_rva_map)
+	{
+		void *image = (void *)ReadQword();
+		UINT32 offset = ReadDword();
+		void *result = mono_image_rva_map(image, offset);
 
-	WriteQword((UINT_PTR)result);
+		WriteQword((UINT_PTR)result);
+	}
+	else
+		WriteQword(0);
+
 }
 
 void CPipeServer::GetJitInfo()
@@ -915,7 +929,10 @@ void CPipeServer::FindClass()
 
 	ns[length] = 0;
 
-	klass = mono_class_from_name_case(image, ns, cn);
+	if (mono_class_from_name_case)
+		klass = mono_class_from_name_case(image, ns, cn);
+	else
+		klass = mono_class_from_name(image, ns, cn);
 
 	if (cn)
 		free(cn);
@@ -979,50 +996,45 @@ void CPipeServer::GetClassNamespace()
 
 void CPipeServer::FreeMethod()
 {
-	mono_free_method((void *)ReadQword());
+	if (mono_free_method)
+		mono_free_method((void *)ReadQword());
 }
 
 void CPipeServer::DisassembleMethod()
-{
+{	
 	void *method = (void *)ReadQword();
-	void *methodheader = mono_method_get_header(method);
-	UINT32 codesize, maxstack;
-	void *ilcode = mono_method_header_get_code(methodheader, &codesize, &maxstack);
-	char *disassembly = mono_disasm_code(NULL, method, ilcode, (void *)((UINT_PTR)ilcode + codesize));
+	if (il2cpp)
+	{
+		void *methodheader = mono_method_get_header(method);
+		UINT32 codesize, maxstack;
+		void *ilcode = mono_method_header_get_code(methodheader, &codesize, &maxstack);
+		char *disassembly = mono_disasm_code(NULL, method, ilcode, (void *)((UINT_PTR)ilcode + codesize));
 
-	WriteWord(strlen(disassembly));
-	Write(disassembly, strlen(disassembly));
-	g_free(disassembly);
+		WriteWord(strlen(disassembly));
+		Write(disassembly, strlen(disassembly));
+		g_free(disassembly);
+	}
 }
 
 void CPipeServer::GetMethodParameters()
 {
 	void *method = (void *)ReadQword();
-	void *methodsignature = mono_method_signature(method);
 	int i;
 
-	if (methodsignature)
+	if (il2cpp)
 	{
-		int paramcount=mono_signature_get_param_count(methodsignature);
-		char **names = (char **)calloc(sizeof(char *), paramcount);
-		mono_method_get_param_names(method, (const char **)names);
+		int paramcount = il2cpp_method_get_param_count(method);
 		WriteByte(paramcount);
 		for (i = 0; i < paramcount; i++)
 		{
-			if (names[i])
-			{
-				WriteByte(strlen(names[i]));
-				Write(names[i], strlen(names[i]));
-			}
-			else
-				WriteByte(0);
+			char *paramname = il2cpp_method_get_param_name(method, i);
+			WriteString1(paramname);
 		}
 
-		if (paramcount)		
+		if (paramcount)
 		{
-			gpointer iter = NULL;
-			MonoType *paramtype=mono_signature_get_params((MonoMethodSignature*)methodsignature, &iter);
-
+			void *paramtype = il2cpp_method_get_param(method, i);
+			
 			if (paramtype)
 				WriteDword(mono_type_get_type(paramtype));
 			else
@@ -1030,21 +1042,65 @@ void CPipeServer::GetMethodParameters()
 		}
 
 		{
-			MonoType *returntype = mono_signature_get_return_type(methodsignature);
+			void *returntype = il2cpp_method_get_return_type(method);
 			if (returntype)
 				WriteDword(mono_type_get_type(returntype));
 			else
 				WriteDword(0);
 		}
 
-		
-
-
-
-		
 	}
 	else
-		WriteByte(0);
+	{
+
+		void *methodsignature = mono_method_signature(method);
+		
+
+		if (methodsignature)
+		{
+			int paramcount = mono_signature_get_param_count(methodsignature);
+			char **names = (char **)calloc(sizeof(char *), paramcount);
+			mono_method_get_param_names(method, (const char **)names);
+			WriteByte(paramcount);
+			for (i = 0; i < paramcount; i++)
+			{
+				if (names[i])
+				{
+					WriteByte(strlen(names[i]));
+					Write(names[i], strlen(names[i]));
+				}
+				else
+					WriteByte(0);
+			}
+
+			if (paramcount)
+			{
+				gpointer iter = NULL;
+				MonoType *paramtype = mono_signature_get_params((MonoMethodSignature*)methodsignature, &iter);
+
+				if (paramtype)
+					WriteDword(mono_type_get_type(paramtype));
+				else
+					WriteDword(0);
+			}
+
+			{
+				MonoType *returntype = mono_signature_get_return_type(methodsignature);
+				if (returntype)
+					WriteDword(mono_type_get_type(returntype));
+				else
+					WriteDword(0);
+			}
+
+
+
+
+
+
+		}
+		else
+			WriteByte(0);
+	}
 }
 
 void CPipeServer::GetMethodSignature()
@@ -1146,37 +1202,60 @@ void CPipeServer::GetParentClass(void)
 void CPipeServer::GetVTableFromClass(void)
 {
 	void *domain = (void *)ReadQword();
-	if (domain == NULL)
-		domain = (void *)mono_get_root_domain();
-
 	void *klass = (void *)ReadQword();
-	void *vtable = (domain && klass) ? mono_class_vtable(domain, klass) : NULL;
-	
-	WriteQword((UINT_PTR)vtable);
+
+	if (il2cpp)
+	{
+		WriteQword(0);
+	}
+	else
+	{		
+		if (domain == NULL)
+			domain = (void *)mono_get_root_domain();
+		
+		void *vtable = (domain && klass) ? mono_class_vtable(domain, klass) : NULL;
+
+		WriteQword((UINT_PTR)vtable);
+	}
 
 }
 
 void CPipeServer::GetStaticFieldAddressFromClass(void)
 {
 	void *domain = (void *)ReadQword();
-	if (domain == NULL)
-		domain = (void *)mono_get_root_domain();
 	void *klass = (void *)ReadQword();
-	void *vtable = (domain && klass) ? mono_class_vtable(domain, klass) : NULL;
-	if (vtable)
+
+	if (il2cpp)
 	{
-		void *staticdata = mono_vtable_get_static_field_data(vtable);
-		WriteQword((UINT_PTR)staticdata);
+		WriteQword(0);
 	}
 	else
-		WriteQword(0);
+	{
+		if (domain == NULL)
+			domain = (void *)mono_get_root_domain();
+		
+		void *vtable = (domain && klass) ? mono_class_vtable(domain, klass) : NULL;
+		if (vtable)
+		{
+			void *staticdata = mono_vtable_get_static_field_data(vtable);
+			WriteQword((UINT_PTR)staticdata);
+		}
+		else
+			WriteQword(0);
+	}
 }
 
 void CPipeServer::GetTypeClass(void)
 {
 	void *field = (void *)ReadQword();  // TODO: this should be monotype but EnumFieldsInClass effectively returns fieldtype ptr
 	void *type = field ? mono_field_get_type(field) : NULL;
-	void *klass = type ? mono_class_from_mono_type(type) : NULL;
+	void *klass;
+
+	if (il2cpp)		
+		klass = type ? il2cpp_class_from_type(type) : NULL;
+	else
+		klass = type ? mono_class_from_mono_type(type) : NULL;
+
 	WriteQword((UINT_PTR)klass);
 }
 
@@ -1191,10 +1270,18 @@ void CPipeServer::FindMethodByDesc(void)
 {
 	void *image = (void *)ReadQword();
 	char *fqMethodName = ReadString();
-	void *mmd = fqMethodName ? mono_method_desc_new(fqMethodName, 1) : NULL;
-	void *method = mmd && image ? mono_method_desc_search_in_image(mmd, image) : NULL;
-	WriteQword((UINT_PTR)method);
-	FreeString(fqMethodName);
+
+	if (il2cpp)
+	{
+		WriteQword(0);
+	}
+	else
+	{	
+		void *mmd = fqMethodName ? mono_method_desc_new(fqMethodName, 1) : NULL;
+		void *method = mmd && image ? mono_method_desc_search_in_image(mmd, image) : NULL;
+		WriteQword((UINT_PTR)method);
+		FreeString(fqMethodName);
+	}
 }
 
 void *CPipeServer::ReadObjectArray(void *domain)
@@ -1357,14 +1444,27 @@ void CPipeServer::WriteObject(void* object)
 		case MONO_TYPE_STRING:
 		{
 			//void *string = mono_object_to_string(object, NULL);
-			char *ptr = mono_string_to_utf8(object);
-			WriteString(ptr);
-			if (mono_free)
-			  mono_free(ptr);
+			if (il2cpp)
+			{
+				wchar_t *ptr = il2cpp_string_chars(object);
+				int l = WideCharToMultiByte(CP_UTF8, 0, ptr, -1, NULL, 0, NULL, NULL);
+				char *c = (char *)malloc(l+1);
+				l = WideCharToMultiByte(CP_UTF8, 0, ptr, -1, c, l, NULL, NULL);
+				c[l] = 0;
+				WriteString(c);
+				free(c);
+			}
 			else
 			{
-				if (g_free)
-					g_free(ptr);
+				char *ptr = mono_string_to_utf8(object);
+				WriteString(ptr);
+				if (mono_free)
+					mono_free(ptr);
+				else
+				{
+					if (g_free)
+						g_free(ptr);
+				}
 			}
 		} break;
 		case MONO_TYPE_I1:
@@ -1430,13 +1530,13 @@ void CPipeServer::InvokeMethod(void)
 	if (mono_domain_get)
 		olddomain = mono_domain_get();
 
-	if (olddomain == NULL)
+	if ((!il2cpp) && (olddomain == NULL))
 	{
 		olddomain=mono_get_root_domain();
 		mono_domain_set(mono_get_root_domain(), true);
 	}
 
-	if (domain == NULL)
+	if ((!il2cpp) && (domain == NULL))
 	{
 		domain = olddomain;
 
@@ -1450,13 +1550,24 @@ void CPipeServer::InvokeMethod(void)
 	void *arr = ReadObjectArray(domain);
 	if (domain && method)
 	{
-		void *methodsignature = mono_method_signature(method);
-		int paramcount = methodsignature ? mono_signature_get_param_count(methodsignature) : 0;
+		int paramcount;
+
+		if (il2cpp)
+		{
+			paramcount = il2cpp_method_get_param_count(method);
+		}
+		else
+		{
+			void *methodsignature = mono_method_signature(method);
+			paramcount = methodsignature ? mono_signature_get_param_count(methodsignature) : 0;
+		}
+		
+		
 		int nargs = GetObjectArraySize(arr);
 		void **args = GetObjectArrayArgs(arr);
 		if (nargs == paramcount)
 		{
-			if (domain != olddomain)
+			if ((!il2cpp) && (domain != olddomain))
 				mono_domain_set(domain, FALSE);
 
 			try
@@ -1469,7 +1580,7 @@ void CPipeServer::InvokeMethod(void)
 			}
 			
 
-			if (domain != olddomain)
+			if ((!il2cpp) && (domain != olddomain))
 				mono_domain_set(olddomain, FALSE);
 		}
 	}
@@ -1480,15 +1591,23 @@ void CPipeServer::InvokeMethod(void)
 void CPipeServer::LoadAssemblyFromFile(void)
 {
 	char *imageName = ReadString();
-	int status;
-	void *domain = (void *)mono_get_root_domain();
-	mono_domain_set(domain, FALSE);
-	
-	void *assembly = mono_assembly_open(imageName, &status);
-	WriteQword((UINT_PTR)assembly);
+	if (il2cpp)
+	{
+		WriteQword(0);
+	}
+	else
+	{
 
-	if (mono_jit_exec)
-		mono_jit_exec(domain, assembly, 0, NULL);	
+		int status;
+		void *domain = (void *)mono_get_root_domain();
+		mono_domain_set(domain, FALSE);
+
+		void *assembly = mono_assembly_open(imageName, &status);
+		WriteQword((UINT_PTR)assembly);
+
+		if (mono_jit_exec)
+			mono_jit_exec(domain, assembly, 0, NULL);
+	}
 }
 
 void CPipeServer::GetFullTypeName(void)

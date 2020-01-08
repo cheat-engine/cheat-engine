@@ -239,7 +239,7 @@ ret
   --wait till attached
   local timeout=getTickCount()+5000;
   while (monopipe==nil) and (getTickCount()<timeout) do
-    monopipe=connectToPipe('cemonodc_pid'..getOpenedProcessID() ) --,3000)
+    monopipe=connectToPipe('cemonodc_pid'..getOpenedProcessID() ,3000)
   end
 
   if (monopipe==nil) then
@@ -1599,6 +1599,8 @@ function mono_methodheader_getILCode(methodheader)
 end
 
 function mono_getILCodeFromMethod(method)
+  if monopipe.IL2CPP then return nil end
+  
   local hdr=mono_method_getHeader(method)
   return mono_methodheader_getILCode(hdr)
 end
@@ -2047,6 +2049,8 @@ function monoform_miRejitClick(sender)
 end
 
 function monoform_miGetILCodeClick(sender)
+  if monopipe.IL2CPP then return end
+  
   if (monoForm.TV.Selected~=nil) then
     local node=monoForm.TV.Selected
     if (node~=nil) and (node.Level==4) and (node.Parent.Text=='methods') then
@@ -2353,8 +2357,8 @@ function monoform_context_onpopup(sender)
   local methodsEnabled = (node~=nil) and (node.Level==4) and (node.Parent.Text=='methods')
   monoForm.miRejit.Enabled = methodsEnabled
   monoForm.miInvokeMethod.Enabled = methodsEnabled
-  monoForm.miGetILCode.Enabled = methodsEnabled
-  monoForm.miShowILDisassembly.Enabled = methodsEnabled
+  monoForm.miGetILCode.Enabled = methodsEnabled and (monopipe.IL2CPP==false)
+  monoForm.miShowILDisassembly.Enabled = methodsEnabled and (monopipe.IL2CPP==false)
   local structuresEnabled = (node~=nil) and (node.Data~=nil) and (node.Level==2)
   monoForm.miExportStructure.Enabled = structuresEnabled
   local fieldsEnabled = (node~=nil) and (node.Data~=nil)

@@ -182,7 +182,8 @@ typedef int(__cdecl *IL2CPP_METHOD_GET_PARAM_COUNT)(void* method);
 typedef char*(__cdecl *IL2CPP_METHOD_GET_PARAM_NAME)(void *method, int index);
 typedef void*(__cdecl *IL2CPP_METHOD_GET_PARAM)(void *method, int index);
 typedef void*(__cdecl *IL2CPP_METHOD_GET_RETURN_TYPE)(void *method);
-
+typedef void*(__cdecl *IL2CPP_CLASS_FROM_TYPE)(void *type);
+typedef wchar_t*(__cdecl *IL2CPP_STRING_CHARS)(void *stringobject);
 
 
 class CPipeServer : Pipe
@@ -308,6 +309,8 @@ private:
 	IL2CPP_METHOD_GET_PARAM_NAME il2cpp_method_get_param_name;
 	IL2CPP_METHOD_GET_PARAM il2cpp_method_get_param;
 	IL2CPP_METHOD_GET_RETURN_TYPE il2cpp_method_get_return_type;
+	IL2CPP_CLASS_FROM_TYPE il2cpp_class_from_type;
+	IL2CPP_STRING_CHARS il2cpp_string_chars;
 
 	BOOL attached;
 	BOOL il2cpp;
