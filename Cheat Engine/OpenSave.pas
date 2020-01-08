@@ -30,6 +30,9 @@ procedure LoadTable(Filename: string;merge: boolean);
 procedure SaveCEM(Filename:string;address:ptrUint; size:dword);
 procedure LoadXML(doc: TXMLDocument; merge: boolean; isTrainer: boolean=false);
 
+
+
+
 {procedure LoadExe(filename: string);}
 
 
@@ -315,6 +318,8 @@ var
     imagepos: integer=0;
 begin
   LUA_DoScript('tableIsLoading=true');
+  LUA_DoScript('onTableLoad(true)');
+
   try
     signed:=false;
     image:=nil;
@@ -889,6 +894,7 @@ begin
 
   finally
     LUA_DoScript('tableIsLoading=false');
+    LUA_DoScript('onTableLoad(false)');
 
     if image<>nil then
       freeandnil(image);

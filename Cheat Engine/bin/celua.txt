@@ -314,6 +314,8 @@ duplicateHandle(handle, Mode (0/1) ): If mode is 0 then it's the same as just du
 duplicateHandle(handle, fromPID, toPID): Copies the handle from the given process to the target process. 
 
 
+function onTableLoad(before): Called twice when a table gets loaded. Once before the loading, and once after.
+
 
 function onOpenProcess(processid):
   If this function is defined it will be called whenever cheat engine opens a process.
