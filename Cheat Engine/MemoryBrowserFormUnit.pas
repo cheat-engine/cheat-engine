@@ -46,6 +46,8 @@ type
     ESPlabel: TLabel;
     FSlabel: TLabel;
     GSlabel: TLabel;
+    MenuItem4: TMenuItem;
+    miFollowInHexview: TMenuItem;
     miSetSpecificBreakpoint: TMenuItem;
     miWatchBPHardware: TMenuItem;
     miWatchBPException: TMenuItem;
@@ -335,6 +337,7 @@ type
     procedure MenuItem14Click(Sender: TObject);
     procedure DBVMFindoutwhataddressesthisinstructionaccessesClick(Sender: TObject);
     procedure MenuItem4Click(Sender: TObject);
+    procedure miFollowInHexviewClick(Sender: TObject);
     procedure miSetSpecificBreakpointClick(Sender: TObject);
     procedure miSetBreakpointClick(Sender: TObject);
     procedure miCodeFilterClick(Sender: TObject);
@@ -365,6 +368,7 @@ type
     procedure miShowRelativeClick(Sender: TObject);
     procedure miSVCopyClick(Sender: TObject);
     procedure miUnexpectedExceptionBreakOptionClick(Sender: TObject);
+    procedure pmRegistersPopup(Sender: TObject);
     procedure pmStacktracePopup(Sender: TObject);
     procedure SetBookmarkClick(Sender: TObject);
     procedure miTextEncodingClick(Sender: TObject);
@@ -590,6 +594,7 @@ type
     overridebreakpointmethod: boolean;
     preferedF5BreakpointMethod: TBreakpointMethod;
 
+    followRegister: integer;
     procedure SetStacktraceSize(size: integer);
     procedure setShowDebugPanels(state: boolean);
     function getShowValues: boolean;
@@ -602,6 +607,7 @@ type
     procedure hexviewKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure setContextValueByTag(value: ptruint; tag: integer);
     function  getContextValueByTag(tag: integer): ptruint;
+    procedure ApplyFollowRegister;
   public
     { Public declarations }
     FSymbolsLoaded: Boolean;
@@ -1129,6 +1135,20 @@ begin
   tbDebug.Tag:=-1;
 end;
 
+procedure TMemoryBrowser.ApplyFollowRegister;
+begin
+  if followRegister<>-1 then
+    hexview.address:=getContextValueByTag(followRegister);
+end;
+
+procedure TMemoryBrowser.miFollowInHexviewClick(Sender: TObject);
+begin
+  if miFollowInHexview.checked then
+    followRegister:=pmRegisters.PopupComponent.Tag
+  else
+    followRegister:=-1;
+end;
+
 procedure TMemoryBrowser.miSetSpecificBreakpointClick(Sender: TObject);
 begin
 
@@ -1384,6 +1404,11 @@ begin
     1: UnexpectedExceptionAction:=ueaBreak;
     2: UnexpectedExceptionAction:=ueaBreakIfInRegion;
   end;
+end;
+
+procedure TMemoryBrowser.pmRegistersPopup(Sender: TObject);
+begin
+  miFollowInHexview.checked:=(followRegister<>-1) and (pmRegisters.PopupComponent<>nil) and (pmRegisters.PopupComponent.Tag=followRegister);
 end;
 
 procedure TMemoryBrowser.pmStacktracePopup(Sender: TObject);
@@ -2479,7 +2504,7 @@ begin
   scrollbox1.OnVScroll:=Scrollboxscroll;
 
   disassemblerview.reinitialize;
-
+  followRegister:=-1;
 end;
 
 procedure TMemoryBrowser.Scrollboxscroll(sender: TObject);
@@ -5797,6 +5822,8 @@ begin
 
   if _debuggerthread<>nil then _debuggerthread.execlocation:=41313;
 
+
+  ApplyFollowRegister;
   {for i:=0 to 4095 do
   begin
     if pbyte(ptruint(laststack)+stacktracesize+i)^<>$ce then
