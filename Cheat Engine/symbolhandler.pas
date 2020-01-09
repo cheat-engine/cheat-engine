@@ -3357,7 +3357,7 @@ begin
     q.Active:=true;
 
     q.First;
-    while (not q.EOF) and ((max=-1) or (list.count<max) ) do
+    while (not q.EOF){ and ((max=-1) or (list.count<max) ) }do
     begin
       structinfo:=TDBStructInfo.Create;
       structinfo.moduleid:=q.FieldByName('moduleid').AsInteger;

@@ -1,0 +1,108 @@
+object frmDebugSymbolStructureList: TfrmDebugSymbolStructureList
+  Left = 419
+  Height = 277
+  Top = 119
+  Width = 343
+  AutoSize = True
+  BorderIcons = [biSystemMenu]
+  Caption = 'Symbol structures'
+  ClientHeight = 277
+  ClientWidth = 343
+  OnShow = FormShow
+  Position = poScreenCenter
+  LCLVersion = '2.0.0.4'
+  object lblCount: TLabel
+    AnchorSideLeft.Control = Owner
+    AnchorSideTop.Control = Owner
+    Left = 3
+    Height = 15
+    Top = 3
+    Width = 255
+    BorderSpacing.Left = 3
+    BorderSpacing.Top = 3
+    Caption = 'There are currently xxx structures in the database'
+    ParentColor = False
+  end
+  object edtSearch: TEdit
+    AnchorSideLeft.Control = Label2
+    AnchorSideTop.Control = Label2
+    AnchorSideTop.Side = asrBottom
+    AnchorSideRight.Control = btnSearch
+    Left = 3
+    Height = 23
+    Top = 39
+    Width = 273
+    Anchors = [akTop, akLeft, akRight]
+    TabOrder = 0
+  end
+  object Label2: TLabel
+    AnchorSideLeft.Control = lblCount
+    AnchorSideTop.Control = lblCount
+    AnchorSideTop.Side = asrBottom
+    Left = 3
+    Height = 15
+    Top = 24
+    Width = 79
+    BorderSpacing.Top = 6
+    Caption = 'Search pattern:'
+    ParentColor = False
+  end
+  object lvStructlist: TListView
+    AnchorSideLeft.Control = edtSearch
+    AnchorSideTop.Control = btnSearch
+    AnchorSideTop.Side = asrBottom
+    AnchorSideRight.Control = Owner
+    AnchorSideRight.Side = asrBottom
+    Left = 3
+    Height = 150
+    Top = 66
+    Width = 340
+    Anchors = [akTop, akLeft, akRight]
+    AutoWidthLastColumn = True
+    BorderSpacing.Top = 3
+    Columns = <    
+      item
+        Caption = 'Structures'
+        Width = 336
+      end>
+    OwnerData = True
+    TabOrder = 1
+    ViewStyle = vsReport
+    OnData = lvStructlistData
+    OnDblClick = lvStructlistDblClick
+  end
+  object btnSelect: TButton
+    AnchorSideLeft.Control = Owner
+    AnchorSideLeft.Side = asrCenter
+    AnchorSideTop.Control = lvStructlist
+    AnchorSideTop.Side = asrBottom
+    Left = 143
+    Height = 25
+    Top = 222
+    Width = 57
+    AutoSize = True
+    BorderSpacing.Top = 6
+    Caption = 'Select'
+    ModalResult = 1
+    TabOrder = 2
+  end
+  object btnSearch: TButton
+    AnchorSideLeft.Control = lvStructlist
+    AnchorSideLeft.Side = asrBottom
+    AnchorSideTop.Control = edtSearch
+    AnchorSideTop.Side = asrCenter
+    AnchorSideRight.Control = Owner
+    AnchorSideRight.Side = asrBottom
+    Left = 278
+    Height = 25
+    Top = 38
+    Width = 61
+    Anchors = [akTop, akRight]
+    AutoSize = True
+    BorderSpacing.Left = 2
+    BorderSpacing.Right = 4
+    Caption = 'Search'
+    OnClick = btnSearchClick
+    TabOrder = 3
+  end
+end

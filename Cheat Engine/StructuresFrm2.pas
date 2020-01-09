@@ -620,7 +620,7 @@ implementation
 
 uses MainUnit, mainunit2, frmStructures2ElementInfoUnit, MemoryBrowserFormUnit,
   frmStructureLinkerUnit, frmgroupscanalgoritmgeneratorunit, frmStringPointerScanUnit,
-  ProcessHandlerUnit, Parsers, LuaCaller, frmRearrangeStructureListUnit, frmstructurecompareunit;
+  ProcessHandlerUnit, Parsers, LuaCaller, frmRearrangeStructureListUnit, frmstructurecompareunit, frmDebugSymbolStructureListUnit;
 
 resourcestring
   rsAddressValue = 'Address: Value';
@@ -4575,8 +4575,8 @@ end;
 procedure TfrmStructures2.Structures1Click(Sender: TObject);
 begin
   //check if miDefineNewStructureFromDebugData should be visible
-  miDefineNewStructureFromDebugData.visible:={$ifdef windows}symhandler.hasDefinedStructures{$else}false{$endif};
-  miDefineNewStructureFromDebugData.enabled:=miDefineNewStructureFromDebugData.visible;
+  miDefineNewStructureFromDebugData.visible:={$ifdef windows}true{$else}false{$endif};
+  miDefineNewStructureFromDebugData.enabled:=symhandler.hasDefinedStructures;
   miSeperatorStructCommandsAndList.visible:=DissectedStructs.count>0;
 end;
 
@@ -5326,26 +5326,24 @@ var structlist, elementlist: Tstringlist;
 
   struct: TDissectedStruct;
   vtype:TVariableType;
+
+  structlistform: TfrmDebugSymbolStructureList;
 begin
   {$ifdef windows}
   //get the list of structures
+  structlistform:=nil;
   structlist:=tstringlist.create;
   elementlist:=tstringlist.create;
   try
-    symhandler.getStructureList(structlist,100);
-
-    if structlist.count>=100 then
-    begin
-      //show a dynamic list instead
-      exit;
-    end;
-
+    symhandler.getStructureList(structlist);
     if structlist.count=0 then exit;
 
-    i:=ShowSelectionList(self,'Structure list','Select a structure to load',structlist,selected);
-    if i=-1 then exit;
+    structlistform:=TfrmDebugSymbolStructureList.Create(self);
+    structlistform.list:=structlist;
+    if structlistform.showmodal<>mrok then exit;
 
-    s:=TDBStructInfo(structlist.objects[i]);
+
+    s:=structlistform.selected;
 
     symhandler.getStructureElements(s.callbackid, s.moduleid, s.typeid, elementlist);
 
@@ -5372,6 +5370,9 @@ begin
     //showmessage('not yet implemented. come back later');
 
   finally
+    if structlistform<>nil then
+      freeandnil(structlistform);
+
     for i:=0 to structlist.count-1 do
       if structlist.Objects[i]<>nil then
          structlist.Objects[i].Free;

@@ -231,7 +231,6 @@ object frmStructures2: TfrmStructures2
       object miDefineNewStructureFromDebugData: TMenuItem
         Caption = 'Define new structure from debug data'
         Enabled = False
-        Visible = False
         OnClick = miDefineNewStructureFromDebugDataClick
       end
       object miSeperatorStructCommandsAndList: TMenuItem
