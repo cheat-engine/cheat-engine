@@ -22,7 +22,9 @@ uses
      zstream, luafile, disassemblerComments, commonTypeDefs, lazutf8;
 
 
-var CurrentTableVersion: dword=30;
+var CurrentTableVersion: dword=31;
+    lastLoadedTableVersion: dword;
+
 procedure protecttrainer(filename: string);
 procedure unprotecttrainer(filename: string; stream: TStream);
 procedure SaveTable(Filename: string; protect: boolean=false; dontDeactivateDesignerForms: boolean=false);
@@ -384,6 +386,8 @@ begin
           version:=strtoint(tempnode.TextContent);
           if (version>CurrentTableVersion) then
             showmessage(rsOSThereIsANewerVersionifCheatEngineOutEtc);
+
+          lastLoadedTableVersion:=version;
         except
           showmessage(rsOSThisCheatTableIsCorrupt);
         end;

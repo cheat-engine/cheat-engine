@@ -149,7 +149,7 @@ function lua_getProperty(L: PLua_state): integer; cdecl;
 var parameters: integer;
   c,c2: tobject;
   t: ptruint;
-  p: string;
+  p,v: string;
 
 
   svalue: string;
@@ -202,7 +202,11 @@ begin
         tkClass, tkObject: luaclass_newClass(L, GetObjectProp(c, p));
         tkMethod: LuaCaller_pushMethodProperty(L, GetMethodProp(c,p), pinfo.PropType.Name);
         tkSet: lua_pushstring(L, GetSetProp(c, pinfo, true));
-        else lua_pushstring(L, GetPropValue(c, p,true));
+        else
+        begin
+          v:=GetPropValue(c, p,true);
+          lua_pushstring(L, v);
+        end;
       end;
     end
     else

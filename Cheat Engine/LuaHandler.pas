@@ -22,7 +22,7 @@ uses
   jwawindows, windows, ShellApi,
   {$endif}
   vmxfunctions, Classes, dialogs, SysUtils, lua, lualib,
-  lauxlib, syncobjs, CEFuncProc, newkernelhandler, autoassembler, Graphics,
+  lauxlib, syncobjs, CEFuncProc, newkernelhandler, Graphics,
   controls, LuaCaller, forms, ExtCtrls, StdCtrls, comctrls, ceguicomponents,
   genericHotkey, luafile, xmplayer_server, ExtraTrainerComponents, customtimer,
   menus, XMLRead, XMLWrite, DOM, Clipbrd, typinfo, PEInfoFunctions,
@@ -92,7 +92,7 @@ resourcestring
 
 implementation
 
-uses mainunit, MainUnit2, LuaClass, frmluaengineunit, plugin, pluginexports,
+uses autoassembler, mainunit, MainUnit2, LuaClass, frmluaengineunit, plugin, pluginexports,
   formsettingsunit, MemoryRecordUnit, debuggertypedefinitions, symbolhandler,
   symbolhandlerstructs,
   frmautoinjectunit, simpleaobscanner, addresslist, memscan, foundlisthelper,

@@ -18,7 +18,7 @@ uses
 type PLua_state=pointer;
 {$else}
 uses
-  dialogs, Classes, SysUtils,cefuncproc, autoassembler, lua, lauxlib, lualib,
+  dialogs, Classes, SysUtils,cefuncproc, lua, lauxlib, lualib,
   math, commonTypeDefs;
 {$endif}
 
@@ -113,7 +113,7 @@ var customTypes: TList; //list holding all the custom types
 implementation
 
 {$ifndef jni}
-uses mainunit, LuaHandler, LuaClass;
+uses mainunit, LuaHandler, LuaClass,autoassembler;
 {$endif}
 
 resourcestring

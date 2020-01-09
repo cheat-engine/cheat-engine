@@ -1,7 +1,7 @@
 object frmRescanPointer: TfrmRescanPointer
-  Left = 1527
+  Left = 1440
   Height = 342
-  Top = 540
+  Top = 556
   Width = 377
   AutoSize = True
   BorderStyle = bsDialog
@@ -12,7 +12,7 @@ object frmRescanPointer: TfrmRescanPointer
   OnDestroy = FormDestroy
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '1.6.0.4'
+  LCLVersion = '2.0.0.4'
   object pnlButtons: TPanel
     AnchorSideLeft.Control = Owner
     AnchorSideLeft.Side = asrCenter

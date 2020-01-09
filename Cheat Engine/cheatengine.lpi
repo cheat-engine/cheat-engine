@@ -22,7 +22,7 @@
       <AutoIncrementBuild Value="True"/>
       <MajorVersionNr Value="7"/>
       <MinorVersionNr Value="1"/>
-      <BuildNr Value="6077"/>
+      <BuildNr Value="6088"/>
       <Language Value=""/>
       <CharSet Value=""/>
       <StringTable CompanyName="Cheat Engine" FileDescription="Cheat Engine" ProductVersion="7.1"/>
@@ -2616,7 +2616,6 @@
       </Item7>
       <Item8>
         <Name Value="symexception"/>
-        <Enabled Value="False"/>
       </Item8>
       <Item9>
         <Name Value="External: SIGILL"/>

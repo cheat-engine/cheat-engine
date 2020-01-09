@@ -23,7 +23,7 @@ uses
    {$endif}
    Assemblerunit, classes, LCLIntf,symbolhandler, symbolhandlerstructs,
    sysutils,dialogs,controls, CEFuncProc, NewKernelHandler ,plugin,
-   ProcessHandlerUnit, lua, lualib, lauxlib, luaclass, commonTypeDefs;
+   ProcessHandlerUnit, lua, lualib, lauxlib, luaclass, commonTypeDefs, OpenSave;
 
 
 {$endif}
@@ -54,14 +54,14 @@ implementation
 
 {$ifdef jni}
 uses strutils, memscan, disassembler, networkInterface, networkInterfaceApi,
-     Parsers, Globals, memoryQuery;
+     Parsers, Globals, memoryQuery,types;
 {$else}
 
 
 uses simpleaobscanner, StrUtils, LuaHandler, memscan, disassembler{$ifdef windows}, networkInterface{$endif},
      {$ifdef windows}networkInterfaceApi,{$endif} LuaCaller, SynHighlighterAA, Parsers, Globals, memoryQuery,
      MemoryBrowserFormUnit, MemoryRecordUnit{$ifdef windows}, vmxfunctions{$endif}, autoassemblerexeptionhandler,
-     UnexpectedExceptionsHelper;
+     UnexpectedExceptionsHelper, types;
 {$endif}
 
 
@@ -1372,12 +1372,17 @@ var i,j,k,l,e: integer;
     createthreadandwait: array of record
       name: string;
       position: integer; //after what position should the call happen (This is so that the exception handlers can be registered before the final hookcode is written)
+      timeout: integer;
     end;
 
 //    aoblist: array of TAOBEntry;
 
     a,b,c,d: integer;
     s1,s2,s3: string;
+
+    slist: TStringDynArray;
+    sli: integer; //slist iterator
+
     diff: ptruint;
 
 
@@ -1619,12 +1624,18 @@ begin
             if (a>0) and (b>0) then
             begin
               s1:=trim(copy(currentline,a+1,b-a-1));
+              slist:=s1.Split([',',' ']);
 
-              setlength(addsymbollist,length(addsymbollist)+1);
-              addsymbollist[length(addsymbollist)-1]:=s1;
+              for sli:=0 to length(slist)-1 do
+              begin
+                s1:=slist[sli];
 
-              if registeredsymbols<>nil then
-                registeredsymbols.Add(s1);
+                setlength(addsymbollist,length(addsymbollist)+1);
+                addsymbollist[length(addsymbollist)-1]:=s1;
+
+                if registeredsymbols<>nil then
+                  registeredsymbols.Add(s1);
+              end;
             end
             else raise exception.Create(rsSyntaxError);
 
@@ -1935,7 +1946,6 @@ begin
               if (a>0) and (b>0) then
               begin
                 s1:=trim(copy(currentline,a+1,b-a-1));
-
                 setlength(createthread,length(createthread)+1);
                 createthread[length(createthread)-1]:=s1;
 
@@ -1954,9 +1964,28 @@ begin
                 begin
                   s1:=trim(copy(currentline,a+1,b-a-1));
 
+                  slist:=s1.Split([',']);
+                  if length(slist)=2 then
+                  begin
+                    try
+                      j:=strtoint(trim(slist[1]));
+                    except
+                      raise exception.Create('Invalid timeout for createthreadandwait');
+                    end;
+                  end
+                  else
+                  begin
+                    if lastLoadedTableVersion<=30 then //when the current table was made with an older CE build and it uses  CREATETHREADANDWAIT
+                      j:=5000
+                    else
+                      j:=0;
+                  end;
+
+
                   setlength(createthreadandwait,length(createthreadandwait)+1);
                   createthreadandwait[length(createthreadandwait)-1].name:=s1;
                   createthreadandwait[length(createthreadandwait)-1].position:=length(assemblerlines)-1;
+                  createthreadandwait[length(createthreadandwait)-1].timeout:=j;
 
                   setlength(assemblerlines,length(assemblerlines)-1);
                   continue;
@@ -2169,8 +2198,13 @@ begin
             begin
               s1:=trim(copy(currentline,a+1,b-a-1));
 
-              setlength(deletesymbollist,length(deletesymbollist)+1);
-              deletesymbollist[length(deletesymbollist)-1]:=s1;
+              slist:=s1.Split([',',' ']);
+              for sli:=0 to length(slist)-1 do
+              begin
+                s1:=slist[sli];
+                setlength(deletesymbollist,length(deletesymbollist)+1);
+                deletesymbollist[length(deletesymbollist)-1]:=s1;
+              end;
             end
             else raise exception.Create(rsSyntaxError);
 
@@ -2223,49 +2257,56 @@ begin
             begin
               s1:=trim(copy(currentline,a+1,b-a-1));
 
+              slist:=s1.Split([',',' ']);
 
-              val('$'+s1,j,a);
-              if a=0 then raise exception.Create(Format(rsIsNotAValidIdentifier, [s1]));
-
-              varsize:=length(s1);
-
-              j:=0;
-              while (j<length(labels)) and (length(labels[j].labelname)>=varsize) do
+              for sli:=0 to length(slist)-1 do
               begin
-                if labels[j].labelname=s1 then
-                  raise exception.Create(Format(rsIsBeingRedeclared, [s1]));
-                inc(j);
-              end;
+                s1:=slist[sli];
+                val('$'+s1,j,a);
+                if a=0 then raise exception.Create(Format(rsIsNotAValidIdentifier, [s1]));
 
-              j:=length(labels);//quickfix
-              l:=j;
+                varsize:=length(s1);
 
-
-              //check for the line "labelname:"
-              ok1:=false;
-              for j:=0 to code.Count-1 do
-                if trim(code[j])=s1+':' then
+                j:=0;
+                while (j<length(labels)) and (length(labels[j].labelname)>=varsize) do
                 begin
-                  if ok1 then raise exception.Create(Format(rsLabelIsBeingDefinedMoreThanOnce, [s1]));
-                  ok1:=true;
+                  if labels[j].labelname=s1 then
+                    raise exception.Create(Format(rsIsBeingRedeclared, [s1]));
+                  inc(j);
                 end;
 
-              if not ok1 then raise exception.Create(Format(rsLabelIsNotDefinedInTheScript, [s1]));
+                j:=length(labels);//quickfix
+                l:=j;
 
 
-              //still here so ok
-              //insert it
-              setlength(labels,length(labels)+1);
-              for k:=length(labels)-1 downto j+1 do
-                labels[k]:=labels[k-1];
+                //check for the line "labelname:"
+                ok1:=false;
+                for j:=0 to code.Count-1 do
+                  if trim(code[j])=s1+':' then
+                  begin
+                    if ok1 then raise exception.Create(Format(rsLabelIsBeingDefinedMoreThanOnce, [s1]));
+                    ok1:=true;
+                  end;
+
+                if not ok1 then raise exception.Create(Format(rsLabelIsNotDefinedInTheScript, [s1]));
 
 
-              labels[l].labelname:=s1;
-              labels[l].defined:=false;
+                //still here so ok
+                //insert it
+                setlength(labels,length(labels)+1);
+                for k:=length(labels)-1 downto j+1 do
+                  labels[k]:=labels[k-1];
+
+
+                labels[l].labelname:=s1;
+                labels[l].defined:=false;
+
+                setlength(labels[l].references,0);
+                setlength(labels[l].references2,0);
+
+              end;
+
               setlength(assemblerlines,length(assemblerlines)-1);
-              setlength(labels[l].references,0);
-              setlength(labels[l].references2,0);
-
               continue;
             end else raise exception.Create(rsSyntaxError);
           end;
@@ -2284,13 +2325,20 @@ begin
               begin
                 s1:=trim(copy(currentline,a+1,b-a-1));
 
-                //find s1 in the ceallocarray
-                for j:=0 to length(ceallocarray)-1 do
+                slist:=s1.Split([',',' ']);
+
+                for sli:=0 to length(slist)-1 do
                 begin
-                  if uppercase(ceallocarray[j].varname)=uppercase(s1) then
+                  s1:=slist[sli];
+
+                  //find s1 in the ceallocarray
+                  for j:=0 to length(ceallocarray)-1 do
                   begin
-                    setlength(dealloc,length(dealloc)+1);
-                    dealloc[length(dealloc)-1]:=ceallocarray[j].address;
+                    if uppercase(ceallocarray[j].varname)=uppercase(s1) then
+                    begin
+                      setlength(dealloc,length(dealloc)+1);
+                      dealloc[length(dealloc)-1]:=ceallocarray[j].address;
+                    end;
                   end;
                 end;
               end;
@@ -3406,7 +3454,10 @@ begin
             begin
               {$ifdef windows}
               try
-                if WaitForSingleObject(threadhandle, 5000)<>WAIT_OBJECT_0 then
+                k:=createthreadandwait[j].timeout;
+                if k<=0 then y:=INFINITE else y:=k;
+
+                if WaitForSingleObject(threadhandle, y)<>WAIT_OBJECT_0 then
                   raise EAssemblerException.create('createthreadandwait did not execute properly');
               finally
                 closehandle(threadhandle);

@@ -15,7 +15,7 @@ uses
   {$endif}
   Classes, SysUtils, syncobjs, GuiSafeCriticalSection,
   disassembler, CEFuncProc, newkernelhandler,debuggertypedefinitions, frmTracerUnit,
-  DebuggerInterfaceAPIWrapper, LuaHandler, lua, lauxlib, lualib,
+  DebuggerInterfaceAPIWrapper, lua, lauxlib, lualib,
   tracerIgnore, BreakpointTypeDef;
 
 type
@@ -163,7 +163,7 @@ uses foundcodeunit, DebugHelper, MemoryBrowserFormUnit, frmThreadlistunit,
      WindowsDebugger, VEHDebugger, KernelDebuggerInterface, NetworkDebuggerInterface,
      frmDebugEventsUnit, formdebugstringsunit, symbolhandler,
      networkInterface, networkInterfaceApi, ProcessHandlerUnit, globals,
-     UnexpectedExceptionsHelper, frmcodefilterunit, frmBranchMapperUnit;
+     UnexpectedExceptionsHelper, frmcodefilterunit, frmBranchMapperUnit, LuaHandler;
 
 resourcestring
   rsDebugHandleAccessViolationDebugEventNow = 'Debug HandleAccessViolationDebugEvent now';
