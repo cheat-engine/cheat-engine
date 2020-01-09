@@ -6914,6 +6914,11 @@ begin
   //  OutputDebugString('It actually finished');
 
     owningmemscan.postScanState:=psJustFinished;
+
+    {$ifdef windows}
+    SetProgressState(tbpsNone);
+    {$endif}
+
     isdoneevent.setevent;
 
     haserror2:=false;
