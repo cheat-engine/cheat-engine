@@ -1461,6 +1461,9 @@ procedure DBKFileAsMemory(fn:string; baseaddress: ptruint=0); overload;
 begin
 {$ifdef windows}
   filehandler.filename:=filename;
+  if filehandler.filedata<>nil then
+    freeandnil(filehandler.filedata);
+
   filehandler.filedata:=tmemorystream.create;
   filehandler.filedata.LoadFromFile(fn);
   filehandler.filebaseaddress:=baseaddress;

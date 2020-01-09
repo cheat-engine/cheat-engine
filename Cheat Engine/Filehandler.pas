@@ -62,7 +62,14 @@ var filesize,ignore:dword;
 
 begin
 //ignore hprocess
+  if filedata=nil then
+  begin
+    exit(false);
+    lpNumberOfBytesRead:=0;
+  end;
+
   {$ifdef windows}
+
   if hprocess=GetCurrentProcess then
     exit(windows.ReadProcessMemory(hProcess, lpBaseAddress, lpBuffer, nSize, lpNumberOfBytesRead));
   {$endif}
@@ -154,6 +161,13 @@ begin
   if hprocess=GetCurrentProcess then
     exit(windows.WriteProcessMemory(hProcess, lpBaseAddress, lpBuffer, nSize, lpNumberOfBytesWritten));
   {$endif}
+
+  if filedata=nil then
+  begin
+    exit(false);
+    lpNumberOfBytesWritten:=0;
+  end;
+
 
   result:=false;
   ba:=ptruint(lpBaseAddress);

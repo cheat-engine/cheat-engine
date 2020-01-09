@@ -7100,17 +7100,21 @@ var AddressFile: TFilestream;
     datatype: string[6];
 begin
   //open the address file and determine if it's a region scan or result scan
-  try
-    AddressFile:=TFileStream.Create(ScanresultFolder+'ADDRESSES.TMP',fmOpenRead or fmSharedenynone);
+  result:=false;
+  if fileexists(ScanresultFolder+'ADDRESSES.TMP') then
+  begin
     try
-      Addressfile.ReadBuffer(datatype,sizeof(datatype));
-    finally
-      addressFile.free;
-    end;
+      AddressFile:=TFileStream.Create(ScanresultFolder+'ADDRESSES.TMP',fmOpenRead or fmSharedenynone);
+      try
+        Addressfile.ReadBuffer(datatype,sizeof(datatype));
+      finally
+        addressFile.free;
+      end;
 
-    result:=datatype='REGION';
-  except
-    result:=false;
+      result:=datatype='REGION';
+    except
+      result:=false;
+    end;
   end;
 end;
 
