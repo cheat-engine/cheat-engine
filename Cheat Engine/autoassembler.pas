@@ -3748,9 +3748,17 @@ var
   i: integer;
   insideenable: boolean;
   insidedisable: boolean;
+  autoRegisteredSymbols: TStringList;
+  j: integer;
+  s: string;
+  parts: TStringArray;
+  o1: string;
+  o2: TObject;
 begin
   insideenable:=false;
   insidedisable:=false;
+
+  autoRegisteredSymbols := TSTringList.Create;
 
   for i:=0 to code.Count-1 do
   begin
@@ -3758,21 +3766,49 @@ begin
     begin
       insideenable:=true;
       insidedisable:=false;
+      for j := 0 to autoRegisteredSymbols.Count - 1 do
+      begin
+        s := Concat('label(', autoRegisteredSymbols[j], ')');
+        newScript.Add(s);
+        s := Concat('registersymbol(', autoRegisteredSymbols[j], ')');
+        newScript.Add(s);
+      end;
       continue;
     end;
 
     if (uppercase(trim(code[i])))='[DISABLE]' then
     begin
+      for j := 0 to autoRegisteredSymbols.Count - 1 do
+      begin
+        s := Concat('unregistersymbol(', autoRegisteredSymbols[j], ')');
+        newScript.AddObject(s, 0);
+      end;
       insideenable:=false;
       insidedisable:=true;
       continue;
     end;
 
+    if ((not insideenable) and (not insidedisable) and uppercase(trim(code[i])).StartsWith('AUTOREGISTER(')) then
+    begin
+         j := code[i].IndexOf(')');
+         s := code[i].Substring(13, j - 13);
+         parts := s.Split(',');
+         for j := 1 to Length(parts) do
+         begin
+           autoRegisteredSymbols.Add(parts[j].Trim());
+         end;
+         continue;
+    end;
+
     //
     if ((not insideenable) and (not insidedisable)) or
        (insideenable and enablescript) or
-       (insidedisable and not enablescript) then newscript.AddObject(code[i], code.Objects[i]);
-
+       (insidedisable and not enablescript) then
+    begin
+      o1 := code[i];
+      o2 := code.Objects[i];
+      newscript.AddObject(code[i], code.Objects[i]);
+    end;
 
 
   end;
