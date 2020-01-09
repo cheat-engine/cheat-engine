@@ -103,6 +103,7 @@ type
     procedure btnReplacewithnopsClick(Sender: TObject);
     procedure btnOpenDisassemblerClick(Sender: TObject);
     procedure btnAddToCodeListClick(Sender: TObject);
+    procedure FoundCodeListColumnClick(Sender: TObject; Column: TListColumn);
     procedure FoundcodeListDblClick(Sender: TObject);
     procedure btnExtraInfoClick(Sender: TObject);
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
@@ -122,6 +123,9 @@ type
     {$endif}
 
     usedmiFindWhatAccesses: boolean; //debug
+
+    countsortdirection: integer;
+    addresssortdirection: integer;
     procedure stopdbvmwatch;
     procedure addInfo(Coderecord: TCoderecord);
     procedure moreinfo;
@@ -1239,6 +1243,9 @@ begin
   end;
 
   fdbvmwatchid:=-1;
+
+  countsortdirection:=1;
+  addresssortdirection:=1;
 end;
 
 procedure TFoundCodeDialog.FormDeactivate(Sender: TObject);
@@ -1396,6 +1403,34 @@ begin
   if added then
     advancedoptions.Show;
 
+end;
+
+function SortByAddress(Item1, Item2: TListItem; AOptionalParam: PtrInt): Integer stdcall;
+begin
+  result:=AOptionalParam*(TcodeRecord(Item1.data).address-TcodeRecord(Item2.data).address);
+
+end;
+
+function SortByCount(Item1, Item2: TListItem; AOptionalParam: PtrInt): Integer stdcall;
+begin
+  result:=AOptionalParam*(TcodeRecord(Item2.data).hitcount-TcodeRecord(Item1.data).hitcount);
+end;
+
+procedure TFoundCodeDialog.FoundCodeListColumnClick(Sender: TObject; Column: TListColumn);
+begin
+  case column.index of
+    0:
+    begin
+      FoundcodeList.CustomSort(SortByCount,countsortdirection);
+      countsortdirection:=countsortdirection*-1;
+    end;
+
+    1:
+    begin
+      FoundcodeList.CustomSort(SortByAddress,addresssortdirection);
+      addresssortdirection:=addresssortdirection*-1;
+    end;
+  end;
 end;
 
 procedure TFoundCodeDialog.FoundcodeListDblClick(Sender: TObject);

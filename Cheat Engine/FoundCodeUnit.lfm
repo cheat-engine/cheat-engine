@@ -215,7 +215,6 @@ object FoundCodeDialog: TFoundCodeDialog
           Caption = 'Instruction'
           Width = 260
         end>
-      ColumnClick = False
       HideSelection = False
       MultiSelect = True
       ParentFont = False
@@ -225,6 +224,7 @@ object FoundCodeDialog: TFoundCodeDialog
       ScrollBars = ssVertical
       TabOrder = 0
       ViewStyle = vsReport
+      OnColumnClick = FoundCodeListColumnClick
       OnDblClick = FoundcodeListDblClick
       OnSelectItem = FoundCodeListSelectItem
     end
