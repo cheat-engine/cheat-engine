@@ -2395,7 +2395,7 @@ Column[index]: structColumn - Fetches a structColumn object from the structure f
 
 GroupCount: integer - The number of groups
 Group[index]: structGroup - Fetches a structGroup object from the structure form
-
+OnStatusbarUpdate(function(notificationbar)) - Called when the statusbar gets updated
 
 
 

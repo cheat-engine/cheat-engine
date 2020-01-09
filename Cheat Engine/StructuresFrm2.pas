@@ -332,7 +332,6 @@ type
     property Name: string read getName;
     property SavedState: ptruint read getSavedState write setSavedState; //hack to expose a raw pointer as property
     property SavedStateSize: integer read fsavedstatesize write fsavedstatesize;
-
   end;
 
   TfrmStructures2 = class(TForm)
@@ -421,6 +420,7 @@ type
     SaveDialog1: TSaveDialog;
     saveValues: TSaveDialog;
     pnlGroups: TScrollBox;
+    sbSelection: TStatusBar;
     Structures1: TMenuItem;
     tmFixGui: TTimer;
     updatetimer: TTimer;
@@ -493,6 +493,7 @@ type
     procedure tvStructureViewDblClick(Sender: TObject);
     procedure tvStructureViewMouseDown(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
+    procedure tvStructureViewSelectionChanged(Sender: TObject);
     procedure updatetimerTimer(Sender: TObject);
     procedure tvStructureViewCollapsed(Sender: TObject; Node: TTreeNode);
     procedure tvStructureViewCollapsing(Sender: TObject; Node: TTreeNode;
@@ -520,6 +521,9 @@ type
 
     frmStructuresNewStructure: TfrmStructuresNewStructure;
 
+    fOnStatusbarUpdate: TNotifyEvent;
+
+    procedure updateStatusbar;
     procedure UpdateCurrentStructOptions;
     procedure setupColors;
 
@@ -593,6 +597,7 @@ type
     property columns[index: integer]: TStructColumn read Getcolumn;
     property groupcount: integer read getGroupCount;
     property group[index: integer]: TStructGroup read getGroup;
+    property OnStatusbarUpdate: TNotifyEvent read fOnStatusbarUpdate write fOnStatusbarUpdate;
   end;
 
 var
@@ -2401,7 +2406,7 @@ begin
   focusedShape.visible:=state;
   fFocused:=state;
 
-
+  parent.parent.updateStatusbar;
 end;
 
 procedure TStructColumn.clearSavedState;
@@ -4885,6 +4890,67 @@ begin
 
     end;
   end;
+end;
+
+procedure TfrmStructures2.tvStructureViewSelectionChanged(Sender: TObject);
+begin
+  updateStatusbar;
+end;
+
+procedure TfrmStructures2.updateStatusbar;
+var
+  i: integer;
+  node: TTreenode;
+  baseaddress, a: ptruint;
+  c: TStructColumn;
+
+  error: boolean;
+  offsetlist: toffsetlist;
+
+  s: string;
+begin
+  //update the statusbar
+  node:=tvStructureView.GetLastMultiSelected;
+  if node=nil then node:=tvStructureView.Selected;
+
+  if node=nil then
+  begin
+    sbSelection.SimpleText:='';
+  end
+  else
+  begin
+    c:=getFocusedColumn;
+    if c<>nil then
+    begin
+      setlength(offsetlist,0);
+      baseaddress:=c.Address;
+      getPointerFromNode(node, c, a, offsetlist);
+
+      s:=inttohex(baseaddress,8)+'+'+inttohex(a-baseaddress,1);
+      for i:=0 to length(offsetlist)-1 do
+        s:='['+s+']+'+inttohex(offsetlist[i],1);
+
+
+      a:=getAddressFromNode(node, c, error);
+
+      s:=s+'->'+inttohex(a,8);
+
+      sbSelection.SimpleText:=s;
+
+
+        {
+
+      se:=getStructElementFromNode(node);
+      if se<>nil then
+      begin
+        a:=getAddressFromNode(node, c, error);
+      end;}
+    end;
+  end;
+
+  if assigned(fOnStatusbarUpdate) then
+    fOnStatusbarUpdate(sbSelection);
+
 end;
 
 function TfrmStructures2.getFocusedColumn: TStructColumn;

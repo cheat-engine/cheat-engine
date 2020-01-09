@@ -1,10 +1,10 @@
 object frmStructures2: TfrmStructures2
-  Left = 870
-  Height = 381
-  Top = 524
+  Left = 677
+  Height = 509
+  Top = 318
   Width = 542
   Caption = 'Structure dissect'
-  ClientHeight = 361
+  ClientHeight = 489
   ClientWidth = 542
   Menu = MainMenu1
   OnClose = FormClose
@@ -19,10 +19,9 @@ object frmStructures2: TfrmStructures2
     AnchorSideTop.Side = asrBottom
     AnchorSideRight.Control = Owner
     AnchorSideRight.Side = asrBottom
-    AnchorSideBottom.Control = Owner
-    AnchorSideBottom.Side = asrBottom
+    AnchorSideBottom.Control = sbSelection
     Left = 0
-    Height = 290
+    Height = 395
     Top = 71
     Width = 542
     Anchors = [akTop, akLeft, akRight, akBottom]
@@ -48,6 +47,7 @@ object frmStructures2: TfrmStructures2
     OnExpanded = tvStructureViewExpanded
     OnExpanding = tvStructureViewExpanding
     OnMouseDown = tvStructureViewMouseDown
+    OnSelectionChanged = tvStructureViewSelectionChanged
     Options = [tvoAllowMultiselect, tvoAutoItemHeight, tvoKeepCollapsedNodes, tvoReadOnly, tvoRowSelect, tvoShowButtons, tvoShowLines]
   end
   object HeaderControl1: THeaderControl
@@ -85,6 +85,13 @@ object frmStructures2: TfrmStructures2
     Constraints.MinHeight = 50
     TabOrder = 2
     OnResize = pnlGroupsResize
+  end
+  object sbSelection: TStatusBar
+    Left = 0
+    Height = 23
+    Top = 466
+    Width = 542
+    Panels = <>
   end
   object MainMenu1: TMainMenu
     Images = sdImageList
