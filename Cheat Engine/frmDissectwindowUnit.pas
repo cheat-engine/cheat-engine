@@ -59,7 +59,7 @@ var
 
 implementation
 
-uses frmCapturedTimersUnit, ProcessHandlerUnit, Parsers;
+uses frmCapturedTimersUnit, ProcessHandlerUnit, Parsers, LazUTF8;
 
 //uses frmCapturedTimersUnit;
 
@@ -109,9 +109,9 @@ begin
 
     if winprocess=processid then
       if iswindowvisible(winhandle) then
-        treeview1.Items.Add(nil,IntToHex(winhandle,8)+'-'+title+' - ('+classname+')')
+        treeview1.Items.Add(nil,IntToHex(winhandle,8)+'-'+wincptoutf8(title)+' - ('+wincptoutf8(classname)+')')
       else
-        treeview1.Items.Add(nil, IntToHex(winhandle, 8)+'-'+title+' - ('+classname+') ('+rsInvis+')');
+        treeview1.Items.Add(nil, IntToHex(winhandle, 8)+'-'+wincptoutf8(title)+' - ('+wincptoutf8(classname)+') ('+rsInvis+')');
 
 
     winhandle:=getwindow(winhandle,GW_HWNDNEXT);
@@ -138,9 +138,9 @@ begin
         title[100]:=#0;
 
         if iswindowvisible(winhandle) then
-          treeview1.Items.Addchild(treeview1.items[i],IntToHex(winhandle,8)+'-'+title+' - ('+classname+')')
+          treeview1.Items.Addchild(treeview1.items[i],IntToHex(winhandle,8)+'-'+wincptoutf8(title)+' - ('+wincptoutf8(classname)+')')
         else
-          treeview1.Items.Add(nil, IntToHex(winhandle, 8)+'-'+title+' - ('+classname+') ('+rsInvis+')');
+          treeview1.Items.Add(nil, IntToHex(winhandle, 8)+'-'+wincptoutf8(title)+' - ('+wincptoutf8(classname)+') ('+rsInvis+')');
 
 
         winhandle:=getwindow(winhandle,GW_HWNDNEXT);
@@ -188,9 +188,9 @@ begin
         showwindow(h,sw_show);
 
       if iswindowvisible(h) then
-        treeview1.selected.text:=IntToHex(h,8)+'-'+title+' - ('+classname+')'
+        treeview1.selected.text:=IntToHex(h,8)+'-'+wincptoutf8(title)+' - ('+wincptoutf8(classname)+')'
       else
-        treeview1.selected.text:=IntToHex(h, 8)+'-'+title+' - ('+classname+') ('+rsInvis+')';
+        treeview1.selected.text:=IntToHex(h, 8)+'-'+wincptoutf8(title)+' - ('+wincptoutf8(classname)+') ('+rsInvis+')';
 
     except
     end;
@@ -360,9 +360,9 @@ begin
           title[100]:=#0;
 
           if iswindowvisible(h) then
-            treeview1.selected.text:=IntToHex(h,8)+'-'+title+' - ('+classname+')'
+            treeview1.selected.text:=IntToHex(h,8)+'-'+wincptoutf8(title)+' - ('+wincptoutf8(classname)+')'
           else
-            treeview1.selected.text:=IntToHex(h, 8)+'-'+title+' - ('+classname+') ('+rsInvis+')';
+            treeview1.selected.text:=IntToHex(h, 8)+'-'+wincptoutf8(title)+' - ('+wincptoutf8(classname)+') ('+rsInvis+')';
         finally
           freememandnil(title);
           freememandnil(classname);
