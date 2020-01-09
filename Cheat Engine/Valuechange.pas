@@ -26,6 +26,7 @@ type
     ValueText: TEdit;
     cbunicode: TCheckBox;
     procedure Button2Click(Sender: TObject);
+    procedure cbunicodeChange(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure Button1Click(Sender: TObject);
     procedure cbVarTypeChange(Sender: TObject);
@@ -64,6 +65,7 @@ uses ProcessHandlerUnit, parsers;
 resourcestring
   rsChangeOffset = 'Change offset %s';
   rsPartOfTheStringIsUnreadable = 'Part of the string is unreadable!';
+  rsUnicode = 'Unicode';
 
 
 function TValueChangeForm.getunicode:boolean;
@@ -164,9 +166,13 @@ begin
             {$else}
             readprocessmemory(processhandle,pointer(address),addr(value1),1,read);
             {$endif}
-            valuetext.text:=IntToStr(value1);
+            if unicode then
+              valuetext.text:=IntToHex(value1,2)
+            else
+              valuetext.text:=IntToStr(value1);
 
-            cbunicode.visible:=false;
+            cbunicode.visible:=true;
+            cbunicode.caption:='Hexadecimal';
           end;
 
       1 : begin //word
@@ -176,9 +182,13 @@ begin
             readprocessmemory(processhandle,pointer(address),addr(value2),2,read);
             {$endif}
 
-            valuetext.text:=IntToStr(value2);
+            if unicode then
+              valuetext.text:=IntToHex(value2,4)
+            else
+              valuetext.text:=IntToStr(value2);
 
-            cbunicode.visible:=false;
+            cbunicode.visible:=true;
+            cbunicode.caption:='Hexadecimal';
           end;
 
       2 : begin  //dword
@@ -187,9 +197,13 @@ begin
             {$else}
             readprocessmemory(processhandle,pointer(address),addr(value3),4,read);
             {$endif}
-            valuetext.text:=IntToStr(value3);
+            if unicode then
+              valuetext.text:=IntToHex(value3,8)
+            else
+              valuetext.text:=IntToStr(value3);
 
-            cbunicode.visible:=false;
+            cbunicode.visible:=true;
+            cbunicode.caption:='Hexadecimal';
           end;
 
       3 : begin //int64
@@ -198,9 +212,13 @@ begin
             {$else}
             readprocessmemory(processhandle,pointer(address),addr(value6),8,read);
             {$endif}
-            valuetext.text:=IntToStr(value6);
+            if unicode then
+              valuetext.text:=IntToHex(value6,16)
+            else
+              valuetext.text:=IntToStr(value6);
 
-            cbunicode.visible:=false;
+            cbunicode.visible:=true;
+            cbunicode.caption:='Hexadecimal';
           end;
 
       4 : begin //float
@@ -259,6 +277,7 @@ begin
             end;
 
             cbunicode.visible:=true;
+            cbunicode.caption:=rsUnicode;
           end;
 
       7 : begin
@@ -270,6 +289,7 @@ begin
             ValueText.text:=inttohex(value1,2);
 
             cbunicode.visible:=false;
+            cbunicode.caption:=rsUnicode;
           end;
   end;
 end;
@@ -277,6 +297,34 @@ end;
 procedure TValueChangeForm.Button2Click(Sender: TObject);
 begin
   modalresult:=mrcancel;
+end;
+
+procedure TValueChangeForm.cbunicodeChange(Sender: TObject);
+var
+  v: qword;
+  digits: integer;
+begin
+  try
+    if cbunicode.checked then
+    begin
+      v:=strtoint(valuetext.text);
+
+      case VarType of
+        vtByte: digits:=2;
+        vtWord: digits:=4;
+        vtDword: digits:=8;
+        vtQword: digits:=16;
+      end;
+
+      valuetext.text:=IntToHex(v,digits);
+    end
+    else
+    begin
+      v:=strtoint('$'+valuetext.text);
+      valuetext.text:=inttostr(v);
+    end;
+  except
+  end;
 end;
 
 procedure TValueChangeForm.FormShow(Sender: TObject);

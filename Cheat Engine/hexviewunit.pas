@@ -1157,27 +1157,30 @@ begin
 end;
 
 procedure THexView.ChangeSelected;
-var unreadable: boolean;
+var
+  unreadable: boolean;
+  vcf: Tvaluechangeform;
 begin
   if isEditing or fhasSelection then
   begin
     getByte(selected,unreadable);
     if unreadable then exit;
 
-    with Tvaluechangeform.Create(application) do
-    begin
-      address:=selected;
-
-      case fDisplayType of
-        dtByte, dtByteDec: VarType:=vtByte;
-        dtWord, dtWordDec: Vartype:=vtWord;
-        dtDword, dtDwordDec: Vartype:=vtDword;
-        dtQword, dtQwordDec: vartype:=vtQword;
-        dtSingle: vartype:=vtSingle;
-        dtDouble: vartype:=vtDouble;
-      end;
-      ShowModal;
+    vcf:=Tvaluechangeform.Create(application);
+    vcf.address:=selected;
+    case fDisplayType of
+      dtByte, dtByteDec: vcf.VarType:=vtByte;
+      dtWord, dtWordDec: vcf.Vartype:=vtWord;
+      dtDword, dtDwordDec: vcf.Vartype:=vtDword;
+      dtQword, dtQwordDec: vcf.vartype:=vtQword;
+      dtSingle: vcf.vartype:=vtSingle;
+      dtDouble: vcf.vartype:=vtDouble;
     end;
+
+    if fdisplaytype in [dtWord, dtDword, dtQword] then
+       vcf.unicode:=true;
+
+    vcf.ShowModal;
     update;
   end;
 end;
@@ -1192,10 +1195,9 @@ var
   baserangestop: integer;
   mbi: TMEMORYBASICINFORMATION;
 begin
-  changeSelected;
-
   p:=mouse.CursorPos;
   p:=ScreenToClient(p);
+
   //doubleclick doesn't happen often, so can be slow
   if p.y<mbCanvas.Canvas.GetTextHeight(memoryInfo) then
   begin
@@ -1221,7 +1223,9 @@ begin
       exit;
     end;
 
-  end;
+  end
+  else
+    changeSelected;
 
 end;
 

@@ -68,6 +68,7 @@ object ValueChangeForm: TValueChangeForm
     Width = 64
     BorderSpacing.Left = 4
     Caption = 'Unicode'
+    OnChange = cbunicodeChange
     TabOrder = 2
     Visible = False
   end

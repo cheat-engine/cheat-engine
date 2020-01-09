@@ -9711,11 +9711,6 @@ begin
   btnNext.tag := 0;
   ProgressBar.Position := 0;
 
-  {$ifdef windows}
-  SetProgressState(tbpsNone);
-  {$endif}
-
-
   error:=tmemscan(sender).hasError;
 
   if tmemscan(sender).hasError then
