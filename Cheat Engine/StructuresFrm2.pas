@@ -5344,6 +5344,7 @@ begin
 
 
     s:=structlistform.selected;
+    selected:=structlistform.selectedtext;
 
     symhandler.getStructureElements(s.callbackid, s.moduleid, s.typeid, elementlist);
 

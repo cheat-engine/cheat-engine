@@ -29,9 +29,11 @@ type
     procedure setList(l: TStringlist);
     function getList: TStringlist;
     function getSelected: TDBStructInfo;
+    function getSelectedText: string;
   public
     property list: TStringList read getList write setList;
-    property selected: TDBStructInfo read getSelected;
+    property Selected: TDBStructInfo read getSelected;
+    property SelectedText: string read getSelectedText;
   end;
 
 implementation
@@ -54,6 +56,13 @@ begin
     result:=fcurrentlist
   else
     result:=foriginallist;
+end;
+
+function TfrmDebugSymbolStructureList.getSelectedText: string;
+begin
+  result:='';
+  if lvStructlist.itemindex<>-1 then
+    result:=list[lvStructlist.itemindex];
 end;
 
 function TfrmDebugSymbolStructureList.getSelected:TDBStructInfo;
@@ -79,12 +88,23 @@ begin
 end;
 
 procedure TfrmDebugSymbolStructureList.FormShow(Sender: TObject);
-var minwidth: integer;
+var
+  minwidth, minheight: integer;
+  needed: integer;
 begin
   autosize:=false;
   minwidth:=canvas.GetTextWidth('somemodule.someverydescriptiveclassname');
 
+  minheight:=canvas.GetTextHeight('qqWwEeRrTtYy')*15;
+
   if width<minwidth then width:=minwidth;
+
+  if lvStructlist.Height<minheight then
+  begin
+    needed:=minheight-lvStructlist.Height;
+
+    height:=height+needed;
+  end;
 end;
 
 procedure TfrmDebugSymbolStructureList.btnSearchClick(Sender: TObject);
