@@ -336,6 +336,7 @@ type
 
   TfrmStructures2 = class(TForm)
     FindDialog1: TFindDialog;
+    miCollapseAll: TMenuItem;
     miOpenInNewWindow: TMenuItem;
     sdImageList: TImageList;
     miCommonalityScan: TMenuItem;
@@ -425,6 +426,7 @@ type
     tmFixGui: TTimer;
     updatetimer: TTimer;
     tvStructureView: TTreeView;
+    procedure miCollapseAllClick(Sender: TObject);
     procedure miOpenInNewWindowClick(Sender: TObject);
     procedure miCommonalityScanClick(Sender: TObject);
     procedure MenuItem8Click(Sender: TObject);
@@ -4927,7 +4929,7 @@ begin
       getPointerFromNode(node, c, a, offsetlist);
 
       s:=inttohex(baseaddress,8)+'+'+inttohex(a-baseaddress,1);
-      for i:=0 to length(offsetlist)-1 do
+      for i:=length(offsetlist)-1 downto 0 do
         s:='['+s+']+'+inttohex(offsetlist[i],1);
 
 
@@ -4936,15 +4938,6 @@ begin
       s:=s+'->'+inttohex(a,8);
 
       sbSelection.SimpleText:=s;
-
-
-        {
-
-      se:=getStructElementFromNode(node);
-      if se<>nil then
-      begin
-        a:=getAddressFromNode(node, c, error);
-      end;}
     end;
   end;
 
@@ -6074,6 +6067,11 @@ begin
   slist.free;
 
 
+end;
+
+procedure TfrmStructures2.miCollapseAllClick(Sender: TObject);
+begin
+  tvStructureView.FullCollapse;
 end;
 
 
