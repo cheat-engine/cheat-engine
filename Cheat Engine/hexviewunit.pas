@@ -948,7 +948,9 @@ begin
     end;
 
   end;
-  RefocusIfNeeded;
+
+  if (key<VK_SHIFT) or (key>VK_MENU) then
+    RefocusIfNeeded;
 
   inherited KeyDown(key,shift);
 end;
