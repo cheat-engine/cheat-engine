@@ -1971,7 +1971,9 @@ begin
 
     case memory[0] of  //opcode
       $00 : begin
-              if (memory[1]=$55) and (memory[2]=$89) and (memory[3]=$e5) then
+
+
+              if ((((offset) and $f)=0) and (memory[1]<>0) ) or ((memory[1]=$55) and (memory[2]=$89) and (memory[3]=$e5)) then
               begin
                 description:='Filler';
                 lastdisassembledata.opcode:='db';

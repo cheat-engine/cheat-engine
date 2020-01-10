@@ -839,6 +839,9 @@ begin
     scanner.show;
     btnLoadAddressesByDisassembling.enabled:=false;
   end;
+
+
+  freeandnil(sellist);
 end;
 
 procedure TfrmCodeFilter.btnLoadAddressesFromFileClick(Sender: TObject);
@@ -925,7 +928,49 @@ begin
 end;
 
 procedure TfrmCodeFilter.Button1Click(Sender: TObject);
+var
+  sellist: TfrmSelectionList;
+  md: tmoduledata;
+
+  el: TExceptionList;
+  i: integer;
+
+  rte: TRunTimeEntry;
 begin
+  if modulelist<>nil then
+    cleanModuleList(modulelist);
+
+  modulelist:=tstringlist.create;
+  GetModuleList(modulelist,true);
+
+
+  sellist:=TfrmSelectionList.Create(self, modulelist);
+  sellist.Caption:=rsCodeFilter;
+  sellist.SelectionToText:=ModuleListSelectionListSelToText;
+
+  if sellist.ShowModal=mrok then
+  begin
+    if sellist.itemindex<>-1 then
+    begin
+      md:=tmoduledata(modulelist.objects[sellist.itemindex]);
+      el:=peinfo_getExceptionList(md.moduleaddress);
+      if el<>nil then
+      begin
+        for i:=0 to el.Count-1 do
+        begin
+          addAddress(md.moduleaddress+el[i].start);
+//          addAddress(md.moduleaddress+el[i].stop-1);
+//          ReadProcessMemory(processhandle, (md.moduleaddress+el[i].unwind), @unwindoffset,
+//          addAddress(md.moduleaddress+el[i].unwind);
+        end;
+      end;
+    end;
+
+    lblAddressList.caption:=format(rsAddressList, [callmap.Count]);
+    btnShowList.Click;
+
+    btnStart.enabled:=callmap.count>0;
+  end;
 
 end;
 

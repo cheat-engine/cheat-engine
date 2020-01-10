@@ -17,7 +17,7 @@ uses sysutils,classes, symbolhandler, ProcessHandlerUnit, NewKernelHandler, mems
      commonTypeDefs, parsers, unixporthelper;
 {$else}
 uses {$ifdef darwin}macport,{$endif}
-     LCLIntf,sysutils,classes,ComCtrls,StdCtrls,symbolhandler, symbolhandlerstructs, CEFuncProc,
+     sysutils,classes,ComCtrls,StdCtrls,symbolhandler, symbolhandlerstructs, CEFuncProc,
      NewKernelHandler, memscan, CustomTypeHandler, byteinterpreter,
      groupscancommandparser, math, AvgLvlTree, commonTypeDefs, parsers;
 
@@ -121,7 +121,7 @@ type Tscandisplayroutine=procedure(value: pointer; output: pchar);
 implementation
 
 {$ifndef jni}
-uses mainunit, processhandlerunit;
+uses LCLIntf, mainunit, processhandlerunit;
 {$endif}
 
 

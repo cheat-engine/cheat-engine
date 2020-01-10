@@ -252,11 +252,17 @@ type
 
 
     list: PRuntimeList;
+    function getEntry(index: integer): TRunTimeEntry;
+    function getCount: integer;
   public
     function getRunTimeEntry(address: ptruint): PRuntimeEntry;
     constructor create(modulebase: ptruint; ela: ptruint; els: integer);
     destructor destroy; override;
     property ModuleBase: ptruint read fModuleBase;
+    property Count: integer read getCount;
+    property Entry[index: integer]: TRunTimeEntry read getEntry; default;
+
+
   end;
 
 
@@ -275,6 +281,7 @@ implementation
 
 {$ifdef windows}
 uses ProcessHandlerUnit;
+
 
 function peinfo_getImageDosHeader(headerbase: pointer):PImageDosHeader;
 {
@@ -384,6 +391,20 @@ begin
     if InRangeQ(address, list^[i].start, list^[i].stop-1) then
       exit(@list^[i]);
   end;
+end;
+
+
+function TExceptionList.getEntry(index: integer): TRunTimeEntry;
+begin
+  if index<count then
+    result:=list[index]
+  else
+    raise exception.create('Invalid index');
+end;
+
+function TExceptionList.getCount: integer;
+begin
+  result:=size div 12;
 end;
 
 constructor TExceptionList.create(modulebase: ptruint; ela: ptruint; els: integer);

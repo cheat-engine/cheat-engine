@@ -110,13 +110,13 @@ object frmCodeFilter: TfrmCodeFilter
     Left = 8
     Height = 120
     Top = 53
-    Width = 411
+    Width = 383
     AutoSize = True
     BorderSpacing.Left = 8
     BorderSpacing.Top = 8
     BevelOuter = bvNone
     ClientHeight = 120
-    ClientWidth = 411
+    ClientWidth = 383
     TabOrder = 1
     object GroupBox1: TGroupBox
       AnchorSideLeft.Control = Panel3
@@ -125,21 +125,21 @@ object frmCodeFilter: TfrmCodeFilter
       Left = 254
       Height = 120
       Top = 0
-      Width = 157
+      Width = 129
       AutoSize = True
       BorderSpacing.Left = 8
       Caption = 'Load address list'
       ChildSizing.Layout = cclLeftToRightThenTopToBottom
       ChildSizing.ControlsPerLine = 1
       ClientHeight = 100
-      ClientWidth = 153
+      ClientWidth = 125
       TabOrder = 0
       object btnLoadAddressesFromTrace: TButton
         Left = 0
         Height = 25
         Hint = 'Load a previous trace and filters out the CALL''s from there'
         Top = 0
-        Width = 153
+        Width = 125
         AutoSize = True
         Caption = 'From Trace'
         OnClick = btnLoadAddressesFromTraceClick
@@ -150,7 +150,7 @@ object frmCodeFilter: TfrmCodeFilter
         Height = 25
         Hint = 'Disassembles the code and marks calls.  This can be inaccurate and might end up writing 0xcc''s at random/wrong locations'
         Top = 25
-        Width = 153
+        Width = 125
         AutoSize = True
         Caption = 'From disassembler'
         OnClick = btnLoadAddressesByDisassemblingClick
@@ -162,18 +162,17 @@ object frmCodeFilter: TfrmCodeFilter
         Left = 0
         Height = 25
         Top = 50
-        Width = 153
-        Caption = 'From address dissection'
+        Width = 125
+        Caption = 'From unwind info'
         OnClick = Button1Click
         TabOrder = 3
-        Visible = False
       end
       object btnLoadAddressesFromFile: TButton
         Left = 0
         Height = 25
         Hint = 'Loads a file containing a list of addresses (e.g from a previous filter session or from the branch mapper)'
         Top = 75
-        Width = 153
+        Width = 125
         AutoSize = True
         Caption = 'From File'
         OnClick = btnLoadAddressesFromFileClick
@@ -358,13 +357,14 @@ object frmCodeFilter: TfrmCodeFilter
     AnchorSideLeft.Control = Panel5
     AnchorSideLeft.Side = asrBottom
     AnchorSideTop.Control = Panel5
-    Left = 427
+    Left = 399
     Height = 25
     Hint = 'Starts a single stepping (branch only) trace and records all unique IP''s encountered.  You can use the results from this with the "From File" address list'#13#10'Make sure that the code you''re interested in is executed at least once'#13#10#13#10'<WARNING: SLOW and recommended as last resort>'
     Top = 53
     Width = 149
     AutoSize = True
     BorderSpacing.Left = 8
+    BorderSpacing.Right = 16
     Caption = 'Launch branch mapper'
     OnClick = frmLaunchBranchMapperClick
     ParentShowHint = False
