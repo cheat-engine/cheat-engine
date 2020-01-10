@@ -292,7 +292,7 @@ type
     Copytoclipboard1: TMenuItem;
     copyBytes: TMenuItem;
     copyOpcodes: TMenuItem;
-    CopyBytesAndOpcodes: TMenuItem;
+    copyBytesAndOpcodes: TMenuItem;
     DissectPEheaders1: TMenuItem;
     Back1: TMenuItem;
     Showvaluesofstaticaddresses1: TMenuItem;
@@ -489,7 +489,7 @@ type
     procedure FormDestroy(Sender: TObject);
     procedure Newwindow1Click(Sender: TObject);
     procedure Follow1Click(Sender: TObject);
-    procedure CopyBytesAndOpcodesClick(Sender: TObject);
+    procedure copyBytesAndOpcodesClick(Sender: TObject);
     procedure DissectPEheaders1Click(Sender: TObject);
     procedure Back1Click(Sender: TObject);
     procedure Showvaluesofstaticaddresses1Click(Sender: TObject);
@@ -4252,14 +4252,14 @@ end;
 
 
 
-procedure TMemoryBrowser.CopyBytesAndOpcodesClick(Sender: TObject);
+procedure TMemoryBrowser.copyBytesAndOpcodesClick(Sender: TObject);
 var a,b: ptrUint;
     _tag: integer;
 begin
 
 
   _tag:=(sender as tmenuitem).Tag;
-
+  if _tag=0 then raise exception.create('Build environment corrupted');
 
   with tfrmSavedisassembly.create(self) do
   begin
@@ -4272,11 +4272,10 @@ begin
     edit2.Text:=inttohex(b-1,8);
     copymode:=true;
 
-
-    cbAddress.checked:=_tag<>3;
-    cbBytes.checked:=(_tag=0) or (_tag=1) or (_tag=3) or (_tag=5);
-    cbOpcode.checked:=(_tag=0) or (_tag=2) or (_tag=5);
-    cbComment.checked:=(tag=0);
+    cbAddress.checked:=_tag<>4;
+    cbBytes.checked:=(_tag=1) or (_tag=2) or (_tag=4) or (_tag=6);
+    cbOpcode.checked:=(_tag=1) or (_tag=3) or (_tag=6);
+    cbComment.checked:=(tag=1);
     
     button1.click;
     waittilldone;

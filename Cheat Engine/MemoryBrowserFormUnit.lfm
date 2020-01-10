@@ -1247,36 +1247,37 @@ object MemoryBrowser: TMemoryBrowser
     object Copytoclipboard1: TMenuItem
       Caption = 'Copy to clipboard'
       ImageIndex = 15
-      object CopyBytesAndOpcodes: TMenuItem
-        Tag = 5
+      object copyBytesAndOpcodes: TMenuItem
+        Tag = 6
         Caption = 'Bytes+Opcodes'
         Default = True
-        OnClick = CopyBytesAndOpcodesClick
+        OnClick = copyBytesAndOpcodesClick
       end
       object copyBytesAndOpcodesAndComments: TMenuItem
+        Tag = 1
         Caption = 'Bytes+Opcodes+Comments'
-        OnClick = CopyBytesAndOpcodesClick
+        OnClick = copyBytesAndOpcodesClick
       end
       object copyBytes: TMenuItem
-        Tag = 1
+        Tag = 2
         Caption = 'Bytes'
-        OnClick = CopyBytesAndOpcodesClick
+        OnClick = copyBytesAndOpcodesClick
       end
       object copyOpcodes: TMenuItem
-        Tag = 2
+        Tag = 3
         Caption = 'Opcodes'
-        OnClick = CopyBytesAndOpcodesClick
+        OnClick = copyBytesAndOpcodesClick
       end
       object miCopyBytesOnly: TMenuItem
-        Tag = 3
+        Tag = 4
         Caption = 'Bytes only (no address)'
         ShortCut = 49219
         OnClick = miCopyBytesOnlyClick
       end
       object miCopyAddressesOnly: TMenuItem
-        Tag = 4
+        Tag = 5
         Caption = 'Addresses only'
-        OnClick = CopyBytesAndOpcodesClick
+        OnClick = copyBytesAndOpcodesClick
       end
     end
     object N7: TMenuItem
