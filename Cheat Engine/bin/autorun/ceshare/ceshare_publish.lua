@@ -309,7 +309,7 @@ function ceshare.PublishCheatClick(sender, cheatinfo)
   
 end
 
-function ceshare.publishOrUpdate(cheatinfo) --cheatinfo isa set if an update
+function ceshare.publishOrUpdate(cheatinfo) --cheatinfo is a set if an update
   if ceshare.PublishCheatFrm==nil then
     ceshare.PublishCheatFrm=createFormFromFile(ceshare.formpath..'PublishCheat.frm')    
     --configure base state and add events
@@ -419,9 +419,19 @@ function ceshare.publishOrUpdate(cheatinfo) --cheatinfo isa set if an update
     if newy~='' then ceshare.PublishCheatFrm.Top=newy end
     if newwidth~='' then ceshare.PublishCheatFrm.Width=newwidth end
     if newheight~='' then ceshare.PublishCheatFrm.Height=newheight end    
+    
+    ceshare.PublishCheatFrm.lblFullModuleHeaderMD5.caption=''
+    ceshare.PublishCheatFrm.lblFullHeaderMD5.Caption=''
   end
   
   ceshare.PublishCheatFrm.btnPublish.OnClick=function(sender)   
+    if ceshare.PublishCheatFrm.cbUseSecondaryModule.Checked then
+      if ceshare.PublishCheatFrm.cbModuleName.Text=='' then
+        messageDialog('Missing module',mtError,mbOK)
+        return
+      end    
+    end
+    
     if (AddressList.Count==0) and 
        (getApplication().AdvancedOptions.CodeList2.Items.Count==0) and
        (getApplication().Comments.Memo1.Lines.Count==0) then
@@ -543,8 +553,8 @@ function ceshare.publishOrUpdate(cheatinfo) --cheatinfo isa set if an update
     ceshare.PublishCheatFrm.cbVersionIndependent.Checked=cheatinfo.VersionIndependent
     ceshare.PublishCheatFrm.cbPublic.Checked=cheatinfo.Public
     
-    ceshare.PublishCheatFrm.cbNeedsFullFileHash.Checked=cheatinfo.FullFileHash~=nil
-    ceshare.PublishCheatFrm.cbUseSecondaryModule.Checked=cheatinfo.SecondaryModuleName~=nil
+    ceshare.PublishCheatFrm.cbNeedsFullFileHash.Checked=(cheatinfo.FullFileHash~=nil) and (cheatinfo.FullFileHash~='')
+    ceshare.PublishCheatFrm.cbUseSecondaryModule.Checked=(cheatinfo.SecondaryModuleName~=nil) and (cheatinfo.SecondaryModuleName~='')
     ceshare.PublishCheatFrm.cbModuleName.Text=cheatinfo.SecondaryModuleName     
     ceshare.PublishCheatFrm.cbModuleName.OnChange(ceshare.PublishCheatFrm.cbModuleName)
     
@@ -562,5 +572,4 @@ function ceshare.publishOrUpdate(cheatinfo) --cheatinfo isa set if an update
   end
 
   ceshare.PublishCheatFrm.show() --clicking publish will do the rest
-  --]]
 end
