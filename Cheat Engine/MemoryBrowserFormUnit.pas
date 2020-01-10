@@ -4275,7 +4275,7 @@ begin
     cbAddress.checked:=_tag<>4;
     cbBytes.checked:=(_tag=1) or (_tag=2) or (_tag=4) or (_tag=6);
     cbOpcode.checked:=(_tag=1) or (_tag=3) or (_tag=6);
-    cbComment.checked:=(tag=1);
+    cbComment.checked:=(_tag=1);
     
     button1.click;
     waittilldone;
