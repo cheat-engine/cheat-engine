@@ -1764,13 +1764,15 @@ begin
 
   if actualread>0 then
   begin
-    //I HATE THESE...   (I propably will not add them all, but I'll see how far I get)
-
     {$ifndef jni}
     if debuggerthread<>nil then
       for i:=0 to actualread-1 do
         if memory[i]=$cc then
-          memory[i]:=debuggerthread.getrealbyte(offset+i);
+        begin
+          //memory[i]:=debuggerthread.getrealbyte(offset+i);
+
+          repairbreakbyte(offset+i, memory[i]);
+        end;
     {$endif}
 
 
@@ -1866,10 +1868,7 @@ begin
 
     end;
 
-    {$ifdef windows}
-    if (memory[0]=$cc) then //if it's a int3 breakpoint and there is a debugger attached check if it's a bp
-      repairbreakbyte(startoffset, memory[0]);
-    {$endif}
+
 
 
     prefixsize:=length(LastDisassembleData.bytes);
