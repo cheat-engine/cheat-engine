@@ -1248,8 +1248,13 @@ object MemoryBrowser: TMemoryBrowser
       Caption = 'Copy to clipboard'
       ImageIndex = 15
       object CopyBytesAndOpcodes: TMenuItem
+        Tag = 5
         Caption = 'Bytes+Opcodes'
         Default = True
+        OnClick = CopyBytesAndOpcodesClick
+      end
+      object copyBytesAndOpcodesAndComments: TMenuItem
+        Caption = 'Bytes+Opcodes+Comments'
         OnClick = CopyBytesAndOpcodesClick
       end
       object copyBytes: TMenuItem

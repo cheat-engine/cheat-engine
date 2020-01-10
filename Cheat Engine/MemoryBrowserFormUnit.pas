@@ -47,6 +47,7 @@ type
     FSlabel: TLabel;
     GSlabel: TLabel;
     MenuItem4: TMenuItem;
+    copyBytesAndOpcodesAndComments: TMenuItem;
     miFollowInHexview: TMenuItem;
     miSetSpecificBreakpoint: TMenuItem;
     miWatchBPHardware: TMenuItem;
@@ -4273,8 +4274,9 @@ begin
 
 
     cbAddress.checked:=_tag<>3;
-    cbBytes.checked:=(_tag=0) or (_tag=1) or (_tag=3);
-    cbOpcode.checked:=(_tag=0) or (_tag=2);
+    cbBytes.checked:=(_tag=0) or (_tag=1) or (_tag=3) or (_tag=5);
+    cbOpcode.checked:=(_tag=0) or (_tag=2) or (_tag=5);
+    cbComment.checked:=(tag=0);
     
     button1.click;
     waittilldone;
