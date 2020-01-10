@@ -97,6 +97,7 @@ begin
   inherited create(suspended);
 
   disassembler:=TDisassembler.Create;
+  disassembler.aggressivealignment:=true;
 end;
 
 destructor TDisassemblerthread.destroy;

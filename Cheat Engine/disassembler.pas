@@ -93,6 +93,7 @@ type
     fsyntaxhighlighting: boolean;
     fOnDisassembleOverride: TDisassembleEvent;
     fOnPostDisassemble: TDisassembleEvent;
+    faggressivealignment: boolean;
 
 
     modrmposition: TMRPos;
@@ -174,6 +175,7 @@ type
     property syntaxhighlighting: boolean read fsyntaxhighlighting write setSyntaxHighlighting;
     property OnDisassembleOverride: TDisassembleEvent read fOnDisassembleOverride write fOnDisassembleOverride;
     property OnPostDisassemble: TDisassembleEvent read fOnPostDisassemble write fOnPostDisassemble;
+    property aggressivealignment: boolean read faggressivealignment write faggressivealignment;
   end;
 
 
@@ -1972,7 +1974,7 @@ begin
       $00 : begin
 
 
-              if ((((offset) and $f)=0) and (memory[1]<>0) ) or ((memory[1]=$55) and (memory[2]=$89) and (memory[3]=$e5)) then
+              if (aggressivealignment and (((offset) and $f)=0) and (memory[1]<>0) ) or ((memory[1]=$55) and (memory[2]=$89) and (memory[3]=$e5)) then
               begin
                 description:='Filler';
                 lastdisassembledata.opcode:='db';
@@ -15424,9 +15426,13 @@ var
   found: boolean;
   i: ptrUint;
 
+  aggressive: boolean;
 begin
   if d=nil then
     d:=defaultDisassembler;
+
+  aggressive:=d.aggressivealignment;
+  d.aggressivealignment:=true;
 
   x:=previousOpcodeHelp(d, address,80, result);
   if x<>address then
@@ -15462,6 +15468,8 @@ begin
       end;
     end;
   end;
+
+  d.aggressivealignment:=aggressive;
 end;
 
 

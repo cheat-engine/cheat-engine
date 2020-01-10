@@ -703,6 +703,7 @@ begin
   try
     d.showsymbols:=false;
     d.showmodules:=false;
+    d.aggressivealignment:=true;
 
     while not terminated do
     begin
