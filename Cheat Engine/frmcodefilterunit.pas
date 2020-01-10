@@ -957,12 +957,7 @@ begin
       if el<>nil then
       begin
         for i:=0 to el.Count-1 do
-        begin
           addAddress(md.moduleaddress+el[i].start);
-//          addAddress(md.moduleaddress+el[i].stop-1);
-//          ReadProcessMemory(processhandle, (md.moduleaddress+el[i].unwind), @unwindoffset,
-//          addAddress(md.moduleaddress+el[i].unwind);
-        end;
       end;
     end;
 
@@ -1006,6 +1001,7 @@ begin
   end;
 
   dofilter;
+  count:=0;
 end;
 
 procedure TfrmCodeFilter.FormClose(Sender: TObject;
