@@ -139,7 +139,7 @@ begin
     d:=uppercase(disassembler.disassemble(x,y));
 
     //make sure to isolate the opcodes for the scan
-    splitDisassembledString(d,true,ignore,ignore,opcode,ignore);
+    splitDisassembledString(d,false,ignore,ignore,opcode,ignore);
 
 
     if i=0 then
