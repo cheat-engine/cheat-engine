@@ -479,7 +479,7 @@
         <PackageName Value="LCL"/>
       </Item8>
     </RequiredPackages>
-    <Units Count="389">
+    <Units Count="390">
       <Unit0>
         <Filename Value="cheatengine.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -2534,6 +2534,11 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="macCreateRemoteThread"/>
       </Unit388>
+      <Unit389>
+        <Filename Value="frmdebugsymbolstructurelistunit.pas"/>
+        <IsPartOfProject Value="True"/>
+        <HasResources Value="True"/>
+      </Unit389>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

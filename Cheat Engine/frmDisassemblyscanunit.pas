@@ -274,7 +274,12 @@ begin
       stringstofind.Delete(i)
     else
     begin
-      stringstofind[i]:=StringReplace(EscapeStringForRegEx(stringstofind[i]), '\*','.*',[rfReplaceAll]);
+      s:=EscapeStringForRegEx(stringstofind[i]);
+      s:=StringReplace(s, '\*','.*',[rfReplaceAll]); //zero or more chars
+      s:=StringReplace(s, '\^','^',[rfReplaceAll]);  //start of line
+      s:=StringReplace(s, '\$','$',[rfReplaceAll]);  //end of line
+      s:=StringReplace(s, '\?','.',[rfReplaceAll]);  //exactly one char
+      stringstofind[i]:=s;
       inc(i);
     end;
   end;
