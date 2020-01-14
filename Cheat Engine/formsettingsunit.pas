@@ -1892,6 +1892,11 @@ begin
   end
   else cbKernelOpenProcess.Enabled:=true;
 
+
+  {$ifdef darwin}
+  groupbox2.visible:=false;
+  rbgDebuggerInterface.Visible:=false;
+  {$endif}
 end;
 
 procedure TformSettings.FormClose(Sender: TObject; var Action: TCloseAction);

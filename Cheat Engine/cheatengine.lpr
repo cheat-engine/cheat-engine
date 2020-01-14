@@ -14,7 +14,7 @@ uses
   {$ifdef darwin}
   //
   macport, macportdefines,coresymbolication, macexceptiondebuggerinterface,
-  macCreateRemoteThread,
+  macCreateRemoteThread, macumm,
   {$endif}
   controls, sysutils, Forms, LazUTF8, dialogs, SynCompletion, MainUnit,
   CEDebugger, NewKernelHandler, CEFuncProc, ProcessHandlerUnit, symbolhandler,
@@ -237,7 +237,11 @@ begin
       break;
     end;
 
+{$ifdef darwin}
+  frmmacumm.visible:=true;
+{$else}
   mainform.visible:=mainformvisible;
+{$endif}
 end;
 
 type TFormFucker=class
@@ -358,6 +362,9 @@ begin
   Application.CreateForm(TAdvancedOptions, AdvancedOptions);
   Application.CreateForm(TComments, Comments);
   Application.CreateForm(TTypeForm, TypeForm);
+  {$ifdef darwin}
+  Application.CreateForm(TfrmMacUmm, frmMacUmm);
+  {$endif}
 
   initcetitle;
   {$ifdef darwin}

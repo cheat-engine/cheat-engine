@@ -8,7 +8,7 @@ uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls,
   ComCtrls, ExtCtrls, maps, Menus, syncobjs, newkernelhandler,
   ProcessHandlerUnit, CodeFilterCallOrAllDialog, PEInfoFunctions, PEInfounit,
-  lua, lualib, lauxlib, luaform, LuaClass{$ifdef darwin},macport{$endif};
+  lua, lualib, lauxlib, LuaForm, LuaClass{$ifdef darwin},macport{$endif};
 
 type
 
@@ -24,7 +24,7 @@ type
     btnShowList: TButton;
     btnStart: TButton;
     btnStop: TButton;
-    Button1: TButton;
+    btnFromUnwindInfo: TButton;
     frmLaunchBranchMapper: TButton;
     GroupBox1: TGroupBox;
     cfImageList: TImageList;
@@ -56,7 +56,7 @@ type
     procedure btnShowListClick(Sender: TObject);
     procedure btnStartClick(Sender: TObject);
     procedure btnStopClick(Sender: TObject);
-    procedure Button1Click(Sender: TObject);
+    procedure btnFromUnwindInfoClick(Sender: TObject);
     procedure frmLaunchBranchMapperClick(Sender: TObject);
     procedure Button7Click(Sender: TObject);
     procedure FilterClick(Sender: TObject);
@@ -927,7 +927,8 @@ begin
   disableAllBreakpoints;
 end;
 
-procedure TfrmCodeFilter.Button1Click(Sender: TObject);
+procedure TfrmCodeFilter.btnFromUnwindInfoClick(Sender: TObject);
+{$ifdef windows}
 var
   sellist: TfrmSelectionList;
   md: tmoduledata;
@@ -936,7 +937,9 @@ var
   i: integer;
 
   rte: TRunTimeEntry;
+{$endif}
 begin
+  {$ifdef windows}
   if modulelist<>nil then
     cleanModuleList(modulelist);
 
@@ -966,7 +969,9 @@ begin
 
     btnStart.enabled:=callmap.count>0;
   end;
-
+  {$else}
+  MessageDlg('Only for windows',mtError,[mbok],0);
+  {$endif}
 end;
 
 procedure TfrmCodeFilter.frmLaunchBranchMapperClick(Sender: TObject);

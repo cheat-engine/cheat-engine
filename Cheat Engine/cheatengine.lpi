@@ -22,7 +22,7 @@
       <AutoIncrementBuild Value="True"/>
       <MajorVersionNr Value="7"/>
       <MinorVersionNr Value="1"/>
-      <BuildNr Value="6088"/>
+      <BuildNr Value="6093"/>
       <Language Value=""/>
       <CharSet Value=""/>
       <StringTable CompanyName="Cheat Engine" FileDescription="Cheat Engine" ProductVersion="7.1"/>
@@ -479,7 +479,7 @@
         <PackageName Value="LCL"/>
       </Item8>
     </RequiredPackages>
-    <Units Count="390">
+    <Units Count="391">
       <Unit0>
         <Filename Value="cheatengine.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -2539,6 +2539,13 @@
         <IsPartOfProject Value="True"/>
         <HasResources Value="True"/>
       </Unit389>
+      <Unit390>
+        <Filename Value="macumm.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="frmMacUmm"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+      </Unit390>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
