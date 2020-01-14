@@ -8,19 +8,23 @@ interface
 
 {$IFDEF windows}
 uses
-  windows, Classes, SysUtils, lua, LuaClass, syncobjs;
+  windows, Classes, SysUtils, lua, LuaClass, syncobjs, guisafecriticalsection;
 
 type
   TPipeConnection=class
   private
     fOnTimeout: TNotifyEvent;
+    fOnError: TNotifyEvent;
+    procedure CloseConnection(n: TNotifyEvent);
+
+    function ProcessOverlappedOperation(o: POVERLAPPED): boolean;
   protected
     pipe: THandle;
     fconnected: boolean;
-    cs: TCriticalsection;
+    cs: TGuiSafeCriticalSection;
     foverlapped: boolean;
     ftimeout: integer;
-    overlappedevent: thandle;
+
   public
     procedure lock;
     procedure unlock;
@@ -52,7 +56,7 @@ type
   published
     property connected: boolean read fConnected;
     property OnTimeout: TNotifyEvent read fOnTimeout write fOnTimeout;
-
+    property OnError: TNotifyEvent read fOnTimeout write fOnTimeout;
   end;
 
 procedure pipecontrol_addMetaData(L: PLua_state; metatable: integer; userdata: integer );
@@ -62,6 +66,8 @@ implementation
 
 {$IFDEF windows}
 uses LuaObject, LuaByteTable;
+
+threadvar WaitEvent: THandle;
 
 destructor TPipeConnection.destroy;
 begin
@@ -77,8 +83,7 @@ end;
 constructor TPipeConnection.create;
 begin
   ftimeout :=5000;
-  overlappedevent:=CreateEvent(nil,false,false,nil);
-  cs:=TCriticalSection.Create;
+  cs:=TGuiSafeCriticalSection.Create;
 end;
 
 procedure TPipeConnection.lock;
@@ -193,12 +198,78 @@ begin
   FreeMemAndNil(x);
 end;
 
+function TPipeConnection.ProcessOverlappedOperation(o: POVERLAPPED): boolean;
+var
+  starttime: qword;
+  i: integer;
+  bt: dword;
+  r: dword;
+begin
+  starttime:=GetTickCount64;
+  while fconnected and ((ftimeout=0) or (gettickcount64<starttime+ftimeout)) do
+  begin
+    if MainThreadID=GetCurrentThreadId then
+    begin
+      CheckSynchronize;
+
+      r:=WaitForSingleObject(o^.hEvent, 25);
+      case r of
+        WAIT_OBJECT_0, WAIT_TIMEOUT: fconnected:=true;
+        else
+          fconnected:=false;
+      end;
+      if not fconnected then
+        closeConnection(fOnError);
+    end
+    else
+    begin
+     // sleep(10);
+      r:=WaitForSingleObject(o^.hEvent, ifthen<DWORD>(ftimeout=0, 1000, ftimeout));
+      case r of
+        WAIT_OBJECT_0, WAIT_TIMEOUT: fconnected:=true;
+        else
+          fconnected:=false;
+      end;
+      if not fconnected then
+        closeConnection(fOnError);
+    end;
+
+    if fconnected and (GetOverlappedResult(pipe, o^, bt,false)=false) then   //todo: check for GetOverlappedResultEx and use that
+    begin
+      i:=getlasterror;
+      if ((i=ERROR_IO_PENDING) or (i=ERROR_IO_INCOMPLETE)) then
+        continue
+      else
+      begin
+        closeConnection(fOnError);
+        exit(false);
+      end;
+    end
+    else
+      exit(fconnected);
+   end;
+
+   closeConnection(fOnTimeout);
+   exit(false);
+end;
+
+procedure TPipeConnection.CloseConnection(n: TNotifyEvent);
+begin
+  fconnected:=false;
+  CancelIo(pipe);
+  closehandle(pipe);
+  pipe:=0;
+  if assigned(n) then
+    n(self);
+end;
+
 function TPipeConnection.WriteBytes(bytes: pointer; size: integer): boolean;
 var
   bw: dword;
   o: OVERLAPPED;
   starttime: qword;
   i: integer;
+  overlappedevent: thandle;
 begin
   if not fconnected then exit(false);
 
@@ -207,42 +278,20 @@ begin
     if foverlapped then
     begin
       zeromemory(@o, sizeof(o));
-      o.hEvent:=overlappedevent;
+
+      if waitevent=0 then
+        waitevent:=CreateEvent(nil,false,false,nil);
+
+      o.hEvent:=waitevent;
+      resetevent(o.hEvent);
+
       if writefile(pipe, bytes^, size, bw,@o)=false then
       begin
         if GetLastError=ERROR_IO_PENDING then
-        begin
-          fconnected:=fconnected or (WaitForSingleObject(o.hEvent, ftimeout)=WAIT_OBJECT_0);
-
-          starttime:=GetTickCount64;
-
-          while GetOverlappedResult(pipe, o, bw,false)=false do   //todo: check for GetOverlappedResultEx and use that
-          begin
-            i:=getlasterror;
-            if ((i=ERROR_IO_PENDING) or (i=ERROR_IO_INCOMPLETE)) and (gettickcount64<starttime+ftimeout) then
-              sleep(0)
-            else
-            begin
-              fconnected:=false;
-              CancelIo(pipe);
-              closehandle(pipe);
-              pipe:=0;
-              if assigned(fOnTimeout) then
-                fOnTimeout(self);
-              exit(false);
-
-
-            end;
-          end;
-
-          exit(true);
-        end
+          exit(ProcessOverlappedOperation(@o))
         else
         begin
-          fconnected:=false;
-          CancelIo(pipe);
-          closehandle(pipe);
-          pipe:=0;
+          closeConnection(fOnError);
           exit(false);
         end;
       end;
@@ -269,42 +318,18 @@ begin
     if foverlapped then
     begin
       zeromemory(@o, sizeof(o));
-      o.hEvent:=overlappedevent;
-      ResetEvent(o.hEvent);
+      if waitevent=0 then
+        waitevent:=CreateEvent(nil,false,false,nil);
+
+      o.hEvent:=waitevent;
+      resetevent(o.hEvent);
       if Readfile(pipe, bytes^, size, br,@o)=false then
       begin
         if GetLastError=ERROR_IO_PENDING then
-        begin
-          fconnected:=fconnected or (WaitForSingleObject(o.hEvent, ftimeout)=WAIT_OBJECT_0);
-
-          starttime:=GetTickCount64;
-
-          while GetOverlappedResult(pipe, o, br,false)=false do   //todo: check for GetOverlappedResultEx and use that
-          begin
-            i:=getlasterror;
-            if ((i=ERROR_IO_PENDING) or (i=ERROR_IO_INCOMPLETE)) and (gettickcount64<starttime+ftimeout) then
-              sleep(0)
-            else
-            begin
-              fconnected:=false;
-              CancelIo(pipe);
-              closehandle(pipe);
-              pipe:=0;
-              if assigned(fOnTimeout) then
-                fOnTimeout(self);
-
-              exit(false);
-            end;
-          end;
-
-          exit(true);
-        end
+          exit(ProcessOverlappedOperation(@o))
         else
         begin
-          fconnected:=false;
-          CancelIo(pipe);
-          closehandle(pipe);
-          pipe:=0;
+          closeConnection(fOnError);
           exit(false);
         end;
       end;
@@ -315,6 +340,11 @@ begin
 
 
   result:=fconnected;
+
+  if result=false then
+  asm
+  nop
+  end;
 end;
 
 function pipecontrol_writeBytes(L: PLua_State): integer; cdecl;

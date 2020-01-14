@@ -4,6 +4,8 @@ end
 
 local StructureElementCallbackID=nil
 
+mono_timeout=3000 --change to 0 to never timeout (meaning: 0 will freeze your face off if it breaks on a breakpoint, just saying ...)
+
 MONOCMD_INITMONO=0
 MONOCMD_OBJECT_GETCLASS=1
 MONOCMD_ENUMDOMAINS=2
@@ -219,7 +221,7 @@ function monoIL2CPPSymbolEnum(t)
     
     if priority then x=x+1 end
     
-    --print("parsing "..images[i].name..'('..x..'/'..#images..')');
+   -- print("parsing "..images[i].name..'('..x..'/'..#images..')');
     parseImage(t, images[i])
     if t.Terminated then return end
   end
@@ -334,14 +336,19 @@ ret
   --wait till attached
   local timeout=getTickCount()+5000;
   while (monopipe==nil) and (getTickCount()<timeout) do
-    monopipe=connectToPipe('cemonodc_pid'..getOpenedProcessID() ,3000)
+    monopipe=connectToPipe('cemonodc_pid'..getOpenedProcessID() ,mono_timeout)
   end
 
   if (monopipe==nil) then
     return 0 --failure
   end
+  
+  monopipe.OnError=function(self)
+    --print("monopipe error")    
+  end
 
-  monopipe.OnTimeout=function(self)
+  monopipe.OnTimeout=function(self)  
+    --print("monopipe timeout")  
     monopipe.destroy()
     monopipe=nil
     mono_AttachedProcess=0
@@ -2829,14 +2836,18 @@ function mono_dissect()
     end
   end
 
-  local newx=monoSettings.Value['monoform.x']
-  local newy=monoSettings.Value['monoform.y']
-  local newwidth=monoSettings.Value['monoform.width']
-  local newheight=monoSettings.Value['monoform.height']   
-  if newx~='' then monoForm.left=newx end
-  if newy~='' then monoForm.top=newy end
-  if newwidth~='' then monoForm.width=newwidth end
-  if newheight~='' then monoForm.height=newheight end
+  local newx=tonumber(monoSettings.Value['monoform.x'])
+  local newy=tonumber(monoSettings.Value['monoform.y'])
+  local newwidth=tonumber(monoSettings.Value['monoform.width'])
+  local newheight=tonumber(monoSettings.Value['monoform.height']) 
+  
+  if (newx and newx>getWorkAreaWidth()) then newx=nil end --make sure it stays within the workable area
+  if (newy and newy>getWorkAreaHeight()) then newy=nil end
+  
+  if newx and newy then monoForm.left=newx end
+  if newx and newy then monoForm.top=newy end
+  if newx and newy and newwidth then monoForm.width=newwidth end
+  if newx and newy and newheight then monoForm.height=newheight end
  
   
   monoForm.show()
