@@ -270,15 +270,13 @@ function ceshare.CheckForCheatsClick(s)
     ceshare.picEmptyStar=ceshare.CheatBrowserFrm.imgStarNotFilled.Picture
   
     ceshare.RateStars={}
-    local dim=ceshare.CheatBrowserFrm.btnAddViewComments.Height+2
+    
     local currentLeftControl=ceshare.CheatBrowserFrm.lblRate
     local i
     for i=1,5 do
       ceshare.RateStars[i]={}
       ceshare.RateStars[i].state=false
       ceshare.RateStars[i].img=createImage(ceshare.CheatBrowserFrm.pnlControls)
-      ceshare.RateStars[i].img.Width=dim
-      ceshare.RateStars[i].img.Height=dim      
       ceshare.RateStars[i].img.Stretch=true
       ceshare.RateStars[i].img.Picture=ceshare.picEmptyStar
       ceshare.RateStars[i].img.AnchorSideLeft.Control=currentLeftControl
@@ -488,6 +486,13 @@ function ceshare.CheckForCheatsClick(s)
   ceshare.CheatBrowserFrm.AutoSize=false
   ceshare.CheatBrowserFrm.lvCheats.Constraints.MinHeight=0
   ceshare.CheatBrowserFrm.pnlDescription.Constraints.MinHeight=0
+  
+  --adjust starsize
+  local dim=ceshare.CheatBrowserFrm.btnAddViewComments.Height
+  for i=1,5 do  
+    ceshare.RateStars[i].img.Width=dim
+    ceshare.RateStars[i].img.Height=dim
+  end
   
   if not ceshare.CheatBrowserFrmShownBefore then
     --adjust the size
