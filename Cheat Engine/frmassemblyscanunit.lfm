@@ -1,24 +1,24 @@
 object frmAssemblyScan: TfrmAssemblyScan
   Left = 682
-  Height = 185
+  Height = 215
   Top = 308
   Width = 451
   BorderIcons = [biSystemMenu]
   Caption = 'Assembly scan'
-  ClientHeight = 185
+  ClientHeight = 215
   ClientWidth = 451
   OnShow = FormShow
   Position = poScreenCenter
   LCLVersion = '2.0.0.4'
   object Panel1: TPanel
     Left = 0
-    Height = 185
+    Height = 215
     Top = 0
     Width = 363
     Align = alClient
     AutoSize = True
     BevelOuter = bvNone
-    ClientHeight = 185
+    ClientHeight = 215
     ClientWidth = 363
     TabOrder = 0
     object lblInputAssemblyCode: TLabel
@@ -27,11 +27,11 @@ object frmAssemblyScan: TfrmAssemblyScan
       AnchorSideRight.Control = Panel1
       AnchorSideRight.Side = asrBottom
       Left = 0
-      Height = 15
+      Height = 45
       Top = 0
       Width = 363
       Anchors = [akTop, akLeft, akRight]
-      Caption = 'Input the assembly code to find. Wildcards( * ) supported.'
+      Caption = 'Input the assembly code to find. Wildcards supported:'#13#10'* matches zero or more chars, ? matches exactly one char'#13#10'^ matches the start and $ matches the end of line.'
       ParentColor = False
     end
     object mAssemblerSearch: TMemo
@@ -44,7 +44,7 @@ object frmAssemblyScan: TfrmAssemblyScan
       AnchorSideBottom.Side = asrBottom
       Left = 0
       Height = 170
-      Top = 15
+      Top = 45
       Width = 363
       Anchors = [akTop, akLeft, akRight, akBottom]
       TabOrder = 0
@@ -52,13 +52,13 @@ object frmAssemblyScan: TfrmAssemblyScan
   end
   object Panel2: TPanel
     Left = 363
-    Height = 185
+    Height = 215
     Top = 0
     Width = 88
     Align = alRight
     AutoSize = True
     BevelOuter = bvNone
-    ClientHeight = 185
+    ClientHeight = 215
     ClientWidth = 88
     Constraints.MinHeight = 9
     TabOrder = 1
