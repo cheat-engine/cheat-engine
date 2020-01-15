@@ -5975,6 +5975,11 @@ begin
   cbDirty.State:=cbGrayed;
 
   mi3d.Visible:=false;
+
+  cut1.ShortCut:=TextToShortCut('Meta+X');
+  copy1.ShortCut:=TextToShortCut('Meta+C');
+  paste1.ShortCut:=TextToShortCut('Meta+V');
+  menuitem1.ShortCut:=TextToShortCut('Meta+A');
   {$endif}
 end;
 
