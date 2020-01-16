@@ -580,6 +580,7 @@ begin
         //spawn a TfrmSymboleventtakinglong form that uses a timer to check the TSymbolLoaderThreadEvent event
 
         waitingfrm:=TfrmSymbolEventTakingLong.Create(application);
+        waitingfrm.slevent:=self;
 
         if self is  TGetAddressFromSymbolThreadEvent then
         begin
@@ -615,6 +616,10 @@ begin
             abandoned:=true;
           end;
           break;
+        end
+        else
+        asm
+        nop
         end;
       end;
     end;
@@ -1948,6 +1953,7 @@ end;
 
 
 {$ifdef darwin}
+var count: integer;
 
 function ES(si: CSSymbolIterator; sym: CSSymbolRef): integer;  cdecl;
 var
@@ -1967,6 +1973,9 @@ begin
   self.symbollist.AddSymbol(self.currentModuleName, self.currentModuleName+'.'+symname, range.location, range.length);
   self.symbollist.AddSymbol(self.currentModuleName, symname, range.location, range.length,true); //don't add it as a address->string lookup  , (this way it always shows modulename.symbol)
   result:=0;
+
+  self.processThreadEvents;
+
 end;
 
 function EM(mi: CSSymbolOwnerIterator; so: CSSymbolOwnerRef): integer;  cdecl;
@@ -1981,7 +1990,7 @@ begin
   CSSymbolOwnerforEachSymbol(so, si);
   freeIterator(si);
 
-  //todo: processThreadEvents
+  self.processThreadEvents;
 
   result:=0;
 end;
@@ -1991,6 +2000,8 @@ var mi: CSSymbolOwnerIterator;
 begin
   result:=false;
   cs:=CSSymbolicatorCreateWithPid(thisprocessid);
+
+  processThreadEvents;
 
   if CSIsNull(cs)=false then
   begin
@@ -2256,8 +2267,11 @@ begin
 
 
 
-              processThreadEvents;
               isloading:=false;
+
+              while symbolloaderthreadeventqueue.Count>0 do
+                processThreadEvents;
+
 
               debugpart:=4;
               EnumerateExtendedDebugSymbols;
@@ -2292,6 +2306,10 @@ begin
 
         symbolscleaned:=true;
         isloading:=false;
+
+        while symbolloaderthreadeventqueue.Count>0 do
+          processThreadEvents;
+
         DLLSymbolsLoaded:=true;
         apisymbolsloaded:=true;
         dotnetsymbolsloaded:=true;

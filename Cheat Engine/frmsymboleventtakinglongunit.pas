@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, FileUtil, LResources, Forms, Controls, Graphics, Dialogs,
-  StdCtrls, ExtCtrls, syncobjs;
+  StdCtrls, ExtCtrls, syncobjs, symbolhandler;
 
 type
 
@@ -30,6 +30,8 @@ type
     { public declarations }
     formcanclose: boolean;
     done: Tevent;
+
+    slevent: TSymbolLoaderThreadEvent;
   end;
 
 var waitingfrm: TfrmSymbolEventTakingLong;
@@ -57,6 +59,8 @@ begin
     formcanclose:=true;
     modalresult:=mrOK;
   end;
+
+  if slevent.abandoned then modalresult:=mrcancel;
 end;
 
 initialization
