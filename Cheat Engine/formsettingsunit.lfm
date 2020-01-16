@@ -1,7 +1,7 @@
 object formSettings: TformSettings
-  Left = 474
+  Left = 436
   Height = 672
-  Top = 182
+  Top = 113
   Width = 810
   AutoSize = True
   BorderIcons = [biSystemMenu]
@@ -1380,7 +1380,7 @@ object formSettings: TformSettings
           Width = 654
           HorzScrollBar.Page = 652
           HorzScrollBar.Tracking = True
-          VertScrollBar.Page = 500
+          VertScrollBar.Page = 455
           VertScrollBar.Tracking = True
           Align = alClient
           ClientHeight = 591
@@ -1421,31 +1421,31 @@ object formSettings: TformSettings
             AnchorSideLeft.Control = rbgDebuggerInterface
             AnchorSideTop.Control = rbgDebuggerInterface
             AnchorSideTop.Side = asrBottom
-            AnchorSideRight.Control = rbgDebuggerInterface
+            AnchorSideRight.Control = ScrollBox3
             AnchorSideRight.Side = asrBottom
             Left = 8
-            Height = 128
-            Top = 279
-            Width = 353
+            Height = 67
+            Top = 295
+            Width = 269
             AutoSize = True
             BorderSpacing.Top = 2
             Caption = 'Debugger interface config'
-            ClientHeight = 109
-            ClientWidth = 343
+            ClientHeight = 48
+            ClientWidth = 259
             TabOrder = 2
             object pcDebugConfig: TPageControl
               Left = 0
-              Height = 109
+              Height = 48
               Top = 0
-              Width = 343
-              ActivePage = tsVEHDebugConfig
+              Width = 259
+              ActivePage = tsWindowsDebuggerConfig
               Align = alClient
-              TabIndex = 0
+              TabIndex = 1
               TabOrder = 0
               object tsVEHDebugConfig: TTabSheet
                 Caption = 'VEH Debugger'
-                ClientHeight = 79
-                ClientWidth = 337
+                ClientHeight = 18
+                ClientWidth = 683
                 object rbVEHHookThreadCreation: TRadioButton
                   AnchorSideLeft.Control = tsVEHDebugConfig
                   AnchorSideTop.Control = rbVEHPollThread
@@ -1530,15 +1530,15 @@ object formSettings: TformSettings
               end
               object tsKernelDebugConfig: TTabSheet
                 Caption = 'Kernel Debug'
-                ClientHeight = 104
-                ClientWidth = 564
+                ClientHeight = 36
+                ClientWidth = 92
                 object cbGlobalDebug: TCheckBox
                   AnchorSideLeft.Control = tsKernelDebugConfig
                   AnchorSideTop.Control = tsKernelDebugConfig
                   Left = 0
-                  Height = 24
+                  Height = 18
                   Top = 0
-                  Width = 202
+                  Width = 174
                   Caption = 'Use Global Debug routines'
                   TabOrder = 0
                 end
@@ -1547,11 +1547,39 @@ object formSettings: TformSettings
                   AnchorSideTop.Control = cbGlobalDebug
                   AnchorSideTop.Side = asrBottom
                   Left = 0
-                  Height = 24
-                  Top = 24
-                  Width = 254
+                  Height = 18
+                  Top = 18
+                  Width = 218
                   Caption = 'Ability to step through kernel code'
                   TabOrder = 1
+                end
+              end
+              object tsMacDebuggerInterface: TTabSheet
+                Caption = 'Mac Debug'
+                ClientHeight = 36
+                ClientWidth = 92
+                object rbMacDebugTaskLevel: TRadioButton
+                  AnchorSideLeft.Control = tsMacDebuggerInterface
+                  AnchorSideTop.Control = tsMacDebuggerInterface
+                  Left = 0
+                  Height = 18
+                  Top = 0
+                  Width = 81
+                  Caption = 'Task Level'
+                  Checked = True
+                  TabOrder = 1
+                  TabStop = True
+                end
+                object rbMacDebugThreadLevel: TRadioButton
+                  AnchorSideLeft.Control = tsMacDebuggerInterface
+                  AnchorSideTop.Control = rbMacDebugTaskLevel
+                  AnchorSideTop.Side = asrBottom
+                  Left = 0
+                  Height = 18
+                  Top = 18
+                  Width = 92
+                  Caption = 'Thread level'
+                  TabOrder = 0
                 end
               end
             end
@@ -1561,7 +1589,7 @@ object formSettings: TformSettings
             AnchorSideTop.Control = edtStacksize
             AnchorSideTop.Side = asrBottom
             Left = 8
-            Height = 75
+            Height = 91
             Top = 202
             Width = 451
             AutoFill = True
@@ -1574,7 +1602,7 @@ object formSettings: TformSettings
             ChildSizing.ShrinkVertical = crsScaleChilds
             ChildSizing.Layout = cclLeftToRightThenTopToBottom
             ChildSizing.ControlsPerLine = 1
-            ClientHeight = 56
+            ClientHeight = 72
             ClientWidth = 441
             TabOrder = 3
             object cbUseVEHDebugger: TRadioButton
@@ -1614,7 +1642,6 @@ object formSettings: TformSettings
               Top = 35
               Width = 257
               AutoSize = True
-              Caption = 'Panel11'
               ChildSizing.Layout = cclLeftToRightThenTopToBottom
               ChildSizing.ControlsPerLine = 2
               ClientHeight = 21
@@ -1654,6 +1681,19 @@ object formSettings: TformSettings
               OnChange = cbDebuggerInterfaceChange
               OnClick = cbDebuggerInterfaceChange
               TabOrder = 3
+            end
+            object cbUseMacDebugger: TRadioButton
+              AnchorSideLeft.Control = rbgDebuggerInterface
+              AnchorSideTop.Control = cbKDebug
+              AnchorSideTop.Side = asrBottom
+              Left = 6
+              Height = 18
+              Top = 54
+              Width = 130
+              Caption = 'Use Mac debugger'
+              OnChange = cbDebuggerInterfaceChange
+              OnClick = cbDebuggerInterfaceChange
+              TabOrder = 4
             end
           end
           object Label4: TLabel
@@ -1786,7 +1826,7 @@ object formSettings: TformSettings
             AnchorSideRight.Side = asrBottom
             Left = 8
             Height = 91
-            Top = 409
+            Top = 364
             Width = 387
             AutoSize = True
             BorderSpacing.Top = 2

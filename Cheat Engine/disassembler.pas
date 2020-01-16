@@ -249,7 +249,7 @@ uses Assemblerunit,CEDebugger, debughelper, StrUtils, debuggertypedefinitions,
 
 {$ifdef darwin}
 uses Assemblerunit,CEDebugger, debughelper, StrUtils, debuggertypedefinitions,
-  Parsers, memoryQuery, (*binutils,*) luacaller, (*vmxfunctions, frmcodefilterunit, *)
+  Parsers, memoryQuery, (*binutils,*) LuaCaller, (*vmxfunctions, frmcodefilterunit, *)
   BreakpointTypeDef;
 {$endif}
 

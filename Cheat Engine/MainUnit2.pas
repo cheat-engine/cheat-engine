@@ -8,7 +8,7 @@ interface
 
 uses
      {$ifdef darwin}
-     macport,
+     macport, macexceptiondebuggerinterface,
      {$endif}
      {$ifdef windows}
      windows,
@@ -807,6 +807,7 @@ begin
           if reg.ValueExists('Use Processwatcher') then
             cbProcessWatcher.checked:=reg.readBool('Use Processwatcher');
 
+          {$ifdef windows}
           if reg.ValueExists('Use VEH Debugger') then
             cbUseVEHDebugger.Checked:=reg.ReadBool('Use VEH Debugger');
 
@@ -821,10 +822,20 @@ begin
 
           if reg.ValueExists('Use Kernel Debugger') then
             cbKdebug.checked:=reg.ReadBool('Use Kernel Debugger');
+          {$endif}
 
           if reg.ValueExists('Wait After Gui Update') then
             waitafterguiupdate:=reg.ReadBool('Wait After Gui Update');
           cbWaitAfterGuiUpdate.checked:=waitafterguiupdate;
+
+          {$ifdef darwin}
+          cbUseMacDebugger.checked:=true;
+
+          if reg.ValueExists('Use TaskLevel debugger') then
+            useTaskLevelDebug:=reg.ReadBool('Use TaskLevel debugger');
+
+          {$endif}
+
 
           if reg.ValueExists('Unexpected Breakpoint Behaviour') then
           begin

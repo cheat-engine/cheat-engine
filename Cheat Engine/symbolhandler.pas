@@ -12,15 +12,21 @@ uses unixporthelper, Classes, sysutils, NewKernelHandler, syncobjs, SymbolListHa
 uses
   {$ifdef darwin}
   macport, coresymbolication,
-  {$else}
+  {$endif}
+
+  {$ifdef windows}
   jwawindows, windows,
   {$endif}
   classes,LCLIntf{$ifdef windows},imagehlp{$endif},sysutils, CEFuncProc,
   NewKernelHandler,syncobjs, SymbolListHandler, fgl, typinfo, cvconst, PEInfoFunctions,
   DotNetPipe, DotNetTypes, commonTypeDefs, math, LazUTF8, contnrs, LazFileUtils,
   db, sqldb, sqlite3dyn, sqlite3conn, registry, symbolhandlerstructs, forms, controls,
-  AvgLvlTree;
+  AvgLvlTree
+  {$ifdef darwin}
+  ,macportdefines
+  {$endif};
 {$endif}
+
 
 {$ifdef windows}
 Procedure Free (P : pointer); cdecl; external 'msvcrt' name 'free';
@@ -4679,6 +4685,10 @@ begin
 
                 if not processhandler.isNetwork then
                 begin
+                  {$ifdef darwin}
+                  newmodulelist[newmodulelistpos].is64bitmodule:=me32.is64bit; //I own this struct now so yes...
+                  {$endif}
+
                   {$ifdef windows}
                   if peinfo_is64bitfile(x, newmodulelist[newmodulelistpos].is64bitmodule)=false then
                   begin

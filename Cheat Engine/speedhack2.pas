@@ -70,9 +70,10 @@ begin
   begin
     try
       {$ifdef darwin}
-      if not FileExists('/usr/lib/libspeedhack.dylib') then
+      if not FileExists('/usr/local/lib/libspeedhack.dylib') then
       begin
-        if CopyFile(cheatenginedir+'libspeedhack.dylib', '/usr/lib/libspeedhack.dylib', true)=false then
+        path:=cheatenginedir+'libspeedhack.dylib';
+        if CopyFile(path, '/usr/local/lib/libspeedhack.dylib', true)=false then
         begin
           raise exception.create('Failure copying libspeedhack.dylib to /usr/lib');
         end;
@@ -80,7 +81,7 @@ begin
 
       if symhandler.getmodulebyname('libspeedhack.dylib', mi)=false then
       begin
-        injectdll('/usr/lib/libspeedhack.dylib','');
+        injectdll('/usr/local/lib/libspeedhack.dylib','');
         symhandler.reinitialize;
       end;
 

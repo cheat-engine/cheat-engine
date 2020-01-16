@@ -6,7 +6,7 @@ interface
 
 uses
   {$ifdef darwin}
-  macport,
+  macport, macexceptiondebuggerinterface,
   {$endif}
   {$ifdef windows}
   windows, win32proc,
@@ -146,6 +146,9 @@ type
     miUnexpectedBreakpointsIgnore: TRadioButton;
     miUnexpectedBreakpointsBreak: TRadioButton;
     miUnexpectedBreakpointsBreakWhenInsideRegion: TRadioButton;
+    rbMacDebugThreadLevel: TRadioButton;
+    cbUseMacDebugger: TRadioButton;
+    rbMacDebugTaskLevel: TRadioButton;
     rbDebugAsBreakpoint: TRadioButton;
     rbgDebuggerInterface: TRadioGroup;
     rbInt3AsBreakpoint: TRadioButton;
@@ -161,6 +164,7 @@ type
     spbDown: TSpeedButton;
     spbUp: TSpeedButton;
     Languages: TTabSheet;
+    tsMacDebuggerInterface: TTabSheet;
     tsLua: TTabSheet;
     tsSigning: TTabSheet;
     tsKernelDebugConfig: TTabSheet;
@@ -837,6 +841,12 @@ begin
         waitafterguiupdate:=cbWaitAfterGuiUpdate.checked;
         reg.WriteBool('Wait After Gui Update', waitafterguiupdate);
 
+        {$ifdef darwin}
+        reg.WriteBool('Use TaskLevel debugger', rbMacDebugTaskLevel.checked);
+
+        useTaskLevelDebug:=rbMacDebugTaskLevel.checked;
+        {$endif}
+
 
         if miUnexpectedBreakpointsIgnore.checked then i:=0;
         if miUnexpectedBreakpointsBreak.checked then i:=1;
@@ -1214,8 +1224,13 @@ begin
   begin
     rbDebugAsBreakpoint.checked:=true;
     pcDebugConfig.ActivePageIndex:=2;
+  end
+  else
+  if cbUseMacDebugger.checked then
+  begin
+    pcDebugConfig.ActivePageIndex:=3;
+    pcDebugConfig.TabIndex:=3;
   end;
-
 
   rbPageExceptions.enabled:=not cbKDebug.checked; //currently the kerneldebugger doesn't handle pageexceptions yet (can be added, but not right now)
   if rbPageExceptions.checked and not rbPageExceptions.enabled then
@@ -1865,6 +1880,8 @@ begin
 
   for i:=0 to pcDebugConfig.PageCount-1 do
     pcDebugConfig.Pages[i].TabVisible:=false;
+  {$else}
+  pcDebugConfig.ShowTabs:=false;
   {$endif}
 
 
@@ -1881,6 +1898,21 @@ begin
 
   if LoadFormPosition(self) then
     autosize:=false;
+
+
+
+  {$ifdef darwin}
+  cbUseVEHDebugger.enabled:=false;
+  cbUseVEHDebugger.visible:=false;
+  cbUseWindowsDebugger.enabled:=false;
+  cbUseWindowsDebugger.visible:=false;
+  cbKDebug.enabled:=false;
+  cbKDebug.visible:=false;
+  panel11.visible:=false;
+
+  cbUseMacDebugger.checked:=true;
+
+  {$endif}
 end;
 
 procedure TformSettings.cbKernelQueryMemoryRegionClick(Sender: TObject);
@@ -1893,10 +1925,6 @@ begin
   else cbKernelOpenProcess.Enabled:=true;
 
 
-  {$ifdef darwin}
-  groupbox2.visible:=false;
-  rbgDebuggerInterface.Visible:=false;
-  {$endif}
 end;
 
 procedure TformSettings.FormClose(Sender: TObject; var Action: TCloseAction);
@@ -2001,12 +2029,20 @@ begin
     w:=max(groupbox2.Width, w);
     h:=max(groupbox2.Height, h);
 
-    cbDebuggerInterfaceChange(nil);
+    {$ifdef darwin}
+    pcDebugConfig.PageIndex:=3;
+    w:=max(groupbox2.Width, w);
+    h:=max(groupbox2.Height, h);
+
+    {$endif}
 
     groupbox2.AutoSize:=false;
 
+    cbDebuggerInterfaceChange(nil);
+
     groupbox2.Width:=w;
     groupbox2.Height:=h;
+
   end;
 end;
 

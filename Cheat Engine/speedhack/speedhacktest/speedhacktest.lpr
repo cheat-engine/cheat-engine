@@ -3,6 +3,9 @@ program speedhacktest;
 {$MODE Delphi}
 
 uses
+  {$ifdef darwin}
+  cthreads,
+  {$endif}
   Forms, Interfaces,
   Unit1 in 'Unit1.pas' {Form1};
 

@@ -9,7 +9,7 @@ object MainForm: TMainForm
   VertScrollBar.Visible = False
   AllowDropFiles = True
   AutoSize = True
-  Caption = 'Cheat Engine 6.8.3'
+  Caption = 'Cheat Engine 7.1'
   ClientHeight = 605
   ClientWidth = 620
   Menu = MainMenu1
@@ -269,7 +269,7 @@ object MainForm: TMainForm
       Left = 262
       Height = 20
       Top = 48
-      Width = 85
+      Width = 89
       AutoSize = True
       Caption = 'First Scan'
       Constraints.MinWidth = 75
@@ -592,10 +592,10 @@ object MainForm: TMainForm
       AnchorSideLeft.Side = asrBottom
       AnchorSideTop.Control = Foundlist3
       AnchorSideRight.Control = btnNewScan
-      Left = 357
+      Left = 361
       Height = 20
       Top = 48
-      Width = 86
+      Width = 90
       AutoSize = True
       BorderSpacing.Left = 10
       Caption = 'Next Scan'
@@ -696,10 +696,10 @@ object MainForm: TMainForm
     object UndoScan: TButton
       AnchorSideTop.Control = btnNextScan
       AnchorSideRight.Control = LogoPanel
-      Left = 471
+      Left = 466
       Height = 20
       Top = 48
-      Width = 90
+      Width = 95
       Anchors = [akTop, akRight]
       AutoSize = True
       BorderSpacing.Right = 5

@@ -9,12 +9,12 @@ object Form1: TForm1
   Font.Height = -11
   Font.Name = 'MS Sans Serif'
   OnCreate = FormCreate
-  LCLVersion = '1.6.4.0'
+  LCLVersion = '2.0.6.0'
   object Label1: TLabel
     Left = 0
     Height = 13
     Top = 32
-    Width = 32
+    Width = 34
     Caption = 'Label1'
     ParentColor = False
   end
@@ -22,7 +22,7 @@ object Form1: TForm1
     Left = 0
     Height = 13
     Top = 48
-    Width = 32
+    Width = 35
     Caption = 'Label2'
     ParentColor = False
   end
@@ -30,15 +30,15 @@ object Form1: TForm1
     Left = 0
     Height = 13
     Top = 80
-    Width = 32
+    Width = 35
     Caption = 'Label3'
     ParentColor = False
   end
   object lblFail: TLabel
     Left = 8
-    Height = 24
+    Height = 22
     Top = 112
-    Width = 44
+    Width = 40
     Caption = 'FAIL'
     Font.CharSet = ANSI_CHARSET
     Font.Color = clRed
@@ -55,7 +55,7 @@ object Form1: TForm1
     Left = 0
     Height = 13
     Top = 64
-    Width = 32
+    Width = 36
     Caption = 'Label4'
     ParentColor = False
   end
@@ -63,7 +63,7 @@ object Form1: TForm1
     Left = 8
     Height = 13
     Top = 152
-    Width = 32
+    Width = 35
     Caption = 'Label5'
     ParentColor = False
   end
@@ -71,7 +71,7 @@ object Form1: TForm1
     Left = 8
     Height = 13
     Top = 168
-    Width = 32
+    Width = 36
     Caption = 'Label6'
     ParentColor = False
   end
@@ -79,7 +79,7 @@ object Form1: TForm1
     Left = 208
     Height = 13
     Top = 17
-    Width = 29
+    Width = 34
     Caption = 'rdtsc='
     ParentColor = False
   end
@@ -87,7 +87,7 @@ object Form1: TForm1
     Left = 209
     Height = 13
     Top = 32
-    Width = 35
+    Width = 41
     Caption = 'rdtscp='
     ParentColor = False
   end
@@ -95,7 +95,7 @@ object Form1: TForm1
     Left = 209
     Height = 13
     Top = 48
-    Width = 41
+    Width = 46
     Caption = 'cpuid 0='
     ParentColor = False
   end
@@ -103,7 +103,7 @@ object Form1: TForm1
     Left = 209
     Height = 13
     Top = 64
-    Width = 41
+    Width = 45
     Caption = 'cpuid 1='
     ParentColor = False
   end
@@ -111,7 +111,7 @@ object Form1: TForm1
     Left = 209
     Height = 13
     Top = 80
-    Width = 41
+    Width = 46
     Caption = 'cpuid 2='
     ParentColor = False
   end
@@ -119,9 +119,18 @@ object Form1: TForm1
     Left = 209
     Height = 13
     Top = 96
-    Width = 41
+    Width = 46
     Caption = 'cpuid 3='
     ParentColor = False
+  end
+  object Button1: TButton
+    Left = 215
+    Height = 25
+    Top = 169
+    Width = 75
+    Caption = 'Button1'
+    OnClick = Button1Click
+    TabOrder = 0
   end
   object Timer1: TTimer
     Interval = 10

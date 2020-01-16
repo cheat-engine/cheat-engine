@@ -3185,12 +3185,17 @@ begin
   drawn:=false;
   if miShowPreviousValue.checked and (PreviousResults<>nil) then
   begin
-    if (item.subItems[1]<>'<none>') and (item.subitems[0]<>item.subitems[1]) then
+    if (item.subItems[1]<>rsNone) and (item.subitems[0]<>item.subitems[1]) then
     begin
       sender.Canvas.Font.color:=clred;
       sender.canvas.font.Style:=sender.canvas.font.Style+[fsBold];
       sender.canvas.Refresh;
       drawn:=true;
+
+      {$ifdef darwin}
+      //no color or customdrawn support
+      item.subitems[0]:='* '+item.subitems[0]+' *';
+      {$endif}
     end;
   end;
   if(not drawn)then
@@ -5980,6 +5985,8 @@ begin
   copy1.ShortCut:=TextToShortCut('Meta+C');
   paste1.ShortCut:=TextToShortCut('Meta+V');
   menuitem1.ShortCut:=TextToShortCut('Meta+A');
+
+  foundlist3.MultiSelect:=false; //selecting works, reading out the state not so much
   {$endif}
 end;
 
@@ -9070,8 +9077,7 @@ begin
       exit;
     end;
 
-
-    AddressString:=IntToHex(address,8);
+    AddressString:=foundlist.GetModuleNamePlusOffset(item.index);
 
     hexadecimal:=foundlist.isHexadecimal;
 
@@ -9179,6 +9185,12 @@ begin
 
 
     part:=3; //meh
+
+    {$ifdef darwin}
+    //no ownerdraw support for macos listview
+    if (previousvalue<>rsNone) and (value<>previousvalue) then
+      value:='* '+value+' *';
+    {$endif}
 
 
     item.Caption := AddressString;
@@ -9330,6 +9342,15 @@ begin
   savedscan.AllowRandomAccess:=true;
 
   try
+    {$ifdef darwin}
+    a:=foundlist.GetAddress(foundlist3.Selected.Index);
+    p:=savedscan.getpointertoaddress(a, memscan.VarType,memscan.CustomType);
+
+    if p<>nil then
+      WriteProcessMemory(processhandle, pointer(a),p,bytesize,x);
+
+    {$endif}
+
     for i:=0 to foundlist3.items.Count-1 do
     begin
       if foundlist3.Items[i].Selected then
@@ -9365,32 +9386,38 @@ begin
     if InputQuery(rsChangeValue, rsGiveTheNewValueForTheSelectedAddressEs, value) then
     begin
       newvalue:=value;
+
+      if foundlist.vartype=vtAll then  //all, extra contains the vartype
+      begin
+        if extra<$1000 then
+        begin
+          vt:=TVariableType(extra);
+        end
+        else
+        begin //custom type
+          vt:=vtCustom;
+          customtype:=tcustomtype(customTypes[extra-$1000]);
+        end;
+      end
+      else
+        vt:=foundlist.vartype;
+
+      if (vt=vtString) and (cbUnicode.checked) then
+        vt:=vtUnicodeString;
+
+      {$ifdef darwin}
+      //multiselect is broken
+      a:=foundlist.GetAddress(foundlist3.Selected.Index, extra, Value);
+      ParseStringAndWriteToAddress(newvalue, a, vt, foundlist.isHexadecimal, customtype);
+      {$endif}
+
       for i:=0 to foundlist3.items.Count-1 do
       begin
         if foundlist3.Items[i].Selected then
         begin
           a:=foundlist.GetAddress(i, extra, Value);
 
-          if foundlist.vartype=vtAll then  //all, extra contains the vartype
-          begin
-            if extra<$1000 then
-            begin
-              vt:=TVariableType(extra);
-            end
-            else
-            begin //custom type
-              vt:=vtCustom;
-              customtype:=tcustomtype(customTypes[extra-$1000]);
-            end;
-          end
-          else
-            vt:=foundlist.vartype;
-
-          if (vt=vtString) and (cbUnicode.checked) then
-            vt:=vtUnicodeString;
-
           ParseStringAndWriteToAddress(newvalue, a, vt, foundlist.isHexadecimal, customtype);
-
         end;
 
       end;

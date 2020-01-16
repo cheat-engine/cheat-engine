@@ -354,7 +354,7 @@ uses disassembler,CEDebugger,debughelper, symbolhandler, symbolhandlerstructs,
      frmProcessWatcherUnit, KernelDebugger, formsettingsunit, MemoryBrowserFormUnit,
      savedscanhandler, networkInterface, networkInterfaceApi, vartypestrings,
      processlist, Parsers, Globals, xinput, luahandler, LuaClass, LuaObject,
-     UnexpectedExceptionsHelper, LazFileUtils, autoassembler;
+     UnexpectedExceptionsHelper, LazFileUtils, autoassembler, Clipbrd;
 
 
 resourcestring
@@ -923,7 +923,9 @@ begin
   s.add('dealloc(injector)');
   s.add('dealloc(returnvalue)');
 
-  //clipboard.AsText:=s.Text;
+ // clipboard.AsText:=s.Text;
+
+ // raise exception.create('copy to clipboard now');
 
 
   setlength(allocs,0);

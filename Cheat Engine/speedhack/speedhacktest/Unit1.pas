@@ -5,8 +5,14 @@ unit Unit1;
 interface
 
 uses
-  LCLIntf, Classes, windows, Messages, SysUtils, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, ExtCtrls, LResources;
+  {$ifdef windows}
+  windows,
+  {$endif}
+  {$ifdef darwin}
+  DateUtils,
+  {$endif}
+  LCLIntf, Classes, Messages, SysUtils, Graphics, Controls, Forms,
+  Dialogs, StdCtrls, ExtCtrls, LResources, dynlibs;
 
 type
   TSpeedhackTest=class(tthread)
@@ -17,6 +23,7 @@ type
   { TForm1 }
 
   TForm1 = class(TForm)
+    Button1: TButton;
     Label10: TLabel;
     Label11: TLabel;
     Label12: TLabel;
@@ -31,6 +38,7 @@ type
     Label1: TLabel;
     Label2: TLabel;
     Label3: TLabel;
+    procedure Button1Click(Sender: TObject);
     procedure Timer1Timer(Sender: TObject);
     procedure FormCreate(Sender: TObject);
   private
@@ -57,23 +65,22 @@ var
 
 begin
   oldtick:=gettickcount;
+  {$ifdef windows}
   QueryPerformanceCounter(oldperf);
+  {$endif}
 
   while (not fail) and (not terminated) do
   begin
     newtick:=gettickcount;
+
+    {$ifdef windows}
     QueryPerformanceCounter(newperf);
+    if newperf<oldperf then
+      fail:=true;
+    {$endif}
 
     if newtick<oldtick then
       fail:=true;
-
-    if newperf<oldperf then
-      fail:=true;
-
-
-  {  if random(100000)=66 then
-      fail:=true; }
-
 
     oldperf:=newperf;
     oldtick:=newtick;
@@ -167,14 +174,17 @@ begin
   if assigned(timegettime) then
     label2.Caption:=inttostr(timegettime div 1000);
 
+  {$ifdef windows}
   QueryPerformanceCounter(newperf);
   QueryPerformanceFrequency(freq);
 
   label6.caption:=inttohex(newperf,1);
   label5.caption:=inttostr(freq);
   label3.Caption:=inttostr(newperf)+' = '+inttostr(newperf div freq);
+  {$endif}
 
   label4.caption:=inttostr(gettickcount64 div 1000);
+
 
   if fail then
       lblFail.visible:=true;
@@ -192,14 +202,23 @@ begin
 
 end;
 
+procedure TForm1.Button1Click(Sender: TObject);
+var x: TLibHandle;
+begin
+  x:=loadlibrary('libspeedhack.dylib');
+  showmessage(inttohex(x,8));
+end;
+
 
 
 procedure TForm1.FormCreate(Sender: TObject);
 var xx: HModule;
   i: integer;
 begin
+  {$ifdef windows}
   xx:=loadlibrary('winmm.dll');
   timeGetTime:=GetProcAddress(xx,'timeGetTime');
+  {$endif}
 
   for i:=0 to 2 do
     TSpeedhackTest.create(false);
