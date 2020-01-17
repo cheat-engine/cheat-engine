@@ -1084,9 +1084,18 @@ fromAddress, toAddress: ptrUint;
 begin
   if isEditing or fhasSelection then
   begin
+
     s:=clipboard.AsText;
-    fromAddress:=MinX(selected,selected2);
-    toAddress:=MaxX(selected,selected2);
+    if isediting then
+    begin
+      fromAddress:=selected;
+      toaddress:=selected;
+    end
+    else
+    begin
+      fromAddress:=MinX(selected,selected2);
+      toAddress:=MaxX(selected,selected2);
+    end;
 
 
     try
@@ -1146,6 +1155,9 @@ begin
 
         inc(i);
         inc(fromaddress);
+
+        if isediting then
+          selected:=selected+1;
       end;
 
     end;
