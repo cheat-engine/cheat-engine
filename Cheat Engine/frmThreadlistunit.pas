@@ -835,6 +835,7 @@ var
   cenet: TCEconnection;
 
   tbi: THREAD_BASIC_INFORMATION;
+  startaddress: qword;
 begin
   drinfo:=' ';
 
@@ -1071,6 +1072,11 @@ begin
           i:=NtQueryInformationThread(th, ThreadBasicInformation, @tbi, sizeof(tbi), @x);
           if i=0 then
             threadTreeview.items.AddChild(node,'TEB='+inttohex(qword(tbi.TebBaseAddress),8));
+
+          i:=NtQueryInformationThread(th, ThreadQuerySetWin32StartAddress, @startaddress, sizeof(startaddress), @x);
+          if i=0 then
+            threadTreeview.items.AddChild(node,'Entry Point='+inttohex(qword(startaddress),8));
+
           {$endif}
 
           {$ifdef windows}
