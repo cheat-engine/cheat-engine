@@ -1,7 +1,7 @@
 object frmReferencedFunctions: TfrmReferencedFunctions
-  Left = 402
+  Left = 522
   Height = 353
-  Top = 204
+  Top = 328
   Width = 677
   Caption = 'Referenced functions'
   ClientHeight = 353
@@ -10,7 +10,7 @@ object frmReferencedFunctions: TfrmReferencedFunctions
   OnDestroy = FormDestroy
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '2.0.0.4'
+  LCLVersion = '2.0.6.0'
   object lvCallList: TListView
     Left = 0
     Height = 353
@@ -28,6 +28,7 @@ object frmReferencedFunctions: TfrmReferencedFunctions
       end>
     HideSelection = False
     OwnerData = True
+    PopupMenu = pmFunctionList
     ReadOnly = True
     RowSelect = True
     TabOrder = 0
@@ -102,5 +103,31 @@ object frmReferencedFunctions: TfrmReferencedFunctions
       C03C535353F06F6F6FF06F6F6FF06F6F6FF06F6F6FF06F6F6FF06F6F6FF06F6F
       6FF06F6F6FF06A6A6A8EFFFFFF00
     }
+  end
+  object pmFunctionList: TPopupMenu
+    left = 128
+    top = 134
+    object miSort: TMenuItem
+      Caption = 'Sort by name'
+      OnClick = miSortClick
+    end
+    object miFilter: TMenuItem
+      Caption = 'Filter by name'
+      OnClick = miFilterClick
+    end
+    object N1: TMenuItem
+      Caption = '-'
+    end
+    object miFind: TMenuItem
+      Caption = 'Find...'
+      ShortCut = 16454
+      OnClick = miFindClick
+    end
+  end
+  object FindDialog1: TFindDialog
+    Options = [frDown, frHideMatchCase, frHideWholeWord, frHideUpDown, frHideEntireScope, frHidePromptOnReplace]
+    OnFind = FindDialog1Find
+    left = 163
+    top = 68
   end
 end
