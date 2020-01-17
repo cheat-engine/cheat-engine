@@ -774,6 +774,8 @@ begin
 
         MainForm.imgSignature.Parent:=MainForm.panel4;
 
+
+
         case imagepos of
           1:
           begin
@@ -866,6 +868,7 @@ begin
 
 
             mainform.lblSigned.OnShowHint:=imagehint.signatureShowHint;
+            mainform.lblSigned.Hint:='Do not look at this, it''s ugly';
             mainform.lblSigned.ShowHint:=true;
 
 
