@@ -387,6 +387,13 @@ begin
   bytestring:=visibleDisassembler.getLastBytestring;
   opcodestring:=visibleDisassembler.LastDisassembleData.prefix+visibleDisassembler.LastDisassembleData.opcode;
 
+  //Correction for rendering bug.
+  if (processhandler.isNetwork=true) and (processhandler.SystemArchitecture=archarm) then
+  begin
+    bytestring+=' ';
+    opcodestring+=' ';
+  end;       
+  
   parameterstring:=visibleDisassembler.LastDisassembleData.parameters+' ';
   specialstring:=visibleDisassembler.DecodeLastParametersToString;
 
