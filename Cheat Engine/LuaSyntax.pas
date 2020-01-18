@@ -645,6 +645,7 @@ begin
   Result := 0;
   while ToHash^ in ['.', '_', 'a'..'z', 'A'..'Z', '0'..'9'] do
   begin
+    if (ToHash^='.') and ((ToHash+1)^='.') then break;
     inc(Result, mHashTable[ToHash^]);
     inc(ToHash);
   end;
