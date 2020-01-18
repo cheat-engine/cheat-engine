@@ -5,7 +5,7 @@ unit SyncObjs2;
 interface
 
 uses {$ifdef darwin}
-  macport, SyncObjs, cthreads, unix, unixtype, pthreads,
+  macport, SyncObjs, cthreads, unix, unixtype, pthreads, baseunix,
   {$else}
   windows,
   {$endif}classes, sysutils, LCLIntf;
@@ -18,9 +18,13 @@ type TSemaphore=class
 
     max: integer;
     {$ifdef darwin}
-    h: sem_t;
+    h: psem_t;
     semaphorecount: cardinal;
+
+    semname: string;
     {$endif}
+
+
 
   public
     function TryAcquire(time: integer=0): boolean;
@@ -33,6 +37,13 @@ end;
 implementation
 
 
+{$ifdef darwin}
+function sem_open(name: pchar; oflags: integer; mode: integer; value: integer):Psem_t;cdecl; external;
+
+var
+  count: integer;
+{$endif}
+
 constructor TSemaphore.create(maxcount:integer; init0: boolean=false);
 var
   init: integer;
@@ -44,10 +55,26 @@ begin
   else
     init:=maxcount;
 
+
   {$ifdef windows}
   h:=CreateSemaphore(nil,init,maxcount,nil);
+  {$endif}
+
+  {$ifdef unix}
+  {$ifndef darwin}
+  i:=sem_init(@h,0,init);
   {$else}
-  sem_init(h,0,init);
+  inc(count);
+  semname:='Semaphore'+inttohex(GetCurrentProcessID,8)+'-'+inttostr(count);
+  h:=sem_open(pchar(semname), O_CREAT, &644{&777},init);
+
+  if IntPtr(h)=-1 then
+  begin
+    i:=errno;
+    raise exception.create('sem_open error '+inttostr(i));
+
+  end;
+  {$endif}
   {$endif}
 end;
 
@@ -55,8 +82,15 @@ destructor TSemaphore.destroy;
 begin
   {$ifdef windows}
   closehandle(h);
-  {$else}
+  {$endif}
+
+  {$ifdef unix}
+  {$ifndef darwin}
   sem_destroy(h);
+  {$else}
+  sem_unlink(pchar(semname));
+  sem_close(@h);
+  {$endif}
   {$endif}
 
   inherited destroy;
