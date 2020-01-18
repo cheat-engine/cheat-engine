@@ -22,6 +22,8 @@ LONG NTAPI ErrorFilter(struct _EXCEPTION_POINTERS *ExceptionInfo)
 		return EXCEPTION_CONTINUE_EXECUTION;
 	}
 
+
+
 	return EXCEPTION_CONTINUE_SEARCH;
 }
 
@@ -626,7 +628,17 @@ void CPipeServer::EnumClassesInImage()
 
 	if (il2cpp)
 	{
-		int count=il2cpp_image_get_class_count(image);
+		int count = 0;
+		if (il2cpp_image_get_class_count)
+		{
+			count = il2cpp_image_get_class_count(image);
+		}
+		/*
+		else
+		{
+			count = *(DWORD*)(((UINT_PTR)image) + 0x1c);
+		}
+		*/
 		WriteDword(count);
 
 		for (i = 0; i < count; i++)

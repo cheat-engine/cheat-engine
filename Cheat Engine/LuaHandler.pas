@@ -3299,7 +3299,7 @@ begin
     tthread.Queue(nil, lc.synchronize);
 
 
-    result:=1;
+    result:=0;
   end;
 end;
 

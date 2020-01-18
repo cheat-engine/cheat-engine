@@ -185,7 +185,7 @@ function parseImage(t, image)
 end
 
 function monoIL2CPPSymbolEnum(t)
-  t.FreeOnTerminate=false
+  t.freeOnTerminate(false)
   t.Name='monoIL2CPPSymbolEnum'
   
   --print("monoIL2CPPSymbolEnum");
@@ -288,6 +288,7 @@ function LaunchMonoDataCollector()
   if monoSymbolEnum then
     monoSymbolEnum.terminate()
     monoSymbolEnum.waitfor()
+    print("bye monoSymbolEnum")
     monoSymbolEnum.destroy()
     monoSymbolEnum=nil
   end
@@ -348,7 +349,15 @@ ret
   end
 
   monopipe.OnTimeout=function(self)  
-    --print("monopipe timeout")  
+    --print("monopipe timeout") 
+    if inMainThread() and monoSymbolEnum then
+      monoSymbolEnum.terminate()    
+      monoSymbolEnum.waitfor()
+      print("bye monoSymbolEnum 2")
+      monoSymbolEnum.destroy()
+      monoSymbolEnum=nil
+    end
+    
     monopipe.destroy()
     monopipe=nil
     mono_AttachedProcess=0
@@ -405,6 +414,7 @@ ret
       monoSymbolList.ProcessID=getOpenedProcessID()
       monoSymbolList.FullyLoaded=false        
       monoSymbolEnum=createThread(monoIL2CPPSymbolEnum)
+
     end
   end
 
@@ -596,6 +606,8 @@ function mono_enumDomains()
 
 
   monopipe.lock()
+  if monopipe==nil then return nil end
+  
   monopipe.writeByte(MONOCMD_ENUMDOMAINS)  
   local count=monopipe.readDword()
   if monopipe==nil then return nil end
@@ -672,13 +684,16 @@ end
 
 function mono_image_enumClasses(image)
   --if debug_canBreak() then return nil end
+  if monopipe==nil then return nil end
 
   monopipe.lock()
   monopipe.writeByte(MONOCMD_ENUMCLASSESINIMAGE)
   monopipe.writeQword(image)
   local classcount=monopipe.readDword()
   if (classcount==nil) or (classcount==0) then
-    monopipe.unlock()
+    if monopipe then
+      monopipe.unlock()
+    end
     return nil
   end
 
