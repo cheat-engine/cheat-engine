@@ -677,7 +677,10 @@ function mono_image_enumClasses(image)
   monopipe.writeByte(MONOCMD_ENUMCLASSESINIMAGE)
   monopipe.writeQword(image)
   local classcount=monopipe.readDword()
-  if (classcount==nil) or (classcount==0) then return nil end
+  if (classcount==nil) or (classcount==0) then
+    monopipe.unlock()
+    return nil
+  end
 
   local classes={}
   local i,j
