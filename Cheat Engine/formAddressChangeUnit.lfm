@@ -34,7 +34,6 @@ object formAddressChange: TformAddressChange
     Top = 15
     Width = 112
     OnChange = editAddressChange
-    OnKeyPress = editAddressKeyPress
     TabOrder = 0
   end
   object btnOk: TButton
@@ -141,7 +140,7 @@ object formAddressChange: TformAddressChange
       Width = 64
       Caption = 'Unicode'
       OnChange = cbunicodeChange
-      TabOrder = 0
+      TabOrder = 1
     end
     object edtSize: TEdit
       AnchorSideTop.Control = lengthlabel
@@ -150,7 +149,7 @@ object formAddressChange: TformAddressChange
       Height = 23
       Top = 15
       Width = 45
-      TabOrder = 1
+      TabOrder = 0
       Text = '10'
     end
     object lengthlabel: TLabel
@@ -387,7 +386,6 @@ object formAddressChange: TformAddressChange
     Height = 15
     Top = 19
     Width = 36
-    BorderSpacing.Right = 5
     Caption = '=Value'
     ParentColor = False
   end
