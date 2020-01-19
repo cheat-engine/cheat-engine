@@ -682,6 +682,61 @@ function mono_image_get_name(image)
   return name
 end
 
+function mono_isValidName(str)
+  local r=string.find(str, "[^%a%d_.]", 1)
+  return (r==nil) or (r>=5)
+end
+
+function mono_isValidName(str)
+  if str then
+    local r=string.find(str, "[^%a%d_.]", 1)
+    return (r==nil) or (r>=5)
+  else
+    return false
+  end
+end
+
+function mono_image_enumClasses_il2cppfallback(image)
+  --all classes have the image as first field.
+  --Classes are aligned on a 16 byte boundary
+  --offset 0x10 of the class has a pointer to the string
+
+  --first find all possible classes for this image (can contain a few wrong ones)
+  local ms=createMemScan()
+  local scantype=vtDword
+  local pointersize=4
+  if targetIs64Bit() then
+    scantype=vtQword
+    pointersize=8
+  end
+
+  ms.firstScan(soExactValue,scantype,rtRounded,string.format('%x',image),'', 0,0x7ffffffffffffffff, '', fsmAligned, "10",true, true,false,false)
+  ms.waitTillDone()
+
+  local fl=createFoundList(ms)
+  fl.initialize()
+
+  local result={}
+  for i=0,fl.Count-1 do
+    local e={}
+    e.class=tonumber('0x'..fl[i])
+    e.classname=readString(readPointer(e.class+pointersize*2),200)
+    e.namespace=readString(readPointer(e.class+pointersize*3),200)
+    if (e.classname==nil) or (e.classname=='') or (mono_isValidName(e.classname)==false) then e=nil end
+    if e and ((e.namespace~='') and (mono_isValidName(e.namespace)==false)) then e=nil end
+
+    if e then
+      table.insert(result,e)
+    end
+  end
+
+  fl.destroy()
+  ms.destroy()
+
+  return result
+end
+
+
 function mono_image_enumClasses(image)
   --if debug_canBreak() then return nil end
   if monopipe==nil then return nil end
@@ -694,6 +749,11 @@ function mono_image_enumClasses(image)
     if monopipe then
       monopipe.unlock()
     end
+    
+    if monopipe.IL2CPP then
+      return mono_image_enumClasses_il2cppfallback(image)
+    end
+    
     return nil
   end
 
