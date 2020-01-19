@@ -498,6 +498,7 @@ end;
 
 procedure TOffsetInfo.setTop();
 begin
+  AdjustEditBoxSize(edtOffset,owner.Canvas.GetTextWidth(' XXXX '));
   edtOffset.taborder:=owner.offsets.IndexOf(self);
   istop:=edtOffset.taborder=0;
 end;

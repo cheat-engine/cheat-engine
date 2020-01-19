@@ -34,7 +34,6 @@ object formAddressChange: TformAddressChange
     Top = 15
     Width = 112
     OnChange = editAddressChange
-    OnKeyPress = editAddressKeyPress
     TabOrder = 0
   end
   object btnOk: TButton
