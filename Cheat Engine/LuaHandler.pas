@@ -9577,12 +9577,6 @@ begin
 end;
 
 
-threadvar
-  executeCodeLocalExStack: record   //for the main thread so no need to realloc
-    stack: pbytearray;
-    size: integer;
-  end;
-
 
 function executeCodeLocalEx(L:PLua_state): integer; cdecl; //address,{param},{param},{param}
 //paramtypes:
@@ -9599,10 +9593,8 @@ label
  p4typeisint, p4typeisfloat, afterp4;
 var
   //callstack: pointer;
-
-  stacksize: integer;
   oldstack: pointer;
-  callstack: PByteArray;
+  callstack: array of byte; //stoprage to hold the parameters pushed on the stack (gets copied when needed)
   p1type: byte;
   p2type: byte;
   p3type: byte;
@@ -9614,7 +9606,7 @@ var
   paramcount: integer;
   paramsize: qword;
 
-  paramstart: pointer;
+  paramstart,paramstart2: pointer;
 
   r: qword;
   i: integer;
@@ -9624,6 +9616,9 @@ var
 
   ts: array of string;
   tws: array of widestring;
+
+
+
 
 begin
   {$ifdef cpu64}
@@ -9639,25 +9634,10 @@ begin
     AddressToCall:=pointer(lua_toaddress(L,1,true));
     paramcount:=lua_gettop(L)-1;
 
-    stacksize:=1048576; //will get reused
-    if executeCodeLocalExStack.size<stacksize then
-    begin
-      if executeCodeLocalExStack.stack<>nil then
-        freeandnil(executeCodeLocalExStack.stack);
-
-      executeCodeLocalExStack.stack:=getmem(stacksize);
-      executeCodeLocalExStack.size:=stacksize;
-      ZeroMemory(executeCodeLocalExStack.stack, stacksize);
-    end;
 
     paramsize:=max(32,8*paramcount);
-    paramstart:=@executeCodeLocalExStack.stack[(executeCodeLocalExStack.size-$10)-paramsize];
-
-    paramstart:=pointer(qword(paramstart) and qword($fffffffffffffff0)); //in case FPC decides to allocated it on an unalligned address (just being sure)
-
-
-
-
+    setlength(callstack,paramsize);
+    paramstart:=@callstack[0];
 
     if paramcount>0 then
     begin
@@ -9758,9 +9738,24 @@ begin
 
       asm
         //parameters are accessed by use of RBP which is unaffected by this code
-
         mov oldstack,rsp
-        mov rsp,paramstart
+
+        sub rsp,paramsize
+        and rsp,$fffffffffffffff0   //align just in case it was an unaligned paramcount
+
+        mov paramstart2,rsp
+
+        push rsi
+        push rdi
+        push rcx
+        mov rsi,paramstart
+        mov rdi,paramstart2
+        mov rcx,paramsize
+        rep movsb
+
+        pop rcx
+        pop rdi
+        pop rsi
 
         cmp paramcount,1
         jb afterp4
@@ -12918,9 +12913,6 @@ begin
 
     Thread_LuaVM:=nil;
   end;
-
-  if executeCodeLocalExStack.stack<>nil then
-    freeandnil(executeCodeLocalExStack.stack);
 
   if assigned(oldReleaseThreadVars) then
     oldReleaseThreadVars();
