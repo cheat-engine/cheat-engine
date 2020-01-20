@@ -2005,7 +2005,7 @@ properties
   Count: Number of children
   Child[index] : Array to access the child records
   [index] = Child[index]
-  Parent: MemoryRecord - The parent of the memory record (RO)
+  Parent: MemoryRecord - The parent of the memory record
 
   HotkeyCount: integer - Number of hotkeys attached to this memory record
   Hotkey[] : Array to index the hotkeys
