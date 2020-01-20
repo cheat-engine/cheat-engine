@@ -40,7 +40,7 @@ uses
   groupscancommandparser, GraphType, IntfGraphics, RemoteMemoryManager,
   DBK64SecondaryLoader, savedscanhandler, debuggertypedefinitions, networkInterface,
   FrmMemoryRecordDropdownSettingsUnit, xmlutils, zstream, zstreamext, commonTypeDefs,
-  VirtualQueryExCache, LazLogger, LazUTF8, LCLVersion;
+  VirtualQueryExCache, LazLogger, LazUTF8, LCLVersion, strutils;
   {$endif}
 //the following are just for compatibility
 
@@ -3298,18 +3298,32 @@ end;
 procedure TMainForm.Copyselectedaddresses1Click(Sender: TObject);
 var
   i: ptruint;
+  address: string;
+  delimiters: tsyscharset;
   temp: string;
 begin
   temp:='';
+  delimiters:=[];
+
+  Include(delimiters, ':');
+
   if foundlist3.SelCount = 1 then
-    clipboard.AsText := symhandler.getNameFromAddress(StrToQWordEx('$'+foundlist3.Items[foundlist3.itemindex].Caption))
+    begin
+      address := foundlist3.Items[foundlist3.itemindex].Caption;
+      address := ExtractDelimited(1,address,delimiters);
+      clipboard.AsText := symhandler.getNameFromAddress(StrToQWordEx('$'+address))
+    end
   else
   if foundlist3.SelCount > 1 then
   begin
     for i:=0 to foundlist3.Items.count-1 do
     begin
       if foundlist3.items[i].Selected then
-        temp := temp + symhandler.getNameFromAddress(StrToQWordEx('$'+foundlist3.Items[i].Caption)) + sLineBreak;
+      begin
+        address := foundlist3.Items[i].Caption;
+        address := ExtractDelimited(1,address,delimiters);
+        temp := temp + symhandler.getNameFromAddress(StrToQWordEx('$'+address)) + sLineBreak;
+      end
     end;
     clipboard.AsText := temp;
   end;
