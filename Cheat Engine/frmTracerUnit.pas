@@ -13,8 +13,7 @@ uses
   {$endif}
   NewKernelHandler, LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, ExtCtrls, Buttons, LResources, commonTypeDefs, frmFindDialogUnit,
-  clipbrd, Menus, ComCtrls, frmStackviewunit, frmFloatingPointPanelUnit, LuaByteTable,
-  disassembler, debuggertypedefinitions;
+  Menus, ComCtrls, frmStackviewunit, frmFloatingPointPanelUnit, disassembler, debuggertypedefinitions;
 
 type
   TTraceDebugInfo=class
@@ -215,7 +214,7 @@ type
 implementation
 
 
-uses CEDebugger, debughelper, MemoryBrowserFormUnit, frmTracerConfigUnit,
+uses  LuaByteTable, clipbrd, CEDebugger, debughelper, MemoryBrowserFormUnit, frmTracerConfigUnit,
   ProcessHandlerUnit, Globals, Parsers, strutils, CEFuncProc,
   LuaHandler, symbolhandler, byteinterpreter,
   tracerIgnore, LuaForm, lua, lualib,lauxlib, LuaClass;
@@ -1707,9 +1706,32 @@ begin
 end;
 
 procedure TfrmTracer.lvTracerDblClick(Sender: TObject);
+var
+  a: ptruint;
+  syma: ptruint;
+  sym: string;
+  i: integer;
+  e: boolean;
 begin
   if (lvTracer.selected<>nil) and (lvTracer.selected.data<>nil) then
-    memorybrowser.disassemblerview.SelectedAddress:=TTraceDebugInfo(lvTracer.selected.data).c.{$ifdef cpu64}rip{$else}Eip{$endif};
+  begin
+    a:=TTraceDebugInfo(lvTracer.selected.data).c.{$ifdef cpu64}rip{$else}Eip{$endif};
+    e:=true;
+    i:=RPos(' - ', lvTracer.Selected.Text);
+    if i>0 then
+    begin
+      sym:=copy(lvTracer.Selected.Text,1,i);
+      sym:=trim(sym);
+
+      if sym<>'' then
+        syma:=symhandler.getAddressFromName(sym,false,e);
+    end;
+
+    if not e then
+      memorybrowser.disassemblerview.SelectedAddress:=syma
+    else
+      memorybrowser.disassemblerview.SelectedAddress:=a
+  end;
 end;
 
 procedure TfrmTracer.Panel1Resize(Sender: TObject);
