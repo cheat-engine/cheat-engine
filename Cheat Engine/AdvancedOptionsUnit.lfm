@@ -14,13 +14,13 @@ object AdvancedOptions: TAdvancedOptions
   LCLVersion = '2.0.6.0'
   object Panel1: TPanel
     Left = 0
-    Height = 30
-    Top = 273
+    Height = 35
+    Top = 268
     Width = 571
     Align = alBottom
     AutoSize = True
     BevelOuter = bvNone
-    ClientHeight = 30
+    ClientHeight = 35
     ClientWidth = 571
     TabOrder = 0
     OnResize = Panel1Resize
@@ -31,7 +31,7 @@ object AdvancedOptions: TAdvancedOptions
       AnchorSideBottom.Control = Panel1
       AnchorSideBottom.Side = asrBottom
       Left = 248
-      Height = 20
+      Height = 25
       Top = 5
       Width = 75
       Anchors = [akTop, akLeft, akBottom]
@@ -55,7 +55,6 @@ object AdvancedOptions: TAdvancedOptions
     ClientHeight = 40
     ClientWidth = 571
     TabOrder = 1
-    OnResize = Panel2Resize
     object Pausebutton: TSpeedButton
       AnchorSideLeft.Control = Panel2
       AnchorSideTop.Control = Panel2
@@ -98,21 +97,21 @@ object AdvancedOptions: TAdvancedOptions
       AnchorSideTop.Control = Panel2
       AnchorSideBottom.Control = Panel2
       AnchorSideBottom.Side = asrBottom
-      Left = 257
-      Height = 16
-      Top = 24
-      Width = 57
+      Left = 261
+      Height = 15
+      Top = 25
+      Width = 49
       Anchors = [akLeft, akBottom]
       Caption = 'Code list:'
       ParentColor = False
     end
   end
-  object Codelist2: TListView
+  object lvCodelist: TListView
     AnchorSideTop.Control = Panel2
     AnchorSideBottom.Control = Panel1
     AnchorSideBottom.Side = asrBottom
     Left = 0
-    Height = 233
+    Height = 228
     Top = 40
     Width = 571
     Align = alClient
@@ -125,9 +124,10 @@ object AdvancedOptions: TAdvancedOptions
       end    
       item
         Caption = 'Name'
-        Width = 434
+        Width = 447
       end>
     ColumnClick = False
+    DragMode = dmAutomatic
     HideSelection = False
     MultiSelect = True
     PopupMenu = PopupMenu2
@@ -135,9 +135,13 @@ object AdvancedOptions: TAdvancedOptions
     RowSelect = True
     TabOrder = 2
     ViewStyle = vsReport
-    OnCustomDrawItem = Codelist2CustomDrawItem
-    OnDblClick = Codelist2DblClick
-    OnResize = Codelist2Resize
+    OnAdvancedCustomDraw = lvCodelistAdvancedCustomDraw
+    OnAdvancedCustomDrawItem = lvCodelistAdvancedCustomDrawItem
+    OnCustomDrawItem = lvCodelistCustomDrawItem
+    OnDblClick = lvCodelistDblClick
+    OnDragDrop = lvCodelistDragDrop
+    OnDragOver = lvCodelistDragOver
+    OnResize = lvCodelistResize
   end
   object PopupMenu2: TPopupMenu
     Images = aoImageList
@@ -148,7 +152,7 @@ object AdvancedOptions: TAdvancedOptions
       Caption = 'Open the disassembler at this location'
       Default = True
       ImageIndex = 5
-      OnClick = Codelist2DblClick
+      OnClick = lvCodelistDblClick
     end
     object N2: TMenuItem
       Caption = '-'
@@ -194,6 +198,17 @@ object AdvancedOptions: TAdvancedOptions
       Caption = 'Replace all'
       ImageIndex = 2
       OnClick = Replaceall1Click
+    end
+    object N4: TMenuItem
+      Caption = '-'
+    end
+    object miSetColor: TMenuItem
+      Caption = 'Set color'
+      OnClick = miSetColorClick
+    end
+    object miNewGroup: TMenuItem
+      Caption = 'New group'
+      OnClick = miNewGroupClick
     end
   end
   object OpenDialog1: TOpenDialog
@@ -446,5 +461,32 @@ object AdvancedOptions: TAdvancedOptions
       80C0808080C0808080C0808080C0808080C0808080C0808080C0808080C08080
       80C0808080C06C656496D2CDCC25
     }
+  end
+  object ColorDialog1: TColorDialog
+    Color = clBlack
+    CustomColors.Strings = (
+      'ColorA=000000'
+      'ColorB=000080'
+      'ColorC=008000'
+      'ColorD=008080'
+      'ColorE=800000'
+      'ColorF=800080'
+      'ColorG=808000'
+      'ColorH=808080'
+      'ColorI=C0C0C0'
+      'ColorJ=0000FF'
+      'ColorK=00FF00'
+      'ColorL=00FFFF'
+      'ColorM=FF0000'
+      'ColorN=FF00FF'
+      'ColorO=FFFF00'
+      'ColorP=FFFFFF'
+      'ColorQ=C0DCC0'
+      'ColorR=F0CAA6'
+      'ColorS=F0FBFF'
+      'ColorT=A4A0A0'
+    )
+    left = 191
+    top = 76
   end
 end

@@ -2959,7 +2959,7 @@ begin
 
   if not autoattachopen then
   begin
-    if (addresslist.Count > 0) or (advancedoptions.codelist2.items.Count > 0) then
+    if (addresslist.Count > 0) or (AdvancedOptions.count > 0) then
     begin
       if (messagedlg(strKeepList, mtConfirmation, [mbYes, mbNo], 0) = mrNo) then
       begin
@@ -2982,8 +2982,8 @@ begin
 
         if not wasActive then
         begin
-          for i := 0 to length(AdvancedOptions.code) - 1 do
-            if AdvancedOptions.code[i].changed then
+          for i := 0 to AdvancedOptions.count - 1 do
+            if (AdvancedOptions.code[i]<>nil) and AdvancedOptions.code[i].changed then
             begin
               wasActive := True;
               break;
@@ -2997,8 +2997,8 @@ begin
           begin
             addresslist.disableAllWithoutExecute;
 
-            for i := 0 to length(AdvancedOptions.code) - 1 do
-              AdvancedOptions.code[i].changed := False;
+            for i := 0 to AdvancedOptions.count - 1 do
+              if (AdvancedOptions.code[i]<>nil) then AdvancedOptions.code[i].changed := False;
           end;
 
         end;
@@ -3010,8 +3010,8 @@ begin
   begin
     cbSpeedhack.Checked:=false;
     addresslist.disableAllWithoutExecute;
-    for i := 0 to length(AdvancedOptions.code) - 1 do
-      AdvancedOptions.code[i].changed := False;
+    for i := 0 to AdvancedOptions.count - 1 do
+      if AdvancedOptions.code[i]<>nil then AdvancedOptions.code[i].changed := False;
   end;
 
   enablegui(btnNextScan.Enabled);
@@ -8636,7 +8636,7 @@ begin
       raise Exception.Create(strUnknownExtension);
 
 
-    if ((addresslist.Count > 0) or (advancedoptions.numberofcodes > 0) or (DissectedStructs.count>0) ) and
+    if ((addresslist.Count > 0) or (advancedoptions.count > 0) or (DissectedStructs.count>0) ) and
       (Extension <> '.EXE') then
     begin
       app := messagedlg(rsDoYouWishToMergeTheCurrentTableWithThisTable,
@@ -8662,7 +8662,7 @@ begin
   end
   else Opendialog1.FileName:=oldFileName;
 
-  if (advancedoptions <> nil) and (advancedoptions.codelist2.items.Count>0) then
+  if (advancedoptions <> nil) and (advancedoptions.count>0) then
     advancedoptions.Show;
 end;
 
@@ -10342,9 +10342,7 @@ Will remove all entries from the cheattable, comments, and advanced options wind
 begin
   Comments.Memo1.Clear;
   comments.Memo1.Lines.Add(strInfoAboutTable);
-  advancedoptions.codelist2.items.Clear;
-  advancedoptions.numberofcodes := 0;
-
+  advancedoptions.clear;
   addresslist.Clear;
 end;
 
