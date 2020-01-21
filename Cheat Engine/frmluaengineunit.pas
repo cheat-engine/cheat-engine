@@ -72,7 +72,6 @@ type
     tbRun: TToolButton;
     tbSingleStep: TToolButton;
     procedure btnExecuteClick(Sender: TObject);
-    procedure Button1Click(Sender: TObject);
     procedure cbShowOnPrintClick(Sender: TObject);
     procedure dlgReplaceFind(Sender: TObject);
     procedure dlgReplaceReplace(Sender: TObject);
@@ -1279,11 +1278,7 @@ begin
   mScript.SetFocus;
 end;
 
-procedure TfrmLuaEngine.Button1Click(Sender: TObject);
-begin
 
-
-end;
 
 procedure TfrmLuaEngine.cbShowOnPrintClick(Sender: TObject);
 begin

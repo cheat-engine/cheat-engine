@@ -79,6 +79,9 @@ var hotkeythread: THotkeythread;
     hotkeyPollInterval: integer=100;
     hotkeyIdletime: integer=100;
 
+const WM_HOTKEY2=$8000;
+
+
 implementation
 
 uses MemoryRecordUnit, {$ifdef windows}xinput,winsapi,{$endif} MainUnit;
@@ -573,9 +576,9 @@ begin
                 end
                 else
                 if tempHotkey.hotkeylistItem.generichotkey<>nil then
-                  sendmessage(a,integer(cefuncproc.WM_HOTKEY2),1,ptrUint(tempHotkey.hotkeylistItem.genericHotkey))
+                  sendmessage(a,integer(WM_HOTKEY2),1,ptrUint(tempHotkey.hotkeylistItem.genericHotkey))
                 else
-                  sendmessage(a,integer(cefuncproc.WM_HOTKEY2),b,0)
+                  sendmessage(a,integer(WM_HOTKEY2),b,0)
 
 
               end

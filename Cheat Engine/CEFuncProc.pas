@@ -205,7 +205,7 @@ const
   splitvalue=400000;
   number=600;      //is my using the new value on my system arround 580000
 
-  WM_HOTKEY2=$8000;
+
 
   PAGE_WRITECOMBINE=$400;
 

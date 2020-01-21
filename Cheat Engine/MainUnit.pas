@@ -22,7 +22,7 @@ uses
 
   {$ifdef windows}
   jwaWindows, Windows, LCLIntf, LCLProc, Messages, SysUtils, Classes, Graphics,
-  Controls, Forms, ComCtrls, StdCtrls, Menus, CEFuncproc, Buttons, shellapi,
+  Controls, Forms, ComCtrls, StdCtrls, Menus, Buttons, shellapi,
   imagehlp, ExtCtrls, Dialogs, Clipbrd, CEDebugger, kerneldebugger, assemblerunit,
   hotkeyhandler, registry, Math, ImgList, commctrl, NewKernelHandler,
   unrandomizer, symbolhandler, ActnList, LResources, hypermode, memscan,
@@ -1040,7 +1040,7 @@ resourcestring
 implementation
 
 
-uses MainUnit2, ProcessWindowUnit, MemoryBrowserFormUnit, TypePopup, HotKeys,
+uses cefuncproc, MainUnit2, ProcessWindowUnit, MemoryBrowserFormUnit, TypePopup, HotKeys,
   aboutunit, formhotkeyunit, formDifferentBitSizeUnit,
   CommentsUnit, formsettingsunit, formAddressChangeUnit, Changeoffsetunit,
   FoundCodeUnit, advancedoptionsunit, frmProcessWatcherUnit,

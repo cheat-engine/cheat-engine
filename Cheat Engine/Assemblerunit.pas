@@ -2713,6 +2713,7 @@ type TSingleLineAssembler=class
     relativeAddressLocation: integer; //index into the bytes array containing the start of th relative 4 byte address
     actualdisplacement: qword;
     needsAddressSwitchPrefix: boolean;
+    faddress: qword;
 
     function getRex_W: boolean;
     procedure setRex_W(state: boolean);
@@ -4077,7 +4078,7 @@ begin
 
     if processhandler.is64Bit then
     begin
-      if disp<=$7FFFFFFF then
+      if (disp<=$7FFFFFFF) and (abs(int64(faddress-disp))>$7FFFFFF0) then //rough estimate
       begin
         //this can be solved with an 0x25 SIB byte
         setlength(modrm,2);
@@ -4571,6 +4572,7 @@ var tokens: ttokens;
 
     //cpuinfo: TCPUIDResult;
 begin
+  faddress:=address;
   VEXvvvv:=$f;
   needsAddressSwitchPrefix:=false;
 
