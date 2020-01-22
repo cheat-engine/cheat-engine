@@ -167,7 +167,7 @@ uses MainUnit, MemoryBrowserFormUnit,
   standaloneunit,}
   formsettingsunit,
   MainUnit2,
-  processhandlerunit,
+  ProcessHandlerUnit,
   {$ifdef windows}
   DBK32functions,
   {$endif}
@@ -642,6 +642,7 @@ var offset: ptrUint;
     mi: tmoduleinfo;
 
 begin
+
   miSetColor.visible:=lvCodelist.ItemIndex<>-1;
 
   if (count=0) or (lvCodelist.ItemIndex=-1) or (code[lvCodelist.itemindex]=nil) then
@@ -722,6 +723,8 @@ begin
 
   miDBVMFindWhatCodeAccesses.Enabled:={$ifdef windows}isIntel and isDBVMCapable and Findoutwhatthiscodechanges1.enabled{$else}false{$endif};
   miDBVMFindWhatCodeAccesses.Caption:='DBVM '+Findoutwhatthiscodechanges1.Caption;
+
+  OutputDebugString('popupmenu2');
 end;
 
 resourcestring strcouldntrestorecode='Error when trying to restore this code!';

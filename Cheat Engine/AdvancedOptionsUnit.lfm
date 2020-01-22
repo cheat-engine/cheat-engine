@@ -14,13 +14,13 @@ object AdvancedOptions: TAdvancedOptions
   LCLVersion = '2.0.6.0'
   object Panel1: TPanel
     Left = 0
-    Height = 35
-    Top = 268
+    Height = 30
+    Top = 273
     Width = 571
     Align = alBottom
     AutoSize = True
     BevelOuter = bvNone
-    ClientHeight = 35
+    ClientHeight = 30
     ClientWidth = 571
     TabOrder = 0
     OnResize = Panel1Resize
@@ -31,7 +31,7 @@ object AdvancedOptions: TAdvancedOptions
       AnchorSideBottom.Control = Panel1
       AnchorSideBottom.Side = asrBottom
       Left = 248
-      Height = 25
+      Height = 20
       Top = 5
       Width = 75
       Anchors = [akTop, akLeft, akBottom]
@@ -97,10 +97,10 @@ object AdvancedOptions: TAdvancedOptions
       AnchorSideTop.Control = Panel2
       AnchorSideBottom.Control = Panel2
       AnchorSideBottom.Side = asrBottom
-      Left = 261
-      Height = 15
-      Top = 25
-      Width = 49
+      Left = 257
+      Height = 16
+      Top = 24
+      Width = 57
       Anchors = [akLeft, akBottom]
       Caption = 'Code list:'
       ParentColor = False
@@ -111,7 +111,7 @@ object AdvancedOptions: TAdvancedOptions
     AnchorSideBottom.Control = Panel1
     AnchorSideBottom.Side = asrBottom
     Left = 0
-    Height = 228
+    Height = 233
     Top = 40
     Width = 571
     Align = alClient
@@ -124,7 +124,7 @@ object AdvancedOptions: TAdvancedOptions
       end    
       item
         Caption = 'Name'
-        Width = 447
+        Width = 434
       end>
     ColumnClick = False
     DragMode = dmAutomatic
