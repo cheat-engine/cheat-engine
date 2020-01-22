@@ -307,7 +307,7 @@ begin
   try
     if cbunicode.checked then
     begin
-      v:=strtoint(valuetext.text);
+      v:=StrToInt64(valuetext.text);
 
       case VarType of
         vtByte: digits:=2;
