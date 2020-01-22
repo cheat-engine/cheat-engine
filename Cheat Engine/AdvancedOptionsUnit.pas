@@ -724,7 +724,7 @@ begin
   miDBVMFindWhatCodeAccesses.Enabled:={$ifdef windows}isIntel and isDBVMCapable and Findoutwhatthiscodechanges1.enabled{$else}false{$endif};
   miDBVMFindWhatCodeAccesses.Caption:='DBVM '+Findoutwhatthiscodechanges1.Caption;
 
-  OutputDebugString('popupmenu2');
+  //OutputDebugString('popupmenu2');
 end;
 
 resourcestring strcouldntrestorecode='Error when trying to restore this code!';
