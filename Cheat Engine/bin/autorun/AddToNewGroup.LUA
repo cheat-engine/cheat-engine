@@ -33,7 +33,7 @@ pmAddToNewGroup.OnClick=function(s)
   end
 
 
-  local groupname=translate(string.format('Group %d',count+1)
+  local groupname=translate(string.format('Group %d',count+1))
   if (isKeyPressed(VK_CONTROL)==false) then
     groupname=InputQuery(translate('Groups'), translate('What do you want the groupname to be?'), groupname)
     if groupname then
