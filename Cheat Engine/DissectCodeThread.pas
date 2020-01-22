@@ -21,6 +21,8 @@ type
     maxsize: integer;
     a: PPtrUintArray;
     isstring: boolean;
+    pointsto: ptruint; //0 if not a pointer
+    pointstostring: boolean;
   end;
   PAddresslist=^TAddresslist;
 
@@ -81,7 +83,7 @@ type
     canceled: boolean;
 
 
-    function isstring(address: ptrUint): boolean;
+    function isstring(address: ptrUint; v: pqword=nil): boolean;
     function findaddress(list: TMap; address: ptrUint):PAddresslist;
     procedure clearList(list: Tmap);
     procedure saveListToStream(list: TMap; s: TStream);
@@ -569,6 +571,7 @@ end;
 procedure TDissectCodeThread.addAddress(list: TMap; address: ptrUint; referencedBy: ptruint; couldbestring: boolean=false);
 var
   al: PAddresslist;
+  v: qword;
 begin
 
   cs.enter;
@@ -578,7 +581,20 @@ begin
       //not in the list yet, add it
       getmem(al, sizeof(TAddresslist));
       ZeroMemory(al, sizeof(TAddresslist));
-      if couldbestring then al.isstring:=isString(address);
+      if couldbestring then
+      begin
+        v:=0;
+        al.isstring:=isString(address, @v);
+
+        if (al.isstring=false) and (v<>0) then
+        begin
+          if isAddress(v) then
+          begin
+            al.pointsto:=v;
+            al.pointstostring:=isString(v,nil);
+          end;
+        end;
+      end;
 
       //allocate some space for it
       al.maxsize:=2;
@@ -586,6 +602,11 @@ begin
 
       list.Add(address, al);
     end;
+
+    if (couldbestring) and (al.isstring=false) and (al.pointstostring) then
+      addAddress(list, al.pointsto,referencedby,couldbestring); //add pointers to pointers to strings
+
+    //might also be used for function references...
 
     if al.pos>=al.maxsize then //realloc
     begin
@@ -604,9 +625,10 @@ begin
 
 end;
 
-function TDissectCodeThread.isstring(address: ptrUint): boolean;
+function TDissectCodeThread.isstring(address: ptrUint; v: pqword=nil): boolean;
 var
-  tempbuf: array [0..7] of byte;
+  p: qword;
+  tempbuf: array [0..7] of byte absolute p;
   x: ptruint;
   i: integer;
 begin
@@ -639,7 +661,16 @@ begin
       inc(i,2);
     end;
 
+    if v<>nil then
+    begin
+      if processhandler.is64Bit then
+        p:=p and $ffffffff;
+
+      v^:=p;
+    end;
   end;
+
+
 end;
 
 
