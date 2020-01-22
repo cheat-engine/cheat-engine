@@ -5,7 +5,7 @@ unit frmReferencedFunctionsUnit;
 interface
 
 uses
-  Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, ComCtrls,
+  LCLProc, Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, ComCtrls,
   StdCtrls, ExtCtrls, Menus, symbolhandler, Clipbrd;
 
 type

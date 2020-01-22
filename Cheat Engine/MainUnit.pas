@@ -8,7 +8,7 @@ uses
   {$ifdef darwin}
     LResources, LCLIntf, LCLProc, MacOSAll,MacOSXPosix, LMessages, Classes, Forms, Controls, Messages,
   ComCtrls, stdctrls,sysutils, graphics,menus, dialogs, extctrls, math, buttons,
-  ImgList, ActnList, registry, Clipbrd, CEFuncProc, NewKernelHandler, Assemblerunit,
+  ImgList, ActnList, registry, Clipbrd, NewKernelHandler, Assemblerunit,
   symbolhandler,autoassembler, addresslist, CustomTypeHandler, MemoryRecordUnit,memscan,
   SaveFirstScan, foundlisthelper, disassembler, tablist, simpleaobscanner,frmSelectionlistunit,
   lua, LuaHandler, lauxlib, lualib,CEDebugger,debughelper ,speedhack2, groupscancommandparser,
@@ -40,7 +40,7 @@ uses
   groupscancommandparser, GraphType, IntfGraphics, RemoteMemoryManager,
   DBK64SecondaryLoader, savedscanhandler, debuggertypedefinitions, networkInterface,
   FrmMemoryRecordDropdownSettingsUnit, xmlutils, zstream, zstreamext, commonTypeDefs,
-  VirtualQueryExCache, LazLogger, LazUTF8, LCLVersion, strutils;
+  VirtualQueryExCache, LazLogger, LazUTF8, LCLVersion;
   {$endif}
 //the following are just for compatibility
 
@@ -1053,7 +1053,7 @@ uses cefuncproc, MainUnit2, ProcessWindowUnit, MemoryBrowserFormUnit, TypePopup,
   PointerscanresultReader, Parsers, Globals {$ifdef windows},GnuAssembler, xinput{$endif} ,DPIHelper,
   multilineinputqueryunit {$ifdef windows},winsapi{$endif} ,LuaClass, Filehandler{$ifdef windows}, feces{$endif}
   {$ifdef windows},frmDBVMWatchConfigUnit, frmDotNetObjectListUnit{$endif} ,ceregistry ,UnexpectedExceptionsHelper
-  ,frmFoundlistPreferencesUnit, fontSaveLoadRegistry{$ifdef windows}, cheatecoins{$endif};
+  ,frmFoundlistPreferencesUnit, fontSaveLoadRegistry{$ifdef windows}, cheatecoins{$endif},strutils;
 
 resourcestring
   rsInvalidStartAddress = 'Invalid start address: %s';
@@ -6453,7 +6453,7 @@ begin
         if rbdec.Checked then
           Result := IntToStr(oldvaluei)
         else
-          Result := IntToBin(oldvaluei);
+          Result := parsers.IntToBin(oldvaluei);
 
       end;
 
@@ -8273,7 +8273,7 @@ begin
       if scanvalue.Text = '' then
         scanvalue.Text := '0'
       else
-        scanvalue.Text := inttobin(StrToQWordEx(scanvalue.Text));
+        scanvalue.Text := parsers.inttobin(StrToQWordEx(scanvalue.Text));
       if scanvalue.Text = '' then
         scanvalue.Text := '0';
     except

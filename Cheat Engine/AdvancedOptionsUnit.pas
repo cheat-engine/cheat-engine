@@ -9,7 +9,7 @@ interface
 
 uses
   {$ifdef darwin}
-  macport, LCLType,
+  macport, LCLType, math,
   {$endif}
   {$ifdef windows}
   jwawindows, windows,
