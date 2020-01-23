@@ -105,8 +105,10 @@ type
     function getLink(index: integer): TDiagramLink;
 
     function getScrollX: integer;
+    function getMaxScrollX: integer;
     procedure setScrollX(x: integer);
     function getScrollY: integer;
+    function getMaxScrollY: integer;
     procedure setScrollY(y: integer);
 
 
@@ -156,7 +158,9 @@ type
     destructor Destroy; override;
   published
     property ScrollX: integer read getScrollX write setScrollX;
+    property MaxScrollX: integer read getMaxScrollX;
     property ScrollY: integer read getScrollY write setScrollY;
+    property MaxScrollY: integer read getMaxScrollY;
     property ArrowSize: integer read getArrowSize write setArrowSize;
     property LineThickness: integer read getLineThickness write setLineThickness;
     property LineColor: Tcolor read getLineColor write setLineColor;
@@ -330,6 +334,11 @@ begin
   result:=hscrollbar.Position;
 end;
 
+function TDiagram.getMaxScrollX: integer;
+begin
+  result:=hscrollbar.Max-hscrollbar.PageSize;
+end;
+
 procedure TDiagram.setScrollX(x: integer);
 begin
   if scrollbarbottompanel.visible=false then
@@ -348,6 +357,11 @@ end;
 function TDiagram.getScrollY: integer;
 begin
   result:=vscrollbar.Position;
+end;
+
+function TDiagram.getMaxScrollY: integer;
+begin
+  result:=vscrollbar.Max-vscrollbar.PageSize;
 end;
 
 procedure TDiagram.setScrollY(y: integer);
@@ -1503,7 +1517,9 @@ if useopengl and (hglrc<>0) then
   end;
 
   diagramconfig.scrollx:=ScrollX;
+  diagramconfig.maxscrollx:=MaxScrollX;
   diagramconfig.scrolly:=ScrollY;
+  diagramconfig.maxscrolly:=MaxScrollY;
 
   diagramconfig.zoom:=zoom;
 

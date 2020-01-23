@@ -535,9 +535,11 @@ function createMenu(diagram)
   miZoom100.ImageIndex=63
   miZoom100.Name='miZoom100'
   miZoom100.OnClick=function()
+    local newX=diagram.diagram.ScrollX/diagram.diagram.MaxScrollX
+    local newY=diagram.diagram.ScrollY/diagram.diagram.MaxScrollY
     diagram.diagram.Zoom=1
-    diagram.diagram.ScrollX=0
-    diagram.diagram.ScrollY=0        
+    diagram.diagram.ScrollX=newX*diagram.diagram.MaxScrollX
+    diagram.diagram.ScrollY=newY*diagram.diagram.MaxScrollY     
   end
 
   local miZoomIn=createMenuItem(mm)

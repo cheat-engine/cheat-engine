@@ -30,7 +30,7 @@ type
 
     arrowStyles: TArrowStyles;
     arrowSize: integer;
-    scrollx, scrolly: integer;
+    scrollx, scrolly, maxscrollx, maxscrolly: integer;
     zoom: single;
 
     {$ifdef windows}
