@@ -25,7 +25,9 @@ diagramstyle.block_bodyshowaddressesassymbol = true
 diagramstyle.block_bodyshowbytes             = false
 diagramstyle.block_backgroundcolor           = 0x00FFFFFF --white
 diagramstyle.diagram_backgroundcolor         = 0x0099FFCC --light green
-
+diagramstyle.zoom_min                        = 0.25
+diagramstyle.zoom_max                        = 16.0
+diagramstyle.zoom_step                       = 0.25
 diagramstyle.highlight_linktakencolor        = 0x000000FF --red
 diagramstyle.highlight_linknottakencolor     = diagramstyle.diagram_backgroundcolor  --invisible
 diagramstyle.highlight_blockexecutedcolor    = diagramstyle.block_backgroundcolor 
@@ -547,7 +549,13 @@ function createMenu(diagram)
   miZoomIn.ImageIndex=61
   miZoomIn.Name='miZoomIn'
   miZoomIn.OnClick=function()
-    --to implement
+    if (diagram.diagram.Zoom < diagramstyle.zoom_max) then
+      local newX=diagram.diagram.ScrollX/diagram.diagram.MaxScrollX
+      local newY=diagram.diagram.ScrollY/diagram.diagram.MaxScrollY  
+      diagram.diagram.Zoom = diagram.diagram.Zoom + diagramstyle.zoom_step
+      diagram.diagram.ScrollX=newX*diagram.diagram.MaxScrollX
+      diagram.diagram.ScrollY=newY*diagram.diagram.MaxScrollY  
+    end  
   end
 
   local miZoomOut=createMenuItem(mm)
@@ -555,7 +563,13 @@ function createMenu(diagram)
   miZoomOut.ImageIndex=62
   miZoomOut.Name='miZoomOut'
   miZoomOut.OnClick=function()
-    --to implement
+    if (diagram.diagram.Zoom > diagramstyle.zoom_min) then
+      local newX=diagram.diagram.ScrollX/diagram.diagram.MaxScrollX
+      local newY=diagram.diagram.ScrollY/diagram.diagram.MaxScrollY  
+      diagram.diagram.Zoom = diagram.diagram.Zoom - diagramstyle.zoom_step
+      diagram.diagram.ScrollX=newX*diagram.diagram.MaxScrollX
+      diagram.diagram.ScrollY=newY*diagram.diagram.MaxScrollY  
+    end
   end
 
   ViewMenu.add(miZoom)
