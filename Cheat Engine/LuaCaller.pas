@@ -92,6 +92,7 @@ type
       procedure DBCustomDrawEvent(Sender: TDiagramBlock; const ARect: TRect; beforePaint: boolean; var DefaultDraw: Boolean);
       procedure ContextPopupEvent(Sender: TObject; MousePos: TPoint; var Handled: Boolean);
       procedure TabGetImageEvent(Sender: TObject; TabIndex: Integer; var ImageIndex: Integer);
+      procedure MeasureItemEvent(Control: TWinControl; Index: Integer; var AHeight: Integer);
 
       procedure synchronize;
 
@@ -1572,6 +1573,24 @@ begin
   end;
 end;
 
+procedure TLuaCaller.MeasureItemEvent(Control: TWinControl; Index: Integer; var AHeight: Integer);
+var
+  oldstack: integer;
+begin
+  oldstack:=lua_gettop(Luavm);
+  try
+    pushFunction;
+    luaclass_newClass(LuaVM, control);
+    lua_pushinteger(LuaVM, index);
+    lua_pushinteger(LuaVM, AHeight);
+    lua_pcall(LuaVM, 3,1,0);
+    if not lua_isnil(LuaVM,-1) then
+      AHeight:=lua_tointeger(LuaVM,-1);
+  finally
+    lua_settop(LuaVM, oldstack);
+  end;
+end;
+
 //----------------------------Lua implementation-----------------------------
 function LuaCaller_NotifyEvent(L: PLua_state): integer; cdecl;
 var
@@ -2676,6 +2695,30 @@ begin
 end;
 
 
+function LuaCaller_MeasureItemEvent(L: PLua_state): integer; cdecl; //control: TWinControl; Index: Integer; var AHeight: Integer);
+var
+  control: TWinControl;
+  index: integer;
+  height: integer;
+
+  m: TMethod;
+begin
+  result:=0;
+  if lua_gettop(L)=2 then
+  begin
+    m.code:=lua_touserdata(L, lua_upvalueindex(1));
+    m.data:=lua_touserdata(L, lua_upvalueindex(2));
+    control:=lua_ToCEUserData(L, 1);
+    index:=lua_tointeger(L,2);
+    height:=lua_tointeger(L,3);
+    TMeasureItemEvent(m)(control, index, height);
+    lua_pushinteger(L,height);
+    result:=1;
+  end
+  else
+    lua_pop(L, lua_gettop(L));
+end;
+
 procedure registerLuaCall(typename: string; getmethodprop: lua_CFunction; setmethodprop: pointer; luafunctionheader: string);
 var t: TLuaCallData;
 begin
@@ -2743,6 +2786,6 @@ initialization
   registerLuaCall('TDBCustomDrawEvent', LuaCaller_DBCustomDrawEvent, pointer(TLuaCaller.DBCustomDrawEvent),'function %s(sender, rect, beforedraw)'#13#10#13#10'  return text'#13#10'end'#13#10);
   registerLuaCall('TContextPopupEvent', LuaCaller_ContextPopupEvent, pointer(TLuaCaller.ContextPopupEvent),'function %s(sender, mousepos)'#13#10'  local handled=true'#13#10'  return handled'#13#10'end'#13#10);
   registerLuaCall('TTabGetImageEvent', LuaCaller_TabGetImageEvent, pointer(TLuaCaller.TabGetImageEvent),'function %s(sender, tabindex)'#13#10'  local imageindex=-1'#13#10'  return imageindex'#13#10'end'#13#10);
-
+  registerLuaCall('TMeasureItemEvent', LuaCaller_MeasureItemEvent, pointer(TLuaCaller.MeasureItemEvent),'function %s(sender, index, height)'#13#10'  return height'#13#10'end'#13#10);
 end.
 
