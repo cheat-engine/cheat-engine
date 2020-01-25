@@ -22,7 +22,7 @@
       <AutoIncrementBuild Value="True"/>
       <MajorVersionNr Value="7"/>
       <MinorVersionNr Value="1"/>
-      <BuildNr Value="6123"/>
+      <BuildNr Value="6117"/>
       <Language Value=""/>
       <CharSet Value=""/>
       <StringTable CompanyName="Cheat Engine" FileDescription="Cheat Engine" ProductVersion="7.1"/>
@@ -480,7 +480,7 @@
         <PackageName Value="LCL"/>
       </Item8>
     </RequiredPackages>
-    <Units Count="392">
+    <Units Count="391">
       <Unit0>
         <Filename Value="cheatengine.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -2547,14 +2547,6 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
       </Unit390>
-      <Unit391>
-        <Filename Value="frmcolorpickerunit.pas"/>
-        <IsPartOfProject Value="True"/>
-        <ComponentName Value="frmColorPicker"/>
-        <HasResources Value="True"/>
-        <ResourceBaseClass Value="Form"/>
-        <UnitName Value="frmColorPickerUnit"/>
-      </Unit391>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
@@ -2572,7 +2564,6 @@
       <Style Value="1"/>
       <SyntaxOptions>
         <SyntaxMode Value="Delphi"/>
-        <UseAnsiStrings Value="False"/>
       </SyntaxOptions>
     </Parsing>
     <CodeGeneration>
