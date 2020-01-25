@@ -118,7 +118,7 @@ uses autoassembler, mainunit, MainUnit2, LuaClass, frmluaengineunit, plugin, plu
   LuaCustomType, Filehandler, LuaSQL, frmSelectionlistunit, cpuidUnit, LuaRemoteThread,
   LuaManualModuleLoader, pointervaluelist, frmEditHistoryUnit, LuaCheckListBox,
   LuaDiagram, frmUltimap2Unit, frmcodefilterunit, BreakpointTypeDef, LuaSyntax,
-  LazLogger, LuaSynedit, LuaRipRelativeScanner;
+  LazLogger, LuaSynedit, LuaRipRelativeScanner, ColorBox;
 
   {$warn 5044 off}
 
@@ -3613,19 +3613,6 @@ begin
     result:=1;
   end else lua_pop(L, lua_gettop(L));
 end;
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 function messageDialog(L: PLua_State): integer; cdecl;
 var
@@ -12087,6 +12074,40 @@ begin
   result:=1;
 end;
 
+function lua_createColorDialog(L: Plua_State): integer; cdecl;
+var
+  owner: TComponent;
+  cd: TColorDialog;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=1 then
+    owner:=lua_toceuserdata(L, 1);
+  else
+    owner:=nil;
+
+  cd:=TColorDialog.Create(owner);
+  luaclass_newClass(L, cd);
+  result:=1;
+end;
+
+function lua_createColorBox(L: Plua_State): integer; cdecl;
+var
+  owner: TComponent;
+  cb: TColorBox;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=1 then
+    owner:=lua_toceuserdata(L, 1);
+  else
+    owner:=nil;
+
+  cb:=TColorBox.Create(owner);
+  luaclass_newClass(L, cb);
+  result:=1;
+end;
+
 procedure InitializeLua;
 var
   s: tstringlist;
@@ -12729,6 +12750,8 @@ begin
     lua_register(L, 'duplicateHandle', lua_duplicateHandle);
 
     lua_register(L, 'getOperatingSystem', lua_getOperatingSystem);
+    lua_register(L, 'createColorDialog', lua_createColorDialog);
+    lua_register(L, 'createColorBox', lua_createColorBox);
 
 
     initializeLuaRemoteThread;

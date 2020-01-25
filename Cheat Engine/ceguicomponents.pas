@@ -980,7 +980,7 @@ end;  }
 
 implementation
 
-uses luahandler,luacaller, formdesignerunit, CheckLst;
+uses luahandler,luacaller, formdesignerunit, CheckLst, colorbox;
 
 resourcestring
   rsInvalidFormData = 'Invalid formdata';
@@ -1583,6 +1583,7 @@ initialization
   registerclass(TStatusBar);
   registerclass(TCheckListBox);
   registerclass(TColorDialog);
+  registerclass(TColorBox);
 
 
   RegisterPropertyEditor(ClassTypeInfo(TListItems), TCEListView, 'Items', TCEListViewItemsPropertyEditor);

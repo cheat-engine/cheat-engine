@@ -1728,13 +1728,28 @@ methods
   getOnHotkey
 
 
-CommonDialog class:
+CommonDialog class: (Inheritance: CommonDialog->Component->Object)
   properties
     OnShow: function(sender)
     OnClose: function(sender)
     Title: string - The caption at top of the dialog
   methods
     Execute() : Shows the dialog and return true/false depending on the dialog
+
+ColorDialog class: 
+createColorDialog(owner OPTIONAL) - Creates a new colordialog
+properties
+  property Color: integer - The currently selected color
+  property CustomColors: TStrings - List of custom colors ( entry looks like ColorA = FFFF00 ... ColorX = C0C0C0 ) 
+
+methods
+
+ColorBox class:
+  Combobox like component where you can pick a color
+
+createColorBox(owner) - Creates a new colorbox
+
+
 
 FindDialog Class: (Inheritance: CommonDialog->Component->Object)
 properties
@@ -1750,6 +1765,7 @@ methods
 
 
 FileDialog Class: (Inheritance: CommonDialog->Component->Object)
+createFindDialog(owner)
 properties
 
   DefaultExt: string - When not using filters this will be the default extention used if no extension is given
