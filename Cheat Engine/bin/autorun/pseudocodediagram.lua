@@ -650,17 +650,13 @@ end
 
 function PopupMenuEditBlockBackgroundColorClick(sender) --a color dialog would be better
   local diagram=getRef(sender.Owner.Owner.Tag)
-  local newcolor = inputQuery(translate("Edit"), translate("new block background color (0xBBGGRR)"), string.format("%X", diagram.popup.lastobject.BackgroundColor))
-  if newcolor ~= nil then 
-    local newcolorint=tonumber(newcolor, 16)
-    if newcolorint==nil then
-      newcolorint=tonumber(newcolor)
-      if newcolorint==nil then return end
-    end
-    diagram.popup.lastobject.BackgroundColor = newcolorint
-
+  local colordialog=createColorDialog()
+  if colordialog.execute() then
+    local newcolor = colordialog.Color
+    diagram.popup.lastobject.BackgroundColor=newcolor
     diagram.diagram.repaint()
   end
+  colordialog.destroy()
 end
 
 function PopupMenuListSourcesClick(sender)
