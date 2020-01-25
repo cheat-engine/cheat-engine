@@ -118,7 +118,7 @@ uses autoassembler, mainunit, MainUnit2, LuaClass, frmluaengineunit, plugin, plu
   LuaCustomType, Filehandler, LuaSQL, frmSelectionlistunit, cpuidUnit, LuaRemoteThread,
   LuaManualModuleLoader, pointervaluelist, frmEditHistoryUnit, LuaCheckListBox,
   LuaDiagram, frmUltimap2Unit, frmcodefilterunit, BreakpointTypeDef, LuaSyntax,
-  LazLogger, LuaSynedit, LuaRipRelativeScanner;
+  LazLogger, LuaSynedit, LuaRipRelativeScanner, frmColorPickerUnit;
 
   {$warn 5044 off}
 
@@ -12087,6 +12087,15 @@ begin
   result:=1;
 end;
 
+function lua_showColorPicker(L: PLua_state): integer; cdecl;
+var
+   color: integer;
+begin
+   color:=ShowColorPicker(application);
+   lua_pushinteger(L,color);
+   result:=1;
+end;
+
 procedure InitializeLua;
 var
   s: tstringlist;
@@ -12729,6 +12738,8 @@ begin
     lua_register(L, 'duplicateHandle', lua_duplicateHandle);
 
     lua_register(L, 'getOperatingSystem', lua_getOperatingSystem);
+
+    lua_register(L, 'showColorPicker', lua_showColorPicker);
 
 
     initializeLuaRemoteThread;
