@@ -12080,9 +12080,9 @@ var
   cd: TColorDialog;
 begin
   result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-    owner:=lua_toceuserdata(L, 1);
+
+  if lua_gettop(L)=1 then
+    owner:=lua_toceuserdata(L, 1)
   else
     owner:=nil;
 
@@ -12097,9 +12097,9 @@ var
   cb: TColorBox;
 begin
   result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-    owner:=lua_toceuserdata(L, 1);
+
+  if lua_gettop(L)=1 then
+    owner:=lua_toceuserdata(L, 1)
   else
     owner:=nil;
 
