@@ -12753,6 +12753,8 @@ begin
     lua_register(L, 'createColorDialog', lua_createColorDialog);
     lua_register(L, 'createColorBox', lua_createColorBox);
 
+    lua_register(L, 'showColorPicker', lua_showColorPicker);
+
 
     initializeLuaRemoteThread;
 
