@@ -112,7 +112,8 @@ uses
   textrender, diagramtypes, diagramblock, diagram, LuaDiagram, LuaDiagramBlock,
   LuaDiagramLink, diagramlink, BreakpointTypeDef, frmFoundlistPreferencesUnit,
   LuaHeaderSections, frmDebuggerAttachTimeoutUnit, cheatecoins,
-  frmMicrotransactionsUnit, frmSyntaxHighlighterEditor, LuaCustomImageList;
+  frmMicrotransactionsUnit, frmSyntaxHighlighterEditor, LuaCustomImageList,
+  dotnethost;
 
 {$R cheatengine.res}
 {$IFDEF windows}
@@ -376,7 +377,6 @@ begin
   handleparameters;
 
   OutputDebugString('Starting CE');
-
 
 
 

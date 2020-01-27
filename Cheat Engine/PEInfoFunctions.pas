@@ -233,6 +233,58 @@ TImageDosHeader = _IMAGE_DOS_HEADER;
 IMAGE_DOS_HEADER = _IMAGE_DOS_HEADER;
 
 
+(*
+typedef struct IMAGE_COR20_HEADER
+{
+    // Header versioning
+    DWORD                   cb;
+    WORD                    MajorRuntimeVersion;
+    WORD                    MinorRuntimeVersion;
+
+    // Symbol table and startup information
+    IMAGE_DATA_DIRECTORY    MetaData;
+    DWORD                   Flags;
+
+    // If COMIMAGE_FLAGS_NATIVE_ENTRYPOINT is not set, EntryPointToken represents a managed entrypoint.
+    // If COMIMAGE_FLAGS_NATIVE_ENTRYPOINT is set, EntryPointRVA represents an RVA to a native entrypoint.
+    union {
+        DWORD               EntryPointToken;
+        DWORD               EntryPointRVA;
+    } DUMMYUNIONNAME;
+
+    // Binding information
+    IMAGE_DATA_DIRECTORY    Resources;
+    IMAGE_DATA_DIRECTORY    StrongNameSignature;
+
+    // Regular fixup and binding information
+    IMAGE_DATA_DIRECTORY    CodeManagerTable;
+    IMAGE_DATA_DIRECTORY    VTableFixups;
+    IMAGE_DATA_DIRECTORY    ExportAddressTableJumps;
+
+    // Precompiled image info (internal use only - set to zero)
+    IMAGE_DATA_DIRECTORY    ManagedNativeHeader;
+
+} IMAGE_COR20_HEADER, *PIMAGE_COR20_HEADER;
+
+*)
+TImageCLRRuntimeDirectory=record
+  cb: DWORD;
+  MajorRuntimeVersion: WORD;
+  MinorRuntimeVersion: WORD;
+  MetaData: IMAGE_DATA_DIRECTORY;
+  Flags: DWORD;
+  EntryPointTokenOrRVA: DWORD;
+  Resources: IMAGE_DATA_DIRECTORY;
+  StrongNameSignature: IMAGE_DATA_DIRECTORY;
+  CodeManagerTable: IMAGE_DATA_DIRECTORY;
+  VTableFixups: IMAGE_DATA_DIRECTORY;
+  ExportAddressTableJumps: IMAGE_DATA_DIRECTORY;
+  ManagedNativeHeader: IMAGE_DATA_DIRECTORY;
+end;
+
+PImageCLRRuntimeDirectory=^TImageCLRRuntimeDirectory;
+
+
 type
   TRunTimeEntry=packed record
     start: dword;
@@ -271,6 +323,7 @@ function peinfo_getImageNtHeaders(headerbase: pointer; maxsize: dword):PImageNtH
 function peinfo_getExportList(filename: string; dllList: Tstrings): boolean; overload;
 function peinfo_getExportList(modulebase: ptruint; dllList: Tstrings): boolean; overload;
 function peinfo_is64bitfile(filename: string; var is64bit: boolean): boolean;
+function peinfo_isdotnetfile(filename: string; var isdotnet: boolean): boolean;
 function peinfo_getimagesizefromfile(filename: string; var size: dword): boolean;
 
 function peinfo_getExceptionList(modulebase: ptruint): TExceptionList;
@@ -654,14 +707,54 @@ begin
   end;
 end;
 
+function peinfo_isdotnetfile(filename: string; var isdotnet: boolean): boolean;
+var fmap: TFileMapping;
+    header: pointer;
+    OptionalHeader: PImageOptionalHeader;
+    OptionalHeader64: PImageOptionalHeader64 absolute OptionalHeader;
+    is64bit: boolean;
+    ImageNtHeader: PImageNtHeaders;
+    netdata: dword;
+begin
+  result:=false;
+
+  try
+    fmap:=TFileMapping.create(filename);
+    if fmap<>nil then
+    begin
+      try
+        header:=fmap.fileContent;
+        ImageNtHeader:=peinfo_getImageNtHeaders(header,fmap.filesize);
+        if ImageNTHeader=nil then raise exception.Create(strInvalidFile);
+        if ImageNTHeader^.FileHeader.Machine=$8664 then
+          is64bit:=true
+        else
+          is64bit:=false;
+
+        OptionalHeader:=peinfo_getOptionalHeaders(header,fmap.filesize);
+        if OptionalHeader<>nil then
+        begin
+          if is64bit then
+            netdata:=OptionalHeader64.DataDirectory[14].Size
+          else
+            netdata:=OptionalHeader.DataDirectory[14].Size;
+
+          result:=netdata<>0;
+        end;
+      finally
+        fmap.free;
+      end;
+
+    end;
+  except
+
+  end;
+end;
+
 function peinfo_is64bitfile(filename: string; var is64bit: boolean): boolean;
 var fmap: TFileMapping;
     header: pointer;
     ImageNtHeader: PImageNtHeaders;
-    OptionalHeader: PImageOptionalHeader;
-    OptionalHeader64: PImageOptionalHeader64 absolute OptionalHeader;
-
-   // a: dword;
 begin
   //open the file
   //parse the header

@@ -289,7 +289,6 @@ void CPipeServer::InitMono()
 				il2cpp_image_get_class_count = (IL2CPP_IMAGE_GET_CLASS_COUNT)GetProcAddress(hMono, "il2cpp_image_get_class_count");
 				il2cpp_image_get_class = (IL2CPP_IMAGE_GET_CLASS)GetProcAddress(hMono, "il2cpp_image_get_class");
 
-
 				il2cpp_type_get_name = (IL2CPP_TYPE_GET_NAME)GetProcAddress(hMono, "il2cpp_type_get_name");
 				il2cpp_type_get_assembly_qualified_name = (IL2CPP_TYPE_GET_ASSEMBLY_QUALIFIED_NAME)GetProcAddress(hMono, "il2cpp_type_get_assembly_qualified_name");
 
@@ -637,20 +636,30 @@ void CPipeServer::EnumClassesInImage()
 		else
 		{
 			count = *(DWORD*)(((UINT_PTR)image) + 0x1c);
-		}
-		*/
+		}*/
+		
 		WriteDword(count);
 
+
 		for (i = 0; i < count; i++)
-		{
-			void* c=il2cpp_image_get_class(image, i);
-			WriteQword((UINT_PTR)c);
+		{	
+			if (il2cpp_image_get_class)
+			{
+				void* c = il2cpp_image_get_class(image, i);
+				WriteQword((UINT_PTR)c);
 
-			char *name = mono_class_get_name(c);
-			WriteString(name);
+				if (c)
+				{
+					char *name = mono_class_get_name(c);
+					WriteString(name);
 
-			name = mono_class_get_namespace(c);
-			WriteString(name);
+					name = mono_class_get_namespace(c);
+					WriteString(name);
+				}
+			}
+			else
+				WriteQword((UINT_PTR)0);
+
 		}
 
 	}
