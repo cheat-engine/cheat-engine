@@ -12119,6 +12119,19 @@ begin
   result:=1;
 end;
 
+function lua_createAutoAssemblerForm(L: Plua_State): integer; cdecl;
+var f: TfrmAutoInject;
+begin
+  f:=TfrmAutoInject.Create(application);
+  if lua_gettop(L)>=1 then
+    f.assemblescreen.Text:=Lua_ToString(L,1);
+
+  f.show;
+
+  luaclass_newClass(L, f);
+  result:=1;
+end;
+
 procedure InitializeLua;
 var
   s: tstringlist;
@@ -12763,6 +12776,8 @@ begin
     lua_register(L, 'getOperatingSystem', lua_getOperatingSystem);
     lua_register(L, 'createColorDialog', lua_createColorDialog);
     lua_register(L, 'createColorBox', lua_createColorBox);
+    lua_register(L, 'createAutoAssemblerForm', lua_createAutoAssemblerForm);
+
 
 
     initializeLuaRemoteThread;

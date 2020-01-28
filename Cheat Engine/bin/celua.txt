@@ -281,7 +281,7 @@ registerAutoAssemblerPrologue(function(script, syntaxcheck), postAOB:boolean=fal
 
 unregisterAutoAssemblerPrologue(ID)
 
-registerAutoAssemblerTemplate(name, function(script: TStrings; sender: TFrmAutoInject): id - Registers an template for the auto assembler. The script parameter is a TStrings object that has a direct connection to the current script. (All script parsing is up to you...).  Returns an ID
+registerAutoAssemblerTemplate(name, function(script: TStrings; sender: TFrmAutoInject), shortcut OPTIONAL ): id - Registers an template for the auto assembler. The script parameter is a TStrings object that has a direct connection to the current script. (All script parsing is up to you...).  Returns an ID
 unregisterAutoAssemblerTemplate(ID)
 
 
@@ -562,6 +562,8 @@ getApplication() : Returns the application object. (the titlebar)
 getAddressList() : Returns the cheat table addresslist object
 getFreezeTimer() : Returns the freeze timer object
 getUpdateTimer() : Returns the update timer object
+
+
 
 setGlobalKeyPollInterval(integer): Sets the global keypoll interval. The interval determines the speed of how often CE checks if a key has been pressed or not. Lower is more accurate, but eats more cpu power
 setGlobalDelayBetweenHotkeyActivation(integer): Sets the minimum delay between the activation of the same hotey in milliseconds. Affects all hotkeys that do not set their own minimum delay
@@ -1034,6 +1036,14 @@ methods
   setDoNotSaveInTable(boolean): Sets the DoNotSaveInTable property
   saveCurrentStateAsDesign() : Sets the current state of the form as the state that will be saved when the table is saved
 
+
+TfrmAutoInject class: (Inheritance: Form->ScrollingWinControl->CustomControl->WinControl->Control->Component->Object)
+createAutoAssemblerForm(script: string OPTIONAL): TFrmAutoInject - Spawns an autoassembler window with the optionally provided script
+
+properties
+  Assemblescreen: SynEdit - Editor for the script
+
+methods
 
 GraphicControl Class: (Inheritance: Control->Component->Object)
 properties
