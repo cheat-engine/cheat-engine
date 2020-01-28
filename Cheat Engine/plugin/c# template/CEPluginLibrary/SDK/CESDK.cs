@@ -8,18 +8,27 @@ using System.Threading.Tasks;
 
 //CE SDK wrapper.  You usually don't need to be here, so close your eyes and walk away
 
-namespace CEPluginLibrary
+namespace CESDK
 {
  
     public abstract class CESDKPluginClass
     {
+        public CESDK sdk;
+        public abstract String GetPluginName();
         public abstract Boolean EnablePlugin();
         public abstract Boolean DisablePlugin();
+                
+
+        public CESDKPluginClass()
+        {
+            CESDK.currentPlugin = this;
+        }
     }
 
     public class CESDK
     {
-        
+        public static CESDKPluginClass currentPlugin;
+        public CESDKLua lua;
         private const int PLUGINVERSION = 6; //CE SDK plugin version it expects to work with (needed in case newer ce versions change things)
         static IntPtr PluginNamePtr;
 
@@ -83,12 +92,16 @@ namespace CEPluginLibrary
         {            
             this.pluginid = pluginid; 
             pluginexports = ExportedFunctions;
-            return Config.pluginclass.EnablePlugin();
+
+            //setup the delegates
+
+            currentPlugin.sdk = this;
+            return currentPlugin.EnablePlugin();
         }
 
         private Boolean DisablePlugin()
         {
-            return Config.pluginclass.DisablePlugin();            
+            return currentPlugin.DisablePlugin();            
         }
 
         CESDK()
@@ -105,7 +118,7 @@ namespace CEPluginLibrary
                 mainself = new CESDK();
 
             if ((Int64)PluginNamePtr == 0)
-                PluginNamePtr = Marshal.StringToHGlobalAnsi(Config.PLUGINNAME);
+                PluginNamePtr = Marshal.StringToHGlobalAnsi(currentPlugin.GetPluginName());
 
 
 
