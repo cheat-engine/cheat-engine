@@ -1472,7 +1472,7 @@ end;
 function TPluginHandler.DotNetPluginGetPluginName(dllname: string): string;
 var PInit: TPluginDotNetInitResult;
 begin
-  DotNetExecuteClassMethod(dllname,'CEPluginLibrary','PluginMainClass','CEPluginInitialize', inttostr(ptruint(@PInit)));
+  DotNetExecuteClassMethod(dllname,'CEPluginLibrary','CESDK','CEPluginInitialize', inttostr(ptruint(@PInit)));
   result:=PInit.name;
 end;
 
@@ -1548,7 +1548,7 @@ end;
 function TPluginHandler.DotNetLoadPlugin(dllname:string):integer;
 var initresult: TPluginDotNetInitResult;
 begin
-  DotNetExecuteClassMethod(dllname,'CEPluginLibrary','PluginMainClass','CEPluginInitialize',inttostr(ptruint(@initresult)));
+  DotNetExecuteClassMethod(dllname,'CEPluginLibrary','CESDK','CEPluginInitialize',inttostr(ptruint(@initresult)));
   if initresult.version>currentpluginversion then
     raise exception.Create(Format(rsErrorLoadingThisDllRequiresANewerVersionOfCeToFunc, [dllname]));
 

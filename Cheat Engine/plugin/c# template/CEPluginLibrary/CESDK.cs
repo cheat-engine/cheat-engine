@@ -6,12 +6,20 @@ using System.Text;
 using System.Threading.Tasks;
 
 
+//CE SDK wrapper.  You usually don't need to be here, so close your eyes and walk away
+
 namespace CEPluginLibrary
 {
  
-    public class PluginMainClass
+    public abstract class CESDKPluginClass
     {
-        private const string PLUGINNAME = "C# Plugin Template for Cheat Engine 7.1+";
+        public abstract Boolean EnablePlugin();
+        public abstract Boolean DisablePlugin();
+    }
+
+    public class CESDK
+    {
+        
         private const int PLUGINVERSION = 6; //CE SDK plugin version it expects to work with (needed in case newer ce versions change things)
         static IntPtr PluginNamePtr;
 
@@ -55,7 +63,7 @@ namespace CEPluginLibrary
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
         private delegate Boolean delegateDisablePlugin();
 
-        private static PluginMainClass mainself; //prevents garbage collection
+        private static CESDK mainself; //prevents garbage collection
 
         private delegateGetVersion delGetVersion;
         private delegateEnablePlugin delEnablePlugin;
@@ -75,15 +83,15 @@ namespace CEPluginLibrary
         {            
             this.pluginid = pluginid; 
             pluginexports = ExportedFunctions;
-            return true;
+            return Config.pluginclass.EnablePlugin();
         }
 
         private Boolean DisablePlugin()
         {
-            return true;
+            return Config.pluginclass.DisablePlugin();            
         }
 
-        PluginMainClass()
+        CESDK()
         {
             delGetVersion = GetVersion;
             delEnablePlugin = EnablePlugin;
@@ -94,17 +102,17 @@ namespace CEPluginLibrary
         public static int CEPluginInitialize(string parameters)
         {
             if (mainself == null)
-                mainself = new PluginMainClass();
+                mainself = new CESDK();
 
             if ((Int64)PluginNamePtr == 0)
-                PluginNamePtr = Marshal.StringToHGlobalAnsi(PLUGINNAME);
+                PluginNamePtr = Marshal.StringToHGlobalAnsi(Config.PLUGINNAME);
 
 
 
             UInt64 a = UInt64.Parse(parameters);
 
 
-            TPluginInit bla;  //= Marshal.PtrToStructure<TPluginInit>((IntPtr)a);
+            TPluginInit bla;
             bla.name = PluginNamePtr;
             bla.GetVersion = Marshal.GetFunctionPointerForDelegate(mainself.delGetVersion);
             bla.EnablePlugin = Marshal.GetFunctionPointerForDelegate(mainself.delEnablePlugin);
