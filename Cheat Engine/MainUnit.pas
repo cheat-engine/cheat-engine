@@ -3298,20 +3298,15 @@ end;
 procedure TMainForm.Copyselectedaddresses1Click(Sender: TObject);
 var
   i: ptruint;
-  address: string;
-  delimiters: tsyscharset;
+  address: ptruint;
   temp: string;
 begin
   temp:='';
-  delimiters:=[];
-
-  Include(delimiters, ':');
 
   if foundlist3.SelCount = 1 then
     begin
-      address := foundlist3.Items[foundlist3.itemindex].Caption;
-      address := ExtractDelimited(1,address,delimiters);
-      clipboard.AsText := symhandler.getNameFromAddress(StrToQWordEx('$'+address))
+      address := foundlist.GetAddress(foundlist3.itemIndex);
+      clipboard.AsText := symhandler.getNameFromAddress(address)
     end
   else
   if foundlist3.SelCount > 1 then
@@ -3320,9 +3315,8 @@ begin
     begin
       if foundlist3.items[i].Selected then
       begin
-        address := foundlist3.Items[i].Caption;
-        address := ExtractDelimited(1,address,delimiters);
-        temp := temp + symhandler.getNameFromAddress(StrToQWordEx('$'+address)) + sLineBreak;
+        address := foundlist.GetAddress(i);
+        temp := temp + symhandler.getNameFromAddress(address) + sLineBreak;
       end
     end;
     clipboard.AsText := temp;
