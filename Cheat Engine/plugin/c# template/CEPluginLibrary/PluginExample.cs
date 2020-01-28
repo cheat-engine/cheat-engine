@@ -9,8 +9,6 @@ namespace CEPluginLibrary
 {
     class PluginExample : CESDKPluginClass
     {
-        static readonly PluginExample thisplugin = new PluginExample();
-
         public override string GetPluginName()
         {
             return "C# Plugin Template for Cheat Engine 7.1+";
@@ -25,9 +23,10 @@ namespace CEPluginLibrary
         public override bool EnablePlugin() //called when enabled
         {
             //you can use sdk here
-            //sdk.lua.dostring("print('I am allive')");
-            
+            //sdk.lua.dostring("print('I am alive')");
+         
             return true;            
         }
+
     }
 }

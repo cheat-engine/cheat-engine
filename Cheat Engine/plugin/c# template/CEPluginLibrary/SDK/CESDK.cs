@@ -4,6 +4,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
+using System.Reflection;
 
 
 //CE SDK wrapper.  You usually don't need to be here, so close your eyes and walk away
@@ -17,12 +18,6 @@ namespace CESDK
         public abstract String GetPluginName();
         public abstract Boolean EnablePlugin();
         public abstract Boolean DisablePlugin();
-                
-
-        public CESDKPluginClass()
-        {
-            CESDK.currentPlugin = this;
-        }
     }
 
     public class CESDK
@@ -118,7 +113,26 @@ namespace CESDK
                 mainself = new CESDK();
 
             if ((Int64)PluginNamePtr == 0)
+            {
+                Type[] x=typeof(CESDKPluginClass).Assembly.GetTypes();                
+
+           
+                int i;
+                for (i=0; i<x.Count(); i++)
+                {
+                    if (x[i].IsSubclassOf(typeof(CESDKPluginClass)))
+                    {
+                        currentPlugin = (CESDKPluginClass)Activator.CreateInstance(x[i]);
+                        break;
+                    }
+
+                }
+
+                if (currentPlugin == null)
+                    return 0;
+
                 PluginNamePtr = Marshal.StringToHGlobalAnsi(currentPlugin.GetPluginName());
+            }
 
 
 
