@@ -75,6 +75,7 @@ type
   TAutoAssemblerTemplate=record
                            name: string;
                            m: TAutoAssemblerTemplateCallback;
+                           shortcut: TShortCut;
                          end;
 
   TAutoAssemblerTemplates=array of TAutoAssemblerTemplate;
@@ -239,7 +240,7 @@ procedure GenerateCodeInjectionScript(script: tstrings; addressstring: string);
 procedure GenerateAOBInjectionScript(script: TStrings; address: string; symbolname: string);
 procedure GenerateFullInjectionScript(Script: tstrings; address: string);
 
-function registerAutoAssemblerTemplate(name: string; m: TAutoAssemblerTemplateCallback): integer;
+function registerAutoAssemblerTemplate(name: string; m: TAutoAssemblerTemplateCallback; shortcut: TShortCut=0): integer;
 procedure unregisterAutoAssemblerTemplate(id: integer);
 
 function GetUniqueAOB(mi: TModuleInfo; address: ptrUint; codesize: Integer; var resultOffset: Integer) : string;
@@ -303,7 +304,7 @@ begin
 
 end;
 
-function registerAutoAssemblerTemplate(name: string; m: TAutoAssemblerTemplateCallback): integer;
+function registerAutoAssemblerTemplate(name: string; m: TAutoAssemblerTemplateCallback; shortcut: TShortCut=0): integer;
 var i: integer;
 begin
   //find a spot in the current list
@@ -313,6 +314,7 @@ begin
     begin
       AutoAssemblerTemplates[i].name:=name;
       AutoAssemblerTemplates[i].m:=m;
+      AutoAssemblerTemplates[i].shortcut:=shortcut;
       result:=i;
       break;
     end;
@@ -323,6 +325,7 @@ begin
     setlength(AutoAssemblerTemplates,i+1);
     AutoAssemblerTemplates[i].name:=name;
     AutoAssemblerTemplates[i].m:=m;
+    AutoAssemblerTemplates[i].shortcut:=shortcut;
     result:=i;
   end;
 
@@ -378,6 +381,7 @@ begin
         mi.Caption:=t.name;
         mi.Tag:=id+1;
         mi.OnClick:=CustomTemplateClick;
+        mi.ShortCut:=t.shortcut;
         emplate1.Add(mi);
       end;
     end;

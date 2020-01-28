@@ -10377,6 +10377,7 @@ var
   routine: string;
   lc: tluacaller;
   name: string;
+  shortcut: TShortCut;
 begin
   result:=0;
 
@@ -10401,7 +10402,17 @@ begin
     end
     else exit;
 
-    lua_pushinteger(L, registerAutoAssemblerTemplate(name, lc.AutoAssemblerTemplateCallback));
+    shortcut:=0;
+    if lua_gettop(L)>=3 then
+    begin
+      if lua_isinteger(L,3) then
+        shortcut:=lua_tointeger(L,3)
+      else
+      if lua_isstring(L,3) then
+        shortcut:=textToShortCut(Lua_ToString(L,3))
+    end;
+
+    lua_pushinteger(L, registerAutoAssemblerTemplate(name, lc.AutoAssemblerTemplateCallback, shortcut));
     result:=1;
   end;
 end;
