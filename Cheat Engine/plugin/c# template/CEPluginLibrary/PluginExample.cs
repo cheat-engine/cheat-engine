@@ -41,6 +41,8 @@ namespace CEPluginLibrary
         {
             sdk.lua.PushString(L, "Works");
             sdk.lua.PushString("And this as well");
+
+            sdk.lua.DoString("MainForm.Caption='Changed by test2()'");
             
             return 2;
         }
