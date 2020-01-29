@@ -40,7 +40,7 @@ namespace CEPluginLibrary
         int MyFunction2(IntPtr L)
         {
             sdk.lua.PushString(L, "Works");
-            sdk.lua.PushString(L, "And this as well");
+            sdk.lua.PushString("And this as well");
             
             return 2;
         }
