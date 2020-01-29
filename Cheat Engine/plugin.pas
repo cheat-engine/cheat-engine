@@ -38,6 +38,7 @@ type
   TExportedFunctionsDotNetV1=record
     sizeofExportedFunctions: integer;
     GetLuaState: pointer;  //rest is kinda obsolete with lua, e.g hooking happens with AA scripts in the local CE
+    LuaRegister: pointer;
     ProcessMessages: pointer; //in case it's a messy plugin that wants to run in the main thread
     CheckSynchronize: pointer;
     MainThreadCall: pointer;
@@ -2040,6 +2041,7 @@ begin
 
   exportedfunctionsdotnet.sizeofExportedFunctions:=sizeof(exportedfunctionsdotnet);
   exportedfunctionsdotnet.GetLuaState:=@plugin_GetLuaState;
+  exportedfunctionsdotnet.LuaRegister:=@lua_register;
   exportedfunctionsdotnet.ProcessMessages:=@plugin_processMessages;
   exportedfunctionsdotnet.CheckSynchronize:=@plugin_CheckSynchronize;
   exportedfunctionsdotnet.MainThreadCall:=@pluginsync;

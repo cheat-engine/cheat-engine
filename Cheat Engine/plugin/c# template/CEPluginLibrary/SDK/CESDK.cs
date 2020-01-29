@@ -20,6 +20,17 @@ namespace CESDK
         public abstract Boolean DisablePlugin();
     }
 
+    [StructLayout(LayoutKind.Sequential)]
+    public struct TExportedFunctions
+    {
+        public int sizeofExportedFunctions;
+        public IntPtr GetLuaState;
+        public IntPtr LuaRegister;
+        public IntPtr ProcessMessages;
+        public IntPtr CheckSynchronize;
+        public IntPtr MainThreadCall;
+    }
+
     public class CESDK
     {
         public static CESDKPluginClass currentPlugin;
@@ -31,15 +42,7 @@ namespace CESDK
         private static extern IntPtr LoadLibrary(string libname);
 
 
-        [StructLayout(LayoutKind.Sequential)]
-        private struct TExportedFunctions
-        {
-            public int sizeofExportedFunctions;
-            public IntPtr GetLuaState;
-            public IntPtr ProcessMessages;
-            public IntPtr CheckSynchronize;
-            public IntPtr MainThreadCall;
-        }
+
 
         [StructLayout(LayoutKind.Sequential)]
         private struct TPluginVersion
@@ -74,7 +77,7 @@ namespace CESDK
         private delegateDisablePlugin delDisablePlugin;
 
         public UInt32 pluginid;
-        private TExportedFunctions pluginexports;
+        public TExportedFunctions pluginexports;
 
         private Boolean GetVersion([MarshalAs(UnmanagedType.Struct)] ref TPluginVersion PluginVersion, int TPluginVersionSize)
         {
@@ -89,6 +92,7 @@ namespace CESDK
             pluginexports = ExportedFunctions;
 
             //setup the delegates
+            lua = new CESDKLua(this);
 
             currentPlugin.sdk = this;
             return currentPlugin.EnablePlugin();
@@ -115,17 +119,14 @@ namespace CESDK
             if ((Int64)PluginNamePtr == 0)
             {
                 Type[] x=typeof(CESDKPluginClass).Assembly.GetTypes();                
-
            
-                int i;
-                for (i=0; i<x.Count(); i++)
+                for (int i=0; i<x.Count(); i++)
                 {
                     if (x[i].IsSubclassOf(typeof(CESDKPluginClass)))
                     {
                         currentPlugin = (CESDKPluginClass)Activator.CreateInstance(x[i]);
                         break;
                     }
-
                 }
 
                 if (currentPlugin == null)

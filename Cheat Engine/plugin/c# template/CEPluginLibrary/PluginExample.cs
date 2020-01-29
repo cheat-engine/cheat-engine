@@ -19,13 +19,30 @@ namespace CEPluginLibrary
             
             return true;
         }
-
+        
         public override bool EnablePlugin() //called when enabled
         {
             //you can use sdk here
             //sdk.lua.dostring("print('I am alive')");
-         
+            sdk.lua.Register("test", MyFunction);
+            sdk.lua.Register("test2", MyFunction2);
+
             return true;            
+        }
+
+        int MyFunction()
+        {
+            sdk.lua.PushString("WEEEE");
+            
+            return 1;
+        }
+
+        int MyFunction2(IntPtr L)
+        {
+            sdk.lua.PushString(L, "Works");
+            sdk.lua.PushString(L, "And this as well");
+            
+            return 2;
         }
 
     }
