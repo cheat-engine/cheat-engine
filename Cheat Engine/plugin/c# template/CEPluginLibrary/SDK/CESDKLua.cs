@@ -67,7 +67,7 @@ namespace CESDK
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         private delegate int dlua_pushnil(IntPtr state);
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        private delegate int dlua_pushinteger(IntPtr state, [MarshalAs(UnmanagedType.I8)]UInt64 i);
+        private delegate int dlua_pushinteger(IntPtr state, [MarshalAs(UnmanagedType.I8)]Int64 i);
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         private delegate int dlua_pushnumber(IntPtr state, [MarshalAs(UnmanagedType.R8)]Double n);
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
@@ -218,8 +218,8 @@ namespace CESDK
             LuaRegister(State, FuncName, func);            
         }
 
-        public void PushInteger(UInt64 i) { lua_pushinteger(State, i); }
-        public void PushInteger(IntPtr L, UInt64 i) { lua_pushinteger(L, i); }
+        public void PushInteger(Int64 i) { lua_pushinteger(State, i); }
+        public void PushInteger(IntPtr L, Int64 i) { lua_pushinteger(L, i); }
 
         public void PushNumber(Double n) { lua_pushnumber(State, n); }
         public void PushNumber(IntPtr L, Double n) { lua_pushnumber(L, n); }

@@ -32,17 +32,28 @@ namespace CEPluginLibrary
 
         int MyFunction()
         {
-            sdk.lua.PushString("WEEEE");
-            
+            var l = sdk.lua;
+            l.PushString("WEEEE");                        
+            if (l.GetTop() > 0)
+            {
+                if (l.IsInteger(1))
+                {
+                    int i = l.ToInteger(1);
+                    l.PushInteger(i * 2);
+                    return 2;
+                }
+            }
+
             return 1;
         }
 
         int MyFunction2(IntPtr L)
         {
-            sdk.lua.PushString(L, "Works");
-            sdk.lua.PushString("And this as well");
+            var l = sdk.lua;
+            l.PushString(L, "Works");
+            l.PushString("And this as well");
 
-            sdk.lua.DoString("MainForm.Caption='Changed by test2()'");
+            l.DoString("MainForm.Caption='Changed by test2()'");
             
             return 2;
         }
