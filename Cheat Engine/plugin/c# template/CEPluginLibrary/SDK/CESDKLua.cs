@@ -33,10 +33,6 @@ namespace CESDK
 
         private CESDK sdk;
 
-        [ThreadStatic]
-        private IntPtr lua_State; //unique per thread
-
-
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         public delegate int LuaCall(IntPtr lua_State);
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
@@ -201,10 +197,11 @@ namespace CESDK
         {
             LuaCall z = delegate (IntPtr x) {
                 int r;
-                IntPtr bla = lua_State;
-                lua_State = x;
+
+                IntPtr oldOverride = lua_StateOverride;
+                lua_StateOverride = x;
                 r = func();
-                lua_State = bla;
+                lua_StateOverride = oldOverride;
                 return r;
             };
 
@@ -214,8 +211,17 @@ namespace CESDK
 
         public void Register(string FuncName, LuaCall func)
         {
-            luafunctions.Add(func); //prevent it from getting garbage collected
-            LuaRegister(State, FuncName, func);            
+            LuaCall z = delegate (IntPtr x)
+             {
+                 int r;
+                 IntPtr oldOverride = lua_StateOverride;
+                 lua_StateOverride = x;
+                 r = func(x);
+                 lua_StateOverride = oldOverride;
+                 return r;
+             };
+            luafunctions.Add(z); //prevent it from getting garbage collected
+            LuaRegister(State, FuncName, z);            
         }
 
         public void PushInteger(Int64 i) { lua_pushinteger(State, i); }
@@ -311,16 +317,26 @@ namespace CESDK
             return PCall(0, -1);
         }
 
+        [ThreadStatic]
+        IntPtr lua_StateOverride = (IntPtr)0;
+
         private IntPtr GetLuaState()
         {
+            if (lua_StateOverride != IntPtr.Zero)
+                return lua_StateOverride;
+
+            if (_GetLuaState == null)
+                _GetLuaState = Marshal.GetDelegateForFunctionPointer<dGetLuaState>(sdk.pluginexports.GetLuaState);
+
+            /*
             if (lua_State==(IntPtr)0)
             {
-                if (_GetLuaState == null)
-                    _GetLuaState = Marshal.GetDelegateForFunctionPointer<dGetLuaState>(sdk.pluginexports.GetLuaState);
+
 
                 lua_State = _GetLuaState();
             }           
-            return lua_State;
+            */
+            return _GetLuaState(); 
         }
 
         public CESDKLua(CESDK sdk)

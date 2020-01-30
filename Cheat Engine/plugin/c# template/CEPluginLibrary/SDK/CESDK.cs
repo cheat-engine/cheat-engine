@@ -28,7 +28,6 @@ namespace CESDK
         public IntPtr LuaRegister;
         public IntPtr ProcessMessages;
         public IntPtr CheckSynchronize;
-        public IntPtr MainThreadCall;
     }
 
     public class CESDK
@@ -70,14 +69,46 @@ namespace CESDK
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
         private delegate Boolean delegateDisablePlugin();
 
+        [UnmanagedFunctionPointer(CallingConvention.StdCall)]
+        private delegate void delegateProcessMessages();
+
+        [UnmanagedFunctionPointer(CallingConvention.StdCall)]
+        private delegate bool delegateCheckSynchronize(int timeout);
+
+
         private static CESDK mainself; //prevents garbage collection
 
         private delegateGetVersion delGetVersion;
         private delegateEnablePlugin delEnablePlugin;
         private delegateDisablePlugin delDisablePlugin;
+        private delegateProcessMessages delProcessMessages;
+        private delegateCheckSynchronize delCheckSynchronize;
 
         public UInt32 pluginid;
         public TExportedFunctions pluginexports;
+
+        /// <summary>
+        /// Call this to handle all waiting window messages in the CE main thread. Handy when doing something slow inside the main thread and you don't want the user to think CE has frozen
+        /// </summary>
+        public void ProcessMessages()
+        {
+            delProcessMessages();
+        }
+
+        /// <summary>
+        /// Call this when have the main thread frozen but may be waiting for a thread to handle it's synchronize event (handy when you have frozen the main thread and have a thread running that's first syncing with CE's gui)
+        /// </summary>
+        /// <param name="timeout">Timeout in milliseconds to wait</param>
+        /// <returns></returns>
+
+        public bool CheckSynchronize(int timeout)
+        {
+            return delCheckSynchronize(timeout);
+        }
+
+
+
+
 
         private Boolean GetVersion([MarshalAs(UnmanagedType.Struct)] ref TPluginVersion PluginVersion, int TPluginVersionSize)
         {
@@ -92,7 +123,14 @@ namespace CESDK
             pluginexports = ExportedFunctions;
 
             //setup the delegates
-            lua = new CESDKLua(this);
+            if (delProcessMessages == null)
+                delProcessMessages = Marshal.GetDelegateForFunctionPointer<delegateProcessMessages>(pluginexports.ProcessMessages);
+
+            if (delCheckSynchronize == null)
+                delCheckSynchronize = Marshal.GetDelegateForFunctionPointer<delegateCheckSynchronize>(pluginexports.CheckSynchronize);
+
+            if (lua==null)
+                lua = new CESDKLua(this);
 
             currentPlugin.sdk = this;
             return currentPlugin.EnablePlugin();

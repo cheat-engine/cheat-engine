@@ -85,6 +85,8 @@ function LuaVM: PLUA_State; inline;
 function lua_oldprintoutput:TStrings;
 procedure lua_setPrintOutput(output: TStrings);
 
+function lua_synchronize(L: Plua_State): integer; cdecl;
+
 resourcestring
   rsPluginAddress = 'Plugin Address';
   rsThisTypeIsNotSupportedHere='This type is not supported here';
@@ -152,6 +154,8 @@ var
   printoutput: TStrings;
 
   waitforsymbols: boolean=true;
+
+
 
 function lua_oldprintoutput:TStrings;
 begin
@@ -1622,6 +1626,15 @@ var
   str: string;
   i: integer;
 begin
+  if MainThreadID<>GetCurrentThreadId then
+  begin
+    //print is threadsafe because it always syncs
+    lua_pushcfunction(L,@print);
+    lua_insert(L,1);
+    exit(lua_synchronize(L));
+  end;
+
+
   parameters:=lua_gettop(L);
   if parameters=0 then exit(0);
 
@@ -1637,7 +1650,10 @@ begin
   end;
 
   if str<>'' then
-    pluginsync(print2, @str[1]);
+  begin
+    print2(@str[1]);
+    //pluginsync(print2, @str[1]);
+  end;
 
   lua_pop(L, parameters);
   lua_pushstring(L, str);

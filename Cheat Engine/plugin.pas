@@ -41,7 +41,6 @@ type
     LuaRegister: pointer;
     ProcessMessages: pointer; //in case it's a messy plugin that wants to run in the main thread
     CheckSynchronize: pointer;
-    MainThreadCall: pointer;
   end;
 
   TExportedFunctions5 = record
@@ -2044,7 +2043,6 @@ begin
   exportedfunctionsdotnet.LuaRegister:=@lua_register;
   exportedfunctionsdotnet.ProcessMessages:=@plugin_processMessages;
   exportedfunctionsdotnet.CheckSynchronize:=@plugin_CheckSynchronize;
-  exportedfunctionsdotnet.MainThreadCall:=@pluginsync;
 end;
 
 

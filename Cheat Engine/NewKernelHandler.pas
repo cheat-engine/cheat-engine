@@ -975,7 +975,7 @@ end;
 
 function WriteProcessMemory(hProcess: THandle; const lpBaseAddress: Pointer; lpBuffer: Pointer; nSize: DWORD; var lpNumberOfBytesWritten: PTRUINT): BOOL; stdcall;
 var
-  wle: PWriteLogEntry;
+  wle: TWriteLogEntry;
   x: PTRUINT;
 
 begin
@@ -984,23 +984,21 @@ begin
   begin
     if nsize<64*1024*1024 then
     begin
-      getmem(wle, sizeof(TWriteLogEntry));
-      zeromemory(wle, sizeof(TWriteLogEntry));
-
-      wle^.address:=ptruint(lpBaseAddress);
+      wle:=TWriteLogEntry.Create;
+      wle.address:=ptruint(lpBaseAddress);
 
       getmem(wle.originalbytes, nsize);
       ReadProcessMemory(hProcess, lpBaseaddress,wle.originalbytes, nsize, x);
-      wle^.originalsize:=x;
+      wle.originalsize:=x;
     end;
   end;
 
   result:=WriteProcessMemoryActual(hProcess, lpBaseAddress, lpbuffer, nSize, lpNumberOfBytesWritten);
   if result and logwrites and (wle<>nil) then
   begin
-    getmem(wle^.newbytes, lpNumberOfBytesWritten);
-    ReadProcessMemory(hProcess, lpBaseaddress,wle^.newbytes, lpNumberOfBytesWritten, x);
-    wle^.newsize:=x;
+    getmem(wle.newbytes, lpNumberOfBytesWritten);
+    ReadProcessMemory(hProcess, lpBaseaddress,wle.newbytes, lpNumberOfBytesWritten, x);
+    wle.newsize:=x;
     addWriteLogEntryToList(wle);
   end;
 

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using CESDK;
 
@@ -24,8 +25,11 @@ namespace CEPluginLibrary
         {
             //you can use sdk here
             //sdk.lua.dostring("print('I am alive')");
-            sdk.lua.Register("test", MyFunction);
-            sdk.lua.Register("test2", MyFunction2);
+            
+
+            sdk.lua.Register("pluginexample1", MyFunction);
+            sdk.lua.Register("pluginexample2", MyFunction2);
+            sdk.lua.Register("pluginexample3", MyFunction3);
 
             return true;            
         }
@@ -50,12 +54,38 @@ namespace CEPluginLibrary
         int MyFunction2(IntPtr L)
         {
             var l = sdk.lua;
+
+            l.DoString("MainForm.Caption='Changed by test2()'");
+
             l.PushString(L, "Works");
             l.PushString("And this as well");
 
-            l.DoString("MainForm.Caption='Changed by test2()'");
+           return 2;
+        }
+
+        public void NewThreadExample()
+        {
+            //return;
+            sdk.lua.DoString("print('Running from a different thread. And showing this requires the synchronize capability of the main thread')"); //print is threadsafe
+
+            //now running an arbitrary method in a different thread
+
+        }
+        int MyFunction3()
+        {
+            Thread thr = new Thread(NewThreadExample);
+            int i = 0;
+            thr.Start();
+
+            while (thr.IsAlive)
+            {                
+                sdk.CheckSynchronize(10); //ce would freeze without this as print will call Synchronize to run it in the main thread               
+                i = i + 1;
+            }
+
+            sdk.lua.PushInteger(i);
             
-            return 2;
+            return 1;
         }
 
     }
