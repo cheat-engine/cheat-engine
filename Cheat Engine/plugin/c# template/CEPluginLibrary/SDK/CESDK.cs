@@ -26,6 +26,7 @@ namespace CESDK
         public int sizeofExportedFunctions;
         public IntPtr GetLuaState;
         public IntPtr LuaRegister;
+        public IntPtr LuaPushClassInstance;
         public IntPtr ProcessMessages;
         public IntPtr CheckSynchronize;
     }
@@ -106,10 +107,7 @@ namespace CESDK
             return delCheckSynchronize(timeout);
         }
 
-
-
-
-
+        
         private Boolean GetVersion([MarshalAs(UnmanagedType.Struct)] ref TPluginVersion PluginVersion, int TPluginVersionSize)
         {
             PluginVersion.name = PluginNamePtr;

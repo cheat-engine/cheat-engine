@@ -54,6 +54,8 @@ procedure luaclass_newClassFunction(L: PLua_State; InitialAddMetaDataFunction: T
 
 procedure luaclass_register(c: TClass; InitialAddMetaDataFunction: TAddMetaDataFunction);
 
+procedure luaclass_pushClass(L: PLua_State; o: TObject); stdcall; //for plugins
+
 implementation
 
 uses LuaClassArray, LuaObject, LuaComponent, luahandler;
@@ -217,6 +219,10 @@ begin
     lua_pushnil(L);
 end;
 
+procedure luaclass_pushClass(L: PLua_State; o: TObject); stdcall; //for plugins
+begin
+  luaclass_newClass(L,o);
+end;
 
 function luaclass_getClassObject(L: PLua_state; paramstart: pinteger=nil; paramcount: pinteger=nil): pointer;// inline;
 //called as first thing by class functions. This is in case a 6.2 code executed the function manually

@@ -53,6 +53,7 @@
     <Compile Include="PluginExample.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SDK\CESDKLua.cs" />
+    <Compile Include="SDK\MemScan.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="PluginExampleForm.resx">
