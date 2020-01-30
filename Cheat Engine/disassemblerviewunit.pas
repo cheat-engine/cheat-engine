@@ -31,9 +31,8 @@ uses {$ifdef darwin}macport,messages,lcltype,{$endif}
 type TShowjumplineState=(jlsAll, jlsOnlyWithinRange);     
 
 type TDisassemblerSelectionChangeEvent=procedure (sender: TObject; address, address2: ptruint) of object;
-
 type TDisassemblerExtraLineRender=function(sender: TObject; Address: ptruint; AboveInstruction: boolean; selected: boolean; var x: integer; var y: integer): TRasterImage of object;
-
+type TDisassemblerViewOverrideCallback=procedure(address: ptruint; var addressstring: string; var bytestring: string; var opcodestring: string; var parameterstring: string; var specialstring: string) of object;
 
 
 type TDisassemblerview=class(TPanel)
@@ -83,6 +82,9 @@ type TDisassemblerview=class(TPanel)
     fhidefocusrect: boolean;
 
     scrolltimer: ttimer;
+
+    fOnDisassemblerViewOverride: TDisassemblerViewOverrideCallback;
+
     procedure updateScrollbox;
     procedure scrollboxResize(Sender: TObject);
 
@@ -115,6 +117,8 @@ type TDisassemblerview=class(TPanel)
     procedure setJumplineState(state: tshowjumplinestate);
     procedure synchronizeDisassembler;
     procedure StatusInfoLabelCopy(sender: TObject);
+
+
   protected
     procedure HandleSpecialKey(key: word);
     procedure WndProc(var msg: TMessage); override;
@@ -134,6 +138,8 @@ type TDisassemblerview=class(TPanel)
 
     LastFormActiveEvent: qword;
 
+
+    procedure DoDisassemblerViewLineOverride(address: ptruint; var addressstring: string; var bytestring: string; var opcodestring: string; var parameterstring: string; var specialstring: string);
 
     procedure reinitialize; //deletes the assemblerlines
 
@@ -170,6 +176,7 @@ type TDisassemblerview=class(TPanel)
     property PopupMenu: TPopupMenu read getOriginalPopupMenu write SetOriginalPopupMenu;
     property Osb: TBitmap read offscreenbitmap;
     property OnExtraLineRender: TDisassemblerExtraLineRender read fOnExtraLineRender write fOnExtraLineRender;
+    property OnDisassemblerViewOverride: TDisassemblerViewOverrideCallback read fOnDisassemblerViewOverride write fOnDisassemblerViewOverride;
 end;
 
 
@@ -185,6 +192,13 @@ resourcestring
   rsOpcode = 'Opcode';
   rsComment = 'Comment';
   rsCopy = 'Copy';
+
+procedure TDisassemblerview.DoDisassemblerViewLineOverride(address: ptruint; var addressstring: string; var bytestring: string; var opcodestring: string; var parameterstring: string; var specialstring: string);
+var i: integer;
+begin
+  if assigned(fOnDisassemblerViewOverride) then
+    fOnDisassemblerViewOverride(address, addressstring, bytestring, opcodestring, parameterstring, specialstring);
+end;
 
 procedure TDisassemblerview.SetOriginalPopupMenu(p: Tpopupmenu);
 begin

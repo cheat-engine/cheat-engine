@@ -2274,6 +2274,10 @@ DisassemblerviewLine class: (Inheritance: Object)
 properties
   Address: The current address of this line
   Owner: The Disassemblerview that owns this line
+  OnDisassemblerViewOverride: Called when a line is about to be rendered
+    funtion(address, addressstring, bytestring, opcodestring, parameterstring, specialstring)
+      return addressstring, bytestring, opcodestring, parameterstring, specialstring
+    end    
 
 methods
   -

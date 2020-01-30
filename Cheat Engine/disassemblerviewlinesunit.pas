@@ -417,15 +417,19 @@ begin
     end;
   end;
 
+  if symhandler.showsymbols or symhandler.showmodules then
+    addressString:=symbolname
+  else
+    addressString:=truncatestring(addressString, fHeaders.Items[0].Width-2);
+
+  TDisassemblerview(owner).DoDisassemblerViewLineOverride(address, addressstring, bytestring, opcodestring, parameterstring, specialstring);
+
   //split up into lines
   specialstrings.text:=specialstring;
   customheaderstrings.text:=dassemblercomments.commentHeader[visibleDisassembler.LastDisassembleData.address];
 
 
-  if symhandler.showsymbols or symhandler.showmodules then
-    addressString:=symbolname
-  else
-    addressString:=truncatestring(addressString, fHeaders.Items[0].Width-2);
+
 
   bytestring:=truncatestring(bytestring, fHeaders.Items[1].Width-2, true);
   //opcodestring:=truncatestring(opcodestring, fHeaders.Items[2].Width-2, true);
@@ -447,7 +451,7 @@ begin
   for i:=1 to specialstrings.count-1 do
     inc(fHeight, fcanvas.textHeight(specialstrings[i]));
 
-  //calculae the custom headersize
+  //calculate the custom headersize
   for i:=0 to customheaderstrings.count-1 do
     inc(fheight, fCanvas.TextHeight(customheaderstrings[i]));
 
@@ -749,7 +753,7 @@ begin
   fcanvas.font.color:=textcolor;
 
 
-  fcanvas.TextRect(rect(fHeaders.Items[0].Left, linestart, fHeaders.Items[0].Right, linestart+height), fHeaders.Items[0].Left+1,linestart, paddressString);
+  DrawTextRectWithColor(rect(fHeaders.Items[0].Left, linestart, fHeaders.Items[0].Right, linestart+height), fHeaders.Items[0].Left+1,linestart, paddressString);
 
 //  fcanvas.TextRect(rect(fHeaders.Items[1].Left, linestart, fHeaders.Items[1].Right, linestart+height),fHeaders.Items[1].Left+1,linestart, pbytestring);
 

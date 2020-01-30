@@ -1911,6 +1911,8 @@ begin
   panel11.visible:=false;
 
   cbUseMacDebugger.checked:=true;
+  {$else}
+  cbUseMacDebugger.visible:=false;
 
   {$endif}
 end;

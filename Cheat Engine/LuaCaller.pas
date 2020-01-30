@@ -93,6 +93,7 @@ type
       procedure ContextPopupEvent(Sender: TObject; MousePos: TPoint; var Handled: Boolean);
       procedure TabGetImageEvent(Sender: TObject; TabIndex: Integer; var ImageIndex: Integer);
       procedure MeasureItemEvent(Control: TWinControl; Index: Integer; var AHeight: Integer);
+      procedure DisassemblerViewOverrideCallback(address: ptruint; var addressstring: string; var bytestring: string; var opcodestring: string; var parameterstring: string; var specialstring: string);
 
       procedure synchronize;
 
@@ -1591,6 +1592,32 @@ begin
   end;
 end;
 
+procedure TLuaCaller.DisassemblerViewOverrideCallback(address: ptruint; var addressstring: string; var bytestring: string; var opcodestring: string; var parameterstring: string; var specialstring: string);
+var
+  oldstack: integer;
+begin
+  oldstack:=lua_gettop(Luavm);
+  try
+    pushFunction;
+    lua_pushinteger(LuaVM, address);
+    lua_pushstring(LuaVM, addressstring);
+    lua_pushstring(LuaVM, bytestring);
+    lua_pushstring(LuaVM, opcodestring);
+    lua_pushstring(LuaVM, parameterstring);
+    lua_pushstring(LuaVM, specialstring);
+
+    lua_pcall(LuaVM, 6,5,0);
+    if not lua_isnil(LuaVM,-5) then addressstring:=Lua_ToString(LuaVM,-5);
+    if not lua_isnil(LuaVM,-4) then bytestring:=Lua_ToString(LuaVM,-4);
+    if not lua_isnil(LuaVM,-3) then opcodestring:=Lua_ToString(LuaVM,-3);
+    if not lua_isnil(LuaVM,-2) then parameterstring:=Lua_ToString(LuaVM,-2);
+    if not lua_isnil(LuaVM,-1) then specialstring:=Lua_ToString(LuaVM,-1);
+  finally
+    lua_settop(LuaVM, oldstack);
+  end;
+end;
+
+
 //----------------------------Lua implementation-----------------------------
 function LuaCaller_NotifyEvent(L: PLua_state): integer; cdecl;
 var
@@ -2704,7 +2731,7 @@ var
   m: TMethod;
 begin
   result:=0;
-  if lua_gettop(L)=2 then
+  if lua_gettop(L)=3 then
   begin
     m.code:=lua_touserdata(L, lua_upvalueindex(1));
     m.data:=lua_touserdata(L, lua_upvalueindex(2));
@@ -2714,6 +2741,41 @@ begin
     TMeasureItemEvent(m)(control, index, height);
     lua_pushinteger(L,height);
     result:=1;
+  end
+  else
+    lua_pop(L, lua_gettop(L));
+end;
+
+function LuaCaller_DisassemblerViewOverrideCallback(L: PLua_state): integer; cdecl; //procedure(address: ptruint; var addressstring: string; var bytestring: string; var opcodestring: string; var parameterstring: string; var specialstring: string);
+var
+  address: ptruint;
+  addressstring: string;
+  bytestring: string;
+  opcodestring: string;
+  parameterstring: string;
+  specialstring: string;
+
+  m: TMethod;
+begin
+  result:=0;
+  if lua_gettop(L)=6 then
+  begin
+    m.code:=lua_touserdata(L, lua_upvalueindex(1));
+    m.data:=lua_touserdata(L, lua_upvalueindex(2));
+    address:=lua_tointeger(L, 1);
+    addressstring:=Lua_ToString(L,2);
+    bytestring:=Lua_ToString(L,3);
+    opcodestring:=Lua_ToString(L,4);
+    parameterstring:=Lua_ToString(L,5);
+    specialstring:=Lua_ToString(L,6);
+    lua_pop(L,6);
+    TDisassemblerViewOverrideCallback(m)(address, addressstring, bytestring, opcodestring, parameterstring, specialstring);
+    lua_pushstring(L, addressstring);
+    lua_pushstring(L, bytestring);
+    lua_pushstring(L, opcodestring);
+    lua_pushstring(L, parameterstring);
+    lua_pushstring(L, specialstring);
+    result:=5;
   end
   else
     lua_pop(L, lua_gettop(L));
@@ -2787,5 +2849,7 @@ initialization
   registerLuaCall('TContextPopupEvent', LuaCaller_ContextPopupEvent, pointer(TLuaCaller.ContextPopupEvent),'function %s(sender, mousepos)'#13#10'  local handled=true'#13#10'  return handled'#13#10'end'#13#10);
   registerLuaCall('TTabGetImageEvent', LuaCaller_TabGetImageEvent, pointer(TLuaCaller.TabGetImageEvent),'function %s(sender, tabindex)'#13#10'  local imageindex=-1'#13#10'  return imageindex'#13#10'end'#13#10);
   registerLuaCall('TMeasureItemEvent', LuaCaller_MeasureItemEvent, pointer(TLuaCaller.MeasureItemEvent),'function %s(sender, index, height)'#13#10'  return height'#13#10'end'#13#10);
+
+  registerLuaCall('TDisassemblerViewOverrideCallback', LuaCaller_DisassemblerViewOverrideCallback, pointer(TLuaCaller.DisassemblerViewOverrideCallback),'function %s(address, addressstring, bytestring, opcodestring, parameterstring, specialstring)'#13#10'  return addressstring, bytestring, opcodestring, parameterstring, specialstring'#13#10'end'#13#10);
 end.
 
