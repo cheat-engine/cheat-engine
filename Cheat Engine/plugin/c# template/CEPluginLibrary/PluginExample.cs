@@ -72,7 +72,7 @@ topm.add(mf3)
 local mf4=createMenuItem(m)
 mf4.Caption='Example 4: Forms and whatnot';
 mf4.OnClick=function(s)
-  local newthread=MessageDialog('Open the form in a new thread? (No will open inside the main GUI)',mtConfirmation,mbYes,mbNo)==mrYes
+  local newthread=MessageDialog('Open the form in a new thread? (IF not it will open inside the main GUI)',mtConfirmation,mbYes,mbNo)==mrYes
   local i=pluginexample4(newthread)
 
   print('pluginexample4() finally returned with the value '..i..' (should be 100)')
@@ -138,8 +138,22 @@ topm.add(mf4)");
 
         void NewGuiThread()
         {
+            int i = sdk.lua.GetTop();
+
             PluginExampleForm formpy = new PluginExampleForm();
-            System.Windows.Forms.Application.Run(formpy);
+
+            try
+            {
+                System.Windows.Forms.Application.Run(formpy);
+            }
+            catch (Exception ex)
+            {
+
+
+            }
+
+            
+
             return;
         }
 

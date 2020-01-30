@@ -357,7 +357,7 @@ namespace CESDK
         }
 
         [ThreadStatic]
-        IntPtr lua_StateOverride = (IntPtr)0;
+        static IntPtr lua_StateOverride = (IntPtr)0;
 
         private IntPtr GetLuaState()
         {
