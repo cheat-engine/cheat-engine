@@ -48,6 +48,7 @@ type
     GSlabel: TLabel;
     MenuItem4: TMenuItem;
     copyBytesAndOpcodesAndComments: TMenuItem;
+    miUndoLastEdit: TMenuItem;
     miFollowInHexview: TMenuItem;
     miSetSpecificBreakpoint: TMenuItem;
     miWatchBPHardware: TMenuItem;
@@ -338,6 +339,7 @@ type
     procedure MenuItem14Click(Sender: TObject);
     procedure DBVMFindoutwhataddressesthisinstructionaccessesClick(Sender: TObject);
     procedure MenuItem4Click(Sender: TObject);
+    procedure miUndoLastEditClick(Sender: TObject);
     procedure miFollowInHexviewClick(Sender: TObject);
     procedure miSetSpecificBreakpointClick(Sender: TObject);
     procedure miSetBreakpointClick(Sender: TObject);
@@ -1134,6 +1136,14 @@ procedure TMemoryBrowser.MenuItem4Click(Sender: TObject);
 begin
   if tbDebug.Visible=true then HideDebugToolbar;
   tbDebug.Tag:=-1;
+end;
+
+procedure TMemoryBrowser.miUndoLastEditClick(Sender: TObject);
+begin
+  if logWrites then
+  begin
+    undowrite(disassemblerview.SelectedAddress);
+  end;
 end;
 
 procedure TMemoryBrowser.ApplyFollowRegister;
@@ -4011,7 +4021,7 @@ end;
 procedure TMemoryBrowser.debuggerpopupPopup(Sender: TObject);
 var x: ptrUint;
   i: integer;
-  a: ptruint;
+  a,a2: ptruint;
   inadvancedoptions: boolean;
   e: boolean;
   VA,PA: QWORD;
@@ -4134,6 +4144,18 @@ begin
   miSetBreakpointDBVMExec.visible:={$ifdef windows}hasEPTSupport{$else}false{$endif};
 
 
+  if logWrites then
+  begin
+    a:=minX(disassemblerview.SelectedAddress, disassemblerview.SelectedAddress2);
+    a2:=maxX(disassemblerview.SelectedAddress, disassemblerview.SelectedAddress2);
+
+    if a2=a then
+      disassemble(a2);
+
+    miUndoLastEdit.visible:=hasAddressBeenChangedRange(a,a2);
+  end
+  else
+    miUndoLastEdit.visible:=false;
 end;
 
 procedure TMemoryBrowser.GDTlist1Click(Sender: TObject);

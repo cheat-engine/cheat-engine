@@ -244,13 +244,13 @@ uses Assemblerunit, StrUtils, Parsers, memoryQuery;
 {$ifdef windows}
 uses Assemblerunit,CEDebugger, debughelper, StrUtils, debuggertypedefinitions,
   Parsers, memoryQuery, binutils, luacaller, vmxfunctions, frmcodefilterunit,
-  BreakpointTypeDef;
+  BreakpointTypeDef, frmEditHistoryUnit;
 {$endif}
 
 {$ifdef darwin}
 uses Assemblerunit,CEDebugger, debughelper, StrUtils, debuggertypedefinitions,
   Parsers, memoryQuery, (*binutils,*) LuaCaller, (*vmxfunctions, frmcodefilterunit, *)
-  BreakpointTypeDef;
+  BreakpointTypeDef, frmEditHistoryUnit;
 {$endif}
 
 
@@ -15364,18 +15364,25 @@ function TDisassembler.getLastBytestring: string;
 var
   i,j: integer;
   cloaked:boolean=false;
+  changed:boolean=false;
   VA,PA: qword;
 begin
   result:='';
   for i:=0 to length(LastDisassembleData.Bytes)-1 do
   begin
-    if syntaxhighlighting and LastDisassembleData.iscloaked then
+    if syntaxhighlighting then
     begin
-      //check if this byte is cloaked (due to pageboundaries)
-      {$ifdef windows}
-      cloaked:=hasCloakedRegionInRange(LastDisassembleData.address+i, 1, VA, PA);
-      if (cloaked) then result:=result+'{C00FF00}'; //green
-      {$endif}
+      if LastDisassembleData.iscloaked then
+      begin
+        //check if this byte is cloaked (due to pageboundaries)
+        {$ifdef windows}
+        cloaked:=hasCloakedRegionInRange(LastDisassembleData.address+i, 1, VA, PA);
+        if (cloaked) then result:=result+'{C00FF00}'; //green
+        {$endif}
+      end;
+
+      changed:=hasAddressBeenChanged(LastDisassembleData.address+i);
+      if (changed) then result:=result+'{C0000FF}'; //red
     end;
 
     result:=result+inttohex(LastDisassembleData.Bytes[i],2);
@@ -15387,10 +15394,11 @@ begin
         if (LastDisassembleData.Seperators[j]=i+1) then  //followed by a seperator
           result:=result+' ';
 
-    if syntaxhighlighting and LastDisassembleData.iscloaked and cloaked then
+    if syntaxhighlighting and ((LastDisassembleData.iscloaked and cloaked) or changed ) then
     begin
       result:=result+'{N}'; //back to default
       cloaked:=false;
+      changed:=false;
     end;
   end;
 end;

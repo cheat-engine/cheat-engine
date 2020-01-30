@@ -45,7 +45,8 @@ type
     procedure refreshWriteLogView;
   end;
 
-  TWriteLogEntry=record
+  TWriteLogEntry=class
+  public
     id: integer;
     address: ptruint;
     originalsize: dword;
@@ -53,8 +54,8 @@ type
 
     newsize: dword;
     newbytes: pbyte;
+    destructor destroy; override;
   end;
-  PWriteLogEntry=^TWriteLogEntry;
 
 
 var
@@ -62,24 +63,29 @@ var
   logWrites: boolean=false;
 
 
-procedure addWriteLogEntryToList(wle: PWriteLogEntry);
+procedure addWriteLogEntryToList(wle: TWriteLogEntry);
 procedure setMaxWriteLogSize(size: integer);
 procedure clearWriteLog;
 procedure undoLastWrite;
 
 procedure initializeLuaWriteLog;
 
+function hasAddressBeenChanged(address: ptruint): boolean;
+function hasAddressBeenChangedRange(startaddress, stopaddress: ptruint): boolean;
+
+procedure undowrite(address: ptruint); overload;
 
 implementation
 
 {$R *.lfm}
 
 uses MemoryBrowserFormUnit, ProcessHandlerUnit, globals, luahandler, LuaClass,
-  LuaByteTable, LuaObject;
+  LuaByteTable, LuaObject, maps;
 
 var
   nextid: integer;
-  writelog: TList;
+  writelog: TList; //for a sorted list in the order it got changed
+  writelogmap: TMap; //for an address lookup to see if an address has been changed   (holds every single byte)
   writelogcs: TCriticalSection;
   maxwritelogsize: integer=250;
 
@@ -87,10 +93,49 @@ var
 
 
 
+destructor TWriteLogEntry.destroy;
+begin
+  if originalbytes<>nil then
+    FreeMemAndNil(originalbytes);
+
+  if newbytes<>nil then
+    FreeMemAndNil(newbytes);
+
+  inherited destroy;
+end;
+
+procedure removeBytesFromWriteLogMap(wle: TWriteLogEntry);
+var
+  i: integer;
+  data: TObject;
+  a: ptruint;
+  oldwle: TWriteLogEntry;
+begin
+  for i:=0 to wle.newsize-1 do
+  begin
+    a:=wle.address+i;
+    if writelogmap.GetData(a,data) then
+    begin
+      if data is TWriteLogEntry then //no list
+        writelogmap.Delete(a)
+      else //tlist
+      begin
+        tlist(data).Remove(wle);
+        if tlist(data).Count=1 then //no list needed anymore
+        begin
+          oldwle:=TWriteLogEntry(tlist(data)[0]);
+          tlist(data).free;
+          writelogmap.SetData(a,oldwle);
+        end;
+      end;
+    end;
+  end;
+end;
+
 
 
 procedure eraseWriteLogEntry(i: integer);
-var wle: PWriteLogEntry;
+var wle: TWriteLogEntry;
 begin
 
   writelogcs.Enter;
@@ -98,16 +143,11 @@ begin
     if i<writelog.count then
     begin
       wle:=writelog[i];
-      if wle.originalbytes<>nil then
-        FreeMemAndNil(wle.originalbytes);
-
-      if wle.newbytes<>nil then
-        FreeMemAndNil(wle.newbytes);
-
-      FreeMemAndNil(wle);
-
-
       writelog.Delete(i);
+      removeBytesFromWriteLogMap(wle);
+      wle.free;
+
+
     end;
 
   finally
@@ -120,11 +160,45 @@ begin
   while writelog.Count>0 do
     eraseWriteLogEntry(writelog.count-1);
 
+  writelogmap.Clear; //should be empty already
+
 end;
 
-procedure addWriteLogEntryToList(wle: PWriteLogEntry);
+procedure addBytesToWriteLogMap(wle: TWriteLogEntry);
+var
+  i: integer;
+  data: TObject;
+
+  newlist: TList;
+  a: ptruint;
 begin
-  wle^.id:=nextid;
+  for i:=0 to wle.newsize-1 do
+  begin
+    a:=wle.address+i;
+    if writelogmap.GetData(a,data) then
+    begin
+      if data is TWriteLogEntry then
+      begin
+        //change the old entry to a list
+        newlist:=tlist.create;
+        newlist.add(data); //old entry first in the list
+        newlist.add(wle);  //and now the new one
+
+        writelogmap.SetData(a, newlist);
+      end
+      else //tlist
+        tlist(data).Add(wle);
+    end
+    else
+      writelogmap.Add(a,wle);
+  end;
+
+end;
+
+
+procedure addWriteLogEntryToList(wle: TWriteLogEntry);
+begin
+  wle.id:=nextid;
   inc(nextid);
 
   writelogcs.Enter;
@@ -133,6 +207,8 @@ begin
       eraseWriteLogEntry(0);
 
     writelog.Add(wle);
+
+    addBytesToWriteLogMap(wle);
   finally
     writelogcs.leave;
   end;
@@ -150,9 +226,11 @@ begin
     eraseWriteLogEntry(0);
 end;
 
-procedure undowrite(id: integer);  //todo: make it a map for easy searching
+
+
+procedure undowriteInternal(id: integer); overload;
 var i: integer;
-  wle: PWriteLogEntry;
+  wle: TWriteLogEntry;
   x: ptruint;
   oldprot: dword;
 
@@ -163,23 +241,40 @@ begin
   try
     for i:=0 to writelog.count-1 do
     begin
-      wle:=PWriteLogEntry(writelog[i]);
+      wle:=TWriteLogEntry(writelog[i]);
 
-      if wle^.id=id then
+      if wle.id=id then
       begin
-        vpe:=(SkipVirtualProtectEx=false) and VirtualProtectEx(processhandle, pointer(wle^.address), wle^.originalsize, PAGE_EXECUTE_READWRITE, oldprot);
+        vpe:=(SkipVirtualProtectEx=false) and VirtualProtectEx(processhandle, pointer(wle.address), wle.originalsize, PAGE_EXECUTE_READWRITE, oldprot);
 
         oldLogWrites:=logWrites;
         logWrites:=false;
-        WriteProcessMemory(processhandle, pointer(wle^.address), wle^.originalbytes, wle^.originalsize, x);
+        WriteProcessMemory(processhandle, pointer(wle.address), wle.originalbytes, wle.originalsize, x);
         logWrites:=oldLogWrites;
-        if vpe then VirtualProtectEx(processhandle, pointer(wle^.address), wle^.originalsize, oldprot, oldprot);
+        if vpe then VirtualProtectEx(processhandle, pointer(wle.address), wle.originalsize, oldprot, oldprot);
         eraseWriteLogEntry(i);
         break;
       end;
     end;
   finally
     writelogcs.leave;
+  end;
+
+  if frmEditHistory<>nil then
+    frmEditHistory.refreshWriteLogView;
+end;
+
+procedure undowrite(address: ptruint); overload;
+var
+  data: TObject;
+  list: TList absolute data;
+begin
+  if writelogmap.GetData(address, data) then
+  begin
+    if data is TWriteLogEntry then
+      undowriteInternal(TWriteLogEntry(data).id)
+    else
+      undowriteInternal(TWriteLogEntry(list[list.Count-1]).id);
   end;
 end;
 
@@ -188,7 +283,7 @@ begin
   writelogcs.enter;
   try
     if writelog.Count>0 then
-      undowrite(PWriteLogEntry(writelog[writelog.count-1]).id);
+      undowriteInternal(TWriteLogEntry(writelog[writelog.count-1]).id);
   finally
     writelogcs.leave;
   end;
@@ -198,7 +293,7 @@ end;
 procedure TfrmEditHistory.refreshWriteLogView;
 var
   i,j: integer;
-  wle: PWriteLogEntry;
+  wle: TWriteLogEntry;
   e: tlistitem;
 
   s: string;
@@ -226,21 +321,21 @@ begin
     begin
       wle:=writelog[i];
       e:=lvwritelog.Items.Add;
-      e.Caption:=symhandler.getNameFromAddress(wle^.address);
+      e.Caption:=symhandler.getNameFromAddress(wle.address);
 
       s:='';
-      for j:=0 to wle^.originalsize-1 do
-        s:=s+inttohex(wle^.originalbytes[j],2)+' ';
+      for j:=0 to wle.originalsize-1 do
+        s:=s+inttohex(wle.originalbytes[j],2)+' ';
 
       e.SubItems.add(s);
 
       s:='';
-      for j:=0 to wle^.newsize-1 do
-        s:=s+inttohex(wle^.newbytes[j],2)+' ';
+      for j:=0 to wle.newsize-1 do
+        s:=s+inttohex(wle.newbytes[j],2)+' ';
 
       e.SubItems.add(s);
 
-      e.Data:=pointer(ptruint(wle^.id));
+      e.Data:=pointer(wle);
     end;
 
   finally
@@ -298,7 +393,7 @@ begin
   for i:=lvWriteLog.items.count-1 downto 0 do
   begin
     if lvWriteLog.Items[i].Selected then
-      undowrite(ptruint(lvWriteLog.Items[i].Data));
+      undowrite(TWriteLogEntry(lvWriteLog.Items[i].Data).address);
   end;
 
 end;
@@ -357,7 +452,7 @@ end;
 
 function writelog_getLog(L:PLua_state): integer; cdecl;
 var
-  wle: PWriteLogEntry;
+  wle: TWriteLogEntry;
   i: integer;
 begin
   writelogcs.enter;
@@ -368,18 +463,18 @@ begin
     begin
       lua_pushinteger(L,i);
       lua_newtable(L);
-      wle:=PWriteLogEntry(writelog[i]);
+      wle:=TWriteLogEntry(writelog[i]);
 
       lua_pushstring(L, 'address');
-      lua_pushinteger(L, wle^.address);
+      lua_pushinteger(L, wle.address);
       lua_settable(L,-3);
 
       lua_pushstring(L, 'original');
-      CreateByteTableFromPointer(L, pbytearray(wle^.originalbytes), wle^.originalsize);
+      CreateByteTableFromPointer(L, pbytearray(wle.originalbytes), wle.originalsize);
       lua_settable(L,-3);
 
       lua_pushstring(L, 'new');
-      CreateByteTableFromPointer(L, pbytearray(wle^.newbytes), wle^.newsize);
+      CreateByteTableFromPointer(L, pbytearray(wle.newbytes), wle.newsize);
       lua_settable(L,-3);
 
       lua_settable(L,-3);
@@ -403,20 +498,67 @@ begin
   lua_register(LuaVM, 'getWriteLog', lua_getWriteLog);
 end;
 
+function hasAddressBeenChanged(address: ptruint): boolean;
+begin
+  if logwrites then
+    result:=writelogmap.HasId(address)
+  else
+    result:=false;
+end;
+
+function hasAddressBeenChangedRange(startaddress, stopaddress: ptruint): boolean;
+var i: integer;
+
+  startb: ptruint;
+  stopb: ptruint;
+  wle: TWriteLogEntry;
+begin
+  if stopaddress-startaddress<writelog.count*4 then
+  begin
+    while startaddress<stopaddress do
+    begin
+      if hasAddressBeenChanged(startaddress) then
+        exit(true);
+
+      inc(startaddress);
+    end;
+  end
+  else
+  begin
+    //search the list
+    for i:=0 to writelog.count-1 do
+    begin
+      wle:=TWriteLogEntry(writelog[i]);
+      startb:=wle.address;
+      stopb:=wle.address+wle.newsize;
+
+      if ((startaddress < stopb) and (startb < stopaddress)) then
+        exit(true);
+    end;
+  end;
+
+  result:=false;
+
+
+end;
+
 initialization
   writelog:=TList.create;
+  writelogmap:=TMap.Create(itsPtrSize, sizeof(TObject));
   writelogcs:=TCriticalSection.create;
 
 
 
 
 finalization
-  writelogcs.free;
+
 
   while writelog.count>0 do
     eraseWriteLogEntry(writelog.count-1);
 
   writelog.free;
+
+  writelogcs.free;
 
 end.
 
