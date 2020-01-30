@@ -33,6 +33,8 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -41,10 +43,21 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="PluginExampleForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="PluginExampleForm.Designer.cs">
+      <DependentUpon>PluginExampleForm.cs</DependentUpon>
+    </Compile>
     <Compile Include="SDK\CESDK.cs" />
     <Compile Include="PluginExample.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SDK\CESDKLua.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="PluginExampleForm.resx">
+      <DependentUpon>PluginExampleForm.cs</DependentUpon>
+    </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

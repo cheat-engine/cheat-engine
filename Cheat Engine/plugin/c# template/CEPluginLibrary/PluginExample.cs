@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 using CESDK;
 
 namespace CEPluginLibrary
@@ -30,6 +31,8 @@ namespace CEPluginLibrary
             sdk.lua.Register("pluginexample1", MyFunction);
             sdk.lua.Register("pluginexample2", MyFunction2);
             sdk.lua.Register("pluginexample3", MyFunction3);
+            sdk.lua.Register("pluginexample4", MyFunction4);
+            sdk.lua.Register("formpymcformface", MyFunction4);
 
             return true;            
         }
@@ -85,6 +88,32 @@ namespace CEPluginLibrary
 
             sdk.lua.PushInteger(i);
             
+            return 1;
+        }
+
+        void NewGuiThread()
+        {
+            PluginExampleForm formpy = new PluginExampleForm();
+            System.Windows.Forms.Application.Run(formpy);
+            return;
+        }
+
+        int MyFunction4()
+        {
+            if (sdk.lua.ToBoolean(1))
+            {
+                //run in a thread
+                Thread thr = new Thread(NewGuiThread);
+                thr.Start();
+            }
+            else
+            {
+                //formpy.Show(); //or formpy.ShowDialog()
+                //run in the current thread (kinda)
+                NewGuiThread();                
+            }
+
+            sdk.lua.PushInteger(100);
             return 1;
         }
 
