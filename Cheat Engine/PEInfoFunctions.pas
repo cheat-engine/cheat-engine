@@ -739,7 +739,8 @@ begin
           else
             netdata:=OptionalHeader.DataDirectory[14].Size;
 
-          result:=netdata<>0;
+          isdotnet:=netdata<>0;
+          result:=true;
         end;
       finally
         fmap.free;
