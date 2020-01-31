@@ -43,7 +43,7 @@ resourcestring
   rsLOSER = 'BOO';
 
   rsTutorialStep5=
-      'Sometimes the location something is stored at changes when you restart the game, or even while you''re playing.. In '+
+      'Sometimes the location of where something is stored at changes when you restart the game, or even while you''re playing.. In '+
       'that case you can use 2 things to still make a table that works.'+#13#10+
       'In this step I''ll try to describe how to use the Code Finder function.'+#13#10+
       ''+#13#10+
