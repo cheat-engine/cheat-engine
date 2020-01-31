@@ -91,8 +91,8 @@ namespace CESDK
         private delegate int dlua_tointegerx(IntPtr state, int idx, [MarshalAs(UnmanagedType.I4)] ref int isnum);
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         private delegate bool dlua_toboolean(IntPtr state, int idx);
-        [UnmanagedFunctionPointer(CallingConvention.Cdecl)][return: MarshalAs(UnmanagedType.LPStr)]
-        private delegate string dlua_tolstring(IntPtr state, int idx, int count);
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate IntPtr dlua_tolstring(IntPtr state, int idx, IntPtr sizeptr); 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)][return: MarshalAs(UnmanagedType.SysInt)]
         private delegate IntPtr dlua_touserdata(IntPtr state, int idx);
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
@@ -200,7 +200,10 @@ namespace CESDK
         public int Type(IntPtr L, int idx) { return lua_type(L, idx); }
 
 
-        public int PushClosure(LuaCall func, int n) { return lua_pushcclosure(State, func, n); }
+        public int PushClosure(LuaCall func, int n)
+        {
+            return lua_pushcclosure(State, func, n);
+        }
         public int PushFunction(LuaCall func) { return PushClosure(func, 0); }
         public int SetGlobal(string str) { return lua_setglobal(State, str); }
         public int GetGlobal(string str) { return lua_getglobal(State, str); }
@@ -314,8 +317,13 @@ namespace CESDK
         public bool ToBoolean(IntPtr L, int idx) { return lua_toboolean(L, idx); }
         public bool ToBoolean(int idx) { return lua_toboolean(State, idx); }
 
-        public string ToLString(IntPtr L, int idx, int count) { return lua_tolstring(L, idx, count); }
-        public string ToLString(int idx, int count) { return ToLString(State, idx, count); }
+        public string ToLString(IntPtr L, int idx, ref IntPtr count)
+        {
+            IntPtr ps=lua_tolstring(L, idx, IntPtr.Zero);
+            string s=Marshal.PtrToStringAnsi(ps);
+            return s;
+        }
+        public string ToLString(int idx, ref IntPtr count) { return ToLString(State, idx, ref count); }
 
         public IntPtr ToCEObject(IntPtr L, int idx)
         {
@@ -335,13 +343,19 @@ namespace CESDK
 
         public string ToString(IntPtr L, int idx)
         {
-            int len = ObjLen(L, idx);
-            return ToLString(L, idx, len);
+            IntPtr len = (IntPtr)ObjLen(L, idx);
+            return ToLString(L, idx, ref len);
         }
         public string ToString(int idx) { return ToString(State, idx); }
 
-        public int PCall(IntPtr L, int nargs, int nresults) { return lua_pcallk(L, nargs, nresults, IntPtr.Zero, IntPtr.Zero); }
-        public int PCall(int nargs, int nresults) { return lua_pcallk(State, nargs, nresults, IntPtr.Zero, IntPtr.Zero); }
+        public int PCall(IntPtr L, int nargs, int nresults) {
+            int pcr=lua_pcallk(L, nargs, nresults, IntPtr.Zero, IntPtr.Zero);
+            if (pcr!=0)
+                throw new System.ApplicationException("PCall failed with error " + pcr.ToString() + " (" + ToString(-1) + ")");
+
+            return pcr;
+        }
+        public int PCall(int nargs, int nresults) { return PCall(State, nargs, nresults); }
 
         
         public int Call(IntPtr L, int nargs, int nresults) { return lua_callk(L, nargs, nresults, IntPtr.Zero, IntPtr.Zero); }

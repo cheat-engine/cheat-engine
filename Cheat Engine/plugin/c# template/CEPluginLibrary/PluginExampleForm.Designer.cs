@@ -39,6 +39,7 @@
             this.label3 = new System.Windows.Forms.Label();
             this.comboBox1 = new System.Windows.Forms.ComboBox();
             this.progressBar1 = new System.Windows.Forms.ProgressBar();
+            this.button3 = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // button1
@@ -47,12 +48,13 @@
             this.button1.Name = "button1";
             this.button1.Size = new System.Drawing.Size(186, 90);
             this.button1.TabIndex = 0;
-            this.button1.Text = "Click me";
+            this.button1.Text = "Collect Garbage";
             this.button1.UseVisualStyleBackColor = true;
             this.button1.Click += new System.EventHandler(this.button1_Click);
             // 
             // button2
             // 
+            this.button2.AutoSize = true;
             this.button2.Location = new System.Drawing.Point(220, 35);
             this.button2.Name = "button2";
             this.button2.Size = new System.Drawing.Size(136, 45);
@@ -79,7 +81,7 @@
             this.listView1.FullRowSelect = true;
             this.listView1.GridLines = true;
             this.listView1.HeaderStyle = System.Windows.Forms.ColumnHeaderStyle.Nonclickable;
-            this.listView1.Location = new System.Drawing.Point(17, 177);
+            this.listView1.Location = new System.Drawing.Point(17, 180);
             this.listView1.Name = "listView1";
             this.listView1.Size = new System.Drawing.Size(339, 341);
             this.listView1.TabIndex = 3;
@@ -151,12 +153,25 @@
             this.progressBar1.Size = new System.Drawing.Size(800, 23);
             this.progressBar1.TabIndex = 8;
             // 
+            // button3
+            // 
+            this.button3.AutoSize = true;
+            this.button3.Enabled = false;
+            this.button3.Location = new System.Drawing.Point(390, 35);
+            this.button3.Name = "button3";
+            this.button3.Size = new System.Drawing.Size(136, 45);
+            this.button3.TabIndex = 9;
+            this.button3.Text = "Reset";
+            this.button3.UseVisualStyleBackColor = true;
+            this.button3.Click += new System.EventHandler(this.button3_Click);
+            // 
             // PluginExampleForm
             // 
             this.AcceptButton = this.button1;
             this.AutoScaleDimensions = new System.Drawing.SizeF(12F, 25F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(800, 548);
+            this.Controls.Add(this.button3);
             this.Controls.Add(this.progressBar1);
             this.Controls.Add(this.comboBox1);
             this.Controls.Add(this.label3);
@@ -187,5 +202,6 @@
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.ComboBox comboBox1;
         private System.Windows.Forms.ProgressBar progressBar1;
+        private System.Windows.Forms.Button button3;
     }
 }

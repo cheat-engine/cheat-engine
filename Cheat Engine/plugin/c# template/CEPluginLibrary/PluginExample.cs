@@ -143,16 +143,13 @@ topm.add(mf4)");
             PluginExampleForm formpy = new PluginExampleForm();
 
             try
-            {
+            {                
                 System.Windows.Forms.Application.Run(formpy);
             }
             catch (Exception ex)
             {
-
-
-            }
-
-            
+                MessageBox.Show(ex.Message);
+            }           
 
             return;
         }

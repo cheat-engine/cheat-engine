@@ -13,6 +13,9 @@ namespace CEPluginLibrary
 {
     public partial class PluginExampleForm : Form
     {
+        MemScan ms;
+        FoundList fl;
+
         public PluginExampleForm()
         {
             InitializeComponent();
@@ -24,7 +27,7 @@ namespace CEPluginLibrary
             GC.Collect();
         }
 
-        MemScan ms;
+        
 
         private void MemScanDone(object sender)
         {
@@ -35,8 +38,15 @@ namespace CEPluginLibrary
             }
             else
             {
-                MessageBox.Show("Scan done. Todo: Create a foundlist");
+                int count;
+                fl.Initialize();
+                
+                count = fl.Count;
+                listView1.VirtualListSize = count;
+                
                 button2.Enabled = true;
+                button3.Enabled = true;
+                progressBar1.Value = 0;
             }
 
         }
@@ -60,35 +70,54 @@ namespace CEPluginLibrary
             }
         }
 
-        private void button2_Click(object sender, EventArgs e)
+        private VarTypes SelectedVarType()
         {
-            if (ms == null)
+            switch (comboBox1.SelectedIndex)
             {
-                try
-                {
-                    ms = new MemScan();
+                case 0: return VarTypes.vtByte;
+                case 1: return VarTypes.vtWord;
+                case 2: return VarTypes.vtDword;
+                case 3: return VarTypes.vtQword;
+                case 4: return VarTypes.vtSingle;
+                case 5: return VarTypes.vtDouble;
+                case 6: return VarTypes.vtString;
+                case 7: return VarTypes.vtByteArray;
+                default:
+                    return VarTypes.vtDword;
 
-                    ms.OnGuiUpdate = MemScanGuiUpdate;
-                    ms.OnScanDone = MemScanDone;
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine(ex.Message);
-                }
             }
 
-            ScanParameters scanParams = new ScanParameters();
 
-            scanParams.Value = textBox1.Text;
-            ms.Scan(scanParams);
+        }
 
-            button2.Enabled = false;
-
-            //ms.WaitTillDone();
+        private void button2_Click(object sender, EventArgs e)
+        {
+            ms.Scan(new ScanParameters
+            {
+                Value = textBox1.Text,
+                VarType = SelectedVarType()
+            });        
+            button2.Enabled = false;           
         }
 
         private void PluginExampleForm_Load(object sender, EventArgs e)
         {
+           
+            try
+            {
+                ms = new MemScan();
+
+                ms.OnGuiUpdate = MemScanGuiUpdate;
+                ms.OnScanDone = MemScanDone;
+
+                fl = new FoundList(ms);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+           
+
             comboBox1.SelectedIndex = 2;
             //listView1.VirtualListSize = 10;
         }
@@ -98,10 +127,16 @@ namespace CEPluginLibrary
             if (e.Item == null)
             {
                 e.Item = new ListViewItem();
-                e.Item.Text = "weee"+e.ItemIndex;
-                e.Item.SubItems.Add("bla");
+                e.Item.Text = fl.GetAddress(e.ItemIndex); //  "weee"+e.ItemIndex;
+                e.Item.SubItems.Add(fl.GetValue(e.ItemIndex));
             }
            
+        }
+
+        private void button3_Click(object sender, EventArgs e)
+        {            
+            listView1.VirtualListSize = 0;
+            ms.Reset();
         }
     }
 }
