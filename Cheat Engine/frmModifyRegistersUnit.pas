@@ -12,11 +12,42 @@ uses
   {$endif}
   LCLIntf, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, CEDebugger, debughelper, KernelDebugger, CEFuncProc,
-  NewKernelHandler, symbolhandler, LResources, ExtCtrls,  math;
+  NewKernelHandler, symbolhandler, LResources, ExtCtrls, ComCtrls,  math;
 
 type
 
   { TfrmModifyRegisters }
+  TChangeRegFloatPanel=class(TPanel)
+  private
+    id: integer;
+    lbl: tlabel;
+    edt: Tedit;
+  public
+    constructor Create(AOwner: TComponent; id: integer);
+  end;
+
+  TChangeRegXMMPanelEdit=class(TPanel)
+  private
+    lblstart: tlabel;
+    lblstop: tlabel;
+    edt: tedit;
+  public
+    procedure setrange(start, stop: integer);
+    constructor Create(AOwner: TComponent; initialid: integer);
+  end;
+
+  TChangeRegXMMPanel=class(TGroupbox)
+  private
+    id: integer;
+    tc: TTabControl;
+    pnl: TPanel;
+    Edits: array [0..3] of TChangeRegXMMPanelEdit;
+    procedure tabchange(Sender: TObject);
+  public
+    procedure fixdimensions;
+    constructor Create(AOwner: TComponent; id: integer);
+  end;
+
 
   TfrmModifyRegisters = class(TForm)
     Button1: TButton;
@@ -28,6 +59,7 @@ type
     cbSF: TCheckBox;
     cbZF: TCheckBox;
     cbUseDBVM: TCheckBox;
+    cbChangeExt: TCheckBox;
     edtPA: TEdit;
     edtEAX: TEdit;
     edtEBP: TEdit;
@@ -70,15 +102,24 @@ type
     Panel2: TPanel;
     Panel3: TPanel;
     Panel4: TPanel;
+    procedure cbChangeExtChange(Sender: TObject);
     procedure cbUseDBVMChange(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure Button1Click(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormResize(Sender: TObject);
     procedure FormShow(Sender: TObject);
+    procedure ScrollBox1Click(Sender: TObject);
   private
     { Private declarations }
     address:ptrUint;
+    ExtScrollbox: TScrollbox;
+
+    FloatPanel: TPanel;
+    XMMPanel: TPanel;
+
+    floats: array [0..7] of TChangeRegFloatPanel;
+    xmms: array [0..15] of TChangeRegXMMPanel;
   public
     { Public declarations }
     constructor create(AOwner:tcomponent;address:ptrUint); overload;
@@ -220,6 +261,242 @@ begin
 
   autosize:=oldaz;
   {$endif}
+end;
+
+constructor TChangeRegFloatPanel.Create(AOwner: TComponent; id: integer);
+begin
+  inherited create(Aowner);
+
+  self.id:=id;
+  lbl:=tlabel.Create(self);
+  edt:=tedit.create(self);
+  lbl.parent:=self;
+  edt.parent:=self;
+
+  lbl.anchorsideTop.Control:=self;
+  lbl.anchorsidetop.Side:=asrTop;
+  lbl.AnchorSideLeft.Control:=self;
+  lbl.AnchorSideLeft.Side:=asrLeft;
+  lbl.Caption:='FP('+inttostr(id)+')';
+
+  edt.anchorsideTop.Control:=lbl;
+  edt.anchorsidetop.side:=asrBottom;
+  edt.AnchorSideLeft.Control:=self;
+  edt.AnchorSideLeft.side:=asrLeft;
+
+  BevelOuter:=bvnone;
+
+  autosize:=true;
+end;
+
+procedure TChangeRegXMMPanelEdit.setrange(start,stop: integer);
+begin
+  lblstart.caption:=inttostr(start);
+  lblstop.caption:=inttostr(stop);
+end;
+
+constructor TChangeRegXMMPanelEdit.create(AOwner: TComponent; initialid: integer);
+begin
+  inherited create(AOwner);
+
+  lblstart:=tlabel.create(self);
+  lblstop:=tlabel.create(self);
+  edt:=tedit.create(self);;
+
+  lblstart.anchorsidetop.control:=self;
+  lblstart.anchorsidetop.side:=asrTop;
+  lblstart.anchorsideleft.control:=self;
+  lblstart.anchorsideleft.side:=asrLeft;
+
+  edt.anchorsidetop.control:=lblstart;
+  edt.anchorsidetop.side:=asrBottom;
+  edt.anchorsideleft.control:=self;
+  edt.anchorsideleft.side:=asrLeft;
+
+  lblstop.anchorsidetop.control:=self;
+  lblstop.anchorsidetop.side:=asrTop;
+  lblstop.anchorsideright.control:=edt;
+  lblstop.anchorsideright.side:=asrRight;
+
+  lblstop.Anchors:=[akTop, akRight];
+
+  lblstart.parent:=self;
+  lblstop.parent:=self;
+  edt.parent:=self;
+
+  //color:=clblue;
+
+  BevelOuter:=bvnone;
+
+  autosize:=true;
+
+  setrange(initialid*32,(initialid+1)*32-1);
+end;
+
+procedure TChangeRegXMMPanel.fixdimensions;
+var i: integer;
+begin
+  DoAutoSize;
+  for i:=0 to 3 do
+    edits[i].DoAutoSize;
+
+  i:=edits[3].left+edits[3].Width;
+  tc.ClientWidth:=i+4;
+  pnl.Width:=i;
+
+  width:=i;
+  i:=edits[0].height;
+  tc.clientheight:=pnl.top+i+3;
+  height:=i;
+end;
+
+procedure TChangeRegXMMPanel.tabchange(sender: tobject);
+begin
+  edits[2].Visible:=tc.tabindex=0;
+  edits[3].Visible:=tc.tabindex=0;
+  if tc.tabindex=0 then
+  begin
+    edits[0].setrange(0,31);
+    edits[1].setrange(32,63);
+  end
+  else
+  begin
+    edits[0].setrange(0,63);
+    edits[1].setrange(63,127);
+  end;
+end;
+
+constructor TChangeRegXMMPanel.Create(AOwner: TComponent; id: integer);
+var
+  i: integer;
+begin
+  inherited create(AOwner);
+  self.id:=id;
+  caption:='XMM'+inttostr(id);
+
+  tc:=ttabcontrol.Create(self);
+  tc.parent:=self;
+  tc.Tabs.add('Float');
+  tc.Tabs.add('Double');
+  tc.TabIndex:=0;
+
+  tc.OnChange:=tabchange;
+
+  pnl:=tpanel.Create(tc);
+  pnl.parent:=tc;
+  //pnl.color:=clAqua;
+  pnl.align:=alClient;
+
+  for i:=0 to 3 do
+  begin
+    edits[i]:=TChangeRegXMMPanelEdit.Create(pnl,i);
+    edits[i].parent:=pnl;
+  end;
+
+
+  pnl.ChildSizing.ControlsPerLine:=4;
+  pnl.ChildSizing.Layout:=cclLeftToRightThenTopToBottom;
+  pnl.ChildSizing.HorizontalSpacing:=3;
+end;
+
+procedure TfrmModifyRegisters.cbChangeExtChange(Sender: TObject);
+var i: integer;
+  is64: boolean;
+begin
+  if ExtScrollbox=nil then
+  begin
+    ExtScrollbox:=TScrollbox.create(self);
+    ExtScrollbox.Parent:=self;
+    ExtScrollbox.Width:=400;
+    ExtScrollbox.Height:=200;
+
+    FloatPanel:=TPanel.Create(ExtScrollbox);
+    FloatPanel.parent:=ExtScrollBox;
+
+    FloatPanel.AnchorSideTop.Control:=extScrollbox;
+    FloatPanel.AnchorSideTop.Side:=asrTop;
+    FloatPanel.AnchorSideLeft.Control:=ExtScrollbox;
+    FloatPanel.AnchorSideLeft.Side:=asrLeft;
+    FloatPanel.BevelOuter:=bvNone;
+    //FloatPanel.color:=clred;
+
+
+    XMMPanel:=TPanel.create(ExtScrollbox);
+    XMMPanel.parent:=ExtScrollBox;
+    //XMMPanel.color:=clgreen;
+    XMMPanel.BevelOuter:=bvNone;
+
+    for i:=0 to 7 do
+    begin
+      floats[i]:=TChangeRegFloatPanel.Create(FloatPanel, i);
+      floats[i].parent:=floatpanel;
+    end;
+
+    floatpanel.ChildSizing.ControlsPerLine:=4;
+    floatpanel.ChildSizing.HorizontalSpacing:=3;
+    floatpanel.ChildSizing.VerticalSpacing:=3;
+    floatpanel.ChildSizing.Layout:=cclLeftToRightThenTopToBottom;
+
+    FloatPanel.autosize:=true;
+
+
+    XMMPanel.anchorsidetop.control:=FloatPanel;
+    XMMPanel.anchorsidetop.side:=asrBottom;
+
+    for i:=0 to 15 do
+    begin
+      xmms[i]:=TChangeRegXMMPanel.Create(XMMPanel, i);
+      xmms[i].parent:=XMMPanel;
+      xmms[i].fixdimensions;
+    end;
+
+    XMMPanel.ChildSizing.ControlsPerLine:=1;
+    XMMPanel.ChildSizing.VerticalSpacing:=1;
+    XMMPanel.ChildSizing.Layout:=cclLeftToRightThenTopToBottom;
+    XMMPanel.AutoSize:=true;
+
+    ExtScrollbox.AnchorSideTop.Control:=self;
+    ExtScrollbox.AnchorSideTop.Side:=asrTop;
+    ExtScrollbox.AnchorSideRight.Control:=self;
+    ExtScrollbox.AnchorSideRight.Side:=asrRight;
+    ExtScrollbox.AnchorSideBottom.Control:=panel1;
+    ExtScrollbox.AnchorSideBottom.Side:=asrTop;
+    ExtScrollbox.Anchors:=[akTop, akRight, akBottom];
+
+    ExtScrollbox.ClientWidth:=max(FloatPanel.Width, xmmpanel.width);
+
+    ExtScrollbox.VertScrollBar.Tracking:=true;
+    //ExtScrollbox.AutoSize:=true;
+
+    width:=width+ExtScrollbox.Width;
+
+  end;
+
+  if cbChangeExt.Checked then
+  begin
+    panel1.AnchorSideTop.control:=nil;
+    panel1.AnchorSideBottom.control:=self;
+    panel1.AnchorSideBottom.Side:=asrBottom;
+
+    panel1.Anchors:=[akLeft, akBottom];
+    ExtScrollbox.visible:=true;
+
+    is64:=processhandler.is64Bit;
+    for i:=8 to 15 do
+      xmms[i].Visible:=is64;
+  end
+  else
+  begin
+    ExtScrollbox.visible:=false;
+    panel1.AnchorSideTop.control:=cbChangeExt;
+    panel1.AnchorSideBottom.control:=nil;
+    panel1.Anchors:=[akLeft, akTop];
+
+
+  end;
+
+  OnResize(self);
+  //DoAutoSize;
 end;
 
 
@@ -424,7 +701,11 @@ begin
   BeginUpdateBounds;
   LockRealizeBounds;
 
-  d:=clientwidth-(panel3.Left+panel3.width);
+  if cbChangeExt.checked then
+    d:=clientwidth-ExtScrollbox.Width-(panel3.Left+panel3.width)
+  else
+    d:=clientwidth-(panel3.Left+panel3.width);
+
   edtEAX.Width:=edtEAX.Width+d;
 
 
@@ -453,11 +734,23 @@ begin
     edtR13.visible:=false;
     edtR14.visible:=false;
     edtR15.visible:=false;
+
+
+
     DoAutoSize;
   end;
 
   autosize:=false;
 
+  cbChangeExt.left:=edtR15.left;
+
+ 
+  Constraints.MinHeight:=cbChangeExt.top+cbChangeExt.height+panel1.height+6;
+
+end;
+
+procedure TfrmModifyRegisters.ScrollBox1Click(Sender: TObject);
+begin
 
 end;
 
