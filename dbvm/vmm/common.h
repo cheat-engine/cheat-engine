@@ -21,6 +21,8 @@
   #define CHECKAPICID
 #endif
 
+
+
 #define ULTIMAPDEBUG //for debugging ultimap (I seem to have misplaced my serial port...)
 
 #define EXIT_FAILURE 0xffffffff

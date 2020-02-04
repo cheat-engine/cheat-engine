@@ -16,6 +16,8 @@
 #include "psod32.h"
 #include "eptstructs.h"
 #include "epthandler.h"
+#include "displaydebug.h"
+
 
 //#pragma GCC push_options
 //#pragma GCC optimize ("O0")
@@ -1574,6 +1576,77 @@ int _handleVMCallInstruction(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, 
       break;
     }
 
+    /*
+    case VMCALL_CLOAKEX_ACTIVATE:
+    {
+      //same as cloak but lets you specify a small section of the page
+      if (hasEPTsupport)
+        vmregisters->rax=ept_cloakex_activate(((PVMCALL_CLOAKEX_ACTIVATE_PARAM)vmcall_instruction)->physicalAddress,
+                                              ((PVMCALL_CLOAKEX_ACTIVATE_PARAM)vmcall_instruction)->size);
+      else
+        vmregisters->rax=0xcedead;
+
+      break;
+    }
+
+    case VMCALL_CLOAK_ADDTOWHITELIST:
+    {
+      //whitelists a CR3 and/or RIP (
+      if (hasEPTsupport)
+        vmregisters->rax=ept_cloak_addtowhitelist(((PVMCALL_CLOAKEX_ACTIVATE_PARAM)vmcall_instruction)->physicalAddress,
+                                                  ((PVMCALL_CLOAK_WHITELIST)vmcall_instruction)->CR3,
+                                                  ((PVMCALL_CLOAK_WHITELIST)vmcall_instruction)->RIP);
+      else
+        vmregisters->rax=0xcedead;
+
+      break;
+    }
+
+    case VMCALL_CLOAK_REMOVEFROMWHITELIST:
+    {
+      if (hasEPTsupport)
+        vmregisters->rax=ept_cloak_removefromwhitelist(((PVMCALL_CLOAKEX_ACTIVATE_PARAM)vmcall_instruction)->physicalAddress,
+                                                       ((PVMCALL_CLOAK_WHITELIST)vmcall_instruction)->CR3,
+                                                       ((PVMCALL_CLOAK_WHITELIST)vmcall_instruction)->RIP);
+      else
+        vmregisters->rax=0xcedead;
+
+      break;
+    }
+
+    case VMCALL_CLOAK_STARTACCESSWATCH:
+    {
+      if (hasEPTsupport)
+        vmregisters->rax=ept_cloak_startaccesswatch(((PVMCALL_CLOAKEX_ACTIVATE_PARAM)vmcall_instruction)->physicalAddress,
+                                                    ((PVMCALL_CLOAKEX_ACTIVATE_PARAM)vmcall_instruction)->maxcount);
+      else
+        vmregisters->rax=0xcedead;
+
+      break;
+    }
+
+    case VMCALL_CLOAK_FETCHACCESSWATCHRESULTS:
+    {
+      //returns a list of CR3 and RIP's and if they read or write, or both
+      if (hasEPTsupport)
+        vmregisters->rax=ept_cloak_fetchaccesswatchresults(((PVMCALL_CLOAKEX_ACTIVATE_PARAM)vmcall_instruction)->physicalAddress);
+      else
+        vmregisters->rax=0xcedead;
+
+      break;
+    }
+
+    case VMCALL_CLOAK_STOPACCESSWATCH:
+    {
+      if (hasEPTsupport)
+        vmregisters->rax=ept_cloak_stopaccesswatch(((PVMCALL_CLOAKEX_ACTIVATE_PARAM)vmcall_instruction)->physicalAddress);
+      else
+        vmregisters->rax=0xcedead;
+
+      break;
+    }*/
+
+
     case VMCALL_CLOAK_DEACTIVATE:
     {
       if (hasEPTsupport)
@@ -1949,6 +2022,7 @@ int _handleVMCall(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
       int r=handleRealModeInt0x15(currentcpuinfo, vmregisters, vmread(vm_exit_instructionlength));
 
       sendstringf("handleRealModeInt0x15 returned %d (should be 0)\n",r);
+      ddDrawRectangle(0,DDVerticalResolution-100,100,100,0xff0000);
       if (r)
       {
         while (1);
@@ -2083,6 +2157,7 @@ int handleVMCall(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
     except
     {
       sendstringf("no jtag available\n");
+      ddDrawRectangle(0,DDVerticalResolution-100,100,100,0xff0000);
       while (1);
     }
     tryend

@@ -21,6 +21,7 @@ vmeventhandler.c: This will handle the events
 #include "vmxemu.h"
 #include "epthandler.h"
 #include "vmxsetup.h"
+#include "displaydebug.h"
 
 
 #ifndef DEBUG
@@ -717,6 +718,8 @@ int handle_cr3_callback(pcpuinfo currentcpuinfo,VMRegisters *vmregisters)
   nosendchar[getAPICID()]=0;
   sendstringf("Handling cr3 edit. Is %x wants to set it to %x:\n\r", vmread(0x6802), currentcpuinfo->guestCR3);
   sendstring("Also, currently not implemented so no idea how this happened\n\r");
+
+  ddDrawRectangle(0,DDVerticalResolution-100,100,100,0xff0000);
   while (1);
 
 
@@ -2246,6 +2249,7 @@ int setVM_CR0(pcpuinfo currentcpuinfo, UINT64 newcr0)
     {
       nosendchar[getAPICID()]=0;
       sendstringf("IF is not 0 when switching to protected mode\n\r");
+      ddDrawRectangle(0,DDVerticalResolution-100,100,100,0xff0000);
       while (1);
     }
 
@@ -3426,7 +3430,13 @@ int handleInterruptProtectedMode(pcpuinfo currentcpuinfo, VMRegisters *vmregiste
         sendvmstate(currentcpuinfo, vmregisters);
         displayPreviousStates();
         ShowCurrentInstructions(currentcpuinfo);
-        while (1) ;
+
+
+
+        while (1)
+        {
+          ddDrawRectangle(0,DDVerticalResolution-100,100,100,_rdtsc() & 0xffffff);
+        }
 
       }
 
@@ -3564,13 +3574,13 @@ int handleInterruptProtectedMode(pcpuinfo currentcpuinfo, VMRegisters *vmregiste
   return 0;
 }
 
-BOOL handleSoftwareBreakpoint(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
+BOOL handleSoftwareBreakpoint(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, FXSAVE64 *fxsave)
 {
   //handle software breakpoints
   sendstringf("Software breakpoint\n");
   if (hasEPTsupport)
   {
-    if (ept_handleSoftwareBreakpoint(currentcpuinfo, vmregisters))
+    if (ept_handleSoftwareBreakpoint(currentcpuinfo, vmregisters, fxsave))
       return TRUE;
   }
 
@@ -3580,7 +3590,7 @@ BOOL handleSoftwareBreakpoint(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
   return FALSE; //unhandled
 }
 
-VMSTATUS handleInterrupt(pcpuinfo currentcpuinfo, VMRegisters *vmregisters) //nightmare function. Needs rewrite
+VMSTATUS handleInterrupt(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, FXSAVE64 *fxsave) //nightmare function. Needs rewrite
 {
  // int origsc;
 
@@ -3597,7 +3607,7 @@ VMSTATUS handleInterrupt(pcpuinfo currentcpuinfo, VMRegisters *vmregisters) //ni
 
   if ((intinfo.interruptvector==3) && (intinfo.type==itSoftwareException))
   {
-    if (handleSoftwareBreakpoint(currentcpuinfo, vmregisters))
+    if (handleSoftwareBreakpoint(currentcpuinfo, vmregisters, fxsave))
       return VM_OK;
   }
 
@@ -3688,6 +3698,7 @@ int handleSingleStep(pcpuinfo currentcpuinfo)
 
     if (r)
     {
+      ddDrawRectangle(0,DDVerticalResolution-100,100,100,0xff0000);
       while (1);
     }
 
@@ -3835,13 +3846,14 @@ int handleVMEvent(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, FXSAVE64 *f
   ept_invalidate(); //test
   */
 
+
   switch (exit_reason) //exit reason
   {
     case 0: //interrupt
     {
       int result;
 
-      result=handleInterrupt(currentcpuinfo, vmregisters);
+      result=handleInterrupt(currentcpuinfo, vmregisters, fxsave);
 
       return result;
     }
@@ -3880,6 +3892,7 @@ int handleVMEvent(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, FXSAVE64 *f
 
 		case 2: //tripple fault
 		{
+		  ddDrawRectangle(0,DDVerticalResolution-100,100,100,0xff0000);
 			sendstring("A TRIPPLE FAULT HAPPENED. NORMALLY THE SYSTEM WOULD REBOOT NOW\n\r");
 			return 1;
 		}
@@ -3927,6 +3940,7 @@ int handleVMEvent(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, FXSAVE64 *f
 		    sendstringf("vm_execution_controls_cpu=%6\n", vmread(vm_execution_controls_cpu));
 
 #ifndef DEBUG
+		    ddDrawRectangle(0,DDVerticalResolution-100,100,100,0xff0000);
 		     while (1);
 #endif
 		  }
@@ -3946,7 +3960,11 @@ int handleVMEvent(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, FXSAVE64 *f
 		}
 
     case 9:
+    {
+      ddDrawRectangle(0,DDVerticalResolution-100,100,100,0xff0000);
+      while (1);
       return handleTaskswitch(currentcpuinfo, vmregisters);
+    }
 
 		case 10: //CPUID
     {
@@ -3958,6 +3976,9 @@ int handleVMEvent(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, FXSAVE64 *f
 		case 11:
 		{
 		  //currently not supported
+      ddDrawRectangle(0,DDVerticalResolution-100,100,100,0xff0000);
+      while (1);
+
 		  sendstring("GETSEC\n\r");
 		  raiseInvalidOpcodeException(currentcpuinfo);
 		  return 0;
@@ -4039,6 +4060,9 @@ int handleVMEvent(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, FXSAVE64 *f
     case 0xce00: //special exit reasons (vmresume/vmlaunch failures)
     case 0xce01:
 		{
+		  ddDrawRectangle(0,DDVerticalResolution-100,100,100,0xff0000);
+		  while (1);
+
 			sendstring("VMX instruction called...\n\r");
 			return handleIntelVMXInstruction(currentcpuinfo, vmregisters);
 			//return raiseInvalidOpcodeException(currentcpuinfo);
@@ -4088,6 +4112,7 @@ int handleVMEvent(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, FXSAVE64 *f
 
   case 33: //inv. guest
     {
+      ddDrawRectangle(0,DDVerticalResolution-100,100,100,0xff0000);
       sendstringf("VM-Entry failure due to invalid guest\n\r");
       result=handleInvalidEntryState(currentcpuinfo, vmregisters);
 
@@ -4122,6 +4147,7 @@ int handleVMEvent(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, FXSAVE64 *f
 
 			sendstring("(Un)expected monitor trap flag\n\r");
 #ifndef DEBUG
+			ddDrawRectangle(0,DDVerticalResolution-100,100,100,0xff0000);
 			while (1) ;
 #else
 			return 0;
@@ -4233,11 +4259,15 @@ int handleVMEvent(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, FXSAVE64 *f
 
 		case vm_exit_vmx_preemptiontimer_reachedzero:
 		{
-		  IA32_VMX_MISC.IA32_VMX_MISC=readMSR(0x485);
+		  //IA32_VMX_MISC.IA32_VMX_MISC=readMSR(0x485);
+
 
 		  nosendchar[getAPICID()]=0;
 		  //sendstringf("%d: %x:%6 (vmm rsp=%6 , freemem=%x)\n", currentcpuinfo->cpunr, vmread(vm_guest_cs),vmread(vm_guest_rip), getRSP(), maxAllocatableMemory());
-		  vmwrite(vm_preemption_timer_value,IA32_VMX_MISC.vmx_premption_timer_tsc_relation*10000000);
+
+		  vmwrite(vm_preemption_timer_value,10000);
+
+		  ddDrawRectangle(0,0,100,100,_rdtsc());
 		  return 0;
 		}
 
@@ -4247,6 +4277,7 @@ int handleVMEvent(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, FXSAVE64 *f
 		  return handleIntelVMXInstruction(currentcpuinfo, vmregisters);
 
 #ifdef DEBUG
+		  ddDrawRectangle(0,DDVerticalResolution-100,100,100,0xff0000);
 		  while (1);
 #endif
 		 // return 1;
@@ -4254,6 +4285,7 @@ int handleVMEvent(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, FXSAVE64 *f
 
     case vm_exit_invpcid:
     {
+      ddDrawRectangle(0,DDVerticalResolution-100,100,100,0xff0000);
       while(1);
       return 1;
     }

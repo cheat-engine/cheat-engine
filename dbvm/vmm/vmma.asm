@@ -523,11 +523,6 @@ sub rsp,15*8
 mov [rsp+14*8],rax
 mov [rsp+11*8],rdx
 
-rdtsc
-
-mov dword [fs:0x18],eax ;lasttsc
-mov dword [fs:0x1c],edx
-
 
 mov [rsp],r15
 mov [rsp+1*8],r14
@@ -606,22 +601,6 @@ jae vmxloop_exitvm
 
 ;returned 0, so
 
-;adjust the TSC
-rdtsc  ;current time
-shl rdx,32
-or rax,rdx
-
-mov rdx,qword [fs:0x18] ;entry time
-
-;rax is new timestamp
-;rdx is old timestamp
-
-sub rax,rdx ;rax is now the difference
-add rax,100
-add qword [fs:0x20],rax ;add to the total delay
-
-
-
 ;restore vmx registers (esp-36)
 pop r15
 pop r14
@@ -645,10 +624,6 @@ vmresume
 ;never executed unless on error
 ;restore state of vmm
 
-
-%ifdef JTAG
-db 0xf1 ;jtag breakpoint
-%endif
 
 pop r15
 pop r14
@@ -689,9 +664,6 @@ pop rax
 
 vmlaunch
 
-%ifdef JTAG
-db 0xf1 ;jtag breakpoint
-%endif
 
 ;never executed unless on error
 ;restore state of vmm
@@ -717,9 +689,7 @@ pop rbx
 pop rax
 
 vmresume
-%ifdef JTAG
-db 0xf1 ;jtag breakpoint
-%endif
+
 
 ;never executed unless on error
 mov dword [fs:0x10],0xce00 ;exitreason 0xce00

@@ -25,6 +25,8 @@
 #include "exports.h"
 #include "luahandler.h"
 
+#include "displaydebug.h"
+
 #ifndef DEBUG
 #define sendstringf(s,x...)
 #define sendstring(s)
@@ -760,6 +762,7 @@ int vmexit2(pcpuinfo currentcpuinfo, UINT64 *registers, void *fxsave)
 #else
 
 
+int showlife=0;
 
 int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers, void *fxsave)
 #endif
@@ -773,6 +776,14 @@ int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers, void *fxsave)
   lastexits[lastexitsindex]=vmread(vm_exit_reason);
   lastexitsindex++;
   lastexitsindex=lastexitsindex % 10;
+
+ // if ((showlife % 2)==0)
+  {
+    ddDrawRectangle(0,DDVerticalResolution-10,10,10,0x0000ff);
+  }
+
+
+
 
 #ifdef CHECKAPICID
   if (currentcpuinfo)
@@ -798,7 +809,10 @@ int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers, void *fxsave)
   {
     BOOL r=dbvm_plugin_exit_pre(exportlist, currentcpuinfo, registers, fxsave);
     if (r)
+    {
+      ddDrawRectangle(0,DDVerticalResolution-100,100,100,0xff0000);
       return 0;
+    }
   }
 
 
@@ -806,6 +820,8 @@ int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers, void *fxsave)
   {
     nosendchar[getAPICID()]=0;
     sendstringf("currentcpuinfo==NULL");
+
+    ddDrawRectangle(0,DDVerticalResolution-100,100,100,0xff0000);
 
     while (1);
   }
@@ -817,6 +833,8 @@ int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers, void *fxsave)
 
     if (dbvm_plugin_exit_post)
       dbvm_plugin_exit_post(exportlist, currentcpuinfo, registers, fxsave, &r);
+
+    ddDrawRectangle(0,DDVerticalResolution-100,100,100,0xff0000);
 
     return r;
   }
@@ -888,6 +906,8 @@ int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers, void *fxsave)
 
   if (currentcpuinfo->NMIOccured==2) //nmi occured but no NMI window support
   {
+    ddDrawRectangle(0,DDVerticalResolution-100,100,100,0x0000ff);
+
     currentcpuinfo->NMIOccured=0;
     return raiseNMI();
   }
@@ -895,8 +915,17 @@ int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers, void *fxsave)
   //currentcpuinfo->lastTSCTouch=_rdtsc();
 
 
+  //if ((showlife % 2)==0)
+  {
+    ddDrawRectangle(0,DDVerticalResolution-10,10,10,0x00ff00);
+  }
+
+  showlife++;
+
+
   if ((result!=0) && ((result >> 8) != 0xce)  )//on release, if an unexpected event happens, just fail the instruction and hope the OS won't make a too big mess out of it
   {
+    ddDrawRectangle(0,DDVerticalResolution-100,100,100,0xff0000);
     while (wait) ; //remove for release
 
     if ((vmread(vm_exit_reason) & 0x7fffffff)==vm_exit_invalid_guest_state) //invalid state
@@ -905,7 +934,15 @@ int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers, void *fxsave)
       return raiseInvalidOpcodeException(currentcpuinfo);
   }
   else
+  {
+    if (result)
+    {
+      ddDrawRectangle(0,DDVerticalResolution-100,100,100,0xff0000);
+
+    }
     return result;
+  }
+
 
 #else
   //nosendchar[getAPICID()]=0;

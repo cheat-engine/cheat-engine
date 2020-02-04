@@ -19,6 +19,7 @@
 #include "maps.h"
 #include "list.h"
 #include "vmeventhandler.h"
+#include "displaydebug.h"
 
 QWORD EPTMapPhysicalMemory(pcpuinfo currentcpuinfo, QWORD physicalAddress, int forcesmallpage);
 
@@ -660,6 +661,10 @@ int ept_cloak_removechangeregonbp(QWORD physicalAddress)
       unsigned char *executable=(unsigned char *)ChangeRegBPList[i].cloakdata->Executable;
       executable[physicalAddress & 0xfff]=ChangeRegBPList[i].originalbyte;
       ChangeRegBPList[i].Active=0;
+
+      /*  _wbinvd();
+      vpid_invalidate();
+      ept_invalidate();*/
       result=0;
     }
   }
@@ -670,7 +675,7 @@ int ept_cloak_removechangeregonbp(QWORD physicalAddress)
   return result;
 }
 
-BOOL ept_handleSoftwareBreakpoint(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
+BOOL ept_handleSoftwareBreakpoint(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, FXSAVE64 *fxsave)
 {
   //check if it is a cloaked instruction
   int i;
@@ -717,6 +722,42 @@ BOOL ept_handleSoftwareBreakpoint(pcpuinfo currentcpuinfo, VMRegisters *vmregist
           if (ChangeRegBPList[i].changereginfo.Flags.changeR13) vmregisters->r13=ChangeRegBPList[i].changereginfo.newR13;
           if (ChangeRegBPList[i].changereginfo.Flags.changeR14) vmregisters->r14=ChangeRegBPList[i].changereginfo.newR14;
           if (ChangeRegBPList[i].changereginfo.Flags.changeR15) vmregisters->r15=ChangeRegBPList[i].changereginfo.newR15;
+
+          if (ChangeRegBPList[i].changereginfo.changeFP)
+          {
+            int r;
+            for (r=0; r<8; r++)
+              if (ChangeRegBPList[i].changereginfo.changeFP & (1<<r))
+              {
+                copymem((void*)((QWORD)(&fxsave->FP_MM0)+10*r), (void*)((QWORD)(&fxsave->FP_MM0)+10*r),10);
+              }
+
+          }
+
+
+          if (ChangeRegBPList[i].changereginfo.changeXMM)
+          {
+            int r;
+            for (r=0; r<15; r++)
+            {
+              BYTE mask=(ChangeRegBPList[i].changereginfo.changeXMM >> (4*r)) & 0xf;
+              if (mask)
+              {
+                DWORD *destparts=(DWORD *)((QWORD)(&fxsave->XMM0)+16*r);
+                DWORD *sourceparts=(DWORD *)((QWORD)(&ChangeRegBPList[i].changereginfo.newXMM0)+16*r);
+                int p;
+
+                for (p=0; p<4; p++)
+                {
+                  if (mask & (1 << p))
+                    destparts[p]=sourceparts[p];
+                }
+              }
+            }
+
+          }
+
+
 
           RFLAGS flags;
           flags.value=vmread(vm_guest_rflags);
@@ -2143,6 +2184,7 @@ QWORD EPTMapPhysicalMemory(pcpuinfo currentcpuinfo, QWORD physicalAddress, int f
     if (!fullmap)
     {
       sendstring("Assertion Fail: fullmap is false for a 1 page range");
+      ddDrawRectangle(0,DDVerticalResolution-100,100,100,0xff0000);
       while (1);
     }
 

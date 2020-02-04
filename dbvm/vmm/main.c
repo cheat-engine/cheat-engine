@@ -9,6 +9,7 @@
 #include "mm.h"
 #include "neward.h"
 #include "apic.h"
+#include "displaydebug.h"
 
 #include "multicore.h"
 #include "inthandlers.h"
@@ -31,6 +32,7 @@
 #include "exports.h"
 
 #include "luahandler.h"
+
 
 //#include "psod.h" //for pink screen of death support
 
@@ -122,9 +124,12 @@ int cinthandler(unsigned long long *stack, int intnr) //todo: move to it's own s
   sendstringfCS.ignorelock=1;
 #endif
 
+  ddDrawRectangle(DDHorizontalResolution-100,0,100,100,_rdtsc());
+
   if (readMSRSafe(IA32_FS_BASE_MSR)==0)
   {
     sendstringf("Invalid FS base during exception\n");
+    ddDrawRectangle(0,DDVerticalResolution-100,100,100,0xff0000);
     while (1) ;
   }
 
@@ -248,6 +253,7 @@ int cinthandler(unsigned long long *stack, int intnr) //todo: move to it's own s
       cpuinfo->NMIOccured=2;
     }
     */
+    ddDrawRectangle(0,DDVerticalResolution-100,100,100,0xff0000);
 
     return 0;
   }
@@ -263,6 +269,7 @@ int cinthandler(unsigned long long *stack, int intnr) //todo: move to it's own s
     longjmp(cpuinfo->OnException, 0x100 | intnr);
 
     sendstringf("longjmp just went through...\n");
+    ddDrawRectangle(0,DDVerticalResolution-100,100,100,0xff0000);
     while (1);
   }
 
@@ -298,6 +305,8 @@ int cinthandler(unsigned long long *stack, int intnr) //todo: move to it's own s
     return errorcode;
   }
   sendstring("not expected\n\r");
+
+  ddDrawRectangle(0,DDVerticalResolution-100,100,100,0xff0000);
 
 
 
@@ -483,6 +492,7 @@ void setints(void)
   if (intvector==NULL)
   {
     sendstring("setints was called too early");
+    ddDrawRectangle(0,DDVerticalResolution-100,100,100,0xff0000);
     while(1);
   }
 
@@ -768,6 +778,8 @@ void vmm_entry2_hlt(pcpuinfo currentcpuinfo)
 
   while (1)
   {
+    ddDrawRectangle(0,DDVerticalResolution-100,100,100,0xff0000);
+
     if (currentcpuinfo)
       currentcpuinfo->active=0;
     a=1;
@@ -1085,6 +1097,7 @@ void vmm_entry(void)
       if (original->cpucount>1000)
       {
         sendstringf("More than 1000 cpu\'s are currently not supported\n");
+        ddDrawRectangle(0,DDVerticalResolution-100,100,100,0xff0000);
         while (1);
       }
 
@@ -1094,7 +1107,61 @@ void vmm_entry(void)
         foundcpus=original->cpucount;
         APStartsInSIPI=0; //AP should start according to the original state
       }
+
+      if (original->FrameBufferBase)
+      {
+        DDFrameBufferBase=original->FrameBufferBase;
+        DDFrameBufferSize=original->FrameBufferSize;
+        DDHorizontalResolution=original->HorizontalResolution;
+        DDVerticalResolution=original->VerticalResolution;
+        DDPixelsPerScanLine=original->PixelsPerScanLine;
+
+        if (DDFrameBufferBase)
+        {
+          char c=0;
+          /* sendstring("Before mapping of the framebuffer\n");
+          while (c==0)
+          {
+            c=waitforchar();
+          }
+          sendstring("Mapping framebuffer\n");*/
+
+          //DDFrameBuffer=mapPhysicalMemoryGlobal(0x90000000, 8294400);
+          //DDFrameBuffer=(unsigned char *)mapPhysicalMemory(0x90000000, 8294400);
+
+
+          DDFrameBuffer=(unsigned char *)mapPhysicalMemoryGlobal(DDFrameBufferBase, DDFrameBufferSize);
+          if (DDFrameBuffer==NULL)
+          {
+            sendstring("Failure mapping memory");
+          }
+          else
+          {
+
+
+
+         /* SetPageToWriteThrough(DDFrameBuffer);*/
+            ddDrawRectangle(0,0,DDHorizontalResolution, DDVerticalResolution,0x00ff00);
+        /*    ddDrawRectangle(0,0,100,100,0xff00ff);
+            ddDrawRectangle(DDHorizontalResolution-100,0,100,100,0xff0000);
+            ddDrawRectangle(0,DDVerticalResolution-100,100,100,0x0000ff);
+            ddDrawRectangle(DDHorizontalResolution-100,DDVerticalResolution-100,100,100,0xffffff);*/
+
+/*
+            unsigned int pi;
+            for (pi=0; pi<DDFrameBufferSize; pi++)
+            {
+              DDFrameBuffer[pi]=0x30; //*(unsigned char *)((QWORD)0x00400000+(QWORD)pi);
+            }*/
+          }
+
+        }
+      }
+
+
+      //while (1) ;
       unmapPhysicalMemory(original, sizeof(OriginalState));
+
     }
 
     if (needtospawnApplicationProcessors) //e.g UEFI boot with missing mpsupport
@@ -1168,6 +1235,7 @@ void vmm_entry(void)
   if (GDT_BASE==NULL)
   {
     sendstring("Memory allocation failed\n");
+    ddDrawRectangle(0,DDVerticalResolution-100,100,100,0xff0000);
     while (1) ;
   }
 
@@ -2743,6 +2811,7 @@ void startvmx(pcpuinfo currentcpuinfo)
         if (currentcpuinfo->vmxon_region==NULL)
         {
           sendstringf(">>>>>>>>>>>>>>>>>>>>vmxon allocation has failed<<<<<<<<<<<<<<<<<<<<<<<<<<\n");
+          ddDrawRectangle(0,DDVerticalResolution-100,100,100,0xff0000);
           while (1);
         }
 
@@ -2756,6 +2825,7 @@ void startvmx(pcpuinfo currentcpuinfo)
 
         if (currentcpuinfo->vmcs_region==NULL)
         {
+          ddDrawRectangle(0,DDVerticalResolution-100,100,100,0xff0000);
           sendstringf(">>>>>>>>>>>>>>>>>>>>vmcs_region allocation has failed<<<<<<<<<<<<<<<<<<<<<<<<<<\n");
           while (1);
         }
@@ -2818,6 +2888,8 @@ void startvmx(pcpuinfo currentcpuinfo)
               //vmptrld(VirtualToPhysical(currentcpuinfo->vmcs_region));
 
               launchVMX(currentcpuinfo);
+
+              ddDrawRectangle(0,DDVerticalResolution-100,100,100,0xff0000);
 
               displayline("Exit from launchVMX, if you see this, something horrible has happened\n");
               sendstring("Exit from launchVMX\n\r");
@@ -2884,6 +2956,8 @@ void startvmx(pcpuinfo currentcpuinfo)
 #ifdef DEBUG
   sendstringf("End of startvmx (entryrsp=%6, returnrsp=%6)\n\r",entryrsp,getRSP());
 #endif
+
+  ddDrawRectangle(0,DDVerticalResolution-100,100,100,0x00ffff);
 
   if (currentcpuinfo->cpunr==0)
     displayline("bye...\n");

@@ -19,6 +19,7 @@
 
 #include "epthandler.h"
 #include "neward.h"
+#include "displaydebug.h"
 
 
 criticalSection setupVMX_lock;
@@ -1165,8 +1166,7 @@ void setupVMX(pcpuinfo currentcpuinfo)
 
   sendstringf("Set vm_execution_controls_pin to %8 (became %8)\n", (ULONG)IA32_VMX_PINBASED_CTLS, (DWORD)vmread(vm_execution_controls_pin));
 
-#ifdef DEBUG
-/*
+
 
   //check if the system supports preemption, and if so, enable it
   {
@@ -1174,14 +1174,11 @@ void setupVMX(pcpuinfo currentcpuinfo)
     if (usablepinbasedBits & ACTIVATE_VMX_PREEMPTION_TIMER)
     {
       displayline("Preemption is possible\n");
-      vmwrite(vm_execution_controls_pin,(ULONG)IA32_VMX_PINBASED_CTLS | ACTIVATE_VMX_PREEMPTION_TIMER);
-      vmwrite(vm_preemption_timer_value,IA32_VMX_MISC.vmx_premption_timer_tsc_relation*100000);
+      vmwrite(vm_execution_controls_pin,vmread(vm_execution_controls_pin) | ACTIVATE_VMX_PREEMPTION_TIMER);
+      vmwrite(vm_preemption_timer_value,10000);
     }
-
   }
-*/
 
-#endif
 
 
   globalTSC=_rdtsc();
@@ -1842,6 +1839,7 @@ void setupVMX(pcpuinfo currentcpuinfo)
         {
           sendstringf("No low region:\n");
           sendARD();
+          ddDrawRectangle(0,DDVerticalResolution-100,100,100,0xff0000);
           while (1);
         }
 

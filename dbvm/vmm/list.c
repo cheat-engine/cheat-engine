@@ -9,7 +9,7 @@
  */
 
 #include "list.h"
-
+#include "displaydebug.h"
 
 
 int addresslist_findclosestIndex(PAddressList l, QWORD address) //internal function for add
@@ -61,6 +61,7 @@ void addresslist_add(PAddressList l, QWORD address, void *data)
     if (l->list[s].address == address)
     {
       //error, already in the list
+      ddDrawRectangle(0,DDVerticalResolution-100,100,100,0xff0000);
       while (1);
 
     }

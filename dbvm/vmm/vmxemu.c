@@ -17,6 +17,7 @@
 #include "vmeventhandler.h"
 #include "vmcall.h"
 #include "mm.h"
+#include "displaydebug.h"
 
 
 int emulatevmx=1;
@@ -100,12 +101,14 @@ int handleByGuest(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
   if (currentcpuinfo->vmxdata.runningvmx==0)
   {
     sendstringf("handleByGuest was called while runningvmx is 0");
+    ddDrawRectangle(0,DDVerticalResolution-100,100,100,0xff0000);
     while (1);
   }
   else
   if (currentcpuinfo->vmxdata.insideVMXRootMode==0)
   {
     sendstringf("runningvmx but insideVMXRootMode is 0\n");
+    ddDrawRectangle(0,DDVerticalResolution-100,100,100,0xff0000);
     while (1);
   }
 
@@ -114,6 +117,7 @@ int handleByGuest(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
   if (ptrld)
   {
     sendstringf("failure loading the vmcs_regionPA\n");
+    ddDrawRectangle(0,DDVerticalResolution-100,100,100,0xff0000);
     while(1);
   }
 
@@ -178,12 +182,14 @@ int handleByGuest(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
   {
     nosendchar[getAPICID()]=0;
     sendstring("For some messed up reason the gdt is paged out...");
+    ddDrawRectangle(0,DDVerticalResolution-100,100,100,0xff0000);
     while (1);
   }
 
   if (error)
   {
     sendstring("OK, WTF is going on here!");
+    ddDrawRectangle(0,DDVerticalResolution-100,100,100,0xff0000);
     while (1);
 
   }
@@ -227,6 +233,7 @@ int handleByGuest(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
     sendvmstate(currentcpuinfo, vmregisters);
 
     sendstringf("vm_guest_cr3(%6) does not match currentcpuinfo->vmxdata.originalhoststate.CR3(%6)\n",vmread(vm_guest_cr3),currentcpuinfo->vmxdata.originalhoststate.CR3 );
+    ddDrawRectangle(0,DDVerticalResolution-100,100,100,0xff0000);
     while (1);
   }
 
@@ -458,6 +465,7 @@ int handle_vmclear(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
       else
       {
         sendstring("Failure restoring guest vmx hoststate");
+        ddDrawRectangle(0,DDVerticalResolution-100,100,100,0xff0000);
         while (1);
       }
 
@@ -534,6 +542,7 @@ int handle_vmlaunch(pcpuinfo currentcpuinfo, VMRegisters *vmregisters UNUSED)
   if (currentcpuinfo->vmxdata.runningvmx)
   {
     sendstring("Assertion failed. runningvmx was not 0\n");
+    ddDrawRectangle(0,DDVerticalResolution-100,100,100,0xff0000);
     while (1);
   }
 
@@ -577,6 +586,7 @@ int handle_vmresume(pcpuinfo currentcpuinfo, VMRegisters *vmregisters UNUSED)
   if (currentcpuinfo->vmxdata.runningvmx)
   {
     sendstring("Assertion failed. runningvmx was not 0\n");
+    ddDrawRectangle(0,DDVerticalResolution-100,100,100,0xff0000);
     while (1);
   }
 
@@ -1143,6 +1153,7 @@ int handle_vmptrld(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
       if (r)
       {
         sendstringf("restore: vmptrld failed: %d (error=%d)\n", vmread(vm_errorcode));
+        ddDrawRectangle(0,DDVerticalResolution-100,100,100,0xff0000);
         while (1);
       }
     }
@@ -1204,6 +1215,7 @@ int handle_vmptrld(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
   if (debugstate.CR3!=getCR3())
   {
     sendstringf("wrong cr3 was set in the hoststate");
+    ddDrawRectangle(0,DDVerticalResolution-100,100,100,0xff0000);
     while (1);
   }
 
@@ -1365,6 +1377,7 @@ int handleIntelVMXInstruction(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
       int err=lastexception;
 
       sendstringf("Something shitty happened when emulating VMX (%6: %d)\n", ExceptionRIP, err);
+      ddDrawRectangle(0,DDVerticalResolution-100,100,100,0xff0000);
 
       while (1);
     }
