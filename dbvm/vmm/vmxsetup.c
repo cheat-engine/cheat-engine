@@ -1167,7 +1167,7 @@ void setupVMX(pcpuinfo currentcpuinfo)
   sendstringf("Set vm_execution_controls_pin to %8 (became %8)\n", (ULONG)IA32_VMX_PINBASED_CTLS, (DWORD)vmread(vm_execution_controls_pin));
 
 
-
+#if DISPLAYDEBUG==1
   //check if the system supports preemption, and if so, enable it
   {
     ULONG usablepinbasedBits=(IA32_VMX_PINBASED_CTLS >> 32);
@@ -1178,7 +1178,7 @@ void setupVMX(pcpuinfo currentcpuinfo)
       vmwrite(vm_preemption_timer_value,10000);
     }
   }
-
+#endif
 
 
   globalTSC=_rdtsc();
