@@ -43,6 +43,29 @@ type
 type
   TBreakpointTrigger = (bptExecute=0, bptAccess=1, bptWrite=2);
 
+  TXMMFIELDS=array [0..3] of DWORD;
+  PXMMFIELDS=^TXMMFIELDS;
+
+ TRegisterModificationFloatList=bitpacked record
+   change_fp0: 0..1;
+   change_fp1: 0..1;
+   change_fp2: 0..1;
+   change_fp3: 0..1;
+   change_fp4: 0..1;
+   change_fp5: 0..1;
+   change_fp6: 0..1;
+   change_fp7: 0..1;
+ end;
+ PRegisterModificationFloatList=^TRegisterModificationFloatList;
+
+ TRegisterModificationXMMListSingleEntry=bitpacked record
+   change_part1: 0..1;
+   change_part2: 0..1;
+   change_part3: 0..1;
+   change_part4: 0..1;
+ end;
+ PRegisterModificationXMMListSingleEntry=^TRegisterModificationXMMListSingleEntry;
+
 type
   tregistermodificationBP32 = record
     address: uint_ptr; //addres to break on
@@ -76,6 +99,26 @@ type
     new_zf: BOOL;
     new_sf: BOOL;
     new_of: BOOL;
+
+    change_FP0: BYTE; //binary, each bit is a new FP
+    new_FP0: double;
+    new_FP1: double;
+    new_FP2: double;
+    new_FP3: double;
+    new_FP4: double;
+    new_FP5: double;
+    new_FP6: double;
+    new_FP7: double;
+
+    change_XMM: DWORD; //binary, each nibble is an XMM register, and each bit of the nibble is a dword part of the xmm reg
+    newXMM0: TXMMFIELDS;
+    newXMM1: TXMMFIELDS;
+    newXMM2: TXMMFIELDS;
+    newXMM3: TXMMFIELDS;
+    newXMM4: TXMMFIELDS;
+    newXMM5: TXMMFIELDS;
+    newXMM6: TXMMFIELDS;
+    newXMM7: TXMMFIELDS;
   end;
 
 type
@@ -130,6 +173,34 @@ type
     new_zf: BOOL;
     new_sf: BOOL;
     new_of: BOOL;
+
+    change_FP: BYTE; //binary, each bit is a new FP
+    new_FP0: M128A; //only need the 10 bytes
+    new_FP1: M128A;
+    new_FP2: M128A;
+    new_FP3: M128A;
+    new_FP4: M128A;
+    new_FP5: M128A;
+    new_FP6: M128A;
+    new_FP7: M128A;
+
+    change_XMM: QWORD; //binary, each nibble is an XMM register, and each bit of the nibble is a dword part of the xmm reg
+    new_XMM0: TXMMFIELDS;
+    new_XMM1: TXMMFIELDS;
+    new_XMM2: TXMMFIELDS;
+    new_XMM3: TXMMFIELDS;
+    new_XMM4: TXMMFIELDS;
+    new_XMM5: TXMMFIELDS;
+    new_XMM6: TXMMFIELDS;
+    new_XMM7: TXMMFIELDS;
+    new_XMM8: TXMMFIELDS;
+    new_XMM9: TXMMFIELDS;
+    new_XMM10: TXMMFIELDS;
+    new_XMM11: TXMMFIELDS;
+    new_XMM12: TXMMFIELDS;
+    new_XMM13: TXMMFIELDS;
+    new_XMM14: TXMMFIELDS;
+    new_XMM15: TXMMFIELDS;
   end;
 
 type

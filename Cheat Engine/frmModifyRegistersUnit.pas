@@ -6,9 +6,10 @@ interface
 
 uses
   {$ifdef darwin}
+  macport,
   {$endif}
   {$ifdef windows}
-  DBK32functions, vmxfunctions,
+  windows, DBK32functions, vmxfunctions,
   {$endif}
   LCLIntf, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, CEDebugger, debughelper, KernelDebugger, CEFuncProc,
@@ -43,8 +44,11 @@ type
     pnl: TPanel;
     Edits: array [0..3] of TChangeRegXMMPanelEdit;
     procedure tabchange(Sender: TObject);
+    function getField(index: integer): dword;
   public
+    function getEditMask: qword;
     procedure fixdimensions;
+    property field[index: integer]: dword read getField;
     constructor Create(AOwner: TComponent; id: integer);
   end;
 
@@ -131,7 +135,7 @@ var
 implementation
 
 uses formsettingsunit, MemoryBrowserFormUnit, debuggertypedefinitions,
-  ProcessHandlerUnit, DPIHelper, BreakpointTypeDef;
+  ProcessHandlerUnit, DPIHelper, BreakpointTypeDef, frmFloatingPointPanelUnit;
 
 resourcestring
   rsModifyRegistersSAt = 'Modify registers(s) at %s';
@@ -333,6 +337,65 @@ begin
   setrange(initialid*32,(initialid+1)*32-1);
 end;
 
+function TChangeRegXMMPanel.getField(index: integer): dword;
+var
+  d: dword;
+  f: single absolute d;
+
+  q: qword;
+  dbl: double absolute q;
+begin
+  if tc.TabIndex=0 then
+  begin
+    f:=StrToFloat(trim(edits[index].edt.Text));
+    result:=d;
+  end
+  else
+  begin
+    if index<=1 then
+    begin
+      dbl:=StrToFloat(trim(edits[0].edt.Text));
+      if index=0 then
+        result:=q
+      else
+        result:=q shr 32;
+    end
+    else
+    begin
+      dbl:=StrToFloat(trim(edits[1].edt.Text));
+      if index=2 then
+        result:=q
+      else
+        result:=q shr 32;
+    end;
+
+
+  end;
+end;
+
+function TChangeRegXMMPanel.getEditMask;
+var
+  mask: qword;
+begin
+  mask:=0;
+  if tc.tabindex=0 then
+  begin
+    if trim(edits[0].edt.Text)<>'' then mask:=mask or 1;
+    if trim(edits[1].edt.Text)<>'' then mask:=mask or 2;
+    if trim(edits[2].edt.Text)<>'' then mask:=mask or 4;
+    if trim(edits[3].edt.Text)<>'' then mask:=mask or 8;
+  end
+  else
+  begin
+    if trim(edits[0].edt.Text)<>'' then mask:=mask or 1 or 2;
+    if trim(edits[1].edt.Text)<>'' then mask:=mask or 4 or 8;
+  end;
+
+  mask:=mask shl (4*id);
+
+  result:=mask;
+end;
+
 procedure TChangeRegXMMPanel.fixdimensions;
 var i: integer;
 begin
@@ -509,6 +572,12 @@ var
   {$endif}
   PA: qword;
   bpid: integer;
+  d: double;
+  e: extended;
+  mask: qword;
+
+  xfields: TXMMFIELDS;
+  i,j: integer;
 begin
   tempregedit.address:=address;
   tempregedit.change_eax:=edtEAX.text<>'';
@@ -564,7 +633,46 @@ begin
   if tempregedit.change_sf then tempregedit.new_sf:=cbSF.checked;
   if tempregedit.change_of then tempregedit.new_of:=cbOF.checked;
 
+  tempregedit.change_FP:=0;
+  for i:=0 to 7 do
+  begin
+    if trim(floats[i].edt.Text)<>'' then
+    begin
+      tempregedit.change_FP:=tempregedit.change_FP or (1 shl i);
+      {$ifdef cpu64}
+      d:=StrToFloat(trim(floats[i].edt.Text));
+      doubletoextended(@d,pointer(ptruint(@tempregedit.new_FP0)+16*i));
+      {$else}
+      e:=StrToFloat(trim(floats[i].edt.Text));
+      copymemory(pointer(ptruint(@tempregedit.new_FP0)+16*i),@e);
+      {$endif}
+    end;
+  end;
+
+  tempregedit.change_XMM:=0;
+  for i:=0 to {$ifdef cpu64}15{$else}7{$endif} do
+  begin
+    mask:=xmms[i].getEditMask;
+    tempregedit.change_XMM:=tempregedit.change_XMM or mask;
+
+    if mask<>0 then
+    begin
+      for j:=0 to 3 do
+      begin
+        if ((mask shr (i*4)) and (1 shl j))>0 then
+          xfields[j]:=xmms[i].field[j]
+        else
+          xfields[j]:=0;
+      end;
+
+
+      copymemory(pointer(ptruint(@tempregedit.new_XMM0)+sizeof(TXMMFIELDS)*i), @xfields[0],sizeof(TXMMFIELDS));
+    end;
+
+
+  end;
   {$ifdef windows}
+
 
   if cbUseDBVM.checked then
   begin
@@ -634,6 +742,39 @@ begin
       changereginfo.newR14:=tempregedit.new_r14;
       changereginfo.newR15:=tempregedit.new_r15;
 {$endif}
+
+      changereginfo.changeXMM:=tempregedit.change_XMM; //16 nibbles, each bit is one dword
+      changereginfo.changeFP:=tempregedit.change_FP;
+
+
+      copymemory(@changereginfo.newFP0, @tempregedit.new_FP0, 16);
+      copymemory(@changereginfo.newFP1, @tempregedit.new_FP1, 16);
+      copymemory(@changereginfo.newFP2, @tempregedit.new_FP2, 16);
+      copymemory(@changereginfo.newFP3, @tempregedit.new_FP3, 16);
+      copymemory(@changereginfo.newFP4, @tempregedit.new_FP4, 16);
+      copymemory(@changereginfo.newFP5, @tempregedit.new_FP5, 16);
+      copymemory(@changereginfo.newFP6, @tempregedit.new_FP6, 16);
+      copymemory(@changereginfo.newFP7, @tempregedit.new_FP7, 16);
+
+      copymemory(@changereginfo.XMM0, @tempregedit.new_XMM0[0], 16);
+      copymemory(@changereginfo.XMM1, @tempregedit.new_XMM1[0], 16);
+      copymemory(@changereginfo.XMM2, @tempregedit.new_XMM2[0], 16);
+      copymemory(@changereginfo.XMM3, @tempregedit.new_XMM3[0], 16);
+      copymemory(@changereginfo.XMM4, @tempregedit.new_XMM4[0], 16);
+      copymemory(@changereginfo.XMM5, @tempregedit.new_XMM5[0], 16);
+      copymemory(@changereginfo.XMM6, @tempregedit.new_XMM6[0], 16);
+      copymemory(@changereginfo.XMM7, @tempregedit.new_XMM7[0], 16);
+
+      {$ifdef cpu64}
+      copymemory(@changereginfo.XMM8, @tempregedit.new_XMM8[0], 16);
+      copymemory(@changereginfo.XMM9, @tempregedit.new_XMM9[0], 16);
+      copymemory(@changereginfo.XMM10, @tempregedit.new_XMM10[0], 16);
+      copymemory(@changereginfo.XMM11, @tempregedit.new_XMM11[0], 16);
+      copymemory(@changereginfo.XMM12, @tempregedit.new_XMM12[0], 16);
+      copymemory(@changereginfo.XMM13, @tempregedit.new_XMM13[0], 16);
+      copymemory(@changereginfo.XMM14, @tempregedit.new_XMM14[0], 16);
+      copymemory(@changereginfo.XMM15, @tempregedit.new_XMM15[0], 16);
+      {$endif}
 
       log('Calling dbvm_cloak_changeregonbp');
       if dbvm_cloak_changeregonbp(PA, changereginfo, address)<>0 then

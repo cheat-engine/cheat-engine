@@ -304,6 +304,8 @@ type
       newOF: 0..1;            //28
       reserved: 0..7;         //29,30,31
     end;
+    changeXMM: QWORD; //16 nibbles, each bit is one dword
+    changeFP: QWORD; //just one bit, each bit is a fpu field
 
     newRAX: QWORD;
     newRBX: QWORD;
@@ -322,6 +324,55 @@ type
     newR13: QWORD;
     newR14: QWORD;
     newR15: QWORD;
+
+    newFP0: QWORD;
+    newFP0_H: QWORD;
+    newFP1: QWORD;
+    newFP1_H: QWORD;
+    newFP2: QWORD;
+    newFP2_H: QWORD;
+    newFP3: QWORD;
+    newFP3_H: QWORD;
+    newFP4: QWORD;
+    newFP4_H: QWORD;
+    newFP5: QWORD;
+    newFP5_H: QWORD;
+    newFP6: QWORD;
+    newFP6_H: QWORD;
+    newFP7: QWORD;
+    newFP7_H: QWORD;
+    XMM0: QWORD;
+    XMM0_H: QWORD;
+    XMM1: QWORD;
+    XMM1_H: QWORD;
+    XMM2: QWORD;
+    XMM2_H: QWORD;
+    XMM3: QWORD;
+    XMM3_H: QWORD;
+    XMM4: QWORD;
+    XMM4_H: QWORD;
+    XMM5: QWORD;
+    XMM5_H: QWORD;
+    XMM6: QWORD;
+    XMM6_H: QWORD;
+    XMM7: QWORD;
+    XMM7_H: QWORD;
+    XMM8: QWORD;
+    XMM8_H: QWORD;
+    XMM9: QWORD;
+    XMM9_H: QWORD;
+    XMM10: QWORD;
+    XMM10_H: QWORD;
+    XMM11: QWORD;
+    XMM11_H: QWORD;
+    XMM12: QWORD;
+    XMM12_H: QWORD;
+    XMM13: QWORD;
+    XMM13_H: QWORD;
+    XMM14: QWORD;
+    XMM14_H: QWORD;
+    XMM15: QWORD;
+    XMM15_H: QWORD;
 
   end;
 
