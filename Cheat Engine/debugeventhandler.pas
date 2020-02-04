@@ -451,7 +451,7 @@ begin
           begin
             //change part j of xmm register i
             {$ifdef cpu64}
-            PXMMFIELDS(@context^.FltSave.XmmRegisters[i])^[j]:=bp.changereg.new_XMM0[j];
+            PXMMFIELDS(@context^.FltSave.XmmRegisters[i])^[j]:=PXMMFIELDS(ptruint(@bp.changereg.new_XMM0)+16*i)^[j];
             {$else}
             PXMMFIELDS(@context^.ext.XmmRegisters[i])^[j]:=bp.changereg.new_XMM0[j];
             {$endif}
