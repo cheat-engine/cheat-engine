@@ -13,7 +13,8 @@ uses
   {$endif}
   LCLIntf, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, CEDebugger, debughelper, KernelDebugger, CEFuncProc,
-  NewKernelHandler, symbolhandler, LResources, ExtCtrls, ComCtrls,  math;
+  NewKernelHandler, symbolhandler, LResources, ExtCtrls, ComCtrls,  math,
+  BreakpointTypeDef;
 
 type
 
@@ -45,10 +46,13 @@ type
     Edits: array [0..3] of TChangeRegXMMPanelEdit;
     procedure tabchange(Sender: TObject);
     function getField(index: integer): dword;
+    function usesDouble: boolean;
+    procedure setDouble(state: boolean);
   public
     function getEditMask: qword;
     procedure fixdimensions;
     property field[index: integer]: dword read getField;
+    property Double: boolean read usesDouble write setDouble;
     constructor Create(AOwner: TComponent; id: integer);
   end;
 
@@ -124,6 +128,9 @@ type
 
     floats: array [0..7] of TChangeRegFloatPanel;
     xmms: array [0..15] of TChangeRegXMMPanel;
+
+    hasExistingBP: boolean;
+    currentbp: TBreakpoint;
   public
     { Public declarations }
     constructor create(AOwner:tcomponent;address:ptrUint); overload;
@@ -135,7 +142,7 @@ var
 implementation
 
 uses formsettingsunit, MemoryBrowserFormUnit, debuggertypedefinitions,
-  ProcessHandlerUnit, DPIHelper, BreakpointTypeDef, frmFloatingPointPanelUnit;
+  ProcessHandlerUnit, DPIHelper, frmFloatingPointPanelUnit;
 
 resourcestring
   rsModifyRegistersSAt = 'Modify registers(s) at %s';
@@ -154,11 +161,10 @@ begin
   begin
     x:=debuggerthread.isBreakpoint(address);
 
-    if x<>nil then
+    if (x<>nil) and (x.breakpointAction=bo_ChangeRegister) then
     begin
-
-
-      //find the address in debuggerthread.registermodificationBPs
+      hasExistingBP:=true; //so onshow can create the fpu screen
+      currentbp:=x^;
 
       if x.changereg.change_eax then
         edtEAX.Text:=inttohex(x.changereg.new_eax,8);
@@ -231,6 +237,7 @@ begin
 
       if x.changereg.change_of then
         cbOF.checked:=x.changereg.new_of;
+
     end;
 
 
@@ -371,6 +378,21 @@ begin
 
 
   end;
+end;
+
+function TChangeRegXMMPanel.usesDouble;
+begin
+  result:=tc.tabindex=1;
+end;
+
+procedure TChangeRegXMMPanel.setDouble(state: boolean);
+begin
+  if state then
+    tc.tabindex:=1
+  else
+    tc.tabindex:=0;
+
+  tc.onchange(tc);
 end;
 
 function TChangeRegXMMPanel.getEditMask;
@@ -578,6 +600,10 @@ var
 
   xfields: TXMMFIELDS;
   i,j: integer;
+
+  bp: PBreakpoint;
+  bo: integer;
+  ob: byte;
 begin
   tempregedit.address:=address;
   tempregedit.change_eax:=edtEAX.text<>'';
@@ -652,9 +678,14 @@ begin
     end;
 
   tempregedit.change_XMM:=0;
+  tempregedit.usesDouble:=0;
+
   if cbChangeExt.checked then
     for i:=0 to {$ifdef cpu64}15{$else}7{$endif} do
     begin
+      if xmms[i].Double then
+        tempregedit.usesDouble:=tempregedit.usesDouble or (1 shl i);
+
       mask:=xmms[i].getEditMask;
       tempregedit.change_XMM:=tempregedit.change_XMM or mask;
 
@@ -677,11 +708,27 @@ begin
   {$ifdef windows}
 
 
+  if debuggerthread<>nil then
+  begin
+    //remove the old one
+    debuggerthread.lockbplist;
+
+    bp:=debuggerthread.isBreakpoint(address);
+    if bp<>nil then
+      debuggerthread.RemoveBreakpoint(bp);
+
+    debuggerthread.unlockbplist;
+  end;
+
   if cbUseDBVM.checked then
   begin
     if loaddbvmifneeded('Launch DBVM?') then
     begin
+      if dbvm_isBreakpoint(address,pa, bo,ob) then
+        dbvm_cloak_removechangeregonbp(pa);
+
       pa:=strtoint64('$'+edtPA.text);
+
 
       //convert to a changereginfo
       changereginfo.Flags.changeRAX:=ifthen(tempregedit.change_eax,1,0);
@@ -858,6 +905,15 @@ begin
 end;
 
 procedure TfrmModifyRegisters.FormShow(Sender: TObject);
+var
+  i,j: integer;
+  pex: PExtended;
+  d: double;
+  n: byte;
+
+  xmmp: PXMMFIELDS;
+
+  pd: pdouble;
 begin
   if not processhandler.is64Bit then
   begin
@@ -891,6 +947,59 @@ begin
  
   Constraints.MinHeight:=cbChangeExt.top+cbChangeExt.height+panel1.height+6;
 
+
+  if hasExistingBP then
+  begin
+    if (currentbp.changereg.change_FP or currentbp.changereg.change_XMM)>0 then
+      cbChangeExt.Checked:=true;
+
+    if cbChangeExt.checked then
+    begin
+      for i:=0 to 7 do
+      begin
+        if (currentbp.changereg.change_FP and (1 shl i))>0 then
+        begin
+          pex:=pextended(ptruint(@currentbp.changereg.new_FP0)+16*i);
+          {$ifdef cpu32}
+          floats[i].edt.Text:=floattostr(pex^);
+          {$else}
+          extendedtodouble(pex,d);
+          floats[i].edt.Text:=floattostr(d);
+          {$endif}
+        end;
+      end;
+
+      for i:=0 to {$ifdef cpu32}7{$else}15{$endif} do
+      begin
+        n:=(currentbp.changereg.change_XMM shr (i*4)) and $f;
+        if n>0 then
+        begin
+          xmmp:=PXMMFIELDS(ptruint(@currentbp.changereg.new_XMM0)+i*16);
+          xmms[i].Double:=currentbp.changereg.usesDouble and (1 shl i)>0;
+          if xmms[i].Double then
+          begin
+            //double
+            for j:=0 to 1 do
+            begin
+              if (n and (1 shl (j*2)))>0 then
+              begin
+                pd:=@xmmp[j*2];
+                xmms[i].Edits[j].edt.text:=floattostr(pd^);
+              end;
+            end;
+          end
+          else
+          begin
+            //float
+            for j:=0 to 3 do
+              if (n and (1 shl j))>0 then
+                xmms[i].Edits[j].edt.text:=floattostr(psingle(@xmmp[j])^);
+
+          end;
+        end;
+      end;
+    end;
+  end;
 end;
 
 procedure TfrmModifyRegisters.ScrollBox1Click(Sender: TObject);

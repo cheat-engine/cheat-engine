@@ -201,6 +201,10 @@ type
     new_XMM13: TXMMFIELDS;
     new_XMM14: TXMMFIELDS;
     new_XMM15: TXMMFIELDS;
+
+    //for gui purposes only:
+    usesDouble: {$ifdef cpu32}BYTE{$else}WORD{$endif}; //each bit specifies an xmm field what weas edited using a double specifier
+
   end;
 
 type
