@@ -141,6 +141,7 @@ type
     property code[index: integer]: TCodeRecord read getCode;  //todo: change to code later
     property entries[index: integer]: TCodeListEntry read getEntry;  //todo: change to code later
     property selected[index: integer]: boolean read getSelected write setSelected;
+    property CodeList: TListView read lvCodelist; //backward compatibility
   end;
 
 procedure unpause;
