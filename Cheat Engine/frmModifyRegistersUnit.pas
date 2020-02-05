@@ -633,44 +633,47 @@ begin
   if tempregedit.change_sf then tempregedit.new_sf:=cbSF.checked;
   if tempregedit.change_of then tempregedit.new_of:=cbOF.checked;
 
+
   tempregedit.change_FP:=0;
-  for i:=0 to 7 do
-  begin
-    if trim(floats[i].edt.Text)<>'' then
+  if cbChangeExt.checked then
+    for i:=0 to 7 do
     begin
-      tempregedit.change_FP:=tempregedit.change_FP or (1 shl i);
-      {$ifdef cpu64}
-      d:=StrToFloat(trim(floats[i].edt.Text));
-      doubletoextended(@d,pointer(ptruint(@tempregedit.new_FP0)+16*i));
-      {$else}
-      e:=StrToFloat(trim(floats[i].edt.Text));
-      copymemory(pointer(ptruint(@tempregedit.new_FP0)+16*i),@e);
-      {$endif}
+      if trim(floats[i].edt.Text)<>'' then
+      begin
+        tempregedit.change_FP:=tempregedit.change_FP or (1 shl i);
+        {$ifdef cpu64}
+        d:=StrToFloat(trim(floats[i].edt.Text));
+        doubletoextended(@d,pointer(ptruint(@tempregedit.new_FP0)+16*i));
+        {$else}
+        e:=StrToFloat(trim(floats[i].edt.Text));
+        copymemory(pointer(ptruint(@tempregedit.new_FP0)+16*i),@e);
+        {$endif}
+      end;
     end;
-  end;
 
   tempregedit.change_XMM:=0;
-  for i:=0 to {$ifdef cpu64}15{$else}7{$endif} do
-  begin
-    mask:=xmms[i].getEditMask;
-    tempregedit.change_XMM:=tempregedit.change_XMM or mask;
-
-    if mask<>0 then
+  if cbChangeExt.checked then
+    for i:=0 to {$ifdef cpu64}15{$else}7{$endif} do
     begin
-      for j:=0 to 3 do
+      mask:=xmms[i].getEditMask;
+      tempregedit.change_XMM:=tempregedit.change_XMM or mask;
+
+      if mask<>0 then
       begin
-        if ((mask shr (i*4)) and (1 shl j))>0 then
-          xfields[j]:=xmms[i].field[j]
-        else
-          xfields[j]:=0;
+        for j:=0 to 3 do
+        begin
+          if ((mask shr (i*4)) and (1 shl j))>0 then
+            xfields[j]:=xmms[i].field[j]
+          else
+            xfields[j]:=0;
+        end;
+
+
+        copymemory(pointer(ptruint(@tempregedit.new_XMM0)+sizeof(TXMMFIELDS)*i), @xfields[0],sizeof(TXMMFIELDS));
       end;
 
 
-      copymemory(pointer(ptruint(@tempregedit.new_XMM0)+sizeof(TXMMFIELDS)*i), @xfields[0],sizeof(TXMMFIELDS));
     end;
-
-
-  end;
   {$ifdef windows}
 
 
