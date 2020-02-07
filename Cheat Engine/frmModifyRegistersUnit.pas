@@ -659,7 +659,6 @@ begin
   if tempregedit.change_sf then tempregedit.new_sf:=cbSF.checked;
   if tempregedit.change_of then tempregedit.new_of:=cbOF.checked;
 
-
   tempregedit.change_FP:=0;
   if cbChangeExt.checked then
     for i:=0 to 7 do
@@ -672,7 +671,7 @@ begin
         doubletoextended(@d,pointer(ptruint(@tempregedit.new_FP0)+16*i));
         {$else}
         e:=StrToFloat(trim(floats[i].edt.Text));
-        copymemory(pointer(ptruint(@tempregedit.new_FP0)+16*i),@e);
+        copymemory(pointer(ptruint(@tempregedit.new_FP0)+16*i),@e,10);
         {$endif}
       end;
     end;

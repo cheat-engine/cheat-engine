@@ -43,6 +43,12 @@ type
 type
   TBreakpointTrigger = (bptExecute=0, bptAccess=1, bptWrite=2);
 
+  {$ifdef cpu32}
+  M128A= record
+    low,high: qword;
+  end;
+  {$endif}
+
   TXMMFIELDS=array [0..3] of DWORD;
   PXMMFIELDS=^TXMMFIELDS;
 
@@ -100,7 +106,7 @@ type
     new_sf: BOOL;
     new_of: BOOL;
 
-    change_FP0: BYTE; //binary, each bit is a new FP
+    change_FP: BYTE; //binary, each bit is a new FP
     new_FP0: double;
     new_FP1: double;
     new_FP2: double;
@@ -111,14 +117,16 @@ type
     new_FP7: double;
 
     change_XMM: DWORD; //binary, each nibble is an XMM register, and each bit of the nibble is a dword part of the xmm reg
-    newXMM0: TXMMFIELDS;
-    newXMM1: TXMMFIELDS;
-    newXMM2: TXMMFIELDS;
-    newXMM3: TXMMFIELDS;
-    newXMM4: TXMMFIELDS;
-    newXMM5: TXMMFIELDS;
-    newXMM6: TXMMFIELDS;
-    newXMM7: TXMMFIELDS;
+    new_XMM0: TXMMFIELDS;
+    new_XMM1: TXMMFIELDS;
+    new_XMM2: TXMMFIELDS;
+    new_XMM3: TXMMFIELDS;
+    new_XMM4: TXMMFIELDS;
+    new_XMM5: TXMMFIELDS;
+    new_XMM6: TXMMFIELDS;
+    new_XMM7: TXMMFIELDS;
+
+    usesDouble: BYTE; //each bit specifies an xmm field what weas edited using a double specifier
   end;
 
 type
@@ -203,7 +211,7 @@ type
     new_XMM15: TXMMFIELDS;
 
     //for gui purposes only:
-    usesDouble: {$ifdef cpu32}BYTE{$else}WORD{$endif}; //each bit specifies an xmm field what weas edited using a double specifier
+    usesDouble: WORD; //each bit specifies an xmm field what weas edited using a double specifier
 
   end;
 
