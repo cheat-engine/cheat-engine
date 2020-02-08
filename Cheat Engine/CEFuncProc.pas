@@ -2136,7 +2136,7 @@ begin
   if GetSystemType<=6 then
     access:=$1f0fff;
 
-  ProcessHandler.ProcessHandle:=NewKernelHandler.OpenProcess(PROCESS_ALL_ACCESS,false,ProcessID);
+  ProcessHandler.ProcessHandle:=NewKernelHandler.OpenProcess(access,false,ProcessID);
   le:=GetLastError;
   {$endif}
 end;
