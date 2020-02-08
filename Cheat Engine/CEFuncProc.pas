@@ -1473,6 +1473,7 @@ begin
   {$endif}
 end;
 
+var cachedSystemType: integer=-1;
 function GetSystemType: Integer;  //from Stuart Johnson with a little change by me
 const
  { operating system constants }
@@ -1495,6 +1496,9 @@ var
 
 begin
  {$IFDEF windows}
+ if cachedSystemType<>-1 then
+   exit(cachedSystemType);
+
    if overridedebug then
    begin
      result:=cOsWinXP;
@@ -1551,7 +1555,9 @@ begin
   {$else}
 
   result:=cOsUnknown;
+
  {$ENDIF}
+  cachedSystemType:=result;
 end;
 
 
@@ -2122,8 +2128,14 @@ begin
 end;
 
 procedure Open_Process;
+var access: dword;
 begin
   {$ifndef netclient}
+  access:=process_all_access;
+
+  if GetSystemType<=6 then
+    access:=$1f0fff;
+
   ProcessHandler.ProcessHandle:=NewKernelHandler.OpenProcess(PROCESS_ALL_ACCESS,false,ProcessID);
   le:=GetLastError;
   {$endif}
