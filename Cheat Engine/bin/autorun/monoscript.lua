@@ -3671,6 +3671,8 @@ function monoAA_GETMONOSTATICDATA(assemblyname, namespace, classname, symbolpref
   --            symbolprefix = name of symbol prefix (sanitized classname used if nil)
 
   -- returns AA script for locating static data location for given structure
+  if monopipe.il2cpp then return end
+  
   local SYMCLASSNAME
   if assemblyname==nil or namespace==nil or classname==nil then
     return ''
@@ -3879,6 +3881,8 @@ function monoAA_GETMONOSTATICFIELDDATA(assemblyname, namespace, classname, field
   --            symbolprefix = name of symbol prefix (sanitized classname used if nil)
 
   -- returns AA script for locating static data location for given structure
+  if monopipe.il2cpp then return end  
+  
   local SYMCLASSNAME
   if assemblyname==nil or namespace==nil or classname==nil or fieldname==nil then
     return ''
