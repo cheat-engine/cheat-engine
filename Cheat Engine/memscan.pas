@@ -6393,8 +6393,8 @@ begin
 
       //still here, so valid
 
-      if (memRegionPos=0) or (memRegion[memRegionPos-1].BaseAddress+memRegion[memRegionPos-1].MemorySize<>PtrUint(mbi.baseaddress)) then
-      begin
+     { if (memRegionPos=0) or (memRegion[memRegionPos-1].BaseAddress+memRegion[memRegionPos-1].MemorySize<>PtrUint(mbi.baseaddress)) then
+      begin}
         //new region
         memRegion[memRegionPos].BaseAddress:=PtrUint(mbi.baseaddress);  //just remember this location
         memRegion[memRegionPos].MemorySize:=mbi.RegionSize;
@@ -6403,12 +6403,12 @@ begin
         inc(memRegionPos);
         if (memRegionPos mod 16)=0 then //add another 16 to it
           setlength(memRegion,length(memRegion)+16);
-      end
+     { end
       else
       begin
         //append
         memRegion[memRegionPos-1].MemorySize:=memRegion[memRegionPos-1].MemorySize+mbi.RegionSize;
-      end;
+      end; }
 
       inc(totalProcessMemorySize,mbi.RegionSize); //add this size to the total
 

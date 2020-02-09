@@ -146,7 +146,7 @@ begin
   if pid=0 then
     pid:=GetCurrentProcessId;
     
-  processhandle:=dbk32functions.OP(PROCESS_ALL_ACCESS, true, pid);
+  processhandle:=dbk32functions.OP(ifthen<dword>(GetSystemType<=6,$1f0fff, process_all_access), true, pid);
 
   filemap:=tmemorystream.Create;
   try

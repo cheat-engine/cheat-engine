@@ -2128,15 +2128,9 @@ begin
 end;
 
 procedure Open_Process;
-var access: dword;
 begin
   {$ifndef netclient}
-  access:=process_all_access;
-
-  if GetSystemType<=6 then
-    access:=$1f0fff;
-
-  ProcessHandler.ProcessHandle:=NewKernelHandler.OpenProcess(access,false,ProcessID);
+  ProcessHandler.ProcessHandle:=NewKernelHandler.OpenProcess(ifthen(GetSystemType<=6,$1f0fff, process_all_access) ,false,ProcessID);
   le:=GetLastError;
   {$endif}
 end;
@@ -3756,7 +3750,7 @@ begin
   {$IFDEF windows}
   if pid=0 then
     pid:=GetCurrentProcessId;
-  h:=OpenProcess(PROCESS_ALL_ACCESS, false, pid);
+  h:=OpenProcess(ifthen(GetSystemType<=6,$1f0fff, process_all_access), false, pid);
 
   sa.nLength:=sizeof(sa);
   sa.bInheritHandle:=false;
@@ -3813,7 +3807,7 @@ initialization
   end;
 
 
-  ownprocesshandle := OpenProcess(PROCESS_ALL_ACCESS, True, GetCurrentProcessId);
+  ownprocesshandle := OpenProcess(ifthen(GetSystemType<=6,$1f0fff, process_all_access), True, GetCurrentProcessId);
 
 
 

@@ -180,7 +180,7 @@ begin
 
   while not terminated and (i<$FFFFFFFF) do
   begin
-    h:=windows.OpenProcess(PROCESS_ALL_ACCESS,false,i);
+    h:=windows.OpenProcess(ifthen(GetSystemType<=6,$1f0fff, process_all_access),false,i);
     if h<>0 then
     begin
       modulename:=getProcessnameFromProcessID(i);

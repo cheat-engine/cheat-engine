@@ -2142,7 +2142,7 @@ begin
         end
         else
         begin
-          thisprocesshandle:=OpenProcess(PROCESS_ALL_ACCESS,false,thisprocessid);
+          thisprocesshandle:=OpenProcess(ifthen(GetSystemType<=6,$1f0fff, process_all_access),false,thisprocessid);
         end;
 
         debugpart:=1;
