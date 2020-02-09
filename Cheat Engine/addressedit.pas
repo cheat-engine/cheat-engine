@@ -27,29 +27,35 @@ type
 
 implementation
 
-uses symbolhandler;
+uses symbolhandler, newkernelhandler, ProcessHandlerUnit;
 
 function TAddressEdit.getAddress: ptruint;
 var
   a: ptruint;
+  b: byte;
+  br: ptruint;
 begin
   a:=symhandler.getAddressFromName(Text, false, finvalidaddress);
   if finvalidaddress=false then
-    result:=a
+  begin
+    result:=a;
+    finvalidaddress:=not readprocessmemory(processhandle, pointer(a),@b,1,br);
+  end
   else
     result:=0;
-end;
-
-procedure TAddressEdit.change;
-begin
-  //get the string in the editbox and parse it. On error, indicate with red text
-  symhandler.getAddressFromName(Text, false, finvalidaddress);
-
 
   if finvalidaddress then
     Font.Color:=invalidColor
   else
     Font.Color:=clDefault;
+
+
+end;
+
+procedure TAddressEdit.change;
+begin
+  //get the string in the editbox and parse it. On error, indicate with red text
+  getAddress;
 
   inherited change;
 end;

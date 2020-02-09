@@ -30,6 +30,7 @@ Hexview: Fixed changing the address when pressing a non char key
 Hexview: Fixed changing the address when doubleclicking and then canceling
 alloc with a prefered base is now more aggressive in getting the range you want
 fixed mono symbol lookup while dlls are still being loaded
+fixed the structure compare not giving a proper errormessage
 
 
 lua:

@@ -2124,6 +2124,8 @@ var baseaddress: ptruint;
   i,j: integer;
   LF: array of TAddressWithShadow;
   NLF: array of TAddressWithShadow;
+
+  s: string;
 begin
 
   if pointerfilereader<>nil then
@@ -2151,7 +2153,7 @@ begin
     if TAddressEdit(edtLF[i]).invalidAddress then raise exception.create(Format(rsInvalidGroup, [1, inttostr(i+1), TAddressEdit(edtLF[i]).text]));
 
     for j:=0 to i-1 do
-      if (lf[j].address=lf[i].address) and (lf[i].shadow=lf[j].shadow) then raise exception.create(Format(rsSameAddress, [TAddressEdit(edtLF[i])]));
+      if (lf[j].address=lf[i].address) and (lf[i].shadow=lf[j].shadow) then raise exception.create(Format(rsSameAddress, [TAddressEdit(edtLF[i]).text]));
   end;
 
   setlength(NLF, edtNLF.count);
@@ -2172,10 +2174,22 @@ begin
     if TAddressEdit(edtNLF[i]).invalidAddress then raise exception.create(Format(rsInvalidGroup, [2, inttostr(i+1), TAddressEdit(edtNLF[i]).text]));
 
     for j:=0 to i-1 do
-      if (nlf[j].address=nlf[i].address) and (nlf[i].shadow=nlf[j].shadow) then raise exception.create(Format(rsSameAddress, [TAddressEdit(edtLF[i])]));
+    begin
+      if (nlf[j].address=nlf[i].address) and (nlf[i].shadow=nlf[j].shadow) then
+      begin
+        s:=TAddressEdit(edtNLF[i]).text;
+        raise exception.create(Format(rsSameAddress, [s]));
+      end;
+    end;
 
     for j:=0 to length(lf)-1 do
-      if (lf[j].address=nlf[i].address) and (lf[i].shadow=nlf[j].shadow) then raise exception.create(Format(rsSameAddress, [TAddressEdit(edtLF[i])]));
+    begin
+      if (lf[j].address=nlf[i].address) and (lf[i].shadow=nlf[j].shadow) then
+      begin
+        s:=TAddressEdit(edtNLF[i]).text;
+        raise exception.create(Format(rsSameAddress, [s]));
+      end;
+    end;
   end;
 
   maxlevel:=strtoint(edtMaxLevel.text);
