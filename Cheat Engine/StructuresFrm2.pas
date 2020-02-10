@@ -5328,6 +5328,8 @@ var structlist, elementlist: Tstringlist;
   vtype:TVariableType;
 
   structlistform: TfrmDebugSymbolStructureList;
+
+  listformat: integer=0;
 begin
   {$ifdef windows}
   //get the list of structures
@@ -5335,7 +5337,7 @@ begin
   structlist:=tstringlist.create;
   elementlist:=tstringlist.create;
   try
-    symhandler.getStructureList(structlist);
+    listformat:=symhandler.getStructureList(structlist);
     if structlist.count=0 then exit;
 
     structlistform:=TfrmDebugSymbolStructureList.Create(self);
@@ -5344,9 +5346,15 @@ begin
 
 
     s:=structlistform.selected;
-    selected:=structlistform.selectedtext;
-
-    symhandler.getStructureElements(s.callbackid, s.moduleid, s.typeid, elementlist);
+    if listformat=0 then
+    begin
+      selected:=structlistform.selectedtext;
+      symhandler.getStructureElements(s.callbackid, s.moduleid, s.typeid, elementlist);
+    end
+    else
+    begin
+      symhandler.getStructureElementsFromName(structlistform.SelectedText, elementlist);
+    end;
 
     if elementlist.count>0 then
     begin
@@ -5368,19 +5376,25 @@ begin
       InitializeFirstNode;
       UpdateCurrentStructOptions;
     end;
-    //showmessage('not yet implemented. come back later');
+
+
 
   finally
     if structlistform<>nil then
       freeandnil(structlistform);
 
-    for i:=0 to structlist.count-1 do
-      if structlist.Objects[i]<>nil then
-         structlist.Objects[i].Free;
+    if listformat=0 then
+    begin
+      for i:=0 to structlist.count-1 do
+      begin
+        if structlist.Objects[i]<>nil then
+           structlist.Objects[i].Free;
+      end;
+    end;
 
     structlist.free;
 
-    if elementlist<>nil then
+    if (listformat=0) and (elementlist<>nil) then
       for i:=0 to elementlist.count-1 do
         if elementlist.Objects[i]<>nil then
            elementlist.Objects[i].Free;

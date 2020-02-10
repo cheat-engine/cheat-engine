@@ -14,13 +14,13 @@ object AdvancedOptions: TAdvancedOptions
   LCLVersion = '2.0.6.0'
   object Panel1: TPanel
     Left = 0
-    Height = 30
-    Top = 273
+    Height = 35
+    Top = 268
     Width = 571
     Align = alBottom
     AutoSize = True
     BevelOuter = bvNone
-    ClientHeight = 30
+    ClientHeight = 35
     ClientWidth = 571
     TabOrder = 0
     OnResize = Panel1Resize
@@ -31,7 +31,7 @@ object AdvancedOptions: TAdvancedOptions
       AnchorSideBottom.Control = Panel1
       AnchorSideBottom.Side = asrBottom
       Left = 248
-      Height = 20
+      Height = 25
       Top = 5
       Width = 75
       Anchors = [akTop, akLeft, akBottom]
@@ -97,10 +97,10 @@ object AdvancedOptions: TAdvancedOptions
       AnchorSideTop.Control = Panel2
       AnchorSideBottom.Control = Panel2
       AnchorSideBottom.Side = asrBottom
-      Left = 257
-      Height = 16
-      Top = 24
-      Width = 57
+      Left = 261
+      Height = 15
+      Top = 25
+      Width = 49
       Anchors = [akLeft, akBottom]
       Caption = 'Code list:'
       ParentColor = False
@@ -111,7 +111,7 @@ object AdvancedOptions: TAdvancedOptions
     AnchorSideBottom.Control = Panel1
     AnchorSideBottom.Side = asrBottom
     Left = 0
-    Height = 233
+    Height = 228
     Top = 40
     Width = 571
     Align = alClient
@@ -124,7 +124,7 @@ object AdvancedOptions: TAdvancedOptions
       end    
       item
         Caption = 'Name'
-        Width = 434
+        Width = 447
       end>
     ColumnClick = False
     DragMode = dmAutomatic
@@ -146,8 +146,8 @@ object AdvancedOptions: TAdvancedOptions
   object PopupMenu2: TPopupMenu
     Images = aoImageList
     OnPopup = PopupMenu2Popup
-    left = 112
-    top = 104
+    Left = 112
+    Top = 104
     object Openthedisassemblerhere1: TMenuItem
       Caption = 'Open the disassembler at this location'
       Default = True
@@ -217,23 +217,23 @@ object AdvancedOptions: TAdvancedOptions
     Filter = 'Exefile (*.exe)|*.exe'
     FilterIndex = 0
     Options = [ofFileMustExist, ofEnableSizing]
-    left = 24
-    top = 88
+    Left = 24
+    Top = 88
   end
   object SaveDialog1: TSaveDialog
     Filter = 'Standalone trainer (*.exe)|*.exe'
-    left = 88
-    top = 184
+    Left = 88
+    Top = 184
   end
   object Timer1: TTimer
     Enabled = False
     OnTimer = Timer1Timer
-    left = 104
-    top = 8
+    Left = 104
+    Top = 8
   end
   object aoImageList: TImageList
-    left = 278
-    top = 122
+    Left = 278
+    Top = 122
     Bitmap = {
       4C69070000001000000010000000FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
       FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
@@ -486,7 +486,7 @@ object AdvancedOptions: TAdvancedOptions
       'ColorS=F0FBFF'
       'ColorT=A4A0A0'
     )
-    left = 191
-    top = 76
+    Left = 191
+    Top = 76
   end
 end

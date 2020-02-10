@@ -2462,6 +2462,7 @@ Structure class related functions:
 getStructureCount(): Returns the number of Global structures. (Global structures are the visible structures)
 getStructure(index): Returns the Structure object at the given index
 createStructure(name): Returns an empty structure object (Not yet added to the Global list. Call structure.addToGlobalStructureList manually)
+createStructureFromName(string): If PDB files are loaded this will create a structure with that name if it can be found
 
 
 
