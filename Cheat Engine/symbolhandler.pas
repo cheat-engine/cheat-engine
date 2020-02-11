@@ -585,6 +585,7 @@ var
   waitingtime: dword;
 begin
   waitingtime:=0;
+  abandoned:=true;
   if waitingfrm<>nil then exit; //don't bother
 
 
@@ -667,7 +668,9 @@ begin
             abandoned:=true;
           end;
           break;
-        end;
+        end
+        else
+          abandoned:=false;
       end;
     end;
   end;
@@ -1771,14 +1774,6 @@ begin
 
   afste.waittilldone;
   result:=afste.address;
-
-  if afste.abandoned=false then
-  begin
-    symbolloaderthreadeventqueueCS.enter;
-    symbolloaderthreadeventqueue.Remove(afste);
-    freeandnil(afste);
-    symbolloaderthreadeventqueueCS.leave;
-  end;
 end;
 
 function TSymbolloaderthread.getSymbolFromAddress(address: ptruint): string;
@@ -1802,14 +1797,6 @@ begin
 
   sfate.waittilldone;
   result:=sfate.symbolname;
-
-  if sfate.abandoned=false then
-  begin
-    symbolloaderthreadeventqueueCS.enter;
-    symbolloaderthreadeventqueue.Remove(sfate);
-    freeandnil(sfate);
-    symbolloaderthreadeventqueueCS.leave;
-  end;
 end;
 
 procedure TSymbolloaderthread.getStructureFromName(structname: string; elements: tstringlist);
@@ -1829,14 +1816,6 @@ begin
   symbolloaderthreadeventevent.SetEvent;
 
   gsfnte.waittilldone;
-
-  if gsfnte.abandoned=false then
-  begin
-    symbolloaderthreadeventqueueCS.enter;
-    symbolloaderthreadeventqueue.Remove(gsfnte);
-    freeandnil(gsfnte);
-    symbolloaderthreadeventqueueCS.leave;
-  end;
 end;
 
 procedure TSymbolloaderthread.getStructureList(l: Tstringlist);
@@ -1854,15 +1833,6 @@ begin
   symbolloaderthreadeventevent.SetEvent;
 
   gslte.waittilldone;
-
-  if gslte.abandoned=false then
-  begin
-    symbolloaderthreadeventqueueCS.enter;
-    symbolloaderthreadeventqueue.Remove(gslte);
-    freeandnil(gslte);
-    symbolloaderthreadeventqueueCS.leave;
-  end;
-
 end;
 
 {$ifdef windows}
@@ -2266,15 +2236,17 @@ begin
       if te is TGetStructureListThreadEvent then
         teGetStructureList(TGetStructureListThreadEvent(te).list);
 
-
-      freemem(symbol);
       te.done.SetEvent;
+
       symbolloaderthreadeventqueueCS.enter;
       queueindex:=symbolloaderthreadeventqueue.IndexOf(te);
       if queueindex<>-1 then
         symbolloaderthreadeventqueue.Delete(queueindex);
 
       symbolloaderthreadeventqueueCS.leave;
+
+
+      te.free;
     end;
   end;
 end;
@@ -2599,7 +2571,6 @@ begin
 
 
 
-
               isloading:=false;
 
               while symbolloaderthreadeventqueue.Count>0 do
@@ -2619,11 +2590,10 @@ begin
               begin
                 while not terminated do
                 begin
-                  if symbolloaderthreadeventevent.waitfor(100)=wrsignaled then
-                  begin
-                    while symbolloaderthreadeventqueue.Count>0 do
-                      processThreadEvents;
-                  end;
+                  symbolloaderthreadeventevent.waitfor(100);
+
+                  while symbolloaderthreadeventqueue.Count>0 do
+                    processThreadEvents;
                 end;
               end;
 
@@ -3135,29 +3105,34 @@ begin
         dotNetDataCollector.connect(processid, processhandler.is64Bit);
       {$ENDIF}
 
-      symbolloadervalid.BeginWrite;
-      try
-        if symbolloaderthread<>nil then
-        begin
-          symbolloaderthread.Terminate;
+      if symbolloaderthread<>nil then
+      begin
+        symbolloaderthread.Terminate;
 
-          //OutputDebugString(pchar(inttostr(GetCurrentThreadId)+':Waiting'));
-          if symbolloaderthread.Finished=false then
-            symbolloaderthread.WaitFor; //wait till it's done
+        //OutputDebugString(pchar(inttostr(GetCurrentThreadId)+':Waiting'));
+        if symbolloaderthread.Finished=false then
+          symbolloaderthread.WaitFor; //wait till it's done
 
-          //OutputDebugString(pchar(inttostr(GetCurrentThreadId)+':Returned'));
+        //OutputDebugString(pchar(inttostr(GetCurrentThreadId)+':Returned'));
 
+
+        symbolloadervalid.BeginWrite;
+        try
           freeandnil(symbolloaderthread);
+        finally
+          symbolloadervalid.Endwrite;
         end;
-
-        symbolloaderthread:=tsymbolloaderthread.Create(self, targetself,true);
-        symbolloaderthread.kernelsymbols:=kernelsymbols;
-        symbolloaderthread.searchpath:=searchpath;
-        symbolloaderthread.symbollist:=symbollist;
-        symbolloaderthread.start;
-      finally
-        symbolloadervalid.EndWrite;
       end;
+
+      symbolloadervalid.BeginWrite;
+      symbolloaderthread:=tsymbolloaderthread.Create(self, targetself,true);
+      symbolloaderthread.kernelsymbols:=kernelsymbols;
+      symbolloaderthread.searchpath:=searchpath;
+      symbolloaderthread.symbollist:=symbollist;
+      symbolloadervalid.EndWrite;
+      symbolloaderthread.start;
+
+
     end;
   end;
 
