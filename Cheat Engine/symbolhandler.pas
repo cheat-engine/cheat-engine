@@ -585,7 +585,6 @@ var
   waitingtime: dword;
 begin
   waitingtime:=0;
-  abandoned:=true;
   if waitingfrm<>nil then exit; //don't bother
 
 
@@ -668,9 +667,7 @@ begin
             abandoned:=true;
           end;
           break;
-        end
-        else
-          abandoned:=false;
+        end;
       end;
     end;
   end;
@@ -1774,6 +1771,14 @@ begin
 
   afste.waittilldone;
   result:=afste.address;
+
+  if afste.abandoned=false then
+  begin
+    symbolloaderthreadeventqueueCS.enter;
+    symbolloaderthreadeventqueue.Remove(afste);
+    freeandnil(afste);
+    symbolloaderthreadeventqueueCS.leave;
+  end;
 end;
 
 function TSymbolloaderthread.getSymbolFromAddress(address: ptruint): string;
@@ -1797,6 +1802,14 @@ begin
 
   sfate.waittilldone;
   result:=sfate.symbolname;
+
+  if sfate.abandoned=false then
+  begin
+    symbolloaderthreadeventqueueCS.enter;
+    symbolloaderthreadeventqueue.Remove(sfate);
+    freeandnil(sfate);
+    symbolloaderthreadeventqueueCS.leave;
+  end;
 end;
 
 procedure TSymbolloaderthread.getStructureFromName(structname: string; elements: tstringlist);
@@ -1816,6 +1829,14 @@ begin
   symbolloaderthreadeventevent.SetEvent;
 
   gsfnte.waittilldone;
+
+  if gsfnte.abandoned=false then
+  begin
+    symbolloaderthreadeventqueueCS.enter;
+    symbolloaderthreadeventqueue.Remove(gsfnte);
+    freeandnil(gsfnte);
+    symbolloaderthreadeventqueueCS.leave;
+  end;
 end;
 
 procedure TSymbolloaderthread.getStructureList(l: Tstringlist);
@@ -1833,6 +1854,15 @@ begin
   symbolloaderthreadeventevent.SetEvent;
 
   gslte.waittilldone;
+
+  if gslte.abandoned=false then
+  begin
+    symbolloaderthreadeventqueueCS.enter;
+    symbolloaderthreadeventqueue.Remove(gslte);
+    freeandnil(gslte);
+    symbolloaderthreadeventqueueCS.leave;
+  end;
+
 end;
 
 {$ifdef windows}
@@ -2236,17 +2266,21 @@ begin
       if te is TGetStructureListThreadEvent then
         teGetStructureList(TGetStructureListThreadEvent(te).list);
 
-      te.done.SetEvent;
+
+      freemem(symbol);
 
       symbolloaderthreadeventqueueCS.enter;
       queueindex:=symbolloaderthreadeventqueue.IndexOf(te);
       if queueindex<>-1 then
+      begin
         symbolloaderthreadeventqueue.Delete(queueindex);
 
+        if te.abandoned then
+          te.free
+        else
+          te.done.SetEvent;
+      end;
       symbolloaderthreadeventqueueCS.leave;
-
-
-      te.free;
     end;
   end;
 end;
@@ -2568,6 +2602,7 @@ begin
               processThreadEvents;
 
               debugpart:=3;
+
 
 
 
