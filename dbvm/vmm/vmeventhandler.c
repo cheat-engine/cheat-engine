@@ -3977,7 +3977,7 @@ int handleVMEvent(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, FXSAVE64 *f
 		{
 		  //currently not supported
       ddDrawRectangle(0,DDVerticalResolution-100,100,100,0xff0000);
-      while (1);
+      //while (1);
 
 		  sendstring("GETSEC\n\r");
 		  raiseInvalidOpcodeException(currentcpuinfo);
@@ -4061,7 +4061,9 @@ int handleVMEvent(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, FXSAVE64 *f
     case 0xce01:
 		{
 		  ddDrawRectangle(0,DDVerticalResolution-100,100,100,0xff0000);
-		  while (1);
+		  //while (1);
+
+		  //jtagbp
 
 			sendstring("VMX instruction called...\n\r");
 			return handleIntelVMXInstruction(currentcpuinfo, vmregisters);

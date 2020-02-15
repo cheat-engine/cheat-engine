@@ -1576,19 +1576,28 @@ int _handleVMCallInstruction(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, 
       break;
     }
 
-    /*
+
     case VMCALL_CLOAKEX_ACTIVATE:
     {
-      //same as cloak but lets you specify a small section of the page
+      //same as cloak but lets you specify a small section of the page, and also data cloaks and a filter to see who should see/access the original
       if (hasEPTsupport)
+      {
+        /*
         vmregisters->rax=ept_cloakex_activate(((PVMCALL_CLOAKEX_ACTIVATE_PARAM)vmcall_instruction)->physicalAddress,
-                                              ((PVMCALL_CLOAKEX_ACTIVATE_PARAM)vmcall_instruction)->size);
+                                              ((PVMCALL_CLOAKEX_ACTIVATE_PARAM)vmcall_instruction)->size,
+                                              ((PVMCALL_CLOAKEX_ACTIVATE_PARAM)vmcall_instruction)->whitelist_ipfromrange,
+                                              ((PVMCALL_CLOAKEX_ACTIVATE_PARAM)vmcall_instruction)->whitelist_iptorange,
+                                              ((PVMCALL_CLOAKEX_ACTIVATE_PARAM)vmcall_instruction)->whitelist_cr3,
+                                              ((PVMCALL_CLOAKEX_ACTIVATE_PARAM)vmcall_instruction)->whitelist_flags);
+*/
+
+      }
       else
         vmregisters->rax=0xcedead;
 
       break;
     }
-
+    /*
     case VMCALL_CLOAK_ADDTOWHITELIST:
     {
       //whitelists a CR3 and/or RIP (
@@ -1705,6 +1714,8 @@ int _handleVMCallInstruction(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, 
 
     case VMCALL_LOG_CR3VALUES_START:
     {
+
+      //Todo: When CR3 exiting has been disabled, add an enable exit on CR3 change
 
       if (CR3ValueLog)
       {

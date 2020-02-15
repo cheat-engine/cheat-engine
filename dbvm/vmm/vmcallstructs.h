@@ -80,6 +80,17 @@ typedef struct
 {
   VMCALL_BASIC vmcall;
   QWORD physicalAddress;
+  DWORD size;
+  DWORD whitelist_flags; //0=no whitelist...why?, 1=ip range whitelist, 2=cr3 whilelist, 3=both ip+cr3 whitelist
+  QWORD whitelist_ipfromrange;
+  QWORD whitelist_iptorange;
+  QWORD whitelist_cr3;
+} __attribute__((__packed__)) VMCALL_CLOAKEX_ACTIVATE_PARAM, *PVMCALL_CLOAKEX_ACTIVATE_PARAM;
+
+typedef struct
+{
+  VMCALL_BASIC vmcall;
+  QWORD physicalAddress;
   QWORD destination;
 } __attribute__((__packed__)) VMCALL_CLOAK_READ_PARAM, *PVMCALL_CLOAK_READ_PARAM;
 
