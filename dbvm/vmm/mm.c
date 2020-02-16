@@ -10,6 +10,7 @@ Just used for basic initialization allocation, frees shouldn't happen too often
 #include "multicore.h"
 #include "common.h"
 #include "vmmhelper.h"
+#include "displaydebug.h"
 
 //#define sendstringf(s,x...)
 //#define sendstring(s)
@@ -359,7 +360,7 @@ int mmFindMapPositionForSize(pcpuinfo cpuinfo, int size)
         j++;
 
         if (j>=1024)
-          break; //not enough space left
+          return -1;
       }
 
       if (needed==0)
@@ -585,6 +586,7 @@ void unmapPhysicalMemoryGlobal(void *virtualaddress, int size)
   else
   {
     sendstringf("invalid global address (%6) given to unmapPhysicalMemoryGlobal\n",virtualaddress);
+    ddDrawRectangle(0,DDVerticalResolution-100,100,100,0xff0000);
     while (1);
   }
 
@@ -608,6 +610,7 @@ void unmapPhysicalMemory(void *virtualaddress, int size)
   if ((pos<0) || (pos>1024))
   {
     sendstringf("%d: invalid address given to unmapPhysicalMemory (%6)\n",c->cpunr, virtualaddress);
+    ddDrawRectangle(0,DDVerticalResolution-100,100,100,0xff0000);
     while (1);
   }
 
@@ -743,6 +746,7 @@ void *addPhysicalPageToDBVM(QWORD address)
   if (pagetableentry->P)
   {
     sendstringf("Assertion failure. Virtual address %6 was already present\n", VirtualAddress);
+    ddDrawRectangle(0,DDVerticalResolution-100,100,100,0xff0000);
     while (1);
   }
 
@@ -974,6 +978,8 @@ void *malloc2(unsigned int size)
   }
 
   sendstring("OUT OF MEMORY\n");
+  ddDrawRectangle(0,DDVerticalResolution-100,100,100,0xff0000);
+
   while (1)
     jtagbp();
 
@@ -1117,6 +1123,7 @@ void *realloc(void *old, size_t size)
   else
   {
     sendstringf("realloc error\n");
+    ddDrawRectangle(0,DDVerticalResolution-100,100,100,0xff0000);
     while (1) ;
   }
 }
@@ -1227,6 +1234,7 @@ void InitializeMM(UINT64 FirstFreeVirtualAddress)
   if (pagedirlvl4[pml4index].P) //pml4index should be 511
   {
     sendstring("Assertion failed. pagedirlvl4[pml4index].P is not 0. It should be\n");
+    ddDrawRectangle(0,DDVerticalResolution-100,100,100,0xff0000);
     while (1);
   }
   *(QWORD*)(&pagedirlvl4[pml4index])=getCR3();

@@ -12,7 +12,7 @@ object frmStructures2: TfrmStructures2
   OnDestroy = FormDestroy
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '2.0.0.4'
+  LCLVersion = '2.0.6.0'
   object tvStructureView: TTreeView
     AnchorSideLeft.Control = Owner
     AnchorSideTop.Control = HeaderControl1
@@ -95,7 +95,7 @@ object frmStructures2: TfrmStructures2
   end
   object MainMenu1: TMainMenu
     Images = sdImageList
-    left = 512
+    Left = 512
     object File1: TMenuItem
       Caption = 'File'
       object miNewWindow: TMenuItem
@@ -305,8 +305,8 @@ object frmStructures2: TfrmStructures2
   object pmStructureView: TPopupMenu
     Images = sdImageList
     OnPopup = pmStructureViewPopup
-    left = 48
-    top = 120
+    Left = 48
+    Top = 120
     object miChangeValue: TMenuItem
       Caption = 'Change value'
       ImageIndex = 5
@@ -479,44 +479,44 @@ object frmStructures2: TfrmStructures2
   object updatetimer: TTimer
     Interval = 500
     OnTimer = updatetimerTimer
-    left = 264
-    top = 80
+    Left = 264
+    Top = 80
   end
   object OpenDialog1: TOpenDialog
     DefaultExt = '.CSX'
     Filter = 'Cheat Engine structure files (*.CES;*.CSX)|*.CES;*.CSX;*.XML|All Files (*.*)|*.*'
-    left = 48
-    top = 192
+    Left = 48
+    Top = 192
   end
   object SaveDialog1: TSaveDialog
     DefaultExt = '.CSX'
     Filter = 'Cheat Engine structure files (*.CSX)|*.CSX|All Files (*.*)|*.*'
     Options = [ofOverwritePrompt, ofHideReadOnly, ofEnableSizing]
-    left = 152
-    top = 192
+    Left = 152
+    Top = 192
   end
   object saveValues: TSaveDialog
     DefaultExt = '.txt'
     Filter = 'Text Files (*.txt)|*.txt'
-    left = 152
-    top = 264
+    Left = 152
+    Top = 264
   end
   object FindDialog1: TFindDialog
     Options = [frDown, frDisableWholeWord, frHideEntireScope]
     OnFind = FindDialog1Find
-    left = 152
-    top = 128
+    Left = 152
+    Top = 128
   end
   object tmFixGui: TTimer
     Interval = 100
     OnTimer = tmFixGuiTimer
-    left = 360
-    top = 84
+    Left = 360
+    Top = 84
   end
   object sdImageList: TImageList
     Scaled = True
-    left = 318
-    top = 272
+    Left = 318
+    Top = 272
     Bitmap = {
       4C69140000001000000010000000C47B27FFE08D2CFFE08D2CFFE08D2CFFE08D
       2CFFE08D2CFFE08D2CFFE08D2CFFE08D2CFFE0872CFFE0832CFFE0892CFFE082

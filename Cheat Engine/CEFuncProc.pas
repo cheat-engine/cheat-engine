@@ -1473,6 +1473,7 @@ begin
   {$endif}
 end;
 
+var cachedSystemType: integer=-1;
 function GetSystemType: Integer;  //from Stuart Johnson with a little change by me
 const
  { operating system constants }
@@ -1495,6 +1496,9 @@ var
 
 begin
  {$IFDEF windows}
+ if cachedSystemType<>-1 then
+   exit(cachedSystemType);
+
    if overridedebug then
    begin
      result:=cOsWinXP;
@@ -1551,7 +1555,9 @@ begin
   {$else}
 
   result:=cOsUnknown;
+
  {$ENDIF}
+  cachedSystemType:=result;
 end;
 
 
@@ -2124,7 +2130,7 @@ end;
 procedure Open_Process;
 begin
   {$ifndef netclient}
-  ProcessHandler.ProcessHandle:=NewKernelHandler.OpenProcess(PROCESS_ALL_ACCESS,false,ProcessID);
+  ProcessHandler.ProcessHandle:=NewKernelHandler.OpenProcess(ifthen(GetSystemType<=6,$1f0fff, process_all_access) ,false,ProcessID);
   le:=GetLastError;
   {$endif}
 end;
@@ -3744,7 +3750,7 @@ begin
   {$IFDEF windows}
   if pid=0 then
     pid:=GetCurrentProcessId;
-  h:=OpenProcess(PROCESS_ALL_ACCESS, false, pid);
+  h:=OpenProcess(ifthen(GetSystemType<=6,$1f0fff, process_all_access), false, pid);
 
   sa.nLength:=sizeof(sa);
   sa.bInheritHandle:=false;
@@ -3801,7 +3807,7 @@ initialization
   end;
 
 
-  ownprocesshandle := OpenProcess(PROCESS_ALL_ACCESS, True, GetCurrentProcessId);
+  ownprocesshandle := OpenProcess(ifthen(GetSystemType<=6,$1f0fff, process_all_access), True, GetCurrentProcessId);
 
 
 

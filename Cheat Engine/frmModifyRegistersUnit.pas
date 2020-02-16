@@ -6,17 +6,56 @@ interface
 
 uses
   {$ifdef darwin}
+  macport,
   {$endif}
   {$ifdef windows}
-  DBK32functions, vmxfunctions,
+  windows, DBK32functions, vmxfunctions,
   {$endif}
   LCLIntf, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, CEDebugger, debughelper, KernelDebugger, CEFuncProc,
-  NewKernelHandler, symbolhandler, LResources, ExtCtrls,  math;
+  NewKernelHandler, symbolhandler, LResources, ExtCtrls, ComCtrls,  math,
+  BreakpointTypeDef;
 
 type
 
   { TfrmModifyRegisters }
+  TChangeRegFloatPanel=class(TPanel)
+  private
+    id: integer;
+    lbl: tlabel;
+    edt: Tedit;
+  public
+    constructor Create(AOwner: TComponent; id: integer);
+  end;
+
+  TChangeRegXMMPanelEdit=class(TPanel)
+  private
+    lblstart: tlabel;
+    lblstop: tlabel;
+    edt: tedit;
+  public
+    procedure setrange(start, stop: integer);
+    constructor Create(AOwner: TComponent; initialid: integer);
+  end;
+
+  TChangeRegXMMPanel=class(TGroupbox)
+  private
+    id: integer;
+    tc: TTabControl;
+    pnl: TPanel;
+    Edits: array [0..3] of TChangeRegXMMPanelEdit;
+    procedure tabchange(Sender: TObject);
+    function getField(index: integer): dword;
+    function usesDouble: boolean;
+    procedure setDouble(state: boolean);
+  public
+    function getEditMask: qword;
+    procedure fixdimensions;
+    property field[index: integer]: dword read getField;
+    property Double: boolean read usesDouble write setDouble;
+    constructor Create(AOwner: TComponent; id: integer);
+  end;
+
 
   TfrmModifyRegisters = class(TForm)
     Button1: TButton;
@@ -28,6 +67,7 @@ type
     cbSF: TCheckBox;
     cbZF: TCheckBox;
     cbUseDBVM: TCheckBox;
+    cbChangeExt: TCheckBox;
     edtPA: TEdit;
     edtEAX: TEdit;
     edtEBP: TEdit;
@@ -70,15 +110,27 @@ type
     Panel2: TPanel;
     Panel3: TPanel;
     Panel4: TPanel;
+    procedure cbChangeExtChange(Sender: TObject);
     procedure cbUseDBVMChange(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure Button1Click(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormResize(Sender: TObject);
     procedure FormShow(Sender: TObject);
+    procedure ScrollBox1Click(Sender: TObject);
   private
     { Private declarations }
     address:ptrUint;
+    ExtScrollbox: TScrollbox;
+
+    FloatPanel: TPanel;
+    XMMPanel: TPanel;
+
+    floats: array [0..7] of TChangeRegFloatPanel;
+    xmms: array [0..15] of TChangeRegXMMPanel;
+
+    hasExistingBP: boolean;
+    currentbp: TBreakpoint;
   public
     { Public declarations }
     constructor create(AOwner:tcomponent;address:ptrUint); overload;
@@ -90,7 +142,7 @@ var
 implementation
 
 uses formsettingsunit, MemoryBrowserFormUnit, debuggertypedefinitions,
-  ProcessHandlerUnit, DPIHelper, BreakpointTypeDef;
+  ProcessHandlerUnit, DPIHelper, frmFloatingPointPanelUnit;
 
 resourcestring
   rsModifyRegistersSAt = 'Modify registers(s) at %s';
@@ -109,11 +161,10 @@ begin
   begin
     x:=debuggerthread.isBreakpoint(address);
 
-    if x<>nil then
+    if (x<>nil) and (x.breakpointAction=bo_ChangeRegister) then
     begin
-
-
-      //find the address in debuggerthread.registermodificationBPs
+      hasExistingBP:=true; //so onshow can create the fpu screen
+      currentbp:=x^;
 
       if x.changereg.change_eax then
         edtEAX.Text:=inttohex(x.changereg.new_eax,8);
@@ -186,6 +237,7 @@ begin
 
       if x.changereg.change_of then
         cbOF.checked:=x.changereg.new_of;
+
     end;
 
 
@@ -222,6 +274,316 @@ begin
   {$endif}
 end;
 
+constructor TChangeRegFloatPanel.Create(AOwner: TComponent; id: integer);
+begin
+  inherited create(Aowner);
+
+  self.id:=id;
+  lbl:=tlabel.Create(self);
+  edt:=tedit.create(self);
+  lbl.parent:=self;
+  edt.parent:=self;
+
+  lbl.anchorsideTop.Control:=self;
+  lbl.anchorsidetop.Side:=asrTop;
+  lbl.AnchorSideLeft.Control:=self;
+  lbl.AnchorSideLeft.Side:=asrLeft;
+  lbl.Caption:='FP('+inttostr(id)+')';
+
+  edt.anchorsideTop.Control:=lbl;
+  edt.anchorsidetop.side:=asrBottom;
+  edt.AnchorSideLeft.Control:=self;
+  edt.AnchorSideLeft.side:=asrLeft;
+
+  BevelOuter:=bvnone;
+
+  autosize:=true;
+end;
+
+procedure TChangeRegXMMPanelEdit.setrange(start,stop: integer);
+begin
+  lblstart.caption:=inttostr(start);
+  lblstop.caption:=inttostr(stop);
+end;
+
+constructor TChangeRegXMMPanelEdit.create(AOwner: TComponent; initialid: integer);
+begin
+  inherited create(AOwner);
+
+  lblstart:=tlabel.create(self);
+  lblstop:=tlabel.create(self);
+  edt:=tedit.create(self);;
+
+  lblstart.anchorsidetop.control:=self;
+  lblstart.anchorsidetop.side:=asrTop;
+  lblstart.anchorsideleft.control:=self;
+  lblstart.anchorsideleft.side:=asrLeft;
+
+  edt.anchorsidetop.control:=lblstart;
+  edt.anchorsidetop.side:=asrBottom;
+  edt.anchorsideleft.control:=self;
+  edt.anchorsideleft.side:=asrLeft;
+
+  lblstop.anchorsidetop.control:=self;
+  lblstop.anchorsidetop.side:=asrTop;
+  lblstop.anchorsideright.control:=edt;
+  lblstop.anchorsideright.side:=asrRight;
+
+  lblstop.Anchors:=[akTop, akRight];
+
+  lblstart.parent:=self;
+  lblstop.parent:=self;
+  edt.parent:=self;
+
+  //color:=clblue;
+
+  BevelOuter:=bvnone;
+
+  autosize:=true;
+
+  setrange(initialid*32,(initialid+1)*32-1);
+end;
+
+function TChangeRegXMMPanel.getField(index: integer): dword;
+var
+  d: dword;
+  f: single absolute d;
+
+  q: qword;
+  dbl: double absolute q;
+begin
+  if tc.TabIndex=0 then
+  begin
+    f:=StrToFloat(trim(edits[index].edt.Text));
+    result:=d;
+  end
+  else
+  begin
+    if index<=1 then
+    begin
+      dbl:=StrToFloat(trim(edits[0].edt.Text));
+      if index=0 then
+        result:=q
+      else
+        result:=q shr 32;
+    end
+    else
+    begin
+      dbl:=StrToFloat(trim(edits[1].edt.Text));
+      if index=2 then
+        result:=q
+      else
+        result:=q shr 32;
+    end;
+
+
+  end;
+end;
+
+function TChangeRegXMMPanel.usesDouble;
+begin
+  result:=tc.tabindex=1;
+end;
+
+procedure TChangeRegXMMPanel.setDouble(state: boolean);
+begin
+  if state then
+    tc.tabindex:=1
+  else
+    tc.tabindex:=0;
+
+  tc.onchange(tc);
+end;
+
+function TChangeRegXMMPanel.getEditMask;
+var
+  mask: qword;
+begin
+  mask:=0;
+  if tc.tabindex=0 then
+  begin
+    if trim(edits[0].edt.Text)<>'' then mask:=mask or 1;
+    if trim(edits[1].edt.Text)<>'' then mask:=mask or 2;
+    if trim(edits[2].edt.Text)<>'' then mask:=mask or 4;
+    if trim(edits[3].edt.Text)<>'' then mask:=mask or 8;
+  end
+  else
+  begin
+    if trim(edits[0].edt.Text)<>'' then mask:=mask or 1 or 2;
+    if trim(edits[1].edt.Text)<>'' then mask:=mask or 4 or 8;
+  end;
+
+  mask:=mask shl (4*id);
+
+  result:=mask;
+end;
+
+procedure TChangeRegXMMPanel.fixdimensions;
+var i: integer;
+begin
+  DoAutoSize;
+  for i:=0 to 3 do
+    edits[i].DoAutoSize;
+
+  i:=edits[3].left+edits[3].Width;
+  tc.ClientWidth:=i+4;
+  pnl.Width:=i;
+
+  width:=i;
+  i:=edits[0].height;
+  tc.clientheight:=pnl.top+i+3;
+  height:=i;
+end;
+
+procedure TChangeRegXMMPanel.tabchange(sender: tobject);
+begin
+  edits[2].Visible:=tc.tabindex=0;
+  edits[3].Visible:=tc.tabindex=0;
+  if tc.tabindex=0 then
+  begin
+    edits[0].setrange(0,31);
+    edits[1].setrange(32,63);
+  end
+  else
+  begin
+    edits[0].setrange(0,63);
+    edits[1].setrange(63,127);
+  end;
+end;
+
+constructor TChangeRegXMMPanel.Create(AOwner: TComponent; id: integer);
+var
+  i: integer;
+begin
+  inherited create(AOwner);
+  self.id:=id;
+  caption:='XMM'+inttostr(id);
+
+  tc:=ttabcontrol.Create(self);
+  tc.parent:=self;
+  tc.Tabs.add('Float');
+  tc.Tabs.add('Double');
+  tc.TabIndex:=0;
+
+  tc.OnChange:=tabchange;
+
+  pnl:=tpanel.Create(tc);
+  pnl.parent:=tc;
+  //pnl.color:=clAqua;
+  pnl.align:=alClient;
+
+  for i:=0 to 3 do
+  begin
+    edits[i]:=TChangeRegXMMPanelEdit.Create(pnl,i);
+    edits[i].parent:=pnl;
+  end;
+
+
+  pnl.ChildSizing.ControlsPerLine:=4;
+  pnl.ChildSizing.Layout:=cclLeftToRightThenTopToBottom;
+  pnl.ChildSizing.HorizontalSpacing:=3;
+end;
+
+procedure TfrmModifyRegisters.cbChangeExtChange(Sender: TObject);
+var i: integer;
+  is64: boolean;
+begin
+  if ExtScrollbox=nil then
+  begin
+    ExtScrollbox:=TScrollbox.create(self);
+    ExtScrollbox.Parent:=self;
+    ExtScrollbox.Width:=400;
+    ExtScrollbox.Height:=200;
+
+    FloatPanel:=TPanel.Create(ExtScrollbox);
+    FloatPanel.parent:=ExtScrollBox;
+
+    FloatPanel.AnchorSideTop.Control:=extScrollbox;
+    FloatPanel.AnchorSideTop.Side:=asrTop;
+    FloatPanel.AnchorSideLeft.Control:=ExtScrollbox;
+    FloatPanel.AnchorSideLeft.Side:=asrLeft;
+    FloatPanel.BevelOuter:=bvNone;
+    //FloatPanel.color:=clred;
+
+
+    XMMPanel:=TPanel.create(ExtScrollbox);
+    XMMPanel.parent:=ExtScrollBox;
+    //XMMPanel.color:=clgreen;
+    XMMPanel.BevelOuter:=bvNone;
+
+    for i:=0 to 7 do
+    begin
+      floats[i]:=TChangeRegFloatPanel.Create(FloatPanel, i);
+      floats[i].parent:=floatpanel;
+    end;
+
+    floatpanel.ChildSizing.ControlsPerLine:=4;
+    floatpanel.ChildSizing.HorizontalSpacing:=3;
+    floatpanel.ChildSizing.VerticalSpacing:=3;
+    floatpanel.ChildSizing.Layout:=cclLeftToRightThenTopToBottom;
+
+    FloatPanel.autosize:=true;
+
+
+    XMMPanel.anchorsidetop.control:=FloatPanel;
+    XMMPanel.anchorsidetop.side:=asrBottom;
+
+    for i:=0 to 15 do
+    begin
+      xmms[i]:=TChangeRegXMMPanel.Create(XMMPanel, i);
+      xmms[i].parent:=XMMPanel;
+      xmms[i].fixdimensions;
+    end;
+
+    XMMPanel.ChildSizing.ControlsPerLine:=1;
+    XMMPanel.ChildSizing.VerticalSpacing:=1;
+    XMMPanel.ChildSizing.Layout:=cclLeftToRightThenTopToBottom;
+    XMMPanel.AutoSize:=true;
+
+    ExtScrollbox.AnchorSideTop.Control:=self;
+    ExtScrollbox.AnchorSideTop.Side:=asrTop;
+    ExtScrollbox.AnchorSideRight.Control:=self;
+    ExtScrollbox.AnchorSideRight.Side:=asrRight;
+    ExtScrollbox.AnchorSideBottom.Control:=panel1;
+    ExtScrollbox.AnchorSideBottom.Side:=asrTop;
+    ExtScrollbox.Anchors:=[akTop, akRight, akBottom];
+
+    ExtScrollbox.ClientWidth:=max(FloatPanel.Width, xmmpanel.width);
+
+    ExtScrollbox.VertScrollBar.Tracking:=true;
+    //ExtScrollbox.AutoSize:=true;
+
+    width:=width+ExtScrollbox.Width;
+
+  end;
+
+  if cbChangeExt.Checked then
+  begin
+    panel1.AnchorSideTop.control:=nil;
+    panel1.AnchorSideBottom.control:=self;
+    panel1.AnchorSideBottom.Side:=asrBottom;
+
+    panel1.Anchors:=[akLeft, akBottom];
+    ExtScrollbox.visible:=true;
+
+    is64:=processhandler.is64Bit;
+    for i:=8 to 15 do
+      xmms[i].Visible:=is64;
+  end
+  else
+  begin
+    ExtScrollbox.visible:=false;
+    panel1.AnchorSideTop.control:=cbChangeExt;
+    panel1.AnchorSideBottom.control:=nil;
+    panel1.Anchors:=[akLeft, akTop];
+
+
+  end;
+
+  OnResize(self);
+  //DoAutoSize;
+end;
+
 
 procedure TfrmModifyRegisters.Button1Click(Sender: TObject);
 var
@@ -232,6 +594,16 @@ var
   {$endif}
   PA: qword;
   bpid: integer;
+  d: double;
+  e: extended;
+  mask: qword;
+
+  xfields: TXMMFIELDS;
+  i,j: integer;
+
+  bp: PBreakpoint;
+  bo: integer;
+  ob: byte;
 begin
   tempregedit.address:=address;
   tempregedit.change_eax:=edtEAX.text<>'';
@@ -287,13 +659,75 @@ begin
   if tempregedit.change_sf then tempregedit.new_sf:=cbSF.checked;
   if tempregedit.change_of then tempregedit.new_of:=cbOF.checked;
 
+  tempregedit.change_FP:=0;
+  if cbChangeExt.checked then
+    for i:=0 to 7 do
+    begin
+      if trim(floats[i].edt.Text)<>'' then
+      begin
+        tempregedit.change_FP:=tempregedit.change_FP or (1 shl i);
+        {$ifdef cpu64}
+        d:=StrToFloat(trim(floats[i].edt.Text));
+        doubletoextended(@d,pointer(ptruint(@tempregedit.new_FP0)+16*i));
+        {$else}
+        e:=StrToFloat(trim(floats[i].edt.Text));
+        copymemory(pointer(ptruint(@tempregedit.new_FP0)+16*i),@e,10);
+        {$endif}
+      end;
+    end;
+
+  tempregedit.change_XMM:=0;
+  tempregedit.usesDouble:=0;
+
+  if cbChangeExt.checked then
+    for i:=0 to {$ifdef cpu64}15{$else}7{$endif} do
+    begin
+      if xmms[i].Double then
+        tempregedit.usesDouble:=tempregedit.usesDouble or (1 shl i);
+
+      mask:=xmms[i].getEditMask;
+      tempregedit.change_XMM:=tempregedit.change_XMM or mask;
+
+      if mask<>0 then
+      begin
+        for j:=0 to 3 do
+        begin
+          if ((mask shr (i*4)) and (1 shl j))>0 then
+            xfields[j]:=xmms[i].field[j]
+          else
+            xfields[j]:=0;
+        end;
+
+
+        copymemory(pointer(ptruint(@tempregedit.new_XMM0)+sizeof(TXMMFIELDS)*i), @xfields[0],sizeof(TXMMFIELDS));
+      end;
+
+
+    end;
   {$ifdef windows}
+
+
+  if debuggerthread<>nil then
+  begin
+    //remove the old one
+    debuggerthread.lockbplist;
+
+    bp:=debuggerthread.isBreakpoint(address);
+    if bp<>nil then
+      debuggerthread.RemoveBreakpoint(bp);
+
+    debuggerthread.unlockbplist;
+  end;
 
   if cbUseDBVM.checked then
   begin
     if loaddbvmifneeded('Launch DBVM?') then
     begin
+      if dbvm_isBreakpoint(address,pa, bo,ob) then
+        dbvm_cloak_removechangeregonbp(pa);
+
       pa:=strtoint64('$'+edtPA.text);
+
 
       //convert to a changereginfo
       changereginfo.Flags.changeRAX:=ifthen(tempregedit.change_eax,1,0);
@@ -357,6 +791,39 @@ begin
       changereginfo.newR14:=tempregedit.new_r14;
       changereginfo.newR15:=tempregedit.new_r15;
 {$endif}
+
+      changereginfo.changeXMM:=tempregedit.change_XMM; //16 nibbles, each bit is one dword
+      changereginfo.changeFP:=tempregedit.change_FP;
+
+
+      copymemory(@changereginfo.newFP0, @tempregedit.new_FP0, 16);
+      copymemory(@changereginfo.newFP1, @tempregedit.new_FP1, 16);
+      copymemory(@changereginfo.newFP2, @tempregedit.new_FP2, 16);
+      copymemory(@changereginfo.newFP3, @tempregedit.new_FP3, 16);
+      copymemory(@changereginfo.newFP4, @tempregedit.new_FP4, 16);
+      copymemory(@changereginfo.newFP5, @tempregedit.new_FP5, 16);
+      copymemory(@changereginfo.newFP6, @tempregedit.new_FP6, 16);
+      copymemory(@changereginfo.newFP7, @tempregedit.new_FP7, 16);
+
+      copymemory(@changereginfo.XMM0, @tempregedit.new_XMM0[0], 16);
+      copymemory(@changereginfo.XMM1, @tempregedit.new_XMM1[0], 16);
+      copymemory(@changereginfo.XMM2, @tempregedit.new_XMM2[0], 16);
+      copymemory(@changereginfo.XMM3, @tempregedit.new_XMM3[0], 16);
+      copymemory(@changereginfo.XMM4, @tempregedit.new_XMM4[0], 16);
+      copymemory(@changereginfo.XMM5, @tempregedit.new_XMM5[0], 16);
+      copymemory(@changereginfo.XMM6, @tempregedit.new_XMM6[0], 16);
+      copymemory(@changereginfo.XMM7, @tempregedit.new_XMM7[0], 16);
+
+      {$ifdef cpu64}
+      copymemory(@changereginfo.XMM8, @tempregedit.new_XMM8[0], 16);
+      copymemory(@changereginfo.XMM9, @tempregedit.new_XMM9[0], 16);
+      copymemory(@changereginfo.XMM10, @tempregedit.new_XMM10[0], 16);
+      copymemory(@changereginfo.XMM11, @tempregedit.new_XMM11[0], 16);
+      copymemory(@changereginfo.XMM12, @tempregedit.new_XMM12[0], 16);
+      copymemory(@changereginfo.XMM13, @tempregedit.new_XMM13[0], 16);
+      copymemory(@changereginfo.XMM14, @tempregedit.new_XMM14[0], 16);
+      copymemory(@changereginfo.XMM15, @tempregedit.new_XMM15[0], 16);
+      {$endif}
 
       log('Calling dbvm_cloak_changeregonbp');
       if dbvm_cloak_changeregonbp(PA, changereginfo, address)<>0 then
@@ -424,7 +891,11 @@ begin
   BeginUpdateBounds;
   LockRealizeBounds;
 
-  d:=clientwidth-(panel3.Left+panel3.width);
+  if cbChangeExt.checked then
+    d:=clientwidth-ExtScrollbox.Width-(panel3.Left+panel3.width)
+  else
+    d:=clientwidth-(panel3.Left+panel3.width);
+
   edtEAX.Width:=edtEAX.Width+d;
 
 
@@ -433,6 +904,15 @@ begin
 end;
 
 procedure TfrmModifyRegisters.FormShow(Sender: TObject);
+var
+  i,j: integer;
+  pex: PExtended;
+  d: double;
+  n: byte;
+
+  xmmp: PXMMFIELDS;
+
+  pd: pdouble;
 begin
   if not processhandler.is64Bit then
   begin
@@ -453,11 +933,76 @@ begin
     edtR13.visible:=false;
     edtR14.visible:=false;
     edtR15.visible:=false;
+
+
+
     DoAutoSize;
   end;
 
   autosize:=false;
 
+  cbChangeExt.left:=edtR15.left;
+
+ 
+  Constraints.MinHeight:=cbChangeExt.top+cbChangeExt.height+panel1.height+6;
+
+
+  if hasExistingBP then
+  begin
+    if (currentbp.changereg.change_FP or currentbp.changereg.change_XMM)>0 then
+      cbChangeExt.Checked:=true;
+
+    if cbChangeExt.checked then
+    begin
+      for i:=0 to 7 do
+      begin
+        if (currentbp.changereg.change_FP and (1 shl i))>0 then
+        begin
+          pex:=pextended(ptruint(@currentbp.changereg.new_FP0)+16*i);
+          {$ifdef cpu32}
+          floats[i].edt.Text:=floattostr(pex^);
+          {$else}
+          extendedtodouble(pex,d);
+          floats[i].edt.Text:=floattostr(d);
+          {$endif}
+        end;
+      end;
+
+      for i:=0 to {$ifdef cpu32}7{$else}15{$endif} do
+      begin
+        n:=(currentbp.changereg.change_XMM shr (i*4)) and $f;
+        if n>0 then
+        begin
+          xmmp:=PXMMFIELDS(ptruint(@currentbp.changereg.new_XMM0)+i*16);
+          xmms[i].Double:=currentbp.changereg.usesDouble and (1 shl i)>0;
+          if xmms[i].Double then
+          begin
+            //double
+            for j:=0 to 1 do
+            begin
+              if (n and (1 shl (j*2)))>0 then
+              begin
+                pd:=@xmmp[j*2];
+                xmms[i].Edits[j].edt.text:=floattostr(pd^);
+              end;
+            end;
+          end
+          else
+          begin
+            //float
+            for j:=0 to 3 do
+              if (n and (1 shl j))>0 then
+                xmms[i].Edits[j].edt.text:=floattostr(psingle(@xmmp[j])^);
+
+          end;
+        end;
+      end;
+    end;
+  end;
+end;
+
+procedure TfrmModifyRegisters.ScrollBox1Click(Sender: TObject);
+begin
 
 end;
 

@@ -188,14 +188,15 @@ function monoIL2CPPSymbolEnum(t)
   t.freeOnTerminate(false)
   t.Name='monoIL2CPPSymbolEnum'
   
-  --print("monoIL2CPPSymbolEnum");
+  print("monoIL2CPPSymbolEnum");
   
   local priority=nil  
   --first enum all images
   local images={}
   local assemblies=mono_enumAssemblies() 
+  
   if assemblies then
-    for i=1,#assemblies do
+    for i=1,#assemblies do      
       images[i]={}
       images[i].handle=mono_getImageFromAssembly(assemblies[i])
       images[i].name=mono_image_get_name(images[i].handle)
@@ -206,27 +207,27 @@ function monoIL2CPPSymbolEnum(t)
       end
     end
   end
-  
-  if t.Terminated then return end
+      
+  if monopipe==nil or t.Terminated then return end
   
   if priority then
-    --print("parsing "..images[priority].name..'(1/'..#images..')');
+    print("parsing "..images[priority].name..'(1/'..#images..')');
   
     parseImage(t, images[priority])
   end
-  if t.Terminated then return end
+  if monopipe==nil or t.Terminated then return end
   
   for i=1,#images do
     local x=i
     
     if priority then x=x+1 end
     
-   -- print("parsing "..images[i].name..'('..x..'/'..#images..')');
+    print("parsing "..images[i].name..'('..x..'/'..#images..')');
     parseImage(t, images[i])
-    if t.Terminated then return end
+    if monopipe==nil or t.Terminated then return end
   end
 
-  --print("all symbols loaded") --print is threadsafe
+  print("all symbols loaded") --print is threadsafe
   monoSymbolList.FullyLoaded=true
 end
 
@@ -294,7 +295,9 @@ function LaunchMonoDataCollector()
   end
   
   if monoSymbolList then  
-    if monoSymbolList.ProcessID~=getOpenedProcessID() or (monoSymbolList==false) then     
+    print("monoSymbolList exists");
+    if tonumber(monoSymbolList.ProcessID)~=getOpenedProcessID() or (monoSymbolList.FullyLoaded==false) then     
+      print("new il2cpp SymbolList")
       monoSymbolList.destroy()
       monoSymbolList=nil
     end
@@ -350,18 +353,25 @@ ret
 
   monopipe.OnTimeout=function(self)  
     --print("monopipe timeout") 
+    local oldmonopipe=monopipe
+    monopipe=nil
+    mono_AttachedProcess=0
+    monoBase=0
+    
+    if self then
+      oldmonopipe.unlock()
+    end
+      
     if inMainThread() and monoSymbolEnum then
       monoSymbolEnum.terminate()    
       monoSymbolEnum.waitfor()
-      print("bye monoSymbolEnum 2")
+      print("bye monoSymbolEnum due to timeout")
       monoSymbolEnum.destroy()
       monoSymbolEnum=nil
     end
     
-    monopipe.destroy()
-    monopipe=nil
-    mono_AttachedProcess=0
-    monoBase=0
+    oldmonopipe.destroy()
+
 
     if StructureElementCallbackID then 
       unregisterStructureAndElementListCallback(StructureElementCallbackID)
@@ -478,6 +488,9 @@ end
 function mono_symbolLookupCallback(symbol)
   --if debug_canBreak() then return nil end
 
+  if monopipe == nil then return nil end  
+  if monopipe.IL2CPP then return nil end
+
   local parts={}
   local x
   for x in string.gmatch(symbol, "[^:]+") do
@@ -521,7 +534,8 @@ function mono_addressLookupCallback(address)
   --if (inMainThread()==false) or (debug_canBreak()) then --the debugger thread might call this
   --  return nil
   --end
-
+  if monopipe==nil then return nil end
+  if monopipe.IL2CPP then return nil end
 
 
   local ji=mono_getJitInfo(address)
@@ -661,8 +675,10 @@ end
 
 function mono_getImageFromAssembly(assembly)
   --if debug_canBreak() then return nil end
-
-  monopipe.lock()
+  if monopipe==nil then return nil end
+  monopipe.lock()  
+  if monopipe==nil then return nil end
+  
   monopipe.writeByte(MONOCMD_GETIMAGEFROMASSEMBLY)
   monopipe.writeQword(assembly)
   monopipe.unlock()
@@ -672,7 +688,10 @@ end
 function mono_image_get_name(image)
   --if debug_canBreak() then return nil end
 
+  if monopipe==nil then return nil end  
   monopipe.lock()
+  if monopipe==nil then return nil end
+  
   monopipe.writeByte(MONOCMD_GETIMAGENAME)
   monopipe.writeQword(image)
   local namelength=monopipe.readWord()
@@ -910,6 +929,11 @@ end
 
 function mono_class_getVTable(domain, klass)
   --if debug_canBreak() then return nil end
+  if monopipe.IL2CPP then
+    return klass
+  end
+  
+  
   local result=0
   monopipe.lock()
   monopipe.writeByte(MONOCMD_GETVTABLEFROMCLASS)
@@ -2344,15 +2368,16 @@ function monoform_createInstanceOfClass(sender)
   if (node~=nil) then    
     if (node.Data~=nil) and (node.Level==2) then     
       local r=mono_object_new(node.data)
-      print(string.format("mono_object_new returned %x",r))
-      if r and (r~=0) then
-        r=mono_object_init(r);
-        if r then
-          print(string.format("mono_object_init returned success"))
-        else
-          print(string.format("mono_object_init returned false"))
+      if r then
+        print(string.format("mono_object_new returned %x",r))
+        if r and (r~=0) then
+          r=mono_object_init(r);
+          if r then
+            print(string.format("mono_object_init returned success"))
+          else
+            print(string.format("mono_object_init returned false"))
+          end        
         end
-        
       end
       
     end  
@@ -2569,14 +2594,31 @@ function monoform_EnumImages(node)
   local i
 
   local assemblies=mono_enumAssemblies()
+  local images={}
+  
   mono_enumImages(
     function(image)
       local imagename=mono_image_get_name(image)
-      local n=node.add(string.format("%x : %s", image, imagename))      
-      n.HasChildren=true
-      n.Data=image
+      
+      if imagename then       
+        local e={}
+        e.image=image
+        e.imagename=imagename  
+
+        table.insert(images,e)        
+      end
     end
   )
+  
+  table.sort(images,function(e1,e2)
+    return e1.imagename < e2.imagename
+  end)
+  
+  for i=1,#images do    
+    local n=node.add(string.format("%x : %s", images[i].image, images[i].imagename))          n.HasChildren=true
+    n.Data=images[i].image
+    n.HasChildren=true
+  end
 end
 
 function monoform_AddClass(node, klass, namespace, classname, fqname)
@@ -3629,6 +3671,8 @@ function monoAA_GETMONOSTATICDATA(assemblyname, namespace, classname, symbolpref
   --            symbolprefix = name of symbol prefix (sanitized classname used if nil)
 
   -- returns AA script for locating static data location for given structure
+  if monopipe.il2cpp then return end
+  
   local SYMCLASSNAME
   if assemblyname==nil or namespace==nil or classname==nil then
     return ''
@@ -3837,6 +3881,8 @@ function monoAA_GETMONOSTATICFIELDDATA(assemblyname, namespace, classname, field
   --            symbolprefix = name of symbol prefix (sanitized classname used if nil)
 
   -- returns AA script for locating static data location for given structure
+  if monopipe.il2cpp then return end  
+  
   local SYMCLASSNAME
   if assemblyname==nil or namespace==nil or classname==nil or fieldname==nil then
     return ''

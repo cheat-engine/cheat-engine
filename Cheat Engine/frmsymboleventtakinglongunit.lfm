@@ -12,7 +12,7 @@ object frmSymbolEventTakingLong: TfrmSymbolEventTakingLong
   LCLVersion = '2.0.6.0'
   object Label1: TLabel
     Left = 0
-    Height = 48
+    Height = 45
     Top = 0
     Width = 365
     Align = alTop
@@ -25,10 +25,10 @@ object frmSymbolEventTakingLong: TfrmSymbolEventTakingLong
     AnchorSideLeft.Side = asrCenter
     AnchorSideTop.Control = lblType
     AnchorSideTop.Side = asrBottom
-    Left = 94
-    Height = 20
-    Top = 77
-    Width = 177
+    Left = 99
+    Height = 25
+    Top = 73
+    Width = 166
     AutoSize = True
     BorderSpacing.Top = 8
     Caption = 'Cancel this symbol lookup'
@@ -40,10 +40,10 @@ object frmSymbolEventTakingLong: TfrmSymbolEventTakingLong
     AnchorSideLeft.Side = asrCenter
     AnchorSideTop.Control = Button1
     AnchorSideTop.Side = asrBottom
-    Left = 78
-    Height = 18
-    Top = 101
-    Width = 209
+    Left = 84
+    Height = 19
+    Top = 102
+    Width = 196
     BorderSpacing.Top = 4
     Caption = 'And skip this symbol until loaded'
     Checked = True
@@ -54,9 +54,9 @@ object frmSymbolEventTakingLong: TfrmSymbolEventTakingLong
     AnchorSideTop.Control = cbSkipAllSymbols
     AnchorSideTop.Side = asrBottom
     Left = 16
-    Height = 16
-    Top = 147
-    Width = 384
+    Height = 15
+    Top = 150
+    Width = 329
     BorderSpacing.Top = 10
     BorderSpacing.Bottom = 8
     Caption = 'This window will autoclose once the symbol has been found'
@@ -68,10 +68,10 @@ object frmSymbolEventTakingLong: TfrmSymbolEventTakingLong
     AnchorSideLeft.Control = cbSkipThisSymbol
     AnchorSideTop.Control = cbSkipThisSymbol
     AnchorSideTop.Side = asrBottom
-    Left = 78
-    Height = 18
-    Top = 119
-    Width = 207
+    Left = 84
+    Height = 19
+    Top = 121
+    Width = 194
     Caption = 'And skip all symbols until loaded'
     TabOrder = 2
   end
@@ -80,9 +80,9 @@ object frmSymbolEventTakingLong: TfrmSymbolEventTakingLong
     AnchorSideTop.Control = Label1
     AnchorSideTop.Side = asrBottom
     Left = 10
-    Height = 16
-    Top = 53
-    Width = 49
+    Height = 15
+    Top = 50
+    Width = 43
     BorderSpacing.Left = 10
     BorderSpacing.Top = 5
     Caption = 'Symbol:'
@@ -92,10 +92,10 @@ object frmSymbolEventTakingLong: TfrmSymbolEventTakingLong
     AnchorSideLeft.Control = lblType
     AnchorSideLeft.Side = asrBottom
     AnchorSideTop.Control = lblType
-    Left = 65
-    Height = 16
-    Top = 53
-    Width = 59
+    Left = 59
+    Height = 15
+    Top = 50
+    Width = 53
     BorderSpacing.Left = 6
     Caption = 'lblSymbol'
     ParentColor = False
@@ -103,7 +103,7 @@ object frmSymbolEventTakingLong: TfrmSymbolEventTakingLong
   object Timer1: TTimer
     Interval = 100
     OnTimer = Timer1Timer
-    left = 120
-    top = 179
+    Left = 120
+    Top = 179
   end
 end

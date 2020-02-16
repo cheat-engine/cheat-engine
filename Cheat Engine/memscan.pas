@@ -5573,19 +5573,22 @@ end;
 //===============TScanController===============//
 
 procedure TScanController.updategui;
-var totaladdressestoscan, currentlyscanned, foundcount: qword;
+var
+  progress: integer;
+  totaladdressestoscan, currentlyscanned, foundcount: qword;
 begin
   //runs in mainthread
+  progress:=OwningMemScan.GetProgress(totaladdressestoscan,currentlyscanned, foundcount);
   if OwningMemScan.progressbar<>nil then
   begin
-    OwningMemScan.progressbar.Position:=OwningMemScan.GetProgress(totaladdressestoscan,currentlyscanned, foundcount);
+    OwningMemScan.progressbar.Position:=progress;
     {$ifdef windows}
     SetProgressValue(OwningMemScan.progressbar.Position, OwningMemScan.progressbar.Max);
     {$endif}
-
-    if assigned(owningmemscan.OnGuiUpdate) then
-      owningmemscan.OnGuiUpdate(OwningMemScan, totaladdressestoscan,currentlyscanned, foundcount);
   end;
+
+  if assigned(owningmemscan.OnGuiUpdate) then
+    owningmemscan.OnGuiUpdate(OwningMemScan, totaladdressestoscan,currentlyscanned, foundcount);
 end;
 
 procedure TScanController.errorpopup;
@@ -5901,7 +5904,7 @@ begin
          {$ifdef windows}
          WaitForSingleObject(scanners[i].Handle,25); //25ms, an eternity for a cpu
          {$endif}
-         if OwningMemScan.progressbar<>nil then
+         if (OwningMemScan.progressbar<>nil) or (assigned(owningmemscan.OnGuiUpdate)) then
            synchronize(updategui);
         end;
 
@@ -5922,7 +5925,7 @@ begin
         inc(OwningMemScan.found,scanners[i].totalfound);
       end;
 
-      if OwningMemScan.progressbar<>nil then
+      if (OwningMemScan.progressbar<>nil) or (assigned(owningmemscan.OnGuiUpdate)) then
         synchronize(updategui);
         
       if haserror then
@@ -6133,7 +6136,7 @@ begin
     begin
     {$IFDEF WINDOWS}
       WaitForSingleObject(scanners[i].Handle,25); //25ms, an eternity for a cpu
-      if OwningMemScan.progressbar<>nil then
+      if (OwningMemScan.progressbar<>nil) or (assigned(owningmemscan.OnGuiUpdate))  then
         synchronize(updategui);
     {$else}
       sleep(25);
@@ -6159,7 +6162,7 @@ begin
     inc(OwningMemScan.found,scanners[i].totalfound);
   end;
 
-  if OwningMemScan.progressbar<>nil then
+  if (OwningMemScan.progressbar<>nil) or (assigned(owningmemscan.OnGuiUpdate)) then
     synchronize(updategui);
     
   if haserror then
@@ -6390,8 +6393,8 @@ begin
 
       //still here, so valid
 
-      if (memRegionPos=0) or (memRegion[memRegionPos-1].BaseAddress+memRegion[memRegionPos-1].MemorySize<>PtrUint(mbi.baseaddress)) then
-      begin
+     { if (memRegionPos=0) or (memRegion[memRegionPos-1].BaseAddress+memRegion[memRegionPos-1].MemorySize<>PtrUint(mbi.baseaddress)) then
+      begin}
         //new region
         memRegion[memRegionPos].BaseAddress:=PtrUint(mbi.baseaddress);  //just remember this location
         memRegion[memRegionPos].MemorySize:=mbi.RegionSize;
@@ -6400,12 +6403,12 @@ begin
         inc(memRegionPos);
         if (memRegionPos mod 16)=0 then //add another 16 to it
           setlength(memRegion,length(memRegion)+16);
-      end
+     { end
       else
       begin
         //append
         memRegion[memRegionPos-1].MemorySize:=memRegion[memRegionPos-1].MemorySize+mbi.RegionSize;
-      end;
+      end; }
 
       inc(totalProcessMemorySize,mbi.RegionSize); //add this size to the total
 
@@ -6646,7 +6649,7 @@ begin
 {$ifdef windows}
         WaitForSingleObject(scanners[i].Handle,25); //25ms, an eternity for a cpu
 
-        if OwningMemScan.progressbar<>nil then
+        if (OwningMemScan.progressbar<>nil) or (assigned(owningmemscan.OnGuiUpdate)) then
           synchronize(updategui);
 {$else}
         sleep(25)
@@ -6696,7 +6699,7 @@ begin
     end;
 
 
-    if OwningMemScan.progressbar<>nil then
+    if (OwningMemScan.progressbar<>nil) or (assigned(owningmemscan.OnGuiUpdate)) then
       synchronize(updategui);
       
     if haserror then

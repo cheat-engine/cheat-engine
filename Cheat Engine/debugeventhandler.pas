@@ -384,6 +384,11 @@ begin
 end;
 
 procedure TDebugThreadHandler.ModifyRegisters(bp: PBreakpoint);
+var
+  fplist: PRegisterModificationFloatList;
+  i,j: integer;
+  b: byte;
+  n: pointer;
 begin
   TDebuggerthread(debuggerthread).execlocation:=36;
   if bp.changereg.change_af then context^.EFlags:=eflags_setAF(context^.Eflags, booltoint(bp.changereg.new_af));
@@ -412,6 +417,50 @@ begin
   if bp.changereg.change_r14 then context^.r14:=bp.changereg.new_r14;
   if bp.changereg.change_r15 then context^.r15:=bp.changereg.new_r15;
   {$endif}
+
+  if bp.changereg.change_FP<>0 then
+  begin
+    b:=bp.changereg.change_FP;
+    for i:=0 to 7 do
+    begin
+      if b and (1 shl i)>0 then
+      begin
+        n:=pointer(ptruint(@bp.changereg.new_FP0)+8*i);
+        {$ifdef cpu64}
+        copymemory(@context^.FltSave.FloatRegisters[i], n,10);
+        {$else}
+        copymemory(@context^.ext.FPURegisters[i], n,10);
+        copymemory(@context^.FloatSave.RegisterArea[10*i], n,10);
+        {$endif}
+      end;
+    end;
+  end;
+
+  if bp.changereg.change_XMM<>0 then
+  begin
+    for i:=0 to {$ifdef cpu64}15{$else}7{$endif} do
+    begin
+      //get the nibble for the xmm register
+      b:=(bp.changereg.change_XMM shl (i*4)) and $f;
+
+      if b>0 then //bits are set
+      begin
+        for j:=0 to 3 do
+        begin
+          if b and (1 shl j)>0 then //bit is set
+          begin
+            //change part j of xmm register i
+            {$ifdef cpu64}
+            PXMMFIELDS(@context^.FltSave.XmmRegisters[i])^[j]:=PXMMFIELDS(ptruint(@bp.changereg.new_XMM0)+16*i)^[j];
+            {$else}
+            PXMMFIELDS(@context^.ext.XMMRegisters.LegacyXMM[j])^[j]:=bp.changereg.new_XMM0[j];
+            {$endif}
+          end;
+        end;
+      end;
+    end;
+  end;
+
 end;
 
 procedure TDebugThreadHandler.continueDebugging(continueOption: TContinueOption; handled: boolean=true);

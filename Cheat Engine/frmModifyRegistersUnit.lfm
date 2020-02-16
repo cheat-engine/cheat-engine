@@ -1,19 +1,19 @@
 object frmModifyRegisters: TfrmModifyRegisters
-  Left = 772
-  Height = 519
+  Left = 771
+  Height = 545
   Top = 135
-  Width = 365
+  Width = 697
   Anchors = [akTop]
   AutoSize = True
   Caption = 'Modify register(s) at xxxxxxxx'
-  ClientHeight = 519
-  ClientWidth = 365
+  ClientHeight = 545
+  ClientWidth = 697
   OnClose = FormClose
   OnCreate = FormCreate
   OnResize = FormResize
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '2.0.0.4'
+  LCLVersion = '2.0.6.0'
   object Label25: TLabel
     AnchorSideLeft.Control = Owner
     AnchorSideTop.Control = Owner
@@ -29,11 +29,11 @@ object frmModifyRegisters: TfrmModifyRegisters
   object Panel1: TPanel
     AnchorSideLeft.Control = Owner
     AnchorSideLeft.Side = asrCenter
-    AnchorSideTop.Control = Panel2
+    AnchorSideTop.Control = cbChangeExt
     AnchorSideTop.Side = asrBottom
-    Left = 104
+    Left = 270
     Height = 25
-    Top = 490
+    Top = 509
     Width = 157
     AutoSize = True
     BorderSpacing.Top = 4
@@ -724,5 +724,18 @@ object frmModifyRegisters: TfrmModifyRegisters
         TabOrder = 5
       end
     end
+  end
+  object cbChangeExt: TCheckBox
+    AnchorSideTop.Control = Panel2
+    AnchorSideTop.Side = asrBottom
+    AnchorSideRight.Control = Panel4
+    AnchorSideRight.Side = asrBottom
+    Left = 32
+    Height = 19
+    Top = 486
+    Width = 206
+    Caption = 'Change extended state (FPU/XMM)'
+    OnChange = cbChangeExtChange
+    TabOrder = 2
   end
 end

@@ -15,7 +15,7 @@ procedure structureElement_addMetaData(L: PLua_state; metatable: integer; userda
 
 implementation
 
-uses StructuresFrm2, LuaObject, DotNetPipe;
+uses StructuresFrm2, LuaObject, DotNetPipe, symbolhandlerstructs;
 
 
 
@@ -285,6 +285,49 @@ begin
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'endUpdate', structure_endUpdate);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'addToGlobalStructureList', structure_addToGlobalStructureList);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'removeFromGlobalStructureList', structure_removeFromGlobalStructureList);
+end;
+
+
+function createStructureFromName(L: PLua_State): integer; cdecl;
+var
+  name: string;
+  i: integer;
+  el: tstringlist;
+  e: TDBElementInfo;
+  struct: TDissectedStruct;
+begin
+  result:=0;
+  if lua_gettop(L)>=1 then
+  begin
+    name:=Lua_ToString(L,1);
+
+    el:=tstringlist.create;
+    try
+      symhandler.getStructureElementsFromName(name,el);
+      if el.count>0 then
+      begin
+        struct:=TDissectedStruct.create(name);
+        //fill in the struct based on what is in e
+
+        for i:=0 to el.count-1 do
+        begin
+          e:=TDBElementInfo(el.Objects[i]);
+
+          struct.addElement(el[i],e.offset, e.vartype);
+
+          e.Free;
+        end;
+
+
+
+
+        luaclass_newclass(L, struct, structure_addMetaData);
+        result:=1;
+      end;
+    finally
+      el.free;
+    end;
+  end;
 end;
 
 function createStructure(L: PLua_State): integer; cdecl;
@@ -559,6 +602,9 @@ begin
   lua_register(LuaVM, 'getStructure', getStructure);
 
   lua_register(LuaVM, 'createStructure', createStructure);
+  lua_register(LuaVM, 'createStructureFromName', createStructureFromName);
+
+
 
   lua_register(LuaVM, 'structure_getName', structure_getName);
   lua_register(LuaVM, 'structure_setName', structure_setName);

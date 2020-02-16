@@ -1883,6 +1883,8 @@ var
   r: single;
 
   bordersize: integer;
+
+  tempstring: string;
 begin
   //multiselect implementation
 
@@ -2189,7 +2191,16 @@ begin
       sender.Canvas.TextOut(descriptionstart, linetop, memrec.description); //no limit on how far
 
       if (memrec.VarType=vtAutoAssembler) then //give it the <script> text for value
-        sender.Canvas.TextRect(rect(header.Sections[4].left, textrect.Top, header.Sections[4].right, textrect.bottom), header.sections[4].left, linetop, rsScript);
+      begin
+        tempstring:=rsScript;
+        if assigned(memrec.OnGetDisplayValue) then
+        begin
+          if memrec.OnGetDisplayValue(memrec, tempstring) = false then
+            tempstring:=rsscript; //undo, it returned false
+        end;
+
+        sender.Canvas.TextRect(rect(header.Sections[4].left, textrect.Top, header.Sections[4].right, textrect.bottom), header.sections[4].left, linetop, tempstring);
+      end;
 
     end;
 

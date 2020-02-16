@@ -18,11 +18,11 @@ $(shell mkdir -p $(DEPDIR) >/dev/null)
 #CFILES=main.o neward.o common.o vmmhelper.o multicore.o mm.o vmpaging.o vmevent_invalidstate.o vmeventhandler.o realmodeemu.o pmodeemu.o vmcall.o keyboard.o osspecific.o offloados.o ultimap.o pci.o apic.o test.o vmeventhandler_amd.o vmxemu.o vmxsetup.o epthandler.o exports.o vbe3.o 
 
 ifeq ($(SERIALPORT),0)
-FILES=vmma.o main.o neward.o common.o commona.o apica.o vmmhelper.o multicore.o mm.o vmpaging.o vmevent_invalidstate.o vmeventhandler.o realmodeemu.o pmodeemu.o vmcall.o keyboard.o osspecific.o offloados.o ultimap.o pci.o apic.o test.o testa.o vmeventhandler_amd.o vmxemu.o vmxsetup.o epthandler.o exports.o vbe3.o vbe3a.o psod32.o maps.o list.o
+FILES=vmma.o main.o neward.o common.o commona.o apica.o vmmhelper.o multicore.o mm.o vmpaging.o vmevent_invalidstate.o vmeventhandler.o realmodeemu.o pmodeemu.o vmcall.o keyboard.o osspecific.o offloados.o ultimap.o pci.o apic.o test.o testa.o vmeventhandler_amd.o vmxemu.o vmxsetup.o epthandler.o exports.o vbe3.o vbe3a.o psod32.o maps.o list.o displaydebug.o
 
 LUAFILES=
 else
-FILES=vmma.o main.o neward.o common.o commona.o apica.o vmmhelper.o multicore.o mm.o vmpaging.o vmevent_invalidstate.o vmeventhandler.o realmodeemu.o pmodeemu.o vmcall.o keyboard.o osspecific.o offloados.o ultimap.o pci.o apic.o test.o testa.o vmeventhandler_amd.o vmxemu.o vmxsetup.o epthandler.o exports.o luahandler.o vbe3.o vbe3a.o psod32.o maps.o list.o
+FILES=vmma.o main.o neward.o common.o commona.o apica.o vmmhelper.o multicore.o mm.o vmpaging.o vmevent_invalidstate.o vmeventhandler.o realmodeemu.o pmodeemu.o vmcall.o keyboard.o osspecific.o offloados.o ultimap.o pci.o apic.o test.o testa.o vmeventhandler_amd.o vmxemu.o vmxsetup.o epthandler.o exports.o luahandler.o vbe3.o vbe3a.o psod32.o maps.o list.o displaydebug.o
 
 LUAFILES=./lua/lapi.o ./lua/lobject.o ./lua/ldo.o ./lua/lgc.o ./lua/lstate.o ./lua/ldebug.o ./lua/ltm.o ./lua/lvm.o ./lua/ltable.o ./lua/lstring.o ./lua/lfunc.o ./lua/lzio.o ./lua/ldump.o ./lua/lmem.o ./lua/lundump.o ./lua/lparser.o ./lua/lopcodes.o ./lua/llex.o ./lua/lcode.o ./lua/lctype.o ./lua/lauxlib.o ./lua/lstrlib.o ./lua/linit.o ./lua/lbaselib.o
 endif
@@ -72,7 +72,7 @@ all: $(FILES) $(DISTORMFILES) $(LUAFILES)
 	@${LD} ${LDFLAGS} $(FILES) $(DISTORMFILES) $(LUAFILES) -o ../vmm.elf -Map ../vmm.map
 	@objcopy -O binary ../vmm.elf ../vmm.bin
 	@echo "vmm done"
-	
+
 clean:
 	@make -C distorm64 clean
 	@make -C lua/src clean

@@ -41,10 +41,23 @@ end
 function ceshare.LoadProcessList()
   --checks if processlist.txt exists, and if not, call DownloadProcessList
   --returns true on load
+
+  
   local lastdownload=ceshare.settings.Value.LastProcessListDownload  
   
   if (lastdownload==nil) or (lastdownload=='') or (os.time()>(tonumber(lastdownload)+3600))  then   
-    ceshare.DownloadProcessList()
+    outputDebugString('redownload');  
+    if inMainThread() then
+
+      --pass it on to a new thread      
+      createThread(ceshare.LoadProcessList)
+      return
+    else
+
+      ceshare.DownloadProcessList()    
+    end    
+  
+    
   end  
   
   local processlist
@@ -254,6 +267,5 @@ MainForm.OnProcessOpened=function(processid, processhandle, caption)
     end
   end
 end
-
 
 ceshare.LoadProcessList()

@@ -68,7 +68,12 @@ typedef struct
   UINT64    fsbase;
   UINT64    gsbase;
   UINT64    APEntryPage; //page below 1MB (for AP cpu bootcode)
-  UINT64    Uncached; //physical address holding a map detailing which regions are uncached (for EPT) (sorted)
+  UINT64    FrameBufferBase; //in case of uefi boot the framebuffer address for output
+  UINT64    FrameBufferSize;
+  UINT64    HorizontalResolution;
+  UINT64    VerticalResolution;
+  UINT64    PixelsPerScanLine;
+  UINT64    PixelFormat;
 } __attribute__((__packed__)) OriginalState, *POriginalState;
 
 

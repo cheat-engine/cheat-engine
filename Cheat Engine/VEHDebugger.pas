@@ -207,8 +207,7 @@ begin
       c32.SegSs:=lpcontext.SegSs;
 
       CopyMemory(@c32.ext, @lpContext.fltsave,sizeof(c32.ext));
-
-
+      CopyMemory(@c32.FloatSave.RegisterArea[0], @lpContext.fltsave.FloatRegisters[0], 10*8);
     end else c^:=lpContext;
 
    // end;// else lpContext:=c^;

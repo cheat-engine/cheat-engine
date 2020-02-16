@@ -4029,6 +4029,8 @@ var x: ptrUint;
   bpm: TBreakpointMethod;
   b: byte;
   dbvmbp: boolean;
+
+  bp: PBreakpoint=nil;
 begin
 
   Breakandtraceinstructions1.Enabled:=processhandle<>0;
@@ -4060,7 +4062,10 @@ begin
     else
       outputdebugstring('DBVMBP=false');
 
-    if ((debuggerthread=nil) or (debuggerthread.isBreakpoint(disassemblerview.SelectedAddress)=nil)) and (not dbvmbp) then
+    if (debuggerthread<>nil) then
+      bp:=debuggerthread.isBreakpoint(disassemblerview.SelectedAddress);
+
+    if ((debuggerthread=nil) or (bp=nil)) and (not dbvmbp) then
     begin
       if overridebreakpointmethod then
         bpm:=preferedF5BreakpointMethod
@@ -4077,8 +4082,7 @@ begin
     else
     begin
       miTogglebreakpoint.caption:=rsRemoveBreakpoint;
-
-      Changestateofregisteratthislocation1.visible:=false; //can't set a changeregonbp at this time. Already a bp here
+      Changestateofregisteratthislocation1.visible:=(bp<>nil) and (bp^.breakpointAction=bo_ChangeRegister);
       miSetSpecificBreakpoint.visible:=false;
       Breakandtraceinstructions1.visible:=false;
       Findoutwhataddressesthisinstructionaccesses1.visible:=false;

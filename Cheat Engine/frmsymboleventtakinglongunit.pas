@@ -30,6 +30,7 @@ type
     { public declarations }
     formcanclose: boolean;
     done: Tevent;
+    list: Tstringlist;
 
     slevent: TSymbolLoaderThreadEvent;
   end;
@@ -54,6 +55,10 @@ end;
 
 procedure TfrmSymbolEventTakingLong.Timer1Timer(Sender: TObject);
 begin
+  if list<>nil then //structure list fetch
+    lblSymbol.caption:=inttostr(list.Count);
+
+
   if done.WaitFor(1)<>wrTimeout then
   begin
     formcanclose:=true;
