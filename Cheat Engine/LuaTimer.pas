@@ -13,19 +13,57 @@ implementation
 
 uses luaclass, luahandler, luacaller, LuaComponent;
 
+type
+  TRunOnceTimer=class(TTimer)
+  private
+    procedure DoOnTimer; override;
+  public
+  end;
+
+procedure TRunOnceTimer.DoOnTimer;
+begin
+  inherited DoOnTimer;
+
+  Enabled:=false;
+  free;
+end;
+
 function createTimer(L: Plua_State): integer; cdecl;
 var parameters: integer;
   f: pointer;
 
   t: TTimer;
+  interval: integer;
+  m: tmethod;
 begin
   result:=0;
   parameters:=lua_gettop(L);
 
   if parameters>=1 then
   begin
-    f:=lua_toceuserdata(L, 1);
-    if (f<>nil) and (not (TObject(f) is TComponent)) then raise exception.create('createTimer: '+TObject(f).ClassName+' is not a Component');
+    if lua_isinteger(L,1) then
+    begin
+      if lua_isfunction(L,2) then  //run once timer
+      begin
+        interval:=lua_tointeger(L,1);
+
+        t:=TRunOnceTimer.Create(nil);
+        t.interval:=interval;
+
+        m:=tmethod(t.ontimer);
+        LuaCaller_setMethodProperty(L, m, 'TNotifyEvent', 2);
+        t.OnTimer:=tnotifyevent(m);
+
+        luaclass_newClass(L,t); //will selfdestruct when done
+        t.enabled:=true;
+        exit(1);
+      end;
+    end
+    else
+    begin
+      f:=lua_toceuserdata(L, 1);
+      if (f<>nil) and (not (TObject(f) is TComponent)) then raise exception.create('createTimer: '+TObject(f).ClassName+' is not a Component');
+    end;
   end
   else
     f:=nil;
