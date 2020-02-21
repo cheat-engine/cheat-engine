@@ -1484,12 +1484,15 @@ var hmodule: thandle;
     path: widestring;
     isdotnet: boolean;
 begin
+
   result:='';
   if uppercase(extractfileext(dllname))<>'.DLL' then raise exception.Create(Format(rsErrorLoadingOnlyDLLFilesAreAllowed, [dllname]));
 
+    {$ifdef windows}
   if peinfo_isdotnetfile(dllname, isdotnet) then
     if isdotnet then
       exit(DotNetPluginGetPluginName(dllname));
+    {$endif}
 
   hmodule:=loadlibrary(pchar(dllname));
   {$ifdef windows}
@@ -1610,9 +1613,12 @@ begin
     pluginCS.Leave;
   end;
 
+  {$ifdef windows}
   if peinfo_isdotnetfile(dllname, isdotnet) then
     if isdotnet then
       exit(DotNetLoadPlugin(dllname));
+
+  {$endif}
 
 
   hmodule:=loadlibrary(pchar(dllname));

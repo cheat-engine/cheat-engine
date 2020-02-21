@@ -1893,6 +1893,8 @@ procedure TSymbolloaderthread.teGetStructureList(list: tstringlist);
 var i: integer;
 begin
   //faster than waiting for all structures to get fully dissected
+
+  {$ifdef windows}
   if structureList=nil then
   begin
     //get the list
@@ -1910,9 +1912,12 @@ begin
   end
   else
     list.assign(structurelist);
+
+  {$endif}
 end;
 
 procedure TSymbolloaderthread.teGetStructureFromName(name: string; structure: TStringList);
+{$ifdef windows}
 var
   hasModuleSpecifier: boolean;
   pSymInfo: PSYMBOL_INFO;
@@ -1935,7 +1940,9 @@ var
   wname: pwidechar;
 
   element: TDBElementInfo;
+  {$endif}
 begin
+  {$ifdef windows}
   hasmodulespecifier:=false;
   getmem(pSymInfo,sizeof(TSYMBOL_INFO)+100);
 
@@ -2057,6 +2064,8 @@ begin
   end;
 
   freemem(pSymInfo);
+
+  {$endif}
 end;
 
 procedure TSymbolloaderthread.processThreadEvents;
