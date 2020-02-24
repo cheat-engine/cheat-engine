@@ -2841,7 +2841,7 @@ procedure TSymhandler.tokenize(s: string; var tokens: TTokens);
 Just a tokenizer for simple address specifiers
 }
 var
-  i: integer;
+  i,j: integer;
   last: integer;
   t: string;
   inQuote: boolean;
@@ -2851,7 +2851,7 @@ begin
 
   for i:=1 to length(s) do
   begin
-    if (s[i] in ['"', '[', ']', '+', '-', '*']) then
+    if (s[i] in ['"', '[', ']', '+', '-', '*',';']) then
     begin
       if s[i]='"' then
       begin
@@ -4480,6 +4480,9 @@ var mi: tmoduleinfo;
     pointerstartpos,pointerstartmax: integer;
 
     v64: qword;
+
+    validsize: boolean;
+    pointersize: integer;
 begin
   pointerstartpos:=0;
   pointerstartmax:=16;
@@ -4546,7 +4549,7 @@ begin
   try
     for i:=0 to length(tokens)-1 do
     begin
-      if not (tokens[i][1] in ['[',']','+','-','*']) then
+      if (length(tokens[i])>0) and (not (tokens[i][1] in ['[',']','+','-','*',';'])) then
       begin
         val('$'+tokens[i],v64,j);
         result:=v64;
@@ -4875,11 +4878,14 @@ begin
       else
       begin
         //it's not a real token
+        if length(tokens[i])>0 then
         case tokens[i][1] of
           '*' : hasMultiplication:=true;
           '[':
           begin
             hasPointer:=true;
+            if pointerstartpos=0 then
+              pointersize:=processhandler.pointersize;
 
             pointerstartlist[pointerstartpos]:=i;
             inc(pointerstartpos);
@@ -4891,10 +4897,52 @@ begin
 
           end;
 
+          ';':
+          begin
+            if hasPointer and (pointerstartpos=1) then //the currently effective pointer
+            begin
+              if length(tokens)>i+1 then
+              begin
+
+                if tokens[i+1]='8' then
+                begin
+                  pointersize:=1;
+                  tokens[i]:='';
+                  tokens[i+1]:='';
+                end
+                else
+                if tokens[i+1]='16' then
+                begin
+                  pointersize:=2;
+                  tokens[i]:='';
+                  tokens[i+1]:='';
+                end
+                else
+                if tokens[i+1]='32' then
+                begin
+                  pointersize:=4;
+                  tokens[i]:='';
+                  tokens[i+1]:='';
+                end
+                else
+                if tokens[i+1]='64' then //useless
+                begin
+                  pointersize:=8;
+                  tokens[i]:='';
+                  tokens[i+1]:='';
+                end;
+              end;
+
+
+            end;
+          end;
+
           ']':
           begin
             if haspointer then
             begin
+
+
               //parse since the last pointerstart
               s:='';
               if pointerstartpos=0 then
@@ -4920,8 +4968,15 @@ begin
               else
                 haserror:=not readprocessmemory(GetCurrentProcess, pointer(a),@a,{$ifdef cpu32}4{$else}8{$endif},br);
 
-
               if haserror then exit;
+
+              case pointersize of
+                1: a:=a and $ff;
+                2: a:=a and $ffff;
+                {$ifdef cpu64}
+                4: a:=a and $ffffffff;
+                {$endif}
+              end;
 
               tokens[i]:='';
               tokens[k]:=inttohex(a,8);
