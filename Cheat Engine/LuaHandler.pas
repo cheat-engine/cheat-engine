@@ -120,7 +120,7 @@ uses autoassembler, mainunit, MainUnit2, LuaClass, frmluaengineunit, plugin, plu
   LuaCustomType, Filehandler, LuaSQL, frmSelectionlistunit, cpuidUnit, LuaRemoteThread,
   LuaManualModuleLoader, pointervaluelist, frmEditHistoryUnit, LuaCheckListBox,
   LuaDiagram, frmUltimap2Unit, frmcodefilterunit, BreakpointTypeDef, LuaSyntax,
-  LazLogger, LuaSynedit, LuaRipRelativeScanner, ColorBox;
+  LazLogger, LuaSynedit, LuaRipRelativeScanner, ColorBox, rttihelper;
 
   {$warn 5044 off}
 
@@ -12148,6 +12148,24 @@ begin
   result:=1;
 end;
 
+
+function lua_getRTTIClassName(L: Plua_State): integer; cdecl;
+var address: ptruint;
+  classname: string;
+begin
+  result:=0;
+  if lua_gettop(L)>=1 then
+  begin
+    address:=lua_tointeger(L,1);
+    if getRTTIClassName(address, classname) then
+    begin
+      lua_pushstring(L,classname);
+      exit(1);
+    end;
+  end;
+
+end;
+
 procedure InitializeLua;
 var
   s: tstringlist;
@@ -12793,6 +12811,8 @@ begin
     lua_register(L, 'createColorDialog', lua_createColorDialog);
     lua_register(L, 'createColorBox', lua_createColorBox);
     lua_register(L, 'createAutoAssemblerForm', lua_createAutoAssemblerForm);
+    lua_register(L, 'getRTTIClassName', lua_getRTTIClassName);
+
 
 
 

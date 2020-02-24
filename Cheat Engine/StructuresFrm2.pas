@@ -620,7 +620,8 @@ implementation
 
 uses MainUnit, mainunit2, frmStructures2ElementInfoUnit, MemoryBrowserFormUnit,
   frmStructureLinkerUnit, frmgroupscanalgoritmgeneratorunit, frmStringPointerScanUnit,
-  ProcessHandlerUnit, Parsers, LuaCaller, frmRearrangeStructureListUnit, frmstructurecompareunit, frmDebugSymbolStructureListUnit;
+  ProcessHandlerUnit, Parsers, LuaCaller, frmRearrangeStructureListUnit,
+  frmstructurecompareunit, frmDebugSymbolStructureListUnit, rttihelper;
 
 resourcestring
   rsAddressValue = 'Address: Value';
@@ -1587,6 +1588,8 @@ var
   ctp: PCustomType;
 
   s: boolean;
+  isclasspointer: boolean;
+  classname: string;
 begin
   if frmStructuresConfig.cbAutoGuessCustomTypes.checked then
     ctp:=@customtype
@@ -1639,8 +1642,23 @@ begin
       i:=0;
       while i<x do
       begin
-        vt:=FindTypeOfData(baseAddress+i,@buf[i],bytesize-i, ctp);
+        isclasspointer:=false;
+        if (x-i>processhandler.pointersize) and (((baseAddress+i) mod processhandler.pointersize)=0) then
+        begin
+          if processhandler.is64Bit then
+            isclasspointer:=getRTTIClassName(pqword(@buf[i])^,classname)
+          else
+            isclasspointer:=getRTTIClassName(pdword(@buf[i])^,classname);
+        end;
+
+        if isclasspointer=false then
+          vt:=FindTypeOfData(baseAddress+i,@buf[i],bytesize-i, ctp);
+
         e:=addElement();
+
+        if isclasspointer then
+          e.Name:='Pointer to instance of '+classname;
+
         e.Offset:=currentOffset;
         e.vartype:=vt;
         if vt=vtCustom then
@@ -3923,16 +3941,22 @@ var
   guessSize: Integer;
   found: Boolean;
   pos: Integer;
+
+  cname: string;
 begin
   result:=nil;
   if columnCount > 0 then
   begin
     // try to determine structure name using extensions
     {$ifdef windows}
+
     hasAddressData:=symhandler.GetLayoutFromAddress(TStructColumn(columns[0]).getAddress, addressdata);
 
     if hasAddressData then
       structName:=addressdata.classname
+    else
+    if getRTTIClassName(TStructColumn(columns[0]).getAddress,cname) then
+      structName:=cname
     else
     {$endif}
     begin

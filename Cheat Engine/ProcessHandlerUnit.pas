@@ -85,6 +85,15 @@ var
   {$endif}
   arch: integer;
 begin
+  if (fprocesshandle<>0) and (fprocesshandle<>THANDLE(-1)) then
+  begin
+    try
+      closehandle(fprocesshandle);
+    except //debugger issue
+    end;
+    fprocesshandle:=0;
+  end;
+
   fprocesshandle:=processhandle;
   {$ifdef windows}
   c:=getConnection;

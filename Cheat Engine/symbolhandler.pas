@@ -86,7 +86,6 @@ type
 
   TSymbolloaderthread=class(tthread)
   private
-
     targetself: boolean;
     owner: Tsymhandler;
     thisprocesshandle: thandle;
@@ -126,6 +125,8 @@ type
     searchpdb: boolean;
 
     structureList: TStringList;
+
+    amodulebase: pointer;
 
     {$ifdef darwin}
 
@@ -418,6 +419,7 @@ var SymFromName: TSymFromName;
 
     StackWalkEx:function(MachineType:dword; hProcess:THANDLE; hThread:THANDLE; StackFrame:PStackframe_ex; ContextRecord:pointer; ReadMemoryRoutine:TREAD_PROCESS_MEMORY_ROUTINE64; FunctionTableAccessRoutine:TFUNCTION_TABLE_ACCESS_ROUTINE64; GetModuleBaseRoutine:TGET_MODULE_BASE_ROUTINE64; TranslateAddress:TTRANSLATE_ADDRESS_ROUTINE64; flags: dword):bool;stdcall;
     SymLoadModuleEx:function(hProcess:THANDLE; hFile:THANDLE; ImageName:PSTR; ModuleName:PSTR; BaseOfDll:dword64; DllSize:dword; Data:pointer; Flags:dword):dword64;stdcall;
+    UnDecorateSymbolName:function(name: PCSTR; outputString: PSTR;  maxStringLength: DWORD;  flags: DWORD): DWORD; stdcall;
 
     {$endif}
 
@@ -729,6 +731,9 @@ begin
 
       getmem(modulename,1024);
       try
+        if count>0 then
+          amodulebase:=x[0];
+
         for i:=0 to count-1 do
         begin
           GetModuleFileNameEx(thisprocesshandle,ptrUint(x[i]),modulename,200);
@@ -1341,7 +1346,6 @@ begin
   self:=TSymbolloaderthread(UserContext);
   if self.terminated then exit(false);
 
-  exit(true);
 
   q:=self.currentSymbolDataBaseQueryObject;
 
@@ -1588,7 +1592,7 @@ begin
         q.Active:=true;
         if q.RecordCount=0 then
         begin
-          //add it to the list (if nothing, the tollback will undo this add)
+          //add it to the list (if nothing, the rollback will undo this add)
           q.Active:=false;
           q.SQL.Clear;
           q.SQL.text:='INSERT INTO modules (modulename, timestamp) VALUES (:modulename, :ts)';
@@ -2384,6 +2388,9 @@ var sp: pchar;
 
     modinfo: PModInfo;
     needstoenumodules: boolean;
+
+    b: byte;
+    ar: ptruint;
 begin
   debugpart:=0;
 
@@ -2493,7 +2500,7 @@ begin
         debugpart:=1;
         if thisprocesshandle<>0 then
         begin
-          symbolloaderthreadcs.Enter;
+          symbolloaderthreadcs.Enter;  //needed so selfsymbolhandlerdoesnb't cause issues
           try
             //get the export symbols first
 
@@ -2638,6 +2645,11 @@ begin
 
                   while symbolloaderthreadeventqueue.Count>0 do
                     processThreadEvents;
+
+                  if ReadProcessMemory(processhandle, amodulebase, @b,1,ar)=false then       //release the debug symbols when the process terminates
+                  begin
+                    break;
+                  end;
                 end;
               end;
 
@@ -5664,6 +5676,7 @@ begin
   StackWalkEx:=GetProcAddress(dbghlp,'StackWalkEx');
   SymLoadModuleEx:=GetProcAddress(dbghlp,'SymLoadModuleEx');
 
+  UnDecorateSymbolName:=GetProcAddress(dbghlp,'UnDecorateSymbolName');
 
 
   psa:=loadlibrary('Psapi.dll');

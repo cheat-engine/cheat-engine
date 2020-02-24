@@ -444,7 +444,12 @@ begin
   if Processhandle<>0 then
   begin
     if (processhandle<>0) and (processhandle<>INVALID_HANDLE_VALUE) and (processhandle<>$FFFFFFFF) then
-      CloseHandle(ProcessHandle);
+    begin
+      try
+        CloseHandle(ProcessHandle);
+      except
+      end;
+    end;
 
     ProcessHandler.ProcessHandle:=0;
   end;

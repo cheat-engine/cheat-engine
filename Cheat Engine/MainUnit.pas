@@ -1011,6 +1011,8 @@ type
     function GetScanType: TScanOption;
     function GetScanType2: TScanOption;
 
+    procedure DBVMFindWhatWritesOrAccesses(address: ptruint);
+
 
     property foundcount: int64 read ffoundcount write setfoundcount;
     property RoundingType: TRoundingType read GetRoundingType write SetRoundingType;
@@ -7428,10 +7430,8 @@ begin
   Paste(formsettings.cbsimplecopypaste.Checked);
 end;
 
-procedure TMainForm.miDBVMFindWhatWritesOrAccessesClick(Sender: TObject);
-
+procedure TMainForm.DBVMFindWhatWritesOrAccesses(address: ptruint);
 var
-  address: ptrUint;
   res: word;
   id: integer;
 
@@ -7463,7 +7463,7 @@ begin
     begin
       if not loaddbvmifneeded then exit;
 
-      address := addresslist.selectedRecord.GetRealAddress;
+
 
       if addresslist.selectedRecord.IsPointer then
       begin
@@ -7530,6 +7530,13 @@ begin
   end;
 
   {$endif}
+end;
+
+procedure TMainForm.miDBVMFindWhatWritesOrAccessesClick(Sender: TObject);
+var address: ptruint;
+begin
+  address := addresslist.selectedRecord.GetRealAddress;
+  DBVMFindWhatWritesOrAccesses(address);
 end;
 
 procedure TMainForm.miAlwaysHideChildrenClick(Sender: TObject);
