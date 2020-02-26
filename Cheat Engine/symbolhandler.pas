@@ -53,7 +53,9 @@ type TUserdefinedSymbolCallback=procedure;
 
 
 type
+  TSymHandlerTokenType=(ttByte, ttWord, ttDword, ttQword, ttShortInt, ttSmallint, ttLongint, ttInt64);
   TSymHandler=class;
+
 
   TSymbolLoaderThreadEvent=class(tobject)
   private
@@ -258,6 +260,9 @@ type
     procedure setshowmodules(x: boolean); //todo: Move this to the disassembler and let that decide
     procedure setshowsymbols(x: boolean);
     procedure tokenize(s: string; var tokens: TTokens);
+
+    function isTypeToken(token: string; var nextTokenType: TSymHandlerTokenType): boolean;
+
   public
 
     kernelsymbols: boolean;
@@ -2851,7 +2856,7 @@ begin
 
   for i:=1 to length(s) do
   begin
-    if (s[i] in ['"', '[', ']', '+', '-', '*']) then
+    if (s[i] in ['"', '[', ']', '+', '-', '*',' ']) then
     begin
       if s[i]='"' then
       begin
@@ -2870,8 +2875,8 @@ begin
           tokens[length(tokens)-1]:=t;
         end;
 
-        //store seperator char as well, unless it's "
-        if s[i]<>'"' then
+        //store seperator char as well, unless it's " or space
+        if not (s[i] in ['"',' ']) then
         begin
           setlength(tokens,length(tokens)+1);
           tokens[length(tokens)-1]:=s[i];
@@ -2891,6 +2896,50 @@ begin
     tokens[length(tokens)-1]:=t;
   end;
 end;
+
+
+function TSymHandler.isTypeToken(token: string; var nextTokenType: TSymHandlerTokenType): boolean;
+begin
+  result:=false;
+  token:=uppercase(token);
+  if length(token)>0 then
+  begin
+    //BYTE, WORD, DWORD, UINT64/QWORD, CHAR, SHORT, INT/LONG, LONGLONG/INT64
+    case token[1] of
+      'B' : if token='BYTE' then begin nextTokenType:=ttByte; exit(true); end;
+      'C' : if token='CHAR' then begin nextTokenType:=ttShortInt; exit(true); end;
+      'D' : if token='DWORD' then begin nextTokenType:=ttDword; exit(true); end;
+      'I' : if token='INT' then
+            begin
+              nextTokenType:=ttLongint;
+              exit(true);
+            end
+            else
+            if token='INT64' then
+            begin
+              nextTokenType:=ttInt64;
+              exit(true);
+            end;
+
+      'L' : if token='LONG' then
+            begin
+              nextTokenType:=ttLongint;
+              exit(true);
+            end
+            else
+            if token='LONGLONG' then
+            begin
+              nextTokenType:=ttInt64;
+              exit(true);
+            end;
+      'Q' : if token='QWORD' then begin nextTokenType:=ttQword; exit(true); end;
+      'U' : if token='UINT64' then begin nextTokenType:=ttQword; exit(true); end;
+      'S' : if token='SHORT' then begin nextTokenType:=ttSmallint; exit(true); end;
+      'W' : if token='WORD' then begin nextTokenType:=ttWord; exit(true); end;
+    end;
+  end;
+end;
+
 
 function TSymHandler.getProgress: integer;
 begin
@@ -4476,11 +4525,36 @@ var mi: tmoduleinfo;
     s: string;
     a,br: ptruint;
 
-    pointerstartlist: array of integer;
+    pointerstartlist: array of
+      record
+        start: integer;
+        tokentype: TSymHandlerTokenType;
+      end;
     pointerstartpos,pointerstartmax: integer;
 
+    nexttokentype: TSymHandlerTokenType;
+
     v64: qword;
+
+    function ApplyTokenType(value: qword): qword;
+    begin
+      case nexttokentype of
+        ttByte: result:=Byte(value);
+        ttWord: result:=Word(value);
+        ttDword: result:=Dword(value);
+        ttQword: result:=Qword(value);
+        ttShortInt: result:=ShortInt(value);
+        ttSmallint: result:=SmallInt(value);
+        ttLongint: result:=LongInt(value);
+        ttInt64: result:=Int64(value);
+        else
+          result:=value; //never...
+      end;
+
+      nextTokenType:=ttQword; //reset to default
+    end;
 begin
+  nexttokentype:=ttQword;
   pointerstartpos:=0;
   pointerstartmax:=16;
   setlength(pointerstartlist,pointerstartmax);
@@ -4540,13 +4614,15 @@ begin
     exit;
   end;
 
+
+
   //convert the tokens into hexadecimal values
 
   symbolloadervalid.beginread;
   try
     for i:=0 to length(tokens)-1 do
     begin
-      if not (tokens[i][1] in ['[',']','+','-','*']) then
+      if (length(tokens[i])>0) and (not (tokens[i][1] in ['[',']','+','-','*'])) then
       begin
         val('$'+tokens[i],v64,j);
         result:=v64;
@@ -4554,9 +4630,16 @@ begin
         if j>0 then
         begin
           //not a hexadecimal value
+          if isTypeToken(tokens[i], nextTokenType) then
+          begin
+            tokens[i]:='';
+            continue;
+          end;
+
+
           if getmodulebyname(tokens[i],mi) then
           begin
-            tokens[i]:=inttohex(mi.baseaddress,8);
+            tokens[i]:=inttohex(ApplyTokenType(mi.baseaddress),8);
             continue;
           end
           else
@@ -4567,7 +4650,7 @@ begin
               result:=callbackCheck(tokens[i], slNotModule);
               if result>0 then
               begin
-                tokens[i]:=inttohex(result,8);
+                tokens[i]:=inttohex(ApplyTokenType(result),8);
                 continue;
               end;
             end;
@@ -4586,23 +4669,23 @@ begin
                 //get the register value, and because this is an address specifier, use the full 32-bits
 
                 case regnr of
-                  0: tokens[i]:=inttohex(context^.{$ifdef cpu64}rax{$else}eax{$endif},8);
-                  1: tokens[i]:=inttohex(context^.{$ifdef cpu64}rcx{$else}ecx{$endif},8);
-                  2: tokens[i]:=inttohex(context^.{$ifdef cpu64}rdx{$else}edx{$endif},8);
-                  3: tokens[i]:=inttohex(context^.{$ifdef cpu64}rbx{$else}ebx{$endif},8);
-                  4: tokens[i]:=inttohex(context^.{$ifdef cpu64}rsp{$else}esp{$endif},8);
-                  5: tokens[i]:=inttohex(context^.{$ifdef cpu64}rbp{$else}ebp{$endif},8);
-                  6: tokens[i]:=inttohex(context^.{$ifdef cpu64}rsi{$else}esi{$endif},8);
-                  7: tokens[i]:=inttohex(context^.{$ifdef cpu64}rdi{$else}edi{$endif},8);
+                  0: tokens[i]:=inttohex(ApplyTokenType(context^.{$ifdef cpu64}rax{$else}eax{$endif}),8);
+                  1: tokens[i]:=inttohex(ApplyTokenType(context^.{$ifdef cpu64}rcx{$else}ecx{$endif}),8);
+                  2: tokens[i]:=inttohex(ApplyTokenType(context^.{$ifdef cpu64}rdx{$else}edx{$endif}),8);
+                  3: tokens[i]:=inttohex(ApplyTokenType(context^.{$ifdef cpu64}rbx{$else}ebx{$endif}),8);
+                  4: tokens[i]:=inttohex(ApplyTokenType(context^.{$ifdef cpu64}rsp{$else}esp{$endif}),8);
+                  5: tokens[i]:=inttohex(ApplyTokenType(context^.{$ifdef cpu64}rbp{$else}ebp{$endif}),8);
+                  6: tokens[i]:=inttohex(ApplyTokenType(context^.{$ifdef cpu64}rsi{$else}esi{$endif}),8);
+                  7: tokens[i]:=inttohex(ApplyTokenType(context^.{$ifdef cpu64}rdi{$else}edi{$endif}),8);
                   {$ifdef cpu64}
-                  8: tokens[i]:=inttohex(context^.r8,8);
-                  9: tokens[i]:=inttohex(context^.r9,8);
-                  10: tokens[i]:=inttohex(context^.r10,8);
-                  11: tokens[i]:=inttohex(context^.r11,8);
-                  12: tokens[i]:=inttohex(context^.r12,8);
-                  13: tokens[i]:=inttohex(context^.r13,8);
-                  14: tokens[i]:=inttohex(context^.r14,8);
-                  15: tokens[i]:=inttohex(context^.r15,8);
+                  8: tokens[i]:=inttohex(ApplyTokenType(context^.r8),8);
+                  9: tokens[i]:=inttohex(ApplyTokenType(context^.r9),8);
+                  10: tokens[i]:=inttohex(ApplyTokenType(context^.r10),8);
+                  11: tokens[i]:=inttohex(ApplyTokenType(context^.r11),8);
+                  12: tokens[i]:=inttohex(ApplyTokenType(context^.r12),8);
+                  13: tokens[i]:=inttohex(ApplyTokenType(context^.r13),8);
+                  14: tokens[i]:=inttohex(ApplyTokenType(context^.r14),8);
+                  15: tokens[i]:=inttohex(ApplyTokenType(context^.r15),8);
                   {$endif}
                 end;
 
@@ -4620,7 +4703,7 @@ begin
               result:=GetUserdefinedSymbolByName(tokens[i]);
               if result>0 then
               begin
-                tokens[i]:=inttohex(result,8);
+                tokens[i]:=inttohex(ApplyTokenType(result),8);
                 continue;
               end;
 
@@ -4630,7 +4713,7 @@ begin
                 result:=callbackCheck(tokens[i], slNotUserdefinedSymbol);
                 if result>0 then
                 begin
-                  tokens[i]:=inttohex(result,8);
+                  tokens[i]:=inttohex(ApplyTokenType(result),8);
                   continue;
                 end;
               end;
@@ -4644,7 +4727,7 @@ begin
                 result:=ptrUint(GetKProcAddress(pws));
                 if result<>0 then
                 begin
-                  tokens[i]:=inttohex(result,8);
+                  tokens[i]:=inttohex(ApplyTokenType(result),8);
                   continue;
                 end;
               end;
@@ -4706,7 +4789,7 @@ begin
                       a:=GetStackStart(j);
                       if a<>0 then
                       begin
-                        tokens[i]:=inttohex(a,8);
+                        tokens[i]:=inttohex(ApplyTokenType(a),8);
                         continue;
                       end;
                     end;
@@ -4717,7 +4800,7 @@ begin
                  // begin
                     if LookupStructureOffset(tokens[i], offset) then
                     begin
-                      tokens[i]:=inttohex(offset,8);
+                      tokens[i]:=inttohex(ApplyTokenType(offset),8);
                       continue;
                     end;
                  // end;
@@ -4727,7 +4810,7 @@ begin
                     a:=symbolloaderthread.getAddressFromSymbol(tokens[i]);
                     if a<>0 then
                     begin
-                      tokens[i]:=inttohex(a,8);
+                      tokens[i]:=inttohex(ApplyTokenType(a),8);
                       continue;
                     end;
 
@@ -4744,10 +4827,6 @@ begin
                     //check again now that the symbols are loaded
                     si:=symbollist.FindSymbol(tokens[i]);
                   end;
-
-
-
-
                 end;
 
                 if si<>nil then
@@ -4771,10 +4850,10 @@ begin
                       freememandnil(p);
                     end;
 
-                    tokens[i]:=inttohex(si.extra.forwardsto,8);
+                    tokens[i]:=inttohex(ApplyTokenType(si.extra.forwardsto),8);
                   end
                   else
-                    tokens[i]:=inttohex(si.address,8);
+                    tokens[i]:=inttohex(ApplyTokenType(si.address),8);
                   continue;
                 end;
 
@@ -4814,7 +4893,7 @@ begin
                 else
                 if (k<>LUA_TSTRING) and (lua_isnumber(LuaVM, j+1)) then
                 begin
-                  tokens[i]:=inttohex(lua_tointeger(LuaVM, j+1),8);
+                  tokens[i]:=inttohex(ApplyTokenType(lua_tointeger(LuaVM, j+1)),8);
                   continue;
                 end
                 else
@@ -4823,7 +4902,7 @@ begin
                   s:=lua_tostring(LuaVM, j+1);
                   if pos('$',s)=0 then //prevent inf lua loops
                   begin
-                    tokens[i]:=inttohex(getAddressFromName(s),8);
+                    tokens[i]:=inttohex(ApplyTokenType(getAddressFromName(s)),8);
                     continue;
                   end;
                 end;
@@ -4840,7 +4919,7 @@ begin
               result:=callbackCheck(tokens[i], slNotSymbol);
               if result>0 then
               begin
-                tokens[i]:=inttohex(result,8);
+                tokens[i]:=inttohex(ApplyTokenType(result),8);
                 continue;
               end;
             end;
@@ -4860,7 +4939,7 @@ begin
                 result:=callbackCheck(tokens[i], slFailure);
                 if result>0 then
                 begin
-                  tokens[i]:=inttohex(result,8);
+                  tokens[i]:=inttohex(ApplyTokenType(result),8);
                   continue;
                 end;
               end;
@@ -4870,18 +4949,24 @@ begin
             end;
 
           end;
-        end;
+        end
+        else
+          tokens[i]:=inttohex(applytokentype(result),8);
       end
       else
       begin
         //it's not a real token
+        if (length(tokens[i])>0) then
         case tokens[i][1] of
           '*' : hasMultiplication:=true;
           '[':
           begin
             hasPointer:=true;
 
-            pointerstartlist[pointerstartpos]:=i;
+            pointerstartlist[pointerstartpos].start:=i;
+            pointerstartlist[pointerstartpos].tokentype:=nexttokentype;
+            nexttokentype:=ttQword;
+
             inc(pointerstartpos);
             if pointerstartpos>=pointerstartmax then
             begin
@@ -4904,7 +4989,7 @@ begin
               end;
 
               dec(pointerstartpos);
-              k:=pointerstartlist[pointerstartpos];
+              k:=pointerstartlist[pointerstartpos].start;
 
               for j:=k+1 to i-1 do
               begin
@@ -4924,7 +5009,8 @@ begin
               if haserror then exit;
 
               tokens[i]:='';
-              tokens[k]:=inttohex(a,8);
+              nexttokentype:=pointerstartlist[pointerstartpos].tokentype;
+              tokens[k]:=inttohex(ApplyTokenType(a),8);
 
               if pointerstartpos=0 then
                 haspointer:=false;
