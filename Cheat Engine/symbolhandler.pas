@@ -44,7 +44,7 @@ Type TMemoryRegion = record
   startaddress: pointer;
   end;
 type TMemoryregions = array of tmemoryregion;
-  
+
 {$endif}
 
 
@@ -262,7 +262,7 @@ type
 
     kernelsymbols: boolean;
     dllsymbols: boolean;
-    
+
     locked: boolean;
     targetself: boolean;
 
@@ -2804,7 +2804,7 @@ begin
   self.owner:=owner;
   self.targetself:=targetself;
 
-  
+
   {$ifdef windows}
   if targetself then
   begin
@@ -2841,7 +2841,7 @@ procedure TSymhandler.tokenize(s: string; var tokens: TTokens);
 Just a tokenizer for simple address specifiers
 }
 var
-  i,j: integer;
+  i: integer;
   last: integer;
   t: string;
   inQuote: boolean;
@@ -2851,7 +2851,7 @@ begin
 
   for i:=1 to length(s) do
   begin
-    if (s[i] in ['"', '[', ']', '+', '-', '*',';']) then
+    if (s[i] in ['"', '[', ']', '+', '-', '*']) then
     begin
       if s[i]='"' then
       begin
@@ -3461,7 +3461,7 @@ begin
       end;
   finally
     userdefinedsymbolsCS.leave;
-  end;  
+  end;
 end;
 
 function TSymhandler.GetUserdefinedSymbolByName(symbolname:string):ptrUint;
@@ -4480,9 +4480,6 @@ var mi: tmoduleinfo;
     pointerstartpos,pointerstartmax: integer;
 
     v64: qword;
-
-    validsize: boolean;
-    pointersize: integer;
 begin
   pointerstartpos:=0;
   pointerstartmax:=16;
@@ -4549,7 +4546,7 @@ begin
   try
     for i:=0 to length(tokens)-1 do
     begin
-      if (length(tokens[i])>0) and (not (tokens[i][1] in ['[',']','+','-','*',';'])) then
+      if not (tokens[i][1] in ['[',']','+','-','*']) then
       begin
         val('$'+tokens[i],v64,j);
         result:=v64;
@@ -4878,14 +4875,11 @@ begin
       else
       begin
         //it's not a real token
-        if length(tokens[i])>0 then
         case tokens[i][1] of
           '*' : hasMultiplication:=true;
           '[':
           begin
             hasPointer:=true;
-            if pointerstartpos=0 then
-              pointersize:=processhandler.pointersize;
 
             pointerstartlist[pointerstartpos]:=i;
             inc(pointerstartpos);
@@ -4897,52 +4891,10 @@ begin
 
           end;
 
-          ';':
-          begin
-            if hasPointer and (pointerstartpos=1) then //the currently effective pointer
-            begin
-              if length(tokens)>i+1 then
-              begin
-
-                if tokens[i+1]='8' then
-                begin
-                  pointersize:=1;
-                  tokens[i]:='';
-                  tokens[i+1]:='';
-                end
-                else
-                if tokens[i+1]='16' then
-                begin
-                  pointersize:=2;
-                  tokens[i]:='';
-                  tokens[i+1]:='';
-                end
-                else
-                if tokens[i+1]='32' then
-                begin
-                  pointersize:=4;
-                  tokens[i]:='';
-                  tokens[i+1]:='';
-                end
-                else
-                if tokens[i+1]='64' then //useless
-                begin
-                  pointersize:=8;
-                  tokens[i]:='';
-                  tokens[i+1]:='';
-                end;
-              end;
-
-
-            end;
-          end;
-
           ']':
           begin
             if haspointer then
             begin
-
-
               //parse since the last pointerstart
               s:='';
               if pointerstartpos=0 then
@@ -4968,15 +4920,8 @@ begin
               else
                 haserror:=not readprocessmemory(GetCurrentProcess, pointer(a),@a,{$ifdef cpu32}4{$else}8{$endif},br);
 
-              if haserror then exit;
 
-              case pointersize of
-                1: a:=a and $ff;
-                2: a:=a and $ffff;
-                {$ifdef cpu64}
-                4: a:=a and $ffffffff;
-                {$endif}
-              end;
+              if haserror then exit;
 
               tokens[i]:='';
               tokens[k]:=inttohex(a,8);
@@ -5360,7 +5305,7 @@ end;
 function TSymhandler.GetAddressFromPointer(s: string; var error: boolean):ptrUint;
 {
 Will return the address of a pointer noted as [[[xxx+xx]+xx]+xx]+xx
-If it is a invalid pointer, or can not be resolved, the result is NULL 
+If it is a invalid pointer, or can not be resolved, the result is NULL
 }
 var i, pointersize: integer;
     list: tstringlist;
@@ -5480,7 +5425,7 @@ begin
   prolog:=true;
   temps:='';
   ispointer:=false;
-  
+
   for i:=1 to length(s) do
   begin
     if s[i]='[' then
@@ -5507,7 +5452,7 @@ begin
         if s[i]=']' then //end of a level
         begin
           dec(currentlevel);
-          if temps='' then temps:='+0';          
+          if temps='' then temps:='+0';
           list.Add(temps);
 
           temps:='';
@@ -5548,7 +5493,7 @@ begin
     if commonModuleList=nil then
       commonModuleList:=tstringlist.create;
 
-    commonModuleList.Clear;  
+    commonModuleList.Clear;
     try
       commonModuleList.LoadFromFile(s{$if FPC_FULLVERSION>=030200},true{$endif});
 
@@ -5816,8 +5761,9 @@ finalization
 
   if symbolloaderthreadcs<>nil then
     freeandnil(symbolloaderthreadcs);
-  
+
 end.
+
 
 
 
