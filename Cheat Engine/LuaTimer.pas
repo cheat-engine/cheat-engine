@@ -11,7 +11,7 @@ procedure initializeLuaTimer;
 
 implementation
 
-uses luaclass, luahandler, luacaller, LuaComponent;
+uses luaclass, luahandler, luacaller, LuaComponent, Clipbrd, luasyntax;
 
 type
   TRunOnceTimer=class(TTimer)
@@ -28,7 +28,7 @@ begin
   free;
 end;
 
-function createTimer(L: Plua_State): integer; cdecl;
+function createTimerInternal(L: Plua_State): integer; cdecl;
 var parameters: integer;
   f: pointer;
 
@@ -38,6 +38,7 @@ var parameters: integer;
 begin
   result:=0;
   parameters:=lua_gettop(L);
+  f:=nil;
 
   if parameters>=1 then
   begin
@@ -64,9 +65,7 @@ begin
       f:=lua_toceuserdata(L, 1);
       if (f<>nil) and (not (TObject(f) is TComponent)) then raise exception.create('createTimer: '+TObject(f).ClassName+' is not a Component');
     end;
-  end
-  else
-    f:=nil;
+  end;
 
   t:=ttimer.create(f);
 
@@ -157,12 +156,36 @@ begin
 end;
 
 procedure initializeLuaTimer;
+var s: tstringlist;
 begin
-  lua_register(LuaVM, 'createTimer', createTimer);
+  lua_register(LuaVM, 'createTimerInternal', createTimerInternal);
   lua_register(LuaVM, 'timer_setInterval', timer_setInterval);
   lua_register(LuaVM, 'timer_onTimer', timer_setonTimer);
   lua_register(LuaVM, 'timer_setEnabled', timer_setEnabled);
   lua_register(LuaVM, 'timer_getEnabled', timer_getEnabled);
+
+  s:=tstringlist.create;
+  s.add('function createTimer(p1,p2,...)');
+  s.add('  local params=table.pack(...)');
+  s.add('  if type(p1)==''number'' and type(p2)==''function'' then');
+  s.add('    return createTimerInternal(p1, function()');
+  s.add('      p2(table.unpack(params))');
+  s.add('    end)');
+  s.add('  else');
+  s.add('    return createTimerInternal(p1,p2,table.unpack(params))');
+  s.add('  end');
+  s.add('end');
+
+  Clipboard.AsText:=s.text;
+
+  LUA_DoScript(s.text);
+  if luasyntaxStringHashList<>nil then
+  begin
+    luasyntaxStringHashList.Add('createTimer');
+    luasyntaxStringHashList.Add('CreateTimer');
+  end;
+
+  s.free;
 end;
 
 initialization

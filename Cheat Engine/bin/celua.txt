@@ -1553,7 +1553,7 @@ methods
 
 
 Timer Class : (Inheritance: Component->object)
-createTimer(delay, function(t)):
+createTimer(delay, function(...),...):
   Creates a timer object that waits the given delay, executes the given function, and then selfdestructs.  Tip: Don't use the timer after it has ran
 
 createTimer(owner OPT, enabled OPT):

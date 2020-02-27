@@ -18,9 +18,10 @@ added always hide children groupoption
 group headers can act as address now
 AA command createthreadandwait now has a timeout parameter
 Assembler scanning improvement
-
 Added an AVX2 version of CE, which will speed up all those floating point operations CE does so much...
-
+Improved structure lookup for PDB files
+Symbolhandler can now have the following types in front of pointers : BYTE, WORD, DWORD, QWORD, CHAR, SHORT, INT, UINT64 to typecast the pointer to a value of that type
+Structure dissect can detect vc++ and object pascal classnames now
 
 Fixes:
 Fixed memoryleak when opening a file for hexediting again
@@ -31,12 +32,17 @@ Hexview: Fixed changing the address when doubleclicking and then canceling
 alloc with a prefered base is now more aggressive in getting the range you want
 fixed mono symbol lookup while dlls are still being loaded
 fixed the structure compare not giving a proper errormessage
+fixed improper error messages in structure dissect
+fixed opening process in XP
+fixed potential deadlock with the symbolhander
 
 
 lua:
   New functions:
     function onTableLoad(loaded)
     sendMessageTimeout
+    createTimer(delay,function())
+    createStructureFromName()
       
 
 
@@ -44,6 +50,7 @@ lua:
     fixed executeCodeLocalEx with certain parameter definitions
     fixed openFileAsProcess
     checkSynchroniuze has a timeout now
+    OnGetDisplayValue now also works on AA records
 
 How to use:
 There's a tutorial program included with Cheat Engine,
