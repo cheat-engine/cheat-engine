@@ -2934,7 +2934,7 @@ begin
             end;
       'Q' : if token='QWORD' then begin nextTokenType:=ttQword; exit(true); end;
       'U' : if token='UINT64' then begin nextTokenType:=ttQword; exit(true); end;
-      'S' : if token='SHORT' then begin nextTokenType:=ttSmallint; exit(true); end;
+      'S' : if token='SHORTINT' then begin nextTokenType:=ttSmallint; exit(true); end; //do NOT call this short, conflicts with short jmp
       'W' : if token='WORD' then begin nextTokenType:=ttWord; exit(true); end;
     end;
   end;

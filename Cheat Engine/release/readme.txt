@@ -20,7 +20,7 @@ AA command createthreadandwait now has a timeout parameter
 Assembler scanning improvement
 Added an AVX2 version of CE, which will speed up all those floating point operations CE does so much...
 Improved structure lookup for PDB files
-Symbolhandler can now have the following types in front of pointers : BYTE, WORD, DWORD, QWORD, CHAR, SHORT, INT, UINT64 to typecast the pointer to a value of that type
+Symbolhandler can now have the following types in front of pointers : BYTE, WORD, DWORD, QWORD, CHAR, SHORTINT, INT, UINT64 to typecast the pointer to a value of that type
 Structure dissect can detect vc++ and object pascal classnames now
 
 Fixes:
