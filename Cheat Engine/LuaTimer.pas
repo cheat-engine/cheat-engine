@@ -176,8 +176,6 @@ begin
   s.add('  end');
   s.add('end');
 
-  Clipboard.AsText:=s.text;
-
   LUA_DoScript(s.text);
   if luasyntaxStringHashList<>nil then
   begin
