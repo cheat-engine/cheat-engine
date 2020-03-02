@@ -7897,7 +7897,7 @@ begin
       reg.WriteBool('ShownHappyNewYear'+inttostr(year), true);
     end;
   end;
-  if (month = 1) and (day = 1) and (year >= 2020) then
+  if (month = 1) and (day = 1) and (year >= 2030) then
     ShowMessage(strFuture);
 
   if (month = 4) and (day = 1) then

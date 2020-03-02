@@ -4959,7 +4959,7 @@ begin
 
       a:=getAddressFromNode(node, c, error);
 
-      s:=s+'->'+inttohex(a,8);
+      s:=s+'=>'+inttohex(a,8);
 
       sbSelection.SimpleText:=s;
     end;

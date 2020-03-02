@@ -48,6 +48,7 @@ type
     GSlabel: TLabel;
     MenuItem4: TMenuItem;
     copyBytesAndOpcodesAndComments: TMenuItem;
+    miCopyOpcodesOnly: TMenuItem;
     miUndoLastEdit: TMenuItem;
     miFollowInHexview: TMenuItem;
     miSetSpecificBreakpoint: TMenuItem;
@@ -4306,9 +4307,9 @@ begin
     edit2.Text:=inttohex(b-1,8);
     copymode:=true;
 
-    cbAddress.checked:=_tag<>4;
-    cbBytes.checked:=(_tag=1) or (_tag=2) or (_tag=4) or (_tag=6);
-    cbOpcode.checked:=(_tag=1) or (_tag=3) or (_tag=6);
+    cbAddress.checked:=not (_tag in [4,7]);
+    cbBytes.checked:=_tag in [1,2,4,6];
+    cbOpcode.checked:=_tag in [1,3,6,7];
     cbComment.checked:=(_tag=1);
     
     button1.click;

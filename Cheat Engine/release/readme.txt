@@ -23,6 +23,8 @@ Improved structure lookup for PDB files
 Symbolhandler can now have the following types in front of pointers : BYTE, WORD, DWORD, QWORD, CHAR, SHORTINT, INT, UINT64 to typecast the pointer to a value of that type
 Structure dissect can detect vc++ and object pascal classnames now
 Dissect code now also detects references to strings
+Sorting the addresslist now sorts faster and more properly with regards to groups (depends on the level your current selection is)
+Rightclick the addresslist header to bring up a menu which allows you to disable sorting
 
 Fixes:
 Fixed memoryleak when opening a file for hexediting again

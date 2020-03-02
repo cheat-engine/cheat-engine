@@ -1279,6 +1279,11 @@ object MemoryBrowser: TMemoryBrowser
         ShortCut = 49219
         OnClick = miCopyBytesOnlyClick
       end
+      object miCopyOpcodesOnly: TMenuItem
+        Tag = 7
+        Caption = 'Opcodes only (no address)'
+        OnClick = copyBytesAndOpcodesClick
+      end
       object miCopyAddressesOnly: TMenuItem
         Tag = 5
         Caption = 'Addresses only'
