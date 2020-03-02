@@ -640,6 +640,7 @@ type
     procedure ProcessLabelClick(Sender: TObject);
     procedure rbAllMemoryChange(Sender: TObject);
     procedure rbFsmAlignedChange(Sender: TObject);
+    procedure rtChange(Sender: TObject);
     procedure Save1Click(Sender: TObject);
     procedure ShowProcessListButtonClick(Sender: TObject);
     procedure btnNewScanClick(Sender: TObject);
@@ -3102,6 +3103,12 @@ begin
 
   VarType.OnChange(vartype);
 end;
+
+procedure TMainForm.rtChange(Sender: TObject);
+begin
+  cereg.writeInteger('Last Rounding Type',TComponent(sender).tag);
+end;
+
 
 procedure TMainForm.Save1Click(Sender: TObject);
 var
@@ -5976,6 +5983,7 @@ begin
   foundlistColors.DynamicColor:=GetSysColor(COLOR_WINDOWTEXT);
 
 
+
   {$ifdef darwin}
   cbDirty:=TCheckBox.create(self);
   cbDirty.parent:=panel2;
@@ -8258,6 +8266,11 @@ begin
 
  // ImageList2.GetBitmap(0);
 
+  case cereg.readInteger('Last Rounding Type',1) of
+    0: rt1.checked:=true;
+    1: rt2.checked:=true;
+    2: rt3.checked:=true;
+  end;
 
 end;
 
