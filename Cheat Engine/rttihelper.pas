@@ -15,6 +15,13 @@ implementation
 
 uses newkernelhandler, ProcessHandlerUnit, symbolhandler, symbolhandlerstructs;
 
+function isvalidstring(s: string): boolean;
+var i: integer;
+begin
+  result:=true;
+  for i:=1 to length(s) do
+    if (ord(s[i])<32) or (ord(s[i]))>126) then exit(false);
+end;
 
 function getRTTIClassNamePascal(StructureBaseAddress: ptruint; var classname: string): boolean;
 {
@@ -56,7 +63,8 @@ begin
           if (count<255) and (cname[count+1]=0) then
           begin
             classname:=pchar(@cname[1]);
-            exit(true);
+
+            exit(isvalidstring(classname));
           end;
         end;
       end;
@@ -139,7 +147,12 @@ begin
                 undecoratedstring[i]:=0;
 
                 classname:=pchar(@undecoratedstring[0]);
-                result:=true;
+
+
+                if isvalidstring(classname) then exit(true);
+                classname:=pchar(@TypeInfo64.decoratedname[4]);
+
+                if isvalidstring(classname) then exit(true);
               end;
             end;
           end
