@@ -20,7 +20,7 @@ var i: integer;
 begin
   result:=true;
   for i:=1 to length(s) do
-    if (ord(s[i])<32) or (ord(s[i]))>126) then exit(false);
+    if (ord(s[i])<32) or (ord(s[i])>126) then exit(false);
 end;
 
 function getRTTIClassNamePascal(StructureBaseAddress: ptruint; var classname: string): boolean;
