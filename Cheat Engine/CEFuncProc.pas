@@ -2468,7 +2468,7 @@ begin
       if processlist.Objects[i]<>nil then
       begin
         ProcessListInfo:=PProcessListInfo(processlist.Objects[i]);
-        if ProcessListInfo.processIcon>0 then
+        if (ProcessListInfo.processIcon<>0) and (ProcessListInfo.processIcon<>HWND(-1)) then
         begin
           if ProcessListInfo^.processID<>GetCurrentProcessId then
             DestroyIcon(ProcessListInfo^.processIcon);
@@ -2522,49 +2522,7 @@ begin
               path:=lowercase(getProcessPathFromProcessID(winprocess));
 
               ProcessListInfo.issystemprocess:=(ProcessListInfo.processID=4) or (pos(lowercase(windowsdir),path)>0) or (pos('system32',path)>0);
-
-              if formsettings.cbProcessIcons.checked then
-              begin
-                tempptruint:=0;
-
-
-                if SendMessageTimeout(basehandle,WM_GETICON,ICON_BIG,0,SMTO_ABORTIFHUNG, 100, tempptruint )<>0 then
-                begin
-                  ProcessListInfo.processIcon:=tempptruint;
-                  if ProcessListInfo.processIcon=0 then
-                  begin
-                    if SendMessageTimeout(basehandle,WM_GETICON,ICON_SMALL2,0,SMTO_ABORTIFHUNG, 50, tempptruint	)<>0 then
-                      ProcessListInfo.processIcon:=tempptruint;
-
-                    if ProcessListInfo.processIcon=0 then
-                      if SendMessageTimeout(basehandle,WM_GETICON,ICON_SMALL,0,SMTO_ABORTIFHUNG, 25, tempptruint	)<>0 then
-                        ProcessListInfo.processIcon:=tempptruint;
-
-                    if ProcessListInfo.processIcon=0 then
-                    begin
-                      //try the process
-                      HI:=ExtractIcon(hinstance,pchar(path),0);
-                      if HI=0 then
-                      begin
-                        j:=getlasterror;
-
-                        //alternative method:
-
-                        if (winprocess>0) and (uppercase(copy(ExtractFileName(path), 1,3))<>'AVG') then //february 2014: AVG freezes processes that do createtoolhelp32snapshot on it's processes for several seconds. AVG has multiple processes...
-                        begin
-                          s:=GetFirstModuleName(winprocess);
-                          HI:=ExtractIcon(hinstance,pchar(s),0);
-                        end;
-                      end;
-
-                      ProcessListInfo.processIcon:=HI;
-                    end;
-                  end;
-                end else
-                begin
-                  inc(i,100); //at worst case scenario this causes the list to wait 10 seconds
-                end;
-              end;
+              ProcessListInfo.winhandle:=basehandle;
 
               //before adding check if there is already one with Exactly the same title (e.g: origin)
               found:=false;
@@ -2676,29 +2634,9 @@ begin
         begin
           getmem(ProcessListInfo,sizeof(TProcessListInfo));
           ProcessListInfo.processID:=winprocess;
+          ProcessListInfo.winhandle:=winhandle;
           ProcessListInfo.processIcon:=0;
           ProcessListInfo.issystemprocess:=false;
-
-          if formsettings.cbProcessIcons.checked then
-          begin
-            tempptruint:=0;
-            if SendMessageTimeout(winhandle,WM_GETICON,ICON_SMALL,0,SMTO_ABORTIFHUNG, 100, tempptruint )<>0 then
-            begin
-              ProcessListInfo.processIcon:=tempptruint;
-              if ProcessListInfo.processIcon=0 then
-              begin
-                if SendMessageTimeout(winhandle,WM_GETICON,ICON_SMALL2,0,SMTO_ABORTIFHUNG, 50, tempptruint	)<>0 then
-                  ProcessListInfo.processIcon:=tempptruint;
-
-                if ProcessListInfo.processIcon=0 then
-                  if SendMessageTimeout(winhandle,WM_GETICON,ICON_BIG,0,SMTO_ABORTIFHUNG, 25, tempptruint	)<>0 then
-                    ProcessListInfo.processIcon:=tempptruint;
-              end;
-            end else
-            begin
-              inc(i,100); //at worst case scenario this causes the list to wait 10 seconds
-            end;
-          end;
 
 
           x.AddObject(IntTohex(winprocess,8)+'-'+wintitle,TObject(ProcessListInfo));
