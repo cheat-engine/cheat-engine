@@ -1407,7 +1407,7 @@ begin
 end;
 
 procedure TfrmLuaEngine.FormShow(Sender: TObject);
-var i: integer;
+var i, off: integer;
 begin
   if overridefont<>nil then
     mScript.font.size:=overridefont.size
@@ -1427,12 +1427,18 @@ begin
 
   if loadedFormPosition=false then
   begin
-    i:=mscript.CharWidth*30+mscript.Gutter.Width;
+    i:=mscript.CharWidth*40+mscript.Gutter.Width+panel3.width;
     if mscript.width<i then clientwidth:=clientwidth+(i-mscript.width);
 
     i:=mscript.LineHeight*6;
-    if mscript.height<i then clientheight:=clientheight+(i-mscript.height);
+    off:=(i-mscript.height);
+    if mscript.height<i then panel1.height:=panel1.height+off;
 
+    clientheight:=clientheight+off;
+
+    i:=canvas.TextHeight('XXX')*10;
+    if moutput.height<i then
+      clientheight:=clientheight+(i-moutput.height);
   end;
 
 end;
