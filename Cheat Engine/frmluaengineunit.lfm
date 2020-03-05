@@ -788,8 +788,8 @@ object frmLuaEngine: TfrmLuaEngine
   end
   object MainMenu1: TMainMenu
     Images = leImageList
-    left = 263
-    top = 43
+    Left = 263
+    Top = 43
     object MenuItem1: TMenuItem
       Caption = 'File'
       object MenuItem11: TMenuItem
@@ -861,19 +861,19 @@ object frmLuaEngine: TfrmLuaEngine
   object OpenDialog1: TOpenDialog
     DefaultExt = '.LUA'
     Filter = 'Lua files (*.lua)|*.lua'
-    left = 56
-    top = 41
+    Left = 56
+    Top = 41
   end
   object SaveDialog1: TSaveDialog
     DefaultExt = '.LUA'
     Filter = 'Lua files (*.lua)|*.lua'
-    left = 128
-    top = 43
+    Left = 128
+    Top = 43
   end
   object pmEditor: TPopupMenu
     Images = leImageList
-    left = 59
-    top = 184
+    Left = 59
+    Top = 184
     object miCut: TMenuItem
       Caption = 'Cut'
       ImageIndex = 7
@@ -943,12 +943,12 @@ object frmLuaEngine: TfrmLuaEngine
     Options = [frDown, frReplaceAll]
     OnFind = dlgReplaceFind
     OnReplace = dlgReplaceReplace
-    left = 304
-    top = 184
+    Left = 304
+    Top = 184
   end
   object ilLuaDebug: TImageList
-    left = 352
-    top = 43
+    Left = 352
+    Top = 43
     Bitmap = {
       4C69050000001000000010000000000000000000000004733AFF2D8859FF859C
       90FF000000000000000000000000000000000000000000000000000000000000
@@ -1114,8 +1114,8 @@ object frmLuaEngine: TfrmLuaEngine
     }
   end
   object ilSyneditDebug: TImageList
-    left = 448
-    top = 41
+    Left = 448
+    Top = 41
     Bitmap = {
       4C690300000010000000100000000000000000000000D7D6F0FFA2B1F6FF7C8E
       EEFF697EECFF8193EFFFABB7F7FFE4DDEBFF0000000000000000000000000000
@@ -1220,13 +1220,13 @@ object frmLuaEngine: TfrmLuaEngine
     Enabled = False
     Interval = 500
     OnTimer = tShowHintTimer
-    left = 128
-    top = 184
+    Left = 128
+    Top = 184
   end
   object FindDialog1: TFindDialog
     OnFind = dlgReplaceFind
-    left = 215
-    top = 184
+    Left = 215
+    Top = 184
   end
   object scLuaCompleter: TSynCompletion
     OnExecute = scLuaCompleterExecute
@@ -1243,13 +1243,13 @@ object frmLuaEngine: TfrmLuaEngine
     ExecCommandID = ecSynCompletionExecute
     Editor = mScript
     ToggleReplaceWhole = False
-    left = 416
-    top = 184
+    Left = 416
+    Top = 184
   end
   object leImageList: TImageList
     Scaled = True
-    left = 221
-    top = 120
+    Left = 221
+    Top = 120
     Bitmap = {
       4C690D0000001000000010000000C47B27FFE08D2CFFE08D2CFFE08D2CFFE08D
       2CFFE08D2CFFE08D2CFFE08D2CFFE08D2CFFE0872CFFE0832CFFE0892CFFE082

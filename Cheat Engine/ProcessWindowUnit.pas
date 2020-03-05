@@ -1052,6 +1052,14 @@ begin
 end;
 
 procedure TProcessWindow.FormShow(Sender: TObject);
+var
+  tr: trect;
+  preferedwidth: integer;
+
+  tabwidth: integer;
+  pc: integer;
+  s: string;
+  i: integer;
 begin
 
   OKButton.Constraints.MinHeight:=trunc(1.2*btnAttachDebugger.height);
@@ -1075,10 +1083,30 @@ begin
     begin
       autosize:=false;
       //first run or no saving positions
-      clientwidth:=max(clientwidth, canvas.TextWidth('  XXXXXXXX - XXXXXXXXXXXXXXXXXXXXXX  '));
+      preferedwidth:=max(clientwidth, canvas.TextWidth('  XXXXXXXX - XXXXXXXXXXXXXXXXXXXXXX  '));
+
+
+      pc:=tabheader.PageCount;
+      tabwidth:=0;
+      for i:=0 to pc-1 do
+      begin
+        tr:=tabheader.TabRect(i);
+        tabwidth:=tabwidth+tr.Width;
+      end;
+      tabwidth:=tabwidth+ canvas.TextWidth(' ');
+
+      if tabwidth>preferedwidth then
+        preferedwidth:=tabwidth;
+
+
+
+      clientwidth:=preferedwidth;
       height:=mainform.Height-(mainform.height div 3);
       position:=poDesigned;
       position:=poMainFormCenter;
+
+
+
     end;
     errortrace:=106;
 

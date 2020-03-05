@@ -1186,10 +1186,23 @@ properties
   Lines: Stringlist - Contains the text
   Gutter: Gutter - Gutter object
   ReadOnly: Boolean - Set to true for read only
+  SelStart: integer
+  SelEnd: integer
+  SelText: string
+  CanPaste: boolean
+  CanRedo: boolean
+  CanUndo: boolean
 
 methods
-
-
+  CopyToClipboard()
+  CutToClipboard()
+  PasteFromClipboard()
+  ClearUndo()
+  Redo()
+  Undo()
+  MarkTextAsSaved()
+  ClearSelection();
+  SelectAll();     
 
 ButtonControl Class: (Inheritance: WinControl->Control->Component->Object)
 
@@ -3047,6 +3060,7 @@ properties
   Page[]: TabSheet - Get a specific page (TabSheet)
 methods
   addTab() : TabSheet - Creates a new TabSheet
+  tabRect(index): Rect - returns a rect table describing the position of the specific tab
 
 TabSheet class (WinControl->Control->Component->Object)
   Part of a page control. This object can contain other objects

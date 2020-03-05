@@ -8247,6 +8247,13 @@ begin
     //initial state: focus on the addresslist
     panel5.height:=gbScanOptions.top+gbScanOptions.Height;
 
+    i:=10*addresslist.Items.Owner.DefaultItemHeight;
+    j:=addresslist.height;
+    if i>j then
+    begin
+      i:=clientheight+(i-addresslist.height);
+      clientheight:=i;
+    end;
   end;
 
   panel5.OnResize(panel5);

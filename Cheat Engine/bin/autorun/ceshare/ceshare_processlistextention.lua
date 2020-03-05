@@ -86,6 +86,16 @@ function ceshare.LoadProcessList()
     end
   end
   
+  --do not bother with the ce process
+  local ceml=enumModules(getCheatEngineProcessID())
+  if ceml then    
+    local cemodule=ceml[1]
+    if cemodule then    
+      ceshare.processlist[stringToMD5String(string.lower(cemodule.Name))]=nil  
+    end  
+  end
+  
+  
   sl.destroy()
 end
 
@@ -128,8 +138,17 @@ z=registerFormAddNotification(function(s)
       
       ceshare.ProcessListWindow=s2
       
-      s2.TabHeader.Tabs.add('CEShare')
-      ci=s2.TabHeader.Tabs.Count-1
+      if s2.TabHeader.ClassName=='TPageControl' then --7.1 changed the processlist tab from a TabControl to a PageControl as that one does support images
+        local ts=s2.TabHeader.addTab()
+        ts.Caption='CEShare'
+        ci=ts.TabIndex        
+      else
+        s2.TabHeader.Tabs.add('CEShare')
+        ci=s2.TabHeader.Tabs.Count-1
+      end
+      
+      
+      
       
 
       
@@ -146,7 +165,8 @@ z=registerFormAddNotification(function(s)
       local OriginalProcessListOnDblClick=s2.ProcessList.OnDblClick
       
 
-      s2.ProcessList.OnDrawItem=function(sender, index, rect, state)      
+      s2.ProcessList.OnDrawItem=function(sender, index, rect, state)  
+   
         if ceshare.ceversion<7.1 then                  
           --a bug in 7.0 and earlier makes state the wrong type. so first convert it to the proper names, or just empty it as CE doesn't make use of it
           state=''
@@ -232,6 +252,25 @@ z=registerFormAddNotification(function(s)
       if ProcessListLastTab==nil then --if never picked a tab, go to ceshare first to show it
         ProcessListLastTab=ci
       end
+      
+      if s2.TabHeader.ClassName=='TPageControl' then --7.1+
+        --also adjust the width
+        local w
+        
+        local i
+        w=0
+        
+        for i=1,s2.TabHeader.PageCount do
+          local r=s2.TabHeader.tabRect(i-1)
+          local tw=r.Right-r.Left
+          w=w+tw        
+        end
+
+        if s2.ClientWidth<w then
+          s2.ClientWidth=w+s2.Canvas.getTextWidth(' X ')
+        end
+      end
+      
 
       s2.TabHeader.TabIndex=ProcessListLastTab
       s2.TabHeader.OnChange(s2.TabHeader)  
@@ -267,5 +306,6 @@ MainForm.OnProcessOpened=function(processid, processhandle, caption)
     end
   end
 end
+
 
 ceshare.LoadProcessList()

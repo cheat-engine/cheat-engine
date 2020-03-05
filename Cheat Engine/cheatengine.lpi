@@ -22,7 +22,7 @@
       <AutoIncrementBuild Value="True"/>
       <MajorVersionNr Value="7"/>
       <MinorVersionNr Value="1"/>
-      <BuildNr Value="6142"/>
+      <BuildNr Value="6176"/>
       <Language Value=""/>
       <CharSet Value=""/>
       <StringTable CompanyName="Cheat Engine" FileDescription="Cheat Engine" ProductVersion="7.1"/>
@@ -603,7 +603,7 @@
         <PackageName Value="LCL"/>
       </Item8>
     </RequiredPackages>
-    <Units Count="392">
+    <Units Count="393">
       <Unit0>
         <Filename Value="cheatengine.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -2130,6 +2130,7 @@
       <Unit291>
         <Filename Value="luapagecontrol.pas"/>
         <IsPartOfProject Value="True"/>
+        <UnitName Value="LuaPageControl"/>
       </Unit291>
       <Unit292>
         <Filename Value="frmnetworkdatacompressionunit.pas"/>
@@ -2674,6 +2675,10 @@
         <Filename Value="dotnethost.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit391>
+      <Unit392>
+        <Filename Value="rttihelper.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit392>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
@@ -2752,7 +2757,6 @@
       </Item6>
       <Item7>
         <Name Value="EConvertError"/>
-        <Enabled Value="False"/>
       </Item7>
       <Item8>
         <Name Value="symexception"/>
@@ -2777,7 +2781,6 @@
       </Item13>
       <Item14>
         <Name Value="EFileMapError"/>
-        <Enabled Value="False"/>
       </Item14>
       <Item15>
         <Name Value="EParserError"/>

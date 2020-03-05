@@ -122,6 +122,7 @@ type
     procedure tShowHintTimer(Sender: TObject);
   private
     { private declarations }
+    loadedFormPosition: boolean;
     hintwindow:THintWindow;
     continuemethod: integer;
     AutoCompleteStartLine: string;
@@ -1367,6 +1368,7 @@ begin
   setlength(x,1);
   if LoadFormPosition(self, x) then
   begin
+    loadedFormPosition:=true;
     panel1.height:=x[0];
     if length(x)>1 then
     begin
@@ -1380,6 +1382,7 @@ begin
         miAutoComplete.checked:=x[3]=1;
     end;
   end;
+
   {$ifdef darwin}
   miCut.ShortCut:=TextToShortCut('Meta+X');
   miCopy.ShortCut:=TextToShortCut('Meta+C');
@@ -1420,6 +1423,16 @@ begin
     dpihelper.AdjustToolbar(tbDebug);
     AdjustImageList(ilSyneditDebug);
     adjustedSize:=true;
+  end;
+
+  if loadedFormPosition=false then
+  begin
+    i:=mscript.CharWidth*30+mscript.Gutter.Width;
+    if mscript.width<i then clientwidth:=clientwidth+(i-mscript.width);
+
+    i:=mscript.LineHeight*6;
+    if mscript.height<i then clientheight:=clientheight+(i-mscript.height);
+
   end;
 
 end;

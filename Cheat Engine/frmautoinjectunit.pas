@@ -179,6 +179,7 @@ type
     procedure miUndoClick(Sender: TObject);
   private
     { Private declarations }
+    LoadedFormPosition: boolean;
 
     AAHighlighter: TSynAASyn;
     CPPHighlighter: TSynCppSyn;
@@ -1433,6 +1434,8 @@ end;
 procedure TfrmAutoInject.FormShow(Sender: TObject);
 var
   reg: Tregistry;
+
+  preferedwidth, preferedheight: integer;
 begin
   if shownonce=false then
   begin
@@ -1456,6 +1459,18 @@ begin
       end;
     finally
       reg.free;
+    end;
+
+    if LoadedFormPosition=false then
+    begin
+      preferedwidth:=assemblescreen.CharWidth*50+assemblescreen.Gutter.Width;
+      preferedheight:=assemblescreen.LineHeight*8+panel1.height;
+
+      if clientwidth<preferedwidth then
+        clientwidth:=preferedwidth;
+
+      if clientheight<preferedheight then
+        clientheight:=preferedheight;
     end;
 
     shownonce:=true;
@@ -1841,7 +1856,7 @@ begin
 
 
   setlength(x,0);
-  loadformposition(self,x);
+  LoadedFormPosition:=loadformposition(self,x);
 
   reg:=tregistry.create;
   try

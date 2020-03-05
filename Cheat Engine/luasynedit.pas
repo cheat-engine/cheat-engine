@@ -82,6 +82,8 @@ begin
   if lua_gettop(L)>0 then
     s.SelEnd:=lua_tointeger(L,1);
   result:=0;
+
+
 end;
 
 function syn_getSelText(L: PLua_State): integer; cdecl;
@@ -101,6 +103,79 @@ begin
   if lua_gettop(L)>0 then
     s.SelText:=lua_tostring(L, 1);
 
+
+  result:=0;
+end;
+
+function syn_getCanPaste(L: PLua_State): integer; cdecl;
+begin
+  lua_pushboolean(L, TCustomSynEdit(luaclass_getClassObject(L)).CanPaste);
+  result:=1;
+end;
+
+function syn_getCanRedo(L: PLua_State): integer; cdecl;
+begin
+  lua_pushboolean(L, TCustomSynEdit(luaclass_getClassObject(L)).CanRedo);
+  result:=1;
+end;
+
+function syn_getCanUndo(L: PLua_State): integer; cdecl;
+begin
+  lua_pushboolean(L, TCustomSynEdit(luaclass_getClassObject(L)).CanUndo);
+  result:=1;
+end;
+
+function syn_CopyToClipboard(L: PLua_State): integer; cdecl;
+begin
+  TCustomSynEdit(luaclass_getClassObject(L)).CopyToClipboard;
+  result:=0;
+end;
+
+function syn_CutToClipboard(L: PLua_State): integer; cdecl;
+begin
+  TCustomSynEdit(luaclass_getClassObject(L)).CutToClipboard;
+  result:=0;
+end;
+
+function syn_PasteFromClipboard(L: PLua_State): integer; cdecl;
+begin
+  TCustomSynEdit(luaclass_getClassObject(L)).PasteFromClipboard;
+  result:=0;
+end;
+
+function syn_ClearUndo(L: PLua_State): integer; cdecl;
+begin
+  TCustomSynEdit(luaclass_getClassObject(L)).ClearUndo;
+  result:=0;
+end;
+
+function syn_Redo(L: PLua_State): integer; cdecl;
+begin
+  TCustomSynEdit(luaclass_getClassObject(L)).Redo;
+  result:=0;
+end;
+
+function syn_Undo(L: PLua_State): integer; cdecl;
+begin
+  TCustomSynEdit(luaclass_getClassObject(L)).Undo;
+  result:=0;
+end;
+
+function syn_MarkTextAsSaved(L: PLua_State): integer; cdecl;
+begin
+  TCustomSynEdit(luaclass_getClassObject(L)).MarkTextAsSaved;
+  result:=0;
+end;
+
+function syn_ClearSelection(L: PLua_State): integer; cdecl;
+begin
+  TCustomSynEdit(luaclass_getClassObject(L)).ClearSelection;
+  result:=0;
+end;
+
+function syn_SelectAll(L: PLua_State): integer; cdecl;
+begin
+  TCustomSynEdit(luaclass_getClassObject(L)).SelectAll;
   result:=0;
 end;
 
@@ -112,7 +187,19 @@ begin
   luaclass_addPropertyToTable(L, metatable, userdata, 'SelStart', syn_getSelStart, syn_setSelStart);
   luaclass_addPropertyToTable(L, metatable, userdata, 'SelEnd', syn_getSelEnd, syn_setSelEnd);
   luaclass_addPropertyToTable(L, metatable, userdata, 'SelText', syn_getSelText, syn_setSelText);
+  luaclass_addPropertyToTable(L, metatable, userdata, 'CanPaste', syn_getCanPaste, nil);
+  luaclass_addPropertyToTable(L, metatable, userdata, 'CanRedo', syn_getCanRedo, nil);
+  luaclass_addPropertyToTable(L, metatable, userdata, 'CanUndo', syn_getCanUndo, nil);
 
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'CopyToClipboard', syn_CopyToClipboard);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'CutToClipboard', syn_CutToClipboard);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'PasteFromClipboard', syn_PasteFromClipboard);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'ClearUndo', syn_ClearUndo);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'Redo', syn_Redo);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'Undo', syn_Undo);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'MarkTextAsSaved', syn_MarkTextAsSaved);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'ClearSelection', syn_ClearSelection);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'SelectAll', syn_SelectAll);
 end;
 
 procedure initializeLuaSynEdit;
