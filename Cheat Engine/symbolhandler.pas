@@ -4902,7 +4902,12 @@ begin
                   s:=lua_tostring(LuaVM, j+1);
                   if pos('$',s)=0 then //prevent inf lua loops
                   begin
-                    tokens[i]:=inttohex(ApplyTokenType(getAddressFromName(s)),8);
+                    try
+                      tokens[i]:=inttohex(ApplyTokenType(getAddressFromName(s)),8);
+                    except
+                      //fail, try one more time with quotes
+                      tokens[i]:=inttohex(ApplyTokenType(getAddressFromName('"'+s+'"')),8);
+                    end;
                     continue;
                   end;
                 end;
