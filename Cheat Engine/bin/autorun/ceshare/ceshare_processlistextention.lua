@@ -100,35 +100,39 @@ function ceshare.LoadProcessList()
 end
 
 
+function ceshare.SystemHasKnownProcess()
+  for pid,name in pairs(getProcessList()) do
+    local md5name=stringToMD5String(string.lower(name))
+    if ceshare.processlist[md5name] then
+      return true
+    end
+  end 
+
+  return false  
+end
+
 
 
 z=registerFormAddNotification(function(s)
   --watches for the ProcessWindow form
   if s.ClassName=='TProcessWindow' then
-  --[[ --on hold while waiting for tabs to support images or ownerdraw, which neither is the case
+    --on hold while waiting for tabs to support images or ownerdraw, which neither is the case
     s.registerCreateCallback(function(s2)    
       if ceshare.ceversion>=7.1 then --can show icons in the tab
-        if s2.TabHeader.Images==nil then
-          --this ce version does not have images yet
-          s2.TabHeader.Images=MainForm.mfImageList --use the mainform imagelist.  ImageIndex11 is useful
-          
-          
-          local OriginalOnShow=s2.OnShow
-          s2.OnShow=function(s)
-            OriginalOnShow()
-            ceshare.GetCurrentProcessList()                    
+        local OriginalOnShow=s2.OnShow
+        s2.OnShow=function(s)
+          OriginalOnShow(s)
+          if ceshare.ProcessListTab then
+            if ceshare.SystemHasKnownProcess() then
+              ceshare.ProcessListTab.ImageIndex=11
+            else
+              ceshare.ProcessListTab.ImageIndex=-1
+            end
           end
-          
-          s2.TabHeader.OnGetImageIndex=function(sender, tabindex)
-            print("fart")
-            return 11;
-          end
-          
         end
       end    
     end)
-    
-    --]]
+
     
     s.registerFirstShowCallback(function(s2)
       local ci
@@ -138,18 +142,19 @@ z=registerFormAddNotification(function(s)
       
       ceshare.ProcessListWindow=s2
       
-      if s2.TabHeader.ClassName=='TPageControl' then --7.1 changed the processlist tab from a TabControl to a PageControl as that one does support images
+      if ceshare.ceversion>=7.1 then --7.1 changed the processlist tab from a TabControl to a PageControl as that one does support images
+        
         local ts=s2.TabHeader.addTab()
         ts.Caption='CEShare'
-        ci=ts.TabIndex        
+        ceshare.ProcessListTab=ts
+        ci=ts.TabIndex  
+
+        s2.TabHeader.Images=MainForm.mfImageList --use the mainform imagelist.  ImageIndex11 is useful
+        --ts.ImageIndex=11 --exclamation mark          
       else
         s2.TabHeader.Tabs.add('CEShare')
         ci=s2.TabHeader.Tabs.Count-1
       end
-      
-      
-      
-      
 
       
       ceshare.ProcessWindowCEShareTabIndex=ci
@@ -267,7 +272,7 @@ z=registerFormAddNotification(function(s)
         end
 
         if s2.ClientWidth<w then
-          s2.ClientWidth=w+s2.Canvas.getTextWidth(' X ')
+          s2.ClientWidth=w+16*(getScreenDPI()/96)+s2.Canvas.getTextWidth(' X ')
         end
       end
       

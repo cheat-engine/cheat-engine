@@ -212,11 +212,6 @@ object ProcessWindow: TProcessWindow
       Caption = 'Only show processes of the current user'
       OnClick = miOwnProcessesOnlyClick
     end
-    object miSkipSystemProcesses: TMenuItem
-      AutoCheck = True
-      Caption = 'Only show non-system processes'
-      OnClick = miOwnProcessesOnlyClick
-    end
     object miConvertPIDToDecimal: TMenuItem
       AutoCheck = True
       Caption = 'Convert PID to decimal'

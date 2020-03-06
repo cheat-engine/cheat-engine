@@ -94,7 +94,7 @@ var SNAPHandle: THandle;
     HI: HICON;
     ProcessListInfo: PProcessListInfo;
     i,j: integer;
-    s: string;
+    s,s2: string;
 
     lwindir: string;
 begin
@@ -132,6 +132,8 @@ begin
     //OutputDebugString('Setting up processentry');
 
 
+
+
     if not assigned(Process32First) then
     begin
     //  OutputDebugString('Process32First was not assigned');
@@ -150,9 +152,11 @@ begin
     Check:=Process32First(SnapHandle,ProcessEntry);
     while check do
     begin
-      s:=GetFirstModuleName(processentry.th32ProcessID);
+
+      //s:=GetFirstModuleName(processentry.th32ProcessID);
 
 {$ifdef windows}
+
       if (noprocessinfo) or (not (ProcessesWithIconsOnly and (hi=0))) and ((not ProcessesCurrentUserOnly) or (GetUserNameFromPID(processentry.th32ProcessID)=username)) then
       {$endif}
       begin
@@ -167,16 +171,6 @@ begin
             ProcessListInfo.processID:=processentry.th32ProcessID;
             ProcessListInfo.processIcon:=0;
             ProcessListInfo.winhandle:=0;
-            ProcessListInfo.issystemprocess:=false;
-
-            s:=lowercase(s);
-
-          {  if pos('cheatengine',lowercase(ProcessEntry.szExeFile))>0 then
-            begin
-              beep;
-            end;    }
-
-            ProcessListInfo.issystemprocess:=(ProcessListInfo.processID=4) or (pos(lwindir,s)>0) or (pos('system32',s)>0);
           end;
           {$endif}
 

@@ -75,7 +75,6 @@ type
     miOpenFile: TMenuItem;
     N2: TMenuItem;
     miChangeFont: TMenuItem;
-    miSkipSystemProcesses: TMenuItem;
     MenuItem4: TMenuItem;
     MenuItem5: TMenuItem;
     N1: TMenuItem;
@@ -482,7 +481,7 @@ var
     pli: PProcessListInfo;
     s: string;
 begin
-  if (filter='') and (miSkipSystemProcesses.checked=false) and (commonProcessesList=nil) then exit;
+  if (filter='') and (commonProcessesList=nil) then exit;
 
   ffilter:=uppercase(ffilter);
 
@@ -491,7 +490,7 @@ begin
   begin
     pli:=PProcessListInfo(processlist.items.Objects[i]);
 
-    if ((ffilter<>'') and (pos(ffilter,uppercase(processlist.Items[i]))=0)) or ((pli<>nil) and miSkipSystemProcesses.checked and pli^.issystemprocess) or
+    if ((ffilter<>'') and (pos(ffilter,uppercase(processlist.Items[i]))=0)) or (pli<>nil) or
        isInCommonProcessesList(processlist.Items[i]) then
     begin
       if pli<>nil then
@@ -596,9 +595,6 @@ begin
         miOwnProcessesOnly.checked:=x[1]<>0;
         ProcessesCurrentUserOnly:=x[1]<>0;
       end;
-
-    if length(x)>2 then
-      miSkipSystemProcesses.checked:=x[2]<>0;
   end
   else
     refreshlist;
@@ -625,7 +621,6 @@ begin
   setlength(x,3);
   x[0]:=TabHeader.TabIndex;
   x[1]:=ifthen(miOwnProcessesOnly.checked,1,0);
-  x[2]:=ifthen(miSkipSystemProcesses.checked,1,0);
   SaveFormPosition(self,x);
 end;
 
@@ -1152,22 +1147,18 @@ begin
       begin
         {$ifdef windows}
         getwindowlist2(processlist.Items);
-        miSkipSystemProcesses.enabled:=true;
         {$endif}
       end;
 
       1:
       begin
         getprocesslist(processlist.items);
-
-        miSkipSystemProcesses.enabled:=true;
       end;
 
       2:
       begin
         {$ifdef windows}
         GetWindowList(processlist.Items, miShowInvisibleItems.Checked);
-        miSkipSystemProcesses.enabled:=false;
         processlist.ItemIndex:=processlist.Items.Count-1;
         {$endif}
       end;

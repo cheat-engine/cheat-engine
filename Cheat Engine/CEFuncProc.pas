@@ -2519,9 +2519,9 @@ begin
               ProcessListInfo.processID:=winprocess;
               ProcessListInfo.processIcon:=0;
 
-              path:=lowercase(getProcessPathFromProcessID(winprocess));
+              //path:=lowercase(getProcessPathFromProcessID(winprocess));
 
-              ProcessListInfo.issystemprocess:=(ProcessListInfo.processID=4) or (pos(lowercase(windowsdir),path)>0) or (pos('system32',path)>0);
+              //ProcessListInfo.issystemprocess:=(ProcessListInfo.processID=4) or (pos(lowercase(windowsdir),path)>0) or (pos('system32',path)>0);
               ProcessListInfo.winhandle:=basehandle;
 
               //before adding check if there is already one with Exactly the same title (e.g: origin)
@@ -2636,9 +2636,6 @@ begin
           ProcessListInfo.processID:=winprocess;
           ProcessListInfo.winhandle:=winhandle;
           ProcessListInfo.processIcon:=0;
-          ProcessListInfo.issystemprocess:=false;
-
-
           x.AddObject(IntTohex(winprocess,8)+'-'+wintitle,TObject(ProcessListInfo));
         end;
       end;

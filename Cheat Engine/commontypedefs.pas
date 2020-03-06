@@ -70,7 +70,7 @@ type TProcessListInfo=record
   processID: dword;
   winhandle: HWND;
   processIcon: HICON;
-  issystemprocess: boolean;
+  //issystemprocess: boolean;
 end;
 PProcessListInfo=^TProcessListInfo;
 
