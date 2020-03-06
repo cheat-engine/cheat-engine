@@ -138,5 +138,37 @@ namespace CEPluginLibrary
             listView1.VirtualListSize = 0;
             ms.Reset();
         }
+
+        private void button4_Click(object sender, EventArgs e)
+        {
+            //you can also directly access lua without writing a wrapper first
+            CESDKLua lua = CESDK.CESDK.currentPlugin.sdk.lua;
+            int ProcessID = 0;
+            IntPtr Handle = (IntPtr)0;
+
+            lua.GetGlobal("getOpenedProcessID");
+            if (lua.IsFunction(-1))
+            {
+                lua.PCall(0, 1);
+                ProcessID = (int)lua.ToInteger(-1);                
+            }
+            else
+                MessageBox.Show("Failure getting the ProcessID");
+
+            lua.Pop(1);
+
+            lua.GetGlobal("getOpenedProcessHandle");
+            if (lua.IsFunction(-1))
+            {
+                lua.PCall(0, 1);
+                Handle = (IntPtr)lua.ToInteger(-1);                
+            }
+            else
+                MessageBox.Show("Failure getting the ProcessHandle");
+
+            lua.Pop(1);
+
+            MessageBox.Show("Processid="+ProcessID+" Handle="+Handle);
+        }
     }
 }

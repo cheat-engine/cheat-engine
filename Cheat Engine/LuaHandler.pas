@@ -3936,9 +3936,14 @@ end;
 
 function getOpenedProcessID(L: PLua_state): integer; cdecl;
 begin
-  lua_pop(L, lua_gettop(L));
-  result:=1;
   lua_pushinteger(L, processid);
+  result:=1;
+end;
+
+function getOpenedProcessHandle(L: PLua_state): integer; cdecl;
+begin
+  lua_pushinteger(L, processhandle);
+  result:=1;
 end;
 
 function getSymbolInfo(L: PLua_state): integer; cdecl;
@@ -12305,6 +12310,7 @@ begin
     lua_register(L, 'AOBScan', AOBScan);
     lua_register(L, 'AOBScanUnique', AOBScanUnique);
     lua_register(L, 'getOpenedProcessID', getOpenedProcessID);
+    lua_register(L, 'getOpenedProcessHandle', getOpenedProcessHandle);
     lua_register(L, 'getAddress', getAddress);
     lua_register(L, 'getModuleSize', getModuleSize);
     lua_register(L, 'getAddressSafe', getAddressSafe);

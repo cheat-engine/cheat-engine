@@ -25,6 +25,10 @@ Structure dissect can detect vc++ and object pascal classnames now
 Dissect code now also detects references to strings
 Sorting the addresslist now sorts faster and more properly with regards to groups (depends on the level your current selection is)
 Rightclick the addresslist header to bring up a menu which allows you to disable sorting
+Improved the processlist responsiveness
+The chosen floating point rounding type is now saved in the registry
+
+
 
 Fixes:
 Fixed memoryleak when opening a file for hexediting again
@@ -38,6 +42,8 @@ fixed the structure compare not giving a proper errormessage
 fixed improper error messages in structure dissect
 fixed opening process in XP
 fixed potential deadlock with the symbolhander
+fixed issue with using the process var as symbol
+fixed default form size for some windows when using high DPI
 
 
 lua:
@@ -46,7 +52,7 @@ lua:
     sendMessageTimeout
     createTimer(delay,function())
     createStructureFromName()
-      
+    createSynEdit()
 
 
   changes:
@@ -54,6 +60,7 @@ lua:
     fixed openFileAsProcess
     checkSynchroniuze has a timeout now
     OnGetDisplayValue now also works on AA records
+
 
 How to use:
 There's a tutorial program included with Cheat Engine,

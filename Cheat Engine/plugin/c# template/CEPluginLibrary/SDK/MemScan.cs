@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace CESDK
 {
-    //Not much of an SDK but more an example of how to wrap the exposed classes by CE into C# classes
+    //Not much of an SDK but more an example of how to wrap the exposed classes by CE into C# classes.  Learn from this and implement the other features you like
 
     public enum ScanOptions
     {
