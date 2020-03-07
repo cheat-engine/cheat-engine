@@ -490,8 +490,7 @@ begin
   begin
     pli:=PProcessListInfo(processlist.items.Objects[i]);
 
-    if ((ffilter<>'') and (pos(ffilter,uppercase(processlist.Items[i]))=0)) or (pli<>nil) or
-       isInCommonProcessesList(processlist.Items[i]) then
+    if ((ffilter<>'') and (pos(ffilter,uppercase(processlist.Items[i]))=0)) or isInCommonProcessesList(processlist.Items[i]) then
     begin
       if pli<>nil then
       begin
@@ -1034,7 +1033,7 @@ begin
 
   processlist.Canvas.TextOut(rect.Left+rect.Bottom-rect.Top+3,rect.Top,t);
   {$ifdef windows}
-  if (processlist.Items.Objects[index]<>nil) then
+  if getprocessicons and (processlist.Items.Objects[index]<>nil) then
   begin
     pli:=PProcessListInfo(processlist.Items.Objects[index]);
     if pli^.processIcon=0 then

@@ -23,7 +23,6 @@ function GetFirstModuleName(processid: dword): string;
 //global vars refering to the processlist
 var
   GetProcessIcons: Boolean;
-  ProcessesWithIconsOnly: boolean;
   ProcessesCurrentUserOnly: boolean;
 
 implementation
@@ -157,7 +156,7 @@ begin
 
 {$ifdef windows}
 
-      if (noprocessinfo) or (not (ProcessesWithIconsOnly and (hi=0))) and ((not ProcessesCurrentUserOnly) or (GetUserNameFromPID(processentry.th32ProcessID)=username)) then
+      if (not ProcessesCurrentUserOnly) or (GetUserNameFromPID(processentry.th32ProcessID)=username) then
       {$endif}
       begin
         if processentry.th32ProcessID<>0 then

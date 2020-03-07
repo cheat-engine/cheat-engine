@@ -52,7 +52,6 @@ type
     cbOverrideExistingBPs: TCheckBox;
     cbPauseWhenScanningOnByDefault: TCheckBox;
     cbProcessIcons: TCheckBox;
-    cbProcessIconsOnly: TCheckBox;
     cbSaveWindowPos: TCheckBox;
     cbShowallWindows: TCheckBox;
     cbShowAsSigned: TCheckBox;
@@ -638,9 +637,6 @@ begin
         reg.WriteBool('Show main menu',cbShowMainMenu.Checked);
         reg.WriteBool('Get process icons',cbProcessIcons.Checked);
         GetProcessIcons:=cbProcessIcons.Checked;
-
-        reg.WriteBool('Only show processes with icon',cbProcessIconsOnly.Checked);
-        ProcessesWithIconsOnly:=cbProcessIconsOnly.Checked;
 
         reg.WriteBool('Pointer appending', cbOldPointerAddMethod.checked);
 
@@ -2055,8 +2051,7 @@ end;
 
 procedure TformSettings.cbProcessIconsClick(Sender: TObject);
 begin
-  cbProcessIconsOnly.Enabled:=cbProcessIcons.Checked;
-  if not cbProcessIcons.Checked then cbProcessIconsOnly.Checked:=false;
+
 end;
 
 procedure TformSettings.tvMenuSelectionCollapsing(Sender: TObject;
