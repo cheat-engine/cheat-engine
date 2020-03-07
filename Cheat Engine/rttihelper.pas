@@ -18,7 +18,7 @@ uses newkernelhandler, ProcessHandlerUnit, symbolhandler, symbolhandlerstructs;
 function isvalidstring(s: string): boolean;
 var i: integer;
 begin
-  result:=true;
+  result:=length(s)>0;
   for i:=1 to length(s) do
     if (ord(s[i])<32) or (ord(s[i])>126) then exit(false);
 end;
@@ -60,11 +60,11 @@ begin
           end;
 
           //still here
-          if (count<255) and (cname[count+1]=0) then
+          if (count>0) and (count<255) and (cname[count+1]=0) then
           begin
             classname:=pchar(@cname[1]);
-
-            exit(isvalidstring(classname));
+            if length(classname)=count then
+              exit(isvalidstring(classname));
           end;
         end;
       end;
@@ -178,9 +178,9 @@ begin
 
             //everything matches (including the .?AV line), except the name is bad, still useful as an identifier
             classname:='unknown classid ';
-            for i:=0 to 16 do
+            for i:=0 to 15 do
             begin
-              if cp[i]='#0' then
+              if ord(cp[i])=0 then
                 break;
 
               classname:=classname+inttohex(ord(cp[i]),2);
