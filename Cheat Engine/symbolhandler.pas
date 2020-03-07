@@ -2904,23 +2904,16 @@ begin
   token:=uppercase(token);
   if length(token)>0 then
   begin
-    //(BYTE), (WORD), (DWORD), (QWORD)/(UINT64), (CHAR), (SHORT),(INT),(LONG),(LONGLONG),(INT64)
+    //(BYTE), (WORD), (DWORD), (QWORD)/(UINT64), (CHAR), (SHORT),(LONG),(LONGLONG),(INT64)
     case token[1] of
       'B' : if token='BYTE' then begin nextTokenType:=ttByte; exit(true); end;
       'C' : if token='CHAR' then begin nextTokenType:=ttShortInt; exit(true); end;
       'D' : if token='DWORD' then begin nextTokenType:=ttDword; exit(true); end;
-      'I' : if token='INT' then
-            begin
-              nextTokenType:=ttLongint;
-              exit(true);
-            end
-            else
-            if token='INT64' then
+      'I' : if token='INT64' then
             begin
               nextTokenType:=ttInt64;
               exit(true);
             end;
-
       'L' : if token='LONG' then
             begin
               nextTokenType:=ttLongint;

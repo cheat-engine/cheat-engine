@@ -3529,7 +3529,11 @@ function monoform_exportArrayStructInternal(acs, arraytype, elemtype, recursive,
       structure_beginUpdate(acs)
       local ce=acs.addElement()
       ce.Name='Count'
-      ce.Offset=0xC
+      if targetIs64Bit() then
+        ce.Offset=0x18
+      else
+        ce.Offset=0xC
+      end
       ce.Vartype=vtDword
       ce.setChildStruct(cs)
       
@@ -3544,7 +3548,15 @@ function monoform_exportArrayStructInternal(acs, arraytype, elemtype, recursive,
       for j=0, 9 do -- Arbitrarily add 10 elements
         ce=acs.addElement()
         ce.Name=string.format("Item[%d]",j)
-        ce.Offset=j*psize+0x10
+        
+        local start
+        if targetIs64Bit() then
+          start=0x20
+        else
+          start=0x10
+        end
+          
+        ce.Offset=j*psize+start
         ce.Vartype=vtPointer
         ce.setChildStruct(cs)
       end
