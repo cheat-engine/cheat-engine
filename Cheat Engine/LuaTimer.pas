@@ -70,7 +70,12 @@ begin
   t:=ttimer.create(f);
 
   if parameters>=2 then
-    t.Enabled:=lua_toboolean(L, 2)
+  begin
+    if lua_isnil(L,2) then
+      t.Enabled:=true
+    else
+      t.Enabled:=lua_toboolean(L, 2);
+  end
   else
     t.enabled:=true;
 
