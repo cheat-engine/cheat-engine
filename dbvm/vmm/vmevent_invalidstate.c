@@ -4,26 +4,27 @@
 #include "vmreadwrite.h"
 #include "mm.h"
 
-void fixInterruptabilityState(void)
+int fixInterruptabilityState(void)
 {
   DWORD is=vmread(vm_guest_interruptability_state);
+  DWORD originalis=is;
   RFLAGS guestrflags;
   VMEntry_interruption_information entryinterrupt;
   guestrflags.value=vmread(vm_guest_rflags);
 
+  int handled=0;
+
 
   is=is & 0x1f; //remove reserved bits
 
-  if (guestrflags.IF==0) //block by sti may not be enabled when IF is 0
+  if ((guestrflags.IF==0) && (is & (1<<0))) //block by sti may not be enabled when IF is 0
     is=is & 0x1e; //disable block by sti
 
 
 
   if ((is & 3)==3)
-  {
     //both block by STI and block by mov ss are enabled
     is=is & 0x1e; //disable block by sti
-  }
 
   entryinterrupt.interruption_information=vmread(vm_entry_interruptioninfo);
   if (entryinterrupt.valid)
@@ -33,21 +34,35 @@ void fixInterruptabilityState(void)
 
     if (entryinterrupt.type==2) //nmi
       is = is & 0x1d; //disable blick by ss
-
   }
 
 
   vmwrite(vm_guest_interruptability_state, is);
+
+  return is!=originalis;
 }
 
 int handleInvalidEntryState(pcpuinfo currentcpuinfo,VMRegisters *vmregisters)
 {
+  RFLAGS guestrflags;
+  guestrflags.value=vmread(vm_guest_rflags);
+
 
   sendstring("Handling invalid entry state\n\r");
   //fix interruptability state (common bug when emulating and fixing it won't cause a problem)
 
-  fixInterruptabilityState();
+  //check if it must have BT debug state
 
+  if (((guestrflags.TF) || (vmread(vm_guest_IA32_DEBUGCTL) & (1<<1))) && ((vmread(vm_pending_debug_exceptions) & (1<<14))==0))
+  {
+    //TF or BTF is set
+    sendstring("Setting pending debug exception\n\r");
+    vmwrite(vm_pending_debug_exceptions, vmread(vm_pending_debug_exceptions) | (1<<14) );
+    return 1;
+  }
+
+  if (fixInterruptabilityState())
+    return 1;
 
 
   if (ISREALMODE(currentcpuinfo))

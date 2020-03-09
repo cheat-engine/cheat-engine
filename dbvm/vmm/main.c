@@ -938,8 +938,9 @@ void vmm_entry(void)
    * 11=new memory manager , dynamic cpu initialization, UEFI boot support, EPT, unrestricted support, and other new features
    * 12=vpid
    * 13=basic TSC emulation
+   * 14=properly emulate debug step
    */
-  dbvmversion=13;
+  dbvmversion=14;
   int1redirection=1; //redirect to int vector 1 (might change this to the perfcounter interrupt in the future so I don't have to deal with interrupt prologue/epilogue)
   int3redirection=3;
   int14redirection=14;

@@ -1236,7 +1236,7 @@ void setupVMX(pcpuinfo currentcpuinfo)
 
 
   vmwrite(0x4014,(UINT64)0); //vm-entry msr-load count
-  vmwrite(0x4016,(UINT64)0); //vm-entry interruption-information field
+  vmwrite(vm_entry_interruptioninfo,(UINT64)0); //vm-entry interruption-information field
   vmwrite(0x4018,(UINT64)0); //vm-entry exception error code
   vmwrite(0x401a,(UINT64)0); //vm-entry instruction length
   vmwrite(0x401c,(UINT64)0); //TPR threshold

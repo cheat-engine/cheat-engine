@@ -2278,7 +2278,7 @@ VMSTATUS handleEPTMisconfig(pcpuinfo currentcpuinfo UNUSED, VMRegisters *vmregis
     newintinfo.haserrorcode=idtvectorinfo.haserrorcode;
     newintinfo.valid=idtvectorinfo.valid; //should be 1...
     vmwrite(vm_entry_exceptionerrorcode, vmread(vm_idtvector_error)); //entry errorcode
-    vmwrite(0x4016, newintinfo.interruption_information); //entry info field
+    vmwrite(vm_entry_interruptioninfo, newintinfo.interruption_information); //entry info field
     vmwrite(0x401a, vmread(vm_exit_instructionlength)); //entry instruction length
   }
 
