@@ -232,6 +232,8 @@ function ceshare.CheckForCheatsClick(s)
           --trigger a refresh
           ceshare.RateStars[rating].img.OnMouseLeave(ceshare.RateStars[rating]) 
         end--]]
+        
+        ceshare.CheatBrowserFrm.lblContact.Visible=true
       end
       
       ceshare.RateStars[1].img.OnMouseLeave(ceshare.RateStars[1]) 
@@ -335,6 +337,95 @@ function ceshare.CheckForCheatsClick(s)
             ceshare.RateStars[star.tag].img.OnMouseLeave(ceshare.RateStars[star.tag])
           end
         end        
+      end
+      
+      ceshare.CheatBrowserFrm.lblContact.OnClick=function(l)
+        --clicked on the Contact link bitton right
+        local index=ceshare.CheatBrowserFrm.lvCheats.ItemIndex  
+        if index~=-1 then
+          local cheatid=ceshare.CurrentQuery[index+1].ID  
+          local parameters='id='..cheatid
+          if ceshare.CurrentQuery[index+1].Public==false then
+            --ask if the owner of the table or admin should be contacted
+            local f=createForm(false)
+            f.Caption='Contact'
+            local l=createLabel(f)
+            l.Caption=translate('Contact who?')
+            l.Align=alTop
+            l.Alignment='taCenter'
+
+            local buttonPanel=createPanel(f)
+            buttonPanel.BevelOuter='bvNone'
+            buttonPanel.Align='alClient'
+            buttonPanel.ChildSizing.Layout='cclLeftToRightThenTopToBottom'
+            buttonPanel.ChildSizing.ControlsPerLine=2
+            buttonPanel.ChildSizing.HorizontalSpacing=(getScreenDPI()/96)*3
+            buttonPanel.BorderSpacing.Around=(getScreenDPI()/96)*3
+
+
+
+            local btnAdmin=createButton(buttonPanel)
+            btnAdmin.Caption=translate('Site Admin')
+            btnAdmin.ModalResult=1000
+            local btnOwner=createButton(buttonPanel)
+            btnOwner.Caption=translate('Table Owner')
+            btnOwner.ModalResult=1001
+
+            btnAdmin.AutoSize=true
+            btnOwner.AutoSize=true
+
+            buttonPanel.AutoSize=true
+            f.AutoSize=true
+
+            f.BorderIcons="[biSystemMenu]"
+            f.Position="poScreenCenter"
+
+            local r=f.showModal()
+            if r>=1000 then
+              if r==1000 then --admin
+                parameters=parameters..'&admin=1' 
+              end
+            else
+              return
+            end
+
+          end 
+
+          xml=ceshare.QueryXURL('Contact.php',parameters)
+          if xml then
+            --just a cache so the database doesn't have to be asked and shows even when  not logged in
+            if xml.Url then
+              local url=xml.Url:value()
+              --[[
+              validate the result.
+              allowed: 
+                mailto:
+                http:
+                https:              
+              --]]
+              
+              local valid=false
+              start,stop=string.find(url, "https:")
+              if start==1 then valid=true end
+              
+              if not valid then
+                start,stop=string.find(url, "http:")
+                if start==1 then valid=true end
+              end
+              
+              if not valid then
+                start,stop=string.find(url, "mailto:")
+                if start==1 then valid=true end
+              end
+              
+              if valid then
+                shellExecute(url)
+              end
+            end
+          end
+          
+          
+        end
       end
       
       currentLeftControl=ceshare.RateStars[i].img
