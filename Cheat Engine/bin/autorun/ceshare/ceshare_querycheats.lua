@@ -142,7 +142,6 @@ function ceshare.QueryProcessCheats(processname, headermd5, updatableOnly)
               if entry.RatingCount>0 then
                 entry.sortscore=entry.sortscore+(entry.Rating/(entry.RatingCount*0.9)) --total votes does count as well
               end
-              
 
               table.insert(result, entry)
             end
@@ -234,6 +233,7 @@ function ceshare.CheckForCheatsClick(s)
         end--]]
         
         ceshare.CheatBrowserFrm.lblContact.Visible=true
+        ceshare.CheatBrowserFrm.lblContact.Font.Size=5
       end
       
       ceshare.RateStars[1].img.OnMouseLeave(ceshare.RateStars[1]) 

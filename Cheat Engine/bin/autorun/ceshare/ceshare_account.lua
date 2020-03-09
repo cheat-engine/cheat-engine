@@ -31,7 +31,6 @@ function ceshare.login(username,password)
 end
 
 function ceshare.logout()
-  print('logout')
   local i=ceshare.getInternet()
   i.postURL(ceshare.base..'logout.php')
   ceshare.LoggedIn=false
