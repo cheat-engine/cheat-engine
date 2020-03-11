@@ -630,6 +630,15 @@ void LaunchDBVM()
       UINT64 dbvmversion=dovmcall(&vmcallinfo, 0x76543210);
       int r;
 
+      vmcallinfo.structsize=sizeof(vmcallinfo);
+      vmcallinfo.level2pass=0xfedcba98;
+      vmcallinfo.command=38; //VMCALL_GETMEM
+      UINT64 freemem,fullpages;
+      dovmcall2(&vmcallinfo, 0x76543210, &freemem,&fullpages);
+
+
+
+
       disableInterrupts();
       r=doSystemTest(); //check if the system behaves like it should
       enableInterrupts();
@@ -641,7 +650,7 @@ void LaunchDBVM()
 
 
 
-      Print(L"still alive\ndbvmversion=%x\n", dbvmversion);
+      Print(L"still alive\ndbvmversion=%x\nfreemem=%d (fullpages=%d)", dbvmversion, freemem, fullpages);
     }
 
     //DbgPrint("cpunr=%d\n",cpunr());
