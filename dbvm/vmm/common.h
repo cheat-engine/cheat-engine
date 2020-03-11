@@ -202,8 +202,8 @@ int isxdigit(int c);
 
 
 
-int minq(QWORD x,QWORD y);
-int maxq(QWORD x,QWORD y);
+QWORD minq(QWORD x,QWORD y);
+QWORD maxq(QWORD x,QWORD y);
 int min(int x,int y);
 int max(int x,int y);
 

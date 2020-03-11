@@ -2153,7 +2153,6 @@ int setVM_CR0(pcpuinfo currentcpuinfo, UINT64 newcr0)
     ept_invalidate();
 
 
-
     if ((vmread(vm_guest_cr0) & 0x80000001)==0x80000001)
     {
       //PG and PE
@@ -4219,12 +4218,19 @@ int handleVMEvent(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, FXSAVE64 *f
 
 		case 48:
 		{
+
 			int r;
 
+			outportb(0x80,48);
 		    sendstring("EPT violation\n\r");
 		    r=handleEPTViolation(currentcpuinfo, vmregisters, (PFXSAVE64)fxsave);
 
 		    ept_invalidate();
+		    if (r==0)
+		      outportb(0x80,48*2);
+			else
+			  outportb(0x80,48*2+1);
+
 		    return r;
 		}
 

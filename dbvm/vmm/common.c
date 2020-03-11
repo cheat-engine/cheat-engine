@@ -89,12 +89,12 @@ void outportd(unsigned int port,unsigned long value)
 }
 
 
-int minq(QWORD x,QWORD y)
+QWORD minq(QWORD x,QWORD y)
 {
   return (x<y)?x:y;
 }
 
-int maxq(QWORD x,QWORD y)
+QWORD maxq(QWORD x,QWORD y)
 {
   return (x>y)?x:y;
 }

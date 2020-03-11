@@ -773,6 +773,8 @@ int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers, void *fxsave)
   idtvectorinfo.idtvector_info=vmread(vm_idtvector_information);
 
 
+
+
   lastexits[lastexitsindex]=vmread(vm_exit_reason);
   lastexitsindex++;
   lastexitsindex=lastexitsindex % 10;
@@ -1732,7 +1734,9 @@ int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers, void *fxsave)
 
       case 'l' :
       {
+#if (defined SERIALPORT) && (SERIALPORT != 0)
         enterLuaConsole();
+#endif
         break;
       }
 
@@ -1842,6 +1846,10 @@ void launchVMX(pcpuinfo currentcpuinfo)
     unmapPhysicalMemory(pos, sizeof(OriginalState));
   }
 
+  outportb(0x80,0x01);
+
+
+
   if (isAMD)
     return launchVMX_AMD(currentcpuinfo, originalstate);
 
@@ -1859,10 +1867,14 @@ void launchVMX(pcpuinfo currentcpuinfo)
 
   }
 
+  outportb(0x80,0x02);
+
   if (restorestate)
     result=vmxloop(currentcpuinfo, &originalstate->rax);
   else
     result=vmxloop(currentcpuinfo, NULL);
+
+  outportb(0x80,0xCF);
 
   displayline("VMXLOOP EXIT: APICID=%d\n\r",getAPICID());
   nosendchar[getAPICID()]=0;

@@ -1739,11 +1739,13 @@ void getMTRRMapInfo(QWORD startaddress, QWORD size, int *fullmap, int *memtype)
   //note: the list is sorted
   QWORD starta=startaddress;
   QWORD stopa=startaddress+size-1;
-  int morethan1=0;
   int i;
 
-  *memtype=MTRRDefType.TYPE;
+  *memtype=MTRRDefType.TYPE; //if not found, this is the result (usually uncached)
   *fullmap=1;
+
+  sendstringf("getMTRRMapInfo(%6, %x)\n", startaddress, size);
+
 
   //csEnter(&memoryrangesCS); //currently addToMemoryRanges is only called BEFORE ept exceptions happen. So this cs is not neede
   for (i=0; i<memoryrangesPos; i++)
@@ -1756,39 +1758,26 @@ void getMTRRMapInfo(QWORD startaddress, QWORD size, int *fullmap, int *memtype)
     {
       //overlap, check the details
       if ((starta>=startb) && (stopa<=stopb)) //falls completely within the region, so can be fully mapped.
-      {
-        if (morethan1==0)
-          *memtype=memoryranges[i].memtype;//set the memory type
-        else
-          *memtype=MTC_RPS(memoryranges[i].memtype, *memtype); //set the memory type based on the two combined types
-
-        morethan1++;
-      }
+        *memtype=memoryranges[i].memtype;//set the memory type
       else
-      {
-        *fullmap=0; //mark as not fully mappable, go one level lower(this also happens on overlaps where a second part doesn't fit, shouldn't happen often)
+        *fullmap=0; //mark as not fully mappable, go one level lower
 
-        break;
-      }
-
-
+      return;
     }
 
     if (stopa<startb) //reached a startaddress higher than my stopaddress, which means every other item will be as well
-      break;
+      return;
   }
   //csLeave(&memoryrangesCS);
 }
+
+
 
 void addToMemoryRanges(QWORD address, QWORD size, int type)
 /*
  * pre: memoryrangesCS lock has been aquired
  */
 {
-  int i;
-  int insertpos=-1;
-
-
   if (size==0) return;
 
   //add memory for a new entry
@@ -1798,27 +1787,168 @@ void addToMemoryRanges(QWORD address, QWORD size, int type)
     memoryrangesLength=memoryrangesLength*2;
   }
 
+  memoryranges[memoryrangesPos].startaddress=address;
+  memoryranges[memoryrangesPos].size=size;
+  memoryranges[memoryrangesPos].memtype=type;
+
+  memoryrangesPos++;
+}
+
+void sanitizeMemoryRegions()
+{
+  //find overlapping regions and calculate the best memtype
+  //----------------------------------------------------------
+  //|
+  //|
+  int i=0,j;
+
+
+
   for (i=0; i<memoryrangesPos; i++)
   {
-    if (memoryranges[i].startaddress>address)
+    QWORD starta=memoryranges[i].startaddress;
+    QWORD stopa=memoryranges[i].startaddress+memoryranges[i].size-1;
+
+    if (memoryranges[i].size==0)
+      continue;
+
+    if (i>100)
     {
-      //insert here
-      insertpos=i;
-      break;
+      sendstringf("Breaking here");
+      while(1);
+    }
+
+    sendstringf("Checking %d (%6 - %6):%d for overlap\n", i, starta, stopa, memoryranges[i].memtype);
+
+    j=i+1;
+    while (j<memoryrangesPos)
+    {
+      if (j==i) continue;
+      if (memoryranges[j].size==0)
+        continue;
+
+      if (j>100)
+      {
+        sendstringf("Breaking here");
+        while(1);
+      }
+
+
+      QWORD startb=memoryranges[j].startaddress;
+      QWORD stopb=memoryranges[j].startaddress+memoryranges[j].size-1;
+
+      if ((starta <= stopb) && (startb <= stopa))
+      {
+        //3 parts: left, overlap, right.  Left and right can be 0 width
+        MEMRANGE left;
+        MEMRANGE overlap;
+        MEMRANGE right;
+        left.size=0;
+        left.memtype=0;
+        left.startaddress=0;
+
+        right.size=0;
+        right.memtype=0;
+        right.startaddress=0;
+
+        //overlaps
+        QWORD newstart;
+        QWORD newstop;
+
+        sendstringf("  Overlaps with %d (%6 - %6):%d\n", j, startb, stopb, memoryranges[j].memtype);
+
+        //left:
+        newstart=minq(starta,startb);
+        newstop=maxq(starta,startb);
+
+        left.startaddress=newstart;
+        left.size=newstop-newstart;
+        left.memtype=starta<startb?memoryranges[i].memtype:memoryranges[j].memtype;
+
+        //right:
+        newstart=minq(stopa,stopb)+1;
+        newstop=maxq(stopa,stopb)+1;
+
+        sendstringf("    debug: right: newstart=%6 newstop=%6\n", newstart, newstop);
+
+        right.startaddress=newstart;
+        right.size=newstop-newstart;
+        right.memtype=stopb<stopa?memoryranges[i].memtype:memoryranges[j].memtype;
+
+        overlap.startaddress=left.startaddress+left.size;
+        overlap.size=right.startaddress-overlap.startaddress;
+        overlap.memtype=MTC_RPS(memoryranges[i].memtype, memoryranges[j].memtype);
+
+
+        if (left.size)
+        {
+          addToMemoryRanges(left.startaddress, left.size, left.memtype);
+          sendstringf("    Left becomes (%6 - %6):%d\n", left.startaddress, left.startaddress+left.size-1, left.memtype);
+        }
+        else
+          sendstringf("    Left is empty\n");
+
+
+        if (right.size)
+        {
+          addToMemoryRanges(right.startaddress, right.size, right.memtype);
+          sendstringf("    Right becomes (%6 - %6):%d\n", right.startaddress, right.startaddress+right.size-1, right.memtype);
+        }
+        else
+          sendstringf("    Right is empty\n");
+
+        //adjust the current entry
+        memoryranges[i].startaddress=overlap.startaddress;
+        memoryranges[i].size=overlap.size;
+        memoryranges[i].memtype=overlap.memtype;
+        sendstringf("    This becomes (%6 - %6):%d\n", memoryranges[i].startaddress, memoryranges[i].startaddress+memoryranges[i].size-1, memoryranges[i].memtype);
+
+
+        //mark as handled
+        int k;
+        for (k=j; k<memoryrangesPos-1; k++)
+          memoryranges[k]=memoryranges[k+1];
+
+        memoryrangesPos--;
+
+        continue;
+      }
+      j++;
     }
   }
 
-  if (insertpos==-1)
-    insertpos=memoryrangesPos;
+  //now that the list has been sanitized delete entries with the same type as the default (not before)
+  i=0;
+  while (i<memoryrangesPos)
+  {
+    if (memoryranges[i].memtype==MTRRDefType.TYPE)
+    {
+      for (j=i; j<memoryrangesPos-1; j++)
+        memoryranges[j]=memoryranges[j+1];
 
-  for (i=memoryrangesPos; i>insertpos; i--)
-    memoryranges[i]=memoryranges[i-1];
+      memoryrangesPos--;
+      continue;
+    }
+    i++;
+  }
 
-  memoryranges[insertpos].startaddress=address;
-  memoryranges[insertpos].size=size;
-  memoryranges[insertpos].memtype=type;
-  memoryrangesPos++;
+
+  //sort the list
+  for (i=0; i<memoryrangesPos; i++)
+  {
+    for (j=i; j<memoryrangesPos; j++)
+    {
+      if (memoryranges[j].startaddress<memoryranges[i].startaddress)
+      {
+        //swap
+        MEMRANGE temp=memoryranges[i];
+        memoryranges[i]=memoryranges[j];
+        memoryranges[j]=temp;
+      }
+    }
+  }
 }
+
 
 void initMemTypeRanges()
 //builds an array of memory ranges and their cache
@@ -1834,14 +1964,18 @@ void initMemTypeRanges()
     memoryranges=malloc2(sizeof(MEMRANGE)*memoryrangesLength);
   }
 
+  sendstringf("Memory ranges:\n");
+
+
   QWORD startaddress=0;
   QWORD size=0;
-  int memtype=MTRRDefType.TYPE;
+  int memtype=-1;
 
   if ((MTRRCapabilities.FIX && MTRRDefType.FE))
   {
+    sendstringf("Using Fixed MTRRs\n");
 
-    QWORD FIX64K_00000=readMSR(IA32_MTRR_FIX64K_00000);
+    QWORD FIX64K_00000=readMSR(IA32_MTRR_FIX64K_00000);  //0606060606060606
     QWORD FIX16K_80000=readMSR(IA32_MTRR_FIX16K_80000);
     QWORD FIX16K_A0000=readMSR(IA32_MTRR_FIX16K_A0000);
     QWORD FIX4K_C0000 =readMSR(IA32_MTRR_FIX4K_C0000);
@@ -1856,6 +1990,7 @@ void initMemTypeRanges()
 
     while (startaddress+size<0x100000)
     {
+      QWORD types;
       int type;
       int sizeinc=0;
 
@@ -1863,7 +1998,7 @@ void initMemTypeRanges()
       {
         case 0 ... 0x7ffff:
         {
-          QWORD types=FIX64K_00000;
+          types=FIX64K_00000;
           int index=(startaddress+size) >> 16;
           type=(types >> (index*8)) & 0xf;
           sizeinc=64*1024;
@@ -1872,7 +2007,7 @@ void initMemTypeRanges()
 
         case 0x80000 ... 0x9ffff:
         {
-          QWORD types=FIX16K_80000;
+          types=FIX16K_80000;
           int index=((startaddress+size)-0x80000) >> 14;
           type=(types >> (index*8)) & 0xf;
           sizeinc=16*1024;
@@ -1881,7 +2016,7 @@ void initMemTypeRanges()
 
         case 0xa0000 ... 0xbffff:
         {
-          QWORD types=FIX16K_A0000;
+          types=FIX16K_A0000;
           int index=((startaddress+size)-0xa0000) >> 14;
           type=(types >> (index*8)) & 0xf;
           sizeinc=16*1024;
@@ -1890,7 +2025,7 @@ void initMemTypeRanges()
 
         case 0xc0000 ... 0xc7fff:
         {
-          QWORD types=FIX4K_C0000;
+          types=FIX4K_C0000;
           int index=((startaddress+size)-0xc0000) >> 12;
           type=(types >> (index*8)) & 0xf;
           sizeinc=4*1024;
@@ -1899,7 +2034,7 @@ void initMemTypeRanges()
 
         case 0xc8000 ... 0xcffff:
         {
-          QWORD types=FIX4K_C8000;
+          types=FIX4K_C8000;
           int index=((startaddress+size)-0xc8000) >> 12;
           type=(types >> (index*8)) & 0xf;
           sizeinc=4*1024;
@@ -1908,7 +2043,7 @@ void initMemTypeRanges()
 
         case 0xd0000 ... 0xd7fff:
         {
-          QWORD types=FIX4K_D0000;
+          types=FIX4K_D0000;
           int index=((startaddress+size)-0xd0000) >> 12;
           type=(types >> (index*8)) & 0xf;
           sizeinc=4*1024;
@@ -1917,7 +2052,7 @@ void initMemTypeRanges()
 
         case 0xd8000 ... 0xdffff:
         {
-          QWORD types=FIX4K_D8000;
+          types=FIX4K_D8000;
           int index=((startaddress+size)-0xd8000) >> 12;
           type=(types >> (index*8)) & 0xf;
           sizeinc=4*1024;
@@ -1926,7 +2061,7 @@ void initMemTypeRanges()
 
         case 0xe0000 ... 0xe7fff:
         {
-          QWORD types=FIX4K_E0000;
+          types=FIX4K_E0000;
           int index=((startaddress+size)-0xe0000) >> 12;
           type=(types >> (index*8)) & 0xf;
           sizeinc=4*1024;
@@ -1935,7 +2070,7 @@ void initMemTypeRanges()
 
         case 0xe8000 ... 0xeffff:
         {
-          QWORD types=FIX4K_E8000;
+          types=FIX4K_E8000;
           int index=((startaddress+size)-0xe8000) >> 12;
           type=(types >> (index*8)) & 0xf;
           sizeinc=4*1024;
@@ -1944,7 +2079,7 @@ void initMemTypeRanges()
 
         case 0xf0000 ... 0xf7fff:
         {
-          QWORD types=FIX4K_F0000;
+          types=FIX4K_F0000;
           int index=((startaddress+size)-0xf0000) >> 12;
           type=(types >> (index*8)) & 0xf;
           sizeinc=4*1024;
@@ -1953,49 +2088,61 @@ void initMemTypeRanges()
 
         case 0xf8000 ... 0xfffff:
         {
-          QWORD types=FIX4K_F8000;
+          types=FIX4K_F8000;
           int index=((startaddress+size)-0xf8000) >> 12;
           type=(types >> (index*8)) & 0xf;
           sizeinc=4*1024;
           break;
         }
-
-
       }
+
+      sendstringf("Checking fixed mtrr %6 - %6 : %d      (%6)\n", startaddress+size, startaddress+size+sizeinc-1, memtype, types);
+
+      if (memtype==-1)
+        memtype=type;
 
       if (type==memtype) //same type, continue
         size+=sizeinc;
       else //type changed
       {
-        if (memtype!=MTRRDefType.TYPE) //old type wasn't the default, add it to the list
-          addToMemoryRanges(startaddress, size, memtype);
-
+        sendstringf("  -Adding %6 - %6 as type %d\n", startaddress, startaddress+size-1,memtype);
+        addToMemoryRanges(startaddress, size, memtype);
 
         //start a new region
         startaddress=startaddress+size;
-        size=0;
+        size=sizeinc;
         memtype=type;
       }
     }
 
-    if ((size) && (memtype!=MTRRDefType.TYPE)) //last region needs to be added as well
+    if (size) //last region needs to be added as well
+    {
+      sendstringf("  -Adding %6 - %6 as type %d\n", startaddress, startaddress+size-1,memtype);
       addToMemoryRanges(startaddress, size, memtype);
+    }
   }
 
   //check the var fields
+
+  sendstringf("Checking var mtrrs\n");
   for (i=0; i<MTRRCapabilities.VCNT; i++)
   {
     QWORD base=readMSR(IA32_MTRR_PHYSBASE0+i*2);
     QWORD mask=readMSR(IA32_MTRR_PHYSMASK0+i*2);
+
+    sendstringf("Base=%6 Mask=%6\n", base, mask);
+
     int memtype=base & 0xff;
 
-    if ((mask & (1<<11)) && (memtype!=MTRRDefType.TYPE)) //valid
+    if (mask & (1<<11))// && (memtype!=MTRRDefType.TYPE)) //valid
     {
       // Address_Within_Range AND PhysMask = PhysBase AND PhysMask
 
       //strip of useless bits
       base=base & MAXPHYADDRMASKPB;
       mask=mask & MAXPHYADDRMASKPB;
+
+
 
       //find the highest 0 bit in the mask to find the region (this allows for the shitty “discontinuous” ranges)
       int j;
@@ -2005,6 +2152,9 @@ void initMemTypeRanges()
         if ((mask & ((QWORD)1<<j))==0)
         {
           QWORD size=((QWORD)1<<(j+1)); //the last bit with 1
+
+          sendstringf("    var mttr %d: %6 - %6  %d\n", i, base,base+size-1, memtype);
+
           addToMemoryRanges(base, size, memtype);
           break;
         }
@@ -2012,9 +2162,23 @@ void initMemTypeRanges()
     }
   }
 
-  if (loadedOS==0)
+  for (i=0; i<memoryrangesPos; i++)
   {
-    addToMemoryRanges(VirtualToPhysical((void *)0x00400000), 0x00400000, MTC_WP);
+    QWORD address=memoryranges[i].startaddress;
+    QWORD size=memoryranges[i].size;
+
+    sendstringf("Memoryrange %d: %6 -> %6 : %d\n", i, address, address+size, memoryranges[i].memtype);
+  }
+
+  sanitizeMemoryRegions();
+
+  sendstringf("\n\n\nAfter sanitization:\n");
+  for (i=0; i<memoryrangesPos; i++)
+  {
+    QWORD address=memoryranges[i].startaddress;
+    QWORD size=memoryranges[i].size;
+
+    sendstringf("Memoryrange %d: %6 -> %6 : %d\n", i, address, address+size, memoryranges[i].memtype);
   }
 
   csLeave(&memoryrangesCS);
@@ -2187,6 +2351,8 @@ QWORD EPTMapPhysicalMemory(pcpuinfo currentcpuinfo, QWORD physicalAddress, int f
       ddDrawRectangle(0,DDVerticalResolution-100,100,100,0xff0000);
       while (1);
     }
+
+   //memtype=0;
 
     sendstringf("mapping %6 as a 4KB page with memtype %d\n", physicalAddress & MAXPHYADDRMASKPB, memtype);
     *(QWORD*)(&pagetable[pagetableindex])=physicalAddress & MAXPHYADDRMASKPB;

@@ -28,7 +28,7 @@ typedef union _MTRRCAP
     unsigned WC       : 1; //Write combining support
     unsigned SMRR     : 1; //SMRR register support
   };
-} MTRRCAP, *PMTRRCAP;
+} MTRRCAP, *PMTRRCAP;  //e.g d0a: vcnt=10 FIX=1 WC=1 SMRR=1
 
 typedef union _MTRRDEF
 {
