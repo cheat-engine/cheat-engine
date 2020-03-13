@@ -1452,6 +1452,12 @@ int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers, void *fxsave)
   //sendstring("|   p: previous event                   |\n\r");
     sendstring("\\---------------------------------------/\n\r");
     sendstring("Your command:");
+
+#ifdef DELAYEDSERIAL
+    if (!useserial)
+      command='1';
+    else
+#endif
     command=waitforchar();
     sendstring("\n\r");
 
@@ -1757,6 +1763,8 @@ int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers, void *fxsave)
         return 0;
       }
 
+
+
       case  'i' :
       {
         //test interrupt
@@ -1780,6 +1788,8 @@ int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers, void *fxsave)
 
       case  's' :
       {
+        vmx_enableSingleStepMode();
+        /*
         UINT64 address;
         unsigned char bt;
         char temps[17];
@@ -1794,6 +1804,7 @@ int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers, void *fxsave)
 
         *(unsigned char *)address=bt;
         sendstring("\n\r");
+        */
         break;
       }
 

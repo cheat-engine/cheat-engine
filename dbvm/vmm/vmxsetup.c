@@ -662,6 +662,11 @@ int setupEPT(pcpuinfo currentcpuinfo)
 
         //setup callbacks for MTRR msr edits
 
+        /*
+        vmx_setMSRWriteExit(IA32_MTRR_PHYSBASE0);
+        vmx_setMSRWriteExit(IA32_MTRR_PHYSBASE1);
+        */
+
         initMemTypeRanges();
       }
 
@@ -686,9 +691,6 @@ void setup8086WaitForSIPI(pcpuinfo currentcpuinfo, int setupvmcontrols)
   Access_Rights reg_csaccessrights,reg_segaccessrights;
   DWORD gdtbase, idtbase;
 
-
-
-
   sendstringf("entering sleepmode for ap cpu\n");
 
   //todo: use unrestricted mode if possible
@@ -702,6 +704,8 @@ void setup8086WaitForSIPI(pcpuinfo currentcpuinfo, int setupvmcontrols)
     reg_csaccessrights.P=1;
     reg_csaccessrights.G=0;
     reg_csaccessrights.D_B=0;
+    reg_csaccessrights.L=0;
+    reg_csaccessrights.unusable=0;
 
     reg_segaccessrights.AccessRights=0;
     reg_segaccessrights.Segment_type=3;
@@ -710,6 +714,8 @@ void setup8086WaitForSIPI(pcpuinfo currentcpuinfo, int setupvmcontrols)
     reg_segaccessrights.P=1;
     reg_segaccessrights.G=0;
     reg_segaccessrights.D_B=0;
+    reg_segaccessrights.unusable=0;
+
   }
   else
   {
@@ -723,6 +729,7 @@ void setup8086WaitForSIPI(pcpuinfo currentcpuinfo, int setupvmcontrols)
     reg_csaccessrights.P=1;
     reg_csaccessrights.G=0;
     reg_csaccessrights.D_B=0;
+    reg_csaccessrights.unusable=0;
 
     reg_segaccessrights=reg_csaccessrights;
   }
@@ -731,7 +738,7 @@ void setup8086WaitForSIPI(pcpuinfo currentcpuinfo, int setupvmcontrols)
   currentcpuinfo->guestCR0=0;
   currentcpuinfo->hasIF=0;
 
-
+  /*
   if (setupvmcontrols) //not needed when receiving an INIT, and todo: shouldn't be needed anymore as the cpu is already running
   {
     DWORD new_vm_execution_controls_cpu=vmread(vm_execution_controls_cpu) | (UINT64)IA32_VMX_PROCBASED_CTLS | USE_IO_BITMAPS | USE_MSR_BITMAPS;
@@ -781,11 +788,13 @@ void setup8086WaitForSIPI(pcpuinfo currentcpuinfo, int setupvmcontrols)
     vmwrite(vm_cr3_targetvalue0,(UINT64)0xffffffffffffffffULL); //cr3-target value 0
   }
 
+  */
+
+  /*
+
   if (hasUnrestrictedSupport)
   {
-    vmwrite(vm_cr0_read_shadow,0x10); //cr0 read shadow
-    vmwrite(vm_cr4_read_shadow,(UINT64)0); //cr4 read shadow
-
+    vmwrite(vm_guest_cr3, 0);
     vmwrite(vm_guest_cr0, 0x10 | (IA32_VMX_CR0_FIXED0 & 0xFFFFFFFF7FFFFFFEULL)); //no pg, or PE
     vmwrite(vm_guest_cr4, IA32_VMX_CR4_FIXED0);
 
@@ -804,66 +813,81 @@ void setup8086WaitForSIPI(pcpuinfo currentcpuinfo, int setupvmcontrols)
     vmwrite(vm_guest_idt_limit, 256*8);
 
   }
+  */
+
 
 
   vmwrite(vm_guest_es,(UINT64)0); //es selector
-  vmwrite(vm_guest_cs,(UINT64)0xf000); //cs selector
-  vmwrite(vm_guest_ss,(UINT64)0); //ss selector
-  vmwrite(vm_guest_ds,(UINT64)0); //ds selector
-  vmwrite(vm_guest_fs,(UINT64)0); //fs selector
-  vmwrite(vm_guest_gs,(UINT64)0); //gs selector
-  vmwrite(vm_guest_ldtr,(UINT64)0); //ldtr selector
-  vmwrite(vm_guest_tr,0); //the tss selector
-
   vmwrite(vm_guest_es_limit,(UINT64)0xffff); //es limit
-  vmwrite(vm_guest_cs_limit,(UINT64)0xffff); //cs limit
-  vmwrite(vm_guest_ss_limit,(UINT64)0xffff); //ss limit
-  vmwrite(vm_guest_ds_limit,(UINT64)0xffff); //ds limit
-  vmwrite(vm_guest_fs_limit,(UINT64)0xffff); //fs limit
-  vmwrite(vm_guest_gs_limit,(UINT64)0xffff); //gs limit
-
-  if (hasUnrestrictedSupport)
-  {
-    vmwrite(vm_guest_ldtr_limit,(UINT64)0xffff); //ldtr limit
-    vmwrite(vm_guest_tr_limit,0xffff); //tr limit
-  }
-  else
-  {
-    vmwrite(vm_guest_ldtr_limit,(UINT64)0); //ldtr limit
-    vmwrite(vm_guest_tr_limit,(ULONG)sizeof(TSS)+32+8192+1); //tr limit
-  }
-
   vmwrite(vm_guest_es_base,(UINT64)0); //es base
+  vmwrite(vm_guest_es_access_rights,(UINT64)reg_segaccessrights.AccessRights); //es access rights
+
+  vmwrite(vm_guest_ss,(UINT64)0); //ss selector
+   vmwrite(vm_guest_ss_limit,(UINT64)0xffff); //ss limit
+   vmwrite(vm_guest_ss_base,(UINT64)0); //ss base
+   vmwrite(vm_guest_ss_access_rights,(UINT64)reg_segaccessrights.AccessRights); //ss access rights
+
+   vmwrite(vm_guest_ds,(UINT64)0); //ds selector
+   vmwrite(vm_guest_ds_limit,(UINT64)0xffff); //ds limit
+   vmwrite(vm_guest_ds_base,(UINT64)0); //ds base
+   vmwrite(vm_guest_ds_access_rights,(UINT64)reg_segaccessrights.AccessRights); //ds access rights
+
+   vmwrite(vm_guest_fs,(UINT64)0); //fs selector
+   vmwrite(vm_guest_fs_limit,(UINT64)0xffff); //fs limit
+   vmwrite(vm_guest_fs_base,(UINT64)0); //fs base
+   vmwrite(vm_guest_fs_access_rights,(UINT64)reg_segaccessrights.AccessRights); //fs access rights
+
+   vmwrite(vm_guest_gs,(UINT64)0); //gs selector
+   vmwrite(vm_guest_gs_limit,(UINT64)0xffff); //gs limit
+   vmwrite(vm_guest_gs_base,(UINT64)0); //gs base
+   vmwrite(vm_guest_gs_access_rights,(UINT64)reg_segaccessrights.AccessRights); //gs access rights
+
+
+  vmwrite(vm_guest_cs,(UINT64)0); //cs selector
+  vmwrite(vm_guest_cs_limit,(UINT64)0xffff); //cs limit
   if (hasUnrestrictedSupport)
-    vmwrite(vm_guest_cs_base,(UINT64)0xffff0000); //cs base
+    vmwrite(vm_guest_cs_base,(UINT64)0); //cs base
   else
     vmwrite(vm_guest_cs_base,(UINT64)0xf0000); //cs base
+  vmwrite(vm_guest_cs_access_rights,(UINT64)reg_csaccessrights.AccessRights); //cs access rights
 
 
-
-  vmwrite(vm_guest_ss_base,(UINT64)0); //ss base
-  vmwrite(vm_guest_ds_base,(UINT64)0); //ds base
-  vmwrite(vm_guest_fs_base,(UINT64)0); //fs base
-  vmwrite(vm_guest_gs_base,(UINT64)0); //gs base
+  vmwrite(vm_guest_ldtr,(UINT64)0); //ldtr selector
+  if (hasUnrestrictedSupport)
+    vmwrite(vm_guest_ldtr_limit,(UINT64)0xffff); //ldtr limit
+  else
+    vmwrite(vm_guest_ldtr_limit,(UINT64)0); //ldtr limit
   vmwrite(vm_guest_ldtr_base,(UINT64)0); //ldtr base
+  if (hasUnrestrictedSupport)
+    vmwrite(vm_guest_ldtr_access_rights,0x82); //ldtr access rights
+  else
+    vmwrite(vm_guest_ldtr_access_rights,(UINT64)(1<<16)); //ldtr access rights (bit 16 is unusable bit)
+
+  vmwrite(vm_guest_tr,0); //the tss selector
+
+  if (hasUnrestrictedSupport)
+    vmwrite(vm_guest_tr_limit,0xffff); //tr limit
+  else
+    vmwrite(vm_guest_tr_limit,(ULONG)sizeof(TSS)+32+8192+1); //tr limit
 
   if (hasUnrestrictedSupport)
     vmwrite(vm_guest_tr_base,0); //tr basebase
   else
     vmwrite(vm_guest_tr_base,(UINT64)VirtualToPhysical(VirtualMachineTSS_V8086)); //tr basebase
 
-  vmwrite(vm_guest_es_access_rights,(UINT64)reg_segaccessrights.AccessRights); //es access rights
-  vmwrite(vm_guest_cs_access_rights,(UINT64)reg_csaccessrights.AccessRights); //cs access rights
-  vmwrite(vm_guest_ss_access_rights,(UINT64)reg_segaccessrights.AccessRights); //ss access rights
-  vmwrite(vm_guest_ds_access_rights,(UINT64)reg_segaccessrights.AccessRights); //ds access rights
-  vmwrite(vm_guest_fs_access_rights,(UINT64)reg_segaccessrights.AccessRights); //fs access rights
-  vmwrite(vm_guest_gs_access_rights,(UINT64)reg_segaccessrights.AccessRights); //gs access rights
-  if (hasUnrestrictedSupport)
-    vmwrite(vm_guest_ldtr_access_rights,0x82); //ldtr access rights
-  else
-    vmwrite(vm_guest_ldtr_access_rights,(UINT64)(1<<16)); //ldtr access rights (bit 16 is unusable bit
-
   vmwrite(vm_guest_tr_access_rights,0x8b); //tr access rights
+
+
+
+  currentcpuinfo->efer=0;
+  vmwrite(vm_entry_controls, vmread(vm_entry_controls) & (~VMENTRYC_IA32E_MODE_GUEST));
+  vmwrite(vm_guest_IA32_EFER, vmread(vm_guest_IA32_EFER) & ~(1<<8)); //disable EFER.LME
+  vmwrite(vm_guest_IA32_EFER, vmread(vm_guest_IA32_EFER) & ~(1<<10)); //disable EFER.LMA
+
+
+
+
+
 
 
 
@@ -881,10 +905,8 @@ void setup8086WaitForSIPI(pcpuinfo currentcpuinfo, int setupvmcontrols)
   RFLAGS guestrflags;
 
 
-  vmwrite(vm_guest_activity_state,(UINT64)3); //guest activity state, wait for sipi
-
-  vmwrite(vm_guest_rsp,(UINT64)0xffc); //rsp
-  vmwrite(vm_guest_rip,(UINT64)(&bochswaitforsipiloop)-(UINT64)(&movetoreal)); //rip //should never be executed
+  vmwrite(vm_guest_rsp,(UINT64)0); //rsp
+  vmwrite(vm_guest_rip,(UINT64)0); //rip //should never be executed
 
   guestrflags.value=0;
   guestrflags.reserved1=1;
@@ -900,11 +922,11 @@ void setup8086WaitForSIPI(pcpuinfo currentcpuinfo, int setupvmcontrols)
     vmwrite(vm_guest_cr3,0);
   }
 
-  currentcpuinfo->efer=0;
-  vmwrite(vm_entry_controls, vmread(vm_entry_controls) & (~VMENTRYC_IA32E_MODE_GUEST));
+
 
 
   vmwrite(vm_guest_rflags,guestrflags.value ); //rflag
+  vmwrite(vm_guest_activity_state,(UINT64)3); //guest activity state, wait for sipi
 }
 
 void vmx_setMSRReadExit(DWORD msrValue)
@@ -1185,9 +1207,10 @@ void setupVMX(pcpuinfo currentcpuinfo)
 
 
 
-  vmwrite(0x4004,(UINT64)0xffff); //exception bitmap (0xffff=0-15 0xffffffff=0-31)
+  vmwrite(vm_exception_bitmap,(UINT64)0xffff); //exception bitmap (0xffff=0-15 0xffffffff=0-31)
+  vmwrite(vm_exception_bitmap,0); //(1<<1) | (1<<3) | (1<<14));
 
- // vmwrite(0x4004,(UINT64)0);
+
   vmwrite(0x4006,(UINT64)0); //page fault error-code mask
   vmwrite(0x4008,(UINT64)0); //page fault error-code match
   vmwrite(0x400a,(UINT64)1); //cr3-target count
@@ -1596,7 +1619,7 @@ void setupVMX(pcpuinfo currentcpuinfo)
 
 
       vmwrite(vm_guest_dr7,(UINT64)originalstate->dr7); //dr7
-      vmwrite(0x4826,(UINT64)0); //normal activity state
+      vmwrite(vm_guest_activity_state,(UINT64)0); //normal activity state
       if (originalstate->originalLME)
       {
         vmwrite(vm_guest_rsp,(UINT64)originalstate->rsp); //rsp
@@ -1799,7 +1822,7 @@ void setupVMX(pcpuinfo currentcpuinfo)
 
       vmwrite(vm_guest_dr7,(UINT64)0x400); //dr7
 
-      vmwrite(0x4826,(UINT64)0); //guest activity state, normal
+      vmwrite(vm_guest_activity_state,(UINT64)0); //guest activity state, normal
       //vmwrite(vm_guest_rsp,(UINT64)0x8fffc); //rsp
       vmwrite(vm_guest_rsp,((UINT64)malloc(4096))+0x1000-0x28); //rsp, 32 bytes scratch and 8 bytes for return value (so unaligned)
       vmwrite(vm_guest_rip,(UINT64)reboot); //rip

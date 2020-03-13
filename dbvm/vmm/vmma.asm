@@ -2410,6 +2410,9 @@ and eax,0x7FFFFFFF
 mov cr0,eax
 
 xor eax,eax
+cpuid
+xor eax,eax
+
 mov cr3,eax
 
 ;unset IA32_EFER_LME to 0 (disable 64 bits)
@@ -2794,6 +2797,8 @@ mov byte [7],6;
 
 ;jmp readok
 
+
+
 xor ax,ax
 mov ds,ax
 
@@ -2840,7 +2845,9 @@ pop ax
 beforeboot:
 nop
 nop
+cpuid
 nop
+
 
 
 ;jmp beforeboot

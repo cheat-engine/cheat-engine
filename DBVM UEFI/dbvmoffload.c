@@ -318,8 +318,8 @@ void InitializeDBVM(UINT64 vmm, int vmmsize)
     initvars->nextstack=0x00400000+(mainstack-vmm)+(16*4096)-0x40;
 
     address=0;
-    s=AllocatePages(AllocateAnyPages,EfiRuntimeServicesData, 16384,&address); //64MB of memory
-    if (s!=EFI_SUCCESS)
+    s=AllocatePages(AllocateAnyPages,EfiRuntimeServicesCode, 16384,&address); //64MB of memory
+    if (s==EFI_SUCCESS)
     {
       Print(L"Allocated 64MB of extra ram at %lx\n", address);
       initvars->extramemory=address;
@@ -327,9 +327,13 @@ void InitializeDBVM(UINT64 vmm, int vmmsize)
     }
     else
     {
+      Print(L"Failed to allocate extra ram\n");
       initvars->extramemory=0;
       initvars->extramemorysize=0;
     }
+    char something[201];
+
+    Input(L"Type something : ", something, 200);
 
 
 
@@ -635,8 +639,6 @@ void LaunchDBVM()
       vmcallinfo.command=38; //VMCALL_GETMEM
       UINT64 freemem,fullpages;
       dovmcall2(&vmcallinfo, 0x76543210, &freemem,&fullpages);
-
-
 
 
       disableInterrupts();

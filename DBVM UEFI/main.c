@@ -193,6 +193,8 @@ efi_main (EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable)
 
 
 
+
+
   Print(L"efi_main at %lx\n",(UINT64)efi_main);
   FunctionX(NULL);
 /*
@@ -297,6 +299,7 @@ efi_main (EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable)
     else
     {
       Print(L"%d Processors of which %d are enabled\n", cpucount, NumEnabled);
+      /*
       int i;
       for (i=1; i<cpucount; i++)
       {
@@ -305,7 +308,7 @@ efi_main (EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable)
         {
           Print(L"%d Failed to launch AP:%r\n",i,s);
         }
-      }
+      }*/
 
 
     }

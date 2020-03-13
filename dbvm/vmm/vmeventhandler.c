@@ -45,6 +45,8 @@ double speedhackSpeed=1.0f;
 QWORD speedhackInitialOffset=0;
 QWORD speedhackInitialTime=0;
 
+int gDisableTSC=0;
+
 
 //QWORD cpuidTime=6000; //todo: Make this changeable by the user after launch, or instead of using a TSCOffset just tell the next rdtsc calls to difference of 30 or less (focussing on the currentcpu, or just for 6000 actual ticks)
 //QWORD rdtscTime=6000;
@@ -660,16 +662,18 @@ int handleINIT(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
   UINT64 a,b,c,d;
   zeromemory(vmregisters,sizeof(VMRegisters));
 
+  /*
   //magic
   a=1;
   _cpuid(&a,&b,&c,&d);
   vmregisters->rdx=a;
 
-
+*/
   setup8086WaitForSIPI(currentcpuinfo,0);
 
-  vmwrite(vm_guest_rsp,0);
-  vmwrite(vm_guest_rip,0);
+  vmwrite(vm_guest_rip,0x0);
+
+  vmwrite(vm_guest_activity_state,(UINT64)3);
 
 
   return 0;
@@ -678,7 +682,11 @@ int handleINIT(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 int handleSIPI(void)
 {
   UINT64 newcs,newcsbase,newip;
+
+ // while (1) outportb(0x80,0xfe);
+
   sendstringf("Handling SIPI\n\r");
+
 
   //the exit qualification contains the address of the route
   newcs=(QWORD)(vmread(vm_exit_qualification)) << 8;
@@ -700,7 +708,7 @@ int handleSIPI(void)
   //vmwrite(0x6810,newcsbase);
 
   vmwrite(vm_guest_rip,newip);
-  vmwrite(0x4826,(ULONG)0); //guest activity state, normal
+  vmwrite(vm_guest_activity_state,(ULONG)0); //guest activity state, normal
 
 
   return 0;
@@ -3128,6 +3136,9 @@ int handleInterruptRealMode(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
   //gather data
   //Access_Rights reg_csaccessrights;
 
+  while (1)
+    outportb(0x80,0xeE);
+
 
 
   //ULONG interrorcode;//,idtvectorerrorcode;
@@ -3144,6 +3155,8 @@ int handleInterruptRealMode(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 
 
   //reg_csaccessrights.AccessRights=vmread(vm_guest_cs_access_rights);
+//todo: in unrestricted mode do a realmode int
+
 
 
   if (idtvectorinfo.valid)
@@ -3696,7 +3709,7 @@ int handleSingleStep(pcpuinfo currentcpuinfo)
   while (currentcpuinfo->singleStepping.ReasonsPos)
   {
     int i=currentcpuinfo->singleStepping.ReasonsPos-1;
-    int r;
+    int r=0;
     sendstringf("  ID %d Reason %d\n",i, currentcpuinfo->singleStepping.Reasons[i].Reason);
 
     switch (currentcpuinfo->singleStepping.Reasons[i].Reason)
@@ -3746,6 +3759,10 @@ int handle_rdtsc(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
   double s;
   QWORD lTSC=lowestTSC;
   QWORD realtime;
+
+  if (gDisableTSC) //next time don't call this
+    vmwrite(vm_execution_controls_cpu, vmread(vm_execution_controls_cpu) & (QWORD)~(QWORD)RDTSC_EXITING);
+
 
 
   if (lTSC<currentcpuinfo->lowestTSC)
@@ -3834,6 +3851,9 @@ int handleVMEvent(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, FXSAVE64 *f
   int result;
   int exit_reason=currentcpuinfo->guest_error?currentcpuinfo->guest_error:vmread(vm_exit_reason) & 0x7fffffff;
 
+ // if (currentcpuinfo->cpunr)
+ //   outportb(0x80,exit_reason);
+
   if (currentcpuinfo->vmxdata.runningvmx)
   {
     //check if I should handle it, if not
@@ -3872,13 +3892,15 @@ int handleVMEvent(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, FXSAVE64 *f
     case 1: //
 		{
       sendstring("received external interrupt\n\r");
-      if (vmread(0x4826)==1)
+      if (vmread(vm_guest_activity_state)==1)
       {
         sendstring("In HLT mode so become active and disable external event watching\n\r");
         vmwrite(vm_execution_controls_pin,vmread(0x4000) & 0xFFFFFFFE); //disable external event watching
 
 
-        vmwrite(0x4826,(ULONG)0); //HLT mode off
+        vmwrite(vm_guest_activity_state,(ULONG)0); //HLT mode off
+        while (1) outportb(0x80,0xe1);
+
 
         if (ISREALMODE(currentcpuinfo))
         {
@@ -3902,17 +3924,23 @@ int handleVMEvent(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, FXSAVE64 *f
 
 		case 2: //tripple fault
 		{
-		  ddDrawRectangle(0,DDVerticalResolution-100,100,100,0xff0000);
+
 			sendstring("A TRIPPLE FAULT HAPPENED. NORMALLY THE SYSTEM WOULD REBOOT NOW\n\r");
+
+			outportb(0x80,0xEF);
+			while (1);
+
 			return 1;
 		}
 
 		case 3: //INIT SIGNAL
 		{
 		  //enter wait-for-sipi mode
+
+
 			sendstring("Received an INIT signal\n\r"); //should enter wait-for-sipi mode
 			handleINIT(currentcpuinfo, vmregisters);
-			return 0; //ignore?
+			return VM_OK; //ignore?
 		}
 
 		case vm_exit_sipi: //SIPI
@@ -4135,6 +4163,8 @@ int handleVMEvent(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, FXSAVE64 *f
         sendvmstate(currentcpuinfo, vmregisters);
       }
 
+
+
       return result;
 
 		}
@@ -4162,7 +4192,8 @@ int handleVMEvent(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, FXSAVE64 *f
 			ddDrawRectangle(0,DDVerticalResolution-100,100,100,0xff0000);
 			while (1) ;
 #else
-			return 0;
+			return handleSingleStep(currentcpuinfo);
+			//return 0;
 #endif
 
 
@@ -4221,17 +4252,14 @@ int handleVMEvent(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, FXSAVE64 *f
 
 			int r;
 
-			outportb(0x80,48);
-		    sendstring("EPT violation\n\r");
-		    r=handleEPTViolation(currentcpuinfo, vmregisters, (PFXSAVE64)fxsave);
 
-		    ept_invalidate();
-		    if (r==0)
-		      outportb(0x80,48*2);
-			else
-			  outportb(0x80,48*2+1);
+      sendstring("EPT violation\n\r");
+      r=handleEPTViolation(currentcpuinfo, vmregisters, (PFXSAVE64)fxsave);
 
-		    return r;
+      ept_invalidate();
+
+
+      return r;
 		}
 
 		case 49:

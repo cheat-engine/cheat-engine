@@ -1792,6 +1792,8 @@ int emulateRMinterrupt(pcpuinfo currentcpuinfo, VMRegisters *vmregisters UNUSED,
 
   sendstring("Emulating realmode interrupt");
 
+ // while (1) outportb(0x80,0x77);
+
 
 
   return 0; //return that I changed the eip
@@ -2615,7 +2617,7 @@ InterruptFired:
  * Emulates RealMode instructions. Returns true if at least one instruction got executed
  * Currently only tries one instruction at a time
  */
-int emulateRealMode(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
+BOOL emulateRealMode(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 {
   unsigned char buf[30];
   _DecodedInst disassembled[16];
@@ -2708,6 +2710,7 @@ int emulateRealMode(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
       sendstring("Your command:");
 
       result=FALSE;
+
       c=waitforchar();
       //c='1';
       sendstringf("%c\n\r",c);

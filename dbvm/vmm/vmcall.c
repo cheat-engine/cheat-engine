@@ -1964,6 +1964,12 @@ int _handleVMCallInstruction(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, 
     break;
   }
 
+  case VMCALL_DISABLETSCHOOK:
+  {
+    gDisableTSC=1;
+    break;
+  }
+
 
 	case VMCALL_KERNELMODE:
 	{

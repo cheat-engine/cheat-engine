@@ -2189,12 +2189,15 @@ void initMemTypeRanges()
 int remapMTRRTypes(QWORD address UNUSED, QWORD size UNUSED, int type UNUSED)
 {
   //called by the MSR write handler when MTRR registers get changed
+  initMemTypeRanges();
+
   return 1;
 }
 
 int handleMSRWrite_MTRR(void)
 //called when an MTRR msr is written. Figures out what regions have been modified
 {
+  initMemTypeRanges();
   return 1;
 }
 
