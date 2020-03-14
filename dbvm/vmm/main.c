@@ -133,7 +133,7 @@ int cinthandler(unsigned long long *stack, int intnr) //todo: move to it's own s
   {
     sendstringf("Invalid FS base during exception\n");
     ddDrawRectangle(0,DDVerticalResolution-100,100,100,0xff0000);
-    while (1) ;
+    while (1) outportb(0x80,0xc5);
   }
 
   pcpuinfo cpuinfo=getcpuinfo();
@@ -273,7 +273,7 @@ int cinthandler(unsigned long long *stack, int intnr) //todo: move to it's own s
 
     sendstringf("longjmp just went through...\n");
     ddDrawRectangle(0,DDVerticalResolution-100,100,100,0xff0000);
-    while (1);
+    while (1) outportb(0x80,0xc6);
   }
 
   if (cpuinfo->OnInterrupt.RIP)
@@ -913,7 +913,7 @@ void vmm_entry(void)
   {
     vmm_entry2();
     sendstringf("vmm_entry2 has PHAILED!!!!");
-    while (1);
+    while (1) outportb(0x80,0xc7);
   }
   isAP=1; //all other entries will be an AP
 
@@ -1243,7 +1243,7 @@ void vmm_entry(void)
   {
     sendstring("Memory allocation failed\n");
     ddDrawRectangle(0,DDVerticalResolution-100,100,100,0xff0000);
-    while (1) ;
+    while (1) outportb(0x80,0xc8);
   }
 
   sendstringf("Allocated GDT_BASE %6\n", GDT_BASE);
@@ -2737,10 +2737,7 @@ void startvmx(pcpuinfo currentcpuinfo)
           launchVMX(currentcpuinfo);
 
           sendstring("launchVMX returned\n");
-          while (1)
-          {
-
-          }
+          while (1) outportb(0x80,0xc9);
 
 
     	  }
@@ -2831,7 +2828,7 @@ void startvmx(pcpuinfo currentcpuinfo)
         {
           sendstringf(">>>>>>>>>>>>>>>>>>>>vmxon allocation has failed<<<<<<<<<<<<<<<<<<<<<<<<<<\n");
           ddDrawRectangle(0,DDVerticalResolution-100,100,100,0xff0000);
-          while (1);
+          while (1) outportb(0x80,0xca);
         }
 
         zeromemory(currentcpuinfo->vmxon_region,4096);
@@ -2846,7 +2843,7 @@ void startvmx(pcpuinfo currentcpuinfo)
         {
           ddDrawRectangle(0,DDVerticalResolution-100,100,100,0xff0000);
           sendstringf(">>>>>>>>>>>>>>>>>>>>vmcs_region allocation has failed<<<<<<<<<<<<<<<<<<<<<<<<<<\n");
-          while (1);
+          while (1) outportb(0x80,0xcb);
         }
 
 

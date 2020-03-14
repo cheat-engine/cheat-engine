@@ -4,7 +4,7 @@
 #include <stddef.h>
 
 
-#define DELAYEDSERIAL
+//#define DELAYEDSERIAL
 
 #ifdef DELAYEDSERIAL
 extern int useserial;

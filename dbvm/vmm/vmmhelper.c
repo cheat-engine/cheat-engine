@@ -825,7 +825,7 @@ int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers, void *fxsave)
 
     ddDrawRectangle(0,DDVerticalResolution-100,100,100,0xff0000);
 
-    while (1);
+    while (1) outportb(0x80,0xdc);
   }
 
   if (currentcpuinfo->vmxdata.runningvmx)
@@ -1298,6 +1298,7 @@ int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers, void *fxsave)
       {
         //int cs=vmread(vm_guest_cs);
         //unsigned long long rip=vmread(vm_guest_rip);
+        skip=verbosity; //never
 
 
         break;

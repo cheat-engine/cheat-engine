@@ -133,14 +133,14 @@ void exit(int status)
 {
 	sendstringf("Exited DBVM with status %d\n", status);
 	ddDrawRectangle(0,DDVerticalResolution-100,100,100,0xff0000);
-	while (1);
+	while (1) outportb(0x80,0xc0);
 }
 
 void abort(void)
 {
   sendstringf("Exited DBVM\n");
   ddDrawRectangle(0,DDVerticalResolution-100,100,100,0xff0000);
-  while (1);
+  while (1) outportb(0x80,0xc1);
 }
 
 
@@ -1097,7 +1097,7 @@ void csLeave(PcriticalSection CS)
   {
     sendstringf("csLeave called for a non-locked or non-owned critical section\n");
     ddDrawRectangle(0,DDVerticalResolution-100,100,100,0xff0000);
-    while (1);
+    while (1) outportb(0x80,0xc2);
   }
 }
 

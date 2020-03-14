@@ -2042,7 +2042,7 @@ int _handleVMCall(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
       ddDrawRectangle(0,DDVerticalResolution-100,100,100,0xff0000);
       if (r)
       {
-        while (1);
+        while (1) outportb(0x80,0xd2);
       }
       return 0;
     }
@@ -2175,7 +2175,7 @@ int handleVMCall(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
     {
       sendstringf("no jtag available\n");
       ddDrawRectangle(0,DDVerticalResolution-100,100,100,0xff0000);
-      while (1);
+      while (1) outportb(0x80,0xd3);
     }
     tryend
 

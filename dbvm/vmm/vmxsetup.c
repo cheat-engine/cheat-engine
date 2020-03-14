@@ -738,7 +738,7 @@ void setup8086WaitForSIPI(pcpuinfo currentcpuinfo, int setupvmcontrols)
   currentcpuinfo->guestCR0=0;
   currentcpuinfo->hasIF=0;
 
-  /*
+
   if (setupvmcontrols) //not needed when receiving an INIT, and todo: shouldn't be needed anymore as the cpu is already running
   {
     DWORD new_vm_execution_controls_cpu=vmread(vm_execution_controls_cpu) | (UINT64)IA32_VMX_PROCBASED_CTLS | USE_IO_BITMAPS | USE_MSR_BITMAPS;
@@ -788,9 +788,9 @@ void setup8086WaitForSIPI(pcpuinfo currentcpuinfo, int setupvmcontrols)
     vmwrite(vm_cr3_targetvalue0,(UINT64)0xffffffffffffffffULL); //cr3-target value 0
   }
 
-  */
 
-  /*
+
+
 
   if (hasUnrestrictedSupport)
   {
@@ -813,7 +813,7 @@ void setup8086WaitForSIPI(pcpuinfo currentcpuinfo, int setupvmcontrols)
     vmwrite(vm_guest_idt_limit, 256*8);
 
   }
-  */
+
 
 
 
@@ -846,10 +846,10 @@ void setup8086WaitForSIPI(pcpuinfo currentcpuinfo, int setupvmcontrols)
   vmwrite(vm_guest_cs,(UINT64)0); //cs selector
   vmwrite(vm_guest_cs_limit,(UINT64)0xffff); //cs limit
   if (hasUnrestrictedSupport)
-    vmwrite(vm_guest_cs_base,(UINT64)0); //cs base
+    vmwrite(vm_guest_cs_base,(UINT64)0xffff0000); //cs base
   else
     vmwrite(vm_guest_cs_base,(UINT64)0xf0000); //cs base
-  vmwrite(vm_guest_cs_access_rights,(UINT64)reg_csaccessrights.AccessRights); //cs access rights
+  vmwrite(vm_guest_cs_access_rights,(UINT64)reg_segaccessrights/*reg_csaccessrights*/.AccessRights); //cs access rights
 
 
   vmwrite(vm_guest_ldtr,(UINT64)0); //ldtr selector
@@ -1863,7 +1863,7 @@ void setupVMX(pcpuinfo currentcpuinfo)
           sendstringf("No low region:\n");
           sendARD();
           ddDrawRectangle(0,DDVerticalResolution-100,100,100,0xff0000);
-          while (1);
+          while (1) outportb(0x80,0xde);
         }
 
 

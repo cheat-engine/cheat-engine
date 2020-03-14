@@ -608,52 +608,56 @@ int emulateExceptionInterrupt(pcpuinfo currentcpuinfo, VMRegisters *vmregisters,
 void returnToRealmode(pcpuinfo currentcpuinfo) //obsolete with rm emu
 /* Called when in 16bit protected mode used for prilileged instruction emulation */
 {
-  Access_Rights reg_csaccessrights;
-  RFLAGS guestrflags=(RFLAGS)vmread(vm_guest_rflags);
 
-  if (ISREALMODE(currentcpuinfo))
+  if (hasUnrestrictedSupport==0)
   {
-    reg_csaccessrights.AccessRights=0;
-    reg_csaccessrights.Segment_type=3;
-    reg_csaccessrights.S=1;
-    reg_csaccessrights.DPL=3;
-    reg_csaccessrights.P=1;
-    reg_csaccessrights.G=0;
-    reg_csaccessrights.D_B=0;
-    reg_csaccessrights.AVL=0; //mark 0
-    vmwrite(0x4814,(ULONG)reg_csaccessrights.AccessRights); //es access rights
-    vmwrite(0x4816,(ULONG)reg_csaccessrights.AccessRights); //cs access rights
-    vmwrite(0x4818,(ULONG)reg_csaccessrights.AccessRights); //ss access rights
-    vmwrite(0x481a,(ULONG)reg_csaccessrights.AccessRights); //ds access rights
-    vmwrite(0x481c,(ULONG)reg_csaccessrights.AccessRights); //fs access rights
-    vmwrite(0x481e,(ULONG)reg_csaccessrights.AccessRights); //gs access rights
+    Access_Rights reg_csaccessrights;
+    RFLAGS guestrflags=(RFLAGS)vmread(vm_guest_rflags);
 
-    vmwrite(0x4800,(ULONG)0xffff); //es limit
-    vmwrite(0x4802,(ULONG)0xffff); //cs limit
-    vmwrite(0x4804,(ULONG)0xffff); //ss limit
-    vmwrite(0x4806,(ULONG)0xffff); //ds limit
-    vmwrite(0x4808,(ULONG)0xffff); //fs limit
-    vmwrite(0x480a,(ULONG)0xffff); //gs limit
+    if (ISREALMODE(currentcpuinfo))
+    {
+      reg_csaccessrights.AccessRights=0;
+      reg_csaccessrights.Segment_type=3;
+      reg_csaccessrights.S=1;
+      reg_csaccessrights.DPL=3;
+      reg_csaccessrights.P=1;
+      reg_csaccessrights.G=0;
+      reg_csaccessrights.D_B=0;
+      reg_csaccessrights.AVL=0; //mark 0
+      vmwrite(0x4814,(ULONG)reg_csaccessrights.AccessRights); //es access rights
+      vmwrite(0x4816,(ULONG)reg_csaccessrights.AccessRights); //cs access rights
+      vmwrite(0x4818,(ULONG)reg_csaccessrights.AccessRights); //ss access rights
+      vmwrite(0x481a,(ULONG)reg_csaccessrights.AccessRights); //ds access rights
+      vmwrite(0x481c,(ULONG)reg_csaccessrights.AccessRights); //fs access rights
+      vmwrite(0x481e,(ULONG)reg_csaccessrights.AccessRights); //gs access rights
 
-    vmwrite(0x800,vmread(0x6806) >> 4); //es selector gets the base of es shifted right 4 bits
-    vmwrite(0x802,vmread(vm_guest_cs_base) >> 4); //cs selector
-    vmwrite(0x804,vmread(vm_guest_ss_base) >> 4); //ss selector
-    vmwrite(0x806,vmread(0x680c) >> 4); //ds selector
-    vmwrite(0x808,vmread(0x680e) >> 4); //fs selector
-    vmwrite(0x80a,vmread(0x6810) >> 4); //gs selector
+      vmwrite(0x4800,(ULONG)0xffff); //es limit
+      vmwrite(0x4802,(ULONG)0xffff); //cs limit
+      vmwrite(0x4804,(ULONG)0xffff); //ss limit
+      vmwrite(0x4806,(ULONG)0xffff); //ds limit
+      vmwrite(0x4808,(ULONG)0xffff); //fs limit
+      vmwrite(0x480a,(ULONG)0xffff); //gs limit
 
-    guestrflags.VM=1; //enable virtual 8086 mode
-    guestrflags.TF=0; //disable the trap flag
-    guestrflags.RF=0;
-    guestrflags.IOPL=3;
-    guestrflags.IF=currentcpuinfo->hasIF;
-    vmwrite(vm_guest_rflags,guestrflags.value);
+      vmwrite(0x800,vmread(0x6806) >> 4); //es selector gets the base of es shifted right 4 bits
+      vmwrite(0x802,vmread(vm_guest_cs_base) >> 4); //cs selector
+      vmwrite(0x804,vmread(vm_guest_ss_base) >> 4); //ss selector
+      vmwrite(0x806,vmread(0x680c) >> 4); //ds selector
+      vmwrite(0x808,vmread(0x680e) >> 4); //fs selector
+      vmwrite(0x80a,vmread(0x6810) >> 4); //gs selector
 
-  }
-  else
-  {
-    nosendchar[getAPICID()]=0;
-    sendstringf("ERROR: Guest doesn't WANT to be in realmode\n\r");
+      guestrflags.VM=1; //enable virtual 8086 mode
+      guestrflags.TF=0; //disable the trap flag
+      guestrflags.RF=0;
+      guestrflags.IOPL=3;
+      guestrflags.IF=currentcpuinfo->hasIF;
+      vmwrite(vm_guest_rflags,guestrflags.value);
+
+    }
+    else
+    {
+      nosendchar[getAPICID()]=0;
+      sendstringf("ERROR: Guest doesn't WANT to be in realmode\n\r");
+    }
   }
 }
 
@@ -662,13 +666,12 @@ int handleINIT(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
   UINT64 a,b,c,d;
   zeromemory(vmregisters,sizeof(VMRegisters));
 
-  /*
+
   //magic
   a=1;
   _cpuid(&a,&b,&c,&d);
   vmregisters->rdx=a;
 
-*/
   setup8086WaitForSIPI(currentcpuinfo,0);
 
   vmwrite(vm_guest_rip,0x0);
@@ -728,7 +731,7 @@ int handle_cr3_callback(pcpuinfo currentcpuinfo,VMRegisters *vmregisters)
   sendstring("Also, currently not implemented so no idea how this happened\n\r");
 
   ddDrawRectangle(0,DDVerticalResolution-100,100,100,0xff0000);
-  while (1);
+  while (1) outportb(0x80,0xd4);
 
 
   //sendstringf("before:\n\r");
@@ -2257,7 +2260,7 @@ int setVM_CR0(pcpuinfo currentcpuinfo, UINT64 newcr0)
       nosendchar[getAPICID()]=0;
       sendstringf("IF is not 0 when switching to protected mode\n\r");
       ddDrawRectangle(0,DDVerticalResolution-100,100,100,0xff0000);
-      while (1);
+      while (1) outportb(0x80,0xd4);
     }
 
     pguestrflags->VM=0;  //out of realmode
@@ -2320,7 +2323,7 @@ int setVM_CR0(pcpuinfo currentcpuinfo, UINT64 newcr0)
     {
       nosendchar[getAPICID()]=0;
       sendstringf("IF is not 0 when switching to protected mode\n\r");
-      while (1);
+      while (1) outportb(0x80,0xd5);
     }
 #endif
 
@@ -3136,10 +3139,6 @@ int handleInterruptRealMode(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
   //gather data
   //Access_Rights reg_csaccessrights;
 
-  while (1)
-    outportb(0x80,0xeE);
-
-
 
   //ULONG interrorcode;//,idtvectorerrorcode;
   //VMExit_interruption_information intinfo;
@@ -3447,6 +3446,7 @@ int handleInterruptProtectedMode(pcpuinfo currentcpuinfo, VMRegisters *vmregiste
 
         while (1)
         {
+          outportb(0x80,0xd6);
           ddDrawRectangle(0,DDVerticalResolution-100,100,100,_rdtsc() & 0xffffff);
         }
 
@@ -3722,7 +3722,7 @@ int handleSingleStep(pcpuinfo currentcpuinfo)
     if (r)
     {
       ddDrawRectangle(0,DDVerticalResolution-100,100,100,0xff0000);
-      while (1);
+      while (1) outportb(0x80,0xd7);
     }
 
     currentcpuinfo->singleStepping.ReasonsPos--;
@@ -3899,7 +3899,8 @@ int handleVMEvent(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, FXSAVE64 *f
 
 
         vmwrite(vm_guest_activity_state,(ULONG)0); //HLT mode off
-        while (1) outportb(0x80,0xe1);
+        while (1) outportb(0x80,0xd8);
+
 
 
         if (ISREALMODE(currentcpuinfo))
@@ -3927,8 +3928,8 @@ int handleVMEvent(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, FXSAVE64 *f
 
 			sendstring("A TRIPPLE FAULT HAPPENED. NORMALLY THE SYSTEM WOULD REBOOT NOW\n\r");
 
-			outportb(0x80,0xEF);
-			while (1);
+
+			while (1) outportb(0x80,0xd7);
 
 			return 1;
 		}
@@ -3979,7 +3980,7 @@ int handleVMEvent(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, FXSAVE64 *f
 
 #ifndef DEBUG
 		    ddDrawRectangle(0,DDVerticalResolution-100,100,100,0xff0000);
-		     while (1);
+		    while (1) outportb(0x80,0xd8);
 #endif
 		  }
 			return 0; //ignore for now
@@ -4000,7 +4001,7 @@ int handleVMEvent(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, FXSAVE64 *f
     case 9:
     {
       ddDrawRectangle(0,DDVerticalResolution-100,100,100,0xff0000);
-      while (1);
+      while (1) outportb(0x80,0xd9);
       return handleTaskswitch(currentcpuinfo, vmregisters);
     }
 
@@ -4190,7 +4191,7 @@ int handleVMEvent(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, FXSAVE64 *f
 			sendstring("(Un)expected monitor trap flag\n\r");
 #ifndef DEBUG
 			ddDrawRectangle(0,DDVerticalResolution-100,100,100,0xff0000);
-			while (1) ;
+			while (1) outportb(0x80,0xda);
 #else
 			return handleSingleStep(currentcpuinfo);
 			//return 0;
@@ -4325,7 +4326,7 @@ int handleVMEvent(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, FXSAVE64 *f
 
 #ifdef DEBUG
 		  ddDrawRectangle(0,DDVerticalResolution-100,100,100,0xff0000);
-		  while (1);
+		  while (1) outportb(0x80,0xdb);
 #endif
 		 // return 1;
 		}
