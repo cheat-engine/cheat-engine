@@ -12,7 +12,7 @@ uses
   LCLIntf, LCLType, Classes, SysUtils, controls, stdctrls, comctrls, ExtCtrls, graphics,
   math, MemoryRecordUnit, FPCanvas, CEFuncProc, NewKernelHandler, menus,dom,
   XMLRead,XMLWrite, symbolhandler, AddresslistEditor, inputboxtopunit,
-  frmMemrecComboboxUnit, commonTypeDefs, multilineinputqueryunit, LazUTF8;
+  frmMemrecComboboxUnit, commonTypeDefs, multilineinputqueryunit, LazUTF8, StringHashList;
 
 type
   TTreeviewWithScroll=class(TTreeview)
@@ -74,6 +74,8 @@ type
 
     sortlevel0only: boolean;
 
+    descriptionhashlist: TStringhashList;
+
     procedure doAnimation(sender: TObject);
 
     function getTreeNodes: TTreenodes;
@@ -124,6 +126,7 @@ type
     procedure miSortOnClickClick(sender: TObject);
   public
     //needsToReinterpret: boolean;
+    procedure MemrecDescriptionChange(memrec: TMemoryRecord);
     procedure getAddressList(list: Tstrings);
 
     function focused:boolean; override;
@@ -763,17 +766,18 @@ begin
 
 end;
 
-function TAddresslist.getRecordWithDescription(description: string): TMemoryRecord;
+procedure TAddresslist.MemrecDescriptionChange(memrec: TMemoryRecord);
 var i: integer;
 begin
-  result:=nil;
+  descriptionhashlist.Clear;
   for i:=0 to count-1 do
-    if uppercase(MemRecItems[i].Description)=uppercase(description) then
-    begin
-      result:=MemRecItems[i];
-      exit;
-    end;
+    descriptionhashlist.Data[MemRecItems[i].Description]:=MemRecItems[i];
 
+end;
+
+function TAddresslist.getRecordWithDescription(description: string): TMemoryRecord;
+begin
+  result:=descriptionhashlist.Data[description]
 end;
 
 function TAddresslist.addAddressManually(initialaddress: string=''; vartype: TVariableType=vtDword; CustomTypeName: string=''): TMemoryRecord;
@@ -2281,6 +2285,8 @@ begin
   inherited Create(AOwner);
 
  // ShowHint:=true;
+
+  descriptionhashlist:=TStringHashList.Create(false);
 
   treeview:=TTreeviewWithScroll.create(self); //TTreeview.create(self);
   treeview.name:='List';

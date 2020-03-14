@@ -439,7 +439,8 @@ uses networkInterface, networkInterfaceApi, ProcessHandlerUnit, Globals, Parsers
 uses Assemblerunit, driverlist, LuaHandler, lualib, lua, lauxlib,
   disassemblerComments, StructuresFrm2, networkInterface, networkInterfaceApi,
   ProcessHandlerUnit, Globals, Parsers, MemoryQuery, LuaCaller,
-  UnexpectedExceptionsHelper, frmSymbolEventTakingLongUnit;
+  UnexpectedExceptionsHelper, frmSymbolEventTakingLongUnit, MainUnit, addresslist,
+  MemoryRecordUnit;
 {$endif}
 
 
@@ -2846,13 +2847,15 @@ procedure TSymhandler.tokenize(s: string; var tokens: TTokens);
 Just a tokenizer for simple address specifiers
 }
 var
-  i: integer;
+  i,j: integer;
   last: integer;
   t: string;
   inQuote: boolean;
+  inroundbrace: integer;
 begin
   last:=1;
   inQuote:=false;
+  inroundbrace:=0;
 
   for i:=1 to length(s) do
   begin
@@ -2868,20 +2871,31 @@ begin
 
       if not inQuote then
       begin
-        t:=trim(copy(s, last, i-last));
-        if t<>'' then
-        begin
-          setlength(tokens,length(tokens)+1);
-          tokens[length(tokens)-1]:=t;
-        end;
+        if s[i]=')' then
+          dec(inroundbrace);
 
-        //store seperator char as well, unless it's "
-        if not (s[i] = '"') then
+        if inroundbrace=0 then
         begin
-          setlength(tokens,length(tokens)+1);
-          tokens[length(tokens)-1]:=s[i];
+          t:=trim(copy(s, last, i-last));
+          if t<>'' then
+          begin
+            setlength(tokens,length(tokens)+1);
+            tokens[length(tokens)-1]:=t;
+          end;
+
+          //store seperator char as well, unless it's "
+          if not (s[i] = '"') then
+          begin
+            setlength(tokens,length(tokens)+1);
+            tokens[length(tokens)-1]:=s[i];
+          end;
+
+          if s[i]='(' then
+            inc(inroundbrace);
+
+          last:=i+1;
+
         end;
-        last:=i+1;
       end;
     end;
 
@@ -4529,6 +4543,8 @@ var mi: tmoduleinfo;
 
     v64: qword;
 
+    mr: TMemoryrecord;
+
     function ApplyTokenType(value: qword): qword;
     begin
       case nexttokentype of
@@ -4966,6 +4982,31 @@ begin
                 continue;
               end;
             end;
+
+            s:='';
+            for j:=i+1 to length(tokens)-1 do
+            begin
+
+              if tokens[j]=')' then
+              begin
+                mr:=MainForm.addresslist.getRecordWithDescription(s);
+                if mr<>nil then
+                begin
+
+                  for k:=i+1 to j do
+                    tokens[k]:='';
+
+                  tokens[i]:=inttohex(mr.CachedAddress,1);
+
+                end;
+
+                break;
+              end
+              else
+                s:=s+tokens[j];
+            end;
+
+
           end;
 
           '[':

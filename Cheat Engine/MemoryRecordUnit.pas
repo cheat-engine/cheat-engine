@@ -162,6 +162,7 @@ type
     fShowAsHex: boolean;
     editcount: integer; //=0 when not being edited
 
+    fDescription : string;
     fOptions: TMemrecOptions;
 
     CustomType: TCustomType;
@@ -187,6 +188,7 @@ type
 
     fDropDownLinked: boolean;
     fDropDownLinkedMemrec: string;
+
     linkedDropDownMemrec: TMemoryRecord;
     memrecsLinkedToMe: array of TMemoryRecord; // a list of all memrecs linked to this memrec
 
@@ -254,13 +256,14 @@ type
     procedure SetCollapsed(state: boolean);
 
     procedure processingDone; //called by the processingThread when finished
+    procedure setDescription(d: string);
 
   public
 
 
 
 
-    Description : string;
+
     interpretableaddress: string;
 
 
@@ -354,8 +357,6 @@ type
 
     property Child[index: integer]: TMemoryRecord read getChild; default;
     property offsets[index: integer]: TMemrecOffset read getPointerOffset;
-
-
   published
     property IsGroupHeader: boolean read fisGroupHeader write fisGroupHeader;
     property IsAddressGroupHeader: boolean read fisAddressGroupHeader write setAddressGroupHeader;
@@ -401,6 +402,8 @@ type
 
     property LastAAExecutionFailed: boolean read AutoAssemblerData.lastExecutionFailed;
     property LastAAExecutionFailedReason: string read AutoAssemblerData.lastExecutionFailedReason;
+    property Description: string read fDescription write setDescription;
+    property CachedAddress: ptruint read realAddress;
   end;
 
   THKSoundFlag=(hksPlaySound=0, hksSpeakText=1, hksSpeakTextEnglish=2); //playSound excludes speakText
@@ -1081,6 +1084,8 @@ end;
 destructor TMemoryRecord.destroy;
 var i: integer;
 begin
+  taddresslist(fowner).MemrecDescriptionChange(self);
+
   if processingThread<>nil then
   begin
     processingThread.Terminate;
@@ -2604,6 +2609,12 @@ begin
 
 
   processingDone;
+end;
+
+procedure TMemoryRecord.setDescription(d: string);
+begin
+  fdescription:=d;
+  TAddresslist(fowner).MemrecDescriptionChange(self);
 end;
 
 procedure TMemoryRecord.setVisible(state: boolean);
