@@ -83,6 +83,9 @@ const
   VMCALL_SETSPEEDHACK = 62;
 
 
+  VMCALL_DISABLETSCHOOK=66;
+  VMCALL_ENABLETSCHOOK=67;
+
 
   //---
   //watch options:
@@ -454,6 +457,8 @@ function dbvm_get_statistics(out statistics: TDBVMStatistics):qword;
 
 procedure dbvm_setTSCAdjust(enabled: boolean; timeout: integer);
 procedure dbvm_speedhack_setSpeed(speed: double);
+procedure dbvm_enableTSCHook;
+function dbvm_disableTSCHook: boolean;
 
 
 function dbvm_log_cr3values_start: boolean;
@@ -487,7 +492,7 @@ implementation
 
 uses DBK32functions, cefuncproc, PEInfoFunctions, NewKernelHandler, syncobjs,
   ProcessHandlerUnit, Globals, AvgLvlTree, maps, debuggertypedefinitions,
-  DebugHelper, frmBreakpointlistunit, math{$ifdef darwin},mactypes{$endif};
+  DebugHelper, frmBreakpointlistunit, math{$ifdef darwin},mactypes{$endif}, multicpuexecution;
 
 resourcestring
 rsInvalidInstruction = 'Invalid instruction';
@@ -1820,6 +1825,41 @@ begin
 end;
 
 
+function dbvm_enableTSCHook_internal(parameters: pointer): BOOL; stdcall;
+var vmcallinfo: packed record
+  structsize: dword;
+  level2pass: dword;
+  command: dword;
+end;
+begin
+  vmcallinfo.structsize:=sizeof(vmcallinfo);
+  vmcallinfo.level2pass:=vmx_password2;
+  vmcallinfo.command:=VMCALL_ENABLETSCHOOK;
+  result:=vmcall(@vmcallinfo,vmx_password1)<>0;
+end;
+
+procedure dbvm_enableTSCHook;
+begin
+  foreachcpu(dbvm_enableTSCHook_internal,nil);
+end;
+
+function dbvm_disableTSCHook_internal(parameters: pointer): BOOL; stdcall;
+var vmcallinfo: packed record
+  structsize: dword;
+  level2pass: dword;
+  command: dword;
+end;
+begin
+  vmcallinfo.structsize:=sizeof(vmcallinfo);
+  vmcallinfo.level2pass:=vmx_password2;
+  vmcallinfo.command:=VMCALL_DISABLETSCHOOK;
+  result:=vmcall(@vmcallinfo,vmx_password1)<>0;
+end;
+
+function dbvm_disableTSCHook: boolean;
+begin
+  result:=foreachcpu(dbvm_disableTSCHook_internal,nil);
+end;
 
 procedure dbvm_ept_reset;
 var vmcallinfo: packed record

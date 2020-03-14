@@ -731,6 +731,8 @@ begin
   MaxCustomTypeSize:=0;
   for i:=0 to customTypes.count-1 do
     MaxCustomTypeSize:=max(MaxCustomTypeSize, TCustomType(customTypes[i]).bytesize);
+
+  mainform.RefreshCustomTypes;
 end;
 
 procedure TCustomType.showDebugInfo;
@@ -747,6 +749,7 @@ end;
 destructor TCustomType.destroy;
 begin
   remove;
+  inherited destroy;
 end;
 
 //lua
