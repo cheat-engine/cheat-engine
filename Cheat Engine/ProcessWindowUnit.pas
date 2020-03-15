@@ -1204,7 +1204,8 @@ begin
     {$ifdef windows}
     if formsettings.cbKernelReadWriteProcessMemory.checked or (dbvm_version>=$ce000004) then //driver is active
     begin
-      processlist.Items.Insert(0, '00000000-['+rsPhysicalMemory+']');
+      if TabHeader.TabIndex<=2 then //other script are on their own
+        processlist.Items.Insert(0, '00000000-['+rsPhysicalMemory+']');
     end;
     {$endif}
 

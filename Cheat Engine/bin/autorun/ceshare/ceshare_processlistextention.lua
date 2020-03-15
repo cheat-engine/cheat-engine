@@ -118,46 +118,45 @@ z=registerFormAddNotification(function(s)
   if s.ClassName=='TProcessWindow' then
     --on hold while waiting for tabs to support images or ownerdraw, which neither is the case
     s.registerCreateCallback(function(s2)    
-      if ceshare.ceversion>=7.1 then --can show icons in the tab
-        local OriginalOnShow=s2.OnShow
-        s2.OnShow=function(s)
-          OriginalOnShow(s)
-          if ceshare.ProcessListTab then
-            if ceshare.SystemHasKnownProcess() then
-              ceshare.ProcessListTab.ImageIndex=11
-            else
-              ceshare.ProcessListTab.ImageIndex=-1
-            end
+      
+      local OriginalOnShow=s2.OnShow
+      s2.OnShow=function(s)
+        OriginalOnShow(s)
+        
+        if ceshare.ProcessListTab then
+          if ceshare.SystemHasKnownProcess() then
+            ceshare.ProcessListTab.ImageIndex=11
+          else
+            ceshare.ProcessListTab.ImageIndex=-1
           end
         end
-      end    
+      end
+      
     end)
 
     
     s.registerFirstShowCallback(function(s2)
       local ci
       local OriginalProcessListDrawItem=s2.ProcessList.OnDrawItem
-      
+            
       ceshare.GetCurrentProcessList()  
       
       ceshare.ProcessListWindow=s2
       
-      if ceshare.ceversion>=7.1 then --7.1 changed the processlist tab from a TabControl to a PageControl as that one does support images
-        
-        local ts=s2.TabHeader.addTab()
-        ts.Caption='CEShare'
-        ceshare.ProcessListTab=ts
-        ci=ts.TabIndex  
+      local ts=s2.TabHeader.addTab()
+      ts.Caption='CEShare'
+      ceshare.ProcessListTab=ts
+      ci=ts.TabIndex  
 
-        s2.TabHeader.Images=MainForm.mfImageList --use the mainform imagelist.  ImageIndex11 is useful
-        --ts.ImageIndex=11 --exclamation mark          
+      s2.TabHeader.Images=MainForm.mfImageList --use the mainform imagelist.  ImageIndex11 is useful
+      
+      if ceshare.SystemHasKnownProcess() then
+        ts.ImageIndex=11 --exclamation mark          
       else
-        s2.TabHeader.Tabs.add('CEShare')
-        ci=s2.TabHeader.Tabs.Count-1
+        ts.ImageIndex=-1
       end
 
-      
-      ceshare.ProcessWindowCEShareTabIndex=ci
+      ceshare.ProcessWindowCEShareTabIndex=ci          
       
       local OriginalOnDestroy=s2.OnDestroy
       s2.OnDestroy=function(sender)
@@ -171,12 +170,6 @@ z=registerFormAddNotification(function(s)
       
 
       s2.ProcessList.OnDrawItem=function(sender, index, rect, state)  
-   
-        if ceshare.ceversion<7.1 then                  
-          --a bug in 7.0 and earlier makes state the wrong type. so first convert it to the proper names, or just empty it as CE doesn't make use of it
-          state=''
-        end
-        
         local r=OriginalProcessListDrawItem(sender, index, rect, state)      
         if s2.TabHeader.TabIndex==ci then
           --draw the icon for this process
@@ -186,10 +179,6 @@ z=registerFormAddNotification(function(s)
             if iconhandle then                      
              
               local senderdc=sender.Canvas.Handle
-              if senderdc==nil then --7.1 doesn't have Canvas.Handle
-                senderdc=readPointerLocal(userDataToInteger(sender.Canvas)+0xc8)  --fHandle offset in the Canvas object  
-              end
-            
               local ih=sender.ItemHeight                    
             
               executeCodeLocalEx('DrawIconEx',senderdc,0,rect.Top,iconhandle,ih,ih,0,0,3)  
@@ -207,8 +196,23 @@ z=registerFormAddNotification(function(s)
       
       local oldTabChange=s2.TabHeader.OnChange
 
-      s2.TabHeader.OnChange=function(th)
+      local oldKeyPress=s2.ProcessList.OnKeyPress
+      
+      s2.ProcessList.OnKeyPress=function(sender, key)
         if (s2.TabHeader.TabIndex==ci)  then
+          return key
+        else
+          return oldKeyPress(sender,key)
+        end
+      end
+       
+          
+      s2.TabHeader.OnChange=function(th)
+        
+        
+        if (s2.TabHeader.TabIndex==ci)  then
+          s2.ProcessList.OnKeyPress=nil
+          
           s2.ProcessList.Items.clear()
           --fill the list with known processes
             
@@ -247,7 +251,9 @@ z=registerFormAddNotification(function(s)
               end 
             end
           end
+         
         else
+          s2.ProcessList.OnKeyPress=oldKeyPress
           oldTabChange(th)         
         end          
       end

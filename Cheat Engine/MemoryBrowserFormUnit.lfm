@@ -81,7 +81,7 @@ object MemoryBrowser: TMemoryBrowser
         TabOrder = 0
         Visible = False
         object tbRun: TToolButton
-          Left = 114
+          Left = 113
           Top = 2
           Caption = 'Run'
           Enabled = False
@@ -89,7 +89,7 @@ object MemoryBrowser: TMemoryBrowser
           OnClick = miDebugRunClick
         end
         object tbStepInto: TToolButton
-          Left = 143
+          Left = 142
           Top = 2
           Caption = 'Step Into'
           Enabled = False
@@ -97,7 +97,7 @@ object MemoryBrowser: TMemoryBrowser
           OnClick = miDebugStepClick
         end
         object tbStepOver: TToolButton
-          Left = 198
+          Left = 197
           Top = 2
           Caption = 'Step Over'
           Enabled = False
@@ -105,14 +105,14 @@ object MemoryBrowser: TMemoryBrowser
           OnClick = miDebugStepOverClick
         end
         object tbSeparator1: TToolButton
-          Left = 106
+          Left = 105
           Height = 40
           Top = 2
           Caption = 'tbSeparator1'
           Style = tbsSeparator
         end
         object tbStepOut: TToolButton
-          Left = 257
+          Left = 256
           Top = 2
           Caption = 'Step Out'
           Enabled = False
@@ -120,7 +120,7 @@ object MemoryBrowser: TMemoryBrowser
           OnClick = miDebugExecuteTillReturnClick
         end
         object tbSeparator2: TToolButton
-          Left = 311
+          Left = 310
           Height = 40
           Top = 2
           Caption = 'tbSeparator2'
@@ -955,7 +955,10 @@ object MemoryBrowser: TMemoryBrowser
     end
     object MenuItem16: TMenuItem
       Caption = '-'
-      Visible = False
+    end
+    object miOpenInDissectData: TMenuItem
+      Caption = 'Open in dissect data/structure'
+      OnClick = miOpenInDissectDataClick
     end
     object MenuItem17: TMenuItem
       Caption = 'Generate structure from datastream and template'

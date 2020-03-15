@@ -48,6 +48,7 @@ type
     GSlabel: TLabel;
     MenuItem4: TMenuItem;
     copyBytesAndOpcodesAndComments: TMenuItem;
+    miOpenInDissectData: TMenuItem;
     miCopyOpcodesOnly: TMenuItem;
     miUndoLastEdit: TMenuItem;
     miFollowInHexview: TMenuItem;
@@ -340,6 +341,7 @@ type
     procedure MenuItem14Click(Sender: TObject);
     procedure DBVMFindoutwhataddressesthisinstructionaccessesClick(Sender: TObject);
     procedure MenuItem4Click(Sender: TObject);
+    procedure miOpenInDissectDataClick(Sender: TObject);
     procedure miUndoLastEditClick(Sender: TObject);
     procedure miFollowInHexviewClick(Sender: TObject);
     procedure miSetSpecificBreakpointClick(Sender: TObject);
@@ -1137,6 +1139,17 @@ procedure TMemoryBrowser.MenuItem4Click(Sender: TObject);
 begin
   if tbDebug.Visible=true then HideDebugToolbar;
   tbDebug.Tag:=-1;
+end;
+
+procedure TMemoryBrowser.miOpenInDissectDataClick(Sender: TObject);
+begin
+  //create it
+  with tfrmstructures2.create(application) do
+  begin
+    initialaddress:=hexview.SelectionStart;
+    show;
+  end;
+
 end;
 
 procedure TMemoryBrowser.miUndoLastEditClick(Sender: TObject);
