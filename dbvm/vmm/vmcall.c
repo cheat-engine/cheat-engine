@@ -1964,9 +1964,21 @@ int _handleVMCallInstruction(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, 
     break;
   }
 
+  case VMCALL_ENABLETSCHOOK:
+  {
+    vmx_enableTSCHook();
+    break;
+  }
+
   case VMCALL_DISABLETSCHOOK:
   {
-    gDisableTSC=1;
+    if (useSpeedhack==FALSE)
+    {
+      vmx_disableTSCHook();
+      vmregisters->rax=1;
+    }
+    else
+      vmregisters->rax=0;
     break;
   }
 

@@ -28,6 +28,7 @@ volatile unsigned char *MSRBitmap;
 volatile unsigned char *IOBitmap;
 
 int hasEPTsupport=0;
+int TSCHooked=0;
 
 extern void realmode_inthooks();
 extern void realmode_inthooks_end();
@@ -973,6 +974,35 @@ void vmx_removeMSRWriteExit(DWORD msrValue)
   }
 }
 
+
+void vmx_enableTSCHook()
+{
+  if ((readMSR(IA32_VMX_PROCBASED_CTLS_MSR)>>32) & RDTSC_EXITING)
+    vmwrite(vm_execution_controls_cpu, vmread(vm_execution_controls_cpu) | RDTSC_EXITING);
+
+  vmx_setMSRReadExit(IA32_TIME_STAMP_COUNTER);
+  vmx_setMSRWriteExit(IA32_TIME_STAMP_COUNTER);
+
+  vmx_setMSRWriteExit(IA32_TSC_ADJUST);
+
+  TSCHooked=1;
+}
+
+void vmx_disableTSCHook()
+{
+  if (useSpeedhack==0)
+  {
+    if ((readMSR(IA32_VMX_PROCBASED_CTLS_MSR)>>32) & RDTSC_EXITING)
+      vmwrite(vm_execution_controls_cpu, vmread(vm_execution_controls_cpu) & (QWORD)~(QWORD)RDTSC_EXITING);
+
+    vmx_removeMSRReadExit(IA32_TIME_STAMP_COUNTER);
+    vmx_removeMSRWriteExit(IA32_TIME_STAMP_COUNTER);
+    vmx_removeMSRWriteExit(IA32_TSC_ADJUST);
+
+    TSCHooked=0;
+  }
+}
+
 void setupVMX(pcpuinfo currentcpuinfo)
 {
 
@@ -1207,8 +1237,9 @@ void setupVMX(pcpuinfo currentcpuinfo)
 
 
 
+
   vmwrite(vm_exception_bitmap,(UINT64)0xffff); //exception bitmap (0xffff=0-15 0xffffffff=0-31)
-  vmwrite(vm_exception_bitmap,0); //(1<<1) | (1<<3) | (1<<14));
+ // vmwrite(vm_exception_bitmap,(1<<1) | (1<<3) | (1<<14));
 
 
   vmwrite(0x4006,(UINT64)0); //page fault error-code mask
@@ -1320,6 +1351,11 @@ void setupVMX(pcpuinfo currentcpuinfo)
       //vmwrite(vm_cr0_guest_host_mask,(UINT64)IA32_VMX_CR0_FIXED0 & 0xFFFFFFFF7FFFFFFEULL); //cr0 guest/host mask 1=guest owned
       vmwrite(vm_cr0_guest_host_mask,(UINT64)0xFFFFFFFF7FFFFFFEULL);
       vmwrite(vm_cr4_guest_host_mask,(UINT64)IA32_VMX_CR4_FIXED0); //same with cr4 but do guard the VMX bit
+
+
+      //needs less interrupt hooks
+      vmwrite(vm_exception_bitmap,(1<<1) | (1<<3));
+
     }
     else
     {
@@ -1328,17 +1364,6 @@ void setupVMX(pcpuinfo currentcpuinfo)
     }
   }
 
-#ifdef TSCHOOK
-  {
-    if ((readMSR(IA32_VMX_PROCBASED_CTLS_MSR)>>32) & RDTSC_EXITING)
-      vmwrite(vm_execution_controls_cpu, vmread(vm_execution_controls_cpu) | RDTSC_EXITING);
-
-    vmx_setMSRReadExit(IA32_TIME_STAMP_COUNTER);
-    vmx_setMSRWriteExit(IA32_TIME_STAMP_COUNTER);
-
-    vmx_setMSRWriteExit(IA32_TSC_ADJUST);
-  }
-#endif
 
 
 

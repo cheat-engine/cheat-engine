@@ -45,8 +45,6 @@ double speedhackSpeed=1.0f;
 QWORD speedhackInitialOffset=0;
 QWORD speedhackInitialTime=0;
 
-int gDisableTSC=0;
-
 
 //QWORD cpuidTime=6000; //todo: Make this changeable by the user after launch, or instead of using a TSCOffset just tell the next rdtsc calls to difference of 30 or less (focussing on the currentcpu, or just for 6000 actual ticks)
 //QWORD rdtscTime=6000;
@@ -3737,19 +3735,22 @@ int handleSingleStep(pcpuinfo currentcpuinfo)
 
 void speedhack_setspeed(double speed)
 {
-  QWORD currentTime=_rdtsc();
+  if (TSCHooked)
+  {
+    QWORD currentTime=_rdtsc();
 
-  QWORD initialoffset=(currentTime-speedhackInitialTime)*speedhackSpeed+speedhackInitialOffset;
-  speedhackInitialTime=currentTime;
+    QWORD initialoffset=(currentTime-speedhackInitialTime)*speedhackSpeed+speedhackInitialOffset;
+    speedhackInitialTime=currentTime;
 
-  if (initialoffset<lowestTSC)
-    initialoffset=lowestTSC+1000;
+    if (initialoffset<lowestTSC)
+      initialoffset=lowestTSC+1000;
 
-  lowestTSC=initialoffset;
-  speedhackInitialOffset=initialoffset;
-  speedhackSpeed=speed;
+    lowestTSC=initialoffset;
+    speedhackInitialOffset=initialoffset;
+    speedhackSpeed=speed;
 
-  useSpeedhack=1; //once used it's always on
+    useSpeedhack=1; //once used it's always on
+  }
 }
 
 
@@ -3759,10 +3760,6 @@ int handle_rdtsc(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
   double s;
   QWORD lTSC=lowestTSC;
   QWORD realtime;
-
-  if (gDisableTSC) //next time don't call this
-    vmwrite(vm_execution_controls_cpu, vmread(vm_execution_controls_cpu) & (QWORD)~(QWORD)RDTSC_EXITING);
-
 
 
   if (lTSC<currentcpuinfo->lowestTSC)
