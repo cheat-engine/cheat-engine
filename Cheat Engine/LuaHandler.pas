@@ -247,7 +247,7 @@ begin
       result:=LUA_ERRRUN;
       lua_pushstring(l, e.Message);
 
-      if (GetCurrentThreadId=MainThreadID) and (e.Message='Access Violation') and mainform.miEnableLCLDebug.checked then
+      if (GetCurrentThreadId=MainThreadID) and (e.Message='Access violation') and mainform.miEnableLCLDebug.checked then
       begin
         DebugLn('Lua Exception: '+e.Message);
         lazlogger.DumpExceptionBackTrace;
@@ -6374,6 +6374,12 @@ end;
 function lua_dbvm_disableTSCHook(L: PLua_State): integer; cdecl;
 begin
   lua_pushboolean(L, dbvm_disableTSCHook);
+  result:=1;
+end;
+
+function lua_dbvm_findCR3(L: PLua_State): integer; cdecl;
+begin
+  lua_pushinteger(L, dbvm_findCR3(processhandle));
   result:=1;
 end;
 
@@ -12540,6 +12546,9 @@ begin
 
     lua_register(L, 'dbvm_enableTSCHook', lua_dbvm_enableTSCHook);
     lua_register(L, 'dbvm_disableTSCHook', lua_dbvm_disableTSCHook);
+
+    lua_register(L, 'dbvm_findCR3', lua_dbvm_findCR3);
+
 
     lua_register(L, 'dbk_getPhysicalAddress', dbk_getPhysicalAddress);
     lua_register(L, 'dbk_writesIgnoreWriteProtection', dbk_writesIgnoreWriteProtection);

@@ -464,6 +464,8 @@ function dbvm_disableTSCHook: boolean;
 function dbvm_log_cr3values_start: boolean;
 function dbvm_log_cr3values_stop(log: pointer): boolean;
 
+function dbvm_findCR3(hProcess: THandle): QWORD;
+
 function dbvm_registerPlugin(pluginaddress: pointer; pluginsize: integer; plugintype: integer): integer;
 procedure dbvm_raisePMI;
 procedure dbvm_ultimap2_hideRangeUsage;
@@ -492,7 +494,8 @@ implementation
 
 uses DBK32functions, cefuncproc, PEInfoFunctions, NewKernelHandler, syncobjs,
   ProcessHandlerUnit, Globals, AvgLvlTree, maps, debuggertypedefinitions,
-  DebugHelper, frmBreakpointlistunit, math{$ifdef darwin},mactypes{$endif}, multicpuexecution;
+  DebugHelper, frmBreakpointlistunit, math{$ifdef darwin},mactypes{$endif},
+  multicpuexecution, CEDebugger;
 
 resourcestring
 rsInvalidInstruction = 'Invalid instruction';
@@ -1061,6 +1064,7 @@ var vmcallinfo: packed record
   nopagefault: dword;
 end;
 begin
+  OutputDebugString('dbvm_read_physical_memory');
   ZeroMemory(@vmcallinfo,sizeof(vmcallinfo));
   vmcallinfo.structsize:=sizeof(vmcallinfo);
   vmcallinfo.level2pass:=vmx_password2;
@@ -1909,6 +1913,196 @@ begin
   result:=vmcall(@vmcallinfo,vmx_password1)<>0;
 end;
 
+
+var
+  PIDToCR3Map: tmap;
+  dbvm_findCR3_CS: TCriticalsection;
+
+function dbvm_findCR3(hProcess: thandle): QWORD;
+{
+Finds a compatible CR3
+on systems with PID enabled there could be 2. a usermode and a system CR3
+Right now it doesn't care which one is found
+
+on fail, return 0
+}
+var
+  processheader: record
+    address: ptruint;
+    data: array[0..4095] of byte;
+  end;
+
+  teb: record
+    address: ptruint;
+    data: array[0..79] of byte;
+  end;
+
+  allocated: record
+    address: ptruint; //last resort
+    data: array[0..15] of byte;
+  end;
+
+  pid: dword;
+  r: qword;
+  ths: thandle;
+  me32: TModuleEntry32;
+  te32: TThreadEntry32;
+  x: ptruint;
+
+  th: THandle;
+  tbi: _THREAD_BASIC_INFORMATION;
+
+  cr3log: array [0..512] of qword;
+  i: integer;
+
+  temp: array [0..8191] of byte;
+begin
+  result:=0;
+  dbvm_findCR3_CS.enter;
+  try
+    if (hprocess=0) or (hprocess=ptruint(-1)) or (hprocess=ptruint(-2)) then exit;
+
+    pid:=0;
+    if assigned(NewKernelHandler.GetProcessId) then
+      pid:=GetProcessId(hProcess);
+
+    if pid=0 then exit; //please use a valid handle
+
+    if PIDToCR3Map=nil then
+      PIDToCR3Map:=TMap.Create(ituPtrSize,8);
+
+    if PIDToCR3Map.GetData(pid,r)
+      then exit(r);
+
+
+    processheader.address:=0;
+
+    //find the process base module
+    ths:=CreateToolhelp32Snapshot(TH32CS_SNAPMODULE or TH32CS_SNAPMODULE32, pid);
+    zeromemory(@me32,sizeof(me32));
+    me32.dwSize:=sizeof(me32);
+    if module32first(ths,me32) then
+      processheader.address:=ptruint(me32.modBaseAddr);
+
+    closehandle(ths);
+
+    //find the first thread
+
+    ths:=CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD, pid);
+    zeromemory(@te32,sizeof(te32));
+    te32.dwSize:=sizeof(te32);
+    if Thread32First(ths,te32) then
+    repeat
+      if te32.th32OwnerProcessID=pid then
+      begin
+        th:=OpenThread(ifthen(GetSystemType<=6,THREAD_QUERY_INFORMATION, THREAD_QUERY_LIMITED_INFORMATION), false, te32.th32ThreadID);
+
+        if NtQueryInformationThread(th, ThreadBasicInformation, @tbi, sizeof(tbi), @x)=0 then
+          teb.address:=qword(tbi.TebBaseAddress)
+        else
+          teb.address:=0;
+
+        closehandle(th);
+
+
+        break;
+      end;
+    until Thread32Next(ths,te32)=false;
+
+    for i:=0 to 15 do
+      allocated.data[i]:=random(255);
+
+    if (processheader.address=0) and (teb.address=0) then
+    begin
+      allocated.address:=ptruint(VirtualAllocEx(hprocess, nil,4096,MEM_COMMIT or MEM_RESERVE, PAGE_READWRITE));
+      if allocated.address=0 then exit; //give up
+    end;
+
+    zeromemory(@cr3log, 4096);
+
+    if dbvm_log_cr3values_start then
+    begin
+      if processheader.address<>0 then
+        if readProcessMemory(hprocess, pointer(processheader.address), @processheader.data, 4096,x)=false then
+          processheader.address:=0;
+
+      if teb.address<>0 then
+        if readProcessMemory(hprocess, pointer(teb.address), @teb.data, 80,x)=false then
+          teb.address:=0;
+
+      if (processheader.address=0) and (teb.address=0) and (allocated.address=0) then       //last attempt to save this operation
+        allocated.address:=ptruint(VirtualAllocEx(hprocess, nil,4096,MEM_COMMIT or MEM_RESERVE, PAGE_READWRITE));
+
+      if allocated.address<>0 then
+      begin
+        if WriteProcessMemory(hProcess, pointer(allocated.address), @allocated.data[0],80,x)=false then
+        begin
+          //fuuuuuck
+          VirtualFreeEx(hprocess, pointer(allocated.address),0,MEM_RELEASE);
+          allocated.address:=0;
+        end;
+      end;
+
+      if dbvm_log_cr3values_stop(@cr3log[0]) then
+      begin
+        //cleanup memory
+
+        if allocated.address<>0 then
+          VirtualFreeEx(hprocess, pointer(allocated.address),0,MEM_RELEASE);
+
+        //go through the list of CR3's and check which ones do not match
+        for i:=0 to 511 do
+        begin
+          if cr3log[i]<>0 then
+          begin
+            if processheader.address<>0 then
+            begin
+              if ReadProcessMemoryCR3(cr3log[i],pointer(processheader.address),@temp[0],4096,x) then
+              begin
+                if not CompareMem(@processheader.data[0], @temp[0], 4096) then
+                  continue;
+              end
+              else
+                continue;
+            end;
+
+            if teb.address<>0 then
+            begin
+              if ReadProcessMemoryCR3(cr3log[i],pointer(teb.address),@temp[0],80,x) then
+              begin
+                if not CompareMem(@teb.data[0], @temp[0],80) then
+                  continue;
+              end
+              else
+                continue;
+            end;
+
+            if allocated.address<>0 then
+            begin
+              if ReadProcessMemoryCR3(cr3log[i],pointer(allocated.address),@temp[0],16,x) then
+              begin
+                if not CompareMem(@allocated.data[0], @temp[0],16) then
+                  continue;
+              end
+              else
+                continue;
+            end;
+
+            //still here so valid
+            PIDToCR3Map.add(pid, cr3log[i]);
+            exit(cr3log[i]);
+          end
+          else
+            break;
+        end;
+      end;
+    end;
+
+  finally
+    dbvm_findCR3_CS.leave;
+  end;
+end;
+
 function dbvm_registerPlugin(pluginaddress: pointer; pluginsize: integer; plugintype: integer): integer;
 {
 registers a plugin with DBVM.  (The contents of pluginaddress to size are copied
@@ -2538,4 +2732,6 @@ initialization
   {$endif}
   cloakedregionscs:=TCriticalSection.Create;
   breakpointscs:=TCriticalSection.Create;
+
+  dbvm_findCR3_CS:=TCriticalSection.create;
 end.

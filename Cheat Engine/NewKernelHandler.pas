@@ -773,6 +773,7 @@ var
   SetProcessDEPPolicy: function(dwFlags: DWORD): BOOL; stdcall;
   GetProcessDEPPolicy: function(h: HANDLE; dwFlags: PDWORD; permanent: PBOOL):BOOL; stdcall;
 
+  GetProcessId: function(h: HANDLE): PTRUINT; stdcall;
 
 
 
@@ -913,7 +914,6 @@ var
 
   blocksize: integer;
 begin
-
   cr3:=cr3 and MAXPHYADDRMASKPB;
 
   result:=false;
@@ -934,6 +934,7 @@ begin
     inc(currentAddress, x);
     lpBuffer:=pointer(qword(lpbuffer)+x);
     dec(nsize,x);
+
   end;
 
   result:=true;
@@ -1404,8 +1405,7 @@ begin
     isDriverLoaded:=@dbk32functions.isDriverLoaded;
     LaunchDBVM:=@dbk32functions.LaunchDBVM;
 
-    ReadPhysicalMemory:=@dbk32functions.ReadPhysicalMemory;
-    WritePhysicalMemory:=@dbk32functions.WritePhysicalMemory;
+
 
     CreateRemoteAPC:=@dbk32functions.CreateRemoteAPC;
 //    SetGlobalDebugState:=@SetGlobalDebugState;
@@ -1910,8 +1910,7 @@ initialization
   SetProcessDEPPolicy:=GetProcAddress(WindowsKernel, 'SetProcessDEPPolicy');
   GetProcessDEPPolicy:=GetProcAddress(WindowsKernel, 'GetProcessDEPPolicy');
 
-
-
+  GetProcessId:=GetProcAddress(WindowsKernel, 'GetProcessId');
 
   psa:=loadlibrary('Psapi.dll');
   EnumDeviceDrivers:=GetProcAddress(psa,'EnumDeviceDrivers');
@@ -1922,6 +1921,8 @@ initialization
   ChangeWindowMessageFilter:=GetProcAddress(u32,'ChangeWindowMessageFilter');
 
 
+  ReadPhysicalMemory:=@dbk32functions.ReadPhysicalMemory;
+  WritePhysicalMemory:=@dbk32functions.WritePhysicalMemory;
 
 
 

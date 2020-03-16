@@ -1088,6 +1088,11 @@ var cc: dword;
     physicaladdress: int64 absolute input;
     x: dword;
     l: THandleListEntry;
+
+    b: byte;
+
+    CR3: qword;
+    pa: qword;
 begin
   result:=false;
   if hdevice<>INVALID_HANDLE_VALUE then
@@ -1109,6 +1114,19 @@ begin
     finally
       handlemapmrew.Endread;
     end;
+  end;
+
+  if (not result) and (isRunningDBVM) then
+  begin
+    cr3:=dbvm_findCR3(hProcess);
+
+    if cr3<>0 then
+    begin
+      result:=VirtualToPhysicalCR3(cr3,qword(lpBaseAddress), pa);
+      if result then
+        address:=pa;
+    end;
+
   end;
 end;
 
@@ -1363,12 +1381,16 @@ var ao: array [0..600] of byte;
     mempointer:ptrUint;
     bufpointer:ptrUint;
 begin
+  OutputDebugString('dbk32.ReadPhysicalMemory');
   //processhandle is just there for compatibility in case I want to quickly wrap it over read/writeprocessmemory
   if vmx_loaded and (dbvm_version>=$ce00000a) then
   begin
+    OutputDebugString(format('dbk32.ReadPhysicalMemory calling dbvm_read_physical_memory(%x) %d bytes',[qword(lpBaseAddress), nsize]));
     numberofbytesread:=dbvm_read_physical_memory(qword(lpBaseAddress), lpBuffer, nSize);
     exit(numberofbytesread=nSize);
   end;
+
+  OutputDebugString('Using normal dbk method');
 
   result:=false;
   numberofbytesread:=0;
