@@ -65,7 +65,7 @@ void CPipeServer::WriteString1(const char* value) //for 1 byte length strings
 		WriteByte(n);
 		Write((PVOID)value, n);
 
-		OutputDebugStringA(value);
+		//OutputDebugStringA(value);
 	}
 	else
 	{
@@ -81,7 +81,7 @@ void CPipeServer::WriteString(const char* value)
 		WriteWord(n);
 		Write((PVOID)value, n);
 
-		OutputDebugStringA(value);
+		//OutputDebugStringA(value);
 	}
 	else
 	{
@@ -163,7 +163,7 @@ void CPipeServer::InitMono()
 		std::stringstream x;
 		x.clear();
 		x << "Mono dll found at " << std::hex << hMono << "\n";
-		OutputDebugStringA(x.str().c_str());
+		//OutputDebugStringA(x.str().c_str());
 
 		if (attached == FALSE)
 		{
@@ -418,7 +418,7 @@ void CPipeServer::InitMono()
 				mono_assembly_open = (MONO_ASSEMBLY_OPEN)GetProcAddress(hMono, "mono_assembly_open");
 				mono_image_open = (MONO_IMAGE_OPEN)GetProcAddress(hMono, "mono_image_open");
 
-
+				/*
 				if (mono_get_root_domain == NULL) OutputDebugStringA("mono_get_root_domain not assigned");
 				if (mono_thread_attach == NULL) OutputDebugStringA("mono_thread_attach not assigned");
 				if (mono_object_get_class == NULL) OutputDebugStringA("mono_object_get_class not assigned");
@@ -428,15 +428,15 @@ void CPipeServer::InitMono()
 				if (mono_assembly_foreach == NULL) OutputDebugStringA("mono_assembly_foreach not assigned");
 				if (mono_assembly_get_image == NULL) OutputDebugStringA("mono_assembly_get_image not assigned");
 				if (mono_image_get_name == NULL) OutputDebugStringA("mono_image_get_name not assigned");
-
+				*/
 
 				mono_selfthread = mono_thread_attach(mono_get_root_domain());
 			}
 			attached = TRUE;
 			
 		}
-		else
-			OutputDebugStringA("Already attached");
+		//else
+		//	OutputDebugStringA("Already attached");
 	}
 }
 
@@ -464,8 +464,8 @@ void CPipeServer::Object_Init()
 	catch (char *e)
 	{
 		WriteByte(0);
-		OutputDebugStringA("Error initializing object:\n");
-		OutputDebugStringA(e);
+		//OutputDebugStringA("Error initializing object:\n");
+		//OutputDebugStringA(e);
 	}
 	
 
@@ -511,8 +511,8 @@ void CPipeServer::Object_GetClass()
 	}
 	catch (char *e)
 	{
-		OutputDebugStringA("Error getting the class:\n");
-		OutputDebugStringA(e);
+		//OutputDebugStringA("Error getting the class:\n");
+		//OutputDebugStringA(e);
 		WriteQword(0); //failure. Invalid object
 	}
 
@@ -842,8 +842,8 @@ void CPipeServer::CompileMethod()
 				{
 					result = mono_compile_method(method);
 				}
-				else
-					OutputDebugString(L"This is a generic class which is currently not implemented. Skipping");
+				//else
+				//	OutputDebugString(L"This is a generic class which is currently not implemented. Skipping");
 			}
 		}
 		catch (...)
@@ -1663,7 +1663,7 @@ void CPipeServer::GetFullTypeName(void)
 	}
 	catch (...)
 	{
-		OutputDebugStringA("GetFullTypeName exception\n");
+		//OutputDebugStringA("GetFullTypeName exception\n");
 		WriteWord(0);		
 	}
 	//ExpectingAccessViolations = FALSE;
@@ -1866,8 +1866,8 @@ void CPipeServer::Start(void)
 		catch (char *e)
 		{
 			//Pipe error, or something else that wasn't caught. Exit the connection and start over	
-			OutputDebugStringA("Pipe error:\n");
-			OutputDebugStringA(e);
+			//OutputDebugStringA("Pipe error:\n");
+			//OutputDebugStringA(e);
 
 			if (attached)
 			{
@@ -1886,7 +1886,7 @@ void CPipeServer::Start(void)
 		}
 		catch (...)
 		{
-			OutputDebugStringA("Unexpected pipe error\n");
+			//OutputDebugStringA("Unexpected pipe error\n");
 			if (attached)
 			{
 				try

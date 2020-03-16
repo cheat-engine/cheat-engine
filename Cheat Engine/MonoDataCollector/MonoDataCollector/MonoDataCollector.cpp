@@ -63,7 +63,7 @@ DWORD WINAPI DataCollectorEntry(LPVOID lpThreadParameter)
 		int r=ZwSetInformationThread(GetCurrentThread(), ThreadHideFromDebugger, NULL, 0);
 		if (r!=0)
 		{
-			OutputDebugStringA("No debug safety");
+			//OutputDebugStringA("No debug safety");
 		}
 	}
 #endif
