@@ -1956,6 +1956,10 @@ var
 
   temp: array [0..8191] of byte;
 begin
+  processheader.address:=0;
+  teb.address:=0;
+  allocated.address:=0;
+
   result:=0;
   dbvm_findCR3_CS.enter;
   try
@@ -1971,12 +1975,7 @@ begin
       PIDToCR3Map:=TMap.Create(ituPtrSize,8);
 
     if PIDToCR3Map.GetData(pid,r) then
-    begin
-      OutputDebugString('In list');
       exit(r);
-    end
-    else
-      OutputDebugString('Not in list');
 
 
     processheader.address:=0;
@@ -2039,6 +2038,7 @@ begin
 
       if allocated.address<>0 then
       begin
+
         if WriteProcessMemory(hProcess, pointer(allocated.address), @allocated.data[0],80,x)=false then
         begin
           //fuuuuuck
@@ -2093,7 +2093,8 @@ begin
             end;
 
             //still here so valid
-            PIDToCR3Map.add(pid, cr3log[i]);
+            r:=cr3log[i];
+            PIDToCR3Map.add(pid, r);
             exit(cr3log[i]);
           end
           else
