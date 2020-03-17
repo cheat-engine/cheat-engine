@@ -1064,7 +1064,6 @@ var vmcallinfo: packed record
   nopagefault: dword;
 end;
 begin
-  OutputDebugString('dbvm_read_physical_memory');
   ZeroMemory(@vmcallinfo,sizeof(vmcallinfo));
   vmcallinfo.structsize:=sizeof(vmcallinfo);
   vmcallinfo.level2pass:=vmx_password2;
@@ -1942,7 +1941,7 @@ var
     data: array[0..15] of byte;
   end;
 
-  pid: dword;
+  pid: qword;
   r: qword;
   ths: thandle;
   me32: TModuleEntry32;
@@ -1971,8 +1970,13 @@ begin
     if PIDToCR3Map=nil then
       PIDToCR3Map:=TMap.Create(ituPtrSize,8);
 
-    if PIDToCR3Map.GetData(pid,r)
-      then exit(r);
+    if PIDToCR3Map.GetData(pid,r) then
+    begin
+      OutputDebugString('In list');
+      exit(r);
+    end
+    else
+      OutputDebugString('Not in list');
 
 
     processheader.address:=0;

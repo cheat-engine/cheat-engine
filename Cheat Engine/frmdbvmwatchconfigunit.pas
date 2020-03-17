@@ -209,7 +209,6 @@ begin
   faddress:=a;
   lblVirtualAddress.caption:=format('Virtual Address=%.8x',[a]);
 
-
   if ReadProcessMemory(processhandle, pointer(a),@temp,1,x) then
   begin
     if GetPhysicalAddress(processhandle, pointer(a), fPhysicalAddress) then

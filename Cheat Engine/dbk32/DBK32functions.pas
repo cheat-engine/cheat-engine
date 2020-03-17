@@ -913,6 +913,18 @@ begin
       handlemapmrew.Endread;
     end;
   end;
+
+  if (not result) and (isRunningDBVM) then
+  begin
+    _cr3:=dbvm_findCR3(hProcess);
+
+    if _cr3<>0 then
+    begin
+      CR3:=_cr3;
+      result:=true;
+    end;
+
+  end;
 end;
 
 function GetCR3FromPID(pid: system.QWORD;var CR3:system.QWORD):BOOL; stdcall;
@@ -1381,11 +1393,9 @@ var ao: array [0..600] of byte;
     mempointer:ptrUint;
     bufpointer:ptrUint;
 begin
-  OutputDebugString('dbk32.ReadPhysicalMemory');
   //processhandle is just there for compatibility in case I want to quickly wrap it over read/writeprocessmemory
   if vmx_loaded and (dbvm_version>=$ce00000a) then
   begin
-    OutputDebugString(format('dbk32.ReadPhysicalMemory calling dbvm_read_physical_memory(%x) %d bytes',[qword(lpBaseAddress), nsize]));
     numberofbytesread:=dbvm_read_physical_memory(qword(lpBaseAddress), lpBuffer, nSize);
     exit(numberofbytesread=nSize);
   end;
@@ -2462,6 +2472,7 @@ begin
     if deviceiocontrol(hdevice,cc,@input,sizeof(input),@output,sizeof(output),cc,nil) then
       result:=output.mdl;
   end;
+
 end;
 
 procedure UnlockMemory(MDLAddress: QWORD);

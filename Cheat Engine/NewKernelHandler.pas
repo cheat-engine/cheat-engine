@@ -1105,7 +1105,9 @@ var
   signed: BOOL;
   r: string;
 begin
-  result:=false;
+  result:=isRunningDBVM;
+  if result then exit;
+
   r:=reason;
   if r='' then r:=rsToUseThisFunctionYouWillNeedToRunDBVM;
 
@@ -1358,7 +1360,7 @@ begin
     GetThreadsProcessOffset:=@dbk32functions.GetThreadsProcessOffset; //GetProcAddress(DarkByteKernel,'GetThreadsProcessOffset');
     GetThreadListEntryOffset:=@dbk32functions.GetThreadListEntryOffset; //GetProcAddress(DarkByteKernel,'GetThreadListEntryOffset');
     GetDebugportOffset:=@dbk32functions.GetDebugportOffset; //GetProcAddresS(DarkByteKernel,'GetDebugportOffset');
-    GetPhysicalAddress:=@dbk32functions.GetPhysicalAddress; //GetProcAddresS(DarkByteKernel,'GetPhysicalAddress');
+
     GetCR4:=@dbk32functions.GetCR4; //GetProcAddress(DarkByteKernel,'GetCR4');
     GetCR3:=@dbk32functions.GetCR3;
 //    SetCR3:=@dbk32functions.SetCR3;
@@ -1378,7 +1380,7 @@ begin
     GetProcessNameFromID:=@dbk32functions.GetProcessNameFromID;
     GetProcessNameFromPEProcess:=@dbk32functions.GetProcessNameFromPEProcess;
 
-    IsValidHandle:=@dbk32functions.IsValidHandle;
+
 
 
     GetIDTs:=@dbk32functions.GetIDTs;
@@ -1402,7 +1404,6 @@ begin
     GetSDTEntry:= @dbk32functions.GetSDTEntry;
     GetSSDTEntry:=@dbk32functions.GetSSDTEntry;
 
-    isDriverLoaded:=@dbk32functions.isDriverLoaded;
     LaunchDBVM:=@dbk32functions.LaunchDBVM;
 
 
@@ -1923,8 +1924,9 @@ initialization
 
   ReadPhysicalMemory:=@dbk32functions.ReadPhysicalMemory;
   WritePhysicalMemory:=@dbk32functions.WritePhysicalMemory;
-
-
+  GetPhysicalAddress:=@dbk32functions.GetPhysicalAddress;
+  IsValidHandle:=@dbk32functions.IsValidHandle;
+  isDriverLoaded:=@dbk32functions.isDriverLoaded;
 
 
   {$ifdef windows}
