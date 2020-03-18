@@ -2119,8 +2119,7 @@ end;
 function TMainForm.getScanStart: ptruint;
 begin
   try
-
-    Result := StrToQWordEx('$' + FromAddress.Text);
+    Result := symhandler.getAddressFromName(FromAddress.Text);
   except
     raise Exception.Create(Format(rsInvalidStartAddress, [FromAddress.Text]));
   end;
@@ -2134,7 +2133,7 @@ end;
 function TMainForm.getScanStop: ptruint;
 begin
   try
-    Result := StrToQWordEx('$' + ToAddress.Text);
+    Result := symhandler.getAddressFromName('$' + ToAddress.Text);
   except
     raise Exception.Create(Format(rsInvalidStopAddress, [ToAddress.Text]));
   end;

@@ -595,19 +595,11 @@ type
     //notifywindow: thandle;
    // notifymessage: integer;
 
-    currentVariableType: TVariableType;
-    currentCustomType: TCustomType;
-
     found: uint64;
-
-    //first scan init variables
-    startaddress: ptruint; //start for the whole scan
-    stopaddress: ptruint; //stop of the whole scan
 
     //fastscan options (only set by firstscan)
     //Alignment: integer;
     fastscanalignment: integer;
-    fastscanmethod: TFastscanmethod;
     fastscandigitcount: integer;
 
     //string stuff:
@@ -633,20 +625,39 @@ type
     savedresults: tstringlist;
     fonlyOne: boolean;
     fIsUnique: boolean;
-    fisHexadecimal: boolean;
+
 
     ffloatscanWithoutExponents: boolean;
     fInverseScan: boolean;
     fGUIScanner: boolean;
     fbusyformIsModal: boolean;
 
+    //scan params
+    fScanOption: TScanoption;
+    fVariableType: TVariableType;
+    froundingtype: TRoundingType;
+    fscanvalue1: string;
+    fscanvalue2: string;
+    fstartaddress: ptruint;
+    fstopaddress: ptruint;
+    fhexadecimal: boolean;
+    fbinaryStringAsDecimal: boolean;
+    funicode: boolean;
+    fcasesensitive: boolean;
+    ffastscanmethod: TFastScanMethod;
+    ffastscanparameter: string;
+    fcustomtype: TCustomType;
 
-
+    //next scan params
+    fpercentage: boolean;
+    fcompareToSavedScan: boolean;
+    fsavedscanname: string;
 
 
     procedure DeleteScanfolder;
     procedure createScanfolder;
     function DeleteFolder(dir: string) : boolean;
+    procedure setVariableType(t: TVariableType);
   protected
     fOnScanDone: TNotifyEvent;
     fOnInitialScanDone: TNotifyEvent;
@@ -680,8 +691,10 @@ type
     function GetScanFolder: string;
     procedure TerminateScan(forceTermination: boolean);
     procedure newscan; //will clean up the memory and files
-    procedure firstscan(scanOption: TScanOption; VariableType: TVariableType; roundingtype: TRoundingType; scanvalue1, scanvalue2: string; startaddress,stopaddress: ptruint; hexadecimal,binaryStringAsDecimal,unicode,casesensitive: boolean; fastscanmethod: TFastScanMethod=fsmNotAligned; fastscanparameter: string=''; customtype: TCustomType=nil);
-    procedure NextScan(scanOption: TScanOption; roundingtype: TRoundingType; scanvalue1, scanvalue2: string; hexadecimal,binaryStringAsDecimal, unicode, casesensitive,percentage,compareToSavedScan: boolean; savedscanname: string); //next scan, determine what kind of scan and give to firstnextscan/nextnextscan
+    procedure firstscan(_scanOption: TScanOption; _VariableType: TVariableType; _roundingtype: TRoundingType; _scanvalue1, _scanvalue2: string; _startaddress,_stopaddress: ptruint; _hexadecimal,_binaryStringAsDecimal,_unicode,_casesensitive: boolean; _fastscanmethod: TFastScanMethod=fsmNotAligned; _fastscanparameter: string=''; _customtype: TCustomType=nil); overload;
+    procedure NextScan(_scanOption: TScanOption; _roundingtype: TRoundingType; _scanvalue1, _scanvalue2: string; _hexadecimal,_binaryStringAsDecimal, _unicode, _casesensitive, _percentage, _compareToSavedScan: boolean; _savedscanname: string); overload; //next scan, determine what kind of scan and give to firstnextscan/nextnextscan
+    procedure FirstScan; overload;
+    procedure NextScan; overload;
     function waittilldone(timeout: dword=INFINITE): boolean;
     function waittillreallydone(timeout: dword=INFINITE): boolean;
 
@@ -705,14 +718,13 @@ type
     property inverseScan: boolean read fInverseScan write fInverseScan;
     property floatscanWithoutExponents: boolean read ffloatscanWithoutExponents write ffloatscanWithoutExponents;
     property OnlyOne: boolean read fOnlyOne write fOnlyOne;
-    property VarType: TVariableType read currentVariableType;
-    property CustomType: TCustomType read currentCustomType;
+    property VarType: TVariableType read fVariableType write fVariableType;
     property codePage: boolean read fCodePage write fCodePage;
     property LuaFormula: boolean read fLuaFormula write fLuaFormula;
     property isUnique: boolean read fIsUnique write fIsUnique; //for AOB scans only
     property lastScanWasRegionScan: boolean read getLastScanWasRegionScan;
     property isUnicode: boolean read stringUnicode;
-    property isHexadecimal: boolean read fisHexadecimal; //gui
+    property isHexadecimal: boolean read fHexadecimal; //gui
     property LastScanValue: string read fLastScanValue;
     property LastScanType: TScanType read FLastScanType;
     property ScanresultFolder: string read fScanResultFolder; //read only, it's configured during creation
@@ -720,6 +732,32 @@ type
     property OnScanDone: TNotifyEvent read fOnScanDone write fOnScanDone;
     property OnInitialScanDone: TNotifyEvent read fOnInitialScanDone write fOnInitialScanDone;
     property OnGuiUpdate: TMemscanGuiUpdateRoutine read fOnGuiUpdate write fOnGuiUpdate;
+
+    //scan properties
+    property ScanOption: TScanoption read fScanOption write fScanOption;
+    property VariableType: TVariableType read fVariableType write setVariableType;
+    property Roundingtype: TRoundingType read froundingtype write froundingtype;
+    property Scanvalue: string read fscanvalue1 write fscanvalue1;
+    property Scanvalue1: string read fscanvalue1 write fscanvalue1;
+    property Scanvalue2: string read fscanvalue2 write fscanvalue2;
+    property Startaddress: ptruint read fstartaddress write fstartaddress;
+    property Stopaddress: ptruint read fstopaddress write fstopaddress;
+    property Hexadecimal: boolean read fhexadecimal write fhexadecimal;
+    property BinaryStringAsDecimal: boolean read fbinaryStringAsDecimal write fbinaryStringAsDecimal;
+    property Unicode: boolean read funicode write funicode;
+    property UTF16: boolean read funicode write funicode;
+    property Casesensitive: boolean read fcasesensitive write fcasesensitive;
+    property Fastscanmethod: TFastScanMethod read ffastscanmethod write ffastscanmethod;
+    property Fastscanparameter: string read ffastscanparameter write ffastscanparameter;
+    property Customtype: TCustomType read fcustomtype write fcustomtype;
+
+    //next scan specific:
+    property Percentage: boolean read fPercentage write fPercentage;
+    property CompareToSavedScan: boolean read fcompareToSavedScan write fcompareToSavedScan;
+    property SavedScanName: string read fsavedscanname write fsavedscanname;
+
+
+//    property percentage
   end;
 
 
@@ -7433,7 +7471,7 @@ end;
 function TMemscan.Getbinarysize: int64;
 var i: integer;
 begin
-  case self.currentVariableType of
+  case fVariableType of
     vtByte:      result:=8;
     vtWord:      result:=16;
     vtDWord:     result:=32;
@@ -7457,7 +7495,7 @@ begin
     vtBinary:    result:=binaryLength;
     vtByteArray: result:=arrayLength*8;
     {$ifdef customtypeimplemented}
-    vtCustom:    result:=currentCustomType.bytesize*8;
+    vtCustom:    result:=customtype.bytesize*8;
     {$ENDIF}
     else result:=8;
   end;
@@ -7496,150 +7534,196 @@ begin
   createscanfolder;
 
   fnextscanCount:=0;
+
+  //scan params
+  fScanOption:=soExactValue;
+  fpercentage:=false;
+  fcompareToSavedScan:=false;
+  fsavedscanname:='';
+
 end;
 
-procedure TMemscan.NextScan(scanOption: TScanOption; roundingtype: TRoundingType; scanvalue1, scanvalue2: string; hexadecimal,binaryStringAsDecimal, unicode, casesensitive,percentage,compareToSavedScan: boolean; savedscanname: string);
+procedure TMemscan.NextScan(_scanOption: TScanOption; _roundingtype: TRoundingType; _scanvalue1, _scanvalue2: string; _hexadecimal,_binaryStringAsDecimal, _unicode, _casesensitive,_percentage,_compareToSavedScan: boolean; _savedscanname: string);
+
+begin
+  self.Hexadecimal:=_hexadecimal;
+  self.scanOption:=_scanOption;
+  self.roundingtype:=_roundingtype;
+  self.Scanvalue1:=_scanvalue1;
+  self.ScanValue2:=_scanvalue2;
+  self.Hexadecimal:=_hexadecimal;
+  self.BinaryStringAsDecimal:=_binaryStringAsDecimal;
+  self.unicode:=_unicode;
+  self.Casesensitive:=_casesensitive;
+  self.Percentage:=_percentage;
+  self.compareToSavedScan:=_compareToSavedScan;
+  self.savedScanName:=savedscanname;
+  nextscan;
+end;
+
+procedure TMemscan.NextScan;
 var
   {$ifdef windows}
   frmBusy: TfrmBusy;
   {$endif}
   r: TModalResult;
 begin
-  fisHexadecimal:=hexadecimal;
-
   {$IFNDEF jni}
-  if attachedFoundlist<>nil then
-    TFoundList(Attachedfoundlist).Deinitialize;
-  {$ENDIF}
+   if attachedFoundlist<>nil then
+     TFoundList(Attachedfoundlist).Deinitialize;
+   {$ENDIF}
 
 
-  inc(fnextscanCount);
+   inc(fnextscanCount);
 
 
-  if scanController<>nil then
-  begin
-    {$ifdef windows}
+   if scanController<>nil then
+   begin
+     {$ifdef windows}
 
-    if GUIScanner and (WaitForSingleObject(scancontroller.handle, 500)<>WAIT_OBJECT_0) then
-    begin
-      frmBusy:=TfrmBusy.create(nil);
-      frmBusy.WaitForHandle:=scancontroller.handle;
-      frmBusy.memscan:=self;
-      frmBusy.Reason:=postScanState;
+     if GUIScanner and (WaitForSingleObject(scancontroller.handle, 500)<>WAIT_OBJECT_0) then
+     begin
+       frmBusy:=TfrmBusy.create(nil);
+       frmBusy.WaitForHandle:=scancontroller.handle;
+       frmBusy.memscan:=self;
+       frmBusy.Reason:=postScanState;
 
-      if busyformIsModal then
-        r:=frmBusy.Showmodal
-      else
-      begin
-        frmBusy.FormStyle:=fsStayOnTop;
-        frmBusy.Show;
+       if busyformIsModal then
+         r:=frmBusy.Showmodal
+       else
+       begin
+         frmBusy.FormStyle:=fsStayOnTop;
+         frmBusy.Show;
 
-        while frmbusy.visible do
-        begin
-          Application.ProcessMessages;
-          CheckSynchronize(10);
-        end;
-      end;
+         while frmbusy.visible do
+         begin
+           Application.ProcessMessages;
+           CheckSynchronize(10);
+         end;
+       end;
 
-      frmBusy.free;
-    end;
+       frmBusy.free;
+     end;
 
-    {$endif}
+     {$endif}
 
-    scancontroller.WaitFor; //could be it's still saving the results of the previous scan
-    freeandnil(scanController);
-  end;
+     scancontroller.WaitFor; //could be it's still saving the results of the previous scan
+     freeandnil(scanController);
+   end;
 
-  {$IFNDEF LOWMEMORYUSAGE}
-  if SaveFirstScanThread<>nil then
-  begin
-    {$ifdef windows}
-    if GUIScanner and (WaitForSingleObject(SaveFirstScanThread.handle, 500)<>WAIT_OBJECT_0) then
-    begin
-      postscanstate:=psSavingFirstScanResults2;
-      frmBusy:=TfrmBusy.create(nil);
-      frmBusy.WaitForHandle:=SaveFirstScanThread.handle;
-      frmBusy.memscan:=self;
-      frmBusy.Reason:=postScanState;
+   {$IFNDEF LOWMEMORYUSAGE}
+   if SaveFirstScanThread<>nil then
+   begin
+     {$ifdef windows}
+     if GUIScanner and (WaitForSingleObject(SaveFirstScanThread.handle, 500)<>WAIT_OBJECT_0) then
+     begin
+       postscanstate:=psSavingFirstScanResults2;
+       frmBusy:=TfrmBusy.create(nil);
+       frmBusy.WaitForHandle:=SaveFirstScanThread.handle;
+       frmBusy.memscan:=self;
+       frmBusy.Reason:=postScanState;
 
-      if busyformIsModal then
-        r:=frmBusy.Showmodal
-      else
-      begin
-        frmBusy.FormStyle:=fsStayOnTop;
-        frmBusy.Show;
+       if busyformIsModal then
+         r:=frmBusy.Showmodal
+       else
+       begin
+         frmBusy.FormStyle:=fsStayOnTop;
+         frmBusy.Show;
 
-        while frmbusy.visible do
-        begin
-          Application.ProcessMessages;
-          CheckSynchronize(10);
-        end;
-      end;
+         while frmbusy.visible do
+         begin
+           Application.ProcessMessages;
+           CheckSynchronize(10);
+         end;
+       end;
 
-      frmBusy.free;
-    end;
-    {$endif}
+       frmBusy.free;
+     end;
+     {$endif}
 
-    SaveFirstScanThread.WaitFor; //wait till it's done
-    freeandnil(SaveFirstScanThread);
-  end;
-  {$ENDIF}
+     SaveFirstScanThread.WaitFor; //wait till it's done
+     freeandnil(SaveFirstScanThread);
+   end;
+   {$ENDIF}
 
-  scanController:=TscanController.Create(true);
-  scanController.OwningMemScan:=self;
-  scanController.scantype:=stNextScan;
-  scanController.scanOption:=scanOption;
+   scanController:=TscanController.Create(true);
+   scanController.OwningMemScan:=self;
+   scanController.scantype:=stNextScan;
+   scanController.scanOption:=scanOption;
 
-  scanController.compareToSavedScan:=compareToSavedScan;
-  scanController.savedscanname:=savedscanname;
-  scanController.variableType:=CurrentVariableType;
-  scancontroller.customType:=customtype;
+   scanController.compareToSavedScan:=compareToSavedScan;
+   scanController.savedscanname:=savedscanname;
+   scanController.variableType:=fVariableType;
+   scancontroller.customType:=customtype;
 
 
-  scanController.roundingtype:=roundingtype;
+   scanController.roundingtype:=roundingtype;
 
-  scanController.fastscanalignment:=fastscanalignment;
-  scanController.fastscanmethod:=fastscanmethod;
-  scancontroller.fastscandigitcount:=fastscandigitcount;
+   scanController.fastscanalignment:=fastscanalignment;
+   scanController.fastscanmethod:=fastscanmethod;
+   scancontroller.fastscandigitcount:=fastscandigitcount;
 
-  if codepage then
-  begin
-    scanvalue1:=UTF8ToWinCP(scanvalue1);
-    scanValue2:=UTF8ToWinCP(scanvalue1);
-  end;
+   if codepage then
+   begin
+     scanvalue1:=UTF8ToWinCP(scanvalue1);
+     scanValue2:=UTF8ToWinCP(scanvalue1);
+   end;
 
-  scanController.scanValue1:=scanvalue1; //usual scanvalue
-  scanController.scanValue2:=scanValue2; //2nd value for between scan
-  scanController.startaddress:=self.startaddress;
-  scanController.stopaddress:=self.stopaddress;
+   scanController.scanValue1:=scanvalue1; //usual scanvalue
+   scanController.scanValue2:=scanValue2; //2nd value for between scan
+   scanController.startaddress:=self.startaddress;
+   scanController.stopaddress:=self.stopaddress;
 
-  scancontroller.hexadecimal:=hexadecimal;
-  scancontroller.binaryStringAsDecimal:=binaryStringAsDecimal;
-  scancontroller.unicode:=unicode;
-  scancontroller.casesensitive:=casesensitive;
-  scancontroller.floatscanWithoutExponents:=floatscanWithoutExponents;
-  scancontroller.inverseScan:=inverseScan;
-  scancontroller.percentage:=percentage;
-  scancontroller.luaformula:=fLuaFormula;
+   scancontroller.hexadecimal:=hexadecimal;
+   scancontroller.binaryStringAsDecimal:=binaryStringAsDecimal;
+   scancontroller.unicode:=unicode;
+   scancontroller.casesensitive:=casesensitive;
+   scancontroller.floatscanWithoutExponents:=floatscanWithoutExponents;
+   scancontroller.inverseScan:=inverseScan;
+   scancontroller.percentage:=percentage;
+   scancontroller.luaformula:=fLuaFormula;
 
-  fLastscantype:=stNextScan;
-  fLastScanValue:=scanvalue1;
+   fLastscantype:=stNextScan;
+   fLastScanValue:=scanvalue1;
 
-  scanController.start;
+   scanController.start;
 
 end;
 
-procedure TMemscan.firstscan(scanOption: TScanOption; VariableType: TVariableType; roundingtype: TRoundingType; scanvalue1, scanvalue2: string; startaddress,stopaddress: ptruint; hexadecimal,binaryStringAsDecimal,unicode,casesensitive: boolean; fastscanmethod: TFastScanMethod=fsmNotAligned; fastscanparameter: string=''; customtype: TCustomType=nil);
-{
-Spawn the controller thread and fill it with the required data
-Popup the wait window, or not ?
-}
+procedure TMemscan.firstscan(_scanOption: TScanOption; _VariableType: TVariableType; _roundingtype: TRoundingType;
+  _scanvalue1, _scanvalue2: string; _startaddress,_stopaddress: ptruint; _hexadecimal,_binaryStringAsDecimal,_unicode,_casesensitive: boolean;
+  _fastscanmethod: TFastScanMethod=fsmNotAligned; _fastscanparameter: string=''; _customtype: TCustomType=nil);
 begin
-  fisHexadecimal:=hexadecimal;
+  Hexadecimal:=_hexadecimal;
 
+  self.fastscanparameter:=_fastscanparameter;
+  self.fastscanmethod:=_fastscanmethod;
+
+
+  self.startaddress:=_startaddress;
+  self.stopaddress:=_stopaddress;
+
+  self.scanoption:=_scanOption;
+  self.VariableType:=_VariableType;
+  self.Roundingtype:=_roundingtype;
+  self.Scanvalue1:=_scanvalue1;
+  self.Scanvalue2:=_scanvalue2;
+  self.Startaddress:=_startaddress;
+  self.Stopaddress:=_stopaddress;
+  self.BinaryStringAsDecimal:=_binaryStringAsDecimal;
+  self.Unicode:=_unicode;
+  self.Casesensitive:=_CaseSensitive;
+  self.fastscanmethod:=_fastscanmethod;
+  self.fastscanparameter:=_fastscanparameter;
+  self.customtype:=_customtype;
+
+  firstscan;
+end;
+
+procedure TMemScan.FirstScan;
+begin
   if (variableType=vtCustom) and (customtype=nil) then
     raise exception.create('customType=nil');
-
 
   {$IFNDEF jni}
   if attachedFoundlist<>nil then
@@ -7659,27 +7743,19 @@ begin
   {$ENDIF}
 
 
-  currentVariableType:=VariableType;
-  currentCustomType:=customtype;
-
   if fastscanparameter<>'' then
     self.fastscanalignment:=strtoint('$'+fastscanparameter)
   else
     self.fastscanalignment:=1;
 
-  self.fastscanmethod:=fastscanmethod;
   self.fastscandigitcount:=length(fastscanparameter);
-
-  self.startaddress:=startaddress;
-  self.stopaddress:=stopaddress;
-
 
   //OutputDebugString('Vartype='+inttostr(integer(VariableType)));
 
   scanController:=TscanController.Create(true);
   scanController.OwningMemScan:=self;
   scanController.scantype:=stFirstScan;
-  scanController.scanOption:=scanOption;
+  scanController.scanOption:=scanoption;
   scanController.variableType:=VariableType;
   scancontroller.customType:=customtype;
 
@@ -7724,7 +7800,6 @@ begin
   fLastScanValue:=scanValue1;
 
   scanController.start;
-
 
 end;
 
@@ -7784,6 +7859,12 @@ begin
   end;
 end;
 
+procedure TMemScan.setVariableType(t: TVariableType);
+begin
+  if fLastScanType=stNewScan then //only allow change on a new scan
+    fVariableType:=t;
+end;
+
 constructor TMemScan.create(progressbar: TCustomProgressbar);
 begin
   self.progressbar:=progressbar;
@@ -7792,6 +7873,11 @@ begin
   busyformIsModal:=true;
 
   CreateScanfolder;
+
+  self.VariableType:=vtDword;
+  self.ScanOption:=soExactValue;
+  self.Startaddress:=0;
+  self.Stopaddress:={$ifdef cpu32}DWORD($ffffffff){$else}QWORD($ffffffffffffffff){$endif};
 end;
 
 procedure TMemscan.CreateScanfolder;
