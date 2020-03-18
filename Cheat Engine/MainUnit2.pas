@@ -31,7 +31,7 @@ procedure initcetitle;
 
 
 
-const beta=' rc1'; //empty this for a release
+const beta=' rc1.1'; //empty this for a release
 
 var
   CEnorm:string;
@@ -82,6 +82,7 @@ resourcestring
   rsEnableDisableSpeedhack = 'Enable/Disable speedhack.';
   rsM2NoHotkey = ' (No hotkey)';
   rsWontHaveAnyEffectUntilYouOpenANewProcess = '(Won''t have any effect until you (re)open a process)';
+  rsDBVMMissedEntries = 'Missed %d entries due to a too small buffer or slow copy operation';
 
 
   var

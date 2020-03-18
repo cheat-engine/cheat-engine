@@ -27,6 +27,10 @@ Sorting the addresslist now sorts faster and more properly with regards to group
 Rightclick the addresslist header to bring up a menu which allows you to disable sorting
 Improved the processlist responsiveness
 The chosen floating point rounding type is now saved in the registry
+You can now use (addresslist description) as an address
+
+Changes:
+DBVM doesn't activate the TSC hook by default.  ?You can still activate it by using dbvm_enableTSCHook
 
 
 
@@ -44,6 +48,8 @@ fixed opening process in XP
 fixed potential deadlock with the symbolhander
 fixed issue with using the process var as symbol
 fixed default form size for some windows when using high DPI
+fixed DBVM on systems that have the default MTRR set as 6 (e.g Asus systems)
+fixed DBVM find what accesses with large datasets
 
 
 lua:
