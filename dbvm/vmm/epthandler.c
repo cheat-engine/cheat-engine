@@ -7,6 +7,7 @@
 
 #define MAXCLOAKLISTBEFORETRANFERTOMAP 40
 
+//#define MEMORYCHECK
 
 #include "epthandler.h"
 #include "main.h"
@@ -40,6 +41,19 @@ criticalSection ChangeRegBPListCS; //2
 ChangeRegBPEntry *ChangeRegBPList;
 int ChangeRegBPListSize;
 int ChangeRegBPListPos;
+
+#ifdef MEMORYCHECK
+int checkmem(unsigned char *x, int len)
+{
+  int i;
+  for (i=0; i<len; i++)
+    if (x[i]!=0xce)
+      return 1;
+
+  return 0;
+
+}
+#endif
 
 void vpid_invalidate()
 {
@@ -906,6 +920,13 @@ void saveStack(pcpuinfo currentcpuinfo, unsigned char *stack) //stack is 4096 by
 
 void fillPageEventBasic(PageEventBasic *peb, VMRegisters *registers)
 {
+#ifdef MEMORYCHECK
+  //make sure it's all 0xce
+  if (checkmem((unsigned char*)peb, sizeof(PageEventBasic)))
+      while (1);
+
+#endif
+
   peb->VirtualAddress=vmread(vm_guest_linear_address);
   peb->PhysicalAddress=vmread(vm_guest_physical_address);
   peb->CR3=vmread(vm_guest_cr3);
@@ -1090,6 +1111,7 @@ BOOL ept_handleWatchEvent(pcpuinfo currentcpuinfo, VMRegisters *registers, PFXSA
 
   if (eptWatchList[ID].CopyInProgress) //a copy operation is in progress
   {
+    eptWatchList[ID].Log->missedEntries++;
     sendstringf("This watchlist is currently being copied, not logging this\n");
     csLeave(&eptWatchListCS);
     return TRUE;
@@ -1184,6 +1206,10 @@ BOOL ept_handleWatchEvent(pcpuinfo currentcpuinfo, VMRegisters *registers, PFXSA
     }
 
     //reallocate the buffer
+#ifdef MEMORYCHECK
+    while (1); //I don't have this when doing the test
+#endif
+
     int newmax=eptWatchList[ID].Log->numberOfEntries*2;
     PPageEventListDescriptor temp=realloc(eptWatchList[ID].Log, sizeof(PageEventListDescriptor)+logentrysize*newmax);
     if (temp!=NULL)
@@ -1214,12 +1240,24 @@ BOOL ept_handleWatchEvent(pcpuinfo currentcpuinfo, VMRegisters *registers, PFXSA
   {
     case PE_BASIC:
     {
+#ifdef MEMORYCHECK
+  //make sure it's all 0xce
+      if (checkmem((unsigned char*)&eptWatchList[ID].Log->pe.basic[i], sizeof(PageEventBasic)))
+        while (1);
+
+#endif
+
       fillPageEventBasic(&eptWatchList[ID].Log->pe.basic[i], registers);
       break;
     }
 
     case PE_EXTENDED:
     {
+#ifdef MEMORYCHECK
+  //make sure it's all 0xce
+      if (checkmem((unsigned char*)&eptWatchList[ID].Log->pe.extended[i], sizeof(PageEventExtended)))
+        while (1);
+#endif
       fillPageEventBasic(&eptWatchList[ID].Log->pe.extended[i].basic, registers);
       eptWatchList[ID].Log->pe.extended[i].fpudata=*fxsave;
       break;
@@ -1227,6 +1265,11 @@ BOOL ept_handleWatchEvent(pcpuinfo currentcpuinfo, VMRegisters *registers, PFXSA
 
     case PE_BASICSTACK:
     {
+#ifdef MEMORYCHECK
+  //make sure it's all 0xce
+      if (checkmem((unsigned char*)&eptWatchList[ID].Log->pe.basics[i], sizeof(PageEventBasicWithStack)))
+        while (1);
+#endif
       fillPageEventBasic(&eptWatchList[ID].Log->pe.basics[i].basic, registers);
       saveStack(currentcpuinfo, eptWatchList[ID].Log->pe.basics[i].stack);
       break;
@@ -1234,6 +1277,11 @@ BOOL ept_handleWatchEvent(pcpuinfo currentcpuinfo, VMRegisters *registers, PFXSA
 
     case PE_EXTENDEDSTACK:
     {
+#ifdef MEMORYCHECK
+  //make sure it's all 0xce
+      if (checkmem((unsigned char*)&eptWatchList[ID].Log->pe.extendeds[i], sizeof(PageEventExtendedWithStack)))
+        while (1);
+#endif
       fillPageEventBasic(&eptWatchList[ID].Log->pe.extendeds[i].basic, registers);
       eptWatchList[ID].Log->pe.extendeds[i].fpudata=*fxsave;
       saveStack(currentcpuinfo, eptWatchList[ID].Log->pe.extendeds[i].stack);
@@ -1317,6 +1365,10 @@ int ept_handleWatchEventAfterStep(pcpuinfo currentcpuinfo,  int ID)
 }
 
 VMSTATUS ept_watch_retrievelog(int ID, QWORD results, DWORD *resultSize, DWORD *offset, QWORD *errorcode)
+/*
+ * Retrieves the collected log
+ * offset is the offset from what point the log should continue copying (works like a rep xxx instruction)
+ */
 {
 
   //sendstringf("ept_watch_retrievelog(ID=%d)\n", ID);
@@ -1399,6 +1451,40 @@ VMSTATUS ept_watch_retrievelog(int ID, QWORD results, DWORD *resultSize, DWORD *
     return VM_OK;
   }
 
+#ifdef MEMORYCHECKNOLOGRETRIEVAL
+  //skip
+  vmwrite(vm_guest_rip,vmread(vm_guest_rip)+vmread(vm_exit_instructionlength));
+  *resultSize=0;
+  *errorcode=0; //results==0
+  csLeave(&eptWatchListCS);
+  return VM_OK;
+#endif
+
+  if ((*offset) && (eptWatchList[ID].CopyInProgress==0))
+  {
+#ifdef MEMORYCHECK
+    while (1);
+
+#endif
+    vmwrite(vm_guest_rip,vmread(vm_guest_rip)+vmread(vm_exit_instructionlength));
+    *errorcode=5; //offset set but not copyinprogress
+    csLeave(&eptWatchListCS);
+    return VM_OK;
+  }
+
+  if ((*offset)>sizeneeded)
+  {
+#ifdef MEMORYCHECK
+    while (1);
+#endif
+    vmwrite(vm_guest_rip,vmread(vm_guest_rip)+vmread(vm_exit_instructionlength));
+    *errorcode=6; //offset is too high
+    csLeave(&eptWatchListCS);
+    return VM_OK;
+  }
+
+
+
   int sizeleft=sizeneeded-(*offset); //decrease bytes left by bytes already copied
 
  // sendstringf("*offset=%d\n", *offset);
@@ -1437,13 +1523,28 @@ VMSTATUS ept_watch_retrievelog(int ID, QWORD results, DWORD *resultSize, DWORD *
     }
   }
 
-  *errorcode=0;
+
 
   if (blocksize)
   {
     //sendstringf("Copying to destination\n");
     copymem(destination, source, blocksize);
     unmapVMmemory(destination, blocksize);
+#ifdef MEMORYCHECK
+    //mark log as 0xce
+    QWORD a,b;
+
+    b=(QWORD)eptWatchList[ID].Log+sizeof(PageEventListDescriptor);
+    int x;
+    for (x=0; x<blocksize; x++)
+    {
+      a=(QWORD)source+x;
+      if (a>=b)
+        source[x]=0xce;
+    }
+#endif
+
+
 
     *offset=(*offset)+blocksize;
   }
@@ -1469,6 +1570,7 @@ VMSTATUS ept_watch_retrievelog(int ID, QWORD results, DWORD *resultSize, DWORD *
 
    // sendstringf("Going to the next instruction\n");
     vmwrite(vm_guest_rip,vmread(vm_guest_rip)+vmread(vm_exit_instructionlength));
+    *errorcode=0;
   }
   else
   {
@@ -1500,31 +1602,44 @@ int ept_watch_activate(QWORD PhysicalAddress, int Size, int Type, DWORD Options,
   int structtype=(Options >> 2) & 3;
   int structsize;
 
+
+
   sendstringf("getFreeWatchID() returned %d .  eptWatchListPos=%d\n", ID, eptWatchListPos);
   switch (structtype)
   {
-    case 0: structsize=sizeof(PageEventBasic); break;
-    case 1: structsize=sizeof(PageEventExtended); break;
-    case 2: structsize=sizeof(PageEventBasicWithStack); break;
-    case 3: structsize=sizeof(PageEventExtendedWithStack); break;
+    case 0: structsize=sizeof(PageEventBasic); break;             //EPTO_SAVE_XSAVE=0 and EPTO_SAVE_STACK=0
+    case 1: structsize=sizeof(PageEventExtended); break;          //EPTO_SAVE_XSAVE=1 and EPTO_SAVE_STACK=0
+    case 2: structsize=sizeof(PageEventBasicWithStack); break;    //EPTO_SAVE_XSAVE=0 and EPTO_SAVE_STACK=1
+    case 3: structsize=sizeof(PageEventExtendedWithStack); break; //EPTO_SAVE_XSAVE=1 and EPTO_SAVE_STACK=1
   }
 
   //make sure it doesn't pass a page boundary
   //todo: recursively spawn more watches if needed
 
   if (((PhysicalAddress+Size) & 0xfffffffffffff000ULL) > (PhysicalAddress & 0xfffffffffffff000ULL))
-       eptWatchList[ID].Size=0x1000-(PhysicalAddress & 0xfff);
+    eptWatchList[ID].Size=0x1000-(PhysicalAddress & 0xfff);
+  else
+    eptWatchList[ID].Size=Size;
 
   eptWatchList[ID].PhysicalAddress=PhysicalAddress;
-  eptWatchList[ID].Size=Size;
   eptWatchList[ID].Type=Type;
-  eptWatchList[ID].Log=malloc(sizeof(PageEventListDescriptor)+structsize*MaxEntryCount);
-  zeromemory(eptWatchList[ID].Log, sizeof(PageEventListDescriptor)+structsize*MaxEntryCount);
+  eptWatchList[ID].Log=malloc(sizeof(PageEventListDescriptor)*2+structsize*MaxEntryCount); //*2 because i'm not sure how the alignment of the final entry goes
+  zeromemory(eptWatchList[ID].Log, sizeof(PageEventListDescriptor)*2+structsize*MaxEntryCount);
+
+#ifdef MEMORYCHECK
+  memset(eptWatchList[ID].Log, 0xce, sizeof(PageEventListDescriptor)*2+structsize*MaxEntryCount);
+
+
+  if (checkmem((unsigned char*)&eptWatchList[ID].Log->pe.basic[0], structsize*MaxEntryCount))
+    while (1);
+
+#endif
 
   eptWatchList[ID].Log->ID=ID;
   eptWatchList[ID].Log->entryType=structtype;
   eptWatchList[ID].Log->numberOfEntries=0;
   eptWatchList[ID].Log->maxNumberOfEntries=MaxEntryCount;
+  eptWatchList[ID].Log->missedEntries=0;
 
   eptWatchList[ID].Options=Options;
   sendstringf("Configured ept watch. Activating ID %d\n", ID);
@@ -2449,8 +2564,22 @@ VMSTATUS handleEPTMisconfig(pcpuinfo currentcpuinfo UNUSED, VMRegisters *vmregis
     vmwrite(vm_entry_exceptionerrorcode, vmread(vm_idtvector_error)); //entry errorcode
     vmwrite(vm_entry_interruptioninfo, newintinfo.interruption_information); //entry info field
     vmwrite(0x401a, vmread(vm_exit_instructionlength)); //entry instruction length
+    return VM_OK;
   }
 
-  return 0;
+  QWORD GuestAddress=vmread(vm_guest_physical_address);
+  QWORD EPTAddress=EPTMapPhysicalMemory(currentcpuinfo, GuestAddress, 0);
+
+  if (EPTAddress)
+  {
+    sendstringf("handleEPTMisconfig(%x) : %6\n",GuestAddress, EPTAddress);
+  }
+  else
+  {
+    sendstringf("handleEPTMisconfig(%x) : fuck\n", GuestAddress);
+  }
+  while (1) outportb(0x80,0xe0);
+
+  return VM_ERROR;
 }
 

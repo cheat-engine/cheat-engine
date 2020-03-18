@@ -262,13 +262,13 @@ int cinthandler(unsigned long long *stack, int intnr) //todo: move to it's own s
   }
 
   sendstringf("Checking if it was an expected interrupt\n\r");
+  cpuinfo->LastExceptionRIP=stack[16+errorcode];
 
   if (cpuinfo->OnException[0].RIP)
   {
     nosendchar[thisAPICID]=0;
-
     sendstringf("OnException is set. Passing it to longjmp\n");  //no need to set rflags back, the original state contains that info
-    cpuinfo->LastExceptionRIP=stack[16+errorcode];
+
     longjmp(cpuinfo->OnException, 0x100 | intnr);
 
     sendstringf("longjmp just went through...\n");
