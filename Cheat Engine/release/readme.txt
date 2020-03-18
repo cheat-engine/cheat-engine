@@ -30,7 +30,7 @@ The chosen floating point rounding type is now saved in the registry
 You can now use (addresslist description) as an address
 
 Changes:
-DBVM doesn't activate the TSC hook by default.  ?You can still activate it by using dbvm_enableTSCHook
+DBVM doesn't activate the TSC hook by default. You can still activate it by using dbvm_enableTSCHook() 
 
 
 
