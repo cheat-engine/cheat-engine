@@ -203,11 +203,13 @@ end;
 procedure TfrmDBVMWatchConfig.setAddress(a: qword);
 var
   x: ptruint;
-  temp: byte;
+  temp: dword;
+  s: string;
 begin
   {$ifdef windows}
   faddress:=a;
   lblVirtualAddress.caption:=format('Virtual Address=%.8x',[a]);
+
 
   if ReadProcessMemory(processhandle, pointer(a),@temp,1,x) then
   begin

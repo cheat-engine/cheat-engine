@@ -5828,6 +5828,7 @@ begin
 
   if i<>0 then
   begin
+    lua_pushnil(L);
     case i of
       1: lua_pushstring(L,'invalid id');
       3: lua_pushstring(L,'inactive id');
@@ -5835,7 +5836,7 @@ begin
       else lua_pushstring(L,'unknown error '+inttostr(i));
     end;
 
-    lua_error(L);
+    exit(2);
   end;
 
   outputdebugstring('Buf allocated at '+inttohex(QWORD(buf),8));

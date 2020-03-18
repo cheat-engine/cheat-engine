@@ -1092,7 +1092,7 @@ resourcestring
   rsGroup = 'Group %s';
   rsGroups = 'Groups';
   rsWhatDoYouWantTheGroupnameToBe = 'What do you want the groupname to be?';
-  rsDoYouWantTheGroupWithAddress = 'Do you want "address" version?';
+  rsDoYouWantTheGroupWithAddress = 'Do you want a header with address support ?';
   rsAreYouSureYouWantToDeleteThisForm = 'Are you sure you want to delete this form?';
   rsRenameFile = 'Rename file';
   rsGiveTheNewFilename = 'Give the new filename';
@@ -1272,6 +1272,15 @@ resourcestring
   rsProcessing = '<Processing>';
   rsCompareToSavedScan = 'Compare to first/saved scan';
   rsModified = 'Modified';
+  rsRequiresDBVMCapableIntelCPU = 'This function requires an Intel CPU with '
+    +'virtualization support. If your system has that then make sure that '
+    +'you''re currently not running inside a virtual machine. (Windows has '
+    +'some security features that can run programs inside a VM)';
+  rsRequiresEPT = 'This function requires that your CPU supports ''Extended '
+    +'Page Table (EPT)'' which your CPU lacks';
+  rsRequiresDBVMEPT = 'DBVM find routines needs DBVM for EPT page hooking. '
+    +'Loading DBVM can potentially cause a system freeze. Are you sure?';
+  rsDbvmWatchFailed = 'dbvm_watch failed';
 
 var
   ncol: TColor;
@@ -3564,6 +3573,7 @@ end;
 
 procedure TMainForm.miAutoAssembleErrorMessageClick(Sender: TObject);
 begin
+  clipboard.AsText:=miAutoAssembleErrorMessage.Caption;
   addresslist.doValueChange;
 end;
 
@@ -7075,7 +7085,7 @@ begin
   miDBVMFindWhatWritesOrAccesses.visible:={$ifdef windows}Findoutwhataccessesthisaddress1.Visible and isIntel and isDBVMCapable{$else}false{$endif}; //02/24/2019: Most cpu's support EPT now
   sep2.Visible:=miDBVMFindWhatWritesOrAccesses.Visible;
 
-  miDBVMFindWhatWritesOrAccesses.enabled:={$ifdef windows}DBKLoaded{$else}false{$endif};
+  miDBVMFindWhatWritesOrAccesses.enabled:={$ifdef windows}DBKLoaded or isRunningDBVM{$else}false{$endif};
 
   if (selectedrecord<>nil) and (selectedrecord.VarType=vtAutoAssembler) then
   begin
@@ -7447,32 +7457,30 @@ var
   unlockaddress: qword;
   canuseept: boolean;
 
+  PA: qword;
 begin
   {$ifdef windows}
-  LoadDBK32;
+  if not isRunningDBVM then
+    LoadDBK32;
 
   canuseept:=hasEPTSupport;
   if (isintel=false) or (isDBVMCapable=false) then
   begin
-    messagedlg('This function requires an Intel CPU with virtualization support. If your system has that then make sure that you''re currently not running inside a virtual machine. (Windows has some security features that can run programs inside a VM)', mtError,[mbok],0);
+    messagedlg(rsRequiresDBVMCapableIntelCPU, mtError, [mbok], 0);
     exit;
   end;
 
   if canuseept=false then
   begin
-    messagedlg('This function requires that your CPU supports ''Extended Page Table (EPT)'' which your CPU lacks',mtError,[mbok],0);
+    messagedlg(rsRequiresEPT, mtError, [mbok], 0);
     exit;
   end;
 
-  if loaddbvmifneeded('DBVM find routines needs DBVM for EPT page hooking. Loading DBVM can potentially cause a system freeze. Are you sure?') then
+  if loaddbvmifneeded(rsRequiresDBVMEPT) then
   begin
 
     if addresslist.selectedRecord <> nil then
     begin
-      if not loaddbvmifneeded then exit;
-
-
-
       if addresslist.selectedRecord.IsPointer then
       begin
         with TformPointerOrPointee.Create(self) do
@@ -7497,10 +7505,15 @@ begin
         frmDBVMWatchConfig:=TfrmDBVMWatchConfig.create(self);
 
       frmDBVMWatchConfig.address:=address;
+
       if frmDBVMWatchConfig.showmodal=mrok then
       begin
+
         if frmDBVMWatchConfig.LockPage then
+        begin
+          LoadDBK32; //this does require the driver
           unlockaddress:=LockMemory(processid, address and QWORD($fffffffffffff000),4096)
+        end
         else
           unlockaddress:=0;
 
@@ -7514,6 +7527,7 @@ begin
 
         if (id<>-1) then
         begin
+
           //spawn a foundcodedialog
           fcd:=TFoundCodeDialog.Create(self);
           fcd.multipleRip:=frmDBVMWatchConfig.cbMultipleRIP.Checked;
@@ -7528,7 +7542,11 @@ begin
           fcd.show;
         end
         else
-          MessageDlg('dbvm_watch failed', mtError, [mbok],0);
+        begin
+          MessageDlg(rsDbvmWatchFailed, mtError, [mbok], 0);
+          if unlockaddress<>0 then
+            UnlockMemory(unlockaddress);
+        end;
 
       end;
       freeandnil(frmDBVMWatchConfig);

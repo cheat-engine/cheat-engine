@@ -67,6 +67,7 @@ type
   TFoundCodeDialog = class(TForm)
     FoundCodeList: TListView;
     fcdImageList: TImageList;
+    dbvmMissedEntries: TLabel;
     MenuItem1: TMenuItem;
     MenuItem2: TMenuItem;
     miFindWhatAccesses: TMenuItem;
@@ -264,6 +265,14 @@ var
   debug,debug2: pointer;
 begin
   outputdebugstring('addEntriesToList');
+
+  if results^.missedEntries>0 then
+  begin
+    fcd.dbvmMissedEntries.caption:=string.format(rsDBVMMissedEntries, [results^.missedEntries]);
+    if fcd.dbvmMissedEntries.visible=false then
+      fcd.dbvmMissedEntries.visible:=true;
+  end;
+
 
   try
     basic:=PPageEventBasicArray(ptruint(results)+sizeof(TPageEventListDescriptor));
@@ -862,8 +871,8 @@ begin
 
     with FormFoundCodeListExtra do
     begin
-      Label1.Caption:=disassembled[1].s;
-      Label1.tag:=disassembled[1].a;
+      dbvmMissedEntries.Caption:=disassembled[1].s;
+      dbvmMissedEntries.tag:=disassembled[1].a;
 
       Label2.Caption:=disassembled[2].s;
       Label2.tag:=disassembled[2].a;

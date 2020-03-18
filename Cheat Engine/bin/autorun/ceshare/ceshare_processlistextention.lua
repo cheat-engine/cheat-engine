@@ -1,10 +1,11 @@
+
 function ceshare.GetCurrentProcessList()
   ceshare.currentprocesslist={}
   
   for pid,name in pairs(getProcessList()) do
     local md5name=stringToMD5String(string.lower(name))
     --search processlist for this
-    if ceshare.processlist[md5name] then
+    if ceshare.processlist and ceshare.processlist[md5name] then
       local e={}
       e.pid=pid
       e.name=name

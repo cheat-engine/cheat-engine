@@ -91,7 +91,7 @@ object MainForm: TMainForm
       Left = 233
       Height = 30
       Top = 1
-      Width = 155
+      Width = 154
       Alignment = taCenter
       Caption = 'This table has been signed by'#13#10'Someone'
       ParentColor = False
@@ -142,7 +142,7 @@ object MainForm: TMainForm
       AnchorSideLeft.Control = scanvalue
       AnchorSideTop.Control = btnNewScan
       AnchorSideTop.Side = asrBottom
-      Left = 293
+      Left = 292
       Height = 15
       Top = 79
       Width = 56
@@ -159,7 +159,7 @@ object MainForm: TMainForm
       Left = 238
       Height = 15
       Top = 128
-      Width = 53
+      Width = 52
       Anchors = [akTop, akRight]
       BorderSpacing.Right = 2
       Caption = 'Scan Type'
@@ -173,7 +173,7 @@ object MainForm: TMainForm
       Left = 235
       Height = 15
       Top = 153
-      Width = 56
+      Width = 55
       Anchors = [akTop, akRight]
       BorderSpacing.Right = 2
       Caption = 'Value Type'
@@ -266,7 +266,7 @@ object MainForm: TMainForm
     object btnNewScan: TButton
       AnchorSideLeft.Control = gbScanOptions
       AnchorSideTop.Control = Foundlist3
-      Left = 293
+      Left = 292
       Height = 25
       Top = 46
       Width = 76
@@ -284,7 +284,7 @@ object MainForm: TMainForm
       AnchorSideTop.Control = lblcompareToSavedScan
       AnchorSideTop.Side = asrBottom
       AnchorSideRight.Control = Panel9
-      Left = 293
+      Left = 292
       Height = 182
       Top = 212
       Width = 200
@@ -361,11 +361,11 @@ object MainForm: TMainForm
           AnchorSideTop.Control = Panel2
           AnchorSideRight.Control = Panel2
           AnchorSideRight.Side = asrBottom
-          Left = 118
+          Left = 117
           Height = 19
           Hint = 'Unchecked:'#13#10'Do not scan executable memory'#13#10#13#10'Checked:'#13#10'Only scan executable memory'#13#10#13#10'Gray:'#13#10'Don''t care if it''s executable or not'
           Top = 0
-          Width = 76
+          Width = 77
           AllowGrayed = True
           Anchors = [akTop, akRight]
           BorderSpacing.Right = 2
@@ -592,10 +592,10 @@ object MainForm: TMainForm
       AnchorSideLeft.Side = asrBottom
       AnchorSideTop.Control = Foundlist3
       AnchorSideRight.Control = btnNewScan
-      Left = 379
+      Left = 378
       Height = 25
       Top = 46
-      Width = 78
+      Width = 79
       AutoSize = True
       BorderSpacing.Left = 10
       Caption = 'Next Scan'
@@ -609,7 +609,7 @@ object MainForm: TMainForm
       AnchorSideTop.Control = pnlScanValueOptions
       AnchorSideTop.Side = asrBottom
       AnchorSideRight.Control = Panel9
-      Left = 293
+      Left = 292
       Height = 23
       Top = 124
       Width = 200
@@ -641,7 +641,7 @@ object MainForm: TMainForm
       AnchorSideTop.Control = ScanType
       AnchorSideTop.Side = asrBottom
       AnchorSideRight.Control = Panel9
-      Left = 293
+      Left = 292
       Height = 23
       Top = 149
       Width = 200
@@ -713,10 +713,10 @@ object MainForm: TMainForm
       AnchorSideTop.Control = ScanText
       AnchorSideTop.Side = asrBottom
       AnchorSideRight.Control = andlabel
-      Left = 293
+      Left = 292
       Height = 23
       Top = 94
-      Width = 216
+      Width = 217
       Anchors = [akTop, akLeft, akRight]
       BorderSpacing.Right = 5
       Enabled = False
@@ -1144,7 +1144,7 @@ object MainForm: TMainForm
       AnchorSideTop.Control = scanvalue
       AnchorSideTop.Side = asrCenter
       AnchorSideRight.Control = scanvalue
-      Left = 227
+      Left = 226
       Height = 38
       Top = 86
       Width = 63
@@ -1196,11 +1196,11 @@ object MainForm: TMainForm
         AnchorSideTop.Side = asrCenter
         AnchorSideRight.Control = pnlScanValueOptions
         AnchorSideRight.Side = asrBottom
-        Left = 23
+        Left = 22
         Height = 19
         Hint = 'When checked the value you type in is hexadecimal'
         Top = 10
-        Width = 40
+        Width = 41
         HelpContext = 7
         Alignment = taLeftJustify
         Anchors = [akTop, akRight]
@@ -1216,15 +1216,15 @@ object MainForm: TMainForm
       AnchorSideTop.Control = ScanType
       AnchorSideRight.Control = Panel5
       AnchorSideRight.Side = asrBottom
-      Left = 499
+      Left = 498
       Height = 349
       Top = 124
-      Width = 121
+      Width = 122
       Anchors = [akTop, akRight]
       AutoSize = True
       BevelOuter = bvNone
       ClientHeight = 349
-      ClientWidth = 121
+      ClientWidth = 122
       TabOrder = 8
       object pnlScanOptions: TPanel
         AnchorSideLeft.Control = Panel9
@@ -1234,12 +1234,12 @@ object MainForm: TMainForm
         Left = 0
         Height = 209
         Top = 0
-        Width = 121
+        Width = 122
         AutoSize = True
         BorderSpacing.Bottom = 4
         BevelOuter = bvNone
         ClientHeight = 209
-        ClientWidth = 121
+        ClientWidth = 122
         Constraints.MinHeight = 100
         TabOrder = 0
         object pnlFloat: TPanel
@@ -1250,11 +1250,11 @@ object MainForm: TMainForm
           Left = 0
           Height = 57
           Top = 133
-          Width = 121
+          Width = 122
           AutoSize = True
           BevelOuter = bvNone
           ClientHeight = 57
-          ClientWidth = 121
+          ClientWidth = 122
           TabOrder = 5
           object rt3: TRadioButton
             Tag = 2
@@ -1263,7 +1263,7 @@ object MainForm: TMainForm
             Left = 0
             Height = 19
             Top = 38
-            Width = 74
+            Width = 73
             Caption = 'Truncated'
             OnChange = rtChange
             TabOrder = 2
@@ -1284,7 +1284,7 @@ object MainForm: TMainForm
             Left = 0
             Height = 19
             Top = 19
-            Width = 121
+            Width = 122
             Caption = 'Rounded (extreme)'
             Checked = True
             OnChange = rtChange
@@ -1299,7 +1299,7 @@ object MainForm: TMainForm
           Left = 0
           Height = 19
           Top = 95
-          Width = 58
+          Width = 57
           Caption = 'UTF-16'
           OnChange = cbUnicodeChange
           TabOrder = 3
@@ -1681,7 +1681,7 @@ object MainForm: TMainForm
       AnchorSideLeft.Control = VarType
       AnchorSideTop.Control = VarType
       AnchorSideTop.Side = asrBottom
-      Left = 293
+      Left = 292
       Height = 19
       Top = 172
       Width = 168
@@ -1695,10 +1695,10 @@ object MainForm: TMainForm
       AnchorSideLeft.Side = asrCenter
       AnchorSideTop.Control = cbCompareToSavedScan
       AnchorSideTop.Side = asrBottom
-      Left = 359
+      Left = 356
       Height = 15
       Top = 191
-      Width = 36
+      Width = 40
       Caption = '<xxxx>'
       ParentColor = False
       Visible = False
