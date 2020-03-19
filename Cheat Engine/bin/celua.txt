@@ -2167,8 +2167,33 @@ properties
   IsUnique: boolean - Same as OnlyOneResult but will use multiple threads, so if the value is not unique you will be given a random address
   Result: Integer - If OnlyOneResult is used this will contain the address after a scan has finished
 
+  CodePage: boolean;
+  ScanOption: TScanoption 
+  VariableType: TVariableType
+  VarType: TVariableType : ^
+  Roundingtype: TRoundingType
+  Scanvalue: string : Value to scan
+  Scanvalue1: string : ^
+  Scanvalue2: string : Secondary value to scan (e.g value between scan)
+  Startaddress: integer
+  Stopaddress: integer
+  Hexadecimal: boolean 
+  BinaryStringAsDecimal: boolean
+  UTF16: boolean 
+  Casesensitive: boolean 
+  Fastscanmethod: TFastScanMethod 
+  Fastscanparameter: string
+  Customtype: TCustomType
+  
+  Percentage: boolean
+  CompareToSavedScan: boolean 
+  SavedScanName: string
 
 methods
+  scan(): Does either a first scan or next scan based on the given property values
+  firstScan() : Does a first scan based on the given property values
+  nextScan() : Does a next scan based on the given property values
+  newScan() : Clears the current results
 
   firstScan(scanoption, vartype, roundingtype, input1, input2 ,startAddress ,stopAddress ,protectionflags ,alignmenttype ,"alignmentparam" ,isHexadecimalInput ,isNotABinaryString, isunicodescan, iscasesensitive);
     Does an initial scan.
@@ -2250,7 +2275,7 @@ methods
     ispercentage: When true and the scanoption is of type soValueBetween, soIncreasedValueBy or soDecreasedValueBy will cause CE to do a precentage scan instead of a normal value scan
     savedResultName: String that holds the name of a saved result list that should be compared against. First scan is called "FIRST"
 
-  newScan() : Clears the current results
+
   waitTillDone() : Waits for the memscan thread(s) to finish scanning. Always use this
   saveCurrentResults(name) : Save the current scanresults to a unique name for this memscan. This save can be used to compare against in a subsequent next scan
   getAttachedFoundlist() : Returns a FoundList object if one is attached to this scanresults. Returns nil otherwise

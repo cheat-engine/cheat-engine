@@ -731,6 +731,7 @@ resourcestring
   rs2ByteWithValue2 = '2 Byte: %s';
   rsWarnAboutLessThan2Addresses = 'It''s not recommended to run the structure '
     +'compare with just one address in a group';
+  rsPointerToInstanceOfClassname = 'Pointer to instance of %d';
 
 
 var
@@ -1652,12 +1653,22 @@ begin
         end;
 
         if isclasspointer=false then
-          vt:=FindTypeOfData(baseAddress+i,@buf[i],bytesize-i, ctp);
+          vt:=FindTypeOfData(baseAddress+i,@buf[i],bytesize-i, ctp)
+        else
+          vt:=vtPointer;
 
         e:=addElement();
 
         if isclasspointer then
-          e.Name:='Pointer to instance of '+classname;
+        begin
+          e.Name:=format(rsPointerToInstanceOfClassname, [classname]);
+
+          for j:=0 to DissectedStructs.count-1 do
+          begin
+            if TDissectedStruct(DissectedStructs).name=classname then
+              e.ChildStruct:=TDissectedStruct(DissectedStructs);
+          end;
+        end;
 
         e.Offset:=currentOffset;
         e.vartype:=vt;
