@@ -731,7 +731,7 @@ resourcestring
   rs2ByteWithValue2 = '2 Byte: %s';
   rsWarnAboutLessThan2Addresses = 'It''s not recommended to run the structure '
     +'compare with just one address in a group';
-  rsPointerToInstanceOfClassname = 'Pointer to instance of %d';
+  rsPointerToInstanceOfClassname = 'Pointer to instance of %s';
 
 
 var
