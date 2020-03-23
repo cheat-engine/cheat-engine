@@ -901,17 +901,24 @@ begin
 
   multidelete:=lvCodelist.SelCount>1;
   if multidelete then
-    if messagedlg(rsAreYouSureYouWishToDeleteTheseEntries, mtConfirmation, [mbyes, mbno], 0) <> mryes then exit
+  begin
+    if dialogs.messagedlg(rsAreYouSureYouWishToDeleteTheseEntries, mtConfirmation, [mbyes, mbno], 0) <> mryes then exit
+  end
   else
-    if messagedlg(rsDelete+' '+lvCodelist.selected.SubItems[0]+' ?', mtConfirmation, [mbyes, mbno], 0) <> mryes then exit;
+  begin
+    if dialogs.messagedlg(rsDelete+' '+lvCodelist.selected.SubItems[0]+' ?', mtConfirmation, [mbyes, mbno], 0) <> mryes then exit;
+  end;
 
   lvCodelist.Items.BeginUpdate;
   try
 
     for index:=count-1 downto 0 do
     begin
-      entries[index].destroy;
-      lvCodelist.Items.Delete(index);
+      if lvCodelist.items[index].Selected then
+      begin
+        entries[index].destroy;
+        lvCodelist.Items.Delete(index);
+      end;
     end;
 
 
