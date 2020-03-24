@@ -10,7 +10,12 @@ process will set it to the different tab's process
 
 interface
 
-uses {$ifndef jni}LCLIntf, {$endif}newkernelhandler, classes, sysutils;
+uses
+  {$ifdef darwin}
+  macport,
+  {$endif}
+  {$ifndef jni}LCLIntf, {$endif}
+  newkernelhandler, classes, sysutils;
 
 type
   TSystemArchitecture=(archX86=0, archArm=1);
@@ -195,4 +200,5 @@ initialization
   processhandler:=TProcessHandler.create;
 
 end.
+
 

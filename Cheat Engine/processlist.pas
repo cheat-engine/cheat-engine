@@ -27,7 +27,7 @@ var
 
 implementation
 
-uses Globals{$ifdef windows}, networkInterfaceApi, commonTypeDefs{$endif};
+uses Globals, commonTypeDefs{$ifdef windows}, networkInterfaceApi{$endif};
 
 resourcestring
     rsICanTGetTheProcessListYouArePropablyUsingWindowsNT = 'I can''t get the process list. You are propably using windows NT. Use the window list instead!';

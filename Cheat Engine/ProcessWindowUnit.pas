@@ -27,7 +27,7 @@ type
     procedure execute; override;
   end;
 
-
+ {$ifdef windows}
   TIconFetchEntry=record
     processid: dword;
     winhandle: hwnd; //optional
@@ -53,6 +53,7 @@ type
     constructor create;
     destructor destroy; override;
   end;
+  {$endif}
 
 type
 
@@ -133,7 +134,9 @@ type
 
     ffilter: string;
 
+    {$ifdef windows}
     IconFetchThread: TIconFetchThread;
+    {$endif}
     processlistlong: tprocesslistlong;
     procedure refreshlist;
     procedure setbuttons;
@@ -141,9 +144,9 @@ type
     property filter:string read ffilter write setfilter;
     procedure filterlist;
 
-
+{$ifdef windows}
     procedure iconFetchedEvent(sender: TObject; processid: dword; index: integer; icon: hicon);
-
+{$endif}
   public
     { Public declarations }
     procedure PWOP(ProcessIDString:string);
@@ -190,7 +193,7 @@ var errortrace: integer;
 
 {$IFDEF windows}
 function SendMessageTimeout(hWnd: HWND; Msg: UINT; wParam: WPARAM; lParam: LPARAM; fuFlags, uTimeout: UINT; var lpdwResult: ptruint): LRESULT; stdcall; external 'user32' name 'SendMessageTimeoutA';
-{$ENDIF}
+
 
 procedure TIconFetchThread.getIcon(e: PIconFetchEntry);
 var
@@ -387,6 +390,7 @@ begin
   resolvedListCS.free;
   inherited destroy;
 end;
+{$ENDIF}
 
 procedure TProcessListLong.drawprocesses;
 var i: integer;
@@ -526,6 +530,7 @@ begin
   ModalResult:=mrCancel;
 end;
 
+{$ifdef windows}
 procedure TProcessWindow.iconFetchedEvent(sender: TObject; processid: dword; index: integer; icon: hicon);
 var
   i: integer;
@@ -557,13 +562,14 @@ begin
 
   end;
 end;
+{$endif}
 
 procedure TProcessWindow.FormCreate(Sender: TObject);
 var
   x: array of integer;
   reg: tregistry;
 begin
-  IconFetchThread:=TIconFetchThread.create;
+
 
   {$ifdef darwin}
   //tabheader is bugged
@@ -578,6 +584,7 @@ begin
   {$endif}
 
   {$ifdef windows}
+  IconFetchThread:=TIconFetchThread.create;
   tsApplications.Caption:=rsApplications;
   tsProcesses.Caption:=rsProcesses;
   tsWindows.Caption:=rsWindows;
@@ -1132,7 +1139,9 @@ var
     found: boolean;
 
 begin
+  {$ifdef windows}
   IconFetchThread.reset;
+  {$endif}
 
   processlist.Items.BeginUpdate;
   try
@@ -1237,7 +1246,9 @@ end;
 procedure TProcessWindow.Timer1Timer(Sender: TObject);
 var
   i: integer;
+  {$ifdef windows}
   e: PIconFetchEntry;
+  {$endif}
 begin
   try
     if processlist.itemheight<>wantedheight then
@@ -1246,6 +1257,8 @@ begin
       processlist.canvas.Refresh;
       processlist.Repaint;
     end;
+
+    {$ifdef windows}
 
     IconFetchThread.resolvedListCS.enter;
     try
@@ -1263,6 +1276,7 @@ begin
 
 
     if e<>nil then processlist.Repaint;
+    {$endif}
 
   except
     timer1.enabled:=false;
@@ -1275,4 +1289,5 @@ initialization
   {$i ProcessWindowUnit.lrs}
 
 end.
+
 

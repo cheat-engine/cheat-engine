@@ -164,11 +164,15 @@ begin
           begin
             s:='?'+cp;
 
+            {$ifdef windows}
 
             i:=UnDecorateSymbolName(pchar(s), @undecoratedstring[0],255,UNDNAME_NAME_ONLY);
             undecoratedstring[i]:=0;
 
             classname:=pchar(@undecoratedstring[0]);
+            {$else}
+            classname:=cp;
+            {$endif}
 
 
             if isvalidstring(classname) then exit(true);

@@ -6012,8 +6012,6 @@ begin
   copy1.ShortCut:=TextToShortCut('Meta+C');
   paste1.ShortCut:=TextToShortCut('Meta+V');
   menuitem1.ShortCut:=TextToShortCut('Meta+A');
-
-  foundlist3.MultiSelect:=false; //selecting works, reading out the state not so much
   {$endif}
 end;
 
@@ -9456,12 +9454,6 @@ begin
 
       if (vt=vtString) and (cbUnicode.checked) then
         vt:=vtUnicodeString;
-
-      {$ifdef darwin}
-      //multiselect is broken
-      a:=foundlist.GetAddress(foundlist3.Selected.Index, extra, Value);
-      ParseStringAndWriteToAddress(newvalue, a, vt, foundlist.isHexadecimal, customtype);
-      {$endif}
 
       for i:=0 to foundlist3.items.Count-1 do
       begin

@@ -1961,6 +1961,8 @@ begin
   allocated.address:=0;
 
   result:=0;
+  {$ifdef windows}
+
   dbvm_findCR3_CS.enter;
   try
     if (hprocess=0) or (hprocess=ptruint(-1)) or (hprocess=ptruint(-2)) then exit;
@@ -2106,6 +2108,7 @@ begin
   finally
     dbvm_findCR3_CS.leave;
   end;
+  {$endif}
 end;
 
 function dbvm_registerPlugin(pluginaddress: pointer; pluginsize: integer; plugintype: integer): integer;
