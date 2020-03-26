@@ -5,16 +5,27 @@ unit hexviewunit;
 interface
 
 uses
+{$IFNDEF STANDALONEHV}
   {$ifdef darwin}
   macport,
   {$endif}
   {$ifdef windows}
   windows, commctrl,
   {$endif}
-  Classes, SysUtils, forms, controls, StdCtrls, ExtCtrls, comctrls, graphics,
-  lmessages, menus, symbolhandler, symbolhandlerstructs, cefuncproc, newkernelhandler, math,
-  Clipbrd,dialogs, changelist, DebugHelper, debuggertypedefinitions, maps, contnrs,
-  strutils, byteinterpreter, commonTypeDefs, lazutf8, lazutf16, lcltype, LCLIntf;
+{$ENDIF}
+  Classes,  sysUtils, forms, controls, StdCtrls, ExtCtrls, comctrls, graphics,
+  lmessages, menus,  math,
+  Clipbrd,dialogs, changelist, maps, contnrs,
+  strutils, lazutf8, lazutf16, lcltype, LCLIntf
+{$ifdef USELAZFREETYPE}
+  ,FPCanvas, EasyLazFreeType, LazFreeTypeFontCollection, LazFreeTypeIntfDrawer,
+  LazFreeTypeFPImageDrawer, IntfGraphics, fpimage, graphtype
+{$endif}
+
+  {$IFNDEF STANDALONEHV}
+  , byteinterpreter, debuggertypedefinitions, DebugHelper ,commonTypeDefs,symbolhandler,
+  symbolhandlerstructs, cefuncproc, newkernelhandler
+  {$ENDIF};
 
 type
   TDisplayType = (dtByte, dtByteDec, dtWord, dtWordDec, dtDword, dtDwordDec, dtQword, dtQwordDec, dtSingle, dtDouble);
@@ -116,6 +127,11 @@ type
 
     usedRelativeBase: boolean;
 
+{$ifdef USELAZFREETYPE}
+    FTFont: TFreeTypeFont;
+    IntfImage: TLazIntfImage;
+    drawer: TIntfFreeTypeDrawer;
+ {$endif}
 
     procedure setHexFont(f: TFont);
 
@@ -177,6 +193,7 @@ type
   public
     fadetimer: integer;
     statusbar: TStatusbar;
+    lastrendertime: qword;
     procedure LockRowsize(size: integer=0);
     procedure UnlockRowsize;
     procedure CopySelectionToClipboard;
@@ -237,8 +254,10 @@ type
 
 implementation
 
+{$IFNDEF STANDALONEHV}
 uses formsettingsunit, Valuechange, MainUnit, ProcessHandlerUnit, parsers,
   StructuresFrm2, MemoryBrowserFormUnit, BreakpointTypeDef;
+{$ENDIF}
 
 resourcestring
   rsBigFuckingError = 'Big fucking error';
@@ -265,6 +284,59 @@ resourcestring
   rsModule = 'Module';
   rsAddress = 'address';
   rsBytes = 'bytes';
+
+  {$IFDEF STANDALONEHV}
+  var
+    processhandle: thandle=0;
+    processhandler:record
+      pointersize: integer;
+    end=(pointersize: 8);
+
+procedure movememory(destination, source: pointer; size: integer);
+begin
+  system.Move(source^, destination^, size);
+end;
+
+procedure copymemory(destination, source: pointer; size: integer);
+begin
+  movememory(destination,source,size);
+end;
+
+  function ReadProcessMemory(h: thandle; a: pointer; b: pointer; s: integer; var br: ptruint):boolean;
+  begin
+    result:=true;
+    br:=s;
+  end;
+
+  function WriteProcessMemory(h: thandle; a: pointer; b: pointer; s: integer; var bw: ptruint):boolean;
+  begin
+    result:=true;
+    bw:=s;
+  end;
+
+  function MinX(a, b: ptrUint): ptrUint;inline;
+  begin
+    if a < b then
+      Result := a
+    else
+      Result := b;
+  end;
+
+
+  function MaxX(a, b: ptrUint): ptrUint;inline;
+  begin
+    if a > b then
+      Result := a
+    else
+      Result := b;
+  end;
+
+
+  function InRangeX(const AValue, AMin, AMax: ptrUint): Boolean;inline;
+  begin
+    Result:=(AValue>=AMin) and (AValue<=AMax);
+  end;
+  {$ENDIF}
 
 function THexview.gethasSelection: boolean;
 begin
@@ -425,6 +497,7 @@ begin
 end;
 
 procedure THexView.HandleEditKeyPress(wkey: TUTF8Char);
+{$IFNDEF STANDALONEHV}
 var
     b: byte;
     w: widestring;
@@ -438,8 +511,10 @@ var
     hex: boolean;
 
     key: char;
+{$ENDIF}
 
 begin
+  {$IFNDEF STANDALONEHV}
   if not isediting then exit;
 
   b:=getByte(selected,unreadable);
@@ -623,6 +698,7 @@ begin
 
 
   update;
+  {$ENDIF}
 end;
 
 procedure THexView.RefocusIfNeeded;
@@ -898,7 +974,7 @@ begin
         if isEditing then
         begin
           b:=0;
-          if (ReadProcessMemory(processhandle, pointer(selected),@b,1,x)) or (UseFileAsMemory)  then
+          if (ReadProcessMemory(processhandle, pointer(selected),@b,1,x)) {$IFNDEF STANDALONEHV} or (UseFileAsMemory) {$ENDIF}  then
           begin
             if key=VK_SUBTRACT then
               dec(b)
@@ -957,8 +1033,11 @@ end;
 
 
 procedure THexView.AddSelectedAddressToCheatTable;
+{$IFNDEF STANDALONEHV}
 var Vartype: Tvariabletype;
+{$ENDIF}
 begin
+  {$IFNDEF STANDALONEHV}
   if fhasSelection or isediting then //selected
   begin
     case fdisplaytype of
@@ -974,6 +1053,7 @@ begin
 
     mainform.addresslist.addAddressManually(inttohex(selected,8), Vartype);
   end;
+  {$ENDIF}
 
 end;
 
@@ -1082,6 +1162,7 @@ fromAddress, toAddress: ptrUint;
 
 
 begin
+  {$IFNDEF STANDALONEHV}
   if isEditing or fhasSelection then
   begin
 
@@ -1164,15 +1245,19 @@ begin
     update;
 
   end;
+ {$ENDIF}
 
 
 end;
 
 procedure THexView.ChangeSelected;
+{$IFNDEF STANDALONEHV}
 var
   unreadable: boolean;
   vcf: Tvaluechangeform;
+{$ENDIF}
 begin
+  {$IFNDEF STANDALONEHV}
   if isEditing or fhasSelection then
   begin
     getByte(selected,unreadable);
@@ -1195,9 +1280,11 @@ begin
     vcf.ShowModal;
     update;
   end;
+  {$ENDIF}
 end;
 
 procedure THexView.mbCanvasDoubleClick(Sender: TObject);
+{$IFNDEF STANDALONEHV}
 var
   p: tpoint;
   allocrangestart: integer;
@@ -1206,7 +1293,9 @@ var
   baserangestart: integer;
   baserangestop: integer;
   mbi: TMEMORYBASICINFORMATION;
+{$ENDIF}
 begin
+  {$IFNDEF STANDALONEHV}
   p:=mouse.CursorPos;
   p:=ScreenToClient(p);
 
@@ -1238,6 +1327,7 @@ begin
   end
   else
     changeSelected;
+ {$ENDIF}
 
 end;
 
@@ -1416,7 +1506,7 @@ var
   shiftispressed: boolean;
 begin
 
-  shiftispressed:=GetBit(15, GetKeyState(VK_SHIFT))=1;
+  shiftispressed:=(GetKeyState(VK_SHIFT) and (1 shl 15))>0;  //GetBit(15, GetKeyState(VK_SHIFT))=1;
 
   SetFocus; //get the focus back
 
@@ -1466,7 +1556,7 @@ var
   i: integer;
   shiftispressed: boolean;
 begin
-  shiftispressed:=GetBit(15, GetKeyState(VK_SHIFT))=1;
+  shiftispressed:=(GetKeyState(VK_SHIFT) and (1 shl 15))>0; //GetBit(15, GetKeyState(VK_SHIFT))=1;
   if shiftispressed then
   begin
     if WheelDelta>0 then
@@ -1489,12 +1579,15 @@ begin
 end;
 
 procedure THexView.UpdateMemoryInfo;
+{$IFNDEF STANDALONEHV}
 var
   mbi: TMEMORYBASICINFORMATION;
   a: ptrUint;
   a64: qword;
   mi: TModuleInfo;
+{$ENDIF}
 begin
+  {$IFNDEF STANDALONEHV}
   try
     zeromemory(@mbi,sizeof(mbi));
     Virtualqueryex(processhandle,pointer(fAddress),mbi,sizeof(mbi));
@@ -1538,6 +1631,7 @@ begin
 
   except
   end;
+  {$ENDIF}
 end;
 
 procedure THexView.LoadMemoryRegion;
@@ -1560,7 +1654,11 @@ begin
     p.baseaddress:=a;
     p.readable:=readprocessmemory(processhandle, pointer(a), @p.data[0], 4096,x);
     if p.readable then
+{$IFDEF STANDALONEHV}
+      p.inModule:=(a and (1 shl 12))>0
+{$else}
       p.inModule:=symhandler.inModule(a)
+{$ENDIF}
     else
       p.inModule:=false;
 
@@ -1959,7 +2057,9 @@ var
   compareToAddress: ptruint;
   different: boolean;
 
+{$IFNDEF STANDALONEHV}
   bp: PBreakpoint;
+{$ENDIF}
 
 
   char: string;
@@ -1979,7 +2079,17 @@ var
 
   displayOffset: ptruint;
 
+  starttime: qword;
+  b: tbitmap;
+
+  w,h: integer;
+  fontcolor: tcolor;
+
 begin
+
+
+
+  starttime:=gettickcount64;
   displayOffset:=0;
   if bytesperline<=0 then exit;
   if Parent=nil then exit;
@@ -1997,6 +2107,24 @@ begin
   end;
   seperatormask:=bps-1;
 
+  {$ifdef USELAZFREETYPE}
+  if IntfImage<>nil then
+  begin
+    w:=offscreenBitmap.Width;
+    h:=offscreenBitmap.Height;
+    if (IntfImage.Width<>w) or (IntfImage.Height<>h) then
+    begin
+      IntfImage.SetSize(w, h);
+      asm
+      nop
+      end;
+    end;
+
+    drawer.FillPixels(colWhite);
+  end;
+  {$endif}
+
+
 
   setlength(seperators, bytesperline shr seperatorshift);
   seperatorindex:=0;
@@ -2004,12 +2132,36 @@ begin
   currentaddress:=fAddress;
   nextCharAddress:=currentaddress;
 
-  if not useRelativeBase then
-    offscreenbitmap.Canvas.TextOut(0,0,memoryInfo)
-  else
-    offscreenbitmap.Canvas.TextOut(0,0,' '+inttohex(RelativeBase,8)+' : '+memoryInfo);
 
-  offscreenbitmap.Canvas.TextOut(0, textheight, rsAddress);
+
+
+  if not useRelativeBase then
+  begin
+{$ifdef USELAZFREETYPE}
+    if drawer<>nil then
+      drawer.DrawText(memoryInfo, FTFont,0,0, TColorToFPColor(offscreenbitmap.canvas.Font.Color), [ftaLeft, ftaTop])
+    else
+{$endif}
+    offscreenbitmap.Canvas.TextOut(0,0,memoryInfo)
+  end
+  else
+  begin
+{$ifdef USELAZFREETYPE}
+    if drawer<>nil then
+      drawer.DrawText(' '+inttohex(RelativeBase,8)+' : '+memoryInfo, FTFont,0,0, TColorToFPColor(offscreenbitmap.canvas.Font.Color), [ftaLeft, ftaTop])
+    else
+{$endif}
+    offscreenbitmap.Canvas.TextOut(0,0,' '+inttohex(RelativeBase,8)+' : '+memoryInfo);
+  end;
+
+{$ifdef USELAZFREETYPE}
+  if drawer<>nil then
+    drawer.DrawText(rsAddress, FTFont,0,textheight, TColorToFPColor(offscreenbitmap.canvas.Font.Color), [ftaLeft, ftaTop])
+  else
+{$endif}
+    offscreenbitmap.Canvas.TextOut(0, textheight, rsAddress);
+
+
 
   bheader:='';
   cheader:='';
@@ -2017,6 +2169,7 @@ begin
   //(re)initialize the changelist (only has affect if the size is different)
   changelist.Initialize(currentAddress, totallines*bytesperline);
   different:=false;
+
 
   //create header
   initialoffset:=currentaddress and $f;
@@ -2051,6 +2204,7 @@ begin
   charstart:=bytestart+bytesperline*byteSizeWithoutChar;
 
 
+
   for i:=0 to bytesperline-1 do
   begin
     case displayType of
@@ -2071,8 +2225,19 @@ begin
   end;
 
 //  bheader:='bpl='+inttostr(bytesperline)+' bytesize='+inttostr(bytesize)+' width='+inttostr(mbcanvas.width);
-  offscreenbitmap.Canvas.TextOut(bytestart,textheight, bheader);
-  offscreenbitmap.Canvas.TextOut(charstart,textheight, cheader);
+{$ifdef USELAZFREETYPE}
+  if drawer<>nil then
+  begin
+    drawer.DrawText(bheader, FTFont,bytestart,textheight, TColorToFPColor(offscreenbitmap.canvas.Font.Color), [ftaLeft, ftaTop]);
+    drawer.DrawText(cheader, FTFont,charstart,textheight, TColorToFPColor(offscreenbitmap.canvas.Font.Color), [ftaLeft, ftaTop]);
+  end
+  else
+{$endif}
+  begin
+    offscreenbitmap.Canvas.TextOut(bytestart,textheight, bheader);
+    offscreenbitmap.Canvas.TextOut(charstart,textheight, cheader);
+  end;
+
 
 
   itemnr:=0;
@@ -2096,12 +2261,36 @@ begin
     if UseRelativeBase then
     begin
       if currentaddress>=RelativeBase then
-        offscreenbitmap.Canvas.TextOut(0, 2+2*textheight+(i*(textheight+fspaceBetweenLines)),'+'+inttohex(currentaddress-RelativeBase,8))
+      begin
+        {$ifdef USELAZFREETYPE}
+        if drawer<>nil then
+          drawer.DrawText('+'+inttohex(currentaddress-RelativeBase,8), FTFont,0, 2+2*textheight+(i*(textheight+fspaceBetweenLines)), TColorToFPColor(offscreenbitmap.canvas.Font.Color), [ftaLeft, ftaTop])
+        else
+        {$endif}
+          offscreenbitmap.Canvas.TextOut(0, 2+2*textheight+(i*(textheight+fspaceBetweenLines)),'+'+inttohex(currentaddress-RelativeBase,8))
+
+      end
       else
-        offscreenbitmap.Canvas.TextOut(0, 2+2*textheight+(i*(textheight+fspaceBetweenLines)),'-'+inttohex(RelativeBase-currentaddress,8));
+      begin
+        {$ifdef USELAZFREETYPE}
+        if drawer<>nil then
+          drawer.DrawText('-'+inttohex(RelativeBase-currentaddress,8), FTFont,0, 2+2*textheight+(i*(textheight+fspaceBetweenLines)), TColorToFPColor(offscreenbitmap.canvas.Font.Color), [ftaLeft, ftaTop])
+        else
+        {$endif}
+          offscreenbitmap.Canvas.TextOut(0, 2+2*textheight+(i*(textheight+fspaceBetweenLines)),'-'+inttohex(RelativeBase-currentaddress,8));
+
+      end;
     end
     else
-      offscreenbitmap.Canvas.TextOut(0, 2+2*textheight+(i*(textheight+fspaceBetweenLines)),inttohex(currentaddress,8));
+    begin
+      {$ifdef USELAZFREETYPE}
+      if drawer<>nil then
+        drawer.DrawText(inttohex(currentaddress,8), FTFont,0, 2+2*textheight+(i*(textheight+fspaceBetweenLines)), TColorToFPColor(offscreenbitmap.canvas.Font.Color), [ftaLeft, ftaTop])
+      else
+      {$endif}
+        offscreenbitmap.Canvas.TextOut(0, 2+2*textheight+(i*(textheight+fspaceBetweenLines)),inttohex(currentaddress,8));
+
+    end;
 
     bytepos:=0;
     for j:=0 to bytesperline-1 do
@@ -2132,6 +2321,8 @@ begin
         end;
       end;
 
+
+      {$IFNDEF STANDALONEHV}
       if debuggerthread<>nil then
       begin
         //check if the current address has a breakpoint
@@ -2142,7 +2333,7 @@ begin
           offscreenbitmap.canvas.Font.Color:=clBlack;
         end;
       end;
-
+      {$ENDIF}
 
 
       //todo: refactor this
@@ -2189,7 +2380,6 @@ begin
 
       if gettickcount-changelist.LastChange[itemnr]<fadetimer then
       begin
-//        offscreenbitmap.canvas.Brush.Color:=CalculateGradientColor((fadetimer-(gettickcount-changelist.LastChange[itemnr]))/10, clRed, offscreenbitmap.canvas.Brush.Color);
         offscreenbitmap.canvas.Brush.Color:=CalculateGradientColor((fadetimer-(gettickcount-changelist.LastChange[itemnr]))/(fadetimer div 100), clRed, offscreenbitmap.canvas.Brush.Color);
         if offscreenbitmap.canvas.Font.Color=clred then
           offscreenbitmap.canvas.Font.Color:=clBlue;
@@ -2200,8 +2390,13 @@ begin
         s:=changelist.values[itemnr];
         if assigned(fOnValueRender) then
           fOnValueRender(self, currentaddress, s);
+        {$ifdef USELAZFREETYPE}
+        if drawer<>nil then
+          drawer.DrawText(s, FTFont,bytestart+bytepos*charsize, 2+2*textheight+(i*(textheight+fspaceBetweenLines)), TColorToFPColor(offscreenbitmap.canvas.Font.Color), [ftaLeft, ftaTop])
+        else
+        {$endif}
+          offscreenbitmap.canvas.TextOut(bytestart+bytepos*charsize, 2+2*textheight+(i*(textheight+fspaceBetweenLines)) , s);
 
-        offscreenbitmap.canvas.TextOut(bytestart+bytepos*charsize, 2+2*textheight+(i*(textheight+fspaceBetweenLines)) , s);
       end;
 
 
@@ -2227,7 +2422,13 @@ begin
         if assigned(fOnCharacterRender) then
           fOnCharacterRender(self, currentaddress, char);
 
-        offscreenbitmap.canvas.TextOut(charstart+j*charsize, 2+2*textheight+(i*(textheight+fspaceBetweenLines)), char); //char
+        {$ifdef USELAZFREETYPE}
+        if drawer<>nil then
+          drawer.DrawText(char, FTFont,charstart+j*charsize, 2+2*textheight+(i*(textheight+fspaceBetweenLines)), TColorToFPColor(offscreenbitmap.canvas.Font.Color), [ftaLeft, ftaTop])
+        else
+        {$endif}
+          offscreenbitmap.canvas.TextOut(charstart+j*charsize, 2+2*textheight+(i*(textheight+fspaceBetweenLines)), char); //char
+
 
         inc(nextCharAddress, lastcharsize);
       end;
@@ -2241,12 +2442,36 @@ begin
         //render the carret
         offscreenbitmap.canvas.Pen.Width:=2;
         offscreenbitmap.canvas.Pen.Color:=clRed;
+
         if editingtype=hrByte then //draw the carret for the byte
-          offscreenbitmap.Canvas.Line(1+bytestart+bytepos*charsize+editingCursorPos*charsize,2+2*textheight+(i*(textheight+fspaceBetweenLines))+1,1+bytestart+bytepos*charsize+editingCursorPos*charsize,2+2*textheight+(i*(textheight+fspaceBetweenLines))+textheight-2)
+        begin
+          {$ifdef USELAZFREETYPE}
+          if drawer<>nil then
+          begin
+            drawer.DrawVertLine(0+bytestart+bytepos*charsize+editingCursorPos*charsize, 2+2*textheight+(i*(textheight+fspaceBetweenLines))+1, 2+2*textheight+(i*(textheight+fspaceBetweenLines))+textheight-2, colRed);
+            drawer.DrawVertLine(1+bytestart+bytepos*charsize+editingCursorPos*charsize, 2+2*textheight+(i*(textheight+fspaceBetweenLines))+1, 2+2*textheight+(i*(textheight+fspaceBetweenLines))+textheight-2, colRed);
+          end
+          else
+          {$endif}
+            offscreenbitmap.Canvas.Line(1+bytestart+bytepos*charsize+editingCursorPos*charsize,2+2*textheight+(i*(textheight+fspaceBetweenLines))+1,1+bytestart+bytepos*charsize+editingCursorPos*charsize,2+2*textheight+(i*(textheight+fspaceBetweenLines))+textheight-2)
+
+        end
         else //draw the carret for the char
-          offscreenbitmap.Canvas.Line(1+charstart+j*charsize,2+2*textheight+(i*(textheight+fspaceBetweenLines))+1,1+charstart+j*charsize,2+2*textheight+(i*(textheight+fspaceBetweenLines))+textheight-2);
+        begin
+          {$ifdef USELAZFREETYPE}
+          if drawer<>nil then
+          begin
+            drawer.DrawVertLine(0+charstart+j*charsize,2+2*textheight+(i*(textheight+fspaceBetweenLines))+1,2+2*textheight+(i*(textheight+fspaceBetweenLines))+textheight-2, colRed);
+            drawer.DrawVertLine(1+charstart+j*charsize,2+2*textheight+(i*(textheight+fspaceBetweenLines))+1,2+2*textheight+(i*(textheight+fspaceBetweenLines))+textheight-2, colRed);
+          end
+          else
+          {$endif}
+            offscreenbitmap.Canvas.Line(1+charstart+j*charsize,2+2*textheight+(i*(textheight+fspaceBetweenLines))+1,1+charstart+j*charsize,2+2*textheight+(i*(textheight+fspaceBetweenLines))+textheight-2);
+
+        end;
 
         offscreenbitmap.canvas.Pen.Width:=1;
+
 
       end;
 
@@ -2259,22 +2484,49 @@ begin
     end;
   end;
 
-
-
   for i:=0 to seperatorindex-1 do
   begin
-    offscreenbitmap.Canvas.Pen.Color:=clYellow;
-    offscreenbitmap.Canvas.PenPos:=point(bytestart+(seperators[i]+1)*byteSizeWithoutChar-(charsize shr 1),(textheight+fspaceBetweenLines));
-    offscreenbitmap.Canvas.LineTo(bytestart+(seperators[i]+1)*byteSizeWithoutChar-(charsize shr 1),mbcanvas.height);
+    {$ifdef USELAZFREETYPE}
+    if drawer<>nil then
+    begin
+      drawer.DrawVertLine(bytestart+(seperators[i]+1)*byteSizeWithoutChar-(charsize shr 1),(textheight+fspaceBetweenLines),mbcanvas.height, colYellow);
+      drawer.DrawVertLine(charstart+(seperators[i]+1)*charsize,(textheight+fspaceBetweenLines),mbcanvas.height, colYellow);
+    end
+    else
+    {$endif}
+    begin
+      offscreenbitmap.Canvas.Pen.Color:=clYellow;
+      offscreenbitmap.Canvas.PenPos:=point(bytestart+(seperators[i]+1)*byteSizeWithoutChar-(charsize shr 1),(textheight+fspaceBetweenLines));
+      offscreenbitmap.Canvas.LineTo(bytestart+(seperators[i]+1)*byteSizeWithoutChar-(charsize shr 1),mbcanvas.height);
 
-    offscreenbitmap.Canvas.PenPos:=point(charstart+(seperators[i]+1)*charsize,(textheight+fspaceBetweenLines));
-    offscreenbitmap.Canvas.LineTo(charstart+(seperators[i]+1)*charsize,mbcanvas.height);
+      offscreenbitmap.Canvas.PenPos:=point(charstart+(seperators[i]+1)*charsize,(textheight+fspaceBetweenLines));
+      offscreenbitmap.Canvas.LineTo(charstart+(seperators[i]+1)*charsize,mbcanvas.height);
+    end;
   end;
 
-  offscreenbitmap.Canvas.Pen.Color:=clBlack;
-  offscreenbitmap.Canvas.PenPos:=point(0,textheight*2);
-  offscreenbitmap.Canvas.LineTo(charstart+bytesperline*charsize,textheight*2);
+{$ifdef USELAZFREETYPE}
+  if drawer<>nil then
+  begin
+    drawer.DrawHorizLine(0,textheight*2, charstart+bytesperline*charsize, colBlack);
+  end
+  else
+{$endif}
+  begin
+    offscreenbitmap.Canvas.Pen.Color:=clBlack;
+    offscreenbitmap.Canvas.PenPos:=point(0,textheight*2);
+    offscreenbitmap.Canvas.LineTo(charstart+bytesperline*charsize,textheight*2);
+  end;
 
+
+{$ifdef USELAZFREETYPE}
+  if IntfImage<>nil then
+  begin
+    b:=tbitmap.create();
+    b.LoadFromIntfImage(IntfImage);
+    offscreenbitmap.Canvas.Draw(0,0,b);
+    b.free;
+  end;
+{$endif}
 
   v_qword:=int64(getQWordValue(SelectionStart, unreadable));
   if not unreadable then
@@ -2291,6 +2543,8 @@ begin
       statusbar.SimpleText:=format('%.8x %s',[SelectionStart, s])
   end;
 
+
+  lastrendertime:=gettickcount64-starttime;
 end;
 
 procedure THexView.setAddress(a: ptrUint);
@@ -2320,7 +2574,7 @@ begin
     //and now for myself
   end;
 
-  update;
+  //update;
 end;
 
 procedure THexView.hexviewResize(sender: TObject);
@@ -2460,7 +2714,9 @@ procedure THexView.Follow;
 var
   gotoaddress: ptruint;
   x: ptruint;
+{$IFNDEF STANDALONEHV}
   mb: TMemoryBrowser;
+{$ENDIF}
 begin
   if canfollow then
   begin
@@ -2470,6 +2726,7 @@ begin
     if ReadProcessMemory(processhandle, pointer(getSelectionStart), @gotoaddress, processhandler.pointersize,x) then
     begin
       //save the current address in the history
+      {$IFNDEF STANDALONEHV}
       if ssshift in GetKeyShiftState then
       begin
         //spawn a new memoryview window and set the address to there
@@ -2479,6 +2736,7 @@ begin
         mb.show;
       end
       else
+      {$ENDIF}
       begin
         backlist.push(pointer(address));
 
@@ -2509,10 +2767,14 @@ begin
 
   textheight:=offscreenbitmap.Canvas.TextHeight('X?');
   addresswidthdefault:=offscreenbitmap.Canvas.TextWidth('XXXXXXXX');
-
+ {
   charsize:=offscreenbitmap.Canvas.TextWidth('X');
   byteSize:=offscreenbitmap.Canvas.TextWidth('XX X'); //byte space and the character it represents
   byteSizeWithoutChar:=offscreenbitmap.Canvas.TextWidth('XX ');
+     }
+  charsize:=ceil(FTFont.TextWidth('X'));
+  byteSize:=ceil(FTFont.TextWidth('XX X'));
+  byteSizeWithoutChar:=ceil(FTFont.TextWidth('XX '));
 
   hexviewResize(self);
   update;
@@ -2549,8 +2811,37 @@ end;
 
 constructor THexView.create(AOwner: TComponent);
 var sp: TStatusPanel;
+  c: TCustomFontCollectionItem;
 begin
   inherited create(AOwner);
+
+
+  //FontCollection.AddFile('/Users/eric/couri.ttf');
+  {$ifdef USELAZFREETYPE}
+  try
+    c:=FontCollection.AddFile(extractfiledir(extractfiledir(Application.ExeName))+'/Resources/couri.ttf');
+  except
+    c:=nil;
+  end;
+
+  if c=nil then
+  begin
+    try
+      c:=FontCollection.AddFile('couri.ttf');
+    except
+      c:=nil;
+    end;
+  end;
+
+  if c<>nil then
+  begin
+    FTFont:=TFreeTypeFont.Create;
+    FTFont.Name:='Courier New';
+
+    IntfImage:=TLazIntfImage.Create(0,0, [riqfRGB]);
+    drawer:=TIntfFreeTypeDrawer.Create(IntfImage);
+  end;
+  {$endif}
 
   fadetimer:=1000;
   backlist:=TStack.create;
@@ -2585,7 +2876,9 @@ begin
   fHexFont:=tfont.create;
   fHexFont.Charset:=DEFAULT_CHARSET;
   fHexFont.Color:=clwindowText;
+  {$IFNDEF STANDALONEHV}
   fHexFont.Height:=GetFontData(MainForm.font.handle).Height;
+  {$ENDIF}
   if fHexFont.Height>-13 then
     fHexFont.Height:=-13;
 
@@ -2624,14 +2917,28 @@ begin
   self.OnResize:=hexviewResize;
 
   offscreenbitmap:=TBitmap.create;
+  offscreenbitmap.PixelFormat:=pf32bit;
   offscreenbitmap.canvas.font.Assign(fHexFont);
+
 
   textheight:=offscreenbitmap.Canvas.TextHeight('X?');
   addresswidthdefault:=offscreenbitmap.Canvas.TextWidth('XXXXXXXX');
 
-  charsize:=offscreenbitmap.Canvas.TextWidth('X');
-  byteSize:=offscreenbitmap.Canvas.TextWidth('XX X'); //byte space and the character it represents
-  byteSizeWithoutChar:=offscreenbitmap.Canvas.TextWidth('XX ');
+  {$ifdef USELAZFREETYPE}
+  if FTFont<>nil then
+  begin
+    charsize:=ceil(FTFont.TextWidth('X'));
+    byteSize:=ceil(FTFont.TextWidth('XX X'));
+    byteSizeWithoutChar:=ceil(FTFont.TextWidth('XX '));
+  end
+  else
+  {$endif}
+  begin
+    charsize:=offscreenbitmap.Canvas.TextWidth('X');
+    byteSize:=offscreenbitmap.Canvas.TextWidth('XX X'); //byte space and the character it represents
+    byteSizeWithoutChar:=offscreenbitmap.Canvas.TextWidth('XX ');
+  end;
+
 
   update;
 end;
