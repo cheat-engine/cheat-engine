@@ -22,7 +22,7 @@
       <AutoIncrementBuild Value="True"/>
       <MajorVersionNr Value="7"/>
       <MinorVersionNr Value="1"/>
-      <BuildNr Value="6256"/>
+      <BuildNr Value="6257"/>
       <Language Value=""/>
       <CharSet Value=""/>
       <StringTable CompanyName="Cheat Engine" FileDescription="Cheat Engine" ProductVersion="7.1"/>
@@ -637,7 +637,7 @@
         <PackageName Value="LCL"/>
       </Item8>
     </RequiredPackages>
-    <Units Count="393">
+    <Units Count="394">
       <Unit0>
         <Filename Value="cheatengine.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -2713,6 +2713,10 @@
         <Filename Value="rttihelper.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit392>
+      <Unit393>
+        <Filename Value="cefreetype.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit393>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

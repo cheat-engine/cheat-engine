@@ -18,7 +18,7 @@ uses
   Clipbrd,dialogs, changelist, maps, contnrs,
   strutils, lazutf8, lazutf16, lcltype, LCLIntf
 {$ifdef USELAZFREETYPE}
-  ,FPCanvas, EasyLazFreeType, LazFreeTypeFontCollection, LazFreeTypeIntfDrawer,
+  ,cefreetype,FPCanvas, EasyLazFreeType, LazFreeTypeFontCollection, LazFreeTypeIntfDrawer,
   LazFreeTypeFPImageDrawer, IntfGraphics, fpimage, graphtype
 {$endif}
 
@@ -2826,22 +2826,8 @@ begin
 
   //FontCollection.AddFile('/Users/eric/couri.ttf');
   {$ifdef USELAZFREETYPE}
-  try
-    c:=FontCollection.AddFile(extractfiledir(extractfiledir(Application.ExeName))+'/Resources/couri.ttf');
-  except
-    c:=nil;
-  end;
 
-  if c=nil then
-  begin
-    try
-      c:=FontCollection.AddFile('couri.ttf');
-    except
-      c:=nil;
-    end;
-  end;
-
-  if c<>nil then
+  if loadCEFreeTypeFonts then
   begin
     FTFont:=TFreeTypeFont.Create;
     FTFont.Name:='Courier New';
