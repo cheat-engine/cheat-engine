@@ -2767,14 +2767,20 @@ begin
 
   textheight:=offscreenbitmap.Canvas.TextHeight('X?');
   addresswidthdefault:=offscreenbitmap.Canvas.TextWidth('XXXXXXXX');
- {
-  charsize:=offscreenbitmap.Canvas.TextWidth('X');
-  byteSize:=offscreenbitmap.Canvas.TextWidth('XX X'); //byte space and the character it represents
-  byteSizeWithoutChar:=offscreenbitmap.Canvas.TextWidth('XX ');
-     }
-  charsize:=ceil(FTFont.TextWidth('X'));
-  byteSize:=ceil(FTFont.TextWidth('XX X'));
-  byteSizeWithoutChar:=ceil(FTFont.TextWidth('XX '));
+  {$ifdef USELAZARUSFREETYPE}
+  if (FTFont<>nil) then
+  begin
+    charsize:=ceil(FTFont.TextWidth('X'));
+    byteSize:=ceil(FTFont.TextWidth('XX X'));
+    byteSizeWithoutChar:=ceil(FTFont.TextWidth('XX '));
+  end
+  else
+  {$endif}
+  begin
+    charsize:=offscreenbitmap.Canvas.TextWidth('X');
+    byteSize:=offscreenbitmap.Canvas.TextWidth('XX X'); //byte space and the character it represents
+    byteSizeWithoutChar:=offscreenbitmap.Canvas.TextWidth('XX ');
+  end;
 
   hexviewResize(self);
   update;
@@ -2811,7 +2817,9 @@ end;
 
 constructor THexView.create(AOwner: TComponent);
 var sp: TStatusPanel;
+{$ifdef USELAZFREETYPE}
   c: TCustomFontCollectionItem;
+{$endif}
 begin
   inherited create(AOwner);
 
