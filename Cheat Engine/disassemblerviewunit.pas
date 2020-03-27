@@ -24,7 +24,13 @@ uses {$ifdef darwin}macport,messages,lcltype,{$endif}
      {$ifdef windows}jwawindows, windows,commctrl,{$endif}
      sysutils, LCLIntf, forms, classes, controls, comctrls, stdctrls, extctrls, symbolhandler,
      cefuncproc, NewKernelHandler, graphics, disassemblerviewlinesunit, disassembler,
-     math, lmessages, menus, dissectcodethread;
+     math, lmessages, menus, DissectCodeThread
+
+     {$ifdef USELAZFREETYPE}
+     ,cefreetype,FPCanvas, EasyLazFreeType, LazFreeTypeFontCollection, LazFreeTypeIntfDrawer,
+     LazFreeTypeFPImageDrawer, IntfGraphics, fpimage, graphtype
+     {$endif}
+     ;
 
 
 
@@ -85,6 +91,8 @@ type TDisassemblerview=class(TPanel)
 
     fOnDisassemblerViewOverride: TDisassemblerViewOverrideCallback;
 
+
+
     procedure updateScrollbox;
     procedure scrollboxResize(Sender: TObject);
 
@@ -138,6 +146,12 @@ type TDisassemblerview=class(TPanel)
 
     LastFormActiveEvent: qword;
 
+    {$ifdef USELAZFREETYPE}
+    FTFont: TFreeTypeFont;
+    FTFontb: TFreeTypeFont; //bold version
+    IntfImage: TLazIntfImage;
+    drawer: TIntfFreeTypeDrawer;
+    {$endif}
 
     procedure DoDisassemblerViewLineOverride(address: ptruint; var addressstring: string; var bytestring: string; var opcodestring: string; var parameterstring: string; var specialstring: string);
 
@@ -182,7 +196,7 @@ end;
 
 implementation
 
-uses processhandlerunit, parsers, Clipbrd;
+uses processhandlerunit, parsers, Clipbrd, Globals;
 
 resourcestring
   rsSymbolsAreBeingLoaded = 'Symbols are being loaded (%d %%)';
@@ -708,6 +722,10 @@ var
   selstart, selstop: ptrUint;
   description: string;
   x: ptrUint;
+
+  {$ifdef USELAZFREETYPE}
+  b: tbitmap;
+  {$endif}
 begin
   inherited update;
 
@@ -743,8 +761,20 @@ begin
     offscreenbitmap.Height:=discanvas.Height;
 
     //clear bitmap
-    offscreenbitmap.Canvas.Brush.Color:=clBtnFace;
-    offscreenbitmap.Canvas.FillRect(rect(0,0,offscreenbitmap.Width, offscreenbitmap.Height));
+    {$ifdef USELAZFREETYPE}
+    if (not UseOriginalRenderingSystem) and (drawer<>nil) then
+    begin
+      if (IntfImage.Width<>offscreenbitmap.width) or (IntfImage.Height<>offscreenbitmap.Height) then
+        IntfImage.SetSize(offscreenbitmap.width, offscreenbitmap.height);
+
+      drawer.FillPixels(TColorToFPColor(ColorToRGB(clBtnFace)));
+    end
+    else
+    {$endif}
+    begin
+      offscreenbitmap.Canvas.Brush.Color:=clBtnFace;
+      offscreenbitmap.Canvas.FillRect(rect(0,0,offscreenbitmap.Width, offscreenbitmap.Height));
+    end;
 
     currenttop:=-fTopSubline;
     i:=0;
@@ -769,6 +799,17 @@ begin
       inc(i);
     end;
 
+    {$ifdef USELAZFREETYPE}
+    if (not UseOriginalRenderingSystem) and (IntfImage<>nil) then
+    begin
+      b:=tbitmap.create();
+      b.LoadFromIntfImage(IntfImage);
+      offscreenbitmap.Canvas.Draw(0,0,b);
+      b.free;
+    end;
+    {$endif}
+
+
     fTotalvisibledisassemblerlines:=i;
 
     x:=fSelectedAddress;
@@ -779,6 +820,7 @@ begin
 
     if ShowJumplines then
       renderjumplines;
+
 
 
     if not isupdating then
@@ -1120,6 +1162,23 @@ var
   mi: TMenuItem;
 begin
   inherited create(AOwner);
+
+  {$ifdef USELAZFREETYPE}
+  if loadCEFreeTypeFonts then
+  begin
+    FTFont:=TFreeTypeFont.Create;
+    FTFont.Name:='Courier New';
+
+
+    FTFontb:=TFreeTypeFont.Create;
+    FTFontb.Name:='Courier New';
+    FTFontb.Style:=[ftsBold];
+    FTFontb.Hinted:=false;
+
+    IntfImage:=TLazIntfImage.Create(0,0, [riqfRGB]);
+    drawer:=TIntfFreeTypeDrawer.Create(IntfImage);
+  end;
+  {$endif}
 
   jlSpacing:=2;
   jlThickness:=1;

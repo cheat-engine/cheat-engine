@@ -256,7 +256,7 @@ implementation
 
 {$IFNDEF STANDALONEHV}
 uses formsettingsunit, Valuechange, MainUnit, ProcessHandlerUnit, parsers,
-  StructuresFrm2, MemoryBrowserFormUnit, BreakpointTypeDef;
+  StructuresFrm2, MemoryBrowserFormUnit, BreakpointTypeDef, globals;
 {$ENDIF}
 
 resourcestring
@@ -2086,9 +2086,6 @@ var
   fontcolor: tcolor;
 
 begin
-
-
-
   starttime:=gettickcount64;
   displayOffset:=0;
   if bytesperline<=0 then exit;
@@ -2108,7 +2105,7 @@ begin
   seperatormask:=bps-1;
 
   {$ifdef USELAZFREETYPE}
-  if IntfImage<>nil then
+  if (not UseOriginalRenderingSystem) and (IntfImage<>nil) then
   begin
     w:=offscreenBitmap.Width;
     h:=offscreenBitmap.Height;
@@ -2138,7 +2135,7 @@ begin
   if not useRelativeBase then
   begin
 {$ifdef USELAZFREETYPE}
-    if drawer<>nil then
+    if (not UseOriginalRenderingSystem) and (drawer<>nil) then
       drawer.DrawText(memoryInfo, FTFont,0,0, TColorToFPColor(offscreenbitmap.canvas.Font.Color), [ftaLeft, ftaTop])
     else
 {$endif}
@@ -2147,7 +2144,7 @@ begin
   else
   begin
 {$ifdef USELAZFREETYPE}
-    if drawer<>nil then
+    if (not UseOriginalRenderingSystem) and (drawer<>nil) then
       drawer.DrawText(' '+inttohex(RelativeBase,8)+' : '+memoryInfo, FTFont,0,0, TColorToFPColor(offscreenbitmap.canvas.Font.Color), [ftaLeft, ftaTop])
     else
 {$endif}
@@ -2155,7 +2152,7 @@ begin
   end;
 
 {$ifdef USELAZFREETYPE}
-  if drawer<>nil then
+  if (not UseOriginalRenderingSystem) and (drawer<>nil) then
     drawer.DrawText(rsAddress, FTFont,0,textheight, TColorToFPColor(offscreenbitmap.canvas.Font.Color), [ftaLeft, ftaTop])
   else
 {$endif}
@@ -2226,7 +2223,7 @@ begin
 
 //  bheader:='bpl='+inttostr(bytesperline)+' bytesize='+inttostr(bytesize)+' width='+inttostr(mbcanvas.width);
 {$ifdef USELAZFREETYPE}
-  if drawer<>nil then
+  if (not UseOriginalRenderingSystem) and (drawer<>nil) then
   begin
     drawer.DrawText(bheader, FTFont,bytestart,textheight, TColorToFPColor(offscreenbitmap.canvas.Font.Color), [ftaLeft, ftaTop]);
     drawer.DrawText(cheader, FTFont,charstart,textheight, TColorToFPColor(offscreenbitmap.canvas.Font.Color), [ftaLeft, ftaTop]);
@@ -2263,7 +2260,7 @@ begin
       if currentaddress>=RelativeBase then
       begin
         {$ifdef USELAZFREETYPE}
-        if drawer<>nil then
+        if (not UseOriginalRenderingSystem) and (drawer<>nil) then
           drawer.DrawText('+'+inttohex(currentaddress-RelativeBase,8), FTFont,0, 2+2*textheight+(i*(textheight+fspaceBetweenLines)), TColorToFPColor(offscreenbitmap.canvas.Font.Color), [ftaLeft, ftaTop])
         else
         {$endif}
@@ -2273,7 +2270,7 @@ begin
       else
       begin
         {$ifdef USELAZFREETYPE}
-        if drawer<>nil then
+        if (not UseOriginalRenderingSystem) and (drawer<>nil) then
           drawer.DrawText('-'+inttohex(RelativeBase-currentaddress,8), FTFont,0, 2+2*textheight+(i*(textheight+fspaceBetweenLines)), TColorToFPColor(offscreenbitmap.canvas.Font.Color), [ftaLeft, ftaTop])
         else
         {$endif}
@@ -2284,7 +2281,7 @@ begin
     else
     begin
       {$ifdef USELAZFREETYPE}
-      if drawer<>nil then
+      if (not UseOriginalRenderingSystem) and (drawer<>nil) then
         drawer.DrawText(inttohex(currentaddress,8), FTFont,0, 2+2*textheight+(i*(textheight+fspaceBetweenLines)), TColorToFPColor(offscreenbitmap.canvas.Font.Color), [ftaLeft, ftaTop])
       else
       {$endif}
@@ -2391,7 +2388,7 @@ begin
         if assigned(fOnValueRender) then
           fOnValueRender(self, currentaddress, s);
         {$ifdef USELAZFREETYPE}
-        if drawer<>nil then
+        if (not UseOriginalRenderingSystem) and (drawer<>nil) then
           drawer.DrawText(s, FTFont,bytestart+bytepos*charsize, 2+2*textheight+(i*(textheight+fspaceBetweenLines)), TColorToFPColor(offscreenbitmap.canvas.Font.Color), [ftaLeft, ftaTop])
         else
         {$endif}
@@ -2423,7 +2420,7 @@ begin
           fOnCharacterRender(self, currentaddress, char);
 
         {$ifdef USELAZFREETYPE}
-        if drawer<>nil then
+        if (not UseOriginalRenderingSystem) and (drawer<>nil) then
           drawer.DrawText(char, FTFont,charstart+j*charsize, 2+2*textheight+(i*(textheight+fspaceBetweenLines)), TColorToFPColor(offscreenbitmap.canvas.Font.Color), [ftaLeft, ftaTop])
         else
         {$endif}
@@ -2446,7 +2443,7 @@ begin
         if editingtype=hrByte then //draw the carret for the byte
         begin
           {$ifdef USELAZFREETYPE}
-          if drawer<>nil then
+          if (not UseOriginalRenderingSystem) and (drawer<>nil) then
           begin
             drawer.DrawVertLine(0+bytestart+bytepos*charsize+editingCursorPos*charsize, 2+2*textheight+(i*(textheight+fspaceBetweenLines))+1, 2+2*textheight+(i*(textheight+fspaceBetweenLines))+textheight-2, colRed);
             drawer.DrawVertLine(1+bytestart+bytepos*charsize+editingCursorPos*charsize, 2+2*textheight+(i*(textheight+fspaceBetweenLines))+1, 2+2*textheight+(i*(textheight+fspaceBetweenLines))+textheight-2, colRed);
@@ -2459,7 +2456,7 @@ begin
         else //draw the carret for the char
         begin
           {$ifdef USELAZFREETYPE}
-          if drawer<>nil then
+          if (not UseOriginalRenderingSystem) and (drawer<>nil) then
           begin
             drawer.DrawVertLine(0+charstart+j*charsize,2+2*textheight+(i*(textheight+fspaceBetweenLines))+1,2+2*textheight+(i*(textheight+fspaceBetweenLines))+textheight-2, colRed);
             drawer.DrawVertLine(1+charstart+j*charsize,2+2*textheight+(i*(textheight+fspaceBetweenLines))+1,2+2*textheight+(i*(textheight+fspaceBetweenLines))+textheight-2, colRed);
@@ -2487,7 +2484,7 @@ begin
   for i:=0 to seperatorindex-1 do
   begin
     {$ifdef USELAZFREETYPE}
-    if drawer<>nil then
+    if (not UseOriginalRenderingSystem) and (drawer<>nil) then
     begin
       drawer.DrawVertLine(bytestart+(seperators[i]+1)*byteSizeWithoutChar-(charsize shr 1),(textheight+fspaceBetweenLines),mbcanvas.height, colYellow);
       drawer.DrawVertLine(charstart+(seperators[i]+1)*charsize,(textheight+fspaceBetweenLines),mbcanvas.height, colYellow);
@@ -2505,7 +2502,7 @@ begin
   end;
 
 {$ifdef USELAZFREETYPE}
-  if drawer<>nil then
+  if (not UseOriginalRenderingSystem) and (drawer<>nil) then
   begin
     drawer.DrawHorizLine(0,textheight*2, charstart+bytesperline*charsize, colBlack);
   end
@@ -2519,7 +2516,7 @@ begin
 
 
 {$ifdef USELAZFREETYPE}
-  if IntfImage<>nil then
+  if (not UseOriginalRenderingSystem) and (IntfImage<>nil) then
   begin
     b:=tbitmap.create();
     b.LoadFromIntfImage(IntfImage);
@@ -2767,7 +2764,7 @@ begin
 
   textheight:=offscreenbitmap.Canvas.TextHeight('X?');
   addresswidthdefault:=offscreenbitmap.Canvas.TextWidth('XXXXXXXX');
-  {$ifdef USELAZARUSFREETYPE}
+  {$ifdef USELAZFREETYPE}
   if (FTFont<>nil) then
   begin
     charsize:=ceil(FTFont.TextWidth('X'));
@@ -2817,20 +2814,17 @@ end;
 
 constructor THexView.create(AOwner: TComponent);
 var sp: TStatusPanel;
-{$ifdef USELAZFREETYPE}
-  c: TCustomFontCollectionItem;
-{$endif}
 begin
   inherited create(AOwner);
 
-
-  //FontCollection.AddFile('/Users/eric/couri.ttf');
   {$ifdef USELAZFREETYPE}
-
   if loadCEFreeTypeFonts then
   begin
     FTFont:=TFreeTypeFont.Create;
     FTFont.Name:='Courier New';
+    //FTFont.Hinted:=false; //only for bold
+    //FTFont.SizeInPoints:=12;
+    //FTFont.Style:=[ftsBold];
 
     IntfImage:=TLazIntfImage.Create(0,0, [riqfRGB]);
     drawer:=TIntfFreeTypeDrawer.Create(IntfImage);
@@ -2921,9 +2915,9 @@ begin
   {$ifdef USELAZFREETYPE}
   if FTFont<>nil then
   begin
-    charsize:=ceil(FTFont.TextWidth('X'));
-    byteSize:=ceil(FTFont.TextWidth('XX X'));
-    byteSizeWithoutChar:=ceil(FTFont.TextWidth('XX '));
+    charsize:=ceil(FTFont.TextWidth('a'));
+    byteSize:=ceil(FTFont.TextWidth('aa a'));
+    byteSizeWithoutChar:=ceil(FTFont.TextWidth('aa '));
   end
   else
   {$endif}

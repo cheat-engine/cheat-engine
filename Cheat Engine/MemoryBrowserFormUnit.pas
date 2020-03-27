@@ -20,7 +20,7 @@ uses
   debughelper, debuggertypedefinitions,frmMemviewPreferencesUnit, registry,
   ScrollBoxEx, disassemblerComments, multilineinputqueryunit, frmMemoryViewExUnit,
   LastDisassembleData, ProcessHandlerUnit, commonTypeDefs, binutils,
-  fontSaveLoadRegistry, LazFileUtils;
+  fontSaveLoadRegistry, LazFileUtils, ceregistry;
 
 
 type
@@ -2176,9 +2176,16 @@ begin
     hexSpaceBetweenLines:=hexview.spaceBetweenLines;
     cbShowStatusBar.checked:=hexview.statusbar.Visible;
 
+    {$ifdef USELAZFREETYPE}
+    cbOriginalRenderingSystem.checked:=UseOriginalRenderingSystem;
+    {$endif}
+
     if showmodal=mrok then
     begin
       //set the colors and save to registry
+      {$ifdef USELAZFREETYPE}
+      UseOriginalRenderingSystem:=cbOriginalRenderingSystem.checked;
+      {$endif}
       disassemblerview.Font.assign(fontdialog1.Font);
       disassemblerview.Font.style:=[];
       disassemblerview.colors:=colors;
@@ -2198,13 +2205,25 @@ begin
 
       scrollbox1.Font:=fontdialog3.font;
       setRegisterPanelFont(fontdialog3.font);
+
+
+
+      free;
+    end
+    else
+    begin
+      free;
+      exit;
     end;
-    free;
   end;
 
   disassemblerview.reinitialize;
 
   //save to the registry
+  {$ifdef USELAZFREETYPE}
+  cereg.writeBool('OriginalRenderingSystem', UseOriginalRenderingSystem);
+  {$endif}
+
   reg:=Tregistry.Create;
   try
     if reg.OpenKey('\Software\Cheat Engine\Disassemblerview '+inttostr(screen.PixelsPerInch)+'\',true) then
@@ -2375,11 +2394,11 @@ begin
 
 
   //load from the registry
+  UseOriginalRenderingSystem:=cereg.readBool('OriginalRenderingSystem');
+
   f:=TFont.create;
   reg:=Tregistry.Create;
   try
-
-
     if reg.OpenKey('\Software\Cheat Engine\Disassemblerview '+inttostr(screen.PixelsPerInch)+'\Font',false) then
     begin
       LoadFontFromRegistry(f, reg);

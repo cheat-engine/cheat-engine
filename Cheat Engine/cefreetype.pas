@@ -26,14 +26,21 @@ begin
   begin
     freetypefontsloaded:=false;
     try
-      freetypefontsloaded:=fontCollection.AddFile(extractfiledir(extractfiledir(Application.ExeName))+'/Resources/couri.ttf')<>nil;
+      {$ifdef darwin}
+      freetypefontsloaded:=fontCollection.AddFile(extractfiledir(extractfiledir(Application.ExeName))+'/Resources/cour.ttf')<>nil;
+      fontCollection.AddFile(extractfiledir(extractfiledir(Application.ExeName))+'/Resources/courbd.ttf');
+      {$else}
+      freetypefontsloaded:=fontCollection.AddFile(extractfilepath(Application.ExeName)+'cour.ttf')<>nil;
+      fontCollection.AddFile(extractfilepath(Application.ExeName)+'courbd.ttf');
+      {$endif}
     except
     end;
 
     if freetypefontsloaded=false then
     begin
       try
-        freetypefontsloaded:=FontCollection.AddFile('couri.ttf')<>nil;
+        freetypefontsloaded:=FontCollection.AddFile('cour.ttf')<>nil;
+        FontCollection.AddFile('courbd.ttf');
       except
       end;
     end;

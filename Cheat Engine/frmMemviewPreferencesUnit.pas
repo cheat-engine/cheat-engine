@@ -27,6 +27,7 @@ type
     Button3: TButton;
     cbColorGroup: TComboBox;
     cbShowStatusBar: TCheckBox;
+    cbOriginalRenderingSystem: TCheckBox;
     ColorDialog1: TColorDialog;
     cbFontQuality: TComboBox;
     edtSpaceAboveLines: TEdit;
@@ -200,6 +201,10 @@ begin
   cbColorGroup.Items.Add(rsDCUltimap2);
   cbColorGroup.Items.Add(rsDCHighlightedUltimap2);
   cbColorGroup.Items.Add(rsDCHighlightedUltimap2Secondary);
+
+  {$ifdef USELAZFREETYPE}
+  cbOriginalRenderingSystem.Visible:=true;
+  {$endif}
 end;
 
 procedure TfrmMemviewPreferences.FormShow(Sender: TObject);

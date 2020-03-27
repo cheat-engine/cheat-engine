@@ -12,13 +12,13 @@ object frmMemviewPreferences: TfrmMemviewPreferences
   OnShow = FormShow
   PopupMenu = pmColors
   Position = poScreenCenter
-  LCLVersion = '2.0.0.4'
+  LCLVersion = '2.0.7.0'
   object Button2: TButton
     AnchorSideTop.Control = GroupBox2
     AnchorSideTop.Side = asrBottom
     Left = 8
     Height = 25
-    Top = 368
+    Top = 381
     Width = 75
     AutoSize = True
     BorderSpacing.Top = 3
@@ -36,7 +36,7 @@ object frmMemviewPreferences: TfrmMemviewPreferences
     AnchorSideTop.Control = Button2
     Left = 87
     Height = 25
-    Top = 368
+    Top = 381
     Width = 75
     AutoSize = True
     BorderSpacing.Left = 4
@@ -49,15 +49,16 @@ object frmMemviewPreferences: TfrmMemviewPreferences
   end
   object GroupBox2: TGroupBox
     AnchorSideLeft.Control = Owner
-    AnchorSideTop.Control = Owner
+    AnchorSideTop.Control = cbOriginalRenderingSystem
+    AnchorSideTop.Side = asrBottom
     Left = 0
-    Height = 365
-    Top = 0
-    Width = 187
+    Height = 360
+    Top = 18
+    Width = 205
     AutoSize = True
     Caption = 'Disassembler'
-    ClientHeight = 345
-    ClientWidth = 183
+    ClientHeight = 341
+    ClientWidth = 195
     TabOrder = 0
     object btnFont: TButton
       AnchorSideLeft.Control = GroupBox2
@@ -65,9 +66,9 @@ object frmMemviewPreferences: TfrmMemviewPreferences
       AnchorSideRight.Control = cbColorGroup
       AnchorSideRight.Side = asrBottom
       Left = 8
-      Height = 25
+      Height = 20
       Top = 0
-      Width = 175
+      Width = 187
       AutoSize = True
       BorderSpacing.Left = 8
       Caption = 'Change disassembler font'
@@ -82,13 +83,13 @@ object frmMemviewPreferences: TfrmMemviewPreferences
       AnchorSideRight.Control = btnFont
       AnchorSideRight.Side = asrBottom
       Left = 8
-      Height = 23
-      Top = 30
-      Width = 175
+      Height = 20
+      Top = 25
+      Width = 187
       Anchors = [akTop, akLeft, akRight]
       BorderSpacing.Top = 5
       Constraints.MinWidth = 175
-      ItemHeight = 15
+      ItemHeight = 26
       ItemIndex = 0
       Items.Strings = (
         'Normal'
@@ -113,8 +114,8 @@ object frmMemviewPreferences: TfrmMemviewPreferences
       AnchorSideRight.Side = asrBottom
       Cursor = crHandPoint
       Left = 8
-      Height = 104
-      Top = 55
+      Height = 107
+      Top = 47
       Width = 175
       AutoSize = True
       BorderSpacing.Top = 2
@@ -123,8 +124,8 @@ object frmMemviewPreferences: TfrmMemviewPreferences
       ChildSizing.VerticalSpacing = 6
       ChildSizing.Layout = cclLeftToRightThenTopToBottom
       ChildSizing.ControlsPerLine = 1
-      ClientHeight = 84
-      ClientWidth = 171
+      ClientHeight = 88
+      ClientWidth = 165
       Constraints.MinWidth = 175
       TabOrder = 4
       OnClick = GroupBox1Click
@@ -132,9 +133,9 @@ object frmMemviewPreferences: TfrmMemviewPreferences
       object lblNormal: TLabel
         Cursor = crHandPoint
         Left = 0
-        Height = 15
+        Height = 16
         Top = 3
-        Width = 98
+        Width = 112
         Caption = 'Default color'
         ParentColor = False
         ParentFont = False
@@ -143,9 +144,9 @@ object frmMemviewPreferences: TfrmMemviewPreferences
       object lblRegister: TLabel
         Cursor = crHandPoint
         Left = 0
-        Height = 15
-        Top = 24
-        Width = 98
+        Height = 16
+        Top = 25
+        Width = 112
         Caption = 'Register color'
         ParentColor = False
         OnClick = lblRegisterClick
@@ -153,9 +154,9 @@ object frmMemviewPreferences: TfrmMemviewPreferences
       object lblSymbol: TLabel
         Cursor = crHandPoint
         Left = 0
-        Height = 15
-        Top = 45
-        Width = 98
+        Height = 16
+        Top = 47
+        Width = 112
         Caption = 'Symbol color'
         ParentColor = False
         OnClick = lblSymbolClick
@@ -163,9 +164,9 @@ object frmMemviewPreferences: TfrmMemviewPreferences
       object lblHex: TLabel
         Cursor = crHandPoint
         Left = 0
-        Height = 15
-        Top = 66
-        Width = 98
+        Height = 16
+        Top = 69
+        Width = 112
         Caption = 'Hexadecimal color'
         ParentColor = False
         OnClick = lblHexClick
@@ -184,14 +185,14 @@ object frmMemviewPreferences: TfrmMemviewPreferences
       AnchorSideTop.Side = asrBottom
       AnchorSideRight.Side = asrBottom
       Left = 8
-      Height = 126
-      Top = 219
-      Width = 175
+      Height = 128
+      Top = 213
+      Width = 178
       AutoSize = True
       BorderSpacing.Top = 2
       Caption = 'Jumplines'
-      ClientHeight = 106
-      ClientWidth = 171
+      ClientHeight = 109
+      ClientWidth = 168
       Constraints.MinWidth = 175
       TabOrder = 3
       object lblConditionalJump: TLabel
@@ -199,9 +200,9 @@ object frmMemviewPreferences: TfrmMemviewPreferences
         AnchorSideTop.Control = Panel3
         AnchorSideTop.Side = asrBottom
         Left = 0
-        Height = 15
+        Height = 16
         Top = 43
-        Width = 123
+        Width = 136
         BorderSpacing.Top = 5
         Caption = 'Conditional jump color'
         ParentColor = False
@@ -212,9 +213,9 @@ object frmMemviewPreferences: TfrmMemviewPreferences
         AnchorSideTop.Control = lblConditionalJump
         AnchorSideTop.Side = asrBottom
         Left = 0
-        Height = 15
-        Top = 64
-        Width = 136
+        Height = 16
+        Top = 65
+        Width = 151
         BorderSpacing.Top = 6
         Caption = 'Unconditional jump color'
         ParentColor = False
@@ -225,9 +226,9 @@ object frmMemviewPreferences: TfrmMemviewPreferences
         AnchorSideTop.Control = lblUnconditionalJump
         AnchorSideTop.Side = asrBottom
         Left = 0
-        Height = 15
-        Top = 85
-        Width = 50
+        Height = 16
+        Top = 87
+        Width = 57
         BorderSpacing.Top = 6
         BorderSpacing.Bottom = 6
         Caption = 'Call color'
@@ -262,9 +263,9 @@ object frmMemviewPreferences: TfrmMemviewPreferences
           TabOrder = 0
           object Label4: TLabel
             Left = 0
-            Height = 15
+            Height = 16
             Top = 0
-            Width = 52
+            Width = 61
             Caption = 'Thickness'
             ParentColor = False
           end
@@ -275,8 +276,8 @@ object frmMemviewPreferences: TfrmMemviewPreferences
             AnchorSideRight.Control = Panel2
             AnchorSideRight.Side = asrBottom
             Left = 0
-            Height = 23
-            Top = 15
+            Height = 22
+            Top = 16
             Width = 80
             Anchors = [akTop, akLeft, akRight]
             Constraints.MinWidth = 80
@@ -300,9 +301,9 @@ object frmMemviewPreferences: TfrmMemviewPreferences
             AnchorSideLeft.Control = Panel1
             AnchorSideTop.Control = Panel1
             Left = 0
-            Height = 15
+            Height = 16
             Top = 0
-            Width = 42
+            Width = 49
             Caption = 'Spacing'
             ParentColor = False
           end
@@ -313,8 +314,8 @@ object frmMemviewPreferences: TfrmMemviewPreferences
             AnchorSideRight.Control = Panel1
             AnchorSideRight.Side = asrBottom
             Left = 0
-            Height = 23
-            Top = 15
+            Height = 22
+            Top = 16
             Width = 80
             Anchors = [akTop, akLeft, akRight]
             Constraints.MinWidth = 80
@@ -330,16 +331,16 @@ object frmMemviewPreferences: TfrmMemviewPreferences
       AnchorSideTop.Side = asrBottom
       AnchorSideRight.Side = asrBottom
       Left = 8
-      Height = 58
-      Top = 159
-      Width = 175
+      Height = 57
+      Top = 154
+      Width = 178
       AutoSize = True
       Caption = 'Space between lines'
       ChildSizing.HorizontalSpacing = 8
       ChildSizing.Layout = cclLeftToRightThenTopToBottom
       ChildSizing.ControlsPerLine = 2
       ClientHeight = 38
-      ClientWidth = 171
+      ClientWidth = 168
       Constraints.MinWidth = 175
       TabOrder = 2
       OnClick = GroupBox5Click
@@ -357,9 +358,9 @@ object frmMemviewPreferences: TfrmMemviewPreferences
           AnchorSideLeft.Control = Panel4
           AnchorSideTop.Control = Panel4
           Left = 0
-          Height = 15
+          Height = 16
           Top = 0
-          Width = 34
+          Width = 38
           Caption = 'Above'
           ParentColor = False
         end
@@ -368,8 +369,8 @@ object frmMemviewPreferences: TfrmMemviewPreferences
           AnchorSideTop.Control = Label6
           AnchorSideTop.Side = asrBottom
           Left = 0
-          Height = 23
-          Top = 15
+          Height = 22
+          Top = 16
           Width = 80
           Constraints.MinWidth = 80
           TabOrder = 0
@@ -391,9 +392,9 @@ object frmMemviewPreferences: TfrmMemviewPreferences
           AnchorSideLeft.Control = Panel5
           AnchorSideTop.Control = Panel5
           Left = 0
-          Height = 15
+          Height = 16
           Top = 0
-          Width = 32
+          Width = 36
           Caption = 'Below'
           ParentColor = False
         end
@@ -402,8 +403,8 @@ object frmMemviewPreferences: TfrmMemviewPreferences
           AnchorSideTop.Control = Label7
           AnchorSideTop.Side = asrBottom
           Left = 0
-          Height = 23
-          Top = 15
+          Height = 22
+          Top = 16
           Width = 80
           Constraints.MinWidth = 80
           TabOrder = 0
@@ -415,16 +416,17 @@ object frmMemviewPreferences: TfrmMemviewPreferences
   object GroupBox3: TGroupBox
     AnchorSideLeft.Control = GroupBox2
     AnchorSideLeft.Side = asrBottom
-    AnchorSideTop.Control = Owner
+    AnchorSideTop.Control = cbOriginalRenderingSystem
+    AnchorSideTop.Side = asrBottom
     AnchorSideBottom.Control = GroupBox2
     AnchorSideBottom.Side = asrBottom
-    Left = 187
-    Height = 195
-    Top = 0
-    Width = 195
+    Left = 205
+    Height = 187
+    Top = 18
+    Width = 201
     AutoSize = True
     Caption = 'Hexview'
-    ClientHeight = 175
+    ClientHeight = 168
     ClientWidth = 191
     TabOrder = 1
     object lblHexExample: TLabel
@@ -432,9 +434,9 @@ object frmMemviewPreferences: TfrmMemviewPreferences
       AnchorSideTop.Control = cbFontQuality
       AnchorSideTop.Side = asrBottom
       Left = 8
-      Height = 15
-      Top = 83
-      Width = 44
+      Height = 16
+      Top = 76
+      Width = 51
       BorderSpacing.Top = 16
       Caption = 'Example'
       ParentColor = False
@@ -443,7 +445,7 @@ object frmMemviewPreferences: TfrmMemviewPreferences
       AnchorSideLeft.Side = asrBottom
       AnchorSideTop.Side = asrBottom
       Left = 8
-      Height = 25
+      Height = 20
       Top = 0
       Width = 175
       AutoSize = True
@@ -459,9 +461,9 @@ object frmMemviewPreferences: TfrmMemviewPreferences
       AnchorSideTop.Control = lblHexExample
       AnchorSideTop.Side = asrBottom
       Left = 8
-      Height = 15
-      Top = 114
-      Width = 106
+      Height = 16
+      Top = 108
+      Width = 125
       BorderSpacing.Top = 16
       Caption = 'Space between lines'
       ParentColor = False
@@ -473,9 +475,9 @@ object frmMemviewPreferences: TfrmMemviewPreferences
       AnchorSideRight.Control = Label3
       AnchorSideRight.Side = asrBottom
       Left = 8
-      Height = 23
-      Top = 129
-      Width = 106
+      Height = 22
+      Top = 124
+      Width = 125
       Anchors = [akTop, akLeft, akRight]
       TabOrder = 1
       Text = '0'
@@ -485,9 +487,9 @@ object frmMemviewPreferences: TfrmMemviewPreferences
       AnchorSideTop.Control = edtHexSpaceBetweenLines
       AnchorSideTop.Side = asrBottom
       Left = 8
-      Height = 19
-      Top = 156
-      Width = 100
+      Height = 18
+      Top = 150
+      Width = 110
       BorderSpacing.Top = 4
       Caption = 'Show statusbar'
       Checked = True
@@ -501,13 +503,14 @@ object frmMemviewPreferences: TfrmMemviewPreferences
       AnchorSideRight.Control = btnHexFont
       AnchorSideRight.Side = asrBottom
       Left = 8
-      Height = 23
+      Height = 20
       Hint = 'The font quality can impact speed'
-      Top = 44
+      Top = 40
       Width = 175
       Anchors = [akTop, akLeft, akRight]
       BorderSpacing.Top = 1
-      ItemHeight = 15
+      ItemHeight = 26
+      ItemIndex = 0
       Items.Strings = (
         'Default'
         'Draft'
@@ -522,15 +525,16 @@ object frmMemviewPreferences: TfrmMemviewPreferences
       ShowHint = True
       Style = csDropDownList
       TabOrder = 3
+      Text = 'Default'
     end
     object Label1: TLabel
       AnchorSideLeft.Control = btnHexFont
       AnchorSideTop.Control = btnHexFont
       AnchorSideTop.Side = asrBottom
       Left = 8
-      Height = 15
-      Top = 28
-      Width = 63
+      Height = 16
+      Top = 23
+      Width = 71
       BorderSpacing.Top = 3
       Caption = 'Font quality'
       ParentColor = False
@@ -541,20 +545,20 @@ object frmMemviewPreferences: TfrmMemviewPreferences
     AnchorSideLeft.Side = asrBottom
     AnchorSideTop.Control = GroupBox3
     AnchorSideTop.Side = asrBottom
-    Left = 187
-    Height = 76
-    Top = 195
-    Width = 195
+    Left = 205
+    Height = 71
+    Top = 205
+    Width = 206
     AutoSize = True
     Caption = 'Register panel'
-    ClientHeight = 56
-    ClientWidth = 191
+    ClientHeight = 52
+    ClientWidth = 196
     TabOrder = 4
     object btnRegisterViewFont: TButton
       AnchorSideLeft.Side = asrBottom
       AnchorSideTop.Side = asrBottom
       Left = 8
-      Height = 25
+      Height = 20
       Top = 0
       Width = 175
       AutoSize = True
@@ -570,14 +574,26 @@ object frmMemviewPreferences: TfrmMemviewPreferences
       AnchorSideTop.Control = btnRegisterViewFont
       AnchorSideTop.Side = asrBottom
       Left = 8
-      Height = 15
-      Top = 33
-      Width = 44
+      Height = 16
+      Top = 28
+      Width = 51
       BorderSpacing.Top = 8
       BorderSpacing.Bottom = 8
       Caption = 'Example'
       ParentColor = False
     end
+  end
+  object cbOriginalRenderingSystem: TCheckBox
+    AnchorSideLeft.Control = Owner
+    AnchorSideTop.Control = Owner
+    Left = 8
+    Height = 18
+    Top = 0
+    Width = 252
+    BorderSpacing.Left = 8
+    Caption = 'Original rendering system (Slow on mac)'
+    TabOrder = 5
+    Visible = False
   end
   object ColorDialog1: TColorDialog
     Color = clBlack
@@ -603,8 +619,8 @@ object frmMemviewPreferences: TfrmMemviewPreferences
       'ColorS=F0FBFF'
       'ColorT=A4A0A0'
     )
-    left = 216
-    top = 312
+    Left = 216
+    Top = 312
   end
   object FontDialog1: TFontDialog
     Font.CharSet = ANSI_CHARSET
@@ -616,12 +632,12 @@ object frmMemviewPreferences: TfrmMemviewPreferences
     MaxFontSize = 0
     Options = [fdNoStyleSel]
     PreviewText = 'mov'
-    left = 224
-    top = 248
+    Left = 224
+    Top = 248
   end
   object pmColors: TPopupMenu
-    left = 200
-    top = 360
+    Left = 200
+    Top = 360
     object miRestoreToDefaults: TMenuItem
       Caption = 'Restore to defaults'
       OnClick = miRestoreToDefaultsClick
@@ -637,13 +653,13 @@ object frmMemviewPreferences: TfrmMemviewPreferences
     MaxFontSize = 0
     Options = [fdFixedPitchOnly]
     PreviewText = '10 aa cd 30 90 90 90'
-    left = 296
-    top = 248
+    Left = 296
+    Top = 248
   end
   object FontDialog3: TFontDialog
     MinFontSize = 0
     MaxFontSize = 0
-    left = 296
-    top = 312
+    Left = 296
+    Top = 312
   end
 end

@@ -165,6 +165,10 @@ var
   speedhack_HookMachAbsoluteTime:boolean;
   {$endif}
 
+  {$ifdef USELAZFREETYPE}
+  UseOriginalRenderingSystem: boolean;
+  {$endif}
+
 
 
 implementation
