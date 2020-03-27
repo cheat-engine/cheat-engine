@@ -526,6 +526,8 @@ targetIs64Bit(): Returns true if the target process is 64-bit, false if 32-bit
 getCheatEngineDir(): Returns the folder Cheat Engine is located at
 getCheatEngineProcessID(): Returns the processid of cheat engine
 
+getAutorunPath() : Returns the autorun path
+
 disassemble(address): Disassembles the given address and returns a string in the format of "address - bytes - opcode : extra"
 splitDisassembledString(disassembledstring): Returns 4 strings. The address, bytes, opcode and extra field
 
