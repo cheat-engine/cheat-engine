@@ -2394,7 +2394,9 @@ begin
 
 
   //load from the registry
+  {$ifdef USELAZFREETYPE};
   UseOriginalRenderingSystem:=cereg.readBool('OriginalRenderingSystem');
+  {$endif}
 
   f:=TFont.create;
   reg:=Tregistry.Create;
