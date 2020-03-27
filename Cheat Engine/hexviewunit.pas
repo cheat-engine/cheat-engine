@@ -24,7 +24,7 @@ uses
 
   {$IFNDEF STANDALONEHV}
   , byteinterpreter, debuggertypedefinitions, DebugHelper ,commonTypeDefs,symbolhandler,
-  symbolhandlerstructs, cefuncproc, newkernelhandler
+  symbolhandlerstructs, cefuncproc, NewKernelHandler
   {$ENDIF};
 
 type
@@ -2110,14 +2110,9 @@ begin
     w:=offscreenBitmap.Width;
     h:=offscreenBitmap.Height;
     if (IntfImage.Width<>w) or (IntfImage.Height<>h) then
-    begin
       IntfImage.SetSize(w, h);
-      asm
-      nop
-      end;
-    end;
 
-    drawer.FillPixels(colWhite);
+    drawer.FillPixels(TColorToFPColor(ColorToRGB(offscreenbitmap.canvas.brush.Color)));
   end;
   {$endif}
 
@@ -2136,7 +2131,7 @@ begin
   begin
 {$ifdef USELAZFREETYPE}
     if (not UseOriginalRenderingSystem) and (drawer<>nil) then
-      drawer.DrawText(memoryInfo, FTFont,0,0, TColorToFPColor(offscreenbitmap.canvas.Font.Color), [ftaLeft, ftaTop])
+      drawer.DrawText(memoryInfo, FTFont,0,0, TColorToFPColor(ColorToRGB(offscreenbitmap.canvas.Font.Color)), [ftaLeft, ftaTop])
     else
 {$endif}
     offscreenbitmap.Canvas.TextOut(0,0,memoryInfo)
@@ -2145,7 +2140,7 @@ begin
   begin
 {$ifdef USELAZFREETYPE}
     if (not UseOriginalRenderingSystem) and (drawer<>nil) then
-      drawer.DrawText(' '+inttohex(RelativeBase,8)+' : '+memoryInfo, FTFont,0,0, TColorToFPColor(offscreenbitmap.canvas.Font.Color), [ftaLeft, ftaTop])
+      drawer.DrawText(' '+inttohex(RelativeBase,8)+' : '+memoryInfo, FTFont,0,0, TColorToFPColor(ColorToRGB(offscreenbitmap.canvas.Font.Color)), [ftaLeft, ftaTop])
     else
 {$endif}
     offscreenbitmap.Canvas.TextOut(0,0,' '+inttohex(RelativeBase,8)+' : '+memoryInfo);
@@ -2153,7 +2148,7 @@ begin
 
 {$ifdef USELAZFREETYPE}
   if (not UseOriginalRenderingSystem) and (drawer<>nil) then
-    drawer.DrawText(rsAddress, FTFont,0,textheight, TColorToFPColor(offscreenbitmap.canvas.Font.Color), [ftaLeft, ftaTop])
+    drawer.DrawText(rsAddress, FTFont,0,textheight, TColorToFPColor(ColorToRGB(offscreenbitmap.canvas.Font.Color)), [ftaLeft, ftaTop])
   else
 {$endif}
     offscreenbitmap.Canvas.TextOut(0, textheight, rsAddress);
@@ -2225,8 +2220,8 @@ begin
 {$ifdef USELAZFREETYPE}
   if (not UseOriginalRenderingSystem) and (drawer<>nil) then
   begin
-    drawer.DrawText(bheader, FTFont,bytestart,textheight, TColorToFPColor(offscreenbitmap.canvas.Font.Color), [ftaLeft, ftaTop]);
-    drawer.DrawText(cheader, FTFont,charstart,textheight, TColorToFPColor(offscreenbitmap.canvas.Font.Color), [ftaLeft, ftaTop]);
+    drawer.DrawText(bheader, FTFont,bytestart,textheight, TColorToFPColor(ColorToRGB(offscreenbitmap.canvas.Font.Color)), [ftaLeft, ftaTop]);
+    drawer.DrawText(cheader, FTFont,charstart,textheight, TColorToFPColor(ColorToRGB(offscreenbitmap.canvas.Font.Color)), [ftaLeft, ftaTop]);
   end
   else
 {$endif}
@@ -2261,7 +2256,7 @@ begin
       begin
         {$ifdef USELAZFREETYPE}
         if (not UseOriginalRenderingSystem) and (drawer<>nil) then
-          drawer.DrawText('+'+inttohex(currentaddress-RelativeBase,8), FTFont,0, 2+2*textheight+(i*(textheight+fspaceBetweenLines)), TColorToFPColor(offscreenbitmap.canvas.Font.Color), [ftaLeft, ftaTop])
+          drawer.DrawText('+'+inttohex(currentaddress-RelativeBase,8), FTFont,0, 2+2*textheight+(i*(textheight+fspaceBetweenLines)), TColorToFPColor(ColorToRGB(offscreenbitmap.canvas.Font.Color)), [ftaLeft, ftaTop])
         else
         {$endif}
           offscreenbitmap.Canvas.TextOut(0, 2+2*textheight+(i*(textheight+fspaceBetweenLines)),'+'+inttohex(currentaddress-RelativeBase,8))
@@ -2271,7 +2266,7 @@ begin
       begin
         {$ifdef USELAZFREETYPE}
         if (not UseOriginalRenderingSystem) and (drawer<>nil) then
-          drawer.DrawText('-'+inttohex(RelativeBase-currentaddress,8), FTFont,0, 2+2*textheight+(i*(textheight+fspaceBetweenLines)), TColorToFPColor(offscreenbitmap.canvas.Font.Color), [ftaLeft, ftaTop])
+          drawer.DrawText('-'+inttohex(RelativeBase-currentaddress,8), FTFont,0, 2+2*textheight+(i*(textheight+fspaceBetweenLines)), TColorToFPColor(ColorToRGB(offscreenbitmap.canvas.Font.Color)), [ftaLeft, ftaTop])
         else
         {$endif}
           offscreenbitmap.Canvas.TextOut(0, 2+2*textheight+(i*(textheight+fspaceBetweenLines)),'-'+inttohex(RelativeBase-currentaddress,8));
@@ -2282,7 +2277,7 @@ begin
     begin
       {$ifdef USELAZFREETYPE}
       if (not UseOriginalRenderingSystem) and (drawer<>nil) then
-        drawer.DrawText(inttohex(currentaddress,8), FTFont,0, 2+2*textheight+(i*(textheight+fspaceBetweenLines)), TColorToFPColor(offscreenbitmap.canvas.Font.Color), [ftaLeft, ftaTop])
+        drawer.DrawText(inttohex(currentaddress,8), FTFont,0, 2+2*textheight+(i*(textheight+fspaceBetweenLines)), TColorToFPColor(ColorToRGB(offscreenbitmap.canvas.Font.Color)), [ftaLeft, ftaTop])
       else
       {$endif}
         offscreenbitmap.Canvas.TextOut(0, 2+2*textheight+(i*(textheight+fspaceBetweenLines)),inttohex(currentaddress,8));
@@ -2389,7 +2384,7 @@ begin
           fOnValueRender(self, currentaddress, s);
         {$ifdef USELAZFREETYPE}
         if (not UseOriginalRenderingSystem) and (drawer<>nil) then
-          drawer.DrawText(s, FTFont,bytestart+bytepos*charsize, 2+2*textheight+(i*(textheight+fspaceBetweenLines)), TColorToFPColor(offscreenbitmap.canvas.Font.Color), [ftaLeft, ftaTop])
+          drawer.DrawText(s, FTFont,bytestart+bytepos*charsize, 2+2*textheight+(i*(textheight+fspaceBetweenLines)), TColorToFPColor(ColorToRGB(offscreenbitmap.canvas.Font.Color)), [ftaLeft, ftaTop])
         else
         {$endif}
           offscreenbitmap.canvas.TextOut(bytestart+bytepos*charsize, 2+2*textheight+(i*(textheight+fspaceBetweenLines)) , s);
@@ -2421,7 +2416,7 @@ begin
 
         {$ifdef USELAZFREETYPE}
         if (not UseOriginalRenderingSystem) and (drawer<>nil) then
-          drawer.DrawText(char, FTFont,charstart+j*charsize, 2+2*textheight+(i*(textheight+fspaceBetweenLines)), TColorToFPColor(offscreenbitmap.canvas.Font.Color), [ftaLeft, ftaTop])
+          drawer.DrawText(char, FTFont,charstart+j*charsize, 2+2*textheight+(i*(textheight+fspaceBetweenLines)), TColorToFPColor(ColorToRGB(offscreenbitmap.canvas.Font.Color)), [ftaLeft, ftaTop])
         else
         {$endif}
           offscreenbitmap.canvas.TextOut(charstart+j*charsize, 2+2*textheight+(i*(textheight+fspaceBetweenLines)), char); //char

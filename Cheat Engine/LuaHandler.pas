@@ -22,7 +22,7 @@ uses
   jwawindows, windows, ShellApi,
   {$endif}
   vmxfunctions, Classes, dialogs, SysUtils, lua, lualib,
-  lauxlib, syncobjs, CEFuncProc, newkernelhandler, Graphics,
+  lauxlib, syncobjs, CEFuncProc, NewKernelHandler, Graphics,
   controls, LuaCaller, forms, ExtCtrls, StdCtrls, comctrls, ceguicomponents,
   genericHotkey, luafile, xmplayer_server, ExtraTrainerComponents, customtimer,
   menus, XMLRead, XMLWrite, DOM, Clipbrd, typinfo, PEInfoFunctions,
@@ -120,7 +120,7 @@ uses autoassembler, mainunit, MainUnit2, LuaClass, frmluaengineunit, plugin, plu
   LuaCustomType, Filehandler, LuaSQL, frmSelectionlistunit, cpuidUnit, LuaRemoteThread,
   LuaManualModuleLoader, pointervaluelist, frmEditHistoryUnit, LuaCheckListBox,
   LuaDiagram, frmUltimap2Unit, frmcodefilterunit, BreakpointTypeDef, LuaSyntax,
-  LazLogger, LuaSynedit, LuaRipRelativeScanner, ColorBox, rttihelper;
+  LazLogger, LuaSynedit, LuaRIPRelativeScanner, ColorBox, rttihelper;
 
   {$warn 5044 off}
 
@@ -155,6 +155,7 @@ var
 
   waitforsymbols: boolean=true;
 
+  autorunpath: string;
 
 
 function lua_oldprintoutput:TStrings;
@@ -583,6 +584,8 @@ var f: string;
   DirInfo: TSearchRec;
   mainformwasset: boolean=true;
   addresslistwasset: boolean=true;
+
+
 begin
   lua_getglobal(LuaVM,'MainForm');
   if lua_isnil(LuaVM,-1) then
@@ -602,6 +605,9 @@ begin
 
 
   f:='main.lua';
+  {$ifdef darwin}
+  f:=extractfiledir(extractfiledir(Application.ExeName))+'/Lua/main.lua';
+  {$endif}
   if not FileExists(f) then //perhaps in the cedir
   begin
     f:=CheatEngineDir+'main.lua';
@@ -646,16 +652,18 @@ begin
 
   if noautorun=false then
   begin
+
+
     ZeroMemory(@DirInfo,sizeof(TSearchRec));
-    r := FindFirst(CheatEngineDir+{$ifdef darwin}'m'+{$endif}'autorun'+pathdelim+'*.lua', FaAnyfile, DirInfo);
+    r := FindFirst(autorunpath+'*.lua', FaAnyfile, DirInfo);
+
     while (r = 0) do
     begin
       if (DirInfo.Attr and FaVolumeId <> FaVolumeID) then
       begin
         if ((DirInfo.Attr and FaDirectory) <> FaDirectory) then
         begin
-
-          i:=lua_dofile(luavm, pchar( UTF8ToWinCP(CheatEngineDir+{$ifdef darwin}'m'+{$endif}'autorun'+pathdelim+DirInfo.name)));
+          i:=lua_dofile(luavm, pchar( UTF8ToWinCP(autorunpath+DirInfo.name)));
           if i<>0 then //error
           begin
             i:=lua_gettop(luavm);
@@ -678,7 +686,7 @@ begin
             lua_getglobal(LuaVM,'MainForm');
             if lua_isnil(LuaVM,-1) then
             begin
-              MessageDlg(format(rsScriptCorruptedVar, [CheatEngineDir+{$ifdef darwin}'m'+{$endif}'autorun'+pathdelim+DirInfo.name, 'MainForm']), mtError,[mbOK],0);
+              MessageDlg(format(rsScriptCorruptedVar, [autorunpath+DirInfo.name, 'MainForm']), mtError,[mbOK],0);
               mainformwasset:=false;
             end;
             lua_pop(LuaVM,1);
@@ -689,7 +697,7 @@ begin
             lua_getglobal(LuaVM,'AddressList');
             if lua_isnil(LuaVM,-1) then
             begin
-              MessageDlg(format(rsScriptCorruptedVar, [CheatEngineDir+{$ifdef darwin}'m'+{$endif}'autorun'+pathdelim+DirInfo.name, 'AddressList']), mtError,[mbOK],0);
+              MessageDlg(format(rsScriptCorruptedVar, [autorunpath+DirInfo.name, 'AddressList']), mtError,[mbOK],0);
               addresslistwasset:=false;
             end;
             lua_pop(LuaVM,1);
@@ -12190,6 +12198,12 @@ begin
 
 end;
 
+function lua_getAutorunPath(L: Plua_State): integer; cdecl;
+begin
+  lua_pushstring(L,autorunpath);
+  exit(1);
+end;
+
 procedure InitializeLua;
 var
   s: tstringlist;
@@ -12845,6 +12859,8 @@ begin
     lua_register(L, 'createAutoAssemblerForm', lua_createAutoAssemblerForm);
     lua_register(L, 'getRTTIClassName', lua_getRTTIClassName);
 
+    lua_register(L, 'getAutorunPath', lua_getAutorunPath);
+
 
 
 
@@ -12907,6 +12923,7 @@ begin
       s.add('package.path = package.path .. ";?.lua";');
       {$ifdef darwin}
       s.add('package.path = package.path .. [[;'+getcedir+'?.lua]]');
+      s.add('package.path = package.path .. [[;'+extractfiledir(extractfiledir(application.exename))+'/Lua/?.lua]]');
       {$endif}
 
 
@@ -13010,6 +13027,14 @@ begin
 
       lua_settop(L,i-1);
 
+
+      {$ifdef darwin}
+      autorunpath:=extractfiledir(extractfiledir(Application.ExeName))+'/Lua/Autorun/';
+      {$else}
+      autorunpath:=CheatEngineDir+'autorun'+pathdelim;
+      {$endif}
+
+
     finally
       s.free;
     end;
@@ -13057,4 +13082,5 @@ finalization
     lua_close(_LuaVM);
 
 end.
+
 
