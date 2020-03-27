@@ -12,11 +12,11 @@ function ceshare.getInternet()
 end
 
 ceshare.version=-1
-ceshare.path=getCheatEngineDir()..[[autorun\ceshare\]]
+ceshare.path=getAutoRunPath()..[[ceshare\]]
 ceshare.formpath=ceshare.path..[[\forms\]]
 
 if package.loaded.xmlSimple==nil then
-  package.path=package.path..';'..getCheatEngineDir()..[[autorun\xml\?.lua]]
+  package.path=package.path..';'..getAutoRunPath()..[[xml\?.lua]]
 else
   package.loaded.xmlSimple=nil
 end
@@ -27,7 +27,7 @@ package.path=package.path..';'..ceshare.path..[[?.lua]]
 
 function loadCEShare()
   ceshare.settings=getSettings('ceshare')
-  ceshare.secondaryIdentifierCode=getSettings('ceshare\\secondaryIdenfierCode')
+  ceshare.secondaryIdentifierCode=getSettings('ceshare\\secondaryIdentifierCode')
 
   require("ceshare_account")
   require("ceshare_publish")

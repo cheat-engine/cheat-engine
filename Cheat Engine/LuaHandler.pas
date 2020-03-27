@@ -12198,7 +12198,7 @@ begin
 
 end;
 
-function lua_getAutorunPath(L: Plua_State): integer; cdecl;
+function lua_getAutoRunPath(L: Plua_State): integer; cdecl;
 begin
   lua_pushstring(L,autorunpath);
   exit(1);
@@ -12859,7 +12859,7 @@ begin
     lua_register(L, 'createAutoAssemblerForm', lua_createAutoAssemblerForm);
     lua_register(L, 'getRTTIClassName', lua_getRTTIClassName);
 
-    lua_register(L, 'getAutorunPath', lua_getAutorunPath);
+    lua_register(L, 'getAutoRunPath', lua_getAutoRunPath);
 
 
 
