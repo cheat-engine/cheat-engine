@@ -2915,9 +2915,9 @@ begin
   {$ifdef USELAZFREETYPE}
   if FTFont<>nil then
   begin
-    charsize:=ceil(FTFont.TextWidth('a'));
-    byteSize:=ceil(FTFont.TextWidth('aa a'));
-    byteSizeWithoutChar:=ceil(FTFont.TextWidth('aa '));
+    charsize:=ceil(FTFont.TextWidth('X'));
+    byteSize:=ceil(FTFont.TextWidth('XX X'));
+    byteSizeWithoutChar:=ceil(FTFont.TextWidth('XX '));
   end
   else
   {$endif}
