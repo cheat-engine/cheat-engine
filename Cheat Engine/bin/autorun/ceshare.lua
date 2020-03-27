@@ -32,7 +32,9 @@ function loadCEShare()
   require("ceshare_account")
   require("ceshare_publish")
   require("ceshare_querycheats")
+if getOperatingSystem()==0 then  
   require("ceshare_processlistextention")
+end
   require("ceshare_permissions")
   require("ceshare_comments")
   require("ceshare_requests")
