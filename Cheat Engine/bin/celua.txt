@@ -1193,6 +1193,8 @@ properties
   CanPaste: boolean
   CanRedo: boolean
   CanUndo: boolean
+  CharWidth: integer READONLY
+  LineHeight: integer READONLY
 
 methods
   CopyToClipboard()
@@ -2302,7 +2304,7 @@ methods
   deinitialize() : Release the results
   getCount()
   getAddress(index) : Returns the address as a string
-  getValue(index) : Returs the value as a string
+  getValue(index) : Returns the value as a string
 
 
 Memoryview class: (Inheritance: Form->ScrollingWinControl->CustomControl->WinControl->Control->Component->Object)

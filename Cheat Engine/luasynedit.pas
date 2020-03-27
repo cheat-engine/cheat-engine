@@ -179,6 +179,17 @@ begin
   result:=0;
 end;
 
+function syn_getCharWidth(L: PLua_State): integer; cdecl;
+begin
+  lua_pushinteger(L, TCustomSynEdit(luaclass_getClassObject(L)).CharWidth);
+  result:=1;
+end;
+
+function syn_getLineHeight(L: PLua_State): integer; cdecl;
+begin
+  lua_pushinteger(L, TCustomSynEdit(luaclass_getClassObject(L)).LineHeight);
+  result:=1;
+end;
 
 procedure luasynedit_addMetaData(L: PLua_state; metatable: integer; userdata: integer );
 begin
@@ -190,6 +201,8 @@ begin
   luaclass_addPropertyToTable(L, metatable, userdata, 'CanPaste', syn_getCanPaste, nil);
   luaclass_addPropertyToTable(L, metatable, userdata, 'CanRedo', syn_getCanRedo, nil);
   luaclass_addPropertyToTable(L, metatable, userdata, 'CanUndo', syn_getCanUndo, nil);
+  luaclass_addPropertyToTable(L, metatable, userdata, 'CharWidth', syn_getCharWidth, nil);
+  luaclass_addPropertyToTable(L, metatable, userdata, 'LineHeight', syn_getLineHeight, nil);
 
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'CopyToClipboard', syn_CopyToClipboard);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'CutToClipboard', syn_CutToClipboard);

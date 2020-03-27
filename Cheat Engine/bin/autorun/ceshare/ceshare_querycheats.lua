@@ -456,6 +456,7 @@ function ceshare.CheckForCheatsClick(s)
     ceshare.CheatBrowserFrm.miDeleteTable.OnClick=function(s)
       local index=ceshare.CheatBrowserFrm.lvCheats.ItemIndex
       if index~=-1 then
+        local entry=ceshare.CurrentQuery[index+1]
         ceshare.Delete(entry)
       end    
     end    

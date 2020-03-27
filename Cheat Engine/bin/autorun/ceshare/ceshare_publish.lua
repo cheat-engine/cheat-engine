@@ -47,16 +47,18 @@ end
 
 function ceshare.Delete(entry)
   if entry then
-    local r=ceshare.QueryXURL('DeleteTable.php','id='..entry.ID)  
-    if r then
-      if ceshare.CheatBrowserFrm and ceshare.CheatBrowserFrm.Visible then
-        ceshare.CheckForCheatsClick()
+    if messageDialog('Are you sure you wish to delete this table?',mtWarning,mbYes,mbNo)==mrYes then
+      local r=ceshare.QueryXURL('DeleteTable.php','id='..entry.ID)  
+      if r then
+        if ceshare.CheatBrowserFrm and ceshare.CheatBrowserFrm.Visible then
+          ceshare.CheckForCheatsClick()
+        end
+        
+        if ceshare.UpdateOrNewFrm and ceshare.UpdateOrNewFrm.Visible then
+          ceshare.PublishCheatClick()
+        end      
+        showMessage('Table successfuly deleted') --meanie
       end
-      
-      if ceshare.UpdateOrNewFrm and ceshare.UpdateOrNewFrm.Visible then
-        ceshare.PublishCheatClick()
-      end      
-      showMessage('Table successfuly deleted') --meanie
     end
   end
 end

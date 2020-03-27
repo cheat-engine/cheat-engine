@@ -24,7 +24,7 @@ function ceshare.ManageAccessList(entry)
       f.btnAddUSer.OnClick=function(s)
         local name=f.EdtUsername.Text
         if name~='' then
-          s.Items.add(name)        
+          f.lbUserNames.Items.add(name)        
         end
       end
       
