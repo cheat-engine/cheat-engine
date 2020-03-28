@@ -15,7 +15,8 @@ uses
   Dialogs, StdCtrls, Menus, ExtCtrls, SynMemo, SynCompletion, SynEdit, lua,
   lauxlib, lualib, LuaSyntax, luahandler, CEFuncProc, sqldb, strutils,
   InterfaceBase, ComCtrls, SynGutterBase, SynEditMarks, PopupNotifier, ActnList,
-  SynEditHighlighter, AvgLvlTree, math, LazFileUtils, Types, LCLType, pluginexports;
+  SynEditHighlighter, AvgLvlTree, math, LazFileUtils, Types, LCLType,
+  pluginexports, SynEditKeyCmds;
 
 type
 
@@ -1353,6 +1354,7 @@ procedure TfrmLuaEngine.FormCreate(Sender: TObject);
 var
   x: array of integer;
   fq: TFontQuality;
+  i: integer;
 begin
 
   synhighlighter:=TSynLuaSyn.Create(self);
@@ -1391,6 +1393,14 @@ begin
   miRedo.ShortCut:=TextToShortCut('Shift+Meta+X');
   miFind.ShortCut:=TextToShortCut('Meta+F');
   miCut.ShortCut:=TextToShortCut('Meta+X');
+
+  i:=mScript.Keystrokes.FindCommand(ecSelectAll);
+  if i<>-1 then mScript.Keystrokes[i].ShortCut:=TextToShortCut('Meta+A');
+
+
+  MenuItem3.ShortCutKey2:=TextToShortCut('Meta+S');
+
+
   {$endif}
 end;
 
