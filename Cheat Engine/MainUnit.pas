@@ -1081,6 +1081,7 @@ resourcestring
     'This will close the current process. Are you sure you want to do this?';
   strError = 'Error';
   strErrorwhileOpeningProcess = 'Error while opening this process';
+  strErrorWhileOpeningProcessMac = '. Have you disabled ''System Integrity Protection''(SIP) yet?';
   strKeepList = 'Keep the current address list/code list?';
   strInfoAboutTable = 'Info about this table:';
 
@@ -2941,7 +2942,7 @@ begin
     begin
 
       processlabel.Caption := strError;
-      raise Exception.Create(strErrorWhileOpeningProcess);
+      raise Exception.Create(strErrorWhileOpeningProcess{$ifdef darwin}+strErrorwhileOpeningProcessMac{$endif});
 
     end
     else

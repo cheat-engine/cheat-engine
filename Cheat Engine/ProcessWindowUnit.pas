@@ -572,19 +572,20 @@ begin
 
 
   {$ifdef darwin}
-  //tabheader is bugged
-  ProcessList.Parent:=self;
-  ProcessList.AnchorSideTop:=TabHeader.AnchorSideTop;
+  {ProcessList.AnchorSideTop:=ProcessWindow.AnchorSideTop;
   ProcessList.AnchorSideLeft:=TabHeader.AnchorSideLeft;
   ProcessList.AnchorSideRight:=TabHeader.AnchorSideRight;
   ProcessList.AnchorSideBottom:=TabHeader.AnchorSideBottom;
   ProcessList.Anchors:=TabHeader.Anchors;
   TabHeader.TabIndex:=1;
-  TabHeader.Visible:=false;
+  TabHeader.Visible:=false; }
+  tsWindows.TabVisible:=false;
+  tsWindows.Visible:=false;
   {$endif}
 
   {$ifdef windows}
   IconFetchThread:=TIconFetchThread.create;
+  {$endif}
   tsApplications.Caption:=rsApplications;
   tsProcesses.Caption:=rsProcesses;
   tsWindows.Caption:=rsWindows;
@@ -614,10 +615,6 @@ begin
   finally
     reg.free;
   end;
-
-  {$endif}
-
-
 
 end;
 
@@ -1155,6 +1152,8 @@ begin
       begin
         {$ifdef windows}
         getwindowlist2(processlist.Items);
+        {$else}
+        getapplicationlist(processlist.items);
         {$endif}
       end;
 
@@ -1168,6 +1167,8 @@ begin
         {$ifdef windows}
         GetWindowList(processlist.Items, miShowInvisibleItems.Checked);
         processlist.ItemIndex:=processlist.Items.Count-1;
+        {$else}
+        getprocesslist(processlist.items);
         {$endif}
       end;
     end;

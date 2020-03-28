@@ -147,40 +147,30 @@ begin
 
   if processhandle<>0 then
   begin
-    //OutputDebugString('setProcessHandle: Calling open');
     open;
-    //OutputDebugString('After open');
   end;
 
-
-
-    {if GetCurrentThreadId<>MainThreadID then
-        TThread.Synchronize(nil, open) }
-
-
-
-
-    //(synchronize(open));
-//  if (mainform<>nil) and (mainform.addresslist<>nil) then
-//    mainform.addresslist.needsToReinterpret:=true;
 end;
 
 procedure TProcessHandler.Open;
-{$ifdef windows}
 var mn: string;
-{$endif}
 begin
   //GetFirstModuleNa
   {$ifndef jni}
-  {$ifdef windows}
+
   if processid<>0 then
   begin
+    {$ifdef darwin}
+    mn:=GetProcessName(processid);
+    {$else}
     mn:=GetFirstModuleName(processid);
+    {$endif}
+
+
     lua_pushstring(luavm, pchar(extractfilename(mn)));
     lua_setglobal(luavm, 'process');
   end;
 
-  {$endif}
 
   LUA_functioncall('onOpenProcess', [ptruint(processid)]);   //todo: Change to a callback array/list
   {$endif}
