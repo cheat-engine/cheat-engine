@@ -61,19 +61,14 @@ begin
 end;
 
 function TWinInternet.postURL(urlstring: string; urlencodedpostdata: string; results: tstream): boolean;
-var response: tstrings;
 begin
   result:=false;
-  response:=tstringlist.Create;
   try
-    internet.FormPost(urlstring,urlencodedpostdata,response);
+    internet.FormPost(urlstring,urlencodedpostdata,results);
     result:=true;
-    results.WriteAnsiString(response.text);
   except
+
   end;
-
-  freeandnil(response);
-
 end;
 
 function TWinInternet.getURL(urlstring: string; results: tstream): boolean;
