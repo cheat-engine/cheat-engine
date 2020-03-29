@@ -35,7 +35,7 @@ function ceshare.DownloadProcessList()
     f:write(processlist)
     f:close()
 
-    synchronizer(function() ceshare.settings.Value.LastProcessListDownload=os.time() end )
+    synchronize(function() ceshare.settings.Value.LastProcessListDownload=os.time() end )
   end
 end
 

@@ -40,7 +40,10 @@ function TCEReg.getRegistry(force: boolean):boolean;
 begin
   {$ifdef darwin}
   //all registry objects access the same object. and that object has the current key set...
-  reg.OpenKey('\Software\Cheat Engine\', false);
+  if reg<>nil then
+    reg.OpenKey('\Software\Cheat Engine\', false);
+
+
   {$endif}
 
   if not openedregistry then
