@@ -6,8 +6,9 @@ interface
 
 uses
   {$ifdef windows}jwawindows, windows, {$endif}
-  {$ifdef darwin}macport, macportdefines,{$endif}
-  cefuncproc, LazUTF8, Classes, SysUtils{$ifndef JNI}, StdCtrls{$endif}, ProcessHandlerUnit {$ifdef JNI},unixporthelper{$endif},newkernelhandler;
+  {$ifdef darwin}macport,{$endif}
+  cefuncproc, LazUTF8, Classes, SysUtils{$ifndef JNI}, StdCtrls{$endif},
+  ProcessHandlerUnit {$ifdef JNI},unixporthelper{$endif},newkernelhandler;
 
 {$ifndef jni}
 procedure GetProcessList(ProcessList: TListBox; NoPID: boolean=false); overload;
@@ -16,9 +17,9 @@ procedure GetProcessList(ProcessList: TStrings; NoPID: boolean=false; noProcessI
 procedure sanitizeProcessList(processlist: TStrings);
 procedure cleanProcessList(processlist: TStrings);
 
-{$ifdef windows}
+
 function GetFirstModuleName(processid: dword): string;
-{$endif}
+
 
 //global vars refering to the processlist
 var
@@ -27,13 +28,16 @@ var
 
 implementation
 
-uses Globals, commonTypeDefs{$ifdef windows}, networkInterfaceApi{$endif};
+uses Globals, commonTypeDefs{$ifdef windows}, networkInterfaceApi{$endif}
+  {$ifdef darwin}
+  , macportdefines //must be at the end
+  {$endif}
+  ;
 
 resourcestring
     rsICanTGetTheProcessListYouArePropablyUsingWindowsNT = 'I can''t get the process list. You are propably using windows NT. Use the window list instead!';
 
 
-{$ifdef windows}
 function GetFirstModuleName(processid: dword): string;
 var
   SNAPHandle: THandle;
@@ -41,7 +45,7 @@ var
   ModuleEntry: MODULEENTRY32;
 begin
   result:='';
-  SNAPHandle:=CreateToolhelp32Snapshot(TH32CS_SNAPMODULE,processid);
+  SNAPHandle:=CreateToolhelp32Snapshot(TH32CS_SNAPMODULE{$ifdef darwin}or TH32CS_SNAPMODULEFIRSTONLY{$endif},processid);
   if SNAPHandle<>0 then
   begin
     ModuleEntry.dwSize:=sizeof(moduleentry);
@@ -53,7 +57,7 @@ begin
     closehandle(SNAPHandle);
   end;
 end;
-{$endif}
+
 
 procedure sanitizeProcessList(processlist: TStrings);
 var

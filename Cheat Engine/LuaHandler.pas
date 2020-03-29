@@ -27,7 +27,10 @@ uses
   genericHotkey, luafile, xmplayer_server, ExtraTrainerComponents, customtimer,
   menus, XMLRead, XMLWrite, DOM, Clipbrd, typinfo, PEInfoFunctions,
   LCLProc, strutils, registry, md5, commonTypeDefs, LResources, Translations,
-  variants, LazUTF8, zstream, MemoryQuery, LCLVersion;
+  variants, LazUTF8, zstream, MemoryQuery, LCLVersion
+  {$ifdef darwin}
+  ,macportdefines
+  {$endif};
 
 
 const MAXTABLERECURSIONLOOKUP=2;

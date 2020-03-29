@@ -5244,7 +5244,7 @@ begin
     //Just TH32CS_SNAPMODULE only returns the 64-bit modules
     //There doesn't seem to be a way to make two lists, 32-bit, then 64-bit, and combine them afterwards
     //So for now I just check if it's a system dll, and if so, if it's in the wow64 folder or not
-    ths:=CreateToolhelp32Snapshot(TH32CS_SNAPMODULE or TH32CS_SNAPMODULE32,processid);
+    ths:=CreateToolhelp32Snapshot(TH32CS_SNAPMODULE or TH32CS_SNAPMODULE32 {$ifdef darwin}or ifthen(targetself, TH32CS_SNAPMODULENOSYM,0){$endif},processid);
 
     modulelistMREW.BeginRead;
     try

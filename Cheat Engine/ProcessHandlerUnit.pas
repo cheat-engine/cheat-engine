@@ -160,12 +160,7 @@ begin
 
   if processid<>0 then
   begin
-    {$ifdef darwin}
-    mn:=GetProcessName(processid);
-    {$else}
     mn:=GetFirstModuleName(processid);
-    {$endif}
-
 
     lua_pushstring(luavm, pchar(extractfilename(mn)));
     lua_setglobal(luavm, 'process');
