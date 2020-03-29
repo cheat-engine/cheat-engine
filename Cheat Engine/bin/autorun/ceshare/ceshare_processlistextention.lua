@@ -144,7 +144,6 @@ z=registerFormAddNotification(function(s)
 
     
     s.registerFirstShowCallback(function(s2)
-      local ci
       local OriginalProcessListDrawItem=s2.ProcessList.OnDrawItem
             
       ceshare.GetCurrentProcessList()  
@@ -154,7 +153,7 @@ z=registerFormAddNotification(function(s)
       local ts=s2.TabHeader.addTab()
       ts.Caption='CEShare'
       ceshare.ProcessListTab=ts
-      ci=ts.TabIndex  
+      ts.Name='tsCEShare'  
 
       s2.TabHeader.Images=MainForm.mfImageList --use the mainform imagelist.  ImageIndex11 is useful
       
@@ -176,29 +175,29 @@ z=registerFormAddNotification(function(s)
       
       local OriginalProcessListOnDblClick=s2.ProcessList.OnDblClick
       
-
-      s2.ProcessList.OnDrawItem=function(sender, index, rect, state)  
-        local r=OriginalProcessListDrawItem(sender, index, rect, state)      
-        if s2.TabHeader.TabIndex==ci then
-          --draw the icon for this process
+      if getOperatingSystem()==0 then
+        s2.ProcessList.OnDrawItem=function(sender, index, rect, state)  
+          local r=OriginalProcessListDrawItem(sender, index, rect, state)      
+          if s2.TabHeader.ActivePage.Name=='tsCEShare' then
+            --draw the icon for this process
           
-          if ceshare.processiconcache then
-            local iconhandle=ceshare.processiconcache[ceshare.currentprocesslist[index+1].pid]            
-            if iconhandle then                      
+            if ceshare.processiconcache then
+              local iconhandle=ceshare.processiconcache[ceshare.currentprocesslist[index+1].pid]            
+              if iconhandle then                      
              
-              local senderdc=sender.Canvas.Handle
-              local ih=sender.ItemHeight                    
+                local senderdc=sender.Canvas.Handle
+                local ih=sender.ItemHeight                    
             
-              executeCodeLocalEx('DrawIconEx',senderdc,0,rect.Top,iconhandle,ih,ih,0,0,3)  
+                executeCodeLocalEx('DrawIconEx',senderdc,0,rect.Top,iconhandle,ih,ih,0,0,3)  
               
+              end
             end
-          end
           
-        end  
+          end  
         
-        return r
+          return r
+        end
       end
-
       
     
       
@@ -215,10 +214,11 @@ z=registerFormAddNotification(function(s)
       end
        
           
-      s2.TabHeader.OnChange=function(th)
+      s2.TabHeader.OnChange=function(th) 
+       -- print(s2.TabHeader.TabIndex..' - '..ci)     
         
-        
-        if (s2.TabHeader.TabIndex==ci)  then
+        --if (s2.TabHeader.TabIndex==ci)  then
+        if s2.TabHeader.ActivePage.Name=='tsCEShare' then
           s2.ProcessList.OnKeyPress=nil
           
           s2.ProcessList.Items.clear()
@@ -245,7 +245,7 @@ z=registerFormAddNotification(function(s)
                 ceshare.processiconcache={}
               end
             
-              if ceshare.processiconcache[pid]==nil then
+              if (ceshare.processiconcache[pid]==nil) and (getOperatingSystem()==0) then
                 local mi=enumModules(pid)
                 if mi then
                   local mainmodule=mi[1]
