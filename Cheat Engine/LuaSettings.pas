@@ -40,6 +40,9 @@ end;
 function TLuaSettings.getValue(index: string): string;
 begin
   result:='';
+  {$ifdef darwin}
+  setpath(fpath);
+  {$endif}
   if freg.ValueExists(index) then
   begin
     case freg.GetDataType(index) of
@@ -51,6 +54,9 @@ end;
 
 procedure TLuaSettings.setValue(index: string; value: string);
 begin
+  {$ifdef darwin}
+  setpath(fpath);
+  {$endif}
   if freg.ValueExists(index) then
   begin
     case freg.GetDataType(index) of
@@ -72,10 +78,13 @@ constructor TLuaSettings.create(initialpath: pchar);
 begin
   freg:=TRegistry.Create;
   freg.RootKey:=HKEY_CURRENT_USER;
-  freg.OpenKey('\Software\Cheat Engine',true);
 
   if initialpath<>nil then
-    path:=initialpath;
+    path:=initialpath
+  else
+    freg.OpenKey('\Software\Cheat Engine',true);
+
+
 end;
 
 function  getSettings(L: Plua_State): integer; cdecl;

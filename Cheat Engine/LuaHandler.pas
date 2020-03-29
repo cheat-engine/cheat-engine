@@ -742,6 +742,8 @@ begin
       end;
     end;
   end;
+
+  lua_settop(LuaVM,0);
 end;
 
 function lua_strtofloat(s: string): double;

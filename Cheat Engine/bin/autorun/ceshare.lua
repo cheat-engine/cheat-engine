@@ -11,12 +11,18 @@ function ceshare.getInternet()
   return ceshare.internet
 end
 
+if getOperatingSystem()==0 then
+  pathsep=[[\]]
+else
+  pathsep=[[/]]
+end
+
 ceshare.version=-1
-ceshare.path=getAutoRunPath()..[[ceshare\]]
-ceshare.formpath=ceshare.path..[[\forms\]]
+ceshare.path=getAutoRunPath()..'ceshare'..pathsep
+ceshare.formpath=ceshare.path..pathsep..'forms'..pathsep
 
 if package.loaded.xmlSimple==nil then
-  package.path=package.path..';'..getAutoRunPath()..[[xml\?.lua]]
+  package.path=package.path..';'..getAutoRunPath()..'xml'..pathsep..'?.lua'
 else
   package.loaded.xmlSimple=nil
 end
@@ -32,9 +38,7 @@ function loadCEShare()
   require("ceshare_account")
   require("ceshare_publish")
   require("ceshare_querycheats")
-if getOperatingSystem()==0 then  
   require("ceshare_processlistextention")
-end
   require("ceshare_permissions")
   require("ceshare_comments")
   require("ceshare_requests")

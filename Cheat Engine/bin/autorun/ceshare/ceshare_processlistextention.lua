@@ -102,6 +102,8 @@ end
 
 
 function ceshare.SystemHasKnownProcess()
+  if not ceshare.processlist then return false end
+
   for pid,name in pairs(getProcessList()) do
     local md5name=stringToMD5String(string.lower(name))
     if ceshare.processlist[md5name] then
