@@ -35,16 +35,21 @@ function ceshare.DownloadProcessList()
     f:write(processlist)
     f:close()
 
-    ceshare.settings.Value.LastProcessListDownload=os.time()
+    synchronizer(function() ceshare.settings.Value.LastProcessListDownload=os.time() end )
   end
 end
 
 function ceshare.LoadProcessList()
   --checks if processlist.txt exists, and if not, call DownloadProcessList
   --returns true on load
-
-  
-  local lastdownload=ceshare.settings.Value.LastProcessListDownload  
+  local lastdownload=''
+  if getOperatingSystem()==0 then
+    lastdownload=ceshare.settings.Value.LastProcessListDownload
+  else
+    --mac must access all settings from the main thread
+    --andd yes, this works
+    synchronize(function() lastdownload=ceshare.settings.Value.LastProcessListDownload end)
+  end  
   
   if (lastdownload==nil) or (lastdownload=='') or (os.time()>(tonumber(lastdownload)+3600))  then   
     outputDebugString('redownload');  
