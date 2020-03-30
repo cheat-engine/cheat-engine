@@ -163,7 +163,7 @@ z=registerFormAddNotification(function(s)
         ts.ImageIndex=-1
       end
 
-      ceshare.ProcessWindowCEShareTabIndex=ci          
+      ceshare.ProcessWindowCEShare=ts          
       
       local OriginalOnDestroy=s2.OnDestroy
       s2.OnDestroy=function(sender)
@@ -206,7 +206,7 @@ z=registerFormAddNotification(function(s)
       local oldKeyPress=s2.ProcessList.OnKeyPress
       
       s2.ProcessList.OnKeyPress=function(sender, key)
-        if (s2.TabHeader.TabIndex==ci)  then
+        if s2.TabHeader.ActivePage.Name=='tsCEShare' then
           return key
         else
           return oldKeyPress(sender,key)
