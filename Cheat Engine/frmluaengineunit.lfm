@@ -1237,6 +1237,7 @@ object frmLuaEngine: TfrmLuaEngine
     SelectedColor = clHighlight
     CaseSensitive = True
     Width = 262
+    ShowSizeDrag = True
     AutoUseSingleIdent = True
     ShortCut = 16416
     EndOfTokenChr = '()[].'

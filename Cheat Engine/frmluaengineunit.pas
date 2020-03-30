@@ -1675,12 +1675,23 @@ begin
     begin
       {$ifdef windows} //perhaps fixed in laz 2.0.6 which I use for mac , or just a cocoa thing where the char is inserted first
       mscript.InsertTextAtCaret('.');
+
+
+
+
+
+
       {$endif}
       p:=mscript.RowColumnToPixels(point(mscript.CaretX,mscript.CaretY+1));
       p2:=mscript.ClientToScreen(point(0,0));
+
+
+
+      scLuaCompleter.Editor:=mscript;
       scLuaCompleter.Execute('.',p2+p);
 
-      key:=#0;
+      scLuaCompleter.TheForm.SetFocus;
+
     end;
   end;
 end;
