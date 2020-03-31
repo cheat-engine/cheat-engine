@@ -123,6 +123,7 @@ type
     procedure tShowHintTimer(Sender: TObject);
   private
     { private declarations }
+    CompleterInvokedByDot: boolean;
     loadedFormPosition: boolean;
     hintwindow:THintWindow;
     continuemethod: integer;
@@ -255,7 +256,7 @@ begin
       break;
 
   i:=RPos('.',r);
-  if i=0 then
+  if r='' then
   begin
     extra:=r;
     exit('_G');
@@ -264,6 +265,7 @@ begin
   extra:=copy(r,i+1,length(r)-i-1);
   exit(copy(r,1,i-1));
 
+  exit(r);
 
 end;
 
@@ -288,6 +290,7 @@ var
 
   f: boolean;
 begin
+
   scLuaCompleter.ItemList.Clear;
 
   L:=luavm;
@@ -295,7 +298,13 @@ begin
 
   //parse the symbol the cursor is at
   s:=mscript.LineText;
-  s:=copy(s,1,mscript.CaretX-1);
+  if CompleterInvokedByDot then
+    Insert('.',s,mscript.CaretX)
+  else
+    s:=copy(s,1,mscript.CaretX-1);
+
+  CompleterInvokedByDot:=false;
+
 
   s:=ParseStringForPath(s,extra);
 
@@ -1674,7 +1683,7 @@ begin
     if key='.' then
     begin
       {$ifdef windows} //perhaps fixed in laz 2.0.6 which I use for mac , or just a cocoa thing where the char is inserted first
-      mscript.InsertTextAtCaret('.');
+      //mscript.InsertTextAtCaret('.');
 
 
 
@@ -1688,9 +1697,14 @@ begin
 
 
       scLuaCompleter.Editor:=mscript;
+
+
+      CompleterInvokedByDot:=true;
+
       scLuaCompleter.Execute('.',p2+p);
 
-      scLuaCompleter.TheForm.SetFocus;
+      if (scLuaCompleter.TheForm<>nil) and scLuaCompleter.TheForm.CanFocus then
+        scLuaCompleter.TheForm.SetFocus;
 
     end;
   end;

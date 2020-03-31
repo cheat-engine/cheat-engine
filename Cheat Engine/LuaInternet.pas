@@ -174,6 +174,16 @@ begin
 
 end;
 
+procedure TWinInternet.recreateFPHTTPClient;
+begin
+  if internet<>nil then
+    freeandnil(internet);
+
+  internet:=TFPHTTPClient.Create(nil);
+  internet.AddHeader('User-Agent',fname);
+  internet.AllowRedirect:=true;
+end;
+
 {$else}
 
 function TWinInternet.postURL(urlstring: string; urlencodedpostdata: string; results: tstream): boolean;
@@ -314,17 +324,11 @@ begin
     InternetCloseHandle(url);
   end;
 end;
+
+
+
 {$endif}
 
-procedure TWinInternet.recreateFPHTTPClient;
-begin
-  if internet<>nil then
-    freeandnil(internet);
-
-  internet:=TFPHTTPClient.Create(nil);
-  internet.AddHeader('User-Agent',fname);
-  internet.AllowRedirect:=true;
-end;
 
 constructor TWinInternet.create(name: string);
 begin
@@ -429,6 +433,7 @@ begin
   lua_register(LuaVM, 'getInternet', getInternet);
 end;
 
+{$ifndef windows}
 procedure loadCookiesFromRegistry;
 var
   r: TRegistry;
@@ -490,15 +495,21 @@ begin
   end;
   r.free;
 end;
+{$endif}
 
 initialization
+  {$ifndef windows}
   cookies:=TStringHashList.Create(false);
   loadCookiesFromRegistry;
+  {$endif}
 
   luaclass_register(TWinInternet, wininternet_addMetaData);
 
+  {$ifndef windows}
 finalization
+
   saveCookiesToRegistry;
+  {$endif}
 {$endif}
 
 end.
