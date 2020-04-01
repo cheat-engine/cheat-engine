@@ -439,7 +439,7 @@ begin
 
   while used>0 do
   begin
-   // decreaseCheatECoinCount;
+    decreaseCheatECoinCount;
     dec(used);
   end;
 
