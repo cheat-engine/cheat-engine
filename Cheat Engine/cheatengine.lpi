@@ -22,7 +22,7 @@
       <AutoIncrementBuild Value="True"/>
       <MajorVersionNr Value="7"/>
       <MinorVersionNr Value="1"/>
-      <BuildNr Value="6291"/>
+      <BuildNr Value="6297"/>
       <Language Value=""/>
       <CharSet Value=""/>
       <StringTable CompanyName="Cheat Engine" FileDescription="Cheat Engine" ProductVersion="7.1"/>
@@ -410,7 +410,7 @@
             </Debugging>
             <Options>
               <PassLinkerOptions Value="True"/>
-              <LinkerOptions Value="-framework Security -framework CoreFoundation"/>
+              <LinkerOptions Value="-framework Security -framework CoreFoundation -framework Carbon"/>
               <Win32>
                 <GraphicApplication Value="True"/>
               </Win32>
@@ -435,16 +435,14 @@
 -dCUSTOMFLOAT
 -dXDEBUG
 -dUSELAZFREETYPE"/>
-            <OtherDefines Count="9">
-              <Define0 Value="NOTMULTITHREADED"/>
-              <Define1 Value="benchmarkps"/>
-              <Define2 Value="cemain"/>
-              <Define3 Value="NDEBUG"/>
-              <Define4 Value="D3DDebug"/>
-              <Define5 Value="NOVMX"/>
-              <Define6 Value="CUSTOMFLOAT"/>
-              <Define7 Value="XDEBUG"/>
-              <Define8 Value="USELAZFREETYPE"/>
+            <OtherDefines Count="7">
+              <Define0 Value="benchmarkps"/>
+              <Define1 Value="cemain"/>
+              <Define2 Value="NDEBUG"/>
+              <Define3 Value="D3DDebug"/>
+              <Define4 Value="NOVMX"/>
+              <Define5 Value="CUSTOMFLOAT"/>
+              <Define6 Value="USELAZFREETYPE"/>
             </OtherDefines>
           </Other>
         </CompilerOptions>
@@ -637,7 +635,7 @@
         <PackageName Value="LCL"/>
       </Item8>
     </RequiredPackages>
-    <Units Count="394">
+    <Units Count="395">
       <Unit0>
         <Filename Value="cheatengine.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -2717,6 +2715,10 @@
         <Filename Value="cefreetype.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit393>
+      <Unit394>
+        <Filename Value="machotkeys.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit394>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

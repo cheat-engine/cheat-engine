@@ -6,7 +6,7 @@ interface
 
 uses
   {$ifdef darwin}
-  macport,
+  macport, machotkeys,
   {$endif}
   {$ifdef windows}
   windows,
@@ -16,6 +16,9 @@ uses
   commonTypeDefs;
 
 type thotkeyitem=record
+  {$ifdef darwin}
+  machk: pointer; //needed for unregister
+  {$endif}
   keys: TKeyCombo;
   windowtonotify: thandle;
   id: integer;
@@ -39,8 +42,14 @@ type
   Thotkeythread=class(tthread)
   private
     memrechk: pointer;
+    generichk: TGenericHotkey;
     fstate: THotkeyThreadState;
+
+    mainformhotkey2command: integer;
+
     procedure memrechotkey;
+    procedure handleGenericHotkey;
+    procedure mainformhotkey2;
   public
     suspended: boolean;
     hotkeylist: array of thotkeyitem;
@@ -94,6 +103,8 @@ var
     {$ifdef windows}
     ControllerState: XINPUT_STATE;
     {$endif}
+
+
 
 function IsKeyPressed(key: integer; nocache: boolean=false):boolean;
 var
@@ -171,20 +182,39 @@ begin
   ksCS.enter;
   if keystate[key]=ks_undefined then
   begin
+
     sks:=getasynckeystate(longint(key));
+
+
+
     if ((sks and 1)=1) then
+    begin
+
+
       keystate[key]:=ks_pressed
+    end
     else
-    if ((sks shr 15) and 1)=1 then
-      keystate[key]:=ks_pressed
-    else
-      keystate[key]:=ks_notpressed; //not pressed at all
+    begin
+      if ((sks shr 15) and 1)=1 then
+      begin
+
+
+        keystate[key]:=ks_pressed
+      end
+      else
+      begin
+
+
+        keystate[key]:=ks_notpressed; //not pressed at all
+      end;
+    end;
   end;
 
   result:=keystate[key]=ks_pressed;
 
   if nocache and (not result) then
   begin
+
     if sks<>0 then
       result:=(sks and $8001)<>0;
 
@@ -300,8 +330,48 @@ begin
 
 end;
 
-function RegisterHotKey(hWnd: HWND; id: Integer; fsModifiers, vk: UINT): BOOL; stdcall;
+{$ifdef darwin}
+procedure MacHotkeyCallBackOriginal(sender: TObject; param: pointer);
 begin
+  if (hotkeythread<>nil) and (not (hotkeythread.state in [htsActive,htsNoMemrec])) then exit; //ignore
+
+  mainform.hotkey2(integer(param));
+end;
+{$endif}
+
+{$ifdef darwin}
+procedure MacHotkeyCallBackMemRecHotkey(sender: TObject; param: pointer);
+begin
+  if (hotkeythread<>nil) and (not (hotkeythread.state in [htsActive,htsMemrecOnly])) then exit; //ignore
+
+  TMemoryRecordHotkey(param).DoHotkey;
+end;
+{$endif}
+
+{$ifdef darwin}
+procedure MacHotkeyCallBackGenericHotkey(sender: TObject; param: pointer);
+begin
+  if (hotkeythread<>nil) and (not (hotkeythread.state in [htsActive,htsNoMemrec])) then exit; //ignore
+
+  if assigned(TGenericHotkey(param).onNotify) then
+    TGenericHotkey(param).onNotify(tobject(param));
+end;
+{$endif}
+
+function RegisterHotKey(hWnd: HWND; id: Integer; fsModifiers, vk: UINT): BOOL; stdcall;
+{$ifdef darwin}
+var
+  keys: TKeyCombo;
+  hk: pointer;
+{$endif}
+begin
+  {$ifdef darwin}
+  outputdebugstring('RegisterHotKey Old. Modifiers='+inttohex(fsModifiers,2)+' vk='+inttohex(vk,2));
+  ConvertOldHotkeyToKeyCombo(fsModifiers, vk, keys);
+  hk:=RegisterHotkeyMac(keys,MacHotkeyCallBackOriginal,pointer(id));
+  if hk=nil then exit(false);
+  {$endif}
+
   CSKeys.Enter;
   try
     setlength(hotkeythread.hotkeylist,length(hotkeythread.hotkeylist)+1);
@@ -316,6 +386,10 @@ begin
 
     ConvertOldHotkeyToKeyCombo(fsModifiers, vk, hotkeythread.hotkeylist[length(hotkeythread.hotkeylist)-1].keys);
 
+    {$ifdef darwin}
+    hotkeythread.hotkeylist[length(hotkeythread.hotkeylist)-1].machk:=hk;
+    {$endif}
+
     result:=true;
   finally
     CSKeys.Leave;
@@ -323,8 +397,43 @@ begin
 end;
 
 
+
+
 function RegisterHotKey2(hWnd: HWND; id: Integer; keys: TKeyCombo; memrechotkey: pointer=nil; genericHotkey: TGenericHotkey=nil): boolean;
+{$ifdef darwin}
+var
+  hk: pointer;
+{$endif}
 begin
+
+
+  {$ifdef darwin}
+  if keys[0]=0 then
+    outputdebugstring('RegisterHotKey2 called with empty hotkey');
+
+  outputdebugstring('RegisterHotKey2');
+  if (memrechotkey=nil) and (generichotkey=nil) then
+  begin
+    outputdebugstring('old hotkey');
+    hk:=RegisterHotkeyMac(keys,MacHotkeyCallBackOriginal,pointer(id))
+  end
+  else
+  begin
+    outputdebugstring('new hotkey');
+    if memrechotkey<>nil then
+    begin
+      outputdebugstring('memrechotkey');
+      hk:=RegisterHotkeyMac(keys,MacHotkeyCallBackMemRecHotkey,memrechotkey)
+    end
+    else
+    begin
+      outputdebugstring('generichotkey');
+      hk:=RegisterHotkeyMac(keys,MacHotkeyCallBackGenericHotkey,generichotkey);
+    end;
+  end;
+  {$endif}
+
+
   CSKeys.Enter;
   try
     checkkeycombo(keys);
@@ -339,12 +448,15 @@ begin
     hotkeythread.hotkeylist[length(hotkeythread.hotkeylist)-1].delayBetweenActivate:=0;
     hotkeythread.hotkeylist[length(hotkeythread.hotkeylist)-1].memrechotkey:=memrechotkey;
     hotkeythread.hotkeylist[length(hotkeythread.hotkeylist)-1].generichotkey:=genericHotkey;
+    {$ifdef darwin}
+    hotkeythread.hotkeylist[length(hotkeythread.hotkeylist)-1].machk:=hk;
+    {$endif}
 
     result:=true;
   finally
     CSKeys.Leave;
   end;
-end;  
+end;
 
 procedure ConvertOldHotkeyToKeyCombo(fsModifiers, vk: uint; var k: tkeycombo);
 {
@@ -405,6 +517,10 @@ begin
       if hotkeythread.hotkeylist[i].genericHotkey=genericHotkey then
       begin
         //found, so delete it
+        {$ifdef darwin}
+        UnregisterHotkeyMac(hotkeythread.hotkeylist[i].machk);
+        {$endif}
+
         for j:=i to length(hotkeythread.hotkeylist)-2 do
           hotkeythread.hotkeylist[j]:=hotkeythread.hotkeylist[j+1];
 
@@ -431,6 +547,10 @@ begin
       if hotkeythread.hotkeylist[i].memrechotkey=memrechotkey then
       begin
         //found, so delete it
+        {$ifdef darwin}
+        UnregisterHotkeyMac(hotkeythread.hotkeylist[i].machk);
+        {$endif}
+
         for j:=i to length(hotkeythread.hotkeylist)-2 do
           hotkeythread.hotkeylist[j]:=hotkeythread.hotkeylist[j+1];
 
@@ -457,6 +577,10 @@ begin
       if (hotkeythread.hotkeylist[i].windowtonotify=hwnd) and
          (hotkeythread.hotkeylist[i].id=id) then
       begin
+        {$ifdef darwin}
+        UnregisterHotkeyMac(hotkeythread.hotkeylist[i].machk);
+        {$endif}
+
         for j:=i to length(hotkeythread.hotkeylist)-2 do
           hotkeythread.hotkeylist[j]:=hotkeythread.hotkeylist[j+1];
 
@@ -470,6 +594,8 @@ begin
     {$ifdef windows}
     result:=windows.UnregisterHotKey(hWnd,id)
     {$endif}
+
+
 
   finally
     CSKeys.Leave;
@@ -489,6 +615,17 @@ begin
   //not 100% sure why sendmessage works here but not from within the thread...
   //but since we're here anyhow:
   TMemoryRecordHotkey(memrechk).DoHotkey;
+end;
+
+procedure Thotkeythread.handleGenericHotkey;
+begin
+  if assigned(generichk.onNotify) then
+    generichk.onNotify(generichk);
+end;
+
+procedure THotkeythread.mainformhotkey2;
+begin
+  mainform.hotkey2(mainformhotkey2command);
 end;
 
 procedure THotkeyThread.execute;
@@ -511,6 +648,11 @@ begin
   activeHotkeyList:=Tlist.create;
   while not terminated do
   begin
+    {$ifdef darwin}
+    //using mac hotkeys instead
+    sleep(1000);
+    continue;
+    {$endif}
     try
       CSKeys.Enter;
       try
@@ -526,6 +668,8 @@ begin
 
           then
           begin
+            //OutputDebugString('Hotkey triggered');
+
             //the hotkey got pressed
             //6.3: Add it to a list of hotkeys
             tempHotkey:=getmem(sizeof(tempHotkey));
@@ -552,40 +696,65 @@ begin
         i:=0;
         while i<activeHotkeyList.count do
         begin
+          OutputDebugString('Handling hotkey');
           temphotkey:=PActiveHotkeyData(activeHotkeyList[i]);
           if temphotkey.keycount=maxActiveKeyCount then //it belongs to the max complex hotkey count
           begin
-
+            OutputDebugString('1');
             if ((tempHotkey.hotkeylistItem.lastactivate+ifthen(tempHotkey.hotkeylistItem.delaybetweenActivate>0, tempHotkey.hotkeylistItem.delaybetweenActivate, hotkeyIdletime))<GetTickCount) then //check if it can be activated
             begin
               a:=tempHotkey.hotkeylistItem.windowtonotify;
               b:=tempHotkey.hotkeylistItem.id;
               c:=(tempHotkey.hotkeylistItem.uVirtKey shl 16)+tempHotkey.hotkeylistItem.fuModifiers;
-
+              OutputDebugString('2');
 
               tempHotkey.hotkeylistItem.lastactivate:=gettickcount;
               if tempHotkey.hotkeylistItem.handler2 then
               begin
+                OutputDebugString('3');
                 if tempHotkey.hotkeylistItem.memrechotkey<>nil then
                 begin
+                  OutputDebugString('4');
                   memrechk:=tempHotkey.hotkeylistItem.memrechotkey;
 
                   CSKeys.leave;
+                  OutputDebugString('5');
                   Synchronize(memrechotkey);
+                  OutputDebugString('6');
                   cskeys.enter;
+                  OutputDebugString('7');
                 end
                 else
-                if tempHotkey.hotkeylistItem.generichotkey<>nil then
-                  sendmessage(a,integer(WM_HOTKEY2),1,ptrUint(tempHotkey.hotkeylistItem.genericHotkey))
-                else
-                  sendmessage(a,integer(WM_HOTKEY2),b,0)
+                begin
+                  OutputDebugString('8');
+                  if tempHotkey.hotkeylistItem.generichotkey<>nil then
+                  begin
+                    OutputDebugString('9');
+                    generichk:=tempHotkey.hotkeylistItem.genericHotkey;
+                    synchronize(handlegenerichotkey);
 
+                    //sendmessage(a,integer(WM_HOTKEY2),1,ptrUint(tempHotkey.hotkeylistItem.genericHotkey))
+                  end
+                  else
+                  begin
+
+                    OutputDebugString('10');
+
+                    mainformhotkey2command:=b;
+                    synchronize(mainformhotkey2);
+
+                    //sendmessage(a,integer(WM_HOTKEY2),b,0)
+                  end
+                end;
+                OutputDebugString('11');
 
               end
               {$ifdef windows}
               else
-                sendmessage(a,WM_HOTKEY,b,c);
-              {$endif}
+                sendmessage(a,WM_HOTKEY,b,c)
+              {$endif};
+
+              OutputDebugString('12');
             end;
           end;
 
@@ -622,9 +791,6 @@ initialization
 
   InitializeHotkeyHandler;
 
-  {$ifdef windows}
-  //hotkeythread:=Thotkeythread.Create(false);
-  {$endif}
 
 finalization
   if hotkeythread<>nil then

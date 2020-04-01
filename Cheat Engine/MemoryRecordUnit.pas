@@ -430,6 +430,7 @@ type
     procedure playDeactivateSound;
 
     procedure doHotkey;
+    procedure registerKeys;
     constructor create(AnOwner: TMemoryRecord);
     destructor destroy; override;
   published
@@ -711,18 +712,12 @@ begin
   fowner.hotkeylist.Add(self);
 
   keys[0]:=0;
-{$ifdef windows}
-  RegisterHotKey2(mainform.handle, 0, keys, self);
-{$endif}
 
 end;
 
 destructor TMemoryRecordHotkey.destroy;
 begin
-{$ifdef windows}
   UnregisterAddressHotkey(self);
-{$endif}
-
 
   //remove this hotkey from the memoryrecord
   if owner<>nil then
@@ -733,6 +728,12 @@ begin
   end;
 
   inherited destroy;
+end;
+
+procedure TMemoryRecordHotkey.registerKeys;
+begin
+  UnregisterAddressHotkey(self);
+  RegisterHotKey2(mainform.handle, 0, keys, self);
 end;
 
 procedure TMemoryRecordHotkey.doHotkey;
@@ -1598,6 +1599,8 @@ begin
             end;
 
           end;
+
+          hk.registerKeys;
         end;
       end;
 
@@ -2167,6 +2170,7 @@ begin
   hk.action:=action;
   hk.value:=value;
   hk.fdescription:=description;
+  hk.RegisterKeys;
 
   result:=hk;
 end;

@@ -829,7 +829,7 @@ type
     function CheckIfSaved: boolean;
     procedure checkpaste;
     procedure hotkey(var Message: TMessage); {$ifdef windows}message WM_HOTKEY;{$endif}
-    procedure Hotkey2(var Message: TMessage); message wm_hotkey2;
+
     procedure ScanDone(sender: TObject); //(var message: TMessage); message WM_SCANDONE;
     procedure PluginSync(var m: TMessage); message wm_pluginsync;
     procedure ShowError(var message: TMessage); message wm_showerror;
@@ -963,6 +963,8 @@ type
     {$ifdef darwin}
     cbDirty: TCheckbox;
     {$endif}
+
+    procedure Hotkey2(command: integer);
 
 
     procedure updated3dgui;
@@ -1450,7 +1452,7 @@ begin
   end;
 end;
 
-procedure TMainForm.Hotkey2(var Message: TMessage);
+procedure TMainForm.Hotkey2(command: integer);
 type
   PNotifyEvent = ^TNotifyEvent;
 var
@@ -1467,24 +1469,8 @@ var
   lockTimeOut: DWORD;
   pid: dword;
 begin
-  if message.LParam <> 0 then
-  begin
-    case message.wparam of
-      0: //memoryrecord hotkey
-      begin
-        hk := TMemoryRecordHotkey(message.LParam);
-        hk.DoHotkey;
-      end;
 
-      1: //OnNotify hotkey
-      begin
-        gh := TGenericHotkey(message.LParam);
-        gh.onNotify(gh);
-      end
-    end;
-  end
-  else
-    case message.WParam of
+    case command of
       0:
       begin
         {$ifdef windows}
@@ -1775,7 +1761,7 @@ begin
       11..19: //Change type (if possible)
       begin
         if vartype.Enabled then
-          vartype.ItemIndex := message.WParam - 3
+          vartype.ItemIndex := command-11
         else
         begin
           errorbeep;
@@ -1974,10 +1960,10 @@ begin
 
       31: //debug->run
       begin
-        {$ifdef windows}
+
         if memorybrowser.miDebugRun.enabled then
           MemoryBrowser.miDebugRun.Click;
-        {$endif}
+
       end;
 
     end;
