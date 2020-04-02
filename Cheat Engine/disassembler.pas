@@ -5047,7 +5047,7 @@ begin
                                end;
 
             {0f}{38}     $f0: begin
-                                 if $f2 in prefix then
+                                 if $f2 in prefix2 then
                                  begin
                                    description:='Accumulate CRC32 value';
                                    LastDisassembleData.opcode:='crc32';
@@ -5058,7 +5058,7 @@ begin
                                  begin
                                    description:='Move data after swapping bytes';
                                    LastDisassembleData.opcode:='movbe';
-                                   if $66 in prefix then
+                                   if $66 in prefix2 then
                                      lastdisassembledata.parameters:=r16(memory[3])+modrm(memory,prefix2,3,2,last,mRight)
                                    else
                                      lastdisassembledata.parameters:=r32(memory[3])+modrm(memory,prefix2,3,0,last, mRight);
@@ -5067,7 +5067,7 @@ begin
                                end;
 
                           $f1: begin
-                                 if $f2 in prefix then
+                                 if $f2 in prefix2 then
                                  begin
                                    description:='Accumulate CRC32 value';
                                    LastDisassembleData.opcode:='crc32';
@@ -8977,7 +8977,7 @@ begin
                                 begin
                                   description:='read random SEED';
                                   lastdisassembledata.opcode:='rdseed';
-                                  if $66 in prefix then
+                                  if $66 in prefix2 then
                                     lastdisassembledata.parameters:=modrm(memory,prefix2,2,1,last)
                                   else
                                     lastdisassembledata.parameters:=modrm(memory,prefix2,2,0,last);
