@@ -7517,10 +7517,11 @@ begin
           fcd.multipleRip:=frmDBVMWatchConfig.cbMultipleRIP.Checked;
           fcd.dbvmwatchid:=id;
           fcd.dbvmwatch_unlock:=unlockaddress;
-          if frmDBVMWatchConfig.watchtype=0 then
-            fcd.caption:=Format(rsTheFollowingOpcodesAccessed, [inttohex(address, 8)])
-          else
-            fcd.caption:=Format(rsTheFollowingOpcodesWriteTo, [inttohex(address, 8)]);
+          case frmDBVMWatchConfig.watchtype of
+            0: fcd.caption:=Format(rsTheFollowingOpcodesAccessed, [inttohex(address, 8)]);
+            1: fcd.caption:=Format(rsTheFollowingOpcodesWriteTo, [inttohex(address, 8)]);
+            2: fcd.caption:=Format(rsTheFollowingAddressesExecute, [inttohex(address, 8)]);
+          end;
 
 
           fcd.show;

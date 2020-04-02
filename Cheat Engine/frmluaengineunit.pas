@@ -256,16 +256,14 @@ begin
       break;
 
   i:=RPos('.',r);
-  if r='' then
+  if i=0 then
   begin
     extra:=r;
     exit('_G');
   end;
 
-  extra:=copy(r,i+1,length(r)-i-1);
+  extra:=copy(r,i+1);
   exit(copy(r,1,i-1));
-
-  exit(r);
 
 end;
 
@@ -307,6 +305,7 @@ begin
 
 
   s:=ParseStringForPath(s,extra);
+
 
   try
     if luaL_loadstring(L,pchar('return '+s))=0 then
@@ -432,6 +431,8 @@ begin
         lua_pop(L,i);
       end;
     end;
+
+    scLuaCompleter.CurrentString:=extra;
   except
     on e:exception do
       messagedlg(e.message,mtError,[mbok],0);
@@ -456,8 +457,10 @@ var
 begin
   //get the text from the end till the first .
 
-  s:=scLuaCompleter.CurrentString;
+  s:=uppercase(scLuaCompleter.CurrentString);
 
+  if scLuaCompleter.ItemList.count=0 then
+    exit;
 
 
   if s='' then exit;
@@ -469,6 +472,7 @@ begin
 
   //outputdebugstring(pchar(s));
 
+
   for i:=0 to scLuaCompleter.ItemList.count-1 do
   begin
     s2:=uppercase(scLuaCompleter.ItemList[i]);
@@ -476,12 +480,14 @@ begin
     p:=pos(s,s2);
     if p=1 then
     begin
+      scLuaCompleter.Position:=i-1;
+
       APosition:=i;
       exit;
     end;
   end;
 
-  APosition:=-1;
+ // APosition:=-1;
  // APosition:=scLuaCompleter.ItemList.IndexOf(s);
 
 end;

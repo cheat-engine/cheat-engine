@@ -165,6 +165,8 @@ var
 resourcestring
   rsTheFollowingOpcodesAccessed = 'The following opcodes accessed %s';
   rsTheFollowingOpcodesWriteTo = 'The following opcodes write to %s';
+  rsTheFollowingAddressesExecute = 'The following codes execute %s';
+
 
 
 implementation
