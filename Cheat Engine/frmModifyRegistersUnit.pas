@@ -25,7 +25,7 @@ type
     lbl: tlabel;
     edt: Tedit;
   public
-    constructor Create(AOwner: TComponent; id: integer);
+    constructor Create(AOwner: TComponent; id: integer); overload;
   end;
 
   TChangeRegXMMPanelEdit=class(TPanel)
@@ -35,7 +35,7 @@ type
     edt: tedit;
   public
     procedure setrange(start, stop: integer);
-    constructor Create(AOwner: TComponent; initialid: integer);
+    constructor Create(AOwner: TComponent; initialid: integer); overload;
   end;
 
   TChangeRegXMMPanel=class(TGroupbox)
@@ -53,7 +53,7 @@ type
     procedure fixdimensions;
     property field[index: integer]: dword read getField;
     property Double: boolean read usesDouble write setDouble;
-    constructor Create(AOwner: TComponent; id: integer);
+    constructor Create(AOwner: TComponent; id: integer);  overload;
   end;
 
 

@@ -955,11 +955,20 @@ methods
 ImageList Class: (Inheritance: )
 List containing images.  Used by several components for images
 
+createImageList(owner OPTIONAL): creates an imagelist object
+
 properties
   Count: integer - Number of images in the list
+  DrawingStyle: 'dsFocus', 'dsSelected', 'dsNormal', 'dsTransparent'
+  Height: integer
+  Width: integer
+  Masked: boolean
+  Scaled: boolean
+  OnChange: function(sender)
+
 methods
   add(bitmap, bitmapmask OPTIONAL):integer - Adds a new bitmap the list and returns the index of the newly added entry
-
+  draw(canvas, x,y, index) - Draws the image at the index to the specific x,y coordinates on the canvas
 
 Stringlist Class: (Inheritance : Strings->Object)
 createStringlist() : Creates a stringlist class object (for whatever reason, lua strings are probably easier to use)
@@ -1439,6 +1448,8 @@ methods
   setChecked(boolean): Sets the checkbox of the listbox to the given state
   getSubItems(): Returns a Strings object
   makeVisible(partial): Scrolls the listview so this item becomes visible (Cheat Engine 6.4 and later)
+  displayRect(code): returns the displayed rectangle of the listitem. code can be: drBounds(0), drIcon(1), drLabel(2), drSelectBounds(3)
+  displayRectSubItem(code): returns the displayed rectangle of the listitem. code can be: drBounds(0), drIcon(1), drLabel(2), drSelectBounds(3)
 
 
 ListItems class : (Inheritance: TObject)
@@ -1451,8 +1462,6 @@ methods
   getCount()
   getItem(integer) : Return the listitem object at the given index
   add(): Returns a new ListItem object
-  displayRect(code): returns the displayed rectangle of the listitem. code can be: drBounds(0), drIcon(1), drLabel(2), drSelectBounds(3)
-  displayRectSubItem(code): returns the displayed rectangle of the listitem. code can be: drBounds(0), drIcon(1), drLabel(2), drSelectBounds(3)
 
 
 
@@ -1480,6 +1489,7 @@ properties
 methods
   clear()
   getColumns() : ListColumns - Returns a ListColumns object
+  getItemAt(x,y):ListItem - Returns the ListItem at the given index. nil if nothing
   getItems(): ListItems - Returns a ListItems object
   getItemIndex(): integer -  Returns the currently selected index in the Items object
   setItemIndex(index: integer)- Sets the current itemindex
@@ -1641,7 +1651,9 @@ methods
   ellipse(x1,y1,x2,y2)
   gradientFill(x1,y1,x2,y2, startcolor, stopcolor, direction) : Gradient fills a rectangle. Direction can be 0 or 1. 0=Vertical 1=Horizontal
   copyRect(dest_x1,dest_y1,dest_x2,dest_y2, sourceCanvas, source_x1,source_y1,source_x2,source_y2) : Draws an image from one source to another. Useful in cases of doublebuffering
+  strectDraw(rect
   draw(x,y, graphic) : Draw the image of a specific Graphic class
+  strectDraw(rect, graphic): Draw the image of a specific Graphic class and stretch it so it fits in the given rectangle
   getClipRect() : Returns a table containing the fields Left, Top, Right and Bottom, which define the invalidated region of the graphical object. Use this to only render what needs to be rendered in the onPaint event of objects
 
 Pen Class : (Inheritance: CustomPen->CanvasHelper->Object)
@@ -1697,6 +1709,8 @@ methods
   setWidth(graphic, width): Sets thw width in pixels
   getHeight(graphic)
   setHeight(graphic, height)
+  loadFromFile(filename)
+  saveToFile(filename)
 
 RasterImage class: (Inheritance: Graphic->Object) : Base class for some graphical controls
 properties
@@ -2188,6 +2202,10 @@ properties
   Fastscanmethod: TFastScanMethod 
   Fastscanparameter: string
   Customtype: TCustomType
+
+  ScanWritable:    TScanregionpreference ('scanDontCare', 'scanExclude', 'scanInclude')
+  ScanExecutable:  TScanregionpreference ('scanDontCare', 'scanExclude', 'scanInclude') 
+  ScanCopyOnWrite: TScanregionpreference ('scanDontCare', 'scanExclude', 'scanInclude')
   
   Percentage: boolean
   CompareToSavedScan: boolean 

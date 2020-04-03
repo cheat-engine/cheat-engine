@@ -487,9 +487,7 @@ begin
     end;
   end;
 
- // APosition:=-1;
- // APosition:=scLuaCompleter.ItemList.IndexOf(s);
-
+  aposition:=-1;
 end;
 
 procedure TfrmLuaEngine.SQLConnector1AfterConnect(Sender: TObject);

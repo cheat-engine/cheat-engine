@@ -123,7 +123,8 @@ uses autoassembler, mainunit, MainUnit2, LuaClass, frmluaengineunit, plugin, plu
   LuaCustomType, Filehandler, LuaSQL, frmSelectionlistunit, cpuidUnit, LuaRemoteThread,
   LuaManualModuleLoader, pointervaluelist, frmEditHistoryUnit, LuaCheckListBox,
   LuaDiagram, frmUltimap2Unit, frmcodefilterunit, BreakpointTypeDef, LuaSyntax,
-  LazLogger, LuaSynedit, LuaRIPRelativeScanner, ColorBox, rttihelper;
+  LazLogger, LuaSynedit, LuaRIPRelativeScanner, LuaCustomImageList ,ColorBox,
+  rttihelper;
 
   {$warn 5044 off}
 
@@ -12917,6 +12918,7 @@ begin
     initializeLuaUltimap2;
     initializeLuaCodeFilter;
     initializeLuaSynEdit;
+    initializeLuaCustomImageList;
 
 
 

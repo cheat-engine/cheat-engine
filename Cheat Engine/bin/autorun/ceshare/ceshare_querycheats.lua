@@ -63,6 +63,7 @@ function ceshare.QueryProcessCheats(processname, headermd5, updatableOnly)
               entry.SecondaryFullFileHash=CheatEntry["@secondaryfullfilehashmd5"]
               entry.CheckCode=CheatEntry["@luaScriptToCheckForMatch"]
               entry.Description=CheatEntry["@description"]
+              entry.Url=CheatEntry["@url"]
               entry.DataType=CheatEntry["@datatype"]
               entry.Signed=CheatEntry["@signed"]=='1'
               entry.YourRating=tonumber(ceshare.settings.Value['voted'..entry.ID])
@@ -233,13 +234,56 @@ function ceshare.CheckForCheatsClick(s)
         end--]]
         
         ceshare.CheatBrowserFrm.lblContact.Visible=true
-        ceshare.CheatBrowserFrm.lblContact.Font.Size=5
+        ceshare.CheatBrowserFrm.lblContact.Font.Size=6
       end
       
       ceshare.RateStars[1].img.OnMouseLeave(ceshare.RateStars[1]) 
   
 
     end
+    
+    ceshare.CheatBrowserFrm.lvCheats.OnAdvancedCustomDrawSubItem=function(Sender, Item, SubItemIndex, State, Stage)
+      if SubItemIndex==7 then --link subitem
+        if ceshare.CurrentQuery[Item.index+1].Url and (ceshare.CurrentQuery[Item.index+1].Url~='') then
+          if Stage==cdPostPaint then
+            local rect=Item.DisplayRectSubItem(7,drBounds)  
+            Sender.Canvas.stretchDraw(rect, ceshare.linkButton)
+          end
+        
+        end
+      end      
+
+      return true --return true for DefaultDraw
+    end
+    
+    ceshare.CheatBrowserFrm.lvCheats.OnMouseMove=function(sender, x, y)
+      local item=sender.getItemAt(x,y)
+      if item then
+        if ceshare.CurrentQuery[item.index+1].Url and (ceshare.CurrentQuery[item.index+1].Url~='') then
+          local linkrect=item.DisplayRectSubItem(7,drBounds)
+        
+          if (x>linkrect.Left) and (x<linkrect.Right) and
+             (y>linkrect.Top) and (y<linkrect.Bottom) then
+            ceshare.CheatBrowserFrm.lvCheats.Cursor=crHandPoint  
+          else
+            ceshare.CheatBrowserFrm.lvCheats.Cursor=crDefault  
+          end 
+        end        
+      end
+    end
+
+    ceshare.CheatBrowserFrm.lvCheats.OnMouseDown=function(sender, button, x, y)
+      local item=sender.getItemAt(x,y)
+      if item then
+        local url=ceshare.CurrentQuery[item.index+1].Url
+        if url and (url~='') then          
+          if (string.sub(url,1,7)=='http://') or string.sub(url,1,8)=='https://' then
+            shellExecute(url)
+          end
+        end  
+      end
+    end
+    
     
     ceshare.CheatBrowserFrm.btnLoadTable.OnClick=function(s)
       local index=ceshare.CheatBrowserFrm.lvCheats.ItemIndex
@@ -480,7 +524,7 @@ function ceshare.CheckForCheatsClick(s)
       if index~=-1 then
         ceshare.CheatBrowserFrm.miLoad.Visible=true
         ceshare.CheatBrowserFrm.miViewComments.Visible=true
-        ceshare.CheatBrowserFrm.miViewHistory.Visible=false --to be implemented later true
+        --ceshare.CheatBrowserFrm.miViewHistory.Visible=false --to be implemented later
         ceshare.CheatBrowserFrm.sep.Visible=true
         
         local entry=ceshare.CurrentQuery[index+1]
@@ -499,7 +543,7 @@ function ceshare.CheckForCheatsClick(s)
       else
         ceshare.CheatBrowserFrm.miLoad.Visible=false
         ceshare.CheatBrowserFrm.miViewComments.Visible=false
-        ceshare.CheatBrowserFrm.miViewHistory.Visible=false
+        --ceshare.CheatBrowserFrm.miViewHistory.Visible=false
         ceshare.CheatBrowserFrm.sep.Visible=false      
       end
       
@@ -511,6 +555,9 @@ function ceshare.CheckForCheatsClick(s)
       ceshare.CheatBrowserFrm.miManageAccessList.Visible=canManage
       
     end
+    
+    ceshare.linkButton=createPNG()
+    ceshare.linkButton.LoadFromFile(ceshare.imagepath..'link.png')
     
   end
 
@@ -568,11 +615,13 @@ function ceshare.CheckForCheatsClick(s)
       ceshare.CheatBrowserFrm.lvCheats.ItemIndex=i-1
       --select
     end
+    
+    li.SubItems.add(' ') --url
 
   end
   
 
-  ceshare.CheatBrowserFrm.btnViewHistory.Visible=false --later
+ -- ceshare.CheatBrowserFrm.btnViewHistory.Visible=false --later
 
   ceshare.CheatBrowserFrm.show()
   ceshare.CheatBrowserFrm.AutoSize=false

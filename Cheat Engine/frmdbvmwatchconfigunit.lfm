@@ -1,7 +1,7 @@
 object frmDBVMWatchConfig: TfrmDBVMWatchConfig
-  Left = 926
+  Left = 1250
   Height = 267
-  Top = 285
+  Top = 435
   Width = 311
   AutoSize = True
   BorderStyle = bsSingle

@@ -11,6 +11,7 @@ function ceshare.getInternet()
   return ceshare.internet
 end
 
+local pathsep
 if getOperatingSystem()==0 then
   pathsep=[[\]]
 else
@@ -20,6 +21,7 @@ end
 ceshare.version=-1
 ceshare.path=getAutoRunPath()..'ceshare'..pathsep
 ceshare.formpath=ceshare.path..pathsep..'forms'..pathsep
+ceshare.imagepath=ceshare.path..pathsep..'images'..pathsep
 
 if package.loaded.xmlSimple==nil then
   package.path=package.path..';'..getAutoRunPath()..'xml'..pathsep..'?.lua'

@@ -1665,8 +1665,8 @@ begin
 
           for j:=0 to DissectedStructs.count-1 do
           begin
-            if TDissectedStruct(DissectedStructs).name=classname then
-              e.ChildStruct:=TDissectedStruct(DissectedStructs);
+            if TDissectedStruct(DissectedStructs[j]).name=classname then
+              e.ChildStruct:=TDissectedStruct(DissectedStructs[j]);
           end;
         end;
 

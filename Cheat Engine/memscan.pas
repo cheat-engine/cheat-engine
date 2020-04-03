@@ -653,6 +653,10 @@ type
     fcompareToSavedScan: boolean;
     fsavedscanname: string;
 
+    fscanWritable: Tscanregionpreference;
+    fscanExecutable: Tscanregionpreference;
+    fscanCopyOnWrite: Tscanregionpreference;
+
 
     procedure DeleteScanfolder;
     procedure createScanfolder;
@@ -668,9 +672,7 @@ type
     postScanState: TPostScanState;
 
 
-    scanWritable: Tscanregionpreference;
-    scanExecutable: Tscanregionpreference;
-    scanCopyOnWrite: Tscanregionpreference;
+
     {$ifdef darwin}
     scanDirty: Tscanregionpreference;
     {$endif}
@@ -718,7 +720,7 @@ type
     property inverseScan: boolean read fInverseScan write fInverseScan;
     property floatscanWithoutExponents: boolean read ffloatscanWithoutExponents write ffloatscanWithoutExponents;
     property OnlyOne: boolean read fOnlyOne write fOnlyOne;
-    property VarType: TVariableType read fVariableType write fVariableType;
+    property VarType: TVariableType read fVariableType write setVariableType;
     property codePage: boolean read fCodePage write fCodePage;
     property LuaFormula: boolean read fLuaFormula write fLuaFormula;
     property isUnique: boolean read fIsUnique write fIsUnique; //for AOB scans only
@@ -756,6 +758,9 @@ type
     property CompareToSavedScan: boolean read fcompareToSavedScan write fcompareToSavedScan;
     property SavedScanName: string read fsavedscanname write fsavedscanname;
 
+    property scanWritable: Tscanregionpreference read fscanWritable write fscanWritable;
+    property scanExecutable: Tscanregionpreference read fscanWritable write fscanWritable;
+    property scanCopyOnWrite: Tscanregionpreference read fscanWritable write fscanWritable;
 
 //    property percentage
   end;

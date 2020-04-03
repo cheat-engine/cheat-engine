@@ -1133,7 +1133,7 @@ begin
                     1: result:='sp';
                     2: if rexprefix<>0 then result:='spl' else result:='ah';
                     3: result:='mm4';
-                    4: if opcodeflags.L then result:='ymm4' else result:='zmm4';
+                    4: if opcodeflags.L then result:='ymm4' else result:='xmm4';
                   end;
 
               5:  case inst of

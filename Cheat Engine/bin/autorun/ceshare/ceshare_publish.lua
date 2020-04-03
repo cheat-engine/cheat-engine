@@ -63,7 +63,7 @@ function ceshare.Delete(entry)
   end
 end
 
-function ceshare.PublishCheat(data,title,processname, headermd5, versionindependent, description, public, fullfilehash, secondarymodulename, secondaryfullfilehashmd5)
+function ceshare.PublishCheat(data,title,processname, headermd5, versionindependent, description, public, fullfilehash, secondarymodulename, secondaryfullfilehashmd5, url)
 
 
   local parameters=''
@@ -100,6 +100,7 @@ function ceshare.PublishCheat(data,title,processname, headermd5, versionindepend
   if fullfilehash~=nil then parameters=parameters..'&fullfilehash='..ceshare.url_encode(fullfilehash) end
   if secondarymodulename~=nil then parameters=parameters..'&secondarymodulename='..ceshare.url_encode(secondarymodulename) end
   if secondaryfullfilehashmd5~=nil then parameters=parameters..'&secondaryfullfilehashmd5='..ceshare.url_encode(secondaryfullfilehashmd5) end
+  if url~=nil then parameters=parameters..'&url='..ceshare.url_encode(url) end
  
   if isKeyPressed(VK_CONTROL)==false then  --control lets you get a new script if needed
     local secondaryIdentifierCode=ceshare.secondaryIdentifierCode.Value[processname:lower()]
@@ -120,7 +121,7 @@ function ceshare.PublishCheat(data,title,processname, headermd5, versionindepend
   end
 end
 
-function ceshare.UpdateCheat(id,data,title,headermd5, versionindependent, description, public, fullfilehash, secondarymodulename, secondaryfullfilehashmd5)
+function ceshare.UpdateCheat(id,data,title,headermd5, versionindependent, description, public, fullfilehash, secondarymodulename, secondaryfullfilehashmd5, url)
   local parameters=''
   
   if id==nil then
@@ -160,6 +161,8 @@ function ceshare.UpdateCheat(id,data,title,headermd5, versionindependent, descri
   if fullfilehash~=nil then parameters=parameters..'&fullfilehash='..ceshare.url_encode(fullfilehash) end
   if secondarymodulename~=nil then parameters=parameters..'&secondarymodulename='..ceshare.url_encode(secondarymodulename) end
   if secondaryfullfilehashmd5~=nil then parameters=parameters..'&secondaryfullfilehashmd5='..ceshare.url_encode(secondaryfullfilehashmd5) end
+  if url~=nil then parameters=parameters..'&url='..ceshare.url_encode(url) end
+  
   
   local r=ceshare.QueryXURL('EditTable.php',parameters)
   
@@ -488,7 +491,9 @@ function ceshare.publishOrUpdate(cheatinfo) --cheatinfo is a set if an update
                             ceshare.PublishCheatFrm.cbPublic.Checked,                                
                             fullfilehash,
                             secondarymodulename,
-                            secondaryfullfilehash) then
+                            secondaryfullfilehash,
+                            ceshare.PublishCheatFrm.edtURL.Text
+                            ) then
         ceshare.PublishCheatFrm.close() 
       end          
     else
@@ -501,7 +506,9 @@ function ceshare.publishOrUpdate(cheatinfo) --cheatinfo is a set if an update
                             ceshare.PublishCheatFrm.cbPublic.Checked,                                
                             fullfilehash,
                             secondarymodulename,
-                            secondaryfullfilehash) then
+                            secondaryfullfilehash,
+                            ceshare.PublishCheatFrm.edtURL.Text
+                            ) then
         ceshare.PublishCheatFrm.close()                            
       end
     end

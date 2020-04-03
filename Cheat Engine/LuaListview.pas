@@ -78,6 +78,26 @@ begin
   result:=1;
 end;
 
+function listview_getItemAt(L: PLua_State): integer; cdecl;
+var
+  listview: TCustomListView;
+  x,y: integer;
+
+  i: TListItem;
+begin
+  result:=0;
+  if lua_gettop(L)>=2 then
+  begin
+    listview:=luaclass_getClassObject(L);
+    x:=lua_tointeger(L,1);
+    y:=lua_tointeger(L,2);
+    i:=listview.GetItemAt(x,y);
+    luaclass_newClass(L, i);
+    result:=1;
+  end;
+end;
+
+
 function listview_setItems(L: PLua_State): integer; cdecl;
 var
   listview: TCustomListView;
@@ -155,6 +175,7 @@ begin
 
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'clear', listview_clear);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'getColumns', listview_getColumns);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'getItemAt', listview_getItemAt);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'getItems', listview_getItems);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'setItems', listview_setItems);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'getItemIndex', listview_getItemIndex);
@@ -168,6 +189,7 @@ begin
   luaclass_addPropertyToTable(L, metatable, userdata, 'ItemIndex', listview_getItemIndex, listview_setItemIndex);
   luaclass_addPropertyToTable(L, metatable, userdata, 'Selected', listview_getSelected, listview_setSelected);
   luaclass_addPropertyToTable(L, metatable, userdata, 'Canvas', listview_getCanvas, nil);
+
 
 end;
 
