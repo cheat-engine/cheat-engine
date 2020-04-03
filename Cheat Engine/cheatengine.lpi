@@ -22,7 +22,7 @@
       <AutoIncrementBuild Value="True"/>
       <MajorVersionNr Value="7"/>
       <MinorVersionNr Value="1"/>
-      <BuildNr Value="6297"/>
+      <BuildNr Value="6304"/>
       <Language Value=""/>
       <CharSet Value=""/>
       <StringTable CompanyName="Cheat Engine" FileDescription="Cheat Engine" ProductVersion="7.1"/>
@@ -195,13 +195,14 @@
           </CodeGeneration>
           <Linking>
             <Debugging>
+              <GenerateDebugInfo Value="False"/>
               <DebugInfoType Value="dsDwarf3"/>
               <StripSymbols Value="True"/>
               <UseExternalDbgSyms Value="True"/>
             </Debugging>
             <Options>
               <PassLinkerOptions Value="True"/>
-              <LinkerOptions Value="-framework Security -framework CoreFoundation"/>
+              <LinkerOptions Value="-framework Security -framework CoreFoundation -framework Carbon"/>
               <Win32>
                 <GraphicApplication Value="True"/>
               </Win32>

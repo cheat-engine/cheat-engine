@@ -1684,9 +1684,8 @@ var i: integer;
 
   KVAShadowInfo: dword;
   rl: DWORD;
+
 begin
-
-
   tvMenuSelection.Items[0].Data:=GeneralSettings;
   tvMenuSelection.Items[1].Data:=tsTools;
   tvMenuSelection.Items[2].Data:=tsHotkeys;

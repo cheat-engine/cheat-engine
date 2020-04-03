@@ -650,8 +650,13 @@ begin
   begin
     {$ifdef darwin}
     //using mac hotkeys instead
-    sleep(1000);
-    continue;
+    if loadMacHotkeyFunctions then
+    begin
+      sleep(1000);
+      continue;
+    end;
+
+    //else use the getasynckeystate method which can only get function keys and modifiers
     {$endif}
     try
       CSKeys.Enter;

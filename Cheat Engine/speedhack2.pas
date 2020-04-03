@@ -72,10 +72,12 @@ begin
       {$ifdef darwin}
       if not FileExists('/usr/local/lib/libspeedhack.dylib') then
       begin
+        ForceDirectories('/usr/local/lib/');
+
         path:=cheatenginedir+'libspeedhack.dylib';
         if CopyFile(path, '/usr/local/lib/libspeedhack.dylib', true)=false then
         begin
-          raise exception.create('Failure copying libspeedhack.dylib to /usr/lib');
+          raise exception.create('Failure copying libspeedhack.dylib to /usr/local/lib');
         end;
       end;
 

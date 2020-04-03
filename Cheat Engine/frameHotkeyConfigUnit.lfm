@@ -10,17 +10,17 @@ object frameHotkeyConfig: TframeHotkeyConfig
   DesignTop = 194
   object Panel1: TPanel
     Left = 0
-    Height = 364
-    Top = 50
+    Height = 366
+    Top = 48
     Width = 305
     Align = alClient
     BevelOuter = bvNone
-    ClientHeight = 364
+    ClientHeight = 366
     ClientWidth = 305
     TabOrder = 0
     object Label1: TLabel
       Left = 0
-      Height = 15
+      Height = 16
       Top = 0
       Width = 305
       Align = alTop
@@ -29,8 +29,8 @@ object frameHotkeyConfig: TframeHotkeyConfig
     end
     object ListBox1: TListBox
       Left = 0
-      Height = 349
-      Top = 15
+      Height = 350
+      Top = 16
       Width = 305
       Align = alClient
       ExtendedSelect = False
@@ -77,21 +77,21 @@ object frameHotkeyConfig: TframeHotkeyConfig
   end
   object Panel2: TPanel
     Left = 305
-    Height = 364
-    Top = 50
+    Height = 366
+    Top = 48
     Width = 183
     Align = alRight
     BevelOuter = bvNone
-    ClientHeight = 364
+    ClientHeight = 366
     ClientWidth = 183
     TabOrder = 1
     object Label2: TLabel
       AnchorSideLeft.Control = Panel2
       AnchorSideTop.Control = Panel2
       Left = 2
-      Height = 15
+      Height = 16
       Top = 2
-      Width = 38
+      Width = 43
       BorderSpacing.Left = 2
       BorderSpacing.Top = 2
       Caption = 'Hotkey'
@@ -104,8 +104,8 @@ object frameHotkeyConfig: TframeHotkeyConfig
       AnchorSideRight.Control = Panel2
       AnchorSideRight.Side = asrBottom
       Left = 2
-      Height = 23
-      Top = 19
+      Height = 22
+      Top = 20
       Width = 179
       Anchors = [akTop, akLeft, akRight]
       BorderSpacing.Top = 2
@@ -120,10 +120,10 @@ object frameHotkeyConfig: TframeHotkeyConfig
       AnchorSideTop.Side = asrBottom
       AnchorSideRight.Control = Edit1
       AnchorSideRight.Side = asrBottom
-      Left = 128
-      Height = 25
+      Left = 123
+      Height = 20
       Top = 43
-      Width = 53
+      Width = 58
       Anchors = [akTop, akRight]
       AutoSize = True
       BorderSpacing.Top = 1
@@ -134,16 +134,16 @@ object frameHotkeyConfig: TframeHotkeyConfig
     object Panel3: TPanel
       AnchorSideTop.Control = Button3
       AnchorSideTop.Side = asrBottom
-      Left = 78
-      Height = 57
-      Top = 70
-      Width = 100
+      Left = 67
+      Height = 56
+      Top = 65
+      Width = 111
       Anchors = [akTop, akRight]
       AutoSize = True
       BorderSpacing.Top = 2
       BevelOuter = bvNone
-      ClientHeight = 57
-      ClientWidth = 100
+      ClientHeight = 56
+      ClientWidth = 111
       TabOrder = 2
       Visible = False
       object Label52: TLabel
@@ -152,9 +152,9 @@ object frameHotkeyConfig: TframeHotkeyConfig
         AnchorSideRight.Control = Panel3
         AnchorSideRight.Side = asrBottom
         Left = 44
-        Height = 15
+        Height = 16
         Top = 0
-        Width = 56
+        Width = 67
         Anchors = [akTop, akRight]
         Caption = 'Speed        '
         ParentColor = False
@@ -166,9 +166,9 @@ object frameHotkeyConfig: TframeHotkeyConfig
         AnchorSideRight.Control = Panel3
         AnchorSideRight.Side = asrBottom
         Left = 44
-        Height = 23
-        Top = 15
-        Width = 56
+        Height = 22
+        Top = 16
+        Width = 67
         Anchors = [akTop, akLeft, akRight]
         OnChange = edtSHSpeedChange
         OnExit = edtSHSpeedExit
@@ -179,9 +179,9 @@ object frameHotkeyConfig: TframeHotkeyConfig
         AnchorSideTop.Control = edtSHSpeed
         AnchorSideTop.Side = asrBottom
         Left = 0
-        Height = 19
+        Height = 18
         Top = 38
-        Width = 100
+        Width = 111
         Caption = 'Stop on release'
         TabOrder = 1
       end
@@ -193,7 +193,7 @@ object frameHotkeyConfig: TframeHotkeyConfig
       AnchorSideRight.Side = asrBottom
       Left = 2
       Height = 38
-      Top = 129
+      Top = 123
       Width = 181
       Anchors = [akTop, akLeft, akRight]
       AutoSize = True
@@ -207,9 +207,9 @@ object frameHotkeyConfig: TframeHotkeyConfig
         AnchorSideLeft.Control = Edit4
         AnchorSideTop.Control = Panel4
         Left = 2
-        Height = 15
+        Height = 16
         Top = 0
-        Width = 61
+        Width = 72
         Caption = 'Speed delta'
         ParentColor = False
       end
@@ -220,8 +220,8 @@ object frameHotkeyConfig: TframeHotkeyConfig
         AnchorSideRight.Control = Panel4
         AnchorSideRight.Side = asrBottom
         Left = 2
-        Height = 23
-        Top = 15
+        Height = 22
+        Top = 16
         Width = 177
         Anchors = [akTop, akLeft, akRight]
         BorderSpacing.Left = 2
@@ -233,13 +233,13 @@ object frameHotkeyConfig: TframeHotkeyConfig
   end
   object Panel5: TPanel
     Left = 0
-    Height = 50
+    Height = 48
     Top = 0
     Width = 488
     Align = alTop
     AutoSize = True
     BevelOuter = bvNone
-    ClientHeight = 50
+    ClientHeight = 48
     ClientWidth = 488
     TabOrder = 2
     object Label4: TLabel
@@ -248,9 +248,9 @@ object frameHotkeyConfig: TframeHotkeyConfig
       AnchorSideTop.Control = edtKeypollInterval
       AnchorSideTop.Side = asrCenter
       Left = 99
-      Height = 15
-      Top = 6
-      Width = 158
+      Height = 16
+      Top = 5
+      Width = 180
       BorderSpacing.Left = 2
       Caption = 'Keypoll interval (milliseconds)'
       ParentColor = False
@@ -261,9 +261,9 @@ object frameHotkeyConfig: TframeHotkeyConfig
       AnchorSideTop.Control = edtHotkeyDelay
       AnchorSideTop.Side = asrCenter
       Left = 99
-      Height = 15
-      Top = 31
-      Width = 186
+      Height = 16
+      Top = 29
+      Width = 215
       BorderSpacing.Left = 2
       Caption = 'Delay between reactivating hotkeys'
       ParentColor = False
@@ -272,7 +272,7 @@ object frameHotkeyConfig: TframeHotkeyConfig
       AnchorSideLeft.Control = Panel5
       AnchorSideTop.Control = Panel5
       Left = 2
-      Height = 23
+      Height = 22
       Hint = 'Determines how quickly a hotkey keypress is detected'
       Top = 2
       Width = 95
@@ -288,9 +288,9 @@ object frameHotkeyConfig: TframeHotkeyConfig
       AnchorSideTop.Control = edtKeypollInterval
       AnchorSideTop.Side = asrBottom
       Left = 2
-      Height = 23
+      Height = 22
       Hint = 'Lets you specify how quickly a hotkey is repeated'
-      Top = 27
+      Top = 26
       Width = 95
       BorderSpacing.Top = 2
       ParentShowHint = False
@@ -301,8 +301,8 @@ object frameHotkeyConfig: TframeHotkeyConfig
   end
   object PopupMenu1: TPopupMenu
     Images = fhcImageList
-    left = 69
-    top = 131
+    Left = 69
+    Top = 131
     object MenuItem1: TMenuItem
       Caption = 'Clear list'
       ImageIndex = 0
@@ -310,8 +310,8 @@ object frameHotkeyConfig: TframeHotkeyConfig
     end
   end
   object fhcImageList: TImageList
-    left = 320
-    top = 100
+    Left = 320
+    Top = 100
     Bitmap = {
       4C69010000001000000010000000FFFFFF00FFFFFF00FFFFFF00FFFFFF00CDCD
       F3327777DD994444D1DB3333CCFB3333CCFB4444D1DB7777DD99CDCDF332FFFF

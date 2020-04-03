@@ -6,7 +6,7 @@ interface
 
 uses
   {$ifdef darwin}
-  macport, LCLType, math,
+  macport, LCLType, math, machotkeys,
   {$endif}
   {$ifdef windows}
   windows,
@@ -540,7 +540,20 @@ end;
 
 
 procedure THotKeyForm.FormCreate(Sender: TObject);
+var lblLimiteHotkeySupport: tlabel;
 begin
+  {$ifdef darwin}
+  if loadHotkeyFunctions=false then
+  begin
+    lblLimiteHotkeySupport:=tlabel.create(self);
+    lblLimiteHotkeySupport.caption:='Limited hotkey support. No character keys supported';
+    lblLimiteHotkeySupport.font.color:=clRed;
+    lblLimiteHotkeySupport.align:=alBottom;
+    lblLimiteHotkeySupport.parent:=self;
+   end;
+  {$endif}
+
+
   edtActivateText.Hint:=rsTextToSpeechHint; //make it easier for translators
   edtDeactivateText.Hint:=edtActivateText.Hint;
 

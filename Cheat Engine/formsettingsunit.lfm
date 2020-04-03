@@ -63,9 +63,9 @@ object formSettings: TformSettings
       Height = 638
       Top = 1
       Width = 660
-      ActivePage = ScanSettings
+      ActivePage = GeneralSettings
       Align = alClient
-      TabIndex = 3
+      TabIndex = 0
       TabOrder = 1
       OnChange = pcSettingChange
       object GeneralSettings: TTabSheet
@@ -664,12 +664,10 @@ object formSettings: TformSettings
             ClientHeight = 562
             ClientWidth = 428
             inherited Label1: TLabel
-              Height = 16
               Width = 428
             end
             inherited ListBox1: TListBox
               Height = 546
-              Top = 16
               Width = 428
             end
           end
@@ -680,18 +678,12 @@ object formSettings: TformSettings
             Width = 226
             ClientHeight = 562
             ClientWidth = 226
-            inherited Label2: TLabel
-              Height = 16
-              Width = 43
-            end
             inherited Edit1: TEdit
               Height = 21
-              Top = 20
               Width = 222
             end
             inherited Button3: TButton
               Left = 164
-              Height = 20
               Top = 42
               Width = 60
             end
@@ -699,22 +691,12 @@ object formSettings: TformSettings
               Left = 115
               Height = 55
               Top = 64
-              Width = 111
               ClientHeight = 55
-              ClientWidth = 111
-              inherited Label52: TLabel
-                Height = 16
-                Width = 67
-              end
               inherited edtSHSpeed: TEdit
                 Height = 21
-                Top = 16
-                Width = 67
               end
               inherited cbStopOnRelease: TCheckBox
-                Height = 18
                 Top = 37
-                Width = 111
               end
             end
             inherited Panel4: TPanel
@@ -724,13 +706,8 @@ object formSettings: TformSettings
               Width = 220
               ClientHeight = 37
               ClientWidth = 220
-              inherited Label3: TLabel
-                Height = 16
-                Width = 72
-              end
               inherited Edit4: TEdit
                 Height = 21
-                Top = 16
                 Width = 216
               end
             end
@@ -742,15 +719,11 @@ object formSettings: TformSettings
             ClientWidth = 654
             inherited Label4: TLabel
               Left = 121
-              Height = 16
               Top = 4
-              Width = 180
             end
             inherited Label5: TLabel
               Left = 121
-              Height = 16
               Top = 27
-              Width = 215
             end
             inherited edtKeypollInterval: TEdit
               Height = 21
