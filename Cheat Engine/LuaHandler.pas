@@ -3843,13 +3843,19 @@ begin
   begin
     scanstring:=Lua_ToString(L,1);
     if parameters>=2 then
-      protectionflags:=Lua_ToString(L, 2);
+      protectionflags:=Lua_ToString(L, 2)
+    else
+      protectionflags:='*X*W*C';
 
     if parameters>=3 then
-      alignmenttype:=TFastScanMethod(lua_tointeger(L, 3));
+      alignmenttype:=TFastScanMethod(lua_tointeger(L, 3))
+    else
+      alignmenttype:=fsmNotAligned;
 
     if parameters>=4 then
-      alignmentparam:=Lua_ToString(L, 4);
+      alignmentparam:=Lua_ToString(L, 4)
+    else
+      alignmentparam:='1';
 
     if scanstring='' then
     begin
