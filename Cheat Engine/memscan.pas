@@ -759,8 +759,8 @@ type
     property SavedScanName: string read fsavedscanname write fsavedscanname;
 
     property scanWritable: Tscanregionpreference read fscanWritable write fscanWritable;
-    property scanExecutable: Tscanregionpreference read fscanWritable write fscanWritable;
-    property scanCopyOnWrite: Tscanregionpreference read fscanWritable write fscanWritable;
+    property scanExecutable: Tscanregionpreference read fscanExecutable write fscanExecutable;
+    property scanCopyOnWrite: Tscanregionpreference read fscanCopyOnWrite write fscanCopyOnWrite;
 
 //    property percentage
   end;
