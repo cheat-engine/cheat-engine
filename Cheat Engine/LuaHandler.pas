@@ -4014,7 +4014,7 @@ function getAddressSafe(L: PLua_state): integer; cdecl;
 var parameters: integer;
   s: string;
 
-  local: boolean;
+  local,shallow,e: boolean;
 
 begin
   result:=0;
@@ -4034,14 +4034,18 @@ begin
     else
       local:=false;
 
+    if parameters>=3 then
+      shallow:=lua_toboolean(L, 3)
+    else
+      shallow:=false;
 
     lua_pop(L, lua_gettop(l));
 
     try
       if not local then
-        lua_pushinteger(L,symhandler.getAddressFromName(s, waitforsymbols))
+        lua_pushinteger(L,symhandler.getAddressFromName(s, waitforsymbols, e, nil, shallow))
       else
-        lua_pushinteger(L,selfsymhandler.getAddressFromName(s, waitforsymbols));
+        lua_pushinteger(L,selfsymhandler.getAddressFromName(s, waitforsymbols, e, nil, shallow));
 
       result:=1;
     except
