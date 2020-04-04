@@ -297,7 +297,10 @@ begin
   //parse the symbol the cursor is at
   s:=mscript.LineText;
   if CompleterInvokedByDot then
-    Insert('.',s,mscript.CaretX)
+  begin
+    Insert('.',s,mscript.CaretX);
+    s:=copy(s,1,mscript.CaretX);
+  end
   else
     s:=copy(s,1,mscript.CaretX-1);
 
