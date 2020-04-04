@@ -4047,7 +4047,10 @@ begin
       else
         lua_pushinteger(L,selfsymhandler.getAddressFromName(s, waitforsymbols, e, nil, shallow));
 
-      result:=1;
+      if e then
+        result:=0
+      else
+        result:=1;
     except
       exit(0);
     end;
