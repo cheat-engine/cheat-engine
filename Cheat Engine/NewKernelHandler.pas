@@ -811,7 +811,7 @@ var
     MAXPHYADDR: byte; //number of bits a physical address can be made up of
     MAXPHYADDRMASK: QWORD=QWORD($fffffffff); //mask to AND with a physical address to strip invalid bits
     MAXPHYADDRMASKPB: QWORD=QWORD($ffffff000); //same as MAXPHYADDRMASK but also aligns it to a page boundary
-
+    MAXPHYADDRMASKPBBIG: QWORD=QWORD($fffe00000);
 
 
 
@@ -1762,6 +1762,7 @@ end;
 {$endif}
 procedure initMaxPhysMask;
 var cpuidr: TCPUIDResult;
+iswow: boolean;
 begin
   cpuidr:=CPUID($80000008,0);
   MAXPHYADDR:=cpuidr.eax and $ff;
@@ -1769,6 +1770,22 @@ begin
   MAXPHYADDRMASK:=MAXPHYADDRMASK shr MAXPHYADDR;
   MAXPHYADDRMASK:=not (MAXPHYADDRMASK shl MAXPHYADDR);
   MAXPHYADDRMASKPB:=MAXPHYADDRMASK and qword($fffffffffffff000);
+
+  {$ifdef cpu64}
+  MAXPHYADDRMASKPBBIG:=MAXPHYADDRMASK and qword($ffffffffffe00000);
+  {$else}
+  MAXPHYADDRMASKPBBIG:=MAXPHYADDRMASK and qword($ffffffffffc00000);
+
+  if assigned(IsWow64Process) then
+  begin
+    if IsWow64Process(GetCurrentProcess,iswow) then
+    begin
+      if iswow then
+        MAXPHYADDRMASKPBBIG:=MAXPHYADDRMASK and qword($ffffffffffe00000);
+    end;
+  end;
+
+  {$endif}
 end;
 
 {$ifdef windows}
