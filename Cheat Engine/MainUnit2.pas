@@ -31,7 +31,7 @@ procedure initcetitle;
 
 
 
-const beta=' rc1.1'; //empty this for a release
+const beta=''; //empty this for a release
 
 var
   CEnorm:string;
