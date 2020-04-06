@@ -646,6 +646,8 @@ begin
     foffset:=symhandler.getAddressFromNameShallow(s, false, e);
     if not e then
     begin
+      special:=true;
+
       funparsed:=false;
       exit;
     end;
