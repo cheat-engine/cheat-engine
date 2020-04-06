@@ -1762,7 +1762,7 @@ end;
 {$endif}
 procedure initMaxPhysMask;
 var cpuidr: TCPUIDResult;
-iswow: boolean;
+iswow: BOOL;
 begin
   cpuidr:=CPUID($80000008,0);
   MAXPHYADDR:=cpuidr.eax and $ff;
