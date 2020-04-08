@@ -1263,6 +1263,7 @@ begin
     else
     if isAMD then
     begin
+{$ifdef DBVMFORAMDISWORKING}
       //check if it supports SVM
       asm
         push {$ifdef cpu64}rax{$else}eax{$endif}
@@ -1283,6 +1284,10 @@ begin
 
       if ((c shr 2) and 1)=1 then
         result:=true; //SVM is possible
+{$else}
+      result:=false;
+{$endif}
+
     end;
 
   end else result:=true; //it's already running DBVM, of course it's supported
