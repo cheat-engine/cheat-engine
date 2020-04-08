@@ -7,7 +7,7 @@ Improved disassembling
 copy bytes+addresses now only does bytes+addresses
 call filter can now use the unwind data for functions to get a decent list of instructions
 structure dissect shows the pointerpath at the bottom
-Follow register while stepping
+Follow register while stepping (rightclick the register to show the option)
 registersymbol and label now support multiple definitions in one line
 improved the speed of the structure list when getting data from a pdb
 hexview: doubleclicking a non-byte value now shows in the type you set
@@ -20,7 +20,7 @@ AA command createthreadandwait now has a timeout parameter
 Assembler scanning improvement
 Added an AVX2 version of CE, which will speed up all those floating point operations CE does so much...
 Improved structure lookup for PDB files
-Symbolhandler can now have the following types in front of pointers : (BYTE), (WORD), (DWORD), (QWORD), (CHAR), (SHORT), (INT), (UINT64) to typecast the pointer to a value of that type
+Symbolhandler can now have the following types in front of pointers : (BYTE), (WORD), (DWORD), (QWORD), (CHAR), (SHORT), (INT), (INT64) to typecast the pointer to a value of that type
 Structure dissect can detect vc++ and object pascal classnames now
 Dissect code now also detects references to strings
 Sorting the addresslist now sorts faster and more properly with regards to groups (depends on the level your current selection is)
@@ -28,6 +28,7 @@ Rightclick the addresslist header to bring up a menu which allows you to disable
 Improved the processlist responsiveness
 The chosen floating point rounding type is now saved in the registry
 You can now use (addresslist description) as an address
+Improved autocomplete
 
 Changes:
 DBVM doesn't activate the TSC hook by default. You can still activate it by using dbvm_enableTSCHook() 
@@ -54,7 +55,7 @@ fixed DBVM find what accesses with large datasets
 
 lua:
   New functions:
-    function onTableLoad(loaded)
+    function onTableLoad(before)
     sendMessageTimeout
     createTimer(delay,function())
     createStructureFromName()
