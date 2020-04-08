@@ -266,11 +266,19 @@ begin
   label10.Visible:=cbUseDBVM.checked;
   edtPA.visible:=cbUseDBVM.checked;
 
-  oldaz:=autosize;
-  autosize:=true;
-  DoAutoSize;
+  if cbChangeExt.checked=false then
+  begin
+    oldaz:=autosize;
+    autosize:=true;
+    DoAutoSize;
 
-  autosize:=oldaz;
+    autosize:=oldaz;
+  end
+  else
+  begin
+    if cbChangeExt.top+cbChangeExt.height>panel1.top then
+      clientheight:=clientheight+((cbChangeExt.top+cbChangeExt.height)-panel1.top);
+  end;
   {$endif}
 end;
 
