@@ -672,11 +672,11 @@ msgstr "В скрипте отсутствует секция [ENABLE]"
 
 #: bigmemallochandler.rsallocerror
 msgid "VirtualAlloc failed. You probably don't have enough system memory free. Either install more RAM, or increase the maximum allowed paging size"
-msgstr "VirtualAlloc потерпел неудачу. Вероятно у вас недостаточно свободной оперативной памяти. Или установите больше оперативной памяти на ваш компьютер, или увеличьте файл подкачки до максимально доступного размера"
+msgstr "Сбой VirtualAlloc. Вероятно у вас недостаточно свободной оперативной памяти. Или установите больше оперативной памяти на ваш компьютер, или увеличьте файл подкачки до максимально доступного размера"
 
 #: bigmemallochandler.rsbmavirtualallocfailedyouprobablydonthaveenoughtvirtualmemoryfreeetc
 msgid "VirtualAlloc failed. You probably don't have enough virtual memory free. Use the 64-bit version instead"
-msgstr "VirtualAlloc потерпел неудачу. Вероятно у вас недостаточно свободной виртуальной памяти. Используйте 64-битную версию"
+msgstr "Сбой VirtualAlloc. Вероятно у вас недостаточно свободной виртуальной памяти. Используйте 64-битную версию"
 
 #: bigmemallochandler.rscepointerscanmemorymanager
 msgid "CE Pointerscan memory manager"
@@ -1285,8 +1285,13 @@ msgid ""
 "The debugger attach is taking a while. This is normal when there are many symbols or the system is slow so please be patient. But if you don't have the time to wait or the program has crashes to desktop, then you can cancel this wait. Beware though that you may have to restart the target process if you do wish to debug anyhow.\n"
 "Do you wish to wait longer?\n"
 msgstr ""
-"Присоединение отладчика займёт время. Это нормально, когда существует много символов или система работает медленно, так что будьте терпеливы. Но если у вас нет времени на ожидание или программа аварийно завершается, то вы можете отменить это ожидание. Однако имейте в виду, что это не остановит процесс присоединения, происходящий в данный момент в процессе цели, поэтому вам может потребоваться перезапуск процесса цели, если вы всё равно захотите отладить его (и он всё равно может застыть.\n"
-"Хочешь подождать дольше?\n"
+"Присоединение отладчика займёт время. Это нормально, когда существует много символов или система работает медленно, так что будьте терпеливы. Но если у вас нет времени на ожидание или программа аварийно завершается, то вы можете отменить это ожидание. Однако имейте в виду, что это не остановит процесс присоединения, происходящий в данный момент в процессе цели, поэтому вам может потребоваться перезапуск процесса цели, если вы всё равно захотите отладить его (и он всё равно может застыть на несколько мгновений, в ожидании символов).\n"
+"(Это окно исчезнет автоматически после завершения присоединения. Закрыть его вручную равнозначно нажатию кнопки отмены)\n"
+"Вы хотите подождать подольше?\n"
+
+#: debughelper.rsthefollowingaddressesexecute
+msgid "The following codes execute %s"
+msgstr "Следующие коды выполняют %s"
 
 #: debughelper.rsthefollowingopcodesaccessed
 msgid "The following opcodes accessed %s"
@@ -1569,24 +1574,24 @@ msgstr "Не удалось открыть поставщика алгоритм
 #: feces.rsfailedcreatinghasalgorithmprovider
 msgctxt "feces.rsfailedcreatinghasalgorithmprovider"
 msgid "Failed creating has algorithm provider"
-msgstr "Не удалось создать поставщика алгоритма хеширования"
+msgstr "Неудачное создание поставщика алгоритма"
 
 #: feces.rsfailedcreatinghasalgorithmprovider2
 msgctxt "feces.rsfailedcreatinghasalgorithmprovider2"
 msgid "Failed creating has algorithm provider"
-msgstr "Не удалось создать поставщика алгоритма хеширования"
+msgstr "Неудачное создание поставщика алгоритма"
 
 #: feces.rsfailedcreatinghash
 msgid "Failed creating hash"
-msgstr "Не удалось создать хэш"
+msgstr "Неудачное создание хэша"
 
 #: feces.rsfailedcreatinghash2
 msgid "Failed creating hash 2"
-msgstr "Не удалось создать хэш 2"
+msgstr "Неудачное создание хэша 2"
 
 #: feces.rsfailedgettingtheobjectlength
 msgid "Failed getting the object length"
-msgstr "Не удалось получить длину объекта"
+msgstr "Неудачное получение длины объекта"
 
 #: feces.rsfailedhashingtable
 msgid "Failed hashing table"
@@ -1670,11 +1675,11 @@ msgstr "%s не существует"
 
 #: filemapping.rsfailedcreatingaproperview
 msgid "Failed creating a proper view"
-msgstr "Не удалось создать надлежащий вид"
+msgstr "Неудачное создание надлежащего вида"
 
 #: filemapping.rsmappingfailed
 msgid "Mapping failed"
-msgstr "Маппинг не удался"
+msgstr "Сбой маппинга"
 
 #: findwindowunit.rsnothingfound
 msgid "Nothing found"
@@ -3221,7 +3226,7 @@ msgstr "Ошибка="
 
 #: frmstringmapunit.rsgenerateregexprenginefailed
 msgid "GenerateRegExprEngine failed"
-msgstr "GenerateRegExprEngine потерпел неудачу"
+msgstr "Сбой GenerateRegExprEngine"
 
 #: frmstringmapunit.rsgeneratestringmap
 msgid "Generate string map"
@@ -4016,7 +4021,7 @@ msgstr "Неизвестное расширение файла"
 
 #: kerneldebuggerinterface.rsdbkdebug_startdebuggingfailed
 msgid "DBKDebug_StartDebugging failed"
-msgstr "DBKDebug_StartDebugging потерпел неудачу"
+msgstr "Сбой DBKDebug_StartDebugging"
 
 #: luacaller.rsautoassemblercallbackluafunctionerror
 msgid "AutoAssemblerCallback: Lua Function error("
@@ -4315,6 +4320,10 @@ msgstr "Пользовательский тип LUA"
 msgid "Custom Type Name"
 msgstr "Пользовательское название типа"
 
+#: mainunit.rsdbvmwatchfailed
+msgid "dbvm_watch failed"
+msgstr "Сбой dbvm_watch"
+
 #: mainunit.rsdecimal
 msgctxt "mainunit.rsdecimal"
 msgid "Decimal"
@@ -4326,8 +4335,8 @@ msgid "Delete"
 msgstr "Удалить"
 
 #: mainunit.rsdoyouwantthegroupwithaddress
-msgid "Do you want \"address\" version?"
-msgstr "Вам нужна «адресная» версия?"
+msgid "Do you want a header with address support ?"
+msgstr "Вам нужен заголовок с адресной поддержкой?"
 
 #: mainunit.rsdoyouwanttogotothecheatenginewebsite
 msgid "Do you want to go to the Cheat Engine website?"
@@ -4514,6 +4523,18 @@ msgstr "Переименовать"
 #: mainunit.rsrenamefile
 msgid "Rename file"
 msgstr "Переименовать файл"
+
+#: mainunit.rsrequiresdbvmcapableintelcpu
+msgid "This function requires an Intel CPU with virtualization support. If your system has that then make sure that you're currently not running inside a virtual machine. (Windows has some security features that can run programs inside a VM)"
+msgstr "Для этой функции требуется процессор Intel с поддержкой виртуализации. Если ваша система имеет такую поддержку, убедитесь, что в данный момент вы не работаете внутри виртуальной машины. (Windows имеет некоторые функции безопасности, которые могут запускать программы внутри виртуальной машины)"
+
+#: mainunit.rsrequiresdbvmept
+msgid "DBVM find routines needs DBVM for EPT page hooking. Loading DBVM can potentially cause a system freeze. Are you sure?"
+msgstr "Процедура DBVM поиска требует запуска самой DBVM для перехвата EPT страниц. Загрузка DBVM может привести к зависанию системы. Вы уверены?"
+
+#: mainunit.rsrequiresept
+msgid "This function requires that your CPU supports 'Extended Page Table (EPT)' which your CPU lacks"
+msgstr "Эта функция требует процессора поддерживающего «Расширенную таблицу страниц (EPT)»"
 
 #: mainunit.rsrestoreandshow
 msgid "Restore and show"
@@ -4745,6 +4766,10 @@ msgstr "Ошибка"
 #: mainunit.strerrorwhileopeningprocess
 msgid "Error while opening this process"
 msgstr "Возникла ошибка при открытии этого процесса"
+
+#: mainunit.strerrorwhileopeningprocessmac
+msgid ". Have you disabled 'System Integrity Protection'(SIP) yet?"
+msgstr ". Вы уже отключили «Защита целостности системы» (SIP)?"
 
 #: mainunit.strforcerecheck
 msgctxt "mainunit.strforcerecheck"
@@ -5751,7 +5776,7 @@ msgstr "Контрольная сумма = %x "
 
 #: peinfounit.rspeclrruntimetable
 msgid "CLR Runtime table"
-msgstr ""
+msgstr "Таблица выполнения CLR"
 
 #: peinfounit.rspecodeview
 msgid "Codeview"
@@ -6236,7 +6261,7 @@ msgstr "Dll плагина не может быть загружена:"
 
 #: pluginexports.rsloadmodulefailed
 msgid "LoadModule failed"
-msgstr "Загрузка модуля потерпела неудачу"
+msgstr "Сбой LoadModule"
 
 #: pluginexports.rspluginaddress
 msgctxt "pluginexports.rspluginaddress"
@@ -7120,7 +7145,7 @@ msgstr "Сбой конфигурирующей части спидхака"
 
 #: speedhack2.rsfailureenablingspeedhackdllinjectionfailed
 msgid "Failure enabling speedhack. (DLL injection failed)"
-msgstr "Включение спидхака потерпело неудачу. (Не удалось выполнить инъекцию DLL)"
+msgstr "Сбой включения спидхака. (Не удалось выполнить инъекцию DLL)"
 
 #: speedhack2.rsfailuresettingspeed
 msgid "Failure setting speed"
@@ -7455,6 +7480,10 @@ msgstr "Пожалуйста, укажите размер блока для вы
 msgctxt "structuresfrm2.rspointerto"
 msgid "Pointer"
 msgstr "Указатель"
+
+#: structuresfrm2.rspointertoinstanceofclassname
+msgid "Pointer to instance of %s"
+msgstr "Указатель на экземпляр %s"
 
 #: structuresfrm2.rspointer
 msgctxt "structuresfrm2.rspointer"
@@ -7836,7 +7865,7 @@ msgstr "Список кодов:"
 
 #: tadvancedoptions.midbvmfindwhatcodeaccesses.caption
 msgid "DBVM Find...."
-msgstr "DBVM Найти...."
+msgstr "DBVM Поиск...."
 
 #: tadvancedoptions.minewgroup.caption
 msgctxt "tadvancedoptions.minewgroup.caption"
@@ -10687,6 +10716,21 @@ msgstr "Время до окончания:"
 #: tfrmdissectcode.label9.caption
 msgid "Unconditional Jumps:"
 msgstr "Безусловных переходов:"
+
+#: tfrmdissectcode.menuitem1.caption
+msgctxt "tfrmdissectcode.menuitem1.caption"
+msgid "File"
+msgstr "Файл"
+
+#: tfrmdissectcode.menuitem2.caption
+msgctxt "tfrmdissectcode.menuitem2.caption"
+msgid "Open"
+msgstr "Открыть"
+
+#: tfrmdissectcode.menuitem3.caption
+msgctxt "tfrmdissectcode.menuitem3.caption"
+msgid "Save"
+msgstr "Сохранить"
 
 #: tfrmdissectwindow.button1.caption
 msgctxt "TFRMDISSECTWINDOW.BUTTON1.CAPTION"
@@ -16409,7 +16453,7 @@ msgstr "Создать форму"
 
 #: tmainform.midbvmfindwhatwritesoraccesses.caption
 msgid "DBVM Find out what writes or accesses this address"
-msgstr "DBVM Найти инструкции, записывающие или получающие доступ к этому адресу"
+msgstr "DBVM поиск инструкций, записывающие или получающие доступ к этому адресу"
 
 #: tmainform.midefinenewcustomtype.caption
 msgid "Define new custom type (Auto Assembler)"
@@ -16925,7 +16969,7 @@ msgstr "Копировать в буфер обмена"
 
 #: tmemorybrowser.dbvmfindoutwhataddressesthisinstructionaccesses.caption
 msgid "DBVM Find out what addresses this instruction accesses"
-msgstr "DBVM Найти адреса, к которым обращается эта инструкция"
+msgstr "DBVM поиск адресов, к которым обращается эта инструкция"
 
 #: tmemorybrowser.debug1.caption
 msgctxt "TMEMORYBROWSER.DEBUG1.CAPTION"
@@ -17483,6 +17527,10 @@ msgstr "Заблокировать текущий размер строки"
 msgctxt "TMEMORYBROWSER.MILUAENGINE.CAPTION"
 msgid "Lua Engine"
 msgstr "Lua Engine"
+
+#: tmemorybrowser.miopenindissectdata.caption
+msgid "Open in dissect data/structure"
+msgstr "Открыть анализ данных/структуры"
 
 #: tmemorybrowser.mipaging.caption
 msgid "Paging"
