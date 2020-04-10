@@ -274,11 +274,15 @@ function ceshare.CheckForCheatsClick(s)
 
     ceshare.CheatBrowserFrm.lvCheats.OnMouseDown=function(sender, button, x, y)
       local item=sender.getItemAt(x,y)
-      if item then
+      if item then      
         local url=ceshare.CurrentQuery[item.index+1].Url
-        if url and (url~='') then          
-          if (string.sub(url,1,7)=='http://') or string.sub(url,1,8)=='https://' then
-            shellExecute(url)
+        if url and (url~='') then   
+          local linkrect=item.DisplayRectSubItem(7,drBounds)  
+          if (x>linkrect.Left) and (x<linkrect.Right) and
+             (y>linkrect.Top) and (y<linkrect.Bottom) then             
+            if (string.sub(url,1,7)=='http://') or string.sub(url,1,8)=='https://' then
+              shellExecute(url)
+            end
           end
         end  
       end
