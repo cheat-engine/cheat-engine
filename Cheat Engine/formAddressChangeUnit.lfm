@@ -427,6 +427,25 @@ object formAddressChange: TformAddressChange
     Caption = 'Type'
     ParentColor = False
   end
+  object Button1: TButton
+    AnchorSideLeft.Control = btnCancel
+    AnchorSideLeft.Side = asrBottom
+    AnchorSideTop.Control = btnCancel
+    Height = 25
+    Width = 25
+    Caption = '+'
+    OnClick = Button1Click
+  end
+  object Button2: TButton
+    AnchorSideLeft.Control = Button1
+    AnchorSideLeft.Side = asrBottom
+    AnchorSideTop.Control = Button1
+    AnchorSideTop.Side = asrTop
+    Height = 25
+    Width = 25
+    Caption = '-'
+    OnClick = Button2Click
+  end
   object Timer1: TTimer
     OnTimer = Timer1Timer
     left = 136

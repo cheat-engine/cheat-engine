@@ -124,6 +124,8 @@ type
   { TformAddressChange }
 
   TformAddressChange = class(TForm)
+    Button1: TButton;
+    Button2: TButton;
     cbCodePage: TCheckBox;
     editDescription: TEdit;
     caImageList: TImageList;
@@ -169,6 +171,8 @@ type
     Timer1: TTimer;
     Timer2: TTimer;
     procedure btnCancelClick(Sender: TObject);
+    procedure Button1Click(Sender: TObject);
+    procedure Button2Click(Sender: TObject);
     procedure cbCodePageChange(Sender: TObject);
     procedure cbunicodeChange(Sender: TObject);
     procedure cbvarTypeChange(Sender: TObject);
@@ -211,6 +215,7 @@ type
     procedure setDescription(s: string);
     function getDescription: string;
     procedure setAddress(var address: string; var offsets: TMemrecOffsetList);
+    procedure changeEditsSizes(delta: integer);
   public
     { Public declarations }
     index: integer;
@@ -243,6 +248,8 @@ resourcestring
   rsACAddOffset = 'Add Offset';
   rsACRemoveOffset = 'Remove Offset';
 
+var
+  EditsExtraChars: integer=0;
 
 { TOffsetInfo }
 
@@ -498,9 +505,12 @@ end;
 
 procedure TOffsetInfo.setTop();
 begin
-  AdjustEditBoxSize(edtOffset,owner.Canvas.GetTextWidth(' XXXX '));
   edtOffset.taborder:=owner.offsets.IndexOf(self);
   istop:=edtOffset.taborder=0;
+  sbDecrease.Width:=edtOffset.Height;
+  sbDecrease.Height:=edtOffset.Height;
+  sbIncrease.Width:=edtOffset.Height;
+  sbIncrease.Height:=edtOffset.Height;
 end;
 
 destructor TOffsetInfo.destroy;
@@ -642,7 +652,7 @@ begin
   sbIncrease.OnMouseDown:=IncreaseDown;
   sbIncrease.OnMouseUp:=IncreaseDecreaseUp;
 
-  edtOffset.width:=owner.canvas.GetTextWidth(' XXXX ');
+  AdjustEditBoxSize(edtOffset,owner.Canvas.TextWidth(' '+StringOfChar('D',4+EditsExtraChars)+' '));
 
 
   edtOffset.AnchorSideLeft.Control:=sbDecrease;
@@ -790,8 +800,8 @@ procedure TPointerInfo.setupPositionsAndSizes;
 var
   i: integer;
 begin
-  for i:=0 to offsets.count-1 do
-    TOffsetInfo(offsets[i]).setTop();
+  for i:=0 to offsetcount-1 do
+    offset[i].setTop();
 
   btnAddOffset.top:=baseAddress.top+baseAddress.Height+3;
   btnRemoveOffset.top:=btnAddOffset.top;
@@ -860,24 +870,12 @@ begin
   baseAddress.AnchorSideLeft.Side:=asrLeft;
   //baseAddress.left:=0;
 
-  {$ifdef windows}
-  if WindowsVersion>=wvVista then
-    m:=sendmessage(baseAddress.Handle, EM_GETMARGINS, 0,0)
-  else
-  {$endif}
-    m:=10;
-
-  m:=(m shr 16)+(m and $ffff);
-
   if ProcessHandler.is64Bit then
-    i:=max(128, Canvas.TextWidth(' DDDDDDDDDDDDDDDD ')+m)
+    AdjustEditBoxSize(baseAddress, Canvas.TextWidth(' '+StringOfChar('D',16+EditsExtraChars)+' '))
   else
-    i:=max(88, Canvas.TextWidth(' DDDDDDDD ')+m);
-
-  baseAddress.ClientWidth:=i;
+    AdjustEditBoxSize(baseAddress, Canvas.TextWidth(' '+StringOfChar('D',8+EditsExtraChars)+' '));
 
   baseAddress.OnChange:=basechange;
-
 
   baseValue:=tlabel.create(self);
   baseValue.caption:=' ';
@@ -1180,6 +1178,16 @@ begin
   modalresult:=mrCancel;
 end;
 
+procedure TformAddressChange.Button1Click(Sender: TObject);
+begin
+  changeEditsSizes(1);
+end;
+
+procedure TformAddressChange.Button2Click(Sender: TObject);
+begin
+  changeEditsSizes(-1);
+end;
+
 procedure TformAddressChange.cbCodePageChange(Sender: TObject);
 begin
   if cbCodePage.checked then
@@ -1395,7 +1403,6 @@ end;
 
 procedure TformAddressChange.FormShow(Sender: TObject);
 var i: integer;
-    m: dword;
     h: THandle;
     r: trect;
 begin
@@ -1413,22 +1420,16 @@ begin
     sendmessage(radiobutton6.Handle, BCM_SETTEXTMARGIN , 0, ptruint(@r));
     sendmessage(radiobutton7.Handle, BCM_SETTEXTMARGIN , 0, ptruint(@r));
     sendmessage(radiobutton8.Handle, BCM_SETTEXTMARGIN , 0, ptruint(@r));
+  end;
+  {$endif}
 
-    m:=sendmessage(editAddress.Handle, EM_GETMARGINS, 0,0);
-  end
+  if ProcessHandler.is64Bit then
+    AdjustEditBoxSize(editAddress, Canvas.TextWidth(' '+StringOfChar('D',16+EditsExtraChars)+' '))
   else
-  {$endif}
-    m:=10;
+    AdjustEditBoxSize(editAddress, Canvas.TextWidth(' '+StringOfChar('D',8+EditsExtraChars)+' '));
 
-  m:=(m shr 16)+(m and $ffff);
 
-  {$ifdef cpu32}
-    editAddress.ClientWidth:=canvas.TextWidth('DDDDDDDD')+m;
-  {$else}
-    editAddress.ClientWidth:=canvas.TextWidth('DDDDDDDDDDDD')+m;
-  {$endif}
-
-  lblValue.Constraints.MinWidth:=canvas.TextWidth('=XXXXX');
+  lblValue.Constraints.MinWidth:=canvas.TextWidth('=DDDDD');
 
 
 
@@ -1449,6 +1450,11 @@ begin
 
   btnok.width:=i;
   btncancel.width:=i;
+
+  Button1.Height:=btnok.height;
+  Button2.Height:=btnok.height;
+  Button1.Width:=btnok.height;
+  Button2.Width:=btnok.height;
 
   autosize:=false;
   AdjustHeightAndButtons;
@@ -1599,6 +1605,40 @@ begin
   DelayedResize;
 
   timer2.enabled:=false;
+end;
+
+procedure TformAddressChange.changeEditsSizes(delta: integer);
+var edtOffsetWidth,i: integer;
+begin
+  if (((GetKeyState(VK_CONTROL) shr 15) and 1)=1) then
+  delta:=delta*4;
+
+  EditsExtraChars:=EditsExtraChars+delta;
+  if EditsExtraChars<0 then EditsExtraChars:=0;
+
+  if pointerinfo<>nil then with pointerinfo do
+  begin
+    edtOffsetWidth:=Canvas.TextWidth(' '+StringOfChar('D',4+EditsExtraChars)+' ');
+
+    for i:=0 to offsetcount-1 do
+      AdjustEditBoxSize(offset[i].edtOffset, edtOffsetWidth);
+
+    if ProcessHandler.is64Bit then
+      AdjustEditBoxSize(baseAddress, Canvas.TextWidth(' '+StringOfChar('D',16+EditsExtraChars)+' '))
+    else
+      AdjustEditBoxSize(baseAddress, Canvas.TextWidth(' '+StringOfChar('D',8+EditsExtraChars)+' '));
+  end;
+
+  if ProcessHandler.is64Bit then
+    AdjustEditBoxSize(editAddress, Canvas.TextWidth(' '+StringOfChar('D',16+EditsExtraChars)+' '))
+  else
+    AdjustEditBoxSize(editAddress, Canvas.TextWidth(' '+StringOfChar('D',8+EditsExtraChars)+' '));
+
+  autosize:=false;
+  AdjustHeightAndButtons;
+  processaddress;
+  Repaint;
+  autosize:=true;
 end;
 
 initialization
