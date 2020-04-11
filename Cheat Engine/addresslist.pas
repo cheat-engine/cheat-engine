@@ -782,8 +782,10 @@ end;
 
 function TAddresslist.addAddressManually(initialaddress: string=''; vartype: TVariableType=vtDword; CustomTypeName: string=''): TMemoryRecord;
 var mr: TMemoryRecord;
+    edited: boolean;
 begin
   result:=nil;
+  edited:=mainform.editedsincelastsave;
 
 
   Treeview.BeginUpdate;
@@ -801,11 +803,13 @@ begin
     begin
       mr.free; //not ok, delete
       mr:=nil;
+      mainform.editedsincelastsave:=edited;
     end
     else
     begin
       mr.ReinterpretAddress(true);
       mr.visible:=true;
+      mainform.editedsincelastsave:=true;
     end;
 
     free;
@@ -813,7 +817,6 @@ begin
 
   //treeview.EndUpdate;
 
-  mainform.editedsincelastsave:=true;
 
   result:=mr;
 end;
