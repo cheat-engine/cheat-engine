@@ -66,7 +66,7 @@ type
     constructor create(parent: TPointerinfo);
     destructor destroy; override;
     function getAddressThisPointsTo(var address: ptruint): boolean;
-    procedure setTop();
+    procedure setTop;
     procedure UpdateLabels;
     function parseOffset: boolean;
     property owner: TPointerinfo read fowner;
@@ -96,8 +96,10 @@ type
 
     btnAddOffset: TButton;
     btnRemoveOffset: TButton;
+    baseAddressMinWidth: integer;
     procedure selfdestruct;
     procedure basechange(sender: Tobject);
+
     procedure AddOffsetClick(sender: TObject);
     procedure RemoveOffsetClick(sender: TObject);
     function getValueLeft: integer;
@@ -198,6 +200,7 @@ type
     delayedpointerresize: boolean;
     procedure offsetKeyPress(sender: TObject; var key:char);
     procedure processaddress;
+    procedure ApplyMemoryRecord;
     procedure setMemoryRecord(rec: TMemoryRecord);
     procedure DelayedResize;
     procedure AdjustHeight;
@@ -503,11 +506,17 @@ begin
   offsetstring:=edtOffset.Text; //raises an exception if invalid
 end;
 
-procedure TOffsetInfo.setTop();
+procedure TOffsetInfo.setTop;
 begin
   AdjustEditBoxSize(edtOffset,owner.Canvas.GetTextWidth(' XXXX '));
   edtOffset.taborder:=owner.offsets.IndexOf(self);
   istop:=edtOffset.taborder=0;
+
+  sbDecrease.Width:=edtOffset.Height;
+  sbDecrease.Height:=edtOffset.Height;
+  sbIncrease.Width:=edtOffset.Height;
+  sbIncrease.Height:=edtOffset.Height;
+
 end;
 
 destructor TOffsetInfo.destroy;
@@ -702,14 +711,20 @@ begin
     insertinsteadofadd:=not insertinsteadofadd;
 
   if insertinsteadofadd then //remove the first offset in the list
-    o:=TOffsetinfo(offsets[0])
+  begin
+    o:=TOffsetinfo(offsets[0]);
+    baseAddress.AnchorSideRight.Control:=nil;
+  end
   else
     o:=TOffsetInfo(offsets[offsets.Count-1]);
 
   o.free;
 
   if offsets.Count>0 then
-    setupPositionsAndSizes
+  begin
+    baseAddress.AnchorSideRight.Control:=offset[0].sbIncrease;
+    setupPositionsAndSizes;
+  end
   else
     selfdestruct;
 end;
@@ -823,8 +838,6 @@ begin
     for i:=0 to offsetcount-1 do
       offset[i].edtOffset.width:=neweditwidth;
   end;
-
-
 end;
 
 
@@ -915,13 +928,15 @@ begin
   m:=(m shr 16)+(m and $ffff);
 
   if ProcessHandler.is64Bit then
-    i:=max(128, Canvas.TextWidth(' DDDDDDDDDDDDDDDD ')+m)
+    baseAddressMinWidth:=max(128, Canvas.TextWidth(' DDDDDDDDDDDDDDDD ')+m)
   else
-    i:=max(88, Canvas.TextWidth(' DDDDDDDD ')+m);
+    baseAddressMinWidth:=max(88, Canvas.TextWidth(' DDDDDDDD ')+m);
 
-  baseAddress.ClientWidth:=i;
+  baseAddress.ClientWidth:=baseAddressMinWidth;
+  baseAddress.Constraints.MinWidth:=baseAddressMinWidth;
 
   baseAddress.OnChange:=basechange;
+//  baseAddress.OnResize:=baseaddressresize;;
 
 
   baseValue:=tlabel.create(self);
@@ -985,6 +1000,11 @@ begin
   btnRemoveOffset.width:=i;
 
   TOffsetInfo.Create(self);
+
+  baseAddress.AnchorSideRight.Control:=offset[0].sbIncrease;
+  baseAddress.AnchorSideRight.side:=asrRight;
+  baseAddress.Anchors:=[akLeft, akTop, akRight];
+
 
   setupPositionsAndSizes;
 end;
@@ -1323,40 +1343,38 @@ begin
   clientheight:=btncancel.top+btnCancel.height+6;
 end;
 
-procedure TformAddressChange.setMemoryRecord(rec: TMemoryRecord);
+procedure TFormAddressChange.ApplyMemoryRecord;
 var i: integer;
     tmp:string;
 
     list: TMemrecOffsetList;
 begin
-  fMemoryRecord:=rec;
+  description:=fMemoryRecord.Description;
+  vartype:=fMemoryRecord.VarType;
 
-  description:=rec.Description;
-  vartype:=rec.VarType;
+  setlength(list, fMemoryRecord.offsetCount);
+  for i:=0 to fMemoryRecord.offsetCount-1 do
+    list[i]:=fMemoryRecord.offsets[i];
 
-  setlength(list, rec.offsetCount);
-  for i:=0 to rec.offsetCount-1 do
-    list[i]:=rec.offsets[i];
-
-  setAddress(rec.interpretableaddress, list);
+  setAddress(fMemoryRecord.interpretableaddress, list);
 
   case fMemoryRecord.vartype of
     vtBinary:
     begin
-      startbit:=rec.Extra.bitData.Bit;
-      length:=rec.Extra.bitdata.bitlength;
+      startbit:=fMemoryRecord.Extra.bitData.Bit;
+      length:=fMemoryRecord.Extra.bitdata.bitlength;
     end;
 
     vtString:
     begin
-      unicode:=rec.Extra.stringData.unicode;
-      codepage:=rec.Extra.stringData.codepage;
-      length:=rec.Extra.stringData.length;
+      unicode:=fMemoryRecord.Extra.stringData.unicode;
+      codepage:=fMemoryRecord.Extra.stringData.codepage;
+      length:=fMemoryRecord.Extra.stringData.length;
     end;
 
     vtByteArray:
     begin
-      length:=rec.Extra.byteData.bytelength;
+      length:=fMemoryRecord.Extra.byteData.bytelength;
     end;
 
     vtCustom:
@@ -1368,6 +1386,11 @@ begin
   processaddress;
   AdjustHeight;
 
+end;
+
+procedure TformAddressChange.setMemoryRecord(rec: TMemoryRecord);
+begin
+  fMemoryRecord:=rec;
 end;
 
 procedure TformAddressChange.btnOkClick(Sender: TObject);
@@ -1454,10 +1477,17 @@ begin
 
 
   cbvarType.DropDownCount:=cbvarType.Items.Count;
+
+  if LoadFormPosition(self) then
+  begin
+    autosize:=false;
+  end;
 end;
 
 procedure TformAddressChange.FormDestroy(Sender: TObject);
 begin
+  SaveFormPosition(Self);
+
   if pointerinfo<>nil then
     freeandnil(pointerinfo);
 end;
@@ -1538,10 +1568,12 @@ begin
   btncancel.width:=i;
 
   autosize:=false;
-  AdjustHeight;
+
+  if fMemoryRecord<>nil then
+    ApplyMemoryRecord;
 
   processaddress;
-
+  AdjustHeight;
   Repaint;
 
   //autosize:=true;
