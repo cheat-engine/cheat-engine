@@ -2120,7 +2120,7 @@ end;
 function TMainForm.getScanStop: ptruint;
 begin
   try
-    Result := symhandler.getAddressFromName('$' + ToAddress.Text);
+    Result := symhandler.getAddressFromName(ToAddress.Text);
   except
     raise Exception.Create(Format(rsInvalidStopAddress, [ToAddress.Text]));
   end;
@@ -5835,6 +5835,7 @@ begin
 
   scanvalue.Text := '';
 
+(* removed because it uses symhandler now
   {$ifdef cpu64}
   fromaddress.MaxLength := 16;
   toaddress.MaxLength := 16;
@@ -5842,6 +5843,7 @@ begin
   fromaddress.MaxLength := 8;
   toaddress.MaxLength := 8;
   {$endif}
+*)
 
   miResetRange.click;
 
