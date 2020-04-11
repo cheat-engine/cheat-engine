@@ -82,6 +82,8 @@ type
   end;
 
 
+  { TPointerInfo }
+
   TPointerInfo=class(TCustomPanel)
   private
     fowner: TformAddressChange;
@@ -103,7 +105,8 @@ type
     function getoffsetcount: integer;
 
     function getAddressThisPointsTo(var address: ptruint): boolean;
-
+  protected
+    procedure DoOnResize; override;
   public
     property owner: TformAddressChange read fowner;
     property valueLeft: integer read getValueLeft; //gets the basevalue.left
@@ -177,6 +180,7 @@ type
     procedure btnOkClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
+    procedure FormResize(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure miAddAddressToListClick(Sender: TObject);
     procedure miCopyClick(Sender: TObject);
@@ -196,7 +200,9 @@ type
     procedure processaddress;
     procedure setMemoryRecord(rec: TMemoryRecord);
     procedure DelayedResize;
-    procedure AdjustHeightAndButtons;
+    procedure AdjustHeight;
+    procedure PointerInfoResize(sender: TObject);
+
     procedure DisablePointerExternal(var m: TMessage); message WM_disablePointer;
     procedure setVarType(vt: TVariableType);
     function getVartype: TVariableType;
@@ -402,12 +408,13 @@ begin
     lblPointerAddressToValue.Caption:='['+sbase+sign+soffset+'] -> '+SPointsTo;
 
   //update positions
+  {
   newwidth:=lblPointerAddressToValue.left+lblPointerAddressToValue.Width;
   if newwidth>owner.ClientWidth then
   begin
     owner.ClientWidth:=newwidth+16;
     owner.owner.ClientWidth:=owner.left+owner.ClientWidth;
-  end;
+  end;   }
 end;
 
 
@@ -739,6 +746,7 @@ begin
 end;
 
 
+
 procedure TPointerInfo.basechange(sender: Tobject);
 var e: boolean;
 begin
@@ -786,6 +794,40 @@ begin
     owner.editAddress.text:=inttohex(base,8);
 end;
 
+procedure TPointerInfo.DoOnResize;
+//resize editboxes so the full width is used
+var minwidth: integer;
+  i: integer;
+  r: integer;
+  rightmost: integer;
+  grow: integer;
+
+  neweditwidth: integer;
+begin
+  inherited DoOnResize;
+
+  if offsetcount>0 then
+  begin
+    minwidth:=canvas.GetTextWidth(' XXXX ');
+
+    rightmost:=0;
+    for i:=0 to offsetcount-1 do
+      rightmost:=max(rightmost,  offset[i].lblPointerAddressToValue.left+offset[i].lblPointerAddressToValue.Width);
+
+    rightmost:=rightmost+canvas.GetTextWidth('  ');
+
+    grow:=clientwidth-rightmost; //can be negative
+
+    neweditwidth:=max(offset[0].edtOffset.Width+grow, minwidth);
+
+    for i:=0 to offsetcount-1 do
+      offset[i].edtOffset.width:=neweditwidth;
+  end;
+
+
+end;
+
+
 procedure TPointerInfo.setupPositionsAndSizes;
 var
   i: integer;
@@ -796,18 +838,21 @@ begin
   btnAddOffset.top:=baseAddress.top+baseAddress.Height+3;
   btnRemoveOffset.top:=btnAddOffset.top;
 
-  ClientHeight:=btnAddOffset.Top+btnAddOffset.Height+3;
+  processAddress;
+
+  ClientHeight:=btnAddOffset.Top+btnAddOffset.Height+3;       //triggers onresize
   //Width will be set using the UpdateLabels method of individial offsets when the current offset is too small
 
 
   //update buttons of the form
+  {
   with owner do
   begin
     ClientHeight:=btnOk.top+btnOk.Height+3;
     ClientWidth:=self.ClientWidth+self.Left;
-  end;
+  end; }
 
-  processAddress;
+
 end;
 
 destructor TPointerInfo.destroy;
@@ -1166,13 +1211,13 @@ begin
   cbunicode.visible:=cbvarType.itemindex = 7;
   cbCodePage.visible:=cbunicode.Visible;
 
-  AdjustHeightAndButtons;
+  AdjustHeight;
 
   processaddress;
 
   Repaint;
 
-  autosize:=true;
+ // autosize:=true;
 end;
 
 procedure TformAddressChange.btnCancelClick(Sender: TObject);
@@ -1199,7 +1244,12 @@ end;
 
 procedure TformAddressChange.DelayedResize;
 begin
-  AdjustHeightAndButtons;
+  AdjustHeight;
+end;
+
+procedure TformAddressChange.PointerInfoResize(sender: TObject);
+begin
+  AdjustHeight;
 end;
 
 procedure TformAddressChange.cbPointerClick(Sender: TObject);
@@ -1207,23 +1257,45 @@ var i: integer;
     startoffset,inputoffset,rowheight: integer;
 
     a,b,c,d: integer;
+    minwidth, grow: integer;
 begin
   if cbpointer.checked then
   begin
     if pointerinfo=nil then
     begin
       pointerinfo:=TPointerInfo.create(self); //creation will do the gui update
+
+     // pointerinfo.color:=clred;
+
       pointerinfo.AnchorSideLeft.Control:=label1;
       pointerinfo.AnchorSideLeft.side:=asrLeft;
 
       pointerinfo.AnchorSideTop.Control:=cbPointer;
       pointerinfo.AnchorSideTop.side:=asrBottom;
+
+      pointerinfo.AnchorSideRight.Control:=self;
+      pointerinfo.AnchorSideRight.Side:=asrRight;
+
+      pointerinfo.Anchors:=[akLeft,akTop, akRight];
+
+      pointerinfo.OnResize:=PointerInfoResize;
     end;
 
     editAddress.enabled:=false;
 
     btnOk.AnchorSideTop.Control:=pointerinfo;
     btnCancel.AnchorSideTop.Control:=pointerinfo;
+
+
+    minwidth:=pointerinfo.offset[0].lblPointerAddressToValue.BoundsRect.Right+canvas.TextWidth('  ');
+    minwidth:=max(minwidth, pointerinfo.baseValue.BoundsRect.Right);
+    minwidth:=max(minwidth, pointerinfo.btnRemoveOffset.BoundsRect.Right);
+
+    inc(minwidth, pointerinfo.left);
+
+    grow:=minwidth-clientwidth;
+    if grow>0 then
+      clientwidth:=clientwidth+grow;
   end
   else
   begin
@@ -1236,9 +1308,7 @@ begin
       freeandnil(pointerinfo);
   end;
 
-  autosize:=false;
-  autosize:=true;
-
+  AdjustHeight;
 end;
 
 procedure TformAddressChange.DisablePointerExternal(var m: TMessage);
@@ -1246,11 +1316,10 @@ begin
   cbPointer.Checked:=false;
 end;
 
-procedure TformAddressChange.AdjustHeightAndButtons;
+procedure TformAddressChange.AdjustHeight;
 begin
-  if pointerinfo<>nil then
-    pointerinfo.setupPositionsAndSizes;
-
+  constraints.MinHeight:=btncancel.top+btnCancel.height+6;
+  constraints.MaxHeight:=btncancel.top+btnCancel.height+6;
   clientheight:=btncancel.top+btnCancel.height+6;
 end;
 
@@ -1297,7 +1366,7 @@ begin
 
 
   processaddress;
-  AdjustHeightAndButtons;
+  AdjustHeight;
 
 end;
 
@@ -1393,14 +1462,23 @@ begin
     freeandnil(pointerinfo);
 end;
 
+procedure TformAddressChange.FormResize(Sender: TObject);
+var newwidth: integer;
+begin
+  newwidth:=clientwidth-editaddress.left-lblValue.Width-canvas.GetTextWidth('   ');
+  newwidth:=min(cbvartype.width, newwidth);
+  newwidth:=max(newwidth, canvas.TextWidth('DDDDDDDDDD'));
+
+  editaddress.width:=newwidth;
+end;
+
 procedure TformAddressChange.FormShow(Sender: TObject);
 var i: integer;
     m: dword;
     h: THandle;
     r: trect;
+    w: integer;
 begin
-
-
   {$ifdef windows}
   if WindowsVersion>=wvVista then
   begin
@@ -1428,6 +1506,15 @@ begin
     editAddress.ClientWidth:=canvas.TextWidth('DDDDDDDDDDDD')+m;
   {$endif}
 
+  //calculate vartpe maxwidth (looks ugly if stretched too far)
+  w:=editAddress.width;
+  for i:=0 to cbvarType.Items.Count-1 do
+    w:=max(w, canvas.TextWidth(cbvarType.Items[i]));
+
+  cbvarType.Constraints.MaxWidth:=2*w;
+
+
+
   lblValue.Constraints.MinWidth:=canvas.TextWidth('=XXXXX');
 
 
@@ -1451,13 +1538,13 @@ begin
   btncancel.width:=i;
 
   autosize:=false;
-  AdjustHeightAndButtons;
+  AdjustHeight;
 
   processaddress;
 
   Repaint;
 
-  autosize:=true;
+  //autosize:=true;
 end;
 
 procedure TformAddressChange.miAddAddressToListClick(Sender: TObject);
@@ -1576,13 +1663,13 @@ end;
 
 procedure TformAddressChange.Timer1Timer(Sender: TObject);
 begin
-  if cbvarType.DroppedDown then
+{  if cbvarType.DroppedDown then
     autosize:=false
   else
   begin
     if autosize=false then
       autosize:=true;
-  end;
+  end; }
 
 
   timer1.Interval:=1000;

@@ -5,15 +5,15 @@ object formAddressChange: TformAddressChange
   Width = 201
   AutoSize = True
   BorderIcons = [biSystemMenu]
-  BorderStyle = bsSingle
   Caption = 'Change address'
   ClientHeight = 279
   ClientWidth = 201
   OnCreate = FormCreate
   OnDestroy = FormDestroy
+  OnResize = FormResize
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '2.0.0.4'
+  LCLVersion = '2.0.6.0'
   object Label1: TLabel
     AnchorSideLeft.Control = Owner
     AnchorSideTop.Control = Owner
@@ -422,27 +422,27 @@ object formAddressChange: TformAddressChange
     Left = 8
     Height = 15
     Top = 80
-    Width = 25
+    Width = 24
     BorderSpacing.Top = 2
     Caption = 'Type'
     ParentColor = False
   end
   object Timer1: TTimer
     OnTimer = Timer1Timer
-    left = 136
-    top = 8
+    Left = 136
+    Top = 8
   end
   object Timer2: TTimer
     Interval = 1
     OnTimer = Timer2Timer
-    left = 64
-    top = 8
+    Left = 64
+    Top = 8
   end
   object pmOffset: TPopupMenu
     Images = caImageList
     OnPopup = pmOffsetPopup
-    left = 112
-    top = 88
+    Left = 112
+    Top = 88
     object miCut: TMenuItem
       Caption = 'Cut'
       ImageIndex = 2
@@ -471,8 +471,8 @@ object formAddressChange: TformAddressChange
   end
   object pmPointerRow: TPopupMenu
     Images = caImageList
-    left = 152
-    top = 184
+    Left = 152
+    Top = 184
     object miAddAddressToList: TMenuItem
       Caption = 'Add this address to the list'
       ImageIndex = 3
@@ -480,8 +480,8 @@ object formAddressChange: TformAddressChange
     end
   end
   object caImageList: TImageList
-    left = 168
-    top = 16
+    Left = 168
+    Top = 16
     Bitmap = {
       4C69040000001000000010000000606060C4808080E0808080E0808080E08080
       80E0808080E0808080E0777777E098989856FFFFFF00FFFFFF00FFFFFF00FFFF
