@@ -10,7 +10,7 @@ interface
 
 {$ifdef windows}
 uses
-  windows, Classes, SysUtils, AvgLvlTree, math, fgl, cvconst, syncobjs, symbolhandlerstructs;
+  windows, Classes, SysUtils, AvgLvlTree, laz_avl_Tree, math, fgl, cvconst, syncobjs, symbolhandlerstructs;
 {$endif}
 
 {$ifdef darwin}
@@ -615,8 +615,12 @@ begin
 end;
 
 procedure TSymbolListHandler.clear;
-var x: TAvgLvlTreeNode;
+var
+  x: TAvgLvlTreeNode;
   d:PCESymbolInfo;
+  i: integer;
+
+  e: TAVLTreeNodeEnumerator;
 begin
   cs.Beginwrite;
   try
@@ -637,14 +641,34 @@ begin
           strDispose(d^.module);
 
         FreeMemAndNil(d);
+        x.data:=nil;
         x:=StringToAddress.FindSuccessor(x);
       end;
+
+      {
+      x:=StringToAddress.Root;
+      while x<>nil do
+      begin
+        if x.data<>nil then
+        begin
+          OutputDebugString('Missed one');
+        end;
+
+        StringToAddress.Delete(x);
+        x:=stringtoaddress.root;
+      end;}
+
 
       StringToAddress.Clear;
     end;
 
     if AddressToString<>nil then
       AddressToString.Clear;
+
+    for i:=0 to ExtraSymbolDataList.count-1 do
+      TExtraSymbolData(ExtraSymbolDataList[i]).free;
+
+    ExtraSymbolDataList.clear;
 
   finally
     cs.endwrite;
