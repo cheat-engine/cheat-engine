@@ -264,11 +264,13 @@ function ceshare.CheckForCheatsClick(s)
         
           if (x>linkrect.Left) and (x<linkrect.Right) and
              (y>linkrect.Top) and (y<linkrect.Bottom) then
-            ceshare.CheatBrowserFrm.lvCheats.Cursor=crHandPoint  
-          else
-            ceshare.CheatBrowserFrm.lvCheats.Cursor=crDefault  
+            ceshare.CheatBrowserFrm.lvCheats.Cursor=crHandPoint
+            return 
           end 
         end        
+      end
+      if ceshare.CheatBrowserFrm.lvCheats.Cursor==crHandPoint then
+        ceshare.CheatBrowserFrm.lvCheats.Cursor=crDefault  
       end
     end
 
