@@ -168,6 +168,7 @@ type
     symbollist: TSymbolListHandler;
 
     debugpart: integer;
+    ExtendedDebugSymbolProgress: integer;
 
     skipAllSymbols: Boolean;
     skipAddressToSymbol: boolean;
@@ -250,6 +251,7 @@ type
     function getisloaded:boolean;
     function geterror:boolean;
     function getProgress:integer;
+    function getExtendedDataProgress: integer;
     function getDotNetAccess: boolean;
     function GetUserdefinedSymbolByNameIndex(symbolname:string):integer;
     function GetUserdefinedSymbolByAddressIndex(address: ptruint):integer;
@@ -264,6 +266,7 @@ type
     function isTypeToken(token: string; var nextTokenType: TSymHandlerTokenType): boolean;
 
     function isParsingStructures: boolean;
+    function isloadingExtendedData: boolean;
   public
 
     kernelsymbols: boolean;
@@ -283,7 +286,9 @@ type
     property hasError: boolean read geterror;
     property hasDotNetAccess: boolean read getDotNetAccess;
     property progress: integer read getProgress;
+    property extendedDataProgess: integer read getExtendedDataProgress;
     property parsingStructures: boolean read isParsingStructures;
+    property loadingExtendedData: boolean read isloadingExtendedData;
 
     procedure waitforsymbolsloaded(apisymbolsonly: boolean=false; specificmodule: string='');
     procedure waitForExports;
@@ -1210,20 +1215,7 @@ begin
   for i:=0 to max-1 do
   begin
     debugpart:=40000+i;
-
-    if i=251 then
-    begin
-      asm
-      nop //ok here
-      end;
-    end;
-
-    if i=252 then
-    begin
-      asm
-      nop  //bad here
-      end;
-    end;
+    ExtendedDebugSymbolProgress:=(i*100) div max;
 
     esd:=TExtraSymbolData(self.symbollist.ExtraSymbolDataList[i]);
 
@@ -1243,6 +1235,8 @@ begin
       SES(self.thisprocesshandle, 0, nil, es2address, self);
 
       self.extraSymbolData.filledin:=true;
+
+      freemem(c);
     end;
   end;
   {$ENDIF}
@@ -1390,8 +1384,9 @@ begin
         q.Prepare;
         q.ExecSQL;
 
+        fcp:=nil;
+        getmem(fcp, sizeof(TI_FINDCHILDREN_PARAMS)+childrencount*4);
         try
-          getmem(fcp, sizeof(TI_FINDCHILDREN_PARAMS)+childrencount*4);
           zeromemory(fcp, sizeof(TI_FINDCHILDREN_PARAMS)+childrencount*4);
           fcp.Count:=childrencount;
           SymGetTypeInfo(self.thisprocesshandle, pSymInfo.ModBase, pSymInfo.TypeIndex, TI_FINDCHILDREN, fcp);
@@ -1435,7 +1430,8 @@ begin
 
 
         finally
-          freememandnil(fcp);
+          if fcp<>nil then
+            freememandnil(fcp);
         end;
 
       end;
@@ -2965,6 +2961,28 @@ begin
   end;
 end;
 
+function TSymHandler.getExtendedDataProgress: integer;
+begin
+  result:=0;
+  symbolloadervalid.beginread;
+  if symbolloaderthread<>nil then
+  begin
+    if symbolloaderthread.debugpart>40000 then
+      result:=symbolloaderthread.ExtendedDebugSymbolProgress;
+  end;
+
+  symbolloadervalid.Endread;
+end;
+
+function TSymHandler.isloadingExtendedData: boolean;
+begin
+  result:=false;
+  symbolloadervalid.beginread;
+  if symbolloaderthread<>nil then
+    result:=symbolloaderthread.debugpart>4000;
+
+  symbolloadervalid.Endread;
+end;
 
 function TSymHandler.isParsingStructures: boolean;
 begin

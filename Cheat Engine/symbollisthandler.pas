@@ -416,6 +416,8 @@ var new: PCESymbolInfo;
   n: TAvgLvlTreeNode;
   prev, next: TAvgLvlTreeNode;
 begin
+  exit;
+
   new:=getmem(sizeof(TCESymbolInfo));
   new^.module:=strnew(pchar(module));
   new^.originalstring:=strnew(pchar(searchkey));

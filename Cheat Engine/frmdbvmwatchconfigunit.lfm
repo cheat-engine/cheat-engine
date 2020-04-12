@@ -177,15 +177,15 @@ object frmDBVMWatchConfig: TfrmDBVMWatchConfig
     AnchorSideLeft.Side = asrCenter
     AnchorSideTop.Control = Panel1
     AnchorSideTop.Side = asrBottom
-    Left = 78
+    Left = 73
     Height = 25
     Top = 240
-    Width = 155
+    Width = 165
     AutoSize = True
     BorderSpacing.Top = 8
     BevelOuter = bvNone
     ClientHeight = 25
-    ClientWidth = 155
+    ClientWidth = 165
     TabOrder = 7
     object btnOK: TButton
       AnchorSideLeft.Control = Panel2
@@ -193,8 +193,10 @@ object frmDBVMWatchConfig: TfrmDBVMWatchConfig
       Left = 0
       Height = 25
       Top = 0
-      Width = 75
+      Width = 85
+      AutoSize = True
       Caption = 'Start watch'
+      Constraints.MinWidth = 75
       Default = True
       Enabled = False
       OnClick = btnOKClick
@@ -204,13 +206,15 @@ object frmDBVMWatchConfig: TfrmDBVMWatchConfig
       AnchorSideLeft.Control = btnOK
       AnchorSideLeft.Side = asrBottom
       AnchorSideTop.Control = Panel2
-      Left = 80
+      Left = 90
       Height = 25
       Top = 0
       Width = 75
+      AutoSize = True
       BorderSpacing.Left = 5
       Cancel = True
       Caption = 'Cancel'
+      Constraints.MinWidth = 75
       ModalResult = 2
       TabOrder = 1
     end
