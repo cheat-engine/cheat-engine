@@ -3137,7 +3137,7 @@ begin
   if length(filenames) > 0 then
   begin
     ext:=ExtractFileExt(filenames[0]);
-    if ext<>'.ct' then exit;
+    if lowercase(ext)<>'.ct' then exit;
 
     if not (fsVisible in formstate) then exit;
 
