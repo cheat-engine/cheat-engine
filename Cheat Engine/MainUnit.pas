@@ -820,6 +820,8 @@ type
 
     freezeThread: TFreezeThread;
 
+    showStaticAsStatic: boolean;
+
     procedure CheckForSpeedhackKey(sender: TObject);
 
     procedure doNewScan;
@@ -3522,6 +3524,7 @@ begin
   f.BackgroundColor:=foundlist3.color;
   f.StaticColor:=clGreen;
   f.DynamicColor:=GetSysColor(COLOR_WINDOWTEXT);
+  f.ShowStaticAsStatic:=showStaticAsStatic;
   if f.showmodal=mrok then
   begin
     foundlist3.font.Assign(f.font);
@@ -3531,6 +3534,8 @@ begin
     foundlistColors.ChangedValueColor:=f.ChangedValueColor;
     foundlistColors.StaticColor:=f.StaticColor;
     foundlistColors.DynamicColor:=f.DynamicColor;
+    showStaticAsStatic:=f.ShowStaticAsStatic;
+
 
 
     reg := Tregistry.Create;
@@ -3544,6 +3549,7 @@ begin
         reg.WriteInteger('FoundList.StaticColor', foundlistcolors.StaticColor);
         reg.WriteInteger('FoundList.DynamicColor', foundlistcolors.DynamicColor);
         reg.WriteInteger('FoundList.BackgroundColor',foundlist3.Color);
+        reg.WriteBool('FoundList.ShowStaticAsStatic',ShowStaticAsStatic);
 
         SaveFontToRegistry(foundlist3.font, reg);
       end;
@@ -5978,7 +5984,7 @@ begin
   foundlistColors.ChangedValueColor:=clRed;
   foundlistColors.StaticColor:=clGreen;
   foundlistColors.DynamicColor:=GetSysColor(COLOR_WINDOWTEXT);
-
+  showStaticAsStatic:=true;
 
 
   {$ifdef darwin}
@@ -8073,6 +8079,7 @@ begin
     if reg.ValueExists('FoundList.StaticColor') then foundlistcolors.StaticColor:=reg.ReadInteger('FoundList.StaticColor');
     if reg.ValueExists('FoundList.DynamicColor') then foundlistcolors.DynamicColor:=reg.ReadInteger('FoundList.DynamicColor');
     if reg.ValueExists('FoundList.BackgroundColor') then foundlist3.color:=reg.ReadInteger('FoundList.BackgroundColor');
+    if reg.ValueExists('FoundList.ShowStaticAsStatic') then showStaticAsStatic:=reg.ReadBool('FoundList.ShowStaticAsStatic');
 
     LoadFontFromRegistry(foundlist3.font,reg);
   end;
@@ -9103,7 +9110,6 @@ begin
   part:=0;
 
 
-
   try
     valuetype:=foundlist.vartype;
     address := foundlist.GetAddress(item.Index, extra, Value);
@@ -9116,7 +9122,11 @@ begin
       exit;
     end;
 
-    AddressString:=foundlist.GetModuleNamePlusOffset(item.index);
+    if showStaticAsStatic then
+      AddressString:=foundlist.GetModuleNamePlusOffset(item.index)
+    else
+      AddressString:=inttohex(address,8);
+
 
     hexadecimal:=foundlist.isHexadecimal;
 
