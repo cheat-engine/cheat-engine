@@ -4,6 +4,7 @@
  */
 
 
+
 #include "common.h"
 #include "main.h"
 #include "mm.h"
@@ -119,6 +120,8 @@ int cinthandler(unsigned long long *stack, int intnr) //todo: move to it's own s
   DWORD thisAPICID;
   int cpunr=0;
 
+  enableserial();
+
 #ifdef DEBUG
   sendstringCS.ignorelock=1;
   sendstringfCS.ignorelock=1;
@@ -130,7 +133,7 @@ int cinthandler(unsigned long long *stack, int intnr) //todo: move to it's own s
   {
     sendstringf("Invalid FS base during exception\n");
     ddDrawRectangle(0,DDVerticalResolution-100,100,100,0xff0000);
-    while (1) ;
+    while (1) outportb(0x80,0xc5);
   }
 
   pcpuinfo cpuinfo=getcpuinfo();
@@ -259,18 +262,18 @@ int cinthandler(unsigned long long *stack, int intnr) //todo: move to it's own s
   }
 
   sendstringf("Checking if it was an expected interrupt\n\r");
+  cpuinfo->LastExceptionRIP=stack[16+errorcode];
 
   if (cpuinfo->OnException[0].RIP)
   {
     nosendchar[thisAPICID]=0;
-
     sendstringf("OnException is set. Passing it to longjmp\n");  //no need to set rflags back, the original state contains that info
-    cpuinfo->LastExceptionRIP=stack[16+errorcode];
+
     longjmp(cpuinfo->OnException, 0x100 | intnr);
 
     sendstringf("longjmp just went through...\n");
     ddDrawRectangle(0,DDVerticalResolution-100,100,100,0xff0000);
-    while (1);
+    while (1) outportb(0x80,0xc6);
   }
 
   if (cpuinfo->OnInterrupt.RIP)
@@ -900,16 +903,19 @@ void vmm_entry2(void)
 void vmm_entry(void)
 {
   //make sure WP is on
+  enableserial();
+
+  sendstringf("vmm_entry\n");
+
   setCR0(getCR0() | CR0_WP);
 
   if (isAP)
   {
     vmm_entry2();
     sendstringf("vmm_entry2 has PHAILED!!!!");
-    while (1);
+    while (1) outportb(0x80,0xc7);
   }
   isAP=1; //all other entries will be an AP
-
 
   initializedCPUCount=1; //I managed to run this at least...
 
@@ -938,8 +944,9 @@ void vmm_entry(void)
    * 11=new memory manager , dynamic cpu initialization, UEFI boot support, EPT, unrestricted support, and other new features
    * 12=vpid
    * 13=basic TSC emulation
+   * 14=properly emulate debug step
    */
-  dbvmversion=13;
+  dbvmversion=14;
   int1redirection=1; //redirect to int vector 1 (might change this to the perfcounter interrupt in the future so I don't have to deal with interrupt prologue/epilogue)
   int3redirection=3;
   int14redirection=14;
@@ -1061,6 +1068,7 @@ void vmm_entry(void)
   cpu_familyID=cpu_familyID + (cpu_ext_familyID << 4);
 
 
+  //if (0)
   if (1) //((d & (1<<28))>0) //this doesn't work in vmware, so find a different method
   {
     QWORD entrypage=0x30000;
@@ -1161,7 +1169,6 @@ void vmm_entry(void)
 
       //while (1) ;
       unmapPhysicalMemory(original, sizeof(OriginalState));
-
     }
 
     if (needtospawnApplicationProcessors) //e.g UEFI boot with missing mpsupport
@@ -1236,7 +1243,7 @@ void vmm_entry(void)
   {
     sendstring("Memory allocation failed\n");
     ddDrawRectangle(0,DDVerticalResolution-100,100,100,0xff0000);
-    while (1) ;
+    while (1) outportb(0x80,0xc8);
   }
 
   sendstringf("Allocated GDT_BASE %6\n", GDT_BASE);
@@ -1610,6 +1617,7 @@ AfterBPTest:
 
   InitExports();
 
+  //outportb(0x80,0x10);
 
   menu2();
   return;
@@ -1786,6 +1794,11 @@ void menu2(void)
     {
       if ((!loadedOS) || (showfirstmenu))
       {
+#ifdef DELAYEDSERIAL
+        if (!useserial)
+          key='0';
+        else
+#endif
         if (loadedOS)
           key=waitforchar();
         else
@@ -2218,6 +2231,7 @@ void *lalloc (void *ud, void *ptr, size_t osize, size_t nsize) {
 
 void menu(void)
 {
+  //outportb(0x80,0x11);
   displayline("menu\n\r"); //debug to find out why the vm completely freezes when SERIALPORT==0
 
   sendstring("menu\n\r");
@@ -2267,6 +2281,11 @@ void menu(void)
       displayline("Waiting for serial port command:\n");
       sendstring("waiting for command:");
 
+#ifdef DELAYEDSERIAL
+      if (!useserial)
+        command='0';
+      else
+#endif
       if (loadedOS)
       {
 //        command='0';
@@ -2338,7 +2357,7 @@ void menu(void)
         }
 
         //while (1) _pause(); //debug so I only see AP cpu's
-
+        //outportb(0x80,0x12);
 
         startvmx(getcpuinfo());
         sendstring("BootCPU: Back from startvmx\n\r");
@@ -2510,7 +2529,7 @@ void menu(void)
         case 'l':
         {
           sendstring("Entering lua console:");
-          enterLuaConsole();
+          //enterLuaConsole();
 
 
           break;
@@ -2570,7 +2589,7 @@ void startvmx(pcpuinfo currentcpuinfo)
 #endif
 
   UINT64 a,b,c,d;
-
+ // outportb(0x80,0x13);
 
 
   displayline("cpu %d: startvmx:\n",currentcpuinfo->cpunr);
@@ -2718,10 +2737,7 @@ void startvmx(pcpuinfo currentcpuinfo)
           launchVMX(currentcpuinfo);
 
           sendstring("launchVMX returned\n");
-          while (1)
-          {
-
-          }
+          while (1) outportb(0x80,0xc9);
 
 
     	  }
@@ -2812,7 +2828,7 @@ void startvmx(pcpuinfo currentcpuinfo)
         {
           sendstringf(">>>>>>>>>>>>>>>>>>>>vmxon allocation has failed<<<<<<<<<<<<<<<<<<<<<<<<<<\n");
           ddDrawRectangle(0,DDVerticalResolution-100,100,100,0xff0000);
-          while (1);
+          while (1) outportb(0x80,0xca);
         }
 
         zeromemory(currentcpuinfo->vmxon_region,4096);
@@ -2827,7 +2843,7 @@ void startvmx(pcpuinfo currentcpuinfo)
         {
           ddDrawRectangle(0,DDVerticalResolution-100,100,100,0xff0000);
           sendstringf(">>>>>>>>>>>>>>>>>>>>vmcs_region allocation has failed<<<<<<<<<<<<<<<<<<<<<<<<<<\n");
-          while (1);
+          while (1) outportb(0x80,0xcb);
         }
 
 

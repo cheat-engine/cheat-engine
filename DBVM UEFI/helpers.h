@@ -139,6 +139,7 @@ extern void disableInterrupts(void);
 extern void enableInterrupts(void);
 
 extern UINT64 dovmcall(void *vmcallinfo, unsigned int level1pass);
+extern void dovmcall2(void *vmcallinfo, unsigned int level1pass, UINT64 *r1, UINT64 *r2);
 extern UINT64 getTSC(void);
 
 extern void timeCheck(UINT64 *arr);

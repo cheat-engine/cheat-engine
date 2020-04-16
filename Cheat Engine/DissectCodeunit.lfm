@@ -1,21 +1,22 @@
 object frmDissectCode: TfrmDissectCode
-  Left = 1000
+  Left = 803
   Height = 350
-  Top = 202
+  Top = 296
   Width = 327
   AutoSize = True
   Caption = 'Dissect Code'
-  ClientHeight = 350
+  ClientHeight = 330
   ClientWidth = 327
+  Menu = MainMenu1
   OnClose = FormClose
   OnCreate = FormCreate
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '1.6.4.0'
+  LCLVersion = '2.0.6.0'
   object ProgressBar1: TProgressBar
     Left = 0
     Height = 21
-    Top = 329
+    Top = 309
     Width = 327
     Align = alBottom
     ParentShowHint = False
@@ -24,18 +25,18 @@ object frmDissectCode: TfrmDissectCode
   end
   object Panel1: TPanel
     Left = 0
-    Height = 329
+    Height = 309
     Top = 0
     Width = 193
     Align = alClient
     AutoSize = True
     BevelOuter = bvNone
-    ClientHeight = 329
+    ClientHeight = 309
     ClientWidth = 193
     TabOrder = 0
     object lbModuleList: TListBox
       Left = 0
-      Height = 280
+      Height = 260
       Top = 49
       Width = 193
       Align = alClient
@@ -71,7 +72,7 @@ object frmDissectCode: TfrmDissectCode
         Left = 0
         Height = 15
         Top = 15
-        Width = 151
+        Width = 150
         Caption = 'Hold CTRL to select multiple'
         ParentColor = False
       end
@@ -91,13 +92,13 @@ object frmDissectCode: TfrmDissectCode
   end
   object Panel3: TPanel
     Left = 193
-    Height = 329
+    Height = 309
     Top = 0
     Width = 134
     Align = alRight
     AutoSize = True
     BevelOuter = bvNone
-    ClientHeight = 329
+    ClientHeight = 309
     ClientWidth = 134
     TabOrder = 2
     object Label6: TLabel
@@ -225,7 +226,7 @@ object frmDissectCode: TfrmDissectCode
       Left = 8
       Height = 15
       Top = 198
-      Width = 90
+      Width = 91
       BorderSpacing.Top = 8
       Caption = 'Maximum offset:'
       ParentColor = False
@@ -265,6 +266,38 @@ object frmDissectCode: TfrmDissectCode
     Enabled = False
     Interval = 500
     OnTimer = Timer1Timer
-    top = 80
+    Top = 80
+  end
+  object MainMenu1: TMainMenu
+    Images = MainForm.mfImageList
+    Left = 213
+    Top = 283
+    object MenuItem1: TMenuItem
+      Caption = 'File'
+      object MenuItem2: TMenuItem
+        Caption = 'Open'
+        ImageIndex = 3
+        ShortCut = 16463
+        OnClick = MenuItem2Click
+      end
+      object MenuItem3: TMenuItem
+        Caption = 'Save'
+        ImageIndex = 5
+        ShortCut = 16467
+        OnClick = MenuItem3Click
+      end
+    end
+  end
+  object OpenDialog1: TOpenDialog
+    DefaultExt = '.CDC'
+    Filter = 'Dissect Code Files (*.CDC)|*.CDC'
+    Options = [ofFileMustExist, ofEnableSizing, ofViewDetail]
+    Left = 78
+    Top = 88
+  end
+  object SaveDialog1: TSaveDialog
+    Filter = 'Dissect Code Files (*.CDC)|*.CDC'
+    Left = 81
+    Top = 157
   end
 end

@@ -587,7 +587,7 @@ void unmapPhysicalMemoryGlobal(void *virtualaddress, int size)
   {
     sendstringf("invalid global address (%6) given to unmapPhysicalMemoryGlobal\n",virtualaddress);
     ddDrawRectangle(0,DDVerticalResolution-100,100,100,0xff0000);
-    while (1);
+    while (1) outportb(0x80,0xcd);
   }
 
 
@@ -611,7 +611,7 @@ void unmapPhysicalMemory(void *virtualaddress, int size)
   {
     sendstringf("%d: invalid address given to unmapPhysicalMemory (%6)\n",c->cpunr, virtualaddress);
     ddDrawRectangle(0,DDVerticalResolution-100,100,100,0xff0000);
-    while (1);
+    while (1) outportb(0x80,0xce);
   }
 
   int i;
@@ -747,7 +747,7 @@ void *addPhysicalPageToDBVM(QWORD address)
   {
     sendstringf("Assertion failure. Virtual address %6 was already present\n", VirtualAddress);
     ddDrawRectangle(0,DDVerticalResolution-100,100,100,0xff0000);
-    while (1);
+    while (1) outportb(0x80,0xcf);
   }
 
   *(QWORD *)pagetableentry=address;
@@ -980,8 +980,8 @@ void *malloc2(unsigned int size)
   sendstring("OUT OF MEMORY\n");
   ddDrawRectangle(0,DDVerticalResolution-100,100,100,0xff0000);
 
-  while (1)
-    jtagbp();
+  while (1) outportb(0x80,0xd0);
+
 
   return NULL; //still here so no memory allocated
 }
@@ -1124,7 +1124,7 @@ void *realloc(void *old, size_t size)
   {
     sendstringf("realloc error\n");
     ddDrawRectangle(0,DDVerticalResolution-100,100,100,0xff0000);
-    while (1) ;
+    while (1) outportb(0x80,0xd1);
   }
 }
 
@@ -1235,7 +1235,7 @@ void InitializeMM(UINT64 FirstFreeVirtualAddress)
   {
     sendstring("Assertion failed. pagedirlvl4[pml4index].P is not 0. It should be\n");
     ddDrawRectangle(0,DDVerticalResolution-100,100,100,0xff0000);
-    while (1);
+    while (1) outportb(0x80,0xd1);
   }
   *(QWORD*)(&pagedirlvl4[pml4index])=getCR3();
   pagedirlvl4[pml4index].P=1;

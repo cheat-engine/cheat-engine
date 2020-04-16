@@ -1,11 +1,11 @@
 object frmLuaEngine: TfrmLuaEngine
-  Left = 449
-  Height = 332
-  Top = 592
+  Left = 436
+  Height = 338
+  Top = 344
   Width = 570
   HelpContext = 19
   Caption = 'Lua Engine'
-  ClientHeight = 312
+  ClientHeight = 318
   ClientWidth = 570
   Menu = MainMenu1
   OnCreate = FormCreate
@@ -15,17 +15,17 @@ object frmLuaEngine: TfrmLuaEngine
   LCLVersion = '2.0.6.0'
   object GroupBox1: TGroupBox
     Left = 0
-    Height = 177
+    Height = 182
     Top = 0
     Width = 570
     Align = alClient
     Caption = 'Output'
-    ClientHeight = 157
+    ClientHeight = 162
     ClientWidth = 566
     TabOrder = 1
     object mOutput: TMemo
       Left = 0
-      Height = 157
+      Height = 162
       Top = 0
       Width = 566
       Align = alClient
@@ -36,12 +36,12 @@ object frmLuaEngine: TfrmLuaEngine
   end
   object Panel1: TPanel
     Left = 0
-    Height = 130
-    Top = 182
+    Height = 131
+    Top = 187
     Width = 570
     Align = alBottom
     BevelOuter = bvNone
-    ClientHeight = 130
+    ClientHeight = 131
     ClientWidth = 570
     TabOrder = 0
     object tbDebug: TToolBar
@@ -95,23 +95,23 @@ object frmLuaEngine: TfrmLuaEngine
     end
     object Panel2: TPanel
       Left = 0
-      Height = 106
+      Height = 107
       Top = 24
       Width = 570
       Align = alClient
       BevelOuter = bvNone
-      ClientHeight = 106
+      ClientHeight = 107
       ClientWidth = 570
       TabOrder = 0
       object Panel3: TPanel
         Left = 489
-        Height = 106
+        Height = 107
         Top = 0
         Width = 81
         Align = alRight
         AutoSize = True
         BevelOuter = bvNone
-        ClientHeight = 106
+        ClientHeight = 107
         ClientWidth = 81
         TabOrder = 1
         OnResize = Panel2Resize
@@ -121,7 +121,7 @@ object frmLuaEngine: TfrmLuaEngine
           AnchorSideBottom.Control = Panel3
           AnchorSideBottom.Side = asrBottom
           Left = 3
-          Height = 66
+          Height = 67
           Top = 20
           Width = 75
           Anchors = [akTop, akLeft, akBottom]
@@ -138,7 +138,7 @@ object frmLuaEngine: TfrmLuaEngine
       end
       inline mScript: TSynEdit
         Left = 0
-        Height = 106
+        Height = 107
         Top = 0
         Width = 489
         Align = alClient
@@ -781,15 +781,15 @@ object frmLuaEngine: TfrmLuaEngine
     Cursor = crVSplit
     Left = 0
     Height = 5
-    Top = 177
+    Top = 182
     Width = 570
     Align = alBottom
     ResizeAnchor = akBottom
   end
   object MainMenu1: TMainMenu
     Images = leImageList
-    left = 263
-    top = 43
+    Left = 263
+    Top = 43
     object MenuItem1: TMenuItem
       Caption = 'File'
       object MenuItem11: TMenuItem
@@ -861,19 +861,19 @@ object frmLuaEngine: TfrmLuaEngine
   object OpenDialog1: TOpenDialog
     DefaultExt = '.LUA'
     Filter = 'Lua files (*.lua)|*.lua'
-    left = 56
-    top = 41
+    Left = 56
+    Top = 41
   end
   object SaveDialog1: TSaveDialog
     DefaultExt = '.LUA'
     Filter = 'Lua files (*.lua)|*.lua'
-    left = 128
-    top = 43
+    Left = 128
+    Top = 43
   end
   object pmEditor: TPopupMenu
     Images = leImageList
-    left = 59
-    top = 184
+    Left = 59
+    Top = 184
     object miCut: TMenuItem
       Caption = 'Cut'
       ImageIndex = 7
@@ -943,12 +943,12 @@ object frmLuaEngine: TfrmLuaEngine
     Options = [frDown, frReplaceAll]
     OnFind = dlgReplaceFind
     OnReplace = dlgReplaceReplace
-    left = 304
-    top = 184
+    Left = 304
+    Top = 184
   end
   object ilLuaDebug: TImageList
-    left = 352
-    top = 43
+    Left = 352
+    Top = 43
     Bitmap = {
       4C69050000001000000010000000000000000000000004733AFF2D8859FF859C
       90FF000000000000000000000000000000000000000000000000000000000000
@@ -1114,8 +1114,8 @@ object frmLuaEngine: TfrmLuaEngine
     }
   end
   object ilSyneditDebug: TImageList
-    left = 448
-    top = 41
+    Left = 448
+    Top = 41
     Bitmap = {
       4C690300000010000000100000000000000000000000D7D6F0FFA2B1F6FF7C8E
       EEFF697EECFF8193EFFFABB7F7FFE4DDEBFF0000000000000000000000000000
@@ -1220,13 +1220,13 @@ object frmLuaEngine: TfrmLuaEngine
     Enabled = False
     Interval = 500
     OnTimer = tShowHintTimer
-    left = 128
-    top = 184
+    Left = 128
+    Top = 184
   end
   object FindDialog1: TFindDialog
     OnFind = dlgReplaceFind
-    left = 215
-    top = 184
+    Left = 215
+    Top = 184
   end
   object scLuaCompleter: TSynCompletion
     OnExecute = scLuaCompleterExecute
@@ -1236,6 +1236,7 @@ object frmLuaEngine: TfrmLuaEngine
     SelectedColor = clHighlight
     CaseSensitive = True
     Width = 262
+    ShowSizeDrag = True
     AutoUseSingleIdent = True
     ShortCut = 16416
     EndOfTokenChr = '()[].'
@@ -1243,13 +1244,13 @@ object frmLuaEngine: TfrmLuaEngine
     ExecCommandID = ecSynCompletionExecute
     Editor = mScript
     ToggleReplaceWhole = False
-    left = 416
-    top = 184
+    Left = 416
+    Top = 184
   end
   object leImageList: TImageList
     Scaled = True
-    left = 221
-    top = 120
+    Left = 221
+    Top = 120
     Bitmap = {
       4C690D0000001000000010000000C47B27FFE08D2CFFE08D2CFFE08D2CFFE08D
       2CFFE08D2CFFE08D2CFFE08D2CFFE08D2CFFE0872CFFE0832CFFE0892CFFE082

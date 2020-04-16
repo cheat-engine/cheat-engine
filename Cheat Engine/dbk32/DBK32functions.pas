@@ -913,6 +913,18 @@ begin
       handlemapmrew.Endread;
     end;
   end;
+
+  if (not result) and (isRunningDBVM) then
+  begin
+    _cr3:=dbvm_findCR3(hProcess);
+
+    if _cr3<>0 then
+    begin
+      CR3:=_cr3;
+      result:=true;
+    end;
+
+  end;
 end;
 
 function GetCR3FromPID(pid: system.QWORD;var CR3:system.QWORD):BOOL; stdcall;
@@ -1088,6 +1100,11 @@ var cc: dword;
     physicaladdress: int64 absolute input;
     x: dword;
     l: THandleListEntry;
+
+    b: byte;
+
+    CR3: qword;
+    pa: qword;
 begin
   result:=false;
   if hdevice<>INVALID_HANDLE_VALUE then
@@ -1109,6 +1126,19 @@ begin
     finally
       handlemapmrew.Endread;
     end;
+  end;
+
+  if (not result) and (isRunningDBVM) then
+  begin
+    cr3:=dbvm_findCR3(hProcess);
+
+    if cr3<>0 then
+    begin
+      result:=VirtualToPhysicalCR3(cr3,qword(lpBaseAddress), pa);
+      if result then
+        address:=pa;
+    end;
+
   end;
 end;
 
@@ -1369,6 +1399,8 @@ begin
     numberofbytesread:=dbvm_read_physical_memory(qword(lpBaseAddress), lpBuffer, nSize);
     exit(numberofbytesread=nSize);
   end;
+
+  OutputDebugString('Using normal dbk method');
 
   result:=false;
   numberofbytesread:=0;
@@ -2440,6 +2472,7 @@ begin
     if deviceiocontrol(hdevice,cc,@input,sizeof(input),@output,sizeof(output),cc,nil) then
       result:=output.mdl;
   end;
+
 end;
 
 procedure UnlockMemory(MDLAddress: QWORD);

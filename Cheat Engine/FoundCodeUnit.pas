@@ -67,6 +67,7 @@ type
   TFoundCodeDialog = class(TForm)
     FoundCodeList: TListView;
     fcdImageList: TImageList;
+    dbvmMissedEntries: TLabel;
     MenuItem1: TMenuItem;
     MenuItem2: TMenuItem;
     miFindWhatAccesses: TMenuItem;
@@ -179,14 +180,14 @@ begin
       i:=dbvm_watch_retrievelog(id, results, size);
       if i=0 then
       begin
-        OutputDebugString('TDBVMWatchPollThread returned 0');
-        OutputDebugString('results^.numberOfEntries='+inttostr(results^.numberOfEntries));
-        OutputDebugString('results^.maxSize='+inttostr(results^.maxSize));
+        //OutputDebugString('TDBVMWatchPollThread returned 0');
+        //OutputDebugString('results^.numberOfEntries='+inttostr(results^.numberOfEntries));
+        //OutputDebugString('results^.maxSize='+inttostr(results^.maxSize));
 
         //process data
         if results^.numberOfEntries>0 then
         begin
-          OutputDebugString('calling addEntriesToList');
+         // OutputDebugString('calling addEntriesToList');
           synchronize(addEntriesToList);
           sleep(10);
         end
@@ -197,7 +198,7 @@ begin
       if i=2 then
       begin
         //not enough memory. Allocate twice the needed amount
-        outputdebugstring(inttostr(resultsize)+' is too small for the buffer. It needs to be at least '+inttostr(size));
+       // outputdebugstring(inttostr(resultsize)+' is too small for the buffer. It needs to be at least '+inttostr(size));
         freememandnil(results);
 
 
@@ -208,7 +209,7 @@ begin
         continue; //try again, no sleep
       end else
       begin
-        outputdebugstring('dbvm_watch_retrievelog returned '+inttostr(i)+' which is not supported');
+        //outputdebugstring('dbvm_watch_retrievelog returned '+inttostr(i)+' which is not supported');
         exit;
       end;
     end;
@@ -264,6 +265,14 @@ var
   debug,debug2: pointer;
 begin
   outputdebugstring('addEntriesToList');
+
+  if results^.missedEntries>0 then
+  begin
+    fcd.dbvmMissedEntries.caption:=string.format(rsDBVMMissedEntries, [results^.missedEntries]);
+    if fcd.dbvmMissedEntries.visible=false then
+      fcd.dbvmMissedEntries.visible:=true;
+  end;
+
 
   try
     basic:=PPageEventBasicArray(ptruint(results)+sizeof(TPageEventListDescriptor));
@@ -862,8 +871,8 @@ begin
 
     with FormFoundCodeListExtra do
     begin
-      Label1.Caption:=disassembled[1].s;
-      Label1.tag:=disassembled[1].a;
+      dbvmMissedEntries.Caption:=disassembled[1].s;
+      dbvmMissedEntries.tag:=disassembled[1].a;
 
       Label2.Caption:=disassembled[2].s;
       Label2.tag:=disassembled[2].a;

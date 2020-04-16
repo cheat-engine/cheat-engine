@@ -44,7 +44,7 @@ Type TMemoryRegion = record
   startaddress: pointer;
   end;
 type TMemoryregions = array of tmemoryregion;
-  
+
 {$endif}
 
 
@@ -53,7 +53,9 @@ type TUserdefinedSymbolCallback=procedure;
 
 
 type
+  TSymHandlerTokenType=(ttByte, ttWord, ttDword, ttQword, ttShortInt, ttSmallint, ttLongint, ttInt64);
   TSymHandler=class;
+
 
   TSymbolLoaderThreadEvent=class(tobject)
   private
@@ -86,7 +88,6 @@ type
 
   TSymbolloaderthread=class(tthread)
   private
-
     targetself: boolean;
     owner: Tsymhandler;
     thisprocesshandle: thandle;
@@ -127,6 +128,8 @@ type
 
     structureList: TStringList;
 
+    amodulebase: pointer;
+
     {$ifdef darwin}
 
     function loadSymbolsWithSymbolicator: boolean;
@@ -165,6 +168,7 @@ type
     symbollist: TSymbolListHandler;
 
     debugpart: integer;
+    ExtendedDebugSymbolProgress: integer;
 
     skipAllSymbols: Boolean;
     skipAddressToSymbol: boolean;
@@ -247,6 +251,7 @@ type
     function getisloaded:boolean;
     function geterror:boolean;
     function getProgress:integer;
+    function getExtendedDataProgress: integer;
     function getDotNetAccess: boolean;
     function GetUserdefinedSymbolByNameIndex(symbolname:string):integer;
     function GetUserdefinedSymbolByAddressIndex(address: ptruint):integer;
@@ -257,11 +262,16 @@ type
     procedure setshowmodules(x: boolean); //todo: Move this to the disassembler and let that decide
     procedure setshowsymbols(x: boolean);
     procedure tokenize(s: string; var tokens: TTokens);
+
+    function isTypeToken(token: string; var nextTokenType: TSymHandlerTokenType): boolean;
+
+    function isParsingStructures: boolean;
+    function isloadingExtendedData: boolean;
   public
 
     kernelsymbols: boolean;
     dllsymbols: boolean;
-    
+
     locked: boolean;
     targetself: boolean;
 
@@ -276,6 +286,9 @@ type
     property hasError: boolean read geterror;
     property hasDotNetAccess: boolean read getDotNetAccess;
     property progress: integer read getProgress;
+    property extendedDataProgess: integer read getExtendedDataProgress;
+    property parsingStructures: boolean read isParsingStructures;
+    property loadingExtendedData: boolean read isloadingExtendedData;
 
     procedure waitforsymbolsloaded(apisymbolsonly: boolean=false; specificmodule: string='');
     procedure waitForExports;
@@ -418,6 +431,7 @@ var SymFromName: TSymFromName;
 
     StackWalkEx:function(MachineType:dword; hProcess:THANDLE; hThread:THANDLE; StackFrame:PStackframe_ex; ContextRecord:pointer; ReadMemoryRoutine:TREAD_PROCESS_MEMORY_ROUTINE64; FunctionTableAccessRoutine:TFUNCTION_TABLE_ACCESS_ROUTINE64; GetModuleBaseRoutine:TGET_MODULE_BASE_ROUTINE64; TranslateAddress:TTRANSLATE_ADDRESS_ROUTINE64; flags: dword):bool;stdcall;
     SymLoadModuleEx:function(hProcess:THANDLE; hFile:THANDLE; ImageName:PSTR; ModuleName:PSTR; BaseOfDll:dword64; DllSize:dword; Data:pointer; Flags:dword):dword64;stdcall;
+    UnDecorateSymbolName:function(name: PCSTR; outputString: PSTR;  maxStringLength: DWORD;  flags: DWORD): DWORD; stdcall;
 
     {$endif}
 
@@ -432,7 +446,8 @@ uses networkInterface, networkInterfaceApi, ProcessHandlerUnit, Globals, Parsers
 uses Assemblerunit, driverlist, LuaHandler, lualib, lua, lauxlib,
   disassemblerComments, StructuresFrm2, networkInterface, networkInterfaceApi,
   ProcessHandlerUnit, Globals, Parsers, MemoryQuery, LuaCaller,
-  UnexpectedExceptionsHelper, frmSymbolEventTakingLongUnit;
+  UnexpectedExceptionsHelper, frmSymbolEventTakingLongUnit, MainUnit, addresslist,
+  MemoryRecordUnit;
 {$endif}
 
 
@@ -729,6 +744,9 @@ begin
 
       getmem(modulename,1024);
       try
+        if count>0 then
+          amodulebase:=x[0];
+
         for i:=0 to count-1 do
         begin
           GetModuleFileNameEx(thisprocesshandle,ptrUint(x[i]),modulename,200);
@@ -1197,20 +1215,7 @@ begin
   for i:=0 to max-1 do
   begin
     debugpart:=40000+i;
-
-    if i=251 then
-    begin
-      asm
-      nop //ok here
-      end;
-    end;
-
-    if i=252 then
-    begin
-      asm
-      nop  //bad here
-      end;
-    end;
+    ExtendedDebugSymbolProgress:=(i*100) div max;
 
     esd:=TExtraSymbolData(self.symbollist.ExtraSymbolDataList[i]);
 
@@ -1230,6 +1235,8 @@ begin
       SES(self.thisprocesshandle, 0, nil, es2address, self);
 
       self.extraSymbolData.filledin:=true;
+
+      freemem(c);
     end;
   end;
   {$ENDIF}
@@ -1261,17 +1268,6 @@ begin
   self:=TSymbolloaderthread(UserContext);
   self.processThreadEvents;
 
-     {
-  if self.thisprocessid<>GetCurrentProcessId then
-  begin
-    while true do
-    begin
-      self.processThreadEvents;
-      sleep(10);
-      if self.terminated then exit(false);
-    end;
-  end;  }
-
 
   if self.currentModuleIsNotStandard then
     s:='_'+s;
@@ -1300,8 +1296,10 @@ begin
     if self.symbollist.FindSymbol(self.currentModuleName+'.'+s)<>nil then
       exit(not self.terminated);
 
+
   sym:=self.symbollist.AddSymbol(self.currentModuleName, self.currentModuleName+'.'+s, pSymInfo.Address, symbolsize,false, extraSymbolData);
   sym:=self.symbollist.AddSymbol(self.currentModuleName, s, pSymInfo.Address, symbolsize,true, extraSymbolData); //don't add it as a address->string lookup  , (this way it always shows modulename+symbol)
+
 
   result:=not self.terminated;
 end;
@@ -1341,7 +1339,6 @@ begin
   self:=TSymbolloaderthread(UserContext);
   if self.terminated then exit(false);
 
-  exit(true);
 
   q:=self.currentSymbolDataBaseQueryObject;
 
@@ -1387,8 +1384,9 @@ begin
         q.Prepare;
         q.ExecSQL;
 
+        fcp:=nil;
+        getmem(fcp, sizeof(TI_FINDCHILDREN_PARAMS)+childrencount*4);
         try
-          getmem(fcp, sizeof(TI_FINDCHILDREN_PARAMS)+childrencount*4);
           zeromemory(fcp, sizeof(TI_FINDCHILDREN_PARAMS)+childrencount*4);
           fcp.Count:=childrencount;
           SymGetTypeInfo(self.thisprocesshandle, pSymInfo.ModBase, pSymInfo.TypeIndex, TI_FINDCHILDREN, fcp);
@@ -1432,7 +1430,8 @@ begin
 
 
         finally
-          freememandnil(fcp);
+          if fcp<>nil then
+            freememandnil(fcp);
         end;
 
       end;
@@ -1588,7 +1587,7 @@ begin
         q.Active:=true;
         if q.RecordCount=0 then
         begin
-          //add it to the list (if nothing, the tollback will undo this add)
+          //add it to the list (if nothing, the rollback will undo this add)
           q.Active:=false;
           q.SQL.Clear;
           q.SQL.text:='INSERT INTO modules (modulename, timestamp) VALUES (:modulename, :ts)';
@@ -1673,7 +1672,6 @@ begin
   hasEnumeratedAllStructures:=true;
 end;
 
-
 function EM(ModuleName:PSTR; BaseOfDll:dword64; UserContext:pointer):bool;stdcall;
 var
   self: TSymbolloaderthread;
@@ -1682,6 +1680,8 @@ var
 
 begin
   result:=false;
+
+
 
   {$IFNDEF UNIX}
   self:=TSymbolloaderthread(UserContext);
@@ -1696,6 +1696,7 @@ begin
  //
 
   self.processThreadEvents;
+
 
   if self.pdbonly then  //only files with a PDB
   begin
@@ -1893,6 +1894,8 @@ procedure TSymbolloaderthread.teGetStructureList(list: tstringlist);
 var i: integer;
 begin
   //faster than waiting for all structures to get fully dissected
+
+  {$ifdef windows}
   if structureList=nil then
   begin
     //get the list
@@ -1910,9 +1913,12 @@ begin
   end
   else
     list.assign(structurelist);
+
+  {$endif}
 end;
 
 procedure TSymbolloaderthread.teGetStructureFromName(name: string; structure: TStringList);
+{$ifdef windows}
 var
   hasModuleSpecifier: boolean;
   pSymInfo: PSYMBOL_INFO;
@@ -1935,7 +1941,9 @@ var
   wname: pwidechar;
 
   element: TDBElementInfo;
+  {$endif}
 begin
+  {$ifdef windows}
   hasmodulespecifier:=false;
   getmem(pSymInfo,sizeof(TSYMBOL_INFO)+100);
 
@@ -2057,6 +2065,8 @@ begin
   end;
 
   freemem(pSymInfo);
+
+  {$endif}
 end;
 
 procedure TSymbolloaderthread.processThreadEvents;
@@ -2375,6 +2385,9 @@ var sp: pchar;
 
     modinfo: PModInfo;
     needstoenumodules: boolean;
+
+    b: byte;
+    ar: ptruint;
 begin
   debugpart:=0;
 
@@ -2482,9 +2495,12 @@ begin
         end;
 
         debugpart:=1;
+
+
+
         if thisprocesshandle<>0 then
         begin
-          symbolloaderthreadcs.Enter;
+          symbolloaderthreadcs.Enter;  //needed so selfsymbolhandlerdoesnb't cause issues
           try
             //get the export symbols first
 
@@ -2497,6 +2513,7 @@ begin
             symsetoptions(d);
 
             SymbolsLoaded:=SymInitialize(thisprocesshandle, pchar(''), true);
+
             if symbolsloaded=false then
             begin
               SymbolsLoaded:=SymInitialize(thisprocesshandle, pchar(''), false);
@@ -2509,7 +2526,15 @@ begin
 
             if symbolsloaded then
             begin
+
+
+
               symbolscleaned:=false;
+
+
+
+
+
 
               if kernelsymbols then LoadDriverSymbols(false);
               LoadDLLSymbols(false, needstoenumodules);
@@ -2533,6 +2558,7 @@ begin
               symbolscleaned:=true;
 
             end;
+
 
 
 
@@ -2576,9 +2602,14 @@ begin
 
             if terminated then exit;
 
+
+
+
             if symbolsloaded then
             begin
               symbolscleaned:=false;
+
+
 
               debugpart:=2;
               //symsetoptions(symgetoptions or SYMOPT_CASE_INSENSITIVE);
@@ -2591,7 +2622,9 @@ begin
               //enumerate the basic data from the symbols
               //enumeratedModules:=0;
               pdbonly:=true;
+
               SymEnumerateModules64(thisprocesshandle, @EM, self );
+
 
               pdbsymbolsloaded:=true;
 
@@ -2616,9 +2649,12 @@ begin
               if not terminated then
                 EnumerateExtendedDebugSymbols;
               debugpart:=5;
+
               if not terminated then
                 EnumerateStructures;
 
+
+               debugpart:=6;
 
 
               if (targetself=false) and (length(modulelist.withdebuginfo)>0) then
@@ -2629,13 +2665,18 @@ begin
 
                   while symbolloaderthreadeventqueue.Count>0 do
                     processThreadEvents;
+
+                  if ReadProcessMemory(processhandle, amodulebase, @b,1,ar)=false then       //release the debug symbols when the process terminates
+                  begin
+                    break;
+                  end;
                 end;
               end;
 
-              debugpart:=6;
+              debugpart:=7;
               Symcleanup(thisprocesshandle);
               symbolscleaned:=true;
-              debugpart:=7;
+              debugpart:=8;
             end
             else
               error:=true;
@@ -2783,7 +2824,7 @@ begin
   self.owner:=owner;
   self.targetself:=targetself;
 
-  
+
   {$ifdef windows}
   if targetself then
   begin
@@ -2820,17 +2861,19 @@ procedure TSymhandler.tokenize(s: string; var tokens: TTokens);
 Just a tokenizer for simple address specifiers
 }
 var
-  i: integer;
+  i,j: integer;
   last: integer;
   t: string;
   inQuote: boolean;
+  inroundbrace: integer;
 begin
   last:=1;
   inQuote:=false;
+  inroundbrace:=0;
 
   for i:=1 to length(s) do
   begin
-    if (s[i] in ['"', '[', ']', '+', '-', '*']) then
+    if (s[i] in ['"', '[', ']', '+', '-', '*','(',')']) then
     begin
       if s[i]='"' then
       begin
@@ -2842,20 +2885,31 @@ begin
 
       if not inQuote then
       begin
-        t:=trim(copy(s, last, i-last));
-        if t<>'' then
-        begin
-          setlength(tokens,length(tokens)+1);
-          tokens[length(tokens)-1]:=t;
-        end;
+        if s[i]=')' then
+          dec(inroundbrace);
 
-        //store seperator char as well, unless it's "
-        if s[i]<>'"' then
+        if inroundbrace=0 then
         begin
-          setlength(tokens,length(tokens)+1);
-          tokens[length(tokens)-1]:=s[i];
+          t:=trim(copy(s, last, i-last));
+          if t<>'' then
+          begin
+            setlength(tokens,length(tokens)+1);
+            tokens[length(tokens)-1]:=t;
+          end;
+
+          //store seperator char as well, unless it's "
+          if not (s[i] = '"') then
+          begin
+            setlength(tokens,length(tokens)+1);
+            tokens[length(tokens)-1]:=s[i];
+          end;
+
+          if s[i]='(' then
+            inc(inroundbrace);
+
+          last:=i+1;
+
         end;
-        last:=i+1;
       end;
     end;
 
@@ -2869,6 +2923,75 @@ begin
     setlength(tokens,length(tokens)+1);
     tokens[length(tokens)-1]:=t;
   end;
+end;
+
+
+function TSymHandler.isTypeToken(token: string; var nextTokenType: TSymHandlerTokenType): boolean;
+begin
+  result:=false;
+  token:=uppercase(token);
+  if length(token)>0 then
+  begin
+    //(BYTE), (WORD), (DWORD), (QWORD)/(UINT64), (CHAR), (SHORT),(LONG),(LONGLONG),(INT64)
+    case token[1] of
+      'B' : if token='BYTE' then begin nextTokenType:=ttByte; exit(true); end;
+      'C' : if token='CHAR' then begin nextTokenType:=ttShortInt; exit(true); end;
+      'D' : if token='DWORD' then begin nextTokenType:=ttDword; exit(true); end;
+      'I' : if token='INT64' then
+            begin
+              nextTokenType:=ttInt64;
+              exit(true);
+            end;
+      'L' : if token='LONG' then
+            begin
+              nextTokenType:=ttLongint;
+              exit(true);
+            end
+            else
+            if token='LONGLONG' then
+            begin
+              nextTokenType:=ttInt64;
+              exit(true);
+            end;
+      'Q' : if token='QWORD' then begin nextTokenType:=ttQword; exit(true); end;
+      'U' : if token='UINT64' then begin nextTokenType:=ttQword; exit(true); end;
+      'S' : if token='SHORT' then begin nextTokenType:=ttSmallint; exit(true); end;
+      'W' : if token='WORD' then begin nextTokenType:=ttWord; exit(true); end;
+    end;
+  end;
+end;
+
+function TSymHandler.getExtendedDataProgress: integer;
+begin
+  result:=0;
+  symbolloadervalid.beginread;
+  if symbolloaderthread<>nil then
+  begin
+    if symbolloaderthread.debugpart>40000 then
+      result:=symbolloaderthread.ExtendedDebugSymbolProgress;
+  end;
+
+  symbolloadervalid.Endread;
+end;
+
+function TSymHandler.isloadingExtendedData: boolean;
+begin
+  result:=false;
+  symbolloadervalid.beginread;
+  if symbolloaderthread<>nil then
+    result:=symbolloaderthread.debugpart>4000;
+
+  symbolloadervalid.Endread;
+end;
+
+function TSymHandler.isParsingStructures: boolean;
+begin
+  result:=false;
+  symbolloadervalid.beginread;
+  if symbolloaderthread<>nil then
+    result:=symbolloaderthread.debugpart=5;
+
+  symbolloadervalid.Endread;
 end;
 
 function TSymHandler.getProgress: integer;
@@ -3440,7 +3563,7 @@ begin
       end;
   finally
     userdefinedsymbolsCS.leave;
-  end;  
+  end;
 end;
 
 function TSymhandler.GetUserdefinedSymbolByName(symbolname:string):ptrUint;
@@ -4455,11 +4578,38 @@ var mi: tmoduleinfo;
     s: string;
     a,br: ptruint;
 
-    pointerstartlist: array of integer;
+    pointerstartlist: array of
+      record
+        start: integer;
+        tokentype: TSymHandlerTokenType;
+      end;
     pointerstartpos,pointerstartmax: integer;
 
+    nexttokentype: TSymHandlerTokenType;
+
     v64: qword;
+
+    mr: TMemoryrecord;
+
+    function ApplyTokenType(value: qword): qword;
+    begin
+      case nexttokentype of
+        ttByte: result:=Byte(value);
+        ttWord: result:=Word(value);
+        ttDword: result:=Dword(value);
+        ttQword: result:=Qword(value);
+        ttShortInt: result:=ShortInt(value);
+        ttSmallint: result:=SmallInt(value);
+        ttLongint: result:=LongInt(value);
+        ttInt64: result:=Int64(value);
+        else
+          result:=value; //never...
+      end;
+
+      nextTokenType:=ttQword; //reset to default
+    end;
 begin
+  nexttokentype:=ttQword;
   pointerstartpos:=0;
   pointerstartmax:=16;
   setlength(pointerstartlist,pointerstartmax);
@@ -4519,13 +4669,15 @@ begin
     exit;
   end;
 
+
+
   //convert the tokens into hexadecimal values
 
   symbolloadervalid.beginread;
   try
     for i:=0 to length(tokens)-1 do
     begin
-      if not (tokens[i][1] in ['[',']','+','-','*']) then
+      if (length(tokens[i])>0) and (not (tokens[i][1] in ['[',']','+','-','*','(',')'])) then
       begin
         val('$'+tokens[i],v64,j);
         result:=v64;
@@ -4533,9 +4685,10 @@ begin
         if j>0 then
         begin
           //not a hexadecimal value
+
           if getmodulebyname(tokens[i],mi) then
           begin
-            tokens[i]:=inttohex(mi.baseaddress,8);
+            tokens[i]:=inttohex(ApplyTokenType(mi.baseaddress),8);
             continue;
           end
           else
@@ -4546,7 +4699,7 @@ begin
               result:=callbackCheck(tokens[i], slNotModule);
               if result>0 then
               begin
-                tokens[i]:=inttohex(result,8);
+                tokens[i]:=inttohex(ApplyTokenType(result),8);
                 continue;
               end;
             end;
@@ -4565,23 +4718,23 @@ begin
                 //get the register value, and because this is an address specifier, use the full 32-bits
 
                 case regnr of
-                  0: tokens[i]:=inttohex(context^.{$ifdef cpu64}rax{$else}eax{$endif},8);
-                  1: tokens[i]:=inttohex(context^.{$ifdef cpu64}rcx{$else}ecx{$endif},8);
-                  2: tokens[i]:=inttohex(context^.{$ifdef cpu64}rdx{$else}edx{$endif},8);
-                  3: tokens[i]:=inttohex(context^.{$ifdef cpu64}rbx{$else}ebx{$endif},8);
-                  4: tokens[i]:=inttohex(context^.{$ifdef cpu64}rsp{$else}esp{$endif},8);
-                  5: tokens[i]:=inttohex(context^.{$ifdef cpu64}rbp{$else}ebp{$endif},8);
-                  6: tokens[i]:=inttohex(context^.{$ifdef cpu64}rsi{$else}esi{$endif},8);
-                  7: tokens[i]:=inttohex(context^.{$ifdef cpu64}rdi{$else}edi{$endif},8);
+                  0: tokens[i]:=inttohex(ApplyTokenType(context^.{$ifdef cpu64}rax{$else}eax{$endif}),8);
+                  1: tokens[i]:=inttohex(ApplyTokenType(context^.{$ifdef cpu64}rcx{$else}ecx{$endif}),8);
+                  2: tokens[i]:=inttohex(ApplyTokenType(context^.{$ifdef cpu64}rdx{$else}edx{$endif}),8);
+                  3: tokens[i]:=inttohex(ApplyTokenType(context^.{$ifdef cpu64}rbx{$else}ebx{$endif}),8);
+                  4: tokens[i]:=inttohex(ApplyTokenType(context^.{$ifdef cpu64}rsp{$else}esp{$endif}),8);
+                  5: tokens[i]:=inttohex(ApplyTokenType(context^.{$ifdef cpu64}rbp{$else}ebp{$endif}),8);
+                  6: tokens[i]:=inttohex(ApplyTokenType(context^.{$ifdef cpu64}rsi{$else}esi{$endif}),8);
+                  7: tokens[i]:=inttohex(ApplyTokenType(context^.{$ifdef cpu64}rdi{$else}edi{$endif}),8);
                   {$ifdef cpu64}
-                  8: tokens[i]:=inttohex(context^.r8,8);
-                  9: tokens[i]:=inttohex(context^.r9,8);
-                  10: tokens[i]:=inttohex(context^.r10,8);
-                  11: tokens[i]:=inttohex(context^.r11,8);
-                  12: tokens[i]:=inttohex(context^.r12,8);
-                  13: tokens[i]:=inttohex(context^.r13,8);
-                  14: tokens[i]:=inttohex(context^.r14,8);
-                  15: tokens[i]:=inttohex(context^.r15,8);
+                  8: tokens[i]:=inttohex(ApplyTokenType(context^.r8),8);
+                  9: tokens[i]:=inttohex(ApplyTokenType(context^.r9),8);
+                  10: tokens[i]:=inttohex(ApplyTokenType(context^.r10),8);
+                  11: tokens[i]:=inttohex(ApplyTokenType(context^.r11),8);
+                  12: tokens[i]:=inttohex(ApplyTokenType(context^.r12),8);
+                  13: tokens[i]:=inttohex(ApplyTokenType(context^.r13),8);
+                  14: tokens[i]:=inttohex(ApplyTokenType(context^.r14),8);
+                  15: tokens[i]:=inttohex(ApplyTokenType(context^.r15),8);
                   {$endif}
                 end;
 
@@ -4599,7 +4752,7 @@ begin
               result:=GetUserdefinedSymbolByName(tokens[i]);
               if result>0 then
               begin
-                tokens[i]:=inttohex(result,8);
+                tokens[i]:=inttohex(ApplyTokenType(result),8);
                 continue;
               end;
 
@@ -4609,7 +4762,7 @@ begin
                 result:=callbackCheck(tokens[i], slNotUserdefinedSymbol);
                 if result>0 then
                 begin
-                  tokens[i]:=inttohex(result,8);
+                  tokens[i]:=inttohex(ApplyTokenType(result),8);
                   continue;
                 end;
               end;
@@ -4623,7 +4776,7 @@ begin
                 result:=ptrUint(GetKProcAddress(pws));
                 if result<>0 then
                 begin
-                  tokens[i]:=inttohex(result,8);
+                  tokens[i]:=inttohex(ApplyTokenType(result),8);
                   continue;
                 end;
               end;
@@ -4685,7 +4838,7 @@ begin
                       a:=GetStackStart(j);
                       if a<>0 then
                       begin
-                        tokens[i]:=inttohex(a,8);
+                        tokens[i]:=inttohex(ApplyTokenType(a),8);
                         continue;
                       end;
                     end;
@@ -4696,7 +4849,7 @@ begin
                  // begin
                     if LookupStructureOffset(tokens[i], offset) then
                     begin
-                      tokens[i]:=inttohex(offset,8);
+                      tokens[i]:=inttohex(ApplyTokenType(offset),8);
                       continue;
                     end;
                  // end;
@@ -4706,7 +4859,7 @@ begin
                     a:=symbolloaderthread.getAddressFromSymbol(tokens[i]);
                     if a<>0 then
                     begin
-                      tokens[i]:=inttohex(a,8);
+                      tokens[i]:=inttohex(ApplyTokenType(a),8);
                       continue;
                     end;
 
@@ -4723,10 +4876,6 @@ begin
                     //check again now that the symbols are loaded
                     si:=symbollist.FindSymbol(tokens[i]);
                   end;
-
-
-
-
                 end;
 
                 if si<>nil then
@@ -4750,10 +4899,10 @@ begin
                       freememandnil(p);
                     end;
 
-                    tokens[i]:=inttohex(si.extra.forwardsto,8);
+                    tokens[i]:=inttohex(ApplyTokenType(si.extra.forwardsto),8);
                   end
                   else
-                    tokens[i]:=inttohex(si.address,8);
+                    tokens[i]:=inttohex(ApplyTokenType(si.address),8);
                   continue;
                 end;
 
@@ -4793,7 +4942,7 @@ begin
                 else
                 if (k<>LUA_TSTRING) and (lua_isnumber(LuaVM, j+1)) then
                 begin
-                  tokens[i]:=inttohex(lua_tointeger(LuaVM, j+1),8);
+                  tokens[i]:=inttohex(ApplyTokenType(lua_tointeger(LuaVM, j+1)),8);
                   continue;
                 end
                 else
@@ -4802,7 +4951,12 @@ begin
                   s:=lua_tostring(LuaVM, j+1);
                   if pos('$',s)=0 then //prevent inf lua loops
                   begin
-                    tokens[i]:=inttohex(getAddressFromName(s),8);
+                    try
+                      tokens[i]:=inttohex(ApplyTokenType(getAddressFromName(s)),8);
+                    except
+                      //fail, try one more time with quotes
+                      tokens[i]:=inttohex(ApplyTokenType(getAddressFromName('"'+s+'"')),8);
+                    end;
                     continue;
                   end;
                 end;
@@ -4819,7 +4973,7 @@ begin
               result:=callbackCheck(tokens[i], slNotSymbol);
               if result>0 then
               begin
-                tokens[i]:=inttohex(result,8);
+                tokens[i]:=inttohex(ApplyTokenType(result),8);
                 continue;
               end;
             end;
@@ -4839,7 +4993,7 @@ begin
                 result:=callbackCheck(tokens[i], slFailure);
                 if result>0 then
                 begin
-                  tokens[i]:=inttohex(result,8);
+                  tokens[i]:=inttohex(ApplyTokenType(result),8);
                   continue;
                 end;
               end;
@@ -4849,18 +5003,66 @@ begin
             end;
 
           end;
-        end;
+        end
+        else
+          tokens[i]:=inttohex(applytokentype(result),8);
       end
       else
       begin
         //it's not a real token
+        if (length(tokens[i])>0) then
         case tokens[i][1] of
           '*' : hasMultiplication:=true;
+
+          '(':
+          begin
+            //could be a typecast
+            if (length(tokens)>i+2) and (tokens[i+2]=')') then //(something)
+            begin
+              if isTypeToken(tokens[i+1], nextTokenType) then //is something one of the types
+              begin
+                //it's a typecast, not part of the symbol
+                tokens[i]:='';
+                tokens[i+1]:='';
+                tokens[i+2]:='';
+                continue;
+              end;
+            end;
+
+            s:='';
+            for j:=i+1 to length(tokens)-1 do
+            begin
+
+              if tokens[j]=')' then
+              begin
+                mr:=MainForm.addresslist.getRecordWithDescription(s);
+                if mr<>nil then
+                begin
+
+                  for k:=i+1 to j do
+                    tokens[k]:='';
+
+                  tokens[i]:=inttohex(mr.CachedAddress,1);
+
+                end;
+
+                break;
+              end
+              else
+                s:=s+tokens[j];
+            end;
+
+
+          end;
+
           '[':
           begin
             hasPointer:=true;
 
-            pointerstartlist[pointerstartpos]:=i;
+            pointerstartlist[pointerstartpos].start:=i;
+            pointerstartlist[pointerstartpos].tokentype:=nexttokentype;
+            nexttokentype:=ttQword;
+
             inc(pointerstartpos);
             if pointerstartpos>=pointerstartmax then
             begin
@@ -4883,7 +5085,7 @@ begin
               end;
 
               dec(pointerstartpos);
-              k:=pointerstartlist[pointerstartpos];
+              k:=pointerstartlist[pointerstartpos].start;
 
               for j:=k+1 to i-1 do
               begin
@@ -4903,7 +5105,8 @@ begin
               if haserror then exit;
 
               tokens[i]:='';
-              tokens[k]:=inttohex(a,8);
+              nexttokentype:=pointerstartlist[pointerstartpos].tokentype;
+              tokens[k]:=inttohex(ApplyTokenType(a),8);
 
               if pointerstartpos=0 then
                 haspointer:=false;
@@ -5087,7 +5290,7 @@ begin
     //Just TH32CS_SNAPMODULE only returns the 64-bit modules
     //There doesn't seem to be a way to make two lists, 32-bit, then 64-bit, and combine them afterwards
     //So for now I just check if it's a system dll, and if so, if it's in the wow64 folder or not
-    ths:=CreateToolhelp32Snapshot(TH32CS_SNAPMODULE or TH32CS_SNAPMODULE32,processid);
+    ths:=CreateToolhelp32Snapshot(TH32CS_SNAPMODULE or TH32CS_SNAPMODULE32 {$ifdef darwin}or ifthen(targetself, TH32CS_SNAPMODULENOSYM,0){$endif},processid);
 
     modulelistMREW.BeginRead;
     try
@@ -5284,7 +5487,7 @@ end;
 function TSymhandler.GetAddressFromPointer(s: string; var error: boolean):ptrUint;
 {
 Will return the address of a pointer noted as [[[xxx+xx]+xx]+xx]+xx
-If it is a invalid pointer, or can not be resolved, the result is NULL 
+If it is a invalid pointer, or can not be resolved, the result is NULL
 }
 var i, pointersize: integer;
     list: tstringlist;
@@ -5404,7 +5607,7 @@ begin
   prolog:=true;
   temps:='';
   ispointer:=false;
-  
+
   for i:=1 to length(s) do
   begin
     if s[i]='[' then
@@ -5431,7 +5634,7 @@ begin
         if s[i]=']' then //end of a level
         begin
           dec(currentlevel);
-          if temps='' then temps:='+0';          
+          if temps='' then temps:='+0';
           list.Add(temps);
 
           temps:='';
@@ -5472,7 +5675,7 @@ begin
     if commonModuleList=nil then
       commonModuleList:=tstringlist.create;
 
-    commonModuleList.Clear;  
+    commonModuleList.Clear;
     try
       commonModuleList.LoadFromFile(s{$if FPC_FULLVERSION>=030200},true{$endif});
 
@@ -5655,6 +5858,7 @@ begin
   StackWalkEx:=GetProcAddress(dbghlp,'StackWalkEx');
   SymLoadModuleEx:=GetProcAddress(dbghlp,'SymLoadModuleEx');
 
+  UnDecorateSymbolName:=GetProcAddress(dbghlp,'UnDecorateSymbolName');
 
 
   psa:=loadlibrary('Psapi.dll');
@@ -5739,8 +5943,9 @@ finalization
 
   if symbolloaderthreadcs<>nil then
     freeandnil(symbolloaderthreadcs);
-  
+
 end.
+
 
 
 

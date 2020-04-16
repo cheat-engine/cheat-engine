@@ -37,6 +37,6 @@ typedef struct
 } __attribute__((__packed__)) INSTRUCTIONDATA, *PINSTRUCTIONDATA;
 
 int emulateRMinterrupt(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, int intnr);
-int emulateRealMode(pcpuinfo currentcpuinfo, VMRegisters *vmregisters);
+BOOL emulateRealMode(pcpuinfo currentcpuinfo, VMRegisters *vmregisters);
 
 #endif /*REALMODEEMU_H_*/

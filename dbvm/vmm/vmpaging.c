@@ -213,7 +213,7 @@ UINT64 getPhysicalAddressVM(pcpuinfo currentcpuinfo, UINT64 address, int *notpag
   {
     sendstringf("getPhysicalAddressVM for with cr3 of 0xffffffffffffffff\n");
     jtagbp();
-    while (1);
+    while (1) outportb(0x80,0xdd);
   }
 #endif
 

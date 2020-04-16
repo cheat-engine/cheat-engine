@@ -339,4 +339,103 @@ dovmcall:
   pop rdx
   ret
 
+GLOBAL dovmcall2
+dovmcall2:
+  push r8
+  push r9
+  mov r8,rdx
+  mov r9,rcx
+
+  mov rax,rdi
+  mov rdx,rsi
+  vmcall
+  mov [r8],rax
+  mov [r9],rdx
+  pop r9
+  pop r8
+  ret
+
+;extern UINT64 dovmcall(void *vmcallinfo, unsigned int level1pass);
+;extern void dovmcall2(void *vmcallinfo, unsigned int level1pass, QWORD *r1, QWORD *r2);
+                              ;rdi                     rsi           rdx           rcx
+
+
+
+%define SERIALPORT 0b070h
+
+GLOBAL SerialPort
+SerialPort:
+dd 0
+
+GLOBAL enableSerial
+enableSerial:
+mov dx,[rel SerialPort] ;3f9h
+add dx,1
+mov al,0h
+out dx,al
+
+mov dx,[rel SerialPort]; 3fbh
+add dx,3
+mov al,80h
+out dx ,al ;access baud rate generator
+
+mov dx,[rel SerialPort]; 3f8h
+mov al,1h  ;0c=9600 (1152000/divisor)
+out dx,al ;9600 baud
+
+mov dx,[rel SerialPort]; 3f9h
+add dx,1
+mov al,0h ;high part of devisor
+out dx,al ;
+
+mov dx,[rel SerialPort]; 3fbh
+add dx,3
+mov al,3h
+out dx,al ;8 bits, no parity, one stop
+ret
+
+
+
+GLOBAL waitforkeypress
+waitforkeypress:
+mov dx,[rel  SerialPort] ;0x3fd
+add dx,5
+waitforkeypress2:
+in al,dx
+and al,1
+cmp al,1
+jne waitforkeypress2
+mov dx,[rel SerialPort] ;0x3f8
+in al,dx
+ret
+
+
+GLOBAL sendchar32
+sendchar32:
+xor rax,rax
+push rcx
+mov rcx,0
+
+sendchar32loop:
+mov dx,[rel SerialPort] ;3fdh
+add dx,5
+in al,dx
+and al,0x20
+
+add rcx,1
+cmp rcx,100
+jae sendchar32loopbreak
+
+cmp al,0x20
+jne sendchar32loop
+
+sendchar32loopbreak:
+
+pop rcx
+
+mov dx,[rel SerialPort]; 0x3f8
+mov al,dil
+out dx,al
+ret
+
 

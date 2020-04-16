@@ -31,7 +31,7 @@ procedure initcetitle;
 
 
 
-const beta=' beta'; //empty this for a release
+const beta=''; //empty this for a release
 
 var
   CEnorm:string;
@@ -82,6 +82,7 @@ resourcestring
   rsEnableDisableSpeedhack = 'Enable/Disable speedhack.';
   rsM2NoHotkey = ' (No hotkey)';
   rsWontHaveAnyEffectUntilYouOpenANewProcess = '(Won''t have any effect until you (re)open a process)';
+  rsDBVMMissedEntries = 'Missed %d entries due to a too small buffer or slow copy operation';
 
 
   var
@@ -699,15 +700,8 @@ begin
             cbProcessIcons.Checked:=reg.ReadBool('Get process icons');
           GetProcessIcons:=cbProcessIcons.Checked;
 
-
-          if reg.ValueExists('Only show processes with icon') then
-            cbProcessIconsOnly.checked:=reg.ReadBool('Only show processes with icon');
-
           if reg.ValueExists('Pointer appending') then
             cbOldPointerAddMethod.checked:=reg.ReadBool('Pointer appending');
-
-          cbProcessIconsOnly.Enabled:=cbProcessIcons.Checked;
-          ProcessesWithIconsOnly:=cbProcessIconsOnly.Checked;
 
 
           if reg.ValueExists('skip PAGE_NOCACHE') then

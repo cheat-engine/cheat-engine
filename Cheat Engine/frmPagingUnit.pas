@@ -12,6 +12,7 @@ type TPageData=record
   level: integer;
   value: qword;
   va,pa: qword;
+  flags: qword;
 end;
 PPageData=^TPageData;
 
@@ -228,12 +229,13 @@ begin
             pd^.va:=a;
             pd^.level:=1;
             pd^.value:=q[i];
-            pd^.pa:=q[i] and qword($FFFFFFF000);
+            pd^.pa:=q[i] and qword(MAXPHYADDRMASKPB);
+            pd^.flags:=q[i] and not (qword(MAXPHYADDRMASKPB));
 
             if node=nil then
-              tn:=tvpage.Items.AddChild(nil,inttostr(i)+':'+inttohex(a,16)+'-'+inttohex(b,16)+'('+inttohex(pd^.pa,16)+')')
+              tn:=tvpage.Items.AddChild(nil,inttostr(i)+':'+inttohex(a,16)+'-'+inttohex(b,16)+'(PA='+inttohex(pd^.pa,16)+'  flags='+inttohex(pd^.flags,16)+')')
             else
-              tn:=tvpage.Items.AddChild(node,inttostr(i)+':'+inttohex(a,16)+'-'+inttohex(b,16)+'('+inttohex(pd^.pa,16)+')');
+              tn:=tvpage.Items.AddChild(node,inttostr(i)+':'+inttohex(a,16)+'-'+inttohex(b,16)+'(PA='+inttohex(pd^.pa,16)+'  flags='+inttohex(pd^.flags,16)+')');
 
             tn.Data:=pd;
             tn.HasChildren:=false;
@@ -254,12 +256,13 @@ begin
             pd^.va:=a;
             pd^.level:=1;
             pd^.value:=d[i];
-            pd^.pa:=d[i] and dword($FFFFF000);
+            pd^.pa:=d[i] and dword(MAXPHYADDRMASKPB);
+            pd^.flags:=d[i] and (not dword(MAXPHYADDRMASKPB));
 
             if node=nil then
-              tn:=tvpage.Items.AddChild(nil,inttostr(i)+':'+inttohex(a,8)+'-'+inttohex(b,8)+'('+inttohex(pd^.pa,8)+')')
+              tn:=tvpage.Items.AddChild(nil,inttostr(i)+':'+inttohex(a,8)+'-'+inttohex(b,8)+'(PA='+inttohex(pd^.pa,16)+'  flags='+inttohex(pd^.flags,16)+')')
             else
-              tn:=tvpage.Items.AddChild(node,inttostr(i)+':'+inttohex(a,8)+'-'+inttohex(b,8)+'('+inttohex(pd^.pa,8)+')');
+              tn:=tvpage.Items.AddChild(node,inttostr(i)+':'+inttohex(a,8)+'-'+inttohex(b,8)+'(PA='+inttohex(pd^.pa,16)+'  flags='+inttohex(pd^.flags,16)+')');
 
             tn.HasChildren:=false;
             tn.data:=pd;
@@ -325,17 +328,23 @@ begin
             bigpage:=((q[i] shr 7) and 1)=1;
 
             if bigpage then
-              pd^.pa:=q[i] and qword($FFFFE00000)
+            begin
+              pd^.pa:=q[i] and qword(MAXPHYADDRMASKPBBIG);
+              pd^.flags:=q[i] and (not qword(MAXPHYADDRMASKPBBIG));
+            end
             else
-              pd^.pa:=q[i] and qword($FFFFFFF000);
+            begin
+              pd^.pa:=q[i] and qword(MAXPHYADDRMASKPB);
+              pd^.flags:=q[i] and (not qword(MAXPHYADDRMASKPB));
+            end;
 
             pd^.value:=q[i];
             pd^.level:=2;
 
             if node=nil then
-              tn:=tvpage.Items.Add(nil,inttostr(i)+':'+inttohex(a,16)+'-'+inttohex(b,16)+'('+inttohex(pd^.pa,16)+')')
+              tn:=tvpage.Items.Add(nil,inttostr(i)+':'+inttohex(a,16)+'-'+inttohex(b,16)+'(PA='+inttohex(pd^.pa,16)+'  Flags='+inttohex(pd^.flags,16)+')')
             else
-              tn:=tvpage.Items.AddChild(node,inttostr(i)+':'+inttohex(a,16)+'-'+inttohex(b,16)+'('+inttohex(pd^.pa,16)+')');
+              tn:=tvpage.Items.AddChild(node,inttostr(i)+':'+inttohex(a,16)+'-'+inttohex(b,16)+'(PA='+inttohex(pd^.pa,16)+'  Flags='+inttohex(pd^.flags,16)+')');
 
             tn.data:=pd;
 
@@ -362,17 +371,23 @@ begin
             bigpage:=((d[i] shr 7) and 1)=1;
 
             if bigpage then
-              pd^.pa:=d[i] and dword($FFC00000)
+            begin
+              pd^.pa:=d[i] and dword(MAXPHYADDRMASKPBBIG);
+              pd^.flags:=d[i] and (not dword(MAXPHYADDRMASKPBBIG));
+            end
             else
-              pd^.pa:=d[i] and dword($FFFFF000);
+            begin
+              pd^.pa:=d[i] and dword(MAXPHYADDRMASKPB);
+              pd^.flags:=d[i] and (not dword(MAXPHYADDRMASKPB));
+            end;
 
             pd^.value:=d[i];
             pd^.level:=2;
 
             if node=nil then
-              tn:=tvpage.Items.Add(nil,inttostr(i)+':'+inttohex(a,8)+'-'+inttohex(b,8)+'('+inttohex(pd^.pa,8)+')')
+              tn:=tvpage.Items.Add(nil,inttostr(i)+':'+inttohex(a,8)+'-'+inttohex(b,8)+'(PA='+inttohex(pd^.pa,16)+'  Flags='+inttohex(pd^.flags,16)+')')
             else
-              tn:=tvpage.Items.AddChild(node,inttostr(i)+':'+inttohex(a,8)+'-'+inttohex(b,8)+'('+inttohex(pd^.pa,8)+')');
+              tn:=tvpage.Items.AddChild(node,inttostr(i)+':'+inttohex(a,8)+'-'+inttohex(b,8)+'(PA='+inttohex(pd^.pa,16)+'  Flags='+inttohex(pd^.flags,16)+')');
 
             tn.data:=pd;
 
@@ -445,14 +460,15 @@ begin
 
         pd:=getmem(sizeof(TPageData));
         pd^.va:=a;
-        pd^.pa:=q[i] and qword($FFFFFFF000);
+        pd^.pa:=q[i] and qword(MAXPHYADDRMASKPB);
+        pd^.flags:=q[i] and (not qword(MAXPHYADDRMASKPB));
         pd^.value:=q[i];
         pd^.level:=3;
 
         if node=nil then
-          tn:=tvpage.Items.Add(nil,inttostr(i)+':'+inttohex(a,16)+'-'+inttohex(b,16)+'('+inttohex(pd^.pa,16)+')')
+          tn:=tvpage.Items.Add(nil,inttostr(i)+':'+inttohex(a,16)+'-'+inttohex(b,16)+'(PA='+inttohex(pd^.pa,16)+'  Flags='+inttohex(pd^.flags,16)+')')
         else
-          tn:=tvpage.Items.AddChild(node,inttostr(i)+':'+inttohex(a,16)+'-'+inttohex(b,16)+'('+inttohex(pd^.pa,16)+')');
+          tn:=tvpage.Items.AddChild(node,inttostr(i)+':'+inttohex(a,16)+'-'+inttohex(b,16)+'(PA='+inttohex(pd^.pa,16)+'  Flags='+inttohex(pd^.flags,16)+')');
 
         tn.data:=pd;
 
@@ -537,9 +553,10 @@ begin
             pd^.level:=4;
             pd^.value:=q[i];
             pd^.va:=a;
-            pd^.pa:=q[i] and qword($FFFFFFF000);
+            pd^.pa:=q[i] and qword(MAXPHYADDRMASKPB);
+            pd^.flags:=q[i] and (not qword(MAXPHYADDRMASKPB));
 
-            tn:=tvpage.Items.AddChild(nil,inttostr(i)+':'+inttohex(a,16)+'-'+inttohex(b,16)+'('+inttohex(pd^.pa,16)+')');
+            tn:=tvpage.Items.AddChild(nil,inttostr(i)+':'+inttohex(a,16)+'-'+inttohex(b,16)+'(PA='+inttohex(pd^.pa,16)+'  Flags='+inttohex(pd^.flags,16)+')');
             tn.Data:=pd;
             tn.HasChildren:=true;
 

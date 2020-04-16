@@ -158,9 +158,10 @@ getDirectoryList(Path:string, SearchSubDirs: boolean OPTIONAL): Returns an index
 enableWindowsSymbols(): Will download the PDB files of Windows and load them (Takes a long time the first time)
 getAddress(string, local OPTIONAL): returns the address of a symbol. Can be a modulename or an export. set Local to true if you wish to querry the symboltable of the ce process
 enableKernelSymbols(): Will check the option for kernelmode symbols in memory view (Gets only the exports unless enableWindowsSymbols() is used)
-getAddressSafe(string, local OPTIONAL): returns the address of a symbol, or nil if not found. Similar to getAddress when errorOnLookup is false, but returns nil instead
+getAddressSafe(string, local OPTIONAL, shallow OPTIONAL): returns the address of a symbol, or nil if not found. Similar to getAddress when errorOnLookup is false, but returns nil instead
 getSymbolInfo(symbolname): Returns a table as defined by the SymbolList class object (modulename, searchkey, address, size)
 getModuleSize(modulename): Returns the size of a given module (Use getAddress to get the base address)
+getRTTIClassName(address): Returns the classname of a given structure based on RTTI information (assuming it can be found, returns nil if not or unknown)
 
 reinitializeSymbolhandler(waittilldone: BOOLEAN OPTIONAL, default=TRUE): reinitializes the symbolhandler. E.g when new modules have been loaded
 reinitializeDotNetSymbolhandler(modulename OPTIONAL): Reinitializes only the DotNet part of the symbol list. (E.g After an ILCode has been JITed) (6.4+)
@@ -327,6 +328,7 @@ function onTableLoad(before): If defined this function will be called twice when
 
 
 getOpenedProcessID() : Returns the currently opened process. If none is open, returns 0
+getOpenedProcessHandle(): Returns the handle of the currently opened process
 getProcessIDFromProcessName(name) : returns a processid
 openProcess(processid) : causes cheat engine to open the given processid
 openProcess(processname): causes cheat engine to find and open the given process
@@ -523,6 +525,8 @@ targetIs64Bit(): Returns true if the target process is 64-bit, false if 32-bit
 
 getCheatEngineDir(): Returns the folder Cheat Engine is located at
 getCheatEngineProcessID(): Returns the processid of cheat engine
+
+getAutorunPath() : Returns the autorun path
 
 disassemble(address): Disassembles the given address and returns a string in the format of "address - bytes - opcode : extra"
 splitDisassembledString(disassembledstring): Returns 4 strings. The address, bytes, opcode and extra field
@@ -951,11 +955,20 @@ methods
 ImageList Class: (Inheritance: )
 List containing images.  Used by several components for images
 
+createImageList(owner OPTIONAL): creates an imagelist object
+
 properties
   Count: integer - Number of images in the list
+  DrawingStyle: 'dsFocus', 'dsSelected', 'dsNormal', 'dsTransparent'
+  Height: integer
+  Width: integer
+  Masked: boolean
+  Scaled: boolean
+  OnChange: function(sender)
+
 methods
   add(bitmap, bitmapmask OPTIONAL):integer - Adds a new bitmap the list and returns the index of the newly added entry
-
+  draw(canvas, x,y, index) - Draws the image at the index to the specific x,y coordinates on the canvas
 
 Stringlist Class: (Inheritance : Strings->Object)
 createStringlist() : Creates a stringlist class object (for whatever reason, lua strings are probably easier to use)
@@ -1185,10 +1198,25 @@ properties
   Lines: Stringlist - Contains the text
   Gutter: Gutter - Gutter object
   ReadOnly: Boolean - Set to true for read only
+  SelStart: integer
+  SelEnd: integer
+  SelText: string
+  CanPaste: boolean
+  CanRedo: boolean
+  CanUndo: boolean
+  CharWidth: integer READONLY
+  LineHeight: integer READONLY
 
 methods
-
-
+  CopyToClipboard()
+  CutToClipboard()
+  PasteFromClipboard()
+  ClearUndo()
+  Redo()
+  Undo()
+  MarkTextAsSaved()
+  ClearSelection();
+  SelectAll();     
 
 ButtonControl Class: (Inheritance: WinControl->Control->Component->Object)
 
@@ -1420,6 +1448,8 @@ methods
   setChecked(boolean): Sets the checkbox of the listbox to the given state
   getSubItems(): Returns a Strings object
   makeVisible(partial): Scrolls the listview so this item becomes visible (Cheat Engine 6.4 and later)
+  displayRect(code): returns the displayed rectangle of the listitem. code can be: drBounds(0), drIcon(1), drLabel(2), drSelectBounds(3)
+  displayRectSubItem(code): returns the displayed rectangle of the listitem. code can be: drBounds(0), drIcon(1), drLabel(2), drSelectBounds(3)
 
 
 ListItems class : (Inheritance: TObject)
@@ -1432,8 +1462,6 @@ methods
   getCount()
   getItem(integer) : Return the listitem object at the given index
   add(): Returns a new ListItem object
-  displayRect(code): returns the displayed rectangle of the listitem. code can be: drBounds(0), drIcon(1), drLabel(2), drSelectBounds(3)
-  displayRectSubItem(code): returns the displayed rectangle of the listitem. code can be: drBounds(0), drIcon(1), drLabel(2), drSelectBounds(3)
 
 
 
@@ -1461,6 +1489,7 @@ properties
 methods
   clear()
   getColumns() : ListColumns - Returns a ListColumns object
+  getItemAt(x,y):ListItem - Returns the ListItem at the given index. nil if nothing
   getItems(): ListItems - Returns a ListItems object
   getItemIndex(): integer -  Returns the currently selected index in the Items object
   setItemIndex(index: integer)- Sets the current itemindex
@@ -1552,6 +1581,9 @@ methods
 
 
 Timer Class : (Inheritance: Component->object)
+createTimer(delay, function(...),...):
+  Creates a timer object that waits the given delay, executes the given function, and then selfdestructs.  Tip: Don't use the timer after it has ran
+
 createTimer(owner OPT, enabled OPT):
   Creates a timer object. If enabled is not given it will be enabled by default (will start as soon as an onTimer event has been assigned)
   Owner may be nil, but you will be responsible for destroying it instead of being the responsibility of the owner object)
@@ -1619,7 +1651,9 @@ methods
   ellipse(x1,y1,x2,y2)
   gradientFill(x1,y1,x2,y2, startcolor, stopcolor, direction) : Gradient fills a rectangle. Direction can be 0 or 1. 0=Vertical 1=Horizontal
   copyRect(dest_x1,dest_y1,dest_x2,dest_y2, sourceCanvas, source_x1,source_y1,source_x2,source_y2) : Draws an image from one source to another. Useful in cases of doublebuffering
+  strectDraw(rect
   draw(x,y, graphic) : Draw the image of a specific Graphic class
+  strectDraw(rect, graphic): Draw the image of a specific Graphic class and stretch it so it fits in the given rectangle
   getClipRect() : Returns a table containing the fields Left, Top, Right and Bottom, which define the invalidated region of the graphical object. Use this to only render what needs to be rendered in the onPaint event of objects
 
 Pen Class : (Inheritance: CustomPen->CanvasHelper->Object)
@@ -1675,6 +1709,8 @@ methods
   setWidth(graphic, width): Sets thw width in pixels
   getHeight(graphic)
   setHeight(graphic, height)
+  loadFromFile(filename)
+  saveToFile(filename)
 
 RasterImage class: (Inheritance: Graphic->Object) : Base class for some graphical controls
 properties
@@ -2149,8 +2185,37 @@ properties
   IsUnique: boolean - Same as OnlyOneResult but will use multiple threads, so if the value is not unique you will be given a random address
   Result: Integer - If OnlyOneResult is used this will contain the address after a scan has finished
 
+  CodePage: boolean;
+  ScanOption: TScanoption 
+  VariableType: TVariableType
+  VarType: TVariableType : ^
+  Roundingtype: TRoundingType
+  Scanvalue: string : Value to scan
+  Scanvalue1: string : ^
+  Scanvalue2: string : Secondary value to scan (e.g value between scan)
+  Startaddress: integer
+  Stopaddress: integer
+  Hexadecimal: boolean 
+  BinaryStringAsDecimal: boolean
+  UTF16: boolean 
+  Casesensitive: boolean 
+  Fastscanmethod: TFastScanMethod 
+  Fastscanparameter: string
+  Customtype: TCustomType
+
+  ScanWritable:    TScanregionpreference ('scanDontCare', 'scanExclude', 'scanInclude')
+  ScanExecutable:  TScanregionpreference ('scanDontCare', 'scanExclude', 'scanInclude') 
+  ScanCopyOnWrite: TScanregionpreference ('scanDontCare', 'scanExclude', 'scanInclude')
+  
+  Percentage: boolean
+  CompareToSavedScan: boolean 
+  SavedScanName: string
 
 methods
+  scan(): Does either a first scan or next scan based on the given property values
+  firstScan() : Does a first scan based on the given property values
+  nextScan() : Does a next scan based on the given property values
+  newScan() : Clears the current results
 
   firstScan(scanoption, vartype, roundingtype, input1, input2 ,startAddress ,stopAddress ,protectionflags ,alignmenttype ,"alignmentparam" ,isHexadecimalInput ,isNotABinaryString, isunicodescan, iscasesensitive);
     Does an initial scan.
@@ -2232,7 +2297,7 @@ methods
     ispercentage: When true and the scanoption is of type soValueBetween, soIncreasedValueBy or soDecreasedValueBy will cause CE to do a precentage scan instead of a normal value scan
     savedResultName: String that holds the name of a saved result list that should be compared against. First scan is called "FIRST"
 
-  newScan() : Clears the current results
+
   waitTillDone() : Waits for the memscan thread(s) to finish scanning. Always use this
   saveCurrentResults(name) : Save the current scanresults to a unique name for this memscan. This save can be used to compare against in a subsequent next scan
   getAttachedFoundlist() : Returns a FoundList object if one is attached to this scanresults. Returns nil otherwise
@@ -2259,7 +2324,7 @@ methods
   deinitialize() : Release the results
   getCount()
   getAddress(index) : Returns the address as a string
-  getValue(index) : Returs the value as a string
+  getValue(index) : Returns the value as a string
 
 
 Memoryview class: (Inheritance: Form->ScrollingWinControl->CustomControl->WinControl->Control->Component->Object)
@@ -3043,6 +3108,7 @@ properties
   Page[]: TabSheet - Get a specific page (TabSheet)
 methods
   addTab() : TabSheet - Creates a new TabSheet
+  tabRect(index): Rect - returns a rect table describing the position of the specific tab
 
 TabSheet class (WinControl->Control->Component->Object)
   Part of a page control. This object can contain other objects

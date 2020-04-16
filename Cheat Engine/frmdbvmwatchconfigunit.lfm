@@ -1,7 +1,7 @@
 object frmDBVMWatchConfig: TfrmDBVMWatchConfig
-  Left = 926
+  Left = 1250
   Height = 267
-  Top = 285
+  Top = 435
   Width = 311
   AutoSize = True
   BorderStyle = bsSingle
@@ -12,14 +12,14 @@ object frmDBVMWatchConfig: TfrmDBVMWatchConfig
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   Position = poScreenCenter
-  LCLVersion = '2.0.0.4'
+  LCLVersion = '2.0.6.0'
   object gbAccessType: TGroupBox
     AnchorSideLeft.Control = Owner
     AnchorSideTop.Control = Owner
     Left = 5
     Height = 64
     Top = 5
-    Width = 240
+    Width = 241
     AutoSize = True
     BorderSpacing.InnerBorder = 3
     Caption = 'Access Type'
@@ -28,20 +28,20 @@ object frmDBVMWatchConfig: TfrmDBVMWatchConfig
     ChildSizing.Layout = cclLeftToRightThenTopToBottom
     ChildSizing.ControlsPerLine = 2
     ClientHeight = 44
-    ClientWidth = 236
+    ClientWidth = 237
     TabOrder = 0
     object rbWriteAccess: TRadioButton
       Left = 5
       Height = 19
       Top = 0
-      Width = 99
+      Width = 100
       Caption = 'Write Access '
       Checked = True
       TabOrder = 0
       TabStop = True
     end
     object rbReadAccess: TRadioButton
-      Left = 107
+      Left = 108
       Height = 19
       Top = 0
       Width = 118
@@ -52,7 +52,7 @@ object frmDBVMWatchConfig: TfrmDBVMWatchConfig
       Left = 5
       Height = 19
       Top = 19
-      Width = 99
+      Width = 100
       Caption = 'Execute Access'
       TabOrder = 2
     end
@@ -139,13 +139,13 @@ object frmDBVMWatchConfig: TfrmDBVMWatchConfig
     Left = 5
     Height = 23
     Top = 209
-    Width = 166
+    Width = 167
     AutoSize = True
     BorderSpacing.Top = 1
     BevelOuter = bvNone
     ChildSizing.ControlsPerLine = 2
     ClientHeight = 23
-    ClientWidth = 166
+    ClientWidth = 167
     TabOrder = 6
     object Label3: TLabel
       AnchorSideTop.Control = Panel1
@@ -153,7 +153,7 @@ object frmDBVMWatchConfig: TfrmDBVMWatchConfig
       Left = 0
       Height = 15
       Top = 4
-      Width = 122
+      Width = 123
       Caption = 'Max buffersize (entries)'
       ParentColor = False
       ParentFont = False
@@ -163,7 +163,7 @@ object frmDBVMWatchConfig: TfrmDBVMWatchConfig
       AnchorSideLeft.Side = asrBottom
       AnchorSideTop.Control = Panel1
       AnchorSideTop.Side = asrCenter
-      Left = 126
+      Left = 127
       Height = 23
       Top = 0
       Width = 40
@@ -177,15 +177,15 @@ object frmDBVMWatchConfig: TfrmDBVMWatchConfig
     AnchorSideLeft.Side = asrCenter
     AnchorSideTop.Control = Panel1
     AnchorSideTop.Side = asrBottom
-    Left = 78
+    Left = 73
     Height = 25
     Top = 240
-    Width = 155
+    Width = 165
     AutoSize = True
     BorderSpacing.Top = 8
     BevelOuter = bvNone
     ClientHeight = 25
-    ClientWidth = 155
+    ClientWidth = 165
     TabOrder = 7
     object btnOK: TButton
       AnchorSideLeft.Control = Panel2
@@ -193,8 +193,10 @@ object frmDBVMWatchConfig: TfrmDBVMWatchConfig
       Left = 0
       Height = 25
       Top = 0
-      Width = 75
+      Width = 85
+      AutoSize = True
       Caption = 'Start watch'
+      Constraints.MinWidth = 75
       Default = True
       Enabled = False
       OnClick = btnOKClick
@@ -204,13 +206,15 @@ object frmDBVMWatchConfig: TfrmDBVMWatchConfig
       AnchorSideLeft.Control = btnOK
       AnchorSideLeft.Side = asrBottom
       AnchorSideTop.Control = Panel2
-      Left = 80
+      Left = 90
       Height = 25
       Top = 0
       Width = 75
+      AutoSize = True
       BorderSpacing.Left = 5
       Cancel = True
       Caption = 'Cancel'
+      Constraints.MinWidth = 75
       ModalResult = 2
       TabOrder = 1
     end
@@ -224,12 +228,12 @@ object frmDBVMWatchConfig: TfrmDBVMWatchConfig
     Left = 5
     Height = 23
     Top = 85
-    Width = 240
+    Width = 241
     Anchors = [akTop, akLeft, akRight]
     AutoSize = True
     BevelOuter = bvNone
     ClientHeight = 23
-    ClientWidth = 240
+    ClientWidth = 241
     TabOrder = 8
     object lblPhysicalAddress: TLabel
       AnchorSideLeft.Control = Panel3
@@ -253,7 +257,7 @@ object frmDBVMWatchConfig: TfrmDBVMWatchConfig
       Left = 91
       Height = 23
       Top = 0
-      Width = 149
+      Width = 150
       Anchors = [akTop, akLeft, akRight]
       TabOrder = 0
       TextHint = 'Physical Address'

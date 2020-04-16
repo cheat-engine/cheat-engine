@@ -22,12 +22,15 @@ uses
   jwawindows, windows, ShellApi,
   {$endif}
   vmxfunctions, Classes, dialogs, SysUtils, lua, lualib,
-  lauxlib, syncobjs, CEFuncProc, newkernelhandler, Graphics,
+  lauxlib, syncobjs, CEFuncProc, NewKernelHandler, Graphics,
   controls, LuaCaller, forms, ExtCtrls, StdCtrls, comctrls, ceguicomponents,
   genericHotkey, luafile, xmplayer_server, ExtraTrainerComponents, customtimer,
   menus, XMLRead, XMLWrite, DOM, Clipbrd, typinfo, PEInfoFunctions,
   LCLProc, strutils, registry, md5, commonTypeDefs, LResources, Translations,
-  variants, LazUTF8, zstream, MemoryQuery, LCLVersion;
+  variants, LazUTF8, zstream, MemoryQuery, LCLVersion
+  {$ifdef darwin}
+  ,macportdefines
+  {$endif};
 
 
 const MAXTABLERECURSIONLOOKUP=2;
@@ -120,7 +123,8 @@ uses autoassembler, mainunit, MainUnit2, LuaClass, frmluaengineunit, plugin, plu
   LuaCustomType, Filehandler, LuaSQL, frmSelectionlistunit, cpuidUnit, LuaRemoteThread,
   LuaManualModuleLoader, pointervaluelist, frmEditHistoryUnit, LuaCheckListBox,
   LuaDiagram, frmUltimap2Unit, frmcodefilterunit, BreakpointTypeDef, LuaSyntax,
-  LazLogger, LuaSynedit, LuaRipRelativeScanner, ColorBox;
+  LazLogger, LuaSynedit, LuaRIPRelativeScanner, LuaCustomImageList ,ColorBox,
+  rttihelper;
 
   {$warn 5044 off}
 
@@ -155,6 +159,7 @@ var
 
   waitforsymbols: boolean=true;
 
+  autorunpath: string;
 
 
 function lua_oldprintoutput:TStrings;
@@ -247,7 +252,7 @@ begin
       result:=LUA_ERRRUN;
       lua_pushstring(l, e.Message);
 
-      if (GetCurrentThreadId=MainThreadID) and (e.Message='Access Violation') and mainform.miEnableLCLDebug.checked then
+      if (GetCurrentThreadId=MainThreadID) and (e.Message='Access violation') and mainform.miEnableLCLDebug.checked then
       begin
         DebugLn('Lua Exception: '+e.Message);
         lazlogger.DumpExceptionBackTrace;
@@ -583,6 +588,8 @@ var f: string;
   DirInfo: TSearchRec;
   mainformwasset: boolean=true;
   addresslistwasset: boolean=true;
+
+
 begin
   lua_getglobal(LuaVM,'MainForm');
   if lua_isnil(LuaVM,-1) then
@@ -602,6 +609,9 @@ begin
 
 
   f:='main.lua';
+  {$ifdef darwin}
+  f:=extractfiledir(extractfiledir(Application.ExeName))+'/Lua/main.lua';
+  {$endif}
   if not FileExists(f) then //perhaps in the cedir
   begin
     f:=CheatEngineDir+'main.lua';
@@ -646,16 +656,18 @@ begin
 
   if noautorun=false then
   begin
+
+
     ZeroMemory(@DirInfo,sizeof(TSearchRec));
-    r := FindFirst(CheatEngineDir+{$ifdef darwin}'m'+{$endif}'autorun'+pathdelim+'*.lua', FaAnyfile, DirInfo);
+    r := FindFirst(autorunpath+'*.lua', FaAnyfile, DirInfo);
+
     while (r = 0) do
     begin
       if (DirInfo.Attr and FaVolumeId <> FaVolumeID) then
       begin
         if ((DirInfo.Attr and FaDirectory) <> FaDirectory) then
         begin
-
-          i:=lua_dofile(luavm, pchar( UTF8ToWinCP(CheatEngineDir+{$ifdef darwin}'m'+{$endif}'autorun'+pathdelim+DirInfo.name)));
+          i:=lua_dofile(luavm, pchar( UTF8ToWinCP(autorunpath+DirInfo.name)));
           if i<>0 then //error
           begin
             i:=lua_gettop(luavm);
@@ -678,7 +690,7 @@ begin
             lua_getglobal(LuaVM,'MainForm');
             if lua_isnil(LuaVM,-1) then
             begin
-              MessageDlg(format(rsScriptCorruptedVar, [CheatEngineDir+{$ifdef darwin}'m'+{$endif}'autorun'+pathdelim+DirInfo.name, 'MainForm']), mtError,[mbOK],0);
+              MessageDlg(format(rsScriptCorruptedVar, [autorunpath+DirInfo.name, 'MainForm']), mtError,[mbOK],0);
               mainformwasset:=false;
             end;
             lua_pop(LuaVM,1);
@@ -689,7 +701,7 @@ begin
             lua_getglobal(LuaVM,'AddressList');
             if lua_isnil(LuaVM,-1) then
             begin
-              MessageDlg(format(rsScriptCorruptedVar, [CheatEngineDir+{$ifdef darwin}'m'+{$endif}'autorun'+pathdelim+DirInfo.name, 'AddressList']), mtError,[mbOK],0);
+              MessageDlg(format(rsScriptCorruptedVar, [autorunpath+DirInfo.name, 'AddressList']), mtError,[mbOK],0);
               addresslistwasset:=false;
             end;
             lua_pop(LuaVM,1);
@@ -734,6 +746,8 @@ begin
       end;
     end;
   end;
+
+  lua_settop(LuaVM,0);
 end;
 
 function lua_strtofloat(s: string): double;
@@ -3829,13 +3843,19 @@ begin
   begin
     scanstring:=Lua_ToString(L,1);
     if parameters>=2 then
-      protectionflags:=Lua_ToString(L, 2);
+      protectionflags:=Lua_ToString(L, 2)
+    else
+      protectionflags:='*X*W*C';
 
     if parameters>=3 then
-      alignmenttype:=TFastScanMethod(lua_tointeger(L, 3));
+      alignmenttype:=TFastScanMethod(lua_tointeger(L, 3))
+    else
+      alignmenttype:=fsmNotAligned;
 
     if parameters>=4 then
-      alignmentparam:=Lua_ToString(L, 4);
+      alignmentparam:=Lua_ToString(L, 4)
+    else
+      alignmentparam:='1';
 
     if scanstring='' then
     begin
@@ -3936,9 +3956,14 @@ end;
 
 function getOpenedProcessID(L: PLua_state): integer; cdecl;
 begin
-  lua_pop(L, lua_gettop(L));
-  result:=1;
   lua_pushinteger(L, processid);
+  result:=1;
+end;
+
+function getOpenedProcessHandle(L: PLua_state): integer; cdecl;
+begin
+  lua_pushinteger(L, processhandle);
+  result:=1;
 end;
 
 function getSymbolInfo(L: PLua_state): integer; cdecl;
@@ -3989,7 +4014,7 @@ function getAddressSafe(L: PLua_state): integer; cdecl;
 var parameters: integer;
   s: string;
 
-  local: boolean;
+  local,shallow,e: boolean;
 
 begin
   result:=0;
@@ -4009,16 +4034,23 @@ begin
     else
       local:=false;
 
+    if parameters>=3 then
+      shallow:=lua_toboolean(L, 3)
+    else
+      shallow:=false;
 
     lua_pop(L, lua_gettop(l));
 
     try
       if not local then
-        lua_pushinteger(L,symhandler.getAddressFromName(s, waitforsymbols))
+        lua_pushinteger(L,symhandler.getAddressFromName(s, waitforsymbols, e, nil, shallow))
       else
-        lua_pushinteger(L,selfsymhandler.getAddressFromName(s, waitforsymbols));
+        lua_pushinteger(L,selfsymhandler.getAddressFromName(s, waitforsymbols, e, nil, shallow));
 
-      result:=1;
+      if e then
+        result:=0
+      else
+        result:=1;
     except
       exit(0);
     end;
@@ -5823,6 +5855,7 @@ begin
 
   if i<>0 then
   begin
+    lua_pushnil(L);
     case i of
       1: lua_pushstring(L,'invalid id');
       3: lua_pushstring(L,'inactive id');
@@ -5830,7 +5863,7 @@ begin
       else lua_pushstring(L,'unknown error '+inttostr(i));
     end;
 
-    lua_error(L);
+    exit(2);
   end;
 
   outputdebugstring('Buf allocated at '+inttohex(QWORD(buf),8));
@@ -6358,6 +6391,24 @@ begin
     dbvm_speedhack_setSpeed(speed);
   end;
 
+end;
+
+function lua_dbvm_enableTSCHook(L: PLua_State): integer; cdecl;
+begin
+  dbvm_enableTSCHook;
+  result:=0;
+end;
+
+function lua_dbvm_disableTSCHook(L: PLua_State): integer; cdecl;
+begin
+  lua_pushboolean(L, dbvm_disableTSCHook);
+  result:=1;
+end;
+
+function lua_dbvm_findCR3(L: PLua_State): integer; cdecl;
+begin
+  lua_pushinteger(L, dbvm_findCR3(processhandle));
+  result:=1;
 end;
 
 function dbk_readMSR(L: PLua_State): integer; cdecl;
@@ -12148,6 +12199,30 @@ begin
   result:=1;
 end;
 
+
+function lua_getRTTIClassName(L: Plua_State): integer; cdecl;
+var address: ptruint;
+  classname: string;
+begin
+  result:=0;
+  if lua_gettop(L)>=1 then
+  begin
+    address:=lua_tointeger(L,1);
+    if getRTTIClassName(address, classname) then
+    begin
+      lua_pushstring(L,classname);
+      exit(1);
+    end;
+  end;
+
+end;
+
+function lua_getAutoRunPath(L: Plua_State): integer; cdecl;
+begin
+  lua_pushstring(L,autorunpath);
+  exit(1);
+end;
+
 procedure InitializeLua;
 var
   s: tstringlist;
@@ -12287,6 +12362,7 @@ begin
     lua_register(L, 'AOBScan', AOBScan);
     lua_register(L, 'AOBScanUnique', AOBScanUnique);
     lua_register(L, 'getOpenedProcessID', getOpenedProcessID);
+    lua_register(L, 'getOpenedProcessHandle', getOpenedProcessHandle);
     lua_register(L, 'getAddress', getAddress);
     lua_register(L, 'getModuleSize', getModuleSize);
     lua_register(L, 'getAddressSafe', getAddressSafe);
@@ -12500,6 +12576,13 @@ begin
 
     lua_register(L, 'dbvm_setTSCAdjust', lua_dbvm_setTSCAdjust);
     lua_register(L, 'dbvm_speedhack_setSpeed', lua_dbvm_speedhack_setSpeed);
+
+
+    lua_register(L, 'dbvm_enableTSCHook', lua_dbvm_enableTSCHook);
+    lua_register(L, 'dbvm_disableTSCHook', lua_dbvm_disableTSCHook);
+
+    lua_register(L, 'dbvm_findCR3', lua_dbvm_findCR3);
+
 
     lua_register(L, 'dbk_getPhysicalAddress', dbk_getPhysicalAddress);
     lua_register(L, 'dbk_writesIgnoreWriteProtection', dbk_writesIgnoreWriteProtection);
@@ -12793,6 +12876,10 @@ begin
     lua_register(L, 'createColorDialog', lua_createColorDialog);
     lua_register(L, 'createColorBox', lua_createColorBox);
     lua_register(L, 'createAutoAssemblerForm', lua_createAutoAssemblerForm);
+    lua_register(L, 'getRTTIClassName', lua_getRTTIClassName);
+
+    lua_register(L, 'getAutoRunPath', lua_getAutoRunPath);
+    lua_register(L, 'getAutorunPath', lua_getAutoRunPath);
 
 
 
@@ -12844,6 +12931,7 @@ begin
     initializeLuaUltimap2;
     initializeLuaCodeFilter;
     initializeLuaSynEdit;
+    initializeLuaCustomImageList;
 
 
 
@@ -12855,6 +12943,7 @@ begin
       s.add('package.path = package.path .. ";?.lua";');
       {$ifdef darwin}
       s.add('package.path = package.path .. [[;'+getcedir+'?.lua]]');
+      s.add('package.path = package.path .. [[;'+extractfiledir(extractfiledir(application.exename))+'/Lua/?.lua]]');
       {$endif}
 
 
@@ -12958,6 +13047,14 @@ begin
 
       lua_settop(L,i-1);
 
+
+      {$ifdef darwin}
+      autorunpath:=extractfiledir(extractfiledir(Application.ExeName))+'/Lua/Autorun/';
+      {$else}
+      autorunpath:=CheatEngineDir+'autorun'+pathdelim;
+      {$endif}
+
+
     finally
       s.free;
     end;
@@ -13005,4 +13102,5 @@ finalization
     lua_close(_LuaVM);
 
 end.
+
 

@@ -21,6 +21,7 @@ type
     cbBackground: TColorBox;
     cbNormal: TColorBox;
     cbChanged: TColorBox;
+    cbShowStaticAsStatic: TCheckBox;
     FontDialog1: TFontDialog;
     Label1: TLabel;
     Label2: TLabel;
@@ -59,6 +60,8 @@ type
     procedure setBackgroundColor(c: TColor);
     function getFont: TFont;
     procedure setFont(f: TFont);
+    function getShowStaticAsStatic: boolean;
+    procedure setShowStaticAsStatic(state: boolean);
   public
     property NormalValueColor: TColor read getNormalValueColor write setNormalValueColor;
     property ChangedValueColor: TColor read getChangedValueColor write setChangedValueColor;
@@ -66,6 +69,7 @@ type
     property DynamicColor: TColor read getDynamicColor write setDynamicColor;
     property BackgroundColor: TColor read getBackgroundColor write setBackgroundColor;
     property Font: TFont read getFont write setFont;
+    property ShowStaticAsStatic: boolean read getShowStaticAsStatic write setShowStaticAsStatic;
   end;
 
 implementation
@@ -142,6 +146,16 @@ procedure TfrmFoundlistPreferences.setFont(f: TFont);
 begin
   fontdialog1.font.Assign(f);
   listview1.font.assign(f);
+end;
+
+function TfrmFoundlistPreferences.getShowStaticAsStatic: boolean;
+begin
+  result:=cbShowStaticAsStatic.checked;
+end;
+
+procedure TfrmFoundlistPreferences.setShowStaticAsStatic(state: boolean);
+begin
+  cbShowStaticAsStatic.checked:=state;
 end;
 
 procedure TfrmFoundlistPreferences.FormShow(Sender: TObject);

@@ -1111,7 +1111,7 @@ begin
     CreateGUID(g);
 
     s:=GUIDToString(g);
-    for i:=1 to length(s)-1 do
+    for i:=1 to length(s) do
       if s[i] in ['{','}','-'] then
         s[i]:='_';
 

@@ -773,6 +773,8 @@ int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers, void *fxsave)
   idtvectorinfo.idtvector_info=vmread(vm_idtvector_information);
 
 
+
+
   lastexits[lastexitsindex]=vmread(vm_exit_reason);
   lastexitsindex++;
   lastexitsindex=lastexitsindex % 10;
@@ -823,7 +825,7 @@ int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers, void *fxsave)
 
     ddDrawRectangle(0,DDVerticalResolution-100,100,100,0xff0000);
 
-    while (1);
+    while (1) outportb(0x80,0xdc);
   }
 
   if (currentcpuinfo->vmxdata.runningvmx)
@@ -1296,6 +1298,7 @@ int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers, void *fxsave)
       {
         //int cs=vmread(vm_guest_cs);
         //unsigned long long rip=vmread(vm_guest_rip);
+        skip=verbosity; //never
 
 
         break;
@@ -1450,6 +1453,12 @@ int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers, void *fxsave)
   //sendstring("|   p: previous event                   |\n\r");
     sendstring("\\---------------------------------------/\n\r");
     sendstring("Your command:");
+
+#ifdef DELAYEDSERIAL
+    if (!useserial)
+      command='1';
+    else
+#endif
     command=waitforchar();
     sendstring("\n\r");
 
@@ -1732,7 +1741,9 @@ int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers, void *fxsave)
 
       case 'l' :
       {
+#if (defined SERIALPORT) && (SERIALPORT != 0)
         enterLuaConsole();
+#endif
         break;
       }
 
@@ -1752,6 +1763,8 @@ int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers, void *fxsave)
 
         return 0;
       }
+
+
 
       case  'i' :
       {
@@ -1776,6 +1789,8 @@ int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers, void *fxsave)
 
       case  's' :
       {
+        vmx_enableSingleStepMode();
+        /*
         UINT64 address;
         unsigned char bt;
         char temps[17];
@@ -1790,6 +1805,7 @@ int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers, void *fxsave)
 
         *(unsigned char *)address=bt;
         sendstring("\n\r");
+        */
         break;
       }
 
@@ -1842,6 +1858,10 @@ void launchVMX(pcpuinfo currentcpuinfo)
     unmapPhysicalMemory(pos, sizeof(OriginalState));
   }
 
+  outportb(0x80,0x01);
+
+
+
   if (isAMD)
     return launchVMX_AMD(currentcpuinfo, originalstate);
 
@@ -1859,10 +1879,14 @@ void launchVMX(pcpuinfo currentcpuinfo)
 
   }
 
+  outportb(0x80,0x02);
+
   if (restorestate)
     result=vmxloop(currentcpuinfo, &originalstate->rax);
   else
     result=vmxloop(currentcpuinfo, NULL);
+
+  outportb(0x80,0xCF);
 
   displayline("VMXLOOP EXIT: APICID=%d\n\r",getAPICID());
   nosendchar[getAPICID()]=0;

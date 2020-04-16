@@ -3,9 +3,16 @@
 
 #include <stddef.h>
 
+
+//#define DELAYEDSERIAL
+
+#ifdef DELAYEDSERIAL
+extern int useserial;
+#endif
+
 #define STATISTICS
 
-#define TSCHOOK
+//#define TSCHOOK
 
 #define MAX_STACK_SIZE 0x10000
 
@@ -137,9 +144,9 @@ typedef union
     unsigned VIF    :1; // 19
     unsigned VIP    :1; // 20
     unsigned ID     :1; // 21
-    unsigned reserved5  :32; // 22-63
-    unsigned reserved6  :10; // 22-63
-  };
+    unsigned reserved5  :11; // 22-63
+    unsigned reserved6  :32; // 22-63
+  }__attribute__((__packed__)) ;
 } __attribute__((__packed__)) RFLAGS,*PRFLAGS;
 
 
@@ -202,8 +209,8 @@ int isxdigit(int c);
 
 
 
-int minq(QWORD x,QWORD y);
-int maxq(QWORD x,QWORD y);
+QWORD minq(QWORD x,QWORD y);
+QWORD maxq(QWORD x,QWORD y);
 int min(int x,int y);
 int max(int x,int y);
 

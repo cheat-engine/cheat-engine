@@ -341,6 +341,8 @@ begin
       begin
         inc(index);
         if _y<rect.Top then exit;
+        if length(valuelist)=0 then exit;
+
         _y:=_y-LineHeight*valuelist[0].value;
         if _y<rect.top then _y:=rect.top;
 
@@ -351,6 +353,8 @@ begin
       begin
         inc(index);
         if _y>=rect.Bottom-LineHeight then exit;
+        if length(valuelist)=0 then exit;
+
         _y:=_y+LineHeight*valuelist[0].value;
         if _y>=rect.Bottom-LineHeight then _y:=rect.Bottom-LineHeight;
 
@@ -361,6 +365,8 @@ begin
       begin
         inc(index);
         if _x>=rect.right-spacewidth then exit;
+        if length(valuelist)=0 then exit;
+
         _x:=_x+SpaceWidth*valuelist[0].value;
         if _x>=rect.right-SpaceWidth then _x:=rect.right-SpaceWidth;
 
@@ -371,6 +377,8 @@ begin
       begin
         inc(index);
         if _x<rect.left then exit;
+        if length(valuelist)=0 then exit;
+
         _x:=_x-SpaceWidth*valuelist[0].Value;
         if _x<rect.left then _x:=rect.left;
 
@@ -385,6 +393,8 @@ begin
 
         if length(valuelist)=0 then
           exit;
+
+        if length(valuelist)<2 then exit;
 
         if (length(valuelist)>=1) and valuelist[0].defined then
           _x:=rect.left+SpaceWidth*valuelist[0].value;

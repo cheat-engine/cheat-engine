@@ -72,7 +72,7 @@ topm.add(mf3)
 local mf4=createMenuItem(m)
 mf4.Caption='Example 4: Forms and whatnot';
 mf4.OnClick=function(s)
-  local newthread=MessageDialog('Open the form in a new thread? (IF not it will open inside the main GUI)',mtConfirmation,mbYes,mbNo)==mrYes
+  local newthread=MessageDialog('Open the form in a new thread? (If not it will open inside the main GUI)',mtConfirmation,mbYes,mbNo)==mrYes
   local i=pluginexample4(newthread)
 
   print('pluginexample4() finally returned with the value '..i..' (should be 100)')
@@ -90,7 +90,7 @@ topm.add(mf4)");
             {
                 if (l.IsInteger(1))
                 {
-                    int i = l.ToInteger(1);
+                    int i = (int)l.ToInteger(1);
                     l.PushInteger(i * 2);
                     return 2;
                 }

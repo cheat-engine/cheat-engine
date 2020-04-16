@@ -83,9 +83,9 @@ begin
     memscan.firstscan(scanoption, vartype, roundingtype, input1,input2, startaddress,stopaddress, isHexadecimalInput, isNotABinaryString, isunicodescan, iscasesensitive, alignmenttype, alignmentparam, nil );
   end
   else
-    raise exception.create(rsNotAllParametersHaveBeenProvided);
-
+    memscan.firstscan;
 end;
+
 
 function memscan_nextScan(L: Plua_State): integer; cdecl;
 var
@@ -123,9 +123,24 @@ begin
     lua_pop(L, lua_gettop(L));
 
     memscan.nextscan(scanoption, roundingtype, input1,input2, isHexadecimalInput, isNotABinaryString, isunicodescan, iscasesensitive, ispercentagescan, savedscanname<>'', savedscanname );
-  end else
-    raise exception.create(rsNotAllParametersHaveBeenProvided);
+  end
+  else
+    memscan.nextscan;
 end;
+
+function memscan_scan(L: Plua_State): integer; cdecl;
+var
+  memscan: Tmemscan;
+begin
+  result:=0;
+  lua_pop(L,lua_gettop(L));
+  memscan:=luaclass_getClassObject(L);
+  if memscan.LastScanType=stNewScan then
+    memscan.firstScan
+  else
+    memscan.nextScan;
+end;
+
 
 function memscan_waitTillDone(L: Plua_State): integer; cdecl;
 var
@@ -229,6 +244,7 @@ end;
 procedure memscan_addMetaData(L: PLua_state; metatable: integer; userdata: integer );
 begin
   object_addMetaData(L, metatable, userdata);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'scan', memscan_scan);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'firstScan', memscan_firstScan);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'nextScan', memscan_nextScan);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'newScan', memscan_newScan);

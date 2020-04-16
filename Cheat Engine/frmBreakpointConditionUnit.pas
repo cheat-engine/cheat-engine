@@ -25,16 +25,20 @@ type
     TabSheet1: TTabSheet;
     TabSheet2: TTabSheet;
     procedure FormCreate(Sender: TObject);
+    procedure FormShow(Sender: TObject);
     procedure rbEasyChange(Sender: TObject);
 
   private
     { private declarations }
+    loadedFormPosition: boolean;
   public
     { public declarations }
-  end; 
+  end;
 
 
 implementation
+
+uses CEFuncProc, math;
 
 { TfrmBreakpointCondition }
 
@@ -44,7 +48,19 @@ begin
   for i:=0 to pagecontrol1.PageCount-1 do
     pagecontrol1.Pages[i].TabVisible:=false;
 
+  loadedFormPosition:=LoadFormPosition(self);
+end;
 
+procedure TfrmBreakpointCondition.FormShow(Sender: TObject);
+begin
+  if loadedFormPosition=false then
+  begin
+    if tabsheet1.ClientWidth<(max(label1.width, label2.width)+8) then
+    begin
+      autosize:=false;
+      width:=width+(max(label1.width, label2.width)+8)-tabsheet1.ClientWidth;
+    end;
+  end;
 end;
 
 procedure TfrmBreakpointCondition.rbEasyChange(Sender: TObject);

@@ -1,10 +1,10 @@
 #SERIALPORT is the port to communicate with the debugger, usually 0x3f8, on db's system it's 0xef00
 SERIALPORT=0 #release/no serialport build
-#SERIALPORT=0x3f8 #bochs (gigabyte test system)
+#SERIALPORT=0x3f8 #bochs and jtagged gigabyte test system
 #SERIALPORT=0xbf00 #intel
 #SERIALPORT=0xec00 #amd
 #SERIALPORT=0xd010 #16 core test system
-#SERIALPORT=0xfff0 #32 core test system
+#SERIALPORT=0xf010 #32 core test system
 #SERIALPORT=0x2f8 #vmware test
 
  
@@ -36,10 +36,10 @@ displaydebug: clean install
 usb: install
 	@if [ -b /dev/sdc ] ;\
 	then \
-		dd if=vmdisk.img of=/dev/sdc ;\
+		dd if=vmdisk.img of=/dev/sde ;\
 		sync ;\
 	else \
-		echo "/dev/sdc does not exist. Did you just run this without understanding makefiles? This could have really fucked you up" ;\
+		echo "/dev/sde does not exist. Did you just run this without understanding makefiles? This could have really fucked you up" ;\
 		exit 1 ;\
 	fi
 	

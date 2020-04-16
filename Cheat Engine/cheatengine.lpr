@@ -14,7 +14,7 @@ uses
   {$ifdef darwin}
   //
   macport, macportdefines,coresymbolication, macexceptiondebuggerinterface,
-  macCreateRemoteThread, macumm,
+  macCreateRemoteThread, macumm, machotkeys,
   {$endif}
   controls, sysutils, Forms, LazUTF8, dialogs, SynCompletion, MainUnit,
   CEDebugger, NewKernelHandler, CEFuncProc, ProcessHandlerUnit, symbolhandler,
@@ -113,7 +113,7 @@ uses
   LuaDiagramLink, diagramlink, BreakpointTypeDef, frmFoundlistPreferencesUnit,
   LuaHeaderSections, frmDebuggerAttachTimeoutUnit, cheatecoins,
   frmMicrotransactionsUnit, frmSyntaxHighlighterEditor, LuaCustomImageList,
-  dotnethost;
+  dotnethost, rttihelper, cefreetype;
 
 {$R cheatengine.res}
 {$IFDEF windows}

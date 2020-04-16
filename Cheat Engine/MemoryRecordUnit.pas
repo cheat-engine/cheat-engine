@@ -162,6 +162,7 @@ type
     fShowAsHex: boolean;
     editcount: integer; //=0 when not being edited
 
+    fDescription : string;
     fOptions: TMemrecOptions;
 
     CustomType: TCustomType;
@@ -187,6 +188,7 @@ type
 
     fDropDownLinked: boolean;
     fDropDownLinkedMemrec: string;
+
     linkedDropDownMemrec: TMemoryRecord;
     memrecsLinkedToMe: array of TMemoryRecord; // a list of all memrecs linked to this memrec
 
@@ -254,13 +256,14 @@ type
     procedure SetCollapsed(state: boolean);
 
     procedure processingDone; //called by the processingThread when finished
+    procedure setDescription(d: string);
 
   public
 
 
 
 
-    Description : string;
+
     interpretableaddress: string;
 
 
@@ -354,8 +357,6 @@ type
 
     property Child[index: integer]: TMemoryRecord read getChild; default;
     property offsets[index: integer]: TMemrecOffset read getPointerOffset;
-
-
   published
     property IsGroupHeader: boolean read fisGroupHeader write fisGroupHeader;
     property IsAddressGroupHeader: boolean read fisAddressGroupHeader write setAddressGroupHeader;
@@ -401,6 +402,8 @@ type
 
     property LastAAExecutionFailed: boolean read AutoAssemblerData.lastExecutionFailed;
     property LastAAExecutionFailedReason: string read AutoAssemblerData.lastExecutionFailedReason;
+    property Description: string read fDescription write setDescription;
+    property CachedAddress: ptruint read realAddress;
   end;
 
   THKSoundFlag=(hksPlaySound=0, hksSpeakText=1, hksSpeakTextEnglish=2); //playSound excludes speakText
@@ -427,6 +430,7 @@ type
     procedure playDeactivateSound;
 
     procedure doHotkey;
+    procedure registerKeys;
     constructor create(AnOwner: TMemoryRecord);
     destructor destroy; override;
   published
@@ -642,6 +646,8 @@ begin
     foffset:=symhandler.getAddressFromNameShallow(s, false, e);
     if not e then
     begin
+      special:=true;
+
       funparsed:=false;
       exit;
     end;
@@ -708,18 +714,12 @@ begin
   fowner.hotkeylist.Add(self);
 
   keys[0]:=0;
-{$ifdef windows}
-  RegisterHotKey2(mainform.handle, 0, keys, self);
-{$endif}
 
 end;
 
 destructor TMemoryRecordHotkey.destroy;
 begin
-{$ifdef windows}
   UnregisterAddressHotkey(self);
-{$endif}
-
 
   //remove this hotkey from the memoryrecord
   if owner<>nil then
@@ -730,6 +730,12 @@ begin
   end;
 
   inherited destroy;
+end;
+
+procedure TMemoryRecordHotkey.registerKeys;
+begin
+  UnregisterAddressHotkey(self);
+  RegisterHotKey2(mainform.handle, 0, keys, self);
 end;
 
 procedure TMemoryRecordHotkey.doHotkey;
@@ -1081,6 +1087,8 @@ end;
 destructor TMemoryRecord.destroy;
 var i: integer;
 begin
+  taddresslist(fowner).MemrecDescriptionChange(self);
+
   if processingThread<>nil then
   begin
     processingThread.Terminate;
@@ -1593,6 +1601,8 @@ begin
             end;
 
           end;
+
+          hk.registerKeys;
         end;
       end;
 
@@ -2162,6 +2172,7 @@ begin
   hk.action:=action;
   hk.value:=value;
   hk.fdescription:=description;
+  hk.RegisterKeys;
 
   result:=hk;
 end;
@@ -2604,6 +2615,12 @@ begin
 
 
   processingDone;
+end;
+
+procedure TMemoryRecord.setDescription(d: string);
+begin
+  fdescription:=d;
+  TAddresslist(fowner).MemrecDescriptionChange(self);
 end;
 
 procedure TMemoryRecord.setVisible(state: boolean);

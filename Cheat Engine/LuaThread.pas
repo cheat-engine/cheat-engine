@@ -22,7 +22,7 @@ procedure initializeLuaThread;
 
 implementation
 
-uses luaclass, LuaObject;
+uses LuaClass, LuaObject;
 
 resourcestring
   rsErrorInNativeThreadCalled = 'Error in native thread called ';
@@ -89,7 +89,10 @@ begin
     extraparamcount:=lua_gettop(L);
 
     lua_rawgeti(L, LUA_REGISTRYINDEX, functionid);
+
     lua_insert(L, 1);
+
+
 
     luaclass_newClass(L, self);
     lua_insert(L, 2);

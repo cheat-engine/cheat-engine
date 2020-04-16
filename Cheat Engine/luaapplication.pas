@@ -49,6 +49,29 @@ begin
   result:=1;
 end;
 
+function application_getMainFormOnTaskBar(L: PLua_State): integer; cdecl;
+var
+  app: TApplication;
+begin
+  result:=0;
+  app:=luaclass_getClassObject(L);
+  lua_pushboolean(L, not app.MainFormOnTaskBar);  //bug in laz 2.0.6, it's inverted
+  result:=1;
+end;
+
+function application_setMainFormOnTaskBar(L: PLua_State): integer; cdecl;
+var
+  app: TApplication;
+begin
+  result:=0;
+  if lua_gettop(L)>=1 then
+  begin
+    app:=luaclass_getClassObject(L);
+    app.MainFormOnTaskBar:=not lua_toboolean(L,1);
+  end;
+end;
+
+
 
 function application_getTitle(L: PLua_State): integer; cdecl;
 var
@@ -76,6 +99,8 @@ function application_setIcon(L: PLua_State): integer; cdecl;
 begin
   result:=0;
   TApplication(luaclass_getClassObject(L)).icon:=lua_ToCEUserData(L, 1);
+
+
 end;
 
 
@@ -91,7 +116,7 @@ begin
   Luaclass_addPropertyToTable(L, metatable, userdata, 'Title', application_getTitle, application_setTitle);
   Luaclass_addPropertyToTable(L, metatable, userdata, 'Icon', application_getIcon, application_setIcon);
   Luaclass_addPropertyToTable(L, metatable, userdata, 'ExeName', application_getExeName, nil);
-
+  Luaclass_addPropertyToTable(L, metatable, userdata, 'MainFormOnTaskBar', application_getMainFormOnTaskBar, application_setMainFormOnTaskBar);
 end;
 
 

@@ -28,7 +28,7 @@ typedef union _MTRRCAP
     unsigned WC       : 1; //Write combining support
     unsigned SMRR     : 1; //SMRR register support
   };
-} MTRRCAP, *PMTRRCAP;
+} MTRRCAP, *PMTRRCAP;  //e.g d0a: vcnt=10 FIX=1 WC=1 SMRR=1
 
 typedef union _MTRRDEF
 {
@@ -78,6 +78,9 @@ void vmx_removeMSRReadExit(DWORD msrValue);
 void vmx_setMSRWriteExit(DWORD msrValue);
 void vmx_removeMSRWriteExit(DWORD msrValue);
 
+void vmx_enableTSCHook(void);
+void vmx_disableTSCHook(void);
+
 
 void setupVMX(pcpuinfo currentcpuinfo);
 
@@ -85,5 +88,7 @@ void setup8086WaitForSIPI(pcpuinfo currentcpuinfo, int setupvmcontrols);
 
 QWORD realmode_inthook_calladdressPA;
 int realmode_inthook_calladdressJumpSize;
+
+extern int TSCHooked;
 
 #endif /* VMM_VMXSETUP_H_ */

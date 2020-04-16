@@ -79,6 +79,8 @@ extern int CR3ValuePos;
 extern int adjustTimestampCounters;
 extern int adjustTimestampCounterTimeout;
 
+extern int useSpeedhack;
+
 void speedhack_setspeed(double speed);
 
 

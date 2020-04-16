@@ -13,7 +13,7 @@ object frmPointerScanner: TfrmPointerScanner
   OnResize = FormResize
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '2.0.0.4'
+  LCLVersion = '2.0.6.0'
   object Panel1: TPanel
     Left = 0
     Height = 27
@@ -330,7 +330,7 @@ object frmPointerScanner: TfrmPointerScanner
           Height = 19
           Hint = 'Trust that this server will not disappear during the scan and that the children it trusts itself won''t do so either'
           Top = 116
-          Width = 91
+          Width = 90
           Caption = 'Trust stability'
           ParentShowHint = False
           ShowHint = True
@@ -422,8 +422,8 @@ object frmPointerScanner: TfrmPointerScanner
   end
   object MainMenu1: TMainMenu
     Images = psImageList
-    left = 464
-    top = 40
+    Left = 464
+    Top = 40
     object File1: TMenuItem
       Caption = 'File'
       object New1: TMenuItem
@@ -494,25 +494,25 @@ object frmPointerScanner: TfrmPointerScanner
     DefaultExt = '.PTR'
     Filter = 'Cheat Engine Pointerlist|*.PTR'
     Options = [ofOverwritePrompt, ofHideReadOnly, ofEnableSizing]
-    left = 208
-    top = 288
+    Left = 208
+    Top = 288
   end
   object OpenDialog1: TOpenDialog
     DefaultExt = '.PTR'
     Filter = 'Cheat Engine Pointerlist|*.PTR'
-    left = 144
-    top = 288
+    Left = 144
+    Top = 288
   end
   object Timer2: TTimer
     Interval = 500
     OnTimer = Timer2Timer
-    left = 72
-    top = 288
+    Left = 72
+    Top = 288
   end
   object PopupMenu1: TPopupMenu
     Images = psImageList
-    left = 472
-    top = 272
+    Left = 472
+    Top = 272
     object Resyncmodulelist1: TMenuItem
       Caption = 'Resync modulelist'
       ImageIndex = 3
@@ -528,8 +528,8 @@ object frmPointerScanner: TfrmPointerScanner
     DefaultExt = '.ptr'
     Filter = 'Cheat Engine Pointerlist|*.PTR'
     Options = [ofAllowMultiSelect, ofFileMustExist, ofEnableSizing, ofViewDetail]
-    left = 111
-    top = 198
+    Left = 111
+    Top = 198
   end
   object SaveDialog2: TSaveDialog
     Title = 'Specify the filename for the pointermap you''re about to generate'
@@ -537,49 +537,49 @@ object frmPointerScanner: TfrmPointerScanner
     Filter = 'All files (*.*)|*.*|scandata files (*.scandata)|*.scandata'
     FilterIndex = 2
     Options = [ofOverwritePrompt, ofHideReadOnly, ofEnableSizing]
-    left = 304
-    top = 288
+    Left = 304
+    Top = 288
   end
   object SQLite3: TSQLite3Connection
     Connected = False
     LoginPrompt = False
     KeepConnection = False
     Transaction = SQLTransaction
-    left = 56
-    top = 40
+    Left = 56
+    Top = 40
   end
   object odSqlite: TOpenDialog
     DefaultExt = '.sqlite'
     Filter = 'All files (*.*)|*.*|Sqlite files (*.sqlite)|*.sqlite'
     FilterIndex = 2
-    left = 58
-    top = 98
+    Left = 58
+    Top = 98
   end
   object SQLTransaction: TSQLTransaction
     Active = False
     Database = SQLite3
-    left = 128
-    top = 40
+    Left = 128
+    Top = 40
   end
   object SQLQuery: TSQLQuery
     FieldDefs = <>
     Database = SQLite3
     Transaction = SQLTransaction
     Params = <>
-    left = 223
-    top = 46
+    Left = 223
+    Top = 46
   end
   object sdSqlite: TSaveDialog
     DefaultExt = '.sqlite'
     Filter = 'All files (*.*)|*.*|Sqlite files (*.sqlite)|*.sqlite'
     FilterIndex = 2
-    left = 128
-    top = 98
+    Left = 128
+    Top = 98
   end
   object miInfoPopup: TPopupMenu
     OnPopup = miInfoPopupPopup
-    left = 258
-    top = 178
+    Left = 258
+    Top = 178
     object miDisconnect: TMenuItem
       Caption = 'Disconnect'
       OnClick = miDisconnectClick
@@ -591,8 +591,8 @@ object frmPointerScanner: TfrmPointerScanner
     end
   end
   object pmType: TPopupMenu
-    left = 33
-    top = 11
+    Left = 33
+    Top = 11
     object miSigned: TMenuItem
       AutoCheck = True
       Caption = 'Signed'
@@ -606,8 +606,8 @@ object frmPointerScanner: TfrmPointerScanner
     end
   end
   object psImageList: TImageList
-    left = 410
-    top = 232
+    Left = 410
+    Top = 232
     Bitmap = {
       4C69070000001000000010000000FFFFFF00A0A0A060808080C0808080C08080
       80C0808080C0808080C0808080C0808080C0808080C0808080C0747474BFBCBC

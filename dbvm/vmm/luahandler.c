@@ -13,6 +13,7 @@
 #include "lua/src/lauxlib.h"
 #include "lua/src/lualib.h"
 #include "vmcall.h"
+#include "main.h"
 
 lua_State *LuaVM;
 
@@ -24,6 +25,30 @@ int lua_print(lua_State *L)
   {
     sendstring((char *)lua_tostring(L,i));
     sendstring("\n");
+  }
+
+  return 0;
+}
+
+int lua_readMSR(lua_State *L)
+{
+  if (lua_gettop(L)>=1)
+  {
+    int msr=lua_tointeger(L,1);
+    lua_pushinteger(L, readMSR(msr));
+    return 1;
+  }
+
+  return 0;
+}
+
+int lua_writeMSR(lua_State *L)
+{
+  if (lua_gettop(L)>=2)
+  {
+    int msr=lua_tointeger(L,1);
+    QWORD value=lua_tointeger(L,2);
+    writeMSRSafe(msr, value);
   }
 
   return 0;
@@ -168,6 +193,11 @@ lua_State *initializeLua(void)
 
        lua_register(LuaVM,"readBytes", lua_readBytes);
        lua_register(LuaVM,"writeBytes", lua_writeBytes);
+
+       lua_register(LuaVM,"readMSR", lua_readMSR);
+       lua_register(LuaVM,"writeMSR", lua_writeMSR);
+
+
 
        lua_register(LuaVM,"psod", lua_psod);
     }

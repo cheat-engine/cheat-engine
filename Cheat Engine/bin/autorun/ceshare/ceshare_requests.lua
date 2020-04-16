@@ -125,6 +125,26 @@ function ceshare.RequestForCheatsClick(s)
     --ceshare.RequestsFrm.lblNext25.Enabled=#ceshare.CurrentRequests>25
     ceshare.RequestsFrm.lblPrevious25.Visible=false
     ceshare.RequestsFrm.lblNext25.Visible=false
+    ceshare.RequestsFrm.btnSend.Font.Size=20
+
+
+    --just a general size
+    local preferedWidth=ceshare.RequestsFrm.Canvas.getTextWidth('X')*60
+    local preferedHeight=ceshare.RequestsFrm.Canvas.getTextHeight('X')*6
+    
+
+    if ceshare.RequestsFrm.mMessage.ClientHeight<preferedHeight then
+      ceshare.RequestsFrm.ControlPanel.Height=ceshare.RequestsFrm.ControlPanel.Height+(preferedHeight-ceshare.RequestsFrm.mMessage.ClientHeight)
+    end
+    
+    if ceshare.RequestsFrm.mMessage.ClientWidth<preferedWidth then
+      ceshare.RequestsFrm.Width=ceshare.RequestsFrm.Width+(preferedWidth-ceshare.RequestsFrm.mMessage.ClientWidth)
+    end
+    
+    if ceshare.RequestsFrm.Height<3*ceshare.RequestsFrm.ControlPanel.Height then
+      ceshare.RequestsFrm.Height=3*ceshare.RequestsFrm.ControlPanel.Height
+    end   
+      
 
     --build gui controls for the requests and put them in the scrollbox  
     while ceshare.RequestsFrm.MessageBox.ControlCount>0 do

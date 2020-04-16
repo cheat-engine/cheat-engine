@@ -12,7 +12,7 @@ uses
   LCLIntf, LCLType, Classes, SysUtils, controls, stdctrls, comctrls, ExtCtrls, graphics,
   math, MemoryRecordUnit, FPCanvas, CEFuncProc, NewKernelHandler, menus,dom,
   XMLRead,XMLWrite, symbolhandler, AddresslistEditor, inputboxtopunit,
-  frmMemrecComboboxUnit, commonTypeDefs, multilineinputqueryunit, LazUTF8;
+  frmMemrecComboboxUnit, commonTypeDefs, multilineinputqueryunit, LazUTF8, StringHashList;
 
 type
   TTreeviewWithScroll=class(TTreeview)
@@ -36,6 +36,8 @@ type
     lastSelected: integer;
 
     header: THeaderControl;
+    headerpopup: TPopupMenu;
+    miSortOnClick: TMenuItem;
     Treeview: TTreeviewWithScroll; //TTreeview;//WithScroll;
     CurrentlyDraggedOverNode: TTreenode;
     CurrentlyDraggedOverBefore: boolean; //set to true if inserting before
@@ -71,6 +73,8 @@ type
     expandsignsize: integer;
 
     sortlevel0only: boolean;
+
+    descriptionhashlist: TStringhashList;
 
     procedure doAnimation(sender: TObject);
 
@@ -119,8 +123,10 @@ type
 
     procedure sort(firstnode: ttreenode; compareRoutine: TTreeNodeCompare; direction: boolean);
     procedure SymbolsLoaded(sender: TObject);
+    procedure miSortOnClickClick(sender: TObject);
   public
     //needsToReinterpret: boolean;
+    procedure MemrecDescriptionChange(memrec: TMemoryRecord);
     procedure getAddressList(list: Tstrings);
 
     function focused:boolean; override;
@@ -207,7 +213,7 @@ type
 implementation
 
 uses dialogs, formAddressChangeUnit, TypePopup, PasteTableentryFRM, MainUnit,
-  ProcessHandlerUnit, frmEditHistoryUnit, globals, Filehandler;
+  ProcessHandlerUnit, frmEditHistoryUnit, globals, Filehandler, ceregistry;
 
 resourcestring
   rsDoYouWantToDeleteTheSelectedAddress = 'Do you want to delete the selected address?';
@@ -228,6 +234,7 @@ resourcestring
   rsALAddAddress = 'Add address';
   rsALNoDescription = 'No description';
   rsALAutoAssembleScritp = 'Auto Assemble script';
+  rsSortOnClick = 'Sort on click';
 
 procedure TTreeviewWithScroll.MouseDown(Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 var
@@ -759,23 +766,26 @@ begin
 
 end;
 
-function TAddresslist.getRecordWithDescription(description: string): TMemoryRecord;
+procedure TAddresslist.MemrecDescriptionChange(memrec: TMemoryRecord);
 var i: integer;
 begin
-  result:=nil;
+  descriptionhashlist.Clear;
   for i:=0 to count-1 do
-    if uppercase(MemRecItems[i].Description)=uppercase(description) then
-    begin
-      result:=MemRecItems[i];
-      exit;
-    end;
+    descriptionhashlist.Data[MemRecItems[i].Description]:=MemRecItems[i];
 
+end;
+
+function TAddresslist.getRecordWithDescription(description: string): TMemoryRecord;
+begin
+  result:=descriptionhashlist.Data[description]
 end;
 
 function TAddresslist.addAddressManually(initialaddress: string=''; vartype: TVariableType=vtDword; CustomTypeName: string=''): TMemoryRecord;
 var mr: TMemoryRecord;
+    edited: boolean;
 begin
   result:=nil;
+  edited:=mainform.editedsincelastsave;
 
 
   Treeview.BeginUpdate;
@@ -793,11 +803,13 @@ begin
     begin
       mr.free; //not ok, delete
       mr:=nil;
+      mainform.editedsincelastsave:=edited;
     end
     else
     begin
       mr.ReinterpretAddress(true);
       mr.visible:=true;
+      mainform.editedsincelastsave:=true;
     end;
 
     free;
@@ -805,7 +817,6 @@ begin
 
   //treeview.EndUpdate;
 
-  mainform.editedsincelastsave:=true;
 
   result:=mr;
 end;
@@ -1609,13 +1620,16 @@ end;
 
 procedure TAddresslist.sectionClick(HeaderControl: TCustomHeaderControl; Section: THeaderSection);
 begin
-  //sort the addresslist based on the clicked section
-  case section.Index of
-    0: sortByActive;
-    1: sortByDescription;
-    2: sortByAddress;
-    3: sortByValueType;
-    4: sortByValue;
+  if miSortOnClick.checked then
+  begin
+    //sort the addresslist based on the clicked section
+    case section.Index of
+      0: sortByActive;
+      1: sortByDescription;
+      2: sortByAddress;
+      3: sortByValueType;
+      4: sortByValue;
+    end;
   end;
 end;
 
@@ -2264,13 +2278,21 @@ begin
   inherited DoAutoSize;
 end;
 
+procedure TAddresslist.miSortOnClickClick(Sender: TObject);
+begin
+  cereg.writeBool('Addresslist: sort on click', miSortOnClick.Checked);
+end;
+
 constructor TAddresslist.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
 
  // ShowHint:=true;
 
+  descriptionhashlist:=TStringHashList.Create(false);
+
   treeview:=TTreeviewWithScroll.create(self); //TTreeview.create(self);
+  treeview.name:='List';
 
   treeview.BorderStyle:=bsNone;
   treeview.BorderWidth:=0;;
@@ -2322,6 +2344,7 @@ begin
 
 
   header:=THeaderControl.Create(self);
+  header.name:='Header';
   header.parent:=self;
   header.Align:=alTop;
   header.Height:=header.font.GetTextHeight('D')+4;
@@ -2365,6 +2388,19 @@ begin
 
   header.OnSectionClick:=SectionClick;
   header.AutoSize:=true;
+
+
+  headerpopup:=TPopupmenu.Create(header);
+  miSortOnClick:=TMenuItem.Create(headerpopup);
+  miSortOnClick.Caption:=rsSortOnClick;
+  miSortOnClick.ShowAlwaysCheckable:=true;
+  miSortOnClick.Checked:=cereg.readBool('Addresslist: sort on click', true);
+  miSortOnClick.AutoCheck:=true;
+  miSortOnClick.OnClick:=miSortOnClickClick;
+  headerpopup.Items.Add(miSortOnClick);
+
+  header.PopupMenu:=headerpopup;
+
 
   treeview.ScrollBars:=ssVertical;
   treeview.Align:=alClient;

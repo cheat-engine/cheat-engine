@@ -6,7 +6,7 @@ interface
 
 uses
   {$ifdef darwin}
-  macport, LCLType, math,
+  macport, LCLType, math, machotkeys,
   {$endif}
   {$ifdef windows}
   windows,
@@ -345,9 +345,12 @@ begin
     hk.action:=getHotkeyAction;
     hk.value:=edtFreezeValue.text;
     hk.fdescription:=edtDescription.text;
+    hk.registerkeys;
   end
   else
     hk:=memrec.Addhotkey(keys, getHotkeyAction, edtFreezeValue.text, edtDescription.text );
+
+
 
   if cbActivateSound.ItemIndex=cbActivateSound.items.count-1 then
   begin
@@ -460,10 +463,43 @@ begin
   cbFreezedirectionSelect(cbFreezedirection);
 end;
 
+function isModifier(k: word): boolean;
+begin
+  result:=false;
+  case k of
+    vk_lwin, vk_rwin, vk_shift,vk_lshift,
+    vk_rshift, VK_CAPITAL, VK_MENU, vk_LMENU,
+    vk_RMENU, VK_CONTROL, VK_LCONTROL, VK_RCONTROL:
+      result:=true;
+
+  end;
+end;
+
 procedure THotKeyForm.edtHotkeyKeyDown(Sender: TObject; var Key: Word;
   Shift: TShiftState);
-var i: integer;
+var
+  i: integer;
 begin
+  {$ifdef darwin}
+
+  if not isModifier(key) then
+  begin
+    //there can be only one non-modifier
+    for i:=0 to 4 do
+    begin
+      if keys[i]=0 then break;
+
+      if not isModifier(keys[i]) then
+      begin
+        key:=0; //do not add
+        break;
+      end;
+    end;
+  end;
+  {$endif}
+
+
+
   if keys[4]=0 then
   begin
     for i:=0 to 4 do
@@ -504,7 +540,20 @@ end;
 
 
 procedure THotKeyForm.FormCreate(Sender: TObject);
+var lblLimiteHotkeySupport: tlabel;
 begin
+  {$ifdef darwin}
+  if loadHotkeyFunctions=false then
+  begin
+    lblLimiteHotkeySupport:=tlabel.create(self);
+    lblLimiteHotkeySupport.caption:='Limited hotkey support. No character keys supported';
+    lblLimiteHotkeySupport.font.color:=clRed;
+    lblLimiteHotkeySupport.align:=alBottom;
+    lblLimiteHotkeySupport.parent:=self;
+   end;
+  {$endif}
+
+
   edtActivateText.Hint:=rsTextToSpeechHint; //make it easier for translators
   edtDeactivateText.Hint:=edtActivateText.Hint;
 

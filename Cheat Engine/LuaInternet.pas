@@ -11,7 +11,7 @@ uses
   Classes, SysUtils
   {$ifdef windows}, wininet
   {$else}
-  , fphttpclient,opensslsockets,openssl
+  , fphttpclient,opensslsockets,openssl, StringHashList
 
   {$endif}
   ;
@@ -27,9 +27,15 @@ type
     internet: HINTERNET;
     fheader: string;
     {$else}
+    fname: string;
     internet: TFPHTTPClient;
+
+
     procedure setHeader(s: string);
     function getHeader: string;
+    procedure recreateFPHTTPClient;
+    procedure storeCookies(urlstring: string);
+    procedure loadCookies(urlstring: string);
     {$endif}
   public
     function getURL(urlstring: string; results: tstream): boolean;
@@ -47,7 +53,11 @@ type
 
 implementation
 
-uses {$ifndef standalone}MainUnit2, lua, LuaClass, LuaObject, LuaHandler,{$endif} URIParser;
+uses {$ifdef darwin}macport, registry,{$endif}{$ifndef standalone}MainUnit2, lua, LuaClass, LuaObject, LuaHandler,{$endif} URIParser, dialogs;
+
+{$ifndef windows}
+var cookies: tstringhashlist;
+{$endif}
 
 {$ifndef windows}
 procedure TWinInternet.setHeader(s: string);
@@ -60,32 +70,118 @@ begin
   result:=internet.RequestHeaders.Text;
 end;
 
-function TWinInternet.postURL(urlstring: string; urlencodedpostdata: string; results: tstream): boolean;
-var response: tstrings;
+procedure TWinInternet.storeCookies(urlstring: string);
+var
+  uri: TURI;
+  c: tstringlist;
+  i,j: integer;
+  s: string;
+  cname,cname2: string;
+  cvalue,cvalue2: string;
+  found: boolean;
+
+  p: integer;
 begin
-  result:=false;
-  response:=tstringlist.Create;
-  try
-    internet.FormPost(urlstring,urlencodedpostdata,response);
-    result:=true;
-    results.WriteAnsiString(response.text);
-  except
+  if internet.Cookies.Text='' then exit; //no new cookies
+
+  uri:=ParseURI(urlstring);
+  c:=cookies[uri.Host];
+  if c=nil then
+  begin
+    c:=tstringlist.create;
+    cookies[uri.Host]:=c;
   end;
 
-  freeandnil(response);
 
+  //update the cookies with the new values
+  for i:=0 to internet.ResponseHeaders.count-1 do
+  begin
+    s:=internet.ResponseHeaders[i];
+    if (LowerCase(Copy(S,1,10))='set-cookie') then
+    begin
+      Delete(s,1,Pos(':',S));
+
+      cname:=trim(copy(s,1,pos('=',s)-1));
+
+
+      cvalue:=trim(copy(s,pos('=',s)+1));
+      cvalue:=copy(cvalue,1,pos(';',cvalue)-1);
+
+      found:=false;
+      for j:=0 to c.Count-1 do
+      begin
+        s:=c[j];
+        cname2:=trim(copy(s,1,pos('=',s)-1));
+        if cname=cname2 then
+        begin
+          c[j]:=cname+'='+cvalue; //update
+          found:=true;
+          break;
+        end;
+      end;
+
+      if not found then
+        c.add(cname+'='+cvalue);
+    end;
+  end;
+
+
+end;
+
+procedure TWinInternet.loadCookies(urlstring: string);
+var
+  uri: TURI;
+  c: tstringlist;
+begin
+  uri:=ParseURI(urlstring);
+
+  c:=cookies[uri.Host];
+  if c<>nil then
+  begin
+    internet.Cookies.Text:=c.text;
+  end;
+end;
+
+function TWinInternet.postURL(urlstring: string; urlencodedpostdata: string; results: tstream): boolean;
+begin
+  result:=false;
+  try
+    recreateFPHTTPClient;
+    loadCookies(urlstring);
+
+    internet.FormPost(urlstring,urlencodedpostdata,results);
+
+    storeCookies(urlstring);
+
+    result:=true;
+  except
+    result:=false;
+  end;
 end;
 
 function TWinInternet.getURL(urlstring: string; results: tstream): boolean;
 begin
   result:=false;
   try
+    loadCookies(urlstring);
     internet.Get(urlstring, results);
+
+    storeCookies(urlstring);
     result:=true;
   except
 
   end;
 
+end;
+
+procedure TWinInternet.recreateFPHTTPClient;
+begin
+  if internet<>nil then
+    freeandnil(internet);
+
+  internet:=TFPHTTPClient.Create(nil);
+  internet.AddHeader('User-Agent',fname);
+  internet.AllowRedirect:=true;
 end;
 
 {$else}
@@ -228,22 +324,30 @@ begin
     InternetCloseHandle(url);
   end;
 end;
+
+
+
 {$endif}
+
 
 constructor TWinInternet.create(name: string);
 begin
+
   {$ifdef windows}
   internet:=InternetOpen(pchar(name),0, nil, nil,0);
   {$else}
 
+
+
+  fname:=name;
   openssl.DLLVersions[1]:=openssl.DLLVersions[2];
   openssl.DLLVersions[1]:='.46';
   openssl.DLLVersions[2]:='.44';
   InitSSLInterface;
   openssl.ErrClearError;
 
-  internet:=TFPHTTPClient.Create(nil);
-  internet.AddHeader('User-Agent',name);
+  recreateFPHTTPClient;
+
   {$endif}
 end;
 
@@ -329,12 +433,83 @@ begin
   lua_register(LuaVM, 'getInternet', getInternet);
 end;
 
+{$ifndef windows}
+procedure loadCookiesFromRegistry;
 var
-  test: TWinInternet;
-  r: TStringStream;
+  r: TRegistry;
+  names: tstringlist;
+  i: integer;
+  c: tstringlist;
+begin
+  macPortFixRegPath;
+  r:=tregistry.Create;
+  r.RootKey:=HKEY_CURRENT_USER;
+  try
+    if r.OpenKey('Cookies',false) then
+    begin
+      names:=tstringlist.create;
+
+      try
+        r.GetValueNames(names);
+        for i:=0 to names.count-1 do
+        begin
+          c:=tstringlist.create;
+          r.ReadStringList(names[i],c);
+          cookies[names[i]]:=c;
+        end;
+      finally
+        names.free;
+      end;
+    end;
+
+  except
+  end;
+
+  r.free;
+end;
+
+procedure saveCookiesToRegistry;
+var
+  r: TRegistry;
+  i: integer;
+
+  e: PStringHashItem;
+  host: string;
+begin
+  r:=TRegistry.Create;
+  r.RootKey:=HKEY_CURRENT_USER;
+
+  if r.OpenKey('Cookies',true) then
+  begin
+    for i:=0 to cookies.count-1 do
+    begin
+      e:=cookies.List[i];
+      if e<>nil then
+      begin
+        host:=e^.Key;
+        r.WriteStringList(host,tstringlist(e^.Data));
+      end;
+
+    end;
+
+  end;
+  r.free;
+end;
+{$endif}
 
 initialization
+  {$ifndef windows}
+  cookies:=TStringHashList.Create(false);
+  loadCookiesFromRegistry;
+  {$endif}
+
   luaclass_register(TWinInternet, wininternet_addMetaData);
+
+  {$ifndef windows}
+finalization
+
+  saveCookiesToRegistry;
+  {$endif}
 {$endif}
 
 end.

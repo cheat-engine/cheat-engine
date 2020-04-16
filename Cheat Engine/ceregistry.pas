@@ -38,6 +38,14 @@ implementation
 
 function TCEReg.getRegistry(force: boolean):boolean;
 begin
+  {$ifdef darwin}
+  //all registry objects access the same object. and that object has the current key set...
+  if reg<>nil then
+    reg.OpenKey('\Software\Cheat Engine\', false);
+
+
+  {$endif}
+
   if not openedregistry then
   begin
     if triedforce and (gettickcount64<lastforce+2000) then exit(false);
@@ -63,6 +71,7 @@ begin
     macPortFixRegPath;
     {$endif}
   end;
+
 
   result:=openedregistry;
 end;

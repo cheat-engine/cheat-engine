@@ -165,6 +165,8 @@ var
 resourcestring
   rsTheFollowingOpcodesAccessed = 'The following opcodes accessed %s';
   rsTheFollowingOpcodesWriteTo = 'The following opcodes write to %s';
+  rsTheFollowingAddressesExecute = 'The following codes execute %s';
+
 
 
 implementation
@@ -1604,6 +1606,9 @@ var
 begin
   if size=0 then exit;
 
+  if breakpointmethod=bpmint3 then //not possible for this
+    breakpointmethod:=bpmDebugRegister;
+
   //split up address and size into memory alligned sections
 
 
@@ -1653,8 +1658,7 @@ procedure TDebuggerthread.FindCodeByBP(address: uint_ptr; size: integer; bpt: TB
 var method: TBreakpointMethod;
 begin
   method:=preferedBreakpointMethod;
-  if method=bpmint3 then //not possible for this
-    method:=bpmDebugRegister;
+
 
   FindCodeByBP(address,size,bpt,method);
 end;

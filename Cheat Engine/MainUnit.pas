@@ -640,6 +640,7 @@ type
     procedure ProcessLabelClick(Sender: TObject);
     procedure rbAllMemoryChange(Sender: TObject);
     procedure rbFsmAlignedChange(Sender: TObject);
+    procedure rtChange(Sender: TObject);
     procedure Save1Click(Sender: TObject);
     procedure ShowProcessListButtonClick(Sender: TObject);
     procedure btnNewScanClick(Sender: TObject);
@@ -819,6 +820,8 @@ type
 
     freezeThread: TFreezeThread;
 
+    showStaticAsStatic: boolean;
+
     procedure CheckForSpeedhackKey(sender: TObject);
 
     procedure doNewScan;
@@ -828,7 +831,7 @@ type
     function CheckIfSaved: boolean;
     procedure checkpaste;
     procedure hotkey(var Message: TMessage); {$ifdef windows}message WM_HOTKEY;{$endif}
-    procedure Hotkey2(var Message: TMessage); message wm_hotkey2;
+
     procedure ScanDone(sender: TObject); //(var message: TMessage); message WM_SCANDONE;
     procedure PluginSync(var m: TMessage); message wm_pluginsync;
     procedure ShowError(var message: TMessage); message wm_showerror;
@@ -963,6 +966,8 @@ type
     cbDirty: TCheckbox;
     {$endif}
 
+    procedure Hotkey2(command: integer);
+
 
     procedure updated3dgui;
     procedure RefreshCustomTypes;
@@ -1010,6 +1015,8 @@ type
 
     function GetScanType: TScanOption;
     function GetScanType2: TScanOption;
+
+    procedure DBVMFindWhatWritesOrAccesses(address: ptruint);
 
 
     property foundcount: int64 read ffoundcount write setfoundcount;
@@ -1078,6 +1085,7 @@ resourcestring
     'This will close the current process. Are you sure you want to do this?';
   strError = 'Error';
   strErrorwhileOpeningProcess = 'Error while opening this process';
+  strErrorWhileOpeningProcessMac = '. Have you disabled ''System Integrity Protection''(SIP) yet?';
   strKeepList = 'Keep the current address list/code list?';
   strInfoAboutTable = 'Info about this table:';
 
@@ -1089,7 +1097,7 @@ resourcestring
   rsGroup = 'Group %s';
   rsGroups = 'Groups';
   rsWhatDoYouWantTheGroupnameToBe = 'What do you want the groupname to be?';
-  rsDoYouWantTheGroupWithAddress = 'Do you want "address" version?';
+  rsDoYouWantTheGroupWithAddress = 'Do you want a header with address support ?';
   rsAreYouSureYouWantToDeleteThisForm = 'Are you sure you want to delete this form?';
   rsRenameFile = 'Rename file';
   rsGiveTheNewFilename = 'Give the new filename';
@@ -1269,6 +1277,15 @@ resourcestring
   rsProcessing = '<Processing>';
   rsCompareToSavedScan = 'Compare to first/saved scan';
   rsModified = 'Modified';
+  rsRequiresDBVMCapableIntelCPU = 'This function requires an Intel CPU with '
+    +'virtualization support. If your system has that then make sure that '
+    +'you''re currently not running inside a virtual machine. (Windows has '
+    +'some security features that can run programs inside a VM)';
+  rsRequiresEPT = 'This function requires that your CPU supports ''Extended '
+    +'Page Table (EPT)'' which your CPU lacks';
+  rsRequiresDBVMEPT = 'DBVM find routines needs DBVM for EPT page hooking. '
+    +'Loading DBVM can potentially cause a system freeze. Are you sure?';
+  rsDbvmWatchFailed = 'dbvm_watch failed';
 
 var
   ncol: TColor;
@@ -1437,7 +1454,7 @@ begin
   end;
 end;
 
-procedure TMainForm.Hotkey2(var Message: TMessage);
+procedure TMainForm.Hotkey2(command: integer);
 type
   PNotifyEvent = ^TNotifyEvent;
 var
@@ -1454,24 +1471,8 @@ var
   lockTimeOut: DWORD;
   pid: dword;
 begin
-  if message.LParam <> 0 then
-  begin
-    case message.wparam of
-      0: //memoryrecord hotkey
-      begin
-        hk := TMemoryRecordHotkey(message.LParam);
-        hk.DoHotkey;
-      end;
 
-      1: //OnNotify hotkey
-      begin
-        gh := TGenericHotkey(message.LParam);
-        gh.onNotify(gh);
-      end
-    end;
-  end
-  else
-    case message.WParam of
+    case command of
       0:
       begin
         {$ifdef windows}
@@ -1762,7 +1763,7 @@ begin
       11..19: //Change type (if possible)
       begin
         if vartype.Enabled then
-          vartype.ItemIndex := message.WParam - 3
+          vartype.ItemIndex := command-11
         else
         begin
           errorbeep;
@@ -1961,10 +1962,10 @@ begin
 
       31: //debug->run
       begin
-        {$ifdef windows}
+
         if memorybrowser.miDebugRun.enabled then
           MemoryBrowser.miDebugRun.Click;
-        {$endif}
+
       end;
 
     end;
@@ -2107,8 +2108,7 @@ end;
 function TMainForm.getScanStart: ptruint;
 begin
   try
-
-    Result := StrToQWordEx('$' + FromAddress.Text);
+    Result := symhandler.getAddressFromName(FromAddress.Text);
   except
     raise Exception.Create(Format(rsInvalidStartAddress, [FromAddress.Text]));
   end;
@@ -2122,7 +2122,7 @@ end;
 function TMainForm.getScanStop: ptruint;
 begin
   try
-    Result := StrToQWordEx('$' + ToAddress.Text);
+    Result := symhandler.getAddressFromName(ToAddress.Text);
   except
     raise Exception.Create(Format(rsInvalidStopAddress, [ToAddress.Text]));
   end;
@@ -2930,7 +2930,7 @@ begin
     begin
 
       processlabel.Caption := strError;
-      raise Exception.Create(strErrorWhileOpeningProcess);
+      raise Exception.Create(strErrorWhileOpeningProcess{$ifdef darwin}+strErrorwhileOpeningProcessMac{$endif});
 
     end
     else
@@ -3101,6 +3101,12 @@ begin
   VarType.OnChange(vartype);
 end;
 
+procedure TMainForm.rtChange(Sender: TObject);
+begin
+  cereg.writeInteger('Last Rounding Type',TComponent(sender).tag);
+end;
+
+
 procedure TMainForm.Save1Click(Sender: TObject);
 var
   protect: boolean;
@@ -3133,7 +3139,7 @@ begin
   if length(filenames) > 0 then
   begin
     ext:=ExtractFileExt(filenames[0]);
-    if ext<>'.ct' then exit;
+    if lowercase(ext)<>'.ct' then exit;
 
     if not (fsVisible in formstate) then exit;
 
@@ -3518,6 +3524,7 @@ begin
   f.BackgroundColor:=foundlist3.color;
   f.StaticColor:=clGreen;
   f.DynamicColor:=GetSysColor(COLOR_WINDOWTEXT);
+  f.ShowStaticAsStatic:=showStaticAsStatic;
   if f.showmodal=mrok then
   begin
     foundlist3.font.Assign(f.font);
@@ -3527,6 +3534,8 @@ begin
     foundlistColors.ChangedValueColor:=f.ChangedValueColor;
     foundlistColors.StaticColor:=f.StaticColor;
     foundlistColors.DynamicColor:=f.DynamicColor;
+    showStaticAsStatic:=f.ShowStaticAsStatic;
+
 
 
     reg := Tregistry.Create;
@@ -3540,6 +3549,7 @@ begin
         reg.WriteInteger('FoundList.StaticColor', foundlistcolors.StaticColor);
         reg.WriteInteger('FoundList.DynamicColor', foundlistcolors.DynamicColor);
         reg.WriteInteger('FoundList.BackgroundColor',foundlist3.Color);
+        reg.WriteBool('FoundList.ShowStaticAsStatic',ShowStaticAsStatic);
 
         SaveFontToRegistry(foundlist3.font, reg);
       end;
@@ -3555,6 +3565,7 @@ end;
 
 procedure TMainForm.miAutoAssembleErrorMessageClick(Sender: TObject);
 begin
+  clipboard.AsText:=miAutoAssembleErrorMessage.Caption;
   addresslist.doValueChange;
 end;
 
@@ -5510,7 +5521,6 @@ begin
 
   end;
 
-
 end;
 
 
@@ -5831,6 +5841,7 @@ begin
 
   scanvalue.Text := '';
 
+(* removed because it uses symhandler now
   {$ifdef cpu64}
   fromaddress.MaxLength := 16;
   toaddress.MaxLength := 16;
@@ -5838,6 +5849,7 @@ begin
   fromaddress.MaxLength := 8;
   toaddress.MaxLength := 8;
   {$endif}
+*)
 
   miResetRange.click;
 
@@ -5972,6 +5984,7 @@ begin
   foundlistColors.ChangedValueColor:=clRed;
   foundlistColors.StaticColor:=clGreen;
   foundlistColors.DynamicColor:=GetSysColor(COLOR_WINDOWTEXT);
+  showStaticAsStatic:=true;
 
 
   {$ifdef darwin}
@@ -5993,8 +6006,6 @@ begin
   copy1.ShortCut:=TextToShortCut('Meta+C');
   paste1.ShortCut:=TextToShortCut('Meta+V');
   menuitem1.ShortCut:=TextToShortCut('Meta+A');
-
-  foundlist3.MultiSelect:=false; //selecting works, reading out the state not so much
   {$endif}
 end;
 
@@ -7065,7 +7076,7 @@ begin
   miDBVMFindWhatWritesOrAccesses.visible:={$ifdef windows}Findoutwhataccessesthisaddress1.Visible and isIntel and isDBVMCapable{$else}false{$endif}; //02/24/2019: Most cpu's support EPT now
   sep2.Visible:=miDBVMFindWhatWritesOrAccesses.Visible;
 
-  miDBVMFindWhatWritesOrAccesses.enabled:={$ifdef windows}DBKLoaded{$else}false{$endif};
+  miDBVMFindWhatWritesOrAccesses.enabled:={$ifdef windows}DBKLoaded or isRunningDBVM{$else}false{$endif};
 
   if (selectedrecord<>nil) and (selectedrecord.VarType=vtAutoAssembler) then
   begin
@@ -7428,10 +7439,8 @@ begin
   Paste(formsettings.cbsimplecopypaste.Checked);
 end;
 
-procedure TMainForm.miDBVMFindWhatWritesOrAccessesClick(Sender: TObject);
-
+procedure TMainForm.DBVMFindWhatWritesOrAccesses(address: ptruint);
 var
-  address: ptrUint;
   res: word;
   id: integer;
 
@@ -7439,32 +7448,30 @@ var
   unlockaddress: qword;
   canuseept: boolean;
 
+  PA: qword;
 begin
   {$ifdef windows}
-  LoadDBK32;
+  if not isRunningDBVM then
+    LoadDBK32;
 
   canuseept:=hasEPTSupport;
   if (isintel=false) or (isDBVMCapable=false) then
   begin
-    messagedlg('This function requires an Intel CPU with virtualization support. If your system has that then make sure that you''re currently not running inside a virtual machine. (Windows has some security features that can run programs inside a VM)', mtError,[mbok],0);
+    messagedlg(rsRequiresDBVMCapableIntelCPU, mtError, [mbok], 0);
     exit;
   end;
 
   if canuseept=false then
   begin
-    messagedlg('This function requires that your CPU supports ''Extended Page Table (EPT)'' which your CPU lacks',mtError,[mbok],0);
+    messagedlg(rsRequiresEPT, mtError, [mbok], 0);
     exit;
   end;
 
-  if loaddbvmifneeded('DBVM find routines needs DBVM for EPT page hooking. Loading DBVM can potentially cause a system freeze. Are you sure?') then
+  if loaddbvmifneeded(rsRequiresDBVMEPT) then
   begin
 
     if addresslist.selectedRecord <> nil then
     begin
-      if not loaddbvmifneeded then exit;
-
-      address := addresslist.selectedRecord.GetRealAddress;
-
       if addresslist.selectedRecord.IsPointer then
       begin
         with TformPointerOrPointee.Create(self) do
@@ -7489,10 +7496,15 @@ begin
         frmDBVMWatchConfig:=TfrmDBVMWatchConfig.create(self);
 
       frmDBVMWatchConfig.address:=address;
+
       if frmDBVMWatchConfig.showmodal=mrok then
       begin
+
         if frmDBVMWatchConfig.LockPage then
+        begin
+          LoadDBK32; //this does require the driver
           unlockaddress:=LockMemory(processid, address and QWORD($fffffffffffff000),4096)
+        end
         else
           unlockaddress:=0;
 
@@ -7506,21 +7518,27 @@ begin
 
         if (id<>-1) then
         begin
+
           //spawn a foundcodedialog
           fcd:=TFoundCodeDialog.Create(self);
           fcd.multipleRip:=frmDBVMWatchConfig.cbMultipleRIP.Checked;
           fcd.dbvmwatchid:=id;
           fcd.dbvmwatch_unlock:=unlockaddress;
-          if frmDBVMWatchConfig.watchtype=0 then
-            fcd.caption:=Format(rsTheFollowingOpcodesAccessed, [inttohex(address, 8)])
-          else
-            fcd.caption:=Format(rsTheFollowingOpcodesWriteTo, [inttohex(address, 8)]);
+          case frmDBVMWatchConfig.watchtype of
+            0: fcd.caption:=Format(rsTheFollowingOpcodesAccessed, [inttohex(address, 8)]);
+            1: fcd.caption:=Format(rsTheFollowingOpcodesWriteTo, [inttohex(address, 8)]);
+            2: fcd.caption:=Format(rsTheFollowingAddressesExecute, [inttohex(address, 8)]);
+          end;
 
 
           fcd.show;
         end
         else
-          MessageDlg('dbvm_watch failed', mtError, [mbok],0);
+        begin
+          MessageDlg(rsDbvmWatchFailed, mtError, [mbok], 0);
+          if unlockaddress<>0 then
+            UnlockMemory(unlockaddress);
+        end;
 
       end;
       freeandnil(frmDBVMWatchConfig);
@@ -7530,6 +7548,13 @@ begin
   end;
 
   {$endif}
+end;
+
+procedure TMainForm.miDBVMFindWhatWritesOrAccessesClick(Sender: TObject);
+var address: ptruint;
+begin
+  address := addresslist.selectedRecord.GetRealAddress;
+  DBVMFindWhatWritesOrAccesses(address);
 end;
 
 procedure TMainForm.miAlwaysHideChildrenClick(Sender: TObject);
@@ -7890,7 +7915,7 @@ begin
       reg.WriteBool('ShownHappyNewYear'+inttostr(year), true);
     end;
   end;
-  if (month = 1) and (day = 1) and (year >= 2020) then
+  if (month = 1) and (day = 1) and (year >= 2030) then
     ShowMessage(strFuture);
 
   if (month = 4) and (day = 1) then
@@ -8054,6 +8079,7 @@ begin
     if reg.ValueExists('FoundList.StaticColor') then foundlistcolors.StaticColor:=reg.ReadInteger('FoundList.StaticColor');
     if reg.ValueExists('FoundList.DynamicColor') then foundlistcolors.DynamicColor:=reg.ReadInteger('FoundList.DynamicColor');
     if reg.ValueExists('FoundList.BackgroundColor') then foundlist3.color:=reg.ReadInteger('FoundList.BackgroundColor');
+    if reg.ValueExists('FoundList.ShowStaticAsStatic') then showStaticAsStatic:=reg.ReadBool('FoundList.ShowStaticAsStatic');
 
     LoadFontFromRegistry(foundlist3.font,reg);
   end;
@@ -8232,6 +8258,13 @@ begin
     //initial state: focus on the addresslist
     panel5.height:=gbScanOptions.top+gbScanOptions.Height;
 
+    i:=12*addresslist.Items.Owner.DefaultItemHeight;
+    j:=addresslist.height;
+    if i>j then
+    begin
+      i:=clientheight+(i-addresslist.height);
+      clientheight:=i;
+    end;
   end;
 
   panel5.OnResize(panel5);
@@ -8251,6 +8284,11 @@ begin
 
  // ImageList2.GetBitmap(0);
 
+  case cereg.readInteger('Last Rounding Type',1) of
+    0: rt1.checked:=true;
+    1: rt2.checked:=true;
+    2: rt3.checked:=true;
+  end;
 
 end;
 
@@ -9072,7 +9110,6 @@ begin
   part:=0;
 
 
-
   try
     valuetype:=foundlist.vartype;
     address := foundlist.GetAddress(item.Index, extra, Value);
@@ -9085,7 +9122,11 @@ begin
       exit;
     end;
 
-    AddressString:=foundlist.GetModuleNamePlusOffset(item.index);
+    if showStaticAsStatic then
+      AddressString:=foundlist.GetModuleNamePlusOffset(item.index)
+    else
+      AddressString:=inttohex(address,8);
+
 
     hexadecimal:=foundlist.isHexadecimal;
 
@@ -9412,12 +9453,6 @@ begin
 
       if (vt=vtString) and (cbUnicode.checked) then
         vt:=vtUnicodeString;
-
-      {$ifdef darwin}
-      //multiselect is broken
-      a:=foundlist.GetAddress(foundlist3.Selected.Index, extra, Value);
-      ParseStringAndWriteToAddress(newvalue, a, vt, foundlist.isHexadecimal, customtype);
-      {$endif}
 
       for i:=0 to foundlist3.items.Count-1 do
       begin

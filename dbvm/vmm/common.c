@@ -19,6 +19,9 @@ QWORD textmemory=0x0b8000;
 criticalSection sendstringfCS;
 criticalSection sendstringCS;
 
+#ifdef DELAYEDSERIAL
+int useserial=0;
+#endif
 
 
 #if DISPLAYDEBUG==1
@@ -89,12 +92,12 @@ void outportd(unsigned int port,unsigned long value)
 }
 
 
-int minq(QWORD x,QWORD y)
+QWORD minq(QWORD x,QWORD y)
 {
   return (x<y)?x:y;
 }
 
-int maxq(QWORD x,QWORD y)
+QWORD maxq(QWORD x,QWORD y)
 {
   return (x>y)?x:y;
 }
@@ -130,14 +133,14 @@ void exit(int status)
 {
 	sendstringf("Exited DBVM with status %d\n", status);
 	ddDrawRectangle(0,DDVerticalResolution-100,100,100,0xff0000);
-	while (1);
+	while (1) outportb(0x80,0xc0);
 }
 
 void abort(void)
 {
   sendstringf("Exited DBVM\n");
   ddDrawRectangle(0,DDVerticalResolution-100,100,100,0xff0000);
-  while (1);
+  while (1) outportb(0x80,0xc1);
 }
 
 
@@ -886,11 +889,14 @@ int vbuildstring(char *str, int size, char *string, __builtin_va_list arglist)
 
 void sendstring(char *s UNUSED)
 {
+#ifdef DELAYEDSERIAL
+  if (!useserial) return;
+#endif
+
 #ifdef DEBUG
   #if DISPLAYDEBUG==1
     displayline(s);
   #else
-
     int i;
 
     if (nosendchar[getAPICID()])
@@ -910,6 +916,11 @@ void sendstring(char *s UNUSED)
 
 void sendstringf(char *string UNUSED, ...)
 {
+#ifdef DELAYEDSERIAL
+  if (!useserial) return;
+#endif
+
+
 #ifdef DEBUG
   __builtin_va_list arglist;
   char temps[200];
@@ -1086,7 +1097,7 @@ void csLeave(PcriticalSection CS)
   {
     sendstringf("csLeave called for a non-locked or non-owned critical section\n");
     ddDrawRectangle(0,DDVerticalResolution-100,100,100,0xff0000);
-    while (1);
+    while (1) outportb(0x80,0xc2);
   }
 }
 
@@ -1426,6 +1437,11 @@ int itoa(unsigned int value,int base, char *output,int maxsize)
 
 void sendchar(char c UNUSED)
 {
+#ifdef DELAYEDSERIAL
+  if (!useserial) return;
+#endif
+
+
 #if (defined SERIALPORT) && (SERIALPORT != 0)
 	unsigned char x;
 
@@ -1472,6 +1488,10 @@ void sendchar(char c UNUSED)
 
 int getchar(void)
 {
+#ifdef DELAYEDSERIAL
+  if (!useserial) return 0;
+#endif
+
 
 #if DISPLAYDEBUG==1
   return kbd_getchar();

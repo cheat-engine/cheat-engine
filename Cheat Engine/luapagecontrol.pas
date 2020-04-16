@@ -40,6 +40,22 @@ begin
   result:=1;
 end;
 
+function pagecontrol_tabRect(L: Plua_State): integer; cdecl;
+var
+  pc: TPageControl;
+  index: integer;
+begin
+  if lua_gettop(L)>=1 then
+  begin
+    index:=lua_tointeger(L,1);
+    lua_pushrect(L, TPageControl(luaclass_getClassObject(L)).TabRect(index));
+    result:=1;
+  end
+  else
+    result:=0;
+end;
+
+
 function pagecontrol_getPageCount(L: Plua_State): integer; cdecl;
 begin
   lua_pushinteger(L, TPageControl(luaclass_getClassObject(L)).PageCount);
@@ -68,6 +84,7 @@ procedure pagecontrol_addMetaData(L: PLua_state; metatable: integer; userdata: i
 begin
   wincontrol_addMetaData(L, metatable, userdata);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'addTab', pagecontrol_addTab);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'tabRect', pagecontrol_tabRect);
   luaclass_addPropertyToTable(L, metatable, userdata, 'PageCount', pagecontrol_getPageCount, nil);
   luaclass_addArrayPropertyToTable(L, metatable, userdata, 'Page', pagecontrol_getPage);
 end;

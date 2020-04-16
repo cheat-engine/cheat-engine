@@ -88,7 +88,7 @@ namespace CESDK
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         private delegate double dlua_tonumberx(IntPtr state, int idx, [MarshalAs(UnmanagedType.I4)] ref int isnum);
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        private delegate int dlua_tointegerx(IntPtr state, int idx, [MarshalAs(UnmanagedType.I4)] ref int isnum);
+        private delegate Int64 dlua_tointegerx(IntPtr state, int idx, [MarshalAs(UnmanagedType.I4)] ref int isnum);
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         private delegate bool dlua_toboolean(IntPtr state, int idx);
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
@@ -299,20 +299,20 @@ namespace CESDK
 
         public double ToNumber(IntPtr L, int idx) { int isnumber = 0; return lua_tonumberx(L, idx, ref isnumber); }
         public double ToNumber(int idx) { return ToNumber(State, idx); }
-        public int ToInteger(IntPtr L, int idx) {
+        public Int64 ToInteger(IntPtr L, int idx) {
             int isnumber = 0;
-            int r=lua_tointegerx(L, idx, ref isnumber);
+            Int64 r =lua_tointegerx(L, idx, ref isnumber);
 
             if (isnumber==0)
             {
-                r=(int)lua_tonumberx(L, idx, ref isnumber);
+                r=(Int64)lua_tonumberx(L, idx, ref isnumber);
                 if (isnumber == 0)
                     return 0;
             }
 
             return r;
         }
-        public int ToInteger(int idx) { return ToInteger(State, idx); }
+        public Int64 ToInteger(int idx) { return ToInteger(State, idx); }
 
         public bool ToBoolean(IntPtr L, int idx) { return lua_toboolean(L, idx); }
         public bool ToBoolean(int idx) { return lua_toboolean(State, idx); }

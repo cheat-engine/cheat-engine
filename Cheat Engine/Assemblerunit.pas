@@ -6939,6 +6939,7 @@ begin
             //ymm,ymm,imm8
             if opcodes[j].vexExtraParam=1 then
             begin
+              addopcode(bytes,j);
               VEXvvvv:=(not getreg(parameter1)) and $f;
               result:=createmodrm(bytes,eotoreg(opcodes[j].opcode1),parameter2);
               Add(bytes, [v]);

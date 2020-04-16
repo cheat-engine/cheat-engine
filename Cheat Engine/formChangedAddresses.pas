@@ -295,6 +295,7 @@ begin
             //stack
             getmem(x.stack.stack, 4096);
             copymemory(x.stack.stack, @basics^[i].stack[0], 4096);
+            x.stack.savedsize:=4096;
           end;
 
           3:
@@ -303,6 +304,7 @@ begin
             copymemory(@c.{$ifdef cpu64}FltSave{$else}ext{$endif}, @extended^[i].fpudata, sizeof(c.{$ifdef cpu64}FltSave{$else}ext{$endif}));
             getmem(x.stack.stack, 4096);
             copymemory(x.stack.stack, @basics^[i].stack[0], 4096);
+            x.stack.savedsize:=4096;
           end;
         end;
 

@@ -22,7 +22,7 @@
       <AutoIncrementBuild Value="True"/>
       <MajorVersionNr Value="7"/>
       <MinorVersionNr Value="1"/>
-      <BuildNr Value="6141"/>
+      <BuildNr Value="6316"/>
       <Language Value=""/>
       <CharSet Value=""/>
       <StringTable CompanyName="Cheat Engine" FileDescription="Cheat Engine" ProductVersion="7.1"/>
@@ -195,13 +195,14 @@
           </CodeGeneration>
           <Linking>
             <Debugging>
+              <GenerateDebugInfo Value="False"/>
               <DebugInfoType Value="dsDwarf3"/>
               <StripSymbols Value="True"/>
               <UseExternalDbgSyms Value="True"/>
             </Debugging>
             <Options>
               <PassLinkerOptions Value="True"/>
-              <LinkerOptions Value="-framework Security -framework CoreFoundation"/>
+              <LinkerOptions Value="-framework Security -framework CoreFoundation -framework Carbon"/>
               <Win32>
                 <GraphicApplication Value="True"/>
               </Win32>
@@ -217,7 +218,22 @@
             <ConfigFile>
               <StopAfterErrCount Value="1000"/>
             </ConfigFile>
-            <CustomOptions Value="-dbenchmarkps -dcemain -dNDEBUG -dD3DDebug -dNOVMX -dCUSTOMFLOAT -dXDEBUG"/>
+            <CustomOptions Value="-dbenchmarkps
+-dcemain
+-dNDEBUG
+-dD3DDebug
+-dNOVMX
+-dCUSTOMFLOAT
+-dUSELAZFREETYPE"/>
+            <OtherDefines Count="7">
+              <Define0 Value="benchmarkps"/>
+              <Define1 Value="cemain"/>
+              <Define2 Value="NDEBUG"/>
+              <Define3 Value="D3DDebug"/>
+              <Define4 Value="NOVMX"/>
+              <Define5 Value="CUSTOMFLOAT"/>
+              <Define6 Value="USELAZFREETYPE"/>
+            </OtherDefines>
           </Other>
         </CompilerOptions>
       </Item4>
@@ -395,7 +411,7 @@
             </Debugging>
             <Options>
               <PassLinkerOptions Value="True"/>
-              <LinkerOptions Value="-framework Security -framework CoreFoundation"/>
+              <LinkerOptions Value="-framework Security -framework CoreFoundation -framework Carbon"/>
               <Win32>
                 <GraphicApplication Value="True"/>
               </Win32>
@@ -411,7 +427,24 @@
             <ConfigFile>
               <StopAfterErrCount Value="1000"/>
             </ConfigFile>
-            <CustomOptions Value="-dNOTMULTITHREADED -dbenchmarkps -dcemain -dNDEBUG -dD3DDebug -dNOVMX -dCUSTOMFLOAT -dXDEBUG"/>
+            <CustomOptions Value="-dNOTMULTITHREADED
+-dbenchmarkps
+-dcemain
+-dNDEBUG
+-dD3DDebug
+-dNOVMX
+-dCUSTOMFLOAT
+-dXDEBUG
+-dUSELAZFREETYPE"/>
+            <OtherDefines Count="7">
+              <Define0 Value="benchmarkps"/>
+              <Define1 Value="cemain"/>
+              <Define2 Value="NDEBUG"/>
+              <Define3 Value="D3DDebug"/>
+              <Define4 Value="NOVMX"/>
+              <Define5 Value="CUSTOMFLOAT"/>
+              <Define6 Value="USELAZFREETYPE"/>
+            </OtherDefines>
           </Other>
         </CompilerOptions>
       </Item8>
@@ -603,7 +636,7 @@
         <PackageName Value="LCL"/>
       </Item8>
     </RequiredPackages>
-    <Units Count="392">
+    <Units Count="395">
       <Unit0>
         <Filename Value="cheatengine.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -2130,6 +2163,7 @@
       <Unit291>
         <Filename Value="luapagecontrol.pas"/>
         <IsPartOfProject Value="True"/>
+        <UnitName Value="LuaPageControl"/>
       </Unit291>
       <Unit292>
         <Filename Value="frmnetworkdatacompressionunit.pas"/>
@@ -2674,6 +2708,18 @@
         <Filename Value="dotnethost.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit391>
+      <Unit392>
+        <Filename Value="rttihelper.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit392>
+      <Unit393>
+        <Filename Value="cefreetype.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit393>
+      <Unit394>
+        <Filename Value="machotkeys.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit394>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
@@ -2723,6 +2769,20 @@
         <IgnoredMessages idx6058="True"/>
       </CompilerMessages>
       <CustomOptions Value="-dbenchmarkps -dcemain -WB00400000 -dNDEBUG"/>
+      <OtherDefines Count="12">
+        <Define0 Value="NOTMULTITHREADED"/>
+        <Define1 Value="benchmarkps"/>
+        <Define2 Value="cemain"/>
+        <Define3 Value="NDEBUG"/>
+        <Define4 Value="D3DDebug"/>
+        <Define5 Value="NOVMX"/>
+        <Define6 Value="CUSTOMFLOAT"/>
+        <Define7 Value="XDEBUG"/>
+        <Define8 Value="memleaksearch"/>
+        <Define9 Value="checkassembleralphabet"/>
+        <Define10 Value="memorymapped"/>
+        <Define11 Value="privatebuild"/>
+      </OtherDefines>
     </Other>
   </CompilerOptions>
   <Debugging>
@@ -2752,7 +2812,6 @@
       </Item6>
       <Item7>
         <Name Value="EConvertError"/>
-        <Enabled Value="False"/>
       </Item7>
       <Item8>
         <Name Value="symexception"/>
@@ -2777,7 +2836,6 @@
       </Item13>
       <Item14>
         <Name Value="EFileMapError"/>
-        <Enabled Value="False"/>
       </Item14>
       <Item15>
         <Name Value="EParserError"/>

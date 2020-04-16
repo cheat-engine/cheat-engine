@@ -298,7 +298,7 @@ int raiseInvalidOpcodeException(pcpuinfo currentcpuinfo)
     newintinfo.haserrorcode=0; //no errorcode
     newintinfo.valid=1;
 
-    vmwrite(0x4016, (ULONG)newintinfo.interruption_information); //entry info field
+    vmwrite(vm_entry_interruptioninfo, (ULONG)newintinfo.interruption_information); //entry info field
     vmwrite(0x4018, 0); //entry errorcode
     vmwrite(0x401a, vmread(0x440c)); //entry instruction length (not sure about this)
   }
@@ -671,7 +671,7 @@ void returnFromCR3Callback(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, un
 
 
   //interrupt state
-  vmwrite(0x4824,currentcpuinfo->cr3_callback.interruptability_state);
+  vmwrite(vm_guest_interruptability_state,currentcpuinfo->cr3_callback.interruptability_state);
 
   //new cr3
   //set the real CR3 to what is stored in the parameter, guestcr3 has already been set
@@ -1096,8 +1096,8 @@ int _handleVMCallInstruction(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, 
       }
 
       sendstringf("VMCALL_BLOCK_INTERRUPTS\n");
-      currentcpuinfo->Previous_Interuptability_State=vmread(0x4824);
-      vmwrite(0x4824, (1<<3)); //block by NMI, so even a nmi based taskswitch won't interrupt
+      currentcpuinfo->Previous_Interuptability_State=vmread(vm_guest_interruptability_state);
+      vmwrite(vm_guest_interruptability_state, (1<<3)); //block by NMI, so even a nmi based taskswitch won't interrupt
 
       //and set IF to 0 in eflags
       currentcpuinfo->Previous_CLI=(vmread(0x6820) >> 9) & 1;
@@ -1964,6 +1964,24 @@ int _handleVMCallInstruction(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, 
     break;
   }
 
+  case VMCALL_ENABLETSCHOOK:
+  {
+    vmx_enableTSCHook();
+    break;
+  }
+
+  case VMCALL_DISABLETSCHOOK:
+  {
+    if (useSpeedhack==FALSE)
+    {
+      vmx_disableTSCHook();
+      vmregisters->rax=1;
+    }
+    else
+      vmregisters->rax=0;
+    break;
+  }
+
 
 	case VMCALL_KERNELMODE:
 	{
@@ -2036,7 +2054,7 @@ int _handleVMCall(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
       ddDrawRectangle(0,DDVerticalResolution-100,100,100,0xff0000);
       if (r)
       {
-        while (1);
+        while (1) outportb(0x80,0xd2);
       }
       return 0;
     }
@@ -2169,7 +2187,7 @@ int handleVMCall(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
     {
       sendstringf("no jtag available\n");
       ddDrawRectangle(0,DDVerticalResolution-100,100,100,0xff0000);
-      while (1);
+      while (1) outportb(0x80,0xd3);
     }
     tryend
 

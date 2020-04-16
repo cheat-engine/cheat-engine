@@ -20,6 +20,7 @@
 #define vm_eptpointer               0x201a
 #define vm_guest_physical_address   0x2400
 
+#define vm_vmcs_link_pointer        0x2800
 #define vm_guest_IA32_DEBUGCTL      0x2802
 #define vm_guest_IA32_PAT           0x2804
 #define vm_guest_IA32_EFER          0x2806
@@ -27,6 +28,7 @@
 
 #define vm_execution_controls_pin   0x4000
 #define vm_execution_controls_cpu   0x4002
+#define vm_exception_bitmap         0x4004
 #define vm_execution_controls_cpu_secondary 0x401e
 
 #define vm_exit_controls            0x400c

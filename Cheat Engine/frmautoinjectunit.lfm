@@ -6,7 +6,7 @@ object frmAutoInject: TfrmAutoInject
   HelpContext = 1089
   AllowDropFiles = True
   Caption = 'Auto assemble'
-  ClientHeight = 331
+  ClientHeight = 311
   ClientWidth = 431
   Menu = MainMenu1
   OnClose = FormClose
@@ -19,7 +19,7 @@ object frmAutoInject: TfrmAutoInject
   object Panel1: TPanel
     Left = 0
     Height = 35
-    Top = 296
+    Top = 276
     Width = 431
     Align = alBottom
     AutoSize = True
@@ -47,7 +47,7 @@ object frmAutoInject: TfrmAutoInject
   end
   object Panel2: TPanel
     Left = 0
-    Height = 296
+    Height = 276
     Top = 0
     Width = 431
     Align = alClient
@@ -56,8 +56,8 @@ object frmAutoInject: TfrmAutoInject
   end
   object MainMenu1: TMainMenu
     Images = aaImageList
-    left = 184
-    top = 120
+    Left = 184
+    Top = 120
     object File1: TMenuItem
       Caption = 'File'
       object miNewWindow: TMenuItem
@@ -181,21 +181,21 @@ object frmAutoInject: TfrmAutoInject
     Title = 'Open CE assembly file'
     DefaultExt = '.CEA'
     Filter = 'Cheat Engine Assembly (*.CEA)|*.CEA|All Files (*.*)|*.*'
-    left = 8
-    top = 40
+    Left = 8
+    Top = 40
   end
   object SaveDialog1: TSaveDialog
     Title = 'Open CE assembly file'
     DefaultExt = '.CEA'
     Filter = 'Cheat Engine Assembly (*.CEA)|*.CEA|All Files (*.*)|*.*'
     Options = [ofOverwritePrompt, ofHideReadOnly, ofEnableSizing]
-    left = 40
-    top = 40
+    Left = 40
+    Top = 40
   end
   object PopupMenu1: TPopupMenu
     Images = aaImageList
-    left = 136
-    top = 16
+    Left = 136
+    Top = 16
     object miCut: TMenuItem
       Caption = 'Cu&t'
       ImageIndex = 9
@@ -249,8 +249,8 @@ object frmAutoInject: TfrmAutoInject
   end
   object closemenu: TPopupMenu
     Images = aaImageList
-    left = 232
-    top = 48
+    Left = 232
+    Top = 48
     object Close1: TMenuItem
       Caption = 'Close'
       ImageIndex = 4
@@ -259,24 +259,24 @@ object frmAutoInject: TfrmAutoInject
   end
   object FindDialog1: TFindDialog
     OnFind = FindDialog1Find
-    left = 332
-    top = 112
+    Left = 332
+    Top = 112
   end
   object undotimer: TTimer
     Interval = 250
-    left = 40
-    top = 72
+    Left = 40
+    Top = 72
   end
   object ReplaceDialog1: TReplaceDialog
     Options = [frDown, frReplace, frReplaceAll]
     OnFind = ReplaceDialog1Find
     OnReplace = ReplaceDialog1Replace
-    left = 332
-    top = 46
+    Left = 332
+    Top = 46
   end
   object aaImageList: TImageList
-    left = 137
-    top = 206
+    Left = 137
+    Top = 206
     Bitmap = {
       4C690D0000001000000010000000C47B27FFE08D2CFFE08D2CFFE08D2CFFE08D
       2CFFE08D2CFFE08D2CFFE08D2CFFE08D2CFFE0872CFFE0832CFFE0892CFFE082

@@ -130,7 +130,7 @@ EFIAPI VOID FunctionX (IN VOID *Buffer)
   t2=readMSR(0x10);
   t3=getTSC();
   a=readMSR(0x3b);
-  Print(L"AP CPU %d:\n\t%ld - %ld - %ld\n\tAdjust:%ld\n", (int)Buffer, t1,t2,t3, a);
+  Print(L"AP CPU %d:\n      %ld - %ld - %ld\n      Adjust:%ld\n", (int)Buffer, t1,t2,t3, a);
 
   writeMSR(0x3b,-getTSC());
 
@@ -139,7 +139,7 @@ EFIAPI VOID FunctionX (IN VOID *Buffer)
   t3=getTSC();
   a=readMSR(0x3b);
 
-  Print(L"AP CPU %d:\n\t%ld - %ld - %ld\n\tAdjust:%ld\n", (int)Buffer, t1,t2,t3, a);
+  Print(L"AP CPU %d:\n      %ld - %ld - %ld\n      Adjust:%ld\n", (int)Buffer, t1,t2,t3, a);
 }
 
 
@@ -155,7 +155,24 @@ EFIAPI VOID LaunchDBVMAP (IN VOID *Buffer)
   Print(L"AP CPU %d is alive\n", (int)Buffer);
 }
 
+void enableSerial(void);
+void sendchar32(char x);
 
+
+unsigned char inportb(unsigned int port)
+{
+   unsigned char ret;
+   asm volatile ("inb %%dx,%%al":"=a" (ret):"d" (port));
+   return ret & 0xff;
+}
+
+void outportb(unsigned int port,unsigned char value)
+{
+   asm volatile ("outb %%al,%%dx": :"d" (port), "a" (value));
+}
+
+
+extern int SerialPort;
 
 EFI_STATUS
 //EFIAPI //Not with GNU_EFI_USE_MS_ABI enabled we are
@@ -167,6 +184,7 @@ efi_main (EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable)
 
   //UINT64 c=testfunction();
   EFI_STATUS s;
+  int i;
 
   InitializeLib(ImageHandle, SystemTable);
   initFunctions(ImageHandle, SystemTable);
@@ -175,8 +193,58 @@ efi_main (EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable)
 
 
 
+
+
   Print(L"efi_main at %lx\n",(UINT64)efi_main);
   FunctionX(NULL);
+/*
+  Print(L"Testing 2:\n");
+
+  int counter=0;
+
+  for (i=7; i<0x10000; i+=8)
+  {
+	  outportb(i,0xce);
+	  if (inportb(i)==0xce)
+	  {
+		  counter++;
+		  Print(L"%d: Correct at %x: ",counter, i);
+
+		  if (counter>0)
+		  {
+
+			  //SerialPort=i-7;
+
+			 // Print(L"a");
+			  //enableSerial();
+
+			  //int j;
+			  //Print(L"b");
+			  //for (j=0; j<10; j++)
+			  //{
+			//	  Print(L"c");
+			//	  sendchar32('a'+counter);
+			//	  Print(L"d");
+			 // }
+		  }
+
+		  Print(L"\n");
+	  }
+
+  }
+
+  Print(L"Done testing");
+
+  outportb(0x80,0xce);
+
+
+  SerialPort=0xff10;
+  enableSerial();
+  while (1)
+	  sendchar32('x');
+
+  outportb(0x80,0xcd);
+*/
 
   tx[0]=0;
   tx[1]=0;
@@ -231,6 +299,7 @@ efi_main (EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable)
     else
     {
       Print(L"%d Processors of which %d are enabled\n", cpucount, NumEnabled);
+      /*
       int i;
       for (i=1; i<cpucount; i++)
       {
@@ -239,7 +308,7 @@ efi_main (EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable)
         {
           Print(L"%d Failed to launch AP:%r\n",i,s);
         }
-      }
+      }*/
 
 
     }
@@ -337,7 +406,6 @@ efi_main (EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable)
 
 
   UINT64 base=(UINT64)dbvmimage; //filepath;
-  int i;
   for (i=0; i<128; i++)
   {
     Print(L"%x ",*(unsigned char *)(base+i));

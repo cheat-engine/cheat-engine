@@ -30,7 +30,7 @@ begin
   result:=0;
   graphic:=luaclass_getClassObject(L);
   if lua_gettop(L)>=1 then
-    graphic.Width:=lua_tointeger(L, -1);
+    graphic.Width:=lua_tointeger(L, 1);
 end;
 
 function graphic_getHeight(L: PLua_State): integer; cdecl;
@@ -49,7 +49,7 @@ begin
   result:=0;
   graphic:=luaclass_getClassObject(L);
   if lua_gettop(L)>=1 then
-    graphic.Height:=lua_tointeger(L, -1);
+    graphic.Height:=lua_tointeger(L, 1);
 end;
 
 function graphic_getTransparent(L: PLua_State): integer; cdecl;
@@ -68,9 +68,22 @@ begin
   result:=0;
   graphic:=luaclass_getClassObject(L);
   if lua_gettop(L)=1 then
-    graphic.Transparent:=lua_toboolean(L, -1);
+    graphic.Transparent:=lua_toboolean(L, 1);
 end;
 
+function graphic_loadFromFile(L: PLua_State): integer; cdecl;
+begin
+  result:=0;
+  if lua_gettop(L)>=1 then
+    tgraphic(luaclass_getClassObject(L)).LoadFromFile(Lua_ToString(L,1));
+end;
+
+function graphic_saveToFile(L: PLua_State): integer; cdecl;
+begin
+  result:=0;
+  if lua_gettop(L)>=1 then
+    tgraphic(luaclass_getClassObject(L)).SaveToFile(Lua_ToString(L,1));
+end;
 
 procedure graphic_addMetaData(L: PLua_state; metatable: integer; userdata: integer );
 begin
@@ -81,6 +94,9 @@ begin
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'setHeight', graphic_setHeight);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'getTransparent', graphic_getTransparent);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'setTransparent', graphic_setTransparent);
+
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'loadFromFile', graphic_loadFromFile);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'saveToFile', graphic_saveToFile);
 
   Luaclass_addPropertyToTable(L, metatable, userdata, 'Width', graphic_getWidth, graphic_setWidth);
   Luaclass_addPropertyToTable(L, metatable, userdata, 'Height', graphic_getHeight, graphic_setHeight);

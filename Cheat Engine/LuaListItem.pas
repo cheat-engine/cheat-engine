@@ -149,7 +149,7 @@ begin
   listitem:=luaclass_getClassObject(L);
   if lua_gettop(L)=1 then
   begin
-    if lua_isnumber(L,1) then
+    if lua_isnumber(L,2) then
       r:=listitem.displayrect(TDisplayCode(lua_tointeger(L,1)))
     else
       r:=listitem.displayrect(TDisplayCode(GetEnumValue(typeinfo(TDisplayCode),Lua_ToString(L,1))));
@@ -168,7 +168,7 @@ begin
   listitem:=luaclass_getClassObject(L);
   if lua_gettop(L)=2 then
   begin
-    if lua_isnumber(L,1) then
+    if lua_isnumber(L,2) then
       r:=listitem.DisplayRectSubItem(lua_tointeger(L,1), TDisplayCode(lua_tointeger(L,2)))
     else
       r:=listitem.displayrectSubItem(lua_tointeger(L,1), TDisplayCode(GetEnumValue(typeinfo(TDisplayCode),Lua_ToString(L,2))));

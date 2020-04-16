@@ -493,11 +493,29 @@ begin
   canvas:=luaclass_getClassObject(L);
   if lua_gettop(L)>=3 then
   begin
-    x:=lua_tointeger(L,-3);
-    y:=lua_tointeger(L,-2);
-    graphic:=lua_toceuserdata(L,-1);
+    x:=lua_tointeger(L,1);
+    y:=lua_tointeger(L,2);
+    graphic:=lua_toceuserdata(L,3);
 
     canvas.draw(x,y, graphic);
+  end;
+end;
+
+function canvas_stretchDraw(L: PLua_State): integer; cdecl;
+var
+  canvas: TCanvas;
+  r: trect;
+  graphic: TGraphic;
+
+begin
+  result:=0;
+  canvas:=luaclass_getClassObject(L);
+  if lua_gettop(L)>=2 then
+  begin
+    r:=lua_toRect(L,1);
+    graphic:=lua_toceuserdata(L,2);
+
+    canvas.StretchDraw(r,graphic);
   end;
 end;
 
@@ -564,6 +582,7 @@ begin
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'gradientFill', canvas_gradientFill);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'copyRect', canvas_copyRect);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'draw', canvas_draw);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'stretchDraw', canvas_stretchDraw);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'drawWithMask', canvas_drawWithMask);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'getPenPosition', canvas_getPenPosition);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'setPenPosition', canvas_setPenPosition);

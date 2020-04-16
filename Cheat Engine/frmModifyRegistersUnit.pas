@@ -25,7 +25,7 @@ type
     lbl: tlabel;
     edt: Tedit;
   public
-    constructor Create(AOwner: TComponent; id: integer);
+    constructor Create(AOwner: TComponent; id: integer); overload;
   end;
 
   TChangeRegXMMPanelEdit=class(TPanel)
@@ -35,7 +35,7 @@ type
     edt: tedit;
   public
     procedure setrange(start, stop: integer);
-    constructor Create(AOwner: TComponent; initialid: integer);
+    constructor Create(AOwner: TComponent; initialid: integer); overload;
   end;
 
   TChangeRegXMMPanel=class(TGroupbox)
@@ -53,7 +53,7 @@ type
     procedure fixdimensions;
     property field[index: integer]: dword read getField;
     property Double: boolean read usesDouble write setDouble;
-    constructor Create(AOwner: TComponent; id: integer);
+    constructor Create(AOwner: TComponent; id: integer);  overload;
   end;
 
 
@@ -266,11 +266,19 @@ begin
   label10.Visible:=cbUseDBVM.checked;
   edtPA.visible:=cbUseDBVM.checked;
 
-  oldaz:=autosize;
-  autosize:=true;
-  DoAutoSize;
+  if cbChangeExt.checked=false then
+  begin
+    oldaz:=autosize;
+    autosize:=true;
+    DoAutoSize;
 
-  autosize:=oldaz;
+    autosize:=oldaz;
+  end
+  else
+  begin
+    if cbChangeExt.top+cbChangeExt.height>panel1.top then
+      clientheight:=clientheight+((cbChangeExt.top+cbChangeExt.height)-panel1.top);
+  end;
   {$endif}
 end;
 

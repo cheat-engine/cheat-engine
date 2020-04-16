@@ -20,7 +20,7 @@ uses
   debughelper, debuggertypedefinitions,frmMemviewPreferencesUnit, registry,
   ScrollBoxEx, disassemblerComments, multilineinputqueryunit, frmMemoryViewExUnit,
   LastDisassembleData, ProcessHandlerUnit, commonTypeDefs, binutils,
-  fontSaveLoadRegistry, LazFileUtils;
+  fontSaveLoadRegistry, LazFileUtils, ceregistry;
 
 
 type
@@ -48,6 +48,8 @@ type
     GSlabel: TLabel;
     MenuItem4: TMenuItem;
     copyBytesAndOpcodesAndComments: TMenuItem;
+    miOpenInDissectData: TMenuItem;
+    miCopyOpcodesOnly: TMenuItem;
     miUndoLastEdit: TMenuItem;
     miFollowInHexview: TMenuItem;
     miSetSpecificBreakpoint: TMenuItem;
@@ -339,6 +341,7 @@ type
     procedure MenuItem14Click(Sender: TObject);
     procedure DBVMFindoutwhataddressesthisinstructionaccessesClick(Sender: TObject);
     procedure MenuItem4Click(Sender: TObject);
+    procedure miOpenInDissectDataClick(Sender: TObject);
     procedure miUndoLastEditClick(Sender: TObject);
     procedure miFollowInHexviewClick(Sender: TObject);
     procedure miSetSpecificBreakpointClick(Sender: TObject);
@@ -1136,6 +1139,17 @@ procedure TMemoryBrowser.MenuItem4Click(Sender: TObject);
 begin
   if tbDebug.Visible=true then HideDebugToolbar;
   tbDebug.Tag:=-1;
+end;
+
+procedure TMemoryBrowser.miOpenInDissectDataClick(Sender: TObject);
+begin
+  //create it
+  with tfrmstructures2.create(application) do
+  begin
+    initialaddress:=hexview.SelectionStart;
+    show;
+  end;
+
 end;
 
 procedure TMemoryBrowser.miUndoLastEditClick(Sender: TObject);
@@ -2162,9 +2176,16 @@ begin
     hexSpaceBetweenLines:=hexview.spaceBetweenLines;
     cbShowStatusBar.checked:=hexview.statusbar.Visible;
 
+    {$ifdef USELAZFREETYPE}
+    cbOriginalRenderingSystem.checked:=UseOriginalRenderingSystem;
+    {$endif}
+
     if showmodal=mrok then
     begin
       //set the colors and save to registry
+      {$ifdef USELAZFREETYPE}
+      UseOriginalRenderingSystem:=cbOriginalRenderingSystem.checked;
+      {$endif}
       disassemblerview.Font.assign(fontdialog1.Font);
       disassemblerview.Font.style:=[];
       disassemblerview.colors:=colors;
@@ -2184,13 +2205,25 @@ begin
 
       scrollbox1.Font:=fontdialog3.font;
       setRegisterPanelFont(fontdialog3.font);
+
+
+
+      free;
+    end
+    else
+    begin
+      free;
+      exit;
     end;
-    free;
   end;
 
   disassemblerview.reinitialize;
 
   //save to the registry
+  {$ifdef USELAZFREETYPE}
+  cereg.writeBool('OriginalRenderingSystem', UseOriginalRenderingSystem);
+  {$endif}
+
   reg:=Tregistry.Create;
   try
     if reg.OpenKey('\Software\Cheat Engine\Disassemblerview '+inttostr(screen.PixelsPerInch)+'\',true) then
@@ -2361,11 +2394,13 @@ begin
 
 
   //load from the registry
+  {$ifdef USELAZFREETYPE};
+  UseOriginalRenderingSystem:=cereg.readBool('OriginalRenderingSystem');
+  {$endif}
+
   f:=TFont.create;
   reg:=Tregistry.Create;
   try
-
-
     if reg.OpenKey('\Software\Cheat Engine\Disassemblerview '+inttostr(screen.PixelsPerInch)+'\Font',false) then
     begin
       LoadFontFromRegistry(f, reg);
@@ -4306,9 +4341,9 @@ begin
     edit2.Text:=inttohex(b-1,8);
     copymode:=true;
 
-    cbAddress.checked:=_tag<>4;
-    cbBytes.checked:=(_tag=1) or (_tag=2) or (_tag=4) or (_tag=6);
-    cbOpcode.checked:=(_tag=1) or (_tag=3) or (_tag=6);
+    cbAddress.checked:=not (_tag in [4,7]);
+    cbBytes.checked:=_tag in [1,2,4,6];
+    cbOpcode.checked:=_tag in [1,3,6,7];
     cbComment.checked:=(_tag=1);
     
     button1.click;

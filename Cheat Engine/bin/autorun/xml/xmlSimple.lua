@@ -1,4 +1,5 @@
-module(..., package.seeall)
+--module(..., package.seeall)
+local f={}
 
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
@@ -169,3 +170,7 @@ function newNode(name)
 
     return node
 end
+
+f.newParser=newParser
+f.newNode=newNode
+return f

@@ -62,7 +62,7 @@ void addresslist_add(PAddressList l, QWORD address, void *data)
     {
       //error, already in the list
       ddDrawRectangle(0,DDVerticalResolution-100,100,100,0xff0000);
-      while (1);
+      while (1) outportb(0x80,0xc4);
 
     }
 

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace CESDK
 {
-    //Not much of an SDK but more an example of how to wrap the exposed classes by CE into C# classes
+    //Not much of an SDK but more an example of how to wrap the exposed classes by CE into C# classes. Learn from this and implement the other features you like
 
 
     class FoundList :CEObjectWrapper
@@ -21,7 +21,7 @@ namespace CESDK
                 lua.PushString("Count");
                 lua.GetTable(-2);
 
-                return lua.ToInteger(-1);
+                return (int)lua.ToInteger(-1);
             }
             finally
             {

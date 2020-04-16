@@ -773,6 +773,7 @@ var
   SetProcessDEPPolicy: function(dwFlags: DWORD): BOOL; stdcall;
   GetProcessDEPPolicy: function(h: HANDLE; dwFlags: PDWORD; permanent: PBOOL):BOOL; stdcall;
 
+  GetProcessId: function(h: HANDLE): PTRUINT; stdcall;
 
 
 
@@ -810,7 +811,7 @@ var
     MAXPHYADDR: byte; //number of bits a physical address can be made up of
     MAXPHYADDRMASK: QWORD=QWORD($fffffffff); //mask to AND with a physical address to strip invalid bits
     MAXPHYADDRMASKPB: QWORD=QWORD($ffffff000); //same as MAXPHYADDRMASK but also aligns it to a page boundary
-
+    MAXPHYADDRMASKPBBIG: QWORD=QWORD($fffe00000);
 
 
 
@@ -913,7 +914,6 @@ var
 
   blocksize: integer;
 begin
-
   cr3:=cr3 and MAXPHYADDRMASKPB;
 
   result:=false;
@@ -934,6 +934,7 @@ begin
     inc(currentAddress, x);
     lpBuffer:=pointer(qword(lpbuffer)+x);
     dec(nsize,x);
+
   end;
 
   result:=true;
@@ -1104,7 +1105,9 @@ var
   signed: BOOL;
   r: string;
 begin
-  result:=false;
+  result:=isRunningDBVM;
+  if result then exit;
+
   r:=reason;
   if r='' then r:=rsToUseThisFunctionYouWillNeedToRunDBVM;
 
@@ -1260,6 +1263,7 @@ begin
     else
     if isAMD then
     begin
+{$ifdef DBVMFORAMDISWORKING}
       //check if it supports SVM
       asm
         push {$ifdef cpu64}rax{$else}eax{$endif}
@@ -1280,6 +1284,10 @@ begin
 
       if ((c shr 2) and 1)=1 then
         result:=true; //SVM is possible
+{$else}
+      result:=false;
+{$endif}
+
     end;
 
   end else result:=true; //it's already running DBVM, of course it's supported
@@ -1357,7 +1365,7 @@ begin
     GetThreadsProcessOffset:=@dbk32functions.GetThreadsProcessOffset; //GetProcAddress(DarkByteKernel,'GetThreadsProcessOffset');
     GetThreadListEntryOffset:=@dbk32functions.GetThreadListEntryOffset; //GetProcAddress(DarkByteKernel,'GetThreadListEntryOffset');
     GetDebugportOffset:=@dbk32functions.GetDebugportOffset; //GetProcAddresS(DarkByteKernel,'GetDebugportOffset');
-    GetPhysicalAddress:=@dbk32functions.GetPhysicalAddress; //GetProcAddresS(DarkByteKernel,'GetPhysicalAddress');
+
     GetCR4:=@dbk32functions.GetCR4; //GetProcAddress(DarkByteKernel,'GetCR4');
     GetCR3:=@dbk32functions.GetCR3;
 //    SetCR3:=@dbk32functions.SetCR3;
@@ -1377,7 +1385,7 @@ begin
     GetProcessNameFromID:=@dbk32functions.GetProcessNameFromID;
     GetProcessNameFromPEProcess:=@dbk32functions.GetProcessNameFromPEProcess;
 
-    IsValidHandle:=@dbk32functions.IsValidHandle;
+
 
 
     GetIDTs:=@dbk32functions.GetIDTs;
@@ -1401,11 +1409,9 @@ begin
     GetSDTEntry:= @dbk32functions.GetSDTEntry;
     GetSSDTEntry:=@dbk32functions.GetSSDTEntry;
 
-    isDriverLoaded:=@dbk32functions.isDriverLoaded;
     LaunchDBVM:=@dbk32functions.LaunchDBVM;
 
-    ReadPhysicalMemory:=@dbk32functions.ReadPhysicalMemory;
-    WritePhysicalMemory:=@dbk32functions.WritePhysicalMemory;
+
 
     CreateRemoteAPC:=@dbk32functions.CreateRemoteAPC;
 //    SetGlobalDebugState:=@SetGlobalDebugState;
@@ -1761,6 +1767,7 @@ end;
 {$endif}
 procedure initMaxPhysMask;
 var cpuidr: TCPUIDResult;
+iswow: BOOL;
 begin
   cpuidr:=CPUID($80000008,0);
   MAXPHYADDR:=cpuidr.eax and $ff;
@@ -1768,6 +1775,22 @@ begin
   MAXPHYADDRMASK:=MAXPHYADDRMASK shr MAXPHYADDR;
   MAXPHYADDRMASK:=not (MAXPHYADDRMASK shl MAXPHYADDR);
   MAXPHYADDRMASKPB:=MAXPHYADDRMASK and qword($fffffffffffff000);
+
+  {$ifdef cpu64}
+  MAXPHYADDRMASKPBBIG:=MAXPHYADDRMASK and qword($ffffffffffe00000);
+  {$else}
+  MAXPHYADDRMASKPBBIG:=MAXPHYADDRMASK and qword($ffffffffffc00000);
+
+  if assigned(IsWow64Process) then
+  begin
+    if IsWow64Process(GetCurrentProcess,iswow) then
+    begin
+      if iswow then
+        MAXPHYADDRMASKPBBIG:=MAXPHYADDRMASK and qword($ffffffffffe00000);
+    end;
+  end;
+
+  {$endif}
 end;
 
 {$ifdef windows}
@@ -1910,8 +1933,7 @@ initialization
   SetProcessDEPPolicy:=GetProcAddress(WindowsKernel, 'SetProcessDEPPolicy');
   GetProcessDEPPolicy:=GetProcAddress(WindowsKernel, 'GetProcessDEPPolicy');
 
-
-
+  GetProcessId:=GetProcAddress(WindowsKernel, 'GetProcessId');
 
   psa:=loadlibrary('Psapi.dll');
   EnumDeviceDrivers:=GetProcAddress(psa,'EnumDeviceDrivers');
@@ -1922,8 +1944,11 @@ initialization
   ChangeWindowMessageFilter:=GetProcAddress(u32,'ChangeWindowMessageFilter');
 
 
-
-
+  ReadPhysicalMemory:=@dbk32functions.ReadPhysicalMemory;
+  WritePhysicalMemory:=@dbk32functions.WritePhysicalMemory;
+  GetPhysicalAddress:=@dbk32functions.GetPhysicalAddress;
+  IsValidHandle:=@dbk32functions.IsValidHandle;
+  isDriverLoaded:=@dbk32functions.isDriverLoaded;
 
 
   {$ifdef windows}
