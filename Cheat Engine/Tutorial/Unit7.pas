@@ -64,7 +64,7 @@ resourcestring
     'Go back to the main cheat engine window (you can keep this extra info window open if you want, but if you close it, '+
     'remember what is between the [ and ] ) and do a 4 byte scan in hexadecimal for the value the extra info told you.'+#13#10+
     'When done scanning it may return 1 or a few hundred addresses. Most of the time the address you need will be the '+
-    'smallest one. Now click on manually add and select the pointer checkbox.'+#13#10+
+    'smallest one. Now click on the "Add Address Manually" button and select the pointer checkbox.'+#13#10+
     ''+#13#10+
     'The window will change and allow you to type in the address of a pointer and a offset.'+#13#10+
     'Fill in as address the address you just found.'+#13#10+
