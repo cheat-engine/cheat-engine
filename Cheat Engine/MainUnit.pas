@@ -9449,7 +9449,11 @@ begin
         end;
       end
       else
+      begin
         vt:=foundlist.vartype;
+        if vt=vtCustom then
+          customtype:=foundlist.CustomType;
+      end;
 
       if (vt=vtString) and (cbUnicode.checked) then
         vt:=vtUnicodeString;
