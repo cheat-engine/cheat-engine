@@ -7562,7 +7562,7 @@ begin
   self.Casesensitive:=_casesensitive;
   self.Percentage:=_percentage;
   self.compareToSavedScan:=_compareToSavedScan;
-  self.savedScanName:=savedscanname;
+  self.savedScanName:=_savedscanname;
   nextscan;
 end;
 
