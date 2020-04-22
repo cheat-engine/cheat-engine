@@ -3153,7 +3153,7 @@ begin
           mrCancel: exit;
           mrYes: merge := True;
           mrNo: merge := False;
-      end;
+        end;
       end;
 
       LoadTable(filenames[0], merge);
