@@ -3146,13 +3146,14 @@ begin
 
     if CheckIfSaved then
     begin
-
-      app := messagedlg(rsDoYouWishToMergeTheCurrentTableWithThisTable,
-        mtConfirmation, mbYesNoCancel, 0);
-      case app of
-        mrCancel: exit;
-        mrYes: merge := True;
-        mrNo: merge := False;
+      if ((addresslist.Count > 0) or (advancedoptions.count > 0) or (DissectedStructs.count>0) )then
+      begin
+        app := messagedlg(rsDoYouWishToMergeTheCurrentTableWithThisTable, mtConfirmation, mbYesNoCancel, 0);
+        case app of
+          mrCancel: exit;
+          mrYes: merge := True;
+          mrNo: merge := False;
+      end;
       end;
 
       LoadTable(filenames[0], merge);
