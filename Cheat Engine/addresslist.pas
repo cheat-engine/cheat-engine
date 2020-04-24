@@ -270,6 +270,8 @@ begin
     if (MemRecItems[i].isBeingEdited) or (memrecitems[i].AsyncProcessing) then exit;
 
   //still here so nothing is being edited, so, delete
+  descriptionhashlist.clear;
+
   while count>0 do
   begin
     item:=MemRecItems[0];
@@ -770,7 +772,7 @@ end;
 procedure TAddresslist.MemrecDescriptionChange(memrec: TMemoryRecord; olddescription, newdescription: string);
 begin
   if olddescription<>'' then
-    descriptionhashlist[olddescription]:=nil;
+    descriptionhashlist.Remove(olddescription);
 
   if newdescription<>'' then
     descriptionhashlist[newdescription]:=memrec;
