@@ -1087,7 +1087,7 @@ end;
 destructor TMemoryRecord.destroy;
 var i: integer;
 begin
-  taddresslist(fowner).MemrecDescriptionChange(self);
+  taddresslist(fowner).MemrecDescriptionChange(self, fdescription,'');
 
   if processingThread<>nil then
   begin
@@ -1392,8 +1392,6 @@ begin
   end;
 
   treenode.Expand(true);
-
-
 
   begin
     tempnode:=CheatEntry.FindNode('VariableType');
@@ -2619,8 +2617,8 @@ end;
 
 procedure TMemoryRecord.setDescription(d: string);
 begin
+  TAddresslist(fowner).MemrecDescriptionChange(self, fdescription, d);
   fdescription:=d;
-  TAddresslist(fowner).MemrecDescriptionChange(self);
 end;
 
 procedure TMemoryRecord.setVisible(state: boolean);

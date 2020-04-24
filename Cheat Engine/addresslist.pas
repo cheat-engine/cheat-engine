@@ -126,7 +126,7 @@ type
     procedure miSortOnClickClick(sender: TObject);
   public
     //needsToReinterpret: boolean;
-    procedure MemrecDescriptionChange(memrec: TMemoryRecord);
+    procedure MemrecDescriptionChange(memrec: TMemoryRecord; olddescription, newdescription: string);
     procedure getAddressList(list: Tstrings);
 
     function focused:boolean; override;
@@ -506,6 +506,7 @@ var currentEntry: TDOMNode;
 memrec: TMemoryRecord;
 i: integer;
 begin
+
   currentEntry:=CheatEntries.FirstChild;
   while currententry<>nil do
   begin
@@ -766,13 +767,13 @@ begin
 
 end;
 
-procedure TAddresslist.MemrecDescriptionChange(memrec: TMemoryRecord);
-var i: integer;
+procedure TAddresslist.MemrecDescriptionChange(memrec: TMemoryRecord; olddescription, newdescription: string);
 begin
-  descriptionhashlist.Clear;
-  for i:=0 to count-1 do
-    descriptionhashlist.Data[MemRecItems[i].Description]:=MemRecItems[i];
+  if olddescription<>'' then
+    descriptionhashlist[olddescription]:=nil;
 
+  if newdescription<>'' then
+    descriptionhashlist[newdescription]:=memrec;
 end;
 
 function TAddresslist.getRecordWithDescription(description: string): TMemoryRecord;
