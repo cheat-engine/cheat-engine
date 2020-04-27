@@ -52,20 +52,20 @@ function ceshare.spawnLoginDialog() --I could also use a frm for this, but just 
     pnlBtns=createPanel(f)
     pnlBtns.BevelOuter='bvNone'
     btnOk=createButton(pnlBtns)
-    btnOk.Caption='OK';
+    btnOk.Caption=translate('OK')
     btnOk.ModalResult=mrOK
     btnOk.Default=true
 
     btnCancel=createButton(pnlBtns)
-    btnCancel.Caption='Cancel'
+    btnCancel.Caption=translate('Cancel')
     btnCancel.ModalResult=mrCancel
     btnCancel.Cancel=true
 
-    f.Caption='CEShare Login';
+    f.Caption=translate("CEShare Login")
     f.BorderStyle='bsSingle';
     f.Position='poScreenCenter';
 
-    lblUsername.Caption='Username'
+    lblUsername.Caption=translate('Username')
     lblUsername.AnchorSideTop.Control=f
     lblUsername.AnchorSideTop.Side=asrTop
     lblUsername.AnchorSideLeft.Control=f
@@ -87,7 +87,7 @@ function ceshare.spawnLoginDialog() --I could also use a frm for this, but just 
     edtUsername.Text=''
 
 
-    lblPassword.Caption='Password'
+    lblPassword.Caption=translate('Password')
     lblPassword.AnchorSideTop.Control=edtUsername
     lblPassword.AnchorSideTop.Side=asrBottom
     lblPassword.AnchorSideLeft.Control=lblUsername
@@ -107,7 +107,7 @@ function ceshare.spawnLoginDialog() --I could also use a frm for this, but just 
     edtPassword.name='password';
     edtPassword.Text=''
     
-    lblRegister.Caption='Register'
+    lblRegister.Caption=translate('Register')
     lblRegister.Font.Color=0xff0000
     lblRegister.Font.Style='[fsUnderline]'
     lblRegister.Cursor=-21
@@ -137,14 +137,14 @@ function ceshare.spawnLoginDialog() --I could also use a frm for this, but just 
     pnlBtns.BorderSpacing.Top=6
     pnlBtns.BorderSpacing.Bottom=4
     
-    cbLogoutWhenLoadingTables.Caption='Logout when loading ceshare tables'
+    cbLogoutWhenLoadingTables.Caption=translate('Logout when loading ceshare tables')
     cbLogoutWhenLoadingTables.Name='cbLogoutWhenLoadingTables'
     cbLogoutWhenLoadingTables.AnchorSideTop.Control=pnlBtns
     cbLogoutWhenLoadingTables.AnchorSideTop.Side=asrBottom    
     cbLogoutWhenLoadingTables.AnchorSideLeft.Control=lblUsername
     cbLogoutWhenLoadingTables.AnchorSideLeft.Side=asrLeft
     
-    cbLogoutWhenLoadingTables.Hint='When checked you will get logged out when loading a ceshare table. This to prevent malicious tables from using your account';
+    cbLogoutWhenLoadingTables.Hint=translate('When checked you will get logged out when loading a ceshare table. This to prevent malicious tables from using your account')
     cbLogoutWhenLoadingTables.ShowHint=true    
     cbLogoutWhenLoadingTables.Checked=ceshare.settings.Value['logoutWhenLoadingTables']~='0'
     
