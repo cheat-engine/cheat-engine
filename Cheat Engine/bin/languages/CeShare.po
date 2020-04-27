@@ -27,7 +27,7 @@ msgid "Version independent"
 msgstr ""
 
 #: frmCEShareCheatBrowser.Signed.Caption
-#msgid "Signed"
+#msgid ""
 #msgstr ""
 
 #: frmCEShareCheatBrowser.Match.Caption
@@ -48,6 +48,38 @@ msgstr ""
 
 #: frmCEShareCheatBrowser.btnViewHistory.Caption
 msgid "View History"
+msgstr ""
+
+#: frmCEShareCheatBrowser.lblContact.Hint
+msgid "For contacting the table owner or site admin"
+msgstr ""
+
+#: frmCEShareCheatBrowser.lblContact.Caption
+msgid "Contact"
+msgstr ""
+
+#: frmCEShareCheatBrowser.miLoad.Caption
+msgid "Load Table"
+msgstr ""
+
+#: frmCEShareCheatBrowser.miViewComments.Caption
+msgid "View Comments"
+msgstr ""
+
+#: frmCEShareCheatBrowser.miLoginToSeeMoreOptions.Caption
+msgid "Login to see more options"
+msgstr ""
+
+#: frmCEShareCheatBrowser.miUpdateTable.Caption
+msgid "Update table"
+msgstr ""
+
+#: frmCEShareCheatBrowser.miDeleteTable.Caption
+msgid "Delete table"
+msgstr ""
+
+#: frmCEShareCheatBrowser.miManageAccessList.Caption
+msgid "Manage accesslist"
 msgstr ""
 
 #: ceshare_frmComments.lblPrevious25.Caption
@@ -75,9 +107,11 @@ msgid "By entering a CEShare URL you will be able to upload and download Cheat T
 msgstr ""
 
 #: ceshare_initiaISetup.CELabel3.Caption
-msgid "Disclaimer: These are third-party servers. They are not owned or maintained by the Cheat Engine project, and no warranty regarding their content is given. 
+msgid "Disclaimer: These are third-party servers. They are not owned or maintained by the Cheat Engine project, and no warranty or responsiblity regarding their content is given. \n\nPlease contact the respective server owner for further inquiries."
+msgstr ""
 
-Please contact the respective server owner for further inquiries."
+#: ceshare_initiaISetup.CELabel4.Caption
+msgid "Click cancel or leave empty if you don't wish to use this"
 msgstr ""
 
 #: ceshare_initiaISetup.CEButton1.Caption
@@ -88,24 +122,12 @@ msgstr ""
 msgid "Cancel"
 msgstr ""
 
-#: ceshare_initiaISetup.CELabel4.Caption
-msgid "Click cancel if you don't wish to use this"
-msgstr ""
-
 #: frmCESharePublishCheat.Caption
 msgid "Publish New Cheat"
 msgstr ""
 
 #: frmCESharePublishCheat.lblTitle.Caption
 msgid "Title:"
-msgstr ""
-
-#: frmCESharePublishCheat.cbVersionlndependent.Caption
-msgid "Version Independent"
-msgstr ""
-
-#: frmCESharePublishCheat.lblHeaderMD5.Caption
-msgid "lblHeaderMD5"
 msgstr ""
 
 #: frmCESharePublishCheat.lblHeaderMD5Text.Caption
@@ -120,10 +142,6 @@ msgstr ""
 msgid "Full file hash:"
 msgstr ""
 
-#: frmCESharePublishCheat.lblFullHeaderMD5.Caption
-msgid "lblFullHeaderMD5"
-msgstr ""
-
 #: frmCESharePublishCheat.cbUseSecondaryModule.Caption
 msgid "Needs secondary modulecheck"
 msgstr ""
@@ -132,12 +150,32 @@ msgstr ""
 msgid "Modulename"
 msgstr ""
 
-#: frmCESharePublishCheat.btnPublish.Caption
-msgid "Publish"
+#: frmCESharePublishCheat.lblURL.Caption
+msgid "URL (Optional)"
 msgstr ""
 
 #: frmCESharePublishCheat.cbPublic.Caption
 msgid "Allow everyone to edit this table"
+msgstr ""
+
+#: frmCESharePublishCheat.cbPublic.Hint
+msgid "When this is enabled will let EVERYONE be able to edit/replace your table.  So be careful with enabling this and understand that once someone else has modified the table, you will not be able to delete it anymore"
+msgstr ""
+
+#: frmCESharePublishCheat.btnPublish.Caption
+msgid "Publish"
+msgstr ""
+
+#: frmCEShareUpdateOrNew_1.Caption
+msgid "Update/publish"
+msgstr ""
+
+#: frmCEShareUpdateOrNew_1.rbPublish.Caption
+msgid "Publish new table"
+msgstr ""
+
+#: frmCEShareUpdateOrNew_1.btnChoose.Caption
+msgid "Update table"
 msgstr ""
 
 #: ceshare_permissions.Caption
@@ -148,14 +186,6 @@ msgstr ""
 msgid "ID"
 msgstr ""
 
-#: ceshare_permissions.lblID.Caption
-msgid "lblID"
-msgstr ""
-
-#: ceshare_permissions.lblTitle.Caption
-msgid "lblTitle"
-msgstr ""
-
 #: ceshare_permissions.lblOwnerTxt.Caption
 msgid "Owner"
 msgstr ""
@@ -164,8 +194,8 @@ msgstr ""
 msgid "  OK  "
 msgstr ""
 
-#: ceshare_permissions.lblTitle.Caption
-msgid "lblTitle"
+#: ceshare_permissions.btnAddUser.Caption
+msgid "Add user"
 msgstr ""
 
 #: miCESHARETopMenuItem.Caption
@@ -181,15 +211,11 @@ msgid "Request and check other requests for mods/cheats for current process"
 msgstr ""
 
 #: miLoginToSeeMoreOptions.Caption
-msgid "Login to see more options (Like publish Table)"
+msgid "Publish/Update table"
 msgstr ""
 
-#: miPublishCheat.Caption
-msgid "Publish table"
-msgstr ""
-
-#: miUpdateCheat.Caption
-msgid "Update table"
+#: sf.SettingsTreeView.Items.insert
+msgid "CEShare"
 msgstr ""
 
 #: lblCEShareLabel.Caption
@@ -202,10 +228,6 @@ msgstr ""
 
 #: btnAllow.Caption
 msgid "Allow"
-msgstr ""
-
-#: btnCancel.Caption
-msgid "Cancel"
 msgstr ""
 
 #: header.caption
@@ -222,4 +244,112 @@ msgstr ""
 
 #: SDNR
 msgid "Server did not respond"
+msgstr ""
+
+#: ceshare_account-f.Caption
+msgid "CEShare Login"
+msgstr ""
+
+#: ceshare_account-lblUsername.Caption
+msgid "Username"
+msgstr ""
+
+#: ceshare_account-lblPassword.Caption
+msgid "Password"
+msgstr ""
+
+#: ceshare_account-lblRegister.Caption
+msgid "Register"
+msgstr ""
+
+#: ceshare_account-cbLogoutWhenLoadingTables.Caption
+msgid "Logout when loading ceshare tables"
+msgstr ""
+
+#: ceshare_account-cbLogoutWhenLoadingTables.Hint
+msgid "When checked you will get logged out when loading a ceshare table. This to prevent malicious tables from using your account"
+msgstr ""
+
+#: ceshare_permissions
+msgid "Are you sure you wish to change the owner?"
+msgstr ""
+
+#: ceshare_permissions1
+msgid "Access has been updated"
+msgstr ""
+
+#: ceshare_publish
+msgid "Are you sure you wish to delete this table?"
+msgstr ""
+
+#: ceshare_publish
+msgid "Table successfuly deleted"
+msgstr ""
+
+#: ceshare_publish
+msgid "processname is empty"
+msgstr ""
+
+#: ceshare_publish
+msgid "title is empty"
+msgstr ""
+
+#: ceshare_publish
+msgid "data is empty"
+msgstr ""
+
+#: ceshare_publish
+msgid "description is empty"
+msgstr ""
+
+#: ceshare_publish
+msgid "Thank you, your table has been published"
+msgstr ""
+
+#: ceshare_publish
+msgid "No id given"
+msgstr ""
+
+#: ceshare_publish
+msgid "Thank you, your table has been updated"
+msgstr ""
+
+#: ceshare_publish
+msgid "Please select a cheattable to update"
+msgstr ""
+
+#: ceshare_publish
+msgid "Invalid background update query list"
+msgstr ""
+
+#: ceshare_publish
+msgid "Are you sure you wish to let \'Everyone\' overwrite your table in the ceshare system ?"
+msgstr ""
+
+#: ceshare_publish
+msgid "Do you wish to sign this table?"
+msgstr ""
+
+#: ceshare_querycheats
+msgid "Contact who?"
+msgstr ""
+
+#: ceshare_querycheats
+msgid "Site Admin"
+msgstr ""
+
+#: ceshare_querycheats
+msgid "Table Owner"
+msgstr ""
+
+#: ceshare_querycheats
+msgid "Sorry, but there are currently no tables for this target. Perhaps you can be the first"
+msgstr ""
+
+#: ceshare_requests
+msgid "Requests"
+msgstr ""
+
+#: ceshare_requests
+msgid "Score="
 msgstr ""
