@@ -530,7 +530,7 @@ function ceshare.CheckForCheatsClick(s)
       if index~=-1 then
         ceshare.CheatBrowserFrm.miLoad.Visible=true
         ceshare.CheatBrowserFrm.miViewComments.Visible=true
-        --ceshare.CheatBrowserFrm.miViewHistory.Visible=false --to be implemented later
+        ceshare.CheatBrowserFrm.miViewHistory.Visible=false --to be implemented later
         ceshare.CheatBrowserFrm.sep.Visible=true
         
         local entry=ceshare.CurrentQuery[index+1]
@@ -549,7 +549,7 @@ function ceshare.CheckForCheatsClick(s)
       else
         ceshare.CheatBrowserFrm.miLoad.Visible=false
         ceshare.CheatBrowserFrm.miViewComments.Visible=false
-        --ceshare.CheatBrowserFrm.miViewHistory.Visible=false
+        ceshare.CheatBrowserFrm.miViewHistory.Visible=false
         ceshare.CheatBrowserFrm.sep.Visible=false      
       end
       
@@ -627,7 +627,7 @@ function ceshare.CheckForCheatsClick(s)
   end
   
 
- -- ceshare.CheatBrowserFrm.btnViewHistory.Visible=false --later
+  ceshare.CheatBrowserFrm.btnViewHistory.Visible=false --later
 
   ceshare.CheatBrowserFrm.show()
   ceshare.CheatBrowserFrm.AutoSize=false
