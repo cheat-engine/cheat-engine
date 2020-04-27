@@ -151,7 +151,7 @@ z=registerFormAddNotification(function(s)
       ceshare.ProcessListWindow=s2
       
       local ts=s2.TabHeader.addTab()
-      ts.Caption='CEShare'
+      ts.Caption=translate('CEShare')
       ceshare.ProcessListTab=ts
       ts.Name='tsCEShare'  
 
