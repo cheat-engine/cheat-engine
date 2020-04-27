@@ -735,7 +735,7 @@ end;
 procedure TMemoryRecordHotkey.registerKeys;
 begin
   UnregisterAddressHotkey(self);
-  RegisterHotKey2(mainform.handle, 0, keys, self);
+  RegisterHotKey2(mainform.handle, -1, keys, self);
 end;
 
 procedure TMemoryRecordHotkey.doHotkey;
