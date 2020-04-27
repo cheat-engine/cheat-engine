@@ -1,0 +1,355 @@
+#: frmCEShareCheatBrowser.TTrainerForm.Caption
+msgid "Cheat Browser"
+msgstr "CT浏览器"
+
+#: frmCEShareCheatBrowser.CELabel.Caption
+msgid "Processname:"
+msgstr "目标进程:"
+
+#: frmCEShareCheatBrowser.Title.Caption
+msgid "Title"
+msgstr "标题"
+
+#: frmCEShareCheatBrowser.Author.Caption
+msgid "Author"
+msgstr "作者"
+
+#: frmCEShareCheatBrowser.Public.Caption
+msgid "Public"
+msgstr "公有"
+
+#: frmCEShareCheatBrowser.Score.Caption
+msgid "Score"
+msgstr "分数"
+
+#: frmCEShareCheatBrowser.Version.Caption
+msgid "Version independent"
+msgstr ""
+
+#: frmCEShareCheatBrowser.Signed.Caption
+#msgid "Signed"
+#msgstr ""
+
+#: frmCEShareCheatBrowser.Match.Caption
+msgid "% Match"
+msgstr ""
+
+#: frmCEShareCheatBrowser.btnLoadTable.Caption
+msgid "    Load    "
+msgstr "    加载    "
+
+#: frmCEShareCheatBrowser.btnAddViewComments.Caption
+msgid "Add/View Comments"
+msgstr "添加/查看评论"
+
+#: frmCEShareCheatBrowser.lblRate.Caption
+msgid "Rate:"
+msgstr "评分:"
+
+#: frmCEShareCheatBrowser.btnViewHistory.Caption
+msgid "View History"
+msgstr "查看历史"
+
+#: frmCEShareCheatBrowser.lblContact.Hint
+msgid "For contacting the table owner or site admin"
+msgstr "用于CT表作者者或网站管理员"
+
+#: frmCEShareCheatBrowser.lblContact.Caption
+msgid "Contact"
+msgstr "联系作者"
+
+#: frmCEShareCheatBrowser.miLoad.Caption
+msgid "Load Table"
+msgstr "加载"
+
+#: frmCEShareCheatBrowser.miViewComments.Caption
+msgid "View Comments"
+msgstr "查看评论"
+
+#: frmCEShareCheatBrowser.miLoginToSeeMoreOptions.Caption
+msgid "Login to see more options"
+msgstr "请登录以便查看更多选项"
+
+#: frmCEShareCheatBrowser.miUpdateTable.Caption
+msgid "Update table"
+msgstr "更新"
+
+#: frmCEShareCheatBrowser.miDeleteTable.Caption
+msgid "Delete table"
+msgstr "删除"
+
+#: frmCEShareCheatBrowser.miManageAccessList.Caption
+msgid "Manage accesslist"
+msgstr "管理访问清单"
+
+#: ceshare_frmComments.lblPrevious25.Caption
+msgid "Previous 25"
+msgstr "上一页 25"
+
+#: ceshare_frmComments.lblNext25.Caption
+msgid "Next 25"
+msgstr "下一页 25"
+
+#: ceshare_frmComments.btnSend.Caption
+msgid "   Send   "
+msgstr "   发送   "
+
+#: ceshare_initiaISetup.Caption
+msgid "CEShare Initial Setup"
+msgstr "CEShare初始设置"
+
+#: ceshare_initiaISetup.CELabel1.Caption
+msgid "CEShare community URL:"
+msgstr "CEShare社区网址："
+
+#: ceshare_initiaISetup.CELabel2.Caption
+msgid "By entering a CEShare URL you will be able to upload and download Cheat Tables from a ceshare server community"
+msgstr "通过设置CEShare URL，您将能够从ceshare服务器社区上传和下载CT表"
+
+#: ceshare_initiaISetup.CELabel3.Caption
+msgid "Disclaimer: These are third-party servers. They are not owned or maintained by the Cheat Engine project, and no warranty or responsiblity regarding their content is given. \n\nPlease contact the respective server owner for further inquiries."
+msgstr "免责声明：这些是第三方服务器。 它们不是Cheat Engine项目的所有者或维护者，也不对其内容提供任何保证。\n\n请联系相应的服务器所有者以进行进一步的查询。"
+
+#: ceshare_initiaISetup.CELabel4.Caption
+msgid "Click cancel or leave empty if you don't wish to use this"
+msgstr "如果不想使用此功能，请单击“取消”或留空"
+
+#: ceshare_initiaISetup.CEButton1.Caption
+msgid "OK"
+msgstr "确定"
+
+#: ceshare_initiaISetup.CEButton2.Caption
+msgid "Cancel"
+msgstr "取消"
+
+#: frmCESharePublishCheat.Caption
+msgid "Publish New Cheat"
+msgstr "发布CT"
+
+#: frmCESharePublishCheat.lblTitle.Caption
+msgid "Title:"
+msgstr "标题:"
+
+#: frmCESharePublishCheat.lblHeaderMD5Text.Caption
+msgid "Header MD5:"
+msgstr ""
+
+#: frmCESharePublishCheat.cbNeedsFullFilrHash.Caption
+msgid "Needs full file hash"
+msgstr ""
+
+#: frmCESharePublishCheat.lblFullHeaderMD5Text.Caption
+msgid "Full file hash:"
+msgstr ""
+
+#: frmCESharePublishCheat.cbUseSecondaryModule.Caption
+msgid "Needs secondary modulecheck"
+msgstr ""
+
+#: frmCESharePublishCheat.lblModulename.Caption
+msgid "Modulename"
+msgstr ""
+
+#: frmCESharePublishCheat.lblURL.Caption
+msgid "URL (Optional)"
+msgstr "网址(可选)"
+
+#: frmCESharePublishCheat.cbPublic.Caption
+msgid "Allow everyone to edit this table"
+msgstr "允许所有人编辑此CT表"
+
+#: frmCESharePublishCheat.cbPublic.Hint
+msgid "When this is enabled will let EVERYONE be able to edit/replace your table.  So be careful with enabling this and understand that once someone else has modified the table, you will not be able to delete it anymore"
+msgstr "启用此功能后，每个人都可以编辑/替换， 因此启用此功能时要格外小心，并且一旦其他人修改了该CT表，您将无法再将其删除"
+
+#: frmCESharePublishCheat.btnPublish.Caption
+msgid "Publish"
+msgstr "发布"
+
+#: frmCEShareUpdateOrNew_1.Caption
+msgid "Update/publish"
+msgstr "更新/发布"
+
+#: frmCEShareUpdateOrNew_1.rbPublish.Caption
+msgid "Publish new table"
+msgstr "发布"
+
+#: frmCEShareUpdateOrNew_1.btnChoose.Caption
+msgid "Update table"
+msgstr "更新"
+
+#: ceshare_permissions.Caption
+msgid "Update Permissions"
+msgstr "更新权限"
+
+#: ceshare_permissions.lblIDTxt.Caption
+msgid "ID"
+msgstr ""
+
+#: ceshare_permissions.lblOwnerTxt.Caption
+msgid "Owner"
+msgstr "所有者"
+
+#: ceshare_permissions.mrOK.Caption
+msgid "  OK  "
+msgstr "  确定  "
+
+#: ceshare_permissions.btnAddUser.Caption
+msgid "Add user"
+msgstr "添加用户"
+
+#: miCESHARETopMenuItem.Caption
+msgid "CE Share"
+msgstr "CE 分享"
+
+#: miCheckForCheats.Caption
+msgid "Check for mods/cheats for current process"
+msgstr "查找当前进程CT分享"
+
+#: miRequestCheats.Caption
+msgid "Request and check other requests for mods/cheats for current process"
+msgstr "请求获取当前进程CT分享"
+
+#: miLoginToSeeMoreOptions.Caption
+msgid "Publish/Update table"
+msgstr "登录(发布CT)"
+
+#: sf.SettingsTreeView.Items.insert
+msgid "CEShare"
+msgstr "CE分享"
+
+#: lblCEShareLabel.Caption
+msgid "CEShare community URL"
+msgstr "CEShare社区网址"
+
+#: d.Caption
+msgid "Secondary identifier code"
+msgstr ""
+
+#: btnAllow.Caption
+msgid "Allow"
+msgstr "允许"
+
+#: header.caption
+msgid "This process needs a special identifier to set it apart from others with the same name. To generate this identifier the below code is needed. Do you agree with the execution of this code to generate the identifier?"
+msgstr ""
+
+#: Error
+msgid "Error:"
+msgstr ""
+
+#: IRFS
+msgid "Invalid reply from server:"
+msgstr ""
+
+#: SDNR
+msgid "Server did not respond"
+msgstr "服务器未响应"
+
+#: ceshare_account-f.Caption
+msgid "CEShare Login"
+msgstr "登录"
+
+#: ceshare_account-lblUsername.Caption
+msgid "Username"
+msgstr "用户名"
+
+#: ceshare_account-lblPassword.Caption
+msgid "Password"
+msgstr "密码"
+
+#: ceshare_account-lblRegister.Caption
+msgid "Register"
+msgstr "注册"
+
+#: ceshare_account-cbLogoutWhenLoadingTables.Caption
+msgid "Logout when loading ceshare tables"
+msgstr ""
+
+#: ceshare_account-cbLogoutWhenLoadingTables.Hint
+msgid "When checked you will get logged out when loading a ceshare table. This to prevent malicious tables from using your account"
+msgstr ""
+
+#: ceshare_permissions
+msgid "Are you sure you wish to change the owner?"
+msgstr "您确定要更改所有者吗？"
+
+#: ceshare_permissions1
+msgid "Access has been updated"
+msgstr "访问权限已更新"
+
+#: ceshare_publish
+msgid "Are you sure you wish to delete this table?"
+msgstr "您确定要删除吗？"
+
+#: ceshare_publish
+msgid "Table successfuly deleted"
+msgstr "删除成功"
+
+#: ceshare_publish
+msgid "processname is empty"
+msgstr "进程(空)"
+
+#: ceshare_publish
+msgid "title is empty"
+msgstr "标题(空)"
+
+#: ceshare_publish
+msgid "data is empty"
+msgstr "数据(空)"
+
+#: ceshare_publish
+msgid "description is empty"
+msgstr "描述(空)"
+
+#: ceshare_publish
+msgid "Thank you, your table has been published"
+msgstr "谢谢，您的CT已经发布"
+
+#: ceshare_publish
+msgid "No id given"
+msgstr "没有编号"
+
+#: ceshare_publish
+msgid "Thank you, your table has been updated"
+msgstr "谢谢，您的CT已经更新"
+
+#: ceshare_publish
+msgid "Please select a cheattable to update"
+msgstr "请选择一个可更新的版本"
+
+#: ceshare_publish
+msgid "Invalid background update query list"
+msgstr ""
+
+#: ceshare_publish
+msgid "Are you sure you wish to let \'Everyone\' overwrite your table in the ceshare system ?"
+msgstr "您确定要让 \'所有人\' 在ceshare系统中覆盖您的CT表吗？"
+
+#: ceshare_publish
+msgid "Do you wish to sign this table?"
+msgstr ""
+
+#: ceshare_querycheats
+msgid "Contact who?"
+msgstr "联系"
+
+#: ceshare_querycheats
+msgid "Site Admin"
+msgstr "网站管理员"
+
+#: ceshare_querycheats
+msgid "Table Owner"
+msgstr "CT作者"
+
+#: ceshare_querycheats
+msgid "Sorry, but there are currently no tables for this target. Perhaps you can be the first"
+msgstr "抱歉，改目标目前没有任何CT分享，也许你可以成为第一个分享的人。"
+
+#: ceshare_requests
+msgid "Requests"
+msgstr ""
+
+#: ceshare_requests
+msgid "Score="
+msgstr "点赞="
