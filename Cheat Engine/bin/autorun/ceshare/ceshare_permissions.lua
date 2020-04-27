@@ -65,7 +65,7 @@ function ceshare.ManageAccessList(entry)
         --apply the changes
         local parameters='id='..entry.ID
         if entry.access.Owner~=ceshare.PermissionsFrm.edtOwner.Text then
-          if messageDialog('Are you sure you wish to change the owner?', mtConfirmation,mbYes,mbNo)~=mrYes then return end
+          if messageDialog(translate('Are you sure you wish to change the owner?'), mtConfirmation,mbYes,mbNo)~=mrYes then return end
           parameters=parameters..'&owner='..ceshare.url_encode(ceshare.PermissionsFrm.edtOwner.Text)
         end
         
@@ -75,7 +75,7 @@ function ceshare.ManageAccessList(entry)
         
         r=ceshare.QueryXURL('SetAccessList.php',parameters)
         if r then
-          showMessage('Access has been updated');
+          showMessage(translate('Access has been updated'));
         end
         
       end
