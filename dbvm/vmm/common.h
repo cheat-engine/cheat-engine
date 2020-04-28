@@ -434,7 +434,6 @@ typedef volatile struct _PDE2MB_PAE
         unsigned EXB       :  1;
 } __attribute__((__packed__)) _PDE2MB_PAE, *PPDE2MB_PAE;
 
-
 typedef volatile struct _PDPTE_PAE
 {
         unsigned P         :  1; // 0: present (1 = present)
@@ -450,6 +449,40 @@ typedef volatile struct _PDPTE_PAE
         unsigned reserved3 : 23;
         unsigned EXB       :  1;
 } __attribute__((__packed__)) *PPDPTE_PAE;
+
+typedef struct _PPDPTE_PAE_BS
+{
+        unsigned P         :  1; // present (1 = present)
+        unsigned RW        :  1; // Read Write
+        unsigned US        :  1; // User supervisor
+        unsigned PWT       :  1; // page-level write-through
+        unsigned PCD       :  1; // page-level cache disabled
+        unsigned A         :  1;
+        unsigned D         :  1;
+        unsigned PS        :  1;
+        unsigned G         :  1;
+        unsigned A1        :  1; // available 1 aka copy-on-write
+        unsigned A2        :  1; // available 2/ is 1 when paged to disk
+        unsigned A3        :  1; // available 3
+        unsigned PFN       : 24; // page-frame number
+        unsigned reserved3 : 28;
+} __attribute__((__packed__)) *PPDPTE_PAE_BS;
+
+typedef volatile struct _PPML4
+{
+        unsigned P         :  1; // 0: present (1 = present)
+        unsigned RW        :  1; // 1: Read Write
+        unsigned US        :  1; // 2: User supervisor
+        unsigned PWT       :  1; // 3: page-level write-through
+        unsigned PCD       :  1; // 4: page-level cache disabled
+        unsigned reserved2 :  4; // 5-8: reserved
+        unsigned A1        :  1; // 9: available 1 aka copy-on-write
+        unsigned A2        :  1; // 10: available 2/ is 1 when paged to disk
+        unsigned A3        :  1; // 11: available 3
+        unsigned PFN       : 28; // page-frame number
+        unsigned reserved3 : 23;
+        unsigned EXB       :  1;
+} __attribute__((__packed__)) *PPML4;
 
 
 typedef struct _TSS

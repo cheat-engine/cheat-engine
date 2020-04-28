@@ -93,5 +93,6 @@
 #define IA32_TSC_MSR              0x10
 #define IA32_TSC_AUX_MSR          0xc0000103
 
+#define VM_HSAVE_PA_MSR           0xc0010117 //AMD
 
 #endif /* MSRNAMES_H_ */

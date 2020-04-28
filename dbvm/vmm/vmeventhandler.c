@@ -1074,8 +1074,8 @@ ULONG getSegmentAccessRights(PGDT_ENTRY gdt, PGDT_ENTRY ldt, ULONG selector)
 
 WORD convertSegmentAccessRightsToSegmentAttrib(ULONG accessrights)
 {
-  Access_Rights ar;
-  Segment_Attribs sa;
+  Access_Rights ar; //intel
+  Segment_Attribs sa; //amd
 
   ar.AccessRights=accessrights;
 

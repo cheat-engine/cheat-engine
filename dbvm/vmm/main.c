@@ -122,16 +122,31 @@ int cinthandler(unsigned long long *stack, int intnr) //todo: move to it's own s
 
   enableserial();
 
+
+  ddDrawRectangle(DDHorizontalResolution-100,0,100,100,_rdtsc());
+
+  if (readMSR(IA32_FS_BASE_MSR)==0)
+  {
+
 #ifdef DEBUG
   sendstringCS.ignorelock=1;
   sendstringfCS.ignorelock=1;
 #endif
 
-  ddDrawRectangle(DDHorizontalResolution-100,0,100,100,_rdtsc());
 
-  if (readMSRSafe(IA32_FS_BASE_MSR)==0)
-  {
-    sendstringf("Invalid FS base during exception\n");
+    sendstringf("Invalid FS base during exception %d  CR2=%6!!\n",intnr, getCR2());
+
+
+    if (intnr==13)
+    {
+      UINT64 RIP=stack[17];
+      errorcodeValue=stack[16];
+
+      sendstringf("RIP=%6\n", RIP);
+      sendstringf("ErrorCode=%x\n", errorcodeValue);
+
+    }
+
     ddDrawRectangle(0,DDVerticalResolution-100,100,100,0xff0000);
     while (1) outportb(0x80,0xc5);
   }
@@ -883,12 +898,15 @@ void vmm_entry2(void)
     vmm_entry2_hlt(cpuinfo);
   }
 
+  sendstringf("Starting VMX for cpu %d\n", cpunr);
+
+  displayline("CPU CORE %d: entering VMX mode\n",cpunr);
 
   startvmx(cpuinfo);
 
    // while (1); //debug
 
-  displayline("CPU CORE %d: entering VMX mode\n",cpunr);
+
 
   sendstringf("Application cpu returned from startvmx\n\r");
 
@@ -1068,7 +1086,7 @@ void vmm_entry(void)
   cpu_familyID=cpu_familyID + (cpu_ext_familyID << 4);
 
 
-  //if (0)
+ // if (0)
   if (1) //((d & (1<<28))>0) //this doesn't work in vmware, so find a different method
   {
     QWORD entrypage=0x30000;
@@ -1668,6 +1686,21 @@ void vmcalltest(void)
 //#pragma GCC pop_options
 
 
+void apentryvmx()
+{
+  nosendchar[getAPICID()]=0;
+ // sendstringf("Hello from %d", getAPICID());
+
+  while (1)
+  {
+   // sendchar("-");
+    QWORD eax,ebx,ecx,edx;
+    _cpuid(&eax,&ebx,&ecx,&edx);
+
+
+  }
+
+}
 
 void reboot(int skipAPTerminationWait)
 {
@@ -2529,9 +2562,7 @@ void menu(void)
         case 'l':
         {
           sendstring("Entering lua console:");
-          //enterLuaConsole();
-
-
+          enterLuaConsole();
           break;
         }
 #endif
@@ -2716,20 +2747,22 @@ void startvmx(pcpuinfo currentcpuinfo)
 
 
 
-          UINT64 VM_HSAVE_PA_MSR=readMSR(0xc0010117); //VM_HSAVE_PA MSR
-          sendstringf("VM_HSAVE_PA_MSR was %6\n", VM_HSAVE_PA_MSR);
+          UINT64 VM_HSAVE_PA_MSR_VALUE=readMSR(VM_HSAVE_PA_MSR); //VM_HSAVE_PA MSR
+          sendstringf("VM_HSAVE_PA_MSR was %6\n", VM_HSAVE_PA_MSR_VALUE);
 
-          currentcpuinfo->vmcb_host=malloc(4096);
+          currentcpuinfo->vmcb_host=malloc(8192);
+          zeromemory(currentcpuinfo->vmcb_host,8192);
         //  bochsbp();
-          writeMSR(0xc0010117, (UINT64)VirtualToPhysical(currentcpuinfo->vmcb_host));
+          writeMSR(VM_HSAVE_PA_MSR, (UINT64)VirtualToPhysical(currentcpuinfo->vmcb_host));
 
-
+          sendstringf("VM_HSAVE_PA_MSR is %6\n", (UINT64)readMSR(VM_HSAVE_PA_MSR));
 
     		  setupVMX(currentcpuinfo);
 
 
           /*if (!isAP)
             clearScreen();*/
+
 
 
 

@@ -11,6 +11,7 @@ extern cinthandler
 extern menu
 extern memorylist
 extern clearScreen
+extern getAPICID
 
 GLOBAL amain
 GLOBAL vmmstart
@@ -244,7 +245,7 @@ struc vmxloop_amd_stackframe
   saved_rcx:      resq 1
   saved_rbx:      resq 1
   saved_rax:      resq 1
-                  resq 1  ;alignment
+  saved_fsbase:   resq 1
   fxsavespace:    resb 512 ;fxsavespace must be aligned
   psavedstate:    resq 1 ;saved param3
   vmcb_PA:        resq 1 ;saved param2
@@ -317,12 +318,13 @@ vmrun_loop:
 ;xchg bx,bx
 mov rax,[rsp+vmcb_PA]  ;for those wondering, RAX is stored in the vmcb->RAX field, not here
 vmload
+clgi
+cli
 vmrun ;rax
+cli
+clgi
 vmsave
 
-
-;on return RAX and RSP are unchanged, but ALL other registers are changed and MUST be saved first
-;xchg bx,bx
 
 db 0x48
 fxsave [rsp+fxsavespace]
@@ -342,6 +344,19 @@ mov [rsp+saved_rcx],rcx
 mov [rsp+saved_rbx],rbx
 mov [rsp+saved_rax],rax
 
+;save guest fs-base
+mov ecx,0c0000100h
+rdmsr
+shl rdx,32
+add rax,rdx
+mov [rsp+saved_fsbase],rax
+
+;restore host fs-base
+mov ecx,0c0000100h
+mov eax,[rsp+currentcpuinfo]
+mov edx,[rsp+currentcpuinfo+4]
+wrmsr
+
 mov rdi,[rsp+currentcpuinfo]
 lea rsi,[rsp+saved_r15] ;vmregisters
 lea rdx,[rsp+fxsavespace] ;fxsave
@@ -352,7 +367,12 @@ call vmexit_amd
 cmp eax,1
 je vmrun_exit
 
-;restore
+;restore guest
+mov ecx,0c0000100h ;fs-base
+mov eax,[rsp+saved_fsbase]
+mov edx,[rsp+saved_fsbase+4]
+wrmsr
+
 db 0x48
 fxrstor [rsp+fxsavespace]
 mov r15,[rsp+saved_r15]
@@ -1368,6 +1388,17 @@ db 0xcc
 db 0xcc
 db 0xcc
 
+global setDR1
+;--------------------;
+;setDR1(ULONG newdr1);
+;--------------------;
+setDR1:
+mov dr1,rdi
+ret
+db 0xcc
+db 0xcc
+db 0xcc
+
 global getDR2
 ;------------------;
 ;ULONG getDR2(void);
@@ -1379,12 +1410,34 @@ db 0xcc
 db 0xcc
 db 0xcc
 
+global setDR2
+;--------------------;
+;setDR2(ULONG newdr2);
+;--------------------;
+setDR2:
+mov dr2,rdi
+ret
+db 0xcc
+db 0xcc
+db 0xcc
+
 global getDR3
 ;------------------;
 ;ULONG getDR3(void);
 ;------------------;
 getDR3:
 mov rax,dr3
+ret
+db 0xcc
+db 0xcc
+db 0xcc
+
+global setDR3
+;--------------------;
+;setDR3(ULONG newdr3);
+;--------------------;
+setDR3:
+mov dr3,rdi
 ret
 db 0xcc
 db 0xcc
@@ -2298,8 +2351,9 @@ infloop:
 nop
 nop
 xchg bx,bx
+cpuid
 nop
-hlt
+;hlt
 nop
 nop
 xchg bx,bx ;should never happen
@@ -2730,6 +2784,17 @@ mov si,(str_givingup-movetoreal)
 call printstring
 
 notok_loop:
+sti
+mov ax,0xb800
+mov ds,ax
+mov byte [0],'X'
+mov byte [1],025h
+mov byte [2],'X'
+mov byte [3],025h
+mov byte [4],'X'
+mov byte [5],025h
+mov byte [6],'X'
+mov byte [7],025h
 nop
 nop
 cpuid

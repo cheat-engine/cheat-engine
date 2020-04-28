@@ -2069,6 +2069,9 @@ void initMemTypeRanges()
 //builds an array of memory ranges and their cache
 {
   int i;
+  if (memoryrangesPos)
+    return; //already initialized
+
   csEnter(&memoryrangesCS);
 
   memoryrangesPos=0;

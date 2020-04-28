@@ -7,6 +7,8 @@
 
 
 void reboot(int skipAPTermination);
+void apentryvmx();
+
 
 void startvmx(pcpuinfo currentcpuinfo);
 void CheckCRCValues(void);
@@ -43,8 +45,11 @@ extern UINT64 getCR8(void);
 extern UINT64 getDR0(void);
 extern UINT64 setDR0(UINT64 newdr0);
 extern UINT64 getDR1(void);
+extern UINT64 setDR1(UINT64 newdr0);
 extern UINT64 getDR2(void);
+extern UINT64 setDR2(UINT64 newdr0);
 extern UINT64 getDR3(void);
+extern UINT64 setDR3(UINT64 newdr0);
 extern UINT64 getDR6(void);
 extern UINT64 setDR6(UINT64 newdr6);
 extern UINT64 getDR7(void);

@@ -30,6 +30,30 @@ int lua_print(lua_State *L)
   return 0;
 }
 
+int lua_cpuid(lua_State *L)
+{
+  unsigned long long rax,rbx,rcx,rdx;
+
+  if (lua_gettop(L)>=1)
+  {
+    rax=lua_tointeger(L,1);
+
+    if (lua_gettop(L)>=2)
+    {
+      rcx=lua_tointeger(L,2);
+    }
+  }
+
+  _cpuid(&rax,&rbx,&rcx,&rdx);
+
+  lua_pushinteger(L,rax);
+  lua_pushinteger(L,rbx);
+  lua_pushinteger(L,rcx);
+  lua_pushinteger(L,rdx);
+
+  return 4;
+}
+
 int lua_readMSR(lua_State *L)
 {
   if (lua_gettop(L)>=1)
@@ -196,6 +220,8 @@ lua_State *initializeLua(void)
 
        lua_register(LuaVM,"readMSR", lua_readMSR);
        lua_register(LuaVM,"writeMSR", lua_writeMSR);
+
+       lua_register(LuaVM,"cpuid", lua_cpuid);
 
 
 
