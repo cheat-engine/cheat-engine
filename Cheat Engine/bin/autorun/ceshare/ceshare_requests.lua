@@ -1,3 +1,7 @@
+if getTranslationFolder()~='' then
+  loadPOFile(getTranslationFolder()..'CeShare.po')
+end
+
 function ceshare.QueryProcessRequests(processname, startindex)
   local result=nil
   if processname==nil or processname=='' then return end

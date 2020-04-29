@@ -1,322 +1,335 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"POT-Creation-Date: \n"
+"PO-Revision-Date: \n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: ru\n"
+"X-Generator: Poedit 2.2.3\n"
+
 #: frmCEShareCheatBrowser.TTrainerForm.Caption
 msgid "Cheat Browser"
-msgstr ""
+msgstr "Браузер Читов"
 
 #: frmCEShareCheatBrowser.CELabel.Caption
 msgid "Processname:"
-msgstr ""
+msgstr "Имя процесса:"
 
 #: frmCEShareCheatBrowser.Title.Caption
 msgid "Title"
-msgstr ""
+msgstr "Заголовок"
 
 #: frmCEShareCheatBrowser.Author.Caption
 msgid "Author"
-msgstr ""
+msgstr "Автор"
 
 #: frmCEShareCheatBrowser.Public.Caption
 msgid "Public"
-msgstr ""
+msgstr "Общедоступный"
 
 #: frmCEShareCheatBrowser.Score.Caption
 msgid "Score"
-msgstr ""
+msgstr "Оценка"
 
 #: frmCEShareCheatBrowser.Version.Caption
 msgid "Version independent"
-msgstr ""
+msgstr "Версиянезависимая"
 
 #: frmCEShareCheatBrowser.Match.Caption
 msgid "% Match"
-msgstr ""
+msgstr "% Совпадения"
 
 #: frmCEShareCheatBrowser.btnLoadTable.Caption
 msgid "    Load    "
-msgstr ""
+msgstr "Загрузка"
 
 #: frmCEShareCheatBrowser.btnAddViewComments.Caption
 msgid "Add/View Comments"
-msgstr ""
+msgstr "Добавить/Просмотреть Комментарии"
 
 #: frmCEShareCheatBrowser.lblRate.Caption
 msgid "Rate:"
-msgstr ""
+msgstr "Оценка:"
 
 #: frmCEShareCheatBrowser.btnViewHistory.Caption
 msgid "View History"
-msgstr ""
+msgstr "Просмотр истории"
 
 #: frmCEShareCheatBrowser.lblContact.Hint
 msgid "For contacting the table owner or site admin"
-msgstr ""
+msgstr "Для связи с владельцем таблицы или администратором сайта"
 
 #: frmCEShareCheatBrowser.lblContact.Caption
 msgid "Contact"
-msgstr ""
+msgstr "Контакт"
 
 #: frmCEShareCheatBrowser.miLoad.Caption
 msgid "Load Table"
-msgstr ""
+msgstr "Загрузить таблицу"
 
 #: frmCEShareCheatBrowser.miViewComments.Caption
 msgid "View Comments"
-msgstr ""
+msgstr "Просмотр Комментариев"
 
 #: frmCEShareCheatBrowser.miLoginToSeeMoreOptions.Caption
 msgid "Login to see more options"
-msgstr ""
+msgstr "Войдите, чтобы увидеть больше вариантов"
 
 #: frmCEShareCheatBrowser.miUpdateTable.Caption frmCEShareUpdateOrNew_1.btnChoose.Caption
 msgid "Update table"
-msgstr ""
+msgstr "Обновить таблицу"
 
 #: frmCEShareCheatBrowser.miDeleteTable.Caption
 msgid "Delete table"
-msgstr ""
+msgstr "Удалить таблицу"
 
 #: frmCEShareCheatBrowser.miManageAccessList.Caption
 msgid "Manage accesslist"
-msgstr ""
+msgstr "Управление списком доступа"
 
 #: ceshare_frmComments.lblPrevious25.Caption
 msgid "Previous 25"
-msgstr ""
+msgstr "Предыдущие 25"
 
 #: ceshare_frmComments.lblNext25.Caption
 msgid "Next 25"
-msgstr ""
+msgstr "Следующие 25"
 
 #: ceshare_frmComments.btnSend.Caption
 msgid "   Send   "
-msgstr ""
+msgstr "Отправить"
 
 #: ceshare_initiaISetup.Caption
 msgid "CEShare Initial Setup"
-msgstr ""
+msgstr "Начальная установка CEShare"
 
 #: ceshare_initiaISetup.CELabel1.Caption
 msgid "CEShare community URL:"
-msgstr ""
+msgstr "URL сообщества CEShare:"
 
 #: ceshare_initiaISetup.CELabel2.Caption
 msgid "By entering a CEShare URL you will be able to upload and download Cheat Tables from a ceshare server community"
-msgstr ""
+msgstr "Введя CEShare URL, вы сможете загружать и скачивать чит-таблицы из сообщества серверов ceshare"
 
 #: ceshare_initiaISetup.CELabel3.Caption
 msgid "Disclaimer: These are third-party servers. They are not owned or maintained by the Cheat Engine project, and no warranty or responsiblity regarding their content is given. \n\nPlease contact the respective server owner for further inquiries."
-msgstr ""
+msgstr "Отказ от ответственности: Это сторонние серверы. Они не принадлежат проекту Cheat Engine и не обслуживаются им, а также не дают никаких гарантий и не несут никакой ответственности за их содержание. \n\nПожалуйста, свяжитесь с владельцем соответствующего сервера для получения дополнительных сведений."
 
 #: ceshare_initiaISetup.CELabel4.Caption
 msgid "Click cancel or leave empty if you don't wish to use this"
-msgstr ""
+msgstr "Нажмите кнопку «Отмена» или оставьте пустым, если вы не хотите использовать это"
 
 #: ceshare_initiaISetup.CEButton1.Caption
 msgid "OK"
-msgstr ""
+msgstr "Подтвердить"
 
 #: ceshare_initiaISetup.CEButton2.Caption
 msgid "Cancel"
-msgstr ""
+msgstr "Отмена"
 
 #: frmCESharePublishCheat.Caption
 msgid "Publish New Cheat"
-msgstr ""
+msgstr "Опубликовать новый чит"
 
 #: frmCESharePublishCheat.lblTitle.Caption
 msgid "Title:"
-msgstr ""
+msgstr "Заголовок:"
 
 #: frmCESharePublishCheat.lblHeaderMD5Text.Caption
 msgid "Header MD5:"
-msgstr ""
+msgstr "Заголовок MD5:"
 
 #: frmCESharePublishCheat.cbNeedsFullFilrHash.Caption
 msgid "Needs full file hash"
-msgstr ""
+msgstr "Требуется полный хэш файла"
 
 #: frmCESharePublishCheat.lblFullHeaderMD5Text.Caption
 msgid "Full file hash:"
-msgstr ""
+msgstr "Полный хэш файла:"
 
 #: frmCESharePublishCheat.cbUseSecondaryModule.Caption
 msgid "Needs secondary modulecheck"
-msgstr ""
+msgstr "Требуется проверка вторичного модуля"
 
 #: frmCESharePublishCheat.lblModulename.Caption
 msgid "Modulename"
-msgstr ""
+msgstr "Имя модуля"
 
 #: frmCESharePublishCheat.lblURL.Caption
 msgid "URL (Optional)"
-msgstr ""
+msgstr "URL (необязательно)"
 
 #: frmCESharePublishCheat.cbPublic.Caption
 msgid "Allow everyone to edit this table"
-msgstr ""
+msgstr "Разрешить всем изменять эту таблицу"
 
 #: frmCESharePublishCheat.cbPublic.Hint
 msgid "When this is enabled will let EVERYONE be able to edit/replace your table.  So be careful with enabling this and understand that once someone else has modified the table, you will not be able to delete it anymore"
-msgstr ""
+msgstr "Когда эта опция включена, каждый сможет редактировать/заменять вашу таблицу.  Так что будьте осторожны с включением этой опции и поймите, что как только кто-то другой изменит таблицу, вы больше не сможете её удалить"
 
 #: frmCESharePublishCheat.btnPublish.Caption
 msgid "Publish"
-msgstr ""
+msgstr "Опубликовать"
 
 #: frmCEShareUpdateOrNew_1.Caption
 msgid "Update/publish"
-msgstr ""
+msgstr "Обновить/опубликовать"
 
 #: frmCEShareUpdateOrNew_1.rbPublish.Caption
 msgid "Publish new table"
-msgstr ""
+msgstr "Публикация новой таблицы"
 
 #: ceshare_permissions.Caption
 msgid "Update Permissions"
-msgstr ""
+msgstr "Обновить права"
 
 #: ceshare_permissions.lblOwnerTxt.Caption
 msgid "Owner"
-msgstr ""
+msgstr "Владелец"
 
 #: ceshare_permissions.mrOK.Caption
 msgid "  OK  "
-msgstr ""
+msgstr "Подтвердить"
 
 #: ceshare_permissions.btnAddUser.Caption
 msgid "Add user"
-msgstr ""
+msgstr "Доб. пользователя"
 
 #: miCheckForCheats.Caption
 msgid "Check for mods/cheats for current process"
-msgstr ""
+msgstr "Проверить наличие модов/читов для текущего процесса"
 
 #: miRequestCheats.Caption
 msgid "Request and check other requests for mods/cheats for current process"
-msgstr ""
+msgstr "Запросить и проверить другие запросы на моды/читы для текущего процесса"
 
 #: miLoginToSeeMoreOptions.Caption
 msgid "Publish/Update table"
-msgstr ""
+msgstr "Опубликовать/Обновить таблицу"
 
 #: lblCEShareLabel.Caption
 msgid "CEShare community URL"
-msgstr ""
+msgstr "URL сообщества CEShare"
 
 #: d.Caption
 msgid "Secondary identifier code"
-msgstr ""
+msgstr "Код вторичного идентификатора"
 
 #: btnAllow.Caption
 msgid "Allow"
-msgstr ""
+msgstr "Разрешить"
 
 #: header.caption
 msgid "This process needs a special identifier to set it apart from others with the same name. To generate this identifier the below code is needed. Do you agree with the execution of this code to generate the identifier?"
-msgstr ""
+msgstr "Этот процесс нуждается в специальном идентификаторе, чтобы отличить его от других с тем же именем. Для генерации этого идентификатора необходим код, приведённый ниже. Согласны ли вы с выполнением данного кода для генерации идентификатора?"
 
 #: Error
 msgid "Error:"
-msgstr ""
+msgstr "Ошибка:"
 
 #: IRFS
 msgid "Invalid reply from server:"
-msgstr ""
+msgstr "Неверный ответ с сервера:"
 
 #: SDNR
 msgid "Server did not respond"
-msgstr ""
+msgstr "Сервер не ответил"
 
 #: ceshare_account-f.Caption
 msgid "CEShare Login"
-msgstr ""
+msgstr "Вход в CEShare"
 
 #: ceshare_account-lblUsername.Caption
 msgid "Username"
-msgstr ""
+msgstr "Имя пользователя"
 
 #: ceshare_account-lblPassword.Caption
 msgid "Password"
-msgstr ""
+msgstr "Пароль"
 
 #: ceshare_account-lblRegister.Caption
 msgid "Register"
-msgstr ""
+msgstr "Регистрация"
 
 #: ceshare_account-cbLogoutWhenLoadingTables.Caption
 msgid "Logout when loading ceshare tables"
-msgstr ""
+msgstr "Выйти из системы при загрузке таблиц ceshare"
 
 #: ceshare_account-cbLogoutWhenLoadingTables.Hint
 msgid "When checked you will get logged out when loading a ceshare table. This to prevent malicious tables from using your account"
-msgstr ""
+msgstr "Если флажок установлен, то вы выйдете из системы при загрузке таблицы ceshare. Это предотвращает использование вашей учётной записи вредоносными таблицами"
 
 #: ceshare_permissions
 msgid "Are you sure you wish to change the owner?"
-msgstr ""
+msgstr "Вы уверены, что хотите сменить владельца?"
 
 #: ceshare_permissions1
 msgid "Access has been updated"
-msgstr ""
+msgstr "Доступ обновлен"
 
 #: ceshare_publish
 msgid "Are you sure you wish to delete this table?"
-msgstr ""
+msgstr "Вы уверены, что хотите удалить эту таблицу?"
 
 #: ceshare_publish
 msgid "Table successfuly deleted"
-msgstr ""
+msgstr "Таблица успешно удалена"
 
 #: ceshare_publish
 msgid "processname is empty"
-msgstr ""
+msgstr "пустое имя процесса"
 
 #: ceshare_publish
 msgid "title is empty"
-msgstr ""
+msgstr "пустой заголовок"
 
 #: ceshare_publish
 msgid "data is empty"
-msgstr ""
+msgstr "данные пусты"
 
 #: ceshare_publish
 msgid "description is empty"
-msgstr ""
+msgstr "пустое описание"
 
 #: ceshare_publish
 msgid "Thank you, your table has been published"
-msgstr ""
+msgstr "Спасибо, ваша таблица была опубликована"
 
 #: ceshare_publish
 msgid "No id given"
-msgstr ""
+msgstr "ID не указан"
 
 #: ceshare_publish
 msgid "Thank you, your table has been updated"
-msgstr ""
+msgstr "Спасибо, ваша таблица обновлена"
 
 #: ceshare_publish
 msgid "Please select a cheattable to update"
-msgstr ""
+msgstr "Пожалуйста, выберите чит-таблицу для обновления"
 
 #: ceshare_publish
 msgid "Invalid background update query list"
-msgstr ""
+msgstr "Неверный список запросов на обновление в фоновом режиме"
 
 #: ceshare_publish
 msgid "Are you sure you wish to let 'Everyone' overwrite your table in the ceshare system ?"
-msgstr ""
+msgstr "Вы действительно хотите разрешить \"Всем\" перезаписать вашу таблицу в системе ceshare?"
 
 #: ceshare_publish
 msgid "Do you wish to sign this table?"
-msgstr ""
+msgstr "Вы хотите подписать эту таблицу?"
 
 #: ceshare_querycheats
 msgid "Contact who?"
-msgstr ""
+msgstr "Связаться с кем?"
 
 #: ceshare_querycheats
 msgid "Site Admin"
-msgstr ""
+msgstr "Администратор сайта"
 
 #: ceshare_querycheats
 msgid "Table Owner"
@@ -324,60 +337,60 @@ msgstr "Владелец таблицы"
 
 #: ceshare_querycheats
 msgid "Sorry, but there are currently no tables for this target. Perhaps you can be the first"
-msgstr ""
+msgstr "Извините, но в настоящее время нет таблиц для этой цели. Возможно, вы можете быть первым"
 
 #: ceshare_requests
 msgid "Requests"
-msgstr ""
+msgstr "Запросы"
 
 #: ceshare_requests
 msgid "Score="
-msgstr ""
+msgstr "Оценка="
 
 #: ceshareVerIind
 msgid "Version Independent"
-msgstr ""
+msgstr "Версиянезависимая"
 
 #: ceshare_comments
 msgid "Comments"
-msgstr ""
+msgstr "Комментарии"
 
 #: ceshare_permissions
 msgid "this is a very long username wtf"
-msgstr ""
+msgstr "это очень длинное имя пользователя"
 
 #: ceshare_publish
 msgid "This looks like an empty table. Are you sure?"
-msgstr ""
+msgstr "Выглядит как пустая таблица. Вы уверены?"
 
 #: ceshare_publish
 msgid "<Select a module>"
-msgstr ""
+msgstr "<Выберите модуль>"
 
 #: #: ceshare_publish
 msgid "<Module not found>"
-msgstr ""
+msgstr "<Модуль не найден>"
 
 #: ceshare_publish
 msgid "Missing module"
-msgstr ""
+msgstr "Отсутствует модуль"
 
 #: ceshare_querycheats
 msgid "Unrated"
-msgstr ""
+msgstr "Неоценённый"
 
 #: ceshare_querycheats
 msgid "     yes     "
-msgstr ""
+msgstr "     да     "
 
 #: ceshare_querycheats
 msgid "      yes      "
-msgstr ""
+msgstr "      да      "
 
 #: ceshare_querycheats
 msgid " out of 5"
-msgstr ""
+msgstr " из 5"
 
 #: ceshare_querycheats
 msgid " votes"
-msgstr ""
+msgstr " голос(а)"

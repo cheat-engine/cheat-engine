@@ -1,3 +1,6 @@
+if getTranslationFolder()~='' then
+  loadPOFile(getTranslationFolder()..'CeShare.po')
+end
 
 function ceshare.GetCurrentProcessList()
   ceshare.currentprocesslist={}

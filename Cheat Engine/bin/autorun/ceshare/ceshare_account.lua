@@ -1,3 +1,6 @@
+if getTranslationFolder()~='' then
+  loadPOFile(getTranslationFolder()..'CeShare.po')
+end
 
 function ceshare.login(username,password)
   local i=ceshare.getInternet()
@@ -80,7 +83,7 @@ function ceshare.spawnLoginDialog() --I could also use a frm for this, but just 
     edtUsername.AnchorSideRight.Control=f
     edtUsername.AnchorSideRight.Side=asrRight
     edtUsername.Constraints.MinWidth=f.Canvas.getTextWidth('   USERNAME   ')
-    edtUsername.TextHint='Username'
+    edtUsername.TextHint=translate('Username')
     edtUsername.BorderSpacing.Right=4
     edtUsername.Anchors='[akTop, akLeft, akRight]'
     edtUsername.name='username'
@@ -103,7 +106,7 @@ function ceshare.spawnLoginDialog() --I could also use a frm for this, but just 
     edtPassword.BorderSpacing.Right=4
     edtPassword.Anchors='[akTop, akLeft, akRight]'
     edtPassword.PasswordChar=string.byte('*')
-    edtPassword.TextHint='Password'
+    edtPassword.TextHint=translate('Password')
     edtPassword.name='password';
     edtPassword.Text=''
     

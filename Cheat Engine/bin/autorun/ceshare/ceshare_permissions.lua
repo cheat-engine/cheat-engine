@@ -1,5 +1,9 @@
 --Responsible for editing permissions on tables and changing the owner
 
+if getTranslationFolder()~='' then
+  loadPOFile(getTranslationFolder()..'CeShare.po')
+end
+
 function ceshare.ManageAccessList(entry)
   if entry then
    
@@ -12,7 +16,7 @@ function ceshare.ManageAccessList(entry)
         ceshare.settings.Value['PermissionsFrm.y']=s.top
       end
       
-      f.lbUserNames.Width=f.canvas.getTextWidth('this is a very long username wtf')
+      f.lbUserNames.Width=f.canvas.getTextWidth(translate('this is a very long username wtf'))
       f.lbUserNames.Height=f.canvas.getTextHeight('QWERTYjkl')*10
       
       f.lbUsernames.OnDblClick=function(s)

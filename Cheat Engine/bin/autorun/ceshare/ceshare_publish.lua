@@ -1,3 +1,7 @@
+if getTranslationFolder()~='' then
+  loadPOFile(getTranslationFolder()..'CeShare.po')
+end
+
 local function isWindowVisible(winhandle)
   return executeCodeLocal('IsWindowVisible',winhandle)~=0
 end
@@ -359,7 +363,7 @@ function ceshare.publishOrUpdate(cheatinfo) --cheatinfo is a set if an update
     ceshare.PublishCheatFrm.cbModuleName.OnChange=function(s)
       if ceshare.PublishCheatFrm.cbModuleNeedsFullFileHash.Checked then      
         if ceshare.PublishCheatFrm.cbModuleName.Text=='' then
-          ceshare.PublishCheatFrm.lblFullModuleHeaderMD5.caption='<Select a module>'
+          ceshare.PublishCheatFrm.lblFullModuleHeaderMD5.caption=translate('<Select a module>')
         else
           local ml=enumModules()
           for i=1,#ml do
@@ -371,7 +375,7 @@ function ceshare.publishOrUpdate(cheatinfo) --cheatinfo is a set if an update
             end
           end
 
-          ceshare.PublishCheatFrm.lblFullModuleHeaderMD5.Caption='<Module not found>'
+          ceshare.PublishCheatFrm.lblFullModuleHeaderMD5.Caption=translate('<Module not found>')
           ceshare.PublishCheatFrm.lblFullModuleHeaderMD5.Font.Color=0x0000ff
           ceshare.PublishCheatFrm.cbModuleName.Font.Color=0x0000ff    
         end 
@@ -432,7 +436,7 @@ function ceshare.publishOrUpdate(cheatinfo) --cheatinfo is a set if an update
   ceshare.PublishCheatFrm.btnPublish.OnClick=function(sender)   
     if ceshare.PublishCheatFrm.cbUseSecondaryModule.Checked then
       if ceshare.PublishCheatFrm.cbModuleName.Text=='' then
-        messageDialog('Missing module',mtError,mbOK)
+        messageDialog(translate('Missing module'),mtError,mbOK)
         return
       end    
     end

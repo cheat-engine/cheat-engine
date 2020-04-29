@@ -1,3 +1,7 @@
+if getTranslationFolder()~='' then
+  loadPOFile(getTranslationFolder()..'CeShare.po')
+end
+
 function ceshare.enumModules2()
   local m=enumModules()
   local r={}
@@ -590,26 +594,26 @@ function ceshare.CheckForCheatsClick(s)
     end
       
     if ceshare.CurrentQuery[i].Public then
-      li.SubItems.add('     yes     ')
+      li.SubItems.add(translate('     yes     '))
     else
       li.SubItems.add('     ')
     end
 
     --todo 7.1+: imagelist and stars
     if ceshare.CurrentQuery[i].RatingCount==0 then
-      li.SubItems.add('Unrated')
+      li.SubItems.add(translate('Unrated'))
     else
-      li.SubItems.add(ceshare.CurrentQuery[i].Rating/ceshare.CurrentQuery[i].RatingCount..' out of 5 ('..ceshare.CurrentQuery[i].RatingCount..' votes)')
+      li.SubItems.add(ceshare.CurrentQuery[i].Rating/ceshare.CurrentQuery[i].RatingCount..translate(' out of 5')..' ('..ceshare.CurrentQuery[i].RatingCount..translate(' votes')..')')
     end
 
     if ceshare.CurrentQuery[i].VersionIndependent then
-      li.SubItems.add('      yes      ')
+      li.SubItems.add(translate('      yes      '))
     else
       li.SubItems.add('             ')
     end
 
     if ceshare.CurrentQuery[i].Signed then
-      li.SubItems.add('     yes     ')
+      li.SubItems.add(translate('     yes     '))
     else    
       li.SubItems.add('           ')  --signed
     end

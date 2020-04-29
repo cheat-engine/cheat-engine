@@ -1,3 +1,7 @@
+if getTranslationFolder()~='' then
+  loadPOFile(getTranslationFolder()..'CeShare.po')
+end
+
 function ceshare.QueryTableComments(entry, startindex)
   local result=nil
   local parameters='id='..entry.ID
@@ -58,7 +62,7 @@ function ceshare.ViewComments(entry)
         local f=createFormFromFile(ceshare.formpath..'CommentsOrRequests.FRM')
         ceshare.CommentsFrm=f
         f.Name='CommentsFrm'
-        f.Caption='Comments'
+        f.Caption=translate('Comments')
         
         f.btnSend.OnClick=function(s)
           r=ceshare.QueryXURL('AddComment.php', 'id='..entry.ID..'&comment='..ceshare.url_encode(ceshare.CommentsFrm.mMessage.Lines.Text))
