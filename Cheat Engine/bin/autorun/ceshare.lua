@@ -28,7 +28,7 @@ if package.loaded.xmlSimple==nil then
 else
   package.loaded.xmlSimple=nil
 end
-xmlParser = require("xmlSimple").newParser()
+ceshare.xmlParser = require("xmlSimple").newParser()
 
 
 package.path=package.path..';'..ceshare.path..[[?.lua]]
@@ -73,7 +73,7 @@ function loadCEShare()
   --check requestsc
   
   miCESHARETopMenuItem.OnClick=function(s)      
-    loggedin=ceshare.LoggedIn or false
+    local loggedin=ceshare.LoggedIn or false
     miPublishCheat.Visible=true
     
     local canUpdate=false    
@@ -268,7 +268,7 @@ function ceshare.parseResult(r, skipErrorDialog)
   
   if r then
     if (r:sub(1,2)=='<?') then
-      xml=xmlParser:ParseXmlText(r)
+      xml=ceshare.xmlParser:ParseXmlText(r)
       if xml then
         if xml.invalidsession then --This requires a valid session. Spawn a login screen
           if ceshare.spawnLoginDialog() then --try again after logging in

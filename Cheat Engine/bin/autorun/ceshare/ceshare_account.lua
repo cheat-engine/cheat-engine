@@ -12,7 +12,7 @@ function ceshare.login(username,password)
   
   local r=i.postURL(ceshare.base..'login.php',parameters)
   if (r:sub(1,2)=='<?') then
-    local s=xmlParser:ParseXmlText(r)
+    local s=ceshare.xmlParser:ParseXmlText(r)
     if s then
       if s.Valid then
         ceshare.LoggedIn=true

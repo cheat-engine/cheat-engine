@@ -4,7 +4,7 @@ function ceshare.QueryTableComments(entry, startindex)
   if startindex then
     parameters=parameters..'startindex='..startindex
   end
-  s=ceshare.QueryXURL('QueryTableComments.php', parameters)
+  local s=ceshare.QueryXURL('QueryTableComments.php', parameters)
   if s then
     if s.Comments then
       result={}

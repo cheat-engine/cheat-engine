@@ -311,7 +311,7 @@ function startPatchScan()
     pform.close()
     pform.destroy()
     ---build a gui with the information in allpatches
-    _G.dbg=allpatches
+    -- _G.dbg=allpatches
 
     local rform=createForm(false)
     local lv=createListView(rform)
