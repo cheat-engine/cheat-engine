@@ -119,6 +119,7 @@ type
     function hasSelectedParent(memrec: TMemoryRecord): boolean;
 
     function CheatTableNodeHasOnlyAutoAssemblerScripts(CheatTable: TDOMNode): boolean; //helperfunction
+    function CheatTableNodeDoNotHaveRelativeAddress(CheatTable: TDOMNode): boolean; //helperfunction
 
 
     procedure sort(firstnode: ttreenode; compareRoutine: TTreeNodeCompare; direction: boolean);
@@ -567,7 +568,6 @@ private
 checks if the given xml document contains cheatentries that aren't aa scripts
 }
 var CheatEntries, currentEntry: TDOMNode;
-  vt: TVariableType;
   vtnode: TDOMNode;
 begin
   result:=true;
@@ -589,6 +589,41 @@ begin
   end;
 end;
 
+function TAddresslist.CheatTableNodeDoNotHaveRelativeAddress(CheatTable: TDOMNode): boolean;
+{
+private
+checks if the given xml document contains cheatentries without relative Address
+}
+var CheatEntries, currentEntry: TDOMNode;
+  addrnode: TDOMNode;
+  s: string;
+begin
+  result:=true;
+  CheatEntries:=CheatTable.FindNode('CheatEntries');
+  if cheatentries<>nil then
+  begin
+    currentEntry:=CheatEntries.FirstChild;
+    while (currententry<>nil) and result do
+    begin
+      addrnode:=currententry.findnode('Address');
+      if (addrnode<>nil) and (addrnode.TextContent<>'') then
+      begin
+        s:=trim(addrnode.TextContent);
+        if (s<>'') and (s[1] in ['-', '+']) then
+        begin
+          result:=false;
+          exit;
+        end;
+      end;
+
+      if currententry.findnode('CheatEntries')<>nil then
+        result:=CheatTableNodeDoNotHaveRelativeAddress(currentEntry);
+
+      currentEntry:=currentEntry.NextSibling;
+    end;
+  end;
+end;
+
 procedure TAddresslist.AddTableXMLAsText(xml: string; simpleCopyPaste: boolean=true);
 var doc: TXMLDocument;
     insertafter: TTreenode;
@@ -604,8 +639,9 @@ var doc: TXMLDocument;
     replace_find: string;
     replace_with: string;
     changeoffsetstring: string;
-    changeoffset: ptrUint;
-    x: ptrUint;
+    changepointerlastoffsetstring: string;
+    changeoffset: int64;
+    changepointerlastoffset: int64;
     i: integer;
     childrenaswell: boolean;
 
@@ -640,18 +676,21 @@ begin
               begin
                 //check if it's needed (is at least one address not an auto assembler script ?
                 if not CheatTableNodeHasOnlyAutoAssemblerScripts(CheatTable) then
+                begin
+                  if not CheatTableNodeDoNotHaveRelativeAddress(CheatTable) then frmPasteTableentry.cbChildrenAsWell.Checked:=false; // there is at least one relative addresses - change default to false
                   if frmpastetableentry.showmodal=mrcancel then exit;
+                end;
               end;
 
               replace_find:=frmpastetableentry.edtFind.text;
               replace_with:=frmpastetableentry.edtReplace.text;
               changeoffsetstring:='$'+stringreplace(frmpastetableentry.edtOffset.Text,'-','-$',[rfReplaceAll]);
               changeoffsetstring:=stringreplace(changeoffsetstring,'$-','-',[rfReplaceAll]);
-              try
-                changeoffset:=strtoint(changeoffsetstring);
-              except
-                changeoffset:=0;
-              end;
+              changepointerlastoffsetstring:='$'+stringreplace(frmpastetableentry.edtPointerLastOffset.Text,'-','-$',[rfReplaceAll]);
+              changepointerlastoffsetstring:=stringreplace(changepointerlastoffsetstring,'$-','-',[rfReplaceAll]);
+
+              if not TryStrToInt64(changeoffsetstring,changeoffset) then changeoffset:=0;
+              if not TryStrToInt64(changepointerlastoffsetstring,changepointerlastoffset) then changepointerlastoffset:=0;
 
               childrenaswell:=frmPasteTableentry.cbChildrenAsWell.Checked;
             finally
@@ -678,11 +717,8 @@ begin
               memrec.setXMLnode(currentEntry);
 
 
-              if replace_find<>'' then
-                memrec.replaceDescription(replace_find, replace_with, childrenaswell);
-
-              if changeoffset<>0 then
-                memrec.adjustAddressBy(changeoffset, childrenaswell);
+              memrec.adjustAddressBy(changeoffset, changepointerlastoffset, childrenaswell);
+              memrec.replaceDescription(replace_find, replace_with, childrenaswell);
             end;
             currentEntry:=currentEntry.NextSibling;
           end;
