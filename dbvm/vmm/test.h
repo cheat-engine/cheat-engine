@@ -68,4 +68,12 @@ typedef struct
 } __attribute__((__packed__)) BTS64,*PBTS64;
 
 
+//DBVM vmcall stuff
+
+int getDBVMVersion(void);
+void dbvm_watch_writes_test(void);
+
+
+
+
 #endif /* TEST_H_ */

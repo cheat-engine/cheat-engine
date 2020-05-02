@@ -35,6 +35,8 @@
 
 void initMemTypeRanges();
 
+BOOL ept_handleWatchEvent(pcpuinfo currentcpuinfo, VMRegisters *registers, PFXSAVE64 fxsave, QWORD PhysicalAddress);
+
 VMSTATUS handleEPTViolation(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, PFXSAVE64 fxsave);
 VMSTATUS handleEPTMisconfig(pcpuinfo currentcpuinfo, VMRegisters *vmregisters);
 int ept_handleWatchEventAfterStep(pcpuinfo currentcpuinfo, int ID);

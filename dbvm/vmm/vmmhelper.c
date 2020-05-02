@@ -699,7 +699,7 @@ int vmexit_amd(pcpuinfo currentcpuinfo, UINT64 *registers, void *fxsave UNUSED)
       return 0;
   }
 
-  result=handleVMEvent_amd(currentcpuinfo, (VMRegisters*)registers);
+  result=handleVMEvent_amd(currentcpuinfo, (VMRegisters*)registers, fxsave);
 
 
 

@@ -16,11 +16,14 @@
 #include "vmmhelper.h"
 #include "apic.h"
 #include "msrnames.h"
+#include "nphandler.h"
 
 criticalSection debugoutput;
-int handleVMEvent_amd(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
+int handleVMEvent_amd(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, FXSAVE64 *fxsave)
 {
   int i;
+
+
 
   nosendchar[getAPICID()]=1;
 
@@ -38,6 +41,34 @@ int handleVMEvent_amd(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 
   currentcpuinfo->vmcb->VMCB_CLEAN_BITS=0xffffffff; //nothing cached changed (yet)
 
+  if (currentcpuinfo->eptUpdated==1)
+  {
+    currentcpuinfo->eptUpdated=0;
+    currentcpuinfo->vmcb->VMCB_CLEAN_BITS&=~(1 << 4);
+  }
+
+  if (currentcpuinfo->singleStepping.ReasonsPos)
+  {
+    nosendchar[getAPICID()]=0;
+    sendstringf("AMD Handler: currentcpuinfo->singleStepping.ReasonsPos=%d Calling handleSingleStep()\n",currentcpuinfo->singleStepping.ReasonsPos);
+
+    handleSingleStep(currentcpuinfo);
+    sendstring("After handleSingleStep()\n");
+
+    if (currentcpuinfo->vmcb->EXITCODE==VMEXIT_EXCP1)
+    {
+      sendstring("It was an int1 so skip this\n"); //Todo: Check if it was a int1 before the step
+
+
+      //no further handling is needed
+      return 0;
+    }
+
+    sendstring("Need to do some further handling\n");//eg external interrupts
+
+  }
+
+
   currentcpuinfo->eventcounter[0]++;
 
   switch (currentcpuinfo->vmcb->EXITCODE)
@@ -49,7 +80,7 @@ int handleVMEvent_amd(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 
       //int1 breakpoint
 
-     // nosendchar[getAPICID()]=currentcpuinfo->vmcb->CPL!=3;
+      nosendchar[getAPICID()]=0; //urrentcpuinfo->vmcb->CPL!=3;
 
       sendstringf("INT1 breakpoint\n");
       sendstringf("dr0=%x\n", getDR0());
@@ -778,20 +809,11 @@ int handleVMEvent_amd(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
     case VMEXIT_NPF:
     {
       nosendchar[getAPICID()]=0;
-      nosendchar[getAPICID()]=0;
       sendstring("VMEXIT_NPF\n");
 
-      sendvmstate(currentcpuinfo, vmregisters);
-      ShowCurrentInstructions(currentcpuinfo);
 
+      return handleNestedPagingFault(currentcpuinfo,vmregisters, fxsave);
 
-      sendstringf("Fault Code=%x\n", currentcpuinfo->vmcb->EXITINFO1);
-      sendstringf("Physical Address=%x\n", currentcpuinfo->vmcb->EXITINFO2);
-
-
-
-
-      while (1);
       break;
     }
 

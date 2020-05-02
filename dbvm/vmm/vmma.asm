@@ -180,6 +180,16 @@ vmcalltest_asm:
   add rsp,8+12
   ret
 
+global _vmcall
+_vmcall:
+  sub rsp,8
+  mov rax,rsi  ;data
+  mov rdx,rdi  ;password1
+  call [vmcall_instr]
+  add rsp,8
+  ret
+
+
 
 
 global vmcall_setintredirects

@@ -6,6 +6,8 @@
 
 //#define DELAYEDSERIAL
 
+#define AMDNP  //enable AMD nested paging support
+
 #ifdef DELAYEDSERIAL
 extern int useserial;
 #endif
@@ -146,7 +148,7 @@ typedef union
     unsigned ID     :1; // 21
     unsigned reserved5  :11; // 22-63
     unsigned reserved6  :32; // 22-63
-  }__attribute__((__packed__)) ;
+  }__attribute__((__packed__));
 } __attribute__((__packed__)) RFLAGS,*PRFLAGS;
 
 
@@ -390,7 +392,7 @@ typedef volatile struct _PTE_PAE
         unsigned A1        :  1; // available 1 aka copy-on-write
         unsigned A2        :  1; // available 2/ is 1 when paged to disk
         unsigned A3        :  1; // available 3
-        unsigned PFN       : 24; // page-frame number
+        unsigned PFN       : 28; // page-frame number
         unsigned reserved  : 23;
         unsigned EXB       :  1;
 } __attribute__((__packed__)) _PTE_PAE, *PPTE_PAE;

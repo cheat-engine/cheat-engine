@@ -20,6 +20,7 @@
 #include "epthandler.h"
 #include "neward.h"
 #include "displaydebug.h"
+#include "common.h"
 
 
 criticalSection setupVMX_lock;
@@ -29,6 +30,8 @@ volatile unsigned char *IOBitmap;
 
 int hasEPTsupport=0;
 int TSCHooked=0;
+int hasNPsupport=1;
+
 
 extern void realmode_inthooks();
 extern void realmode_inthooks_end();
@@ -53,9 +56,7 @@ void setupVMX_AMD(pcpuinfo currentcpuinfo)
     sendstringf("setupVMX_AMD for AP cpu\n");
   }
 
-
-
-  /*
+#ifdef AMDNP
   //nested paging, works. But using it for memory cloak is not as fast as on Intel (at best like stealthedit plugin on windows, which can be unstable)
   currentcpuinfo->vmcb->NP_ENABLE=1;
   currentcpuinfo->vmcb->G_PAT=readMSR(0x277);
@@ -69,8 +70,10 @@ void setupVMX_AMD(pcpuinfo currentcpuinfo)
   currentcpuinfo->vmcb->N_CR3=VirtualToPhysical(pml4);
   sendstringf("Setup nCR3 at %6\n", currentcpuinfo->vmcb->N_CR3);
 
+  has_NP_1GBsupport=1;
+  has_NP_2MBsupport=1;
 
-
+/*
   volatile PPDPTE_PAE_BS pdptr1=(PPDPTE_PAE_BS)malloc(4096);
   zeromemory((volatile void*)pdptr1,4096);
 
@@ -78,8 +81,6 @@ void setupVMX_AMD(pcpuinfo currentcpuinfo)
   pml4[0].P=1;
   pml4[0].RW=1;
   pml4[0].US=1;
-
-
 
   int i;
   for (i=0; i<512; i++)
@@ -90,9 +91,8 @@ void setupVMX_AMD(pcpuinfo currentcpuinfo)
     pdptr1[i].US=1;
     pdptr1[i].PS=1;
   }
-
-*/
-
+  */
+#endif
 
   currentcpuinfo->vmcb->InterceptVMRUN=1;
   currentcpuinfo->vmcb->GuestASID=1;
@@ -670,28 +670,59 @@ int vmx_enableSingleStepMode(void)
   pcpuinfo c=getcpuinfo();
   sendstring("Enabling single step mode\n");
 
- /* if ((vmread(vm_entry_interruptioninfo) >> 31)==0)
-    vmwrite(vm_guest_interruptability_state,2); //execute at least one instruction
-  else
-    sendstringf("Not setting the interruptability state\n");*/
-
-  if (vmx_enableProcBasedFeature(PBEF_MONITOR_TRAP_FLAG))
+  if (isAMD)
   {
-    sendstring("Using the monitor trap flag\n");
-    c->singleStepping.Method=1;
+    sendstring("on an AMD\n");
+    //break on external interrupts and exceptions
+    c->vmcb->InterceptVINTR=1;
+    c->vmcb->InterceptINTR=1;
+    c->vmcb->InterceptExceptions=0x0000ffff;
+
+    //perhaps enable INTERRUPT_SHADOW?
+
+    //mark the intercepts as changed
+    sendstringf("b c->vmcb->VMCB_CLEAN_BITS=%6\n",c->vmcb->VMCB_CLEAN_BITS);
+    c->vmcb->VMCB_CLEAN_BITS&=~(1<<0);
+    c->vmcb->VMCB_CLEAN_BITS=0;
+    sendstringf("a c->vmcb->VMCB_CLEAN_BITS=%6\n",c->vmcb->VMCB_CLEAN_BITS);
+
+    RFLAGS v;
+    v.value=c->vmcb->RFLAGS;
+    v.TF=1; //single step mode
+    //todo: intercept pushf/popf/iret
+
+    c->vmcb->RFLAGS=v.value;
+    c->singleStepping.Method=3; //Trap flag
+
     return 1;
+
   }
   else
   {
-    c->singleStepping.Method=2;
-    if (vmx_enableProcBasedFeature(PBEF_INTERRUPT_WINDOW_EXITING))
-    {
-      if ((vmread(vm_entry_interruptioninfo) >> 31)==0) //if no interrupt pending
-        vmwrite(vm_guest_interruptability_state,2); //execute at least one instruction
-      //else go to that interrupt that is pending and then stop
 
-      sendstring("Using the interrupt window\n");
+   /* if ((vmread(vm_entry_interruptioninfo) >> 31)==0)
+      vmwrite(vm_guest_interruptability_state,2); //execute at least one instruction
+    else
+      sendstringf("Not setting the interruptability state\n");*/
+
+    if (vmx_enableProcBasedFeature(PBEF_MONITOR_TRAP_FLAG))
+    {
+      sendstring("Using the monitor trap flag\n");
+      c->singleStepping.Method=1;
       return 1;
+    }
+    else
+    {
+      c->singleStepping.Method=2;
+      if (vmx_enableProcBasedFeature(PBEF_INTERRUPT_WINDOW_EXITING))
+      {
+        if ((vmread(vm_entry_interruptioninfo) >> 31)==0) //if no interrupt pending
+          vmwrite(vm_guest_interruptability_state,2); //execute at least one instruction
+        //else go to that interrupt that is pending and then stop
+
+        sendstring("Using the interrupt window\n");
+        return 1;
+      }
     }
   }
 
@@ -705,12 +736,38 @@ int vmx_disableSingleStepMode(void)
 
   sendstring("Disabling single step mode\n");
 
-  if (c->singleStepping.Method==1)
-    r=vmx_disableProcBasedFeature(PBEF_MONITOR_TRAP_FLAG);
+  if (isAMD)
+  {
+    //shouldn't be needed but do it anyhow
+    RFLAGS v;
+    v.value=c->vmcb->RFLAGS;
+    v.TF=0; //single step mode
+    //todo: intercept pushf/popf/iret
 
-  if (c->singleStepping.Method==2)
-    r=vmx_disableProcBasedFeature(PBEF_INTERRUPT_WINDOW_EXITING);
+    c->vmcb->RFLAGS=v.value;
+    c->singleStepping.Method=0;
 
+    c->vmcb->InterceptVINTR=0;
+    c->vmcb->InterceptINTR=0;
+    c->vmcb->InterceptExceptions=0; //todo: load current exceptions hooks
+
+
+    //mark the intercepts as changed
+    sendstringf("b c->vmcb->VMCB_CLEAN_BITS=%6\n",c->vmcb->VMCB_CLEAN_BITS);
+    c->vmcb->VMCB_CLEAN_BITS&=~(1<<0);
+    c->vmcb->VMCB_CLEAN_BITS=0;
+    sendstringf("a c->vmcb->VMCB_CLEAN_BITS=%6\n",c->vmcb->VMCB_CLEAN_BITS);
+
+    return 1;
+  }
+  else
+  {
+    if (c->singleStepping.Method==1)
+      r=vmx_disableProcBasedFeature(PBEF_MONITOR_TRAP_FLAG);
+
+    if (c->singleStepping.Method==2)
+      r=vmx_disableProcBasedFeature(PBEF_INTERRUPT_WINDOW_EXITING);
+  }
   return r;
 }
 

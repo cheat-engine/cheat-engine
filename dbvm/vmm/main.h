@@ -19,6 +19,7 @@ extern void vmcall_intel(void);
 extern void *vmcall_instr; //holds a pointer to either vmcall_amd or vmcall_intel
 extern int vmcalltest_asm(void);
 extern int vmcall_setintredirects(void);
+extern QWORD _vmcall(ULONG password, void* data);
 
 extern void _pause(void);
 extern UINT64 _vmread(ULONG index);

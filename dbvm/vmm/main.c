@@ -926,6 +926,8 @@ void vmm_entry(void)
   sendstringf("vmm_entry\n");
 
   setCR0(getCR0() | CR0_WP);
+  writeMSR(EFER_MSR, readMSR(EFER_MSR) | (1<<11)); //no execute
+  //setCR4(getCR4() | CR4_SMEP);
 
   if (isAP)
   {
@@ -1445,12 +1447,15 @@ AfterBPTest:
     if ((b==0x68747541) && (d==0x69746e65) && (c==0x444d4163))
     {
       isAMD=1;
+      vmcall_instr=vmcall_amd;
       AMD_hasDecodeAssists=0;
       sendstring("This is an AMD system. going to use the AMD virtualization tech\n\r");
     }
     else
+    {
       isAMD=0;
-
+      vmcall_instr=vmcall_intel;
+    }
 
     //a=0x80000000; _cpuid(&a,&b,&c,&d);
     //if (!(a & 0x80000000))
@@ -1774,10 +1779,7 @@ void menu2(void)
 {
   unsigned char key;
 
-  if (isAMD)
-    vmcall_instr=vmcall_amd;
-  else
-    vmcall_instr=vmcall_intel;
+
 
 
 
@@ -1821,6 +1823,14 @@ void menu2(void)
     displayline("v: control register test\n");
     displayline("e: efer test\n");
     displayline("o: out of memory test\n");
+
+#ifdef DEBUG
+    if (getDBVMVersion())
+    {
+      displayline("w: DBVM write watch test\n");
+    }
+#endif
+
 
     key=0;
     while (!key)
@@ -2222,6 +2232,13 @@ afterWRBPtest:
 
             break;
           }
+#ifdef DEBUG
+          case 'w':
+          {
+            dbvm_watch_writes_test();
+            break;
+          }
+#endif
 
           default:
             key=0;

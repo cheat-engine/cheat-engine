@@ -745,7 +745,7 @@ void *addPhysicalPageToDBVM(QWORD address)
 
   if (pagetableentry->P)
   {
-    sendstringf("Assertion failure. Virtual address %6 was already present\n", VirtualAddress);
+    sendstringf("!Assertion failure! Virtual address %6 was already present (PhysicalPageListSize=%d)\n", VirtualAddress, PhysicalPageListSize);
     ddDrawRectangle(0,DDVerticalResolution-100,100,100,0xff0000);
     while (1) outportb(0x80,0xcf);
   }

@@ -140,6 +140,16 @@ typedef struct _vmxhoststate //structure for easy management of hoststates
 } vmxhoststate, *pvmxhoststate;
 
 
+typedef struct _EXITINTINFO
+{
+  BYTE Vector;
+  BYTE Type: 3;
+  BYTE ErrorCodeValid: 1;
+  DWORD Zero: 19;
+  BYTE Valid: 1;
+  DWORD ErrorCode;
+}  __attribute__((__packed__)) EXITINTINFO, *PEXITINTINFO;
+
 typedef volatile struct _vmcb
 {
 	WORD InterceptCR0_15Read;
