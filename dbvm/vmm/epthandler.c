@@ -21,6 +21,7 @@
 #include "list.h"
 #include "vmeventhandler.h"
 #include "displaydebug.h"
+#include "nphandler.h"
 
 QWORD EPTMapPhysicalMemory(pcpuinfo currentcpuinfo, QWORD physicalAddress, int forcesmallpage);
 
@@ -67,23 +68,35 @@ void vpid_invalidate()
 
 void ept_invalidate()
 {
-	INVEPTDESCRIPTOR eptd;
-	eptd.Zero=0;
-	eptd.EPTPointer=getcpuinfo()->EPTPML4;
+  if (isAMD)
+  {
+    pcpuinfo c=getcpuinfo();
+    c->vmcb->VMCB_CLEAN_BITS&=~(1 << 4);
+    c->vmcb->TLB_CONTROL=1;
 
-	if (has_EPT_INVEPTAllContext)
-	{
-		_invept(2, &eptd);
-	}
-	else
-	if (has_EPT_INVEPTSingleContext)
-	{
-		_invept(1, &eptd);
-	}
-	else
-	{
-		_invept(2, &eptd);//fuck it
-	}
+
+  }
+  else
+  {
+    //Intel
+    INVEPTDESCRIPTOR eptd;
+    eptd.Zero=0;
+    eptd.EPTPointer=getcpuinfo()->EPTPML4;
+
+    if (has_EPT_INVEPTAllContext)
+    {
+      _invept(2, &eptd);
+    }
+    else
+    if (has_EPT_INVEPTSingleContext)
+    {
+      _invept(1, &eptd);
+    }
+    else
+    {
+      _invept(2, &eptd);//fuck it
+    }
+  }
 
 	//vpid_invalidate();
 }
@@ -927,35 +940,74 @@ void fillPageEventBasic(PageEventBasic *peb, VMRegisters *registers)
 
 #endif
 
-  peb->VirtualAddress=vmread(vm_guest_linear_address);
-  peb->PhysicalAddress=vmread(vm_guest_physical_address);
-  peb->CR3=vmread(vm_guest_cr3);
-  peb->FSBASE=vmread(vm_guest_fs_base);
-  peb->GSBASE=vmread(vm_guest_gs_base);
-  peb->FLAGS=vmread(vm_guest_rflags);
-  peb->RAX=registers->rax;
-  peb->RBX=registers->rbx;
-  peb->RCX=registers->rcx;
-  peb->RDX=registers->rdx;
-  peb->RSI=registers->rsi;
-  peb->RDI=registers->rdi;
-  peb->R8=registers->r8;
-  peb->R9=registers->r9;
-  peb->R10=registers->r10;
-  peb->R11=registers->r11;
-  peb->R12=registers->r12;
-  peb->R13=registers->r13;
-  peb->R14=registers->r14;
-  peb->R15=registers->r15;
-  peb->RBP=registers->rbp;
-  peb->RSP=vmread(vm_guest_rsp);
-  peb->RIP=vmread(vm_guest_rip);
-  peb->CS=vmread(vm_guest_cs);
-  peb->DS=vmread(vm_guest_ds);
-  peb->ES=vmread(vm_guest_es);
-  peb->SS=vmread(vm_guest_ss);
-  peb->FS=vmread(vm_guest_fs);
-  peb->GS=vmread(vm_guest_gs);
+  if (isAMD)
+  {
+    pcpuinfo c=getcpuinfo();
+
+    peb->VirtualAddress=0;
+    peb->PhysicalAddress=c->vmcb->EXITINFO2;
+    peb->CR3=c->vmcb->CR3;
+    peb->FSBASE=c->vmcb->fs_base;
+    peb->GSBASE=c->vmcb->gs_base;
+    peb->FLAGS=c->vmcb->RFLAGS;
+    peb->RAX=c->vmcb->RAX;
+    peb->RBX=registers->rbx;
+    peb->RCX=registers->rcx;
+    peb->RDX=registers->rdx;
+    peb->RSI=registers->rsi;
+    peb->RDI=registers->rdi;
+    peb->R8=registers->r8;
+    peb->R9=registers->r9;
+    peb->R10=registers->r10;
+    peb->R11=registers->r11;
+    peb->R12=registers->r12;
+    peb->R13=registers->r13;
+    peb->R14=registers->r14;
+    peb->R15=registers->r15;
+    peb->RBP=registers->rbp;
+    peb->RSP=c->vmcb->RSP;
+    peb->RIP=c->vmcb->RIP;
+    peb->CS=c->vmcb->cs_selector;
+    peb->DS=c->vmcb->ds_selector;
+    peb->ES=c->vmcb->es_selector;
+    peb->SS=c->vmcb->ss_selector;
+    peb->FS=c->vmcb->fs_selector;
+    peb->GS=c->vmcb->gs_selector;
+
+  }
+  else
+  {
+
+    peb->VirtualAddress=vmread(vm_guest_linear_address);
+    peb->PhysicalAddress=vmread(vm_guest_physical_address);
+    peb->CR3=vmread(vm_guest_cr3);
+    peb->FSBASE=vmread(vm_guest_fs_base);
+    peb->GSBASE=vmread(vm_guest_gs_base);
+    peb->FLAGS=vmread(vm_guest_rflags);
+    peb->RAX=registers->rax;
+    peb->RBX=registers->rbx;
+    peb->RCX=registers->rcx;
+    peb->RDX=registers->rdx;
+    peb->RSI=registers->rsi;
+    peb->RDI=registers->rdi;
+    peb->R8=registers->r8;
+    peb->R9=registers->r9;
+    peb->R10=registers->r10;
+    peb->R11=registers->r11;
+    peb->R12=registers->r12;
+    peb->R13=registers->r13;
+    peb->R14=registers->r14;
+    peb->R15=registers->r15;
+    peb->RBP=registers->rbp;
+    peb->RSP=vmread(vm_guest_rsp);
+    peb->RIP=vmread(vm_guest_rip);
+    peb->CS=vmread(vm_guest_cs);
+    peb->DS=vmread(vm_guest_ds);
+    peb->ES=vmread(vm_guest_es);
+    peb->SS=vmread(vm_guest_ss);
+    peb->FS=vmread(vm_guest_fs);
+    peb->GS=vmread(vm_guest_gs);
+  }
   peb->Count=0;
 }
 
@@ -995,6 +1047,7 @@ int ept_getWatchID(QWORD address)
 }
 
 BOOL ept_handleWatchEvent(pcpuinfo currentcpuinfo, VMRegisters *registers, PFXSAVE64 fxsave, QWORD PhysicalAddress)
+//Used by Intel and AMD
 {
   int ID;
   int logentrysize;
@@ -1005,11 +1058,10 @@ BOOL ept_handleWatchEvent(pcpuinfo currentcpuinfo, VMRegisters *registers, PFXSA
 
   csEnter(&eptWatchListCS);
 
-  sendstring("EPT event and there is a watchlist entry\n");
+
 
   ID=ept_getWatchID(PhysicalAddress);
 
-  sendstringf("ept_getWatchID returned %d\n", ID);
 
   if (ID==-1)
   {
@@ -1017,12 +1069,33 @@ BOOL ept_handleWatchEvent(pcpuinfo currentcpuinfo, VMRegisters *registers, PFXSA
     return FALSE;
   }
 
+  QWORD RIP;
+  QWORD RSP;
 
-  QWORD RIP=vmread(vm_guest_rip);
-  QWORD RSP=vmread(vm_guest_rsp);
+  sendstring("EPT/NP event and there is a watchlist entry\n");
+  sendstringf("ept_getWatchID returned %d\n", ID);
+
+
+  if (isAMD)
+  {
+    RIP=currentcpuinfo->vmcb->RIP;
+    RSP=currentcpuinfo->vmcb->RSP;
+  }
+  else
+  {
+    RIP=vmread(vm_guest_rip);
+    RSP=vmread(vm_guest_rsp);
+
+  }
+
   QWORD PhysicalAddressBase=PhysicalAddress & 0xfffffffffffff000ULL;
   EPT_VIOLATION_INFO evi;
-  evi.ExitQualification=vmread(vm_exit_qualification);
+  NP_VIOLATION_INFO nvi;
+
+  if (isAMD)
+    nvi.ErrorCode=currentcpuinfo->vmcb->EXITINFO1;
+  else
+    evi.ExitQualification=vmread(vm_exit_qualification);
 
   //nosendchar[getAPICID()]=0;
   sendstringf("Handling something that resembles watch ID %d\n", ID);
@@ -1037,7 +1110,7 @@ BOOL ept_handleWatchEvent(pcpuinfo currentcpuinfo, VMRegisters *registers, PFXSA
       if (eptWatchList[ID].Type==EPTW_WRITE)
       {
         //must be a write operation error
-        if ((evi.W) && (evi.WasWritable==0)) //write operation and writable was 0
+        if (((!isAMD) && (evi.W) && (evi.WasWritable==0)) || (isAMD && nvi.W))  //write operation and writable was 0
         {
           ID=i;
 
@@ -1048,7 +1121,7 @@ BOOL ept_handleWatchEvent(pcpuinfo currentcpuinfo, VMRegisters *registers, PFXSA
       else if (eptWatchList[ID].Type==EPTW_READWRITE)
       {
         //must be a read or write operation
-        if (((evi.W) && (evi.WasWritable==0)) || ((evi.R) && (evi.WasReadable==0)))  //write operation and writable was 0 or read and readable was 0
+        if ((isAMD && nvi.P==0) || ((!isAMD) && (((evi.W) && (evi.WasWritable==0)) || ((evi.R) && (evi.WasReadable==0)))) ) //write operation and writable was 0 or read and readable was 0
         {
           ID=i;
           if (ept_isWatchIDPerfectMatch(PhysicalAddress, i))
@@ -1057,7 +1130,7 @@ BOOL ept_handleWatchEvent(pcpuinfo currentcpuinfo, VMRegisters *registers, PFXSA
       }
       else
       {
-          if ((evi.X) && (evi.WasExecutable==0)) //execute operation and executable was 0
+          if ((isAMD && nvi.ID) || ((!isAMD) && (evi.X) && (evi.WasExecutable==0))) //execute operation and executable was 0
           {
             ID=i;
 
@@ -1074,17 +1147,42 @@ BOOL ept_handleWatchEvent(pcpuinfo currentcpuinfo, VMRegisters *registers, PFXSA
 
   //ID is now set to the most logical watch(usually there is no conflicts, and even if there is, no biggie. But still)
 
-  if ((currentcpuinfo->eptWatchList[ID]->XA) && (currentcpuinfo->eptWatchList[ID]->RA) && (currentcpuinfo->eptWatchList[ID]->WA))
+  PPTE_PAE npte;
+  PEPT_PTE epte;
+
+  if (isAMD)
   {
-    sendstringf("This entry was already marked with full access (check caches)\n");
+    npte=(PPTE_PAE)currentcpuinfo->eptWatchList[ID];
+    if ((npte->EXB==0) && (npte->P) && (npte->RW))
+    {
+      sendstringf("This entry was already marked with full access (check caches) (AMD)\n");
+    }
+  }
+  else
+  {
+    epte=currentcpuinfo->eptWatchList[ID];
+    if ((epte->XA) && (epte->RA) && (epte->WA))
+    {
+      sendstringf("This entry was already marked with full access (check caches)\n");
+    }
   }
 
   //run once
-  currentcpuinfo->eptWatchList[ID]->XA=1;
-  currentcpuinfo->eptWatchList[ID]->RA=1;
-  currentcpuinfo->eptWatchList[ID]->WA=1;
+  if (isAMD)
+  {
+    npte->EXB=0;
+    npte->P=1;
+    npte->RW=1;
+  }
+  else
+  {
 
-  sendstringf("Page is accessible. Doing single step\n");
+    currentcpuinfo->eptWatchList[ID]->XA=1;
+    currentcpuinfo->eptWatchList[ID]->RA=1;
+    currentcpuinfo->eptWatchList[ID]->WA=1;
+
+    sendstringf("Page is accessible. Doing single step\n");
+  }
 
   vmx_enableSingleStepMode();
   vmx_addSingleSteppingReason(currentcpuinfo, 1, ID);
@@ -1162,6 +1260,9 @@ BOOL ept_handleWatchEvent(pcpuinfo currentcpuinfo, VMRegisters *registers, PFXSA
         sendstringf(" but EPTO_MULTIPLERIP is 1, so checking register states\n");
 
       //still here, so multiple RIP's are ok. check if it matches the other registers
+      if (isAMD)
+        registers->rax=currentcpuinfo->vmcb->RAX;
+
       if (
           (peb->RSP==RSP) &&
           (peb->RBP==registers->rbp) &&
@@ -1302,34 +1403,64 @@ BOOL ept_handleWatchEvent(pcpuinfo currentcpuinfo, VMRegisters *registers, PFXSA
 
 int ept_handleWatchEventAfterStep(pcpuinfo currentcpuinfo,  int ID)
 {
-  sendstringf("ept_handleWatchEventAfterStep %d\n", ID);
+  sendstringf("ept_handleWatchEventAfterStep %d  Type=%d\n", ID, eptWatchList[ID].Type);
 
   switch (eptWatchList[ID].Type)
   {
   	  case EPTW_WRITE:
   	  {
   	    sendstringf("Write type. So making it unwritable\n");
-  	    currentcpuinfo->eptWatchList[ID]->WA=0;
+
+  	    if (isAMD)
+  	    {
+  	      PPTE_PAE pte;
+  	      pte=(PPTE_PAE)currentcpuinfo->eptWatchList[ID];
+  	      UINT64 oldvalue=*(UINT64 *)pte;
+  	      pte->RW=0;
+
+  	      UINT64 newvalue=*(UINT64 *)pte;
+
+  	      sendstringf("%6 -> %6\n", oldvalue, newvalue);
+  	    }
+  	    else
+  	      currentcpuinfo->eptWatchList[ID]->WA=0;
   		  break;
   	  }
 
   	  case EPTW_READWRITE:
   	  {
   	    sendstringf("read type. So making it unreadable\n");
-  	    currentcpuinfo->eptWatchList[ID]->RA=0;
-  	    currentcpuinfo->eptWatchList[ID]->WA=0;
-  	    if (has_EPT_ExecuteOnlySupport)
-  	      currentcpuinfo->eptWatchList[ID]->XA=1;
+  	    if (isAMD)
+  	    {
+  	      PPTE_PAE pte;
+  	      pte=(PPTE_PAE)currentcpuinfo->eptWatchList[ID];
+  	      pte->P=0;
+  	    }
   	    else
-  	      currentcpuinfo->eptWatchList[ID]->XA=0;
+  	    {
+          currentcpuinfo->eptWatchList[ID]->RA=0;
+          currentcpuinfo->eptWatchList[ID]->WA=0;
+          if (has_EPT_ExecuteOnlySupport)
+            currentcpuinfo->eptWatchList[ID]->XA=1;
+          else
+            currentcpuinfo->eptWatchList[ID]->XA=0;
+  	    }
 
   		  break;
   	  }
 
   	  case EPTW_EXECUTE:
   	  {
-  		  sendstringf("execute type. So making it non-executable\n");
-  		  currentcpuinfo->eptWatchList[ID]->XA=0;
+  	    sendstringf("execute type. So making it non-executable\n");
+        if (isAMD)
+        {
+          PPTE_PAE pte;
+          pte=(PPTE_PAE)currentcpuinfo->eptWatchList[ID];
+          pte->EXB=1;
+        }
+        else
+          currentcpuinfo->eptWatchList[ID]->XA=0;
+
   		  break;
   	  }
   }
@@ -1338,27 +1469,40 @@ int ept_handleWatchEventAfterStep(pcpuinfo currentcpuinfo,  int ID)
   //      Keep in mind that CE reading memory may also trigger access interrupts so those need to be
   //      ignored by the driver
 
+
   if (currentcpuinfo->BPAfterStep)
   {
-    if (int1redirection_idtbypass)
+    if (isAMD)
     {
-      regDR7 dr7;
-      //disable GD bit before int1
-      dr7.DR7=vmread(vm_guest_dr7);
-      dr7.GD=0;
-      vmwrite(vm_guest_dr7,dr7.DR7);
-
-      emulateExceptionInterrupt(currentcpuinfo, NULL, int1redirection_idtbypass_cs, int1redirection_idtbypass_rip, 0, 0, 0);
+      currentcpuinfo->vmcb->inject_Type=3; //exception
+      currentcpuinfo->vmcb->inject_Vector=int1redirection;
+      currentcpuinfo->vmcb->inject_Valid=1;
+      currentcpuinfo->vmcb->inject_EV=0;
     }
     else
     {
-      vmwrite(vm_pending_debug_exceptions,0x4000); //for OS'es without the need for int1 redirects
+      if (int1redirection_idtbypass)
+      {
+        regDR7 dr7;
+        //disable GD bit before int1
+        dr7.DR7=vmread(vm_guest_dr7);
+        dr7.GD=0;
+        vmwrite(vm_guest_dr7,dr7.DR7);
+
+        emulateExceptionInterrupt(currentcpuinfo, NULL, int1redirection_idtbypass_cs, int1redirection_idtbypass_rip, 0, 0, 0);
+      }
+      else
+      {
+        vmwrite(vm_pending_debug_exceptions,0x4000); //for OS'es without the need for int1 redirects
+      }
     }
 
     currentcpuinfo->BPAfterStep=0;
     currentcpuinfo->BPCausedByDBVM=1;
 
   }
+
+  sendstring("Calling ept_invalidate\n");
 
   ept_invalidate();
   return 0;
@@ -1650,36 +1794,70 @@ int ept_watch_activate(QWORD PhysicalAddress, int Size, int Type, DWORD Options,
   pcpuinfo c=firstcpuinfo;
   while (c)
   {
+    QWORD PA_PTE;
+
     sendstringf("Setting watch for CPU %d\n", c->cpunr);
     csEnter(&c->EPTPML4CS);
 
-    QWORD PA_EPTE=EPTMapPhysicalMemory(c, PhysicalAddress, 1);
+    if (isAMD)
+      PA_PTE=NPMapPhysicalMemory(c, PhysicalAddress, 1);
+    else
+      PA_PTE=EPTMapPhysicalMemory(c, PhysicalAddress, 1);
+
 
     if (c->eptWatchListLength<eptWatchListSize) //realloc
       c->eptWatchList=realloc(c->eptWatchList, eptWatchListSize*sizeof(EPT_PTE));
 
-    c->eptWatchList[ID]=mapPhysicalMemoryGlobal(PA_EPTE, sizeof(EPT_PTE)); //can use global as it's not a quick map/unmap procedure
+    c->eptWatchList[ID]=mapPhysicalMemoryGlobal(PA_PTE, sizeof(EPT_PTE)); //can use global as it's not a quick map/unmap procedure
 
-    EPT_PTE temp=*c->eptWatchList[ID]; //using temp in case the cpu doesn't support a XA of 1 with an RA of 0
-
-    if (Type==EPTW_WRITE) //Writes
-      temp.WA=0;
-    else
-    if (Type==EPTW_READWRITE) //read and writes
+    if (isAMD)
     {
-      if (has_EPT_ExecuteOnlySupport)
-        temp.XA=1;
+      //AMD NP
+      _PTE_PAE temp=*(_PTE_PAE *)c->eptWatchList[ID];
+      if (Type==EPTW_WRITE)
+      {
+        temp.RW=0;
+      }
       else
+      if (Type==EPTW_READWRITE)
+      {
+        temp.P=0; //not present, ANY access, including execute
+      }
+      else
+      if (Type==EPTW_EXECUTE)
+      {
+        temp.EXB=1; //no execute flag
+      }
+      *(c->eptWatchList[ID])=*(EPT_PTE *)&temp;
+    }
+    else
+    {
+
+      //Intel EPT
+      EPT_PTE temp=*c->eptWatchList[ID]; //using temp in case the cpu doesn't support a XA of 1 with an RA of 0
+
+      if (Type==EPTW_WRITE) //Writes
+        temp.WA=0;
+      else
+      if (Type==EPTW_READWRITE) //read and writes
+      {
+        if (has_EPT_ExecuteOnlySupport)
+          temp.XA=1;
+        else
+          temp.XA=0;
+        temp.WA=0;
+        temp.RA=0;
+      }
+
+      if (Type==EPTW_EXECUTE) //executes
+      {
         temp.XA=0;
-      temp.WA=0;
-      temp.RA=0;
+      }
+      *(c->eptWatchList[ID])=temp;
+
     }
 
-    if (Type==EPTW_EXECUTE) //executes
-    {
-    	temp.XA=0;
-    }
-    *(c->eptWatchList[ID])=temp;
+
 
     _wbinvd();
     c->eptUpdated=1;
@@ -2069,6 +2247,9 @@ void initMemTypeRanges()
 //builds an array of memory ranges and their cache
 {
   int i;
+  if (memoryrangesPos)
+    return; //already initialized
+
   csEnter(&memoryrangesCS);
 
   memoryrangesPos=0;

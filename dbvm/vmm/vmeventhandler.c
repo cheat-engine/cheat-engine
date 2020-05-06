@@ -1074,8 +1074,8 @@ ULONG getSegmentAccessRights(PGDT_ENTRY gdt, PGDT_ENTRY ldt, ULONG selector)
 
 WORD convertSegmentAccessRightsToSegmentAttrib(ULONG accessrights)
 {
-  Access_Rights ar;
-  Segment_Attribs sa;
+  Access_Rights ar; //intel
+  Segment_Attribs sa; //amd
 
   ar.AccessRights=accessrights;
 
@@ -3701,7 +3701,7 @@ InterruptFired:
 
 int handleSingleStep(pcpuinfo currentcpuinfo)
 {
-  //handle the reasons one by one
+  //handle the reasons one by one. (Used by AMD as well)
   sendstringf("handleSingleStep.  currentcpuinfo->singleStepping.ReasonsPos=%d\n", currentcpuinfo->singleStepping.ReasonsPos);
 
   while (currentcpuinfo->singleStepping.ReasonsPos)
@@ -3722,10 +3722,10 @@ int handleSingleStep(pcpuinfo currentcpuinfo)
       ddDrawRectangle(0,DDVerticalResolution-100,100,100,0xff0000);
       while (1) outportb(0x80,0xd7);
     }
-
     currentcpuinfo->singleStepping.ReasonsPos--;
   }
 
+  sendstring("vmx_disableSingleStepMode\n");
   vmx_disableSingleStepMode();
 
   sendstringf("return from handleSingleStep.  currentcpuinfo->singleStepping.ReasonsPos=%d\n", currentcpuinfo->singleStepping.ReasonsPos);
@@ -3868,10 +3868,7 @@ int handleVMEvent(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, FXSAVE64 *f
 	  ept_invalidate();
   }
 
-  /*
-  vpid_invalidate(); //test
-  ept_invalidate(); //test
-  */
+
 
 
   switch (exit_reason) //exit reason

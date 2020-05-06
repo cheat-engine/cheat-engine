@@ -14,21 +14,62 @@
 #include "neward.h"
 #include "vmcall.h"
 #include "vmmhelper.h"
+#include "apic.h"
+#include "msrnames.h"
+#include "nphandler.h"
 
 criticalSection debugoutput;
-int handleVMEvent_amd(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
+int handleVMEvent_amd(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, FXSAVE64 *fxsave)
 {
   int i;
 
-  sendstringf("currentcpuinfo->vmcb->EXITCODE=%d\n", currentcpuinfo->vmcb->EXITCODE);
+
+
+  nosendchar[getAPICID()]=1;
+
+  sendstringf("getAPICID()=%d VM_HSAVE_PA_MSR=%6\n", getAPICID(),readMSR(VM_HSAVE_PA_MSR));
+
+
+  sendstringf("currentcpuinfo->cpunr=%d (nr:%d)\n", currentcpuinfo->cpunr, currentcpuinfo->eventcounter[0]);
+
+
+
+  sendstringf("currentcpuinfo->vmcb->EXITCODE=%x\n", currentcpuinfo->vmcb->EXITCODE);
   sendstringf("EXITINTINFO=%x\nEXITINFO1=%x\nEXITINFO2=%x\n", currentcpuinfo->vmcb->EXITINTINFO, currentcpuinfo->vmcb->EXITINFO1, currentcpuinfo->vmcb->EXITINFO2);
 
   sendstringf("currentcpuinfo->vmcb->VMCB_CLEAN_BITS = %8\n", currentcpuinfo->vmcb->VMCB_CLEAN_BITS);
 
   currentcpuinfo->vmcb->VMCB_CLEAN_BITS=0xffffffff; //nothing cached changed (yet)
 
+  if (currentcpuinfo->eptUpdated==1)
+  {
+    currentcpuinfo->eptUpdated=0;
+    currentcpuinfo->vmcb->VMCB_CLEAN_BITS&=~(1 << 4);
+  }
+
+  if (currentcpuinfo->singleStepping.ReasonsPos)
+  {
+    nosendchar[getAPICID()]=0;
+    sendstringf("AMD Handler: currentcpuinfo->singleStepping.ReasonsPos=%d Calling handleSingleStep()\n",currentcpuinfo->singleStepping.ReasonsPos);
+
+    handleSingleStep(currentcpuinfo);
+    sendstring("After handleSingleStep()\n");
+
+    if (currentcpuinfo->vmcb->EXITCODE==VMEXIT_EXCP1)
+    {
+      sendstring("It was an int1 so skip this\n"); //Todo: Check if it was a int1 before the step
 
 
+      //no further handling is needed
+      return 0;
+    }
+
+    sendstring("Need to do some further handling\n");//eg external interrupts
+
+  }
+
+
+  currentcpuinfo->eventcounter[0]++;
 
   switch (currentcpuinfo->vmcb->EXITCODE)
   {
@@ -39,7 +80,7 @@ int handleVMEvent_amd(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 
       //int1 breakpoint
 
-     // nosendchar[getAPICID()]=currentcpuinfo->vmcb->CPL!=3;
+      nosendchar[getAPICID()]=0; //urrentcpuinfo->vmcb->CPL!=3;
 
       sendstringf("INT1 breakpoint\n");
       sendstringf("dr0=%x\n", getDR0());
@@ -584,32 +625,160 @@ int handleVMEvent_amd(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
     case VMEXIT_VMMCALL:
     {
       //dbvm callback for amd
+      nosendchar[getAPICID()]=0;
+      sendstringf("%d: handleVMCall()", currentcpuinfo->cpunr);
       return handleVMCall(currentcpuinfo, vmregisters);
       break;
+    }
+
+    case VMEXIT_CPUID:
+    {
+      sendstringf("!CPUID! %6->%6\n", currentcpuinfo->vmcb->RIP, currentcpuinfo->vmcb->nRIP);
+      currentcpuinfo->vmcb->RIP=currentcpuinfo->vmcb->nRIP;
+      return 0;
     }
 
     case VMEXIT_INIT:
     {
 
-      //idle a bit until the virtual APIC sends a sipi message to this cpu
-
-      csEnter(&debugoutput);
-      if (currentcpuinfo->cpunr==1)
+      nosendchar[getAPICID()]=0;
+      while (1) sendstringf("PENIS");
+      /*
+      if (currentcpuinfo->cpunr==0)
       {
+        apic_eoi();
+
         nosendchar[getAPICID()]=0;
-        sendstringf("INIT cpu %d!\n", currentcpuinfo->cpunr);
-        sendstringf("RIP=%x\n",currentcpuinfo->vmcb->RIP);
-        sendstringf("nRIP=%x\n",currentcpuinfo->vmcb->nRIP);
-        sendstringf("CS=%x\n",currentcpuinfo->vmcb->cs_selector);
-        sendstringf("EFER=%x\n",currentcpuinfo->vmcb->EFER);
-        sendstringf("V_TPR=%x\n", currentcpuinfo->vmcb->V_TPR);
-        sendstringf("V_INTR_VECTOR=%x\n", currentcpuinfo->vmcb->V_INTR_VECTOR);
+        sendstringf("%6: %d(%d): VMEXIT_INIT Skipping (%6 -> %6)\n", currentcpuinfo, currentcpuinfo->cpunr,getAPICID(), currentcpuinfo->vmcb->RIP, currentcpuinfo->vmcb->nRIP);
 
-      }
-      //currentcpuinfo->vmcb
 
-      csLeave(&debugoutput);
-      while (1);
+        if ((currentcpuinfo->vmcb->nRIP==0) || (currentcpuinfo->vmcb->nRIP==currentcpuinfo->vmcb->RIP))
+        {
+          currentcpuinfo->vmcb->RIP+=2;
+
+        }
+        else
+          currentcpuinfo->vmcb->RIP=currentcpuinfo->vmcb->nRIP;
+
+        currentcpuinfo->vmcb->VMCB_CLEAN_BITS=0;
+
+
+        return 0;
+      }*/
+
+      UINT64 a,b,c,d;
+      zeromemory(vmregisters,sizeof(VMRegisters));
+
+
+
+      currentcpuinfo->vmcb->CR0=0x10;
+      currentcpuinfo->vmcb->CR2=0;
+      currentcpuinfo->vmcb->CR3=0;
+      currentcpuinfo->vmcb->RFLAGS=2;
+      currentcpuinfo->vmcb->EFER=0;
+      currentcpuinfo->vmcb->RIP=0xfff0;
+
+
+      Segment_Attribs attrib;
+      attrib.G=0;
+      attrib.D_B=0;
+      attrib.L=0;
+      attrib.P=1;
+      attrib.DPL=0;
+
+      //cs:
+      attrib.S=1;
+      attrib.Segment_type=0b1010;
+      currentcpuinfo->vmcb->cs_attrib=attrib.SegmentAttrib;
+      currentcpuinfo->vmcb->cs_selector=0xf000;
+      currentcpuinfo->vmcb->cs_base=0xffff0000;
+      currentcpuinfo->vmcb->cs_limit=0xffff;
+
+      //data
+      attrib.S=1;
+      attrib.Segment_type=0b0010;
+      currentcpuinfo->vmcb->ss_attrib=attrib.SegmentAttrib;
+      currentcpuinfo->vmcb->ss_selector=0;
+      currentcpuinfo->vmcb->ss_base=0;
+      currentcpuinfo->vmcb->ss_limit=0xffff;
+
+      currentcpuinfo->vmcb->ds_attrib=attrib.SegmentAttrib;
+      currentcpuinfo->vmcb->ds_selector=0;
+      currentcpuinfo->vmcb->ds_base=0;
+      currentcpuinfo->vmcb->ds_limit=0xffff;
+
+      currentcpuinfo->vmcb->es_attrib=attrib.SegmentAttrib;
+      currentcpuinfo->vmcb->es_selector=0;
+      currentcpuinfo->vmcb->es_base=0;
+      currentcpuinfo->vmcb->es_limit=0xffff;
+
+      currentcpuinfo->vmcb->fs_attrib=attrib.SegmentAttrib;
+      currentcpuinfo->vmcb->fs_selector=0;
+      currentcpuinfo->vmcb->fs_base=0;
+      currentcpuinfo->vmcb->fs_limit=0xffff;
+
+      currentcpuinfo->vmcb->gs_attrib=attrib.SegmentAttrib;
+      currentcpuinfo->vmcb->gs_selector=0;
+      currentcpuinfo->vmcb->gs_base=0;
+      currentcpuinfo->vmcb->gs_limit=0xffff;
+
+      //ldtr:
+      attrib.S=0;
+      attrib.Segment_type=0b0010;
+      currentcpuinfo->vmcb->ldtr_attrib=attrib.SegmentAttrib;
+      currentcpuinfo->vmcb->ldtr_selector=0;
+      currentcpuinfo->vmcb->ldtr_base=0;
+      currentcpuinfo->vmcb->ldtr_limit=0xffff;
+
+      //tr:
+      attrib.S=0;
+      attrib.Segment_type=0b0011;
+      currentcpuinfo->vmcb->tr_attrib=attrib.SegmentAttrib;
+      currentcpuinfo->vmcb->tr_selector=0;
+      currentcpuinfo->vmcb->tr_base=0;
+      currentcpuinfo->vmcb->tr_limit=0xffff;
+
+
+      currentcpuinfo->vmcb->gdtr_base=0;
+      currentcpuinfo->vmcb->gdtr_limit=0xffff;
+
+      currentcpuinfo->vmcb->idtr_base=0;
+      currentcpuinfo->vmcb->idtr_limit=0xffff;
+
+
+      a=1;
+      _cpuid(&a,&b,&c,&d);
+
+      currentcpuinfo->vmcb->RAX=0;
+      vmregisters->rdx=a;
+      vmregisters->rbx=0;
+      vmregisters->rcx=0;
+      vmregisters->rbp=0;
+      currentcpuinfo->vmcb->RSP=0;
+      vmregisters->rdi=0;
+      vmregisters->rsi=0;
+      vmregisters->r8=0;
+      vmregisters->r9=0;
+      vmregisters->r10=0;
+      vmregisters->r11=0;
+      vmregisters->r12=0;
+      vmregisters->r13=0;
+      vmregisters->r14=0;
+      vmregisters->r15=0;
+
+      setDR0(0);
+      setDR1(0);
+      setDR2(0);
+      setDR3(0);
+
+      currentcpuinfo->vmcb->DR6=0xffff0ff0;
+      currentcpuinfo->vmcb->DR7=0x400;
+
+      currentcpuinfo->vmcb->VMCB_CLEAN_BITS=0;
+
+      return 0;
+
+
 
       break;
     }
@@ -637,11 +806,23 @@ int handleVMEvent_amd(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
       break;
     }
 
+    case VMEXIT_NPF:
+    {
+      nosendchar[getAPICID()]=0;
+      sendstring("VMEXIT_NPF\n");
+
+
+      return handleNestedPagingFault(currentcpuinfo,vmregisters, fxsave);
+
+      break;
+    }
+
 
   }
 
+  nosendchar[getAPICID()]=0;
 
-  displayline("Unhandled event %x\n", currentcpuinfo->vmcb->EXITCODE);
+  displayline("%d: Unhandled event 0x%x (%x:%6: %6)  nrip=%6\n", currentcpuinfo->cpunr, currentcpuinfo->vmcb->EXITCODE, currentcpuinfo->vmcb->cs_selector, currentcpuinfo->vmcb->RIP, (QWORD)(currentcpuinfo->vmcb->cs_base+currentcpuinfo->vmcb->RIP), currentcpuinfo->vmcb->nRIP);
   while (1) ;
   //still here
   return 1;

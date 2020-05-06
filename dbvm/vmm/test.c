@@ -11,6 +11,7 @@
 #include "msrnames.h"
 #include "test.h"
 #include "apic.h"
+#include "vmcall.h"
 
 int MSR_LASTBRANCH_TOS=0x1C9;
 int MSR_LASTBRANCH_0=0x1DB;
@@ -271,4 +272,201 @@ int handlePerformanceCounterInterrupt(void)
    // sendstringf("IA32_DEBUGCTL_MSR is now %x\n", readMSR(IA32_DEBUGCTL_MSR));
 
     return 1;
+}
+
+int getDBVMVersion(void)
+{
+  int result;
+  VMCALL_BASIC param;
+  sendstringf("getDBVMVersion");
+
+  param.command=VMCALL_GETVERSION;
+  param.password2=Password2;
+  param.size=sizeof(param);
+
+  try
+  {
+    result=_vmcall(Password1,&param);
+  }
+  except
+  {
+    result=0;
+  }
+  tryend
+
+  return result;
+}
+
+int dbvm_watch_writes(QWORD PhysicalAddress, int *ID)
+{
+  int result;
+  VMCALL_WATCH_PARAM param;
+  param.vmcall.command=VMCALL_WATCH_WRITES;
+  param.vmcall.password2=Password2;
+  param.vmcall.size=sizeof(param);
+
+  param.PhysicalAddress=PhysicalAddress;
+  param.Size=4;
+  param.Options=0;
+  param.MaxEntryCount=16;
+  param.ID=*ID;
+
+  try
+  {
+    result=_vmcall(Password1, &param);
+    *ID=param.ID;
+  }
+  except
+  {
+    result=-1;
+  }
+  tryend
+
+  return result;
+}
+
+int dbvm_watch_reads(QWORD PhysicalAddress, int *ID)
+{
+  int result;
+  VMCALL_WATCH_PARAM param;
+  param.vmcall.command=VMCALL_WATCH_READS;
+  param.vmcall.password2=Password2;
+  param.vmcall.size=sizeof(param);
+
+  param.PhysicalAddress=PhysicalAddress;
+  param.Size=4;
+  param.Options=0;
+  param.MaxEntryCount=16;
+  param.ID=*ID;
+
+  try
+  {
+    result=_vmcall(Password1, &param);
+    *ID=param.ID;
+  }
+  except
+  {
+    result=-1;
+  }
+  tryend
+
+  return result;
+}
+
+int dbvm_watch_executes(QWORD PhysicalAddress, int *ID)
+{
+  int result;
+  VMCALL_WATCH_PARAM param;
+  param.vmcall.command=VMCALL_WATCH_EXECUTES;
+  param.vmcall.password2=Password2;
+  param.vmcall.size=sizeof(param);
+
+  param.PhysicalAddress=PhysicalAddress;
+  param.Size=4;
+  param.Options=0;
+  param.MaxEntryCount=16;
+  param.ID=*ID;
+
+  try
+  {
+    result=_vmcall(Password1, &param);
+    *ID=param.ID;
+  }
+  except
+  {
+    result=-1;
+  }
+  tryend
+
+  return result;
+}
+
+volatile int *testvar;
+volatile int *testvar2;
+int watchid=-1;
+
+void testfunction()
+{
+  sendstringf("testfunction\n");
+}
+
+void dbvm_watch_writes_test(void)
+{
+  int DBVMVersion=getDBVMVersion();
+
+
+  if (DBVMVersion)
+  {
+    QWORD PA;
+
+    writeMSR(EFER_MSR, readMSR(EFER_MSR) & ~(1<<11)); //this is the guest, disable no execute
+
+
+    sendstringf("DBVM version is %x\n", DBVMVersion);
+
+    if (testvar==NULL)
+    {
+      testvar=(int *)malloc(4096);
+
+      testvar2=&testvar[64];
+      *testvar=123;
+      *testvar2=456;
+
+      PA=VirtualToPhysical(testfunction);
+    }
+    else
+      PA=VirtualToPhysical(testfunction);
+
+    int r;
+
+
+
+
+    sendstringf("testvar has been allocated at %6 which is PA %6\n", testvar, PA);
+
+    if (watchid==-1)
+    {
+      r=dbvm_watch_executes(PA,&watchid);
+      sendstringf("dbvm_watch_writes returned %d. ID=%d\n", r,watchid);
+    }
+    else
+      sendstringf("still watching ID=%d\n", watchid);
+
+
+
+    sendstringf("Reading from same page as testvar but different location (%6)\n", testvar2);
+    asm volatile ("": : :"memory");
+    sendstringf("testvar2=%d\n", *testvar2);
+    asm volatile ("": : :"memory");
+
+    sendstringf("reading testvar\n");
+    asm volatile ("": : :"memory");
+    sendstringf("testvar=%d\n", *testvar);
+    asm volatile ("": : :"memory");
+
+    sendstringf("Writing to the same page as testvar but different location (%6)\n", testvar2);
+    asm volatile ("": : :"memory");
+    *testvar2=789;
+    asm volatile ("": : :"memory");
+    sendstringf("testvar2=%d\n", *testvar2);
+    asm volatile ("": : :"memory");
+
+    sendstringf("Writing to testvar\n");
+    asm volatile ("": : :"memory");
+    *testvar=321;
+    asm volatile ("": : :"memory");
+    sendstringf("testvar=%d\n", *testvar);
+    asm volatile ("": : :"memory");
+
+    sendstringf("Calling testfunction\n");
+    testfunction();
+    sendstringf("after testfunction\n");
+
+
+    sendstringf("It should have recorded by now\n");
+
+  }
+  else
+    sendstring("Error, no DBVM loaded\n");
+
 }

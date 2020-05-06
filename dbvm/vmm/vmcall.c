@@ -1508,10 +1508,12 @@ int _handleVMCallInstruction(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, 
 
     case VMCALL_WATCH_WRITES:
     {
+
+
       nosendchar[getAPICID()]=0;
 
       sendstringf("VMCALL_WATCH_WRITES\n");
-      if (hasEPTsupport)
+      if (hasEPTsupport || hasNPsupport)
       {
         vmregisters->rax=vmcall_watch_activate((PVMCALL_WATCH_PARAM)vmcall_instruction,EPTW_WRITE); //write
         sendstringf("vmcall_watch_activate returned %d and ID %d\n", vmregisters->rax, ((PVMCALL_WATCH_PARAM)vmcall_instruction)->ID);
@@ -1528,7 +1530,7 @@ int _handleVMCallInstruction(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, 
     case VMCALL_WATCH_READS:
     {
       sendstringf("VMCALL_WATCH_READS\n");
-      if (hasEPTsupport)
+      if (hasEPTsupport || hasNPsupport)
       {
         vmregisters->rax=vmcall_watch_activate((PVMCALL_WATCH_PARAM)vmcall_instruction,EPTW_READWRITE); //read
       }
@@ -1542,7 +1544,7 @@ int _handleVMCallInstruction(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, 
     case VMCALL_WATCH_EXECUTES:
     {
       sendstringf("VMCALL_WATCH_EXECUTES\n");
-      if (hasEPTsupport)
+      if (hasEPTsupport || hasNPsupport)
       {
         vmregisters->rax=vmcall_watch_activate((PVMCALL_WATCH_PARAM)vmcall_instruction,EPTW_EXECUTE); //read
       }
