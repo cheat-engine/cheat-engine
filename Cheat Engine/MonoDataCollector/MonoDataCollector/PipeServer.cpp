@@ -615,6 +615,14 @@ void CPipeServer::GetImageName()
 	Write(s, strlen(s));
 }
 
+#include <locale> 
+#include <codecvt> 
+WORD UTF8TOUTF16(char* szUtf8) {
+
+	std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> convert;
+	std::u16string dest = convert.from_bytes(szUtf8);
+	return *(WORD*)&dest[0];
+}
 void CPipeServer::EnumClassesInImage()
 {
 	int i;
@@ -679,24 +687,33 @@ void CPipeServer::EnumClassesInImage()
 				{
 					char *name = mono_class_get_name(c);
 
-					WriteQword((UINT_PTR)c);
+				WriteQword((UINT_PTR)c);
 
-					if (name)
-					{
-						WriteWord(strlen(name));
-						Write(name, strlen(name));
-					}
-					else
-						WriteWord(0);
 
-					name = mono_class_get_namespace(c);
-					if (name)
-					{
-						WriteWord(strlen(name));
-						Write(name, strlen(name));
-					}
-					else
-						WriteWord(0);
+				std::string sName = std::string(name);
+
+				if ((BYTE)name[0] == 0xEE) {
+					char szUeName[32];
+					sprintf_s(szUeName, 32, "\\u%04X", UTF8TOUTF16(name));
+					sName = szUeName;
+				}
+
+				if (c)
+				{
+					WriteWord(sName.size());
+					Write((PVOID)sName.c_str(), sName.size());
+				}
+				else
+					WriteWord(0);
+
+				name = mono_class_get_namespace(c);
+				if (name)
+				{
+					WriteWord(strlen(name));
+					Write(name, strlen(name));
+				}
+				else
+					WriteWord(0);
 				}
 				else
 					WriteQword(0);
@@ -769,7 +786,6 @@ void CPipeServer::EnumFieldsInClass()
 
 		if (field)
 		{
-			char *name;
 			void *fieldtype = mono_field_get_type(field);
 			WriteQword((UINT_PTR)fieldtype);
 			WriteDword(mono_type_get_type(fieldtype));
@@ -779,16 +795,31 @@ void CPipeServer::EnumFieldsInClass()
 
 
 
-			name = mono_field_get_name(field);
-			WriteWord(strlen(name));
-			Write(name, strlen(name));
+			char* name = mono_field_get_name(field);
+			char* type = mono_type_get_name(fieldtype);
+			std::string sName = std::string(name);
+			std::string sType = std::string(type);
+			//check if name is x ...
+			char szUeName[32];
+			if ((BYTE)name[0] == 0xEE) {
+				char szUeName[32];
+				sprintf_s(szUeName, 32, "\\u%04X", UTF8TOUTF16(name));
+				sName = szUeName;
+			}
+			if ((BYTE)type[0] == 0xEE) {
+				char szUeName[32];
+				sprintf_s(szUeName, 32, "\\u%04X", UTF8TOUTF16(type));
+				sType = szUeName;
+			}
 
-			name = mono_type_get_name(fieldtype);
-			if (name)
+			WriteWord(sName.size());
+			Write((LPVOID)sName.c_str(), sName.size());
+
+			if (type)
 			{
-				WriteWord(strlen(name));
-				Write(name, strlen(name));
-				g_free(name);
+				WriteWord(sType.size());
+				Write((LPVOID)sType.c_str(), sType.size());
+				//g_free(name);
 			}
 			else
 				WriteWord(0);
@@ -814,8 +845,17 @@ void CPipeServer::EnumMethodsInClass()
 			char *name;
 
 			name = mono_method_get_name(method);
-			WriteWord(strlen(name));
-			Write(name, strlen(name));
+
+			std::string sName = std::string(name);
+
+			if ((BYTE)name[0] == 0xEE) {
+				char szUeName[32];
+				sprintf_s(szUeName, 32, "\\u%04X", UTF8TOUTF16(name));
+				sName = szUeName;
+			}
+
+				WriteWord(sName.size());
+				Write((PVOID)sName.c_str(), sName.size());
 		}
 	} while (method);
 
@@ -1002,8 +1042,16 @@ void CPipeServer::GetKlassName()
 	void *klass = (void *)ReadQword();
 	char *methodname = mono_class_get_name(klass);
 
-	WriteWord(strlen(methodname));
-	Write(methodname, strlen(methodname));
+	std::string sName = std::string(methodname);
+
+	if ((BYTE)methodname[0] == 0xEE) {
+		char szUeName[32];
+		sprintf_s(szUeName, 32, "\\u%04X", UTF8TOUTF16(methodname));
+		sName = szUeName;
+	}
+
+		WriteWord(sName.size());
+		Write((PVOID)sName.c_str(), sName.size());
 }
 
 void CPipeServer::GetClassNamespace()
@@ -1652,8 +1700,23 @@ void CPipeServer::GetFullTypeName(void)
 
 			if (fullname) 
 			{
-				WriteWord(strlen(fullname));
-				Write(fullname, strlen(fullname));
+				std::string sName = std::string(fullname);
+
+			if ((BYTE)fullname[0] == 0xEE) {
+				char szUeName[32];
+				auto plus = strchr(fullname, '+');
+				if (plus) {
+					sprintf_s(szUeName, 32, "\\u%04X+\\u%04X", UTF8TOUTF16(fullname), UTF8TOUTF16(plus+1));
+					sName = szUeName;
+				}
+				else {
+					sprintf_s(szUeName, 32, "\\u%04X", UTF8TOUTF16(fullname));
+					sName = szUeName;
+				}
+			}
+
+			WriteWord(sName.size());
+			Write((PVOID)sName.c_str(), sName.size());
 			}
 		}
 		else
