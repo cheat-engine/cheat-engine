@@ -121,7 +121,7 @@ end
 
 
 
-z=registerFormAddNotification(function(s)
+registerFormAddNotification(function(s)
   --watches for the ProcessWindow form
   if s.ClassName=='TProcessWindow' then
     --on hold while waiting for tabs to support images or ownerdraw, which neither is the case

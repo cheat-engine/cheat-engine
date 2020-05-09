@@ -1,6 +1,6 @@
-local hookedOpenedProcess=false
+local emurpm = {}
 
-function fileExists(filename)
+local function fileExists(filename)
   local f=io.open(filename, "r")
   if (f~=nil) then
     f:close()
@@ -10,34 +10,34 @@ function fileExists(filename)
   end
 end
 
-if emurpmOldOnProcessOpened~=nil then
-  MainForm.OnProcessOpened=emurpmOldOnProcessOpened
-  emurpmOldOnProcessOpened=nil
+if emurpm.OldOnProcessOpened~=nil then
+  MainForm.OnProcessOpened=emurpm.OldOnProcessOpened
+  emurpm.OldOnProcessOpened=nil
 end
 
-emurpmHookedhookedOnProcessOpened=false
+emurpm.hookedOnProcessOpened=false
 
-function emurpmOnProcessOpened(processid, processhandle, caption)
-  print("emurpmOnProcessOpened")
+function emurpm.OnProcessOpened(processid, processhandle, caption)
+  print("emurpm.OnProcessOpened")
   if frmEmuMemory.cbAutoActivate.checked then
     --print("Doing autoactivate stuff")
-    EmuSetAddress()
+    emurpm.emuSetAddress()
   end
 
-  if emurpmOldOnProcessOpened~=nil then
-    return emurpmOldOnProcessOpened(processid, processhandle, caption)
+  if emurpm.OldOnProcessOpened~=nil then
+    return emurpm.OldOnProcessOpened(processid, processhandle, caption)
   end
 end
 
 --find the emurpm.frm file
-ced=getCheatEngineDir()
-possiblepaths={}
+local ced=getCheatEngineDir()
+local possiblepaths={}
 possiblepaths[1]="emurpm.frm"
 possiblepaths[2]=ced.."emurpm.frm"
 possiblepaths[3]=ced.."autorun\\emurpm.frm"
 possiblepaths[4]="c:\\emurpm.frm"
 
-frmPath=nil
+local frmPath=nil
 for i=1,4 do
   if fileExists(possiblepaths[i]) then
     frmPath=possiblepaths[i]
@@ -194,13 +194,13 @@ autoAssemble([[
 ]], true)
 
 
-function setEmuPointer()
+function emurpm.setEmuPointer()
   setAPIPointer(1, getAddress("EmuRPM", true)) --make RPM calls call emurpm
   setAPIPointer(2, getAddress("EmuWPM", true)) --make WPM calls call emuwpm
   setAPIPointer(3, getAddress("EmuVQE", true)) --make VQE calls call EmuVQE
 end
 
-function EmuSetAddress(sender) --called by the (Re)Set address button
+function emurpm.emuSetAddress(sender) --called by the (Re)Set address button
   --first undo the api pointer change since I need to read the actual memory
 
   onAPIPointerChange(nil) --shouldn't be needed, but in case this ever gets changed so setAPIPointer calls it as well
@@ -215,60 +215,60 @@ function EmuSetAddress(sender) --called by the (Re)Set address button
 
 
 
-  setEmuPointer() --hook
+  emurpm.setEmuPointer() --hook
 
-  onAPIPointerChange(setEmuPointer) --rehook when the hook gets lost
+  onAPIPointerChange(emurpm.setEmuPointer) --rehook when the hook gets lost
 end
 
 --add a menu option to configure the EmuBaseAddress
 
-mf=getMainForm()
-mi=createMenuItem(mf.Menu)
+local mf=getMainForm()
+local mi=createMenuItem(mf.Menu)
 mi.Caption="Emulator Memory"
 mf.Menu.Items.insert(mf.Menu.Items.Count-1, mi) --add it before the last entry (help)
 
 
-mi2=createMenuItem(mf.Menu)
+local mi2=createMenuItem(mf.Menu)
 mi2.Caption="Set Base Address"
 mi2.OnClick=function()
   frmEmuMemory.showModal()
-  emurpmsettings.Value["baseaddress"]=frmEmuMemory.edtAddress.Text
-  emurpmsettings.Value["memorysize"]=frmEmuMemory.edtMemsize.Text
-  emurpmsettings.Value["autoactivate"]=frmEmuMemory.cbAutoActivate.Checked
+  emurpm.settings.Value["baseaddress"]=frmEmuMemory.edtAddress.Text
+  emurpm.settings.Value["memorysize"]=frmEmuMemory.edtMemsize.Text
+  emurpm.settings.Value["autoactivate"]=frmEmuMemory.cbAutoActivate.Checked
 
   if frmEmuMemory.cbAutoActivate.Checked then
-    if emurpmHookedhookedOnProcessOpened==false then --hook it
-      emurpmOldOnProcessOpened=MainForm.OnProcessOpened
-      MainForm.OnProcessOpened=emurpmOnProcessOpened
+    if emurpm.hookedOnProcessOpened==false then --hook it
+      emurpm.OldOnProcessOpened=MainForm.OnProcessOpened
+      MainForm.OnProcessOpened=emurpm.OnProcessOpened
 
-      emurpmHookedhookedOnProcessOpened=true
+      emurpm.hookedOnProcessOpened=true
     end
   end
 end
 
 mi.add(mi2)
 
-emurpmsettings=getSettings("emurpm")
-local baseaddress=emurpmsettings.Value["baseaddress"]
+emurpm.settings=getSettings("emurpm")
+local baseaddress=emurpm.settings.Value["baseaddress"]
 if baseaddress~='' then
   frmEmuMemory.edtAddress.Text=baseaddress
 end
 
-local memorysize=emurpmsettings.Value["memorysize"]
+local memorysize=emurpm.settings.Value["memorysize"]
 if memorysize~='' then
   frmEmuMemory.edtMemsize.Text=memorysize
 end
 
-local autoactivate=emurpmsettings.Value["autoactivate"]
+local autoactivate=emurpm.settings.Value["autoactivate"]
 frmEmuMemory.cbAutoActivate.Checked=autoactivate=='1'
 
 if frmEmuMemory.cbAutoActivate.Checked then
   --print("emurpm autoactivating")
   --add openedprocesses event
-  if emurpmHookedhookedOnProcessOpened==false then --hook it
-    emurpmOldOnProcessOpened=MainForm.OnProcessOpened
+  if emurpm.hookedOnProcessOpened==false then --hook it
+    emurpm.OldOnProcessOpened=MainForm.OnProcessOpened
 
-    MainForm.OnProcessOpened=emurpmOnProcessOpened
-    emurpmHookedhookedOnProcessOpened=true
+    MainForm.OnProcessOpened=emurpm.OnProcessOpened
+    emurpm.hookedOnProcessOpened=true
   end
 end

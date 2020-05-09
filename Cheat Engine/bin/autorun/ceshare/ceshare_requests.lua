@@ -6,7 +6,7 @@ function ceshare.QueryProcessRequests(processname, startindex)
   if startindex then
     parameters=parameters..'startindex='..startindex
   end
-  s=ceshare.QueryXURL('QueryProcessRequests.php', parameters)
+  local s=ceshare.QueryXURL('QueryProcessRequests.php', parameters)
   if s then
     if s.RequestList then
       result={}

@@ -34,8 +34,8 @@ function ceshare.QueryProcessCheats(processname, headermd5, updatableOnly)
   
   
   --local r=ceshare.getInternet().postURL(url,parameters)
-    --local s=xmlParser:ParseXmlText(r)
-    s=ceshare.QueryXURL('QueryProcessTables.php', parameters)
+    --local s=ceshare.xmlParser:ParseXmlText(r)
+    local s=ceshare.QueryXURL('QueryProcessTables.php', parameters)
     if s then
       if s.CheatList then
         --parse the list
