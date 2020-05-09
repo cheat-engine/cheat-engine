@@ -41,13 +41,13 @@ type
     procedure miSortClick(Sender: TObject);
   private
     { private declarations }
-    callList: Tlist;
+    origCallList: Tlist;
 
     currentfilter: string;
     filteredList: TList;
     procedure LoadFunctionlist;
     function getList: TList;
-    property list: Tlist read getList;
+    property callList: Tlist read getList;
   public
     { public declarations }
   end;
@@ -67,7 +67,7 @@ begin
   if filteredList<>nil then
     result:=filteredList
   else
-    result:=calllist;
+    result:=origCallList;
 end;
 
 procedure TfrmReferencedFunctions.FormShow(Sender: TObject);
@@ -113,7 +113,7 @@ var x: TDissectReference;
 begin
   if (lbreflist.ItemIndex<>-1) and (lvCallList.Selected<>nil) and (lvCallList.Selected.Index<callList.count) then
   begin
-    x:=TDissectReference(calllist[lvCallList.Selected.index]);
+    x:=TDissectReference(callList[lvCallList.Selected.index]);
 
     if lbreflist.ItemIndex<length(x.references) then
       memorybrowser.disassemblerview.SelectedAddress:=x.references[lbreflist.ItemIndex].address;
@@ -140,11 +140,11 @@ procedure TfrmReferencedFunctions.lvCallListColumnClick(Sender: TObject;
 var
   i,j: integer;
 begin
-  //sort the calllist
+  //sort the callList
   if Column.Index=0 then
-    calllist.Sort(SortByAddress)
+    callList.Sort(SortByAddress)
   else
-    calllist.Sort(SortByReference);
+    callList.Sort(SortByReference);
 
   lvCallList.Refresh;
 end;
@@ -154,12 +154,10 @@ procedure TfrmReferencedFunctions.lvCallListData(Sender: TObject;
   Item: TListItem);
 var
   x: TDissectReference;
-  l: TList;
 begin
-  l:=list;
-  if item.index<l.Count then
+  if item.index<callList.Count then
   begin
-    x:=l[item.index];
+    x:=callList[item.index];
 
     if x.addressname='' then
       x.addressname:=symhandler.getNameFromAddress(x.address);
@@ -229,7 +227,7 @@ begin
 
     if currentfilter='' then
     begin
-      lvCallList.items.count:=list.count;
+      lvCallList.items.count:=callList.count;
       lvCallList.refresh;
       exit;
     end;
@@ -237,9 +235,9 @@ begin
 
     filteredlist:=tlist.create;
     lvCallList.items.count:=0;
-    for i:=0 to callList.count-1 do
+    for i:=0 to origCallList.count-1 do
     begin
-      item:=TDissectReference(callList.Items[i]);
+      item:=TDissectReference(origCallList.Items[i]);
       if item.addressname='' then
         item.addressname:=symhandler.getNameFromAddress(item.address);
 
@@ -266,9 +264,9 @@ begin
     start:=0;
 
 
-  for i:=start to list.Count-1 do
+  for i:=start to callList.Count-1 do
   begin
-    item:=TDissectReference(list[i]);
+    item:=TDissectReference(callList[i]);
     if item.addressname='' then
       item.addressname:=symhandler.getNameFromAddress(item.address);
 
@@ -313,19 +311,19 @@ begin
   if filteredList<>nil then
     freeandnil(filteredList);
 
-  if callList<>nil then
+  if origCallList<>nil then
   begin
     //cleanup
-    for i:=0 to callList.count-1 do
-      TDissectReference(callList[i]).free;
+    for i:=0 to origCallList.count-1 do
+      TDissectReference(origCallList[i]).free;
 
-    callList.Clear;
+    origCallList.Clear;
   end
   else
-    calllist:=tlist.create;
+    origCallList:=tlist.create;
 
-  dissectcode.getCallList(callList);
-  lvCallList.Items.Count:=calllist.count;
+  dissectcode.getCallList(origCallList);
+  lvCallList.Items.Count:=origCallList.count;
 end;
 
 end.
