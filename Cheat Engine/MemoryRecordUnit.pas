@@ -38,6 +38,7 @@ resourcestring
   rsSetValue = 'Set Value';
   rsIncreaseValue = 'Increase Value';
   rsDecreaseValue = 'Decrease Value';
+  rsAdjustMRwithRelativeAddress = 'Do you wish to adjust memory records with relative addresses as well?';
 type TMemrecHotkeyAction=(mrhToggleActivation=0, mrhToggleActivationAllowIncrease=1, mrhToggleActivationAllowDecrease=2, mrhActivate=3, mrhDeactivate=4, mrhSetValue=5, mrhIncreaseValue=6, mrhDecreaseValue=7);
 
 type TFreezeType=(ftFrozen, ftAllowIncrease, ftAllowDecrease);
@@ -344,7 +345,7 @@ type
     function getlinkedDropDownMemrec_LoopDetected: boolean;
 
     procedure replaceDescription(replace_find, replace_with: string; childrenaswell: boolean);
-    procedure adjustAddressby(offset, pointerlastoffset: int64; childrenaswell: boolean);
+    procedure adjustAddressby(offset, pointerlastoffset: int64; childrenaswell: boolean; relativeaswell: boolean=false);
 
     constructor Create(AOwner: TObject);
     destructor destroy; override;
@@ -1001,7 +1002,7 @@ begin
   end;
 end;
 
-procedure TMemoryRecord.adjustAddressby(offset, pointerlastoffset: int64; childrenaswell: boolean);
+procedure TMemoryRecord.adjustAddressby(offset, pointerlastoffset: int64; childrenaswell: boolean; relativeaswell: boolean=false);
 var
   s: string;
   x: ptruint;
@@ -1028,8 +1029,8 @@ begin
               appendText:=true;
           end;
         end
-        else
-        begin  // relative address
+        else if relativeaswell then // relative address
+        begin
           try
             x:=symhandler.getAddressFromName(interpretableaddress);
             x:=x+offset;
@@ -1057,7 +1058,7 @@ begin
 
   if childrenaswell then
     for i:=0 to count-1 do
-      Child[i].adjustAddressby(offset, pointerlastoffset, childrenaswell);
+      Child[i].adjustAddressby(offset, pointerlastoffset, childrenaswell, relativeaswell);
 end;
 
 function TMemoryRecord.getHotkeyCount: integer;

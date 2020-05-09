@@ -119,7 +119,7 @@ type
     function hasSelectedParent(memrec: TMemoryRecord): boolean;
 
     function CheatTableNodeHasOnlyAutoAssemblerScripts(CheatTable: TDOMNode): boolean; //helperfunction
-    function CheatTableNodeDoNotHaveRelativeAddress(CheatTable: TDOMNode): boolean; //helperfunction
+    procedure CheatTableNodeCheckForRelativeAddress(CheatTable: TDOMNode; var hasRelative, allRelative: boolean); //helperprocedure
 
 
     procedure sort(firstnode: ttreenode; compareRoutine: TTreeNodeCompare; direction: boolean);
@@ -589,39 +589,47 @@ begin
   end;
 end;
 
-function TAddresslist.CheatTableNodeDoNotHaveRelativeAddress(CheatTable: TDOMNode): boolean;
-{
-private
-checks if the given xml document contains cheatentries without relative Address
-}
+procedure __CheatTableNodeCheckForRelativeAddress(CheatTable: TDOMNode; var hasRelative, allRelative: boolean);
 var CheatEntries, currentEntry: TDOMNode;
   addrnode: TDOMNode;
   s: string;
 begin
-  result:=true;
+  
   CheatEntries:=CheatTable.FindNode('CheatEntries');
   if cheatentries<>nil then
   begin
     currentEntry:=CheatEntries.FirstChild;
-    while (currententry<>nil) and result do
+    while currententry<>nil do
     begin
       addrnode:=currententry.findnode('Address');
       if (addrnode<>nil) and (addrnode.TextContent<>'') then
       begin
         s:=trim(addrnode.TextContent);
         if (s<>'') and (s[1] in ['-', '+']) then
-        begin
-          result:=false;
-          exit;
-        end;
+          hasRelative:=true
+        else
+          allRelative:=false;
       end;
 
+      if hasRelative and (not allRelative) then exit;
+
       if currententry.findnode('CheatEntries')<>nil then
-        result:=CheatTableNodeDoNotHaveRelativeAddress(currentEntry);
+        __CheatTableNodeCheckForRelativeAddress(currentEntry, hasRelative, allRelative);
 
       currentEntry:=currentEntry.NextSibling;
     end;
   end;
+end;
+
+procedure TAddresslist.CheatTableNodeCheckForRelativeAddress(CheatTable: TDOMNode; var hasRelative, allRelative: boolean);
+{
+private
+checks if the given xml document contains cheatentries without relative Address
+}
+begin
+  hasRelative:=false;
+  allRelative:=true;
+  __CheatTableNodeCheckForRelativeAddress(CheatTable, hasRelative, allRelative);
 end;
 
 procedure TAddresslist.AddTableXMLAsText(xml: string; simpleCopyPaste: boolean=true);
@@ -644,11 +652,14 @@ var doc: TXMLDocument;
     changepointerlastoffset: int64;
     i: integer;
     childrenaswell: boolean;
+    relativeaswell: boolean;
+    hasRelative, allRelative: boolean;
 
 
 begin
   doc:=nil;
   s:=nil;
+  relativeaswell:=false;
 
   s:=TMemoryStream.Create;
   s.WriteBuffer(xml[1],length(xml));
@@ -676,10 +687,7 @@ begin
               begin
                 //check if it's needed (is at least one address not an auto assembler script ?
                 if not CheatTableNodeHasOnlyAutoAssemblerScripts(CheatTable) then
-                begin
-                  if not CheatTableNodeDoNotHaveRelativeAddress(CheatTable) then frmPasteTableentry.cbChildrenAsWell.Checked:=false; // there is at least one relative addresses - change default to false
                   if frmpastetableentry.showmodal=mrcancel then exit;
-                end;
               end;
 
               replace_find:=frmpastetableentry.edtFind.text;
@@ -697,8 +705,14 @@ begin
               freeandnil(frmPasteTableentry);
             end;
 
-          end;
+            CheatTableNodeCheckForRelativeAddress(CheatTable, hasRelative, allRelative);
 
+            if (changeoffset<>0) and hasRelative then
+              if allRelative then
+                relativeaswell:=true
+              else
+                relativeaswell:=messagedlg(rsAdjustMRwithRelativeAddress, mtConfirmation, [mbyes, mbno], 0) = mryes;
+          end;
 
           while currententry<>nil do
           begin
@@ -717,7 +731,7 @@ begin
               memrec.setXMLnode(currentEntry);
 
 
-              memrec.adjustAddressBy(changeoffset, changepointerlastoffset, childrenaswell);
+              memrec.adjustAddressBy(changeoffset, changepointerlastoffset, childrenaswell, relativeaswell);
               memrec.replaceDescription(replace_find, replace_with, childrenaswell);
             end;
             currentEntry:=currentEntry.NextSibling;

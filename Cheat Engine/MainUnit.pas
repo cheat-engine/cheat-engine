@@ -8833,9 +8833,14 @@ var
   i: integer;
   hasselected: boolean;
   childrenaswell: boolean;
+  relativeaswell: boolean;
+  checkifrelative: boolean=true;
+  s: string;
 begin
   if addresslist.Count = 0 then
     exit;
+
+  relativeaswell:=false;
 
   frmPasteTableentry := TfrmPasteTableentry.Create(self);
   try
@@ -8875,7 +8880,17 @@ begin
   begin
     if (hasselected and addresslist[i].isSelected) or (not hasselected) then
     begin
-      addresslist[i].adjustAddressby(changeoffset, changepointerlastoffset, childrenaswell);
+      if checkifrelative and (addresslist[i].interpretableaddress<>'') then
+      begin
+        s:=trim(addresslist[i].interpretableaddress);
+        if (s<>'') and (s[1] in ['-','+']) then
+        begin
+          relativeaswell:=messagedlg(rsAdjustMRwithRelativeAddress, mtConfirmation, [mbyes, mbno], 0) = mryes;
+          checkifrelative:=false;
+        end;
+      end;
+
+      addresslist[i].adjustAddressby(changeoffset, changepointerlastoffset, childrenaswell, relativeaswell);
       addresslist[i].replaceDescription(replace_find, replace_with, childrenaswell);
     end;
   end;
