@@ -154,7 +154,7 @@ plookup['ret']=function(state)
 end
 
 
-local function parseFunction(startaddress, limit)
+function parseFunction(startaddress, limit)
   local state={}
   --print('parseFunction')
   state.branchDestinations={} --list of branch destinations
