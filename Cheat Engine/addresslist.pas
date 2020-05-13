@@ -236,6 +236,9 @@ resourcestring
   rsALAutoAssembleScritp = 'Auto Assemble script';
   rsSortOnClick = 'Sort on click';
 
+var
+  ForbiddenSearchDescriptions: TStringHashList;
+
 procedure TTreeviewWithScroll.MouseDown(Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 var
   n: TTreenode;
@@ -775,7 +778,10 @@ begin
     descriptionhashlist.Remove(olddescription);
 
   if newdescription<>'' then
-    descriptionhashlist[newdescription]:=memrec;
+  begin
+    if ForbiddenSearchDescriptions.Data[newdescription]=nil then
+      descriptionhashlist[newdescription]:=memrec;
+  end;
 end;
 
 function TAddresslist.getRecordWithDescription(description: string): TMemoryRecord;
@@ -2433,5 +2439,25 @@ end;
 
 initialization
   registerclass(TAddresslist);       //yes...
+
+  ForbiddenSearchDescriptions:=TStringHashList.Create(false);
+  ForbiddenSearchDescriptions.Add('BYTE',pointer(-1));
+  ForbiddenSearchDescriptions.Add('WORD',pointer(-1));
+  ForbiddenSearchDescriptions.Add('DWORD',pointer(-1));
+  ForbiddenSearchDescriptions.Add('QWORD',pointer(-1));
+  ForbiddenSearchDescriptions.Add('UINT64',pointer(-1));
+  ForbiddenSearchDescriptions.Add('CHAR',pointer(-1));
+  ForbiddenSearchDescriptions.Add('SHORT',pointer(-1));
+  ForbiddenSearchDescriptions.Add('LONG',pointer(-1));
+  ForbiddenSearchDescriptions.Add('LONGLONG',pointer(-1));
+  ForbiddenSearchDescriptions.Add('INT64',pointer(-1));
+
+  ForbiddenSearchDescriptions.Add('INT',pointer(-1));
+  ForbiddenSearchDescriptions.Add('FLOAT',pointer(-1));
+
+  ForbiddenSearchDescriptions.Add('DOUBLE',pointer(-1));
+  ForbiddenSearchDescriptions.Add('DOUBLE32L',pointer(-1));
+  ForbiddenSearchDescriptions.Add('DOUBLE32H',pointer(-1));
+
 
 end.
