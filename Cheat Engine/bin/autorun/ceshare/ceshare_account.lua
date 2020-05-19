@@ -11,22 +11,26 @@ function ceshare.login(username,password)
   end
   
   local r=i.postURL(ceshare.base..'login.php',parameters)
-  if (r:sub(1,2)=='<?') then
-    local s=ceshare.xmlParser:ParseXmlText(r)
-    if s then
-      if s.Valid then
-        ceshare.LoggedIn=true
-        return true        
-      else
-        if s.error then
-          ceshare.showError(s.error:value())
+  if r then
+    if (r:sub(1,2)=='<?') then
+      local s=ceshare.xmlParser:ParseXmlText(r)
+      if s then
+        if s.Valid then
+          ceshare.LoggedIn=true
+          return true        
+        else
+          if s.error then
+            ceshare.showError(s.error:value())
+          end
         end
+      else
+        ceshare.showError(r)
       end
     else
-      ceshare.showError(r)
+      ceshare.showError(r);
     end
   else
-    ceshare.showError(r);
+    ceshare.showError('Login system failure')
   end
 end
 
