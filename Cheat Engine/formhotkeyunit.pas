@@ -97,8 +97,8 @@ begin
   case key of
     VK_OEM_PLUS : newstr:='=';
     VK_OEM_MINUS : newstr:='-';
-    VK_OEM_PERIOD : newstr:=',';
-    VK_OEM_COMMA : newstr:='.';
+    VK_OEM_PERIOD : newstr:='.';
+    VK_OEM_COMMA : newstr:=',';
     VK_OEM_1 : newstr:=';';
     VK_OEM_2 : newstr:='/';
     VK_OEM_3 : newstr:='`';
