@@ -38,6 +38,7 @@ resourcestring
   rsSetValue = 'Set Value';
   rsIncreaseValue = 'Increase Value';
   rsDecreaseValue = 'Decrease Value';
+  rsAdjustMRwithRelativeAddress = 'Do you wish to adjust memory records with relative addresses as well?';
 type TMemrecHotkeyAction=(mrhToggleActivation=0, mrhToggleActivationAllowIncrease=1, mrhToggleActivationAllowDecrease=2, mrhActivate=3, mrhDeactivate=4, mrhSetValue=5, mrhIncreaseValue=6, mrhDecreaseValue=7);
 
 type TFreezeType=(ftFrozen, ftAllowIncrease, ftAllowDecrease);
@@ -344,7 +345,7 @@ type
     function getlinkedDropDownMemrec_LoopDetected: boolean;
 
     procedure replaceDescription(replace_find, replace_with: string; childrenaswell: boolean);
-    procedure adjustAddressby(offset: qword; childrenaswell: boolean);
+    procedure adjustAddressby(offset, pointerlastoffset: int64; childrenaswell: boolean; relativeaswell: boolean=false);
 
     constructor Create(AOwner: TObject);
     destructor destroy; override;
@@ -992,6 +993,7 @@ end;
 procedure TMemoryRecord.replaceDescription(replace_find, replace_with: string; childrenaswell: boolean);
 var i: integer;
 begin
+  if replace_find='' then exit;
   Description:=stringreplace(Description,replace_find,replace_with,[rfReplaceAll,rfIgnoreCase]);
   if childrenaswell then
   begin
@@ -1000,35 +1002,63 @@ begin
   end;
 end;
 
-procedure TMemoryRecord.adjustAddressby(offset: qword; childrenaswell: boolean);
+procedure TMemoryRecord.adjustAddressby(offset, pointerlastoffset: int64; childrenaswell: boolean; relativeaswell: boolean=false);
 var
   s: string;
   x: ptruint;
   i: integer;
+  appendText: boolean = false;
 begin
-  if interpretableaddress<>'' then //always true
+  if (offset=0) and (pointerlastoffset=0) then exit;
+
+  if (offset<>0) and (interpretableaddress<>'') then
   begin
-    try
       s:=trim(interpretableaddress);
       if s<>'' then
       begin
-        if not (s[1] in ['-', '+']) then //don't do relative addresses
+        if not (s[1] in ['-', '+']) then
         begin
-          x:=symhandler.getAddressFromName(interpretableaddress);
-          x:=x+offset;
-          interpretableaddress:=symhandler.getNameFromAddress(x,true,true)
+          try
+            x:=symhandler.getAddressFromName(interpretableaddress);
+            x:=x+offset;
+            interpretableaddress:=symhandler.getNameFromAddress(x,true,true);
+          except
+            if getBaseAddress<>0 then
+              interpretableaddress:=inttohex(getBaseAddress+offset,8)
+            else
+              appendText:=true;
+          end;
+        end
+        else if relativeaswell then // relative address
+        begin
+          try
+            x:=symhandler.getAddressFromName(interpretableaddress);
+            x:=x+offset;
+            interpretableaddress:=IntToHexSignedWithPlus(int64(x),1);
+          except
+            appendText:=true;
+          end;
         end;
       end;
-    except
-      interpretableaddress:=inttohex(getBaseAddress+offset,8);
-    end;
+
+      if appendText then
+        interpretableaddress:=interpretableaddress+IntToHexSignedWithPlus(offset,1); // append text
 
     ReinterpretAddress;
   end;
 
+  if (pointerlastoffset<>0) and isPointer then
+    try
+      x:=symhandler.getAddressFromName(offsets[0].offsetText);
+      x:=x+pointerlastoffset;
+      offsets[0].offsetText:=IntToHexSigned(int64(x),1);
+    except
+      offsets[0].offsetText:=offsets[0].offsetText+IntToHexSignedWithPlus(pointerlastoffset,1); // append text
+    end;
+
   if childrenaswell then
     for i:=0 to count-1 do
-      Child[i].adjustAddressby(offset, childrenaswell);
+      Child[i].adjustAddressby(offset, pointerlastoffset, childrenaswell, relativeaswell);
 end;
 
 function TMemoryRecord.getHotkeyCount: integer;

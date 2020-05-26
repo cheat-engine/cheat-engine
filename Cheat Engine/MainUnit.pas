@@ -8828,13 +8828,20 @@ var
   replace_find: string;
   replace_with: string;
   changeoffsetstring: string;
-  changeoffset, x: int64;
-  i, j: integer;
+  changepointerlastoffsetstring: string;
+  changeoffset: int64;
+  changepointerlastoffset: int64;
+  i: integer;
   hasselected: boolean;
   childrenaswell: boolean;
+  relativeaswell: boolean;
+  checkifrelative: boolean=true;
+  s: string;
 begin
   if addresslist.Count = 0 then
     exit;
+
+  relativeaswell:=false;
 
   frmPasteTableentry := TfrmPasteTableentry.Create(self);
   try
@@ -8846,15 +8853,13 @@ begin
     replace_find := frmpastetableentry.edtFind.Text;
     replace_with := frmpastetableentry.edtReplace.Text;
 
-    changeoffsetstring := '$' + stringreplace(frmpastetableentry.edtOffset.Text,
-      '-', '-$', [rfReplaceAll]);
+    changeoffsetstring := '$' + stringreplace(frmpastetableentry.edtOffset.Text, '-', '-$', [rfReplaceAll]);
     changeoffsetstring := stringreplace(changeoffsetstring, '$-', '-', [rfReplaceAll]);
+    changepointerlastoffsetstring:='$'+stringreplace(frmpastetableentry.edtPointerLastOffset.Text,'-','-$',[rfReplaceAll]);
+    changepointerlastoffsetstring:=stringreplace(changepointerlastoffsetstring,'$-','-',[rfReplaceAll]);
 
-    try
-      changeoffset := StrToInt64(changeoffsetstring);
-    except
-      changeoffset := 0;
-    end;
+    if not TryStrToInt64(changeoffsetstring,changeoffset) then changeoffset:=0;
+    if not TryStrToInt64(changepointerlastoffsetstring,changepointerlastoffset) then changepointerlastoffset:=0;
 
     childrenaswell:=frmPasteTableentry.cbChildrenAsWell.checked;
   finally
@@ -8876,10 +8881,18 @@ begin
   begin
     if (hasselected and addresslist[i].isSelected) or (not hasselected) then
     begin
-      addresslist[i].replaceDescription(replace_find, replace_with, childrenaswell);
+      if checkifrelative and (addresslist[i].interpretableaddress<>'') then
+      begin
+        s:=trim(addresslist[i].interpretableaddress);
+        if (s<>'') and (s[1] in ['-','+']) then
+        begin
+          relativeaswell:=messagedlg(rsAdjustMRwithRelativeAddress, mtConfirmation, [mbyes, mbno], 0) = mryes;
+          checkifrelative:=false;
+        end;
+      end;
 
-      if changeoffsetstring<>'' then
-        addresslist[i].adjustAddressby(changeoffset, childrenaswell);
+      addresslist[i].adjustAddressby(changeoffset, changepointerlastoffset, childrenaswell, relativeaswell);
+      addresslist[i].replaceDescription(replace_find, replace_with, childrenaswell);
     end;
   end;
 end;

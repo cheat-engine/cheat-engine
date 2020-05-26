@@ -16,6 +16,7 @@ type
     Button1: TButton;
     Button2: TButton;
     cbChildrenAsWell: TCheckBox;
+    edtPointerLastOffset: TEdit;
     GroupBox1: TGroupBox;
     GroupBox2: TGroupBox;
     edtFind: TEdit;
@@ -24,6 +25,7 @@ type
     edtReplace: TEdit;
     Label3: TLabel;
     edtOffset: TEdit;
+    Label4: TLabel;
     Panel1: TPanel;
     procedure FormShow(Sender: TObject);
   private
@@ -49,6 +51,7 @@ begin
   edtFind.constraints.MinWidth:=Label1.width * 2;
   edtReplace.constraints.MinWidth:=edtFind.constraints.MinWidth;
   edtOffset.Constraints.MinWidth:=edtFind.constraints.MinWidth;
+  edtPointerLastOffset.Constraints.MinWidth:=edtFind.constraints.MinWidth;;
 end;
 
 

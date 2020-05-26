@@ -28,6 +28,7 @@ function HexStrToInt(const S: string): Integer;
 function HexStrToInt64(const S: string): Int64;
 
 function IntToHexSigned(v: INT64; digits: integer): string;
+function IntToHexSignedWithPlus(v: INT64; digits: integer): string;
 
 procedure getRegisterListFromParams(params: string; registerlist: Tstrings);
 
@@ -554,6 +555,14 @@ function IntToHexSigned(v: INT64; digits: integer): string;
 begin
   if v>=0 then
     result:=inttohex(v, digits)
+  else
+    result:='-'+inttohex(-v, digits);
+end;
+
+function IntToHexSignedWithPlus(v: INT64; digits: integer): string;
+begin
+  if v>=0 then
+    result:='+'+inttohex(v, digits)
   else
     result:='-'+inttohex(-v, digits);
 end;
