@@ -892,6 +892,11 @@ begin
 
           SkipVirtualProtectEx:=cbNeverChangeProtection.checked;
 
+          if reg.ValueExists('Always Force Load') then
+            cbAlwaysForceLoad.checked:=reg.ReadBool('Always Force Load');
+
+          alwaysforceload:=cbAlwaysForceLoad.checked;
+
 
           if reg.ValueExists('Show Language MenuItem') then
             cbShowLanguageMenuItem.Checked:=reg.ReadBool('Show Language MenuItem');
