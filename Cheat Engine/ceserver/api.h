@@ -227,6 +227,11 @@ extern pthread_mutex_t debugsocketmutex;
   #define LOGD(fmt, args...) __android_log_vprint(ANDROID_LOG_DEBUG, LOG_TAG, fmt, ##args)
 #endif
 
+#ifdef __ANDROID__
+ssize_t process_vm_readv(pid_t pid,const struct iovec *local_iov,unsigned long liovcnt,const struct iovec *remote_iov,unsigned long riovcnt,unsigned long flags);
+ssize_t process_vm_writev(pid_t pid,const struct iovec *local_iov,unsigned long liovcnt,const struct iovec *remote_iov,unsigned long riovcnt,unsigned long flags);
+#endif
+
 int debug_log(const char * format , ...); 
 long safe_ptrace(int request, pid_t pid, void * addr, void * data);
 extern int MEMORY_SEARCH_OPTION;

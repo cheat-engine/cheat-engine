@@ -140,6 +140,28 @@ int MEMORY_SEARCH_OPTION = 0;
 int ATTACH_PID = 0;
 unsigned char SPECIFIED_ARCH = 9;
 
+#ifdef __ANDROID__
+ssize_t process_vm_readv(pid_t pid,
+                         const struct iovec *local_iov,
+                         unsigned long liovcnt,
+                         const struct iovec *remote_iov,
+                         unsigned long riovcnt,
+                         unsigned long flags)
+{
+	 return syscall(__NR_process_vm_readv,pid,local_iov,liovcnt,remote_iov,riovcnt,flags);
+}
+
+ssize_t process_vm_writev(pid_t pid,
+                          const struct iovec *local_iov,
+                          unsigned long liovcnt,
+                          const struct iovec *remote_iov,
+                          unsigned long riovcnt,
+                          unsigned long flags)
+{
+	return syscall(__NR_process_vm_writev,pid,local_iov,liovcnt,remote_iov,riovcnt,flags);
+}
+#endif
+
 //Implementation for shared library version ceserver.
 int debug_log(const char * format , ...)
 {
@@ -157,7 +179,7 @@ int debug_log(const char * format , ...)
 //Implementation for consistency with Android Studio.
 long safe_ptrace(int request, pid_t pid, void * addr, void * data)
 {
-  int result;
+  long result;
   errno = 0;
   result = ptrace(request, pid, addr, data);
   if(errno != 0)
@@ -2174,10 +2196,7 @@ int WriteProcessMemoryDebug(HANDLE hProcess, PProcessData p, void *lpAddress, vo
         debug_log("Still some bytes left: %d\n", size-offset);
         //still a few bytes left
         long int oldvalue=safe_ptrace(PTRACE_PEEKDATA, p->pid,  (void *)(uintptr_t)lpAddress+offset, (void*)0);
-        #ifdef __x86_64__
-          //Even with 64 bits, peek_data can read only 4 bytes.
-          oldvalue += safe_ptrace(PTRACE_PEEKDATA, p->pid,  (void *)(uintptr_t)lpAddress+offset+4, (void*)0)*0x100000000;
-        #endif
+
         unsigned char *oldbuf=(unsigned char *)&oldvalue;
         unsigned char *newmem=(unsigned char *)address;
         int i;
@@ -2320,10 +2339,7 @@ int WriteProcessMemory(HANDLE hProcess, void *lpAddress, void *buffer, int size)
         	printf("Still some bytes left: %d\n", size-offset);
           //still a few bytes left
           long int oldvalue=safe_ptrace(PTRACE_PEEKDATA, pid,  (void *)(uintptr_t)lpAddress+offset, (void*)0);
-          #ifdef __x86_64__
-            //Even with 64 bits, peek_data can read only 4 bytes.
-            oldvalue += safe_ptrace(PTRACE_PEEKDATA, p->pid,  (void *)(uintptr_t)lpAddress+offset+4, (void*)0)*0x100000000;
-          #endif
+
           unsigned char *oldbuf=(unsigned char *)&oldvalue;
           unsigned char *newmem=(unsigned char *)address;
           int i;
@@ -2472,7 +2488,7 @@ int ReadProcessMemoryDebug(HANDLE hProcess, PProcessData p, void *lpAddress, voi
         }
       }
     }
-    else
+    else if(MEMORY_SEARCH_OPTION==1)
     {
 
       int offset=0;
@@ -2521,6 +2537,20 @@ int ReadProcessMemoryDebug(HANDLE hProcess, PProcessData p, void *lpAddress, voi
         }     
 
       }
+    }
+    else if(MEMORY_SEARCH_OPTION==2)
+    {
+      struct iovec local,remote;
+
+      local.iov_base = buffer;
+      local.iov_len = size;
+      remote.iov_base = lpAddress;
+      remote.iov_len = size;
+
+      bytesread = process_vm_readv(p->pid, &local, 1, &remote, 1, 0);
+      if(bytesread==-1)
+        bytesread=0;
+    
     }
 
     if (!isdebugged)
@@ -2650,8 +2680,22 @@ int ReadProcessMemory(HANDLE hProcess, void *lpAddress, void *buffer, int size)
 
     if (pthread_mutex_lock(&memorymutex) == 0)
     {
+        if(MEMORY_SEARCH_OPTION==2)
+        {
+          struct iovec local,remote;
 
+          local.iov_base = buffer;
+          local.iov_len = size;
+          remote.iov_base = lpAddress;
+          remote.iov_len = size;
 
+          bread = process_vm_readv(p->pid, &local, 1, &remote, 1, 0);
+          if(bread==-1)
+            bread=0;
+          pthread_mutex_unlock(&memorymutex);
+          
+          return bread;
+        }
         if (safe_ptrace(PTRACE_ATTACH, p->pid,0,0)==0)
         {
           int status;

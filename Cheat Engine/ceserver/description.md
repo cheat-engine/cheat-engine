@@ -68,6 +68,7 @@ In the above state, move to the EXECUTABLE folder at the command prompt and exec
 Perform module enumeration only for the specified process ID.
  - `-m` 
 If `1` is specified, memory is read and written only with the ptrace privilege, not via the virtual file system.
+If `2` is specified, the memory is read using process_vm_readv.  
  - `-p`
 Listen on the specified port number instead of the default 52736.
 
