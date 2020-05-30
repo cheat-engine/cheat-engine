@@ -1,4 +1,7 @@
-globaldisassembleoverride is fucked
+
+fix force load dll
+fix networked pscan
+fix rescan filter out invalid pointers with pointermaps
 
 
 structure dissect: 
@@ -23,7 +26,6 @@ graphical tutorial: continue with it
 linux: make a 32-bit linux build with .so injection support
 memscan: Don't combine the scanresults into a single file. Leave them split up (skip: for 6.7 or 7.0)
 
-ceshare: continue with it
 pseudocode: continue with it
 mac version: work on it
 
@@ -37,9 +39,7 @@ test and fix the d3dhook stuff and trainer generator.  (perhaps dx12 support as 
 
 add  access rights for the windows app user to pipes
 
-formdesigner: copy from outside a panel and paste into the panel will paste in the old location
 a timer causing a lua_error will eventually show c stack overflow
 
 
-dbvm: add maps and use them for cloaked regions
 mono plugin: When enumerating classes instead of getting a class get the typedefs only and get the info from the typedef info until an actual class is requested/expanded
