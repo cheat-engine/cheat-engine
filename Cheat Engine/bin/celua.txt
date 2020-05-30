@@ -2166,7 +2166,7 @@ methods
   setSelectedRecord(memrec) : Sets the currently selected memoryrecord. This will unselect all other entries
 
   disableAllWithoutExecute(): Disables all memory records without executing their [Disable] section
-
+  rebuildDescriptionCache(): Rebuilds the description to record lookup table
 
 
 MemScan Class (Inheritance: Object)
@@ -2422,7 +2422,7 @@ methods
     Suspend the thread's execution
 
   resume() :
-    Resume the thread;s executionmm
+    Resume the thread's execution
 
   terminate() :
     Tells the thread it should terminate. The Terminated property will become true

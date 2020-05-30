@@ -127,6 +127,7 @@ type
     procedure miSortOnClickClick(sender: TObject);
   public
     //needsToReinterpret: boolean;
+    procedure rebuildDescriptionCache;
     procedure MemrecDescriptionChange(memrec: TMemoryRecord; olddescription, newdescription: string);
     procedure getAddressList(list: Tstrings);
 
@@ -820,6 +821,16 @@ begin
       exit;
     end;
 
+end;
+
+procedure TAddresslist.rebuildDescriptionCache;
+var i: integer;
+begin
+  descriptionhashlist.Clear;
+
+  for i:=0 to count-1 do
+    if ForbiddenSearchDescriptions.Data[MemRecItems[i].description]=nil then
+      descriptionhashlist[MemRecItems[i].description]:=MemRecItems[i];
 end;
 
 procedure TAddresslist.MemrecDescriptionChange(memrec: TMemoryRecord; olddescription, newdescription: string);

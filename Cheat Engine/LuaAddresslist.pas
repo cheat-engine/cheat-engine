@@ -138,6 +138,15 @@ begin
   TAddresslist(luaclass_getClassObject(L)).disableAllWithoutExecute;
 end;
 
+function addresslist_rebuildDescriptionCache(L: PLua_State): integer; cdecl;
+begin
+  result:=0;
+  TAddresslist(luaclass_getClassObject(L)).rebuildDescriptionCache;
+end;
+
+
+
+
 function addresslist_doValueChange(L: PLua_State): integer; cdecl;
 begin
   result:=0;
@@ -187,6 +196,8 @@ begin
 
 
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'disableAllWithoutExecute', addresslist_disableAllWithoutExecute);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'rebuildDescriptionCache', addresslist_rebuildDescriptionCache);
+
 
 
 
