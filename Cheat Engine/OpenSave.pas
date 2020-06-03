@@ -24,6 +24,7 @@ uses
 
 var CurrentTableVersion: dword=31;
     lastLoadedTableVersion: dword;
+    iscetrainer: integer=0;
 
 procedure protecttrainer(filename: string);
 procedure unprotecttrainer(filename: string; stream: TStream);
@@ -711,7 +712,7 @@ begin
 
     if mainform.frmLuaTableScript.assemblescreen.Text<>'' then
     begin
-      if not isTrainer then
+      if (not isTrainer) and (iscetrainer=0) then
       begin
         reg:=TRegistry.Create;
         try
@@ -1037,6 +1038,7 @@ begin
       else
       begin
         //protected
+        iscetrainer:=1;
         isProtected:=true;
         unprotectedstream:=tmemorystream.create;
 
