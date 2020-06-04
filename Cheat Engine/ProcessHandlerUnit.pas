@@ -14,6 +14,9 @@ uses
   {$ifdef darwin}
   macport,
   {$endif}
+  {$ifdef windows}
+  windows,
+  {$endif}
   {$ifndef jni}LCLIntf, {$endif}
   newkernelhandler, classes, sysutils;
 
