@@ -414,7 +414,7 @@ typedef volatile struct _PDE_PAE
         unsigned PFN       : 28; // page-frame number
         unsigned reserved4 : 23;
         unsigned EXB       :  1;
-} __attribute__((__packed__)) *PPDE_PAE;
+} __attribute__((__packed__)) _PDE_PAE, *PPDE_PAE;
 
 typedef volatile struct _PDE2MB_PAE
 {
@@ -468,7 +468,7 @@ typedef struct _PPDPTE_PAE_BS
         unsigned A3        :  1; // available 3
         unsigned PFN       : 24; // page-frame number
         unsigned reserved3 : 28;
-} __attribute__((__packed__)) *PPDPTE_PAE_BS;
+} __attribute__((__packed__)) _PDPTE_PAE_BS, *PPDPTE_PAE_BS;
 
 typedef volatile struct _PPML4
 {

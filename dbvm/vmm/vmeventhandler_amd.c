@@ -18,10 +18,17 @@
 #include "msrnames.h"
 #include "nphandler.h"
 
+
+int c=0;
+
 criticalSection debugoutput;
 int handleVMEvent_amd(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, FXSAVE64 *fxsave)
 {
   int i;
+/*
+  c++;
+  if (c>50)
+    while (1);*/
 
 
 
@@ -45,9 +52,10 @@ int handleVMEvent_amd(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, FXSAVE6
   {
     currentcpuinfo->eptUpdated=0;
     currentcpuinfo->vmcb->VMCB_CLEAN_BITS&=~(1 << 4);
+    ept_invalidate();
   }
 
-  if (currentcpuinfo->singleStepping.ReasonsPos)
+  if ((currentcpuinfo->singleStepping.ReasonsPos) && (currentcpuinfo->vmcb->EXITCODE!=VMEXIT_NPF)) //ANYTHING except NPF is counted as a single step (in case of interrupts)
   {
     nosendchar[getAPICID()]=0;
     sendstringf("AMD Handler: currentcpuinfo->singleStepping.ReasonsPos=%d Calling handleSingleStep()\n",currentcpuinfo->singleStepping.ReasonsPos);
@@ -57,7 +65,7 @@ int handleVMEvent_amd(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, FXSAVE6
 
     if (currentcpuinfo->vmcb->EXITCODE==VMEXIT_EXCP1)
     {
-      sendstring("It was an int1 so skip this\n"); //Todo: Check if it was a int1 before the step
+      sendstring("It was an int1 so skip this\n"); //Todo: Check if it was a int1 or other BP before the step
 
 
       //no further handling is needed

@@ -602,6 +602,10 @@ typedef volatile struct tcpuinfo
   int eptUpdated;
 
 
+  struct
+  {
+    CloakedPageData *ActiveRegion; //if not null this contains the current page that is executable
+  } NP_Cloak; //AMD cloaking
 
 
   struct //single stepping data

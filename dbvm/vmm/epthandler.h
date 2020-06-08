@@ -12,6 +12,8 @@
 
 #include "vmmhelper.h"
 #include "eptstructs.h"
+#include "list.h"
+#include "maps.h"
 
 
 #define MTC_UC  0
@@ -32,10 +34,14 @@
 #define EPTW_READWRITE 1
 #define EPTW_EXECUTE 2
 
+extern PAddressList CloakedPagesList;
+extern PMapInfo CloakedPagesMap;
+
 
 void initMemTypeRanges();
 
 BOOL ept_handleWatchEvent(pcpuinfo currentcpuinfo, VMRegisters *registers, PFXSAVE64 fxsave, QWORD PhysicalAddress);
+BOOL ept_handleCloakEvent(pcpuinfo currentcpuinfo, QWORD Address, QWORD AddressVA);
 
 VMSTATUS handleEPTViolation(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, PFXSAVE64 fxsave);
 VMSTATUS handleEPTMisconfig(pcpuinfo currentcpuinfo, VMRegisters *vmregisters);
@@ -45,12 +51,14 @@ int ept_handleSoftwareBreakpointAfterStep(pcpuinfo currentcpuinfo,  int ID);
 
 int ept_watch_activate(QWORD PhysicalAddress, int Size, int Type, DWORD Options, int MaxEntryCount, int *outID);
 int ept_watch_deactivate(int ID);
+
+
 VMSTATUS ept_watch_retrievelog(int ID, QWORD results, DWORD *resultSize, DWORD *offset, QWORD *errorcode);
 //int ept_activateWatch(pcpuinfo currentcpuinfo, int ID);
 
 
 
-int ept_cloak_activate(QWORD physicalAddress);
+int ept_cloak_activate(QWORD physicalAddress, int mode);
 int ept_cloak_deactivate(QWORD physicalAddress);
 int ept_cloak_readOriginal(pcpuinfo currentcpuinfo, VMRegisters *registers, QWORD physicalAddress, QWORD destination);
 int ept_cloak_writeOriginal(pcpuinfo currentcpuinfo, VMRegisters *registers, QWORD physicalAddress, QWORD source);

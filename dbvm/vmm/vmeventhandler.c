@@ -3704,6 +3704,7 @@ int handleSingleStep(pcpuinfo currentcpuinfo)
   //handle the reasons one by one. (Used by AMD as well)
   sendstringf("handleSingleStep.  currentcpuinfo->singleStepping.ReasonsPos=%d\n", currentcpuinfo->singleStepping.ReasonsPos);
 
+
   while (currentcpuinfo->singleStepping.ReasonsPos)
   {
     int i=currentcpuinfo->singleStepping.ReasonsPos-1;

@@ -21,6 +21,14 @@ int canstoreds=0;
 
 void *DebugStore;
 
+extern int cloakTestFunction(void);
+extern void* cloakTestFunctionEnd;
+extern void* cloakTestFunctionInstruction;
+
+typedef int(*CLOAKTESTFUNCTION)(void);
+
+
+
 int testBranchPrediction(void)
 {
 
@@ -381,41 +389,354 @@ int dbvm_watch_executes(QWORD PhysicalAddress, int *ID)
   return result;
 }
 
-volatile int *testvar;
-volatile int *testvar2;
-int watchid=-1;
+int dbvm_watch_retrievelog(int watchid, void* result, int *size)
+{
+  int r;
+  VMCALL_WATCH_RETRIEVELOG_PARAM param;
+  param.vmcall.command=VMCALL_WATCH_RETRIEVELOG;
+  param.vmcall.password2=Password2;
+  param.vmcall.size=sizeof(param);
+
+  param.ID=watchid;
+  param.results=(QWORD)result;
+  param.resultsize=*size;
+  param.copied=0;
+
+
+  try
+  {
+    r=_vmcall(Password1, &param);
+    *size=param.resultsize;
+  }
+  except
+  {
+    r=-1;
+  }
+  tryend
+
+  return r;
+}
+
+int dbvm_watch_delete(int id)
+{
+  int r;
+  VMCALL_WATCH_DISABLE_PARAM param;
+  param.vmcall.command=VMCALL_WATCH_DELETE;
+  param.vmcall.password2=Password2;
+  param.vmcall.size=sizeof(param);
+
+  param.ID=id;
+
+  try
+  {
+    r=_vmcall(Password1, &param);
+  }
+  except
+  {
+    r=-1;
+  }
+  tryend
+
+  return r;
+}
+
+
+int dbvm_cloak_activate(QWORD physicalAddress, int mode)
+{
+  VMCALL_CLOAK_ACTIVATE_PARAM param;
+  param.vmcall.command=VMCALL_CLOAK_ACTIVATE;
+  param.vmcall.password2=Password2;
+  param.vmcall.size=sizeof(param);
+
+  param.physicalAddress=physicalAddress;
+  param.mode=mode; //single step
+
+  int r;
+  try
+  {
+    r=_vmcall(Password1, &param);
+  }
+  except
+  {
+    r=-1;
+  }
+  tryend
+
+  return r;
+}
+
+int dbvm_cloak_deactivate(QWORD PhysicalAddress)
+{
+  VMCALL_CLOAK_DEACTIVATE_PARAM param;
+  param.vmcall.command=VMCALL_CLOAK_DEACTIVATE;
+  param.vmcall.password2=Password2;
+  param.vmcall.size=sizeof(param);
+
+  param.physicalAddress=PhysicalAddress;
+
+  int r;
+  try
+  {
+    r=_vmcall(Password1, &param);
+  }
+  except
+  {
+    r=-1;
+  }
+  tryend
+
+  return r;
+
+}
+
+int dbvm_cloak_readExecutable(QWORD PhysicalAddress, void *destination)
+{
+  VMCALL_CLOAK_READ_PARAM param;
+  param.vmcall.command=VMCALL_CLOAK_READORIGINAL;
+  param.vmcall.password2=Password2;
+  param.vmcall.size=sizeof(param);
+
+  param.physicalAddress=PhysicalAddress;
+  param.destination=(QWORD)destination;
+
+
+  int r;
+  try
+  {
+    r=_vmcall(Password1, &param);
+  }
+  except
+  {
+    r=-1;
+  }
+  tryend
+
+  return r;
+}
+
+int dbvm_cloak_writeExecutable(QWORD PhysicalAddress, void *source)
+{
+  VMCALL_CLOAK_WRITE_PARAM param;
+  param.vmcall.command=VMCALL_CLOAK_WRITEORIGINAL;
+  param.vmcall.password2=Password2;
+  param.vmcall.size=sizeof(param);
+
+  param.physicalAddress=PhysicalAddress;
+  param.source=(QWORD)source;
+
+
+  int r;
+  try
+  {
+    r=_vmcall(Password1, &param);
+  }
+  except
+  {
+    r=-1;
+  }
+  tryend
+
+  return r;
+}
+
 
 void testfunction()
 {
   sendstringf("testfunction\n");
 }
 
-void dbvm_watch_writes_test(void)
+void dbvm_changeregonbp_test(void)
+{
+
+}
+
+void dbvm_cloak_test(void)
 {
   int DBVMVersion=getDBVMVersion();
+  int watchid=-1;
+
+
+  if (DBVMVersion)
+  {
+    int r;
+    int i;
+    unsigned char *newmem=(unsigned char *)malloc(8192);
+    CLOAKTESTFUNCTION newtestfunction=(CLOAKTESTFUNCTION)&newmem[4094];
+    QWORD PA=VirtualToPhysical((void*)newtestfunction)+2;
+    sendstringf("newtestfunction at %6 (PA : %6)\n", newtestfunction, PA);
+
+    QWORD size=(QWORD)&cloakTestFunctionEnd-(QWORD)cloakTestFunction;
+    sendstringf("size=%d bytes\n", size);
+    sendstringf("Copying...");
+    copymem(newtestfunction,cloakTestFunction, size );
+
+    sendstringf("Done\n");
+
+    sendstringf("Calling original\n");
+    r=cloakTestFunction();
+    sendstringf("Returned %d\n", r);
+
+    sendstringf("Calling copy\n");
+    r=newtestfunction();
+    sendstringf("Returned %d\n", r);
+
+
+
+
+
+    sendstring("Patching copy\n");
+    unsigned char *funcindex=(unsigned char *)newtestfunction;
+    sendstringf("Original:");
+    for (i=0; i<5; i++)
+    {
+      int index=(QWORD)(&cloakTestFunctionInstruction)-((QWORD)(cloakTestFunction))+i;
+      sendstringf("%2 ",funcindex[index]);
+      funcindex[index]=0x90;
+    }
+    sendstringf("\n");
+
+    sendstringf("Calling copy after patch\n");
+    r=newtestfunction();
+
+    sendstringf("Patched result of cloakTestFunction() is %d\n", r);
+
+    sendstringf("Undo patch. Now trying with cloak\n");
+    copymem(newtestfunction,cloakTestFunction, size );
+
+
+    sendstringf("Activating cloak (mode 1)\n");
+    r=dbvm_cloak_activate(PA, 1);
+    sendstringf("dbvm_cloak_activate(%6) returned %d\n", PA, r);
+
+    _invlpg((QWORD)newtestfunction);
+
+    sendstringf("Calling newtestfunction: (cloaked, unpatched)\n");
+    r=newtestfunction();
+    sendstringf("After cloak but no patch ,result of cloakTestFunction() is %d\n", r);
+
+    unsigned char* executable=malloc(4096);
+
+    sendstringf("Allocated memory for the executable copy at %6\n", executable);
+
+    r=dbvm_cloak_readExecutable(PA, executable);
+    sendstringf("dbvm_cloak_readExecutable returned %d\n",r);
+
+    if (r==0)
+    {
+      sendstringf("Applying patch to executable memory\n");
+      for (i=0; i<5; i++)
+        executable[(QWORD)(&cloakTestFunctionInstruction)-((QWORD)(cloakTestFunction))+i-2]=0x90;
+
+      r=dbvm_cloak_writeExecutable(PA, executable);
+      sendstringf("dbvm_cloak_writeExectuable returned %d\n",r);
+
+      if (r==0)
+      {
+        sendstringf("Calling newtestfunction: (cloaked, patched)\n");
+        r=newtestfunction();
+        sendstringf("After cloak and patch ,result of cloakTestFunction() is %d\n", r);
+      }
+
+    }
+
+
+
+    r=dbvm_cloak_deactivate(PA);
+    sendstringf("dbvm_cloak_deactivate(%6) returned %d\n", PA, r);
+
+    sendstringf("Reading it shows:");
+    for (i=0; i<5; i++)
+    {
+      int index=(QWORD)(&cloakTestFunctionInstruction)-((QWORD)(cloakTestFunction))+i;
+      sendstringf("%2 ",funcindex[index]);
+      funcindex[index]=0x90;
+    }
+    sendstringf("\n");
+
+
+
+
+  }
+  else
+    sendstring("Error, no DBVM loaded\n");
+
+
+}
+
+
+void dbvm_watch_execute_test(void)
+{
+  int DBVMVersion=getDBVMVersion();
+  int watchid=-1;
 
 
   if (DBVMVersion)
   {
     QWORD PA;
+    void *results=malloc(8192);
+    zeromemory(results,8192);
 
-    writeMSR(EFER_MSR, readMSR(EFER_MSR) & ~(1<<11)); //this is the guest, disable no execute
+    writeMSR(EFER_MSR, readMSR(EFER_MSR) & ~(1<<11)); //this is the guest, disable no execute (test)
 
 
     sendstringf("DBVM version is %x\n", DBVMVersion);
 
-    if (testvar==NULL)
-    {
-      testvar=(int *)malloc(4096);
 
-      testvar2=&testvar[64];
-      *testvar=123;
-      *testvar2=456;
 
-      PA=VirtualToPhysical(testfunction);
-    }
-    else
-      PA=VirtualToPhysical(testfunction);
+    PA=VirtualToPhysical((void *)testfunction);
+
+
+    int r;
+
+
+    r=dbvm_watch_executes(PA,&watchid);
+    sendstringf("dbvm_watch_read returned %d. ID=%d\n", r,watchid);
+
+    sendstringf("Going to execute testfunction\n");
+    testfunction();
+    sendstringf("testfunction returned\n");
+
+    sendstringf("It should have recorded by now\n");
+
+    int size=8192;
+    int ec=dbvm_watch_retrievelog(watchid, results, &size);
+
+    sendstringf("dbvm_watch_retrievelog returned %d. size=%d\n", ec, size);
+
+
+    dbvm_watch_delete(watchid);
+
+    free(results);
+  }
+  else
+    sendstring("Error, no DBVM loaded\n");
+}
+
+
+void dbvm_watch_reads_test(void)
+{
+  int DBVMVersion=getDBVMVersion();
+  volatile int *testvar;
+  volatile int *testvar2;
+  int watchid=-1;
+
+
+  if (DBVMVersion)
+  {
+    QWORD PA;
+    void *results=malloc(8192);
+    zeromemory(results,8192);
+
+    sendstringf("DBVM version is %x\n", DBVMVersion);
+
+    testvar=(int *)malloc(4096);
+
+    testvar2=&testvar[64];
+    *testvar=123;
+    *testvar2=456;
+
+    PA=VirtualToPhysical((void *)testvar);
+
 
     int r;
 
@@ -424,14 +745,8 @@ void dbvm_watch_writes_test(void)
 
     sendstringf("testvar has been allocated at %6 which is PA %6\n", testvar, PA);
 
-    if (watchid==-1)
-    {
-      r=dbvm_watch_executes(PA,&watchid);
-      sendstringf("dbvm_watch_writes returned %d. ID=%d\n", r,watchid);
-    }
-    else
-      sendstringf("still watching ID=%d\n", watchid);
-
+    r=dbvm_watch_reads(PA,&watchid);
+    sendstringf("dbvm_watch_read returned %d. ID=%d\n", r,watchid);
 
 
     sendstringf("Reading from same page as testvar but different location (%6)\n", testvar2);
@@ -458,13 +773,95 @@ void dbvm_watch_writes_test(void)
     sendstringf("testvar=%d\n", *testvar);
     asm volatile ("": : :"memory");
 
-    sendstringf("Calling testfunction\n");
-    testfunction();
-    sendstringf("after testfunction\n");
+    sendstringf("It should have recorded by now\n");
 
+    int size=8192;
+    int ec=dbvm_watch_retrievelog(watchid, results, &size);
+    sendstringf("dbvm_watch_retrievelog returned %d. size=%d\n", ec, size);
+
+
+    dbvm_watch_delete(watchid);
+
+    free(results);
+    free((void*)testvar);
+  }
+  else
+    sendstring("Error, no DBVM loaded\n");
+}
+
+
+
+void dbvm_watch_writes_test(void)
+{
+  int DBVMVersion=getDBVMVersion();
+  volatile int *testvar;
+  volatile int *testvar2;
+  int watchid=-1;
+
+
+  if (DBVMVersion)
+  {
+    QWORD PA;
+    void *results=malloc(8192);
+    zeromemory(results,8192);
+
+    sendstringf("DBVM version is %x\n", DBVMVersion);
+
+    testvar=(int *)malloc(4096);
+
+    testvar2=&testvar[64];
+    *testvar=123;
+    *testvar2=456;
+
+    PA=VirtualToPhysical((void *)testvar);
+
+
+    int r;
+
+
+
+
+    sendstringf("testvar has been allocated at %6 which is PA %6\n", testvar, PA);
+
+    r=dbvm_watch_writes(PA,&watchid);
+    sendstringf("dbvm_watch_writes returned %d. ID=%d\n", r,watchid);
+
+
+    sendstringf("Reading from same page as testvar but different location (%6)\n", testvar2);
+    asm volatile ("": : :"memory");
+    sendstringf("testvar2=%d\n", *testvar2);
+    asm volatile ("": : :"memory");
+
+    sendstringf("reading testvar\n");
+    asm volatile ("": : :"memory");
+    sendstringf("testvar=%d\n", *testvar);
+    asm volatile ("": : :"memory");
+
+    sendstringf("Writing to the same page as testvar but different location (%6)\n", testvar2);
+    asm volatile ("": : :"memory");
+    *testvar2=789;
+    asm volatile ("": : :"memory");
+    sendstringf("testvar2=%d\n", *testvar2);
+    asm volatile ("": : :"memory");
+
+    sendstringf("Writing to testvar\n");
+    asm volatile ("": : :"memory");
+    *testvar=321;
+    asm volatile ("": : :"memory");
+    sendstringf("testvar=%d\n", *testvar);
+    asm volatile ("": : :"memory");
 
     sendstringf("It should have recorded by now\n");
 
+    int size=8192;
+    int ec=dbvm_watch_retrievelog(watchid, results, &size);
+    sendstringf("dbvm_watch_retrievelog returned %d. size=%d\n", ec, size);
+
+
+    dbvm_watch_delete(watchid);
+
+    free(results);
+    free((void*)testvar);
   }
   else
     sendstring("Error, no DBVM loaded\n");

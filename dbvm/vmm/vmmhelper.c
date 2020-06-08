@@ -26,6 +26,8 @@
 #include "luahandler.h"
 
 #include "displaydebug.h"
+#include "interrupthandler.h"
+
 
 #ifndef DEBUG
 #define sendstringf(s,x...)

@@ -73,6 +73,7 @@ typedef struct
 {
   VMCALL_BASIC vmcall;
   QWORD physicalAddress;
+  QWORD mode;
 } __attribute__((__packed__)) VMCALL_CLOAK_ACTIVATE_PARAM, *PVMCALL_CLOAK_ACTIVATE_PARAM,
                               VMCALL_CLOAK_DEACTIVATE_PARAM, *PVMCALL_CLOAK_DEACTIVATE_PARAM;
 

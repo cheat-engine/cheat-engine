@@ -152,7 +152,7 @@ int isAMD;
 int AMD_hasDecodeAssists;
 int AMD_hasNRIPS;
 
-
+extern int autostart;
 extern int IntHandlerDebug;
 volatile int NMIcount;
 

@@ -318,7 +318,12 @@ typedef struct
   QWORD PhysicalAddressData; //the PA of the page shown when read/write operations happen
   void *Data;
   void *Executable;
-  PEPT_PTE eptentry[0]; //for every cpu hold the ept entry
+  QWORD CloakMode;
+  union
+  {
+    PEPT_PTE eptentry[0]; //for every cpu hold the ept entry (PTE_PAE entry on AMD)
+    PPTE_PAE npentry[0];
+  };
 } CloakedPageData, *PCloakedPageData;
 
 

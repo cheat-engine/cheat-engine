@@ -53,11 +53,13 @@ PPDPTE_PAE pagedirptrtables=(PPDPTE_PAE)0xffffffffffe00000ULL;
 PPDE_PAE      pagedirtables=  (PPDE_PAE)0xffffffffc0000000ULL;
 PPTE_PAE         pagetables=  (PPTE_PAE)0xffffff8000000000ULL;
 
+
+
 QWORD FirstFreeAddress;
 
 unsigned char MAXPHYADDR=0; //number of bits a physical address can be made up of
 QWORD MAXPHYADDRMASK=  0x0000000fffffffffULL; //mask to AND with a physical address to strip invalid bits
-QWORD MAXPHYADDRMASKPB=0x0000000ffffff000ULL; //same as MAXPHYADDRMASK but also aligns it to a page boundary
+QWORD MAXPHYADDRMASKPB=0x0000000ffffff000ULL; //same as MAXPHYADDRMASK but also aligns it to a page boundary1F4E20
 
 
 //alloc(not 2) keeps a list of allocs and their sizes.  This linked list (allocated using alloc2) is used to keep track of those allocs. Sorted by base
@@ -1244,6 +1246,7 @@ void InitializeMM(UINT64 FirstFreeVirtualAddress)
   _invlpg(0xffffff8000000000ULL);
   //now I have access to all the paging info
 
+
   sendstring("Allocating the AllocationInfoList\n");
   //allocate memory for AllocationInfoList and map it at BASE_VIRTUAL_ADDRESS
   VirtualAddressToPageEntries(BASE_VIRTUAL_ADDRESS, &pml4entry, &pagedirpointerentry, &pagedirentry, &pagetableentry);
@@ -1416,9 +1419,15 @@ UINT64 VirtualToPhysical(void* address)
 
 
   if (pagedescriptor->PS)
-    r=*(UINT64 *)pagedescriptor & 0xffffffffffffe000ULL;
+  {
+    r=*(UINT64 *)pagedescriptor & 0xffffffffffe00000ULL;
+    r=r | ((UINT64)address & 0x1fffff);
+  }
   else
+  {
     r=*(UINT64 *)pagedescriptor & 0xfffffffffffff000ULL;
+    r=r | ((UINT64)address & 0xfff);
+  }
 
   return r;
 }

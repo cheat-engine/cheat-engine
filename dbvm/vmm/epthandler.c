@@ -154,12 +154,40 @@ BOOL ept_handleCloakEvent(pcpuinfo currentcpuinfo, QWORD Address, QWORD AddressV
   if ((CloakedPagesList==NULL) && (CloakedPagesMap==NULL))
     return FALSE;
 
+  if (isAMD) //AMD marks the page as no-execute only, no read/write block
+  {
+    NP_VIOLATION_INFO nvi;
+    nvi.ErrorCode=currentcpuinfo->vmcb->EXITINFO1;
+    if (nvi.ID==0)
+      return FALSE; //not an execute pagefault. Not a cloak for AMD
+
+    if (currentcpuinfo->NP_Cloak.ActiveRegion)
+    {
+
+      cloakdata=currentcpuinfo->NP_Cloak.ActiveRegion;
+      sendstring("Inside a cloaked region using mode 1 and an execute fault happened");
+
+      //means we exited the cloaked page
+      csEnter(&CloakedPagesCS);
+      NPMode1CloakSetState(currentcpuinfo, 0); //marks all pages back as executable and the stealthed page(s) back as no execute
+      csLeave(&CloakedPagesCS);
+
+      currentcpuinfo->NP_Cloak.ActiveRegion=NULL;
+
+
+      ept_invalidate();
+
+
+      return TRUE; //could be a page not found event, but that will just retry
+    }
+  }
+
+
   csEnter(&CloakedPagesCS);
   if (CloakedPagesMap)
     cloakdata=map_getEntry(CloakedPagesMap, BaseAddress);
   else
     cloakdata=addresslist_find(CloakedPagesList, BaseAddress);
-
 
   if (cloakdata)
   {
@@ -167,77 +195,126 @@ BOOL ept_handleCloakEvent(pcpuinfo currentcpuinfo, QWORD Address, QWORD AddressV
 
 
     //it's a cloaked page
-    int isMegaJmp=0;
-    QWORD RIP=vmread(vm_guest_rip);
-
-    EPT_VIOLATION_INFO evi;
-    evi.ExitQualification=vmread(vm_exit_qualification);
-
     sendstringf("ept_handleCloakEvent on the target\n");
 
-    //todo: keep a special list for physical address regions that can see 'the truth' (e.g ntoskrnl.exe and hal.dll on exported data pointers, but anything else will see the fake pointers)
-    //todo2: inverse cloak, always shows the real data except the list of physical address regions provided
-
-    //check for megajmp edits
-    //megajmp: ff 25 00 00 00 00 <address>
-    //So, if 6 bytes before the given address is ff 25 00 00 00 00 , it's a megajmp, IF the RIP is 6 bytes before the given address (and the bytes have changed from original)
-
-    if ((AddressVA-RIP)==6)
+    if (isAMD)
     {
-      //check if the bytes have been changed here
-      DWORD offset=RIP & 0xfff;
-      int size=min(14,0x1000-offset);
+      //AMD handling
+      //swap the page and make it executable, do one step, and restore back to non-executable
+      *(QWORD *)(cloakdata->npentry[currentcpuinfo->cpunr])=cloakdata->PhysicalAddressExecutable;
+      cloakdata->npentry[currentcpuinfo->cpunr]->P=1;
+      cloakdata->npentry[currentcpuinfo->cpunr]->RW=1;
+      cloakdata->npentry[currentcpuinfo->cpunr]->US=1;
+      cloakdata->npentry[currentcpuinfo->cpunr]->EXB=0;
 
-      unsigned char *new=(unsigned char *)((QWORD)cloakdata->Executable+offset);
-      unsigned char *original=(unsigned char *)((QWORD)cloakdata->Data+offset);
-
-
-      if (new[0]==0xff) //starts with 0xff, so very likely, inspect more
+      if (cloakdata->CloakMode==0)
       {
-        if (memcmp(new, original, size))
-        {
-          //the memory in this range got changed, check if it's a full megajmp
-          unsigned char megajmpbytes[6]={0xff,0x25,0x00,0x00,0x00,0x00};
-
-          if (memcmp(new, megajmpbytes, min(6,size))==0)
-          {
-            sendstring("Is megajmp");
-            isMegaJmp=1;
-          }
-
-        }
-      }
-    }
-
-
-    //Check if this page has had a MEGAJUMP code edit, if so, check if this is a megajump and in that case on executable
-
-
-    if (evi.X) //looks like this cpu does not support execute only
-      *(QWORD *)(cloakdata->eptentry[currentcpuinfo->cpunr])=cloakdata->PhysicalAddressExecutable;
-    else
-    {
-      if (isMegaJmp==0)
-      {
-        //read/write the data
-        *(QWORD *)(cloakdata->eptentry[currentcpuinfo->cpunr])=cloakdata->PhysicalAddressData;
+        vmx_enableSingleStepMode();
+        vmx_addSingleSteppingReasonEx(currentcpuinfo, 2,cloakdata);
       }
       else
       {
-        //read the executable code
-        *(QWORD *)(cloakdata->eptentry[currentcpuinfo->cpunr])=cloakdata->PhysicalAddressExecutable;
+        //mark all pages as no execute except this one (and any potential still waiting to step cloak events)
+
+        //check if it's a page boundary
+        QWORD codeVA=currentcpuinfo->vmcb->cs_base+currentcpuinfo->vmcb->RIP;
+        int notpaged;
+        QWORD codePA=getPhysicalAddressVM(currentcpuinfo,codeVA, &notpaged);
+        if ((notpaged==0) && ((codePA & MAXPHYADDRMASKPB)!=BaseAddress)) //should be the case 100% of the time
+        {
+          //page boundary, do a single step
+          vmx_enableSingleStepMode();
+          vmx_addSingleSteppingReasonEx(currentcpuinfo, 2,cloakdata);
+        }
+        else
+        {
+          //inside the cloaked region
+          //add this to the active cloaked pages
+          currentcpuinfo->NP_Cloak.ActiveRegion=cloakdata;
+
+          NPMode1CloakSetState(currentcpuinfo, 1);
+        }
+
       }
 
     }
-    cloakdata->eptentry[currentcpuinfo->cpunr]->WA=1;
-    cloakdata->eptentry[currentcpuinfo->cpunr]->RA=1;
-    cloakdata->eptentry[currentcpuinfo->cpunr]->XA=1;
+    else
+    {
+      //Intel handling
+      EPT_VIOLATION_INFO evi;
+      evi.ExitQualification=vmread(vm_exit_qualification);
 
-    vmx_enableSingleStepMode();
-    vmx_addSingleSteppingReasonEx(currentcpuinfo, 2,cloakdata);
+      int isMegaJmp=0;
+      QWORD RIP;
 
-    currentcpuinfo->eptCloak_LastOperationWasWrite=evi.W;
-    currentcpuinfo->eptCloak_LastWriteOffset=Address & 0xfff;
+      if (!isAMD)
+        RIP=vmread(vm_guest_rip);
+
+      //todo: keep a special list for physical address regions that can see 'the truth' (e.g ntoskrnl.exe and hal.dll on exported data pointers, but anything else will see the fake pointers)
+      //todo2: inverse cloak, always shows the real data except the list of physical address regions provided
+
+      //check for megajmp edits
+      //megajmp: ff 25 00 00 00 00 <address>
+      //So, if 6 bytes before the given address is ff 25 00 00 00 00 , it's a megajmp, IF the RIP is 6 bytes before the given address (and the bytes have changed from original)
+
+      if ((AddressVA-RIP)==6)
+      {
+        //check if the bytes have been changed here
+        DWORD offset=RIP & 0xfff;
+        int size=min(14,0x1000-offset);
+
+        unsigned char *new=(unsigned char *)((QWORD)cloakdata->Executable+offset);
+        unsigned char *original=(unsigned char *)((QWORD)cloakdata->Data+offset);
+
+
+        if (new[0]==0xff) //starts with 0xff, so very likely, inspect more
+        {
+          if (memcmp(new, original, size))
+          {
+            //the memory in this range got changed, check if it's a full megajmp
+            unsigned char megajmpbytes[6]={0xff,0x25,0x00,0x00,0x00,0x00};
+
+            if (memcmp(new, megajmpbytes, min(6,size))==0)
+            {
+              sendstring("Is megajmp");
+              isMegaJmp=1;
+            }
+
+          }
+        }
+      }
+
+
+
+      //Check if this page has had a MEGAJUMP code edit, if so, check if this is a megajump and in that case on executable
+      if (evi.X) //looks like this cpu does not support execute only
+        *(QWORD *)(cloakdata->eptentry[currentcpuinfo->cpunr])=cloakdata->PhysicalAddressExecutable;
+      else
+      {
+        if (isMegaJmp==0)
+        {
+          //read/write the data
+          *(QWORD *)(cloakdata->eptentry[currentcpuinfo->cpunr])=cloakdata->PhysicalAddressData;
+        }
+        else
+        {
+          //read the executable code
+          *(QWORD *)(cloakdata->eptentry[currentcpuinfo->cpunr])=cloakdata->PhysicalAddressExecutable;
+        }
+
+      }
+      cloakdata->eptentry[currentcpuinfo->cpunr]->WA=1;
+      cloakdata->eptentry[currentcpuinfo->cpunr]->RA=1;
+      cloakdata->eptentry[currentcpuinfo->cpunr]->XA=1;
+
+      vmx_enableSingleStepMode();
+      vmx_addSingleSteppingReasonEx(currentcpuinfo, 2,cloakdata);
+
+      currentcpuinfo->eptCloak_LastOperationWasWrite=evi.W;
+      currentcpuinfo->eptCloak_LastWriteOffset=Address & 0xfff;
+    }
+
+
 
     result=TRUE;
 
@@ -272,13 +349,21 @@ int ept_handleCloakEventAfterStep(pcpuinfo currentcpuinfo,  PCloakedPageData clo
 
   csEnter(&currentcpuinfo->EPTPML4CS);
 
-  *(QWORD *)(cloakdata->eptentry[currentcpuinfo->cpunr])=cloakdata->PhysicalAddressExecutable; //back to the executable state
-  cloakdata->eptentry[currentcpuinfo->cpunr]->WA=0;
-  cloakdata->eptentry[currentcpuinfo->cpunr]->RA=0;
-  if (has_EPT_ExecuteOnlySupport)
-    cloakdata->eptentry[currentcpuinfo->cpunr]->XA=1;
+  if (isAMD)
+  {
+    *(QWORD *)(cloakdata->npentry[currentcpuinfo->cpunr])=cloakdata->PhysicalAddressData; //back to the non-executable state
+    cloakdata->npentry[currentcpuinfo->cpunr]->EXB=1;
+  }
   else
-    cloakdata->eptentry[currentcpuinfo->cpunr]->XA=0;
+  {
+    *(QWORD *)(cloakdata->eptentry[currentcpuinfo->cpunr])=cloakdata->PhysicalAddressExecutable; //back to the executable state
+    cloakdata->eptentry[currentcpuinfo->cpunr]->WA=0;
+    cloakdata->eptentry[currentcpuinfo->cpunr]->RA=0;
+    if (has_EPT_ExecuteOnlySupport)
+      cloakdata->eptentry[currentcpuinfo->cpunr]->XA=1;
+    else
+      cloakdata->eptentry[currentcpuinfo->cpunr]->XA=0;
+  }
   csLeave(&currentcpuinfo->EPTPML4CS);
 
 
@@ -291,13 +376,13 @@ int ept_handleCloakEventAfterStep(pcpuinfo currentcpuinfo,  PCloakedPageData clo
 }
 
 
-int ept_cloak_activate(QWORD physicalAddress)
+int ept_cloak_activate(QWORD physicalAddress, int mode)
 {
   int i;
   QWORD address;
   PCloakedPageData data;
 
-  sendstringf("ept_cloak_activate(%6)\n", physicalAddress);
+  sendstringf("ept_cloak_activate(%6,%d)\n", physicalAddress, mode);
 
   physicalAddress=physicalAddress & MAXPHYADDRMASKPB;
   csEnter(&CloakedPagesCS);
@@ -359,6 +444,25 @@ int ept_cloak_activate(QWORD physicalAddress)
   cloakdata->PhysicalAddressExecutable=physicalAddress;
   cloakdata->PhysicalAddressData=VirtualToPhysical(cloakdata->Data);
 
+  //Intel. The page is unreadable. Reads cause a fault and then get handled by a single step, executes run the modified code with no exception (fastest way possible)
+  //In case Execute but no read is not supported single step through the whole page (slow)
+  //Mode is ignored
+
+  //AMD: The page is readable but non-executable
+  //On execute the page gets swapped out with the modified one and made executable
+  //mode 0: For every address make it executable, do a single step, and then made back to non-executable (see execute watch)
+  //mode 1: All other pages will be made non-executable (511 PTE's 511 PDE, 511 PDPTE and 511 PML4's need to be made non-executable: 2044 entries )
+  //        until a npf happens.
+  //        Boundary situation: Do a single step when at an instruction that spans both pages
+  //may mode 2?:same as mode 1 but instead of adjusting 2044 entries swap the NP pointer to a pagesystem with only that one executable page. And on memory access outside map them in as usual (as non executable) unless it's a sidepage
+  //            pro: Faster after a few runs. con: eats up a ton more memory
+
+  // Downside compared to Intel: Cloaked pages can see their own page as edited
+
+  cloakdata->CloakMode=mode;
+
+
+
   //map in the physical address descriptor for all CPU's as execute only
   pcpuinfo currentcpuinfo=firstcpuinfo;
 
@@ -375,20 +479,47 @@ int ept_cloak_activate(QWORD physicalAddress)
 
     csEnter(&currentcpuinfo->EPTPML4CS);
 
-    QWORD PA=EPTMapPhysicalMemory(currentcpuinfo, physicalAddress, 1);
+    QWORD PA;
+
+    if (isAMD)
+      PA=NPMapPhysicalMemory(currentcpuinfo, physicalAddress, 1);
+    else
+      PA=EPTMapPhysicalMemory(currentcpuinfo, physicalAddress, 1);
+
+    sendstring("Cloak: After mapping the page as a 4KB page\n");
+
     cloakdata->eptentry[cpunr]=mapPhysicalMemoryGlobal(PA, sizeof(EPT_PTE));
 
-    //make it nonreadable
-    EPT_PTE temp=*(cloakdata->eptentry[cpunr]);
-    if (has_EPT_ExecuteOnlySupport)
-      temp.XA=1;
+    sendstringf("Cloak old entry is %6\n", *(QWORD*)(cloakdata->eptentry[cpunr]));
+
+
+    if (isAMD)
+    {
+      //Make it non-executable
+      _PTE_PAE temp=*(PPTE_PAE)(cloakdata->eptentry[cpunr]);
+      temp.EXB=1; //disable execute
+
+
+      *(PPTE_PAE)(cloakdata->eptentry[cpunr])=temp;
+
+    }
     else
-      temp.XA=0; //going to be slow
+    {
+      //make it nonreadable
+      EPT_PTE temp=*(cloakdata->eptentry[cpunr]);
+      if (has_EPT_ExecuteOnlySupport)
+        temp.XA=1;
+      else
+        temp.XA=0; //going to be slow
 
-    temp.RA=0;
-    temp.WA=0;
+      temp.RA=0;
+      temp.WA=0;
 
-    *(cloakdata->eptentry[cpunr])=temp;
+      *(cloakdata->eptentry[cpunr])=temp;
+    }
+
+    sendstringf("Cloak new entry is %6\n", *(QWORD*)(cloakdata->eptentry[cpunr]));
+
 
     _wbinvd();
     currentcpuinfo->eptUpdated=1;
@@ -403,6 +534,7 @@ int ept_cloak_activate(QWORD physicalAddress)
   else
     addresslist_add(CloakedPagesList, physicalAddress, (void*)cloakdata);
 
+  sendstringf("Invalidating ept\n");
 
   ept_invalidate();
 
@@ -478,6 +610,7 @@ int ept_cloak_deactivate(QWORD physicalAddress)
 }
 
 int ept_cloak_readOriginal(pcpuinfo currentcpuinfo,  VMRegisters *registers, QWORD physicalAddress, QWORD destination)
+/* Called by vmcall */
 {
   int error;
   physicalAddress=physicalAddress & MAXPHYADDRMASKPB;
@@ -507,14 +640,28 @@ int ept_cloak_readOriginal(pcpuinfo currentcpuinfo,  VMRegisters *registers, QWO
     unmapPhysicalMemory(src,4096);
   }
   else
+  {
     registers->rax=1;
+  }
+
+  if (isAMD)
+    currentcpuinfo->vmcb->RAX= registers->rax;
 
   csLeave(&CloakedPagesCS);
 
   unmapVMmemory(dest,4096);
 
 
-  vmwrite(vm_guest_rip,vmread(vm_guest_rip)+vmread(vm_exit_instructionlength));
+  if (isAMD)
+  {
+    if (AMD_hasNRIPS)
+      currentcpuinfo->vmcb->RIP=currentcpuinfo->vmcb->nRIP;
+    else
+      currentcpuinfo->vmcb->RIP+=3;
+  }
+  else
+    vmwrite(vm_guest_rip,vmread(vm_guest_rip)+vmread(vm_exit_instructionlength));
+
   return 0;
 }
 
@@ -550,12 +697,24 @@ int ept_cloak_writeOriginal(pcpuinfo currentcpuinfo,  VMRegisters *registers, QW
   else
     registers->rax=1;
 
+  if (isAMD)
+    currentcpuinfo->vmcb->RAX= registers->rax;
+
   csLeave(&CloakedPagesCS);
 
   unmapVMmemory(src,4096);
 
 
-  vmwrite(vm_guest_rip,vmread(vm_guest_rip)+vmread(vm_exit_instructionlength));
+  if (isAMD)
+  {
+    if (AMD_hasNRIPS)
+      currentcpuinfo->vmcb->RIP=currentcpuinfo->vmcb->nRIP;
+    else
+      currentcpuinfo->vmcb->RIP+=3;
+  }
+  else
+    vmwrite(vm_guest_rip,vmread(vm_guest_rip)+vmread(vm_exit_instructionlength));
+
   return 0;
 }
 
@@ -567,7 +726,7 @@ int ept_cloak_changeregonbp(QWORD physicalAddress, PCHANGEREGONBPINFO changeregi
   ept_cloak_removechangeregonbp(physicalAddress);
 
   QWORD physicalBase=physicalAddress & MAXPHYADDRMASKPB;
-  ept_cloak_activate(physicalBase); //just making sure
+  ept_cloak_activate(physicalBase,0); //just making sure
 
   sendstringf("ept_cloak_changeregonbp:\n");
   sendstringf("  changeRAX:%d\n", changereginfo->Flags.changeRAX);
@@ -1517,12 +1676,21 @@ VMSTATUS ept_watch_retrievelog(int ID, QWORD results, DWORD *resultSize, DWORD *
 
   //sendstringf("ept_watch_retrievelog(ID=%d)\n", ID);
 
-
-
   if (ID>=eptWatchListPos) //out of range
   {
     sendstringf("Invalid ID\n");
-    vmwrite(vm_guest_rip,vmread(vm_guest_rip)+vmread(vm_exit_instructionlength));
+
+
+    if (isAMD)
+    {
+      if (AMD_hasNRIPS)
+        getcpuinfo()->vmcb->RIP=getcpuinfo()->vmcb->nRIP;
+      else
+        getcpuinfo()->vmcb->RIP+=3;
+    }
+    else
+      vmwrite(vm_guest_rip,vmread(vm_guest_rip)+vmread(vm_exit_instructionlength));
+
     *errorcode=1; //invalid ID
     return VM_OK;
   }
@@ -1532,7 +1700,15 @@ VMSTATUS ept_watch_retrievelog(int ID, QWORD results, DWORD *resultSize, DWORD *
   if (eptWatchList[ID].Active==0) //not active
   {
     sendstringf("Inactive ID\n");
-    vmwrite(vm_guest_rip,vmread(vm_guest_rip)+vmread(vm_exit_instructionlength));
+    if (isAMD)
+    {
+      if (AMD_hasNRIPS)
+        getcpuinfo()->vmcb->RIP=getcpuinfo()->vmcb->nRIP;
+      else
+        getcpuinfo()->vmcb->RIP+=3;
+    }
+    else
+      vmwrite(vm_guest_rip,vmread(vm_guest_rip)+vmread(vm_exit_instructionlength));
     *errorcode=3; //inactive ID
 
     csLeave(&eptWatchListCS);
@@ -1578,7 +1754,15 @@ VMSTATUS ept_watch_retrievelog(int ID, QWORD results, DWORD *resultSize, DWORD *
   {
     sendstringf("Too small\n");
     *resultSize=sizeneeded;
-    vmwrite(vm_guest_rip,vmread(vm_guest_rip)+vmread(vm_exit_instructionlength));
+    if (isAMD)
+    {
+      if (AMD_hasNRIPS)
+        getcpuinfo()->vmcb->RIP=getcpuinfo()->vmcb->nRIP;
+      else
+        getcpuinfo()->vmcb->RIP+=3;
+    }
+    else
+      vmwrite(vm_guest_rip,vmread(vm_guest_rip)+vmread(vm_exit_instructionlength));
     *errorcode=2; //invalid size
     csLeave(&eptWatchListCS);
     return VM_OK;
@@ -1589,7 +1773,15 @@ VMSTATUS ept_watch_retrievelog(int ID, QWORD results, DWORD *resultSize, DWORD *
   if (results==0)
   {
     sendstringf("results==0\n");
-    vmwrite(vm_guest_rip,vmread(vm_guest_rip)+vmread(vm_exit_instructionlength));
+    if (isAMD)
+    {
+      if (AMD_hasNRIPS)
+        getcpuinfo()->vmcb->RIP=getcpuinfo()->vmcb->nRIP;
+      else
+        getcpuinfo()->vmcb->RIP+=3;
+    }
+    else
+      vmwrite(vm_guest_rip,vmread(vm_guest_rip)+vmread(vm_exit_instructionlength));
     *errorcode=4; //results==0
     csLeave(&eptWatchListCS);
     return VM_OK;
@@ -1597,7 +1789,15 @@ VMSTATUS ept_watch_retrievelog(int ID, QWORD results, DWORD *resultSize, DWORD *
 
 #ifdef MEMORYCHECKNOLOGRETRIEVAL
   //skip
-  vmwrite(vm_guest_rip,vmread(vm_guest_rip)+vmread(vm_exit_instructionlength));
+  if (isAMD)
+  {
+    if (AMD_hasNRIPS)
+      getcpuinfo()->vmcb->RIP=getcpuinfo()->vmcb->nRIP;
+    else
+      getcpuinfo()->vmcb->RIP+=3;
+  }
+  else
+    vmwrite(vm_guest_rip,vmread(vm_guest_rip)+vmread(vm_exit_instructionlength));
   *resultSize=0;
   *errorcode=0; //results==0
   csLeave(&eptWatchListCS);
@@ -1610,7 +1810,15 @@ VMSTATUS ept_watch_retrievelog(int ID, QWORD results, DWORD *resultSize, DWORD *
     while (1);
 
 #endif
-    vmwrite(vm_guest_rip,vmread(vm_guest_rip)+vmread(vm_exit_instructionlength));
+    if (isAMD)
+    {
+      if (AMD_hasNRIPS)
+        getcpuinfo()->vmcb->RIP=getcpuinfo()->vmcb->nRIP;
+      else
+        getcpuinfo()->vmcb->RIP+=3;
+    }
+    else
+      vmwrite(vm_guest_rip,vmread(vm_guest_rip)+vmread(vm_exit_instructionlength));
     *errorcode=5; //offset set but not copyinprogress
     csLeave(&eptWatchListCS);
     return VM_OK;
@@ -1621,7 +1829,15 @@ VMSTATUS ept_watch_retrievelog(int ID, QWORD results, DWORD *resultSize, DWORD *
 #ifdef MEMORYCHECK
     while (1);
 #endif
-    vmwrite(vm_guest_rip,vmread(vm_guest_rip)+vmread(vm_exit_instructionlength));
+    if (isAMD)
+    {
+      if (AMD_hasNRIPS)
+        getcpuinfo()->vmcb->RIP=getcpuinfo()->vmcb->nRIP;
+      else
+        getcpuinfo()->vmcb->RIP+=3;
+    }
+    else
+      vmwrite(vm_guest_rip,vmread(vm_guest_rip)+vmread(vm_exit_instructionlength));
     *errorcode=6; //offset is too high
     csLeave(&eptWatchListCS);
     return VM_OK;
@@ -1660,7 +1876,15 @@ VMSTATUS ept_watch_retrievelog(int ID, QWORD results, DWORD *resultSize, DWORD *
     else
     {
       sendstringf("Not a pagefault\n");
-      vmwrite(vm_guest_rip,vmread(vm_guest_rip)+vmread(vm_exit_instructionlength));
+      if (isAMD)
+      {
+        if (AMD_hasNRIPS)
+          getcpuinfo()->vmcb->RIP=getcpuinfo()->vmcb->nRIP;
+        else
+          getcpuinfo()->vmcb->RIP+=3;
+      }
+      else
+        vmwrite(vm_guest_rip,vmread(vm_guest_rip)+vmread(vm_exit_instructionlength));
       *errorcode=0x1000+error; //map error
       csLeave(&eptWatchListCS);
       return VM_OK;
@@ -1713,7 +1937,15 @@ VMSTATUS ept_watch_retrievelog(int ID, QWORD results, DWORD *resultSize, DWORD *
     *resultSize=*offset;
 
    // sendstringf("Going to the next instruction\n");
-    vmwrite(vm_guest_rip,vmread(vm_guest_rip)+vmread(vm_exit_instructionlength));
+    if (isAMD)
+    {
+      if (AMD_hasNRIPS)
+        getcpuinfo()->vmcb->RIP=getcpuinfo()->vmcb->nRIP;
+      else
+        getcpuinfo()->vmcb->RIP+=3;
+    }
+    else
+      vmwrite(vm_guest_rip,vmread(vm_guest_rip)+vmread(vm_exit_instructionlength));
     *errorcode=0;
   }
   else
@@ -1800,7 +2032,10 @@ int ept_watch_activate(QWORD PhysicalAddress, int Size, int Type, DWORD Options,
     csEnter(&c->EPTPML4CS);
 
     if (isAMD)
+    {
       PA_PTE=NPMapPhysicalMemory(c, PhysicalAddress, 1);
+      sendstringf("PA_PTE=%6\n", PA_PTE);
+    }
     else
       PA_PTE=EPTMapPhysicalMemory(c, PhysicalAddress, 1);
 
@@ -1814,6 +2049,8 @@ int ept_watch_activate(QWORD PhysicalAddress, int Size, int Type, DWORD Options,
     {
       //AMD NP
       _PTE_PAE temp=*(_PTE_PAE *)c->eptWatchList[ID];
+      sendstringf("Old page value was %6\n", *(QWORD *)c->eptWatchList[ID]);
+
       if (Type==EPTW_WRITE)
       {
         temp.RW=0;
@@ -1829,6 +2066,7 @@ int ept_watch_activate(QWORD PhysicalAddress, int Size, int Type, DWORD Options,
         temp.EXB=1; //no execute flag
       }
       *(c->eptWatchList[ID])=*(EPT_PTE *)&temp;
+      sendstringf("New page value is %6\n", *(QWORD *)c->eptWatchList[ID]);
     }
     else
     {
@@ -1881,6 +2119,7 @@ int ept_watch_activate(QWORD PhysicalAddress, int Size, int Type, DWORD Options,
 
   csLeave(&eptWatchListCS);
 
+  sendstringf("Invalidating pages\n");
   ept_invalidate();
 
   return result;
@@ -1937,32 +2176,56 @@ int ept_watch_deactivate(int ID)
 
       csEnter(&c->EPTPML4CS);
 
-      EPT_PTE temp=*(c->eptWatchList[ID]);
-      if (eptWatchList[ID].Type==EPTW_WRITE)
+      if (isAMD)
       {
-        sendstringf("  This was a write entry. Making it writable\n");
-        temp.WA=1;
-      }
-      else if (eptWatchList[ID].Type==EPTW_READWRITE)
-      {
-        sendstringf("  This was an access entry. Making it readable and writable");
-        temp.RA=1;
-        temp.WA=1;
-        if (has_EPT_ExecuteOnlySupport==0)
+        _PTE_PAE temp=*(PPTE_PAE)(c->eptWatchList[ID]);
+        if (eptWatchList[ID].Type==EPTW_WRITE)
         {
-          sendstringf(" and executable as this cpu does not support execute only pages\n");
-          temp.XA=1;
+          temp.RW=1; //back to writable
         }
+        else if (eptWatchList[ID].Type==EPTW_READWRITE)
+        {
+          temp.P=1;
+          temp.RW=1;
+          temp.EXB=0;
+        }
+        else
+        {
+          temp.EXB=0;
+        }
+
+        *(PPTE_PAE)(c->eptWatchList[ID])=temp;
       }
       else
       {
-          sendstringf("  This was an execute entry. Making it executable");
-          temp.XA=1;
+
+        EPT_PTE temp=*(c->eptWatchList[ID]);
+        if (eptWatchList[ID].Type==EPTW_WRITE)
+        {
+          sendstringf("  This was a write entry. Making it writable\n");
+          temp.WA=1;
+        }
+        else if (eptWatchList[ID].Type==EPTW_READWRITE)
+        {
+          sendstringf("  This was an access entry. Making it readable and writable");
+          temp.RA=1;
+          temp.WA=1;
+          if (has_EPT_ExecuteOnlySupport==0)
+          {
+            sendstringf(" and executable as this cpu does not support execute only pages\n");
+            temp.XA=1;
+          }
+        }
+        else
+        {
+            sendstringf("  This was an execute entry. Making it executable");
+            temp.XA=1;
+        }
+
+
+
+        *(c->eptWatchList[ID])=temp;
       }
-
-
-
-      *(c->eptWatchList[ID])=temp;
       _wbinvd();
       c->eptUpdated=1;
 

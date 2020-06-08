@@ -45,6 +45,8 @@ extern DWORD realmode_inthook_original12;
 extern DWORD realmode_inthook_original15;
 extern WORD realmode_inthook_conventional_memsize;
 
+
+
 void setupVMX_AMD(pcpuinfo currentcpuinfo)
 {
   //setup the vmcb
@@ -62,36 +64,39 @@ void setupVMX_AMD(pcpuinfo currentcpuinfo)
   currentcpuinfo->vmcb->G_PAT=readMSR(0x277);
   //setup a pagebase describing the physical memory
 
-  UINT64 PagePA;
   volatile PPML4 pml4=(PPML4)malloc(4096);
   zeromemory((volatile void*)pml4,4096);
 
 
-  currentcpuinfo->vmcb->N_CR3=VirtualToPhysical(pml4);
+  currentcpuinfo->vmcb->N_CR3=VirtualToPhysical((void*)pml4);
   sendstringf("Setup nCR3 at %6\n", currentcpuinfo->vmcb->N_CR3);
 
   has_NP_1GBsupport=1;
   has_NP_2MBsupport=1;
 
-/*
-  volatile PPDPTE_PAE_BS pdptr1=(PPDPTE_PAE_BS)malloc(4096);
-  zeromemory((volatile void*)pdptr1,4096);
+  //copy the PML4 table and set a new CR3  (PML4 should never change after this, at least not on a global level)
+  PPML4 newpml4=(PPML4)malloc(4096);
+  copymem(newpml4, pml4table, 4096);
 
-  *(UINT64 *)(&pml4[0])=(UINT64)VirtualToPhysical(pdptr1);
-  pml4[0].P=1;
-  pml4[0].RW=1;
-  pml4[0].US=1;
+  sendstringf("Created new PML4 table at %6 (PA %6)\n", newpml4, VirtualToPhysical((void*)newpml4));
 
-  int i;
-  for (i=0; i<512; i++)
-  {
-    *(UINT64 *)(&pdptr1[i])=(QWORD)((QWORD)0x40000000*(QWORD)i);
-    pdptr1[i].P=1;
-    pdptr1[i].RW=1;
-    pdptr1[i].US=1;
-    pdptr1[i].PS=1;
-  }
-  */
+
+  *(QWORD*)(&newpml4[510])=currentcpuinfo->vmcb->N_CR3;
+  newpml4[510].P=1;
+  newpml4[510].RW=1;
+
+  *(QWORD*)(&newpml4[511])=VirtualToPhysical((void*)newpml4); //point to this one
+  newpml4[511].P=1;
+  newpml4[511].RW=1;
+
+  asm volatile ("": : :"memory");
+
+  setCR3(VirtualToPhysical((void*)newpml4));
+
+  sendstringf("Set CR3 to %6 . It is now %6\n", VirtualToPhysical((void*)newpml4), getCR3() );
+
+  _invlpg(0xffffff0000000000ULL);
+
 #endif
 
   currentcpuinfo->vmcb->InterceptVMRUN=1;
