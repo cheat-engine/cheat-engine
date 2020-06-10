@@ -576,10 +576,11 @@ void dbvm_cloak_test(void)
     r=cloakTestFunction();
     sendstringf("Returned %d\n", r);
 
+
     sendstringf("Calling copy\n");
     r=newtestfunction();
     sendstringf("Returned %d\n", r);
-
+    displayline("Unpatched result is %d\n", r);
 
 
 
@@ -599,58 +600,94 @@ void dbvm_cloak_test(void)
     r=newtestfunction();
 
     sendstringf("Patched result of cloakTestFunction() is %d\n", r);
+    displayline("Patched result without cloak is %d\n", r);
 
     sendstringf("Undo patch. Now trying with cloak\n");
     copymem(newtestfunction,cloakTestFunction, size );
 
+    int beforecloak=generateCRC((unsigned char*)newtestfunction, size);
+    displayline("Before cloak crc was %x\n", beforecloak);
+
+    unsigned char *buf=(unsigned char *)newtestfunction;
+    sendstringf("%6:", newtestfunction);
+    for (i=0; i<size; i++)
+      sendstringf("%2 ",buf[i]);
+
+    sendstringf("\n");
 
     sendstringf("Activating cloak (mode 1)\n");
     r=dbvm_cloak_activate(PA, 1);
+    displayline("Cloak activated\n");
     sendstringf("dbvm_cloak_activate(%6) returned %d\n", PA, r);
 
     _invlpg((QWORD)newtestfunction);
 
+    buf=(unsigned char *)newtestfunction;
+    sendstringf("%6:", newtestfunction);
+    for (i=0; i<size; i++)
+      sendstringf("%2 ",buf[i]); //when testing, should be all 0xce's
+
+    sendstringf("\n");
+
+
+
+    int aftercloak=generateCRC((unsigned char*)newtestfunction, size);
+    displayline("After cloak crc is %x\n", aftercloak);
+
+
+
     sendstringf("Calling newtestfunction: (cloaked, unpatched)\n");
     r=newtestfunction();
     sendstringf("After cloak but no patch ,result of cloakTestFunction() is %d\n", r);
+    displayline("Cloak active but unpatched, result is %d\n",r);
 
     unsigned char* executable=malloc(4096);
 
     sendstringf("Allocated memory for the executable copy at %6\n", executable);
 
+    displayline("1: crc=%x\n", generateCRC((unsigned char*)newtestfunction, size));
+
     r=dbvm_cloak_readExecutable(PA, executable);
+    displayline("2: crc=%x\n", generateCRC((unsigned char*)newtestfunction, size));
     sendstringf("dbvm_cloak_readExecutable returned %d\n",r);
 
     if (r==0)
     {
+
+      int beforepatch=generateCRC((unsigned char*)newtestfunction, size);
+      displayline("3: crc=%x\n", generateCRC((unsigned char*)newtestfunction, size));
+
       sendstringf("Applying patch to executable memory\n");
       for (i=0; i<5; i++)
         executable[(QWORD)(&cloakTestFunctionInstruction)-((QWORD)(cloakTestFunction))+i-2]=0x90;
 
+      displayline("4: crc=%x\n", generateCRC((unsigned char*)newtestfunction, size));
+
       r=dbvm_cloak_writeExecutable(PA, executable);
       sendstringf("dbvm_cloak_writeExectuable returned %d\n",r);
+      displayline("5: crc=%x\n", generateCRC((unsigned char*)newtestfunction, size));
+
+      int afterpatch=generateCRC((unsigned char*)newtestfunction, size);
+
+      displayline("6: crc=%x\n", generateCRC((unsigned char*)newtestfunction, size));
 
       if (r==0)
       {
         sendstringf("Calling newtestfunction: (cloaked, patched)\n");
         r=newtestfunction();
         sendstringf("After cloak and patch ,result of cloakTestFunction() is %d\n", r);
+        displayline("Cloak active and patched, result is %d\n",r);
+        displayline("7: crc=%x\n", generateCRC((unsigned char*)newtestfunction, size));
       }
 
     }
 
 
 
-    r=dbvm_cloak_deactivate(PA);
-    sendstringf("dbvm_cloak_deactivate(%6) returned %d\n", PA, r);
 
-    sendstringf("Reading it shows:");
-    for (i=0; i<5; i++)
-    {
-      int index=(QWORD)(&cloakTestFunctionInstruction)-((QWORD)(cloakTestFunction))+i;
-      sendstringf("%2 ",funcindex[index]);
-      funcindex[index]=0x90;
-    }
+    r=dbvm_cloak_deactivate(PA);
+    displayline("8: crc=%x\n", generateCRC((unsigned char*)newtestfunction, size));
+    sendstringf("dbvm_cloak_deactivate(%6) returned %d\n", PA, r);
     sendstringf("\n");
 
 

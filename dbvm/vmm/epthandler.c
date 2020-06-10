@@ -165,16 +165,36 @@ BOOL ept_handleCloakEvent(pcpuinfo currentcpuinfo, QWORD Address, QWORD AddressV
     {
 
       cloakdata=currentcpuinfo->NP_Cloak.ActiveRegion;
-      sendstring("Inside a cloaked region using mode 1 and an execute fault happened");
+      sendstringf("Inside a cloaked region using mode 1 (which started in %6) and an execute fault happened (CS:RIP=%x:%6)\n", currentcpuinfo->NP_Cloak.LastCloakedVirtualBase, currentcpuinfo->vmcb->cs_selector, currentcpuinfo->vmcb->RIP);
 
-      //means we exited the cloaked page
+      //means we exited the cloaked page (or at the page boundary)
       csEnter(&CloakedPagesCS);
       NPMode1CloakSetState(currentcpuinfo, 0); //marks all pages back as executable and the stealthed page(s) back as no execute
       csLeave(&CloakedPagesCS);
 
+      //check if it's a page boundary
+     // QWORD currentexecbase=currentcpuinfo->vmcb->RIP & 0xffffffffffff000ULL;
+
+      if  (((currentcpuinfo->vmcb->RIP<currentcpuinfo->NP_Cloak.LastCloakedVirtualBase) &&
+          ((currentcpuinfo->vmcb->RIP+32)>=currentcpuinfo->NP_Cloak.LastCloakedVirtualBase))
+        ||
+        ((currentcpuinfo->vmcb->RIP>=currentcpuinfo->NP_Cloak.LastCloakedVirtualBase+4096) &&
+         (currentcpuinfo->vmcb->RIP<=currentcpuinfo->NP_Cloak.LastCloakedVirtualBase+4096+32)))
+      {
+        sendstringf("Pageboundary. Do a single step with the cloaked page decloaked\n");
+
+        //page boundary. Do a single step with the cloaked page executable
+        *(QWORD *)(cloakdata->npentry[currentcpuinfo->cpunr])=cloakdata->PhysicalAddressExecutable;
+        cloakdata->npentry[currentcpuinfo->cpunr]->P=1;
+        cloakdata->npentry[currentcpuinfo->cpunr]->RW=1;
+        cloakdata->npentry[currentcpuinfo->cpunr]->US=1;
+        cloakdata->npentry[currentcpuinfo->cpunr]->EXB=0;
+
+        vmx_enableSingleStepMode();
+        vmx_addSingleSteppingReasonEx(currentcpuinfo, 2,cloakdata);
+      }
+
       currentcpuinfo->NP_Cloak.ActiveRegion=NULL;
-
-
       ept_invalidate();
 
 
@@ -195,12 +215,12 @@ BOOL ept_handleCloakEvent(pcpuinfo currentcpuinfo, QWORD Address, QWORD AddressV
 
 
     //it's a cloaked page
-    sendstringf("ept_handleCloakEvent on the target\n");
+    sendstringf("ept_handleCloakEvent on the target(CS:RIP=%x:%6)\n", currentcpuinfo->vmcb->cs_selector, currentcpuinfo->vmcb->RIP);
 
     if (isAMD)
     {
       //AMD handling
-      //swap the page and make it executable, do one step, and restore back to non-executable
+      //swap the page and make it executable,
       *(QWORD *)(cloakdata->npentry[currentcpuinfo->cpunr])=cloakdata->PhysicalAddressExecutable;
       cloakdata->npentry[currentcpuinfo->cpunr]->P=1;
       cloakdata->npentry[currentcpuinfo->cpunr]->RW=1;
@@ -209,32 +229,16 @@ BOOL ept_handleCloakEvent(pcpuinfo currentcpuinfo, QWORD Address, QWORD AddressV
 
       if (cloakdata->CloakMode==0)
       {
+        //do one step, and restore back to non-executable
         vmx_enableSingleStepMode();
         vmx_addSingleSteppingReasonEx(currentcpuinfo, 2,cloakdata);
       }
       else
       {
         //mark all pages as no execute except this one (and any potential still waiting to step cloak events)
-
-        //check if it's a page boundary
-        QWORD codeVA=currentcpuinfo->vmcb->cs_base+currentcpuinfo->vmcb->RIP;
-        int notpaged;
-        QWORD codePA=getPhysicalAddressVM(currentcpuinfo,codeVA, &notpaged);
-        if ((notpaged==0) && ((codePA & MAXPHYADDRMASKPB)!=BaseAddress)) //should be the case 100% of the time
-        {
-          //page boundary, do a single step
-          vmx_enableSingleStepMode();
-          vmx_addSingleSteppingReasonEx(currentcpuinfo, 2,cloakdata);
-        }
-        else
-        {
-          //inside the cloaked region
-          //add this to the active cloaked pages
-          currentcpuinfo->NP_Cloak.ActiveRegion=cloakdata;
-
-          NPMode1CloakSetState(currentcpuinfo, 1);
-        }
-
+        currentcpuinfo->NP_Cloak.ActiveRegion=cloakdata;
+        currentcpuinfo->NP_Cloak.LastCloakedVirtualBase=currentcpuinfo->vmcb->RIP & 0xffffffffffff000ULL;
+        NPMode1CloakSetState(currentcpuinfo, 1);
       }
 
     }
@@ -441,6 +445,8 @@ int ept_cloak_activate(QWORD physicalAddress, int mode)
   cloakdata->Data=malloc(4096);
 
   copymem(cloakdata->Data, cloakdata->Executable, 4096);
+
+
   cloakdata->PhysicalAddressExecutable=physicalAddress;
   cloakdata->PhysicalAddressData=VirtualToPhysical(cloakdata->Data);
 
@@ -495,13 +501,16 @@ int ept_cloak_activate(QWORD physicalAddress, int mode)
 
     if (isAMD)
     {
-      //Make it non-executable
-      _PTE_PAE temp=*(PPTE_PAE)(cloakdata->eptentry[cpunr]);
+      //Make it non-executable, and make the data read be the fake data
+      _PTE_PAE temp;
+      temp=*((PPTE_PAE)&cloakdata->PhysicalAddressData);  // *(PPTE_PAE)(cloakdata->eptentry[cpunr]);
+
+      temp.P=1;
+      temp.RW=1;
+      temp.US=1;
       temp.EXB=1; //disable execute
 
-
       *(PPTE_PAE)(cloakdata->eptentry[cpunr])=temp;
-
     }
     else
     {
@@ -670,6 +679,9 @@ int ept_cloak_writeOriginal(pcpuinfo currentcpuinfo,  VMRegisters *registers, QW
   int error;
   physicalAddress=physicalAddress & MAXPHYADDRMASKPB;
 
+  nosendchar[getAPICID()]=0;
+  sendstring("ept_cloak_writeOriginal");
+
   QWORD pagefault;
 
   void *src=mapVMmemory(currentcpuinfo, source, 4096,&error, &pagefault);
@@ -688,6 +700,12 @@ int ept_cloak_writeOriginal(pcpuinfo currentcpuinfo,  VMRegisters *registers, QW
   if (cloakdata)
   {
     void *dest=mapPhysicalMemory(cloakdata->PhysicalAddressExecutable, 4096);
+
+    sendstringf("cloakdata->PhysicalAddressExecutable=%6\n", cloakdata->PhysicalAddressExecutable);
+    sendstringf("cloakdata->PhysicalAddressData=%6\n", cloakdata->PhysicalAddressData);
+
+
+    sendstringf("Writing to PA %6\n", cloakdata->PhysicalAddressExecutable);
     copymem(dest,src,4096);
     registers->rax=0;
 
