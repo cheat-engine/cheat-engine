@@ -244,6 +244,7 @@ begin
   if (headersize=0) or (PImageDosHeader(header)^._lfanew<=headersize-sizeof(TImageNtHeaders)) then
   begin
     ImageNTHeader:=PImageNtHeaders(ptrUint(header)+PImageDosHeader(header)^._lfanew);
+    if ImageNTHeader.FileHeader.Machine=$8664 then exit;
     result:=ImageNTHeader.OptionalHeader.BaseOfData;
   end;
   {$endif}
@@ -450,7 +451,7 @@ begin
       PEItv.Items.addchild(PEHeader,format(rsPEPreferedImagebase ,[ImageNTHeader^.OptionalHeader.ImageBase]));
     end
     else
-      PEItv.Items.addchild(PEHeader,format(rsPEPreferedImagebase2 ,[PUINT64(@ImageNTHeader^.OptionalHeader.BaseOfData)^]));
+      PEItv.Items.addchild(PEHeader,format(rsPEPreferedImagebase2 ,[PImageOptionalHeader64(@ImageNTHeader^.OptionalHeader)^.ImageBase]));
 
 
     PEItv.Items.addchild(PEHeader,format(rsPESectionAllignment ,[ImageNTHeader^.OptionalHeader.SectionAlignment]));

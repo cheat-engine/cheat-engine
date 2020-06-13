@@ -171,7 +171,7 @@ PImageNtHeaders = ^TImageNtHeaders;
 _IMAGE_NT_HEADERS = packed record
   Signature: DWORD;
   FileHeader: TImageFileHeader;
-  OptionalHeader: TImageOptionalHeader;
+  OptionalHeader: TImageOptionalHeader32;
 end;
 TImageNtHeaders = _IMAGE_NT_HEADERS;
 IMAGE_NT_HEADERS = _IMAGE_NT_HEADERS;
