@@ -1567,6 +1567,9 @@ begin
   btnok.width:=i;
   btncancel.width:=i;
 
+  if autosize=false then //form position got loaded
+    OnResize(self);
+
   autosize:=false;
 
   if fMemoryRecord<>nil then
