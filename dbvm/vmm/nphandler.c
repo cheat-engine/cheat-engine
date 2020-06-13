@@ -22,6 +22,11 @@ PPTE_PAE         np_pagetables=  (PPTE_PAE)0xffffff0000000000ULL;
 void NPMode1CloakRestoreCallback(QWORD address UNUSED, CloakedPageData *data)
 {
   pcpuinfo c=getcpuinfo();
+  *(QWORD *)(data->npentry[c->cpunr])=data->PhysicalAddressData;
+  data->npentry[c->cpunr]->P=1;
+  data->npentry[c->cpunr]->RW=1;
+  data->npentry[c->cpunr]->US=1;
+
   data->npentry[c->cpunr]->EXB=1; //back to non executable
 }
 
@@ -107,7 +112,7 @@ void NPMode1CloakSetState(pcpuinfo currentcpuinfo, int state)
 
   if (state==0)
   {
-    //reprotect the 'other' cloaked regions
+    //reprotect the cloaked regions
 
 
     if (CloakedPagesMap)
@@ -300,6 +305,7 @@ QWORD NPMapPhysicalMemory(pcpuinfo currentcpuinfo, QWORD physicalAddress, int fo
     pagetable->P=1;
     pagetable->RW=1;
     pagetable->US=1;
+    pagetable->EXB=0;
   }
   else
   {
@@ -310,6 +316,7 @@ QWORD NPMapPhysicalMemory(pcpuinfo currentcpuinfo, QWORD physicalAddress, int fo
     pagetable->P=1;
     pagetable->RW=1;
     pagetable->US=1;
+    pagetable->EXB=0;
   }
 
   csLeave(&currentcpuinfo->EPTPML4CS);
@@ -341,7 +348,7 @@ VMSTATUS handleNestedPagingFault(pcpuinfo currentcpuinfo, VMRegisters *vmregiste
   QWORD PhysicalAddress=currentcpuinfo->vmcb->EXITINFO2;
   QWORD ErrorInfo=currentcpuinfo->vmcb->EXITINFO1;
 
-  sendstringf("%x:%x handleNestedPagingFault. PA=%6 (Code %x)\n", currentcpuinfo->vmcb->cs_selector, currentcpuinfo->vmcb->RIP,  PhysicalAddress, ErrorInfo);
+  sendstringf("%x:%6 handleNestedPagingFault. PA=%6 (Code %x)\n", currentcpuinfo->vmcb->cs_selector, currentcpuinfo->vmcb->RIP,  PhysicalAddress, ErrorInfo);
   sendstringf("EXITINTINFO=%x\n", currentcpuinfo->vmcb->EXITINTINFO);
   sendstringf("CR2=%6 vCR2=%6\n", getCR2(), currentcpuinfo->vmcb->CR2);
 

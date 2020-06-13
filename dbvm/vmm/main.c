@@ -1178,7 +1178,6 @@ void menu2(void)
     displayline("e: efer test\n");
     displayline("o: out of memory test\n");
 
-#ifdef DEBUG
     if (getDBVMVersion())
     {
       displayline("w: DBVM write watch test\n");
@@ -1186,9 +1185,7 @@ void menu2(void)
       displayline("x: DBVM write execute test\n");
       displayline("c: DBVM cloak test\n");
       displayline("m: DBVM changeregonbp test\n");
-
     }
-#endif
 
 
     key=0;
@@ -1584,7 +1581,7 @@ afterWRBPtest:
 
             break;
           }
-#ifdef DEBUG
+
           case 'w':
           {
             dbvm_watch_writes_test();
@@ -1615,7 +1612,6 @@ afterWRBPtest:
             break;
           }
 
-#endif
 
           default:
             key=0;

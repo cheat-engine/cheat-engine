@@ -605,6 +605,7 @@ typedef volatile struct tcpuinfo
   struct
   {
     CloakedPageData *ActiveRegion; //if not null this contains the current page that is executable
+    QWORD LastCloakedVirtualBase;
   } NP_Cloak; //AMD cloaking
 
 
