@@ -2406,13 +2406,13 @@ begin
       owner.modulelistMREW.Beginread;
       for i:=0 to owner.modulelistpos-1 do
       begin
-        for j:=0 to length(modulelist[i].sections)-1 do
+        for j:=0 to length(owner.modulelist[i].sections)-1 do
         begin
-          s:=modulelist[i].sections[j].name;
+          s:=owner.modulelist[i].sections[j].name;
           if s[1]<>'.' then
             s:='.'+s;
 
-          symbollist.AddSymbol('',modulelist[i].modulename+s, modulelist[i].sections[j].address, modulelist[i].sections[j].size,true);
+          symbollist.AddSymbol('',owner.modulelist[i].modulename+s, owner.modulelist[i].sections[j].address, owner.modulelist[i].sections[j].size,true);
         end;
       end;
       owner.modulelistMREW.Endread;
