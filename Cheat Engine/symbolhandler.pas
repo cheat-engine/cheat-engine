@@ -150,6 +150,7 @@ type
     function NetworkES(modulename: string; symbolname: string; address: ptruint; size: integer; secondary: boolean): boolean;
   public
     isloading: boolean;
+    sectionsloaded: boolean;
     apisymbolsloaded: boolean;
     pdbsymbolsloaded: boolean;
     dotnetsymbolsloaded: boolean;
@@ -220,6 +221,7 @@ type
 
     fshowmodules: boolean;   //--determines what is returned by getnamefromaddress
     fshowsymbols: boolean;   ///
+    fshowsections: boolean;   ///
 
     UserdefinedSymbolCallback: TUserdefinedSymbolCallback;
     searchpath: string;
@@ -260,6 +262,7 @@ type
     procedure markModuleAsLoaded(address: ptruint); //called by the symbolhandlerthread
 
     procedure setshowmodules(x: boolean); //todo: Move this to the disassembler and let that decide
+    procedure setshowsections(x: boolean);
     procedure setshowsymbols(x: boolean);
     procedure tokenize(s: string; var tokens: TTokens);
 
@@ -278,7 +281,9 @@ type
     ExceptionOnLuaLookup: boolean;
 
     property showmodules: boolean read fshowmodules write setshowmodules;
+    property showsections: boolean read fshowsections write setshowsections;
     property showsymbols: boolean read fshowsymbols write setshowsymbols;
+
 
     property usedprocesshandle: thandle read getusedprocesshandle;
     property usedprocessid: dword read getusedprocessid;
@@ -291,6 +296,7 @@ type
     property loadingExtendedData: boolean read isloadingExtendedData;
 
     procedure waitforsymbolsloaded(apisymbolsonly: boolean=false; specificmodule: string='');
+    procedure waitForSections;
     procedure waitForExports;
     procedure waitForDotNet;
     procedure waitForPDB;
@@ -311,7 +317,7 @@ type
     function inSystemModule(address: ptrUint): BOOLEAN;
     function getNameFromAddress(address:ptrUint):string; overload;
     function getNameFromAddress(address:ptrUint; var found: boolean; hexcharsize: integer=8):string; overload;
-    function getNameFromAddress(address:ptrUint;symbols:boolean; modules: boolean; baseaddress: PUINT64=nil; found: PBoolean=nil; hexcharsize: integer=8; important: boolean=true):string; overload;
+    function getNameFromAddress(address:ptrUint;symbols,modules, sections: boolean; baseaddress: PUINT64=nil; found: PBoolean=nil; hexcharsize: integer=8; important: boolean=true):string; overload;
     function getExtraDataFromSymbolAtAddress(address: ptruint): TExtraSymbolData;
 
     function getAddressFromNameL(name: string; waitforsymbols: boolean=true):ptrUint; //Called by lua. Looks at ExceptionOnLookup
@@ -1681,8 +1687,6 @@ var
 begin
   result:=false;
 
-
-
   {$IFNDEF UNIX}
   self:=TSymbolloaderthread(UserContext);
   self.CurrentModulename:=ModuleName;
@@ -2397,6 +2401,24 @@ begin
 
       SymbolsLoaded:=false;
       symbollist.clear;
+
+      //add the sections of modules to the symbollist as string to address lookup only
+      owner.modulelistMREW.Beginread;
+      for i:=0 to owner.modulelistpos-1 do
+      begin
+        for j:=0 to length(modulelist[i].sections)-1 do
+        begin
+          s:=modulelist[i].sections[j].name;
+          if s[1]<>'.' then
+            s:='.'+s;
+
+          symbollist.AddSymbol('',modulelist[i].modulename+s, modulelist[i].sections[j].address, modulelist[i].sections[j].size,true);
+        end;
+      end;
+      owner.modulelistMREW.Endread;
+
+      sectionsLoaded:=true;
+
       {$IFDEF windows}
       owner.dotnetModuleSymbolListMREW.Beginwrite;   //lock the list
       try
@@ -3063,6 +3085,12 @@ begin
   fshowmodules:=x;
 end;
 
+procedure TSymhandler.setshowsections(x: boolean);
+begin
+  if locked then raise symexception.Create(rsYouCanTChangeThisSettingAtTheMoment);
+  fshowsections:=x;
+end;
+
 procedure TSymhandler.setshowsymbols(x: boolean);
 begin
   if locked then raise symexception.Create(rsYouCanTChangeThisSettingAtTheMoment);
@@ -3223,7 +3251,8 @@ begin
 end;
 
 procedure TSymhandler.reinitialize(force: boolean=false);
-var i: integer;
+var i,j: integer;
+  s: string;
 begin
   Log('TSymhandler.reinitialize');
   if loadmodulelist or force then //if loadmodulelist returns true it has detected a change in the previous modulelist (baseaddresschange or new/deleted module)
@@ -3282,6 +3311,8 @@ begin
         end;
       end;
 
+
+
       symbolloadervalid.BeginWrite;
       symbolloaderthread:=tsymbolloaderthread.Create(self, targetself,true);
       symbolloaderthread.kernelsymbols:=kernelsymbols;
@@ -3303,6 +3334,21 @@ begin
   if symbolloaderthread<>nil then
     symbolloaderthread.searchpdb:=state;
 
+  symbolloadervalid.Endread;
+end;
+
+procedure TSymhandler.WaitForSections;
+begin
+  symbolloadervalid.beginread;
+  if symbolloaderthread<>nil then
+  begin
+    while (not symbolloaderthread.Finished) and (not symbolloaderthread.sectionsloaded) do
+    begin
+      sleep(25);
+      if GetCurrentThreadID = MainThreadID then
+        CheckSynchronize;
+    end;
+  end;
   symbolloadervalid.Endread;
 end;
 
@@ -4342,19 +4388,13 @@ begin
     result:=nil;
 end;
 
-function TSymhandler.getNameFromAddress(address:ptrUint;symbols:boolean; modules: boolean; baseaddress: PUINT64=nil; found: PBoolean=nil; hexcharsize: integer=8; important: boolean=true):string;
+function TSymhandler.getNameFromAddress(address:ptrUint;symbols, modules, sections: boolean; baseaddress: PUINT64=nil; found: PBoolean=nil; hexcharsize: integer=8; important: boolean=true):string;
 var //symbol :PSYMBOL_INFO;
     offset: qword;
     mi: tmoduleinfo;
     si: PCESymbolInfo;
     i: integer;
 begin
-
-  if important then
-  asm
-  nop
-  end;
-
   if found<>nil then
     found^:=false;
 
@@ -4439,7 +4479,7 @@ begin
               result:=symbolloaderthread.getSymbolFromAddress(address);
 
               if (result='') and (symbolloaderthread.isloading=false) then   //try again
-                result:=getNameFromAddress(address, symbols, modules, baseaddress, found, hexcharsize);
+                result:=getNameFromAddress(address, symbols, modules, sections, baseaddress, found, hexcharsize);
 
               if result<>'' then exit;
             end;
@@ -4453,12 +4493,28 @@ begin
     end;
   end;
 
+  mi.baseaddress:=0;
+  if sections then
+  begin
+    if getmodulebyaddress(address,mi) then
+    begin
+      for i:=0 to length(mi.sections)-1 do
+        if inrangex(address, mi.sections[i].address, mi.sections[i].address+mi.sections[i].size-1) then
+        begin
+          if mi.sections[i].name[1]='.' then
+            exit(mi.modulename+mi.sections[i].name)
+          else
+            exit(mi.modulename+'.'+mi.sections[i].name)
+        end;
+    end;
+  end;
+
 
   if modules then
   begin
 
     //get the dllname+offset
-    if getmodulebyaddress(address,mi) then
+    if (mi.baseaddress<>0) or getmodulebyaddress(address,mi) then //don't look up again if sections already did so
     begin
       if address-mi.baseaddress=0 then
         result:=mi.modulename
@@ -4483,12 +4539,12 @@ end;
 
 function TSymhandler.getNameFromAddress(address:ptrUint; var found: boolean; hexcharsize: integer=8):string;
 begin
-  result:=getNameFromAddress(address,self.showsymbols,self.showmodules,nil,@found,hexcharsize);
+  result:=getNameFromAddress(address,self.showsymbols,self.showmodules,self.showsections, nil,@found,hexcharsize);
 end;
 
 function TSymhandler.getNameFromAddress(address:ptrUint):string;
 begin
-  result:=getNameFromAddress(address,self.showsymbols,self.showmodules);
+  result:=getNameFromAddress(address,self.showsymbols,self.showmodules, self.showsections);
 end;
 
 
@@ -5258,6 +5314,8 @@ var
 
   newmodulelist: TModuleInfoArray;
   newmodulelistpos: integer;
+  sectionlist: TStringlist;
+  si: TSectionInfo;
 begin
 
 
@@ -5346,6 +5404,25 @@ begin
                   {$endif}
 
                   {$ifdef windows}
+                  if targetself=false then  //not useful for CE
+                  begin
+                    sectionlist:=tstringlist.create;
+                    if peinfo_getSectionList(newmodulelist[newmodulelistpos].baseaddress,sectionlist) then
+                    begin
+                      setlength(newmodulelist[newmodulelistpos].sections, sectionlist.count);
+                      for i:=0 to sectionlist.count-1 do
+                      begin
+                        si:=TSectionInfo(sectionlist.Objects[i]);
+                        newmodulelist[newmodulelistpos].sections[i].name:=si.name;
+                        newmodulelist[newmodulelistpos].sections[i].size:=si.size;
+                        newmodulelist[newmodulelistpos].sections[i].fileaddress:=si.fileAddress;
+                        newmodulelist[newmodulelistpos].sections[i].address:=si.virtualAddress;
+                        si.Free;
+                      end;
+                    end;
+                    sectionlist.free;
+                  end;
+
                   if peinfo_is64bitfile(x, newmodulelist[newmodulelistpos].is64bitmodule)=false then
                   begin
                     //fallback

@@ -450,7 +450,7 @@ var
 begin
   result:=false;
   try
-    s:=symhandler.getNameFromAddress(address,true,true);
+    s:=symhandler.getNameFromAddress(address,true,true, false);
 
     l:=min(maxnamesize-1, length(s));
     copymemory(name,@s[1],l);
@@ -2619,6 +2619,8 @@ initialization
   plugindisassembler:=TDisassembler.create;
   plugindisassembler.showsymbols:=false;
   plugindisassembler.showmodules:=false;
+  plugindisassembler.showsections:=false;
+
   plugindisassembler.isdefault:=false;
 
   ComponentFunctionHandlerClass:=TComponentFunctionHandlerClass.create;

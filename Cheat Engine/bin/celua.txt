@@ -166,6 +166,7 @@ getRTTIClassName(address): Returns the classname of a given structure based on R
 reinitializeSymbolhandler(waittilldone: BOOLEAN OPTIONAL, default=TRUE): reinitializes the symbolhandler. E.g when new modules have been loaded
 reinitializeDotNetSymbolhandler(modulename OPTIONAL): Reinitializes only the DotNet part of the symbol list. (E.g After an ILCode has been JITed) (6.4+)
 reinitializeSelfSymbolhandler(waittilldone: BOOLEAN OPTIONAL, default=TRUE): reinitializes the selfsymbolhandler. E.g when new modules have been loaded to CE process
+waitForSections(): Waits till the sections have been enumerated
 waitForExports(): Waits till all DLL Exports are loaded 
 waitForDotNet(): Waits till all .NET symbols are loaded (this includes DLL Exports)
 waitForPDB(): Waits till all PDB symbols are loaded (this includes DLL Exports, and .NET)
@@ -619,7 +620,7 @@ getMethodProperty(Class, propertyname): Returns a function you can use to call t
 registerSymbol(symbolname, address, OPTIONAL donotsave): Registers a userdefined symbol. If donotsave is true this symbol will not get saved when the table is saved
 unregisterSymbol(symbolname)
 
-getNameFromAddress(address,ModuleNames OPTIONAL=true, Symbols OPTIONAL=true): Returns the given address as a string. Registered symbolname, modulename+offset, or just a hexadecimal string depending on what address
+getNameFromAddress(address,ModuleNames OPTIONAL=true, Symbols OPTIONAL=true, Sections OPTIONAL=false): Returns the given address as a string. Registered symbolname, modulename+offset, or just a hexadecimal string depending on what address
 inModule(address) : returns true if the given address is inside a module
 inSystemModule(address) : returns true if the given address is inside a system module
 getCommonModuleList: Returns the commonModuleList stringlist. (Do not free this one)

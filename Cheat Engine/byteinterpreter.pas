@@ -469,7 +469,7 @@ begin
 
       if clean then result:='' else result:='(pointer)';
 
-      result:=result+symhandler.getNameFromAddress(a,true,true);
+      result:=result+symhandler.getNameFromAddress(a,true,true, false);
 
 //      result:='(pointer)'+inttohex(pqword(buf)^,16) else result:='(pointer)'+inttohex(pdword(buf)^,8);
     end;
@@ -625,13 +625,13 @@ begin
       if processhandler.is64bit then
       begin
         if (address mod 8) = 0 then
-          val('$'+symhandler.getNameFromAddress(pqword(@buf[0])^,true,true,nil,nil,8,false),v,e)
+          val('$'+symhandler.getNameFromAddress(pqword(@buf[0])^,true,true,false, nil,nil,8,false),v,e)
         else
           e:=0;
       end
       else
       begin
-        val('$'+symhandler.getNameFromAddress(pdword(@buf[0])^,true,true,nil,nil,8,false),v,e);
+        val('$'+symhandler.getNameFromAddress(pdword(@buf[0])^,true,true,false, nil,nil,8,false),v,e);
       end;
 
       if e>0 then //named

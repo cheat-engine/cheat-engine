@@ -19,9 +19,6 @@ graphical memory view:
   change format makes it black sometimes(loses position ?)
   sometimes the x position is not 0, but can't be changed back
 
-
-dbvm_speedhack
-
 graphical tutorial: continue with it
 
 linux: make a 32-bit linux build with .so injection support

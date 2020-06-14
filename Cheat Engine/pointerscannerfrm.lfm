@@ -1,7 +1,7 @@
 object frmPointerScanner: TfrmPointerScanner
-  Left = 975
+  Left = 522
   Height = 465
-  Top = 310
+  Top = 143
   Width = 749
   Caption = 'Pointer scan'
   ClientHeight = 445

@@ -6290,7 +6290,7 @@ begin
     begin
       tempaddress := tmemoryrecord(updatelist[i]).getBaseAddress;
       Inc(tempaddress, calculate);
-      tmemoryrecord(updatelist[i]).interpretableaddress := symhandler.getNameFromAddress(tempaddress, True, True);
+      tmemoryrecord(updatelist[i]).interpretableaddress := symhandler.getNameFromAddress(tempaddress, True, True, False);
     end;
   end;
 

@@ -1021,7 +1021,7 @@ begin
           try
             x:=symhandler.getAddressFromName(interpretableaddress);
             x:=x+offset;
-            interpretableaddress:=symhandler.getNameFromAddress(x,true,true);
+            interpretableaddress:=symhandler.getNameFromAddress(x,true,true, false);
           except
             if getBaseAddress<>0 then
               interpretableaddress:=inttohex(getBaseAddress+offset,8)

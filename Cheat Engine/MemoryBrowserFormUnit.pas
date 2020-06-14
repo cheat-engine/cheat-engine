@@ -48,6 +48,7 @@ type
     GSlabel: TLabel;
     MenuItem4: TMenuItem;
     copyBytesAndOpcodesAndComments: TMenuItem;
+    miShowSectionAddresses: TMenuItem;
     miOpenInDissectData: TMenuItem;
     miCopyOpcodesOnly: TMenuItem;
     miUndoLastEdit: TMenuItem;
@@ -266,12 +267,12 @@ type
     Makepagewritable1: TMenuItem;
     Dissectdata1: TMenuItem;
     N10: TMenuItem;
-    Showsymbols1: TMenuItem;
+    miShowSymbols: TMenuItem;
     miDissectData: TMenuItem;
     N11: TMenuItem;
     N12: TMenuItem;
-    Showmoduleaddresses1: TMenuItem;
-    Symbolhandler1: TMenuItem;
+    miShowModuleAddresses: TMenuItem;
+    miUserdefinedSymbols: TMenuItem;
     Kerneltools1: TMenuItem;
     Allocatenonpagedmemory1: TMenuItem;
     Getaddress1: TMenuItem;
@@ -286,7 +287,7 @@ type
     Pastefromclipboard1: TMenuItem;
     N14: TMenuItem;
     Setsymbolsearchpath1: TMenuItem;
-    Kernelmodesymbols1: TMenuItem;
+    miKernelmodeSymbols: TMenuItem;
     Breakandtraceinstructions1: TMenuItem;
     GDTlist1: TMenuItem;
     IDTlist1: TMenuItem;
@@ -342,6 +343,7 @@ type
     procedure DBVMFindoutwhataddressesthisinstructionaccessesClick(Sender: TObject);
     procedure MenuItem4Click(Sender: TObject);
     procedure miOpenInDissectDataClick(Sender: TObject);
+    procedure miShowSectionAddressesClick(Sender: TObject);
     procedure miUndoLastEditClick(Sender: TObject);
     procedure miFollowInHexviewClick(Sender: TObject);
     procedure miSetSpecificBreakpointClick(Sender: TObject);
@@ -471,10 +473,10 @@ type
     procedure miTogglebreakpointClick(Sender: TObject);
     procedure Breakpointlist1Click(Sender: TObject);
     procedure Dissectdata1Click(Sender: TObject);
-    procedure Showsymbols1Click(Sender: TObject);
+    procedure miShowSymbolsClick(Sender: TObject);
     procedure miDissectDataClick(Sender: TObject);
-    procedure Showmoduleaddresses1Click(Sender: TObject);
-    procedure Symbolhandler1Click(Sender: TObject);
+    procedure miShowModuleAddressesClick(Sender: TObject);
+    procedure miUserdefinedSymbolsClick(Sender: TObject);
     procedure Allocatenonpagedmemory1Click(Sender: TObject);
     procedure Getaddress1Click(Sender: TObject);
     procedure Findmemory1Click(Sender: TObject);
@@ -486,7 +488,7 @@ type
     procedure Cut1Click(Sender: TObject);
     procedure Pastefromclipboard1Click(Sender: TObject);
     procedure Setsymbolsearchpath1Click(Sender: TObject);
-    procedure Kernelmodesymbols1Click(Sender: TObject);
+    procedure miKernelmodeSymbolsClick(Sender: TObject);
     procedure Breakandtraceinstructions1Click(Sender: TObject);
     procedure debuggerpopupPopup(Sender: TObject);
     procedure GDTlist1Click(Sender: TObject);
@@ -675,6 +677,10 @@ type
     property RunTill1: TMenuItem read miDebugRunTill;
     property miSetAddress: TMenuItem read miDebugSetAddress;
     property Setbreakpoint1: TMenuItem read miDebugToggleBreakpoint;
+    property Showsymbols1: TMenuItem read miShowSymbols;
+    property Kernelmodesymbols1: TMenuItem read miKernelmodeSymbols;
+    property Showmoduleaddresses1: TMenuItem read miShowModuleAddresses;
+    property Symbolhandler1: TMenuItem read miUserdefinedSymbols;
   end;
 
 var
@@ -1151,6 +1157,8 @@ begin
   end;
 
 end;
+
+
 
 procedure TMemoryBrowser.miUndoLastEditClick(Sender: TObject);
 begin
@@ -2520,11 +2528,14 @@ begin
 
     if length(x)>=8 then
     begin
-      Showsymbols1.checked:=x[6]=1;
-      Showmoduleaddresses1.checked:=x[7]=1;
+      miShowSymbols.checked:=x[6]=1;
+      miShowModuleAddresses.checked:=(x[7] and 1)=1;
+      miShowSectionAddresses.checked:=(x[7] and 2)=2;
 
-      symhandler.showsymbols:=showsymbols1.Checked;
-      symhandler.showmodules:=Showmoduleaddresses1.Checked;
+
+      symhandler.showsymbols:=miShowSymbols.Checked;
+      symhandler.showmodules:=miShowModuleAddresses.Checked;
+      symhandler.showsections:=miShowSectionAddresses.checked;
     end;
 
     if length(x)>=10 then
@@ -2538,8 +2549,8 @@ begin
 
     if length(x)>=11 then
     begin
-      kernelmodesymbols1.checked:=x[10]=1;
-      symhandler.kernelsymbols:=kernelmodesymbols1.Checked;
+      miKernelmodeSymbols.checked:=x[10]=1;
+      symhandler.kernelsymbols:=miKernelmodeSymbols.Checked;
     end;
 
     setlength(x,0);
@@ -3823,17 +3834,21 @@ begin
 {$endif}
 end;
 
-procedure TMemoryBrowser.Showsymbols1Click(Sender: TObject);
+procedure TMemoryBrowser.miShowSymbolsClick(Sender: TObject);
 begin
-  showsymbols1.Checked:=not showsymbols1.Checked;
-  symhandler.showsymbols:=showsymbols1.Checked;
+  symhandler.showsymbols:=miShowSymbols.Checked;
   disassemblerview.Update;
 end;
 
-procedure TMemoryBrowser.Showmoduleaddresses1Click(Sender: TObject);
+procedure TMemoryBrowser.miShowModuleAddressesClick(Sender: TObject);
 begin
-  Showmoduleaddresses1.Checked:=not Showmoduleaddresses1.checked;
-  symhandler.showmodules:=Showmoduleaddresses1.Checked;
+  symhandler.showmodules:=miShowModuleAddresses.Checked;
+  disassemblerview.Update;
+end;
+
+procedure TMemoryBrowser.miShowSectionAddressesClick(Sender: TObject);
+begin
+  symhandler.showsections:=miShowSectionAddresses.checked;
   disassemblerview.Update;
 end;
 
@@ -3858,7 +3873,7 @@ begin
   end; }
 end;
 
-procedure TMemoryBrowser.Symbolhandler1Click(Sender: TObject);
+procedure TMemoryBrowser.miUserdefinedSymbolsClick(Sender: TObject);
 begin
   if frmSymbolhandler=nil then
     frmSymbolhandler:=TfrmSymbolhandler.create(self);
@@ -4036,13 +4051,13 @@ begin
   end;
 end;
 
-procedure TMemoryBrowser.Kernelmodesymbols1Click(Sender: TObject);
+procedure TMemoryBrowser.miKernelmodeSymbolsClick(Sender: TObject);
 begin
 {$ifndef net}
 
-  Kernelmodesymbols1.Checked:=not Kernelmodesymbols1.Checked;
+  miKernelmodeSymbols.Checked:=not miKernelmodeSymbols.Checked;
 
-  symhandler.kernelsymbols:=Kernelmodesymbols1.Checked;
+  symhandler.kernelsymbols:=miKernelmodeSymbols.Checked;
   symhandler.reinitialize(true);
   //symhandler.waitforsymbolsloaded(false);
 {$endif}
@@ -4218,6 +4233,8 @@ var
 
   reg: TRegistry;
 
+  v: integer;
+
 begin
   MemoryBrowsers.Remove(self);
 
@@ -4247,16 +4264,17 @@ begin
       params[3]:=self.disassemblerview.getheaderwidth(3);
       params[4]:=self.panel1.height;
       params[5]:=self.registerview.width;
-      params[6]:=strtoint(BoolToStr(self.Showsymbols1.checked,'1','0'));
-      params[7]:=strtoint(BoolToStr(self.Showmoduleaddresses1.checked,'1','0'));
+      params[6]:=strtoint(BoolToStr(self.miShowSymbols.checked,'1','0'));
+
+      v:=0;
+      if self.miShowModuleAddresses.checked then v:=v or 1;
+      if self.miShowSectionAddresses.checked then v:=v or 2;
+      params[7]:=v;
       params[8]:=strtoint(BoolToStr(self.miLockRowsize.Checked,'1','0'));
       params[9]:=self.hexview.LockedRowSize;
       params[10]:=strtoint(BoolToStr(self.Kernelmodesymbols1.checked,'1','0'));
 
       saveformposition(self,params);
-
-
-
     end;
   end;
 
@@ -4368,6 +4386,9 @@ var modulelist: tstringlist=nil;
     header: pointer=nil;
     headersize: dword;
     br: ptrUint;
+    d: ptruint;
+    sectionlist: Tstringlist;
+    i: integer;
 begin
   code:=$00400000;
   data:=$00400000; //on failure
@@ -4379,6 +4400,8 @@ begin
   if modulelist.Count>0 then
   begin
     base:=ptrUint(modulelist.Objects[0]);
+    data:=base;
+    code:=base;
 
     outputdebugstring('Base='+inttohex(base,8));
 
@@ -4402,7 +4425,25 @@ begin
           code:=base+peinfo_getEntryPoint(header, headersize);
 
           OutputDebugString('calling peinfo_getdatabase');
-          data:=base+peinfo_getdatabase(header, headersize);
+          d:=peinfo_getdatabase(header, headersize);
+          if d=0 then
+          begin
+            sectionlist:=TStringList.Create;
+            if peinfo_getSectionList(base,sectionList) then
+            begin
+              for i:=0 to sectionlist.count-1 do
+              begin
+                if sectionlist[i]='.data' then
+                  data:=TSectionInfo(sectionlist.Objects[i]).virtualAddress;
+
+                TSectionInfo(sectionlist.Objects[i]).free;
+              end;
+            end;
+
+            sectionlist.free;
+          end
+          else
+            data:=base+d;
         end;
 
 

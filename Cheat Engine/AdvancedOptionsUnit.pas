@@ -377,9 +377,9 @@ begin
   e.code.changed:=changed;
 
   if ssctrl in GetKeyShiftState then
-    e.code.symbolname:=symhandler.getNameFromAddress(address,true,true)
+    e.code.symbolname:=symhandler.getNameFromAddress(address,true,true, false)
   else
-    e.code.symbolname:=symhandler.getNameFromAddress(address,false,true);
+    e.code.symbolname:=symhandler.getNameFromAddress(address,false,true, false);
 
   li:=lvCodelist.Items.Add;
   li.Caption:=e.code.symbolname;

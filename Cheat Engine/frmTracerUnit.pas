@@ -380,6 +380,7 @@ begin
       da:=tdisassembler.Create;
       da.showsymbols:=symhandler.showsymbols;
       da.showmodules:=symhandler.showmodules;
+      da.showsections:=symhandler.showsections;
     end;
     s:=da.disassemble(a, s2);
 

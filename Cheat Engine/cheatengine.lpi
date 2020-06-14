@@ -22,7 +22,7 @@
       <AutoIncrementBuild Value="True"/>
       <MajorVersionNr Value="7"/>
       <MinorVersionNr Value="1"/>
-      <BuildNr Value="6316"/>
+      <BuildNr Value="6354"/>
       <Language Value=""/>
       <CharSet Value=""/>
       <StringTable CompanyName="Cheat Engine" FileDescription="Cheat Engine" ProductVersion="7.1"/>
@@ -80,8 +80,9 @@
             <CustomOptions Value="-WB00400000
 -dbenchmarkps
 -dcemain
--dNDEBUG"/>
-            <OtherDefines Count="12">
+-dNDEBUG
+-dDBVMFORAMDISWORKING"/>
+            <OtherDefines Count="13">
               <Define0 Value="NOTMULTITHREADED"/>
               <Define1 Value="benchmarkps"/>
               <Define2 Value="cemain"/>
@@ -94,6 +95,7 @@
               <Define9 Value="checkassembleralphabet"/>
               <Define10 Value="memorymapped"/>
               <Define11 Value="privatebuild"/>
+              <Define12 Value="DBVMFORAMDISWORKING"/>
             </OtherDefines>
           </Other>
         </CompilerOptions>
@@ -2036,6 +2038,7 @@
       <Unit268>
         <Filename Value="pointerscannetworkcommands.pas"/>
         <IsPartOfProject Value="True"/>
+        <UnitName Value="PointerscanNetworkCommands"/>
       </Unit268>
       <Unit269>
         <Filename Value="frmpointerrescanconnectdialogunit.pas"/>
@@ -2769,7 +2772,7 @@
         <IgnoredMessages idx6058="True"/>
       </CompilerMessages>
       <CustomOptions Value="-dbenchmarkps -dcemain -WB00400000 -dNDEBUG"/>
-      <OtherDefines Count="12">
+      <OtherDefines Count="13">
         <Define0 Value="NOTMULTITHREADED"/>
         <Define1 Value="benchmarkps"/>
         <Define2 Value="cemain"/>
@@ -2782,6 +2785,7 @@
         <Define9 Value="checkassembleralphabet"/>
         <Define10 Value="memorymapped"/>
         <Define11 Value="privatebuild"/>
+        <Define12 Value="DBVMFORAMDISWORKING"/>
       </OtherDefines>
     </Other>
   </CompilerOptions>
@@ -2839,7 +2843,6 @@
       </Item14>
       <Item15>
         <Name Value="EParserError"/>
-        <Enabled Value="False"/>
       </Item15>
       <Item16>
         <Name Value="EProcess"/>

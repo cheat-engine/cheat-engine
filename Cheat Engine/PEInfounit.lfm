@@ -260,13 +260,13 @@ object frmPEInfo: TfrmPEInfo
   object OpenDialog1: TOpenDialog
     Filter = 'Executables|*.exe;*.sys;*.dll'
     Options = [ofFileMustExist, ofEnableSizing]
-    left = 104
-    top = 168
+    Left = 104
+    Top = 168
   end
   object pmInfo: TPopupMenu
     Images = peiImageList
-    left = 237
-    top = 93
+    Left = 237
+    Top = 93
     object miCopyTab: TMenuItem
       Caption = 'Copy tab to clipboard'
       ImageIndex = 1
@@ -279,8 +279,8 @@ object frmPEInfo: TfrmPEInfo
     end
   end
   object peiImageList: TImageList
-    left = 108
-    top = 276
+    Left = 108
+    Top = 276
     Bitmap = {
       4C69020000001000000010000000FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
       FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00D8D9D81D3E7133B9E8E8

@@ -4116,6 +4116,7 @@ var parameters: integer;
   address: ptruint;
   modulenames: boolean=true;
   symbols: boolean=true;
+  sections: boolean=false;
 begin
   result:=0;
   parameters:=lua_gettop(L);
@@ -4125,10 +4126,11 @@ begin
 
     if (parameters>=2) and (not lua_isnil(L,2)) then modulenames:=lua_toboolean(L,2);
     if (parameters>=3) and (not lua_isnil(L,3)) then symbols:=lua_toboolean(L,3);
+    if (parameters>=4) and (not lua_isnil(L,4)) then sections:=lua_toboolean(L,4);
 
     lua_pop(L, lua_gettop(l));
 
-    lua_pushstring(L,symhandler.getNameFromAddress(address, symbols, modulenames));
+    lua_pushstring(L,symhandler.getNameFromAddress(address, symbols, modulenames, sections));
     result:=1;
   end
   else lua_pop(L, lua_gettop(l));
@@ -4208,6 +4210,12 @@ begin
 
   if waitTillDone then
     symhandler.waitforsymbolsloaded;
+end;
+
+function waitForSections(L: PLua_state): integer; cdecl;
+begin
+  symhandler.waitForSections;
+  result:=0;
 end;
 
 function waitForExports(L: PLua_state): integer; cdecl;
@@ -5940,6 +5948,7 @@ end;
 
 function lua_dbvm_cloak_activate(L: PLua_State): integer; cdecl;
 var PA, VA: QWORD;
+  mode :integer;
 begin
   result:=0;
   if lua_gettop(L)>=1 then
@@ -5950,7 +5959,12 @@ begin
     else
       VA:=0;
 
-    lua_pushinteger(L, dbvm_cloak_activate(PA, VA));
+    if lua_gettop(L)>=3 then
+      mode:=lua_tointeger(L,3)
+    else
+      mode:=1;
+
+    lua_pushinteger(L, dbvm_cloak_activate(PA, VA, mode));
     result:=1;
   end;
 end;
@@ -6656,6 +6670,7 @@ begin
     try
       d.showmodules:=false;
       d.showsymbols:=false;
+      d.showsections:=false;
       s:=d.disassemble(address, x);
     finally
       d.free;
@@ -12367,6 +12382,7 @@ begin
     lua_register(L, 'getModuleSize', getModuleSize);
     lua_register(L, 'getAddressSafe', getAddressSafe);
 
+    lua_register(L, 'waitForSections', waitForSections);
     lua_register(L, 'waitForExports', waitForExports);
     lua_register(L, 'waitForDotNet', waitForDotNet);
     lua_register(L, 'waitForPDB', waitForPDB);

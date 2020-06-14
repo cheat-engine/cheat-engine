@@ -1091,6 +1091,7 @@ begin
     d:=TDisassembler.Create;
     d.showmodules:=false;
     d.showsymbols:=false;
+    d.showsections:=false;
 
     setlength(specifier,0);
     setlength(originalcode,0);
@@ -3151,6 +3152,7 @@ begin
   disassembler:=TDisassembler.Create;
   Disassembler.showsymbols:=false; //seeing that mi is given explicitly to init() I assume that modules are prefered over exports
   Disassembler.showmodules:=true;
+  Disassembler.showsections:=false;
   Disassembler.dataOnly:=false;
 end;
 

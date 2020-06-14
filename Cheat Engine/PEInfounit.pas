@@ -236,7 +236,9 @@ end;
 function peinfo_getdatabase(header: pointer; headersize: integer=0): ptrUint;
 {$ifdef windows}
 var
-    ImageNTHeader: PImageNtHeaders;
+  ImageNTHeader: PImageNtHeaders;
+  Sectionheader: PImageSectionHeader;
+  i: integer;
 {$endif}
 begin
   result:=0;
@@ -244,7 +246,9 @@ begin
   if (headersize=0) or (PImageDosHeader(header)^._lfanew<=headersize-sizeof(TImageNtHeaders)) then
   begin
     ImageNTHeader:=PImageNtHeaders(ptrUint(header)+PImageDosHeader(header)^._lfanew);
-    if ImageNTHeader.FileHeader.Machine=$8664 then exit;
+    if ImageNTHeader.FileHeader.Machine=$8664 then
+      exit;
+
     result:=ImageNTHeader.OptionalHeader.BaseOfData;
   end;
   {$endif}

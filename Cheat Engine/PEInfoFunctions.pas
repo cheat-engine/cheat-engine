@@ -86,6 +86,13 @@ const
    IMAGE_SCN_MEM_READ                       = $40000000;  { Section is readable. }
    IMAGE_SCN_MEM_WRITE                      = DWORD($80000000);  { Section is writeable. }
 
+type
+  TSectionInfo=class
+    name: string;
+    virtualAddress: ptruint;
+    fileAddress: dword;
+    size: dword;
+  end;
 
 
   {$ifdef windows}
@@ -319,6 +326,7 @@ type
 
 
 
+function peinfo_getSectionList(modulebase: ptruint; sectionList: Tstrings): boolean;
 function peinfo_getImageNtHeaders(headerbase: pointer; maxsize: dword):PImageNtHeaders;
 function peinfo_getExportList(filename: string; dllList: Tstrings): boolean; overload;
 function peinfo_getExportList(modulebase: ptruint; dllList: Tstrings): boolean; overload;
@@ -327,13 +335,16 @@ function peinfo_isdotnetfile(filename: string; var isdotnet: boolean): boolean;
 function peinfo_getimagesizefromfile(filename: string; var size: dword): boolean;
 
 function peinfo_getExceptionList(modulebase: ptruint): TExceptionList;
+
+function peinfo_getImageSectionHeader(headerbase: pointer; maxsize: dword): PImageSectionHeader;
+
      {$endif}
 
 
 implementation
 
 {$ifdef windows}
-uses ProcessHandlerUnit;
+uses ProcessHandlerUnit, PEInfounit;
 
 
 function peinfo_getImageDosHeader(headerbase: pointer):PImageDosHeader;
@@ -511,22 +522,88 @@ begin
   end;
 end;
 
+
+
+function peinfo_getSectionList(modulebase: ptruint; sectionList: Tstrings): boolean;
+//WARNING: The caller has to free the sectionlist items after the call
+var
+  ar: ptruint;
+  header: pointer;
+  headersize: integer;
+  ImageNtHeader: PImageNtHeaders;
+  Sectionheader: PImageSectionHeader;
+  i: integer;
+
+  si: TSectionInfo;
+  s: string;
+begin
+  result:=false;
+  getmem(header, 8192);
+  try
+    if readProcessMemory(processhandle, pointer(modulebase),header, 8192, ar)=false then exit;
+    headersize:=peinfo_getheadersize(header);
+
+    if (headersize>0) and (headersize<512*1024) then
+    begin
+      freemem(header);
+      getmem(header,headersize);
+      ar:=0;
+      readProcessMemory(processhandle, pointer(modulebase),header, headersize, ar);
+      headersize:=ar;
+    end else exit(false);
+
+    ImageNtHeader:=peinfo_getImageNtHeaders(header,headersize);
+    if ImageNtHeader<>nil then
+    begin
+
+      Sectionheader:=peinfo_getImageSectionHeader(header, headersize);
+
+      if sectionheader<>nil then
+      begin
+        for i:=0 to ImageNtHeader.FileHeader.NumberOfSections-1 do
+        begin
+          if ptruint(sectionheader)>ptruint(header)+headersize then break;
+
+          s:=pchar(@sectionheader^.Name[0]);
+          if s<>'' then
+          begin
+            si:=TSectionInfo.Create;
+            si.name:=s;
+            si.virtualAddress:=modulebase+sectionheader^.VirtualAddress;
+            si.fileAddress:=sectionheader^.PointerToRawData;
+            si.size:=sectionheader^.SizeOfRawData;
+
+            sectionlist.AddObject(si.name, si);
+            sectionheader:=PImageSectionHeader(ptruint(sectionheader)+sizeof(TImageSectionHeader));
+          end;
+        end;
+        result:=true;
+      end;
+
+    end;
+
+
+  finally
+    freemem(header);
+  end;
+end;
+
 function peinfo_getExportList(modulebase: ptruint; dllList: Tstrings): boolean;
 var
-    header: pointer;
-    ImageNtHeader: PImageNtHeaders;
-    OptionalHeader: PImageOptionalHeader;
-    OptionalHeader64: PImageOptionalHeader64 absolute OptionalHeader;
-    ImageExportDirectory: PImageExportDirectory;
-    is64bit: boolean;
+  header: pointer;
+  ImageNtHeader: PImageNtHeaders;
+  OptionalHeader: PImageOptionalHeader;
+  OptionalHeader64: PImageOptionalHeader64 absolute OptionalHeader;
+  ImageExportDirectory: PImageExportDirectory;
+  is64bit: boolean;
 
-    addresslist: PDwordArray;
-    exportlist: PDwordArray;
-    functionname: pchar;
-    i: integer;
-    ar:ptruint;
+  addresslist: PDwordArray;
+  exportlist: PDwordArray;
+  functionname: pchar;
+  i: integer;
+  ar:ptruint;
 
-    imagesize: dword;
+  imagesize: dword;
 begin
   result:=false;
 

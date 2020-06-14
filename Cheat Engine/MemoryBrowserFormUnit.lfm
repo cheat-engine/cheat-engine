@@ -1557,25 +1557,33 @@ object MemoryBrowser: TMemoryBrowser
       object N10: TMenuItem
         Caption = '-'
       end
-      object Showsymbols1: TMenuItem
+      object miShowSymbols: TMenuItem
+        AutoCheck = True
         Caption = 'Show symbols'
         Checked = True
-        OnClick = Showsymbols1Click
+        OnClick = miShowSymbolsClick
       end
-      object Kernelmodesymbols1: TMenuItem
+      object miKernelmodeSymbols: TMenuItem
         Caption = 'Kernelmode symbols'
-        OnClick = Kernelmodesymbols1Click
+        OnClick = miKernelmodeSymbolsClick
       end
-      object Showmoduleaddresses1: TMenuItem
+      object miShowSectionAddresses: TMenuItem
+        AutoCheck = True
+        Caption = 'Show section addresses'
+        ShortCut = 8269
+        OnClick = miShowSectionAddressesClick
+      end
+      object miShowModuleAddresses: TMenuItem
+        AutoCheck = True
         Caption = 'Show module addresses'
         Checked = True
         ShortCut = 16461
-        OnClick = Showmoduleaddresses1Click
+        OnClick = miShowModuleAddressesClick
       end
-      object Symbolhandler1: TMenuItem
+      object miUserdefinedSymbols: TMenuItem
         Caption = 'Userdefined symbols'
         ShortCut = 16469
-        OnClick = Symbolhandler1Click
+        OnClick = miUserdefinedSymbolsClick
       end
       object Showvaluesofstaticaddresses1: TMenuItem
         Caption = 'Show ''Comment'' row'

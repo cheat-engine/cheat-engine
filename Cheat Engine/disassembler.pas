@@ -150,6 +150,7 @@ type
     isdefault: boolean;
     showsymbols: boolean;
     showmodules: boolean;
+    showsections: boolean;
     dataOnly: boolean;
 
     is64bit: boolean;
@@ -15717,7 +15718,7 @@ begin
       end;
 
 
-      s:=symhandler.getNameFromAddress(jumpAddress, symhandler.showsymbols, symhandler.showmodules,nil,nil,8,false);
+      s:=symhandler.getNameFromAddress(jumpAddress, symhandler.showsymbols, symhandler.showmodules, symhandler.showsections, nil,nil,8,false);
       if pos(s, LastDisassembleData.parameters)=0 then //no need to show a comment if it's exactly the same
         result:=result+'->'+s;
     end;
@@ -16004,13 +16005,13 @@ begin
 
                 if readprocessmemory(processhandle,pointer(value),@value,processhandler.Pointersize,actualread) then
                 begin
-                  ts:='->'+symhandler.getNameFromAddress(value,symhandler.showsymbols, symhandler.showmodules,nil,nil,8,false);
+                  ts:='->'+symhandler.getNameFromAddress(value,symhandler.showsymbols, symhandler.showmodules,symhandler.showsections, nil,nil,8,false);
                 end;
               end;
             end
             else
             begin
-              ts:=symhandler.getNameFromAddress(value,symhandler.showsymbols, symhandler.showmodules,nil,nil,8,false);
+              ts:=symhandler.getNameFromAddress(value,symhandler.showsymbols, symhandler.showmodules,symhandler.showsections,nil,nil,8,false);
             end;
 
 
@@ -16136,10 +16137,10 @@ var found: boolean;
     d: dword;
     i: integer;
 begin
-  if (showsymbols or showmodules) and (chars>=8) then
+  if (showsymbols or showmodules or showsections) and (chars>=8) then
   begin
     found:=false;
-    result:=symhandler.getNameFromAddress(value,showsymbols, showmodules, nil, @found,chars, false);
+    result:=symhandler.getNameFromAddress(value,showsymbols, showmodules, showsections, nil, @found,chars, false);
 
     //when found, and the symbol contains a space or comma, put the symbolname in quotes
 

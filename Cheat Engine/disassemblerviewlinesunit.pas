@@ -378,7 +378,7 @@ begin
   //z:=address;
 
 
-  symbolname:=symhandler.getNameFromAddress(address,symhandler.showsymbols,symhandler.showmodules,@baseofsymbol, @found, 8,false);
+  symbolname:=symhandler.getNameFromAddress(address,symhandler.showsymbols,symhandler.showmodules,symhandler.showsections, @baseofsymbol, @found, 8,false);
   if (faddress=baseofsymbol) and found then
   begin
     extrasymboldata:=symhandler.getExtraDataFromSymbolAtAddress(address);

@@ -1,7 +1,7 @@
 object FormFoundCodeListExtra: TFormFoundCodeListExtra
   Left = 507
   Height = 387
-  Top = 312
+  Top = 221
   Width = 625
   AutoSize = True
   Caption = 'Extra info'
@@ -13,7 +13,7 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
   OnShow = FormShow
   PopupMenu = pmCopy
   Position = poScreenCenter
-  LCLVersion = '2.0.0.4'
+  LCLVersion = '2.0.6.0'
   object Panel1: TPanel
     AnchorSideLeft.Control = Owner
     AnchorSideTop.Control = pnlEPTWatch
@@ -152,7 +152,7 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
         Left = 1
         Height = 15
         Top = 1
-        Width = 33
+        Width = 36
         BorderSpacing.Left = 1
         BorderSpacing.Top = 1
         Caption = 'xxx123'
@@ -501,8 +501,8 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
   end
   object pmCopy: TPopupMenu
     Images = eiImageList
-    left = 112
-    top = 112
+    Left = 112
+    Top = 112
     object Copyaddresstoclipboard1: TMenuItem
       Caption = 'Copy info to clipboard'
       ImageIndex = 0
@@ -512,8 +512,8 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
   end
   object pmCopy2: TPopupMenu
     Images = eiImageList
-    left = 190
-    top = 112
+    Left = 190
+    Top = 112
     object Copyguesstoclipboard1: TMenuItem
       Caption = 'Copy easy guess to clipboard'
       ImageIndex = 0
@@ -521,12 +521,12 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
     end
   end
   object pmEmpty: TPopupMenu
-    left = 280
-    top = 112
+    Left = 280
+    Top = 112
   end
   object eiImageList: TImageList
-    left = 208
-    top = 69
+    Left = 208
+    Top = 69
     Bitmap = {
       4C69010000001000000010000000606060C4808080E0808080E0808080E08080
       80E0808080E0808080E0777777E098989856FFFFFF00FFFFFF00FFFFFF00FFFF

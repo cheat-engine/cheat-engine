@@ -662,6 +662,7 @@ procedure TDisassemblerview.synchronizeDisassembler;
 begin
   visibleDisassembler.showmodules:=symhandler.showModules;
   visibleDisassembler.showsymbols:=symhandler.showsymbols;
+  visibleDisassembler.showsections:=symhandler.showsections;
 end;
 
 procedure TDisassemblerview.StatusInfoLabelCopy(sender: TObject);
@@ -761,7 +762,7 @@ begin
       else
         statusinfolabel.Font.Color:=clWindowText;
 
-      statusinfolabel.Caption:=AnsiToUtf8(symhandler.getnamefromaddress(TopAddress,symhandler.showsymbols, symhandler.showmodules,nil,nil,8,false));
+      statusinfolabel.Caption:=AnsiToUtf8(symhandler.getnamefromaddress(TopAddress,symhandler.showsymbols, symhandler.showmodules,symhandler.showsections , nil,nil,8,false));
     end;
 
     //initialize bitmap dimensions

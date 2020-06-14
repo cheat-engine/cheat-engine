@@ -734,6 +734,7 @@ begin
   try
     d.showsymbols:=false;
     d.showmodules:=false;
+    d.showsections:=false;
     d.aggressivealignment:=true;
 
     while not terminated do

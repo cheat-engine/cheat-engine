@@ -3160,6 +3160,8 @@ begin
   dis:=TDisassembler.Create;
   dis.showmodules:=false;
   dis.showsymbols:=false;
+  dis.showsections:=false;
+
   dis.dataOnly:=true;
   try
     dis.disassemble(address,st);

@@ -908,6 +908,7 @@ begin
     disassembler:=TDisassembler.Create;
     disassembler.showmodules:=true;
     disassembler.showsymbols:=true;
+    disassembler.showsections:=false;
     disassembler.dataOnly:=true;
   end
   else

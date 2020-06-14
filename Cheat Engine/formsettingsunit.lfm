@@ -1,12 +1,12 @@
 object formSettings: TformSettings
   Left = 436
-  Height = 672
-  Top = 113
+  Height = 608
+  Top = 0
   Width = 810
   AutoSize = True
   BorderIcons = [biSystemMenu]
   Caption = 'Cheat Engine settings'
-  ClientHeight = 672
+  ClientHeight = 608
   ClientWidth = 810
   OnChangeBounds = FormChangeBounds
   OnClose = FormClose
@@ -14,20 +14,20 @@ object formSettings: TformSettings
   OnDestroy = FormDestroy
   OnShow = FormShow
   Position = poMainFormCenter
-  LCLVersion = '2.0.7.0'
+  LCLVersion = '2.0.6.0'
   object pnlConfig: TPanel
     Left = 0
-    Height = 640
+    Height = 571
     Top = 0
     Width = 810
     Align = alClient
     AutoSize = True
-    ClientHeight = 640
+    ClientHeight = 571
     ClientWidth = 810
     TabOrder = 0
     object tvMenuSelection: TTreeView
       Left = 1
-      Height = 638
+      Height = 569
       Top = 1
       Width = 148
       Align = alLeft
@@ -60,7 +60,7 @@ object formSettings: TformSettings
     end
     object pcSetting: TPageControl
       Left = 149
-      Height = 638
+      Height = 569
       Top = 1
       Width = 660
       ActivePage = GeneralSettings
@@ -70,20 +70,20 @@ object formSettings: TformSettings
       OnChange = pcSettingChange
       object GeneralSettings: TTabSheet
         Caption = 'General Settings'
-        ClientHeight = 608
-        ClientWidth = 654
+        ClientHeight = 541
+        ClientWidth = 652
         object ScrollBox1: TScrollBox
           Left = 0
-          Height = 608
+          Height = 541
           Top = 0
-          Width = 654
-          HorzScrollBar.Page = 550
+          Width = 652
+          HorzScrollBar.Page = 494
           HorzScrollBar.Tracking = True
-          VertScrollBar.Page = 553
+          VertScrollBar.Page = 537
           VertScrollBar.Tracking = True
           Align = alClient
-          ClientHeight = 606
-          ClientWidth = 652
+          ClientHeight = 537
+          ClientWidth = 631
           TabOrder = 0
           OnClick = ScrollBox1Click
           object Label11: TLabel
@@ -91,10 +91,10 @@ object formSettings: TformSettings
             AnchorSideLeft.Side = asrBottom
             AnchorSideTop.Control = EditUpdateInterval
             AnchorSideTop.Side = asrCenter
-            Left = 262
-            Height = 16
-            Top = 482
-            Width = 18
+            Left = 234
+            Height = 15
+            Top = 507
+            Width = 16
             Caption = 'ms'
             ParentColor = False
           end
@@ -103,10 +103,10 @@ object formSettings: TformSettings
             AnchorSideLeft.Side = asrBottom
             AnchorSideTop.Control = EditFreezeInterval
             AnchorSideTop.Side = asrCenter
-            Left = 262
-            Height = 16
-            Top = 506
-            Width = 18
+            Left = 234
+            Height = 15
+            Top = 532
+            Width = 16
             Caption = 'ms'
             ParentColor = False
           end
@@ -114,10 +114,10 @@ object formSettings: TformSettings
             AnchorSideTop.Control = EditUpdateInterval
             AnchorSideTop.Side = asrCenter
             AnchorSideRight.Control = EditUpdateInterval
-            Left = 113
-            Height = 16
-            Top = 482
-            Width = 92
+            Left = 97
+            Height = 15
+            Top = 507
+            Width = 80
             Anchors = [akTop, akRight]
             BorderSpacing.Right = 4
             Caption = 'Update interval'
@@ -127,10 +127,10 @@ object formSettings: TformSettings
             AnchorSideTop.Control = EditFreezeInterval
             AnchorSideTop.Side = asrCenter
             AnchorSideRight.Control = EditFreezeInterval
-            Left = 116
-            Height = 16
-            Top = 506
-            Width = 89
+            Left = 102
+            Height = 15
+            Top = 532
+            Width = 75
             Anchors = [akTop, akRight]
             BorderSpacing.Right = 4
             Caption = 'Freeze interval'
@@ -141,9 +141,9 @@ object formSettings: TformSettings
             AnchorSideTop.Control = editUpdatefoundInterval
             AnchorSideTop.Side = asrCenter
             Left = 0
-            Height = 16
-            Top = 530
-            Width = 205
+            Height = 15
+            Top = 557
+            Width = 177
             Caption = 'Found address list update interval'
             ParentColor = False
           end
@@ -152,10 +152,10 @@ object formSettings: TformSettings
             AnchorSideLeft.Side = asrBottom
             AnchorSideTop.Control = editUpdatefoundInterval
             AnchorSideTop.Side = asrCenter
-            Left = 262
-            Height = 16
-            Top = 530
-            Width = 18
+            Left = 234
+            Height = 15
+            Top = 557
+            Width = 16
             Caption = 'ms'
             ParentColor = False
           end
@@ -164,9 +164,9 @@ object formSettings: TformSettings
             AnchorSideTop.Control = EditAutoAttach
             AnchorSideTop.Side = asrCenter
             Left = 0
-            Height = 16
-            Top = 440
-            Width = 250
+            Height = 15
+            Top = 463
+            Width = 218
             Caption = 'Automatically attach to processes named'
             ParentColor = False
           end
@@ -175,10 +175,10 @@ object formSettings: TformSettings
             AnchorSideLeft.Side = asrBottom
             AnchorSideTop.Control = EditAutoAttach
             AnchorSideTop.Side = asrCenter
-            Left = 400
-            Height = 16
-            Top = 440
-            Width = 150
+            Left = 368
+            Height = 15
+            Top = 463
+            Width = 126
             BorderSpacing.Left = 5
             Caption = '(Seperate entries with ; )'
             ParentColor = False
@@ -187,9 +187,9 @@ object formSettings: TformSettings
             AnchorSideLeft.Control = ScrollBox1
             AnchorSideTop.Control = ScrollBox1
             Left = 0
-            Height = 18
+            Height = 19
             Top = 0
-            Width = 126
+            Width = 119
             Caption = 'Show undo button'
             Checked = True
             State = cbChecked
@@ -200,9 +200,9 @@ object formSettings: TformSettings
             AnchorSideTop.Control = cbUpdatefoundList
             AnchorSideTop.Side = asrBottom
             Left = 0
-            Height = 18
-            Top = 36
-            Width = 268
+            Height = 19
+            Top = 38
+            Width = 251
             Caption = 'Center Cheat Engine when bringing to front'
             Checked = True
             State = cbChecked
@@ -212,10 +212,10 @@ object formSettings: TformSettings
             AnchorSideLeft.Control = editUpdatefoundInterval
             AnchorSideTop.Control = cbAlwaysAutoAttach
             AnchorSideTop.Side = asrBottom
-            Left = 209
-            Height = 22
+            Left = 181
+            Height = 23
             Hint = 'The number of milliseconds that Cheat Engine will wait before refreshing the list of addresses'
-            Top = 479
+            Top = 503
             Width = 53
             ParentShowHint = False
             ShowHint = True
@@ -226,10 +226,10 @@ object formSettings: TformSettings
             AnchorSideLeft.Control = editUpdatefoundInterval
             AnchorSideTop.Control = EditUpdateInterval
             AnchorSideTop.Side = asrBottom
-            Left = 209
-            Height = 22
+            Left = 181
+            Height = 23
             Hint = 'The number of milliseconds that Cheat Engine will wait before resetting the frozen addresses to their original value.'
-            Top = 503
+            Top = 528
             Width = 53
             BorderSpacing.Top = 2
             ParentShowHint = False
@@ -244,22 +244,22 @@ object formSettings: TformSettings
             AnchorSideRight.Control = ScrollBox1
             AnchorSideRight.Side = asrBottom
             Left = 0
-            Height = 57
-            Top = 377
-            Width = 652
+            Height = 60
+            Top = 396
+            Width = 631
             Anchors = [akTop, akLeft, akRight]
             AutoSize = True
             Caption = 'Address list specific'
-            ClientHeight = 38
-            ClientWidth = 642
+            ClientHeight = 40
+            ClientWidth = 627
             TabOrder = 4
             object cbShowAsSigned: TCheckBox
               AnchorSideLeft.Control = GroupBox1
               AnchorSideTop.Control = GroupBox1
               Left = 16
-              Height = 18
+              Height = 19
               Top = 0
-              Width = 210
+              Width = 192
               BorderSpacing.Left = 16
               Caption = 'Show values as if they are signed'
               TabOrder = 0
@@ -269,9 +269,9 @@ object formSettings: TformSettings
               AnchorSideTop.Control = cbShowAsSigned
               AnchorSideTop.Side = asrBottom
               Left = 16
-              Height = 18
-              Top = 18
-              Width = 95
+              Height = 19
+              Top = 19
+              Width = 87
               BorderSpacing.Bottom = 2
               Caption = 'Simple paste'
               TabOrder = 1
@@ -282,9 +282,9 @@ object formSettings: TformSettings
             AnchorSideTop.Control = cbShowUndo
             AnchorSideTop.Side = asrBottom
             Left = 0
-            Height = 18
-            Top = 18
-            Width = 332
+            Height = 19
+            Top = 19
+            Width = 305
             Caption = 'Update the list of found addresses even after scanning'
             Checked = True
             OnClick = cbUpdatefoundListClick
@@ -298,10 +298,10 @@ object formSettings: TformSettings
             AnchorSideTop.Side = asrBottom
             AnchorSideRight.Control = EditUpdateInterval
             AnchorSideRight.Side = asrBottom
-            Left = 209
-            Height = 22
+            Left = 181
+            Height = 23
             Hint = 'The number of milliseconds that Cheat Engine will wait before refreshing the list of found addresses'
-            Top = 527
+            Top = 553
             Width = 53
             BorderSpacing.Left = 4
             BorderSpacing.Top = 2
@@ -316,9 +316,9 @@ object formSettings: TformSettings
             AnchorSideTop.Control = cbCenterOnPopup
             AnchorSideTop.Side = asrBottom
             Left = 0
-            Height = 18
-            Top = 54
-            Width = 416
+            Height = 19
+            Top = 57
+            Width = 392
             Caption = 'Hide some/all windows instead of trying to bring cheat engine to front'
             Checked = True
             OnClick = cbHideAllWindowsClick
@@ -331,9 +331,9 @@ object formSettings: TformSettings
             AnchorSideTop.Control = cbHideAllWindows
             AnchorSideBottom.Control = cbHideAllWindows
             AnchorSideBottom.Side = asrBottom
-            Left = 420
-            Height = 18
-            Top = 54
+            Left = 396
+            Height = 19
+            Top = 57
             Width = 90
             Anchors = [akTop, akLeft, akBottom]
             AutoSize = True
@@ -348,10 +348,10 @@ object formSettings: TformSettings
             AnchorSideLeft.Side = asrBottom
             AnchorSideTop.Control = GroupBox1
             AnchorSideTop.Side = asrBottom
-            Left = 252
-            Height = 22
+            Left = 220
+            Height = 23
             Hint = 'Type the name of the process you want to automatically open. Note: Only works when NO process has been opened yet'
-            Top = 437
+            Top = 459
             Width = 143
             BorderSpacing.Left = 2
             BorderSpacing.Top = 3
@@ -364,9 +364,9 @@ object formSettings: TformSettings
             AnchorSideTop.Control = EditAutoAttach
             AnchorSideTop.Side = asrBottom
             Left = 0
-            Height = 18
-            Top = 461
-            Width = 394
+            Height = 19
+            Top = 484
+            Width = 361
             BorderSpacing.Top = 2
             Caption = 'Even autoattach when another process has already been selected'
             TabOrder = 10
@@ -376,9 +376,9 @@ object formSettings: TformSettings
             AnchorSideTop.Control = cbOverrideDefaultFont
             AnchorSideTop.Side = asrBottom
             Left = 0
-            Height = 18
-            Top = 233
-            Width = 151
+            Height = 19
+            Top = 244
+            Width = 140
             Caption = 'Save window positions'
             Checked = True
             State = cbChecked
@@ -389,9 +389,9 @@ object formSettings: TformSettings
             AnchorSideTop.Control = cbShowProcesslist
             AnchorSideTop.Side = asrBottom
             Left = 0
-            Height = 18
-            Top = 305
-            Width = 208
+            Height = 19
+            Top = 320
+            Width = 188
             Caption = 'Get process icons for processlist'
             Checked = True
             OnClick = cbProcessIconsClick
@@ -403,9 +403,9 @@ object formSettings: TformSettings
             AnchorSideTop.Control = cbShowallWindows
             AnchorSideTop.Side = asrBottom
             Left = 0
-            Height = 18
-            Top = 269
-            Width = 119
+            Height = 19
+            Top = 282
+            Width = 113
             Caption = 'Show main menu'
             Checked = True
             State = cbChecked
@@ -416,9 +416,9 @@ object formSettings: TformSettings
             AnchorSideTop.Control = cbHideAllWindows
             AnchorSideTop.Side = asrBottom
             Left = 0
-            Height = 18
-            Top = 72
-            Width = 314
+            Height = 19
+            Top = 76
+            Width = 293
             Caption = 'Pointer adding: Append pointerline instead of insert'
             TabOrder = 14
           end
@@ -427,9 +427,9 @@ object formSettings: TformSettings
             AnchorSideTop.Control = cbSaveWindowPos
             AnchorSideTop.Side = asrBottom
             Left = 0
-            Height = 18
-            Top = 251
-            Width = 203
+            Height = 19
+            Top = 263
+            Width = 188
             Caption = 'Show all windows in the taskbar'
             TabOrder = 15
           end
@@ -438,9 +438,9 @@ object formSettings: TformSettings
             AnchorSideTop.Control = cbShowMainMenu
             AnchorSideTop.Side = asrBottom
             Left = 0
-            Height = 18
-            Top = 287
-            Width = 200
+            Height = 19
+            Top = 301
+            Width = 187
             Caption = 'Show process list in main menu'
             TabOrder = 16
           end
@@ -449,10 +449,10 @@ object formSettings: TformSettings
             AnchorSideTop.Control = cbProcessIcons
             AnchorSideTop.Side = asrBottom
             Left = 0
-            Height = 18
+            Height = 19
             Hint = 'When enabled CE will record writes done by the user and allows the user to undo those changes'
-            Top = 323
-            Width = 197
+            Top = 339
+            Width = 184
             Caption = 'Enable write logging by default'
             OnChange = cbWriteLoggingOnChange
             ParentShowHint = False
@@ -464,10 +464,10 @@ object formSettings: TformSettings
             AnchorSideLeft.Side = asrBottom
             AnchorSideTop.Control = cbWriteLoggingOn
             AnchorSideTop.Side = asrCenter
-            Left = 202
-            Height = 16
-            Top = 324
-            Width = 162
+            Left = 189
+            Height = 15
+            Top = 341
+            Width = 139
             BorderSpacing.Left = 5
             Caption = 'Max log size (nr of entries)'
             Enabled = False
@@ -478,9 +478,9 @@ object formSettings: TformSettings
             AnchorSideLeft.Side = asrBottom
             AnchorSideTop.Control = Label8
             AnchorSideTop.Side = asrCenter
-            Left = 369
-            Height = 22
-            Top = 321
+            Left = 333
+            Height = 23
+            Top = 337
             Width = 80
             BorderSpacing.Left = 5
             Enabled = False
@@ -492,9 +492,9 @@ object formSettings: TformSettings
             AnchorSideTop.Control = cbDPIAware
             AnchorSideTop.Side = asrBottom
             Left = 0
-            Height = 18
-            Top = 215
-            Width = 275
+            Height = 19
+            Top = 225
+            Width = 251
             Caption = 'Override the default font (Requires a restart)'
             OnChange = cbOverrideDefaultFontChange
             TabOrder = 19
@@ -505,10 +505,10 @@ object formSettings: TformSettings
             AnchorSideTop.Control = cbOverrideDefaultFont
             AnchorSideBottom.Control = cbOverrideDefaultFont
             AnchorSideBottom.Side = asrBottom
-            Left = 275
-            Height = 18
-            Top = 215
-            Width = 79
+            Left = 251
+            Height = 19
+            Top = 225
+            Width = 69
             Anchors = [akTop, akLeft, akBottom]
             AutoSize = True
             Caption = 'Set Font'
@@ -521,9 +521,9 @@ object formSettings: TformSettings
             AnchorSideTop.Control = GroupBox5
             AnchorSideTop.Side = asrBottom
             Left = 0
-            Height = 18
-            Top = 197
-            Width = 193
+            Height = 19
+            Top = 206
+            Width = 175
             Caption = 'DPI Aware (Requires a restart)'
             Checked = True
             State = cbChecked
@@ -534,23 +534,23 @@ object formSettings: TformSettings
             AnchorSideTop.Control = cbOldPointerAddMethod
             AnchorSideTop.Side = asrBottom
             Left = 16
-            Height = 107
-            Top = 90
-            Width = 259
+            Height = 111
+            Top = 95
+            Width = 218
             AutoSize = True
             BorderSpacing.Left = 16
             Caption = 'Table: Lua scripts'
-            ClientHeight = 88
-            ClientWidth = 249
+            ClientHeight = 91
+            ClientWidth = 214
             TabOrder = 22
             object miLuaExecAlways: TRadioButton
               AnchorSideLeft.Control = GroupBox5
               AnchorSideTop.Control = Label16
               AnchorSideTop.Side = asrBottom
               Left = 0
-              Height = 18
-              Top = 16
-              Width = 62
+              Height = 19
+              Top = 15
+              Width = 57
               Caption = 'Always'
               TabOrder = 0
             end
@@ -559,9 +559,9 @@ object formSettings: TformSettings
               AnchorSideTop.Control = miLuaExecAlways
               AnchorSideTop.Side = asrBottom
               Left = 0
-              Height = 18
+              Height = 19
               Top = 34
-              Width = 176
+              Width = 161
               Caption = 'Only when signed, else ask'
               Checked = True
               TabOrder = 1
@@ -571,9 +571,9 @@ object formSettings: TformSettings
               AnchorSideLeft.Control = GroupBox5
               AnchorSideTop.Control = GroupBox5
               Left = 0
-              Height = 16
+              Height = 15
               Top = 0
-              Width = 245
+              Width = 210
               BorderSpacing.Right = 4
               Caption = 'When a table has a lua script, execute it:'
               ParentColor = False
@@ -583,9 +583,9 @@ object formSettings: TformSettings
               AnchorSideTop.Control = miLuaExecSignedOnly
               AnchorSideTop.Side = asrBottom
               Left = 0
-              Height = 18
-              Top = 52
-              Width = 85
+              Height = 19
+              Top = 53
+              Width = 77
               Caption = 'Always ask'
               TabOrder = 2
             end
@@ -594,9 +594,9 @@ object formSettings: TformSettings
               AnchorSideTop.Control = miLuaExecAsk
               AnchorSideTop.Side = asrBottom
               Left = 0
-              Height = 18
-              Top = 70
-              Width = 56
+              Height = 19
+              Top = 72
+              Width = 51
               Caption = 'Never'
               TabOrder = 3
             end
@@ -606,10 +606,10 @@ object formSettings: TformSettings
             AnchorSideTop.Control = cbWriteLoggingOn
             AnchorSideTop.Side = asrBottom
             Left = 0
-            Height = 18
+            Height = 19
             Hint = 'When enabled CE will never call "VirtualProtectEx" before it changes memory. This means that read-only memory can not be changed then.  (code is usually read only)'
-            Top = 341
-            Width = 288
+            Top = 358
+            Width = 271
             Caption = 'Never change memory protection when editing'
             ParentShowHint = False
             ShowHint = True
@@ -620,10 +620,10 @@ object formSettings: TformSettings
             AnchorSideTop.Control = cbNeverChangeProtection
             AnchorSideTop.Side = asrBottom
             Left = 0
-            Height = 18
+            Height = 19
             Hint = 'When enabled CE''s internal injectDLL routine will not use loadlibrary in the target at all and always use manual mapping to load the dll'#13#10'(When disabled CE will still use manual mapping when normal dll injection fails)'
-            Top = 359
-            Width = 173
+            Top = 377
+            Width = 162
             Caption = 'Always force load modules'
             ParentShowHint = False
             ShowHint = True
@@ -634,10 +634,10 @@ object formSettings: TformSettings
             AnchorSideLeft.Side = asrBottom
             AnchorSideTop.Control = Label12
             AnchorSideTop.Side = asrCenter
-            Left = 288
-            Height = 18
-            Top = 505
-            Width = 143
+            Left = 258
+            Height = 19
+            Top = 530
+            Width = 128
             BorderSpacing.Left = 8
             Caption = 'Use thread for freeze'
             TabOrder = 25
@@ -789,13 +789,13 @@ object formSettings: TformSettings
           Height = 608
           Top = 0
           Width = 654
-          HorzScrollBar.Page = 635
+          HorzScrollBar.Page = 599
           HorzScrollBar.Tracking = True
-          VertScrollBar.Page = 399
+          VertScrollBar.Page = 402
           VertScrollBar.Tracking = True
           Align = alClient
-          ClientHeight = 606
-          ClientWidth = 652
+          ClientHeight = 604
+          ClientWidth = 650
           TabOrder = 0
           object Label3: TLabel
             AnchorSideTop.Control = cbMemMapped
@@ -848,10 +848,10 @@ object formSettings: TformSettings
             AnchorSideTop.Control = Label3
             AnchorSideTop.Side = asrBottom
             Left = 0
-            Height = 20
+            Height = 23
             Top = 379
             Width = 122
-            ItemHeight = 19
+            ItemHeight = 15
             ItemIndex = 4
             Items.Strings = (
               'Idle'
@@ -1037,8 +1037,8 @@ object formSettings: TformSettings
             ChildSizing.ShrinkVertical = crsScaleChilds
             ChildSizing.Layout = cclTopToBottomThenLeftToRight
             ChildSizing.ControlsPerLine = 3
-            ClientHeight = 66
-            ClientWidth = 263
+            ClientHeight = 65
+            ClientWidth = 269
             ColumnLayout = clVerticalThenHorizontal
             Columns = 3
             Items.Strings = (
@@ -1339,13 +1339,13 @@ object formSettings: TformSettings
           Height = 605
           Top = 0
           Width = 652
-          HorzScrollBar.Page = 652
+          HorzScrollBar.Page = 648
           HorzScrollBar.Tracking = True
-          VertScrollBar.Page = 468
+          VertScrollBar.Page = 473
           VertScrollBar.Tracking = True
           Align = alClient
-          ClientHeight = 588
-          ClientWidth = 650
+          ClientHeight = 584
+          ClientWidth = 648
           TabOrder = 0
           object replacewithnops: TCheckBox
             AnchorSideLeft.Control = Label4
@@ -1391,8 +1391,8 @@ object formSettings: TformSettings
             AutoSize = True
             BorderSpacing.Top = 2
             Caption = 'Debugger interface config'
-            ClientHeight = 48
-            ClientWidth = 237
+            ClientHeight = 47
+            ClientWidth = 243
             TabOrder = 2
             object pcDebugConfig: TPageControl
               Left = 0
@@ -1563,8 +1563,8 @@ object formSettings: TformSettings
             ChildSizing.ShrinkVertical = crsScaleChilds
             ChildSizing.Layout = cclLeftToRightThenTopToBottom
             ChildSizing.ControlsPerLine = 1
-            ClientHeight = 77
-            ClientWidth = 390
+            ClientHeight = 76
+            ClientWidth = 396
             TabOrder = 3
             object cbUseVEHDebugger: TRadioButton
               AnchorSideLeft.Control = rbgDebuggerInterface
@@ -1727,8 +1727,8 @@ object formSettings: TformSettings
             AutoSize = True
             BorderSpacing.Left = 8
             Caption = 'Prefered breakpoint method'
-            ClientHeight = 58
-            ClientWidth = 629
+            ClientHeight = 57
+            ClientWidth = 635
             TabOrder = 6
             object rbDebugAsBreakpoint: TRadioButton
               AnchorSideLeft.Control = GroupBox4
@@ -1795,8 +1795,8 @@ object formSettings: TformSettings
             ChildSizing.EnlargeHorizontal = crsHomogenousChildResize
             ChildSizing.Layout = cclLeftToRightThenTopToBottom
             ChildSizing.ControlsPerLine = 1
-            ClientHeight = 77
-            ClientWidth = 347
+            ClientHeight = 76
+            ClientWidth = 353
             TabOrder = 8
             object miUnexpectedBreakpointsIgnore: TRadioButton
               Left = 0
@@ -1960,8 +1960,8 @@ object formSettings: TformSettings
           BorderSpacing.Left = 5
           BorderSpacing.Right = 5
           Caption = 'Use the following CE Kernel routines instead of the original windows version'
-          ClientHeight = 58
-          ClientWidth = 988
+          ClientHeight = 57
+          ClientWidth = 994
           TabOrder = 0
           object cbKernelQueryMemoryRegion: TCheckBox
             AnchorSideLeft.Control = GroupBox3
@@ -2374,7 +2374,7 @@ object formSettings: TformSettings
               item
                 AutoSize = True
                 Caption = 'Shortcut'
-                Width = 100
+                Width = 60
               end>
             HideSelection = False
             ReadOnly = True
@@ -2432,13 +2432,13 @@ object formSettings: TformSettings
   end
   object Panel6: TPanel
     Left = 0
-    Height = 32
-    Top = 640
+    Height = 37
+    Top = 571
     Width = 810
     Align = alBottom
     AutoSize = True
     BevelOuter = bvNone
-    ClientHeight = 32
+    ClientHeight = 37
     ClientWidth = 810
     TabOrder = 1
     OnResize = Panel6Resize
@@ -2448,10 +2448,10 @@ object formSettings: TformSettings
       AnchorSideBottom.Control = Panel6
       AnchorSideBottom.Side = asrBottom
       Cursor = crHandPoint
-      Left = 753
-      Height = 16
-      Top = 16
-      Width = 57
+      Left = 760
+      Height = 15
+      Top = 22
+      Width = 50
       Anchors = [akRight, akBottom]
       Caption = 'About CE'
       Font.Color = clBlue
@@ -2465,21 +2465,21 @@ object formSettings: TformSettings
       AnchorSideLeft.Side = asrCenter
       AnchorSideTop.Control = Panel6
       Left = 326
-      Height = 20
+      Height = 25
       Top = 6
       Width = 158
       AutoSize = True
       BorderSpacing.Top = 6
       BorderSpacing.Bottom = 6
       BevelOuter = bvNone
-      ClientHeight = 20
+      ClientHeight = 25
       ClientWidth = 158
       TabOrder = 0
       object btnOK: TButton
         AnchorSideLeft.Control = Panel9
         AnchorSideTop.Control = Panel9
         Left = 0
-        Height = 20
+        Height = 25
         Top = 0
         Width = 75
         AutoSize = True
@@ -2493,7 +2493,7 @@ object formSettings: TformSettings
         AnchorSideLeft.Side = asrBottom
         AnchorSideTop.Control = Panel9
         Left = 83
-        Height = 20
+        Height = 25
         Top = 0
         Width = 75
         AutoSize = True
