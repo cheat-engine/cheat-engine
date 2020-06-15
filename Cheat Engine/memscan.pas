@@ -5229,13 +5229,13 @@ end;
 procedure TScanner.firstNextscan;
 var
   i: integer;
-  size: integer;
+  size: dword;
   currentbase: PtrUint;
   startregion: integer;
   stopregion: integer;
   memorybuffer: ^byte;
   oldbuffer: ^byte;
-  toread: integer;
+  toread: qword;
   actualread: ptrUint;
   phandle: thandle;
 begin
@@ -5280,9 +5280,6 @@ begin
       if (currentbase+toread)<(OwningScanController.memregion[i].BaseAddress+OwningScanController.memregion[i].MemorySize-variablesize) then
         inc(toread, variablesize-1);
 
-
-
-      if toread>0 then //temp bugfix to find the real bug (what causes it?)
       repeat
         size:=toread;
         if (size>buffersize) then size:=buffersize;
@@ -5324,10 +5321,10 @@ var i: integer;
     x: ptruint;
 
     currentbase: ptruint;
-    size, _size: dword;
+    size, _size: qword;
     actualread: ptrUint;
     memorybuffer: ^byte;
-    toread: dword;
+    toread: qword;
     startregion: integer;
     stopregion: integer;
     phandle: thandle;
