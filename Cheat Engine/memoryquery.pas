@@ -73,29 +73,47 @@ var
   starttime: qword;
   tries: integer;
 begin
+  if (neededsize and $fff)>0 then
+    neededsize:=(neededsize+$1000) and (not $fff);
+
   ZeroMemory(@mbi,sizeof(mbi));
   starttime:=gettickcount64;
   tries:=0;
+  OutputDebugString(format('CheckIfFree(%16x, %x)',[base, neededsize]));
+
   while VirtualQueryEx(processhandle,pointer(base),mbi,sizeof(mbi))=sizeof(mbi) do
   begin
     if increasedirection then
-      OutputDebugString(format('  inc:%16x ( %16x-%16x : %d) ',[base, ptruint(mbi.AllocationBase), ptruint(mbi.AllocationBase)+mbi.RegionSize, mbi.State]))
+      OutputDebugString(format('  +inc: %16x %d, %d ',[ptruint(mbi.AllocationBase), mbi.RegionSize, mbi.State]))
     else
-      OutputDebugString(format('  dec:%16x ( %16x-%16x : %d)',[base, ptruint(mbi.AllocationBase),ptruint(mbi.AllocationBase)+mbi.RegionSize, mbi.State]));
+      OutputDebugString(format('  -dec: %16x %d, %d',[ptruint(mbi.AllocationBase), mbi.regionsize, mbi.State]));
 
-    if mbi.RegionSize=0 then exit(false); //vqe implementation error
+    if mbi.RegionSize=0 then
+    begin
+      outputdebugstring('vqe error');
+      exit(false); //vqe implementation error
+    end;
 
     if (mbi.State=MEM_FREE) and (mbi.RegionSize>=neededsize) then
     begin
       //match
-      if increasedirection then
-        base:=ptruint(mbi.AllocationBase)
+      if tries=0 then
+      begin
+        base:=ptruint(mbi.BaseAddress);
+        outputdebugstring(format('  match.  Tries =0 so returning baseaddress %16x',[base]));
+
+      end
       else
       begin
-        //set pointer to the end of this region
-        base:=ptruint(mbi.AllocationBase)+mbi.RegionSize-neededsize;
-        base:=base and qword($ffffffffffffffff-qword(systeminfo.dwAllocationGranularity) ); //align on an alloc boundary
+
+        if increasedirection then
+          base:=ptruint(mbi.AllocationBase)
+        else
+          base:=ptruint(mbi.AllocationBase)+mbi.RegionSize-neededsize;   //set pointer to the end of this region
+
+        outputdebugstring(format('    match. Tries=%d. Returning %16x', [tries, base]));
       end;
+
 
       exit(true);
     end;
@@ -103,12 +121,20 @@ begin
     if increasedirection then
     begin
       newbase:=ptruint(mbi.AllocationBase)+mbi.RegionSize;
-      if newbase<base then exit(false); //overflow
+      if newbase<base then
+      begin
+        OutputDebugString('newbase<base');
+        exit(false); //overflow
+      end;
     end
     else
     begin
       newbase:=ptruint(mbi.AllocationBase)-systeminfo.dwAllocationGranularity;
-      if newbase>base then exit(false); //underflow
+      if newbase>base then
+      begin
+        outputdebugstring('newbase>base');
+        exit(false); //underflow
+      end;
     end;
 
     if newbase=base then exit(false); //vqe implementation error
@@ -116,7 +142,11 @@ begin
     base:=newbase;
     ZeroMemory(@mbi,sizeof(mbi));
 
-    if (tries>50) and (gettickcount64>starttime+2000) then exit(false);
+    if (tries>50) and (gettickcount64>starttime+2000) then
+    begin
+      outputdebugstring('giving up');
+      exit(false);
+    end;
     inc(tries);
   end;
 
@@ -193,8 +223,8 @@ begin
   OutputDebugString(format('maxaddress=%.16x',[maxaddress]));
 
 
-  left:=base-size;
-  right:=base;
+  right:=base and (not $fff);
+  left:=right-$1000;
 
   rightok:=checkiffree(right,size,true);
   if rightok and (right>maxaddress) then rightok:=false;
@@ -208,7 +238,8 @@ begin
 
   if rightok and leftok then
   begin
-    base:=specialize ifthen<dword>(((right-base)<(base-left)),right, left);
+    base:=specialize ifthen<ptruint>(((right-base)<(base-left)),right, left);
+    OutputDebugString(format('returning %.16x',[base]));
     exit(pointer(base));
   end;
 
