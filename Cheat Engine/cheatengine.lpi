@@ -22,7 +22,7 @@
       <AutoIncrementBuild Value="True"/>
       <MajorVersionNr Value="7"/>
       <MinorVersionNr Value="1"/>
-      <BuildNr Value="6354"/>
+      <BuildNr Value="6366"/>
       <Language Value=""/>
       <CharSet Value=""/>
       <StringTable CompanyName="Cheat Engine" FileDescription="Cheat Engine" ProductVersion="7.1"/>
@@ -410,6 +410,7 @@
           <Linking>
             <Debugging>
               <DebugInfoType Value="dsDwarf3"/>
+              <UseExternalDbgSyms Value="True"/>
             </Debugging>
             <Options>
               <PassLinkerOptions Value="True"/>

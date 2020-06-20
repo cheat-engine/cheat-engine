@@ -4428,6 +4428,7 @@ begin
           d:=peinfo_getdatabase(header, headersize);
           if d=0 then
           begin
+            {$ifndef darwin}
             sectionlist:=TStringList.Create;
             if peinfo_getSectionList(base,sectionList) then
             begin
@@ -4441,6 +4442,7 @@ begin
             end;
 
             sectionlist.free;
+            {$endif}
           end
           else
             data:=base+d;
