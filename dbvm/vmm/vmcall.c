@@ -767,23 +767,7 @@ int vmcall_writePhysicalMemory(pcpuinfo currentcpuinfo, VMRegisters *vmregisters
     return raisePagefault(currentcpuinfo, pagefaultaddress);
   }
 
-  //still here
-  if ((wpmcommand->bytesToWrite==0) || (error)) //all bytes read or there was an unhandled error
-  {
-    //done
-    sendstringf("Done. Going to the next instruction\n");
-    vmregisters->rax=wpmcommand->bytesToWrite; //0 on success, else the number of bytes not written
-    if (isAMD)
-    {
-      if (AMD_hasNRIPS)
-        getcpuinfo()->vmcb->RIP=getcpuinfo()->vmcb->nRIP;
-      else
-        getcpuinfo()->vmcb->RIP+=3;
-    }
-    else
-      vmwrite(vm_guest_rip,vmread(vm_guest_rip)+vmread(vm_exit_instructionlength));
-  } //else go again with the new rpmcommand data
-  return 0;
+  return wpmcommand->bytesToWrite;
 }
 
 int vmcall_readPhysicalMemory(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, PVMCALL_READPHYSICALMEMORY rpmcommand)
@@ -854,23 +838,7 @@ int vmcall_readPhysicalMemory(pcpuinfo currentcpuinfo, VMRegisters *vmregisters,
     return raisePagefault(currentcpuinfo, pagefaultaddress);
   }
 
-  //still here
-  if ((rpmcommand->bytesToRead==0) || (error))
-  {
-    //handled it
-    //sendstringf("Done. Going to the next instruction. rpmcommand->bytesToRead=%d\n",rpmcommand->bytesToRead);
-    vmregisters->rax=rpmcommand->bytesToRead;
-    if (isAMD)
-    {
-      if (AMD_hasNRIPS)
-        getcpuinfo()->vmcb->RIP=getcpuinfo()->vmcb->nRIP;
-      else
-        getcpuinfo()->vmcb->RIP+=3;
-    }
-    else
-      vmwrite(vm_guest_rip,vmread(vm_guest_rip)+vmread(vm_exit_instructionlength));
-  } //else go again with the new rpmcommand data
-  return 0;
+  return rpmcommand->bytesToRead;
 }
 
 
@@ -932,14 +900,15 @@ int _handleVMCallInstruction(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, 
     case VMCALL_READ_PHYSICAL_MEMORY: //read physical memory
     {
      // nosendchar[getAPICID()]=0;
-
-      return vmcall_readPhysicalMemory(currentcpuinfo, vmregisters, (PVMCALL_READPHYSICALMEMORY)vmcall_instruction);
+    	vmregisters->rax = vmcall_readPhysicalMemory(currentcpuinfo, vmregisters, (PVMCALL_READPHYSICALMEMORY)vmcall_instruction);
+    	break;
     }
 
     case VMCALL_WRITE_PHYSICAL_MEMORY: //write physical memory
     {
       nosendchar[getAPICID()]=0;
-      return vmcall_writePhysicalMemory(currentcpuinfo, vmregisters, (PVMCALL_WRITEPHYSICALMEMORY)vmcall_instruction);
+      vmregisters->rax = vmcall_writePhysicalMemory(currentcpuinfo, vmregisters, (PVMCALL_WRITEPHYSICALMEMORY)vmcall_instruction);
+      break;
     }
 
     case 5: //Set fake sysentermsr state
