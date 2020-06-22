@@ -419,6 +419,10 @@ int VMCALL_SwitchToKernelMode(pcpuinfo cpuinfo, WORD newCS) {
 		vmcb->cs_base = 0;
 		vmcb->cs_limit = 0xFFFFF;
 		vmcb->cs_attrib = convertSegmentAccessRightsToSegmentAttrib(ar.AccessRights);
+		
+		//CPL change (also segments)
+		vmcb->CPL = ar.DPL;
+		vmcb->VMCB_CLEAN_BITS &= ~(1 << 8); 
 	}
 	else {
 		vmwrite(vm_guest_cs, newCS);
@@ -495,6 +499,10 @@ int VMCALL_ReturnToUserMode(pcpuinfo cpuinfo) {
 		vmcb->cs_base = 0;
 		vmcb->cs_limit = 0xFFFFF;
 		vmcb->cs_attrib = convertSegmentAccessRightsToSegmentAttrib(ar.AccessRights);
+		
+		//CPL change (also segments)
+		vmcb->CPL = ar.DPL;
+		vmcb->VMCB_CLEAN_BITS &= ~(1 << 8); 
 	}
 	else {
 		vmwrite(vm_guest_cs, cpuinfo->SwitchKernel.CS);
@@ -767,6 +775,7 @@ int vmcall_writePhysicalMemory(pcpuinfo currentcpuinfo, VMRegisters *vmregisters
     vmregisters->rax=wpmcommand->bytesToWrite; //0 on success, else the number of bytes not written
     if (isAMD)
     {
+      getcpuinfo()->vmcb->RAX=vmregisters->rax;
       if (AMD_hasNRIPS)
         getcpuinfo()->vmcb->RIP=getcpuinfo()->vmcb->nRIP;
       else
@@ -854,6 +863,7 @@ int vmcall_readPhysicalMemory(pcpuinfo currentcpuinfo, VMRegisters *vmregisters,
     vmregisters->rax=rpmcommand->bytesToRead;
     if (isAMD)
     {
+      getcpuinfo()->vmcb->RAX=vmregisters->rax;
       if (AMD_hasNRIPS)
         getcpuinfo()->vmcb->RIP=getcpuinfo()->vmcb->nRIP;
       else

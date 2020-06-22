@@ -543,7 +543,7 @@ procedure THotKeyForm.FormCreate(Sender: TObject);
 var lblLimiteHotkeySupport: tlabel;
 begin
   {$ifdef darwin}
-  if loadHotkeyFunctions=false then
+  if loadMacHotkeyFunctions=false then
   begin
     lblLimiteHotkeySupport:=tlabel.create(self);
     lblLimiteHotkeySupport.caption:='Limited hotkey support. No character keys supported';
