@@ -7074,7 +7074,7 @@ begin
 
   miSetDropdownOptions.visible:=addresslist.selcount > 0;
 
-  miDBVMFindWhatWritesOrAccesses.visible:={$ifdef windows}Findoutwhataccessesthisaddress1.Visible and isIntel and isDBVMCapable{$else}false{$endif}; //02/24/2019: Most cpu's support EPT now
+  miDBVMFindWhatWritesOrAccesses.visible:={$ifdef windows}Findoutwhataccessesthisaddress1.Visible and isDBVMCapable{$else}false{$endif}; //02/24/2019: Most cpu's support EPT/NP now
   sep2.Visible:=miDBVMFindWhatWritesOrAccesses.Visible;
 
   miDBVMFindWhatWritesOrAccesses.enabled:={$ifdef windows}DBKLoaded or isRunningDBVM{$else}false{$endif};

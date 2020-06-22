@@ -3483,7 +3483,7 @@ end;
 
 procedure TMemoryBrowser.Reservememory1Click(Sender: TObject);
 var count: string;
-    memsize: integer;
+    memsize: dword;
     baseaddress: pointer;
     x: dword;
     s: string;
@@ -4186,7 +4186,7 @@ begin
 
   miAddToTheCodelist.visible:=not inadvancedoptions;
 
-  DBVMFindoutwhataddressesthisinstructionaccesses.visible:={$ifdef windows}isIntel and isDBVMCapable and miSetSpecificBreakpoint.visible{$else}false{$endif};
+  DBVMFindoutwhataddressesthisinstructionaccesses.visible:={$ifdef windows}isDBVMCapable and miSetSpecificBreakpoint.visible{$else}false{$endif};
   DBVMFindoutwhataddressesthisinstructionaccesses.enabled:=DBVMFindoutwhataddressesthisinstructionaccesses.visible and DBKLoaded;
 
   //

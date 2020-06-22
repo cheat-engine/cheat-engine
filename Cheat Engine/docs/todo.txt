@@ -3,6 +3,7 @@ fix force load dll
 fix networked pscan
 fix rescan filter out invalid pointers with pointermaps
 use duplicatehandle for mono pipes
+port mono features over to mac
 
 
 structure dissect: 
