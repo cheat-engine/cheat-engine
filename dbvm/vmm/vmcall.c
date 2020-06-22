@@ -775,6 +775,7 @@ int vmcall_writePhysicalMemory(pcpuinfo currentcpuinfo, VMRegisters *vmregisters
     vmregisters->rax=wpmcommand->bytesToWrite; //0 on success, else the number of bytes not written
     if (isAMD)
     {
+      getcpuinfo()->vmcb->RAX=vmregisters->rax;
       if (AMD_hasNRIPS)
         getcpuinfo()->vmcb->RIP=getcpuinfo()->vmcb->nRIP;
       else
@@ -862,6 +863,7 @@ int vmcall_readPhysicalMemory(pcpuinfo currentcpuinfo, VMRegisters *vmregisters,
     vmregisters->rax=rpmcommand->bytesToRead;
     if (isAMD)
     {
+      getcpuinfo()->vmcb->RAX=vmregisters->rax;
       if (AMD_hasNRIPS)
         getcpuinfo()->vmcb->RIP=getcpuinfo()->vmcb->nRIP;
       else
