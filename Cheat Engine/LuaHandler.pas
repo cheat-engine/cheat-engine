@@ -97,7 +97,7 @@ resourcestring
 
 implementation
 
-uses autoassembler, mainunit, MainUnit2, LuaClass, frmluaengineunit, plugin, pluginexports,
+uses autoassembler, MainUnit, MainUnit2, LuaClass, frmluaengineunit, plugin, pluginexports,
   formsettingsunit, MemoryRecordUnit, debuggertypedefinitions, symbolhandler,
   symbolhandlerstructs,
   frmautoinjectunit, simpleaobscanner, addresslist, memscan, foundlisthelper,
@@ -3715,22 +3715,39 @@ end;
 function injectDLL(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
-  filename: pchar;
-  r: boolean;
+  filename: string;
+  skipsymbolwait: boolean;
 begin
   result:=0;
   parameters:=lua_gettop(L);
-  if parameters=1 then
+  if parameters>=1 then
   begin
-    filename:=lua.lua_tostring(L,-1);
-    r:=false;
+    filename:=lua_tostring(L,1);
     try
-      r:=ce_InjectDLL(filename,pchar(''));
+      OutputDebugString('Lua: injectLibrary('+filename+')');
+
+      if parameters>1 then
+        skipsymbolwait:=lua_toboolean(L,2)
+      else
+        skipsymbolwait:=false;
+
+      cefuncproc.injectdll(filename,'');
+      symhandler.reinitialize;
+      if skipsymbolwait=false then
+        symhandler.waitForExports;
+
     except
+      on e:exception do
+      begin
+        lua_pushboolean(L, false);
+        lua_pushstring(L, e.Message);
+        exit(2);
+      end;
     end;
 
+    //still here
     result:=1;
-    lua_pushboolean(L, r);
+    lua_pushboolean(L, true);
   end;
 end;
 
@@ -12369,6 +12386,7 @@ begin
     lua_register(L, 'speedhack_setSpeed', speedhack_setSpeed);
     lua_register(L, 'speedhack_getSpeed', speedhack_getSpeed);
     lua_register(L, 'injectDLL', injectDLL);
+    lua_register(L, 'injectLibrary', injectDLL);
     lua_register(L, 'getAutoAttachList', getAutoAttachList);
 
 
@@ -12920,8 +12938,9 @@ begin
     initializeLuaDissectCode;
     initializeLuaByteTable;
     initializeLuaBinary;
-    {$IFDEF windows}
     initializeLuaPipeClient;
+    {$IFDEF windows}
+
     initializeLuaPipeServer;
     {$ENDIF}
     initializeLuaSymbolListHandler;

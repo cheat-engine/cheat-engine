@@ -1,6 +1,9 @@
 #pragma once
 
 #include <Pipe.h>
+#ifndef _WINDOWS
+#include "Metadata.h"
+#endif
 
 #define MONOCMD_INITMONO 0
 #define MONOCMD_OBJECT_GETCLASS 1
@@ -44,8 +47,8 @@
 #define MONOCMD_ISIL2CPP 38
 
 
-typedef struct MonoType;
-typedef struct MonoMethodSignature;
+typedef struct {} MonoType;
+typedef struct {} MonoMethodSignature;
 typedef void * gpointer;
 
 typedef void (__cdecl *MonoDomainFunc) (void *domain, void *user_data);
@@ -188,9 +191,14 @@ typedef wchar_t*(__cdecl *IL2CPP_STRING_CHARS)(void *stringobject);
 
 class CPipeServer : Pipe
 {
-private:	
+private:
+    #ifdef _WINDOWS
 	wchar_t datapipename[256];
 	wchar_t eventpipename[256];
+    #else
+    char* datapipename[256];
+    char* eventpipename[256];
+    #endif
 
 	void *mono_selfthread;
 

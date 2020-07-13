@@ -8,7 +8,7 @@ uses {$ifdef darwin}macport,macportdefines,{$endif}
      {$ifdef windows}jwawindows, windows,{$endif}
      ExtCtrls , comctrls, Graphics, forms, StdCtrls,sysutils,Controls,
      SyncObjs,dialogs,LCLIntf,classes,autoassembler,
-     CEFuncProc,NewKernelHandler,CEDebugger,kerneldebugger, plugin, math,
+     CEFuncProc,NewKernelHandler,CEDebugger,KernelDebugger, plugin, math,
      debugHelper, debuggertypedefinitions, typinfo, ceguicomponents, strutils,
      commonTypeDefs, luahandler, lua;
 
@@ -631,7 +631,12 @@ begin
     symhandler.waitforsymbolsloaded;
     result:=true;
   except
-    result:=false;
+    on e:exception do
+    begin
+      outputdebugstring('ce_InjectDLL('''+dllname+''','''+functiontocall+''') error: '+e.Message);
+      result:=false;
+    end;
+
   end;
 end;
 

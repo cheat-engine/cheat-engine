@@ -1,12 +1,15 @@
 #pragma once
 
+#ifndef _WINDOWS
+#include "macport.h"
+#endif
+
 class Pipe
 {
 private:
     CRITICAL_SECTION cs;
 protected:
 	HANDLE pipehandle;
-
 public:
 	void Read(PVOID buf, int count);
 	void Write(PVOID buf, int count);

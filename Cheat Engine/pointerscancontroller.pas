@@ -9,7 +9,7 @@ uses
   {$ifdef windows}windows,{$endif}
   LCLIntf, LCLType, Classes, SysUtils, StdCtrls, ComCtrls, Sockets, syncobjs,
   resolve, math, pointervaluelist,PointerscanWorker, PointerscanStructures,
-  pointeraddresslist, PointerscanresultReader, cefuncproc, newkernelhandler,
+  pointeraddresslist, PointerscanresultReader, cefuncproc, NewKernelHandler,
   zstream, PointerscanConnector, PointerscanNetworkStructures, {$ifdef windows}WinSock2,{$endif}
   CELazySocket, AsyncTimer, MemoryStreamReader, commonTypeDefs, NullStream, SyncObjs2;
 

@@ -9,7 +9,7 @@ interface
 
 uses
   {$ifdef darwin}
-  macport, macportdefines, mactypes, LCLType,
+   mactypes, LCLType,macport,
   {$endif}
   {$ifdef windows}
    jwawindows, windows,
@@ -35,7 +35,7 @@ hypermode,
 {$endif}
 {$endif}
  math,syncobjs, {$ifdef windows}shellapi,{$endif} ProcessHandlerUnit, controls, {$ifdef windows}shlobj, ActiveX,{$endif} strutils,
-commontypedefs, {$ifdef windows}Win32Int,{$endif} maps, lua, lualib, lauxlib;
+commontypedefs, {$ifdef windows}Win32Int,{$endif} maps, lua, lualib, lauxlib{$ifdef darwin},macportdefines{$endif};
 
 
 const
@@ -798,6 +798,7 @@ var s: tstringlist;
     tid: dword;
     el: TCEExceptionListArray;
 begin
+  outputdebugstring('cefuncproc.InjectDLL('''+dllname+''','''+functiontocall+''')');
   s:=tstringlist.create;
   s.add('[enable]');
   s.add('registersymbol(v1)');
@@ -923,7 +924,7 @@ begin
   s.add('dealloc(injector)');
   s.add('dealloc(returnvalue)');
 
- // clipboard.AsText:=s.Text;
+  //clipboard.AsText:=s.Text;
 
  // raise exception.create('copy to clipboard now');
 
@@ -970,7 +971,7 @@ begin
 
     end;
 
-    outputdebugstring('dll injection successful');
+    outputdebugstring('library injection code executed successful');
 
 
     //finally free the injector
@@ -997,6 +998,8 @@ begin
   end else raise exception.create('injecting the dllloader script failed');
 
   s.free;
+
+  outputdebugstring('cefuncproc.InjectDll made it to the end');
 end;
 
 {$endif}
@@ -3439,16 +3442,24 @@ function getProcessPathFromProcessID(pid: dword): string;
 var ths: thandle;
     me32:MODULEENTRY32;
 begin
+  outputdebugstring('getProcessPathFromProcessID('+inttostr(pid)+')');
   result:='';
   me32.dwSize:=sizeof(MODULEENTRY32);
   ths:=CreateToolhelp32Snapshot(TH32CS_SNAPMODULE or TH32CS_SNAPMODULE32,pid);
   if ths<>0 then
   begin
     if Module32First(ths,me32) then
+    begin
+      outputdebugstring('me32.szExePath='+me32.szExePath);
       result:=me32.szExePath;
+    end
+    else
+      OutputDebugString('Module32First failed');
 
     closehandle(ths);
-  end;
+  end
+  else
+    OutputDebugString('CreateToolhelp32Snapshot failed');
 end;
 
 function getProcessnameFromProcessID(pid: dword): string;

@@ -792,6 +792,8 @@ begin
 
     PWOP(ProcessIDString);
 
+
+
     if TabHeader.TabIndex=0 then
       MainForm.ProcessLabel.caption:=ProcessIDString+'-'+extractfilename(getProcessPathFromProcessID(processid))
     else

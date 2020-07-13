@@ -3,6 +3,17 @@ if getTranslationFolder()~='' then
 end
 
 local StructureElementCallbackID=nil
+local pathsep
+local libfolder
+
+if getOperatingSystem()==0 then
+  pathsep=[[\]]
+  libfolder='dlls'
+else
+  pathsep='/'
+  libfolder='dylibs'
+end
+
 
 mono_timeout=3000 --change to 0 to never timeout (meaning: 0 will freeze your face off if it breaks on a breakpoint, just saying ...)
 
@@ -317,26 +328,42 @@ function LaunchMonoDataCollector()
     monoeventpipe=nil
   end
 
-  local dllname="MonoDataCollector"
-  if targetIs64Bit() then
-    dllname=dllname.."64.dll"    
+
+  local dllname
+  
+  if getOperatingSystem()==0 then
+    dllname="MonoDataCollector"
+    if targetIs64Bit() then
+      dllname=dllname.."64.dll"
+    else
+      dllname=dllname.."32.dll"
+    end
+    
+    
+    autoAssemble([[
+      mono-2.0-bdwgc.mono_error_ok:
+      mov eax,1
+      ret
+    ]]) --don't care if it fails
+
+
   else
-    dllname=dllname.."32.dll"
+    
+    dllname='libMonoDataCollectorMac.dylib'
   end
   
-  autoAssemble([[ 
-mono-2.0-bdwgc.mono_error_ok: 
-mov eax,1 
-ret 
-]]) --don't care if it fails
 
   
-
-  if injectDLL(getCheatEngineDir()..[[\autorun\dlls\]]..dllname)==false then
-    print(translate("Failure injecting the MonoDatacollector dll"))
+  local injectResult, injectError=injectLibrary(getAutorunPath()..libfolder..pathsep..dllname, true) --skip wait for symbols, we don't use it here
+  if not injectResult then
+    if injectError then
+      print(translate("Failure injecting the MonoDatacollector library"..":"..injectError))
+    else
+      print(translate("Failure injecting the MonoDatacollector library. No error given"))
+    end
     return 0
   end
-
+  
   --wait till attached
   local timeout=getTickCount()+5000;
   while (monopipe==nil) and (getTickCount()<timeout) do
@@ -365,7 +392,7 @@ ret
     if inMainThread() and monoSymbolEnum then
       monoSymbolEnum.terminate()    
       monoSymbolEnum.waitfor()
-      print("bye monoSymbolEnum due to timeout")
+      print("terminating monoSymbolEnum due to timeout")
       monoSymbolEnum.destroy()
       monoSymbolEnum=nil
     end
@@ -2935,7 +2962,7 @@ function mono_dissect()
   end
   
   if (monoForm==nil) then
-    monoForm=createFormFromFile(getCheatEngineDir()..[[\autorun\forms\MonoDataCollector.frm]])
+    monoForm=createFormFromFile(getAutorunPath()..'forms'..pathsep..'MonoDataCollector.frm')
     if monoSettings.Value["ShowMethodParameters"]~=nil then
       if monoSettings.Value["ShowMethodParameters"]=='' then
         monoForm.miShowMethodParameters.Checked=true
@@ -2992,7 +3019,7 @@ function miMonoActivateClick(sender)
     monopipe.OnTimeout()
   else  
     if LaunchMonoDataCollector()==0 then
-      showMessage(translate("Failure to launch"))
+      showMessage(translate("Failure to launch  "))
     end
   end
 end
@@ -3014,7 +3041,7 @@ function mono_OpenProcessMT(t)
   local m=enumModules()
   local i
   for i=1, #m do
-    if (m[i].Name=='mono.dll') or (string.sub(m[i].Name,1,5)=='mono-') or (m[i].Name=='GameAssembly.dll') or (m[i].Name=='UnityPlayer.dll')  then
+    if (m[i].Name=='mono.dll') or (string.sub(m[i].Name,1,5)=='mono-') or (string.sub(m[i].Name,1,7)=='libmono') or (m[i].Name=='GameAssembly.dll') or (m[i].Name=='UnityPlayer.dll')  then
       usesmono=true
       break
     end
@@ -4041,20 +4068,26 @@ function mono_initialize()
     registerEXETrainerFeature('Mono', function()
       local r={}
       r[1]={}
-      r[1].PathToFile=getCheatEngineDir()..[[autorun\monoscript.lua]]
-      r[1].RelativePath=[[autorun\]];
+      r[1].PathToFile=getAutorunPath()..'monoscript.lua'
+      r[1].RelativePath=getAutorunPath()
 
       r[2]={}
-      r[2].PathToFile=getCheatEngineDir()..[[autorun\forms\MonoDataCollector.frm]]
-      r[2].RelativePath=[[autorun\forms\]];
+      r[2].PathToFile=getAutorunPath()..'forms'..pathsep..'MonoDataCollector.frm'
+      r[2].RelativePath=getAutorunPath()..'forms'..pathsep
 
-      r[3]={}
-      r[3].PathToFile=getCheatEngineDir()..[[autorun\dlls\MonoDataCollector32.dll]]
-      r[3].RelativePath=[[autorun\dlls\]];
+      if getOperatingSystem()==0 then
+        r[3]={}
+        r[3].PathToFile=getAutorunPath()..libfolder..pathsep..'MonoDataCollector32.dll'
+        r[3].RelativePath=getAutorunPath()..libfolder..pathsep
 
-      r[4]={}
-      r[4].PathToFile=getCheatEngineDir()..[[autorun\dlls\MonoDataCollector64.dll]]
-      r[4].RelativePath=[[autorun\dlls\]];
+        r[4]={}
+        r[4].PathToFile=getAutorunPath()..libfolder..pathsep..'MonoDataCollector64.dll'
+        r[4].RelativePath=getAutorunPath()..libfolder..pathsep
+      else
+        r[3]={}
+        r[3].PathToFile=getAutorunPath()..libfolder..pathsep..'libMonoDataCollectorMac.dylib'
+        r[3].RelativePath=getAutorunPath()..libfolder..pathsep
+      end
 
       return r
     end)

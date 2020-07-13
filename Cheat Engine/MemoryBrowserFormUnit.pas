@@ -785,6 +785,7 @@ resourcestring
   rsSomethingHappened = 'something happened';
   rsSetBreakpoint = 'Set breakpoint';
   rsRemoveBreakpoint = 'Remove breakpoint';
+  rsInjectDYLIB = 'Inject DYLIB';
 
 //property functions:
 function TMemoryBrowser.getShowValues: boolean;
@@ -2562,6 +2563,10 @@ begin
 
   disassemblerview.reinitialize;
   followRegister:=-1;
+
+  {$ifdef darwin}
+  InjectDLL1.Caption:=rsInjectDYLIB;
+  {$endif}
 end;
 
 procedure TMemoryBrowser.Scrollboxscroll(sender: TObject);
@@ -3689,13 +3694,18 @@ var dll: string;
     dllList: tstringlist;
 begin
 
-  {$ifdef windows}
   functionname:='';
   dll:='';
+
+  {$ifdef darwin}
+  OpenDllDialog.DefaultExt:='.dylib';
+  OpenDllDialog.Filter:='Dylib-files (*.dylib)|*.dylib|All files (*.*)|*.*';
+  {$endif}
 
   if opendlldialog.Execute then
   begin
     dll:=utf8toansi(opendlldialog.Filename);
+    {$ifdef windows}
     if MessageDlg(rsDoYouWantToExecuteAFunctionOfTheDll, mtConfirmation	, [mbyes, mbno], 0)=mryes then
     begin
       dllList:=tstringlist.Create;
@@ -3721,13 +3731,15 @@ begin
         dllList.free;
       end;
     end;
+    {$else}
+    functionname:='';
+    {$endif}
 
     InjectDll(dll,functionname);
     symhandler.reinitialize(true);
     showmessage(rsDLLInjected);
   end;
 
-  {$endif}
 end;
 
 procedure TMemoryBrowser.AutoInject1Click(Sender: TObject);

@@ -6,9 +6,14 @@ unit LuaPipe;
 
 interface
 
-{$IFDEF windows}
 uses
-  windows, Classes, SysUtils, lua, LuaClass, syncobjs, guisafecriticalsection;
+  {$ifdef darwin}
+  macport,  macpipe, mactypes,
+  {$endif}
+  {$ifdef windows}
+  windows,
+  {$endif}
+  Classes, SysUtils, lua, LuaClass, syncobjs, guisafecriticalsection;
 
 type
   TPipeConnection=class
@@ -17,7 +22,9 @@ type
     fOnError: TNotifyEvent;
     procedure CloseConnection(n: TNotifyEvent);
 
+    {$ifdef windows}
     function ProcessOverlappedOperation(o: POVERLAPPED): boolean;
+    {$endif}
   protected
     pipe: THandle;
     fconnected: boolean;
@@ -60,11 +67,11 @@ type
   end;
 
 procedure pipecontrol_addMetaData(L: PLua_state; metatable: integer; userdata: integer );
-{$ENDIF}
+
 
 implementation
 
-{$IFDEF windows}
+
 uses LuaObject, LuaByteTable;
 
 threadvar WaitEvent: THandle;
@@ -198,6 +205,8 @@ begin
   FreeMemAndNil(x);
 end;
 
+{$ifdef windows}
+
 function TPipeConnection.ProcessOverlappedOperation(o: POVERLAPPED): boolean;
 var
   starttime: qword;
@@ -252,29 +261,38 @@ begin
    closeConnection(fOnTimeout);
    exit(false);
 end;
+{$endif}
 
 procedure TPipeConnection.CloseConnection(n: TNotifyEvent);
 begin
   fconnected:=false;
+  {$ifdef windows}
   CancelIo(pipe);
   closehandle(pipe);
+  {$endif}
+  {$ifdef darwin}
+  closepipe(pipe);
+  {$endif}
   pipe:=0;
   if assigned(n) then
     n(self);
 end;
 
 function TPipeConnection.WriteBytes(bytes: pointer; size: integer): boolean;
+{$ifdef windows}
 var
   bw: dword;
   o: OVERLAPPED;
   starttime: qword;
   i: integer;
   overlappedevent: thandle;
+  {$endif}
 begin
   if not fconnected then exit(false);
 
   if (bytes<>nil) and (size>0) then
   begin
+    {$ifdef windows}
     if foverlapped then
     begin
       zeromemory(@o, sizeof(o));
@@ -299,22 +317,30 @@ begin
     end
     else
       fconnected:=fconnected and writefile(pipe, bytes^, size, bw, nil);
+    {$endif}
+    {$ifdef darwin}
+    fconnected:=writepipe(pipe, bytes, size, ftimeout);
+    if fconnected=false then closeConnection(fOnError);
+    {$endif}
   end;
 
   result:=fconnected;
 end;
 
 function TPipeConnection.ReadBytes(bytes: pointer; size: integer): boolean;
+{$ifdef windows}
 var
   br: dword;
   o: OVERLAPPED;
   i: integer;
   starttime: qword;
+{$endif}
 begin
   if not fconnected then exit(false);
 
   if (bytes<>nil) and (size>0) then
   begin
+    {$ifdef windows}
     if foverlapped then
     begin
       zeromemory(@o, sizeof(o));
@@ -336,6 +362,11 @@ begin
     end
     else
       fconnected:=fconnected and Readfile(pipe, bytes^, size, br, nil);
+    {$endif}
+    {$ifdef darwin}
+    fconnected:=readpipe(pipe,bytes,size,ftimeout);
+    if fconnected=false then closeConnection(fOnError);
+    {$endif}
   end;
 
 
@@ -794,7 +825,7 @@ end;
 
 initialization
   luaclass_register(TPipeConnection, pipecontrol_addMetaData );
-{$ENDIF}
+
 
 
 end.

@@ -14,7 +14,7 @@ uses
   {$ifdef darwin}
   //
   macport, macportdefines,coresymbolication, macexceptiondebuggerinterface,
-  macCreateRemoteThread, macumm, machotkeys,
+  macCreateRemoteThread, macumm, machotkeys, macPipe,
   {$endif}
   controls, sysutils, Forms, LazUTF8, dialogs, SynCompletion, MainUnit,
   CEDebugger, NewKernelHandler, CEFuncProc, ProcessHandlerUnit, symbolhandler,
