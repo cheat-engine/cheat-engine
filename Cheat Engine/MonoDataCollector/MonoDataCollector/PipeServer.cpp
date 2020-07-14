@@ -4,8 +4,12 @@
 #include "PipeServer.h"
 
 #ifdef _WINDOWS
+#pragma warning( disable : 4101)
+
 BOOL ExpectingAccessViolations = FALSE;
 DWORD ExpectingAccessViolationsThread = 0;
+
+typedef uint64_t QWORD;
 
 void ErrorThrow(void)
 {
@@ -135,9 +139,10 @@ void __cdecl customfreeimplementation(PVOID address)
 
 void CPipeServer::InitMono()
 {
-    OutputDebugString((char*)"InitMono");
+    
     il2cpp = FALSE;
 #ifdef __APPLE__
+	OutputDebugStringA((char*)"InitMono");
     void *hMono=NULL; // = FindModule("mono");
     void *fp=dlsym(RTLD_DEFAULT, "mono_thread_attach");
     if (fp)
@@ -532,7 +537,7 @@ void CPipeServer::Object_GetClass()
 		if (klass != 0)
 		{
 			WriteQword((UINT64)klass);
-			WriteWord(strlen(classname));
+			WriteWord((WORD)strlen(classname));
 			Write(classname, (int)strlen(classname));
 		}
 		else
@@ -604,14 +609,14 @@ void CPipeServer::EnumAssemblies()
 
 	if (il2cpp)
 	{
-		int i;
+		DWORD i;
 		
 		SIZE_T nrofassemblies=0;	
 		UINT_PTR *assemblies;
 		assemblies = il2cpp_domain_get_assemblies(mono_domain_get(), &nrofassemblies);
 
 		WriteDword((DWORD)nrofassemblies);
-		for (i = 0; i < nrofassemblies; i++)
+		for (i = 0; i < (DWORD)nrofassemblies; i++)
 			WriteQword(assemblies[i]);
 
 	}
@@ -644,17 +649,30 @@ void CPipeServer::GetImageName()
 	void *image = (void *)ReadQword();
 	char *s = mono_image_get_name(image);
 
-	WriteWord(strlen(s));
+	WriteWord((WORD)strlen(s));
 	Write(s, (int)strlen(s));
 }
 
 #include <locale> 
 #include <codecvt> 
-WORD UTF8TOUTF16(char* szUtf8) {
 
+
+WORD UTF8TOUTF16(char* szUtf8) {
+#if (_WINDOWS && (_MSC_VER <= 1916))
+	std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t> convert;
+	
+	try {
+		std::wstring dest=convert.from_bytes(szUtf8);
+		return *(WORD*)&dest[0];
+	}
+	catch (const std::range_error&) {
+		return NULL;
+	}
+#else
 	std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> convert;
 	std::u16string dest = convert.from_bytes(szUtf8);
 	return *(WORD*)&dest[0];
+#endif
 }
 void CPipeServer::EnumClassesInImage()
 {
@@ -733,8 +751,8 @@ void CPipeServer::EnumClassesInImage()
 
 				if (c)
 				{
-					WriteWord(sName.size());
-					Write((PVOID)sName.c_str(), (int)sName.size());
+					WriteWord((WORD)sName.size());
+					Write((PVOID)sName.c_str(), (WORD)sName.size());
 				}
 				else
 					WriteWord(0);
@@ -742,8 +760,8 @@ void CPipeServer::EnumClassesInImage()
 				name = mono_class_get_namespace(c);
 				if (name)
 				{
-					WriteWord(strlen(name));
-					Write(name, (int)strlen(name));
+					WriteWord((WORD)strlen(name));
+					Write(name, (WORD)strlen(name));
 				}
 				else
 					WriteWord(0);
@@ -845,13 +863,13 @@ void CPipeServer::EnumFieldsInClass()
 				sType = szUeName;
 			}
 
-			WriteWord(sName.size());
-			Write((LPVOID)sName.c_str(), (int)sName.size());
+			WriteWord((WORD)sName.size());
+			Write((LPVOID)sName.c_str(), (WORD)sName.size());
 
 			if (type)
 			{
-				WriteWord(sType.size());
-				Write((LPVOID)sType.c_str(), (int)sType.size());
+				WriteWord((WORD)sType.size());
+				Write((LPVOID)sType.c_str(), (WORD)sType.size());
 				//g_free(name);
 			}
 			else
@@ -888,8 +906,8 @@ void CPipeServer::EnumMethodsInClass()
 				sName = szUeName;
 			}
 
-				WriteWord(sName.size());
-				Write((PVOID)sName.c_str(), (int)sName.size());
+				WriteWord((WORD)sName.size());
+				Write((PVOID)sName.c_str(), (WORD)sName.size());
 		}
 	} while (method);
 
@@ -1059,8 +1077,8 @@ void CPipeServer::GetMethodName()
 	void *method = (void *)ReadQword();
 	char *methodname = mono_method_get_name(method);
 
-	WriteWord(strlen(methodname));
-	Write(methodname, (int)strlen(methodname));
+	WriteWord((WORD)strlen(methodname));
+	Write(methodname, (WORD)strlen(methodname));
 }
 
 void CPipeServer::GetMethodClass()
@@ -1085,8 +1103,8 @@ void CPipeServer::GetKlassName()
 		sName = szUeName;
 	}
 
-    WriteWord(sName.size());
-    Write((PVOID)sName.c_str(), (int)(sName.size()));
+    WriteWord((WORD)sName.size());
+    Write((PVOID)sName.c_str(), (WORD)(sName.size()));
 }
 
 void CPipeServer::GetClassNamespace()
@@ -1094,8 +1112,8 @@ void CPipeServer::GetClassNamespace()
 	void *klass = (void *)ReadQword();
 	char *methodname = mono_class_get_namespace(klass);
 
-	WriteWord(strlen(methodname));
-	Write(methodname, (int)strlen(methodname));
+	WriteWord((WORD)strlen(methodname));
+	Write(methodname, (WORD)strlen(methodname));
 }
 
 void CPipeServer::FreeMethod()
@@ -1114,8 +1132,8 @@ void CPipeServer::DisassembleMethod()
 		void *ilcode = mono_method_header_get_code(methodheader, &codesize, &maxstack);
 		char *disassembly = mono_disasm_code(NULL, method, ilcode, (void *)((UINT_PTR)ilcode + codesize));
 
-		WriteWord(strlen(disassembly));
-		Write(disassembly, (int)strlen(disassembly));
+		WriteWord((WORD)strlen(disassembly));
+		Write(disassembly, (WORD)strlen(disassembly));
 		g_free(disassembly);
 	}
 }
@@ -1170,8 +1188,8 @@ void CPipeServer::GetMethodParameters()
 			{
 				if (names[i])
 				{
-					WriteByte(strlen(names[i]));
-					Write(names[i], (int)strlen(names[i]));
+					WriteByte((BYTE)strlen(names[i]));
+					Write(names[i], (BYTE)strlen(names[i]));
 				}
 				else
 					WriteByte(0);
@@ -1260,8 +1278,8 @@ void CPipeServer::GetMethodSignature()
 			{
 				if (names[i])
 				{
-					WriteByte(strlen(names[i]));
-					Write(names[i], (int)strlen(names[i]));
+					WriteByte((BYTE)strlen(names[i]));
+					Write(names[i], (BYTE)strlen(names[i]));
 				}
 				else
 					WriteByte(0);
@@ -1271,8 +1289,8 @@ void CPipeServer::GetMethodSignature()
 
 
 
-		WriteWord(strlen(sig));
-		Write(sig, (int)strlen(sig));
+		WriteWord((WORD)strlen(sig));
+		Write(sig, (WORD)strlen(sig));
 		g_free(sig);
 
 		//12/5/2014:send the returntype as well
@@ -1283,8 +1301,8 @@ void CPipeServer::GetMethodSignature()
 			char *tname = mono_type_get_name(returntype);
 			if (tname)
 			{
-				WriteByte(strlen(tname));
-				Write(tname, (int)strlen(tname));
+				WriteByte((BYTE)strlen(tname));
+				Write(tname, (unsigned int)(BYTE)strlen(tname));
 				g_free(tname);
 			}
 			else
@@ -1766,8 +1784,8 @@ void CPipeServer::GetFullTypeName(void)
                     }
                 }
 
-                WriteWord(sName.size());
-                Write((PVOID)sName.c_str(), (int)sName.size());
+                WriteWord((WORD)sName.size());
+                Write((PVOID)sName.c_str(), (WORD)sName.size());
 			}
             else
                 WriteWord(0);

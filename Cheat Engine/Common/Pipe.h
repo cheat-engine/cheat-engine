@@ -11,8 +11,8 @@ private:
 protected:
 	HANDLE pipehandle;
 public:
-	void Read(PVOID buf, int count);
-	void Write(PVOID buf, int count);
+	void Read(PVOID buf, unsigned int count);
+	void Write(PVOID buf, unsigned int count);
 	BYTE ReadByte();
 	WORD ReadWord();
 	DWORD ReadDword();

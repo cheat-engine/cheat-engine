@@ -4,6 +4,7 @@ fix networked pscan
 fix rescan filter out invalid pointers with pointermaps
 use duplicatehandle for mono pipes
 port mono features over to mac
+add custom type to hexview
 
 
 structure dissect: 

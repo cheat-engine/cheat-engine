@@ -1,5 +1,7 @@
+
+
 #ifdef _WINDOWS
-#include "StdAfx.h"
+#include <Windows.h>
 #else
 #include "macport.h"
 
@@ -43,7 +45,7 @@ void Pipe::Unlock(void)
 	LeaveCriticalSection(&cs);
 }
 
-void Pipe::Read(PVOID buf, int count)
+void Pipe::Read(PVOID buf, unsigned int count)
 {
 	DWORD br;
 	if (count==0) return;
@@ -51,7 +53,7 @@ void Pipe::Read(PVOID buf, int count)
 		throw("Read Error");
 }
 
-void Pipe::Write(PVOID buf, int count)
+void Pipe::Write(PVOID buf, unsigned int count)
 {
 	DWORD bw;
 	if (count==0) return;
