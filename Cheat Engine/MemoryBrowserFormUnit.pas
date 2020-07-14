@@ -2312,6 +2312,11 @@ begin
 
     adjustedsize:=true;
   end;
+
+  {$ifdef darwin}
+  //need to adjust the formsize to trigger a repaint
+  BoundsRect:=BoundsRect;
+  {$endif}
 end;
 
 procedure TMemoryBrowser.disassemblerviewDblClick(Sender: TObject);
