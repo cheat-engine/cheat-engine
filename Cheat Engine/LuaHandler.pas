@@ -3732,9 +3732,12 @@ begin
         skipsymbolwait:=false;
 
       cefuncproc.injectdll(filename,'');
-      symhandler.reinitialize;
+
       if skipsymbolwait=false then
+      begin
+        symhandler.reinitialize;
         symhandler.waitForExports;
+      end;
 
     except
       on e:exception do
@@ -4112,13 +4115,20 @@ begin
     except
       on e:exception do
       begin
-        {$ifdef cpu64}
-        lua_pushstring(L,e.Message);
-        lua_error(L);
+        {$ifdef windows}
+          {$ifdef cpu64}
+            lua_pushstring(L,e.Message);
+            lua_error(L);
+          {$else}
+            raise;
+          {$endif}
         {$else}
-        raise;
+          lua_pushnil(L);
+          lua_pushstring(L, e.message);
+          exit(2);
         {$endif}
       end;
+
     end;
 
     result:=1;

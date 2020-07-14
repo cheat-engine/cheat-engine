@@ -16,7 +16,7 @@ uses
   {$ifdef darwin}
   macport, macpipe,
   {$endif}
-  Classes, SysUtils, LuaPipe, lua, luaclass;
+  Classes, SysUtils, LuaPipe, lua, LuaClass;
 
 procedure initializeLuaPipeClient;
 

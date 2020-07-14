@@ -320,8 +320,10 @@ begin
     {$endif}
     {$ifdef darwin}
     fconnected:=writepipe(pipe, bytes, size, ftimeout);
-    if fconnected=false then closeConnection(fOnError);
+    if fconnected=false then
+      closeConnection(fOnTimeout);
     {$endif}
+
   end;
 
   result:=fconnected;
@@ -365,7 +367,8 @@ begin
     {$endif}
     {$ifdef darwin}
     fconnected:=readpipe(pipe,bytes,size,ftimeout);
-    if fconnected=false then closeConnection(fOnError);
+    if fconnected=false then
+      closeConnection(fOnTimeout);
     {$endif}
   end;
 

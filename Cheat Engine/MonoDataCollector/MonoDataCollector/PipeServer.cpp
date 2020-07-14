@@ -461,17 +461,6 @@ void CPipeServer::InitMono()
 				mono_assembly_open = (MONO_ASSEMBLY_OPEN)GetProcAddress(hMono, "mono_assembly_open");
 				mono_image_open = (MONO_IMAGE_OPEN)GetProcAddress(hMono, "mono_image_open");
 
-				/*
-				if (mono_get_root_domain == NULL) OutputDebugStringA("mono_get_root_domain not assigned");
-				if (mono_thread_attach == NULL) OutputDebugStringA("mono_thread_attach not assigned");
-				if (mono_object_get_class == NULL) OutputDebugStringA("mono_object_get_class not assigned");
-				if (mono_class_get_name == NULL) OutputDebugStringA("mono_class_get_name not assigned");
-				if (mono_domain_foreach == NULL) OutputDebugStringA("mono_domain_foreach not assigned");
-				if (mono_domain_set == NULL) OutputDebugStringA("mono_domain_set not assigned");
-				if (mono_assembly_foreach == NULL) OutputDebugStringA("mono_assembly_foreach not assigned");
-				if (mono_assembly_get_image == NULL) OutputDebugStringA("mono_assembly_get_image not assigned");
-				if (mono_image_get_name == NULL) OutputDebugStringA("mono_image_get_name not assigned");
-				*/
 
 				mono_selfthread = mono_thread_attach(mono_get_root_domain());
 			}
@@ -923,7 +912,7 @@ void CPipeServer::CompileMethod()
 			void *klass = mono_method_get_class(method);
 			if (klass)
 			{
-				if (mono_class_is_generic(klass) == 0)
+				if ((mono_class_is_generic && (mono_class_is_generic(klass) == 0)) || (mono_class_is_generic==NULL)) //good luck if is_generic is missing (unity adds it but not all mono games are unity)
 				{
 					result = mono_compile_method(method);
 				}
@@ -1742,6 +1731,8 @@ void CPipeServer::LoadAssemblyFromFile(void)
 void CPipeServer::GetFullTypeName(void)
 {
 	//ExpectingAccessViolations = TRUE;
+    
+    //1-(8-1-4)
 
 	try
 	{
@@ -1756,28 +1747,30 @@ void CPipeServer::GetFullTypeName(void)
 			if (il2cpp)
 				fullname=il2cpp_type_get_name(ptype);								
 			else
-				fullname = mono_type_get_name_full ? mono_type_get_name_full(ptype, nameformat) : NULL;
+				fullname = mono_type_get_name_full ? mono_type_get_name_full(ptype, nameformat) : mono_type_get_name(ptype); //fallback on type_get_name in case of non exported mono_type_get_name_full
 
 			if (fullname) 
 			{
 				std::string sName = std::string(fullname);
 
-			if ((BYTE)fullname[0] == 0xEE) {
-				char szUeName[32];
-				auto plus = strchr(fullname, '+');
-				if (plus) {
-					sprintf_s(szUeName, 32, "\\u%04X+\\u%04X", UTF8TOUTF16(fullname), UTF8TOUTF16(plus+1));
-					sName = szUeName;
-				}
-				else {
-					sprintf_s(szUeName, 32, "\\u%04X", UTF8TOUTF16(fullname));
-					sName = szUeName;
-				}
-			}
+                if ((BYTE)fullname[0] == 0xEE) {
+                    char szUeName[32];
+                    auto plus = strchr(fullname, '+');
+                    if (plus) {
+                        sprintf_s(szUeName, 32, "\\u%04X+\\u%04X", UTF8TOUTF16(fullname), UTF8TOUTF16(plus+1));
+                        sName = szUeName;
+                    }
+                    else {
+                        sprintf_s(szUeName, 32, "\\u%04X", UTF8TOUTF16(fullname));
+                        sName = szUeName;
+                    }
+                }
 
-			WriteWord(sName.size());
-			Write((PVOID)sName.c_str(), (int)sName.size());
+                WriteWord(sName.size());
+                Write((PVOID)sName.c_str(), (int)sName.size());
 			}
+            else
+                WriteWord(0);
 		}
 		else
 		{
@@ -1797,12 +1790,24 @@ void CPipeServer::GetFullTypeName(void)
 void CPipeServer::IsGenericClass()
 {
 	void *klass = (void *)ReadQword();
-	WriteByte(mono_class_is_generic(klass));
+    if (mono_class_is_generic)
+        WriteByte(mono_class_is_generic(klass));
+    else
+        WriteByte(0); //not supported
 }
 
 void CPipeServer::IsIL2CPP()
 {
 	WriteByte(il2cpp);
+}
+
+void CPipeServer::FillOptionalFunctionList()
+{
+    QWORD _mono_type_get_name_full=ReadQword();
+    
+    if ((mono_type_get_name_full==NULL) && (_mono_type_get_name_full!=0)) mono_type_get_name_full=(MONO_TYPE_GET_NAME_FULL)_mono_type_get_name_full;
+    
+    WriteByte(1);
 }
 
 void CPipeServer::Start(void)
@@ -1817,7 +1822,7 @@ void CPipeServer::Start(void)
 			while (TRUE)
 			{
 				command = ReadByte();
-
+                
 #ifdef _WINDOWS
 				ExpectingAccessViolations = TRUE;
 				ExpectingAccessViolationsThread = GetCurrentThreadId();
@@ -1979,6 +1984,10 @@ void CPipeServer::Start(void)
 				case MONOCMD_ISIL2CPP:
 					IsIL2CPP();
 					break;
+                        
+                case MONOCMD_FILLOPTIONALFUNCTIONLIST:
+                    FillOptionalFunctionList();
+                    break;
 				}
 
 				

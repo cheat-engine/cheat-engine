@@ -45,6 +45,7 @@
 #define MONOCMD_GETMETHODPARAMETERS 36
 #define MONOCMD_ISCLASSGENERIC 37
 #define MONOCMD_ISIL2CPP 38
+#define MONOCMD_FILLOPTIONALFUNCTIONLIST 39
 
 
 typedef struct {} MonoType;
@@ -363,6 +364,7 @@ private:
 	void Object_Init();
 	void IsGenericClass();
 	void IsIL2CPP();
+    void FillOptionalFunctionList(); //mainly for unixbased systems
 
 public:
 	CPipeServer(void);
