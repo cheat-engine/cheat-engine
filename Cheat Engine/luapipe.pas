@@ -64,6 +64,7 @@ type
     property connected: boolean read fConnected;
     property OnTimeout: TNotifyEvent read fOnTimeout write fOnTimeout;
     property OnError: TNotifyEvent read fOnTimeout write fOnTimeout;
+    property Handle: THandle read pipe write pipe;
   end;
 
 procedure pipecontrol_addMetaData(L: PLua_state; metatable: integer; userdata: integer );

@@ -324,6 +324,8 @@ private:
 	BOOL attached;
 	BOOL il2cpp;
 
+	BOOL UWPMode;
+
 	void CreatePipeandWaitForconnect(void);
 
 	void InitMono();

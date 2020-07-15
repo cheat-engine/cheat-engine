@@ -382,8 +382,22 @@ function LaunchMonoDataCollector()
   
   
   --wait till attached
-  local timeout=getTickCount()+5000;
+  local timeout=getTickCount()+5000
+  
+  
+  
+  
   while (monopipe==nil) and (getTickCount()<timeout) do
+    if (getOperatingSystem()==0) and (readInteger(getAddressSafe("MDC_ServerPipe"))==0xdeadbeef) then
+      --likely an UWP target which can not create a named pipe
+      print("UWP situation")
+      local serverpipe=createPipe('cemonodc_pid'..getOpenedProcessID(), 256*1024,1024)      
+      local newhandle=duplicateHandle(serverpipe.Handle)
+      print("New pipe handle is "..newhandle)
+      
+      writeInteger(getAddressSafe("MDC_ServerPipe"), newhandle)      
+    end
+    
     monopipe=connectToPipe('cemonodc_pid'..getOpenedProcessID() ,mono_timeout)
   end
 

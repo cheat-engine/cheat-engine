@@ -6,6 +6,8 @@
 #ifdef _WINDOWS
 #pragma warning( disable : 4101)
 
+
+HANDLE MDC_ServerPipe = 0;
 BOOL ExpectingAccessViolations = FALSE;
 DWORD ExpectingAccessViolationsThread = 0;
 
@@ -112,22 +114,76 @@ void CPipeServer::CreatePipeandWaitForconnect(void)
 {
 	OutputDebugStringA((char*)"CreatePipeandWaitForconnect called\n");
 #ifdef _WINDOWS
+
+	OutputDebugStringA((char*)"Closing pipe if needed\n");
 	if ((pipehandle) && (pipehandle != INVALID_HANDLE_VALUE))
 	{
 		CloseHandle(pipehandle);
 		pipehandle = 0;
 	}
 
-	pipehandle = CreateNamedPipe(datapipename, PIPE_ACCESS_DUPLEX, PIPE_TYPE_BYTE | PIPE_READMODE_BYTE | PIPE_WAIT, 1, 256 * 1024, 16, INFINITE, NULL);
-	//eventpipe=CreateNamedPipe(eventpipename, PIPE_ACCESS_DUPLEX, PIPE_TYPE_BYTE | PIPE_READMODE_BYTE | PIPE_WAIT, 1,256*1024, 0, INFINITE, NULL);
+	if (!UWPMode)
+	{
+		//OutputDebugStringA("datapipename=\n");
+		//OutputDebugStringW(datapipename);
 
-	ConnectNamedPipe(pipehandle, NULL);
+		pipehandle = CreateNamedPipeW(datapipename, PIPE_ACCESS_DUPLEX, PIPE_TYPE_BYTE | PIPE_READMODE_BYTE | PIPE_WAIT, 1, 256 * 1024, 16, INFINITE, NULL);
+		//eventpipe=CreateNamedPipe(eventpipename, PIPE_ACCESS_DUPLEX, PIPE_TYPE_BYTE | PIPE_READMODE_BYTE | PIPE_WAIT, 1,256*1024, 0, INFINITE, NULL);
+
+		if ((pipehandle) && (pipehandle != INVALID_HANDLE_VALUE))
+		{
+			OutputDebugStringA("calling ConnectNamedPipe\n");
+
+			ConnectNamedPipe(pipehandle, NULL);
+
+			OutputDebugStringA("after ConnectNamedPipeW\n");
+		}
+		else
+		{
+			OutputDebugStringA("CreateNamedPipeW failed.  Likely in a UWP app. Switching to client mode and waiting for g_ClientPipe to be set\n");
+			UWPMode = 1;
+		}
+	}
+
+	if (UWPMode)
+	{
+		OutputDebugStringA("UWPMode connection. Fetching the new serverpipe\n");
+
+		MDC_ServerPipe = (HANDLE)0xdeadbeef; //tell monoscript that it has to provide a serverpipe itself
+		while (MDC_ServerPipe == (HANDLE)0xdeadbeef)
+			Sleep(50);
+
+		pipehandle = MDC_ServerPipe;
+		MDC_ServerPipe = 0; //indicates that it got read out
+		
+		OutputDebugStringA("Retrieved a pipe\n");
+		OutputDebugStringA("calling ConnectNamedPipe\n");
+
+		if (ConnectNamedPipe(pipehandle, NULL))
+			OutputDebugStringA("ConnectNamedPipe returned TRUE");
+		else
+		{
+			char bla[255];
+			int error = GetLastError();
+			if (error == ERROR_PIPE_CONNECTED)
+				OutputDebugStringA("ConnectNamedPipe returned FALSE because the client was already connected");
+			else
+			{
+				snprintf(bla, 255, "ConnectNamedPipe failed! Error: %d\n", GetLastError());
+				OutputDebugStringA(bla);
+			}
+		}
+	}
+	
 #else
     if ((pipehandle) && (pipehandle != INVALID_HANDLE_VALUE))
         ClosePipe(pipehandle);
     
     pipehandle = ::CreateNamedPipe((char*)datapipename);
 #endif
+
+	OutputDebugStringA("At the end of CreatePipeandWaitForconnect\n");
+
 }
 
 void __cdecl customfreeimplementation(PVOID address)
@@ -140,6 +196,7 @@ void __cdecl customfreeimplementation(PVOID address)
 void CPipeServer::InitMono()
 {
     
+	OutputDebugStringA("CPipeServer::InitMono");
     il2cpp = FALSE;
 #ifdef __APPLE__
 	OutputDebugStringA((char*)"InitMono");
