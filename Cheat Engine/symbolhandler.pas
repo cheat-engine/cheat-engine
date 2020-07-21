@@ -4391,6 +4391,7 @@ end;
 function TSymhandler.getNameFromAddress(address:ptrUint;symbols, modules, sections: boolean; baseaddress: PUINT64=nil; found: PBoolean=nil; hexcharsize: integer=8; important: boolean=true):string;
 var //symbol :PSYMBOL_INFO;
     offset: qword;
+    offsetstring: string;
     mi: tmoduleinfo;
     si: PCESymbolInfo;
     i: integer;
@@ -4501,10 +4502,17 @@ begin
       for i:=0 to length(mi.sections)-1 do
         if inrangex(address, mi.sections[i].address, mi.sections[i].address+mi.sections[i].size-1) then
         begin
-          if mi.sections[i].name[1]='.' then
-            exit(mi.modulename+mi.sections[i].name)
+          offset:=address-mi.sections[i].address;
+
+          if offset>0 then
+            offsetstring:='+'+inttohex(offset,1)
           else
-            exit(mi.modulename+'.'+mi.sections[i].name)
+            offsetstring:='';
+
+          if mi.sections[i].name[1]='.' then
+            exit(mi.modulename+mi.sections[i].name+offsetstring)
+          else
+            exit(mi.modulename+'.'+mi.sections[i].name+offsetstring)
         end;
     end;
   end;

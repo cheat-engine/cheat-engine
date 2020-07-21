@@ -5,6 +5,7 @@ fix rescan filter out invalid pointers with pointermaps
 add custom type to hexview
 add recent files menu
 add autosave
+export GetUniqueAOB for aa template scripts
 
 
 
