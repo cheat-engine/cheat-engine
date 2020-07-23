@@ -3788,9 +3788,11 @@ end;
 procedure TMainForm.miHookD3DClick(Sender: TObject);
 begin
   {$ifdef windows}
-  safed3dhook;
-
-  updated3dgui;
+  if MessageDlg('Are you sure you wish to hook Direct3D?', mtConfirmation, [mbyes,mbno],0)=mryes then
+  begin
+    safed3dhook;
+    updated3dgui;
+  end;
   {$endif}
 end;
 
