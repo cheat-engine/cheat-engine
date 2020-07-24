@@ -359,19 +359,6 @@ type
     overflowqueuecs: Tcriticalsection;
     overflowqueue: TDynPathQueue; //this queue will hold a number of paths that the server/worker received too many. (e.g a request for paths was made, but by the time the paths are received, the pathqueue is full again) It's accessed by the controller thread only
 
-     {
-    distributedScanning: boolean; //when set to true this will open listening port where other scanners can connect to
-    distributedport: word; //port used to listen on if distributed scanning is enabled
-    distributedScandataDownloadPort: word;
-
-    distributedWorker: boolean; //set if it's a worker connecting to a server
-    distributedServer: string;
-
-    broadcastThisScanner: boolean;
-    potentialWorkerList: array of THostAddr;
-
-    workersPathPerSecondTotal: qword;
-    workersPointersfoundTotal: qword;     }
 
     outofdiskspace: boolean;
 
@@ -2061,17 +2048,6 @@ begin
 
       end;
 
-      //wait till all workers are in isdone state
-      {
-      if distributedScanning then
-      begin
-        if not distributedWorker then
-          launchServer; //everything is configured now and the scanners are active
-
-        alldone:=not doDistributedScanningLoop;
-      end;  }
-
-
 
       while (not alldone) do
       begin
@@ -2452,7 +2428,7 @@ begin
       begin
         childnodes[i].iConnectedTo:=false; //no reconnect
         if force then
-          handleChildException(childid, 'forced disconnect')
+          handleChildException(i, 'forced disconnect')
         else
         begin
           childnodes[i].takePathsAndDisconnect:=true;
