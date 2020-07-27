@@ -714,7 +714,7 @@ uses Valuechange, MainUnit, debugeventhandler, findwindowunit,
   vmxfunctions, frmstructurecompareunit, globals, UnexpectedExceptionsHelper,
   frmExceptionRegionListUnit, frmExceptionIgnoreListUnit, frmcodefilterunit,
   frmDBVMWatchConfigUnit, DBK32functions, DPIHelper, DebuggerInterface,
-  DebuggerInterfaceAPIWrapper, BreakpointTypeDef;
+  DebuggerInterfaceAPIWrapper, BreakpointTypeDef, CustomTypeHandler;
 
 
 resourcestring
@@ -987,14 +987,43 @@ procedure TMemoryBrowser.memorypopupPopup(Sender: TObject);
 var
   m: TMemorybrowser;
   mi: TMenuItem;
-  i: integer;
+  i,j: integer;
 
   islocked: boolean;
   a,a2: ptruint;
   hasbp: boolean;
 
   mbi: TMEMORYBASICINFORMATION;
+
+
 begin
+  //update customtypes
+
+
+  for i:=0 to customTypes.Count-1 do
+  begin
+    j:=dispDouble.MenuIndex+1+i;
+    if j<DisplayType1.Count then
+      mi:=displayType1.Items[j]
+    else
+    begin
+      mi:=tmenuitem.create(memorypopup);
+      mi.OnClick:=DisplayTypeClick;
+      mi.AutoCheck:=true;
+      mi.RadioItem:=true;
+      mi.GroupIndex:=3;
+      DisplayType1.Add(mi);
+    end;
+
+    mi.caption:=TCustomType(customtypes[i]).name;
+    mi.tag:=$1000+i;
+  end;
+
+  //delete the entries that are too many
+  while DisplayType1.Count>dispDouble.MenuIndex+customTypes.Count+1 do
+    DisplayType1.Delete(dispDouble.MenuIndex+customTypes.Count+1);
+
+
   miShowDifference.clear;
   miLock.Clear;
 
@@ -4718,6 +4747,16 @@ begin
       7: hexview.DisplayType:=dtQwordDec;
       8: hexview.DisplayType:=dtsingle;
       9: hexview.DisplayType:=dtDouble;
+      else
+      begin
+        if x.tag>=$1000 then
+        begin
+          hexview.CustomType:=TCustomType(customtypes[x.tag-$1000]);  //always set first
+          hexview.DisplayType:=dtCustom;
+        end;
+
+
+      end;
     end;
   end;
 end;

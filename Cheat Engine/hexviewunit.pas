@@ -24,15 +24,15 @@ uses
 
   {$IFNDEF STANDALONEHV}
   , byteinterpreter, debuggertypedefinitions, DebugHelper ,commonTypeDefs,symbolhandler,
-  symbolhandlerstructs, cefuncproc, NewKernelHandler
+  symbolhandlerstructs, cefuncproc, NewKernelHandler, CustomTypeHandler
   {$ENDIF};
 
 type
-  TDisplayType = (dtByte, dtByteDec, dtWord, dtWordDec, dtDword, dtDwordDec, dtQword, dtQwordDec, dtSingle, dtDouble);
+  TDisplayType = (dtByte, dtByteDec, dtWord, dtWordDec, dtDword, dtDwordDec, dtQword, dtQwordDec, dtSingle, dtDouble, dtCustom);
   TCharEncoding = (ceAscii, ceCodepage, ceUtf8, ceUtf16);
 
 const
-  DisplayTypeByteSize: array [dtByte..dtDouble] of integer =(1,1, 2,2, 4, 4, 8,8, 4, 8); //update both if adding something new
+  DisplayTypeByteSizeConstArray: array [dtByte..dtDouble] of integer =(1,1, 2,2, 4, 4, 8,8, 4, 8); //update both if adding something new, excluding dtCustom
 
 
 type
@@ -66,6 +66,7 @@ type
     addresswidthdefault: integer;
     charsize, bytesize, byteSizeWithoutChar: integer;
 
+
     memoryInfo: string;
     memoryInfo_allocationbasepos: integer;
     memoryInfo_allocationbaseend: integer;
@@ -93,6 +94,7 @@ type
     editingType: THexRegion;
     selectionType: THexRegion;
     fDisplayType: TDisplayType; //determines what to display. If anything other than byte the editing/selecting mode will be disabled
+    fCustomType: TCustomType;
     fCharEncoding: TCharEncoding;
 
 
@@ -162,6 +164,7 @@ type
     function getQWordDec(a: ptrUint; full: boolean=false): string;
     function getSingle(a: ptrUint; full: boolean=false): string;
     function getDouble(a: ptrUint; full: boolean=false): string;
+    function getCustomTypeValue(a: ptruint; full: boolean=false): string;
     function getChar(a: ptrUint; out charlength: integer): string;
     function inModule(a: ptrUint): boolean;
     procedure MouseScroll(Sender: TObject; Shift: TShiftState; WheelDelta: Integer; MousePos: TPoint; var Handled: Boolean);
@@ -186,6 +189,9 @@ type
 
     procedure lineUp(sender: tobject);
     procedure lineDown(sender: TObject);
+
+    function DisplayTypeByteSize(dt: TDisplayType): integer; inline;
+
 
   protected
     procedure KeyDown(var Key: Word; Shift: TShiftState); override;
@@ -235,6 +241,7 @@ type
     property SelectionStop: ptruint read getSelectionStop;
     property Osb: TBitmap read offscreenbitmap;
     property DisplayType: TDisplayType read fDisplayType write setDisplayType;
+    property CustomType: TcustomType read fCustomType write fCustomType;
     property CharEncoding: TCharEncoding read fCharEncoding write setCharEncoding;
     property BytesPerSeperator: integer read fbytesPerSeperator write setBytesPerSeperator;
     property OnByteSelect: TByteSelectEvent read fOnByteSelect write fOnByteSelect;
@@ -452,6 +459,14 @@ begin
   update;
 end;
 
+function THexView.DisplayTypeByteSize(dt: TDisplayType): integer; inline;
+begin
+  if dt<=dtdouble then
+    exit(DisplayTypeByteSizeConstArray[dt])
+  else
+    exit(fCustomType.bytesize);
+end;
+
 procedure THexView.setDisplayType(newdt: TDisplaytype);
 begin
   fDisplayType:=newdt;
@@ -553,11 +568,12 @@ begin
       dtQwordDec: s:=getQWordDec(selected, true);
       dtSingle: s:=getSingle(selected, true);
       dtDouble: s:=getDouble(selected, true);
+      dtCustom: s:=getCustomTypeValue(selected, true);
     end;
 
-    if (key in [#7, #8]) then
+    if (key in [#7, #8]) then  //delete, backspace
     begin
-      if (fDisplayType in [dtByteDec, dtWordDec, dtDwordDec, dtQwordDec, dtSingle, dtDouble])  then
+      if (fDisplayType in [dtByteDec, dtWordDec, dtDwordDec, dtQwordDec, dtSingle, dtDouble, dtCustom])  then
       begin
         if key=#7 then //delete
         begin
@@ -583,7 +599,7 @@ begin
       //replace the key with the provided one
       if (key in [',','.']) then
       begin
-        if not (fDisplayType in [dtSingle, dtDouble]) then exit; //do , or . support for non float types
+        if not (fDisplayType in [dtSingle, dtDouble, dtCustom]) then exit; //do , or . support for non float types
         s:=copy(s, 1, editingcursorpos);
       end
       else
@@ -640,10 +656,16 @@ begin
         vtype:=vtDouble;
         hex:=false;
       end;
+
+      dtCustom:
+      begin
+        vtype:=vtCustom;
+        hex:=false;
+      end;
     end;
 
     try
-      ParseStringAndWriteToAddress(s, selected, vtype, hex);
+      ParseStringAndWriteToAddress(s, selected, vtype, hex, fcustomtype);
       case key of
         #8: if editingCursorPos>0 then dec(editingCursorPos); //backspace
         #7: ; //do nothing with the cursor
@@ -657,9 +679,9 @@ begin
     if editingCursorPos>=length(s) then
     begin
       //at the end of the line
-      if not (fDisplayType in [dtByteDec, dtWordDec, dtDwordDec, dtQwordDec, dtSingle, dtDouble]) then //if not a decimal type then go to the next address
+      if not (fDisplayType in [dtByteDec, dtWordDec, dtDwordDec, dtQwordDec, dtSingle, dtDouble, dtCustom]) then //if not a decimal type then go to the next address
       begin
-        selected:=selected+DisplayTypeByteSize[fDisplayType];
+        selected:=selected+DisplayTypeByteSize(fDisplayType);
         editingCursorPos:=0;
       end;
     end;
@@ -767,7 +789,7 @@ begin
 
       region:=hrByte;
 
-      result:=fAddress+bytesperline*row+column - (column mod DisplayTypeByteSize[fDisplayType]);
+      result:=fAddress+bytesperline*row+column - (column mod DisplayTypeByteSize(fDisplayType));
     end
     else
     if InRange(x,charstart,charstart+bytesperline*charsize) then
@@ -814,7 +836,7 @@ begin
     case key of
       VK_DELETE:
       begin
-        if isediting and (fDisplayType in [dtByteDec, dtWordDec, dtDwordDec, dtQwordDec, dtSingle, dtDouble]) then
+        if isediting and (fDisplayType in [dtByteDec, dtWordDec, dtDwordDec, dtQwordDec, dtSingle, dtDouble, dtCustom]) then
           HandleEditKeyPress(chr(7)); //there's no delete char and I can't be assed to change the whole function to tak a virtual key
 
         key:=0;
@@ -825,7 +847,7 @@ begin
       begin
         if isediting then
         begin
-          if fDisplayType in [dtByteDec, dtWordDec, dtDwordDec, dtQwordDec, dtSingle, dtDouble] then
+          if fDisplayType in [dtByteDec, dtWordDec, dtDwordDec, dtQwordDec, dtSingle, dtDouble, dtCustom] then
           begin
             //try to delete the selected character (note that single and double do not always co-operate)
             HandleEditKeyPress(chr(8));
@@ -890,7 +912,7 @@ begin
             dec(editingCursorPos);
             if editingCursorPos<0 then
             begin
-              selected:=selected-DisplayTypeByteSize[fDisplayType];
+              selected:=selected-DisplayTypeByteSize(fDisplayType);
               case fDisplayType of
                 dtByteDec: editingCursorPos:=length(getByteDec(selected));
                 dtWordDec: editingCursorPos:=length(getWordDec(selected));
@@ -898,8 +920,9 @@ begin
                 dtQwordDec: editingCursorPos:=length(getQWordDec(selected));
                 dtSingle: editingCursorPos:=length(getSingle(selected));
                 dtDouble: editingCursorPos:=length(getDouble(selected));
+                dtCustom: editingCursorPos:=length(getCustomTypeValue(selected));
                 else
-                  editingCursorPos:=  DisplayTypeByteSize[fDisplayType]*2-1;
+                  editingCursorPos:=  DisplayTypeByteSize(fDisplayType)*2-1;
               end;
 
 
@@ -932,13 +955,14 @@ begin
               dtQwordDec: x:=length(getQWordDec(selected))+1;
               dtSingle: x:=length(getSingle(selected))+1;
               dtDouble: x:=length(getDouble(selected))+1;
+              dtCustom: x:=length(getCustomTypeValue(selected))+1;
               else
-                x:=2*DisplayTypeByteSize[fDisplayType]
+                x:=2*DisplayTypeByteSize(fDisplayType)
             end;
 
             if editingCursorPos>=x then
             begin
-              selected:=selected+DisplayTypeByteSize[fDisplayType];
+              selected:=selected+DisplayTypeByteSize(fDisplayType);
               editingCursorPos:=0;
             end;
           end;
@@ -1035,9 +1059,11 @@ end;
 procedure THexView.AddSelectedAddressToCheatTable;
 {$IFNDEF STANDALONEHV}
 var Vartype: Tvariabletype;
+ctname: string;
 {$ENDIF}
 begin
   {$IFNDEF STANDALONEHV}
+  ctname:='';
   if fhasSelection or isediting then //selected
   begin
     case fdisplaytype of
@@ -1047,11 +1073,16 @@ begin
       dtQword, dtQwordDec: vartype:=vtQword;
       dtSingle: vartype:=vtSingle;
       dtDouble: vartype:=vtDouble;
+      dtCustom:
+      begin
+        vartype:=vtCustom;
+        ctname:=fCustomType.name;
+      end
       else
         vartype:=vtDword;
     end;
 
-    mainform.addresslist.addAddressManually(inttohex(selected,8), Vartype);
+    mainform.addresslist.addAddressManually(inttohex(selected,8), Vartype, ctname);
   end;
   {$ENDIF}
 
@@ -1115,7 +1146,7 @@ begin
     else
     begin
 
-      toAddress:=toAddress+DisplayTypeByteSize[fDisplayType]-1;
+      toAddress:=toAddress+DisplayTypeByteSize(fDisplayType)-1;
       s:='';
       while fromaddress<=toAddress do
       begin
@@ -1130,6 +1161,7 @@ begin
           dtQwordDec: s:=s+getQWordDec(fromaddress, true);
           dtSingle: s:=s+getSingle(fromaddress, true);
           dtDouble: s:=s+getDouble(fromaddress, true);
+          dtCustom: s:=s+getCustomTypeValue(fromaddress, true);
         end;
 
          //byte array
@@ -1141,7 +1173,7 @@ begin
         //else
         //  s:=s+'?? ';
 
-        inc(fromAddress, DisplayTypeByteSize[fDisplayType]);
+        inc(fromAddress, DisplayTypeByteSize(fDisplayType));
         if fromaddress<=toAddress then
           s:=s+' ';
       end;
@@ -1272,6 +1304,7 @@ begin
       dtQword, dtQwordDec: vcf.vartype:=vtQword;
       dtSingle: vcf.vartype:=vtSingle;
       dtDouble: vcf.vartype:=vtDouble;
+      //todo: Add customtype support to the valuechangeform
     end;
 
     if fdisplaytype in [dtWord, dtDword, dtQword] then
@@ -1361,10 +1394,10 @@ begin
         fhasSelection:=false;
 
         {$ifdef EDITWHEREYOUCLICK}   //add this define if you wish to start the editor at the spot you click insetad of the start
-        byteclickpos:=(x-bytestart)-(((x-bytestart) div (byteSizeWithoutChar*DisplayTypeByteSize[fDisplayType])) * bytesizeWithoutChar*DisplayTypeByteSize[fDisplayType]);
+        byteclickpos:=(x-bytestart)-(((x-bytestart) div (byteSizeWithoutChar*DisplayTypeByteSize(fDisplayType))) * bytesizeWithoutChar*DisplayTypeByteSize(fDisplayType));
         editingCursorPos:=(byteclickpos div charsize);
-        if editingCursorPos>DisplayTypeByteSize[fDisplayType]*2 then
-          editingCursorPos:=DisplayTypeByteSize[fDisplayType]*2-1;
+        if editingCursorPos>DisplayTypeByteSize(fDisplayType)*2 then
+          editingCursorPos:=DisplayTypeByteSize(fDisplayType)*2-1;
         {$endif}
 
 
@@ -1440,10 +1473,10 @@ begin
           if hr=hrByte then
           begin
             //update the cursor position
-            byteclickpos:=(x-bytestart)-(((x-bytestart) div (byteSizeWithoutChar*DisplayTypeByteSize[fDisplayType])) * bytesizeWithoutChar*DisplayTypeByteSize[fDisplayType]);
+            byteclickpos:=(x-bytestart)-(((x-bytestart) div (byteSizeWithoutChar*DisplayTypeByteSize(fDisplayType))) * bytesizeWithoutChar*DisplayTypeByteSize(fDisplayType));
             editingCursorPos:=(byteclickpos div charsize);
-            if editingCursorPos>DisplayTypeByteSize[fDisplayType]*2 then
-              editingCursorPos:=DisplayTypeByteSize[fDisplayType]*2-1;
+            if editingCursorPos>DisplayTypeByteSize(fDisplayType)*2 then
+              editingCursorPos:=DisplayTypeByteSize(fDisplayType)*2-1;
 
           end;
         end;
@@ -1907,6 +1940,32 @@ begin
     result:=copy(result,1,18)+'...';
 end;
 
+function THexView.getCustomTypeValue(a: ptruint; full: boolean=false): string;
+var
+  bytes: array of byte;
+  i: integer;
+  err: boolean;
+  f: single;
+begin
+  setlength(bytes, customtype.bytesize);
+  for i:=0 to customtype.bytesize-1 do
+  begin
+    bytes[i]:=getbyte(a+i, err);
+    if err then
+      exit('???');
+  end;
+
+  if CustomType.scriptUsesFloat then
+  begin
+    f:=CustomType.ConvertDataToFloat(@bytes[0],a);
+    result:=format('%f',[f]);
+  end
+  else
+  begin
+    i:=customtype.ConvertDataToInteger(@bytes[0],a);
+    result:=format('%d',[i]);
+  end;
+end;
 
 function THexView.getChar(a: ptrUint; out charlength: integer): string;
 var err: boolean;
@@ -2205,6 +2264,7 @@ begin
       dtWord, dtWordDec: if (i mod 2)=0 then bheader:=bHeader+inttohex(((currentaddress+i-displayOffset) and $ff),2)+' ' else bheader:=bHeader+'   ';
       dtDWord, dtDwordDec, dtSingle: if (i mod 4)=0 then bheader:=bHeader+inttohex(((currentaddress+i-displayOffset) and $ff),2)+' ' else bheader:=bHeader+'   ';
       dtQword, dtQwordDec, dtDouble: if (i mod 8)=0 then bheader:=bHeader+inttohex(((currentaddress+i-displayOffset) and $ff),2)+' ' else bheader:=bHeader+'   ';
+      dtCustom: if (i mod fcustomtype.bytesize)=0 then bheader:=bHeader+inttohex(((currentaddress+i-displayOffset) and $ff),2)+' ' else bheader:=bHeader+'   ';
     end;
 
     cheader:=cheader+inttohex((initialoffset+i) and $f,1);
@@ -2342,6 +2402,7 @@ begin
         dtQWordDec: if (j mod 8)=0 then begin changelist.values[itemnr]:=getQWordDec(currentAddress); displaythis:=true; end;
         dtSingle: if (j mod 4)=0 then begin changelist.values[itemnr]:=getsingle(currentAddress); displaythis:=true; end;
         dtDouble: if (j mod 8)=0 then begin changelist.values[itemnr]:=getDouble(currentAddress); displaythis:=true; end;
+        dtCustom: if (j mod customtype.bytesize)=0 then begin changelist.values[itemnr]:=getCustomTypeValue(currentAddress); displaythis:=true; end;
       end;
 
       if fShowDiffHV<>nil then
@@ -2360,6 +2421,7 @@ begin
           dtQWordDec: if (j mod 4)=0 then different:=changelist.values[itemnr]<>fShowDiffHV.getQWordDec(compareToAddress);
           dtSingle: if (j mod 4)=0 then different:=changelist.values[itemnr]<>fShowDiffHV.getsingle(compareToAddress);
           dtDouble: if (j mod 8)=0 then different:=changelist.values[itemnr]<>fShowDiffHV.getDouble(compareToAddress);
+          dtCustom: if (j mod customtype.bytesize)=0 then different:=changelist.values[itemnr]<>fShowDiffHV.getCustomTypeValue(compareToAddress);
         end;
 
         if different then
@@ -2698,7 +2760,7 @@ begin
   if hasSelection then
   begin
     GetSelectionRange(start, stop);
-    result:=(stop-start)+DisplayTypeByteSize[fdisplaytype]=processhandler.pointersize;
+    result:=(stop-start)+DisplayTypeByteSize(fdisplaytype)=processhandler.pointersize;
   end;
 end;
 

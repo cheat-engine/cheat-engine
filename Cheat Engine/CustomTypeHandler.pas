@@ -749,6 +749,9 @@ end;
 destructor TCustomType.destroy;
 begin
   remove;
+
+  //call destroy watchers
+
   inherited destroy;
 end;
 
