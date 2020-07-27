@@ -494,8 +494,8 @@ begin
     rbFindAddress.Checked:=true;
     cbRepeat.Checked:=false;
     cbRepeat.Enabled:=false; //really no use rescanning an never changing static pointermap
-    cbNoValueCheck.Checked:=false;
-    cbNoValueCheck.Enabled:=false;
+    //cbNoValueCheck.Checked:=false;
+    //cbNoValueCheck.Enabled:=false;
     cbDelay.checked:=false;
     cbDelay.enabled:=false;
   end
@@ -503,7 +503,7 @@ begin
   begin
     rbFindValue.enabled:=true;
     cbRepeat.Enabled:=true;
-    cbNoValueCheck.Enabled:=true;
+    //cbNoValueCheck.Enabled:=true;
     cbDelay.enabled:=true;
   end;
 end;

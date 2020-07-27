@@ -2839,50 +2839,55 @@ begin
               if filterOutAccessible and rangeAndStartOffsetsEndOffsets_Valid then
                 valid:=not valid;
 
+
+
               if (not filterOutAccessible) and valid then
               begin
-                if novaluecheck or forvalue then
+                if pointermap=nil then //if no pointermap is used, check the value or at least if it's readable
                 begin
-                  //evaluate the address (address must be accessible)
-                  if rescanhelper.ispointer(address) then
+                  if novaluecheck or forvalue then
                   begin
-
-                    if novaluecheck=false then //check if the value is correct
+                    //evaluate the address (address must be accessible)
+                    if rescanhelper.ispointer(address) then
                     begin
 
-                      value:=nil;
-                      pi:=rescanhelper.FindPage(address shr 12);
-                      if pi.data<>nil then
+                      if novaluecheck=false then //check if the value is correct
                       begin
-                        i:=address and $fff;
-                        j:=min(valuesize, 4096-i);
 
-                        copymemory(tempvalue, @pi.data[i], j);
-
-                        if j<valuesize then
+                        value:=nil;
+                        pi:=rescanhelper.FindPage(address shr 12);
+                        if pi.data<>nil then
                         begin
-                          pi:=rescanhelper.FindPage((address shr 12)+1);
-                          if pi.data<>nil then
-                            copymemory(pointer(ptruint(tempvalue)+j), @pi.data[0], valuesize-j)
-                          else
-                            valid:=false;
-                        end;
-                      end
-                      else
-                        valid:=false;
+                          i:=address and $fff;
+                          j:=min(valuesize, 4096-i);
 
-                      value:=tempvalue;
+                          copymemory(tempvalue, @pi.data[i], j);
 
-                      if (not valid) or (value=nil) or (not isMatchToValue(value)) then
-                        valid:=false; //invalid value
-                    end;
-                  end else valid:=false; //unreadable address
-                end
-                else
-                begin
-                  //check if the address matches
-                  if address<>PointerAddressToFind then
-                    valid:=false;
+                          if j<valuesize then
+                          begin
+                            pi:=rescanhelper.FindPage((address shr 12)+1);
+                            if pi.data<>nil then
+                              copymemory(pointer(ptruint(tempvalue)+j), @pi.data[0], valuesize-j)
+                            else
+                              valid:=false;
+                          end;
+                        end
+                        else
+                          valid:=false;
+
+                        value:=tempvalue;
+
+                        if (not valid) or (value=nil) or (not isMatchToValue(value)) then
+                          valid:=false; //invalid value
+                      end;
+                    end else valid:=false; //unreadable address
+                  end
+                  else
+                  begin
+                    //check if the address matches
+                    if address<>PointerAddressToFind then
+                      valid:=false;
+                  end;
                 end;
               end;
 

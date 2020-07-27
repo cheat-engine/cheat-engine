@@ -1,7 +1,3 @@
-
-fix force load dll
-fix networked pscan
-fix rescan filter out invalid pointers with pointermaps
 add custom type to hexview
 add recent files menu
 add autosave
