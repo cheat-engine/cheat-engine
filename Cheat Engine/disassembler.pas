@@ -5597,7 +5597,7 @@ begin
                                  end;
                                end;
 
-               {0f}{3a}   $21: begin
+               {0f}{3a}   $21: begin    //C4 E3 79 21 80 B8 00 00 00 20
                                  if $66 in prefix2 then
                                  begin
                                    description:='Insert Scalar Single-Precision Floating-Point Value';
@@ -5606,7 +5606,7 @@ begin
                                    else
                                      LastDisassembleData.opcode:='insertps';
 
-                                   lastdisassembledata.parameters:=xmm(memory[3])+modrm(memory,prefix2,3,0,last,mRight)+',';
+                                   lastdisassembledata.parameters:=xmm(memory[3])+modrm(memory,prefix2,3,4,last,mRight)+',';
                                    lastdisassembledata.parameters:=lastdisassembledata.parameters+inttohex(memory[last],2);
                                    inc(last);
                                    inc(offset,last-1);
