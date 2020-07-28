@@ -5597,6 +5597,22 @@ begin
                                  end;
                                end;
 
+               {0f}{3a}   $21: begin
+                                 if $66 in prefix2 then
+                                 begin
+                                   description:='Insert Scalar Single-Precision Floating-Point Value';
+                                   if hasvex then
+                                     LastDisassembleData.opcode:='vinsertps'
+                                   else
+                                     LastDisassembleData.opcode:='insertps';
+
+                                   lastdisassembledata.parameters:=xmm(memory[3])+modrm(memory,prefix2,3,0,last,mRight)+',';
+                                   lastdisassembledata.parameters:=lastdisassembledata.parameters+inttohex(memory[last],2);
+                                   inc(last);
+                                   inc(offset,last-1);
+                                 end;
+                               end;
+
                           $22: begin
                                  if $66 in prefix2 then
                                  begin
