@@ -3149,6 +3149,8 @@ begin
                             lastdisassembledata.opcode:='vcomiss'
                           else
                             lastdisassembledata.opcode:='comiss';
+
+                          opcodeflags.skipExtraReg:=true;
                           lastdisassembledata.parameters:=xmm(memory[2])+modrm(memory,prefix2,2,4,last,mRight);
                           lastdisassembledata.datasize:=4;
                           inc(offset,last-1);
