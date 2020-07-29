@@ -383,8 +383,11 @@ function LaunchMonoDataCollector()
   end
   
   if (getOperatingSystem()==0) and (getAddressSafe("MDC_ServerPipe")==nil) then
-    print("DLL Injection failed or invalid DLL version")
-    return 0
+    waitForExports()
+    if getAddressSafe("MDC_ServerPipe")==nil then
+      print("DLL Injection failed or invalid DLL version")
+      return 0
+    end
   end
   
 
@@ -397,6 +400,7 @@ function LaunchMonoDataCollector()
       print("UWP situation")
       local serverpipe=createPipe('cemonodc_pid'..getOpenedProcessID(), 256*1024,1024)      
       local newhandle=duplicateHandle(serverpipe.Handle)
+      serverpipe.destroy()
       print("New pipe handle is "..newhandle)
       
       writeInteger(getAddressSafe("MDC_ServerPipe"), newhandle)      
