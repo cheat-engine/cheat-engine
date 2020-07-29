@@ -370,7 +370,9 @@ function LaunchMonoDataCollector()
     dllname='libMonoDataCollectorMac.dylib'
   end
   
-  local injectResult, injectError=injectLibrary(getAutorunPath()..libfolder..pathsep..dllname, true) --skip wait for symbols, we don't use it here
+  local skipsymbols=getOperatingSystem()==1  --do not skip symbols if windows. 
+
+  local injectResult, injectError=injectLibrary(getAutorunPath()..libfolder..pathsep..dllname, skipsymbols)
   if not injectResult then
     if injectError then
       print(translate("Failure injecting the MonoDatacollector library"..":"..injectError))
@@ -380,13 +382,15 @@ function LaunchMonoDataCollector()
     return 0
   end
   
+  if (getOperatingSystem()==0) and (getAddressSafe("MDC_ServerPipe")==nil) then
+    print("DLL Injection failed or invalid DLL version")
+    return 0
+  end
+  
+
   
   --wait till attached
   local timeout=getTickCount()+5000
-  
-  
-  
-  
   while (monopipe==nil) and (getTickCount()<timeout) do
     if (getOperatingSystem()==0) and (readInteger(getAddressSafe("MDC_ServerPipe"))==0xdeadbeef) then
       --likely an UWP target which can not create a named pipe
