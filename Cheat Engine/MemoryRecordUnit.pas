@@ -3098,6 +3098,8 @@ var
 
   oldluatop: integer;
   vpe: boolean;
+
+  setvaluescript: Tstringlist;
 begin
   //check if it is a '(description)' notation
 
@@ -3189,11 +3191,19 @@ begin
       begin
 
         oldluatop:=lua_gettop(luavm);
+        setvaluescript:=tstringlist.create;
+
         try
-          if lua_dostring(luavm, pchar('return '+copy(CurrentValue,2, length(CurrentValue)-2)))=0 then
+          setvaluescript.Add('local oldvalue='+getValue);
+          setvaluescript.Add('return '+copy(CurrentValue,2, length(CurrentValue)-2));
+
+
+          if lua_dostring(luavm, pchar(setvaluescript.text))=0 then
             currentValue:=lua_tostring(luavm, -1);
         finally
           lua_settop(luavm, oldluatop);
+
+          freeandnil(setvaluescript);
         end;
       end;
     end;
