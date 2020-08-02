@@ -585,15 +585,21 @@ begin
         if lua_isnil(L, -1) then
         begin
           //not a property
+          lua_pop(L,1);
+
           o:=tobject(lua_touserdata(L,1)^);
           if o is TComponent then
           begin
             lua_pushcfunction(L, component_findComponentByName);
-            lua_pushvalue(L, 1);
-            lua_pushvalue(L, 2);
-            lua_call(L, 2, 1);
-            result:=1;
-            exit;
+            lua_pushvalue(L, 1); //userdata
+            lua_pushvalue(L, 2); //keyname
+            lua_call(L, 2, 1); //component_findComponentByName
+
+            if not lua_isnil(L,-1) then exit(1);
+
+            //still here so not a component of the component
+
+            lua_pop(L,1);
           end;
         end;
 
@@ -605,9 +611,8 @@ begin
           if lua_isfunction(L,-1) then
           begin
             lua_pushvalue(L, 2); //key
-            lua_call(L, 1, 1); //call __defaultintegergetindexhandler(key)
-            result:=1;
-            exit;
+            lua_call(L, 1, 1); //call __defaultstringgetindexhandler(key)
+            exit(1);
           end
           else
             lua_pop(L,1);

@@ -83,7 +83,7 @@ begin
   addresslist:=luaclass_getClassObject(L);
   if lua_gettop(L)>=1 then
   begin
-    description:=Lua_ToString(L,-1);
+    description:=Lua_ToString(L,1);
     luaclass_newClass(L, addresslist.getRecordWithDescription(description));
     result:=1;
   end;
@@ -206,6 +206,8 @@ begin
   luaclass_addPropertyToTable(L, metatable, userdata, 'MemoryRecord', addresslist_getMemoryRecord, nil);
   luaclass_addArrayPropertyToTable(L, metatable, userdata, 'MemoryRecord', addresslist_getMemoryRecord, nil);
   luaclass_setDefaultArrayProperty(L, metatable, userdata, addresslist_getMemoryRecord, nil);
+  luaclass_setDefaultStringArrayProperty(L, metatable, userdata, addresslist_getMemoryRecordByDescription, nil);
+
 end;
 
 procedure initializeLuaAddresslist;
