@@ -601,22 +601,25 @@ begin
 
             lua_pop(L,1);
           end;
+
+          if lua_type(L, 2)=LUA_TSTRING then
+          begin
+            //check if there is a __defaultstringgetindexhandler defined in the metatable
+            lua_pushstring(L, '__defaultstringgetindexhandler');
+            lua_gettable(L, metatable);
+            if lua_isfunction(L,-1) then
+            begin
+              lua_pushvalue(L, 2); //key
+              lua_call(L, 1, 1); //call __defaultstringgetindexhandler(key)
+              exit(1);
+            end
+            else
+              lua_pop(L,1);
+          end;
+
         end;
 
-        if lua_type(L, 2)=LUA_TSTRING then
-        begin
-          //check if there is a __defaultstringgetindexhandler defined in the metatable
-          lua_pushstring(L, '__defaultstringgetindexhandler');
-          lua_gettable(L, metatable);
-          if lua_isfunction(L,-1) then
-          begin
-            lua_pushvalue(L, 2); //key
-            lua_call(L, 1, 1); //call __defaultstringgetindexhandler(key)
-            exit(1);
-          end
-          else
-            lua_pop(L,1);
-        end;
+
 
       end;
     end;
