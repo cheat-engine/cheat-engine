@@ -299,6 +299,7 @@ type
     FromAddress: TEdit;
     andlabel: TLabel;
     lblcompareToSavedScan: TLabel;
+    miLoadRecent: TMenuItem;
     miAlwaysHideChildren: TMenuItem;
     miFoundListPreferences: TMenuItem;
     N2: TMenuItem;
@@ -565,6 +566,7 @@ type
     procedure Label3Click(Sender: TObject);
     procedure MenuItem12Click(Sender: TObject);
     procedure MenuItem15Click(Sender: TObject);
+    procedure miLoadRecentClick(Sender: TObject);
     procedure miFoundListPreferencesClick(Sender: TObject);
     procedure miAutoAssembleErrorMessageClick(Sender: TObject);
     procedure miHelpClick(Sender: TObject);
@@ -822,6 +824,9 @@ type
 
     showStaticAsStatic: boolean;
 
+    RecentFiles: Tstringlist;
+
+    procedure RecentFilesClick(Sender:TObject);
     procedure CheckForSpeedhackKey(sender: TObject);
 
     procedure doNewScan;
@@ -920,6 +925,8 @@ type
 
     function getUseThreadToFreeze: boolean;
     procedure setUseThreadToFreeze(state: boolean);
+
+    procedure recentFilesUpdate(filepath: string);
   public
     { Public declarations }
     addresslist: TAddresslist;
@@ -1365,6 +1372,26 @@ begin
 end;
 
 //--------------TMainThread------------
+
+procedure TMainForm.recentFilesUpdate(filepath: string);
+var i: integer;
+begin
+  i:=recentfiles.IndexOf(filepath);
+  if i<>-1 then
+  begin
+    //move the old entry to the top
+    recentfiles.Delete(i);
+    recentfiles.Insert(0,filepath);
+  end
+  else
+  begin
+    //new entry
+    recentfiles.insert(0, filepath);
+    while recentfiles.count>10 do
+      recentfiles.Delete(recentfiles.count-1);
+  end;
+  cereg.writeStrings('Recent Files', recentfiles);
+end;
 
 function TMainForm.getUseThreadToFreeze: boolean;
 begin
@@ -3512,6 +3539,11 @@ begin
   end;
 end;
 
+procedure TMainForm.miLoadRecentClick(Sender: TObject);
+begin
+
+end;
+
 procedure TMainForm.miFoundListPreferencesClick(Sender: TObject);
 var
   f: TfrmFoundlistPreferences;
@@ -3665,7 +3697,11 @@ end;
 procedure TMainForm.miSaveClick(Sender: TObject);
 begin
   if fileexists(savedialog1.FileName) then
-    savetable(savedialog1.FileName, false)
+  begin
+    savetable(savedialog1.FileName, false);
+
+    recentFilesUpdate(savedialog1.filename);
+  end
   else
     actSave.Execute;
 end;
@@ -5542,7 +5578,7 @@ var
 
   errormode: dword;
   minworkingsize, maxworkingsize: ptruint;
-  reg: tregistry;
+  //reg: tregistry;
 
   PODirectory, Lang, FallbackLang: string;
 
@@ -5988,6 +6024,10 @@ begin
   foundlistColors.StaticColor:=clGreen;
   foundlistColors.DynamicColor:=GetSysColor(COLOR_WINDOWTEXT);
   showStaticAsStatic:=true;
+
+  RecentFiles:=tstringlist.Create;
+  cereg.readStrings('Recent Files', RecentFiles);
+
 
 
   {$ifdef darwin}
@@ -8690,6 +8730,8 @@ begin
 
       UserDefinedTableName:=Opendialog1.filename;
       reinterpretaddresses;
+
+      recentFilesUpdate(Opendialog1.filename);
     except
       on e:exception do
         MessageDlg('This table failed to load: '+e.message,mtError,[mbok],0);
@@ -8732,6 +8774,8 @@ begin
     SaveIntialTablesDir(extractfilepath(savedialog1.filename));
 
     UserDefinedTableName:=savedialog1.filename;
+
+    recentFilesUpdate(savedialog1.filename);
   end
   else Savedialog1.FileName:=oldFileName;
 end;
@@ -10395,10 +10439,31 @@ begin
   addresslist.Clear;
 end;
 
-procedure TMainForm.File1Click(Sender: TObject);
+procedure TMainForm.RecentFilesClick(Sender:TObject);
 begin
+  if CheckIfSaved then
+    LoadTable(RecentFiles[tmenuitem(sender).Tag],false);
+end;
 
+procedure TMainForm.File1Click(Sender: TObject);
+var
+  i: integer;
+  m: TMenuItem;
+begin
   miSaveScanresults.Enabled := memscan.nextscanCount > 0;
+  miLoadRecent.Visible:=RecentFiles.Count>0;
+
+  miLoadRecent.Clear;
+  for i:=0 to RecentFiles.count-1 do
+  begin
+    m:=tmenuitem.Create(miLoadRecent);
+    m.Caption:=RecentFiles[i];
+    m.OnClick:=RecentFilesClick;
+    m.tag:=i;
+
+    miLoadRecent.Add(m);
+  end;
+
 end;
 
 procedure TMainForm.actOpenProcesslistExecute(Sender: TObject);

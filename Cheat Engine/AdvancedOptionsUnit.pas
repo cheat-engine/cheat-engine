@@ -507,6 +507,7 @@ begin
       for i:=0 to selecteditems.Count-1 do
         tlistitem(selectedItems[i]).Selected:=true;
 
+      mainform.editedsincelastsave:=true;
     end;
 
   end;
