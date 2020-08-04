@@ -1,14 +1,36 @@
 #include "StdAfx.h"
 #include "PipeServer.h"
 
-
 const IID IID_ICorDebugProcess={0x3d6f5f64, 0x7538, 0x11d3, 0x8d, 0x5b, 0x00, 0x10, 0x4b, 0x35, 0xe7, 0xef};  
 const IID IID_ICorDebugProcess5={0x21e9d9c0, 0xfcb8, 0x11df, 0x8c, 0xff, 0x08, 0x00, 0x20, 0x0c ,0x9a, 0x66};
 const IID IID_ICorDebugCode2={0x5F696509,0x452F,0x4436,0xA3,0xFE,0x4D,0x11,0xFE,0x7E,0x23,0x47}; //5F696509-452F-4436-A3FE-4D11FE7E2347
 
 
-//const IID IID_ICorDebug={0x3d6f5f61, 0x7538, 0x11d3, 0x8d, 0x5b, 0x00, 0x10, 0x4b, 0x35 ,0xe7, 0xef}; //3d6f5f61-7538-11d3-8d5b-00104b35e7ef
-//const IID CLSID_CorDebug={0x6fef44d0,0x39e7,0x4c77,0xbe,0x8e,0xc9,0xf8,0xcf,0x98,0x86,0x30}; //6fef44d0-39e7-4c77-be8e-c9f8cf988630
+const IID IID_ICorDebug={0x3d6f5f61, 0x7538, 0x11d3, 0x8d, 0x5b, 0x00, 0x10, 0x4b, 0x35 ,0xe7, 0xef}; //3d6f5f61-7538-11d3-8d5b-00104b35e7ef
+const IID CLSID_CorDebug={0x6fef44d0,0x39e7,0x4c77,0xbe,0x8e,0xc9,0xf8,0xcf,0x98,0x86,0x30}; //6fef44d0-39e7-4c77-be8e-c9f8cf988630
+
+typedef HRESULT (*ENUMERATECLRS)(DWORD      debuggeePID,
+	 HANDLE**   ppHandleArrayOut,
+	 LPWSTR**   ppStringArrayOut,
+	 DWORD*     pdwArrayLengthOut
+	);
+
+typedef HRESULT (*CREATEVERSIONSTRINGFROMMODULE)(
+	  DWORD      pidDebuggee,
+	  LPCWSTR    szModuleName,
+	  LPWSTR Buffer,
+	  DWORD      cchBuffer,
+	  DWORD*     pdwLength
+);
+
+typedef HRESULT (*CREATEDEBUGGINGINTERFACEFROMVERSION2)(LPCWSTR szDebuggeeVersion, IUnknown ** ppCordb);
+
+
+
+
+ENUMERATECLRS EnumerateCLRs;
+CREATEVERSIONSTRINGFROMMODULE CreateVersionStringFromModule;
+CREATEDEBUGGINGINTERFACEFROMVERSION2 CreateDebuggingInterfaceFromVersion2;
 
 using namespace std;
 
@@ -30,8 +52,9 @@ CPipeServer::CPipeServer(TCHAR *name)
 	if (StrCmp(name,L"BLA")==0)
 	{
 		//do some debug stuff
-		processid=0x1814;
+		processid=0x2d11c;
 		OpenOrAttachToProcess();
+
 
 		getAddressData(0x021ABF0C);
 	}
@@ -76,6 +99,7 @@ BOOL CPipeServer::OpenOrAttachToProcess(void)
 	MODULEENTRY32 m;
 	HRESULT r;
 	BOOL result=FALSE;
+	WCHAR dotnetcorepath[MAX_PATH];
 	
 	
 
@@ -94,50 +118,203 @@ BOOL CPipeServer::OpenOrAttachToProcess(void)
 	libprovider=NULL;
 	datacallback=NULL;
 
+	processhandle = OpenProcess(PROCESS_ALL_ACCESS, FALSE, processid);
+	if (processhandle == 0)
+		return FALSE;
 
 
 	HMODULE hMscoree = LoadLibraryA("mscoree.dll");
-	CLRCreateInstanceFnPtr CLRCreateInstance;
+	CLRCreateInstanceFnPtr CLRCreateInstance, CLRCreateInstanceDotNetCore;
 
-	if (hMscoree==NULL)
-		return FALSE;
-
-	CLRCreateInstance=(CLRCreateInstanceFnPtr)GetProcAddress(hMscoree, "CLRCreateInstance");
-	if (CLRCreateInstance==NULL)
-		return FALSE; //only 4.0 is supported for now
-
-	processhandle=OpenProcess(PROCESS_ALL_ACCESS , FALSE, processid);
-	if (processhandle==0)
-		return FALSE;
+	//Try CE's bin path or the system library search path
+	StrCpyW(dotnetcorepath, L""); //init as empty string
+	HMODULE hDbgShim = LoadLibraryA("dbgshim.dll");
 	
-	if (CLRCreateInstance(CLSID_CLRMetaHost, IID_ICLRMetaHost, (LPVOID*)&pMetaHost)!=S_OK)
-		return FALSE;
-		
-	
-	if (pMetaHost->EnumerateLoadedRuntimes(processhandle, &RuntimeEnum)==S_OK)
+	if (hDbgShim == NULL)
 	{
-		ICLRRuntimeInfo *info;
-		ULONG count=0;
+		
+#ifdef AMD64
+		//search in C:\\Program Files\\dotnet\\shared\\Microsoft.NETCore.App\\ for the highest version
+		WCHAR *basepath = L"C:\\Program Files\\dotnet\\shared\\Microsoft.NETCore.App\\";
+#else
+		//search in c:\]Program Files (x86)]\dotnet]\shared]\Microsoft.NETCore.App\\ for the highest version
+		WCHAR *basepath = L"C:\\Program Files\\dotnet\\shared\\Microsoft.NETCore.App\\";
+#endif
+		WCHAR searchpath[MAX_PATH];
+		WIN32_FIND_DATAW ffd;
 
-		RuntimeEnum->Next(1, (IUnknown **)&info, &count);
-		if (count)
+		StrCpyW(searchpath, basepath);
+		StrCatW(searchpath, L"*");
+
+		HANDLE filescan=FindFirstFile(searchpath, &ffd);
+		DWORD HighestValue = 0;
+
+		WCHAR bestfile[MAX_PATH];
+
+		if (filescan!=INVALID_HANDLE_VALUE)
 		{
-			result=TRUE;
-			libprovider=new CMyICLRDebuggingLibraryProvider(info);  //todo: scan for 4.0			
+			do
+			{
+				
+				if ((ffd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) && (ffd.cFileName[0] >= L'0') && (ffd.cFileName[0] <= L'9'))
+				{
+					int maj, min, build;
+					DWORD val;
+
+					if (swscanf(ffd.cFileName, L"%d.%d.%d", &maj, &min, &build) == 3)
+					{
+						val = (maj << 16) + (min << 8) + build;
+
+						if (val > HighestValue)
+						{
+							StrCpyW(bestfile, ffd.cFileName);
+							HighestValue = val;
+						}
+					}
+				}
+			} while (FindNextFile(filescan, &ffd));
+
+			FindClose(filescan);
 		}
 
-		RuntimeEnum->Release();
+		if (HighestValue)
+		{			
+			StrCpyW(dotnetcorepath, basepath);
+			StrCatW(dotnetcorepath, bestfile);
+			StrCatW(dotnetcorepath, L"\\");
+
+			WCHAR dllpath[MAX_PATH];
+			StrCpyW(dllpath, dotnetcorepath);
+			StrCatW(dllpath, L"dbgshim.dll");
+
+			hDbgShim = LoadLibrary(dllpath);
+		}
 	}
-	pMetaHost->Release();
 
-	if (!result)
-		return FALSE; //no runtimes
+	if (hDbgShim==NULL)
+	{
+		//try the gamepath
+		ths = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE | TH32CS_SNAPMODULE32, processid);
+		if (ths == INVALID_HANDLE_VALUE)
+		{
+			int e = GetLastError();
+			if (e == 5)
+			{
+				return TRUE;
+			}
 
+			return FALSE;
+		}
+
+		ZeroMemory(&m, sizeof(m));
+		m.dwSize = sizeof(m);
+		if (Module32First(ths, &m))
+		{
+			int i;
+			int l=lstrlen(m.szExePath);
+
+			for (i = l; (i > 0) && (m.szExePath[i] != L'\\') ; i--)
+				m.szExePath[i] = 0;				
+
+			StrCpyW(dotnetcorepath, m.szExePath);
+
+			WCHAR dllpath[MAX_PATH];
+			StrCpyW(dllpath, dotnetcorepath);
+			StrCatW(dllpath, L"dbgshim.dll");
+
+			hDbgShim = LoadLibrary(dllpath);
+
+		}
+
+		CloseHandle(ths);
+	}
+		
+	if (hDbgShim)
+	{
+		EnumerateCLRs = (ENUMERATECLRS)GetProcAddress(hDbgShim, "EnumerateCLRs");
+		CreateVersionStringFromModule = (CREATEVERSIONSTRINGFROMMODULE)GetProcAddress(hDbgShim, "CreateVersionStringFromModule");
+		CreateDebuggingInterfaceFromVersion2 = (CREATEDEBUGGINGINTERFACEFROMVERSION2)GetProcAddress(hDbgShim, "CreateDebuggingInterfaceFromVersion");
+		CLRCreateInstanceDotNetCore = (CLRCreateInstanceFnPtr)GetProcAddress(hDbgShim, "CLRCreateInstance");
+	}
+
+
+	/*
+	if (EnumerateCLRs && CreateVersionStringFromModule && CreateDebuggingInterfaceFromVersion2)
+	{
+		HANDLE *handleArray;
+		LPWSTR *stringArray;
+		DWORD count;
+		EnumerateCLRs(processid, &handleArray, &stringArray, &count);
+
+		if (count)
+		{
+			DWORD length;
+			WCHAR versionString[200];
+
+			r = CreateVersionStringFromModule(processid, stringArray[0], versionString, 200, &length);
+			if (r == S_OK)
+			{
+				ICorDebug *Dbg;
+				r = CreateDebuggingInterfaceFromVersion2(versionString, (IUnknown **)&Dbg);
+				if (r == S_OK)
+				{
+
+
+					r = 1;
+				}
+			}
+
+			//CloseCLREnumeration();
+		}
+	}
+	*/
+
+
+
+
+
+	if (hMscoree)
+		CLRCreateInstance=(CLRCreateInstanceFnPtr)GetProcAddress(hMscoree, "CLRCreateInstance");
+
+
+	if (CLRCreateInstance)
+	{
+		if (CLRCreateInstance(CLSID_CLRMetaHost, IID_ICLRMetaHost, (LPVOID*)&pMetaHost) == S_OK)
+		{
+
+			if (pMetaHost->EnumerateLoadedRuntimes(processhandle, &RuntimeEnum) == S_OK)
+			{
+				ICLRRuntimeInfo *info;
+				ULONG count = 0;
+
+				RuntimeEnum->Next(1, (IUnknown **)&info, &count);
+				if (count)
+				{
+					result = TRUE;
+					libprovider = new CMyICLRDebuggingLibraryProvider(info, dotnetcorepath);  //todo: scan for 4.0			
+				}
+
+				RuntimeEnum->Release();
+			}
+			pMetaHost->Release();
+		}
+
+	}
+		
 	
-	if (CLRCreateInstance(CLSID_CLRDebugging, IID_ICLRDebugging, (void **)&CLRDebugging)!=S_OK)
-		return FALSE;
 
-	
+
+	if (libprovider==NULL) //try dotnet core only
+		libprovider = new CMyICLRDebuggingLibraryProvider(NULL, dotnetcorepath);
+
+	//if (!result)
+	//	return FALSE; //no runtimes
+
+	if (CLRCreateInstance)
+		CLRCreateInstance(CLSID_CLRDebugging, IID_ICLRDebugging, (void **)&CLRDebugging);	
+
+	if (CLRCreateInstanceDotNetCore)
+		CLRCreateInstanceDotNetCore(CLSID_CLRDebugging, IID_ICLRDebugging, (void **)&CLRDebuggingCore);
 
 	
 	ths=CreateToolhelp32Snapshot(TH32CS_SNAPMODULE | TH32CS_SNAPMODULE32, processid);
@@ -155,9 +332,16 @@ BOOL CPipeServer::OpenOrAttachToProcess(void)
 		do
 		{
 			CLR_DEBUGGING_PROCESS_FLAGS flags;
+			//v = CorDebugVersion_4_0;
+			//CorDebugVersion_4_0
+			if (CLRDebugging)
+				r = CLRDebugging->OpenVirtualProcess((ULONG64)m.hModule, datacallback,  libprovider, &v, IID_ICorDebugProcess, (IUnknown **)&CorDebugProcess, &v, &flags);
 
-			r=CLRDebugging->OpenVirtualProcess((ULONG64)m.hModule, datacallback,  libprovider, &v, IID_ICorDebugProcess, (IUnknown **)&CorDebugProcess, &v, &flags);
-			
+			if ((r!=S_OK) && (CLRDebuggingCore)) //try dotnet core
+				r = CLRDebuggingCore->OpenVirtualProcess((ULONG64)m.hModule, datacallback, libprovider, &v, IID_ICorDebugProcess, (IUnknown **)&CorDebugProcess, &v, &flags);
+
+
+
 			if (r==S_OK)
 			{					
 				CorDebugProcess->QueryInterface(IID_ICorDebugProcess5, (void **)&CorDebugProcess5);
@@ -174,58 +358,11 @@ BOOL CPipeServer::OpenOrAttachToProcess(void)
 	CloseHandle(ths);
 
 
-	if (r!=S_OK)
-	{
-#ifdef _DEBUG
-		/*
-		//todo for older (<4.0) c# versions:
-		WCHAR Version[255];
-		DWORD vlength;
-
-		ICorDebug *CorDebug;
-		processhandle=OpenProcess(PROCESS_ALL_ACCESS, FALSE, processid);
-
-		r=GetVersionFromProcess(processhandle, Version, 255, &vlength);	
-
-		r=CreateDebuggingInterfaceFromVersion(CorDebugVersion_2_0,  Version, (IUnknown **)&CorDebug);
-
-		CorDebug->Initialize();
-		//Cor
-
-		CMyICorDebugManagedCallback *MyICorDebugManagedCallback;
-
-		MyICorDebugManagedCallback=new CMyICorDebugManagedCallback();
-		
-		r=CorDebug->SetManagedHandler((ICorDebugManagedCallback *)MyICorDebugManagedCallback);
-
-		
-		r=CorDebug->DebugActiveProcess(processid, false, &CorDebugProcess);
-
-		CorDebugProcess->QueryInterface(IID_ICorDebugProcess5, (void **)&CorDebugProcess5);
-
-		CorDebug->Initialize();
-
-		while (MyICorDebugManagedCallback->attached==FALSE) Sleep(100);
-
-		//r=CorDebug->GetProcess(processid, &CorDebugProcess);
-
-	
-		CorDebugProcess->Stop(FALSE);
-		CorDebugProcess->Detach();
-		CorDebug->Release();
-		*/
-
-#endif
-		if (r!=S_OK)
-			return FALSE;
-	}
-
-
-	
 
 	//still here
 	return TRUE;
 }
+
 
 void CPipeServer::releaseObjectHandle(UINT64 hObject)
 {

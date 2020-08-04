@@ -25,7 +25,8 @@ private:
 	HANDLE pipe;
 	ULONG processid;
 	HANDLE processhandle;
-	ICLRDebugging *CLRDebugging;
+	ICLRDebugging *CLRDebugging = NULL;
+	ICLRDebugging *CLRDebuggingCore = NULL;
 	ICorDebugProcess *CorDebugProcess;
 	ICorDebugProcess5 *CorDebugProcess5;
 

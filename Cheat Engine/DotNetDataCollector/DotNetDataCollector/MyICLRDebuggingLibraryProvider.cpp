@@ -47,8 +47,31 @@ HRESULT STDMETHODCALLTYPE CMyICLRDebuggingLibraryProvider::ProvideLibrary(
             /* [out] */ HMODULE *phModule)
 {
 
-	HRESULT r=RuntimeInfo->LoadLibrary(pwszFileName, phModule);
-	return r;
+	HRESULT r;
+	if (RuntimeInfo)
+		r = RuntimeInfo->LoadLibrary(pwszFileName, phModule);
+	else
+		r = E_NOTIMPL;
+
+
+	if (r != S_OK)
+	{
+
+		HMODULE m;
+		WCHAR newname[255];
+		
+		StrCpyW(newname, dotnetcorepath);
+		StrCatW(newname, pwszFileName);
+
+		m = LoadLibrary(newname);
+		if (m)
+		{
+			*phModule = m;
+			return S_OK;
+		}
+		else
+			return ERROR_FILE_INVALID;
+	}
 
 }
 
