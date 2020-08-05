@@ -3512,7 +3512,7 @@ begin
                                  begin
                                    if hasvex then
                                    begin
-                                     LastDisassembleData.opcode:='vblendvpd';
+                                     LastDisassembleData.opcode:='vblendvpd invalid';
                                      lastdisassembledata.parameters:=xmm(memory[3])+modrm(memory,prefix2,3,4,last, mRight);
                                      lastdisassembledata.parameters:=lastdisassembledata.parameters+','+regnrtostr(rtXMM,memory[last]);
                                      inc(offset,1);
@@ -3520,7 +3520,7 @@ begin
                                    else
                                    begin
                                      LastDisassembleData.opcode:='blendvpd';
-                                     lastdisassembledata.parameters:=xmm(memory[3])+modrm(memory,prefix2,3,4,last, mRight)+','+regnrtostr(rtXMM,0);
+                                     lastdisassembledata.parameters:=xmm(memory[3])+modrm(memory,prefix2,3,4,last, mRight)+','+colorreg+regnrtostr(rtXMM,0)+endcolor;
                                    end;
                                    inc(offset,last-1);
                                  end;
@@ -5746,6 +5746,47 @@ begin
                                   end;
                                 end;
                               end;
+
+              {0f}{3a}   $4a: begin
+                                if $66 in prefix2 then
+                                begin
+                                  if hasvex then
+                                  begin
+                                    description:='Variable Blend Packed Single Precision Floating-Point Values';
+                                    LastDisassembleData.opcode:='vblendvps';
+
+                                    lastdisassembledata.parameters:=xmm(memory[3])+modrm(memory,prefix2,3,4,last,mRight)+',';
+                                    if opcodeflags.L then
+                                      lastdisassembledata.parameters:=lastdisassembledata.parameters+colorreg+regnrtostr(rtYMM, memory[last] shr 4 and $f)+endcolor
+                                    else
+                                      lastdisassembledata.parameters:=lastdisassembledata.parameters+colorreg+regnrtostr(rtXMM, memory[last] shr 4 and $f)+endcolor;
+
+                                    inc(last);
+                                    inc(offset,last-1);
+                                  end;
+                                end;
+                              end;
+
+              {0f}{3a}   $4b: begin
+                                if $66 in prefix2 then
+                                begin
+                                  if hasvex then
+                                  begin
+                                    description:='Variable Blend Packed Double Precision Floating-Point Values';
+                                    LastDisassembleData.opcode:='vblendvpd';
+
+                                    lastdisassembledata.parameters:=xmm(memory[3])+modrm(memory,prefix2,3,4,last,mRight)+',';
+                                    if opcodeflags.L then
+                                      lastdisassembledata.parameters:=lastdisassembledata.parameters+colorreg+regnrtostr(rtYMM, memory[last] shr 4 and $f)+endcolor
+                                    else
+                                      lastdisassembledata.parameters:=lastdisassembledata.parameters+colorreg+regnrtostr(rtXMM, memory[last] shr 4 and $f)+endcolor;
+
+                                    inc(last);
+                                    inc(offset,last-1);
+                                  end;
+                                end;
+                              end;
+
 
               {0f}{3a}   $60: begin
                                 if $66 in prefix2 then
