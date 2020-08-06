@@ -32,7 +32,8 @@ procedure SaveTable(Filename: string; protect: boolean=false; dontDeactivateDesi
 procedure LoadTable(Filename: string;merge: boolean);
 procedure SaveCEM(Filename:string;address:ptrUint; size:dword);
 procedure LoadXML(doc: TXMLDocument; merge: boolean; isTrainer: boolean=false);
-
+procedure SaveXML(doc: TXMLDocument; dontDeactivateDesignerForms: boolean=false); overload;
+procedure SaveXML(filename: string; dontDeactivateDesignerForms: boolean=false); overload;
 
 
 
@@ -1137,71 +1138,22 @@ begin
     mainform.autoattachcheck; //check if it added an auto attach check and see if it's currently running
   except
   end;
-//  mainform.addresslist.needsToReinterpret:=true;
 end;
 
+procedure SaveXML(doc: TXMLDocument; dontDeactivateDesignerForms: boolean=false);
+var
+  CheatTable: TDOMElement;
+  Files, Forms,Entries,Symbols, Structures, Comment,luascript, dcomments: TDOMNode;
+  CodeRecords, CodeRecord, SymbolRecord: TDOMNode;
+  CodeBytes: TDOMNode;
 
-     {
-procedure SaveStructToXMLNode(struct: TbaseStructure; Structures: TDOMnode);
-var structure: TDOMnode;
-    elements: TDOMnode;
-    element: TDOMnode;
-    i: integer;
-    doc: TDOMDocument;
+  i,j: integer;
+
+  sl: tstringlist;
+  extradata: ^TUDSEnum;
+
+  a: TDOMAttr;
 begin
-  if struct.donotsave then exit;
-
-  doc:=Structures.OwnerDocument;
-  structure:=structures.AppendChild(doc.CreateElement('Structure'));
-  structure.AppendChild(doc.CreateElement('Name')).TextContent:=utf8toansi(struct.name);
-  elements:=structure.AppendChild(doc.CreateElement('Elements'));
-
-
-
-
-  for i:=0 to length(struct.structelement)-1 do
-  begin
-    element:=elements.AppendChild(doc.CreateElement('Element'));
-    element.AppendChild(doc.CreateElement('Offset')).TextContent:=inttostr(struct.structelement[i].offset);
-    element.AppendChild(doc.CreateElement('Description')).TextContent:=Utf8ToAnsi(struct.structelement[i].description);
-
-    element.AppendChild(doc.CreateElement('Structurenr')).TextContent:=inttostr(struct.structelement[i].structurenr);
-    element.AppendChild(doc.CreateElement('Bytesize')).TextContent:=inttostr(struct.structelement[i].bytesize);
-
-    if struct.structelement[i].pointerto then
-    begin
-      element.AppendChild(doc.CreateElement('PointerTo')).TextContent:='1';
-      element.AppendChild(doc.CreateElement('PointerToSize')).TextContent:=inttostr(struct.structelement[i].pointertosize);
-
-      if struct.structelement[i].structurenr>=0 then
-      begin
-        if definedstructures[struct.structelement[i].structurenr].donotsave then
-          element.AppendChild(doc.CreateElement('Structurenr')).TextContent:='-16';
-      end
-    end;
-
-
-  end;
-
-end;   }
-
-procedure SaveXML(Filename: string; dontDeactivateDesignerForms: boolean=false);
-var doc: TXMLDocument;
-    CheatTable: TDOMElement;
-    Files, Forms,Entries,Symbols, Structures, Comment,luascript, dcomments: TDOMNode;
-    CodeRecords, CodeRecord, SymbolRecord: TDOMNode;
-    CodeBytes: TDOMNode;
-
-    i,j: integer;
-
-    sl: tstringlist;
-    extradata: ^TUDSEnum;
-
-    a: TDOMAttr;
-begin
-  doc:=TXMLDocument.Create;
-  //doc.Encoding:=;
-
   CheatTable:=TDOMElement(doc.AppendChild(TDOMNode(doc.CreateElement('CheatTable'))));
   TDOMElement(CheatTable).SetAttribute('CheatEngineTableVersion',IntToStr(CurrentTableVersion));
 
@@ -1332,10 +1284,15 @@ begin
     signTable(cheattable);
   {$endif}
 
+end;
+
+procedure SaveXML(Filename: string; dontDeactivateDesignerForms: boolean=false);
+var doc: TXMLDocument;
+begin
+  doc:=TXMLDocument.Create;
+  SaveXML(doc, dontDeactivateDesignerForms);
   WriteXMLFile(doc, filename);
-
   doc.Free;
-
 end;
 
 procedure SaveTable(Filename: string; protect: boolean=false; dontDeactivateDesignerForms: boolean=false);

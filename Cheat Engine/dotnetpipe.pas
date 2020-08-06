@@ -377,7 +377,7 @@ begin
       read(SecondaryCodeBlocks, sizeof(SecondaryCodeBlocks));
       setlength(methods[i].SecondaryNativeCode, SecondaryCodeBlocks);
       for j:=0 to SecondaryCodeBlocks-1 do
-        read(methods[i].SecondaryNativeCode[j], sizeof(TNativeCode));
+        read(methods[i].SecondaryNativeCode[j], sizeof(TNativeCode));   //7FFB82FA1D00
     end;
 
 

@@ -189,7 +189,8 @@ sf.cbShowUndo.AnchorSideLeft.Side=asrLeft --put the left of the "undo button che
 --now capture when the action is applied. I could hijack the button, but exceptions can sometimes cause issues. (though this button should not give exceptions in 6.7+ anymore)
 local oldSettingsFormClose=sf.OnClose
 
-sf.OnClose=function(f)
+sf.OnClose=function(f, closeAction)
+  local result=closeAction
   if sf.ModalResult==mrOK then --the user clicked OK and all checks passed
     vsettings.Value['CheckOnLaunch']=cbCheckForUpdatesOnLaunch.Checked
     vsettings.Value['CheckInterval']=edtInterval.Text
@@ -197,7 +198,7 @@ sf.OnClose=function(f)
 
   --call the original OnClose of the settings form
   if oldSettingsFormClose then
-    return oldSettingsFormClose(f);
+    return oldSettingsFormClose(f, closeAction);
   end
 end
 

@@ -1,5 +1,6 @@
-add autosave
+test autosave
 export GetUniqueAOB for aa template scripts
+add dotnetdatacollector query functions to lua
 
 
 

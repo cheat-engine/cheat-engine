@@ -199,10 +199,11 @@ local node=sf.SettingsTreeView.Items.insert(insertNode, translate("CEShare"))
 node.data=userDataToInteger(ceshare.settingsTab)
 
 local originalSettingsCloseEvent=sf.OnClose
-sf.OnClose=function(s)
-  local r=caHide
+sf.OnClose=function(s, closeAction)
+   
+  local r=closeAction
   if originalSettingsCloseEvent then
-    r=originalSettingsCloseEvent(s)
+    r=originalSettingsCloseEvent(s, closeAction)
   end
   
   if s.ModalResult==mrOK then

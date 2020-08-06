@@ -1420,7 +1420,7 @@ function java_search_finish()
   java_scanning=false
 end
 
-function java_foundCodeDialogClose(sender)
+function java_foundCodeDialogClose(sender, closeAction)
   --print("closing")
   local id=sender.Tag
   local fcd=java.findwhatwriteslist[id]
@@ -2366,10 +2366,10 @@ function javaAA_USEJAVA(parameters, syntaxcheckonly)
 end
 
 
-function java_settingsClose(sender)
-  local result=caHide
+function java_settingsClose(sender, closeAction)
+  local result=closeAction
   if java.settingsOnClose~=nil then
-    result=java.settingsOnClose(sender)
+    result=java.settingsOnClose(sender, closeAction)
   end
 
   if (result==caHide) and (sender.ModalResult==mrOK) then

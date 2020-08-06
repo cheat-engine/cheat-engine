@@ -209,6 +209,7 @@ type
     procedure assemblescreenchange(sender: TObject);
 
     procedure CustomTemplateClick(sender: tobject);
+    function getIsEditing: boolean;
   public
     { Public declarations }
 
@@ -232,6 +233,7 @@ type
     property CustomTypeScript: boolean read fCustomTypeScript write setCustomTypeScript;
   published
     property ScriptMode: TScriptMode read fScriptMode write setScriptMode;
+    property isEditing: boolean read getIsEditing;
   end;
 
 
@@ -2161,6 +2163,11 @@ begin
   ReplaceDialog1.OnFind(ReplaceDialog1);
 
   finddialog1.options:=finddialog1.options+[frFindNext];
+end;
+
+function TfrmAutoInject.getIsEditing: boolean;
+begin
+  result:=editscript or editscript2;
 end;
 
 //follow is just a emergency fix since undo is messed up. At least it's better than nothing

@@ -1,13 +1,16 @@
 #include "StdAfx.h"
 #include "PipeServer.h"
 
-const IID IID_ICorDebugProcess={0x3d6f5f64, 0x7538, 0x11d3, 0x8d, 0x5b, 0x00, 0x10, 0x4b, 0x35, 0xe7, 0xef};  
-const IID IID_ICorDebugProcess5={0x21e9d9c0, 0xfcb8, 0x11df, 0x8c, 0xff, 0x08, 0x00, 0x20, 0x0c ,0x9a, 0x66};
+/*
+const IID IID_ICorDebugProcess  = { 0x3d6f5f64, 0x7538, 0x11d3, 0x8d, 0x5b, 0x00, 0x10, 0x4b, 0x35, 0xe7, 0xef };  
+const IID IID_ICorDebugProcess5 = { 0x21e9d9c0, 0xfcb8, 0x11df, 0x8c, 0xff, 0x08, 0x00, 0x20, 0x0c ,0x9a, 0x66 };
+const IID IID_ICorDebugProcess6 = { 0x11588775, 0x7205, 0x4CEB, 0xA4, 0x1A, 0x93, 0x75, 0x3C, 0x31, 0x53, 0xE9 };
 const IID IID_ICorDebugCode2={0x5F696509,0x452F,0x4436,0xA3,0xFE,0x4D,0x11,0xFE,0x7E,0x23,0x47}; //5F696509-452F-4436-A3FE-4D11FE7E2347
 
 
 const IID IID_ICorDebug={0x3d6f5f61, 0x7538, 0x11d3, 0x8d, 0x5b, 0x00, 0x10, 0x4b, 0x35 ,0xe7, 0xef}; //3d6f5f61-7538-11d3-8d5b-00104b35e7ef
 const IID CLSID_CorDebug={0x6fef44d0,0x39e7,0x4c77,0xbe,0x8e,0xc9,0xf8,0xcf,0x98,0x86,0x30}; //6fef44d0-39e7-4c77-be8e-c9f8cf988630
+*/
 
 typedef HRESULT (*ENUMERATECLRS)(DWORD      debuggeePID,
 	 HANDLE**   ppHandleArrayOut,
@@ -52,11 +55,11 @@ CPipeServer::CPipeServer(TCHAR *name)
 	if (StrCmp(name,L"BLA")==0)
 	{
 		//do some debug stuff
-		processid=0x2d11c;
+		processid=112988;
 		OpenOrAttachToProcess();
 
 
-		getAddressData(0x021ABF0C);
+		getAddressData(0x7FFB830924B0);
 	}
 	else
 		ConnectNamedPipe(pipe, NULL);
@@ -654,7 +657,7 @@ void CPipeServer::enumTypeDefMethods(UINT64 hModule, mdTypeDef TypeDef)
 					{
 						ICorDebugCode2 *Code2;
 						Code->GetAddress(&NativeCode);
-
+	
 						if (Code->QueryInterface(IID_ICorDebugCode2, (void **)&Code2)==S_OK)
 						{
 							ULONG32 count;
@@ -725,6 +728,41 @@ int CPipeServer::getAllFields(COR_TYPEID cortypeid, COR_TYPE_LAYOUT layout, std:
 }
 
 
+MIDL_INTERFACE("AD1B3588-0EF0-4744-A496-AA09A9F80371")
+ICorDebugProcess2Core : public IUnknown
+{
+public:
+	virtual HRESULT STDMETHODCALLTYPE GetThreadForTaskID(
+		/* [in] */ TASKID taskid,
+		/* [out] */ ICorDebugThread2 **ppThread) = 0;
+
+	virtual HRESULT STDMETHODCALLTYPE GetVersion(
+		/* [out] */ COR_VERSION *version) = 0;
+
+	virtual HRESULT STDMETHODCALLTYPE SetUnmanagedBreakpoint(
+		/* [in] */ CORDB_ADDRESS address,
+		/* [in] */ ULONG32 bufsize,
+		/* [length_is][size_is][out] */ BYTE buffer[],
+		/* [out] */ ULONG32 *bufLen) = 0;
+
+	virtual HRESULT STDMETHODCALLTYPE ClearUnmanagedBreakpoint(
+		/* [in] */ CORDB_ADDRESS address) = 0;
+
+	virtual HRESULT STDMETHODCALLTYPE GetCodeAtAddress(CORDB_ADDRESS address, ICorDebugCode ** pCode, ULONG32 * offset) = 0;
+
+
+	virtual HRESULT STDMETHODCALLTYPE SetDesiredNGENCompilerFlags(
+		/* [in] */ DWORD pdwFlags) = 0;
+
+	virtual HRESULT STDMETHODCALLTYPE GetDesiredNGENCompilerFlags(
+		/* [out] */ DWORD *pdwFlags) = 0;
+
+	virtual HRESULT STDMETHODCALLTYPE GetReferenceValueFromGCHandle(
+		/* [in] */ UINT_PTR handle,
+		/* [out] */ ICorDebugReferenceValue **pOutValue) = 0;
+
+};
+
 void CPipeServer::getAddressData(UINT64 Address)
 {
 	//Enumerate the heap, check if the address is in the heap
@@ -733,7 +771,8 @@ void CPipeServer::getAddressData(UINT64 Address)
 	DWORD bw;
 	BOOL found=FALSE;
 
-	
+
+
 	if ((CorDebugProcess5) && (CorDebugProcess5->EnumerateHeap(&pObjects)==S_OK))
 	{
 		COR_HEAPOBJECT objects[16];

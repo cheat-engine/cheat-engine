@@ -285,10 +285,10 @@ for i=1, #scriptnames do
 end
 
 local oldOnClose=sf.OnClose
-sf.OnClose=function(sender)
-  local result=caHide
+sf.OnClose=function(sender, closeAction)
+  local result=closeAction
   if oldOnClose~=nil then
-    result=oldOnClose(sender)
+    result=oldOnClose(sender, closeAction)
   end
   
   if (result==caHide) and (sender.ModalResult==mrOK) then

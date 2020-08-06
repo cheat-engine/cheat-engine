@@ -4616,8 +4616,18 @@ begin
         mode:=fmCreate;
     end;
 
-    luaclass_newClass(L, TFileStream.create(filename, mode));
-    result:=1;
+    try
+      luaclass_newClass(L, TFileStream.create(filename, mode));
+      result:=1;
+    except
+      on e:exception do
+      begin
+        lua_pushnil(L);
+        lua_pushstring(L,e.Message);
+        result:=2;
+      end;
+    end;
+
   end;
 end;
 
@@ -7746,36 +7756,61 @@ begin
     else
       merge:=false;
 
+    try
 
-    if s<>nil then //read a stream
-    begin
-      ignoreluascriptdialog:=false;
-      if parameters>=3 then
-        ignoreluascriptdialog:=lua_toboolean(L,3);
+      if s<>nil then //read a stream
+      begin
+        ignoreluascriptdialog:=false;
+        if parameters>=3 then
+          ignoreluascriptdialog:=lua_toboolean(L,3);
 
-      ReadXMLFile(doc, s);
-      loadxml(doc, merge, ignoreluascriptdialog);
-    end
-    else
-      loadtable(filename,merge);
+        ReadXMLFile(doc, s);
+        loadxml(doc, merge, ignoreluascriptdialog);
+      end
+      else
+        loadtable(filename,merge);
+
+      lua_pushboolean(L,false);
+      result:=1;
+    except
+      on e:exception do
+      begin
+        lua_pushboolean(L,false);
+        lua_pushstring(L,e.message);
+        result:=2;
+      end
+    end;
   end;
-
-  lua_pop(L, lua_gettop(L));
 end;
 
 function lua_saveTable(L: Plua_State): integer; cdecl;
 var
   filename: string;
+  s: tstream=nil;
   parameters: integer;
   protect: boolean;
   dontDeactivateDesignerForms: boolean;
+  doc: TXMLDocument;
 begin
   result:=0;
 
   parameters:=lua_gettop(L);
   if parameters>=1 then
   begin
-    filename:=Lua_ToString(L, 1);
+    if lua_isstring(L, 1) then
+    begin
+      filename:=Lua_ToString(L, 1);
+    end
+    else
+    begin
+      s:=lua_toceuserdata(L, 1);
+      if s=nil then
+        exit;
+
+      if not (s is TStream) then
+        exit;
+    end;
+
     if parameters>=2 then
       protect:=lua_toboolean(L,2)
     else
@@ -7786,10 +7821,42 @@ begin
     else
       dontDeactivateDesignerForms:=true;
 
-    savetable(filename, protect, dontDeactivateDesignerForms);
-  end;
+    if s<>nil then
+    begin
+      doc:=TXMLDocument.Create;
+      try
+        SaveXML(doc, dontDeactivateDesignerForms);
+        WriteXMLFile(doc, s);
+        lua_pushboolean(L,true);
+        result:=1;
+      except
+        on e:exception do
+        begin
+          lua_pushboolean(L,false);
+          lua_pushstring(L,e.message);
+          result:=2;
+        end
+      end;
 
-  lua_pop(L, lua_gettop(L));
+      doc.free;
+    end
+    else
+    begin
+      try
+        savetable(filename, protect, dontDeactivateDesignerForms);
+        lua_pushboolean(L,true);
+        result:=1;
+      except
+        on e:exception do
+        begin
+          lua_pushboolean(L,false);
+          lua_pushstring(L,e.message);
+          result:=2;
+        end
+      end;
+    end;
+
+  end;
 end;
 
 function lua_detachIfPossible(L: Plua_State): integer; cdecl;
@@ -8486,6 +8553,21 @@ begin
     frmLuaEngine:=TfrmLuaEngine.Create(application);
 
   luaclass_newClass(L, frmLuaEngine);
+  result:=1;
+end;
+
+
+function createLuaEngine(L:PLua_State): integer; cdecl;
+var f: TfrmLuaEngine;
+begin
+  f:=TfrmLuaEngine.Create(application);
+
+  if frmLuaEngine<>nil then
+    f.miView.Visible:=false
+  else
+    frmLuaEngine:=f;
+
+  luaclass_newClass(L, f);
   result:=1;
 end;
 
@@ -12785,6 +12867,7 @@ begin
 
     lua_register(L, 'activateProtection', activateProtection);
     lua_register(L, 'getLuaEngine', getLuaEngine);
+    lua_register(L, 'createLuaEngine', createLuaEngine);
     lua_register(L, 'getApplication', getApplication);
 
     lua_Register(L, 'stringToMD5String', lua_stringToMD5String);

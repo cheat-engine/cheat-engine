@@ -21,7 +21,8 @@ fullAccess(address,size): Changes the protection of a block of memory to writabl
 
 loadTable(filename, merge OPTIONAL): Loads a .ct or .cetrainer. If merge is provided and set to true it will not clear the old table
 loadTable(stream ,merge OPTIONAL, ignoreluascriptdialog BOOLEAN): Loads a table from a stream object
-saveTable(filename, protect OPTIONAL): Saves the current table. If protect is provided and set to true and the filename has the .CETRAINER extension, it will protect it from reading normally
+saveTable(filename, protect OPTIONAL, dontDeactivateDesignerForms OPTIONAL): Saves the current table. If protect is provided and set to true and the filename has the .CETRAINER extension, it will protect it from reading normally
+saveTable(stream, dontDeactivateDesignerForms OPTIONAL): Saves the current table to a stream object
 
 note: addresses can be strings, they will get interpreted by ce's symbolhandler
 
@@ -530,6 +531,8 @@ getCheatEngineDir(): Returns the folder Cheat Engine is located at
 getCheatEngineProcessID(): Returns the processid of cheat engine
 
 getAutorunPath() : Returns the autorun path
+getUserDocumentsPath() : Returns the path to the user documents folder. 
+
 
 disassemble(address): Disassembles the given address and returns a string in the format of "address - bytes - opcode : extra"
 splitDisassembledString(disassembledstring): Returns 4 strings. The address, bytes, opcode and extra field
@@ -564,7 +567,7 @@ unregisterFormAddNotification(Object)
 getSettingsForm(): Returns the main settings form
 getMemoryViewForm() : Returns the main memoryview form class object which can be accessed using the Form_ class methods and the methods of the classes it inherits from. There can be multiple memory views, but this will only find the original/base
 getMainForm() : Returns the main form class object which can be accessed using the Form class methods and the methods of the classes it inherits from
-getLuaEngine() : Returns the lua engine form object (Creates it if needed)
+
 getApplication() : Returns the application object. (the titlebar)
 getAddressList() : Returns the cheat table addresslist object
 getFreezeTimer() : Returns the freeze timer object
@@ -1051,6 +1054,17 @@ methods
   getDoNotSaveInTable(): Returns the DoNotSaveInTable property
   setDoNotSaveInTable(boolean): Sets the DoNotSaveInTable property
   saveCurrentStateAsDesign() : Sets the current state of the form as the state that will be saved when the table is saved
+
+
+TfrmLuaEngine class: (Inheritance: Form->ScrollingWinControl->CustomControl->WinControl->Control->Component->Object)
+getLuaEngine() : Returns the main lua engine form object (Creates it if needed)
+createLuaEngine() : Creates a new lua engine form object. If there is no main luaengine window, this will become it. 
+
+properties
+  mOutput: Memo - Output of the luaengine window
+  mScript: SynEdit - Editor for the script
+
+methods
 
 
 TfrmAutoInject class: (Inheritance: Form->ScrollingWinControl->CustomControl->WinControl->Control->Component->Object)
@@ -3054,9 +3068,14 @@ global functions
 
 properties
   Path: string - Gets/Sets the current subkey (nil if main)
-  Value[]: A table access into the settings. e.g: Value["Count"]=12
+  Value[]: A table access into the settings. e.g: Value["Count"]=12  .Setting vcalue to nil will delete it
+  [] : Same as Value[]
 
 methods
+  getBinaryValue(name, stream) : Gets binary data from the registry value. Adds it after the current 'position'
+  setBinaryValue(name, stream, size OPTIONAL) : Sets binary data in the registry value. If size is given, write from the current position. If not, or size=0, writes from position 0 to the end
+  getBinaryValue(name): bytetable
+  setBinaryValue(name, bytetable)
 
 
 

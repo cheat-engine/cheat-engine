@@ -400,7 +400,7 @@ function LaunchMonoDataCollector()
       print("UWP situation")
       local serverpipe=createPipe('cemonodc_pid'..getOpenedProcessID(), 256*1024,1024)      
       local newhandle=duplicateHandle(serverpipe.Handle)
-      serverpipe.destroy()
+      serverpipe.destroy() --the old handle is not needed anymore
       print("New pipe handle is "..newhandle)
       
       writeInteger(getAddressSafe("MDC_ServerPipe"), newhandle)      
