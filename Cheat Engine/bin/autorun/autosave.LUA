@@ -9,14 +9,14 @@ autosave={} --todo make local
 local AutoSaveSettings=getSettings('Auto Save')
 
 autosave.getPath=function()
-  --local path=AutoSaveSettings['SavePath']
-  --if (path==nil) or (path=='') then
+  local path=AutoSaveSettings['SavePath']
+  if (path==nil) or (path=='') then
   
     path=os.getenv("LOCALAPPDATA")
     if (path==nil) or (path=='') then
       path=getCheatEngineDir() --last attempt  
     end
-  --end
+  end
   
   if string.sub(path,#path)~='\\' then
     path=path..'\\'
@@ -74,7 +74,8 @@ function autosave.saveState()
   local aaforms={}
   for i=getFormCount()-1,0,-1 do --negative order so the creation order will be correct (the form order is the z-order)
     local f=getForm(i)
-    if f.ClassName=='TfrmLuaEngine' then
+   
+    if (f.ClassName=='TfrmLuaEngine') and f.Visible then      
       local e={}
       e.history=f.mOutput.Lines.Text
       e.script=f.mScript.Lines.Text
@@ -95,9 +96,9 @@ function autosave.saveState()
         table.insert(luaforms,e)
       end
       
-    elseif f.ClassName=='TfrmAutoInject' then
-      if f.IsEditing==false then --Editing means it's editing a memoryrecord saved in the table, not saving that
-        --standalone AA window
+    elseif (f.ClassName=='TfrmAutoInject') and f.Visible then
+      if (f.IsEditing==false) and (f.ScriptMode~='smLua') then --Editing means it's editing a memoryrecord saved in the table, not saving that
+        --standalone AA window, not the tablescript
         e={}
         e.script=f.Assemblescreen.Lines.Text
         e.filename=f.savedialog1.FileName
@@ -137,51 +138,66 @@ function autosave.saveState()
 end
 
 function autosave.loadState()
-  AutoSaveSettings['ProcessID']=getCheatEngineProcessID()
-  local path=autosave.getPath()..'Cheat Engine AutoSave';
+ -- print("loadState()")
   
-  r,err=loadTable(path..[[\table.ct]])
+  AutoSaveSettings['ProcessID']=getCheatEngineProcessID()
+  local path=autosave.getPath()..'Cheat Engine AutoSave\\';  
+  
+  r,err=loadTable(path..'table.ct')
   if (r==nil) or (r==false) then
     if err==nil then
       err=translate('Unknown Reason')    
     end      
     messageDialog(string.format(translate('Failure to load autosave at %s  . Error: %s'), path, err), mtError, mbOk)
-    return  
+    return false
   end
   
+  --print("Table loaded. Loading rest")
   
   --load the rest
-  local cestate,err=createFileStream(path..[[\state.dat]], fmOpenRead)
-  local i
-  local luaformcount=cestate.readDword()
-  for i=1,luaformcount do
-    local f=createLuaEngine()
-    f.mOutput.Lines.Text=cestate.readAnsiString()
-    f.mScript.Lines.Text=cestate.readAnsiString()
-    f.SaveDialog1.FileName=cestate.readAnsiString()
-    f.Left=cestate.readDword()
-    f.Top=cestate.readDword()
-    f.Width=cestate.readDword()
-    f.Height=cestate.readDword()
+  local cestate,err=createFileStream(path..[[state.dat]], fmOpenRead)
+  if cestate then  
+    local i
+    local luaformcount=cestate.readDword()
+    --print("luaformcount="..luaformcount)
+    for i=1,luaformcount do
+      local f=createLuaEngine()
+      f.mOutput.Lines.Text=cestate.readAnsiString()
+      f.mScript.Lines.Text=cestate.readAnsiString()
+      f.SaveDialog1.FileName=cestate.readAnsiString()
+      f.Left=cestate.readDword()
+      f.Top=cestate.readDword()
+      f.Width=cestate.readDword()
+      f.Height=cestate.readDword()
+      
+      f.show()     
+    end
     
-    f.show()
+    local aacount=cestate.readDword()
+    --print("aacount="..aacount)
+    for i=1,aacount do
+      f=createAutoAssemblerForm()
+      f.Assemblescreen.Lines.Text=cestate.readAnsiString()
+      f.SaveDialog1.FileName=cestate.readAnsiString()
+      f.Left=cestate.readDword()
+      f.Top=cestate.readDword()
+      f.Width=cestate.readDword()
+      f.Height=cestate.readDword()    
+      
+      f.show()
+    end
+    
+    --print("Done loading")
+    
+    
+    cestate.destroy()
+    return true
+  else
+    --print("error opening state.dat because of "..err)
+    return false
   end
   
-  local aacount=cestate.readDword()
-  for i=1,aacount do
-    f=createAutoAssemblerForm()
-    f.Assemblescreen.Lines.Text=cestate.readAnsiString()
-    f.SaveDialog1.FileName=cestate.readAnsiString()
-    f.Left=cestate.readDword()
-    f.Top=cestate.readDword()
-    f.Width=cestate.readDword()
-    f.Height=cestate.readDword()    
-    
-    f.show()
-  end
-  
-  
-  cestate.destroy()
+
 end
 
 autosave.applySettings=function()
@@ -264,9 +280,8 @@ if (pid) and (pid ~= '') and (getProcessList()[tonumber(pid)]==nil) then
   --The noted down processid does not exist anymore. CE crashed.  Ask to load the autosave
   AutoSaveSettings['ProcessID']=nil
   
-  if messageDialog(translate('Cheat Engine did not properly close last time. Do you wish to restore your work?'), mtInformation, mbYes, mbNo)==mrYyes then
-    local path=autosave.getPath()
-    
+  if messageDialog(translate('Cheat Engine did not properly close last time. Do you wish to restore your work?'), mtInformation, mbYes, mbNo)==mrYes then
+    autosave.loadState()    
   end
 end
 

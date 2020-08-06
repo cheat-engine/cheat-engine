@@ -7770,7 +7770,7 @@ begin
       else
         loadtable(filename,merge);
 
-      lua_pushboolean(L,false);
+      lua_pushboolean(L,true);
       result:=1;
     except
       on e:exception do
