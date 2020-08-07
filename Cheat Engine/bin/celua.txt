@@ -293,6 +293,9 @@ generateAOBInjectionScript(script: Tstrings, symbolname: string, address: string
 generateFullInjectionScript(script: Tstrings, address: string): Adds a Full Injection script to the given script
 
 
+getUniqueAOB(address): AOBString,Offset - Scans for a unique AOB for the given address and returns the AOB as a string, and an offset applied in case the aob returned doesn't start at the given address
+
+
 
 showMessage(text) : shows a messagebox with the given text
 inputQuery(caption, prompt, initialstring): Shows a dialog where the user can input a string. This function returns the given string, or nil on cancel
@@ -485,7 +488,6 @@ scans the currently opened process and returns a StringList object containing al
 Bytevalue of higher than 255 or anything not an integer will be seen as a wildcard
 AOBScan(aobstring): see above but here you just input one string
 AOBScanUnique(aobstring)- Integer: scans for the aobstring and returns the first result it finds and nil if nothing is found. Make sure it is unique as it will return the first result found as it will return any random match
-
 
 
 

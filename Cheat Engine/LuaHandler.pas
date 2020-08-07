@@ -10561,6 +10561,48 @@ begin
   {$ENDIF}
 end;
 
+function lua_getUniqueAOB(L:PLua_state): integer; cdecl;
+var
+  address: ptruint;
+  mi: TModuleInfo;
+  offset: integer;
+  r: string;
+  codesize: integer;
+
+  ca: ptruint;
+  x: string;
+begin
+  result:=0;
+  if lua_gettop(L)>=1 then
+  begin
+    address:=lua_tointeger(L,1);
+    if lua_gettop(L)>=2 then
+      codesize:=lua_tointeger(L,2)
+    else
+    begin
+      //no codesize given, calculate the number of bytes needed to put a 5 byte jmp in here. (make sure to use 3th alloc param, bitch please if you don't)
+      codesize:=0;
+      ca:=address;
+      while (ca-address)<5 do
+        disassemble(ca,x);
+
+      codesize:=ca-address;
+    end;
+
+    if address<>0 then
+    begin
+      mi.baseaddress:=0;
+      symhandler.getmodulebyaddress(address,mi);
+
+      r:=GetUniqueAOB(mi,address,codesize,offset);
+
+      lua_pushstring(L,r);
+      lua_pushinteger(L,offset);
+      result:=2;
+    end;
+  end;
+
+end;
 
 function lua_registerAutoAssemblerTemplate(L:PLua_state): integer; cdecl;
 var
@@ -12920,6 +12962,7 @@ begin
 
     lua_register(L, 'registerAutoAssemblerTemplate', lua_registerAutoAssemblerTemplate);
     lua_register(L, 'unregisterAutoAssemblerTemplate', lua_unregisterAutoAssemblerTemplate);
+    lua_register(L, 'getUniqueAOB', lua_getUniqueAOB);
 
     lua_register(L, 'generateCodeInjectionScript', lua_GenerateCodeInjectionScript);
     lua_register(L, 'generateAOBInjectionScript', lua_GenerateAOBInjectionScript);
@@ -13060,6 +13103,8 @@ begin
     initializeLuaCodeFilter;
     initializeLuaSynEdit;
     initializeLuaCustomImageList;
+
+
 
 
 

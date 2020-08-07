@@ -469,7 +469,7 @@ implementation
 {$ifdef jni}
 uses processhandlerunit, Parsers;
 {$else}
-uses mainunit, addresslist, formsettingsunit, LuaHandler, lua, lauxlib, lualib,
+uses mainunit, addresslist, formsettingsunit, LuaHandler, lua, lauxlib, lualib, Contnrs,
   processhandlerunit, Parsers, {$ifdef windows}winsapi,{$endif}autoassembler, globals{$ifdef windows}, cheatecoins{$endif};
 {$endif}
 
@@ -3093,13 +3093,16 @@ var
 
   mr: TMemoryRecord;
 
-  unparsedvalue: string;
+  unparsedvalue, parsedvalue: string;
   check: boolean;
 
   oldluatop: integer;
   vpe: boolean;
 
   setvaluescript: Tstringlist;
+
+  usesMath: boolean;
+  lastBraceOpen: integer;
 begin
   //check if it is a '(description)' notation
 
@@ -3110,16 +3113,79 @@ begin
     v:=trim(v);
 
     {$IFNDEF jni}
-    if (length(v)>2) and (v[1]='(') and (v[length(v)]=')') then
+
+    if vartype in [vtByte..vtDouble, vtCustom] then
     begin
-      //yes, it's a (description)
-      temps:=copy(v, 2,length(v)-2);
-      //search the addresslist for a entry with name (temps)
+      //numeric type: scan for (...) and replace it with the apropriate values
+      //then apply the magic of math/lua to the what is left  (assuming math is used, which is found out during the first pass scan)
+      usesmath:=false;
 
-      mr:=TAddresslist(fOwner).getRecordWithDescription(temps);
-      if mr<>nil then
-        v:=mr.GetValue;
+      if (length(v)>1) and (v[1]<>'[') then //not a legacy lua specific value
+      begin
+        lastBraceOpen:=0;
+        parsedvalue:='';
+        i:=1;
+        while i<=length(v) do
+        begin
+          case v[i] of
+            '(':
+            begin
+              if lastBraceOpen>0 then usesMath:=true;
 
+              lastBraceOpen:=i;
+            end;
+
+            ')':
+            begin
+              if lastBraceOpen>0 then
+              begin
+                temps:=copy(v,lastBraceOpen+1,i-lastBraceOpen-1);
+
+
+
+                mr:=TAddresslist(fOwner).getRecordWithDescription(temps);
+                if mr<>nil then
+                begin
+                  //replace the (memrecdescription) with the memrecvalue
+                  temps:=mr.getValue;
+                  v:=copy(v,1,lastBraceOpen-1)+temps+copy(v,i+1);
+                  i:=lastBraceOpen+length(temps);
+                  lastBraceOpen:=0;
+                  continue;
+                end
+                else
+                  usesMath:=true;
+
+
+                lastBraceOpen:=0;
+              end else usesMath:=true; //weird math that I don't get and should fail, but whatever...
+            end;
+
+
+            '-','+','/','*': usesMath:=true;
+
+          end;
+          inc(i);
+        end;
+
+        if usesmath then
+          v:='['+v+']'; //send it to the lua parser
+      end;
+    end
+    else
+    begin
+      //not an integer type, can still use the notation though
+      if (length(v)>2) and (v[1]='(') and (v[length(v)]=')') then
+      begin
+        //yes, it's a (description)
+        temps:=copy(v, 2,length(v)-2);
+        //search the addresslist for a entry with name (temps)
+
+        mr:=TAddresslist(fOwner).getRecordWithDescription(temps);
+        if mr<>nil then
+          v:=mr.GetValue;
+
+      end;
     end;
     {$ENDIF}
   end;
