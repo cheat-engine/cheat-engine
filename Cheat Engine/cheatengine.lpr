@@ -113,7 +113,7 @@ uses
   LuaDiagramLink, diagramlink, BreakpointTypeDef, frmFoundlistPreferencesUnit,
   LuaHeaderSections, frmDebuggerAttachTimeoutUnit, cheatecoins,
   frmMicrotransactionsUnit, frmSyntaxHighlighterEditor, LuaCustomImageList,
-  dotnethost, rttihelper, cefreetype;
+  dotnethost, rttihelper, cefreetype, LuaDotNetPipe;
 
 {$R cheatengine.res}
 {$IFDEF windows}

@@ -1303,34 +1303,40 @@ const
 var procbased1flags: DWORD;
 begin
   {$ifdef windows}
-  result:=isDBVMCapable; //assume yes until proven otherwise
+  try
+    result:=isDBVMCapable; //assume yes until proven otherwise
 
-  //check if it can use EPT tables in dbvm:
-  //first get the basic msr to see if TRUE procbasedctrls need to be used or old
-  if assigned(isDriverLoaded) and isDriverLoaded(nil) then
-  begin
-    if isintel then
+    //check if it can use EPT tables in dbvm:
+    //first get the basic msr to see if TRUE procbasedctrls need to be used or old
+    if assigned(isDriverLoaded) and isDriverLoaded(nil) then
     begin
-      result:=false;
-      if (readMSR(IA32_VMX_BASIC_MSR) and (1 shl 55))<>0 then
-        procbased1flags:=readMSR(IA32_VMX_TRUE_PROCBASED_CTLS_MSR) shr 32
-      else
-        procbased1flags:=readMSR(IA32_VMX_PROCBASED_CTLS_MSR) shr 32;
-
-      //check if it has secondary procbased flags
-      if (procbased1flags and (1 shl 31))<>0 then
+      if isintel then
       begin
-        //yes, check if EPT can be set to 1
-        if ((readMSR(IA32_VMX_PROCBASED_CTLS2_MSR) shr 32) and (1 shl 1))<>0 then
-          result:=true;
+        result:=false;
+        if (readMSR(IA32_VMX_BASIC_MSR) and (1 shl 55))<>0 then
+          procbased1flags:=readMSR(IA32_VMX_TRUE_PROCBASED_CTLS_MSR) shr 32
+        else
+          procbased1flags:=readMSR(IA32_VMX_PROCBASED_CTLS_MSR) shr 32;
+
+        //check if it has secondary procbased flags
+        if (procbased1flags and (1 shl 31))<>0 then
+        begin
+          //yes, check if EPT can be set to 1
+          if ((readMSR(IA32_VMX_PROCBASED_CTLS2_MSR) shr 32) and (1 shl 1))<>0 then
+            result:=true;
+        end;
+
       end;
 
+      if isamd then
+      begin
+
+      end;
     end;
 
-    if isamd then
-    begin
-
-    end;
+  except
+    //readMSR will error out if ran inside a virtual machine
+    result:=false;
   end;
   //else
   //  result:=result and isRunningDBVM;

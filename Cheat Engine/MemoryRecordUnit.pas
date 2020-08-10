@@ -8,7 +8,7 @@ interface
 uses
   Windows, forms, graphics, Classes, SysUtils, controls, stdctrls, comctrls,symbolhandler,
   cefuncproc,newkernelhandler, hotkeyhandler, dom, XMLRead,XMLWrite,
-  customtypehandler, fileutil, LCLProc, commonTypeDefs, pointerparser, LazUTF8, LuaClass;
+  customtypehandler, fileutil, LCLProc, commonTypeDefs, pointerparser, LazUTF8, LuaClass, math;
 {$endif}
 
 {$ifdef darwin}
@@ -166,7 +166,7 @@ type
     fDescription : string;
     fOptions: TMemrecOptions;
 
-    CustomType: TCustomType;
+    fCustomType: TCustomType;
     fCustomTypeName: string;
     fColor: TColor;
     fVisible: boolean;
@@ -305,6 +305,7 @@ type
 
     function GetDisplayValue: string;
     function GetValue: string;
+
     procedure SetValue(v: string); overload;
     procedure SetValue(v: string; isFreezer: boolean); overload;
     procedure UndoSetValue;
@@ -372,6 +373,7 @@ type
     property Active: boolean read fActive write setActive;
     property VarType: TVariableType read fVarType write setVarType;
     property CustomTypeName: string read fCustomTypeName write setCustomTypeName;
+    property CustomType: TCustomType read fCustomType;
     property Value: string read GetValue write SetValue;
     property DisplayValue: string read GetDisplayValue;
     property DontSave: boolean read fDontSave write fDontSave;
@@ -2726,7 +2728,7 @@ end;
 procedure TMemoryRecord.RefreshCustomType;
 begin
   if vartype=vtCustom then
-    CustomType:=GetCustomTypeFromName(fCustomTypeName);
+    fCustomType:=GetCustomTypeFromName(fCustomTypeName);
 end;
 
 function TMemoryRecord.ReinterpretAddress(forceremovalofoldaddress: boolean=false): boolean;
@@ -2921,6 +2923,7 @@ begin
   end;
 end;
 
+
 function TMemoryRecord.GetValue: string;
 var
   br: PtrUInt;
@@ -2969,14 +2972,14 @@ begin
     case vartype of
       vtCustom:
       begin
-        if customtype<>nil then
+        if fcustomtype<>nil then
         begin
-          if customtype.scriptUsesFloat then
-            result:=FloatToStr(customtype.ConvertDataToFloat(buf, RealAddress))
+          if fcustomtype.scriptUsesFloat then
+            result:=FloatToStr(fcustomtype.ConvertDataToFloat(buf, RealAddress))
           else
-            if showashex         then result:=inttohex(customtype.ConvertDataToInteger(buf, RealAddress),8) 
-            else if showassigned then result:=inttostr(integer(customtype.ConvertDataToInteger(buf, RealAddress)))
-            else                      result:=inttostr(dword(customtype.ConvertDataToInteger(buf, RealAddress)));
+            if showashex         then result:=inttohex(fcustomtype.ConvertDataToInteger(buf, RealAddress),8) 
+            else if showassigned then result:=inttostr(integer(fcustomtype.ConvertDataToInteger(buf, RealAddress)))
+            else                      result:=inttostr(dword(fcustomtype.ConvertDataToInteger(buf, RealAddress)));
         end
         else
           result:=rsError;
@@ -3083,6 +3086,8 @@ var
   c: PChar absolute buf;
   originalprotection: dword;
 
+  v64: qword;
+
   bts: TBytes;
   mask: qword;
   temp: qword;
@@ -3148,6 +3153,31 @@ begin
                 begin
                   //replace the (memrecdescription) with the memrecvalue
                   temps:=mr.getValue;
+                  if mr.ShowAsHex then
+                  begin
+                    temps:='0x'+temps;
+
+                    if VarType in [vtSingle, vtDouble, vtCustom] then
+                    begin
+                      if (vartype<>vtCustom) or (fcustomtype.scriptUsesFloat) then
+                      begin
+                        //handle it as an actual float(why the fuck would anyone put a float as hex...)
+                        try
+                          v64:=strtoint64(temps);
+                          buf:=@v64;
+
+                          if vartype in [vtSingle, vtCustom] then
+                            temps:=FloatToStr(ps^)
+                          else
+                            temps:=FloatToStr(pd^);
+                        except
+
+                          //ugh...  whatever
+                        end;
+                      end;
+                    end;
+                  end;
+
                   v:=copy(v,1,lastBraceOpen-1)+temps+copy(v,i+1);
                   i:=lastBraceOpen+length(temps);
                   lastBraceOpen:=0;
@@ -3278,12 +3308,12 @@ begin
     case VarType of
       vtCustom:
       begin
-        if customtype<>nil then
+        if fcustomtype<>nil then
         Begin
-          if customtype.scriptUsesFloat then
-            customtype.ConvertFloatToData(StrToFloatEx(currentValue), ps, RealAddress)
+          if fcustomtype.scriptUsesFloat then
+            fcustomtype.ConvertFloatToData(StrToFloatEx(currentValue), ps, RealAddress)
           else
-            customtype.ConvertIntegerToData(strtoint(currentValue), pdw, RealAddress);
+            fcustomtype.ConvertIntegerToData(strtoint(currentValue), pdw, RealAddress);
 
         end;
       end;

@@ -2375,7 +2375,6 @@ object MainForm: TMainForm
       end
       object miLoadRecent: TMenuItem
         Caption = 'Load Recent'
-        OnClick = miLoadRecentClick
       end
       object miSignTable: TMenuItem
         Caption = 'Sign table'

@@ -124,7 +124,7 @@ uses autoassembler, MainUnit, MainUnit2, LuaClass, frmluaengineunit, plugin, plu
   LuaManualModuleLoader, pointervaluelist, frmEditHistoryUnit, LuaCheckListBox,
   LuaDiagram, frmUltimap2Unit, frmcodefilterunit, BreakpointTypeDef, LuaSyntax,
   LazLogger, LuaSynedit, LuaRIPRelativeScanner, LuaCustomImageList ,ColorBox,
-  rttihelper;
+  rttihelper, LuaDotNetPipe;
 
   {$warn 5044 off}
 
@@ -13103,6 +13103,7 @@ begin
     initializeLuaCodeFilter;
     initializeLuaSynEdit;
     initializeLuaCustomImageList;
+    initializeLuaDotNetPipe;
 
 
 

@@ -2057,6 +2057,7 @@ properties
   CustomTypeName: String - If the type is vtCustom this will contain the name of the CustomType
   Script: String - If the type is vtAutoAssembler this will contain the auto assembler script
   Value: string - The value in stringform.
+  NumericalValue: number - The value in numerical form.  nil if it can not be parsed to a number
   Selected: boolean - Set to true if selected (ReadOnly)
   Active: boolean - Set to true to activate/freeze, false to deactivate/unfreeze
   Color: integer
@@ -3541,6 +3542,24 @@ properties
 
 methods
   getLog(): table - Returns an indexed table with the write logs. each entry has a table with the fields: address, original and new
+
+
+DotNetDataCollector class
+getDotNetDataCollector() - Returns the current dotnetdatacollector object
+
+properties
+Attached: boolean - Returns true if attached to a process
+
+
+methods
+EnumDomains(): table - Returns an index table containing all domains. Each entry is build up as {DomainHandle, name}
+EnumModuleList(DomainHandle) : table - Returns an indexed table containing information about all modules. Each module entry is build up as {ModuleHandle, BaseAddress, Name}
+EnumTypeDefs(ModuleHandle) : table - Returns an indexed table containing information about all TypeDefs (classes) . Each entry is build up as {TypeDefToken, Name, Flags, Extends}
+GetTypeDefMethods(ModuleHandle, TypedefToken) : table - Returns a table containing all the methods in the specified typedef. Each entry is build up as {MethodToken, Name, Attributes, ImplementationFlags, ILCode, NativeCode, SecondaryNativeCode[]: Integer)
+GetAddressData(address): table - Queries a specific address and returns information about it, assuming it is a valid object. It contains the following data: {StartAddress, ObjectType, ElementType, CountOffset, ElementSize, FirstElementOffset, ClassName, Fields[]{Offset, FieldType, Name} }
+
+EnumAllObjects(): table - Queries ALL defined objects. {StartAddress, Size, TypeID{token1,token2}, ClassName}
+
 
 
 

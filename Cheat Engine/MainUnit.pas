@@ -566,7 +566,6 @@ type
     procedure Label3Click(Sender: TObject);
     procedure MenuItem12Click(Sender: TObject);
     procedure MenuItem15Click(Sender: TObject);
-    procedure miLoadRecentClick(Sender: TObject);
     procedure miFoundListPreferencesClick(Sender: TObject);
     procedure miAutoAssembleErrorMessageClick(Sender: TObject);
     procedure miHelpClick(Sender: TObject);
@@ -3539,10 +3538,6 @@ begin
   end;
 end;
 
-procedure TMainForm.miLoadRecentClick(Sender: TObject);
-begin
-
-end;
 
 procedure TMainForm.miFoundListPreferencesClick(Sender: TObject);
 var
@@ -10440,9 +10435,15 @@ begin
 end;
 
 procedure TMainForm.RecentFilesClick(Sender:TObject);
+var filename: string;
 begin
   if CheckIfSaved then
-    LoadTable(RecentFiles[tmenuitem(sender).Tag],false);
+  begin
+    filename:=RecentFiles[tmenuitem(sender).Tag];
+    LoadTable(filename,false);
+    SaveDialog1.FileName:=filename;
+    OpenDialog1.FileName:=filename;
+  end;
 end;
 
 procedure TMainForm.File1Click(Sender: TObject);

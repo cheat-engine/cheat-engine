@@ -124,7 +124,7 @@ type
     procedure GetAddressData(address: UINT64; var addressdata: TAddressData);
     function EnumAllObjects: TDOTNETObjectList;
     procedure freeNETObjectList(list: TDOTNETObjectList);
-
+  published
     property Connected: boolean read fConnected;
     property Attached: boolean read fAttached;
     property SupportsDotNet4_5: boolean read fSupportsDotNet4_5;
@@ -782,5 +782,7 @@ begin
   inherited destroy;
 end;
 
+
 end.
+
 

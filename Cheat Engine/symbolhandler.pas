@@ -328,6 +328,7 @@ type
 
     function getAddressFromNameShallow(name: string; waitforsymbols: boolean; out haserror: boolean):ptrUint;
 
+    function getDotNetDataCollector: TDotNetPipe;
     function getDotNetObjectList: TDOTNETObjectList;
     procedure freeDotNetObjectList(list: TDOTNETObjectList);
 
@@ -3040,6 +3041,11 @@ begin
     result:=false; //no error
 
   symbolloadervalid.endread;
+end;
+
+function TSymhandler.getDotNetDataCollector: TDotNetPipe;
+begin
+  result:=dotNetDataCollector;
 end;
 
 function TSymhandler.getDotNetAccess: boolean;
