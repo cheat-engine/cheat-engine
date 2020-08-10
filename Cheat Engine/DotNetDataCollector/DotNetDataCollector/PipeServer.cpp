@@ -141,7 +141,7 @@ BOOL CPipeServer::OpenOrAttachToProcess(void)
 		WCHAR *basepath = L"C:\\Program Files\\dotnet\\shared\\Microsoft.NETCore.App\\";
 #else
 		//search in c:\]Program Files (x86)]\dotnet]\shared]\Microsoft.NETCore.App\\ for the highest version
-		WCHAR *basepath = L"C:\\Program Files\\dotnet\\shared\\Microsoft.NETCore.App\\";
+		WCHAR *basepath = L"C:\\Program Files (x86)\\dotnet\\shared\\Microsoft.NETCore.App\\";
 #endif
 		WCHAR searchpath[MAX_PATH];
 		WIN32_FIND_DATAW ffd;

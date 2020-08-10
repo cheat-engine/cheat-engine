@@ -338,6 +338,8 @@ begin
       lua_settable(L,-3);
 
       lua_settable(L,-3); //set entry to index
+
+      mi.Next;
     end;
 
     result:=1;  //return the table

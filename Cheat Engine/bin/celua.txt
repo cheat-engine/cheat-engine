@@ -3558,7 +3558,7 @@ EnumTypeDefs(ModuleHandle) : table - Returns an indexed table containing informa
 GetTypeDefMethods(ModuleHandle, TypedefToken) : table - Returns a table containing all the methods in the specified typedef. Each entry is build up as {MethodToken, Name, Attributes, ImplementationFlags, ILCode, NativeCode, SecondaryNativeCode[]: Integer)
 GetAddressData(address): table - Queries a specific address and returns information about it, assuming it is a valid object. It contains the following data: {StartAddress, ObjectType, ElementType, CountOffset, ElementSize, FirstElementOffset, ClassName, Fields[]{Offset, FieldType, Name} }
 
-EnumAllObjects(): table - Queries ALL defined objects. {StartAddress, Size, TypeID{token1,token2}, ClassName}
+EnumAllObjects(): table - Queries ALL defined objects. {StartAddress, Size, TypeID{token1,token2}, ClassName}   WARNING: This will take a LOOOOOONG time and if done from the main thread will make it look like CE is frozen
 
 
 

@@ -199,7 +199,9 @@ begin
       o.classname[stringlength div 2]:=#0;
 
       if (o.startaddress=0) and (o.size=0) and (o.typeid.token1=0) and (o.typeid.token2=0) and (stringlength=0) then //end of list marker
+      begin
         break;
+      end;
 
 
       r.Add(o.startaddress,o);

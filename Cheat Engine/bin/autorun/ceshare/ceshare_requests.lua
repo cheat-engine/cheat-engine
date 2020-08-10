@@ -63,7 +63,7 @@ function ceshare.createRequestPanel(request)
       adjustby=-1
     end
       
-    r=ceshare.QueryXURL('SetRequestScore.php', 'id='..request.ID..'&adjustscoreby='..adjustby)
+    local r=ceshare.QueryXURL('SetRequestScore.php', 'id='..request.ID..'&adjustscoreby='..adjustby)
     if r then
       request.Score=request.Score+adjustby --I could have used a return value from the server, but just showing of an example of a server sided value showing up as if it worked... (And yes, I am talking to you)
       lblScore.Caption=translate('Score=')..request.Score
@@ -111,7 +111,7 @@ function ceshare.RequestForCheatsClick(s)
       f.Caption=translate('Requests')
       
       f.btnSend.OnClick=function(s)
-        r=ceshare.QueryXURL('AddRequest.php', 'processname='..ceshare.url_encode(process)..'&note='..ceshare.url_encode(ceshare.RequestsFrm.mMessage.Lines.Text))
+        local r=ceshare.QueryXURL('AddRequest.php', 'processname='..ceshare.url_encode(process)..'&note='..ceshare.url_encode(ceshare.RequestsFrm.mMessage.Lines.Text))
         if r then        
           ceshare.RequestForCheatsClick(s)          
         end      

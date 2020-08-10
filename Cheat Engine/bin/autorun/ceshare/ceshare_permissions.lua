@@ -36,7 +36,7 @@ function ceshare.ManageAccessList(entry)
       if newy~='' then f.top=newy end
     end
     
-    r=ceshare.QueryXURL('QueryAccessList.php','id='..entry.ID)
+    local r=ceshare.QueryXURL('QueryAccessList.php','id='..entry.ID)
     
     ceshare.PermissionsFrm.lblId.Caption=entry.ID
     ceshare.PermissionsFrm.lbltitle.Caption=entry.Title
@@ -73,7 +73,7 @@ function ceshare.ManageAccessList(entry)
           parameters=parameters..'&users['..i..']='..ceshare.url_encode(ceshare.PermissionsFrm.lbUsernames.Items[i-1])
         end
         
-        r=ceshare.QueryXURL('SetAccessList.php',parameters)
+        local r=ceshare.QueryXURL('SetAccessList.php',parameters)
         if r then
           showMessage(translate('Access has been updated'));
         end
@@ -88,7 +88,7 @@ function ceshare.getPermissions(entry, skipError)
   if entry==nil then return end
   entry.Permissions=nil
   
-  r=ceshare.QueryXURL('CheckPermissions.php','id='..entry.ID, skipError)
+  local r=ceshare.QueryXURL('CheckPermissions.php','id='..entry.ID, skipError)
   if r then
     if r.Permissions then
       entry.Permissions={}
