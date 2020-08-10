@@ -10561,6 +10561,18 @@ begin
   {$ENDIF}
 end;
 
+function lua_getNextAllocNumber(L:PLua_state): integer; cdecl;
+var script: TStrings;
+begin
+  result:=0;
+  if lua_gettop(L)>=1 then
+  begin
+    script:=lua_ToCEUserData(L,1);
+    lua_pushinteger(L, GetNextAllocNumber(script));
+    result:=1;
+  end;
+end;
+
 function lua_getUniqueAOB(L:PLua_state): integer; cdecl;
 var
   address: ptruint;

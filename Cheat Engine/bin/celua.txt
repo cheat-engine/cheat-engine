@@ -288,11 +288,11 @@ registerAutoAssemblerTemplate(name, function(script: TStrings; sender: TFrmAutoI
 unregisterAutoAssemblerTemplate(ID)
 
 
-generateCodeInjectionScript(script: Tstrings, address: string): Adds a default codeinjection script to the given script
-generateAOBInjectionScript(script: Tstrings, symbolname: string, address: string): Adds an AOB injection script to the given script
-generateFullInjectionScript(script: Tstrings, address: string): Adds a Full Injection script to the given script
+generateCodeInjectionScript(script: Tstrings, address: string) - Adds a default codeinjection script to the given script
+generateAOBInjectionScript(script: Tstrings, symbolname: string, address: string) - Adds an AOB injection script to the given script
+generateFullInjectionScript(script: Tstrings, address: string) - Adds a Full Injection script to the given script
 
-
+getNextAllocNumber(script: TStrings): integer - scans the given script for alloc(newmem## and returns the next unused newmem number)
 getUniqueAOB(address): AOBString,Offset - Scans for a unique AOB for the given address and returns the AOB as a string, and an offset applied in case the aob returned doesn't start at the given address
 
 

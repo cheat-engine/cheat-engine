@@ -247,6 +247,7 @@ function registerAutoAssemblerTemplate(name: string; m: TAutoAssemblerTemplateCa
 procedure unregisterAutoAssemblerTemplate(id: integer);
 
 function GetUniqueAOB(mi: TModuleInfo; address: ptrUint; codesize: Integer; var resultOffset: Integer) : string;
+function GetNextAllocNumber(script: tstrings): integer;
 
 
 procedure ReloadAllAutoInjectHighlighters;
@@ -802,24 +803,7 @@ begin
 
   c:=a;
 
-  injectnr:=0;
-  for i:=0 to script.Count-1 do
-  begin
-    j:=pos('alloc(newmem',lowercase(script[i]));
-    if j<>0 then
-    begin
-      x:=copy(script[i],j+12,length(script[i]));
-      x:=copy(x,1,pos(',',x)-1);
-      try
-        k:=strtoint(x);
-        if injectnr<=k then
-          injectnr:=k+1;
-      except
-        inc(injectnr);
-      end;
-    end;
-  end;
-
+  injectnr:=GetNextAllocNumber(script);
 
   //disassemble the old code
   setlength(originalcode,0);
@@ -2224,6 +2208,39 @@ begin
   assemblescreen.Undo;
 end;
 
+function GetNextAllocNumber(Script: TStrings): integer;
+var
+  i,j: integer;
+  injectnr: integer;
+  x: string;
+begin
+  result:=0;
+  for i:=0 to script.Count-1 do
+  begin
+    x:=lowercase(trim(script[i]));
+
+    if copy(x,1,12)='alloc(newmem' then
+    begin
+      x:=copy(x,13,pos(',',x)-13);
+      try
+        if x='' then
+        begin
+          if result=0 then
+            result:=2
+        end
+        else
+        begin
+          j:=strtoint(x);
+          if result<=j then
+            result:=j+1;
+        end;
+      except
+        inc(result);
+      end;
+    end;
+  end;
+end;
+
 // \/   http://forum.cheatengine.org/viewtopic.php?t=566415 (jgoemat and some mods by db)
 procedure GenerateFullInjectionScript(Script: tstrings; address: string);
 var
@@ -2273,23 +2290,7 @@ begin
 
 
   c:=a;
-  injectnr:=0;
-  for i:=0 to script.Count-1 do
-  begin
-    j:=pos('alloc(newmem',lowercase(script[i]));
-    if j<>0 then
-    begin
-      x:=copy(script[i],j+12,length(script[i]));
-      x:=copy(x,1,pos(',',x)-1);
-      try
-        k:=strtoint(x);
-        if injectnr<=k then
-          injectnr:=k+1;
-      except
-        inc(injectnr);
-      end;
-    end;
-  end;
+  injectnr:=GetNextAllocNumber(script);
   if injectnr = 0 then nr := '' else nr := sysutils.IntToStr(injectnr);
 
 
@@ -2590,23 +2591,7 @@ begin
   symhandler.getmodulebyaddress(a,mi);
 
   c:=a;
-  injectnr:=0;
-  for i:=0 to script.Count-1 do
-  begin
-    j:=pos('alloc(newmem',lowercase(script[i]));
-    if j<>0 then
-    begin
-      x:=copy(script[i],j+12,length(script[i]));
-      x:=copy(x,1,pos(',',x)-1);
-      try
-        k:=strtoint(x);
-        if injectnr<=k then
-          injectnr:=k+1;
-      except
-        inc(injectnr);
-      end;
-    end;
-  end;
+  injectnr:=GetNextAllocNumber(script);
   if injectnr = 0 then nr := '' else nr := sysutils.IntToStr(injectnr);
 
 
@@ -2816,23 +2801,7 @@ begin
 
   if inputquery(rsCodeInjectTemplate, rsOnWhatAddressDoYouWantTheJump, address) then
   begin
-    injectnr:=0;
-    for i:=0 to assemblescreen.Lines.Count-1 do
-    begin
-      j:=pos('alloc(newmem',lowercase(assemblescreen.lines[i]));
-      if j<>0 then
-      begin
-        x:=copy(assemblescreen.Lines[i],j+12,length(assemblescreen.Lines[i]));
-        x:=copy(x,1,pos(',',x)-1);
-        try
-          k:=strtoint(x);
-          if injectnr<=k then
-            injectnr:=k+1;
-        except
-          inc(injectnr);
-        end;
-      end;
-    end;
+    injectnr:=GetNextAllocNumber(assemblescreen.lines);
     if injectnr = 0 then nr := '' else nr := sysutils.IntToStr(injectnr);
 
     symbolname:='INJECT'+nr;
