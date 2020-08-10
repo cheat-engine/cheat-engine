@@ -10561,6 +10561,27 @@ begin
   {$ENDIF}
 end;
 
+function lua_AddSnapshotAsComment(L:PLua_state): integer; cdecl;
+var
+  script: TStrings;
+  address: ptruint;
+  radius: integer;
+begin
+  result:=0;
+  if lua_gettop(L)>=2 then
+  begin
+    script:=lua_ToCEUserData(L,1);
+    address:=lua_tointeger(L,2);
+    if lua_gettop(L)>=3 then
+      radius:=lua_tointeger(L,3)
+    else
+      radius:=10;
+
+    AddSnapshotAsComment(script, address, radius);
+    result:=1;
+  end;
+end;
+
 function lua_getNextAllocNumber(L:PLua_state): integer; cdecl;
 var script: TStrings;
 begin
@@ -10702,6 +10723,7 @@ function lua_GenerateAOBInjectionScript(L: PLua_state): integer; cdecl;
 var
   script: TStrings;
   address, symbolname: string;
+  lineCountToCopy: integer;
 begin
   result:=0;
   if lua_gettop(L)>=2 then
@@ -10714,9 +10736,13 @@ begin
     else
       address:=inttohex(MemoryBrowser.disassemblerview.SelectedAddress,8);
 
+    if lua_gettop(L)>=4 then
+      lineCountToCopy:=lua_tointeger(L,4)
+    else
+      linecountToCopy:=20;
 
     try
-      GenerateAOBInjectionScript(script, address, symbolname);
+      GenerateAOBInjectionScript(script, address, symbolname, lineCountToCopy);
       lua_pushboolean(L,true);
       result:=1;
     except
@@ -10728,6 +10754,7 @@ function lua_GenerateFullInjectionScript(L: PLua_state): integer; cdecl;
 var
   script: TStrings;
   address: string;
+  lineCountToCopy: integer;
 begin
   result:=0;
   if lua_gettop(L)>=1 then
@@ -10739,8 +10766,13 @@ begin
     else
       address:=inttohex(MemoryBrowser.disassemblerview.SelectedAddress,8);
 
+    if lua_gettop(L)>=3 then
+      lineCountToCopy:=lua_tointeger(L,3)
+    else
+      linecountToCopy:=20;
+
     try
-      GenerateFullInjectionScript(script, address);
+      GenerateFullInjectionScript(script, address, lineCountToCopy);
       lua_pushboolean(L,true);
       result:=1;
     except

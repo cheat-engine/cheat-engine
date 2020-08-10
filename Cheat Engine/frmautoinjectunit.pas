@@ -240,14 +240,15 @@ type
 procedure Getjumpandoverwrittenbytes(address,addressto: ptrUINT; jumppart,originalcodepart: tstrings);
 procedure generateAPIHookScript(script: tstrings; address: string; addresstogoto: string; addresstostoreneworiginalfunction: string=''; nameextension:string='0'; targetself: boolean=false);
 procedure GenerateCodeInjectionScript(script: tstrings; addressstring: string);
-procedure GenerateAOBInjectionScript(script: TStrings; address: string; symbolname: string);
-procedure GenerateFullInjectionScript(Script: tstrings; address: string);
+procedure GenerateAOBInjectionScript(script: TStrings; address: string; symbolname: string; commentradius: integer=10);
+procedure GenerateFullInjectionScript(Script: tstrings; address: string; commentradius: integer=10);
 
 function registerAutoAssemblerTemplate(name: string; m: TAutoAssemblerTemplateCallback; shortcut: TShortCut=0): integer;
 procedure unregisterAutoAssemblerTemplate(id: integer);
 
 function GetUniqueAOB(mi: TModuleInfo; address: ptrUint; codesize: Integer; var resultOffset: Integer) : string;
 function GetNextAllocNumber(script: tstrings): integer;
+procedure AddSnapshotAsComment(script: tstrings; address: ptruint; radius: integer=10);
 
 
 procedure ReloadAllAutoInjectHighlighters;
@@ -2208,6 +2209,106 @@ begin
   assemblescreen.Undo;
 end;
 
+procedure AddSnapshotAsComment(script: TStrings; address: ptruint; radius: integer=10);
+var
+  i,j: integer;
+  a: ptruint;
+  s,tmps: string;
+  addressString: string;
+  bytesString: string;
+  opcodeString: string;
+  specialString: string;
+
+
+  addresslist: Tstringlist;
+  byteslist: TStringlist;
+  codelist: TStringList;
+  maxBytesSize: integer;
+  addressLinenr: integer;
+
+  d: TDisassembler;
+
+begin
+  script.Add('');
+  script.Add('{');
+  script.Add('// ORIGINAL CODE - INJECTION POINT: ' + symhandler.getNameFromAddress(address) );
+  script.Add('');
+
+  maxBytesSize := 0;
+
+
+  d:=TDisassembler.Create;
+  d.showmodules:=symhandler.showmodules;
+  d.showsymbols:=symhandler.showsymbols;
+  d.showsections:=symhandler.showsections;
+
+  addresslist:=tstringlist.create;
+  byteslist:=tstringlist.create;
+  codelist:=tstringlist.create;
+
+  try
+    a:=address;
+
+    for i:=1 to radius do
+      a:=previousopcode(a);
+
+    addressLinenr:=radius; //usually good enough
+
+    for i:=1 to radius*2+1 do
+    begin
+      addressString:=symhandler.getNameFromAddress(a);
+      s:=d.disassemble(a, tmps);
+      splitDisassembledString(s,false,tmps, bytesString, opcodeString,specialString);
+
+      bytesstring:='';
+      if (a>address) and (d.LastDisassembleData.address<address) then
+      begin
+        //cut it into bytes
+        opcodeString:='db ';
+
+        setlength(d.LastDisassembleData.Bytes,length(d.LastDisassembleData.Bytes)-(a-address));
+        for j:=0 to length(d.LastDisassembleData.Bytes)-1 do
+        begin
+          opcodeString:=opcodeString+inttohex(d.LastDisassembleData.Bytes[j],2)+' ';
+          bytesstring:=bytesString+inttohex(d.LastDisassembleData.Bytes[j],2)+' ';
+        end;
+
+        a:=address;
+      end
+      else
+      begin
+        for j:=0 to length(d.LastDisassembleData.Bytes)-1 do
+          bytesstring:=bytesString+inttohex(d.LastDisassembleData.Bytes[j],2)+' ';
+      end;
+
+
+
+      addressList.add(addressString);
+      bytesList.add(bytesstring);
+      codeList.add(opcodeString);
+
+      maxBytesSize:=max(length(bytesstring), maxBytesSize);
+    end;
+
+    for i:=0 to addresslist.Count-1 do
+    begin
+      if i = addressLinenr then script.Add('// ---------- INJECTING HERE ----------');
+      script.Add(addressList[i] + ': ' + PadRight(bytesList[i],maxBytesSize) + ' - ' + codeList[i]);
+      if i = addressLinenr then script.Add('// ---------- DONE INJECTING  ----------');
+    end;
+
+    script.Add('}');
+
+  finally
+    addresslist.free;
+    byteslist.free;
+    codelist.free;
+
+    d.free;
+
+  end;
+end;
+
 function GetNextAllocNumber(Script: TStrings): integer;
 var
   i,j: integer;
@@ -2242,7 +2343,7 @@ begin
 end;
 
 // \/   http://forum.cheatengine.org/viewtopic.php?t=566415 (jgoemat and some mods by db)
-procedure GenerateFullInjectionScript(Script: tstrings; address: string);
+procedure GenerateFullInjectionScript(Script: tstrings; address: string; commentRadius: integer=10);
 var
   originalcode: array of string;
   originalbytes: array of byte;
@@ -2432,37 +2533,8 @@ begin
     // now we disassemble quite a bit more code for comments at the
     // bottom so someone can easily find the code again if the game
     // is updated
-    script.Add('');
-    script.Add('{');
-    script.Add('// ORIGINAL CODE - INJECTION POINT: ' + address);
-    script.Add('');
+    addSnapshotAsComment(script, a, commentradius);
 
-    injectFirstLine := 0;
-    injectLastLine := 0;
-    maxBytesSize := 0;
-    dline.Init(a - 128, mi);
-
-
-    while dline.Address < (a + 128) do
-    begin
-      if (dline.Address < a) and ((dline.Address + dline.Size) > a) then dline.Shorten((dline.Address + dline.Size) - a);
-      addressList.Add(dline.AddressString);
-      ddBytes := dline.GetHexBytes;
-      maxBytesSize := Max(maxBytesSize, Length(ddBytes));
-      bytesList.Add(ddBytes);
-      codeList.Add(dline.Code);
-      if (dline.Address >= a) and (injectFirstLine <= 0) then injectFirstLine := addressList.Count - 1;
-      if (dline.Address < a + codesize) then injectLastLine := addressList.Count - 1;
-      dline.Init(dline.Address + dline.Size, mi);
-    end;
-
-    for i := injectFirstLine - 10 to injectLastLine + 10 do
-    begin
-      if i = injectFirstLine then script.Add('// ---------- INJECTING HERE ----------');
-      script.Add(addressList[i] + ': ' + PadRight(bytesList[i],maxBytesSize) + ' - ' + codeList[i]);
-      if i = injectLastLine then script.Add('// ---------- DONE INJECTING  ----------');
-    end;
-    script.Add('}');
   finally
     initialcode.free;
     enablecode.free;
@@ -2538,9 +2610,9 @@ begin
   frmHighlighterEditor.free;
 end;
 
-procedure GenerateAOBInjectionScript(script: TStrings; address: string; symbolname: string);
+procedure GenerateAOBInjectionScript(script: TStrings; address: string; symbolname: string; commentradius: integer=10);
 var
-  a: ptrUint;                     // pointer to injection point
+  a,a2: ptrUint;                  // pointer to injection point
   originalcode: array of string;  // disassembled code we're replacing
   originalbytes: array of byte;   // bytes we're replacing
   codesize: integer;              // # of bytes we're replacing
@@ -2558,6 +2630,7 @@ var
   x: string;
   i,j,k: integer;
   p: integer;
+  count: integer;
 
   // lines of code to inject in certain places
   initialcode: tstringlist;
@@ -2738,36 +2811,9 @@ begin
     // now we disassemble quite a bit more code for comments at the
     // bottom so someone can easily find the code again if the game
     // is updated
-    script.Add('');
-    script.Add('{');
-    script.Add('// ORIGINAL CODE - INJECTION POINT: ' + address);
-    script.Add('');
+    addSnapshotAsComment(script, a, commentradius);
 
-    injectFirstLine := 0;
-    injectLastLine := 0;
-    maxBytesSize := 0;
-    dline.Init(a - 128, mi);
 
-    while dline.Address < (a + 128) do
-    begin
-      // see if we overshot our injection point
-      if (dline.Address < a) and ((dline.Address + dline.Size) > a) then dline.Shorten((dline.Address + dline.Size) - a);
-      addressList.Add(dline.AddressString);
-      ddBytes := dline.GetHexBytes;
-      maxBytesSize := Max(maxBytesSize, Length(ddBytes));
-      bytesList.Add(ddBytes);
-      codeList.Add(dline.Code);
-      if (dline.Address >= a) and (injectFirstLine <= 0) then injectFirstLine := addressList.Count - 1;
-      if (dline.Address < a + codesize) then injectLastLine := addressList.Count - 1;
-      dline.Init(dline.Address + dline.Size, mi);
-    end;
-    for i := injectFirstLine - 10 to injectLastLine + 10 do
-    begin
-      if i = injectFirstLine then script.Add('// ---------- INJECTING HERE ----------');
-      script.Add(addressList[i] + ': ' + PadRight(bytesList[i],maxBytesSize) + ' - ' + codeList[i]);
-      if i = injectLastLine then script.Add('// ---------- DONE INJECTING  ----------');
-    end;
-    script.Add('}');
   finally
     initialcode.free;
     enablecode.free;
