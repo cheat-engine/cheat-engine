@@ -453,7 +453,7 @@ type
     //startregion and stopregion
     _startregion: integer;
     _stopregion: integer;
-    maxregionsize: dword; //max size of buffer to be allocated when not unknown scan
+    maxregionsize: qword; //max size of buffer to be allocated when not unknown scan
 
     //recreated memory region list for this specific range, can be used to see which regions where only half read
     memRegions: TMemoryregions;
