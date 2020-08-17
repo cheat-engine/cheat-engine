@@ -1965,6 +1965,8 @@ begin
     i:=customtype.ConvertDataToInteger(@bytes[0],a);
     result:=format('%d',[i]);
   end;
+  if (not full) and (length(result)>11) then
+    result:=copy(result,1,8)+'...';       
 end;
 
 function THexView.getChar(a: ptrUint; out charlength: integer): string;
