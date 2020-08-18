@@ -147,8 +147,7 @@ type
   public
     script: string;
     filename: string;
-    undoitems: tlist;
-    undogroupitems: tlist;
+    undogroups: tlist;
     carretpos: Tpoint;
     topline: integer;
   end;
@@ -266,6 +265,8 @@ type
     procedure menuFullInjectionClick(Sender: TObject);
     procedure miLuaSyntaxCheckClick(Sender: TObject);
     procedure miMoveLeftClick(Sender: TObject);
+    procedure miMoveRightClick(Sender: TObject);
+    procedure miRenameTabClick(Sender: TObject);
     procedure miReplaceClick(Sender: TObject);
     procedure MenuItem2Click(Sender: TObject);
     procedure MenuItem3Click(Sender: TObject);
@@ -421,6 +422,8 @@ resourcestring
   rsErrorInScript = 'Error in script %s : %s';
   rsErrorInScriptNoTab = 'Error in script : %s';
   rsEverythingOk = 'Everything ok';
+  rsRenameTab = 'Rename tab';
+  rsNewNameQuestion = 'What should the new name be?';
 
 var
   AutoAssemblerTemplates: TAutoAssemblerTemplates;
@@ -1915,28 +1918,15 @@ begin
 
     if ssl is TSynEditStringList then
     begin
-      //yay
-{      if TAAScriptTabData(tablist.TabData[oldselection]).undogroupitems=nil then
-        TAAScriptTabData(tablist.TabData[oldselection]).undogroupitems:=tlist.Create;
+      if TAAScriptTabData(tablist.TabData[oldselection]).undogroups=nil then
+        TAAScriptTabData(tablist.TabData[oldselection]).undogroups:=tlist.Create;
 
-      TAAScriptTabData(tablist.TabData[oldselection]).undogroupitems.Clear;
-
-      repeat
-        undoitem:=ssl.UndoList.CurrentGroup.Pop;
-        if undoitem<>nil then
-          TAAScriptTabData(tablist.TabData[oldselection]).undogroupitems.Add(undoitem);
-
-      until undoitem=nil;  }
-
-      if TAAScriptTabData(tablist.TabData[oldselection]).undoitems=nil then
-        TAAScriptTabData(tablist.TabData[oldselection]).undoitems:=tlist.Create;
-
-      TAAScriptTabData(tablist.TabData[oldselection]).undoitems.Clear;
+      TAAScriptTabData(tablist.TabData[oldselection]).undogroups.Clear;
 
       repeat
         undogroup:=ssl.UndoList.PopItem;
         if undogroup<>nil then
-          TAAScriptTabData(tablist.TabData[oldselection]).undoitems.Add(undogroup);
+          TAAScriptTabData(tablist.TabData[oldselection]).undogroups.Add(undogroup);
 
 
       until undogroup=nil;
@@ -1955,23 +1945,14 @@ begin
   assemblescreen.EndUpdate;
 
   //restore undo
-{
-  if (ssl is TSynEditStringList) and (TAAScriptTabData(tablist.CurrentTabData).undogroupitems<>nil) then
-  begin
-    for i:=TAAScriptTabData(tablist.CurrentTabData).undogroupitems.Count-1 downto 0 do
-      ssl.UndoList.CurrentGroup.Add(TAAScriptTabData(tablist.CurrentTabData).undogroupitems[i]);
-
-    TAAScriptTabData(tablist.CurrentTabData).undogroupitems.Clear;
-  end; }
-
   l:=tlist.create;
 
-  if (ssl is TSynEditStringList) and (TAAScriptTabData(tablist.CurrentTabData).undoitems<>nil) then
+  if (ssl is TSynEditStringList) and (TAAScriptTabData(tablist.CurrentTabData).undogroups<>nil) then
   begin
-    for i:=TAAScriptTabData(tablist.CurrentTabData).undoitems.Count-1 downto 0 do
+    for i:=TAAScriptTabData(tablist.CurrentTabData).undogroups.Count-1 downto 0 do
     begin
       l.clear;
-      undogroup:=TAAScriptTabData(tablist.CurrentTabData).undoitems[i];
+      undogroup:=TAAScriptTabData(tablist.CurrentTabData).undogroups[i];
 
       repeat
         undoitem:=undogroup.Pop;
@@ -1990,7 +1971,7 @@ begin
       ssl.UndoList.EndBlock;
     end;
 
-    TAAScriptTabData(tablist.CurrentTabData).undoitems.Clear;
+    TAAScriptTabData(tablist.CurrentTabData).undogroups.Clear;
   end;
 
 
@@ -2006,10 +1987,22 @@ begin
 end;
 
 procedure tfrmautoinject.tlistOnTabDestroy(sender: TObject; index: integer);
+var d: TAAScriptTabData;
 begin
   if ttablist(sender).TabData[index]<>nil then
   begin
-    TAAScriptTabData(ttablist(sender).TabData[index]).free;
+    d:=TAAScriptTabData(ttablist(sender).TabData[index]);
+    if d.undogroups<>nil then
+    begin
+      while d.undogroups.Count>0 do
+      begin
+        TSynEditUndoGroup(d.undogroups[0]).Free;
+        d.undogroups.Delete(0);
+      end;
+
+      d.undogroups.free;
+    end;
+    d.free;
     ttablist(sender).TabData[index]:=nil;
   end;
 end;
@@ -2041,8 +2034,8 @@ begin
     if checkscript(assemblescreen.text,s)=false then
     begin
       hasError:=true;
-      lua_pushstring(LuaVM, format(rsErrorInScriptNoTab, [s]));
       lua_getglobal(luavm,'print');
+      lua_pushstring(LuaVM, format(rsErrorInScriptNoTab, [s]));
       lua_pcall(luavm,1,0,0);
     end;
   end
@@ -2055,9 +2048,18 @@ begin
       if checkscript(TAAScriptTabData(tablist.TabData[i]).script, s)=false then
       begin
         hasError:=true;
-        lua_pushstring(LuaVM, format(rsErrorInScript, [tablist.TabText[i], s]));
+        s:=format(rsErrorInScript, [tablist.TabText[i], s]);
+
         lua_getglobal(luavm,'print');
-        lua_pcall(luavm,1,0,0);
+        lua_pushstring(LuaVM, s);
+
+        if lua_isfunction(luavm,-1) then
+          lua_pcall(luavm,1,0,0)
+        else
+          ShowMessage(s);
+
+
+
       end;
     end;
   end;
@@ -2069,7 +2071,20 @@ end;
 procedure TfrmAutoInject.miMoveLeftClick(Sender: TObject);
 begin
   //has no effect on AA scripts, but for the lua tablescripts it does
+  tablist.MoveTabLeft(selectedtab);
+end;
 
+procedure TfrmAutoInject.miMoveRightClick(Sender: TObject);
+begin
+  tablist.MoveTabRight(selectedtab);
+end;
+
+procedure TfrmAutoInject.miRenameTabClick(Sender: TObject);
+var v: string;
+begin
+  v:=tablist.TabText[selectedtab];
+  if InputQuery(rsRenameTab, rsNewNameQuestion, v) then
+    tablist.TabText[selectedtab]:=v;
 end;
 
 
@@ -2200,6 +2215,9 @@ var p: tpoint;
 begin
   p:=tablist.ScreenToClient(mouse.CursorPos);
   selectedtab:=tablist.GetTabIndexAt(p.x,p.y);
+
+  miMoveLeft.enabled:=selectedtab>0;
+  miMoveRight.enabled:=selectedtab<tablist.Count-1;
 end;
 
 procedure TfrmAutoInject.TabControl1Change(Sender: TObject);

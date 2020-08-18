@@ -56,6 +56,8 @@ type
     function AddTab(t: string):integer;
     function GetTabIndexAt(x,y: integer): integer;
     procedure RemoveTab(i: integer);
+    procedure MoveTabLeft(i: integer);
+    procedure MoveTabRight(i: integer);
     procedure goLeft();
     procedure goRight();
     procedure Paint; override;
@@ -179,6 +181,45 @@ begin
 
   inherited MouseDown(button,shift,x,y);
 end;
+
+procedure TTablist.MoveTabLeft(i: integer);
+var currenttab: pointer;
+begin
+  if i>0 then
+  begin
+    if fselectedTab=i then
+      fselectedTab:=i-1
+    else
+    if fselectedTab=i-1 then
+      fselectedTab:=i;
+
+    fTabs.Move(i,i-1);
+
+    invalidate;
+    repaint;
+  end;
+
+end;
+
+procedure TTablist.MoveTabRight(i: integer);
+begin
+  if i<ftabs.count-1 then
+  begin
+    if fselectedTab=i then
+      fselectedTab:=i+1
+    else
+    if fselectedTab=i+1 then
+      fselectedTab:=i;
+
+    fTabs.Move(i,i+1);
+
+    invalidate;
+    repaint;
+  end;
+
+
+end;
+
 
 procedure TTablist.RemoveTab(i: integer);
 {
