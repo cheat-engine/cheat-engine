@@ -1605,6 +1605,7 @@ var
   l: tstringlist;
   i: integer;
 begin
+  if application.Terminated then exit;
   usesluaengineform:=false;
 
   if printoutput=nil then

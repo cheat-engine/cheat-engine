@@ -501,7 +501,7 @@ deAlloc(address, size OPTIONAL): Frees allocated memory
 
 allocateSharedMemory(name, size):
   Creates a shared memory object in the attached process of the given size if it doesn't exist yet. If size is not given and there is no shared region with this name then the default size of 4096 is used
-  It then maps this shared memory block into the currently targeted process. It returns the address of mapped region in the target process
+  It then maps this shared memory block into the currently targeted process. It returns the address of this mapped region in the target process.  Keep in mind that a process can map the same block multiple times, so keep track of your assignments
 allocateSharedMemoryLocal(name, size): Same as allocateSharedMemory but then for the Cheat Engine process itself
 
 
@@ -2167,6 +2167,7 @@ properties
   OnAddressChange: function(addresslist,memrec):boolean - called when the user initiates an address column change on a record. Return true if you handle it, false for normal behaviour
   OnTypeChange: function(addresslist,memrec):boolean - called when the user initiates a type column change on a record. Return true if you handle it, false for normal behaviour
   OnValueChange: function(addresslist,memrec):boolean - called when the user initiates a value column change on a record. Return true if you handle it, false for normal behaviour
+  OnAutoAssemblerEdit: function(addresslist,memrec) - Called when the user initiates a memoryrecord AA script edit.  This function will be responsible for changing the memory record
 
 
 methods

@@ -1009,7 +1009,7 @@ type
     procedure SpawnCancelButton;
     procedure DestroyCancelButton;
 
-    procedure AddressListAutoAssemblerEdit(Sender: TObject; memrec: TMemoryRecord);
+    function AddressListAutoAssemblerEdit(Sender: TObject; memrec: TMemoryRecord): boolean;
     procedure createFormdesigner;
     procedure UpdateMenu;
 
@@ -5696,7 +5696,6 @@ begin
   frmLuaTableScript.ScriptMode := smLua;
 
   frmLuaTableScript.Caption := rsLuaScriptCheatTable;
-  frmLuaTableScript.New1.Visible := False;
   frmLuaTableScript.Save1.OnClick := miSave.onclick;
   frmLuaTableScript.SaveAs1.OnClick:= save1.OnClick;
 
@@ -8791,11 +8790,12 @@ begin
   memrec.endEdit; //release it so the user can delete it if he/she wants to
 end;
 
-procedure TMainForm.AddressListAutoAssemblerEdit(Sender: TObject; memrec: TMemoryRecord);
+function TMainForm.AddressListAutoAssemblerEdit(Sender: TObject; memrec: TMemoryRecord): boolean;
 var
   x: TFrmAutoInject;
   y: array of integer;
 begin
+  result:=false;  //not used
   if memrec.AsyncProcessing then exit;
 
   if memrec.isBeingEdited then
@@ -8817,6 +8817,7 @@ begin
     begin
       //name:='AAEditScript';
       new1.Enabled := False;
+      miNewTab.Visible := false;
 
       editscript := True;
       editscript2 := True;

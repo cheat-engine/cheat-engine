@@ -14,23 +14,146 @@ uses
   StdCtrls, ExtCtrls, Menus, MemoryRecordUnit, commonTypeDefs, customtypehandler,
   disassembler, symbolhandler, symbolhandlerstructs, SynEdit, SynHighlighterCpp,
   SynHighlighterAA, LuaSyntax, SynPluginMultiCaret, SynEditSearch, tablist,
-  SynGutterBase, SynEditMarks, math;
+  SynGutterBase, SynEditMarks, math, SynEditMiscClasses, SynEditTextBase,
+  SynEditTextBuffer, LazSynEditText, SynEditLines;
 
 
-type TCallbackRoutine=procedure(memrec: TMemoryRecord; script: string; changed: boolean) of object;
-type TCustomCallbackRoutine=procedure(ct: TCustomType; script:string; changed: boolean; lua: boolean) of object;
+type
+  TCallbackRoutine=procedure(memrec: TMemoryRecord; script: string; changed: boolean) of object;
+  TCustomCallbackRoutine=procedure(ct: TCustomType; script: string; changed: boolean; lua: boolean) of object;
 
-type TScripts=array of record
-                script: string;
-                filename: string;
-                undoscripts: array [0..4] of record
-                               oldscript: string;
-                               startpos: integer;
-                             end;
-                currentundo: integer;
-              end;
+  TPlusSynEdit=class(TCustomSynEdit)
+  private
+  public
+    property SLines: TSynEditStrings read GetTextBuffer;
+  end;
 
-type TBooleanArray = Array of Boolean;
+  TSynEditPlus = class(TPlusSynEdit)
+  published
+    // inherited properties
+    property Align;
+    property Beautifier;
+    property BlockIndent;
+    property BlockTabIndent;
+    property BorderSpacing;
+    property Anchors;
+    property Constraints;
+    property Color;
+    property Cursor default crIBeam;
+    property OffTextCursor default crDefault;
+    property Enabled;
+    property Font;
+    property Height;
+    property Name;
+    property ParentColor;
+    property ParentFont;
+    property ParentShowHint;
+    property PopupMenu;
+    property ShowHint;
+    property TabOrder;
+    property TabStop default True;
+    property Tag;
+    property Visible;
+    property Width;
+    // inherited events
+    property OnClick;
+    property OnDblClick;
+    property OnTripleClick;
+    property OnQuadClick;
+    property OnDragDrop;
+    property OnDragOver;
+// ToDo Docking
+    property OnEndDock;
+    property OnEndDrag;
+    property OnEnter;
+    property OnExit;
+    property OnKeyDown;
+    property OnKeyPress;
+    property OnKeyUp;
+    property OnMouseDown;
+    property OnMouseMove;
+    property OnMouseUp;
+    property OnClickLink;
+    property OnMouseLink;
+    property OnMouseEnter;
+    property OnMouseLeave;
+    property OnMouseWheel;
+    property OnMouseWheelDown;
+    property OnMouseWheelUp;
+// ToDo Docking
+    property OnStartDock;
+    property OnStartDrag;
+    property OnUTF8KeyPress;
+    // TCustomSynEdit properties
+    property BookMarkOptions;
+    property BorderStyle default bsSingle;
+    property ExtraCharSpacing;
+    property ExtraLineSpacing;
+    property Gutter;
+    property RightGutter;
+    property HideSelection;
+    property Highlighter;
+    property InsertCaret;
+    property InsertMode;
+    property Keystrokes;
+    property MouseActions;
+    property MouseTextActions;
+    property MouseSelActions;
+    property Lines;
+    property MaxLeftChar;
+    property MaxUndo;
+    property Options;
+    property Options2;
+    property MouseOptions;
+    property VisibleSpecialChars;
+    property OverwriteCaret;
+    property ReadOnly;
+    property RightEdge;
+    property RightEdgeColor;
+    property ScrollBars;
+    property SelectedColor;
+    property IncrementColor;
+    property HighlightAllColor;
+    property BracketHighlightStyle;
+    property BracketMatchColor;
+    property FoldedCodeColor;
+    property MouseLinkColor;
+    property LineHighlightColor;
+    property DefaultSelectionMode;
+    property SelectionMode;
+    property TabWidth;
+    property WantTabs;
+    // TCustomSynEdit events
+    property OnChange;
+    property OnChangeUpdating;
+    property OnCutCopy;
+    property OnPaste;
+    property OnClearBookmark;                                                   // djlp 2000-08-29
+    property OnCommandProcessed;
+    property OnDropFiles;
+    property OnGutterClick;
+    property OnPaint;
+    property OnPlaceBookmark;
+    property OnProcessCommand;
+    property OnProcessUserCommand;
+    property OnReplaceText;
+    property OnShowHint;
+    property OnSpecialLineColors; deprecated;
+    property OnSpecialLineMarkup;
+    property OnStatusChange;
+  end;
+
+  TAAScriptTabData=class
+  public
+    script: string;
+    filename: string;
+    undoitems: tlist;
+    undogroupitems: tlist;
+    carretpos: Tpoint;
+    topline: integer;
+  end;
+
+  TBooleanArray = Array of Boolean;
 
 {
 The TDisassemblyLine originates from jgoemat  ( http://forum.cheatengine.org/viewtopic.php?t=566415 )
@@ -38,39 +161,38 @@ Originally it was just an Object but I changed it to a TObject because I think a
 standalone TDisassembler object might be more efficient reducing the amount of
 string parsing
 }
-type TDisassemblyLine = class(TObject)
-  Address: ptrUint;                // actual address value
-  AddressString: String;           // module+offset if specified
-  Comment: String;                 // comment part (second parameter of disassembly)
-  OriginalHexBytes : String;       // original hex from disassembly (grouped)
-  Code: String;                    // code portion of disassembly
-  Size: Integer;                   // number of bytes for this instruction
-  Disassembler: TDisassembler;     // The disassembler used to disassemble (free by caller)
+  TDisassemblyLine = class(TObject)
+    Address: ptrUint;                // actual address value
+    AddressString: String;           // module+offset if specified
+    Comment: String;                 // comment part (second parameter of disassembly)
+    OriginalHexBytes : String;       // original hex from disassembly (grouped)
+    Code: String;                    // code portion of disassembly
+    Size: Integer;                   // number of bytes for this instruction
+    Disassembler: TDisassembler;     // The disassembler used to disassemble (free by caller)
 
-  procedure Init(_address: ptrUint; _mi: TModuleInfo);
-  procedure Shorten(_newsize: Integer); // if we overran our injection point, change to 'db'
-  function IsStarter : Boolean;
-  function IsEnder : Boolean;
-  function IsValid : Boolean;
-  function GetHexBytes : String; // hex bytes with spaces between each byte
-  function GetMaskFlags : TBooleanArray;
-  constructor create;
-  destructor destroy; override;
-end;
+    procedure Init(_address: ptrUint; _mi: TModuleInfo);
+    procedure Shorten(_newsize: Integer); // if we overran our injection point, change to 'db'
+    function IsStarter : Boolean;
+    function IsEnder : Boolean;
+    function IsValid : Boolean;
+    function GetHexBytes : String; // hex bytes with spaces between each byte
+    function GetMaskFlags : TBooleanArray;
+    constructor create;
+    destructor destroy; override;
+  end;
 
-type TAOBFind = Object
-  Address: ptrUint;               // address where AOB was found
-  CodeSize: Integer;              // size of code we will always use
-  Size: Integer;
-  Bytes: Array of Byte;           // bytes we'll read from memory
+  TAOBFind = Object
+    Address: ptrUint;               // address where AOB was found
+    CodeSize: Integer;              // size of code we will always use
+    Size: Integer;
+    Bytes: Array of Byte;           // bytes we'll read from memory
 
-  procedure Init(_address: ptrUint; _codesize: Integer);
-  function IsMatch(var maskBytes: Array Of Byte; var maskFlags : TBooleanArray; startIndex, endIndex: Integer): Boolean;
-end;
+    procedure Init(_address: ptrUint; _codesize: Integer);
+    function IsMatch(var maskBytes: Array Of Byte; var maskFlags : TBooleanArray; startIndex, endIndex: Integer): Boolean;
+  end;
 
-type TScriptMode=(smAutoAssembler, smLua, smGnuAssembler);
+  TScriptMode=(smAutoAssembler, smLua, smGnuAssembler);
 
-type
   TAutoAssemblerTemplateCallback=procedure(script: TStrings; sender: TObject) of object;
   TAutoAssemblerTemplate=record
                            name: string;
@@ -86,10 +208,15 @@ type
 
   TfrmAutoInject = class(TForm)
     aaImageList: TImageList;
+    btnExecute: TButton;
     MainMenu1: TMainMenu;
     File1: TMenuItem;
     menuAOBInjection: TMenuItem;
     menuFullInjection: TMenuItem;
+    miMoveLeft: TMenuItem;
+    miMoveRight: TMenuItem;
+    miLuaSyntaxCheck: TMenuItem;
+    miRenameTab: TMenuItem;
     miReplace: TMenuItem;
     MenuItem2: TMenuItem;
     MenuItem3: TMenuItem;
@@ -98,9 +225,9 @@ type
     miCallLua: TMenuItem;
     miNewWindow: TMenuItem;
     Panel1: TPanel;
-    Button1: TButton;
     Load1: TMenuItem;
     Panel2: TPanel;
+    Panel3: TPanel;
     ReplaceDialog1: TReplaceDialog;
     Save1: TMenuItem;
     OpenDialog1: TOpenDialog;
@@ -114,10 +241,10 @@ type
     SaveAs1: TMenuItem;
     PopupMenu1: TPopupMenu;
     Coderelocation1: TMenuItem;
-    New1: TMenuItem;
+    miNewTab: TMenuItem;
     N2: TMenuItem;
     Syntaxhighlighting1: TMenuItem;
-    closemenu: TPopupMenu;
+    TabMenu: TPopupMenu;
     Close1: TMenuItem;
     Inject1: TMenuItem;
     Injectincurrentprocess1: TMenuItem;
@@ -132,11 +259,13 @@ type
     undotimer: TTimer;
     View1: TMenuItem;
     AAPref1: TMenuItem;
-    procedure Button1Click(Sender: TObject);
+    procedure btnExecuteClick(Sender: TObject);
     procedure FormDropFiles(Sender: TObject; const FileNames: array of String);
     procedure Load1Click(Sender: TObject);
     procedure menuAOBInjectionClick(Sender: TObject);
     procedure menuFullInjectionClick(Sender: TObject);
+    procedure miLuaSyntaxCheckClick(Sender: TObject);
+    procedure miMoveLeftClick(Sender: TObject);
     procedure miReplaceClick(Sender: TObject);
     procedure MenuItem2Click(Sender: TObject);
     procedure MenuItem3Click(Sender: TObject);
@@ -160,12 +289,11 @@ type
     procedure assemblescreenKeyDown(Sender: TObject; var Key: Word;
       Shift: TShiftState);
     procedure Coderelocation1Click(Sender: TObject);
-    procedure New1Click(Sender: TObject);
+    procedure miNewTabClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
+    procedure TabMenuPopup(Sender: TObject);
     procedure TabControl1Change(Sender: TObject);
     procedure Syntaxhighlighting1Click(Sender: TObject);
-    procedure TabControl1ContextPopup(Sender: TObject; MousePos: TPoint;
-      var Handled: Boolean);
     procedure Close1Click(Sender: TObject);
     procedure Injectincurrentprocess1Click(Sender: TObject);
     procedure Injectintocurrentprocessandexecute1Click(Sender: TObject);
@@ -179,6 +307,7 @@ type
     procedure miUndoClick(Sender: TObject);
   private
     { Private declarations }
+
     LoadedFormPosition: boolean;
 
     AAHighlighter: TSynAASyn;
@@ -188,11 +317,8 @@ type
     assemblescreenCaret: TSynPluginMultiCaret;
     assembleSearch: TSynEditSearch;
 
-    oldtabindex: integer;
-    scripts: TScripts;
-
+    newtabCount: integer;
     selectedtab: integer;
-
 
     fScriptMode: TScriptMode;
     fCustomTypeScript: boolean;
@@ -204,6 +330,9 @@ type
 
     procedure injectscript(createthread: boolean);
     procedure tlistOnTabChange(sender: TObject; oldselection: integer);
+    procedure tlistOnTabCreate(sender: TObject; index: integer);
+    procedure tlistOnTabDestroy(sender: TObject; index: integer);
+
     procedure setCustomTypeScript(x: boolean);
     procedure gutterclick(Sender: TObject; X, Y, Line: integer; mark: TSynEditMark);
     procedure assemblescreenchange(sender: TObject);
@@ -213,8 +342,8 @@ type
   public
     { Public declarations }
 
-    assemblescreen: TSynEdit;
-    tlist: TTablist;
+    assemblescreen: TSynEditPlus;
+    tablist: TTablist;
 
     editscript: boolean;
     editscript2: boolean;
@@ -260,7 +389,7 @@ uses frmAAEditPrefsUnit,MainUnit,memorybrowserformunit,APIhooktemplatesettingsfr
   Globals, Parsers, MemoryQuery, {$ifdef windows}GnuAssembler,{$endif} LuaCaller, SynEditTypes, CEFuncProc,
   StrUtils, types, ComCtrls, LResources, NewKernelHandler, MainUnit2, Assemblerunit,
   autoassembler,  registry, luahandler, memscan, foundlisthelper, ProcessHandlerUnit,
-  frmLuaEngineUnit, frmSyntaxHighlighterEditor;
+  frmLuaEngineUnit, frmSyntaxHighlighterEditor, lua, lualib, lauxlib;
 
 resourcestring
   rsExecuteScript = 'Execute script';
@@ -289,6 +418,9 @@ resourcestring
   rsFailureLoadingUndercdll = 'Failure loading undercdll';
   rsFailedCreatingCallingStubForScriptLocatedAtAddress = 'Failed creating calling stub for script located at address ';
   rsERRORCouldNotFindUniqueAOBTriedCode = 'ERROR: Could not find unique AOB, tried code "';
+  rsErrorInScript = 'Error in script %s : %s';
+  rsErrorInScriptNoTab = 'Error in script : %s';
+  rsEverythingOk = 'Everything ok';
 
 var
   AutoAssemblerTemplates: TAutoAssemblerTemplates;
@@ -426,7 +558,7 @@ begin
       assemblescreen.Highlighter:=LuaHighlighter;
 
       //change gui to lua style
-      button1.Caption:=rsExecuteScript;
+      btnExecute.Caption:=rsExecuteScript;
       opendialog1.DefaultExt:='LUA';
       opendialog1.Filter:=rsLuaFilter;
       savedialog1.DefaultExt:='LUA';
@@ -438,6 +570,8 @@ begin
       helpcontext:=19; //c-script help
 
       Syntaxhighlighting1.visible:=true;
+
+      miLuaSyntaxCheck.visible:=true;
     end;
 
     smAutoAssembler:
@@ -446,7 +580,7 @@ begin
 
 
       //change gui to autoassembler style
-      button1.caption:=rsWriteCode;
+      btnExecute.caption:=rsWriteCode;
       opendialog1.DefaultExt:='CEA';
       opendialog1.Filter:=rsCEAFilter;
       savedialog1.DefaultExt:='CEA';
@@ -464,7 +598,7 @@ begin
     begin
       assemblescreen.Highlighter:=nil; //no highlighter for it yet
 
-      button1.Caption:=rsWriteCode;
+      btnExecute.Caption:=rsWriteCode;
       opendialog1.DefaultExt:='CEGA';
       opendialog1.Filter:=rsCEGAFilter;
       savedialog1.DefaultExt:='CEGA';
@@ -485,7 +619,7 @@ begin
 end;
 
 
-procedure TfrmAutoInject.Button1Click(Sender: TObject);
+procedure TfrmAutoInject.btnExecuteClick(Sender: TObject);
 var
     a,b: integer;
 
@@ -1465,7 +1599,7 @@ begin
   end;
 
   if editscript then
-    button1.Caption:=strOK;
+    btnExecute.Caption:=strOK;
 
   assemblescreen.SetFocus;
 end;
@@ -1712,49 +1846,232 @@ begin
 {$endif}
 end;
 
-procedure TfrmAutoInject.New1Click(Sender: TObject);
+procedure TfrmAutoInject.miNewTabClick(Sender: TObject);
 var i: integer;
 begin
 {$ifndef standalonetrainerwithassembler}
+  if miNewTab.visible=false then exit;
 
-  scripts[length(scripts)-1].script:=assemblescreen.Text;
-  setlength(scripts,length(scripts)+1);
-
-  scripts[length(scripts)-1].script:='';
-  scripts[length(scripts)-1].undoscripts[0].oldscript:='';
-  scripts[length(scripts)-1].currentundo:=0;
-
-  assemblescreen.Text:='';
-
-
-  if length(scripts)=2 then //first time new
+  if tablist=nil then
   begin
-    tlist.AddTab(rsScript1);
-    tlist.Visible:=true;
+    tablist:=TTablist.Create(self);
+    tablist.height:=20;
+    tablist.Align:=alTop;
+    tablist.Visible:=false;
+    tablist.OnTabChange:=tlistOnTabChange;
+    tablist.OnTabCreate:=tlistOnTabCreate;
+    tablist.OnTabDestroy:=tlistOnTabDestroy;
+
+
+    tablist.color:=GetRGBColorResolvingParent; //panel2.color;
+
+    tablist.Parent:=panel2;
+
+    tablist.height:=tablist.Canvas.TextHeight('WwJjDdQq')+4;
+    tablist.BorderSpacing.Top:=4;
+    tablist.PopupMenu:=TabMenu;
+
+
+    inc(newtabcount);
+    i:=tablist.AddTab(rsScript1);
   end;
 
-  i:=tlist.AddTab(rsScript+inttostr(length(scripts)));
-  tlist.SelectedTab:=i;
-  oldtabindex:=i;
+  tablist.Visible:=true;
+
+  inc(newtabcount);
+  i:=tablist.AddTab(rsScript+inttostr(newtabCount));
+  tablist.SelectedTab:=i;
 {$endif}
 end;
 
 procedure tfrmautoinject.tlistOnTabChange(sender: TObject; oldselection: integer);
+var
+  undolist:  TSynEditUndoList;
+  undoitem: TSynEditUndoItem;
+  undogroup: TSynEditUndoGroup;
+
+  ssl: TSynEditStringList;
+  sel: TSynEditLines;
+  i,j: integer;
+
+  p: tpoint;
+
+
+  l: tlist;
+
 begin
 {$ifndef standalonetrainerwithassembler}
 
-  scripts[oldselection].script:=assemblescreen.text;
-  scripts[oldselection].filename:=opendialog1.FileName;
+  ssl:=TSynEditStringList(assemblescreen.SLines);
 
-  assemblescreen.text:=scripts[tlist.SelectedTab].script;
-  opendialog1.FileName:=scripts[tlist.SelectedTab].filename;
+  if oldselection>=0 then
+  begin
+    TAAScriptTabData(tablist.TabData[oldselection]).script:=assemblescreen.text;
+    TAAScriptTabData(tablist.TabData[oldselection]).filename:=opendialog1.FileName;
+    TAAScriptTabData(tablist.TabData[oldselection]).topline:=assemblescreen.TopLine;
+    p:=assemblescreen.CaretXY;
+    TAAScriptTabData(tablist.TabData[oldselection]).carretpos:=p;
 
-  oldtabindex:=tlist.SelectedTab;
 
-  assemblescreen.ClearUndo;
+    if ssl is TSynEditStringList then
+    begin
+      //yay
+{      if TAAScriptTabData(tablist.TabData[oldselection]).undogroupitems=nil then
+        TAAScriptTabData(tablist.TabData[oldselection]).undogroupitems:=tlist.Create;
+
+      TAAScriptTabData(tablist.TabData[oldselection]).undogroupitems.Clear;
+
+      repeat
+        undoitem:=ssl.UndoList.CurrentGroup.Pop;
+        if undoitem<>nil then
+          TAAScriptTabData(tablist.TabData[oldselection]).undogroupitems.Add(undoitem);
+
+      until undoitem=nil;  }
+
+      if TAAScriptTabData(tablist.TabData[oldselection]).undoitems=nil then
+        TAAScriptTabData(tablist.TabData[oldselection]).undoitems:=tlist.Create;
+
+      TAAScriptTabData(tablist.TabData[oldselection]).undoitems.Clear;
+
+      repeat
+        undogroup:=ssl.UndoList.PopItem;
+        if undogroup<>nil then
+          TAAScriptTabData(tablist.TabData[oldselection]).undoitems.Add(undogroup);
+
+
+      until undogroup=nil;
+    end;
+
+  end
+  else
+    assemblescreen.ClearUndo; //it was a delete
+
+  assemblescreen.BeginUpdate(false);
+  assemblescreen.text:=TAAScriptTabData(tablist.CurrentTabData).script;
+  opendialog1.FileName:=TAAScriptTabData(tablist.CurrentTabData).filename;
+  assemblescreen.TopLine:=TAAScriptTabData(tablist.CurrentTabData).topline;
+  p:=TAAScriptTabData(tablist.CurrentTabData).carretpos;
+  assemblescreen.CaretXY:=p;
+  assemblescreen.EndUpdate;
+
+  //restore undo
+{
+  if (ssl is TSynEditStringList) and (TAAScriptTabData(tablist.CurrentTabData).undogroupitems<>nil) then
+  begin
+    for i:=TAAScriptTabData(tablist.CurrentTabData).undogroupitems.Count-1 downto 0 do
+      ssl.UndoList.CurrentGroup.Add(TAAScriptTabData(tablist.CurrentTabData).undogroupitems[i]);
+
+    TAAScriptTabData(tablist.CurrentTabData).undogroupitems.Clear;
+  end; }
+
+  l:=tlist.create;
+
+  if (ssl is TSynEditStringList) and (TAAScriptTabData(tablist.CurrentTabData).undoitems<>nil) then
+  begin
+    for i:=TAAScriptTabData(tablist.CurrentTabData).undoitems.Count-1 downto 0 do
+    begin
+      l.clear;
+      undogroup:=TAAScriptTabData(tablist.CurrentTabData).undoitems[i];
+
+      repeat
+        undoitem:=undogroup.Pop;
+        if undoitem<>nil then
+          l.add(undoitem)
+        else
+          undogroup.free;
+      until undoitem=nil;
+
+      ssl.UndoList.BeginBlock;
+      for j:=l.count-1 downto 0 do
+      begin
+        undoitem:=l[j];
+        ssl.UndoList.AddChange(undoitem);
+      end;
+      ssl.UndoList.EndBlock;
+    end;
+
+    TAAScriptTabData(tablist.CurrentTabData).undoitems.Clear;
+  end;
+
+
+  l.free;
+
 
 {$endif}
 end;
+
+procedure tfrmautoinject.tlistOnTabCreate(sender: TObject; index: integer);
+begin
+  ttablist(sender).TabData[index]:=TAAScriptTabData.Create;
+end;
+
+procedure tfrmautoinject.tlistOnTabDestroy(sender: TObject; index: integer);
+begin
+  if ttablist(sender).TabData[index]<>nil then
+  begin
+    TAAScriptTabData(ttablist(sender).TabData[index]).free;
+    ttablist(sender).TabData[index]:=nil;
+  end;
+end;
+
+
+function checkScript(script: string; out errorreason: string): boolean;
+var
+  r: integer;
+begin
+  r:=luaL_loadstring(luavm,pchar(script));
+
+  result:=(r=0) and lua_isfunction(luavm,-1);
+  if not result then
+    errorReason:=lua_tostring(luavm,-1);
+
+  lua_pop(luavm,1);
+end;
+
+procedure TfrmAutoInject.miLuaSyntaxCheckClick(Sender: TObject);
+var
+  i,r: integer;
+  s: string;
+  hasError: boolean;
+begin
+  hasError:=false;
+
+  if tablist=nil then
+  begin
+    if checkscript(assemblescreen.text,s)=false then
+    begin
+      hasError:=true;
+      lua_pushstring(LuaVM, format(rsErrorInScriptNoTab, [s]));
+      lua_getglobal(luavm,'print');
+      lua_pcall(luavm,1,0,0);
+    end;
+  end
+  else
+  begin
+    TAAScriptTabData(tablist.CurrentTabData).script:=assemblescreen.text;
+
+    for i:=0 to tablist.count-1 do
+    begin
+      if checkscript(TAAScriptTabData(tablist.TabData[i]).script, s)=false then
+      begin
+        hasError:=true;
+        lua_pushstring(LuaVM, format(rsErrorInScript, [tablist.TabText[i], s]));
+        lua_getglobal(luavm,'print');
+        lua_pcall(luavm,1,0,0);
+      end;
+    end;
+  end;
+
+  if not hasError then
+    showMessage(rsEverythingOk); //todo: Get a thumbs up dialog
+end;
+
+procedure TfrmAutoInject.miMoveLeftClick(Sender: TObject);
+begin
+  //has no effect on AA scripts, but for the lua tablescripts it does
+
+end;
+
 
 procedure tfrmAutoInject.gutterclick(Sender: TObject; X, Y, Line: integer; mark: TSynEditMark);
 begin
@@ -1780,13 +2097,6 @@ begin
 
   {$ifndef standalonetrainerwithassembler}
 
-  setlength(scripts,1);
-  scripts[0].currentundo:=0;
-  oldtabindex:=0;
-{  assemblescreen.SelStart:=0;
-  assemblescreen.SelLength:=0; }
-
-
   AAHighlighter:=TSynAASyn.Create(self);
   CPPHighlighter:=TSynCppSyn.create(self);
   LuaHighlighter:=TSynLuaSyn.Create(self);
@@ -1795,16 +2105,11 @@ begin
 
   assembleSearch:=TSyneditSearch.Create;
 
-  tlist:=TTablist.Create(self);
-  tlist.height:=20;
-  tlist.Align:=alTop;
-  tlist.Visible:=false;
-  tlist.OnTabChange:=tlistOnTabChange;
-
-  tlist.Parent:=panel2;
 
 
-  assemblescreen:=TSynEdit.Create(self);
+
+  assemblescreen:=TSynEditPlus.Create(self);
+  assemblescreen.BorderStyle:=bsNone;
   assemblescreen.Highlighter:=AAHighlighter;
   assemblescreen.Options:=SYNEDIT_DEFAULT_OPTIONS - [eoScrollPastEol]+[eoTabIndent]+[eoKeepCaretX];
   fq:=assemblescreen.Font.Quality;
@@ -1890,6 +2195,13 @@ begin
 
 end;
 
+procedure TfrmAutoInject.TabMenuPopup(Sender: TObject);
+var p: tpoint;
+begin
+  p:=tablist.ScreenToClient(mouse.CursorPos);
+  selectedtab:=tablist.GetTabIndexAt(p.x,p.y);
+end;
+
 procedure TfrmAutoInject.TabControl1Change(Sender: TObject);
 begin
 
@@ -1913,44 +2225,31 @@ begin
 {$endif}
 end;
 
-procedure TfrmAutoInject.TabControl1ContextPopup(Sender: TObject;
-  MousePos: TPoint; var Handled: Boolean);
-begin
-  //selectedtab:=TabControl1.IndexOfTabAt(mousepos.x,mousepos.y);
-  //closemenu.Popup(mouse.CursorPos.X,mouse.cursorpos.Y);
-end;
 
 procedure TfrmAutoInject.Close1Click(Sender: TObject);
-var i: integer;
+var
+  i: integer;
+  oldtabindex: integer;
 begin
 {$ifndef standalonetrainerwithassembler}
 
-
-  if messagedlg(Format(rsAreYouSureYouWantToClose, [tlist.TabText[selectedtab]]), mtConfirmation, [mbyes, mbno], 0)=mryes then
+  if messagedlg(Format(rsAreYouSureYouWantToClose, [tablist.TabText[selectedtab]]), mtConfirmation, [mbyes, mbno], 0)=mryes then
   begin
-    scripts[oldtabindex].script:=assemblescreen.text; //save current script
-    tlist.RemoveTab(selectedtab);
+    oldtabindex:=tablist.SelectedTab;
+    TAAScriptTabData(tablist.CurrentTabData).script:=assemblescreen.text;
+    TAAScriptTabData(tablist.CurrentTabData).filename:=OpenDialog1.FileName;
+    tablist.RemoveTab(selectedtab);
 
-    for i:=selectedtab to length(scripts)-2 do
-      scripts[i]:=scripts[i+1];
-
-    setlength(scripts,length(scripts)-1);
-
-    if oldtabindex=selectedtab then //it was the current one
+    if tablist.SelectedTab=-1 then
     begin
-      oldtabindex:=length(scripts)-1;
-      tlist.SelectedTab:=oldtabindex;
-      assemblescreen.text:=scripts[oldtabindex].script;
-      assemblescreen.OnChange(assemblescreen);
+      if tablist.Count>oldtabindex then
+        tablist.SelectedTab:=oldtabindex
+      else
+        tablist.SelectedTab:=tablist.count-1;
     end;
 
-    if (length(scripts)=1) then
-    begin
-      tlist.RemoveTab(0);
-      tlist.Visible:=false;
-    end;
-//    tabcontrol1.tabs[selectedtab]
-
+    if tablist.count=1 then
+      tablist.Visible:=false;
   end;
 {$endif}
 end;
@@ -2564,6 +2863,7 @@ begin
   if inputquery(rsCodeInjectTemplate, rsOnWhatAddressDoYouWantTheJump, address) then
     generateFullInjectionScript(assemblescreen.Lines, address);
 end;
+
 
 procedure TfrmAutoInject.miReplaceClick(Sender: TObject);
 begin

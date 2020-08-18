@@ -24,10 +24,8 @@ type
 
 type
   TDropByListviewEvent=procedure(sender: TObject; node: TTreenode; attachmode: TNodeAttachMode) of object;
-  TAutoAssemblerEditEvent=procedure(sender: TObject; memrec: TMemoryRecord) of object;
   TCompareRoutine=function(a: tmemoryrecord; b: tmemoryrecord): integer of object;
   TMemRecChangeEvent=function(sender: TObject; memrec: TMemoryRecord):boolean of object;
-
 
 
 
@@ -43,7 +41,7 @@ type
     CurrentlyDraggedOverBefore: boolean; //set to true if inserting before
     CurrentlyDraggedOverAfter: boolean; //set to true if inserting after
     fOnDropByListview: TDropByListviewEvent;
-    fOnAutoAssemblerEdit: TAutoAssemblerEditEvent;
+    fOnAutoAssemblerEdit: TMemRecChangeEvent;
 
     activesortdirection: boolean;
     descriptionsortdirection: boolean;
@@ -182,7 +180,6 @@ type
     property MemRecItems[Index: Integer]: TMemoryRecord read GetMemRecItemByIndex; default;
 
     property OnDropByListview: TDropByListviewEvent read FOnDropByListview write FOnDropByListview;
-    property OnAutoAssemblerEdit: TAutoAssemblerEditEvent read fOnAutoAssemblerEdit write fOnAutoAssemblerEdit;
 
     procedure DoAutoSize; override;
 
@@ -210,6 +207,8 @@ type
     property OnAddressChange: TMemRecChangeEvent read fOnAddressChange write fOnAddressChange;
     property OnTypeChange: TMemRecChangeEvent read fOnTypeChange write fOnTypeChange;
     property OnValueChange: TMemRecChangeEvent read fOnValueChange write fOnValueChange;
+    property OnAutoAssemblerEdit: TMemRecChangeEvent read fOnAutoAssemblerEdit write fOnAutoAssemblerEdit;
+
   end;
 
 implementation

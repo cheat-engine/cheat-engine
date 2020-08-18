@@ -86,7 +86,12 @@ type TSavedScantype= (fs_advanced,fs_addresslist);
 //type TValueType= (vt_byte,vt_word, vt_dword, vt_single, vt_double, vt_int64, vt_all);     //todo: Make compatible with the rest of ce's vartype
 
 
-type TSavedScanHandler = class
+type
+
+  ESavedScanException = class(Exception);   //debugger can ignore this
+  ESavedScanExceptionBad = class(Exception);
+
+  TSavedScanHandler = class
   private
     SavedScanmemoryFS: TFileStream;
     SavedScanaddressFS: TFileStream;
@@ -283,7 +288,7 @@ begin
 
   if currentaddresslistcount=0 then
   begin
-    raise exception.create(rsMaxaddresslistcountIs0MeansTheAddresslistIsBad+' (savedscanaddressfs.size='+inttostr(savedscanaddressfs.size)+')');
+    raise ESavedScanException.create(rsMaxaddresslistcountIs0MeansTheAddresslistIsBad+' (savedscanaddressfs.size='+inttostr(savedscanaddressfs.size)+')');
   end;
 
   LastAddressAccessed.index:=0; //reset the index
@@ -348,7 +353,7 @@ begin
       if currentregion>=maxnumberofregions then
       begin
         if AllowNotFound = false then
-          raise exception.create(Format(rsFailureInFindingInThePreviousScanResults, [inttohex(address, 8)]))
+          raise ESavedScanException.create(Format(rsFailureInFindingInThePreviousScanResults, [inttohex(address, 8)]))
         else
         begin
           lastFail:=2;
@@ -451,7 +456,7 @@ begin
           exit(getpointertoaddress(address, valuetype, ct, false));
         end
         else
-          raise exception.create(rsInvalidOrderOfCallingGetpointertoaddress);
+          raise ESavedScanException.create(rsInvalidOrderOfCallingGetpointertoaddress);
       end;
 
       if pa[currentaddresslistcount-1]<address then
@@ -475,7 +480,7 @@ begin
                 exit(getpointertoaddress(address, valuetype, ct, false));
               end
               else
-                raise exception.create(e.message);
+                raise ESavedScanException.create(e.message);
             end;
           end;
         end;
@@ -531,7 +536,7 @@ begin
 
       //not found
       if not AllowNotFound then
-        raise exception.create(Format(rsFailureInFindingInTheFirstScanResults, [inttohex(address, 8)]));
+        raise ESavedScanException.create(Format(rsFailureInFindingInTheFirstScanResults, [inttohex(address, 8)]));
     end
     else
     begin
@@ -552,7 +557,7 @@ begin
           exit(getpointertoaddress(address, valuetype, ct, false));
         end
         else
-          raise exception.create(rsInvalidOrderOfCallingGetpointertoaddress);
+          raise ESavedScanExceptionBad.create(rsInvalidOrderOfCallingGetpointertoaddress);
       end;
 
       if pab[currentaddresslistcount-1].address<address then
@@ -575,7 +580,7 @@ begin
               exit(getpointertoaddress(address, valuetype, ct, false));
             end
             else
-              raise exception.create(e.message);
+              raise ESavedScanExceptionBad.create(e.message);
           end;
         end;
 
@@ -624,7 +629,7 @@ begin
   end;
 
   if not AllowNotFound then
-    raise exception.create(Format(rsFailureInFindingInThePreviousScanResults, [inttohex(address, 8)]));
+    raise ESavedScanExceptionBad.create(Format(rsFailureInFindingInThePreviousScanResults, [inttohex(address, 8)]));
 
 end;
 
@@ -646,7 +651,7 @@ begin
     try
       SavedScanaddressFS:=tfilestream.Create(scandir+'ADDRESSES.'+savedresultsname, fmopenread or fmsharedenynone);
     except
-      raise exception.Create(rsNoFirstScanDataFilesFound);
+      raise ESavedScanException.Create(rsNoFirstScanDataFilesFound);
     end;
     SavedScanaddressFS.ReadBuffer(datatype,7);
 
@@ -689,7 +694,7 @@ begin
       SavedScanmemoryFS:=Tfilestream.Create(scandir+'MEMORY.'+savedresultsname,fmOpenRead or fmsharedenynone);
       getmem(SavedScanmemory, maxregionsize);
     except
-      raise exception.Create(rsNoFirstScanDataFilesFound);
+      raise ESavedScanException.Create(rsNoFirstScanDataFilesFound);
     end;
 
     deinitialized:=false;
@@ -700,7 +705,7 @@ begin
       //clean up and raise the exception
       log('Error during TSavedScanHandler.InitializeScanHandler:'+e.Message);
       cleanup;
-      raise exception.Create(e.Message);
+      raise ESavedScanException.Create(e.Message);
     end;
  end;
 end;

@@ -9,6 +9,7 @@ uses
 
 type
   TTabChangeEvent=procedure(sender: TObject; oldselection: integer) of object;
+  TTabCreateDestroyEvent=procedure(sender: TObject; tabIndex: integer) of object;
 
   TTablist=class;
 
@@ -30,8 +31,8 @@ type
     fmintabWidth: integer;
     fselectedTab: integer;
     fOnTabChange: TTabChangeEvent;
-
-    ftabData: array of pointer;
+    fOnTabCreate: TTabCreateDestroyEvent;
+    fOnTabDestroy: TTabCreateDestroyEvent;
 
     offset: integer; //defines how many tabs must be shifted to the left
     controlWithArrows: TControlWithArrows;
@@ -45,6 +46,10 @@ type
     function getCount: integer;
     function getTabText(i: integer): string;
     procedure setTabText(i: integer; s: string);
+
+    procedure setCurrentTabData(data: pointer);
+    function getCurrentTabData: pointer;
+
   protected
     procedure MouseDown(Button: TMouseButton; Shift:TShiftState; X,Y:Integer); override;
   public
@@ -58,12 +63,15 @@ type
     destructor Destroy; override;
 
     property TabData[Index: Integer]: pointer read getTabData write setTabData;
+    property CurrentTabData: pointer read getCurrentTabData write setCurrentTabData;
   published
     property MinTabWidth: integer read fMinTabWidth write fMinTabWidth;
-    property OnTabChange: TTabChangeEvent read fOnTabChange write fOnTabChange;
     property SelectedTab: integer read fSelectedTab write setSelectedTab;
     property TabText[Index: Integer]: string read getTabText write setTabText;
     property Count: integer read getCount;
+    property OnTabChange: TTabChangeEvent read fOnTabChange write fOnTabChange;
+    property OnTabCreate: TTabCreateDestroyEvent read fOnTabCreate write fOnTabCreate;
+    property OnTabDestroy: TTabCreateDestroyEvent read fOnTabDestroy write fOnTabDestroy;
 end;
 
 implementation
@@ -88,21 +96,39 @@ end;
 function TTablist.getTabData(i: integer):pointer;
 begin
   result:=nil;
-  if i>fTabs.count then exit;
+  if (i<0) or (i>=fTabs.count) then
+  begin
+    exit;
+  end;
 
-  result:=ftabData[i];
+  result:=ftabs.Objects[i];
 end;
 
 procedure TTablist.setTabData(i: integer; p: pointer);
 begin
-  if i>fTabs.count then exit;
+  if (i<0) or (i>=fTabs.count) then
+  begin
+    exit;
+  end;
 
-  fTabData[i]:=p;
+  ftabs.Objects[i]:=p;
+end;
+
+procedure TTablist.setCurrentTabData(data: pointer);
+begin
+  setTabData(fselectedTab, data);
+end;
+
+function TTablist.getCurrentTabData: pointer;
+begin
+  result:=getTabData(fselectedTab);
 end;
 
 procedure TTablist.setSelectedTab(i: integer);
 var old: integer;
 begin
+  if fselectedTab>=Count then raise exception.create('Tablist: Invalid tab selected');
+
   old:=fSelectedTab;
   fSelectedTab:=i;
 
@@ -160,9 +186,10 @@ Assuming that the tabdata is already freed
 }
 var j: integer;
 begin
+  if assigned(fOnTabDestroy) then
+    fOnTabDestroy(self, i);
+
   ftabs.Delete(i);
-  for j:=i to length(ftabdata)-2 do
-    ftabdata[j]:=ftabdata[j+1];
 
   //do a tabswitch without calling the onchange
   if fselectedTab=i then //if for some reason the current tab was deleted
@@ -180,8 +207,11 @@ end;
 function TTablist.AddTab(t: string): integer;
 begin
   fTabs.Add(t);
-  setlength(ftabData,fTabs.count);
   result:=ftabs.count-1;
+
+  if assigned(fOnTabCreate) then
+    fOnTabCreate(self, result);
+
   invalidate;
   repaint;
 end;

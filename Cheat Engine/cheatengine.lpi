@@ -22,7 +22,7 @@
       <AutoIncrementBuild Value="True"/>
       <MajorVersionNr Value="7"/>
       <MinorVersionNr Value="1"/>
-      <BuildNr Value="6408"/>
+      <BuildNr Value="6449"/>
       <Language Value=""/>
       <CharSet Value=""/>
       <StringTable CompanyName="Cheat Engine" FileDescription="Cheat Engine" ProductVersion="7.1"/>
@@ -2796,7 +2796,7 @@
     </Other>
   </CompilerOptions>
   <Debugging>
-    <Exceptions Count="16">
+    <Exceptions Count="17">
       <Item1>
         <Name Value="EAbort"/>
         <Enabled Value="False"/>
@@ -2807,7 +2807,6 @@
       </Item2>
       <Item3>
         <Name Value="EFOpenError"/>
-        <Enabled Value="False"/>
       </Item3>
       <Item4>
         <Name Value="Unknown"/>
@@ -2853,6 +2852,9 @@
         <Name Value="EProcess"/>
         <Enabled Value="False"/>
       </Item16>
+      <Item17>
+        <Name Value="ESavedScanException"/>
+      </Item17>
     </Exceptions>
   </Debugging>
 </CONFIG>

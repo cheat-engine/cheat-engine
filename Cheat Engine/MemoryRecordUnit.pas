@@ -3291,6 +3291,7 @@ begin
 
         try
           setvaluescript.Add('local oldvalue='+getValue);
+          setvaluescript.Add('local value=oldvalue');
           setvaluescript.Add('return '+copy(CurrentValue,2, length(CurrentValue)-2));
 
 
