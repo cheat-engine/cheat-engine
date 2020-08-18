@@ -2052,13 +2052,7 @@ begin
 
         lua_getglobal(luavm,'print');
         lua_pushstring(LuaVM, s);
-
-        if lua_isfunction(luavm,-1) then
-          lua_pcall(luavm,1,0,0)
-        else
-          ShowMessage(s);
-
-
+        lua_pcall(luavm,1,0,0);
 
       end;
     end;
