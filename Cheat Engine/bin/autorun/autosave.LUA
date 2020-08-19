@@ -196,15 +196,12 @@ function autosave.loadState()
       f=createAutoAssemblerForm()
       
       local count=cestate.readDword()
+     
       if count>0 then --should be      
-        f.TabScript[0]=cestate.readAnsiString()
-       
-        if count>0 then
-          local j
-          for j=1,count do
-            local t=f.addTab()
-            f.TabScript[t]=cestate.readAnsiString()
-          end
+        f.TabCount=count      
+        local j
+        for j=0,count-1 do          
+          f.TabScript[j]=cestate.readAnsiString()
         end
       end
       

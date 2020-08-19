@@ -341,10 +341,11 @@ type
     procedure CustomTemplateClick(sender: tobject);
     function getIsEditing: boolean;
     function getTabCount: integer;
+    procedure setTabCount(count: integer);
 
     function getTabScript(index: integer): string;
     procedure setTabScript(index: integer; script: string);
-    procedure deleteTab(index: integer);
+
   public
     { Public declarations }
 
@@ -361,6 +362,8 @@ type
     CustomTypeCallback: TCustomCallbackroutine;
     injectintomyself: boolean;
 
+    procedure deleteTab(index: integer);
+
     procedure reloadHighlighterSettings;
     procedure addTemplate(id: integer);
     procedure removeTemplate(id: integer);
@@ -370,7 +373,7 @@ type
   published
     property ScriptMode: TScriptMode read fScriptMode write setScriptMode;
     property isEditing: boolean read getIsEditing;
-    property TabCount: integer read getTabCount;
+    property TabCount: integer read getTabCount write setTabCount;
   end;
 
 
@@ -1862,6 +1865,21 @@ begin
     result:=tablist.Count
   else
     result:=1;
+end;
+
+procedure TfrmAutoInject.setTabCount(count: integer);
+begin
+  if tablist=nil then
+    miNewTab.Click;
+
+  while tablist.Count>count do
+    deleteTab(TabCount-1);
+
+  while tablist.count<count do
+    miNewTab.Click;
+
+  if count=1 then
+    tablist.visible:=false;
 end;
 
 function TfrmAutoInject.getTabScript(index: integer): string;
