@@ -3531,7 +3531,7 @@ methods
   waitForThread(timeout OPTIONAL) : Waits for the thread to finish. Timeout is time in milliseconds. If nil, the timeout it infinite. If 0, it returns without wait
 
 ModuleLoader(Inheritance: -)
-loadModule(pathtodll, executeEntryPoint OPTIONAL default=true)
+loadModule(pathtodll, executeEntryPoint OPTIONAL default=true, timeout OPTIONAL default=nil=infinite)
 
 properties:
   loaded: boolean - true if successfuly mapped

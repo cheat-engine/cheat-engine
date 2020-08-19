@@ -748,7 +748,10 @@ begin
   try
     lua_getglobal(Luavm, 'loadModule');
     lua_pushstring(Luavm,dllname);
-    if (lua_pcall(Luavm,1,2,0)<>0) then
+    lua_pushboolean(LuaVM,true);
+    lua_pushinteger(LuaVM,10000); //timeout of 10 secs
+
+    if (lua_pcall(Luavm,3,2,0)<>0) then
       raise exception.create('didn''t even run');
 
     if lua_isnil(Luavm,-2) then
