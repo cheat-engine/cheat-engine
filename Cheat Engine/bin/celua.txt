@@ -2131,7 +2131,8 @@ methods
   createHotkey({keys}, action, value OPTIONAL, description OPTIONAL): Returns a hotkey object 
 
   disableWithoutExecute(): Sets the entry to disabled without executing the disable section
-
+  beginEdit() : Call when you wish to take a long time to edit a record. (e.g external editor) It prevents the record from getting deleted
+  endEdit() : to mark the end of your long edit sequence
 
 global events
   function onMemRecPreExecute(memoryrecord, newstate BOOLEAN):

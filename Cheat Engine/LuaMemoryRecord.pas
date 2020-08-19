@@ -991,6 +991,18 @@ begin
   end;
 end;
 
+function memoryrecord_beginEdit(L: PLua_State): integer; cdecl;
+begin
+  TMemoryRecord(luaclass_getClassObject(L)).beginEdit;
+  exit(0);
+end;
+
+function memoryrecord_endEdit(L: PLua_State): integer; cdecl;
+begin
+  TMemoryRecord(luaclass_getClassObject(L)).endEdit;
+  exit(0);
+end;
+
 procedure memoryrecord_addMetaData(L: PLua_state; metatable: integer; userdata: integer );
 var recordEntry: TRecordEntry;
   recordentries: TRecordEntries;
@@ -1033,6 +1045,8 @@ begin
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'getHotkeyByID', memoryrecord_getHotkeyByID);
 
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'createHotkey', memoryrecord_createHotkey);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'beginEdit', memoryrecord_beginEdit);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'endEdit', memoryrecord_endEdit);
 
 
 
