@@ -281,10 +281,12 @@ object frmAutoInject: TfrmAutoInject
     object miMoveRight: TMenuItem
       Caption = 'Move light'
       ImageIndex = 15
+      OnClick = miMoveRightClick
     end
     object miRenameTab: TMenuItem
       Caption = 'Rename'
       ImageIndex = 13
+      OnClick = miRenameTabClick
     end
     object Close1: TMenuItem
       Caption = 'Close'

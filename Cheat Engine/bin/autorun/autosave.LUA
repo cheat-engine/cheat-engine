@@ -7,6 +7,7 @@ require("lfs")
 autosave={} --todo make local
 
 local AutoSaveSettings=getSettings('Auto Save')
+local AutoSaveVersion=1
 
 autosave.getPath=function()
   local path=AutoSaveSettings['SavePath']
@@ -98,19 +99,26 @@ function autosave.saveState()
       
     elseif (f.ClassName=='TfrmAutoInject') and f.Visible then
       if (f.IsEditing==false) and (f.ScriptMode~='smLua') then --Editing means it's editing a memoryrecord saved in the table, not saving that
-        --standalone AA window, not the tablescript
+        --standalone AA window, not the tablescript        
         e={}
-        e.script=f.Assemblescreen.Lines.Text
-        e.filename=f.savedialog1.FileName
+        e.Filename=f.savedialog1.FileName
         e.Left=f.Left
         e.Top=f.Top
         e.Width=f.Width
-        e.Height=f.Height
+        e.Height=f.Height        
+        e.ScriptCount=f.TabCount
+        e.Scripts={}
+        local j
+        for j=0,f.TabCount-1 do
+          e.Scripts[j+1]=f.TabScript[j]
+        end
+
         table.insert(aaforms,e)
       end    
     end       
   end 
   
+  cestate.writeDword(AutoSaveVersion)
   cestate.writeDword(#luaforms)
   for i=1,#luaforms do
     cestate.writeAnsiString(luaforms[i].history)
@@ -124,8 +132,11 @@ function autosave.saveState()
   
   cestate.writeDword(#aaforms)
   for i=1,#aaforms do
-    cestate.writeAnsiString(aaforms[i].script)
-    cestate.writeAnsiString(aaforms[i].filename)
+    cestate.writeDword(aaforms[i].ScriptCount)
+    for j=1,#aaforms[i].Scripts do
+      cestate.writeAnsiString(aaforms[i].Scripts[j])
+    end
+    cestate.writeAnsiString(aaforms[i].Filename)
     cestate.writeDword(aaforms[i].Left)
     cestate.writeDword(aaforms[i].Top)
     cestate.writeDword(aaforms[i].Width)
@@ -158,6 +169,12 @@ function autosave.loadState()
   local cestate,err=createFileStream(path..[[state.dat]], fmOpenRead)
   if cestate then  
     local i
+    local version=cestate.readDword()
+    if version~=AutoSaveVersion then
+      --check how to load older versions, and if not supported then:
+      messageDialog(translate('The saved state belongs to a different autosave version that is not currently implemented'), mtError, mbOk)  
+      return false
+    end
     local luaformcount=cestate.readDword()
     --print("luaformcount="..luaformcount)
     for i=1,luaformcount do
@@ -177,7 +194,20 @@ function autosave.loadState()
     --print("aacount="..aacount)
     for i=1,aacount do
       f=createAutoAssemblerForm()
-      f.Assemblescreen.Lines.Text=cestate.readAnsiString()
+      
+      local count=cestate.readDword()
+      if count>0 then --should be      
+        f.TabScript[0]=cestate.readAnsiString()
+       
+        if count>0 then
+          local j
+          for j=1,count do
+            local t=f.addTab()
+            f.TabScript[t]=cestate.readAnsiString()
+          end
+        end
+      end
+      
       f.SaveDialog1.FileName=cestate.readAnsiString()
       f.Left=cestate.readDword()
       f.Top=cestate.readDword()

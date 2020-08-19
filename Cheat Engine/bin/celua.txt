@@ -1075,8 +1075,12 @@ createAutoAssemblerForm(script: string OPTIONAL): TFrmAutoInject - Spawns an aut
 
 properties
   Assemblescreen: SynEdit - Editor for the script
+  TabCount: integer
+  TabScript[index]: string
 
 methods
+  addTab(): integer
+  deleteTab(index)
 
 GraphicControl Class: (Inheritance: Control->Component->Object)
 properties

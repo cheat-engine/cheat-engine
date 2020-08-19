@@ -340,6 +340,11 @@ type
 
     procedure CustomTemplateClick(sender: tobject);
     function getIsEditing: boolean;
+    function getTabCount: integer;
+
+    function getTabScript(index: integer): string;
+    procedure setTabScript(index: integer; script: string);
+    procedure deleteTab(index: integer);
   public
     { Public declarations }
 
@@ -361,9 +366,11 @@ type
     procedure removeTemplate(id: integer);
     procedure loadfile(filename: string);
     property CustomTypeScript: boolean read fCustomTypeScript write setCustomTypeScript;
+    property TabScript[index: integer]: string read getTabScript write setTabScript;
   published
     property ScriptMode: TScriptMode read fScriptMode write setScriptMode;
     property isEditing: boolean read getIsEditing;
+    property TabCount: integer read getTabCount;
   end;
 
 
@@ -390,7 +397,7 @@ uses frmAAEditPrefsUnit,MainUnit,memorybrowserformunit,APIhooktemplatesettingsfr
   Globals, Parsers, MemoryQuery, {$ifdef windows}GnuAssembler,{$endif} LuaCaller, SynEditTypes, CEFuncProc,
   StrUtils, types, ComCtrls, LResources, NewKernelHandler, MainUnit2, Assemblerunit,
   autoassembler,  registry, luahandler, memscan, foundlisthelper, ProcessHandlerUnit,
-  frmLuaEngineUnit, frmSyntaxHighlighterEditor, lua, lualib, lauxlib;
+  frmLuaEngineUnit, frmSyntaxHighlighterEditor, lua, lualib, lauxlib, luaclass, LuaForm;
 
 resourcestring
   rsExecuteScript = 'Execute script';
@@ -1849,6 +1856,70 @@ begin
 {$endif}
 end;
 
+function TfrmAutoInject.getTabCount: integer;
+begin
+  if tablist<>nil then
+    result:=tablist.Count
+  else
+    result:=1;
+end;
+
+function TfrmAutoInject.getTabScript(index: integer): string;
+begin
+  result:='';
+  if index>=0 then
+  begin
+    if (tablist=nil) and (index=0) then
+      exit(assemblescreen.Lines.Text);
+
+    if index<tablist.count then
+    begin
+      if tablist.SelectedTab=index then
+        exit(assemblescreen.Lines.Text)
+      else
+        exit(TAAScriptTabData(tablist.TabData[index]).script);
+    end;
+  end;
+
+end;
+
+procedure TfrmAutoInject.setTabScript(index: integer; script: string);
+var
+  i: integer;
+  td: TAAScriptTabData;
+begin
+  if index>=0 then
+  begin
+    if (tablist=nil) and (index=0) then
+    begin
+      assemblescreen.Lines.Text:=script;
+      exit;
+    end;
+
+    if index<tablist.count then
+    begin
+      if tablist.SelectedTab=index then
+      begin
+        assemblescreen.Lines.Text:=script;
+        assemblescreen.ClearUndo;
+      end
+      else
+      begin
+        td:=TAAScriptTabData(tablist.TabData[index]);
+        td.script:=script;
+        //clear the undo data for that tab
+        if td.undogroups<>nil then
+        begin
+          for i:=0 to td.undogroups.Count-1 do
+            TSynEditUndoGroup(td.undogroups[i]).Free;
+
+          td.undogroups.clear;
+        end;
+      end;
+    end;
+  end;
+end;
+
 procedure TfrmAutoInject.miNewTabClick(Sender: TObject);
 var i: integer;
 begin
@@ -1932,9 +2003,9 @@ begin
       until undogroup=nil;
     end;
 
-  end
-  else
-    assemblescreen.ClearUndo; //it was a delete
+  end;
+
+
 
   assemblescreen.BeginUpdate(false);
   assemblescreen.text:=TAAScriptTabData(tablist.CurrentTabData).script;
@@ -1945,6 +2016,7 @@ begin
   assemblescreen.EndUpdate;
 
   //restore undo
+  assemblescreen.ClearUndo; //get rid of the old one (just in case the previous tabswitch failed...)
   l:=tlist.create;
 
   if (ssl is TSynEditStringList) and (TAAScriptTabData(tablist.CurrentTabData).undogroups<>nil) then
@@ -2238,19 +2310,16 @@ begin
 end;
 
 
-procedure TfrmAutoInject.Close1Click(Sender: TObject);
+procedure TfrmAutoInject.deleteTab(index: integer);
 var
-  i: integer;
   oldtabindex: integer;
 begin
-{$ifndef standalonetrainerwithassembler}
-
-  if messagedlg(Format(rsAreYouSureYouWantToClose, [tablist.TabText[selectedtab]]), mtConfirmation, [mbyes, mbno], 0)=mryes then
+  if (tablist<>nil) and (index>=0) and (tablist.count>1) and (index<tablist.count) then
   begin
     oldtabindex:=tablist.SelectedTab;
     TAAScriptTabData(tablist.CurrentTabData).script:=assemblescreen.text;
     TAAScriptTabData(tablist.CurrentTabData).filename:=OpenDialog1.FileName;
-    tablist.RemoveTab(selectedtab);
+    tablist.RemoveTab(index);
 
     if tablist.SelectedTab=-1 then
     begin
@@ -2263,6 +2332,14 @@ begin
     if tablist.count=1 then
       tablist.Visible:=false;
   end;
+end;
+
+procedure TfrmAutoInject.Close1Click(Sender: TObject);
+begin
+{$ifndef standalonetrainerwithassembler}
+
+  if messagedlg(Format(rsAreYouSureYouWantToClose, [tablist.TabText[selectedtab]]), mtConfirmation, [mbyes, mbno], 0)=mryes then
+    deleteTab(selectedTab);
 {$endif}
 end;
 
@@ -3539,8 +3616,76 @@ end;
 
 // /\   http://forum.cheatengine.org/viewtopic.php?t=566415 (jgoemat and some mods by db)
 
+function lua_getTabScript(L: PLua_State): integer; cdecl;
+var
+  frm: TfrmAutoInject;
+  index: integer;
+begin
+  result:=0;
+  frm:=luaclass_getClassObject(L);
+  if lua_gettop(L)=1 then
+  begin
+    index:=lua_tointeger(L,1);
+    lua_pushstring(L, frm.TabScript[index]);
+    result:=1;
+  end;
+end;
+
+function lua_setTabScript(L: PLua_State): integer; cdecl;
+var
+  frm: TfrmAutoInject;
+  index: integer;
+begin
+  result:=0;
+  frm:=luaclass_getClassObject(L);
+  if lua_gettop(L)=2 then
+  begin
+    index:=lua_tointeger(L,1);
+    frm.TabScript[index]:=lua_tostring(L,2);
+  end;
+end;
+
+function lua_addTab(L: PLua_State): integer; cdecl;
+var
+  frm: TfrmAutoInject;
+begin
+  frm:=luaclass_getClassObject(L);
+  frm.miNewTab.Click;
+  if frm.tablist<>nil then
+    lua_pushinteger(L,frm.tablist.Count-1)
+  else
+    lua_pushinteger(L,0);
+
+  result:=1;
+end;
+
+function lua_deleteTab(L: PLua_State): integer; cdecl;
+var
+  frm: TfrmAutoInject;
+  index: integer;
+  oldtabindex: integer;
+begin
+  frm:=luaclass_getClassObject(L);
+  if lua_gettop(L)>=1 then
+  begin
+    index:=lua_tointeger(L,1);
+    frm.deleteTab(index);
+  end;
+  result:=0;
+end;
+
+procedure frmAutoInject_addMetaData(L: PLua_state; metatable: integer; userdata: integer );
+begin
+  customForm_addMetaData(L, metatable, userdata);
+
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'addTab', lua_addTab);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'deleteTab', lua_deleteTab);
+  luaclass_addArrayPropertyToTable(L, metatable, userdata, 'TabScript', lua_getTabScript, lua_setTabScript);
+end;
 
 initialization
+  luaclass_register(TfrmAutoInject, frmAutoInject_addMetaData);
+
   {$i frmautoinjectunit.lrs}
 
 end.
