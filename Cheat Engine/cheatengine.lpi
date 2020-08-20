@@ -7,7 +7,7 @@
       <SessionStorage Value="InProjectDir"/>
       <MainUnit Value="0"/>
       <AutoCreateForms Value="False"/>
-      <Title Value="Cheat Engine 7.1"/>
+      <Title Value="Cheat Engine 7.2"/>
       <XPManifest>
         <ExecutionLevel Value="requireAdministrator"/>
       </XPManifest>
@@ -21,11 +21,11 @@
       <UseVersionInfo Value="True"/>
       <AutoIncrementBuild Value="True"/>
       <MajorVersionNr Value="7"/>
-      <MinorVersionNr Value="1"/>
-      <BuildNr Value="6449"/>
+      <MinorVersionNr Value="2"/>
+      <BuildNr Value="6465"/>
       <Language Value=""/>
       <CharSet Value=""/>
-      <StringTable CompanyName="Cheat Engine" FileDescription="Cheat Engine" ProductVersion="7.1"/>
+      <StringTable CompanyName="Cheat Engine" FileDescription="Cheat Engine" ProductVersion="7.2"/>
     </VersionInfo>
     <BuildModes Count="10">
       <Item1 Name="Release 32-Bit" Default="True"/>
@@ -110,7 +110,7 @@
           <SearchPaths>
             <IncludeFiles Value="$(ProjOutDir);$(LazarusDir)\ide\include\$(TargetOS);$(LazarusDir)\images;$(LazarusDir)\ideintf\images"/>
             <OtherUnitFiles Value="VEHDebug;dbk32;lua;jvdesign;$(LazarusDir)\designer;$(LazarusDir)\ide"/>
-            <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)"/>
+            <UnitOutputDirectory Value="lib\$(TargetCPU)-SSE4-AVX-$(TargetOS)"/>
           </SearchPaths>
           <Parsing>
             <Style Value="1"/>
@@ -155,7 +155,7 @@
 -dbenchmarkps
 -dcemain
 -dNDEBUG"/>
-            <OtherDefines Count="12">
+            <OtherDefines Count="13">
               <Define0 Value="NOTMULTITHREADED"/>
               <Define1 Value="benchmarkps"/>
               <Define2 Value="cemain"/>
@@ -168,6 +168,7 @@
               <Define9 Value="checkassembleralphabet"/>
               <Define10 Value="memorymapped"/>
               <Define11 Value="privatebuild"/>
+              <Define12 Value="DBVMFORAMDISWORKING"/>
             </OtherDefines>
           </Other>
         </CompilerOptions>
@@ -2415,6 +2416,7 @@
         <Filename Value="asktorunluascript.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="frmLuaScriptQuestion"/>
+        <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="askToRunLuaScript"/>
       </Unit340>

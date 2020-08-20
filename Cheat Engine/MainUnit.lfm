@@ -9,7 +9,7 @@ object MainForm: TMainForm
   VertScrollBar.Visible = False
   AllowDropFiles = True
   AutoSize = True
-  Caption = 'Cheat Engine 7.1'
+  Caption = 'Cheat Engine 7.2'
   ClientHeight = 592
   ClientWidth = 620
   Menu = MainMenu1
@@ -2716,7 +2716,7 @@ object MainForm: TMainForm
   end
   object mfImageList: TImageList
     Scaled = True
-    Left = 155
+    Left = 160
     Top = 359
     Bitmap = {
       4C69260000001000000010000000FFFFFF00FFFFFF00FFFFFF00FFFFFF00CDCD

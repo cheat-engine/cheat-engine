@@ -18,10 +18,10 @@ uses
      memscan,plugin, hotkeyhandler,frmProcessWatcherUnit, newkernelhandler,
      debuggertypedefinitions, commonTypeDefs;
 
-const ceversion=7.1;
+const ceversion=7.2;
 
 resourcestring
-  cename = 'Cheat Engine 7.1';
+  cename = 'Cheat Engine 7.2';
   rsPleaseWait = 'Please Wait!';
 
 procedure UpdateToolsMenu;
@@ -31,7 +31,7 @@ procedure initcetitle;
 
 
 
-const beta=''; //empty this for a release
+const beta='Beta 1'; //empty this for a release
 
 var
   CEnorm:string;
