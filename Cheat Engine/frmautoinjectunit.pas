@@ -1128,8 +1128,8 @@ begin
     getenableanddisablepos(assemblescreen.Lines,a,b);
     if (a=-1) and (b=-1) then raise exception.create(rsCodeNeedsEnableAndDisable);
 
-    if autoassemble(assemblescreen.lines,false,true,true,false,aa,exceptionlist,registeredsymbols) and
-       autoassemble(assemblescreen.lines,false,false,true,false,aa,exceptionlist,registeredsymbols) then
+    if autoassemble(assemblescreen.lines,true,true,true,false,aa,exceptionlist,registeredsymbols) and
+       autoassemble(assemblescreen.lines,true,false,true,false,aa,exceptionlist,registeredsymbols) then
     begin
       //add a entry with type 255
       mainform.AddAutoAssembleScript(assemblescreen.text);
@@ -3144,7 +3144,7 @@ begin
         add('aobscan(' + symbolName + ',' + resultAOB + ') // should be unique');
 
       if processhandler.is64bit then
-        add('alloc(newmem' + nr + ',$1000,' + address + ')')
+        add('alloc(newmem' + nr + ',$1000,' + symbolname + ')')
       else
         add('alloc(newmem' + nr + ',$1000)');
       add('');

@@ -135,6 +135,9 @@ resourcestring
   rsAALuaErrorInTheScriptAtLine = 'Lua error in the script at line ';
   rsGoTo = 'Go to ';
   rsMissingExcept = 'The {$TRY} at line %d has no matching {$EXCEPT}';
+  rsNoPreferedRangeAllocWarning = 'None of the ALLOC statements specify a '
+    +'prefered address.  Did you take into account that the JMP instruction is'
+    +' going to be 14 bytes long?';
 
 //type
 //  TregisteredAutoAssemblerCommands =  TFPGList<TRegisteredAutoAssemblerCommand>;
@@ -784,7 +787,7 @@ begin
   end;
 end;
 
-procedure aobscans(code: tstrings; syntaxcheckonly: boolean);
+function aobscans(code: tstrings; syntaxcheckonly: boolean): boolean;
 //Replaces all AOBSCAN lines with DEFINE(NAME,ADDRESS)
 type
   TAOBEntry = record
@@ -876,6 +879,7 @@ var i,j,k, m: integer;
   end;
 
 begin
+  result:=false;
   error:=false;
   setlength(aobscanmodules,0);
 
@@ -1080,6 +1084,10 @@ begin
     end;
   end;
   //do simultaneous scans for the selected modules
+
+  if length(aobscanmodules)>0 then
+    result:=true; //script uses aobscan
+
   for i:=0 to length(aobscanmodules)-1 do
   begin
 
@@ -1375,8 +1383,6 @@ var i,j,k,l,e: integer;
       timeout: integer;
     end;
 
-//    aoblist: array of TAOBEntry;
-
     a,b,c,d: integer;
     s1,s2,s3: string;
 
@@ -1439,6 +1445,7 @@ var i,j,k,l,e: integer;
 
     nops: Tassemblerbytes;
     mustbefar: boolean;
+    usesaobscan: boolean;
 
     function getAddressFromScript(name: string): ptruint;
     var
@@ -1550,7 +1557,6 @@ begin
     setlength(defines,0);
     setlength(loadbinary,0);
     setlength(exceptionlist,0);
-//    setlength(aoblist,0);
 
     tokens:=tstringlist.Create;
 
@@ -1591,7 +1597,7 @@ begin
     //6.3: do the aobscans first
     //this will break scripts that use define(state,33) aobscan(name, 11 22 state 44 55), but really, live with it
 
-    aobscans(code, syntaxcheckonly);
+    usesaobscan:=aobscans(code, syntaxcheckonly);
 
     if not targetself then
       for i:=0 to length(AutoAssemblerProloguesPostAOBSCAN)-1 do
@@ -1650,7 +1656,7 @@ begin
           //also, do not touch define with any previous define
           if uppercase(copy(currentline,1,7))='DEFINE(' then
           begin
-            //syntax: alloc(x,size)    x=variable name size=bytes
+            //syntax: define(x,whatever)    x=variable name size=bytes
             //allocate memory
 
 
@@ -2407,10 +2413,7 @@ begin
               allocs[j].varname:=s1;
               allocs[j].size:=StrToInt(s2);
               if s3<>'' then
-              begin
-
-                allocs[j].prefered:=symhandler.getAddressFromName(s3);
-              end
+                allocs[j].prefered:=symhandler.getAddressFromName(s3)
               else
                 allocs[j].prefered:=0;
 
@@ -2848,14 +2851,28 @@ begin
       end;
 
 
-    if syntaxcheckonly then
+    //check for the 3th alloc parameter when testing the validity of the script, and ask if the user understands what will happen
+    if popupmessages and processhandler.is64Bit and usesaobscan and (length(allocs)>0) then
     begin
-      result:=true;
-      exit;
+      //check if a prefered address is used
+      prefered:=0;
+
+      for i:=0 to length(allocs)-1 do
+        if allocs[i].prefered<>0 then
+        begin
+          prefered:=allocs[i].prefered;
+          break;
+        end;
+
+      if (prefered=0) and (MessageDlg(rsNoPreferedRangeAllocWarning, mtWarning, [mbyes, mbno], 0)<>mryes) then
+        exit(false);
     end;
 
+    if syntaxcheckonly then
+      exit(true);
+
     {$ifndef jni}
-    if popupmessages and (messagedlg(rsThisCodeCanBeInjectedAreYouSure, mtConfirmation	, [mbyes, mbno], 0)<>mryes) then exit;
+    if popupmessages and (messagedlg(rsThisCodeCanBeInjectedAreYouSure, mtConfirmation, [mbyes, mbno], 0)<>mryes) then exit;
     {$endif}
 
     //allocate the memory
