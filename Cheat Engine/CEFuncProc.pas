@@ -3721,7 +3721,14 @@ begin
   if (length(trim(tempdiralternative))>2) and dontusetempdir then
     path:=trim(tempdiralternative)
   else
-    path:=GetTempDir;
+  begin
+    path:=trim(GetEnvironmentVariable('_NT_SYMBOL_PATH'));
+    if path='' then
+      path:=trim(GetEnvironmentVariable('_NT_ALTERNATE_SYMBOL_PATH'));
+
+    if path='' then
+      path:=GetTempDir;
+  end;
 
   path:=path+'Cheat Engine Symbols';
 
@@ -3730,7 +3737,7 @@ begin
 
   getmem(shortpath,256);
   GetShortPathName(pchar(path),shortpath,255);
-  symhandler.setsearchpath('srv*'+shortpath+'*https://msdl.microsoft.com/download/symbols');
+  symhandler.setsearchpath('srv*'+path+'*https://msdl.microsoft.com/download/symbols');
   freemem(shortpath);
 
   symhandler.reinitialize(true);
