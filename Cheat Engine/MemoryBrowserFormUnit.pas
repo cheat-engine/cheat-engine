@@ -3146,7 +3146,7 @@ begin
 
 //  copy
 
-  assemblercode:=InputboxTop(rsCheatEngineSingleLingeAssembler, Format(rsTypeYourAssemblerCodeHereAddress, [inttohex(Address, 8)]), assemblercode, x='', canceled, assemblerHistory);
+  assemblercode:=InputboxTop(rsCheatEngineSingleLingeAssembler, Format(rsTypeYourAssemblerCodeHereAddress, [inttohex(Address, 8)]), assemblercode, x='', canceled, {$ifdef darwin}nil{$else}assemblerHistory{$endif});
   if not canceled then
   begin
 
@@ -3219,6 +3219,11 @@ begin
 
         hexview.update;
         disassemblerview.Update;
+
+        {$ifdef darwin}
+        SetFocus;
+        disassemblerview.SetFocus;
+        {$endif}
       end else raise exception.create(Format(rsIDonTUnderstandWhatYouMeanWith, [assemblercode]));
     except
       raise exception.create(Format(rsIDonTUnderstandWhatYouMeanWith, [assemblercode]));
