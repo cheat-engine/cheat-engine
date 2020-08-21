@@ -1194,7 +1194,7 @@ begin
         oldselection:=copy(oldselection,pos('-',oldselection)+1,length(oldselection));
 
         found:=false;
-        for i:=0 to processlist.Items.Count-1 do
+        for i:=processlist.Items.Count-1 downto 0 do
           if pos(oldselection, processlist.items[i])>0 then
           begin
             processlist.ItemIndex:=i;
