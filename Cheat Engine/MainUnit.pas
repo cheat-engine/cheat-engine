@@ -822,6 +822,7 @@ type
     freezeThread: TFreezeThread;
 
     showStaticAsStatic: boolean;
+    AddressListOverrideFontSize: boolean;
 
     RecentFiles: Tstringlist;
 
@@ -3202,9 +3203,9 @@ begin
   if foundlist <> nil then
   begin
     if foundlist.inmodule(item.index) then
-      foundlist3.Canvas.Font.Color := clgreen
+      foundlist3.Canvas.Font.Color := foundlistColors.StaticColor
     else
-      foundlist3.Canvas.Font.Color := GetSysColor(COLOR_WINDOWTEXT);
+      foundlist3.Canvas.Font.Color := foundlistColors.DynamicColor;
   end;
 end;
 
@@ -3220,7 +3221,7 @@ begin
   begin
     if (item.subItems[1]<>rsNone) and (item.subitems[0]<>item.subitems[1]) then
     begin
-      sender.Canvas.Font.color:=clred;
+      sender.Canvas.Font.color:=foundlistColors.ChangedValueColor;
       sender.canvas.font.Style:=sender.canvas.font.Style+[fsBold];
       sender.canvas.Refresh;
       drawn:=true;
@@ -3233,7 +3234,7 @@ begin
   end;
   if(not drawn)then
   begin
-    sender.Canvas.Font.color:=GetSysColor(COLOR_WINDOWTEXT);
+    sender.Canvas.Font.color:=foundlistColors.NormalValueColor;
   end;
 end;
 
@@ -3547,12 +3548,13 @@ begin
   f:=TfrmFoundlistPreferences.Create(self);
 
   f.Font.assign(foundlist3.font);
-  f.NormalValueColor:=GetSysColor(COLOR_WINDOWTEXT);
-  f.ChangedValueColor:=clRed;
+  f.NormalValueColor:=foundlistColors.NormalValueColor;
+  f.ChangedValueColor:=foundlistColors.ChangedValueColor;
   f.BackgroundColor:=foundlist3.color;
-  f.StaticColor:=clGreen;
-  f.DynamicColor:=GetSysColor(COLOR_WINDOWTEXT);
+  f.StaticColor:=foundlistColors.StaticColor;
+  f.DynamicColor:=foundlistColors.DynamicColor;
   f.ShowStaticAsStatic:=showStaticAsStatic;
+  f.UseThisFontSize:=AddressListOverrideFontSize;
   if f.showmodal=mrok then
   begin
     foundlist3.font.Assign(f.font);
@@ -3563,6 +3565,7 @@ begin
     foundlistColors.StaticColor:=f.StaticColor;
     foundlistColors.DynamicColor:=f.DynamicColor;
     showStaticAsStatic:=f.ShowStaticAsStatic;
+    AddressListOverrideFontSize:=f.UseThisFontSize;
 
 
 
@@ -3578,6 +3581,7 @@ begin
         reg.WriteInteger('FoundList.DynamicColor', foundlistcolors.DynamicColor);
         reg.WriteInteger('FoundList.BackgroundColor',foundlist3.Color);
         reg.WriteBool('FoundList.ShowStaticAsStatic',ShowStaticAsStatic);
+        reg.WriteBool('FoundList.OverrideFontSize',AddressListOverrideFontSize);
 
         SaveFontToRegistry(foundlist3.font, reg);
       end;
@@ -6013,12 +6017,6 @@ begin
   end;
 
 
-  foundlistColors.NormalValueColor:=GetSysColor(COLOR_WINDOWTEXT);
-  foundlistColors.ChangedValueColor:=clRed;
-  foundlistColors.StaticColor:=clGreen;
-  foundlistColors.DynamicColor:=GetSysColor(COLOR_WINDOWTEXT);
-  showStaticAsStatic:=true;
-
   RecentFiles:=tstringlist.Create;
   cereg.readStrings('Recent Files', RecentFiles);
 
@@ -8109,6 +8107,10 @@ begin
   panel6.clientheight:=cbPauseWhileScanning.top+cbPauseWhileScanning.height+2;
   gbScanOptions.ClientHeight:=panel6.top+panel6.height+2;
 
+  i:=GetFontData(font.Handle).Height;
+  fromaddress.Font.Height:=i;
+  toaddress.Font.Height:=i;
+
   if Reg.OpenKey('\Software\Cheat Engine\FoundList', false) then
   begin
     if reg.ValueExists('FoundList.NormalValueColor') then foundlistcolors.NormalValueColor:=reg.ReadInteger('FoundList.NormalValueColor');
@@ -8117,8 +8119,19 @@ begin
     if reg.ValueExists('FoundList.DynamicColor') then foundlistcolors.DynamicColor:=reg.ReadInteger('FoundList.DynamicColor');
     if reg.ValueExists('FoundList.BackgroundColor') then foundlist3.color:=reg.ReadInteger('FoundList.BackgroundColor');
     if reg.ValueExists('FoundList.ShowStaticAsStatic') then showStaticAsStatic:=reg.ReadBool('FoundList.ShowStaticAsStatic');
+    if reg.ValueExists('FoundList.OverrideFontSize') then AddressListOverrideFontSize:=reg.ReadBool('FoundList.OverrideFontSize');
 
     LoadFontFromRegistry(foundlist3.font,reg);
+    if not AddressListOverrideFontSize then Foundlist3.Font.Height:=i;
+  end
+  else
+  begin
+    foundlistColors.NormalValueColor:=GetSysColor(COLOR_WINDOWTEXT);
+    foundlistColors.ChangedValueColor:=clRed;
+    foundlistColors.StaticColor:=clGreen;
+    foundlistColors.DynamicColor:=GetSysColor(COLOR_WINDOWTEXT);
+    showStaticAsStatic:=true;
+    Foundlist3.Font.Height:=i;
   end;
   freeandnil(reg);
 
@@ -8239,18 +8252,6 @@ begin
   end;
 
   panel9.borderspacing.Top:=(scantype.height div 2)-(cbNot.Height div 2);
-
-  i:=GetFontData(font.Handle).Height;
-
-
-  fromaddress.Font.Height:=i;
-  toaddress.Font.Height:=i;
-  Foundlist3.Font.Height:=i;
-
-
-
-
-
 
   if cleanrun then //clean setup
   begin
