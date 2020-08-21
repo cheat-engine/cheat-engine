@@ -17,9 +17,11 @@ uses
   addressparser, commonTypeDefs, DBK32functions, vmxfunctions;
 
 type
+  TfrmChangedAddresses=class;
   TAddressEntry=class
   public
     address: ptruint; //for whatever reason it could be used in the future
+    base: ptruint;
     context: TContext;
     stack: record
       stack: pbyte;
@@ -28,14 +30,17 @@ type
     count: integer;
 
     group: integer;
+    owner: TfrmChangedAddresses;
 
+    procedure fillBase;
     procedure savestack;
+    constructor create(AOwner: TfrmChangedAddresses);
     destructor destroy; override;
   end;
 
 
   { TfrmChangedAddresses }
-  TfrmChangedAddresses=class;
+
 
   {$ifdef windows}
   TDBVMWatchExecutePollThread=class(TThread)
@@ -181,6 +186,23 @@ begin
   inherited destroy;
 end;
 
+constructor TAddressEntry.create(AOwner: TfrmChangedAddresses);
+begin
+  owner:=aowner;
+end;
+
+procedure TAddressEntry.fillBase;
+var ap: TAddressParser;
+begin
+  if (base=0) and (owner<>nil) then
+  begin
+    ap:=TAddressParser.Create;
+    ap.setSpecialContext(@context);
+    base:=ap.getBaseAddress(owner.equation);
+    ap.free;
+  end;
+end;
+
 procedure TAddressEntry.savestack;
 begin
   getmem(stack.stack, savedStackSize);
@@ -280,7 +302,7 @@ begin
         c.SegFs:=basicinfo.FS;
         c.SegGs:=basicinfo.GS;
 
-        x:=TAddressEntry.Create;
+        x:=TAddressEntry.Create(fca);
         x.address:=address;
         x.count:=basicinfo.Count+1;
 
@@ -432,7 +454,7 @@ begin
 
       if (foundcodedialog=nil) or (changedlist.Items.Count<8) then
       begin
-        x:=TAddressEntry.create;
+        x:=TAddressEntry.create(self);
         x.context:=currentthread.context^;
         x.address:=address;
         x.count:=1;
@@ -939,6 +961,8 @@ begin
   for i:=0 to changedlist.items.Count-1 do
   begin
     e:=TAddressEntry(changedlist.items[i].data);
+    e.fillBase;
+
     case e.group of
       0:
       begin
@@ -1009,6 +1033,7 @@ begin
   f:=TfrmChangedAddressesCommonalityScanner.Create(application); //don't destroy when you close this window
   f.setgroup(1, g1);
   f.setgroup(2, g2);
+
   f.show;
 
   f.initlist;
