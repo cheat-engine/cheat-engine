@@ -45,13 +45,14 @@ uses cefuncproc, ProcessHandlerUnit, frmstructurecompareunit;
 resourcestring
   rsDblClickLaunchComp = 'Doubleclick to launch structure compare';
   rsShowResults = 'Doubleclick to show scanner/results';
+  rsBaseAddress = 'Base Address';
 
 type
   TRegisterInfo=class
   private
     owner: TfrmChangedAddressesCommonalityScanner;
     regnr: integer;
-    contextoffset: dword;
+
     g1same, g2same: boolean;
     validaddress: boolean;
   public
@@ -89,6 +90,7 @@ var
   x: TContext;
   v: ptruint;
   i,j: integer;
+  contextoffset: dword;
 begin
   owner:=o;
   regnr:=r;
@@ -113,6 +115,8 @@ begin
     14: contextoffset:=ptruint(@PContext(nil)^.r14);
     15: contextoffset:=ptruint(@PContext(nil)^.r15);
     {$endif}
+    else
+      contextOffset:=0;
   end;
 
   g1same:=true;
@@ -122,7 +126,11 @@ begin
     setlength(values[i], length(owner.group[i]));
     for j:=0 to length(values[i])-1 do
     begin
-      values[i][j]:=pptruint(ptruint(@owner.group[i][j].context)+contextoffset)^;
+      if regnr=16 then //not a context based value
+        values[i][j]:=owner.group[i][j].base
+      else
+        values[i][j]:=pptruint(ptruint(@owner.group[i][j].context)+contextoffset)^;
+
       if (j>0) and (values[i][j]<>values[i][0]) then //check if in the current group (i) the value of this entry (j) is the same as the first one in this group
         if i=1 then g1same:=false else g2same:=false;
     end;
@@ -256,8 +264,9 @@ begin
 
   for i:=0 to length(grouplist)-1 do
   begin
-    group[groupnr][i]:=TAddressEntry.Create;
+    group[groupnr][i]:=TAddressEntry.Create(nil);
     group[groupnr][i].address:=grouplist[i].address;
+    group[groupnr][i].base:=grouplist[i].base;
     group[groupnr][i].context:=grouplist[i].context;
     if grouplist[i].stack.stack<>nil then
     begin
@@ -286,6 +295,7 @@ var
     R13: boolean;
     R14: boolean;
     R15: boolean;
+    base: boolean; //not really a register, but a registercomnbination value
   end;
 
   li: TListItem;
@@ -322,6 +332,7 @@ begin
       if (group[1][i].context.R14=group[2][j].context.r14) then registers.r14:=true;
       if (group[1][i].context.R15=group[2][j].context.r15) then registers.r15:=true;
       {$endif}
+      if (group[1][i].base=group[2][j].base) then registers.rbp:=true;
     end;
   end;
 
@@ -437,6 +448,13 @@ begin
       li.caption:='R15';
       li.data:=pointer(tregisterinfo.Create(self, 15));
     end;
+  end;
+
+  if registers.base=false then
+  begin
+    li:=lvregisters.Items.Add;
+    li.caption:=rsBaseAddress;
+    li.data:=pointer(tregisterinfo.Create(self, 16));
   end;
 
   i:=0;
