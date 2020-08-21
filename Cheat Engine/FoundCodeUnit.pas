@@ -19,6 +19,7 @@ uses
 type
   Tcoderecord = class
   public
+    addressString: string;
     address: ptrUint;
     size: integer;
     opcode: string;
@@ -92,6 +93,7 @@ type
     N1: TMenuItem;
     Copyselectiontoclipboard1: TMenuItem;
     Splitter1: TSplitter;
+    timerAddressStringLookup: TTimer;
     procedure FormCreate(Sender: TObject);
     procedure FormDeactivate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
@@ -115,6 +117,7 @@ type
     procedure miSaveTofileClick(Sender: TObject);
     procedure pmOptionsPopup(Sender: TObject);
     procedure Copyselectiontoclipboard1Click(Sender: TObject);
+    procedure timerAddressStringLookupTimer(Sender: TObject);
   private
     { Private declarations }
     setcountwidth: boolean;
@@ -158,7 +161,7 @@ implementation
 
 uses CEFuncProc, CEDebugger,debughelper, debugeventhandler, MemoryBrowserFormUnit,
      MainUnit,kerneldebugger, AdvancedOptionsUnit ,formFoundcodeListExtraUnit,
-     MainUnit2, ProcessHandlerUnit, Globals, Parsers, DBK32functions;
+     MainUnit2, ProcessHandlerUnit, Globals, Parsers, DBK32functions, symbolhandler;
 
 
 
@@ -674,6 +677,8 @@ begin
 
   minfo.Lines.BeginUpdate;
   try
+    if coderecord.addressString<>'' then minfo.Lines.add(coderecord.addressString+':');
+
     minfo.Lines.Add(disassembled[1]);
     minfo.Lines.Add(disassembled[2]);
     minfo.Lines.Add(disassembled[3]+' <<');
@@ -1599,6 +1604,24 @@ end;
 procedure TFoundCodeDialog.Copyselectiontoclipboard1Click(Sender: TObject);
 begin
   clipboard.AsText:=getSelection;
+end;
+
+procedure TFoundCodeDialog.timerAddressStringLookupTimer(Sender: TObject);
+var
+  i: integer;
+  starttime: qword;
+  c: FoundCodeUnit.TCodeRecord;
+begin
+  starttime:=GetTickCount64;
+  for i:=0 to foundcodelist.Items.Count-1 do
+  begin
+    c:=FoundCodeUnit.TCodeRecord(foundcodelist.items[i].data);
+    if c.addressString='' then
+      c.addressString:=symhandler.getNameFromAddress(c.address);
+
+
+    if gettickcount64-starttime>250 then break; //next time better
+  end;
 end;
 
 initialization
