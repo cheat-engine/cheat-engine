@@ -15,7 +15,7 @@ uses
   disassembler, symbolhandler, symbolhandlerstructs, SynEdit, SynHighlighterCpp,
   SynHighlighterAA, LuaSyntax, SynPluginMultiCaret, SynEditSearch, tablist,
   SynGutterBase, SynEditMarks, math, SynEditMiscClasses, SynEditTextBase,
-  SynEditTextBuffer, LazSynEditText, SynEditLines;
+  SynEditTextBuffer, LazSynEditText, SynEditLines, SynEditKeyCmds;
 
 
 type
@@ -2290,6 +2290,9 @@ begin
   miRedo.ShortCut:=TextToShortCut('Shift+Meta+X');
   miFind.ShortCut:=TextToShortCut('Meta+F');
   mifindNext.ShortCutKey2:=TextToShortcut('Meta+G');
+
+  i:=assemblescreen.Keystrokes.FindCommand(ecSelectAll);
+  if i<>-1 then assemblescreen.Keystrokes[i].ShortCut:=TextToShortCut('Meta+A');
 {$endif}
 
 end;

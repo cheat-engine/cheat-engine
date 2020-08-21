@@ -6,7 +6,7 @@ interface
 
 uses
   LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, LResources, ExtCtrls;
+  Dialogs, StdCtrls, LResources, ExtCtrls{$ifdef darwin},macport{$endif};
 
 type
 
@@ -162,7 +162,6 @@ begin
     begin
       combobox.SelLength:=0;
       combobox.SelStart:=length(combobox.Text);
-
     end;
   end;
 

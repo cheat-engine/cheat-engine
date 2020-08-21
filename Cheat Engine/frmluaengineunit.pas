@@ -1408,7 +1408,6 @@ begin
   miUndo.ShortCut:=TextToShortCut('Meta+Z');
   miRedo.ShortCut:=TextToShortCut('Shift+Meta+X');
   miFind.ShortCut:=TextToShortCut('Meta+F');
-  miCut.ShortCut:=TextToShortCut('Meta+X');
 
   i:=mScript.Keystrokes.FindCommand(ecSelectAll);
   if i<>-1 then mScript.Keystrokes[i].ShortCut:=TextToShortCut('Meta+A');

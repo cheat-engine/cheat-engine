@@ -35,6 +35,7 @@ type
     Setselectedregionstobewritable1: TMenuItem;
     N1: TMenuItem;
     StatusBar1: TStatusBar;
+    procedure FormCreate(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure Button1Click(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
@@ -61,7 +62,7 @@ var GetMappedFileName: TGetMappedFileName;
 
 implementation
 
-uses formsettingsunit, MemoryBrowserFormUnit, processhandlerunit;
+uses formsettingsunit, MemoryBrowserFormUnit, ProcessHandlerUnit;
 
 
 resourcestring
@@ -160,6 +161,11 @@ begin
       if (PAGE_NOCACHE	and mbi.Protect)=PAGE_NOCACHE then temp:=temp+'+'+rsNoCache;
       listview1.Items[listview1.Items.Count-1].SubItems.add(temp);
 
+      {$ifdef darwin}
+      temp:=inttostr(mbi.MaxProtect);
+      listview1.Items[listview1.Items.Count-1].SubItems.add(temp);
+      {$endif}
+
       if mbi._Type=MEM_IMAGE	then listview1.Items[listview1.Items.Count-1].SubItems.add(rsImage) else
       if mbi._Type=MEM_MAPPED then listview1.Items[listview1.Items.Count-1].SubItems.add(rsMapped) else
       if mbi._Type=MEM_PRIVATE	then listview1.Items[listview1.Items.Count-1].SubItems.add(rsPrivate) else
@@ -188,6 +194,16 @@ begin
       end;
     end;
 
+end;
+
+procedure TFormMemoryRegions.FormCreate(Sender: TObject);
+var ci: TListColumn;
+begin
+  {$ifdef darwin}
+  ci:=listview1.Columns.Add;
+  ci.Index:=4;
+  ci.Caption:='Max Protect';
+  {$endif}
 end;
 
 procedure TFormMemoryRegions.Button1Click(Sender: TObject);

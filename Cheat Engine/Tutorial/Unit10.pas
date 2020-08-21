@@ -6,7 +6,7 @@ unit Unit10;
 interface
 
 uses
-  windows, LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
+  {$ifdef windows}windows,{$endif} LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
   Dialogs, Unit8, StdCtrls, Buttons, LResources, ExtCtrls, math;
 
 type
@@ -63,9 +63,9 @@ type
   private
     { Private declarations }
     p1, p2, p3,p4: TPlayer;
-
+    {$ifdef windows}
     procedure  LaunchGraphicalTut;
-
+    {$endif}
   public
     { Public declarations }
   end;
@@ -137,6 +137,7 @@ begin
 end;
 
 
+{$ifdef windows}
 procedure TForm10.LaunchGraphicalTut;
 var nexttut: string;
     filename: string;
@@ -147,6 +148,7 @@ begin
   if fileexists(nexttut) then
   begin
     //launch the graphical tutorial
+
     ShellExecute(0, PChar('open'), PChar(nexttut),PChar(''), PChar(extractfilepath(nexttut)), SW_SHOW);
     ExitProcess(0);
   end;
@@ -166,16 +168,20 @@ begin
     end;
   end;
 end;
+{$endif}
 
 procedure TForm10.Button2Click(Sender: TObject);
 begin
+  {$ifdef windows}
   LaunchGraphicalTut;
+    {$endif}
   hide;
   form4:=tform4.create(self);
   form4.show;
 
   frmHelp.free;
   frmHelp:=nil;
+
 end;
 
 procedure TForm10.Button1Click(Sender: TObject);
@@ -309,7 +315,9 @@ end;
 
 procedure TForm10.SpeedButton1Click(Sender: TObject);
 begin
+  {$ifdef windows}
   LaunchGraphicalTut;
+  {$endif}
   showmessage(rsU10ThisWasTheLastTutorial);
   Application.Terminate;
 end;

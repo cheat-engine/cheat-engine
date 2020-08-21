@@ -17,7 +17,7 @@ uses
   ceguicomponents,formdesignerunit,xmlutils,vartypestrings,plugin,byteinterpreter,
   MenuItemExtra,frmgroupscanalgoritmgeneratorunit
 
-  , macport,LCLVersion;     //last one
+  , macport,LCLVersion, UTF8Process, macportdefines;     //last one
   {$endif}
 
   {$ifdef windows}
@@ -1056,7 +1056,7 @@ implementation
 uses cefuncproc, MainUnit2, ProcessWindowUnit, MemoryBrowserFormUnit, TypePopup, HotKeys,
   aboutunit, formhotkeyunit, formDifferentBitSizeUnit,
   CommentsUnit, formsettingsunit, formAddressChangeUnit, Changeoffsetunit,
-  FoundCodeUnit, advancedoptionsunit, frmProcessWatcherUnit,
+  FoundCodeUnit, AdvancedOptionsUnit, frmProcessWatcherUnit,
   formPointerOrPointeeUnit, OpenSave, formmemoryregionsunit, formProcessInfo,
   PasteTableentryFRM, pointerscannerfrm, PointerscannerSettingsFrm,
   frmFloatingPointPanelUnit, pluginexports {$ifdef windows},DBK32functions, frmUltimapUnit,
@@ -3504,8 +3504,20 @@ begin
 end;
 
 procedure TMainForm.MenuItem12Click(Sender: TObject);
+{$ifdef darwin}
+var p: TProcessUTF8;
+  path: string;
+{$endif}
 begin
+  {$ifdef darwin}
+  p:=TProcessUTF8.Create(self);
+  path:=ExtractFilePath(application.ExeName)+'tutorial-x86_64';
+  OutputDebugString('path='+path);
+  p.Executable:=(path);
+  p.Execute;
+  {$else}
   shellexecute(0, 'open', pchar(cheatenginedir+'Tutorial-x86_64.exe'), nil, nil, sw_show);
+  {$endif}
 end;
 
 procedure TMainForm.MenuItem15Click(Sender: TObject);
@@ -3604,7 +3616,12 @@ end;
 
 procedure TMainForm.miLuaDocumentationClick(Sender: TObject);
 begin
+  {$ifdef darwin}
+  OpenDocument(pchar(ExtractFilePath(application.ExeName)+'../Lua/celua.txt'));
+  {$else}
   ShellExecute(0,'open',pchar(ExtractFilePath(application.ExeName)+'celua.txt'),nil,nil,SW_SHOW);
+  {$endif}
+
 end;
 
 procedure TMainForm.miForgotScanClick(Sender: TObject);
@@ -6043,6 +6060,9 @@ begin
   copy1.ShortCut:=TextToShortCut('Meta+C');
   paste1.ShortCut:=TextToShortCut('Meta+V');
   menuitem1.ShortCut:=TextToShortCut('Meta+A');
+
+  miTutorial.Visible:=false;
+  menuitem15.Visible:=false;
   {$endif}
 end;
 
@@ -7914,7 +7934,11 @@ begin
     {$endif}
 
     if messagedlg(rsTryTutorial, mtConfirmation, [mbYes, mbNo], 0) = mrYes then
+    {$ifdef darwin}
+      MenuItem12.click;
+    {$else}
       miTutorial.Click;
+    {$endif}
   end;
 
   if reg.ValueExists('Show previous value column') then
@@ -10628,3 +10652,4 @@ initialization
 
 end.
 
+open

@@ -3045,7 +3045,9 @@ end;
 
 function TSymhandler.getDotNetDataCollector: TDotNetPipe;
 begin
+{$IFDEF windows}
   result:=dotNetDataCollector;
+{$endif}
 end;
 
 function TSymhandler.getDotNetAccess: boolean;

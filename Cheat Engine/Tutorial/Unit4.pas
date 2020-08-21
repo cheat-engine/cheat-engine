@@ -5,7 +5,7 @@ unit Unit4;
 interface
 
 uses
-  windows, LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
+  {$ifdef windows}windows,{$endif} LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, LResources;
 
 type
@@ -59,7 +59,11 @@ end;
 
 procedure TForm4.Label4Click(Sender: TObject);
 begin
+  {$ifdef windows}
   ShellExecute(0, PChar('open'), PChar('http://forum.cheatengine.org/'),PChar(''), PChar(''), SW_MAXIMIZE);
+  {$else}
+  OpenURL('http://forum.cheatengine.org/');
+  {$endif}
 end;
 
 initialization

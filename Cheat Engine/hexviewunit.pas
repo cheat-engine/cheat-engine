@@ -1614,7 +1614,7 @@ end;
 procedure THexView.UpdateMemoryInfo;
 {$IFNDEF STANDALONEHV}
 var
-  mbi: TMEMORYBASICINFORMATION;
+  mbi: {$ifdef darwin}macport.{$endif}TMEMORYBASICINFORMATION;
   a: ptrUint;
   a64: qword;
   mi: TModuleInfo;

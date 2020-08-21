@@ -5,7 +5,7 @@ unit Unit9;
 interface
 
 uses
-  windows, LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
+  {$ifdef windows}windows, {$endif}LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, Buttons, LResources;
 
 type
@@ -133,12 +133,12 @@ begin
   //just adding some more chaos:
   if (basepointer<>nil) then
   begin
-    zeromemory(basepointer.p.p.p,sizeof(TLevel4));
-    zeromemory(basepointer.p.p,sizeof(TLevel3));
+    FillChar(basepointer.p.p.p^, sizeof(TLevel4),0); //zeromemory(basepointer.p.p.p,sizeof(TLevel4));
+    FillChar(basepointer.p.p^,sizeof(TLevel3), 0); //zeromemory(basepointer.p.p,sizeof(TLevel3));
     freemem(basepointer.p.p);
-    zeromemory(basepointer.p,sizeof(TLevel2));
+    FillChar(basepointer.p^,sizeof(TLevel2),0); //zeromemory(basepointer.p,sizeof(TLevel2));
     freemem(basepointer.p);
-    zeromemory(basepointer,sizeof(TLevel1));
+    FillChar(basepointer^,sizeof(TLevel1), 0); //zeromemory(basepointer,sizeof(TLevel1));
     //delete a chunk inbetween if emptying wasn't enough already
 
   end;

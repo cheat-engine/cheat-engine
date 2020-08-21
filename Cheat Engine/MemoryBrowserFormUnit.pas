@@ -1558,6 +1558,8 @@ procedure TMemoryBrowser.miChangeProtectionClick(Sender: TObject);
 var
   protection: dword;
   oldprotect: dword;
+
+  l: integer;
 begin
 
   case (sender as TMenuItem).Tag of
@@ -1569,7 +1571,10 @@ begin
        protection:=PAGE_EXECUTE_READWRITE; //never
   end;
 
-  VirtualProtectEx(processhandle, pointer(hexview.Address),1,protection, oldprotect);
+  l:=max(1, hexview.SelectionStop-hexview.SelectionStart+1);
+
+  OutputDebugString(format('start=%d stop=%x l=%d',[hexview.SelectionStart, hexview.SelectionStop, l]));
+  VirtualProtectEx(processhandle, pointer(hexview.SelectionStart),l,protection, oldprotect);
 end;
 
 procedure TMemoryBrowser.miExceptionIgnoreListClick(Sender: TObject);
@@ -3146,7 +3151,7 @@ begin
 
 //  copy
 
-  assemblercode:=InputboxTop(rsCheatEngineSingleLingeAssembler, Format(rsTypeYourAssemblerCodeHereAddress, [inttohex(Address, 8)]), assemblercode, x='', canceled, {$ifdef darwin}nil{$else}assemblerHistory{$endif});
+  assemblercode:=InputboxTop(rsCheatEngineSingleLingeAssembler, Format(rsTypeYourAssemblerCodeHereAddress, [inttohex(Address, 8)]), assemblercode, x='', canceled{$ifndef darwin},assemblerHistory{$endif});
   if not canceled then
   begin
 
