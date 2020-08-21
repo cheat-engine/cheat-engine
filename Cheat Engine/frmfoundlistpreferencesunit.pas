@@ -22,6 +22,7 @@ type
     cbNormal: TColorBox;
     cbChanged: TColorBox;
     cbShowStaticAsStatic: TCheckBox;
+    cbUseThisFontSize: TCheckBox;
     FontDialog1: TFontDialog;
     Label1: TLabel;
     Label2: TLabel;
@@ -62,6 +63,8 @@ type
     procedure setFont(f: TFont);
     function getShowStaticAsStatic: boolean;
     procedure setShowStaticAsStatic(state: boolean);
+    function getUseThisFontSize: boolean;
+    procedure setUseThisFontSize(state: boolean);
   public
     property NormalValueColor: TColor read getNormalValueColor write setNormalValueColor;
     property ChangedValueColor: TColor read getChangedValueColor write setChangedValueColor;
@@ -70,6 +73,7 @@ type
     property BackgroundColor: TColor read getBackgroundColor write setBackgroundColor;
     property Font: TFont read getFont write setFont;
     property ShowStaticAsStatic: boolean read getShowStaticAsStatic write setShowStaticAsStatic;
+    property UseThisFontSize: boolean read getUseThisFontSize write setUseThisFontSize;
   end;
 
 implementation
@@ -156,6 +160,16 @@ end;
 procedure TfrmFoundlistPreferences.setShowStaticAsStatic(state: boolean);
 begin
   cbShowStaticAsStatic.checked:=state;
+end;
+
+function TfrmFoundlistPreferences.getUseThisFontSize: boolean;
+begin
+  result:=cbUseThisFontSize.checked;
+end;
+
+procedure TfrmFoundlistPreferences.setUseThisFontSize(state: boolean);
+begin
+  cbUseThisFontSize.checked:=state;
 end;
 
 procedure TfrmFoundlistPreferences.FormShow(Sender: TObject);

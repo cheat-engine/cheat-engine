@@ -250,7 +250,7 @@ object frmAAEditPrefs: TfrmAAEditPrefs
   object FontDialog1: TFontDialog
     MinFontSize = 0
     MaxFontSize = 0
-    Options = [fdEffects, fdFixedPitchOnly, fdNoSizeSel, fdNoStyleSel]
+    Options = [fdFixedPitchOnly, fdNoStyleSel]
     left = 112
     top = 24
   end
