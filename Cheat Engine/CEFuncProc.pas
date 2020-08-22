@@ -2949,6 +2949,15 @@ begin
   if result=0 then result:=1;
   {$else}
   result:=cpucount;
+
+  if result=1 then
+  begin
+    //doubt!
+  {$ifdef darwin}
+    exit(macport.getCPUCount);
+  {$endif}
+
+  end;
   {$ENDIF}
 end;
 
