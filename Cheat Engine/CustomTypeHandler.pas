@@ -22,15 +22,16 @@ uses
   math, commonTypeDefs;
 {$endif}
 
-type TConversionRoutine=function(data: pointer):integer; stdcall;
-type TReverseConversionRoutine=procedure(i: integer; output: pointer); stdcall;
+type
+  TConversionRoutine=function(data: pointer):integer; stdcall;
+  TReverseConversionRoutine=procedure(i: integer; output: pointer); stdcall;
 
 //I should have used cdecl from the start
-type TConversionRoutine2=function(data: pointer; address: ptruint):integer; cdecl;
-type TReverseConversionRoutine2=procedure(i: integer; address: ptruint; output: pointer); cdecl;
+  TConversionRoutine2=function(data: pointer; address: ptruint):integer; cdecl;
+  TReverseConversionRoutine2=procedure(i: integer; address: ptruint; output: pointer); cdecl;
 
+  TCustomTypeException=class(Exception);
 
-type
   TCustomTypeType=(cttAutoAssembler, cttLuaScript, cttPlugin);
   TCustomType=class
   private
@@ -155,7 +156,7 @@ begin
     if uppercase(TCustomType(customtypes[i]).name)=uppercase(n) then
     begin
       if TCustomType(customtypes[i])<>self then
-        raise exception.create(Format(rsACustomTypeWithNameAlreadyExists, [n]));
+        raise TCustomTypeException.create(Format(rsACustomTypeWithNameAlreadyExists, [n]));
     end;
 
   fname:=n;
@@ -169,7 +170,7 @@ begin
     if uppercase(TCustomType(customtypes[i]).functiontypename)=uppercase(n) then
     begin
       if TCustomType(customtypes[i])<>self then
-        raise exception.create(Format(rsACustomFunctionTypeWithNameAlreadyExists, [n]));
+        raise TCustomTypeException.create(Format(rsACustomFunctionTypeWithNameAlreadyExists, [n]));
     end;
 
   ffunctiontypename:=n;
@@ -613,7 +614,7 @@ begin
         begin
           returncount:=lua_gettop(luavm);
           if returncount<>3 then
-            raise exception.create(rsOnlyReturnTypenameBytecountAndFunctiontypename);
+            raise TCustomTypeException.create(rsOnlyReturnTypenameBytecountAndFunctiontypename);
 
           //-1=functiontypename
           //-2=bytecount
@@ -622,9 +623,9 @@ begin
           bytesize:=lua_tointeger(luavm,-2);
           tn:=lua.lua_tostring(luavm,-3);
 
-          if bytesize=0 then raise exception.create(rsBytesizeIs0);
-          if ftn=nil then raise exception.create(rsInvalidFunctiontypename);
-          if tn=nil then raise exception.create(rsInvalidTypename);
+          if bytesize=0 then raise TCustomTypeException.create(rsBytesizeIs0);
+          if ftn=nil then raise TCustomTypeException.create(rsInvalidFunctiontypename);
+          if tn=nil then raise TCustomTypeException.create(rsInvalidTypename);
 
           name:=tn;
           functiontypename:=ftn;
@@ -636,8 +637,8 @@ begin
           if lua_gettop(luavm)>0 then
           begin
             error:=lua.lua_tostring(luavm,-1);
-            raise exception.create(error);
-          end else raise exception.create(rsUndefinedError);
+            raise TCustomTypeException.create(error);
+          end else raise TCustomTypeException.create(rsUndefinedError);
         end;
 
       finally
@@ -680,7 +681,7 @@ begin
       for i:=0 to length(oldallocarray)-1 do
         c[i]:=oldallocarray[i];
 
-      raise exception.create(e.Message); //and now raise the error
+      raise TCustomTypeException.create(e.Message); //and now raise the error
     end;
   end;
   {$ENDIF}
@@ -886,7 +887,17 @@ begin
 
   lua_pop(L, parameters);
 
-  ct:=TCustomType.CreateTypeFromAutoAssemblerScript(script);
+  try
+    ct:=TCustomType.CreateTypeFromAutoAssemblerScript(script);
+  except
+    on e: exception do
+    begin
+      lua_pushnil(L);
+      lua_pushstring(L,e.message);
+      exit(2);
+    end;
+  end;
+
   if parameters=3 then //old version support
   begin
     ct.name:=typename;

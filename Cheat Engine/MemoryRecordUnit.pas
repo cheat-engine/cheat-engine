@@ -2942,6 +2942,8 @@ var
 
   i: integer;
   e: boolean;
+
+  f: single;
 begin
 
 
@@ -2975,7 +2977,15 @@ begin
         if fcustomtype<>nil then
         begin
           if fcustomtype.scriptUsesFloat then
-            result:=FloatToStr(fcustomtype.ConvertDataToFloat(buf, RealAddress))
+          begin
+            if ShowAsHex then  //so stupid, but whatever
+            begin
+              f:=fcustomtype.ConvertDataToFloat(buf, RealAddress);
+              result:=inttohex(pdword(@f)^,8);
+            end
+            else
+              result:=FloatToStr(fcustomtype.ConvertDataToFloat(buf, RealAddress))
+          end
           else
             if showashex         then result:=inttohex(fcustomtype.ConvertDataToInteger(buf, RealAddress),8) 
             else if showassigned then result:=inttostr(integer(fcustomtype.ConvertDataToInteger(buf, RealAddress)))
@@ -3078,7 +3088,6 @@ var
   ps: psingle absolute buf;
   pd: pdouble absolute buf;
   pqw: PQWord absolute buf;
-
   li: PLongInt absolute buf;
   li64: PQWord absolute buf;
 
@@ -3108,6 +3117,7 @@ var
 
   usesMath: boolean;
   lastBraceOpen: integer;
+  f: single;
 begin
   //check if it is a '(description)' notation
 
@@ -3261,7 +3271,7 @@ begin
     end;
   end;
 
-  bufsize:=getbytesize;
+  bufsize:=4+getbytesize; //+4 because of 1 byte custom types that may show as a hexadecimal float.. ugh..  why...
 
   if (vartype=vtbinary) and (bufsize=3) then bufsize:=4;
   if (vartype=vtbinary) and (bufsize>4) then bufsize:=8;
@@ -3312,9 +3322,17 @@ begin
         if fcustomtype<>nil then
         Begin
           if fcustomtype.scriptUsesFloat then
-            fcustomtype.ConvertFloatToData(StrToFloatEx(currentValue), ps, RealAddress)
+          begin
+            if not fShowAsHex then
+              fcustomtype.ConvertFloatToData(StrToFloatEx(currentValue), ps, RealAddress)
+            else
+            begin
+              v64:=StrToQWordEx(currentvalue); //hexvalue yeah...
+              fcustomtype.ConvertFloatToData(psingle(@v64)^, ps, RealAddress)
+            end;
+          end
           else
-            fcustomtype.ConvertIntegerToData(strtoint(currentValue), pdw, RealAddress);
+            fcustomtype.ConvertIntegerToData(StrToQWordEx(currentValue), pdw, RealAddress);
 
         end;
       end;
