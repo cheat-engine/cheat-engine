@@ -1573,8 +1573,13 @@ begin
 
   l:=max(1, hexview.SelectionStop-hexview.SelectionStart+1);
 
-  OutputDebugString(format('start=%d stop=%x l=%d',[hexview.SelectionStart, hexview.SelectionStop, l]));
-  VirtualProtectEx(processhandle, pointer(hexview.SelectionStart),l,protection, oldprotect);
+  //OutputDebugString(format('start=%d stop=%x l=%d',[hexview.SelectionStart, hexview.SelectionStop, l]));
+
+  if hexview.HasSelection then
+    VirtualProtectEx(processhandle, pointer(hexview.SelectionStart),l,protection, oldprotect)
+  else
+    VirtualProtectEx(processhandle, pointer(hexview.Address),l,protection, oldprotect)
+
 end;
 
 procedure TMemoryBrowser.miExceptionIgnoreListClick(Sender: TObject);
