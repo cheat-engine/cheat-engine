@@ -150,6 +150,7 @@ type
     undogroups: tlist;
     carretpos: Tpoint;
     topline: integer;
+    flags: array of TSynEditStringFlags;
   end;
 
   TBooleanArray = Array of Boolean;
@@ -2004,7 +2005,6 @@ begin
     p:=assemblescreen.CaretXY;
     TAAScriptTabData(tablist.TabData[oldselection]).carretpos:=p;
 
-
     if ssl is TSynEditStringList then
     begin
       if TAAScriptTabData(tablist.TabData[oldselection]).undogroups=nil then
@@ -2019,9 +2019,17 @@ begin
 
 
       until undogroup=nil;
+
+
+      //save flags
+      setlength(TAAScriptTabData(tablist.TabData[oldselection]).flags, ssl.count);
+      for i:=0 to ssl.Count-1 do
+        TAAScriptTabData(tablist.TabData[oldselection]).flags[i]:=ssl.Flags[i];
     end;
 
   end;
+
+
 
 
 
@@ -2062,10 +2070,16 @@ begin
     end;
 
     TAAScriptTabData(tablist.CurrentTabData).undogroups.Clear;
+
+    //flags
+    for i:=0 to length(TAAScriptTabData(tablist.CurrentTabData).flags)-1 do
+       ssl.Flags[i]:=TAAScriptTabData(tablist.CurrentTabData).flags[i];
   end;
 
 
   l.free;
+
+
 
 
 {$endif}
