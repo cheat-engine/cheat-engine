@@ -3028,6 +3028,7 @@ begin
                           else
                             lastdisassembledata.opcode:='cvttss2si';
 
+                          opcodeflags.skipExtraReg:=true;
                           lastdisassembledata.parameters:=r32(memory[2])+modrm(memory,prefix2,2,4,last, mRight);
                           inc(offset,last-1);
                         end
