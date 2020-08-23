@@ -328,6 +328,7 @@ var
     color: TColor;
 
     hasLuaScript: boolean=false;
+    usesScriptEntries: boolean=false;
     combinedLuaScript: tstringlist;
     currentLuaScript: string;
 begin
@@ -713,6 +714,7 @@ begin
         begin
           if luascriptentry.NodeName='LuaScriptEntry' then
           begin
+            usesScriptEntries:=true;
             mainform.frmLuaTableScript.TabCount:=i+1;
             mainForm.frmLuaTableScript.TabScript[i]:=ansitoutf8(luascriptentry.TextContent);
 
@@ -735,8 +737,9 @@ begin
 
           luascriptentry:=luascriptentry.NextSibling;
         end;
-      end
-      else
+      end;
+
+      if usesScriptEntries=false then
       begin
         mainform.frmLuaTableScript.assemblescreen.Text:=ansitoutf8(luascript.TextContent);
         if mainform.frmLuaTableScript.assemblescreen.Text<>'' then
