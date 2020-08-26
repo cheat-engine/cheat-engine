@@ -16,5 +16,5 @@ local mi=createMenuItem(MainForm.Menu)
 mi.Caption=translate('Split scan into new tab')
 mi.ShortCut=textToShortCut('Ctrl+Alt+T')
 mi.OnClick=splitScanIntoNewTab
-mi.ImageIndex=MainForm.Menu.Items[0][0].ImageIndex
-MainForm.Menu.Items[0].Insert(1,mi)
+mi.ImageIndex=MainForm.miAddTab.ImageIndex
+MainForm.Menu.Items[0].Insert(MainForm.miAddTab.MenuIndex+1,mi)
