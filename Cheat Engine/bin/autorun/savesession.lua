@@ -135,7 +135,7 @@ function loadMemoryScan_internal(filename)
   
   mf.btnNewScan.doClick() --new scan
   
-   ms.waitTillDone() 
+  ms.waitTillDone() 
 end
 
 function loadMemoryScan()
@@ -235,7 +235,7 @@ function saveMemoryScan_internal(filename)
     --write the filename
     output.writeAnsiString(files[i].name)
     
-    print("saving "..files[i].name)
+    --print("saving "..files[i].name)
 
     local input,err=createFileStream(getCurrentMemscan().ScanresultFolder..files[i].name,fmOpenRead | fmShareDenyNone)
     
@@ -256,7 +256,7 @@ function saveMemoryScan_internal(filename)
 
   output.destroy()
   
-  print("done")
+  --print("done")
 end
 
 function saveMemoryScan()
