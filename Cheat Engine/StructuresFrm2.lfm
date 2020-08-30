@@ -1,18 +1,18 @@
 object frmStructures2: TfrmStructures2
-  Left = 870
-  Height = 381
-  Top = 524
-  Width = 542
+  Left = 794
+  Height = 589
+  Top = 231
+  Width = 1043
   Caption = 'Structure dissect'
-  ClientHeight = 361
-  ClientWidth = 542
+  ClientHeight = 569
+  ClientWidth = 1043
   Menu = MainMenu1
   OnClose = FormClose
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '2.0.0.4'
+  LCLVersion = '2.0.10.0'
   object tvStructureView: TTreeView
     AnchorSideLeft.Control = Owner
     AnchorSideTop.Control = HeaderControl1
@@ -22,9 +22,9 @@ object frmStructures2: TfrmStructures2
     AnchorSideBottom.Control = Owner
     AnchorSideBottom.Side = asrBottom
     Left = 0
-    Height = 290
+    Height = 498
     Top = 71
-    Width = 542
+    Width = 1043
     Anchors = [akTop, akLeft, akRight, akBottom]
     BorderStyle = bsNone
     Font.CharSet = ANSI_CHARSET
@@ -56,7 +56,7 @@ object frmStructures2: TfrmStructures2
     Left = 0
     Height = 21
     Top = 50
-    Width = 542
+    Width = 641
     DragReorder = False
     Sections = <    
       item
@@ -74,7 +74,7 @@ object frmStructures2: TfrmStructures2
     Left = 0
     Height = 50
     Top = 0
-    Width = 542
+    Width = 1043
     HorzScrollBar.Increment = 1
     HorzScrollBar.Page = 1
     HorzScrollBar.Smooth = True
@@ -88,7 +88,7 @@ object frmStructures2: TfrmStructures2
   end
   object MainMenu1: TMainMenu
     Images = sdImageList
-    left = 512
+    Left = 512
     object File1: TMenuItem
       Caption = 'File'
       object miNewWindow: TMenuItem
@@ -126,7 +126,7 @@ object frmStructures2: TfrmStructures2
         Caption = 'Rearrange structurelist'
         OnClick = MenuItem8Click
       end
-      object MenuItem2: TMenuItem
+      object N14: TMenuItem
         Caption = '-'
       end
       object MenuItem3: TMenuItem
@@ -181,7 +181,7 @@ object frmStructures2: TfrmStructures2
         ShortCut = 16456
         OnClick = miShowAddressesClick
       end
-      object MenuItem7: TMenuItem
+      object N15: TMenuItem
         Caption = '-'
       end
       object miExpandAllDefined: TMenuItem
@@ -293,13 +293,18 @@ object frmStructures2: TfrmStructures2
   object pmStructureView: TPopupMenu
     Images = sdImageList
     OnPopup = pmStructureViewPopup
-    left = 48
-    top = 120
+    Left = 48
+    Top = 120
     object miChangeValue: TMenuItem
       Caption = 'Change value'
       ImageIndex = 5
       ShortCut = 13
       OnClick = miChangeValueClick
+    end
+    object miChangeRowAllValues: TMenuItem
+      Caption = 'Change all values in row'
+      ImageIndex = 5
+      OnClick = miChangeAllValuesInRowClick
     end
     object miChangeType: TMenuItem
       Caption = 'Change Type'
@@ -315,6 +320,13 @@ object frmStructures2: TfrmStructures2
       object miChangeType4Byte: TMenuItem
         Caption = '4 Byte'
         OnClick = OnChangeTypeMenuItemClick
+      end
+      object miChangeType8Byte: TMenuItem
+        Caption = '8 Byte'
+        OnClick = OnChangeTypeMenuItemClick
+      end
+      object N9: TMenuItem
+        Caption = '-'
       end
       object miChangeTypeByteHex: TMenuItem
         Caption = 'Byte (Hex)'
@@ -332,6 +344,9 @@ object frmStructures2: TfrmStructures2
         Caption = '8 Byte (Hex)'
         OnClick = OnChangeTypeMenuItemClick
       end
+      object N10: TMenuItem
+        Caption = '-'
+      end
       object miChangeTypeFloat: TMenuItem
         Caption = 'Float'
         OnClick = OnChangeTypeMenuItemClick
@@ -340,6 +355,9 @@ object frmStructures2: TfrmStructures2
         Caption = 'Double'
         OnClick = OnChangeTypeMenuItemClick
       end
+      object N11: TMenuItem
+        Caption = '-'
+      end
       object miChangeTypeString: TMenuItem
         Caption = 'String'
         OnClick = OnChangeTypeMenuItemClick
@@ -347,6 +365,9 @@ object frmStructures2: TfrmStructures2
       object miChangeTypeUnicode: TMenuItem
         Caption = 'Unicode'
         OnClick = OnChangeTypeMenuItemClick
+      end
+      object N12: TMenuItem
+        Caption = '-'
       end
       object miChangeTypeArrayOfByte: TMenuItem
         Caption = 'Array Of Byte'
@@ -391,14 +412,34 @@ object frmStructures2: TfrmStructures2
       ShortCut = 49231
       OnClick = miOpenInNewWindowClick
     end
+    object N13: TMenuItem
+      Caption = '-'
+    end
+    object miFindOutWhatAccessesThisAddress: TMenuItem
+      Caption = 'Find out what accesses this address'
+      ImageIndex = 9
+      ShortCut = 116
+      OnClick = miFindOutWhatAccessesThisAddressClick
+    end
+    object miFindOutWhatWritesThisAddress: TMenuItem
+      Caption = 'Find out what writes to this address'
+      ImageIndex = 9
+      ShortCut = 117
+      OnClick = miFindOutWhatWritesThisAddressClick
+    end
     object N2: TMenuItem
       Caption = '-'
     end
-    object miAddToAddresslist: TMenuItem
+    object miAddToAddressList: TMenuItem
       Caption = 'Add to address list'
       ImageIndex = 1
       ShortCut = 65
-      OnClick = miAddToAddresslistClick
+      OnClick = miAddToAddressListClick
+    end
+    object miAddAllInRowToAddressList: TMenuItem
+      Caption = 'Add all in row to address list'
+      ImageIndex = 1
+      OnClick = miAddAllInRowToAddressListClick
     end
     object miBrowsePointer: TMenuItem
       Caption = 'Memory browse pointer'
@@ -467,43 +508,43 @@ object frmStructures2: TfrmStructures2
   object updatetimer: TTimer
     Interval = 500
     OnTimer = updatetimerTimer
-    left = 264
-    top = 80
+    Left = 264
+    Top = 80
   end
   object OpenDialog1: TOpenDialog
     DefaultExt = '.CSX'
     Filter = 'Cheat Engine structure files (*.CES;*.CSX)|*.CES;*.CSX;*.XML|All Files (*.*)|*.*'
-    left = 48
-    top = 192
+    Left = 48
+    Top = 192
   end
   object SaveDialog1: TSaveDialog
     DefaultExt = '.CSX'
     Filter = 'Cheat Engine structure files (*.CSX)|*.CSX|All Files (*.*)|*.*'
     Options = [ofOverwritePrompt, ofHideReadOnly, ofEnableSizing]
-    left = 152
-    top = 192
+    Left = 152
+    Top = 192
   end
   object saveValues: TSaveDialog
     DefaultExt = '.txt'
     Filter = 'Text Files (*.txt)|*.txt'
-    left = 152
-    top = 264
+    Left = 152
+    Top = 264
   end
   object FindDialog1: TFindDialog
     Options = [frDown, frDisableWholeWord, frHideEntireScope]
     OnFind = FindDialog1Find
-    left = 152
-    top = 128
+    Left = 152
+    Top = 128
   end
   object tmFixGui: TTimer
     Interval = 100
     OnTimer = tmFixGuiTimer
-    left = 360
-    top = 84
+    Left = 360
+    Top = 84
   end
   object sdImageList: TImageList
-    left = 318
-    top = 272
+    Left = 318
+    Top = 272
     Bitmap = {
       4C69130000001000000010000000C47B27FFE08D2CFFE08D2CFFE08D2CFFE08D
       2CFFE08D2CFFE08D2CFFE08D2CFFE08D2CFFE0872CFFE0832CFFE0892CFFE082
