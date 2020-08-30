@@ -259,8 +259,10 @@ typedef struct tagDebugReg7
 	unsigned G3			:1; //			7
 	unsigned GL			:1; //			8
 	unsigned GE			:1; //			9
-	unsigned undefined1	:3; // 001		10
-	unsigned GD			:1; //			11
+	unsigned undefined_1: 1; //1       10
+	unsigned RTM		: 1; //        11
+	unsigned undefined_0: 1; //0       12
+	unsigned GD			:1; //		   13
 	unsigned undefined2	:2; // 00 
 	unsigned RW0		:2;
 	unsigned LEN0		:2;
@@ -288,7 +290,8 @@ typedef struct DebugReg6
 	unsigned BD			:1;
 	unsigned BS			:1;
 	unsigned BT			:1;
-	unsigned undefined2	:16; // 1111111111111111
+	unsigned RTM       : 1; //0=triggered
+	unsigned undefined2	:15; // 111111111111111
 #ifdef AMD64
 	unsigned undefined3	:8;
 	unsigned undefined4	:8;

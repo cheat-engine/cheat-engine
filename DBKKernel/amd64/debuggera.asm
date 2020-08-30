@@ -34,7 +34,8 @@ ASMENTRY_STACK	struct ;keep this 16 byte aligned
 	OriginalES		qword ?  ;16
 	OriginalDS		qword ?	 ;17
 	OriginalSS		qword ?	 ;18
-	
+	fxsavespace     db 512 dup(?)  ;fpu state
+
 	;errorcode   ;19
 	;4096 bytes 
 	;eip     ;20
@@ -83,6 +84,7 @@ interrupt1_asmentry:
 		mov (ASMENTRY_STACK PTR [rsp]).OriginalR14,r14
 		mov (ASMENTRY_STACK PTR [rsp]).OriginalR15,r15
 
+		fxsave (ASMENTRY_STACK PTR [rsp]).fxsavespace
 
 	
 		
@@ -108,7 +110,7 @@ interrupt1_asmentry:
 		
 		; rbp= pointer to OriginalRAX
 		
-		cmp qword ptr [rbp+8*21+4096],010h ;check if origin is in kernelmode (check ss)
+		cmp qword ptr [rbp+8*21+512+4096],010h ;check if origin is in kernelmode (check ss)
 		je skipswap1 ;if so, skip the swapgs
 		
 		swapgs ;swap gs with the kernel version
@@ -128,7 +130,7 @@ skipswap1:
 		
 		ldmxcsr dword ptr (ASMENTRY_STACK PTR [rsp]).Originalmxcsr
 		
-		cmp qword ptr [rbp+8*21+4096],10h ;was it a kernelmode interrupt ?
+		cmp qword ptr [rbp+8*21+512+4096],10h ;was it a kernelmode interrupt ?
 		je skipswap2 ;if so, skip the swapgs part
 				
 		swapgs ;swap back
@@ -138,6 +140,8 @@ skipswap2:
 
 
 		;restore state
+		fxrstor (ASMENTRY_STACK PTR [rsp]).fxsavespace
+
 		mov ax,word ptr (ASMENTRY_STACK PTR [rsp]).OriginalDS
 		mov ds,ax
 		
@@ -172,15 +176,17 @@ skipswap2:
 		add rsp,4096
 		add rsp,8 ;+8 for the push 0
 		
+		;weeee:
+		;jmp weeee
 		jmp [Int1JumpBackLocation.A] ;<-works fine	
 
 
 skip_original_int1:
 		;stack unwind
 		mov rbp,(ASMENTRY_STACK PTR [rsp]).OriginalRBP
-		add rsp,SIZEOF ASMENTRY_STACK  ;+8 for the push 0		
+		add rsp,SIZEOF ASMENTRY_STACK 	
 		add rsp,4096
-		add rsp,8
+		add rsp,8  ;+8 for the push 0	
 		
 		iretq
 
