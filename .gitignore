@@ -2,3 +2,5 @@ Cheat Engine/lib
 Cheat Engine/backup
 Cheat Engine/bin
 
+# Visual Studio 2015+ cache/options directory
+.vs/
