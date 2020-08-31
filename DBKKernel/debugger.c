@@ -1374,6 +1374,9 @@ int interrupt1_centry(UINT_PTR *stackpointer) //code segment 8 has a 32-bit stac
 #ifdef AMD64
 	naddress += ((UINT64)idt.vector[1].TopOffset << 32);
 #endif
+	stackpointer[si_errorcode] = naddress; //the errorcode is used as address to call the original function if needed
+		
+
 
 	/*
 	if (Int1JumpBackLocation.eip != naddress) //no, just fucking no (patchguard will replace all inthandlers with invalid ones and then touch dr7)	
@@ -1426,8 +1429,8 @@ int interrupt1_centry(UINT_PTR *stackpointer) //code segment 8 has a 32-bit stac
 	DebuggerState.FakedDebugRegisterState[cpunr()].inEpilogue=1; //just be sure...
 
 
-	if (inthook_isDBVMHook(1))
-	{
+	//if (inthook_isDBVMHook(1))
+	//{
 		//update the int1 return address, could have been changed
 		
 
@@ -1435,14 +1438,15 @@ int interrupt1_centry(UINT_PTR *stackpointer) //code segment 8 has a 32-bit stac
 
 		//DbgPrint("This was a dbvm hook. Changing if the interrupt return address is still valid\n");
 
-		Int1JumpBackLocation.cs=idt.vector[1].wSelector;
-		naddress=idt.vector[1].wLowOffset+(idt.vector[1].wHighOffset << 16);
+	//	Int1JumpBackLocation.cs=idt.vector[1].wSelector;
+	//	naddress=idt.vector[1].wLowOffset+(idt.vector[1].wHighOffset << 16);
 #ifdef AMD64
-		naddress+=((UINT64)idt.vector[1].TopOffset << 32);		
+	//	naddress+=((UINT64)idt.vector[1].TopOffset << 32);		
 #endif
+	   
 
 
-	}
+	//}
 	
 
 	if (DebuggerState.globalDebug) //DR's are only accesses when there are DR's(no idea how it handles breakpoints in a different process...), so set them in each thread even those that don't belong original: && (PsGetCurrentProcessId()==(HANDLE)DebuggerState.debuggedProcessID))
