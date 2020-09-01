@@ -460,6 +460,24 @@ object formAddressChange: TformAddressChange
       ImageIndex = 1
       OnClick = miPasteClick
     end
+    object miSeparator: TMenuItem
+      Caption = '-'
+    end
+    object miAddOffsetAbove: TMenuItem
+      Caption = 'Add Offset Above'
+      OnClick = miAddOffsetAboveClick
+    end
+    object miAddOffsetBelow: TMenuItem
+      Caption = 'Add Offset Below'
+      OnClick = miAddOffsetBelowClick
+    end
+    object miRemoveOffset: TMenuItem
+      Caption = 'Remove Offset'
+      OnClick = miRemoveOffsetClick
+    end
+    object miSepUpdate: TMenuItem
+      Caption = '-'
+    end
     object miUpdateOnReinterpretOnly: TMenuItem
       AutoCheck = True
       Caption = 'Only update the offset when the memory record gets reinterpreted'
@@ -479,6 +497,11 @@ object formAddressChange: TformAddressChange
       Caption = 'Add this address to the list'
       ImageIndex = 3
       OnClick = miAddAddressToListClick
+    end
+    object miCopyAddressToClipboard: TMenuItem
+      Caption = 'Copy this address to Clipboard'
+      ImageIndex = 0
+      OnClick = miCopyAddressToClipboardClick
     end
   end
   object caImageList: TImageList
