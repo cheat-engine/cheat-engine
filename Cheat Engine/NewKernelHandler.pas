@@ -1123,23 +1123,19 @@ begin
         signed:=false;
         if isDriverLoaded(@signed) then
         begin
-          if MessageDlg(r, mtWarning, [mbyes, mbno], 0)=mryes then
-          begin
-            LaunchDBVM(-1);
-            if not isRunningDBVM then raise exception.Create(rsDidNotLoadDBVM);
-            result:=true;
-          end;
+          if (MainThreadID=GetCurrentThreadId) and (MessageDlg(r, mtWarning, [mbyes, mbno], 0)<>mryes) then
+            exit;
+
+          LaunchDBVM(-1);
+          if not isRunningDBVM then raise exception.Create(rsDidNotLoadDBVM);
+          result:=true;
         end else
         begin
           //the driver isn't loaded
           if signed then
-          begin
-            raise exception.Create(rsPleaseRebootAndPressF8BeforeWindowsBoots);
-          end
+            raise exception.Create(rsPleaseRebootAndPressF8BeforeWindowsBoots)
           else
-          begin
             raise exception.Create(rsTheDriverNeedsToBeLoadedToBeAbleToUseThisFunction);
-          end;
         end;
       end else raise exception.Create(rsYourCpuMustBeAbleToRunDbvmToUseThisFunction);
     end

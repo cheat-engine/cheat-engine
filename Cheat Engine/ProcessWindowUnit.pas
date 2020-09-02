@@ -879,9 +879,18 @@ begin
         ProcessHandler.ProcessHandle:=0;
       end;
 
-      if processid=GetCurrentProcessId then raise exception.create(rsPleaseSelectAnotherProcess);
+      try
+        if processid=GetCurrentProcessId then raise exception.create(rsPleaseSelectAnotherProcess);
 
-      Debuggerthread:=TDebuggerThread.MyCreate2(processid);
+        Debuggerthread:=TDebuggerThread.MyCreate2(processid);
+      except
+        on e: exception do
+        begin
+          debuggerthread:=nil;
+          MessageDlg(e.message, mtError,[mbok],0);
+          exit;
+        end;
+      end;
 
       mainform.ProcessLabel.Caption:=ProcessList.Items[Processlist.ItemIndex];
 

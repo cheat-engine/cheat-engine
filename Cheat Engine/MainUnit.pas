@@ -826,6 +826,7 @@ type
 
     RecentFiles: Tstringlist;
 
+    procedure ClearRecentFiles(Sender:TObject);
     procedure RecentFilesClick(Sender:TObject);
     procedure CheckForSpeedhackKey(sender: TObject);
 
@@ -1293,6 +1294,8 @@ resourcestring
   rsRequiresDBVMEPT = 'DBVM find routines needs DBVM for EPT page hooking. '
     +'Loading DBVM can potentially cause a system freeze. Are you sure?';
   rsDbvmWatchFailed = 'dbvm_watch failed';
+  rsAreYouSure = 'Are you sure?';
+  rsClearRecentFiles = 'Empty Recent Files List';
 
 var
   ncol: TColor;
@@ -10460,19 +10463,18 @@ begin
   addresslist.Clear;
 end;
 
+procedure TMainForm.ClearRecentFiles(Sender:TObject);
+begin
+  if MessageDlg(rsAreYouSure, mtConfirmation, [mbYes, mbNo], 0) = mrYes then
+  begin
+    recentfiles.Clear;
+    cereg.writeStrings('Recent Files', recentfiles);
+  end;
+end;
+
 procedure TMainForm.RecentFilesClick(Sender:TObject);
 var filename: string;
 begin
-  if (tmenuitem(sender).Name='miEmptyRecentFilesList') then
-  begin
-    if MessageDlg('', mtConfirmation, [mbYes, mbNo], 0) = mrYes then
-    begin
-      recentfiles.Clear;
-      cereg.writeStrings('Recent Files', recentfiles);
-    end;
-    exit;
-  end;
-
   if CheckIfSaved then
   begin
     filename:=RecentFiles[tmenuitem(sender).Tag];
@@ -10508,8 +10510,8 @@ begin
 
   m:=tmenuitem.Create(miLoadRecent);
   m.Name:='miEmptyRecentFilesList';
-  m.Caption:='Empty Recent Files List';
-  m.OnClick:=RecentFilesClick;
+  m.Caption:=rsClearRecentFiles;
+  m.OnClick:=ClearRecentFiles;
   miLoadRecent.Add(m);
 end;
 
