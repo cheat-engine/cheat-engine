@@ -1387,7 +1387,7 @@ begin
   begin
     //new entry
     recentfiles.insert(0, filepath);
-    while recentfiles.count>10 do
+    while recentfiles.count>20 do
       recentfiles.Delete(recentfiles.count-1);
   end;
   cereg.writeStrings('Recent Files', recentfiles);
@@ -10463,12 +10463,23 @@ end;
 procedure TMainForm.RecentFilesClick(Sender:TObject);
 var filename: string;
 begin
+  if (tmenuitem(sender).Name='miEmptyRecentFilesList') then
+  begin
+    if MessageDlg('', mtConfirmation, [mbYes, mbNo], 0) = mrYes then
+    begin
+      recentfiles.Clear;
+      cereg.writeStrings('Recent Files', recentfiles);
+    end;
+    exit;
+  end;
+
   if CheckIfSaved then
   begin
     filename:=RecentFiles[tmenuitem(sender).Tag];
     LoadTable(filename,false);
     SaveDialog1.FileName:=filename;
     OpenDialog1.FileName:=filename;
+    recentFilesUpdate(filename);
   end;
 end;
 
@@ -10491,6 +10502,15 @@ begin
     miLoadRecent.Add(m);
   end;
 
+  m:=tmenuitem.Create(miLoadRecent);
+  m.Caption:='-';
+  miLoadRecent.Add(m);
+
+  m:=tmenuitem.Create(miLoadRecent);
+  m.Name:='miEmptyRecentFilesList';
+  m.Caption:='Empty Recent Files List';
+  m.OnClick:=RecentFilesClick;
+  miLoadRecent.Add(m);
 end;
 
 procedure TMainForm.actOpenProcesslistExecute(Sender: TObject);
