@@ -266,7 +266,7 @@ Runs at passive mode
 
 #ifdef TOBESIGNED
 		if (OpenedFile==STATUS_SUCCESS)
-			OpenedFile=CheckSignatureOfFile(&filename);
+			OpenedFile=CheckSignatureOfFile(&filename, FALSE);
 #endif
 
 		if (OpenedFile == STATUS_SUCCESS)
