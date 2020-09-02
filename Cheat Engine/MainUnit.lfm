@@ -1781,6 +1781,7 @@ object MainForm: TMainForm
     object Showashexadecimal1: TMenuItem
       Caption = 'Show as hexadecimal'
       GroupIndex = 2
+      ShortCut = 49224
       OnClick = Showashexadecimal1Click
     end
     object miZeroTerminate: TMenuItem
