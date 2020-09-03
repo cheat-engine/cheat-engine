@@ -313,6 +313,11 @@ object frmStructures2: TfrmStructures2
       ShortCut = 13
       OnClick = miChangeValueClick
     end
+    object miChangeRowAllValues: TMenuItem
+      Caption = 'Change all values in row'
+      ImageIndex = 5
+      OnClick = miChangeAllValuesInRowClick
+    end
     object miChangeType: TMenuItem
       Caption = 'Change Type'
       ImageIndex = 5
@@ -327,6 +332,13 @@ object frmStructures2: TfrmStructures2
       object miChangeType4Byte: TMenuItem
         Caption = '4 Byte'
         OnClick = OnChangeTypeMenuItemClick
+      end
+      object miChangeType8Byte: TMenuItem
+        Caption = '8 Byte'
+        OnClick = OnChangeTypeMenuItemClick
+      end
+      object miChangeTypeSeparator1: TMenuItem
+        Caption = '-'
       end
       object miChangeTypeByteHex: TMenuItem
         Caption = 'Byte (Hex)'
@@ -344,6 +356,9 @@ object frmStructures2: TfrmStructures2
         Caption = '8 Byte (Hex)'
         OnClick = OnChangeTypeMenuItemClick
       end
+      object miChangeTypeSeparator2: TMenuItem
+        Caption = '-'
+      end
       object miChangeTypeFloat: TMenuItem
         Caption = 'Float'
         OnClick = OnChangeTypeMenuItemClick
@@ -352,6 +367,9 @@ object frmStructures2: TfrmStructures2
         Caption = 'Double'
         OnClick = OnChangeTypeMenuItemClick
       end
+      object miChangeTypeSeparator3: TMenuItem
+        Caption = '-'
+      end
       object miChangeTypeString: TMenuItem
         Caption = 'String'
         OnClick = OnChangeTypeMenuItemClick
@@ -359,6 +377,9 @@ object frmStructures2: TfrmStructures2
       object miChangeTypeUnicode: TMenuItem
         Caption = 'Unicode'
         OnClick = OnChangeTypeMenuItemClick
+      end
+      object miChangeTypeSeparator4: TMenuItem
+        Caption = '-'
       end
       object miChangeTypeArrayOfByte: TMenuItem
         Caption = 'Array Of Byte'
@@ -411,6 +432,11 @@ object frmStructures2: TfrmStructures2
       ImageIndex = 1
       ShortCut = 65
       OnClick = miAddToAddresslistClick
+    end
+    object miAddAllInRowToAddressList: TMenuItem
+      Caption = 'Add all in row to address list'
+      ImageIndex = 1
+      OnClick = miAddAllInRowToAddressListClick
     end
     object miBrowsePointer: TMenuItem
       Caption = 'Memory browse pointer'
