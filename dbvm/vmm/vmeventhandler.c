@@ -144,7 +144,7 @@ int emulateExceptionInterrupt(pcpuinfo currentcpuinfo, VMRegisters *vmregisters,
   //nosendchar[getAPICID()]=1;
 
   sendstring("Emulation\n");
-  if (vmread(vm_guest_cs)==0x10)
+  if ((isAMD?currentcpuinfo->vmcb->cs_selector:vmread(vm_guest_cs))==0x10)
   {
     sendstring("!!!!!FROM KERNELMODE (assuming it\'s windows 64)!!!!!\n");
   }
