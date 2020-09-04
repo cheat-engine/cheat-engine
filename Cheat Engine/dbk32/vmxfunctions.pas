@@ -1428,7 +1428,7 @@ var vmcallinfo: packed record
   copied: DWORD;
 end;
 begin
-  //OutputDebugString('vmxfunctions.pas: dbvm_watch_retrievelog (results='+inttohex(QWORD(results),8)+' resultsize='+inttostr(resultsize)+')');
+ // OutputDebugString('vmxfunctions.pas: dbvm_watch_retrievelog for ID '+inttostr(id)+' (results='+inttohex(QWORD(results),8)+' resultsize='+inttostr(resultsize)+')');
   result:=1;
   vmcallinfo.structsize:=sizeof(vmcallinfo);
   vmcallinfo.level2pass:=vmx_password2;
@@ -1441,7 +1441,7 @@ begin
   result:=vmcall(@vmcallinfo,vmx_password1);  //returns 2 on a too small size
   resultsize:=vmcallinfo.resultssize;
 
-  //OutputDebugString('dbvm_watch_retrievelog vmcall returned '+inttostr(result)+'  (resultsize='+inttostr(resultsize)+')');
+ // OutputDebugString('dbvm_watch_retrievelog vmcall returned '+inttostr(result)+'  (resultsize='+inttostr(resultsize)+')');
 
   resultsize:=vmcallinfo.resultssize;
 end;

@@ -183,14 +183,14 @@ begin
       i:=dbvm_watch_retrievelog(id, results, size);
       if i=0 then
       begin
-        //OutputDebugString('TDBVMWatchPollThread returned 0');
-        //OutputDebugString('results^.numberOfEntries='+inttostr(results^.numberOfEntries));
-        //OutputDebugString('results^.maxSize='+inttostr(results^.maxSize));
+      //  OutputDebugString('TDBVMWatchPollThread returned 0');
+      //  OutputDebugString('results^.numberOfEntries='+inttostr(results^.numberOfEntries));
+      //  OutputDebugString('results^.maxSize='+inttostr(results^.maxSize));
 
         //process data
         if results^.numberOfEntries>0 then
         begin
-         // OutputDebugString('calling addEntriesToList');
+      //    OutputDebugString('calling addEntriesToList');
           synchronize(addEntriesToList);
           sleep(10);
         end
@@ -201,7 +201,7 @@ begin
       if i=2 then
       begin
         //not enough memory. Allocate twice the needed amount
-       // outputdebugstring(inttostr(resultsize)+' is too small for the buffer. It needs to be at least '+inttostr(size));
+     //   outputdebugstring(inttostr(resultsize)+' is too small for the buffer. It needs to be at least '+inttostr(size));
         freememandnil(results);
 
 
@@ -212,7 +212,7 @@ begin
         continue; //try again, no sleep
       end else
       begin
-        //outputdebugstring('dbvm_watch_retrievelog returned '+inttostr(i)+' which is not supported');
+        outputdebugstring('dbvm_watch_retrievelog returned '+inttostr(i)+' which is not supported');
         exit;
       end;
     end;

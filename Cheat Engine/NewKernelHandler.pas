@@ -1322,12 +1322,10 @@ begin
             result:=true;
         end;
 
-      end;
-
+      end
+      else
       if isamd then
-      begin
-
-      end;
+        result:=true;
     end;
 
   except

@@ -1285,13 +1285,13 @@ resourcestring
   rsProcessing = '<Processing>';
   rsCompareToSavedScan = 'Compare to first/saved scan';
   rsModified = 'Modified';
-  rsRequiresDBVMCapableIntelCPU = 'This function requires an Intel CPU with '
+  rsRequiresDBVMCapableCPU = 'This function requires an CPU with '
     +'virtualization support. If your system has that then make sure that '
     +'you''re currently not running inside a virtual machine. (Windows has '
     +'some security features that can run programs inside a VM)';
-  rsRequiresEPT = 'This function requires that your CPU supports ''Extended '
-    +'Page Table (EPT)'' which your CPU lacks';
-  rsRequiresDBVMEPT = 'DBVM find routines needs DBVM for EPT page hooking. '
+  rsRequiresEPT = 'This function requires that your CPU supports ''Intel Extended '
+    +'Page Table (EPT) or AMD Nested Paging'' which your CPU lacks';
+  rsRequiresDBVMEPT = 'DBVM find routines needs DBVM for EPT/NP page hooking. '
     +'Loading DBVM can potentially cause a system freeze. Are you sure?';
   rsDbvmWatchFailed = 'dbvm_watch failed';
   rsAreYouSure = 'Are you sure?';
@@ -7513,9 +7513,9 @@ begin
     LoadDBK32;
 
   canuseept:=hasEPTSupport;
-  if (isintel=false) or (isDBVMCapable=false) then
+  if (isDBVMCapable=false) then
   begin
-    messagedlg(rsRequiresDBVMCapableIntelCPU, mtError, [mbok], 0);
+    messagedlg(rsRequiresDBVMCapableCPU, mtError, [mbok], 0);
     exit;
   end;
 
