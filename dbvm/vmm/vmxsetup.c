@@ -688,15 +688,18 @@ int vmx_enableSingleStepMode(void)
     //perhaps enable INTERRUPT_SHADOW?
 
     //mark the intercepts as changed
-    sendstringf("b c->vmcb->VMCB_CLEAN_BITS=%6\n",c->vmcb->VMCB_CLEAN_BITS);
+    //sendstringf("b c->vmcb->VMCB_CLEAN_BITS=%6\n",c->vmcb->VMCB_CLEAN_BITS);
     c->vmcb->VMCB_CLEAN_BITS&=~(1<<0);
     c->vmcb->VMCB_CLEAN_BITS=0;
-    sendstringf("a c->vmcb->VMCB_CLEAN_BITS=%6\n",c->vmcb->VMCB_CLEAN_BITS);
+   //sendstringf("a c->vmcb->VMCB_CLEAN_BITS=%6\n",c->vmcb->VMCB_CLEAN_BITS);
 
     RFLAGS v;
     v.value=c->vmcb->RFLAGS;
     v.TF=1; //single step mode
     v.RF=1;
+    if (v.IF)
+      c->vmcb->INTERRUPT_SHADOW=1;
+
     //todo: intercept pushf/popf/iret and the original RF flag state (though for a single step that should have no effect
 
     c->vmcb->RFLAGS=v.value;

@@ -1585,6 +1585,22 @@ int ept_handleWatchEventAfterStep(pcpuinfo currentcpuinfo,  int ID)
   if (isAMD)
     sendstringf("%d CS:RIP=%x:%6\n", currentcpuinfo->cpunr, currentcpuinfo->vmcb->cs_selector, currentcpuinfo->vmcb->RIP);
 
+  if (ID>eptWatchListPos)
+  {
+    sendstring("Invalid ID\n");
+    return 0;
+  }
+
+
+  if (eptWatchList[ID].Active==0)
+  {
+    sendstring("Inactive ID\n");
+    return 0;
+  }
+
+
+
+
   switch (eptWatchList[ID].Type)
   {
   	  case EPTW_WRITE:
@@ -1595,12 +1611,16 @@ int ept_handleWatchEventAfterStep(pcpuinfo currentcpuinfo,  int ID)
   	    {
   	      PPTE_PAE pte;
   	      pte=(PPTE_PAE)currentcpuinfo->eptWatchList[ID];
-  	      UINT64 oldvalue=*(UINT64 *)pte;
-  	      pte->RW=0;
+  	      if (pte)
+  	      {
+            UINT64 oldvalue=*(UINT64 *)pte;
+            pte->RW=0;
 
-  	      UINT64 newvalue=*(UINT64 *)pte;
+            UINT64 newvalue=*(UINT64 *)pte;
 
-  	      sendstringf("%6 -> %6\n", oldvalue, newvalue);
+            sendstringf("%6 -> %6\n", oldvalue, newvalue);
+  	      }
+
   	    }
   	    else
   	      currentcpuinfo->eptWatchList[ID]->WA=0;
