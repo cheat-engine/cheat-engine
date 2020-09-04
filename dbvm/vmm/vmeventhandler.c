@@ -3702,7 +3702,7 @@ InterruptFired:
 int handleSingleStep(pcpuinfo currentcpuinfo)
 {
   //handle the reasons one by one. (Used by AMD as well)
-  sendstringf("handleSingleStep.  currentcpuinfo->singleStepping.ReasonsPos=%d\n", currentcpuinfo->singleStepping.ReasonsPos);
+  sendstringf("%d: handleSingleStep.  currentcpuinfo->singleStepping.ReasonsPos=%d\n", currentcpuinfo->cpunr, currentcpuinfo->singleStepping.ReasonsPos);
 
 
   while (currentcpuinfo->singleStepping.ReasonsPos)

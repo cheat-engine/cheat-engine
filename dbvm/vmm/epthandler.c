@@ -1345,21 +1345,21 @@ BOOL ept_handleWatchEvent(pcpuinfo currentcpuinfo, VMRegisters *registers, PFXSA
   }
 
   //run once
+  sendstringf("%d Making page fully accessible", currentcpuinfo->cpunr);
+
   if (isAMD)
   {
-    npte->EXB=0;
-    npte->P=1;
-    npte->RW=1;
+    npte->EXB=0;  //execute allow
+    npte->P=1;    //read allow
+    npte->RW=1;   //write allow
   }
   else
   {
-
-    currentcpuinfo->eptWatchList[ID]->XA=1;
-    currentcpuinfo->eptWatchList[ID]->RA=1;
-    currentcpuinfo->eptWatchList[ID]->WA=1;
-
-    sendstringf("Page is accessible. Doing single step\n");
+    currentcpuinfo->eptWatchList[ID]->XA=1; //execute allow
+    currentcpuinfo->eptWatchList[ID]->RA=1; //read allow
+    currentcpuinfo->eptWatchList[ID]->WA=1; //write allow
   }
+  sendstringf("Page is accessible. Doing single step\n");
 
   vmx_enableSingleStepMode();
   vmx_addSingleSteppingReason(currentcpuinfo, 1, ID);
@@ -1398,7 +1398,7 @@ BOOL ept_handleWatchEvent(pcpuinfo currentcpuinfo, VMRegisters *registers, PFXSA
       (PhysicalAddress>=eptWatchList[ID].PhysicalAddress+eptWatchList[ID].Size)
       ))
   {
-    sendstringf("Not logging all and the physical address is not in the exact range\n");
+    sendstringf("%d: Not logging all and the physical address(%6) is not in the exact range (%p-%p)\n", currentcpuinfo->cpunr, PhysicalAddress, eptWatchList[ID].PhysicalAddress, eptWatchList[ID].PhysicalAddress+eptWatchList[ID].Size);
     csLeave(&eptWatchListCS);
     return TRUE; //no need to log it
   }
@@ -1580,7 +1580,10 @@ BOOL ept_handleWatchEvent(pcpuinfo currentcpuinfo, VMRegisters *registers, PFXSA
 
 int ept_handleWatchEventAfterStep(pcpuinfo currentcpuinfo,  int ID)
 {
-  sendstringf("ept_handleWatchEventAfterStep %d  Type=%d\n", ID, eptWatchList[ID].Type);
+  sendstringf("%d ept_handleWatchEventAfterStep %d  Type=%d\n", currentcpuinfo->cpunr, ID, eptWatchList[ID].Type);
+
+  if (isAMD)
+    sendstringf("%d CS:RIP=%x:%6\n", currentcpuinfo->cpunr, currentcpuinfo->vmcb->cs_selector, currentcpuinfo->vmcb->RIP);
 
   switch (eptWatchList[ID].Type)
   {
@@ -1651,6 +1654,7 @@ int ept_handleWatchEventAfterStep(pcpuinfo currentcpuinfo,  int ID)
   {
     if (isAMD)
     {
+      sendstringf("AMD: BP after STEP\n");
       currentcpuinfo->vmcb->inject_Type=3; //exception
       currentcpuinfo->vmcb->inject_Vector=int1redirection;
       currentcpuinfo->vmcb->inject_Valid=1;

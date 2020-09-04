@@ -154,10 +154,10 @@ QWORD NPMapPhysicalMemory(pcpuinfo currentcpuinfo, QWORD physicalAddress, int fo
     swappedguesttables=1;
   }
 
-  sendstringf("pml4index=%d\n", pml4index);
-  sendstringf("pagedirptrindex=%d\n", pagedirptrindex);
-  sendstringf("pagedirindex=%d\n", pagedirindex);
-  sendstringf("pagetableindex=%d\n", pagetableindex);
+ // sendstringf("pml4index=%d\n", pml4index);
+ // sendstringf("pagedirptrindex=%d\n", pagedirptrindex);
+ // sendstringf("pagedirindex=%d\n", pagedirindex);
+ // sendstringf("pagetableindex=%d\n", pagetableindex);
 
 
   UINT64 PageDirPtrIndexFull=(pml4index << 9)+pagedirptrindex;
@@ -165,13 +165,13 @@ QWORD NPMapPhysicalMemory(pcpuinfo currentcpuinfo, QWORD physicalAddress, int fo
   UINT64 PageTableIndexFull=(PageDirIndexFull << 9)+pagetableindex;
 
 
-  sendstringf("PageDirPtrIndexFull=%d\n", PageDirPtrIndexFull);
-  sendstringf("PageDirIndexFull=%d\n", PageDirIndexFull);
-  sendstringf("PageTableIndexFull=%d\n", PageTableIndexFull);
+ // sendstringf("PageDirPtrIndexFull=%d\n", PageDirPtrIndexFull);
+ // sendstringf("PageDirIndexFull=%d\n", PageDirIndexFull);
+ // sendstringf("PageTableIndexFull=%d\n", PageTableIndexFull);
 
-  sendstringf("sizeof(_PTE_PAE)=%d\n", sizeof(_PTE_PAE));
-  sendstringf("sizeof(_PDE_PAE)=%d\n", sizeof(_PDE_PAE));
-  sendstringf("sizeof(_PDPTE_PAE_BS)=%d\n", sizeof(_PDPTE_PAE_BS));
+ // sendstringf("sizeof(_PTE_PAE)=%d\n", sizeof(_PTE_PAE));
+ // sendstringf("sizeof(_PDE_PAE)=%d\n", sizeof(_PDE_PAE));
+ // sendstringf("sizeof(_PDPTE_PAE_BS)=%d\n", sizeof(_PDPTE_PAE_BS));
 
 
   PPML4 pml4=NULL;
@@ -190,7 +190,7 @@ QWORD NPMapPhysicalMemory(pcpuinfo currentcpuinfo, QWORD physicalAddress, int fo
 
   if (pml4->P==0)
   {
-    sendstringf("allocating pagedirptr\n");
+    //sendstringf("allocating pagedirptr\n");
     //allocate a pagedirptr table
     void *temp=malloc2(4096);
     zeromemory(temp,4096);

@@ -877,11 +877,17 @@ int vmcall_readPhysicalMemory(pcpuinfo currentcpuinfo, VMRegisters *vmregisters,
 
 
 
-VMSTATUS vmcall_watch_retrievelog(VMRegisters *vmregisters,  PVMCALL_WATCH_RETRIEVELOG_PARAM params)
+VMSTATUS vmcall_watch_retrievelog(pcpuinfo currentcpuinfo, VMRegisters *vmregisters,  PVMCALL_WATCH_RETRIEVELOG_PARAM params)
 {
   //int o=(QWORD)(&params->copied)-(QWORD)params;
   //sendstringf("params->copied is at offset %d\n", o);
-  return ept_watch_retrievelog(params->ID, params->results, &params->resultsize, &params->copied, &vmregisters->rax);
+  QWORD *errorcode;
+  if (isAMD)
+    errorcode=&currentcpuinfo->vmcb->RAX;
+  else
+    errorcode=&vmregisters->rax;
+
+  return ept_watch_retrievelog(params->ID, params->results, &params->resultsize, &params->copied, errorcode);
 
 
 }
@@ -1591,7 +1597,7 @@ int _handleVMCallInstruction(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, 
     case VMCALL_WATCH_RETRIEVELOG:
     {
       //sendstringf("VMCALL_WATCH_RETRIEVELOG\n");
-      return vmcall_watch_retrievelog(vmregisters, (PVMCALL_WATCH_RETRIEVELOG_PARAM)vmcall_instruction);
+      return vmcall_watch_retrievelog(currentcpuinfo, vmregisters, (PVMCALL_WATCH_RETRIEVELOG_PARAM)vmcall_instruction);
     }
 
     case VMCALL_CLOAK_ACTIVATE:

@@ -673,11 +673,13 @@ int vmx_addSingleSteppingReason(pcpuinfo currentcpuinfo, int reason, int ID)
 int vmx_enableSingleStepMode(void)
 {
   pcpuinfo c=getcpuinfo();
-  sendstring("Enabling single step mode\n");
+  sendstringf("%d Enabling single step mode\n", c->cpunr);
+
 
   if (isAMD)
   {
-    sendstring("on an AMD\n");
+    sendstringf("%d CS:RIP=%x:%6 RCX=%d\n", c->cpunr, c->vmcb->cs_selector, c->vmcb->RIP);
+
     //break on external interrupts and exceptions
     c->vmcb->InterceptVINTR=1;
     c->vmcb->InterceptINTR=1;
@@ -694,7 +696,8 @@ int vmx_enableSingleStepMode(void)
     RFLAGS v;
     v.value=c->vmcb->RFLAGS;
     v.TF=1; //single step mode
-    //todo: intercept pushf/popf/iret
+    v.RF=1;
+    //todo: intercept pushf/popf/iret and the original RF flag state (though for a single step that should have no effect
 
     c->vmcb->RFLAGS=v.value;
     c->singleStepping.Method=3; //Trap flag
@@ -704,6 +707,7 @@ int vmx_enableSingleStepMode(void)
   }
   else
   {
+    sendstring("\n");
 
    /* if ((vmread(vm_entry_interruptioninfo) >> 31)==0)
       vmwrite(vm_guest_interruptability_state,2); //execute at least one instruction
@@ -739,7 +743,7 @@ int vmx_disableSingleStepMode(void)
   int r=0;
   pcpuinfo c=getcpuinfo();
 
-  sendstring("Disabling single step mode\n");
+  sendstringf("%d Disabling single step mode\n", c->cpunr);
 
   if (isAMD)
   {

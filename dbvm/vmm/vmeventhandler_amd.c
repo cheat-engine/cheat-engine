@@ -17,6 +17,7 @@
 #include "apic.h"
 #include "msrnames.h"
 #include "nphandler.h"
+#include "epthandler.h"
 
 
 int c=0;
@@ -73,6 +74,11 @@ int handleVMEvent_amd(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, FXSAVE6
     }
 
     sendstring("Need to do some further handling\n");//eg external interrupts
+  }
+  else
+  {
+    if (currentcpuinfo->singleStepping.ReasonsPos)
+      sendstringf("AMD Handler: currentcpuinfo->singleStepping.ReasonsPos=%d and EXITCODE IS AN NPF\n",currentcpuinfo->singleStepping.ReasonsPos);
 
   }
 
@@ -81,6 +87,16 @@ int handleVMEvent_amd(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, FXSAVE6
 
   switch (currentcpuinfo->vmcb->EXITCODE)
   {
+
+    case VMEXIT_INTR:
+    {
+      sendstringf("%d: VMEXIT_INTR: EXITINFO1=%6 EXITINFO2=%6 EXITINTINFO=%6", currentcpuinfo->cpunr, currentcpuinfo->vmcb->EXITINFO1, currentcpuinfo->vmcb->EXITINFO2, currentcpuinfo->vmcb->EXITINTINFO);
+     // while(1);
+      currentcpuinfo->vmcb->EVENTINJ=currentcpuinfo->vmcb->EXITINTINFO; //retrigger
+
+      return 0;
+
+    }
 
     case VMEXIT_EXCP1:
     {
@@ -817,7 +833,7 @@ int handleVMEvent_amd(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, FXSAVE6
     case VMEXIT_NPF:
     {
       nosendchar[getAPICID()]=0;
-      sendstring("VMEXIT_NPF\n");
+      sendstringf("%d VMEXIT_NPF\n", currentcpuinfo->cpunr);
 
 
       return handleNestedPagingFault(currentcpuinfo,vmregisters, fxsave);
