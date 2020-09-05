@@ -36,7 +36,7 @@ void NPMode1CloakSetState(pcpuinfo currentcpuinfo, int state)
   //mark all other pages as no-execute
   QWORD BaseAddress=currentcpuinfo->NP_Cloak.ActiveRegion->PhysicalAddressExecutable;
 
-  sendstringf("NPMode1CloakSetState for address %6\n", BaseAddress);
+  sendstringf("NPMode1CloakSetState for address %6 (for %x:%6)\n", BaseAddress, currentcpuinfo->vmcb->cs_selector, currentcpuinfo->vmcb->cs_selector);
   int pml4index;
   int pagedirptrindex;
   int pagedirindex;
@@ -128,6 +128,13 @@ void NPMode1CloakSetState(pcpuinfo currentcpuinfo, int state)
 
 
   }
+
+
+  if (((PRFLAGS)(&currentcpuinfo->vmcb->RFLAGS))->IF)
+    currentcpuinfo->vmcb->INTERRUPT_SHADOW=1;
+
+
+
 }
 
 QWORD NPMapPhysicalMemory(pcpuinfo currentcpuinfo, QWORD physicalAddress, int forcesmallpage)
@@ -312,11 +319,15 @@ QWORD NPMapPhysicalMemory(pcpuinfo currentcpuinfo, QWORD physicalAddress, int fo
     //else already mapped
     sendstringf("This physical address (%6) was already mapped\n", physicalAddress);
 
-    //change it to full access
-    pagetable->P=1;
-    pagetable->RW=1;
-    pagetable->US=1;
-    pagetable->EXB=0;
+    //weird issue. change it to full access to prevent a full system crash
+
+    if (currentcpuinfo->eptUpdated==0) //if it's not due to a pending EPT update then make it accessible (just to prevent issues)
+    {
+      pagetable->P=1;
+      pagetable->RW=1;
+      pagetable->US=1;
+      pagetable->EXB=0;
+    }
   }
 
   csLeave(&currentcpuinfo->EPTPML4CS);

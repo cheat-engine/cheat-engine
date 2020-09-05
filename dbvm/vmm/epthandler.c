@@ -472,6 +472,7 @@ int ept_cloak_activate(QWORD physicalAddress, int mode)
   //map in the physical address descriptor for all CPU's as execute only
   pcpuinfo currentcpuinfo=firstcpuinfo;
 
+
   while (currentcpuinfo)
   {
     int cpunr=currentcpuinfo->cpunr;
@@ -503,7 +504,7 @@ int ept_cloak_activate(QWORD physicalAddress, int mode)
     {
       //Make it non-executable, and make the data read be the fake data
       _PTE_PAE temp;
-      temp=*((PPTE_PAE)&cloakdata->PhysicalAddressData);  // *(PPTE_PAE)(cloakdata->eptentry[cpunr]);
+      temp=*((PPTE_PAE)&cloakdata->PhysicalAddressData); //read data
 
       temp.P=1;
       temp.RW=1;
@@ -531,7 +532,7 @@ int ept_cloak_activate(QWORD physicalAddress, int mode)
 
 
     _wbinvd();
-    currentcpuinfo->eptUpdated=1;
+    currentcpuinfo->eptUpdated=1; //set this before unlock, so if a NP exception happens before the next vmexit is handled it knows not to remap it with full access
 
     csLeave(&currentcpuinfo->EPTPML4CS);
 
@@ -546,7 +547,6 @@ int ept_cloak_activate(QWORD physicalAddress, int mode)
   sendstringf("Invalidating ept\n");
 
   ept_invalidate();
-
 
   csLeave(&CloakedPagesCS);
   return 0;
