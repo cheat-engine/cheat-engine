@@ -1,58 +1,58 @@
 object Registers: TRegisters
-  Left = 396
-  Height = 303
-  Top = 134
-  Width = 212
-  AutoSize = True
+  Left = 780
+  Height = 312
+  Top = 169
+  Width = 240
   Caption = 'Registers'
-  ClientHeight = 303
-  ClientWidth = 212
+  ClientHeight = 312
+  ClientWidth = 240
+  Constraints.MinWidth = 240
   OnClose = FormClose
   OnResize = FormResize
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '2.0.6.0'
+  LCLVersion = '2.0.10.0'
   object Panel1: TPanel
     AnchorSideLeft.Control = Owner
     AnchorSideTop.Control = Owner
     AnchorSideRight.Control = Panel2
     AnchorSideBottom.Control = Owner
+    AnchorSideBottom.Side = asrBottom
     Left = 0
-    Height = 224
+    Height = 312
     Top = 0
-    Width = 189
-    Anchors = [akTop, akLeft, akRight]
+    Width = 217
+    Anchors = [akTop, akLeft, akRight, akBottom]
     AutoSize = True
     BevelOuter = bvNone
-    ClientHeight = 224
-    ClientWidth = 189
-    PopupMenu = PopupMenu1
+    ClientHeight = 312
+    ClientWidth = 217
     TabOrder = 0
-    object Label14: TLabel
+    object LabelRegisters: TLabel
       AnchorSideLeft.Control = Panel1
       AnchorSideTop.Control = Panel1
       Left = 8
-      Height = 16
+      Height = 15
       Top = 0
-      Width = 60
+      Width = 50
       BorderSpacing.Left = 8
       Caption = 'Registers:'
       ParentColor = False
     end
     object Shape1: TShape
-      AnchorSideLeft.Control = Label14
-      AnchorSideTop.Control = Label14
+      AnchorSideLeft.Control = LabelRegisters
+      AnchorSideTop.Control = LabelRegisters
       AnchorSideTop.Side = asrBottom
-      AnchorSideRight.Control = Label14
+      AnchorSideRight.Control = LabelRegisters
       AnchorSideRight.Side = asrBottom
       Left = 8
       Height = 2
-      Top = 16
-      Width = 60
+      Top = 15
+      Width = 50
       Anchors = [akTop, akLeft, akRight]
       Brush.Color = clBlack
     end
-    object Panel3: TPanel
+    object PanelRegistersList: TPanel
       AnchorSideLeft.Control = Shape1
       AnchorSideTop.Control = Shape1
       AnchorSideTop.Side = asrBottom
@@ -61,129 +61,189 @@ object Registers: TRegisters
       AnchorSideBottom.Control = Panel1
       AnchorSideBottom.Side = asrBottom
       Left = 8
-      Height = 191
-      Top = 27
-      Width = 156
-      Anchors = [akTop, akLeft, akBottom]
+      Height = 277
+      Top = 26
+      Width = 209
+      Anchors = [akTop, akLeft, akRight, akBottom]
       AutoSize = True
       BorderSpacing.Top = 9
-      BorderSpacing.Right = 8
-      BorderSpacing.Bottom = 6
+      BorderSpacing.Bottom = 9
       BevelOuter = bvNone
       ChildSizing.VerticalSpacing = 7
       ChildSizing.Layout = cclLeftToRightThenTopToBottom
       ChildSizing.ControlsPerLine = 1
-      ClientHeight = 191
-      ClientWidth = 156
+      ClientHeight = 277
+      ClientWidth = 209
       Font.Name = 'Courier New'
       ParentFont = False
       TabOrder = 0
       object EAXLabel: TLabel
+        AnchorSideLeft.Control = PanelRegistersList
+        AnchorSideTop.Control = PanelRegistersList
+        AnchorSideRight.Control = PanelRegistersList
+        AnchorSideRight.Side = asrBottom
         Cursor = crHandPoint
         Left = 0
-        Height = 15
+        Height = 18
         Top = 0
-        Width = 156
-        Caption = 'EAX 00000000FFFFFFFF'
+        Width = 200
+        Caption = 'EAX 0123456789ABCDEF'
         ParentColor = False
-        OnDblClick = EAXLabelDblClick
-        OnMouseDown = RegisterMouseDown
+        PopupMenu = registerLabelContextMenu
+        OnDblClick = BrowseMemoryRegionClick
+        OnMouseDown = CopyRegisterValueToClipboardMouseRightClick
       end
       object EBXlabel: TLabel
         Tag = 1
+        AnchorSideLeft.Control = EAXLabel
+        AnchorSideTop.Control = EAXLabel
+        AnchorSideTop.Side = asrBottom
+        AnchorSideRight.Control = EAXLabel
+        AnchorSideRight.Side = asrBottom
         Cursor = crHandPoint
         Left = 0
-        Height = 15
-        Top = 22
-        Width = 156
+        Height = 18
+        Top = 25
+        Width = 200
+        Anchors = [akTop, akLeft, akRight]
         Caption = 'EBX 00000000'
         ParentColor = False
-        OnDblClick = EAXLabelDblClick
-        OnMouseDown = RegisterMouseDown
+        PopupMenu = registerLabelContextMenu
+        OnDblClick = BrowseMemoryRegionClick
+        OnMouseDown = CopyRegisterValueToClipboardMouseRightClick
       end
       object ECXlabel: TLabel
         Tag = 2
+        AnchorSideLeft.Control = EBXlabel
+        AnchorSideTop.Control = EBXlabel
+        AnchorSideTop.Side = asrBottom
+        AnchorSideRight.Control = EBXlabel
+        AnchorSideRight.Side = asrBottom
         Cursor = crHandPoint
         Left = 0
-        Height = 15
-        Top = 44
-        Width = 156
+        Height = 18
+        Top = 50
+        Width = 200
+        Anchors = [akTop, akLeft, akRight]
         Caption = 'ECX 00000000'
         ParentColor = False
-        OnDblClick = EAXLabelDblClick
-        OnMouseDown = RegisterMouseDown
+        PopupMenu = registerLabelContextMenu
+        OnDblClick = BrowseMemoryRegionClick
+        OnMouseDown = CopyRegisterValueToClipboardMouseRightClick
       end
       object EDXlabel: TLabel
         Tag = 3
+        AnchorSideLeft.Control = ECXlabel
+        AnchorSideTop.Control = ECXlabel
+        AnchorSideTop.Side = asrBottom
+        AnchorSideRight.Control = ECXlabel
+        AnchorSideRight.Side = asrBottom
         Cursor = crHandPoint
         Left = 0
-        Height = 15
-        Top = 66
-        Width = 156
+        Height = 18
+        Top = 75
+        Width = 200
+        Anchors = [akTop, akLeft, akRight]
         Caption = 'EDX 00000000'
         ParentColor = False
-        OnDblClick = EAXLabelDblClick
-        OnMouseDown = RegisterMouseDown
+        PopupMenu = registerLabelContextMenu
+        OnDblClick = BrowseMemoryRegionClick
+        OnMouseDown = CopyRegisterValueToClipboardMouseRightClick
       end
       object ESIlabel: TLabel
         Tag = 4
+        AnchorSideLeft.Control = EDXlabel
+        AnchorSideTop.Control = EDXlabel
+        AnchorSideTop.Side = asrBottom
+        AnchorSideRight.Control = EDXlabel
+        AnchorSideRight.Side = asrBottom
         Cursor = crHandPoint
         Left = 0
-        Height = 15
-        Top = 88
-        Width = 156
+        Height = 18
+        Top = 100
+        Width = 200
+        Anchors = [akTop, akLeft, akRight]
         Caption = 'ESI 00000000'
         ParentColor = False
-        OnDblClick = EAXLabelDblClick
-        OnMouseDown = RegisterMouseDown
+        PopupMenu = registerLabelContextMenu
+        OnDblClick = BrowseMemoryRegionClick
+        OnMouseDown = CopyRegisterValueToClipboardMouseRightClick
       end
       object EDIlabel: TLabel
         Tag = 5
+        AnchorSideLeft.Control = ESIlabel
+        AnchorSideTop.Control = ESIlabel
+        AnchorSideTop.Side = asrBottom
+        AnchorSideRight.Control = ESIlabel
+        AnchorSideRight.Side = asrBottom
         Cursor = crHandPoint
         Left = 0
-        Height = 15
-        Top = 110
-        Width = 156
+        Height = 18
+        Top = 125
+        Width = 200
+        Anchors = [akTop, akLeft, akRight]
         Caption = 'EDI 00000000'
         ParentColor = False
-        OnDblClick = EAXLabelDblClick
-        OnMouseDown = RegisterMouseDown
+        PopupMenu = registerLabelContextMenu
+        OnDblClick = BrowseMemoryRegionClick
+        OnMouseDown = CopyRegisterValueToClipboardMouseRightClick
       end
       object EBPlabel: TLabel
         Tag = 6
+        AnchorSideLeft.Control = EDIlabel
+        AnchorSideTop.Control = EDIlabel
+        AnchorSideTop.Side = asrBottom
+        AnchorSideRight.Control = EDIlabel
+        AnchorSideRight.Side = asrBottom
         Cursor = crHandPoint
         Left = 0
-        Height = 15
-        Top = 132
-        Width = 156
+        Height = 18
+        Top = 150
+        Width = 200
+        Anchors = [akTop, akLeft, akRight]
         Caption = 'EBP 00000000'
         ParentColor = False
-        OnDblClick = EAXLabelDblClick
-        OnMouseDown = RegisterMouseDown
+        PopupMenu = registerLabelContextMenu
+        OnDblClick = BrowseMemoryRegionClick
+        OnMouseDown = CopyRegisterValueToClipboardMouseRightClick
       end
       object ESPlabel: TLabel
         Tag = 7
+        AnchorSideLeft.Control = EBPlabel
+        AnchorSideTop.Control = EBPlabel
+        AnchorSideTop.Side = asrBottom
+        AnchorSideRight.Control = EBPlabel
+        AnchorSideRight.Side = asrBottom
         Cursor = crHandPoint
         Left = 0
-        Height = 15
-        Top = 154
-        Width = 156
+        Height = 18
+        Top = 175
+        Width = 200
+        Anchors = [akTop, akLeft, akRight]
         Caption = 'ESP 00000000'
         ParentColor = False
-        OnDblClick = EAXLabelDblClick
-        OnMouseDown = RegisterMouseDown
+        PopupMenu = registerLabelContextMenu
+        OnDblClick = BrowseMemoryRegionClick
+        OnMouseDown = CopyRegisterValueToClipboardMouseRightClick
       end
       object EIPlabel: TLabel
         Tag = 8
+        AnchorSideLeft.Control = ESPlabel
+        AnchorSideTop.Control = ESPlabel
+        AnchorSideTop.Side = asrBottom
+        AnchorSideRight.Control = ESPlabel
+        AnchorSideRight.Side = asrBottom
         Cursor = crHandPoint
         Left = 0
-        Height = 15
-        Top = 176
-        Width = 156
+        Height = 18
+        Top = 200
+        Width = 200
+        Anchors = [akTop, akLeft, akRight]
         Caption = 'EIP 00000000'
         ParentColor = False
-        OnDblClick = EAXLabelDblClick
-        OnMouseDown = RegisterMouseDown
+        PopupMenu = registerLabelContextMenu
+        OnDblClick = BrowseMemoryRegionClick
+        OnMouseDown = CopyRegisterValueToClipboardMouseRightClick
       end
     end
   end
@@ -193,13 +253,13 @@ object Registers: TRegisters
     AnchorSideRight.Side = asrBottom
     AnchorSideBottom.Control = Owner
     AnchorSideBottom.Side = asrBottom
-    Left = 189
-    Height = 303
+    Left = 217
+    Height = 312
     Top = 0
     Width = 23
     Anchors = [akTop, akRight, akBottom]
     AutoSize = True
-    ClientHeight = 303
+    ClientHeight = 312
     ClientWidth = 23
     TabOrder = 1
     object Panel4: TPanel
@@ -208,7 +268,7 @@ object Registers: TRegisters
       AnchorSideTop.Side = asrCenter
       Left = 1
       Height = 60
-      Top = 121
+      Top = 126
       Width = 21
       AutoSize = True
       BevelOuter = bvNone
@@ -247,25 +307,39 @@ object Registers: TRegisters
       end
     end
   end
-  object PopupMenu1: TPopupMenu
+  object registerLabelContextMenu: TPopupMenu
     Images = rImageList
-    left = 117
-    object MenuItem1: TMenuItem
-      Caption = 'Copy registers to clipboard'
+    Left = 80
+    Top = 248
+    object miCopyRegisterValueToClipboard: TMenuItem
+      Caption = 'Copy selected register value to clipboard'
       ImageIndex = 0
-      OnClick = MenuItem1Click
+      OnClick = miCopyRegisterValueToClipboardClick
     end
-    object MenuItem2: TMenuItem
-      Caption = 'Copy full context block to clipboard'
+    object miBrowseMemoryRegion: TMenuItem
+      Caption = 'Browse this memory region'
+      ImageIndex = 1
+      OnClick = miBrowseMemoryRegionClick
+    end
+    object miDisassembleMemoryRegion: TMenuItem
+      Caption = 'Disassemble this memory region'
+      ImageIndex = 2
+      OnClick = miDisassembleMemoryRegionClick
+    end
+    object miSeparator1: TMenuItem
+      Caption = '-'
+    end
+    object miCopyAllRegistersToClipboard: TMenuItem
+      Caption = 'Copy all registers values to clipboard'
       ImageIndex = 0
-      Visible = False
+      OnClick = miCopyAllRegistersToClipboardClick
     end
   end
   object rImageList: TImageList
-    left = 147
-    top = 270
+    Left = 176
+    Top = 248
     Bitmap = {
-      4C69010000001000000010000000606060C4808080E0808080E0808080E08080
+      4C69040000001000000010000000606060C4808080E0808080E0808080E08080
       80E0808080E0808080E0777777E098989856FFFFFF00FFFFFF00FFFFFF00FFFF
       FF00FFFFFF00FFFFFF00FFFFFF00808080E0FFFFFFFFFFFFFFFFFFFFFFFFFFFF
       FFFFFFFFFFFFFFFFFFFFFFFFFFFF828282F6BCBCBC33FFFFFF00FFFFFF00FFFF
@@ -297,7 +371,103 @@ object Registers: TRegisters
       C040C0C0C0FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
       FFFFFFFFFFFF77777798FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00C0C0
       C03C535353F06F6F6FF06F6F6FF06F6F6FF06F6F6FF06F6F6FF06F6F6FF06F6F
-      6FF06F6F6FF06A6A6A8EFFFFFF00
+      6FF06F6F6FF06A6A6A8EFFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+      FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+      FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+      FF00E4E4E418F1F0F008FFFFFF00FFFFFF00F1F0F008E4E4E418FFFFFF00FFFF
+      FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00CAB1
+      9863F49230FFD78431EEDED5CC2EDDD5CC2ED78431EEF49230FFCAB19863FFFF
+      FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00CD88
+      42D2FF9933FFFF9933FFD2B9A060D6BDA460FF9933FFFF9933FFCD8842D2FFFF
+      FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00D1C7BD38FA96
+      32FFFF9933FFFF9933FFE2882DFEE0862CFDFF9933FFFF9933FFFA9632FFD1C7
+      BD38FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00CE9D6C9FFF99
+      33FFFF9933FFFF9933FFFF9933FFFF9933FFFF9933FFFF9933FFFF9933FFCE9D
+      6C9FFFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00EAE9E80FE38930F6FF99
+      33FFFF9933FFFF9933FFFF9933FFFF9933FFFF9933FFFF9933FFFF9933FFE389
+      30F6EAE9E80FFFFFFF00FFFFFF00FFFFFF00FFFFFF00CFB3966CFF9933FFFF99
+      33FFFF9933FFFF9933FFDE8A36EDD28436E1FF9933FFFF9933FFFF9933FFFF99
+      33FFCFB3966CFFFFFF00FFFFFF00FFFFFF00FFFFFF00CD8842D2FF9933FFFF99
+      33FFFF9933FFFF9933FFC7C2BE2DCAC6C22AFF9933FFFF9933FFFF9933FFFF99
+      33FFCD8842D2FFFFFF00FFFFFF00FFFFFF00D1C7BD38F39331FFD4A747FFD3AB
+      4AFFF39532FFFF9933FFDCDCDC20DCDCDC20FF9933FFEF9534FFD3AE4CFFD5A3
+      44FFF69431FFD1C7BD38FFFFFF00FFFFFF00CE9D6C9FBFC160FFCBFF8AFFCBFF
+      8AFFBDCF6AFFF29230FFE4E2E019E4E2E019EB8E30FFBEDC73FFCBFF8AFFCBFF
+      8AFFC4B656FFCE9D6C9FFFFFFF00FFFFFF00CA7C2CF4C0F182FFCBFF8AFFCBFF
+      8AFFCBFF8AFFCE852FFFE0E0E00CE0E0E00CC98E38FFCBFF8AFFCBFF8AFFCBFF
+      8AFFB9E178FFD6822EF4FFFFFF00FFFFFF00C98D51BEBBD46EFFCBFF8AFFCBFF
+      8AFFBFE579FFD17E2AFAF4F4F402F4F4F402C87E2CFAC2EF80FFCBFF8AFFCBFF
+      8AFFC0C965FFCA8E52BEFFFFFF00FFFFFF00EDEBE912B5986CA3A4AD57F8C4C4
+      60FFC18736F6C7A98B70FFFFFF00FFFFFF00C7A98B70BC8A3AF6C3C662FFA6AA
+      54F8BA966AA2EDEBE912FFFFFF00FFFFFF00FFFFFF00FFFFFF00F0F0F007E1E0
+      E01FF0F0F007FFFFFF00FFFFFF00FFFFFF00FFFFFF00F0F0F007E1E0E01FF0F0
+      F007FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+      FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+      FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+      FF00E4E4E4139D7955ADCAC8C52FFFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+      FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+      FF00D4D4D421C47A31EFC07830ECCAC8C52FFFFFFF00FFFFFF00FFFFFF00FFFF
+      FF00FFFFFF00FFFFFF00FFFFFF00B4A79A57A77E54A8A77E54A8A77E54A8A77E
+      54A8A77E54A88C5F32D1F29130FFC07830ECCFCECC27FFFFFF00FFFFFF00FFFF
+      FF00FFFFFF00FFFFFF00FFFFFF00A9927B7EA76421E8A76421E8A76421E8A764
+      21E8A76421E8A76421F0F29130FFDD852CFDB8B3AE41FFFFFF00FFFFFF00FFFF
+      FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+      FF00ECECEC0FAA7642D0DD852CFDADA1955EFFFFFF00FFFFFF00FFFFFF00FFFF
+      FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+      FF00CCCCCC249B5F22ECADA1955EFFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+      FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF0094949487ABABAB90ABAB
+      AB90ABABAB90ABABAB90ABABAB90ABABAB90ABABAB90ABABAB90ABABAB90ABAB
+      AB9094949487FFFFFF00FFFFFF00FFFFFF00FFFFFF00A7A7A7F0EFEFEFFFEAEA
+      EAFFEAEAEAFFEAEAEAFFEAEAEAFFEAEAEAFFEAEAEAFFEAEAEAFFEAEAEAFFF0F0
+      F0FFA7A7A7F0FFFFFF00FFFFFF00FFFFFF00FFFFFF00A7A7A7F0E8E8E8FFD8D8
+      D8FFD8D8D8FFD8D8D8FFD8D8D8FFD8D8D8FFD8D8D8FFD8D8D8FFD8D8D8FFEBEB
+      EBFFA7A7A7F0FFFFFF00FFFFFF00FFFFFF00FFFFFF00A7A7A7F0E5E5E5FFD2D2
+      D2FFD2D2D2FFD2D2D2FFD2D2D2FFD2D2D2FFD2D2D2FFD2D2D2FFD2D2D2FFE9E9
+      E9FFA7A7A7F0FFFFFF00FFFFFF00FFFFFF00FFFFFF00A7A7A7F0F1F1F1FFEFEF
+      EFFFEFEFEFFFEFEFEFFFEFEFEFFFEFEFEFFFEFEFEFFFEFEFEFFFEFEFEFFFF2F2
+      F2FFA7A7A7F0FFFFFF00FFFFFF00FFFFFF00FFFFFF00A7A7A7F0E4E4E4FFCFCF
+      CFFFCFCFCFFFCFCFCFFFCFCFCFFFCFCFCFFFCFCFCFFFCFCFCFFFCFCFCFFFE8E8
+      E8FFA7A7A7F0FFFFFF00FFFFFF00FFFFFF00FFFFFF00A7A7A7F0F2F2F2FFF2F2
+      F2FFF2F2F2FFF2F2F2FFF2F2F2FFF2F2F2FFF2F2F2FFF2F2F2FFF2F2F2FFF2F2
+      F2FFA7A7A7F0FFFFFF00FFFFFF00FFFFFF00FFFFFF00A7A7A7F0E4E4E4FFCFCF
+      CFFFCFCFCFFFCFCFCFFFCFCFCFFFCFCFCFFFCFCFCFFFCFCFCFFFCFCFCFFFE9E9
+      E9FFA7A7A7F0FFFFFF00FFFFFF00FFFFFF00FFFFFF00727272E1A7A7A7F0A7A7
+      A7F0A7A7A7F0A7A7A7F0A7A7A7F0A7A7A7F0A7A7A7F0A7A7A7F0A7A7A7F0A7A7
+      A7F0727272E1FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+      FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+      FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+      FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+      FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+      FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+      FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+      FF00FFFFFF00FFF4E90EFFA64CE0FFA64CE0FFF4E90EFFFFFF00FFFFFF00FFFF
+      FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+      FF00FFFFFF00FFF3E610FF9933FFFF9933FFFFF3E610FFFFFF00FFFFFF00FFFF
+      FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+      FF00FFFFFF00FFF3E610FF9933FFFF9933FFFFF3E610FFFFFF00FFFFFF00FFFF
+      FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+      FF00FFFFFF00FFF3E610FF9933FFFF9933FFFFF3E610FFFFFF00FFFFFF00FFFF
+      FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFF4E90EFFF3E610FFF3
+      E610FFF3E610FFE7D01FFF9933FFFF9933FFFFE7D01FFFF3E610FFF3E610FFF3
+      E610FFF4E90EFFFFFF00FFFFFF00FFFFFF00FFFFFF00FFA64CE0FF9933FFFF99
+      33FFFF9933FFFF9933FFFF9933FFFF9933FFFF9933FFFF9933FFFF9933FFFF99
+      33FFFFA64CE0FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFA64CE0FF9933FFFF99
+      33FFFF9933FFFF9933FFFF9933FFFF9933FFFF9933FFFF9933FFFF9933FFFF99
+      33FFFFA64CE0FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFF4E90EFFF3E610FFF3
+      E610FFF3E610FFE7D01FFF9933FFFF9933FFFFE7D01FFFF3E610FFF3E610FFF3
+      E610FFF4E90EFFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+      FF00FFFFFF00FFF3E610FF9933FFFF9933FFFFF3E610FFFFFF00FFFFFF00FFFF
+      FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+      FF00FFFFFF00FFF3E610FF9933FFFF9933FFFFF3E610FFFFFF00FFFFFF00FFFF
+      FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+      FF00FFFFFF00FFF3E610FF9933FFFF9933FFFFF3E610FFFFFF00FFFFFF00FFFF
+      FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+      FF00FFFFFF00FFF4E90EFFA64CE0FFA64CE0FFF4E90EFFFFFF00FFFFFF00FFFF
+      FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+      FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+      FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+      FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+      FF00FFFFFF00FFFFFF00FFFFFF00
     }
   end
 end
