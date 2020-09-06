@@ -1,7 +1,7 @@
 object TypeForm: TTypeForm
-  Left = 795
+  Left = 429
   Height = 118
-  Top = 558
+  Top = 709
   Width = 764
   AutoSize = True
   BorderIcons = [biSystemMenu]
@@ -17,13 +17,13 @@ object TypeForm: TTypeForm
     AnchorSideLeft.Control = Owner
     AnchorSideTop.Control = Owner
     Left = 0
-    Height = 64
+    Height = 93
     Top = 0
     Width = 220
     AutoSize = True
     BorderSpacing.Bottom = 4
     BevelOuter = bvNone
-    ClientHeight = 64
+    ClientHeight = 93
     ClientWidth = 220
     TabOrder = 0
     object Label1: TLabel
@@ -32,7 +32,7 @@ object TypeForm: TTypeForm
       AnchorSideRight.Control = Panel1
       AnchorSideRight.Side = asrBottom
       Left = 10
-      Height = 16
+      Height = 15
       Top = 0
       Width = 200
       Anchors = [akTop, akLeft, akRight]
@@ -48,15 +48,15 @@ object TypeForm: TTypeForm
       AnchorSideRight.Control = Panel1
       AnchorSideRight.Side = asrBottom
       Left = 10
-      Height = 20
-      Top = 16
+      Height = 23
+      Top = 15
       Width = 200
       Anchors = [akTop, akLeft, akRight]
       BorderSpacing.Left = 10
       BorderSpacing.Right = 10
       Constraints.MinWidth = 200
       DropDownCount = 9
-      ItemHeight = 26
+      ItemHeight = 15
       ItemIndex = 0
       Items.Strings = (
         'Binary'
@@ -82,10 +82,12 @@ object TypeForm: TTypeForm
       AnchorSideRight.Side = asrBottom
       Left = 10
       Height = 20
-      Top = 38
+      Top = 40
       Width = 200
       Anchors = [akTop, akLeft, akRight]
+      AutoSize = True
       BorderSpacing.Left = 10
+      BorderSpacing.Top = 2
       BorderSpacing.Right = 10
       BevelOuter = bvNone
       ClientHeight = 20
@@ -100,8 +102,6 @@ object TypeForm: TTypeForm
         Height = 19
         Top = 1
         Width = 89
-        BorderSpacing.Top = 5
-        BorderSpacing.Bottom = 5
         Caption = 'Hexadecimal'
         TabOrder = 0
       end
@@ -115,7 +115,6 @@ object TypeForm: TTypeForm
         Height = 19
         Top = 1
         Width = 56
-        Anchors = [akTop, akLeft, akBottom]
         BorderSpacing.Left = 10
         Caption = 'Signed'
         TabOrder = 1
@@ -128,7 +127,7 @@ object TypeForm: TTypeForm
       AnchorSideTop.Side = asrBottom
       Left = 107
       Height = 20
-      Top = 36
+      Top = 60
       Width = 7
       BevelOuter = bvNone
       TabOrder = 2
@@ -138,8 +137,8 @@ object TypeForm: TTypeForm
       AnchorSideTop.Side = asrBottom
       AnchorSideRight.Control = Panel2
       Left = 17
-      Height = 20
-      Top = 44
+      Height = 25
+      Top = 68
       Width = 90
       Anchors = [akTop, akRight]
       AutoSize = True
@@ -155,8 +154,8 @@ object TypeForm: TTypeForm
       AnchorSideLeft.Side = asrBottom
       AnchorSideTop.Control = ButtonOK
       Left = 114
-      Height = 20
-      Top = 44
+      Height = 25
+      Top = 68
       Width = 90
       AutoSize = True
       Cancel = True
@@ -171,22 +170,22 @@ object TypeForm: TTypeForm
     AnchorSideLeft.Side = asrBottom
     AnchorSideTop.Control = Panel1
     Left = 220
-    Height = 74
+    Height = 76
     Top = 0
-    Width = 262
+    Width = 241
     AutoSize = True
     BorderSpacing.Right = 1
     BevelOuter = bvNone
-    ClientHeight = 74
-    ClientWidth = 262
+    ClientHeight = 76
+    ClientWidth = 241
     TabOrder = 1
     object labelLength: TLabel
       AnchorSideLeft.Control = Panel3
       AnchorSideTop.Control = Panel3
       Left = 0
-      Height = 16
+      Height = 15
       Top = 0
-      Width = 42
+      Width = 37
       Caption = 'Length'
       ParentColor = False
     end
@@ -195,19 +194,19 @@ object TypeForm: TTypeForm
       AnchorSideTop.Control = labelLength
       AnchorSideTop.Side = asrBottom
       Left = 0
-      Height = 21
-      Top = 16
-      Width = 201
+      Height = 23
+      Top = 15
+      Width = 189
       AutoSize = True
       BevelOuter = bvNone
-      ClientHeight = 21
-      ClientWidth = 201
+      ClientHeight = 23
+      ClientWidth = 189
       TabOrder = 0
       object lengthEdit: TEdit
         AnchorSideLeft.Control = lengthPanel
         AnchorSideTop.Control = lengthPanel
         Left = 0
-        Height = 21
+        Height = 23
         Top = 0
         Width = 45
         TabOrder = 0
@@ -219,9 +218,9 @@ object TypeForm: TTypeForm
         AnchorSideTop.Control = lengthEdit
         AnchorSideTop.Side = asrCenter
         Left = 47
-        Height = 18
-        Top = 1
-        Width = 69
+        Height = 19
+        Top = 2
+        Width = 64
         BorderSpacing.Left = 2
         Caption = 'Unicode'
         OnChange = cbUnicodeChange
@@ -231,10 +230,10 @@ object TypeForm: TTypeForm
         AnchorSideLeft.Control = cbUnicode
         AnchorSideLeft.Side = asrBottom
         AnchorSideTop.Control = cbUnicode
-        Left = 120
-        Height = 18
-        Top = 1
-        Width = 81
+        Left = 115
+        Height = 19
+        Top = 2
+        Width = 74
         BorderSpacing.Left = 4
         Caption = 'Codepage'
         OnChange = cbCodePageChange
@@ -246,21 +245,21 @@ object TypeForm: TTypeForm
       AnchorSideTop.Control = lengthPanel
       AnchorSideTop.Side = asrBottom
       Left = 0
-      Height = 37
-      Top = 37
-      Width = 262
+      Height = 38
+      Top = 38
+      Width = 241
       AutoSize = True
       BevelOuter = bvNone
-      ClientHeight = 37
-      ClientWidth = 262
+      ClientHeight = 38
+      ClientWidth = 241
       TabOrder = 1
       object labelBit0: TLabel
         AnchorSideLeft.Control = bitRadioButton0
         AnchorSideTop.Control = bitPanel
         Left = 3
-        Height = 16
+        Height = 15
         Top = 0
-        Width = 8
+        Width = 6
         BorderSpacing.Left = 3
         Caption = '0'
         ParentColor = False
@@ -268,8 +267,8 @@ object TypeForm: TTypeForm
       object labelBit1: TLabel
         AnchorSideLeft.Control = bitRadioButton1
         AnchorSideTop.Control = bitPanel
-        Left = 25
-        Height = 16
+        Left = 23
+        Height = 15
         Top = 0
         Width = 6
         BorderSpacing.Left = 3
@@ -279,10 +278,10 @@ object TypeForm: TTypeForm
       object labelBit2: TLabel
         AnchorSideLeft.Control = bitRadioButton2
         AnchorSideTop.Control = bitPanel
-        Left = 47
-        Height = 16
+        Left = 43
+        Height = 15
         Top = 0
-        Width = 8
+        Width = 6
         BorderSpacing.Left = 3
         Caption = '2'
         ParentColor = False
@@ -290,10 +289,10 @@ object TypeForm: TTypeForm
       object labelBit3: TLabel
         AnchorSideLeft.Control = bitRadioButton3
         AnchorSideTop.Control = bitPanel
-        Left = 69
-        Height = 16
+        Left = 63
+        Height = 15
         Top = 0
-        Width = 8
+        Width = 6
         BorderSpacing.Left = 3
         Caption = '3'
         ParentColor = False
@@ -301,10 +300,10 @@ object TypeForm: TTypeForm
       object labelBit4: TLabel
         AnchorSideLeft.Control = bitRadioButton4
         AnchorSideTop.Control = bitPanel
-        Left = 91
-        Height = 16
+        Left = 83
+        Height = 15
         Top = 0
-        Width = 8
+        Width = 6
         BorderSpacing.Left = 3
         Caption = '4'
         ParentColor = False
@@ -312,10 +311,10 @@ object TypeForm: TTypeForm
       object labelBit5: TLabel
         AnchorSideLeft.Control = bitRadioButton5
         AnchorSideTop.Control = bitPanel
-        Left = 113
-        Height = 16
+        Left = 103
+        Height = 15
         Top = 0
-        Width = 8
+        Width = 6
         BorderSpacing.Left = 3
         Caption = '5'
         ParentColor = False
@@ -323,10 +322,10 @@ object TypeForm: TTypeForm
       object labelBit6: TLabel
         AnchorSideLeft.Control = bitRadioButton6
         AnchorSideTop.Control = bitPanel
-        Left = 135
-        Height = 16
+        Left = 123
+        Height = 15
         Top = 0
-        Width = 8
+        Width = 6
         BorderSpacing.Left = 3
         Caption = '6'
         ParentColor = False
@@ -334,10 +333,10 @@ object TypeForm: TTypeForm
       object labelBit7: TLabel
         AnchorSideLeft.Control = bitRadioButton7
         AnchorSideTop.Control = bitPanel
-        Left = 157
-        Height = 16
+        Left = 143
+        Height = 15
         Top = 0
-        Width = 7
+        Width = 6
         BorderSpacing.Left = 3
         Caption = '7'
         ParentColor = False
@@ -347,10 +346,10 @@ object TypeForm: TTypeForm
         AnchorSideLeft.Side = asrBottom
         AnchorSideTop.Control = bitLengthEdit
         AnchorSideTop.Side = asrCenter
-        Left = 176
-        Height = 16
-        Top = 18
-        Width = 42
+        Left = 160
+        Height = 15
+        Top = 19
+        Width = 37
         Caption = 'Length'
         ParentColor = False
         Visible = False
@@ -360,9 +359,9 @@ object TypeForm: TTypeForm
         AnchorSideTop.Control = labelBit0
         AnchorSideTop.Side = asrBottom
         Left = 0
-        Height = 18
-        Top = 16
-        Width = 22
+        Height = 19
+        Top = 15
+        Width = 20
         Checked = True
         TabOrder = 0
         TabStop = True
@@ -372,10 +371,10 @@ object TypeForm: TTypeForm
         AnchorSideLeft.Side = asrBottom
         AnchorSideTop.Control = labelBit0
         AnchorSideTop.Side = asrBottom
-        Left = 22
-        Height = 18
-        Top = 16
-        Width = 22
+        Left = 20
+        Height = 19
+        Top = 15
+        Width = 20
         TabOrder = 1
       end
       object bitRadioButton2: TRadioButton
@@ -383,10 +382,10 @@ object TypeForm: TTypeForm
         AnchorSideLeft.Side = asrBottom
         AnchorSideTop.Control = labelBit0
         AnchorSideTop.Side = asrBottom
-        Left = 44
-        Height = 18
-        Top = 16
-        Width = 22
+        Left = 40
+        Height = 19
+        Top = 15
+        Width = 20
         TabOrder = 2
       end
       object bitRadioButton3: TRadioButton
@@ -394,10 +393,10 @@ object TypeForm: TTypeForm
         AnchorSideLeft.Side = asrBottom
         AnchorSideTop.Control = labelBit0
         AnchorSideTop.Side = asrBottom
-        Left = 66
-        Height = 18
-        Top = 16
-        Width = 22
+        Left = 60
+        Height = 19
+        Top = 15
+        Width = 20
         TabOrder = 3
       end
       object bitRadioButton4: TRadioButton
@@ -405,10 +404,10 @@ object TypeForm: TTypeForm
         AnchorSideLeft.Side = asrBottom
         AnchorSideTop.Control = labelBit0
         AnchorSideTop.Side = asrBottom
-        Left = 88
-        Height = 18
-        Top = 16
-        Width = 22
+        Left = 80
+        Height = 19
+        Top = 15
+        Width = 20
         TabOrder = 4
       end
       object bitRadioButton5: TRadioButton
@@ -416,10 +415,10 @@ object TypeForm: TTypeForm
         AnchorSideLeft.Side = asrBottom
         AnchorSideTop.Control = labelBit0
         AnchorSideTop.Side = asrBottom
-        Left = 110
-        Height = 18
-        Top = 16
-        Width = 22
+        Left = 100
+        Height = 19
+        Top = 15
+        Width = 20
         TabOrder = 5
       end
       object bitRadioButton6: TRadioButton
@@ -427,10 +426,10 @@ object TypeForm: TTypeForm
         AnchorSideLeft.Side = asrBottom
         AnchorSideTop.Control = labelBit0
         AnchorSideTop.Side = asrBottom
-        Left = 132
-        Height = 18
-        Top = 16
-        Width = 22
+        Left = 120
+        Height = 19
+        Top = 15
+        Width = 20
         TabOrder = 6
       end
       object bitRadioButton7: TRadioButton
@@ -438,19 +437,19 @@ object TypeForm: TTypeForm
         AnchorSideLeft.Side = asrBottom
         AnchorSideTop.Control = labelBit0
         AnchorSideTop.Side = asrBottom
-        Left = 154
-        Height = 18
-        Top = 16
-        Width = 22
+        Left = 140
+        Height = 19
+        Top = 15
+        Width = 20
         TabOrder = 7
       end
       object bitLengthEdit: TEdit
         AnchorSideLeft.Control = labelBitLength
         AnchorSideLeft.Side = asrBottom
         AnchorSideTop.Control = bitRadioButton0
-        Left = 218
-        Height = 21
-        Top = 16
+        Left = 197
+        Height = 23
+        Top = 15
         Width = 40
         BorderSpacing.Right = 4
         TabOrder = 8

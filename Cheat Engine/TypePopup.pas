@@ -359,6 +359,8 @@ end;
 
 procedure TTypeForm.FormShow(Sender: TObject);
 begin
+  lengthEdit.Constraints.MinWidth:=labellength.Width;
+  bitLengthEdit.Width:=lengthEdit.Width;
   UpdateTypeform;
 end;
 
