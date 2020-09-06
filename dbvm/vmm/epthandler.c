@@ -34,6 +34,7 @@ int eptWatchListPos;
 criticalSection CloakedPagesCS; //1
 PAddressList CloakedPagesList; //up to 40 entries can be found in 5 steps (worst case scenario)
 PMapInfo CloakedPagesMap; //can be found in 5 steps, always (and eats memory) , so if CloakedPagesPos>40 then start using this (and move the old list over)
+//todo: Create a MapList object that combines both into one
 
 
 
@@ -165,9 +166,10 @@ BOOL ept_handleCloakEvent(pcpuinfo currentcpuinfo, QWORD Address, QWORD AddressV
     {
 
       cloakdata=currentcpuinfo->NP_Cloak.ActiveRegion;
-      sendstringf("Inside a cloaked region using mode 1 (which started in %6) and an execute fault happened (CS:RIP=%x:%6)\n", currentcpuinfo->NP_Cloak.LastCloakedVirtualBase, currentcpuinfo->vmcb->cs_selector, currentcpuinfo->vmcb->RIP);
+     // sendstringf("Inside a cloaked region using mode 1 (which started in %6) and an execute fault happened (CS:RIP=%x:%6)\n", currentcpuinfo->NP_Cloak.LastCloakedVirtualBase, currentcpuinfo->vmcb->cs_selector, currentcpuinfo->vmcb->RIP);
 
       //means we exited the cloaked page (or at the page boundary)
+
       csEnter(&CloakedPagesCS);
       NPMode1CloakSetState(currentcpuinfo, 0); //marks all pages back as executable and the stealthed page(s) back as no execute
       csLeave(&CloakedPagesCS);
@@ -198,7 +200,7 @@ BOOL ept_handleCloakEvent(pcpuinfo currentcpuinfo, QWORD Address, QWORD AddressV
       ept_invalidate();
 
 
-      return TRUE; //could be a page not found event, but that will just retry
+      return TRUE;
     }
   }
 
@@ -215,7 +217,7 @@ BOOL ept_handleCloakEvent(pcpuinfo currentcpuinfo, QWORD Address, QWORD AddressV
 
 
     //it's a cloaked page
-    sendstringf("ept_handleCloakEvent on the target(CS:RIP=%x:%6)\n", currentcpuinfo->vmcb->cs_selector, currentcpuinfo->vmcb->RIP);
+    //sendstringf("ept_handleCloakEvent on the target(CS:RIP=%x:%6)\n", currentcpuinfo->vmcb->cs_selector, currentcpuinfo->vmcb->RIP);
 
     if (isAMD)
     {
@@ -472,10 +474,15 @@ int ept_cloak_activate(QWORD physicalAddress, int mode)
   //map in the physical address descriptor for all CPU's as execute only
   pcpuinfo currentcpuinfo=firstcpuinfo;
 
+  //lock ANY other CPU from triggering (a cpu could trigger before this routine is done)
+
+
+  sendstringf("Cloaking memory (initiated by cpu %d) \n", getcpunr());
 
   while (currentcpuinfo)
   {
     int cpunr=currentcpuinfo->cpunr;
+    sendstringf("cloaking cpu %d\n", cpunr);
 
     if (cpunr>=cpucount)
     {
@@ -486,6 +493,9 @@ int ept_cloak_activate(QWORD physicalAddress, int mode)
 
     csEnter(&currentcpuinfo->EPTPML4CS);
 
+    currentcpuinfo->eptUpdated=1;
+
+
     QWORD PA;
 
     if (isAMD)
@@ -493,11 +503,11 @@ int ept_cloak_activate(QWORD physicalAddress, int mode)
     else
       PA=EPTMapPhysicalMemory(currentcpuinfo, physicalAddress, 1);
 
-    sendstring("Cloak: After mapping the page as a 4KB page\n");
+    sendstringf("%d Cloak: After mapping the page as a 4KB page\n", cpunr);
 
     cloakdata->eptentry[cpunr]=mapPhysicalMemoryGlobal(PA, sizeof(EPT_PTE));
 
-    sendstringf("Cloak old entry is %6\n", *(QWORD*)(cloakdata->eptentry[cpunr]));
+    sendstringf("%d Cloak old entry is %6\n", cpunr,  *(QWORD*)(cloakdata->eptentry[cpunr]));
 
 
     if (isAMD)
@@ -528,7 +538,7 @@ int ept_cloak_activate(QWORD physicalAddress, int mode)
       *(cloakdata->eptentry[cpunr])=temp;
     }
 
-    sendstringf("Cloak new entry is %6\n", *(QWORD*)(cloakdata->eptentry[cpunr]));
+    sendstringf("%d Cloak new entry is %6\n", cpunr, *(QWORD*)(cloakdata->eptentry[cpunr]));
 
 
     _wbinvd();

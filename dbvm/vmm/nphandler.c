@@ -32,11 +32,12 @@ void NPMode1CloakRestoreCallback(QWORD address UNUSED, CloakedPageData *data)
 
 
 void NPMode1CloakSetState(pcpuinfo currentcpuinfo, int state)
+//1 means ALL pages except the current cloaked region are no-execute, 0 means ALL pages are executable again (and afterwards apply cloaks)
 {
   //mark all other pages as no-execute
   QWORD BaseAddress=currentcpuinfo->NP_Cloak.ActiveRegion->PhysicalAddressExecutable;
 
-  sendstringf("NPMode1CloakSetState for address %6 (for %x:%6)\n", BaseAddress, currentcpuinfo->vmcb->cs_selector, currentcpuinfo->vmcb->cs_selector);
+  //sendstringf("NPMode1CloakSetState for address %6 (for %x:%6)\n", BaseAddress, currentcpuinfo->vmcb->cs_selector, currentcpuinfo->vmcb->cs_selector);
   int pml4index;
   int pagedirptrindex;
   int pagedirindex;
@@ -47,9 +48,12 @@ void NPMode1CloakSetState(pcpuinfo currentcpuinfo, int state)
   UINT64 PageDirIndexFull=(PageDirPtrIndexFull << 9)+pagedirindex;
   UINT64 PageTableIndexFull=(PageDirIndexFull << 9)+pagetableindex;
 
-  sendstringf("PageDirPtrIndexFull=%d\n", PageDirPtrIndexFull);
-  sendstringf("PageDirIndexFull=%d\n", PageDirIndexFull);
-  sendstringf("PageTableIndexFull=%d\n", PageTableIndexFull);
+  //sendstringf("PageDirPtrIndexFull=%d\n", PageDirPtrIndexFull);
+  //sendstringf("PageDirIndexFull=%d\n", PageDirIndexFull);
+  //sendstringf("PageTableIndexFull=%d\n", PageTableIndexFull);
+
+  csEnter(&currentcpuinfo->EPTPML4CS);
+
 
   //No PS check, if cloak is used assume that the page is mapped as a 4KB page
 
@@ -88,7 +92,7 @@ void NPMode1CloakSetState(pcpuinfo currentcpuinfo, int state)
                       if (np_pagetables[i4].P)
                       {
                         if (i4==PageTableIndexFull)
-                          np_pagetables[i4].EXB=!state; //allow execution of the cloaked page
+                          np_pagetables[i4].EXB=0; //make this code executable, the code further down will mark it as non-execute if it has to
                         else
                           np_pagetables[i4].EXB=state;
                       }
@@ -112,8 +116,7 @@ void NPMode1CloakSetState(pcpuinfo currentcpuinfo, int state)
 
   if (state==0)
   {
-    //reprotect the cloaked regions
-
+    //All memory is executable again. reprotect the cloaked regions
 
     if (CloakedPagesMap)
     {
@@ -131,10 +134,10 @@ void NPMode1CloakSetState(pcpuinfo currentcpuinfo, int state)
 
 
   if (((PRFLAGS)(&currentcpuinfo->vmcb->RFLAGS))->IF)
-    currentcpuinfo->vmcb->INTERRUPT_SHADOW=1;
+    currentcpuinfo->vmcb->INTERRUPT_SHADOW=1; //if slow, then execute at least one single instruction
 
 
-
+  csLeave(&currentcpuinfo->EPTPML4CS);
 }
 
 QWORD NPMapPhysicalMemory(pcpuinfo currentcpuinfo, QWORD physicalAddress, int forcesmallpage)
@@ -159,6 +162,7 @@ QWORD NPMapPhysicalMemory(pcpuinfo currentcpuinfo, QWORD physicalAddress, int fo
     pml4table[510].RW=1;
     madepresent=1;
     swappedguesttables=1;
+    setCR3(getCR3());
   }
 
  // sendstringf("pml4index=%d\n", pml4index);
@@ -223,7 +227,7 @@ QWORD NPMapPhysicalMemory(pcpuinfo currentcpuinfo, QWORD physicalAddress, int fo
     {
       QWORD GuestAddress1GBAlign=(physicalAddress & 0xFFFFFFFFC0000000ULL) & MAXPHYADDRMASKPB;
 
-      sendstringf("mapping %6 as a 1GB page\n", GuestAddress1GBAlign);
+     // sendstringf("mapping %6 as a 1GB page\n", GuestAddress1GBAlign);
       *(QWORD*)(pagedirptr)=GuestAddress1GBAlign;
       pagedirptr->P=1;
       pagedirptr->RW=1;
@@ -257,7 +261,7 @@ QWORD NPMapPhysicalMemory(pcpuinfo currentcpuinfo, QWORD physicalAddress, int fo
   if (madepresent)
     _invlpg((QWORD)pagedir);
 
-  sendstringf("pagedir is %6 \n", pagedir);
+  //sendstringf("pagedir is %6 \n", pagedir);
 
   if (forcesmallpage && pagedir->P && (pagedir->PS)) //it's a big page, so the physical address points to the actual memory. Clear everything
     *(QWORD *)pagedir=0;
@@ -268,7 +272,7 @@ QWORD NPMapPhysicalMemory(pcpuinfo currentcpuinfo, QWORD physicalAddress, int fo
     {
       QWORD GuestAddress2MBAlign=(physicalAddress & 0xFFFFFFFFFFE00000ULL) & MAXPHYADDRMASKPB;
 
-      sendstringf("mapping %6 as a 2MB page\n", GuestAddress2MBAlign);
+     // sendstringf("mapping %6 as a 2MB page\n", GuestAddress2MBAlign);
       *(QWORD*)pagedir=GuestAddress2MBAlign & MAXPHYADDRMASKPB;
       pagedir->P=1;
       pagedir->RW=1;
@@ -287,8 +291,8 @@ QWORD NPMapPhysicalMemory(pcpuinfo currentcpuinfo, QWORD physicalAddress, int fo
       return pap;
 
     }
-    else
-      sendstringf("Can't map as 2MB. has_NP_2MBsupport=%d and forcesmallpage=%d \n", has_NP_2MBsupport, forcesmallpage );
+    //else
+    //  sendstringf("Can't map as 2MB. has_NP_2MBsupport=%d and forcesmallpage=%d \n", has_NP_2MBsupport, forcesmallpage );
 
     //still here, try a pagetable
     void *temp=malloc2(4096);
@@ -307,7 +311,7 @@ QWORD NPMapPhysicalMemory(pcpuinfo currentcpuinfo, QWORD physicalAddress, int fo
 
   if (pagetable->P==0)
   {
-    sendstringf("mapping %6 as a 4KB page\n", physicalAddress & MAXPHYADDRMASKPB);
+    //sendstringf("mapping %6 as a 4KB page\n", physicalAddress & MAXPHYADDRMASKPB);
     *(QWORD*)pagetable=physicalAddress & MAXPHYADDRMASKPB;
     pagetable->P=1;
     pagetable->RW=1;
@@ -319,14 +323,27 @@ QWORD NPMapPhysicalMemory(pcpuinfo currentcpuinfo, QWORD physicalAddress, int fo
     //else already mapped
     sendstringf("This physical address (%6) was already mapped\n", physicalAddress);
 
-    //weird issue. change it to full access to prevent a full system crash
 
-    if (currentcpuinfo->eptUpdated==0) //if it's not due to a pending EPT update then make it accessible (just to prevent issues)
+
+    //weird issue. change it to full access to prevent a full system crash
+    PCloakedPageData cloakdata;
+    if (CloakedPagesMap)
+      cloakdata=map_getEntry(CloakedPagesMap, physicalAddress & MAXPHYADDRMASKPB);
+    else
+      cloakdata=addresslist_find(CloakedPagesList, physicalAddress & MAXPHYADDRMASKPB);
+
+    if (cloakdata==NULL)
     {
-      pagetable->P=1;
-      pagetable->RW=1;
-      pagetable->US=1;
-      pagetable->EXB=0;
+
+      if (currentcpuinfo->eptUpdated==0) //if it's not due to a pending EPT update then make it accessible (just to prevent issues)
+      {
+        sendstringf("%d(%d): Not cloaked and the memorymap isn't updating. Restoring\n", getcpunr(), currentcpuinfo->cpunr);
+        *(QWORD*)pagetable=physicalAddress & MAXPHYADDRMASKPB;
+        pagetable->P=1;
+        pagetable->RW=1;
+        pagetable->US=1;
+        pagetable->EXB=0;
+      }
     }
   }
 
@@ -334,9 +351,9 @@ QWORD NPMapPhysicalMemory(pcpuinfo currentcpuinfo, QWORD physicalAddress, int fo
 
   pap=VirtualToPhysical((void*)pagetable);
 
-  sendstringf("pagetable entry=%6\n  PA pagetable entry=%6\n", pagetable, pap);
+ // sendstringf("pagetable entry=%6\n  PA pagetable entry=%6\n", pagetable, pap);
 
-  sendstringf("The QWORD at %6 is %6\n", pagetable, *(QWORD*)pagetable);
+ // sendstringf("The QWORD at %6 is %6\n", pagetable, *(QWORD*)pagetable);
 
   if (swappedguesttables)
   {
@@ -344,6 +361,7 @@ QWORD NPMapPhysicalMemory(pcpuinfo currentcpuinfo, QWORD physicalAddress, int fo
     *(QWORD*)(&pml4table[510])=getcpuinfo()->vmcb->N_CR3;
     pml4table[510].P=1;
     pml4table[510].RW=1;
+    setCR3(getCR3()); //flush the TLB
   }
 
   return pap;
@@ -359,9 +377,9 @@ VMSTATUS handleNestedPagingFault(pcpuinfo currentcpuinfo, VMRegisters *vmregiste
   QWORD PhysicalAddress=currentcpuinfo->vmcb->EXITINFO2;
   QWORD ErrorInfo=currentcpuinfo->vmcb->EXITINFO1;
 
-  sendstringf("%x:%6 handleNestedPagingFault. PA=%6 (Code %x)\n", currentcpuinfo->vmcb->cs_selector, currentcpuinfo->vmcb->RIP,  PhysicalAddress, ErrorInfo);
-  sendstringf("EXITINTINFO=%x\n", currentcpuinfo->vmcb->EXITINTINFO);
-  sendstringf("CR2=%6 vCR2=%6\n", getCR2(), currentcpuinfo->vmcb->CR2);
+  //sendstringf("%x:%6 handleNestedPagingFault. PA=%6 (Code %x)\n", currentcpuinfo->vmcb->cs_selector, currentcpuinfo->vmcb->RIP,  PhysicalAddress, ErrorInfo);
+  //sendstringf("EXITINTINFO=%x\n", currentcpuinfo->vmcb->EXITINTINFO);
+  //sendstringf("CR2=%6 vCR2=%6\n", getCR2(), currentcpuinfo->vmcb->CR2);
 
   if (ept_handleWatchEvent(currentcpuinfo, vmregisters, fxsave, PhysicalAddress))
     return 0;
@@ -381,7 +399,7 @@ VMSTATUS handleNestedPagingFault(pcpuinfo currentcpuinfo, VMRegisters *vmregiste
 
   if (eii->Valid)
   {
-    sendstringf("Retriggering interrupt %d\n", eii->Vector);
+    //sendstringf("Retriggering interrupt %d\n", eii->Vector);
     currentcpuinfo->vmcb->EVENTINJ=currentcpuinfo->vmcb->EXITINTINFO;
   }
 

@@ -918,7 +918,7 @@ int _handleVMCallInstruction(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, 
   switch (vmcall_instruction[2])
   {
     case VMCALL_GETVERSION: //get version
-      sendstring("Version request\n\r");
+      //sendstring("Version request\n\r");
       vmregisters->rax=0xce000000 + dbvmversion;
       break;
 

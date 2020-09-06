@@ -79,8 +79,12 @@ int handleVMEvent_amd(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, FXSAVE6
   {
     if (currentcpuinfo->singleStepping.ReasonsPos)
       sendstringf("AMD Handler: currentcpuinfo->singleStepping.ReasonsPos=%d and EXITCODE IS AN NPF\n",currentcpuinfo->singleStepping.ReasonsPos);
-
   }
+
+//  if (currentcpuinfo->NP_Cloak.ActiveRegion)
+//  {
+
+//  }
 
 
   currentcpuinfo->eventcounter[0]++;
@@ -650,7 +654,7 @@ int handleVMEvent_amd(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, FXSAVE6
     {
       //dbvm callback for amd
       nosendchar[getAPICID()]=0;
-      sendstringf("%d: handleVMCall()", currentcpuinfo->cpunr);
+     // sendstringf("%d: handleVMCall()", currentcpuinfo->cpunr);
       return handleVMCall(currentcpuinfo, vmregisters);
       break;
     }
@@ -833,7 +837,7 @@ int handleVMEvent_amd(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, FXSAVE6
     case VMEXIT_NPF:
     {
       nosendchar[getAPICID()]=0;
-      sendstringf("%d VMEXIT_NPF\n", currentcpuinfo->cpunr);
+      //sendstringf("%d VMEXIT_NPF\n", currentcpuinfo->cpunr);
 
 
       return handleNestedPagingFault(currentcpuinfo,vmregisters, fxsave);

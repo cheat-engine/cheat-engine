@@ -324,6 +324,10 @@ typedef struct
     PEPT_PTE eptentry[0]; //for every cpu hold the ept entry (PTE_PAE entry on AMD)
     PPTE_PAE npentry[0];
   };
+
+  //debug info
+  BYTE InvokingCPU;
+  BYTE LastWritingCPU;
 } CloakedPageData, *PCloakedPageData;
 
 
