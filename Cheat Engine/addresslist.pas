@@ -1081,47 +1081,7 @@ begin
 
   OldType:=memrec.Vartype;
 
-
-  case memrec.vartype of
-    vtCustom:  typeform.VarType.itemindex:=typeform.VarType.Items.IndexOf(memrec.CustomTypeName);
-
-    vtBinary:
-    begin
-      TypeForm.VarType.itemindex:=0;
-      TypeForm.Edit2.text:=IntToStr(memrec.extra.bitData.bitlength);
-
-      case memrec.extra.bitData.Bit of
-        0     :       TypeForm.RadioButton1.checked:=true;
-        1     :       TypeForm.RadioButton2.checked:=true;
-        2     :       TypeForm.RadioButton3.checked:=true;
-        3     :       TypeForm.RadioButton4.checked:=true;
-        4     :       TypeForm.RadioButton5.checked:=true;
-        5     :       TypeForm.RadioButton6.checked:=true;
-        6     :       TypeForm.RadioButton7.checked:=true;
-        7     :       TypeForm.RadioButton8.checked:=true;
-      end;
-    end;
-    vtByte:   TypeForm.VarType.itemindex:=1;
-    vtWord:   TypeForm.VarType.itemindex:=2;
-    vtDword:  TypeForm.VarType.itemindex:=3;
-    vtQword:  TypeForm.VarType.itemindex:=4;
-    vtSingle: TypeForm.VarType.itemindex:=5;
-    vtDouble: TypeForm.VarType.itemindex:=6;
-    vtString:
-    begin
-      TypeForm.VarType.itemindex:=7;
-      TypeForm.Edit1.text:=inttostr(memrec.Extra.stringData.length);
-      typeform.cbunicode.checked:=memrec.Extra.stringData.unicode;
-      typeform.cbCodePage.checked:=memrec.Extra.stringData.codepage;
-    end;
-    vtByteArray:
-    begin
-      TypeForm.edit1.text:=inttostr(memrec.Extra.byteData.bytelength);
-      TypeForm.VarType.itemindex:=8;
-      Typeform.cbunicode.visible:=false;
-      Typeform.cbCodePage.visible:=false;
-    end;
-  end;
+  TypeForm.RefreshFieldsByMemoryRecord(memrec);
 
   typeform.MemoryRecord:=memrec;
   if TypeForm.Showmodal=mrNo then exit;
