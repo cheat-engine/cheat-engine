@@ -939,6 +939,9 @@ begin
   if newVartype<>fVartype then
   begin
     fVartype:=newVartype;
+    if fvartype in [vtSingle, vtDouble] then
+      fDisplayMethod:=dtUnsignedInteger;
+
     parent.DoElementChangeNotification(self);
   end;
 end;
@@ -965,7 +968,12 @@ end;
 procedure TStructelement.setDisplayMethod(newDisplayMethod: TdisplayMethod);
 begin
   if newDisplayMethod<>fDisplayMethod then
-    fDisplayMethod:=newDisplayMethod;
+  begin
+    if fvartype in [vtSingle, vtDouble] then
+      fdisplayMethod:=dtUnsignedInteger
+    else
+      fDisplayMethod:=newDisplayMethod;
+  end;
 
   parent.DoElementChangeNotification(self);
 end;
@@ -4675,6 +4683,8 @@ begin
     miBrowsePointer.visible:=(structelement<>nil) and (structelement.isPointer);
 
     miChangeValue.Visible:=structelement<>nil;
+   // if miChangeAllValuesInRow=nil then showmessage('nope');
+
     miChangeAllValuesInRow.Visible:=structelement<>nil;
     miUpdateOffsets.visible:=structelement<>nil;
     miAddToAddresslist.Visible:=structelement<>nil;

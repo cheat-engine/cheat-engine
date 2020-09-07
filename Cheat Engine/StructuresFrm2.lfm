@@ -313,7 +313,7 @@ object frmStructures2: TfrmStructures2
       ShortCut = 13
       OnClick = miChangeValueClick
     end
-    object miChangeRowAllValues: TMenuItem
+    object miChangeAllValuesInRow: TMenuItem
       Caption = 'Change all values in row'
       ImageIndex = 5
       OnClick = miChangeAllValuesInRowClick
