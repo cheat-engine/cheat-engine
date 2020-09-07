@@ -1,12 +1,12 @@
 object formAddressChange: TformAddressChange
-  Left = 507
-  Height = 279
-  Top = 236
+  Left = 806
+  Height = 295
+  Top = 226
   Width = 201
   AutoSize = True
   BorderIcons = [biSystemMenu]
   Caption = 'Change address'
-  ClientHeight = 279
+  ClientHeight = 295
   ClientWidth = 201
   OnCreate = FormCreate
   OnDestroy = FormDestroy
@@ -14,7 +14,7 @@ object formAddressChange: TformAddressChange
   OnShow = FormShow
   Position = poScreenCenter
   LCLVersion = '2.0.6.0'
-  object Label1: TLabel
+  object LabelAddress: TLabel
     AnchorSideLeft.Control = Owner
     AnchorSideTop.Control = Owner
     Left = 8
@@ -26,8 +26,8 @@ object formAddressChange: TformAddressChange
     ParentColor = False
   end
   object editAddress: TEdit
-    AnchorSideLeft.Control = Label1
-    AnchorSideTop.Control = Label1
+    AnchorSideLeft.Control = LabelAddress
+    AnchorSideTop.Control = LabelAddress
     AnchorSideTop.Side = asrBottom
     Left = 8
     Height = 23
@@ -36,13 +36,25 @@ object formAddressChange: TformAddressChange
     OnChange = editAddressChange
     TabOrder = 0
   end
+  object lblValue: TLabel
+    AnchorSideLeft.Control = editAddress
+    AnchorSideLeft.Side = asrBottom
+    AnchorSideTop.Control = editAddress
+    AnchorSideTop.Side = asrCenter
+    Left = 120
+    Height = 15
+    Top = 19
+    Width = 36
+    Caption = '=Value'
+    ParentColor = False
+  end
   object btnOk: TButton
     AnchorSideLeft.Control = Owner
     AnchorSideTop.Control = cbPointer
     AnchorSideTop.Side = asrBottom
     Left = 8
     Height = 25
-    Top = 224
+    Top = 254
     Width = 80
     AutoSize = True
     BorderSpacing.Left = 8
@@ -52,7 +64,7 @@ object formAddressChange: TformAddressChange
     Constraints.MinWidth = 80
     Default = True
     OnClick = btnOkClick
-    TabOrder = 5
+    TabOrder = 6
   end
   object btnCancel: TButton
     AnchorSideLeft.Control = btnOk
@@ -63,7 +75,7 @@ object formAddressChange: TformAddressChange
     AnchorSideRight.Side = asrBottom
     Left = 96
     Height = 25
-    Top = 224
+    Top = 254
     Width = 80
     AutoSize = True
     BorderSpacing.Left = 8
@@ -73,23 +85,23 @@ object formAddressChange: TformAddressChange
     Constraints.MinHeight = 25
     Constraints.MinWidth = 80
     ModalResult = 2
-    TabOrder = 6
+    TabOrder = 7
   end
   object cbPointer: TCheckBox
-    AnchorSideLeft.Control = Label1
+    AnchorSideLeft.Control = LabelAddress
     AnchorSideTop.Control = pnlExtra
     AnchorSideTop.Side = asrBottom
     Left = 8
     Height = 19
-    Top = 205
+    Top = 235
     Width = 58
     Caption = 'Pointer'
     OnChange = cbPointerClick
-    TabOrder = 4
+    TabOrder = 5
   end
   object cbvarType: TComboBox
-    AnchorSideLeft.Control = Label1
-    AnchorSideTop.Control = Label12
+    AnchorSideLeft.Control = LabelAddress
+    AnchorSideTop.Control = LabelType
     AnchorSideTop.Side = asrBottom
     AnchorSideRight.Control = Owner
     AnchorSideRight.Side = asrBottom
@@ -117,19 +129,65 @@ object formAddressChange: TformAddressChange
     TabOrder = 2
     Text = '4 Bytes'
   end
-  object pnlExtra: TPanel
-    AnchorSideLeft.Control = Label1
+  object HexAndSignedPanel: TPanel
+    AnchorSideLeft.Control = LabelAddress
     AnchorSideTop.Control = cbvarType
     AnchorSideTop.Side = asrBottom
     Left = 8
-    Height = 87
+    Height = 20
     Top = 118
+    Width = 202
+    Anchors = [akTop, akLeft, akRight]
+    BorderSpacing.Bottom = 10
+    BevelOuter = bvNone
+    ClientHeight = 20
+    ClientWidth = 202
+    TabOrder = 3
+    object cbHex: TCheckBox
+      AnchorSideLeft.Control = HexAndSignedPanel
+      AnchorSideTop.Control = HexAndSignedPanel
+      AnchorSideTop.Side = asrCenter
+      AnchorSideBottom.Side = asrBottom
+      Left = 0
+      Height = 19
+      Top = 1
+      Width = 89
+      BorderSpacing.Top = 5
+      BorderSpacing.Bottom = 5
+      Caption = 'Hexadecimal'
+      OnChange = cbHexChange
+      TabOrder = 0
+    end
+    object cbSigned: TCheckBox
+      AnchorSideLeft.Control = cbHex
+      AnchorSideLeft.Side = asrBottom
+      AnchorSideTop.Control = cbHex
+      AnchorSideBottom.Control = cbHex
+      AnchorSideBottom.Side = asrBottom
+      Left = 99
+      Height = 19
+      Top = 1
+      Width = 56
+      Anchors = [akTop, akLeft, akBottom]
+      BorderSpacing.Left = 10
+      Caption = 'Signed'
+      OnChange = cbSignedChange
+      TabOrder = 1
+    end
+  end
+  object pnlExtra: TPanel
+    AnchorSideLeft.Control = LabelAddress
+    AnchorSideTop.Control = HexAndSignedPanel
+    AnchorSideTop.Side = asrBottom
+    Left = 8
+    Height = 87
+    Top = 148
     Width = 190
     AutoSize = True
     BevelOuter = bvNone
     ClientHeight = 87
     ClientWidth = 190
-    TabOrder = 3
+    TabOrder = 4
     Visible = False
     object cbunicode: TCheckBox
       AnchorSideTop.Control = edtSize
@@ -174,7 +232,7 @@ object formAddressChange: TformAddressChange
       BevelOuter = bvNone
       ClientHeight = 49
       ClientWidth = 160
-      TabOrder = 2
+      TabOrder = 3
       Visible = False
       object Label4: TLabel
         AnchorSideLeft.Control = RadioButton1
@@ -374,24 +432,12 @@ object formAddressChange: TformAddressChange
       BorderSpacing.Left = 4
       Caption = 'Codepage'
       OnChange = cbCodePageChange
-      TabOrder = 3
+      TabOrder = 2
     end
   end
-  object lblValue: TLabel
-    AnchorSideLeft.Control = editAddress
-    AnchorSideLeft.Side = asrBottom
-    AnchorSideTop.Control = editAddress
-    AnchorSideTop.Side = asrCenter
-    Left = 120
-    Height = 15
-    Top = 19
-    Width = 36
-    Caption = '=Value'
-    ParentColor = False
-  end
   object editDescription: TEdit
-    AnchorSideLeft.Control = Label1
-    AnchorSideTop.Control = Label3
+    AnchorSideLeft.Control = LabelAddress
+    AnchorSideTop.Control = LabelDescription
     AnchorSideTop.Side = asrBottom
     AnchorSideRight.Control = Owner
     AnchorSideRight.Side = asrBottom
@@ -403,8 +449,8 @@ object formAddressChange: TformAddressChange
     BorderSpacing.Right = 8
     TabOrder = 1
   end
-  object Label3: TLabel
-    AnchorSideLeft.Control = Label1
+  object LabelDescription: TLabel
+    AnchorSideLeft.Control = LabelAddress
     AnchorSideTop.Control = editAddress
     AnchorSideTop.Side = asrBottom
     Left = 8
@@ -415,8 +461,8 @@ object formAddressChange: TformAddressChange
     Caption = 'Description'
     ParentColor = False
   end
-  object Label12: TLabel
-    AnchorSideLeft.Control = Label1
+  object LabelType: TLabel
+    AnchorSideLeft.Control = LabelAddress
     AnchorSideTop.Control = editDescription
     AnchorSideTop.Side = asrBottom
     Left = 8
@@ -458,6 +504,24 @@ object formAddressChange: TformAddressChange
       ImageIndex = 1
       OnClick = miPasteClick
     end
+    object miSeparator: TMenuItem
+      Caption = '-'
+    end
+    object miAddOffsetAbove: TMenuItem
+      Caption = 'Add Offset Above'
+      OnClick = miAddOffsetAboveClick
+    end
+    object miAddOffsetBelow: TMenuItem
+      Caption = 'Add Offset Below'
+      OnClick = miAddOffsetBelowClick
+    end
+    object miRemoveOffset: TMenuItem
+      Caption = 'Remove Offset'
+      OnClick = miRemoveOffsetClick
+    end
+    object miUpdateSeparator: TMenuItem
+      Caption = '-'
+    end
     object miUpdateOnReinterpretOnly: TMenuItem
       AutoCheck = True
       Caption = 'Only update the offset when the memory record gets reinterpreted'
@@ -477,6 +541,11 @@ object formAddressChange: TformAddressChange
       Caption = 'Add this address to the list'
       ImageIndex = 3
       OnClick = miAddAddressToListClick
+    end
+    object miCopyAddressToClipboard: TMenuItem
+      Caption = 'Copy this address to Clipboard'
+      ImageIndex = 0
+      OnClick = miCopyAddressToClipboardClick
     end
   end
   object caImageList: TImageList

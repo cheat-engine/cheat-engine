@@ -26,6 +26,8 @@ type
   TformAddressChange=class;
   TPointerInfo=class;
 
+  {%region TOffsetInfo}
+
   TOffsetInfo=class
   private
     fowner: TPointerInfo;
@@ -63,7 +65,7 @@ type
     procedure setBaseAddress(address: ptruint);
 
   public
-    constructor create(parent: TPointerinfo);
+    constructor create(parentPointer: TPointerinfo);
     destructor destroy; override;
     function getAddressThisPointsTo(var address: ptruint): boolean;
     procedure setTop;
@@ -81,8 +83,9 @@ type
     property UpdateInterval: integer read fUpdateInterval write fUpdateInterval;
   end;
 
+  {%endregion TOffsetInfo}
 
-  { TPointerInfo }
+  {%region TPointerInfo}
 
   TPointerInfo=class(TCustomPanel)
   private
@@ -92,6 +95,8 @@ type
     fError: boolean;  //indicator for the child offsets, accessed by Error
     baseAddress: TEdit;  //the bottom line
     baseValue: Tlabel;
+
+    // List of Offsets. On Form Top Textbox is index=0, Bottom Textbox is index=count-1
     offsets: Tlist; //the lines above it
 
     btnAddOffset: TButton;
@@ -120,27 +125,42 @@ type
     procedure processAddress; //reads the base address and all the offsets and shows what it all does
     procedure setupPositionsAndSizes;
 
+    procedure addOffsetAroundSelectedOffset(const addAbove: boolean; const selectedOffset: TOffsetInfo);
+    procedure appendOffset(newOffset: TOffsetInfo);
 
     constructor create(owner: TformAddressChange);
     destructor destroy; override;
 
   end;
 
+  {%endregion TPointerInfo}
+
+  {%region TformAddressChange }
+
   { TformAddressChange }
 
   TformAddressChange = class(TForm)
     cbCodePage: TCheckBox;
+    cbHex: TCheckBox;
+    cbSigned: TCheckBox;
     editDescription: TEdit;
     caImageList: TImageList;
-    Label12: TLabel;
-    Label3: TLabel;
+    HexAndSignedPanel: TPanel;
+    LabelType: TLabel;
+    LabelDescription: TLabel;
     lblValue: TLabel;
+    miAddOffsetAbove: TMenuItem;
+    miAddOffsetBelow: TMenuItem;
+    miRemoveOffset: TMenuItem;
+    miSeparator: TMenuItem;
     miCut: TMenuItem;
     miCopy: TMenuItem;
     miPaste: TMenuItem;
     miAddAddressToList: TMenuItem;
+    miCopyAddressToClipboard: TMenuItem;
     miUpdateOnReinterpretOnly: TMenuItem;
     miUpdateAfterInterval: TMenuItem;
+    miUpdateSeparator: TMenuItem;
     pmPointerRow: TPopupMenu;
     pnlBitinfo: TPanel;
     cbunicode: TCheckBox;
@@ -150,7 +170,7 @@ type
     btnOk: TButton;
     btnCancel: TButton;
     cbPointer: TCheckBox;
-    Label1: TLabel;
+    LabelAddress: TLabel;
     Label10: TLabel;
     Label11: TLabel;
     Label2: TLabel;
@@ -175,6 +195,8 @@ type
     Timer2: TTimer;
     procedure btnCancelClick(Sender: TObject);
     procedure cbCodePageChange(Sender: TObject);
+    procedure cbHexChange(Sender: TObject);
+    procedure cbSignedChange(Sender: TObject);
     procedure cbunicodeChange(Sender: TObject);
     procedure cbvarTypeChange(Sender: TObject);
     procedure editAddressChange(Sender: TObject);
@@ -185,6 +207,10 @@ type
     procedure FormResize(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure miAddAddressToListClick(Sender: TObject);
+    procedure miCopyAddressToClipboardClick(Sender: TObject);
+    procedure miAddOffsetAboveClick(Sender: TObject);
+    procedure miAddOffsetBelowClick(Sender: TObject);
+    procedure miRemoveOffsetClick(Sender: TObject);
     procedure miCopyClick(Sender: TObject);
     procedure miCutClick(Sender: TObject);
     procedure miPasteClick(Sender: TObject);
@@ -233,6 +259,8 @@ type
     property description: string read getDescription write setDescription;
   end;
 
+  {%endregion TformAddressChange }
+
 var
   formAddressChange: TformAddressChange;
 
@@ -250,10 +278,12 @@ resourcestring
   rsIsNotAValidOffset = '%s is not a valid offset';
   rsNotAllOffsetsHaveBeenFilledIn = 'Not all offsets have been filled in';
   rsACAddOffset = 'Add Offset';
+  rsACAddOffsetHint = 'Click: Add New Offset. Ctrl+Click: Add New Offset to the opposite location';
   rsACRemoveOffset = 'Remove Offset';
+  rsACRemoveOffsetHint = 'Click: Remove Offset. Ctrl+Click: Remove Offset from the opposite location';
 
 
-{ TOffsetInfo }
+{%region TOffsetInfo }
 
 procedure TOffsetInfo.RepeatClick(sender: TObject);
 begin
@@ -575,78 +605,50 @@ begin
   inherited destroy;
 end;
 
-constructor TOffsetInfo.create(parent: TPointerinfo);
-var
-  insertinsteadofadd: boolean;
-  before: TOffsetInfo;
-  after: TOffsetInfo;
+constructor TOffsetInfo.create(parentPointer: TPointerinfo);
 begin
   stepsize:=4;
-  fowner:=parent;
-
-  //check if ctrl is pressed, if so, insert instead of append (or the other way depending on settings)
-
-  insertinsteadofadd:=not formsettings.cbOldPointerAddMethod.checked; //append pointerline instead of insert
-  if (((GetKeyState(VK_CONTROL) shr 15) and 1)=1) then
-    insertinsteadofadd:=not insertinsteadofadd;
-
-
-  before:=nil;
-  after:=nil;
-
-  if insertinsteadofadd then
-  begin
-    if fowner.offsets.Count>0 then
-      after:=fowner.offsets[0];
-
-    fowner.offsets.Insert(0, self)
-  end
-  else
-  begin
-    if fowner.offsets.Count>0 then
-      before:=fowner.offsets[fowner.offsets.Count-1];
-
-    fowner.offsets.Add(self);
-  end;
+  fowner:=parentPointer;
 
   //create a pointeraddress label (visible if not first)
-  lblPointerAddressToValue:=TLabel.Create(parent);
-  lblPointerAddressToValue.parent:=parent;
+  lblPointerAddressToValue:=TLabel.Create(parentPointer);
+  lblPointerAddressToValue.parent:=parentPointer;
   lblPointerAddressToValue.Caption:=' ';
-  lblPointerAddressToValue.popupmenu:=fowner.fowner.pmPointerRow;
-  lblPointerAddressToValue.parent:=parent;
+  lblPointerAddressToValue.popupmenu:=parentPointer.owner.pmPointerRow;
   lblPointerAddressToValue.Tag:=ptruint(self);
+  lblPointerAddressToValue.Font.Color:=clBlue;
+  lblPointerAddressToValue.Font.Underline:=true;
 
   //an offset editbox
   fOffset:=0;
   fOffsetString:='0';
-  edtOffset:=Tedit.create(parent);
-  edtOffset.parent:=parent;
+  edtOffset:=Tedit.create(parentPointer);
+  edtOffset.parent:=parentPointer;
   edtOffset.Text:='0';
 
   edtOffset.Alignment:=taCenter;
   edtOffset.OnChange:=OffsetChange;
-  edtOffset.PopupMenu:=fowner.owner.pmOffset;
+  edtOffset.PopupMenu:=parentPointer.owner.pmOffset;
   edtOffset.Tag:=ptrint(self);
 
 
   //two buttons, one for + and one for -
-  sbDecrease:=TSpeedButton.create(parent);
-  sbDecrease.parent:=parent;
+  sbDecrease:=TSpeedButton.create(parentPointer);
+  sbDecrease.parent:=parentPointer;
 
   sbDecrease.Height:=edtOffset.Height;
   sbDecrease.Width:=sbDecrease.Height;
   sbDecrease.AnchorSideTop.Control:=edtOffset;
   sbDecrease.AnchorSideTop.Side:=asrCenter;
-  sbDecrease.AnchorSideLeft.Control:=parent;
+  sbDecrease.AnchorSideLeft.Control:=parentPointer;
   sbDecrease.AnchorSideLeft.Side:=asrLeft;
   sbDecrease.caption:='<';
   sbDecrease.OnMouseDown:=DecreaseDown;
   sbDecrease.OnMouseUp:=IncreaseDecreaseUp;
 
 
-  sbIncrease:=TSpeedButton.create(parent);
-  sbIncrease.parent:=parent;
+  sbIncrease:=TSpeedButton.create(parentPointer);
+  sbIncrease.parent:=parentPointer;
   sbIncrease.height:=sbDecrease.height;
   sbIncrease.width:=sbDecrease.width;
   sbIncrease.AnchorSideTop.Control:=edtOffset;
@@ -665,28 +667,6 @@ begin
   edtOffset.AnchorSideLeft.Side:=asrRight;
   edtOffset.BorderSpacing.Bottom:=2;
 
-  if before=nil then
-  begin
-    edtOffset.AnchorSideTop.Control:=parent;
-    edtOffset.AnchorSideTop.Side:=asrTop;
-  end
-  else
-  begin
-    edtOffset.AnchorSideTop.Control:=before.edtOffset;
-    edtOffset.AnchorSideTop.Side:=asrBottom;
-  end;
-
-  if after<>nil then
-  begin
-    after.edtOffset.AnchorSideTop.control:=edtOffset;
-    after.edtOffset.AnchorSideTop.side:=asrBottom;
-  end
-  else
-  begin
-    fowner.baseAddress.AnchorSideTop.Control:=edtOffset;
-    fowner.baseAddress.AnchorSideTop.side:=asrBottom;
-  end;
-
   lblPointerAddressToValue.AnchorSideTop.Control:=edtOffset;
   lblPointerAddressToValue.AnchorSideTop.Side:=asrCenter;
   lblPointerAddressToValue.AnchorSideLeft.Control:=sbIncrease;
@@ -694,11 +674,61 @@ begin
   lblPointerAddressToValue.BorderSpacing.Left:=3;
 end;
 
-{ TPointerInfo }
+{%endregion TOffsetInfo }
+
+{%region TPointerInfo }
 
 procedure TPointerInfo.AddOffsetClick(sender: TObject);
+var
+  offsetVar, newOffset: TOffsetInfo;
+  insertInsteadOfAdd: boolean;
 begin
-  TOffsetInfo.Create(self);
+
+  //check if ctrl is pressed, if so, insert instead of append (or the other way depending on settings)
+
+  insertInsteadOfAdd:=not formsettings.cbOldPointerAddMethod.checked; //append pointerline instead of insert
+
+  if (((GetKeyState(VK_CONTROL) shr 15) and 1)=1) then
+    insertInsteadOfAdd:=not insertInsteadOfAdd;
+
+  newOffset:=TOffsetInfo.Create(self);
+
+  if insertInsteadOfAdd then
+  begin
+
+    // Index from 0 to count-1 === Textboxes from Top to Bottom
+    if offsets.Count>0 then
+    begin
+
+      offsetVar:=offsets[0];
+
+      offsetVar.edtOffset.AnchorSideTop.control:=newOffset.edtOffset;
+      offsetVar.edtOffset.AnchorSideTop.side:=asrBottom;
+    end;
+
+    newOffset.edtOffset.AnchorSideTop.Control:=self;
+    newOffset.edtOffset.AnchorSideTop.Side:=asrTop;
+
+    offsets.Insert(0, newOffset);
+  end
+  else
+  begin
+
+    if offsets.Count>0 then
+    begin
+
+      offsetVar:=offsets[offsets.Count-1];
+
+      newOffset.edtOffset.AnchorSideTop.Control:=offsetVar.edtOffset;
+      newOffset.edtOffset.AnchorSideTop.Side:=asrBottom;
+    end;
+
+    self.baseAddress.AnchorSideTop.Control:=newOffset.edtOffset;
+    self.baseAddress.AnchorSideTop.side:=asrBottom;
+
+    offsets.Add(newOffset);
+  end;
+
   setupPositionsAndSizes;
 end;
 
@@ -868,6 +898,90 @@ begin
 
 end;
 
+procedure TPointerInfo.addOffsetAroundSelectedOffset(const addAbove: boolean; const selectedOffset: TOffsetInfo);
+var
+  offsetBeforeNew,newOffset,offsetAfterNew: TOffsetInfo;
+  currentOffsetIndex: Integer;
+begin
+
+  newOffset:=TOffsetInfo.Create(self);
+
+  offsetBeforeNew:=nil;
+  offsetAfterNew:=nil;
+
+  currentOffsetIndex:= offsets.IndexOf(selectedOffset);
+
+  // Above is smaller index
+  if addAbove then
+  begin
+    offsetAfterNew:=selectedOffset;
+
+    if currentOffsetIndex-1  >= 0 then
+    begin
+      offsetBeforeNew:=offsets[currentOffsetIndex-1];
+    end;
+
+    offsets.Insert(currentOffsetIndex, newOffset);
+  end
+  else
+  begin
+    offsetBeforeNew:=selectedOffset;
+
+    if (currentOffsetIndex+1)<(offsets.Count - 1) then
+    begin
+      offsetAfterNew:=offsets[currentOffsetIndex+1];
+    end;
+
+    offsets.Insert(currentOffsetIndex+1, newOffset);
+  end;
+
+  if offsetBeforeNew<>nil then
+  begin
+    newOffset.edtOffset.AnchorSideTop.Control:=offsetBeforeNew.edtOffset;
+    newOffset.edtOffset.AnchorSideTop.Side:=asrBottom;
+  end
+  else
+  begin
+    newOffset.edtOffset.AnchorSideTop.Control:=self;
+    newOffset.edtOffset.AnchorSideTop.Side:=asrTop;
+  end;
+
+  if offsetAfterNew<>nil then
+  begin
+    offsetAfterNew.edtOffset.AnchorSideTop.control:=newOffset.edtOffset;
+    offsetAfterNew.edtOffset.AnchorSideTop.side:=asrBottom;
+  end
+  else
+  begin
+    baseAddress.AnchorSideTop.Control:=newOffset.edtOffset;
+    baseAddress.AnchorSideTop.side:=asrBottom;
+  end;
+
+  setupPositionsAndSizes
+
+end;
+
+procedure TPointerInfo.appendOffset(newOffset: TOffsetInfo);
+var
+  offsetVar: TOffsetInfo;
+begin
+
+  if offsets.Count>0 then
+  begin
+
+    offsetVar:=offsets[offsets.Count-1];
+
+    newOffset.edtOffset.AnchorSideTop.Control:=offsetVar.edtOffset;
+    newOffset.edtOffset.AnchorSideTop.Side:=asrBottom;
+  end;
+
+  self.baseAddress.AnchorSideTop.Control:=newOffset.edtOffset;
+  self.baseAddress.AnchorSideTop.side:=asrBottom;
+
+  offsets.Add(newOffset);
+
+end;
+
 destructor TPointerInfo.destroy;
 begin
   if offsets<>nil then
@@ -877,7 +991,10 @@ begin
   owner.ClientHeight:=owner.btnOk.top+owner.btnOk.Height+3;
 
   if baseAddress<>nil then
+  begin
+    owner.editAddress.Text:=baseAddress.Text;
     freeandnil(baseAddress);
+  end;
 
   if baseValue<>nil then
     freeandnil(baseValue);
@@ -896,6 +1013,7 @@ constructor TPointerInfo.create(owner: TformAddressChange);
 var
     i: integer;
     m: dword;
+    newOffset: TOffsetInfo;
 begin
   //create the objects
   inherited create(owner);
@@ -935,6 +1053,7 @@ begin
   baseAddress.ClientWidth:=baseAddressMinWidth;
   baseAddress.Constraints.MinWidth:=baseAddressMinWidth;
 
+  baseAddress.Text:=owner.editAddress.Text;
   baseAddress.OnChange:=basechange;
 //  baseAddress.OnResize:=baseaddressresize;;
 
@@ -954,6 +1073,8 @@ begin
 
   btnAddOffset:=Tbutton.Create(self);
   btnAddOffset.caption:=rsACAddOffset;
+  btnAddOffset.ShowHint:=true;
+  btnAddOffset.Hint:=rsACAddOffsetHint;
 
   btnAddOffset.AnchorSideLeft.Control:=self;
   btnAddOffset.AnchorSideLeft.Side:=asrLeft;
@@ -967,6 +1088,8 @@ begin
 
   btnRemoveOffset:=TButton.create(self);
   btnRemoveOffset.caption:=rsACRemoveOffset;
+  btnRemoveOffset.ShowHint:=true;
+  btnRemoveOffset.Hint:=rsACRemoveOffsetHint;
 
   btnRemoveOffset.AnchorSideLeft.Control:=btnAddOffset;
   btnRemoveOffset.AnchorSideLeft.Side:=asrRight;
@@ -999,7 +1122,9 @@ begin
   btnAddOffset.width:=i;
   btnRemoveOffset.width:=i;
 
-  TOffsetInfo.Create(self);
+  newOffset:=TOffsetInfo.Create(self);
+
+  appendOffset(newOffset);
 
   baseAddress.AnchorSideRight.Control:=offset[0].sbIncrease;
   baseAddress.AnchorSideRight.side:=asrRight;
@@ -1009,10 +1134,14 @@ begin
   setupPositionsAndSizes;
 end;
 
-{ Tformaddresschange }
+{%endregion TPointerInfo }
+
+{%region Tformaddresschange }
 
 procedure Tformaddresschange.setAddress(var address: string; var offsets: TMemrecOffsetList);
-var i: integer;
+var
+  i: integer;
+  newOffset: TOffsetInfo;
 begin
   if system.length(offsets)=0 then
   begin
@@ -1028,7 +1157,11 @@ begin
 
     //create offsets
     for i:=pointerinfo.offsetcount to system.length(offsets)-1 do
-      TOffsetInfo.create(pointerinfo);
+    begin
+      newOffset:=TOffsetInfo.create(pointerinfo);
+
+      pointerinfo.appendOffset(newOffset);
+    end;
 
     pointerinfo.setupPositionsAndSizes;
 
@@ -1191,6 +1324,7 @@ begin
   //read the address and display the value it points to
 
   a:=symhandler.getAddressFromName(utf8toansi(editAddress.Text),false,e);
+
   if (not e) and (cbvarType.ItemIndex<>-1) then
   begin
     //get the vartype and parse it
@@ -1202,7 +1336,14 @@ begin
     if ct<>nil then
       size:=ct.bytesize;
 
-    s:='='+readAndParseAddress(a, vartype, TcustomType(cbvarType.items.objects[cbvarType.ItemIndex]),false, false, size);
+    s:='='+readAndParseAddress(a
+      , vartype
+      , TcustomType(cbvarType.items.objects[cbvarType.ItemIndex])
+      , (cbHex.Enabled and cbHex.Checked)
+      , (cbSigned.Enabled and cbSigned.Checked)
+      , size
+    );
+
     if pnlExtra.visible and (size<>wantedsize) then
       s:=s+'...';
 
@@ -1226,10 +1367,14 @@ end;
 
 procedure TformAddressChange.cbvarTypeChange(Sender: TObject);
 begin
+
   pnlExtra.visible:=cbvarType.itemindex in [0,7,8];
   pnlBitinfo.visible:=cbvarType.itemindex = 0;
   cbunicode.visible:=cbvarType.itemindex = 7;
   cbCodePage.visible:=cbunicode.Visible;
+
+  cbHex.Enabled:=not (cbvarType.itemindex in [0,7,8]);
+  cbSigned.Enabled:=cbHex.Enabled;
 
   AdjustHeight;
 
@@ -1249,6 +1394,16 @@ procedure TformAddressChange.cbCodePageChange(Sender: TObject);
 begin
   if cbCodePage.checked then
     cbunicode.checked:=false;
+end;
+
+procedure TformAddressChange.cbHexChange(Sender: TObject);
+begin
+  processaddress;
+end;
+
+procedure TformAddressChange.cbSignedChange(Sender: TObject);
+begin
+  processaddress;
 end;
 
 procedure TformAddressChange.cbunicodeChange(Sender: TObject);
@@ -1287,7 +1442,7 @@ begin
 
      // pointerinfo.color:=clred;
 
-      pointerinfo.AnchorSideLeft.Control:=label1;
+      pointerinfo.AnchorSideLeft.Control:=LabelAddress;
       pointerinfo.AnchorSideLeft.side:=asrLeft;
 
       pointerinfo.AnchorSideTop.Control:=cbPointer;
@@ -1301,7 +1456,9 @@ begin
       pointerinfo.OnResize:=PointerInfoResize;
     end;
 
-    editAddress.enabled:=false;
+    //editAddress.enabled:=false;
+    editAddress.ReadOnly:=true;
+    editAddress.Color:=clInactiveBorder;
 
     btnOk.AnchorSideTop.Control:=pointerinfo;
     btnCancel.AnchorSideTop.Control:=pointerinfo;
@@ -1322,7 +1479,9 @@ begin
     btnOk.AnchorSideTop.Control:=cbpointer;
     btnCancel.AnchorSideTop.Control:=cbpointer;
 
-    editAddress.enabled:=true;
+    //editAddress.enabled:=true;
+    editAddress.ReadOnly:=false;
+    editAddress.Color:=clDefault;
 
     if pointerinfo<>nil then
       freeandnil(pointerinfo);
@@ -1380,6 +1539,23 @@ begin
     vtCustom:
       cbvarType.ItemIndex:=cbvarType.Items.IndexOf(fMemoryRecord.CustomTypeName);
 
+  end;
+
+  if (fMemoryRecord.vartype = vtByte)
+     or (fMemoryRecord.vartype = vtWord)
+     or (fMemoryRecord.vartype = vtDword)
+     or (fMemoryRecord.vartype = vtQword)
+     or (fMemoryRecord.vartype = vtSingle)
+     or (fMemoryRecord.vartype = vtDouble)
+     then
+  begin
+    cbHex.checked:=fMemoryRecord.ShowAsHex;
+    cbSigned.checked:=fMemoryRecord.ShowAsSigned;
+  end
+  else
+  begin
+    cbHex.checked:=false;
+    cbSigned.checked:=false;
   end;
 
 
@@ -1447,6 +1623,19 @@ begin
   begin
     memoryrecord.interpretableaddress:=editAddress.text;
     memoryrecord.offsetCount:=0;
+  end;
+
+  if (vartype<>vtString)
+     and (vartype<>vtBinary)
+     then
+  begin
+    memoryrecord.ShowAsHex:=cbHex.Checked;
+    memoryrecord.ShowAsSigned:=cbSigned.Checked;
+  end
+  else
+  begin
+    memoryrecord.ShowAsHex:=false;
+    memoryrecord.ShowAsSigned:=false;
   end;
 
 
@@ -1625,6 +1814,115 @@ begin
   end;
 end;
 
+procedure TformAddressChange.miCopyAddressToClipboardClick(Sender: TObject);
+var
+  oi: TOffsetInfo;
+  a: ptruint;
+  i: integer;
+  index: integer;
+  addressStr: string;
+begin
+
+  if processhandler.is64bit then
+    vartype:=vtQword
+  else
+    vartype:=vtDword;
+
+  if not (pmPointerRow.PopupComponent is TLabel) then
+    exit;
+
+  clipboard.Clear;
+
+  oi:=TOffsetInfo(tlabel(pmPointerRow.PopupComponent).tag);
+
+  index:=-1;
+  for i:=0 to oi.owner.offsetcount-1 do
+  begin
+    if oi.owner.offset[i]=oi then
+    begin
+      index:=i;
+      break;
+    end;
+  end;
+
+  if oi.getAddressThisPointsTo(a) then
+  begin
+
+    a:=oi.baseAddress+oi.offset;
+
+    addressStr:=inttohex(a,8);
+
+    clipboard.AsText:=addressStr;
+
+  end;
+
+end;
+
+procedure TformAddressChange.miAddOffsetAboveClick(Sender: TObject);
+var
+  selectedOffset: TOffsetInfo;
+  pointerInfo: TPointerinfo;
+  teditOffest: Tedit;
+begin
+
+  if not (pmOffset.PopupComponent is Tedit) then
+    exit;
+
+  teditOffest:=tedit(pmOffset.PopupComponent);
+
+  selectedOffset:=TOffsetInfo(teditOffest.tag);
+
+  pointerInfo:=selectedOffset.owner;
+
+  pointerInfo.addOffsetAroundSelectedOffset(true, selectedOffset);
+
+end;
+
+procedure TformAddressChange.miAddOffsetBelowClick(Sender: TObject);
+var
+  selectedOffset: TOffsetInfo;
+  pointerInfo: TPointerinfo;
+  teditOffest: Tedit;
+begin
+
+  if not (pmOffset.PopupComponent is Tedit) then
+    exit;
+
+  teditOffest:=tedit(pmOffset.PopupComponent);
+
+  selectedOffset:=TOffsetInfo(teditOffest.tag);
+
+  pointerInfo:=selectedOffset.owner;
+
+  pointerInfo.addOffsetAroundSelectedOffset(false, selectedOffset);
+
+end;
+
+procedure TformAddressChange.miRemoveOffsetClick(Sender: TObject);
+  var
+  o: TOffsetInfo;
+  pointerInfo: TPointerinfo;
+  teditOffest: Tedit;
+begin
+
+  if not (pmOffset.PopupComponent is Tedit) then
+    exit;
+
+  teditOffest:=tedit(pmOffset.PopupComponent);
+
+  o:=TOffsetInfo(teditOffest.tag);
+
+  pointerInfo:=o.owner;
+
+  o.free;
+
+  if pointerInfo.offsets.Count>0 then
+    pointerInfo.setupPositionsAndSizes
+  else
+    pointerInfo.selfdestruct;
+
+end;
+
 procedure TformAddressChange.miCopyClick(Sender: TObject);
 begin
   if (pmOffset.PopupComponent is Tedit) then tedit(pmOffset.PopupComponent).CopyToClipboard;
@@ -1682,6 +1980,7 @@ begin
   begin
     oi:=TOffsetInfo(tedit(pmOffset.PopupComponent).tag);
 
+    miUpdateSeparator.visible:=oi.special;
     miUpdateOnReinterpretOnly.visible:=oi.special;
     miUpdateAfterInterval.visible:=oi.special;
 
@@ -1722,6 +2021,8 @@ begin
 
   timer2.enabled:=false;
 end;
+
+{%endregion Tformaddresschange }
 
 initialization
   {$i formAddressChangeUnit.lrs}
