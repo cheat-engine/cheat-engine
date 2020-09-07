@@ -207,25 +207,8 @@ function ceshare.CheckForCheatsClick(s)
       if selected and listitem.index then
         local desc=ceshare.CurrentQuery[listitem.index+1].Description
         
-        ceshare.CheatBrowserFrm.imgDescription.Width=ceshare.CheatBrowserFrm.ScrollBox1.ClientWidth
-        ceshare.CheatBrowserFrm.imgDescription.Height=ceshare.CheatBrowserFrm.ScrollBox1.ClientHeight
+        ceshare.CheatBrowserFrm.mDescription.Lines.Text=desc
         
-        ceshare.CheatBrowserFrm.imgDescription.Picture.Bitmap.Canvas.Brush.Color=0xffffff
-        ceshare.CheatBrowserFrm.imgDescription.Picture.Bitmap.Width=ceshare.CheatBrowserFrm.ScrollBox1.Width
-        ceshare.CheatBrowserFrm.imgDescription.Picture.Bitmap.Height=ceshare.CheatBrowserFrm.ScrollBox1.Height
-
-        ceshare.CheatBrowserFrm.imgDescription.Picture.Bitmap.Canvas.fillRect(0,0,ceshare.CheatBrowserFrm.ScrollBox1.Width,ceshare.CheatBrowserFrm.ScrollBox1.Height)
-
-        local imgrect={Left=0,Top=0,Right=ceshare.CheatBrowserFrm.imgDescription.Width, Bottom=ceshare.CheatBrowserFrm.imgDescription.Height}
-
-        
-
-        local r=ceshare.CheatBrowserFrm.imgDescription.Picture.Bitmap.Canvas.textRect(imgrect,0,0,desc);
-        if r then --ce 7.1+ gets the actually needed rect
-
-        else
-
-        end
         
         --[[local rating=ceshare.CurrentQuery[listitem.index+1].YourRating    
         if rating then
