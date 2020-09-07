@@ -279,7 +279,7 @@ object frmAutoInject: TfrmAutoInject
       OnClick = miMoveLeftClick
     end
     object miMoveRight: TMenuItem
-      Caption = 'Move light'
+      Caption = 'Move right'
       ImageIndex = 15
       OnClick = miMoveRightClick
     end
