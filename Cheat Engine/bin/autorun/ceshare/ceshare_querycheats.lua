@@ -289,6 +289,34 @@ function ceshare.CheckForCheatsClick(s)
           end
         end
         
+        if not ceshare.decodeFunctionHooked then
+          local originalDecode=decodeFunction
+          local noToAll=false
+          local yesToAll=false
+          decodeFunction=function(data)
+            local decodeIt=yesToAll
+
+            if (noToAll or yesToAll) == false then 
+              local r=messageDialog(translate('The current table is trying to load obfuscated code. This often means mallicious intend as tables are supposed to be public. Do you wish to execute this lua code anyhow?'), mtWarning, mbYes,  mbNo, mbYesToAll, mbNoToAll)
+              if r==mrYes then
+                decodeIt=true
+              elseif r==mrYesToAll then
+                decodeIt=true
+                yesToAll=true
+              elseif r==mrNoToAll then
+                decodeIt=false
+                noToAll=true
+              end              
+            end
+            if decodeIt==false then 
+              return function() return nil end --dummy function
+            else 
+              return originalDecode(data)
+            end            
+          end
+          ceshare.decodeFunctionHooked=true
+        end
+        
         loadTable(cheattabless)        
         cheattabless.destroy()
       
