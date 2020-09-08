@@ -297,7 +297,7 @@ function ceshare.CheckForCheatsClick(s)
             local decodeIt=yesToAll
 
             if (noToAll or yesToAll) == false then 
-              local r=messageDialog(translate('The current table is trying to load obfuscated code. This often means mallicious intend as tables are supposed to be public. Do you wish to execute this lua code anyhow?'), mtWarning, mbYes,  mbNo, mbYesToAll, mbNoToAll)
+              local r=messageDialog(translate('The current table is trying to load obfuscated code. This often means mallicious intent as tables are supposed to be public. Do you wish to execute this lua code anyhow?'), mtWarning, mbYes,  mbNo, mbYesToAll, mbNoToAll)
               if r==mrYes then
                 decodeIt=true
               elseif r==mrYesToAll then
