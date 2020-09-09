@@ -261,6 +261,12 @@ object frmAutoInject: TfrmAutoInject
       Visible = False
       OnClick = mifindNextClick
     end
+    object mifindPrevious: TMenuItem
+      Caption = 'Find Previous'
+      ShortCut = 8306
+      Visible = False
+      OnClick = mifindPreviousClick
+    end
     object miReplace: TMenuItem
       Caption = 'Replace'
       ImageIndex = 11
