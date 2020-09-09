@@ -99,7 +99,7 @@ implementation
 
 uses autoassembler, MainUnit, MainUnit2, LuaClass, frmluaengineunit, plugin, pluginexports,
   formsettingsunit, MemoryRecordUnit, debuggertypedefinitions, symbolhandler,
-  symbolhandlerstructs,
+  symbolhandlerstructs, types,
   frmautoinjectunit, simpleaobscanner, addresslist, memscan, foundlisthelper,
   cesupport, DBK32functions, sharedMemory, disassemblerComments, disassembler,
   LuaCanvas, LuaPen, LuaFont, LuaBrush, LuaPicture, LuaMenu, LuaDebug, LuaThread,
@@ -12434,6 +12434,29 @@ begin
   exit(1);
 end;
 
+function lua_split(L: Plua_State): integer; cdecl;
+var
+  s: string;
+  sep: string;
+
+  arr: TStringDynArray;
+  i: integer;
+begin
+  result:=0;
+  if lua_gettop(L)>=2 then
+  begin
+    s:=Lua_ToString(L,1);
+    sep:=Lua_ToString(L,2);
+
+    arr:=SplitString(s,sep);
+
+    for i:=0 to length(arr)-1 do
+      lua_pushstring(L, arr[i]);
+
+    result:=length(arr);
+  end;
+end;
+
 procedure InitializeLua;
 var
   s: tstringlist;
@@ -13240,9 +13263,16 @@ begin
       s.add('math.mod=math.fmod');
       s.add('string.gfind=string.gmatch');
 
+
       s.add('BinUtils={}');
 
       lua_doscript(s.text);
+
+      lua_getglobal(L, 'string');
+      lua_pushstring(L,'split');
+      lua_pushcfunction(L, lua_split);
+      lua_settable(L,-3);
+      lua_pop(L,1);
 
       lua_getglobal(L, 'math');
       i:=lua_gettop(L);
@@ -13262,7 +13292,6 @@ begin
       lua_pushstring(L, 'tanh');
       lua_pushcfunction(L, lua_tanh);
       lua_settable(L,i);
-
 
       lua_settop(L,i-1);
 

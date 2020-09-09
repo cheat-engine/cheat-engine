@@ -53,7 +53,7 @@ function autosave.saveState()
   lfs.mkdir(path)
   
   
-  r,err=saveTable(path..[[\table.ct]])
+  local r,err=saveTable(path..[[\table.ct]])
   if (r==nil) or (r==false) then
     if err==nil then
       err=translate('Unknown Reason')    
