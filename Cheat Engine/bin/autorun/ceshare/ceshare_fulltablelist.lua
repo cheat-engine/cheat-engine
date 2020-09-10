@@ -414,6 +414,8 @@ function ceshare.ViewAllTablesClick()
     atf.OnDestroy=function(f)
       f.saveFormPosition()
     end
+    
+    atf.PopupMode='pmNone'
   end
   
   atf.searchfield.Text=''

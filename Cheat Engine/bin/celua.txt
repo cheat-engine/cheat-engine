@@ -799,6 +799,7 @@ properties:
   Enabled: boolean - Determines if the object is usable or greyed out
   Visible: boolean - Determines if the object is visible or not
   Color: ColorDefinition/RGBInteger - The color of the object. Does not affect the caption
+  RGBColor: RGBInteger - The color of the object in RGB formatting
   Parent: WinControl - The owner of this control
   PopupMenu: PopupMenu - The popup menu that shows when rightclicking the control
   Font: Font - The font class associated with the control
@@ -1043,7 +1044,9 @@ methods
   registerCloseCallback(function(f)): userdata - Registers a function to be called when the form has been closed
   unregisterCloseCallback(userdata) - removes the specific callback
 
-  dragNow():  Call this on mousedown on any object if you wish that the mousemove will drag the whole form arround. Useful for borderless windows (Dragging will stop when the mouse button is released)
+  dragNow() -  Call this on mousedown on any object if you wish that the mousemove will drag the whole form arround. Useful for borderless windows (Dragging will stop when the mouse button is released)
+  saveFormPosition({IntegerTable OPTIONAL}) - Saves the current form position and dimensions and an optional list of integer. The name of the form must have been set to a unique name
+  loadFormPosition(): boolean, {IntegerTable OPTIONAL, can be nil} - Restores the form position and dimensions. On success returns true and a integer table if that was provided with the save.  The name of the form must have been set to a unique name
 
 
 CEForm Class: (Inheritance: Form->ScrollingWinControl->CustomControl->WinControl->Control->Component->Object)
@@ -1656,6 +1659,7 @@ methods
 
   line(sourcex, sourcey, destinationx, destinationy)
   lineTo(destinationx, destinationy)
+  moveTo(destinationx, destinationy)
   rect(x1,y1,x2,y2) - Draws a rectangle
   fillRect(x1,y1,x2,y2) - Draws a filled rectangle
   roundRect(x1,y1,x2,y2,rx,ry) - Draws a rectangle with rounded corners
@@ -1677,7 +1681,7 @@ methods
   copyRect(dest_x1,dest_y1,dest_x2,dest_y2, sourceCanvas, source_x1,source_y1,source_x2,source_y2) : Draws an image from one source to another. Useful in cases of doublebuffering
   strectDraw(rect
   draw(x,y, graphic) : Draw the image of a specific Graphic class
-  strectDraw(rect, graphic): Draw the image of a specific Graphic class and stretch it so it fits in the given rectangle
+  stretchDraw(rect, graphic): Draw the image of a specific Graphic class and stretch it so it fits in the given rectangle
   getClipRect() : Returns a table containing the fields Left, Top, Right and Bottom, which define the invalidated region of the graphical object. Use this to only render what needs to be rendered in the onPaint event of objects
 
 Pen Class : (Inheritance: CustomPen->CanvasHelper->Object)

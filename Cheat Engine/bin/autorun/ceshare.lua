@@ -44,6 +44,7 @@ function loadCEShare()
   require("ceshare_permissions")
   require("ceshare_comments")
   require("ceshare_requests")
+  require("ceshare_fulltablelist")
   
   --add "CE Share menu items"
   local miCESHARETopMenuItem=createMenuItem(MainForm)
@@ -69,6 +70,20 @@ function loadCEShare()
   miPublishCheat.Name='miPublishCheat';
   miPublishCheat.Visible=false
   miCESHARETopMenuItem.add(miPublishCheat)
+  
+  local miDivider=createMenuItem(MainForm)
+  miDivider.Caption='-'
+  miDivider.Visible=true
+  miCESHARETopMenuItem.add(miDivider)
+  
+  local miViewAllTables=createMenuItem(MainForm)
+  miViewAllTables.Caption=translate('View all available tables')
+  miViewAllTables.OnClick=ceshare.ViewAllTablesClick
+  miViewAllTables.Name='miViewAllTables';
+  miViewAllTables.Visible=true
+  miCESHARETopMenuItem.add(miViewAllTables)  
+  
+  
 
   --check requestsc
   

@@ -243,6 +243,74 @@ begin
   {$endif}
 end;
 
+function customform_saveFormPosition(L: Plua_State): integer; cdecl;
+var
+  f: TCustomForm;
+  values: array of integer;
+  al: size_t;
+  i: integer;
+begin
+  result:=0;
+  f:=luaclass_getClassObject(L);
+
+  if f.name='' then exit(0);
+
+
+  if (lua_gettop(L)>=1) and (lua_istable(L,1)) then
+  begin
+    al:=lua_objlen(L,1);
+    setlength(values, al);
+
+    for i:=1 to al do
+    begin
+      lua_pushinteger(L,i);
+      lua_gettable(L,1);
+      values[i-1]:=lua_tointeger(L,-1);
+      lua_pop(L,1);
+    end;
+
+    SaveFormPosition(f, values);
+  end
+  else
+    SaveFormPosition(f);
+end;
+
+function customform_loadFormPosition(L: Plua_State): integer; cdecl;
+var
+  f: TCustomForm;
+  values: array of integer;
+  i: integer;
+begin
+  result:=0;
+  f:=luaclass_getClassObject(L);
+  if f.name='' then exit(0);
+
+  setlength(values,0);
+  if LoadFormPosition(f, values) then
+  begin
+    lua_pushboolean(L, true);
+    if length(values)>0 then
+    begin
+      lua_createtable(L,length(values),0);
+      for i:=1 to length(values) do
+      begin
+        lua_pushinteger(L,i);
+        lua_pushinteger(L,values[i-1]);
+        lua_settable(L,-3);
+      end;
+
+      exit(2);
+    end
+    else
+      exit(1);
+  end
+  else
+  begin
+    lua_pushboolean(L,false);
+    exit(1);
+  end;
+
+end;
 
 function createFormFromFile(L: Plua_State): integer; cdecl;
 var filename: string;
@@ -565,6 +633,10 @@ begin
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'unregisterCreateCallback', customform_unregisterCreateCallback);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'unregisterFirstShowCallback', customform_unregisterFirstShowCallback);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'unregisterCloseCallback', customform_unregisterCloseCallback);
+
+
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'saveFormPosition', customform_saveFormPosition);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'loadFormPosition', customform_loadFormPosition);
 
 
 

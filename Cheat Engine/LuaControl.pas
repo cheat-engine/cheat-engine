@@ -326,6 +326,15 @@ begin
   result:=1;
 end;
 
+function control_getRGBColor(L: PLua_State): integer; cdecl;
+var
+  c: TControl;
+begin
+  c:=luaclass_getClassObject(L);
+  lua_pushinteger(L, integer(c.GetRGBColorResolvingParent));
+  result:=1;
+end;
+
 
 function control_setParent(L: PLua_State): integer; cdecl;
 var
@@ -517,6 +526,8 @@ begin
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'getVisible', control_getVisible);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'setColor', control_setColor);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'getColor', control_getColor);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'getRGBColor', control_getRGBColor);
+
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'setParent', control_setParent);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'getParent', control_getParent);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'setPopupMenu', control_setPopupMenu);
@@ -539,6 +550,8 @@ begin
   //luaclass_addPropertyToTable(L, metatable, userdata, 'Enabled', control_getEnabled, control_setEnabled);
   //luaclass_addPropertyToTable(L, metatable, userdata, 'Visible', control_getVisible, control_setVisible);
   //luaclass_addPropertyToTable(L, metatable, userdata, 'Color', control_getColor, control_setColor);
+
+  luaclass_addPropertyToTable(L, metatable, userdata, 'RGBColor', control_getRGBColor, control_setColor);
 
   luaclass_addPropertyToTable(L, metatable, userdata, 'ClientWidth', control_getClientWidth, control_setClientWidth);
   luaclass_addPropertyToTable(L, metatable, userdata, 'ClientHeight', control_getClientHeight, control_setClientHeight);

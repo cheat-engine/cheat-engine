@@ -12457,6 +12457,7 @@ begin
   end;
 end;
 
+
 procedure InitializeLua;
 var
   s: tstringlist;
@@ -13118,7 +13119,6 @@ begin
 
     lua_register(L, 'getAutoRunPath', lua_getAutoRunPath);
     lua_register(L, 'getAutorunPath', lua_getAutoRunPath);
-
 
 
     initializeLuaRemoteThread;
