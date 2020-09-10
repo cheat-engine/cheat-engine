@@ -182,13 +182,15 @@ function parseImage(t, image)
         local j
         for j=1,#methods do
           local address=readPointer(methods[j].method) --first pointer is a pointer to the code
-          local sname=classname..'.'..methods[j].name
-          
-          if namespace and namespace~='' then
-            sname=namespace..'.'..sname
-          end
+          if address and address~=0 then
+            local sname=classname..'.'..methods[j].name
+            
+            if namespace and namespace~='' then
+              sname=namespace..'.'..sname
+            end
 
-          monoSymbolList.addSymbol('',sname,address,1)
+            monoSymbolList.addSymbol('',sname,address,1)
+          end
         end      
       end
       
