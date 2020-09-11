@@ -346,7 +346,10 @@ type
     sdImageList: TImageList;
     miCommonalityScan: TMenuItem;
     MenuItem5: TMenuItem;
-    MenuItem6: TMenuItem;
+    miFindValue: TMenuItem;
+    miFindNext: TMenuItem;
+    miFindPrevious: TMenuItem;
+    miGoToOffset: TMenuItem;
     MenuItem7: TMenuItem;
     MenuItem8: TMenuItem;
     miSeperatorCommonalityScanner: TMenuItem;
@@ -446,7 +449,10 @@ type
       Section: THeaderSection);
     procedure MenuItem3Click(Sender: TObject);
     procedure MenuItem5Click(Sender: TObject);
-    procedure MenuItem6Click(Sender: TObject);
+    procedure miFindValueClick(Sender: TObject);
+    procedure miFindNextClick(Sender: TObject);
+    procedure miFindPreviousClick(Sender: TObject);
+    procedure miGoToOffsetClick(Sender: TObject);
     procedure miBackClick(Sender: TObject);
     procedure miDefineNewStructureFromDebugDataClick(Sender: TObject);
     procedure miExpandAllClick(Sender: TObject);
@@ -534,6 +540,8 @@ type
     frmStructuresNewStructure: TfrmStructuresNewStructure;
 
     fOnStatusbarUpdate: TNotifyEvent;
+
+    goToOffsetHistory: TStringList;
 
     procedure updateStatusbar;
     procedure UpdateCurrentStructOptions;
@@ -632,11 +640,14 @@ implementation
 uses MainUnit, mainunit2, frmStructures2ElementInfoUnit, MemoryBrowserFormUnit,
   frmStructureLinkerUnit, frmgroupscanalgoritmgeneratorunit, frmStringPointerScanUnit,
   ProcessHandlerUnit, Parsers, LuaCaller, frmRearrangeStructureListUnit,
-  frmstructurecompareunit, frmDebugSymbolStructureListUnit, rttihelper;
+  frmstructurecompareunit, frmDebugSymbolStructureListUnit, rttihelper, inputboxtopunit;
 
 resourcestring
   rsAddressValue = 'Address: Value';
   rsUndefined = 'undefined';
+
+  rsGotoOffset = 'Go to Offset';
+  rsFillInTheOffsetYouWantToGoTo = 'Fill in the Offset you want to go to';
 
   rsThisIsQuiteABigStructureHowManyBytesDoYouWantToSav = 'This is quite a big '
      +'structure. How many bytes do you want to save?';
@@ -3160,6 +3171,10 @@ begin
 
   if frmStructuresNewStructure<>nil then
     freeandnil(frmStructuresNewStructure);
+
+  if goToOffsetHistory<>nil then
+    freeandnil(goToOffsetHistory);
+
 end;
 
 procedure TfrmStructures2.FormCreate(Sender: TObject);
@@ -3197,6 +3212,8 @@ begin
       HeaderControl1.Sections[0].Width:=x[2];
     end;
   end;
+
+  goToOffsetHistory:=TStringList.create;
 
 
   setupColors; //load colors and default struct options
@@ -5381,9 +5398,94 @@ begin
   end;
 end;
 
-procedure TfrmStructures2.MenuItem6Click(Sender: TObject);
+procedure TfrmStructures2.miFindValueClick(Sender: TObject);
 begin
-  finddialog1.Execute;
+  finddialog1.Options:=finddialog1.Options-[frFindNext];
+  if finddialog1.Execute then
+  begin
+    mifindNext.visible:=true;
+    mifindPrevious.visible:=true;
+  end;
+end;
+
+procedure TfrmStructures2.miFindNextClick(Sender: TObject);
+begin
+  finddialog1.Options:=finddialog1.Options+[frFindNext];
+  finddialog1.OnFind(finddialog1);
+end;
+
+procedure TfrmStructures2.miFindPreviousClick(Sender: TObject);
+begin
+  // Reverse Search Direction
+  if (frDown in finddialog1.Options) then
+  begin
+    finddialog1.Options:=finddialog1.Options-[frDown];
+  end
+  else
+  begin
+    finddialog1.Options:=finddialog1.Options+[frDown];
+  end;
+
+  finddialog1.Options:=finddialog1.Options+[frFindNext];
+  finddialog1.OnFind(finddialog1);
+
+  // Change Search Direction back to original
+  if (frDown in finddialog1.Options) then
+  begin
+    finddialog1.Options:=finddialog1.Options-[frDown];
+  end
+  else
+  begin
+    finddialog1.Options:=finddialog1.Options+[frDown];
+  end;
+end;
+
+procedure TfrmStructures2.miGoToOffsetClick(Sender: TObject);
+var
+  newOffsetString: string;
+  newOffset: ptrUint;
+  index,indexLast: integer;
+  canceled: boolean;
+  struct: TDissectedStruct;
+  structElement: TStructElement;
+  node: TTreenode;
+begin
+
+  node:=tvStructureView.GetLastMultiSelected;
+
+  structElement:=getStructElementFromNode(node);
+
+  newOffsetString:=inputboxtop(rsGotoOffset, rsFillInTheOffsetYouWantToGoTo, IntTohex(structElement.Offset, 4), true, canceled, goToOffsetHistory);
+
+  if(canceled)then
+    exit;
+
+  newOffset:= symhandler.getAddressFromName(newOffsetString);
+
+  struct:=structElement.parent;
+
+  indexLast:=0;
+
+  for index:=0 to struct.getElementCount-1 do
+  begin
+    structElement:=struct.getElement(index);
+
+    if (structElement.Offset > newOffset) then
+      break;
+
+    if (structElement.Offset <= newOffset) and (newOffset < (structElement.Offset+structElement.Bytesize)) then
+    begin
+      tvStructureView.Items.SelectOnlyThis(node.parent.items[index]);
+      exit;
+    end;
+
+    if (structElement.Offset <= newOffset) then
+      indexLast:=index;
+  end;
+
+  if (0 <= indexLast) and (indexLast < node.parent.Count) then
+    tvStructureView.Items.SelectOnlyThis(node.parent.items[indexLast]);
+
 end;
 
 procedure TfrmStructures2.miBackClick(Sender: TObject);
