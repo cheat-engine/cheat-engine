@@ -3085,17 +3085,23 @@ end
 
 
 
-function mono_setMonoMenuItem(usesmono)
+function mono_setMonoMenuItem(usesmono, usesdotnet)
+ 
+  --print("mono_setMonoMenuItem ")
+  --if usesmono then print("usesmono") end
+  --if usesdotnet then print("usesdotnet") end
   
-  if usesmono then
+  if usesmono or usesdotnet then
     --create a menu item if needed
+    
+    
     if (miMonoTopMenuItem==nil) then
       local mfm=getMainForm().Menu
       
-      if (mfm) then
+      if mfm then
         local mi
         miMonoTopMenuItem=createMenuItem(mfm)
-        miMonoTopMenuItem.Caption=translate("Mono")
+       
         mfm.Items.insert(mfm.Items.Count-1, miMonoTopMenuItem) --add it before help
 
         mi=createMenuItem(miMonoTopMenuItem)
@@ -3111,15 +3117,44 @@ function mono_setMonoMenuItem(usesmono)
         mi.Name='miMonoDissect'
         miMonoTopMenuItem.Add(mi)
         
+        mi=createMenuItem(miMonoTopMenuItem)
+        mi.Caption="-" 
+        mi.Name="miDotNetSeperator"
+        miMonoTopMenuItem.Add(mi)        
+        
+        mi=createMenuItem(miMonoTopMenuItem)
+        mi.Caption=translate(".Net Info")
+        mi.Shortcut="Ctrl+Alt+N"
+        mi.OnClick=miDotNetInfoClick
+        mi.Name='miDotNetInfo'
+        miMonoTopMenuItem.Add(mi)        
+        
         
         miMonoTopMenuItem.OnClick=function(s)
           miMonoTopMenuItem.miMonoActivate.Checked=monopipe~=nil
         end
-        
-        
       end
     end
-  else
+
+    miMonoTopMenuItem.miMonoActivate.Visible=true
+    miMonoTopMenuItem.miMonoDissect.Visible=true
+    miMonoTopMenuItem.miDotNetSeperator.Visible=true
+      
+    if usesmono and not usesdotnet then
+      miMonoTopMenuItem.Caption=translate("Mono")
+    elseif usesdotnet and not usesmono then  
+      miMonoTopMenuItem.Caption=translate(".Net")
+      miMonoTopMenuItem.miMonoActivate.Visible=false
+      miMonoTopMenuItem.miMonoDissect.Visible=false      
+      miMonoTopMenuItem.miDotNetSeperator.Visible=false
+    else
+      miMonoTopMenuItem.Caption=translate("Mono/.Net")     
+    end
+
+    
+  end
+  
+  if (not usesmono) and (not usesdotnet) then  
     --destroy the menu item if needed
     if miMonoTopMenuItem~=nil then
       miMonoTopMenuItem.miMonoDissect.destroy() --clean up the onclick handler
@@ -3145,6 +3180,10 @@ function mono_setMonoMenuItem(usesmono)
       end
 
     end
+  else
+    --update the menu visibility
+    
+    
   end
 end
 
@@ -3165,28 +3204,31 @@ end
 
 
 
-function mono_OpenProcessMT(t)
-  if t~=nil then
-    t.destroy()
-  end
-
+function mono_OpenProcessMT()
+ -- print("mono_OpenProcessMT")
   --enumModules is faster than getAddress at OpenProcess time (No waiting for all symbols to be loaded first)
   local usesmono=false
+  local usesdotnet=false
   local m=enumModules()
   local i
   for i=1, #m do
+   -- print(m[i].Name)
     if (m[i].Name=='mono.dll') or (string.sub(m[i].Name,1,5)=='mono-') or (string.sub(m[i].Name,1,7)=='libmono') or (m[i].Name=='GameAssembly.dll') or (m[i].Name=='UnityPlayer.dll')  then
+      
       usesmono=true
-      break
     end
+    
+    if (m[i].Name=='clr.dll') or (m[i].Name=='coreclr.dll') or (m[i].Name=='clrjit.dll') then
+
+      usesdotnet=true
+    end    
   end
   
-  mono_setMonoMenuItem(usesmono)
+  mono_setMonoMenuItem(usesmono, usesdotnet)
   
   if (usesmono==false) and (getOperatingSystem()==1) and (thread_checkifmonoanyhow==nil) then
     thread_checkifmonoanyhow=createThread(mono_checkifmonoanyhow)
-  end
-  
+  end  
   
 
   if (monopipe~=nil) and (monopipe.ProcessID~=getOpenedProcessID()) then
@@ -3218,21 +3260,15 @@ function mono_OpenProcessMT(t)
 
 end
 
-function mono_OpenProcess(processid)
+function mono_OnProcessOpened(processid, processhandle, caption)
   --call the original onOpenProcess if there was one
-  if mono_oldOnOpenProcess~=nil then
-    mono_oldOnOpenProcess(processid)
+  if mono_OldOnProcessOpened~=nil then
+    mono_OldOnProcessOpened(processid, processhandle, caption)
+  else
+    print("fuck")
   end
 
-  synchronize("mono_OpenProcessMT")
-
-
-
-
-  --t=createTimer()
-  --t.Interval=1000
-  --t.OnTimer="mono_OpenProcessEpilogue"
-  --t.Enabled=true
+  mono_OpenProcessMT()
 end
 
 function monoAA_USEMONO(parameters, syntaxcheckonly)
@@ -4138,8 +4174,8 @@ function mono_initialize()
   --register a function to be called when a process is opened
   if (mono_init1==nil) then
     mono_init1=true
-    mono_oldOnOpenProcess=onOpenProcess
-    onOpenProcess=mono_OpenProcess
+    mono_OldOnProcessOpened=MainForm.OnProcessOpened
+    MainForm.OnProcessOpened=mono_OnProcessOpened
 
     registerAutoAssemblerCommand("USEMONO", monoAA_USEMONO)
     registerAutoAssemblerCommand("FINDMONOMETHOD", monoAA_FINDMONOMETHOD)

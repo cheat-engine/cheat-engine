@@ -203,7 +203,7 @@ function ceshare.CheckForCheatsClick(s, overrideProcess)
     --configure base state and add events
     
     ceshare.CheatBrowserFrm.OnDestroy=function(f)
-      f.saveFormPosition()
+      f.saveFormPosition({ceshare.CheatBrowserFrm.CEPanel1.Height})
     end
 
     ceshare.CheatBrowserFrm.lvCheats.Font.Size=12
@@ -580,10 +580,15 @@ function ceshare.CheckForCheatsClick(s, overrideProcess)
     ceshare.linkButton=createPNG()
     ceshare.linkButton.LoadFromFile(ceshare.imagepath..'link.png')
     
-    if ceshare.CheatBrowserFrm.loadFormPosition() then
-      ceshare.CheatBrowserFrm.loadedFormPosition=true
-    else
+    local formdata
+    ceshare.CheatBrowserFrm.loadedFormPosition, formdata=ceshare.CheatBrowserFrm.loadFormPosition()
+    if ceshare.CheatBrowserFrm.loadedFormPosition then
+      if #formdata>=1 then    
+        ceshare.CheatBrowserFrm.CEPanel1.Height=formdata[1]   
+      end
+    else    
       ceshare.CheatBrowserFrm.Position='poScreenCenter'
+      ceshare.CheatBrowserFrm.CEPanel1.Height=(getScreenDPI()/96)*100
     end
   
   end
@@ -678,16 +683,20 @@ function ceshare.CheckForCheatsClick(s, overrideProcess)
       
       if w<neededw then
         ceshare.CheatBrowserFrm.lvCheats.Columns[i].Autosize=false
-        ceshare.CheatBrowserFrm.lvCheats.Columns[i].Width=neededw
+        ceshare.CheatBrowserFrm.lvCheats.Columns[i].Width=neededw        
         w=neededw
       end
         
       headerwidth=headerwidth+w    
     end
     
+    
+    
     if not ceshare.CheatBrowserFrm.loadedFormPosition then
-      ceshare.CheatBrowserFrm.ClientWidth=headerwidth+10
+      ceshare.CheatBrowserFrm.ClientWidth=headerwidth+10      
     end
+    
+    
     ceshare.CheatBrowserFrmShownBefore=true
   end
 

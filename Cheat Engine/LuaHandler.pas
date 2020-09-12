@@ -12434,6 +12434,28 @@ begin
   exit(1);
 end;
 
+function lua_extractFileName(L: Plua_State): integer; cdecl;
+begin
+  if lua_gettop(L)>=1 then
+  begin
+    lua_pushstring(L, ExtractFileName(Lua_ToString(L,1)));
+    exit(1);
+  end
+  else
+    exit(0);
+end;
+
+function lua_extractFilePath(L: Plua_State): integer; cdecl;
+begin
+  if lua_gettop(L)>=1 then
+  begin
+    lua_pushstring(L, ExtractFilePath(Lua_ToString(L,1)));
+    exit(1);
+  end
+  else
+    exit(0);
+end;
+
 function lua_split(L: Plua_State): integer; cdecl;
 var
   s: string;
@@ -13119,6 +13141,8 @@ begin
 
     lua_register(L, 'getAutoRunPath', lua_getAutoRunPath);
     lua_register(L, 'getAutorunPath', lua_getAutoRunPath);
+    lua_register(L, 'extractFileName', lua_extractFileName);
+    lua_register(L, 'extractFilePath', lua_extractFilePath);
 
 
     initializeLuaRemoteThread;

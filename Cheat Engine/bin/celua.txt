@@ -155,6 +155,8 @@ getFileVersion(pathtofile): returns the 64-bit file version, and a table that ha
 
 getFileList(Path:string, searchMask:string OPTIONAL, SearchSubDirs: boolean OPTIONAL, DirAttrib: integer OPTIONAL): Returns an indexed table with filenames
 getDirectoryList(Path:string, SearchSubDirs: boolean OPTIONAL): Returns an indexed table with directory names
+extractFileName(filepath): returns the filename of the path
+extractFilePath(filepath): removes the filename from the path
 
 enableWindowsSymbols(): Will download the PDB files of Windows and load them (Takes a long time the first time)
 getAddress(string, local OPTIONAL): returns the address of a symbol. Can be a modulename or an export. set Local to true if you wish to querry the symboltable of the ce process
@@ -3563,7 +3565,7 @@ Attached: boolean - Returns true if attached to a process
 
 
 methods
-EnumDomains(): table - Returns an index table containing all domains. Each entry is build up as {DomainHandle, name}
+EnumDomains(): table - Returns an index table containing all domains. Each entry is build up as {DomainHandle, Name}
 EnumModuleList(DomainHandle) : table - Returns an indexed table containing information about all modules. Each module entry is build up as {ModuleHandle, BaseAddress, Name}
 EnumTypeDefs(ModuleHandle) : table - Returns an indexed table containing information about all TypeDefs (classes) . Each entry is build up as {TypeDefToken, Name, Flags, Extends}
 GetTypeDefMethods(ModuleHandle, TypedefToken) : table - Returns a table containing all the methods in the specified typedef. Each entry is build up as {MethodToken, Name, Attributes, ImplementationFlags, ILCode, NativeCode, SecondaryNativeCode[]: Integer)

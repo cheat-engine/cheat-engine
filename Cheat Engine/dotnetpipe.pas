@@ -16,7 +16,7 @@ uses
   {$ifdef windows}
   jwawindows, windows,
   {$endif}
-  Classes, SysUtils, CEFuncProc, syncobjs, NewKernelHandler, Globals, maps;
+  Classes, SysUtils, CEFuncProc, syncobjs, guisafecriticalsection, NewKernelHandler, Globals, maps;
 {$endif}
 
 
@@ -106,7 +106,7 @@ type
     fSupportsDotNet4_5: boolean;
 
     pHandle: THandle;
-    pipecs: TCriticalsection;
+    pipecs: TGuiSafeCriticalSection;  //guisafecriticalsection?
     procedure Read(var o; size: integer);
     procedure Write(const o; size: integer);
   public
@@ -772,7 +772,7 @@ end;
 
 constructor TDotNetPipe.create;
 begin
-  pipecs:=TCriticalsection.create;
+  pipecs:=TGUISafeCriticalsection.create;
   inherited create;
 end;
 

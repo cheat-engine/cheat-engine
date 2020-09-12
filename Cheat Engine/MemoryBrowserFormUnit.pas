@@ -2309,6 +2309,13 @@ begin
 end;
 
 procedure TMemoryBrowser.FormShow(Sender: TObject);
+var
+  w: integer;
+  addressSize: integer;
+  byteSize: integer;
+  opcodeSize: integer;
+
+  lineheight: integer;
 begin
   registerpanelfont.assign(scrollbox1.Font);
 
@@ -2316,13 +2323,26 @@ begin
   if posloadedfromreg=false then
   begin
     autosize:=false;
-    width:=mainform.width;
-    height:=mainform.height;
+    w:=0;
+    addressSize:=canvas.TextWidth('XXXXXXXXXXXXXXXX  ');  //address
+    byteSize:=canvas.TextWidth('XX XX XX XX XX XX XX XX '); ///bytes
+    opcodeSize:=canvas.TextWidth('XXXX     XXX,[XXXXXXXXXXXXXXXX+XXX*X]          ');
+    disassemblerview.setheaderWidth(0,addressSize);
+    disassemblerview.setheaderWidth(1,byteSize);
+    disassemblerview.setheaderWidth(2,opcodeSize);
 
-    disassemblerview.setheaderWidth(0,canvas.TextWidth('XXXXXXXXXXXXXXXX')); //address
-    disassemblerview.setheaderWidth(1,canvas.TextWidth('XX XX XX XX XX XX XX XX')); ///bytes
-    disassemblerview.setheaderWidth(2,canvas.TextWidth('XXXX XXX,[XXXXXXXXXXXXXXXX+XXX*X]'));
+    lineheight:=canvas.TextHeight('jxZyYqQ');
+
+
+    width:=max(mainform.width, addressSize+byteSize+opcodeSize+2*addressSize);
+    height:=ScaleY(600,96);
+
+    panel1.height:= clientheight div 2;
+
     disassemblerview.setheaderWidth(3,max(32,disassemblerview.width-(disassemblerview.getheaderWidth(0)+disassemblerview.getheaderWidth(1)+disassemblerview.getheaderWidth(2))-32));
+
+    position:=poDesigned;
+    position:=poScreenCenter;
 
     posloadedfromreg:=true;
   end;
