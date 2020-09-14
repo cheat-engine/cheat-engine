@@ -127,7 +127,8 @@ local function getDomains()
   return DataSource.Domains
 end
 
-local function clearClassInformation()
+local function clearClassInformation(frmDotNetInfo)
+  --frmDotNetInfo.
 end
 
 local function ClassFetchWaitTillReadyAndSendData(thread, frmDotNetInfo, Image, OnDataFunction, FetchDoneFunction)
@@ -216,6 +217,12 @@ local function CancelClassFetch(frmDotNetInfo)
     frmDotNetInfo.ClassFetchThread=nil
   end
 end
+
+local function ClassSelectionChange(sender)
+  local frmDotNetInfo=frmDotNetInfos[sender.owner.Tag]
+  clearClassInformation(frmDotNetInfo)
+end
+
 
 local function ImageSelectionChange(sender)
   local frmDotNetInfo=frmDotNetInfos[sender.owner.Tag]
@@ -357,6 +364,7 @@ function miDotNetInfoClick(sender)
   frmDotNetInfo.lbImages.OnSelectionChange=ImageSelectionChange
   
   --Classes box setup
+  frmDotNetInfo.lbClasses.OnSelectionChange=ClassSelectionChange
   
   --Class info setup
   
