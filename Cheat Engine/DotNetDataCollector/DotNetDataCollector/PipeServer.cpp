@@ -12,6 +12,9 @@ const IID IID_ICorDebug={0x3d6f5f61, 0x7538, 0x11d3, 0x8d, 0x5b, 0x00, 0x10, 0x4
 const IID CLSID_CorDebug={0x6fef44d0,0x39e7,0x4c77,0xbe,0x8e,0xc9,0xf8,0xcf,0x98,0x86,0x30}; //6fef44d0-39e7-4c77-be8e-c9f8cf988630
 */
 
+//const IID IID_ICorDebugType2= {0xe6e91d79,0x693d, 0x48bc,0xb417,0x82,0x84,0xb4,0xf1,0x0f,0xb5};
+//MIDL_INTERFACE("e6e91d79-693d-48bc-b417-8284b4f10fb5")
+
 typedef HRESULT (*ENUMERATECLRS)(DWORD      debuggeePID,
 	 HANDLE**   ppHandleArrayOut,
 	 LPWSTR**   ppStringArrayOut,
@@ -50,19 +53,19 @@ CPipeServer::CPipeServer(TCHAR *name)
 	StrCpy(pipename, L"\\\\.\\pipe\\");
 	StrCat(pipename, name);
 
-	pipe=CreateNamedPipeW(pipename, PIPE_ACCESS_DUPLEX, PIPE_TYPE_BYTE | PIPE_READMODE_BYTE | PIPE_WAIT, 255,256*1024, 16, INFINITE, NULL);
+	pipehandle=CreateNamedPipeW(pipename, PIPE_ACCESS_DUPLEX, PIPE_TYPE_BYTE | PIPE_READMODE_BYTE | PIPE_WAIT, 255,256*1024, 16, INFINITE, NULL);
 
 	if (StrCmp(name,L"BLA")==0)
 	{
 		//do some debug stuff
-		processid=112988;
+		processid=262788;
 		OpenOrAttachToProcess();
 
 
-		getAddressData(0x7FFB830924B0);
+		test();
 	}
 	else
-		ConnectNamedPipe(pipe, NULL);
+		ConnectNamedPipe(pipehandle, NULL);
 
 
 
@@ -395,21 +398,21 @@ void CPipeServer::enumDomains(void)
 			AppDomains->Next(count, domains, &count);
 
 			NumberOfDomains=count;
-			WriteFile(pipe, &NumberOfDomains, sizeof(NumberOfDomains), &bw, NULL); //send the number of results to receive
+			WriteFile(pipehandle, &NumberOfDomains, sizeof(NumberOfDomains), &bw, NULL); //send the number of results to receive
 			for (unsigned int i=0; i<count; i++)
 			{
 				UINT64 hDomain=(UINT64)domains[i];
 				
 				
-				WriteFile(pipe, &hDomain, sizeof(hDomain), &bw, NULL); //send the unique ID
+				WriteFile(pipehandle, &hDomain, sizeof(hDomain), &bw, NULL); //send the unique ID
 
 				namelength=0;
 				domains[i]->GetName(255, &namelength, domainname);
 
 				namelength=namelength*sizeof(TCHAR);
 
-				WriteFile(pipe, &namelength, sizeof(namelength), &bw, NULL); //send the name
-				WriteFile(pipe, domainname, namelength, &bw, NULL);
+				WriteFile(pipehandle, &namelength, sizeof(namelength), &bw, NULL); //send the name
+				WriteFile(pipehandle, domainname, namelength, &bw, NULL);
 			}
 
 			if (domains)
@@ -418,7 +421,7 @@ void CPipeServer::enumDomains(void)
 			AppDomains->Release();
 		}
 		else
-			WriteFile(pipe, &NumberOfDomains, sizeof(NumberOfDomains), &bw, NULL);
+			WriteFile(pipehandle, &NumberOfDomains, sizeof(NumberOfDomains), &bw, NULL);
 		
 	}
 
@@ -442,7 +445,7 @@ Enumerate the modules of the given ICorDebugAppDomain
 
 	if ((!domain) || (domain->EnumerateAssemblies(&pAssemblies)!=S_OK))
 	{
-		WriteFile(pipe, &NumberOfModules, sizeof(NumberOfModules), &bw, NULL);
+		WriteFile(pipehandle, &NumberOfModules, sizeof(NumberOfModules), &bw, NULL);
 		return;
 	}
 
@@ -479,7 +482,7 @@ Enumerate the modules of the given ICorDebugAppDomain
 	pAssemblies->Release();
 
 	NumberOfModules=(DWORD32)modulelist.size();
-	WriteFile(pipe, &NumberOfModules, sizeof(NumberOfModules), &bw, NULL); //count
+	WriteFile(pipehandle, &NumberOfModules, sizeof(NumberOfModules), &bw, NULL); //count
 
 	for (i=0; i<NumberOfModules; i++)
 	{
@@ -488,10 +491,10 @@ Enumerate the modules of the given ICorDebugAppDomain
 		ULONG32 modulenamelength;
 		CORDB_ADDRESS baseaddress;
 
-		WriteFile(pipe, &hModule, sizeof(hModule), &bw, NULL); //'handle'
+		WriteFile(pipehandle, &hModule, sizeof(hModule), &bw, NULL); //'handle'
 
 		modulelist[i]->GetBaseAddress(&baseaddress);
-		WriteFile(pipe, &baseaddress, sizeof(baseaddress), &bw, NULL); //baseaddress  (uint64) 
+		WriteFile(pipehandle, &baseaddress, sizeof(baseaddress), &bw, NULL); //baseaddress  (uint64) 
 
 
 		if (modulelist[i]->GetName(255, &modulenamelength, modulename)==S_OK)
@@ -499,9 +502,9 @@ Enumerate the modules of the given ICorDebugAppDomain
 		else
 			modulenamelength=0;
 
-		WriteFile(pipe, &modulenamelength, sizeof(modulenamelength), &bw, NULL); //namelength in bytes
+		WriteFile(pipehandle, &modulenamelength, sizeof(modulenamelength), &bw, NULL); //namelength in bytes
 		if (modulenamelength)
-			WriteFile(pipe, modulename, modulenamelength, &bw, NULL);
+			WriteFile(pipehandle, modulename, modulenamelength, &bw, NULL);
 	
 		
 	}
@@ -541,7 +544,7 @@ void CPipeServer::enumTypeDefs(UINT64 hModule)
 
 	if (module==NULL)
 	{
-		WriteFile(pipe, &NumberOfTypeDefs, sizeof(NumberOfTypeDefs), &bw, NULL);
+		WriteFile(pipehandle, &NumberOfTypeDefs, sizeof(NumberOfTypeDefs), &bw, NULL);
 		return;
 	}
 
@@ -549,14 +552,14 @@ void CPipeServer::enumTypeDefs(UINT64 hModule)
 
 	if (MetaData==NULL)
 	{
-		WriteFile(pipe, &NumberOfTypeDefs, sizeof(NumberOfTypeDefs), &bw, NULL);
+		WriteFile(pipehandle, &NumberOfTypeDefs, sizeof(NumberOfTypeDefs), &bw, NULL);
 		return;
 	}
 
 	MetaData->EnumTypeDefs(&henum, typedefs, 0, &typedefcount);
 	MetaData->CountEnum(henum, &totalcount);
 
-	WriteFile(pipe, &totalcount, sizeof(totalcount), &bw, NULL); 
+	WriteFile(pipehandle, &totalcount, sizeof(totalcount), &bw, NULL);
 
 	do
 	{	 
@@ -565,19 +568,22 @@ void CPipeServer::enumTypeDefs(UINT64 hModule)
 		for (i=0; i<typedefcount; i++)
 		{
 			
-			WriteFile(pipe, &typedefs[i], sizeof(typedefs[i]), &bw, NULL); //tokenid
+			WriteFile(pipehandle, &typedefs[i], sizeof(typedefs[i]), &bw, NULL); //tokenid
 
 			typedefnamesize=0;
 			MetaData->GetTypeDefProps(typedefs[i], typedefname, 255, &typedefnamesize, &typedefflags, &extends);
 
 			typedefnamesize=sizeof(TCHAR)*typedefnamesize;
 			
-			WriteFile(pipe, &typedefnamesize, sizeof(typedefnamesize), &bw, NULL); //namesize
-			WriteFile(pipe, typedefname, typedefnamesize, &bw, NULL); //namesize
+			WriteFile(pipehandle, &typedefnamesize, sizeof(typedefnamesize), &bw, NULL); //namesize
+			WriteFile(pipehandle, typedefname, typedefnamesize, &bw, NULL); //namesize
 
-			WriteFile(pipe, &typedefflags, sizeof(typedefflags), &bw, NULL); //flags
-			WriteFile(pipe, &extends, sizeof(extends), &bw, NULL); //extends
+			WriteFile(pipehandle, &typedefflags, sizeof(typedefflags), &bw, NULL); //flags
+			WriteFile(pipehandle, &extends, sizeof(extends), &bw, NULL); //extends
 
+			
+			
+		
 
 		}
 
@@ -606,7 +612,7 @@ void CPipeServer::enumTypeDefMethods(UINT64 hModule, mdTypeDef TypeDef)
 		r=MetaData->EnumMethods(&henum, TypeDef, methods, 0, &count);
 		MetaData->CountEnum(henum, &count);
 
-		WriteFile(pipe, &count, sizeof(count), &bw, NULL); //number of methods
+		WriteFile(pipehandle, &count, sizeof(count), &bw, NULL); //number of methods
 
 		do
 		{
@@ -629,7 +635,7 @@ void CPipeServer::enumTypeDefMethods(UINT64 hModule, mdTypeDef TypeDef)
 
 				ULONG32 SecondaryCodeBlocks=0;
 
-				WriteFile(pipe, &methods[i], sizeof(methods[i]), &bw, NULL); //tokenid
+				WriteFile(pipehandle, &methods[i], sizeof(methods[i]), &bw, NULL); //tokenid
 
 
 				methodnamesize=0;
@@ -637,11 +643,11 @@ void CPipeServer::enumTypeDefMethods(UINT64 hModule, mdTypeDef TypeDef)
 
 				methodnamesize=sizeof(TCHAR)*methodnamesize;
 				
-				WriteFile(pipe, &methodnamesize, sizeof(methodnamesize), &bw, NULL); //namesize
-				WriteFile(pipe, methodname, methodnamesize, &bw, NULL); //name
+				WriteFile(pipehandle, &methodnamesize, sizeof(methodnamesize), &bw, NULL); //namesize
+				WriteFile(pipehandle, methodname, methodnamesize, &bw, NULL); //name
 
-				WriteFile(pipe, &dwAttr, sizeof(dwAttr), &bw, NULL);
-				WriteFile(pipe, &dwImplFlags, sizeof(dwImplFlags), &bw, NULL);
+				WriteFile(pipehandle, &dwAttr, sizeof(dwAttr), &bw, NULL);
+				WriteFile(pipehandle, &dwImplFlags, sizeof(dwImplFlags), &bw, NULL);
 
 							
 				if (module->GetFunctionFromToken(methods[i], &df)==S_OK)
@@ -678,12 +684,12 @@ void CPipeServer::enumTypeDefMethods(UINT64 hModule, mdTypeDef TypeDef)
 
 				}
 
-				WriteFile(pipe, &ILCode, sizeof(ILCode), &bw, NULL);
-				WriteFile(pipe, &NativeCode, sizeof(NativeCode), &bw, NULL);
+				WriteFile(pipehandle, &ILCode, sizeof(ILCode), &bw, NULL);
+				WriteFile(pipehandle, &NativeCode, sizeof(NativeCode), &bw, NULL);
 	
-				WriteFile(pipe, &SecondaryCodeBlocks, sizeof(SecondaryCodeBlocks), &bw, NULL);
+				WriteFile(pipehandle, &SecondaryCodeBlocks, sizeof(SecondaryCodeBlocks), &bw, NULL);
 				for (j=0; j<SecondaryCodeBlocks; j++)
-					WriteFile(pipe, &codechunks[j], sizeof(CodeChunkInfo), &bw, NULL);
+					WriteFile(pipehandle, &codechunks[j], sizeof(CodeChunkInfo), &bw, NULL);
 
 			}
 		} while (r==S_OK);
@@ -693,6 +699,193 @@ void CPipeServer::enumTypeDefMethods(UINT64 hModule, mdTypeDef TypeDef)
 
 	}
 }
+
+
+void CPipeServer::test(void)
+{
+	ULONG count;
+	ICorDebugThreadEnum *te;
+
+	CorDebugProcess->EnumerateThreads(&te);
+
+	ICorDebugThread *thr;
+	count = 0;
+	te->Next(1, &thr, &count);
+
+	if (count)
+	{
+		ICorDebugFrame *frame = NULL;
+		thr->GetActiveFrame(&frame);
+
+		if (frame)		
+			OutputDebugStringW(L"WEEE");
+
+	}
+
+	//ICorDebugThread t;
+
+	/*
+	ICorDebugAppDomainEnum *de;
+	CorDebugProcess->EnumerateAppDomains(&de);
+
+	ICorDebugAppDomain *domain;
+	
+	while (de->Next(1, &domain, &count) == 0)
+	{
+
+		ICorDebugAssemblyEnum *ae;
+		ICorDebugAssembly *assembly;
+
+		domain->EnumerateAssemblies(&ae);
+		while (ae->Next(1, &assembly, &count) == 0)
+		{
+
+			ICorDebugModuleEnum *me=NULL;
+			ICorDebugModule *module = NULL;
+
+			assembly->EnumerateModules(&me);
+			while (me->Next(1, &module, &count)==0)
+			{
+				IMetaDataImport *MetaData = getMetaData(module);
+
+				HCORENUM henum = 0;
+				mdTypeDef x[10];
+
+
+				while (MetaData->EnumTypeDefs(&henum, x, 10, &count) == 0)
+				{
+
+					int i;
+					for (i = 0; i < count; i++)
+					{
+						TCHAR name[255];
+						ULONG namesize;
+						DWORD flags;
+						mdToken ext;
+						HCORENUM hfieldsenum = 0;
+						ULONG fcount;
+
+						mdFieldDef fields[10];
+
+						MetaData->GetTypeDefProps(x[i], name, 255, &namesize, &flags, &ext);
+						//if (MetaData->EnumFields(&hfieldsenum, x[i], fields, 10, &fcount)==0)
+						{
+							OutputDebugStringW(L"OK");
+
+
+							ICorDebugClass *ppClass;
+							module->GetClassFromToken(x[i], &ppClass);
+
+							ICorDebugClass2 *ppClass2 = NULL;
+							ppClass->QueryInterface(IID_ICorDebugClass2, (void **)&ppClass2);
+
+							if (ppClass2)
+							{
+								ICorDebugType *ppType = NULL;
+								ppClass2->GetParameterizedType(ELEMENT_TYPE_CLASS, 0, NULL, &ppType);
+								if (ppType)
+								{
+
+									ICorDebugType2 *ppType2 = NULL;
+									ppType->QueryInterface(IID_ICorDebugType2, (void **)&ppType2);
+
+									if (ppType2)
+									{
+										COR_TYPEID tyid;
+										tyid.token1 = 0;
+										tyid.token2 = 0;
+										ppType2->GetTypeID(&tyid);
+
+										if ((tyid.token1) || (tyid.token2))
+										{
+											OutputDebugStringW(L"WEEE");
+											COR_TYPE_LAYOUT layout;
+
+											if (CorDebugProcess5->GetTypeLayout(tyid, &layout) == S_OK)
+											{
+												vector<COR_FIELD> fields;
+												fields.clear();
+												getAllFields(tyid, layout, &fields);
+
+												if (fields.size())
+												{
+													OutputDebugStringW(L"WOOT");
+												}
+
+
+											}
+										}
+
+
+									}
+
+
+								}
+							}
+
+
+						}
+
+
+
+						OutputDebugStringW(name);
+
+					}
+				}
+			}
+
+			me->Release();
+		}
+
+		ae->Release();
+	}
+
+	de->Release();
+	*/
+}
+
+void CPipeServer::enumTypeDefFields(UINT64 hModule, mdTypeDef TypeDef)
+{
+	ICorDebugModule *module = (ICorDebugModule *)hModule;
+
+
+	ICorDebugClass *ppClass = NULL;
+	ICorDebugClass2 *ppClass2 = NULL;
+	ICorDebugType *ppType = NULL;
+	ICorDebugType2 *ppType2 = NULL; //Q:"It doesn't compile <insert crying corgi pic>"  A: update your .net include and library to .net 4.6.2 or later
+
+	
+	if (module->GetClassFromToken(TypeDef, &ppClass) == S_OK)
+	{
+		if (ppClass && (ppClass->QueryInterface(IID_ICorDebugClass2, (void **)&ppClass2) == S_OK))
+		{
+			if (ppClass2 && (ppClass2->GetParameterizedType(ELEMENT_TYPE_CLASS, 0, NULL, &ppType) == S_OK)) //todo: generics
+			{
+				if (ppType && (ppType->QueryInterface(IID_ICorDebugType2, (void **)&ppType2) == S_OK))
+				{
+					COR_TYPEID cortypeid;
+					cortypeid.token1 = 0;
+					cortypeid.token2 = 0;
+
+					COR_TYPE_LAYOUT layout;
+					if (ppType2->GetTypeID(&cortypeid)==S_OK)
+					{						
+						if (cortypeid.token1 || cortypeid.token2)
+						{
+							sendType(cortypeid);
+							return;
+						}
+					}
+				}
+			}
+		}		
+	}
+
+	//still here so error
+	WriteDword(0xffffffff);	
+}
+
+
 
 int CPipeServer::getAllFields(COR_TYPEID cortypeid, COR_TYPE_LAYOUT layout, std::vector<COR_FIELD> *fieldlist)
 {
@@ -724,44 +917,154 @@ int CPipeServer::getAllFields(COR_TYPEID cortypeid, COR_TYPE_LAYOUT layout, std:
 			free(fields);
 	}
 
+
+
 	return (int)fieldlist->size();
 }
 
-
-MIDL_INTERFACE("AD1B3588-0EF0-4744-A496-AA09A9F80371")
-ICorDebugProcess2Core : public IUnknown
+void CPipeServer::sendType(COR_TYPEID cortypeid)
 {
-public:
-	virtual HRESULT STDMETHODCALLTYPE GetThreadForTaskID(
-		/* [in] */ TASKID taskid,
-		/* [out] */ ICorDebugThread2 **ppThread) = 0;
+	COR_TYPE_LAYOUT layout;
+	DWORD type;
+	DWORD bw;
 
-	virtual HRESULT STDMETHODCALLTYPE GetVersion(
-		/* [out] */ COR_VERSION *version) = 0;
+	if (CorDebugProcess5->GetTypeLayout(cortypeid, &layout) == S_OK)
+	{
 
-	virtual HRESULT STDMETHODCALLTYPE SetUnmanagedBreakpoint(
-		/* [in] */ CORDB_ADDRESS address,
-		/* [in] */ ULONG32 bufsize,
-		/* [length_is][size_is][out] */ BYTE buffer[],
-		/* [out] */ ULONG32 *bufLen) = 0;
+		type = (DWORD)layout.type;
+		WriteFile(pipehandle, &type, sizeof(type), &bw, NULL);  //objecttype							
 
-	virtual HRESULT STDMETHODCALLTYPE ClearUnmanagedBreakpoint(
-		/* [in] */ CORDB_ADDRESS address) = 0;
+		if (layout.type == ELEMENT_TYPE_ARRAY || layout.type == ELEMENT_TYPE_SZARRAY)
+		{
+			//get the array shape
+			COR_ARRAY_LAYOUT array_layout;
+			if (S_OK == CorDebugProcess5->GetArrayLayout(cortypeid, &array_layout))
+			{
+				WriteFile(pipehandle, &array_layout.componentType, sizeof(array_layout.componentType), &bw, NULL);  //layout.type of elements within
+				WriteFile(pipehandle, &array_layout.countOffset, sizeof(array_layout.countOffset), &bw, NULL);  //offset of "num_elements"
+				WriteFile(pipehandle, &array_layout.elementSize, sizeof(array_layout.elementSize), &bw, NULL);  //size of each element
+				WriteFile(pipehandle, &array_layout.firstElementOffset, sizeof(array_layout.firstElementOffset), &bw, NULL);  //offset of first element
+			}
+			else //error getting array layout
+			{
+				DWORD sigil_size = sizeof(array_layout.componentType) + sizeof(array_layout.countOffset) + sizeof(array_layout.elementSize) + sizeof(array_layout.firstElementOffset);
+				void * error_sigil = malloc(sigil_size);
+				memset(error_sigil, 0xff, sigil_size);
+				WriteFile(pipehandle, error_sigil, sigil_size, &bw, NULL); //write error codes in place of the array layout we failed to read
+				free(error_sigil);
+			}
+		}
+		else // this is something other than an array //(1) //if (layout.type==ELEMENT_TYPE_CLASS) //there is more data besides just address and type
+		{
+			//get the field data
+			ICorDebugType *type;
+			ICorDebugClass *c;
+			ICorDebugModule *m;
+			IMetaDataImport *metadata = NULL;
+			ULONG32 fieldcount;
+			mdTypeDef classtoken = 0;
+			WCHAR classname[255];
+			ULONG classnamelength;
+			mdToken extends;
+			DWORD flags;
 
-	virtual HRESULT STDMETHODCALLTYPE GetCodeAtAddress(CORDB_ADDRESS address, ICorDebugCode ** pCode, ULONG32 * offset) = 0;
+			vector<COR_FIELD> fields;
 
 
-	virtual HRESULT STDMETHODCALLTYPE SetDesiredNGENCompilerFlags(
-		/* [in] */ DWORD pdwFlags) = 0;
 
-	virtual HRESULT STDMETHODCALLTYPE GetDesiredNGENCompilerFlags(
-		/* [out] */ DWORD *pdwFlags) = 0;
 
-	virtual HRESULT STDMETHODCALLTYPE GetReferenceValueFromGCHandle(
-		/* [in] */ UINT_PTR handle,
-		/* [out] */ ICorDebugReferenceValue **pOutValue) = 0;
 
-};
+			//get the metadata for the module that owns this class
+			if (CorDebugProcess5->GetTypeForTypeID(cortypeid, &type) == S_OK)
+			{
+				if (type->GetClass(&c) == S_OK)
+				{
+					c->GetToken(&classtoken);
+
+					if (c->GetModule(&m) == S_OK)
+					{
+						metadata = getMetaData(m);
+						m->Release();
+					}
+					c->Release();
+				}
+				type->Release();
+			}
+
+			classnamelength = 0;
+			if ((metadata) && (classtoken))
+				metadata->GetTypeDefProps(classtoken, classname, 255, &classnamelength, &flags, &extends);
+
+			//send the name (if there is one)
+			classnamelength = sizeof(WCHAR)*classnamelength;
+
+			WriteFile(pipehandle, &classnamelength, sizeof(classnamelength), &bw, NULL);
+			if (classnamelength)
+				WriteFile(pipehandle, classname, classnamelength, &bw, NULL);
+
+			fields.clear();
+			fieldcount = getAllFields(cortypeid, layout, &fields);
+
+			//send the fields
+			//if (CorDebugProcess5->GetTypeFields(objects[i].type, layout.numFields, fields, &fieldcount)==S_OK)
+			{
+				unsigned int j;
+				mdTypeDef classtype;
+				WCHAR fieldname[255];
+				ULONG fieldnamelength;
+				DWORD attr;
+				PCCOR_SIGNATURE sigBlob;
+				ULONG sigbloblength;
+				DWORD CPlusTypeFlag;
+				DWORD valuelength;
+				UVCP_CONSTANT value;
+				unsigned char isStatic;
+
+				WriteFile(pipehandle, &fieldcount, sizeof(fieldcount), &bw, NULL);
+
+				for (j = 0; j < fieldcount; j++)
+				{
+					DWORD fieldtype = (DWORD)fields[j].fieldType;
+
+					WriteFile(pipehandle, &fields[j].token, sizeof(fields[j].token), &bw, NULL);
+					WriteFile(pipehandle, &fields[j].offset, sizeof(fields[j].offset), &bw, NULL);
+					WriteFile(pipehandle, &fieldtype, sizeof(fieldtype), &bw, NULL);
+
+
+					//optional name:
+					fieldnamelength = 0;
+					isStatic = 0;
+
+					if (metadata)
+					{
+						metadata->GetFieldProps(fields[j].token, &classtype, fieldname, 255, &fieldnamelength, &attr, &sigBlob, &sigbloblength, &CPlusTypeFlag, &value, &valuelength);						
+						isStatic = IsFdStatic(attr);
+					}
+
+					WriteFile(pipehandle, &isStatic, 1, &bw, NULL);
+					
+
+					fieldnamelength = sizeof(WCHAR)*fieldnamelength;
+
+					WriteFile(pipehandle, &fieldnamelength, sizeof(fieldnamelength), &bw, NULL);
+					if (fieldnamelength)
+						WriteFile(pipehandle, fieldname, fieldnamelength, &bw, NULL);
+
+				}
+
+			}
+
+		}
+
+	}
+	else
+	{
+		//error
+		type = 0xffffffff;
+		WriteFile(pipehandle, &type, sizeof(type), &bw, NULL);
+	}
+
+}
 
 void CPipeServer::getAddressData(UINT64 Address)
 {
@@ -789,139 +1092,14 @@ void CPipeServer::getAddressData(UINT64 Address)
 				if ((Address>=objects[i].address) && (Address<objects[i].address+objects[i].size))
 				{
 					//found the address
-					COR_TYPE_LAYOUT layout;
-					DWORD type;
+
 	
 					found=TRUE;
 					StartAddress=objects[i].address;
-					WriteFile(pipe, &StartAddress, sizeof(StartAddress), &bw, NULL);  //real start
+					WriteFile(pipehandle, &StartAddress, sizeof(StartAddress), &bw, NULL);  //real start
 				
-					if (CorDebugProcess5->GetTypeLayout(objects[i].type, &layout)==S_OK)
-					{
-						type=(DWORD)layout.type;	
-						WriteFile(pipe, &type, sizeof(type), &bw, NULL);  //objecttype							
-						
-						
-
-						if(layout.type == ELEMENT_TYPE_ARRAY || layout.type == ELEMENT_TYPE_SZARRAY)
-						{
-							//get the array shape
-							COR_ARRAY_LAYOUT array_layout;
-							if(S_OK == CorDebugProcess5->GetArrayLayout(objects[i].type, &array_layout))
-							{
-								WriteFile(pipe, &array_layout.componentType, sizeof(array_layout.componentType), &bw, NULL);  //layout.type of elements within
-								WriteFile(pipe, &array_layout.countOffset, sizeof(array_layout.countOffset), &bw, NULL);  //offset of "num_elements"
-								WriteFile(pipe, &array_layout.elementSize, sizeof(array_layout.elementSize), &bw, NULL);  //size of each element
-								WriteFile(pipe, &array_layout.firstElementOffset, sizeof(array_layout.firstElementOffset), &bw, NULL);  //offset of first element
-							}
-							else //error getting array layout
-							{						
-								DWORD sigil_size = sizeof(array_layout.componentType) + sizeof(array_layout.countOffset) + sizeof(array_layout.elementSize) + sizeof(array_layout.firstElementOffset);
-								void * error_sigil = malloc(sigil_size);
-								memset(error_sigil, 0xff, sigil_size);
-								WriteFile(pipe, error_sigil, sigil_size, &bw, NULL); //write error codes in place of the array layout we failed to read
-								free(error_sigil);
-							}
-						}
-						else // this is something other than an array //(1) //if (layout.type==ELEMENT_TYPE_CLASS) //there is more data besides just address and type
-						{
-							//get the field data
-							ICorDebugType *type;
-							ICorDebugClass *c;
-							ICorDebugModule *m;
-							IMetaDataImport *metadata=NULL;
-							ULONG32 fieldcount;
-							mdTypeDef classtoken=0;
-							WCHAR classname[255];
-							ULONG classnamelength;
-							mdToken extends;
-							DWORD flags;
-
-							vector<COR_FIELD> fields;
-							
-
-							
-
-
-							//get the metadata for the module that owns this class
-							if (CorDebugProcess5->GetTypeForTypeID(objects[i].type, &type)==S_OK)
-							{
-								if (type->GetClass(&c)==S_OK)
-								{
-									c->GetToken(&classtoken);
-
-									if (c->GetModule(&m)==S_OK)
-									{
-										metadata=getMetaData(m);										
-										m->Release();
-									}									
-									c->Release();
-								}								
-								type->Release();
-							}
-
-							classnamelength=0;
-							if ((metadata) && (classtoken))							
-								metadata->GetTypeDefProps(classtoken, classname, 255, &classnamelength, &flags, &extends);
-
-							//send the name (if there is one)
-							classnamelength=sizeof(WCHAR)*classnamelength;
-
-							WriteFile(pipe, &classnamelength, sizeof(classnamelength), &bw, NULL);
-							if (classnamelength)
-								WriteFile(pipe, classname, classnamelength, &bw, NULL);
-							
-							fields.clear();
-							fieldcount = getAllFields(objects[i].type, layout, &fields);
-
-							//send the fields
-							//if (CorDebugProcess5->GetTypeFields(objects[i].type, layout.numFields, fields, &fieldcount)==S_OK)
-							{
-								unsigned int j;
-								mdTypeDef classtype;
-								WCHAR fieldname[255];
-								ULONG fieldnamelength;
-								DWORD attr;
-								PCCOR_SIGNATURE sigBlob;
-								ULONG sigbloblength;
-								DWORD CPlusTypeFlag;
-								DWORD valuelength;
-								UVCP_CONSTANT value;
-
-								WriteFile(pipe, &fieldcount, sizeof(fieldcount), &bw, NULL); 
-								
-								for (j=0; j<fieldcount; j++)
-								{
-									DWORD fieldtype=(DWORD)fields[j].fieldType;	
-
-									WriteFile(pipe, &fields[j].offset, sizeof(fields[j].offset), &bw, NULL);
-									WriteFile(pipe, &fieldtype, sizeof(fieldtype), &bw, NULL);
-
-
-									//optional name:
-									fieldnamelength=0;
-									if (metadata)
-										metadata->GetFieldProps(fields[j].token, &classtype, fieldname, 255, &fieldnamelength, &attr,  &sigBlob, &sigbloblength, &CPlusTypeFlag, &value, &valuelength);
-
-									fieldnamelength=sizeof(WCHAR)*fieldnamelength;
-
-									WriteFile(pipe, &fieldnamelength, sizeof(fieldnamelength), &bw, NULL);
-									if (fieldnamelength)
-										WriteFile(pipe, fieldname, fieldnamelength, &bw, NULL);
-
-								}
-
-							}
-							
-						}
-						
-					}
-					else
-					{
-						//error
-						type=0xffffffff;						
-						WriteFile(pipe, &type, sizeof(type), &bw, NULL);												
-					}										
+					sendType(objects[i].type);
+															
 					break;
 				}
 			}
@@ -934,7 +1112,7 @@ void CPipeServer::getAddressData(UINT64 Address)
 	
 
 	if (!found)
-		WriteFile(pipe, &StartAddress, sizeof(StartAddress), &bw, NULL); //startaddress 0 means there is no data or no CorDebugProcess5
+		WriteFile(pipehandle, &StartAddress, sizeof(StartAddress), &bw, NULL); //startaddress 0 means there is no data or no CorDebugProcess5
 }
 
 volatile int count;
@@ -1001,15 +1179,15 @@ void CPipeServer::enumAllObjects(void)
 							address = objects[i].address;
 							size = (DWORD)objects[i].size;
 
-							WriteFile(pipe, &address, sizeof(address), &bw, NULL);
-							WriteFile(pipe, &size, sizeof(size), &bw, NULL);
-							WriteFile(pipe, &objects[i].type, sizeof(objects[i].type), &bw, NULL);
+							WriteFile(pipehandle, &address, sizeof(address), &bw, NULL);
+							WriteFile(pipehandle, &size, sizeof(size), &bw, NULL);
+							WriteFile(pipehandle, &objects[i].type, sizeof(objects[i].type), &bw, NULL);
 
 							classnamelength = sizeof(WCHAR)*classnamelength;
 
-							WriteFile(pipe, &classnamelength, sizeof(classnamelength), &bw, NULL);
+							WriteFile(pipehandle, &classnamelength, sizeof(classnamelength), &bw, NULL);
 							if (classnamelength)
-								WriteFile(pipe, classname, classnamelength, &bw, NULL);							
+								WriteFile(pipehandle, classname, classnamelength, &bw, NULL);
 						}
 					}
 
@@ -1031,10 +1209,10 @@ void CPipeServer::enumAllObjects(void)
 		type.token1 = 0;
 		type.token2 = 0;
 
-		WriteFile(pipe, &address, sizeof(address), &bw, NULL);
-		WriteFile(pipe, &size, sizeof(size), &bw, NULL);
-		WriteFile(pipe, &type, sizeof(type), &bw, NULL);
-		WriteFile(pipe, &classnamelength, sizeof(classnamelength), &bw, NULL);
+		WriteFile(pipehandle, &address, sizeof(address), &bw, NULL);
+		WriteFile(pipehandle, &size, sizeof(size), &bw, NULL);
+		WriteFile(pipehandle, &type, sizeof(type), &bw, NULL);
+		WriteFile(pipehandle, &classnamelength, sizeof(classnamelength), &bw, NULL);
 	}
 
 }
@@ -1042,26 +1220,26 @@ void CPipeServer::enumAllObjects(void)
 
 int CPipeServer::Start(void)
 {
-	if (pipe!=INVALID_HANDLE_VALUE)
+	if (pipehandle !=INVALID_HANDLE_VALUE)
 	{
 		unsigned char command;
 		ULONG bytesread, byteswritten;
 
-		while (ReadFile(pipe, &command, sizeof(command), &bytesread, NULL))
+		while (ReadFile(pipehandle, &command, sizeof(command), &bytesread, NULL))
 		{
 			switch(command)
 			{
 				case CMD_TARGETPROCESS:			
-					if (ReadFile(pipe, &processid, sizeof(processid), &bytesread, NULL))
+					if (ReadFile(pipehandle, &processid, sizeof(processid), &bytesread, NULL))
 					{	
 						BOOL result;
 						result=OpenOrAttachToProcess();	
 
-						WriteFile(pipe, &result, sizeof(result), &byteswritten, NULL);	
+						WriteFile(pipehandle, &result, sizeof(result), &byteswritten, NULL);
 						if (result)
 						{
 							result=(CorDebugProcess5!=NULL); //tell that it supports structure type lookups or not
-							WriteFile(pipe, &result, sizeof(result), &byteswritten, NULL);	
+							WriteFile(pipehandle, &result, sizeof(result), &byteswritten, NULL);
 						}
 
 					}
@@ -1077,7 +1255,7 @@ int CPipeServer::Start(void)
 				case CMD_RELEASEOBJECTHANDLE:
 				{
 					UINT64 hObject;
-					if (ReadFile(pipe, &hObject, sizeof(hObject), &bytesread, NULL))
+					if (ReadFile(pipehandle, &hObject, sizeof(hObject), &bytesread, NULL))
 						releaseObjectHandle(hObject);
 					else
 						return 1;
@@ -1092,7 +1270,7 @@ int CPipeServer::Start(void)
 				case CMD_ENUMMODULELIST:
 					{
 						UINT64 hDomain;
-						if (ReadFile(pipe, &hDomain, sizeof(hDomain), &bytesread, NULL))
+						if (ReadFile(pipehandle, &hDomain, sizeof(hDomain), &bytesread, NULL))
 							enumModules(hDomain);
 						else
 							return 1;
@@ -1103,7 +1281,7 @@ int CPipeServer::Start(void)
 				case CMD_ENUMTYPEDEFS:
 					{
 						UINT64 hModule;
-						if (ReadFile(pipe, &hModule, sizeof(hModule), &bytesread, NULL))
+						if (ReadFile(pipehandle, &hModule, sizeof(hModule), &bytesread, NULL))
 							enumTypeDefs(hModule);
 						else
 							return 1;
@@ -1111,15 +1289,39 @@ int CPipeServer::Start(void)
 						break;
 					}
 
+				case CMD_GETTYPEDEFFIELDS:
+					{
+						UINT64 hModule;
+						mdTypeDef TypeDef;
+
+						if (ReadFile(pipehandle, &hModule, sizeof(hModule), &bytesread, NULL))
+						{
+							if (ReadFile(pipehandle, &TypeDef, sizeof(TypeDef), &bytesread, NULL))
+							{
+								enumTypeDefFields(hModule, TypeDef);
+								break;
+							}
+							else
+								return 1;
+						}
+						else
+							return 1;
+
+						break;
+					
+					}
+
 				case CMD_GETTYPEDEFMETHODS:
 					{
 						UINT64 hModule;
 						mdTypeDef TypeDef;
 						
-						if (ReadFile(pipe, &hModule, sizeof(hModule), &bytesread, NULL))
+						if (ReadFile(pipehandle, &hModule, sizeof(hModule), &bytesread, NULL))
 						{
-							if (ReadFile(pipe, &TypeDef, sizeof(TypeDef), &bytesread, NULL))
-								enumTypeDefMethods(hModule, TypeDef);
+							if (ReadFile(pipehandle, &TypeDef, sizeof(TypeDef), &bytesread, NULL))
+							{
+								enumTypeDefMethods(hModule, TypeDef);								
+							}
 							else
 								return 1;
 						}
@@ -1132,7 +1334,7 @@ int CPipeServer::Start(void)
 				case CMD_GETADDRESSDATA:
 					{
 						UINT64 Address;
-						if (ReadFile(pipe, &Address, sizeof(Address), &bytesread, NULL))
+						if (ReadFile(pipehandle, &Address, sizeof(Address), &bytesread, NULL))
 						{
 							getAddressData(Address);
 						}

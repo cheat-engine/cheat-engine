@@ -17,6 +17,51 @@ local CurrentProcess
 
 local frmDotNetInfos={} --keep track of the windows
 
+local function getClassMethods(Class)
+end
+
+local function getClassFields(Class)
+  Class.Fields={}
+  local i
+  if Class.Image.Domain.Control==CONTROL_MONO then
+    local fields=mono_class_enumFields(Class.Handle)
+    for i=1,#fields do
+      local e={}
+      e.Handle=fields[i].type
+      e.Name=fields[i].name
+      e.VarType=fields[i].monotype
+      e.VarTypeName=fields[i].typename
+      e.Offset=fields[i].offset
+      e.Static=fields[i].isStatic
+      e.Const=fields[i].isConst
+      
+      e.Class=Class
+      
+      table.insert(Class.Fields,e)
+    end
+   
+  else
+    --mono
+    local classdata=DataSource.DotNetDataCollector.GetTypeDefData(Class.Image.Handle, Class.Handle)
+    if classdata and classdata.Fields then
+      for i=1,#classdata.Fields do
+        --Offset, FieldType, Name
+        local e={}
+        e.Handle=classdata.Fields[i].Token
+        e.Name=classdata.Fields[i].Name
+        e.VarType=classdata.Fields[i].FieldType
+        e.Offset=classdata.Fields[i].Offset
+        e.Static=classdata.Fields[i].IsStatic
+        e.Class=Class
+        
+        
+        table.insert(Class.Fields,e)
+      end
+    end
+    
+  end
+end
+
 local function getClasses(Image)
   if Image.Classes==nil then
     print("getClasses Error: Image.Classes was not initialized")
@@ -37,8 +82,8 @@ local function getClasses(Image)
         local e={}        
         e.Name=classlist[i].classname
         e.NameSpace=classlist[i].namespace        
-        e.Token=classlist[i].class
-        e.ParentToken=mono_class_getParent(e.Token)         
+        e.Handle=classlist[i].class
+        e.ParentToken=mono_class_getParent(e.Handle)         
         e.Image=Image
         
         table.insert(Image.Classes,e)
@@ -51,8 +96,9 @@ local function getClasses(Image)
       local e={}
       e.Name=classlist[i].Name
       e.NameSpace='' --nyi
-      e.Token=classlist[i].TypeDefToken
+      e.Handle=classlist[i].TypeDefToken
       e.ParentToken=classlist[i].Extends
+      e.Image=Image
       
       table.insert(Image.Classes,e)
     end
@@ -128,7 +174,9 @@ local function getDomains()
 end
 
 local function clearClassInformation(frmDotNetInfo)
-  --frmDotNetInfo.
+  frmDotNetInfo.lvStaticFields.Items.clear()
+  frmDotNetInfo.lvFields.Items.clear()
+  frmDotNetInfo.lvMethods.Items.clear()
 end
 
 local function ClassFetchWaitTillReadyAndSendData(thread, frmDotNetInfo, Image, OnDataFunction, FetchDoneFunction)
@@ -221,6 +269,41 @@ end
 local function ClassSelectionChange(sender)
   local frmDotNetInfo=frmDotNetInfos[sender.owner.Tag]
   clearClassInformation(frmDotNetInfo)
+  
+  if sender.ItemIndex>=0 then
+    local Domain=DataSource.Domains[frmDotNetInfo.lbDomains.ItemIndex+1]
+    local Image=Domain.Images[frmDotNetInfo.lbImages.ItemIndex+1] 
+    local Class=Image.Classes[frmDotNetInfo.lbClasses.ItemIndex+1]    
+  
+    if Class.Fields==nil then
+      getClassFields(Class)
+    end
+    
+    if Class.Methods==nil then
+      getClassMethods(Class)
+    end
+    
+    if Class.Fields then  
+      for i=1,#Class.Fields do
+        if Class.Fields[i].Static then
+          local li=frmDotNetInfo.lvStaticFields.Items.add()                    
+          li.Caption=Class.Fields[i].Name
+          li.SubItems.add(Class.Fields[i].VarType)    
+        else       
+          local li=frmDotNetInfo.lvFields.Items.add()
+        
+          li.Caption=string.format("%.3x", Class.Fields[i].Offset)
+          li.SubItems.add(Class.Fields[i].Name)
+          li.SubItems.add(Class.Fields[i].VarType)                  
+        end
+      end
+    end
+    
+    if Class.Methods then
+    end
+    
+    
+  end
 end
 
 
@@ -228,7 +311,7 @@ local function ImageSelectionChange(sender)
   local frmDotNetInfo=frmDotNetInfos[sender.owner.Tag]
 
   frmDotNetInfo.lbClasses.Items.clear()
-  clearClassInformation()
+  clearClassInformation(frmDotNetInfo)
   
   if sender.ItemIndex>=0 then   
     frmDotNetInfo.lbClasses.Enabled=false
@@ -248,7 +331,7 @@ local function ImageSelectionChange(sender)
       if thread.Terminated then return end
       
       for i=1,#classlistchunk do
-        frmDotNetInfo.lbClasses.Items.add(classlistchunk[i].Name)
+        frmDotNetInfo.lbClasses.Items.add(string.format('%d: (%.8x) - %s', frmDotNetInfo.lbClasses.Items.Count+1, classlistchunk[i].Handle, classlistchunk[i].Name))
       end
       
 
@@ -265,9 +348,10 @@ end
 
 
 local function DomainSelectionChange(sender)
+  local frmDotNetInfo=frmDotNetInfos[sender.owner.Tag]
   frmDotNetInfo.lbImages.Items.clear()
   frmDotNetInfo.lbClasses.Items.clear()
-  clearClassInformation()
+  clearClassInformation(frmDotNetInfo)
   
   local frmDotNetInfo=frmDotNetInfos[sender.owner.Tag]
   if sender.ItemIndex>=0 then

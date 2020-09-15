@@ -22,7 +22,7 @@
       <AutoIncrementBuild Value="True"/>
       <MajorVersionNr Value="7"/>
       <MinorVersionNr Value="2"/>
-      <BuildNr Value="6465"/>
+      <BuildNr Value="6529"/>
       <Language Value=""/>
       <CharSet Value=""/>
       <StringTable CompanyName="Cheat Engine" FileDescription="Cheat Engine" ProductVersion="7.2"/>
@@ -575,7 +575,7 @@
 -dNOVMX
 -dCUSTOMFLOAT
 -dXDEBUG"/>
-            <OtherDefines Count="12">
+            <OtherDefines Count="13">
               <Define0 Value="NOTMULTITHREADED"/>
               <Define1 Value="benchmarkps"/>
               <Define2 Value="cemain"/>
@@ -588,6 +588,7 @@
               <Define9 Value="checkassembleralphabet"/>
               <Define10 Value="memorymapped"/>
               <Define11 Value="privatebuild"/>
+              <Define12 Value="DBVMFORAMDISWORKING"/>
             </OtherDefines>
           </Other>
         </CompilerOptions>

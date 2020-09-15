@@ -1132,7 +1132,7 @@ begin
     if symhandler.GetLayoutFromAddress(address, addressdata) then
     begin
       c.fillFromDotNetAddressData(addressdata);
-      c.name:=addressdata.classname;
+      c.name:=addressdata.typedata.classname;
       if c.count>0 then
       begin
         ChildStruct:=c;
@@ -1476,17 +1476,17 @@ begin
 
   e:=addElement('Vtable',0, vtPointer);
 
-  if (data.objecttype = ELEMENT_TYPE_ARRAY) or  (data.objecttype = ELEMENT_TYPE_SZARRAY) then //elements are integral, rather than named fields
+  if (data.typedata.objecttype = ELEMENT_TYPE_ARRAY) or  (data.typedata.objecttype = ELEMENT_TYPE_SZARRAY) then //elements are integral, rather than named fields
   begin
-    readprocessmemory(processhandle,pointer(data.startaddress+data.countoffset),@j,sizeof(j),x); //read array length (always flat addressing, regardless of rank)
-    addElement('Number of Elements', data.countoffset, vtDword);
+    readprocessmemory(processhandle,pointer(data.startaddress+data.typedata.countoffset),@j,sizeof(j),x); //read array length (always flat addressing, regardless of rank)
+    addElement('Number of Elements', data.typedata.countoffset, vtDword);
     //arbitrarily decide that we only want to see the first 100 elements...
     if j > 100 then //maybe prompt instead, but it's easy enough to add elements later and some
       j := 100; //structures (Terraria's tiles, eg, are 2*10^9 elements) and it's either too slow or not possible to diagram
     for i:=0 to j-1 do
     begin
-      e:=addElement(data.classname + '['+inttostr(i)+']', data.firstelementoffset+i*data.elementsize, vtPointer);
-      case data.elementtype of
+      e:=addElement(data.typedata.classname + '['+inttostr(i)+']', data.typedata.firstelementoffset+i*data.typedata.elementsize, vtPointer);
+      case data.typedata.elementtype of
         ELEMENT_TYPE_END            : e.VarType:=vtDword;
         ELEMENT_TYPE_VOID           : e.VarType:=vtDword;
         ELEMENT_TYPE_BOOLEAN        : e.VarType:=vtByte;
@@ -1505,23 +1505,23 @@ begin
     end;
   end;
 
-  if length(data.fields)>0 then
+  if length(data.typedata.fields)>0 then
   begin
-    bufsize:=data.fields[length(data.fields)-1].offset+16;
+    bufsize:=data.typedata.fields[length(data.typedata.fields)-1].offset+16;
     getmem(buf, bufsize);
     readprocessmemory(processhandle,pointer(data.startaddress),@buf[0],bufsize,x);
 
 
     beginupdate;
     try
-      for i:=0 to length(data.fields)-1 do
+      for i:=0 to length(data.typedata.fields)-1 do
       begin
-        e:=addElement(data.fields[i].name, data.fields[i].offset);
+        e:=addElement(data.typedata.fields[i].name, data.typedata.fields[i].offset);
 
         e.DisplayMethod:=dtUnSignedInteger;
 
 
-        case data.fields[i].fieldtype of
+        case data.typedata.fields[i].fieldtype of
           ELEMENT_TYPE_END            : e.VarType:=vtDword;
           ELEMENT_TYPE_VOID           : e.VarType:=vtDword;
           ELEMENT_TYPE_BOOLEAN        : e.VarType:=vtByte;
@@ -1552,10 +1552,10 @@ begin
           begin
             //unknown type. Guess
 
-            offset:=data.fields[i].offset;
+            offset:=data.typedata.fields[i].offset;
 
-            if i<length(data.fields)-1 then
-              elemsize:=data.fields[i+1].offset-data.fields[i].offset
+            if i<length(data.typedata.fields)-1 then
+              elemsize:=data.typedata.fields[i+1].offset-data.typedata.fields[i].offset
             else
               elemsize:=bufsize-offset;
 
@@ -1563,7 +1563,7 @@ begin
             while elemsize>0 do
             begin
 
-              vt:=FindTypeOfData(data.startaddress+offset,@buf[data.fields[i].offset],elemsize, ctp, [biNoString]);
+              vt:=FindTypeOfData(data.startaddress+offset,@buf[data.typedata.fields[i].offset],elemsize, ctp, [biNoString]);
               e.vartype:=vt;
               if vt=vtCustom then
                 e.CustomType:=customtype;
@@ -1573,7 +1573,7 @@ begin
               inc(j);
 
               if elemsize>0 then
-                e:=addElement(data.fields[i].name+'_'+inttostr(j), offset);
+                e:=addElement(data.typedata.fields[i].name+'_'+inttostr(j), offset);
 
 
             end;
@@ -3986,7 +3986,7 @@ begin
     hasAddressData:=symhandler.GetLayoutFromAddress(TStructColumn(columns[0]).getAddress, addressdata);
 
     if hasAddressData then
-      structName:=addressdata.classname
+      structName:=addressdata.typedata.classname
     else
     if getRTTIClassName(TStructColumn(columns[0]).getAddress,cname) then
       structName:=cname
@@ -4151,7 +4151,7 @@ begin
     hasAddressData:=symhandler.GetLayoutFromAddress(TStructColumn(columns[0]).getAddress, addressdata);
 
     if hasAddressData then
-      structname:=addressdata.classname
+      structname:=addressdata.typedata.classname
     else
     {$endif}
     begin

@@ -68,19 +68,27 @@ type
 
 
   TFieldInfo=record
+    token: dword;
     offset: dword;
     fieldtype: dword;
     name: widestring;
+    isStatic: boolean;
   end;
 
-  TAddressData=record
-    startaddress: ptruint;
+  TTypeData=record
     objecttype: dword;
     elementtype: dword; //the data type of elements if this is an array
     countoffset, elementsize, firstelementoffset: ulong32; //misc data for objecttype = array or szarray
 
     classname: widestring;
     fields: array of TFieldInfo;
+  end;
+  PTypeData=^TTypeData;
+
+
+  TAddressData=record
+    startaddress: ptruint;
+    typedata: TTypeData;
   end;
 
   type COR_TYPEID=record
@@ -109,6 +117,7 @@ type
     pipecs: TGuiSafeCriticalSection;  //guisafecriticalsection?
     procedure Read(var o; size: integer);
     procedure Write(const o; size: integer);
+    procedure ReadTypeData(var typedata: TTypeData);
   public
     constructor create;
     destructor destroy; override;
@@ -121,8 +130,9 @@ type
     procedure EnumModuleList(hDomain: UINT64; var Modules: TDotNetModuleArray);
     procedure EnumTypeDefs(hModule: UINT64; var TypeDefs: TDotNetTypeDefArray);
     procedure GetTypeDefMethods(hModule: UINT64; typedef: DWORD; var Methods: TDotNetMethodArray);
+    procedure GetTypeDefData(hModule: UINT64; typedef: DWORD; var fielddata: TTypeData);
     procedure GetAddressData(address: UINT64; var addressdata: TAddressData);
-    function EnumAllObjects: TDOTNETObjectList;
+    function  EnumAllObjects: TDOTNETObjectList;
     procedure freeNETObjectList(list: TDOTNETObjectList);
   published
     property Connected: boolean read fConnected;
@@ -144,6 +154,7 @@ const
   CMD_GETTYPEDEFMETHODS=6;
   CMD_GETADDRESSDATA=7;
   CMD_GETALLOBJECTS=8;
+  CMD_GETTYPEDEFFIELDS=9;
 
 
 procedure TDotNetPipe.freeNETObjectList(list: TDOTNETObjectList);
@@ -214,13 +225,8 @@ begin
   result:=r;
 end;
 
-procedure TDotNetPipe.GetAddressData(address: UINT64; var addressdata: TAddressData);
+procedure TDotNetPipe.ReadTypeData(var typedata: TTypeData);
 var
-  msg: packed record
-    command: byte;
-    address: UINT64;
-  end;
-
   classnamesize: dword;
   cname: pwidechar;
 
@@ -232,11 +238,130 @@ var
 
   fi: TFieldInfo;
   inserted: boolean;
+  isStatic: byte;
+begin
+  read(typedata.objecttype, sizeof(typedata.objecttype));
+
+  if typedata.objecttype=$ffffffff then exit;
+
+
+  //array support patch by justa_dude
+  if (typedata.objecttype=ELEMENT_TYPE_ARRAY) or (typedata.objecttype=ELEMENT_TYPE_SZARRAY) then
+  begin
+    typedata.classname := 'Array';
+    read(typedata.elementtype, sizeof(typedata.elementtype));
+    read(typedata.countoffset, sizeof(typedata.countoffset));
+    read(typedata.elementsize, sizeof(typedata.elementsize));
+    read(typedata.firstelementoffset, sizeof(typedata.firstelementoffset));
+    if typedata.elementtype=$FFFFFFFF then //we couldn't determine the array shape
+    begin
+      typedata.elementtype := ELEMENT_TYPE_VOID;
+      typedata.elementsize := 0;
+    end
+  end
+  else //then //if true then //addressdata.objecttype=ELEMENT_TYPE_CLASS then
+  begin
+    read(classnamesize, sizeof(classnamesize));
+    if classnamesize>0 then
+    begin
+      getmem(cname, classnamesize+2);
+      read(cname[0], classnamesize);
+      cname[classnamesize div 2]:=#0;
+      typedata.classname:=cname;
+
+      FreeMemAndNil(cname);
+    end;
+
+    read(fieldcount, sizeof(fieldcount));
+    setlength(typedata.fields, fieldcount);
+
+    for i:=0 to fieldcount-1 do
+    begin
+      read(fi.token, sizeof(dword));
+      read(fi.offset, sizeof(dword));
+      read(fi.fieldtype, sizeof(dword));
+
+      read(isStatic,1);
+      fi.isStatic:=isstatic<>0;
+
+      read(fieldnamesize, sizeof(fieldnamesize));
+      getmem(fieldname, fieldnamesize+2);
+      read(fieldname[0], fieldnamesize);
+      fieldname[fieldnamesize div 2]:=#0;
+      fi.name:=fieldname;
+      FreeMemAndNil(fieldname);
+
+      //sort while adding
+      inserted:=false;
+      for j:=0 to i-1 do
+      begin
+        if fi.offset<typedata.fields[j].offset then //insert it before this one
+        begin
+          //shift this one and all subsequent items
+          for k:=i-1 downto j do
+            typedata.fields[k+1]:=typedata.fields[k];
+
+          typedata.fields[j]:=fi;
+          inserted:=true;
+          break;
+        end;
+      end;
+      if not inserted then
+        typedata.fields[i]:=fi;
+
+    end;
+  end;
+end;
+
+procedure TDotNetPipe.GetTypeDefData(hModule: UINT64; typedef: DWORD; var fielddata: TTypeData);
+var
+  msg: packed record
+    command: byte;
+    hModule: UINT64;
+    typedef: uint32;
+  end;
+  msgsize: integer;
+begin
+  if fConnected=false then
+  begin
+    fielddata.classname:='';
+    setlength(fielddata.fields,0);
+    exit;
+  end;
+
+  msg.command:=CMD_GETTYPEDEFFIELDS;
+  msg.hModule:=hModule;
+  msg.typedef:=typedef;
+
+
+
+
+
+  pipecs.enter;
+  try
+    msgsize:=sizeof(msg);
+    write(msg, msgsize);
+    readTypeData(fielddata);
+  finally
+    pipecs.leave;
+  end;
+
+end;
+
+procedure TDotNetPipe.GetAddressData(address: UINT64; var addressdata: TAddressData);
+var
+  msg: packed record
+    command: byte;
+    address: UINT64;
+  end;
+
+
 begin
   if fConnected=false then
   begin
     addressdata.startaddress:=0;
-    setlength(addressdata.fields,0);
+    addressdata.typedata.classname:='';
+    setlength(addressdata.typedata.fields,0);
     exit;
   end;
 
@@ -251,73 +376,8 @@ begin
 
     read(addressdata.startaddress, sizeof(addressdata.startaddress));
     if addressdata.startaddress<>0 then
-    begin
-      read(addressdata.objecttype, sizeof(addressdata.objecttype));
+      readTypeData(addressdata.typedata);
 
-      //array support patch by justa_dude
-      if (addressdata.objecttype=ELEMENT_TYPE_ARRAY) or (addressdata.objecttype=ELEMENT_TYPE_SZARRAY) then
-      begin
-        addressdata.classname := 'Array';
-        read(addressdata.elementtype, sizeof(addressdata.elementtype));
-        read(addressdata.countoffset, sizeof(addressdata.countoffset));
-        read(addressdata.elementsize, sizeof(addressdata.elementsize));
-        read(addressdata.firstelementoffset, sizeof(addressdata.firstelementoffset));
-        if addressdata.elementtype=$FFFFFFFF then //we couldn't determine the array shape
-        begin
-          addressdata.elementtype := ELEMENT_TYPE_VOID;
-          addressdata.elementsize := 0;
-        end
-      end
-      else //then //if true then //addressdata.objecttype=ELEMENT_TYPE_CLASS then
-      begin
-        read(classnamesize, sizeof(classnamesize));
-        if classnamesize>0 then
-        begin
-          getmem(cname, classnamesize+2);
-          read(cname[0], classnamesize);
-          cname[classnamesize div 2]:=#0;
-          addressdata.classname:=cname;
-
-          FreeMemAndNil(cname);
-        end;
-
-        read(fieldcount, sizeof(fieldcount));
-        setlength(addressdata.fields, fieldcount);
-
-        for i:=0 to fieldcount-1 do
-        begin
-          read(fi.offset, sizeof(dword));
-          read(fi.fieldtype, sizeof(dword));
-
-          read(fieldnamesize, sizeof(fieldnamesize));
-          getmem(fieldname, fieldnamesize+2);
-          read(fieldname[0], fieldnamesize);
-          fieldname[fieldnamesize div 2]:=#0;
-          fi.name:=fieldname;
-          FreeMemAndNil(fieldname);
-
-          //sort while adding
-          inserted:=false;
-          for j:=0 to i-1 do
-          begin
-            if fi.offset<addressdata.fields[j].offset then //insert it before this one
-            begin
-              //shift this one and all subsequent items
-              for k:=i-1 downto j do
-                addressdata.fields[k+1]:=addressdata.fields[k];
-
-              addressdata.fields[j]:=fi;
-              inserted:=true;
-              break;
-            end;
-          end;
-          if not inserted then
-            addressdata.fields[i]:=fi;
-
-        end;
-      end;
-
-    end;
 
 
   finally
@@ -340,6 +400,7 @@ var
   methodnamesize: dword;
 
   SecondaryCodeBlocks: ULONG32;
+  msgsize: integer;
 begin
   if fConnected=false then
   begin
@@ -353,7 +414,8 @@ begin
 
   pipecs.enter;
   try
-    write(msg, sizeof(msg));
+    msgsize:=sizeof(msg);
+    write(msg, msgsize);
 
     read(numberofmethods, sizeof(numberofmethods));
     setlength(methods, numberofmethods);

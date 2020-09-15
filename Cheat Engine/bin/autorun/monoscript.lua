@@ -60,6 +60,8 @@ MONOCMD_ISCLASSGENERIC=37
 MONOCMD_ISIL2CPP=38
 
 MONOCMD_FILLOPTIONALFUNCTIONLIST=39
+MONOCMD_GETSTATICFIELDVALUE=40 --fallback for il2cpp which doesn't expose what's needed
+MONOCMD_SETSTATICFIELDVALUE=41
 
 
 
@@ -875,6 +877,8 @@ function mono_image_enumClasses(image)
       end
 
       local namespacelength=monopipe.readWord()
+      if namespacelength==nil then break end
+      
       if namespacelength>0 then
         classes[j].namespace=monopipe.readString(namespacelength)
       else
@@ -885,7 +889,9 @@ function mono_image_enumClasses(image)
     
   end
 
-  monopipe.unlock()
+  if monopipe then
+    monopipe.unlock()
+  end
 
   return classes;
 end
@@ -1009,6 +1015,11 @@ end
 
 function mono_class_getVTable(domain, klass)
   --if debug_canBreak() then return nil end
+  if domain and klass==nil then
+    klass=domain
+    domain=nil
+  end
+  
   if monopipe.IL2CPP then
     return klass
   end
@@ -1310,6 +1321,11 @@ end
 function mono_class_getStaticFieldAddress(domain, class)
   --if debug_canBreak() then return nil end
 
+  if (class==nil)  and domain then
+    class=domain
+    domain=0
+  end
+  
   local result=0
   monopipe.lock()
   monopipe.writeByte(MONOCMD_GETSTATICFIELDADDRESSFROMCLASS)
@@ -1317,8 +1333,10 @@ function mono_class_getStaticFieldAddress(domain, class)
   monopipe.writeQword(class)  
 
   result=monopipe.readQword()
-
-  monopipe.unlock()
+  
+  if monopipe then
+    monopipe.unlock()
+  end
   return result;
 end
 
@@ -1479,6 +1497,45 @@ function mono_getJitInfo(address)
   end
   return nil
 end
+
+function mono_getStaticFieldValue(vtable, field)
+  local r
+  monopipe.lock()
+  monopipe.writeByte(MONOCMD_GETSTATICFIELDVALUE)
+  monopipe.writeQword(vtable)
+  monopipe.writeQword(field)
+  r=monopipe.readQword()
+  
+  if monopipe then
+    monopipe.unlock() 
+  end
+
+  return r    
+end
+
+function mono_setStaticFieldValue(vtable, field, value)
+  local r
+  monopipe.lock()
+  monopipe.writeByte(MONOCMD_SETSTATICFIELDVALUE)
+  monopipe.writeQword(vtable)
+  monopipe.writeQword(field)
+  monopipe.writeQword(value)
+  monopipe.unlock() 
+  
+  return r    
+end
+
+
+function mono_class_getStaticFieldValue(class, field)
+  local vtable=mono_class_getVTable(0,class)
+  return mono_getStaticFieldValue(vtable, field)
+end
+
+function mono_class_setStaticFieldValue(class, field, value)
+  local vtable=mono_class_getVTable(0,class)
+  return mono_setStaticFieldValue(vtable, field, value)
+end
+
 
 
 

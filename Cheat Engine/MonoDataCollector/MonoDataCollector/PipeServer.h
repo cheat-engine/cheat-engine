@@ -46,6 +46,8 @@
 #define MONOCMD_ISCLASSGENERIC 37
 #define MONOCMD_ISIL2CPP 38
 #define MONOCMD_FILLOPTIONALFUNCTIONLIST 39
+#define MONOCMD_GETSTATICFIELDVALUE 40
+#define MONOCMD_SETSTATICFIELDVALUE 41
 
 
 typedef struct {} MonoType;
@@ -167,6 +169,12 @@ typedef void* (__cdecl *MONO_METHOD_DESC_SEARCH_IN_IMAGE)(void *desc, void *imag
 typedef void* (__cdecl *MONO_RUNTIME_INVOKE)(void *method, void *obj, void **params, void **exc);
 typedef void* (__cdecl *MONO_RUNTIME_INVOKE_ARRAY)(void *method, void *obj, void *params, void **exc);
 typedef void* (__cdecl *MONO_RUNTIME_OBJECT_INIT)(void *object);
+
+typedef void* (__cdecl *MONO_FIELD_STATIC_GET_VALUE)(void *vtable, void* field, void* output);
+typedef void* (__cdecl *MONO_FIELD_STATIC_SET_VALUE)(void *vtable, void* field, void* input);
+
+typedef void* (__cdecl *IL2CPP_FIELD_STATIC_GET_VALUE)(void* field, void* output);
+typedef void* (__cdecl *IL2CPP_FIELD_STATIC_SET_VALUE)(void* field, void* input);
 
 typedef void* (__cdecl *MONO_VALUE_BOX)(void *domain, void *klass, void* val);
 typedef void* (__cdecl *MONO_OBJECT_UNBOX)(void *obj);
@@ -305,7 +313,13 @@ private:
 	MONO_RUNTIME_INVOKE mono_runtime_invoke;
 	MONO_RUNTIME_OBJECT_INIT mono_runtime_object_init;
 
+	MONO_FIELD_STATIC_GET_VALUE mono_field_static_get_value;
+	MONO_FIELD_STATIC_SET_VALUE mono_field_static_set_value;
+
 	//il2cpp
+	IL2CPP_FIELD_STATIC_GET_VALUE il2cpp_field_static_get_value;
+	IL2CPP_FIELD_STATIC_SET_VALUE il2cpp_field_static_set_value;
+
 	IL2CPP_DOMAIN_GET_ASSEMBLIES il2cpp_domain_get_assemblies;
 
 	IL2CPP_IMAGE_GET_CLASS_COUNT il2cpp_image_get_class_count;
@@ -367,6 +381,8 @@ private:
 	void IsGenericClass();
 	void IsIL2CPP();
     void FillOptionalFunctionList(); //mainly for unixbased systems
+	void GetStaticFieldValue();
+	void SetStaticFieldValue();
 
 public:
 	CPipeServer(void);

@@ -389,6 +389,9 @@ void CPipeServer::InitMono()
 				mono_assembly_open = (MONO_ASSEMBLY_OPEN)GetProcAddress(hMono, "il2cpp_assembly_open");
 				mono_image_open = (MONO_IMAGE_OPEN)GetProcAddress(hMono, "il2cpp_image_open");
 
+				il2cpp_field_static_get_value = (IL2CPP_FIELD_STATIC_GET_VALUE)GetProcAddress(hMono, "il2cpp_field_static_get_value");
+				il2cpp_field_static_set_value = (IL2CPP_FIELD_STATIC_SET_VALUE)GetProcAddress(hMono, "il2cpp_field_static_set_value");
+
 
 				il2cpp_domain_get_assemblies = (IL2CPP_DOMAIN_GET_ASSEMBLIES)GetProcAddress(hMono, "il2cpp_domain_get_assemblies");
 				il2cpp_image_get_class_count = (IL2CPP_IMAGE_GET_CLASS_COUNT)GetProcAddress(hMono, "il2cpp_image_get_class_count");
@@ -522,6 +525,9 @@ void CPipeServer::InitMono()
 				mono_assembly_loaded = (MONO_ASSEMBLY_LOADED)GetProcAddress(hMono, "mono_assembly_loaded");
 				mono_assembly_open = (MONO_ASSEMBLY_OPEN)GetProcAddress(hMono, "mono_assembly_open");
 				mono_image_open = (MONO_IMAGE_OPEN)GetProcAddress(hMono, "mono_image_open");
+
+				mono_field_static_get_value = (MONO_FIELD_STATIC_GET_VALUE)GetProcAddress(hMono, "mono_field_static_get_value");
+				mono_field_static_set_value = (MONO_FIELD_STATIC_SET_VALUE)GetProcAddress(hMono, "mono_field_static_set_value");
 
 
 				mono_selfthread = mono_thread_attach(mono_get_root_domain());
@@ -1885,6 +1891,49 @@ void CPipeServer::FillOptionalFunctionList()
     WriteByte(1);
 }
 
+void CPipeServer::GetStaticFieldValue()
+{
+	void* Vtable = (void*)ReadQword();
+	void* Field = (void*)ReadQword();
+
+	QWORD val = 0;
+	if (il2cpp)
+	{
+		if (il2cpp_field_static_get_value)
+			il2cpp_field_static_get_value(Field, &val);
+
+	}
+	else
+	{
+		if (mono_field_static_get_value)
+			mono_field_static_get_value(Vtable, Field, &val);
+	}
+
+
+	WriteQword(val);
+}
+
+
+void CPipeServer::SetStaticFieldValue()
+{
+	void* Vtable = (void*)ReadQword();
+	void* Field = (void*)ReadQword();
+	QWORD val = ReadQword();
+
+	if (il2cpp)
+	{
+		if (il2cpp_field_static_set_value)
+			il2cpp_field_static_set_value(Field, &val);
+	}
+	else
+	{
+		if (mono_field_static_set_value)
+			mono_field_static_set_value(Vtable, Field, &val);
+	}
+}
+
+
+
 void CPipeServer::Start(void)
 {
 	BYTE command;
@@ -2063,7 +2112,17 @@ void CPipeServer::Start(void)
                 case MONOCMD_FILLOPTIONALFUNCTIONLIST:
                     FillOptionalFunctionList();
                     break;
+
+				case MONOCMD_GETSTATICFIELDVALUE:
+					GetStaticFieldValue();
+					break;
+
+				case MONOCMD_SETSTATICFIELDVALUE:
+					SetStaticFieldValue();
+					break;
 				}
+
+
 
 				
 
