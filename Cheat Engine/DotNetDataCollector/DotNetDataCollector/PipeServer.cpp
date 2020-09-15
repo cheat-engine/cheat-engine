@@ -961,6 +961,7 @@ void CPipeServer::sendType(COR_TYPEID cortypeid)
 			ICorDebugClass *c;
 			ICorDebugModule *m;
 			IMetaDataImport *metadata = NULL;
+			
 			ULONG32 fieldcount;
 			mdTypeDef classtoken = 0;
 			WCHAR classname[255];
@@ -1038,17 +1039,61 @@ void CPipeServer::sendType(COR_TYPEID cortypeid)
 					if (metadata)
 					{
 						metadata->GetFieldProps(fields[j].token, &classtype, fieldname, 255, &fieldnamelength, &attr, &sigBlob, &sigbloblength, &CPlusTypeFlag, &value, &valuelength);						
-						isStatic = IsFdStatic(attr);
+						isStatic = IsFdStatic(attr);					
 					}
-
 					WriteFile(pipehandle, &isStatic, 1, &bw, NULL);
-					
 
 					fieldnamelength = sizeof(WCHAR)*fieldnamelength;
 
 					WriteFile(pipehandle, &fieldnamelength, sizeof(fieldnamelength), &bw, NULL);
 					if (fieldnamelength)
 						WriteFile(pipehandle, fieldname, fieldnamelength, &bw, NULL);
+
+
+					//get the classname of this type if possible
+					classnamelength = 0;
+
+
+
+					
+					ICorDebugType *type2 = NULL;
+					if (CorDebugProcess5->GetTypeForTypeID(fields[j].id, &type2) == S_OK)
+					{
+						if (type2)
+						{
+							ICorDebugClass *c2;
+							IMetaDataImport *metadata2 = NULL;
+							
+							if (type2->GetClass(&c2) == S_OK)
+							{
+								if (c2->GetToken(&classtoken) == S_OK)
+								{
+									ICorDebugModule *m2;
+									if (c2->GetModule(&m2) == S_OK)
+									{
+										metadata2 = getMetaData(m2);
+										if (metadata2)
+										{
+											DWORD flags2;
+											mdToken extends2;
+											metadata2->GetTypeDefProps(classtoken, classname, 255, &classnamelength, &flags2, &extends2);
+										}
+
+										m2->Release();
+									}
+									c2->Release();
+								}
+							}
+							
+							type2->Release();
+						}
+					}
+
+					classnamelength=sizeof(WCHAR)*classnamelength;
+
+					WriteFile(pipehandle, &classnamelength, sizeof(classnamelength), &bw, NULL);
+					if (classnamelength)
+						WriteFile(pipehandle, classname, classnamelength, &bw, NULL);
 
 				}
 

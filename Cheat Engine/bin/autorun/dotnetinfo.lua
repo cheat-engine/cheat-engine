@@ -50,6 +50,7 @@ local function getClassFields(Class)
         e.Handle=classdata.Fields[i].Token
         e.Name=classdata.Fields[i].Name
         e.VarType=classdata.Fields[i].FieldType
+        e.VarTypeName=classdata.Fields[i].FieldTypeClassName
         e.Offset=classdata.Fields[i].Offset
         e.Static=classdata.Fields[i].IsStatic
         e.Class=Class
@@ -288,13 +289,22 @@ local function ClassSelectionChange(sender)
         if Class.Fields[i].Static then
           local li=frmDotNetInfo.lvStaticFields.Items.add()                    
           li.Caption=Class.Fields[i].Name
-          li.SubItems.add(Class.Fields[i].VarType)    
+          
+          if Class.Fields[i].VarTypeName and Class.Fields[i].VarTypeName~='' then
+            li.SubItems.add(Class.Fields[i].VarTypeName)              
+          else
+            li.SubItems.add(Class.Fields[i].VarType)    
+          end
         else       
           local li=frmDotNetInfo.lvFields.Items.add()
         
           li.Caption=string.format("%.3x", Class.Fields[i].Offset)
           li.SubItems.add(Class.Fields[i].Name)
-          li.SubItems.add(Class.Fields[i].VarType)                  
+          if Class.Fields[i].VarTypeName and Class.Fields[i].VarTypeName~='' then
+            li.SubItems.add(Class.Fields[i].VarTypeName)              
+          else
+            li.SubItems.add(Class.Fields[i].VarType)    
+          end               
         end
       end
     end

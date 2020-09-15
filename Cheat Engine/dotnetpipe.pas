@@ -72,6 +72,7 @@ type
     offset: dword;
     fieldtype: dword;
     name: widestring;
+    fieldTypeClassName: widestring;
     isStatic: boolean;
   end;
 
@@ -290,6 +291,16 @@ begin
       fieldname[fieldnamesize div 2]:=#0;
       fi.name:=fieldname;
       FreeMemAndNil(fieldname);
+
+
+      //FieldTypeClassName
+      read(classnamesize, sizeof(classnamesize));
+      getmem(cname, classnamesize+2);
+      read(cname[0], classnamesize);
+      cname[classnamesize div 2]:=#0;
+      fi.FieldTypeClassName:=cname;
+      FreeMemAndNil(cname);
+
 
       //sort while adding
       inserted:=false;

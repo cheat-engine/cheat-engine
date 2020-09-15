@@ -271,6 +271,10 @@ begin
       lua_pushstring(L, typedata.fields[i].name);
       lua_settable(L,-3);
 
+      lua_pushstring(L,'FieldTypeClassName');
+      lua_pushstring(L, typedata.fields[i].fieldTypeClassName);
+      lua_settable(L,-3);
+
       lua_pushstring(L,'IsStatic');
       lua_pushboolean(L, typedata.fields[i].IsStatic);
       lua_settable(L,-3);
@@ -355,6 +359,10 @@ begin
 
       lua_pushstring(L,'Name');
       lua_pushstring(L, addressData.typedata.fields[i].name);
+      lua_settable(L,-3);
+
+      lua_pushstring(L,'FieldTypeClassName');
+      lua_pushstring(L, addressData.typedata.fields[i].fieldTypeClassName);
       lua_settable(L,-3);
 
       lua_pushstring(L,'IsStatic');
