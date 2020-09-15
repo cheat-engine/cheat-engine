@@ -68,10 +68,13 @@ object frameHotkeyConfig: TframeHotkeyConfig
         'Cancel the current scan'
         'Debug->Run'
       )
-      ItemHeight = 15
+      ItemHeight = 0
       OnClick = ListBox1Click
+      OnDrawItem = ListBox1DrawItem
       OnSelectionChange = ListBox1SelectionChange
+      Options = []
       PopupMenu = PopupMenu1
+      Style = lbOwnerDrawFixed
       TabOrder = 0
     end
   end
