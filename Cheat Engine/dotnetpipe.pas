@@ -66,6 +66,18 @@ type
 
   TDotNetMethodArray=array of TDotNetMethod;
 
+  TDotNetMethodParameter=record
+    name: widestring;
+    ctype: dword;
+    sequencenr: dword;
+  end;
+
+  TDotNetMethodParameters=array of TDotNetMethodParameter;
+
+  TTypeDefInfo=record
+    token: dword;
+    module: uint64;
+  end;
 
   TFieldInfo=record
     token: dword;
@@ -130,8 +142,10 @@ type
     procedure EnumDomains(var domains: TDotNetDomainArray);
     procedure EnumModuleList(hDomain: UINT64; var Modules: TDotNetModuleArray);
     procedure EnumTypeDefs(hModule: UINT64; var TypeDefs: TDotNetTypeDefArray);
+    procedure GetMethodParameters(hModule: UINT64; methoddef: DWORD; var MethodParameters: TDotNetMethodParameters);
     procedure GetTypeDefMethods(hModule: UINT64; typedef: DWORD; var Methods: TDotNetMethodArray);
     procedure GetTypeDefData(hModule: UINT64; typedef: DWORD; var fielddata: TTypeData);
+    procedure GetTypeDefParent(hModule: UINT64; typedef: DWORD; var parentinfo: TTypeDefInfo);
     procedure GetAddressData(address: UINT64; var addressdata: TAddressData);
     function  EnumAllObjects: TDOTNETObjectList;
     procedure freeNETObjectList(list: TDOTNETObjectList);
@@ -156,7 +170,8 @@ const
   CMD_GETADDRESSDATA=7;
   CMD_GETALLOBJECTS=8;
   CMD_GETTYPEDEFFIELDS=9;
-
+  CMD_GETMETHODPARAMETERS=10;
+  CMD_GETTYPEDEFPARENT=11;
 
 procedure TDotNetPipe.freeNETObjectList(list: TDOTNETObjectList);
 var
@@ -206,7 +221,7 @@ begin
       read(o.size, sizeof(o.size));
       read(o.typeid,sizeof(o.typeid));
       read(stringlength, sizeof(stringlength));
-      getmem(o.classname, stringlength+2);
+      getmem(o.classname, stringlength+4);
       read(o.classname^,stringlength);
       o.classname[stringlength div 2]:=#0;
 
@@ -265,7 +280,7 @@ begin
     read(classnamesize, sizeof(classnamesize));
     if classnamesize>0 then
     begin
-      getmem(cname, classnamesize+2);
+      getmem(cname, classnamesize+4);
       read(cname[0], classnamesize);
       cname[classnamesize div 2]:=#0;
       typedata.classname:=cname;
@@ -286,7 +301,7 @@ begin
       fi.isStatic:=isstatic<>0;
 
       read(fieldnamesize, sizeof(fieldnamesize));
-      getmem(fieldname, fieldnamesize+2);
+      getmem(fieldname, fieldnamesize+4);
       read(fieldname[0], fieldnamesize);
       fieldname[fieldnamesize div 2]:=#0;
       fi.name:=fieldname;
@@ -295,7 +310,7 @@ begin
 
       //FieldTypeClassName
       read(classnamesize, sizeof(classnamesize));
-      getmem(cname, classnamesize+2);
+      getmem(cname, classnamesize+4);
       read(cname[0], classnamesize);
       cname[classnamesize div 2]:=#0;
       fi.FieldTypeClassName:=cname;
@@ -322,6 +337,38 @@ begin
 
     end;
   end;
+end;
+
+procedure TDotNetPipe.GetTypeDefParent(hModule: UINT64; typedef: DWORD; var parentinfo: TTypeDefInfo);
+var
+  msg: packed record
+    command: byte;
+    hModule: UINT64;
+    typedef: uint32;
+  end;
+  msgsize: integer;
+begin
+  if fConnected=false then
+  begin
+    parentinfo.module:=0;
+    parentinfo.token:=0;
+    exit;
+  end;
+
+  
+  msg.command:=CMD_GETTYPEDEFPARENT;
+  msg.hModule:=hModule;
+  msg.typedef:=typedef;
+  pipecs.enter;
+  try
+    msgsize:=sizeof(msg);
+    write(msg, msgsize);
+    read(parentinfo.module,8);
+    read(parentinfo.token,8);
+  finally
+    pipecs.leave;
+  end;
+
 end;
 
 procedure TDotNetPipe.GetTypeDefData(hModule: UINT64; typedef: DWORD; var fielddata: TTypeData);
@@ -396,6 +443,76 @@ begin
   end;
 end;
 
+procedure TDotNetPipe.GetMethodParameters(hModule: UINT64; methoddef: DWORD; var MethodParameters: TDotNetMethodParameters);
+var
+  msg: packed record
+    command: byte;
+    hModule: UINT64;
+    methoddef: dword;
+  end;
+  msgsize: integer;
+
+  count: dword;
+  paramnamesize: dword;
+  paramname: pwidechar;
+
+  fieldtype: dword;
+  sequencenr: dword;
+  i,j,k: integer;
+  temp: TDotNetMethodParameter;
+begin
+  msg.command:=CMD_GETMETHODPARAMETERS;
+  msg.hModule:=hmodule;
+  msg.methoddef:=methoddef;
+  pipecs.enter;
+  try
+    msgsize:=sizeof(msg);
+    write(msg, msgsize);
+
+    read(count, sizeof(count));
+    setlength(methodparameters, count);
+
+    for i:=0 to count-1 do
+    begin
+      //read the parameters
+      read(paramnamesize, sizeof(paramnamesize));
+      getmem(paramname, paramnamesize+4);
+      try
+        read(paramname[0], paramnamesize);
+        paramname[paramnamesize div 2]:=#0;
+        temp.name:=paramname;
+      finally
+        FreeMemAndNil(paramname);
+      end;
+
+      read(temp.ctype, sizeof(temp.ctype));
+      read(temp.sequencenr, sizeof(temp.sequencenr));
+
+      if (paramnamesize=0) and (temp.sequencenr=$ffffffff) then continue;
+
+      for j:=0 to i-1 do
+      begin
+        if temp.sequencenr<methodparameters[j].sequencenr then
+        begin
+          //insert before here, first shift the bigger one right
+          for k:=i downto j+1 do
+            methodparameters[k]:=methodparameters[k-1];
+
+          methodparameters[j]:=temp;
+          temp.ctype:=$FFFFFFFF; //mark as added
+          break;
+        end;
+      end;
+
+      if temp.ctype<>$FFFFFFFF then
+        methodparameters[i]:=temp;
+    end;
+  finally
+    pipecs.leave;
+  end;
+
+end;
+
 procedure TDotNetPipe.GetTypeDefMethods(hModule: UINT64; typedef: DWORD; var Methods: TDotNetMethodArray);
 var
   msg: packed record
@@ -435,7 +552,7 @@ begin
       read(methods[i].token, sizeof(methods[i].token));
 
       read(methodnamesize, sizeof(methodnamesize));
-      getmem(mname, methodnamesize+2);
+      getmem(mname, methodnamesize+4);
       try
         read(mname[0], methodnamesize);
         mname[methodnamesize div 2]:=#0;
@@ -494,7 +611,7 @@ begin
     begin
       read(typedefs[i].token, sizeof(ULONG32));
       read(typedefnamesize, sizeof(typedefnamesize));
-      getmem(typedefname, typedefnamesize+2);
+      getmem(typedefname, typedefnamesize+4);
 
       try
         read(typedefname[0], typedefnamesize);
@@ -550,7 +667,7 @@ begin
       read(Modules[i].hModule, sizeof(UINT64));
       read(Modules[i].baseaddress, sizeof(UINT64));
       read(namelength, sizeof(namelength));
-      getmem(name, namelength+2);
+      getmem(name, namelength+4);
       try
         Read(name[0], namelength);
         name[namelength div 2]:=#0;
@@ -640,7 +757,7 @@ begin
       read(domains[i].hDomain, sizeof(uint64));
       read(namelength, sizeof(namelength));
 
-      getmem(name, namelength+2);
+      getmem(name, namelength+4);
       try
         Read(name[0], namelength);
         name[namelength div 2]:=#0;

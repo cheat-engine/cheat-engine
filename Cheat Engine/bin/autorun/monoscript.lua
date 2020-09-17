@@ -126,6 +126,29 @@ monoTypeToVartypeLookup[MONO_TYPE_GENERICINST]=vtPointer
 monoTypeToVartypeLookup[MONO_TYPE_ARRAY]=vtPointer
 monoTypeToVartypeLookup[MONO_TYPE_SZARRAY]=vtPointer
 
+monoTypeToCStringLookup={}
+monoTypeToCStringLookup[MONO_TYPE_END]='void'
+monoTypeToCStringLookup[MONO_TYPE_BOOLEAN]='boolean'
+monoTypeToCStringLookup[MONO_TYPE_CHAR]='char'
+monoTypeToCStringLookup[MONO_TYPE_I1]='char'
+monoTypeToCStringLookup[MONO_TYPE_U1]='unsigned char'
+monoTypeToCStringLookup[MONO_TYPE_I2]='short'
+monoTypeToCStringLookup[MONO_TYPE_U2]='unsigned short'
+monoTypeToCStringLookup[MONO_TYPE_I4]='int'
+monoTypeToCStringLookup[MONO_TYPE_U4]='unsigned int'
+monoTypeToCStringLookup[MONO_TYPE_I8]='int64'
+monoTypeToCStringLookup[MONO_TYPE_U8]='unsigned int 64'
+monoTypeToCStringLookup[MONO_TYPE_R4]='single'
+monoTypeToCStringLookup[MONO_TYPE_R8]='double'
+monoTypeToCStringLookup[MONO_TYPE_STRING]='String' --pointer to a string object
+monoTypeToCStringLookup[MONO_TYPE_PTR]='Pointer'
+monoTypeToCStringLookup[MONO_TYPE_BYREF]='Object'
+monoTypeToCStringLookup[MONO_TYPE_CLASS]='Object'
+monoTypeToCStringLookup[MONO_TYPE_FNPTR]='Function'
+monoTypeToCStringLookup[MONO_TYPE_GENERICINST]='<Generic>'
+monoTypeToCStringLookup[MONO_TYPE_ARRAY]='Array[]'
+monoTypeToCStringLookup[MONO_TYPE_SZARRAY]='String[]'
+
 
 FIELD_ATTRIBUTE_FIELD_ACCESS_MASK=0x0007
 FIELD_ATTRIBUTE_COMPILER_CONTROLLED=0x0000

@@ -594,6 +594,175 @@ void CPipeServer::enumTypeDefs(UINT64 hModule)
 	MetaData->CloseEnum(henum);
 }
 
+
+void CPipeServer::getTypeDefParent(UINT64 hModule, mdTypeDef TypeDef)
+//handy for calling enumMethods
+{
+	ICorDebugModule *module = (ICorDebugModule *)hModule;
+	ICorDebugClass *pClass;
+
+	ICorDebugModule *ParentModule = 0;
+	mdTypeDef ParentTypeDef = 0;
+	
+		
+	if (module->GetClassFromToken(TypeDef, &pClass) == S_OK)
+	{
+	
+		ICorDebugClass2 *pClass2 = NULL;
+		if (pClass->QueryInterface(IID_ICorDebugClass2, (void **)&pClass2) == S_OK)
+		{
+			if (pClass2)
+			{
+				ICorDebugType *pType = NULL;
+				pClass2->GetParameterizedType(ELEMENT_TYPE_CLASS, 0, NULL, &pType);
+				if (pType)
+				{
+					ICorDebugType *pBase = NULL;
+					if (pType->GetBase(&pBase) == S_OK)
+					{
+						if (pBase)
+						{
+							ICorDebugClass *pBaseClass;
+							if (pBase->GetClass(&pBaseClass) == S_OK)
+							{
+								if (pBaseClass)
+								{
+									pBaseClass->GetToken(&ParentTypeDef);
+									pBaseClass->GetModule(&ParentModule);
+									pBaseClass->Release();
+								}
+							}
+
+							pBase->Release();
+						}
+					}
+				}
+				pClass2->Release();
+			}
+		}
+
+		pClass->Release();
+	}
+
+	WriteQword((UINT64)ParentModule); //modulehandle
+	WriteDword(ParentTypeDef); //typedef
+}
+
+void CPipeServer::enumMethodParameters(UINT64 hModule, mdMethodDef MethodDef)
+{
+	//----
+	ICorDebugModule *module = (ICorDebugModule *)hModule;
+	IMetaDataImport *MetaData = getMetaData(module);
+
+	HCORENUM hParamEnum = 0;
+	mdParamDef rParams[30];
+	ULONG count;
+	vector<mdParamDef> params;
+
+	mdMethodDef method;
+	ULONG sequence;
+	WCHAR paramname[255];
+	ULONG paramnamesize;
+	DWORD attribs;
+	DWORD cplustypeflag;
+	UVCP_CONSTANT value;
+	ULONG valuesize;
+	DWORD bw;
+
+	if (MetaData->EnumParams(&hParamEnum, MethodDef, rParams, 30, &count) == S_OK) //not a while, 30 params max else it's screwed up anyhow
+	{
+		int i;	
+		WriteDword(count);
+
+		{
+			mdTypeDef Class;
+			WCHAR methodname[255];
+			ULONG methodnamesize;
+			PCCOR_SIGNATURE sig;
+			ULONG sigsize;
+			ULONG rva;
+			DWORD flags;
+			ULONG dataOut[200];
+			ULONG dataLen;
+
+			
+			/*
+			nvm. Paramnames is good enough.  todo: inject in a .net dll that fetches that data using refelection (if it's really requested a lot)
+			if (MetaData->GetMethodProps(MethodDef, &Class, methodname, 255, &methodnamesize, &attribs, &sig, &sigsize, &rva, &flags) == S_OK)
+			{
+				int x;
+				ULONG pos = 0;
+				if (pos <= sigsize)
+				{
+
+					ULONG callconv = sig[pos];
+					pos++;
+
+					if (pos <= sigsize)
+					{
+						ULONG TypeArgCount;
+						if (callconv && IMAGE_CEE_CS_CALLCONV_GENERIC)
+						{
+							x = CorSigUncompressData(&sig[pos], &TypeArgCount);
+							pos += x;
+						}
+
+						ULONG ArgCount;
+						x = CorSigUncompressData(&sig[pos], &ArgCount);
+						pos += x;
+
+						ULONG ReturnType;
+						x=CorSigUncompressData(&sig[pos], &ReturnType);
+						pos += x;
+
+
+					}
+				}
+
+				
+			}*/
+			
+		}
+
+	
+
+		for (i = 0; i < count; i++)
+		{
+			if (MetaData->GetParamProps(rParams[i], &method, &sequence, paramname, 255, &paramnamesize, &attribs, &cplustypeflag, &value, &valuesize) == S_OK)
+			{
+				//WriteDword
+				
+
+				paramnamesize = sizeof(TCHAR)*paramnamesize;
+
+				WriteFile(pipehandle, &paramnamesize, sizeof(paramnamesize), &bw, NULL); //namesize
+				if (paramnamesize)
+					WriteFile(pipehandle, paramname, paramnamesize, &bw, NULL); //name
+				
+				WriteDword(cplustypeflag);
+				WriteDword(sequence);
+
+
+
+
+			}
+			else
+			{
+				WriteDword(0);
+				WriteDword(0);
+				WriteDword(-1);
+			}
+		}
+	}
+	else
+		WriteDword(0);
+
+	if (hParamEnum)
+		MetaData->CloseEnum(hParamEnum);
+
+	//-----
+}
+
 void CPipeServer::enumTypeDefMethods(UINT64 hModule, mdTypeDef TypeDef)
 {
 	ICorDebugModule *module=(ICorDebugModule *)hModule;
@@ -614,6 +783,7 @@ void CPipeServer::enumTypeDefMethods(UINT64 hModule, mdTypeDef TypeDef)
 
 		WriteFile(pipehandle, &count, sizeof(count), &bw, NULL); //number of methods
 
+	
 		do
 		{
 			r=MetaData->EnumMethods(&henum, TypeDef, methods, 32, &count);
@@ -637,9 +807,10 @@ void CPipeServer::enumTypeDefMethods(UINT64 hModule, mdTypeDef TypeDef)
 
 				WriteFile(pipehandle, &methods[i], sizeof(methods[i]), &bw, NULL); //tokenid
 
-
 				methodnamesize=0;
 				MetaData->GetMethodProps(methods[i], &classdef, methodname, 255, &methodnamesize, &dwAttr, &sig, &sigsize,  &CodeRVA, &dwImplFlags);
+
+				
 
 				methodnamesize=sizeof(TCHAR)*methodnamesize;
 				
@@ -649,7 +820,7 @@ void CPipeServer::enumTypeDefMethods(UINT64 hModule, mdTypeDef TypeDef)
 				WriteFile(pipehandle, &dwAttr, sizeof(dwAttr), &bw, NULL);
 				WriteFile(pipehandle, &dwImplFlags, sizeof(dwImplFlags), &bw, NULL);
 
-							
+
 				if (module->GetFunctionFromToken(methods[i], &df)==S_OK)
 				{
 					ICorDebugCode *Code;
@@ -676,6 +847,8 @@ void CPipeServer::enumTypeDefMethods(UINT64 hModule, mdTypeDef TypeDef)
 								if (codechunks[j].startAddr)
 									SecondaryCodeBlocks++;															
 						}
+
+						
 
 						Code->Release();
 					}
@@ -859,6 +1032,7 @@ void CPipeServer::enumTypeDefFields(UINT64 hModule, mdTypeDef TypeDef)
 	{
 		if (ppClass && (ppClass->QueryInterface(IID_ICorDebugClass2, (void **)&ppClass2) == S_OK))
 		{
+			
 			if (ppClass2 && (ppClass2->GetParameterizedType(ELEMENT_TYPE_CLASS, 0, NULL, &ppType) == S_OK)) //todo: generics
 			{
 				if (ppType && (ppType->QueryInterface(IID_ICorDebugType2, (void **)&ppType2) == S_OK))
@@ -927,6 +1101,8 @@ void CPipeServer::sendType(COR_TYPEID cortypeid)
 	COR_TYPE_LAYOUT layout;
 	DWORD type;
 	DWORD bw;
+
+
 
 	if (CorDebugProcess5->GetTypeLayout(cortypeid, &layout) == S_OK)
 	{
@@ -1334,6 +1510,29 @@ int CPipeServer::Start(void)
 						break;
 					}
 
+				case CMD_GETTYPEDEFPARENT:
+					{
+						UINT64 hModule;
+						mdTypeDef TypeDef;
+
+						if (ReadFile(pipehandle, &hModule, sizeof(hModule), &bytesread, NULL))
+						{
+							if (ReadFile(pipehandle, &TypeDef, sizeof(TypeDef), &bytesread, NULL))
+							{
+								getTypeDefParent(hModule, TypeDef);
+							}
+							else
+								return 1;
+						}
+						else
+							return 1;
+
+						break;
+
+					}
+
+				
+
 				case CMD_GETTYPEDEFFIELDS:
 					{
 						UINT64 hModule;
@@ -1373,6 +1572,26 @@ int CPipeServer::Start(void)
 						else
 							return 1;
 						
+						break;
+					}
+
+				case CMD_GETMETHODPARAMETERS:
+					{
+						UINT64 hModule;
+						mdMethodDef MethodDef;
+						
+						if (ReadFile(pipehandle, &hModule, sizeof(hModule), &bytesread, NULL))
+						{
+							if (ReadFile(pipehandle, &MethodDef, sizeof(MethodDef), &bytesread, NULL))
+							{
+								enumMethodParameters(hModule, MethodDef);
+							}
+							else
+								return 1;
+						}
+						else
+							return 1;
+
 						break;
 					}
 

@@ -12161,7 +12161,7 @@ begin
     lua_settable(L,-3);
 
     lua_pushstring(L,'State');
-    lua_pushinteger(L,mbi.RegionSize);
+    lua_pushinteger(L,mbi.State);
     lua_settable(L,-3);
 
     lua_pushstring(L,'Protect');
@@ -12169,7 +12169,7 @@ begin
     lua_settable(L,-3);
 
     lua_pushstring(L,'Type');
-    lua_pushinteger(L,mbi.Protect);
+    lua_pushinteger(L,mbi._Type);
     lua_settable(L,-3);
 
     lua_settable(L,-3);

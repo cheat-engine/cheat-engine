@@ -17,7 +17,83 @@ local CurrentProcess
 
 local frmDotNetInfos={} --keep track of the windows
 
+
+local function CTypeToString(ctype)
+  local r=monoTypeToCStringLookup[ctype]
+  if r==nil then
+    r='Object '
+  end
+  
+  return r
+end
+
+
 local function getClassMethods(Class)
+  Class.Methods={}
+  
+
+  
+  local i
+  if Class.Image.Domain.Control==CONTROL_MONO then
+    local methods=mono_class_enumMethods(Class.Handle)
+    if methods then
+      for i=1,#methods do
+        local e={}
+        e.Handle=methods[i].method
+        e.Name=methods[i].name
+        
+        local params=mono_method_get_parameters(e.Handle)
+                
+        e.Parameters=params.returntype..' ('
+        local j
+        for j=1, #params.parameters do
+          local p=params.parameters[i].type..' '..params.parameters[i].name
+          
+          e.Parameters=e.Parameters..p
+          if j~=#params.parameters then
+            e.Parameters=e.Parameters..', '
+          end
+        end
+        
+        table.insert(Class.Methods, e)
+      end
+    end
+  else
+    local methods=DataSource.DotNetDataCollector.GetTypeDefMethods(Class.Image.Handle, Class.Handle)
+         
+    if methods then
+      --MethodToken, Name, Attributes, ImplementationFlags, ILCode, NativeCode, SecondaryNativeCode[]: Integer
+      for i=1,#methods do
+        local e={}
+        --_G.Methods=methods
+        --_G.Class=Class
+        e.Handle=methods[i].MethodToken
+        e.Name=methods[i].Name
+        
+        print("Method "..e.Name)
+        --build parameter list
+        local plist=DataSource.DotNetDataCollector.GetMethodParameters(Class.Image.Handle, methods[i].MethodToken)
+        if plist then
+          --print("Plist is valid.  #plist="..#plist) 
+          e.Parameters="("
+          for i=1,#plist do
+            --print("plist var1 = "..plist[i].CType)
+            e.Parameters=e.Parameters..CTypeToString(plist[i].CType).." "..plist[i].Name
+            if i<#plist then
+              e.Parameters=e.Parameters..', '
+            end
+          end
+          
+          e.Parameters=e.Parameters..")"
+        else
+          --print("plist failed")
+          e.Parameters='(...)'        
+        end
+      
+        table.insert(Class.Methods, e)
+      end
+    end
+  end
 end
 
 local function getClassFields(Class)
@@ -98,7 +174,7 @@ local function getClasses(Image)
       e.Name=classlist[i].Name
       e.NameSpace='' --nyi
       e.Handle=classlist[i].TypeDefToken
-      e.ParentToken=classlist[i].Extends
+      e.ParentToken=DataSource.DotNetDataCollector.GetTypeDefParent(Image.Handle, e.Handle) --classlist[i].Extends
       e.Image=Image
       
       table.insert(Image.Classes,e)
@@ -178,6 +254,7 @@ local function clearClassInformation(frmDotNetInfo)
   frmDotNetInfo.lvStaticFields.Items.clear()
   frmDotNetInfo.lvFields.Items.clear()
   frmDotNetInfo.lvMethods.Items.clear()
+  frmDotNetInfo.gbClassInformation.Caption='Class Information'
 end
 
 local function ClassFetchWaitTillReadyAndSendData(thread, frmDotNetInfo, Image, OnDataFunction, FetchDoneFunction)
@@ -275,6 +352,9 @@ local function ClassSelectionChange(sender)
     local Domain=DataSource.Domains[frmDotNetInfo.lbDomains.ItemIndex+1]
     local Image=Domain.Images[frmDotNetInfo.lbImages.ItemIndex+1] 
     local Class=Image.Classes[frmDotNetInfo.lbClasses.ItemIndex+1]    
+    
+    
+    frmDotNetInfo.gbClassInformation.Caption='Class Information ('..Class.Name..')'
   
     if Class.Fields==nil then
       getClassFields(Class)
@@ -310,6 +390,11 @@ local function ClassSelectionChange(sender)
     end
     
     if Class.Methods then
+      for i=1,#Class.Methods do
+        local li=frmDotNetInfo.lvMethods.Items.add()   
+        li.Caption=Class.Methods[i].Name
+        li.SubItems.add(Class.Methods[i].Parameters)
+      end
     end
     
     

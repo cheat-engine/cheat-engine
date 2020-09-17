@@ -149,9 +149,11 @@ begin
     modulehandle:=lua_tointeger(L,1);
     typedeftoken:=lua_tointeger(L,2);
 
-    setlength(methods,0);
-    dnp.GetTypeDefMethods(modulehandle, typedeftoken, methods);
+    lua_pop(L,lua_gettop(L));
 
+    setlength(methods,0);
+
+    dnp.GetTypeDefMethods(modulehandle, typedeftoken, methods);
     lua_createtable(L,length(methods),0);
 
     for i:=0 to length(methods)-1 do
@@ -159,7 +161,8 @@ begin
       //MethodToken, Name, Attributes, ImplementationFlags, ILCode, NativeCode, SecondaryNativeCode[]
 
       lua_pushinteger(L,i+1);
-      lua_createtable(L,0,4);
+      lua_createtable(L,0,7);
+
 
       lua_pushstring(L, 'MethodToken');
       lua_pushinteger(L, methods[i].token);
@@ -190,16 +193,86 @@ begin
 
       for j:=0 to length(methods[i].SecondaryNativeCode)-1 do
       begin
-        lua_pushinteger(L,i+1);
+        lua_pushinteger(L,j+1);
         lua_pushinteger(L,methods[i].SecondaryNativeCode[j].address);
-        lua_settable(L,-3);
+        lua_settable(L,-3); //methods[i].SecondaryNativeCode[j+1]=address
       end;
+      lua_settable(L,-3); //methods[i].SecondaryNativeCode={}
+
+
+      lua_settable(L,-3); //methods[i]={}
+    end;
+
+    result:=1;
+  end;
+end;
+
+function dotnetpipe_getMethodParameters(L: PLua_state): integer; cdecl;
+var
+  dnp: TDotNetPipe;
+  modulehandle: uint64;
+  methoddef: dword;
+  methodparameters: TDotNetMethodParameters;
+  i: integer;
+begin
+  result:=0;
+  dnp:=luaclass_getClassObject(L);
+  if lua_gettop(L)>=2 then
+  begin
+    modulehandle:=lua_tointeger(L,1);
+    methoddef:=lua_tointeger(L,2);
+    dnp.getmethodparameters(modulehandle, methoddef,methodparameters);
+
+    lua_createtable(L, length(methodparameters), 0);
+    for i:=0 to length(methodparameters)-1 do
+    begin
+      lua_pushinteger(L,i+1);
+      lua_createtable(L,0,2);
+
+      lua_pushString(L,'Name');
+      lua_pushString(L,methodparameters[i].name);
+      lua_settable(L,-3);
+
+      lua_pushString(L,'CType');
+      lua_pushinteger(L,methodparameters[i].ctype);
+      lua_settable(L,-3);
 
       lua_settable(L,-3);
     end;
 
     result:=1;
   end;
+end;
+
+function dotnetpipe_getTypeDefParent(L: PLua_state): integer; cdecl;
+var
+  dnp: TDotNetPipe;
+  module: QWORD;
+  typedef: dword;
+  tdpi: TTypeDefInfo;
+begin
+  result:=0;
+  dnp:=luaclass_getClassObject(L);
+  if lua_gettop(L)>=2 then
+  begin
+    module:=lua_tointeger(L,1);
+    typedef:=lua_tointeger(L,2);
+    dnp.GetTypeDefParent(module, typedef, tdpi);
+    if tdpi.module=0 then exit(0);
+
+    lua_pop(L,lua_gettop(L));
+
+    lua_createtable(L,0,2);
+    lua_pushstring(L,'ModuleHandle');
+    lua_pushinteger(L, tdpi.module);
+    lua_settable(L,-3);
+
+    lua_pushstring(L,'TypeDef');
+    lua_pushinteger(L, tdpi.token);
+    lua_settable(L,-3);
+    exit(2);
+  end;
+
 end;
 
 function dotnetpipe_getTypeDefData(L: PLua_state): integer; cdecl;
@@ -466,6 +539,10 @@ begin
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'enumTypeDefs', dotnetpipe_enumTypeDefs);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'getTypeDefMethods', dotnetpipe_getTypeDefMethods);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'getTypeDefData', dotnetpipe_getTypeDefData);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'getTypeDefParent', dotnetpipe_getTypeDefParent);
+
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'getMethodParameters', dotnetpipe_getMethodParameters);
+
 
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'getAddressData', dotnetpipe_getAddressData);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'enumAllObjects', dotnetpipe_enumAllObjects);

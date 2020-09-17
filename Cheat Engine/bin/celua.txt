@@ -3569,7 +3569,9 @@ EnumDomains(): table - Returns an index table containing all domains. Each entry
 EnumModuleList(DomainHandle) : table - Returns an indexed table containing information about all modules. Each module entry is build up as {ModuleHandle, BaseAddress, Name}
 EnumTypeDefs(ModuleHandle) : table - Returns an indexed table containing information about all TypeDefs (classes) . Each entry is build up as {TypeDefToken, Name, Flags, Extends}
 GetTypeDefMethods(ModuleHandle, TypedefToken) : table - Returns a table containing all the methods in the specified typedef. Each entry is build up as {MethodToken, Name, Attributes, ImplementationFlags, ILCode, NativeCode, SecondaryNativeCode[]: Integer)
+GetTypeDefParent(ModuleHandle, TypedefToken): {ModuleHandle, TypedefToken}
 GetTypeDefData(ModuleHandle, TypedefToken) : table - Returns a table containing all the fields in the specified typedef.  {ObjectType, ElementType, CountOffset, ElementSize, FirstElementOffset, ClassName, Fields[]{Offset, FieldType, Name} }
+GetMethodParameters(ModuleHandle, MethodDefToken): table - Returns a table containing all the parameters of the method. {Name, CType}
 GetAddressData(address): table - Queries a specific address and returns information about it, assuming it is a valid object. It contains the following data: {StartAddress, ObjectType, ElementType, CountOffset, ElementSize, FirstElementOffset, ClassName, Fields[]{Offset, FieldType, Name} }
 
 EnumAllObjects(): table - Queries ALL defined objects. {StartAddress, Size, TypeID{token1,token2}, ClassName}   WARNING: This will take a LOOOOOONG time and if done from the main thread will make it look like CE is frozen
