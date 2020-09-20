@@ -3847,7 +3847,7 @@ begin
 
 end;
 
-procedure stripCPUspecificCode(code: tstrings);
+procedure stripCPUspecificCode(code: tstrings; strip32bit: boolean);
 var i: integer;
   s: string;
   inexcludedbitblock: boolean;
@@ -3860,33 +3860,32 @@ begin
 
     if s='[32-BIT]' then
     begin
-      {$ifdef cpu64}
-      inexcludedbitblock:=true;
-      {$endif}
+      if strip32bit then
+        inexcludedbitblock:=true;
+
       code[i]:=' ';
     end;
 
     if s='[/32-BIT]' then
     begin
-      {$ifdef cpu64}
-      inexcludedbitblock:=false;
-      {$endif}
+      if strip32bit then
+        inexcludedbitblock:=false;
+
       code[i]:=' ';
     end;
 
     if s='[64-BIT]' then
     begin
-      {$ifdef cpu32}
-      inexcludedbitblock:=true;
-      {$endif}
+      if not strip32bit then
+        inexcludedbitblock:=true;
+
       code[i]:=' ';
     end;
 
     if s='[/64-BIT]' then
     begin
-      {$ifdef cpu32}
-      inexcludedbitblock:=false;
-      {$endif}
+      if not strip32bit then
+        inexcludedbitblock:=false;
       code[i]:=' ';
     end;
 
@@ -3906,6 +3905,8 @@ var tempstrings: tstringlist;
     i,j: integer;
     currentline: string;
     enablepos,disablepos: integer;
+
+    strip32bitcode: boolean;
 begin
   //add line numbers to the code
   for i:=0 to code.Count-1 do
@@ -3960,8 +3961,11 @@ begin
       end;
     end;
 
+    strip32bitcode:=processhandler.is64Bit;
     if targetself then
-      Stripcpuspecificcode(tempstrings);
+      strip32bitcode:={$ifdef cpu64}true{$else}false{$endif};
+
+    Stripcpuspecificcode(tempstrings, strip32bitcode); //todo: change to set for other types like arm
 
     result:=autoassemble2(tempstrings,popupmessages,syntaxcheckonly,targetself,ceallocarray, exceptionlist, registeredsymbols, memrec);
   finally

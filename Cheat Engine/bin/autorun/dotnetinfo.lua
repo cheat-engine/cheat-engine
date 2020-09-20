@@ -42,18 +42,26 @@ local function getClassMethods(Class)
         e.Handle=methods[i].method
         e.Name=methods[i].name
         
-        local params=mono_method_get_parameters(e.Handle)
-                
-        e.Parameters=params.returntype..' ('
-        local j
-        for j=1, #params.parameters do
-          local p=params.parameters[i].type..' '..params.parameters[i].name
+        e.Parameters=getParameterFromMethod(e.Handle)
+--[[
+        mono_method_get_parameters(e.Handle)
+        if params then
+          print(string.format("%.8x has %d parameters",e.Handle,#params.parameters))
+        
+          e.Parameters=params.returntype..' ('
+          local j
           
-          e.Parameters=e.Parameters..p
-          if j~=#params.parameters then
-            e.Parameters=e.Parameters..', '
+          for j=1, #params.parameters do          
+            local p=params.parameters[i].type..' '..params.parameters[i].name
+            
+            e.Parameters=e.Parameters..p
+            if j~=#params.parameters then
+              e.Parameters=e.Parameters..', '
+            end
           end
-        end
+        else
+          print(string.format("%.8x failed getting the parameters",e.Handle))
+        end--]]
         
         table.insert(Class.Methods, e)
       end
@@ -70,7 +78,7 @@ local function getClassMethods(Class)
         e.Handle=methods[i].MethodToken
         e.Name=methods[i].Name
         
-        print("Method "..e.Name)
+        --print("Method "..e.Name)
         --build parameter list
         local plist=DataSource.DotNetDataCollector.GetMethodParameters(Class.Image.Handle, methods[i].MethodToken)
         if plist then
@@ -351,7 +359,11 @@ local function ClassSelectionChange(sender)
   if sender.ItemIndex>=0 then
     local Domain=DataSource.Domains[frmDotNetInfo.lbDomains.ItemIndex+1]
     local Image=Domain.Images[frmDotNetInfo.lbImages.ItemIndex+1] 
+    
+    if Image.Classes==nil then return end
+    
     local Class=Image.Classes[frmDotNetInfo.lbClasses.ItemIndex+1]    
+    if Class==nil then return end
     
     
     frmDotNetInfo.gbClassInformation.Caption='Class Information ('..Class.Name..')'
@@ -426,7 +438,13 @@ local function ImageSelectionChange(sender)
       if thread.Terminated then return end
       
       for i=1,#classlistchunk do
-        frmDotNetInfo.lbClasses.Items.add(string.format('%d: (%.8x) - %s', frmDotNetInfo.lbClasses.Items.Count+1, classlistchunk[i].Handle, classlistchunk[i].Name))
+        local fullname
+        if classlistchunk[i].NameSpace and classlistchunk[i].NameSpace~='' then
+          fullname=classlistchunk[i].NameSpace..'.'..classlistchunk[i].Name
+        else          
+          fullname=classlistchunk[i].Name
+        end
+        frmDotNetInfo.lbClasses.Items.add(string.format('%d: (%.8x) - %s', frmDotNetInfo.lbClasses.Items.Count+1, classlistchunk[i].Handle, fullname))
       end
       
 
