@@ -362,7 +362,7 @@ function injectDotNetDLL(path, classname, methodname, parameter)
   local script
   if isDotNetCore then
     script=DotNetCoreInjectScript  
-  elseif isDotNetStandard
+  elseif isDotNetStandard then
     script=DotNetStandardInjectScript
   else
     return nil,-4 --no dotnet architecture detected  
@@ -386,6 +386,7 @@ function injectDotNetDLL(path, classname, methodname, parameter)
         return nil, -2 --failed getting to the execute part
       else
         return nil, errorValue --execution gave this error (ntstatus)
+      end
     end    
 
     return returnValue
