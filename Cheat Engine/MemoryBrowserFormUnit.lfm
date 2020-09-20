@@ -80,59 +80,91 @@ object MemoryBrowser: TMemoryBrowser
         ShowCaptions = True
         TabOrder = 0
         Visible = False
-        object tbRun: TToolButton
-          Left = 113
+        object tbToggleBreakpoint: TToolButton
+          Left = 1
+          Hint = 'F5'
           Top = 2
-          Caption = 'Run'
-          Enabled = False
-          ImageIndex = 0
-          OnClick = miDebugRunClick
-        end
-        object tbStepInto: TToolButton
-          Left = 142
-          Top = 2
-          Caption = 'Step Into'
-          Enabled = False
-          ImageIndex = 1
-          OnClick = miDebugStepClick
-        end
-        object tbStepOver: TToolButton
-          Left = 197
-          Top = 2
-          Caption = 'Step Over'
-          Enabled = False
-          ImageIndex = 2
-          OnClick = miDebugStepOverClick
+          Caption = 'Toggle Breakpoint (F5)'
+          ImageIndex = 4
+          OnClick = miTogglebreakpointClick
+          ParentShowHint = False
+          ShowHint = True
         end
         object tbSeparator1: TToolButton
-          Left = 105
+          Left = 128
           Height = 40
           Top = 2
           Caption = 'tbSeparator1'
           Style = tbsSeparator
         end
-        object tbStepOut: TToolButton
-          Left = 256
+        object tbRun: TToolButton
+          Left = 136
+          Hint = 'F9'
           Top = 2
-          Caption = 'Step Out'
+          Caption = 'Run (F9)'
+          Enabled = False
+          ImageIndex = 0
+          OnClick = miDebugRunClick
+          ParentShowHint = False
+          ShowHint = True
+        end
+        object tbStepInto: TToolButton
+          Left = 196
+          Hint = 'F7'
+          Top = 2
+          Caption = 'Step Into (F7)'
+          Enabled = False
+          ImageIndex = 1
+          OnClick = miDebugStepClick
+          ParentShowHint = False
+          ShowHint = True
+        end
+        object tbStepOver: TToolButton
+          Left = 274
+          Hint = 'F8'
+          Top = 2
+          Caption = 'Step Over (F8)'
+          Enabled = False
+          ImageIndex = 2
+          OnClick = miDebugStepOverClick
+          ParentShowHint = False
+          ShowHint = True
+        end
+        object tbStepOut: TToolButton
+          Left = 356
+          Hint = 'Shift+F8'
+          Top = 2
+          Caption = 'Step Out (Shift+F8)'
           Enabled = False
           ImageIndex = 3
           OnClick = miDebugExecuteTillReturnClick
+          ParentShowHint = False
+          ShowHint = True
         end
         object tbSeparator2: TToolButton
-          Left = 310
+          Left = 188
           Height = 40
           Top = 2
           Caption = 'tbSeparator2'
           Style = tbsSeparator
-          Visible = False
         end
-        object tbToggleBreakpoint: TToolButton
-          Left = 1
+        object tbRunTill: TToolButton
+          Left = 473
+          Hint = 'F4'
           Top = 2
-          Caption = 'Toggle Breakpoint'
-          ImageIndex = 4
-          OnClick = miTogglebreakpointClick
+          Caption = 'Run till... (F4)'
+          Enabled = False
+          ImageIndex = 0
+          OnClick = miDebugRunTillClick
+          ParentShowHint = False
+          ShowHint = True
+        end
+        object tbSeparator3: TToolButton
+          Left = 465
+          Height = 40
+          Top = 2
+          Caption = 'tbSeparator3'
+          Style = tbsSeparator
         end
       end
     end
@@ -1670,7 +1702,7 @@ object MemoryBrowser: TMemoryBrowser
         OnClick = miRunUnhandledClick
       end
       object miDebugStep: TMenuItem
-        Caption = 'Step'
+        Caption = 'Step Into'
         Enabled = False
         ImageIndex = 1
         ShortCut = 118
@@ -1684,7 +1716,7 @@ object MemoryBrowser: TMemoryBrowser
         OnClick = miDebugStepOverClick
       end
       object miDebugExecuteTillReturn: TMenuItem
-        Caption = 'Execute till return'
+        Caption = 'Step Out - Execute till return'
         Enabled = False
         ImageIndex = 3
         ShortCut = 8311

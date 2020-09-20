@@ -222,6 +222,8 @@ type
     tbStepOut: TToolButton;
     tbSeparator2: TToolButton;
     tbToggleBreakpoint: TToolButton;
+    tbRunTill: TToolButton;
+    tbSeparator3: TToolButton;
     View1: TMenuItem;
     Stacktrace1: TMenuItem;
     ScrollBox1: TScrollBox;
@@ -5312,6 +5314,7 @@ begin
   tbStepInto.Enabled:=false; //disable toolbar step into button
   tbStepOver.Enabled:=false; //disable toolbar step over button
   tbStepOut.Enabled:=false; //disable toolbar step out button
+  tbRunTill.Enabled:=false;
   miDebugRun.Enabled:=false;
   miRunUnhandled.Enabled:=false;
   miRunUnhandled.Visible:=false;
@@ -5574,6 +5577,7 @@ begin
   miDebugStepOver.Enabled:=true;
   tbStepOver.Enabled:=true; //enable toolbar step over button
   miDebugRunTill.Enabled:=true;
+  tbRunTill.Enabled:=true;
   tbStepOut.Enabled:=true; //enable toolbar step out button
   miDebugSetAddress.enabled:=true;
   stacktrace1.Enabled:=true;
