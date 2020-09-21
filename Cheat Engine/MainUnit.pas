@@ -9675,6 +9675,9 @@ begin
                 if ProcessHandler.processid = newPID then
                   exit; //already attached to the newest one
 
+                if newPID=GetCurrentProcessId then
+                  continue; //Do not autoattach to self
+
                 oldpid := ProcessHandler.processid;
                 oldphandle := processhandler.processhandle;
 
