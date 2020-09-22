@@ -68,6 +68,7 @@ object frmStructures2: TfrmStructures2
       end>
     OnSectionResize = HeaderControl1SectionResize
     OnSectionTrack = HeaderControl1SectionTrack
+    OnSectionSeparatorDblClick = HeaderControl1SectionSeparatorDblClick
     Anchors = [akTop, akLeft, akRight]
   end
   object pnlGroups: TScrollBox

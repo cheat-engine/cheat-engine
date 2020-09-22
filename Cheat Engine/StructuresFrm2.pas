@@ -444,6 +444,7 @@ type
     procedure FindDialog1Find(Sender: TObject);
     procedure HeaderControl1SectionResize(HeaderControl: TCustomHeaderControl;
       Section: THeaderSection);
+    procedure HeaderControl1SectionSeparatorDblClick(HeaderControl: TCustomHeaderControl; Section: THeaderSection);
     procedure MenuItem3Click(Sender: TObject);
     procedure MenuItem5Click(Sender: TObject);
     procedure MenuItem6Click(Sender: TObject);
@@ -598,6 +599,8 @@ type
     procedure onStructureDelete(sender: TDissectedStruct);
 
     procedure FixPositions;
+
+    function GetNodeSectionWidth(const showAddress: boolean; const node: TTreeNode; var Section: THeaderSection): Integer;
   published
     property DefaultColor: TColor read fDefaultColor;
     property MatchColor: TColor read fMatchColor;
@@ -3241,6 +3244,74 @@ begin
 
   HeaderControl.Left:=-tvStructureView.scrolledleft;
 //  self.FixPositions;
+end;
+
+procedure TfrmStructures2.HeaderControl1SectionSeparatorDblClick(HeaderControl: TCustomHeaderControl; Section: THeaderSection);
+var
+  maxWidth,index,nodeWidth:Integer;
+  node:TTreeNode;
+  showAddress: boolean;
+begin
+
+  showAddress:=miShowAddresses.checked;
+
+  if tvStructureView.items.count>0 then
+  begin
+
+    maxWidth:=0;
+
+    for index:=0 to tvStructureView.items.count-1 do
+    begin
+
+      node:=tvStructureView.items[index];
+
+      nodeWidth:=GetNodeSectionWidth(showAddress, node, Section);
+
+      maxWidth:=Max(maxWidth,nodeWidth);
+
+    end;
+
+    Section.Width:=maxWidth+10;
+  end;
+end;
+
+function TfrmStructures2.GetNodeSectionWidth(const showAddress: boolean; const node: TTreeNode; var Section: THeaderSection): Integer;
+var
+  sectionColumn: TStructColumn;
+  stringValue: string;
+  structElement: TStructelement;
+  textrect: trect;
+begin
+
+  structElement:=getStructElementFromNode(node);
+
+  if Section.Index=0 then
+  begin
+
+    stringValue:=getDisplayedDescription(structElement);
+
+    textrect:=node.DisplayRect(true);
+
+    Result:=textrect.left+tvStructureView.Canvas.TextWidth(stringValue);
+
+  end
+  else
+  begin
+
+    setCurrentNodeStringsInColumns(node,structElement);
+
+    sectionColumn:=columns[Section.Index-1];
+
+    if showAddress then
+      stringValue:=sectionColumn.currentNodeAddress
+    else
+      stringValue:='';
+
+    stringValue:=stringValue+sectionColumn.currentNodeValue;
+
+    Result:=tvStructureView.Canvas.TextWidth(stringValue);
+
+  end;
 end;
 
 procedure TfrmStructures2.HeaderControl1SectionTrack(
