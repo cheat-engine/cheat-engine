@@ -1244,7 +1244,7 @@ var
   check: boolean;
   searchstring: string;
 
-  script: tstringlist;
+  script: tstringlist=nil;
   usesReferencedAddress: boolean=false;
   usesReferencedBytes: boolean=false;
   usesInstruction: boolean=false;
@@ -1767,8 +1767,10 @@ var
   i: integer;
   e: boolean;
 begin
+
   if (lvTracer.selected<>nil) and (lvTracer.selected.data<>nil) then
   begin
+    syma:=0;
     a:=TTraceDebugInfo(lvTracer.selected.data).c.{$ifdef cpu64}rip{$else}Eip{$endif};
     e:=true;
     i:=RPos(' - ', lvTracer.Selected.Text);

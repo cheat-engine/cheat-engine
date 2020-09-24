@@ -1,3 +1,7 @@
+'sub rsp,20+(4*8)+(6*8)'
+
+
+
 structure dissect: 
   delete all structures sometimes AV's (no idea how to reproduce)
 

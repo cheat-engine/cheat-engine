@@ -3344,8 +3344,6 @@ function mono_OnProcessOpened(processid, processhandle, caption)
   --call the original onOpenProcess if there was one
   if mono_OldOnProcessOpened~=nil then
     mono_OldOnProcessOpened(processid, processhandle, caption)
-  else
-    print("fuck")
   end
 
   mono_OpenProcessMT()
