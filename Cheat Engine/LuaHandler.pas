@@ -9060,7 +9060,8 @@ begin
 end;
 
 
-function createExecuteCodeExStub(L:PLua_state): integer; cdecl;
+
+function createExecuteMethodStub(L:PLua_state): integer; cdecl;
 (*
 assembles a function that takes a set parameter format and returns that address
 createExecuteCodeExStub(callmethod, address, {type=x} or param1,{type=x,value=param2} or param2,...)
@@ -9108,10 +9109,7 @@ var
   doubleqword: qword absolute d;
   z: PDwordArray;
 
-  stringsize: integer;
-  str: string;
-  wstr: widestring;
-  stringallocs: array of pointer;
+
   sai: integer;
   x: ptruint;
   y,wr: dword;
@@ -9142,8 +9140,6 @@ begin
 
   paramcount:=lua_gettop(L)-3;
 
-
-  setlength(stringallocs,0);
   setlength(allocs,0);
   setlength(exceptionlist,0);
 
@@ -9164,10 +9160,11 @@ begin
 
   s.add('stub:');
 
+  stackpointer:=0;
+
   if processhandler.is64Bit then
   begin
     s.add('push rbp');
-//    s.add('sub rsp,10');
     s.add('mov rbp,rsp');
     //rbp=old rbp
     //rbp+8=return address
@@ -9215,7 +9212,14 @@ begin
 
     case instancereg of
       0: regstr:='rax';
-      1: regstr:='rcx';
+      1:
+      begin
+        regstr:='rcx';
+        if processhandler.is64Bit then
+        begin
+          stackpointer:=1; //unlike 32-bit, in 64-bit method calls it's the first param
+        end;
+      end;
       2: regstr:='rdx';
       3: regstr:='rbx';
       4: regstr:='rsp';
@@ -9259,7 +9263,6 @@ begin
 
   try
     //setup the types
-    stackpointer:=0;
     for i:=4 to lua_gettop(L) do
     begin
       valuetype:=0;
@@ -9288,13 +9291,13 @@ begin
             valuesize:=lua_tointeger(L,-1);
           lua_pop(L,1);
 
-          lua_pushstring(L, 'IsOutputOnly');
+          lua_pushstring(L, 'isOutputOnly');
           lua_gettable(L,i);
           if not lua_isnil(L,-1) then
             IsOutputOnly:=lua_toboolean(L,-1);
           lua_pop(L,1);
 
-          lua_pushstring(L, 'IsInputOnly');
+          lua_pushstring(L, 'isInputOnly');
           lua_gettable(L,i);
           if not lua_isnil(L,-1) then
             IsOutputOnly:=lua_toboolean(L,-1);
@@ -9303,7 +9306,13 @@ begin
       end
       else
       if lua_isinteger(L,i) then  //just typenumbers
-        valuetype:=lua_tointeger(L,i);
+        valuetype:=lua_tointeger(L,i)
+      else
+      begin
+        lua_pushnil(L);
+        lua_pushstring(L,'Unknown type for param '+inttostr(i));
+        exit(2);
+      end;
 
 
       case valuetype of
@@ -9387,7 +9396,7 @@ begin
         end;
       end;
 
-      lua_pop(L,1);
+
 
 
       setlength(parameterlist, length(parameterlist)+1);
@@ -9412,7 +9421,7 @@ begin
     s.add('call '+inttohex(address,8)); //ce will make it a 16 byte call if needed
     if processhandler.is64Bit then
     begin
-      s.add('add rsp,'+inttohex(align(max(4,paramcount)*8,$10)+8,1));
+      s.add('add rsp,'+inttohex(align(max(4,paramcount)*8,$10),1));
       s.add('pop rbp');
       s.add('ret');
     end
@@ -9448,7 +9457,7 @@ begin
           for j:=0 to length(parameterlist)-1 do
           begin
             lua_pushinteger(L,j+1);
-            lua_pushinteger(L, parameterlist[i]);
+            lua_pushinteger(L, parameterlist[j]);
             lua_settable(L,-3);
           end;
 
@@ -9470,6 +9479,23 @@ begin
     s.free;
   end;
 end;
+
+function createExecuteCodeExStub(L:PLua_state): integer; cdecl;
+var paramcount: integer;
+begin
+  paramcount:=lua_gettop(L);
+  if paramcount<2 then
+  begin
+    lua_pushnil(L);
+    lua_pushstring(L,'Not enough parameters. Minimum: callmethod, address');
+    exit(2);
+  end;
+
+  lua_pushnil(L);
+  lua_insert(L, 3); //instance=nil
+  exit(createExecuteMethodStub(L));
+end;
+
 
 function freeExecuteCodeExStub(L:PLua_state): integer; cdecl;
 begin
@@ -13436,6 +13462,7 @@ begin
     lua_register(L, 'executeCodeEx', executeCodeEx);
     lua_register(L, 'executeMethod', executeMethod);
 
+    lua_register(L, 'createExecuteMethodStub', createExecuteMethodStub);
     lua_register(L, 'createExecuteCodeExStub', createExecuteCodeExStub);
 
 

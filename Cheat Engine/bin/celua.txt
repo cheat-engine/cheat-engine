@@ -3695,3 +3695,14 @@ methods
   getPointIndexAt(x,y): integer - Returns the pointindex at the given x, y coordinate
   addPoint(x,y,index OPTIONAL): creates a point. If no index is given if inside the line at that line index, else at the end of the list.  If a index is given at that specific index. 
   removeAllPoints(): Removes all points
+
+RemoteExecutor class
+The remoteExecute class creates an executor thread inside the target process waiting for commands to execute specific functions
+An executor can only run one piece of code at a time, but you can have more than one executor
+
+createExecuteMethodStub(callmethod, address, classregisternr, {type=typenr},typenr,{type=5, size=y, isOutputOnly=true/false, isInputOnly=true/false }, ....) - Creates an ExecuteCodeExStub object which the executor can execute
+createExecuteCodeExStub(callmethod, address, {type=typenr},typenr,{type=5, size=y, isOutputOnly=true/false, isInputOnly=true/false }, ....) - Creates an ExecuteCodeExStub object which the executor can execute
+
+properties
+methods
+
