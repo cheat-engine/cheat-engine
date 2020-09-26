@@ -25,10 +25,10 @@ type
 
 type
   TRemoteExecutorSharedMemory=record
-    HasDataEventHandle: QWORD;
-    HasProcessedDataEventHandle: QWORD;
-    Command: QWORD;
-    Address: QWORD; //or inithandle
+    HasDataEventHandle: QWORD;       //0
+    HasProcessedDataEventHandle: QWORD; //8
+    Command: QWORD; //10
+    Address: QWORD; //18  (inithandle)
     ReturnValue: QWORD;
     ParamStart: byte;
     //....   (pointers to strings will point inside this block, based on the target process's executor map address)
@@ -190,7 +190,7 @@ begin
     end;
   end;
 
-  if sizeneeded<sharedMemorySize then
+  if sizeneeded>sharedMemorySize then
     growSharedMemorySize(sizeneeded*2+1024, timeout);
 
   //enter the stub data into shared memory
@@ -202,8 +202,8 @@ begin
   sharedMemory^.Command:=CMD_EXECUTE;
   sharedMemory^.Address:=stubdata.address;
   sharedMemory^.ReturnValue:=0;
-  currentParam:=ptruint(sharedMemory^.ParamStart);
-  dataPosition:=align(sharedMemory^.ParamStart+paramsizeneeded,16);
+  currentParam:=ptruint(@sharedMemory^.ParamStart);
+  dataPosition:=align(ptruint(@sharedMemory^.ParamStart)+paramsizeneeded,16);
 
   setlength(lastbuffers,0);
 
@@ -242,7 +242,6 @@ begin
 
         len:=strlen(pchar(values[i]))+1;
         strcopy(pchar(dataPosition),pchar(values[i]));
-        inc(DataPosition,len);
         dataposition:=align(DataPosition+len,16);
 
         inc(currentparam, processhandler.pointersize);
@@ -317,34 +316,31 @@ var
   newmemmap: THandle;
   newSharedMemory: pointer;
 
+  oldSharedMemory: PRemoteExecutorSharedMemory;
+  oldmemmap: THandle;
 begin
   if newsize>sharedMemorySize then
   begin
+    oldSharedMemory:=sharedmemory;
+    oldmemmap:=memmap;
+
+
     waitForProcessedDataEvent(timeout); //in case there was a previous no-wait call going on
 
 
     newmemmap:=CreateFileMapping(INVALID_HANDLE_VALUE,nil,PAGE_READWRITE,0,newsize,nil);
-    if (memmap=0) or (memmap=INVALID_HANDLE_VALUE) then raise exception.create('Remap: Failure creating remote executor filemapping');
+    if (newmemmap=0) or (newmemmap=INVALID_HANDLE_VALUE) then raise exception.create('Remap: Failure creating remote executor filemapping');
 
-    newsharedMemory:=MapViewOfFile(memmap,FILE_MAP_READ or FILE_MAP_WRITE,0,0,newsize);
-    if sharedmemory=nil then
+    newsharedMemory:=MapViewOfFile(newmemmap,FILE_MAP_READ or FILE_MAP_WRITE,0,0,newsize);
+    if newsharedMemory=nil then
       raise exception.create('Remap: Failure mapping memorymap into memory');
+
+    if DuplicateHandle(GetCurrentProcess, newmemmap, processhandle, @remoteMemMapHandle, 0, false, DUPLICATE_SAME_ACCESS )=false then
+      raise exception.create('Remap: Failure duplicating memmap handle');
 
     zeromemory(newSharedMemory, newsize);
     copymemory(newSharedMemory, sharedmemory, sharedmemorysize);
 
-
-    UnmapViewOfFile(sharedMemory);
-    CloseHandle(memmap);
-
-    memmap:=newmemmap;
-    sharedMemory:=newSharedMemory;
-    sharedMemorySize:=newsize;
-
-
-
-    if DuplicateHandle(GetCurrentProcess, memmap, processhandle, @remoteMemMapHandle, 0, false, DUPLICATE_SAME_ACCESS )=false then
-      raise exception.create('Remap: Failure duplicating memmap handle');
 
     sharedMemory^.Address:=remoteMemMapHandle;
     sharedMemory^.Command:=CMD_RELOADMEM;
@@ -354,7 +350,16 @@ begin
 
     waitForProcessedDataEvent(timeout);
 
+    //after this, the map has swapped to the new one, so the return is in the new one
+    memmap:=newmemmap;
+    sharedMemory:=newSharedMemory;
     sharedMemoryClientLocation:=sharedmemory^.ReturnValue;
+    sharedmemorysize:=newsize;
+
+    UnmapViewOfFile(oldsharedMemory);
+    CloseHandle(oldmemmap);
+
+
   end;
 end;
 
@@ -381,13 +386,13 @@ begin
   HasDataEventHandle:=CreateEvent(nil,false,false,nil);
   HasProcessedDataEventHandle:=CreateEvent(nil,true,false,nil);
 
-  if DuplicateHandle(GetCurrentProcess, HasDataEventHandle, processhandle, @sharedmemory^.HasDataEventHandle, 0, false, DUPLICATE_SAME_ACCESS )=false then
+  if DuplicateHandle(GetCurrentProcess, HasDataEventHandle, processhandle, @(sharedmemory^.HasDataEventHandle), 0, false, DUPLICATE_SAME_ACCESS )=false then
     raise exception.create('Failure duplicating HasDataEventHandle');
 
-  if  DuplicateHandle(GetCurrentProcess, HasProcessedDataEventHandle, processhandle, @sharedmemory^.HasProcessedDataEventHandle, 0, false, DUPLICATE_SAME_ACCESS )=false then
+  if  DuplicateHandle(GetCurrentProcess, HasProcessedDataEventHandle, processhandle, @(sharedmemory^.HasProcessedDataEventHandle), 0, false, DUPLICATE_SAME_ACCESS )=false then
     raise exception.create('Failure duplicating HasProcessedDataEventHandle');
 
-  if  DuplicateHandle(GetCurrentProcess, HasProcessedDataEventHandle, processhandle, @remoteMemMapHandle, 0, false, DUPLICATE_SAME_ACCESS )=false then
+  if  DuplicateHandle(GetCurrentProcess, MemMap, processhandle, @remoteMemMapHandle, 0, false, DUPLICATE_SAME_ACCESS )=false then
     raise exception.create('Failure duplicating HasProcessedDataEventHandle');
 
 
@@ -439,7 +444,7 @@ begin
     if processhandler.is64Bit then
     begin
       script.add('mov rcx,[rbp+8]'); //p1: Handle. [rbp+8] = filemapping handle
-      script.add('mov rdx,f001f');   //p2: access rights
+      script.add('mov rdx,6');       //p2: access rights FILE_MAP_READ or FILE_MAP_WRITE
       script.add('mov r8,0');        //p3:
       script.add('mov r9,0');        //p4:
       script.add('mov [rsp+20],0');  //p5:
@@ -449,10 +454,13 @@ begin
       script.add('push 0');           //p5
       script.add('push 0');           //p4
       script.add('push 0');           //p3
-      script.add('push f001f');       //p2
+      script.add('push 6');           //p2
       script.add('push [ebp+4]');     //p1 Handle
     end;
     script.add('call mapviewoffile');
+
+    script.add('cmp rax,0');
+    script.add('je end'); //the fuck?
 
     //handle result
     script.add('mov [rbp],rax');
@@ -482,12 +490,14 @@ begin
     if processhandler.is64Bit then
     begin
       script.add('mov rcx,[rbp+0]');
+      script.add('mov rcx,[rcx]');
       script.add('mov rdx,FFFFFFFF');
     end
     else
     begin
       script.add('push ffffffff');
-      script.add('push [ebp]');
+      script.add('mov eax,[ebp+0]');
+      script.add('push [eax]');
     end;
     script.add('call WaitForSingleObject');
 
@@ -507,11 +517,11 @@ begin
     end
     else
     begin
-      script.add('mov rcx,[ebp+4]');
-      script.add('mov [ebp+8]');
+      script.add('mov ecx,[ebp+4]');
+      script.add('mov [ebp+8],ecx');
     end;
 
-    script.add('mov rcx,[rax+10]'); //get the new handle
+    script.add('mov rcx,[rax+18]'); //get the new handle
     if processhandler.is64Bit then
       script.add('mov [rbp+8],rcx') //put it in place of the current handle
     else
@@ -537,9 +547,9 @@ begin
     script.add('mov [rbx+20],rax');
 
     if processhandler.is64Bit then
-      script.add('mov rcx,[rax+8]')  //HasProcessedEventHandle
+      script.add('mov rcx,[rbx+8]')  //HasProcessedEventHandle
     else
-      script.add('push [eax+8]');
+      script.add('push [ebx+8]');
 
     script.add('call SetEvent'); //let CE know it can send some new commands
 
@@ -681,65 +691,159 @@ var
   waittilldone: boolean;
   i,len: integer;
 
+  intvalue: qword;
+  floatvalue: single absolute intvalue;
+  doublevalue: double absolute intvalue;
+
+  widecharstrings: array of string;
+  objectlist: array of pointer;
+  obj: pointer;
 begin
   re:=luaclass_getClassObject(L);
   result:=0;
-  if (lua_gettop(L)>=1) and (lua_istable(L,1)) then
-  begin
-    //get the stubdata
-    lua_pushstring(L,'StubAddress');
-    lua_gettable(L,1);
-
-    if lua_isnil(L,-1) then exit(invalidStubData);
-    stubdata.address:=lua_tointeger(L,-1);
-
-    lua_pop(L,1);
-
-    lua_pushstring(L,'Parameters');
-    lua_gettable(L,1);
-    if not lua_istable(L,-1) then exit(invalidStubData);
-
-
-    len:=lua_objlen(L,-1);
-    setlength(values, len);
-    for i:=0 to len-1 do
+  try
+    if (lua_gettop(L)>=1) and (lua_istable(L,1)) then
     begin
-      lua_pushinteger(L,i+1);
-      lua_gettable(L,-2);
-      values[i]:=lua_tointeger(L,-1);
+      //get the stubdata
+      lua_pushstring(L,'StubAddress');
+      lua_gettable(L,1);
+
+      if lua_isnil(L,-1) then exit(invalidStubData);
+      stubdata.address:=lua_tointeger(L,-1);
+
       lua_pop(L,1);
-    end;
-    lua_pop(L,1);
 
-    if (lua_gettop(L)>=2) and (not lua_isnil(L,2)) then
-      timeout:=lua_tointeger(L,2)
-    else
-      timeout:=INFINITE;
+      lua_pushstring(L,'Parameters');
+      lua_gettable(L,1);
+      if not lua_istable(L,-1) then exit(invalidStubData);
 
-    if (lua_gettop(L)>=3) and (not lua_isnil(L,3)) then
-      waittilldone:=lua_toboolean(L,3)
-    else
-      waittilldone:=true;
 
-    try
-      re.executeStub(stubdata, values, timeout);
-      if waittilldone then
+      len:=lua_objlen(L,-1);
+      setlength(stubdata.parameters, len);
+
+      for i:=0 to len-1 do
       begin
-        lua_pop(L,lua_gettop(L));
-        lua_pushinteger(L, timeout);
-        exit(remoteexecutor_waitTillDoneAndGetResult(L));
-      end
+        lua_pushinteger(L,i+1);
+        lua_gettable(L,-2);
+        stubdata.parameters[i]:=lua_tointeger(L,-1);
+        lua_pop(L,1);
+      end;
+      lua_pop(L,1);
+
+      if (lua_gettop(L)>=2) and (not lua_isnil(L,2)) then
+      begin
+        if lua_istable(L,2) then
+        begin
+          len:=lua_objlen(L,2);
+
+          if len<>length(stubdata.parameters) then
+          begin
+            lua_pushnil(L);
+            lua_pushstring(L,'Incorrect parameter count');
+            exit(2);
+          end;
+
+          setlength(values, len);
+
+          for i:=0 to len-1 do
+          begin
+            lua_pushinteger(L,i+1);
+            lua_gettable(L,2);
+
+            //interpret the value based on the given stubdata parametertype
+            //0: integer/pointer
+            //1: float
+            //2: double
+            //3: asciistring (turns into 0:pointer after writing the string)
+            //4: widestring
+            //<0: bytetable
+
+            case stubdata.parameters[i] of
+              0: values[i]:=lua_tointeger(L,-1);
+              1:
+              begin
+                floatvalue:=lua_tonumber(L,-1);
+                values[i]:=intvalue;
+              end;
+
+              2:
+              begin
+                doublevalue:=lua_tonumber(L,-1);
+                values[i]:=intvalue;
+              end;
+
+              3: values[i]:=qword(lua.lua_tostring(L,-1));
+              4:
+              begin
+                setlength(widecharstrings, length(widecharstrings)+1);
+                widecharstrings[length(widecharstrings)-1]:=Lua_ToString(L,-1);
+                values[i]:=qword(@widecharstrings[length(widecharstrings)-1][1]);
+              end;
+
+              else
+              begin
+                if stubdata.parameters[i]<0 then
+                begin
+                  //create a memoryblock that encompasses this table
+                  len:=stubdata.parameters[i] and $1fffffff;
+
+                  getmem(obj, len);
+                  readBytesFromTable(L,-1,obj,len);
+
+                  values[i]:=qword(obj);
+
+                  setlength(objectlist,length(objectlist)+1);
+                  objectlist[length(objectlist)-1]:=obj; //so it can be freed aftrerwards
+                end;
+              end;
+
+            end;
+
+            lua_pop(L,1);
+          end;
+        end
+        else
+        begin
+          lua_pushnil(L);
+          lua_pushstring(L,'Invalid value field. Has to be a table');
+          exit(2);
+        end;
+      end;
+
+      if (lua_gettop(L)>=3) and (not lua_isnil(L,3)) then
+        timeout:=lua_tointeger(L,2)
       else
-        exit(0);
+        timeout:=INFINITE;
 
-    except
-      on e:exception do
-      begin
-        lua_pushnil(L);
-        lua_pushstring(L, pchar(e.Message));
-        result:=2;
+      if (lua_gettop(L)>=4) and (not lua_isnil(L,4)) then
+        waittilldone:=not lua_toboolean(L,3)
+      else
+        waittilldone:=true;
+
+      try
+        re.executeStub(stubdata, values, timeout);
+        if waittilldone then
+        begin
+          lua_pop(L,lua_gettop(L));
+          lua_pushinteger(L, timeout);
+          exit(remoteexecutor_waitTillDoneAndGetResult(L));
+        end
+        else
+          exit(0);
+
+      except
+        on e:exception do
+        begin
+          lua_pushnil(L);
+          lua_pushstring(L, pchar(e.Message));
+          result:=2;
+        end;
       end;
     end;
+
+  finally
+    for i:=0 to length(objectlist)-1 do
+      freemem(objectlist[i]);
   end;
 end;
 

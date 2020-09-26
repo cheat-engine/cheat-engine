@@ -13642,8 +13642,7 @@ begin
     initializeLuaSynEdit;
     initializeLuaCustomImageList;
     initializeLuaDotNetPipe;
-
-
+    InitializeLuaRemoteExecutor;
 
 
 

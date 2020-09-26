@@ -3702,7 +3702,10 @@ An executor can only run one piece of code at a time, but you can have more than
 
 createExecuteMethodStub(callmethod, address, classregisternr, {type=typenr},typenr,{type=5, size=y, isOutputOnly=true/false, isInputOnly=true/false }, ....) - Creates an ExecuteCodeExStub object which the executor can execute
 createExecuteCodeExStub(callmethod, address, {type=typenr},typenr,{type=5, size=y, isOutputOnly=true/false, isInputOnly=true/false }, ....) - Creates an ExecuteCodeExStub object which the executor can execute
+createRemoteExecutor() - creates a new remote executor
 
 properties
+
 methods
+  executeStub(ExecuteCodeExStub,{parameters},timeout,waittilldone) 
 
