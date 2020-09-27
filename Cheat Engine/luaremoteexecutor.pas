@@ -42,6 +42,11 @@ type
     length: integer;
   end;
 
+  Tvalueinfo=record
+    value: qword;
+    bytesize: integer; //only used for bytetables
+  end;
+
   TExecBufferArray=array of TExecBuffer;
 
 
@@ -67,7 +72,7 @@ type
     procedure growSharedMemorySize(newsize: integer; timeout: DWORD);
     function LocalToRemoteAddress(LocalAddress: ptruint): ptruint;
   public
-    procedure executeStub(stubdata: TStubdata; values: array of qword; timeout: dword);
+    procedure executeStub(stubdata: TStubdata; values: array of Tvalueinfo; timeout: dword);
     function waitTillDoneAndGetResult(timeout: integer; var Buffers: TExecBufferArray): QWORD;
     constructor create;
     destructor destroy; override;
@@ -116,7 +121,7 @@ begin
   result:=sharedMemoryClientLocation+(LocalAddress-ptruint(sharedMemory));
 end;
 
-procedure TRemoteExecutor.executeStub(stubdata: TStubdata; values: array of qword; timeout: dword);
+procedure TRemoteExecutor.executeStub(stubdata: TStubdata; values: array of Tvalueinfo; timeout: dword);
 var
   i: integer;
   r: dword;
@@ -168,22 +173,22 @@ begin
       end;
       3:
       begin
-        inc(sizeneeded, processhandler.pointersize+strlen(pchar(values[i]))+32);
+        inc(sizeneeded, processhandler.pointersize+strlen(pchar(values[i].value))+32);
         inc(paramsizeneeded, processhandler.pointersize);
       end;
 
       4:
       begin
-        inc(sizeneeded, processhandler.pointersize+StrLen(pwidechar(values[i]))+32);
+        inc(sizeneeded, processhandler.pointersize+StrLen(pwidechar(values[i].value))+32);
         inc(paramsizeneeded, processhandler.pointersize);
       end;
 
       else
       begin
         if stubdata.parameters[i]<0 then
-          inc(sizeneeded, 32+processhandler.pointersize+stubdata.parameters[i] and $1FFFFFFF)
+          inc(sizeneeded, processhandler.pointersize+align(16+values[i].bytesize,32))
         else
-          inc(sizeNeeded,processhandler.pointersize);
+          inc(sizeNeeded, processhandler.pointersize);
 
         inc(paramsizeneeded, processhandler.pointersize);
       end;
@@ -219,16 +224,16 @@ begin
       0,1: //integer/pointer/float
       begin
         if processhandler.is64Bit then
-          pqword(currentparam)^:=values[i]
+          pqword(currentparam)^:=values[i].value
         else
-          pdword(currentparam)^:=values[i];
+          pdword(currentparam)^:=values[i].value;
 
         inc(currentparam, processhandler.pointersize);
       end;
 
       2: //double
       begin
-        pqword(currentparam)^:=values[i];
+        pqword(currentparam)^:=values[i].value;
         inc(currentparam, 8);
       end;
 
@@ -240,8 +245,8 @@ begin
           pdword(currentparam)^:=LocalToRemoteAddress(DataPosition);
 
 
-        len:=strlen(pchar(values[i]))+1;
-        strcopy(pchar(dataPosition),pchar(values[i]));
+        len:=strlen(pchar(values[i].value))+1;
+        strcopy(pchar(dataPosition),pchar(values[i].value));
         dataposition:=align(DataPosition+len,16);
 
         inc(currentparam, processhandler.pointersize);
@@ -255,8 +260,8 @@ begin
           pdword(currentparam)^:=LocalToRemoteAddress(DataPosition);
 
 
-        len:=strlen(pwidechar(values[i]))+2;
-        strcopy(pwidechar(dataPosition),pwidechar(values[i]));
+        len:=strlen(pwidechar(values[i].value))+2;
+        strcopy(pwidechar(dataPosition),pwidechar(values[i].value));
         dataposition:=align(DataPosition+len,16);
 
         inc(currentparam, processhandler.pointersize);
@@ -266,7 +271,7 @@ begin
       begin
         if stubdata.parameters[i]<0 then
         begin
-          len:=stubdata.parameters[i] and $1FFFFFFF;
+          len:=values[i].bytesize;
           if processhandler.is64Bit then
             pqword(currentparam)^:=LocalToRemoteAddress(DataPosition)
           else
@@ -285,7 +290,7 @@ begin
 
 
           if (stubdata.parameters[i] and (1 shl 30))=0 then //not an output only param, copy the data
-            copymemory(pointer(dataPosition),pointer(values[i]),len);
+            copymemory(pointer(dataPosition),pointer(values[i].value),len);
 
           dataposition:=align(DataPosition+len,16);
 
@@ -295,9 +300,9 @@ begin
         begin
           //unknown type
           if processhandler.is64Bit then
-            pqword(currentparam)^:=values[i]
+            pqword(currentparam)^:=values[i].value
           else
-            pdword(currentparam)^:=values[i];
+            pdword(currentparam)^:=values[i].value;
 
           inc(currentparam, processhandler.pointersize);
         end;
@@ -686,7 +691,7 @@ function remoteexecutor_executeStub(L: PLua_state): integer; cdecl;
 var
   re: TRemoteExecutor;
   stubdata: TStubdata;
-  values: array of qword;
+  values: array of Tvalueinfo;
   timeout: dword;
   waittilldone: boolean;
   i,len: integer;
@@ -759,41 +764,58 @@ begin
             //<0: bytetable
 
             case stubdata.parameters[i] of
-              0: values[i]:=lua_tointeger(L,-1);
+              0: values[i].value:=lua_tointeger(L,-1);
               1:
               begin
                 floatvalue:=lua_tonumber(L,-1);
-                values[i]:=intvalue;
+                values[i].value:=intvalue;
               end;
 
               2:
               begin
                 doublevalue:=lua_tonumber(L,-1);
-                values[i]:=intvalue;
+                values[i].value:=intvalue;
               end;
 
-              3: values[i]:=qword(lua.lua_tostring(L,-1));
+              3: values[i].value:=qword(lua.lua_tostring(L,-1));
               4:
               begin
                 setlength(widecharstrings, length(widecharstrings)+1);
                 widecharstrings[length(widecharstrings)-1]:=Lua_ToString(L,-1);
-                values[i]:=qword(@widecharstrings[length(widecharstrings)-1][1]);
+                values[i].value:=qword(@widecharstrings[length(widecharstrings)-1][1]);
               end;
 
               else
               begin
                 if stubdata.parameters[i]<0 then
                 begin
-                  //create a memoryblock that encompasses this table
-                  len:=stubdata.parameters[i] and $1fffffff;
+                  if lua_istable(L,-1) then
+                  begin
+                    //create a memoryblock that encompasses this table
+                    len:=stubdata.parameters[i] and $1fffffff;
 
-                  getmem(obj, len);
-                  readBytesFromTable(L,-1,obj,len);
+                    if len=0 then //no length given. Rely on the provided table info
+                    begin
+                      //get the length from the table instead
+                      len:=lua_objlen(L,-1);
+                    end; //else use the predefined size
 
-                  values[i]:=qword(obj);
+                    getmem(obj, len);
 
-                  setlength(objectlist,length(objectlist)+1);
-                  objectlist[length(objectlist)-1]:=obj; //so it can be freed aftrerwards
+                    readBytesFromTable(L,lua_gettop(L),obj,len);
+
+                    values[i].value:=qword(obj);
+                    values[i].bytesize:=len;
+
+                    setlength(objectlist,length(objectlist)+1);
+                    objectlist[length(objectlist)-1]:=obj; //so it can be freed aftrerwards
+                  end
+                  else
+                  begin
+                    lua_pushnil(L);
+                    lua_pushstring(L,pchar('Parameter '+inttostr(i+1)+' is supposed to be a table'));
+                    exit(2);
+                  end;
                 end;
               end;
 

@@ -9083,6 +9083,7 @@ createExecuteCodeExStub(callmethod, address, {type=x} or param1,{type=x,value=pa
 //2: double
 //3: asciistring (turns into 0:pointer after writing the string)
 //4: widestring
+//5: bytetable
 var
   callmethod: integer;
   address: ptruint;
@@ -9266,7 +9267,7 @@ begin
     for i:=4 to lua_gettop(L) do
     begin
       valuetype:=0;
-      valuesize:=32;
+      valuesize:=0;
       IsInputOnly:=false;
       IsOutputOnly:=false;
       if lua_istable(l,i) then
