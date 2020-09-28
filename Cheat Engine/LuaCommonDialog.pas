@@ -22,6 +22,7 @@ begin
   result:=1;
 end;
 
+
 procedure commondialog_addMetaData(L: PLua_state; metatable: integer; userdata: integer );
 begin
   //only export "execute" the rest is already published

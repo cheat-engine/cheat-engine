@@ -19,6 +19,12 @@ Additions and changes:
   When syntax checking an AOBScan script in 64-bit that does an Alloc without prefered base, ask if the user understands that the jmp instruction will be 14 bytes long
   Some extra foundlist preferences
   Find out what access/writes now resolved the address to string (when it has time)
+  CEShare now has a list of games that have tables
+  AA: dealloc(*) - Now deallocated all memory a script allocated
+  AA: unregistersymbol(*) - Now unregisters all symbols a script registered
+  Added a more userfriendly .net inspector
+  
+  
 
 Fixes:
   Auto Assembler: Fixed getting weird numbers for newmem when using the templates to add new scripts

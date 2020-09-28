@@ -108,6 +108,9 @@ local function getClassFields(Class)
   Class.Fields={}
   local i
   if Class.Image.Domain.Control==CONTROL_MONO then
+    --todo: also get baseclass fields, as the .net version does so as well
+    
+    
     local fields=mono_class_enumFields(Class.Handle)
     for i=1,#fields do
       local e={}
@@ -354,6 +357,9 @@ end
 
 local function ClassSelectionChange(sender)
   local frmDotNetInfo=frmDotNetInfos[sender.owner.Tag]
+  
+  frmDotNetInfo.lvStaticFields.beginUpdate()
+  
   clearClassInformation(frmDotNetInfo)
   
   if sender.ItemIndex>=0 then
@@ -411,6 +417,8 @@ local function ClassSelectionChange(sender)
     
     
   end
+  
+  frmDotNetInfo.lvStaticFields.endUpdate()
 end
 
 
@@ -486,7 +494,53 @@ local function DomainSelectionChange(sender)
   end
 end
 
+local function FindInListBox(listbox)
+  _G.lb=lb
+  local fd=createFindDialog(frmDotNetInfo)
+  fd.Options='[frDown, frHideWholeWord,  frHideEntireScope, frHideUpDown]'
+  fd.Title='Search in '..listbox.name
 
+  
+    
+  fd.OnFind=function()
+    local caseSensitive=fd.Options:find('frMatchCase')~=nil
+    local start=listbox.ItemIndex
+    start=start+1
+    
+    local needle=fd.FindText
+    if not caseSensitive then
+      needle=needle:upper()
+    end
+    
+    for i=start, listbox.Items.Count-1 do      
+      local haystack=listbox.Items[i]      
+      
+      if not caseSensitive then
+        haystack=haystack:upper()
+      end
+           
+      if haystack:find(needle,0,true)~=nil then
+        listbox.itemIndex=i
+        return
+      end
+    end
+    beep() 
+  end
+  
+  
+  fd.execute()  
+
+  local x,y
+  x=(listbox.height / 2)
+  x=x-(fd.height/2)
+  
+  y=(listbox.width / 2)
+  x=y-(fd.width / 2)
+  
+  x,y=listbox.clientToScreen(x,y)
+  fd.top=y
+  fd.left=x
+end
 
 
 function miDotNetInfoClick(sender)
@@ -514,6 +568,7 @@ function miDotNetInfoClick(sender)
   frmDotNetInfos[i]=frmDotNetInfo
   frmDotNetInfo.Name="frmDotNetInfo"..i   
   frmDotNetInfo.Tag=i
+  frmDotNetInfo.PopupMode='pmAuto'
   
   frmDotNetInfo.OnDestroy=function(f)
     f.SaveFormPosition({
@@ -521,12 +576,37 @@ function miDotNetInfoClick(sender)
       f.gbImages.Width,
       f.gbClasses.Width,
       f.gbStaticFields.Height,
-      f.gbFields.Height,
+      f.gbFields.Height,      
+      
+      --save the column widths
+      f.lvStaticFields.Columns[0].Width,
+      f.lvStaticFields.Columns[1].Width,
+      f.lvStaticFields.Columns[2].Width,      
+      f.lvStaticFields.Columns[3].Width,
+      
+      f.lvFields.Columns[0].Width,
+      f.lvFields.Columns[1].Width,
+      f.lvFields.Columns[2].Width,      
+  
+      f.lvMethods.Columns[0].Width,
+      f.lvMethods.Columns[1].Width,         
+      
     })
     
     CancelClassFetch(frmDotNetInfos[f.Tag])
     frmDotNetInfos[f.Tag]=nil
   end
+  
+  frmDotNetInfo.miImageFind.OnClick=function(f)
+    FindInListBox(frmDotNetInfo.lbImages)
+  end
+  frmDotNetInfo.miImageFind.ShortCut=textToShortCut('Ctrl+F')
+  
+  frmDotNetInfo.miClassFind.OnClick=function(f)
+    FindInListBox(frmDotNetInfo.lbImages)
+  end  
+  frmDotNetInfo.miClassFind.ShortCut=textToShortCut('Ctrl+F')
+  
   
   local formdata={}
   frmDotNetInfo.loadedFormPosition,formdata=frmDotNetInfo.LoadFormPosition()
@@ -537,6 +617,21 @@ function miDotNetInfoClick(sender)
       frmDotNetInfo.gbClasses.Width=formdata[3]
       frmDotNetInfo.gbStaticFields.Height=formdata[4]
       frmDotNetInfo.gbFields.Height=formdata[5]
+      
+      if #formdata>=14 then      
+        frmDotNetInfo.lvStaticFields.Columns[0].Width=formdata[6] or frmDotNetInfo.lvStaticFields.Columns[0].Width
+        frmDotNetInfo.lvStaticFields.Columns[1].Width=formdata[7] or frmDotNetInfo.lvStaticFields.Columns[1].Width 
+        frmDotNetInfo.lvStaticFields.Columns[2].Width=formdata[8] or frmDotNetInfo.lvStaticFields.Columns[2].Width     
+        frmDotNetInfo.lvStaticFields.Columns[3].Width=formdata[9] or frmDotNetInfo.lvStaticFields.Columns[3].Width
+        
+        frmDotNetInfo.lvFields.Columns[0].Width=formdata[10] or frmDotNetInfo.lvFields.Columns[0].Width 
+        frmDotNetInfo.lvFields.Columns[1].Width=formdata[11] or frmDotNetInfo.lvFields.Columns[1].Width 
+        frmDotNetInfo.lvFields.Columns[2].Width=formdata[12] or frmDotNetInfo.lvFields.Columns[2].Width
+    
+        frmDotNetInfo.lvMethods.Columns[0].Width=formdata[13] or frmDotNetInfo.lvMethods.Columns[0].Width 
+        frmDotNetInfo.lvMethods.Columns[1].Width=formdata[14] or frmDotNetInfo.lvMethods.Columns[1].Width
+      end
+      
     end   
   else
     --first run. 
@@ -547,6 +642,13 @@ function miDotNetInfoClick(sender)
     frmDotNetInfo.gbFields.Height=DPIMultiplier*100
     frmDotNetInfo.Width=DPIMultiplier*1300
     frmDotNetInfo.Height=DPIMultiplier*700
+    
+    frmDotNetInfo.lvMethods.Columns[0].Width=frmDotNetInfo.Canvas.getTextWidth('somerandomnormalmethod')
+    frmDotNetInfo.lvMethods.Columns[1].Width=frmDotNetInfo.Canvas.getTextWidth('(int a, float b, Object something)')    
+    
+    frmDotNetInfo.lvFields.Columns[1].Width=frmDotNetInfo.lvMethods.Columns[0].Width
+    frmDotNetInfo.lvStaticFields.Columns[0].Width=frmDotNetInfo.lvMethods.Columns[0].Width
+   
     frmDotNetInfo.Position='poScreenCenter'
   end
   

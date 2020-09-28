@@ -844,8 +844,8 @@ methods:
   doClick():  Executes the current function under onClick
   bringToFront(): Changes the z-order of the control so it'd at the top
   sendToBack(): Changes the z-order of the control so it'd at the back
-  screenToClient(): Converts screen x,y coordinates to x,y coordinates on the control
-  clientToScreen(): Converts control x,y coordinates to screen coordinates
+  screenToClient(x,y): Converts screen x,y coordinates to x,y coordinates on the control
+  clientToScreen(x,y): Converts control x,y coordinates to screen coordinates
 
 GraphicsObject : (GraphicsObject->Object)
 
@@ -1830,7 +1830,13 @@ createColorBox(owner) - Creates a new colorbox
 
 
 FindDialog Class: (Inheritance: CommonDialog->Component->Object)
+createFindDialog(owner)
+
 properties
+  Top
+  Left
+  Width
+  Height
   FindText: String - The text the user wishes to find
   Options: Enum - Find Options
                    { frDown, frFindNext, frHideMatchCase, frHideWholeWord,
@@ -1843,7 +1849,7 @@ methods
 
 
 FileDialog Class: (Inheritance: CommonDialog->Component->Object)
-createFindDialog(owner)
+
 properties
 
   DefaultExt: string - When not using filters this will be the default extention used if no extension is given

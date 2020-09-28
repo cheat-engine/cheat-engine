@@ -2204,12 +2204,23 @@ begin
             begin
               s1:=trim(copy(currentline,a+1,b-a-1));
 
-              slist:=s1.Split([',',' ']);
-              for sli:=0 to length(slist)-1 do
+              if s1='*' then
               begin
-                s1:=slist[sli];
-                setlength(deletesymbollist,length(deletesymbollist)+1);
-                deletesymbollist[length(deletesymbollist)-1]:=s1;
+                j:=length(deletesymbollist);
+                setlength(deletesymbollist, j+ registeredsymbols.Count);
+
+                for k:=0 to registeredsymbols.Count-1 do
+                  deletesymbollist[j+k]:=registeredsymbols[k];
+              end
+              else
+              begin
+                slist:=s1.Split([',',' ']);
+                for sli:=0 to length(slist)-1 do
+                begin
+                  s1:=slist[sli];
+                  setlength(deletesymbollist,length(deletesymbollist)+1);
+                  deletesymbollist[length(deletesymbollist)-1]:=s1;
+                end;
               end;
             end
             else raise exception.Create(rsSyntaxError);
@@ -2331,19 +2342,30 @@ begin
               begin
                 s1:=trim(copy(currentline,a+1,b-a-1));
 
-                slist:=s1.Split([',',' ']);
-
-                for sli:=0 to length(slist)-1 do
+                if s1='*' then
                 begin
-                  s1:=slist[sli];
-
-                  //find s1 in the ceallocarray
+                  //everything that the script allocated
+                  setlength(dealloc, length(ceallocarray));
                   for j:=0 to length(ceallocarray)-1 do
+                    dealloc[j]:=ceallocarray[j].address;
+
+                end
+                else
+                begin
+                  slist:=s1.Split([',',' ']);
+
+                  for sli:=0 to length(slist)-1 do
                   begin
-                    if uppercase(ceallocarray[j].varname)=uppercase(s1) then
+                    s1:=slist[sli];
+
+                    //find s1 in the ceallocarray
+                    for j:=0 to length(ceallocarray)-1 do
                     begin
-                      setlength(dealloc,length(dealloc)+1);
-                      dealloc[length(dealloc)-1]:=ceallocarray[j].address;
+                      if uppercase(ceallocarray[j].varname)=uppercase(s1) then
+                      begin
+                        setlength(dealloc,length(dealloc)+1);
+                        dealloc[length(dealloc)-1]:=ceallocarray[j].address;
+                      end;
                     end;
                   end;
                 end;

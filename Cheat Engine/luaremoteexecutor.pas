@@ -186,7 +186,7 @@ begin
       else
       begin
         if stubdata.parameters[i]<0 then
-          inc(sizeneeded, processhandler.pointersize+align(16+values[i].bytesize,32))
+          inc(sizeneeded, processhandler.pointersize+32+values[i].bytesize)
         else
           inc(sizeNeeded, processhandler.pointersize);
 
@@ -569,7 +569,7 @@ begin
       script.add('ret 4');
 
     //debug:
-    clipboard.AsText:=script.text;
+   // clipboard.AsText:=script.text;
 
     if autoAssemble(script,false,true,false,false,allocs,exceptionlist) then
     begin
