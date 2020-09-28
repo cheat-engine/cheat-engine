@@ -19,9 +19,11 @@ function FillList()
   end
 
   modulelist=enumModules()
-  local i
-  for i=1, #modulelist do
-    c.Items.Add(modulelist[i].Name)
+  if modulelist then
+    local i
+    for i=1, #modulelist do
+      c.Items.Add(modulelist[i].Name)
+    end
   end
 end
 
