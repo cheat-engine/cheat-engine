@@ -144,11 +144,10 @@ local function getClassMethods(Class)
 end
 
 local function getClassFields(Class)
-  Class.Fields={}
+  local r={}
+  
   local i
   if Class.Image.Domain.Control==CONTROL_MONO then
-    
-    
     local fields=mono_class_enumFields(Class.Handle, true)
     for i=1,#fields do
       local e={}
@@ -162,7 +161,7 @@ local function getClassFields(Class)
       
       e.Class=Class
       
-      table.insert(Class.Fields,e)
+      table.insert(r,e)
     end
    
   else
@@ -181,14 +180,16 @@ local function getClassFields(Class)
         e.Class=Class
         
         
-        table.insert(Class.Fields,e)
+        table.insert(r,e)
       end
     end
     
   end
   
-  table.sort(Class.Fields, function(e1,e2) return e1.Offset < e2.Offset end)
-  
+  table.sort(r, function(e1,e2) return e1.Offset < e2.Offset end)
+ 
+  Class.Fields=r
+  return r
 end
 
 local function getClasses(Image)
@@ -235,6 +236,7 @@ local function getClasses(Image)
 
   table.sort(Image.Classes, function(e1,e2) return e1.Name < e2.Name end)
   
+  return Image.Classes  
 end
 
 local function getImages(Domain)
@@ -468,7 +470,7 @@ local function FillClassInfoFields(frmDotNetInfo, Class)
 end
 
 local function ClassSelectionChange(sender)
-  print("ClassSelectionChange")
+  
   local frmDotNetInfo=frmDotNetInfos[sender.owner.Tag]
   
   
@@ -596,7 +598,7 @@ local function ImageSelectionChange(sender)
     function()
       --called when done
       frmDotNetInfo.lbClasses.Enabled=true
-      frmDotNetInfo.lbClasses.Cursor=crDefault
+      frmDotNetInfo.lbClasses.Cursor=crDefault      
     end)
     
     
@@ -845,6 +847,10 @@ function miDotNetInfoClick(sender)
   
   frmDotNetInfo.gbInheritance.OnResize=InheritanceResize
   
+  frmDotNetInfo.miFindClass.OnClick=function() spawnDotNetSearchDialog(DataSource, frmDotNetInfo, 0) end
+  frmDotNetInfo.miFindField.OnClick=function() spawnDotNetSearchDialog(DataSource, frmDotNetInfo, 1) end
+  frmDotNetInfo.miFindMethod.OnClick=function() spawnDotNetSearchDialog(DataSource, frmDotNetInfo, 2) end
+  
   
   --Init
   
@@ -880,3 +886,9 @@ function miDotNetInfoClick(sender)
   
   _G.xxx=frmDotNetInfo
 end
+
+DataSource.getImages=getImages
+DataSource.getDomains=getDomains
+DataSource.getClasses=getClasses
+DataSource.getClassFields=getClassFields
+DataSource.getClassMethods=getClassMethods
