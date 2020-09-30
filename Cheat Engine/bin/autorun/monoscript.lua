@@ -4263,24 +4263,24 @@ function mono_initialize()
       local r={}
       r[1]={}
       r[1].PathToFile=getAutorunPath()..'monoscript.lua'
-      r[1].RelativePath=getAutorunPath()
+      r[1].RelativePath=[[autorun\]]
 
       r[2]={}
       r[2].PathToFile=getAutorunPath()..'forms'..pathsep..'MonoDataCollector.frm'
-      r[2].RelativePath=getAutorunPath()..'forms'..pathsep
+      r[2].RelativePath=[[autorun\]]..'forms'..pathsep
 
       if getOperatingSystem()==0 then
         r[3]={}
         r[3].PathToFile=getAutorunPath()..libfolder..pathsep..'MonoDataCollector32.dll'
-        r[3].RelativePath=getAutorunPath()..libfolder..pathsep
+        r[3].RelativePath=[[autorun\]]..libfolder..pathsep
 
         r[4]={}
         r[4].PathToFile=getAutorunPath()..libfolder..pathsep..'MonoDataCollector64.dll'
-        r[4].RelativePath=getAutorunPath()..libfolder..pathsep
+        r[4].RelativePath=[[autorun\]]..libfolder..pathsep
       else
         r[3]={}
         r[3].PathToFile=getAutorunPath()..libfolder..pathsep..'libMonoDataCollectorMac.dylib'
-        r[3].RelativePath=getAutorunPath()..libfolder..pathsep
+        r[3].RelativePath=[[autorun\]]..libfolder..pathsep
       end
 
       return r
