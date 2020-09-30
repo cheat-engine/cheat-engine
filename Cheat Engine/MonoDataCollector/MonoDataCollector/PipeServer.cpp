@@ -319,6 +319,8 @@ void CPipeServer::InitMono()
 				mono_class_get_method_from_name = (MONO_CLASS_GET_METHOD_FROM_NAME)GetProcAddress(hMono, "il2cpp_class_get_method_from_name");
 				mono_class_get_fields = (MONO_CLASS_GET_FIELDS)GetProcAddress(hMono, "il2cpp_class_get_fields");
 				mono_class_get_parent = (MONO_CLASS_GET_PARENT)GetProcAddress(hMono, "il2cpp_class_get_parent");
+				mono_class_get_image = (MONO_CLASS_GET_IMAGE)GetProcAddress(hMono, "il2cpp_class_get_image");
+
 				mono_class_is_generic = (MONO_CLASS_IS_GENERIC)GetProcAddress(hMono, "il2cpp_class_is_generic");
 				mono_class_vtable = (MONO_CLASS_VTABLE)GetProcAddress(hMono, "il2cpp_class_vtable");
 				mono_class_from_mono_type = (MONO_CLASS_FROM_MONO_TYPE)GetProcAddress(hMono, "il2cpp_class_from_mono_type");
@@ -456,6 +458,7 @@ void CPipeServer::InitMono()
 				mono_class_get_method_from_name = (MONO_CLASS_GET_METHOD_FROM_NAME)GetProcAddress(hMono, "mono_class_get_method_from_name");
 				mono_class_get_fields = (MONO_CLASS_GET_FIELDS)GetProcAddress(hMono, "mono_class_get_fields");
 				mono_class_get_parent = (MONO_CLASS_GET_PARENT)GetProcAddress(hMono, "mono_class_get_parent");
+				mono_class_get_image = (MONO_CLASS_GET_IMAGE)GetProcAddress(hMono, "mono_class_get_image");
 				mono_class_is_generic = (MONO_CLASS_IS_GENERIC)GetProcAddress(hMono, "mono_class_is_generic");
 				mono_class_vtable = (MONO_CLASS_VTABLE)GetProcAddress(hMono, "mono_class_vtable");
 				mono_class_from_mono_type = (MONO_CLASS_FROM_MONO_TYPE)GetProcAddress(hMono, "mono_class_from_mono_type");
@@ -1379,10 +1382,17 @@ void CPipeServer::GetMethodSignature()
 void CPipeServer::GetParentClass(void)
 {
 	void *klass = (void *)ReadQword();
-	UINT_PTR parent = (UINT_PTR)mono_class_get_parent(klass);
-
+	UINT_PTR parent = mono_class_get_parent ? (UINT_PTR)mono_class_get_parent(klass) : 0;
 	WriteQword(parent);
 }
+
+void CPipeServer::GetClassImage(void)
+{
+	void *klass = (void *)ReadQword();
+	UINT_PTR parent = mono_class_get_image ? (UINT_PTR)mono_class_get_image(klass) : 0;
+	WriteQword(parent);
+}
+
 
 void CPipeServer::GetVTableFromClass(void)
 {
@@ -2120,6 +2130,11 @@ void CPipeServer::Start(void)
 				case MONOCMD_SETSTATICFIELDVALUE:
 					SetStaticFieldValue();
 					break;
+
+				case MONOCMD_GETCLASSIMAGE:
+					GetClassImage();
+					break;
+
 				}
 
 

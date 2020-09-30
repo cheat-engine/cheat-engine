@@ -267,10 +267,10 @@ begin
     lua_pushinteger(L, tdpi.module);
     lua_settable(L,-3);
 
-    lua_pushstring(L,'TypeDef');
+    lua_pushstring(L,'TypedefToken');
     lua_pushinteger(L, tdpi.token);
     lua_settable(L,-3);
-    exit(2);
+    exit(1);
   end;
 
 end;

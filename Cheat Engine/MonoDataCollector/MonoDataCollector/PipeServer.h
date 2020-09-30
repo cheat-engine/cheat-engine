@@ -48,6 +48,7 @@
 #define MONOCMD_FILLOPTIONALFUNCTIONLIST 39
 #define MONOCMD_GETSTATICFIELDVALUE 40
 #define MONOCMD_SETSTATICFIELDVALUE 41
+#define MONOCMD_GETCLASSIMAGE 42
 
 
 typedef struct {} MonoType;
@@ -93,6 +94,7 @@ typedef void* (__cdecl *MONO_CLASS_GET_METHODS)(void *klass, void *iter);
 typedef void* (__cdecl *MONO_CLASS_GET_METHOD_FROM_NAME)(void *klass, char *methodname, int paramcount);
 typedef void* (__cdecl *MONO_CLASS_GET_FIELDS)(void *klass, void *iter);
 typedef void* (__cdecl *MONO_CLASS_GET_PARENT)(void *klass);
+typedef void* (__cdecl *MONO_CLASS_GET_IMAGE)(void *klass);
 typedef void* (__cdecl *MONO_CLASS_VTABLE)(void *domain, void *klass);
 typedef void* (__cdecl *MONO_CLASS_FROM_MONO_TYPE)(void *type);
 typedef void* (__cdecl *MONO_CLASS_GET_ELEMENT_CLASS)(void *klass);
@@ -219,6 +221,7 @@ private:
 	MONO_CLASS_GET_NAME mono_class_get_name;
 	MONO_CLASS_GET_NAMESPACE mono_class_get_namespace;
 	MONO_CLASS_GET_PARENT mono_class_get_parent;
+	MONO_CLASS_GET_IMAGE mono_class_get_image;	
 	MONO_CLASS_VTABLE mono_class_vtable;
 	MONO_CLASS_FROM_MONO_TYPE mono_class_from_mono_type;
 	MONO_CLASS_IS_GENERIC mono_class_is_generic;
@@ -368,6 +371,7 @@ private:
 	void GetMethodSignature();
 	void GetMethodParameters();
 	void GetParentClass();
+	void GetClassImage();
 	void GetVTableFromClass();
 	void GetStaticFieldAddressFromClass();
 	void GetTypeClass();

@@ -27,11 +27,50 @@ local function CTypeToString(ctype)
   return r
 end
 
+local function getClassParent(Class)
+  if Class.Parent==nil then
+    --is a class definition with an image entry, but unlinked from the actual class and image list
+    Class.Parent={}
+   
+
+    if Class.ParentToken then      
+      if Class.Image.Domain.Control==CONTROL_MONO then
+        --mono    
+        
+        Class.Parent.Handle=Class.ParentToken
+        Class.Parent.Name=mono_class_getName(Class.ParentToken)
+        Class.Parent.NameSpace=mono_class_getNamespace(Class.ParentToken)
+        Class.Parent.ParentToken=mono_class_getParent(Class.ParentToken)
+                
+        local ImageHandle=mono_class_getImage(Class.ParentToken)
+        Class.Parent.Image=Class.Image.Domain.Images.HandleLookup[ImageHandle]
+      else
+        --dotnet  
+        Class.Parent.Handle=Class.ParentToken.TypedefToken
+        local classdata=DataSource.DotNetDataCollector.GetTypeDefData(Class.ParentToken.ModuleHandle, Class.ParentToken.TypedefToken) --probably overkill. Perhaps just a getclassname ot something in the future
+        if classdata then
+          Class.Parent.Name=classdata.ClassName
+          Class.Parent.NameSpace=''
+          Class.Parent.ParentToken=DataSource.DotNetDataCollector.GetTypeDefParent(Class.ParentToken.ModuleHandle, Class.ParentToken.TypedefToken)
+          
+          local ImageHandle=Class.ParentToken.ModuleHandle
+          Class.Parent.Image=Class.Image.Domain.Images.HandleLookup[ImageHandle] 
+        else
+          Class.Parent=nil --.Name=''
+          
+        end        
+      end
+    else
+      Class.Parent=nil
+    end
+  
+  end
+  
+  return Class.Parent
+end
 
 local function getClassMethods(Class)
   Class.Methods={}
-  
-
   
   local i
   if Class.Image.Domain.Control==CONTROL_MONO then
@@ -108,10 +147,9 @@ local function getClassFields(Class)
   Class.Fields={}
   local i
   if Class.Image.Domain.Control==CONTROL_MONO then
-    --todo: also get baseclass fields, as the .net version does so as well
     
     
-    local fields=mono_class_enumFields(Class.Handle)
+    local fields=mono_class_enumFields(Class.Handle, true)
     for i=1,#fields do
       local e={}
       e.Handle=fields[i].type
@@ -148,6 +186,9 @@ local function getClassFields(Class)
     end
     
   end
+  
+  table.sort(Class.Fields, function(e1,e2) return e1.Offset < e2.Offset end)
+  
 end
 
 local function getClasses(Image)
@@ -200,6 +241,9 @@ local function getImages(Domain)
   local i
   
   Domain.Images={}
+  --create a HandleToImage lookup table  
+  Domain.Images.HandleLookup={}
+  
   if Domain.Control==CONTROL_MONO then
     --mono
     local a=mono_enumAssemblies(Domain.DomainHandle)
@@ -211,6 +255,8 @@ local function getImages(Domain)
       e.FileName=extractFileName(e.Name)
       e.Domain=Domain
       table.insert(Domain.Images,e)
+      
+      Domain.Images.HandleLookup[e.Handle]=e
     end
   else
     --dotnet
@@ -225,14 +271,16 @@ local function getImages(Domain)
       e.Domain=Domain
       
       table.insert(Domain.Images,e)
-      
+      Domain.Images.HandleLookup[e.Handle]=e
       
     end
   end
   
   --sort the list
   table.sort(Domain.Images, function(e1,e2) return e1.FileName < e2.FileName end)
-      
+  
+
+  
 end
 
 local function getDomains()  
@@ -266,6 +314,9 @@ local function clearClassInformation(frmDotNetInfo)
   frmDotNetInfo.lvFields.Items.clear()
   frmDotNetInfo.lvMethods.Items.clear()
   frmDotNetInfo.gbClassInformation.Caption='Class Information'
+  
+
+    
 end
 
 local function ClassFetchWaitTillReadyAndSendData(thread, frmDotNetInfo, Image, OnDataFunction, FetchDoneFunction)
@@ -355,12 +406,72 @@ local function CancelClassFetch(frmDotNetInfo)
   end
 end
 
-local function ClassSelectionChange(sender)
-  local frmDotNetInfo=frmDotNetInfos[sender.owner.Tag]
+local function FillClassInfoFields(frmDotNetInfo, Class)
+  if frmDotNetInfo==nil then
+    print('FillClassInfoFields: Invalid frmDotNetInfo field')
+  end
+  
+  if Class==nil then
+    print('FillClassInfoFields: Invalid Class field')
+  end
   
   frmDotNetInfo.lvStaticFields.beginUpdate()
+  frmDotNetInfo.lvFields.beginUpdate() 
+  frmDotNetInfo.lvMethods.beginUpdate()
   
   clearClassInformation(frmDotNetInfo)
+  
+  if Class.Fields==nil then
+    getClassFields(Class)
+  end
+  
+  if Class.Methods==nil then
+    getClassMethods(Class)
+  end
+  
+  if Class.Fields then  
+    for i=1,#Class.Fields do
+      if Class.Fields[i].Static then
+        local li=frmDotNetInfo.lvStaticFields.Items.add()                    
+        li.Caption=Class.Fields[i].Name
+        
+        if Class.Fields[i].VarTypeName and Class.Fields[i].VarTypeName~='' then
+          li.SubItems.add(Class.Fields[i].VarTypeName)              
+        else
+          li.SubItems.add(Class.Fields[i].VarType)    
+        end
+      else       
+        local li=frmDotNetInfo.lvFields.Items.add()
+      
+        li.Caption=string.format("%.3x", Class.Fields[i].Offset)
+        li.SubItems.add(Class.Fields[i].Name)
+        if Class.Fields[i].VarTypeName and Class.Fields[i].VarTypeName~='' then
+          li.SubItems.add(Class.Fields[i].VarTypeName)              
+        else
+          li.SubItems.add(Class.Fields[i].VarType)    
+        end               
+      end
+    end
+  end
+  
+  if Class.Methods then
+    for i=1,#Class.Methods do
+      local li=frmDotNetInfo.lvMethods.Items.add()   
+      li.Caption=Class.Methods[i].Name
+      li.SubItems.add(Class.Methods[i].Parameters)
+    end
+  end
+
+  frmDotNetInfo.lvStaticFields.endUpdate()
+  frmDotNetInfo.lvFields.endUpdate()
+  frmDotNetInfo.lvMethods.endUpdate()
+end
+
+local function ClassSelectionChange(sender)
+  print("ClassSelectionChange")
+  local frmDotNetInfo=frmDotNetInfos[sender.owner.Tag]
+  
+  
   
   if sender.ItemIndex>=0 then
     local Domain=DataSource.Domains[frmDotNetInfo.lbDomains.ItemIndex+1]
@@ -368,57 +479,82 @@ local function ClassSelectionChange(sender)
     
     if Image.Classes==nil then return end
     
-    local Class=Image.Classes[frmDotNetInfo.lbClasses.ItemIndex+1]    
+    local Class=Image.Classes[frmDotNetInfo.lbClasses.ItemIndex+1]      
     if Class==nil then return end
+    
+    _G.LastClass=Class --debug
+    
+    local ClassParent=getClassParent(Class)   
     
     
     frmDotNetInfo.gbClassInformation.Caption='Class Information ('..Class.Name..')'
   
-    if Class.Fields==nil then
-      getClassFields(Class)
-    end
-    
-    if Class.Methods==nil then
-      getClassMethods(Class)
-    end
-    
-    if Class.Fields then  
-      for i=1,#Class.Fields do
-        if Class.Fields[i].Static then
-          local li=frmDotNetInfo.lvStaticFields.Items.add()                    
-          li.Caption=Class.Fields[i].Name
-          
-          if Class.Fields[i].VarTypeName and Class.Fields[i].VarTypeName~='' then
-            li.SubItems.add(Class.Fields[i].VarTypeName)              
-          else
-            li.SubItems.add(Class.Fields[i].VarType)    
-          end
-        else       
-          local li=frmDotNetInfo.lvFields.Items.add()
-        
-          li.Caption=string.format("%.3x", Class.Fields[i].Offset)
-          li.SubItems.add(Class.Fields[i].Name)
-          if Class.Fields[i].VarTypeName and Class.Fields[i].VarTypeName~='' then
-            li.SubItems.add(Class.Fields[i].VarTypeName)              
-          else
-            li.SubItems.add(Class.Fields[i].VarType)    
-          end               
-        end
-      end
-    end
-    
-    if Class.Methods then
-      for i=1,#Class.Methods do
-        local li=frmDotNetInfo.lvMethods.Items.add()   
-        li.Caption=Class.Methods[i].Name
-        li.SubItems.add(Class.Methods[i].Parameters)
-      end
-    end
-    
-    
-  end
+    --erase the old inhgeritcance fields  
+    while frmDotNetInfo.gbInheritance.ControlCount>0 do
+      frmDotNetInfo.gbInheritance.Control[i].destroy()    
+    end  
   
-  frmDotNetInfo.lvStaticFields.endUpdate()
+    if ClassParent then
+      local ClassList={}
+      ClassList[1]={}
+      ClassList[1].Class=Class
+      
+      while ClassParent and ClassParent.Handle~=0 and ClassParent.name~='' do
+        local e={}
+        e.Class=ClassParent
+        table.insert(ClassList,e)
+        ClassParent=getClassParent(ClassParent)
+      end
+      
+      local l
+      for i=1,#ClassList do 
+        l=createLabel(frmDotNetInfo.gbInheritance)        
+        l.Caption=ClassList[i].Class.Name
+        ClassList[i].Label=l
+        
+        
+        if i==1 then
+          l.Font.Style="[fsBold]"               
+        else        
+          l.Font.Style="[fsUnderline]"
+          l.Font.Color=clBlue          
+        end
+        l.Cursor=crHandPoint
+        l.OnMouseDown=function(s)
+          --show class state
+          --print("Showing state "..ClassList[i].Class.Name)            
+          FillClassInfoFields(frmDotNetInfo, ClassList[i].Class)
+          local j
+          for j=1,#ClassList do
+            if j==i then --the currently selected index (this is why I like lua)
+              ClassList[j].Label.Font.Color=clWindowText
+              ClassList[j].Label.Font.Style="[fsBold]" 
+            else
+              ClassList[j].Label.Font.Style="[fsUnderline]"
+              ClassList[j].Label.Font.Color=clBlue   
+            end
+          end
+          frmDotNetInfo.gbInheritance.OnResize(frmDotNetInfo.gbInheritance, true)
+        end
+        
+        if i~=#ClassList then --not the last item
+          l=createLabel(frmDotNetInfo.gbInheritance)          
+          l.Caption="->"    
+        end
+      end    
+      
+    
+      frmDotNetInfo.gbInheritance.Visible=true  
+      frmDotNetInfo.gbInheritance.OnResize(frmDotNetInfo.gbInheritance)
+      
+    else
+      frmDotNetInfo.gbInheritance.Visible=false
+    end
+    
+    FillClassInfoFields(frmDotNetInfo, Class)
+  
+  end  
+  
 end
 
 
@@ -542,6 +678,46 @@ local function FindInListBox(listbox)
   fd.left=x
 end
 
+local delayedResize
+
+local function InheritanceResize(gbInheritance, now)
+  if delayedResize==nil then
+    local f=function()
+      local i,x,y
+      local width=gbInheritance.ClientWidth
+      
+      x=0
+      y=0
+      
+      for i=0 , gbInheritance.ControlCount-1 do
+        --the labels are in the order they get added to the groupbox
+        local c=gbInheritance.Control[i]
+        if (x~=0) and (x+c.Width>width) then --next line
+          x=0
+          y=y+c.height
+        end
+        
+        c.Left=2+x
+        c.Top=y
+        
+        
+        x=x+c.Width+1
+      end      
+      delayedResize=nil      
+    end
+    
+    if now then 
+      f()
+    else
+      delayedResize=createTimer(100,f)
+    end
+  else
+    --reset timer
+    delayedResize.Enabled=false
+    delayedResize.Enabled=true
+  end
+end
+
 
 function miDotNetInfoClick(sender)
   
@@ -568,7 +744,7 @@ function miDotNetInfoClick(sender)
   frmDotNetInfos[i]=frmDotNetInfo
   frmDotNetInfo.Name="frmDotNetInfo"..i   
   frmDotNetInfo.Tag=i
-  frmDotNetInfo.PopupMode='pmAuto'
+  
   
   frmDotNetInfo.OnDestroy=function(f)
     f.SaveFormPosition({
@@ -603,7 +779,7 @@ function miDotNetInfoClick(sender)
   frmDotNetInfo.miImageFind.ShortCut=textToShortCut('Ctrl+F')
   
   frmDotNetInfo.miClassFind.OnClick=function(f)
-    FindInListBox(frmDotNetInfo.lbImages)
+    FindInListBox(frmDotNetInfo.lbClasses)
   end  
   frmDotNetInfo.miClassFind.ShortCut=textToShortCut('Ctrl+F')
   
@@ -666,6 +842,8 @@ function miDotNetInfoClick(sender)
   frmDotNetInfo.lbClasses.OnSelectionChange=ClassSelectionChange
   
   --Class info setup
+  
+  frmDotNetInfo.gbInheritance.OnResize=InheritanceResize
   
   
   --Init
