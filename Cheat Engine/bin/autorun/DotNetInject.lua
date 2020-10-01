@@ -16,10 +16,11 @@ alloc(RuntimeHost,8)
 alloc(paramstr,256)
 alloc(methodname,256)
 alloc(classname,256)
-alloc(dllpath,256)
+alloc(dllpath,512)
 
 alloc(returnvalue,4)
 alloc(errorvalue,4)
+label(error)
 
 dllpath:
 dw '%s',0
@@ -82,7 +83,7 @@ mov [errorvalue],eax
 
 error:
 [64-bit]
-sub rsp,6*8+8
+add rsp,6*8+8
 ret
 [/64-bit]
 
@@ -107,6 +108,9 @@ dealloc(errorvalue)
 
 ]]
 
+
+----------------------dot net---------------------------------------
+
 local DotNetStandardInjectScript=[[
 [enable]
 alloc(injectdotnetdll,4096)
@@ -130,7 +134,9 @@ alloc(rti_started,4)
 alloc(paramstr,256)
 alloc(methodname,256)
 alloc(classname,256)
-alloc(dllpath,256)
+alloc(dllpath,512)
+label(error)
+label(RuntimeEnumLoop)
 
 errorvalue:
 dd ffffffff //ffffffff= it never even got to the execute part
@@ -370,11 +376,11 @@ function injectDotNetDLL(path, classname, methodname, parameter)
   
   
   local script=string.format(script,path, classname, methodname, parameter)
-  local status, disableInfo=autoAssemble(script)
+  status, disableInfo=autoAssemble(script)
   
   if status then
-    local returnValue=readInteger(disableInfo.allocs.returnvalue)    
-    local errorValue=readInteger(disableInfo.allocs.errorvalue)  
+    local returnValue=readInteger(disableInfo.allocs.returnvalue.address)    
+    local errorValue=readInteger(disableInfo.allocs.errorvalue.address)  
     autoAssemble(script, disableInfo)   
     
     if errorValue==nil then
@@ -395,6 +401,8 @@ function injectDotNetDLL(path, classname, methodname, parameter)
   end  
   
 end
+
+injectDotNetLibrary=injectDotNetDLL
 
 
 

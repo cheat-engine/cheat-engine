@@ -80,28 +80,10 @@ local function getClassMethods(Class)
         local e={}
         e.Handle=methods[i].method
         e.Name=methods[i].name
+        e.Class=Class
         
         e.Parameters=getParameterFromMethod(e.Handle)
---[[
-        mono_method_get_parameters(e.Handle)
-        if params then
-          print(string.format("%.8x has %d parameters",e.Handle,#params.parameters))
-        
-          e.Parameters=params.returntype..' ('
-          local j
-          
-          for j=1, #params.parameters do          
-            local p=params.parameters[i].type..' '..params.parameters[i].name
-            
-            e.Parameters=e.Parameters..p
-            if j~=#params.parameters then
-              e.Parameters=e.Parameters..', '
-            end
-          end
-        else
-          print(string.format("%.8x failed getting the parameters",e.Handle))
-        end--]]
-        
+       
         table.insert(Class.Methods, e)
       end
     end
@@ -116,6 +98,13 @@ local function getClassMethods(Class)
         --_G.Class=Class
         e.Handle=methods[i].MethodToken
         e.Name=methods[i].Name
+        e.Class=Class
+        e.ILCode=methods[i].ILCode
+        e.NativeCode=methods[i].NativeCode
+        
+        --if e.NativeCode and e.NativeCode~=0 then
+        --  print(e.Class.Name..'.'..e.Name..' is compiled at '..string.format('%x', e.NativeCode))
+        --end
         
         --print("Method "..e.Name)
         --build parameter list
@@ -720,6 +709,53 @@ local function InheritanceResize(gbInheritance, now)
   end
 end
 
+local function getMethodAddress(Method)
+  if Method.Class.Image.Domain.Control==CONTROL_MONO then
+    local address=mono_compile_method(Method.Handle)
+    if address and address~=0 then 
+      return address 
+    else 
+      return nil 
+    end
+  else
+    --the method already contains ILCode and NativeCode (requirying won't help until the collector is reloaded)
+    if Method.NativeCode and Method.NativeCode~=0 then
+      return Method.NativeCode
+    else
+      return nil --not jitted yet
+    end
+  end
+end
+
+local function OpenAddressOfSelectedMethod(frmDotNetInfo)
+  local Domain=DataSource.Domains[frmDotNetInfo.lbDomains.ItemIndex+1]
+  if Domain==nil then return end
+  
+  local Image=Domain.Images[frmDotNetInfo.lbImages.ItemIndex+1]
+  if Image==nil then return end
+  
+  local Class=Image.Classes[frmDotNetInfo.lbClasses.ItemIndex+1]
+  if Class==nill then return end
+  
+  local Method=Class.Methods[frmDotNetInfo.lvMethods.ItemIndex+1]
+  if Method==nil then return end
+  
+  --print("Getting the entry point for "..Method.Name)
+  local Address=getMethodAddress(Method)
+ 
+  if (Address) then
+    getMemoryViewForm().DisassemblerView.SelectedAddress=Address
+    getMemoryViewForm().show()
+  else   
+    --todo:
+    if( Address==nil) and (Method.Class.Image.Domain.Control~=CONTROL_MONO) and (messageDialog(translate('This method is currently not jitted. Do you wish to inject the .NET Control DLL into the target process to force it to generate an entry point for this method? (Does not work if the target is suspended)'), mtConfirmation, mbYes,mbNo)==mrYes) then
+      --inject the control DLL
+    end
+  end
+  
+  
+end
+
 
 function miDotNetInfoClick(sender)
   
@@ -850,6 +886,11 @@ function miDotNetInfoClick(sender)
   frmDotNetInfo.miFindClass.OnClick=function() spawnDotNetSearchDialog(DataSource, frmDotNetInfo, 0) end
   frmDotNetInfo.miFindField.OnClick=function() spawnDotNetSearchDialog(DataSource, frmDotNetInfo, 1) end
   frmDotNetInfo.miFindMethod.OnClick=function() spawnDotNetSearchDialog(DataSource, frmDotNetInfo, 2) end
+  
+  frmDotNetInfo.miJitMethod.Default=true
+  frmDotNetInfo.miJitMethod.OnClick=function() OpenAddressOfSelectedMethod(frmDotNetInfo) end
+  frmDotNetInfo.lvMethods.OnDblClick=frmDotNetInfo.miJitMethod.OnClick
+  
   
   
   --Init
