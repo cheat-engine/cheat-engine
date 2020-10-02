@@ -1981,7 +1981,7 @@ begin
                   end
                   else
                   begin
-                    if lastLoadedTableVersion<=30 then //when the current table was made with an older CE build and it uses  CREATETHREADANDWAIT
+                    if (lastLoadedTableVersion>0) and (lastLoadedTableVersion<=30) then //when the current table was made with an older CE build and it uses  CREATETHREADANDWAIT
                       j:=5000
                     else
                       j:=0;

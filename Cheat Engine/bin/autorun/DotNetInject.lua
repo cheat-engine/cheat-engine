@@ -191,7 +191,7 @@ mov rax,[rcx]
 mov rdx,-1
 mov r8,RuntimeEnum
 call [rax+6*8] //EnumerateLoadedRuntimes
-[/64-bit
+[/64-bit]
 
 [32-bit]
 mov ecx,[metahost]
@@ -355,58 +355,51 @@ function injectDotNetDLL(path, classname, methodname, parameter)
     if uppername=='MSCOREE.DLL' then
       if getAddressSafe('MSCOREE.CLRCreateInstance') then
         isDotNetStandard=true
-      end      
+      end
     end
-    
+
     if uppername=='CORECLR.DLL' then
       if getAddressSafe('CORECLR.GetCLRRuntimeHost') then
         isDotNetCore=true
-      end         
+      end
     end
   end
-  
+
   local script
   if isDotNetCore then
-    script=DotNetCoreInjectScript  
+    script=DotNetCoreInjectScript
   elseif isDotNetStandard then
     script=DotNetStandardInjectScript
   else
-    return nil,-4 --no dotnet architecture detected  
+    return nil,-4 --no dotnet architecture detected
   end
-  
-  
+
+
   local script=string.format(script,path, classname, methodname, parameter)
   status, disableInfo=autoAssemble(script)
-  
+
   if status then
-    local returnValue=readInteger(disableInfo.allocs.returnvalue.address)    
-    local errorValue=readInteger(disableInfo.allocs.errorvalue.address)  
-    autoAssemble(script, disableInfo)   
-    
+    local returnValue=readInteger(disableInfo.allocs.returnvalue.address)
+    local errorValue=readInteger(disableInfo.allocs.errorvalue.address)
+    autoAssemble(script, disableInfo)
+
     if errorValue==nil then
-      return nil,-3   --target crashed...      
+      return nil,-3   --target crashed...
     end
-    
+
     if errorValue~=0 then --not a successful load
       if errorValue==0xffffffff then
         return nil, -2 --failed getting to the execute part
       else
         return nil, errorValue --execution gave this error (ntstatus)
       end
-    end    
+    end
 
     return returnValue
   else
     return nil,-1
-  end  
-  
+  end
+
 end
 
 injectDotNetLibrary=injectDotNetDLL
-
-
-
-
-
-
-

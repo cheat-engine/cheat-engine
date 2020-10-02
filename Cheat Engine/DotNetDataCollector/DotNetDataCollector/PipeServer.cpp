@@ -58,7 +58,7 @@ CPipeServer::CPipeServer(TCHAR *name)
 	if (StrCmp(name,L"BLA")==0)
 	{
 		//do some debug stuff
-		processid=262788;
+		processid=304172;
 		OpenOrAttachToProcess();
 
 
@@ -130,7 +130,7 @@ BOOL CPipeServer::OpenOrAttachToProcess(void)
 
 
 	HMODULE hMscoree = LoadLibraryA("mscoree.dll");
-	CLRCreateInstanceFnPtr CLRCreateInstance, CLRCreateInstanceDotNetCore;
+	CLRCreateInstanceFnPtr CLRCreateInstance=NULL, CLRCreateInstanceDotNetCore=NULL;
 
 	//Try CE's bin path or the system library search path
 	StrCpyW(dotnetcorepath, L""); //init as empty string
@@ -139,7 +139,8 @@ BOOL CPipeServer::OpenOrAttachToProcess(void)
 	if (hDbgShim == NULL)
 	{
 		
-#ifdef AMD64
+
+#ifdef _WIN64
 		//search in C:\\Program Files\\dotnet\\shared\\Microsoft.NETCore.App\\ for the highest version
 		WCHAR *basepath = L"C:\\Program Files\\dotnet\\shared\\Microsoft.NETCore.App\\";
 #else
