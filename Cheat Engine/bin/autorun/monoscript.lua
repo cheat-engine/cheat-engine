@@ -424,7 +424,7 @@ function LaunchMonoDataCollector()
   while (monopipe==nil) and (getTickCount()<timeout) do
     if (getOperatingSystem()==0) and (readInteger(getAddressSafe("MDC_ServerPipe"))==0xdeadbeef) then
       --likely an UWP target which can not create a named pipe
-      print("UWP situation")
+      --print("UWP situation")
       local serverpipe=createPipe('cemonodc_pid'..getOpenedProcessID(), 256*1024,1024)      
       local newhandle=duplicateHandle(serverpipe.Handle)
       serverpipe.destroy() --the old handle is not needed anymore

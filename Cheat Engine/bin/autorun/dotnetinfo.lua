@@ -1,3 +1,5 @@
+--dotnetinfo is a passive .net query tool, but it can go to a active state if needed
+
 if getTranslationFolder()~='' then
   loadPOFile(getTranslationFolder()..'dotnetinfo.po')
 end
@@ -242,7 +244,7 @@ local function getImages(Domain)
       local image=mono_getImageFromAssembly(a[i])
       local e={}
       e.Handle=image
-      e.Name=mono_image_get_name(image)
+      e.Name=mono_image_get_name(image) --full path
       e.FileName=extractFileName(e.Name)
       e.Domain=Domain
       table.insert(Domain.Images,e)
@@ -256,7 +258,7 @@ local function getImages(Domain)
     for i=1,#modules do
       local e={}
       e.Handle=modules[i].ModuleHandle
-      e.Name=modules[i].Name
+      e.Name=modules[i].Name --full path
       e.FileName=extractFileName(e.Name)
       e.BaseAddress=modules[i].BaseAddress
       e.Domain=Domain
@@ -710,19 +712,39 @@ local function InheritanceResize(gbInheritance, now)
 end
 
 local function getMethodAddress(Method)
+_G.debugMethod=Method
   if Method.Class.Image.Domain.Control==CONTROL_MONO then
     local address=mono_compile_method(Method.Handle)
     if address and address~=0 then 
       return address 
     else 
-      return nil 
+      return nil,trasnslate('Failure compiling the method')
     end
   else
     --the method already contains ILCode and NativeCode (requirying won't help until the collector is reloaded)
     if Method.NativeCode and Method.NativeCode~=0 then
       return Method.NativeCode
+    elseif dotnetpipe and (tonumber(dotnetpipe.processid)==getOpenedProcessID()) then
+      --print("getMethodAddress and dotnetpipe is valid")
+      if Method.Class.Image.DotNetPipeModuleID==nil then
+        --print("getting module id for "..Method.Class.Image.FileName)
+        Method.Class.Image.DotNetPipeModuleID=dotnet_getModuleID(Method.Class.Image.FileName)
+      end
+      
+      if Method.Class.Image.DotNetPipeModuleID then
+        address=dotnet_getMethodEntryPoint(Method.Class.Image.DotNetPipeModuleID, Method.Handle)        
+        if address==nil or address==0 then
+          return nil, translate('Failure getting method address')
+        end
+        
+        return address          
+      else
+        --print("No moduleid found")
+
+        return nil, translate('Failure getting methodid for module named '..Method.Class.Image.FileName)                  
+      end
     else
-      return nil --not jitted yet
+      return nil,'Not jitted and no dotnet pipe present' --not jitted yet and no dotnetpipe present
     end
   end
 end
@@ -741,15 +763,40 @@ local function OpenAddressOfSelectedMethod(frmDotNetInfo)
   if Method==nil then return end
   
   --print("Getting the entry point for "..Method.Name)
-  local Address=getMethodAddress(Method)
+  local Address,ErrorMessage=getMethodAddress(Method)
  
   if (Address) then
     getMemoryViewForm().DisassemblerView.SelectedAddress=Address
     getMemoryViewForm().show()
   else   
     --todo:
-    if( Address==nil) and (Method.Class.Image.Domain.Control~=CONTROL_MONO) and (messageDialog(translate('This method is currently not jitted. Do you wish to inject the .NET Control DLL into the target process to force it to generate an entry point for this method? (Does not work if the target is suspended)'), mtConfirmation, mbYes,mbNo)==mrYes) then
-      --inject the control DLL
+    
+    if (Method.Class.Image.Domain.Control~=CONTROL_MONO) then
+      --it's not going to be the one you expect
+      
+      if (dotnetpipe==nil) and (messageDialog(translate('This method is currently not jitted. Do you wish to inject the .NET Control DLL into the target process to force it to generate an entry point for this method? (Does not work if the target is suspended)'), mtConfirmation, mbYes,mbNo)==mrYes) then
+        --inject the control DLL
+        LaunchDotNetInterface()    
+
+        if dotnetpipe then
+          
+          Address,ErrorMessage=getMethodAddress(Method)   
+          if Address then
+            getMemoryViewForm().DisassemblerView.SelectedAddress=Address
+            getMemoryViewForm().show()          
+          else
+            messageDialog(ErrorMessage, mtError, mbOK)
+            return
+          end
+        end        
+      else
+        messageDialog(ErrorMessage, mtError, mbOK)
+        return   
+      end     
+      
+    else
+      messageDialog(ErrorMessage, mtError, mbOK)
+      return    
     end
   end
   

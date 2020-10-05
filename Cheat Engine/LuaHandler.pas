@@ -13750,12 +13750,15 @@ begin
       s.add('math.mod=math.fmod');
       s.add('string.gfind=string.gmatch');
 
-      s.add('function printf(...) print(string.format(...)) end');
-      s.add('registerLuaFunctionHighlight("printf")');
-
 
       s.add('BinUtils={}');
+      s.add('math.randomseed(os.time())');
 
+      lua_doscript(s.text);
+
+      s.clear;
+      s.add('function printf(...) print(string.format(...)) end');
+      s.add('registerLuaFunctionHighlight("printf")');
       lua_doscript(s.text);
 
       lua_getglobal(L, 'string');

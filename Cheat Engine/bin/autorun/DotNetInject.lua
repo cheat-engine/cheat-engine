@@ -345,7 +345,7 @@ dealloc(dllpath)
 
 ]]
 
-function injectDotNetDLL(path, classname, methodname, parameter)
+function injectDotNetDLL(path, classname, methodname, parameter, timeout)
 
   local m=enumModules()
   local isDotNetCore=false
