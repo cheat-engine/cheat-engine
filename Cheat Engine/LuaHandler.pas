@@ -12922,6 +12922,21 @@ begin
   end;
 end;
 
+function lua_registerLuaFunctionHighlight(L: Plua_State): integer; cdecl;
+begin
+  if luasyntaxStringHashList<>nil then
+    luasyntaxStringHashList.Add(Lua_ToString(L,-1));
+
+  result:=0;
+end;
+
+function lua_unregisterLuaFunctionHighlight(L: Plua_State): integer; cdecl;
+begin
+  if luasyntaxStringHashList<>nil then
+    luasyntaxStringHashList.Add(Lua_ToString(L,-1));
+
+  result:=0;
+end;
 
 procedure InitializeLua;
 var
@@ -13591,6 +13606,8 @@ begin
     lua_register(L, 'extractFileName', lua_extractFileName);
     lua_register(L, 'extractFilePath', lua_extractFilePath);
 
+    lua_register(L, 'registerLuaFunctionHighlight', lua_registerLuaFunctionHighlight);
+    lua_register(L, 'unregisterLuaFunctionHighlight', lua_unregisterLuaFunctionHighlight);
 
     initializeLuaRemoteThread;
 
@@ -13732,6 +13749,9 @@ begin
       s.add('math.ldexp=function(x,exp) return x * 2.0^exp end');
       s.add('math.mod=math.fmod');
       s.add('string.gfind=string.gmatch');
+
+      s.add('function printf(...) print(string.format(...)) end');
+      s.add('registerLuaFunctionHighlight("printf")');
 
 
       s.add('BinUtils={}');
