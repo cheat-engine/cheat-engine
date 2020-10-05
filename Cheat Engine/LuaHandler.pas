@@ -12933,7 +12933,7 @@ end;
 function lua_unregisterLuaFunctionHighlight(L: Plua_State): integer; cdecl;
 begin
   if luasyntaxStringHashList<>nil then
-    luasyntaxStringHashList.Add(Lua_ToString(L,-1));
+    luasyntaxStringHashList.Remove(Lua_ToString(L,-1));
 
   result:=0;
 end;
