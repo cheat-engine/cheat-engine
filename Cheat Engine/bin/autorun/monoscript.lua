@@ -1062,8 +1062,8 @@ end
 
 
 --todo for the instance scanner: Get the fields and check that pointers are either nil or point to a valid address
-function mono_class_findInstancesOfClassListOnly(domain, klass)
-  local vtable=mono_class_getVTable(domain, klass)
+function mono_class_findInstancesOfClassListOnly(domain, klass, progressBar)
+  local vtable=mono_class_getVTable(domain, klass, progressBar)
   if (vtable) and (vtable~=0) then
     local ms=createMemScan()  
     local scantype=vtDword

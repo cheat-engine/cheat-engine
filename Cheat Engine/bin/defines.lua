@@ -582,3 +582,22 @@ crSizeAll     = -22
 
   clMask = clWhite
   clDontMask = clBlack
+
+
+--pen mode
+pmBlack=0
+pmWhite=1
+pmNop=2
+pmNot=3
+pmCopy=4
+pmNotCopy=5
+pmMergePenNot=6
+pmMaskPenNot=7
+pmMergeNotPen=8
+pmMaskNotPen=9
+pmMerge=10
+pmNotMerge=11
+pmMask=12
+pmNotMask=13
+pmXor=14
+pmNotXor=15

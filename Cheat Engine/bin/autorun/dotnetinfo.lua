@@ -29,6 +29,15 @@ local function CTypeToString(ctype)
   return r
 end
 
+local function getClassInstances(Class, ProgressBar)  
+  if Class.Image.Domain.Control==CONTROL_MONO then
+    --get the vtable and then scan for objects with this
+    return mono_class_findInstancesOfClassListOnly(nil, Class.Handle)    
+  else
+    return DataSource.DotNetDataCollector.enumAllObjectsOfType(Class.Image.Handle, Class.Handle)    
+  end  
+end
+
 local function getClassParent(Class)
   if Class.Parent==nil then
     --is a class definition with an image entry, but unlinked from the actual class and image list
@@ -173,8 +182,7 @@ local function getClassFields(Class)
         
         table.insert(r,e)
       end
-    end
-    
+    end    
   end
   
   table.sort(r, function(e1,e2) return e1.Offset < e2.Offset end)
@@ -307,9 +315,7 @@ local function clearClassInformation(frmDotNetInfo)
   frmDotNetInfo.lvFields.Items.clear()
   frmDotNetInfo.lvMethods.Items.clear()
   frmDotNetInfo.gbClassInformation.Caption='Class Information'
-  
-
-    
+  frmDotNetInfo.CurrentlyDisplayedClass=nil
 end
 
 local function ClassFetchWaitTillReadyAndSendData(thread, frmDotNetInfo, Image, OnDataFunction, FetchDoneFunction)
@@ -437,6 +443,7 @@ local function FillClassInfoFields(frmDotNetInfo, Class)
         local li=frmDotNetInfo.lvFields.Items.add()
       
         li.Caption=string.format("%.3x", Class.Fields[i].Offset)
+        li.Data=i
         li.SubItems.add(Class.Fields[i].Name)
         if Class.Fields[i].VarTypeName and Class.Fields[i].VarTypeName~='' then
           li.SubItems.add(Class.Fields[i].VarTypeName)              
@@ -458,13 +465,16 @@ local function FillClassInfoFields(frmDotNetInfo, Class)
   frmDotNetInfo.lvStaticFields.endUpdate()
   frmDotNetInfo.lvFields.endUpdate()
   frmDotNetInfo.lvMethods.endUpdate()
+  
+  frmDotNetInfo.CurrentlyDisplayedClass=Class
+  
+  if frmDotNetInfo.comboFieldBaseAddress.Text~='' then
+    frmDotNetInfo.comboFieldBaseAddress.OnChange(frmDotNetInfo.comboFieldBaseAddress)
+  end
+  
 end
 
-local function ClassSelectionChange(sender)
-  
-  local frmDotNetInfo=frmDotNetInfos[sender.owner.Tag]
-  
-  
+local function ClassSelectionChange(frmDotNetInfo, sender)
   
   if sender.ItemIndex>=0 then
     local Domain=DataSource.Domains[frmDotNetInfo.lbDomains.ItemIndex+1]
@@ -551,9 +561,7 @@ local function ClassSelectionChange(sender)
 end
 
 
-local function ImageSelectionChange(sender)
-  local frmDotNetInfo=frmDotNetInfos[sender.owner.Tag]
-
+local function ImageSelectionChange(frmDotNetInfo, sender)
   frmDotNetInfo.lbClasses.Items.clear()
   clearClassInformation(frmDotNetInfo)
   
@@ -597,13 +605,12 @@ local function ImageSelectionChange(sender)
 end
 
 
-local function DomainSelectionChange(sender)
-  local frmDotNetInfo=frmDotNetInfos[sender.owner.Tag]
+local function DomainSelectionChange(frmDotNetInfo, sender)
+
   frmDotNetInfo.lbImages.Items.clear()
   frmDotNetInfo.lbClasses.Items.clear()
   clearClassInformation(frmDotNetInfo)
-  
-  local frmDotNetInfo=frmDotNetInfos[sender.owner.Tag]
+
   if sender.ItemIndex>=0 then
     local Domain=DataSource.Domains[sender.ItemIndex+1]
     --get the Images list
@@ -712,7 +719,6 @@ local function InheritanceResize(gbInheritance, now)
 end
 
 local function getMethodAddress(Method)
-_G.debugMethod=Method
   if Method.Class.Image.Domain.Control==CONTROL_MONO then
     local address=mono_compile_method(Method.Handle)
     if address and address~=0 then 
@@ -750,13 +756,7 @@ _G.debugMethod=Method
 end
 
 local function OpenAddressOfSelectedMethod(frmDotNetInfo)
-  local Domain=DataSource.Domains[frmDotNetInfo.lbDomains.ItemIndex+1]
-  if Domain==nil then return end
-  
-  local Image=Domain.Images[frmDotNetInfo.lbImages.ItemIndex+1]
-  if Image==nil then return end
-  
-  local Class=Image.Classes[frmDotNetInfo.lbClasses.ItemIndex+1]
+  local Classs=frmDotNetInfo.CurrentlyDisplayedClass
   if Class==nill then return end
   
   local Method=Class.Methods[frmDotNetInfo.lvMethods.ItemIndex+1]
@@ -799,9 +799,241 @@ local function OpenAddressOfSelectedMethod(frmDotNetInfo)
       return    
     end
   end
-  
-  
 end
+
+
+local function comboFieldBaseAddressChange(frmDotNetInfo, sender)
+  local address=getAddressSafe(sender.Text)
+  local Class=frmDotNetInfo.CurrentlyDisplayedClass
+  
+  if address then      
+    frmDotNetInfo.lvFields.Columns[0].Caption=translate('Address')
+    local i
+    for i=0, frmDotNetInfo.lvFields.Items.Count-1 do
+      local ci=frmDotNetInfo.lvFields.Items[i].Data
+      if ci and ci>0 and ci<=#Class.Fields then
+        local a=Class.Fields[ci].Offset+address
+        frmDotNetInfo.lvFields.Items[i].Caption=string.format("%.8x ",a)
+      end
+    end
+    frmDotNetInfo.tFieldValueUpdater.Enabled=true
+    frmDotNetInfo.lvFields.Columns[3].Visible=true
+    
+    frmDotNetInfo.tFieldValueUpdater.OnTimer(frmDotNetInfo.tFieldValueUpdater)
+  else
+    --invalid
+    frmDotNetInfo.lvFields.Columns[0].Caption=translate('Offset')
+    
+    
+    local i
+    for i=0, frmDotNetInfo.lvFields.Items.Count-1 do
+      local ci=frmDotNetInfo.lvFields.Items[i].Data
+      if ci and ci>0 and ci<=#Class.Fields then
+        local a=Class.Fields[ci].Offset
+        frmDotNetInfo.lvFields.Items[i].Caption=string.format("%.3x",a)
+      end
+    end  
+
+    frmDotNetInfo.tFieldValueUpdater.Enabled=false
+    frmDotNetInfo.lvFields.Columns[3].Visible=false
+  end
+end
+
+local ELEMENT_TYPE_END        = 0x00       -- End of List
+local ELEMENT_TYPE_VOID       = 0x01
+local ELEMENT_TYPE_BOOLEAN    = 0x02
+local ELEMENT_TYPE_CHAR       = 0x03
+local ELEMENT_TYPE_I1         = 0x04
+local ELEMENT_TYPE_U1         = 0x05
+local ELEMENT_TYPE_I2         = 0x06
+local ELEMENT_TYPE_U2         = 0x07
+local ELEMENT_TYPE_I4         = 0x08
+local ELEMENT_TYPE_U4         = 0x09
+local ELEMENT_TYPE_I8         = 0x0a
+local ELEMENT_TYPE_U8         = 0x0b
+local ELEMENT_TYPE_R4         = 0x0c
+local ELEMENT_TYPE_R8         = 0x0d
+local ELEMENT_TYPE_STRING     = 0x0e
+local ELEMENT_TYPE_PTR        = 0x0f   
+
+
+local DotNetValueReaders={}
+DotNetValueReaders[ELEMENT_TYPE_BOOLEAN]=function(address) 
+  if readBytes(address,1)==0 then 
+    return translate("False") 
+  else 
+    return translate("True") 
+  end
+end
+  
+DotNetValueReaders[ELEMENT_TYPE_CHAR]=function(address) 
+  local b=readBytes(address,1) 
+  local c=string.char(b)
+  return c..' (#'..b..')'
+end
+  
+DotNetValueReaders[ELEMENT_TYPE_I1]=function(address) 
+  local v=readBytes(address,1) 
+  if v and ((v & 0x80)~=0) then
+    return v-0x100
+  else
+    return v
+  end
+end
+DotNetValueReaders[ELEMENT_TYPE_U1]=function(address) return readBytes(address,1) end
+DotNetValueReaders[ELEMENT_TYPE_I2]=function(address) return readSmallInteger(address,true) end 
+DotNetValueReaders[ELEMENT_TYPE_U2]=function(address) return readSmallInteger(address) end 
+DotNetValueReaders[ELEMENT_TYPE_I4]=function(address) return readInteger(address,true) end 
+DotNetValueReaders[ELEMENT_TYPE_U4]=function(address) return readInteger(address) end 
+DotNetValueReaders[ELEMENT_TYPE_I8]=function(address) return readQword(address) end 
+DotNetValueReaders[ELEMENT_TYPE_U8]=DotNetValueReaders[MONO_TYPE_I8]
+DotNetValueReaders[ELEMENT_TYPE_R4]=function(address) return readFloat(address) end 
+DotNetValueReaders[ELEMENT_TYPE_R8]=function(address) return readDouble(address) end 
+DotNetValueReaders[ELEMENT_TYPE_PTR]=function(address) 
+  local v=readPointer(address)
+  if v then
+    return string.format("%.8x",v) 
+  else
+    return
+  end 
+end
+
+
+local function FieldValueUpdaterTimer(frmDotNetInfo, sender)
+  local i
+  local address=getAddressSafe(frmDotNetInfo.comboFieldBaseAddress.Text)
+  local Class=frmDotNetInfo.CurrentlyDisplayedClass
+  if address and Class then  
+    for i=0, frmDotNetInfo.lvFields.Items.Count-1 do
+      local ci=frmDotNetInfo.lvFields.Items[i].Data
+      if ci>0 and ci<=#Class.Fields then
+        local a=address+Class.Fields[ci].Offset
+        
+        local reader=DotNetValueReaders[Class.Fields[ci].VarType]
+        if reader==nil then
+          reader=DotNetValueReaders[ELEMENT_TYPE_PTR]
+        end
+        
+        local value=reader(a)
+        if not value then
+          value='?'          
+        end
+        if frmDotNetInfo.lvFields.Items[i].SubItems.Count<3 then
+          frmDotNetInfo.lvFields.Items[i].SubItems.add(value)
+        else
+          frmDotNetInfo.lvFields.Items[i].SubItems[2]=value 
+        end
+        
+              
+        
+        --printf("getting value for address %x which has type %d", a, Class.Fields[ci].VarType)
+      end
+    end
+  end
+end
+
+local function btnLookupInstancesClick(frmDotNetInfo, sender)
+  local Class=frmDotNetInfo.CurrentlyDisplayedClass
+  if Class==nil then return end
+  
+  local scannerThread
+  local f,l,pb,btnCancel
+  local f=createForm(false)
+  local results={}
+  f.Caption="Scanning..."
+  f.BorderIcons='[]'
+
+  
+ 
+  
+  l=createLabel(f)
+  l.Caption="Please wait while scanning for the list of instances"
+
+
+  
+  pb=createProgressBar(f)
+  pb.BorderSpacing.Left=DPIMultiplier*1
+  pb.BorderSpacing.Right=DPIMultiplier*1
+  
+  if Class.Image.Domain.Control~=CONTROL_MONO then --unknown time
+    pb.Visible=false  
+  end
+
+
+  btnCancel=createButton(f)
+  btnCancel.Caption=translate("Cancel")
+  btnCancel.AutoSize=true
+
+
+
+
+  btnCancel.BorderSpacing.Top=DPIMultiplier*10
+  btnCancel.BorderSpacing.Bottom=DPIMultiplier*10
+
+  l.AnchorSideTop.Control=f
+  l.AnchorSideTop.Side=asrTop
+  l.AnchorSideLeft.Control=f
+  l.AnchorSideLeft.Side=asrLeft
+  l.AnchorSideRight.Control=f
+  l.AnchorSideRight.Side=asrRight
+  l.Anchors='[akLeft, akRight, akTop]'
+
+  pb.AnchorSideTop.Control=l
+  pb.AnchorSideTop.Side=asrBottom
+  pb.AnchorSideLeft.Control=f
+  pb.AnchorSideLeft.Side=asrLeft
+  pb.AnchorSideRight.Control=f
+  pb.AnchorSideRight.Side=asrRight
+  pb.Anchors='[akLeft, akRight, akTop]'
+
+
+  btnCancel.AnchorSideTop.Control=pb
+  btnCancel.AnchorSideTop.Side=asrBottom
+  btnCancel.AnchorSideLeft.Control=f
+  btnCancel.AnchorSideLeft.Side=asrCenter
+  btnCancel.OnClick=function(s) f.close() end
+
+  f.OnClose=function(sender)
+    if scannerThread then --scannerThread is free on terminate, but before it does that it syncs and sets this var to nil
+      scannerThread.terminate()
+    end
+    return caFree      
+  end
+
+
+  f.AutoSize=true
+  f.Position=poScreenCenter
+  
+  --create the thread that will do the scan
+  --it's possible the thread finishes before showmodal is called, but thanks to synchronize that won't happen
+  scannerThread=createThread(function(t)
+    t.Name='Instance Scanner'
+    
+    local r=getClassInstances(Class,pb)
+    if r then
+      local i
+      for i=1,#r do
+        results[i]=r[i]
+      end
+    end
+
+    synchronize(function() 
+      if not t.Terminated then 
+        f.ModalResult=mrOK 
+      end 
+    end)
+  end)
+  
+  
+  if f.showModal()==mrOK then
+    local i
+    frmDotNetInfo.comboFieldBaseAddress.clear()
+    for i=1,#results do
+      frmDotNetInfo.comboFieldBaseAddress.Items.add(string.format("%.8x",results[i]))
+    end    
+  end
+end
+
 
 
 function miDotNetInfoClick(sender)
@@ -848,11 +1080,10 @@ function miDotNetInfoClick(sender)
       f.lvFields.Columns[0].Width,
       f.lvFields.Columns[1].Width,
       f.lvFields.Columns[2].Width,      
+      f.lvFields.Columns[3].Width,
   
       f.lvMethods.Columns[0].Width,
-      f.lvMethods.Columns[1].Width,         
-      
-    })
+      f.lvMethods.Columns[1].Width})
     
     CancelClassFetch(frmDotNetInfos[f.Tag])
     frmDotNetInfos[f.Tag]=nil
@@ -888,9 +1119,10 @@ function miDotNetInfoClick(sender)
         frmDotNetInfo.lvFields.Columns[0].Width=formdata[10] or frmDotNetInfo.lvFields.Columns[0].Width 
         frmDotNetInfo.lvFields.Columns[1].Width=formdata[11] or frmDotNetInfo.lvFields.Columns[1].Width 
         frmDotNetInfo.lvFields.Columns[2].Width=formdata[12] or frmDotNetInfo.lvFields.Columns[2].Width
+        frmDotNetInfo.lvFields.Columns[3].Width=formdata[13] or frmDotNetInfo.lvFields.Columns[3].Width
     
-        frmDotNetInfo.lvMethods.Columns[0].Width=formdata[13] or frmDotNetInfo.lvMethods.Columns[0].Width 
-        frmDotNetInfo.lvMethods.Columns[1].Width=formdata[14] or frmDotNetInfo.lvMethods.Columns[1].Width
+        frmDotNetInfo.lvMethods.Columns[0].Width=formdata[14] or frmDotNetInfo.lvMethods.Columns[0].Width 
+        frmDotNetInfo.lvMethods.Columns[1].Width=formdata[15] or frmDotNetInfo.lvMethods.Columns[1].Width
       end
       
     end   
@@ -907,6 +1139,7 @@ function miDotNetInfoClick(sender)
     frmDotNetInfo.lvMethods.Columns[0].Width=frmDotNetInfo.Canvas.getTextWidth('somerandomnormalmethod')
     frmDotNetInfo.lvMethods.Columns[1].Width=frmDotNetInfo.Canvas.getTextWidth('(int a, float b, Object something)')    
     
+    frmDotNetInfo.lvFields.Columns[0].Width=frmDotNetInfo.Canvas.getTextWidth(' FFFFFFFFFFFFFFFF ')
     frmDotNetInfo.lvFields.Columns[1].Width=frmDotNetInfo.lvMethods.Columns[0].Width
     frmDotNetInfo.lvStaticFields.Columns[0].Width=frmDotNetInfo.lvMethods.Columns[0].Width
    
@@ -918,13 +1151,14 @@ function miDotNetInfoClick(sender)
   end
   
   --Domain box setup
-  frmDotNetInfo.lbDomains.OnSelectionChange=DomainSelectionChange
+  frmDotNetInfo.lbDomains.OnSelectionChange=function(sender) DomainSelectionChange(frmDotNetInfo, sender) end
   
   --Images box setup
-  frmDotNetInfo.lbImages.OnSelectionChange=ImageSelectionChange
+  frmDotNetInfo.lbImages.OnSelectionChange=function(sender) ImageSelectionChange(frmDotNetInfo, sender) end
   
   --Classes box setup
-  frmDotNetInfo.lbClasses.OnSelectionChange=ClassSelectionChange
+  frmDotNetInfo.lbClasses.OnSelectionChange=function(sender) ClassSelectionChange(frmDotNetInfo, sender) end
+  
   
   --Class info setup
   
@@ -938,7 +1172,12 @@ function miDotNetInfoClick(sender)
   frmDotNetInfo.miJitMethod.OnClick=function() OpenAddressOfSelectedMethod(frmDotNetInfo) end
   frmDotNetInfo.lvMethods.OnDblClick=frmDotNetInfo.miJitMethod.OnClick
   
-  
+  frmDotNetInfo.comboFieldBaseAddress.OnChange=function(sender) comboFieldBaseAddressChange(frmDotNetInfo, sender) end
+  frmDotNetInfo.btnLookupInstances.OnClick=function(sender) btnLookupInstancesClick(frmDotNetInfo, sender) end
+
+
+  frmDotNetInfo.tFieldValueUpdater.OnTimer=function(t) FieldValueUpdaterTimer(frmDotNetInfo,t) end
+    
   
   --Init
   

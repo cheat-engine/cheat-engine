@@ -13750,7 +13750,6 @@ begin
       s.add('math.mod=math.fmod');
       s.add('string.gfind=string.gmatch');
 
-
       s.add('BinUtils={}');
       s.add('math.randomseed(os.time())');
 

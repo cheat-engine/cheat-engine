@@ -58,7 +58,7 @@ CPipeServer::CPipeServer(TCHAR *name)
 	if (StrCmp(name,L"BLA")==0)
 	{
 		//do some debug stuff
-		processid=304172;
+		processid=65576;
 		OpenOrAttachToProcess();
 
 
@@ -494,6 +494,7 @@ Enumerate the modules of the given ICorDebugAppDomain
 
 		WriteFile(pipehandle, &hModule, sizeof(hModule), &bw, NULL); //'handle'
 
+		//modulelist[i]->GetToken()
 		modulelist[i]->GetBaseAddress(&baseaddress);
 		WriteFile(pipehandle, &baseaddress, sizeof(baseaddress), &bw, NULL); //baseaddress  (uint64) 
 
@@ -506,8 +507,8 @@ Enumerate the modules of the given ICorDebugAppDomain
 		WriteFile(pipehandle, &modulenamelength, sizeof(modulenamelength), &bw, NULL); //namelength in bytes
 		if (modulenamelength)
 			WriteFile(pipehandle, modulename, modulenamelength, &bw, NULL);
-	
 		
+
 	}
 }
 
@@ -880,6 +881,9 @@ void CPipeServer::test(void)
 	ULONG count;
 	ICorDebugThreadEnum *te;
 
+	enumAllObjects();
+
+
 	CorDebugProcess->EnumerateThreads(&te);
 
 	ICorDebugThread *thr;
@@ -1018,42 +1022,49 @@ void CPipeServer::test(void)
 	*/
 }
 
-void CPipeServer::enumTypeDefFields(UINT64 hModule, mdTypeDef TypeDef)
+COR_TYPEID CPipeServer::getCOR_TYPEID(UINT64 hModule, mdTypeDef TypeDef)
 {
+	COR_TYPEID result={ 0,0 };
 	ICorDebugModule *module = (ICorDebugModule *)hModule;
-
+	
 
 	ICorDebugClass *ppClass = NULL;
 	ICorDebugClass2 *ppClass2 = NULL;
 	ICorDebugType *ppType = NULL;
 	ICorDebugType2 *ppType2 = NULL; //Q:"It doesn't compile <insert crying corgi pic>"  A: update your .net include and library to .net 4.6.2 or later
 
-	
 	if (module->GetClassFromToken(TypeDef, &ppClass) == S_OK)
 	{
 		if (ppClass && (ppClass->QueryInterface(IID_ICorDebugClass2, (void **)&ppClass2) == S_OK))
 		{
-			
+
+
 			if (ppClass2 && (ppClass2->GetParameterizedType(ELEMENT_TYPE_CLASS, 0, NULL, &ppType) == S_OK)) //todo: generics
 			{
 				if (ppType && (ppType->QueryInterface(IID_ICorDebugType2, (void **)&ppType2) == S_OK))
-				{
-					COR_TYPEID cortypeid;
-					cortypeid.token1 = 0;
-					cortypeid.token2 = 0;
+				{					
 
 					COR_TYPE_LAYOUT layout;
-					if (ppType2->GetTypeID(&cortypeid)==S_OK)
-					{						
-						if (cortypeid.token1 || cortypeid.token2)
-						{
-							sendType(cortypeid);
-							return;
-						}
+					if (ppType2->GetTypeID(&result) == S_OK)
+					{
+						return result;						
 					}
 				}
 			}
-		}		
+		}
+	}
+
+	return { 0,0 };
+}
+
+void CPipeServer::enumTypeDefFields(UINT64 hModule, mdTypeDef TypeDef)
+{
+	COR_TYPEID cortypeid = getCOR_TYPEID(hModule, TypeDef);
+		
+	if (cortypeid.token1 || cortypeid.token2)
+	{
+		sendType(cortypeid);
+		return;
 	}
 
 	//still here so error
@@ -1339,6 +1350,51 @@ void CPipeServer::getAddressData(UINT64 Address)
 
 volatile int count;
 
+void CPipeServer::enumAllObjectsOfType(UINT64 hModule, mdTypeDef TypeDef)
+{
+	COR_TYPEID type = getCOR_TYPEID(hModule, TypeDef);
+	UINT64 address;
+	DWORD size;
+	DWORD bw;
+	ICorDebugHeapEnum *pObjects;
+	HRESULT r;
+
+	if (((type.token1) || (type.token2)) && ((CorDebugProcess5) && (CorDebugProcess5->EnumerateHeap(&pObjects) == S_OK)))
+	{
+		do
+		{
+			COR_HEAPOBJECT objects[32];
+			ULONG count, i;			
+			r = pObjects->Next(32, objects, &count);
+
+			if ((r == S_OK) && (count))
+			{
+				for (i = 0; i < count; i++)
+				{
+					if ((type.token1 == objects[i].type.token1) && (type.token2 == objects[i].type.token2))
+					{
+						//match
+						address = objects[i].address;
+						size = objects[i].size;					
+
+						WriteFile(pipehandle, &address, sizeof(address), &bw, NULL);
+					}
+				}
+			}
+		
+
+		} while (r == S_OK);
+
+	}
+
+	//terminator:
+	{	
+		address = 0;
+		WriteFile(pipehandle, &address, sizeof(address), &bw, NULL);
+	}
+
+}
+
 void CPipeServer::enumAllObjects(void)
 {
 	//Enumerate all objects in the heap and return their basic info
@@ -1360,60 +1416,63 @@ void CPipeServer::enumAllObjects(void)
 		do
 		{
 			r = pObjects->Next(16, objects, &count);
-			for (i = 0; i<count; i++)
+			if ((r == S_OK) && (count)) 
 			{
-				ICorDebugType *type;
-
-
-				
-				if (CorDebugProcess5->GetTypeForTypeID(objects[i].type, &type) == S_OK)
+				for (i = 0; i < count; i++)
 				{
-					ICorDebugClass *c;
-					mdTypeDef classtoken = 0;
-					IMetaDataImport *metadata = NULL;
-					
-					
+					ICorDebugType *type;
 
-					if (type->GetClass(&c) == S_OK)
-					{		
-						
-						if (c->GetToken(&classtoken) == S_OK)
+
+
+					if (CorDebugProcess5->GetTypeForTypeID(objects[i].type, &type) == S_OK)
+					{
+						ICorDebugClass *c;
+						mdTypeDef classtoken = 0;
+						IMetaDataImport *metadata = NULL;
+
+
+
+						if (type->GetClass(&c) == S_OK)
 						{
-							ICorDebugModule *m = NULL;
-							if (c->GetModule(&m) == S_OK)
+
+							if (c->GetToken(&classtoken) == S_OK)
 							{
-								metadata=getMetaData(m);
-								m->Release();
+								ICorDebugModule *m = NULL;
+								if (c->GetModule(&m) == S_OK)
+								{
+									metadata = getMetaData(m);
+									m->Release();
+								}
+							}
+
+							c->Release();
+						}
+
+						if ((metadata) && (classtoken))
+						{
+							mdToken extends;
+							DWORD flags;
+
+							if (metadata->GetTypeDefProps(classtoken, classname, 255, &classnamelength, &flags, &extends) == S_OK)
+							{
+								//everything ok, send it to CE
+								address = objects[i].address;
+								size = (DWORD)objects[i].size;
+
+								WriteFile(pipehandle, &address, sizeof(address), &bw, NULL);
+								WriteFile(pipehandle, &size, sizeof(size), &bw, NULL);
+								WriteFile(pipehandle, &objects[i].type, sizeof(objects[i].type), &bw, NULL);
+
+								classnamelength = sizeof(WCHAR)*classnamelength;
+
+								WriteFile(pipehandle, &classnamelength, sizeof(classnamelength), &bw, NULL);
+								if (classnamelength)
+									WriteFile(pipehandle, classname, classnamelength, &bw, NULL);
 							}
 						}
-						
-						c->Release();
+
+						type->Release();
 					}
-
-					if ((metadata) && (classtoken))
-					{
-						mdToken extends;
-						DWORD flags;
-
-						if (metadata->GetTypeDefProps(classtoken, classname, 255, &classnamelength, &flags, &extends) == S_OK)
-						{
-							//everything ok, send it to CE
-							address = objects[i].address;
-							size = (DWORD)objects[i].size;
-
-							WriteFile(pipehandle, &address, sizeof(address), &bw, NULL);
-							WriteFile(pipehandle, &size, sizeof(size), &bw, NULL);
-							WriteFile(pipehandle, &objects[i].type, sizeof(objects[i].type), &bw, NULL);
-
-							classnamelength = sizeof(WCHAR)*classnamelength;
-
-							WriteFile(pipehandle, &classnamelength, sizeof(classnamelength), &bw, NULL);
-							if (classnamelength)
-								WriteFile(pipehandle, classname, classnamelength, &bw, NULL);
-						}
-					}
-
-					type->Release();
 				}
 			}
 		} while (r == S_OK);
@@ -1613,6 +1672,20 @@ int CPipeServer::Start(void)
 					{
 						enumAllObjects();
 						break;
+					}
+
+				case CMD_GETALLOBJECTSOFTYPE:
+					{
+						UINT64 hModule;
+						mdTypeDef TypeDef;
+
+						if (ReadFile(pipehandle, &hModule, sizeof(hModule), &bytesread, NULL))
+						{
+							if (ReadFile(pipehandle, &TypeDef, sizeof(TypeDef), &bytesread, NULL))
+								enumAllObjectsOfType(hModule, TypeDef);								
+						}
+						break;
+
 					}
 			}
 

@@ -148,6 +148,7 @@ type
     procedure GetTypeDefParent(hModule: UINT64; typedef: DWORD; var parentinfo: TTypeDefInfo);
     procedure GetAddressData(address: UINT64; var addressdata: TAddressData);
     function  EnumAllObjects: TDOTNETObjectList;
+    procedure EnumAllObjectsOfType(hModule: UINT64; typedef: DWORD; list: Tlist);
     procedure freeNETObjectList(list: TDOTNETObjectList);
   published
     property Connected: boolean read fConnected;
@@ -172,6 +173,7 @@ const
   CMD_GETTYPEDEFFIELDS=9;
   CMD_GETMETHODPARAMETERS=10;
   CMD_GETTYPEDEFPARENT=11;
+  CMD_GETALLOBJECTSOFTYPE=12;
 
 procedure TDotNetPipe.freeNETObjectList(list: TDOTNETObjectList);
 var
@@ -196,6 +198,7 @@ begin
   freeandnil(list);
 end;
 
+
 function TDotNetPipe.EnumAllObjects: TDOTNETObjectList;
 var
   msg: byte;
@@ -206,6 +209,8 @@ var
   o: TDotNetObject;
   stringlength: DWORD;
 begin
+  if fconnected=false then exit(nil);
+
   msg:=CMD_GETALLOBJECTS;
 
 
@@ -217,6 +222,8 @@ begin
 
     while not done do
     begin
+
+
       read(o.startaddress,sizeof(o.startaddress));
       read(o.size, sizeof(o.size));
       read(o.typeid,sizeof(o.typeid));
@@ -240,6 +247,44 @@ begin
 
   result:=r;
 end;
+
+procedure TDotNetPipe.EnumAllObjectsOfType(hModule: UINT64; typedef: DWORD; list: Tlist);
+var
+  msg: packed record
+    command: byte;
+    hModule: UINT64;
+    typedef: uint32;
+  end;
+  msgsize: integer;
+
+  a: qword;
+begin
+  list.clear;
+  if fConnected=false then
+    exit;
+
+
+  msg.command:=CMD_GETALLOBJECTSOFTYPE;
+  msg.hModule:=hModule;
+  msg.typedef:=typedef;
+
+  pipecs.enter;
+  try
+    msgsize:=sizeof(msg);
+    write(msg, msgsize);
+
+    repeat
+      read(a,8);
+      if a<>0 then
+        list.Add(pointer(a));
+    until a=0;
+  finally
+    pipecs.leave;
+  end;
+
+
+end;
+
 
 procedure TDotNetPipe.ReadTypeData(var typedata: TTypeData);
 var

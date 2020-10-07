@@ -453,6 +453,39 @@ begin
   end;
 end;
 
+function dotnetpipe_enumAllObjectsOfType(L: PLua_state): integer; cdecl;
+var
+  dnp: TDotNetPipe;
+  module: QWORD;
+  typedef: dword;
+  list: TList;
+  i: integer;
+begin
+  result:=0;
+  dnp:=luaclass_getClassObject(L);
+
+  if lua_gettop(L)>=2 then
+  begin
+    module:=lua_tointeger(L,1);
+    typedef:=lua_tointeger(L,2);
+
+    list:=tlist.create;
+    dnp.EnumAllObjectsOfType(module, typedef, list);
+
+    lua_createtable(L,list.count,0);
+    for i:=0 to list.count-1 do
+    begin
+      lua_pushinteger(L,i+1);
+      lua_pushinteger(L,qword(list[i]));
+      lua_settable(L,-3);
+    end;
+
+    list.free;
+
+    result:=1;
+  end;
+end;
+
 function dotnetpipe_enumAllObjects(L: PLua_state): integer; cdecl;
 var
   dnp: TDotNetPipe;
@@ -505,15 +538,15 @@ begin
 
       lua_settable(L,-3); //typeid table
 
-      //-1=entry table
 
-      lua_pushstring(L,'Size');
-      lua_pushinteger(L,dno^.size);
+      lua_pushstring(L,'ClassName');
+      lua_pushstring(L,dno^.classname);
       lua_settable(L,-3);
 
       lua_settable(L,-3); //set entry to index
 
       mi.Next;
+      inc(i);
     end;
 
     result:=1;  //return the table
@@ -546,6 +579,9 @@ begin
 
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'getAddressData', dotnetpipe_getAddressData);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'enumAllObjects', dotnetpipe_enumAllObjects);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'enumAllObjectsOfType', dotnetpipe_enumAllObjectsOfType);
+
+
 end;
 
 procedure initializeLuaDotNetPipe;
