@@ -445,59 +445,60 @@ begin
     begin
       lua_pushvalue(L, 3); //push newvalue    (so stack now holds, function, newvalue)
       lua_call(L, 1, 0);
+      exit;
     end;
-  end
-  else
-  begin
-    if lua_isnil(L, -1) then
-    begin
-      //not in the list
-      lua_pop(L,1);
-
-      //check if key is a number
-      if lua_isnumber(L, 2) then
-      begin
-        //check if there is a __defaultintegergetindexhandler defined in the metatable
-        lua_pushstring(L, '__defaultintegersetindexhandler');
-        lua_gettable(L, metatable);
-        if lua_isfunction(L,-1) then
-        begin
-          //yes
-          lua_pushvalue(L, 2); //key
-          lua_pushvalue(L, 3); //value
-          lua_call(L, 2,0); //call __defaultintegersetindexhandler(key, value);
-          exit;
-        end
-        else
-          lua_pop(L,1);
-      end;
-
-      if lua_type(L, 2)=LUA_TSTRING then
-      begin
-        //check if there is a __defaultstringsetindexhandler defined in the metatable
-        lua_pushstring(L, '__defaultstringsetindexhandler');
-        lua_gettable(L, metatable);
-        if lua_isfunction(L,-1) then
-        begin
-          lua_pushvalue(L, 2); //key
-          lua_pushvalue(L, 3); //value
-          lua_call(L, 2, 0); //call __defaultstringsetindexhandler(key, value)
-          exit;
-        end
-        else
-          lua_pop(L,1);
-      end;
-    end;
-
-    //this entry was not in the list
-    //Let's see if this is a published property or custom value
-    lua_pushcfunction(L, lua_setProperty);
-    lua_pushvalue(L, 1); //userdata
-    lua_pushvalue(L, 2); //keyname
-    lua_pushvalue(L, 3); //value
-    lua_call(L,3,0);
-
   end;
+
+
+
+  if lua_isnil(L, -1) then
+  begin
+    //not in the list
+    lua_pop(L,1);
+
+    //check if key is a number
+    if lua_isnumber(L, 2) then
+    begin
+      //check if there is a __defaultintegergetindexhandler defined in the metatable
+      lua_pushstring(L, '__defaultintegersetindexhandler');
+      lua_gettable(L, metatable);
+      if lua_isfunction(L,-1) then
+      begin
+        //yes
+        lua_pushvalue(L, 2); //key
+        lua_pushvalue(L, 3); //value
+        lua_call(L, 2,0); //call __defaultintegersetindexhandler(key, value);
+        exit;
+      end
+      else
+        lua_pop(L,1);
+    end;
+
+    if lua_type(L, 2)=LUA_TSTRING then
+    begin
+      //check if there is a __defaultstringsetindexhandler defined in the metatable
+      lua_pushstring(L, '__defaultstringsetindexhandler');
+      lua_gettable(L, metatable);
+      if lua_isfunction(L,-1) then
+      begin
+        lua_pushvalue(L, 2); //key
+        lua_pushvalue(L, 3); //value
+        lua_call(L, 2, 0); //call __defaultstringsetindexhandler(key, value)
+        exit;
+      end
+      else
+        lua_pop(L,1);
+    end;
+  end;
+
+  //this entry was not in the list
+  //Let's see if this is a published property or custom value
+  lua_pushcfunction(L, lua_setProperty);
+  lua_pushvalue(L, 1); //userdata
+  lua_pushvalue(L, 2); //keyname
+  lua_pushvalue(L, 3); //value
+  lua_call(L,3,0);
+
 end;
 
 function luaclass_index(L: PLua_State): integer; cdecl; //get
