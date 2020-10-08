@@ -222,6 +222,7 @@ type
     MenuItem3: TMenuItem;
     miRedo: TMenuItem;
     mifindNext: TMenuItem;
+    mifindPrevious: TMenuItem;
     miCallLua: TMenuItem;
     miNewWindow: TMenuItem;
     Panel1: TPanel;
@@ -272,6 +273,7 @@ type
     procedure MenuItem2Click(Sender: TObject);
     procedure MenuItem3Click(Sender: TObject);
     procedure mifindNextClick(Sender: TObject);
+    procedure mifindPreviousClick(Sender: TObject);
     procedure miCallLuaClick(Sender: TObject);
     procedure miNewWindowClick(Sender: TObject);
     procedure miRedoClick(Sender: TObject);
@@ -763,6 +765,34 @@ procedure TfrmAutoInject.mifindNextClick(Sender: TObject);
 begin
   finddialog1.Options:=finddialog1.Options+[frFindNext];
   finddialog1.OnFind(finddialog1);
+end;
+
+procedure TfrmAutoInject.mifindPreviousClick(Sender: TObject);
+begin
+
+  // Reverse Search Direction
+  if (frDown in finddialog1.Options) then
+  begin
+    finddialog1.Options:=finddialog1.Options-[frDown];
+  end
+  else
+  begin
+    finddialog1.Options:=finddialog1.Options+[frDown];
+  end;
+
+  finddialog1.Options:=finddialog1.Options+[frFindNext];
+  finddialog1.OnFind(finddialog1);
+
+  // Change Search Direction back to original
+  if (frDown in finddialog1.Options) then
+  begin
+    finddialog1.Options:=finddialog1.Options-[frDown];
+  end
+  else
+  begin
+    finddialog1.Options:=finddialog1.Options+[frDown];
+  end;
+
 end;
 
 
@@ -2559,8 +2589,10 @@ procedure TfrmAutoInject.miFindClick(Sender: TObject);
 begin
   finddialog1.Options:=finddialog1.Options-[frFindNext];
   if finddialog1.Execute then
+  begin
     mifindNext.visible:=true;
-
+    mifindPrevious.visible:=true;
+  end;
 end;
 
 procedure TfrmAutoInject.FindDialog1Find(Sender: TObject);
