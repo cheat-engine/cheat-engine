@@ -49,6 +49,7 @@
 #define MONOCMD_GETSTATICFIELDVALUE 40
 #define MONOCMD_SETSTATICFIELDVALUE 41
 #define MONOCMD_GETCLASSIMAGE 42
+#define MONOCMD_FREE 43
 
 
 typedef struct {} MonoType;
@@ -367,6 +368,7 @@ private:
 	void GetKlassName();
 	void GetClassNamespace();
 	void FreeMethod();
+	void FreeObject();
 	void DisassembleMethod();
 	void GetMethodSignature();
 	void GetMethodParameters();

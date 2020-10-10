@@ -16,7 +16,7 @@ else
 end
 
 
-mono_timeout=3000 --change to 0 to never timeout (meaning: 0 will freeze your face off if it breaks on a breakpoint, just saying ...)
+mono_timeout=3000000 --change to 0 to never timeout (meaning: 0 will freeze your face off if it breaks on a breakpoint, just saying ...)
 
 MONOCMD_INITMONO=0
 MONOCMD_OBJECT_GETCLASS=1
@@ -62,8 +62,9 @@ MONOCMD_ISIL2CPP=38
 MONOCMD_FILLOPTIONALFUNCTIONLIST=39
 MONOCMD_GETSTATICFIELDVALUE=40 --fallback for il2cpp which doesn't expose what's needed
 MONOCMD_SETSTATICFIELDVALUE=41
-
 MONOCMD_GETCLASSIMAGE=42
+MONOCMD_FREE=43
+
 
 MONO_TYPE_END        = 0x00       -- End of List
 MONO_TYPE_VOID       = 0x01
@@ -942,7 +943,10 @@ function mono_isil2cpp(class)
 end
 
 function mono_class_getName(class)
-  --if debug_canBreak() then return nil end
+  --if debug_canBreak() then return nil end\
+  if (class==nil) or (class==0) then     
+    return ''
+  end
 
   local result=''
   monopipe.lock()
@@ -950,20 +954,25 @@ function mono_class_getName(class)
   monopipe.writeQword(class)
 
   local namelength=monopipe.readWord();
-  result=monopipe.readString(namelength);
+  if monopipe then  
+    result=monopipe.readString(namelength);
 
-  monopipe.unlock()
+    monopipe.unlock()
+  end
   return result;
 end
 
 
-function mono_class_getNamespace(clasS)
+function mono_class_getNamespace(class)
   --if debug_canBreak() then return nil end
+  if (class==nil) or (class==0) then     
+    return ''
+  end  
 
   local result=''
   monopipe.lock()
   monopipe.writeByte(MONOCMD_GETCLASSNAMESPACE)
-  monopipe.writeQword(clasS)
+  monopipe.writeQword(class)
 
   local namelength=monopipe.readWord();
   result=monopipe.readString(namelength);
@@ -1007,6 +1016,17 @@ function mono_class_getParent(class)
   monopipe.unlock()
   return result;
 end
+
+function mono_class_getImage(class)
+  local result=0
+  monopipe.lock()
+  monopipe.writeByte(MONOCMD_GETCLASSIMAGE)
+  monopipe.writeQword(class)  
+  result=monopipe.readQword()
+  monopipe.unlock()
+  return result;   
+end
+
 
 function mono_type_getClass(monotype)
   --if debug_canBreak() then return nil end
@@ -1063,9 +1083,9 @@ end
 
 --todo for the instance scanner: Get the fields and check that pointers are either nil or point to a valid address
 function mono_class_findInstancesOfClassListOnly(domain, klass, progressBar)
-  local vtable=mono_class_getVTable(domain, klass, progressBar)
+  local vtable=mono_class_getVTable(domain, klass)
   if (vtable) and (vtable~=0) then
-    local ms=createMemScan()  
+    local ms=createMemScan(progressBar)  
     local scantype=vtDword
     if targetIs64Bit() then
       scantype=vtQword
@@ -1522,6 +1542,7 @@ function mono_getJitInfo(address)
 end
 
 function mono_getStaticFieldValue(vtable, field)
+  
   local r
   monopipe.lock()
   monopipe.writeByte(MONOCMD_GETSTATICFIELDVALUE)
@@ -1958,6 +1979,17 @@ function mono_free_method(method) --unjit the method. Only works on dynamic meth
   monopipe.unlock()
 end
 
+--note: does not work while the profiler is active (Current implementation doesn't use the profiler, so we're good to go)
+function mono_free(object) --unjit the method. Only works on dynamic methods. (most are not)
+  --if debug_canBreak() then return nil end
+
+  monopipe.lock()
+
+  monopipe.writeByte(MONOCMD_FREE)
+  monopipe.writeQword(object)
+  monopipe.unlock()
+end
+
 function mono_methodheader_getILCode(methodheader)
   --if debug_canBreak() then return nil end
 
@@ -1990,6 +2022,23 @@ function mono_image_rva_map(image, offset)
   local address=monopipe.readQword()
   monopipe.unlock()
   return address;
+end
+
+function mono_string_readString(stringobject)
+  local length,stringstart
+  --printf("mono_string_readString(%x)",stringobject)
+  if targetIs64Bit() then
+    length=readInteger(stringobject+0x10)
+    stringstart=stringobject+0x14
+    
+    --printf("length=%d",length)
+    --printf("stringstart=%x",stringstart)
+  else
+    length=readInteger(stringobject+0x8)
+    stringstart=stringobject+0x10
+  end
+  
+  return readString(stringstart,length*2,true)  
 end
 
 function mono_readObject()

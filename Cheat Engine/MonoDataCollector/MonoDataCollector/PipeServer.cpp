@@ -1158,34 +1158,53 @@ void CPipeServer::GetMethodClass()
 void CPipeServer::GetKlassName()
 {
 	void *klass = (void *)ReadQword();
-	char *methodname = mono_class_get_name(klass);
+	if (klass && mono_class_get_name)
+	{
 
-	std::string sName = std::string(methodname);
+		char *classname = mono_class_get_name(klass);
 
-	if ((BYTE)methodname[0] == 0xEE) {
-		char szUeName[32];
-		sprintf_s(szUeName, 32, "\\u%04X", UTF8TOUTF16(methodname));
+		std::string sName = std::string(classname);
 
-		sName = szUeName;
+		if ((BYTE)classname[0] == 0xEE) {
+			char szUeName[32];
+			sprintf_s(szUeName, 32, "\\u%04X", UTF8TOUTF16(classname));
+
+			sName = szUeName;
+		}
+
+		WriteWord((WORD)sName.size());
+		Write((PVOID)sName.c_str(), (WORD)(sName.size()));
 	}
-
-    WriteWord((WORD)sName.size());
-    Write((PVOID)sName.c_str(), (WORD)(sName.size()));
+	else
+	{
+		WriteWord(0);
+	}
 }
 
 void CPipeServer::GetClassNamespace()
 {
 	void *klass = (void *)ReadQword();
-	char *methodname = mono_class_get_namespace(klass);
+	if (klass && mono_class_get_namespace)
+	{
+		char *classname = mono_class_get_namespace(klass);
 
-	WriteWord((WORD)strlen(methodname));
-	Write(methodname, (WORD)strlen(methodname));
+		WriteWord((WORD)strlen(classname));
+		Write(classname, (WORD)strlen(classname));
+	}
+	else
+		WriteWord(0);
 }
 
 void CPipeServer::FreeMethod()
 {
 	if (mono_free_method)
 		mono_free_method((void *)ReadQword());
+}
+
+void CPipeServer::FreeObject()
+{
+	
+	//not yet implemented
 }
 
 void CPipeServer::DisassembleMethod()
@@ -1905,12 +1924,15 @@ void CPipeServer::GetStaticFieldValue()
 {
 	void* Vtable = (void*)ReadQword();
 	void* Field = (void*)ReadQword();
+	char isString = ReadByte();		
 
 	QWORD val = 0;
 	if (il2cpp)
 	{
 		if (il2cpp_field_static_get_value)
-			il2cpp_field_static_get_value(Field, &val);
+		{
+			il2cpp_field_static_get_value(Field, &val);		
+		}
 
 	}
 	else
@@ -1918,7 +1940,6 @@ void CPipeServer::GetStaticFieldValue()
 		if (mono_field_static_get_value)
 			mono_field_static_get_value(Vtable, Field, &val);
 	}
-
 
 	WriteQword(val);
 }
@@ -2133,6 +2154,10 @@ void CPipeServer::Start(void)
 
 				case MONOCMD_GETCLASSIMAGE:
 					GetClassImage();
+					break;
+
+				case MONOCMD_FREE:
+					FreeObject();
 					break;
 
 				}

@@ -98,8 +98,8 @@ extendedToByteTable(number): {}      - Converts an extended to a bytetable
 stringToByteTable(string): {}        - Converts a string to a bytetable
 wideStringToByteTable(string): {}    - Converts a string to a widestring and converts that to a bytetable
 
-byteTableToWord(table): number       - Converts a bytetable to a word
-byteTableToDword(table): number      - Converts a bytetable to a dword
+byteTableToWord(table, OPTIONAL signed:boolean): number       - Converts a bytetable to a word
+byteTableToDword(table, OPTIONAL signed:boolean): number      - Converts a bytetable to a dword
 byteTableToQword(table): number      - Converts a bytetable to a qword
 byteTableToFloat(table): number      - Converts a bytetable to a float
 byteTableToDouble(table): number     - Converts a bytetable to a double

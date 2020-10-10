@@ -29,7 +29,8 @@ local function CTypeToString(ctype)
   return r
 end
 
-local function getClassInstances(Class, ProgressBar)  
+local function getClassInstances(Class, ProgressBar) 
+  print("Looking up instanced for "..Class.Name) 
   if Class.Image.Domain.Control==CONTROL_MONO then
     --get the vtable and then scan for objects with this
     return mono_class_findInstancesOfClassListOnly(nil, Class.Handle)    
@@ -44,27 +45,27 @@ local function getClassParent(Class)
     Class.Parent={}
    
 
-    if Class.ParentToken then      
+    if Class.ParentHandle and (Class.ParentHandle~=0) then      
       if Class.Image.Domain.Control==CONTROL_MONO then
         --mono    
         
-        Class.Parent.Handle=Class.ParentToken
-        Class.Parent.Name=mono_class_getName(Class.ParentToken)
-        Class.Parent.NameSpace=mono_class_getNamespace(Class.ParentToken)
-        Class.Parent.ParentToken=mono_class_getParent(Class.ParentToken)
+        Class.Parent.Handle=Class.ParentHandle
+        Class.Parent.Name=mono_class_getName(Class.ParentHandle)
+        Class.Parent.NameSpace=mono_class_getNamespace(Class.ParentHandle)
+        Class.Parent.ParentHandle=mono_class_getParent(Class.ParentHandle)
                 
-        local ImageHandle=mono_class_getImage(Class.ParentToken)
+        local ImageHandle=mono_class_getImage(Class.ParentHandle)
         Class.Parent.Image=Class.Image.Domain.Images.HandleLookup[ImageHandle]
       else
         --dotnet  
-        Class.Parent.Handle=Class.ParentToken.TypedefToken
-        local classdata=DataSource.DotNetDataCollector.GetTypeDefData(Class.ParentToken.ModuleHandle, Class.ParentToken.TypedefToken) --probably overkill. Perhaps just a getclassname ot something in the future
+        Class.Parent.Handle=Class.ParentHandle.TypedefToken
+        local classdata=DataSource.DotNetDataCollector.GetTypeDefData(Class.ParentHandle.ModuleHandle, Class.ParentHandle.TypedefToken) --probably overkill. Perhaps just a getclassname ot something in the future
         if classdata then
           Class.Parent.Name=classdata.ClassName
           Class.Parent.NameSpace=''
-          Class.Parent.ParentToken=DataSource.DotNetDataCollector.GetTypeDefParent(Class.ParentToken.ModuleHandle, Class.ParentToken.TypedefToken)
+          Class.Parent.ParentHandle=DataSource.DotNetDataCollector.GetTypeDefParent(Class.ParentHandle.ModuleHandle, Class.ParentHandle.TypedefToken)
           
-          local ImageHandle=Class.ParentToken.ModuleHandle
+          local ImageHandle=Class.ParentHandle.ModuleHandle
           Class.Parent.Image=Class.Image.Domain.Images.HandleLookup[ImageHandle] 
         else
           Class.Parent=nil --.Name=''
@@ -148,16 +149,23 @@ local function getClassFields(Class)
   
   local i
   if Class.Image.Domain.Control==CONTROL_MONO then
+    local StaticFieldAddress=mono_class_getStaticFieldAddress(0,Class)
+  
     local fields=mono_class_enumFields(Class.Handle, true)
     for i=1,#fields do
       local e={}
-      e.Handle=fields[i].type
+      e.Handle=fields[i].field
       e.Name=fields[i].name
       e.VarType=fields[i].monotype
       e.VarTypeName=fields[i].typename
       e.Offset=fields[i].offset
       e.Static=fields[i].isStatic
       e.Const=fields[i].isConst
+      if e.Static and StaticFieldAddress and StaticFieldAddress~=0 then
+        e.Address=StaticFieldAddress+e.Offset        
+      end
+      
+
       
       e.Class=Class
       
@@ -165,7 +173,7 @@ local function getClassFields(Class)
     end
    
   else
-    --mono
+    --.net
     local classdata=DataSource.DotNetDataCollector.GetTypeDefData(Class.Image.Handle, Class.Handle)
     if classdata and classdata.Fields then
       for i=1,#classdata.Fields do
@@ -179,6 +187,7 @@ local function getClassFields(Class)
         e.Static=classdata.Fields[i].IsStatic
         e.Class=Class
         
+
         
         table.insert(r,e)
       end
@@ -212,7 +221,7 @@ local function getClasses(Image)
         e.Name=classlist[i].classname
         e.NameSpace=classlist[i].namespace        
         e.Handle=classlist[i].class
-        e.ParentToken=mono_class_getParent(e.Handle)         
+        e.ParentHandle=mono_class_getParent(e.Handle)         
         e.Image=Image
         
         table.insert(Image.Classes,e)
@@ -226,7 +235,7 @@ local function getClasses(Image)
       e.Name=classlist[i].Name
       e.NameSpace='' --nyi
       e.Handle=classlist[i].TypeDefToken
-      e.ParentToken=DataSource.DotNetDataCollector.GetTypeDefParent(Image.Handle, e.Handle) --classlist[i].Extends
+      e.ParentHandle=DataSource.DotNetDataCollector.GetTypeDefParent(Image.Handle, e.Handle) --classlist[i].Extends
       e.Image=Image
       
       table.insert(Image.Classes,e)
@@ -432,6 +441,7 @@ local function FillClassInfoFields(frmDotNetInfo, Class)
     for i=1,#Class.Fields do
       if Class.Fields[i].Static then
         local li=frmDotNetInfo.lvStaticFields.Items.add()                    
+        li.Data=i
         li.Caption=Class.Fields[i].Name
         
         if Class.Fields[i].VarTypeName and Class.Fields[i].VarTypeName~='' then
@@ -439,6 +449,14 @@ local function FillClassInfoFields(frmDotNetInfo, Class)
         else
           li.SubItems.add(Class.Fields[i].VarType)    
         end
+        
+        if Class.Fields[i].Address and Class.Fields[i].Address~=0 then
+          li.SubItems.add(string.format("%.8x",Class.Fields[i].Address))          
+        else
+          li.SubItems.add('?');
+        end    
+
+        li.SubItems.add('');
       else       
         local li=frmDotNetInfo.lvFields.Items.add()
       
@@ -466,11 +484,17 @@ local function FillClassInfoFields(frmDotNetInfo, Class)
   frmDotNetInfo.lvFields.endUpdate()
   frmDotNetInfo.lvMethods.endUpdate()
   
+  frmDotNetInfo.CurrentlyDisplayedClass=nil
   frmDotNetInfo.CurrentlyDisplayedClass=Class
+  --print("Class.Name = "..Class.Name)
+  --print("frmDotNetInfo.CurrentlyDisplayedClass.Name = "..frmDotNetInfo.CurrentlyDisplayedClass.Name)
   
-  if frmDotNetInfo.comboFieldBaseAddress.Text~='' then
-    frmDotNetInfo.comboFieldBaseAddress.OnChange(frmDotNetInfo.comboFieldBaseAddress)
-  end
+  --if frmDotNetInfo.comboFieldBaseAddress.Text~='' then
+  frmDotNetInfo.comboFieldBaseAddress.OnChange(frmDotNetInfo.comboFieldBaseAddress)
+  --end
+  
+  --print("Class.Name = "..Class.Name)
+  --print("frmDotNetInfo.CurrentlyDisplayedClass.Name = "..frmDotNetInfo.CurrentlyDisplayedClass.Name)
   
 end
 
@@ -512,7 +536,11 @@ local function ClassSelectionChange(frmDotNetInfo, sender)
       local l
       for i=1,#ClassList do 
         l=createLabel(frmDotNetInfo.gbInheritance)        
-        l.Caption=ClassList[i].Class.Name
+        local fullname=ClassList[i].Class.Name
+        if ClassList[i].Class.NameSpace and ClassList[i].Class.NameSpace~='' then
+          fullname=ClassList[i].Class.NameSpace..fullname
+        end
+        l.Caption=fullname
         ClassList[i].Label=l
         
         
@@ -756,8 +784,8 @@ local function getMethodAddress(Method)
 end
 
 local function OpenAddressOfSelectedMethod(frmDotNetInfo)
-  local Classs=frmDotNetInfo.CurrentlyDisplayedClass
-  if Class==nill then return end
+  local Class=frmDotNetInfo.CurrentlyDisplayedClass
+  if Class==nil then return end
   
   local Method=Class.Methods[frmDotNetInfo.lvMethods.ItemIndex+1]
   if Method==nil then return end
@@ -769,8 +797,7 @@ local function OpenAddressOfSelectedMethod(frmDotNetInfo)
     getMemoryViewForm().DisassemblerView.SelectedAddress=Address
     getMemoryViewForm().show()
   else   
-    --todo:
-    
+   
     if (Method.Class.Image.Domain.Control~=CONTROL_MONO) then
       --it's not going to be the one you expect
       
@@ -834,7 +861,7 @@ local function comboFieldBaseAddressChange(frmDotNetInfo, sender)
       end
     end  
 
-    frmDotNetInfo.tFieldValueUpdater.Enabled=false
+    frmDotNetInfo.tFieldValueUpdater.Enabled=frmDotNetInfo.lvStaticFields.Items.Count>0
     frmDotNetInfo.lvFields.Columns[3].Visible=false
   end
 end
@@ -856,30 +883,52 @@ local ELEMENT_TYPE_R8         = 0x0d
 local ELEMENT_TYPE_STRING     = 0x0e
 local ELEMENT_TYPE_PTR        = 0x0f   
 
-
-local DotNetValueReaders={}
-DotNetValueReaders[ELEMENT_TYPE_BOOLEAN]=function(address) 
-  if readBytes(address,1)==0 then 
-    return translate("False") 
-  else 
-    return translate("True") 
+local LocalDotNetValueReaders={} --takes a bytetable of max 8 bytes and convert it to the correct type
+LocalDotNetValueReaders[ELEMENT_TYPE_BOOLEAN]=function(bt)
+  if bt[1]==0 then
+    return translate("False")    
+  else
+    return translate("True")
   end
 end
-  
-DotNetValueReaders[ELEMENT_TYPE_CHAR]=function(address) 
-  local b=readBytes(address,1) 
-  local c=string.char(b)
-  return c..' (#'..b..')'
+
+LocalDotNetValueReaders[ELEMENT_TYPE_CHAR]=function(bt) 
+  local c=string.char(bt[1])
+  return c..' (#'..bt[1]..')'
 end
-  
-DotNetValueReaders[ELEMENT_TYPE_I1]=function(address) 
-  local v=readBytes(address,1) 
-  if v and ((v & 0x80)~=0) then
+
+LocalDotNetValueReaders[ELEMENT_TYPE_I1]=function(bt) 
+  local v=bt[1]
+  if v[1] and ((v & 0x80)~=0) then
     return v-0x100
   else
     return v
   end
 end
+
+LocalDotNetValueReaders[ELEMENT_TYPE_U1]=function(bt) return bt[1] end
+LocalDotNetValueReaders[ELEMENT_TYPE_I2]=function(bt) return byteTableToWord(bt,true) end
+LocalDotNetValueReaders[ELEMENT_TYPE_U2]=function(bt) return byteTableToWord(bt) end
+LocalDotNetValueReaders[ELEMENT_TYPE_I4]=function(bt) return byteTableToDword(bt,true) end
+LocalDotNetValueReaders[ELEMENT_TYPE_U4]=function(bt) return byteTableToDword(bt) end
+LocalDotNetValueReaders[ELEMENT_TYPE_I8]=function(bt) return byteTableToQword(bt) end
+LocalDotNetValueReaders[ELEMENT_TYPE_U8]=function(bt) return byteTableToQword(bt) end
+LocalDotNetValueReaders[ELEMENT_TYPE_R4]=function(bt) return byteTableToFloat(bt) end
+LocalDotNetValueReaders[ELEMENT_TYPE_R8]=function(bt) return byteTableToDouble(bt) end
+LocalDotNetValueReaders[ELEMENT_TYPE_PTR]=function(bt) 
+  if targetIs64Bit() then
+    return string.format("%.8x",byteTableToQword(bt))
+  else
+    return string.format("%.8x",byteTableToDword(bt))
+  end
+end
+
+-----------------------------------------------
+
+local DotNetValueReaders={}
+DotNetValueReaders[ELEMENT_TYPE_BOOLEAN]=function(address) return LocalDotNetValueReaders[ELEMENT_TYPE_BOOLEAN](readBytes(address,1,true)) end
+DotNetValueReaders[ELEMENT_TYPE_CHAR]=function(address) return LocalDotNetValueReaders[ELEMENT_TYPE_CHAR](readBytes(address,1,true)) end
+DotNetValueReaders[ELEMENT_TYPE_I1]=function(address) return LocalDotNetValueReaders[ELEMENT_TYPE_I1](readBytes(address,1,true)) end
 DotNetValueReaders[ELEMENT_TYPE_U1]=function(address) return readBytes(address,1) end
 DotNetValueReaders[ELEMENT_TYPE_I2]=function(address) return readSmallInteger(address,true) end 
 DotNetValueReaders[ELEMENT_TYPE_U2]=function(address) return readSmallInteger(address) end 
@@ -889,6 +938,8 @@ DotNetValueReaders[ELEMENT_TYPE_I8]=function(address) return readQword(address) 
 DotNetValueReaders[ELEMENT_TYPE_U8]=DotNetValueReaders[MONO_TYPE_I8]
 DotNetValueReaders[ELEMENT_TYPE_R4]=function(address) return readFloat(address) end 
 DotNetValueReaders[ELEMENT_TYPE_R8]=function(address) return readDouble(address) end 
+
+
 DotNetValueReaders[ELEMENT_TYPE_PTR]=function(address) 
   local v=readPointer(address)
   if v then
@@ -898,26 +949,112 @@ DotNetValueReaders[ELEMENT_TYPE_PTR]=function(address)
   end 
 end
 
+local function readDotNetString(address, Field)
+--assumption: address points to the start of the string object, so not the pointer to the object
+  if Field.Class.Image.Domain.Control==CONTROL_MONO then
+    return mono_string_readString(address)
+  else
+    return string.format('string: %.8x',address)
+    --.net string type reading
+  end
+end
+
+
+
+
+local function getStaticFieldValue(Field)
+  if Field.Class.Image.Domain.Control==CONTROL_MONO then
+    local vtable=mono_class_getVTable(Field.Class) --il2cpp returns 0, but is also doesn't need it
+    local qvalue=mono_getStaticFieldValue(vtable, Field.Handle)
+    
+    if qvalue then
+      if Field.VarType==ELEMENT_TYPE_STRING then
+        return readDotNetString(qvalue, Field)
+      else    
+        local reader=LocalDotNetValueReaders[Field.VarType]
+        if reader==nil then
+          reader=LocalDotNetValueReaders[ELEMENT_TYPE_PTR]
+        end      
+        
+        local bt=qwordToByteTable(qvalue)
+        
+        if bt==nil then
+          print("bt = nil")
+        else      
+          local vs=reader(bt)
+          if vs==nil then
+            return 'nil'        
+          else        
+            return vs
+          end
+        end
+      end
+    else
+      return '?'
+    end
+    
+  else
+    return 'Dotnet manual static value fetch not yet implemented' 
+  end
+end
+
 
 local function FieldValueUpdaterTimer(frmDotNetInfo, sender)
   local i
   local address=getAddressSafe(frmDotNetInfo.comboFieldBaseAddress.Text)
   local Class=frmDotNetInfo.CurrentlyDisplayedClass
-  if address and Class then  
+  local value
+  
+  if Class then
+    for i=0, frmDotNetInfo.lvStaticFields.Items.Count-1 do
+      local ci=frmDotNetInfo.lvStaticFields.Items[i].Data
+      if ci>0 and ci<=#Class.Fields then
+        
+        if Class.Fields[ci].Address and Class.Fields[ci].Address~=0 then
+          if Class.Fields[ci].VarType==ELEMENT_TYPE_STRING then     
+            value=readDotNetString(readPointer(Class.Fields[ci].Address), Class.Fields[ci])
+          else
+            local reader=DotNetValueReaders[Class.Fields[ci].VarType]
+            if reader==nil then
+              reader=DotNetValueReaders[ELEMENT_TYPE_PTR]
+            end
+          
+            local value=reader(Class.Fields[ci].Address)
+            if not value then
+              value='?'          
+            end
+          end
+          
+        
+        else
+          --querry from the target if possible
+          value=getStaticFieldValue(Class.Fields[ci])
+        end
+        frmDotNetInfo.lvStaticFields.Items[i].SubItems[2]=value 
+      end
+    end  
+  end
+  
+  if address and Class then 
     for i=0, frmDotNetInfo.lvFields.Items.Count-1 do
       local ci=frmDotNetInfo.lvFields.Items[i].Data
       if ci>0 and ci<=#Class.Fields then
         local a=address+Class.Fields[ci].Offset
-        
-        local reader=DotNetValueReaders[Class.Fields[ci].VarType]
-        if reader==nil then
-          reader=DotNetValueReaders[ELEMENT_TYPE_PTR]
+       
+        if Class.Fields[ci].VarType==ELEMENT_TYPE_STRING then        
+          value=readDotNetString(readPointer(a), Class.Fields[ci])        
+        else
+          local reader=DotNetValueReaders[Class.Fields[ci].VarType]
+          if reader==nil then
+            reader=DotNetValueReaders[ELEMENT_TYPE_PTR]
+          end
+          
+          value=reader(a)
+          if not value then
+            value='?'          
+          end        
         end
         
-        local value=reader(a)
-        if not value then
-          value='?'          
-        end
         if frmDotNetInfo.lvFields.Items[i].SubItems.Count<3 then
           frmDotNetInfo.lvFields.Items[i].SubItems.add(value)
         else
@@ -1030,7 +1167,12 @@ local function btnLookupInstancesClick(frmDotNetInfo, sender)
     frmDotNetInfo.comboFieldBaseAddress.clear()
     for i=1,#results do
       frmDotNetInfo.comboFieldBaseAddress.Items.add(string.format("%.8x",results[i]))
-    end    
+    end 
+
+    if #results then
+      frmDotNetInfo.comboFieldBaseAddress.ItemIndex=0      
+      frmDotNetInfo.comboFieldBaseAddress.OnChange(frmDotNetInfo.comboFieldBaseAddress)
+    end
   end
 end
 
@@ -1053,6 +1195,8 @@ function miDotNetInfoClick(sender)
 
   local frmDotNetInfo=createFormFromFile(getAutorunPath()..'forms'..pathsep..'DotNetInfo.frm')  
   local i
+  
+  _G.df=frmDotNetInfo
  
   --find an unused entry
   i=1
