@@ -22,6 +22,12 @@
 #define CMD_GETALLOBJECTSOFTYPE 12
 
 
+typedef struct COR_FIELDEX
+{
+	COR_FIELD field;
+	COR_TYPEID owner;
+};
+
 
 class CPipeServer : Pipe
 {
@@ -45,6 +51,8 @@ private:
 
 
 	IMetaDataImport *getMetaData(ICorDebugModule *module);
+	IMetaDataImport *getMetaDataFromTypeID(COR_TYPEID type_id);
+	mdTypeDef getClassTokenFromTypeID(COR_TYPEID type_id);
 
 	BOOL OpenOrAttachToProcess(void);
 	COR_TYPEID getCOR_TYPEID(UINT64 hModule, mdTypeDef TypeDef);
@@ -57,7 +65,7 @@ private:
 	void enumMethodParameters(UINT64 hModule, mdMethodDef MethodDef);
 	void enumTypeDefFields(UINT64 hModule, mdTypeDef TypeDef);
 	void getAddressData(UINT64 Address);
-	int getAllFields(COR_TYPEID cortypeid, COR_TYPE_LAYOUT layout, std::vector<COR_FIELD> *fieldlist);
+	int getAllFields(COR_TYPEID cortypeid, COR_TYPE_LAYOUT layout, std::vector<COR_FIELDEX> *fieldlist);
 	void releaseObjectHandle(UINT64 hObject);
 	void enumAllObjects(void);
 	void enumAllObjectsOfType(UINT64 hModule, mdTypeDef TypeDef);

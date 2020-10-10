@@ -512,6 +512,58 @@ Enumerate the modules of the given ICorDebugAppDomain
 	}
 }
 
+mdTypeDef CPipeServer::getClassTokenFromTypeID(COR_TYPEID type_id)
+{
+	ICorDebugType *type;
+	ICorDebugClass *c;
+	mdTypeDef classtoken = 0;
+
+	if (CorDebugProcess5 && (CorDebugProcess5->GetTypeForTypeID(type_id, &type) == S_OK))
+	{
+		if (type->GetClass(&c) == S_OK)
+		{
+			c->GetToken(&classtoken);
+			
+		}
+
+		type->Release();
+
+	}
+
+	return classtoken;
+}
+
+IMetaDataImport *CPipeServer::getMetaDataFromTypeID(COR_TYPEID type_id)
+{
+	
+	ICorDebugType *type;
+	ICorDebugClass *c;
+	mdTypeDef classtoken;
+	ICorDebugModule *m;
+	IMetaDataImport *metadata = NULL;
+
+
+	if (CorDebugProcess5 && (CorDebugProcess5->GetTypeForTypeID(type_id, &type) == S_OK))
+	{
+		if (type->GetClass(&c) == S_OK)
+		{		
+			c->GetToken(&classtoken);
+
+			if (c->GetModule(&m) == S_OK)
+			{
+				metadata = getMetaData(m);
+				m->Release();
+			}
+			c->Release();
+		}
+		type->Release();
+	}
+
+	return metadata;
+
+}
+
+
 IMetaDataImport *CPipeServer::getMetaData(ICorDebugModule *module)
 {
 	IMetaDataImport *MetaData=moduleMetaData[module];
@@ -1073,7 +1125,9 @@ void CPipeServer::enumTypeDefFields(UINT64 hModule, mdTypeDef TypeDef)
 
 
 
-int CPipeServer::getAllFields(COR_TYPEID cortypeid, COR_TYPE_LAYOUT layout, std::vector<COR_FIELD> *fieldlist)
+
+
+int CPipeServer::getAllFields(COR_TYPEID cortypeid, COR_TYPE_LAYOUT layout, std::vector<COR_FIELDEX> *fieldlist)
 {
 	COR_FIELD *fields = NULL;
 	ULONG32 fieldcount;
@@ -1091,12 +1145,16 @@ int CPipeServer::getAllFields(COR_TYPEID cortypeid, COR_TYPE_LAYOUT layout, std:
 	{
 
 		fields = (COR_FIELD *)malloc(sizeof(COR_FIELD)*layout.numFields);
-
 		if (CorDebugProcess5->GetTypeFields(cortypeid, layout.numFields, fields, &fieldcount) == S_OK)
 		{
-			unsigned int i;
+			unsigned int i;			
 			for (i = 0; i < fieldcount; i++)
-				fieldlist->push_back(fields[i]);
+			{
+				COR_FIELDEX t;
+				t.field = fields[i];
+				t.owner = cortypeid;
+				fieldlist->push_back(t);
+			}
 		}
 
 		if (fields)
@@ -1107,6 +1165,8 @@ int CPipeServer::getAllFields(COR_TYPEID cortypeid, COR_TYPE_LAYOUT layout, std:
 
 	return (int)fieldlist->size();
 }
+
+
 
 void CPipeServer::sendType(COR_TYPEID cortypeid)
 {
@@ -1157,31 +1217,15 @@ void CPipeServer::sendType(COR_TYPEID cortypeid)
 			mdToken extends;
 			DWORD flags;
 
-			vector<COR_FIELD> fields;
-
-
-
-
+			vector<COR_FIELDEX> fields;
 
 			//get the metadata for the module that owns this class
-			if (CorDebugProcess5->GetTypeForTypeID(cortypeid, &type) == S_OK)
-			{
-				if (type->GetClass(&c) == S_OK)
-				{
-					c->GetToken(&classtoken);
+			metadata = getMetaDataFromTypeID(cortypeid);
+			classtoken = getClassTokenFromTypeID(cortypeid);
 
-					if (c->GetModule(&m) == S_OK)
-					{
-						metadata = getMetaData(m);
-						m->Release();
-					}
-					c->Release();
-				}
-				type->Release();
-			}
 
 			classnamelength = 0;
-			if ((metadata) && (classtoken))
+			if (metadata)
 				metadata->GetTypeDefProps(classtoken, classname, 255, &classnamelength, &flags, &extends);
 
 			//send the name (if there is one)
@@ -1207,28 +1251,69 @@ void CPipeServer::sendType(COR_TYPEID cortypeid)
 				DWORD CPlusTypeFlag;
 				DWORD valuelength;
 				UVCP_CONSTANT value;
-				unsigned char isStatic;
+				unsigned char isStatic;				
+
+				//get the fields not in the layout
+				/*
+				{
+					HCORENUM fe=0;
+					mdFieldDef lfields[16];
+					ULONG count;
+
+					while (metadata->EnumFields(&fe, classtoken, lfields, 16, &count) == S_OK)
+					{						
+						for (j = 0; j < count; j++)
+						{
+							int k;
+							int found = 0;
+							for (k = 0; k < fields.size(); k++)
+							{
+								if (lfields[j] = fields[k].token)
+								{
+									found = 1;
+									break;
+								}
+							}
+
+							if (!found)
+							{
+								COR_FIELD temp;
+								temp.id.token1 = -1;
+								temp.id.token2 = -1;
+								temp.offset = 0;
+								temp.token = lfields[j];
+								temp.fieldType = ELEMENT_TYPE_END;
+								fields.push_back(temp);
+								fieldcount++;
+							}
+						}
+
+					}
+				}*/
+
 
 				WriteFile(pipehandle, &fieldcount, sizeof(fieldcount), &bw, NULL);
-
 				for (j = 0; j < fieldcount; j++)
 				{
-					DWORD fieldtype = (DWORD)fields[j].fieldType;
-
-					WriteFile(pipehandle, &fields[j].token, sizeof(fields[j].token), &bw, NULL);
-					WriteFile(pipehandle, &fields[j].offset, sizeof(fields[j].offset), &bw, NULL);
-					WriteFile(pipehandle, &fieldtype, sizeof(fieldtype), &bw, NULL);
-
-
-					//optional name:
+					DWORD fieldtype = (DWORD)fields[j].field.fieldType;
 					fieldnamelength = 0;
 					isStatic = 0;
 
+
+					metadata = getMetaDataFromTypeID(fields[j].owner);
 					if (metadata)
 					{
-						metadata->GetFieldProps(fields[j].token, &classtype, fieldname, 255, &fieldnamelength, &attr, &sigBlob, &sigbloblength, &CPlusTypeFlag, &value, &valuelength);						
-						isStatic = IsFdStatic(attr);					
+						metadata->GetFieldProps(fields[j].field.token, &classtype, fieldname, 255, &fieldnamelength, &attr, &sigBlob, &sigbloblength, &CPlusTypeFlag, &value, &valuelength);
+						isStatic = IsFdStatic(attr);
 					}
+
+					WriteFile(pipehandle, &fields[j].field.token, sizeof(fields[j].field.token), &bw, NULL);
+					WriteFile(pipehandle, &fields[j].field.offset, sizeof(fields[j].field.offset), &bw, NULL);
+					WriteFile(pipehandle, &fieldtype, sizeof(fieldtype), &bw, NULL);
+
+					//optional name:
+
+					
 					WriteFile(pipehandle, &isStatic, 1, &bw, NULL);
 
 					fieldnamelength = sizeof(WCHAR)*fieldnamelength;
@@ -1240,12 +1325,9 @@ void CPipeServer::sendType(COR_TYPEID cortypeid)
 
 					//get the classname of this type if possible
 					classnamelength = 0;
-
-
-
 					
 					ICorDebugType *type2 = NULL;
-					if (CorDebugProcess5->GetTypeForTypeID(fields[j].id, &type2) == S_OK)
+					if (CorDebugProcess5->GetTypeForTypeID(fields[j].field.id, &type2) == S_OK)
 					{
 						if (type2)
 						{
