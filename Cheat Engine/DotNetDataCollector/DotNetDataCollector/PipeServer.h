@@ -52,7 +52,9 @@ private:
 
 	IMetaDataImport *getMetaData(ICorDebugModule *module);
 	IMetaDataImport *getMetaDataFromTypeID(COR_TYPEID type_id);
+	ICorDebugModule *getModuleFromTypeID(COR_TYPEID type_id);
 	mdTypeDef getClassTokenFromTypeID(COR_TYPEID type_id);
+
 
 	BOOL OpenOrAttachToProcess(void);
 	COR_TYPEID getCOR_TYPEID(UINT64 hModule, mdTypeDef TypeDef);

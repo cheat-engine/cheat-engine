@@ -7,6 +7,7 @@ using System.IO.Pipes;
 using Microsoft.Win32.SafeHandles;
 using System.Collections.Generic;
 using System.Text;
+using System.Runtime.InteropServices;
 
 namespace DotNetInterface
 {   
@@ -18,6 +19,9 @@ namespace DotNetInterface
             public const byte TEST = 0;
             public const byte INITMODULELIST = 1;
             public const byte GETMETHODENTRYPOINT = 2;
+            public const byte GETFIELDTYPENAME = 3;
+            public const byte GETSTATICFIELDVALUE = 4;
+            public const byte SETSTATICFIELDVALUE = 5;
 
             public const byte EXIT = 255;
         }
@@ -75,6 +79,16 @@ namespace DotNetInterface
             s.Write(stringbytes, 0, stringbytes.Length);
         }
 
+        public string ReadUTF8String()
+        {
+            int stringlength = (int)ReadDword();
+            byte[] stringbytes = new byte[stringlength];
+            s.Read(stringbytes, 0, stringlength);
+
+            return Encoding.UTF8.GetString(stringbytes);
+        }
+
+
         private void getMethodEntryPoint()
         {
             int moduleid = (int)ReadDword();
@@ -87,7 +101,7 @@ namespace DotNetInterface
                 Module m = ModuleList[moduleid];
                 try
                 {
-                    MethodBase mb = m.ResolveMethod(methoddef);
+                    MethodBase mb = m.ResolveMethod(methoddef);                    
 
                     System.Runtime.CompilerServices.RuntimeHelpers.PrepareMethod(mb.MethodHandle);
 
@@ -127,6 +141,158 @@ namespace DotNetInterface
                 WriteUTF8String(ModuleList[i].Name);
         }
 
+        private void getFieldTypeName()
+        {
+            string fieldtypename="";
+            int moduleid = (int)ReadDword();
+            int fielddef = (int)ReadDword();
+            if ((moduleid >= 0) && (moduleid < ModuleList.Count))
+            {
+                Module m = ModuleList[moduleid];
+                try
+                {
+                    FieldInfo mb = m.ResolveField(fielddef);
+
+                    fieldtypename = mb.FieldType.FullName; 
+                }
+                catch
+                {
+                }
+            }
+
+            WriteUTF8String(fieldtypename);
+        }
+
+        private void getStaticFieldValue()
+        {
+            string value = "";
+            int moduleid = (int)ReadDword();
+            int fielddef = (int)ReadDword();
+
+            if ((moduleid >= 0) && (moduleid < ModuleList.Count))
+            {
+                Module m = ModuleList[moduleid];
+                try
+                {
+                    FieldInfo mb = m.ResolveField(fielddef);
+                    if (mb!=null)
+                    {
+                        object o = mb.GetValue(null);
+                        if (o != null)
+                        {
+                            Type ot = o.GetType();
+                            if ((ot.IsPrimitive) || (Type.GetTypeCode(ot) == TypeCode.String))
+                                value = o.ToString();
+                            else
+                            {
+                                value = o.GetType().Name;
+                                GCHandle g = GCHandle.Alloc(o);
+                                IntPtr addr = GCHandle.ToIntPtr(g);
+                                IntPtr real = Marshal.ReadIntPtr(addr);
+                                value = o.GetType().Name+" : "+real.ToString("X8");
+                                g.Free();
+
+                                System.GC.Collect();
+                            }
+                        }
+                        else
+                            value = "null";
+                    }
+                }
+                catch
+                {
+                }
+            }
+
+            WriteUTF8String(value);
+        }
+
+        private void setStaticFieldValue()
+        {
+            int moduleid = (int)ReadDword();
+            int fielddef = (int)ReadDword();
+            string value = ReadUTF8String();
+
+            if ((moduleid >= 0) && (moduleid < ModuleList.Count))
+            {
+                Module m = ModuleList[moduleid];
+                try
+                {
+                    FieldInfo mb = m.ResolveField(fielddef);
+     
+                    switch (Type.GetTypeCode(mb.GetType()))
+                    {
+                        case TypeCode.Boolean:
+                            mb.SetValue(null, Boolean.Parse(value));
+                            break;
+
+                        case TypeCode.Char:
+                            mb.SetValue(null, Char.Parse(value));
+                            break;
+
+                        case TypeCode.SByte:
+                            mb.SetValue(null, SByte.Parse(value));
+                            break;
+
+                        case TypeCode.Byte:
+                            mb.SetValue(null, Byte.Parse(value));
+                            break;
+
+                        case TypeCode.Int16:
+                            mb.SetValue(null, Int16.Parse(value));
+                            break;
+
+                        case TypeCode.UInt16:
+                            mb.SetValue(null, UInt16.Parse(value));
+                            break;
+
+                        case TypeCode.Int32:
+                            mb.SetValue(null, Int32.Parse(value));
+                            break;
+
+                        case TypeCode.UInt32:
+                            mb.SetValue(null, UInt32.Parse(value));
+                            break;
+
+                        case TypeCode.Int64:
+                            mb.SetValue(null, Int32.Parse(value));
+                            break;
+
+                        case TypeCode.UInt64:
+                            mb.SetValue(null, UInt32.Parse(value));
+                            break;
+
+                        case TypeCode.Single:
+                            mb.SetValue(null, Single.Parse(value));
+                            break;
+
+                        case TypeCode.Double:
+                            mb.SetValue(null, Double.Parse(value));
+                            break;
+
+                        case TypeCode.Decimal:
+                            mb.SetValue(null, Decimal.Parse(value));
+                            break;
+
+                        case TypeCode.DateTime:
+                            mb.SetValue(null, DateTime.Parse(value));
+                            break;
+
+                        case TypeCode.String:
+                            mb.SetValue(null, value);
+                            break;
+                    }
+                }
+                catch
+                {
+                    //nope
+                }
+            }
+        }
+
+
+
+
         private void PipeServerThread()
         {
             
@@ -162,6 +328,14 @@ namespace DotNetInterface
 
                         case Commands.GETMETHODENTRYPOINT:
                             getMethodEntryPoint();
+                            break;
+
+                        case Commands.GETFIELDTYPENAME:
+                            getFieldTypeName();
+                            break;
+
+                        case Commands.GETSTATICFIELDVALUE:
+                            getStaticFieldValue();
                             break;
 
                             //case Commands.

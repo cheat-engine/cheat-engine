@@ -22,6 +22,10 @@ dotnet_timeout=300000
 DOTNETCMD_TEST=0
 DOTNETCMD_INITMODULELIST=1
 DOTNETCMD_GETMETHODENTRYPOINT=2
+DOTNETCMD_GETFIELDTYPENAME=3
+DOTNETCMD_GETSTATICFIELDVALUE=4
+DOTNETCMD_SETSTATICFIELDVALUE=5
+
 DOTNETCMD_EXIT=255
 
 
@@ -45,6 +49,47 @@ function dotnet_initModuleList()
     dotnetmodulelist[s]=dotnetmodulelist[i]
   end
   dotnetpipe.unlock()
+end
+
+function dotnet_setStaticFieldValue(moduleid, fielddef, value)
+  local result
+  dotnetpipe.lock()
+  dotnetpipe.writeByte(DOTNETCMD_SETSTATICFIELDVALUE)
+  dotnetpipe.writeDword(moduleid)
+  dotnetpipe.writeDword(fielddef)
+  dotnetpipe.writeDword(#value)
+  dotnetpipe.writeString(value)
+  dotnetpipe.unlock()
+  
+  return result
+end
+
+
+function dotnet_getStaticFieldValue(moduleid, fielddef)
+  local result
+  dotnetpipe.lock()
+  dotnetpipe.writeByte(DOTNETCMD_GETSTATICFIELDVALUE)
+  dotnetpipe.writeDword(moduleid)
+  dotnetpipe.writeDword(fielddef)
+  local stringsize=dotnetpipe.readDword()  
+  local result=dotnetpipe.readString(stringsize)
+  dotnetpipe.unlock()
+  
+  return result
+end
+
+
+function dotnet_getFieldTypeName(moduleid, fielddef)
+  local result
+  dotnetpipe.lock()
+  dotnetpipe.writeByte(DOTNETCMD_GETFIELDTYPENAME)
+  dotnetpipe.writeDword(moduleid)
+  dotnetpipe.writeDword(fielddef)
+  local stringsize=dotnetpipe.readDword()  
+  local result=dotnetpipe.readString(stringsize)
+  dotnetpipe.unlock()
+  
+  return result
 end
 
 function dotnet_getMethodEntryPoint(moduleid, methoddef)
@@ -157,6 +202,7 @@ function LaunchDotNetInterface()
   dotnet_initModuleList()
   
   dotnetpipe.processid=getOpenedProcessID()
+  dotnetpipe.isValid=function() return getOpenedProcessID()==tonumber(dotnetpipe.processid) end
   --still here, return true   
   return true
 end

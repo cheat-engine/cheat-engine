@@ -533,22 +533,39 @@ mdTypeDef CPipeServer::getClassTokenFromTypeID(COR_TYPEID type_id)
 	return classtoken;
 }
 
+
+
+ICorDebugModule *CPipeServer::getModuleFromTypeID(COR_TYPEID type_id)
+{
+	ICorDebugModule *m = NULL;
+	ICorDebugType *type;
+	ICorDebugClass *c;
+	if (CorDebugProcess5 && (CorDebugProcess5->GetTypeForTypeID(type_id, &type) == S_OK))
+	{
+		if (type->GetClass(&c) == S_OK)
+		{
+			c->GetModule(&m);
+			c->Release();
+		}
+		type->Release();
+	}
+
+	return m;
+}
+
 IMetaDataImport *CPipeServer::getMetaDataFromTypeID(COR_TYPEID type_id)
 {
 	
 	ICorDebugType *type;
 	ICorDebugClass *c;
-	mdTypeDef classtoken;
 	ICorDebugModule *m;
 	IMetaDataImport *metadata = NULL;
 
 
 	if (CorDebugProcess5 && (CorDebugProcess5->GetTypeForTypeID(type_id, &type) == S_OK))
-	{
+	{		
 		if (type->GetClass(&c) == S_OK)
 		{		
-			c->GetToken(&classtoken);
-
 			if (c->GetModule(&m) == S_OK)
 			{
 				metadata = getMetaData(m);
@@ -1094,10 +1111,12 @@ COR_TYPEID CPipeServer::getCOR_TYPEID(UINT64 hModule, mdTypeDef TypeDef)
 			if (ppClass2 && (ppClass2->GetParameterizedType(ELEMENT_TYPE_CLASS, 0, NULL, &ppType) == S_OK)) //todo: generics
 			{
 				if (ppType && (ppType->QueryInterface(IID_ICorDebugType2, (void **)&ppType2) == S_OK))
-				{					
+				{	
+					HRESULT hr;
+					hr = ppType2->GetTypeID(&result);
 
-					COR_TYPE_LAYOUT layout;
-					if (ppType2->GetTypeID(&result) == S_OK)
+					
+					if (hr == S_OK)
 					{
 						return result;						
 					}
@@ -1222,6 +1241,7 @@ void CPipeServer::sendType(COR_TYPEID cortypeid)
 			//get the metadata for the module that owns this class
 			metadata = getMetaDataFromTypeID(cortypeid);
 			classtoken = getClassTokenFromTypeID(cortypeid);
+			m = getModuleFromTypeID(cortypeid);
 
 
 			classnamelength = 0;
@@ -1254,7 +1274,7 @@ void CPipeServer::sendType(COR_TYPEID cortypeid)
 				unsigned char isStatic;				
 
 				//get the fields not in the layout
-				/*
+				
 				{
 					HCORENUM fe=0;
 					mdFieldDef lfields[16];
@@ -1268,7 +1288,7 @@ void CPipeServer::sendType(COR_TYPEID cortypeid)
 							int found = 0;
 							for (k = 0; k < fields.size(); k++)
 							{
-								if (lfields[j] = fields[k].token)
+								if (lfields[j] == fields[k].field.token)
 								{
 									found = 1;
 									break;
@@ -1277,19 +1297,26 @@ void CPipeServer::sendType(COR_TYPEID cortypeid)
 
 							if (!found)
 							{
-								COR_FIELD temp;
-								temp.id.token1 = -1;
-								temp.id.token2 = -1;
-								temp.offset = 0;
-								temp.token = lfields[j];
-								temp.fieldType = ELEMENT_TYPE_END;
-								fields.push_back(temp);
+								//create a dummy entry describing this field and add it
+								//OutputDebugStringA("WEE");
+								COR_FIELDEX dummy;
+
+								
+								
+								
+
+								dummy.owner = cortypeid;
+								dummy.field.fieldType = ELEMENT_TYPE_END;
+								dummy.field.id = { 0,0 };
+								dummy.field.offset = 0;
+								dummy.field.token = lfields[j];
+								fields.push_back(dummy);
 								fieldcount++;
 							}
 						}
 
 					}
-				}*/
+				}
 
 
 				WriteFile(pipehandle, &fieldcount, sizeof(fieldcount), &bw, NULL);
@@ -1301,10 +1328,18 @@ void CPipeServer::sendType(COR_TYPEID cortypeid)
 
 
 					metadata = getMetaDataFromTypeID(fields[j].owner);
+					m = getModuleFromTypeID(fields[j].owner);
 					if (metadata)
 					{
+						CPlusTypeFlag = 0;
 						metadata->GetFieldProps(fields[j].field.token, &classtype, fieldname, 255, &fieldnamelength, &attr, &sigBlob, &sigbloblength, &CPlusTypeFlag, &value, &valuelength);
 						isStatic = IsFdStatic(attr);
+						
+
+						if (isStatic || ((fields[j].field.id.token1 == 0) && (fields[j].field.id.token2 == 0) && (fields[j].field.offset == 0)))
+						{							
+							fieldtype = CPlusTypeFlag; //not useful
+						}
 					}
 
 					WriteFile(pipehandle, &fields[j].field.token, sizeof(fields[j].field.token), &bw, NULL);
@@ -1327,7 +1362,7 @@ void CPipeServer::sendType(COR_TYPEID cortypeid)
 					classnamelength = 0;
 					
 					ICorDebugType *type2 = NULL;
-					if (CorDebugProcess5->GetTypeForTypeID(fields[j].field.id, &type2) == S_OK)
+					if ((fields[j].field.id.token1 || fields[j].field.id.token2) && (CorDebugProcess5->GetTypeForTypeID(fields[j].field.id, &type2) == S_OK))
 					{
 						if (type2)
 						{

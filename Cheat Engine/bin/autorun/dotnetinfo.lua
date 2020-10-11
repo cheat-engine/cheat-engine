@@ -447,16 +447,24 @@ local function FillClassInfoFields(frmDotNetInfo, Class)
         if Class.Fields[i].VarTypeName and Class.Fields[i].VarTypeName~='' then
           li.SubItems.add(Class.Fields[i].VarTypeName)              
         else
-          li.SubItems.add(Class.Fields[i].VarType)    
+          local typename='Vartype:'..Class.Fields[i].VarType
+          if Class.Image.Domain~=CONTROL_MONO then
+            if dotnetpipe and dotnetpipe.isValid() then
+              typename=dotnet_getFieldTypeName(dotnet_getModuleID(Class.Image.FileName), Class.Fields[i].Handle)                          
+            else
+              typename=translate('Launch the .NET interface');
+            end
+          end        
+          li.SubItems.add(typename)
         end
         
         if Class.Fields[i].Address and Class.Fields[i].Address~=0 then
-          li.SubItems.add(string.format("%.8x",Class.Fields[i].Address))          
+          string.format("%.8x",Class.Fields[i].Address)          
         else
-          li.SubItems.add('?');
+          li.SubItems.add('?')
         end    
 
-        li.SubItems.add('');
+        li.SubItems.add('')
       else       
         local li=frmDotNetInfo.lvFields.Items.add()
       
@@ -994,7 +1002,11 @@ local function getStaticFieldValue(Field)
     end
     
   else
-    return 'Dotnet manual static value fetch not yet implemented' 
+    if dotnetpipe and dotnetpipe.isValid() then
+      return dotnet_getStaticFieldValue(dotnet_getModuleID(Field.Class.Image.FileName), Field.Handle)
+    else
+      return translate('Launch the .NET interface')
+    end
   end
 end
 
