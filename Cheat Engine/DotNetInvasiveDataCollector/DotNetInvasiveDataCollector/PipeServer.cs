@@ -20,8 +20,8 @@ namespace DotNetInterface
             public const byte INITMODULELIST = 1;
             public const byte GETMETHODENTRYPOINT = 2;
             public const byte GETFIELDTYPENAME = 3;
-            public const byte GETSTATICFIELDVALUE = 4;
-            public const byte SETSTATICFIELDVALUE = 5;
+            public const byte GETFIELDVALUE = 4;
+            public const byte SETFIELDVALUE = 5;
 
             public const byte EXIT = 255;
         }
@@ -163,21 +163,36 @@ namespace DotNetInterface
             WriteUTF8String(fieldtypename);
         }
 
-        private void getStaticFieldValue()
+
+
+        private void getFieldValue()
         {
             string value = "";
             int moduleid = (int)ReadDword();
             int fielddef = (int)ReadDword();
+            IntPtr instanceptr = (IntPtr)ReadQword();
+            object instance = null;
 
-            if ((moduleid >= 0) && (moduleid < ModuleList.Count))
+            GCHandle instanceGCH;
+
+            try
             {
-                Module m = ModuleList[moduleid];
-                try
+
+                if (instanceptr!=IntPtr.Zero)
                 {
+                    instanceGCH = GCHandle.Alloc(null);
+                    Marshal.WriteIntPtr((IntPtr)instanceGCH, instanceptr);
+                    instance = instanceGCH.Target;
+                }
+
+            
+                if ((moduleid >= 0) && (moduleid < ModuleList.Count))
+                {
+                    Module m = ModuleList[moduleid];                    
                     FieldInfo mb = m.ResolveField(fielddef);
-                    if (mb!=null)
+                    if (mb != null)
                     {
-                        object o = mb.GetValue(null);
+                        object o = mb.GetValue(instance);
                         if (o != null)
                         {
                             Type ot = o.GetType();
@@ -189,105 +204,150 @@ namespace DotNetInterface
                                 GCHandle g = GCHandle.Alloc(o);
                                 IntPtr addr = GCHandle.ToIntPtr(g);
                                 IntPtr real = Marshal.ReadIntPtr(addr);
-                                value = o.GetType().Name+" : "+real.ToString("X8");
+                                value = o.GetType().Name + " : " + real.ToString("X8");
                                 g.Free();
 
-                                System.GC.Collect();
+                                System.GC.Collect(); //without this you can see the process memory grow a lot
                             }
                         }
                         else
                             value = "null";
-                    }
+                    }                   
                 }
-                catch
+            }
+            catch
+            {
+
+            }
+            finally
+            {
+                WriteUTF8String(value);
+
+                
+                if (instanceptr != IntPtr.Zero)
                 {
+                    instance = null;
+                    try
+                    {
+                        Marshal.WriteIntPtr((IntPtr)instanceGCH, IntPtr.Zero);
+                        instanceGCH.Free();
+                    }
+                    catch
+                    {
+
+                    }                        
                 }
             }
 
-            WriteUTF8String(value);
+           
         }
 
-        private void setStaticFieldValue()
+        private void setFieldValue()
         {
             int moduleid = (int)ReadDword();
             int fielddef = (int)ReadDword();
+            IntPtr instanceptr = (IntPtr)ReadQword();
             string value = ReadUTF8String();
 
-            if ((moduleid >= 0) && (moduleid < ModuleList.Count))
+            object instance = null;
+            GCHandle instanceGCH;
+
+            try
             {
-                Module m = ModuleList[moduleid];
-                try
+                if (instanceptr != IntPtr.Zero)
                 {
+                    instanceGCH = GCHandle.Alloc(null);
+                    Marshal.WriteIntPtr((IntPtr)instanceGCH, instanceptr);
+                    instance = instanceGCH.Target;
+                }
+
+
+                if ((moduleid >= 0) && (moduleid < ModuleList.Count))
+                {
+                    Module m = ModuleList[moduleid];
+                   
                     FieldInfo mb = m.ResolveField(fielddef);
-     
-                    switch (Type.GetTypeCode(mb.GetType()))
+                    TypeCode tc = Type.GetTypeCode(mb.FieldType);
+
+                    mb.FieldType
+
+                    switch (tc)
                     {
                         case TypeCode.Boolean:
-                            mb.SetValue(null, Boolean.Parse(value));
+                            mb.SetValue(instance, Boolean.Parse(value));
                             break;
 
                         case TypeCode.Char:
-                            mb.SetValue(null, Char.Parse(value));
+                            mb.SetValue(instance, Char.Parse(value));
                             break;
 
                         case TypeCode.SByte:
-                            mb.SetValue(null, SByte.Parse(value));
+                            mb.SetValue(instance, SByte.Parse(value));
                             break;
 
                         case TypeCode.Byte:
-                            mb.SetValue(null, Byte.Parse(value));
+                            mb.SetValue(instance, Byte.Parse(value));
                             break;
 
                         case TypeCode.Int16:
-                            mb.SetValue(null, Int16.Parse(value));
+                            mb.SetValue(instance, Int16.Parse(value));
                             break;
 
                         case TypeCode.UInt16:
-                            mb.SetValue(null, UInt16.Parse(value));
+                            mb.SetValue(instance, UInt16.Parse(value));
                             break;
 
                         case TypeCode.Int32:
-                            mb.SetValue(null, Int32.Parse(value));
+                            mb.SetValue(instance, Int32.Parse(value));
                             break;
 
                         case TypeCode.UInt32:
-                            mb.SetValue(null, UInt32.Parse(value));
+                            mb.SetValue(instance, UInt32.Parse(value));
                             break;
 
                         case TypeCode.Int64:
-                            mb.SetValue(null, Int32.Parse(value));
+                            mb.SetValue(instance, Int32.Parse(value));
                             break;
 
                         case TypeCode.UInt64:
-                            mb.SetValue(null, UInt32.Parse(value));
+                            mb.SetValue(instance, UInt32.Parse(value));
                             break;
 
                         case TypeCode.Single:
-                            mb.SetValue(null, Single.Parse(value));
+                            mb.SetValue(instance, Single.Parse(value));
                             break;
 
                         case TypeCode.Double:
-                            mb.SetValue(null, Double.Parse(value));
+                            mb.SetValue(instance, Double.Parse(value));
                             break;
 
                         case TypeCode.Decimal:
-                            mb.SetValue(null, Decimal.Parse(value));
+                            mb.SetValue(instance, Decimal.Parse(value));
                             break;
 
                         case TypeCode.DateTime:
-                            mb.SetValue(null, DateTime.Parse(value));
+                            mb.SetValue(instance, DateTime.Parse(value));
                             break;
 
                         case TypeCode.String:
-                            mb.SetValue(null, value);
+                            mb.SetValue(instance, value);
                             break;
                     }
+                    
                 }
-                catch
+
+                if (instanceptr != IntPtr.Zero)
                 {
-                    //nope
+                    instance = null;
+                    Marshal.WriteIntPtr((IntPtr)instanceGCH, IntPtr.Zero);
+                    instanceGCH.Free();
                 }
             }
+            catch
+            {
+
+            }
+
         }
 
 
@@ -334,8 +394,12 @@ namespace DotNetInterface
                             getFieldTypeName();
                             break;
 
-                        case Commands.GETSTATICFIELDVALUE:
-                            getStaticFieldValue();
+                        case Commands.GETFIELDVALUE:
+                            getFieldValue();
+                            break;
+
+                        case Commands.SETFIELDVALUE:
+                            setFieldValue();
                             break;
 
                             //case Commands.

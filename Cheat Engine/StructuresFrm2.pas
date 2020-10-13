@@ -1485,6 +1485,7 @@ begin
       j := 100; //structures (Terraria's tiles, eg, are 2*10^9 elements) and it's either too slow or not possible to diagram
     for i:=0 to j-1 do
     begin
+
       e:=addElement(data.typedata.classname + '['+inttostr(i)+']', data.typedata.firstelementoffset+i*data.typedata.elementsize, vtPointer);
       case data.typedata.elementtype of
         ELEMENT_TYPE_END            : e.VarType:=vtDword;
@@ -1516,6 +1517,8 @@ begin
     try
       for i:=0 to length(data.typedata.fields)-1 do
       begin
+        if data.typedata.fields[i].isStatic then continue;
+
         e:=addElement(data.typedata.fields[i].name, data.typedata.fields[i].offset);
 
         e.DisplayMethod:=dtUnSignedInteger;

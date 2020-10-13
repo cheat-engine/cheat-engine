@@ -815,36 +815,39 @@ function LUA_onBreakpoint(threadid: dword; context: PContext; functionAlreadyPus
 var p: integer;
 begin
   result:=false;
+  if context=nil then exit;
+
   try
-    LUA_SetCurrentContextState(threadid, context);
+    try
+      LUA_SetCurrentContextState(threadid, context);
 
-
-    if not functionAlreadyPushed then
-    begin
-      lua_pop(LuaVM, lua_gettop(luavm)); //clear it just to be sure
-
-      lua_getglobal(luavm, pchar('debugger_onBreakpoint'));
-      p:=lua_gettop(luavm);
-      if p=0 then exit;
-    end;
-
-    if lua_isfunction(luavm, -1) then //extra check
-    begin
-      if lua_pcall(LuaVM, 0, 1, 0)=0 then
+      if not functionAlreadyPushed then
       begin
+        lua_pop(LuaVM, lua_gettop(luavm)); //clear it just to be sure
+
+        lua_getglobal(luavm, pchar('debugger_onBreakpoint'));
         p:=lua_gettop(luavm);
-
-        if (p=1) then //only 1 parameter returned
-          result:=lua_tointeger(luavm, -1)<>0;  //return the result is not 0
-
-
-        lua_pop(LuaVM, lua_gettop(luavm)); //clear stack
-
-        //set new state if changes where made
-        LUA_GetNewContextState(context);
+        if p=0 then exit;
       end;
-    end;
 
+      if lua_isfunction(luavm, -1) then //extra check
+      begin
+        if lua_pcall(LuaVM, 0, 1, 0)=0 then
+        begin
+          p:=lua_gettop(luavm);
+
+          if (p=1) then //only 1 parameter returned
+            result:=lua_tointeger(luavm, -1)<>0;  //return the result is not 0
+
+
+          lua_pop(LuaVM, lua_gettop(luavm)); //clear stack
+
+          //set new state if changes where made
+          LUA_GetNewContextState(context);
+        end;
+      end;
+    except
+    end;
   finally
     lua_pop(LuaVM, lua_gettop(luavm));
   end;

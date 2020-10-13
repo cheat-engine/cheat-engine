@@ -30,7 +30,7 @@ local function CTypeToString(ctype)
 end
 
 local function getClassInstances(Class, ProgressBar) 
-  print("Looking up instanced for "..Class.Name) 
+  --print("Looking up instances for "..Class.Name) 
   if Class.Image.Domain.Control==CONTROL_MONO then
     --get the vtable and then scan for objects with this
     return mono_class_findInstancesOfClassListOnly(nil, Class.Handle)    
@@ -809,7 +809,7 @@ local function OpenAddressOfSelectedMethod(frmDotNetInfo)
     if (Method.Class.Image.Domain.Control~=CONTROL_MONO) then
       --it's not going to be the one you expect
       
-      if (dotnetpipe==nil) and (messageDialog(translate('This method is currently not jitted. Do you wish to inject the .NET Control DLL into the target process to force it to generate an entry point for this method? (Does not work if the target is suspended)'), mtConfirmation, mbYes,mbNo)==mrYes) then
+      if ((dotnetpipe==nil) or (dotnetpipe.isValid()==false)) and (messageDialog(translate('This method is currently not jitted. Do you wish to inject the .NET Control DLL into the target process to force it to generate an entry point for this method? (Does not work if the target is suspended)'), mtConfirmation, mbYes,mbNo)==mrYes) then
         --inject the control DLL
         LaunchDotNetInterface()    
 
@@ -931,6 +931,18 @@ LocalDotNetValueReaders[ELEMENT_TYPE_PTR]=function(bt)
   end
 end
 
+LocalDotNetValueWriters={} --value is either integer ot float
+LocalDotNetValueWriters[ELEMENT_TYPE_I1]=function(value) return {value} end
+LocalDotNetValueWriters[ELEMENT_TYPE_U1]=LocalDotNetValueWriters[ELEMENT_TYPE_I1]
+LocalDotNetValueWriters[ELEMENT_TYPE_I2]=function(value) return wordToByteTable(value) end
+LocalDotNetValueWriters[ELEMENT_TYPE_U2]=LocalDotNetValueWriters[ELEMENT_TYPE_U2]
+LocalDotNetValueWriters[ELEMENT_TYPE_I4]=function(value) return dwordToByteTable(value) end
+LocalDotNetValueWriters[ELEMENT_TYPE_U4]=LocalDotNetValueWriters[ELEMENT_TYPE_I4]
+LocalDotNetValueWriters[ELEMENT_TYPE_I8]=function(value) return qwordToByteTable(value) end
+LocalDotNetValueWriters[ELEMENT_TYPE_U8]=LocalDotNetValueWriters[ELEMENT_TYPE_I8]
+LocalDotNetValueWriters[ELEMENT_TYPE_R4]=function(value) return floatToByteTable(value) end
+LocalDotNetValueWriters[ELEMENT_TYPE_R8]=function(value) return doubleToByteTable(value) end
+
 -----------------------------------------------
 
 local DotNetValueReaders={}
@@ -962,13 +974,76 @@ local function readDotNetString(address, Field)
   if Field.Class.Image.Domain.Control==CONTROL_MONO then
     return mono_string_readString(address)
   else
-    return string.format('string: %.8x',address)
-    --.net string type reading
+    local lengthAddress
+    local stringAddress
+    
+    if targetIs64Bit() then
+      lengthAddress=address+8
+    else
+      lengthAddress=address+4
+    end
+    
+    stringAddress=lengthAddress+4
+    local length=readInteger(lengthAddress)
+    if length and (length<4000) then
+      return readString(stringAddress,length*2,true)
+    else
+      return translate("<Error: Unreadable string>")
+    end   
   end
 end
 
-
-
+local function setFieldValue(Field,Address,Value)
+  --for .net Value is a string, for mono it's an integer
+  
+  if Field.Class.Image.Domain.Control==CONTROL_MONO then  
+    setFieldValueNoInject(Field, Addrsss,Value)
+    if (Field.VarType==ELEMENT_TYPE_STRING) or (Field.VarTypeName == "System.String") then
+      return nil,translate('Strings can not be written')
+    end
+    
+    Value=tonumber(Value)
+    local vtable=mono_class_getVTable(Field.Class)
+    
+    --convert Value to bytes   
+    local writer=LocalDotNetValueWriters[Field.VarType]
+    if writer==nil then
+      return nil,translate('Unsupported field type')    
+    end
+    
+    local bt=writer(Value)
+    if bt then
+      if Field.Static and ((Address==nil) or (Address==0)) then 
+        local qvalue=byteTableToQword(bt)      
+        mono_setStaticFieldValue(vtable, Field.Handle, qvalue)
+      else
+        local addr=Field.Address
+        if addr==nil then
+          addr=Address+Field.Offset
+        end
+        writeBytes(addr,bt)        
+      end
+      return true
+    else
+      return nil,translate('value convertor failure')    
+    end
+  else
+    if dotnetpipe and dotnetpipe.isValid() then
+      dotnet_setFieldValue(dotnet_getModuleID(Field.Class.Image.FileName), Field.Handle, Address, Value)
+      return true
+    else
+      local writer=LocalDotNetValueWriters[Field.VarType]
+      if writer==nil then
+        return nil,translate('Unsupported field type')    
+      end
+      local bt=writer(tonumber(Value))      
+      local addr=Address+Field.Offset
+      writeBytes(addr,bt)
+      
+      return true
+    end    
+  end
+end
 
 local function getStaticFieldValue(Field)
   if Field.Class.Image.Domain.Control==CONTROL_MONO then
@@ -976,7 +1051,7 @@ local function getStaticFieldValue(Field)
     local qvalue=mono_getStaticFieldValue(vtable, Field.Handle)
     
     if qvalue then
-      if Field.VarType==ELEMENT_TYPE_STRING then
+      if (Field.VarType==ELEMENT_TYPE_STRING) or (Field.VarTypeName == "System.String") then
         return readDotNetString(qvalue, Field)
       else    
         local reader=LocalDotNetValueReaders[Field.VarType]
@@ -1003,7 +1078,7 @@ local function getStaticFieldValue(Field)
     
   else
     if dotnetpipe and dotnetpipe.isValid() then
-      return dotnet_getStaticFieldValue(dotnet_getModuleID(Field.Class.Image.FileName), Field.Handle)
+      return dotnet_getFieldValue(dotnet_getModuleID(Field.Class.Image.FileName), Field.Handle, 0)
     else
       return translate('Launch the .NET interface')
     end
@@ -1023,7 +1098,7 @@ local function FieldValueUpdaterTimer(frmDotNetInfo, sender)
       if ci>0 and ci<=#Class.Fields then
         
         if Class.Fields[ci].Address and Class.Fields[ci].Address~=0 then
-          if Class.Fields[ci].VarType==ELEMENT_TYPE_STRING then     
+          if (Class.Fields[ci].VarType==ELEMENT_TYPE_STRING) or (Class.Fields[ci].VarTypeName == "System.String") then     
             value=readDotNetString(readPointer(Class.Fields[ci].Address), Class.Fields[ci])
           else
             local reader=DotNetValueReaders[Class.Fields[ci].VarType]
@@ -1053,7 +1128,7 @@ local function FieldValueUpdaterTimer(frmDotNetInfo, sender)
       if ci>0 and ci<=#Class.Fields then
         local a=address+Class.Fields[ci].Offset
        
-        if Class.Fields[ci].VarType==ELEMENT_TYPE_STRING then        
+        if (Class.Fields[ci].VarType==ELEMENT_TYPE_STRING) or (Class.Fields[ci].VarTypeName == "System.String") then        
           value=readDotNetString(readPointer(a), Class.Fields[ci])        
         else
           local reader=DotNetValueReaders[Class.Fields[ci].VarType]
@@ -1187,6 +1262,75 @@ local function btnLookupInstancesClick(frmDotNetInfo, sender)
     end
   end
 end
+
+function lvStaticFieldsDblClick(frmDotNetInfo,sender)
+  if sender.Selected==nil then return end
+  local ci=sender.Selected.Data
+  
+  local Class=frmDotNetInfo.CurrentlyDisplayedClass
+  if Class==nil then return end 
+  
+  local Field=Class.Fields[ci]
+  if Field==nil then return end
+      
+  if Field.Class.Image.Domain.Control~=CONTROL_MONO then
+    --no way to get the address
+    if (dotnetpipe==nil) or (dotnetpipe.isValid()==false) then
+      --this needs the .NET interface.
+      if messageDialog(translate('Inject the .NET Control DLL into the target process?'), mtConfirmation, mbYes,mbNo)==mrYes then
+        LaunchDotNetInterface()   
+      end
+      return
+    end
+  end  
+    
+  local value=getStaticFieldValue(Field)
+    
+  value=inputQuery(translate('Change value of '..Field.Name), 'New value:', value)
+  if value then
+    setFieldValue(Field, 0,value)    
+    
+    frmDotNetInfo.tFieldValueUpdater.OnTimer(frmDotNetInfo.tFieldValueUpdater)
+  end  
+  
+  
+end
+
+function lvFieldsDblClick(frmDotNetInfo,sender)
+  if sender.Selected==nil then return end
+  local ci=sender.Selected.Data
+  
+  local Class=frmDotNetInfo.CurrentlyDisplayedClass
+  if Class==nil then return end 
+  
+  local Field=Class.Fields[ci]
+  if Field==nil then return end
+  
+  if (Field.VarType==ELEMENT_TYPE_STRING) or (Field.VarTypeName == "System.String") then
+    if Field.Class.Image.Domain.Control==CONTROL_MONO then return 
+    else
+      if (dotnetpipe==nil) or (dotnetpipe.isValid()==false) then
+        if messageDialog(translate('To change string types the .NET Control DLL needs to be injected into the target. Inject it?'), mtConfirmation, mbYes,mbNo)~=mrYes then return end
+        
+        LaunchDotNetInterface()        
+        
+        if (dotnetpipe==nil) or (dotnetpipe.isValid()==false) then return end --failed to load
+      end
+    end
+  end
+  
+  
+  local Address=getAddressSafe(frmDotNetInfo.comboFieldBaseAddress.Text)
+  if Address==nil then return end
+  
+  local value=sender.Selected.SubItems[2]
+  value=inputQuery(translate('Change value of '..Field.Name), 'New value:', value)
+  if value then
+    setFieldValue(Field, Address, value)
+    frmDotNetInfo.tFieldValueUpdater.OnTimer(frmDotNetInfo.tFieldValueUpdater)
+  end
+end
+
 
 
 
@@ -1333,8 +1477,9 @@ function miDotNetInfoClick(sender)
 
 
   frmDotNetInfo.tFieldValueUpdater.OnTimer=function(t) FieldValueUpdaterTimer(frmDotNetInfo,t) end
-    
-  
+  frmDotNetInfo.lvStaticFields.OnDblClick=function(sender) lvStaticFieldsDblClick(frmDotNetInfo,sender) end
+  frmDotNetInfo.lvFields.OnDblClick=function(sender) lvFieldsDblClick(frmDotNetInfo,sender) end
+   
   --Init
   
   

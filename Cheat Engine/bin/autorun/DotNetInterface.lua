@@ -23,8 +23,8 @@ DOTNETCMD_TEST=0
 DOTNETCMD_INITMODULELIST=1
 DOTNETCMD_GETMETHODENTRYPOINT=2
 DOTNETCMD_GETFIELDTYPENAME=3
-DOTNETCMD_GETSTATICFIELDVALUE=4
-DOTNETCMD_SETSTATICFIELDVALUE=5
+DOTNETCMD_GETFIELDVALUE=4
+DOTNETCMD_SETFIELDVALUE=5
 
 DOTNETCMD_EXIT=255
 
@@ -41,7 +41,7 @@ function dotnet_initModuleList()
   for i=1,count do
     local stringsize=dotnetpipe.readDword()
     local s=dotnetpipe.readString(stringsize)
-    print(s)
+    
     
     dotnetmodulelist[i]={}
     dotnetmodulelist[i].Name=s
@@ -51,12 +51,13 @@ function dotnet_initModuleList()
   dotnetpipe.unlock()
 end
 
-function dotnet_setStaticFieldValue(moduleid, fielddef, value)
+function dotnet_setFieldValue(moduleid, fielddef, instanceaddress, value)
   local result
   dotnetpipe.lock()
-  dotnetpipe.writeByte(DOTNETCMD_SETSTATICFIELDVALUE)
+  dotnetpipe.writeByte(DOTNETCMD_SETFIELDVALUE)
   dotnetpipe.writeDword(moduleid)
   dotnetpipe.writeDword(fielddef)
+  dotnetpipe.writeQword(instanceaddress)
   dotnetpipe.writeDword(#value)
   dotnetpipe.writeString(value)
   dotnetpipe.unlock()
@@ -65,12 +66,13 @@ function dotnet_setStaticFieldValue(moduleid, fielddef, value)
 end
 
 
-function dotnet_getStaticFieldValue(moduleid, fielddef)
+function dotnet_getFieldValue(moduleid, fielddef, instanceaddress)
   local result
   dotnetpipe.lock()
-  dotnetpipe.writeByte(DOTNETCMD_GETSTATICFIELDVALUE)
+  dotnetpipe.writeByte(DOTNETCMD_GETFIELDVALUE)
   dotnetpipe.writeDword(moduleid)
   dotnetpipe.writeDword(fielddef)
+  dotnetpipe.writeQword(instanceaddress)
   local stringsize=dotnetpipe.readDword()  
   local result=dotnetpipe.readString(stringsize)
   dotnetpipe.unlock()
