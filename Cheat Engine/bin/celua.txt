@@ -1580,6 +1580,7 @@ methods
   expand(recursive:boolean=TRUE OPTIONAL) : Expands the given node
   collapse(recursive:boolean=TRUE OPTIONAL)  : collapses the given node
   getNextSibling(): Returns the treenode object that's behind this treenode on the same level
+  getDisplayRect(TextOnly: Boolean=FALSE OPTIONAL): Returns a rect {Left,Top,Right,Bottom} describing the node
   add(text:string): Returns a Treenode object that is a child of the treenode used to create it
 
 
@@ -2123,6 +2124,7 @@ properties
   AsyncProcessing: Boolean - True when async is true and it's being processed
   AsyncProcessingTime: qword - The time that it has been processing in milliseconds
 
+  HasMouseOver: boolean - True if the mouse is currently over it
 
   OnActivate: function(memoryrecord,before,currentstate):boolean - The function to call when the memoryrecord will change (or changed) Active to true. If before is true, not returning true will cause the activation to stop.
   OnDeactivate: function(memoryrecord,before,currentstate):boolean - The function to call when the memoryrecord will change (or changed) Active to false. If before is true, not returning true will cause the deactivation to stop.
@@ -2189,6 +2191,9 @@ properties
   ExpandSignColor: color
   IncreaseArrowColor: color
   DecreaseArrowColor: color
+
+  MouseHighlightedRecord() : Returns the memoryrecord that the mouse points at. nil if nothing
+
 
   OnDescriptionChange: function(addresslist,memrec):boolean - called when the user initiates a description column change on a record. Return true if you handle it, false for normal behaviour
   OnAddressChange: function(addresslist,memrec):boolean - called when the user initiates an address column change on a record. Return true if you handle it, false for normal behaviour

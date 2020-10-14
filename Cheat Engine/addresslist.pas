@@ -169,6 +169,7 @@ type
     procedure doValueChange;
 
     procedure disableAllWithoutExecute;
+    function getMouseHighlightedRecord: TMemoryRecord;
 
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -202,13 +203,12 @@ type
     property ExpandSignColor: TColor read fExpandSignColor write fExpandSignColor;
     property IncreaseArrowColor: TColor read fIncreaseArrowColor write fIncreaseArrowColor;
     property DecreaseArrowColor: TColor read fDecreaseArrowColor write fDecreaseArrowColor;
-
+    property MouseHighlightedRecord: TMemoryRecord read getMouseHighlightedRecord;
     property OnDescriptionChange: TMemRecChangeEvent read fOnDescriptionChange write fOnDescriptionChange;
     property OnAddressChange: TMemRecChangeEvent read fOnAddressChange write fOnAddressChange;
     property OnTypeChange: TMemRecChangeEvent read fOnTypeChange write fOnTypeChange;
     property OnValueChange: TMemRecChangeEvent read fOnValueChange write fOnValueChange;
     property OnAutoAssemblerEdit: TMemRecChangeEvent read fOnAutoAssemblerEdit write fOnAutoAssemblerEdit;
-
   end;
 
 implementation
@@ -1006,6 +1006,18 @@ begin
   end;
 end;
 
+function TAddresslist.getMouseHighlightedRecord: TMemoryRecord;
+var
+  p: tpoint;
+  node: TTreenode;
+begin
+  p:=treeview.ScreenToClient(mouse.CursorPos);
+  node:=treeview.GetNodeAt(p.x,p.y);
+  if node<>nil then
+    result:=tmemoryrecord(node.Data)
+  else
+    result:=nil;
+end;
 
 procedure TAddresslist.disableAllWithoutExecute;
 var i: integer;

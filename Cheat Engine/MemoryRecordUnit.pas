@@ -250,6 +250,7 @@ type
     function getDropDownDescriptionOnly: boolean;
     function getDisplayAsDropDownListItem: boolean;
 
+    function hasMouseOver: boolean;
     procedure setDropDownLinkedMemrec(s: string);
 
 
@@ -407,6 +408,7 @@ type
     property LastAAExecutionFailedReason: string read AutoAssemblerData.lastExecutionFailedReason;
     property Description: string read fDescription write setDescription;
     property CachedAddress: ptruint read realAddress;
+    property HasMouseFocus: boolean read hasMouseOver;
   end;
 
   THKSoundFlag=(hksPlaySound=0, hksSpeakText=1, hksSpeakTextEnglish=2); //playSound excludes speakText
@@ -2435,6 +2437,11 @@ begin
     result:=GetTickCount64-processingTimeStart
   else
     result:=0;
+end;
+
+function TMemoryRecord.hasMouseOver: boolean;
+begin
+  result:=taddresslist(fowner).MouseHighlightedRecord=self;
 end;
 
 procedure TMemoryRecord.processingDone;
