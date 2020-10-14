@@ -2,11 +2,11 @@ object MemoryBrowser: TMemoryBrowser
   Left = 321
   Height = 536
   Top = 141
-  Width = 621
+  Width = 708
   HelpContext = 12
   Caption = 'Memory Viewer'
   ClientHeight = 516
-  ClientWidth = 621
+  ClientWidth = 708
   Menu = MainMenu1
   OnActivate = FormActivate
   OnClose = FormClose
@@ -21,7 +21,7 @@ object MemoryBrowser: TMemoryBrowser
     Left = 0
     Height = 5
     Top = 364
-    Width = 621
+    Width = 708
     Align = alTop
     AutoSnap = False
     Beveled = True
@@ -35,15 +35,15 @@ object MemoryBrowser: TMemoryBrowser
     Left = 0
     Height = 364
     Top = 0
-    Width = 621
+    Width = 708
     Align = alTop
     BevelOuter = bvNone
     ClientHeight = 364
-    ClientWidth = 621
+    ClientWidth = 708
     ParentFont = False
     TabOrder = 0
     object Splitter2: TSplitter
-      Left = 401
+      Left = 488
       Height = 364
       Top = 0
       Width = 5
@@ -56,11 +56,11 @@ object MemoryBrowser: TMemoryBrowser
       Left = 0
       Height = 364
       Top = 0
-      Width = 401
+      Width = 488
       Align = alClient
       BevelOuter = bvNone
       ClientHeight = 364
-      ClientWidth = 401
+      ClientWidth = 488
       ParentFont = False
       TabOrder = 0
       OnClick = Panel5Click
@@ -68,7 +68,7 @@ object MemoryBrowser: TMemoryBrowser
         Left = 0
         Height = 42
         Top = 0
-        Width = 401
+        Width = 488
         AutoSize = True
         ButtonHeight = 40
         ButtonWidth = 23
@@ -84,24 +84,24 @@ object MemoryBrowser: TMemoryBrowser
           Left = 1
           Hint = 'F5'
           Top = 2
-          Caption = 'Toggle Breakpoint (F5)'
+          Caption = 'Toggle Breakpoint'
           ImageIndex = 4
           OnClick = miTogglebreakpointClick
           ParentShowHint = False
           ShowHint = True
         end
         object tbSeparator1: TToolButton
-          Left = 128
+          Left = 105
           Height = 40
           Top = 2
           Caption = 'tbSeparator1'
           Style = tbsSeparator
         end
         object tbRun: TToolButton
-          Left = 136
+          Left = 113
           Hint = 'F9'
           Top = 2
-          Caption = 'Run (F9)'
+          Caption = 'Run'
           Enabled = False
           ImageIndex = 0
           OnClick = miDebugRunClick
@@ -109,10 +109,10 @@ object MemoryBrowser: TMemoryBrowser
           ShowHint = True
         end
         object tbStepInto: TToolButton
-          Left = 196
+          Left = 150
           Hint = 'F7'
           Top = 2
-          Caption = 'Step Into (F7)'
+          Caption = 'Step Into'
           Enabled = False
           ImageIndex = 1
           OnClick = miDebugStepClick
@@ -120,10 +120,10 @@ object MemoryBrowser: TMemoryBrowser
           ShowHint = True
         end
         object tbStepOver: TToolButton
-          Left = 274
+          Left = 205
           Hint = 'F8'
           Top = 2
-          Caption = 'Step Over (F8)'
+          Caption = 'Step Over'
           Enabled = False
           ImageIndex = 2
           OnClick = miDebugStepOverClick
@@ -131,10 +131,10 @@ object MemoryBrowser: TMemoryBrowser
           ShowHint = True
         end
         object tbStepOut: TToolButton
-          Left = 356
+          Left = 264
           Hint = 'Shift+F8'
           Top = 2
-          Caption = 'Step Out (Shift+F8)'
+          Caption = 'Step Out'
           Enabled = False
           ImageIndex = 3
           OnClick = miDebugExecuteTillReturnClick
@@ -142,17 +142,17 @@ object MemoryBrowser: TMemoryBrowser
           ShowHint = True
         end
         object tbSeparator2: TToolButton
-          Left = 188
+          Left = 142
           Height = 40
           Top = 2
           Caption = 'tbSeparator2'
           Style = tbsSeparator
         end
         object tbRunTill: TToolButton
-          Left = 473
+          Left = 326
           Hint = 'F4'
           Top = 2
-          Caption = 'Run till... (F4)'
+          Caption = 'Run till...'
           Enabled = False
           ImageIndex = 0
           OnClick = miDebugRunTillClick
@@ -160,7 +160,7 @@ object MemoryBrowser: TMemoryBrowser
           ShowHint = True
         end
         object tbSeparator3: TToolButton
-          Left = 465
+          Left = 318
           Height = 40
           Top = 2
           Caption = 'tbSeparator3'
@@ -169,7 +169,7 @@ object MemoryBrowser: TMemoryBrowser
       end
     end
     object RegisterView: TPanel
-      Left = 406
+      Left = 493
       Height = 364
       Top = 0
       Width = 215
@@ -683,16 +683,16 @@ object MemoryBrowser: TMemoryBrowser
     Left = 0
     Height = 147
     Top = 369
-    Width = 621
+    Width = 708
     Align = alClient
     BevelOuter = bvNone
     BorderWidth = 1
     ClientHeight = 147
-    ClientWidth = 621
+    ClientWidth = 708
     ParentFont = False
     TabOrder = 1
     object Splitter3: TSplitter
-      Left = 405
+      Left = 492
       Height = 145
       Top = 1
       Width = 5
@@ -706,14 +706,14 @@ object MemoryBrowser: TMemoryBrowser
       Left = 1
       Height = 145
       Top = 1
-      Width = 404
+      Width = 491
       Align = alClient
       BevelOuter = bvNone
       ParentFont = False
       TabOrder = 0
     end
     object pnlStacktrace: TPanel
-      Left = 410
+      Left = 497
       Height = 145
       Top = 1
       Width = 210
@@ -1423,8 +1423,8 @@ object MemoryBrowser: TMemoryBrowser
   end
   object MainMenu1: TMainMenu
     Images = mvImageList
-    Left = 128
-    Top = 8
+    Left = 40
+    Top = 120
     object File1: TMenuItem
       Caption = 'File'
       object Newwindow1: TMenuItem
@@ -22942,7 +22942,8 @@ object MemoryBrowser: TMemoryBrowser
   end
   object pmDebugToolbar: TPopupMenu
     Images = mvImageList
-    Left = 320
+    Left = 336
+    Top = 80
     object miHideToolbar: TMenuItem
       Caption = 'Hide toolbar'
       ImageIndex = 39
