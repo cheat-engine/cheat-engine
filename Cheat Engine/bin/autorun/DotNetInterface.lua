@@ -17,7 +17,7 @@ else
   libfolder='dylibs'
 end
 
-dotnet_timeout=300000
+dotnet_timeout=3000
 
 DOTNETCMD_TEST=0
 DOTNETCMD_INITMODULELIST=1
@@ -138,11 +138,9 @@ function LaunchDotNetInterface()
   local serverpipe=createPipe('cedotnetpipe_pid'..getOpenedProcessID(), 256*1024,1024)    
   remotePipeHandle=duplicateHandle(serverpipe.Handle)
   
-  print(string.format("new handle=%d", remotePipeHandle)) 
+  --print(string.format("new handle=%d", remotePipeHandle)) 
   
   local injectResult, injectError=injectDotNetLibrary(getAutorunPath()..libfolder..pathsep..dllname, 'DotNetInterface.PipeServer','Init',string.format("%d",remotePipeHandle), dotnet_timeout) 
- -- local injectResult, injectError=injectDotNetLibrary([[D:\git\cheat-engine\Cheat Engine\DotNetInvasiveDataCollector\DotNetInvasiveDataCollector\bin\Debug\netstandard2.0\DotNetInterface.dll]], 'DotNetInterface.PipeServer','Init',string.format("%d",remotePipeHandle)) 
-
 
   if (injectResult==nil) or (injectResult==false )then
     if injectError then
@@ -161,11 +159,11 @@ function LaunchDotNetInterface()
   end  
   
   
-  print("connected")
+  --print("connected")
   
   
   dotnetpipe.OnError=function(self)
-    print("dotnetpipe error")
+    --print("dotnetpipe error")
   end 
 
   dotnetpipe.OnTimeout=function(self)  
@@ -175,15 +173,15 @@ function LaunchDotNetInterface()
   
 
   local val=math.random(1,255)
-  printf("val=%x",val)
+  --printf("val=%x",val)
   
   dotnetpipe.lock()
   dotnetpipe.writeByte(DOTNETCMD_TEST)
   dotnetpipe.writeByte(val)  
   local result=dotnetpipe.readByte() 
-  if result then
-    printf("result=%x", result)
-  end
+  --if result then
+    --printf("result=%x", result)
+  --end
   if dotnetpipe==nil then return false end
   dotnetpipe.unlock()
   
@@ -199,7 +197,7 @@ function LaunchDotNetInterface()
     return      
   end
   
-  print("calling dotnet_initModuleList")
+ -- print("calling dotnet_initModuleList")
   
   dotnet_initModuleList()
   
