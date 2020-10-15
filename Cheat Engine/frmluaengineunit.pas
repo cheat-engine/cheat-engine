@@ -146,7 +146,7 @@ implementation
 
 { TfrmLuaEngine }
 
-uses LuaClass, SynEditTypes, globals, DPIHelper, frmSyntaxHighlighterEditor,
+uses LuaClass, SynPluginMultiCaret, SynEditTypes, globals, DPIHelper, frmSyntaxHighlighterEditor,
   frmautoinjectunit;
 
 resourcestring
@@ -1385,12 +1385,18 @@ var
   x: array of integer;
   fq: TFontQuality;
   i: integer;
+  multicaret: TSynPluginMultiCaret;
 begin
 
   synhighlighter:=TSynLuaSyn.Create(self);
   reloadHighlighterSettings;
 
   mscript.Highlighter:=synhighlighter;
+
+  multicaret:=TSynPluginMultiCaret.Create(mscript);
+  multicaret.EnableWithColumnSelection:=true;
+  multicaret.DefaultMode:=mcmMoveAllCarets;
+  multicaret.DefaultColumnSelectMode:=mcmCancelOnCaretMove;
 
   fq:=mscript.Font.Quality;
   if not (fq in [fqCleartypeNatural, fqDefault]) then
