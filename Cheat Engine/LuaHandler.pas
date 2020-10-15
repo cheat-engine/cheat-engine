@@ -7927,13 +7927,25 @@ begin
 end;
 
 function lua_createClass(L: PLua_State): integer; cdecl;
-var classname: string;
+var
+  classname: string;
+  c: TPersistentClass;
 begin
   result:=0;
   if lua_gettop(L)=1 then
   begin
     classname:=Lua_ToString(L,1);
-    luaclass_newClass(L, GetClass(classname).Create);
+
+    c:=GetClass(classname);
+
+    if c=nil then
+    begin
+      lua_pushnil(L);
+      lua_pushstring(L,Classname+' is not available');
+      exit(2);
+    end;
+
+    luaclass_newClass(L, c.Create);
     result:=1;
   end;
 end;
@@ -7942,13 +7954,24 @@ function lua_createComponentClass(L: PLua_State): integer; cdecl;
 var
   classname: string;
   owner: TComponent;
+
+  c: TPersistentClass;
 begin
   result:=0;
   if lua_gettop(L)=2 then
   begin
     classname:=Lua_ToString(L,1);
+    c:=GetClass(classname);
+
+    if c=nil then
+    begin
+      lua_pushnil(L);
+      lua_pushstring(L,Classname+' is not available');
+      exit(2);
+    end;
+
     owner:=lua_ToCEUserData(L,2);
-    luaclass_newClass(L, TComponentClass(GetClass(classname)).Create(owner));
+    luaclass_newClass(L, TComponentClass(c).Create(owner));
     result:=1;
   end;
 end;

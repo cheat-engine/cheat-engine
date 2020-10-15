@@ -1585,6 +1585,10 @@ initialization
   registerclass(TColorDialog);
   registerclass(TColorBox);
 
+  registerclass(TFontDialog);
+  registerclass(TBitBtn);
+  registerclass(TSpeedButton);
+
 
   RegisterPropertyEditor(ClassTypeInfo(TListItems), TCEListView, 'Items', TCEListViewItemsPropertyEditor);
 
