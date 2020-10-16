@@ -3047,6 +3047,8 @@ function TSymhandler.getDotNetDataCollector: TDotNetPipe;
 begin
 {$IFDEF windows}
   result:=dotNetDataCollector;
+{$else}
+  result:=nil;
 {$endif}
 end;
 
@@ -3054,6 +3056,8 @@ function TSymhandler.getDotNetAccess: boolean;
 begin
   {$IFDEF windows}
   result:=dotNetDataCollector.Attached;
+  {$else}
+  result:=false;
   {$ENDIF}
 end;
 
@@ -3061,6 +3065,8 @@ function TSymhandler.getDotNetObjectList: TDOTNETObjectList;
 begin
   {$IFDEF windows}
   result:=dotNetDataCollector.EnumAllObjects;
+  {$else}
+  result:=nil;
   {$ENDIF}
 end;
 

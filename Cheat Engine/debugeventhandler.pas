@@ -8,7 +8,7 @@ interface
 
 uses
   {$ifdef darwin}
-  macport, lclproc,
+  macport,
   {$endif}
   {$ifdef windows}
   jwawindows, Windows, win32proc,
@@ -16,7 +16,7 @@ uses
   Classes, SysUtils, syncobjs, GuiSafeCriticalSection,
   disassembler, CEFuncProc, newkernelhandler,debuggertypedefinitions, frmTracerUnit,
   DebuggerInterfaceAPIWrapper, lua, lauxlib, lualib,
-  tracerIgnore, BreakpointTypeDef;
+  tracerIgnore, BreakpointTypeDef, LCLProc;
 
 type
   TContextFields=(cfAll,cfDebug, cfRegisters, cfFloat);
@@ -164,7 +164,7 @@ uses foundcodeunit, DebugHelper, MemoryBrowserFormUnit, frmThreadlistunit,
      frmDebugEventsUnit, formdebugstringsunit, symbolhandler,
      networkInterface, networkInterfaceApi, ProcessHandlerUnit, globals,
      UnexpectedExceptionsHelper, frmcodefilterunit, frmBranchMapperUnit, LuaHandler,
-     LCLProc, LazLogger, Dialogs;
+     LazLogger, Dialogs;
 
 resourcestring
   rsDebugHandleAccessViolationDebugEventNow = 'Debug HandleAccessViolationDebugEvent now';

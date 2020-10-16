@@ -102,12 +102,15 @@ DWORD WINAPI DataCollectorEntry(LPVOID lpThreadParameter)
 void MacPortEntryPoint(void *param)
 {
     //called by a thread
-    openlog((char*)"Cheat Engine MDC", 0, LOG_USER);
-    setlogmask(LOG_UPTO(LOG_DEBUG));
-    syslog(LOG_NOTICE, (char*)"CELOGX:FUUUCK");
+    //openlog((char*)"Cheat Engine MDC", 0, LOG_USER);
+    //setlogmask(LOG_UPTO(LOG_DEBUG));
+    //syslog(LOG_NOTICE, (char*)"CELOGX:FUUUCK");
     
-    OutputDebugString((char*)"MonoDataCollector for Mac loaded");
-    DataCollectorEntry(param);
+    //OutputDebugString((char*)"MonoDataCollector for Mac loaded");
+    while (1)
+        Sleep(1000);
+    
+    //DataCollectorEntry(param);
     
 }
 #endif

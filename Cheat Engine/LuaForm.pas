@@ -18,6 +18,9 @@ uses
   {$ifdef windows}
   jwawindows, windows,
   {$endif}
+  {$ifdef darwin}
+  mactypes,
+  {$endif}
   SysUtils, Controls, menus, lualib, lauxlib, LuaHandler,
   LuaCaller, pluginexports, forms, dialogs, ceguicomponents, XMLWrite, XMLRead,
   Graphics, DOM, cefuncproc, newkernelhandler, typinfo, LCLIntf, LCLProc,

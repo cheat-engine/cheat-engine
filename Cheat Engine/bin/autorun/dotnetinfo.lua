@@ -307,14 +307,16 @@ local function getDomains()
     end
   end
   
-  local mr=DataSource.DotNetDataCollector.EnumDomains()  
-  for i=1,#mr do
-    local e={}
-    e.Handle=mr[i].DomainHandle
-    e.Name=mr[i].Name
-    e.Control=CONTROL_DOTNET
-    table.insert(DataSource.Domains,e)
-  end  
+  if DataSource.DotNetDataCollector then
+    local mr=DataSource.DotNetDataCollector.EnumDomains()
+    for i=1,#mr do
+      local e={}
+      e.Handle=mr[i].DomainHandle
+      e.Name=mr[i].Name
+      e.Control=CONTROL_DOTNET
+      table.insert(DataSource.Domains,e)
+   end
+  end
   
   return DataSource.Domains
 end
@@ -1046,21 +1048,31 @@ local function setFieldValue(Field,Address,Value)
 end
 
 local function getStaticFieldValue(Field)
+
+
   if Field.Class.Image.Domain.Control==CONTROL_MONO then
-    local vtable=mono_class_getVTable(Field.Class) --il2cpp returns 0, but is also doesn't need it
+    outputDebugString("getting vtable")
+    local vtable=mono_class_getVTable(Field.Class.Handle) --il2cpp returns 0, but is also doesn't need it
+    
+    print("getting qvalue")
     local qvalue=mono_getStaticFieldValue(vtable, Field.Handle)
     
     if qvalue then
       if (Field.VarType==ELEMENT_TYPE_STRING) or (Field.VarTypeName == "System.String") then
+        outputDebugString("Getting string")
         return readDotNetString(qvalue, Field)
-      else    
+      else
+        outputDebugString("using reader")
         local reader=LocalDotNetValueReaders[Field.VarType]
         if reader==nil then
           reader=LocalDotNetValueReaders[ELEMENT_TYPE_PTR]
-        end      
+        end
+        
+        outputDebugString("getting bytetable")
         
         local bt=qwordToByteTable(qvalue)
         
+      
         if bt==nil then
           print("bt = nil")
         else      
@@ -1335,21 +1347,29 @@ end
 
 
 function miDotNetInfoClick(sender)
-  
+  print("miDotNetInfoClick")
   --in case of a double case scenario where there's both .net and mono, go for net first if the user did not activate mono explicitly 
-  if (DataSource.DotNetDataCollector==nil) or (CurrentProcess~=getOpenedProcessID) then  
+  if (DataSource.DotNetDataCollector==nil) or (CurrentProcess~=getOpenedProcessID) then
+    print("getting getDotNetDataCollector")
     DataSource={}  
     DataSource.DotNetDataCollector=getDotNetDataCollector()    
   end
   
+  
+  print("miDotNetInfoClick 2")
   if miMonoTopMenuItem and miMonoTopMenuItem.miMonoActivate.Visible and (monopipe==nil)  then
+    print("checking with getDotNetDataCollector().Attached")
     if getDotNetDataCollector().Attached==false then --no .net and the user hasn't activated mono features. Do it for the user
+      print("Launching mono data collector")
       LaunchMonoDataCollector()  
     end
   end
   
-
-  local frmDotNetInfo=createFormFromFile(getAutorunPath()..'forms'..pathsep..'DotNetInfo.frm')  
+  
+  print("loading DotNetInfo.frm")
+  local frmDotNetInfo=createFormFromFile(getAutorunPath()..'forms'..pathsep..'DotNetInfo.frm')
+  print("after loading DotNetInfo.frm")
+  
   local i
   
   _G.df=frmDotNetInfo

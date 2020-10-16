@@ -1067,6 +1067,10 @@ function mono_class_getVTable(domain, klass)
     return klass
   end
   
+  if klass==nil then
+    return nil,"No class provided"
+  end
+  
   
   local result=0
   monopipe.lock()
