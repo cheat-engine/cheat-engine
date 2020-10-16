@@ -81,6 +81,9 @@ DWORD WINAPI DataCollectorEntry(LPVOID lpThreadParameter)
 
 
 	pw=new CPipeServer();
+    
+   
+    
 	pw->Start();
 
 	DataCollectorThread=0;
@@ -107,10 +110,8 @@ void MacPortEntryPoint(void *param)
     //syslog(LOG_NOTICE, (char*)"CELOGX:FUUUCK");
     
     //OutputDebugString((char*)"MonoDataCollector for Mac loaded");
-    while (1)
-        Sleep(1000);
-    
-    //DataCollectorEntry(param);
+   
+    DataCollectorEntry(param);
     
 }
 #endif
