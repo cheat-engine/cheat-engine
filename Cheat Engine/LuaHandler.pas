@@ -3651,23 +3651,40 @@ end;
 function messageDialog(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
-  message: pchar;
-  dialogtype: integer;
+  message: string;
+  title: string;
+  dialogtype: TMsgDlgType;
   buttontype: integer;
 
   r: integer;
 
   i: integer;
   b: TMsgDlgButtons;
+
+  dialogtypeindex: integer;
 begin
   result:=0;
   parameters:=lua_gettop(L);
   if parameters>=3 then
   begin
-    message:=lua.lua_tostring(L,-parameters);
-    dialogtype:=lua_tointeger(L,-parameters+1);
+
+    title:='';
+    if lua_type(L,2)=LUA_TSTRING then
+    begin
+      dialogtypeindex:=3;
+      title:=Lua_ToString(L,1);
+      message:=lua_tostring(L,2);
+    end
+    else
+    begin
+      message:=lua_tostring(L,1);
+      dialogtypeindex:=2;
+    end;
+
+    dialogtype:=TMsgDlgType(lua_tointeger(L,dialogtypeindex));
+
     b:=[];
-    for i:=-parameters+2 to -1 do
+    for i:=dialogtypeindex+1 to parameters do
     begin
       buttontype:=lua_tointeger(L,i);
       case buttontype of
@@ -3688,7 +3705,12 @@ begin
     end;
     lua_pop(L, parameters);
 
-    r:=ce_messageDialog_lua(message, dialogtype, b);
+
+    if dialogtypeindex=3 then
+      r:=messageDlg(title,string(message),dialogtype,b,0)
+    else
+      r:=messageDlg(message, dialogtype, b,0);
+
     lua_pushinteger(L,r);
     result:=1;
 

@@ -23,6 +23,9 @@ Additions and changes:
   AA: dealloc(*) - Now deallocated all memory a script allocated
   AA: unregistersymbol(*) - Now unregisters all symbols a script registered
   Added a more userfriendly .net inspector
+  Autoattach won't open itself anymore
+  CEShare now has a list of all available tables
+  Code Dissect now deals with relocated memory modules when loading a state back
   
   
 
@@ -38,10 +41,12 @@ Fixes:
   AutoAssemble local would fail after opening a process
   Pointermap based rescan
   Assembler: (v)insertps , (v)comiss, (v)blendvp(s/d)
+  Kerneldebug is more stable on newer windows builds  
 
   Lua/Mono: Better support for utf8 strings
   Lua/Mono: Support targets that use mono, but not unity
   Lua/Mono: UWP targets work better
+  LuaEngine: Autocomplete won't lowercase functions anymore if they are lua functions
 
   
 
@@ -55,8 +60,12 @@ lua:
     TfrmLuaEngine: document the mOutput and mScript properties
     loadModule now has an optional timeout value
     added an interface for the DotNetDataCollector
+    implemented RemoteExecutor , which is a class which can execute remote memory fastyer than ExecuteCodeEx while keeping the same capabilities
+    createClass and createComponentClass won't access violation anymore for giving an unsupported name
 
-  New functions:    
+  New functions: 
+    printf   
+    string.split
     generateCodeInjectionScript
     generateAOBInjectgionScript
     generateFullInjectionScript
@@ -66,6 +75,7 @@ lua:
     waitForSections
     getUserDocumentsPath
     getDotNetDataCollector
+    injectDotNetDLL
 
     TfrmLuaEngine:
       createLuaEngine     
@@ -82,6 +92,7 @@ lua:
     Memoryrecord:
       properties:
         NumericanValue
+        HasMouseOver
 
       methods:
         beginEdit/endEdit
@@ -89,6 +100,7 @@ lua:
     AddressList:
        properties:
          OnAutoAssemblerEdit
+         MouseHighlightedRecord()
 
        methods:
          rebuildDescriptionCache
