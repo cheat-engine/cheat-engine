@@ -16,7 +16,7 @@ else
 end
 
 
-mono_timeout=3000000 --change to 0 to never timeout (meaning: 0 will freeze your face off if it breaks on a breakpoint, just saying ...)
+mono_timeout=3000 --change to 0 to never timeout (meaning: 0 will freeze your face off if it breaks on a breakpoint, just saying ...)
 
 MONOCMD_INITMONO=0
 MONOCMD_OBJECT_GETCLASS=1
