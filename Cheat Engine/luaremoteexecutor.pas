@@ -13,7 +13,15 @@ A process can have more than one executor thread at the same time
 interface
 
 uses
-  windows, Classes, SysUtils, math;    //todo: port to mac
+  {$ifdef windiws}
+  windows,
+  {$endif}
+
+  {$ifdef darwin}
+  macport,
+  {$endif}
+
+  Classes, SysUtils, math;    //todo: port to mac
 
 type
   TStubdata=record
@@ -97,6 +105,7 @@ var
   starttime: qword;
   r: dword;
 begin
+  {$ifdef windows}
   starttime:=gettickcount64;
   repeat
     r:=WaitForSingleObject(HasProcessedDataEventHandle, min(timeout,100));
@@ -106,6 +115,9 @@ begin
 
   if r<>WAIT_OBJECT_0 then
     raise exception.Create('Timeout');
+  {$else}
+  raise exception.Create('Not yet implemented');
+  {$endif}
 end;
 
 function TRemoteExecutor.waitTillDoneAndGetResult(timeout: integer; var Buffers: TExecBufferArray): QWORD;
@@ -137,6 +149,7 @@ var
 
   ExecBuffer: TExecBuffer;
 begin
+  {$ifdef windows}
   if length(stubdata.parameters)<>length(values) then
     raise exception.create('Incorrect parameter count');
 
@@ -314,6 +327,10 @@ begin
 
   ResetEvent(HasProcessedDataEventHandle);
   SetEvent(HasDataEventHandle);  //do the call command
+
+  {$else}
+  raise exception.create('Not yet implemented');
+  {$endif}
 end;
 
 procedure TRemoteExecutor.growSharedMemorySize(newsize: integer; timeout: DWORD);
@@ -324,6 +341,7 @@ var
   oldSharedMemory: PRemoteExecutorSharedMemory;
   oldmemmap: THandle;
 begin
+  {$ifdef windows}
   if newsize>sharedMemorySize then
   begin
     oldSharedMemory:=sharedmemory;
@@ -366,6 +384,7 @@ begin
 
 
   end;
+  {$endif}
 end;
 
 constructor TRemoteExecutor.create;
@@ -377,6 +396,7 @@ var
   executorThreadID: dword;
   script: TStringlist=nil;
 begin
+  {$ifdef windows}
   sharedmemorysize:=5*8; //sizeof(TRemoteExecutorSharedMemory); //can grow if needed
   memmap:=CreateFileMapping(INVALID_HANDLE_VALUE,nil,PAGE_READWRITE,0,sharedmemorysize,nil);
   if (memmap=0) or (memmap=INVALID_HANDLE_VALUE) then raise exception.create('Failure creating remote executor filemapping');
@@ -587,11 +607,12 @@ begin
   finally
     script.free;
   end;
-
+  {$endif}
 end;
 
 destructor TRemoteExecutor.destroy;
 begin
+  {$ifdef windows}
   //terminate the thread if it exists and free the memory
   if (ExecutorThreadHandle<>0) and (ExecutorThreadHandle=INVALID_HANDLE_VALUE) then
     TerminateThread(ExecutorThreadHandle,$101);
@@ -631,6 +652,7 @@ begin
     UnmapViewOfFile(sharedMemory);
 
   closehandle(memmap);
+  {$endif}
 end;
 
 
@@ -895,8 +917,10 @@ end;
 
 procedure InitializeLuaRemoteExecutor;
 begin
+  {$ifdef windows}
   lua_register(LuaVM, 'createStubExecutor', lua_createStubExecutor);
   lua_register(LuaVM, 'createRemoteExecutor', lua_createStubExecutor); //just for those that dislike stubs
+  {$endif}
 end;
 
 initialization

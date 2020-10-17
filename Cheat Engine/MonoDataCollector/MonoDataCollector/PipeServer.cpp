@@ -1924,7 +1924,6 @@ void CPipeServer::GetStaticFieldValue()
 {
 	void* Vtable = (void*)ReadQword();
 	void* Field = (void*)ReadQword();
-	char isString = ReadByte();		
 
 	QWORD val = 0;
 	if (il2cpp)
