@@ -64,6 +64,7 @@ typedef void (__cdecl *G_FREE)(void *ptr);
 typedef void* (__cdecl *MONO_GET_ROOT_DOMAIN)(void);
 typedef void* (__cdecl *MONO_THREAD_ATTACH)(void *domain);
 typedef void (__cdecl *MONO_THREAD_DETACH)(void *monothread);
+typedef void (__cdecl *MONO_THREAD_CLEANUP)(void);
 typedef void* (__cdecl *MONO_OBJECT_GET_CLASS)(void *object);
 
 typedef void (__cdecl *MONO_DOMAIN_FOREACH)(MonoDomainFunc func, void *user_data);
@@ -218,6 +219,7 @@ private:
 	MONO_GET_ROOT_DOMAIN mono_get_root_domain;
 	MONO_THREAD_ATTACH mono_thread_attach;
 	MONO_THREAD_DETACH mono_thread_detach;
+    MONO_THREAD_CLEANUP mono_thread_cleanup;
 	MONO_OBJECT_GET_CLASS mono_object_get_class;
 	MONO_CLASS_GET_NAME mono_class_get_name;
 	MONO_CLASS_GET_NAMESPACE mono_class_get_namespace;

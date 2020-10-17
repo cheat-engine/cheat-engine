@@ -104,6 +104,8 @@ DWORD WINAPI DataCollectorEntry(LPVOID lpThreadParameter)
 #include <syslog.h>
 void MacPortEntryPoint(void *param)
 {
+    
+    pthread_setname_np("MonoDataCollector Thread");
     //called by a thread
     //openlog((char*)"Cheat Engine MDC", 0, LOG_USER);
     //setlogmask(LOG_UPTO(LOG_DEBUG));

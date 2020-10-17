@@ -530,6 +530,15 @@ function LaunchMonoDataCollector()
   if getOperatingSystem()==1 then
     --mac sometimes doesn't export mono_type_get_name_full but the symbol is defined. CE can help with this
     fillMissingFunctions()
+    
+    
+    monopipe.AntiIdleThread=createTimer()
+      --in some games on the mac version the mainthread freezes when the thread is suspended/idle and not really sure why. fetching the domains resumes the game
+      monopipe.AntiIdleThread.Interval=50
+      monopipe.AntiIdleThread.OnTimer=function(t)
+        mono_enumDomains()
+      end
+
   end
   
   
