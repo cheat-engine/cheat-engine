@@ -983,9 +983,9 @@ procedure TStructelement.setDisplayMethod(newDisplayMethod: TdisplayMethod);
 begin
   if newDisplayMethod<>fDisplayMethod then
   begin
-    if fvartype in [vtSingle, vtDouble] then
-      fdisplayMethod:=dtUnsignedInteger
-    else
+    //if fvartype in [vtSingle, vtDouble] then
+    //  fdisplayMethod:=dtUnsignedInteger
+    //else
       fDisplayMethod:=newDisplayMethod;
   end;
 
