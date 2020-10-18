@@ -1054,21 +1054,21 @@ local function getStaticFieldValue(Field)
     outputDebugString("getting vtable")
     local vtable=mono_class_getVTable(Field.Class.Handle) --il2cpp returns 0, but is also doesn't need it
     
-    print("getting qvalue")
+    --print("getting qvalue")
     local qvalue=mono_getStaticFieldValue(vtable, Field.Handle)
     
     if qvalue then
       if (Field.VarType==ELEMENT_TYPE_STRING) or (Field.VarTypeName == "System.String") then
-        outputDebugString("Getting string")
+       -- outputDebugString("Getting string")
         return readDotNetString(qvalue, Field)
       else
-        outputDebugString("using reader")
+        --outputDebugString("using reader")
         local reader=LocalDotNetValueReaders[Field.VarType]
         if reader==nil then
           reader=LocalDotNetValueReaders[ELEMENT_TYPE_PTR]
         end
         
-        outputDebugString("getting bytetable")
+        --outputDebugString("getting bytetable")
         
         local bt=qwordToByteTable(qvalue)
         

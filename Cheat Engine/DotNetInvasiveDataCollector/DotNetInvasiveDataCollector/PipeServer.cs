@@ -269,7 +269,7 @@ namespace DotNetInterface
                     FieldInfo mb = m.ResolveField(fielddef);
                     TypeCode tc = Type.GetTypeCode(mb.FieldType);
 
-                    mb.FieldType
+          
 
                     switch (tc)
                     {
