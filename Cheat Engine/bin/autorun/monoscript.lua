@@ -16,7 +16,7 @@ else
 end
 
 
-mono_timeout=3000000 --change to 0 to never timeout (meaning: 0 will freeze your face off if it breaks on a breakpoint, just saying ...)
+mono_timeout=3000 --change to 0 to never timeout (meaning: 0 will freeze your face off if it breaks on a breakpoint, just saying ...)
 
 MONOCMD_INITMONO=0
 MONOCMD_OBJECT_GETCLASS=1
@@ -530,6 +530,15 @@ function LaunchMonoDataCollector()
   if getOperatingSystem()==1 then
     --mac sometimes doesn't export mono_type_get_name_full but the symbol is defined. CE can help with this
     fillMissingFunctions()
+    
+    
+    monopipe.AntiIdleThread=createTimer()
+      --in some games on the mac version the mainthread freezes when the thread is suspended/idle and not really sure why. fetching the domains resumes the game
+      monopipe.AntiIdleThread.Interval=50
+      monopipe.AntiIdleThread.OnTimer=function(t)
+        mono_enumDomains()
+      end
+
   end
   
   

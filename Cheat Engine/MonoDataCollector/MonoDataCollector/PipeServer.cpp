@@ -112,10 +112,10 @@ void CPipeServer::FreeString(char* value)
 
 void CPipeServer::CreatePipeandWaitForconnect(void)
 {
-	OutputDebugStringA((char*)"CreatePipeandWaitForconnect called\n");
+	//OutputDebugStringA((char*)"CreatePipeandWaitForconnect called\n");
 #ifdef _WINDOWS
 
-	OutputDebugStringA((char*)"Closing pipe if needed\n");
+	//OutputDebugStringA((char*)"Closing pipe if needed\n");
 	if ((pipehandle) && (pipehandle != INVALID_HANDLE_VALUE))
 	{
 		CloseHandle(pipehandle);
@@ -132,22 +132,22 @@ void CPipeServer::CreatePipeandWaitForconnect(void)
 
 		if ((pipehandle) && (pipehandle != INVALID_HANDLE_VALUE))
 		{
-			OutputDebugStringA("calling ConnectNamedPipe\n");
+			//OutputDebugStringA("calling ConnectNamedPipe\n");
 
 			ConnectNamedPipe(pipehandle, NULL);
 
-			OutputDebugStringA("after ConnectNamedPipeW\n");
+			//OutputDebugStringA("after ConnectNamedPipeW\n");
 		}
 		else
 		{
-			OutputDebugStringA("CreateNamedPipeW failed.  Likely in a UWP app. Switching to client mode and waiting for g_ClientPipe to be set\n");
+			//OutputDebugStringA("CreateNamedPipeW failed.  Likely in a UWP app. Switching to client mode and waiting for g_ClientPipe to be set\n");
 			UWPMode = 1;
 		}
 	}
 
 	if (UWPMode)
 	{
-		OutputDebugStringA("UWPMode connection. Fetching the new serverpipe\n");
+		//OutputDebugStringA("UWPMode connection. Fetching the new serverpipe\n");
 
 		MDC_ServerPipe = (HANDLE)0xdeadbeef; //tell monoscript that it has to provide a serverpipe itself
 		while (MDC_ServerPipe == (HANDLE)0xdeadbeef)
@@ -156,8 +156,8 @@ void CPipeServer::CreatePipeandWaitForconnect(void)
 		pipehandle = MDC_ServerPipe;
 		MDC_ServerPipe = 0; //indicates that it got read out
 		
-		OutputDebugStringA("Retrieved a pipe\n");
-		OutputDebugStringA("calling ConnectNamedPipe\n");
+		//OutputDebugStringA("Retrieved a pipe\n");
+		//OutputDebugStringA("calling ConnectNamedPipe\n");
 
 		if (ConnectNamedPipe(pipehandle, NULL))
 			OutputDebugStringA("ConnectNamedPipe returned TRUE");
@@ -182,7 +182,7 @@ void CPipeServer::CreatePipeandWaitForconnect(void)
     pipehandle = ::CreateNamedPipe((char*)datapipename);
 #endif
 
-	OutputDebugStringA("At the end of CreatePipeandWaitForconnect\n");
+	//OutputDebugStringA("At the end of CreatePipeandWaitForconnect\n");
 
 }
 
@@ -195,11 +195,12 @@ void __cdecl customfreeimplementation(PVOID address)
 
 void CPipeServer::InitMono()
 {
+
     
-	OutputDebugStringA("CPipeServer::InitMono");
+	//OutputDebugStringA("CPipeServer::InitMono");
     il2cpp = FALSE;
 #ifdef __APPLE__
-	OutputDebugStringA((char*)"InitMono");
+	//OutputDebugStringA((char*)"InitMono");
     void *hMono=NULL; // = FindModule("mono");
     void *fp=dlsym(RTLD_DEFAULT, "mono_thread_attach");
     if (fp)
@@ -428,6 +429,7 @@ void CPipeServer::InitMono()
 				mono_get_root_domain = (MONO_GET_ROOT_DOMAIN)GetProcAddress(hMono, "mono_get_root_domain");
 				mono_thread_attach = (MONO_THREAD_ATTACH)GetProcAddress(hMono, "mono_thread_attach");
 				mono_thread_detach = (MONO_THREAD_DETACH)GetProcAddress(hMono, "mono_thread_detach");
+                mono_thread_cleanup = (MONO_THREAD_CLEANUP)GetProcAddress(hMono, "mono_thread_cleanup");
 
 				mono_object_get_class = (MONO_OBJECT_GET_CLASS)GetProcAddress(hMono, "mono_object_get_class");
 
@@ -532,8 +534,10 @@ void CPipeServer::InitMono()
 				mono_field_static_get_value = (MONO_FIELD_STATIC_GET_VALUE)GetProcAddress(hMono, "mono_field_static_get_value");
 				mono_field_static_set_value = (MONO_FIELD_STATIC_SET_VALUE)GetProcAddress(hMono, "mono_field_static_set_value");
 
-
-				mono_selfthread = mono_thread_attach(mono_get_root_domain());
+                void* domain=mono_get_root_domain();
+             	mono_selfthread = mono_thread_attach(domain);
+                
+                
 			}
 			attached = TRUE;
 			
@@ -541,6 +545,10 @@ void CPipeServer::InitMono()
 		//else
 		//	OutputDebugStringA("Already attached");
 	}
+    
+    
+    
+
 
 }
 
@@ -1967,7 +1975,7 @@ void CPipeServer::SetStaticFieldValue()
 void CPipeServer::Start(void)
 {
 	BYTE command;
-	while (TRUE)
+	while (1)
 	{
 		CreatePipeandWaitForconnect();
 
