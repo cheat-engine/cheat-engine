@@ -266,11 +266,9 @@ begin
   TDebuggerthread(debuggerthread).execlocation:=412;
 
 
-  if WaitingToContinue then //no lua script or it returned 0
+  if WaitingToContinue and (TDebuggerthread(debuggerthread).CurrentThread<>nil) then //no lua script or it returned 0, or it DID continue and returned 0...
   begin
     TDebuggerthread(debuggerthread).execlocation:=413;
-
-
     MemoryBrowser.UpdateDebugContext(self.Handle, self.ThreadId, true, TDebuggerthread(debuggerthread));
   end;
   TDebuggerthread(debuggerthread).execlocation:=414;
@@ -894,6 +892,7 @@ end;
 
 procedure TDebugThreadHandler.HandleBreak(bp: PBreakpoint; var dwContinueStatus: dword);
 begin
+
   TDebuggerthread(debuggerthread).execlocation:=38;
 
 
