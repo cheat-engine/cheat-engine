@@ -13,7 +13,7 @@ A process can have more than one executor thread at the same time
 interface
 
 uses
-  {$ifdef windiws}
+  {$ifdef windows}
   windows,
   {$endif}
 

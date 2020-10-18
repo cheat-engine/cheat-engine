@@ -53,6 +53,7 @@ Fixes:
 lua:
   changes:
     Fixed executeMethod for widestrings (type4)
+    Fixed AOBScanUnique truncating addresses
     AddressList['description'] works now as well
     some scripts variables that used to be global are now local
     injectDLL has a new parameter to specify if CE should reload the symbols

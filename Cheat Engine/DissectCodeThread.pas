@@ -86,6 +86,8 @@ type
 
     oldAddressToNewAddressTree: TAvgLvlTree; //used for loading back addresses and conver them to the new one
 
+    usedModuleList: TStringList;
+
     function isstring(address: ptrUint; v: pqword=nil): boolean;
     function findaddress(list: TMap; address: ptrUint):PAddresslist;
     procedure clearList(list: Tmap);
@@ -95,7 +97,7 @@ type
     procedure saveModuleListToStream(s: TStream);
     procedure loadModuleListFromStream(s: TStream);
     function convertOldAddressToNew(address: ptruint): ptruint;
-    procedure cleanModuleList;
+    procedure cleanModuleListRelocator;
 
     procedure saveListToStream(list: TMap; s: TStream);
     procedure loadListFromStream(list: TMap; s: TStream);
@@ -166,20 +168,16 @@ that data will be added to a list that the disassemblerview can read out for dat
 
 procedure TDissectCodeThread.saveModuleListToStream(s: TStream);
 var
-  l: tstringlist;
   i: integer;
 begin
   //get the current modulelist and save that to the stream
-  l:=tstringlist.create;
-  symhandler.getModuleList(l);
 
-  s.WriteDWord(l.Count);
-  for i:=0 to l.count-1 do
+  s.WriteDWord(usedModuleList.Count);
+  for i:=0 to usedModuleList.count-1 do
   begin
-    s.WriteQWord(ptruint(l.Objects[i]));
-    s.WriteAnsiString(l[i]);
+    s.WriteQWord(ptruint(usedModuleList.Objects[i]));
+    s.WriteAnsiString(usedModuleList[i]);
   end;
-  l.free;
 end;
 
 
@@ -204,7 +202,7 @@ begin
   if d1.baseaddress<d2.baseaddress then exit(-1) else exit(1);
 end;
 
-procedure TDissectCodeThread.cleanModuleList;
+procedure TDissectCodeThread.cleanModuleListRelocator;
 var n: TAVLTreeNode;
   enum: TAVLTreeNodeEnumerator;
 begin
@@ -384,7 +382,9 @@ begin
     loadListFromStream(conditionaljumplist, fs);
     loadListFromStream(memorylist, fs);
 
-    cleanModuleList;
+    cleanModuleListRelocator;
+
+    symhandler.getModuleList(usedmodulelist); //all loaded back addresses are relative to this one now
   finally
     fs.free;
   end;
@@ -439,6 +439,7 @@ end;
 
 procedure TDissectCodeThread.clear;
 begin
+  usedModuleList.clear;
   clearList(calllist);
   clearList(unconditionaljumplist);
   clearList(conditionaljumplist);
@@ -857,6 +858,9 @@ var
 
 
 begin
+  usedmodulelist.clear;
+  symhandler.getModuleList(usedmodulelist);
+
   d:=TDisassembler.Create;
   try
     d.showsymbols:=false;
@@ -1003,6 +1007,8 @@ begin
 
   haswork:=TEvent.Create(nil, false, false, '');
   ready:=TEvent.create(nil, false, true, '');
+  usedmodulelist:=tstringlist.create;
+
   inherited create(suspended);
 
 end;
