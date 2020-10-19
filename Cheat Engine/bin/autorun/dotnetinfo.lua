@@ -219,7 +219,13 @@ local function getClasses(Image)
       for i=1,#classlist do
         local e={}        
         e.Name=classlist[i].classname
-        e.NameSpace=classlist[i].namespace        
+        e.NameSpace=classlist[i].namespace
+        if e.NameSpace and e.NameSpace~='' then
+          e.FullName=classlist[i].namespace..'.'..e.Name
+        else
+          e.FullName=e.Name
+        end
+        
         e.Handle=classlist[i].class
         e.ParentHandle=mono_class_getParent(e.Handle)         
         e.Image=Image
@@ -234,6 +240,7 @@ local function getClasses(Image)
       local e={}
       e.Name=classlist[i].Name
       e.NameSpace='' --nyi
+      e.FullName=e.Name
       e.Handle=classlist[i].TypeDefToken
       e.ParentHandle=DataSource.DotNetDataCollector.GetTypeDefParent(Image.Handle, e.Handle) --classlist[i].Extends
       e.Image=Image
@@ -242,7 +249,9 @@ local function getClasses(Image)
     end
   end
 
-  table.sort(Image.Classes, function(e1,e2) return e1.Name < e2.Name end)
+  table.sort(Image.Classes, function(e1,e2)
+    return e1.FullName < e2.FullName
+  end)
   
   return Image.Classes  
 end
@@ -627,7 +636,7 @@ local function ImageSelectionChange(frmDotNetInfo, sender)
         else          
           fullname=classlistchunk[i].Name
         end
-        frmDotNetInfo.lbClasses.Items.add(string.format('%d: (%.8x) - %s', frmDotNetInfo.lbClasses.Items.Count+1, classlistchunk[i].Handle, fullname))
+        frmDotNetInfo.lbClasses.Items.add(string.format('%s',  fullname))
       end
       
 
@@ -1523,6 +1532,13 @@ function miDotNetInfoClick(sender)
   end
   
   
+  DataSource.getImages=getImages
+  DataSource.getDomains=getDomains
+  DataSource.getClasses=getClasses
+  DataSource.getClassFields=getClassFields
+  DataSource.getClassMethods=getClassMethods
+  
+  
   if #DataSource.Domains==0 then
     DataSource={}
     CurrentProcess=nil --maybe later
@@ -1535,8 +1551,4 @@ function miDotNetInfoClick(sender)
   _G.xxx=frmDotNetInfo
 end
 
-DataSource.getImages=getImages
-DataSource.getDomains=getDomains
-DataSource.getClasses=getClasses
-DataSource.getClassFields=getClassFields
-DataSource.getClassMethods=getClassMethods
+

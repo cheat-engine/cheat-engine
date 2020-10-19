@@ -534,9 +534,13 @@ function LaunchMonoDataCollector()
     
     monopipe.AntiIdleThread=createTimer()
       --in some games on the mac version the mainthread freezes when the thread is suspended/idle and not really sure why. fetching the domains resumes the game
-      monopipe.AntiIdleThread.Interval=50
-      monopipe.AntiIdleThread.OnTimer=function(t)
-        mono_enumDomains()
+      if monopipe then
+        monopipe.AntiIdleThread.Interval=50
+        monopipe.AntiIdleThread.OnTimer=function(t)
+          mono_enumDomains()
+        end
+      else
+        t.destroy()
       end
 
   end

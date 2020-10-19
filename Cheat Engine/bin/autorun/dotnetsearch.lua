@@ -173,7 +173,7 @@ function spawnDotNetSearchDialog(DataSource, frmDotNetInfo, searchtype)
               --classes is now set to busy 
               if HasToFetchClasses then                    
                 --print('Getting classes')                  
-                DataSource.getClasses(DataSource.Domains[i].Images[j])    
+                DataSource.getClasses(DataSource.Domains[i].Images[j])
                 DataSource.Domains[i].Images[j].Classes.Busy=false                      
               end
 
