@@ -345,10 +345,14 @@ begin
   begin
     getmem(al, sizeof(TAddresslist));
 
-    id:=s.ReadQword;
+    id:=ConvertOldAddressToNew(s.ReadQword);
     al.isstring:=s.ReadDword=1;
     al.maxsize:=s.ReadDWord;
     al.pos:=al.maxsize;
+
+    if al.isstring then
+      inc(nrofstring);
+
 
     if al.pos>0 then
     begin
@@ -369,6 +373,12 @@ begin
   fs:=tfilestream.create(filename, fmOpenRead);
 
   clear;
+  nrofstring:=0;
+  nrofconditionaljumps:=0;
+  nrofunconditionaljumps:=0;
+  nrofcalls:=0;
+
+
   try
     version:=fs.ReadDWord;
     if version<$ce00dc01 then
@@ -378,9 +388,17 @@ begin
       loadModuleListFromStream(fs);
 
     loadListFromStream(calllist, fs);
+    nrofcalls:=calllist.Count;
+
     loadListFromStream(unconditionaljumplist, fs);
+    nrofunconditionaljumps:=unconditionaljumplist.Count;
+
     loadListFromStream(conditionaljumplist, fs);
+    nrofconditionaljumps:=conditionaljumplist.count;
+
+    nrofstring:=0;
     loadListFromStream(memorylist, fs);
+    nrofdata:=memorylist.Count;
 
     cleanModuleListRelocator;
 
@@ -859,7 +877,7 @@ var
 
 begin
   usedmodulelist.clear;
-  symhandler.getModuleList(usedmodulelist);
+
 
   d:=TDisassembler.Create;
   try
@@ -874,6 +892,7 @@ begin
       if haswork.WaitFor(INFINITE)=wrSignaled then
       begin
         //find out how much memory to go through (for the progressbar)
+        symhandler.getModuleList(usedmodulelist);
 
         ready.ResetEvent;
 
