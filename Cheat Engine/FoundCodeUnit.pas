@@ -18,7 +18,12 @@ uses
 
 type
   Tcoderecord = class
+  private
+    fhitcount: integer;
+    procedure setHitcount(c: integer);
   public
+    firstSeen: TDateTime;
+    lastSeen: TDateTime;
     addressString: string;
     address: ptrUint;
     size: integer;
@@ -34,11 +39,13 @@ type
 
     dbvmcontextbasic:    PPageEventBasic;
 
-    hitcount: integer;
+
     diffcount: integer;
     LastDisassembleData: TLastDisassembleData;
 
     formChangedAddresses: TfrmChangedAddresses;
+
+    property hitcount: integer read fhitcount write setHitcount;
     procedure savestack;
     constructor create;
     destructor destroy; override;
@@ -242,6 +249,7 @@ end;
 constructor TCodeRecord.create;
 begin
   formChangedAddresses:=nil;
+  firstseen:=now;
 end;
 
 
@@ -328,7 +336,8 @@ begin
                (basicinfo.R14=TCodeRecord(fcd.foundcodelist.Items[j].data).dbvmcontextbasic^.R14) and
                (basicinfo.R15=TCodeRecord(fcd.foundcodelist.Items[j].data).dbvmcontextbasic^.R15) THEN
             begin
-              inc(TCodeRecord(fcd.foundcodelist.Items[j].data).hitcount, basicinfo.Count);
+              TCodeRecord(fcd.foundcodelist.Items[j].data).hitcount:=TCodeRecord(fcd.foundcodelist.Items[j].data).hitcount+basicinfo.count;
+
               skip:=true;
               break;
             end;
@@ -471,6 +480,12 @@ begin
 end;
 {$ENDIF}
 
+procedure TCodeRecord.setHitcount(c: integer);
+begin
+  fHitcount:=c;
+  lastSeen:=now;
+end;
+
 procedure TCodeRecord.savestack;
 var base: qword;
 begin
@@ -548,7 +563,7 @@ begin
       if TCodeRecord(foundcodelist.Items[i].data).address=address then
       begin
         //it's already in the list
-        inc(TCodeRecord(foundcodelist.Items[i].data).hitcount);
+        TCodeRecord(foundcodelist.Items[i].data).hitcount:=TCodeRecord(foundcodelist.Items[i].data).hitcount+1;
         if miFindWhatAccesses.checked then
           FoundcodeList.items[i].caption:=inttostr(TCodeRecord(foundcodelist.Items[i].data).hitcount)+' ('+inttostr(TCodeRecord(foundcodelist.Items[i].data).diffcount)+')'
         else
@@ -740,6 +755,10 @@ begin
 
     minfo.lines.add('');
     minfo.lines.add('');
+
+    minfo.lines.add('First seen:'+TimeToStr(coderecord.firstSeen));
+    minfo.lines.add('Last seen:'+TimeToStr(coderecord.lastSeen));
+
 
 
   finally

@@ -570,7 +570,7 @@ begin
             cle.color:=color;
             if isCodeListGroupHeader=false then
             begin
-              cle.code:=TCodeRecord.Create;
+              cle.code:=TAdvancedOptionsCodeRecord.Create;
 
 
               setlength(cle.code.before,length(tempbefore));

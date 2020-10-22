@@ -243,7 +243,6 @@ end;
 procedure TDBVMWatchExecutePollThread.addEntriesToList;
 var
   c: TContext;
-  coderecord: TCodeRecord;
   i,j: integer;
   opcode,desc: string;
   li: TListItem;
@@ -1342,9 +1341,16 @@ begin
 end;
 
 procedure TfrmChangedAddresses.setAddress(a: ptruint);
+var
+  a2: ptruint;
+  ins: string;
 begin
   faddress:=a;
   caption:=format(rsChangedAddressesBy, [a]);
+
+  a2:=a;
+  disassemble(a2);
+  ins:=defaultDisassembler.LastDisassembleData.opcode+defaultDisassembler.LastDisassembleData.parameters;
   editCodeAddress.Text:=format('%x',[a]);
 end;
 

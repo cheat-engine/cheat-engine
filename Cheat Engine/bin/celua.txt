@@ -1478,6 +1478,8 @@ properties
   SubItems: Strings - The Strings object that hold the subitems
   Selected: boolean - Returns true if selected
   Index: integer - The index in the Items object of the owner of this listitem (readonly)
+  ImageIndex: integer - The index in the attached imagelist (LargeImages/SmallImages)
+  StateIndex: integer - The index in the attached imagelist (StateImages)
   Owner: ListItems - The ListItems object that owns this ListItem (readonly)
   Data: integer - Read/Write value up to the user to implement
 
@@ -1519,6 +1521,9 @@ properties
   HideSelection: Boolean - When set to true the selection will not hide when the focus leaves the control
   RowSelect: Boolean - When set to true the whole row will be selected instead of just the first column
   OwnerData: Boolean - When set to true the listview will call the onData function for every line being displayed. Use Items.Count to set the number of virtual lines
+  LargeImages: ImageList
+  SmallImages: ImageList
+  StateImages: ImageList
 
   OnData: function(sender, ListItem) - Called when a listview with OwnerData true renders a line
 
