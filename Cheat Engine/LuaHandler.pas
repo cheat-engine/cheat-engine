@@ -13006,6 +13006,11 @@ begin
   end;
   {$endif}
 
+  if Thread_LuaVM<>nil then
+    Thread_LuaVM:=nil;
+
+  if _LuaVM<>nil then
+    _LuaVM:=nil;
 
   _LuaVM:=lua_open();
 
