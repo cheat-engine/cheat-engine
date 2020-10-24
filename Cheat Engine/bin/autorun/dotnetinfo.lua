@@ -149,7 +149,7 @@ local function getClassFields(Class)
   
   local i
   if Class.Image.Domain.Control==CONTROL_MONO then
-    local StaticFieldAddress=mono_class_getStaticFieldAddress(0,Class)
+    local StaticFieldAddress=mono_class_getStaticFieldAddress(0,Class.Handle)
   
     local fields=mono_class_enumFields(Class.Handle, true)
     for i=1,#fields do
@@ -472,7 +472,7 @@ local function FillClassInfoFields(frmDotNetInfo, Class)
         end
         
         if Class.Fields[i].Address and Class.Fields[i].Address~=0 then
-          string.format("%.8x",Class.Fields[i].Address)          
+          li.SubItems.add(string.format("%.8x",Class.Fields[i].Address))
         else
           li.SubItems.add('?')
         end    
@@ -661,7 +661,7 @@ local function ImageSelectionChange(frmDotNetInfo, sender)
         if ClassFilterText=='' then 
           addToList=true
         else         
-          addToList=fullname:upper():find(ClassFilterText)          
+          addToList=fullname:upper():find(ClassFilterText,1,true)          
         end
         
         if addToList then
@@ -1158,10 +1158,13 @@ local function FieldValueUpdaterTimer(frmDotNetInfo, sender)
               reader=DotNetValueReaders[ELEMENT_TYPE_PTR]
             end
           
-            local value=reader(Class.Fields[ci].Address)
+            --printf("Calling reader(%8x)", Class.Fields[ci].Address);
+            value=reader(Class.Fields[ci].Address)
             if not value then
               value='?'          
             end
+            
+            --printf("value=%s", value);
           end
           
         
