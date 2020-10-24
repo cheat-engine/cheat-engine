@@ -6302,10 +6302,10 @@ begin
   memRegionPos:=0;
 
 
-  if OnlyOne then //don't go back, but forward
+  if OnlyOne then //don't align at all. Some users want a byte perfect range...
   begin
-    if (startaddress mod 8)>0 then //align on a 8 byte base
-     startaddress:=startaddress-(startaddress mod 8)+8;
+    //if (startaddress mod 8)>0 then //align on a 8 byte base
+    // startaddress:=startaddress-(startaddress mod 8)+8;
   end
   else
   begin
@@ -6523,7 +6523,9 @@ begin
   //split up into separate workloads
 
   if totalProcessMemorySize<threadcount*4096 then
-    threadcount:=1+(totalProcessMemorySize div 4096); //in case of mini scans don't wate too much time creating threads
+    i:=1+(totalProcessMemorySize div 4096); //in case of mini scans don't wate too much time creating threads
+
+  if i<threadcount then threadcount:=i;
 
   //OutputDebugString(format('Splitting up the workload between %d threads',[threadcount]));
 

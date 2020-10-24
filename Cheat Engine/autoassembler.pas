@@ -276,6 +276,8 @@ begin
 
     if address=0 then
       inc(distance, systeminfo.dwAllocationGranularity);
+
+    inc(count);
   end;
 
   result:=address;
@@ -843,6 +845,11 @@ var i,j,k, m: integer;
       begin
         setlength(results,1);
         results[0]:=testptr;
+
+        if not InRangeX(results[0], aobscanmodules[f].minaddress, aobscanmodules[f].maxaddress) then
+        begin
+          raise EAutoAssembler.Create('Invalid result for aob region scan');
+        end;
       end;
     end
     else
@@ -1421,6 +1428,7 @@ var i,j,k,l,e: integer;
     ProcessID: DWORD;
 
     bytes: tbytes;
+    oldprefered: ptrUint;
     prefered: ptrUint;
     protection: dword;
 
@@ -2987,6 +2995,7 @@ begin
         //adjust the address of entries that are part of this final block
         k:=10;
         allocs[j].address:=0;
+
         while (k>0) and (allocs[j].address=0) do
         begin
           i:=0;
