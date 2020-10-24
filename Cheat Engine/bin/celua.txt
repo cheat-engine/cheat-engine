@@ -955,14 +955,15 @@ properties
   Text : String - All the strings in one string
   Count: Integer - The number of strings in this list
   String[]: String - Array to access one specific string in the list
+  Data[]: Integer - Array to access the data of a specific string in the list
   [] = String[]
 
 methods
   clear() : Deletes all strings in the list
-  add(string) : adds a string to the list
+  add(string, data:integer OPTIONAL) : adds a string to the list. Returns the index
   delete(index) : Deletes a string from the list
   getText() : Returns all the strings as one big string
-  setText() : Sets the strings of the given strings object to the given text (can be multiline)
+  setText(string) : Sets the strings of the given strings object to the given text (can be multiline)
   indexOf(string): Returns the index of the specified string. Returns -1 if not found
   insert(index, string): Inserts a string at a specific spot moving the items after it
 
@@ -973,6 +974,9 @@ methods
 
   getString(index) : gets the string at the given index
   setString(index, string) : Replaces the string at the given index
+  getData(index) : Returns the integer value stored in the string
+  setData(index, integer): Sets the integer value stored in the string
+
   beginUpdate() : Stops updates from triggering other events (prevents flashing)
   endUpdate(): call after beginUpdate
 

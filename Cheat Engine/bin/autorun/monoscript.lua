@@ -429,7 +429,7 @@ function LaunchMonoDataCollector()
       local serverpipe=createPipe('cemonodc_pid'..getOpenedProcessID(), 256*1024,1024)      
       local newhandle=duplicateHandle(serverpipe.Handle)
       serverpipe.destroy() --the old handle is not needed anymore
-      print("New pipe handle is "..newhandle)
+      --print("New pipe handle is "..newhandle)
       
       writeInteger(getAddressSafe("MDC_ServerPipe"), newhandle)      
     end
@@ -1076,6 +1076,8 @@ function mono_class_getVTable(domain, klass)
     domain=nil
   end
   
+  if not monopipe then return nil end
+  
   if monopipe.IL2CPP then
     return klass
   end
@@ -1380,6 +1382,8 @@ end
 
 function mono_class_getStaticFieldAddress(domain, class)
   --if debug_canBreak() then return nil end
+  if not monopipe then return nil end
+  
 
   if (class==nil)  and domain then
     class=domain
@@ -1559,6 +1563,7 @@ function mono_getJitInfo(address)
 end
 
 function mono_getStaticFieldValue(vtable, field)
+  if not monopipe then return nil end
   
   local r
   monopipe.lock()
@@ -1975,14 +1980,17 @@ function mono_compile_method(method) --Jit a method if it wasn't jitted yet
   --if debug_canBreak() then return nil end
 
   --print(string.format("mono_compile_method. Method=%x", method))
+  if monopipe then
+    monopipe.lock()
 
-  monopipe.lock()
-
-  monopipe.writeByte(MONOCMD_COMPILEMETHOD)
-  monopipe.writeQword(method)
-  local result=monopipe.readQword()
-  monopipe.unlock()
-  return result
+    monopipe.writeByte(MONOCMD_COMPILEMETHOD)
+    monopipe.writeQword(method)
+    local result=monopipe.readQword()
+    if monopipe then
+      monopipe.unlock()
+    end
+    return result
+  end
 end
 
 --note: does not work while the profiler is active (Current implementation doesn't use the profiler, so we're good to go)
