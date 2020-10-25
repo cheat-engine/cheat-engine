@@ -1960,10 +1960,10 @@ begin
   s:=disassemble(tempaddress); //tempaddress gets changed by this, so don't use the real one
 
   if defaultDisassembler.LastDisassembleData.isfloat then
-    frmchangedaddresses.cbDisplayType.ItemIndex:=3;
+    frmchangedaddresses.cbDisplayType.ItemIndex:=4;
 
   if defaultDisassembler.LastDisassembleData.isfloat64 then
-    frmchangedaddresses.cbDisplayType.ItemIndex:=4;
+    frmchangedaddresses.cbDisplayType.ItemIndex:=5;
 
 
   if uppercase(defaultDisassembler.LastDisassembleData.opcode)='RET' then
