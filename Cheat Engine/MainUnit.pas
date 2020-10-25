@@ -113,6 +113,11 @@ type
       visible: boolean;
     end;
 
+    cbNewLuaState: record
+      checked: boolean;
+      visible: boolean;
+    end;
+
     cbRepeatUntilStopped: record
       checked: boolean;
       visible: boolean;
@@ -294,6 +299,7 @@ type
     cbRepeatUntilStopped: TCheckBox;
     cbCompareToSavedScan: TCheckBox;
     cbLuaFormula: TCheckBox;
+    cbNewLuaState: TCheckBox;
     ColorDialog1: TColorDialog;
     CreateGroup: TMenuItem;
     FromAddress: TEdit;
@@ -543,6 +549,7 @@ type
     procedure actOpenLuaEngineExecute(Sender: TObject);
     procedure Address1Click(Sender: TObject);
     procedure cbCompareToSavedScanChange(Sender: TObject);
+    procedure cbLuaFormulaChange(Sender: TObject);
     procedure cbPercentageOnChange(Sender: TObject);
     procedure cbCodePageChange(Sender: TObject);
     procedure cbRepeatUntilStoppedChange(Sender: TObject);
@@ -2289,6 +2296,7 @@ begin
 
   cbNot.Enabled:=false;
   cbLuaFormula.enabled:=false;
+  cbNewLuaState.enabled:=false;
 end;
 
 procedure TMainForm.enableGui(isnextscan: boolean);
@@ -2328,6 +2336,7 @@ begin
   cbCaseSensitive.Enabled := True;
   cbNot.enabled:=true;
   cbLuaFormula.enabled:=true;
+  cbNewLuaState.enabled:=true;
 
 
   scanvalue.Visible := True;
@@ -2660,8 +2669,8 @@ begin
 
     cbRepeatUntilStopped.visible:=GetScanType=soUnchanged;
 
-    cbLuaFormula.visible:=(GetScanType=soExactValue) and (getVarType in [vtByte, vtWord, vtDword, vtQword, vtSingle, vtDouble, vtCustom, vtAll])
-
+    cbLuaFormula.visible:=(GetScanType=soExactValue) and (getVarType in [vtByte, vtWord, vtDword, vtQword, vtSingle, vtDouble, vtCustom, vtAll]);
+    cbNewLuaState.visible:=cbLuaFormula.checked;
   finally
     scantype.OnChange := old;
     scantype.OnSelect := old2;
@@ -3314,6 +3323,11 @@ begin
     foundlist3.Column[2].Caption:=rsPrevious;
 
   end;
+end;
+
+procedure TMainForm.cbLuaFormulaChange(Sender: TObject);
+begin
+  cbNewLuaState.visible:=cbLuaFormula.Visible and cbLuaFormula.Checked;
 end;
 
 procedure TMainForm.cbCodePageChange(Sender: TObject);
@@ -4852,6 +4866,8 @@ begin
   scanstate.cbnot.checked:=cbNot.checked;
   scanstate.cbLuaformula.visible:=cbLuaFormula.Visible;
   scanstate.cbLuaformula.checked:=cbLuaFormula.Checked;
+  scanstate.cbNewLuaState.visible:=cbNewLuaState.Visible;
+  scanstate.cbNewLuaState.checked:=cbNewLuaState.checked;
 
   if cbpercentage <> nil then
   begin
@@ -5084,6 +5100,8 @@ begin
     cbNot.checked:=newstate.cbNot.Checked;
     cbLuaFormula.visible:=newstate.cbLuaformula.visible;
     cbLuaFormula.checked:=newstate.cbLuaformula.checked;
+    cbNewLuaState.visible:=newstate.cbNewLuaState.visible;
+    cbNewLuaState.Checked:=newstate.cbNewLuaState.checked;
 
     if newstate.foundlist3.ItemIndex=-1 then
       newstate.foundlist3.ItemIndex:=0;
@@ -9821,6 +9839,7 @@ begin
       ScanTabList.Enabled := False;
 
     memscan.luaformula:=cbLuaFormula.visible and cbLuaFormula.checked;
+    memscan.NewLuaState:=cbNewLuaState.Checked;
     memscan.busyformIsModal:=true;
 
     memscan.firstscan(GetScanType2, getVarType2, roundingtype,
@@ -10069,6 +10088,7 @@ begin
   memscan.inverseScan:=cbNot.Checked and cbnot.Visible;
   memscan.codePage:=cbCodePage.checked;
   memscan.luaformula:=cbLuaFormula.visible and cbLuaFormula.checked;
+  memscan.NewLuaState:=cbNewLuaState.checked;
 
   memscan.busyformIsModal:=not ((GetScanType=soUnchanged) and cbRepeatUntilStopped.checked);
 

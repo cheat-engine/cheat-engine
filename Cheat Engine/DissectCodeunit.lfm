@@ -1,7 +1,7 @@
 object frmDissectCode: TfrmDissectCode
   Left = 803
   Height = 350
-  Top = 296
+  Top = 245
   Width = 327
   AutoSize = True
   Caption = 'Dissect Code'

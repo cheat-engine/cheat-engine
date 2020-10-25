@@ -2464,11 +2464,14 @@ createThread(function(Thread,...), ...) :
 createThreadSuspended(function(Thread,...), ...) :
   Same as createNativeThread but it won't run until resume is called on it
 
+createThreadNewState(scripttext): Creates a new thread in a new lua state. This is more efficient as no locking inside lua takes place, but has no access to userdefined lua functions and only limited base CE functions. called inside a function(t) where t is the thread.  Watch for t.Terminated to quit.  Notice: Unlike createThread, the created thread does not freeOnTerminate so you can read out the "Result" property which will be set on thread finish
+
 
 properties
   Name: string - This name will be shown when the thread terminated abnormally
   Finished: boolean - Returns true if the thread has reached the end.  Do not rely on this if the thread is freeOnTerminate(true) (which is the default)
   Terminated: boolean - Returns true if the Terminate method has been called
+  Result: string - The result of the thread function as a string
 
 methods
   freeOnTerminate(state) :

@@ -29,11 +29,15 @@ resourcestring
   rsInNativeCode = ' in native code:';
   rsInvalidFirstParameterForCreateNativeThread = 'Invalid first parameter for createNativeThread';
 
-type TCEThread=class (TThread)
+type
+  TCEThread=class (TThread)
   private
     fname: string;
     functionid: integer;
     L: PLua_State;
+    newstate: boolean;
+    newstate_script: string;
+    fresult: string;
   public
     syncfunction: integer;
     syncparam: integer;
@@ -41,12 +45,15 @@ type TCEThread=class (TThread)
     procedure sync; //called by lua_synchronize from inside the thread
     procedure execute; override;
     destructor destroy; override;
-    constructor create(L: Plua_State; functionid: integer; suspended: boolean);
+    constructor create(L: Plua_State; functionid: integer; suspended: boolean); overload;
+    constructor create(script: string; suspended: boolean); overload;
   published
     property name: string read fname write fname;
     property Terminated;
     property Finished;
-end;
+    property Result: string read fresult;
+  end;
+
 
 procedure TCEThread.sync;
 var
@@ -79,6 +86,9 @@ end;
 procedure TCEThread.execute;
 var errorstring: string;
   extraparamcount: integer;
+
+  newstateScriptWrapper: TStringlist;
+  r: integer;
 begin
   //call the lua function
   {$ifdef windows}
@@ -86,18 +96,47 @@ begin
   {$endif}
 
   try
-    extraparamcount:=lua_gettop(L);
+    if newstate then
+    begin
+      newstateScriptWrapper:=Tstringlist.Create;
+      newstateScriptWrapper.Insert(0,'return function(t)');
+      newstateScriptWrapper.AddText(newstate_script);
+      newstateScriptWrapper.add('end');
 
-    lua_rawgeti(L, LUA_REGISTRYINDEX, functionid);
+      r:=lua_dostring(L, pchar(newstateScriptWrapper.text));
+      newstateScriptWrapper.free;
 
-    lua_insert(L, 1);
+      if r<>0 then
+      begin
+        if lua_isstring(L, -1) then
+          errorstring:=':'+Lua_ToString(L,-1)
+        else
+          errorstring:='';
 
+        lua_getglobal(L, 'print');
+        lua_pushstring(L, rsErrorInNativeThreadCalled+name+':'+errorstring);
+        lua_pcall(L, 1,0,0);
+        exit;
+      end;
+
+      //there is a function on the stack now
+
+      extraparamcount:=0; //only lua state
+    end
+    else
+    begin
+      extraparamcount:=lua_gettop(L);
+
+      lua_rawgeti(L, LUA_REGISTRYINDEX, functionid);
+
+      lua_insert(L, 1);
+    end;
 
 
     luaclass_newClass(L, self);
     lua_insert(L, 2);
 
-    if lua_pcall(L, 1+extraparamcount,0,0)<>0 then
+    if lua_pcall(L, 1+extraparamcount,1,0)<>0 then
     begin
       if lua_isstring(L, -1) then
         errorstring:=':'+Lua_ToString(L,-1)
@@ -107,7 +146,11 @@ begin
       lua_getglobal(L, 'print');
       lua_pushstring(L, rsErrorInNativeThreadCalled+name+':'+errorstring);
       lua_pcall(L, 1,0,0);
-
+    end
+    else
+    begin
+      fresult:=Lua_ToString(L,-1);
+      lua_pop(L,1);
     end;
   except
     on e:Exception do
@@ -129,6 +172,11 @@ begin
   lua_pushnil(L);
   lua_setglobal(L, pchar('CELUATHREAD_'+IntToHex(ptruint(L),8)));
 
+
+  if newstate then
+    lua_close(L);
+
+
   inherited destroy;
 end;
 
@@ -141,6 +189,18 @@ begin
   inherited create(suspended);
 end;
 
+constructor TCEThread.create(script: string; suspended: boolean);
+begin
+  //limited thread, it has to create the lua state itself, and also destroy it when done
+  newstate:=true;
+  l:=luaL_newstate;
+  luaHandler.InitLimitedLuastate(L);
+
+  newstate_script:=script;
+  name:='Unnamed newstate';
+
+  inherited create(suspended);
+end;
 
 
 
@@ -273,6 +333,25 @@ end;
 function createNativeThreadSuspended(L: PLua_State): integer; cdecl;
 begin
   result:=createNativeThreadInternal(L, true);
+end;
+
+function createNativeThreadNewState(L: PLua_State): integer; cdecl;
+var
+  script: string;
+  t: TCEThread;
+begin
+  result:=0;
+  if lua_gettop(L)>=1 then
+  begin
+    script:=Lua_ToString(L,1);
+
+    if script<>'' then
+    begin
+      t:=TCEThread.create(script, false); //not an autodestroy thread, the result has to be able to be obtained
+      luaclass_newClass(L, t);
+      result:=1;
+    end;
+  end;
 end;
 
 function thread_freeOnTerminate(L: PLua_State): integer; cdecl;
@@ -490,8 +569,10 @@ end;
 procedure initializeLuaThread;
 begin
   lua_register(LuaVM, 'createNativeThread', createNativeThread);
+  lua_register(LuaVM, 'createNativeThreadNewState', createNativeThreadNewState);
   lua_register(LuaVM, 'createNativeThreadSuspended', createNativeThreadSuspended);
   lua_register(LuaVM, 'createThread', createNativeThread);
+  lua_register(LuaVM, 'createThreadNewState', createNativeThreadNewState);
   lua_register(LuaVM, 'createThreadSuspended', createNativeThreadSuspended);
   lua_register(LuaVM, 'getCPUCount', lua_getCPUCount);
   lua_register(LuaVM, 'thread_freeOnTerminate', thread_freeOnTerminate);

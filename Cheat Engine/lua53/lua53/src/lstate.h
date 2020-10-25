@@ -159,7 +159,9 @@ typedef struct global_State {
   const lua_Number *version;  /* pointer to version number */
   TString *memerrmsg;  /* memory-error message */
   TString *tmname[TM_N];  /* array with tag-method names */
-  struct Table *mt[LUA_NUMTAGS];  /* metatables for basic types */
+  struct Table *mt[LUA_NUMTAGS];  /* metatables for basic types */  
+  RCS lock;
+  char lock_init;
 } global_State;
 
 
@@ -189,8 +191,7 @@ struct lua_State {
   unsigned short nCcalls;  /* number of nested C calls */
   lu_byte hookmask;
   lu_byte allowhook;
-  RCS lock;
-  char lock_init;
+
 };
 
 
