@@ -961,6 +961,7 @@ properties
 methods
   clear() : Deletes all strings in the list
   add(string, data:integer OPTIONAL) : adds a string to the list. Returns the index
+  addText([[strings]]) : adds multiple strings at once
   delete(index) : Deletes a string from the list
   getText() : Returns all the strings as one big string
   setText(string) : Sets the strings of the given strings object to the given text (can be multiline)

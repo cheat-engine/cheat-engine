@@ -14,6 +14,12 @@ implementation
 
 uses luahandler, luaobject, luaclass, pluginexports;
 
+function strings_addtext(L: Plua_State): integer; cdecl;
+begin
+  if lua_gettop(L)>=1 then
+    TStrings(luaclass_getClassObject(L)).AddText(Lua_ToString(L,1));
+end;
+
 function strings_add(L: Plua_State): integer; cdecl;
 var
   strings: TStrings;
@@ -293,6 +299,7 @@ begin
   object_addMetaData(L, metatable, userdata);
 
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'add', strings_add);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'addText', strings_addText);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'clear', strings_clear);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'delete', strings_delete);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'getText', strings_getText);

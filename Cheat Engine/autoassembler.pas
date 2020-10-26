@@ -1138,7 +1138,7 @@ begin
     end;
 
 
-  if error then raise exception.create(errorstring);
+  if error then raise EAutoAssembler.create(errorstring);
 
 
 end;

@@ -253,7 +253,7 @@ function monoIL2CPPSymbolEnum(t)
   if monopipe==nil or t.Terminated then return end
   
   if priority then
-    print("parsing "..images[priority].name..'(1/'..#images..')');
+    --print("parsing "..images[priority].name..'(1/'..#images..')');
   
     parseImage(t, images[priority])
   end
@@ -264,12 +264,12 @@ function monoIL2CPPSymbolEnum(t)
     
     if priority then x=x+1 end
     
-    print("parsing "..images[i].name..'('..x..'/'..#images..')');
+    --print("parsing "..images[i].name..'('..x..'/'..#images..')');
     parseImage(t, images[i])
     if monopipe==nil or t.Terminated then return end
   end
 
-  print("all symbols loaded") --print is threadsafe
+  --print("all symbols loaded") --print is threadsafe
   monoSymbolList.FullyLoaded=true
 end
 
