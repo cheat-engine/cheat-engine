@@ -601,3 +601,9 @@ pmMask=12
 pmNotMask=13
 pmXor=14
 pmNotXor=15
+
+tbpsNone=0
+tbpsIndeterminate=1
+tbpsNormal=2
+tbpsError=3
+tbpsPaused=4

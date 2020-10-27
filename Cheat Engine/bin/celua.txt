@@ -563,7 +563,12 @@ speak(text, waittilldone OPTIONAL): Speaks a given text.  If waitTillDone is tru
 speak(text, flags): Speaks a given text using the given flags. https://msdn.microsoft.com/en-us/library/speechplatform_speakflags.aspx
 speakEnglish(text, waittilldone OPTIONAL) - will try the English voice by wrapping the given text into an XML statement specifying the english voice. Will not say anything if no Egnlish language is present. Do not use SPF_IS_NOT_XML flag and SPF_PARSE_SSML won't work in this situation
 
+
+
 printf(...) : Same as print(string.format(...))
+setProgressState(state): Sets the state of the cheatengine task in the taskbar (windows only) values: tbpsNone, tbpsIndeterminate, tbpsNormal, tbpsError, tbpsPaused
+setProgressValue(current, max): Sets the state of the cheatengine task progress status
+
 
 getUserRegistryEnvironmentVariable(name): string - Returns the environment variable stored in the user registry environment
 setUserRegistryEnvironmentVariable(name, string) - Sets the environment variable stored in the user registry environment
@@ -3729,6 +3734,7 @@ methods
   getPointIndexAt(x,y): integer - Returns the pointindex at the given x, y coordinate
   addPoint(x,y,index OPTIONAL): creates a point. If no index is given if inside the line at that line index, else at the end of the list.  If a index is given at that specific index. 
   removeAllPoints(): Removes all points
+
 
 RemoteExecutor class
 The remoteExecute class creates an executor thread inside the target process waiting for commands to execute specific functions

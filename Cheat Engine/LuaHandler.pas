@@ -125,7 +125,7 @@ uses autoassembler, MainUnit, MainUnit2, LuaClass, frmluaengineunit, plugin, plu
   LuaManualModuleLoader, pointervaluelist, frmEditHistoryUnit, LuaCheckListBox,
   LuaDiagram, frmUltimap2Unit, frmcodefilterunit, BreakpointTypeDef, LuaSyntax,
   LazLogger, LuaSynedit, LuaRIPRelativeScanner, LuaCustomImageList ,ColorBox,
-  rttihelper, LuaDotNetPipe, LuaRemoteExecutor;
+  rttihelper, LuaDotNetPipe, LuaRemoteExecutor, windows7taskbar;
 
   {$warn 5044 off}
 
@@ -12993,6 +12993,22 @@ begin
   result:=0;
 end;
 
+function lua_setProgressState(L: Plua_State): integer; cdecl;
+begin
+  if lua_gettop(L)>=1 then
+    SetProgressState(TTaskBarProgressState(lua_tointeger(L,1)));
+
+  result:=0;
+end;
+
+function lua_setProgressValue(L: Plua_State): integer; cdecl;
+begin
+  if lua_gettop(L)>=2 then
+    SetProgressValue(lua_tointeger(L,1), lua_tointeger(L,2));
+
+  result:=0;
+end;
+
 procedure InitLimitedLuastate(L: Plua_State);
 begin
   //just the bare basics, don't put in too much as it will slow down spawning of worker threads
@@ -13687,6 +13703,8 @@ begin
     lua_register(L, 'registerLuaFunctionHighlight', lua_registerLuaFunctionHighlight);
     lua_register(L, 'unregisterLuaFunctionHighlight', lua_unregisterLuaFunctionHighlight);
 
+    lua_register(L, 'setProgressState', lua_SetProgressState);
+    lua_register(L, 'setProgressValue', lua_SetProgressValue );
 
 
     initializeLuaRemoteThread;
