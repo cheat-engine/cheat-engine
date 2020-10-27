@@ -149,7 +149,7 @@ local function getClassFields(Class)
   
   local i
   if Class.Image.Domain.Control==CONTROL_MONO then
-    local StaticFieldAddress=mono_class_getStaticFieldAddress(0,Class)
+    local StaticFieldAddress=mono_class_getStaticFieldAddress(0,Class.Handle)
   
     local fields=mono_class_enumFields(Class.Handle, true)
     for i=1,#fields do
@@ -354,18 +354,20 @@ local function ClassFetchWaitTillReadyAndSendData(thread, frmDotNetInfo, Image, 
   
   local i
   local block={}
+  local StartIndex=1
   for i=1,#Image.Classes do
     local j=1+((i-1) % 10)
     block[j]=Image.Classes[i]
     
     if j==10 then
-      synchronize(OnDataFunction,thread, block)
+      synchronize(OnDataFunction,thread, block, StartIndex)
+      StartIndex=j+1
       block={}      
     end
   end
   
   if #block>0 then
-    synchronize(OnDataFunction,thread, block)
+    synchronize(OnDataFunction,thread, block, StartIndex)
   end
   
   synchronize(FetchDoneFunction)  
@@ -470,7 +472,7 @@ local function FillClassInfoFields(frmDotNetInfo, Class)
         end
         
         if Class.Fields[i].Address and Class.Fields[i].Address~=0 then
-          string.format("%.8x",Class.Fields[i].Address)          
+          li.SubItems.add(string.format("%.8x",Class.Fields[i].Address))
         else
           li.SubItems.add('?')
         end    
@@ -517,6 +519,14 @@ local function FillClassInfoFields(frmDotNetInfo, Class)
   
 end
 
+
+
+local function edtClassFilterChange(frmDotNetInfo, sender)
+--call image list onSelectionChange.  It will start a new listbuild and cancel any previously one going on
+  frmDotNetInfo.lbImages.OnSelectionChange(frmDotNetInfo.lbImages)
+end
+
+
 local function ClassSelectionChange(frmDotNetInfo, sender)
   
   if sender.ItemIndex>=0 then
@@ -525,7 +535,11 @@ local function ClassSelectionChange(frmDotNetInfo, sender)
     
     if Image.Classes==nil then return end
     
-    local Class=Image.Classes[frmDotNetInfo.lbClasses.ItemIndex+1]      
+    local lbc=frmDotNetInfo.lbClasses    
+    if lbc.ItemIndex==-1 then return end
+    
+    local ClassIndex=lbc.Items.Data[lbc.ItemIndex]    
+    local Class=Image.Classes[ClassIndex]      
     if Class==nil then return end
     
     _G.LastClass=Class --debug
@@ -611,15 +625,20 @@ end
 local function ImageSelectionChange(frmDotNetInfo, sender)
   frmDotNetInfo.lbClasses.Items.clear()
   clearClassInformation(frmDotNetInfo)
-  
+
   if sender.ItemIndex>=0 then   
     frmDotNetInfo.lbClasses.Enabled=false
     frmDotNetInfo.lbClasses.Cursor=crHourGlass
     
     local Domain=DataSource.Domains[frmDotNetInfo.lbDomains.ItemIndex+1]
     local Image=Domain.Images[frmDotNetInfo.lbImages.ItemIndex+1]
-    StartClassFetch(frmDotNetInfo, Image, function(thread, classlistchunk)
+    
+    
+    
+    
+    StartClassFetch(frmDotNetInfo, Image, function(thread, classlistchunk, StartIndex)
       --executed every 10 lines or so, in the main thread
+      local ClassFilterText=frmDotNetInfo.edtClassFilter.Text:upper()  --assume case insentivie
       local i
       if frmDotNetInfo.lbClasses.Enabled==false then
         --there is something to select already
@@ -629,14 +648,26 @@ local function ImageSelectionChange(frmDotNetInfo, sender)
       
       if thread.Terminated then return end
       
+      local addToList=true
+      local fullname
+      
       for i=1,#classlistchunk do
-        local fullname
         if classlistchunk[i].NameSpace and classlistchunk[i].NameSpace~='' then
           fullname=classlistchunk[i].NameSpace..'.'..classlistchunk[i].Name
         else          
           fullname=classlistchunk[i].Name
+        end        
+        
+        if ClassFilterText=='' then 
+          addToList=true
+        else         
+          addToList=fullname:upper():find(ClassFilterText,1,true)          
         end
-        frmDotNetInfo.lbClasses.Items.add(string.format('%s',  fullname))
+        
+        if addToList then
+          frmDotNetInfo.lbClasses.Items.add(string.format('%s',  fullname), StartIndex+i-1)
+        end
+        
       end
       
 
@@ -1127,10 +1158,13 @@ local function FieldValueUpdaterTimer(frmDotNetInfo, sender)
               reader=DotNetValueReaders[ELEMENT_TYPE_PTR]
             end
           
-            local value=reader(Class.Fields[ci].Address)
+            --printf("Calling reader(%8x)", Class.Fields[ci].Address);
+            value=reader(Class.Fields[ci].Address)
             if not value then
               value='?'          
             end
+            
+            --printf("value=%s", value);
           end
           
         
@@ -1284,7 +1318,7 @@ local function btnLookupInstancesClick(frmDotNetInfo, sender)
   end
 end
 
-function lvStaticFieldsDblClick(frmDotNetInfo,sender)
+local function lvStaticFieldsDblClick(frmDotNetInfo,sender)
   if sender.Selected==nil then return end
   local ci=sender.Selected.Data
   
@@ -1317,7 +1351,7 @@ function lvStaticFieldsDblClick(frmDotNetInfo,sender)
   
 end
 
-function lvFieldsDblClick(frmDotNetInfo,sender)
+local function lvFieldsDblClick(frmDotNetInfo,sender)
   if sender.Selected==nil then return end
   local ci=sender.Selected.Data
   
@@ -1353,31 +1387,29 @@ function lvFieldsDblClick(frmDotNetInfo,sender)
 end
 
 
-
-
 function miDotNetInfoClick(sender)
-  print("miDotNetInfoClick")
+  --print("miDotNetInfoClick")
   --in case of a double case scenario where there's both .net and mono, go for net first if the user did not activate mono explicitly 
   if (DataSource.DotNetDataCollector==nil) or (CurrentProcess~=getOpenedProcessID) then
-    print("getting getDotNetDataCollector")
+    --print("getting getDotNetDataCollector")
     DataSource={}  
     DataSource.DotNetDataCollector=getDotNetDataCollector()    
   end
   
   
-  print("miDotNetInfoClick 2")
+  --print("miDotNetInfoClick 2")
   if miMonoTopMenuItem and miMonoTopMenuItem.miMonoActivate.Visible and (monopipe==nil)  then
-    print("checking with getDotNetDataCollector().Attached")
+    --print("checking with getDotNetDataCollector().Attached")
     if getDotNetDataCollector().Attached==false then --no .net and the user hasn't activated mono features. Do it for the user
-      print("Launching mono data collector")
+      --print("Launching mono data collector")
       LaunchMonoDataCollector()  
     end
   end
   
   
-  print("loading DotNetInfo.frm")
+  --print("loading DotNetInfo.frm")
   local frmDotNetInfo=createFormFromFile(getAutorunPath()..'forms'..pathsep..'DotNetInfo.frm')
-  print("after loading DotNetInfo.frm")
+  --print("after loading DotNetInfo.frm")
   
   local i
   
@@ -1487,6 +1519,8 @@ function miDotNetInfoClick(sender)
   
   --Classes box setup
   frmDotNetInfo.lbClasses.OnSelectionChange=function(sender) ClassSelectionChange(frmDotNetInfo, sender) end
+  
+  frmDotNetInfo.edtClassFilter.OnChange=function(sender) edtClassFilterChange(frmDotNetInfo, sender) end
   
   
   --Class info setup

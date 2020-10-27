@@ -138,6 +138,7 @@ resourcestring
   rsNoPreferedRangeAllocWarning = 'None of the ALLOC statements specify a '
     +'prefered address.  Did you take into account that the JMP instruction is'
     +' going to be 14 bytes long?';
+  rsFailureAlloc = 'Failure allocating memory near %.8x';
 
 //type
 //  TregisteredAutoAssemblerCommands =  TFPGList<TRegisteredAutoAssemblerCommand>;
@@ -256,15 +257,18 @@ var
   starttime: ptruint;
   distance: qword;
   address: ptruint;
+  count: integer;
 begin
   starttime:=gettickcount64;
 
   address:=0;
   distance:=0;
+  count:=0;
   if prefered mod systeminfo.dwAllocationGranularity>0 then
     prefered:=prefered-(prefered mod systeminfo.dwAllocationGranularity);
 
-  while (address=0) and (gettickcount64<starttime+10000) and (distance<$80000000) do
+
+  while (address=0) and ((count<10) or (gettickcount64<starttime+10000)) and (distance<$80000000) do
   begin
     address:=ptrUint(virtualallocex(processhandle,pointer(prefered+distance),size, MEM_RESERVE or MEM_COMMIT,protection));
     if (address=0) and (distance>0) then
@@ -272,6 +276,8 @@ begin
 
     if address=0 then
       inc(distance, systeminfo.dwAllocationGranularity);
+
+    inc(count);
   end;
 
   result:=address;
@@ -839,6 +845,11 @@ var i,j,k, m: integer;
       begin
         setlength(results,1);
         results[0]:=testptr;
+
+        if not InRangeX(results[0], aobscanmodules[f].minaddress, aobscanmodules[f].maxaddress) then
+        begin
+          raise EAutoAssembler.Create('Invalid result for aob region scan');
+        end;
       end;
     end
     else
@@ -1127,7 +1138,7 @@ begin
     end;
 
 
-  if error then raise exception.create(errorstring);
+  if error then raise EAutoAssembler.create(errorstring);
 
 
 end;
@@ -1417,6 +1428,7 @@ var i,j,k,l,e: integer;
     ProcessID: DWORD;
 
     bytes: tbytes;
+    oldprefered: ptrUint;
     prefered: ptrUint;
     protection: dword;
 
@@ -2949,8 +2961,11 @@ begin
 
               if allocs[j].address=0 then
               begin
-                allocs[j].address:=ptrUint(virtualallocex(processhandle,nil,x, MEM_RESERVE or MEM_COMMIT,protection));
-                OutputDebugString(rsFailureToAllocateMemory+' 2');
+                raise EAssemblerException.create(format(rsFailureAlloc, [prefered]));
+//                if allocs[j].address=0 then
+
+//                allocs[j].address:=ptrUint(virtualallocex(processhandle,nil,x, MEM_RESERVE or MEM_COMMIT,protection));
+//                OutputDebugString(rsFailureToAllocateMemory+' 2');
               end;
 
               if allocs[j].address=0 then raise EAssemblerException.create(rsFailureToAllocateMemory);
@@ -2980,6 +2995,7 @@ begin
         //adjust the address of entries that are part of this final block
         k:=10;
         allocs[j].address:=0;
+
         while (k>0) and (allocs[j].address=0) do
         begin
           i:=0;
@@ -3003,7 +3019,8 @@ begin
           allocs[j].address:=lastChanceAllocPrefered(prefered,x, protection);
 
         if allocs[j].address=0 then
-          allocs[j].address:=ptrUint(virtualallocex(processhandle,nil,x, MEM_RESERVE or MEM_COMMIT,protection));
+          raise EAssemblerException.create(format(rsFailureAlloc, [prefered]));
+         // allocs[j].address:=ptrUint(virtualallocex(processhandle,nil,x, MEM_RESERVE or MEM_COMMIT,protection));
 
         if allocs[j].address=0 then raise EAssemblerException.create(rsFailureToAllocateMemory);
 

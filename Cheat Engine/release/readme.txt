@@ -111,6 +111,15 @@ lua:
         getBinaryValue
         setBinaryValue
 
+    Strings:
+      properties
+        Data
+
+      methods
+        getData
+        setData
+        addText
+
 
 
 

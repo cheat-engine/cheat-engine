@@ -76,6 +76,7 @@ function lua_toaddress(L: PLua_state; i: integer; self: boolean=false): ptruint;
 procedure lua_pushcontext(L: PLua_state; context: PContext);
 procedure InitializeLuaScripts(noautorun: boolean=false);
 procedure InitializeLua;
+procedure InitLimitedLuastate(L: Plua_State);
 
 
 function LuaValueToDescription(L: PLua_state; i: integer; recursivetablecount: integer=0): string;
@@ -124,7 +125,7 @@ uses autoassembler, MainUnit, MainUnit2, LuaClass, frmluaengineunit, plugin, plu
   LuaManualModuleLoader, pointervaluelist, frmEditHistoryUnit, LuaCheckListBox,
   LuaDiagram, frmUltimap2Unit, frmcodefilterunit, BreakpointTypeDef, LuaSyntax,
   LazLogger, LuaSynedit, LuaRIPRelativeScanner, LuaCustomImageList ,ColorBox,
-  rttihelper, LuaDotNetPipe, LuaRemoteExecutor;
+  rttihelper, LuaDotNetPipe, LuaRemoteExecutor, windows7taskbar;
 
   {$warn 5044 off}
 
@@ -3335,6 +3336,12 @@ begin
 
     result:=0;
   end;
+end;
+
+function lua_getCurrentThreadID(L: Plua_State): integer; cdecl;
+begin
+  lua_pushinteger(L, qword(GetCurrentThreadId));
+  exit(1);
 end;
 
 function lua_synchronize(L: Plua_State): integer; cdecl;
@@ -12986,6 +12993,74 @@ begin
   result:=0;
 end;
 
+function lua_setProgressState(L: Plua_State): integer; cdecl;
+begin
+  if lua_gettop(L)>=1 then
+    SetProgressState(TTaskBarProgressState(lua_tointeger(L,1)));
+
+  result:=0;
+end;
+
+function lua_setProgressValue(L: Plua_State): integer; cdecl;
+begin
+  if lua_gettop(L)>=2 then
+    SetProgressValue(lua_tointeger(L,1), lua_tointeger(L,2));
+
+  result:=0;
+end;
+
+procedure InitLimitedLuastate(L: Plua_State);
+begin
+  //just the bare basics, don't put in too much as it will slow down spawning of worker threads
+  lua_register(L, 'print', print);
+  lua_register(L, 'sleep', lua_sleep);
+  lua_register(L, 'cheatEngineIs64Bit', cheatEngineIs64Bit);
+  lua_register(L, 'targetIs64Bit', targetIs64Bit);
+
+  lua_register(L, 'readBytes', readbytes);
+  lua_register(L, 'writeBytes', writebytes);
+  lua_register(L, 'readSmallInteger', readSmallInteger);
+  lua_register(L, 'readInteger', readInteger);
+  lua_register(L, 'readQword', readQword);
+  lua_register(L, 'readPointer', readPointer);
+  lua_register(L, 'readFloat', readFloat);
+  lua_register(L, 'readDouble', readDouble);
+  lua_register(L, 'readString', readString);
+  lua_register(L, 'readSmallIntegerLocal', readSmallIntegerLocal);
+  lua_register(L, 'readIntegerLocal', readIntegerLocal);
+  lua_register(L, 'readQwordLocal', readQwordLocal);
+  lua_register(L, 'readPointerLocal', readPointerLocal);
+  lua_register(L, 'readFloatLocal', readFloatLocal);
+  lua_register(L, 'readDoubleLocal', readDoubleLocal);
+  lua_register(L, 'readStringLocal', readStringLocal);
+
+  lua_register(L, 'writeSmallInteger', writeSmallInteger);
+  lua_register(L, 'writeInteger', writeInteger);
+  lua_register(L, 'writeQword', writeQword);
+  lua_register(L, 'writePointer', writePointer);
+  lua_register(L, 'writeFloat', writeFloat);
+  lua_register(L, 'writeDouble', writeDouble);
+  lua_register(L, 'writeString', writeString);
+  lua_register(L, 'writeSmallIntegerLocal', writeSmallIntegerLocal);
+  lua_register(L, 'writeIntegerLocal', writeIntegerLocal);
+  lua_register(L, 'writeQwordLocal', writeQwordLocal);
+  lua_register(L, 'writePointerLocal', writePointerLocal);
+  lua_register(L, 'writeFloatLocal', writeFloatLocal);
+  lua_register(L, 'writeDoubleLocal', writeDoubleLocal);
+  lua_register(L, 'writeStringLocal', writeStringLocal);
+
+
+  lua_register(L, 'readBytesLocal', readbyteslocal);
+  lua_register(L, 'writeBytesLocal', writebyteslocal);
+  lua_register(L, 'getAddress', getAddress);
+  lua_register(L, 'getAddressSafe', getAddressSafe);
+
+  lua_register(L, 'getCurrentThreadID', lua_getCurrentThreadID);
+  lua_register(L, 'inMainThread', inMainThread);
+  lua_register(L, 'synchronize', lua_synchronize);
+  lua_register(L, 'queue', lua_queue);
+end;
+
 procedure InitializeLua;
 var
   s: tstringlist;
@@ -13006,6 +13081,11 @@ begin
   end;
   {$endif}
 
+  if Thread_LuaVM<>nil then
+    Thread_LuaVM:=nil;
+
+  if _LuaVM<>nil then
+    _LuaVM:=nil;
 
   _LuaVM:=lua_open();
 
@@ -13015,45 +13095,13 @@ begin
     luaL_openlibs(L);
 
     lua_atpanic(L, LuaPanic);
-    lua_register(L, 'print', print);
-    lua_register(L, 'sleep', lua_sleep);
+    InitLimitedLuastate(L);
+
+
+
     lua_register(L, 'pause', pause);
     lua_register(L, 'unpause', unpause);
-    lua_register(L, 'readBytes', readbytes);
-    lua_register(L, 'writeBytes', writebytes);
-    lua_register(L, 'readSmallInteger', readSmallInteger);
-    lua_register(L, 'readInteger', readInteger);
-    lua_register(L, 'readQword', readQword);
-    lua_register(L, 'readPointer', readPointer);
-    lua_register(L, 'readFloat', readFloat);
-    lua_register(L, 'readDouble', readDouble);
-    lua_register(L, 'readString', readString);
-    lua_register(L, 'readSmallIntegerLocal', readSmallIntegerLocal);
-    lua_register(L, 'readIntegerLocal', readIntegerLocal);
-    lua_register(L, 'readQwordLocal', readQwordLocal);
-    lua_register(L, 'readPointerLocal', readPointerLocal);
-    lua_register(L, 'readFloatLocal', readFloatLocal);
-    lua_register(L, 'readDoubleLocal', readDoubleLocal);
-    lua_register(L, 'readStringLocal', readStringLocal);
 
-    lua_register(L, 'writeSmallInteger', writeSmallInteger);
-    lua_register(L, 'writeInteger', writeInteger);
-    lua_register(L, 'writeQword', writeQword);
-    lua_register(L, 'writePointer', writePointer);
-    lua_register(L, 'writeFloat', writeFloat);
-    lua_register(L, 'writeDouble', writeDouble);
-    lua_register(L, 'writeString', writeString);
-    lua_register(L, 'writeSmallIntegerLocal', writeSmallIntegerLocal);
-    lua_register(L, 'writeIntegerLocal', writeIntegerLocal);
-    lua_register(L, 'writeQwordLocal', writeQwordLocal);
-    lua_register(L, 'writePointerLocal', writePointerLocal);
-    lua_register(L, 'writeFloatLocal', writeFloatLocal);
-    lua_register(L, 'writeDoubleLocal', writeDoubleLocal);
-    lua_register(L, 'writeStringLocal', writeStringLocal);
-
-
-    lua_register(L, 'readBytesLocal', readbyteslocal);
-    lua_register(L, 'writeBytesLocal', writebyteslocal);
     lua_register(L, 'autoAssemble', autoAssemble_lua);
     lua_register(L, 'autoAssembleCheck', AutoAssembleCheck_lua);
     lua_register(L, 'deAlloc', deAlloc_lua);
@@ -13127,9 +13175,9 @@ begin
     lua_register(L, 'AOBScanUnique', AOBScanUnique);
     lua_register(L, 'getOpenedProcessID', getOpenedProcessID);
     lua_register(L, 'getOpenedProcessHandle', getOpenedProcessHandle);
-    lua_register(L, 'getAddress', getAddress);
+
     lua_register(L, 'getModuleSize', getModuleSize);
-    lua_register(L, 'getAddressSafe', getAddressSafe);
+
 
     lua_register(L, 'waitForSections', waitForSections);
     lua_register(L, 'waitForExports', waitForExports);
@@ -13386,8 +13434,7 @@ begin
 
     lua_register(L, 'getForegroundProcess', getForegroundProcess);
 
-    lua_register(L, 'cheatEngineIs64Bit', cheatEngineIs64Bit);
-    lua_register(L, 'targetIs64Bit', targetIs64Bit);
+
 
     lua_register(L, 'getFormCount', getFormCount);
     lua_register(L, 'getForm', getForm);
@@ -13488,9 +13535,8 @@ begin
     lua_register(L, 'shortCutToText', lua_shortCutToText);
     lua_register(L, 'textToShortCut', lua_textToShortCut);
 
-    lua_register(L, 'inMainThread', inMainThread);
-    lua_register(L, 'synchronize', lua_synchronize);
-    lua_register(L, 'queue', lua_queue);
+
+
     lua_register(L, 'checkSynchronize', lua_checkSynchronize);
 
     lua_register(L, 'playSound', lua_playSound);
@@ -13656,6 +13702,10 @@ begin
 
     lua_register(L, 'registerLuaFunctionHighlight', lua_registerLuaFunctionHighlight);
     lua_register(L, 'unregisterLuaFunctionHighlight', lua_unregisterLuaFunctionHighlight);
+
+    lua_register(L, 'setProgressState', lua_SetProgressState);
+    lua_register(L, 'setProgressValue', lua_SetProgressValue );
+
 
     initializeLuaRemoteThread;
 

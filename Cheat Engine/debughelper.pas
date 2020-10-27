@@ -1960,10 +1960,19 @@ begin
   s:=disassemble(tempaddress); //tempaddress gets changed by this, so don't use the real one
 
   if defaultDisassembler.LastDisassembleData.isfloat then
-    frmchangedaddresses.cbDisplayType.ItemIndex:=3;
-
+    frmchangedaddresses.cbDisplayType.ItemIndex:=4
+  else
   if defaultDisassembler.LastDisassembleData.isfloat64 then
-    frmchangedaddresses.cbDisplayType.ItemIndex:=4;
+    frmchangedaddresses.cbDisplayType.ItemIndex:=5
+  else
+  begin
+    case defaultDisassembler.LastDisassembleData.datasize of
+      1: frmchangedaddresses.cbDisplayType.ItemIndex:=0;
+      2: frmchangedaddresses.cbDisplayType.ItemIndex:=1;
+      4: frmchangedaddresses.cbDisplayType.ItemIndex:=2;
+      8: frmchangedaddresses.cbDisplayType.ItemIndex:=3;
+    end;
+  end;
 
 
   if uppercase(defaultDisassembler.LastDisassembleData.opcode)='RET' then

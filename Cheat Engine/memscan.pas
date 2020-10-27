@@ -425,6 +425,7 @@ type
     PreviousOffsetCount: integer; //holds the offsecount of the previous scan (for calculating the entry position)
 
     luaformula: boolean;
+    newluastate: boolean;
     unicode: boolean;
     caseSensitive: boolean;
     percentage: boolean;
@@ -568,6 +569,7 @@ type
     floatscanWithoutExponents: boolean;
     inverseScan: boolean;
     luaformula: boolean;
+    newluastate: boolean;
     isUnique: boolean;
 
     procedure execute; override;
@@ -618,6 +620,7 @@ type
 
     fCodePage: boolean;
     fLuaFormula: boolean;
+    fNewLuaState: boolean;
 
     fnextscanCount: integer;
 
@@ -723,6 +726,7 @@ type
     property VarType: TVariableType read fVariableType write setVariableType;
     property codePage: boolean read fCodePage write fCodePage;
     property LuaFormula: boolean read fLuaFormula write fLuaFormula;
+    property NewLuaState: boolean read fNewLuaState write fNewLuaState;
     property isUnique: boolean read fIsUnique write fIsUnique; //for AOB scans only
     property lastScanWasRegionScan: boolean read getLastScanWasRegionScan;
     property isUnicode: boolean read stringUnicode;
@@ -5057,7 +5061,10 @@ begin
 
   if luaformula then
   begin
-    l:=LuaVM;
+    if newluastate then
+      l:=luaL_newstate
+    else
+      l:=LuaVM;
 
     i:=luaL_loadstring(L, pchar('return function(value,previousvalue) return ('+scanvalue1+') end')); //pushed this function on the lua stack which will be reused indefinitrelly
     if i=0 then
@@ -5580,7 +5587,12 @@ begin
   if savedscanhandler<>nil then freeandnil(savedscanhandler);
 
   if luaformula and (L<>nil) then
+  begin
     lua_pop(L, lua_gettop(L));
+
+    if newluastate then
+      lua_close(L);
+  end;
 
   inherited destroy;
 end;
@@ -5817,7 +5829,7 @@ begin
   {$ENDIF}
     threadcount:=GetCPUCount;
 
-  if luaformula then
+  if luaformula and (newluastate=false) then
     threadcount:=1;
 
   
@@ -5907,6 +5919,7 @@ begin
           scanners[i].floatscanWithoutExponents:=floatscanWithoutExponents;
           scanners[i].inverseScan:=inverseScan;
           scanners[i].luaformula:=luaformula;
+          scanners[i].newluastate:=newluastate;
 
           if variableType=vtGrouped then
             scanners[i].PreviousOffsetCount:=offsetcount;
@@ -6148,6 +6161,7 @@ begin
       scanners[i].floatscanWithoutExponents:=floatscanWithoutExponents;
       scanners[i].inverseScan:=inverseScan;
       scanners[i].luaformula:=luaformula;
+      scanners[i].newluastate:=newluastate;
 
       if i=0 then //first thread gets the header part
       begin
@@ -6265,10 +6279,11 @@ var
   starta,startb, stopa,stopb: ptruint;
 begin
  // OutputDebugString('TScanController.firstScan');
-  if OnlyOne or luaformula then
+  if OnlyOne or (luaformula and (newluastate=false)) then
     threadcount:=1
   else
     threadcount:=GetCPUCount;
+
 
   //if it's a custom scan with luascript as type just use one cpu so there is less overhead
   {$ifdef customtypeimplemented}
@@ -6302,10 +6317,10 @@ begin
   memRegionPos:=0;
 
 
-  if OnlyOne then //don't go back, but forward
+  if OnlyOne then //don't align at all. Some users want a byte perfect range...
   begin
-    if (startaddress mod 8)>0 then //align on a 8 byte base
-     startaddress:=startaddress-(startaddress mod 8)+8;
+    //if (startaddress mod 8)>0 then //align on a 8 byte base
+    // startaddress:=startaddress-(startaddress mod 8)+8;
   end
   else
   begin
@@ -6521,9 +6536,12 @@ begin
 
 
   //split up into separate workloads
-
   if totalProcessMemorySize<threadcount*4096 then
-    threadcount:=1+(totalProcessMemorySize div 4096); //in case of mini scans don't wate too much time creating threads
+    i:=1+(totalProcessMemorySize div 4096) //in case of mini scans don't wate too much time creating threads
+  else
+    i:=threadcount;
+
+  if i<threadcount then threadcount:=i;
 
   //OutputDebugString(format('Splitting up the workload between %d threads',[threadcount]));
 
@@ -6652,6 +6670,7 @@ begin
       scanners[i].floatscanWithoutExponents:=floatscanWithoutExponents;
       scanners[i].inverseScan:=inverseScan;
       scanners[i].luaformula:=luaformula;
+      scanners[i].newluastate:=newluastate;
 
 
 
@@ -7684,6 +7703,7 @@ begin
    scancontroller.inverseScan:=inverseScan;
    scancontroller.percentage:=percentage;
    scancontroller.luaformula:=fLuaFormula;
+   scancontroller.newluastate:=fNewLuaState;
 
    fLastscantype:=stNextScan;
    fLastScanValue:=scanvalue1;
@@ -7795,6 +7815,7 @@ begin
   scancontroller.inverseScan:=InverseScan;
   scancontroller.percentage:=false; //first scan does not have a percentage scan
   scancontroller.luaformula:=fLuaFormula;
+  scancontroller.newluastate:=fNewLuaState;
   scancontroller.isUnique:=fIsUnique;
   scanController.OnlyOne:=fOnlyOne;
 

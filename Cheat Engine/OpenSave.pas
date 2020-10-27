@@ -22,7 +22,7 @@ uses
      zstream, luafile, disassemblerComments, commonTypeDefs, lazutf8;
 
 
-var CurrentTableVersion: dword=32;
+var CurrentTableVersion: dword=33;
     lastLoadedTableVersion: dword;
     iscetrainer: integer=0;
 

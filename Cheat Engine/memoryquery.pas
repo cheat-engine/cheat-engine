@@ -277,8 +277,15 @@ begin
 
   if base=0 then exit;
 
-  minAddress:=base-$70000000; //let's add in some extra overhead to skip the last fffffff
-  maxAddress:=base+$70000000;
+  if base>$70000000 then
+    minAddress:=base-$70000000
+  else
+    minAddress:=$10000;
+
+  if base+$70000000>base then
+    maxAddress:=base+$70000000
+  else
+    maxAddress:=ptruint($ffffffffffff0000);
 
   if processhandler.is64Bit then
   begin
@@ -340,8 +347,11 @@ begin
           end;
 
           //if the difference is closer then use that
-          if abs(ptrInt(x-base))<abs(ptrInt(ptrUint(result)-base)) then
-            result:=pointer(x);
+          if result=nil then
+            result:=pointer(x)
+          else
+            if abs(ptrInt(x-base))<abs(ptrInt(ptrUint(result)-base)) then
+              result:=pointer(x);
         end;
         //nope
 
@@ -358,8 +368,10 @@ begin
           x:=x-(x mod systeminfo.dwAllocationGranularity);
         end;
 
-
-        if abs(ptrInt(x-base))<abs(ptrInt(ptrUint(result)-base)) then
+        if result=nil then
+          result:=pointer(x)
+        else
+        if (abs(ptrInt(x-base))<abs(ptrInt(ptrUint(result)-base))) then
           result:=pointer(x);
       end;
 

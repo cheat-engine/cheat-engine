@@ -57,6 +57,8 @@ function spawnDotNetSearchDialog(DataSource, frmDotNetInfo, searchtype)
       local r=searchresults[index]
       if r then
         --print(string.format('Domain %d Image %d Class %d', r.DomainIndex, r.ImageIndex, r.ClassIndex))
+        frmDotNetInfo.edtClassFilter.Text='' --remove the filter
+        
         frmDotNetInfo.lbDomains.ItemIndex=r.DomainIndex-1        
         frmDotNetInfo.lbImages.ItemIndex=r.ImageIndex-1
         
@@ -113,7 +115,6 @@ function spawnDotNetSearchDialog(DataSource, frmDotNetInfo, searchtype)
       local baseScanOnly=frmSearch.cbLimitToCurrentBase.checked
       local caseSensitive=frmSearch.cbCaseSensitive.checked
       local ImageListIndex=frmDotNetInfo.lbImages.ItemIndex
-      local ClassListIndex=frmDotNetInfo.lbClasses.ItemIndex
       
       if not caseSensitive then
         searchInput=searchInput:upper()
@@ -238,7 +239,7 @@ function spawnDotNetSearchDialog(DataSource, frmDotNetInfo, searchtype)
                 elseif searchtype==2 then
                   --method search
                   if DataSource.Domains[i].Images[j].Classes[k].Methods==nil then
-                    getClassFields(DataSource.Domains[i].Images[j].Classes[k])                                        
+                    DataSource.getClassFields(DataSource.Domains[i].Images[j].Classes[k])                                        
                   end
                   
                   for l=1,#DataSource.Domains[i].Images[j].Classes[k].Methods do
