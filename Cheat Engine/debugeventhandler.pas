@@ -237,7 +237,7 @@ begin
   WaitingToContinue:=true;
 
 
-  Outputdebugstring('HandleBreak()');
+ // Outputdebugstring('HandleBreak()');
 
   onContinueEvent.ResetEvent;
 

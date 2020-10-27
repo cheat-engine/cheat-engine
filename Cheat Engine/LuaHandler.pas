@@ -125,7 +125,7 @@ uses autoassembler, MainUnit, MainUnit2, LuaClass, frmluaengineunit, plugin, plu
   LuaManualModuleLoader, pointervaluelist, frmEditHistoryUnit, LuaCheckListBox,
   LuaDiagram, frmUltimap2Unit, frmcodefilterunit, BreakpointTypeDef, LuaSyntax,
   LazLogger, LuaSynedit, LuaRIPRelativeScanner, LuaCustomImageList ,ColorBox,
-  rttihelper, LuaDotNetPipe, LuaRemoteExecutor, windows7taskbar;
+  rttihelper, LuaDotNetPipe, LuaRemoteExecutor, windows7taskbar, debugeventhandler;
 
   {$warn 5044 off}
 
@@ -3421,8 +3421,11 @@ begin
   result:=1;
 end;
 
-function debug_setBreakpoint(L: Plua_State): integer; cdecl;
-var parameters: integer;
+
+function debug_setBreakpointForThread(L: Plua_State): integer; cdecl;
+var
+  threadid: dword;
+  parameters: integer;
   address: ptruint;
   size: integer;
   trigger: TBreakpointTrigger;
@@ -3441,24 +3444,25 @@ begin
   if parameters=0 then
     raise exception.create(rsDebugsetBreakpointNeedsAtLeastAnAddress);
 
-  address:=lua_toaddress(L,1);
+  threadid:=lua_tointeger(L,1);
+  address:=lua_toaddress(L,2);
 
-  if parameters>=2 then
+  if parameters>=3 then
   begin
-    if lua_isfunction(L,2) then //address, function type
+    if lua_isfunction(L,3) then //address, function type
     begin
-      lua_pushvalue(L,2);
+      lua_pushvalue(L,3);
       lc:=TLuaCaller.create;
       lc.luaroutineIndex:=luaL_ref(L,LUA_REGISTRYINDEX);
     end
     else
     begin
-      if lua_isnumber(L, 2) then
-        size:=lua_tointeger(L, 2)
+      if lua_isnumber(L, 3) then
+        size:=lua_tointeger(L, 3)
       else
       begin //function name as string
         lc:=TLuaCaller.create;
-        lc.luaroutine:=Lua_ToString(L,2);
+        lc.luaroutine:=Lua_ToString(L,3);
       end;
     end;
   end;
@@ -3467,39 +3471,20 @@ begin
 
   if lc=nil then  //address, size OPTIONAL, trigger OPTIONAL, method, functiontocall OPTIONAL
   begin
-    if parameters>=3 then
-      trigger:=TBreakpointTrigger(lua_tointeger(L,3))
+    if parameters>=4 then
+      trigger:=TBreakpointTrigger(lua_tointeger(L,4))
     else
       trigger:=bptExecute;
 
-    if parameters>=4 then
+    if parameters>=5 then
     begin
-      if lua_isnumber(L, 4) then //address, size OPTIONAL, trigger OPTIONAL, method
+      if lua_isnumber(L, 5) then //address, size OPTIONAL, trigger OPTIONAL, method
       begin
-        method:=TBreakpointMethod(lua_tointeger(L,4));
+        method:=TBreakpointMethod(lua_tointeger(L,5));
       end
       else
       begin
         //addresss, size, trigger, function
-        if lua_isfunction(L,4) then //address, function type
-        begin
-          lua_pushvalue(L,4);
-          lc:=TLuaCaller.create;
-          lc.luaroutineIndex:=luaL_ref(L,LUA_REGISTRYINDEX);
-        end
-        else
-        begin
-          lc:=TLuaCaller.create;
-          lc.luaroutine:=Lua_ToString(L,4);
-        end;
-      end;
-    end;
-
-
-    if lc=nil then
-    begin
-      if parameters>=5 then
-      begin
         if lua_isfunction(L,5) then //address, function type
         begin
           lua_pushvalue(L,5);
@@ -3510,6 +3495,25 @@ begin
         begin
           lc:=TLuaCaller.create;
           lc.luaroutine:=Lua_ToString(L,5);
+        end;
+      end;
+    end;
+
+
+    if lc=nil then
+    begin
+      if parameters>=6 then
+      begin
+        if lua_isfunction(L,6) then //address, function type
+        begin
+          lua_pushvalue(L,6);
+          lc:=TLuaCaller.create;
+          lc.luaroutineIndex:=luaL_ref(L,LUA_REGISTRYINDEX);
+        end
+        else
+        begin
+          lc:=TLuaCaller.create;
+          lc.luaroutine:=Lua_ToString(L,6);
         end;
 
       end;
@@ -3525,9 +3529,9 @@ begin
     if startdebuggerifneeded(false) then
     begin
       case trigger of
-        bptAccess: debuggerthread.SetOnAccessBreakpoint(address, size, method, 0, bpe);
-        bptWrite: debuggerthread.SetOnWriteBreakpoint(address, size, method, 0, bpe);
-        bptExecute: debuggerthread.SetOnExecuteBreakpoint(address, method,false, 0, bpe);
+        bptAccess: debuggerthread.SetOnAccessBreakpoint(address, size, method, threadid, bpe);
+        bptWrite: debuggerthread.SetOnWriteBreakpoint(address, size, method, threadid, bpe);
+        bptExecute: debuggerthread.SetOnExecuteBreakpoint(address, method,false, threadid, bpe);
       end;
 
       MemoryBrowser.hexview.update;
@@ -3539,6 +3543,13 @@ begin
 
 
   lua_pop(L, lua_gettop(L)); //clear the stack
+end;
+
+function debug_setBreakpoint(L: Plua_State): integer; cdecl;
+begin
+  lua_pushinteger(L,0);
+  lua_insert(L,1);
+  result:=debug_setBreakpointForThread(L);
 end;
 
 function debug_removeBreakpoint(L: Plua_State): integer; cdecl;
@@ -3556,6 +3567,43 @@ begin
   end;
 
   lua_pop(L, lua_gettop(L)); //clear the stack
+end;
+
+function debug_breakThread(L: Plua_State): integer; cdecl;
+var
+  threadid: dword;
+  threadlist: TList;
+  i: integer;
+begin
+  result:=0;
+
+  if lua_gettop(L)>0 then
+  begin
+    threadid:=lua_tointeger(L,1);
+    if not startdebuggerifneeded(false) then exit;
+
+    if debuggerthread<>nil then
+    begin
+      //find the thread
+
+      threadlist:=debuggerthread.lockThreadlist;
+      try
+        for i:=0 to threadlist.count-1 do
+        begin
+          if TDebugThreadHandler(threadlist[i]).ThreadId=threadid then
+          begin
+            TDebugThreadHandler(threadlist[i]).breakThread;
+            exit(0);
+          end;
+        end;
+      finally
+        debuggerthread.unlockThreadlist;
+      end;
+    end;
+
+  end;
+
+
 end;
 
 function debug_continueFromBreakpoint(L: Plua_State): integer; cdecl;
@@ -13132,8 +13180,10 @@ begin
     lua_register(L, 'debug_isDebugging', debug_isDebugging);
     lua_register(L, 'debug_getCurrentDebuggerInterface', debug_getCurrentDebuggerInterface);
     lua_register(L, 'debug_canBreak', debug_canBreak);
+    lua_register(L, 'debug_breakThread', debug_breakThread);
     lua_register(L, 'debug_isBroken', debug_isBroken);
     lua_register(L, 'debug_setBreakpoint', debug_setBreakpoint);
+    lua_register(L, 'debug_setBreakpointForThread', debug_setBreakpointForThread);
     lua_register(L, 'debug_removeBreakpoint', debug_removeBreakpoint);
     lua_register(L, 'debug_continueFromBreakpoint', debug_continueFromBreakpoint);
 
