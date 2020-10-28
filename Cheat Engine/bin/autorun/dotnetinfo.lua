@@ -361,7 +361,7 @@ local function ClassFetchWaitTillReadyAndSendData(thread, frmDotNetInfo, Image, 
     
     if j==10 then
       synchronize(OnDataFunction,thread, block, StartIndex)
-      StartIndex=j+1
+      StartIndex=i+1
       block={}      
     end
   end
@@ -637,6 +637,7 @@ local function ImageSelectionChange(frmDotNetInfo, sender)
     
     
     StartClassFetch(frmDotNetInfo, Image, function(thread, classlistchunk, StartIndex)
+      --print("StartIndex="..StartIndex)
       --executed every 10 lines or so, in the main thread
       local ClassFilterText=frmDotNetInfo.edtClassFilter.Text:upper()  --assume case insentivie
       local i
