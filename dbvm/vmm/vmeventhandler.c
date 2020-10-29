@@ -55,6 +55,21 @@ criticalSection TSCCS;
 int handle_rdtsc(pcpuinfo currentcpuinfo, VMRegisters *vmregisters);
 
 
+void incrementRIP(int count)
+{
+  if (!isAMD) //not used by AMD, it gets the new RIP explicitly
+  {
+    QWORD newRIP=vmread(vm_guest_rip)+count;
+
+    if (!IS64BITCODE(getcpuinfo()))
+      newRIP=newRIP & 0xffffffff;
+
+    vmwrite(vm_guest_rip,newRIP);
+  }
+}
+
+
+
 int raiseNMI(void)
 {
   VMEntry_interruption_information newintinfo;
@@ -1940,7 +1955,9 @@ int handleCPUID(VMRegisters *vmregisters)
 
   //TSCOffset+=cpuidTime;
 
-  vmwrite(vm_guest_rip,vmread(vm_guest_rip)+vmread(vm_exit_instructionlength));   //adjust eip to go after this instruction (we handled/emulated it)
+  incrementRIP(vmread(vm_exit_instructionlength));
+
+
 
   getcpuinfo()->lastTSCTouch=_rdtsc();
   return 0;

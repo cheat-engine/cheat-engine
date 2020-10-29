@@ -66,7 +66,7 @@ VMSTATUS handleInvalidEntryState(pcpuinfo currentcpuinfo,VMRegisters *vmregister
 
  // outportb(0x80,0xc2);
 
-  while (1) outportb(0x80,0xd4); //todo: remove on release
+ // while (1) outportb(0x80,0xd4); //todo: remove on release
 
 
   if (((guestrflags.TF) || (vmread(vm_guest_IA32_DEBUGCTL) & (1<<1))) && ((vmread(vm_pending_debug_exceptions) & (1<<14))==0))
@@ -89,6 +89,15 @@ VMSTATUS handleInvalidEntryState(pcpuinfo currentcpuinfo,VMRegisters *vmregister
 
 
     return VM_OK;
+  }
+
+  if (!IS64BITCODE(currentcpuinfo))
+  {
+    if (vmread(vm_guest_rip)>0xffffffff)
+    {
+      vmwrite(vm_guest_rip,vmread(vm_guest_rip)&0xffffffff);
+      return VM_OK;
+    }
   }
 
 
