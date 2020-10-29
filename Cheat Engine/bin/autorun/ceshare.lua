@@ -164,11 +164,22 @@ if f then
 else
   --first time setup, ask the user for a ceshare base url
   ceshare.initialSetup=createFormFromFile(ceshare.formpath..'InitialSetup.FRM')
+  
+
+  
   loadCEShareServerListInCombobox(ceshare.initialSetup.cbCEShareURL)
   ceshare.base=''  
   
   ceshare.initialSetup.Position='poScreenCenter'
+  
+      
+  ceshare.initialSetup.Constraints.MinWidth=MainForm.Width*1.2
+  ceshare.initialSetup.Constraints.MaxWidth=MainForm.Width*1.8
+  
   ceshare.initialSetup.AutoSize=true
+  
+
+
   ceshare.initialSetup.formStyle='fsStayOnTop'
   ceshare.initialSetup.btnOK.OnClick=function()
     if ceshare.initialSetup.cbCEShareURL.ItemIndex==-1 then
@@ -185,8 +196,21 @@ else
   end
   
   ceshare.initialSetup.btnCancel.OnClick=function() ceshare.initialSetup.close() end
+  ceshare.initialSetup.OnClose=function()
+    ceshare.initialSetup=nil
+    return caFree
+  end
+
+  --create an empty file so this will never be shown ever again  
+  local f=io.open(ceshare.path..[[server.txt]],'wb')
+  f:close()  
   
-  ceshare.initialSetup.show()
+  ceshare.initialSetup.show()  
+  ceshare.initialSetup.AutoSize=false
+  ceshare.initialSetup.Constraints.MinWidth=0
+  ceshare.initialSetup.Constraints.MaxWidth=0
+  
+
 end
 
 ceshare.ceversion=getCEVersion()
