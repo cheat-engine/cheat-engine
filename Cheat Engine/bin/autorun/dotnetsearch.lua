@@ -239,33 +239,35 @@ function spawnDotNetSearchDialog(DataSource, frmDotNetInfo, searchtype)
                 elseif searchtype==2 then
                   --method search
                   if DataSource.Domains[i].Images[j].Classes[k].Methods==nil then
-                    DataSource.getClassFields(DataSource.Domains[i].Images[j].Classes[k])                                        
+                    DataSource.getClassMethods(DataSource.Domains[i].Images[j].Classes[k])                                        
                   end
                   
-                  for l=1,#DataSource.Domains[i].Images[j].Classes[k].Methods do
-                    local name=DataSource.Domains[i].Images[j].Classes[k].Methods[l].Name
-                    if not caseSensitive then 
-                      name=name:upper()
-                    end
-                    
-                    if name:find(searchInput) then
-                      synchronize(function()
-                        if t.Terminated then return end
-                        --add to the list
-                        local li=frmSearch.lvResults.Items.add()
-                        li.Caption=DataSource.Domains[i].Images[j].FileName
-                        li.SubItems.add(DataSource.Domains[i].Images[j].Classes[k].Name)
-                        li.SubItems.add(DataSource.Domains[i].Images[j].Classes[k].Methods[l].Name)
-                        
-                        local e={}
-                        e.DomainIndex=i
-                        e.ImageIndex=j
-                        e.ClassIndex=k
-                        e.MethodIndex=l
-                        searchresults[li.Index+1]=e 
-                        
-                      end) 
-                    end
+                  if DataSource.Domains[i].Images[j].Classes[k].Methods then
+                    for l=1,#DataSource.Domains[i].Images[j].Classes[k].Methods do
+                      local name=DataSource.Domains[i].Images[j].Classes[k].Methods[l].Name
+                      if not caseSensitive then 
+                        name=name:upper()
+                      end
+                      
+                      if name:find(searchInput) then
+                        synchronize(function()
+                          if t.Terminated then return end
+                          --add to the list
+                          local li=frmSearch.lvResults.Items.add()
+                          li.Caption=DataSource.Domains[i].Images[j].FileName
+                          li.SubItems.add(DataSource.Domains[i].Images[j].Classes[k].Name)
+                          li.SubItems.add(DataSource.Domains[i].Images[j].Classes[k].Methods[l].Name)
+                          
+                          local e={}
+                          e.DomainIndex=i
+                          e.ImageIndex=j
+                          e.ClassIndex=k
+                          e.MethodIndex=l
+                          searchresults[li.Index+1]=e 
+                          
+                        end) 
+                      end
+                    end 
                   end                  
                 else
                   return --wtf                

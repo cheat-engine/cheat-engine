@@ -2050,6 +2050,12 @@ function mono_image_rva_map(image, offset)
 end
 
 function mono_string_readString(stringobject)
+  if stringobject==nil then
+    print("mono_string_readString called with nil")
+    print(debug.traceback())
+    return nil,'invalid parameter'
+  end
+
   local length,stringstart
   --printf("mono_string_readString(%x)",stringobject)
   if targetIs64Bit() then
@@ -2063,7 +2069,11 @@ function mono_string_readString(stringobject)
     stringstart=stringobject+0x10
   end
   
-  return readString(stringstart,length*2,true)  
+  if length==nil then
+    return string.format(translate('<Invalid string at %.8x>'), stringobject)
+  else  
+    return readString(stringstart,length*2,true)
+  end    
 end
 
 function mono_readObject()
