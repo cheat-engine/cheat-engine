@@ -609,6 +609,10 @@ int ept_cloak_deactivate(QWORD physicalAddress)
     }
 
     unmapPhysicalMemoryGlobal(cloakdata->Executable, 4096);
+
+    free(cloakdata->Data);
+    cloakdata->Data=NULL;
+
     free(cloakdata);
   }
 
