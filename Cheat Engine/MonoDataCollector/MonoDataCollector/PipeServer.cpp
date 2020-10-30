@@ -1945,7 +1945,29 @@ void CPipeServer::GetStaticFieldValue()
 	else
 	{
 		if (mono_field_static_get_value)
-			mono_field_static_get_value(Vtable, Field, &val);
+        {
+            if (mono_field_get_flags)
+            {
+                int flags=mono_field_get_flags(Field);
+                if (flags & 0x10) //0x10=FIELD_ATTRIBUTE_STATIC
+                {
+                    if (mono_vtable_get_static_field_data)
+                    {
+                        void *sfd=mono_vtable_get_static_field_data(Vtable);
+                        
+                        if (sfd>(void*)0x10000)
+                        {
+                             mono_field_static_get_value(Vtable, Field, &val);
+                            
+                        }
+                        
+                        
+                    }
+                    else
+                        mono_field_static_get_value(Vtable, Field, &val);
+                }
+            }
+        }
 	}
 
 	WriteQword(val);
