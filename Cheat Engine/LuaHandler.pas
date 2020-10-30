@@ -13043,16 +13043,19 @@ end;
 
 function lua_setProgressState(L: Plua_State): integer; cdecl;
 begin
+  {$ifdef windows}
   if lua_gettop(L)>=1 then
     SetProgressState(TTaskBarProgressState(lua_tointeger(L,1)));
-
+  {$endif}
   result:=0;
 end;
 
 function lua_setProgressValue(L: Plua_State): integer; cdecl;
 begin
+  {$ifdef windows}
   if lua_gettop(L)>=2 then
     SetProgressValue(lua_tointeger(L,1), lua_tointeger(L,2));
+  {$endif}
 
   result:=0;
 end;

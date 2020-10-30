@@ -6,7 +6,7 @@ interface
 
 uses
   {$ifdef darwin}
-  macport,
+  macport, lclproc,
   {$endif}
   {$ifdef windows}
   windows, imagehlp,
@@ -229,8 +229,8 @@ begin
 
 
   {$ifdef darwin}
-  Find1.Shortcut:=TextToShortCut('Meta+F');
-  CopySymbolName1:=TextToShortCut('Meta+C');
+  Find.Shortcut:=TextToShortCut('Meta+F');
+  CopySymbolName.Shortcut:=TextToShortCut('Meta+C');
   {$endif}
 end;
 

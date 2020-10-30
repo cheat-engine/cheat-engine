@@ -12,7 +12,9 @@
 #include "lobject.h"
 #include "ltm.h"
 #include "lzio.h"
-
+#ifndef WIN32
+#include <pthread.h>
+#endif
 
 #pragma pack(push, 8)
 
@@ -160,7 +162,11 @@ typedef struct global_State {
   TString *memerrmsg;  /* memory-error message */
   TString *tmname[TM_N];  /* array with tag-method names */
   struct Table *mt[LUA_NUMTAGS];  /* metatables for basic types */  
+#ifdef WIN32
   RCS lock;
+#else
+  pthread_mutex_t lock;
+#endif
   char lock_init;
 } global_State;
 

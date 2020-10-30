@@ -8,8 +8,10 @@
 #define LUA_CORE
 
 #include "lprefix.h"
-
+#ifdef WINDOWS
 #include <windows.h>
+#endif
+
 #include <stdarg.h>
 #include <string.h>
 

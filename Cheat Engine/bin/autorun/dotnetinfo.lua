@@ -1120,10 +1120,7 @@ local function setFieldValue(Field,Address,Value)
 end
 
 local function getStaticFieldValue(Field)
-
-
   if Field.Class.Image.Domain.Control==CONTROL_MONO then
-    outputDebugString("getting vtable")
     local vtable=mono_class_getVTable(Field.Class.Handle) --il2cpp returns 0, but is also doesn't need it
     
     --print("getting qvalue")
@@ -1442,7 +1439,8 @@ function miDotNetInfoClick(sender)
   --print("miDotNetInfoClick 2")
   if miMonoTopMenuItem and miMonoTopMenuItem.miMonoActivate.Visible and (monopipe==nil)  then
     --print("checking with getDotNetDataCollector().Attached")
-    if getDotNetDataCollector().Attached==false then --no .net and the user hasn't activated mono features. Do it for the user
+    local dndc=getDotNetDataCollector()
+    if dndc==nil or dndc.Attached==false then --no .net and the user hasn't activated mono features. Do it for the user
       --print("Launching mono data collector")
       LaunchMonoDataCollector()  
     end
@@ -1467,29 +1465,43 @@ function miDotNetInfoClick(sender)
   
   
   frmDotNetInfo.OnDestroy=function(f)
-    f.SaveFormPosition({
-      f.gbDomains.Width,    
-      f.gbImages.Width,
-      f.gbClasses.Width,
-      f.gbStaticFields.Height,
-      f.gbFields.Height,      
-      
-      --save the column widths
-      f.lvStaticFields.Columns[0].Width,
-      f.lvStaticFields.Columns[1].Width,
-      f.lvStaticFields.Columns[2].Width,      
-      f.lvStaticFields.Columns[3].Width,
-      
-      f.lvFields.Columns[0].Width,
-      f.lvFields.Columns[1].Width,
-      f.lvFields.Columns[2].Width,      
-      f.lvFields.Columns[3].Width,
-  
-      f.lvMethods.Columns[0].Width,
-      f.lvMethods.Columns[1].Width})
+    --print("destroy frmDotNetInfo")
+    --print("f.name=")
+    --printf(f.name)
     
+    local dataToSave= {
+        f.gbDomains.Width,
+        f.gbImages.Width,
+        f.gbClasses.Width,
+        f.gbStaticFields.Height,
+        f.gbFields.Height,
+        
+        --save the column widths
+        f.lvStaticFields.Columns[0].Width,
+        f.lvStaticFields.Columns[1].Width,
+        f.lvStaticFields.Columns[2].Width,
+        f.lvStaticFields.Columns[3].Width,
+        
+        f.lvFields.Columns[0].Width,
+        f.lvFields.Columns[1].Width,
+        f.lvFields.Columns[2].Width,
+        f.lvFields.Columns[3].Width,
+    
+        f.lvMethods.Columns[0].Width,
+        f.lvMethods.Columns[1].Width}
+        
+    --_G.dts=dataToSave
+        
+   -- print("after creating dataToSave")
+    f.SaveFormPosition(dataToSave)
+    
+   -- print("after f.SaveFormPosition")
     CancelClassFetch(frmDotNetInfos[f.Tag])
+    
+    --print("after CancelClassFetch")
     frmDotNetInfos[f.Tag]=nil
+    
+    --print("after frmDotNetInfos[f.Tag]=nil  wtf?")
   end
   
   frmDotNetInfo.miImageFind.OnClick=function(f)
@@ -1506,6 +1518,11 @@ function miDotNetInfoClick(sender)
   local formdata={}
   frmDotNetInfo.loadedFormPosition,formdata=frmDotNetInfo.LoadFormPosition()
   if frmDotNetInfo.loadedFormPosition then
+    print("Loaded form position")
+    if frmDotNetInfo.width>getScreenWidth() then
+      frmDotNetInfo.Width=getScreenWidth() * 0.9
+    end
+    
     if #formdata>=5 then
       frmDotNetInfo.gbDomains.Width=formdata[1]
       frmDotNetInfo.gbImages.Width=formdata[2]

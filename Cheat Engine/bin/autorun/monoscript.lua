@@ -1094,8 +1094,9 @@ function mono_class_getVTable(domain, klass)
   monopipe.writeQword(klass)
   
   result=monopipe.readQword()
-  
-  monopipe.unlock()
+  if monopipe then
+    monopipe.unlock()
+  end
   return result  
 end
 
