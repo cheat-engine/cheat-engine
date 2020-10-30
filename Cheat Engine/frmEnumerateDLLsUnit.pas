@@ -226,6 +226,12 @@ begin
     findpos.x:=x[0];
     findpos.y:=x[1];
   end;
+
+
+  {$ifdef darwin}
+  Find1.Shortcut:=TextToShortCut('Meta+F');
+  CopySymbolName1:=TextToShortCut('Meta+C');
+  {$endif}
 end;
 
 procedure TfrmEnumerateDLLs.FormDestroy(Sender: TObject);
