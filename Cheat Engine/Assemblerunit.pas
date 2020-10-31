@@ -18,7 +18,7 @@ uses
   dialogs,LCLIntf,sysutils{$ifdef windows},imagehlp{$endif}, ProcessHandlerUnit,vextypedef;
 {$endif}
 
-const opcodecount=1914;  //I wish there was a easier way than to handcount
+const opcodecount=1915;  //I wish there was a easier way than to handcount
   //1112
 
 
@@ -185,6 +185,7 @@ const opcodes: array [1..opcodecount] of topcode =(
   (mnemonic:'ADDSS';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m32;bytes:3;bt1:$f3;bt2:$0f;bt3:$58),
 
   (mnemonic:'ADDSUBPD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m128;bytes:3;bt1:$66;bt2:$0f;bt3:$d0),
+  (mnemonic:'ADDSUBPS';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m128;bytes:3;bt1:$f2;bt2:$0f;bt3:$d0),
   (mnemonic:'ADOX';opcode1:eo_reg;paramtype1:par_r32;paramtype2:par_rm32;bytes:4;bt1:$f3;bt2:$0f;bt3:$38;bt4:$f6),
   (mnemonic:'AESDEC';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m128;bytes:4;bt1:$66;bt2:$0f;bt3:$38;bt4:$de),
   (mnemonic:'AESDECLAST';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m128;bytes:4;bt1:$66;bt2:$0f;bt3:$38;bt4:$df),
