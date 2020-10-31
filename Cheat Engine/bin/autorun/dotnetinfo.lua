@@ -1143,7 +1143,7 @@ local function getStaticFieldValue(Field)
         
       
         if bt==nil then
-          print("bt = nil")
+          --print("bt = nil")
         else      
           local vs=reader(bt)
           if vs==nil then
@@ -1518,7 +1518,7 @@ function miDotNetInfoClick(sender)
   local formdata={}
   frmDotNetInfo.loadedFormPosition,formdata=frmDotNetInfo.LoadFormPosition()
   if frmDotNetInfo.loadedFormPosition then
-    print("Loaded form position")
+    --print("Loaded form position")
     if frmDotNetInfo.width>getScreenWidth() then
       frmDotNetInfo.Width=getScreenWidth() * 0.9
     end
