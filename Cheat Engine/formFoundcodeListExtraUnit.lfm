@@ -1,7 +1,7 @@
 object FormFoundCodeListExtra: TFormFoundCodeListExtra
-  Left = 507
+  Left = 867
   Height = 387
-  Top = 221
+  Top = 208
   Width = 625
   AutoSize = True
   Caption = 'Extra info'

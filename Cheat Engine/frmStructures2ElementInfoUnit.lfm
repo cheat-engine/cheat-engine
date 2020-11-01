@@ -1,7 +1,7 @@
 object frmStructures2ElementInfo: TfrmStructures2ElementInfo
-  Left = 442
+  Left = 386
   Height = 299
-  Top = 393
+  Top = 296
   Width = 314
   AutoSize = True
   BorderStyle = bsSingle
@@ -10,7 +10,7 @@ object frmStructures2ElementInfo: TfrmStructures2ElementInfo
   ClientWidth = 314
   OnCreate = FormCreate
   Position = poScreenCenter
-  LCLVersion = '1.6.0.4'
+  LCLVersion = '2.0.6.0'
   object Label1: TLabel
     AnchorSideLeft.Control = Label3
     AnchorSideTop.Control = edtOffset
@@ -184,7 +184,7 @@ object frmStructures2ElementInfo: TfrmStructures2ElementInfo
     Left = 20
     Height = 15
     Top = 83
-    Width = 26
+    Width = 24
     BorderSpacing.Top = 3
     Caption = 'Type'
     ParentColor = False
@@ -208,7 +208,7 @@ object frmStructures2ElementInfo: TfrmStructures2ElementInfo
     Left = 20
     Height = 19
     Top = 130
-    Width = 88
+    Width = 89
     BorderSpacing.Top = 8
     Caption = 'Hexadecimal'
     OnChange = cbHexadecimalChange
@@ -218,7 +218,7 @@ object frmStructures2ElementInfo: TfrmStructures2ElementInfo
     AnchorSideLeft.Control = cbHexadecimal
     AnchorSideLeft.Side = asrBottom
     AnchorSideTop.Control = cbHexadecimal
-    Left = 124
+    Left = 125
     Height = 19
     Top = 130
     Width = 56
@@ -295,7 +295,7 @@ object frmStructures2ElementInfo: TfrmStructures2ElementInfo
     Left = 20
     Height = 19
     Top = 239
-    Width = 253
+    Width = 254
     BorderSpacing.Top = 4
     BorderSpacing.Right = 20
     Caption = 'Expanding this node will change the address'
@@ -326,7 +326,7 @@ object frmStructures2ElementInfo: TfrmStructures2ElementInfo
       'ColorS=F0FBFF'
       'ColorT=A4A0A0'
     )
-    left = 180
-    top = 133
+    Left = 180
+    Top = 133
   end
 end

@@ -1,7 +1,7 @@
 object frmChangedAddresses: TfrmChangedAddresses
-  Left = 939
+  Left = 1525
   Height = 319
-  Top = 361
+  Top = 493
   Width = 389
   Caption = 'Changed Addresses'
   ClientHeight = 319
@@ -11,7 +11,7 @@ object frmChangedAddresses: TfrmChangedAddresses
   OnDestroy = FormDestroy
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '2.0.0.4'
+  LCLVersion = '2.0.6.0'
   object PanelAddressInfo: TPanel
     AnchorSideLeft.Control = Owner
     AnchorSideTop.Control = Owner
