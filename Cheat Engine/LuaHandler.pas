@@ -12076,7 +12076,7 @@ begin
   if pc<3 then exit;
 
 
-  if pc=4 then
+  if pc>=4 then
     method:=lua_tointeger(L,4)
   else
     method:=0;
