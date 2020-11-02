@@ -26,11 +26,9 @@ msgstr ""
 msgid "Version independent"
 msgstr ""
 
-#: frmCEShareCheatBrowser.Signed.Caption
-#msgid ""
-#msgstr ""
-
-#: frmCEShareCheatBrowser.Match.Caption
+# msgid ""
+# msgstr ""
+#: frmCEShareCheatBrowser.Signed.Caption frmCEShareCheatBrowser.Match.Caption
 msgid "% Match"
 msgstr ""
 
@@ -71,6 +69,7 @@ msgid "Login to see more options"
 msgstr ""
 
 #: frmCEShareCheatBrowser.miUpdateTable.Caption
+#: frmCEShareUpdateOrNew_1.btnChoose.Caption
 msgid "Update table"
 msgstr ""
 
@@ -107,7 +106,10 @@ msgid "By entering a CEShare URL you will be able to upload and download Cheat T
 msgstr ""
 
 #: ceshare_initiaISetup.CELabel3.Caption
-msgid "Disclaimer: These are third-party servers. They are not owned or maintained by the Cheat Engine project, and no warranty or responsiblity regarding their content is given. \n\nPlease contact the respective server owner for further inquiries."
+msgid ""
+"Disclaimer: These are third-party servers. They are not owned or maintained by the Cheat Engine project, and no warranty or responsiblity regarding their content is given.  DMCA Claims need to be send to the appropriate administrator of the server who will be reachable by the link in the bottom right part of a cheat table entry\n"
+"\n"
+"Please contact the respective server owner for further inquiries."
 msgstr ""
 
 #: ceshare_initiaISetup.CELabel4.Caption
@@ -174,10 +176,6 @@ msgstr ""
 msgid "Publish new table"
 msgstr ""
 
-#: frmCEShareUpdateOrNew_1.btnChoose.Caption
-msgid "Update table"
-msgstr ""
-
 #: ceshare_permissions.Caption
 msgid "Update Permissions"
 msgstr ""
@@ -212,6 +210,10 @@ msgstr ""
 
 #: miLoginToSeeMoreOptions.Caption
 msgid "Publish/Update table"
+msgstr ""
+
+#: miViewAllTables.Caption
+msgid "View all available tables"
 msgstr ""
 
 #: sf.SettingsTreeView.Items.insert
@@ -323,7 +325,7 @@ msgid "Invalid background update query list"
 msgstr ""
 
 #: ceshare_publish
-msgid "Are you sure you wish to let \'Everyone\' overwrite your table in the ceshare system ?"
+msgid "Are you sure you wish to let 'Everyone' overwrite your table in the ceshare system ?"
 msgstr ""
 
 #: ceshare_publish
@@ -352,4 +354,24 @@ msgstr ""
 
 #: ceshare_requests
 msgid "Score="
+msgstr ""
+
+#: ceshare_fulltablelist
+msgid "  and %d more tables..."
+msgstr ""
+
+#: ceshare_fulltablelist
+msgid "All tables"
+msgstr ""
+
+#: ceshare_fulltablelist
+msgid "Search:"
+msgstr ""
+
+#: ceshare_fulltablelist
+msgid "Previous (25)"
+msgstr ""
+
+#: ceshare_fulltablelist
+msgid "Next (25)"
 msgstr ""
