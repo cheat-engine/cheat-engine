@@ -1,11 +1,11 @@
 msgid ""
 msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
-"Project-Id-Version: Cheat Engine 7.1 RU\n"
+"Project-Id-Version: Cheat Engine 7.2 RU\n"
 "Language-Team: SER[G]ANT <rzn.dsa@gmail.com>\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Language: ru_RU\n"
-"X-Generator: Poedit 2.2.3\n"
+"X-Generator: Poedit 2.4.1\n"
 "POT-Creation-Date: \n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
@@ -36,8 +36,8 @@ msgid "This means that you will need a new cpu (intel) to be able to use the adv
 msgstr "Для использования дополнительных настроек DBVM, вам нужен новый процессор (Intel)"
 
 #: aboutunit.rsyoursystemdoesnotsupportdbvm
-msgid "Your system DOES NOT support DBVM"
-msgstr "Ваша система НЕ поддерживает DBVM"
+msgid "Your system does not support DBVM. Perhaps it is already inside a VM"
+msgstr "Ваша система не поддерживает DBVM. "
 
 #: aboutunit.rsyoursystemisrunningdbvmversion
 msgid "Your system is running DBVM version %s"
@@ -457,6 +457,10 @@ msgstr "Определение «%s» уже определено"
 msgid "Error in line %s (%s) :%s"
 msgstr "Ошибка в строке %s (%s): %s"
 
+#: autoassembler.rsfailurealloc
+msgid "Failure allocating memory near %.8x"
+msgstr "Неудачное выделение памяти около %.8x"
+
 #: autoassembler.rsfailuretoallocatememory
 msgid "Failure to allocate memory"
 msgstr "Не удалось выделить память"
@@ -508,6 +512,10 @@ msgstr "{$TRY} в строке %d не совпадает с {$EXCEPT}"
 #: autoassembler.rsneedtousekernelmodereadwriteprocessmemory
 msgid "You need to use kernelmode read/writeprocessmemory if you want to use KALLOC"
 msgstr "Если вы хотите воспользоваться KALLOC, вам нужно использовать read/writeprocessmemory режима ядра"
+
+#: autoassembler.rsnopreferedrangeallocwarning
+msgid "None of the ALLOC statements specify a prefered address.  Did you take into account that the JMP instruction is going to be 14 bytes long?"
+msgstr "Ни в одной из функций ALLOC не указан предпочтительный адрес. Вы учли, что инструкция JMP будет иметь длину 14 байт?"
 
 #: autoassembler.rsnotallinstructionscouldbeinjected
 msgid "Not all instructions could be injected"
@@ -1366,6 +1374,10 @@ msgstr "Инструкция"
 msgid "Please open a process first"
 msgstr "Сначала откройте процесс"
 
+#: disassemblerviewunit.rsstructuresarebeingparsed
+msgid "Structures are being parsed"
+msgstr "Идёт анализ структур"
+
 #: disassemblerviewunit.rssymbolsarebeingloaded
 msgid "Symbols are being loaded (%d %%)"
 msgstr "Символы загружаются (%d %%)"
@@ -1377,6 +1389,10 @@ msgstr "Неверный файл анализа кода"
 #: dissectcodethread.rstdissectcodethreadgetcalllistcalledwithanonemptylist
 msgid "TDissectCodeThread.getCallList called with a non empty list"
 msgstr "TDissectCodeThread.getCallList был вызван с непустым списком"
+
+#: dissectcodeunit.rsdissectdataloaded
+msgid "Dissect data loaded"
+msgstr "Анализ данных загружен"
 
 #: dissectcodeunit.rsdone
 msgctxt "dissectcodeunit.rsdone"
@@ -1414,6 +1430,7 @@ msgid "4 Byte (Signed)"
 msgstr "4 Байта (Знаковое)"
 
 #: dotnettypes.rsdnt8byte
+msgctxt "dotnettypes.rsdnt8byte"
 msgid "8 Byte"
 msgstr "8 Байт"
 
@@ -1691,11 +1708,20 @@ msgstr "Указанный диапазон недопустим"
 
 #: formaddresschangeunit.rsacaddoffset
 msgid "Add Offset"
-msgstr "+Смещение"
+msgstr "Добавить смещение"
+
+#: formaddresschangeunit.rsacaddoffsethint
+msgid "Click: Add New Offset. Ctrl+Click: Add New Offset to the opposite location"
+msgstr "Клик: Добавить новое смещение. Ctrl+Клик: Добавить новое смещение в противоположное место"
 
 #: formaddresschangeunit.rsacremoveoffset
+msgctxt "formaddresschangeunit.rsacremoveoffset"
 msgid "Remove Offset"
-msgstr "-Смещение"
+msgstr "Убрать смещение"
+
+#: formaddresschangeunit.rsacremoveoffsethint
+msgid "Click: Remove Offset. Ctrl+Click: Remove Offset from the opposite location"
+msgstr "Клик: Удалить смещение. Ctrl+Клик: Удалить смещение из противоположного расположения"
 
 #: formaddresschangeunit.rsaddressofpointer
 msgid "Address of pointer"
@@ -1798,6 +1824,7 @@ msgid "There are no addresses left for group %d"
 msgstr "Нет адресов для группы %d"
 
 #: formchangedaddresses.rsnodescription
+msgctxt "formchangedaddresses.rsnodescription"
 msgid "No Description"
 msgstr "Нет описания"
 
@@ -2364,6 +2391,18 @@ msgstr "Конечный адрес"
 msgid "ERROR: Could not find unique AOB, tried code \""
 msgstr "ОШИБКА: Не удалось найти уникальный массив байт. Испытанный код «"
 
+#: frmautoinjectunit.rserrorinscript
+msgid "Error in script %s : %s"
+msgstr "Ошибка в скрипте %s : %s"
+
+#: frmautoinjectunit.rserrorinscriptnotab
+msgid "Error in script : %s"
+msgstr "Ошибка в скрипте : %s"
+
+#: frmautoinjectunit.rseverythingok
+msgid "Everything ok"
+msgstr "Всё в порядке"
+
 #: frmautoinjectunit.rsexecutescript
 msgid "Execute script"
 msgstr "Выполнить скрипт"
@@ -2400,6 +2439,10 @@ msgstr "LUA Скрипт (*.LUA)|*.LUA|Все файлы ( *.* )|*.*"
 msgid "LUA Script"
 msgstr "LUA Скрипт"
 
+#: frmautoinjectunit.rsnewnamequestion
+msgid "What should the new name be?"
+msgstr "Каким должно быть новое имя?"
+
 #: frmautoinjectunit.rsnotallcodeisinjectable
 msgid ""
 "Not all code is injectable.\n"
@@ -2413,6 +2456,10 @@ msgstr ""
 #: frmautoinjectunit.rsonwhataddressdoyouwantthejump
 msgid "On what address do you want the jump?"
 msgstr "На каком адресе вы хотите установить переход?"
+
+#: frmautoinjectunit.rsrenametab
+msgid "Rename tab"
+msgstr "Переименовать вкладку"
 
 #: frmautoinjectunit.rsscript
 msgid "Script "
@@ -2458,6 +2505,11 @@ msgstr "Остановить"
 #: frmbreakpointlistunit.rsbpareyousureyouwishtochangethistoapegewidebp
 msgid "Are you sure you wish to change this to a pagewide breakpoint?"
 msgstr "Вы уверены, что хотите изменить ширину страницы брейкпоинтов?"
+
+#: frmchangedaddressescommonalityscannerunit.rsbaseaddress
+msgctxt "frmchangedaddressescommonalityscannerunit.rsbaseaddress"
+msgid "Base Address"
+msgstr "Базовый адрес"
 
 #: frmchangedaddressescommonalityscannerunit.rsdblclicklaunchcomp
 msgid "Doubleclick to launch structure compare"
@@ -3053,6 +3105,19 @@ msgstr "«Наблюдатель процесса»: ошибка потока: 
 msgid "ThreadID:"
 msgstr "Идентификатор Потока:"
 
+#: frmregistersunit.rslabelregisterhint
+msgid ""
+"DoubleClick: Browse this memory region.\n"
+"Right Mouse Click: Register Value will be copied to Clipboard and Context Menu will open.\n"
+msgstr ""
+"Двойной клик: Просмотр этого региона памяти\n"
+"Клик правой кнопки мыши: Значение регистра будет скопировано в буфер обмена и откроется контекстное меню.\n"
+
+#: frmregistersunit.rsnodescription
+msgctxt "frmregistersunit.rsnodescription"
+msgid "No Description"
+msgstr "Нет описания"
+
 #: frmrescanpointerunit.rsadd
 msgctxt "frmrescanpointerunit.rsadd"
 msgid "Add"
@@ -3541,6 +3606,10 @@ msgstr "Не удалось открыть дескриптор"
 msgid "Current"
 msgstr "Текущий"
 
+#: frmthreadlistunit.rsentrypoint
+msgid "Entry Point"
+msgstr "Точка Входа"
+
 #: frmthreadlistunit.rspleasefirstattachthedebuggertothisprocess
 msgid "Please first attach the debugger to this process"
 msgstr "Сначала присоедините отладчик к этому процессу"
@@ -3597,8 +3666,12 @@ msgid "Search"
 msgstr "Поиск"
 
 #: frmtracerunit.rstypetheluaconditionyouwanttosearchforexampleeax0x1
-msgid "Type the (LUA) condition you want to search for (Example: EAX==0x1234)"
-msgstr "Введите условие (LUA), которое вы хотите найти (Пример: EAX==0x1234)"
+msgid ""
+"Type the (LUA) condition you want to search for (Example: EAX==0x1234)    \n"
+"Also available: referencedAddress (integer), referencedBytes (bytetable), instruction (string)\n"
+msgstr ""
+"Введите условие (LUA), которое вы хотите найти(Пример: EAX == 0x1234)\n"
+"Также доступно: referencedAddress (целое число), referencedBytes (байты), instruction (строка).\n"
 
 #: frmultimap2unit.rscantbeparsed
 msgid "\" can't be parsed"
@@ -4248,6 +4321,11 @@ msgstr "и"
 msgid "April fools!!!!"
 msgstr "Первоапрельский дурак!!!!"
 
+#: mainunit.rsareyousure
+msgctxt "mainunit.rsareyousure"
+msgid "Are you sure?"
+msgstr "Вы уверены?"
+
 #: mainunit.rsareyousureyouwanttodelete
 msgctxt "mainunit.rsareyousureyouwanttodelete"
 msgid "Are you sure you want to delete %s?"
@@ -4294,6 +4372,10 @@ msgstr "Изменить значение"
 #: mainunit.rschooselanguage
 msgid "Which language do you wish to use?"
 msgstr "Какой язык вы хотите использовать?"
+
+#: mainunit.rsclearrecentfiles
+msgid "Empty Recent Files List"
+msgstr "Очистить список последних файлов"
 
 #: mainunit.rscomparetosavedscan
 msgctxt "mainunit.rscomparetosavedscan"
@@ -4524,17 +4606,17 @@ msgstr "Переименовать"
 msgid "Rename file"
 msgstr "Переименовать файл"
 
-#: mainunit.rsrequiresdbvmcapableintelcpu
-msgid "This function requires an Intel CPU with virtualization support. If your system has that then make sure that you're currently not running inside a virtual machine. (Windows has some security features that can run programs inside a VM)"
-msgstr "Для этой функции требуется процессор Intel с поддержкой виртуализации. Если ваша система имеет такую поддержку, убедитесь, что в данный момент вы не работаете внутри виртуальной машины. (Windows имеет некоторые функции безопасности, которые могут запускать программы внутри виртуальной машины)"
+#: mainunit.rsrequiresdbvmcapablecpu
+msgid "This function requires an CPU with virtualization support. If your system has that then make sure that you're currently not running inside a virtual machine. (Windows has some security features that can run programs inside a VM)"
+msgstr "Для этой функции требуется процессор с поддержкой виртуализации. Если ваша система имеет такую поддержку, убедитесь, что в данный момент вы не работаете внутри виртуальной машины. (Windows имеет некоторые функции безопасности, которые могут запускать программы внутри виртуальной машины)"
 
 #: mainunit.rsrequiresdbvmept
-msgid "DBVM find routines needs DBVM for EPT page hooking. Loading DBVM can potentially cause a system freeze. Are you sure?"
-msgstr "Процедура DBVM поиска требует запуска самой DBVM для перехвата EPT страниц. Загрузка DBVM может привести к зависанию системы. Вы уверены?"
+msgid "DBVM find routines needs DBVM for EPT/NP page hooking. Loading DBVM can potentially cause a system freeze. Are you sure?"
+msgstr "Процедура DBVM поиска требует запуска самой DBVM для перехвата EPT/NP страниц. Загрузка DBVM может привести к зависанию системы. Вы уверены?"
 
 #: mainunit.rsrequiresept
-msgid "This function requires that your CPU supports 'Extended Page Table (EPT)' which your CPU lacks"
-msgstr "Эта функция требует процессора поддерживающего «Расширенную таблицу страниц (EPT)»"
+msgid "This function requires that your CPU supports 'Intel Extended Page Table (EPT) or AMD Nested Paging' which your CPU lacks"
+msgstr "Эта функция требует процессора поддерживающего «Расширенную таблицу страниц (EPT)» или «Вложенный пейджинг(NP)»"
 
 #: mainunit.rsrestoreandshow
 msgid "Restore and show"
@@ -5230,6 +5312,10 @@ msgstr "Не понятно, что вы имели в виду, написав 
 msgid "Inject dll"
 msgstr "Инъекция dll"
 
+#: memorybrowserformunit.rsinjectdylib
+msgid "Inject DYLIB"
+msgstr "Инъекция DYLIB"
+
 #: memorybrowserformunit.rsinputtheassemblycodetofindwilcardssupported
 msgid "Input the assembly code to find. Wildcards( * ) supported."
 msgstr "Укажите инструкцию для поиска. Поддерживается подстановочный знак ( * )"
@@ -5391,6 +5477,10 @@ msgstr "Вы хотите задать дополнительный 32-битн�
 msgctxt "memoryrecordunit.rsactivate"
 msgid "Activate"
 msgstr "Активация"
+
+#: memoryrecordunit.rsadjustmrwithrelativeaddress
+msgid "Do you wish to adjust memory records with relative addresses as well?"
+msgstr "Вы хотите также настроить записи в памяти с относительными адресами?"
 
 #: memoryrecordunit.rsdeactivate
 msgctxt "memoryrecordunit.rsdeactivate"
@@ -5620,6 +5710,10 @@ msgstr "%s не содержит необходимую информацию о 
 #: opensave.rserrorexecutingthistablesluascript
 msgid "Error executing this table's lua script: %s"
 msgstr "Ошибка выполнения lua скрипта: %s"
+
+#: opensave.rserrorexecutingthistablesluascriptentry
+msgid "Error executing this table's lua script named %s: %s"
+msgstr "Ошибка выполнения lua скрипта в этой таблице с именем %s: %s"
 
 #: opensave.rserrorsaving
 msgid "Error saving..."
@@ -6512,6 +6606,7 @@ msgid "Are you sure you wish you force a disconnect. The current paths will be l
 msgstr "Вы уверены, что хотите принудительно отключиться? Текущие цепочки будут потеряны"
 
 #: pointerscannerfrm.rsbaseaddress
+msgctxt "pointerscannerfrm.rsbaseaddress"
 msgid "Base Address"
 msgstr "Базовый адрес"
 
@@ -6660,6 +6755,10 @@ msgstr " (Простаивающий)"
 #: pointerscannerfrm.rspsimporting
 msgid "Importing..."
 msgstr "Импортирование..."
+
+#: pointerscannerfrm.rspsimporting_sortmethod
+msgid "Do you wish to use offsets sum for sorting?"
+msgstr "Использовать сумму смещений для сортировки?"
 
 #: pointerscannerfrm.rspsimporting_sortornot
 msgid "Do you wish to sort pointerlist by level, then module, then offsets?"
@@ -7388,6 +7487,10 @@ msgctxt "structuresfrm2.rsdoyouwantcheatenginetotryandfillinthemostbasictype"
 msgid "Do you want Cheat Engine to try and fill in the most basic types of the struct using the current address?"
 msgstr "Вы хотите, чтобы Cheat Engine заполнил основные типы структур, используя текущий адрес?"
 
+#: structuresfrm2.rsfillintheoffsetyouwanttogoto
+msgid "Fill in the Offset you want to go to"
+msgstr "Заполните поле «Смещение», на которое требуется перейти"
+
 #: structuresfrm2.rsfirstselectastructureyouwanttomodifyordefine
 msgctxt "structuresfrm2.rsfirstselectastructureyouwanttomodifyordefine"
 msgid "First select a structure you want to modify or define one first"
@@ -7412,6 +7515,10 @@ msgstr "Укажите название для этой структуры"
 msgctxt "structuresfrm2.rsgivethenewnameofthisstructure"
 msgid "Give the new name of this structure"
 msgstr "Укажите новое название для этой структуры"
+
+#: structuresfrm2.rsgotooffset
+msgid "Go to Offset"
+msgstr "Перейти к смещению"
 
 #: structuresfrm2.rshex
 msgid "(Hex)"
@@ -8045,10 +8152,20 @@ msgctxt "tformaddresschange.cbcodepage.caption"
 msgid "Codepage"
 msgstr "Кодовая страница"
 
+#: tformaddresschange.cbhex.caption
+msgctxt "tformaddresschange.cbhex.caption"
+msgid "Hexadecimal"
+msgstr "Шестнадцатиричное"
+
 #: tformaddresschange.cbpointer.caption
 msgctxt "tformaddresschange.cbpointer.caption"
 msgid "Pointer"
 msgstr "Указатель"
+
+#: tformaddresschange.cbsigned.caption
+msgctxt "tformaddresschange.cbsigned.caption"
+msgid "Signed"
+msgstr "Знаковое"
 
 #: tformaddresschange.cbunicode.caption
 msgctxt "TFORMADDRESSCHANGE.CBUNICODE.CAPTION"
@@ -8060,24 +8177,24 @@ msgctxt "tformaddresschange.cbvartype.text"
 msgid "4 Bytes"
 msgstr "4 Байта"
 
-#: tformaddresschange.label1.caption
-msgctxt "tformaddresschange.label1.caption"
-msgid "Address:"
-msgstr "Адрес:"
-
-#: tformaddresschange.label12.caption
-msgctxt "tformaddresschange.label12.caption"
-msgid "Type"
-msgstr "Тип"
-
 #: tformaddresschange.label2.caption
 msgid "Startbit:"
 msgstr "Стартовый бит:"
 
-#: tformaddresschange.label3.caption
-msgctxt "tformaddresschange.label3.caption"
+#: tformaddresschange.labeladdress.caption
+msgctxt "tformaddresschange.labeladdress.caption"
+msgid "Address:"
+msgstr "Адрес:"
+
+#: tformaddresschange.labeldescription.caption
+msgctxt "tformaddresschange.labeldescription.caption"
 msgid "Description"
 msgstr "Описание"
+
+#: tformaddresschange.labeltype.caption
+msgctxt "tformaddresschange.labeltype.caption"
+msgid "Type"
+msgstr "Тип"
 
 #: tformaddresschange.lblvalue.caption
 msgid "=Value"
@@ -8093,10 +8210,22 @@ msgctxt "TFORMADDRESSCHANGE.MIADDADDRESSTOLIST.CAPTION"
 msgid "Add this address to the list"
 msgstr "Добавить этот адрес в таблицу"
 
+#: tformaddresschange.miaddoffsetabove.caption
+msgid "Add Offset Above"
+msgstr "Добавить смещение выше"
+
+#: tformaddresschange.miaddoffsetbelow.caption
+msgid "Add Offset Below"
+msgstr "Добавить смещение ниже"
+
 #: tformaddresschange.micopy.caption
 msgctxt "TFORMADDRESSCHANGE.MICOPY.CAPTION"
 msgid "Copy"
 msgstr "Копировать"
+
+#: tformaddresschange.micopyaddresstoclipboard.caption
+msgid "Copy this address to Clipboard"
+msgstr "Скопировать этот адрес в буфер обмена"
 
 #: tformaddresschange.micut.caption
 msgctxt "TFORMADDRESSCHANGE.MICUT.CAPTION"
@@ -8107,6 +8236,11 @@ msgstr "Вырезать"
 msgctxt "TFORMADDRESSCHANGE.MIPASTE.CAPTION"
 msgid "Paste"
 msgstr "Вставить"
+
+#: tformaddresschange.miremoveoffset.caption
+msgctxt "tformaddresschange.miremoveoffset.caption"
+msgid "Remove Offset"
+msgstr "Удалить смещение"
 
 #: tformaddresschange.miupdateafterinterval.caption
 msgid "Only update the offset after a specific amount of time"
@@ -8946,6 +9080,7 @@ msgid "(Can affect scan speed a lot)"
 msgstr "(Может сильно повлиять на скорость поиска)"
 
 #: tformsettings.label16.caption
+msgctxt "tformsettings.label16.caption"
 msgid "When a table has a lua script, execute it:"
 msgstr "Выполнять lua скрипт, если он присутствует в таблице:"
 
@@ -9074,6 +9209,7 @@ msgid "Always"
 msgstr "Всегда"
 
 #: tformsettings.miluaexecask.caption
+msgctxt "tformsettings.miluaexecask.caption"
 msgid "Always ask"
 msgstr "Всегда спрашивать"
 
@@ -9083,6 +9219,7 @@ msgid "Never"
 msgstr "Никогда"
 
 #: tformsettings.miluaexecsignedonly.caption
+msgctxt "tformsettings.miluaexecsignedonly.caption"
 msgid "Only when signed, else ask"
 msgstr "Только если есть подпись, иначе спрашивать"
 
@@ -9590,8 +9727,8 @@ msgstr "Перехват API"
 msgid "Assign to current cheat table"
 msgstr "Добавить к текущей таблице"
 
-#: tfrmautoinject.button1.caption
-msgctxt "tfrmautoinject.button1.caption"
+#: tfrmautoinject.btnexecute.caption
+msgctxt "tfrmautoinject.btnexecute.caption"
 msgid "Execute"
 msgstr "Выполнить"
 
@@ -9687,6 +9824,24 @@ msgctxt "tfrmautoinject.mifindnext.caption"
 msgid "Find Next"
 msgstr "Найти далее"
 
+#: tfrmautoinject.miluasyntaxcheck.caption
+msgctxt "tfrmautoinject.miluasyntaxcheck.caption"
+msgid "Syntax Check"
+msgstr "Проверка синтаксиса"
+
+#: tfrmautoinject.mimoveleft.caption
+msgid "Move left"
+msgstr "Переместить влево"
+
+#: tfrmautoinject.mimoveright.caption
+msgid "Move right"
+msgstr "Переместить вправо"
+
+#: tfrmautoinject.minewtab.caption
+msgctxt "tfrmautoinject.minewtab.caption"
+msgid "New Tab"
+msgstr "Новая вкладка"
+
 #: tfrmautoinject.minewwindow.caption
 msgctxt "tfrmautoinject.minewwindow.caption"
 msgid "New Window"
@@ -9702,6 +9857,11 @@ msgctxt "tfrmautoinject.miredo.caption"
 msgid "Redo"
 msgstr "Вернуть"
 
+#: tfrmautoinject.mirenametab.caption
+msgctxt "tfrmautoinject.mirenametab.caption"
+msgid "Rename"
+msgstr "Переименовать"
+
 #: tfrmautoinject.mireplace.caption
 msgctxt "tfrmautoinject.mireplace.caption"
 msgid "Replace"
@@ -9711,10 +9871,6 @@ msgstr "Заменить"
 msgctxt "tfrmautoinject.miundo.caption"
 msgid "&Undo"
 msgstr "&Отменить"
-
-#: tfrmautoinject.new1.caption
-msgid "New Tab"
-msgstr "Новая вкладка"
 
 #: tfrmautoinject.opendialog1.title
 msgctxt "tfrmautoinject.opendialog1.title"
@@ -10065,26 +10221,53 @@ msgctxt "tfrmchangedaddresses.changedlist.columns[2].caption"
 msgid "Count"
 msgstr "Хиты"
 
-#: tfrmchangedaddresses.lblinfo.caption
-msgid "The following addresses have been changed by the code you selected"
-msgstr "Следующие адреса были изменены выбранной вами инструкцией"
+#: tfrmchangedaddresses.labelcodeaddress.caption
+msgid "Code Address"
+msgstr "Адрес кода"
 
-#: tfrmchangedaddresses.menuitem1.caption
-msgid "Copy address to clipboard"
-msgstr "Копировать адрес в буфер обмена"
+#: tfrmchangedaddresses.lblinfo.caption
+msgid "The following addresses have been accessed by the code you selected"
+msgstr "К следующим адресам был получен доступ по выбранному вами коду"
 
 #: tfrmchangedaddresses.micbshowashexadecimal.caption
 msgctxt "tfrmchangedaddresses.micbshowashexadecimal.caption"
 msgid "Show as hexadecimal"
 msgstr "Показать как шестнадцатеричное"
 
+#: tfrmchangedaddresses.michangevalue.caption
+msgctxt "tfrmchangedaddresses.michangevalue.caption"
+msgid "Change value"
+msgstr "Изменение адреса"
+
+#: tfrmchangedaddresses.micodeaddressbrowsememoryregion.caption
+msgid "Browse Memory Region"
+msgstr "Просмотреть регион памяти"
+
+#: tfrmchangedaddresses.micodeaddresscopy.caption
+msgid "Copy Code Address to Clipboard"
+msgstr "Копировать адрес кода в буфер обмена"
+
+#: tfrmchangedaddresses.micodeaddressdisassemblememoryregion.caption
+msgid "Disassemble Memory Region"
+msgstr "Разобрать область памяти"
+
 #: tfrmchangedaddresses.micommonalitiessubgroup.caption
 msgid "Find commonalities between addresses"
 msgstr "Найти совпадения между адресами"
 
+#: tfrmchangedaddresses.micopyaddresstoclipboard.caption
+msgctxt "tfrmchangedaddresses.micopyaddresstoclipboard.caption"
+msgid "Copy address to clipboard"
+msgstr "Копировать адрес в буфер обмена"
+
 #: tfrmchangedaddresses.micopytoaddresslist.caption
 msgid "Copy selected addresses to addresslist"
 msgstr "Копировать выбранные адреса в таблицу"
+
+#: tfrmchangedaddresses.micopyvaluetoclipboard.caption
+msgctxt "tfrmchangedaddresses.micopyvaluetoclipboard.caption"
+msgid "Copy value to clipboard"
+msgstr "Копировать значение в буфер обмена"
 
 #: tfrmchangedaddresses.mideleteselectedentries.caption
 msgid "Delete selected entries"
@@ -11089,6 +11272,10 @@ msgstr "Подтвердить"
 #: tfrmfoundlistpreferences.caption
 msgid "Foundlist Customizer"
 msgstr "Настройщик списка"
+
+#: tfrmfoundlistpreferences.cbshowstaticasstatic.caption
+msgid "Show static addresses using their static notation"
+msgstr "Показывать статические адреса с помощью их статической нотации"
 
 #: tfrmfoundlistpreferences.label1.caption
 msgid "Static"
@@ -14230,7 +14417,7 @@ msgstr "Отмена"
 
 #: tfrmstructurelinker.btnlink.caption
 msgid "Link"
-msgstr "Связать"
+msgstr "Связь"
 
 #: tfrmstructurelinker.caption
 msgid "Structure linker"
@@ -14305,13 +14492,13 @@ msgstr "Сохранить значения"
 msgid "Add new group"
 msgstr "Добавить новую группу"
 
-#: tfrmstructures2.menuitem6.caption
-msgid "Find value"
-msgstr "Найти значение"
-
 #: tfrmstructures2.menuitem8.caption
 msgid "Rearrange structurelist"
 msgstr "Упорядочить список структур"
+
+#: tfrmstructures2.miaddallinrowtoaddresslist.caption
+msgid "Add all in row to address list"
+msgstr "Добавить всё в строке в список адресов"
 
 #: tfrmstructures2.miaddchildelement.caption
 msgid "Add child element"
@@ -14365,6 +14552,11 @@ msgctxt "TFRMSTRUCTURES2.MIBROWSEPOINTER.CAPTION"
 msgid "Memory browse pointer"
 msgstr "Перейти в память по указателю"
 
+#: tfrmstructures2.michangeallvaluesinrow.caption
+msgctxt "tfrmstructures2.michangeallvaluesinrow.caption"
+msgid "Change all values in row"
+msgstr "Изменить все значения в строке"
+
 #: tfrmstructures2.michangecolors.caption
 msgctxt "TFRMSTRUCTURES2.MICHANGECOLORS.CAPTION"
 msgid "Settings"
@@ -14396,6 +14588,11 @@ msgstr "4 Байта"
 #: tfrmstructures2.michangetype4bytehex.caption
 msgid "4 Byte (Hex)"
 msgstr "4 Байта (Шестнадцатеричное)"
+
+#: tfrmstructures2.michangetype8byte.caption
+msgctxt "tfrmstructures2.michangetype8byte.caption"
+msgid "8 Byte"
+msgstr "8 Байт"
 
 #: tfrmstructures2.michangetype8bytehex.caption
 msgid "8 Byte (Hex)"
@@ -14501,9 +14698,23 @@ msgstr "Экспорт всех структур"
 msgid "Fill gaps"
 msgstr "Заполнить промежутки"
 
+#: tfrmstructures2.mifindnext.caption
+msgctxt "tfrmstructures2.mifindnext.caption"
+msgid "Find Next"
+msgstr "Найти далее"
+
+#: tfrmstructures2.mifindprevious.caption
+msgid "Find Previous"
+msgstr "Найти предыдущее"
+
 #: tfrmstructures2.mifindrelations.caption
 msgid "Find relations"
 msgstr "Поиск связей"
+
+#: tfrmstructures2.mifindvalue.caption
+msgctxt "tfrmstructures2.mifindvalue.caption"
+msgid "Find value"
+msgstr "Найти значение"
 
 #: tfrmstructures2.mifullupgrade.caption
 msgid "Upgrade this child to full structure"
@@ -14513,6 +14724,10 @@ msgstr "Обновить этот дочерний элемент до полн�
 msgctxt "TFRMSTRUCTURES2.MIGENERATEGROUPSCAN.CAPTION"
 msgid "Generate groupscan command"
 msgstr "Генерация группового поиска"
+
+#: tfrmstructures2.migotooffset.caption
+msgid "Go to Offest"
+msgstr "Перейти к смещению"
 
 #: tfrmstructures2.minewwindow.caption
 msgctxt "TFRMSTRUCTURES2.MINEWWINDOW.CAPTION"
@@ -14896,6 +15111,11 @@ msgstr "Прерваться"
 #: tfrmthreadlist.micleardebugregisters.caption
 msgid "Clear debug registers"
 msgstr "Очистить отладочные регистры"
+
+#: tfrmthreadlist.micopyvaluetoclipboard.caption
+msgctxt "tfrmthreadlist.micopyvaluetoclipboard.caption"
+msgid "Copy value to clipboard"
+msgstr "Копировать значение в буфер обмена"
 
 #: tfrmthreadlist.mifreezethread.caption
 msgid "Freeze thread"
@@ -16012,7 +16232,7 @@ msgstr "Просмотреть этот регион памяти"
 #: tmainform.browsethismemoryregioninthedisassembler1.caption
 msgctxt "tmainform.browsethismemoryregioninthedisassembler1.caption"
 msgid "Disassemble this memory region"
-msgstr "Дизассемблировать этот регион памяти"
+msgstr "Разобрать этот регион памяти"
 
 #: tmainform.btnaddaddressmanually.caption
 msgid "Add Address Manually"
@@ -16141,6 +16361,34 @@ msgstr "При установленной галочке значение буд
 #: tmainform.cbluaformula.caption
 msgid "Lua formula"
 msgstr "Формула Lua"
+
+#: tmainform.cbluaformula.hint
+msgid ""
+"When checked the value will be interpreted as a Lua script. \n"
+"local variables available: \n"
+"value, previousvalue\n"
+"\n"
+"example:\n"
+"value>5 and value~=8\n"
+msgstr ""
+"Если флажок установлен, значение будет интерпретироваться как Lua скрипт.\n"
+"доступны локальные переменные:\n"
+"значение, предыдущее значение\n"
+"\n"
+"пример:\n"
+"значение>5 и значение~=8\n"
+
+#: tmainform.cbnewluastate.caption
+msgid "Separate Lua state"
+msgstr "Отдельные Lua состояния"
+
+#: tmainform.cbnewluastate.hint
+msgid ""
+"When checked, the Lua environment used will be limited to just some basic functions and you won't have access to userdefined functions.\n"
+"The positive side is that this allows multiple threads to scan at the same time, so will be a lot faster\n"
+msgstr ""
+"Если флажок установлен, используемая среда Lua будет ограничена только некоторыми базовыми функциями и у вас не будет доступа к пользовательским функциям.\n"
+"Положительным моментом является то, что это позволяет сканировать одновременно несколько потоков, поэтому будет намного быстрее\n"
 
 #: tmainform.cbnot.caption
 msgid "Not"
@@ -16470,7 +16718,7 @@ msgstr "Удалить выбранный пользовательский ти�
 #: tmainform.midisassemble.caption
 msgctxt "tmainform.midisassemble.caption"
 msgid "Disassemble this memory region"
-msgstr "Дизассемблировать этот регион памяти"
+msgstr "Разобрать этот регион памяти"
 
 #: tmainform.midisplay2byte.caption
 msgctxt "TMAINFORM.MIDISPLAY2BYTE.CAPTION"
@@ -16580,6 +16828,10 @@ msgstr "Перехват Direct3D"
 msgctxt "TMAINFORM.MILANGUAGES.CAPTION"
 msgid "Languages"
 msgstr "Язык"
+
+#: tmainform.miloadrecent.caption
+msgid "Load Recent"
+msgstr "Загрузить последние"
 
 #: tmainform.milockmouseingame.caption
 msgid "Lock mouse in game window"
@@ -17118,10 +17370,6 @@ msgctxt "tmemorybrowser.jumplines1.caption"
 msgid "Jumplines"
 msgstr "Линии переходов"
 
-#: tmemorybrowser.kernelmodesymbols1.caption
-msgid "Kernelmode symbols"
-msgstr "Символы режима ядра"
-
 #: tmemorybrowser.kerneltools1.caption
 msgid "Kernel tools"
 msgstr "Инструменты ядра"
@@ -17361,8 +17609,8 @@ msgid "Debug events"
 msgstr "Отладочные события"
 
 #: tmemorybrowser.midebugexecutetillreturn.caption
-msgid "Execute till return"
-msgstr "Выполнить до возврата"
+msgid "Step Out - Execute till return"
+msgstr "Шаг с выходом - Выполнить до возврата"
 
 #: tmemorybrowser.midebugrun.caption
 msgctxt "TMEMORYBROWSER.MIDEBUGRUN.CAPTION"
@@ -17370,6 +17618,7 @@ msgid "Run"
 msgstr "Запустить"
 
 #: tmemorybrowser.midebugruntill.caption
+msgctxt "tmemorybrowser.midebugruntill.caption"
 msgid "Run till..."
 msgstr "Выполнить до..."
 
@@ -17379,8 +17628,8 @@ msgstr "Установить адрес"
 
 #: tmemorybrowser.midebugstep.caption
 msgctxt "tmemorybrowser.midebugstep.caption"
-msgid "Step"
-msgstr "Шаг"
+msgid "Step Into"
+msgstr "Шаг с заходом"
 
 #: tmemorybrowser.midebugstepover.caption
 msgctxt "tmemorybrowser.midebugstepover.caption"
@@ -17513,6 +17762,11 @@ msgstr "Назад"
 msgctxt "TMEMORYBROWSER.MIHVFOLLOW.CAPTION"
 msgid "Follow"
 msgstr "Следовать"
+
+#: tmemorybrowser.mikernelmodesymbols.caption
+msgctxt "tmemorybrowser.mikernelmodesymbols.caption"
+msgid "Kernelmode symbols"
+msgstr "Символы режима ядра"
 
 #: tmemorybrowser.milock.caption
 msgctxt "TMEMORYBROWSER.MILOCK.CAPTION"
@@ -17659,9 +17913,23 @@ msgstr "Показать в дизассемблере"
 msgid "Show in hexview"
 msgstr "Показать в Hex-редакторе"
 
+#: tmemorybrowser.mishowmoduleaddresses.caption
+msgctxt "tmemorybrowser.mishowmoduleaddresses.caption"
+msgid "Show module addresses"
+msgstr "Показать модульную адресацию"
+
 #: tmemorybrowser.mishowrelative.caption
 msgid "Show relative addresses"
 msgstr "Показывать относительные адреса"
+
+#: tmemorybrowser.mishowsectionaddresses.caption
+msgid "Show section addresses"
+msgstr "Показать адреса разделов"
+
+#: tmemorybrowser.mishowsymbols.caption
+msgctxt "tmemorybrowser.mishowsymbols.caption"
+msgid "Show symbols"
+msgstr "Показать символы"
 
 #: tmemorybrowser.misvcopy.caption
 msgctxt "TMEMORYBROWSER.MISVCOPY.CAPTION"
@@ -17732,6 +18000,11 @@ msgstr "Установить/Изменить комментарий"
 #: tmemorybrowser.miuserdefinedheader.caption
 msgid "Set/Change header"
 msgstr "Установить/Изменить заголовок"
+
+#: tmemorybrowser.miuserdefinedsymbols.caption
+msgctxt "tmemorybrowser.miuserdefinedsymbols.caption"
+msgid "Userdefined symbols"
+msgstr "Пользовательские символы"
 
 #: tmemorybrowser.miwatchaccess.caption
 msgctxt "tmemorybrowser.miwatchaccess.caption"
@@ -17834,14 +18107,6 @@ msgstr "Показать панель инструментов отладки"
 msgid "Show jumplines"
 msgstr "Показывать линии переходов"
 
-#: tmemorybrowser.showmoduleaddresses1.caption
-msgid "Show module addresses"
-msgstr "Показывать модульную адресацию"
-
-#: tmemorybrowser.showsymbols1.caption
-msgid "Show symbols"
-msgstr "Показывать символы"
-
 #: tmemorybrowser.showvaluesofstaticaddresses1.caption
 msgid "Show 'Comment' row"
 msgstr "Показывать столбец «Комментарий»"
@@ -17856,16 +18121,18 @@ msgctxt "TMEMORYBROWSER.STACKTRACE2.CAPTION"
 msgid "Stacktrace"
 msgstr "Трассировка стека"
 
-#: tmemorybrowser.symbolhandler1.caption
-msgid "Userdefined symbols"
-msgstr "Определяемые пользователем символы"
-
 #: tmemorybrowser.tbrun.caption
 msgctxt "tmemorybrowser.tbrun.caption"
 msgid "Run"
 msgstr "Выполнить"
 
+#: tmemorybrowser.tbruntill.caption
+msgctxt "tmemorybrowser.tbruntill.caption"
+msgid "Run till..."
+msgstr "Выполнить до..."
+
 #: tmemorybrowser.tbstepinto.caption
+msgctxt "tmemorybrowser.tbstepinto.caption"
 msgid "Step Into"
 msgstr "Шаг с заходом"
 
@@ -18012,6 +18279,7 @@ msgid "There is already a trainer form defined. Continuing will erase the curren
 msgstr "Заготовка трейнера уже существует. Продолжение сотрёт текущие скрипты и список читов в трейнере, и заменит их на читы из текущей таблицы (Дизайн трейнера не изменится). Продолжить?"
 
 #: trainergenerator.rsareyousure
+msgctxt "trainergenerator.rsareyousure"
 msgid "Are you sure?"
 msgstr "Вы уверены?"
 
@@ -18172,15 +18440,15 @@ msgstr "TLG:The Lame Game"
 msgid "Score:"
 msgstr "Счёт:"
 
-#: ttypeform.button1.caption
-msgctxt "TTYPEFORM.BUTTON1.CAPTION"
-msgid "OK"
-msgstr "Подтвердить"
-
-#: ttypeform.button2.caption
-msgctxt "TTYPEFORM.BUTTON2.CAPTION"
+#: ttypeform.buttoncancel.caption
+msgctxt "ttypeform.buttoncancel.caption"
 msgid "Cancel"
 msgstr "Отмена"
+
+#: ttypeform.buttonok.caption
+msgctxt "ttypeform.buttonok.caption"
+msgid "OK"
+msgstr "Подтвердить"
 
 #: ttypeform.caption
 msgctxt "TTYPEFORM.CAPTION"
@@ -18192,8 +18460,18 @@ msgctxt "TTYPEFORM.CBCODEPAGE.CAPTION"
 msgid "Codepage"
 msgstr "Кодовая страница"
 
+#: ttypeform.cbhex.caption
+msgctxt "ttypeform.cbhex.caption"
+msgid "Hexadecimal"
+msgstr "Шестнадцатеричное"
+
+#: ttypeform.cbsigned.caption
+msgctxt "ttypeform.cbsigned.caption"
+msgid "Signed"
+msgstr "Знаковое"
+
 #: ttypeform.cbunicode.caption
-msgctxt "TTYPEFORM.CBUNICODE.CAPTION"
+msgctxt "ttypeform.cbunicode.caption"
 msgid "Unicode"
 msgstr "Юникод"
 
@@ -18201,15 +18479,20 @@ msgstr "Юникод"
 msgid "Select the new type:"
 msgstr "Выберите новый тип:"
 
-#: ttypeform.label2.caption
-msgctxt "TTYPEFORM.LABEL2.CAPTION"
+#: ttypeform.labelbit6.caption
+msgctxt "ttypeform.labelbit6.caption"
 msgid "Length"
 msgstr "Длина"
 
-#: ttypeform.lengthlabel.caption
-msgctxt "TTYPEFORM.LENGTHLABEL.CAPTION"
+#: ttypeform.labellength.caption
+msgctxt "ttypeform.labellength.caption"
 msgid "Length"
 msgstr "Длина"
+
+#: ttypeform.vartype.text
+msgctxt "ttypeform.vartype.text"
+msgid "Binary"
+msgstr "Двоичный"
 
 #: tvaluechangeform.button1.caption
 msgctxt "TVALUECHANGEFORM.BUTTON1.CAPTION"
