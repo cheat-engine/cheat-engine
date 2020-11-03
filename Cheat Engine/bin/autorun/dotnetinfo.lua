@@ -958,7 +958,7 @@ end
 LocalDotNetValueReaders[ELEMENT_TYPE_I1]=function(bt) 
   if bt then
     local v=bt[1]
-    if v[1] and ((v & 0x80)~=0) then
+    if v and ((v & 0x80)~=0) then
       return v-0x100
     else
       return v
