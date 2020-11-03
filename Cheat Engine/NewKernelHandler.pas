@@ -1156,7 +1156,17 @@ end;
 
 {$endif}
 
-{$ifndef CPUX86_64 and ifndef CPUi386}
+
+
+{$ifdef CPUX86_64}
+{$define MAYUSEDBVM}
+{$endif}
+
+{$ifdef CPUi386}
+{$define MAYUSEDBVM}
+{$endif}
+
+{$ifndef MAYUSEDBVM}
 function isIntel: boolean;
 begin
   result:=false;
