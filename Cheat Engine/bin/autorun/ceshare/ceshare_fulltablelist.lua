@@ -23,7 +23,7 @@ if darkMode==1 then
   searchFieldColor=clBlack
   fontColor=clWhite
   windowColor=clBlack
-  linkColor=0xff0000
+  linkColor=0x0000ff
   highlightColor=0x00ff00
 else 
   listColor=clDefault

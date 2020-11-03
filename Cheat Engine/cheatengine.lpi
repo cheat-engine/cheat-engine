@@ -154,7 +154,8 @@
 -OpCOREAVX2
 -dbenchmarkps
 -dcemain
--dNDEBUG"/>
+-dNDEBUG
+-dDBVMFORAMDISWORKING"/>
             <OtherDefines Count="13">
               <Define0 Value="NOTMULTITHREADED"/>
               <Define1 Value="benchmarkps"/>
@@ -632,7 +633,7 @@
         <PackageName Value="LCL"/>
       </Item8>
     </RequiredPackages>
-    <Units Count="396">
+    <Units Count="397">
       <Unit0>
         <Filename Value="cheatengine.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -2723,6 +2724,11 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="LuaDotNetPipe"/>
       </Unit395>
+      <Unit396>
+        <Filename Value="luaremoteexecutor.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="LuaRemoteExecutor"/>
+      </Unit396>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
