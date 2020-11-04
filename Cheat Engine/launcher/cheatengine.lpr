@@ -37,6 +37,8 @@ var IsWow64Process        :TIsWow64Process;
 
     cpuid7ebx: dword;
     exename: widestring;
+
+    s: string;
 begin
   {$ifdef cpu64}
   MessageBox(0,'A fucking retard thought that removing an earlier $ERROR line would be enough to run this','',0);
@@ -92,7 +94,10 @@ begin
   if FileExists(selfpath+exename) then
     ShellExecuteW(0, 'open', pwidechar(selfpath+exename), pwidechar(widestring(param)), pwidechar(selfpath), sw_show)
   else
-    MessageBox(0, pchar(exename+' could not be found. Please disable/uninstall your anti virus and reinstall Cheat Engine to fix this'),'Cheat Engine launch error',MB_OK or MB_ICONERROR);
+  begin
+    s:=exename;
+    MessageBoxA(0, pchar(s+' could not be found. Please disable/uninstall your anti virus and reinstall Cheat Engine to fix this'),'Cheat Engine launch error',MB_OK or MB_ICONERROR);
+  end;
 
 
 end.

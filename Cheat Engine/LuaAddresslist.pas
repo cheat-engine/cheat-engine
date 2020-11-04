@@ -78,12 +78,13 @@ function addresslist_getMemoryRecordByDescription(L: PLua_State): integer; cdecl
 var
   addresslist: TAddresslist;
   description: string;
+  paramstart, paramcount: integer;
 begin
   result:=0;
-  addresslist:=luaclass_getClassObject(L);
-  if lua_gettop(L)>=1 then
+  addresslist:=luaclass_getClassObject(L, @paramstart, @paramcount);
+  if paramcount>=1 then
   begin
-    description:=Lua_ToString(L,1);
+    description:=Lua_ToString(L,paramstart);
     luaclass_newClass(L, addresslist.getRecordWithDescription(description));
     result:=1;
   end;
