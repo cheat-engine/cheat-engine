@@ -146,6 +146,17 @@ function lua_tointeger(index)
   end  
 end
 
+function lua_tostring(index)
+  if luastubs and lua_state and luastubs.lua_tolstring then
+    local stringLength={0,0,0,0,0,0,0,0}
+    local stringAddress,l=LuaExecutor.executeStub(luastubs.lua_tolstring,{lua_state, index,stringLength})   
+    stringLength=byteTableToQword(l.Data)
+    
+    local result=readString(stringAddress, stringLength)    
+    return result
+  end
+end
+
 function lual_loadstring(script)
   if luastubs and lua_state and luastubs.lual_loadstring then
     return LuaExecutor.executeStub(luastubs.lual_loadstring,{lua_state, script})
@@ -168,6 +179,117 @@ function lua_pcall(argcount, resultcount, errfunc)
   --warning: Do not call functions that need to synchronize with the main thread
   --use lua_pcallUnlocked if you're sure the lua build you're working with is thread safe 
   return lua_pcallUnlocked(lua_state, argcount, resultcount, errfunc)
+end
+
+
+function lua_pushcclosure(functionaddress, n)
+  if luastubs and lua_state and luastubs.lua_pushcclosure then
+    return LuaExecutor.executeStub(luastubs.lua_pushcclosure,{lua_state, functionaddress,n})
+  end
+end
+
+function lua_pushcfunction(functionaddress)
+  return lua_pushcclosure(functionaddress,0)
+end
+
+function lua_setglobal(name)
+  if luastubs and lua_state and luastubs.lua_setglobal then
+    return LuaExecutor.executeStub(luastubs.lua_setglobal,{lua_state, name})
+  end
+end
+
+function lua_getglobal(name)
+  if luastubs and lua_state and luastubs.lua_getglobal then
+    return LuaExecutor.executeStub(luastubs.lua_getglobal,{lua_state, name})
+  end
+end
+
+
+
+function lua_register(name, functionaddress)
+  lua_pushcfunction(functionaddress)
+  lua_setglobal(name)
+end
+
+
+function lua_ceprint(stringAddress)
+  --called when ceprint is executed by the target. stringAddress is
+  if stringAddress~=0 then  
+    print(process..'>'..readString(stringAddress))
+  end
+  return 0
+end
+
+function lua_registerceprint()
+  --injects a print function into the target which on execution sends a string to CE's lua engine window.
+  --and registers it as 'ceprint'
+  r,r2=autoAssemble([[
+alloc(ceprint,1024)
+ceprint:
+loadlibrary(luaclient-x86_64.dll)
+luacall(openLuaServer('CELUASERVER'))
+
+alloc(CELUA_ServerName,16)
+alloc(ceprintStringName,16)
+alloc(ceprintFunctionID,4)
+
+
+ceprintStringName:
+db 'lua_ceprint',0
+
+ceprintFunctionID:
+dd 0
+
+CELUA_ServerName:
+db 'CELUASERVER',0
+
+ceprint:
+push rcx
+sub rsp,30
+
+mov rcx,[rsp+30]
+mov rdx,1
+mov r8,0
+call lua_tolstring
+
+//rax should now be 0 or point to a string
+mov [rsp+20],rax
+
+mov ecx,[ceprintFunctionID]
+test ecx,ecx
+jne short hasrefid
+
+mov rcx,ceprintStringName
+call CELUA_GetFunctionReferenceFromName  //Basically calls createRef(functionname) and returns the value
+mov [ceprintFunctionID],eax
+mov ecx,eax
+
+hasrefid:
+//ecx contains the ceprintFunctionID
+mov edx,1
+lea r8,[rsp+20]
+mov r9,1
+call CELUA_ExecuteFunctionByReference
+
+add rsp,38
+mov rax,0 //no return
+ret
+  ]])
+  
+  if r then
+    lua_register('ceprint',r2.allocs.ceprint.address)  
+    return true
+  else
+    return r,r2
+  end   
+end
+
+function setLuaState(ls)
+  lua_state=ls  
+end
+
+function getLuaState(ls)
+  return lua_state
 end
 
 function LockLuaState(timeout)
@@ -213,9 +335,10 @@ function LockLuaState(timeout)
 
       luastubs.lua_pcallk=createExecuteCodeExStub(1,'lua_pcallk',0,0,0,0,0,0) 
       
-      luastubs.lua_pushcfunction=createExecuteCodeExStub(1,'lua_pushcfunction',0,0) 
+      luastubs.lua_pushcclosure=createExecuteCodeExStub(1,'lua_pushcclosure',0,0,0) 
       luastubs.lua_setglobal=createExecuteCodeExStub(1,'lua_setglobal',0,3)       
       luastubs.lua_getglobal=createExecuteCodeExStub(1,'lua_getglobal',0,3)   
+      luastubs.lua_tolstring=createExecuteCodeExStub(1,'lua_tolstring',0,0,{type=5, size=8})   
       
     end
     
