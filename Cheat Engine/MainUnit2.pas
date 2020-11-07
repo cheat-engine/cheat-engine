@@ -18,10 +18,10 @@ uses
      memscan,plugin, hotkeyhandler,frmProcessWatcherUnit, newkernelhandler,
      debuggertypedefinitions, commonTypeDefs;
 
-const ceversion=7.1;
+const ceversion=7.2;
 
 resourcestring
-  cename = 'Cheat Engine 7.1';
+  cename = 'Cheat Engine 7.2';
   rsPleaseWait = 'Please Wait!';
 
 procedure UpdateToolsMenu;
@@ -891,6 +891,11 @@ begin
             cbNeverChangeProtection.checked:=reg.ReadBool('Never Change Protection');
 
           SkipVirtualProtectEx:=cbNeverChangeProtection.checked;
+
+          if reg.ValueExists('Always Force Load') then
+            cbAlwaysForceLoad.checked:=reg.ReadBool('Always Force Load');
+
+          alwaysforceload:=cbAlwaysForceLoad.checked;
 
 
           if reg.ValueExists('Show Language MenuItem') then

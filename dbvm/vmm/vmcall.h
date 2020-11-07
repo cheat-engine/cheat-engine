@@ -100,6 +100,7 @@
 
 
 extern int hasEPTsupport;
+extern int hasNPsupport;
 
 
 

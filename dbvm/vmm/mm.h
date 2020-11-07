@@ -23,6 +23,9 @@ extern QWORD MAXPHYADDRMASK;
 extern QWORD MAXPHYADDRMASKPB;
 
 
+extern PPDPTE_PAE pml4table;
+
+
 void InitializeMM(UINT64 FirstFreeVirtualAddress);
 QWORD getTotalFreeMemory(QWORD *FullPages);
 

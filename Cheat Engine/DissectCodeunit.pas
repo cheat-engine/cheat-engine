@@ -84,6 +84,7 @@ resourcestring
   rsStart = 'Start';
   rsPleaseSelectSomethingToScan = 'Please select something to scan';
   rsDone = 'done';
+  rsDissectDataLoaded = 'Dissect data loaded';
 
 
 procedure TfrmDissectCode.btnStartClick(Sender: TObject);
@@ -176,6 +177,14 @@ begin
       dissectcode:=TDissectCodeThread.create(false);
 
     dissectcode.loadFromFile(opendialog1.filename);
+
+    lblStringRef.caption:=inttostr(dissectcode.nrofstring);
+    lblConditionalJumps.caption:=inttostr(dissectcode.nrofconditionaljumps);
+    lblUnConditionalJumps.caption:=inttostr(dissectcode.nrofunconditionaljumps);
+    lblCalls.caption:=inttostr(dissectcode.nrofcalls);
+    lblMaxOffset.caption:=inttostr(dissectcode.maxoffset);
+
+    showmessage(rsDissectDataLoaded);
   end;
 end;
 

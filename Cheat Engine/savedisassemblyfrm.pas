@@ -89,8 +89,9 @@ var oldaddress, currentaddress: ptrUint;
     addresslength: integer;
 begin
   disassembler:=TDisassembler.Create;
-  disassembler.showmodules:=memorybrowser.Showmoduleaddresses1.checked;
-  disassembler.showsymbols:=memorybrowser.Showsymbols1.Checked;
+  disassembler.showmodules:=memorybrowser.miShowModuleAddresses.checked;
+  disassembler.showsymbols:=memorybrowser.miShowSymbols.Checked;
+  disassembler.showsections:=memorybrowser.miShowSectionAddresses.checked;
 
   currentaddress:=startaddress;
 

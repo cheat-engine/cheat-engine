@@ -7,6 +7,8 @@
 
 
 void reboot(int skipAPTermination);
+void apentryvmx();
+
 
 void startvmx(pcpuinfo currentcpuinfo);
 void CheckCRCValues(void);
@@ -17,6 +19,7 @@ extern void vmcall_intel(void);
 extern void *vmcall_instr; //holds a pointer to either vmcall_amd or vmcall_intel
 extern int vmcalltest_asm(void);
 extern int vmcall_setintredirects(void);
+extern QWORD _vmcall(ULONG password, void* data);
 
 extern void _pause(void);
 extern UINT64 _vmread(ULONG index);
@@ -43,8 +46,11 @@ extern UINT64 getCR8(void);
 extern UINT64 getDR0(void);
 extern UINT64 setDR0(UINT64 newdr0);
 extern UINT64 getDR1(void);
+extern UINT64 setDR1(UINT64 newdr0);
 extern UINT64 getDR2(void);
+extern UINT64 setDR2(UINT64 newdr0);
 extern UINT64 getDR3(void);
+extern UINT64 setDR3(UINT64 newdr0);
 extern UINT64 getDR6(void);
 extern UINT64 setDR6(UINT64 newdr6);
 extern UINT64 getDR7(void);
@@ -146,7 +152,7 @@ int isAMD;
 int AMD_hasDecodeAssists;
 int AMD_hasNRIPS;
 
-
+extern int autostart;
 extern int IntHandlerDebug;
 volatile int NMIcount;
 

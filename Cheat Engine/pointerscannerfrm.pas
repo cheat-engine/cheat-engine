@@ -425,6 +425,7 @@ resourcestring
   rsPSExportAborted = 'Export aborted';
   rsPSImporting = 'Importing...';
   rsPSImporting_sortOrNot = 'Do you wish to sort pointerlist by level, then module, then offsets?';
+  rsPSImporting_sortMethod = 'Do you wish to use offsets sum for sorting?';
   rsPSStatistics = 'Statistics';
   rsPSUniquePointervaluesInTarget = 'Unique pointervalues in target:';
   rsPSScanDuration = 'Scan duration: ';
@@ -1392,7 +1393,7 @@ begin
       	                      '  PRIMARY KEY(ptrid,offsetnr)'+
                               ');');
 
-        sqlite3.ExecuteDirect('CREATE UNIQUE INDEX "ptrid_idx" ON pointerfiles_endwithoffsetlist( "ptrid" );');
+        sqlite3.ExecuteDirect('CREATE INDEX "ptrid_idx" ON pointerfiles_endwithoffsetlist( "ptrid" );');
       end;
 
 
@@ -1414,7 +1415,7 @@ begin
        if messagedlg(rsPSExportToDatabaseBiggerSizeOrNot, mtConfirmation, [mbyes, mbno], 0) = mryes then
         begin
           sqlite3.ExecuteDirect('create table results(ptrid integer not null, resultid integer, offsetcount integer, moduleid integer, moduleoffset integer '+offsetlist+', primary key (ptrid, resultid) );');
-          sqlite3.ExecuteDirect('CREATE UNIQUE INDEX "ptr_res_id_idx" ON "results"( ptrid, resultid );');
+          sqlite3.ExecuteDirect('CREATE INDEX "ptr_res_id_idx" ON "results"( ptrid, resultid );');
           sqlite3.ExecuteDirect('CREATE INDEX "modid_modoff_idx" ON "results"( moduleid, moduleoffset );');
         end
         else
@@ -1503,23 +1504,19 @@ begin
         BaseScanRange:='NULL';
 
       s:='INSERT INTO pointerfiles (name, maxlevel, compressedptr, unalligned, MaxBitCountModuleIndex, MaxBitCountModuleOffset, MaxBitCountLevel, MaxBitCountOffset, DidBaseRangeScan, BaseScanRange) values ("'+name+'", '+maxlevel+','+compressedptr+','+unalligned+','+MaxBitCountModuleIndex+','+MaxBitCountModuleOffset+','+MaxBitCountLevel+','+MaxBitCountOffset+','+DidBaseRangeScan+','+BaseScanRange+')';
-
       sqlite3.ExecuteDirect(s);
+
+
+      SQLQuery.SQL.Text:='Select max(ptrid) as max from pointerfiles';
+      SQLQuery.Active:=true;
+      ptrid:=SQLQuery.FieldByName('max').AsString;
+      SQLQuery.active:=false;
+
       for i:=0 to Pointerscanresults.EndsWithOffsetListCount-1 do
       begin
         s:='INSERT INTO pointerfiles_endwithoffsetlist (ptrid, offsetnr, offsetvalue) values ("'+ptrid+'", '+inttostr(i)+','+inttostr(Pointerscanresults.EndsWithOffsetList[i])+')';
         sqlite3.ExecuteDirect(s);
       end;
-
-
-
-      SQLQuery.SQL.Text:='Select max(ptrid) as max from pointerfiles';
-      SQLQuery.Active:=true;
-
-      ptrid:=SQLQuery.FieldByName('max').AsString;
-
-      SQLQuery.active:=false;
-
 
       for i:=0 to Pointerscanresults.modulelistCount-1 do
         sqlite3.ExecuteDirect('INSERT INTO modules(ptrid, moduleid, name) values ('+ptrid+','+inttostr(i)+',"'+Pointerscanresults.getModulename(i)+'")');
@@ -1535,10 +1532,10 @@ begin
         offsetvalues:='';
         p:=Pointerscanresults.getPointer(j);
 
-        for i:=1 to p.offsetcount do
+        for i:=1 to p.offsetcount-Pointerscanresults.EndsWithOffsetListCount do
         begin
           offsetlist:=offsetlist+',offset'+inttostr(i);
-          offsetvalues:=offsetvalues+','+inttostr(p.offsets[i-1]);
+          offsetvalues:=offsetvalues+','+inttostr(p.offsets[i-1+Pointerscanresults.EndsWithOffsetListCount]);
         end;
 
         if resultidcolumnsave then
@@ -1551,7 +1548,7 @@ begin
         if j mod 50=0 then
         begin
           progressbar1.position:=ceil(j / Pointerscanresults.count * 100);
-          progressbar1.Update;
+          application.ProcessMessages;
         end;
         inc(j);
       end;
@@ -1813,10 +1810,18 @@ begin
 
 
     offsetlist:='';
-    for i:=1 to maxlevel do offsetlist:=offsetlist+', offset'+inttostr(i);
 
     if messagedlg(rsPSImporting_sortOrNot, mtConfirmation, [mbyes, mbno], 0) = mryes then
-      sqlquery.sql.text:='select * from results where ptrid='+ptrid+' order by offsetcount, moduleid'+offsetlist
+      if messagedlg(rsPSImporting_sortMethod, mtConfirmation, [mbyes, mbno], 0) = mryes then
+      begin
+        for i:=maxlevel downto 1 do offsetlist:=offsetlist+'+ coalesce(offset'+inttostr(i)+',0)';
+        sqlquery.sql.text:='select *,(0'+offsetlist+') as suma from results where ptrid='+ptrid+' order by offsetcount, suma, moduleid';
+      end
+      else
+      begin
+        for i:=maxlevel downto 1 do offsetlist:=offsetlist+', offset'+inttostr(i);
+        sqlquery.sql.text:='select * from results where ptrid='+ptrid+' order by offsetcount, moduleid'+offsetlist;
+      end
     else
       sqlquery.sql.text:='select * from results where ptrid='+ptrid;
 
@@ -1903,7 +1908,7 @@ begin
         if importedcount mod 25=0 then
         begin
           progressbar1.Position:=ceil(importedcount/totalcount*100);
-          progressbar1.update;
+          application.ProcessMessages;
         end;
       end;
     finally
@@ -2834,50 +2839,55 @@ begin
               if filterOutAccessible and rangeAndStartOffsetsEndOffsets_Valid then
                 valid:=not valid;
 
+
+
               if (not filterOutAccessible) and valid then
               begin
-                if novaluecheck or forvalue then
+                if pointermap=nil then //if no pointermap is used, check the value or at least if it's readable
                 begin
-                  //evaluate the address (address must be accessible)
-                  if rescanhelper.ispointer(address) then
+                  if novaluecheck or forvalue then
                   begin
-
-                    if novaluecheck=false then //check if the value is correct
+                    //evaluate the address (address must be accessible)
+                    if rescanhelper.ispointer(address) then
                     begin
 
-                      value:=nil;
-                      pi:=rescanhelper.FindPage(address shr 12);
-                      if pi.data<>nil then
+                      if novaluecheck=false then //check if the value is correct
                       begin
-                        i:=address and $fff;
-                        j:=min(valuesize, 4096-i);
 
-                        copymemory(tempvalue, @pi.data[i], j);
-
-                        if j<valuesize then
+                        value:=nil;
+                        pi:=rescanhelper.FindPage(address shr 12);
+                        if pi.data<>nil then
                         begin
-                          pi:=rescanhelper.FindPage((address shr 12)+1);
-                          if pi.data<>nil then
-                            copymemory(pointer(ptruint(tempvalue)+j), @pi.data[0], valuesize-j)
-                          else
-                            valid:=false;
-                        end;
-                      end
-                      else
-                        valid:=false;
+                          i:=address and $fff;
+                          j:=min(valuesize, 4096-i);
 
-                      value:=tempvalue;
+                          copymemory(tempvalue, @pi.data[i], j);
 
-                      if (not valid) or (value=nil) or (not isMatchToValue(value)) then
-                        valid:=false; //invalid value
-                    end;
-                  end else valid:=false; //unreadable address
-                end
-                else
-                begin
-                  //check if the address matches
-                  if address<>PointerAddressToFind then
-                    valid:=false;
+                          if j<valuesize then
+                          begin
+                            pi:=rescanhelper.FindPage((address shr 12)+1);
+                            if pi.data<>nil then
+                              copymemory(pointer(ptruint(tempvalue)+j), @pi.data[0], valuesize-j)
+                            else
+                              valid:=false;
+                          end;
+                        end
+                        else
+                          valid:=false;
+
+                        value:=tempvalue;
+
+                        if (not valid) or (value=nil) or (not isMatchToValue(value)) then
+                          valid:=false; //invalid value
+                      end;
+                    end else valid:=false; //unreadable address
+                  end
+                  else
+                  begin
+                    //check if the address matches
+                    if address<>PointerAddressToFind then
+                      valid:=false;
+                  end;
                 end;
               end;
 

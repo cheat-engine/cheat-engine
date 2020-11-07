@@ -66,7 +66,7 @@ BOOL __stdcall addresslistplugin(PPLUGINTYPE0_RECORD SelectedRecord)
 	return FALSE; //return TRUE if you edited anything in the record and want to apply that to the table
 }
 
-BOOL __stdcall memorybrowserplugin(ULONG *disassembleraddress, ULONG *selected_disassembler_address, ULONG *hexviewaddress)
+BOOL __stdcall memorybrowserplugin(UINT_PTR *disassembleraddress, UINT_PTR *selected_disassembler_address, UINT_PTR *hexviewaddress)
 {
 	Exported.ShowMessage("A Plugin function got executed");
 	*disassembleraddress=*hexviewaddress; //make the disassembleraddress and hexviewaddress the same

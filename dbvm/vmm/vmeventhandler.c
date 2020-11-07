@@ -55,6 +55,21 @@ criticalSection TSCCS;
 int handle_rdtsc(pcpuinfo currentcpuinfo, VMRegisters *vmregisters);
 
 
+void incrementRIP(int count)
+{
+  if (!isAMD) //not used by AMD, it gets the new RIP explicitly
+  {
+    QWORD newRIP=vmread(vm_guest_rip)+count;
+
+    if (!IS64BITCODE(getcpuinfo()))
+      newRIP=newRIP & 0xffffffff;
+
+    vmwrite(vm_guest_rip,newRIP);
+  }
+}
+
+
+
 int raiseNMI(void)
 {
   VMEntry_interruption_information newintinfo;
@@ -144,7 +159,7 @@ int emulateExceptionInterrupt(pcpuinfo currentcpuinfo, VMRegisters *vmregisters,
   //nosendchar[getAPICID()]=1;
 
   sendstring("Emulation\n");
-  if (vmread(vm_guest_cs)==0x10)
+  if ((isAMD?currentcpuinfo->vmcb->cs_selector:vmread(vm_guest_cs))==0x10)
   {
     sendstring("!!!!!FROM KERNELMODE (assuming it\'s windows 64)!!!!!\n");
   }
@@ -1074,8 +1089,8 @@ ULONG getSegmentAccessRights(PGDT_ENTRY gdt, PGDT_ENTRY ldt, ULONG selector)
 
 WORD convertSegmentAccessRightsToSegmentAttrib(ULONG accessrights)
 {
-  Access_Rights ar;
-  Segment_Attribs sa;
+  Access_Rights ar; //intel
+  Segment_Attribs sa; //amd
 
   ar.AccessRights=accessrights;
 
@@ -1940,7 +1955,9 @@ int handleCPUID(VMRegisters *vmregisters)
 
   //TSCOffset+=cpuidTime;
 
-  vmwrite(vm_guest_rip,vmread(vm_guest_rip)+vmread(vm_exit_instructionlength));   //adjust eip to go after this instruction (we handled/emulated it)
+  incrementRIP(vmread(vm_exit_instructionlength));
+
+
 
   getcpuinfo()->lastTSCTouch=_rdtsc();
   return 0;
@@ -3701,8 +3718,9 @@ InterruptFired:
 
 int handleSingleStep(pcpuinfo currentcpuinfo)
 {
-  //handle the reasons one by one
-  sendstringf("handleSingleStep.  currentcpuinfo->singleStepping.ReasonsPos=%d\n", currentcpuinfo->singleStepping.ReasonsPos);
+  //handle the reasons one by one. (Used by AMD as well)
+  sendstringf("%d: handleSingleStep.  currentcpuinfo->singleStepping.ReasonsPos=%d\n", currentcpuinfo->cpunr, currentcpuinfo->singleStepping.ReasonsPos);
+
 
   while (currentcpuinfo->singleStepping.ReasonsPos)
   {
@@ -3722,10 +3740,10 @@ int handleSingleStep(pcpuinfo currentcpuinfo)
       ddDrawRectangle(0,DDVerticalResolution-100,100,100,0xff0000);
       while (1) outportb(0x80,0xd7);
     }
-
     currentcpuinfo->singleStepping.ReasonsPos--;
   }
 
+  sendstring("vmx_disableSingleStepMode\n");
   vmx_disableSingleStepMode();
 
   sendstringf("return from handleSingleStep.  currentcpuinfo->singleStepping.ReasonsPos=%d\n", currentcpuinfo->singleStepping.ReasonsPos);
@@ -3868,10 +3886,7 @@ int handleVMEvent(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, FXSAVE64 *f
 	  ept_invalidate();
   }
 
-  /*
-  vpid_invalidate(); //test
-  ept_invalidate(); //test
-  */
+
 
 
   switch (exit_reason) //exit reason

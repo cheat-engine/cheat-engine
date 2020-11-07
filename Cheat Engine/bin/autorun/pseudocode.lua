@@ -1,4 +1,4 @@
-function genericJumpHandler(state, alwaystaken)
+local function genericJumpHandler(state, alwaystaken)
   local origin=state.address
   local addressString=string.gsub(state.ldd.parameters,"qword ptr ","")
   local addressString=string.gsub(addressString,"dword ptr ","")
@@ -36,7 +36,7 @@ function genericJumpHandler(state, alwaystaken)
   return destination
 end
 
-function pfindNextSpot(state)
+local function pfindNextSpot(state)
   --check if there are unreached branch destinations, if so, change the address to one of those
   --print('pfindNextSpot')
 
@@ -53,7 +53,7 @@ function pfindNextSpot(state)
 end
 
 
-plookup={}
+local plookup={}
 plookup['jo']=function(state)
   genericJumpHandler(state) --the conditional ones do not change the state, but will store the destination
 end
@@ -187,7 +187,7 @@ function parseFunction(startaddress, limit)
       a=state.address
     end
 
-    s=d.disassemble(a)
+    local s=d.disassemble(a)
 
     state.parsed[a]={}
     state.parsed[a].instruction=s
@@ -227,7 +227,7 @@ function parseFunction(startaddress, limit)
   return state
 end
 
-function createBlocks(state)
+local function createBlocks(state)
   local blocks={}
 
   --first sort the parsed instruction list
@@ -276,6 +276,10 @@ function createBlocks(state)
 
   return blocks,sal
 end
+
+pseudocode = {}
+pseudocode.parseFunction = parseFunction
+pseudocode.createBlocks = createBlocks
 
 --[[
 z=parseFunction('GetModuleHandleA')

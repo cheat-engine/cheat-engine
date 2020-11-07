@@ -18,7 +18,13 @@ uses
 
 type
   Tcoderecord = class
+  private
+    fhitcount: integer;
+    procedure setHitcount(c: integer);
   public
+    firstSeen: TDateTime;
+    lastSeen: TDateTime;
+    addressString: string;
     address: ptrUint;
     size: integer;
     opcode: string;
@@ -33,11 +39,13 @@ type
 
     dbvmcontextbasic:    PPageEventBasic;
 
-    hitcount: integer;
+
     diffcount: integer;
     LastDisassembleData: TLastDisassembleData;
 
     formChangedAddresses: TfrmChangedAddresses;
+
+    property hitcount: integer read fhitcount write setHitcount;
     procedure savestack;
     constructor create;
     destructor destroy; override;
@@ -92,6 +100,7 @@ type
     N1: TMenuItem;
     Copyselectiontoclipboard1: TMenuItem;
     Splitter1: TSplitter;
+    timerAddressStringLookup: TTimer;
     procedure FormCreate(Sender: TObject);
     procedure FormDeactivate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
@@ -115,6 +124,7 @@ type
     procedure miSaveTofileClick(Sender: TObject);
     procedure pmOptionsPopup(Sender: TObject);
     procedure Copyselectiontoclipboard1Click(Sender: TObject);
+    procedure timerAddressStringLookupTimer(Sender: TObject);
   private
     { Private declarations }
     setcountwidth: boolean;
@@ -158,7 +168,7 @@ implementation
 
 uses CEFuncProc, CEDebugger,debughelper, debugeventhandler, MemoryBrowserFormUnit,
      MainUnit,kerneldebugger, AdvancedOptionsUnit ,formFoundcodeListExtraUnit,
-     MainUnit2, ProcessHandlerUnit, Globals, Parsers, DBK32functions;
+     MainUnit2, ProcessHandlerUnit, Globals, Parsers, DBK32functions, symbolhandler;
 
 
 
@@ -180,14 +190,14 @@ begin
       i:=dbvm_watch_retrievelog(id, results, size);
       if i=0 then
       begin
-        //OutputDebugString('TDBVMWatchPollThread returned 0');
-        //OutputDebugString('results^.numberOfEntries='+inttostr(results^.numberOfEntries));
-        //OutputDebugString('results^.maxSize='+inttostr(results^.maxSize));
+      //  OutputDebugString('TDBVMWatchPollThread returned 0');
+      //  OutputDebugString('results^.numberOfEntries='+inttostr(results^.numberOfEntries));
+      //  OutputDebugString('results^.maxSize='+inttostr(results^.maxSize));
 
         //process data
         if results^.numberOfEntries>0 then
         begin
-         // OutputDebugString('calling addEntriesToList');
+      //    OutputDebugString('calling addEntriesToList');
           synchronize(addEntriesToList);
           sleep(10);
         end
@@ -198,7 +208,7 @@ begin
       if i=2 then
       begin
         //not enough memory. Allocate twice the needed amount
-       // outputdebugstring(inttostr(resultsize)+' is too small for the buffer. It needs to be at least '+inttostr(size));
+     //   outputdebugstring(inttostr(resultsize)+' is too small for the buffer. It needs to be at least '+inttostr(size));
         freememandnil(results);
 
 
@@ -209,7 +219,7 @@ begin
         continue; //try again, no sleep
       end else
       begin
-        //outputdebugstring('dbvm_watch_retrievelog returned '+inttostr(i)+' which is not supported');
+        outputdebugstring('dbvm_watch_retrievelog returned '+inttostr(i)+' which is not supported');
         exit;
       end;
     end;
@@ -239,6 +249,7 @@ end;
 constructor TCodeRecord.create;
 begin
   formChangedAddresses:=nil;
+  firstseen:=now;
 end;
 
 
@@ -325,7 +336,8 @@ begin
                (basicinfo.R14=TCodeRecord(fcd.foundcodelist.Items[j].data).dbvmcontextbasic^.R14) and
                (basicinfo.R15=TCodeRecord(fcd.foundcodelist.Items[j].data).dbvmcontextbasic^.R15) THEN
             begin
-              inc(TCodeRecord(fcd.foundcodelist.Items[j].data).hitcount, basicinfo.Count);
+              TCodeRecord(fcd.foundcodelist.Items[j].data).hitcount:=TCodeRecord(fcd.foundcodelist.Items[j].data).hitcount+basicinfo.count;
+
               skip:=true;
               break;
             end;
@@ -468,6 +480,12 @@ begin
 end;
 {$ENDIF}
 
+procedure TCodeRecord.setHitcount(c: integer);
+begin
+  fHitcount:=c;
+  lastSeen:=now;
+end;
+
 procedure TCodeRecord.savestack;
 var base: qword;
 begin
@@ -545,7 +563,7 @@ begin
       if TCodeRecord(foundcodelist.Items[i].data).address=address then
       begin
         //it's already in the list
-        inc(TCodeRecord(foundcodelist.Items[i].data).hitcount);
+        TCodeRecord(foundcodelist.Items[i].data).hitcount:=TCodeRecord(foundcodelist.Items[i].data).hitcount+1;
         if miFindWhatAccesses.checked then
           FoundcodeList.items[i].caption:=inttostr(TCodeRecord(foundcodelist.Items[i].data).hitcount)+' ('+inttostr(TCodeRecord(foundcodelist.Items[i].data).diffcount)+')'
         else
@@ -674,6 +692,8 @@ begin
 
   minfo.Lines.BeginUpdate;
   try
+    if coderecord.addressString<>'' then minfo.Lines.add(coderecord.addressString+':');
+
     minfo.Lines.Add(disassembled[1]);
     minfo.Lines.Add(disassembled[2]);
     minfo.Lines.Add(disassembled[3]+' <<');
@@ -735,6 +755,10 @@ begin
 
     minfo.lines.add('');
     minfo.lines.add('');
+
+    minfo.lines.add('First seen:'+TimeToStr(coderecord.firstSeen));
+    minfo.lines.add('Last seen:'+TimeToStr(coderecord.lastSeen));
+
 
 
   finally
@@ -1599,6 +1623,24 @@ end;
 procedure TFoundCodeDialog.Copyselectiontoclipboard1Click(Sender: TObject);
 begin
   clipboard.AsText:=getSelection;
+end;
+
+procedure TFoundCodeDialog.timerAddressStringLookupTimer(Sender: TObject);
+var
+  i: integer;
+  starttime: qword;
+  c: FoundCodeUnit.TCodeRecord;
+begin
+  starttime:=GetTickCount64;
+  for i:=0 to foundcodelist.Items.Count-1 do
+  begin
+    c:=FoundCodeUnit.TCodeRecord(foundcodelist.items[i].data);
+    if c.addressString='' then
+      c.addressString:=symhandler.getNameFromAddress(c.address);
+
+
+    if gettickcount64-starttime>250 then break; //next time better
+  end;
 end;
 
 initialization

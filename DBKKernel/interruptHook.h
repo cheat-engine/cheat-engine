@@ -5,7 +5,7 @@
 
 //assuming the standard interrupt hook routine is used this stackindex will be valid
 #ifdef AMD64
-typedef enum {si_eax=0, si_ebx=1, si_ecx=2, si_edx=3, si_esi=4, si_edi=5, si_ebp=6, si_stack_esp=7, si_r8=8, si_r9=9, si_r10=10, si_r11=11, si_r12=12, si_r13=13, si_r14=14, si_r15=15, si_es=16, si_ds=17, si_stack_ss=18, si_errorcode=19+(4096/8), si_eip=20+(4096/8), si_cs=21+(4096/8), si_eflags=22+(4096/8), si_esp=23+(4096/8), si_ss=24+(4096/8)} stackindex;
+typedef enum {si_eax=0, si_ebx=1, si_ecx=2, si_edx=3, si_esi=4, si_edi=5, si_ebp=6, si_stack_esp=7, si_r8=8, si_r9=9, si_r10=10, si_r11=11, si_r12=12, si_r13=13, si_r14=14, si_r15=15, si_es=16, si_ds=17, si_stack_ss=18, si_xmm=19, si_errorcode=19+(4096/8)+(512/8), si_eip=20+(4096/8) + (512 / 8), si_cs=21+(4096/8) + (512 / 8), si_eflags=22+(4096/8) + (512 / 8), si_esp=23+(4096/8) + (512 / 8), si_ss=24+(4096/8) + (512 / 8)} stackindex;
 #else
 typedef enum {si_gs=-12, si_fs=-11, si_es=-10, si_ds=-9, si_edi=-8, si_esi=-7, si_stack_ebp=-6, si_stack_esp=-5, si_ebx=-4, si_edx=-3, si_ecx=-2, si_eax=-1, si_ebp=0, si_errorcode=1, si_eip=2, si_cs=3, si_eflags=4, si_esp=5, si_ss=6} stackindex;
 #endif

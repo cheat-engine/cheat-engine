@@ -60,6 +60,11 @@ int has_VPID_INVVPIDSingleContext;
 int has_VPID_INVVPIDAllContext;
 int has_VPID_INVVPIDSingleContextRetainingGlobals;
 
+//AMD
+int has_NP_1GBsupport;
+int has_NP_2MBsupport;
+
+
 
 int vmx_enableProcBasedFeature(DWORD PBF);
 int vmx_disableProcBasedFeature(DWORD PBF);

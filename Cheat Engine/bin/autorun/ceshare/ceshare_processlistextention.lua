@@ -121,7 +121,7 @@ end
 
 
 
-z=registerFormAddNotification(function(s)
+registerFormAddNotification(function(s)
   --watches for the ProcessWindow form
   if s.ClassName=='TProcessWindow' then
     --on hold while waiting for tabs to support images or ownerdraw, which neither is the case
@@ -151,7 +151,7 @@ z=registerFormAddNotification(function(s)
       ceshare.ProcessListWindow=s2
       
       local ts=s2.TabHeader.addTab()
-      ts.Caption='CEShare'
+      ts.Caption=translate('CEShare')
       ceshare.ProcessListTab=ts
       ts.Name='tsCEShare'  
 

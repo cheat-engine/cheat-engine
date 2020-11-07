@@ -135,6 +135,10 @@ resourcestring
   rsAALuaErrorInTheScriptAtLine = 'Lua error in the script at line ';
   rsGoTo = 'Go to ';
   rsMissingExcept = 'The {$TRY} at line %d has no matching {$EXCEPT}';
+  rsNoPreferedRangeAllocWarning = 'None of the ALLOC statements specify a '
+    +'prefered address.  Did you take into account that the JMP instruction is'
+    +' going to be 14 bytes long?';
+  rsFailureAlloc = 'Failure allocating memory near %.8x';
 
 //type
 //  TregisteredAutoAssemblerCommands =  TFPGList<TRegisteredAutoAssemblerCommand>;
@@ -253,15 +257,18 @@ var
   starttime: ptruint;
   distance: qword;
   address: ptruint;
+  count: integer;
 begin
   starttime:=gettickcount64;
 
   address:=0;
   distance:=0;
+  count:=0;
   if prefered mod systeminfo.dwAllocationGranularity>0 then
     prefered:=prefered-(prefered mod systeminfo.dwAllocationGranularity);
 
-  while (address=0) and (gettickcount64<starttime+10000) and (distance<$80000000) do
+
+  while (address=0) and ((count<10) or (gettickcount64<starttime+10000)) and (distance<$80000000) do
   begin
     address:=ptrUint(virtualallocex(processhandle,pointer(prefered+distance),size, MEM_RESERVE or MEM_COMMIT,protection));
     if (address=0) and (distance>0) then
@@ -269,6 +276,8 @@ begin
 
     if address=0 then
       inc(distance, systeminfo.dwAllocationGranularity);
+
+    inc(count);
   end;
 
   result:=address;
@@ -784,7 +793,7 @@ begin
   end;
 end;
 
-procedure aobscans(code: tstrings; syntaxcheckonly: boolean);
+function aobscans(code: tstrings; syntaxcheckonly: boolean): boolean;
 //Replaces all AOBSCAN lines with DEFINE(NAME,ADDRESS)
 type
   TAOBEntry = record
@@ -836,6 +845,11 @@ var i,j,k, m: integer;
       begin
         setlength(results,1);
         results[0]:=testptr;
+
+        if not InRangeX(results[0], aobscanmodules[f].minaddress, aobscanmodules[f].maxaddress) then
+        begin
+          raise EAutoAssembler.Create('Invalid result for aob region scan');
+        end;
       end;
     end
     else
@@ -876,6 +890,7 @@ var i,j,k, m: integer;
   end;
 
 begin
+  result:=false;
   error:=false;
   setlength(aobscanmodules,0);
 
@@ -1080,6 +1095,10 @@ begin
     end;
   end;
   //do simultaneous scans for the selected modules
+
+  if length(aobscanmodules)>0 then
+    result:=true; //script uses aobscan
+
   for i:=0 to length(aobscanmodules)-1 do
   begin
 
@@ -1119,7 +1138,7 @@ begin
     end;
 
 
-  if error then raise exception.create(errorstring);
+  if error then raise EAutoAssembler.create(errorstring);
 
 
 end;
@@ -1375,8 +1394,6 @@ var i,j,k,l,e: integer;
       timeout: integer;
     end;
 
-//    aoblist: array of TAOBEntry;
-
     a,b,c,d: integer;
     s1,s2,s3: string;
 
@@ -1411,6 +1428,7 @@ var i,j,k,l,e: integer;
     ProcessID: DWORD;
 
     bytes: tbytes;
+    oldprefered: ptrUint;
     prefered: ptrUint;
     protection: dword;
 
@@ -1439,6 +1457,7 @@ var i,j,k,l,e: integer;
 
     nops: Tassemblerbytes;
     mustbefar: boolean;
+    usesaobscan: boolean;
 
     function getAddressFromScript(name: string): ptruint;
     var
@@ -1550,7 +1569,6 @@ begin
     setlength(defines,0);
     setlength(loadbinary,0);
     setlength(exceptionlist,0);
-//    setlength(aoblist,0);
 
     tokens:=tstringlist.Create;
 
@@ -1591,7 +1609,7 @@ begin
     //6.3: do the aobscans first
     //this will break scripts that use define(state,33) aobscan(name, 11 22 state 44 55), but really, live with it
 
-    aobscans(code, syntaxcheckonly);
+    usesaobscan:=aobscans(code, syntaxcheckonly);
 
     if not targetself then
       for i:=0 to length(AutoAssemblerProloguesPostAOBSCAN)-1 do
@@ -1650,7 +1668,7 @@ begin
           //also, do not touch define with any previous define
           if uppercase(copy(currentline,1,7))='DEFINE(' then
           begin
-            //syntax: alloc(x,size)    x=variable name size=bytes
+            //syntax: define(x,whatever)    x=variable name size=bytes
             //allocate memory
 
 
@@ -1975,7 +1993,7 @@ begin
                   end
                   else
                   begin
-                    if lastLoadedTableVersion<=30 then //when the current table was made with an older CE build and it uses  CREATETHREADANDWAIT
+                    if (lastLoadedTableVersion>0) and (lastLoadedTableVersion<=30) then //when the current table was made with an older CE build and it uses  CREATETHREADANDWAIT
                       j:=5000
                     else
                       j:=0;
@@ -2198,12 +2216,23 @@ begin
             begin
               s1:=trim(copy(currentline,a+1,b-a-1));
 
-              slist:=s1.Split([',',' ']);
-              for sli:=0 to length(slist)-1 do
+              if s1='*' then
               begin
-                s1:=slist[sli];
-                setlength(deletesymbollist,length(deletesymbollist)+1);
-                deletesymbollist[length(deletesymbollist)-1]:=s1;
+                j:=length(deletesymbollist);
+                setlength(deletesymbollist, j+ registeredsymbols.Count);
+
+                for k:=0 to registeredsymbols.Count-1 do
+                  deletesymbollist[j+k]:=registeredsymbols[k];
+              end
+              else
+              begin
+                slist:=s1.Split([',',' ']);
+                for sli:=0 to length(slist)-1 do
+                begin
+                  s1:=slist[sli];
+                  setlength(deletesymbollist,length(deletesymbollist)+1);
+                  deletesymbollist[length(deletesymbollist)-1]:=s1;
+                end;
               end;
             end
             else raise exception.Create(rsSyntaxError);
@@ -2325,19 +2354,30 @@ begin
               begin
                 s1:=trim(copy(currentline,a+1,b-a-1));
 
-                slist:=s1.Split([',',' ']);
-
-                for sli:=0 to length(slist)-1 do
+                if s1='*' then
                 begin
-                  s1:=slist[sli];
-
-                  //find s1 in the ceallocarray
+                  //everything that the script allocated
+                  setlength(dealloc, length(ceallocarray));
                   for j:=0 to length(ceallocarray)-1 do
+                    dealloc[j]:=ceallocarray[j].address;
+
+                end
+                else
+                begin
+                  slist:=s1.Split([',',' ']);
+
+                  for sli:=0 to length(slist)-1 do
                   begin
-                    if uppercase(ceallocarray[j].varname)=uppercase(s1) then
+                    s1:=slist[sli];
+
+                    //find s1 in the ceallocarray
+                    for j:=0 to length(ceallocarray)-1 do
                     begin
-                      setlength(dealloc,length(dealloc)+1);
-                      dealloc[length(dealloc)-1]:=ceallocarray[j].address;
+                      if uppercase(ceallocarray[j].varname)=uppercase(s1) then
+                      begin
+                        setlength(dealloc,length(dealloc)+1);
+                        dealloc[length(dealloc)-1]:=ceallocarray[j].address;
+                      end;
                     end;
                   end;
                 end;
@@ -2407,10 +2447,7 @@ begin
               allocs[j].varname:=s1;
               allocs[j].size:=StrToInt(s2);
               if s3<>'' then
-              begin
-
-                allocs[j].prefered:=symhandler.getAddressFromName(s3);
-              end
+                allocs[j].prefered:=symhandler.getAddressFromName(s3)
               else
                 allocs[j].prefered:=0;
 
@@ -2848,14 +2885,28 @@ begin
       end;
 
 
-    if syntaxcheckonly then
+    //check for the 3th alloc parameter when testing the validity of the script, and ask if the user understands what will happen
+    if popupmessages and processhandler.is64Bit and usesaobscan and (length(allocs)>0) then
     begin
-      result:=true;
-      exit;
+      //check if a prefered address is used
+      prefered:=0;
+
+      for i:=0 to length(allocs)-1 do
+        if allocs[i].prefered<>0 then
+        begin
+          prefered:=allocs[i].prefered;
+          break;
+        end;
+
+      if (prefered=0) and (MessageDlg(rsNoPreferedRangeAllocWarning, mtWarning, [mbyes, mbno], 0)<>mryes) then
+        exit(false);
     end;
 
+    if syntaxcheckonly then
+      exit(true);
+
     {$ifndef jni}
-    if popupmessages and (messagedlg(rsThisCodeCanBeInjectedAreYouSure, mtConfirmation	, [mbyes, mbno], 0)<>mryes) then exit;
+    if popupmessages and (messagedlg(rsThisCodeCanBeInjectedAreYouSure, mtConfirmation, [mbyes, mbno], 0)<>mryes) then exit;
     {$endif}
 
     //allocate the memory
@@ -2910,8 +2961,11 @@ begin
 
               if allocs[j].address=0 then
               begin
-                allocs[j].address:=ptrUint(virtualallocex(processhandle,nil,x, MEM_RESERVE or MEM_COMMIT,protection));
-                OutputDebugString(rsFailureToAllocateMemory+' 2');
+                raise EAssemblerException.create(format(rsFailureAlloc, [prefered]));
+//                if allocs[j].address=0 then
+
+//                allocs[j].address:=ptrUint(virtualallocex(processhandle,nil,x, MEM_RESERVE or MEM_COMMIT,protection));
+//                OutputDebugString(rsFailureToAllocateMemory+' 2');
               end;
 
               if allocs[j].address=0 then raise EAssemblerException.create(rsFailureToAllocateMemory);
@@ -2941,6 +2995,7 @@ begin
         //adjust the address of entries that are part of this final block
         k:=10;
         allocs[j].address:=0;
+
         while (k>0) and (allocs[j].address=0) do
         begin
           i:=0;
@@ -2964,7 +3019,8 @@ begin
           allocs[j].address:=lastChanceAllocPrefered(prefered,x, protection);
 
         if allocs[j].address=0 then
-          allocs[j].address:=ptrUint(virtualallocex(processhandle,nil,x, MEM_RESERVE or MEM_COMMIT,protection));
+          raise EAssemblerException.create(format(rsFailureAlloc, [prefered]));
+         // allocs[j].address:=ptrUint(virtualallocex(processhandle,nil,x, MEM_RESERVE or MEM_COMMIT,protection));
 
         if allocs[j].address=0 then raise EAssemblerException.create(rsFailureToAllocateMemory);
 
@@ -3830,7 +3886,7 @@ begin
 
 end;
 
-procedure stripCPUspecificCode(code: tstrings);
+procedure stripCPUspecificCode(code: tstrings; strip32bit: boolean);
 var i: integer;
   s: string;
   inexcludedbitblock: boolean;
@@ -3843,33 +3899,32 @@ begin
 
     if s='[32-BIT]' then
     begin
-      {$ifdef cpu64}
-      inexcludedbitblock:=true;
-      {$endif}
+      if strip32bit then
+        inexcludedbitblock:=true;
+
       code[i]:=' ';
     end;
 
     if s='[/32-BIT]' then
     begin
-      {$ifdef cpu64}
-      inexcludedbitblock:=false;
-      {$endif}
+      if strip32bit then
+        inexcludedbitblock:=false;
+
       code[i]:=' ';
     end;
 
     if s='[64-BIT]' then
     begin
-      {$ifdef cpu32}
-      inexcludedbitblock:=true;
-      {$endif}
+      if not strip32bit then
+        inexcludedbitblock:=true;
+
       code[i]:=' ';
     end;
 
     if s='[/64-BIT]' then
     begin
-      {$ifdef cpu32}
-      inexcludedbitblock:=false;
-      {$endif}
+      if not strip32bit then
+        inexcludedbitblock:=false;
       code[i]:=' ';
     end;
 
@@ -3889,6 +3944,8 @@ var tempstrings: tstringlist;
     i,j: integer;
     currentline: string;
     enablepos,disablepos: integer;
+
+    strip32bitcode: boolean;
 begin
   //add line numbers to the code
   for i:=0 to code.Count-1 do
@@ -3943,8 +4000,11 @@ begin
       end;
     end;
 
+    strip32bitcode:=processhandler.is64Bit;
     if targetself then
-      Stripcpuspecificcode(tempstrings);
+      strip32bitcode:={$ifdef cpu64}true{$else}false{$endif};
+
+    Stripcpuspecificcode(tempstrings, strip32bitcode); //todo: change to set for other types like arm
 
     result:=autoassemble2(tempstrings,popupmessages,syntaxcheckonly,targetself,ceallocarray, exceptionlist, registeredsymbols, memrec);
   finally

@@ -792,6 +792,8 @@ begin
 
     PWOP(ProcessIDString);
 
+
+
     if TabHeader.TabIndex=0 then
       MainForm.ProcessLabel.caption:=ProcessIDString+'-'+extractfilename(getProcessPathFromProcessID(processid))
     else
@@ -877,9 +879,18 @@ begin
         ProcessHandler.ProcessHandle:=0;
       end;
 
-      if processid=GetCurrentProcessId then raise exception.create(rsPleaseSelectAnotherProcess);
+      try
+        if processid=GetCurrentProcessId then raise exception.create(rsPleaseSelectAnotherProcess);
 
-      Debuggerthread:=TDebuggerThread.MyCreate2(processid);
+        Debuggerthread:=TDebuggerThread.MyCreate2(processid);
+      except
+        on e: exception do
+        begin
+          debuggerthread:=nil;
+          MessageDlg(e.message, mtError,[mbok],0);
+          exit;
+        end;
+      end;
 
       mainform.ProcessLabel.Caption:=ProcessList.Items[Processlist.ItemIndex];
 
@@ -1192,7 +1203,7 @@ begin
         oldselection:=copy(oldselection,pos('-',oldselection)+1,length(oldselection));
 
         found:=false;
-        for i:=0 to processlist.Items.Count-1 do
+        for i:=processlist.Items.Count-1 downto 0 do
           if pos(oldselection, processlist.items[i])>0 then
           begin
             processlist.ItemIndex:=i;

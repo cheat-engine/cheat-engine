@@ -120,6 +120,34 @@ object frmPasteTableentry: TfrmPasteTableentry
       TabOrder = 0
       Text = '0'
     end
+    object Label4: TLabel
+      AnchorSideLeft.Control = GroupBox2
+      AnchorSideTop.Control = edtOffset
+      AnchorSideTop.Side = asrBottom
+      Left = 4
+      Height = 15
+      Top = 38
+      Width = 151
+      BorderSpacing.Left = 4
+      BorderSpacing.Right = 4
+      Caption = 'Adjust pointer last offset by: '
+      ParentColor = False
+    end
+    object edtPointerLastOffset: TEdit
+      AnchorSideLeft.Control = GroupBox2
+      AnchorSideTop.Control = Label4
+      AnchorSideTop.Side = asrBottom
+      AnchorSideRight.Control = GroupBox2
+      AnchorSideRight.Side = asrBottom
+      Left = 3
+      Height = 23
+      Top = 53
+      Width = 160
+      BorderSpacing.Left = 3
+      BorderSpacing.Right = 3
+      TabOrder = 1
+      Text = '0'
+    end
   end
   object cbChildrenAsWell: TCheckBox
     AnchorSideLeft.Control = GroupBox1

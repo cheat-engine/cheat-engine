@@ -14,6 +14,9 @@ uses
   {$ifdef darwin}
   macport,
   {$endif}
+  {$ifdef windows}
+  windows,
+  {$endif}
   {$ifndef jni}LCLIntf, {$endif}
   newkernelhandler, classes, sysutils;
 
@@ -90,7 +93,7 @@ var
   {$endif}
   arch: integer;
 begin
-  if (fprocesshandle<>0) and (fprocesshandle<>THANDLE(-1)) then
+  if (fprocesshandle<>0) and (fprocesshandle<>getcurrentprocess) and (processhandle<>getcurrentprocess) then
   begin
     try
       closehandle(fprocesshandle);

@@ -12,7 +12,7 @@ uses
   windows,
   {$endif}
   LCLIntf,sysutils,syncobjs,Classes,disassembler, NewKernelHandler, math,
-  MemoryQuery, CEFuncProc, maps, LastDisassembleData, commonTypeDefs;
+  MemoryQuery, CEFuncProc, maps, LastDisassembleData, commonTypeDefs, AvgLvlTree;
 
 
 type
@@ -67,6 +67,8 @@ end;
 type TOnCallListEntry=procedure(address: ptruint);
 
 type
+
+
   TDissectCodeThread = class(TThread)
   private
     { Private declarations }
@@ -82,10 +84,21 @@ type
 
     canceled: boolean;
 
+    oldAddressToNewAddressTree: TAvgLvlTree; //used for loading back addresses and conver them to the new one
+
+    usedModuleList: TStringList;
 
     function isstring(address: ptrUint; v: pqword=nil): boolean;
     function findaddress(list: TMap; address: ptrUint):PAddresslist;
     procedure clearList(list: Tmap);
+
+    //relocation handlers:
+    function OldAddressToNewAddressLookup(Tree: TAvgLvlTree; Data1, Data2: pointer): integer;
+    procedure saveModuleListToStream(s: TStream);
+    procedure loadModuleListFromStream(s: TStream);
+    function convertOldAddressToNew(address: ptruint): ptruint;
+    procedure cleanModuleListRelocator;
+
     procedure saveListToStream(list: TMap; s: TStream);
     procedure loadListFromStream(list: TMap; s: TStream);
   public
@@ -124,6 +137,7 @@ type
     procedure loadFromFile(filename: string);
 
 
+
     procedure getstringlist(s: tstrings);
     procedure getCallList(s: TList);
 
@@ -138,7 +152,7 @@ var dissectcode: tdissectcodethread;
 
 implementation
 
-uses ProcessHandlerUnit, parsers;
+uses ProcessHandlerUnit, parsers, symbolhandler, symbolhandlerstructs, Laz_AVL_Tree;
 
 resourcestring
   rsInvalidDissectCodeFile = 'Invalid dissect code file';
@@ -151,6 +165,109 @@ This thread will scan the memory for jumps and conditional jumps
 that data will be added to a list that the disassemblerview can read out for data
 
 }
+
+procedure TDissectCodeThread.saveModuleListToStream(s: TStream);
+var
+  i: integer;
+begin
+  //get the current modulelist and save that to the stream
+
+  s.WriteDWord(usedModuleList.Count);
+  for i:=0 to usedModuleList.count-1 do
+  begin
+    s.WriteQWord(ptruint(usedModuleList.Objects[i]));
+    s.WriteAnsiString(usedModuleList[i]);
+  end;
+end;
+
+
+type
+  TAddressToNewAddressEntry=record
+    baseaddress: qword; //old address/searchkey
+    size: dword;
+    relocatedTo: qword; //new address
+  end;
+  PAddressToNewAddressEntry=^TAddressToNewAddressEntry;
+
+
+function TDissectCodeThread.OldAddressToNewAddressLookup(Tree: TAvgLvlTree; Data1, Data2: pointer): integer;
+var d1,d2: PAddressToNewAddressEntry;
+begin
+  d1:=data1;
+  d2:=data2;
+
+  if inrangeq(d1.baseaddress,d2.baseaddress,d2.baseaddress+d2.size) or
+     inrangeq(d2.baseaddress,d1.baseaddress,d1.baseaddress+d1.size) then exit(0);
+
+  if d1.baseaddress<d2.baseaddress then exit(-1) else exit(1);
+end;
+
+procedure TDissectCodeThread.cleanModuleListRelocator;
+var n: TAVLTreeNode;
+  enum: TAVLTreeNodeEnumerator;
+begin
+  enum:=oldAddressToNewAddressTree.GetEnumerator;
+
+  while enum.MoveNext do
+  begin
+    n:=enum.Current;
+    if n<>nil then
+      freemem(n.data);
+  end;
+
+  freeandnil(enum);
+  freeandnil(oldAddressToNewAddressTree);
+end;
+
+procedure  TDissectCodeThread.loadModuleListFromStream(s: TStream);
+var
+  i: integer;
+  list: TList;
+  nr: dword;
+
+  baseaddress: qword;
+  modulename: string;
+
+  data: PAddressToNewAddressEntry;
+  mi: TModuleInfo;
+
+begin
+  oldAddressToNewAddressTree:=TAvgLvlTree.CreateObjectCompare(OldAddressToNewAddressLookup);
+
+  nr:=s.ReadDWord;
+
+  for i:=0 to nr-1 do
+  begin
+    baseaddress:=s.ReadQWord;
+    modulename:=s.ReadAnsiString;
+
+    if symhandler.getmodulebyname(modulename, mi) then
+    begin
+      getmem(data, sizeof(TAddressToNewAddressEntry));
+      data.baseaddress:=baseaddress;
+      data.size:=mi.basesize;
+      data.relocatedTo:=mi.baseaddress;
+      oldAddressToNewAddressTree.Add(data);
+    end;
+  end;
+end;
+
+function TDissectCodeThread.ConvertOldAddressToNew(address: ptruint): ptruint;
+var
+  searcher: TAddressToNewAddressEntry;
+  n: TAvlTreeNode;
+begin
+  result:=address;
+  if oldAddressToNewAddressTree<>nil then
+  begin
+    searcher.size:=4;
+    searcher.baseaddress:=address;
+    n:=oldAddressToNewAddressTree.Find(@searcher);
+    if n<>nil then
+      result:=PAddressToNewAddressEntry(n.Data)^.relocatedTo+(address-PAddressToNewAddressEntry(n.Data)^.baseaddress);
+  end;
+end;
+
 procedure TDissectCodeThread.saveListToStream(list: TMap; s: TStream);
 var mi: TMapIterator;
   id: ptruint;
@@ -200,7 +317,8 @@ begin
   fs:=tfilestream.create(filename, fmCreate);
 
   try
-    fs.WriteDWord($ce00dc01);  //cheat engine dissect code v1
+    fs.WriteDWord($ce00dc02);  //cheat engine dissect code v1
+    saveModuleListToStream(fs);
     saveListToStream(calllist, fs);
     saveListToStream(unconditionaljumplist, fs);
     saveListToStream(conditionaljumplist, fs);
@@ -227,16 +345,20 @@ begin
   begin
     getmem(al, sizeof(TAddresslist));
 
-    id:=s.ReadQword;
+    id:=ConvertOldAddressToNew(s.ReadQword);
     al.isstring:=s.ReadDword=1;
     al.maxsize:=s.ReadDWord;
     al.pos:=al.maxsize;
+
+    if al.isstring then
+      inc(nrofstring);
+
 
     if al.pos>0 then
     begin
       getmem(al.a, al.pos*sizeof(PtrUInt));
       for j:=0 to al.pos-1 do
-        al.a[j]:=s.ReadQWord;
+        al.a[j]:=ConvertOldAddressToNew(s.ReadQWord);
 
       list.Add(id, al);
     end;
@@ -244,20 +366,43 @@ begin
 end;
 
 procedure TDissectCodeThread.loadFromFile(filename: string);
-var fs: Tfilestream;
+var
+  fs: Tfilestream;
+  version: dword;
 begin
   fs:=tfilestream.create(filename, fmOpenRead);
 
   clear;
+  nrofstring:=0;
+  nrofconditionaljumps:=0;
+  nrofunconditionaljumps:=0;
+  nrofcalls:=0;
+
+
   try
-    if fs.ReadDWord<>$ce00dc01 then
+    version:=fs.ReadDWord;
+    if version<$ce00dc01 then
       raise exception.create(rsInvalidDissectCodeFile);
 
+    if version>=$ce00dc02 then
+      loadModuleListFromStream(fs);
 
     loadListFromStream(calllist, fs);
+    nrofcalls:=calllist.Count;
+
     loadListFromStream(unconditionaljumplist, fs);
+    nrofunconditionaljumps:=unconditionaljumplist.Count;
+
     loadListFromStream(conditionaljumplist, fs);
+    nrofconditionaljumps:=conditionaljumplist.count;
+
+    nrofstring:=0;
     loadListFromStream(memorylist, fs);
+    nrofdata:=memorylist.Count;
+
+    cleanModuleListRelocator;
+
+    symhandler.getModuleList(usedmodulelist); //all loaded back addresses are relative to this one now
   finally
     fs.free;
   end;
@@ -312,6 +457,7 @@ end;
 
 procedure TDissectCodeThread.clear;
 begin
+  usedModuleList.clear;
   clearList(calllist);
   clearList(unconditionaljumplist);
   clearList(conditionaljumplist);
@@ -730,10 +876,14 @@ var
 
 
 begin
+  usedmodulelist.clear;
+
+
   d:=TDisassembler.Create;
   try
     d.showsymbols:=false;
     d.showmodules:=false;
+    d.showsections:=false;
     d.aggressivealignment:=true;
 
     while not terminated do
@@ -742,6 +892,7 @@ begin
       if haswork.WaitFor(INFINITE)=wrSignaled then
       begin
         //find out how much memory to go through (for the progressbar)
+        symhandler.getModuleList(usedmodulelist);
 
         ready.ResetEvent;
 
@@ -875,6 +1026,8 @@ begin
 
   haswork:=TEvent.Create(nil, false, false, '');
   ready:=TEvent.create(nil, false, true, '');
+  usedmodulelist:=tstringlist.create;
+
   inherited create(suspended);
 
 end;

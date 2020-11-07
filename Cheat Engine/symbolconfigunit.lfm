@@ -7,9 +7,10 @@ object frmSymbolhandler: TfrmSymbolhandler
   ClientHeight = 253
   ClientWidth = 468
   OnCreate = FormCreate
+  OnDestroy = FormDestroy
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '2.0.0.4'
+  LCLVersion = '2.0.6.0'
   object Panel1: TPanel
     Left = 303
     Height = 253
@@ -159,8 +160,8 @@ object frmSymbolhandler: TfrmSymbolhandler
   end
   object PopupMenu1: TPopupMenu
     Images = scImageList
-    left = 72
-    top = 80
+    Left = 72
+    Top = 80
     object Delete1: TMenuItem
       Caption = 'Delete'
       Default = True
@@ -174,8 +175,8 @@ object frmSymbolhandler: TfrmSymbolhandler
     end
   end
   object scImageList: TImageList
-    left = 215
-    top = 129
+    Left = 215
+    Top = 129
     Bitmap = {
       4C69020000001000000010000000FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
       FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF

@@ -35,7 +35,7 @@ diagramstyle.highlight_blocknotexecutedcolor = 0 --black
 
 
 
-function disassembleDecoratedInstruction(address)
+local function disassembleDecoratedInstruction(address)
   local disassembler, result, bytes, temp = getVisibleDisassembler(), ' '
   temp = disassembler.disassemble(address)
   temp, temp, bytes, temp = splitDisassembledString(temp)
@@ -73,7 +73,7 @@ function disassembleDecoratedInstruction(address)
   return result
 end
 
-function createDiagramForm(diagram, name)
+local function createDiagramForm(diagram, name)
   diagram.form=createForm(false)
   diagram.form.PopupMode='pmNone'
   diagram.form.BorderStyle='bsSizeable'
@@ -82,7 +82,7 @@ function createDiagramForm(diagram, name)
   diagram.form.Height=getScreenHeight()-(getScreenHeight()/6)
 end
 
-function calculateInbetweenColor(c1,c2,v)
+local function calculateInbetweenColor(c1,c2,v)
   --v=0 : c1
   --v=1 : c2
   if (c1==nil) or (c2==nil) or (v==nil) then
@@ -115,7 +115,7 @@ function calculateInbetweenColor(c1,c2,v)
 end
 
 
-function showTracerPath(diagram, tracerform)
+local function showTracerPath(diagram, tracerform)
   --go through the blocklist and see if the start/stop address is in there
   local blockheat={}
   local linkheat={}
@@ -231,7 +231,7 @@ function showTracerPath(diagram, tracerform)
   return blockheat,linkheat
 end
 
-function showUltimap2Path(diagram, ultimapform)
+local function showUltimap2Path(diagram, ultimapform)
   --no link data, it's non sequential data (yet, until I add seperate tracefile parsing which does contains sequential TNT packets)
   local blockheat={}
   local maxblockheat=1
@@ -262,12 +262,12 @@ function showUltimap2Path(diagram, ultimapform)
   return blockheat
 end
 
-function showCodeFilterPath(diagram, codefilterform)
+local function showCodeFilterPath(diagram, codefilterform)
   --no link data 
   return showUltimap2Path(diagram, codefilerform) --codefilterform also has isInList just count is nil
 end
 
-function createMenu(diagram)
+local function createMenu(diagram)
   local mv=getMemoryViewForm()
   local mm=createMainMenu(diagram.form)
   local FileMenu=createMenuItem(mm)
@@ -584,7 +584,7 @@ function createMenu(diagram)
   --todo, add code to the menu items
 end
 
-function DiagramContextPopup(sender, mousepos)
+local function DiagramContextPopup(sender, mousepos)
   --sender is the diagram object
   --showMessage('weee '..mousepos.x..','..mousepos.y)
   local diagram=getRef(sender.Tag) --diagram has in it's tag value a reference to the diagram table
@@ -619,36 +619,36 @@ function DiagramContextPopup(sender, mousepos)
   return false
 end
 
-function scrollToDiagramBlock(diagram, dblock)
+local function scrollToDiagramBlock(diagram, dblock)
   diagram.diagram.ScrollX = dblock.x - math.abs((diagram.form.width / 2) - ((dblock.width) / 2))
   diagram.diagram.ScrollY = dblock.y - math.abs((diagram.form.height / 2) - ((dblock.height) / 2))
 end
 
-function PopupMenuGoToSourceClick(sender)
+local function PopupMenuGoToSourceClick(sender)
   local diagram=getRef(sender.Owner.Owner.Tag) --the owner of the menuitem is the popupmenu, and the owner of that is the diagram (alternatively, the menuitem tag could be set to the diagram table as well)
   local sourceblock = diagram.popup.lastobject.OriginBlock
   scrollToDiagramBlock(diagram, sourceblock)
 end
 
-function PopupMenuGoToDestinationClick(sender)
+local function PopupMenuGoToDestinationClick(sender)
   local diagram=getRef(sender.Owner.Owner.Tag)
   local destinationblock = diagram.popup.lastobject.DestinationBlock
   scrollToDiagramBlock(diagram, destinationblock)
 end
 
-function PopupMenuRemoveAllPointsClick(sender)
+local function PopupMenuRemoveAllPointsClick(sender)
   local diagram=getRef(sender.Owner.Owner.Tag)
   diagram.popup.lastobject.removeAllPoints()
   diagram.diagram.repaint()
 end
 
-function PopupMenuEditBlockHeaderClick(sender)
+local function PopupMenuEditBlockHeaderClick(sender)
   local diagram=getRef(sender.Owner.Owner.Tag)
   local newheader = inputQuery(translate("Edit"), translate("new header"), diagram.popup.lastobject.caption)
   if newheader ~= nil then diagram.popup.lastobject.caption = newheader end
 end
 
-function PopupMenuEditBlockBackgroundColorClick(sender) --a color dialog would be better
+local function PopupMenuEditBlockBackgroundColorClick(sender) --a color dialog would be better
   local diagram=getRef(sender.Owner.Owner.Tag)
   local colordialog=createColorDialog()
   if colordialog.execute() then
@@ -659,7 +659,7 @@ function PopupMenuEditBlockBackgroundColorClick(sender) --a color dialog would b
   colordialog.destroy()
 end
 
-function PopupMenuListSourcesClick(sender)
+local function PopupMenuListSourcesClick(sender)
   local diagram=getRef(sender.Owner.Owner.Tag)
   local linkz = diagram.popup.lastobject.getLinks()
   local stringlist = createStringlist()
@@ -677,7 +677,7 @@ function PopupMenuListSourcesClick(sender)
   end
 end
 
-function PopupMenuListDestinationsClick(sender)
+local function PopupMenuListDestinationsClick(sender)
   local diagram=getRef(sender.Owner.Owner.Tag)
   local linkz = diagram.popup.lastobject.getLinks()
   local stringlist = createStringlist()
@@ -691,7 +691,7 @@ function PopupMenuListDestinationsClick(sender)
   end
 end
 
-function editBlockStrings(b)
+local function editBlockStrings(b)
   local result=false
   local mf=createForm(false)
   mf.Caption=translate('Block editor')
@@ -750,7 +750,7 @@ function editBlockStrings(b)
   return result  
 end 
 
-function PopupMenuCreateAnnotationClick(sender)
+local function PopupMenuCreateAnnotationClick(sender)
   --create a new dialog at the popup location
   local diagram=getRef(sender.Owner.Owner.Tag)
   local b=diagram.diagram.createBlock()
@@ -776,7 +776,7 @@ function PopupMenuCreateAnnotationClick(sender)
   diagram.diagram.repaint()
 end
 
-function PopupMenuDeleteAnnotationClick(sender)
+local function PopupMenuDeleteAnnotationClick(sender)
   local diagram=getRef(sender.Owner.Owner.Tag)
   
   if diagram.popup.lastobject and diagram.popup.lastobject.ShowHeader==false then
@@ -787,7 +787,7 @@ function PopupMenuDeleteAnnotationClick(sender)
 end
 
 
-function createDiagramPopupMenu(diagram)
+local function createDiagramPopupMenu(diagram)
   local pm=createPopupMenu(diagram.diagram)
   pm.Images = getMemoryViewForm().mvImageList --icons from the memoryviewer's form
   diagram.diagram.PopupMenu=pm
@@ -878,7 +878,7 @@ function createDiagramPopupMenu(diagram)
   pm.Items.add(diagram.popup.All[2])    
 end
 
-function createDiagramDiagram(diagram)
+local function createDiagramDiagram(diagram)
   diagram.diagram = createDiagram(diagram.form)
   diagram.diagram.Align='alClient'
   diagram.diagram.ArrowStyles='[asDestination,asOrigin]'
@@ -892,7 +892,7 @@ function createDiagramDiagram(diagram)
   --diagram.diagram.AllowUserToChangeAttachPoints = false
 end
 
-function onBlockDrag(dblock)
+local function onBlockDrag(dblock)
   local linkz, point = dblock.getLinks(), {}
   for i=1, #linkz.asDestination do
     if (linkz.asDestination[i].Points ~= nil) and (linkz.asDestination[i].PointCount >= 1) then
@@ -910,7 +910,7 @@ function onBlockDrag(dblock)
   end
 end
 
-function createDiagramBlock(diagram, name)
+local function createDiagramBlock(diagram, name)
   local diagramblock = diagram.diagram.createBlock()
   diagramblock.Caption=name
   diagramblock.OnDoubleClickHeader = function(bl)
@@ -923,14 +923,14 @@ function createDiagramBlock(diagram, name)
   return diagramblock
 end
 
-function createDiagramHeaderlessBlock(diagram)
+local function createDiagramHeaderlessBlock(diagram)
   local diagramheaderlessblock = diagram.diagram.createBlock()
   diagramheaderlessblock.ShowHeader=false
   diagramheaderlessblock.DragBody=true
   return diagramheaderlessblock
 end
 
-function createDiagramLink(diagram, sourceblock, destinationblock, color, offset)
+local function createDiagramLink(diagram, sourceblock, destinationblock, color, offset)
   local sourceBSD={}
   sourceBSD.Block=diagram.dblocks[sourceblock]
   sourceBSD.Side=dbsBottom
@@ -961,8 +961,8 @@ function createDiagramLink(diagram, sourceblock, destinationblock, color, offset
   return diagramlink
 end
 
-function createDiagramBlocks(diagram)
- _G.d=diagram
+local function createDiagramBlocks(diagram)
+  -- _G.d=diagram
   diagram.dblocks = {}
   for i=1, #diagram.blocks do
     if diagram.state.parsed[diagram.blocks[i].start] then
@@ -987,7 +987,7 @@ function createDiagramBlocks(diagram)
   end
 end
 
-function blockAddressToBlockIndex(diagram, address)
+local function blockAddressToBlockIndex(diagram, address)
   for i=1, #diagram.blocks do
     if (diagram.blocks[i].start == address) or (diagram.blocks[i].stop == address) then
       return i
@@ -996,7 +996,7 @@ function blockAddressToBlockIndex(diagram, address)
   return nil
 end
 
-function diagramBlockToDiagramBlockIndex(diagram, dblock)
+local function diagramBlockToDiagramBlockIndex(diagram, dblock)
   for i=1, #diagram.dblocks do
     if diagram.dblocks[i] == dblock then
       return i
@@ -1005,7 +1005,7 @@ function diagramBlockToDiagramBlockIndex(diagram, dblock)
   return nil
 end
 
-function diagramBlockInputToInputIndex(dblock, idblock)
+local function diagramBlockInputToInputIndex(dblock, idblock)
   local linkz = dblock.getLinks()
   for i=1, #linkz.asDestination do
     if linkz.asDestination[i].OriginBlock == idblock then 
@@ -1015,7 +1015,7 @@ function diagramBlockInputToInputIndex(dblock, idblock)
   return 0
 end
 
-function linkDiagramBlocks(diagram)
+local function linkDiagramBlocks(diagram)
   for i=1, #diagram.dblocks do
     if i > 1 then --skip starting block
       for j=1, #diagram.blocks[i].getsJumpedToBy do
@@ -1057,7 +1057,7 @@ function linkDiagramBlocks(diagram)
   end
 end
 
-function createDiagramPseudoBlocks(diagram)
+local function createDiagramPseudoBlocks(diagram)
   diagram.dpblocks = {}
   for i=1, #diagram.dblocks do
     local linkz = diagram.dblocks[i].getLinks()
@@ -1088,24 +1088,24 @@ function createDiagramPseudoBlocks(diagram)
   end
 end
 
-function initDiagramVisitedBlocks(diagram, dvblocks)
+local function initDiagramVisitedBlocks(diagram, dvblocks)
   for i=1, #diagram.dblocks do
     dvblocks[i] = {}
     dvblocks[i].visited = false
   end
 end
 
-function createQueue()
+local function createQueue()
   return {first = 0, last = -1}
 end
 
-function pushLeft (queue, value)
+local function pushLeft (queue, value)
   local first = queue.first - 1
   queue.first = first
   queue[first] = value
 end
 
-function popRight (queue)
+local function popRight (queue)
   local last = queue.last
   if queue.first > last then 
     return nil 
@@ -1120,7 +1120,7 @@ end
   makes all the multiple inputs blocks, single input blocks
   the goal is to obtain a better block arrangement
 --]]
-function ComputeBetterArrangement(diagram)
+local function ComputeBetterArrangement(diagram)
   local dvblocks, more, branchqueue, nextbranch = {}, true, createQueue(), {}
   initDiagramVisitedBlocks(diagram, dvblocks)
   dvblocks[1].visited = true
@@ -1173,7 +1173,7 @@ function ComputeBetterArrangement(diagram)
   end
 end
 
-function adjustEverything(diagram, dpblock, column, row)
+local function adjustEverything(diagram, dpblock, column, row)
   diagram.dpblocks[dpblock].column = diagram.dpblocks[dpblock].column + column
   diagram.dpblocks[dpblock].row= diagram.dpblocks[dpblock].row + row
   for i=1, diagram.dpblocks[dpblock].betteroutput_count do
@@ -1186,7 +1186,7 @@ end
   computes the diagram's rows and columns
   we'll need them in order to arrange blocks, links and points
 --]]
-function computeLayers(diagram, dpblock)
+local function computeLayers(diagram, dpblock)
   local column, row_count, c_column = 0, 0, 0
   for i=1, diagram.dpblocks[dpblock].betteroutput_count do
     computeLayers(diagram, diagram.dpblocks[dpblock].betteroutput[i])
@@ -1231,7 +1231,7 @@ function computeLayers(diagram, dpblock)
   diagram.dpblocks[dpblock].row, diagram.dpblocks[dpblock].row_count = 0, row_count
 end
 
-function initLayerRelatedStuff(diagram)
+local function initLayerRelatedStuff(diagram)
   diagram.points = {}
   diagram.paths = {}
   diagram.column_count = 0
@@ -1290,7 +1290,7 @@ function initLayerRelatedStuff(diagram)
   end
 end
 
-function computePoints(diagram)
+local function computePoints(diagram)
   --output vertical points
   for i=1, #diagram.dpblocks do
     local origin = i
@@ -1320,7 +1320,7 @@ function computePoints(diagram)
   end
 end
 
-function arrangeDiagramLayers(diagram)
+local function arrangeDiagramLayers(diagram)
   local x = 20*DPIAdjust
   for i=0, diagram.column_count-1 do
     diagram.column[i].x=x
@@ -1343,14 +1343,14 @@ function arrangeDiagramLayers(diagram)
   diagram.links_row[diagram.row_count].y=y+diagram.row[diagram.row_count].height
 end
 
-function arrangeDiagramBlocks(diagram)
+local function arrangeDiagramBlocks(diagram)
   for i=1, #diagram.dblocks do
     diagram.dblocks[i].x=diagram.column[diagram.dpblocks[i].column].x+(diagram.column[diagram.dpblocks[i].column].width/2)-(diagram.dblocks[i].width/2)
     diagram.dblocks[i].y=diagram.row[diagram.dpblocks[i].row].y
   end
 end
 
-function arrangeDiagramLinks(diagram)
+local function arrangeDiagramLinks(diagram)
   for i=1, #diagram.dblocks do
     for j=1, diagram.dpblocks[i].output_count do
       local origin_row=diagram.dpblocks[i].row
@@ -1371,12 +1371,12 @@ function arrangeDiagramLinks(diagram)
   end
 end
 
-function centerDiagramBlock(diagram, dblock)
+local function centerDiagramBlock(diagram, dblock)
   diagram.dblocks[dblock].x=(diagram.form.width/2)-(diagram.dblocks[dblock].width/2)
   diagram.dblocks[dblock].y=(diagram.form.height/2)-(diagram.dblocks[dblock].height/2)
 end
 
-function moveEverything(diagram, offset)
+local function moveEverything(diagram, offset)
   for i=1,#diagram.dblocks do
     diagram.dblocks[i].x=diagram.dblocks[i].x+offset
   end
@@ -1395,7 +1395,7 @@ function moveEverything(diagram, offset)
   end
 end
 
-function createDiagramInfoBlock(diagram)
+local function createDiagramInfoBlock(diagram)
   local dinfoblock = createDiagramHeaderlessBlock(diagram)
   dinfoblock.Strings.add(" " .. string.char(27) .. string.format("[1m"..translate("[Diagram info]"), diagram.blocks[1].start) .. string.char(27) .."[0m")
   dinfoblock.Strings.add(string.format(translate(" Function start: 0x%X"), diagram.blocks[1].start))
@@ -1408,10 +1408,10 @@ function createDiagramInfoBlock(diagram)
   if #diagram.blocks > 1 then moveEverything(diagram, dinfoblock.width + diagramstyle.link_pointdepth) end
 end
 
-function spawnDiagram(start, limit)
+local function spawnDiagram(start, limit)
   local diagram = {}
-  diagram.state=parseFunction(start, limit)
-  diagram.blocks,diagram.sortedAddressList=createBlocks(diagram.state)
+  diagram.state=pseudocode.parseFunction(start, limit)
+  diagram.blocks,diagram.sortedAddressList=pseudocode.createBlocks(diagram.state)
   createDiagramForm(diagram, translate('Diagram'))
   createMenu(diagram)   
   createDiagramDiagram(diagram)
@@ -1436,7 +1436,7 @@ function spawnDiagram(start, limit)
   return diagram
 end
 
-function MenuSpawnDiagram()
+local function MenuSpawnDiagram()
   local mv=getMemoryViewForm()
   local a=mv.DisassemblerView.SelectedAddress
   local b=mv.DisassemblerView.SelectedAddress2 or a

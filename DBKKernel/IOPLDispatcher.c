@@ -1,4 +1,4 @@
-#pragma warning( disable: 4100 4101 4103)
+#pragma warning( disable: 4100 4101 4103 4189)
 
 
 #include "IOPLDispatcher.h"
@@ -2462,6 +2462,8 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 								{
 									int j;
 									int r = vmx_add_memory(mi->List, mi->Count);
+
+								
 									DbgPrint("vmx_add_memory for %d pages returned %d\n", mi->Count, r);
 
 									for (j = 0; j < mi->Count; j++)

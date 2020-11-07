@@ -1381,9 +1381,14 @@ begin
 
 
   //fill hotkey list
+  ZeroMemory(@framehotkeyconfig.newhotkeys, cehotkeycount*sizeof(tkeycombo));
+
   for i:=0 to length(hotkeythread.hotkeylist)-1 do
     if hotkeythread.hotkeylist[i].handler2 and inrange(hotkeythread.hotkeylist[i].id, 0, cehotkeycount-1) then
-      framehotkeyconfig.newhotkeys[hotkeythread.hotkeylist[i].id]:=hotkeythread.hotkeylist[i].keys;
+    begin
+      if hotkeythread.hotkeylist[i].keys[0]<>0 then
+        framehotkeyconfig.newhotkeys[hotkeythread.hotkeylist[i].id]:=hotkeythread.hotkeylist[i].keys;
+    end;
 
   framehotkeyconfig.newspeedhackspeed1:=speedhackspeed1;
   framehotkeyconfig.newspeedhackspeed2:=speedhackspeed2;

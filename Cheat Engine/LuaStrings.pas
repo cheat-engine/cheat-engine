@@ -14,14 +14,31 @@ implementation
 
 uses luahandler, luaobject, luaclass, pluginexports;
 
+function strings_addtext(L: Plua_State): integer; cdecl;
+begin
+  result:=0;
+  if lua_gettop(L)>=1 then
+    TStrings(luaclass_getClassObject(L)).AddText(Lua_ToString(L,1));
+end;
+
 function strings_add(L: Plua_State): integer; cdecl;
 var
   strings: TStrings;
+  data: ptruint;
+  paramstart, paramcount: integer;
 begin
   result:=0;
-  strings:=luaclass_getClassObject(L);
-  if lua_gettop(L)>=1 then
-    strings.Add(lua_tostring(L, -1));
+  strings:=luaclass_getClassObject(L,@paramstart,@paramcount);
+  if paramcount>=1 then
+  begin
+    if paramcount>=2 then
+      data:=lua_tointeger(L,paramstart+1)
+    else
+      data:=0;
+
+    lua_pushinteger(L, strings.AddObject(lua_tostring(L, paramstart),tobject(data)));
+    exit(1);
+  end;
 end;
 
 function strings_clear(L: Plua_State): integer; cdecl;
@@ -55,17 +72,18 @@ function strings_remove(L: Plua_State): integer; cdecl;  //compat with ce 6
 var
   strings: TStrings;
   s: string;
+  paramstart,paramcount: integer;
 begin
   result:=0;
-  strings:=luaclass_getClassObject(L);
+  strings:=luaclass_getClassObject(L, @paramstart,@paramcount);
   if lua_gettop(L)>=1 then
   begin
-    s:=lua_tostring(L, -1);
+    s:=lua_tostring(L, paramstart);
     if strings.IndexOf(s)<>-1 then strings.Delete(strings.IndexOf(s));
   end;
 end;
 
-function strings_getString(L: PLua_State): integer; cdecl;
+function strings_getData(L: PLua_State): integer; cdecl;
 var
   strings: TStrings;
   index: integer;
@@ -74,7 +92,44 @@ begin
   strings:=luaclass_getClassObject(L);
   if lua_gettop(L)>=1 then
   begin
-    index:=lua_toInteger(L,-1);
+    index:=lua_toInteger(L,1);
+    lua_pushinteger(L, uintptr(strings.Objects[index]));
+    result:=1;
+  end;
+end;
+
+function strings_setData(L: PLua_State): integer; cdecl;
+var
+  parameters: integer;
+  strings: TStrings;
+  index: integer;
+  data: ptruint;
+begin
+  result:=0;
+  strings:=luaclass_getClassObject(L);
+  if lua_gettop(L)>=2 then
+  begin
+    index:=lua_toInteger(L,1);
+    data:=lua_tointeger(l,2);
+
+    strings.Objects[index]:=tobject(data);
+  end;
+end;
+
+function strings_getString(L: PLua_State): integer; cdecl;
+var
+  strings: TStrings;
+  index: integer;
+  paramstart, paramcount: integer;
+begin
+  result:=0;
+  strings:=luaclass_getClassObject(L,@paramstart,@paramcount);
+
+
+
+  if paramcount>=1 then
+  begin
+    index:=lua_toInteger(L,paramstart);
     lua_pushstring(L, strings[index]);
     result:=1;
   end;
@@ -86,13 +141,14 @@ var
   strings: TStrings;
   index: integer;
   s: string;
+  paramstart, paramcount: integer;
 begin
   result:=0;
-  strings:=luaclass_getClassObject(L);
-  if lua_gettop(L)>=2 then
+  strings:=luaclass_getClassObject(L, @paramstart,@paramcount);
+  if paramcount>=2 then
   begin
-    index:=lua_toInteger(L,-2);
-    s:=lua_tostring(l,-1);
+    index:=lua_toInteger(L,paramstart);
+    s:=lua_tostring(l,paramstart+1);
 
     strings[index]:=s;
   end;
@@ -102,12 +158,14 @@ function strings_delete(L: Plua_State): integer; cdecl;
 var
   strings: TStrings;
   index: integer;
+  paramstart, paramcount: integer;
 begin
   result:=0;
-  strings:=luaclass_getClassObject(L);
-  if lua_gettop(L)>=1 then
+  strings:=luaclass_getClassObject(L, @paramstart,@paramcount);
+  if paramcount>=1 then
   begin
-    index:=lua_toInteger(L,-1);
+
+    index:=lua_toInteger(L, paramstart);
     strings.Delete(index);
   end;
 end;
@@ -126,12 +184,13 @@ function strings_setText(L: PLua_State): integer; cdecl;
 var
   strings: TStrings;
   text: string;
+  paramstart, paramcount: integer;
 begin
   result:=0;
-  strings:=luaclass_getClassObject(L);
+  strings:=luaclass_getClassObject(L, @paramstart,@paramcount);
   if lua_gettop(L)>=1 then
   begin
-    text:=Lua_ToString(L, -1);
+    text:=Lua_ToString(L, paramstart);
     strings.Text:=text;
   end;
 end;
@@ -154,7 +213,7 @@ begin
   strings:=luaclass_getClassObject(L);
   if lua_gettop(L)>=1 then
   begin
-    LineBreak:=Lua_ToString(L, -1);
+    LineBreak:=Lua_ToString(L, 1);
     strings.LineBreak:=LineBreak;
   end;
 end;
@@ -165,12 +224,13 @@ var
   parameters: integer;
   strings: TStrings;
   s: string;
+  paramstart, paramcount: integer;
 begin
   result:=0;
-  strings:=luaclass_getClassObject(L);
-  if lua_gettop(L)>=1 then
+  strings:=luaclass_getClassObject(L, @paramstart,@paramcount);
+  if paramcount>=1 then
   begin
-    s:=Lua_ToString(L,-1);
+    s:=Lua_ToString(L,paramstart);
     lua_pushinteger(L, strings.IndexOf(s));
     result:=1;
   end;
@@ -181,14 +241,15 @@ var
   strings: TStrings;
   index: integer;
   s: string;
+  paramstart, paramcount: integer;
 begin
   result:=0;
-  strings:=luaclass_getClassObject(L);
+  strings:=luaclass_getClassObject(L, @paramstart,@paramcount);
 
-  if lua_gettop(L)>=2 then
+  if paramcount>=2 then
   begin
-    index:=lua_tointeger(L,-2);
-    s:=Lua_ToString(L,-1);
+    index:=lua_tointeger(L,paramstart);
+    s:=Lua_ToString(L,paramstart+1);
 
     strings.Insert(index,s);
   end;
@@ -208,17 +269,18 @@ function strings_loadFromFile(L: Plua_State): integer; cdecl;
 var
   strings: TStrings;
   ignoreencoding: boolean=true;
+  paramstart, paramcount: integer;
 begin
   result:=0;
-  strings:=luaclass_getClassObject(L);
+  strings:=luaclass_getClassObject(L, @paramstart,@paramcount);
 
-  if lua_gettop(L)>=1 then
+  if paramcount>=1 then
   begin
-    if lua_Gettop(L)>=2 then
-      ignoreencoding:=lua_toboolean(L,2);
+    if paramcount>=2 then
+      ignoreencoding:=lua_toboolean(L,paramstart+1);
 
     try
-      strings.LoadFromFile(lua_tostring(L, 1){$if FPC_FULLVERSION>=30200}, ignoreencoding{$endif});
+      strings.LoadFromFile(lua_tostring(L, paramstart){$if FPC_FULLVERSION>=30200}, ignoreencoding{$endif});
       lua_pushboolean(L, true);
     except
       lua_pushboolean(L, false);
@@ -230,14 +292,15 @@ end;
 function strings_saveToFile(L: Plua_State): integer; cdecl;
 var
   strings: TStrings;
+  paramstart, paramcount: integer;
 begin
   result:=0;
-  strings:=luaclass_getClassObject(L);
+  strings:=luaclass_getClassObject(L, @paramstart,@paramcount);
 
-  if lua_gettop(L)>=1 then
+  if paramcount>=1 then
   begin
     try
-      strings.SaveToFile(lua_tostring(L, -1));
+      strings.SaveToFile(lua_tostring(L, paramstart));
       lua_pushboolean(L, true);
     except
       lua_pushboolean(L, false);
@@ -251,6 +314,7 @@ begin
   object_addMetaData(L, metatable, userdata);
 
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'add', strings_add);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'addText', strings_addText);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'clear', strings_clear);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'delete', strings_delete);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'getText', strings_getText);
@@ -261,6 +325,8 @@ begin
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'remove', strings_remove);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'getString', strings_getString);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'setString', strings_setString);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'getData', strings_getData);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'setData', strings_setData);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'loadFromFile', strings_loadFromFile);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'saveToFile', strings_saveToFile);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'beginUpdate', strings_beginUpdate);
@@ -270,6 +336,7 @@ begin
   luaclass_addPropertyToTable(L, metatable, userdata, 'Text', strings_getText, strings_setText);
   luaclass_addPropertyToTable(L, metatable, userdata, 'LineBreak', strings_getLineBreak, strings_setLineBreak);
 
+  luaclass_addArrayPropertyToTable(L, metatable, userdata, 'Data', strings_getData, strings_setData);
   luaclass_addArrayPropertyToTable(L, metatable, userdata, 'String', strings_getString, strings_setString);
   luaclass_setDefaultArrayProperty(L, metatable, userdata, strings_getString, strings_setString); //so strings[12] will call strings.getString(12)
 end;
@@ -280,7 +347,7 @@ begin
   lua_register(LuaVM, 'strings_clear', strings_clear);
   lua_register(LuaVM, 'strings_delete', strings_delete);
   lua_register(LuaVM, 'strings_getText', strings_getText);
-  lua_register(LuaVM, 'strings_setText', strings_getText);
+  lua_register(LuaVM, 'strings_setText', strings_setText);
   lua_register(LuaVM, 'strings_indexOf', strings_indexOf);
   lua_register(LuaVM, 'strings_insert', strings_insert);
   lua_register(LuaVM, 'strings_getCount', strings_getCount);

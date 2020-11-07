@@ -551,4 +551,9 @@ object FoundCodeDialog: TFoundCodeDialog
       FF00FFFFFF00FFFFFF00FFFFFF00
     }
   end
+  object timerAddressStringLookup: TTimer
+    OnTimer = timerAddressStringLookupTimer
+    Left = 153
+    Top = 60
+  end
 end

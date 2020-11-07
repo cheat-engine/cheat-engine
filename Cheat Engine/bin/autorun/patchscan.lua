@@ -183,7 +183,7 @@ function scanModuleForPatches(modulepath, loadedModuleBase)
 
       --print(string.format("Checking section %s ranging from %x to %x", sections[i].name, VA,VA+sections[i].sizeOfRawData))
 
-      while result==false do
+      while (result==false) and (bytesLeft>0) do
         result,bytesOK=compareMemory(VA,FA,bytesLeft,1) --VA in target, FA in CE, so method 1
         if (result==false) then
           --local addressString=getNameFromAddress(VA+bytesOK)
@@ -203,7 +203,7 @@ function scanModuleForPatches(modulepath, loadedModuleBase)
         end
 
         if result==nil then
-          return nil, translate("Compare error. ")..bytesOK
+          return nil, translate("Compare error. ")
         end
       end
     end
@@ -304,14 +304,14 @@ function startPatchScan()
             allpatches[c].Modulename=l[i+1].Name --add the modulename (scanModuleForPatches doesn't add that)
           end
         else
-          print(translate('Error in ')..l[i].name..':'..emsg)
+          messageDialog(translate('Error in ')..l[i].name..':'..emsg, mtError, mbOK)
         end
       end
     end
     pform.close()
     pform.destroy()
     ---build a gui with the information in allpatches
-    _G.dbg=allpatches
+    -- _G.dbg=allpatches
 
     local rform=createForm(false)
     local lv=createListView(rform)

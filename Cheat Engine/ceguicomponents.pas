@@ -1585,6 +1585,20 @@ initialization
   registerclass(TColorDialog);
   registerclass(TColorBox);
 
+  registerclass(TFontDialog);
+  registerclass(TBitBtn);
+  registerclass(TSpeedButton);
+  registerclass(TStaticText);
+  registerclass(TShape);
+  registerclass(TBevel);
+  registerclass(TNotebook); //eww...
+  registerclass(TLabeledEdit);
+  registerclass(TControlBar);
+  registerclass(TFlowPanel);
+  registerclass(TApplicationProperties); //might be usefull...
+  registerclass(TColorListBox);
+
+
 
   RegisterPropertyEditor(ClassTypeInfo(TListItems), TCEListView, 'Items', TCEListViewItemsPropertyEditor);
 

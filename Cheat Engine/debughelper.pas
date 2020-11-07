@@ -57,6 +57,8 @@ type
 
     hasSetDEPPolicy: boolean;
 
+    neverstarted: boolean;
+
     function getDebugThreadHanderFromThreadID(tid: dword): TDebugThreadHandler;
 
     procedure GetBreakpointList(address: uint_ptr; size: integer; var bplist: TBreakpointSplitArray);
@@ -1958,10 +1960,19 @@ begin
   s:=disassemble(tempaddress); //tempaddress gets changed by this, so don't use the real one
 
   if defaultDisassembler.LastDisassembleData.isfloat then
-    frmchangedaddresses.cbDisplayType.ItemIndex:=3;
-
+    frmchangedaddresses.cbDisplayType.ItemIndex:=4
+  else
   if defaultDisassembler.LastDisassembleData.isfloat64 then
-    frmchangedaddresses.cbDisplayType.ItemIndex:=4;
+    frmchangedaddresses.cbDisplayType.ItemIndex:=5
+  else
+  begin
+    case defaultDisassembler.LastDisassembleData.datasize of
+      1: frmchangedaddresses.cbDisplayType.ItemIndex:=0;
+      2: frmchangedaddresses.cbDisplayType.ItemIndex:=1;
+      4: frmchangedaddresses.cbDisplayType.ItemIndex:=2;
+      8: frmchangedaddresses.cbDisplayType.ItemIndex:=3;
+    end;
+  end;
 
 
   if uppercase(defaultDisassembler.LastDisassembleData.opcode)='RET' then
@@ -2712,7 +2723,6 @@ end;
 procedure TDebuggerthread.defaultConstructorcode;
 begin
   debuggerCS := TGuiSafeCriticalSection.Create;
-
   OnAttachEvent := TEvent.Create(nil, True, False, '');
   OnContinueEvent := Tevent.Create(nil, true, False, '');
   threadlist := TList.Create;
@@ -2726,30 +2736,32 @@ begin
   canusedebugregs := formsettings.rbDebugAsBreakpoint.Checked;
 
   //setup the used debugger
-  if getconnection<>nil then
-    CurrentDebuggerInterface:=TNetworkDebuggerInterface.create
-  else
-  begin
-    {$ifdef windows}
-    if formsettings.cbUseWindowsDebugger.checked then
-      CurrentDebuggerInterface:=TWindowsDebuggerInterface.create
-    else if formsettings.cbUseVEHDebugger.checked then
-      CurrentDebuggerInterface:=TVEHDebugInterface.create
-    else if formsettings.cbKDebug.checked then
+  try
+    if getconnection<>nil then
+      CurrentDebuggerInterface:=TNetworkDebuggerInterface.create
+    else
     begin
-      globalDebug:=formsettings.cbGlobalDebug.checked;
-      CurrentDebuggerInterface:=TKernelDebugInterface.create(globalDebug, formsettings.cbCanStepKernelcode.checked);
+      {$ifdef windows}
+      if formsettings.cbUseWindowsDebugger.checked then
+        CurrentDebuggerInterface:=TWindowsDebuggerInterface.create
+      else if formsettings.cbUseVEHDebugger.checked then
+        CurrentDebuggerInterface:=TVEHDebugInterface.create
+      else if formsettings.cbKDebug.checked then
+      begin
+        globalDebug:=formsettings.cbGlobalDebug.checked;
+        CurrentDebuggerInterface:=TKernelDebugInterface.create(globalDebug, formsettings.cbCanStepKernelcode.checked);
+      end;
+      {$endif}
+
+      {$ifdef darwin}
+      outputdebugstring('Setting the CurrentDebuggerInterface to the MacException Debug interface');
+      CurrentDebuggerInterface:=TMacExceptionDebugInterface.create;
+      {$endif}
     end;
-    {$endif}
-
-    {$ifdef darwin}
-    outputdebugstring('Setting the CurrentDebuggerInterface to the MacException Debug interface');
-    CurrentDebuggerInterface:=TMacExceptionDebugInterface.create;
-    {$endif}
+  except
+    neverstarted:=true;
+    raise;
   end;
-
-
-  //clean up some debug views
 
   if formdebugstrings = nil then
     formdebugstrings := Tformdebugstrings.Create(application);
@@ -2806,8 +2818,11 @@ end;
 destructor TDebuggerthread.Destroy;
 var i: integer;
 begin
-  terminate;
-  waitfor;
+  if neverstarted=false then
+  begin
+    terminate;
+    waitfor;
+  end;
 
 
   if OnAttachEvent <> nil then

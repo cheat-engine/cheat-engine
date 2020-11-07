@@ -146,7 +146,7 @@ implementation
 
 { TfrmLuaEngine }
 
-uses LuaClass, SynEditTypes, globals, DPIHelper, frmSyntaxHighlighterEditor,
+uses LuaClass, SynPluginMultiCaret, SynEditTypes, globals, DPIHelper, frmSyntaxHighlighterEditor,
   frmautoinjectunit;
 
 resourcestring
@@ -269,7 +269,7 @@ end;
 
 procedure TfrmLuaEngine.scLuaCompleterExecute(Sender: TObject);
 var
-  s,extra: string;
+  s,s2,extra: string;
   w: tpoint;
   i,j,si: integer;
   start: integer;
@@ -402,11 +402,25 @@ begin
                 if lua_type(L,-2)=LUA_TSTRING then
                 begin
                   s:=Lua_ToString(L,-2);
-                  if s='math' then
-                  asm
-                  nop
+
+                  if lua_isfunction(L,-1) then
+                  begin
+                    if lua_iscfunction(L,-1) then  //should be the case, but some people don't use the designated functions
+                    begin
+                      s2:=s;
+                      s2[1]:=lowercase(s2[1]);
+                      if s2[1]<>s[1] then
+                      begin
+                        //check if it does have a duplicate
+                        lua_pushstring(L,s2);
+                        lua_gettable(L,i);
+                        if lua_isnil(L,-1)=false then //has duplicate
+                          s[1]:=lowercase(s[1]);
+
+                        lua_pop(L,1);
+                      end;
+                    end;
                   end;
-                  if lua_isfunction(L,-1) then s[1]:=lowercase(s[1]);
 
                   properties.Add(s);
                 end;
@@ -1371,12 +1385,18 @@ var
   x: array of integer;
   fq: TFontQuality;
   i: integer;
+  multicaret: TSynPluginMultiCaret;
 begin
 
   synhighlighter:=TSynLuaSyn.Create(self);
   reloadHighlighterSettings;
 
   mscript.Highlighter:=synhighlighter;
+
+  multicaret:=TSynPluginMultiCaret.Create(mscript);
+  multicaret.EnableWithColumnSelection:=true;
+  multicaret.DefaultMode:=mcmMoveAllCarets;
+  multicaret.DefaultColumnSelectMode:=mcmCancelOnCaretMove;
 
   fq:=mscript.Font.Quality;
   if not (fq in [fqCleartypeNatural, fqDefault]) then
@@ -1408,7 +1428,6 @@ begin
   miUndo.ShortCut:=TextToShortCut('Meta+Z');
   miRedo.ShortCut:=TextToShortCut('Shift+Meta+X');
   miFind.ShortCut:=TextToShortCut('Meta+F');
-  miCut.ShortCut:=TextToShortCut('Meta+X');
 
   i:=mScript.Keystrokes.FindCommand(ecSelectAll);
   if i<>-1 then mScript.Keystrokes[i].ShortCut:=TextToShortCut('Meta+A');

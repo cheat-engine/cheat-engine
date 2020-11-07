@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CONFIG>
   <ProjectOptions>
-    <Version Value="10"/>
+    <Version Value="11"/>
     <PathDelim Value="\"/>
     <General>
       <Flags>
@@ -24,7 +24,6 @@
       <UseVersionInfo Value="True"/>
       <MajorVersionNr Value="6"/>
       <MinorVersionNr Value="3"/>
-      <StringTable ProductVersion=""/>
     </VersionInfo>
     <BuildModes Count="2" Active="release">
       <Item1 Name="debug" Default="True"/>
@@ -68,20 +67,25 @@
     </BuildModes>
     <PublishOptions>
       <Version Value="2"/>
-      <IncludeFileFilter Value="*.(pas|pp|inc|lfm|lpr|lrs|lpi|lpk|sh|xml)"/>
-      <ExcludeFileFilter Value="*.(bak|ppu|o|so);*~;backup"/>
     </PublishOptions>
     <RunParams>
-      <local>
-        <FormatVersion Value="1"/>
-      </local>
+      <FormatVersion Value="2"/>
+      <Modes Count="1">
+        <Mode0 Name="default"/>
+      </Modes>
     </RunParams>
+    <RequiredPackages Count="1">
+      <Item1>
+        <PackageName Value="LazUtils"/>
+      </Item1>
+    </RequiredPackages>
     <Units Count="4">
       <Unit0>
         <Filename Value="cheatengine.lpr"/>
         <IsPartOfProject Value="True"/>
         <IsVisibleTab Value="True"/>
-        <CursorPos X="32" Y="8"/>
+        <TopLine Value="5"/>
+        <CursorPos X="2" Y="18"/>
         <UsageCount Value="21"/>
         <Loaded Value="True"/>
       </Unit0>
@@ -108,75 +112,75 @@
     <JumpHistory Count="30" HistoryIndex="29">
       <Position1>
         <Filename Value="cheatengine.lpr"/>
-        <Caret Line="30" TopLine="15"/>
+        <Caret Line="27" Column="16" TopLine="17"/>
       </Position1>
       <Position2>
         <Filename Value="cheatengine.lpr"/>
-        <Caret Line="15" Column="2"/>
+        <Caret Line="29" Column="16" TopLine="13"/>
       </Position2>
       <Position3>
         <Filename Value="cheatengine.lpr"/>
-        <Caret Line="3" Column="15"/>
+        <Caret Line="34" TopLine="13"/>
       </Position3>
       <Position4>
         <Filename Value="cheatengine.lpr"/>
-        <Caret Line="15" Column="2"/>
+        <Caret Line="35" TopLine="13"/>
       </Position4>
       <Position5>
         <Filename Value="cheatengine.lpr"/>
-        <Caret Line="27" Column="16" TopLine="17"/>
+        <Caret Line="37" TopLine="22"/>
       </Position5>
       <Position6>
         <Filename Value="cheatengine.lpr"/>
-        <Caret Line="29" Column="16" TopLine="13"/>
+        <Caret Line="38" TopLine="22"/>
       </Position6>
       <Position7>
         <Filename Value="cheatengine.lpr"/>
-        <Caret Line="34" TopLine="13"/>
+        <Caret Line="40" TopLine="22"/>
       </Position7>
       <Position8>
         <Filename Value="cheatengine.lpr"/>
-        <Caret Line="35" TopLine="13"/>
+        <Caret Line="41" TopLine="22"/>
       </Position8>
       <Position9>
         <Filename Value="cheatengine.lpr"/>
-        <Caret Line="37" TopLine="22"/>
+        <Caret Line="42" TopLine="22"/>
       </Position9>
       <Position10>
         <Filename Value="cheatengine.lpr"/>
-        <Caret Line="38" TopLine="22"/>
+        <Caret Line="56" Column="15" TopLine="28"/>
       </Position10>
       <Position11>
         <Filename Value="cheatengine.lpr"/>
-        <Caret Line="40" TopLine="22"/>
+        <Caret Line="57" Column="13" TopLine="28"/>
       </Position11>
       <Position12>
         <Filename Value="cheatengine.lpr"/>
-        <Caret Line="41" TopLine="22"/>
+        <Caret Line="55" Column="40" TopLine="34"/>
       </Position12>
       <Position13>
         <Filename Value="cheatengine.lpr"/>
-        <Caret Line="42" TopLine="22"/>
+        <Caret Line="51" Column="26" TopLine="35"/>
       </Position13>
       <Position14>
         <Filename Value="cheatengine.lpr"/>
-        <Caret Line="56" Column="15" TopLine="28"/>
+        <Caret Line="54" Column="46" TopLine="35"/>
       </Position14>
       <Position15>
         <Filename Value="cheatengine.lpr"/>
-        <Caret Line="57" Column="13" TopLine="28"/>
+        <Caret Line="51" TopLine="35"/>
       </Position15>
       <Position16>
         <Filename Value="cheatengine.lpr"/>
-        <Caret Line="55" Column="40" TopLine="34"/>
+        <Caret Line="53" TopLine="35"/>
       </Position16>
       <Position17>
         <Filename Value="cheatengine.lpr"/>
-        <Caret Line="51" Column="26" TopLine="35"/>
+        <Caret Line="54" TopLine="35"/>
       </Position17>
       <Position18>
         <Filename Value="cheatengine.lpr"/>
-        <Caret Line="54" Column="46" TopLine="35"/>
+        <Caret Line="55" Column="29" TopLine="35"/>
       </Position18>
       <Position19>
         <Filename Value="cheatengine.lpr"/>
@@ -192,39 +196,39 @@
       </Position21>
       <Position22>
         <Filename Value="cheatengine.lpr"/>
-        <Caret Line="55" Column="29" TopLine="35"/>
+        <Caret Line="55" TopLine="35"/>
       </Position22>
       <Position23>
         <Filename Value="cheatengine.lpr"/>
-        <Caret Line="51" TopLine="35"/>
+        <Caret Line="66" TopLine="41"/>
       </Position23>
       <Position24>
         <Filename Value="cheatengine.lpr"/>
-        <Caret Line="53" TopLine="35"/>
+        <Caret Line="62" Column="12" TopLine="41"/>
       </Position24>
       <Position25>
         <Filename Value="cheatengine.lpr"/>
-        <Caret Line="54" TopLine="35"/>
+        <Caret Line="64" TopLine="41"/>
       </Position25>
       <Position26>
         <Filename Value="cheatengine.lpr"/>
-        <Caret Line="55" TopLine="35"/>
+        <Caret Line="67" Column="22" TopLine="41"/>
       </Position26>
       <Position27>
         <Filename Value="cheatengine.lpr"/>
-        <Caret Line="66" TopLine="41"/>
+        <Caret Line="71" Column="18" TopLine="53"/>
       </Position27>
       <Position28>
         <Filename Value="cheatengine.lpr"/>
-        <Caret Line="62" Column="12" TopLine="41"/>
+        <Caret Line="11" Column="3"/>
       </Position28>
       <Position29>
         <Filename Value="cheatengine.lpr"/>
-        <Caret Line="64" TopLine="41"/>
+        <Caret Line="81" Column="24" TopLine="67"/>
       </Position29>
       <Position30>
         <Filename Value="cheatengine.lpr"/>
-        <Caret Line="67" Column="22" TopLine="41"/>
+        <Caret Line="58" Column="28" TopLine="67"/>
       </Position30>
     </JumpHistory>
   </ProjectOptions>
@@ -242,6 +246,9 @@
       <Style Value="1"/>
     </Parsing>
     <CodeGeneration>
+      <TargetProcessor Value="pentium"/>
+      <TargetCPU Value="i386"/>
+      <TargetOS Value="win32"/>
       <Optimizations>
         <OptimizationLevel Value="0"/>
       </Optimizations>

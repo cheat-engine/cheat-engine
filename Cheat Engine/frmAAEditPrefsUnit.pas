@@ -42,7 +42,7 @@ type
     procedure Panel1Click(Sender: TObject);
   private
     { Private declarations }
-    fSynEdit: TSynEdit;
+    fSynEdit: TCustomSynEdit;
     oldsettings: record
       font: tfont;
       showlinenumbers: boolean;
@@ -53,7 +53,7 @@ type
 
   public
     { Public declarations }
-    function execute(synedit: TSynEdit): boolean;
+    function execute(synedit: TCustomSynEdit): boolean;
   end;
 
 var
@@ -62,7 +62,7 @@ var
 implementation
 
 
-function TfrmAAEditPrefs.execute(synedit: TSynEdit): boolean;
+function TfrmAAEditPrefs.execute(synedit: TCustomSynEdit): boolean;
 begin
   fSynEdit:=synedit;
   FontDialog1.Font.Assign(fSynEdit.Font);

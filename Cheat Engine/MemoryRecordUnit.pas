@@ -8,7 +8,7 @@ interface
 uses
   Windows, forms, graphics, Classes, SysUtils, controls, stdctrls, comctrls,symbolhandler,
   cefuncproc,newkernelhandler, hotkeyhandler, dom, XMLRead,XMLWrite,
-  customtypehandler, fileutil, LCLProc, commonTypeDefs, pointerparser, LazUTF8, LuaClass;
+  customtypehandler, fileutil, LCLProc, commonTypeDefs, pointerparser, LazUTF8, LuaClass, math;
 {$endif}
 
 {$ifdef darwin}
@@ -38,6 +38,7 @@ resourcestring
   rsSetValue = 'Set Value';
   rsIncreaseValue = 'Increase Value';
   rsDecreaseValue = 'Decrease Value';
+  rsAdjustMRwithRelativeAddress = 'Do you wish to adjust memory records with relative addresses as well?';
 type TMemrecHotkeyAction=(mrhToggleActivation=0, mrhToggleActivationAllowIncrease=1, mrhToggleActivationAllowDecrease=2, mrhActivate=3, mrhDeactivate=4, mrhSetValue=5, mrhIncreaseValue=6, mrhDecreaseValue=7);
 
 type TFreezeType=(ftFrozen, ftAllowIncrease, ftAllowDecrease);
@@ -165,7 +166,7 @@ type
     fDescription : string;
     fOptions: TMemrecOptions;
 
-    CustomType: TCustomType;
+    fCustomType: TCustomType;
     fCustomTypeName: string;
     fColor: TColor;
     fVisible: boolean;
@@ -249,6 +250,7 @@ type
     function getDropDownDescriptionOnly: boolean;
     function getDisplayAsDropDownListItem: boolean;
 
+    function hasMouseOver: boolean;
     procedure setDropDownLinkedMemrec(s: string);
 
 
@@ -304,6 +306,7 @@ type
 
     function GetDisplayValue: string;
     function GetValue: string;
+
     procedure SetValue(v: string); overload;
     procedure SetValue(v: string; isFreezer: boolean); overload;
     procedure UndoSetValue;
@@ -344,7 +347,7 @@ type
     function getlinkedDropDownMemrec_LoopDetected: boolean;
 
     procedure replaceDescription(replace_find, replace_with: string; childrenaswell: boolean);
-    procedure adjustAddressby(offset: qword; childrenaswell: boolean);
+    procedure adjustAddressby(offset, pointerlastoffset: int64; childrenaswell: boolean; relativeaswell: boolean=false);
 
     constructor Create(AOwner: TObject);
     destructor destroy; override;
@@ -371,6 +374,7 @@ type
     property Active: boolean read fActive write setActive;
     property VarType: TVariableType read fVarType write setVarType;
     property CustomTypeName: string read fCustomTypeName write setCustomTypeName;
+    property CustomType: TCustomType read fCustomType;
     property Value: string read GetValue write SetValue;
     property DisplayValue: string read GetDisplayValue;
     property DontSave: boolean read fDontSave write fDontSave;
@@ -404,6 +408,7 @@ type
     property LastAAExecutionFailedReason: string read AutoAssemblerData.lastExecutionFailedReason;
     property Description: string read fDescription write setDescription;
     property CachedAddress: ptruint read realAddress;
+    property HasMouseFocus: boolean read hasMouseOver;
   end;
 
   THKSoundFlag=(hksPlaySound=0, hksSpeakText=1, hksSpeakTextEnglish=2); //playSound excludes speakText
@@ -468,7 +473,7 @@ implementation
 {$ifdef jni}
 uses processhandlerunit, Parsers;
 {$else}
-uses mainunit, addresslist, formsettingsunit, LuaHandler, lua, lauxlib, lualib,
+uses mainunit, addresslist, formsettingsunit, LuaHandler, lua, lauxlib, lualib, Contnrs,
   processhandlerunit, Parsers, {$ifdef windows}winsapi,{$endif}autoassembler, globals{$ifdef windows}, cheatecoins{$endif};
 {$endif}
 
@@ -735,7 +740,7 @@ end;
 procedure TMemoryRecordHotkey.registerKeys;
 begin
   UnregisterAddressHotkey(self);
-  RegisterHotKey2(mainform.handle, 0, keys, self);
+  RegisterHotKey2(mainform.handle, -1, keys, self);
 end;
 
 procedure TMemoryRecordHotkey.doHotkey;
@@ -992,6 +997,7 @@ end;
 procedure TMemoryRecord.replaceDescription(replace_find, replace_with: string; childrenaswell: boolean);
 var i: integer;
 begin
+  if replace_find='' then exit;
   Description:=stringreplace(Description,replace_find,replace_with,[rfReplaceAll,rfIgnoreCase]);
   if childrenaswell then
   begin
@@ -1000,35 +1006,63 @@ begin
   end;
 end;
 
-procedure TMemoryRecord.adjustAddressby(offset: qword; childrenaswell: boolean);
+procedure TMemoryRecord.adjustAddressby(offset, pointerlastoffset: int64; childrenaswell: boolean; relativeaswell: boolean=false);
 var
   s: string;
   x: ptruint;
   i: integer;
+  appendText: boolean = false;
 begin
-  if interpretableaddress<>'' then //always true
+  if (offset=0) and (pointerlastoffset=0) then exit;
+
+  if (offset<>0) and (interpretableaddress<>'') then
   begin
-    try
       s:=trim(interpretableaddress);
       if s<>'' then
       begin
-        if not (s[1] in ['-', '+']) then //don't do relative addresses
+        if not (s[1] in ['-', '+']) then
         begin
-          x:=symhandler.getAddressFromName(interpretableaddress);
-          x:=x+offset;
-          interpretableaddress:=symhandler.getNameFromAddress(x,true,true)
+          try
+            x:=symhandler.getAddressFromName(interpretableaddress);
+            x:=x+offset;
+            interpretableaddress:=symhandler.getNameFromAddress(x,true,true, false);
+          except
+            if getBaseAddress<>0 then
+              interpretableaddress:=inttohex(getBaseAddress+offset,8)
+            else
+              appendText:=true;
+          end;
+        end
+        else if relativeaswell then // relative address
+        begin
+          try
+            x:=symhandler.getAddressFromName(interpretableaddress);
+            x:=x+offset;
+            interpretableaddress:=IntToHexSignedWithPlus(int64(x),1);
+          except
+            appendText:=true;
+          end;
         end;
       end;
-    except
-      interpretableaddress:=inttohex(getBaseAddress+offset,8);
-    end;
+
+      if appendText then
+        interpretableaddress:=interpretableaddress+IntToHexSignedWithPlus(offset,1); // append text
 
     ReinterpretAddress;
   end;
 
+  if (pointerlastoffset<>0) and isPointer then
+    try
+      x:=symhandler.getAddressFromName(offsets[0].offsetText);
+      x:=x+pointerlastoffset;
+      offsets[0].offsetText:=IntToHexSigned(int64(x),1);
+    except
+      offsets[0].offsetText:=offsets[0].offsetText+IntToHexSignedWithPlus(pointerlastoffset,1); // append text
+    end;
+
   if childrenaswell then
     for i:=0 to count-1 do
-      Child[i].adjustAddressby(offset, childrenaswell);
+      Child[i].adjustAddressby(offset, pointerlastoffset, childrenaswell, relativeaswell);
 end;
 
 function TMemoryRecord.getHotkeyCount: integer;
@@ -1087,7 +1121,7 @@ end;
 destructor TMemoryRecord.destroy;
 var i: integer;
 begin
-  taddresslist(fowner).MemrecDescriptionChange(self);
+  taddresslist(fowner).MemrecDescriptionChange(self, fdescription,'');
 
   if processingThread<>nil then
   begin
@@ -1392,8 +1426,6 @@ begin
   end;
 
   treenode.Expand(true);
-
-
 
   begin
     tempnode:=CheatEntry.FindNode('VariableType');
@@ -2407,6 +2439,11 @@ begin
     result:=0;
 end;
 
+function TMemoryRecord.hasMouseOver: boolean;
+begin
+  result:=taddresslist(fowner).MouseHighlightedRecord=self;
+end;
+
 procedure TMemoryRecord.processingDone;
 //called after an aa script has finished processing
 var i: integer;
@@ -2619,8 +2656,8 @@ end;
 
 procedure TMemoryRecord.setDescription(d: string);
 begin
+  TAddresslist(fowner).MemrecDescriptionChange(self, fdescription, d);
   fdescription:=d;
-  TAddresslist(fowner).MemrecDescriptionChange(self);
 end;
 
 procedure TMemoryRecord.setVisible(state: boolean);
@@ -2698,7 +2735,7 @@ end;
 procedure TMemoryRecord.RefreshCustomType;
 begin
   if vartype=vtCustom then
-    CustomType:=GetCustomTypeFromName(fCustomTypeName);
+    fCustomType:=GetCustomTypeFromName(fCustomTypeName);
 end;
 
 function TMemoryRecord.ReinterpretAddress(forceremovalofoldaddress: boolean=false): boolean;
@@ -2893,6 +2930,7 @@ begin
   end;
 end;
 
+
 function TMemoryRecord.GetValue: string;
 var
   br: PtrUInt;
@@ -2911,6 +2949,8 @@ var
 
   i: integer;
   e: boolean;
+
+  f: single;
 begin
 
 
@@ -2941,14 +2981,22 @@ begin
     case vartype of
       vtCustom:
       begin
-        if customtype<>nil then
+        if fcustomtype<>nil then
         begin
-          if customtype.scriptUsesFloat then
-            result:=FloatToStr(customtype.ConvertDataToFloat(buf, RealAddress))
+          if fcustomtype.scriptUsesFloat then
+          begin
+            if ShowAsHex then  //so stupid, but whatever
+            begin
+              f:=fcustomtype.ConvertDataToFloat(buf, RealAddress);
+              result:=inttohex(pdword(@f)^,8);
+            end
+            else
+              result:=FloatToStr(fcustomtype.ConvertDataToFloat(buf, RealAddress))
+          end
           else
-            if showashex         then result:=inttohex(customtype.ConvertDataToInteger(buf, RealAddress),8) 
-            else if showassigned then result:=inttostr(integer(customtype.ConvertDataToInteger(buf, RealAddress)))
-            else                      result:=inttostr(dword(customtype.ConvertDataToInteger(buf, RealAddress)));
+            if showashex         then result:=inttohex(fcustomtype.ConvertDataToInteger(buf, RealAddress),8) 
+            else if showassigned then result:=inttostr(integer(fcustomtype.ConvertDataToInteger(buf, RealAddress)))
+            else                      result:=inttostr(dword(fcustomtype.ConvertDataToInteger(buf, RealAddress)));
         end
         else
           result:=rsError;
@@ -3047,13 +3095,14 @@ var
   ps: psingle absolute buf;
   pd: pdouble absolute buf;
   pqw: PQWord absolute buf;
-
   li: PLongInt absolute buf;
   li64: PQWord absolute buf;
 
   wc: PWideChar absolute buf;
   c: PChar absolute buf;
   originalprotection: dword;
+
+  v64: qword;
 
   bts: TBytes;
   mask: qword;
@@ -3065,11 +3114,17 @@ var
 
   mr: TMemoryRecord;
 
-  unparsedvalue: string;
+  unparsedvalue, parsedvalue: string;
   check: boolean;
 
   oldluatop: integer;
   vpe: boolean;
+
+  setvaluescript: Tstringlist;
+
+  usesMath: boolean;
+  lastBraceOpen: integer;
+  f: single;
 begin
   //check if it is a '(description)' notation
 
@@ -3080,16 +3135,104 @@ begin
     v:=trim(v);
 
     {$IFNDEF jni}
-    if (length(v)>2) and (v[1]='(') and (v[length(v)]=')') then
+
+    if vartype in [vtByte..vtDouble, vtCustom] then
     begin
-      //yes, it's a (description)
-      temps:=copy(v, 2,length(v)-2);
-      //search the addresslist for a entry with name (temps)
+      //numeric type: scan for (...) and replace it with the apropriate values
+      //then apply the magic of math/lua to the what is left  (assuming math is used, which is found out during the first pass scan)
+      usesmath:=false;
 
-      mr:=TAddresslist(fOwner).getRecordWithDescription(temps);
-      if mr<>nil then
-        v:=mr.GetValue;
+      if (length(v)>1) and (v[1]<>'[') then //not a legacy lua specific value
+      begin
+        lastBraceOpen:=0;
+        parsedvalue:='';
+        i:=1;
+        while i<=length(v) do
+        begin
+          case v[i] of
+            '(':
+            begin
+              if lastBraceOpen>0 then usesMath:=true;
 
+              lastBraceOpen:=i;
+            end;
+
+            ')':
+            begin
+              if lastBraceOpen>0 then
+              begin
+                temps:=copy(v,lastBraceOpen+1,i-lastBraceOpen-1);
+
+
+
+                mr:=TAddresslist(fOwner).getRecordWithDescription(temps);
+                if mr<>nil then
+                begin
+                  //replace the (memrecdescription) with the memrecvalue
+                  temps:=mr.getValue;
+                  if mr.ShowAsHex then
+                  begin
+                    temps:='0x'+temps;
+
+                    if VarType in [vtSingle, vtDouble, vtCustom] then
+                    begin
+                      if (vartype<>vtCustom) or (fcustomtype.scriptUsesFloat) then
+                      begin
+                        //handle it as an actual float(why the fuck would anyone put a float as hex...)
+                        try
+                          v64:=strtoint64(temps);
+                          buf:=@v64;
+
+                          if vartype in [vtSingle, vtCustom] then
+                            temps:=FloatToStr(ps^)
+                          else
+                            temps:=FloatToStr(pd^);
+                        except
+
+                          //ugh...  whatever
+                        end;
+                      end;
+                    end;
+                  end;
+
+                  v:=copy(v,1,lastBraceOpen-1)+temps+copy(v,i+1);
+                  i:=lastBraceOpen+length(temps);
+                  lastBraceOpen:=0;
+                  continue;
+                end
+                else
+                  usesMath:=true;
+
+
+                lastBraceOpen:=0;
+              end else usesMath:=true; //weird math that I don't get and should fail, but whatever...
+            end;
+
+
+            '-','+','/','*': usesMath:=true;
+
+          end;
+          inc(i);
+        end;
+
+        if usesmath then
+          v:='['+v+']'; //send it to the lua parser
+      end;
+    end
+    else
+    begin
+      //not an integer type, can still use the notation though
+      if (length(v)>2) and (v[1]='(') and (v[length(v)]=')') then
+      begin
+        //yes, it's a (description)
+        temps:=copy(v, 2,length(v)-2);
+        //search the addresslist for a entry with name (temps)
+
+        mr:=TAddresslist(fOwner).getRecordWithDescription(temps);
+        if mr<>nil then
+          v:=mr.GetValue;
+
+      end;
     end;
     {$ENDIF}
   end;
@@ -3135,7 +3278,7 @@ begin
     end;
   end;
 
-  bufsize:=getbytesize;
+  bufsize:=4+getbytesize; //+4 because of 1 byte custom types that may show as a hexadecimal float.. ugh..  why...
 
   if (vartype=vtbinary) and (bufsize=3) then bufsize:=4;
   if (vartype=vtbinary) and (bufsize>4) then bufsize:=8;
@@ -3161,11 +3304,20 @@ begin
       begin
 
         oldluatop:=lua_gettop(luavm);
+        setvaluescript:=tstringlist.create;
+
         try
-          if lua_dostring(luavm, pchar('return '+copy(CurrentValue,2, length(CurrentValue)-2)))=0 then
+          setvaluescript.Add('local oldvalue='+getValue);
+          setvaluescript.Add('local value=oldvalue');
+          setvaluescript.Add('return '+copy(CurrentValue,2, length(CurrentValue)-2));
+
+
+          if lua_dostring(luavm, pchar(setvaluescript.text))=0 then
             currentValue:=lua_tostring(luavm, -1);
         finally
           lua_settop(luavm, oldluatop);
+
+          freeandnil(setvaluescript);
         end;
       end;
     end;
@@ -3174,12 +3326,20 @@ begin
     case VarType of
       vtCustom:
       begin
-        if customtype<>nil then
+        if fcustomtype<>nil then
         Begin
-          if customtype.scriptUsesFloat then
-            customtype.ConvertFloatToData(StrToFloatEx(currentValue), ps, RealAddress)
+          if fcustomtype.scriptUsesFloat then
+          begin
+            if not fShowAsHex then
+              fcustomtype.ConvertFloatToData(StrToFloatEx(currentValue), ps, RealAddress)
+            else
+            begin
+              v64:=StrToQWordEx(currentvalue); //hexvalue yeah...
+              fcustomtype.ConvertFloatToData(psingle(@v64)^, ps, RealAddress)
+            end;
+          end
           else
-            customtype.ConvertIntegerToData(strtoint(currentValue), pdw, RealAddress);
+            fcustomtype.ConvertIntegerToData(StrToQWordEx(currentValue), pdw, RealAddress);
 
         end;
       end;

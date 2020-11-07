@@ -34,8 +34,9 @@ ASMENTRY_STACK	struct ;keep this 16 byte aligned
 	OriginalES		qword ?  ;16
 	OriginalDS		qword ?	 ;17
 	OriginalSS		qword ?	 ;18
-	
-	;errorcode   ;19
+	fxsavespace     db 512 dup(?)  ;fpu state
+
+	;errorcode/returnaddress   ;19
 	;4096 bytes 
 	;eip     ;20
 	;cs      ;21
@@ -54,11 +55,12 @@ EXTERN Int1JumpBackLocation : CALLBACK
 PUBLIC interrupt1_asmentry
 interrupt1_asmentry:
 		;save stack position
+		push [Int1JumpBackLocation.A] ;push an errorcode on the stack so the stackindex enum type can stay the same relative to interrupts that do have an errorcode (int 14).  Also helps with variable interrupt handlers
+		
 		sub rsp,4096  ;functions like setThreadContext adjust the stackframe entry directly. I can't have that messing up my own stack
 
 		cld			
-		push 0 ;push an errorcode on the stack so the stackindex enum type can stay the same relative to interrupts that do have an errorcode (int 14)
-		
+
 		;stack is aligned at this point
 		sub rsp,SIZEOF ASMENTRY_STACK
 		
@@ -83,6 +85,7 @@ interrupt1_asmentry:
 		mov (ASMENTRY_STACK PTR [rsp]).OriginalR14,r14
 		mov (ASMENTRY_STACK PTR [rsp]).OriginalR15,r15
 
+		fxsave (ASMENTRY_STACK PTR [rsp]).fxsavespace
 
 	
 		
@@ -108,7 +111,7 @@ interrupt1_asmentry:
 		
 		; rbp= pointer to OriginalRAX
 		
-		cmp qword ptr [rbp+8*21+4096],010h ;check if origin is in kernelmode (check ss)
+		cmp qword ptr [rbp+8*21+512+4096],010h ;check if origin is in kernelmode (check ss)
 		je skipswap1 ;if so, skip the swapgs
 		
 		swapgs ;swap gs with the kernel version
@@ -128,7 +131,7 @@ skipswap1:
 		
 		ldmxcsr dword ptr (ASMENTRY_STACK PTR [rsp]).Originalmxcsr
 		
-		cmp qword ptr [rbp+8*21+4096],10h ;was it a kernelmode interrupt ?
+		cmp qword ptr [rbp+8*21+512+4096],10h ;was it a kernelmode interrupt ?
 		je skipswap2 ;if so, skip the swapgs part
 				
 		swapgs ;swap back
@@ -138,6 +141,8 @@ skipswap2:
 
 
 		;restore state
+		fxrstor (ASMENTRY_STACK PTR [rsp]).fxsavespace
+
 		mov ax,word ptr (ASMENTRY_STACK PTR [rsp]).OriginalDS
 		mov ds,ax
 		
@@ -170,17 +175,21 @@ skipswap2:
 		mov rbp,(ASMENTRY_STACK PTR [rsp]).OriginalRBP
 		add rsp,SIZEOF ASMENTRY_STACK  
 		add rsp,4096
-		add rsp,8 ;+8 for the push 0
+
+		;at this point [rsp] holds the original int1 handler
+		ret ; used to be add rsp,8 ;+8 for the push 0
+
+		;todo: do a jmp [Int1JumpBackLocationCPUNR] and have 256 Int1JumpBackLocationCPUNR's and each cpu goes to it's own interrupt1_asmentry[cpunr]
 		
-		jmp [Int1JumpBackLocation.A] ;<-works fine	
+		;jmp [Int1JumpBackLocation.A] ;<-works fine	
 
 
 skip_original_int1:
 		;stack unwind
 		mov rbp,(ASMENTRY_STACK PTR [rsp]).OriginalRBP
-		add rsp,SIZEOF ASMENTRY_STACK  ;+8 for the push 0		
+		add rsp,SIZEOF ASMENTRY_STACK 	
 		add rsp,4096
-		add rsp,8
+		add rsp,8  ;+8 for the push	
 		
 		iretq
 

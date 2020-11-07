@@ -132,6 +132,23 @@ begin
   end;
 end;
 
+function canvas_moveTo(L: PLua_State): integer; cdecl;
+var
+  canvas: TCanvas;
+  destinationx: integer;
+  destinationy: integer;
+begin
+  result:=0;
+  canvas:=luaclass_getClassObject(L);
+
+  if lua_gettop(L)>=2 then
+  begin
+    destinationx:=lua_tointeger(L,-2);
+    destinationy:=lua_tointeger(L,-1);
+    canvas.MoveTo(destinationx, destinationy);
+  end;
+end;
+
 function canvas_rect(L: PLua_State): integer; cdecl;
 var
   canvas: TCanvas;
@@ -568,6 +585,7 @@ begin
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'getHeight', canvas_getHeight);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'line', canvas_line);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'lineTo', canvas_lineTo);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'moveTo', canvas_moveTo);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'rect', canvas_rect);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'fillRect', canvas_fillRect);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'roundRect', canvas_roundRect);

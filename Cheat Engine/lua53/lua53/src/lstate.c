@@ -233,8 +233,6 @@ static void preinit_thread (lua_State *L, global_State *g) {
   L->nny = 1;
   L->status = LUA_OK;
   L->errfunc = 0;
-  L->lock_init = 0;
-
 }
 
 
@@ -306,6 +304,7 @@ LUA_API lua_State *lua_newstate (lua_Alloc f, void *ud) {
   L->marked = luaC_white(g);
 
   preinit_thread(L, g);
+  g->lock_init = 0;
   g->frealloc = f;
   g->ud = ud;
   g->mainthread = L;

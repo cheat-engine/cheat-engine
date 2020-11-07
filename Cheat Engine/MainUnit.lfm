@@ -1,16 +1,16 @@
 object MainForm: TMainForm
   Tag = 2
   Left = 973
-  Height = 612
-  Top = 247
+  Height = 595
+  Top = 0
   Width = 620
   HelpContext = 1
   HorzScrollBar.Visible = False
   VertScrollBar.Visible = False
   AllowDropFiles = True
   AutoSize = True
-  Caption = 'Cheat Engine 7.1'
-  ClientHeight = 592
+  Caption = 'Cheat Engine 7.2'
+  ClientHeight = 575
   ClientWidth = 620
   Menu = MainMenu1
   OnClose = FormClose
@@ -37,7 +37,7 @@ object MainForm: TMainForm
   object Panel1: TPanel
     Tag = 777
     Left = 0
-    Height = 112
+    Height = 95
     Top = 448
     Width = 620
     Align = alClient
@@ -51,7 +51,7 @@ object MainForm: TMainForm
   object Panel4: TPanel
     Left = 0
     Height = 32
-    Top = 560
+    Top = 543
     Width = 620
     Align = alBottom
     AutoSize = True
@@ -1217,13 +1217,13 @@ object MainForm: TMainForm
       AnchorSideRight.Control = Panel5
       AnchorSideRight.Side = asrBottom
       Left = 498
-      Height = 349
+      Height = 368
       Top = 124
       Width = 122
       Anchors = [akTop, akRight]
       AutoSize = True
       BevelOuter = bvNone
-      ClientHeight = 349
+      ClientHeight = 368
       ClientWidth = 122
       TabOrder = 8
       object pnlScanOptions: TPanel
@@ -1232,13 +1232,13 @@ object MainForm: TMainForm
         AnchorSideRight.Control = Panel9
         AnchorSideRight.Side = asrBottom
         Left = 0
-        Height = 209
+        Height = 228
         Top = 0
         Width = 122
         AutoSize = True
         BorderSpacing.Bottom = 4
         BevelOuter = bvNone
-        ClientHeight = 209
+        ClientHeight = 228
         ClientWidth = 122
         Constraints.MinHeight = 100
         TabOrder = 0
@@ -1249,7 +1249,7 @@ object MainForm: TMainForm
           AnchorSideRight.Side = asrBottom
           Left = 0
           Height = 57
-          Top = 133
+          Top = 152
           Width = 122
           AutoSize = True
           BevelOuter = bvNone
@@ -1298,7 +1298,7 @@ object MainForm: TMainForm
           AnchorSideTop.Side = asrBottom
           Left = 0
           Height = 19
-          Top = 95
+          Top = 114
           Width = 57
           Caption = 'UTF-16'
           OnChange = cbUnicodeChange
@@ -1311,7 +1311,7 @@ object MainForm: TMainForm
           AnchorSideTop.Side = asrBottom
           Left = 0
           Height = 19
-          Top = 114
+          Top = 133
           Width = 93
           Caption = 'Case sensitive'
           Checked = True
@@ -1330,7 +1330,7 @@ object MainForm: TMainForm
           AnchorSideRight.Side = asrBottom
           Left = 0
           Height = 19
-          Top = 190
+          Top = 209
           Width = 118
           Caption = 'Simple values only'
           TabOrder = 6
@@ -1342,7 +1342,7 @@ object MainForm: TMainForm
           AnchorSideTop.Side = asrBottom
           Left = 0
           Height = 19
-          Top = 57
+          Top = 76
           Width = 60
           Caption = 'Percent'
           OnChange = cbPercentageOnChange
@@ -1350,12 +1350,12 @@ object MainForm: TMainForm
         end
         object cbNot: TCheckBox
           AnchorSideLeft.Control = pnlScanOptions
-          AnchorSideTop.Control = cbLuaFormula
+          AnchorSideTop.Control = cbNewLuaState
           AnchorSideTop.Side = asrBottom
           Left = 0
           Height = 19
           Hint = 'When checked CE will find everything EXCEPT the value/range you''ve given'
-          Top = 19
+          Top = 38
           Width = 40
           Caption = 'Not'
           Enabled = False
@@ -1370,7 +1370,7 @@ object MainForm: TMainForm
           AnchorSideTop.Side = asrBottom
           Left = 0
           Height = 19
-          Top = 76
+          Top = 95
           Width = 74
           Caption = 'Codepage'
           OnChange = cbCodePageChange
@@ -1384,7 +1384,7 @@ object MainForm: TMainForm
           Left = 0
           Height = 19
           Hint = 'Repeats the unchanged value scan until it gets stopped'
-          Top = 38
+          Top = 57
           Width = 56
           Caption = 'Repeat'
           OnChange = cbRepeatUntilStoppedChange
@@ -1403,9 +1403,27 @@ object MainForm: TMainForm
           Width = 84
           Caption = 'Lua formula'
           Enabled = False
+          OnChange = cbLuaFormulaChange
           ParentShowHint = False
           ShowHint = True
           TabOrder = 8
+        end
+        object cbNewLuaState: TCheckBox
+          AnchorSideLeft.Control = pnlScanOptions
+          AnchorSideTop.Control = cbLuaFormula
+          AnchorSideTop.Side = asrBottom
+          Left = 0
+          Height = 19
+          Hint = 'When checked, the Lua environment used will be limited to just some basic functions and you won''t have access to userdefined functions.'#13#10'The positive side is that this allows multiple threads to scan at the same time, so will be a lot faster'
+          Top = 19
+          Width = 115
+          Caption = 'Separate Lua state'
+          Checked = True
+          ParentShowHint = False
+          ShowHint = True
+          State = cbChecked
+          TabOrder = 9
+          Visible = False
         end
       end
       object Panel10: TPanel
@@ -1418,7 +1436,7 @@ object MainForm: TMainForm
         AnchorSideBottom.Side = asrBottom
         Left = 0
         Height = 136
-        Top = 213
+        Top = 232
         Width = 115
         Anchors = [akTop, akLeft, akBottom]
         AutoSize = True
@@ -1790,6 +1808,7 @@ object MainForm: TMainForm
     object Showashexadecimal1: TMenuItem
       Caption = 'Show as hexadecimal'
       GroupIndex = 2
+      ShortCut = 49224
       OnClick = Showashexadecimal1Click
     end
     object miZeroTerminate: TMenuItem
@@ -2373,6 +2392,9 @@ object MainForm: TMainForm
         ImageIndex = 6
         OnClick = actOpenExecute
       end
+      object miLoadRecent: TMenuItem
+        Caption = 'Load Recent'
+      end
       object miSignTable: TMenuItem
         Caption = 'Sign table'
         ImageIndex = 27
@@ -2713,7 +2735,7 @@ object MainForm: TMainForm
   end
   object mfImageList: TImageList
     Scaled = True
-    Left = 155
+    Left = 160
     Top = 359
     Bitmap = {
       4C69260000001000000010000000FFFFFF00FFFFFF00FFFFFF00FFFFFF00CDCD

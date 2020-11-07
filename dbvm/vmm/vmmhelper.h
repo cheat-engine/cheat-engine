@@ -140,6 +140,16 @@ typedef struct _vmxhoststate //structure for easy management of hoststates
 } vmxhoststate, *pvmxhoststate;
 
 
+typedef struct _EXITINTINFO
+{
+  BYTE Vector;
+  BYTE Type: 3;
+  BYTE ErrorCodeValid: 1;
+  DWORD Zero: 19;
+  BYTE Valid: 1;
+  DWORD ErrorCode;
+}  __attribute__((__packed__)) EXITINTINFO, *PEXITINTINFO;
+
 typedef volatile struct _vmcb
 {
 	WORD InterceptCR0_15Read;
@@ -261,7 +271,7 @@ typedef volatile struct _vmcb
 	    DWORD    inject_ERRORCODE;
 	  };
 	};
-	QWORD N_CR3;
+	QWORD N_CR3; //nested paging
 
 	union{
 	  QWORD Enable_LBR_Virtualization;
@@ -345,22 +355,22 @@ typedef volatile struct _vmcb
     QWORD RIP; //0x578
 
     BYTE reserved13[88];
-    QWORD RSP;
+    QWORD RSP; //5d8
 
-    BYTE reserved14[24];
-    QWORD RAX;
-    QWORD STAR;
-    QWORD LSTAR;
-    QWORD CSTAR;
-    QWORD SFMASK;
-    QWORD KernelGsBase;
-    QWORD SYSENTER_CS;
-    QWORD SYSENTER_ESP;
-    QWORD SYSENTER_EIP;
-    QWORD CR2;
+    BYTE reserved14[24];  //5e0
+    QWORD RAX; //5f8
+    QWORD STAR; //600
+    QWORD LSTAR; //608
+    QWORD CSTAR; //610
+    QWORD SFMASK; //618
+    QWORD KernelGsBase; //620
+    QWORD SYSENTER_CS; //628
+    QWORD SYSENTER_ESP; //630
+    QWORD SYSENTER_EIP; //638
+    QWORD CR2; //640
 
-    BYTE reserved15[32];
-    QWORD G_PAT;
+    BYTE reserved15[32]; //648
+    QWORD G_PAT;  //0x668
     QWORD DBGCTL;
     QWORD BR_FROM;
     QWORD BR_TO;
@@ -592,6 +602,11 @@ typedef volatile struct tcpuinfo
   int eptUpdated;
 
 
+  struct
+  {
+    CloakedPageData *ActiveRegion; //if not null this contains the current page that is executable
+    QWORD LastCloakedVirtualBase;
+  } NP_Cloak; //AMD cloaking
 
 
   struct //single stepping data

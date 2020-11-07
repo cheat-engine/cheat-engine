@@ -27,3 +27,26 @@ nop
 pop rax
 
 ret
+
+GLOBAL cloakTestFunction
+GLOBAL cloakTestFunctionEnd
+GLOBAL cloakTestFunctionInstruction
+
+align 16,db 0
+cloakTestFunction:
+xor eax,eax
+nop
+nop
+nop
+
+cloakTestFunctionInstruction:
+mov eax,12345678
+nop
+nop
+nop
+nop
+ret
+nop
+nop
+nop
+cloakTestFunctionEnd:

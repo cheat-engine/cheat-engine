@@ -47,7 +47,7 @@ end
 
 function ceshare.Delete(entry)
   if entry then
-    if messageDialog('Are you sure you wish to delete this table?',mtWarning,mbYes,mbNo)==mrYes then
+    if messageDialog(translate('Are you sure you wish to delete this table?'),mtWarning,mbYes,mbNo)==mrYes then
       local r=ceshare.QueryXURL('DeleteTable.php','id='..entry.ID)  
       if r then
         if ceshare.CheatBrowserFrm and ceshare.CheatBrowserFrm.Visible then
@@ -57,7 +57,7 @@ function ceshare.Delete(entry)
         if ceshare.UpdateOrNewFrm and ceshare.UpdateOrNewFrm.Visible then
           ceshare.PublishCheatClick()
         end      
-        showMessage('Table successfuly deleted') --meanie
+        showMessage(translate('Table successfuly deleted')) --meanie
       end
     end
   end
@@ -69,22 +69,22 @@ function ceshare.PublishCheat(data,title,processname, headermd5, versionindepend
   local parameters=''
    
   if (processname==nil) or (processname=='') then
-    ceshare.showError('processname is empty')
+    ceshare.showError(translate('processname is empty'))
     return  
   end
   
   if (title==nil) or (title=='') then
-    ceshare.showError('title is empty')
+    ceshare.showError(translate('title is empty'))
     return  
   end
 
   if (data==nil) or (data=='') then
-    ceshare.showError('data is empty')
+    ceshare.showError(translate('data is empty'))
     return
   end
   
   if (description==nil) or (description=='') then
-    ceshare.showError('description is empty')
+    ceshare.showError(translate('description is empty'))
     return
   end
   
@@ -116,7 +116,7 @@ function ceshare.PublishCheat(data,title,processname, headermd5, versionindepend
   local r=ceshare.QueryXURL('PublishTable.php',parameters)
   
   if r then
-    showMessage('Thank you, your table has been published');
+    showMessage(translate('Thank you, your table has been published'));
     return true
   end
 end
@@ -125,22 +125,22 @@ function ceshare.UpdateCheat(id,data,title,headermd5, versionindependent, descri
   local parameters=''
   
   if id==nil then
-    ceshare.showError('No id given')
+    ceshare.showError(translate('No id given'))
     return
   end
     
   if (title==nil) or (title=='') then
-    ceshare.showError('title is empty')
+    ceshare.showError(translate('title is empty'))
     return  
   end
 
   if (data==nil) or (data=='') then
-    ceshare.showError('data is empty')
+    ceshare.showError(translate('data is empty'))
     return
   end
   
   if (description==nil) or (description=='') then
-    ceshare.showError('description is empty')
+    ceshare.showError(translate('description is empty'))
     return
   end
   
@@ -167,7 +167,7 @@ function ceshare.UpdateCheat(id,data,title,headermd5, versionindependent, descri
   local r=ceshare.QueryXURL('EditTable.php',parameters)
   
   if r then
-    showMessage('Thank you, your table has been updated');
+    showMessage(translate('Thank you, your table has been updated'));
     return true
   end
 
@@ -222,11 +222,11 @@ function ceshare.PublishCheatClick(sender, cheatinfo)
     
     f.rbUpdate.OnChange=function(s)
       f.lvCheats.Enabled=s.Checked
-      f.btnChoose.Caption='Update table'
+      f.btnChoose.Caption=translate('Update table')
     end
     
     f.rbPublish.OnChange=function(s)      
-      f.btnChoose.Caption='Publish new table'
+      f.btnChoose.Caption=translate('Publish new table')
     end    
    
     f.btnChoose.OnClick=function(s)
@@ -236,7 +236,7 @@ function ceshare.PublishCheatClick(sender, cheatinfo)
         local itemindex=f.lvCheats.ItemIndex
             
         if itemindex==-1 and f.rbUpdate.checked then
-          messageDialog('Please select a cheattable to update', mtError, mbOK);
+          messageDialog(translate('Please select a cheattable to update'), mtError, mbOK);
           return
         end
         
@@ -244,7 +244,7 @@ function ceshare.PublishCheatClick(sender, cheatinfo)
           cheatinfo=ceshare.CurrentUpdateQuery[itemindex+1]                
           ceshare.publishOrUpdate(cheatinfo)          
         else
-          messageDialog('Invalid background update query list', mtError, mbOK);
+          messageDialog(translate('Invalid background update query list'), mtError, mbOK);
         end
       else
         ceshare.publishOrUpdate()
@@ -440,18 +440,18 @@ function ceshare.publishOrUpdate(cheatinfo) --cheatinfo is a set if an update
     if (AddressList.Count==0) and 
        (getApplication().AdvancedOptions.CodeList2.Items.Count==0) and
        (getApplication().Comments.Memo1.Lines.Count==0) then
-      if messageDialog('This looks like an empty table. Are you sure?',mtWarning,mbYes,mbNo)~=mrYes then return end
+      if messageDialog(translate('This looks like an empty table. Are you sure?'),mtWarning,mbYes,mbNo)~=mrYes then return end
     end
 
     if ceshare.PublishCheatFrm.cbPublic.Enabled and ceshare.PublishCheatFrm.cbPublic.Checked then
-      if messageDialog('Are you sure you wish to let \'Everyone\' overwrite your table in the ceshare system ?',mtWarning,mbYes,mbNo)~=mrYes then return end
+      if messageDialog(translate('Are you sure you wish to let \'Everyone\' overwrite your table in the ceshare system ?'),mtWarning,mbYes,mbNo)~=mrYes then return end
     end
        
     local temptablepath=ceshare.path..'temptable.ct'
     saveTable(temptablepath)
     
     if MainForm.miSignTable.Visible then
-      if messageDialog('Do you wish to sign this table?',mtConfirmation,mbYes,mbNo)==mrYes then
+      if messageDialog(translate('Do you wish to sign this table?'),mtConfirmation,mbYes,mbNo)==mrYes then
         local originalFile=MainForm.OpenDialog1.FileName
         local originalDir=MainForm.OpenDialog1.InitialDir
         MainForm.OpenDialog1.FileName=ceshare.path..'temptable.ct'
@@ -533,7 +533,7 @@ function ceshare.publishOrUpdate(cheatinfo) --cheatinfo is a set if an update
 
       
   if cheatinfo then
-    ceshare.PublishCheatFrm.Caption='Update table'
+    ceshare.PublishCheatFrm.Caption=translate('Update table')
     ceshare.PublishCheatFrm.edtTitle.Text=cheatinfo.Title
     
     if cheatinfo.public then
@@ -547,7 +547,7 @@ function ceshare.publishOrUpdate(cheatinfo) --cheatinfo is a set if an update
     ceshare.PublishCheatFrm.cbPublic.checked=false
     ceshare.PublishCheatFrm.cbPublic.enabled=true
   
-    ceshare.PublishCheatFrm.Caption='Publish new table'
+    ceshare.PublishCheatFrm.Caption=translate('Publish new table')
     local pt=ceshare.getCurrentProcessTitle()
     if pt then
       ceshare.PublishCheatFrm.edtTitle.Text=pt

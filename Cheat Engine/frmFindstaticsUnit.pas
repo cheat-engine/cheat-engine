@@ -171,6 +171,7 @@ begin
     d:=TDisassembler.Create;
     d.showmodules:=false;
     d.showsymbols:=false;
+    d.showsections:=false;
 
 
     while (not terminated) and (currentpos<=stopaddress) do

@@ -26,6 +26,8 @@
 #include "luahandler.h"
 
 #include "displaydebug.h"
+#include "interrupthandler.h"
+
 
 #ifndef DEBUG
 #define sendstringf(s,x...)
@@ -636,10 +638,13 @@ void sendvmstate(pcpuinfo currentcpuinfo UNUSED, VMRegisters *registers UNUSED)
 
 #endif
 
-  sendstringf("vm_execution_controls_cpu=%6\n", vmread(vm_execution_controls_cpu));
-  if (vmread(vm_execution_controls_cpu) & SECONDARY_EXECUTION_CONTROLS)
+  if (isAMD==0)
   {
-    sendstringf("vm_execution_controls_cpu_secondary=%6 (unrestricted=%d)\n", vmread(vm_execution_controls_cpu_secondary), (vmread(vm_execution_controls_cpu_secondary) & SPBEF_ENABLE_UNRESTRICTED)!=0);
+    sendstringf("vm_execution_controls_cpu=%6\n", vmread(vm_execution_controls_cpu));
+    if (vmread(vm_execution_controls_cpu) & SECONDARY_EXECUTION_CONTROLS)
+    {
+      sendstringf("vm_execution_controls_cpu_secondary=%6 (unrestricted=%d)\n", vmread(vm_execution_controls_cpu_secondary), (vmread(vm_execution_controls_cpu_secondary) & SPBEF_ENABLE_UNRESTRICTED)!=0);
+    }
   }
 
 
@@ -671,12 +676,21 @@ int vmexit_amd(pcpuinfo currentcpuinfo, UINT64 *registers, void *fxsave UNUSED)
 
   nosendchar[getAPICID()]=1;
 
+  if (readMSR(IA32_FS_BASE_MSR)==0)
+  {
+    nosendchar[getAPICID()]=0;
+    sendstringf("Invalid FS base during exception (currentcpuinfo=%6 vmeventcount=%d)\n", currentcpuinfo, vmeventcount);
+    ddDrawRectangle(0,DDVerticalResolution-100,100,100,0xff0000);
+    while (1) outportb(0x80,0xc5);
+  }
+  vmeventcount++;
+
 
 #ifdef DEBUG
   csEnter(&vmexitlock);
 
 
-  sendstringf("vmexit_amd for cpu %d\n", currentcpuinfo->cpunr);
+  //sendstringf("vmexit_amd for cpu %d\n", currentcpuinfo->cpunr);
 
 #endif
 
@@ -687,7 +701,9 @@ int vmexit_amd(pcpuinfo currentcpuinfo, UINT64 *registers, void *fxsave UNUSED)
       return 0;
   }
 
-  result=handleVMEvent_amd(currentcpuinfo, (VMRegisters*)registers);
+  result=handleVMEvent_amd(currentcpuinfo, (VMRegisters*)registers, fxsave);
+
+
 
   if (dbvm_plugin_exit_post)
     dbvm_plugin_exit_post(exportlist, currentcpuinfo, registers, fxsave, &result);

@@ -31,6 +31,30 @@ begin
   result:=1;
 end;
 
+function listitem_getImageIndex(L: PLua_State): integer; cdecl;
+begin
+  lua_pushinteger(L, Tlistitem(luaclass_getClassObject(L)).ImageIndex);
+  result:=1;
+end;
+
+function listitem_setImageIndex(L: PLua_State): integer; cdecl;
+begin
+  Tlistitem(luaclass_getClassObject(L)).ImageIndex:=lua_tointeger(L,1);
+  result:=0;
+end;
+
+function listitem_getStateIndex(L: PLua_State): integer; cdecl;
+begin
+  lua_pushinteger(L, Tlistitem(luaclass_getClassObject(L)).StateIndex);
+  result:=1;
+end;
+
+function listitem_setStateIndex(L: PLua_State): integer; cdecl;
+begin
+  Tlistitem(luaclass_getClassObject(L)).StateIndex:=lua_tointeger(L,1);
+  result:=0;
+end;
+
 function listitem_getSelected(L: PLua_State): integer; cdecl;
 var
   listitem: Tlistitem;
@@ -210,6 +234,8 @@ begin
   luaclass_addPropertyToTable(L, metatable, userdata, 'Checked', listitem_getChecked, listitem_setChecked);
   luaclass_addPropertyToTable(L, metatable, userdata, 'SubItems', listitem_getSubItems, listitem_setSubItems);
   Luaclass_addPropertyToTable(L, metatable, userdata, 'Index', listitem_getIndex, nil);
+  Luaclass_addPropertyToTable(L, metatable, userdata, 'ImageIndex', listitem_getImageIndex, listitem_setImageIndex);
+  Luaclass_addPropertyToTable(L, metatable, userdata, 'StateIndex', listitem_getStateIndex, listitem_setStateIndex);
   Luaclass_addPropertyToTable(L, metatable, userdata, 'Selected', listitem_getSelected, listitem_setSelected);
   Luaclass_addPropertyToTable(L, metatable, userdata, 'Owner', listitem_getOwner, nil);
   luaclass_addPropertyToTable(L, metatable, userdata, 'Data', listitem_getData, listitem_setData);

@@ -443,7 +443,7 @@ function dbvm_watch_executes(PhysicalAddress: QWORD; size: integer; Options: DWO
 function dbvm_watch_retrievelog(ID: integer; results: PPageEventListDescriptor; var resultsize: integer): integer;
 function dbvm_watch_delete(ID: integer): boolean;
 
-function dbvm_cloak_activate(PhysicalBase: QWORD; virtualAddress: Qword=0): integer;
+function dbvm_cloak_activate(PhysicalBase: QWORD; virtualAddress: Qword=0; mode: integer=1): integer;
 function dbvm_cloak_deactivate(PhysicalBase: QWORD): boolean;
 function dbvm_cloak_readoriginal(PhysicalBase: QWORD; destination: pointer): integer;
 function dbvm_cloak_writeoriginal(PhysicalBase: QWORD; source: pointer): integer;
@@ -1428,7 +1428,7 @@ var vmcallinfo: packed record
   copied: DWORD;
 end;
 begin
-  //OutputDebugString('vmxfunctions.pas: dbvm_watch_retrievelog (results='+inttohex(QWORD(results),8)+' resultsize='+inttostr(resultsize)+')');
+ // OutputDebugString('vmxfunctions.pas: dbvm_watch_retrievelog for ID '+inttostr(id)+' (results='+inttohex(QWORD(results),8)+' resultsize='+inttostr(resultsize)+')');
   result:=1;
   vmcallinfo.structsize:=sizeof(vmcallinfo);
   vmcallinfo.level2pass:=vmx_password2;
@@ -1441,7 +1441,7 @@ begin
   result:=vmcall(@vmcallinfo,vmx_password1);  //returns 2 on a too small size
   resultsize:=vmcallinfo.resultssize;
 
-  //OutputDebugString('dbvm_watch_retrievelog vmcall returned '+inttostr(result)+'  (resultsize='+inttostr(resultsize)+')');
+ // OutputDebugString('dbvm_watch_retrievelog vmcall returned '+inttostr(result)+'  (resultsize='+inttostr(resultsize)+')');
 
   resultsize:=vmcallinfo.resultssize;
 end;
@@ -1461,13 +1461,14 @@ begin
   result:=vmcall(@vmcallinfo,vmx_password1)=0;  //returns 0 on success
 end;
 
-function dbvm_cloak_activate(PhysicalBase: QWORD; virtualAddress: QWORD=0): integer;
+function dbvm_cloak_activate(PhysicalBase: QWORD; virtualAddress: QWORD=0; mode: integer=1): integer;
 var
   vmcallinfo: packed record
     structsize: dword;
     level2pass: dword;
     command: dword;
     PhysicalBase: QWORD;
+    Mode: QWORD;
   end;
   i: integer;
 begin
@@ -1478,6 +1479,7 @@ begin
   vmcallinfo.level2pass:=vmx_password2;
   vmcallinfo.command:=VMCALL_CLOAK_ACTIVATE;
   vmcallinfo.PhysicalBase:=PhysicalBase;
+  vmcallinfo.Mode:=mode;
   result:=vmcall(@vmcallinfo,vmx_password1);
 
   outputdebugstring('dbvm_cloak_activate: result='+inttostr(result));

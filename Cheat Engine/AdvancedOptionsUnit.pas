@@ -25,7 +25,7 @@ type
 
   { TAdvancedOptions }
 
-  TCodeRecord=class
+  TAdvancedOptionsCodeRecord=class
   private
   public
     before: array of byte;
@@ -38,7 +38,7 @@ type
   TCodeListEntry=class
   private
   public
-    code: TCodeRecord; //nil if header
+    code: TAdvancedOptionsCodeRecord; //nil if header
 
     color: TColor;
     constructor create;
@@ -123,7 +123,7 @@ type
 
     procedure hotkey(var Message: TMessage); {$ifdef windows}message WM_HOTKEY;{$endif}
     function getCount: integer;
-    function getCode(index: integer): TCodeRecord;
+    function getCode(index: integer): TAdvancedOptionsCodeRecord;
     function getEntry(index: integer): TCodeListEntry;
     function getSelected(index: integer): boolean;
     procedure setSelected(index: integer; state: boolean);
@@ -138,7 +138,7 @@ type
 
   published
     property count: integer read getCount;
-    property code[index: integer]: TCodeRecord read getCode;  //todo: change to code later
+    property code[index: integer]: TAdvancedOptionsCodeRecord read getCode;  //todo: change to code later
     property entries[index: integer]: TCodeListEntry read getEntry;  //todo: change to code later
     property selected[index: integer]: boolean read getSelected write setSelected;
     property CodeList2: TListView read lvCodelist; //backward compatibility
@@ -226,7 +226,7 @@ begin
   result:=lvCodelist.Items.Count;
 end;
 
-function TAdvancedOptions.getCode(index: integer): TCodeRecord;
+function TAdvancedOptions.getCode(index: integer): TAdvancedOptionsCodeRecord;
 begin
   result:=nil;
   if entries[index]=nil then exit;
@@ -349,7 +349,7 @@ begin
   bread:=0;
   toread:=5;
   toread2:=5;
-  e.code:=TCodeRecord.Create;
+  e.code:=TAdvancedOptionsCodeRecord.Create;
 
   while bread<toread do
   begin
@@ -377,9 +377,9 @@ begin
   e.code.changed:=changed;
 
   if ssctrl in GetKeyShiftState then
-    e.code.symbolname:=symhandler.getNameFromAddress(address,true,true)
+    e.code.symbolname:=symhandler.getNameFromAddress(address,true,true, false)
   else
-    e.code.symbolname:=symhandler.getNameFromAddress(address,false,true);
+    e.code.symbolname:=symhandler.getNameFromAddress(address,false,true, false);
 
   li:=lvCodelist.Items.Add;
   li.Caption:=e.code.symbolname;
@@ -507,6 +507,7 @@ begin
       for i:=0 to selecteditems.Count-1 do
         tlistitem(selectedItems[i]).Selected:=true;
 
+      mainform.editedsincelastsave:=true;
     end;
 
   end;

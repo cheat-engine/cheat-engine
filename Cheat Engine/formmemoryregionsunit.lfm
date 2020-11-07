@@ -8,9 +8,10 @@ object FormMemoryRegions: TFormMemoryRegions
   ClientHeight = 370
   ClientWidth = 696
   OnClose = FormClose
+  OnCreate = FormCreate
   OnShow = FormShow
   Position = poOwnerFormCenter
-  LCLVersion = '2.0.0.4'
+  LCLVersion = '2.0.8.0'
   object Button1: TButton
     Left = 395
     Height = 31
@@ -26,7 +27,7 @@ object FormMemoryRegions: TFormMemoryRegions
   end
   object ListView1: TListView
     Left = 0
-    Height = 347
+    Height = 352
     Top = 0
     Width = 696
     Align = alClient
@@ -71,8 +72,8 @@ object FormMemoryRegions: TFormMemoryRegions
   end
   object StatusBar1: TStatusBar
     Left = 0
-    Height = 23
-    Top = 347
+    Height = 18
+    Top = 352
     Width = 696
     Panels = <    
       item
@@ -85,8 +86,8 @@ object FormMemoryRegions: TFormMemoryRegions
   object PopupMenu1: TPopupMenu
     Images = mrImageList
     OnPopup = PopupMenu1Popup
-    left = 136
-    top = 72
+    Left = 136
+    Top = 72
     object Saveselectedregions1: TMenuItem
       Caption = 'Save selected regions'
       ImageIndex = 0
@@ -109,12 +110,12 @@ object FormMemoryRegions: TFormMemoryRegions
   object SaveDialog1: TSaveDialog
     Title = 'Give the basename of the regions to be saved. (Can be a CT file)'
     Options = [ofHideReadOnly, ofPathMustExist, ofEnableSizing]
-    left = 32
-    top = 56
+    Left = 32
+    Top = 56
   end
   object mrImageList: TImageList
-    left = 388
-    top = 167
+    Left = 388
+    Top = 167
     Bitmap = {
       4C690300000010000000100000009FA100FF999800FF928D00FF928D00FFB5B7
       98FFBEC3C3FFBEC3C3FFBEC3C3FFBEC3C3FFB6BBBBFFA6ABABFFBABFB0FF9FA1

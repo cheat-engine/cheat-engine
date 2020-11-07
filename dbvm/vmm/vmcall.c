@@ -419,6 +419,10 @@ int VMCALL_SwitchToKernelMode(pcpuinfo cpuinfo, WORD newCS) {
 		vmcb->cs_base = 0;
 		vmcb->cs_limit = 0xFFFFF;
 		vmcb->cs_attrib = convertSegmentAccessRightsToSegmentAttrib(ar.AccessRights);
+		
+		//CPL change (also segments)
+		vmcb->CPL = ar.DPL;
+		vmcb->VMCB_CLEAN_BITS &= ~(1 << 8); 
 	}
 	else {
 		vmwrite(vm_guest_cs, newCS);
@@ -495,6 +499,10 @@ int VMCALL_ReturnToUserMode(pcpuinfo cpuinfo) {
 		vmcb->cs_base = 0;
 		vmcb->cs_limit = 0xFFFFF;
 		vmcb->cs_attrib = convertSegmentAccessRightsToSegmentAttrib(ar.AccessRights);
+		
+		//CPL change (also segments)
+		vmcb->CPL = ar.DPL;
+		vmcb->VMCB_CLEAN_BITS &= ~(1 << 8); 
 	}
 	else {
 		vmwrite(vm_guest_cs, cpuinfo->SwitchKernel.CS);
@@ -765,7 +773,16 @@ int vmcall_writePhysicalMemory(pcpuinfo currentcpuinfo, VMRegisters *vmregisters
     //done
     sendstringf("Done. Going to the next instruction\n");
     vmregisters->rax=wpmcommand->bytesToWrite; //0 on success, else the number of bytes not written
-    vmwrite(vm_guest_rip,vmread(vm_guest_rip)+vmread(vm_exit_instructionlength));
+    if (isAMD)
+    {
+      getcpuinfo()->vmcb->RAX=vmregisters->rax;
+      if (AMD_hasNRIPS)
+        getcpuinfo()->vmcb->RIP=getcpuinfo()->vmcb->nRIP;
+      else
+        getcpuinfo()->vmcb->RIP+=3;
+    }
+    else
+      vmwrite(vm_guest_rip,vmread(vm_guest_rip)+vmread(vm_exit_instructionlength));
   } //else go again with the new rpmcommand data
   return 0;
 }
@@ -844,18 +861,33 @@ int vmcall_readPhysicalMemory(pcpuinfo currentcpuinfo, VMRegisters *vmregisters,
     //handled it
     //sendstringf("Done. Going to the next instruction. rpmcommand->bytesToRead=%d\n",rpmcommand->bytesToRead);
     vmregisters->rax=rpmcommand->bytesToRead;
-    vmwrite(vm_guest_rip,vmread(vm_guest_rip)+vmread(vm_exit_instructionlength));
+    if (isAMD)
+    {
+      getcpuinfo()->vmcb->RAX=vmregisters->rax;
+      if (AMD_hasNRIPS)
+        getcpuinfo()->vmcb->RIP=getcpuinfo()->vmcb->nRIP;
+      else
+        getcpuinfo()->vmcb->RIP+=3;
+    }
+    else
+      vmwrite(vm_guest_rip,vmread(vm_guest_rip)+vmread(vm_exit_instructionlength));
   } //else go again with the new rpmcommand data
   return 0;
 }
 
 
 
-VMSTATUS vmcall_watch_retrievelog(VMRegisters *vmregisters,  PVMCALL_WATCH_RETRIEVELOG_PARAM params)
+VMSTATUS vmcall_watch_retrievelog(pcpuinfo currentcpuinfo, VMRegisters *vmregisters,  PVMCALL_WATCH_RETRIEVELOG_PARAM params)
 {
   //int o=(QWORD)(&params->copied)-(QWORD)params;
   //sendstringf("params->copied is at offset %d\n", o);
-  return ept_watch_retrievelog(params->ID, params->results, &params->resultsize, &params->copied, &vmregisters->rax);
+  QWORD *errorcode;
+  if (isAMD)
+    errorcode=&currentcpuinfo->vmcb->RAX;
+  else
+    errorcode=&vmregisters->rax;
+
+  return ept_watch_retrievelog(params->ID, params->results, &params->resultsize, &params->copied, errorcode);
 
 
 }
@@ -886,7 +918,7 @@ int _handleVMCallInstruction(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, 
   switch (vmcall_instruction[2])
   {
     case VMCALL_GETVERSION: //get version
-      sendstring("Version request\n\r");
+      //sendstring("Version request\n\r");
       vmregisters->rax=0xce000000 + dbvmversion;
       break;
 
@@ -1508,10 +1540,12 @@ int _handleVMCallInstruction(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, 
 
     case VMCALL_WATCH_WRITES:
     {
+
+
       nosendchar[getAPICID()]=0;
 
       sendstringf("VMCALL_WATCH_WRITES\n");
-      if (hasEPTsupport)
+      if (hasEPTsupport || hasNPsupport)
       {
         vmregisters->rax=vmcall_watch_activate((PVMCALL_WATCH_PARAM)vmcall_instruction,EPTW_WRITE); //write
         sendstringf("vmcall_watch_activate returned %d and ID %d\n", vmregisters->rax, ((PVMCALL_WATCH_PARAM)vmcall_instruction)->ID);
@@ -1528,7 +1562,7 @@ int _handleVMCallInstruction(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, 
     case VMCALL_WATCH_READS:
     {
       sendstringf("VMCALL_WATCH_READS\n");
-      if (hasEPTsupport)
+      if (hasEPTsupport || hasNPsupport)
       {
         vmregisters->rax=vmcall_watch_activate((PVMCALL_WATCH_PARAM)vmcall_instruction,EPTW_READWRITE); //read
       }
@@ -1542,7 +1576,7 @@ int _handleVMCallInstruction(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, 
     case VMCALL_WATCH_EXECUTES:
     {
       sendstringf("VMCALL_WATCH_EXECUTES\n");
-      if (hasEPTsupport)
+      if (hasEPTsupport || hasNPsupport)
       {
         vmregisters->rax=vmcall_watch_activate((PVMCALL_WATCH_PARAM)vmcall_instruction,EPTW_EXECUTE); //read
       }
@@ -1563,13 +1597,13 @@ int _handleVMCallInstruction(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, 
     case VMCALL_WATCH_RETRIEVELOG:
     {
       //sendstringf("VMCALL_WATCH_RETRIEVELOG\n");
-      return vmcall_watch_retrievelog(vmregisters, (PVMCALL_WATCH_RETRIEVELOG_PARAM)vmcall_instruction);
+      return vmcall_watch_retrievelog(currentcpuinfo, vmregisters, (PVMCALL_WATCH_RETRIEVELOG_PARAM)vmcall_instruction);
     }
 
     case VMCALL_CLOAK_ACTIVATE:
     {
-      if (hasEPTsupport)
-        vmregisters->rax=ept_cloak_activate(((PVMCALL_CLOAK_ACTIVATE_PARAM)vmcall_instruction)->physicalAddress);
+      if (hasEPTsupport || hasNPsupport)
+        vmregisters->rax=ept_cloak_activate(((PVMCALL_CLOAK_ACTIVATE_PARAM)vmcall_instruction)->physicalAddress,((PVMCALL_CLOAK_ACTIVATE_PARAM)vmcall_instruction)->mode);
       else
         vmregisters->rax=0xcedead;
 
@@ -1658,7 +1692,7 @@ int _handleVMCallInstruction(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, 
 
     case VMCALL_CLOAK_DEACTIVATE:
     {
-      if (hasEPTsupport)
+      if (hasEPTsupport || hasNPsupport)
         vmregisters->rax=ept_cloak_deactivate(((PVMCALL_CLOAK_DEACTIVATE_PARAM)vmcall_instruction)->physicalAddress);
       else
         vmregisters->rax=0xcedead;
@@ -1668,7 +1702,7 @@ int _handleVMCallInstruction(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, 
 
     case VMCALL_CLOAK_READORIGINAL:
     {
-      if (hasEPTsupport)
+      if (hasEPTsupport || hasNPsupport)
         return ept_cloak_readOriginal(currentcpuinfo, vmregisters, ((PVMCALL_CLOAK_READ_PARAM)vmcall_instruction)->physicalAddress, ((PVMCALL_CLOAK_READ_PARAM)vmcall_instruction)->destination);
       else
         vmregisters->rax=0xcedead;
@@ -1678,7 +1712,7 @@ int _handleVMCallInstruction(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, 
 
     case VMCALL_CLOAK_WRITEORIGINAL:
     {
-      if (hasEPTsupport)
+      if (hasEPTsupport || hasNPsupport)
         return ept_cloak_writeOriginal(currentcpuinfo, vmregisters, ((PVMCALL_CLOAK_WRITE_PARAM)vmcall_instruction)->physicalAddress, ((PVMCALL_CLOAK_WRITE_PARAM)vmcall_instruction)->source);
       else
         vmregisters->rax=0xcedead;
@@ -1855,7 +1889,15 @@ int _handleVMCallInstruction(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, 
 
     case VMCALL_RAISEPMI:
     {
-      vmwrite(vm_guest_rip,vmread(vm_guest_rip)+vmread(vm_exit_instructionlength)); //go after this instruction
+      if (isAMD)
+      {
+        if (AMD_hasNRIPS)
+          getcpuinfo()->vmcb->RIP=getcpuinfo()->vmcb->nRIP;
+        else
+          getcpuinfo()->vmcb->RIP+=3;
+      }
+      else
+        vmwrite(vm_guest_rip,vmread(vm_guest_rip)+vmread(vm_exit_instructionlength));
       return raisePMI();
     }
 
@@ -2003,7 +2045,11 @@ int _handleVMCallInstruction(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, 
   if (isAMD)
   {
     currentcpuinfo->vmcb->RAX=vmregisters->rax;
-    currentcpuinfo->vmcb->RIP+=3; //screw you if you used prefixes
+    if (AMD_hasNRIPS)
+      getcpuinfo()->vmcb->RIP=getcpuinfo()->vmcb->nRIP;
+    else
+      getcpuinfo()->vmcb->RIP+=3;
+
   }
   else
   {

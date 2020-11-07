@@ -54,6 +54,12 @@ type TModuleInfo=record
   symbolsLoaded: boolean; //true if the api symbols have been handled
   hasStructInfo: boolean;
   databaseModuleID: dword;
+  sections: array of record
+    name: string;
+    size: dword;
+    address: ptruint;
+    fileaddress: ptruint;
+  end;
 end;
 
 

@@ -30,6 +30,9 @@ type
     function readInteger(registryValueName:string; def: integer=0): integer;
     procedure writeString(registryValueName: string; value: string);
     function readString(registryValueName:string; def: string=''): string;
+    procedure writeStrings(registryValueName: string; sl: TStrings);
+    procedure readStrings(registryValueName: string; sl: TStrings);
+
   end;
 
 var cereg: TCEReg;
@@ -74,6 +77,30 @@ begin
 
 
   result:=openedregistry;
+end;
+
+procedure TCEReg.writeStrings(registryValueName: string; sl: TStrings);
+begin
+  if getregistry(true) then
+  begin
+    try
+      reg.WriteStringList(registryValueName, sl);
+    except
+    end;
+  end;
+end;
+
+procedure TCEReg.readStrings(registryValueName: string; sl: TStrings);
+begin
+  sl.Clear;
+
+  if getregistry(false) and (reg.ValueExists(registryValueName)) then
+  begin
+    try
+      reg.ReadStringList(registryValueName, sl);
+    except
+    end;
+  end;
 end;
 
 function TCEReg.readBool(registryValueName: string; def: boolean=false): boolean;

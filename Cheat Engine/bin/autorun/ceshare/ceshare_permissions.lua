@@ -36,7 +36,7 @@ function ceshare.ManageAccessList(entry)
       if newy~='' then f.top=newy end
     end
     
-    r=ceshare.QueryXURL('QueryAccessList.php','id='..entry.ID)
+    local r=ceshare.QueryXURL('QueryAccessList.php','id='..entry.ID)
     
     ceshare.PermissionsFrm.lblId.Caption=entry.ID
     ceshare.PermissionsFrm.lbltitle.Caption=entry.Title
@@ -65,7 +65,7 @@ function ceshare.ManageAccessList(entry)
         --apply the changes
         local parameters='id='..entry.ID
         if entry.access.Owner~=ceshare.PermissionsFrm.edtOwner.Text then
-          if messageDialog('Are you sure you wish to change the owner?', mtConfirmation,mbYes,mbNo)~=mrYes then return end
+          if messageDialog(translate('Are you sure you wish to change the owner?'), mtConfirmation,mbYes,mbNo)~=mrYes then return end
           parameters=parameters..'&owner='..ceshare.url_encode(ceshare.PermissionsFrm.edtOwner.Text)
         end
         
@@ -73,9 +73,9 @@ function ceshare.ManageAccessList(entry)
           parameters=parameters..'&users['..i..']='..ceshare.url_encode(ceshare.PermissionsFrm.lbUsernames.Items[i-1])
         end
         
-        r=ceshare.QueryXURL('SetAccessList.php',parameters)
+        local r=ceshare.QueryXURL('SetAccessList.php',parameters)
         if r then
-          showMessage('Access has been updated');
+          showMessage(translate('Access has been updated'));
         end
         
       end
@@ -88,7 +88,7 @@ function ceshare.getPermissions(entry, skipError)
   if entry==nil then return end
   entry.Permissions=nil
   
-  r=ceshare.QueryXURL('CheckPermissions.php','id='..entry.ID, skipError)
+  local r=ceshare.QueryXURL('CheckPermissions.php','id='..entry.ID, skipError)
   if r then
     if r.Permissions then
       entry.Permissions={}

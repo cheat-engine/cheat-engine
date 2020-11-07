@@ -118,7 +118,7 @@ begin
 
         v:=StrToQWordEx(value);
 
-        if (variabletype=vtCustom) and customtype.scriptUsesFloat then
+        if (variabletype=vtCustom) and (customtype<>nil) and customtype.scriptUsesFloat then
           s:=StrToFloat(value);
       end;
     end;
@@ -140,19 +140,24 @@ begin
 
       vtCustom:
       begin
-        getmem(ba, customtype.bytesize);
-        try
-          if ReadProcessMemory(processhandle, pointer(address), ba, customtype.bytesize, x) then
-          begin
-            if customtype.scriptUsesFloat then
-              customtype.ConvertFloatToData(s, ba, address)
-            else
-              customtype.ConvertIntegerToData(v, ba, address);
+        if customtype<>nil then
+        begin
 
-            WriteProcessMemory(processhandle, pointer(address), ba, customtype.bytesize, x);
+          getmem(ba, customtype.bytesize);
+          try
+            if ReadProcessMemory(processhandle, pointer(address), ba, customtype.bytesize, x) then
+            begin
+              if customtype.scriptUsesFloat then
+                customtype.ConvertFloatToData(s, ba, address)
+              else
+                customtype.ConvertIntegerToData(v, ba, address);
+
+              WriteProcessMemory(processhandle, pointer(address), ba, customtype.bytesize, x);
+            end;
+          finally
+            freememandnil(ba);
+
           end;
-        finally
-          freememandnil(ba);
 
         end;
       end;
@@ -464,7 +469,7 @@ begin
 
       if clean then result:='' else result:='(pointer)';
 
-      result:=result+symhandler.getNameFromAddress(a,true,true);
+      result:=result+symhandler.getNameFromAddress(a,true,true, false);
 
 //      result:='(pointer)'+inttohex(pqword(buf)^,16) else result:='(pointer)'+inttohex(pdword(buf)^,8);
     end;
@@ -620,13 +625,13 @@ begin
       if processhandler.is64bit then
       begin
         if (address mod 8) = 0 then
-          val('$'+symhandler.getNameFromAddress(pqword(@buf[0])^,true,true,nil,nil,8,false),v,e)
+          val('$'+symhandler.getNameFromAddress(pqword(@buf[0])^,true,true,false, nil,nil,8,false),v,e)
         else
           e:=0;
       end
       else
       begin
-        val('$'+symhandler.getNameFromAddress(pdword(@buf[0])^,true,true,nil,nil,8,false),v,e);
+        val('$'+symhandler.getNameFromAddress(pdword(@buf[0])^,true,true,false, nil,nil,8,false),v,e);
       end;
 
       if e>0 then //named

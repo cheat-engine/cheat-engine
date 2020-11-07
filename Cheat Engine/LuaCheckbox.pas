@@ -71,11 +71,12 @@ function checkbox_setState(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   checkbox: Tcustomcheckbox;
+  paramstart, paramcount: integer;
 begin
   result:=0;
-  checkbox:=luaclass_getClassObject(L);
-  if lua_gettop(L)>=1 then
-    checkbox.state:=tcheckboxstate(lua_tointeger(L,-1));
+  checkbox:=luaclass_getClassObject(L, @paramstart, @paramcount);
+  if paramcount>=1 then
+    checkbox.state:=tcheckboxstate(lua_tointeger(L,paramstart));
 end;
 
 function checkbox_getonChange(L: PLua_State): integer; cdecl;

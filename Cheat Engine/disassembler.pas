@@ -150,6 +150,7 @@ type
     isdefault: boolean;
     showsymbols: boolean;
     showmodules: boolean;
+    showsections: boolean;
     dataOnly: boolean;
 
     is64bit: boolean;
@@ -3027,6 +3028,7 @@ begin
                           else
                             lastdisassembledata.opcode:='cvttss2si';
 
+                          opcodeflags.skipExtraReg:=true;
                           lastdisassembledata.parameters:=r32(memory[2])+modrm(memory,prefix2,2,4,last, mRight);
                           inc(offset,last-1);
                         end
@@ -3148,6 +3150,8 @@ begin
                             lastdisassembledata.opcode:='vcomiss'
                           else
                             lastdisassembledata.opcode:='comiss';
+
+                          opcodeflags.skipExtraReg:=true;
                           lastdisassembledata.parameters:=xmm(memory[2])+modrm(memory,prefix2,2,4,last,mRight);
                           lastdisassembledata.datasize:=4;
                           inc(offset,last-1);
@@ -3509,7 +3513,7 @@ begin
                                  begin
                                    if hasvex then
                                    begin
-                                     LastDisassembleData.opcode:='vblendvpd';
+                                     LastDisassembleData.opcode:='vblendvpd invalid';
                                      lastdisassembledata.parameters:=xmm(memory[3])+modrm(memory,prefix2,3,4,last, mRight);
                                      lastdisassembledata.parameters:=lastdisassembledata.parameters+','+regnrtostr(rtXMM,memory[last]);
                                      inc(offset,1);
@@ -3517,7 +3521,7 @@ begin
                                    else
                                    begin
                                      LastDisassembleData.opcode:='blendvpd';
-                                     lastdisassembledata.parameters:=xmm(memory[3])+modrm(memory,prefix2,3,4,last, mRight)+','+regnrtostr(rtXMM,0);
+                                     lastdisassembledata.parameters:=xmm(memory[3])+modrm(memory,prefix2,3,4,last, mRight)+','+colorreg+regnrtostr(rtXMM,0)+endcolor;
                                    end;
                                    inc(offset,last-1);
                                  end;
@@ -5594,6 +5598,22 @@ begin
                                  end;
                                end;
 
+               {0f}{3a}   $21: begin    //C4 E3 79 21 80 B8 00 00 00 20
+                                 if $66 in prefix2 then
+                                 begin
+                                   description:='Insert Scalar Single-Precision Floating-Point Value';
+                                   if hasvex then
+                                     LastDisassembleData.opcode:='vinsertps'
+                                   else
+                                     LastDisassembleData.opcode:='insertps';
+
+                                   lastdisassembledata.parameters:=xmm(memory[3])+modrm(memory,prefix2,3,4,last,mRight)+',';
+                                   lastdisassembledata.parameters:=lastdisassembledata.parameters+inttohex(memory[last],2);
+                                   inc(last);
+                                   inc(offset,last-1);
+                                 end;
+                               end;
+
                           $22: begin
                                  if $66 in prefix2 then
                                  begin
@@ -5727,6 +5747,47 @@ begin
                                   end;
                                 end;
                               end;
+
+              {0f}{3a}   $4a: begin
+                                if $66 in prefix2 then
+                                begin
+                                  if hasvex then
+                                  begin
+                                    description:='Variable Blend Packed Single Precision Floating-Point Values';
+                                    LastDisassembleData.opcode:='vblendvps';
+
+                                    lastdisassembledata.parameters:=xmm(memory[3])+modrm(memory,prefix2,3,4,last,mRight)+',';
+                                    if opcodeflags.L then
+                                      lastdisassembledata.parameters:=lastdisassembledata.parameters+colorreg+regnrtostr(rtYMM, memory[last] shr 4 and $f)+endcolor
+                                    else
+                                      lastdisassembledata.parameters:=lastdisassembledata.parameters+colorreg+regnrtostr(rtXMM, memory[last] shr 4 and $f)+endcolor;
+
+                                    inc(last);
+                                    inc(offset,last-1);
+                                  end;
+                                end;
+                              end;
+
+              {0f}{3a}   $4b: begin
+                                if $66 in prefix2 then
+                                begin
+                                  if hasvex then
+                                  begin
+                                    description:='Variable Blend Packed Double Precision Floating-Point Values';
+                                    LastDisassembleData.opcode:='vblendvpd';
+
+                                    lastdisassembledata.parameters:=xmm(memory[3])+modrm(memory,prefix2,3,4,last,mRight)+',';
+                                    if opcodeflags.L then
+                                      lastdisassembledata.parameters:=lastdisassembledata.parameters+colorreg+regnrtostr(rtYMM, memory[last] shr 4 and $f)+endcolor
+                                    else
+                                      lastdisassembledata.parameters:=lastdisassembledata.parameters+colorreg+regnrtostr(rtXMM, memory[last] shr 4 and $f)+endcolor;
+
+                                    inc(last);
+                                    inc(offset,last-1);
+                                  end;
+                                end;
+                              end;
+
 
               {0f}{3a}   $60: begin
                                 if $66 in prefix2 then
@@ -15717,7 +15778,7 @@ begin
       end;
 
 
-      s:=symhandler.getNameFromAddress(jumpAddress, symhandler.showsymbols, symhandler.showmodules,nil,nil,8,false);
+      s:=symhandler.getNameFromAddress(jumpAddress, symhandler.showsymbols, symhandler.showmodules, symhandler.showsections, nil,nil,8,false);
       if pos(s, LastDisassembleData.parameters)=0 then //no need to show a comment if it's exactly the same
         result:=result+'->'+s;
     end;
@@ -16004,13 +16065,13 @@ begin
 
                 if readprocessmemory(processhandle,pointer(value),@value,processhandler.Pointersize,actualread) then
                 begin
-                  ts:='->'+symhandler.getNameFromAddress(value,symhandler.showsymbols, symhandler.showmodules,nil,nil,8,false);
+                  ts:='->'+symhandler.getNameFromAddress(value,symhandler.showsymbols, symhandler.showmodules,symhandler.showsections, nil,nil,8,false);
                 end;
               end;
             end
             else
             begin
-              ts:=symhandler.getNameFromAddress(value,symhandler.showsymbols, symhandler.showmodules,nil,nil,8,false);
+              ts:=symhandler.getNameFromAddress(value,symhandler.showsymbols, symhandler.showmodules,symhandler.showsections,nil,nil,8,false);
             end;
 
 
@@ -16136,10 +16197,10 @@ var found: boolean;
     d: dword;
     i: integer;
 begin
-  if (showsymbols or showmodules) and (chars>=8) then
+  if (showsymbols or showmodules or showsections) and (chars>=8) then
   begin
     found:=false;
-    result:=symhandler.getNameFromAddress(value,showsymbols, showmodules, nil, @found,chars, false);
+    result:=symhandler.getNameFromAddress(value,showsymbols, showmodules, showsections, nil, @found,chars, false);
 
     //when found, and the symbol contains a space or comma, put the symbolname in quotes
 

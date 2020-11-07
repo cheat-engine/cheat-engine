@@ -3,6 +3,7 @@ local c=createComboBox(MainForm.gbScanOptions)
 c.Style='csDropDownList'
 c.Items.add('All')
 c.ItemIndex=0
+c.Name='ScanOptionsModuleList'  
 
 
 c.Align=alTop
@@ -18,9 +19,11 @@ function FillList()
   end
 
   modulelist=enumModules()
-  local i
-  for i=1, #modulelist do
-    c.Items.Add(modulelist[i].Name)
+  if modulelist then
+    local i
+    for i=1, #modulelist do
+      c.Items.Add(modulelist[i].Name)
+    end
   end
 end
 

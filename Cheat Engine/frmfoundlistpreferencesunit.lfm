@@ -353,10 +353,23 @@ object frmFoundlistPreferences: TfrmFoundlistPreferences
     State = cbChecked
     TabOrder = 5
   end
+  object cbUseThisFontSize: TCheckBox
+    AnchorSideLeft.Control = btnFont
+    AnchorSideLeft.Side = asrBottom
+    AnchorSideTop.Control = btnFont
+    AnchorSideTop.Side = asrCenter
+    Left = 309
+    Height = 19
+    Top = 18
+    Width = 110
+    BorderSpacing.Left = 5
+    Caption = 'override font size'
+    TabOrder = 6
+  end
   object FontDialog1: TFontDialog
     MinFontSize = 0
     MaxFontSize = 0
-    Options = [fdNoFaceSel, fdNoSimulations, fdNoStyleSel]
+    Options = [fdNoStyleSel]
     Left = 400
     Top = 8
   end

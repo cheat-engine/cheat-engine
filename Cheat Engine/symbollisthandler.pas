@@ -620,7 +620,7 @@ var
   d:PCESymbolInfo;
   i: integer;
 
-  e: TAVLTreeNodeEnumerator;
+  //e: TAVLTreeNodeEnumerator;
 begin
   cs.Beginwrite;
   try

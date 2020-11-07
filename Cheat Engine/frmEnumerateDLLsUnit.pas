@@ -6,7 +6,7 @@ interface
 
 uses
   {$ifdef darwin}
-  macport,
+  macport, lclproc,
   {$endif}
   {$ifdef windows}
   windows, imagehlp,
@@ -226,6 +226,12 @@ begin
     findpos.x:=x[0];
     findpos.y:=x[1];
   end;
+
+
+  {$ifdef darwin}
+  Find.Shortcut:=TextToShortCut('Meta+F');
+  CopySymbolName.Shortcut:=TextToShortCut('Meta+C');
+  {$endif}
 end;
 
 procedure TfrmEnumerateDLLs.FormDestroy(Sender: TObject);

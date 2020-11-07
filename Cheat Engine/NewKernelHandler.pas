@@ -1123,23 +1123,19 @@ begin
         signed:=false;
         if isDriverLoaded(@signed) then
         begin
-          if MessageDlg(r, mtWarning, [mbyes, mbno], 0)=mryes then
-          begin
-            LaunchDBVM(-1);
-            if not isRunningDBVM then raise exception.Create(rsDidNotLoadDBVM);
-            result:=true;
-          end;
+          if (MainThreadID=GetCurrentThreadId) and (MessageDlg(r, mtWarning, [mbyes, mbno], 0)<>mryes) then
+            exit;
+
+          LaunchDBVM(-1);
+          if not isRunningDBVM then raise exception.Create(rsDidNotLoadDBVM);
+          result:=true;
         end else
         begin
           //the driver isn't loaded
           if signed then
-          begin
-            raise exception.Create(rsPleaseRebootAndPressF8BeforeWindowsBoots);
-          end
+            raise exception.Create(rsPleaseRebootAndPressF8BeforeWindowsBoots)
           else
-          begin
             raise exception.Create(rsTheDriverNeedsToBeLoadedToBeAbleToUseThisFunction);
-          end;
         end;
       end else raise exception.Create(rsYourCpuMustBeAbleToRunDbvmToUseThisFunction);
     end
@@ -1160,7 +1156,17 @@ end;
 
 {$endif}
 
-{$ifndef CPUX86_64 and ifndef CPUi386}
+
+
+{$ifdef CPUX86_64}
+{$define MAYUSEDBVM}
+{$endif}
+
+{$ifdef CPUi386}
+{$define MAYUSEDBVM}
+{$endif}
+
+{$ifndef MAYUSEDBVM}
 function isIntel: boolean;
 begin
   result:=false;
@@ -1303,25 +1309,38 @@ const
 var procbased1flags: DWORD;
 begin
   {$ifdef windows}
-  result:=isIntel and isDBVMCapable; //assume yes until proven otherwise
+  try
+    result:=isDBVMCapable; //assume yes until proven otherwise
 
-  //check if it can use EPT tables in dbvm:
-  //first get the basic msr to see if TRUE procbasedctrls need to be used or old
-  if isIntel and assigned(isDriverLoaded) and isDriverLoaded(nil) then
-  begin
-    result:=false;
-    if (readMSR(IA32_VMX_BASIC_MSR) and (1 shl 55))<>0 then
-      procbased1flags:=readMSR(IA32_VMX_TRUE_PROCBASED_CTLS_MSR) shr 32
-    else
-      procbased1flags:=readMSR(IA32_VMX_PROCBASED_CTLS_MSR) shr 32;
-
-    //check if it has secondary procbased flags
-    if (procbased1flags and (1 shl 31))<>0 then
+    //check if it can use EPT tables in dbvm:
+    //first get the basic msr to see if TRUE procbasedctrls need to be used or old
+    if assigned(isDriverLoaded) and isDriverLoaded(nil) then
     begin
-      //yes, check if EPT can be set to 1
-      if ((readMSR(IA32_VMX_PROCBASED_CTLS2_MSR) shr 32) and (1 shl 1))<>0 then
+      if isintel then
+      begin
+        result:=false;
+        if (readMSR(IA32_VMX_BASIC_MSR) and (1 shl 55))<>0 then
+          procbased1flags:=readMSR(IA32_VMX_TRUE_PROCBASED_CTLS_MSR) shr 32
+        else
+          procbased1flags:=readMSR(IA32_VMX_PROCBASED_CTLS_MSR) shr 32;
+
+        //check if it has secondary procbased flags
+        if (procbased1flags and (1 shl 31))<>0 then
+        begin
+          //yes, check if EPT can be set to 1
+          if ((readMSR(IA32_VMX_PROCBASED_CTLS2_MSR) shr 32) and (1 shl 1))<>0 then
+            result:=true;
+        end;
+
+      end
+      else
+      if isamd then
         result:=true;
     end;
+
+  except
+    //readMSR will error out if ran inside a virtual machine
+    result:=false;
   end;
   //else
   //  result:=result and isRunningDBVM;

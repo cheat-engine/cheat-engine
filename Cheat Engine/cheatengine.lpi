@@ -7,7 +7,7 @@
       <SessionStorage Value="InProjectDir"/>
       <MainUnit Value="0"/>
       <AutoCreateForms Value="False"/>
-      <Title Value="Cheat Engine 7.1"/>
+      <Title Value="Cheat Engine 7.2"/>
       <XPManifest>
         <ExecutionLevel Value="requireAdministrator"/>
       </XPManifest>
@@ -21,11 +21,11 @@
       <UseVersionInfo Value="True"/>
       <AutoIncrementBuild Value="True"/>
       <MajorVersionNr Value="7"/>
-      <MinorVersionNr Value="1"/>
-      <BuildNr Value="6316"/>
+      <MinorVersionNr Value="2"/>
+      <BuildNr Value="6540"/>
       <Language Value=""/>
       <CharSet Value=""/>
-      <StringTable CompanyName="Cheat Engine" FileDescription="Cheat Engine" ProductVersion="7.1"/>
+      <StringTable CompanyName="Cheat Engine" FileDescription="Cheat Engine" ProductVersion="7.2"/>
     </VersionInfo>
     <BuildModes Count="10">
       <Item1 Name="Release 32-Bit" Default="True"/>
@@ -80,8 +80,9 @@
             <CustomOptions Value="-WB00400000
 -dbenchmarkps
 -dcemain
--dNDEBUG"/>
-            <OtherDefines Count="12">
+-dNDEBUG
+-dDBVMFORAMDISWORKING"/>
+            <OtherDefines Count="13">
               <Define0 Value="NOTMULTITHREADED"/>
               <Define1 Value="benchmarkps"/>
               <Define2 Value="cemain"/>
@@ -94,6 +95,7 @@
               <Define9 Value="checkassembleralphabet"/>
               <Define10 Value="memorymapped"/>
               <Define11 Value="privatebuild"/>
+              <Define12 Value="DBVMFORAMDISWORKING"/>
             </OtherDefines>
           </Other>
         </CompilerOptions>
@@ -108,7 +110,7 @@
           <SearchPaths>
             <IncludeFiles Value="$(ProjOutDir);$(LazarusDir)\ide\include\$(TargetOS);$(LazarusDir)\images;$(LazarusDir)\ideintf\images"/>
             <OtherUnitFiles Value="VEHDebug;dbk32;lua;jvdesign;$(LazarusDir)\designer;$(LazarusDir)\ide"/>
-            <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)"/>
+            <UnitOutputDirectory Value="lib\$(TargetCPU)-SSE4-AVX-$(TargetOS)"/>
           </SearchPaths>
           <Parsing>
             <Style Value="1"/>
@@ -152,8 +154,9 @@
 -OpCOREAVX2
 -dbenchmarkps
 -dcemain
--dNDEBUG"/>
-            <OtherDefines Count="12">
+-dNDEBUG
+-dDBVMFORAMDISWORKING"/>
+            <OtherDefines Count="13">
               <Define0 Value="NOTMULTITHREADED"/>
               <Define1 Value="benchmarkps"/>
               <Define2 Value="cemain"/>
@@ -166,6 +169,7 @@
               <Define9 Value="checkassembleralphabet"/>
               <Define10 Value="memorymapped"/>
               <Define11 Value="privatebuild"/>
+              <Define12 Value="DBVMFORAMDISWORKING"/>
             </OtherDefines>
           </Other>
         </CompilerOptions>
@@ -408,6 +412,7 @@
           <Linking>
             <Debugging>
               <DebugInfoType Value="dsDwarf3"/>
+              <UseExternalDbgSyms Value="True"/>
             </Debugging>
             <Options>
               <PassLinkerOptions Value="True"/>
@@ -436,15 +441,6 @@
 -dCUSTOMFLOAT
 -dXDEBUG
 -dUSELAZFREETYPE"/>
-            <OtherDefines Count="7">
-              <Define0 Value="benchmarkps"/>
-              <Define1 Value="cemain"/>
-              <Define2 Value="NDEBUG"/>
-              <Define3 Value="D3DDebug"/>
-              <Define4 Value="NOVMX"/>
-              <Define5 Value="CUSTOMFLOAT"/>
-              <Define6 Value="USELAZFREETYPE"/>
-            </OtherDefines>
           </Other>
         </CompilerOptions>
       </Item8>
@@ -571,7 +567,7 @@
 -dNOVMX
 -dCUSTOMFLOAT
 -dXDEBUG"/>
-            <OtherDefines Count="12">
+            <OtherDefines Count="13">
               <Define0 Value="NOTMULTITHREADED"/>
               <Define1 Value="benchmarkps"/>
               <Define2 Value="cemain"/>
@@ -584,6 +580,7 @@
               <Define9 Value="checkassembleralphabet"/>
               <Define10 Value="memorymapped"/>
               <Define11 Value="privatebuild"/>
+              <Define12 Value="DBVMFORAMDISWORKING"/>
             </OtherDefines>
           </Other>
         </CompilerOptions>
@@ -636,7 +633,7 @@
         <PackageName Value="LCL"/>
       </Item8>
     </RequiredPackages>
-    <Units Count="395">
+    <Units Count="397">
       <Unit0>
         <Filename Value="cheatengine.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -2036,6 +2033,7 @@
       <Unit268>
         <Filename Value="pointerscannetworkcommands.pas"/>
         <IsPartOfProject Value="True"/>
+        <UnitName Value="PointerscanNetworkCommands"/>
       </Unit268>
       <Unit269>
         <Filename Value="frmpointerrescanconnectdialogunit.pas"/>
@@ -2411,6 +2409,7 @@
         <Filename Value="asktorunluascript.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="frmLuaScriptQuestion"/>
+        <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="askToRunLuaScript"/>
       </Unit340>
@@ -2720,6 +2719,16 @@
         <Filename Value="machotkeys.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit394>
+      <Unit395>
+        <Filename Value="luadotnetpipe.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="LuaDotNetPipe"/>
+      </Unit395>
+      <Unit396>
+        <Filename Value="luaremoteexecutor.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="LuaRemoteExecutor"/>
+      </Unit396>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
@@ -2768,8 +2777,8 @@
       <CompilerMessages>
         <IgnoredMessages idx6058="True"/>
       </CompilerMessages>
-      <CustomOptions Value="-dbenchmarkps -dcemain -WB00400000 -dNDEBUG"/>
-      <OtherDefines Count="12">
+      <CustomOptions Value="-dbenchmarkps -dcemain -WB00400000 -dNDEBUG -dDBVMFORAMDISWORKING"/>
+      <OtherDefines Count="13">
         <Define0 Value="NOTMULTITHREADED"/>
         <Define1 Value="benchmarkps"/>
         <Define2 Value="cemain"/>
@@ -2782,11 +2791,12 @@
         <Define9 Value="checkassembleralphabet"/>
         <Define10 Value="memorymapped"/>
         <Define11 Value="privatebuild"/>
+        <Define12 Value="DBVMFORAMDISWORKING"/>
       </OtherDefines>
     </Other>
   </CompilerOptions>
   <Debugging>
-    <Exceptions Count="16">
+    <Exceptions Count="17">
       <Item1>
         <Name Value="EAbort"/>
         <Enabled Value="False"/>
@@ -2797,7 +2807,6 @@
       </Item2>
       <Item3>
         <Name Value="EFOpenError"/>
-        <Enabled Value="False"/>
       </Item3>
       <Item4>
         <Name Value="Unknown"/>
@@ -2832,19 +2841,20 @@
       </Item12>
       <Item13>
         <Name Value="EVariantError"/>
-        <Enabled Value="False"/>
       </Item13>
       <Item14>
         <Name Value="EFileMapError"/>
       </Item14>
       <Item15>
         <Name Value="EParserError"/>
-        <Enabled Value="False"/>
       </Item15>
       <Item16>
         <Name Value="EProcess"/>
         <Enabled Value="False"/>
       </Item16>
+      <Item17>
+        <Name Value="ESavedScanException"/>
+      </Item17>
     </Exceptions>
   </Debugging>
 </CONFIG>

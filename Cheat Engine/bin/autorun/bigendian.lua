@@ -1,6 +1,6 @@
 local scripts={}
 
-function registerBigEndianInt16()
+local function registerBigEndianInt16()
 scripts['2 Byte Big Endian'].type=registerCustomTypeAutoAssembler([[
 alloc(TypeName,256)
 alloc(ByteSize,4)
@@ -87,7 +87,7 @@ ret 8
 ]])
 end
 
-function registerBigEndianInt32()
+local function registerBigEndianInt32()
 scripts['4 Byte Big Endian'].type=registerCustomTypeAutoAssembler([[
 alloc(TypeName,256)
 alloc(ByteSize,4)
@@ -175,7 +175,7 @@ ret 8
 end
 
 
-function registerBigEndianFloat()
+local function registerBigEndianFloat()
 scripts['Float Big Endian'].type=registerCustomTypeAutoAssembler([[
 alloc(TypeName,256)
 alloc(ByteSize,4)
@@ -243,7 +243,7 @@ end
 scripts['2 Byte Big Endian']={func=registerBigEndianInt16,reg='EnableBigEndianInt16'}
 scripts['4 Byte Big Endian']={func=registerBigEndianInt32,reg='EnableBigEndianInt32'}
 scripts['Float Big Endian']={func=registerBigEndianFloat,reg='EnableBigEndianFloat'}
-scriptnames={'2 Byte Big Endian','4 Byte Big Endian','Float Big Endian'}
+local scriptnames={'2 Byte Big Endian','4 Byte Big Endian','Float Big Endian'}
 
 
 --when loaded check if it should load the custom types
@@ -285,10 +285,10 @@ for i=1, #scriptnames do
 end
 
 local oldOnClose=sf.OnClose
-sf.OnClose=function(sender)
-  local result=caHide
+sf.OnClose=function(sender, closeAction)
+  local result=closeAction
   if oldOnClose~=nil then
-    result=oldOnClose(sender)
+    result=oldOnClose(sender, closeAction)
   end
   
   if (result==caHide) and (sender.ModalResult==mrOK) then

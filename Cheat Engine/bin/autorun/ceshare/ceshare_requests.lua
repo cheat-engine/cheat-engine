@@ -6,7 +6,7 @@ function ceshare.QueryProcessRequests(processname, startindex)
   if startindex then
     parameters=parameters..'startindex='..startindex
   end
-  s=ceshare.QueryXURL('QueryProcessRequests.php', parameters)
+  local s=ceshare.QueryXURL('QueryProcessRequests.php', parameters)
   if s then
     if s.RequestList then
       result={}
@@ -37,7 +37,7 @@ function ceshare.createRequestPanel(request)
   pnlScore.align='alRight'
   
   local lblScore=createLabel(pnlScore)
-  lblScore.Caption='Score='..request.Score
+  lblScore.Caption=translate('Score=')..request.Score
   
   local cbMeToo=createCheckBox(pnlScore)
   cbMeToo.Caption='+1'  
@@ -63,10 +63,10 @@ function ceshare.createRequestPanel(request)
       adjustby=-1
     end
       
-    r=ceshare.QueryXURL('SetRequestScore.php', 'id='..request.ID..'&adjustscoreby='..adjustby)
+    local r=ceshare.QueryXURL('SetRequestScore.php', 'id='..request.ID..'&adjustscoreby='..adjustby)
     if r then
       request.Score=request.Score+adjustby --I could have used a return value from the server, but just showing of an example of a server sided value showing up as if it worked... (And yes, I am talking to you)
-      lblScore.Caption='Score='..request.Score
+      lblScore.Caption=translate('Score=')..request.Score
       if s.Checked then
         ceshare.settings.Value['requestvoted'..request.ID]='1'
       else
@@ -108,10 +108,10 @@ function ceshare.RequestForCheatsClick(s)
       local f=createFormFromFile(ceshare.formpath..'CommentsOrRequests.FRM')
       ceshare.RequestsFrm=f
       f.Name='RequestsFrm'
-      f.Caption='Requests'
+      f.Caption=translate('Requests')
       
       f.btnSend.OnClick=function(s)
-        r=ceshare.QueryXURL('AddRequest.php', 'processname='..ceshare.url_encode(process)..'&note='..ceshare.url_encode(ceshare.RequestsFrm.mMessage.Lines.Text))
+        local r=ceshare.QueryXURL('AddRequest.php', 'processname='..ceshare.url_encode(process)..'&note='..ceshare.url_encode(ceshare.RequestsFrm.mMessage.Lines.Text))
         if r then        
           ceshare.RequestForCheatsClick(s)          
         end      

@@ -67,7 +67,7 @@ implementation
 
 {$ifdef windows}
 
-uses symbolhandler, ProcessHandlerUnit;
+uses symbolhandler, ProcessHandlerUnit, dialogs;
 
 resourcestring
   rsDBKDebug_StartDebuggingFailed ='DBKDebug_StartDebugging failed';
@@ -481,6 +481,12 @@ begin
   self.globalDebug:=globalDebug;
 
   LoadDBK32;
+
+{$IFDEF CPU64}
+  if loaddbvmifneeded=false then
+    raise exception.create('You can''t use kerneldebug in 64-bit without DBVM');
+{$ENDIF}
+
 
   DBKDebug_SetAbilityToStepKernelCode(canStepKernelcode);
   DBKDebug_SetGlobalDebugState(globalDebug);

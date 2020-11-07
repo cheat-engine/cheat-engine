@@ -76,7 +76,7 @@ uses tlgUnit,MainUnit2, MainUnit, dbvmLoadManual;
 
 
 resourcestring
-  rsYourSystemDOESNOTSupportDBVM = 'Your system DOES NOT support DBVM';
+  rsYourSystemDOESNOTSupportDBVM = 'Your system does not support DBVM. Perhaps it is already inside a VM';
   rsThisMeansThatYouWillNeedANewCpuIntelToBeAbleToUseT = 'This means that you will need a new cpu (intel) to be able to use the advanced dbvm options';
   rsYourSystemIsRunningDBVMVersion = 'Your system is running DBVM version %s (%.0n bytes free (%d pages))';
   rsThisMeansThatYourSystemIsRunningDbvm = 'This means that your system is running dbvm. This means ce will make use of some advanced tools that are otherwise unavailable';

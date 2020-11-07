@@ -22,8 +22,9 @@ uses
      zstream, luafile, disassemblerComments, commonTypeDefs, lazutf8;
 
 
-var CurrentTableVersion: dword=31;
+var CurrentTableVersion: dword=34;
     lastLoadedTableVersion: dword;
+    iscetrainer: integer=0;
 
 procedure protecttrainer(filename: string);
 procedure unprotecttrainer(filename: string; stream: TStream);
@@ -31,7 +32,8 @@ procedure SaveTable(Filename: string; protect: boolean=false; dontDeactivateDesi
 procedure LoadTable(Filename: string;merge: boolean);
 procedure SaveCEM(Filename:string;address:ptrUint; size:dword);
 procedure LoadXML(doc: TXMLDocument; merge: boolean; isTrainer: boolean=false);
-
+procedure SaveXML(doc: TXMLDocument; dontDeactivateDesignerForms: boolean=false); overload;
+procedure SaveXML(filename: string; dontDeactivateDesignerForms: boolean=false); overload;
 
 
 
@@ -208,6 +210,7 @@ resourcestring
   strCantLoadProtectedfile='This trainer is protected from being opened by CE. Now go away!!!';
   rsThisTableContainsALuaScriptDoYouWantToRunIt = 'This table contains a lua script. Do you want to run it?';
   rsErrorExecutingThisTableSLuaScript = 'Error executing this table''s lua script: %s';
+  rsErrorExecutingThisTableSLuaScriptEntry = 'Error executing this table''s lua script named %s: %s';
   rsTheRegionAtWasPartiallyOrCompletlyUnreadable = 'The region at %s was partially or completely unreadable';
   rsTheVersionOfIsIncompatibleWithThisCEVersion = 'The version of %s is incompatible with this CE version';
   rsDoesnTContainNeededInformationWhereToPlaceTheMemor = '%s doesn''t contain needed information where to place the memory';
@@ -280,7 +283,7 @@ var imagehint: TImageHint;
 procedure LoadXML(doc: TXMLDocument; merge: boolean; isTrainer: boolean=false);
 var
     CheatTable: TDOMNode;
-    Files, Forms, Entries, Codes, Symbols, Comments, luascript, DComments: TDOMNode;
+    Files, Forms, Entries, Codes, Symbols, Comments, luascript, luascriptentry, DComments: TDOMNode;
     CodeEntry, SymbolEntry: TDOMNode;
     Structures, Structure: TDOMNode;
 
@@ -323,6 +326,11 @@ var
 
     cle: TCodeListEntry;
     color: TColor;
+
+    hasLuaScript: boolean=false;
+    usesScriptEntries: boolean=false;
+    combinedLuaScript: tstringlist;
+    currentLuaScript: string;
 begin
   LUA_DoScript('tableIsLoading=true');
   LUA_functioncall('onTableLoad',[true]);
@@ -562,7 +570,7 @@ begin
             cle.color:=color;
             if isCodeListGroupHeader=false then
             begin
-              cle.code:=TCodeRecord.Create;
+              cle.code:=TAdvancedOptionsCodeRecord.Create;
 
 
               setlength(cle.code.before,length(tempbefore));
@@ -635,20 +643,6 @@ begin
       end;
     end;
 
-
-    {
-    if Structures<>nil then
-    begin
-      setlength(definedstructures, Structures.ChildNodes.Count);
-      for i:=0 to Structures.ChildNodes.Count-1 do
-      begin
-        Structure:=Structures.ChildNodes[i];
-        LoadStructFromXMLNode(definedstructures[i], Structure);
-      end;
-    end
-    else
-      setlength(definedstructures,0);  }
-
     if Structures<>nil then
     begin
       svstring:=TDOMElement(structures).GetAttribute('StructVersion');
@@ -704,14 +698,62 @@ begin
         Commentsunit.Comments.Memo1.Lines.add(s);
     end;
 
+    mainform.frmLuaTableScript.TabCount:=1;
     mainform.frmLuaTableScript.assemblescreen.Text:='';
 
-    if luaScript<>nil then
-      mainform.frmLuaTableScript.assemblescreen.Text:=ansitoutf8(luascript.TextContent);
+    combinedLuaScript:=tstringlist.create;
 
-    if mainform.frmLuaTableScript.assemblescreen.Text<>'' then
+
+    if luaScript<>nil then
     begin
-      if not isTrainer then
+      if luascript.HasChildNodes then
+      begin
+        i:=0;
+        luascriptentry:=luascript.FirstChild;
+        while luascriptentry<>nil do
+        begin
+          if luascriptentry.NodeName='LuaScriptEntry' then
+          begin
+            usesScriptEntries:=true;
+            mainform.frmLuaTableScript.TabCount:=i+1;
+            mainForm.frmLuaTableScript.TabScript[i]:=ansitoutf8(luascriptentry.TextContent);
+
+            if (luascriptentry.Attributes.GetNamedItem('Name')<>nil) then
+            begin
+              s:=luascriptentry.Attributes.GetNamedItem('Name').TextContent;
+              mainForm.frmLuaTableScript.tablist.TabText[i]:=s;
+            end;
+
+            if mainForm.frmLuaTableScript.TabScript[i]<>'' then
+              hasLuaScript:=true;
+
+            combinedLuaScript.Add('---------- : '+mainForm.frmLuaTableScript.tablist.TabText[i]+' : --------');
+            combinedLuaScript.AddText(mainForm.frmLuaTableScript.TabScript[i]);
+            combinedLuaScript.Add('');
+            combinedLuaScript.Add('');
+
+            inc(i);
+          end;
+
+          luascriptentry:=luascriptentry.NextSibling;
+        end;
+      end;
+
+      if usesScriptEntries=false then
+      begin
+        mainform.frmLuaTableScript.assemblescreen.Text:=ansitoutf8(luascript.TextContent);
+        if mainform.frmLuaTableScript.assemblescreen.Text<>'' then
+          hasLuaScript:=true;
+
+        combinedLuaScript.AddText(mainform.frmLuaTableScript.assemblescreen.Text);
+      end;
+    end;
+
+
+
+    if hasluascript then
+    begin
+      if (not isTrainer) and (iscetrainer=0) then
       begin
         reg:=TRegistry.Create;
         try
@@ -731,7 +773,7 @@ begin
                 if (i=1) and signed then r:=mryes else
                 begin
                   ask:=TfrmLuaScriptQuestion.Create(application);
-                  ask.script.Lines.Text:=mainform.frmLuaTableScript.assemblescreen.Text;
+                  ask.script.Lines.Text:=combinedLuaScript.text;
                   ask.LuaScriptAction:=i;
                   r:=ask.showmodal;
 
@@ -758,7 +800,13 @@ begin
       if r=mryes then
       begin
         try
-          LUA_DoScript(mainform.frmLuaTableScript.assemblescreen.Text);
+          for i:=0 to mainform.frmLuaTableScript.TabCount-1 do
+          begin
+            if mainform.frmLuaTableScript.TabCount>1 then
+              currentLuaScript:=mainform.frmLuaTableScript.tablist.TabText[i];
+
+            LUA_DoScript(mainform.frmLuaTableScript.TabScript[i]);
+          end;
         except
           on e: exception do
           begin
@@ -772,7 +820,12 @@ begin
               //ExitProcess(123);
             end
             else
-              MessageDlg(Format(rsErrorExecutingThisTableSLuaScript, [e.message]), mtError, [mbok],0);
+            begin
+              if mainform.frmLuaTableScript.TabCount>1 then
+                MessageDlg(Format(rsErrorExecutingThisTableSLuaScriptEntry, [currentLuaScript, e.message]), mtError, [mbok],0)
+              else
+                MessageDlg(Format(rsErrorExecutingThisTableSLuaScript, [e.message]), mtError, [mbok],0);
+            end;
 
           end;
         end;
@@ -780,6 +833,8 @@ begin
 
 
     end;
+
+    combinedLuaScript.free;
 
     //default view
     mainform.lblSigned.Anchors:=[];
@@ -1037,6 +1092,7 @@ begin
       else
       begin
         //protected
+        iscetrainer:=1;
         isProtected:=true;
         unprotectedstream:=tmemorystream.create;
 
@@ -1135,71 +1191,22 @@ begin
     mainform.autoattachcheck; //check if it added an auto attach check and see if it's currently running
   except
   end;
-//  mainform.addresslist.needsToReinterpret:=true;
 end;
 
+procedure SaveXML(doc: TXMLDocument; dontDeactivateDesignerForms: boolean=false);
+var
+  CheatTable: TDOMElement;
+  Files, Forms,Entries,Symbols, Structures, Comment,luascript, luascriptentry, dcomments: TDOMNode;
+  CodeRecords, CodeRecord, SymbolRecord: TDOMNode;
+  CodeBytes: TDOMNode;
 
-     {
-procedure SaveStructToXMLNode(struct: TbaseStructure; Structures: TDOMnode);
-var structure: TDOMnode;
-    elements: TDOMnode;
-    element: TDOMnode;
-    i: integer;
-    doc: TDOMDocument;
+  i,j: integer;
+
+  sl: tstringlist;
+  extradata: ^TUDSEnum;
+
+  a: TDOMAttr;
 begin
-  if struct.donotsave then exit;
-
-  doc:=Structures.OwnerDocument;
-  structure:=structures.AppendChild(doc.CreateElement('Structure'));
-  structure.AppendChild(doc.CreateElement('Name')).TextContent:=utf8toansi(struct.name);
-  elements:=structure.AppendChild(doc.CreateElement('Elements'));
-
-
-
-
-  for i:=0 to length(struct.structelement)-1 do
-  begin
-    element:=elements.AppendChild(doc.CreateElement('Element'));
-    element.AppendChild(doc.CreateElement('Offset')).TextContent:=inttostr(struct.structelement[i].offset);
-    element.AppendChild(doc.CreateElement('Description')).TextContent:=Utf8ToAnsi(struct.structelement[i].description);
-
-    element.AppendChild(doc.CreateElement('Structurenr')).TextContent:=inttostr(struct.structelement[i].structurenr);
-    element.AppendChild(doc.CreateElement('Bytesize')).TextContent:=inttostr(struct.structelement[i].bytesize);
-
-    if struct.structelement[i].pointerto then
-    begin
-      element.AppendChild(doc.CreateElement('PointerTo')).TextContent:='1';
-      element.AppendChild(doc.CreateElement('PointerToSize')).TextContent:=inttostr(struct.structelement[i].pointertosize);
-
-      if struct.structelement[i].structurenr>=0 then
-      begin
-        if definedstructures[struct.structelement[i].structurenr].donotsave then
-          element.AppendChild(doc.CreateElement('Structurenr')).TextContent:='-16';
-      end
-    end;
-
-
-  end;
-
-end;   }
-
-procedure SaveXML(Filename: string; dontDeactivateDesignerForms: boolean=false);
-var doc: TXMLDocument;
-    CheatTable: TDOMElement;
-    Files, Forms,Entries,Symbols, Structures, Comment,luascript, dcomments: TDOMNode;
-    CodeRecords, CodeRecord, SymbolRecord: TDOMNode;
-    CodeBytes: TDOMNode;
-
-    i,j: integer;
-
-    sl: tstringlist;
-    extradata: ^TUDSEnum;
-
-    a: TDOMAttr;
-begin
-  doc:=TXMLDocument.Create;
-  //doc.Encoding:=;
-
   CheatTable:=TDOMElement(doc.AppendChild(TDOMNode(doc.CreateElement('CheatTable'))));
   TDOMElement(CheatTable).SetAttribute('CheatEngineTableVersion',IntToStr(CurrentTableVersion));
 
@@ -1314,7 +1321,21 @@ begin
   if mainform.frmLuaTableScript.assemblescreen.lines.count>0 then
   begin
     luascript:=CheatTable.AppendChild(doc.CreateElement('LuaScript'));
-    luascript.TextContent:=Utf8ToAnsi(mainform.frmLuaTableScript.assemblescreen.text);
+
+    if mainform.frmLuaTableScript.TabCount=1 then
+      luascript.TextContent:=Utf8ToAnsi(mainform.frmLuaTableScript.assemblescreen.text)
+    else
+    begin
+      //multiple lua scripts
+      for i:=0 to mainform.frmLuaTableScript.TabCount-1 do
+      begin
+        luascriptentry:=luascript.AppendChild(doc.CreateElement('LuaScriptEntry'));
+
+        TDOMElement(luascriptentry).SetAttribute('Name', mainform.frmLuaTableScript.tablist.TabText[i]);
+        luascriptentry.TextContent:=Utf8ToAnsi(mainform.frmLuaTableScript.TabScript[i]);
+      end;
+    end;
+
     mainform.frmLuaTableScript.assemblescreen.MarkTextAsSaved;
   end;
 
@@ -1330,10 +1351,15 @@ begin
     signTable(cheattable);
   {$endif}
 
+end;
+
+procedure SaveXML(Filename: string; dontDeactivateDesignerForms: boolean=false);
+var doc: TXMLDocument;
+begin
+  doc:=TXMLDocument.Create;
+  SaveXML(doc, dontDeactivateDesignerForms);
   WriteXMLFile(doc, filename);
-
   doc.Free;
-
 end;
 
 procedure SaveTable(Filename: string; protect: boolean=false; dontDeactivateDesignerForms: boolean=false);

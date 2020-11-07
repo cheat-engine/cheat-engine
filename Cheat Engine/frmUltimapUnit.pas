@@ -964,8 +964,8 @@ end;
 
 procedure TfrmUltimap.ListView1Data(Sender: TObject; Item: TListItem);
 begin
-  item.caption:=symhandler.getNameFromAddress(validlist[item.Index].toAddress, true, true);
-  item.SubItems.Add(symhandler.getNameFromAddress(validlist[item.Index].lastFromAddress, true, true));
+  item.caption:=symhandler.getNameFromAddress(validlist[item.Index].toAddress, true, true, false);
+  item.SubItems.Add(symhandler.getNameFromAddress(validlist[item.Index].lastFromAddress, true, true, false));
   item.SubItems.Add(IntToStr(validlist[item.Index].count));
 
 {$ifdef predictlog}

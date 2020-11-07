@@ -423,9 +423,9 @@ begin
     begin
       PushFunction;
       luaclass_newClass(L, sender);
+      lua_pushinteger(L, integer(closeaction));
 
-
-      if lua_pcall(L, 1,1,0)=0 then //procedure(sender)  lua_pcall returns 0 if success
+      if lua_pcall(L, 2,1,0)=0 then //procedure(sender, closeaction)  lua_pcall returns 0 if success
       begin
         if lua_gettop(L)>0 then
         begin
@@ -1777,14 +1777,19 @@ var
 begin
   result:=0;
   parameters:=lua_gettop(L);
-  if parameters=1 then
+  if parameters>=1 then
   begin
     m.code:=lua_touserdata(L, lua_upvalueindex(1));
     m.data:=lua_touserdata(L, lua_upvalueindex(2));
     sender:=lua_toceuserdata(L, 1);
+
+    if parameters>=2 then
+      closeaction:=TCloseAction(lua_tointeger(L,2))
+    else
+      closeaction:=cahide;
+
     lua_pop(L, lua_gettop(L));
 
-    closeaction:=caHide;
     TCloseEvent(m)(sender, closeaction);
 
     lua_pushinteger(L, integer(closeaction));

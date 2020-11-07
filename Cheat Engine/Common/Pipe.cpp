@@ -1,4 +1,14 @@
-#include "StdAfx.h"
+
+
+#ifdef _WINDOWS
+#include <Windows.h>
+#else
+#include "macport.h"
+
+#define ReadFile ReadFilePipeWrapper
+#define WriteFile WriteFilePipeWrapper
+#endif
+
 #include "Pipe.h"
 
 //superclass to make pipe handling easier to work with
@@ -14,10 +24,15 @@ Pipe::~Pipe(void)
 	//check if someone forgot to clean it up
 	if ((pipehandle!=0) && (pipehandle!=INVALID_HANDLE_VALUE))
 	{
+#ifdef _WINDOWS
 		CloseHandle(pipehandle);
+#else
+        ClosePipe(pipehandle);
+#endif
 		pipehandle=0;
 	}
 	
+    
 }
 
 void Pipe::Lock(void)
@@ -30,7 +45,7 @@ void Pipe::Unlock(void)
 	LeaveCriticalSection(&cs);
 }
 
-void Pipe::Read(PVOID buf, int count)
+void Pipe::Read(PVOID buf, unsigned int count)
 {
 	DWORD br;
 	if (count==0) return;
@@ -38,7 +53,7 @@ void Pipe::Read(PVOID buf, int count)
 		throw("Read Error");
 }
 
-void Pipe::Write(PVOID buf, int count)
+void Pipe::Write(PVOID buf, unsigned int count)
 {
 	DWORD bw;
 	if (count==0) return;

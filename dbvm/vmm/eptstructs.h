@@ -117,6 +117,23 @@ typedef union _EPT_VIOLATION_INFO
   };
 } __attribute__((__packed__)) EPT_VIOLATION_INFO, *PEPT_VIOLATION_INFO;
 
+typedef union _NP_VIOLATION_INFO
+{
+  QWORD ErrorCode;
+  struct{
+    unsigned P        :  1; // 0: 0 if not present
+    unsigned W        :  1; // 1: 1 if it was a write access
+    unsigned US       :  1; // 2: 1 if it was a usermode execution
+    unsigned RSRVD    :  1; // 3: 1 if a reserved bit was set
+    unsigned ID       :  1; // 4: 1 if it was a code fetch
+    unsigned reserved1: 27;
+    unsigned gfa      :  1; // 32:guest final addr ess
+    unsigned gpt      :  1; // 33:guest page table
+  };
+} __attribute__((__packed__)) NP_VIOLATION_INFO, *PNP_VIOLATION_INFO;
+
+
+
 //pagewatch:
 
 typedef struct _fxsave64
@@ -301,7 +318,16 @@ typedef struct
   QWORD PhysicalAddressData; //the PA of the page shown when read/write operations happen
   void *Data;
   void *Executable;
-  PEPT_PTE eptentry[0]; //for every cpu hold the ept entry
+  QWORD CloakMode;
+  union
+  {
+    PEPT_PTE eptentry[0]; //for every cpu hold the ept entry (PTE_PAE entry on AMD)
+    PPTE_PAE npentry[0];
+  };
+
+  //debug info
+  BYTE InvokingCPU;
+  BYTE LastWritingCPU;
 } CloakedPageData, *PCloakedPageData;
 
 

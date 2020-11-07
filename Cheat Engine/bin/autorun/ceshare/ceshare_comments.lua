@@ -4,7 +4,7 @@ function ceshare.QueryTableComments(entry, startindex)
   if startindex then
     parameters=parameters..'startindex='..startindex
   end
-  s=ceshare.QueryXURL('QueryTableComments.php', parameters)
+  local s=ceshare.QueryXURL('QueryTableComments.php', parameters)
   if s then
     if s.Comments then
       result={}
@@ -61,7 +61,7 @@ function ceshare.ViewComments(entry)
         f.Caption='Comments'
         
         f.btnSend.OnClick=function(s)
-          r=ceshare.QueryXURL('AddComment.php', 'id='..entry.ID..'&comment='..ceshare.url_encode(ceshare.CommentsFrm.mMessage.Lines.Text))
+          local r=ceshare.QueryXURL('AddComment.php', 'id='..entry.ID..'&comment='..ceshare.url_encode(ceshare.CommentsFrm.mMessage.Lines.Text))
           if r then        
             ceshare.ViewComments(entry)
           end      

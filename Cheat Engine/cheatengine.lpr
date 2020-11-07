@@ -14,7 +14,7 @@ uses
   {$ifdef darwin}
   //
   macport, macportdefines,coresymbolication, macexceptiondebuggerinterface,
-  macCreateRemoteThread, macumm, machotkeys,
+  macCreateRemoteThread, macumm, machotkeys, macPipe,
   {$endif}
   controls, sysutils, Forms, LazUTF8, dialogs, SynCompletion, MainUnit,
   CEDebugger, NewKernelHandler, CEFuncProc, ProcessHandlerUnit, symbolhandler,
@@ -113,7 +113,7 @@ uses
   LuaDiagramLink, diagramlink, BreakpointTypeDef, frmFoundlistPreferencesUnit,
   LuaHeaderSections, frmDebuggerAttachTimeoutUnit, cheatecoins,
   frmMicrotransactionsUnit, frmSyntaxHighlighterEditor, LuaCustomImageList,
-  dotnethost, rttihelper, cefreetype;
+  dotnethost, rttihelper, cefreetype, LuaDotNetPipe, LuaRemoteExecutor;
 
 {$R cheatengine.res}
 {$IFDEF windows}
@@ -271,7 +271,7 @@ var
   path: string;
   noautorun: boolean;
 begin
-  Application.Title:='Cheat Engine 7.1';
+  Application.Title:='Cheat Engine 7.2';
   {$ifdef darwin}
   macPortFixRegPath;
   {$endif}
