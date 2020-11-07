@@ -666,7 +666,7 @@ msgstr "Faites comme dans les étapes précédentes, puis une fois avoir trouver
 
 #: unit6.rstutorialstep5
 msgid ""
-"Sometimes the location something is stored at changes when you restart the game, or even while you're playing.. In that case you can use 2 things to still make a table that works.\n"
+"Sometimes the location of a value is stored at changes, when you restart the game, or even while you're playing.. In that case you can use 2 things to still make a table that works.\n"
 "In this step I'll try to describe how to use the Code Finder function.\n"
 "\n"
 "The value down here will be at a different location each time you start the tutorial, so a normal entry in the address list wouldn't work.\n"
