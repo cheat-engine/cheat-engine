@@ -6,9 +6,9 @@ interface
 
 uses LCLIntf,sysutils, classes,ComCtrls, graphics, CEFuncProc, disassembler,
      CEDebugger, debughelper, KernelDebugger, symbolhandler, plugin,
-     disassemblerComments, SymbolListHandler, ProcessHandlerUnit
+     disassemblerComments, SymbolListHandler, ProcessHandlerUnit, Math
      {$ifdef USELAZFREETYPE}
-     ,LazFreeTypeIntfDrawer, EasyLazFreeType, math
+     ,LazFreeTypeIntfDrawer, EasyLazFreeType
      {$endif};
 
 type
@@ -57,6 +57,11 @@ type
     boldheight: integer;
     textheight: integer;
 
+    addressStringOriginal: string;
+    byteStringOriginal: string;
+    opcodeParameterStringWidth: integer;
+    specialStringWidth: integer;
+
     refferencedByStart: integer;
 
     isbp,isultimap: boolean;
@@ -86,6 +91,8 @@ type
     procedure handledisassemblerplugins(addressStringPointer: pointer; bytestringpointer: pointer; opcodestringpointer: pointer; specialstringpointer: pointer; textcolor: PColor);
     constructor create(owner: TObject; bitmap: TBitmap; headersections: THeaderSections; colors: PDisassemblerViewColors);
     destructor destroy; override;
+
+    function getLineWidth(index: integer):integer;
 
   published
 
@@ -430,9 +437,15 @@ begin
   end;
 
   if symhandler.showsymbols or symhandler.showmodules then
-    addressString:=symbolname
+  begin           
+    addressStringOriginal:=symbolname;
+    addressString:=symbolname;
+  end
   else
+  begin
+    addressStringOriginal:=addressString;
     addressString:=truncatestring(addressString, fHeaders.Items[0].Width-2);
+  end;
 
   TDisassemblerview(owner).DoDisassemblerViewLineOverride(address, addressstring, bytestring, opcodestring, parameterstring, specialstring);
 
@@ -442,6 +455,7 @@ begin
 
 
 
+  byteStringOriginal:=bytestring;
 
   bytestring:=truncatestring(bytestring, fHeaders.Items[1].Width-2, true);
   //opcodestring:=truncatestring(opcodestring, fHeaders.Items[2].Width-2, true);
@@ -806,7 +820,10 @@ begin
 
 
   if iscurrentinstruction then
+  begin
     addressString:='>>'+addressString;
+    addressStringOriginal:='>>'+addressStringOriginal;
+  end;
 
 
   //set pointers to strings
@@ -871,8 +888,13 @@ begin
   else
     i:=fHeaders.Items[2].Left+1+j;
 
-  DrawTextRectWithColor(rect(fHeaders.Items[2].Left, linestart, fHeaders.Items[2].Right, linestart+height),i,linestart, parameterstring);
+  opcodeParameterStringWidth:=i-fHeaders.Items[2].Left;
+
+  opcodeParameterStringWidth+=DrawTextRectWithColor(rect(fHeaders.Items[2].Left, linestart, fHeaders.Items[2].Right, linestart+height),i,linestart, parameterstring);
+
   fInstructionCenter:=linestart+(fcanvas.TextHeight(opcodestring) div 2);
+
+  specialStringWidth:=0;
 
   if specialstrings.Count>0 then
   begin
@@ -880,6 +902,7 @@ begin
     begin
       fcanvas.TextRect(rect(fHeaders.Items[3].Left, linestart, fHeaders.Items[3].Right, linestart+height),fHeaders.Items[3].Left+1,linestart, specialstrings[i]);
       inc(linestart, fcanvas.GetTextHeight(specialstrings[i]));
+      specialStringWidth:=Max(specialStringWidth,fcanvas.GetTextWidth(specialstrings[i]));
     end;
   end
   else
@@ -1148,6 +1171,30 @@ begin
   ftfont:=TDisassemblerview(owner).ftfont;
   ftfontb:=TDisassemblerview(owner).ftfontb;
   {$endif}
+end;
+
+function TDisassemblerLine.getLineWidth(index: integer):integer;
+var
+  text: string;
+begin
+
+  if index=2 then
+    result:=opcodeParameterStringWidth
+  else if index=3 then
+    result:=specialStringWidth
+  else
+  begin 
+
+    text:='';
+
+    if index=0 then
+      text:=addressStringOriginal
+    else if index=1 then
+      text:=byteStringOriginal;
+
+    result:=fCanvas.GetTextWidth(text);
+
+  end;
 end;
 
 end.

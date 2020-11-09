@@ -106,6 +106,7 @@ type TDisassemblerview=class(TPanel)
 
     procedure headerSectionResize(HeaderControl: TCustomHeaderControl; Section: THeaderSection);
     procedure headerSectionTrack(HeaderControl: TCustomHeaderControl; Section: THeaderSection; Width: Integer; State: TSectionTrackState);
+    procedure headerSectionSeparatorDblClick(HeaderControl: TCustomHeaderControl; Section: THeaderSection);
 
 
     procedure OnLostFocus(sender: TObject);
@@ -1128,6 +1129,31 @@ begin
   updatescrollbox;
 end;
 
+procedure TDisassemblerview.headerSectionSeparatorDblClick(HeaderControl: TCustomHeaderControl; Section: THeaderSection);
+var
+  maxWidth,index,lineWidth,additionalWidth:Integer;
+  line: TDisassemblerLine;
+begin
+
+  maxWidth:=Section.MinWidth;
+
+  additionalWidth:=10;
+
+  for index:=0 to fTotalvisibledisassemblerlines-1 do
+  begin
+    line:=disassemblerlines[index];
+
+    lineWidth:=line.getLineWidth(Section.Index) + additionalWidth;
+
+    maxWidth:=Max(maxWidth,lineWidth);
+  end;
+
+  Section.Width:=maxWidth;
+
+  updatescrollbox;
+
+end;
+
 procedure TDisassemblerView.OnLostFocus(sender: TObject);
 begin
   self.SetFocus;
@@ -1306,6 +1332,7 @@ begin
     //height:=20;
     OnSectionResize:=headerSectionResize;
     OnSectionTrack:=headerSectionTrack;
+    OnSectionSeparatorDblClick:=headerSectionSeparatorDblClick;
     parent:=scrollbox;
     onenter:=OnLostFocus;
     //header.Align:=alTop;
