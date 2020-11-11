@@ -114,7 +114,7 @@ function ceshare.QueryProcessCheats(processname, headermd5, updatableOnly)
                 end
                 
                 if entry.SecondaryModuleName and entry.SecondaryModuleName~='' then
-                  local me=modulelist[SecondaryModuleName:lower()]
+                  local me=modulelist[entry.SecondaryModuleName:lower()]
                   if me then
                     if not me.md5 then
                       me.md5=md5file(me.PathToFile)
