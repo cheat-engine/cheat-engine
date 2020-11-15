@@ -182,6 +182,13 @@ function lua_pcall(argcount, resultcount, errfunc)
 end
 
 
+function lua_dostring(script)
+  if lual_loadstring(script)==0 then
+    return lua_pcall(0,0,0)  
+  end  
+end
+
+
 function lua_pushcclosure(functionaddress, n)
   if luastubs and lua_state and luastubs.lua_pushcclosure then
     return LuaExecutor.executeStub(luastubs.lua_pushcclosure,{lua_state, functionaddress,n})
@@ -202,6 +209,12 @@ function lua_getglobal(name)
   if luastubs and lua_state and luastubs.lua_getglobal then
     return LuaExecutor.executeStub(luastubs.lua_getglobal,{lua_state, name})
   end
+end
+
+function luaopen_debug()
+  if luastubs and lua_state and luastubs.luaopen_debug then
+    return LuaExecutor.executeStub(luastubs.luaopen_debug,{lua_state})
+  end  
 end
 
 
@@ -339,7 +352,7 @@ function LockLuaState(timeout)
       luastubs.lua_setglobal=createExecuteCodeExStub(1,'lua_setglobal',0,3)       
       luastubs.lua_getglobal=createExecuteCodeExStub(1,'lua_getglobal',0,3)   
       luastubs.lua_tolstring=createExecuteCodeExStub(1,'lua_tolstring',0,0,{type=5, size=8})   
-      
+      luastubs.luaopen_debug=createExecuteCodeExStub(1,'luaopen_debug',0)  
     end
     
     return true
