@@ -36,7 +36,8 @@ end
 
 function ceshare.logout()
   local i=ceshare.getInternet()
-  i.postURL(ceshare.base..'logout.php')
+  local parameters='';
+  i.postURL(ceshare.base..'logout.php',parameters)
   ceshare.LoggedIn=false
 end
 
