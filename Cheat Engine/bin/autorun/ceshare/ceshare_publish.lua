@@ -174,8 +174,9 @@ function ceshare.UpdateCheat(id,data,title,headermd5, versionindependent, descri
 end
 
 function ceshare.PublishCheatClick(sender, cheatinfo) 
+  local loggedin=ceshare.LoggedIn or false
   --if not logged in, log in now
-  if ceshare.LoggedIn==nil then
+  if not loggedin then
     if not ceshare.spawnLoginDialog() then 
       return
     end
