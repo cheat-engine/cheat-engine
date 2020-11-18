@@ -61,7 +61,7 @@ volatile struct
 
 	char b[1];
 
-	volatile BYTE DECLSPEC_ALIGN(16) fxstate[512];
+	//volatile BYTE DECLSPEC_ALIGN(16) fxstate[512];
 
 	BOOL isSteppingTillClear; //when set the user has entered single stepping mode. This is a one thread only thing, so when it's active and another single step happens, discard it
 
@@ -78,6 +78,17 @@ DebugReg6 debugger_dr6_getValue(void);
 
 JUMPBACK Int1JumpBackLocation;
 
+
+
+typedef struct _SavedStack
+{
+	BOOL inuse;
+	QWORD stacksnapshot[600];
+} SavedStack, *PSavedStack;
+
+criticalSection StacksCS;
+int StackCount;
+PSavedStack *Stacks;
 
 
 
@@ -191,6 +202,71 @@ void debugger_initialize(void)
 
 	//DbgPrint("DebuggerState.fxstate=%p\n",DebuggerState.fxstate);
 
+
+
+	StackCount = getCpuCount() * 4;
+	Stacks = (PSavedStack*)ExAllocatePool(NonPagedPool, StackCount*sizeof(PSavedStack));
+
+
+	int i;
+	for (i = 0; i < StackCount; i++)
+	{
+		Stacks[i] = (PSavedStack)ExAllocatePool(NonPagedPool, sizeof(SavedStack));
+		RtlZeroMemory(Stacks[i], sizeof(SavedStack));
+	}
+}
+
+void debugger_shutdown(void)
+{
+	if (Stacks)
+	{
+		int i;
+		for (i = 0; i < StackCount; i++)
+		{
+			if (Stacks[i])
+			{
+				ExFreePool(Stacks[i]);
+				Stacks[i] = NULL;
+			}
+		}
+
+		ExFreePool(Stacks);
+		Stacks = NULL;
+	}
+}
+
+void debugger_growstack()
+//only call when the critical section has been obtained
+{
+	if (Stacks)
+	{
+		int newStackCount = StackCount * 2;
+		int i;
+		PSavedStack *newStacks;
+		newStacks = (PSavedStack*)ExAllocatePool(NonPagedPool, newStackCount * sizeof(PSavedStack));
+
+		if (newStacks)
+		{
+			for (i = 0; i < StackCount; i++)
+				newStacks[i] = Stacks[i];
+
+			for (i = StackCount; i < newStackCount; i++)
+			{
+				newStacks[i] = (PSavedStack)ExAllocatePool(NonPagedPool, sizeof(SavedStack));
+				if (newStacks[i])				
+					RtlZeroMemory(newStacks[i], sizeof(SavedStack));				
+				else
+				{
+					ExFreePool(newStacks);
+					return;
+				}
+			}
+
+			ExFreePool(Stacks);
+			Stacks = newStacks;
+		}
+
+	}
 }
 
 void debugger_setInitialFakeState(void)
@@ -469,10 +545,9 @@ NTSTATUS debugger_getDebuggerState(PDebugStackState state)
 		state->r13=DebuggerState.LastStackPointer[si_r13];
 		state->r14=DebuggerState.LastStackPointer[si_r14];
 		state->r15=DebuggerState.LastStackPointer[si_r15];	
-	#endif
-
+	#endif		
 		
-		memcpy(state->fxstate, (void *)DebuggerState.fxstate,512);
+		memcpy(state->fxstate, (void *)&DebuggerState.LastStackPointer[si_xmm],512);
 
 
 		//generally speaking, NOTHING should touch the esp register, but i'll provide it anyhow
@@ -481,7 +556,6 @@ NTSTATUS debugger_getDebuggerState(PDebugStackState state)
 			//priv level change, so the stack info was pushed as well
 			state->rsp=DebuggerState.LastStackPointer[si_esp]; 
 			state->ss=DebuggerState.LastStackPointer[si_ss];
-
 		}
 		else
 		{
@@ -586,6 +660,8 @@ NTSTATUS debugger_setDebuggerState(PDebugStackState state)
 		DebuggerState.LastStackPointer[si_r14]=(UINT_PTR)state->r14;
 		DebuggerState.LastStackPointer[si_r15]=(UINT_PTR)state->r15;
 	#endif
+		memcpy((void *)&DebuggerState.LastStackPointer[si_xmm], state->fxstate, 512);
+
 
 		if (!DebuggerState.globalDebug)
 		{
@@ -670,14 +746,7 @@ int breakpointHandler_kernel(UINT_PTR *stackpointer, UINT_PTR *currentdebugregs,
 		DebuggerState.CausedByDBVM = causedbyDBVM;
 		
 
-#ifdef AMD64
-		//_fxsave(DebuggerState.fxstate);
-#else
-		__asm
-		{
-		//	fxsave [DebuggerState.fxstate]
-		}
-#endif
+
  
 
 
@@ -1258,18 +1327,69 @@ int interrupt1_handler(UINT_PTR *stackpointer, UINT_PTR *currentdebugregs)
 
 			//if (1) return 1;
 
-			enableInterrupts();
+			//save the state of the thread to a place that won't get overwritten
+
+			//todo: breaks 32-bit
+			int i;
+			BOOL NeedsToGrowStackList = FALSE;
+			UINT_PTR *newStackPointer = NULL;
+
+			csEnter(&StacksCS);
+			for (i = 0; i < StackCount; i++)
 			{
-				int rs=1;
+				if (Stacks[i]->inuse == FALSE)
+				{
+					Stacks[i]->inuse = TRUE;
+					newStackPointer = (UINT_PTR *)Stacks[i]->stacksnapshot;
+
+					RtlCopyMemory(newStackPointer, stackpointer, 600 * 8);				
+
+					if (i > StackCount / 2)
+						NeedsToGrowStackList = TRUE;
+
+					break;
+				}
+			}
+
+			enableInterrupts();
+
+			//grow stack if needed
+			if (NeedsToGrowStackList)
+				debugger_growstack();
+
+			csLeave(&StacksCS);
+
+			{
+				int rs=1;	
+				int RestoreStack = newStackPointer != NULL;
+
+
 				//DbgPrint("calling breakpointHandler_kernel\n");
+
+				if (newStackPointer == NULL) //fuck
+					newStackPointer = stackpointer;
+
 				
-				rs =  breakpointHandler_kernel(stackpointer, currentdebugregs, LBR_Stack, causedbyDBVM);
+				rs =  breakpointHandler_kernel(newStackPointer, currentdebugregs, LBR_Stack, causedbyDBVM);
 				//DbgPrint("After handler\n");
 
+				if (RestoreStack)  //restore the stack
+				{
+					RtlCopyMemory(stackpointer, newStackPointer, 600 * 8);
+
+					csEnter(&StacksCS);
+					Stacks[i]->inuse = FALSE;
+					csLeave(&StacksCS);
+				}
+
+
+				
 				//DbgPrint("rs=%d\n",rs);
 
 
 				disableInterrupts();
+
+				//restore the 
 
 
 				//we might be on a different CPU now
