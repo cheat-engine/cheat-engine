@@ -264,6 +264,7 @@ void debugger_growstack()
 				{
 					ExFreePool(newStacks);
 					csLeave(&StacksCS);
+					KeLowerIrql(oldIRQL);
 					return;
 				}
 			}
@@ -274,6 +275,7 @@ void debugger_growstack()
 		}
 
 		csLeave(&StacksCS);
+		KeLowerIrql(oldIRQL);
 
 	}
 }
