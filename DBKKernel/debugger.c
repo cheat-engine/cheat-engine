@@ -236,10 +236,15 @@ void debugger_shutdown(void)
 }
 
 void debugger_growstack()
-//only call when the critical section has been obtained
+//called in passive mode
 {
 	if (Stacks)
 	{
+		KIRQL oldIRQL=KeRaiseIrqlToDpcLevel();
+
+		csEnter(&StacksCS);
+		enableInterrupts(); //csEnter disables it, but we need it
+
 		int newStackCount = StackCount * 2;
 		int i;
 		PSavedStack *newStacks;
@@ -258,13 +263,17 @@ void debugger_growstack()
 				else
 				{
 					ExFreePool(newStacks);
+					csLeave(&StacksCS);
 					return;
 				}
 			}
 
+			
 			ExFreePool(Stacks);
 			Stacks = newStacks;
 		}
+
+		csLeave(&StacksCS);
 
 	}
 }
@@ -1242,13 +1251,13 @@ int interrupt1_handler(UINT_PTR *stackpointer, UINT_PTR *currentdebugregs)
 	{
 		//DbgPrint("DebuggerState.isDebugging\n");
 		//check if this should break
-		if (CurrentProcessID==(HANDLE)(UINT_PTR)DebuggerState.debuggedProcessID)
-		{	
+		if (CurrentProcessID == (HANDLE)(UINT_PTR)DebuggerState.debuggedProcessID)
+		{
 			UINT_PTR originaldebugregs[6];
-			UINT64 oldDR7=getDR7();
+			UINT64 oldDR7 = getDR7();
 
 
-			if ((((PEFLAGS)&stackpointer[si_eflags])->IF==0) || (KeGetCurrentIrql() != PASSIVE_LEVEL))
+			if ((((PEFLAGS)&stackpointer[si_eflags])->IF == 0) || (KeGetCurrentIrql() != PASSIVE_LEVEL))
 			{
 				//There's no way to display the state to the usermode part of CE
 				//DbgPrint("int1 at unstoppable location");
@@ -1259,34 +1268,34 @@ int interrupt1_handler(UINT_PTR *stackpointer, UINT_PTR *currentdebugregs)
 				}
 				else
 				{
-				//	DbgPrint("Stepping until valid\n");
+					//	DbgPrint("Stepping until valid\n");
 					((PEFLAGS)&stackpointer[si_eflags])->TF = 1; //keep going until a valid state
 					DebuggerState.isSteppingTillClear = TRUE; //Just in case a taskswitch happens right after enabling passive level with interrupts
 				}
 
-				((PEFLAGS)&stackpointer[si_eflags])->RF=1;
+				((PEFLAGS)&stackpointer[si_eflags])->RF = 1;
 				debugger_dr6_setValue(0xffff0ff0);
 				return 1;
 			}
 
 			DebuggerState.isSteppingTillClear = FALSE;
-	
+
 
 
 			//DbgPrint("CurrentProcessID==(HANDLE)(UINT_PTR)DebuggerState.debuggedProcessID\n");
 
 			if (DebuggerState.globalDebug)
 			{
-				originaldebugregs[0]=DebuggerState.FakedDebugRegisterState[cpunr()].DR0;
-				originaldebugregs[1]=DebuggerState.FakedDebugRegisterState[cpunr()].DR1;
-				originaldebugregs[2]=DebuggerState.FakedDebugRegisterState[cpunr()].DR2;
-				originaldebugregs[3]=DebuggerState.FakedDebugRegisterState[cpunr()].DR3;
-				originaldebugregs[4]=DebuggerState.FakedDebugRegisterState[cpunr()].DR6;
-				originaldebugregs[5]=DebuggerState.FakedDebugRegisterState[cpunr()].DR7;
+				originaldebugregs[0] = DebuggerState.FakedDebugRegisterState[cpunr()].DR0;
+				originaldebugregs[1] = DebuggerState.FakedDebugRegisterState[cpunr()].DR1;
+				originaldebugregs[2] = DebuggerState.FakedDebugRegisterState[cpunr()].DR2;
+				originaldebugregs[3] = DebuggerState.FakedDebugRegisterState[cpunr()].DR3;
+				originaldebugregs[4] = DebuggerState.FakedDebugRegisterState[cpunr()].DR6;
+				originaldebugregs[5] = DebuggerState.FakedDebugRegisterState[cpunr()].DR7;
 			}
 
 			//DbgPrint("BP in target process\n");
-			
+
 			//no extra checks if it's caused by the debugger or not. That is now done in the usermode part
 			//if (*(PEFLAGS)(&stackpointer[si_eflags]).IF)	
 /*
@@ -1302,7 +1311,7 @@ int interrupt1_handler(UINT_PTR *stackpointer, UINT_PTR *currentdebugregs)
 
 			//set the real debug registers to what it is according to the guest (so taskswitches take over these values) .... shouldn't be needed as global debug is on which fakes that read...
 
-			
+
 
 			if (DebuggerState.globalDebug)
 			{
@@ -1310,8 +1319,8 @@ int interrupt1_handler(UINT_PTR *stackpointer, UINT_PTR *currentdebugregs)
 				//this also means: DO NOT EDIT THE DEBUG REGISTERS IN GLOBAL DEBUG MODE at this point. Only in the epilogue
 
 				if (!DebuggerState.stoppingTheDebugger) //This is set when the driver is unloading. So do NOT set it back then
-					debugger_dr7_setGD(DebuggerState.globalDebug); 
-			}	
+					debugger_dr7_setGD(DebuggerState.globalDebug);
+			}
 			else
 			{
 				//unset ALL debug registers before enabling taskswitching. Just re-enable it when back when interrupts are disabled again
@@ -1332,17 +1341,16 @@ int interrupt1_handler(UINT_PTR *stackpointer, UINT_PTR *currentdebugregs)
 			//todo: breaks 32-bit
 			int i;
 			BOOL NeedsToGrowStackList = FALSE;
-			UINT_PTR *newStackPointer = NULL;
+			PSavedStack SelectedStackEntry = NULL;
 
 			csEnter(&StacksCS);
 			for (i = 0; i < StackCount; i++)
 			{
 				if (Stacks[i]->inuse == FALSE)
 				{
-					Stacks[i]->inuse = TRUE;
-					newStackPointer = (UINT_PTR *)Stacks[i]->stacksnapshot;
-
-					RtlCopyMemory(newStackPointer, stackpointer, 600 * 8);				
+					SelectedStackEntry = Stacks[i];
+					SelectedStackEntry->inuse = TRUE;
+					RtlCopyMemory(SelectedStackEntry->stacksnapshot, stackpointer, 600 * 8);
 
 					if (i > StackCount / 2)
 						NeedsToGrowStackList = TRUE;
@@ -1350,39 +1358,35 @@ int interrupt1_handler(UINT_PTR *stackpointer, UINT_PTR *currentdebugregs)
 					break;
 				}
 			}
+			csLeave(&StacksCS);
 
 			enableInterrupts();
 
 			//grow stack if needed
+
 			if (NeedsToGrowStackList)
 				debugger_growstack();
-
-			csLeave(&StacksCS);
+		
 
 			{
 				int rs=1;	
-				int RestoreStack = newStackPointer != NULL;
-
 
 				//DbgPrint("calling breakpointHandler_kernel\n");
 
-				if (newStackPointer == NULL) //fuck
-					newStackPointer = stackpointer;
+				if (SelectedStackEntry == NULL) //fuck
+					rs = breakpointHandler_kernel(stackpointer, currentdebugregs, LBR_Stack, causedbyDBVM);
+				else
+					rs = breakpointHandler_kernel(SelectedStackEntry->stacksnapshot, currentdebugregs, LBR_Stack, causedbyDBVM);
 
 				
-				rs =  breakpointHandler_kernel(newStackPointer, currentdebugregs, LBR_Stack, causedbyDBVM);
+				
 				//DbgPrint("After handler\n");
 
-				if (RestoreStack)  //restore the stack
+				if (SelectedStackEntry)  //restore the stack
 				{
-					RtlCopyMemory(stackpointer, newStackPointer, 600 * 8);
-
-					csEnter(&StacksCS);
-					Stacks[i]->inuse = FALSE;
-					csLeave(&StacksCS);
+					RtlCopyMemory(stackpointer, SelectedStackEntry->stacksnapshot, 600 * 8);
+					SelectedStackEntry->inuse = FALSE;
 				}
-
-
 				
 				//DbgPrint("rs=%d\n",rs);
 
