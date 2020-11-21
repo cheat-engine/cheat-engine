@@ -1246,7 +1246,8 @@ begin
         begin
           s:=TStringList.create;
 
-          s.add('local syntaxcheck,memrec=...');
+          //s.add('local syntaxcheck,memrec=...');
+          s.add('syntaxcheck,memrec=...');
 
           code[i]:='';
           for k:=i+1 to j-1 do
