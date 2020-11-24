@@ -353,16 +353,21 @@ var write: ptruint;
     newvaluest:string;
     fs: TFormatSettings;
 begin
-  val(valuetext.text,newvalue1,i);
-  val(valuetext.text,newvalue2,i);
-  val(valuetext.text,newvalue3,i);
+  newvaluest:=valuetext.text;
 
-  val(valuetext.text,newvalue4,i);
-  val(valuetext.text,newvalue5,i);
-  val(valuetext.text,newvalue6,i);
+  if cbunicode.checked and (cbVarType.itemindex in [0,1,2,3]) then
+    newvaluest:='$'+newvaluest;
+
+  val(newvaluest,newvalue1,i);
+  val(newvaluest,newvalue2,i);
+  val(newvaluest,newvalue3,i);
+
+  val(newvaluest,newvalue4,i);
+  val(newvaluest,newvalue5,i);
+  val(newvaluest,newvalue6,i);
   write:=i;
 
-  newvaluest:=valuetext.text;
+
 
   fs:=DefaultFormatSettings;
 
