@@ -803,7 +803,7 @@ local function getMethodAddress(Method)
     if address and address~=0 then 
       return address 
     else 
-      return nil,trasnslate('Failure compiling the method')
+      return nil,translate('Failure compiling the method')
     end
   else
     --the method already contains ILCode and NativeCode (requirying won't help until the collector is reloaded)
