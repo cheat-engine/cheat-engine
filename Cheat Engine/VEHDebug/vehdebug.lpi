@@ -162,9 +162,10 @@
       <Unit1>
         <Filename Value="init.pas"/>
         <IsPartOfProject Value="True"/>
+        <IsVisibleTab Value="True"/>
         <WindowIndex Value="1"/>
-        <TopLine Value="81"/>
-        <CursorPos X="31" Y="97"/>
+        <TopLine Value="118"/>
+        <CursorPos Y="20"/>
         <UsageCount Value="213"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
@@ -211,7 +212,6 @@
       <Unit7>
         <Filename Value="VEHDebugSharedMem.pas"/>
         <IsPartOfProject Value="True"/>
-        <IsVisibleTab Value="True"/>
         <EditorIndex Value="6"/>
         <WindowIndex Value="1"/>
         <UsageCount Value="213"/>

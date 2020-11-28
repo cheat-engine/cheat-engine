@@ -1058,6 +1058,8 @@ begin
 //  baseAddress.OnResize:=baseaddressresize;;
 
 
+
+
   baseValue:=tlabel.create(self);
   baseValue.caption:=' ';
   baseValue.parent:=self;
@@ -1454,6 +1456,9 @@ begin
       pointerinfo.Anchors:=[akLeft,akTop, akRight];
 
       pointerinfo.OnResize:=PointerInfoResize;
+
+      pointerinfo.baseAddress.OnChange(pointerinfo.baseAddress);
+
     end;
 
     //editAddress.enabled:=false;

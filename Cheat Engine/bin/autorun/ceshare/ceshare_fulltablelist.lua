@@ -23,7 +23,7 @@ if darkMode==1 then
   searchFieldColor=clBlack
   fontColor=clWhite
   windowColor=clBlack
-  linkColor=0xff0000
+  linkColor=0x0000ff
   highlightColor=0x00ff00
 else 
   listColor=clDefault
@@ -279,7 +279,7 @@ function ceshare.ViewAllTablesClick()
     ceshare.AllTableForm=createForm(false)        
     atf=ceshare.AllTableForm
     atf.Name='ceshare_AllTableForm'
-    atf.Caption='All tables'
+    atf.Caption=translate('All tables')
     atf.Color=windowColor
     
     
@@ -287,7 +287,7 @@ function ceshare.ViewAllTablesClick()
     panel.color=windowColor
     panel.align=alTop
       local searchfieldlabel=createLabel(panel)
-      searchfieldlabel.Caption='Search:'
+      searchfieldlabel.Caption=translate('Search:')
       local searchfield=createEdit(atf)
       
       searchfieldlabel.AnchorSideTop.Side=asrTop
@@ -324,14 +324,14 @@ function ceshare.ViewAllTablesClick()
       local lblPrev=createLabel(atf)      
       local lblCurrentPage=createLabel(atf)      
       local lblNext=createLabel(atf)
-      lblPrev.Caption='Previous (25)'
+      lblPrev.Caption=translate('Previous (25)')
       lblPrev.Name='lblPrev'
       lblPrev.Font.Style='[fsUnderline]'
       lblPrev.Font.Color=linkColor
       lblCurrentPage.Caption='1/xx'
       lblCurrentPage.Name='lblCurrentPage'
       lblCurrentPage.Font.Color=fontColor
-      lblNext.Caption='Next (25)'
+      lblNext.Caption=translate('Next (25)')
       lblNext.Name='lblNext'
       lblNext.Font.Style='[fsUnderline]'
       lblNext.Font.Color=linkColor      

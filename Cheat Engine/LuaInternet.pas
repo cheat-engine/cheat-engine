@@ -402,14 +402,20 @@ function wininternet_postURL(L: Plua_State): integer; cdecl;
 var
   i: TWinInternet;
   s: TMemoryStream;
+  param: string;
 begin
   result:=0;
   i:=luaclass_getClassObject(L);
-  if lua_gettop(L)>=2 then
+  if lua_gettop(L)>=1 then
   begin
     s:=TMemoryStream.create;
     try
-      if i.postURL(Lua_ToString(L, 1), Lua_ToString(L, 2), s) then
+      if lua_gettop(L)>=2 then
+        param:=Lua_ToString(L, 2)
+      else
+        param:='';
+
+      if i.postURL(Lua_ToString(L, 1), param, s) then
       begin
         lua_pushlstring(L, s.Memory, s.Size);
         result:=1;

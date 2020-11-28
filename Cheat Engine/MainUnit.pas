@@ -40,7 +40,7 @@ uses
   groupscancommandparser, GraphType, IntfGraphics, RemoteMemoryManager,
   DBK64SecondaryLoader, savedscanhandler, debuggertypedefinitions, networkInterface,
   FrmMemoryRecordDropdownSettingsUnit, xmlutils, zstream, zstreamext, commonTypeDefs,
-  VirtualQueryExCache, LazLogger, LazUTF8, LCLVersion;
+  VirtualQueryExCache, LazLogger, LazUTF8, LCLVersion, newButton, newCheckbox, newRadioButton;
   {$endif}
 //the following are just for compatibility
 

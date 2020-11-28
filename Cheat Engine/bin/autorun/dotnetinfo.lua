@@ -803,7 +803,7 @@ local function getMethodAddress(Method)
     if address and address~=0 then 
       return address 
     else 
-      return nil,trasnslate('Failure compiling the method')
+      return nil,translate('Failure compiling the method')
     end
   else
     --the method already contains ILCode and NativeCode (requirying won't help until the collector is reloaded)
@@ -958,7 +958,7 @@ end
 LocalDotNetValueReaders[ELEMENT_TYPE_I1]=function(bt) 
   if bt then
     local v=bt[1]
-    if v[1] and ((v & 0x80)~=0) then
+    if v and ((v & 0x80)~=0) then
       return v-0x100
     else
       return v

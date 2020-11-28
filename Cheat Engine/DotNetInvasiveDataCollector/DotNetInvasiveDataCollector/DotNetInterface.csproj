@@ -6,7 +6,8 @@
     <RootNamespace>DotNetInterface</RootNamespace>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
-    <Copyright>Cheat Engine</Copyright>    
+    <Copyright>Cheat Engine</Copyright>
+    <SignAssembly>true</SignAssembly>    
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">

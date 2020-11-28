@@ -341,6 +341,13 @@ function fillMissingFunctions()
 end
 
 function LaunchMonoDataCollector()
+  if debug_isBroken() then
+    if inMainThread() then   
+      messageDialog(translate('You can not use this while the process is frozen'), mtError, mbOK)
+    end
+    return nil
+  end
+  
   --if debug_canBreak() then return 0 end
   
   if monoSymbolEnum then
@@ -654,6 +661,8 @@ function mono_addressLookupCallback(address)
   --end
   if monopipe==nil then return nil end
   if monopipe.IL2CPP then return nil end
+  
+  if debug_isBroken() then return nil end
 
 
   local ji=mono_getJitInfo(address)

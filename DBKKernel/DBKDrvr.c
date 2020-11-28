@@ -600,6 +600,8 @@ void UnloadDriver(PDRIVER_OBJECT DriverObject)
 		return; //
 	}
 
+	debugger_shutdown();
+
 	ultimap_disable();
 	DisableUltimap2();
 	UnregisterUltimapPMI();
