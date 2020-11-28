@@ -113,7 +113,8 @@ uses
   LuaDiagramLink, diagramlink, BreakpointTypeDef, frmFoundlistPreferencesUnit,
   LuaHeaderSections, frmDebuggerAttachTimeoutUnit, cheatecoins,
   frmMicrotransactionsUnit, frmSyntaxHighlighterEditor, LuaCustomImageList,
-  dotnethost, rttihelper, cefreetype, LuaDotNetPipe, LuaRemoteExecutor;
+  dotnethost, rttihelper, cefreetype, LuaDotNetPipe, LuaRemoteExecutor,
+  newRadioButton, newCheckbox, newbutton;
 
 {$R cheatengine.res}
 {$IFDEF windows}
