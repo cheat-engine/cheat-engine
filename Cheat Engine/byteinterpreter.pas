@@ -251,6 +251,15 @@ begin
       CopyMemory(s, buf, bytesize);
       s[bytesize]:=#0;
 
+      {$ifdef darwin}
+      //sanitize so it's nothing strange. Sorry for asian users, but mac's shrivel up and die when they look at wrongly formatted text
+      for i:=0 to bytesize-1 do
+      begin
+        if not inrange(ord(s[i]),32,127) then
+          s[i]:='.';
+      end;
+      {$endif}
+
       if variableType=vtCodePageString then
         result:=WinCPToUTF8(s)
       else
@@ -261,6 +270,20 @@ begin
     begin
       getmem(ws, bytesize+2);
       copymemory(ws, buf, bytesize);
+
+      {$ifdef darwin}
+      //sanitize so it's nothing strange. Sorry for asian users, but mac's shrivel up and die when they look at wrongly formatted text
+      for i:=0 to bytesize-1 do
+      begin
+        if i mod 2=0 then
+        begin
+          if not inrange(pbytearray(ws)[i],32,127) then
+            pbytearray(ws)[i]:=ord('.');
+        end
+        else
+          pbytearray(ws)[i]:=0;
+      end;
+      {$endif}
 
       try
         pbytearray(ws)[bytesize+1]:=0;
@@ -411,6 +434,11 @@ begin
       end;
     end;
   end;
+
+  {$ifdef darwin}
+  if result='' then
+    result:=' ';
+  {$endif}
 end;
 
 
