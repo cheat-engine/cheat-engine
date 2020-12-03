@@ -603,7 +603,7 @@ begin
           d^.module:=nil;
         end;
 
-        StringToAddress.Delete(z);
+        AddressToString.Delete(z);
       end;
     end;
 
