@@ -3271,10 +3271,10 @@ begin
     begin
       currentvalue:=trim(currentValue);
       if copy(currentvalue,1,3)='-0x' then
-        currentvalue:='-'+copy(currentvalue,3)
+        currentvalue:='-'+copy(currentvalue,4)
       else
       if copy(currentvalue,1,2)='0x' then
-        currentvalue:=copy(currentvalue,2);
+        currentvalue:=copy(currentvalue,3);
 
       if currentvalue[1]='-' then
       begin
