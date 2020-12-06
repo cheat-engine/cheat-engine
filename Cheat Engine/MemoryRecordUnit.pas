@@ -3172,7 +3172,8 @@ begin
                   temps:=mr.getValue;
                   if mr.ShowAsHex then
                   begin
-                    temps:='0x'+temps;
+                    if ShowAsHex=false then
+                      temps:='0x'+temps;
 
                     if VarType in [vtSingle, vtDouble, vtCustom] then
                     begin
@@ -3266,9 +3267,15 @@ begin
 
   if fShowAsHex and (not (vartype in [vtSingle, vtDouble, vtByteArray, vtString] )) then
   begin
-    currentvalue:=trim(currentValue);
     if length(currentvalue)>0 then
     begin
+      currentvalue:=trim(currentValue);
+      if copy(currentvalue,1,3)='-0x' then
+        currentvalue:='-'+copy(currentvalue,3)
+      else
+      if copy(currentvalue,1,2)='0x' then
+        currentvalue:=copy(currentvalue,2);
+
       if currentvalue[1]='-' then
       begin
         currentvalue:='-$'+copy(currentvalue,2,length(currentvalue));
