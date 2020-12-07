@@ -79,8 +79,8 @@ begin
 end;
 
 procedure TfrmdissectWindow.FormCreate(Sender: TObject);
-var title:pchar;
-    classname:pchar;
+var title:pwidechar;
+    classname:pwidechar;
     winhandle,h:thandle;
     winprocess:dword;
     i,err: integer;
@@ -94,24 +94,24 @@ begin
   {$ifdef windows}
   winhandle:=getwindow(getforegroundwindow,GW_HWNDFIRST);
 
-  getmem(title,101);
-  getmem(classname,101);
+  getmem(title,202);
+  getmem(classname,202);
 
   while winhandle<>0 do
   begin
     GetWindowThreadProcessId(winhandle,addr(winprocess));
     title[0]:=#0;
     classname[0]:=#0;
-    getwindowtext(winhandle,title,100);
-    GetClassName(winhandle,classname,100);
+    getwindowtextW(winhandle,title,100);
+    GetClassNameW(winhandle,classname,100);
     classname[100]:=#0;
     title[100]:=#0;
 
     if winprocess=processid then
       if iswindowvisible(winhandle) then
-        treeview1.Items.Add(nil,IntToHex(winhandle,8)+'-'+wincptoutf8(title)+' - ('+wincptoutf8(classname)+')')
+        treeview1.Items.Add(nil,IntToHex(winhandle,8)+'-'+title+' - ('+classname+')')
       else
-        treeview1.Items.Add(nil, IntToHex(winhandle, 8)+'-'+wincptoutf8(title)+' - ('+wincptoutf8(classname)+') ('+rsInvis+')');
+        treeview1.Items.Add(nil, IntToHex(winhandle, 8)+'-'+title+' - ('+classname+') ('+rsInvis+')');
 
 
     winhandle:=getwindow(winhandle,GW_HWNDNEXT);
@@ -132,15 +132,15 @@ begin
         GetWindowThreadProcessId(winhandle,addr(winprocess));
         title[0]:=#0;
         classname[0]:=#0;
-        getwindowtext(winhandle,title,100);
-        GetClassName(winhandle,classname,100);
+        getwindowtextW(winhandle,title,100);
+        GetClassNameW(winhandle,classname,100);
         classname[100]:=#0;
         title[100]:=#0;
 
         if iswindowvisible(winhandle) then
-          treeview1.Items.Addchild(treeview1.items[i],IntToHex(winhandle,8)+'-'+wincptoutf8(title)+' - ('+wincptoutf8(classname)+')')
+          treeview1.Items.Addchild(treeview1.items[i],IntToHex(winhandle,8)+'-'+title+' - ('+classname+')')
         else
-          treeview1.Items.Add(nil, IntToHex(winhandle, 8)+'-'+wincptoutf8(title)+' - ('+wincptoutf8(classname)+') ('+rsInvis+')');
+          treeview1.Items.Add(nil, IntToHex(winhandle, 8)+'-'+title+' - ('+classname+') ('+rsInvis+')');
 
 
         winhandle:=getwindow(winhandle,GW_HWNDNEXT);
@@ -322,11 +322,12 @@ procedure TfrmdissectWindow.Button6Click(Sender: TObject);
 
     {$ifdef windows}
 var
-    oldname:pchar;
+    oldname:pwidechar;
     h:hwnd;
     err: integer;
-    name:string;
-    title,classname: pchar;
+    name:widestring;
+    n: string;
+    title,classname: pwidechar;
     {$endif}
 
 begin
@@ -339,30 +340,32 @@ begin
 
 
 
-    getmem(oldname,255);
+    getmem(oldname,512);
     try
-      GetWindowText(h,oldname,254);
+      GetWindowTextW(h,oldname,254);
       oldname[254]:=#0; //make sure
       name:=oldname;
 
-      if inputquery(rsDissectWindows, rsGiveTheNewTextForThisWindow, name) then
+      if inputquery(rsDissectWindows, rsGiveTheNewTextForThisWindow, n) then
       begin
-        SetWindowText(h,pchar(name));
+        name:=n;
+        //name:=UTF8ToWinCP(name);
+        SetWindowTextW(h,pwidechar(name));
 
-        getmem(title,101);
-        getmem(classname,101);
+        getmem(title,202);
+        getmem(classname,202);
         try
           title[0]:=#0;
           classname[0]:=#0;
-          getwindowtext(h,title,100);
-          GetClassName(h,classname,100);
+          getwindowtextw(h,title,100);
+          GetClassNameW(h,classname,100);
           classname[100]:=#0;
           title[100]:=#0;
 
           if iswindowvisible(h) then
-            treeview1.selected.text:=IntToHex(h,8)+'-'+wincptoutf8(title)+' - ('+wincptoutf8(classname)+')'
+            treeview1.selected.text:=IntToHex(h,8)+'-'+title+' - ('+classname+')'
           else
-            treeview1.selected.text:=IntToHex(h, 8)+'-'+wincptoutf8(title)+' - ('+wincptoutf8(classname)+') ('+rsInvis+')';
+            treeview1.selected.text:=IntToHex(h, 8)+'-'+title+' - ('+classname+') ('+rsInvis+')';
         finally
           freememandnil(title);
           freememandnil(classname);
