@@ -10,7 +10,7 @@ uses
   {$endif}
   LCLIntf, Messages, SysUtils, Variants, Classes, Graphics,
   Controls, Forms, Dialogs, StdCtrls, Menus, CEFuncProc,
-  NewKernelHandler, LREsources, ComCtrls, registry;
+  NewKernelHandler, LREsources, ComCtrls, registry, betterControls;
 
 resourcestring
   rsDLNothingFound = 'nothing found';

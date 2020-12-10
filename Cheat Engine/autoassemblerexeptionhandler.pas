@@ -11,7 +11,7 @@ uses
   {$ifdef windows}
   windows,
   {$endif}
-  Classes, SysUtils, NewKernelHandler, Clipbrd;
+  Classes, SysUtils, NewKernelHandler, Clipbrd, betterControls;
 
 type
   TAAExceptionInfo=record

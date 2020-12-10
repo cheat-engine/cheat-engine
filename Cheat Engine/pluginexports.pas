@@ -10,7 +10,7 @@ uses {$ifdef darwin}macport,macportdefines,{$endif}
      SyncObjs,dialogs,LCLIntf,classes,autoassembler,
      CEFuncProc,NewKernelHandler,CEDebugger,KernelDebugger, plugin, math,
      debugHelper, debuggertypedefinitions, typinfo, ceguicomponents, strutils,
-     commonTypeDefs, luahandler, lua;
+     commonTypeDefs, luahandler, lua, betterControls;
 
 type TPluginFunc=function(parameters: pointer): pointer;
 function pluginsync(func: TPluginFunc; parameters: pointer): pointer; stdcall;

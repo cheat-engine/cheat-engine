@@ -11,7 +11,7 @@ uses
   {$ifdef windows}
   windows,shellapi,
   {$endif}LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, ExtCtrls, LResources, vmxfunctions, NewKernelHandler;
+  Dialogs, StdCtrls, ExtCtrls, LResources, vmxfunctions, NewKernelHandler, betterControls;
 
 type
 

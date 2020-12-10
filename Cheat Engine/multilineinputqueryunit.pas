@@ -12,7 +12,7 @@ uses
   win32proc, windows,
   {$endif}
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls, ExtCtrls,
-  LCLType, math;
+  LCLType, math, betterControls;
 
 { TfrmMultilineInputQuery }
 

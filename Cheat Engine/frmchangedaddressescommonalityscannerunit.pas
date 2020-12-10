@@ -12,7 +12,7 @@ uses
   windows,
   {$endif}
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs,
-  ComCtrls, StdCtrls, ExtCtrls, formChangedAddresses;
+  ComCtrls, StdCtrls, ExtCtrls, formChangedAddresses, betterControls;
 
 type
 

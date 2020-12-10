@@ -11,7 +11,7 @@ procedure initializeLuaSynEdit;
 
 implementation
 
-uses lua, lauxlib, lualib, luahandler, luaclass, controls, SynEdit, LuaCustomControl, LuaSyntax, SynHighlighterAA;
+uses lua, lauxlib, lualib, luahandler, luaclass, controls, SynEdit, LuaCustomControl, LuaSyntax, SynHighlighterAA, betterControls;
 
 function createSynEdit(L: PLua_State): integer; cdecl;
 var

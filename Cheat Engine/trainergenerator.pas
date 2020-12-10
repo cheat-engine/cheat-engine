@@ -16,7 +16,7 @@ uses
   ComCtrls, Buttons, Menus, ExtraTrainerComponents, CEFuncProc, HotkeyHandler,
   HotKeys, symbolhandler, luacaller, formdesignerunit, opensave, luafile,
   frmAdConfigUnit, cesupport, IconStuff, memoryrecordunit, frmSelectionlistunit,
-  MainUnit2, lua, luahandler, commonTypeDefs, math;
+  MainUnit2, lua, luahandler, commonTypeDefs, math, betterControls;
 
 type
   TTrainerForm=class(TCEForm)

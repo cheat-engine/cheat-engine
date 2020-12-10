@@ -18,7 +18,7 @@ uses
   Classes, SysUtils, FileUtil, LResources, Forms, Controls, Graphics,
   Dialogs, math, ComCtrls, ExtCtrls, StdCtrls, maps, Menus, cefuncproc,
   MemFuncs, NewKernelHandler, AvgLvlTree, bigmemallochandler, symbolhandler,
-  oldRegExpr, commonTypeDefs, LCLIntf, LCLType;
+  oldRegExpr, commonTypeDefs, LCLIntf, LCLType, betterControls;
 
 type
 

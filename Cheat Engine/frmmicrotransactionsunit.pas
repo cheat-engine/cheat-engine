@@ -8,7 +8,7 @@ interface
 
 uses
   Classes, SysUtils, LResources, Forms, Controls, Graphics, Dialogs, StdCtrls,
-  ExtCtrls, Buttons, LuaInternet, lua, luahandler, lualib, lauxlib;
+  ExtCtrls, Buttons, LuaInternet, lua, luahandler, lualib, lauxlib, betterControls;
 
 type
 

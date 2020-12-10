@@ -7,7 +7,7 @@ interface
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls,
   ExtCtrls, ComCtrls, Menus, registry, multilineinputqueryunit, CEFuncProc,
-  math, types;
+  math, types, betterControls;
 
 resourcestring
   rsRPSIpList = 'IP List';

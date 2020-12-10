@@ -6,7 +6,7 @@ interface
 
 uses
   LCLProc, Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, ComCtrls,
-  StdCtrls, ExtCtrls, Menus, symbolhandler, Clipbrd;
+  StdCtrls, ExtCtrls, Menus, symbolhandler, Clipbrd, betterControls;
 
 type
 

@@ -40,7 +40,7 @@ uses
   windows,
   {$endif}
   Classes, SysUtils, ExtCtrls, Controls, LMessages, Graphics, GL, glu,
-  math, dialogs, GLext;
+  math, dialogs, GLext, betterControls;
 
 
 type TCurrentOverlay=record

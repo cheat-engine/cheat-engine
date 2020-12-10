@@ -137,5 +137,5 @@ e-mail(msn) = dark_byte@hotmail.com
 
 
 For more information about Cheat Engine or tables for it 
-and other things, goto this url:
+and other things, go to this url:
 http://www.cheatengine.org/

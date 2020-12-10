@@ -6,7 +6,7 @@ interface
 
 uses
   LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, LResources;
+  Dialogs, StdCtrls, LResources, betterControls;
 
 type
   TfrmProcessWatcherExtra = class(TForm)

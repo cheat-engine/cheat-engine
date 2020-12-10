@@ -16,7 +16,7 @@ uses
   lauxlib, lualib, LuaSyntax, luahandler, CEFuncProc, sqldb, strutils,
   InterfaceBase, ComCtrls, SynGutterBase, SynEditMarks, PopupNotifier, ActnList,
   SynEditHighlighter, AvgLvlTree, math, LazFileUtils, Types, LCLType,
-  pluginexports, SynEditKeyCmds;
+  pluginexports, SynEditKeyCmds, betterControls;
 
 type
 
@@ -1398,6 +1398,14 @@ begin
   multicaret.DefaultMode:=mcmMoveAllCarets;
   multicaret.DefaultColumnSelectMode:=mcmCancelOnCaretMove;
 
+  //set the default colors
+  mscript.Color:=colorset.TextBackground;
+  mscript.Font.color:=colorset.FontColor;
+  mscript.Gutter.Color:=clBtnFace;
+  mscript.Gutter.LineNumberPart.MarkupInfo.Background:=clBtnFace;
+  mscript.Gutter.SeparatorPart.MarkupInfo.Background:=clBtnFace;
+
+
   fq:=mscript.Font.Quality;
   if not (fq in [fqCleartypeNatural, fqDefault]) then
     mscript.Font.quality:=fqDefault;
@@ -1515,7 +1523,7 @@ end;
 
 procedure TfrmLuaEngine.reloadHighlighterSettings;
 begin
-  synhighlighter.LoadFromRegistry(HKEY_CURRENT_USER, '\Software\Cheat Engine\Lua Highlighter');
+  synhighlighter.LoadFromRegistry(HKEY_CURRENT_USER, '\Software\Cheat Engine\Lua Highlighter'+darkmodestring);
 end;
 
 procedure TfrmLuaEngine.MenuItem15Click(Sender: TObject);
@@ -1523,11 +1531,11 @@ var
   frmHighlighterEditor: TfrmHighlighterEditor;
 begin
   frmHighlighterEditor:=TfrmHighlighterEditor.create(self);
-  synhighlighter.LoadFromRegistry(HKEY_CURRENT_USER, '\Software\Cheat Engine\Lua Highlighter');
+  synhighlighter.LoadFromRegistry(HKEY_CURRENT_USER, '\Software\Cheat Engine\Lua Highlighter'+darkmodestring);
   frmHighlighterEditor.highlighter:=synhighlighter;
   if frmHighlighterEditor.showmodal=mrok then
   begin
-    synhighlighter.SaveToRegistry(HKEY_CURRENT_USER, '\Software\Cheat Engine\Lua Highlighter');
+    synhighlighter.SaveToRegistry(HKEY_CURRENT_USER, '\Software\Cheat Engine\Lua Highlighter'+darkmodestring);
     ReloadAllAutoInjectHighlighters; //AA uses lua too
     ReloadAllLuaEngineHighlighters;
   end;
@@ -1763,7 +1771,10 @@ end;
 
 procedure TfrmLuaEngine.mScriptShowHint(Sender: TObject; HintInfo: PHintInfo);
 begin
+  asm
+  nop
 
+  end;
 end;
 
 

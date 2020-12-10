@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, LResources, Forms, Controls, Graphics, Dialogs, StdCtrls,
-  ExtCtrls, syncobjs;
+  ExtCtrls, syncobjs, betterControls;
 
 type
 

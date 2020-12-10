@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils,lua, lualib, lauxlib, symbolhandler, LuaHandler, cefuncproc,
-  memscan, foundlisthelper;
+  memscan, foundlisthelper, betterControls;
 
 
 

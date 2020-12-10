@@ -6,7 +6,7 @@ interface
 
 uses
   LCLIntf, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, CEFuncProc, StdCtrls, NewKernelHandler, LResources, ExtCtrls;
+  Dialogs, CEFuncProc, StdCtrls, NewKernelHandler, LResources, ExtCtrls, betterControls;
 
 type tbarray=array of byte;
 

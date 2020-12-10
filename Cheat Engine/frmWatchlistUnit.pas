@@ -7,7 +7,7 @@ interface
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, ValEdit,
   ExtCtrls, ComCtrls, Menus, Clipbrd, NewKernelHandler, commonTypeDefs,strutils,
-  ProcessHandlerUnit, byteinterpreter{$ifdef darwin},macport, mactypes{$endif};
+  ProcessHandlerUnit, byteinterpreter{$ifdef darwin},macport, mactypes{$endif}, betterControls;
 
 type
 

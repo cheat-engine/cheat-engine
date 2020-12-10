@@ -8,7 +8,7 @@ uses
   windows, Classes, SysUtils, StdCtrls, LCLType, Graphics, LMessages, Controls;
 
 type
-  TRadioButton=class(StdCtrls.TRadioButton)
+  TNewRadioButton=class(StdCtrls.TRadioButton)
   private
     painted: boolean;
     fCanvas: TCanvas;
@@ -29,13 +29,11 @@ type
   end;
 
 
-var globalCustomDraw: boolean;
-
 implementation
 
-uses forms;
+uses forms, betterControls;
 
-procedure TRadioButton.MouseMove(Shift: TShiftState; X, Y: Integer);
+procedure TNewRadioButton.MouseMove(Shift: TShiftState; X, Y: Integer);
 begin
   painted:=false;
 
@@ -44,7 +42,7 @@ begin
     repaint;
 end;
 
-procedure TRadioButton.FontChanged(Sender: TObject);
+procedure TNewRadioButton.FontChanged(Sender: TObject);
 begin
   if self=nil then exit;
 
@@ -61,7 +59,7 @@ begin
   inherited FontChanged(Sender);
 end;
 
-procedure TRadioButton.PaintWindow(DC: HDC);
+procedure TNewRadioButton.PaintWindow(DC: HDC);
 var
   DCChanged: boolean;
 begin
@@ -78,7 +76,7 @@ begin
   painted:=true;
 end;
 
-procedure TRadioButton.DefaultCustomPaint;
+procedure TNewRadioButton.DefaultCustomPaint;
 var
   ts: TTextStyle;
   faceColor: TColor;
@@ -96,11 +94,16 @@ begin
 
     fcanvas.pen.Width:=1;
     if enabled then
-      fcanvas.pen.color:=clWindowFrame
+    begin
+      fcanvas.pen.color:=colorset.CheckboxCheckMarkColor;
+      fcanvas.Brush.color:=colorset.CheckboxFillColor;
+    end
     else
-      fcanvas.pen.color:=clInactiveBorder;
+    begin
+      fcanvas.pen.color:=colorset.InactiveCheckboxCheckMarkColor;
+      fcanvas.brush.color:=colorset.InactiveCheckboxFillColor;
+    end;
 
-    fcanvas.brush.color:=clWindow;
     dpiscale:=Screen.PixelsPerInch/96;
 
     fcanvas.pen.width:=trunc(1*dpiscale);
@@ -124,9 +127,9 @@ begin
 
 
     if enabled then
-      fcanvas.font.color:=clBtnText
+      fcanvas.font.color:=colorset.FontColor
     else
-      fcanvas.font.color:=clInactiveCaption;
+      fcanvas.font.color:=colorset.InactiveFontColor;
 
     ts:=fcanvas.TextStyle;
     ts.Alignment:=taRightJustify;
@@ -138,7 +141,7 @@ begin
   end;
 end;
 
-procedure TRadioButton.WMPaint(var Msg: TLMPaint);
+procedure TNewRadioButton.WMPaint(var Msg: TLMPaint);
 begin
   if (csDestroying in ComponentState) or (not HandleAllocated) then exit;
 
@@ -147,12 +150,14 @@ begin
   if fCustomDraw or globalCustomDraw then Exclude(FControlState, csCustomPaint);
 end;
 
-procedure TRadioButton.CreateParams(var Params: TCreateParams);
+procedure TNewRadioButton.CreateParams(var Params: TCreateParams);
 begin
   inherited CreateParams(Params);
   fcanvas:=TControlCanvas.Create;
-  //fFont:=tfont.Create;
   TControlCanvas(FCanvas).Control := Self;
+
+  if ShouldAppsUseDarkMode() then
+    fCustomDraw:=true;
 end;
 
 

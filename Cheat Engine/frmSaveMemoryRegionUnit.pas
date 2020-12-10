@@ -9,7 +9,7 @@ uses
   macport,
   {$endif}
   LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms, symbolhandler,
-  Dialogs, StdCtrls, NewKernelHandler, CEFuncProc, ExtCtrls, LResources, Menus;
+  Dialogs, StdCtrls, NewKernelHandler, CEFuncProc, ExtCtrls, LResources, Menus, betterControls;
 
 type
 

@@ -11,7 +11,7 @@ uses
   {$ifdef windows}
   windows,
   {$endif}
-  Classes, SysUtils, graphics, DiagramTypes, Diagramblock{$ifdef windows}, gl, glu, GLext{$endif};
+  Classes, SysUtils, graphics, DiagramTypes, Diagramblock{$ifdef windows}, gl, glu, GLext{$endif}, betterControls;
 
 type
 

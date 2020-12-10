@@ -5,7 +5,7 @@ unit addressedit;
 interface
 
 uses
-  Classes, SysUtils, StdCtrls, Graphics;
+  Classes, SysUtils, StdCtrls, Graphics, betterControls;
 
 
 type

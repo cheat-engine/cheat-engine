@@ -8,7 +8,7 @@ uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls,
   ComCtrls, ExtCtrls, maps, Menus, syncobjs, newkernelhandler,
   ProcessHandlerUnit, CodeFilterCallOrAllDialog, PEInfoFunctions, PEInfounit,
-  lua, lualib, lauxlib, LuaForm, LuaClass{$ifdef darwin},macport{$endif};
+  lua, lualib, lauxlib, LuaForm, LuaClass{$ifdef darwin},macport{$endif}, betterControls;
 
 type
 

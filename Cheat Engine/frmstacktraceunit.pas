@@ -13,7 +13,7 @@ uses
   {$endif}
   LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
   Dialogs,NewKernelHandler, CEFuncProc, ComCtrls,CEDebugger, KernelDebugger,
-  Menus, LResources, debughelper, symbolhandler;
+  Menus, LResources, debughelper, symbolhandler, betterControls;
 
 type
 

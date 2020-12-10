@@ -5,7 +5,7 @@ unit LuaCheckbox;
 interface
 
 uses
-  Classes, SysUtils,lua, lualib, lauxlib, controls, StdCtrls;
+  Classes, SysUtils,lua, lualib, lauxlib, controls, StdCtrls, betterControls;
 
 procedure initializeLuaCheckbox;
 

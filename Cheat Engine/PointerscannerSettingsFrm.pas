@@ -14,7 +14,7 @@ uses
   LCLIntf, LMessages, Messages, SysUtils, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, ComCtrls, ExtCtrls, LResources, EditBtn, Buttons, Contnrs,
   CEFuncProc, NewKernelHandler, symbolhandler, multilineinputqueryunit,
-  registry, resolve, math, PointerscanSettingsIPConnectionList, types, commonTypeDefs;
+  registry, resolve, math, PointerscanSettingsIPConnectionList, types, commonTypeDefs, betterControls;
 
 
 type

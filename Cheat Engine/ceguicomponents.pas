@@ -13,7 +13,7 @@ uses
   dialogs, JvDesignSurface, DOM, typinfo, LResources, JvDesignImp, JvDesignUtils,
   graphics, math, xmlread,xmlwrite, WSStdCtrls, custombase85, PropEdits,
   ComponentEditors, CEListviewItemEditor, TreeViewPropEdit, menus, MenuIntf, LCLProc,
-  Calendar;
+  Calendar, betterControls;
 
 type TCEPageControl=class(TPageControl);
 type
@@ -603,7 +603,7 @@ type TCEEdit=class(TEdit)
     property TextHintFontStyle: TFontStyle read fTextHintFontStyle write fTextHintFontStyle;
   end;
 
-type TCEForm=class(TCustomForm)
+type TCEForm=class(TForm) //TCustomForm)
   private
     saving: boolean;
     fVisible: boolean;

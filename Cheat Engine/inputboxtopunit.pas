@@ -6,7 +6,7 @@ interface
 
 uses
   LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, LResources, ExtCtrls{$ifdef darwin},macport{$endif};
+  Dialogs, StdCtrls, LResources, ExtCtrls{$ifdef darwin},macport{$endif}, betterControls;
 
 type
 

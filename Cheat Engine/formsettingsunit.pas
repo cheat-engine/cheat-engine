@@ -15,7 +15,7 @@ uses
   Buttons, LResources, frameHotkeyConfigUnit, math,
 
   KernelDebugger,plugin,NewKernelHandler,CEDebugger,hotkeyhandler, debugHelper,
-  formhotkeyunit, debuggertypedefinitions, FileUtil, IniFiles;
+  formhotkeyunit, debuggertypedefinitions, FileUtil, IniFiles, betterControls;
 
 
 type Tpathspecifier=class(TObject)

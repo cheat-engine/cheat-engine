@@ -5,7 +5,7 @@ unit LuaTreeview;
 interface
 
 uses
-  Classes, SysUtils, ComCtrls, lua, luaclass, Controls, LuaWinControl;
+  Classes, SysUtils, ComCtrls, lua, luaclass, Controls, LuaWinControl, betterControls;
 
 procedure initializeLuaTreeview;
 

@@ -10,7 +10,7 @@ uses
   {$endif}
   LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
   Dialogs, ComCtrls, ExtCtrls, StdCtrls, syncobjs, CEFuncProc, NewKernelHandler,
-  math, Menus, LResources;
+  math, Menus, LResources, betterControls;
 
 type
   TfrmReferencedStrings=class;

@@ -16,7 +16,7 @@ uses
   windows,
   {$endif}
   Classes, SysUtils, FileUtil, LResources, Forms, Controls, Graphics, Dialogs,
-  ComCtrls, StdCtrls, ExtCtrls, registry, fontSaveLoadRegistry;
+  ComCtrls, StdCtrls, ExtCtrls, registry, fontSaveLoadRegistry, betterControls;
 
 type
 

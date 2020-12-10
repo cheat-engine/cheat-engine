@@ -217,6 +217,10 @@ function luaopen_debug()
   end  
 end
 
+function lua_registerdebug()
+  luaopen_debug()
+end
+
 
 
 function lua_register(name, functionaddress)

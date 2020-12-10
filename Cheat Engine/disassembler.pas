@@ -14,7 +14,7 @@ uses unixporthelper, sysutils, byteinterpreter, symbolhandler, NewKernelHandler,
 {$ifdef windows}
 uses windows, imagehlp,sysutils,LCLIntf,byteinterpreter, symbolhandler, symbolhandlerstructs,
   CEFuncProc, NewKernelHandler, ProcessHandlerUnit, LastDisassembleData, disassemblerarm,
-  commonTypeDefs, maps, math,vextypedef;
+  commonTypeDefs, maps, math,vextypedef, betterControls;
 {$endif}
 
 {$ifdef darwin}

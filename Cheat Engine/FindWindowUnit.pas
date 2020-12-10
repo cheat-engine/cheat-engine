@@ -7,7 +7,7 @@ interface
 uses
   LCLIntf, Messages, LMessages, SysUtils, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls,CEFuncProc,ComCtrls, ExtCtrls, LResources, memscan,
-  commonTypeDefs, math, {$ifdef windows}win32proc,{$endif} symbolhandler;
+  commonTypeDefs, math, {$ifdef windows}win32proc,{$endif} symbolhandler, betterControls;
 
 const wm_fw_scandone=wm_user+1;
 type

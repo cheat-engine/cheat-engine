@@ -5,7 +5,7 @@ unit LuaPanel;
 interface
 
 uses
-  Classes, SysUtils, lua, lualib, lauxlib, ExtCtrls;
+  Classes, SysUtils, lua, lualib, lauxlib, ExtCtrls, betterControls;
 
 procedure initializeLuaPanel;
 procedure panel_addMetaData(L: PLua_state; metatable: integer; userdata: integer );

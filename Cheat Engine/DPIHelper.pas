@@ -10,9 +10,9 @@ uses
   {$endif}
   {$ifdef windows}
   Windows,
-  {$endif}Classes, controls, comctrls, SysUtils, Buttons, Graphics, forms, StdCtrls;
+  {$endif}Classes, controls, comctrls, SysUtils, Buttons, Graphics, forms, StdCtrls, betterControls;
 
-procedure AdjustSpeedButtonSize(sb: TSpeedButton);
+procedure AdjustSpeedButtonSize(sb: TCustomSpeedButton);
 procedure AdjustToolbar(tb: TToolbar);
 procedure AdjustImageList(il: TImageList);
 procedure AdjustComboboxSize(cb: TComboBox; canvas: TCanvas);
@@ -196,7 +196,7 @@ begin
   end;
 end;
 
-procedure AdjustSpeedButtonSize(sb: TSpeedButton);
+procedure AdjustSpeedButtonSize(sb: TCustomSpeedButton);
 
 //  designtimedpi=50;
 var

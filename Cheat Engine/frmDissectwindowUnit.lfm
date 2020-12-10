@@ -10,14 +10,13 @@ object frmdissectWindow: TfrmdissectWindow
   OnClose = FormClose
   OnCreate = FormCreate
   Position = poScreenCenter
-  LCLVersion = '1.6.0.4'
+  LCLVersion = '2.0.6.0'
   object TreeView1: TTreeView
     Left = 0
     Height = 222
     Top = 0
     Width = 314
     Align = alClient
-    DefaultItemHeight = 18
     HideSelection = False
     Indent = 19
     ReadOnly = True
@@ -51,7 +50,7 @@ object frmdissectWindow: TfrmdissectWindow
       Left = 8
       Height = 25
       Top = 8
-      Width = 99
+      Width = 98
       AutoSize = True
       BorderSpacing.Left = 8
       BorderSpacing.Top = 8
@@ -63,7 +62,7 @@ object frmdissectWindow: TfrmdissectWindow
       AnchorSideLeft.Control = Button2
       AnchorSideLeft.Side = asrBottom
       AnchorSideTop.Control = Panel1
-      Left = 115
+      Left = 114
       Height = 25
       Top = 8
       Width = 100
@@ -108,10 +107,10 @@ object frmdissectWindow: TfrmdissectWindow
       AnchorSideTop.Control = Panel1
       AnchorSideRight.Control = Panel1
       AnchorSideRight.Side = asrBottom
-      Left = 223
+      Left = 222
       Height = 25
       Top = 8
-      Width = 89
+      Width = 90
       AutoSize = True
       BorderSpacing.Left = 8
       BorderSpacing.Top = 8

@@ -11,7 +11,7 @@ procedure initializeLuaMenu;
 
 implementation
 
-uses LuaCaller, LuaClass, LuaComponent;
+uses LuaCaller, LuaClass, LuaComponent, betterControls;
 
 function menu_getItems(L: PLua_State): integer; cdecl;
 var
@@ -358,7 +358,7 @@ end;
 
 initialization
   luaclass_register(TMenu, Menu_addMetaData);
-  luaclass_register(TMenuItem, MenuItem_addMetaData);
+  luaclass_register(menus.TMenuItem, MenuItem_addMetaData);
 
 end.
 

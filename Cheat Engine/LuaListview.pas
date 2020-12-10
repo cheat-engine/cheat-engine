@@ -5,7 +5,7 @@ unit LuaListview;
 interface
 
 uses
-  Classes, SysUtils, controls, comctrls, lua, lualib, lauxlib;
+  Classes, SysUtils, controls, comctrls, lua, lualib, lauxlib, betterControls;
 
 procedure initializeLuaListview;
 

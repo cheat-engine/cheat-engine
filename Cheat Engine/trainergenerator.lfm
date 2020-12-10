@@ -13,7 +13,7 @@ object frmTrainerGenerator: TfrmTrainerGenerator
   OnCreate = FormCreate
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '2.0.0.4'
+  LCLVersion = '2.0.6.0'
   object Panel2: TPanel
     AnchorSideLeft.Control = Owner
     AnchorSideTop.Control = Owner
@@ -343,7 +343,7 @@ object frmTrainerGenerator: TfrmTrainerGenerator
             Left = 6
             Height = 15
             Top = 38
-            Width = 58
+            Width = 59
             Caption = 'About text:'
             ParentColor = False
           end
@@ -397,7 +397,7 @@ object frmTrainerGenerator: TfrmTrainerGenerator
             Left = 6
             Height = 15
             Top = 0
-            Width = 23
+            Width = 22
             BorderSpacing.Left = 6
             Caption = 'Title'
             ParentColor = False
@@ -579,7 +579,7 @@ object frmTrainerGenerator: TfrmTrainerGenerator
           Left = 24
           Height = 19
           Top = 38
-          Width = 118
+          Width = 117
           Caption = 'Trainer loses focus'
           Enabled = False
           TabOrder = 6
@@ -839,47 +839,47 @@ object frmTrainerGenerator: TfrmTrainerGenerator
     end
   end
   object OpenPictureDialog1: TOpenPictureDialog
-    left = 40
-    top = 40
+    Left = 40
+    Top = 40
   end
   object OpenDialog1: TOpenDialog
-    left = 40
-    top = 144
+    Left = 40
+    Top = 144
   end
   object CETRAINERSaveDialog: TSaveDialog
     Title = 'Save script as'
     DefaultExt = '.CETRAINER'
     Filter = 'Cheat Engine Table Trainer (*.CETRAINER)|*.CETRAINER'
     Options = [ofReadOnly, ofOverwritePrompt, ofHideReadOnly, ofPathMustExist, ofEnableSizing]
-    left = 48
-    top = 304
+    Left = 48
+    Top = 304
   end
   object EXESaveDialog: TSaveDialog
     Title = 'Save script as'
     DefaultExt = '.EXE'
     Filter = 'Cheat Engine EXE Trainer (*.EXE)|*.EXE'
     Options = [ofReadOnly, ofOverwritePrompt, ofHideReadOnly, ofPathMustExist, ofEnableSizing]
-    left = 48
-    top = 288
+    Left = 48
+    Top = 288
   end
   object OpenDialog2: TOpenDialog
     Title = 'Open icon file'
     Filter = 'Icon files (.exe; *.dll; *.ico)|*.exe;*.dll;*.ico'
-    left = 128
-    top = 144
+    Left = 128
+    Top = 144
   end
   object CTSaveDialog: TSaveDialog
     Title = 'Save script as'
     DefaultExt = '.CT'
     Filter = 'Cheat Engine Table (*.CT)|*.CT'
     Options = [ofReadOnly, ofOverwritePrompt, ofHideReadOnly, ofPathMustExist, ofEnableSizing]
-    left = 48
-    top = 272
+    Left = 48
+    Top = 272
   end
   object PopupMenu1: TPopupMenu
     Images = tgImageList
-    left = 40
-    top = 216
+    Left = 40
+    Top = 216
     object miEditHotkey: TMenuItem
       Caption = 'Edit'
       Default = True
@@ -892,8 +892,8 @@ object frmTrainerGenerator: TfrmTrainerGenerator
     end
   end
   object tgImageList: TImageList
-    left = 40
-    top = 95
+    Left = 40
+    Top = 95
     Bitmap = {
       4C69030000001000000010000000FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
       FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
@@ -995,8 +995,8 @@ object frmTrainerGenerator: TfrmTrainerGenerator
     }
   end
   object PopupMenu2: TPopupMenu
-    left = 696
-    top = 264
+    Left = 696
+    Top = 264
     object MenuItem2: TMenuItem
       Caption = 'Only generate the script'
       OnClick = MenuItem2Click
@@ -1007,7 +1007,7 @@ object frmTrainerGenerator: TfrmTrainerGenerator
     Filter = 'All files (*.*)|*.*|Wave files|*.WAV'
     FilterIndex = 2
     Options = [ofAllowMultiSelect, ofPathMustExist, ofEnableSizing, ofViewDetail]
-    left = 448
-    top = 240
+    Left = 448
+    Top = 240
   end
 end

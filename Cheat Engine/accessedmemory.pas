@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls,
-  ExtCtrls, Menus, ComCtrls, genericHotkey, DBK32functions, commonTypeDefs;
+  ExtCtrls, Menus, ComCtrls, genericHotkey, DBK32functions, commonTypeDefs, betterControls;
 
 resourcestring
   rsAMError = 'Error';

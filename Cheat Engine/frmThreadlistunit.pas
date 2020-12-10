@@ -15,7 +15,7 @@ uses
   {$endif}
   LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
   Dialogs, ComCtrls, Menus, StdCtrls, LResources,cefuncproc, CEDebugger, debugHelper,
-  newkernelhandler, networkInterface, networkInterfaceApi;
+  newkernelhandler, networkInterface, networkInterfaceApi, betterControls;
 
 
 

@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, lua, lualib, lauxlib, LuaHandler,
-  pluginexports, controls, ComCtrls;
+  pluginexports, controls, ComCtrls, betterControls;
 
 procedure initializeLuaCalendar;
 

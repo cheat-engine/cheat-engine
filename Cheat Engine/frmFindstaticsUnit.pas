@@ -13,7 +13,7 @@ uses
   {$endif}
   LCLIntf, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, ExtCtrls, ComCtrls,disassembler,CEFuncProc,NewKernelHandler,
-  {tlhelp32,}symbolhandler, LResources, commonTypeDefs;
+  {tlhelp32,}symbolhandler, LResources, commonTypeDefs, betterControls;
 
 type TStaticlist=record
   s: ptrUint;

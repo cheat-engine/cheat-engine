@@ -12,7 +12,7 @@ uses
   macport,
   {$endif}
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls,
-  ExtCtrls, memscan, syncobjs;
+  ExtCtrls, memscan, syncobjs, betterControls;
 
 type
 

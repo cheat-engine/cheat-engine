@@ -6,7 +6,7 @@ interface
 
 uses
 
-  Classes, lua;
+  Classes, lua, betterControls;
 
 procedure initializeLuaForm;
 

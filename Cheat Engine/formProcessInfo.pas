@@ -7,7 +7,7 @@ interface
 uses
   LCLIntf, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, CEFuncProc, NewKernelHandler, LResources, ExtCtrls,
-  memorybrowserformunit;
+  memorybrowserformunit, betterControls;
 
 type
 

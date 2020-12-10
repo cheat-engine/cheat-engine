@@ -9,7 +9,7 @@ object CallOrAllDialog: TCallOrAllDialog
   ClientHeight = 78
   ClientWidth = 313
   Position = poOwnerFormCenter
-  LCLVersion = '1.6.4.0'
+  LCLVersion = '2.0.6.0'
   object Label1: TLabel
     AnchorSideLeft.Control = Owner
     AnchorSideTop.Control = Owner

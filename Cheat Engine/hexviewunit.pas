@@ -25,7 +25,7 @@ uses
   {$IFNDEF STANDALONEHV}
   , byteinterpreter, debuggertypedefinitions, DebugHelper ,commonTypeDefs,symbolhandler,
   symbolhandlerstructs, cefuncproc, NewKernelHandler, CustomTypeHandler
-  {$ENDIF};
+  {$ENDIF}, bettercontrols;
 
 type
   TDisplayType = (dtByte, dtByteDec, dtWord, dtWordDec, dtDword, dtDwordDec, dtQword, dtQwordDec, dtSingle, dtDouble, dtCustom);
@@ -2570,7 +2570,7 @@ begin
   else
 {$endif}
   begin
-    offscreenbitmap.Canvas.Pen.Color:=clBlack;
+    offscreenbitmap.Canvas.Pen.Color:=clWindowtext;// clBlack;
     offscreenbitmap.Canvas.PenPos:=point(0,textheight*2);
     offscreenbitmap.Canvas.LineTo(charstart+bytesperline*charsize,textheight*2);
   end;

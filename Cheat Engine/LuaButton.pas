@@ -5,7 +5,7 @@ unit LuaButton;
 interface
 
 uses
-  Classes, SysUtils, lua, lualib, lauxlib, forms, controls, StdCtrls;
+  Classes, SysUtils, lua, lualib, lauxlib, forms, controls, StdCtrls, betterControls;
 
 procedure InitializeLuaButton;
 procedure button_addMetaData(L: PLua_state; metatable: integer; userdata: integer );
@@ -65,7 +65,7 @@ begin
 end;
 
 initialization
-  luaclass_register(Tbutton, button_addMetaData);
+  luaclass_register(stdctrls.Tbutton, button_addMetaData);
 
 
 end.

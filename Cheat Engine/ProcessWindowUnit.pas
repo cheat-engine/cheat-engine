@@ -14,7 +14,7 @@ uses
   LCLIntf, Messages, SysUtils, Classes, Graphics, Controls,
   Forms, Dialogs, StdCtrls, ExtCtrls, CEFuncProc,CEDebugger, ComCtrls, ImgList,
   Filehandler, Menus, LResources,{tlhelp32,}{$ifdef windows}vmxfunctions,{$endif} NewKernelHandler,
-  debugHelper{, KIcon}, commonTypeDefs, math, syncobjs, Contnrs;
+  debugHelper{, KIcon}, commonTypeDefs, math, syncobjs, Contnrs, betterControls;
 
 type
   TProcesslistlong = class(tthread)

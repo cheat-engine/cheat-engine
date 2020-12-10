@@ -7,7 +7,7 @@ interface
 uses
   LCLIntf, Messages, LMessages, LCLType, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
   StdCtrls, CEDebugger, KernelDebugger, ExtCtrls, LResources, ComCtrls, Menus,
-  debuggertypedefinitions, BreakpointTypeDef;
+  debuggertypedefinitions, BreakpointTypeDef, betterControls;
 
 const
   WM_BPUPDATE=WM_USER+1;

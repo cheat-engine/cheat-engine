@@ -7,7 +7,7 @@ interface
 uses
   {$ifdef darwin} macport, {$endif}
   {$IFDEF windows} windows, {$ENDIF} Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls,
-  ExtCtrls, PointerscanresultReader, maps, ComCtrls, math;
+  ExtCtrls, PointerscanresultReader, maps, ComCtrls, math, betterControls;
 
 type
 

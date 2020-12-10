@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, LResources, Forms, Controls, Graphics, Dialogs, StdCtrls,
-  ColorBox, ExtCtrls, ComCtrls, SynEditHighlighter, Types;
+  ColorBox, ExtCtrls, ComCtrls, SynEditHighlighter, Types, betterControls;
 
 type
 
@@ -214,6 +214,7 @@ end;
 procedure TfrmHighlighterEditor.FormCreate(Sender: TObject);
 begin
   LoadFormPosition(self);
+  pnlAttribs.color:=ColorSet.EditBackground;
 end;
 
 procedure TfrmHighlighterEditor.FormDestroy(Sender: TObject);

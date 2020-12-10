@@ -34,7 +34,7 @@ uses
   windows,
   {$endif}
   Classes, SysUtils, ComCtrls, Controls, StdCtrls,  MemoryRecordUnit,
-  Graphics, LCLType;
+  Graphics, LCLType, betterControls;
 
 type
   TAddressListEditor=class(TCustomEdit)

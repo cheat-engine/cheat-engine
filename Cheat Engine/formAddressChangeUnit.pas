@@ -18,7 +18,7 @@ uses
   Buttons, Arrow, Spin, Menus, CEFuncProc, NewKernelHandler, symbolhandler,
   memoryrecordunit, types, byteinterpreter, math, CustomTypeHandler,
   commonTypeDefs, lua, lualib, lauxlib, luahandler{$ifdef windows}, CommCtrl{$endif}, LuaClass, Clipbrd,
-  DPIHelper;
+  DPIHelper, betterControls;
 
 const WM_disablePointer=WM_USER+1;
 

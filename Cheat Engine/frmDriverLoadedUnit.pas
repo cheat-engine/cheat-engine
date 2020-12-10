@@ -7,7 +7,7 @@ interface
 
 uses
   {$ifdef windows}windows,{$endif} LCLIntf, Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, ExtCtrls,
-  StdCtrls;
+  StdCtrls, betterControls;
 
 type
 

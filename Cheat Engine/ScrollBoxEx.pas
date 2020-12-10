@@ -5,10 +5,10 @@ unit ScrollBoxEx;
 interface
 
 uses
-  Classes, SysUtils, lmessages, forms, messages;
+  Classes, SysUtils, lmessages, forms, messages, betterControls;
 
 type
-  TScrollBox=class(forms.TScrollbox)
+  TScrollBox=class(betterControls.TScrollbox)
   private
     procedure WMVScroll(var Msg: TMessage); message WM_VSCROLL;
   public

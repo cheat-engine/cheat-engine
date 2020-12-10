@@ -9,7 +9,7 @@ This unit will hold some global variables (previously cefuncproc.pas)
 interface
 
 uses
-  Classes, SysUtils, commonTypeDefs, syncobjs, Graphics;
+  Classes, SysUtils, commonTypeDefs, syncobjs, Graphics, betterControls;
 
 //type TUnexpectedExceptionAction=(ueaIgnore, ueaBreak, ueaBreakIfInRegion);
 

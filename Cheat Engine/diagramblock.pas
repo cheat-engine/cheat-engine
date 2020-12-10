@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, Controls, types, DiagramTypes, Graphics, textrender,
-  ComCtrls{$ifdef windows}, gl, glext{$endif};
+  ComCtrls{$ifdef windows}, gl, glext{$endif}, betterControls;
 
 type
 

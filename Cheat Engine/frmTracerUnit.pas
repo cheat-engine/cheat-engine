@@ -13,7 +13,7 @@ uses
   {$endif}
   NewKernelHandler, LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, ExtCtrls, Buttons, LResources, commonTypeDefs, frmFindDialogUnit,
-  Menus, ComCtrls, frmStackviewunit, frmFloatingPointPanelUnit, disassembler, debuggertypedefinitions;
+  Menus, ComCtrls, frmStackviewunit, frmFloatingPointPanelUnit, disassembler, debuggertypedefinitions, betterControls;
 
 type
   TTraceDebugInfo=class

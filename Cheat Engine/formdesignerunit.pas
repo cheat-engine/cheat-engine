@@ -11,7 +11,7 @@ uses
   JvDesignImp, JvDesignUtils, typinfo, PropEdits, ObjectInspector, LResources,
   maps, ExtDlgs, PopupNotifier, IDEDialogs, ceguicomponents, LMessages, luacaller,
   luahandler, cefuncproc, ListViewPropEdit, TreeViewPropEdit, AnchorEditor,
-  LCLType, GraphicPropEdit, GraphPropEdits, registry, math, LCLVersion;
+  LCLType, GraphicPropEdit, GraphPropEdits, registry, math, LCLVersion, betterControls;
 
 
 
@@ -397,8 +397,8 @@ end;
 
 procedure TFormDesigner.miMenuMoveDownClick(Sender: TObject);
 var
-  mi: TMenuItem;
-  p: TMenuItem;
+  mi: menus.TMenuItem;
+  p: menus.TMenuItem;
   i: integer;
 begin
   mi:=TMenuItem(oid.selection[0]);
@@ -424,8 +424,8 @@ end;
 
 procedure TFormDesigner.miMenuMoveUpClick(Sender: TObject);
 var
-  mi: TMenuItem;
-  p: TMenuItem;
+  mi: menus.TMenuItem;
+  p: menus.TMenuItem;
   i: integer;
 begin
   mi:=TMenuItem(oid.selection[0]);

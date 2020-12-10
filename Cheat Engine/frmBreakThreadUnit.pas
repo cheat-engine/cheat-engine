@@ -6,7 +6,7 @@ interface
 
 uses
   LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, LResources, ExtCtrls,CEDebugger, debughelper;
+  Dialogs, StdCtrls, LResources, ExtCtrls,CEDebugger, debughelper, betterControls;
 
 type
 

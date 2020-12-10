@@ -7,7 +7,7 @@ interface
 uses
   LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
   StdCtrls, ExtCtrls, LResources, EditBtn, contnrs, cefuncproc, symbolhandler,
-  multilineinputqueryunit, lua, lualib, lauxlib, registry, resolve;
+  multilineinputqueryunit, lua, lualib, lauxlib, registry, resolve, betterControls;
 
 type
 

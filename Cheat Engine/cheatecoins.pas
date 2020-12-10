@@ -17,7 +17,7 @@ interface
 
 {$IFDEF windows}
 uses
-  jwawindows, windows, newkernelhandler, Classes, SysUtils, dialogs;
+  jwawindows, windows, newkernelhandler, Classes, SysUtils, dialogs, betterControls;
 
 procedure EnableCheatEcoinSystem;
 

@@ -5,7 +5,7 @@ unit LuaMemo;
 interface
 
 uses
-  Classes, SysUtils, Lua, Lualib, lauxlib, StdCtrls, controls;
+  Classes, SysUtils, Lua, Lualib, lauxlib, StdCtrls, controls, betterControls;
 
 procedure initializeLuaMemo;
 

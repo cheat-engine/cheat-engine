@@ -30,7 +30,7 @@ uses
   variants, LazUTF8, zstream, MemoryQuery, LCLVersion
   {$ifdef darwin}
   ,macportdefines
-  {$endif};
+  {$endif}, betterControls;
 
 
 const MAXTABLERECURSIONLOOKUP=2;

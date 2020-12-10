@@ -5,16 +5,17 @@ unit newCheckbox;
 interface
 
 uses
-  windows, Classes, SysUtils, StdCtrls, LCLType, Graphics, LMessages, Controls;
+  jwawindows, windows, Classes, SysUtils, StdCtrls, LCLType, Graphics, LMessages,
+  Controls, BetterControlColorSet;
 
 type
-  TCheckBox=class(StdCtrls.TCheckBox)
+  TNewCheckBox=class(StdCtrls.TCheckBox)
   private
     painted: boolean;
     fCanvas: TCanvas;
     fCustomDraw: boolean;
     fOnPaint: TNotifyEvent;
-
+    procedure pp(var msg: TMessage); message WM_NOTIFY;
   protected
     procedure DefaultCustomPaint;
     procedure CreateParams(var Params: TCreateParams); override;
@@ -29,13 +30,26 @@ type
   end;
 
 
-var globalCustomDraw: boolean;
-
 implementation
 
-uses forms;
+uses forms, betterControls;
 
-procedure TCheckBox.MouseMove(Shift: TShiftState; X, Y: Integer);
+procedure TNewCheckBox.pp(var msg: TMessage);
+var
+  p1: LPNMHDR;
+begin
+  p1:=LPNMHDR(msg.lparam);
+  if p1^.code=UINT(NM_CUSTOMDRAW) then
+  begin
+    asm
+    nop
+    end;
+
+
+  end;
+end;
+
+procedure TNewCheckBox.MouseMove(Shift: TShiftState; X, Y: Integer);
 begin
   painted:=false;
 
@@ -44,7 +58,7 @@ begin
     repaint;
 end;
 
-procedure TCheckBox.FontChanged(Sender: TObject);
+procedure TNewCheckBox.FontChanged(Sender: TObject);
 begin
   if self=nil then exit;
 
@@ -61,7 +75,7 @@ begin
   inherited FontChanged(Sender);
 end;
 
-procedure TCheckBox.PaintWindow(DC: HDC);
+procedure TNewCheckBox.PaintWindow(DC: HDC);
 var
   DCChanged: boolean;
 begin
@@ -78,13 +92,15 @@ begin
   painted:=true;
 end;
 
-procedure TCheckBox.DefaultCustomPaint;
+procedure TNewCheckBox.DefaultCustomPaint;
 var
   ts: TTextStyle;
   faceColor: TColor;
   r: trect;
 
   dpiscale: single;
+
+  x: integer;
 begin
   if fcanvas.Handle<>0 then
   begin
@@ -96,17 +112,24 @@ begin
 
     fcanvas.pen.Width:=1;
     if enabled then
-      fcanvas.pen.color:=clBlack
+    begin
+      fcanvas.pen.color:=colorset.CheckboxCheckMarkColor;
+      fcanvas.brush.color:=colorset.CheckboxFillColor;
+    end
     else
-      fcanvas.pen.color:=clInactiveBorder;
+    begin
+      fcanvas.pen.color:=colorset.InactiveCheckboxCheckMarkColor;
+      fcanvas.brush.color:=colorset.InactiveCheckboxFillColor;
+    end;
 
-    fcanvas.brush.color:=clWindow;
+
     dpiscale:=Screen.PixelsPerInch/96;
 
     fcanvas.pen.width:=trunc(1*dpiscale);
     fcanvas.Pen.JoinStyle:=pjsBevel;
 
     r:=rect(trunc(dpiscale)-1,trunc(3*dpiscale),(trunc(dpiscale)-1)*2+clientheight-trunc((3*dpiscale)*2),(trunc(dpiscale)-1)+clientheight-trunc((3*dpiscale)));
+
     fcanvas.Rectangle(r);
 
     case state of
@@ -135,21 +158,24 @@ begin
 
 
     if enabled then
-      fcanvas.font.color:=clBtnText
+      fcanvas.font.color:=colorset.FontColor
     else
-      fcanvas.font.color:=clInactiveCaption;
+      fcanvas.font.color:=colorset.InactiveFontColor;
 
     ts:=fcanvas.TextStyle;
-    ts.Alignment:=taRightJustify;
-    fcanvas.TextRect(rect(0,0,width-4,height),0,(height div 2)-(fcanvas.TextHeight(caption) div 2),caption, ts);
+    ts.Alignment:=taLeftJustify;
+
+
+    x:=r.right+trunc(3*dpiscale);
+    fcanvas.TextRect(rect(0,0,width-4,height),x,(height div 2)-(fcanvas.TextHeight(caption) div 2),caption, ts);
 
 
     if self.Focused then
-      fcanvas.DrawFocusRect(rect(width-fcanvas.TextWidth(caption)-4,2,width-2,height-2));
+      fcanvas.DrawFocusRect(rect(x,2,x+fcanvas.TextWidth(caption),height-2));
   end;
 end;
 
-procedure TCheckBox.WMPaint(var Msg: TLMPaint);
+procedure TNewCheckBox.WMPaint(var Msg: TLMPaint);
 begin
   if (csDestroying in ComponentState) or (not HandleAllocated) then exit;
 
@@ -158,12 +184,14 @@ begin
   if fCustomDraw or globalCustomDraw then Exclude(FControlState, csCustomPaint);
 end;
 
-procedure TCheckBox.CreateParams(var Params: TCreateParams);
+procedure TNewCheckBox.CreateParams(var Params: TCreateParams);
 begin
   inherited CreateParams(Params);
   fcanvas:=TControlCanvas.Create;
-  //fFont:=tfont.Create;
   TControlCanvas(FCanvas).Control := Self;
+
+  if ShouldAppsUseDarkMode() then
+    fCustomDraw:=true;
 end;
 
 

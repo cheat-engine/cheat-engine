@@ -5,35 +5,118 @@ unit newButton;
 interface
 
 uses
-  windows, Classes, SysUtils, StdCtrls, LCLType, Graphics, LMessages, Controls;
+  windows, UxTheme, Classes, SysUtils, StdCtrls, LCLType, Graphics, LMessages, Controls;
 
 type
-  TButton=class(StdCtrls.TButton)
+  TNewButton=class(StdCtrls.TButton)
   private
     painted: boolean;
+    MouseIsDown: boolean;
     fCanvas: TCanvas;
     fCustomDraw: boolean;
     fOnPaint: TNotifyEvent;
 
+    fFaceColorDisabled: TColor;
+    fFaceColorUp: TColor;
+    fFaceColorDown: TColor;
+    fFaceColorHover: TColor;
+    fBorderColor: TColor;
+    fInactiveBorderColor: TColor;
+    fInactiveFontColor: TColor;
+    fPenColorHover: TColor;
+
+    fDarkMode: boolean;
+    function getColor: TColor;
   protected
+    procedure SetColor(c: TColor); override;
     procedure DefaultCustomPaint;
     procedure CreateParams(var Params: TCreateParams); override;
     procedure WMPaint(var Msg: TLMPaint); message LM_PAINT;
     procedure PaintWindow(DC: HDC); override;
     procedure FontChanged(Sender: TObject); override;
     procedure MouseMove(Shift: TShiftState; X, Y: Integer); override;
+    procedure MouseDown(Button: TMouseButton; Shift: TShiftState; X, Y: Integer); override;
+    procedure MouseUp(Button: TMouseButton; Shift: TShiftState; X, Y: Integer); override;
+    procedure ChildHandlesCreated; override;
   published
     property CustomDraw: boolean read fCustomDraw write fCustomDraw;
     property OnPaint: TNotifyEvent read fOnPaint write fOnPaint;
     property Canvas: TCanvas read fCanvas;
+    property Color: TColor read getColor write setColor;
+    property FaceColorUp: TColor read fFaceColorUp write fFaceColorDown;
+    property FaceColorDown: TColor read fFaceColorDown write fFaceColorDown;
+    property FaceColorHover: TColor read fFaceColorHover write fFaceColorHover;
+    property FaceColorDisabled: TColor read fFaceColorDisabled write fFaceColorDisabled;
+    property BorderColor: TColor read fBorderColor write fBorderColor;
+    property InactiveBorderColor: TColor read fInactiveBorderColor write fInactiveBorderColor;
+    property InactiveFontColor: TColor read fInactiveFontColor write fInactiveFontColor;
   end;
 
 
-var globalCustomDraw: boolean;
 
 implementation
 
-procedure TButton.MouseMove(Shift: TShiftState; X, Y: Integer);
+uses betterControls;
+
+procedure TNewButton.ChildHandlesCreated;
+begin
+  inherited ChildHandlesCreated;
+  if Parent<>nil then
+  begin
+    AllowDarkModeForWindow(handle, 1);
+    SetWindowTheme(handle, 'EXPLORER', nil);
+  end;
+end;
+
+function TNewButton.getColor: Tcolor;
+begin
+  result:=inherited color;
+end;
+
+procedure TNewButton.setColor(c: TColor);
+var
+  newc: longint;
+  r,g,b: byte;
+begin
+  inherited setColor(c);
+
+  //setting color means default display
+  fFaceColorUp:=c;
+
+  fFaceColorDisabled:=clDark;
+  fBorderColor:=clActiveBorder;
+  fPenColorHover:=clBlue;
+  fInactiveBorderColor:=clInactiveBorder;
+  fInactiveFontColor:=clInactiveCaption;
+
+
+  if (c=clDefault) or (c=0) then
+  begin
+    //default color
+    fFaceColorDown:=c;
+    fFaceColorHover:=clBtnHiLight;
+
+
+  end
+  else
+  begin
+    fFaceColorDown:=DecColor(c,14);
+
+    //there is no incColor, and -14 is not the same
+    newc:=ColorToRGB(c);
+    r:=Red(newc);
+    g:=Green(newc);
+    b:=Blue(newc);
+    if r<255 then inc(r,14) else r:=255;
+    if g<255 then inc(g,14) else g:=255;
+    if b<255 then inc(b,14) else b:=255;
+    fFaceColorHover:=RGBToColor(r,g,b);
+  end;
+
+end;
+
+
+procedure TNewButton.MouseMove(Shift: TShiftState; X, Y: Integer);
 begin
   painted:=false;
 
@@ -42,7 +125,19 @@ begin
     repaint;
 end;
 
-procedure TButton.FontChanged(Sender: TObject);
+procedure TNewButton.MouseDown(Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+begin
+  inherited;
+  MouseIsDown:=true;
+end;
+
+procedure TNewButton.MouseUp(Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+begin
+  inherited;
+  MouseIsDown:=false;
+end;
+
+procedure TNewButton.FontChanged(Sender: TObject);
 begin
   if self=nil then exit;
 
@@ -59,7 +154,7 @@ begin
   inherited FontChanged(Sender);
 end;
 
-procedure TButton.PaintWindow(DC: HDC);
+procedure TNewButton.PaintWindow(DC: HDC);
 var
   DCChanged: boolean;
 begin
@@ -76,23 +171,31 @@ begin
   painted:=true;
 end;
 
-procedure TButton.DefaultCustomPaint;
+procedure TNewButton.DefaultCustomPaint;
 var
   ts: TTextStyle;
   faceColor: TColor;
+   GKS: TShiftState;
 begin
   if fcanvas.Handle<>0 then
   begin
     if enabled then
     begin
       if self.MouseInClient then
-        facecolor:=clBtnHighlight
+      begin
+        borderColor:=fpenColorHover;
+
+        if MouseIsDown then
+          facecolor:=fFaceColorDown
+        else
+          facecolor:=fFaceColorHover;
+      end
       else
-        facecolor:=GetSysColor(CTLCOLOR_BTN); //  clBtnFace;
+        facecolor:=fFaceColorUp;
       end
     else
     begin
-      facecolor:=clDark;
+      facecolor:=fFaceColorDisabled;
     end;
 
     fcanvas.brush.style:=bsSolid;
@@ -101,16 +204,16 @@ begin
 
     fcanvas.pen.Width:=1;
     if enabled then
-      fcanvas.pen.color:=clActiveBorder
+      fcanvas.pen.color:=fBorderColor
     else
-      fcanvas.pen.color:=clInactiveBorder;
+      fcanvas.pen.color:=fInactiveBorderColor;
 
     fcanvas.Rectangle(0,0,clientwidth,clientheight);
 
     if enabled then
-      fcanvas.font.color:=clBtnText
+      fcanvas.font.color:=font.color
     else
-      fcanvas.font.color:=clInactiveCaption;
+      fcanvas.font.color:=fInactiveFontcolor;
 
     ts:=fcanvas.TextStyle;
     ts.Alignment:=taCenter;
@@ -126,22 +229,23 @@ begin
   end;
 end;
 
-procedure TButton.WMPaint(var Msg: TLMPaint);
+procedure TNewButton.WMPaint(var Msg: TLMPaint);
 begin
   if (csDestroying in ComponentState) or (not HandleAllocated) then exit;
 
-  if fCustomDraw or globalCustomDraw then Include(FControlState, csCustomPaint);
+  if (not fdarkmode) and (fCustomDraw or globalCustomDraw) then Include(FControlState, csCustomPaint);
   inherited WMPaint(msg);
-  if fCustomDraw or globalCustomDraw then Exclude(FControlState, csCustomPaint);
+  if (not fdarkmode) and (fCustomDraw or globalCustomDraw) then Exclude(FControlState, csCustomPaint);
 end;
 
-procedure TButton.CreateParams(var Params: TCreateParams);
+procedure TNewButton.CreateParams(var Params: TCreateParams);
 begin
   inherited CreateParams(Params);
   fcanvas:=TControlCanvas.Create;
-  //fFont:=tfont.Create;
   TControlCanvas(FCanvas).Control := Self;
 
+  FDoubleBuffered:=true;
+  setcolor(clDefault);
 
 end;
 

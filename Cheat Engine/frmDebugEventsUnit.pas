@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, FileUtil, LResources, Forms, Controls, Graphics, Dialogs,
-  StdCtrls, ExtCtrls, Menus, newkernelhandler{$ifdef darwin},macport{$endif};
+  StdCtrls, ExtCtrls, Menus, newkernelhandler{$ifdef darwin},macport{$endif}, betterControls;
 
 
 type

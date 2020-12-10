@@ -9,7 +9,7 @@ uses LCLIntf,sysutils, classes,ComCtrls, graphics, CEFuncProc, disassembler,
      disassemblerComments, SymbolListHandler, ProcessHandlerUnit
      {$ifdef USELAZFREETYPE}
      ,LazFreeTypeIntfDrawer, EasyLazFreeType, math
-     {$endif};
+     {$endif}, betterControls;
 
 type
   TDisassemblerViewColorsState=(csUndefined=-1, csNormal=0, csHighlighted=1, csSecondaryHighlighted=2, csBreakpoint=3, csHighlightedbreakpoint=4, csSecondaryHighlightedbreakpoint=5, csUltimap=6, csHighlightedUltimap=7, csSecondaryHighlightedUltimap=8);

@@ -16,7 +16,7 @@ uses
      dialogs,forms,classes,LCLIntf, LCLProc, sysutils,registry,ComCtrls, menus,
      formsettingsunit, cefuncproc,AdvancedOptionsUnit, MemoryBrowserFormUnit,
      memscan,plugin, hotkeyhandler,frmProcessWatcherUnit, newkernelhandler,
-     debuggertypedefinitions, commonTypeDefs;
+     debuggertypedefinitions, commonTypeDefs, betterControls;
 
 const ceversion=7.2;
 

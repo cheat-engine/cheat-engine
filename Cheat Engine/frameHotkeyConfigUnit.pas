@@ -12,7 +12,7 @@ uses
   windows,
   {$endif}LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, ExtCtrls, LResources, Menus, Buttons, CEFuncProc,
-  commonTypeDefs, LCLType;
+  commonTypeDefs, LCLType, betterControls;
 
 const cehotkeycount=32;
 

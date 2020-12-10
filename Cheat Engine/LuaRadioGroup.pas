@@ -11,7 +11,7 @@ procedure initializeLuaRadioGroup;
 
 implementation
 
-uses lua, lualib, lauxlib, LuaHandler, ceguicomponents, LuaCaller, LuaGroupbox, LuaClass;
+uses lua, lualib, lauxlib, LuaHandler, ceguicomponents, LuaCaller, LuaGroupbox, LuaClass, betterControls;
 
 function createRadioGroup(L: Plua_State): integer; cdecl;
 var

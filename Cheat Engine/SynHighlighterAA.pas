@@ -425,7 +425,7 @@ uses
 {$IFDEF SYN_CLX}
   QSynEditStrConst;
 {$ELSE}
-  SynEditStrConst, registry;
+  SynEditStrConst, registry, betterControls;
 {$ENDIF}
 
 var
@@ -1284,7 +1284,7 @@ begin
     if fLuaSyntaxHighlighter=nil then
     begin
       fLuaSyntaxHighlighter:=TSynLuaSyn.Create(self);
-      fLuaSyntaxHighlighter.LoadFromRegistry(HKEY_CURRENT_USER, '\Software\Cheat Engine\Lua Highlighter');
+      fLuaSyntaxHighlighter.LoadFromRegistry(HKEY_CURRENT_USER, '\Software\Cheat Engine\Lua Highlighter'+darkmodestring);
     end;
 
     fLuaSyntaxHighlighter.AttachToLines(CurrentLines);
@@ -1874,7 +1874,7 @@ begin
   reg.free;
 
   if fLuaSyntaxHighlighter<>nil then
-    fLuaSyntaxHighlighter.LoadFromRegistry(HKEY_CURRENT_USER, '\Software\Cheat Engine\Lua Highlighter');  //perhaps make this a var
+    fLuaSyntaxHighlighter.LoadFromRegistry(HKEY_CURRENT_USER, '\Software\Cheat Engine\Lua Highlighter'+darkmodestring);  //perhaps make this a var
 
   DefHighlightChange(self);
 end;

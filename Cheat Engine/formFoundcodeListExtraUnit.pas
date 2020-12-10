@@ -12,7 +12,7 @@ uses
   {$endif}
   LResources, LCLIntf, Messages, SysUtils, Variants, Classes, Graphics,
   Controls, Forms, Dialogs, StdCtrls, Menus,Clipbrd, ExtCtrls, Buttons,
-  frmFloatingPointPanelUnit, NewKernelHandler,cefuncproc, frmStackViewUnit;
+  frmFloatingPointPanelUnit, NewKernelHandler,cefuncproc, frmStackViewUnit, betterControls;
 
 type
 

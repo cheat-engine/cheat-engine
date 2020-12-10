@@ -27,7 +27,7 @@ uses
   WinSock2, Sockets, registry, PageMap, CELazySocket,
   PointerscanNetworkCommands, resolve, pointeraddresslist, pointerscanworker,
   PointerscanStructures, PointerscanController, sqlite3conn, sqldb,
-  frmSelectionlistunit, commonTypeDefs;
+  frmSelectionlistunit, commonTypeDefs, betterControls;
 
 {$endif}
 

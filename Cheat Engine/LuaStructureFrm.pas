@@ -7,7 +7,7 @@ interface
 uses
   Classes, SysUtils, lua, lualib, lauxlib, LuaHandler, LuaCaller, symbolhandler,
   cefuncproc, newkernelhandler, Dialogs, LuaClass, LuaClassArray, commonTypeDefs,
-  Forms, StructuresFrm2, LuaStructure;
+  Forms, StructuresFrm2, LuaStructure, betterControls;
   
   
 

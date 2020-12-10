@@ -16,6 +16,7 @@ uses
   macport, macportdefines,coresymbolication, macexceptiondebuggerinterface,
   macCreateRemoteThread, macumm, machotkeys, macPipe,
   {$endif}
+  betterControls,
   controls, sysutils, Forms, LazUTF8, dialogs, SynCompletion, MainUnit,
   CEDebugger, NewKernelHandler, CEFuncProc, ProcessHandlerUnit, symbolhandler,
   Assemblerunit, hypermode, byteinterpreter, addressparser, autoassembler,
@@ -279,6 +280,8 @@ begin
   outputdebugstring('start');
 
   Application.Initialize;
+
+  registerDarkModeHintHandler;
 
 
   overridefont:=nil;

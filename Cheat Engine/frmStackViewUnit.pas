@@ -13,7 +13,7 @@ uses
   {$endif}
   cefuncproc, newkernelhandler, Classes, SysUtils, FileUtil, LResources,
   Forms, Controls, Graphics, Dialogs, StdCtrls, Menus, stacktrace2, Clipbrd, ComCtrls,
-  strutils, frmSelectionlistunit, maps;
+  strutils, frmSelectionlistunit, maps, betterControls;
 
 type
 

@@ -30,7 +30,7 @@ uses {$ifdef darwin}macport,messages,lcltype,{$endif}
      ,cefreetype,FPCanvas, EasyLazFreeType, LazFreeTypeFontCollection, LazFreeTypeIntfDrawer,
      LazFreeTypeFPImageDrawer, IntfGraphics, fpimage, graphtype
      {$endif}
-     ;
+     , betterControls;
 
 
 
@@ -143,6 +143,7 @@ type TDisassemblerview=class(TPanel)
     jlCallColor: TColor;
     jlConditionalJumpColor: TColor;
     jlUnConditionalJumpColor: TColor;
+    statusErrorColor: TColor;
 
     LastFormActiveEvent: qword;
 
@@ -758,7 +759,7 @@ begin
     else
     begin
       if symhandler.haserror then
-        statusinfolabel.Font.Color:=clRed
+        statusinfolabel.Font.Color:=statusErrorColor
       else
         statusinfolabel.Font.Color:=clWindowText;
 
@@ -1243,7 +1244,7 @@ begin
     //autosize:=true;
     bevelInner:=bvLowered;
     bevelOuter:=bvLowered;
-    Color:=clWhite;
+    Color:=colorset.TextBackground;
 
     ParentFont:=false;
     Font.Charset:=DEFAULT_CHARSET;
@@ -1457,6 +1458,8 @@ begin
   jlConditionalJumpColor:=clRed;
   jlUnconditionalJumpColor:=clGreen;
   jlCallColor:=clYellow;
+
+  statusErrorColor:=clred;
 end;
 
 

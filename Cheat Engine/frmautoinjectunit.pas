@@ -15,14 +15,14 @@ uses
   disassembler, symbolhandler, symbolhandlerstructs, SynEdit, SynHighlighterCpp,
   SynHighlighterAA, LuaSyntax, SynPluginMultiCaret, SynEditSearch, tablist,
   SynGutterBase, SynEditMarks, math, SynEditMiscClasses, SynEditTextBase,
-  SynEditTextBuffer, LazSynEditText, SynEditLines, SynEditKeyCmds;
+  SynEditTextBuffer, LazSynEditText, SynEditLines, SynEditKeyCmds, betterControls;
 
 
 type
   TCallbackRoutine=procedure(memrec: TMemoryRecord; script: string; changed: boolean) of object;
   TCustomCallbackRoutine=procedure(ct: TCustomType; script: string; changed: boolean; lua: boolean) of object;
 
-  TPlusSynEdit=class(TCustomSynEdit)
+  TPlusSynEdit=class(TSynEdit)
   private
   public
     property SLines: TSynEditStrings read GetTextBuffer;
@@ -2290,6 +2290,13 @@ begin
 
   assemblescreen.OnChange:=assemblescreenchange;
 
+  assemblescreen.Color:=colorset.TextBackground;
+  assemblescreen.Font.color:=colorset.FontColor;
+  assemblescreen.Gutter.Color:=clBtnFace;
+  assemblescreen.Gutter.LineNumberPart.MarkupInfo.Background:=clBtnFace;
+  assemblescreen.Gutter.SeparatorPart.MarkupInfo.Background:=clBtnFace;
+
+
 
   setlength(x,0);
   LoadedFormPosition:=loadformposition(self,x);
@@ -3028,8 +3035,8 @@ end;
 
 procedure TfrmAutoInject.reloadHighlighterSettings;
 begin
-  LuaHighlighter.LoadFromRegistry(HKEY_CURRENT_USER, '\Software\Cheat Engine\Lua Highlighter');
-  AAHighlighter.LoadFromRegistry(HKEY_CURRENT_USER, '\Software\Cheat Engine\AA Highlighter');
+  LuaHighlighter.LoadFromRegistry(HKEY_CURRENT_USER, '\Software\Cheat Engine\Lua Highlighter'+darkmodestring);
+  AAHighlighter.LoadFromRegistry(HKEY_CURRENT_USER, '\Software\Cheat Engine\AA Highlighter'+darkmodestring);
 end;
 
 procedure TfrmAutoInject.MenuItem2Click(Sender: TObject);
@@ -3037,11 +3044,11 @@ var
   frmHighlighterEditor: TfrmHighlighterEditor;
 begin
   frmHighlighterEditor:=TfrmHighlighterEditor.create(self);
-  LuaHighlighter.LoadFromRegistry(HKEY_CURRENT_USER, '\Software\Cheat Engine\Lua Highlighter');
+  LuaHighlighter.LoadFromRegistry(HKEY_CURRENT_USER, '\Software\Cheat Engine\Lua Highlighter'+darkmodestring);
   frmHighlighterEditor.highlighter:=LuaHighlighter;
   if frmHighlighterEditor.showmodal=mrok then
   begin
-    LuaHighlighter.SaveToRegistry(HKEY_CURRENT_USER, '\Software\Cheat Engine\Lua Highlighter');
+    LuaHighlighter.SaveToRegistry(HKEY_CURRENT_USER, '\Software\Cheat Engine\Lua Highlighter'+darkmodestring);
     reloadHighlighterSettings;
     ReloadAllLuaEngineHighlighters;
   end;
@@ -3055,11 +3062,11 @@ var
   frmHighlighterEditor: TfrmHighlighterEditor;
 begin
   frmHighlighterEditor:=TfrmHighlighterEditor.create(self);
-  AAHighlighter.LoadFromRegistry(HKEY_CURRENT_USER, '\Software\Cheat Engine\AA Highlighter');
+  AAHighlighter.LoadFromRegistry(HKEY_CURRENT_USER, '\Software\Cheat Engine\AA Highlighter'+darkmodestring);
   frmHighlighterEditor.highlighter:=AAHighlighter;
   if frmHighlighterEditor.showmodal=mrok then
   begin
-    AAHighlighter.SaveToRegistry(HKEY_CURRENT_USER, '\Software\Cheat Engine\AA Highlighter');
+    AAHighlighter.SaveToRegistry(HKEY_CURRENT_USER, '\Software\Cheat Engine\AA Highlighter'+darkmodestring);
     ReloadAllAutoInjectHighlighters;
   end;
 

@@ -5,7 +5,7 @@ unit LuaEdit;
 interface
 
 uses
-  Classes, SysUtils, Controls, StdCtrls, Lua, Lualib, lauxlib;
+  Classes, SysUtils, Controls, StdCtrls, Lua, Lualib, lauxlib, betterControls;
 
 procedure edit_addMetaData(L: PLua_state; metatable: integer; userdata: integer );
 procedure initializeLuaEdit;

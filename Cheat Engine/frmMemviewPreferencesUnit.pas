@@ -12,7 +12,7 @@ uses
   macport, math
   {$endif}
   {$ifdef windows}
-  windows
+  windows, betterControls
   {$endif};
 
 type

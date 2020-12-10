@@ -12,7 +12,7 @@ uses
   windows,
   {$endif}
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs,
-  StdCtrls, ExtCtrls, math, registry;
+  StdCtrls, ExtCtrls, math, registry, betterControls;
 
 type
 

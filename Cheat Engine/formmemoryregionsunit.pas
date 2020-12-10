@@ -12,7 +12,7 @@ uses
   windows,
   {$endif}
   LCLIntf, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls,CEFuncProc, ComCtrls, Menus,OpenSave,NewKernelHandler, LResources;
+  Dialogs, StdCtrls,CEFuncProc, ComCtrls, Menus,OpenSave,NewKernelHandler, LResources, betterControls;
 
 type tmoreinfo = record
   address: ptrUint;

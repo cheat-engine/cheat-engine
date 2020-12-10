@@ -13,7 +13,7 @@ uses
   {$endif}
   Classes, SysUtils, FileUtil, LResources, Forms, Controls, Graphics,
   ExtCtrls, dialogs, StdCtrls, ComCtrls, Menus, CEFuncProc, IconStuff, zstream,
-  registry, MainUnit2, symbolhandler, lua, lualib, lauxlib;
+  registry, MainUnit2, symbolhandler, lua, lualib, lauxlib, betterControls;
 
 
 type

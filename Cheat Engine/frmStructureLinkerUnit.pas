@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls,
-  Grids, ExtCtrls, symbolhandler, StructuresFrm2, cefuncproc, newkernelhandler;
+  Grids, ExtCtrls, symbolhandler, StructuresFrm2, cefuncproc, newkernelhandler, betterControls;
 
 type
 

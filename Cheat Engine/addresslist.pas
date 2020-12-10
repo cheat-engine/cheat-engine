@@ -12,7 +12,7 @@ uses
   LCLIntf, LCLType, Classes, SysUtils, controls, stdctrls, comctrls, ExtCtrls, graphics,
   math, MemoryRecordUnit, FPCanvas, CEFuncProc, NewKernelHandler, menus,dom,
   XMLRead,XMLWrite, symbolhandler, AddresslistEditor, inputboxtopunit,
-  frmMemrecComboboxUnit, commonTypeDefs, multilineinputqueryunit, LazUTF8, StringHashList;
+  frmMemrecComboboxUnit, commonTypeDefs, multilineinputqueryunit, LazUTF8, StringHashList, betterControls;
 
 type
   TTreeviewWithScroll=class(TTreeview)
@@ -2449,6 +2449,7 @@ begin
   symhandler.AddFinishedLoadingSymbolsNotification(SymbolsLoaded);
 
 
+
   checkboxActiveSelectedColor:=clRed;
   CheckboxActiveColor:=clRed;
   CheckboxSelectedColor:=clWindowtext;
@@ -2458,6 +2459,7 @@ begin
   expandSignColor:=clWindowText;
   increaseArrowColor:=clGreen;
   decreaseArrowColor:=clRed;
+
 
 end;
 

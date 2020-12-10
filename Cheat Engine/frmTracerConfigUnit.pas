@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, FileUtil, LResources, Forms, Controls, Graphics, Dialogs,
-  StdCtrls, ExtCtrls, debuggertypedefinitions;
+  StdCtrls, ExtCtrls, debuggertypedefinitions, betterControls;
 
 type
 

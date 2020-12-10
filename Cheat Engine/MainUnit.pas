@@ -17,7 +17,7 @@ uses
   ceguicomponents,formdesignerunit,xmlutils,vartypestrings,plugin,byteinterpreter,
   MenuItemExtra,frmgroupscanalgoritmgeneratorunit
 
-  , macport,LCLVersion, UTF8Process, macportdefines;     //last one
+  , macport,LCLVersion, UTF8Process, macportdefines, betterControls;     //last one
   {$endif}
 
   {$ifdef windows}
@@ -40,7 +40,7 @@ uses
   groupscancommandparser, GraphType, IntfGraphics, RemoteMemoryManager,
   DBK64SecondaryLoader, savedscanhandler, debuggertypedefinitions, networkInterface,
   FrmMemoryRecordDropdownSettingsUnit, xmlutils, zstream, zstreamext, commonTypeDefs,
-  VirtualQueryExCache, LazLogger, LazUTF8, LCLVersion, newButton, newCheckbox, newRadioButton;
+  VirtualQueryExCache, LazLogger, LazUTF8, LCLVersion, betterControls;
   {$endif}
 //the following are just for compatibility
 
@@ -1309,7 +1309,10 @@ var
 
 procedure TFlash.Col;
 begin
-  mainform.panel7.Color := ncol;
+  if ncol=graphics.cldefault then
+    mainform.panel7.Color:=mainform.Color
+  else
+    mainform.panel7.Color := ncol;
 end;
 
 procedure TFlash.Execute;
@@ -1347,7 +1350,7 @@ begin
   end;
 
 {$endif}
-  ncol := clBtnFace;
+  ncol := graphics.cldefault;
   synchronize(col);
 end;
 
@@ -8152,6 +8155,8 @@ begin
   panel6.clientheight:=cbPauseWhileScanning.top+cbPauseWhileScanning.height+2;
   gbScanOptions.ClientHeight:=panel6.top+panel6.height+2;
 
+  fromaddress.font.name:='Courier';
+  toaddress.font.name:='Courier';
   i:=GetFontData(font.Handle).Height;
   fromaddress.Font.Height:=i;
   toaddress.Font.Height:=i;

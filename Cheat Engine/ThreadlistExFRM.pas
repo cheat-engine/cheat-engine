@@ -13,7 +13,7 @@ uses
   {$endif}
   LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, ComCtrls,NewKernelHandler,{tlhelp32,}CEFuncProc,
-  ExtCtrls, LResources;
+  ExtCtrls, LResources, betterControls;
 
 type
   TfrmThreadlistEx = class(TForm)

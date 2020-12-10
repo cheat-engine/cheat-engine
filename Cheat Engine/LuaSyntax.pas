@@ -2152,6 +2152,7 @@ begin
   reg:=tregistry.create;
   reg.RootKey:=Rootkey;
   result:=false;
+
   if reg.OpenKey(Key,false) then
   begin
     result:=true;

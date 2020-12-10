@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls,
-  ExtCtrls, CEFuncProc, Parsers, symbolhandler, ProcessHandlerUnit;
+  ExtCtrls, CEFuncProc, Parsers, symbolhandler, ProcessHandlerUnit, betterControls;
 
 type
 

@@ -13,7 +13,7 @@ uses
   {$endif}
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs,
   StdCtrls, ComCtrls, ExtCtrls, Menus, NewKernelHandler, syncobjs,
-  symbolhandler, lua, lauxlib, lualib;
+  symbolhandler, lua, lauxlib, lualib, betterControls;
 
 type
 

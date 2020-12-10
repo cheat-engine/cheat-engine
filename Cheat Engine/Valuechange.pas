@@ -12,7 +12,7 @@ uses
   windows,
   {$endif}
   LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  StdCtrls, LResources, ExtCtrls, commonTypeDefs,NewKernelHandler, CEFuncProc;
+  StdCtrls, LResources, ExtCtrls, commonTypeDefs,NewKernelHandler, CEFuncProc, betterControls;
                                        
 type
 

@@ -12,7 +12,7 @@ uses lclproc,
      windows,
      {$endif}
      classes, sysutils,LCLIntf,checklst,menus,dialogs,CEFuncProc,
-     NewKernelHandler, graphics, syncobjs, commonTypeDefs;
+     NewKernelHandler, graphics, syncobjs, commonTypeDefs, betterControls;
 
 const CurrentPluginVersion=6;
 

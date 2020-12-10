@@ -15,7 +15,7 @@ uses
   LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
   Dialogs,CEFuncProc, StdCtrls, ComCtrls, ExtCtrls, ActnList,
   Menus, LResources,symbolhandler, symbolhandlerstructs, FindDialogFix,
-  commonTypeDefs, strutils, ProcessHandlerUnit, Clipbrd;
+  commonTypeDefs, strutils, ProcessHandlerUnit, Clipbrd, betterControls;
 
 type tenumthread=class(tthread)
   public

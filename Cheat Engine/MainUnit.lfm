@@ -1,8 +1,8 @@
 object MainForm: TMainForm
   Tag = 2
-  Left = 973
+  Left = 980
   Height = 595
-  Top = 0
+  Top = 109
   Width = 620
   HelpContext = 1
   HorzScrollBar.Visible = False
@@ -285,7 +285,7 @@ object MainForm: TMainForm
       AnchorSideTop.Side = asrBottom
       AnchorSideRight.Control = Panel9
       Left = 292
-      Height = 182
+      Height = 168
       Top = 212
       Width = 200
       Anchors = [akTop, akRight]
@@ -294,12 +294,10 @@ object MainForm: TMainForm
       BorderSpacing.Top = 6
       BorderSpacing.Right = 6
       Caption = 'Memory Scan Options'
-      ClientHeight = 162
+      ClientHeight = 148
       ClientWidth = 196
-      Color = clBtnFace
       Constraints.MinWidth = 10
       Enabled = False
-      ParentColor = False
       TabOrder = 2
       OnChangeBounds = gbScanOptionsChangeBounds
       object Panel2: TPanel
@@ -310,14 +308,13 @@ object MainForm: TMainForm
         AnchorSideRight.Side = asrBottom
         Left = 0
         Height = 38
-        Top = 62
+        Top = 48
         Width = 196
         Anchors = [akTop, akLeft, akRight]
         AutoSize = True
         BevelOuter = bvNone
         ClientHeight = 38
         ClientWidth = 196
-        ParentFont = False
         PopupMenu = pmScanRegion
         TabOrder = 1
         object cbCopyOnWrite: TCheckBox
@@ -380,15 +377,14 @@ object MainForm: TMainForm
       object Panel3: TPanel
         AnchorSideRight.Side = asrBottom
         Left = 0
-        Height = 62
+        Height = 48
         Top = 0
         Width = 196
         Align = alTop
         AutoSize = True
         BevelOuter = bvNone
-        ClientHeight = 62
+        ClientHeight = 48
         ClientWidth = 196
-        ParentFont = False
         TabOrder = 0
         object Label2: TLabel
           AnchorSideLeft.Control = Panel3
@@ -396,13 +392,12 @@ object MainForm: TMainForm
           AnchorSideTop.Side = asrCenter
           Left = 5
           Height = 15
-          Top = 40
+          Top = 29
           Width = 24
           BorderSpacing.Left = 5
           Caption = 'Stop'
           Enabled = False
           ParentColor = False
-          ParentFont = False
           PopupMenu = pmResetRange
         end
         object Label1: TLabel
@@ -411,13 +406,12 @@ object MainForm: TMainForm
           AnchorSideTop.Side = asrCenter
           Left = 5
           Height = 15
-          Top = 8
+          Top = 4
           Width = 24
           BorderSpacing.Left = 5
           Caption = 'Start'
           Enabled = False
           ParentColor = False
-          ParentFont = False
           PopupMenu = pmResetRange
         end
         object ToAddress: TEdit
@@ -427,17 +421,12 @@ object MainForm: TMainForm
           AnchorSideRight.Control = FromAddress
           AnchorSideRight.Side = asrBottom
           Left = 35
-          Height = 30
-          Top = 32
+          Height = 23
+          Top = 25
           Width = 155
           Alignment = taRightJustify
           Anchors = [akTop, akLeft, akRight]
           BorderSpacing.Top = 2
-          Font.CharSet = ANSI_CHARSET
-          Font.Name = 'Courier New'
-          Font.Pitch = fpFixed
-          Font.Quality = fqDraft
-          ParentFont = False
           TabOrder = 1
           Text = 'ffffffff'
         end
@@ -448,15 +437,13 @@ object MainForm: TMainForm
           AnchorSideRight.Control = Panel3
           AnchorSideRight.Side = asrBottom
           Left = 35
-          Height = 30
+          Height = 23
           Top = 0
           Width = 155
           Alignment = taRightJustify
           Anchors = [akTop, akLeft, akRight]
           BorderSpacing.Left = 6
           BorderSpacing.Right = 6
-          Font.Name = 'Courier New'
-          ParentFont = False
           TabOrder = 0
           Text = '00000000'
         end
@@ -469,14 +456,13 @@ object MainForm: TMainForm
         AnchorSideRight.Side = asrBottom
         Left = 0
         Height = 62
-        Top = 100
+        Top = 86
         Width = 196
         Anchors = [akTop, akLeft, akRight]
         AutoSize = True
         BevelOuter = bvNone
         ClientHeight = 62
         ClientWidth = 196
-        ParentFont = False
         TabOrder = 2
         object cbFastScan: TCheckBox
           AnchorSideLeft.Control = Panel6
@@ -1154,7 +1140,6 @@ object MainForm: TMainForm
       BevelOuter = bvNone
       ClientHeight = 38
       ClientWidth = 63
-      ParentColor = False
       TabOrder = 15
       object rbBit: TRadioButton
         AnchorSideLeft.Control = pnlScanValueOptions
@@ -1632,7 +1617,6 @@ object MainForm: TMainForm
       Width = 211
       Anchors = [akTop, akLeft, akRight, akBottom]
       BorderSpacing.Bottom = 5
-      Color = clBtnFace
       Columns = <      
         item
           Caption = 'Address'

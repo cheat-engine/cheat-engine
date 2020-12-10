@@ -18,7 +18,7 @@ uses
   DBK32functions, commonTypeDefs, MemFuncs, AvgLvlTree, Math, FileMapping,
   syncobjs, CEFuncProc, registry, NewKernelHandler, LazFileUtils, disassembler,
   strutils, Clipbrd, lua, lualib, lauxlib, luaform, LuaClass, frmUltimapUnit,
-  genericHotkey;
+  genericHotkey, betterControls;
 
 
 const

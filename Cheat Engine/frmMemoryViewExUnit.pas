@@ -14,7 +14,7 @@ uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs,
   ExtCtrls, StdCtrls, ComCtrls, Menus, memdisplay, newkernelhandler, cefuncproc,
   syncobjs, math, savedscanhandler, foundlisthelper, CustomTypeHandler,
-  symbolhandler, inputboxtopunit, commonTypeDefs, GL, GLext, Types, DPIHelper;
+  symbolhandler, inputboxtopunit, commonTypeDefs, GL, GLext, Types, DPIHelper, betterControls;
 
 
 type TMVCompareMethod=(cmOr, cmXor, cmAnd);

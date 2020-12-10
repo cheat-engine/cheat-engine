@@ -14,7 +14,7 @@ uses
   LCLIntf, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls,CEFuncProc, ExtCtrls, ComCtrls, Menus, NewKernelHandler, LResources,
   disassembler, symbolhandler, byteinterpreter, CustomTypeHandler, maps, math, Clipbrd,
-  addressparser, commonTypeDefs, DBK32functions, vmxfunctions;
+  addressparser, commonTypeDefs, DBK32functions, vmxfunctions, betterControls;
 
 const
   cbDisplayTypeIndexByte=0;

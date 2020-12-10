@@ -14,7 +14,7 @@ uses
   Windows,
   {$endif}
   LCLIntf, SysUtils, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls,CEFuncProc, Menus, LResources;
+  Dialogs, StdCtrls,CEFuncProc, Menus, LResources, betterControls;
 
 type
   TformDifferentBitSize = class(TForm)

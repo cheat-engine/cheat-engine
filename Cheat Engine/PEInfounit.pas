@@ -19,7 +19,7 @@ uses
   LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
   Dialogs, CEFuncProc, NewKernelHandler, Buttons, StdCtrls, ExtCtrls,
   ComCtrls, LResources, Menus, symbolhandler, PEInfoFunctions, commonTypeDefs,
-  Clipbrd;
+  Clipbrd, betterControls;
 
 type
 

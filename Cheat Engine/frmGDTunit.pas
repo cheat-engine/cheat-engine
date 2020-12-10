@@ -6,7 +6,7 @@ interface
 
 uses
   LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
-  Dialogs, ComCtrls, LResources,CEFuncProc,NewKernelHandler, commonTypeDefs;
+  Dialogs, ComCtrls, LResources,CEFuncProc,NewKernelHandler, commonTypeDefs, betterControls;
 
 resourcestring
   rsGDTCodeSegment = 'Code Segment';

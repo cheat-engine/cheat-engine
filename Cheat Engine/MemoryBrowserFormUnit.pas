@@ -18,9 +18,9 @@ uses
   disassemblerviewunit, PEInfoFunctions ,DissectCodeThread,stacktrace2,
   NewKernelHandler, ComCtrls, LResources, byteinterpreter, StrUtils, hexviewunit,
   debughelper, debuggertypedefinitions,frmMemviewPreferencesUnit, registry,
-  ScrollBoxEx, disassemblerComments, multilineinputqueryunit, frmMemoryViewExUnit,
+  disassemblerComments, multilineinputqueryunit, frmMemoryViewExUnit,
   LastDisassembleData, ProcessHandlerUnit, commonTypeDefs, binutils,
-  fontSaveLoadRegistry, LazFileUtils, ceregistry;
+  fontSaveLoadRegistry, LazFileUtils, ceregistry, betterControls,ScrollBoxEx;
 
 
 type
@@ -561,6 +561,9 @@ type
     oldlines: integer;
     Highlightcolor: Tcolor;
 
+    fAccessedRegisterColor: TColor;
+    fChangedRegisterColor: TColor;
+
     numberofaddresses: integer;
 
 
@@ -683,6 +686,8 @@ type
     property Kernelmodesymbols1: TMenuItem read miKernelmodeSymbols;
     property Showmoduleaddresses1: TMenuItem read miShowModuleAddresses;
     property Symbolhandler1: TMenuItem read miUserdefinedSymbols;
+    property AccessedRegisterColor: TColor read faccessedRegisterColor write faccessedRegisterColor;
+    property ChangedRegisterColor: TColor read fChangedRegisterColor write fChangedRegisterColor;
   end;
 
 var
@@ -988,7 +993,7 @@ end;
 procedure TMemoryBrowser.memorypopupPopup(Sender: TObject);
 var
   m: TMemorybrowser;
-  mi: TMenuItem;
+  mi: Menus.TMenuItem;
   i,j: integer;
 
   islocked: boolean;
@@ -2633,6 +2638,9 @@ begin
   {$ifdef darwin}
   InjectDLL1.Caption:=rsInjectDYLIB;
   {$endif}
+
+  faccessedRegisterColor:=clAqua;
+  fChangedRegisterColor:=clred;
 end;
 
 procedure TMemoryBrowser.Scrollboxscroll(sender: TObject);
@@ -5531,25 +5539,25 @@ begin
 
   if (accessedreglist<>nil) then
   begin
-    if accessedreglist.IndexOf('RAX')>=0 then eaxlabel.color:=clAqua else eaxlabel.color:=clNone;
-    if accessedreglist.IndexOf('RBX')>=0 then ebxlabel.color:=clAqua else ebxlabel.color:=clNone;
-    if accessedreglist.IndexOf('RCX')>=0 then ecxlabel.color:=clAqua else ecxlabel.color:=clNone;
-    if accessedreglist.IndexOf('RDX')>=0 then edxlabel.color:=clAqua else edxlabel.color:=clNone;
-    if accessedreglist.IndexOf('RSI')>=0 then esilabel.color:=clAqua else esilabel.color:=clNone;
-    if accessedreglist.IndexOf('RDI')>=0 then edilabel.color:=clAqua else edilabel.color:=clNone;
-    if accessedreglist.IndexOf('RBP')>=0 then ebplabel.color:=clAqua else ebplabel.color:=clNone;
-    if accessedreglist.IndexOf('RSP')>=0 then esplabel.color:=clAqua else esplabel.color:=clNone;
+    if accessedreglist.IndexOf('RAX')>=0 then eaxlabel.color:=faccessedRegisterColor else eaxlabel.color:=clNone;
+    if accessedreglist.IndexOf('RBX')>=0 then ebxlabel.color:=faccessedRegisterColor else ebxlabel.color:=clNone;
+    if accessedreglist.IndexOf('RCX')>=0 then ecxlabel.color:=faccessedRegisterColor else ecxlabel.color:=clNone;
+    if accessedreglist.IndexOf('RDX')>=0 then edxlabel.color:=faccessedRegisterColor else edxlabel.color:=clNone;
+    if accessedreglist.IndexOf('RSI')>=0 then esilabel.color:=faccessedRegisterColor else esilabel.color:=clNone;
+    if accessedreglist.IndexOf('RDI')>=0 then edilabel.color:=faccessedRegisterColor else edilabel.color:=clNone;
+    if accessedreglist.IndexOf('RBP')>=0 then ebplabel.color:=faccessedRegisterColor else ebplabel.color:=clNone;
+    if accessedreglist.IndexOf('RSP')>=0 then esplabel.color:=faccessedRegisterColor else esplabel.color:=clNone;
 
     if processhandler.is64Bit then
     begin
-      if accessedreglist.IndexOf('R8')>=0 then r8label.color:=clAqua else r8label.color:=clNone;
-      if accessedreglist.IndexOf('R9')>=0 then r9label.color:=clAqua else r9label.color:=clNone;
-      if accessedreglist.IndexOf('R10')>=0 then r10label.color:=clAqua else r10label.color:=clNone;
-      if accessedreglist.IndexOf('R11')>=0 then r11label.color:=clAqua else r11label.color:=clNone;
-      if accessedreglist.IndexOf('R12')>=0 then r12label.color:=clAqua else r12label.color:=clNone;
-      if accessedreglist.IndexOf('R13')>=0 then r13label.color:=clAqua else r13label.color:=clNone;
-      if accessedreglist.IndexOf('R14')>=0 then r14label.color:=clAqua else r14label.color:=clNone;
-      if accessedreglist.IndexOf('R15')>=0 then r15label.color:=clAqua else r15label.color:=clNone;
+      if accessedreglist.IndexOf('R8')>=0 then r8label.color:=faccessedRegisterColor else r8label.color:=clNone;
+      if accessedreglist.IndexOf('R9')>=0 then r9label.color:=faccessedRegisterColor else r9label.color:=clNone;
+      if accessedreglist.IndexOf('R10')>=0 then r10label.color:=faccessedRegisterColor else r10label.color:=clNone;
+      if accessedreglist.IndexOf('R11')>=0 then r11label.color:=faccessedRegisterColor else r11label.color:=clNone;
+      if accessedreglist.IndexOf('R12')>=0 then r12label.color:=faccessedRegisterColor else r12label.color:=clNone;
+      if accessedreglist.IndexOf('R13')>=0 then r13label.color:=faccessedRegisterColor else r13label.color:=clNone;
+      if accessedreglist.IndexOf('R14')>=0 then r14label.color:=faccessedRegisterColor else r14label.color:=clNone;
+      if accessedreglist.IndexOf('R15')>=0 then r15label.color:=faccessedRegisterColor else r15label.color:=clNone;
     end;
   end;
 
@@ -5565,7 +5573,7 @@ begin
   if debuggerthread.CurrentThread=nil then
   begin
     showmessage(rsSomethingHappened);
-    beep;
+    //beep;
   end;
 
   miRunUnhandled.Enabled:=(debuggerthread.CurrentThread<>nil) and debuggerthread.CurrentThread.isUnhandledException;
@@ -5619,7 +5627,7 @@ begin
 
   if temp<>eaxlabel.Caption then
   begin
-    eaxlabel.Font.Color:=clred;
+    eaxlabel.Font.Color:=fChangedRegisterColor;
     eaxlabel.Caption:=temp;
   end else eaxlabel.Font.Color:=clWindowText;
 
@@ -5631,7 +5639,7 @@ begin
     temp:=' R1 '+IntToHex(lastdebugcontextarm.R1, charcount);
   if temp<>ebxlabel.Caption then
   begin
-    ebxlabel.Font.Color:=clred;
+    ebxlabel.Font.Color:=fChangedRegisterColor;
     ebxlabel.Caption:=temp;
   end else ebxlabel.Font.Color:=clWindowText;
 
@@ -5641,7 +5649,7 @@ begin
     temp:=' R2 '+IntToHex(lastdebugcontextarm.R2, charcount);
   if temp<>eCxlabel.Caption then
   begin
-    eCXlabel.Font.Color:=clred;
+    eCXlabel.Font.Color:=fChangedRegisterColor;
     eCXlabel.Caption:=temp;
   end else eCXlabel.Font.Color:=clWindowText;
 
@@ -5651,7 +5659,7 @@ begin
     temp:=' R3 '+IntToHex(lastdebugcontextarm.R3, charcount);
   if temp<>eDxlabel.Caption then
   begin
-    eDxlabel.Font.Color:=clred;
+    eDxlabel.Font.Color:=fChangedRegisterColor;
     eDxlabel.Caption:=temp;
   end else eDxlabel.Font.Color:=clWindowText;
 
@@ -5661,7 +5669,7 @@ begin
     temp:=' R4 '+IntToHex(lastdebugcontextarm.R4, charcount);
   if temp<>eSIlabel.Caption then
   begin
-    eSIlabel.Font.Color:=clred;
+    eSIlabel.Font.Color:=fChangedRegisterColor;
     eSIlabel.Caption:=temp;
   end else eSIlabel.Font.Color:=clWindowText;
 
@@ -5671,7 +5679,7 @@ begin
     temp:=' R5 '+IntToHex(lastdebugcontextarm.R5, charcount);
   if temp<>eDIlabel.Caption then
   begin
-    eDIlabel.Font.Color:=clred;
+    eDIlabel.Font.Color:=fChangedRegisterColor;
     eDIlabel.Caption:=temp;
   end else eDIlabel.Font.Color:=clWindowText;
 
@@ -5681,7 +5689,7 @@ begin
     temp:=' R6 '+IntToHex(lastdebugcontextarm.R6, charcount);
   if temp<>eBPlabel.Caption then
   begin
-    eBPlabel.Font.Color:=clred;
+    eBPlabel.Font.Color:=fChangedRegisterColor;
     eBPlabel.Caption:=temp;
   end else eBPlabel.Font.Color:=clWindowText;
 
@@ -5691,7 +5699,7 @@ begin
     temp:=' R7 '+IntToHex(lastdebugcontextarm.R3, charcount);
   if temp<>eSPlabel.Caption then
   begin
-    eSPlabel.Font.Color:=clred;
+    eSPlabel.Font.Color:=fChangedRegisterColor;
     eSPlabel.Caption:=temp;
   end else eSPlabel.Font.Color:=clWindowText;
 
@@ -5708,7 +5716,7 @@ begin
         backlist.Push(pointer(a64));
     end;
 
-    eIPlabel.Font.Color:=clred;
+    eIPlabel.Font.Color:=fChangedRegisterColor;
     eIPlabel.Caption:=temp;
 
 
@@ -5726,7 +5734,7 @@ begin
       temp:=' R8 '+IntToHex(lastdebugcontextarm.r8,8);
     if temp<>r8label.Caption then
     begin
-      r8label.Font.Color:=clred;
+      r8label.Font.Color:=fChangedRegisterColor;
       r8label.Caption:=temp;
     end else r8label.Font.Color:=clWindowText;
 
@@ -5736,7 +5744,7 @@ begin
       temp:=' R9 '+IntToHex(lastdebugcontextarm.r9,8);
     if temp<>r9label.Caption then
     begin
-      r9label.Font.Color:=clred;
+      r9label.Font.Color:=fChangedRegisterColor;
       r9label.Caption:=temp;
     end else r9label.Font.Color:=clWindowText;
 
@@ -5746,7 +5754,7 @@ begin
       temp:='R10 '+IntToHex(lastdebugcontextarm.r10,8);
     if temp<>r10label.Caption then
     begin
-      r10label.Font.Color:=clred;
+      r10label.Font.Color:=fChangedRegisterColor;
       r10label.Caption:=temp;
     end else r10label.Font.Color:=clWindowText;
 
@@ -5756,7 +5764,7 @@ begin
       temp:=' FP '+IntToHex(lastdebugcontextarm.FP,8);
     if temp<>r11label.Caption then
     begin
-      r11label.Font.Color:=clred;
+      r11label.Font.Color:=fChangedRegisterColor;
       r11label.Caption:=temp;
     end else r11label.Font.Color:=clWindowText;
 
@@ -5766,7 +5774,7 @@ begin
       temp:=' IP '+IntToHex(lastdebugcontextarm.IP,8);
     if temp<>r12label.Caption then
     begin
-      r12label.Font.Color:=clred;
+      r12label.Font.Color:=fChangedRegisterColor;
       r12label.Caption:=temp;
     end else r12label.Font.Color:=clWindowText;
 
@@ -5776,7 +5784,7 @@ begin
       temp:=' SP '+IntToHex(lastdebugcontextarm.SP,8);
     if temp<>r13label.Caption then
     begin
-      r13label.Font.Color:=clred;
+      r13label.Font.Color:=fChangedRegisterColor;
       r13label.Caption:=temp;
     end else r13label.Font.Color:=clWindowText;
 
@@ -5786,7 +5794,7 @@ begin
       temp:=' LR '+IntToHex(lastdebugcontextarm.LR,8);
     if temp<>r14label.Caption then
     begin
-      r14label.Font.Color:=clred;
+      r14label.Font.Color:=fChangedRegisterColor;
       r14label.Caption:=temp;
     end else r14label.Font.Color:=clWindowText;
 
@@ -5795,7 +5803,7 @@ begin
       temp:='R15 '+IntToHex(lastdebugcontext.r15,16);
       if temp<>r15label.Caption then
       begin
-        r15label.Font.Color:=clred;
+        r15label.Font.Color:=fChangedRegisterColor;
         r15label.Caption:=temp;
       end else r15label.Font.Color:=clWindowText;
     end;
@@ -5810,91 +5818,91 @@ begin
     temp:='CS '+IntToHex(lastdebugcontext.SEGCS,4);
     if temp<>CSlabel.Caption then
     begin
-      CSlabel.Font.Color:=clred;
+      CSlabel.Font.Color:=fChangedRegisterColor;
       CSlabel.Caption:=temp;
     end else CSlabel.Font.Color:=clWindowText;
 
     temp:='DS '+IntToHex(lastdebugcontext.SEGDS,4);
     if temp<>DSlabel.Caption then
     begin
-      DSlabel.Font.Color:=clred;
+      DSlabel.Font.Color:=fChangedRegisterColor;
       DSlabel.Caption:=temp;
     end else DSLabel.Font.Color:=clWindowText;
 
     temp:='SS '+IntToHex(lastdebugcontext.SEGSS,4);
     if temp<>SSlabel.Caption then
     begin
-      SSlabel.Font.Color:=clred;
+      SSlabel.Font.Color:=fChangedRegisterColor;
       SSlabel.Caption:=temp;
     end else SSlabel.Font.Color:=clWindowText;
 
     temp:='ES '+IntToHex(lastdebugcontext.SEGES,4);
     if temp<>ESlabel.Caption then
     begin
-      ESlabel.Font.Color:=clred;
+      ESlabel.Font.Color:=fChangedRegisterColor;
       ESlabel.Caption:=temp;
     end else ESlabel.Font.Color:=clWindowText;
 
     temp:='FS '+IntToHex(lastdebugcontext.SEGFS,4);
     if temp<>FSlabel.Caption then
     begin
-      FSlabel.Font.Color:=clred;
+      FSlabel.Font.Color:=fChangedRegisterColor;
       FSlabel.Caption:=temp;
     end else FSlabel.Font.Color:=clWindowText;
 
     temp:='GS '+IntToHex(lastdebugcontext.SEGGS,4);
     if temp<>GSlabel.Caption then
     begin
-      GSlabel.Font.Color:=clred;
+      GSlabel.Font.Color:=fChangedRegisterColor;
       GSlabel.Caption:=temp;
     end else GSlabel.Font.Color:=clWindowText;
 
     temp:='CF '+IntToStr(GetBit(0,lastdebugcontext.EFLAgs));
     if temp<>cflabel.Caption then
     begin
-      CFlabel.Font.Color:=clred;
+      CFlabel.Font.Color:=fChangedRegisterColor;
       CFlabel.caption:=temp;
     end else cflabel.Font.Color:=clWindowText;
 
     temp:='PF '+IntToStr(GetBit(2,lastdebugcontext.EFlags));
     if temp<>Pflabel.Caption then
     begin
-      Pflabel.Font.Color:=clred;
+      Pflabel.Font.Color:=fChangedRegisterColor;
       Pflabel.caption:=temp;
     end else Pflabel.Font.Color:=clWindowText;
 
     temp:='AF '+IntToStr(GetBit(4,lastdebugcontext.EFlags));
     if temp<>Aflabel.Caption then
     begin
-      Aflabel.Font.Color:=clred;
+      Aflabel.Font.Color:=fChangedRegisterColor;
       Aflabel.caption:=temp;
     end else Aflabel.Font.Color:=clWindowText;
 
     temp:='ZF '+IntToStr(GetBit(6,lastdebugcontext.EFlags));
     if temp<>Zflabel.Caption then
     begin
-      Zflabel.Font.Color:=clred;
+      Zflabel.Font.Color:=fChangedRegisterColor;
       Zflabel.caption:=temp;
     end else Zflabel.Font.Color:=clWindowText;
 
     temp:='SF '+IntToStr(GetBit(7,lastdebugcontext.EFlags));
     if temp<>Sflabel.Caption then
     begin
-      Sflabel.Font.Color:=clred;
+      Sflabel.Font.Color:=fChangedRegisterColor;
       Sflabel.caption:=temp;
     end else Sflabel.Font.Color:=clWindowText;
 
     temp:='DF '+IntToStr(GetBit(10,lastdebugcontext.EFlags));
     if temp<>Dflabel.Caption then
     begin
-      Dflabel.Font.Color:=clred;
+      Dflabel.Font.Color:=fChangedRegisterColor;
       Dflabel.caption:=temp;
     end else Dflabel.Font.Color:=clWindowText;
 
     temp:='OF '+IntToStr(GetBit(11,lastdebugcontext.EFlags));
     if temp<>Oflabel.Caption then
     begin
-      Oflabel.Font.Color:=clred;
+      Oflabel.Font.Color:=fChangedRegisterColor;
       Oflabel.caption:=temp;
     end else Oflabel.Font.Color:=clWindowText;
 

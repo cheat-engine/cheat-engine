@@ -18,7 +18,7 @@ uses
   {$endif}
   Classes, SysUtils, FileUtil, LResources, Forms, Controls, Graphics, Dialogs, StdCtrls, ExtCtrls, ComCtrls,
   cefuncproc, newkernelhandler, frmStringMapUnit, MemFuncs, AvgLvlTree, Menus,
-  bigmemallochandler, math, maps, oldRegExpr, symbolhandler, commonTypeDefs, lmessages, LCLIntf;
+  bigmemallochandler, math, maps, oldRegExpr, symbolhandler, commonTypeDefs, lmessages, LCLIntf, betterControls;
 
 const
   wm_sps_done=wm_user+1;

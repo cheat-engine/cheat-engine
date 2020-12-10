@@ -5,7 +5,7 @@ unit LuaGroupbox;
 interface
 
 uses
-  Classes, SysUtils, lua, lualib, lauxlib, stdctrls;
+  Classes, SysUtils, lua, lualib, lauxlib, stdctrls, betterControls;
 
   procedure initializeLuaGroupbox;
   procedure groupbox_addMetaData(L: PLua_state; metatable: integer; userdata: integer );

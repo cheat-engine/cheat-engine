@@ -13,7 +13,7 @@ uses
   {$endif}
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls,
   ExtCtrls, CustomTypeHandler, math, strutils, cefuncproc, groupscancommandparser,
-  vartypestrings, commonTypeDefs;
+  vartypestrings, commonTypeDefs, betterControls;
 
 type
   { TfrmGroupScanAlgoritmGenerator }
