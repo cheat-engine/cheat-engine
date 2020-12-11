@@ -2593,12 +2593,12 @@ begin
     s:='';
 
 
-  if selectionstart=0 then statusbar.SimpleText:='' else
+  if selectionstart=0 then statusbar.panels[0].Text:='' else
   begin
     if selected<>selected2 then
-      statusbar.SimpleText:=format('%.8x - %.8x (%d '+rsBytes+') %s',[SelectionStart, SelectionStop, SelectionStop-SelectionStart+1, s])
+      statusbar.panels[0].Text:=format('%.8x - %.8x (%d '+rsBytes+') %s',[SelectionStart, SelectionStop, SelectionStop-SelectionStart+1, s])
     else
-      statusbar.SimpleText:=format('%.8x %s',[SelectionStart, s])
+      statusbar.panels[0].Text:=format('%.8x %s',[SelectionStart, s])
   end;
 
 
@@ -2875,6 +2875,7 @@ end;
 
 constructor THexView.create(AOwner: TComponent);
 var sp: TStatusPanel;
+  p: TStatusPanel;
 begin
   inherited create(AOwner);
 
@@ -2941,8 +2942,12 @@ begin
   statusbar.SimplePanel:=true;
   statusbar.align:=alBottom;
   statusbar.parent:=self;
+  p:=statusbar.Panels.Add;
+  p.Text:='Selection: <none>';
+  p.Width:=clientwidth+9000;
 
-  statusbar.simpletext:='Selection: <none>';
+  statusbar.SimplePanel:=false;
+  //statusbar.simpletext:='Selection: <none>';
 
 
 

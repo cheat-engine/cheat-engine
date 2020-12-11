@@ -5085,7 +5085,7 @@ begin
 
   if node=nil then
   begin
-    sbSelection.SimpleText:='';
+    sbSelection.panels[0].Text:='';
   end
   else
   begin
@@ -5105,7 +5105,7 @@ begin
 
       s:=s+'=>'+inttohex(a,8);
 
-      sbSelection.SimpleText:=s;
+      sbSelection.panels[0].Text:=s;
     end;
   end;
 

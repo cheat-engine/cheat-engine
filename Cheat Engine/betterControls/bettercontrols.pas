@@ -8,7 +8,7 @@ uses
   windows,Classes, SysUtils, newRadioButton, newCheckBox, newButton, newListView,
   newEdit, newMainMenu, newForm, newListBox, newProgressBar, newMemo, newComboBox,
   newGroupBox, newSpeedButton, newTreeView, newHeaderControl, newScrollBar,
-  newScrollBox, newSynEdit, newPageControl, newtabcontrol,
+  newScrollBox, newSynEdit, newPageControl, newtabcontrol, newStatusBar,
   Graphics, Themes, UxTheme, bettercontrolColorSet;
 
 type
@@ -33,6 +33,7 @@ type
   TSynEdit=class(TNewSynEdit);
   TPageControl=class(TNewPageControl);
   TTabControl=class(TNewTabControl);
+  TStatusBar=class(TNewStatusBar);
 
 var
   globalCustomDraw: boolean;
@@ -42,6 +43,7 @@ var
 
   //color overrides
   clWindowtext: TColor=graphics.clWindowText;
+  clWindow: TColor=graphics.clWindow;
   clHighlight: TColor=graphics.clHighlight;
   clBtnFace: TColor=graphics.clBtnFace;
   clBtnText: TColor=graphics.clBtnText;
@@ -169,6 +171,8 @@ initialization
       ColorSet.InactiveCheckboxFillColor:=$999999;
       clBtnFace:=inccolor(ColorSet.TextBackground,8);
       clBtnText:=ColorSet.FontColor;
+
+      clWindow:=colorset.TextBackground;
 
       ColorSet.CheckboxCheckMarkColor:=InvertColor(ColorSet.CheckboxFillColor);
       ColorSet.InactiveCheckboxCheckMarkColor:=InvertColor(ColorSet.CheckboxCheckMarkColor);

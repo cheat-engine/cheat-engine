@@ -161,6 +161,7 @@ object ProcessWindow: TProcessWindow
     Height = 208
     Top = 32
     Width = 267
+    BorderStyle = bsNone
     ItemHeight = 0
     OnDblClick = OKButtonClick
     OnDrawItem = ProcessListDrawItem

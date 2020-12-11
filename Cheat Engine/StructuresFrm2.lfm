@@ -92,7 +92,11 @@ object frmStructures2: TfrmStructures2
     Height = 23
     Top = 466
     Width = 542
-    Panels = <>
+    Panels = <    
+      item
+        Width = 50
+      end>
+    SimplePanel = False
   end
   object MainMenu1: TMainMenu
     Images = sdImageList

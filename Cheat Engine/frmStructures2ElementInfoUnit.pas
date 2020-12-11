@@ -315,6 +315,8 @@ end;
 procedure TfrmStructures2ElementInfo.FormCreate(Sender: TObject);
 var i: integer;
 begin
+  pnlBackground.color:=clWindow;
+
   while cbStructType.items.count>1 do
     cbStructType.Items.Delete(1);
 
