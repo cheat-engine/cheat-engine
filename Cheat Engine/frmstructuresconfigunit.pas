@@ -323,7 +323,7 @@ begin
 
       if customfont then
       begin
-        if Reg.OpenKey('\Software\Cheat Engine\DissectData\Font',true) then
+        if Reg.OpenKey('\Software\Cheat Engine\DissectData\Font'+darkmodestring,true) then
           SaveFontToRegistry(groupbox1.Font, reg);
       end;
     end;
@@ -416,7 +416,7 @@ begin
       if reg.ValueExists('Position Addresses Over Columns') then cbPositionAddressesOverColumns.checked:=reg.ReadBool('Position Addresses Over Columns');
 
 
-      if Reg.OpenKey('\Software\Cheat Engine\DissectData\Font',false) then
+      if Reg.OpenKey('\Software\Cheat Engine\DissectData\Font'+darkmodestring,false) then
       begin
         LoadFontFromRegistry(groupbox1.Font,reg);
         fcustomfont:=true;

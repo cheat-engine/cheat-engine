@@ -608,7 +608,7 @@ begin
 
   reg:=tregistry.create;
   try
-    if reg.OpenKey('\Software\Cheat Engine\Process Window\Font',false) then
+    if reg.OpenKey('\Software\Cheat Engine\Process Window\Font'+darkmodestring,false) then
       LoadFontFromRegistry(processlist.Font, reg);
 
 
@@ -654,7 +654,7 @@ begin
 
     reg:=tregistry.create;
     try
-      if reg.OpenKey('\Software\Cheat Engine\Process Window\Font',true) then
+      if reg.OpenKey('\Software\Cheat Engine\Process Window\Font'+darkmodestring,true) then
         SaveFontToRegistry(FontDialog1.Font, reg);
 
 

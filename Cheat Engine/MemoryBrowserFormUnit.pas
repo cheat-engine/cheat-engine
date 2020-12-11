@@ -2295,7 +2295,7 @@ begin
       reg.writeInteger('jlSpacing', disassemblerview.jlSpacing);
     end;
 
-    if reg.OpenKey('\Software\Cheat Engine\Disassemblerview '+inttostr(screen.PixelsPerInch)+'\Font',true) then
+    if reg.OpenKey('\Software\Cheat Engine\Disassemblerview '+inttostr(screen.PixelsPerInch)+'\Font'+darkmodestring,true) then
       SaveFontToRegistry(disassemblerview.font, reg);
 
     if reg.OpenKey('\Software\Cheat Engine\Hexview '+inttostr(screen.PixelsPerInch),true) then
@@ -2304,10 +2304,10 @@ begin
       reg.WriteBool('showStatusBar', hexview.statusbar.Visible);
     end;
 
-    if reg.OpenKey('\Software\Cheat Engine\Hexview '+inttostr(screen.PixelsPerInch)+'\Font',true) then
+    if reg.OpenKey('\Software\Cheat Engine\Hexview '+inttostr(screen.PixelsPerInch)+'\Font'+darkmodestring,true) then
       SaveFontToRegistry(hexview.hexfont, reg);
 
-    if reg.OpenKey('\Software\Cheat Engine\RegisterView '+inttostr(screen.PixelsPerInch)+'\Font',true) then
+    if reg.OpenKey('\Software\Cheat Engine\RegisterView '+inttostr(screen.PixelsPerInch)+'\Font'+darkmodestring,true) then
       SaveFontToRegistry(scrollbox1.Font, reg);
 
   finally
@@ -2481,7 +2481,7 @@ begin
   f:=TFont.create;
   reg:=Tregistry.Create;
   try
-    if reg.OpenKey('\Software\Cheat Engine\Disassemblerview '+inttostr(screen.PixelsPerInch)+'\Font',false) then
+    if reg.OpenKey('\Software\Cheat Engine\Disassemblerview '+inttostr(screen.PixelsPerInch)+'\Font'+darkmodestring,false) then
     begin
       LoadFontFromRegistry(f, reg);
       disassemblerview.font:=f;
@@ -2533,13 +2533,13 @@ begin
 
     end;
 
-    if reg.OpenKey('\Software\Cheat Engine\Hexview '+inttostr(screen.PixelsPerInch)+'\Font',false) then
+    if reg.OpenKey('\Software\Cheat Engine\Hexview '+inttostr(screen.PixelsPerInch)+'\Font'+darkmodestring,false) then
     begin
       LoadFontFromRegistry(f, reg);
       hexview.hexfont:=f;
     end;
 
-    if reg.OpenKey('\Software\Cheat Engine\RegisterView '+inttostr(screen.PixelsPerInch)+'\Font',false) then
+    if reg.OpenKey('\Software\Cheat Engine\RegisterView '+inttostr(screen.PixelsPerInch)+'\Font'+darkmodestring,false) then
     begin
       LoadFontFromRegistry(f, reg);
 //      scrollbox1.Font:=f;

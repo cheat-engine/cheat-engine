@@ -3605,7 +3605,7 @@ begin
     try
       Reg.RootKey := HKEY_CURRENT_USER;
 
-      if Reg.OpenKey('\Software\Cheat Engine\FoundList', True) then
+      if Reg.OpenKey('\Software\Cheat Engine\FoundList'+darkmodestring, True) then
       begin
         reg.WriteInteger('FoundList.NormalValueColor', foundlistcolors.NormalValueColor);
         reg.WriteInteger('FoundList.ChangedValueColor', foundlistcolors.ChangedValueColor);
@@ -8161,7 +8161,7 @@ begin
   fromaddress.Font.Height:=i;
   toaddress.Font.Height:=i;
 
-  if Reg.OpenKey('\Software\Cheat Engine\FoundList', false) then
+  if Reg.OpenKey('\Software\Cheat Engine\FoundList'+darkmodestring, false) then
   begin
     if reg.ValueExists('FoundList.NormalValueColor') then foundlistcolors.NormalValueColor:=reg.ReadInteger('FoundList.NormalValueColor');
     if reg.ValueExists('FoundList.ChangedValueColor') then foundlistcolors.ChangedValueColor:=reg.ReadInteger('FoundList.ChangedValueColor');

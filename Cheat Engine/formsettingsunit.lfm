@@ -1,7 +1,7 @@
 object formSettings: TformSettings
-  Left = 436
+  Left = 415
   Height = 608
-  Top = 0
+  Top = 131
   Width = 810
   AutoSize = True
   BorderIcons = [biSystemMenu]
@@ -762,16 +762,16 @@ object formSettings: TformSettings
       end
       object Unrandomizer: TTabSheet
         Caption = 'Unrandomizer'
-        ClientHeight = 608
-        ClientWidth = 654
+        ClientHeight = 541
+        ClientWidth = 652
         ImageIndex = 8
         object Label5: TLabel
           AnchorSideLeft.Control = Unrandomizer
           AnchorSideTop.Control = edtDefault
           Left = 8
-          Height = 16
+          Height = 15
           Top = 11
-          Width = 119
+          Width = 104
           BorderSpacing.Left = 8
           BorderSpacing.Top = 3
           Caption = 'Default return value'
@@ -781,8 +781,8 @@ object formSettings: TformSettings
           AnchorSideLeft.Control = Label5
           AnchorSideLeft.Side = asrBottom
           AnchorSideTop.Control = Unrandomizer
-          Left = 130
-          Height = 21
+          Left = 115
+          Height = 23
           Top = 8
           Width = 149
           BorderSpacing.Left = 3
@@ -795,9 +795,9 @@ object formSettings: TformSettings
           AnchorSideTop.Control = edtDefault
           AnchorSideTop.Side = asrBottom
           Left = 8
-          Height = 18
-          Top = 29
-          Width = 122
+          Height = 19
+          Top = 31
+          Width = 114
           Caption = 'Incremental value'
           TabOrder = 1
         end
@@ -1228,8 +1228,8 @@ object formSettings: TformSettings
       end
       object Languages: TTabSheet
         Caption = 'Languages'
-        ClientHeight = 608
-        ClientWidth = 654
+        ClientHeight = 541
+        ClientWidth = 652
         object Panel1: TPanel
           AnchorSideLeft.Control = Languages
           AnchorSideTop.Control = Languages
@@ -1238,22 +1238,22 @@ object formSettings: TformSettings
           AnchorSideBottom.Control = Languages
           AnchorSideBottom.Side = asrBottom
           Left = 0
-          Height = 608
+          Height = 541
           Top = 0
-          Width = 654
+          Width = 652
           Anchors = [akTop, akLeft, akRight, akBottom]
           BevelOuter = bvNone
-          ClientHeight = 608
-          ClientWidth = 654
+          ClientHeight = 541
+          ClientWidth = 652
           TabOrder = 0
           object cbShowLanguageMenuItem: TCheckBox
             AnchorSideLeft.Control = Panel1
             AnchorSideBottom.Control = Panel1
             AnchorSideBottom.Side = asrBottom
             Left = 0
-            Height = 18
-            Top = 590
-            Width = 334
+            Height = 19
+            Top = 522
+            Width = 312
             Anchors = [akLeft, akBottom]
             Caption = 'Show language selection menu item at the main screen'
             TabOrder = 0
@@ -1265,9 +1265,9 @@ object formSettings: TformSettings
             AnchorSideRight.Control = Panel10
             AnchorSideBottom.Control = cbShowLanguageMenuItem
             Left = 0
-            Height = 574
-            Top = 16
-            Width = 516
+            Height = 507
+            Top = 15
+            Width = 532
             Anchors = [akTop, akLeft, akRight, akBottom]
             ItemHeight = 0
             OnDblClick = btnSelectLanguageClick
@@ -1278,9 +1278,9 @@ object formSettings: TformSettings
             AnchorSideLeft.Control = Panel1
             AnchorSideTop.Control = Panel1
             Left = 0
-            Height = 16
+            Height = 15
             Top = 0
-            Width = 226
+            Width = 197
             Caption = 'The folowing languages are available:'
             ParentColor = False
           end
@@ -1289,15 +1289,15 @@ object formSettings: TformSettings
             AnchorSideTop.Side = asrBottom
             AnchorSideRight.Control = Panel1
             AnchorSideRight.Side = asrBottom
-            Left = 516
-            Height = 64
-            Top = 16
-            Width = 138
+            Left = 532
+            Height = 67
+            Top = 15
+            Width = 120
             Anchors = [akTop, akRight]
             AutoSize = True
             BevelOuter = bvNone
-            ClientHeight = 64
-            ClientWidth = 138
+            ClientHeight = 67
+            ClientWidth = 120
             TabOrder = 2
             object btnSelectLanguage: TButton
               AnchorSideLeft.Control = Panel10
@@ -1306,9 +1306,9 @@ object formSettings: TformSettings
               AnchorSideRight.Control = Panel10
               AnchorSideRight.Side = asrBottom
               Left = 4
-              Height = 20
-              Top = 44
-              Width = 130
+              Height = 25
+              Top = 42
+              Width = 112
               Anchors = [akTop, akLeft, akRight]
               AutoSize = True
               BorderSpacing.Left = 4
@@ -1322,9 +1322,9 @@ object formSettings: TformSettings
               AnchorSideLeft.Control = Panel10
               AnchorSideTop.Control = Panel10
               Left = 4
-              Height = 16
+              Height = 15
               Top = 0
-              Width = 113
+              Width = 98
               BorderSpacing.Left = 4
               BorderSpacing.Right = 4
               Caption = 'Current Language:'
@@ -1337,9 +1337,9 @@ object formSettings: TformSettings
               AnchorSideRight.Control = Panel10
               AnchorSideRight.Side = asrBottom
               Left = 4
-              Height = 16
-              Top = 22
-              Width = 130
+              Height = 15
+              Top = 21
+              Width = 112
               Alignment = taCenter
               Anchors = [akTop, akLeft, akRight]
               BorderSpacing.Left = 4

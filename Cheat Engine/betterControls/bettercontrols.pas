@@ -8,7 +8,7 @@ uses
   windows,Classes, SysUtils, newRadioButton, newCheckBox, newButton, newListView,
   newEdit, newMainMenu, newForm, newListBox, newProgressBar, newMemo, newComboBox,
   newGroupBox, newSpeedButton, newTreeView, newHeaderControl, newScrollBar,
-  newScrollBox, newSynEdit,
+  newScrollBox, newSynEdit, newPageControl, newtabcontrol,
   Graphics, Themes, UxTheme, bettercontrolColorSet;
 
 type
@@ -31,6 +31,8 @@ type
   TScrollBar=class(TNewScrollBar);
   TScrollBox=class(TNewScrollBox);
   TSynEdit=class(TNewSynEdit);
+  TPageControl=class(TNewPageControl);
+  TTabControl=class(TNewTabControl);
 
 var
   globalCustomDraw: boolean;
