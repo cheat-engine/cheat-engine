@@ -77,6 +77,9 @@ var oldc: tcolor;
 
   bmp: Tbitmap;
   ts: TTextStyle;
+
+  i: integer;
+  lastvisible: integer;
 begin
  // acanvas.Brush.color:=clBlue;
   result:=inherited DoDrawItem(ACanvas, ARect, AState);
@@ -89,7 +92,15 @@ begin
       oldc:=acanvas.Brush.color;
       acanvas.Brush.color:=$313131;
 
-      if MenuIndex=parent.count-1 then //name='MenuItem3' then
+      lastvisible:=-1;
+      for i:=parent.count-1 downto 0 do
+        if parent[i].Visible then
+        begin
+          lastvisible:=i;
+          break;
+        end;
+
+      if MenuIndex=lastvisible then //name='MenuItem3' then
         ARect.Width:=tcustomform(owner).width;
       acanvas.FillRect(arect);
 

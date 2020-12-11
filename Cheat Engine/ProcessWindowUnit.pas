@@ -609,7 +609,9 @@ begin
   reg:=tregistry.create;
   try
     if reg.OpenKey('\Software\Cheat Engine\Process Window\Font'+darkmodestring,false) then
-      LoadFontFromRegistry(processlist.Font, reg);
+      LoadFontFromRegistry(processlist.Font, reg)
+    else
+      processlist.font.color:=colorset.FontColor;
 
 
   finally
@@ -1046,6 +1048,7 @@ begin
   end;
 
 
+  processlist.Canvas.font.color:=processlist.font.color;
   processlist.Canvas.TextOut(rect.Left+rect.Bottom-rect.Top+3,rect.Top,t);
   {$ifdef windows}
   if getprocessicons and (processlist.Items.Objects[index]<>nil) then
