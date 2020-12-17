@@ -9,6 +9,7 @@ uses
   newEdit, newMainMenu, newForm, newListBox, newProgressBar, newMemo, newComboBox,
   newGroupBox, newSpeedButton, newTreeView, newHeaderControl, newScrollBar,
   newScrollBox, newSynEdit, newPageControl, newtabcontrol, newStatusBar,
+  newCheckListBox,
   Graphics, Themes, UxTheme, bettercontrolColorSet;
 
 type
@@ -34,6 +35,7 @@ type
   TPageControl=class(TNewPageControl);
   TTabControl=class(TNewTabControl);
   TStatusBar=class(TNewStatusBar);
+  TCheckListbox=class(TNewCheckListBox);
 
 var
   globalCustomDraw: boolean;
@@ -149,7 +151,7 @@ initialization
   if not assigned(FlushMenuThemes) then FlushMenuThemes:=@RefreshImmersiveColorPolicyState_stub;
   if not assigned(ShouldAppsUseDarkMode) then ShouldAppsUseDarkMode:=@ShouldAppsUseDarkMode_stub;
 
-  AllowDarkModeForApp(1);
+  AllowDarkModeForApp(1);  //2 is disable, 3=force on
   FlushMenuThemes;
   RefreshImmersiveColorPolicyState;
 
@@ -167,7 +169,7 @@ initialization
 
     if ShouldAppsUseDarkMode() then
     begin
-      ColorSet.CheckboxFillColor:=$f0f0f0;
+      ColorSet.CheckboxFillColor:=$e8e8e8;
       ColorSet.InactiveCheckboxFillColor:=$999999;
       clBtnFace:=inccolor(ColorSet.TextBackground,8);
       clBtnText:=ColorSet.FontColor;

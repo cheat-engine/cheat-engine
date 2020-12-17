@@ -522,6 +522,8 @@ type
   private
     { Private declarations }
 
+    hasBeenShown: boolean;
+
     R8Label: TLabel;
     R9Label: TLabel;
     R10Label: TLabel;
@@ -2383,6 +2385,8 @@ begin
   //need to adjust the formsize to trigger a repaint
   BoundsRect:=BoundsRect;
   {$endif}
+
+  HasBeenShown:=true;
 end;
 
 procedure TMemoryBrowser.disassemblerviewDblClick(Sender: TObject);
@@ -4343,7 +4347,7 @@ begin
 
   //save position of window and other stuff
   //membrowser comes after formsettings so is destroyed before formsettings, so valid
-  //if (not ischild) then
+  if hasBeenShown then
   begin
     if self.disassemblerview<>nil then
     begin

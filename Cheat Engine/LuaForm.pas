@@ -328,6 +328,8 @@ begin
     f:=TCEForm.Createnew(nil);   //6.3: was application
     f.LoadFromFile(filename);
 
+
+
     luaclass_newClass(L, f);
     result:=1;
   end

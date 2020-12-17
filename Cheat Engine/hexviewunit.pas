@@ -2939,14 +2939,14 @@ begin
   statusbar.ParentFont:=true;
   statusbar.AutoSize:=false;
   statusbar.Name:='statusbar';
-  statusbar.SimplePanel:=true;
+  statusbar.SimplePanel:=false;
   statusbar.align:=alBottom;
   statusbar.parent:=self;
   p:=statusbar.Panels.Add;
   p.Text:='Selection: <none>';
   p.Width:=clientwidth+9000;
 
-  statusbar.SimplePanel:=false;
+  statusbar.font.color:=clWindowtext;
   //statusbar.simpletext:='Selection: <none>';
 
 

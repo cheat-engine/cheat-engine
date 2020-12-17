@@ -1409,6 +1409,13 @@ begin
     else
       raise exception.create(rsInvalidFormData);
   end;
+
+  if ShouldAppsUseDarkMode() then
+    if color=clDefault then
+    begin
+      color:=clWindow;
+      font.color:=clWindowtext;
+    end;
 end;
 
 procedure TCEForm.LoadFromFileLFM(filename: string);
@@ -1426,6 +1433,13 @@ begin
   ms.Destroy;
 
   active:=wasActive;
+
+  if ShouldAppsUseDarkMode() then
+    if color=clDefault then
+    begin
+      color:=clWindow;
+      font.color:=clWindowtext;
+    end;
 end;
 
 procedure TCEForm.paint;

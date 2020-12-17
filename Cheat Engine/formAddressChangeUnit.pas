@@ -505,7 +505,7 @@ begin
     if fInvalidOffset then
       edtOffset.Font.Color:=clRed
     else
-      edtOffset.Font.Color:=clDefault;
+      edtOffset.Font.Color:=clWindowtext;
   end;
 end;
 
@@ -616,7 +616,10 @@ begin
   lblPointerAddressToValue.Caption:=' ';
   lblPointerAddressToValue.popupmenu:=parentPointer.owner.pmPointerRow;
   lblPointerAddressToValue.Tag:=ptruint(self);
-  lblPointerAddressToValue.Font.Color:=clBlue;
+  if ShouldAppsUseDarkMode() then
+    lblPointerAddressToValue.Font.Color:=$ff7f00 //inccolor(clBlue,32)
+  else
+    lblPointerAddressToValue.Font.Color:=clBlue;
   lblPointerAddressToValue.Font.Underline:=true;
 
   //an offset editbox
@@ -801,7 +804,7 @@ begin
   if fInvalidBaseAddress then
     baseAddress.Font.Color:=clRed
   else
-    baseAddress.Font.Color:=clDefault;
+    baseAddress.Font.Color:=clWindowtext;
 
   processAddress;
 end;
@@ -1486,7 +1489,7 @@ begin
 
     //editAddress.enabled:=true;
     editAddress.ReadOnly:=false;
-    editAddress.Color:=clDefault;
+    editAddress.Color:=clWindow;
 
     if pointerinfo<>nil then
       freeandnil(pointerinfo);

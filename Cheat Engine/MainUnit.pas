@@ -8176,10 +8176,10 @@ begin
   end
   else
   begin
-    foundlistColors.NormalValueColor:=GetSysColor(COLOR_WINDOWTEXT);
+    foundlistColors.NormalValueColor:=clWindowtext;
     foundlistColors.ChangedValueColor:=clRed;
     foundlistColors.StaticColor:=clGreen;
-    foundlistColors.DynamicColor:=GetSysColor(COLOR_WINDOWTEXT);
+    foundlistColors.DynamicColor:=clWindowtext;
     showStaticAsStatic:=true;
     Foundlist3.Font.Height:=i;
   end;

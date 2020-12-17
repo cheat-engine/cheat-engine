@@ -1301,6 +1301,7 @@ var
   i: integer;
   host, port: string;
 begin
+  panel3.color:=clWindow;
   ComboBox1.Items.Clear;
   with ComboBox1.items do
   begin

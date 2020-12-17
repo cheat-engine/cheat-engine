@@ -293,6 +293,8 @@ begin
   ARect.Left += 2;
   ARect.Right -= 2;
 
+  Canvas.font.color:=clWindowtext;
+
   OldTextStyle := Canvas.TextStyle;
   NewTextStyle.Layout:= tlCenter;
 

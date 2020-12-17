@@ -44,13 +44,18 @@ type
     GroupBox4: TGroupBox;
     GroupBox5: TGroupBox;
     GroupBox6: TGroupBox;
+    GroupBox7: TGroupBox;
     Label1: TLabel;
+    Label10: TLabel;
+    Label11: TLabel;
     Label2: TLabel;
     Label3: TLabel;
     Label4: TLabel;
     Label5: TLabel;
     Label6: TLabel;
     Label7: TLabel;
+    Label8: TLabel;
+    Label9: TLabel;
     lblConditionalJump: TLabel;
     lblRegisterExample: TLabel;
     lblUnconditionalJump: TLabel;
@@ -218,6 +223,7 @@ begin
   applyfont;
 
   oldstate:=csUndefined;
+  cbColorGroup.itemindex:=0;
   cbColorGroupChange(cbColorGroup);
 
   //

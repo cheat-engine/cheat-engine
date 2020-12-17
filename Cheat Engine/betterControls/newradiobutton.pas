@@ -83,6 +83,8 @@ var
   r: trect;
 
   dpiscale: single;
+
+  x: integer;
 begin
   if fcanvas.Handle<>0 then
   begin
@@ -133,11 +135,12 @@ begin
 
     ts:=fcanvas.TextStyle;
     ts.Alignment:=taRightJustify;
-    fcanvas.TextRect(rect(0,0,width-4,height),0,(height div 2)-(fcanvas.TextHeight(caption) div 2),caption, ts);
+    x:=r.right+trunc(3*dpiscale);
+    fcanvas.TextRect(rect(0,0,width-4,height),x,(height div 2)-(fcanvas.TextHeight(caption) div 2),caption, ts);
 
 
     if self.Focused then
-      fcanvas.DrawFocusRect(rect(width-fcanvas.TextWidth(caption)-4,2,width-2,height-2));
+      fcanvas.DrawFocusRect(rect(x,2,x+fcanvas.TextWidth(caption),height-2));
   end;
 end;
 

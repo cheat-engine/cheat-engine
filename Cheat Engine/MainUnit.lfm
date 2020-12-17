@@ -1,8 +1,8 @@
 object MainForm: TMainForm
   Tag = 2
-  Left = 980
+  Left = 879
   Height = 595
-  Top = 109
+  Top = 203
   Width = 620
   HelpContext = 1
   HorzScrollBar.Visible = False
@@ -134,7 +134,6 @@ object MainForm: TMainForm
       BorderSpacing.Left = 2
       Caption = '0'
       ParentColor = False
-      ParentFont = False
       ParentShowHint = False
       ShowHint = True
     end
@@ -223,7 +222,6 @@ object MainForm: TMainForm
       Width = 37
       Caption = 'Found:'
       ParentColor = False
-      ParentFont = False
     end
     object SpeedButton2: TSpeedButton
       AnchorSideLeft.Control = Panel5

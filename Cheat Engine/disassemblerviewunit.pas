@@ -1398,13 +1398,23 @@ begin
 end;
 
 procedure TDisassemblerview.getDefaultColors(var c: Tdisassemblerviewcolors);
+var defaultHexColor: TColor;
 begin
   //setup the default colors:
+  if ShouldAppsUseDarkMode() then
+    defaultHexColor:=$ff7f00
+  else
+    defaultHexColor:=clBlue;
+
   c[csNormal].backgroundcolor:=clBtnFace;
   c[csNormal].normalcolor:=clWindowText;
   c[csNormal].registercolor:=clRed;
   c[csNormal].symbolcolor:=clGreen;
-  c[csNormal].hexcolor:=clBlue;
+  if ShouldAppsUseDarkMode() then
+    c[csNormal].hexcolor:=$ff7f00 //inccolor(clBlue,18)
+  else
+    c[csNormal].hexcolor:=clBlue;
+
 
   c[csHighlighted].backgroundcolor:=clHighlight;
   c[csHighlighted].normalcolor:=clHighlightText;

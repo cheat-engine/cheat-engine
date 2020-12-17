@@ -75,6 +75,7 @@ end;
 procedure TComments.FormShow(Sender: TObject);
 begin
   memo1.font.height:=GetFontData(font.reference.Handle).Height;
+  memo1.font.color:=font.color;
 end;
 
 procedure TComments.mLuaScriptChange(Sender: TObject);
