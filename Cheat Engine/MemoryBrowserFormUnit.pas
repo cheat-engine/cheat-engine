@@ -2205,7 +2205,6 @@ begin
     cbFontQuality.ItemIndex:=integer(hexview.HexFont.Quality);
     btnHexFont.Caption:=fontdialog2.Font.Name+' '+inttostr(fontdialog2.Font.Size);
 
-
     fd:=Graphics.GetFontData(scrollbox1.Font.Reference.Handle);
     fontdialog3.font.Name:=fd.Name;
     fontdialog3.font.height:=fd.height;
@@ -2237,6 +2236,28 @@ begin
     cbOriginalRenderingSystem.checked:=UseOriginalRenderingSystem;
     {$endif}
 
+
+    lblHexNormal.font.color:=hexview.normalFontColor;
+    lblHexNormal.color:=hexview.normalBackgroundColor;
+    lblHexStatic.font.color:=hexview.staticFontColor;
+    lblHexStatic.color:=hexview.staticBackgroundColor;
+    lblHexHighlighted.font.color:=hexview.highlightedFontColor;
+    lblHexHighlighted.color:=hexview.highlightedBackgroundColor;
+    lblHexEditing.font.color:=hexview.EditingFontColor;
+    lblHexEditing.color:=hexview.EditingBackgroundColor;
+    lblHexSecondaryEditing.font.color:=hexview.SecondaryEditingFontColor;
+    lblHexSecondaryEditing.color:=hexview.SecondaryEditingBackgroundColor;
+    lblHexBreakpoint.font.color:=hexview.BreakpointFontColor;
+    lblHexBreakpoint.color:=hexview.BreakpointBackgroundColor;
+    lblHexDifferent.font.color:=hexview.DifferentFontColor;
+    lblHexDifferent.color:=hexview.DifferentBackgroundColor;
+
+    lblHexTopLine.Font.color:=hexview.toplinecolor;
+    lblHexSeperator.Font.color:=hexview.seperatorColor;
+    lblHexCursor.Font.color:=hexview.cursorcolor;
+
+
+
     if showmodal=mrok then
     begin
       //set the colors and save to registry
@@ -2256,6 +2277,27 @@ begin
       disassemblerview.jlSpacing:=jlSpacing;
 
       hexview.HexFont:=fontdialog2.Font;
+
+      hexview.normalFontColor:=lblHexNormal.font.color;
+      hexview.normalBackgroundColor:=lblHexNormal.color;
+      hexview.staticFontColor:=lblHexStatic.font.color;
+      hexview.staticBackgroundColor:=lblHexStatic.color;
+      hexview.highlightedFontColor:=lblHexHighlighted.font.color;
+      hexview.highlightedBackgroundColor:=lblHexHighlighted.color;
+      hexview.EditingFontColor:= lblHexEditing.font.color;
+      hexview.EditingBackgroundColor:=lblHexEditing.color;
+      hexview.SecondaryEditingFontColor:= lblHexSecondaryEditing.font.color;
+      hexview.SecondaryEditingBackgroundColor:=lblHexSecondaryEditing.color;
+      hexview.BreakpointFontColor:= lblHexBreakpoint.font.color;
+      hexview.BreakpointBackgroundColor:=lblHexBreakpoint.color;
+      hexview.DifferentFontColor:=lblHexDifferent.font.color;
+      hexview.DifferentBackgroundColor:=lblHexDifferent.color;
+
+      hexview.toplinecolor:=lblHexTopLine.Font.color;
+      hexview.seperatorColor:=lblHexSeperator.Font.color;
+      hexview.cursorcolor:=lblHexCursor.Font.color;
+
+
       hexview.spaceBetweenLines:=hexSpaceBetweenLines;
       hexview.statusbar.Visible:=cbShowStatusBar.checked;
       hexview.OnResize(hexview);
@@ -2305,6 +2347,10 @@ begin
       reg.writeInteger('spaceBetweenLines', hexview.spaceBetweenLines);
       reg.WriteBool('showStatusBar', hexview.statusbar.Visible);
     end;
+
+    if reg.openkey('\Software\Cheat Engine\Hexview'+darkmodestring,true) then
+      reg.{$ifdef windows}WriteBinaryData{$else}WriteString{$endif}('colors', {$ifndef windows}bintohexs({$endif}hexview.colors, sizeof(hexview.colors)){$ifndef windows}){$endif};
+
 
     if reg.OpenKey('\Software\Cheat Engine\Hexview '+inttostr(screen.PixelsPerInch)+'\Font'+darkmodestring,true) then
       SaveFontToRegistry(hexview.hexfont, reg);
@@ -2536,6 +2582,20 @@ begin
         hexview.statusbar.Visible:=reg.ReadBool('showStatusBar');
 
     end;
+
+    if reg.openkey('\Software\Cheat Engine\Hexview'+darkmodestring,true) then
+    begin
+      if reg.ValueExists('colors') then
+      begin
+        {$ifdef windows}
+        reg.ReadBinaryData('colors', hexview.colors, sizeof(hexview.colors));
+        {$else}
+        HexToBin(pchar(reg.ReadString('colors')),pchar(@hexview.colors),sizeof(hexview.colors));
+        {$endif}
+      end;
+    end;
+
+
 
     if reg.OpenKey('\Software\Cheat Engine\Hexview '+inttostr(screen.PixelsPerInch)+'\Font'+darkmodestring,false) then
     begin

@@ -1,13 +1,13 @@
 object frmMemviewPreferences: TfrmMemviewPreferences
-  Left = 770
+  Left = 247
   Height = 508
-  Top = 279
-  Width = 391
+  Top = 168
+  Width = 517
   AutoSize = True
   BorderStyle = bsSingle
   Caption = 'Disassembler Preferences'
   ClientHeight = 508
-  ClientWidth = 391
+  ClientWidth = 517
   OnCreate = FormCreate
   OnShow = FormShow
   PopupMenu = pmColors
@@ -420,27 +420,17 @@ object frmMemviewPreferences: TfrmMemviewPreferences
     AnchorSideTop.Side = asrBottom
     AnchorSideBottom.Control = GroupBox2
     AnchorSideBottom.Side = asrBottom
-    Left = 187
-    Height = 305
+    Left = 189
+    Height = 325
     Top = 19
     Width = 195
     AutoSize = True
+    BorderSpacing.Left = 2
     Caption = 'Hexview'
-    ClientHeight = 285
+    ClientHeight = 305
     ClientWidth = 191
     TabOrder = 1
-    object lblHexExample: TLabel
-      AnchorSideLeft.Control = btnHexFont
-      AnchorSideTop.Control = cbFontQuality
-      AnchorSideTop.Side = asrBottom
-      Left = 8
-      Height = 15
-      Top = 83
-      Width = 45
-      BorderSpacing.Top = 16
-      Caption = 'Example'
-      ParentColor = False
-    end
+    OnClick = GroupBox3Click
     object btnHexFont: TButton
       AnchorSideLeft.Side = asrBottom
       AnchorSideTop.Side = asrBottom
@@ -457,12 +447,11 @@ object frmMemviewPreferences: TfrmMemviewPreferences
       TabOrder = 0
     end
     object Label3: TLabel
-      AnchorSideLeft.Control = lblHexExample
-      AnchorSideTop.Control = GroupBox7
+      AnchorSideTop.Control = lblHexCursor
       AnchorSideTop.Side = asrBottom
       Left = 8
       Height = 15
-      Top = 224
+      Top = 244
       Width = 106
       BorderSpacing.Top = 10
       Caption = 'Space between lines'
@@ -476,7 +465,7 @@ object frmMemviewPreferences: TfrmMemviewPreferences
       AnchorSideRight.Side = asrBottom
       Left = 8
       Height = 23
-      Top = 239
+      Top = 259
       Width = 106
       Anchors = [akTop, akLeft, akRight]
       TabOrder = 1
@@ -488,7 +477,7 @@ object frmMemviewPreferences: TfrmMemviewPreferences
       AnchorSideTop.Side = asrBottom
       Left = 8
       Height = 19
-      Top = 266
+      Top = 286
       Width = 100
       BorderSpacing.Top = 4
       Caption = 'Show statusbar'
@@ -539,61 +528,133 @@ object frmMemviewPreferences: TfrmMemviewPreferences
       Caption = 'Font quality'
       ParentColor = False
     end
-    object GroupBox7: TGroupBox
-      AnchorSideLeft.Control = GroupBox3
-      AnchorSideTop.Control = lblHexExample
+    object lblHexTopLine: TLabel
+      AnchorSideLeft.Control = cbShowStatusBar
+      AnchorSideTop.Control = GroupBox7
       AnchorSideTop.Side = asrBottom
-      AnchorSideRight.Control = GroupBox3
-      AnchorSideRight.Side = asrBottom
-      Left = 0
-      Height = 105
-      Top = 109
-      Width = 191
-      Anchors = [akTop, akLeft, akRight]
-      BorderSpacing.Top = 11
-      Caption = 'Colors'
+      Left = 8
+      Height = 15
+      Top = 177
+      Width = 41
+      BorderSpacing.Top = 6
+      Caption = 'Top line'
+      ParentColor = False
+      OnMouseDown = lblHexGraphicalColor
+    end
+    object lblHexSeperator: TLabel
+      AnchorSideLeft.Control = lblHexTopLine
+      AnchorSideTop.Control = lblHexTopLine
+      AnchorSideTop.Side = asrBottom
+      Left = 8
+      Height = 15
+      Top = 198
+      Width = 72
+      BorderSpacing.Top = 6
+      Caption = 'Seperator line'
+      ParentColor = False
+      OnMouseDown = lblHexGraphicalColor
+    end
+    object lblHexCursor: TLabel
+      AnchorSideLeft.Control = lblHexTopLine
+      AnchorSideTop.Control = lblHexSeperator
+      AnchorSideTop.Side = asrBottom
+      Left = 8
+      Height = 15
+      Top = 219
+      Width = 35
+      BorderSpacing.Top = 6
+      Caption = 'Cursor'
+      Font.Color = clRed
+      ParentColor = False
+      ParentFont = False
+      OnMouseDown = lblHexGraphicalColor
+    end
+    object GroupBox7: TGroupBox
+      AnchorSideLeft.Control = cbFontQuality
+      AnchorSideTop.Control = cbFontQuality
+      AnchorSideTop.Side = asrBottom
+      Left = 8
+      Height = 104
+      Top = 67
+      Width = 153
+      AutoSize = True
+      Caption = 'Text'
       ChildSizing.TopBottomSpacing = 3
       ChildSizing.VerticalSpacing = 6
       ChildSizing.Layout = cclLeftToRightThenTopToBottom
-      ChildSizing.ControlsPerLine = 1
-      ClientHeight = 85
-      ClientWidth = 187
+      ChildSizing.ControlsPerLine = 2
+      ClientHeight = 84
+      ClientWidth = 149
       TabOrder = 4
-      object Label8: TLabel
-        Left = 8
+      object lblHexNormal: TLabel
+        Cursor = crHandPoint
+        Left = 0
         Height = 15
         Top = 3
-        Width = 50
-        BorderSpacing.Left = 8
-        Caption = 'Default'
+        Width = 92
+        Caption = 'Normal'
         ParentColor = False
+        OnMouseDown = lblHexMouseDown
       end
-      object Label9: TLabel
-        AnchorSideTop.Side = asrBottom
-        Left = 8
+      object lblHexStatic: TLabel
+        Cursor = crHandPoint
+        Left = 92
         Height = 15
-        Top = 24
-        Width = 50
-        BorderSpacing.Left = 8
-        BorderSpacing.Top = 4
+        Top = 3
+        Width = 57
         Caption = 'Static'
         ParentColor = False
+        OnMouseDown = lblHexMouseDown
       end
-      object Label10: TLabel
-        Left = 8
+      object lblHexHighlighted: TLabel
+        Cursor = crHandPoint
+        Left = 0
+        Height = 15
+        Top = 24
+        Width = 92
+        Caption = 'Highlighted'
+        ParentColor = False
+        OnMouseDown = lblHexMouseDown
+      end
+      object lblHexEditing: TLabel
+        Cursor = crHandPoint
+        Left = 92
+        Height = 15
+        Top = 24
+        Width = 57
+        Caption = 'Editing'
+        ParentColor = False
+        OnMouseDown = lblHexMouseDown
+      end
+      object lblHexSecondaryEditing: TLabel
+        Cursor = crHandPoint
+        Left = 0
         Height = 15
         Top = 45
-        Width = 50
-        Caption = 'Highlight'
+        Width = 92
+        Caption = 'SecondaryEditing'
         ParentColor = False
+        OnMouseDown = lblHexMouseDown
       end
-      object Label11: TLabel
-        Left = 8
+      object lblHexBreakpoint: TLabel
+        Cursor = crHandPoint
+        Left = 92
+        Height = 15
+        Top = 45
+        Width = 57
+        Caption = 'Breakpoint'
+        ParentColor = False
+        OnMouseDown = lblHexMouseDown
+      end
+      object lblHexDifferent: TLabel
+        Cursor = crHandPoint
+        Left = 0
         Height = 15
         Top = 66
-        Width = 50
-        Caption = 'Seperator'
+        Width = 92
+        Caption = 'Different'
         ParentColor = False
+        OnMouseDown = lblHexMouseDown
       end
     end
   end
@@ -604,7 +665,7 @@ object frmMemviewPreferences: TfrmMemviewPreferences
     AnchorSideTop.Side = asrBottom
     Left = 187
     Height = 76
-    Top = 324
+    Top = 344
     Width = 195
     AutoSize = True
     Caption = 'Register panel'
@@ -676,8 +737,8 @@ object frmMemviewPreferences: TfrmMemviewPreferences
       'ColorS=F0FBFF'
       'ColorT=A4A0A0'
     )
-    Left = 216
-    Top = 312
+    Left = 248
+    Top = 384
   end
   object FontDialog1: TFontDialog
     Font.CharSet = ANSI_CHARSET
@@ -689,12 +750,12 @@ object frmMemviewPreferences: TfrmMemviewPreferences
     MaxFontSize = 0
     Options = [fdNoStyleSel]
     PreviewText = 'mov'
-    Left = 224
-    Top = 248
+    Left = 200
+    Top = 296
   end
   object pmColors: TPopupMenu
-    Left = 200
-    Top = 360
+    Left = 176
+    Top = 416
     object miRestoreToDefaults: TMenuItem
       Caption = 'Restore to defaults'
       OnClick = miRestoreToDefaultsClick
@@ -710,13 +771,13 @@ object frmMemviewPreferences: TfrmMemviewPreferences
     MaxFontSize = 0
     Options = [fdFixedPitchOnly]
     PreviewText = '10 aa cd 30 90 90 90'
-    Left = 296
-    Top = 248
+    Left = 320
+    Top = 280
   end
   object FontDialog3: TFontDialog
     MinFontSize = 0
     MaxFontSize = 0
-    Left = 296
-    Top = 312
+    Left = 304
+    Top = 360
   end
 end

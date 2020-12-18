@@ -13,11 +13,13 @@ type
   private
   protected
 
-  //  procedure CreateParams(var Params: TCreateParams); override;
+    procedure CreateParams(var Params: TCreateParams); override;
 
   // procedure CreateBrush; override;
 
     procedure ChildHandlesCreated; override;
+    procedure PaintControls(DC: HDC; First: TControl);
+
   public
 
   end;
@@ -25,7 +27,7 @@ type
 
 implementation
 
-uses betterControls, WSLCLClasses, WSStdCtrls, Win32Proc;
+uses betterControls, WSLCLClasses, WSStdCtrls, Win32Proc, Win32Int;
 
 var
   OriginalGroupBoxHandler: ptruint;
@@ -40,7 +42,11 @@ var
 
   gb: TNewGroupBox;
   r:trect;
+  h: LPNMHDR;
+  i: integer;
+  p: tpoint;
 begin
+
   if msg=WM_PAINT then
   begin
     Info := GetWin32WindowInfo(wnd);
@@ -48,10 +54,10 @@ begin
     begin
       gb:=TNewGroupBox(info^.WinControl);
 
-
       dc:=BeginPaint(wnd, ps);
       if dc<>0 then
       begin
+
         c:=tcanvas.create;
         c.handle:=dc;
         c.brush.style:=bsSolid;
@@ -64,12 +70,22 @@ begin
         c.Pen.color:=clWindowFrame;
         c.FillRect(ps.rcPaint);
 
+
         r:=rect(0,c.TextHeight('Q') div 2,gb.width,gb.height);
+        c.brush.Style:=bsClear;
         c.Rectangle(r);
 
         c.font.color:=gb.font.color;
+        c.brush.Style:=bsSolid;
+
         c.TextOut(10,0,gb.Caption);
         c.free;
+
+
+        p:=gb.ScreenToControl(gb.ClientToScreen(point(0,0)));
+        MoveWindowOrg(dc,p.x, p.y);
+
+        gb.paintcontrols(dc,gb.controls[0]);
 
         EndPaint(wnd,ps);
         exit(0);
@@ -77,9 +93,15 @@ begin
 
 
     end;
+
   end;
 
   result:=CallWindowProc(WNDPROC(OriginalGroupBoxHandler), wnd, msg, _wparam, _lparam);
+end;
+
+procedure TNewGroupBox.PaintControls(DC: HDC; First: TControl);
+begin
+  inherited PaintControls(DC, First);
 end;
 
 procedure TNewGroupBox.ChildHandlesCreated;
@@ -95,6 +117,11 @@ begin
 
 end;
 
+procedure TNewGroupBox.CreateParams(var Params: TCreateParams);
+begin
+  inherited CreateParams(params);
+
+end;
 
 end.
 

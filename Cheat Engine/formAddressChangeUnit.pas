@@ -1466,7 +1466,10 @@ begin
 
     //editAddress.enabled:=false;
     editAddress.ReadOnly:=true;
-    editAddress.Color:=clInactiveBorder;
+    if ShouldAppsUseDarkMode() then
+      editAddress.Color:=$505050
+    else
+      editAddress.Color:=clInactiveBorder;
 
     btnOk.AnchorSideTop.Control:=pointerinfo;
     btnCancel.AnchorSideTop.Control:=pointerinfo;

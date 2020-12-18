@@ -31,7 +31,7 @@ procedure initcetitle;
 
 
 
-const beta=''; //empty this for a release
+const beta=' Dark Mode support test'; //empty this for a release
 
 var
   CEnorm:string;

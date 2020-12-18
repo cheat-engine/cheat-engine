@@ -545,6 +545,7 @@ procedure TfrmFloatingPointPanel.FormCreate(Sender: TObject);
 begin
   cbDisplayType.ItemIndex:=4;
   LoadFormPosition(self);
+  sbdata.font.color:=clWindowtext;
 end;
 
 initialization

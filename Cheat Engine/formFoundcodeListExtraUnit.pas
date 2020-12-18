@@ -173,11 +173,24 @@ begin
   clipboard.SetTextBuf(pchar(s));
 end;
 
+procedure setFontColor(control: TWinControl; color: TColor);
+var i: integer;
+begin
+  for i:=0 to control.ControlCount-1 do
+  begin
+    control.controls[i].Font.color:=color;
+    if control.Controls[i] is twincontrol then setfontcolor(twincontrol(control.controls[i]),color);
+  end;
+end;
+
 procedure TFormFoundCodeListExtra.FormCreate(Sender: TObject);
 var x: array of integer;
 begin
   setlength(x,0);
   loadformposition(self,x);
+
+  Font.Color:=clWindowtext;
+  setFontColor(self, clWindowtext);
 end;
 
 procedure TFormFoundCodeListExtra.FormDestroy(Sender: TObject);
@@ -193,6 +206,7 @@ end;
 
 procedure TFormFoundCodeListExtra.FormShow(Sender: TObject);
 begin
+
   panel1.Font.Height:=GetFontData(font.reference.Handle).Height-5;
   pnlRegisters.Font.Height:=panel1.Font.Height;
 

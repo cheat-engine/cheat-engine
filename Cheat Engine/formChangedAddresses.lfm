@@ -1,5 +1,5 @@
 object frmChangedAddresses: TfrmChangedAddresses
-  Left = 1525
+  Left = 1519
   Height = 319
   Top = 493
   Width = 389
@@ -26,7 +26,7 @@ object frmChangedAddresses: TfrmChangedAddresses
     ClientHeight = 25
     ClientWidth = 389
     ParentBidiMode = False
-    TabOrder = 2
+    TabOrder = 0
     object labelCodeAddress: TLabel
       AnchorSideLeft.Control = PanelAddressInfo
       AnchorSideTop.Control = PanelAddressInfo

@@ -573,7 +573,6 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
     ClientHeight = 86
     ClientWidth = 335
     Constraints.MinWidth = 330
-    ParentColor = False
     TabOrder = 7
     OnClick = Panel1Click
     object Panel8: TPanel

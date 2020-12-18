@@ -895,8 +895,8 @@ begin
 
     with FormFoundCodeListExtra do
     begin
-      dbvmMissedEntries.Caption:=disassembled[1].s;
-      dbvmMissedEntries.tag:=disassembled[1].a;
+      label1.Caption:=disassembled[1].s;
+      label1.tag:=disassembled[1].a;
 
       Label2.Caption:=disassembled[2].s;
       Label2.tag:=disassembled[2].a;

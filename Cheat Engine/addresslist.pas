@@ -1940,6 +1940,8 @@ var
   bordersize: integer;
 
   tempstring: string;
+
+  c: Tcolor;
 begin
   //multiselect implementation
 
@@ -1988,9 +1990,9 @@ begin
     if memrec.isSelected then
     begin
       if node.Selected then
-        sender.Canvas.Brush.Color:=SelectedBackgroundColor //clHighlight
+        sender.Canvas.Brush.Color:=ColorToRGB(SelectedBackgroundColor)  //SelectedBackgroundColor //clHighlight
       else
-        sender.Canvas.Brush.Color:=SelectedSecondaryBackgroundColor; //clActiveCaption;
+        sender.Canvas.Brush.Color:=ColorToRGB(SelectedSecondaryBackgroundColor); //clActiveCaption;
 
       oldpenmode:=sender.Canvas.Pen.Mode;
       sender.Canvas.Pen.Mode:=pmMask;
@@ -2004,7 +2006,7 @@ begin
     if memrec.isSelected then
     begin
       sender.canvas.pen.color:=clWindowtext;
-      sender.Canvas.Font.Color:=InvertColor(memrec.Color)
+      sender.Canvas.Font.Color:=INVERTCOLOR(ColorToRGB(SelectedBackgroundColor));//  InvertColor(memrec.Color)
     end
     else
     begin

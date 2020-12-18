@@ -197,7 +197,6 @@ object FoundCodeDialog: TFoundCodeDialog
     BevelOuter = bvNone
     ClientHeight = 398
     ClientWidth = 294
-    ParentFont = False
     TabOrder = 1
     object FoundCodeList: TListView
       Left = 0
@@ -234,7 +233,7 @@ object FoundCodeDialog: TFoundCodeDialog
       Top = 241
       Width = 294
       Align = alBottom
-      ParentFont = False
+      ParentColor = True
       ReadOnly = True
       ScrollBars = ssBoth
       TabOrder = 1

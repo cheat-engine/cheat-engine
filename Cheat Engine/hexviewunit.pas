@@ -31,6 +31,14 @@ type
   TDisplayType = (dtByte, dtByteDec, dtWord, dtWordDec, dtDword, dtDwordDec, dtQword, dtQwordDec, dtSingle, dtDouble, dtCustom);
   TCharEncoding = (ceAscii, ceCodepage, ceUtf8, ceUtf16);
 
+
+  THexViewColorsState=(hcsUndefined=-1, hcsNormal=0, hcsStatic=1, hcsHighlighted=2, hcsEditing=3, hcsSecondaryEditing=4, hcsBreakpoint=5, hcsDifferent=6);
+  THexViewColors=array [hcsNormal..hcsDifferent] of record
+    backgroundcolor: TColor;
+    fontcolor: TColor;
+  end;
+
+
 const
   DisplayTypeByteSizeConstArray: array [dtByte..dtDouble] of integer =(1,1, 2,2, 4, 4, 8,8, 4, 8); //update both if adding something new, excluding dtCustom
 
@@ -197,6 +205,12 @@ type
     procedure KeyDown(var Key: Word; Shift: TShiftState); override;
     procedure UTF8KeyPress(var UTF8Key: TUTF8Char); override;
   public
+    colors: THexViewColors;
+    fseperatorColor: tcolor;
+    fcursorcolor: tcolor;
+    ftoplinecolor: tcolor;
+    ffadeColor: tcolor;
+
     fadetimer: integer;
     statusbar: TStatusbar;
     lastrendertime: qword;
@@ -257,6 +271,27 @@ type
     property spaceBetweenLines: integer read fspaceBetweenLines write fspaceBetweenLines;
     property UseRelativeBase: boolean read fUseRelativeBase write fUseRelativeBase;
     property RelativeBase: ptruint read fRelativeBase write fRelativeBase;
+
+    property seperatorColor: tcolor read fseperatorColor write fseperatorColor;
+    property cursorcolor: tcolor read fcursorcolor write fcursorcolor;
+    property toplinecolor: tcolor read ftoplinecolor write ftoplinecolor;
+    property fadeColor: tcolor read ffadeColor write ffadeColor;
+
+
+    property normalFontColor: TColor read colors[hcsNormal].fontcolor write colors[hcsNormal].fontcolor;
+    property normalBackgroundColor: TColor read colors[hcsNormal].backgroundcolor write colors[hcsNormal].backgroundcolor;
+    property staticFontColor: TColor read colors[hcsstatic].fontcolor write colors[hcsstatic].fontcolor;
+    property staticBackgroundColor: TColor read colors[hcsstatic].backgroundcolor write colors[hcsstatic].backgroundcolor;
+    property highlightedFontColor: TColor read colors[hcshighlighted].fontcolor write colors[hcshighlighted].fontcolor;
+    property highlightedBackgroundColor: TColor read colors[hcshighlighted].backgroundcolor write colors[hcshighlighted].backgroundcolor;
+    property editingFontColor: TColor read colors[hcsediting].fontcolor write colors[hcsediting].fontcolor;
+    property editingBackgroundColor: TColor read colors[hcsediting].backgroundcolor write colors[hcsediting].backgroundcolor;
+    property secondaryeditingFontColor: TColor read colors[hcssecondaryediting].fontcolor write colors[hcssecondaryediting].fontcolor;
+    property secondaryeditingBackgroundColor: TColor read colors[hcssecondaryediting].backgroundcolor write colors[hcssecondaryediting].backgroundcolor;
+    property breakpointFontColor: TColor read colors[hcsbreakpoint].fontcolor write colors[hcsbreakpoint].fontcolor;
+    property breakpointBackgroundColor: TColor read colors[hcsbreakpoint].backgroundcolor write colors[hcsbreakpoint].backgroundcolor;
+    property differentFontColor: TColor read colors[hcsdifferent].fontcolor write colors[hcsdifferent].fontcolor;
+    property differentBackgroundColor: TColor read colors[hcsdifferent].backgroundcolor write colors[hcsdifferent].backgroundcolor;
   end;
 
 implementation
@@ -2352,12 +2387,21 @@ begin
     for j:=0 to bytesperline-1 do
     begin
       if inModule(currentaddress) then
-        offscreenbitmap.canvas.Font.Color:=clGreen
+      begin
+        offscreenbitmap.canvas.brush.color:=colors[hcsSecondaryEditing].backgroundcolor;
+        offscreenbitmap.canvas.Font.Color:=colors[hcsSecondaryEditing].fontcolor; //  clGreen
+      end
       else
-        offscreenbitmap.canvas.Font.Color:=clWindowText;
+      begin
+        offscreenbitmap.canvas.brush.color:=colors[hcsNormal].backgroundcolor;
+        offscreenbitmap.canvas.Font.Color:=colors[hcsNormal].fontcolor; //clWindowText;
+      end;
 
       if fhasSelection and inrangex(currentaddress,minx(selected,selected2),maxx(selected,selected2)) then
-        offscreenbitmap.canvas.Font.Color:=clRed;
+      begin
+        offscreenbitmap.canvas.brush.color:=colors[hcsHighlighted].backgroundcolor;
+        offscreenbitmap.canvas.Font.Color:=colors[hcsHighlighted].fontcolor;  //clred
+      end;
 
 
 
@@ -2367,13 +2411,13 @@ begin
       begin
         if (editingtype=hrByte) and (currentaddress=selected) then
         begin
-          offscreenbitmap.canvas.Brush.Color:=clHighlight;
-          offscreenbitmap.canvas.Font.Color:=clHighlightText;
+          offscreenbitmap.canvas.Brush.Color:=colors[hcsEditing].backgroundcolor;    //clHighlight;
+          offscreenbitmap.canvas.Font.Color:=colors[hcsEditing].fontcolor; //clHighlightText;
         end
         else
         begin
-          offscreenbitmap.canvas.Brush.Color:=clYellow;
-          offscreenbitmap.canvas.Font.Color:=clWindowText;
+          offscreenbitmap.canvas.Brush.Color:=colors[hcsSecondaryEditing].backgroundcolor; //clYellow;
+          offscreenbitmap.canvas.Font.Color:=colors[hcsSecondaryEditing].fontcolor; //clWindowText;
         end;
       end;
 
@@ -2385,8 +2429,8 @@ begin
         bp:=debuggerthread.isBreakpoint(currentaddress);
         if bp<>nil then
         begin
-          offscreenbitmap.canvas.Brush.Color:=clGreen;
-          offscreenbitmap.canvas.Font.Color:=clBlack;
+          offscreenbitmap.canvas.Brush.Color:=colors[hcsBreakpoint].backgroundcolor; //clgreen
+          offscreenbitmap.canvas.Font.Color:=colors[hcsBreakpoint].fontcolor; //clblack
         end;
       end;
       {$ENDIF}
@@ -2430,17 +2474,17 @@ begin
 
         if different then
         begin
-          offscreenbitmap.canvas.Font.Color:=clYellow;
-          offscreenbitmap.canvas.Brush.Color:=clBlue;
+          offscreenbitmap.canvas.Font.Color:=colors[hcsDifferent].fontcolor; //  clYellow;
+          offscreenbitmap.canvas.Brush.Color:=colors[hcsDifferent].backgroundcolor; //clBlue;
         end;
       end;
 
 
       if gettickcount-changelist.LastChange[itemnr]<fadetimer then
       begin
-        offscreenbitmap.canvas.Brush.Color:=CalculateGradientColor((fadetimer-(gettickcount-changelist.LastChange[itemnr]))/(fadetimer div 100), clRed, offscreenbitmap.canvas.Brush.Color);
-        if offscreenbitmap.canvas.Font.Color=clred then
-          offscreenbitmap.canvas.Font.Color:=clBlue;
+        offscreenbitmap.canvas.Brush.Color:=CalculateGradientColor((fadetimer-(gettickcount-changelist.LastChange[itemnr]))/(fadetimer div 100), fadeColor, offscreenbitmap.canvas.Brush.Color);
+        if offscreenbitmap.canvas.Font.Color=fadecolor then
+          offscreenbitmap.canvas.Font.Color:=colors[hcsDifferent].fontcolor;
       end;
 
       if displaythis then
@@ -2463,13 +2507,13 @@ begin
       begin
         if (editingtype=hrChar) and (currentaddress=selected) then
         begin
-          offscreenbitmap.canvas.Brush.Color:=clHighlight;
-          offscreenbitmap.canvas.Font.Color:=clHighlightText;
+          offscreenbitmap.canvas.Brush.Color:=colors[hcsEditing].backgroundcolor;  //clHighlight;
+          offscreenbitmap.canvas.Font.Color:=colors[hcsEditing].fontcolor; //clHighlightText;
         end
         else
         begin
-          offscreenbitmap.canvas.Brush.Color:=clYellow;
-          offscreenbitmap.canvas.Font.Color:=clWindowText;
+          offscreenbitmap.canvas.Brush.Color:=colors[hcsSecondaryEditing].backgroundcolor; //clYellow;
+          offscreenbitmap.canvas.Font.Color:=colors[hcsSecondaryEditing].fontcolor; //clWindowText;
         end;
       end;
 
@@ -2492,14 +2536,14 @@ begin
       end;
 
 
-      offscreenbitmap.canvas.Font.Color:=clWindowText;
-      offscreenbitmap.canvas.Brush.Color:=clBtnFace;
+      offscreenbitmap.canvas.Font.Color:=colors[hcsNormal].fontcolor; //  clWindowText;
+      offscreenbitmap.canvas.Brush.Color:=colors[hcsNormal].backgroundcolor; //clBtnFace;
 
       if isEditing and (currentAddress=selected) then
       begin
         //render the carret
         offscreenbitmap.canvas.Pen.Width:=2;
-        offscreenbitmap.canvas.Pen.Color:=clRed;
+        offscreenbitmap.canvas.Pen.Color:=cursorcolor;
 
         if editingtype=hrByte then //draw the carret for the byte
         begin
@@ -2553,7 +2597,7 @@ begin
     else
     {$endif}
     begin
-      offscreenbitmap.Canvas.Pen.Color:=clYellow;
+      offscreenbitmap.Canvas.Pen.Color:=seperatorColor; // clYellow;
       offscreenbitmap.Canvas.PenPos:=point(bytestart+(seperators[i]+1)*byteSizeWithoutChar-(charsize shr 1),(textheight+fspaceBetweenLines));
       offscreenbitmap.Canvas.LineTo(bytestart+(seperators[i]+1)*byteSizeWithoutChar-(charsize shr 1),mbcanvas.height);
 
@@ -2570,7 +2614,7 @@ begin
   else
 {$endif}
   begin
-    offscreenbitmap.Canvas.Pen.Color:=clWindowtext;// clBlack;
+    offscreenbitmap.Canvas.Pen.Color:=toplinecolor; //clWindowtext;// clBlack;
     offscreenbitmap.Canvas.PenPos:=point(0,textheight*2);
     offscreenbitmap.Canvas.LineTo(charstart+bytesperline*charsize,textheight*2);
   end;
@@ -2699,7 +2743,8 @@ begin
     if offscreenbitmap.Height<mbCanvas.width then
       offscreenbitmap.Height:=mbcanvas.Height;
 
-    offscreenbitmap.Canvas.Brush.Color:=clBtnFace;
+    offscreenbitmap.Canvas.Brush.Color:=colors[hcsNormal].backgroundcolor;
+    offscreenbitmap.Canvas.font.color:=colors[hcsNormal].fontcolor;
     offscreenbitmap.Canvas.FillRect(mbcanvas.ClientRect);
 
     oldAddressWidth:=addresswidth;
@@ -2993,6 +3038,32 @@ begin
     byteSizeWithoutChar:=offscreenbitmap.Canvas.TextWidth('XX ');
   end;
 
+
+  colors[hcsNormal].backgroundcolor:=clBtnFace;
+  colors[hcsNormal].fontcolor:=clWindowtext;
+
+  colors[hcsStatic].backgroundcolor:=clBtnFace;
+  colors[hcsStatic].fontcolor:=clGreen;
+
+  colors[hcsHighlighted].backgroundcolor:=clBtnFace;
+  colors[hcsHighlighted].fontcolor:=clRed;
+
+  colors[hcsEditing].backgroundcolor:=clHighlight;
+  colors[hcsEditing].fontcolor:=clHighlighttext;
+
+  colors[hcsSecondaryEditing].backgroundcolor:=clYellow;
+  colors[hcsSecondaryEditing].fontcolor:=clWindowtext;
+
+  colors[hcsBreakpoint].backgroundcolor:=clGreen;
+  colors[hcsBreakpoint].fontcolor:=clBlack;
+
+  colors[hcsDifferent].backgroundcolor:=clBlue;
+  colors[hcsDifferent].fontcolor:=clYellow;
+
+  seperatorColor:=clYellow;
+  cursorColor:=clRed;
+  toplinecolor:=clWindowtext;
+  fadeColor:=clRed;
 
   update;
 end;
