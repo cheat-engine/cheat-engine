@@ -11,7 +11,7 @@ object frmCodecaveScanner: TfrmCodecaveScanner
   OnCloseQuery = FormCloseQuery
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '2.0.0.4'
+  LCLVersion = '2.0.6.0'
   object Panel2: TPanel
     Left = 0
     Height = 35
@@ -100,7 +100,7 @@ object frmCodecaveScanner: TfrmCodecaveScanner
         AnchorSideRight.Side = asrBottom
         Left = 2
         Height = 15
-        Top = 47
+        Top = 44
         Width = 140
         Alignment = taCenter
         Anchors = [akTop, akLeft, akRight]
@@ -118,7 +118,7 @@ object frmCodecaveScanner: TfrmCodecaveScanner
         AnchorSideRight.Side = asrBottom
         Left = 2
         Height = 15
-        Top = 92
+        Top = 86
         Width = 140
         Alignment = taCenter
         Anchors = [akTop, akLeft, akRight]
@@ -135,7 +135,7 @@ object frmCodecaveScanner: TfrmCodecaveScanner
         AnchorSideTop.Side = asrBottom
         Left = 35
         Height = 25
-        Top = 136
+        Top = 127
         Width = 75
         AutoSize = True
         BorderSpacing.Top = 3
@@ -153,15 +153,13 @@ object frmCodecaveScanner: TfrmCodecaveScanner
         AnchorSideRight.Control = Panel1
         AnchorSideRight.Side = asrBottom
         Left = 2
-        Height = 26
+        Height = 23
         Top = 19
         Width = 140
         BorderSpacing.Left = 2
         BorderSpacing.Top = 2
         BorderSpacing.Right = 2
         Constraints.MinWidth = 120
-        Font.Name = 'Courier New'
-        ParentFont = False
         TabOrder = 1
       end
       object editStop: TEdit
@@ -171,15 +169,13 @@ object frmCodecaveScanner: TfrmCodecaveScanner
         AnchorSideRight.Control = Panel1
         AnchorSideRight.Side = asrBottom
         Left = 2
-        Height = 26
-        Top = 64
+        Height = 23
+        Top = 61
         Width = 140
         BorderSpacing.Left = 2
         BorderSpacing.Top = 2
         BorderSpacing.Right = 2
         Constraints.MinWidth = 120
-        Font.Name = 'Courier New'
-        ParentFont = False
         TabOrder = 2
       end
       object editSize: TEdit
@@ -188,14 +184,12 @@ object frmCodecaveScanner: TfrmCodecaveScanner
         AnchorSideTop.Control = Label3
         AnchorSideTop.Side = asrBottom
         Left = 12
-        Height = 26
-        Top = 107
+        Height = 23
+        Top = 101
         Width = 120
         BorderSpacing.Left = 2
         BorderSpacing.Right = 2
         Constraints.MinWidth = 120
-        Font.Name = 'Courier New'
-        ParentFont = False
         TabOrder = 3
         Text = '12'
       end
@@ -209,15 +203,14 @@ object frmCodecaveScanner: TfrmCodecaveScanner
       ItemHeight = 0
       MultiSelect = True
       OnDblClick = lbCodecaveListDblClick
-      ParentFont = False
       PopupMenu = PopupMenu1
       TabOrder = 1
     end
   end
   object PopupMenu1: TPopupMenu
     Images = sfcImageList
-    left = 128
-    top = 24
+    Left = 128
+    Top = 24
     object Copytoclipboard1: TMenuItem
       Caption = 'Copy selection(s) to clipboard'
       ImageIndex = 0
@@ -226,8 +219,8 @@ object frmCodecaveScanner: TfrmCodecaveScanner
     end
   end
   object sfcImageList: TImageList
-    left = 131
-    top = 200
+    Left = 131
+    Top = 200
     Bitmap = {
       4C69010000001000000010000000606060C4808080E0808080E0808080E08080
       80E0808080E0808080E0777777E098989856FFFFFF00FFFFFF00FFFFFF00FFFF

@@ -1212,7 +1212,7 @@ begin
 //    height:=19;
     parent:=self;
     PopupMenu:=emptymenu;
-   // color:=clYellow;
+    color:=clBtnFace;
   end;
 
   statusinfolabel:=TLabel.Create(self);
@@ -1235,6 +1235,9 @@ begin
       mi.name:='miStatusInfoLabelCopy';
       items.Add(mi);
     end;
+
+    Font.Color:=clWindowText;
+
   end;
 
   disassembleDescription:=Tpanel.Create(self);
@@ -1312,6 +1315,8 @@ begin
     //header.Align:=alTop;
     //header.ParentFont:=false;
     PopupMenu:=emptymenu;
+
+    font.color:=clWindowtext;
 
     name:='Header';
   end;

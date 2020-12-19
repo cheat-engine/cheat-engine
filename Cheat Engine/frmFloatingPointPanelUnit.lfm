@@ -101,10 +101,6 @@ object frmFloatingPointPanel: TfrmFloatingPointPanel
         Top = 55
         Width = 345
         Align = alClient
-        Font.CharSet = ANSI_CHARSET
-        Font.Height = -13
-        Font.Name = 'Courier New'
-        ParentFont = False
         ReadOnly = True
         ScrollBars = ssBoth
         TabOrder = 1

@@ -37,15 +37,15 @@ object frmThreadlist: TfrmThreadlist
     Width = 313
     Align = alBottom
     Caption = 'Hold ctrl when expanding to see the 32-bit context of a thread'
-    ParentColor = False
-    ParentFont = False
+    Color = clDefault
+    Transparent = False
     Visible = False
   end
   object PopupMenu1: TPopupMenu
     Images = tlImageList
     OnPopup = PopupMenu1Popup
-    left = 80
-    top = 40
+    Left = 80
+    Top = 40
     object miBreak: TMenuItem
       Caption = 'Break'
       ImageIndex = 0
@@ -80,8 +80,8 @@ object frmThreadlist: TfrmThreadlist
     end
   end
   object tlImageList: TImageList
-    left = 190
-    top = 84
+    Left = 190
+    Top = 84
     Bitmap = {
       4C69060000001000000010000000FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
       FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF

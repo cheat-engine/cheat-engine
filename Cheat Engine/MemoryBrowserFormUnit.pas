@@ -2256,6 +2256,9 @@ begin
     lblHexSeperator.Font.color:=hexview.seperatorColor;
     lblHexCursor.Font.color:=hexview.cursorcolor;
 
+    lblRegHighLightChange.color:=fChangedRegisterColor;
+    lblRegHighLightAccess.color:=fAccessedRegisterColor;
+
 
 
     if showmodal=mrok then
@@ -2297,6 +2300,9 @@ begin
       hexview.seperatorColor:=lblHexSeperator.Font.color;
       hexview.cursorcolor:=lblHexCursor.Font.color;
 
+      fChangedRegisterColor:=lblRegHighLightChange.color;
+      fAccessedRegisterColor:=lblRegHighLightAccess.color;
+
 
       hexview.spaceBetweenLines:=hexSpaceBetweenLines;
       hexview.statusbar.Visible:=cbShowStatusBar.checked;
@@ -2328,6 +2334,9 @@ begin
     if reg.OpenKey('\Software\Cheat Engine\Disassemblerview '+inttostr(screen.PixelsPerInch)+'\',true) then
     begin
       reg.{$ifdef windows}WriteBinaryData{$else}WriteString{$endif}('colors', {$ifndef windows}bintohexs({$endif}disassemblerview.colors, sizeof(disassemblerview.colors)){$ifndef windows}){$endif};
+
+      reg.WriteInteger('AccessedRegisterColor', integer(fAccessedRegisterColor));
+      reg.WriteInteger('ChangedRegisterColor', integer(fChangedRegisterColor));
 
       reg.WriteInteger('jlCallColor', integer(disassemblerview.jlCallColor));
       reg.WriteInteger('jlUnconditionalJumpColor', integer(disassemblerview.jlUnconditionalJumpColor));
@@ -2549,6 +2558,12 @@ begin
       end;
 
 
+      if reg.ValueExists('AccessedRegisterColor') then
+        fAccessedRegisterColor:=tcolor(reg.ReadInteger('AccessedRegisterColor'));
+
+      if reg.ValueExists('ChangedRegisterColor') then
+        fChangedRegisterColor:=tcolor(reg.ReadInteger('ChangedRegisterColor'));
+
       if reg.ValueExists('jlCallColor') then
         disassemblerview.jlCallColor:=tcolor(reg.ReadInteger('jlCallColor'));
 
@@ -2703,8 +2718,16 @@ begin
   InjectDLL1.Caption:=rsInjectDYLIB;
   {$endif}
 
-  faccessedRegisterColor:=clAqua;
-  fChangedRegisterColor:=clred;
+  if ShouldAppsUseDarkMode() then
+  begin
+    fAccessedRegisterColor:=clBlue;
+    fChangedRegisterColor:=clred;
+  end
+  else
+  begin
+    fAccessedRegisterColor:=clAqua;
+    fChangedRegisterColor:=clred;
+  end;
 end;
 
 procedure TMemoryBrowser.Scrollboxscroll(sender: TObject);

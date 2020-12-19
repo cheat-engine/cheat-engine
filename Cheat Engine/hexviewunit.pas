@@ -2388,8 +2388,8 @@ begin
     begin
       if inModule(currentaddress) then
       begin
-        offscreenbitmap.canvas.brush.color:=colors[hcsSecondaryEditing].backgroundcolor;
-        offscreenbitmap.canvas.Font.Color:=colors[hcsSecondaryEditing].fontcolor; //  clGreen
+        offscreenbitmap.canvas.brush.color:=colors[hcsStatic].backgroundcolor;
+        offscreenbitmap.canvas.Font.Color:=colors[hcsStatic].fontcolor; //  clGreen
       end
       else
       begin

@@ -664,12 +664,12 @@ object frmMemviewPreferences: TfrmMemviewPreferences
     AnchorSideTop.Control = GroupBox3
     AnchorSideTop.Side = asrBottom
     Left = 187
-    Height = 76
+    Height = 85
     Top = 344
     Width = 195
     AutoSize = True
     Caption = 'Register panel'
-    ClientHeight = 56
+    ClientHeight = 65
     ClientWidth = 191
     TabOrder = 4
     object btnRegisterViewFont: TButton
@@ -682,23 +682,36 @@ object frmMemviewPreferences: TfrmMemviewPreferences
       AutoSize = True
       BorderSpacing.Left = 8
       BorderSpacing.Right = 8
-      BorderSpacing.Bottom = 8
+      BorderSpacing.Bottom = 4
       Caption = 'Change registerview font'
       Constraints.MinWidth = 175
       OnClick = btnRegisterViewFontClick
       TabOrder = 0
     end
-    object lblRegisterExample: TLabel
+    object lblRegHighLightAccess: TLabel
+      AnchorSideLeft.Control = lblRegHighLightChange
+      AnchorSideTop.Control = lblRegHighLightChange
+      AnchorSideTop.Side = asrBottom
+      Left = 8
+      Height = 15
+      Top = 50
+      Width = 89
+      BorderSpacing.Top = 6
+      Caption = 'Highlight Access'
+      ParentColor = False
+      OnMouseDown = lblRegHighLightMouseDown
+    end
+    object lblRegHighLightChange: TLabel
+      AnchorSideLeft.Control = btnRegisterViewFont
       AnchorSideTop.Control = btnRegisterViewFont
       AnchorSideTop.Side = asrBottom
       Left = 8
       Height = 15
-      Top = 33
-      Width = 45
-      BorderSpacing.Top = 8
-      BorderSpacing.Bottom = 8
-      Caption = 'Example'
+      Top = 29
+      Width = 94
+      Caption = 'Highlight Change'
       ParentColor = False
+      OnMouseDown = lblRegHighLightMouseDown
     end
   end
   object cbOriginalRenderingSystem: TCheckBox
@@ -737,8 +750,8 @@ object frmMemviewPreferences: TfrmMemviewPreferences
       'ColorS=F0FBFF'
       'ColorT=A4A0A0'
     )
-    Left = 248
-    Top = 384
+    Left = 400
+    Top = 344
   end
   object FontDialog1: TFontDialog
     Font.CharSet = ANSI_CHARSET
@@ -777,7 +790,7 @@ object frmMemviewPreferences: TfrmMemviewPreferences
   object FontDialog3: TFontDialog
     MinFontSize = 0
     MaxFontSize = 0
-    Left = 304
-    Top = 360
+    Left = 336
+    Top = 344
   end
 end

@@ -46,6 +46,8 @@ type
     GroupBox6: TGroupBox;
     GroupBox7: TGroupBox;
     Label1: TLabel;
+    lblRegHighLightAccess: TLabel;
+    lblRegHighLightChange: TLabel;
     lblHexCursor: TLabel;
     Label2: TLabel;
     Label3: TLabel;
@@ -63,7 +65,6 @@ type
     lblHexSeperator: TLabel;
     lblConditionalJump: TLabel;
     lblHexStatic: TLabel;
-    lblRegisterExample: TLabel;
     lblUnconditionalJump: TLabel;
     lblCall: TLabel;
     lblHex: TLabel;
@@ -104,6 +105,8 @@ type
     procedure lblHexGraphicalColor(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
     procedure lblNormalClick(Sender: TObject);
+    procedure lblRegHighLightMouseDown(Sender: TObject;
+      Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
     procedure lblRegisterClick(Sender: TObject);
     procedure lblHexSeperatorColorMouseDown(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
@@ -199,7 +202,7 @@ end;
 procedure TfrmMemviewPreferences.applyfont;
 var oldcolor: TColor;
 begin
- { cbColorGroupChange(cbColorGroup); //save the current colors
+  cbColorGroupChange(cbColorGroup); //save the current colors
 
   lblNormal.font:=fontdialog1.Font;
   lblRegister.font:=fontdialog1.Font;
@@ -236,12 +239,13 @@ begin
   lblHexDifferent.Font.color:=oldcolor;
 
 
-  lblRegisterExample.Font:=FontDialog3.font;
+  lblRegHighLightAccess.Font:=FontDialog3.font;
+  lblRegHighLightChange.font:=FontDialog3.font;
 
   oldstate:=csUndefined;
   cbColorGroupChange(cbColorGroup); //restore the colors
 
-  DoAutoSize;  }
+  DoAutoSize;
 end;
 
 procedure TfrmMemviewPreferences.FormCreate(Sender: TObject);
@@ -408,6 +412,17 @@ begin
   colordialog1.Title:=rsNormalColor;
   if colordialog1.execute then
     lblNormal.font.color:=colordialog1.Color;
+end;
+
+procedure TfrmMemviewPreferences.lblRegHighLightMouseDown(
+  Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+var l: TLabel;
+begin
+  l:=tlabel(sender);
+  colordialog1.Title:=rsHexedit+' '+l.caption;
+  colordialog1.color:=l.color;
+  if colordialog1.execute then
+    l.color:=colordialog1.color;
 end;
 
 procedure TfrmMemviewPreferences.lblRegisterClick(Sender: TObject);

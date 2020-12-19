@@ -12,10 +12,10 @@ object HotKeyForm: THotKeyForm
   OnCreate = FormCreate
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '2.0.7.0'
+  LCLVersion = '2.0.6.0'
   object ListView1: TListView
     Left = 0
-    Height = 187
+    Height = 173
     Top = 0
     Width = 582
     Align = alClient
@@ -38,7 +38,7 @@ object HotKeyForm: THotKeyForm
       end    
       item
         Caption = 'Description'
-        Width = 215
+        Width = 228
       end>
     HideSelection = False
     PopupMenu = pmHotkeylist
@@ -51,17 +51,17 @@ object HotKeyForm: THotKeyForm
   end
   object Panel1: TPanel
     Left = 0
-    Height = 194
-    Top = 187
+    Height = 208
+    Top = 173
     Width = 582
     Align = alBottom
     AutoSize = True
-    ClientHeight = 194
+    ClientHeight = 208
     ClientWidth = 582
     TabOrder = 1
     object PageControl1: TPageControl
       Left = 1
-      Height = 156
+      Height = 173
       Top = 1
       Width = 580
       ActivePage = TabSheet2
@@ -105,15 +105,15 @@ object HotKeyForm: THotKeyForm
       end
       object TabSheet2: TTabSheet
         Caption = 'TabSheet2'
-        ClientHeight = 156
-        ClientWidth = 580
+        ClientHeight = 165
+        ClientWidth = 572
         object btnApply: TButton
           AnchorSideLeft.Control = Panel3
           AnchorSideTop.Control = Panel3
           AnchorSideTop.Side = asrBottom
           Left = 0
-          Height = 20
-          Top = 134
+          Height = 25
+          Top = 138
           Width = 75
           AutoSize = True
           BorderSpacing.Top = 4
@@ -128,8 +128,8 @@ object HotKeyForm: THotKeyForm
           AnchorSideLeft.Side = asrBottom
           AnchorSideTop.Control = btnApply
           Left = 77
-          Height = 20
-          Top = 134
+          Height = 25
+          Top = 138
           Width = 75
           AutoSize = True
           BorderSpacing.Left = 2
@@ -143,21 +143,21 @@ object HotKeyForm: THotKeyForm
           AnchorSideLeft.Control = TabSheet2
           AnchorSideTop.Control = TabSheet2
           Left = 0
-          Height = 130
+          Height = 134
           Top = 0
-          Width = 297
+          Width = 292
           AutoSize = True
           BevelOuter = bvNone
-          ClientHeight = 130
-          ClientWidth = 297
+          ClientHeight = 134
+          ClientWidth = 292
           TabOrder = 2
           object Label1: TLabel
             AnchorSideLeft.Control = Panel3
             AnchorSideTop.Control = Panel3
             Left = 4
-            Height = 16
+            Height = 15
             Top = 2
-            Width = 263
+            Width = 227
             BorderSpacing.Left = 4
             BorderSpacing.Top = 2
             Caption = 'Type the keys you want to set the hotkey to'
@@ -168,8 +168,8 @@ object HotKeyForm: THotKeyForm
             AnchorSideTop.Control = Label1
             AnchorSideTop.Side = asrBottom
             Left = 4
-            Height = 22
-            Top = 20
+            Height = 23
+            Top = 19
             Width = 235
             BorderSpacing.Top = 2
             OnKeyDown = edtHotkeyKeyDown
@@ -184,9 +184,9 @@ object HotKeyForm: THotKeyForm
             AnchorSideBottom.Control = edtHotkey
             AnchorSideBottom.Side = asrBottom
             Left = 239
-            Height = 22
-            Top = 20
-            Width = 58
+            Height = 23
+            Top = 19
+            Width = 53
             Anchors = [akTop, akLeft, akBottom]
             AutoSize = True
             Caption = 'Clear'
@@ -198,11 +198,11 @@ object HotKeyForm: THotKeyForm
             AnchorSideTop.Control = edtHotkey
             AnchorSideTop.Side = asrBottom
             Left = 4
-            Height = 20
+            Height = 23
             Top = 44
             Width = 145
             BorderSpacing.Top = 2
-            ItemHeight = 26
+            ItemHeight = 15
             ItemIndex = 0
             Items.Strings = (
               'Toggle freeze'
@@ -224,8 +224,8 @@ object HotKeyForm: THotKeyForm
             AnchorSideRight.Control = edtHotkey
             AnchorSideRight.Side = asrBottom
             Left = 4
-            Height = 22
-            Top = 66
+            Height = 23
+            Top = 69
             Width = 235
             Anchors = [akTop, akLeft, akRight]
             BorderSpacing.Top = 2
@@ -237,9 +237,9 @@ object HotKeyForm: THotKeyForm
             AnchorSideTop.Control = edtFreezeValue
             AnchorSideTop.Side = asrBottom
             Left = 4
-            Height = 16
-            Top = 90
-            Width = 134
+            Height = 15
+            Top = 94
+            Width = 117
             BorderSpacing.Top = 2
             Caption = 'Description (Optional)'
             ParentColor = False
@@ -251,9 +251,9 @@ object HotKeyForm: THotKeyForm
             AnchorSideRight.Control = edtHotkey
             AnchorSideRight.Side = asrBottom
             Left = 4
-            Height = 22
+            Height = 23
             Hint = 'When autogenerating a trainer this field will be used as description'
-            Top = 108
+            Top = 111
             Width = 235
             Anchors = [akTop, akLeft, akRight]
             BorderSpacing.Top = 2
@@ -269,10 +269,10 @@ object HotKeyForm: THotKeyForm
           AnchorSideRight.Control = lblDeactivateSound
           AnchorSideRight.Side = asrBottom
           AnchorSideBottom.Control = cbActivateSound
-          Left = 305
-          Height = 16
-          Top = 1
-          Width = 90
+          Left = 300
+          Height = 15
+          Top = 3
+          Width = 79
           Anchors = [akLeft, akBottom]
           BorderSpacing.Left = 8
           Caption = 'Activate sound'
@@ -283,14 +283,14 @@ object HotKeyForm: THotKeyForm
           AnchorSideLeft.Control = lblActivateSound
           AnchorSideTop.Control = lblActivateSound
           AnchorSideTop.Side = asrBottom
-          Left = 305
-          Height = 20
-          Top = 19
+          Left = 300
+          Height = 23
+          Top = 20
           Width = 149
           Anchors = [akLeft]
           BorderSpacing.Top = 2
           Enabled = False
-          ItemHeight = 26
+          ItemHeight = 15
           ItemIndex = 0
           Items.Strings = (
             'Activate'
@@ -306,9 +306,9 @@ object HotKeyForm: THotKeyForm
           AnchorSideLeft.Side = asrBottom
           AnchorSideTop.Control = cbActivateSound
           AnchorSideTop.Side = asrCenter
-          Left = 456
+          Left = 451
           Height = 22
-          Top = 18
+          Top = 20
           Width = 23
           BorderSpacing.Left = 2
           Enabled = False
@@ -354,10 +354,10 @@ object HotKeyForm: THotKeyForm
           AnchorSideLeft.Control = lblActivateSound
           AnchorSideTop.Control = edtActivateText
           AnchorSideTop.Side = asrBottom
-          Left = 305
-          Height = 16
-          Top = 63
-          Width = 105
+          Left = 300
+          Height = 15
+          Top = 68
+          Width = 91
           BorderSpacing.Top = 2
           Caption = 'Deactivate sound'
           Enabled = False
@@ -369,14 +369,14 @@ object HotKeyForm: THotKeyForm
           AnchorSideTop.Side = asrBottom
           AnchorSideRight.Control = cbActivateSound
           AnchorSideRight.Side = asrBottom
-          Left = 305
-          Height = 20
-          Top = 81
+          Left = 300
+          Height = 23
+          Top = 85
           Width = 149
           Anchors = [akTop, akLeft, akRight]
           BorderSpacing.Top = 2
           Enabled = False
-          ItemHeight = 26
+          ItemHeight = 15
           ItemIndex = 0
           Items.Strings = (
             'Deactivate'
@@ -392,9 +392,9 @@ object HotKeyForm: THotKeyForm
           AnchorSideLeft.Side = asrBottom
           AnchorSideTop.Control = cbDeactivateSound
           AnchorSideTop.Side = asrCenter
-          Left = 456
+          Left = 451
           Height = 22
-          Top = 80
+          Top = 85
           Width = 23
           BorderSpacing.Left = 2
           Enabled = False
@@ -442,9 +442,9 @@ object HotKeyForm: THotKeyForm
           AnchorSideTop.Side = asrBottom
           AnchorSideRight.Control = cbActivateSound
           AnchorSideRight.Side = asrBottom
-          Left = 305
-          Height = 22
-          Top = 39
+          Left = 300
+          Height = 23
+          Top = 43
           Width = 149
           Anchors = [akTop, akLeft, akRight]
           ParentShowHint = False
@@ -456,11 +456,11 @@ object HotKeyForm: THotKeyForm
           AnchorSideLeft.Side = asrBottom
           AnchorSideTop.Control = edtActivateText
           AnchorSideTop.Side = asrCenter
-          Left = 456
-          Height = 18
+          Left = 451
+          Height = 19
           Hint = 'Tries to set the language of the windows speech synthesizer to English when speaking this. Won''t speak if there is no English voice installed'
-          Top = 41
-          Width = 99
+          Top = 45
+          Width = 90
           BorderSpacing.Left = 2
           Caption = 'Force English'
           Checked = True
@@ -476,9 +476,9 @@ object HotKeyForm: THotKeyForm
           AnchorSideTop.Side = asrBottom
           AnchorSideRight.Control = cbDeactivateSound
           AnchorSideRight.Side = asrBottom
-          Left = 305
-          Height = 22
-          Top = 101
+          Left = 300
+          Height = 23
+          Top = 108
           Width = 149
           Anchors = [akTop, akLeft, akRight]
           ParentShowHint = False
@@ -490,11 +490,11 @@ object HotKeyForm: THotKeyForm
           AnchorSideLeft.Side = asrBottom
           AnchorSideTop.Control = edtDeactivateText
           AnchorSideTop.Side = asrCenter
-          Left = 456
-          Height = 18
+          Left = 451
+          Height = 19
           Hint = 'Tries to set the language of the windows speech synthesizer to English when speaking this. Won''t speak if there is no English voice installed'
-          Top = 103
-          Width = 99
+          Top = 110
+          Width = 90
           BorderSpacing.Left = 2
           Caption = 'Force English'
           Checked = True
@@ -507,38 +507,38 @@ object HotKeyForm: THotKeyForm
     end
     object Panel2: TPanel
       Left = 1
-      Height = 36
-      Top = 157
+      Height = 33
+      Top = 174
       Width = 580
       Align = alBottom
       AutoSize = True
-      ClientHeight = 36
+      ClientHeight = 33
       ClientWidth = 580
       TabOrder = 1
       OnResize = Panel2Resize
-      object BitBtn1: TBitBtn
-        AnchorSideLeft.Control = Panel2
-        AnchorSideLeft.Side = asrCenter
-        Left = 255
-        Height = 28
-        Top = 4
-        Width = 70
-        AutoSize = True
-        BorderSpacing.Top = 3
-        BorderSpacing.Bottom = 3
-        Caption = 'OK'
-        Constraints.MinWidth = 70
-        OnClick = BitBtn1Click
-        TabOrder = 0
-      end
       object lblID: TLabel
         Left = 575
         Height = 1
-        Top = 23
+        Top = 27
         Width = 1
         Alignment = taRightJustify
         Anchors = [akTop, akRight]
         ParentColor = False
+      end
+      object btnOK: TButton
+        AnchorSideLeft.Control = Panel2
+        AnchorSideLeft.Side = asrCenter
+        Left = 253
+        Height = 25
+        Top = 4
+        Width = 75
+        AutoSize = True
+        BorderSpacing.Top = 3
+        BorderSpacing.Bottom = 3
+        Caption = 'OK'
+        Constraints.MinWidth = 75
+        OnClick = btnOKClick
+        TabOrder = 0
       end
     end
   end

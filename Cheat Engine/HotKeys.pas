@@ -20,11 +20,11 @@ type
   { THotKeyForm }
 
   THotKeyForm = class(TForm)
-    BitBtn1: TBitBtn;
     btnApply: TButton;
     btnCreateHotkey: TButton;
     btnEditHotkey: TButton;
     btnCancel: TButton;
+    btnOK: TButton;
     Button2: TButton;
     cbActivateSound: TComboBox;
     cbDeactivateSound: TComboBox;
@@ -56,11 +56,11 @@ type
     sbPlayDeactivate: TSpeedButton;
     TabSheet1: TTabSheet;
     TabSheet2: TTabSheet;
-    procedure BitBtn1Click(Sender: TObject);
     procedure btnCreateHotkeyClick(Sender: TObject);
     procedure btnEditHotkeyClick(Sender: TObject);
     procedure btnApplyClick(Sender: TObject);
     procedure btnCancelClick(Sender: TObject);
+    procedure btnOKClick(Sender: TObject);
     procedure Button2Click(Sender: TObject);
     procedure cbActivateSoundChange(Sender: TObject);
     procedure cbDeactivateSoundChange(Sender: TObject);
@@ -267,13 +267,6 @@ begin
   cbDeactivateSoundChange(cbDeactivateSound);
 end;
 
-procedure THotKeyForm.BitBtn1Click(Sender: TObject);
-begin
-  if edithotkey then
-    btnApply.click;
-
-  close;
-end;
 
 procedure THotKeyForm.btnEditHotkeyClick(Sender: TObject);
 var
@@ -403,6 +396,14 @@ begin
 
   pagecontrol1.ActivePage:=tabsheet1;
   listview1.Enabled:=true;
+end;
+
+procedure THotKeyForm.btnOKClick(Sender: TObject);
+begin
+  if edithotkey then
+    btnApply.click;
+
+  close;
 end;
 
 procedure THotKeyForm.Button2Click(Sender: TObject);
@@ -767,7 +768,7 @@ end;
 
 procedure THotKeyForm.Panel2Resize(Sender: TObject);
 begin
-  bitbtn1.left:=(panel2.clientwidth div 2) - (bitbtn1.width div 2);
+
 end;
 
 procedure THotKeyForm.pmHotkeylistPopup(Sender: TObject);
