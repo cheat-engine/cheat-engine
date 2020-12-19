@@ -2728,6 +2728,17 @@ begin
     fAccessedRegisterColor:=clAqua;
     fChangedRegisterColor:=clred;
   end;
+
+  label14.font.color:=clWindowtext;
+  shape1.pen.color:=clWindowtext;
+
+  label15.font.color:=clWindowtext;
+  shape2.pen.color:=clWindowtext;
+
+  label16.font.color:=clWindowtext;
+  shape3.Pen.color:=clWindowtext;
+
+
 end;
 
 procedure TMemoryBrowser.Scrollboxscroll(sender: TObject);
