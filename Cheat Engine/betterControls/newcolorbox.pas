@@ -1,4 +1,4 @@
-unit newComboBox;
+unit newColorBox;
 
 {$mode objfpc}{$H+}
 
@@ -6,10 +6,10 @@ interface
 
 uses
   jwawindows, windows, Classes, SysUtils, stdctrls, controls, messages, lmessages,
-  Win32Extra, LCLClasses,LCLProc, graphics;
+  Win32Extra, LCLClasses,LCLProc, colorbox;
 
 type
-  TNewComboBox=class(TComboBox)
+  TNewColorBox=class(TColorBox)
   private
     creatingBrush: boolean;
   protected
@@ -17,31 +17,17 @@ type
   public
   end;
 
-var
-  OriginalComboboxListHandler: ptruint;
-  comboBoxdefaultBrush: TBrush;
-
-function ComboboxListSubClass(wnd:HWND; msg:UINT; _wparam:WPARAM; _lparam:LPARAM):LRESULT; stdcall;
 
 implementation
 
-uses Menus, Win32WSMenus, betterControls;
+uses graphics, Menus, Win32WSMenus, betterControls, newComboBox;
 
 
-function ComboboxListSubClass(wnd:HWND; msg:UINT; _wparam:WPARAM; _lparam:LPARAM):LRESULT; stdcall;
-begin
-  if msg=WM_CTLCOLORLISTBOX then
-  begin
-    SetTextColor(_wparam, ColorSet.FontColor);
-    exit(comboBoxdefaultBrush.handle);
-  end;
 
-  result:=CallWindowProc(WNDPROC(OriginalComboboxListHandler), wnd, msg, _wparam, _lparam);
-end;
 
-procedure TNewComboBox.CreateBrush;
+procedure TNewColorBox.CreateBrush;
 var
-  cbi: TCOMBOBOXINFO;
+  cbi: TComboBoxINFO;
 begin
   if creatingBrush then
   begin
@@ -49,7 +35,7 @@ begin
     exit;
   end;
 
-  creatingBrush:=true;
+  creatingbrush:=true;
   cbi.cbSize:=sizeof(cbi);
   if GetComboBoxInfo(handle, @cbi) then
   begin
@@ -80,6 +66,7 @@ begin
     comboboxdefaultBrush:=TBrush.Create;
     comboboxdefaultBrush.Assign(brush);
   end;
+
   creatingbrush:=false;
 end;
 

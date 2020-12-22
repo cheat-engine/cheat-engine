@@ -63,9 +63,9 @@ object formSettings: TformSettings
       Height = 569
       Top = 1
       Width = 660
-      ActivePage = GeneralSettings
+      ActivePage = Assembler
       Align = alClient
-      TabIndex = 0
+      TabIndex = 6
       TabOrder = 1
       OnChange = pcSettingChange
       object GeneralSettings: TTabSheet
@@ -659,102 +659,54 @@ object formSettings: TformSettings
           DesignTop = 306
           inherited Panel1: TPanel
             Height = 491
-            Top = 50
             Width = 426
             ClientHeight = 491
             ClientWidth = 426
             inherited Label1: TLabel
-              Height = 15
               Width = 426
             end
             inherited ListBox1: TListBox
               Height = 476
-              Top = 15
               Width = 426
             end
           end
           inherited Panel2: TPanel
             Left = 426
             Height = 491
-            Top = 50
             Width = 226
             ClientHeight = 491
             ClientWidth = 226
-            inherited Label2: TLabel
-              Height = 15
-              Width = 38
-            end
             inherited Edit1: TEdit
-              Height = 23
-              Top = 19
               Width = 222
             end
             inherited Button3: TButton
               Left = 171
-              Height = 25
-              Width = 53
             end
             inherited Panel3: TPanel
               Left = 126
-              Height = 57
-              Top = 70
-              Width = 100
-              ClientHeight = 57
-              ClientWidth = 100
-              inherited Label52: TLabel
-                Height = 15
-                Width = 56
-              end
-              inherited edtSHSpeed: TEdit
-                Height = 23
-                Top = 15
-                Width = 56
-              end
-              inherited cbStopOnRelease: TCheckBox
-                Height = 19
-                Width = 100
-              end
             end
             inherited Panel4: TPanel
               Left = 6
-              Top = 129
               Width = 220
               ClientWidth = 220
-              inherited Label3: TLabel
-                Height = 15
-                Width = 61
-              end
               inherited Edit4: TEdit
-                Height = 23
-                Top = 15
                 Width = 216
               end
             end
           end
           inherited Panel5: TPanel
-            Height = 50
             Width = 652
-            ClientHeight = 50
             ClientWidth = 652
             inherited Label4: TLabel
               Left = 121
-              Height = 15
-              Top = 6
-              Width = 158
             end
             inherited Label5: TLabel
               Left = 121
-              Height = 15
-              Top = 31
-              Width = 186
             end
             inherited edtKeypollInterval: TEdit
-              Height = 23
               Width = 117
             end
             inherited edtHotkeyDelay: TEdit
-              Height = 23
-              Top = 27
               Width = 117
             end
           end
@@ -886,6 +838,7 @@ object formSettings: TformSettings
               'TimeCritical'
             )
             PopupMenu = MainForm.emptypopup
+            Style = csDropDownList
             TabOrder = 0
             Text = 'Higher'
           end
@@ -962,7 +915,6 @@ object formSettings: TformSettings
             Text = '1024'
           end
           object cbDontusetempdir: TCheckBox
-            AnchorSideTop.Control = cgAllTypes
             AnchorSideTop.Side = asrBottom
             Left = 0
             Height = 19
@@ -1042,42 +994,6 @@ object formSettings: TformSettings
             ShowHint = True
             ParentShowHint = False
           end
-          object cgAllTypes: TCheckGroup
-            AnchorSideTop.Control = edtRepeatDelay
-            AnchorSideTop.Side = asrBottom
-            Left = 0
-            Height = 89
-            Top = 142
-            Width = 243
-            AutoFill = True
-            AutoSize = True
-            Caption = 'The all type includes'
-            ChildSizing.LeftRightSpacing = 6
-            ChildSizing.TopBottomSpacing = 6
-            ChildSizing.EnlargeHorizontal = crsHomogenousChildResize
-            ChildSizing.EnlargeVertical = crsHomogenousChildResize
-            ChildSizing.ShrinkHorizontal = crsScaleChilds
-            ChildSizing.ShrinkVertical = crsScaleChilds
-            ChildSizing.Layout = cclTopToBottomThenLeftToRight
-            ChildSizing.ControlsPerLine = 3
-            ClientHeight = 69
-            ClientWidth = 239
-            ColumnLayout = clVerticalThenHorizontal
-            Columns = 3
-            Items.Strings = (
-              'Byte'
-              '2 Bytes'
-              '4 Bytes'
-              '8 Bytes'
-              'Float'
-              'Double'
-              'All Custom Types'
-            )
-            TabOrder = 9
-            Data = {
-              0700000002020202020202
-            }
-          end
           object cbPauseWhenScanningOnByDefault: TCheckBox
             AnchorSideTop.Control = cbSkip_PAGE_WRITECOMBINE
             AnchorSideTop.Side = asrBottom
@@ -1086,7 +1002,7 @@ object formSettings: TformSettings
             Top = 85
             Width = 206
             Caption = 'Pause while scanning on by default'
-            TabOrder = 10
+            TabOrder = 9
           end
           object cbSkip_PAGE_WRITECOMBINE: TCheckBox
             AnchorSideLeft.Control = cbSkip_PAGE_NOCACHE
@@ -1099,7 +1015,7 @@ object formSettings: TformSettings
             Caption = 'Don''t scan memory that is protected with the Write Combine option'
             Checked = True
             State = cbChecked
-            TabOrder = 11
+            TabOrder = 10
           end
           object lblRepeatDelay: TLabel
             AnchorSideLeft.Control = cbPauseWhenScanningOnByDefault
@@ -1123,7 +1039,7 @@ object formSettings: TformSettings
             Width = 80
             ParentShowHint = False
             ShowHint = True
-            TabOrder = 12
+            TabOrder = 11
             Text = '0'
           end
           object Label25: TLabel
@@ -1137,6 +1053,84 @@ object formSettings: TformSettings
             Width = 16
             Caption = 'ms'
             ParentColor = False
+          end
+          object gbAllTypes: TGroupBox
+            AnchorSideLeft.Control = ScrollBox2
+            AnchorSideTop.Control = edtRepeatDelay
+            AnchorSideTop.Side = asrBottom
+            Left = 0
+            Height = 89
+            Top = 142
+            Width = 243
+            AutoSize = True
+            Caption = 'The ''all'' type includes'
+            ChildSizing.LeftRightSpacing = 6
+            ChildSizing.TopBottomSpacing = 6
+            ChildSizing.EnlargeHorizontal = crsHomogenousChildResize
+            ChildSizing.EnlargeVertical = crsHomogenousChildResize
+            ChildSizing.ShrinkHorizontal = crsScaleChilds
+            ChildSizing.ShrinkVertical = crsScaleChilds
+            ChildSizing.Layout = cclTopToBottomThenLeftToRight
+            ChildSizing.ControlsPerLine = 3
+            ClientHeight = 69
+            ClientWidth = 239
+            TabOrder = 12
+            object cbAllByte: TCheckBox
+              Left = 6
+              Height = 19
+              Top = 6
+              Width = 57
+              Caption = 'Byte'
+              TabOrder = 0
+            end
+            object cbAllWord: TCheckBox
+              Left = 6
+              Height = 19
+              Top = 25
+              Width = 57
+              Caption = '2 Bytes'
+              TabOrder = 1
+            end
+            object cbAllDword: TCheckBox
+              Left = 6
+              Height = 19
+              Top = 44
+              Width = 57
+              Caption = '4 Bytes'
+              TabOrder = 2
+            end
+            object cbAllQword: TCheckBox
+              Left = 63
+              Height = 19
+              Top = 6
+              Width = 58
+              Caption = '8 Bytes'
+              TabOrder = 3
+            end
+            object cbAllSingle: TCheckBox
+              Left = 63
+              Height = 19
+              Top = 25
+              Width = 58
+              Caption = 'Float'
+              TabOrder = 4
+            end
+            object cbAllDouble: TCheckBox
+              Left = 63
+              Height = 19
+              Top = 44
+              Width = 58
+              Caption = 'Double'
+              TabOrder = 5
+            end
+            object cbAllCustom: TCheckBox
+              Left = 121
+              Height = 19
+              Top = 6
+              Width = 112
+              Caption = 'All Custom Types'
+              TabOrder = 6
+            end
           end
         end
       end
@@ -1354,21 +1348,21 @@ object formSettings: TformSettings
       end
       object Assembler: TTabSheet
         Caption = 'Debugger Options'
-        ClientHeight = 605
+        ClientHeight = 541
         ClientWidth = 652
         ImageIndex = 5
         object ScrollBox3: TScrollBox
           Left = 0
-          Height = 605
+          Height = 541
           Top = 0
           Width = 652
-          HorzScrollBar.Page = 648
+          HorzScrollBar.Page = 631
           HorzScrollBar.Tracking = True
-          VertScrollBar.Page = 473
+          VertScrollBar.Page = 520
           VertScrollBar.Tracking = True
           Align = alClient
-          ClientHeight = 584
-          ClientWidth = 648
+          ClientHeight = 520
+          ClientWidth = 631
           TabOrder = 0
           object replacewithnops: TCheckBox
             AnchorSideLeft.Control = Label4
@@ -1402,42 +1396,41 @@ object formSettings: TformSettings
             TabOrder = 1
           end
           object GroupBox2: TGroupBox
-            AnchorSideLeft.Control = rbgDebuggerInterface
-            AnchorSideTop.Control = rbgDebuggerInterface
+            AnchorSideTop.Control = gbDebuggerInterface
             AnchorSideTop.Side = asrBottom
             AnchorSideRight.Control = ScrollBox3
             AnchorSideRight.Side = asrBottom
             Left = 8
-            Height = 67
+            Height = 129
             Top = 308
-            Width = 247
+            Width = 324
             AutoSize = True
             BorderSpacing.Top = 2
             Caption = 'Debugger interface config'
-            ClientHeight = 47
-            ClientWidth = 243
+            ClientHeight = 109
+            ClientWidth = 320
             TabOrder = 2
             object pcDebugConfig: TPageControl
               Left = 0
-              Height = 47
+              Height = 109
               Top = 0
-              Width = 243
+              Width = 320
               ActivePage = tsVEHDebugConfig
               Align = alClient
               TabIndex = 0
               TabOrder = 0
               object tsVEHDebugConfig: TTabSheet
                 Caption = 'VEH Debugger'
-                ClientHeight = 17
-                ClientWidth = 237
+                ClientHeight = 81
+                ClientWidth = 312
                 object rbVEHHookThreadCreation: TRadioButton
                   AnchorSideLeft.Control = tsVEHDebugConfig
                   AnchorSideTop.Control = rbVEHPollThread
                   AnchorSideTop.Side = asrBottom
                   Left = 0
-                  Height = 18
+                  Height = 19
                   Top = 40
-                  Width = 233
+                  Width = 215
                   BorderSpacing.Top = 3
                   Caption = 'Hook thread-create and destroy api''s'
                   Enabled = False
@@ -1447,9 +1440,9 @@ object formSettings: TformSettings
                   AnchorSideLeft.Control = tsVEHDebugConfig
                   AnchorSideTop.Control = tsVEHDebugConfig
                   Left = 0
-                  Height = 16
+                  Height = 15
                   Top = 0
-                  Width = 104
+                  Width = 92
                   Caption = 'Thread following:'
                   ParentColor = False
                 end
@@ -1458,9 +1451,9 @@ object formSettings: TformSettings
                   AnchorSideTop.Control = rbVEHHookThreadCreation
                   AnchorSideTop.Side = asrBottom
                   Left = 0
-                  Height = 18
-                  Top = 61
-                  Width = 138
+                  Height = 19
+                  Top = 62
+                  Width = 124
                   BorderSpacing.Top = 3
                   Caption = 'Use processwatcher'
                   Enabled = False
@@ -1471,9 +1464,9 @@ object formSettings: TformSettings
                   AnchorSideTop.Control = lblThreadFollowing
                   AnchorSideTop.Side = asrBottom
                   Left = 0
-                  Height = 18
-                  Top = 19
-                  Width = 109
+                  Height = 19
+                  Top = 18
+                  Width = 100
                   BorderSpacing.Top = 3
                   Caption = 'Poll for threads'
                   Checked = True
@@ -1485,10 +1478,10 @@ object formSettings: TformSettings
                   AnchorSideLeft.Side = asrBottom
                   AnchorSideTop.Control = rbVEHPollThread
                   AnchorSideRight.Control = rbVEHPollThread
-                  Left = 119
-                  Height = 18
-                  Top = 19
-                  Width = 218
+                  Left = 110
+                  Height = 19
+                  Top = 18
+                  Width = 202
                   BorderSpacing.Left = 10
                   Caption = 'Get/Set thread context on creation'
                   Checked = True
@@ -1499,14 +1492,14 @@ object formSettings: TformSettings
               object tsWindowsDebuggerConfig: TTabSheet
                 Caption = 'Windows Debugger'
                 ClientHeight = 19
-                ClientWidth = 235
+                ClientWidth = 234
                 object CheckBox1: TCheckBox
                   AnchorSideLeft.Control = tsWindowsDebuggerConfig
                   AnchorSideTop.Control = tsWindowsDebuggerConfig
                   Left = 0
                   Height = 19
                   Top = 0
-                  Width = 235
+                  Width = 234
                   Caption = 'Try to prevent detection of the debugger'
                   OnChange = CheckBox1Change
                   TabOrder = 0
@@ -1514,15 +1507,15 @@ object formSettings: TformSettings
               end
               object tsKernelDebugConfig: TTabSheet
                 Caption = 'Kernel Debug'
-                ClientHeight = 36
-                ClientWidth = 92
+                ClientHeight = 38
+                ClientWidth = 203
                 object cbGlobalDebug: TCheckBox
                   AnchorSideLeft.Control = tsKernelDebugConfig
                   AnchorSideTop.Control = tsKernelDebugConfig
                   Left = 0
-                  Height = 18
+                  Height = 19
                   Top = 0
-                  Width = 174
+                  Width = 160
                   Caption = 'Use Global Debug routines'
                   TabOrder = 0
                 end
@@ -1531,9 +1524,9 @@ object formSettings: TformSettings
                   AnchorSideTop.Control = cbGlobalDebug
                   AnchorSideTop.Side = asrBottom
                   Left = 0
-                  Height = 18
-                  Top = 18
-                  Width = 218
+                  Height = 19
+                  Top = 19
+                  Width = 203
                   Caption = 'Ability to step through kernel code'
                   TabOrder = 1
                 end
@@ -1568,7 +1561,7 @@ object formSettings: TformSettings
               end
             end
           end
-          object rbgDebuggerInterface: TRadioGroup
+          object gbDebuggerInterface: TGroupBox
             AnchorSideLeft.Control = edtStacksize
             AnchorSideTop.Control = edtStacksize
             AnchorSideTop.Side = asrBottom
@@ -1576,7 +1569,6 @@ object formSettings: TformSettings
             Height = 96
             Top = 210
             Width = 400
-            AutoFill = True
             AutoSize = True
             Caption = 'Debugger method'
             ChildSizing.LeftRightSpacing = 6
@@ -1584,14 +1576,13 @@ object formSettings: TformSettings
             ChildSizing.EnlargeVertical = crsHomogenousChildResize
             ChildSizing.ShrinkHorizontal = crsScaleChilds
             ChildSizing.ShrinkVertical = crsScaleChilds
-            ChildSizing.Layout = cclLeftToRightThenTopToBottom
             ChildSizing.ControlsPerLine = 1
             ClientHeight = 76
             ClientWidth = 396
             TabOrder = 3
             object cbUseVEHDebugger: TRadioButton
-              AnchorSideLeft.Control = rbgDebuggerInterface
-              AnchorSideTop.Control = rbgDebuggerInterface
+              AnchorSideLeft.Control = gbDebuggerInterface
+              AnchorSideTop.Control = gbDebuggerInterface
               Left = 6
               Height = 19
               Top = 0
@@ -1603,6 +1594,7 @@ object formSettings: TformSettings
             end
             object cbUseWindowsDebugger: TRadioButton
               Tag = 1
+              AnchorSideLeft.Control = gbDebuggerInterface
               AnchorSideTop.Control = cbUseVEHDebugger
               AnchorSideTop.Side = asrBottom
               Left = 6
@@ -1654,7 +1646,7 @@ object formSettings: TformSettings
             end
             object cbKDebug: TRadioButton
               Tag = 2
-              AnchorSideLeft.Control = cbUseWindowsDebugger
+              AnchorSideLeft.Control = gbDebuggerInterface
               AnchorSideTop.Control = cbUseWindowsDebugger
               AnchorSideTop.Side = asrBottom
               Left = 6
@@ -1667,7 +1659,6 @@ object formSettings: TformSettings
               TabOrder = 3
             end
             object cbUseMacDebugger: TRadioButton
-              AnchorSideLeft.Control = rbgDebuggerInterface
               AnchorSideTop.Control = cbKDebug
               AnchorSideTop.Side = asrBottom
               Left = 6
@@ -1734,7 +1725,7 @@ object formSettings: TformSettings
             Left = 8
             Height = 19
             Top = 149
-            Width = 309
+            Width = 310
             Caption = 'Override existing breakpoints when setting breakpoints'
             Checked = True
             State = cbChecked
@@ -1746,12 +1737,12 @@ object formSettings: TformSettings
             Left = 8
             Height = 77
             Top = 0
-            Width = 639
+            Width = 641
             AutoSize = True
             BorderSpacing.Left = 8
             Caption = 'Prefered breakpoint method'
             ClientHeight = 57
-            ClientWidth = 635
+            ClientWidth = 637
             TabOrder = 6
             object rbDebugAsBreakpoint: TRadioButton
               AnchorSideLeft.Control = GroupBox4
@@ -1759,7 +1750,7 @@ object formSettings: TformSettings
               Left = 0
               Height = 19
               Top = 0
-              Width = 178
+              Width = 179
               Caption = 'Hardware Breakpoints (Max 4)'
               Checked = True
               TabOrder = 0
@@ -1772,7 +1763,7 @@ object formSettings: TformSettings
               Left = 0
               Height = 19
               Top = 19
-              Width = 400
+              Width = 401
               Caption = 'Int3 instructions (Execute BP only, falls back to hardware bp) (Unlimited)'
               TabOrder = 1
             end
@@ -1783,7 +1774,7 @@ object formSettings: TformSettings
               Left = 0
               Height = 19
               Top = 38
-              Width = 635
+              Width = 637
               Caption = 'Page exceptions (Extremely slow to unplayable, buggy, best used if nothing else works. Does not use debug registers)'
               TabOrder = 2
             end
@@ -1810,7 +1801,7 @@ object formSettings: TformSettings
             AnchorSideRight.Side = asrBottom
             Left = 8
             Height = 96
-            Top = 377
+            Top = 439
             Width = 357
             AutoSize = True
             BorderSpacing.Top = 2
@@ -2561,8 +2552,8 @@ object formSettings: TformSettings
     Top = 143
   end
   object miLanguages: TPopupMenu
-    Left = 440
-    Top = 200
+    Left = 536
+    Top = 240
     object MenuItem1: TMenuItem
       Caption = 'Refresh'
       OnClick = MenuItem1Click

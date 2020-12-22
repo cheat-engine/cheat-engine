@@ -177,22 +177,22 @@ begin
             miLuaExecSignedOnly.checked:=true;
 
 
-          if reg.ValueExists('AllByte') then cgAllTypes.checked[0]:=reg.readBool('AllByte');
-          if reg.ValueExists('AllWord') then cgAllTypes.checked[1]:=reg.readBool('AllWord');
-          if reg.ValueExists('AllDWord') then cgAllTypes.checked[2]:=reg.readBool('AllDWord');
-          if reg.ValueExists('AllQWord') then cgAllTypes.checked[3]:=reg.readBool('AllQWord');
-          if reg.ValueExists('AllFloat') then cgAllTypes.checked[4]:=reg.readBool('AllFloat');
-          if reg.ValueExists('AllDouble') then cgAllTypes.checked[5]:=reg.readBool('AllDouble');
-          if reg.ValueExists('AllCustom') then cgAllTypes.checked[6]:=reg.readBool('AllCustom');
+          if reg.ValueExists('AllByte') then cbAllByte.checked:=reg.readBool('AllByte');
+          if reg.ValueExists('AllWord') then cbAllWord.checked:=reg.readBool('AllWord');
+          if reg.ValueExists('AllDWord') then cbAllDouble.checked:=reg.readBool('AllDWord');
+          if reg.ValueExists('AllQWord') then cbAllQword.checked:=reg.readBool('AllQWord');
+          if reg.ValueExists('AllFloat') then cbAllSingle.checked:=reg.readBool('AllFloat');
+          if reg.ValueExists('AllDouble') then cbAllDouble.checked:=reg.readBool('AllDouble');
+          if reg.ValueExists('AllCustom') then cbAllCustom.checked:=reg.readBool('AllCustom');
 
           ScanAllTypes:=[];
-          if cgAllTypes.checked[0] then ScanAllTypes:=ScanAllTypes+[vtByte];
-          if cgAllTypes.checked[1] then ScanAllTypes:=ScanAllTypes+[vtWord];
-          if cgAllTypes.checked[2] then ScanAllTypes:=ScanAllTypes+[vtDword];
-          if cgAllTypes.checked[3] then ScanAllTypes:=ScanAllTypes+[vtQword];
-          if cgAllTypes.checked[4] then ScanAllTypes:=ScanAllTypes+[vtSingle];
-          if cgAllTypes.checked[5] then ScanAllTypes:=ScanAllTypes+[vtDouble];
-          if cgAllTypes.checked[6] then ScanAllTypes:=ScanAllTypes+[vtCustom];
+          if cbAllByte.checked then ScanAllTypes:=ScanAllTypes+[vtByte];
+          if cbAllWord.checked then ScanAllTypes:=ScanAllTypes+[vtWord];
+          if cbAllDouble.checked then ScanAllTypes:=ScanAllTypes+[vtDword];
+          if cbAllQword.checked then ScanAllTypes:=ScanAllTypes+[vtQword];
+          if cbAllSingle.checked then ScanAllTypes:=ScanAllTypes+[vtSingle];
+          if cbAllDouble.checked then ScanAllTypes:=ScanAllTypes+[vtDouble];
+          if cbAllCustom.checked then ScanAllTypes:=ScanAllTypes+[vtCustom];
 
 
           if reg.ValueExists('Show all windows on taskbar') then

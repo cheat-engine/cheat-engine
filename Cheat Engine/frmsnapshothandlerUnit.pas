@@ -467,12 +467,10 @@ begin
       safed3dhook;
       mainform.updated3dgui;
 
-
-      case frmd3dhooksnapshotconfig.rgPictureFormat.itemindex of
-        0: pf:=3;
-        1: pf:=0;
-      end;
-
+      if frmd3dhooksnapshotconfig.rbFormatPNG.Checked then
+        pf:=3
+      else
+        pf:=0;
 
 
       if d3dhook<>nil then

@@ -21,6 +21,7 @@ type
     dirSnapshot: TDirectoryEdit;
     edtFullSnapshot: TEdit;
     edtSmallSnapshot: TEdit;
+    gbPictureFormat: TGroupBox;
     Label1: TLabel;
     Label2: TLabel;
     Label3: TLabel;
@@ -29,7 +30,8 @@ type
     Panel1: TPanel;
     Panel2: TPanel;
     Panel3: TPanel;
-    rgPictureFormat: TRadioGroup;
+    rbFormatPNG: TRadioButton;
+    rbFormatBMP: TRadioButton;
     procedure btnClearFullSnapshotClick(Sender: TObject);
     procedure btnClearSmallSnapshotClick(Sender: TObject);
     procedure cbClearDepthChange(Sender: TObject);
@@ -129,7 +131,12 @@ begin
         cbAlsoOutputPng.Checked:=reg.readBool('Also save PNG');
 
       if reg.ValueExists('Snapshot picture format') then
-        rgPictureFormat.ItemIndex:=reg.ReadInteger('Snapshot picture format');
+      begin
+        if reg.ReadInteger('Snapshot picture format')=0 then
+          rbFormatPNG.checked:=true
+        else
+          rbFormatBMP.checked:=true;
+      end;
 
       k[1]:=0;
       k[0]:=fullsnapshotkey;
@@ -165,7 +172,7 @@ begin
       reg.WriteInteger('Small Snapshot Key', smallsnapshotkey);
       reg.writeBool('Also save PNG', cbAlsoOutputPng.Checked);
 
-      reg.WriteInteger('Snapshot picture format', rgPictureFormat.ItemIndex);
+      reg.WriteInteger('Snapshot picture format', ifthen<integer>(rbFormatPNG.checked,0,1));
     end;
 
   finally

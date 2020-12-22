@@ -9,7 +9,7 @@ uses
   newEdit, newMainMenu, newForm, newListBox, newProgressBar, newMemo, newComboBox,
   newGroupBox, newSpeedButton, newTreeView, newHeaderControl, newScrollBar,
   newScrollBox, newSynEdit, newPageControl, newtabcontrol, newStatusBar,
-  newCheckListBox,
+  newCheckListBox, newCheckGroup, newColorBox, newDirectoryEdit,
   Graphics, Themes, UxTheme, bettercontrolColorSet;
 
 type
@@ -36,6 +36,9 @@ type
   TTabControl=class(TNewTabControl);
   TStatusBar=class(TNewStatusBar);
   TCheckListbox=class(TNewCheckListBox);
+  TCheckGroup=class(TNewCheckGroup);  //not fully yet (too limited)
+  TColorBox=class(TNewColorBox);
+  TDirectoryEdit=class(TNewDirectoryEdit);
 
 var
   globalCustomDraw: boolean;

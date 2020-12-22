@@ -1,27 +1,26 @@
 object frmD3DHookSnapshotConfig: TfrmD3DHookSnapshotConfig
   Left = 470
-  Height = 232
+  Height = 323
   Top = 174
-  Width = 298
+  Width = 424
   AutoSize = True
   BorderIcons = [biSystemMenu]
   BorderStyle = bsSingle
   Caption = 'D3DHook: Configure snapshot'
-  ClientHeight = 232
-  ClientWidth = 298
+  ClientHeight = 323
+  ClientWidth = 424
   OnCreate = FormCreate
   Position = poScreenCenter
-  LCLVersion = '1.6.0.4'
+  LCLVersion = '2.0.6.0'
   object dirSnapshot: TDirectoryEdit
     AnchorSideLeft.Control = Label1
     AnchorSideTop.Control = Label1
     AnchorSideTop.Side = asrBottom
-    AnchorSideRight.Control = rgPictureFormat
     AnchorSideRight.Side = asrBottom
-    Left = 9
+    Left = 8
     Height = 23
     Top = 175
-    Width = 281
+    Width = 408
     ShowHidden = False
     ButtonWidth = 23
     NumGlyphs = 1
@@ -30,9 +29,10 @@ object frmD3DHookSnapshotConfig: TfrmD3DHookSnapshotConfig
     TabOrder = 2
   end
   object Label1: TLabel
+    AnchorSideLeft.Control = cbAlsoOutputPng
     AnchorSideTop.Control = cbAlsoOutputPng
     AnchorSideTop.Side = asrBottom
-    Left = 9
+    Left = 8
     Height = 15
     Top = 160
     Width = 83
@@ -64,58 +64,26 @@ object frmD3DHookSnapshotConfig: TfrmD3DHookSnapshotConfig
     TabOrder = 1
   end
   object cbAlsoOutputPng: TCheckBox
-    AnchorSideLeft.Control = rgPictureFormat
-    AnchorSideTop.Control = rgPictureFormat
+    AnchorSideLeft.Control = gbPictureFormat
+    AnchorSideTop.Control = gbPictureFormat
     AnchorSideTop.Side = asrBottom
     Left = 8
     Height = 19
     Hint = 'Use this if you have a more efficient way of rendering .PNG''s to select the snapshot you wish'
     Top = 139
-    Width = 218
+    Width = 219
     BorderSpacing.Top = 2
     Caption = 'Also save picture next to snapshot file'
     ParentShowHint = False
     ShowHint = True
     TabOrder = 3
   end
-  object rgPictureFormat: TRadioGroup
-    AnchorSideLeft.Control = cbClearDepth
-    AnchorSideTop.Control = cbClearDepth
-    AnchorSideTop.Side = asrBottom
-    AnchorSideRight.Control = Owner
-    AnchorSideRight.Side = asrBottom
-    Left = 8
-    Height = 60
-    Top = 77
-    Width = 282
-    Anchors = [akTop, akLeft, akRight]
-    AutoFill = True
-    AutoSize = True
-    BorderSpacing.Right = 8
-    Caption = 'Picture format'
-    ChildSizing.LeftRightSpacing = 6
-    ChildSizing.VerticalSpacing = 2
-    ChildSizing.EnlargeHorizontal = crsHomogenousChildResize
-    ChildSizing.EnlargeVertical = crsHomogenousChildResize
-    ChildSizing.ShrinkHorizontal = crsScaleChilds
-    ChildSizing.ShrinkVertical = crsScaleChilds
-    ChildSizing.Layout = cclLeftToRightThenTopToBottom
-    ChildSizing.ControlsPerLine = 1
-    ClientHeight = 40
-    ClientWidth = 278
-    ItemIndex = 0
-    Items.Strings = (
-      'PNG (Slow, small files)'
-      'BMP (Fast, but requires a gigantic harddisk)'
-    )
-    TabOrder = 4
-  end
   object Panel1: TPanel
     AnchorSideLeft.Control = Owner
     AnchorSideLeft.Side = asrCenter
     AnchorSideTop.Control = dirSnapshot
     AnchorSideTop.Side = asrBottom
-    Left = 71
+    Left = 134
     Height = 25
     Top = 206
     Width = 156
@@ -124,7 +92,7 @@ object frmD3DHookSnapshotConfig: TfrmD3DHookSnapshotConfig
     BevelOuter = bvNone
     ClientHeight = 25
     ClientWidth = 156
-    TabOrder = 5
+    TabOrder = 4
     object mbOk: TButton
       AnchorSideLeft.Control = Panel1
       AnchorSideTop.Control = Panel1
@@ -170,7 +138,7 @@ object frmD3DHookSnapshotConfig: TfrmD3DHookSnapshotConfig
     BevelOuter = bvNone
     ClientHeight = 39
     ClientWidth = 144
-    TabOrder = 6
+    TabOrder = 5
     object Label2: TLabel
       AnchorSideLeft.Control = Panel2
       AnchorSideTop.Control = Panel2
@@ -227,7 +195,7 @@ object frmD3DHookSnapshotConfig: TfrmD3DHookSnapshotConfig
     BevelOuter = bvNone
     ClientHeight = 39
     ClientWidth = 136
-    TabOrder = 7
+    TabOrder = 6
     object Label3: TLabel
       AnchorSideLeft.Control = Panel3
       AnchorSideTop.Control = Panel3
@@ -268,6 +236,42 @@ object frmD3DHookSnapshotConfig: TfrmD3DHookSnapshotConfig
       Caption = 'Clear'
       OnClick = btnClearSmallSnapshotClick
       TabOrder = 1
+    end
+  end
+  object gbPictureFormat: TGroupBox
+    AnchorSideLeft.Control = cbClearDepth
+    AnchorSideTop.Control = cbClearDepth
+    AnchorSideTop.Side = asrBottom
+    Left = 8
+    Height = 60
+    Top = 77
+    Width = 268
+    AutoSize = True
+    Caption = 'Picture Format'
+    ChildSizing.LeftRightSpacing = 6
+    ChildSizing.VerticalSpacing = 2
+    ChildSizing.Layout = cclLeftToRightThenTopToBottom
+    ChildSizing.ControlsPerLine = 1
+    ClientHeight = 40
+    ClientWidth = 264
+    TabOrder = 7
+    object rbFormatPNG: TRadioButton
+      Left = 6
+      Height = 19
+      Top = 0
+      Width = 252
+      Caption = 'PNG (Slow, small files)'
+      Checked = True
+      TabOrder = 1
+      TabStop = True
+    end
+    object rbFormatBMP: TRadioButton
+      Left = 6
+      Height = 19
+      Top = 21
+      Width = 252
+      Caption = 'BMP (Fast, but requires a gigantic harddisk) '
+      TabOrder = 0
     end
   end
 end

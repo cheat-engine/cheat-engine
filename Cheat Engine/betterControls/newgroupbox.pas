@@ -12,25 +12,43 @@ type
   TNewGroupBox=class(TGroupBox)
   private
   protected
-
-    procedure CreateParams(var Params: TCreateParams); override;
-
-  // procedure CreateBrush; override;
-
-    procedure ChildHandlesCreated; override;
     procedure PaintControls(DC: HDC; First: TControl);
-
+    procedure ChildHandlesCreated; override;
   public
+
 
   end;
 
+
+
+function GroupBoxSubClass(wnd:HWND; msg:UINT; _wparam:WPARAM; _lparam:LPARAM):LRESULT; stdcall;
+ 
+var
+  OriginalGroupBoxHandler: ptruint;
+
+//function GroupBoxSubClass(wnd:HWND; msg:UINT; _wparam:WPARAM; _lparam:LPARAM):LRESULT; stdcall;
 
 implementation
 
 uses betterControls, WSLCLClasses, WSStdCtrls, Win32Proc, Win32Int;
 
-var
-  OriginalGroupBoxHandler: ptruint;
+type
+  TCustomGroupBoxHelper = class helper for TCustomGroupBox
+  public
+    procedure PaintControlsHelper(DC: HDC; First: TControl);
+    function GetParentColor: boolean;
+  end;
+
+procedure TCustomGroupBoxHelper.PaintControlsHelper(DC: HDC; First: TControl);
+begin
+  PaintControls(dc,first);
+end;
+
+function TCustomGroupBoxHelper.GetParentColor: boolean;
+begin
+  result:=ParentColor;
+end;
+
 
 function GroupBoxSubClass(wnd:HWND; msg:UINT; _wparam:WPARAM; _lparam:LPARAM):LRESULT; stdcall;
 var
@@ -40,7 +58,7 @@ var
 
   c: TCanvas;
 
-  gb: TNewGroupBox;
+  gb: TCustomGroupBox;
   r:trect;
   h: LPNMHDR;
   i: integer;
@@ -50,19 +68,20 @@ begin
   if msg=WM_PAINT then
   begin
     Info := GetWin32WindowInfo(wnd);
-    if (info<>nil) and (info^.WinControl is TNewGroupBox) then
+    if (info<>nil) and (info^.WinControl is TCustomGroupBox) then
     begin
-      gb:=TNewGroupBox(info^.WinControl);
+      gb:=TCustomGroupBox(info^.WinControl);
 
       dc:=BeginPaint(wnd, ps);
       if dc<>0 then
       begin
-
         c:=tcanvas.create;
         c.handle:=dc;
         c.brush.style:=bsSolid;
 
-        if (gb.color=clDefault) and gb.ParentColor then
+
+
+        if (gb.color=clDefault) and gb.getParentColor then
           c.brush.color:=gb.GetRGBColorResolvingParent
         else
           c.brush.color:=gb.color;
@@ -85,7 +104,7 @@ begin
         p:=gb.ScreenToControl(gb.ClientToScreen(point(0,0)));
         MoveWindowOrg(dc,p.x, p.y);
 
-        gb.paintcontrols(dc,gb.controls[0]);
+        gb.PaintControlsHelper(dc,gb.controls[0]);
 
         EndPaint(wnd,ps);
         exit(0);
@@ -96,8 +115,11 @@ begin
 
   end;
 
-  result:=CallWindowProc(WNDPROC(OriginalGroupBoxHandler), wnd, msg, _wparam, _lparam);
+
+
+  result:=CallWindowProc(windows.WNDPROC(OriginalGroupBoxHandler), wnd, msg, _wparam, _lparam);
 end;
+
 
 procedure TNewGroupBox.PaintControls(DC: HDC; First: TControl);
 begin
@@ -117,11 +139,6 @@ begin
 
 end;
 
-procedure TNewGroupBox.CreateParams(var Params: TCreateParams);
-begin
-  inherited CreateParams(params);
-
-end;
 
 end.
 

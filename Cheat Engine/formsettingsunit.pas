@@ -66,7 +66,6 @@ type
     cbVEHRealContextOnThreadCreation: TCheckBox;
     cbWaitAfterGuiUpdate: TCheckBox;
     cbWriteLoggingOn: TCheckBox;
-    cgAllTypes: TCheckGroup;
     CheckBox1: TCheckBox;
     cbOverrideDefaultFont: TCheckBox;
     cbDPIAware: TCheckBox;
@@ -82,6 +81,13 @@ type
     cbAllocsAddToWatchedRegions: TCheckBox;
     cbSkip_PAGE_WRITECOMBINE: TCheckBox;
     cbUseThreadForFreeze: TCheckBox;
+    cbAllByte: TCheckBox;
+    cbAllWord: TCheckBox;
+    cbAllDword: TCheckBox;
+    cbAllQword: TCheckBox;
+    cbAllSingle: TCheckBox;
+    cbAllDouble: TCheckBox;
+    cbAllCustom: TCheckBox;
     combothreadpriority: TComboBox;
     defaultbuffer: TPopupMenu;
     Default1: TMenuItem;
@@ -102,6 +108,7 @@ type
     GroupBox4: TGroupBox;
     GroupBox5: TGroupBox;
     gbUnexpectedExceptionHandling: TGroupBox;
+    gbAllTypes: TGroupBox;
     Label1: TLabel;
     Label10: TLabel;
     Label11: TLabel;
@@ -149,7 +156,7 @@ type
     cbUseMacDebugger: TRadioButton;
     rbMacDebugTaskLevel: TRadioButton;
     rbDebugAsBreakpoint: TRadioButton;
-    rbgDebuggerInterface: TRadioGroup;
+    gbDebuggerInterface: TGroupBox;
     rbInt3AsBreakpoint: TRadioButton;
     rbPageExceptions: TRadioButton;
     rbVEHHookThreadCreation: TRadioButton;
@@ -374,7 +381,7 @@ procedure TFormSettings.setNoteAboutDebuggerInterfaces;
 begin
   if hasNoteAboutDebuggerInterfaces=false then
   begin
-    rbgDebuggerInterface.caption:=rbgDebuggerInterface.caption+' '+ rsWontHaveAnyEffectUntilYouOpenANewProcess;
+    gbDebuggerInterface.caption:=gbDebuggerInterface.caption+' '+ rsWontHaveAnyEffectUntilYouOpenANewProcess;
     hasNoteAboutDebuggerInterfaces:=true;
   end;
 end;
@@ -573,21 +580,21 @@ begin
           Application.TaskBarBehavior:=tbSingleButton;
 
         ScanAllTypes:=[];
-        if cgAllTypes.checked[0] then ScanAllTypes:=ScanAllTypes+[vtByte];
-        if cgAllTypes.checked[1] then ScanAllTypes:=ScanAllTypes+[vtWord];
-        if cgAllTypes.checked[2] then ScanAllTypes:=ScanAllTypes+[vtDword];
-        if cgAllTypes.checked[3] then ScanAllTypes:=ScanAllTypes+[vtQword];
-        if cgAllTypes.checked[4] then ScanAllTypes:=ScanAllTypes+[vtSingle];
-        if cgAllTypes.checked[5] then ScanAllTypes:=ScanAllTypes+[vtDouble];
-        if cgAllTypes.checked[6] then ScanAllTypes:=ScanAllTypes+[vtCustom];
+        if cbAllByte.checked then ScanAllTypes:=ScanAllTypes+[vtByte];
+        if cbAllWord.checked then ScanAllTypes:=ScanAllTypes+[vtWord];
+        if cbAllDword.checked then ScanAllTypes:=ScanAllTypes+[vtDword];
+        if cbAllQword.checked then ScanAllTypes:=ScanAllTypes+[vtQword];
+        if cbAllSingle.checked then ScanAllTypes:=ScanAllTypes+[vtSingle];
+        if cbAllDouble.checked then ScanAllTypes:=ScanAllTypes+[vtDouble];
+        if cbAllCustom.checked then ScanAllTypes:=ScanAllTypes+[vtCustom];
 
-        reg.writebool('AllByte',cgAllTypes.checked[0]);
-        reg.writebool('AllWord',cgAllTypes.checked[1]);
-        reg.writebool('AllDWord',cgAllTypes.checked[2]);
-        reg.writebool('AllQWord',cgAllTypes.checked[3]);
-        reg.writebool('AllFloat',cgAllTypes.checked[4]);
-        reg.writebool('AllDouble',cgAllTypes.checked[5]);
-        reg.writebool('AllCustom',cgAllTypes.checked[6]);
+        reg.writebool('AllByte',cbAllByte.checked);
+        reg.writebool('AllWord',cbAllWord.checked);
+        reg.writebool('AllDWord',cbAllDword.checked);
+        reg.writebool('AllQWord',cbAllQword.checked);
+        reg.writebool('AllFloat',cbAllSingle.checked);
+        reg.writebool('AllDouble',cbAllDouble.checked);
+        reg.writebool('AllCustom',cbAllCustom.checked);
 
 
         reg.writebool('Can Step Kernelcode',cbCanStepKernelcode.checked);
@@ -1450,7 +1457,7 @@ begin
 
   end;
 
- // GroupBox2.top:=rbgDebuggerInterface.top+rbgDebuggerInterface.height+4;
+ // GroupBox2.top:=gbDebuggerInterface.top+gbDebuggerInterface.height+4;
 
   unexpectedExceptionHandlerChanged:=false;
 
@@ -1723,23 +1730,9 @@ begin
   end;
   combothreadpriority.ItemIndex:=4;
 
-  with cgAllTypes.Items do
-  begin
-    BeginUpdate;
-    clear;
-    add(rsByte);
-    add(rs2Bytes);
-    add(rs4Bytes);
-    add(rs8Bytes);
-    add(rsFloat);
-    add(rsDouble);
-    add(rsAllCustomTypes);
-    EndUpdate;
-  end;
-
-  cgAllTypes.Checked[2]:=true;
-  cgAllTypes.Checked[4]:=true;
-  cgAllTypes.Checked[5]:=true;
+  cbAllDword.Checked:=true;
+  cbAllSingle.Checked:=true;
+  cbAllDouble.Checked:=true;
 
 
   with frameHotkeyConfig.ListBox1.items do
