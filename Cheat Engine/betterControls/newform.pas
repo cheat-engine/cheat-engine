@@ -30,15 +30,18 @@ begin
   if ShouldAppsUseDarkMode() then
   begin
     AllowDarkModeForWindow(handle,1);
-    InitDwmLibrary;
+
 
     color:=$242424;
     if font.color=clDefault then
       font.color:=colorset.FontColor;
 
 
-    ldark:=1;
-    DwmSetWindowAttribute(handle, 19, @Ldark, sizeof(Ldark));
+    if InitDwmLibrary then
+    begin
+      ldark:=1;
+      DwmSetWindowAttribute(handle, 19, @Ldark, sizeof(Ldark));
+    end;
   end;
 end;
 

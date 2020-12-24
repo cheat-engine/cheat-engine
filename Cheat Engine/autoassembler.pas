@@ -2944,7 +2944,11 @@ begin
                 if (prefered=0) and (j>0) then //if not a prefered address but there is a previous alloc, allocate near there
                   prefered:=allocs[j-1].address;
 
+                oldprefered:=prefered;
                 prefered:=ptrUint(FindFreeBlockForRegion(prefered,x));
+
+                if (prefered=0) and (oldprefered<>0) then
+                  prefered:=oldprefered;
 
                 allocs[j].address:=ptrUint(virtualallocex(processhandle,pointer(prefered),x, MEM_RESERVE or MEM_COMMIT,protection));
                 if allocs[j].address=0 then
@@ -3003,7 +3007,11 @@ begin
           if (prefered=0) and (j>0) then //if not a prefered address but there is a previous alloc, allocate near there
             prefered:=allocs[j-1].address;
 
+          oldprefered:=prefered;
           prefered:=ptrUint(FindFreeBlockForRegion(prefered,x));
+
+          if (prefered=0) and (oldprefered<>0) then
+            prefered:=oldprefered;
 
 
           allocs[j].address:=ptrUint(virtualallocex(processhandle,pointer(prefered),x, MEM_RESERVE or MEM_COMMIT,protection));

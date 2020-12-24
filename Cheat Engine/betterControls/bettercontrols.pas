@@ -69,18 +69,20 @@ var
   AllowDarkModeForWindow: TAllowDarkModeForWindow;
   AllowDarkModeForApp: TAllowDarkModeForApp;
   FlushMenuThemes: TFlushMenuThemes;
-  ShouldAppsUseDarkMode: TShouldAppsUseDarkMode;
+  _ShouldAppsUseDarkMode: TShouldAppsUseDarkMode;
 
   function incColor(c: tcolor; amount: integer): tcolor;
   procedure registerDarkModeHintHandler;
+  function ShouldAppsUseDarkMode:BOOL;
 
 implementation
 
-uses forms, controls;
+uses forms, controls, Registry;
 
 var
   FHandle: THandle;
   FLoaded: Boolean;
+  darkmodebuggy: boolean;
 
 function inccolor(c: Tcolor; amount: integer): tcolor;
 var  R, G, B : Byte;
@@ -106,9 +108,54 @@ begin
   exit(false);
 end;
 
-function ShouldAppsUseDarkMode_stub:BOOL; stdcall;
+var UsesDarkMode: (dmUnknown, dmYes, dmNo)=dmUnknown;
+
+function ShouldAppsUseDarkMode:BOOL; stdcall;
+var reg: tregistry;
 begin
-  exit(false);
+  if darkmodebuggy then exit(false);
+
+  if UsesDarkMode=dmUnknown then
+  begin
+
+
+    reg:=TRegistry.Create;
+    reg.RootKey:=HKEY_CURRENT_USER;
+    if reg.OpenKey('Software\Microsoft\Windows\CurrentVersion\Themes\Personalize',false) then
+    begin
+      if reg.ValueExists('AppsUseLightTheme') then
+      begin
+        if reg.ReadInteger('AppsUseLightTheme')=0 then
+          UsesDarkMode:=dmYes
+        else
+          UsesDarkMode:=dmNo;
+      end;
+
+
+      if UsesDarkMode=dmUnknown then
+      begin
+        if reg.ValueExists('SystemUsesLightTheme') then
+        begin
+          if reg.ReadInteger('SystemUsesLightTheme')=0 then
+            UsesDarkMode:=dmYes
+          else
+            UsesDarkMode:=dmNo;
+        end;
+      end;
+    end;
+
+    reg.free;
+
+    if UsesDarkMode=dmUnknown then
+    begin
+      if _ShouldAppsUseDarkMode() then
+        UsesDarkMode:=dmYes
+      else
+        UsesDarkMode:=dmNo;
+    end;
+  end;
+
+  exit(UsesDarkMode=dmyes);
 end;
 
 
@@ -136,58 +183,65 @@ var
 
 initialization
   //setup ColorSet
-  currentColorSet:=ColorSet;
+  darkmodebuggy:=true;
+  try
+    currentColorSet:=ColorSet;
 
-  FHandle := LoadLibrary('uxtheme.dll');
-  if FHandle<>0 then
-  begin
-    @RefreshImmersiveColorPolicyState := GetProcAddress(FHandle, MakeIntResource(104));
-    @AllowDarkModeForWindow := GetProcAddress(FHandle, MakeIntResource(133));
-    @AllowDarkModeForApp := GetProcAddress(FHandle, MakeIntResource(135));
-    @FlushMenuThemes := GetProcAddress(FHandle, MakeIntResource(136));
-    @ShouldAppsUseDarkMode := GetProcAddress(FHandle, MakeIntResource(132));
-  end;
-
-  if not assigned(RefreshImmersiveColorPolicyState) then RefreshImmersiveColorPolicyState:=@RefreshImmersiveColorPolicyState_stub;
-  if not assigned(AllowDarkModeForWindow) then AllowDarkModeForWindow:=@AllowDarkModeForWindow_stub;
-  if not assigned(AllowDarkModeForApp) then AllowDarkModeForApp:=@AllowDarkModeForApp_stub;
-  if not assigned(FlushMenuThemes) then FlushMenuThemes:=@RefreshImmersiveColorPolicyState_stub;
-  if not assigned(ShouldAppsUseDarkMode) then ShouldAppsUseDarkMode:=@ShouldAppsUseDarkMode_stub;
-
-  AllowDarkModeForApp(1);  //2 is disable, 3=force on
-  FlushMenuThemes;
-  RefreshImmersiveColorPolicyState;
-
-  theme:=OpenThemeData(0,'ItemsView');
-  if theme<>0 then
-  begin
-    GetThemeColor(theme, 0,0,TMT_TEXTCOLOR,ColorSet.FontColor);
-    GetThemeColor(theme, 0,0,TMT_FILLCOLOR,ColorSet.TextBackground);
-    colorset.InactiveFontColor:=ColorSet.FontColor xor $aaaaaa;
-    ColorSet.ButtonBorderColor:=deccolor(ColorSet.FontColor,10);
-
-    clwindowText:=ColorSet.FontColor;
-
-    CloseThemeData(theme);
-
-    if ShouldAppsUseDarkMode() then
+    FHandle := LoadLibrary('uxtheme.dll');
+    if FHandle<>0 then
     begin
-      ColorSet.CheckboxFillColor:=$e8e8e8;
-      ColorSet.InactiveCheckboxFillColor:=$999999;
-      clBtnFace:=inccolor(ColorSet.TextBackground,8);
-      clBtnText:=ColorSet.FontColor;
-
-      clWindow:=colorset.TextBackground;
-
-      ColorSet.CheckboxCheckMarkColor:=InvertColor(ColorSet.CheckboxFillColor);
-      ColorSet.InactiveCheckboxCheckMarkColor:=InvertColor(ColorSet.CheckboxCheckMarkColor);
-
-      darkmodestring:=' dark';
+      @RefreshImmersiveColorPolicyState := GetProcAddress(FHandle, MakeIntResource(104));
+      @AllowDarkModeForWindow := GetProcAddress(FHandle, MakeIntResource(133));
+      @AllowDarkModeForApp := GetProcAddress(FHandle, MakeIntResource(135));
+      @FlushMenuThemes := GetProcAddress(FHandle, MakeIntResource(136));
+      @_ShouldAppsUseDarkMode := GetProcAddress(FHandle, MakeIntResource(132));
     end;
+
+    if not assigned(RefreshImmersiveColorPolicyState) then RefreshImmersiveColorPolicyState:=@RefreshImmersiveColorPolicyState_stub;
+    if not assigned(AllowDarkModeForWindow) then AllowDarkModeForWindow:=@AllowDarkModeForWindow_stub;
+    if not assigned(AllowDarkModeForApp) then AllowDarkModeForApp:=@AllowDarkModeForApp_stub;
+    if not assigned(FlushMenuThemes) then FlushMenuThemes:=@RefreshImmersiveColorPolicyState_stub;
+
+    AllowDarkModeForApp(1);  //3 is disable, 2=force on, 1=system default
+
+
+    FlushMenuThemes;
+    RefreshImmersiveColorPolicyState;
+
+    darkmodebuggy:=false;
+
+    theme:=OpenThemeData(0,'ItemsView');
+    if theme<>0 then
+    begin
+      GetThemeColor(theme, 0,0,TMT_TEXTCOLOR,ColorSet.FontColor);
+      GetThemeColor(theme, 0,0,TMT_FILLCOLOR,ColorSet.TextBackground);
+      colorset.InactiveFontColor:=ColorSet.FontColor xor $aaaaaa;
+      ColorSet.ButtonBorderColor:=deccolor(ColorSet.FontColor,10);
+
+      clwindowText:=ColorSet.FontColor;
+
+      CloseThemeData(theme);
+
+      if ShouldAppsUseDarkMode() then
+      begin
+        ColorSet.CheckboxFillColor:=$e8e8e8;
+        ColorSet.InactiveCheckboxFillColor:=$999999;
+        clBtnFace:=inccolor(ColorSet.TextBackground,8);
+        clBtnText:=ColorSet.FontColor;
+
+        clWindow:=colorset.TextBackground;
+
+        ColorSet.CheckboxCheckMarkColor:=InvertColor(ColorSet.CheckboxFillColor);
+        ColorSet.InactiveCheckboxCheckMarkColor:=InvertColor(ColorSet.CheckboxCheckMarkColor);
+
+        darkmodestring:=' dark';
+      end;
+    end;
+
+
+
+  except
+
   end;
-
-
-
-
 end.
 
