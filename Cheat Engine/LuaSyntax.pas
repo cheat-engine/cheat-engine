@@ -458,6 +458,7 @@ var luasyntaxStringHashList: TStringHashList;
 implementation
 
 uses
+  betterControls,
 {$IFDEF SYN_CLX}
   QSynEditStrConst, math;
 {$ELSE}
@@ -1877,7 +1878,10 @@ begin
 
   fKeyAttri := TSynHighLighterAttributes.Create(SYNS_AttrReservedWord);
   fKeyAttri.Style := [fsBold];
-  fKeyAttri.Foreground:=clBlue;
+  if ShouldAppsUseDarkMode() then
+    fKeyAttri.Foreground:=$ff7f00
+  else
+    fKeyAttri.Foreground:=clBlue;
   AddAttribute(fKeyAttri);
 
   fKeySecondaryAttri:= TSynHighLighterAttributes.Create(SYNS_AttrReservedWord2);

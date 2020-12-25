@@ -1116,7 +1116,11 @@ begin
 
   fCommentAttri := TSynHighlighterAttributes.Create(SYNS_AttrComment);
   fCommentAttri.Style:= [fsItalic];
-  fCommentAttri.Foreground:=clBlue;
+  if ShouldAppsUseDarkMode() then
+    fCommentAttri.Foreground:=$ff7f00
+  else
+    fCommentAttri.Foreground:=clBlue;
+
   AddAttribute(fCommentAttri);
 
   fDirecAttri := TSynHighlighterAttributes.Create(SYNS_AttrDirective);
@@ -1154,7 +1158,10 @@ begin
   AddAttribute(fHexAttri);
 
   fSpaceAttri := TSynHighlighterAttributes.Create(SYNS_AttrSpace);
-  fSpaceAttri.Foreground:=clNavy;
+  if ShouldAppsUseDarkMode then
+    fSpaceAttri.Foreground:=$9f7f1f
+  else
+    fSpaceAttri.Foreground:=clNavy;
   AddAttribute(fSpaceAttri);
 
   fStringAttri := TSynHighlighterAttributes.Create(SYNS_AttrString);
