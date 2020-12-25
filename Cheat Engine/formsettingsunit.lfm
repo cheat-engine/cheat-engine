@@ -63,9 +63,9 @@ object formSettings: TformSettings
       Height = 569
       Top = 1
       Width = 660
-      ActivePage = Assembler
+      ActivePage = ScanSettings
       Align = alClient
-      TabIndex = 6
+      TabIndex = 3
       TabOrder = 1
       OnChange = pcSettingChange
       object GeneralSettings: TTabSheet
@@ -915,6 +915,7 @@ object formSettings: TformSettings
             Text = '1024'
           end
           object cbDontusetempdir: TCheckBox
+            AnchorSideTop.Control = gbAllTypes
             AnchorSideTop.Side = asrBottom
             Left = 0
             Height = 19
