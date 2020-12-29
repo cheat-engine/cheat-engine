@@ -39,7 +39,7 @@ resourcestring
   rsWellDoneYouScrewedUpTheTutorial = 'Well done, you screwed up the tutorial!!!!';
   rsStep5CodeFinderPW = 'Step 5: Code finder (PW=%s)';
   rsTryAgain6 = 'This may look difficult. but it''s basicly. Find health, rigthclick health, find what writes, change health, click replace, change health, '
-    +'done.  But don''t feel down if you don''t get it. at least you know the basicas of memory scanning...  Are you sure you want to quit?';
+    +'done.  But don''t feel down if you don''t get it. at least you know the basics of memory scanning...  Are you sure you want to quit?';
   rsLOSER = 'BOO';
 
   rsTutorialStep5=
