@@ -58,7 +58,7 @@ CPipeServer::CPipeServer(TCHAR *name)
 	if (StrCmp(name,L"BLA")==0)
 	{
 		//do some debug stuff
-		processid=65576;
+		processid=0x9a0c;
 		OpenOrAttachToProcess();
 
 
@@ -367,7 +367,7 @@ BOOL CPipeServer::OpenOrAttachToProcess(void)
 
 
 	//still here
-	return TRUE;
+	return CorDebugProcess != NULL;
 }
 
 
@@ -952,21 +952,24 @@ void CPipeServer::test(void)
 
 	enumAllObjects();
 
-
-	CorDebugProcess->EnumerateThreads(&te);
-
-	ICorDebugThread *thr;
-	count = 0;
-	te->Next(1, &thr, &count);
-
-	if (count)
+	if (CorDebugProcess)
 	{
-		ICorDebugFrame *frame = NULL;
-		thr->GetActiveFrame(&frame);
 
-		if (frame)		
-			OutputDebugStringW(L"WEEE");
+		CorDebugProcess->EnumerateThreads(&te);
 
+		ICorDebugThread *thr;
+		count = 0;
+		te->Next(1, &thr, &count);
+
+		if (count)
+		{
+			ICorDebugFrame *frame = NULL;
+			thr->GetActiveFrame(&frame);
+
+			if (frame)
+				OutputDebugStringW(L"WEEE");
+
+		}
 	}
 
 	//ICorDebugThread t;

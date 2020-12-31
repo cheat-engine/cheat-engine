@@ -148,10 +148,12 @@ begin
 
     if UsesDarkMode=dmUnknown then
     begin
-      if _ShouldAppsUseDarkMode() then
-        UsesDarkMode:=dmYes
-      else
-        UsesDarkMode:=dmNo;
+      UsesDarkMode:=dmNo;
+      if assigned(_ShouldAppsUseDarkMode) then
+      begin
+        if _ShouldAppsUseDarkMode() then
+          UsesDarkMode:=dmYes;
+      end;
     end;
   end;
 
