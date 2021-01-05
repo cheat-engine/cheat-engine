@@ -2001,7 +2001,7 @@ begin
 
 
                   setlength(createthreadandwait,length(createthreadandwait)+1);
-                  createthreadandwait[length(createthreadandwait)-1].name:=s1;
+                  createthreadandwait[length(createthreadandwait)-1].name:=slist[0];
                   createthreadandwait[length(createthreadandwait)-1].position:=length(assemblerlines)-1;
                   createthreadandwait[length(createthreadandwait)-1].timeout:=j;
 
@@ -2827,7 +2827,10 @@ begin
               break;
             end;
 
-        if not ok1 then raise EAssemblerException.create(Format(rsTheAddressInCreatethreadAndWaitIsNotValid, [createthread[i]]));
+        if not ok1 then
+        begin
+          raise EAssemblerException.create(Format(rsTheAddressInCreatethreadAndWaitIsNotValid, [createthreadandwait[i].name]));
+        end;
 
       end;
 
