@@ -41,27 +41,31 @@ var m: Hmenu;
 
   b: TBrush;
 begin
-  m:=GetMenu(TCustomForm(sender).handle);
- // m:=handle;
-
-
-  mi.cbSize:=sizeof(mi);
-  mi.fMask := MIM_BACKGROUND or MIM_APPLYTOSUBMENUS;
-
-  b:=TBrush.Create;
-  b.color:=$2b2b2b;
-
-
-  b.Style:=bsSolid;
-
-  mi.hbrBack:=b.handle; //GetSysColorBrush(DKGRAY_BRUSH); //b.Handle;
-  mia:=@mi;
-  if windows.SetMenuInfo(m,mia) then
+  if ShouldAppsUseDarkMode then
   begin
-    AllowDarkModeForWindow(m,1);
+    m:=GetMenu(TCustomForm(sender).handle);
+   // m:=handle;
 
-    SetWindowTheme(m,'',nil);
-  end
+
+    mi.cbSize:=sizeof(mi);
+    mi.fMask := MIM_BACKGROUND or MIM_APPLYTOSUBMENUS;
+
+    b:=TBrush.Create;
+    b.color:=$2b2b2b;
+
+
+    b.Style:=bsSolid;
+
+    mi.hbrBack:=b.handle; //GetSysColorBrush(DKGRAY_BRUSH); //b.Handle;
+    mia:=@mi;
+    if windows.SetMenuInfo(m,mia) then
+    begin
+      AllowDarkModeForWindow(m,1);
+
+      SetWindowTheme(m,'',nil);
+    end;
+
+  end;
 end;
 
 procedure TNewMainMenu.SetParentComponent(Value: TComponent);
@@ -81,12 +85,11 @@ var oldc: tcolor;
   i: integer;
   lastvisible: integer;
 begin
- // acanvas.Brush.color:=clBlue;
   result:=inherited DoDrawItem(ACanvas, ARect, AState);
 
   if ShouldAppsUseDarkMode() and (result=false) then
   begin
-    result:=Parent.Menu is TMainMenu;       //(name='MenuItem1') or (name='MenuItem3');
+    result:=Parent.Menu is TMainMenu;
     if result then
     begin
       oldc:=acanvas.Brush.color;

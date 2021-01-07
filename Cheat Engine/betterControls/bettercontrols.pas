@@ -169,7 +169,8 @@ type
 
 procedure TBCHintHandler.ShowHintEvent(var HintStr: string; var CanShow: Boolean; var HintInfo: THintInfo);
 begin
-  HintInfo.HintColor:=ColorSet.TextBackground;
+  if ShouldAppsUseDarkMode then
+    HintInfo.HintColor:=ColorSet.TextBackground;
 end;
 
 procedure registerDarkModeHintHandler;
@@ -185,6 +186,11 @@ var
 
 initialization
   //setup ColorSet
+
+  ColorSet.FontColor:=clWindowtext;
+  colorset.TextBackground:=clWindow;
+
+
   darkmodebuggy:=true;
   try
     currentColorSet:=ColorSet;

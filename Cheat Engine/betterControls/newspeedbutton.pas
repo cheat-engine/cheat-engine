@@ -36,7 +36,6 @@ begin
     Canvas.FillRect(PaintRect);
     canvas.pen.color:=color xor $aaaaaa;
     Canvas.Rectangle(PaintRect);
-
   end
   else
     inherited PaintBackground(paintrect);
@@ -46,7 +45,7 @@ procedure TNewSpeedButton.SetParent(NewParent: TWinControl);
 begin
   inherited SetParent(newparent);
 
-  if (NewParent<>nil) and ShouldAppsUseDarkMode() then
+  if (NewParent<>nil) and ShouldAppsUseDarkMode then
   begin
     darkmode:=true;
     color:=ColorSet.TextBackground;
