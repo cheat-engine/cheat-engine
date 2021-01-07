@@ -5217,6 +5217,7 @@ begin
 
     if item.Index<frmStacktrace.ListView1.Items.Count then
     begin
+      item.data:=frmStacktrace.ListView1.Items[item.index].Data;
       item.Caption:=frmStacktrace.ListView1.Items[item.index].SubItems[2]; //returnaddress
       item.SubItems.Add(frmStacktrace.ListView1.Items[item.index].SubItems[3]); //subitems address
     end;
@@ -5333,9 +5334,11 @@ begin
   if stacktrace2.checked then
   begin
     //go to the selected address
-    x:=symhandler.getAddressFromName(pointed.Caption,false,haserror);
+    {x:=symhandler.getAddressFromName(pointed.Caption,false,haserror);
     if not haserror then
-      disassemblerview.SelectedAddress:=x;
+      disassemblerview.SelectedAddress:=x;  }
+    backlist.Push(pointer(disassemblerview.SelectedAddress));
+    disassemblerview.SelectedAddress:=ptruint(pointed.Data);
   end
   else
   begin
