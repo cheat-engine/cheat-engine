@@ -568,6 +568,7 @@ begin
           begin
             cle:=TCodeListEntry.create;
             cle.color:=color;
+
             if isCodeListGroupHeader=false then
             begin
               cle.code:=TAdvancedOptionsCodeRecord.Create;
@@ -1237,9 +1238,13 @@ begin
     for i:=0 to AdvancedOptions.count-1 do
     begin
       CodeRecord:=CodeRecords.AppendChild(doc.CreateElement('CodeEntry'));
-      a:=doc.CreateAttribute('Color');
-      a.TextContent:=inttohex(TCodeListEntry(advancedoptions.lvCodelist.Items[i].data).color,8);
-      CodeRecord.Attributes.SetNamedItem(a);
+
+      if TCodeListEntry(advancedoptions.lvCodelist.Items[i].data).color<>clWindowtext then //don't save the color if it's the default color
+      begin
+        a:=doc.CreateAttribute('Color');
+        a.TextContent:=inttohex(TCodeListEntry(advancedoptions.lvCodelist.Items[i].data).color,8);
+        CodeRecord.Attributes.SetNamedItem(a);
+      end;
 
       if AdvancedOptions.code[i]=nil then
       begin

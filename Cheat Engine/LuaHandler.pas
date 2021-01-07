@@ -12202,7 +12202,6 @@ begin
 end;
 
 function lua_openFileAsProcess(L: Plua_State): integer; cdecl;
-{$IFDEF windows}
 var
   filename: string;
   is64bit: boolean;
@@ -12211,12 +12210,10 @@ var
   oldprocesshandle: thandle;
   parameters: integer;
   startaddress: ptruint;
-{$ENDIF}
 
 begin
   result:=0;
 
-  {$IFDEF windows}
   result:=1;
   parameters:=lua_gettop(L);
   if parameters>=1 then
@@ -12259,7 +12256,6 @@ begin
 
     lua_pushboolean(L,true);
   end;
-  {$ENDIF}
 end;
 
 function lua_getPEB(L: Plua_State): integer; cdecl;

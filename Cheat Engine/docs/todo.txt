@@ -1,11 +1,24 @@
+All type: compare to first scan, does not match the single type (e.g started out at 1, but saved shows 0)
+hotkeys: Reset the lasttriggered to 0 when the keys are not pressed
+
 'sub rsp,20+(4*8)+(6*8)'
 set value to -888,12  (not -888.12) and see what happens
 
 
+dark mode:
+  Find out what addresses this code accesses description text is black, list text is black
+  commonality scanner has black editboxes
+  advanced options list seems weird on table load
 
 
 structure dissect: 
   delete all structures sometimes AV's (no idea how to reproduce)
+
+  add the much requested: show everything that got changed. (rightclick column address, choose record values for compare, which will lock the structure from being edited, and afterwards a "create new structure from changed addresses" or "create structure from unchanged addresses"
+
+
+lua function call: make it generate a full routine based on parameters to get, including stacksafe call
+
 
 
 memview paste: paste for specific displaytype
