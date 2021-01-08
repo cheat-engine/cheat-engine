@@ -13,6 +13,7 @@ type
   private
     finvalidAddress: boolean;
     finvalidcolor: Tcolor;
+    fValidColor: TColor;
     function getAddress: ptruint;
   protected
     procedure Change; override;
@@ -22,6 +23,7 @@ type
     constructor Create(AOwner: TComponent); override;
   published
     property invalidColor: Tcolor read fInvalidColor write fInvalidColor;
+    property validColor: TColor read fValidColor write fValidColor;
   end;
 
 
@@ -47,7 +49,7 @@ begin
   if finvalidaddress then
     Font.Color:=invalidColor
   else
-    Font.Color:=clDefault;
+    Font.Color:=fValidColor;
 
 
 end;
@@ -64,6 +66,7 @@ constructor TAddressEdit.Create(AOwner: TComponent);
 begin
   inherited create(AOwner);
   fInvalidColor:=clRed;
+  fValidColor:=clWindowtext;
 end;
 
 end.
