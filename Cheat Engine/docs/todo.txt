@@ -1,4 +1,5 @@
-All type: compare to first scan, does not match the single type (e.g started out at 1, but saved shows 0)
+Mac: Hex editing files
+
 
 'sub rsp,20+(4*8)+(6*8)'
 set value to -888,12  (not -888.12) and see what happens
