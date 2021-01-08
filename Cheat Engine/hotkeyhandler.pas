@@ -693,7 +693,9 @@ begin
 
             activeHotkeyList.Add(temphotkey);
 
-          end;
+          end
+          else
+            hotkeylist[i].lastactivate:=0; //not currently down.  The user released the key so repeat can be skipped
 
         end;
 
