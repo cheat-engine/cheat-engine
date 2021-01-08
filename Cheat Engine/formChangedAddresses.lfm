@@ -1,7 +1,7 @@
 object frmChangedAddresses: TfrmChangedAddresses
-  Left = 1519
+  Left = 1080
   Height = 319
-  Top = 493
+  Top = 400
   Width = 389
   Caption = 'Changed Addresses'
   ClientHeight = 319
@@ -145,7 +145,6 @@ object frmChangedAddresses: TfrmChangedAddresses
       Caption = 'The following addresses have been accessed by the code you selected'
       ParentBidiMode = False
       ParentColor = False
-      ParentFont = False
       WordWrap = True
     end
     object Changedlist: TListView

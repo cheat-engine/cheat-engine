@@ -760,7 +760,7 @@ begin
       1: sender.Canvas.Font.color:=clBlue;
       2: sender.Canvas.Font.color:=clRed;
       else
-        sender.Canvas.Font.color:=defaultcolor;
+        sender.Canvas.Font.color:=clWindowtext;
     end;
   end
   else
