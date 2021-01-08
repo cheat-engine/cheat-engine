@@ -29,32 +29,36 @@ var
   o: TObject;
 
 begin
-  dis:=PDrawItemStruct(msg.lParam);
+  if ShouldAppsUseDarkMode then
+  begin
+    dis:=PDrawItemStruct(msg.lParam);
 
-  o:=TObject(dis^.itemData);
+    o:=TObject(dis^.itemData);
 
 
-  c:=tcanvas.CREATE;
-  c.handle:=dis^._hDC;
-  c.Brush.color:=color;
-  c.FillRect(dis^.rcItem);
+    c:=tcanvas.CREATE;
+    c.handle:=dis^._hDC;
+    c.Brush.color:=color;
+    c.FillRect(dis^.rcItem);
 
-  c.Font.color:=font.color; //clWindowText;
-  ts:=c.TextStyle;
-  ts.Alignment:=taCenter;
-  ts.Layout:=tlCenter;
+    c.Font.color:=font.color; //clWindowText;
+    ts:=c.TextStyle;
+    ts.Alignment:=taCenter;
+    ts.Layout:=tlCenter;
 
-  if o is TTabSheet then
-    c.TextRect(dis^.rcItem, 0,0,ttabsheet(o).Caption,ts);
+    if o is TTabSheet then
+      c.TextRect(dis^.rcItem, 0,0,ttabsheet(o).Caption,ts);
 
-  c.free;
+    c.free;
+
+  end;
 end;
 
 procedure TNewPageControl.CreateParams(var Params: TCreateParams);
 begin
   inherited CreateParams(params);
 
-  if ShouldAppsUseDarkMode() then
+  if ShouldAppsUseDarkMode then
     params.Style:=params.style or TCS_OWNERDRAWFIXED;
 end;
 

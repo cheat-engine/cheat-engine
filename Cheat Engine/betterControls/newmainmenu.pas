@@ -72,7 +72,8 @@ procedure TNewMainMenu.SetParentComponent(Value: TComponent);
 begin
   inherited SetParentComponent(value);
 
-  if value is tcustomform then
+
+  if ShouldAppsUseDarkMode and (value is tcustomform) then
     tcustomform(value).AddHandlerFirstShow(@firstshow);
 end;
 

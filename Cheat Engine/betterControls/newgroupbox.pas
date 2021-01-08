@@ -129,7 +129,7 @@ end;
 procedure TNewGroupBox.ChildHandlesCreated;
 begin
   inherited ChildHandlesCreated;
-  if ShouldAppsUseDarkMode() then
+  if ShouldAppsUseDarkMode then
   begin
     if OriginalGroupBoxHandler=0 then
       OriginalGroupBoxHandler:=SetWindowLongPtr(handle, GWLP_WNDPROC, UINT_PTR(@GroupBoxSubClass))

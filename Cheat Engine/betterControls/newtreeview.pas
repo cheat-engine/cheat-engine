@@ -24,20 +24,18 @@ procedure TNewTreeView.ChildHandlesCreated;
 begin
   inherited ChildHandlesCreated;
 
-  if parent<>nil then
+  if ShouldAppsUseDarkMode and (parent<>nil) then
   begin
-    if ShouldAppsUseDarkMode() then
-    begin
-      AllowDarkModeForWindow(handle, 1);
-      SetWindowTheme(Handle, 'explorer', nil);
+    AllowDarkModeForWindow(handle, 1);
+    SetWindowTheme(Handle, 'explorer', nil);
 
-      font.color:=ColorSet.FontColor;
-      color:=ColorSet.TextBackground;
+    font.color:=ColorSet.FontColor;
+    color:=ColorSet.TextBackground;
 
-      TreeLineColor:=colorset.ButtonBorderColor;
+    TreeLineColor:=colorset.ButtonBorderColor;
 
-      options:=options-[tvoThemedDraw];
-    end;
+    options:=options-[tvoThemedDraw];
+
   end;
 end;
 

@@ -16,8 +16,6 @@ type
   TNewStatusBar=class(TStatusBar)
   private
   protected
-   //procedure WndProc(var Message: TLMessage); override;
-   //procedure ChildHandlesCreated; override;
    procedure CreateHandle; override;
    function GetPanelClass: TStatusPanelClass; override;
    procedure DrawPanel(Panel: TStatusPanel; const Rect: TRect); override;
@@ -50,19 +48,25 @@ end;
 procedure TNewStatusBar.DrawPanel(Panel: TStatusPanel; const Rect: TRect);
 var ts: TTextStyle;
 begin
-  if Assigned(OnDrawPanel) then
-    OnDrawPanel(self, panel, rect)
-  else
+  if ShouldAppsUseDarkMode then
   begin
-    ts.Alignment:=taLeftJustify;
-    ts.Layout:=tlCenter;
-    canvas.font.color:=font.color;
-    canvas.brush.style:=bsClear;
+    if Assigned(OnDrawPanel) then
+      OnDrawPanel(self, panel, rect)
+    else
+    begin
+      ts.Alignment:=taLeftJustify;
+      ts.Layout:=tlCenter;
+      canvas.font.color:=font.color;
+      canvas.brush.style:=bsClear;
 
-    canvas.fillrect(rect);
+      canvas.fillrect(rect);
 
-    canvas.TextRect(rect,rect.left,0,panel.Text,ts);
-  end;
+      canvas.TextRect(rect,rect.left,0,panel.Text,ts);
+    end;
+
+  end
+  else
+    inherited DrawPanel(panel, rect);
 end;
 
 procedure TNewStatusBar.CreateHandle;

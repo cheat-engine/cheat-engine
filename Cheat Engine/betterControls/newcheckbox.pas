@@ -54,23 +54,31 @@ begin
   painted:=false;
 
   inherited MouseMove(shift, x,y);
-  if not painted then
-    repaint;
+  if ShouldAppsUseDarkMode then
+  begin
+    if not painted then
+      repaint;
+  end;
 end;
 
 procedure TNewCheckBox.FontChanged(Sender: TObject);
 begin
-  if self=nil then exit;
-
-  if canvas<>nil then
+  if ShouldAppsUseDarkMode then
   begin
-    Canvas.Font.BeginUpdate;
-    try
-      Canvas.Font.PixelsPerInch := Font.PixelsPerInch;
-      Canvas.Font := Font;
-    finally
-      Canvas.Font.EndUpdate;
+
+    if self=nil then exit;
+
+    if canvas<>nil then
+    begin
+      Canvas.Font.BeginUpdate;
+      try
+        Canvas.Font.PixelsPerInch := Font.PixelsPerInch;
+        Canvas.Font := Font;
+      finally
+        Canvas.Font.EndUpdate;
+      end;
     end;
+
   end;
   inherited FontChanged(Sender);
 end;
@@ -79,17 +87,23 @@ procedure TNewCheckBox.PaintWindow(DC: HDC);
 var
   DCChanged: boolean;
 begin
-  DCChanged := (not FCanvas.HandleAllocated) or (FCanvas.Handle <> DC);
+  if ShouldAppsUseDarkMode then
+  begin
+    DCChanged := (not FCanvas.HandleAllocated) or (FCanvas.Handle <> DC);
 
-  if DCChanged then
-    FCanvas.Handle := DC;
-  try
-    DefaultCustomPaint;
-  finally
-    if DCChanged then FCanvas.Handle := 0;
-  end;
+    if DCChanged then
+      FCanvas.Handle := DC;
+    try
+      DefaultCustomPaint;
+    finally
+      if DCChanged then FCanvas.Handle := 0;
+    end;
 
-  painted:=true;
+    painted:=true;
+
+  end
+  else
+    inherited PaintWindow(DC);
 end;
 
 procedure TNewCheckBox.DefaultCustomPaint;
@@ -177,21 +191,29 @@ end;
 
 procedure TNewCheckBox.WMPaint(var Msg: TLMPaint);
 begin
-  if (csDestroying in ComponentState) or (not HandleAllocated) then exit;
+  if ShouldAppsUseDarkMode then
+  begin
+    if (csDestroying in ComponentState) or (not HandleAllocated) then exit;
 
-  if fCustomDraw or globalCustomDraw then Include(FControlState, csCustomPaint);
-  inherited WMPaint(msg);
-  if fCustomDraw or globalCustomDraw then Exclude(FControlState, csCustomPaint);
+    if fCustomDraw or globalCustomDraw then Include(FControlState, csCustomPaint);
+    inherited WMPaint(msg);
+    if fCustomDraw or globalCustomDraw then Exclude(FControlState, csCustomPaint);
+  end
+  else
+    inherited WMPaint(msg);
 end;
 
 procedure TNewCheckBox.CreateParams(var Params: TCreateParams);
 begin
   inherited CreateParams(Params);
-  fcanvas:=TControlCanvas.Create;
-  TControlCanvas(FCanvas).Control := Self;
+  if ShouldAppsUseDarkMode then
+  begin
+    fcanvas:=TControlCanvas.Create;
+    TControlCanvas(FCanvas).Control := Self;
 
-  if ShouldAppsUseDarkMode() then
-    fCustomDraw:=true;
+    if ShouldAppsUseDarkMode() then
+      fCustomDraw:=true;
+  end;
 end;
 
 

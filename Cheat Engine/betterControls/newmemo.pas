@@ -26,7 +26,7 @@ procedure TNewMemo.ChildHandlesCreated;
 begin
   inherited ChildHandlesCreated;
 
-  if parent<>nil then
+  if ShouldAppsUseDarkMode and (parent<>nil) then
   begin
     AllowDarkModeForWindow(handle,1);
     SetWindowTheme(Handle, 'explorer', nil);

@@ -26,10 +26,11 @@ procedure TNewProgressBar.ChildHandlesCreated;
 begin
   inherited ChildHandlesCreated;
 
-  AllowDarkModeForWindow(handle,1);
+
 
   if ShouldAppsUseDarkMode() then
   begin
+    AllowDarkModeForWindow(handle,1);
     SetWindowTheme(Handle,'','');
     SendMessage(Handle, PBM_SETBARCOLOR, 0,$383838);
     SendMessage(Handle, PBM_SETBKCOLOR, 0, $999999);

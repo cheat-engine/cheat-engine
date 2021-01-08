@@ -24,7 +24,7 @@ uses betterControls;
 procedure TNewScrollBar.ChildHandlesCreated;
 begin
   inherited ChildHandlesCreated;
-  if Parent<>nil then
+  if ShouldAppsUseDarkMode and (Parent<>nil) then
   begin
     AllowDarkModeForWindow(handle, 1);
     SetWindowTheme(handle, 'Explorer', nil);

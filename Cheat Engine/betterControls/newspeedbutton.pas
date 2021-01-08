@@ -24,7 +24,7 @@ uses betterControls, themes, Graphics;
 
 procedure TNewSpeedButton.PaintBackground(var PaintRect: TRect);
 begin
-  if darkmode then
+  if ShouldAppsUseDarkMode and darkmode then
   begin
     case FState of
       bsUp: Canvas.Brush.Color := Color;

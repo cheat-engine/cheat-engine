@@ -61,7 +61,7 @@ uses betterControls;
 procedure TNewButton.ChildHandlesCreated;
 begin
   inherited ChildHandlesCreated;
-  if Parent<>nil then
+  if ShouldAppsUseDarkMode and (Parent<>nil) then
   begin
     AllowDarkModeForWindow(handle, 1);
     SetWindowTheme(handle, 'EXPLORER', nil);
@@ -80,37 +80,41 @@ var
 begin
   inherited setColor(c);
 
-  //setting color means default display
-  fFaceColorUp:=c;
-
-  fFaceColorDisabled:=clDark;
-  fBorderColor:=clActiveBorder;
-  fPenColorHover:=clBlue;
-  fInactiveBorderColor:=clInactiveBorder;
-  fInactiveFontColor:=clInactiveCaption;
-
-
-  if (c=clDefault) or (c=0) then
+  if ShouldAppsUseDarkMode then
   begin
-    //default color
-    fFaceColorDown:=c;
-    fFaceColorHover:=clBtnHiLight;
+    //setting color means default display
+    fFaceColorUp:=c;
+
+    fFaceColorDisabled:=clDark;
+    fBorderColor:=clActiveBorder;
+    fPenColorHover:=clBlue;
+    fInactiveBorderColor:=clInactiveBorder;
+    fInactiveFontColor:=clInactiveCaption;
 
 
-  end
-  else
-  begin
-    fFaceColorDown:=DecColor(c,14);
+    if (c=clDefault) or (c=0) then
+    begin
+      //default color
+      fFaceColorDown:=c;
+      fFaceColorHover:=clBtnHiLight;
 
-    //there is no incColor, and -14 is not the same
-    newc:=ColorToRGB(c);
-    r:=Red(newc);
-    g:=Green(newc);
-    b:=Blue(newc);
-    if r<255 then inc(r,14) else r:=255;
-    if g<255 then inc(g,14) else g:=255;
-    if b<255 then inc(b,14) else b:=255;
-    fFaceColorHover:=RGBToColor(r,g,b);
+
+    end
+    else
+    begin
+      fFaceColorDown:=DecColor(c,14);
+
+      //there is no incColor, and -14 is not the same
+      newc:=ColorToRGB(c);
+      r:=Red(newc);
+      g:=Green(newc);
+      b:=Blue(newc);
+      if r<255 then inc(r,14) else r:=255;
+      if g<255 then inc(g,14) else g:=255;
+      if b<255 then inc(b,14) else b:=255;
+      fFaceColorHover:=RGBToColor(r,g,b);
+    end;
+
   end;
 
 end;
@@ -121,35 +125,39 @@ begin
   painted:=false;
 
   inherited MouseMove(shift, x,y);
-  if not painted then
+  if ShouldAppsUseDarkMode and (not painted) then
     repaint;
 end;
 
 procedure TNewButton.MouseDown(Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 begin
-  inherited;
+  inherited mousedown(button, shift, x,y);
   MouseIsDown:=true;
 end;
 
 procedure TNewButton.MouseUp(Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 begin
-  inherited;
+  inherited MouseUp(Button, shift, x,y);
   MouseIsDown:=false;
 end;
 
 procedure TNewButton.FontChanged(Sender: TObject);
 begin
-  if self=nil then exit;
-
-  if canvas<>nil then
+  if ShouldAppsUseDarkMode then
   begin
-    Canvas.Font.BeginUpdate;
-    try
-      Canvas.Font.PixelsPerInch := Font.PixelsPerInch;
-      Canvas.Font := Font;
-    finally
-      Canvas.Font.EndUpdate;
+    if self=nil then exit;
+
+    if canvas<>nil then
+    begin
+      Canvas.Font.BeginUpdate;
+      try
+        Canvas.Font.PixelsPerInch := Font.PixelsPerInch;
+        Canvas.Font := Font;
+      finally
+        Canvas.Font.EndUpdate;
+      end;
     end;
+
   end;
   inherited FontChanged(Sender);
 end;
@@ -158,17 +166,21 @@ procedure TNewButton.PaintWindow(DC: HDC);
 var
   DCChanged: boolean;
 begin
-  DCChanged := (not FCanvas.HandleAllocated) or (FCanvas.Handle <> DC);
+  if ShouldAppsUseDarkMode then
+  begin
+    DCChanged := (not FCanvas.HandleAllocated) or (FCanvas.Handle <> DC);
 
-  if DCChanged then
-    FCanvas.Handle := DC;
-  try
-    DefaultCustomPaint;
-  finally
-    if DCChanged then FCanvas.Handle := 0;
-  end;
+    if DCChanged then
+      FCanvas.Handle := DC;
+    try
+      DefaultCustomPaint;
+    finally
+      if DCChanged then FCanvas.Handle := 0;
+    end;
 
-  painted:=true;
+    painted:=true;
+  end
+  else inherited paintwindow(dc);
 end;
 
 procedure TNewButton.DefaultCustomPaint;
@@ -231,21 +243,31 @@ end;
 
 procedure TNewButton.WMPaint(var Msg: TLMPaint);
 begin
-  if (csDestroying in ComponentState) or (not HandleAllocated) then exit;
+  if ShouldAppsUseDarkMode then
+  begin
+    if (csDestroying in ComponentState) or (not HandleAllocated) then exit;
 
-  if (not fdarkmode) and (fCustomDraw or globalCustomDraw) then Include(FControlState, csCustomPaint);
-  inherited WMPaint(msg);
-  if (not fdarkmode) and (fCustomDraw or globalCustomDraw) then Exclude(FControlState, csCustomPaint);
+    if (not fdarkmode) and (fCustomDraw or globalCustomDraw) then Include(FControlState, csCustomPaint);
+    inherited WMPaint(msg);
+    if (not fdarkmode) and (fCustomDraw or globalCustomDraw) then Exclude(FControlState, csCustomPaint);
+
+  end
+  else
+    inherited WMPaint(msg);
+
 end;
 
 procedure TNewButton.CreateParams(var Params: TCreateParams);
 begin
   inherited CreateParams(Params);
-  fcanvas:=TControlCanvas.Create;
-  TControlCanvas(FCanvas).Control := Self;
+  if ShouldAppsUseDarkMode then
+  begin
+    fcanvas:=TControlCanvas.Create;
+    TControlCanvas(FCanvas).Control := Self;
 
-  FDoubleBuffered:=true;
-  setcolor(clDefault);
+    FDoubleBuffered:=true;
+    setcolor(clDefault);
+  end;
 
 end;
 

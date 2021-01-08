@@ -49,7 +49,7 @@ var
   Section: THeaderSection;
   ts: TTextStyle;
 begin
-  if darkmode then
+  if ShouldAppsUseDarkMode and darkmode then
   begin
     //draw it myself
     Section := Sections[Index];
@@ -89,7 +89,7 @@ end;
 procedure TNewHeaderControl.ChildHandlesCreated;
 begin
   inherited ChildHandlesCreated;
-  if Parent<>nil then
+  if ShouldAppsUseDarkMode and (Parent<>nil) then
   begin
     if ShouldAppsUseDarkMode() then
       darkmode:=true;

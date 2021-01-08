@@ -58,7 +58,7 @@ var theme: THandle;
 begin
   inherited ChildHandlesCreated;
 
-  if ShouldAppsUseDarkMode() then
+  if ShouldAppsUseDarkMode then
   begin
     if parent<>nil then
     begin

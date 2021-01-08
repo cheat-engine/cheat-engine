@@ -43,7 +43,7 @@ procedure TNewComboBox.CreateBrush;
 var
   cbi: TCOMBOBOXINFO;
 begin
-  if ShouldAppsUseDarkMode() then
+  if ShouldAppsUseDarkMode then
   begin
     if creatingBrush then
     begin

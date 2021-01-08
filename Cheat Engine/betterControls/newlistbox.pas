@@ -26,11 +26,13 @@ procedure TNewListBox.ChildHandlesCreated;
 begin
   inherited ChildHandlesCreated;
 
-  AllowDarkModeForWindow(handle,1);
-  SetWindowTheme(Handle, 'explorer', nil);
+
 
   if ShouldAppsUseDarkMode() then
   begin
+    AllowDarkModeForWindow(handle,1);
+    SetWindowTheme(Handle, 'explorer', nil);
+
     //font.color:=colorset.FontColor;
     Color:=colorset.TextBackground;
   end;
