@@ -322,6 +322,7 @@ type
     procedure popAddress;
     function canPopAddress: boolean;
   published
+    property PopupMenu: TPopupMenu read columneditpopupmenu;
     property EditWidth: integer read getEditwidth;
     property EditLeft: integer read getEditleft;
     property Address: ptruint read getAddress write setAddress;

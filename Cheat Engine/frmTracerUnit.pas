@@ -840,6 +840,9 @@ begin
     breakpointmethod:=defaultBreakpointMethod;
     if showmodal=mrok then
     begin
+      currentAppendage:=nil;
+      stopsearch:=false;
+
       if comparetv<>nil then
       begin
         cleanuptv(comparetv);
@@ -1812,6 +1815,22 @@ begin
   fpp.show;//pop to foreground
 end;
 
+procedure ApplyFontColor(control: TControl; color: TColor);
+var
+  i: integer;
+  wc: twincontrol;
+begin
+  control.font.color:=color;
+  if control is TWinControl then
+  begin
+    wc:=TWinControl(control);
+    for i:=0 to wc.ControlCount-1 do
+      applyFontcolor(wc.Controls[i],color);
+  end;
+
+
+end;
+
 procedure TfrmTracer.FormShow(Sender: TObject);
 var minwidth: integer;
 begin
@@ -1825,6 +1844,8 @@ begin
   pnlRegisters.font.size:=10;
   pnlFlags.Font.size:=10;
   pnlSegments.font.size:=10;
+
+  ApplyFontColor(Panel1, font.color);
 
   Panel1Resize(panel1);
 
