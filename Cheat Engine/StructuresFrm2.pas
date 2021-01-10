@@ -6044,6 +6044,8 @@ var baseaddress: ptruint;
   name, customtypename: string;
 
   i: integer;
+  o: integer;
+  bas: string;
 begin
 //  n:=tvStructureView.GetLastMultiSelected;
 
@@ -6081,7 +6083,20 @@ begin
           if name='' then
             name:=VariableTypeToString(element.VarType);
 
-          mainform.addresslist.addaddress(name, inttohex(baseaddress,1), offsetlist, length(offsetlist), element.VarType, customtypename, element.Bytesize);
+          o:=baseaddress-getFocusedColumn.Address;
+          if o>0 then
+            bas:=getFocusedColumn.AddressText+'+'+inttohex(o,1)
+          else
+            bas:=getFocusedColumn.AddressText;
+
+          try
+            symhandler.getAddressFromName(bas);
+          except
+            //error interpreting this
+            bas:=inttohex(baseaddress,1);
+          end;
+
+          mainform.addresslist.addaddress(name, bas, offsetlist, length(offsetlist), element.VarType, customtypename, element.Bytesize);
         end;
 
 
