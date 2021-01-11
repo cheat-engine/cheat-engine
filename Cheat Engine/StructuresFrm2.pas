@@ -16,7 +16,7 @@ uses
   StdCtrls, ComCtrls, Menus, lmessages, byteinterpreter, symbolhandler, symbolhandlerstructs, cefuncproc,
   newkernelhandler, frmSelectionlistunit, frmStructuresConfigUnit, registry, Valuechange, DOM,
   XMLRead, XMLWrite, Clipbrd, CustomTypeHandler, strutils, dotnetpipe, DotNetTypes, commonTypeDefs,
-  contnrs, cvconst, frmStructuresNewStructureUnit, betterControls, scrollTreeView;
+  contnrs, cvconst, frmStructuresNewStructureUnit, betterControls, scrollTreeView, Maps;
 
 
 const structureversion=2;
@@ -242,11 +242,18 @@ type
     faddress: ptruint;
     fsavedstate: pointer; //points to a copy made in the target process
     fsavedstatesize: integer;
+
+    savedvalues: TStringlist; //list of the values of the view of the treeview
+
     fFocused: boolean;
     edtAddress: TEdit;
     columneditpopupmenu: TPopupMenu;
 
     miToggleLock: TMenuItem;
+    miTakeSnapshot: TMenuItem;
+    miCreateNewStructureFromChanges: TMenuItem;
+    miCreateNewStructureFromUnchanged: TMenuItem;
+    miStopDifferenceWatch: TMenuItem;
     miChangeGroup: TMenuItem;
     miDelete: TMenuItem;
     miCut: TMenuItem;
@@ -273,6 +280,10 @@ type
     procedure PasteClick(sender: TObject);
     procedure SpiderClick(sender: TObject);
     procedure SetCaptionClick(sender: TObject);
+
+    procedure TakeSnapshotClick(sender: TObject);
+    procedure CreateNewStructureFromSnapshot(sender: TObject);
+    procedure ClearSnapshotClick(sender: TObject);
 
     procedure MenuPopup(sender: TObject);
 
@@ -570,7 +581,7 @@ type
     function getGroup(i: integer): TStructGroup;
     function getGroupCount: integer;
 
-    procedure getValues(f: Tstrings); //fills a strings object with all the values
+    procedure getValues(f: Tstrings; column: TStructColumn=nil);//fills a strings object with all the values
     function searchString(search: string; findoptions: TFindOptions): integer;
 
     procedure EditValueOfSelectedNodes(c:TStructColumn);
@@ -608,6 +619,7 @@ type
     procedure onStructureDelete(sender: TDissectedStruct);
 
     procedure FixPositions;
+    procedure clearSavedValues;
 
     function GetNodeSectionWidth(const showAddress: boolean; const node: TTreeNode; var Section: THeaderSection): Integer;
   published
@@ -758,6 +770,12 @@ resourcestring
   rsWarnAboutLessThan2Addresses = 'It''s not recommended to run the structure '
     +'compare with just one address in a group';
   rsPointerToInstanceOfClassname = 'Pointer to instance of %s';
+  rsChanges = 'Changes';
+  rsUnchanged = 'Unchanged';
+  rsNameTheNewStructure = 'Name the new structure';
+  rsStructureName = 'Structure name';
+  rsTheStructureGotChanged = 'The structure got changed. Aborting';
+  rsWasOldValue = '(was %s)';
 
 
 var
@@ -2528,6 +2546,117 @@ begin
     result:='';
 end;
 
+procedure TStructColumn.TakeSnapshotClick(sender: TObject);
+{
+save the values
+}
+begin
+  if savedvalues=nil then
+    savedvalues:=tstringlist.create;
+
+  parent.parent.getValues(savedvalues, self);
+end;
+
+procedure TStructColumn.ClearSnapshotClick(sender: TObject);
+begin
+  freeandnil(savedvalues);
+end;
+
+
+procedure TStructColumn.CreateNewStructureFromSnapshot(sender: TObject);
+var
+  i: integer;
+  newnameextra: string;
+  newname: string;
+  newstruct: TDissectedStruct;
+
+  currentStruct: TDissectedStruct;
+
+  currentvalues: TStringList;
+  node: TTreenode;
+
+  oldse: TStructelement;
+  newse: TStructelement;
+
+  childstruct: TDissectedStruct;
+
+  OldStructToNewStructLookup: TMap;
+
+  mi: TMapIterator;
+
+
+begin
+  newname:=parent.parent.mainStruct.name+' ';
+  if tmenuitem(sender).tag=0 then
+    newnameextra:=rsChanges
+  else
+    newnameextra:=rsUnchanged;
+
+  newname:=newname+' '+newnameextra;
+
+  if InputQuery(rsNameTheNewStructure, rsStructureName, newname) then
+  begin
+    currentvalues:=tstringlist.create;
+    parent.parent.getValues(currentvalues,self);
+
+    if currentvalues.count=savedvalues.count then
+    begin
+      newstruct:=TDissectedStruct.create(newname);
+      currentStruct:=newstruct;
+
+      OldStructToNewStructLookup:=tmap.Create(ituPtrSize,sizeof(TDissectedStruct));
+      OldStructToNewStructLookup.Add(parent.parent.mainStruct, newstruct);
+
+      for i:=1 to savedvalues.count-1 do
+      begin
+        node:=parent.parent.tvStructureView.Items[i];
+        oldse:=parent.parent.getStructElementFromNode(node);
+
+
+        if ((tmenuitem(sender).tag =  0) and (savedvalues[i] <> currentvalues[i]))
+        or ((tmenuitem(sender).tag <> 0) and (savedvalues[i] =  currentvalues[i]))
+        or (oldse.ChildStruct<>nil) then
+        begin
+          //Add to the new structure (empty childstructs are a thing, but also childstructs where only one of them is a match)
+          if OldStructToNewStructLookup.GetData(oldse.parent,currentStruct) then  //should be found...
+          begin
+            if oldse.ChildStruct<>nil then
+            begin
+              if OldStructToNewStructLookup.GetData(oldse.ChildStruct,childstruct)=false then
+              begin
+                //not yet created, create it now
+                childstruct:=TDissectedStruct.create(oldse.ChildStruct.name+' '+newnameextra);
+                OldStructToNewStructLookup.Add(oldse.ChildStruct, childstruct);
+              end;
+            end
+            else
+              childstruct:=nil;
+
+            currentStruct.addElement(oldse.Name,oldse.Offset,oldse.VarType,oldse.CustomType,oldse.Bytesize,childstruct);
+          end;
+        end;
+      end;
+
+      newstruct.addToGlobalStructList;
+      OldStructToNewStructLookup.free;
+
+      with tfrmstructures2.create(application) do
+      begin
+        initialaddress:=Address;
+        mainStruct:=newstruct;
+        InitializeFirstNode;
+        show;
+      end;
+    end
+    else
+      MessageDlg(rsTheStructureGotChanged, mtError, [mbOK], 0);
+
+    currentvalues.free;
+  end;
+end;
+
+
+
 function TStructColumn.LockAddress(shownaddress: ptruint; memoryblock: pointer; size: integer): boolean;
 var
   x: ptruint;
@@ -2644,6 +2773,8 @@ begin
   parent.parent.tvStructureView.Refresh;
 end;
 
+
+
 procedure TStructColumn.CutClick(sender: TObject);
 begin
   edtAddress.CutToClipboard;
@@ -2716,6 +2847,11 @@ begin
   miCut.enabled:=edtAddress.SelLength>0;
   miCopy.enabled:=edtAddress.SelLength>0;
   miPaste.enabled:=Clipboard.HasFormat(CF_TEXT);
+
+  miTakeSnapshot.visible:=savedvalues=nil;
+  miCreateNewStructureFromChanges.visible:=savedvalues<>nil;
+  miCreateNewStructureFromUnchanged.visible:=savedvalues<>nil;
+  miStopDifferenceWatch.visible:=savedvalues<>nil;
 end;
 
 procedure TStructColumn.SetProperEditboxPosition;
@@ -2789,6 +2925,32 @@ begin
   miToggleLock.caption:=rsLock;
   miToggleLock.OnClick:=ToggleLockClick;
   columneditpopupmenu.Items.Add(miToggleLock);
+
+
+  miTakeSnapshot:=TMenuItem.create(columneditpopupmenu);
+  miTakeSnapshot.caption:='Watch for changes';
+  miTakeSnapshot.OnClick:=TakeSnapshotClick;
+  columneditpopupmenu.Items.Add(miTakeSnapshot);
+
+  miCreateNewStructureFromChanges:=TMenuItem.create(columneditpopupmenu);
+  miCreateNewStructureFromChanges.caption:='Create new structure from changed';
+  miCreateNewStructureFromChanges.OnClick:=CreateNewStructureFromSnapshot;
+  miCreateNewStructureFromChanges.tag:=0;
+  columneditpopupmenu.Items.Add(miCreateNewStructureFromChanges);
+
+  miCreateNewStructureFromUnChanged:=TMenuItem.create(columneditpopupmenu);
+  miCreateNewStructureFromUnChanged.caption:='Create new structure from unchanged';
+  miCreateNewStructureFromUnChanged.OnClick:=CreateNewStructureFromSnapshot;
+  miCreateNewStructureFromUnChanged.tag:=1;
+  columneditpopupmenu.Items.Add(miCreateNewStructureFromUnChanged);
+
+
+  miStopDifferenceWatch:=TMenuItem.create(columneditpopupmenu);
+  miStopDifferenceWatch.caption:='Stop watch for changes';
+  miStopDifferenceWatch.OnClick:=ClearSnapshotClick;
+  columneditpopupmenu.Items.Add(miStopDifferenceWatch);
+
+
 
   miChangeGroup:=TMenuItem.Create(columneditpopupmenu);
   miChangeGroup.Caption:=rsChangeGroup2;
@@ -3683,6 +3845,7 @@ begin
   try
     if node.HasChildren then
     begin
+      clearSavedValues;
       tvStructureView.OnCollapsing:=nil;
       tvStructureView.OnCollapsed:=nil;
 
@@ -3725,7 +3888,6 @@ begin
             node.data:=nil;   //not necessary
           end;
         end;
-
       end;
 
     end
@@ -3955,10 +4117,14 @@ end;
 procedure TfrmStructures2.onFullStructChange(sender: TDissectedStruct);
 var currentNode: TTreenode;
     nextnode: TTreenode;
+    i: integer;
+    clearSavedValueList: boolean;
 begin
   //update the childnode of the treenode with this struct to represent the new state
   if mainStruct<>nil then
   begin
+    clearSavedValueList:=false;
+
 
     currentNode:=tvStructureView.Items.GetFirstNode;
     if currentnode=nil then
@@ -3973,7 +4139,10 @@ begin
 
       //check if currentnode.data is of the type that needs to be updated
       if (currentnode.Data=sender) and (currentnode.Expanded or (currentNode.level=0)) then  //node is of the updated type and currently has children , or it's the root node
+      begin
+        clearSavedValueList:=true;
         FillTreeNodeWithStructData(currentnode);
+      end;
 
 
       //nothing else to be done, get the next one
@@ -3992,6 +4161,9 @@ begin
 
   end;
 
+  if clearSavedValueList then
+    for i:=0 to columnCount-1 do
+      freeandnil(columns[i].savedvalues);
 
   //else nothing to update
 
@@ -4012,6 +4184,7 @@ begin
     begin
       if n.expanded then
       begin
+
         if n.Count>=element.index then
           setupNodeWithElement(n[element.index], element)
         else
@@ -4043,8 +4216,6 @@ begin
     end;
     inc(i);
   end;   }
-
-
 
 end;
 
@@ -5377,7 +5548,7 @@ begin
 end;
 
 
-procedure TfrmStructures2.getValues(f: Tstrings);
+procedure TfrmStructures2.getValues(f: Tstrings; column: TStructColumn=nil);
 var i,j: integer;
   se: TStructelement;
   c: TStructColumn;
@@ -5387,17 +5558,24 @@ var i,j: integer;
 begin
   f.clear;
 
-  s:='Offset-Description';
-  s:=padright(s,25);
-  for j:=0 to columncount-1 do
-  begin
-    if miShowAddresses.checked then
-      s:=s+PadRight(columns[j].Name,30)
-    else
-      s:=s+PadRight(columns[j].Name,20);
-  end;
+  s:='';
 
-  f.add(s);
+  if column=nil then
+  begin
+    s:='Offset-Description';
+    s:=padright(s,25);
+
+    for j:=0 to columncount-1 do
+    begin
+      if miShowAddresses.checked then
+        s:=s+PadRight(columns[j].Name,30)
+      else
+        s:=s+PadRight(columns[j].Name,20);
+    end;
+    f.add(s);
+  end
+  else
+    f.add(''); //dummy filler
 
 
   for i:=1 to tvStructureView.Items.Count-1 do
@@ -5407,38 +5585,45 @@ begin
 
     if se<>nil then
     begin
-      s:=getDisplayedDescription(se);
-      s:=PadRight(S, 25);
-
-      for j:=1 to node.level-1 do
-        s:=AddChar('-',S,length(s)+5);
 
       setCurrentNodeStringsInColumns(node,se);
 
       //column now contains the strings
-      cc:=columnCount;
-      for j:=0 to columnCount-1 do
+      if column=nil then
       begin
-        c:=columns[j];
+        s:=getDisplayedDescription(se);
+        s:=PadRight(S, 25);
 
-        if miShowAddresses.checked then
-        begin
-          s2:=PadRight(c.currentNodeAddress+c.currentNodeValue,30);
+        for j:=1 to node.level-1 do
+          s:=AddChar('-',S,length(s)+5);
 
-          if j<cc-1 then //not the last column
-            setlength(s2,30); //cut of excess
-        end
-        else
+        cc:=columnCount;
+        for j:=0 to columnCount-1 do
         begin
-          s2:=PadRight(c.currentNodeValue,20);
-          if j<cc-1 then
-            setlength(s2,20);
+          c:=columns[j];
+
+          if miShowAddresses.checked then
+          begin
+            s2:=PadRight(c.currentNodeAddress+c.currentNodeValue,30);
+
+            if j<cc-1 then //not the last column
+              setlength(s2,30); //cut of excess
+          end
+          else
+          begin
+            s2:=PadRight(c.currentNodeValue,20);
+            if j<cc-1 then
+              setlength(s2,20);
+          end;
+
+
+
+          s:=s+s2;
         end;
 
-
-
-        s:=s+s2;
-      end;
+      end
+      else
+        s:=column.currentNodeValue;
     end;
 
     f.add(s);
@@ -6529,6 +6714,8 @@ end;
 
 procedure TfrmStructures2.setMainStruct(struct: TDissectedStruct);
 begin
+  clearSavedValues;
+
   fmainStruct:=struct;
 
   if struct=nil then
@@ -6639,6 +6826,7 @@ var
   //varname: string;
 
 
+
 begin
   if mainstruct=nil then exit; //no rendering
 
@@ -6727,6 +6915,21 @@ begin
         s:='';
 
       s:=s+c.currentNodeValue;
+
+      if (node.AbsoluteIndex>0) and (c.savedvalues<>nil) and (node.AbsoluteIndex<c.savedvalues.Count) and (c.savedvalues[node.AbsoluteIndex]<>c.currentNodeValue) then
+      begin
+        sender.canvas.brush.color:=clRed;
+        sender.canvas.brush.style:=bsSolid;
+
+        sender.canvas.pen.Color:=clWindowtext;
+        sender.canvas.font.color:=clWhite;
+        sender.canvas.Rectangle(clip);
+
+        s:=s+' '+Format(rsWasOldValue, [c.savedvalues[node.absoluteindex]]);
+
+
+      end;
+
       sender.Canvas.TextRect(clip,clip.left,textrect.Top,s);
     end;
 
@@ -6890,6 +7093,13 @@ begin
 
 
 
+end;
+
+procedure TfrmStructures2.clearSavedValues;
+var i: integer;
+begin
+  for i:=0 to columnCount-1 do
+    freeandnil(columns[i].savedvalues);
 end;
 
 procedure TfrmStructures2.FixPositions;
