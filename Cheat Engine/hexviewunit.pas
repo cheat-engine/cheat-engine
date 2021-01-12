@@ -2694,7 +2694,10 @@ begin
     if fAddress<ptrUint($100000000) then
       addresswidth:=addresswidthdefault
     else
+    begin
       addresswidth:=offscreenbitmap.Canvas.TextWidth(inttohex(fAddress,8));
+      addresswidth:=max(offscreenbitmap.Canvas.TextWidth(inttohex(fAddress,8)), offscreenbitmap.Canvas.TextWidth(inttohex(fAddress+totallines*bytesPerLine,8)));
+    end;
     {$else}
     addresswidth:=addresswidthdefault;
     {$endif}
@@ -2753,7 +2756,10 @@ begin
     if fAddress<defaultrange then
       addresswidth:=addresswidthdefault
     else
+    begin
       addresswidth:=offscreenbitmap.Canvas.TextWidth(inttohex(fAddress,8));
+      addresswidth:=max(offscreenbitmap.Canvas.TextWidth(inttohex(fAddress,8)), offscreenbitmap.Canvas.TextWidth(inttohex(fAddress+totallines*bytesPerLine,8)));
+    end;
     {$else}
     addresswidth:=addresswidthdefault;
     {$endif}
