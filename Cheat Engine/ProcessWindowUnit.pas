@@ -908,7 +908,6 @@ end;
 procedure TProcessWindow.btnOpenFileClick(Sender: TObject);
 begin
 
-   {$ifdef windows}
 
   if opendialog2.execute then
   begin
@@ -929,7 +928,7 @@ begin
       modalresult:=mrok;
     end;
   end;
-   {$endif}
+
 
 end;
 

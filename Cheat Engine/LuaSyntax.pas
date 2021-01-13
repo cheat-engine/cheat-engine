@@ -1902,7 +1902,11 @@ begin
   fInternalFunctionAttri := TSynHighLighterAttributes.Create(SYNS_AttrInternalFunction);
   fInternalFunctionAttri.Style := [fsBold];
   fInternalFunctionAttri.Foreground:=$c08000;
-  fInternalFunctionAttri.Background:=$eeeeee;
+  if ShouldAppsUseDarkMode=false then
+    fInternalFunctionAttri.Background:=$eeeeee
+  else
+    fInternalFunctionAttri.Background:=$333333;
+
   AddAttribute(fInternalFunctionAttri);
 
   fLuaMStringAttri := TSynHighLighterAttributes.Create(SYNS_AttrLuaMString);

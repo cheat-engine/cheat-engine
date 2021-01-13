@@ -8,8 +8,12 @@
       <MainUnit Value="0"/>
       <AutoCreateForms Value="False"/>
       <Title Value="Cheat Engine 7.2"/>
+      <UseXPManifest Value="True"/>
       <XPManifest>
+        <DpiAware Value="True"/>
         <ExecutionLevel Value="requireAdministrator"/>
+        <TextName Value="Cheat Engine"/>
+        <TextDesc Value="Scripting language and tools"/>
       </XPManifest>
       <Icon Value="0"/>
     </General>
@@ -22,7 +26,7 @@
       <AutoIncrementBuild Value="True"/>
       <MajorVersionNr Value="7"/>
       <MinorVersionNr Value="2"/>
-      <BuildNr Value="6627"/>
+      <BuildNr Value="6688"/>
       <Language Value=""/>
       <CharSet Value=""/>
       <StringTable CompanyName="Cheat Engine" FileDescription="Cheat Engine" ProductVersion="7.2"/>

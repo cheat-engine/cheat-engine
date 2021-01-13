@@ -119,7 +119,7 @@ uses
 
 {$R cheatengine.res}
 {$IFDEF windows}
-{$R manifest.res}  //lazarus now has this build in (but sucks as it explicitly turns of dpi aware)
+//{$R manifest.res}  //lazarus now has this build in (but sucks as it explicitly turns of dpi aware)
 //{$R Sounds.rc}
 //{$R images.rc}
 {$ifdef cpu32}

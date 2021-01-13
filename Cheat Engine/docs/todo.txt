@@ -9,9 +9,6 @@ dark mode:
 structure dissect: 
   delete all structures sometimes AV's (no idea how to reproduce)
 
-  add the much requested: show everything that got changed. (rightclick column address, choose record values for compare, which will lock the structure from being edited, and afterwards a "create new structure from changed addresses" or "create structure from unchanged addresses"
-
-
 lua function call: make it generate a full routine based on parameters to get, including stacksafe call
 
 
