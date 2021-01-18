@@ -1986,6 +1986,7 @@ begin
                   if length(slist)=2 then
                   begin
                     try
+                      s1:=slist[0];
                       j:=strtoint(trim(slist[1]));
                     except
                       raise exception.Create('Invalid timeout for createthreadandwait');
