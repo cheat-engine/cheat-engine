@@ -166,11 +166,11 @@ registerFormAddNotification(function(s)
       ceshare.ProcessWindowCEShare=ts          
       
       local OriginalOnDestroy=s2.OnDestroy
-      s2.OnDestroy=function(sender)
-        if OriginalOnDestroy then
-          ceshare.settings.Value.ProcessListLastTab=s2.TabHeader.TabIndex
-          OriginalOnDestroy()
-        end
+      s2.OnDestroy=function(sender)    
+        ceshare.settings.Value.ProcessListLastTab=s2.TabHeader.TabIndex
+        if OriginalOnDestroy then          
+          OriginalOnDestroy(sender)
+        end          
       end
       
       local OriginalProcessListOnDblClick=s2.ProcessList.OnDblClick
