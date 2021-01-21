@@ -727,7 +727,7 @@ begin
 
       if copy(uppercaseline,1,9)='{$LUACODE' then
       begin
-        if targetself then
+        if targetself or (processid=GetCurrentProcessId) then
           raise exception.create('{$LUACODE} blocks can not be used inside CE');
 
         parameterstring:=copy(s,11,endpos-11);
