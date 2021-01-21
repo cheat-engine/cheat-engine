@@ -574,8 +574,8 @@ object frmTracer: TfrmTracer
   end
   object MainMenu1: TMainMenu
     Images = ftImageList
-    left = 72
-    top = 56
+    Left = 72
+    Top = 56
     object MenuItem1: TMenuItem
       Caption = 'File'
       object miNewTrace: TMenuItem
@@ -630,12 +630,12 @@ object frmTracer: TfrmTracer
     DefaultExt = '.cetrace'
     Filter = 'CE Trace (*.cetrace)|*.cetrace|All file (*.*)|*.*'
     Options = [ofOverwritePrompt, ofEnableSizing, ofViewDetail]
-    left = 72
-    top = 119
+    Left = 72
+    Top = 119
   end
   object pmTracer: TPopupMenu
-    left = 72
-    top = 184
+    Left = 72
+    Top = 184
     object MenuItem5: TMenuItem
       Caption = 'Expand all'
       OnClick = MenuItem5Click
@@ -654,12 +654,12 @@ object frmTracer: TfrmTracer
   object OpenDialog1: TOpenDialog
     DefaultExt = '.cetrace'
     Filter = 'CE Trace (*.cetrace)|*.cetrace|All file (*.*)|*.*'
-    left = 72
-    top = 248
+    Left = 72
+    Top = 248
   end
   object ftImageList: TImageList
-    left = 186
-    top = 185
+    Left = 186
+    Top = 185
     Bitmap = {
       4C69040000001000000010000000FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
       FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF

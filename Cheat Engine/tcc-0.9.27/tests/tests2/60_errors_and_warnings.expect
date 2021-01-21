@@ -1,0 +1,28 @@
+[test_56_btype_excess_1]
+60_errors_and_warnings.c:2: error: too many basic types
+
+[test_57_btype_excess_2]
+60_errors_and_warnings.c:5: error: too many basic types
+
+[test_58_function_redefinition]
+60_errors_and_warnings.c:9: error: redefinition of 'f'
+
+[test_global_redefinition]
+60_errors_and_warnings.c:14: error: redefinition of 'xxx'
+
+[test_59_function_array]
+60_errors_and_warnings.c:17: error: declaration of an array of functions
+
+[test_60_enum_redefinition]
+60_errors_and_warnings.c:21: error: struct/union/enum already defined
+
+[test_62_enumerator_redefinition]
+60_errors_and_warnings.c:26: error: redefinition of enumerator 'RED'
+
+[test_63_local_enumerator_redefinition]
+
+[test_61_undefined_enum]
+60_errors_and_warnings.c:46: error: unknown type size
+
+[test_74_non_const_init]
+60_errors_and_warnings.c:49: error: initializer element is not constant

@@ -26,7 +26,7 @@
       <AutoIncrementBuild Value="True"/>
       <MajorVersionNr Value="7"/>
       <MinorVersionNr Value="2"/>
-      <BuildNr Value="6688"/>
+      <BuildNr Value="6726"/>
       <Language Value=""/>
       <CharSet Value=""/>
       <StringTable CompanyName="Cheat Engine" FileDescription="Cheat Engine" ProductVersion="7.2"/>
@@ -637,7 +637,7 @@
         <PackageName Value="LCL"/>
       </Item8>
     </RequiredPackages>
-    <Units Count="401">
+    <Units Count="402">
       <Unit0>
         <Filename Value="cheatengine.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -2753,6 +2753,10 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="betterControls"/>
       </Unit400>
+      <Unit401>
+        <Filename Value="autoassemblercode.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit401>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

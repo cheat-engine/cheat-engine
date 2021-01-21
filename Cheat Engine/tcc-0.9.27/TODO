@@ -1,0 +1,100 @@
+TODO list:
+
+Bugs:
+
+- i386 fastcall is mostly wrong
+- FPU st(0) is left unclean (kwisatz haderach). Incompatible with
+  optimized gcc/msc code
+- see transparent union pb in /urs/include/sys/socket.h
+- precise behaviour of typeof with arrays ? (__put_user macro)
+  but should suffice for most cases)
+- handle '? x, y : z' in unsized variable initialization (',' is
+  considered incorrectly as separator in preparser)
+- transform functions to function pointers in function parameters
+  (net/ipv4/ip_output.c)
+- fix function pointer type display
+- check section alignment in C
+- fix invalid cast in comparison 'if (v == (int8_t)v)'
+- finish varargs.h support (gcc 3.2 testsuite issue)
+- fix static functions declared inside block
+- fix multiple unions init
+- make libtcc fully reentrant (except for the compilation stage itself).
+- struct/union/enum definitions in nested scopes (see also Debian bug #770657)
+- __STDC_IEC_559__: float f(void) { static float x = 0.0 / 0.0; return x; }
+- memory may be leaked after errors (longjmp).
+
+Portability:
+
+- it is assumed that int is 32-bit and sizeof(int) == 4
+- int is used when host or target size_t would make more sense
+- TCC handles target floating-point (fp) values using the host's fp
+  arithmetic, which is simple and fast but may lead to exceptions
+  and inaccuracy and wrong representations when cross-compiling
+
+Linking:
+
+- static linking (-static) does not work
+
+Bound checking:
+
+- fix bound exit on RedHat 7.3
+- setjmp is not supported properly in bound checking.
+- fix bound check code with '&' on local variables (currently done
+  only for local arrays).
+- bound checking and float/long long/struct copy code. bound
+  checking and symbol + offset optimization
+
+Missing features:
+
+- disable-asm and disable-bcheck options
+- __builtin_expect()
+- atexit (Nigel Horne)
+- C99: add complex types (gcc 3.2 testsuite issue)
+- postfix compound literals (see 20010124-1.c)
+- interactive mode / integrated debugger
+
+Optimizations:
+
+- suppress specific anonymous symbol handling
+- more parse optimizations (=even faster compilation)
+- memory alloc optimizations (=even faster compilation)
+- optimize VT_LOCAL + const
+- better local variables handling (needed for other targets)
+
+Not critical:
+
+- C99: fix multiple compound literals inits in blocks (ISOC99
+  normative example - only relevant when using gotos! -> must add
+  boolean variable to tell if compound literal was already
+  initialized).
+- add PowerPC generator and improve codegen for RISC (need
+  to suppress VT_LOCAL and use a base register instead).
+- fix preprocessor symbol redefinition
+- add portable byte code generator and interpreter for other
+  unsupported architectures.
+- C++: variable declaration in for, minimal 'class' support.
+- win32: __intxx. use resolve for bchecked malloc et al.
+  check exception code (exception filter func).
+- handle void (__attribute__() *ptr)()
+- VLAs are implemented in a way that is not compatible with signals:
+  http://lists.gnu.org/archive/html/tinycc-devel/2015-11/msg00018.html
+
+Fixed (probably):
+
+- bug with defines:
+    #define spin_lock(lock) do { } while (0)
+    #define wq_spin_lock spin_lock
+    #define TEST() wq_spin_lock(a)
+- typedefs can be structure fields
+- see bugfixes.diff + improvement.diff from Daniel Glockner
+- long long constant evaluation
+- add alloca()
+- gcc '-E' option.
+- #include_next support for /usr/include/limits ?
+- function pointers/lvalues in ? : (linux kernel net/core/dev.c)
+- win32: add __stdcall, check GetModuleHandle for dlls.
+- macro substitution with nested definitions (ShangHongzhang)
+- with "-run" and libtcc, a PLT is now built.
+- '-E' option was improved
+- packed attribute is now supported
+- ARM and ARM64 code generators have been added.

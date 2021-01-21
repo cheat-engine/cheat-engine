@@ -1,7 +1,7 @@
 object frmCodecaveScanner: TfrmCodecaveScanner
-  Left = 1147
+  Left = 1148
   Height = 323
-  Top = 225
+  Top = 226
   Width = 512
   AutoSize = True
   Caption = 'Scan for codecaves'

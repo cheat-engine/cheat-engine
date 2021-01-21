@@ -1,7 +1,7 @@
 object frmD3DHookSnapshotConfig: TfrmD3DHookSnapshotConfig
-  Left = 470
+  Left = 471
   Height = 323
-  Top = 174
+  Top = 175
   Width = 424
   AutoSize = True
   BorderIcons = [biSystemMenu]

@@ -1,0 +1,149 @@
+---- TEST 1 ----
+bits in use : 0000001FFFFFFFFF007F0FFF
+bits as set : 000000076055555500440333
+values      : 333 44 555555 06 07
+align/size  : 4 12
+
+---- TEST 2 ----
+bits in use : 000000000000003F7FFFFFFFFFFFFFFF00000000003F0FFF
+bits as set : 0000000000000025123456789ABCDEF000000000001E0003
+values      : 03 1e 123456789abcdef0 05 fffffffe
+align/size  : 8 24
+
+---- TEST 3 ----
+bits in use : 001F1F1F000003FF
+bits as set : 000E0619000002F5
+values      : 15 17 19 06 0e
+align/size  : 4 8
+
+---- TEST 4 ----
+bits in use : 0007FFFF00000027
+bits as set : 00078F0F00000023
+values      : 03 ffffffff 0f fffffff8 78
+align/size  : 4 8
+
+---- TEST 5 ----
+bits in use : FFFFFF3FFFFFFFFF000000003FFFFFFF00001FFFFFFFFFFF
+bits as set : 007744000000007800000000300000000000000123456789
+values      : 0000000123456789 f0000000 0000000000000078 44 77
+align/size  : 8 24
+
+---- TEST 6 ----
+bits in use : 0000007000FFFFFFFFFFFFFF
+bits as set : 00000030002001FD00000004
+values      : 01 02 03 04 fffffffd
+align/size  : 4 12
+
+
+
+---- TEST 1 - PACKED ----
+bits in use : FFFFFFFFFFFFFF
+bits as set : 3B02AAAAAC4333
+values      : 333 44 555555 06 07
+align/size  : 1 7
+
+---- TEST 2 - PACKED ----
+bits in use : 7FFFFFFFFFFFFFFFFFFFFF
+bits as set : 4A48D159E26AF37BC1E003
+values      : 03 1e 123456789abcdef0 05 fffffffe
+align/size  : 1 11
+
+---- TEST 3 - PACKED ----
+bits in use : 7FFF000003FF
+bits as set : 38D9000002F5
+values      : 15 17 19 06 0e
+align/size  : 1 6
+
+---- TEST 4 - PACKED ----
+bits in use : 07FFFF00000027
+bits as set : 078F0F00000023
+values      : 03 ffffffff 0f fffffff8 78
+align/size  : 1 7
+
+---- TEST 5 - PACKED ----
+bits in use : FFFFFF07FFFFFFFFFFFFFFFF9FFFFFFFFFFF
+bits as set : 007744000000000F18000000000123456789
+values      : 0000000123456789 f0000000 0000000000000078 44 77
+align/size  : 1 18
+
+---- TEST 6 - PACKED ----
+bits in use : 007000FFFFFFFFFFFFFF
+bits as set : 0030002001FD00000004
+values      : 01 02 03 04 fffffffd
+align/size  : 1 10
+
+
+
+---- TEST 1 - WITH ALIGN ----
+bits in use : 000000000000001FFFFFFFFF007F0FFF
+bits as set : 00000000000000076055555500440333
+values      : 333 44 555555 06 07
+align/size  : 16 16
+
+---- TEST 2 - WITH ALIGN ----
+bits in use : 0000000000000000000000000000003F7FFFFFFFFFFFFFFF00000000003F0FFF
+bits as set : 00000000000000000000000000000025123456789ABCDEF000000000001E0003
+values      : 03 1e 123456789abcdef0 05 fffffffe
+align/size  : 16 32
+
+---- TEST 3 - WITH ALIGN ----
+bits in use : 0000000000000000000000000000001F000000000000000000001F1F000003FF
+bits as set : 0000000000000000000000000000000E000000000000000000000619000002F5
+values      : 15 17 19 06 0e
+align/size  : 16 32
+
+---- TEST 4 - WITH ALIGN ----
+bits in use : 0007FFFF00000027
+bits as set : 00078F0F00000023
+values      : 03 ffffffff 0f fffffff8 78
+align/size  : 4 8
+
+---- TEST 5 - WITH ALIGN ----
+bits in use : FFFFFF3FFFFFFFFF000000003FFFFFFF00001FFFFFFFFFFF
+bits as set : 007744000000007800000000300000000000000123456789
+values      : 0000000123456789 f0000000 0000000000000078 44 77
+align/size  : 8 24
+
+---- TEST 6 - WITH ALIGN ----
+bits in use : 0000007000FFFFFFFFFFFFFF
+bits as set : 00000030002001FD00000004
+values      : 01 02 03 04 fffffffd
+align/size  : 4 12
+
+
+
+---- TEST 1 - PACKED - WITH ALIGN ----
+bits in use : 000000000000000000FFFFFFFFFFFFFF
+bits as set : 0000000000000000003B02AAAAAC4333
+values      : 333 44 555555 06 07
+align/size  : 16 16
+
+---- TEST 2 - PACKED - WITH ALIGN ----
+bits in use : 3F01FFFFFFFFFFFFFFFFFFFF
+bits as set : 250048D159E26AF37BC1E003
+values      : 03 1e 123456789abcdef0 05 fffffffe
+align/size  : 1 12
+
+---- TEST 3 - PACKED - WITH ALIGN ----
+bits in use : 1F03FF000003FF
+bits as set : 0E00D9000002F5
+values      : 15 17 19 06 0e
+align/size  : 1 7
+
+---- TEST 4 - PACKED - WITH ALIGN ----
+bits in use : 07FFFF00000027
+bits as set : 078F0F00000023
+values      : 03 ffffffff 0f fffffff8 78
+align/size  : 1 7
+
+---- TEST 5 - PACKED - WITH ALIGN ----
+bits in use : FFFFFF07FFFFFFFFFFFFFFFF9FFFFFFFFFFF
+bits as set : 007744000000000F18000000000123456789
+values      : 0000000123456789 f0000000 0000000000000078 44 77
+align/size  : 1 18
+
+---- TEST 6 - PACKED - WITH ALIGN ----
+bits in use : 007000FFFFFFFFFFFFFF
+bits as set : 0030002001FD00000004
+values      : 01 02 03 04 fffffffd
+align/size  : 1 10

@@ -187,6 +187,10 @@ autoAssemble(text, disableInfo OPTIONAL)
 
 autoAssembleCheck(text, enable, targetself) : Checks the script for syntax errors. Returns true on succes, false with an error message on failure
 
+compile(text, address OPTIONAL, targetself) : Compiles C code and returns a table with the addresses of the symbols on success, or nil with a secondary result containing the errormessage
+compile({indexedtable containing scripts}, address OPTIONAL, targetself) : ^ but allows multiple scripts to be compiled into one
+compileFiles({filelist}, address OPTIONAL, targetself): ^ but takes an indexed list of files
+
 registerEXETrainerFeature(FeatureName:String, function():table): adds a new feature to the exe trainer generator window, and calls your function when the user builds an .exe trainer.  The function should return a table with table entries: PathToFile and RelativePath.
   example output:
     [1]: 

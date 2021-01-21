@@ -10,7 +10,7 @@ object frmStacktrace: TfrmStacktrace
   OnClose = FormClose
   OnCreate = FormCreate
   Position = poOwnerFormCenter
-  LCLVersion = '2.0.2.0'
+  LCLVersion = '2.0.6.0'
   object ListView1: TListView
     Left = 0
     Height = 274
@@ -49,8 +49,8 @@ object frmStacktrace: TfrmStacktrace
   end
   object PopupMenu1: TPopupMenu
     Images = stImageList
-    left = 88
-    top = 56
+    Left = 88
+    Top = 56
     object Refresh1: TMenuItem
       Caption = 'Refresh'
       ImageIndex = 0
@@ -63,8 +63,8 @@ object frmStacktrace: TfrmStacktrace
     end
   end
   object stImageList: TImageList
-    left = 419
-    top = 74
+    Left = 419
+    Top = 74
     Bitmap = {
       4C69020000001000000010000000FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
       FF00E4E5E411AECAA75193C4867393C48672AEC9A74ECDD1CC236198539CFFFF

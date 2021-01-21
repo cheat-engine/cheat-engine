@@ -1,0 +1,15 @@
+a
+a b
+a b c
+a b c d
+x a b c d y
+x a b c y
+x a b y
+x a y
+x y
+x A,B,C y
+x A,B y
+x A y
+x y
+__attribute__((__noreturn__))
+1 2

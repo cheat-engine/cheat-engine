@@ -1,7 +1,7 @@
 object frmHighlighterEditor: TfrmHighlighterEditor
-  Left = 395
+  Left = 396
   Height = 227
-  Top = 112
+  Top = 113
   Width = 286
   AutoSize = True
   BorderStyle = bsSingle

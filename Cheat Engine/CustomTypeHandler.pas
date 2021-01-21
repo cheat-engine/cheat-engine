@@ -104,6 +104,7 @@ type
 
 function GetCustomTypeFromName(name:string):TCustomType; //global function to retrieve a custom type
 
+
 function registerCustomTypeLua(L: PLua_State): integer; cdecl;
 function registerCustomTypeAutoAssembler(L: PLua_State): integer; cdecl;
 

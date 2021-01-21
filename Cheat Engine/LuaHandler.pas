@@ -125,7 +125,8 @@ uses autoassembler, MainUnit, MainUnit2, LuaClass, frmluaengineunit, plugin, plu
   LuaManualModuleLoader, pointervaluelist, frmEditHistoryUnit, LuaCheckListBox,
   LuaDiagram, frmUltimap2Unit, frmcodefilterunit, BreakpointTypeDef, LuaSyntax,
   LazLogger, LuaSynedit, LuaRIPRelativeScanner, LuaCustomImageList ,ColorBox,
-  rttihelper, LuaDotNetPipe, LuaRemoteExecutor, windows7taskbar, debugeventhandler;
+  rttihelper, LuaDotNetPipe, LuaRemoteExecutor, windows7taskbar, debugeventhandler,
+  tcclib;
 
   {$warn 5044 off}
 
@@ -302,6 +303,7 @@ end;
 function lua_dostring(L: Plua_State; const str: PChar): Integer;
 begin
   Result := luaL_loadstring(L, str);
+
   if Result = 0 then
     Result := lua_pcall(L, 0, LUA_MULTRET, 0);
 end;
@@ -13056,6 +13058,189 @@ begin
   result:=0;
 end;
 
+function _lua_compile(L: Plua_State; isfile: boolean): integer; cdecl;
+var
+  s: string;
+  a: ptruint=0;
+
+  bytes: tmemorystream=nil;
+  sl: TSymbolListHandler=nil;
+
+  errorlog: tstringlist=nil;
+  bw: size_t;
+
+  si: PCESymbolInfo;
+  targetself: boolean;
+
+  ph: THandle;
+
+  i: integer;
+  list: TStringlist=nil;
+  count: integer;
+
+begin
+  if lua_gettop(L)>=1 then
+  begin
+    if lua_isstring(L,1) then
+    begin
+      s:=Lua_ToString(L,1);
+    end
+    else
+    if lua_istable(L,1) then
+    begin
+      list:=tstringlist.create;
+      count:=lua_objlen(L,1);
+
+      for i:=1 to count do
+      begin
+        lua_pushinteger(L,i);
+        lua_gettable(L,1);
+        list.add(Lua_ToString(L,-1));
+        lua_pop(L,1);
+      end;
+    end;
+
+    if (s='') and ((list=nil) or (list.count=0)) then
+    begin
+      lua_pushnil(L);
+      lua_pushstring(L,'Nothing to compile');
+      exit(2);
+    end;
+
+    if lua_gettop(L)>=2 then
+      a:=lua_toaddress(L,2)
+    else
+      a:=0;
+
+    if lua_gettop(L)>=3 then
+      targetself:=lua_toboolean(L,3)
+    else
+      targetself:=false;
+
+    if targetself then
+      ph:=GetCurrentProcess
+    else
+      ph:=processhandle;
+
+
+    bytes:=tmemorystream.Create;
+    errorlog:=tstringlist.create;
+
+    if isfile and (list=nil) then
+    begin
+      list:=tstringlist.create;
+      list.add(s);
+    end;
+
+    try
+
+      if a=0 then //allocate here
+      begin
+        if ((list=nil) and (tcc.compileScript(s,a,bytes,nil,errorlog,nil,targetself)=false)) or
+           ((list<>nil) and (
+                             ((isfile=false) and (tcc.compileScripts(list,a,bytes,nil,errorlog,targetself)=false) ) or
+                             ((isfile=true) and (tcc.compileProject(list,a,bytes,nil,errorlog,targetself)=false) )
+                             ))
+        then
+        begin
+          lua_pop(L,lua_gettop(L));
+          lua_pushnil(L);
+          lua_pushstring(L, errorlog.Text);
+          if list<>nil then
+            freeandnil(list);
+          exit(2);
+        end;
+
+
+
+        a:=ptruint(VirtualAllocEx(ph,nil, bytes.Size*2,MEM_RESERVE or MEM_COMMIT,PAGE_EXECUTE_READWRITE));
+        if a=0 then
+        begin
+          lua_pop(L,lua_gettop(L));
+          lua_pushnil(L);
+          lua_pushstring(L, 'Allocation error.  Failed to allocate '+inttostr(bytes.size)+' bytes of memory');
+
+          if list<>nil then
+            freeandnil(list);
+          exit(2);
+        end;
+
+        bytes.Clear;
+        errorlog.Clear;
+      end;
+
+      sl:=TSymbolListHandler.create;
+
+
+      if ((list=nil) and (tcc.compileScript(s,a,bytes,sl,errorlog,nil,targetself)=false)) or
+         ((list<>nil) and (
+                           ((isfile=false) and (tcc.compileScripts(list,a,bytes,sl,errorlog,targetself)=false) ) or
+                           ((isfile=true) and (tcc.compileProject(list,a,bytes,sl,errorlog,targetself)=false) )
+                           )) then
+      begin
+        lua_pop(L,lua_gettop(L));
+        lua_pushnil(L);
+        lua_pushstring(L, errorlog.Text);
+
+        if list<>nil then
+          freeandnil(list);
+
+        if sl<>nil then
+          freeandnil(sl);
+
+        exit(2);
+      end;
+      if writeprocessmemory(ph,pointer(a),bytes.memory,bytes.size, bw) then
+      begin
+        lua_newtable(L);
+
+        si:=sl.FindFirstSymbolFromBase(a);
+
+        while si.address<a+bytes.size do
+        begin
+          lua_pushstring(L,si.originalstring);
+          lua_pushinteger(L,si.address);
+          lua_settable(L,-3);
+          si:=si.next;
+        end;
+
+        result:=1;
+
+        if errorlog.count>0 then
+        begin
+          lua_pushstring(L,errorlog.text);
+          result:=2;
+        end;
+
+      end
+      else
+      begin
+        lua_pop(L,lua_gettop(L));
+        lua_pushnil(L);
+        lua_pushstring(L, 'Failure writing memory');
+        exit(2);
+      end;
+
+    finally
+      if sl<>nil then freeandnil(sl);
+      freeandnil(bytes);
+      freeandnil(errorlog);
+    end;
+  end;
+
+
+end;
+
+function lua_compile(L: Plua_State): integer; cdecl;
+begin
+  exit(_lua_compile(L,false));
+end;
+
+function lua_compilefiles(L: Plua_State): integer; cdecl;
+begin
+  exit(_lua_compile(L,true));
+end;
+
 procedure InitLimitedLuastate(L: Plua_State);
 begin
   //just the bare basics, don't put in too much as it will slow down spawning of worker threads
@@ -13754,6 +13939,9 @@ begin
 
     lua_register(L, 'setProgressState', lua_SetProgressState);
     lua_register(L, 'setProgressValue', lua_SetProgressValue );
+
+    lua_register(L, 'compile', lua_compile);
+    lua_register(L, 'compileFiles', lua_compilefiles);
 
 
     initializeLuaRemoteThread;

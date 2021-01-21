@@ -1002,6 +1002,9 @@ begin
     processlistlong:=nil;
     miProcessListLong.Caption:=rsProcessListLong;
   end;
+
+
+  position:=poDesigned;
 end;
 
 procedure TProcessWindow.PopupMenu1Popup(Sender: TObject);

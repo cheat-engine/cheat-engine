@@ -61,7 +61,7 @@ uses strutils, memscan, disassembler, networkInterface, networkInterfaceApi,
 uses simpleaobscanner, StrUtils, LuaHandler, memscan, disassembler{$ifdef windows}, networkInterface{$endif},
      {$ifdef windows}networkInterfaceApi,{$endif} LuaCaller, SynHighlighterAA, Parsers, Globals, memoryQuery,
      MemoryBrowserFormUnit, MemoryRecordUnit{$ifdef windows}, vmxfunctions{$endif}, autoassemblerexeptionhandler,
-     UnexpectedExceptionsHelper, types;
+     UnexpectedExceptionsHelper, types, autoassemblercode;
 {$endif}
 
 
@@ -1320,10 +1320,6 @@ begin
       inc(i);
   end;
 
-  //one more time getting rid of {$ASM} lines that have been added while they shouldn't be required
-  for i:=0 to code.count-1 do
-    if uppercase(TrimRight(code[i]))='{$ASM}' then
-      code[i]:='';
 
 end;
 
@@ -1459,14 +1455,20 @@ var i,j,k,l,e: integer;
     mustbefar: boolean;
     usesaobscan: boolean;
 
+    dataForAACodePass2: TAutoAssemblerCodePass2Data;
+
     function getAddressFromScript(name: string): ptruint;
     var
       found: boolean;
       j: integer;
     begin
+      result:=0;
       found:=false;
       try
-        result:=symhandler.getAddressFromName(name);
+        if targetself then
+          result:=selfsymhandler.getAddressFromName(name)
+        else
+          result:=symhandler.getAddressFromName(name);
         exit;
       except
       end;
@@ -1504,6 +1506,7 @@ begin
   setlength(sallocs,0);
   setlength(createthread,0);
   setlength(createthreadandwait,0);
+  setlength(dataForAACodePass2.cdata,0);
 
   currentaddress:=0;
 
@@ -1579,9 +1582,16 @@ begin
         if assigned(AutoAssemblerPrologues[i]) then
           AutoAssemblerPrologues[i](code, syntaxcheckonly);
 
-    luacode(code, syntaxcheckonly, memrec);
-
+    luacode(code, syntaxcheckonly, memrec); //replaces {$lua}/{$asm} blocks with the output of those functions
+    AutoAssemblerCodePass1(code,dataForAACodePass2, syntaxcheckonly, targetself); //replaces the {$luacode} and {$ccode} blocks with a call to extra routines added to the script
     //still here
+
+    //one more time getting rid of {$ASM} lines that have been added while they shouldn't be required
+    for i:=0 to code.count-1 do
+      if uppercase(TrimRight(code[i]))='{$ASM}' then
+        code[i]:='';
+
+
 
     strictmode:=false;
     for i:=0 to code.count-1 do
@@ -3059,6 +3069,7 @@ begin
     {$endif}
     {$endif}
 
+
     //-----------------------2nd pass------------------------
     //assemblerlines only contains label specifiers and assembler instructions
 
@@ -3389,54 +3400,9 @@ begin
     if length(loadbinary)>0 then
       for i:=0 to length(loadbinary)-1 do
       begin
-        ok1:=true;
-        try
-          testptr:=symhandler.getAddressFromName(loadbinary[i].address);
-        except
-          ok1:=false;
-        end;
+        testptr:=getAddressFromScript(loadbinary[i].address);
 
-        if not ok1 then
-          for j:=0 to length(labels)-1 do
-            if uppercase(labels[j].labelname)=uppercase(loadbinary[i].address) then
-            begin
-              ok1:=true;
-              testptr:=labels[j].address;
-              break;
-            end;
-
-        if not ok1 then
-          for j:=0 to length(allocs)-1 do
-            if uppercase(allocs[j].varname)=uppercase(loadbinary[i].address) then
-            begin
-              ok1:=true;
-              testptr:=allocs[j].address;
-              break;
-            end;
-
-        if not ok1 then
-          for j:=0 to length(kallocs)-1 do
-            if uppercase(kallocs[j].varname)=uppercase(loadbinary[i].address) then
-            begin
-              ok1:=true;
-              testptr:=kallocs[j].address;
-              break;
-            end;
-
-        if not ok1 then
-          for j:=0 to length(defines)-1 do
-            if uppercase(defines[j].name)=uppercase(loadbinary[i].address) then
-            begin
-              try
-                testptr:=symhandler.getAddressFromName(defines[j].whatever);
-                ok1:=true;
-              except
-              end;
-
-              break;
-            end;
-
-        if ok1 then
+        if testptr<>0 then
         begin
           binaryfile:=tmemorystream.Create;
           try
@@ -3445,10 +3411,23 @@ begin
           finally
             binaryfile.free;
           end;
-        end;
+        end
+        else
+          raise exception.create('Faulure ');
       end;
 
-    //we're still here so, inject it
+    //fill in the addresses requested by dataForAACodePass2 and finish the compilation
+    for i:=0 to length(dataForAACodePass2.cdata)-1 do
+    begin
+      dataForAACodePass2.cdata[i].address:=getAddressFromScript(dataForAACodePass2.cdata[i].name);
+      for j:=0 to length(dataForAACodePass2.cdata[i].references)-1 do
+        dataForAACodePass2.cdata[i].references[j].address:=getAddressFromScript(dataForAACodePass2.cdata[i].references[j].name);
+
+      AutoassemblerCodePass2(dataForAACodePass2);
+    end;
+
+
+    //we're still here so inject the rest of it
 
     //addresses are known here, so parse the exception list if there is one
     if length(exceptionlist)>0 then
@@ -3738,6 +3717,8 @@ begin
 
         for i:=0 to length(allocs)-1 do
         begin
+          if allocs[i].varname.StartsWith('ceinternal_') then continue; //don't show these
+
           if testPtr=0 then testPtr:=allocs[i].address;
           s1:=s1+#13#10+allocs[i].varname+'='+IntToHex(allocs[i].address,8);
         end;

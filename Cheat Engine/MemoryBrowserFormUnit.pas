@@ -4474,6 +4474,7 @@ begin
     freeandnil(self.hexview);
 
 
+
 end;
 
 procedure TMemoryBrowser.Newwindow1Click(Sender: TObject);

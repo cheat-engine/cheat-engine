@@ -1,7 +1,7 @@
 object frmThreadlist: TfrmThreadlist
-  Left = 480
+  Left = 481
   Height = 187
-  Top = 169
+  Top = 170
   Width = 313
   BorderStyle = bsSizeToolWin
   Caption = 'Threadlist'
@@ -38,6 +38,7 @@ object frmThreadlist: TfrmThreadlist
     Align = alBottom
     Caption = 'Hold ctrl when expanding to see the 32-bit context of a thread'
     Color = clDefault
+    ParentColor = False
     Transparent = False
     Visible = False
   end

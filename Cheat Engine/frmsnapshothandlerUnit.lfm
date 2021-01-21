@@ -1,14 +1,14 @@
 object frmSnapshotHandler: TfrmSnapshotHandler
-  Left = 844
+  Left = 845
   Height = 264
-  Top = 359
+  Top = 360
   Width = 674
   Caption = 'Snapshot handler'
   ClientHeight = 244
   ClientWidth = 674
   Menu = MainMenu1
   OnCreate = FormCreate
-  LCLVersion = '2.0.0.4'
+  LCLVersion = '2.0.6.0'
   object Panel2: TPanel
     Left = 0
     Height = 164
@@ -98,8 +98,8 @@ object frmSnapshotHandler: TfrmSnapshotHandler
   end
   object MainMenu1: TMainMenu
     Images = shImageList
-    left = 32
-    top = 8
+    Left = 32
+    Top = 8
     object MenuItem1: TMenuItem
       Caption = 'File'
       object MenuItem8: TMenuItem
@@ -127,12 +127,12 @@ object frmSnapshotHandler: TfrmSnapshotHandler
   end
   object OpenDialog1: TOpenDialog
     Options = [ofAllowMultiSelect, ofEnableSizing, ofViewDetail]
-    left = 62
-    top = 277
+    Left = 62
+    Top = 277
   end
   object shImageList: TImageList
-    left = 180
-    top = 56
+    Left = 180
+    Top = 56
     Bitmap = {
       4C69030000001000000010000000FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
       FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00D8D9D81D3E7133B9E8E8

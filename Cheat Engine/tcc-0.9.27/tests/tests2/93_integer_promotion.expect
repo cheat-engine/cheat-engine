@@ -1,0 +1,46 @@
+   signed : s.ub
+ unsigned : s.u
+   signed : s.ullb
+ unsigned : s.ull
+   signed : s.c
+
+   signed : (1 ? s.ub : 1)
+ unsigned : (1 ? s.u : 1)
+   signed : (1 ? s.ullb : 1)
+ unsigned : (1 ? s.ull : 1)
+   signed : (1 ? s.c : 1)
+
+   signed : s.ub << 1
+ unsigned : s.u << 1
+   signed : s.ullb << 1
+ unsigned : s.ull << 1
+   signed : s.c << 1
+
+   signed : +s.ub
+ unsigned : +s.u
+   signed : +s.ullb
+ unsigned : +s.ull
+   signed : +s.c
+
+   signed : -s.ub
+ unsigned : -s.u
+   signed : -s.ullb
+ unsigned : -s.ull
+   signed : -s.c
+
+   signed : ~s.ub
+ unsigned : ~s.u
+   signed : ~s.ullb
+ unsigned : ~s.ull
+   signed : ~s.c
+
+   signed : !s.ub
+   signed : !s.u
+   signed : !s.ullb
+   signed : !s.ull
+   signed : !s.c
+
+ unsigned : +(unsigned)s.ub
+ unsigned : -(unsigned)s.ub
+ unsigned : ~(unsigned)s.ub
+   signed : !(unsigned)s.ub

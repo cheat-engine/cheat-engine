@@ -2,10 +2,10 @@ object frmStructures2: TfrmStructures2
   Left = 494
   Height = 509
   Top = 86
-  Width = 542
+  Width = 585
   Caption = 'Structure dissect'
   ClientHeight = 489
-  ClientWidth = 542
+  ClientWidth = 585
   Menu = MainMenu1
   OnClose = FormClose
   OnCreate = FormCreate
@@ -23,7 +23,7 @@ object frmStructures2: TfrmStructures2
     Left = 0
     Height = 395
     Top = 71
-    Width = 542
+    Width = 585
     Anchors = [akTop, akLeft, akRight, akBottom]
     BorderStyle = bsNone
     Font.CharSet = ANSI_CHARSET
@@ -56,7 +56,7 @@ object frmStructures2: TfrmStructures2
     Left = 0
     Height = 21
     Top = 50
-    Width = 542
+    Width = 585
     DragReorder = False
     Sections = <    
       item
@@ -75,7 +75,7 @@ object frmStructures2: TfrmStructures2
     Left = 0
     Height = 50
     Top = 0
-    Width = 542
+    Width = 585
     HorzScrollBar.Increment = 1
     HorzScrollBar.Page = 1
     HorzScrollBar.Smooth = True
@@ -91,7 +91,7 @@ object frmStructures2: TfrmStructures2
     Left = 0
     Height = 23
     Top = 466
-    Width = 542
+    Width = 585
     Panels = <    
       item
         Width = 50

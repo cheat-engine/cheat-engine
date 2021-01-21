@@ -1,0 +1,3 @@
+return Z(Z(1,2),2);
+return Q(1,2);
+return ((A + A) * (A + A)) + ((B * B) + (B * B));

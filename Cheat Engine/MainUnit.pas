@@ -7464,9 +7464,6 @@ begin
     pluginhandler.free;
     pluginhandler:=nil;
   end;
-
-
-
 end;
 
 
@@ -10229,6 +10226,7 @@ begin
     end;
     FreeAndNil(scantablist);
   end;
+
 
 end;
 

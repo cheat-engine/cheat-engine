@@ -1,7 +1,7 @@
 object frmMemviewPreferences: TfrmMemviewPreferences
-  Left = 247
+  Left = 248
   Height = 508
-  Top = 168
+  Top = 169
   Width = 517
   AutoSize = True
   BorderStyle = bsSingle
