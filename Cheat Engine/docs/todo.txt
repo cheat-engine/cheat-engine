@@ -8,7 +8,6 @@ dark mode:
   finds what writes description is black text on black background
 
 dpi: 
-  Fix pe info window size, and add saving of the size
   Process window is kinda 'meh' on new install
   find what writes too small
   
@@ -19,7 +18,6 @@ memview: Also save the width of the hexview when debugging is enabled
 set value to -888,12  (not -888.12) and see what happens
 
 
-dark mode:
 structure dissect: 
   delete all structures sometimes AV's (no idea how to reproduce)
 

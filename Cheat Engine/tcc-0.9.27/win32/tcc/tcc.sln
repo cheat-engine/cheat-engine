@@ -7,9 +7,6 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "tcc", "tcc\tcc.vcxproj", "{
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
-		Debug|Win32 = Debug|Win32
-		Debug|x64 = Debug|x64
-		Debug|x86 = Debug|x86
 		Output to 32 (Debug)|Win32 = Output to 32 (Debug)|Win32
 		Output to 32 (Debug)|x64 = Output to 32 (Debug)|x64
 		Output to 32 (Debug)|x86 = Output to 32 (Debug)|x86
@@ -25,17 +22,8 @@ Global
 		Output to tcc.exe test 64 (Debug)|Win32 = Output to tcc.exe test 64 (Debug)|Win32
 		Output to tcc.exe test 64 (Debug)|x64 = Output to tcc.exe test 64 (Debug)|x64
 		Output to tcc.exe test 64 (Debug)|x86 = Output to tcc.exe test 64 (Debug)|x86
-		Release|Win32 = Release|Win32
-		Release|x64 = Release|x64
-		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{E356254D-AC54-48FF-BDF6-2FBA174D0922}.Debug|Win32.ActiveCfg = Output to tcc.exe test 64 (Debug)|Win32
-		{E356254D-AC54-48FF-BDF6-2FBA174D0922}.Debug|Win32.Build.0 = Output to tcc.exe test 64 (Debug)|Win32
-		{E356254D-AC54-48FF-BDF6-2FBA174D0922}.Debug|x64.ActiveCfg = Output to tcc.exe test 64 (Debug)|x64
-		{E356254D-AC54-48FF-BDF6-2FBA174D0922}.Debug|x64.Build.0 = Output to tcc.exe test 64 (Debug)|x64
-		{E356254D-AC54-48FF-BDF6-2FBA174D0922}.Debug|x86.ActiveCfg = Output to tcc.exe test 64 (Debug)|Win32
-		{E356254D-AC54-48FF-BDF6-2FBA174D0922}.Debug|x86.Build.0 = Output to tcc.exe test 64 (Debug)|Win32
 		{E356254D-AC54-48FF-BDF6-2FBA174D0922}.Output to 32 (Debug)|Win32.ActiveCfg = Output to 32 (Debug)|Win32
 		{E356254D-AC54-48FF-BDF6-2FBA174D0922}.Output to 32 (Debug)|Win32.Build.0 = Output to 32 (Debug)|Win32
 		{E356254D-AC54-48FF-BDF6-2FBA174D0922}.Output to 32 (Debug)|x64.ActiveCfg = Output to 32 (Debug)|x64
@@ -64,12 +52,6 @@ Global
 		{E356254D-AC54-48FF-BDF6-2FBA174D0922}.Output to tcc.exe test 64 (Debug)|x64.Build.0 = Output to tcc.exe test 64 (Debug)|x64
 		{E356254D-AC54-48FF-BDF6-2FBA174D0922}.Output to tcc.exe test 64 (Debug)|x86.ActiveCfg = Output to tcc.exe test 64 (Debug)|Win32
 		{E356254D-AC54-48FF-BDF6-2FBA174D0922}.Output to tcc.exe test 64 (Debug)|x86.Build.0 = Output to tcc.exe test 64 (Debug)|Win32
-		{E356254D-AC54-48FF-BDF6-2FBA174D0922}.Release|Win32.ActiveCfg = Output to 32 (Release)|Win32
-		{E356254D-AC54-48FF-BDF6-2FBA174D0922}.Release|Win32.Build.0 = Output to 32 (Release)|Win32
-		{E356254D-AC54-48FF-BDF6-2FBA174D0922}.Release|x64.ActiveCfg = Output to 64 (Release)|x64
-		{E356254D-AC54-48FF-BDF6-2FBA174D0922}.Release|x64.Build.0 = Output to 64 (Release)|x64
-		{E356254D-AC54-48FF-BDF6-2FBA174D0922}.Release|x86.ActiveCfg = Output to 32 (Release)|Win32
-		{E356254D-AC54-48FF-BDF6-2FBA174D0922}.Release|x86.Build.0 = Output to 32 (Release)|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
