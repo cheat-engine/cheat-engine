@@ -1,5 +1,6 @@
 Mac: Hex editing files
 
+implement ceinternal_autofree
 custom types: c implementation
 
 code filter: Use dissect code call list as another option to fill the list

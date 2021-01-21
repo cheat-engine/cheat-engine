@@ -47,7 +47,7 @@ procedure AutoAssemblerCodePass2(var dataForPass2: TAutoAssemblerCodePass2Data);
 implementation
 
 uses windows,ProcessHandlerUnit, symbolhandler, luahandler, lua, lauxlib, lualib, StrUtils,
-  Clipbrd, dialogs, lua_server, tcclib, SymbolListHandler, Assemblerunit;
+  Clipbrd, dialogs, lua_server, tcclib, SymbolListHandler, Assemblerunit, NewKernelHandler;
 
 
 type
@@ -610,9 +610,9 @@ begin
       1..15: s:=s+'readPointer(parameters+0x'+inttohex($200+(parameters[j].contextitem-1)*8,1)+')'; //RBX..R15
       16: s:=s+'readFloat(readPointer(parameters+0x228))'; //RAX as float
       17..31: s:=s+'readFloat(parameters+0x'+inttohex($200+(parameters[j].contextitem-17)*8,1)+')'; //RBX..R15 as float
-      32..47: s:=s+'readBytes(parameters+'+inttohex($a0+(parameters[j].contextitem-32)*16,1)+',16,true)';
-      48..111: s:=s+'readFloat(parameters+'+inttohex($a0+(parameters[j].contextitem-48)*4,1)+')';
-      112..143: s:=s+'readDouble(parameters+'+inttohex($a0+(parameters[j].contextitem-112)*8,1)+')';
+      32..47: s:=s+'readBytes(parameters+0x'+inttohex($a0+(parameters[j].contextitem-32)*16,1)+',16,true)';
+      48..111: s:=s+'readFloat(parameters+0x'+inttohex($a0+(parameters[j].contextitem-48)*4,1)+')';
+      112..143: s:=s+'readDouble(parameters+0x'+inttohex($a0+(parameters[j].contextitem-112)*8,1)+')';
     end;
 
     luascript.insert(j+1,s);
