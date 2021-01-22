@@ -1798,6 +1798,10 @@ begin
     end;
   end;
 
+
+  if (debugEvent.LoadDll.hFile<>0) and (debugEvent.LoadDll.hFile<>INVALID_HANDLE_VALUE) then
+    closehandle(debugEvent.LoadDll.hFile);
+
   Result := true;
   dwContinueStatus:=DBG_CONTINUE;
 end;
