@@ -231,9 +231,9 @@ begin
   script.insert(0,'alloc(ceinternal_autofree_safecallstub_for_'+functionname+',512)'); //Let's place bets how many people are going to remark that this is what breaks their code and not because they didn't allocate enough memory properly...
 
 
+  script.add('ceinternal_autofree_safecallstub_for_'+functionname+':');
   if processhandler.is64Bit{$ifdef cpu64} or targetself{$endif} then
   begin
-    script.add('ceinternal_autofree_safecallstub_for_'+functionname+':');
     script.add('pushfq //save flags');
     script.add('push rax');
     script.add('mov rax,rsp');
@@ -289,6 +289,48 @@ begin
     script.add('popfq');
     script.add('ret');
 
+  end
+  else
+  begin
+    script.add('pushfd //save flags');
+    script.add('push eax');
+    script.add('mov eax,esp');
+    script.add('and esp,fffffff0   //align stack');
+    script.add('sub esp,220 //allocate local space for scratchspace, the registers, and sse registers. And keep alignment');
+
+    script.add('//store state');
+    script.add('fxsave [esp]');
+    script.add('mov [esp+200],ebx');
+    script.add('mov [esp+204],ecx');
+    script.add('mov [esp+208],edx');
+    script.add('mov [esp+20c],esi');
+    script.add('mov [esp+210],edi');
+    script.add('mov [esp+214],eax //rsp');
+    script.add('mov [esp+218],ebp');
+
+    script.add('//[esp+214]+0=original eax');
+    script.add('//[esp+214]+4=original eflags');
+
+    script.add('//call lua function');
+    script.add('mov eax,esp'); //just to be safe
+    script.add('push eax');
+    script.add('call '+functionname);
+    script.add('add esp,4');
+
+    script.add('//restore registers (could have been changed by the function on purpose)');
+    script.add('mov ebp,[esp+218]');
+    script.add('mov edi,[rsp+210]');
+    script.add('mov esi,[rsp+20c]');
+    script.add('mov edx,[rsp+208]');
+    script.add('mov ecx,[rsp+204]');
+    script.add('mov ebx,[rsp+200]');
+
+    script.add('fxrstor [rsp]');
+
+    script.add('mov esp,[rsp+214] //restore rsp');
+    script.add('pop eax');
+    script.add('popfd');
+    script.add('ret');
   end;
 end;
 
@@ -309,7 +351,12 @@ var
   bw: size_t;
 
   phandle: THandle;
+
+  _tcc: TTCC;
 begin
+
+
+
 
   secondarylist:=TStringList.create;
   bytes:=tmemorystream.create;
@@ -320,6 +367,11 @@ begin
 
     for i:=0 to length(dataForPass2.cdata)-1 do
     begin
+      if dataForPass2.cdata[i].targetself then
+        _tcc:=tccself
+      else
+        _tcc:=tcc;
+
       sl.clear;
       bytes.clear;
       secondarylist.Clear;
@@ -334,7 +386,7 @@ begin
       for j:=0 to length(dataForPass2.cdata[i].references)-1 do
         secondarylist.AddObject(dataForPass2.cdata[i].references[j].name, tobject(dataForPass2.cdata[i].references[j].address));
 
-      if tcc.compileScript(dataForPass2.cdata[i].cscript, dataForPass2.cdata[i].address, bytes, sl, errorlog, secondarylist, dataForPass2.cdata[i].targetself ) then
+      if _tcc.compileScript(dataForPass2.cdata[i].cscript, dataForPass2.cdata[i].address, bytes, sl, errorlog, secondarylist, dataForPass2.cdata[i].targetself ) then
       begin
         if bytes.Size>dataForPass2.cdata[i].bytesallocated then
         begin
@@ -356,7 +408,7 @@ begin
             bytes.clear;
             secondarylist.Clear;
             errorlog.clear;
-            if tcc.compileScript(dataForPass2.cdata[i].cscript, dataForPass2.cdata[i].address, bytes, sl, errorlog, secondarylist, dataForPass2.cdata[i].targetself )=false then
+            if _tcc.compileScript(dataForPass2.cdata[i].cscript, dataForPass2.cdata[i].address, bytes, sl, errorlog, secondarylist, dataForPass2.cdata[i].targetself )=false then
             begin
               //wtf? something really screwed up here
               VirtualFreeEx(phandle, pointer(newAddress), 0,MEM_FREE);
@@ -430,7 +482,14 @@ var
 
   ms: TMemorystream;
   bytesizeneeded: integer;
+
+  _tcc: TTCC;
 begin
+  if targetself then
+    _tcc:=tccself
+  else
+    _tcc:=tcc;
+
   setlength(dataforpass2.cdata,0);
   scriptstartlinenr:=ptruint(script.Objects[i]);
 
@@ -452,22 +511,46 @@ begin
   cscript.add('void '+functionname+'(void *parameters)');
   cscript.add('{');
   //load the values from parameters pointer
-  for j:=0 to length(parameters)-1 do
+
+  if processhandler.is64Bit {$ifdef cpu64}or targetself{$endif} then
   begin
-    case parameters[j].contextitem of  //todo: add 32-bit support
-      0: s:='unsigned long long *'+parameters[j].varname+'=(unsigned long long *)*(unsigned long long *)((unsigned long long)parameters+0x228);'; //RAX
-      1..15: s:='unsigned long long *'+parameters[j].varname+'=(unsigned long long*)((unsigned long long)parameters+0x'+inttohex($200+(parameters[j].contextitem-1)*8,1)+');'; //RBX..R15
-      16: s:='float *'+parameters[j].varname+'=(float *)((unsigned long long)parameters+0x228);';
-      17..31: s:='float *'+parameters[j].varname+'=(float *)((unsigned long long)parameters+0x'+inttohex($200+(parameters[j].contextitem-1)*8,1)+');'; //RBX..R15
-      32..47:
-      begin
-        usesXMMType:=true;
-        s:='pxmmreg '+parameters[j].varname+'=(pxmmreg)((unsigned long long)parameters+0x'+inttohex($a0+(parameters[j].contextitem-32)*16,1)+');';
+    for j:=0 to length(parameters)-1 do
+    begin
+      case parameters[j].contextitem of
+        0: s:='unsigned long long *'+parameters[j].varname+'=(unsigned long long *)*(unsigned long long *)((unsigned long long)parameters+0x228);'; //RAX
+        1..15: s:='unsigned long long *'+parameters[j].varname+'=(unsigned long long*)((unsigned long long)parameters+0x'+inttohex($200+(parameters[j].contextitem-1)*8,1)+');'; //RBX..R15
+        16: s:='float *'+parameters[j].varname+'=(float *)((unsigned long long)parameters+0x228);';
+        17..31: s:='float *'+parameters[j].varname+'=(float *)((unsigned long long)parameters+0x'+inttohex($200+(parameters[j].contextitem-1)*8,1)+');'; //RBX..R15
+        32..47:
+        begin
+          usesXMMType:=true;
+          s:='pxmmreg '+parameters[j].varname+'=(pxmmreg)((unsigned long long)parameters+0x'+inttohex($a0+(parameters[j].contextitem-32)*16,1)+');';
+        end;
+        48..111: s:='float *'+parameters[j].varname+'=(float *)((unsigned long long)parameters+0x'+inttohex($a0+(parameters[j].contextitem-48)*4,1)+');'; //RBX..R15
+        112..143: s:='double *'+parameters[j].varname+'=(double *)((unsigned long long)parameters+0x'+inttohex($a0+(parameters[j].contextitem-112)*8,1)+');';
       end;
-      48..111: s:='float *'+parameters[j].varname+'=(float *)((unsigned long long)parameters+0x'+inttohex($a0+(parameters[j].contextitem-48)*4,1)+');'; //RBX..R15
-      112..143: s:='double *'+parameters[j].varname+'=(double *)((unsigned long long)parameters+0x'+inttohex($a0+(parameters[j].contextitem-112)*8,1)+');';
+      cscript.insert(j+2,s);
     end;
-    cscript.insert(j+2,s);
+  end
+  else
+  begin
+    for j:=0 to length(parameters)-1 do
+    begin
+      case parameters[j].contextitem of
+        0: s:='unsigned long *'+parameters[j].varname+'=(unsigned long *)*(unsigned long *)((unsigned long)parameters+0x214);'; //EAX
+        1..7: s:='unsigned long *'+parameters[j].varname+'=(unsigned long*)((unsigned long)parameters+0x'+inttohex($200+(parameters[j].contextitem-1)*4,1)+');'; //RBX..R15
+        16: s:='float *'+parameters[j].varname+'=(float *)((unsigned long)parameters+0x214);';
+        17..23: s:='float *'+parameters[j].varname+'=(float *)((unsigned long)parameters+0x'+inttohex($200+(parameters[j].contextitem-1)*4,1)+');'; //EBX..EBP
+        32..39:
+        begin
+          usesXMMType:=true;
+          s:='pxmmreg '+parameters[j].varname+'=(pxmmreg)((unsigned long)parameters+0x'+inttohex($a0+(parameters[j].contextitem-32)*16,1)+');';
+        end;
+        48..79: s:='float *'+parameters[j].varname+'=(float *)((unsigned long)parameters+0x'+inttohex($a0+(parameters[j].contextitem-48)*4,1)+');'; //EBX..EBP
+        112..127: s:='double *'+parameters[j].varname+'=(double *)((unsigned long)parameters+0x'+inttohex($a0+(parameters[j].contextitem-112)*8,1)+');';
+      end;
+      cscript.insert(j+2,s);
+    end;
   end;
 
   for j:=scriptstart+1 to scriptend-1 do
@@ -508,7 +591,7 @@ begin
 
   try
     bytesizeneeded:=0;
-    if tcc.testcompileScript(cscript.text, bytesizeneeded,imports,errorlog,targetself)=false then
+    if _tcc.testcompileScript(cscript.text, bytesizeneeded,imports,errorlog,targetself)=false then
       raise exception.create('Error at {$CCode} block starting at '+inttostr(scriptstartlinenr)+' error:'+errorlog.text );
 
     j:=length(dataforpass2.cdata);
@@ -601,39 +684,84 @@ begin
 
   luascript.insert(0,'return createRef(function(parameters)');
   //load the values from parameters pointer
-  for j:=0 to length(parameters)-1 do
-  begin
-    s:='local '+parameters[j].varname+'=';
 
-    case parameters[j].contextitem of  //todo: add 32-bit support
-      0: s:=s+'readPointer(readPointer(parameters+0x228))'; //RAX
-      1..15: s:=s+'readPointer(parameters+0x'+inttohex($200+(parameters[j].contextitem-1)*8,1)+')'; //RBX..R15
-      16: s:=s+'readFloat(readPointer(parameters+0x228))'; //RAX as float
-      17..31: s:=s+'readFloat(parameters+0x'+inttohex($200+(parameters[j].contextitem-17)*8,1)+')'; //RBX..R15 as float
-      32..47: s:=s+'readBytes(parameters+0x'+inttohex($a0+(parameters[j].contextitem-32)*16,1)+',16,true)';
-      48..111: s:=s+'readFloat(parameters+0x'+inttohex($a0+(parameters[j].contextitem-48)*4,1)+')';
-      112..143: s:=s+'readDouble(parameters+0x'+inttohex($a0+(parameters[j].contextitem-112)*8,1)+')';
+  if processhandler.is64bit then
+  begin
+    for j:=0 to length(parameters)-1 do
+    begin
+      s:='local '+parameters[j].varname+'=';
+
+      case parameters[j].contextitem of
+        0: s:=s+'readPointer(readPointer(parameters+0x228))'; //RAX
+        1..15: s:=s+'readPointer(parameters+0x'+inttohex($200+(parameters[j].contextitem-1)*8,1)+')'; //RBX..R15
+        16: s:=s+'readFloat(readPointer(parameters+0x228))'; //RAX as float
+        17..31: s:=s+'readFloat(parameters+0x'+inttohex($200+(parameters[j].contextitem-17)*8,1)+')'; //RBX..R15 as float
+        32..47: s:=s+'readBytes(parameters+0x'+inttohex($a0+(parameters[j].contextitem-32)*16,1)+',16,true)';
+        48..111: s:=s+'readFloat(parameters+0x'+inttohex($a0+(parameters[j].contextitem-48)*4,1)+')';
+        112..143: s:=s+'readDouble(parameters+0x'+inttohex($a0+(parameters[j].contextitem-112)*8,1)+')';
+      end;
+
+      luascript.insert(j+1,s);
     end;
 
-    luascript.insert(j+1,s);
+  end
+  else
+  begin
+    for j:=0 to length(parameters)-1 do
+    begin
+      s:='local '+parameters[j].varname+'=';
+      case parameters[j].contextitem of
+        0: s:=s+'readPointer(readPointer(parameters+0x214))'; //RAX
+        1..7: s:=s+'readPointer(parameters+0x'+inttohex($200+(parameters[j].contextitem-1)*4,1)+')'; //RBX..R15
+        16: s:=s+'readFloat(readPointer(parameters+0x214))'; //RAX as float
+        17..23: s:=s+'readFloat(parameters+0x'+inttohex($200+(parameters[j].contextitem-17)*4,1)+')'; //RBX..R15 as float
+        32..39: s:=s+'readBytes(parameters+0x'+inttohex($a0+(parameters[j].contextitem-32)*16,1)+',16,true)';
+        48..79: s:=s+'readFloat(parameters+0x'+inttohex($a0+(parameters[j].contextitem-48)*4,1)+')';
+        112..127: s:=s+'readDouble(parameters+0x'+inttohex($a0+(parameters[j].contextitem-112)*8,1)+')';
+      end;
+      luascript.insert(j+1,s);
+    end;
+
   end;
 
 
   //end of the script: write the values back
-  for j:=0 to length(parameters)-1 do
+  if processhandler.is64bit then
   begin
-    case parameters[j].contextitem of
-      0: s:='writePointer(readPointer(parameters+0x228),'+parameters[j].varname+')';
-      1..15: s:='writePointer(parameters+0x'+inttohex($200+(parameters[j].contextitem-1)*8,1)+','+parameters[j].varname+')'; //RBX..R15
-      16: s:='writeFloat(readPointer(parameters+0x228),'+parameters[j].varname+')'; //RAX as float
-      17..31: s:='writeFloat(parameters+0x'+inttohex($200+(parameters[j].contextitem-17)*8,1)+','+parameters[j].varname+')'; //RBX..R15 as float
-      32..47: s:='writeBytes(parameters+0x'+inttohex($a0+(parameters[j].contextitem-32)*16,1)+','+parameters[j].varname+')';
-      48..111: s:='writeFloat(parameters+0x'+inttohex($a0+(parameters[j].contextitem-48)*4,1)+','+parameters[j].varname+')';
-      112..143: s:='writeDouble(parameters+0x'+inttohex($a0+(parameters[j].contextitem-112)*8,1)+','+parameters[j].varname+')';
+    for j:=0 to length(parameters)-1 do
+    begin
+      case parameters[j].contextitem of
+        0: s:='writePointer(readPointer(parameters+0x228),'+parameters[j].varname+')';
+        1..15: s:='writePointer(parameters+0x'+inttohex($200+(parameters[j].contextitem-1)*8,1)+','+parameters[j].varname+')'; //RBX..R15
+        16: s:='writeFloat(readPointer(parameters+0x228),'+parameters[j].varname+')'; //RAX as float
+        17..31: s:='writeFloat(parameters+0x'+inttohex($200+(parameters[j].contextitem-17)*8,1)+','+parameters[j].varname+')'; //RBX..R15 as float
+        32..47: s:='writeBytes(parameters+0x'+inttohex($a0+(parameters[j].contextitem-32)*16,1)+','+parameters[j].varname+')';
+        48..111: s:='writeFloat(parameters+0x'+inttohex($a0+(parameters[j].contextitem-48)*4,1)+','+parameters[j].varname+')';
+        112..143: s:='writeDouble(parameters+0x'+inttohex($a0+(parameters[j].contextitem-112)*8,1)+','+parameters[j].varname+')';
+      end;
+
+      luascript.add(s);
+
     end;
 
-    luascript.add(s);
+  end
+  else
+  begin
+    for j:=0 to length(parameters)-1 do
+    begin
+      case parameters[j].contextitem of
+        0: s:='writePointer(readPointer(parameters+0x214),'+parameters[j].varname+')';
+        1..7: s:='writePointer(parameters+0x'+inttohex($200+(parameters[j].contextitem-1)*4,1)+','+parameters[j].varname+')'; //EBX..EBP
+        16: s:='writeFloat(readPointer(parameters+0x214),'+parameters[j].varname+')'; //EAX as float
+        17..23: s:='writeFloat(parameters+0x'+inttohex($200+(parameters[j].contextitem-17)*4,1)+','+parameters[j].varname+')'; //EBX..EBP as float
+        32..39: s:='writeBytes(parameters+0x'+inttohex($a0+(parameters[j].contextitem-32)*16,1)+','+parameters[j].varname+')';
+        48..79: s:='writeFloat(parameters+0x'+inttohex($a0+(parameters[j].contextitem-48)*4,1)+','+parameters[j].varname+')';
+        112..127: s:='writeDouble(parameters+0x'+inttohex($a0+(parameters[j].contextitem-112)*8,1)+','+parameters[j].varname+')';
+      end;
 
+      luascript.add(s);
+
+    end;
   end;
 
   luascript.add('return end )');
@@ -664,16 +792,33 @@ begin
 
   script.add('ceinternal_autofree_luacallstub_at'+inttostr(linenr)+':');
 
-  script.add('sub rsp,28'); //scratchspace, and parameter save. Also aligns the stack
-  script.add('mov [rsp+20],rcx');  //save the parameter pointer
+  if processhandler.is64Bit then
+  begin
+    script.add('sub rsp,28'); //scratchspace, and parameter save. Also aligns the stack
+    script.add('mov [rsp+20],rcx');  //save the parameter pointer
 
-  script.add('mov ecx,'+inttohex(refnr,1));
-  script.add('mov edx,1'); //1 parameteer
-  script.add('lea r8,[rsp+20]'); //the address where the parameter pointer is stored
-  script.add('mov r9,1');
-  script.add('call CELUA_ExecuteFunctionByReference');
-  script.add('add rsp,28');
-  script.add('ret');
+    script.add('mov ecx,'+inttohex(refnr,1));
+    script.add('mov edx,1'); //1 parameteer
+    script.add('lea r8,[rsp+20]'); //the address where the parameter pointer is stored
+    script.add('mov r9,1');
+    script.add('call CELUA_ExecuteFunctionByReference');
+    script.add('add rsp,28');
+    script.add('ret');
+  end
+  else
+  begin
+    script.add('lea eax,[esp+4]'); //esp=return address, esp+4=param1
+    //[ebp]=old ebp
+    //[ebp+4]=return address
+    //[ebp+8]=param1 (parameters)
+    script.add('push 1');
+    script.add('push eax'); //push pointer to param1
+    script.add('push 1'); //1 parameter
+    script.add('push '+inttohex(refnr,1));
+    script.add('call CELUA_ExecuteFunctionByReference');
+    script.add('ret');
+  end;
+
 
 
   //create a safecall stub to call this routine with a simple call (note, could be a 16 byte call so beware of that)
@@ -741,7 +886,11 @@ begin
             tluaserver.create('CELUASERVER'+inttostr(getcurrentprocessid));
 
 
-          script.insert(0,'loadlibrary(luaclient-x86_64.dll)');
+          if processhandler.is64Bit then
+            script.insert(0,'loadlibrary(luaclient-x86_64.dll)')
+          else
+            script.insert(0,'loadlibrary(luaclient-i386.dll)');
+
           script.insert(1,'CELUA_ServerName:');
           script.insert(2,'db ''CELUASERVER'+inttostr(getcurrentprocessid)+''',0');
           inc(i,3);

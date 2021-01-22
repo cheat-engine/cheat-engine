@@ -54,6 +54,7 @@ type
 
 
   function tcc: TTCC;
+  function tccself: TTCC;
 
 implementation
 
@@ -86,6 +87,15 @@ begin
       result:=tcc32;
   {$else}
     result:=tcc64;
+  {$endif}
+end;
+
+function tccself: TTCC;
+begin
+  {$ifdef cpu64}
+  result:=tcc64;
+  {$else}
+  result:=tcc32;
   {$endif}
 end;
 
