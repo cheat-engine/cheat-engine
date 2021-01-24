@@ -2704,6 +2704,9 @@ begin
       symhandler.kernelsymbols:=miKernelmodeSymbols.Checked;
     end;
 
+    if length(x)>=12 then
+      pnlStacktrace.Width:=x[11];
+
     setlength(x,0);
     posloadedfromreg:=true;
   end;
@@ -4445,7 +4448,7 @@ begin
   begin
     if self.disassemblerview<>nil then
     begin
-      setlength(params,11);
+      setlength(params,12);
       //don't use [xx,xx,xx] crash
       params[0]:=self.disassemblerview.getheaderwidth(0);
       params[1]:=self.disassemblerview.getheaderwidth(1);
@@ -4462,6 +4465,8 @@ begin
       params[8]:=strtoint(BoolToStr(self.miLockRowsize.Checked,'1','0'));
       params[9]:=self.hexview.LockedRowSize;
       params[10]:=strtoint(BoolToStr(self.Kernelmodesymbols1.checked,'1','0'));
+
+      params[11]:=pnlStacktrace.Width;
 
       saveformposition(self,params);
     end;
@@ -6051,14 +6056,6 @@ begin
   if not registerview.visible then
   begin
     setShowDebugPanels(true);
-
-    {registerview.visible:=true;
-    splitter2.visible:=true;
-
-    pnlStacktrace.Visible:=true;
-    splitter3.Visible:=true;
-
-    //first time show  }
 
     registerview.ClientWidth:=label15.left+label15.width+16+scrollbox1.VertScrollBar.Size;
 

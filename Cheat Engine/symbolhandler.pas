@@ -3655,6 +3655,7 @@ begin
   end;
 end;
 
+
 procedure TSymhandler.AddUserdefinedSymbol(addressstring: string; symbolname: string; DoNotSave: Boolean=false);
 {
 This routine will add the symbolname+address combination to the symbollist
@@ -4070,7 +4071,7 @@ begin
   //then check secondary symbollists
   symbollistsMREW.Beginread;
   try
-    for i:=0 to length(symbollists)-1 do
+    for i:=length(symbollists)-1 downto 0 do
     begin
       s:=symbollists[i].FindSymbol(name);
 

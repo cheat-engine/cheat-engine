@@ -213,6 +213,7 @@ type
     File1: TMenuItem;
     menuAOBInjection: TMenuItem;
     menuFullInjection: TMenuItem;
+    MenuItem1: TMenuItem;
     miMoveLeft: TMenuItem;
     miMoveRight: TMenuItem;
     miLuaSyntaxCheck: TMenuItem;
@@ -265,6 +266,7 @@ type
     procedure Load1Click(Sender: TObject);
     procedure menuAOBInjectionClick(Sender: TObject);
     procedure menuFullInjectionClick(Sender: TObject);
+    procedure MenuItem1Click(Sender: TObject);
     procedure miLuaSyntaxCheckClick(Sender: TObject);
     procedure miMoveLeftClick(Sender: TObject);
     procedure miMoveRightClick(Sender: TObject);
@@ -403,7 +405,7 @@ uses frmAAEditPrefsUnit,MainUnit,memorybrowserformunit,APIhooktemplatesettingsfr
   Globals, Parsers, MemoryQuery, {$ifdef windows}GnuAssembler,{$endif} LuaCaller, SynEditTypes, CEFuncProc,
   StrUtils, types, ComCtrls, LResources, NewKernelHandler, MainUnit2, Assemblerunit,
   autoassembler,  registry, luahandler, memscan, foundlisthelper, ProcessHandlerUnit,
-  frmLuaEngineUnit, frmSyntaxHighlighterEditor, lua, lualib, lauxlib, luaclass, LuaForm;
+  frmLuaEngineUnit, frmSyntaxHighlighterEditor, lua, lualib, lauxlib, luaclass, LuaForm, SymbolListHandler;
 
 resourcestring
   rsExecuteScript = 'Execute script';
@@ -637,15 +639,19 @@ end;
 
 procedure TfrmAutoInject.btnExecuteClick(Sender: TObject);
 var
-    a,b: integer;
+    a,b,i: integer;
 
     aa: TCEAllocArray;
     exceptionlist: TCEExceptionListArray;
 
+
     //variables for injectintomyself:
     check: boolean;
     registeredsymbols: TStringlist;
+    ccodesymbols: TSymbolListHandler;
     errmsg: string;
+
+    sl: TStringlist;
 begin
 {$ifndef standalonetrainerwithassembler}
   registeredsymbols:=tstringlist.Create;
@@ -705,7 +711,23 @@ begin
       else
       begin
         try
-          autoassemble(assemblescreen.lines,true);
+          ccodesymbols:=tsymbollisthandler.create;   //this will cause the AA to register the symbols
+
+          autoassemble(assemblescreen.lines,true,true,false,false,aa,exceptionlist,nil,nil,ccodesymbols);
+          if ccodesymbols.count>0 then
+          begin
+            sl:=tstringlist.create;
+            ccodesymbols.GetSymbolList(sl);
+            if MessageDlg('The following C-Code symbols where registered:'+sl.text+#13#10+'Do you wish to keep these?',mtConfirmation, [mbyes,mbno],0)<>mryes then
+              ccodesymbols.free;
+
+            sl.free;
+          end
+          else
+            ccodesymbols.Free;
+
+
+
         except
           on e:exception do
             MessageDlg(e.message,mtError,[mbOK],0);
@@ -3028,6 +3050,8 @@ begin
 end;
 
 
+
+
 procedure TfrmAutoInject.miReplaceClick(Sender: TObject);
 begin
   ReplaceDialog1.execute;
@@ -3037,6 +3061,7 @@ procedure TfrmAutoInject.reloadHighlighterSettings;
 begin
   LuaHighlighter.LoadFromRegistry(HKEY_CURRENT_USER, '\Software\Cheat Engine\Lua Highlighter'+darkmodestring);
   AAHighlighter.LoadFromRegistry(HKEY_CURRENT_USER, '\Software\Cheat Engine\AA Highlighter'+darkmodestring);
+  CPPHighlighter.LoadFromRegistry(HKEY_CURRENT_USER, '\Software\Cheat Engine\CPP Highlighter'+darkmodestring);
 end;
 
 procedure TfrmAutoInject.MenuItem2Click(Sender: TObject);
@@ -3067,6 +3092,22 @@ begin
   if frmHighlighterEditor.showmodal=mrok then
   begin
     AAHighlighter.SaveToRegistry(HKEY_CURRENT_USER, '\Software\Cheat Engine\AA Highlighter'+darkmodestring);
+    ReloadAllAutoInjectHighlighters;
+  end;
+
+  frmHighlighterEditor.free;
+end;
+
+procedure TfrmAutoInject.MenuItem1Click(Sender: TObject);
+var
+  frmHighlighterEditor: TfrmHighlighterEditor;
+begin
+  frmHighlighterEditor:=TfrmHighlighterEditor.create(self);
+  CPPHighlighter.loadFromRegistryDefault(HKEY_CURRENT_USER, '\Software\Cheat Engine\CPP Highlighter'+darkmodestring);
+  frmHighlighterEditor.highlighter:=CPPHighlighter;
+  if frmHighlighterEditor.showmodal=mrok then
+  begin
+    CPPHighlighter.SaveToRegistry(HKEY_CURRENT_USER, '\Software\Cheat Engine\CPP Highlighter'+darkmodestring);
     ReloadAllAutoInjectHighlighters;
   end;
 

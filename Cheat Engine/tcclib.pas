@@ -44,7 +44,7 @@ type
 
     procedure setupCompileEnvironment(s: PTCCState; address: ptruint; output: tstream; textlog: tstrings; targetself: boolean=false);
   public
-    function testcompileScript(script: string; var bytesize: integer; referencedSymbols: TStrings; textlog: tstrings=nil; targetself: boolean=false): boolean;
+    function testcompileScript(script: string; var bytesize: integer; referencedSymbols: TStrings; symbols: TStrings; textlog: tstrings=nil; targetself: boolean=false): boolean;
     function compileScript(script: string; address: ptruint; output: tstream; symbollist: TSymbolListHandler; textlog: tstrings=nil; secondaryLookupList: tstrings=nil; targetself: boolean=false): boolean;
     function compileScripts(scripts: tstrings; address: ptruint; output: tstream; symbollist: TSymbolListHandler; textlog: tstrings=nil; targetself: boolean=false): boolean;
     function compileProject(files: tstrings; address: ptruint; output: tstream; symbollist: TSymbolListHandler; textlog: tstrings=nil; targetself: boolean=false): boolean;
@@ -179,6 +179,7 @@ begin
   {$endif}
 end;
 
+{$ifndef standalonetest}
 function symbolLookupFunctionSelf(secondaryLookup: tstrings; name: pchar): pointer; cdecl;
 var
   error: boolean;
@@ -196,21 +197,39 @@ begin
   result:=pointer(selfsymhandler.GetAddressFromName(name,true,error));
 
 end;
+{$endif}
 
 procedure Writer(output: TStream; data: pointer; size: integer);  cdecl;
 begin
   output.Write(data^,size);
 end;
 
-procedure symbolCallback(sl: TSymbolListHandler; address: qword; name: pchar); cdecl;
+procedure simplesymbolCallback(sl: TStrings; address: qword; name: pchar); cdecl;
 begin
   {$ifndef standalonetest}
-  if sl<>nil then sl.AddSymbol('',name,address,1);
+  if sl<>nil then
+  begin
+    if (not ((length(name)>2) and (name[0]='_') and (name[1]='e'))) then  //no _e* symbols
+      sl.add(name); //not interested in the address
+  end;
+
   {$else}
   showmessage(inttohex(address,8)+' - '+name);
   {$endif}
+end;
 
+procedure symbolCallback(sl: TSymbolListHandler; address: qword; name: pchar); cdecl;
+begin
+  {$ifndef standalonetest}
+  if sl<>nil then
+  begin
+    if (not ((length(name)>2) and (name[0]='_') and (name[1]='e'))) and (sl.FindAddress(address)=nil) then  //no _e* symbols
+      sl.AddSymbol('',name,address,1);
+  end;
 
+  {$else}
+  showmessage(inttohex(address,8)+' - '+name);
+  {$endif}
 end;
 
 procedure ttcc.setupCompileEnvironment(s: PTCCState; address: ptruint; output: tstream; textlog: tstrings; targetself: boolean=false);
@@ -238,15 +257,17 @@ begin
 
   if textlog<>nil then set_error_func(s,textlog,@ErrorLogger);
 
+{$ifndef standalonetest}
   if targetself then
     set_symbol_lookup_func(s,nil,@symbolLookupFunctionSelf)
   else
+{$endif}
     set_symbol_lookup_func(s,nil,@symbolLookupFunction);
 
   set_binary_writer_func(s,output,@Writer);
 end;
 
-function ttcc.testcompileScript(script: string; var bytesize: integer; referencedSymbols: TStrings; textlog: tstrings=nil; targetself: boolean=false): boolean;
+function ttcc.testcompileScript(script: string; var bytesize: integer; referencedSymbols: TStrings; symbols: TStrings; textlog: tstrings=nil; targetself: boolean=false): boolean;
 var s: PTCCState;
   r: pointer;
   ms: Tmemorystream;
@@ -269,6 +290,9 @@ begin
 
     if compile_string(s,pchar(script))=-1 then exit(false);
     if output_file(s,nil)=-1 then exit(false);
+
+    if symbols<>nil then
+      get_symbols(s, symbols, @simplesymbolCallback);
 
     bytesize:=ms.Size;
 

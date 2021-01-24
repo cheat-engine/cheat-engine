@@ -23,7 +23,9 @@ uses
    {$endif}
    Assemblerunit, classes, LCLIntf,symbolhandler, symbolhandlerstructs,
    sysutils,dialogs,controls, CEFuncProc, NewKernelHandler ,plugin,
-   ProcessHandlerUnit, lua, lualib, lauxlib, luaclass, commonTypeDefs, OpenSave, betterControls;
+   ProcessHandlerUnit, lua, lualib, lauxlib, luaclass, commonTypeDefs, OpenSave,
+   SymbolListHandler,
+   betterControls;
 
 
 {$endif}
@@ -32,7 +34,7 @@ uses
 function getenableanddisablepos(code:tstrings;var enablepos,disablepos: integer): boolean;
 function autoassemble(code: tstrings;popupmessages: boolean):boolean; overload;
 function autoassemble(code: Tstrings; popupmessages,enable,syntaxcheckonly, targetself: boolean):boolean; overload;
-function autoassemble(code: Tstrings; popupmessages,enable,syntaxcheckonly, targetself: boolean;var CEAllocarray: TCEAllocArray; var exceptionlist:TCEExceptionListArray; registeredsymbols: tstringlist=nil; memrec: pointer=nil): boolean; overload;
+function autoassemble(code: Tstrings; popupmessages,enable,syntaxcheckonly, targetself: boolean;var CEAllocarray: TCEAllocArray; var exceptionlist:TCEExceptionListArray; registeredsymbols: tstringlist=nil; memrec: pointer=nil; ccodesymbols: TSymbolListHandler=nil): boolean; overload;
 
 type TAutoAssemblerPrologue=procedure(code: TStrings; syntaxcheckonly: boolean) of object;
 type TAutoAssemblerCallback=function(parameters: string; syntaxcheckonly: boolean): string of object;
@@ -1326,7 +1328,7 @@ end;
 
 var nextaaid: longint;
 
-function autoassemble2(code: tstrings;popupmessages: boolean;syntaxcheckonly:boolean; targetself: boolean ;var ceallocarray:TCEAllocArray; var ceexceptionlist: TCEExceptionListArray; registeredsymbols: tstringlist=nil; memrec: TMemoryRecord=nil):boolean;
+function autoassemble2(code: tstrings;popupmessages: boolean;syntaxcheckonly:boolean; targetself: boolean ;var ceallocarray:TCEAllocArray; var ceexceptionlist: TCEExceptionListArray; registeredsymbols: tstringlist=nil; memrec: TMemoryRecord=nil; ccodesymbols: TSymbolListHandler=nil):boolean;
 {
 registeredsymbols is a stringlist that is initialized by the caller as case insensitive and no duplicates
 }
@@ -1340,6 +1342,7 @@ end;
 
 type tlabel=record
   defined: boolean;
+  afterccode: boolean;
   insideAllocatedMemory: boolean;
   address:ptrUint;
   labelname: string;
@@ -1376,6 +1379,7 @@ var i,j,k,l,e: integer;
     end;
 
     globalallocs, allocs, kallocs, sallocs: array of tcealloc;
+    tempalloc: tcealloc;
     labels: array of tlabel;
     defines: array of tdefine;
     fullaccess: array of tfullaccess;
@@ -1506,7 +1510,6 @@ begin
   setlength(sallocs,0);
   setlength(createthread,0);
   setlength(createthreadandwait,0);
-  setlength(dataForAACodePass2.cdata,0);
 
   currentaddress:=0;
 
@@ -2671,6 +2674,7 @@ begin
                     setlength(labels, k+1);
                     labels[k].labelname:=potentiallabels[j];
                     labels[k].defined:=false;
+                    labels[k].afterccode:=false;
                     setlength(labels[k].references,0);
                     setlength(labels[k].references2,0);
 
@@ -2681,11 +2685,45 @@ begin
                 end;
               end;
 
-
+              //c-symbol addition
               if not ok1 then
-                raise EAutoAssembler.Create('bla');
+              begin
+                //last chance, try the c-code symbols
+                for j:=0 to length(dataForAACodePass2.cdata.symbols)-1 do
+                begin
+                  if processhandler.is64bit then
+                    currentline:=replacetoken(currentline,dataForAACodePass2.cdata.symbols[j].name,'ffffffffffffffff')
+                  else
+                    currentline:=replacetoken(currentline,dataForAACodePass2.cdata.symbols[j].name,'00000000');
+
+                  try
+                    ok1:=assemble(currentline,currentaddress,assembled[0].bytes, apNone, true);
+                    if ok1 then
+                    begin
+                      //define this c-code symbol as an undefined label
+                      k:=length(labels);
+                      setlength(labels, k+1);
+                      labels[k].labelname:=dataForAACodePass2.cdata.symbols[j].name;
+                      labels[k].defined:=false;
+                      labels[k].afterccode:=true;
+                      labels[k].assemblerline:=-1;
+                      setlength(labels[k].references,0);
+                      setlength(labels[k].references2,0);
+                      break;
+                    end;
+                  except
+                    //don't quit yet
+                  end;
+
+                end;
+
+              end;
+              //c-symbol addition^
 
             end;
+
+            if not ok1 then
+              raise EAutoAssembler.Create('bla');
           except
             raise EAutoAssembler.Create(rsThisInstructionCanTBeCompiled);
           end;
@@ -2926,6 +2964,25 @@ begin
 
     if length(allocs)>0 then
     begin
+      //move ceinternal_autofree allocs to the end
+      k:=length(allocs);
+
+      i:=0;
+      while i<k do
+      begin
+        if allocs[i].varname.StartsWith('ceinternal_autofree') then
+        begin
+          //move it to the back
+          tempalloc:=allocs[i];
+          for j:=i to length(allocs)-2 do
+            allocs[j]:=allocs[j+1];
+
+          allocs[length(allocs)-1]:=tempalloc;
+          dec(k);
+        end
+        else inc(i);
+      end;
+
 
       j:=0; //entry to go from
       prefered:=allocs[0].prefered;
@@ -3121,7 +3178,7 @@ begin
         begin
           for j:=0 to length(labels)-1 do
           begin
-            if tokencheck(currentline,labels[j].labelname) then
+            if (tokencheck(currentline,labels[j].labelname)) then
             begin
               if not labels[j].defined then
               begin
@@ -3398,6 +3455,7 @@ begin
 
     //load binaries
     if length(loadbinary)>0 then
+    begin
       for i:=0 to length(loadbinary)-1 do
       begin
         testptr:=getAddressFromScript(loadbinary[i].address);
@@ -3413,22 +3471,91 @@ begin
           end;
         end
         else
-          raise exception.create('Faulure ');
+          raise exception.create('Failure ');
       end;
+    end;
 
     //fill in the addresses requested by dataForAACodePass2 and finish the compilation
-    for i:=0 to length(dataForAACodePass2.cdata)-1 do
+    if dataForAACodePass2.cdata.cscript<>nil then
     begin
-      dataForAACodePass2.cdata[i].address:=getAddressFromScript(dataForAACodePass2.cdata[i].name);
-      for j:=0 to length(dataForAACodePass2.cdata[i].references)-1 do
-        dataForAACodePass2.cdata[i].references[j].address:=getAddressFromScript(dataForAACodePass2.cdata[i].references[j].name);
+      dataForAACodePass2.cdata.address:=getAddressFromScript('ceinternal_autofree_ccode'); //warning: do not step over this with the debugger
+      for i:=0 to length(dataForAACodePass2.cdata.references)-1 do
+        dataForAACodePass2.cdata.references[i].address:=getAddressFromScript(dataForAACodePass2.cdata.references[i].name);
 
-      AutoassemblerCodePass2(dataForAACodePass2);
+      AutoassemblerCodePass2(dataForAACodePass2, ccodesymbols);
+
+      if ccodesymbols<>nil then
+      begin
+        if targetself then
+          selfsymhandler.AddSymbolList(ccodesymbols)
+        else
+          symhandler.AddSymbolList(ccodesymbols);
+      end;
+
+      //reassemble c-code reference
+      for j:=0 to length(labels)-1 do
+      begin
+        if labels[j].afterccode then
+        begin
+          ok1:=false;
+          for k:=0 to length(dataForAACodePass2.cdata.symbols)-1 do
+          begin
+            if labels[j].labelname=dataForAACodePass2.cdata.symbols[k].name then
+            begin
+              labels[j].address:=dataForAACodePass2.cdata.symbols[k].address;
+              ok1:=labels[j].address<>0;
+              break;
+            end;
+          end;
+          if not ok1 then raise exception.create('Failure getting the address for c-symbol '+labels[j].labelname);
+
+          //todo: change to a function so both originallabel and this can use it
+          for k:=0 to length(labels[j].references)-1 do
+          begin
+            a:=length(assembled[labels[j].references[k]].bytes); //original size of the assembled code
+            s1:=replacetoken(assemblerlines[labels[j].references2[k]].line,labels[j].labelname,IntToHex(labels[j].address,8));
+            {$ifdef cpu64}
+            if processhandler.is64Bit then
+              assemble(s1,assembled[labels[j].references[k]].address,assembled[labels[j].references[k]].bytes)
+            else
+            {$endif}
+            assemble(s1,assembled[labels[j].references[k]].address,assembled[labels[j].references[k]].bytes, apLong);
+
+            b:=length(assembled[labels[j].references[k]].bytes); //new size
+            setlength(assembled[labels[j].references[k]].bytes,a); //original size (original size is always bigger or equal than newsize)
+
+            if (b<a) and (a<12) then //try to grow the instruction as some people cry about nops (unless it was a megajmp/call as those are less efficient)
+            begin
+              //try a bigger one
+              assemble(s1,assembled[labels[j].references[k]].address,nops, apLong);
+              if length(nops)=a then //found a match size
+              begin
+                copymemory(@assembled[labels[j].references[k]].bytes[0], @nops[0], a);
+                b:=a;
+              end;
+            end;
+
+
+            //fill the difference with nops (not the most efficient approach, but it should work)
+            if processhandler.SystemArchitecture=archarm then
+            begin
+              for l:=0 to ((a-b+3) div 4)-1 do
+                pdword(@assembled[labels[j].references[k]].bytes[b+l*4])^:=$e1a00000;      //<mov r0,r0: (nop equivalent)
+            end
+            else
+            begin
+              assemble('nop '+inttohex(a-b,1),0,nops);
+
+              for l:=b to a-1 do
+                assembled[labels[j].references[k]].bytes[l]:=nops[l-b];
+            end;
+          end;
+        end;
+      end;
     end;
 
 
     //we're still here so inject the rest of it
-
     //addresses are known here, so parse the exception list if there is one
     if length(exceptionlist)>0 then
     begin
@@ -3549,6 +3676,31 @@ begin
       //if ceallocarray<>nil then
       begin
         //see if all allocs are deallocated
+        for i:=0 to length(ceallocarray)-1 do
+        begin
+          //free the ceinternal_autofree entries (if they aren't already marked)
+          if ceallocarray[i].varname.StartsWith('ceinternal_autofree') then
+          begin
+            ok1:=false;
+            for j:=0 to length(dealloc)-1 do
+            begin
+              if dealloc[j]=ceallocarray[i].address then
+              begin
+                ok1:=true;
+                break;
+              end;
+            end;
+
+
+            if ok1=false then //not in the list yet, add it
+            begin
+              j:=length(dealloc);
+              setlength(dealloc, j-1);
+              dealloc[j]:=ceallocarray[i].address;
+            end;
+          end;
+        end;
+
         if (length(dealloc)>0) and (length(dealloc)=length(ceallocarray)) then //free everything
         begin
           {$ifdef cpu64}
@@ -3567,6 +3719,12 @@ begin
           end;
 
           //virtualfreeex(processhandle,pointer(baseaddress),0,MEM_RELEASE);
+
+          if ccodesymbols<>nil then
+          begin
+            ccodesymbols.clear;
+            symhandler.RemoveSymbolList(ccodesymbols);  //caller needs to delete it though
+          end;
         end;
 
         setlength(ceallocarray,length(allocs));
@@ -3928,7 +4086,7 @@ begin
   end;
 end;
 
-function autoassemble(code: Tstrings; popupmessages,enable,syntaxcheckonly, targetself: boolean;var CEAllocarray: TCEAllocArray; var exceptionlist:TCEExceptionListArray; registeredsymbols: tstringlist=nil; memrec: pointer=nil): boolean; overload;
+function autoassemble(code: Tstrings; popupmessages,enable,syntaxcheckonly, targetself: boolean;var CEAllocarray: TCEAllocArray; var exceptionlist:TCEExceptionListArray; registeredsymbols: tstringlist=nil; memrec: pointer=nil; ccodesymbols: TSymbolListHandler=nil): boolean; overload;
 {
 targetself defines if the process that gets injected to is CE itself or the target process
 }
@@ -3998,7 +4156,7 @@ begin
 
     Stripcpuspecificcode(tempstrings, strip32bitcode); //todo: change to set for other types like arm
 
-    result:=autoassemble2(tempstrings,popupmessages,syntaxcheckonly,targetself,ceallocarray, exceptionlist, registeredsymbols, memrec);
+    result:=autoassemble2(tempstrings,popupmessages,syntaxcheckonly,targetself,ceallocarray, exceptionlist, registeredsymbols, memrec, ccodesymbols);
   finally
     tempstrings.Free;
   end;

@@ -6,16 +6,18 @@ interface
 
 {$ifdef windows}
 uses
-  Windows, forms, graphics, Classes, SysUtils, controls, stdctrls, comctrls,symbolhandler,
-  cefuncproc,newkernelhandler, hotkeyhandler, dom, XMLRead,XMLWrite,
-  customtypehandler, fileutil, LCLProc, commonTypeDefs, pointerparser, LazUTF8, LuaClass, math, betterControls;
+  Windows, forms, graphics, Classes, SysUtils, controls, stdctrls, comctrls,
+  symbolhandler, SymbolListHandler, cefuncproc,newkernelhandler, hotkeyhandler,
+  dom, XMLRead,XMLWrite, customtypehandler, fileutil, LCLProc, commonTypeDefs,
+  pointerparser, LazUTF8, LuaClass, math, betterControls;
 {$endif}
 
 {$ifdef darwin}
 uses
-  macport, forms, graphics, Classes, SysUtils, controls, stdctrls, comctrls,symbolhandler,
-  cefuncproc,newkernelhandler, hotkeyhandler, dom, XMLRead,XMLWrite,
-  CustomTypeHandler, fileutil, LCLProc, commonTypeDefs, pointerparser, LazUTF8, LuaClass, math;
+  macport, forms, graphics, Classes, SysUtils, controls, stdctrls, comctrls,
+  symbolhandler, SymbolListHandler, cefuncproc,newkernelhandler, hotkeyhandler,
+  dom, XMLRead,XMLWrite, CustomTypeHandler, fileutil, LCLProc, commonTypeDefs,
+  pointerparser, LazUTF8, LuaClass, math;
 {$endif}
 
 {$ifdef jni}
@@ -70,6 +72,7 @@ type TMemRecAutoAssemblerData=record
       allocs: TCEAllocArray;
       exceptionlist: TCEExceptionListArray;
       registeredsymbols: TStringlist;
+      ccodesymbols: TSymbolListHandler;
       lastExecutionFailed: boolean;
       lastExecutionFailedReason: string;
     end;
@@ -482,10 +485,10 @@ uses mainunit, addresslist, formsettingsunit, LuaHandler, lua, lauxlib, lualib, 
 procedure TMemoryRecordProcessingThread.Execute;
 begin
   try
-    if autoassemble(owner.autoassemblerdata.script, false, state, false, false, owner.autoassemblerdata.allocs, owner.autoassemblerdata.exceptionlist, owner.autoassemblerdata.registeredsymbols, owner) then
+    if autoassemble(owner.autoassemblerdata.script, false, state, false, false, owner.autoassemblerdata.allocs, owner.autoassemblerdata.exceptionlist, owner.autoassemblerdata.registeredsymbols, owner, owner.autoassemblerdata.ccodesymbols) then
     begin
       owner.fActive:=state;
-      if owner.autoassemblerdata.registeredsymbols.Count>0 then //if it has a registered symbol then reinterpret all addresses
+      if (owner.autoassemblerdata.registeredsymbols.Count>0) or (owner.autoassemblerdata.ccodesymbols.count>0)  then //if it has a registered symbol then reinterpret all addresses
         TAddresslist(owner.fOwner).ReinterpretAddresses;
 
       owner.autoassemblerdata.lastExecutionFailed:=false;
@@ -1166,6 +1169,9 @@ begin
   if autoassemblerdata.registeredsymbols<>nil then
     autoassemblerdata.registeredsymbols.free;
 
+  if autoassemblerdata.ccodesymbols<>nil then
+    autoassemblerdata.registeredsymbols.free;
+
   //free the group's children
   {$IFNDEF JNI}
   while (treenode.count>0) do
@@ -1496,6 +1502,10 @@ begin
           setlength(AutoAssemblerData.allocs,0);
           if AutoAssemblerData.registeredsymbols<>nil then
             freeandnil(AutoAssemblerData.registeredsymbols);
+
+          if autoassemblerdata.ccodesymbols<>nil then
+            freeandnil(autoassemblerdata.ccodesymbols);
+
 
           AutoAssemblerData.script:=tstringlist.Create;
           AutoAssemblerData.script.text:=tempnode.TextContent;
@@ -2580,6 +2590,8 @@ begin
       if autoassemblerdata.registeredsymbols=nil then
         autoassemblerdata.registeredsymbols:=tstringlist.create;
 
+      if autoassemblerdata.ccodesymbols=nil then
+        autoassemblerdata.ccodesymbols:=TSymbolListHandler.create;
 
 
       if async then
@@ -2594,11 +2606,11 @@ begin
       else
       begin
         try
-          if autoassemble(autoassemblerdata.script, false, state, false, false, autoassemblerdata.allocs, autoassemblerdata.exceptionlist, autoassemblerdata.registeredsymbols, self) then
+          if autoassemble(autoassemblerdata.script, false, state, false, false, autoassemblerdata.allocs, autoassemblerdata.exceptionlist, autoassemblerdata.registeredsymbols, self, autoassemblerdata.ccodesymbols) then
           begin
             fActive:=state;
-            if autoassemblerdata.registeredsymbols.Count>0 then //if it has a registered symbol then reinterpret all addresses
-             TAddresslist(fOwner).ReinterpretAddresses;
+            if (autoassemblerdata.registeredsymbols.Count>0) or (autoassemblerdata.ccodesymbols.Count>0) then //if it has a registered symbol then reinterpret all addresses
+              TAddresslist(fOwner).ReinterpretAddresses;
 
             autoassemblerdata.lastExecutionFailed:=false;
           end

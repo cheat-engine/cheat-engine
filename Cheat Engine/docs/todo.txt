@@ -1,19 +1,5 @@
 Mac: Hex editing files
 
-implement ceinternal_autofree
-custom types: c implementation
-
-code filter: Use dissect code call list as another option to fill the list
-
-dark mode:
-  finds what writes description is black text on black background
-
-dpi: 
-  Process window is kinda 'meh' on new install
-  find what writes too small
-  
-
-memview: Also save the width of the hexview when debugging is enabled
 
 'sub rsp,20+(4*8)+(6*8)'
 set value to -888,12  (not -888.12) and see what happens

@@ -1,7 +1,7 @@
 object FoundCodeDialog: TFoundCodeDialog
-  Left = 773
+  Left = 682
   Height = 399
-  Top = 428
+  Top = 279
   Width = 430
   BorderIcons = [biSystemMenu]
   Caption = 'The following opcodes changed the selected address'
@@ -24,7 +24,6 @@ object FoundCodeDialog: TFoundCodeDialog
     BevelOuter = bvNone
     ClientHeight = 398
     ClientWidth = 136
-    ParentFont = False
     TabOrder = 0
     object Description: TLabel
       Left = 0
@@ -34,8 +33,8 @@ object FoundCodeDialog: TFoundCodeDialog
       Align = alClient
       Alignment = taCenter
       AutoSize = False
+      Caption = 'example'
       ParentColor = False
-      ParentFont = False
       WordWrap = True
     end
     object Panel2: TPanel

@@ -127,10 +127,12 @@ type
 
     fExtraSymbolDataList: TExtraSymbolDataList;
     fPID: dword;
+    fTargetSelf: boolean;
     function A2SCheck(Tree: TAvgLvlTree; Data1, Data2: pointer): integer;
     function S2ACheck(Tree: TAvgLvlTree; Data1, Data2: pointer): integer;
+    function getCount: integer;
   public
-    constructor create;
+    constructor create(targetself: boolean=false);
     destructor destroy; override;
     procedure AddExtraSymbolData(d: TExtraSymbolData);
     procedure RemoveExtraSymbolData(d: TExtraSymbolData);
@@ -140,6 +142,7 @@ type
     function GetModuleByAddress(address: ptrUint; var mi: TModuleInfo):BOOLEAN;
     function getmodulebyname(modulename: string; var mi: TModuleInfo):BOOLEAN;
     procedure GetModuleList(var list: TExtraModuleInfoList);
+    procedure GetSymbolList(list: TStrings);
     function AddSymbol(module: string; searchkey: string; address: qword; size: integer; skipaddresstostringlookup: boolean=false; extraData: TExtraSymbolData=nil): PCESymbolInfo;
     function FindAddress(address: qword): PCESymbolInfo;
     function FindSymbol(s: string): PCESymbolInfo;
@@ -150,7 +153,7 @@ type
   published
     property ExtraSymbolDataList: TExtraSymbolDataList read fExtraSymbolDataList;
     property PID: dword read fPID write fPID;
-
+    property count: integer read getCount;
   end;
 
 
@@ -187,6 +190,13 @@ begin
 end;
 
 //-------------
+
+function TSymbolListHandler.getCount: integer;
+begin
+  cs.Beginread;
+  result:=StringToAddress.Count;
+  cs.Endread;
+end;
 
 procedure TSymbolListHandler.AddModule(module:string; path: string; base: ptruint; size: dword; is64bit: boolean);
 var i: integer;
@@ -286,6 +296,22 @@ begin
     end;
   end;
   cs.Endread;
+end;
+
+procedure TSymbolListHandler.GetSymbolList(list: TStrings);
+var si: PCESymbolInfo;
+begin
+  list.clear;
+  cs.Beginread;
+  si:=FindFirstSymbolFromBase(0);
+
+  while si<>nil do
+  begin
+    list.AddObject(si^.originalstring, tobject(si^.address));
+    si:=si^.next;
+  end;
+
+  cs.endread;
 end;
 
 procedure TSymbolListHandler.GetModuleList(var list: TExtraModuleInfoList);
@@ -486,6 +512,11 @@ begin
 
       x.s:=d^.s;
 
+      d^.address:=0;
+      d^.next:=nil;
+      d^.previous:=nil;
+
+
       if d^.originalstring<>nil then
       begin
         StrDispose(d^.originalstring);
@@ -511,6 +542,10 @@ begin
       if z<>nil then
       begin
         d:=PCESymbolInfo(z.data);
+
+        d^.address:=0;
+        d^.next:=nil;
+        d^.previous:=nil;
 
         if d^.originalstring<>nil then
         begin
@@ -559,6 +594,10 @@ begin
 
       x.address:=d^.address;
 
+      d^.address:=0;
+      d^.next:=nil;
+      d^.previous:=nil;
+
       if d^.originalstring<>nil then
       begin
         StrDispose(d^.originalstring);
@@ -584,6 +623,10 @@ begin
       if z<>nil then
       begin
         d:=PCESymbolInfo(z.data);
+
+        d^.address:=0;
+        d^.next:=nil;
+        d^.previous:=nil;
 
         if d^.originalstring<>nil then
         begin
@@ -685,7 +728,7 @@ begin
   fExtraSymbolDataList.Remove(d);
 end;
 
-constructor TSymbolListHandler.create;
+constructor TSymbolListHandler.create(targetself: boolean=false);
 begin
   inherited create;
 
@@ -699,14 +742,23 @@ begin
 
   log('TSymbolListHandler.create exit');
 
+  fTargetSelf:=targetself;
 
 end;
 
 destructor TSymbolListHandler.destroy;
 var i: integer;
 begin
-  if symhandler<>nil then
-    symhandler.RemoveSymbolList(self);
+  if ftargetself then
+  begin
+    if selfsymhandler<>nil then
+      selfsymhandler.RemoveSymbolList(self);
+  end
+  else
+  begin
+    if symhandler<>nil then
+      symhandler.RemoveSymbolList(self);
+  end;
 
 
   clear;

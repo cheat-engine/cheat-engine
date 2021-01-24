@@ -413,7 +413,8 @@ begin
     i:=-13;
 
   PanelRegistersList.Font.Height:=i;
-
+  PanelRegistersList.Font.Color:=Font.Color;
+  shape1.color:=clWindowtext;
 
   widthNeeded:=canvas.TextWidth('XX  '+caption+'  XX');
 

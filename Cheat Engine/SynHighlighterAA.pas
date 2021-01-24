@@ -241,6 +241,14 @@ type
 const
   LastAutoAssemblerVersion = dvAutoAssembler2005;
 
+
+type
+  TSynCustomHighlighterHelper=class helper for TSynCustomHighlighter
+  public
+    function loadFromRegistryDefault(RootKey: HKEY; Key: string): boolean;
+  end;
+
+
 type
   TSynAASyn = class(TSynCustomHighlighter)
   private
@@ -433,11 +441,35 @@ uses
   SynEditStrConst, registry, betterControls;
 {$ENDIF}
 
+
+
 var
   Identifiers: array[#0..#255] of ByteBool;
   mHashTable: array[#0..#255] of Integer;
 
   extraCommands: Tstringlist;
+
+function TSynCustomHighlighterHelper.loadFromRegistryDefault(RootKey: HKEY; Key: string): boolean;
+//for highlighters that do not implement loadFromRegistry , like the cpp highlighter
+var
+  reg: TRegistry;
+  i: integer;
+begin
+  reg:=tregistry.create;
+  reg.RootKey:=Rootkey;
+  result:=false;
+
+  if reg.OpenKey(Key,false) then
+  begin
+    result:=true;
+    for i:=0 to AttrCount-1 do
+      result:=result and Attribute[i].LoadFromRegistry(reg);
+  end;
+
+  reg.free;
+
+  DefHighlightChange(self);
+end;
 
 procedure aa_AddExtraCommand(command:pchar);
 begin
@@ -1340,6 +1372,17 @@ begin
         end;
   end;
 
+  if (Run=0) and
+     (l>=4) and (fLine[1] = '$') and   //{$C}
+     (uppercase(fLine[2]) = 'C') and
+     (uppercase(fLine[3]) = '}') then
+  begin
+    //{$C} block
+    changeHighlighter:=chlCPP;
+    braceend:=3;
+  end;
+
+
   if changeHighlighter<>chlNo then
   begin
     inc(run,braceend);
@@ -1372,7 +1415,7 @@ begin
         if fCPPSyntaxHighlighter=nil then
         begin
           fCPPSyntaxHighlighter:=TSynCppSyn.Create(self);
-          fCPPSyntaxHighlighter.LoadFromRegistry(HKEY_CURRENT_USER, '\Software\Cheat Engine\CPP Highlighter'+darkmodestring);
+          fCPPSyntaxHighlighter.loadFromRegistryDefault(HKEY_CURRENT_USER, '\Software\Cheat Engine\CPP Highlighter'+darkmodestring);
         end;
         fCurrentSecondaryHighlighter:=fCPPSyntaxHighlighter;
       end;
@@ -1971,6 +2014,9 @@ begin
 
   if fLuaSyntaxHighlighter<>nil then
     fLuaSyntaxHighlighter.LoadFromRegistry(HKEY_CURRENT_USER, '\Software\Cheat Engine\Lua Highlighter'+darkmodestring);  //perhaps make this a var
+
+  if fCPPSyntaxHighlighter<>nil then
+    fCPPSyntaxHighlighter.loadFromRegistryDefault(HKEY_CURRENT_USER, '\Software\Cheat Engine\CPP Highlighter'+darkmodestring);  //perhaps make this a var
 
   DefHighlightChange(self);
 end;

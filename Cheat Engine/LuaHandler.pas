@@ -2651,6 +2651,7 @@ var
   parameters: integer;
   code: TStringlist=nil;
   registeredsymbols: TStringlist=nil;
+  ccodesymbols: TSymbolListHandler=nil;
 
   r: boolean;
   targetself: boolean;
@@ -2664,6 +2665,11 @@ var
   tableIndex, tableIndex2: integer;
   disableInfoIndex: integer;
   enable: boolean;
+
+  name: string;
+  address: ptruint;
+
+
 begin
   result:=1;
   enable:=true;
@@ -2760,6 +2766,15 @@ begin
           end;
           lua_pop(L,1);
 
+
+          lua_pushstring(L,'ccodesymbols');
+          lua_gettable(L,disableInfoIndex);
+          if not lua_isnil(L,-1) then
+          begin
+            ccodesymbols:=lua_ToCEUserData(L,-1);
+            lua_pop(L,1);
+          end;
+
           lua_pushstring(L,'exceptionlist');
           lua_gettable(L,disableInfoIndex);
           if not lua_isnil(L,-1) then
@@ -2789,9 +2804,11 @@ begin
       end;
     end;
 
+    if ccodesymbols=nil then
+      ccodesymbols:=TSymbolListHandler.create(targetself);
 
     try
-      r:=autoassemble(code, false, enable, false, targetself, CEAllocArray, exceptionlist, registeredsymbols, nil);
+      r:=autoassemble(code, false, enable, false, targetself, CEAllocArray, exceptionlist, registeredsymbols, nil, ccodesymbols);
     except
       on e:exception do
       begin
@@ -2801,8 +2818,12 @@ begin
       end;
     end;
 
+    if ccodesymbols.count=0 then
+      freeandnil(ccodesymbols);
+
     lua_pop(L, parameters);
     lua_pushboolean(L, r);
+
 
     if r and enable then
     begin
@@ -2841,6 +2862,14 @@ begin
       end;
 
       lua_settable(L, secondaryResultTable);
+
+      //ccode symbollist
+      if ccodesymbols<>nil then
+      begin
+        lua_pushstring(L,'ccodesymbols');
+        luaclass_newClass(L,ccodesymbols);
+        lua_settable(L, secondaryResultTable);
+      end;
 
       lua_pushstring(L,'exceptionlist');
       lua_newtable(L);

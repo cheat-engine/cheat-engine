@@ -1,7 +1,7 @@
 object Registers: TRegisters
-  Left = 780
+  Left = 1448
   Height = 312
-  Top = 169
+  Top = 208
   Width = 240
   Caption = 'Registers'
   ClientHeight = 312
@@ -11,7 +11,7 @@ object Registers: TRegisters
   OnResize = FormResize
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '2.0.10.0'
+  LCLVersion = '2.0.6.0'
   object Panel1: TPanel
     AnchorSideLeft.Control = Owner
     AnchorSideTop.Control = Owner
@@ -84,9 +84,9 @@ object Registers: TRegisters
         AnchorSideRight.Side = asrBottom
         Cursor = crHandPoint
         Left = 0
-        Height = 18
+        Height = 22
         Top = 0
-        Width = 200
+        Width = 240
         Caption = 'EAX 0123456789ABCDEF'
         ParentColor = False
         PopupMenu = registerLabelContextMenu
@@ -102,9 +102,9 @@ object Registers: TRegisters
         AnchorSideRight.Side = asrBottom
         Cursor = crHandPoint
         Left = 0
-        Height = 18
-        Top = 25
-        Width = 200
+        Height = 22
+        Top = 29
+        Width = 240
         Anchors = [akTop, akLeft, akRight]
         Caption = 'EBX 00000000'
         ParentColor = False
@@ -121,9 +121,9 @@ object Registers: TRegisters
         AnchorSideRight.Side = asrBottom
         Cursor = crHandPoint
         Left = 0
-        Height = 18
-        Top = 50
-        Width = 200
+        Height = 22
+        Top = 58
+        Width = 240
         Anchors = [akTop, akLeft, akRight]
         Caption = 'ECX 00000000'
         ParentColor = False
@@ -140,9 +140,9 @@ object Registers: TRegisters
         AnchorSideRight.Side = asrBottom
         Cursor = crHandPoint
         Left = 0
-        Height = 18
-        Top = 75
-        Width = 200
+        Height = 22
+        Top = 87
+        Width = 240
         Anchors = [akTop, akLeft, akRight]
         Caption = 'EDX 00000000'
         ParentColor = False
@@ -159,9 +159,9 @@ object Registers: TRegisters
         AnchorSideRight.Side = asrBottom
         Cursor = crHandPoint
         Left = 0
-        Height = 18
-        Top = 100
-        Width = 200
+        Height = 22
+        Top = 116
+        Width = 240
         Anchors = [akTop, akLeft, akRight]
         Caption = 'ESI 00000000'
         ParentColor = False
@@ -178,9 +178,9 @@ object Registers: TRegisters
         AnchorSideRight.Side = asrBottom
         Cursor = crHandPoint
         Left = 0
-        Height = 18
-        Top = 125
-        Width = 200
+        Height = 22
+        Top = 145
+        Width = 240
         Anchors = [akTop, akLeft, akRight]
         Caption = 'EDI 00000000'
         ParentColor = False
@@ -197,9 +197,9 @@ object Registers: TRegisters
         AnchorSideRight.Side = asrBottom
         Cursor = crHandPoint
         Left = 0
-        Height = 18
-        Top = 150
-        Width = 200
+        Height = 22
+        Top = 174
+        Width = 240
         Anchors = [akTop, akLeft, akRight]
         Caption = 'EBP 00000000'
         ParentColor = False
@@ -216,9 +216,9 @@ object Registers: TRegisters
         AnchorSideRight.Side = asrBottom
         Cursor = crHandPoint
         Left = 0
-        Height = 18
-        Top = 175
-        Width = 200
+        Height = 22
+        Top = 203
+        Width = 240
         Anchors = [akTop, akLeft, akRight]
         Caption = 'ESP 00000000'
         ParentColor = False
@@ -235,9 +235,9 @@ object Registers: TRegisters
         AnchorSideRight.Side = asrBottom
         Cursor = crHandPoint
         Left = 0
-        Height = 18
-        Top = 200
-        Width = 200
+        Height = 22
+        Top = 232
+        Width = 240
         Anchors = [akTop, akLeft, akRight]
         Caption = 'EIP 00000000'
         ParentColor = False

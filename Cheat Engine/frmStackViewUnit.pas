@@ -304,7 +304,9 @@ begin
 end;
 
 procedure TfrmStackView.FormShow(Sender: TObject);
-var x: array of integer;
+var
+  x: array of integer;
+  w: integer;
 begin
   setlength(x,3);
   if LoadFormPosition(self, x) then
@@ -322,13 +324,18 @@ begin
     lvStack.Column[0].Width:=lvStack.Canvas.TextWidth('DDDDDDDD');
     lvStack.Column[1].Width:=lvStack.Canvas.TextWidth('DDDDDDDD');
     {$else}
-    lvStack.Column[0].Width:=lvStack.Canvas.TextWidth('DDDDDDDDDDDDD');
-    lvStack.Column[1].Width:=lvStack.Canvas.TextWidth('DDDDDDDDDDDDD');
+    lvStack.Column[0].Width:=lvStack.Canvas.TextWidth('DDDDDDDDDDDDDD');
+    lvStack.Column[1].Width:=lvStack.Canvas.TextWidth('DDDDDDDDDDDDDD');
 
-    if clientwidth<lvStack.Column[0].Width+lvStack.Column[1].Width+20 then
-      lvStack.Column[0].Width:=lvStack.Column[0].Width+lvStack.Column[1].Width+20;
+    w:=lvStack.Column[0].Width+lvStack.Column[1].Width;
+    if (lvStack.ColumnCount>2) and (lvStack.Column[2].Visible) then
+    begin
+      lvStack.Column[2].Width:=lvStack.Canvas.TextWidth('DDDDDDDDDDDDDD');
+      w:=w+lvStack.Column[2].Width;
+    end;
+
+    clientwidth:=w;
     {$endif}
-
 
   end;
 end;

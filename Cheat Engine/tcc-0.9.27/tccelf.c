@@ -1372,7 +1372,7 @@ static void tcc_output_binary(TCCState *s1, FILE *f,
     for(i=1;i<s1->nb_sections;i++) {
         s = s1->sections[sec_order[i]];		
 
-        if (s->sh_type != SHT_NOBITS &&
+        if (/*s->sh_type != SHT_NOBITS &&*/  //cheat engine binary writer change : BCC code IS part of binary
             (s->sh_flags & SHF_ALLOC)) {
             while (offset < s->sh_offset) {
 				//Cheat Engine binary writer change start
@@ -1383,11 +1383,19 @@ static void tcc_output_binary(TCCState *s1, FILE *f,
             size = s->sh_size;
 			if (size>0)
 			{
-
-
-				//Cheat Engine binary writer change start
-				tcc_fwrite(s1, s->data, 1, size, f);
-				//Cheat Engine binary writer change stop
+				if (s->sh_type == SHT_NOBITS)
+				{
+					char *data0 = malloc(size);
+					ZeroMemory(data0, size);
+					tcc_fwrite(s1, data0, 1, size, f);
+					free(data0);
+				}
+				else
+				{
+					//Cheat Engine binary writer change start
+					tcc_fwrite(s1, s->data, 1, size, f);
+					//Cheat Engine binary writer change stop
+				}
 				offset += size;
 			}
         }

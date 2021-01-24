@@ -217,6 +217,7 @@ type
     procedure miUpdateAfterIntervalClick(Sender: TObject);
     procedure miUpdateOnReinterpretOnlyClick(Sender: TObject);
     procedure pmOffsetPopup(Sender: TObject);
+    procedure pnlExtraResize(Sender: TObject);
     procedure Timer1Timer(Sender: TObject);
     procedure Timer2Timer(Sender: TObject);
   private
@@ -224,6 +225,8 @@ type
     pointerinfo: TPointerInfo;
     fMemoryRecord: TMemoryRecord;
     delayedpointerresize: boolean;
+    shown: boolean;
+    loadedWidth: boolean;
     procedure offsetKeyPress(sender: TObject; var key:char);
     procedure processaddress;
     procedure ApplyMemoryRecord;
@@ -1680,13 +1683,15 @@ begin
 
   if LoadFormPosition(self) then
   begin
+    loadedWidth:=true;
     autosize:=false;
   end;
 end;
 
 procedure TformAddressChange.FormDestroy(Sender: TObject);
 begin
-  SaveFormPosition(Self);
+  if shown then
+    SaveFormPosition(Self);
 
   if pointerinfo<>nil then
     freeandnil(pointerinfo);
@@ -1770,7 +1775,13 @@ begin
   if autosize=false then //form position got loaded
     OnResize(self);
 
-  autosize:=false;
+  if autosize then
+  begin
+    autosize:=false;
+    autosize:=true;
+    autosize:=false;
+  end;
+
 
   if fMemoryRecord<>nil then
     ApplyMemoryRecord;
@@ -1778,6 +1789,22 @@ begin
   processaddress;
   AdjustHeight;
   Repaint;
+
+  shown:=true;
+
+  HexAndSignedPanel.AutoSize:=false;
+  HexAndSignedPanel.AutoSize:=true;
+  if loadedWidth=false then
+  begin
+    //get the best width
+    w:=max(cbvarType.left*2+cbvarType.width,pnlExtra.left*2+pnlExtra.width);
+    w:=max(w,width);
+    w:=max(w,HexAndSignedPanel.left*2+HexAndSignedPanel.width);
+    w:=max(w,HexAndSignedPanel.left*2+cbSigned.Left+cbSigned.width+8);
+    clientwidth:=w+BorderWidth*3;
+
+    loadedWidth:=true;
+  end;
 
   //autosize:=true;
 end;
@@ -2003,6 +2030,13 @@ begin
     miCopy.enabled:=miCut.enabled;
     miPaste.enabled:=Clipboard.AsText<>'';
 
+  end;
+end;
+
+procedure TformAddressChange.pnlExtraResize(Sender: TObject);
+begin
+  asm
+  nop
   end;
 end;
 

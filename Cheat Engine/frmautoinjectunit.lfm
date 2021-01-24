@@ -141,6 +141,11 @@ object frmAutoInject: TfrmAutoInject
         ImageIndex = 5
         OnClick = MenuItem2Click
       end
+      object MenuItem1: TMenuItem
+        Caption = 'C highlighting preferences'
+        ImageIndex = 5
+        OnClick = MenuItem1Click
+      end
       object AAPref1: TMenuItem
         Caption = 'Preferences'
         ImageIndex = 5

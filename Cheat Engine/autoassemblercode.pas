@@ -9,6 +9,8 @@ on return of that lua function the given parameters get written back to the orig
 
 If c:
 This routine then calls a c-compiled function.  One problem is that the address needs to be known before compilation, so has to be done on the 2nd pass again
+
+replaces {$c} with nothing, but adds it to the total c-code (handy for headers, helper functions, libraries, etc...)
 *)
 
 unit autoassemblercode;
@@ -18,21 +20,33 @@ unit autoassemblercode;
 interface
 
 uses
-  Classes, SysUtils;
+  Classes, SysUtils, SymbolListHandler;
 
 type
   TAutoAssemblerCodePass2Data=record
     //luadata not needed
-    cdata: array of record
-      name: string;
-      linenr: integer;
-      cscript: string;
+
+
+    cdata:record
+      cscript: TStringlist;
       address: ptruint;
-      bytesallocated: integer; //if for some weird unknown reason bytesallocated is smaller than the final script, allocate more somewhere else, recompile (again) and write a jmp <newaddress> at the old location
-      references: array of record //cscript code can reference local AA symbols
+      bytesize: integer;
+      usesxmm: boolean;
+      references: array of record
         name: string;
-        address: ptruint; //filled in before pass2
+        address: ptruint;
       end;
+
+      symbols: array of record
+        name: string;
+        address: ptruint;
+      end;
+
+      linklist: array of record //list of symbolnames that need to be filled in after compilation.  Name can be found in referenced, fromname in the symbollist of the compiled program
+        name: string;
+        fromname: string;
+      end;
+
       targetself: boolean;
     end;
   end;
@@ -41,13 +55,13 @@ type
 
 
 procedure AutoAssemblerCodePass1(script: TStrings; out dataForPass2: TAutoAssemblerCodePass2Data; syntaxcheckonly: boolean; targetself: boolean);
-procedure AutoAssemblerCodePass2(var dataForPass2: TAutoAssemblerCodePass2Data);
+procedure AutoAssemblerCodePass2(var dataForPass2: TAutoAssemblerCodePass2Data; symbollist: TSymbolListHandler);
 
 
 implementation
 
 uses windows,ProcessHandlerUnit, symbolhandler, luahandler, lua, lauxlib, lualib, StrUtils,
-  Clipbrd, dialogs, lua_server, tcclib, SymbolListHandler, Assemblerunit, NewKernelHandler;
+  Clipbrd, dialogs, lua_server, tcclib, Assemblerunit, NewKernelHandler;
 
 
 type
@@ -225,13 +239,16 @@ end;
 
 function AddSafeCallStub(script: TStrings; functionname: string; targetself: boolean):string; //a function that can be called from any stack alignment
 begin
-  result:='ceinternal_autofree_safecallstub_for_'+functionname;
+  if functionname[1]='[' then
+    result:='ceinternal_autofree_safecallstub_for_'+copy(functionname,2,length(functionname)-2)
+  else
+    result:='ceinternal_autofree_safecallstub_for_'+functionname;
 
   script.add('');
-  script.insert(0,'alloc(ceinternal_autofree_safecallstub_for_'+functionname+',512)'); //Let's place bets how many people are going to remark that this is what breaks their code and not because they didn't allocate enough memory properly...
+  script.insert(0,'alloc('+result+',512)'); //Let's place bets how many people are going to remark that this is what breaks their code and not because they didn't allocate enough memory properly...
 
 
-  script.add('ceinternal_autofree_safecallstub_for_'+functionname+':');
+  script.add(result+':');
   if processhandler.is64Bit{$ifdef cpu64} or targetself{$endif} then
   begin
     script.add('pushfq //save flags');
@@ -336,134 +353,179 @@ end;
 
 
 
-procedure AutoAssemblerCCodePass2(dataForPass2: TAutoAssemblerCodePass2Data);
+procedure AutoAssemblerCCodePass2(dataForPass2: TAutoAssemblerCodePass2Data; symbollist: TSymbolListHandler);
 //right after the allocs have been done
 var
   secondarylist,errorlog: tstringlist;
-  i,j: integer;
+  i,j,k: integer;
   bytes: tmemorystream;
 
   jmpbytes, nopfiller: array of byte;
 
-  sl : TSymbolListHandler;
-  newAddress: ptruint;
-  syminfo: PCESymbolInfo;
+  a, newAddress: ptruint;
+  syminfo, nextsyminfo: PCESymbolInfo;
   bw: size_t;
+  psize: integer;
 
   phandle: THandle;
 
   _tcc: TTCC;
+  s: string;
+
+  sl: TSymbolListHandler;
 begin
-
-
-
-
   secondarylist:=TStringList.create;
   bytes:=tmemorystream.create;
-  sl:=TSymbolListHandler.create;
+
+  if symbollist=nil then
+    sl:=TSymbolListHandler.create
+  else
+    sl:=symbollist;
+
   errorlog:=tstringlist.create;
 
+  dataForPass2.cdata.address:=align(dataForPass2.cdata.address,16);
+
   try
-
-    for i:=0 to length(dataForPass2.cdata)-1 do
+    if dataForPass2.cdata.targetself then
     begin
-      if dataForPass2.cdata[i].targetself then
-        _tcc:=tccself
-      else
-        _tcc:=tcc;
+      _tcc:=tccself;
+      phandle:=GetCurrentProcess;
+      {$ifdef cpu64}
+      psize:=8;
+      {$else}
+      psize:=4;
+      {$endif}
+    end
+    else
+    begin
+      phandle:=processhandle;
+       _tcc:=tcc;
 
-      sl.clear;
-      bytes.clear;
-      secondarylist.Clear;
-      errorlog.clear;
-
-      if dataForPass2.cdata[i].targetself then
-        phandle:=GetCurrentProcess
-      else
-        phandle:=processhandle;
+      psize:=processhandler.pointersize;
+    end;
 
 
-      for j:=0 to length(dataForPass2.cdata[i].references)-1 do
-        secondarylist.AddObject(dataForPass2.cdata[i].references[j].name, tobject(dataForPass2.cdata[i].references[j].address));
+    for i:=0 to length(dataForPass2.cdata.references)-1 do
+      secondarylist.AddObject(dataForPass2.cdata.references[i].name, tobject(dataForPass2.cdata.references[i].address));
 
-      if _tcc.compileScript(dataForPass2.cdata[i].cscript, dataForPass2.cdata[i].address, bytes, sl, errorlog, secondarylist, dataForPass2.cdata[i].targetself ) then
+    if _tcc.compileScript(dataForPass2.cdata.cscript.Text, dataForPass2.cdata.address, bytes, symbollist, errorlog, secondarylist, dataForPass2.cdata.targetself ) then
+    begin
+      if bytes.Size>dataForPass2.cdata.bytesize then
       begin
-        if bytes.Size>dataForPass2.cdata[i].bytesallocated then
+        //this will be a slight memoryleak but whatever
+        //allocate 4x the amount of memory needed
+
+        newAddress:=ptruint(VirtualAllocEx(phandle,nil,4*bytes.size,mem_reserve or mem_commit, PAGE_EXECUTE_READWRITE));
+        if newAddress<>0 then
         begin
-          //this will be a slight memoryleak but whatever
-          //allocate 4x the amount of memory needed
+          dataForPass2.cdata.address:=newAddress;
+          dataForPass2.cdata.bytesize:=4*bytes.size;
 
-
-
-          newAddress:=ptruint(VirtualAllocEx(phandle,nil,4*bytes.size,mem_reserve or mem_commit, PAGE_EXECUTE_READWRITE));
-          if newAddress<>0 then
+          //try again
+          sl.clear;
+          bytes.clear;
+          secondarylist.Clear;
+          errorlog.clear;
+          if _tcc.compileScript(dataForPass2.cdata.cscript.text, dataForPass2.cdata.address, bytes, symbollist, errorlog, secondarylist, dataForPass2.cdata.targetself )=false then
           begin
-            Assemble('jmp '+inttohex(newaddress,8),dataForPass2.cdata[i].address, jmpbytes); //oldaddress: jmp newAddress
-            WriteProcessMemory(phandle, pointer(dataForPass2.cdata[i].address), @jmpbytes[0], length(jmpbytes),bw);
-            dataForPass2.cdata[i].address:=newAddress;
-            dataForPass2.cdata[i].bytesallocated:=4*bytes.size;
-
-            //try again
-            sl.clear;
-            bytes.clear;
-            secondarylist.Clear;
-            errorlog.clear;
-            if _tcc.compileScript(dataForPass2.cdata[i].cscript, dataForPass2.cdata[i].address, bytes, sl, errorlog, secondarylist, dataForPass2.cdata[i].targetself )=false then
-            begin
-              //wtf? something really screwed up here
-              VirtualFreeEx(phandle, pointer(newAddress), 0,MEM_FREE);
-              raise exception.create('Failure in {$CCode} block at line '+inttostr(dataForPass2.cdata[i].linenr)+' (3th compile failure)');
-            end;
-
-
-            if bytes.Size>dataForPass2.cdata[i].bytesallocated then
-            begin
-              VirtualFreeEx(phandle, pointer(newAddress), 0,MEM_FREE);
-              raise exception.create('Failure in {$CCode} block at line '+inttostr(dataForPass2.cdata[i].linenr)+' (Unexplained and unmitigated code growth)');
-            end;
-          end
-          else
-            raise exception.create('Failure allocating memory for the {$CCode} block at line '+inttostr(dataForPass2.cdata[i].linenr));
-        end;
-
-        //still here so compilation is within the parameters
-
-        syminfo:=sl.FindSymbol(dataForPass2.cdata[i].name);
-        if syminfo<>nil then
-        begin
-
-          newaddress:=syminfo^.address;
-
-          if newaddress>dataForPass2.cdata[i].address then
-          begin
-            //should never happen, but fill with nops in case it does
-            setlength(nopfiller,dataForPass2.cdata[i].address-newaddress);
-            for j:=0 to length(nopfiller)-1 do
-              nopfiller[j]:=$90;
-
-            writeprocessmemory(phandle,pointer(dataForPass2.cdata[i].address),@nopfiller[0],length(nopfiller),bw);
-            dataForPass2.cdata[i].address:=newaddress;
-
+            //wtf? something really screwed up here
+            VirtualFreeEx(phandle, pointer(newAddress), 0,MEM_FREE);
+            raise exception.create('3rd time failure of c-code');
           end;
 
-          writeprocessmemory(phandle, pointer(dataForPass2.cdata[i].address), bytes.memory,bytes.Size,bw);
+
+          if bytes.Size>dataForPass2.cdata.bytesize then
+          begin
+            VirtualFreeEx(phandle, pointer(newAddress), 0,MEM_FREE);
+            raise exception.create('(Unexplained and unmitigated code growth)');
+          end;
         end
         else
-          raise exception.create('Failure finding the proper function for the {$CCode} script at line '+inttostr(dataForPass2.cdata[i].linenr));
-      end
-      else
-        raise exception.create('Failure compiling the {$CCode} script at line '+inttostr(dataForPass2.cdata[i].linenr)+': '+errorlog.Text);
+          raise exception.create('Failure allocating memory for the C-code');
+      end;
+
+      //still here so compilation is within the given parameters
+      writeProcessMemory(phandle, pointer(dataforpass2.cdata.address),bytes.memory, bytes.size,bw);
+
+      //fill in links
+      for i:=0 to length(dataForPass2.cdata.linklist)-1 do
+      begin
+        j:=secondarylist.IndexOf(dataforpass2.cdata.linklist[i].name);
+        if j=-1 then raise exception.create('Failure to link '+dataForPass2.cdata.linklist[i].fromname+' due to missing reference');
+
+        syminfo:=sl.FindSymbol(dataForPass2.cdata.linklist[i].fromname);
+        if syminfo=nil then exception.create('Failure to link '+dataForPass2.cdata.linklist[i].fromname+' due to it missing in the c-code');
+
+        a:=syminfo^.address;
+        writeProcessMemory(phandle, pointer(dataForPass2.cdata.references[j].address),@a,psize,bw);
+      end;
+
+      for i:=0 to length(dataForPass2.cdata.symbols)-1 do
+      begin
+        syminfo:=sl.FindSymbol(dataForPass2.cdata.symbols[i].name);
+        if syminfo<>nil then
+          dataforpass2.cdata.symbols[i].address:=syminfo^.address;
+      end;
+
+
+
+
+      if symbollist<>nil then //caller wants the list
+      begin
+        //strip the ceinternal_autofree_cfunction and other non-useful symbols from the symbollist
+        syminfo:=symbollist.FindFirstSymbolFromBase(0);
+        while syminfo<>nil do
+        begin
+          nextsyminfo:=syminfo^.next;
+          s:=syminfo^.originalstring;
+
+          if s.StartsWith('ceinternal_autofree_cfunction') then
+            symbollist.DeleteSymbol(syminfo^.address);
+
+          syminfo:=nextsyminfo;
+        end;
+      end;
     end;
+
 
   finally
     freeandnil(errorlog);
-    freeandnil(sl);
+
+    if symbollist=nil then
+      freeandnil(sl);
+
     freeandnil(bytes);
     freeandnil(secondarylist);
+
+    dataForPass2.cdata.cscript.free;
   end;
 end;
 
-procedure AutoAssemblerCCodePass1(script: TStrings; parameters: TLuaCodeParams; var i: integer; out dataForPass2: TAutoAssemblerCodePass2Data; syntaxcheckonly: boolean; targetself: boolean);
+procedure AutoAssemblerCBlockPass1(Script: TStrings; var i: integer; var dataForPass2: TAutoAssemblerCodePass2Data);
+//just copy the lines from script to cscript
+begin
+  if dataForPass2.cdata.cscript=nil then
+    dataForPass2.cdata.cscript:=tstringlist.create;
+
+  dataForPass2.cdata.cscript.add('//{$C} block at line '+ptruint(script.Objects[i]).ToString);;
+  script.delete(i); //remove the {$C} line
+  while i<script.Count-1 do
+  begin
+    if uppercase(script[i])='{$ASM}' then
+    begin
+      //finished
+      script.delete(i);
+      dataForPass2.cdata.cscript.add(''); //just a seperator to make debugging easier
+      exit;
+    end;
+
+    dataForPass2.cdata.cscript.AddObject(script[i], script.Objects[i]);
+    script.Delete(i);
+  end;
+end;
+
+procedure AutoAssemblerCCodePass1(script: TStrings; parameters: TLuaCodeParams; var i: integer; var dataForPass2: TAutoAssemblerCodePass2Data; syntaxcheckonly: boolean; targetself: boolean);
 var
   j,k: integer;
   s: string;
@@ -485,12 +547,16 @@ var
 
   _tcc: TTCC;
 begin
+
+  if dataForPass2.cdata.cscript=nil then
+    dataForPass2.cdata.cscript:=tstringlist.create;
+
+
   if targetself then
     _tcc:=tccself
   else
     _tcc:=tcc;
 
-  setlength(dataforpass2.cdata,0);
   scriptstartlinenr:=ptruint(script.Objects[i]);
 
   scriptstart:=i;
@@ -506,7 +572,7 @@ begin
 
 
 
-  cscript:=tstringlist.create;
+  cscript:=dataForPass2.cdata.cscript; //shortens the code
   functionname:='ceinternal_autofree_cfunction_at_line'+inttostr(ptruint(script.objects[scriptstart]));
   cscript.add('void '+functionname+'(void *parameters)');
   cscript.add('{');
@@ -554,71 +620,22 @@ begin
   end;
 
   for j:=scriptstart+1 to scriptend-1 do
-    cscript.add(script[j]);
+    cscript.AddObject(script[j], script.objects[j]);
 
   cscript.add('}');
 
-  if usesxmmtype then
-  begin
-    //insert the xmm type
-    cscript.insert( 0,'typedef struct {');
-    cscript.insert( 1,'  union{');
-    cscript.insert( 2,'    struct{');
-    cscript.insert( 3,'        float f0;');
-    cscript.insert( 4,'        float f1;');
-    cscript.insert( 5,'        float f2;');
-    cscript.insert( 6,'        float f3;');
-    cscript.insert( 7,'    };');
-    cscript.insert( 8,'    struct{');
-    cscript.insert( 9,'        double d0;');
-    cscript.insert(10,'        double d1;');
-    cscript.insert(11,'    };');
-    cscript.insert(12,'    float fa[4];');
-    cscript.insert(13,'    double da[2];');
-    cscript.insert(14,'  };');
-    cscript.insert(15,'} xmmreg, *pxmmreg;');
-  end;
 
-  //debug:
- // clipboard.AsText:=cscript.text;
-  //  showmessage(luascript.text);
-  //^^^^^^^^^
+  //allocate a spot for the linker stage to put the address
+  if processhandler.is64Bit {$ifdef cpu64} or targetself{$endif} then
+    script.insert(0, 'alloc('+functionname+'_address,8)')
+  else
+    script.insert(0, 'alloc('+functionname+'_address,4)');
 
-  //compile the function and get the needed size and fill in the data for pass 2
-  ms:=TMemoryStream.Create;
-  errorlog:=tstringlist.create;
-  imports:=tstringlist.create;
-
-  try
-    bytesizeneeded:=0;
-    if _tcc.testcompileScript(cscript.text, bytesizeneeded,imports,errorlog,targetself)=false then
-      raise exception.create('Error at {$CCode} block starting at '+inttostr(scriptstartlinenr)+' error:'+errorlog.text );
-
-    j:=length(dataforpass2.cdata);
-    setlength(dataforpass2.cdata,j+1);
-    dataforpass2.cdata[j].name:=functionname;
-    dataforpass2.cdata[j].linenr:=scriptstartlinenr;
-    dataforpass2.cdata[j].cscript:=cscript.text;
-    dataforpass2.cdata[j].bytesallocated:=max(32,align(ptruint(bytesizeneeded*2),16));
-    dataforpass2.cdata[j].targetself:=targetself;
-    setlength(dataforpass2.cdata[j].references, imports.Count);
-
-    //fill the functions this script referenced by name
-    for k:=0 to imports.count-1 do
-      dataforpass2.cdata[j].references[k].name:=imports[k];
-
-  finally
-    ms.free;
-    imports.free;
-    errorlog.free;
-  end;
-
-  script.insert(0, 'alloc('+functionname+','+inttostr(dataforpass2.cdata[j].bytesallocated)+')');
   inc(scriptstart,1);
   inc(scriptend,1);
 
-  //create a safecall stub to call this routine with a simple call (note, could be a 16 byte call so beware of that)
-  s:=AddSafeCallStub(script, functionname, targetself);
+  //create a safecall stub to call this routine with a simple call
+  s:=AddSafeCallStub(script, '['+functionname+'_address]', targetself);
   inc(scriptstart,1);
   inc(scriptend,1);
 
@@ -627,9 +644,13 @@ begin
   for j:=scriptend downto scriptstart+1 do
     script.Delete(j);
 
+
   script[scriptstart]:='call '+s;
 
- // clipboard.AsText:=script.text;
+  j:=length(dataForPass2.cdata.linklist);
+  setlength(dataForPass2.cdata.linklist,j+1);
+  dataForPass2.cdata.linklist[j].name:=functionname+'_address';
+  dataForPass2.cdata.linklist[j].fromname:=functionname;
 end;
 
 procedure AutoAssemblerLuaCodePass(script: TStrings; parameters: TLuaCodeParams; var i: integer; syntaxcheckonly: boolean);
@@ -834,84 +855,217 @@ begin
 
   script[scriptstart]:='call '+s;
 
+
   //clipboard.AsText:=script.text;
   //debug^^^
 
 end;
 
-procedure AutoAssemblerCodePass2(var dataForPass2: TAutoAssemblerCodePass2Data);
+procedure AutoAssemblerCodePass2(var dataForPass2: TAutoAssemblerCodePass2Data; symbollist: TSymbolListHandler);
 begin
-  AutoAssemblerCCodePass2(dataForPass2);
+  AutoAssemblerCCodePass2(dataForPass2, symbollist);
 end;
 
 procedure AutoAssemblerCodePass1(script: TStrings; out dataForPass2: TAutoAssemblerCodePass2Data; syntaxcheckonly: boolean; targetself: boolean);
 //this way the script only needs to be parsed once for quite similar code
 var
-  i: integer;
+  i,j: integer;
   endpos: integer;
   uppercaseline: string;
-  s: string;
+  s, linenrstring: string;
   parameterstring: string;
+  linenr: integer;
   parameters:  TLuaCodeParams;
   hasAddedLuaServerCode: boolean=false;
+  _tcc: TTCC;
+
+  //
+  symbols, imports, errorlog: tstringlist;
+  ms: TMemorystream;
+  bytesizeneeded: integer;
+  //
 begin
-  i:=0;
-  while i<script.count do
-  begin
-    s:=script[i];
-    if (length(s)>=7) and (s[1]='{') and (s[2]='$') and (s[3] in ['l','L','c','C']) and (s[4] in ['u','U','c','C']) then  //{$CC or {$LU
+  dataForPass2.cdata.cscript:=nil;
+  dataForPass2.cdata.usesxmm:=false;
+  dataForPass2.cdata.targetself:=false;
+  setlength(dataForPass2.cdata.linklist,0);
+  setlength(dataForPass2.cdata.references,0);
+
+
+
+  try
+    i:=0;
+    while i<script.count do
     begin
-      endpos:=pos('}',s);
-      if endpos=-1 then
-        raise exception.create('Invalid command line at '+inttostr(ptrUint(script.Objects[i]))+' ('+script[i]+')');
-
-      uppercaseline:=uppercase(script[i]);
-
-
-
-
-      if copy(uppercaseline,1,9)='{$LUACODE' then
+      s:=script[i];
+      if (length(s)>=4) and (s[1]='{') and (s[2]='$') and (s[3] in ['l','L','c','C']) then  //{$C or {$L
       begin
-        if targetself or (processid=GetCurrentProcessId) then
-          raise exception.create('{$LUACODE} blocks can not be used inside CE');
-
-        parameterstring:=copy(s,11,endpos-11);
-        setlength(parameters,0);
-        parseLuaCodeParameters(parameterstring, parameters);
-
-        if (syntaxcheckonly=false) and (hasAddedLuaServerCode=false) then
+        if (s[4] in ['u','U','c','C','}']) then  //{$CC, $CU, $LC, $LU , {$L}, {$C}
         begin
-          //add the code that runs and configures the luaserver
-          if luaserverExists('CELUASERVER'+inttostr(getcurrentprocessid))=false then
-            tluaserver.create('CELUASERVER'+inttostr(getcurrentprocessid));
+          endpos:=pos('}',s);
+          if endpos=-1 then
+            raise exception.create('Invalid command line at '+inttostr(ptrUint(script.Objects[i]))+' ('+script[i]+')');
+
+          uppercaseline:=uppercase(s);
 
 
-          if processhandler.is64Bit then
-            script.insert(0,'loadlibrary(luaclient-x86_64.dll)')
+          if copy(uppercaseline,1,9)='{$LUACODE' then
+          begin
+            if targetself or (processid=GetCurrentProcessId) then
+              raise exception.create('{$LUACODE} blocks can not be used inside CE');
+
+            parameterstring:=copy(s,11,endpos-11);
+            setlength(parameters,0);
+            parseLuaCodeParameters(parameterstring, parameters);
+
+            if (syntaxcheckonly=false) and (hasAddedLuaServerCode=false) then
+            begin
+              //add the code that runs and configures the luaserver
+              if luaserverExists('CELUASERVER'+inttostr(getcurrentprocessid))=false then
+                tluaserver.create('CELUASERVER'+inttostr(getcurrentprocessid));
+
+
+              if processhandler.is64Bit then
+                script.insert(0,'loadlibrary(luaclient-x86_64.dll)')
+              else
+                script.insert(0,'loadlibrary(luaclient-i386.dll)');
+
+              script.insert(1,'CELUA_ServerName:');
+              script.insert(2,'db ''CELUASERVER'+inttostr(getcurrentprocessid)+''',0');
+              inc(i,3);
+
+              hasAddedLuaServerCode:=true;
+            end;
+
+            AutoAssemblerLuaCodePass(script, parameters, i, syntaxcheckonly)
+          end
           else
-            script.insert(0,'loadlibrary(luaclient-i386.dll)');
-
-          script.insert(1,'CELUA_ServerName:');
-          script.insert(2,'db ''CELUASERVER'+inttostr(getcurrentprocessid)+''',0');
-          inc(i,3);
-
-          hasAddedLuaServerCode:=true;
+          if uppercaseline='{$C}' then
+          begin
+            AutoAssemblerCBlockPass1(script, i, dataForPass2);
+          end
+          else
+          if copy(uppercaseline,1,7)='{$CCODE' then
+          begin
+            parameterstring:=copy(s,9,endpos-9);
+            setlength(parameters,0);
+            parseLuaCodeParameters(parameterstring, parameters);  //same data needed for C, so use it
+            AutoAssemblerCCodePass1(script, parameters, i,  dataForPass2, syntaxcheckonly, targetself);
+          end;
         end;
-
-        AutoAssemblerLuaCodePass(script, parameters, i, syntaxcheckonly)
-      end
-      else
-      if copy(uppercaseline,1,7)='{$CCODE' then
-      begin
-        parameterstring:=copy(s,9,endpos-9);
-        setlength(parameters,0);
-        parseLuaCodeParameters(parameterstring, parameters);
-        AutoAssemblerCCodePass1(script, parameters, i, dataForPass2, syntaxcheckonly, targetself);
       end;
 
+      inc(i);
     end;
 
-    inc(i);
+    if dataForPass2.cdata.cscript<>nil then
+    begin
+      if dataforpass2.cdata.usesxmm then
+      begin
+        //insert the xmm type
+        dataForPass2.cdata.cscript.insert( 0,'typedef struct {');
+        dataForPass2.cdata.cscript.insert( 1,'  union{');
+        dataForPass2.cdata.cscript.insert( 2,'    struct{');
+        dataForPass2.cdata.cscript.insert( 3,'        float f0;');
+        dataForPass2.cdata.cscript.insert( 4,'        float f1;');
+        dataForPass2.cdata.cscript.insert( 5,'        float f2;');
+        dataForPass2.cdata.cscript.insert( 6,'        float f3;');
+        dataForPass2.cdata.cscript.insert( 7,'    };');
+        dataForPass2.cdata.cscript.insert( 8,'    struct{');
+        dataForPass2.cdata.cscript.insert( 9,'        double d0;');
+        dataForPass2.cdata.cscript.insert(10,'        double d1;');
+        dataForPass2.cdata.cscript.insert(11,'    };');
+        dataForPass2.cdata.cscript.insert(12,'    float fa[4];');
+        dataForPass2.cdata.cscript.insert(13,'    double da[2];');
+        dataForPass2.cdata.cscript.insert(14,'  };');
+        dataForPass2.cdata.cscript.insert(15,'} xmmreg, *pxmmreg;');
+      end;
+
+      //testcompile the full script
+      if targetself then
+        _tcc:=tccself
+      else
+        _tcc:=tcc;
+
+
+      //clipboard.AsText:=dataForPass2.cdata.cscript.text;
+
+      ms:=TMemoryStream.Create;
+      errorlog:=tstringlist.create;
+      imports:=tstringlist.create;
+      symbols:=tstringlist.create;
+
+      try
+        bytesizeneeded:=0;
+        if _tcc.testcompileScript(dataForPass2.cdata.cscript.text, bytesizeneeded,imports, symbols, errorlog,targetself)=false then
+        begin
+          //example: <string>:6: error: 'fffff' undeclared
+          //search for <string>: and replace the linenumber with the AA script linenumber
+          for i:=0 to errorlog.count-1 do
+          begin
+            s:=errorlog[i];
+            if s.StartsWith('<string>:') then
+            begin
+              linenrstring:='';
+              for j:=10 to length(s) do
+              begin
+                if not (s[j] in ['0'..'9']) then
+                begin
+                  if j>10 then
+                  begin
+                    linenrstring:=copy(s,10,j-10);
+                    linenr:=strtoint(linenrstring)-1;
+                    //convert linenr to AA linenr (if possible)
+                    if (linenr>=0) and (linenr<dataForPass2.cdata.cscript.count) then
+                    begin
+                      linenr:=integer(ptruint(dataForPass2.cdata.cscript.objects[linenr-1]));
+                      s:='Error at line '+linenr.ToString+' '+Copy(s, j);
+                    end;
+
+                    errorlog[i]:=s;
+                  end;
+                  break;
+                end;
+              end;
+            end;
+          end;
+
+
+          raise exception.create('C Error :'+errorlog.text );
+        end;
+
+        dataforpass2.cdata.bytesize:=max(32,align(ptruint(bytesizeneeded*2),16));
+        dataforpass2.cdata.targetself:=targetself;
+        setlength(dataforpass2.cdata.references, imports.Count+length(dataforpass2.cdata.linklist));
+
+        //fill the functions this script referenced by name
+        for i:=0 to imports.count-1 do
+          dataforpass2.cdata.references[i].name:=imports[i];
+
+        for i:=imports.count to imports.count+length(dataforpass2.cdata.linklist)-1 do
+          dataforpass2.cdata.references[i].name:=dataforpass2.cdata.linklist[i-imports.count].name;
+
+        setlength(dataforpass2.cdata.symbols, symbols.count);
+        for i:=0 to symbols.count-1 do
+        begin
+          dataforpass2.cdata.symbols[i].name:=symbols[i];
+          dataforpass2.cdata.symbols[i].address:=0;
+        end;
+
+
+      finally
+        ms.free;
+        imports.free;
+        errorlog.free;
+        symbols.free;
+      end;
+
+      script.insert(0,'alloc(ceinternal_autofree_ccode,'+dataforpass2.cdata.bytesize.ToString+')');
+    end;
+
+  except
+    dataforpass2.cdata.cscript.free;
+    raise; //reraise the exception
   end;
 end;
 

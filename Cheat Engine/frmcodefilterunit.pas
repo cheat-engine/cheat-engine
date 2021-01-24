@@ -57,6 +57,7 @@ type
     procedure btnStartClick(Sender: TObject);
     procedure btnStopClick(Sender: TObject);
     procedure btnFromUnwindInfoClick(Sender: TObject);
+    procedure FormShow(Sender: TObject);
     procedure frmLaunchBranchMapperClick(Sender: TObject);
     procedure Button7Click(Sender: TObject);
     procedure FilterClick(Sender: TObject);
@@ -972,6 +973,12 @@ begin
   {$else}
   MessageDlg('Only for windows',mtError,[mbok],0);
   {$endif}
+end;
+
+procedure TfrmCodeFilter.FormShow(Sender: TObject);
+begin
+  btnFromUnwindInfo.visible:=processhandler.is64Bit;
+
 end;
 
 procedure TfrmCodeFilter.frmLaunchBranchMapperClick(Sender: TObject);

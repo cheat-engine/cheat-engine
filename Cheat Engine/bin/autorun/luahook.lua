@@ -1,5 +1,7 @@
 --Routine that scans and hooks lua functions
 
+--return debug.getinfo(function).source
+
 function hookLua()
   --get the most commonly used lua functions
   

@@ -109,7 +109,8 @@ begin
       statusbar1.Visible:=true;
   end;
   {$endif}
-
+  listview1.BeginUpdate;
+  try
 
    listview1.Clear;
 
@@ -193,7 +194,9 @@ begin
           if (address>=$80000000) then exit;
       end;
     end;
-
+  finally
+    listview1.EndUpdate;
+  end;
 end;
 
 procedure TFormMemoryRegions.FormCreate(Sender: TObject);

@@ -692,7 +692,7 @@ object MemoryBrowser: TMemoryBrowser
     ParentFont = False
     TabOrder = 1
     object Splitter3: TSplitter
-      Left = 492
+      Left = 493
       Height = 145
       Top = 1
       Width = 5
@@ -706,21 +706,21 @@ object MemoryBrowser: TMemoryBrowser
       Left = 1
       Height = 145
       Top = 1
-      Width = 491
+      Width = 492
       Align = alClient
       BevelOuter = bvNone
       ParentFont = False
       TabOrder = 0
     end
     object pnlStacktrace: TPanel
-      Left = 497
+      Left = 498
       Height = 145
       Top = 1
-      Width = 210
+      Width = 209
       Align = alRight
       BevelInner = bvLowered
       ClientHeight = 145
-      ClientWidth = 210
+      ClientWidth = 209
       ParentFont = False
       PopupMenu = pmStacktrace
       TabOrder = 1
@@ -730,7 +730,7 @@ object MemoryBrowser: TMemoryBrowser
         Height = 141
         Hint = 'Shows the current stack.'#13#10'Tip: When doubleclicking the value and it represents an address, then you can hold shift to make it show in the disassembler, and ctrl to make it show in the memory view. Else Cheat Engine will guess it for you based on if it''s executable memory or not'
         Top = 2
-        Width = 206
+        Width = 205
         Align = alClient
         AutoWidthLastColumn = True
         Columns = <        
@@ -744,7 +744,7 @@ object MemoryBrowser: TMemoryBrowser
           end        
           item
             Caption = 'Value'
-            Width = 42
+            Width = 41
           end>
         HideSelection = False
         MultiSelect = True

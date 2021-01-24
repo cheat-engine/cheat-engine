@@ -10,11 +10,12 @@ object frmCodeFilter: TfrmCodeFilter
   OnClose = FormClose
   OnCreate = FormCreate
   OnDestroy = FormDestroy
+  OnShow = FormShow
   Position = poScreenCenter
   LCLVersion = '2.0.6.0'
   object Label1: TLabel
     Left = 0
-    Height = 64
+    Height = 45
     Top = 0
     Width = 741
     Align = alTop
@@ -31,19 +32,19 @@ object frmCodeFilter: TfrmCodeFilter
     AnchorSideBottom.Control = Owner
     AnchorSideBottom.Side = asrBottom
     Left = 0
-    Height = 143
-    Top = 213
+    Height = 142
+    Top = 214
     Width = 741
     Anchors = [akTop, akLeft, akRight, akBottom]
     BorderSpacing.Top = 4
     BevelOuter = bvNone
     Caption = 'Panel1'
-    ClientHeight = 143
+    ClientHeight = 142
     ClientWidth = 741
     TabOrder = 0
     object lblAddressList: TLabel
       Left = 0
-      Height = 16
+      Height = 15
       Top = 0
       Width = 741
       Align = alTop
@@ -52,8 +53,8 @@ object frmCodeFilter: TfrmCodeFilter
     end
     object lvResults: TListView
       Left = 0
-      Height = 101
-      Top = 16
+      Height = 96
+      Top = 15
       Width = 741
       Align = alClient
       Columns = <      
@@ -64,7 +65,7 @@ object frmCodeFilter: TfrmCodeFilter
         item
           AutoSize = True
           Caption = 'Executed'
-          Width = 100
+          Width = 63
         end>
       HideSelection = False
       MultiSelect = True
@@ -79,23 +80,23 @@ object frmCodeFilter: TfrmCodeFilter
     end
     object Panel4: TPanel
       Left = 0
-      Height = 26
-      Top = 117
+      Height = 31
+      Top = 111
       Width = 741
       Align = alBottom
       AutoSize = True
       BevelOuter = bvNone
       BorderWidth = 3
-      ClientHeight = 26
+      ClientHeight = 31
       ClientWidth = 741
       TabOrder = 1
       object btnShowList: TButton
         AnchorSideLeft.Control = Panel4
         AnchorSideLeft.Side = asrCenter
-        Left = 324
-        Height = 20
+        Left = 329
+        Height = 25
         Top = 3
-        Width = 92
+        Width = 83
         AutoSize = True
         Caption = 'Refresh list'
         OnClick = btnShowListClick
@@ -108,38 +109,38 @@ object frmCodeFilter: TfrmCodeFilter
     AnchorSideTop.Control = Label1
     AnchorSideTop.Side = asrBottom
     Left = 8
-    Height = 99
-    Top = 72
-    Width = 443
+    Height = 120
+    Top = 53
+    Width = 385
     AutoSize = True
     BorderSpacing.Left = 8
     BorderSpacing.Top = 8
     BevelOuter = bvNone
-    ClientHeight = 99
-    ClientWidth = 443
+    ClientHeight = 120
+    ClientWidth = 385
     TabOrder = 1
     object GroupBox1: TGroupBox
       AnchorSideLeft.Control = Panel3
       AnchorSideLeft.Side = asrBottom
       AnchorSideRight.Side = asrBottom
-      Left = 298
-      Height = 99
+      Left = 255
+      Height = 120
       Top = 0
-      Width = 145
+      Width = 130
       AutoSize = True
       BorderSpacing.Left = 8
       Caption = 'Load address list'
       ChildSizing.Layout = cclLeftToRightThenTopToBottom
       ChildSizing.ControlsPerLine = 1
-      ClientHeight = 80
-      ClientWidth = 135
+      ClientHeight = 100
+      ClientWidth = 126
       TabOrder = 0
       object btnLoadAddressesFromTrace: TButton
         Left = 0
-        Height = 20
+        Height = 25
         Hint = 'Load a previous trace and filters out the CALL''s from there'
         Top = 0
-        Width = 135
+        Width = 126
         AutoSize = True
         Caption = 'From Trace'
         OnClick = btnLoadAddressesFromTraceClick
@@ -147,12 +148,12 @@ object frmCodeFilter: TfrmCodeFilter
       end
       object btnLoadAddressesByDisassembling: TButton
         Left = 0
-        Height = 20
+        Height = 25
         Hint = 'Disassembles the code and marks calls.  This can be inaccurate and might end up writing 0xcc''s at random/wrong locations'
-        Top = 20
-        Width = 135
+        Top = 25
+        Width = 126
         AutoSize = True
-        Caption = 'From disassembler'
+        Caption = 'From Disassembler'
         OnClick = btnLoadAddressesByDisassemblingClick
         ParentShowHint = False
         ShowHint = True
@@ -160,19 +161,19 @@ object frmCodeFilter: TfrmCodeFilter
       end
       object btnFromUnwindInfo: TButton
         Left = 0
-        Height = 20
-        Top = 40
-        Width = 135
-        Caption = 'From unwind info'
+        Height = 25
+        Top = 50
+        Width = 126
+        Caption = 'From Unwind Info'
         OnClick = btnFromUnwindInfoClick
         TabOrder = 3
       end
       object btnLoadAddressesFromFile: TButton
         Left = 0
-        Height = 20
+        Height = 25
         Hint = 'Loads a file containing a list of addresses (e.g from a previous filter session or from the branch mapper)'
-        Top = 60
-        Width = 135
+        Top = 75
+        Width = 126
         AutoSize = True
         Caption = 'From File'
         OnClick = btnLoadAddressesFromFileClick
@@ -185,13 +186,13 @@ object frmCodeFilter: TfrmCodeFilter
       AnchorSideLeft.Control = Panel5
       AnchorSideTop.Control = Panel5
       Left = 0
-      Height = 91
+      Height = 100
       Top = 0
-      Width = 290
+      Width = 247
       AutoSize = True
       BevelOuter = bvNone
-      ClientHeight = 91
-      ClientWidth = 290
+      ClientHeight = 100
+      ClientWidth = 247
       TabOrder = 1
       OnClick = Panel3Click
       object btnStart: TButton
@@ -199,8 +200,8 @@ object frmCodeFilter: TfrmCodeFilter
         AnchorSideTop.Control = Panel2
         AnchorSideTop.Side = asrBottom
         Left = 0
-        Height = 20
-        Top = 66
+        Height = 25
+        Top = 75
         Width = 75
         AutoSize = True
         BorderSpacing.Top = 8
@@ -215,8 +216,8 @@ object frmCodeFilter: TfrmCodeFilter
         AnchorSideLeft.Side = asrBottom
         AnchorSideTop.Control = btnStart
         Left = 79
-        Height = 20
-        Top = 66
+        Height = 25
+        Top = 75
         Width = 75
         AutoSize = True
         BorderSpacing.Left = 4
@@ -233,7 +234,7 @@ object frmCodeFilter: TfrmCodeFilter
         Left = 158
         Height = 25
         Hint = 'Cancels the current operation'
-        Top = 66
+        Top = 75
         Width = 75
         BorderSpacing.Left = 4
         Caption = 'Cancel'
@@ -248,24 +249,24 @@ object frmCodeFilter: TfrmCodeFilter
         AnchorSideTop.Control = Label3
         AnchorSideTop.Side = asrBottom
         Left = 0
-        Height = 42
-        Top = 16
-        Width = 159
+        Height = 52
+        Top = 15
+        Width = 147
         AutoSize = True
         BevelOuter = bvNone
         ChildSizing.VerticalSpacing = 2
         ChildSizing.Layout = cclLeftToRightThenTopToBottom
         ChildSizing.ControlsPerLine = 1
-        ClientHeight = 42
-        ClientWidth = 159
+        ClientHeight = 52
+        ClientWidth = 147
         TabOrder = 3
         OnClick = Panel2Click
         object btnFilterOutNonExecutedAddresses: TButton
           Left = 0
-          Height = 20
+          Height = 25
           Hint = 'Removes all addresses from the list that have not been executed, and resets the breakpoints on the remaining addresses if the filter is active'
           Top = 0
-          Width = 159
+          Width = 147
           Caption = 'Has been executed'
           Enabled = False
           OnClick = FilterClick
@@ -276,10 +277,10 @@ object frmCodeFilter: TfrmCodeFilter
         object btnFilterOutExecutedAddresses: TButton
           Tag = 1
           Left = 0
-          Height = 20
+          Height = 25
           Hint = 'Removes all addresses from the list that have been executed, and resets the breakpoints on the remaining addresses if the filter is active'
-          Top = 22
-          Width = 159
+          Top = 27
+          Width = 147
           Caption = 'Has not been executed'
           Enabled = False
           OnClick = FilterClick
@@ -291,9 +292,9 @@ object frmCodeFilter: TfrmCodeFilter
       object Label3: TLabel
         AnchorSideTop.Side = asrBottom
         Left = 0
-        Height = 16
+        Height = 15
         Top = 0
-        Width = 280
+        Width = 239
         Caption = 'Addresses executed since last filter operation:'
         ParentColor = False
       end
@@ -301,10 +302,10 @@ object frmCodeFilter: TfrmCodeFilter
         AnchorSideLeft.Control = Label3
         AnchorSideLeft.Side = asrBottom
         AnchorSideTop.Control = Label3
-        Left = 282
-        Height = 16
+        Left = 241
+        Height = 15
         Top = 0
-        Width = 8
+        Width = 6
         BorderSpacing.Left = 2
         Caption = '0'
         ParentColor = False
@@ -318,13 +319,13 @@ object frmCodeFilter: TfrmCodeFilter
     AnchorSideRight.Control = Owner
     AnchorSideRight.Side = asrBottom
     Left = 0
-    Height = 38
-    Top = 171
+    Height = 37
+    Top = 173
     Width = 741
     Anchors = [akTop, akLeft, akRight]
     AutoSize = True
     BevelOuter = bvNone
-    ClientHeight = 38
+    ClientHeight = 37
     ClientWidth = 741
     TabOrder = 2
     Visible = False
@@ -332,9 +333,9 @@ object frmCodeFilter: TfrmCodeFilter
       AnchorSideLeft.Control = pnlStatus
       AnchorSideTop.Control = pnlStatus
       Left = 0
-      Height = 16
+      Height = 15
       Top = 0
-      Width = 103
+      Width = 92
       Caption = 'Doing something'
       ParentColor = False
     end
@@ -346,7 +347,7 @@ object frmCodeFilter: TfrmCodeFilter
       AnchorSideRight.Side = asrBottom
       Left = 0
       Height = 20
-      Top = 18
+      Top = 17
       Width = 741
       Anchors = [akTop, akLeft, akRight]
       BorderSpacing.Top = 2
@@ -357,11 +358,11 @@ object frmCodeFilter: TfrmCodeFilter
     AnchorSideLeft.Control = Panel5
     AnchorSideLeft.Side = asrBottom
     AnchorSideTop.Control = Panel5
-    Left = 459
-    Height = 20
+    Left = 401
+    Height = 25
     Hint = 'Starts a single stepping (branch only) trace and records all unique IP''s encountered.  You can use the results from this with the "From File" address list'#13#10'Make sure that the code you''re interested in is executed at least once'#13#10#13#10'<WARNING: SLOW and recommended as last resort>'
-    Top = 72
-    Width = 159
+    Top = 53
+    Width = 149
     AutoSize = True
     BorderSpacing.Left = 8
     BorderSpacing.Right = 16
@@ -374,18 +375,18 @@ object frmCodeFilter: TfrmCodeFilter
   object Timer1: TTimer
     Interval = 100
     OnTimer = Timer1Timer
-    left = 208
-    top = 72
+    Left = 208
+    Top = 72
   end
   object OpenDialog: TOpenDialog
-    left = 456
-    top = 88
+    Left = 536
+    Top = 96
   end
   object pmResults: TPopupMenu
     Images = cfImageList
     OnPopup = pmResultsPopup
-    left = 112
-    top = 240
+    Left = 112
+    Top = 240
     object miSaveAddressList: TMenuItem
       Caption = 'Save addresslist'
       ImageIndex = 2
@@ -407,12 +408,12 @@ object frmCodeFilter: TfrmCodeFilter
     end
   end
   object SaveDialog: TSaveDialog
-    left = 200
-    top = 248
+    Left = 200
+    Top = 248
   end
   object cfImageList: TImageList
-    left = 405
-    top = 258
+    Left = 405
+    Top = 258
     Bitmap = {
       4C69030000001000000010000000FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
       FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF

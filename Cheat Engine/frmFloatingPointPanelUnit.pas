@@ -45,6 +45,7 @@ type
     { Private declarations }
     context: PContext;
     contextCopy: TContext;
+    loadedFormPosition: boolean;
     procedure ValueDoubleClick(sender: TObject);
   public
     { Public declarations }
@@ -63,7 +64,7 @@ var frmFloatingPointPanel:TfrmFloatingPointPanel;
 
 implementation
 
-uses MemoryBrowserFormUnit, processhandlerunit, debughelper;
+uses MemoryBrowserFormUnit, processhandlerunit, debughelper, DPIHelper;
 
 {$ifdef cpu64}
 //coded by mgr.inz.player
@@ -505,6 +506,7 @@ begin
 end;
 
 procedure TfrmFloatingPointPanel.FormShow(Sender: TObject);
+var w: integer;
 begin
   if self<>frmFloatingPointPanel then //only show the new one on the memview version
   begin
@@ -514,6 +516,16 @@ begin
 
   mData.Font.Height:=GetFontData(font.Handle).Height;
   UpdatedContext;
+
+  AdjustComboboxSize(cbContextSection, canvas);
+  AdjustComboboxSize(cbDisplayType, canvas);
+
+  w:=max(cbContextSection.Width, cbDisplayType.width)+16;
+  cbContextSection.width:=w;
+  cbDisplayType.width:=w;
+
+  if loadedFormPosition=false then
+    width:=max(width, canvas.TextWidth('XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX'));
 end;
 
 procedure TfrmFloatingPointPanel.FormDestroy(Sender: TObject);
@@ -544,7 +556,7 @@ end;
 procedure TfrmFloatingPointPanel.FormCreate(Sender: TObject);
 begin
   cbDisplayType.ItemIndex:=4;
-  LoadFormPosition(self);
+  loadedFormPosition:=LoadFormPosition(self);
   sbdata.font.color:=clWindowtext;
 end;
 

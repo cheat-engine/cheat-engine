@@ -22,7 +22,6 @@ object frmChangedAddresses: TfrmChangedAddresses
     Width = 389
     Align = alTop
     AutoSize = True
-    Caption = 'PanelAddressInfo'
     ClientHeight = 25
     ClientWidth = 389
     ParentBidiMode = False
