@@ -353,7 +353,7 @@ end;
 
 
 
-procedure AutoAssemblerCCodePass2(dataForPass2: TAutoAssemblerCodePass2Data; symbollist: TSymbolListHandler);
+procedure AutoAssemblerCCodePass2(var dataForPass2: TAutoAssemblerCodePass2Data; symbollist: TSymbolListHandler);
 //right after the allocs have been done
 var
   secondarylist,errorlog: tstringlist;
@@ -498,7 +498,7 @@ begin
     freeandnil(bytes);
     freeandnil(secondarylist);
 
-    dataForPass2.cdata.cscript.free;
+    freeandnil(dataForPass2.cdata.cscript);
   end;
 end;
 
@@ -864,6 +864,7 @@ end;
 procedure AutoAssemblerCodePass2(var dataForPass2: TAutoAssemblerCodePass2Data; symbollist: TSymbolListHandler);
 begin
   AutoAssemblerCCodePass2(dataForPass2, symbollist);
+
 end;
 
 procedure AutoAssemblerCodePass1(script: TStrings; out dataForPass2: TAutoAssemblerCodePass2Data; syntaxcheckonly: boolean; targetself: boolean);
@@ -997,7 +998,7 @@ begin
 
       try
         bytesizeneeded:=0;
-        if _tcc.testcompileScript(dataForPass2.cdata.cscript.text, bytesizeneeded,imports, symbols, errorlog,targetself)=false then
+        if _tcc.testcompileScript(dataForPass2.cdata.cscript.text, bytesizeneeded,imports, symbols, errorlog)=false then
         begin
           //example: <string>:6: error: 'fffff' undeclared
           //search for <string>: and replace the linenumber with the AA script linenumber
@@ -1064,7 +1065,9 @@ begin
     end;
 
   except
-    dataforpass2.cdata.cscript.free;
+    if dataforpass2.cdata.cscript<>nil then
+      freeandnil(dataforpass2.cdata.cscript);
+
     raise; //reraise the exception
   end;
 end;

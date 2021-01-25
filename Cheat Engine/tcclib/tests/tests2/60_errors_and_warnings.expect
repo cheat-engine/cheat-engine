@@ -1,0 +1,182 @@
+[test_56_btype_excess_1]
+60_errors_and_warnings.c:2: error: too many basic types
+
+[test_57_btype_excess_2]
+60_errors_and_warnings.c:5: error: too many basic types
+
+[test_58_function_redefinition]
+60_errors_and_warnings.c:9: error: redefinition of 'f'
+
+[test_global_redefinition]
+60_errors_and_warnings.c:14: error: redefinition of 'xxx'
+
+[test_59_function_array]
+60_errors_and_warnings.c:17: error: declaration of an array of functions
+
+[test_60_enum_redefinition]
+60_errors_and_warnings.c:21: error: struct/union/enum already defined
+
+[test_62_enumerator_redefinition]
+60_errors_and_warnings.c:26: error: redefinition of enumerator 'RED'
+
+[test_63_local_enumerator_redefinition]
+[returns 1]
+
+[test_61_undefined_enum]
+60_errors_and_warnings.c:46: error: unknown type size
+
+[test_74_non_const_init]
+60_errors_and_warnings.c:49: error: initializer element is not constant
+
+[test_pointer_assignment]
+60_errors_and_warnings.c:79: warning: assignment from incompatible pointer type
+60_errors_and_warnings.c:82: warning: assignment from incompatible pointer type
+60_errors_and_warnings.c:86: warning: assignment from incompatible pointer type
+60_errors_and_warnings.c:88: warning: assignment from incompatible pointer type
+60_errors_and_warnings.c:91: warning: assignment from incompatible pointer type
+60_errors_and_warnings.c:92: warning: assignment from incompatible pointer type
+60_errors_and_warnings.c:94: warning: assignment from incompatible pointer type
+60_errors_and_warnings.c:95: warning: assignment from incompatible pointer type
+60_errors_and_warnings.c:98: warning: assignment discards qualifiers from pointer target type
+60_errors_and_warnings.c:99: warning: assignment discards qualifiers from pointer target type
+60_errors_and_warnings.c:103: warning: assignment discards qualifiers from pointer target type
+60_errors_and_warnings.c:104: warning: assignment discards qualifiers from pointer target type
+60_errors_and_warnings.c:109: warning: assignment of read-only location
+
+[test_enum_compat]
+60_errors_and_warnings.c:119: error: incompatible types for redefinition of 'f3'
+
+[test_enum_compat_2]
+60_errors_and_warnings.c:126: error: incompatible types for redefinition of 'f4'
+
+[test_ptr_to_str]
+60_errors_and_warnings.c:129: error: type 'const int **' does not match any association
+
+[test_fnptr_to_str]
+60_errors_and_warnings.c:131: error: type 'int (*(*)(float, char))(double, int)' does not match any association
+
+[test_array_to_str]
+60_errors_and_warnings.c:133: error: type 'int (*)[3]' does not match any association
+
+[test_duplicate_def_1]
+60_errors_and_warnings.c:135: error: redefinition of 'L'
+
+[test_duplicate_def_2]
+60_errors_and_warnings.c:138: error: redeclaration of 'L'
+
+[test_abstract_decls]
+60_errors_and_warnings.c:148: error: identifier expected
+
+[test_invalid_1]
+60_errors_and_warnings.c:153: error: identifier expected
+
+[test_invalid_2]
+60_errors_and_warnings.c:156: error: ';' expected (got "{")
+
+[test_invalid_3]
+60_errors_and_warnings.c:160: error: ',' expected (got "a")
+
+[test_invalid_4]
+60_errors_and_warnings.c:164: error: division by zero in constant
+
+[test_conflicting_types]
+60_errors_and_warnings.c:170: error: incompatible types for redefinition of 'i'
+
+[test_nested_types]
+60_errors_and_warnings.c:177: error: struct/union/enum already defined
+
+[test_vla_1]
+60_errors_and_warnings.c:184: error: need explicit inner array size in VLAs
+
+[test_invalid_alignas]
+60_errors_and_warnings.c:188: error: identifier expected
+
+[test_static_assert]
+60_errors_and_warnings.c:194: error: ONE is not 1
+
+[test_static_assert_2]
+60_errors_and_warnings.c:198: error: 0 is 0
+
+[test_static_assert_c2x]
+60_errors_and_warnings.c:202: error: _Static_assert fail
+
+[test_void_array]
+60_errors_and_warnings.c:205: error: declaration of an array of incomplete type elements
+
+[test_incomplete_enum_array]
+60_errors_and_warnings.c:208: error: declaration of an array of incomplete type elements
+
+[test_incomplete_struct_array]
+60_errors_and_warnings.c:211: error: declaration of an array of incomplete type elements
+
+[test_const_fun_array]
+60_errors_and_warnings.c:215: error: declaration of an array of functions
+
+[test_incomplete_array_array]
+
+[test_extern_array]
+60_errors_and_warnings.c:231: error: incompatible types for redefinition of 'x'
+
+[test_func_1]
+hello: a = 123
+
+[test_func_2]
+hello: a = 123
+
+[test_func_3]
+60_errors_and_warnings.c:261: warning: static storage ignored for redefinition of 'hello'
+hello: a = 123
+
+[test_func_4]
+hello: a = 123
+
+[test_func_5]
+60_errors_and_warnings.c:261: error: incompatible types for redefinition of 'hello'
+
+[test_func_6]
+60_errors_and_warnings.c:249: error: function without file scope cannot be static
+
+[test_var_1]
+main : 1 ; 1
+main : 2 ; 2
+bar  : 3 ; 3
+
+[test_var_2]
+main : 1 ; 1
+main : 2 ; 2
+bar  : 3 ; 3
+
+[test_var_3]
+60_errors_and_warnings.c:293: error: incompatible types for redefinition of 'xxx'
+
+[test_var_4]
+
+[test_long_double_type_for_win32]
+60_errors_and_warnings.c:324: warning: assignment from incompatible pointer type
+
+[test_stray_backslash]
+60_errors_and_warnings.c:330: error: stray '\' in program
+
+[test_stray_backslash2]
+\n
+
+[test_var_array]
+60_errors_and_warnings.c:345: error: flexible array has zero size in this context
+
+[test_var_array2]
+60_errors_and_warnings.c:355: error: flexible array has zero size in this context
+
+[test_default_int_type]
+60_errors_and_warnings.c:359: warning: type defaults to int
+
+[test_invalid_global_stmtexpr]
+60_errors_and_warnings.c:363: error: statement expression outside of function
+
+[test_invalid_tokckill]
+60_errors_and_warnings.c:366: error: ';' expected (got "3")
+
+[test_duplicate_member]
+60_errors_and_warnings.c:372: error: duplicate member 'a'
+
+[test_duplicate_member_anon]
+60_errors_and_warnings.c:385: error: duplicate member 'd'

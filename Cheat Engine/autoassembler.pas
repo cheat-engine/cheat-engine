@@ -3915,6 +3915,9 @@ begin
     end;
 
   finally
+    if dataForAACodePass2.cdata.cscript<>nil then
+      freeandnil(dataForAACodePass2.cdata.cscript);
+
     for i:=0 to length(assembled)-1 do
       setlength(assembled[i].bytes,0);
 

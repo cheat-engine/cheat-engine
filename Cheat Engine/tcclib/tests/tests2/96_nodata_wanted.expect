@@ -1,0 +1,26 @@
+[test_static_data_error]
+96_nodata_wanted.c:7: error: initializer element is not computable at load time
+
+[test_static_nodata_error]
+96_nodata_wanted.c:14: error: initializer element is not computable at load time
+
+[test_global_data_error]
+96_nodata_wanted.c:20: error: initializer element is not computable at load time
+
+[test_local_data_noerror]
+96_nodata_wanted.c:25: warning: assignment makes integer from pointer without a cast
+96_nodata_wanted.c:25: warning: cast between pointer and integer of different size
+
+[test_data_suppression_off]
+data:
+  8 - 8.0 - 8.0 - main - static string
+  333 44 555555 6 7
+size of data/text:
+  non-zero/non-zero
+
+[test_data_suppression_on]
+size of data/text:
+  zero/zero
+
+[test_static_data]
+a = 1

@@ -1,0 +1,8 @@
+03_struct.c:14: warning: attribute '__cleanup__' ignored on type
+12
+34
+12
+34
+56
+78
+~fred()
