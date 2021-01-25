@@ -1167,10 +1167,10 @@ begin
 
   //free script info
   if autoassemblerdata.registeredsymbols<>nil then
-    autoassemblerdata.registeredsymbols.free;
+    freeandnil(autoassemblerdata.registeredsymbols);
 
   if autoassemblerdata.ccodesymbols<>nil then
-    autoassemblerdata.registeredsymbols.free;
+    freeandnil(autoassemblerdata.ccodesymbols);
 
   //free the group's children
   {$IFNDEF JNI}
@@ -1202,7 +1202,7 @@ begin
   if ((not factive) and (moHideChildren in foptions)) or (moAlwaysHideChildren in fOptions) then
     treenode.Collapse(true)
   else
-    treenode.Expand(true);
+    treenode.Expand(false);
   {$ENDIF}
 end;
 
@@ -1434,7 +1434,7 @@ begin
 
   end;
 
-  treenode.Expand(true);
+  treenode.Expand(false);
 
   begin
     tempnode:=CheatEntry.FindNode('VariableType');

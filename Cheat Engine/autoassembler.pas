@@ -1024,7 +1024,7 @@ begin
                   aobscanmodules[m].maxaddress:=mi.baseaddress+mi.basesize;
                 end;
               except
-                raise exception.create(rsAAModuleNotFound+s2);
+                raise  exception.create(rsAAModuleNotFound+s2);
               end;
             end;
 
