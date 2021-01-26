@@ -46,10 +46,9 @@ begin
   if ShouldAppsUseDarkMode then
   begin
     if creatingBrush then
-    begin
-      inherited createbrush;
       exit;
-    end;
+
+    inherited CreateBrush;
 
     creatingBrush:=true;
     cbi.cbSize:=sizeof(cbi);
@@ -71,7 +70,7 @@ begin
 
     end;
 
-    inherited CreateBrush;
+
 
 
     brush.color:=ColorSet.EditBackground;

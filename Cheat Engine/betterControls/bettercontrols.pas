@@ -182,6 +182,7 @@ end;
 var
   c: TColorRef;
   theme: THandle;
+  i: integer;
 
 initialization
   //setup ColorSet
@@ -198,6 +199,10 @@ initialization
     AllowDarkModeForWindow:=@AllowDarkModeForWindow_stub;
     AllowDarkModeForApp:=@AllowDarkModeForApp_stub;
     FlushMenuThemes:=@RefreshImmersiveColorPolicyState_stub;
+
+    for i:=1 to Paramcount do
+      if uppercase(ParamStr(i))='NOTDARK' then exit;
+
 
     if WindowsVersion>=wv10 then
     begin
