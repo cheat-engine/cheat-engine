@@ -164,9 +164,11 @@ object frmSymbolhandler: TfrmSymbolhandler
       Width = 332
       Align = alClient
       PopupMenu = PopupMenu2
+      ReadOnly = True
       TabOrder = 1
       OnDblClick = tvSymbolGroupsDblClick
       OnExpanding = tvSymbolGroupsExpanding
+      Options = [tvoAutoItemHeight, tvoHideSelection, tvoKeepCollapsedNodes, tvoReadOnly, tvoShowButtons, tvoShowLines, tvoShowRoot, tvoToolTips, tvoThemedDraw]
     end
     object Splitter1: TSplitter
       Cursor = crVSplit

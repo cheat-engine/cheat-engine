@@ -18,10 +18,10 @@ uses
      memscan,plugin, hotkeyhandler,frmProcessWatcherUnit, newkernelhandler,
      debuggertypedefinitions, commonTypeDefs, betterControls;
 
-const ceversion=7.2;
+const ceversion=7.3;
 
 resourcestring
-  cename = 'Cheat Engine 7.2';
+  cename = 'Cheat Engine 7.3';
   rsPleaseWait = 'Please Wait!';
 
 procedure UpdateToolsMenu;
@@ -31,7 +31,7 @@ procedure initcetitle;
 
 
 
-const beta=' Dark Mode support test'; //empty this for a release
+const beta=' beta 1'; //empty this for a release
 
 var
   CEnorm:string;
@@ -151,6 +151,9 @@ begin
         with formsettings do
         begin
           LoadingSettingsFromRegistry:=true;
+
+          if reg.ValueExists('Disable DarkMode Support') then
+            cbDisableDarkModeSupport.checked:=reg.ReadBool('Disable DarkMode Support');
 
           if reg.ValueExists('Saved Stacksize') then
             savedStackSize:=reg.ReadInteger('Saved Stacksize');

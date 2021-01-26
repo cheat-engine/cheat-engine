@@ -183,6 +183,7 @@ var
   c: TColorRef;
   theme: THandle;
   i: integer;
+  reg: TRegistry;
 
 initialization
   //setup ColorSet
@@ -202,6 +203,18 @@ initialization
 
     for i:=1 to Paramcount do
       if uppercase(ParamStr(i))='NOTDARK' then exit;
+
+    reg:=tregistry.create;
+    try
+      Reg.RootKey := HKEY_CURRENT_USER;
+      if Reg.OpenKey('\Software\Cheat Engine',false) then
+      begin
+        if reg.ValueExists('Disable DarkMode Support') and
+           reg.ReadBool('Disable DarkMode Support') then exit;
+      end;
+    finally
+      reg.free;
+    end;
 
 
     if WindowsVersion>=wv10 then

@@ -88,6 +88,7 @@ type
     cbAllSingle: TCheckBox;
     cbAllDouble: TCheckBox;
     cbAllCustom: TCheckBox;
+    cbDisableDarkModeSupport: TCheckBox;
     combothreadpriority: TComboBox;
     defaultbuffer: TPopupMenu;
     Default1: TMenuItem;
@@ -285,6 +286,8 @@ type
     procedure OpenButtonClick(Sender: TObject);
   private
     { Private declarations }
+    hasBeenShown: boolean;
+
     tempstatePopupHide:word;
     temppopupmodifier:dword;
     tempstatePause:word;
@@ -554,7 +557,7 @@ begin
         reg.writebool('Show processlist in mainmenu', cbShowProcesslist.checked);
         mainform.Process1.Visible:=cbShowProcesslist.checked;
 
-
+        reg.WriteBool('Disable DarkMode Support', cbDisableDarkModeSupport.checked);
         reg.WriteBool('Undo',cbshowundo.checked);
         reg.WriteInteger('ScanThreadpriority',combothreadpriority.itemindex);
         case combothreadpriority.itemindex of
@@ -1304,7 +1307,8 @@ end;
 procedure TformSettings.FormDestroy(Sender: TObject);
 begin
   formSettings:=nil;
-  SaveFormPosition(self);
+  if hasBeenShown then
+    SaveFormPosition(self);
 end;
 
 {$ifdef darwin}
@@ -1362,6 +1366,7 @@ procedure TformSettings.FormShow(Sender: TObject);
 
   fd: TFontData;
 begin
+  hasBeenShown:=true;
   {$ifdef darwin}
   FixUpsideDownTreeview;
   {$endif}
