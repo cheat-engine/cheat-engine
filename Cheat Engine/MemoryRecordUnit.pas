@@ -2593,6 +2593,7 @@ begin
       if autoassemblerdata.ccodesymbols=nil then
         autoassemblerdata.ccodesymbols:=TSymbolListHandler.create;
 
+      autoassemblerdata.ccodesymbols.name:='Memoryrecord '+intTostr(id)+':'+Description;
 
       if async then
       begin

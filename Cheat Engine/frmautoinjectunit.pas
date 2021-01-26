@@ -712,6 +712,7 @@ begin
       begin
         try
           ccodesymbols:=tsymbollisthandler.create;   //this will cause the AA to register the symbols
+          ccodesymbols.name:='AA Single Execute';
 
           autoassemble(assemblescreen.lines,true,true,false,false,aa,exceptionlist,nil,nil,ccodesymbols);
           if ccodesymbols.count>0 then
