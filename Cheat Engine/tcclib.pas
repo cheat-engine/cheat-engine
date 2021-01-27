@@ -103,7 +103,7 @@ begin
     {$endif}
       result:=tcc32;
   {$else}
-    result:=tcc32;
+    result:=tcc64;
   {$endif}
 end;
 
@@ -127,14 +127,15 @@ begin
   if newCapacity>oldcapacity then
   begin
     p:=Memory;
-    zeromemory(@p[oldcapacity], newCapacity-oldcapacity);
+    zeromemory(@p^[oldcapacity], newCapacity-oldcapacity);
   end;
 end;
 
 
 
 constructor TTCC.create(target: TTCCTarget);
-var module: HModule;
+var
+  module: HModule;
 begin
   if initDone=true then raise exception.create('Do not create more compilers after init');
   if cs=nil then
@@ -149,7 +150,6 @@ begin
   else
     module:=loadlibrary({$ifdef standalonetest}'D:\git\cheat-engine\Cheat Engine\bin\'+{$endif}'tcc64-32.dll'); //generates 32-bit code
   {$endif}
-
   working:=false;
 
   pointer(new):=GetProcAddress(module,'tcc_new');
@@ -331,12 +331,17 @@ end;
 
 procedure ttcc.setupCompileEnvironment(s: PTCCState; textlog: tstrings; targetself: boolean=false);
 begin
-  add_include_path(s,'include');
-  add_include_path(s,'include\winapi');
-  add_include_path(s,'include\sys');
+  add_include_path(s,{$ifdef standalonetest}'D:\git\cheat-engine\Cheat Engine\bin\'+{$endif}'include');
+  add_include_path(s,{$ifdef standalonetest}'D:\git\cheat-engine\Cheat Engine\bin\'+{$endif}'include\winapi');
+  add_include_path(s,{$ifdef standalonetest}'D:\git\cheat-engine\Cheat Engine\bin\'+{$endif}'include\sys');
   add_include_path(s,pchar(ExtractFilePath(application.exename)+'include'));
   add_include_path(s,pchar(ExtractFilePath(application.exename)+'include\winapi'));
   add_include_path(s,pchar(ExtractFilePath(application.exename)+'include\sys'));
+
+
+
+
+ // add_include_path(s,'D:\git\cheat-engine\Cheat Engine\bin\include');
 
 
   if textlog<>nil then set_error_func(s,textlog,@ErrorLogger);
@@ -587,14 +592,14 @@ end;
 
 function initTCCLib: boolean;
 begin
-
+  {$ifndef standalonetest}
   tcc32:=ttcc.create(i386);
+ {$endif}
 
-{$ifndef standalonetest}
   {$ifdef cpu64}
   tcc64:=ttcc.create(x86_64);
   {$endif}
-{$endif}
+
   initDone:=true;
   result:=initdone;
 end;

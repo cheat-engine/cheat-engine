@@ -129,6 +129,7 @@ type
     fPID: dword;
     fTargetSelf: boolean;
     fname: string;
+    frefcount: integer;
     function A2SCheck(Tree: TAvgLvlTree; Data1, Data2: pointer): integer;
     function S2ACheck(Tree: TAvgLvlTree; Data1, Data2: pointer): integer;
     function getCount: integer;
@@ -158,6 +159,7 @@ type
     property PID: dword read fPID write fPID;
     property count: integer read getCount;
     property name: string read fName write fName;
+    property refcount: integer read frefcount write frefcount;
   end;
 
 
@@ -776,6 +778,8 @@ begin
   log('TSymbolListHandler.create exit');
 
   fTargetSelf:=targetself;
+
+  frefcount:=1;
 
 end;
 

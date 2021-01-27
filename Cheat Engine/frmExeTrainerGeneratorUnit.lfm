@@ -1,11 +1,11 @@
 object frmExeTrainerGenerator: TfrmExeTrainerGenerator
-  Left = 844
-  Height = 252
-  Top = 387
+  Left = 675
+  Height = 273
+  Top = 243
   Width = 597
   AutoSize = True
   Caption = 'Exe Trainer Generator'
-  ClientHeight = 252
+  ClientHeight = 273
   ClientWidth = 597
   Constraints.MinHeight = 20
   Constraints.MinWidth = 20
@@ -15,15 +15,15 @@ object frmExeTrainerGenerator: TfrmExeTrainerGenerator
   OnCreate = FormCreate
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '2.0.0.4'
+  LCLVersion = '2.0.6.0'
   object Panel1: TPanel
     Left = 0
-    Height = 206
+    Height = 228
     Top = 0
     Width = 312
     AutoSize = True
     BevelOuter = bvNone
-    ClientHeight = 206
+    ClientHeight = 228
     ClientWidth = 312
     TabOrder = 0
     object GroupBox1: TGroupBox
@@ -43,9 +43,9 @@ object frmExeTrainerGenerator: TfrmExeTrainerGenerator
         Left = 8
         Height = 19
         Top = 0
-        Width = 142
+        Width = 98
         BorderSpacing.Left = 8
-        Caption = 'Target process is 32-bit'
+        Caption = 'Target is 32-bit'
         ParentShowHint = False
         TabOrder = 0
       end
@@ -56,8 +56,8 @@ object frmExeTrainerGenerator: TfrmExeTrainerGenerator
         Left = 8
         Height = 19
         Top = 19
-        Width = 142
-        Caption = 'Target process is 64-bit'
+        Width = 98
+        Caption = 'Target is 64-bit'
         Checked = True
         TabOrder = 1
         TabStop = True
@@ -65,7 +65,7 @@ object frmExeTrainerGenerator: TfrmExeTrainerGenerator
     end
     object GroupBox2: TGroupBox
       Left = 0
-      Height = 61
+      Height = 83
       Top = 97
       Width = 312
       Align = alTop
@@ -75,7 +75,7 @@ object frmExeTrainerGenerator: TfrmExeTrainerGenerator
       ChildSizing.VerticalSpacing = 3
       ChildSizing.Layout = cclLeftToRightThenTopToBottom
       ChildSizing.ControlsPerLine = 3
-      ClientHeight = 41
+      ClientHeight = 63
       ClientWidth = 308
       TabOrder = 1
       object cbSpeedhack: TCheckBox
@@ -126,6 +126,24 @@ object frmExeTrainerGenerator: TfrmExeTrainerGenerator
         Caption = '.NET'
         TabOrder = 5
       end
+      object cbCCode: TCheckBox
+        Left = 0
+        Height = 19
+        Top = 44
+        Width = 97
+        Caption = 'C-Code'
+        OnChange = cbCCodeChange
+        TabOrder = 6
+      end
+      object cbIncludes: TCheckBox
+        Left = 105
+        Height = 19
+        Top = 44
+        Width = 96
+        Caption = 'C-#includes'
+        Enabled = False
+        TabOrder = 7
+      end
     end
     object Button1: TButton
       AnchorSideLeft.Control = Panel4
@@ -134,7 +152,7 @@ object frmExeTrainerGenerator: TfrmExeTrainerGenerator
       AnchorSideTop.Side = asrCenter
       Left = 48
       Height = 25
-      Top = 170
+      Top = 192
       Width = 115
       AutoSize = True
       BorderSpacing.Left = 4
@@ -150,7 +168,7 @@ object frmExeTrainerGenerator: TfrmExeTrainerGenerator
       AnchorSideTop.Side = asrCenter
       Left = 241
       Height = 23
-      Top = 171
+      Top = 193
       Width = 71
       BorderSpacing.Left = 3
       ItemHeight = 15
@@ -172,7 +190,7 @@ object frmExeTrainerGenerator: TfrmExeTrainerGenerator
       AnchorSideTop.Side = asrCenter
       Left = 168
       Height = 15
-      Top = 175
+      Top = 197
       Width = 70
       BorderSpacing.Left = 5
       Caption = 'Compression'
@@ -184,7 +202,7 @@ object frmExeTrainerGenerator: TfrmExeTrainerGenerator
       AnchorSideTop.Side = asrBottom
       Left = 4
       Height = 40
-      Top = 162
+      Top = 184
       Width = 40
       BorderSpacing.Left = 4
       BorderSpacing.Top = 4
@@ -222,7 +240,7 @@ object frmExeTrainerGenerator: TfrmExeTrainerGenerator
         Height = 19
         Hint = 'Only put the trainer data in the trainer. The user must have Cheat Engine installed to run this trainer'
         Top = 0
-        Width = 43
+        Width = 42
         BorderSpacing.Left = 4
         Caption = 'Tiny'
         OnChange = cbTrainersizeChange
@@ -256,7 +274,7 @@ object frmExeTrainerGenerator: TfrmExeTrainerGenerator
     AnchorSideBottom.Side = asrBottom
     Left = 0
     Height = 41
-    Top = 211
+    Top = 232
     Width = 597
     Anchors = [akLeft, akRight, akBottom]
     AutoSize = True
@@ -287,19 +305,19 @@ object frmExeTrainerGenerator: TfrmExeTrainerGenerator
     AnchorSideRight.Side = asrBottom
     AnchorSideBottom.Control = Panel2
     Left = 315
-    Height = 211
+    Height = 232
     Top = 0
     Width = 282
     Anchors = [akTop, akLeft, akRight, akBottom]
     AutoSize = True
     BorderSpacing.Left = 3
     Caption = 'Extra files'
-    ClientHeight = 191
+    ClientHeight = 212
     ClientWidth = 278
     TabOrder = 2
     object ListView1: TListView
       Left = 0
-      Height = 158
+      Height = 179
       Top = 0
       Width = 278
       Align = alClient
@@ -324,7 +342,7 @@ object frmExeTrainerGenerator: TfrmExeTrainerGenerator
     object Panel3: TPanel
       Left = 0
       Height = 33
-      Top = 158
+      Top = 179
       Width = 278
       Align = alBottom
       AutoSize = True
@@ -386,20 +404,20 @@ object frmExeTrainerGenerator: TfrmExeTrainerGenerator
   end
   object OpenDialog1: TOpenDialog
     Options = [ofAllowMultiSelect, ofEnableSizing, ofViewDetail]
-    left = 392
-    top = 48
+    Left = 392
+    Top = 48
   end
   object pmFiles: TPopupMenu
     OnPopup = pmFilesPopup
-    left = 472
-    top = 64
+    Left = 472
+    Top = 64
     object miEditFolder: TMenuItem
       Caption = 'Edit folder'
       OnClick = miEditFolderClick
     end
   end
   object SelectDirectoryDialog1: TSelectDirectoryDialog
-    left = 392
-    top = 104
+    Left = 392
+    Top = 104
   end
 end

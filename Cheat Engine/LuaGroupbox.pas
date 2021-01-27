@@ -22,7 +22,7 @@ begin
   if lua_gettop(L)>=1 then
   begin
     f:=lua_toceuserdata(L, -1);
-    p:=ce_createGroupBox(f);
+    p:=tgroupbox.Create(f);
 
     lua_pop(L, lua_gettop(L));
 

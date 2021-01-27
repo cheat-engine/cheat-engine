@@ -722,6 +722,8 @@ begin
             if MessageDlg('The following C-Code symbols where registered:'+sl.text+#13#10+'Do you wish to keep these?',mtConfirmation, [mbyes,mbno],0)<>mryes then
               ccodesymbols.free;
 
+            ccodesymbols.refcount:=0;
+
             sl.free;
           end
           else

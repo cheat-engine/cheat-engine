@@ -266,7 +266,12 @@ begin
   tvSymbolGroups.BeginUpdate;
 
   for i:=0 to list.count-1 do
+  begin
     TSymbolListHandler(list[i]).unregisterList;
+    if TSymbolListHandler(list[i]).refcount=0 then
+      TSymbolListHandler(list[i]).free;
+
+  end;
 
   tvSymbolGroups.EndUpdate;
 
@@ -275,13 +280,19 @@ end;
 
 procedure TfrmSymbolhandler.miUnregisterClick(Sender: TObject);
 var n: TTreenode;
+  l: TSymbolListHandler;
 begin
   if tvSymbolGroups.Selected<>nil then
   begin
     n:=tvSymbolGroups.Selected;
     while n.level>0 do n:=n.Parent;
     if n.data<>nil then
-      TSymbolListHandler(n.data).unregisterList;
+    begin
+      l:=TSymbolListHandler(n.data);
+      l.unregisterList;
+      if l.refcount=0 then
+        l.free;
+    end;
   end;
 end;
 

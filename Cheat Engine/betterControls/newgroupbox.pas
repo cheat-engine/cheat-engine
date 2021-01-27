@@ -12,7 +12,7 @@ type
   TNewGroupBox=class(TGroupBox)
   private
   protected
-    procedure PaintControls(DC: HDC; First: TControl);
+    //procedure PaintControls(DC: HDC; First: TControl);
     procedure ChildHandlesCreated; override;
   public
 
@@ -79,8 +79,6 @@ begin
         c.handle:=dc;
         c.brush.style:=bsSolid;
 
-
-
         if (gb.color=clDefault) and gb.getParentColor then
           c.brush.color:=gb.GetRGBColorResolvingParent
         else
@@ -101,10 +99,12 @@ begin
         c.free;
 
 
-        p:=gb.ScreenToControl(gb.ClientToScreen(point(0,0)));
-        MoveWindowOrg(dc,p.x, p.y);
-
-        gb.PaintControlsHelper(dc,gb.controls[0]);
+        if gb.ControlCount>0 then
+        begin
+          p:=gb.ScreenToControl(gb.ClientToScreen(point(0,0)));
+          MoveWindowOrg(dc,p.x, p.y);
+          gb.PaintControlsHelper(dc,gb.controls[0]);
+        end;
 
         EndPaint(wnd,ps);
         exit(0);
@@ -120,11 +120,11 @@ begin
   result:=CallWindowProc(windows.WNDPROC(OriginalGroupBoxHandler), wnd, msg, _wparam, _lparam);
 end;
 
-
+  {
 procedure TNewGroupBox.PaintControls(DC: HDC; First: TControl);
 begin
   inherited PaintControls(DC, First);
-end;
+end;}
 
 procedure TNewGroupBox.ChildHandlesCreated;
 begin

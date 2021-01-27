@@ -346,6 +346,11 @@ dealloc(dllpath)
 ]]
 
 function injectDotNetDLL(path, classname, methodname, parameter, timeout)
+  if monopipe then
+    --inject the dll using mono
+    
+  end
+  
 
   local m=enumModules()
   local isDotNetCore=false

@@ -39,6 +39,8 @@ type
     cbModPlayer: TCheckBox;
     cbD3DHook: TCheckBox;
     cbDotNet: TCheckBox;
+    cbCCode: TCheckBox;
+    cbIncludes: TCheckBox;
     comboCompression: TComboBox;
     GroupBox1: TGroupBox;
     GroupBox2: TGroupBox;
@@ -64,6 +66,7 @@ type
     procedure Button1Click(Sender: TObject);
     procedure btnGenerateTrainerClick(Sender: TObject);
     procedure Button3Click(Sender: TObject);
+    procedure cbCCodeChange(Sender: TObject);
     procedure cbTrainersizeChange(Sender: TObject);
     procedure FormActivate(Sender: TObject);
     procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
@@ -86,6 +89,7 @@ type
     addedFiles: tstringlist;
 
     procedure addFile(filename: string; folder: string='');
+    procedure addFolder(basepath: string; folder: string='');
   public
     { public declarations }
     filename: string;
@@ -106,7 +110,7 @@ implementation
 
 { TfrmExeTrainerGenerator }
 
-uses MainUnit,ceguicomponents, OpenSave, Globals, LuaHandler;
+uses MainUnit,ceguicomponents, OpenSave, Globals, LuaHandler, commonTypeDefs;
 
 resourcestring
   rsSaving = 'Saving...';
@@ -152,6 +156,36 @@ begin
     7: result:='/';
   end;
 
+end;
+
+procedure TfrmExeTrainerGenerator.addFolder(basepath: string; folder: string='');
+var
+  dirinfo: TSearchRec;
+  r: integer;
+begin
+  if (folder<>'') and ((folder[1]='\') or (folder[1]='/')) then
+    folder:='';
+
+  if basepath.EndsWith(PathDelim)=false then
+    basepath:=basepath+PathDelim;
+
+  zeromemory(@dirinfo, sizeof(TSearchRec));
+  r := FindFirst(basepath+'*.*', FaAnyfile, DirInfo);
+  while (r = 0) do
+  begin
+    if (DirInfo.Attr and FaVolumeId <> FaVolumeID) then
+    begin
+      if ((DirInfo.Attr and FaDirectory) <> FaDirectory) then
+        addFile(basepath+DirInfo.Name, folder)
+      else
+      begin
+        if (DirInfo.Name[1]<>'.') then
+          addFolder(basepath + DirInfo.Name, folder+PathDelim+dirinfo.name);
+      end;
+    end;
+
+    r := FindNext(DirInfo);
+  end;
 end;
 
 procedure TfrmExeTrainerGenerator.addFile(filename: string; folder: string='');
@@ -332,6 +366,9 @@ begin
             if cbModPlayer.checked then
               addfile(cheatenginedir+'libmikmod32.dll');
 
+
+            if cbCCode.checked then
+              addfile(cheatenginedir+'tcc32-32.dll');
           end
           else
           begin
@@ -353,7 +390,13 @@ begin
             if cbModPlayer.checked then
               addfile(cheatenginedir+'libmikmod64.dll');
 
+            if cbCCode.checked then
+              addfile(cheatenginedir+'tcc64-64.dll');
           end;
+
+          if cbIncludes.checked then
+            addfolder(cheatenginedir+'include','include');
+
 
           if cbDotNet.checked then
           begin
@@ -588,6 +631,11 @@ begin
     addDirToList(SelectDirectoryDialog1.FileName);
 end;
 
+procedure TfrmExeTrainerGenerator.cbCCodeChange(Sender: TObject);
+begin
+  cbIncludes.checked:=cbCCode.checked;
+end;
+
 procedure TfrmExeTrainerGenerator.cbTrainersizeChange(Sender: TObject);
 begin
   groupbox1.enabled:=cbGigantic.checked;
@@ -664,7 +712,7 @@ begin
 end;
 
 procedure TfrmExeTrainerGenerator.FormCreate(Sender: TObject);
-var s: string;
+var s,s2: string;
   i: integer;
 begin
   comboCompression.Items.Clear;
@@ -690,6 +738,33 @@ begin
   cbD3DHook.checked:=pos('created3dhook',s)>0;
   cbDotNet.checked:=symhandler.hasDotNetAccess or (pos('dotnet',s)>0);
 
+  for i:=0 to mainform.addresslist.Count-1 do
+  begin
+
+    if mainform.addresslist[i].VarType=vtAutoAssembler then
+    begin
+      if mainform.addresslist[i].AutoAssemblerData.script<>nil then
+      begin
+        s:=mainform.addresslist[i].AutoAssemblerData.script.text;
+        s2:=uppercase(s);
+
+        if (cbCCode.Checked=false) then
+        begin
+          if (pos('{$C}', s2)>0) or (pos('{$CCODE',s2)>0) then
+            cbCCode.Checked:=true;
+        end;
+
+        if (cbCCode.checked) then
+        begin
+          if pos('#include', s)>0 then
+          begin
+            cbIncludes.checked:=true;
+            break;
+          end;
+        end;
+      end;
+    end;
+  end;
 
   if mainform.LuaForms.count=1 then  //if there is only one form use that icon as default
     image1.Picture.Icon:=TCEForm(mainform.LuaForms[0]).icon

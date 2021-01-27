@@ -3775,7 +3775,7 @@ ST_FUNC void preprocess_start(TCCState *s1, int filetype)
 
     if (!(filetype & AFF_TYPE_ASM)) {
         cstr_new(&cstr);
-        //tcc_predefs(s1, &cstr, is_asm);
+        tcc_predefs(s1, &cstr, is_asm);
         if (s1->cmdline_defs.size)
           cstr_cat(&cstr, s1->cmdline_defs.data, s1->cmdline_defs.size);
         if (s1->cmdline_incl.size)
