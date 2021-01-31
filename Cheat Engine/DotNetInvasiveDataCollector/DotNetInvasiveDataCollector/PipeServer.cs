@@ -22,7 +22,7 @@ namespace DotNetInterface
             public const byte GETFIELDTYPENAME = 3;
             public const byte GETFIELDVALUE = 4;
             public const byte SETFIELDVALUE = 5;
-
+            public const byte LOADMODULE = 6;
             public const byte EXIT = 255;
         }
         
@@ -105,7 +105,9 @@ namespace DotNetInterface
 
                     System.Runtime.CompilerServices.RuntimeHelpers.PrepareMethod(mb.MethodHandle);
 
-
+                    Type t = mb.GetType();
+                    Marshal.PrelinkAll(t);
+                    
                     IntPtr p = mb.MethodHandle.GetFunctionPointer();
                     a = (UInt64)p.ToInt64();
                 }
@@ -350,6 +352,20 @@ namespace DotNetInterface
 
         }
 
+        private void loadModule()
+        {
+            string modulepath=ReadUTF8String();
+            try
+            {                
+                Assembly a = Assembly.LoadFile(modulepath);
+                WriteDword(1);
+            }
+            catch
+            {
+                WriteDword(0);
+            }
+        }
+
 
 
 
@@ -400,6 +416,10 @@ namespace DotNetInterface
 
                         case Commands.SETFIELDVALUE:
                             setFieldValue();
+                            break;
+
+                        case Commands.LOADMODULE:
+                            loadModule();
                             break;
 
                             //case Commands.

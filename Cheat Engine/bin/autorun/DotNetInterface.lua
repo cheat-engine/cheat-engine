@@ -25,11 +25,30 @@ DOTNETCMD_GETMETHODENTRYPOINT=2
 DOTNETCMD_GETFIELDTYPENAME=3
 DOTNETCMD_GETFIELDVALUE=4
 DOTNETCMD_SETFIELDVALUE=5
+DOTNETCMD_LOADMODULE=6
+
 
 DOTNETCMD_EXIT=255
 
 
 dotnetmodulelist={}
+
+function dotnet_loadModule(path)
+  local r
+  dotnetpipe.lock()
+  dotnetpipe.writeByte(DOTNETCMD_LOADMODULE) 
+  dotnetpipe.writeString(path)
+  r=dotnetpipe.readDword()
+  dotnetpipe.unlock()
+  
+  if r==1 then  
+    dotnet_initModuleList()
+    reinitializeDotNetSymbolhandler(extractFileName(path))
+    return true
+  else
+    return false
+  end
+end
 
 function dotnet_initModuleList()
   --load the modulelist from the injected dll.  Watch the order
