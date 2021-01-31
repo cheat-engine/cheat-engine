@@ -30,7 +30,7 @@ function compilecsharp(script: string; references: tstringlist): string;  //comp
 
 implementation
 
-uses globals;
+uses cefuncproc, globals;
 
 var counter: integer;
 
@@ -204,7 +204,7 @@ var
   end;
   r: integer;
 begin
-  r:=DotNetExecuteClassMethod({$ifdef standalonetest}'D:\git\cheat-engine\Cheat Engine\bin\CSCompiler.dll'{$else}getCheatEngineDir()+'CSCompiler.dll'{$endif},'CSCompiler','Compiler','NewCompiler',inttostr(ptruint(@delegates)));
+  r:=DotNetExecuteClassMethod({$ifdef standalonetest}'D:\git\cheat-engine\Cheat Engine\bin\CSCompiler.dll'{$else}CheatEngineDir+'CSCompiler.dll'{$endif},'CSCompiler','Compiler','NewCompiler',inttostr(ptruint(@delegates)));
   if r<>1 then raise exception.create('C-Sharp compiler creation failed');
 
   pointer(dCompileCode):=delegates.CompileCode;
