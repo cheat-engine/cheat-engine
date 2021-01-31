@@ -3230,6 +3230,8 @@ procedure TMainForm.Foundlist3CustomDrawSubItem(Sender: TCustomListView;
 var r: trect;
   ts: TTextStyle;
   drawn:boolean;
+
+  fc: TColor;
 begin
   drawn:=false;
   if miShowPreviousValue.checked and (PreviousResults<>nil) then
@@ -3239,6 +3241,7 @@ begin
       sender.Canvas.Font.color:=foundlistColors.ChangedValueColor;
       sender.canvas.font.Style:=sender.canvas.font.Style+[fsBold];
       sender.canvas.Refresh;
+
       drawn:=true;
 
       {$ifdef darwin}

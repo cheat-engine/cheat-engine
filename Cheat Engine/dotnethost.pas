@@ -1,3 +1,5 @@
+//Copyright Cheat Engine
+
 unit dotnethost;
 
 {$mode objfpc}{$H+}

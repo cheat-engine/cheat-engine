@@ -40,6 +40,7 @@ type
     Label5: TLabel;
     Image1: TImage;
     Button1: TButton;
+    Label6: TLabel;
     Label8: TLabel;
     Label9: TLabel;
     Panel1: TPanel;

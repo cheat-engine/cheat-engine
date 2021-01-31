@@ -64,6 +64,7 @@ MONOCMD_GETSTATICFIELDVALUE=40 --fallback for il2cpp which doesn't expose what's
 MONOCMD_SETSTATICFIELDVALUE=41
 MONOCMD_GETCLASSIMAGE=42
 MONOCMD_FREE=43
+MONOCMD_GETIMAGEFILENAME=44
 
 
 MONO_TYPE_END        = 0x00       -- End of List
@@ -827,6 +828,24 @@ function mono_image_get_name(image)
   monopipe.unlock()
   return name
 end
+
+function mono_image_get_filename(image)
+  --if debug_canBreak() then return nil end
+
+  if monopipe==nil then return nil end  
+  monopipe.lock()
+  if monopipe==nil then return nil end
+  
+  monopipe.writeByte(MONOCMD_GETIMAGEFILENAME)
+  monopipe.writeQword(image)
+  local namelength=monopipe.readWord()
+  local name=monopipe.readString(namelength)
+
+  monopipe.unlock()
+  return name
+end
+
+
 
 function mono_isValidName(str)
   local r=string.find(str, "[^%a%d_.]", 1)

@@ -391,6 +391,7 @@ void CPipeServer::InitMono()
 				mono_assembly_loaded = (MONO_ASSEMBLY_LOADED)GetProcAddress(hMono, "il2cpp_assembly_loaded");
 				mono_assembly_open = (MONO_ASSEMBLY_OPEN)GetProcAddress(hMono, "il2cpp_assembly_open");
 				mono_image_open = (MONO_IMAGE_OPEN)GetProcAddress(hMono, "il2cpp_image_open");
+				mono_image_get_filename = (MONO_IMAGE_GET_FILENAME)GetProcAddress(hMono, "il2cpp_image_get_filename");
 
 				il2cpp_field_static_get_value = (IL2CPP_FIELD_STATIC_GET_VALUE)GetProcAddress(hMono, "il2cpp_field_static_get_value");
 				il2cpp_field_static_set_value = (IL2CPP_FIELD_STATIC_SET_VALUE)GetProcAddress(hMono, "il2cpp_field_static_set_value");
@@ -441,6 +442,8 @@ void CPipeServer::InitMono()
 				mono_image_get_assembly = (MONO_IMAGE_GET_ASSEMBLY)GetProcAddress(hMono, "mono_image_get_assembly");
 
 				mono_image_get_name = (MONO_IMAGE_GET_NAME)GetProcAddress(hMono, "mono_image_get_name");
+				mono_image_get_filename = (MONO_IMAGE_GET_FILENAME)GetProcAddress(hMono, "mono_image_get_filename");
+				
 				mono_image_get_table_info = (MONO_IMAGE_GET_TABLE_INFO)GetProcAddress(hMono, "mono_image_get_table_info");
 				mono_image_rva_map = (MONO_IMAGE_RVA_MAP)GetProcAddress(hMono, "mono_image_rva_map");
 
@@ -727,6 +730,15 @@ void CPipeServer::GetImageName()
 	Write(s, (int)strlen(s));
 }
 
+void CPipeServer::GetImageFileName()
+{
+	void *image = (void *)ReadQword();
+	char *s = mono_image_get_filename(image);
+
+	WriteWord((WORD)strlen(s));
+	Write(s, (int)strlen(s));
+}
+
 #include <locale> 
 #include <codecvt> 
 
@@ -812,33 +824,33 @@ void CPipeServer::EnumClassesInImage()
 				{
 					char *name = mono_class_get_name(c);
 
-				WriteQword((UINT_PTR)c);
+					WriteQword((UINT_PTR)c);
 
 
-				std::string sName = std::string(name);
+					std::string sName = std::string(name);
 
-				if ((BYTE)name[0] == 0xEE) {
-					char szUeName[32];
-					sprintf_s(szUeName, 32, "\\u%04X", UTF8TOUTF16(name));
-                    sName = szUeName;
-				}
+					if ((BYTE)name[0] == 0xEE) {
+						char szUeName[32];
+						sprintf_s(szUeName, 32, "\\u%04X", UTF8TOUTF16(name));
+						sName = szUeName;
+					}
 
-				if (c)
-				{
-					WriteWord((WORD)sName.size());
-					Write((PVOID)sName.c_str(), (WORD)sName.size());
-				}
-				else
-					WriteWord(0);
+					if (c)
+					{
+						WriteWord((WORD)sName.size());
+						Write((PVOID)sName.c_str(), (WORD)sName.size());
+					}
+					else
+						WriteWord(0);
 
-				name = mono_class_get_namespace(c);
-				if (name)
-				{
-					WriteWord((WORD)strlen(name));
-					Write(name, (WORD)strlen(name));
-				}
-				else
-					WriteWord(0);
+					name = mono_class_get_namespace(c);
+					if (name)
+					{
+						WriteWord((WORD)strlen(name));
+						Write(name, (WORD)strlen(name));
+					}
+					else
+						WriteWord(0);
 				}
 				else
 					WriteQword(0);
@@ -1839,10 +1851,17 @@ void CPipeServer::LoadAssemblyFromFile(void)
 		mono_domain_set(domain, FALSE);
 
 		void *assembly = mono_assembly_open(imageName, &status);
+		void *image = mono_assembly_get_image(assembly);
+		void *c = mono_class_from_name(image, "", "test");
+
 		WriteQword((UINT_PTR)assembly);
 
 		if (mono_jit_exec)
-			mono_jit_exec(domain, assembly, 0, NULL);
+		{
+			int argc;
+			char *argv = "BLA";
+			mono_jit_exec(domain, assembly, 1, &argv);
+		}
 	}
 }
 
@@ -2049,6 +2068,11 @@ void CPipeServer::Start(void)
 				case MONOCMD_GETIMAGENAME:
 					GetImageName();
 					break;
+
+				case MONOCMD_GETIMAGEFILENAME:
+					GetImageFileName();
+					break;
+
 
 				case MONOCMD_ENUMCLASSESINIMAGE:
 					EnumClassesInImage();

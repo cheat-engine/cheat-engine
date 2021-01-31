@@ -1,8 +1,8 @@
 object MainForm: TMainForm
   Tag = 2
   Left = 879
-  Height = 595
-  Top = 203
+  Height = 662
+  Top = 136
   Width = 620
   HelpContext = 1
   HorzScrollBar.Visible = False
@@ -10,7 +10,7 @@ object MainForm: TMainForm
   AllowDropFiles = True
   AutoSize = True
   Caption = 'Cheat Engine 7.2'
-  ClientHeight = 575
+  ClientHeight = 642
   ClientWidth = 620
   Menu = MainMenu1
   OnClose = FormClose
@@ -25,7 +25,7 @@ object MainForm: TMainForm
     Cursor = crVSplit
     Left = 0
     Height = 7
-    Top = 441
+    Top = 425
     Width = 620
     Align = alTop
     AutoSnap = False
@@ -37,8 +37,8 @@ object MainForm: TMainForm
   object Panel1: TPanel
     Tag = 777
     Left = 0
-    Height = 95
-    Top = 448
+    Height = 178
+    Top = 432
     Width = 620
     Align = alClient
     BevelOuter = bvNone
@@ -51,7 +51,7 @@ object MainForm: TMainForm
   object Panel4: TPanel
     Left = 0
     Height = 32
-    Top = 543
+    Top = 610
     Width = 620
     Align = alBottom
     AutoSize = True
@@ -100,12 +100,12 @@ object MainForm: TMainForm
   end
   object Panel5: TPanel
     Left = 0
-    Height = 441
+    Height = 425
     Top = 0
     Width = 620
     Align = alTop
     BevelOuter = bvNone
-    ClientHeight = 441
+    ClientHeight = 425
     ClientWidth = 620
     TabOrder = 2
     OnResize = Panel5Resize
@@ -231,7 +231,7 @@ object MainForm: TMainForm
       Left = 296
       Height = 28
       Hint = 'Delete all addresses from the list'
-      Top = 413
+      Top = 397
       Width = 28
       Anchors = [akLeft, akBottom]
       Images = mfImageList
@@ -250,7 +250,7 @@ object MainForm: TMainForm
       Left = 212
       Height = 28
       Hint = 'Copy all selected items to the address list'
-      Top = 385
+      Top = 369
       Width = 28
       Anchors = [akLeft, akBottom]
       Images = mfImageList
@@ -1426,7 +1426,6 @@ object MainForm: TMainForm
         BevelOuter = bvNone
         ClientHeight = 136
         ClientWidth = 115
-        ParentFont = False
         TabOrder = 1
         object cbUnrandomizer: TCheckBox
           AnchorSideLeft.Control = Panel10
@@ -1609,7 +1608,7 @@ object MainForm: TMainForm
       AnchorSideTop.Side = asrBottom
       AnchorSideBottom.Control = btnMemoryView
       Left = 1
-      Height = 367
+      Height = 351
       Hint = 'This list shows all the found addresses that matched your last scan'
       Top = 46
       Width = 211
@@ -1655,7 +1654,7 @@ object MainForm: TMainForm
       AnchorSideBottom.Side = asrBottom
       Left = 475
       Height = 18
-      Top = 418
+      Top = 402
       Width = 145
       Anchors = [akRight, akBottom]
       BorderSpacing.Bottom = 5
@@ -1669,7 +1668,7 @@ object MainForm: TMainForm
       AnchorSideBottom.Side = asrBottom
       Left = 0
       Height = 18
-      Top = 418
+      Top = 402
       Width = 98
       Anchors = [akLeft, akBottom]
       BorderSpacing.Bottom = 5

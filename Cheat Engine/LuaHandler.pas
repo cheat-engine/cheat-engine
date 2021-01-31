@@ -126,7 +126,7 @@ uses autoassembler, MainUnit, MainUnit2, LuaClass, frmluaengineunit, plugin, plu
   LuaDiagram, frmUltimap2Unit, frmcodefilterunit, BreakpointTypeDef, LuaSyntax,
   LazLogger, LuaSynedit, LuaRIPRelativeScanner, LuaCustomImageList ,ColorBox,
   rttihelper, LuaDotNetPipe, LuaRemoteExecutor, windows7taskbar, debugeventhandler,
-  tcclib;
+  tcclib, dotnethost, CSharpCompiler;
 
   {$warn 5044 off}
 
@@ -13163,12 +13163,13 @@ begin
 
     try
 
-      if a=0 then //allocate here
+      if a=0 then //allocate myself
       begin
-        if ((list=nil) and (tcc.compileScript(s,a,bytes,nil,errorlog,nil,targetself)=false)) or
+        //test compile to get the size
+        if ((list=nil) and (tcc.compileScript(s,$00400000,bytes,nil,errorlog,nil,targetself)=false)) or
            ((list<>nil) and (
-                             ((isfile=false) and (tcc.compileScripts(list,a,bytes,nil,errorlog,targetself)=false) ) or
-                             ((isfile=true) and (tcc.compileProject(list,a,bytes,nil,errorlog,targetself)=false) )
+                             ((isfile=false) and (tcc.compileScripts(list,$00400000,bytes,nil,errorlog,targetself)=false) ) or
+                             ((isfile=true) and (tcc.compileProject(list,$00400000,bytes,nil,errorlog,targetself)=false) )
                              ))
         then
         begin
@@ -13179,8 +13180,6 @@ begin
             freeandnil(list);
           exit(2);
         end;
-
-
 
         a:=ptruint(VirtualAllocEx(ph,nil, bytes.Size*2,MEM_RESERVE or MEM_COMMIT,PAGE_EXECUTE_READWRITE));
         if a=0 then
@@ -13200,6 +13199,8 @@ begin
 
       sl:=TSymbolListHandler.create;
 
+
+      //actual compile
 
       if ((list=nil) and (tcc.compileScript(s,a,bytes,sl,errorlog,nil,targetself)=false)) or
          ((list<>nil) and (
@@ -13223,15 +13224,17 @@ begin
       begin
         lua_newtable(L);
 
-        si:=sl.FindFirstSymbolFromBase(a);
+        si:=sl.FindFirstSymbolFromBase(0);
 
-        while si.address<a+bytes.size do
+
+        while (si<>nil) and (si.address<a+bytes.size) do
         begin
           lua_pushstring(L,si.originalstring);
           lua_pushinteger(L,si.address);
           lua_settable(L,-3);
           si:=si.next;
         end;
+
 
         result:=1;
 
@@ -13268,6 +13271,80 @@ end;
 function lua_compilefiles(L: Plua_State): integer; cdecl;
 begin
   exit(_lua_compile(L,true));
+end;
+
+function lua_dotNetExecuteClassMethod(L: Plua_State): integer; cdecl;
+var
+  path: string;
+  namespace: string;
+  methodname: string;
+  classname: string;
+  parameters: string;
+
+  r: integer;
+begin
+  //function DotNetExecuteClassMethod(assemblypath: string; namespace: string; classname: string; methodname: string; parameters: string): integer;
+  if lua_gettop(L)<5 then
+  begin
+    lua_pushnil(L);
+    lua_pushstring(L,'Incorrect parameter count (needed 5: path,namespace,classname,methodname, parameters)');
+    exit(2);
+  end;
+
+  path:=Lua_ToString(L,1);
+  namespace:=Lua_ToString(L,2);
+  classname:=Lua_ToString(L,3);
+  methodname:=Lua_ToString(L,4);
+  parameters:=Lua_ToString(L,5);
+  r:=DotNetExecuteClassMethod(path,namespace,classname,methodname, parameters);
+  lua_pushinteger(L,r);
+  result:=1;
+end;
+
+function lua_compilecs(L: Plua_State): integer; cdecl;
+var
+  references: tstringlist;
+  script: string;
+  fn: string;
+begin
+  try
+    if lua_gettop(L)<1 then raise exception.create('script parameter missing');
+
+    script:=Lua_ToString(L,1);
+    references:=tstringlist.create;
+
+    try
+      if lua_gettop(L)>1 then
+      begin
+        if lua_isstring(L,2) then //only one string
+          references.add(lua_tostring(L,2))
+        else
+        begin
+          //go through the whole list
+          lua_pushnil(L);  //first key (nil)
+          while lua_next(L, 2)<>0 do
+          begin
+            references.add(Lua_ToString(L,-1));
+            lua_pop(L,1);
+          end;
+        end;
+      end;
+
+      fn:=compilecsharp(script, references);
+      lua_pushstring(L,fn);
+      result:=1;
+    finally
+      references.free;
+    end;
+
+  except
+    on e: exception do
+    begin
+      lua_pushnil(L);
+      lua_pushstring(L,e.message);
+      exit(2);
+    end;
+  end;
 end;
 
 procedure InitLimitedLuastate(L: Plua_State);
@@ -13941,6 +14018,7 @@ begin
     lua_register(L, 'cpuid', lua_cpuid);
     lua_register(L, 'gc_setPassive', lua_gc_setPassive);
     lua_register(L, 'gc_setActivate', lua_gc_setPassive);
+    lua_register(L, 'gc_setActive', lua_gc_setPassive);
 
     lua_register(L, 'getHotkeyHandlerThread', lua_getHotkeyHandlerThread);
     lua_register(L, 'enumMemoryRegions', lua_enumMemoryRegions);
@@ -13971,6 +14049,11 @@ begin
 
     lua_register(L, 'compile', lua_compile);
     lua_register(L, 'compileFiles', lua_compilefiles);
+    lua_register(L, 'dotNetExecuteClassMethod', lua_dotNetExecuteClassMethod);
+    lua_register(L, 'compileCS', lua_compilecs);
+    lua_register(L, 'compileCSharp', lua_compilecs);
+    lua_register(L, 'compilecsharp', lua_compilecs);
+
 
 
     initializeLuaRemoteThread;

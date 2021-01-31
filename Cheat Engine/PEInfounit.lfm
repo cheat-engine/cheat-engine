@@ -1,11 +1,12 @@
 object frmPEInfo: TfrmPEInfo
-  Left = 414
-  Height = 318
-  Top = 468
-  Width = 485
+  Left = 423
+  Height = 346
+  Top = 370
+  Width = 475
+  AutoSize = True
   Caption = 'Portable Executable (PE) Info'
-  ClientHeight = 318
-  ClientWidth = 485
+  ClientHeight = 346
+  ClientWidth = 475
   OnClose = FormClose
   OnCreate = FormCreate
   OnDestroy = FormDestroy
@@ -13,20 +14,20 @@ object frmPEInfo: TfrmPEInfo
   Position = poScreenCenter
   LCLVersion = '2.0.6.0'
   object GroupBox2: TGroupBox
-    Left = 183
-    Height = 318
+    Left = 191
+    Height = 346
     Top = 0
-    Width = 302
+    Width = 284
     Align = alClient
     Caption = 'Info'
-    ClientHeight = 298
-    ClientWidth = 298
+    ClientHeight = 326
+    ClientWidth = 280
     TabOrder = 0
     object PageControl1: TPageControl
       Left = 0
-      Height = 298
+      Height = 326
       Top = 0
-      Width = 298
+      Width = 280
       ActivePage = TabSheet4
       Align = alClient
       PopupMenu = pmInfo
@@ -81,14 +82,14 @@ object frmPEInfo: TfrmPEInfo
       end
       object TabSheet4: TTabSheet
         Caption = 'Base Relocations'
-        ClientHeight = 270
-        ClientWidth = 290
+        ClientHeight = 298
+        ClientWidth = 272
         ImageIndex = 3
         object lbBaseReloc: TListBox
           Left = 0
-          Height = 270
+          Height = 298
           Top = 0
-          Width = 290
+          Width = 272
           Align = alClient
           ItemHeight = 0
           PopupMenu = pmInfo
@@ -99,14 +100,14 @@ object frmPEInfo: TfrmPEInfo
   end
   object Panel1: TPanel
     Left = 0
-    Height = 318
+    Height = 346
     Top = 0
-    Width = 183
+    Width = 191
     Align = alLeft
     AutoSize = True
     BevelOuter = bvNone
-    ClientHeight = 318
-    ClientWidth = 183
+    ClientHeight = 346
+    ClientWidth = 191
     TabOrder = 1
     object LoadButton: TSpeedButton
       AnchorSideLeft.Control = Panel1
@@ -114,7 +115,7 @@ object frmPEInfo: TfrmPEInfo
       AnchorSideTop.Side = asrBottom
       AnchorSideRight.Control = Panel1
       AnchorSideRight.Side = asrBottom
-      Left = 152
+      Left = 160
       Height = 30
       Top = 192
       Width = 31
@@ -180,12 +181,12 @@ object frmPEInfo: TfrmPEInfo
       Left = 10
       Height = 173
       Top = 19
-      Width = 168
+      Width = 176
       AutoSize = True
       BorderSpacing.Right = 5
       Caption = 'MZ-Start'
       ClientHeight = 153
-      ClientWidth = 164
+      ClientWidth = 172
       TabOrder = 0
       object edtAddress: TEdit
         AnchorSideLeft.Control = GroupBox1
@@ -193,7 +194,7 @@ object frmPEInfo: TfrmPEInfo
         Left = 8
         Height = 23
         Top = 2
-        Width = 107
+        Width = 115
         BorderSpacing.Left = 8
         BorderSpacing.Top = 2
         TabOrder = 0
@@ -207,7 +208,7 @@ object frmPEInfo: TfrmPEInfo
         Left = 8
         Height = 120
         Top = 29
-        Width = 156
+        Width = 164
         Anchors = [akTop, akLeft, akRight]
         BorderSpacing.Top = 4
         BorderSpacing.Bottom = 4
@@ -220,7 +221,7 @@ object frmPEInfo: TfrmPEInfo
         AnchorSideLeft.Side = asrBottom
         AnchorSideTop.Control = edtAddress
         AnchorSideTop.Side = asrCenter
-        Left = 117
+        Left = 125
         Height = 25
         Top = 1
         Width = 47

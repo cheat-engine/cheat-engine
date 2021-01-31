@@ -115,7 +115,7 @@ uses
   LuaHeaderSections, frmDebuggerAttachTimeoutUnit, cheatecoins,
   frmMicrotransactionsUnit, frmSyntaxHighlighterEditor, LuaCustomImageList,
   dotnethost, rttihelper, cefreetype, LuaDotNetPipe, LuaRemoteExecutor,
-  newRadioButton, newCheckbox, newbutton, autoassemblercode;
+  newRadioButton, newCheckbox, newbutton, autoassemblercode, CSharpCompiler;
 
 {$R cheatengine.res}
 {$IFDEF windows}

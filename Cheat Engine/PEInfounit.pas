@@ -71,6 +71,7 @@ type
     procedure ParseFile(loaded: boolean);
   public
     { Public declarations }
+
   end;
 
 function peinfo_getcodesize(header: pointer; headersize: integer=0): dword;
@@ -1012,6 +1013,8 @@ begin
     VirtualFree(loadedmodule,0,MEM_RELEASE);
     loadedmodule:=nil
   end;
+
+  SaveFormPosition(self);
 end;
 
 procedure TfrmPEInfo.FormClose(Sender: TObject; var Action: TCloseAction);
@@ -1095,6 +1098,7 @@ begin
 end;
 
 procedure TfrmPEInfo.FormShow(Sender: TObject);
+var w: integer;
 begin
 
   modulelist.Clear;
@@ -1106,6 +1110,22 @@ begin
   end;
 
   DPIHelper.AdjustSpeedButtonSize(LoadButton);
+  modulelist.height:=canvas.TextHeight('Qj')*10;
+
+  if autosize then //first run
+  begin
+    autosize:=false;
+
+    edtAddress.width:=canvas.TextWidth('DDDDDDDDDDDDD');
+
+
+    clientheight:=label2.top+label2.height*2;
+
+    w:=groupbox2.left+PageControl1.TabRect(3).Right+16;
+    clientwidth:=max(clientwidth, w);
+
+
+  end;
 end;
 
 procedure TfrmPEInfo.Button1Click(Sender: TObject);
@@ -1183,6 +1203,8 @@ end;
 procedure TfrmPEInfo.FormCreate(Sender: TObject);
 begin
   pagecontrol1.TabIndex:=0;
+
+  LoadFormPosition(self);
 end;
 
 initialization

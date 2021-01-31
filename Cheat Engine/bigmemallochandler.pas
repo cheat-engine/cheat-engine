@@ -32,7 +32,7 @@ end;
 implementation
 
 resourcestring
-  rsAllocError = 'VirtualAlloc failed. You probably don''t have enough system '
+  rsAllocError = 'VirtualAlloc failed to allocate %d bytes. You probably don''t have enough system '
     +'memory free. Either install more RAM, or increase the maximum allowed '
     +'paging size';
   rsCEPointerscanMemoryManager = 'CE Pointerscan memory manager';
@@ -106,7 +106,7 @@ begin
       if currentbuffer=nil then
       begin
         {$ifdef cpu64}
-          raise exception.create(rsAllocError);
+          raise exception.create(format(rsAllocError,[newsize]));
         {$else}
           raise exception.create(rsBMAVirtualAllocFailedYouProbablyDontHaveEnoughtVirtualMemoryFreeEtc);
         {$endif}

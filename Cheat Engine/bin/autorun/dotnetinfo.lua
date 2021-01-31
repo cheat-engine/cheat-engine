@@ -528,8 +528,11 @@ end
 
 
 local function ClassSelectionChange(frmDotNetInfo, sender)
+  printf("ClassSelectionChange.  ItemIndex=%d",sender.ItemIndex)
+  printf("frmDotNetInfo.lbClasses.ItemIndex=%d",frmDotNetInfo.lbClasses.ItemIndex)  
   
   if sender.ItemIndex>=0 then
+
     local Domain=DataSource.Domains[frmDotNetInfo.lbDomains.ItemIndex+1]
     local Image=Domain.Images[frmDotNetInfo.lbImages.ItemIndex+1] 
     
@@ -537,6 +540,8 @@ local function ClassSelectionChange(frmDotNetInfo, sender)
     
     local lbc=frmDotNetInfo.lbClasses    
     if lbc.ItemIndex==-1 then return end
+    
+
     
     local ClassIndex=lbc.Items.Data[lbc.ItemIndex]    
     local Class=Image.Classes[ClassIndex]      
@@ -548,10 +553,11 @@ local function ClassSelectionChange(frmDotNetInfo, sender)
     
     
     frmDotNetInfo.gbClassInformation.Caption='Class Information ('..Class.Name..')'
-  
+
+
     --erase the old inhgeritcance fields  
     while frmDotNetInfo.gbInheritance.ControlCount>0 do
-      frmDotNetInfo.gbInheritance.Control[i].destroy()    
+      frmDotNetInfo.gbInheritance.Control[0].destroy()    
     end  
   
     if ClassParent then

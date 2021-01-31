@@ -116,6 +116,20 @@ begin
       acanvas.Brush.color:=oldc;
     end;
 
+    if (not result) and (caption='-') then
+    begin
+      acanvas.Brush.color:=$2b2b2b;
+      acanvas.FillRect(arect);
+      ts:=acanvas.TextStyle;
+      ts.ShowPrefix:=true;
+      acanvas.Brush.Style:=bsSolid;
+      acanvas.pen.color:=clGray;
+      acanvas.pen.Width:=1;
+      acanvas.Line(arect.left+acanvas.TextWidth(' '), arect.CenterPoint.Y,arect.right-acanvas.TextWidth(' '), arect.CenterPoint.Y);
+      acanvas.Brush.color:=oldc;
+      result:=true;
+    end;
+
   end;
 end;
 

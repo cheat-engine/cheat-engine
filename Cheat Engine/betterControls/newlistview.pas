@@ -30,13 +30,20 @@ uses betterControls;
 
 
 procedure TNewListView.setViewStyle(style: TViewStyle);
-var h: THandle;
+var
+  h: THandle;
+  olds: TViewstyle;
+
+  cs: Tcontrolstate;
 begin
+  olds:=viewstyle;
   inherited ViewStyle:=style;
 
   if ShouldAppsUseDarkMode() then
   begin
-    if style=vsReport then
+    cs:=ControlState;
+
+    if (olds<>style) and (style=vsReport) and (not (csReadingState in cs)) then
     begin
       h:=ListView_GetHeader(handle);
       if (h<>0) and (h<>INVALID_HANDLE_VALUE) then
@@ -54,7 +61,9 @@ begin
 end;
 
 procedure TNewListView.ChildHandlesCreated;
-var theme: THandle;
+var
+  theme: THandle;
+  h: thandle;
 begin
   inherited ChildHandlesCreated;
 
@@ -79,6 +88,13 @@ begin
       Font.color:=fDefaultTextColor;
       Color:=fDefaultBackgroundColor;
 
+      h:=ListView_GetHeader(handle);
+      if (h<>0) and (h<>INVALID_HANDLE_VALUE) then
+      begin
+        AllowDarkModeForWindow(h, 1);
+        SetWindowTheme(h, 'ItemsView',nil);
+      end;
+
     end;
 
   end;
@@ -101,7 +117,7 @@ begin
         CDDS_PREPAINT: msg.Result:=CDRF_NOTIFYITEMDRAW;
         CDDS_ITEMPREPAINT:
         begin
-          SetTextColor(p2^.hdc, fDefaultTextColor);
+          SetTextColor(p2^.hdc, clwhite); //fDefaultTextColor);
           msg.result:=CDRF_DODEFAULT;
         end;
       end;

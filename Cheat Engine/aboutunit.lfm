@@ -26,14 +26,14 @@ object About: TAbout
     ClientWidth = 484
     TabOrder = 0
     object Label2: TLabel
-      AnchorSideTop.Control = Label10
+      AnchorSideTop.Control = Label6
       AnchorSideTop.Side = asrBottom
       Left = 5
       Height = 15
-      Top = 128
+      Top = 143
       Width = 92
       BorderSpacing.Left = 5
-      BorderSpacing.Top = 15
+      BorderSpacing.Top = 9
       Caption = 'Special thanks to:'
       ParentColor = False
     end
@@ -43,7 +43,7 @@ object About: TAbout
       AnchorSideTop.Side = asrBottom
       Left = 5
       Height = 15
-      Top = 212
+      Top = 227
       Width = 231
       BorderSpacing.Left = 5
       BorderSpacing.Top = 10
@@ -395,7 +395,7 @@ object About: TAbout
       AnchorSideBottom.Side = asrBottom
       Left = 5
       Height = 15
-      Top = 232
+      Top = 247
       Width = 436
       Anchors = [akTop, akLeft, akRight]
       BorderSpacing.Left = 5
@@ -494,7 +494,7 @@ object About: TAbout
       AnchorSideTop.Side = asrBottom
       Left = 5
       Height = 57
-      Top = 145
+      Top = 160
       Width = 356
       AutoSize = True
       BorderSpacing.Left = 5
@@ -686,6 +686,18 @@ object About: TAbout
       Top = 0
       Width = 102
       Caption = 'Made by: Dark Byte'
+      ParentColor = False
+    end
+    object Label6: TLabel
+      AnchorSideLeft.Control = Label10
+      AnchorSideTop.Control = Label10
+      AnchorSideTop.Side = asrBottom
+      Left = 5
+      Height = 15
+      Top = 119
+      Width = 166
+      BorderSpacing.Top = 6
+      Caption = 'C Compiler by Tiny C-Compiler'
       ParentColor = False
     end
   end
