@@ -204,7 +204,7 @@ var
   end;
   r: integer;
 begin
-  r:=DotNetExecuteClassMethod({$ifdef standalonetest}'D:\git\cheat-engine\Cheat Engine\bin\CSCompiler.dll'{$else}'CSCompiler.dll'{$endif},'CSCompiler','Compiler','NewCompiler',inttostr(ptruint(@delegates)));
+  r:=DotNetExecuteClassMethod({$ifdef standalonetest}'D:\git\cheat-engine\Cheat Engine\bin\CSCompiler.dll'{$else}getCheatEngineDir()+'CSCompiler.dll'{$endif},'CSCompiler','Compiler','NewCompiler',inttostr(ptruint(@delegates)));
   if r<>1 then raise exception.create('C-Sharp compiler creation failed');
 
   pointer(dCompileCode):=delegates.CompileCode;
