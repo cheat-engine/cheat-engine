@@ -9,7 +9,7 @@ uses
   newEdit, newMainMenu, newForm, newListBox, newProgressBar, newMemo, newComboBox,
   newGroupBox, newSpeedButton, newTreeView, newHeaderControl, newScrollBar,
   newScrollBox, newSynEdit, newPageControl, newtabcontrol, newStatusBar,
-  newCheckListBox, newCheckGroup, newColorBox, newDirectoryEdit,
+  newCheckListBox, newCheckGroup, newColorBox, newDirectoryEdit, NewHintwindow,
   Graphics, Themes, UxTheme, bettercontrolColorSet;
 
 type
@@ -39,6 +39,8 @@ type
   TCheckGroup=class(TNewCheckGroup);  //not fully yet (too limited)
   TColorBox=class(TNewColorBox);
   TDirectoryEdit=class(TNewDirectoryEdit);
+  THintWindow=class(TNewHintwindow);
+  THintWindowClass =class of TNewHintwindow;
 
 var
   globalCustomDraw: boolean;
