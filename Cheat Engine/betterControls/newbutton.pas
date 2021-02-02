@@ -39,7 +39,7 @@ type
     procedure MouseUp(Button: TMouseButton; Shift: TShiftState; X, Y: Integer); override;
     procedure ChildHandlesCreated; override;
   published
-    property CustomDraw: boolean read fCustomDraw write fCustomDraw;
+  {  property CustomDraw: boolean read fCustomDraw write fCustomDraw;
     property OnPaint: TNotifyEvent read fOnPaint write fOnPaint;
     property Canvas: TCanvas read fCanvas;
     property Color: TColor read getColor write setColor;
@@ -49,7 +49,7 @@ type
     property FaceColorDisabled: TColor read fFaceColorDisabled write fFaceColorDisabled;
     property BorderColor: TColor read fBorderColor write fBorderColor;
     property InactiveBorderColor: TColor read fInactiveBorderColor write fInactiveBorderColor;
-    property InactiveFontColor: TColor read fInactiveFontColor write fInactiveFontColor;
+    property InactiveFontColor: TColor read fInactiveFontColor write fInactiveFontColor;   }
   end;
 
 
@@ -147,14 +147,14 @@ begin
   begin
     if self=nil then exit;
 
-    if canvas<>nil then
+    if fcanvas<>nil then
     begin
-      Canvas.Font.BeginUpdate;
+      fCanvas.Font.BeginUpdate;
       try
-        Canvas.Font.PixelsPerInch := Font.PixelsPerInch;
-        Canvas.Font := Font;
+        fCanvas.Font.PixelsPerInch := Font.PixelsPerInch;
+        fCanvas.Font := Font;
       finally
-        Canvas.Font.EndUpdate;
+        fCanvas.Font.EndUpdate;
       end;
     end;
 
@@ -195,7 +195,7 @@ begin
     begin
       if self.MouseInClient then
       begin
-        borderColor:=fpenColorHover;
+        fborderColor:=fpenColorHover;
 
         if MouseIsDown then
           facecolor:=fFaceColorDown

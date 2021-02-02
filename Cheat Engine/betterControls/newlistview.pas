@@ -2,6 +2,29 @@ unit newListView;
 
 {$mode objfpc}{$H+}
 
+{
+For people wondering WHY the first subitem has a black background when
+highlighted and not the CE version released on the website:
+lazarus 2.0.6: win32wscustomlistview.inc subfunction HandleListViewCustomDraw of
+ListViewParentMsgHandler
+
+originalcode:
+if DrawInfo^.iSubItem = 0 then Exit;
+DrawResult := ALV.IntfCustomDraw(dtSubItem, Stage,
+  DrawInfo^.nmcd.dwItemSpec, DrawInfo^.iSubItem,
+  ConvState(DrawInfo^.nmcd.uItemState), nil);
+
+
+new code:
+DrawResult := ALV.IntfCustomDraw(dtSubItem, Stage,
+  DrawInfo^.nmcd.dwItemSpec, DrawInfo^.iSubItem,
+  ConvState(DrawInfo^.nmcd.uItemState), nil);
+
+if DrawInfo^.iSubItem = 0 then Exit;
+
+
+}
+
 interface
 
 uses
