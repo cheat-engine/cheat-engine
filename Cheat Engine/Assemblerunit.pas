@@ -955,7 +955,7 @@ const opcodes: array [1..opcodecount] of topcode =(
   (mnemonic:'MOVSLDUP';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m128;bytes:3;bt1:$f3;bt2:$0f;bt3:$12),
 
 
-  (mnemonic:'MOVSQ';bytes:1;bt2:$a5;W1:true),
+  (mnemonic:'MOVSQ';bytes:1;bt1:$a5;W1:true; invalidin32bit: true),
 
   (mnemonic:'MOVSS';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m32;bytes:3;bt1:$f3;bt2:$0f;bt3:$10),
   (mnemonic:'MOVSS';opcode1:eo_reg;paramtype1:par_xmm_m32;paramtype2:par_xmm;bytes:3;bt1:$f3;bt2:$0f;bt3:$11),
