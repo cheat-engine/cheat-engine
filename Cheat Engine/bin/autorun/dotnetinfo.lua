@@ -94,7 +94,7 @@ local function getClassMethods(Class)
         e.Name=methods[i].name
         e.Class=Class
         
-        e.Parameters=getParameterFromMethod(e.Handle)
+        e.Parameters=getParameterFromMethod(e.Handle)        
        
         table.insert(Class.Methods, e)
       end
@@ -120,23 +120,33 @@ local function getClassMethods(Class)
         
         --print("Method "..e.Name)
         --build parameter list
-        local plist=DataSource.DotNetDataCollector.GetMethodParameters(Class.Image.Handle, methods[i].MethodToken)
-        if plist then
-          --print("Plist is valid.  #plist="..#plist) 
-          e.Parameters="("
-          for i=1,#plist do
-            --print("plist var1 = "..plist[i].CType)
-            e.Parameters=e.Parameters..CTypeToString(plist[i].CType).." "..plist[i].Name
-            if i<#plist then
-              e.Parameters=e.Parameters..', '
-            end
-          end
-          
-          e.Parameters=e.Parameters..")"
+        if dotnetpipe then
+          local moduleid=dotnet_getModuleID(Class.Image.FileName)
+          local returntype,parameters=dotnet_getMethodParameters(moduleid, methods[i].MethodToken)
+          e.ReturnType=returntype
+          e.Parameters=parameters
         else
-          --print("plist failed")
-          e.Parameters='(...)'        
+          local plist=DataSource.DotNetDataCollector.GetMethodParameters(Class.Image.Handle, methods[i].MethodToken)
+          if plist then
+            --print("Plist is valid.  #plist="..#plist) 
+            e.Parameters="("
+            for i=1,#plist do
+              --print("plist var1 = "..plist[i].CType)
+              e.Parameters=e.Parameters..CTypeToString(plist[i].CType).." "..plist[i].Name
+              if i<#plist then
+                e.Parameters=e.Parameters..', '
+              end
+            end
+            
+            e.Parameters=e.Parameters..")"
+          else
+            --print("plist failed")
+            e.Parameters='(...)'        
+          end
         end
+        
+        
+       
       
         table.insert(Class.Methods, e)
       end
@@ -493,11 +503,16 @@ local function FillClassInfoFields(frmDotNetInfo, Class)
     end
   end
   
+  
   if Class.Methods then
     for i=1,#Class.Methods do
       local li=frmDotNetInfo.lvMethods.Items.add()   
       li.Caption=Class.Methods[i].Name
-      li.SubItems.add(Class.Methods[i].Parameters)
+      if Class.Methods[i].ReturnType then
+        li.SubItems.add(Class.Methods[i].ReturnType.." "..Class.Methods[i].Parameters)
+      else
+        li.SubItems.add(Class.Methods[i].Parameters)
+      end
     end
   end
 
@@ -528,8 +543,8 @@ end
 
 
 local function ClassSelectionChange(frmDotNetInfo, sender)
-  printf("ClassSelectionChange.  ItemIndex=%d",sender.ItemIndex)
-  printf("frmDotNetInfo.lbClasses.ItemIndex=%d",frmDotNetInfo.lbClasses.ItemIndex)  
+  --printf("ClassSelectionChange.  ItemIndex=%d",sender.ItemIndex)
+  --printf("frmDotNetInfo.lbClasses.ItemIndex=%d",frmDotNetInfo.lbClasses.ItemIndex)  
   
   if sender.ItemIndex>=0 then
 
@@ -839,6 +854,226 @@ local function getMethodAddress(Method)
     end
   end
 end
+
+
+local function GeneratePatchTemplateForMethod(frmDotNetInfo)
+  local Class=frmDotNetInfo.CurrentlyDisplayedClass
+  if Class==nil then return end
+  
+  local Method=Class.Methods[frmDotNetInfo.lvMethods.ItemIndex+1]
+  if Method==nil then return end
+  
+  if (Class.Image.Domain.Control~=CONTROL_MONO) and 
+     (dotnetpipe==nil) and 
+     (messageDialog("For better method return and parameter types it's recommended to inject the invasive dotnet data collector.  Do that now?", mtConfirmation,mbYes, mbNo)==mrYes) then
+    LaunchDotNetInterface()
+    getClassMethods(Class) --reload the methods
+    
+    --reload the list and reselect the correct entry
+    ClassSelectionChange(frmDotNetInfo, frmDotNetInfo.lbClasses)
+        
+    local i
+    for i=1, #Class.Methods do
+      if Class.Methods[i].Handle==Method.Handle then
+        Method=Class.Methods[i]
+        frmDotNetInfo.lvMethods.ItemIndex=i-1
+      end
+    end
+  end
+  
+  --[[code to create a AA script using a huge {$LUA} block that 
+  compiles C# code with the methods header (methodname_new and methodname_old)
+  injects it into the target , and then detours the method to methodname_new 
+  and detours methodname_old to the original callback stub.  
+  
+  The methods get jitted before the function gets detoured
+  --]]  
+  
+  local targetmethodname=Method.Name
+  local newtargetmethodname='new'..Method.Name
+  local oldtargetmethodname='old'..Method.Name
+  
+  local script=[[
+[enable]
+{$lua}  
+if syntaxcheck then return end
+
+
+<initcode>
+
+if dotnetdetours==nil then
+  dotnetdetours={}
+else
+  local di=dotnetdetours['<fullnameDotFormat>']
+  if di and di.processid==getOpenedProcessID() then
+    --already detoured. Undo first
+    local r,err=autoassemble(di.disablescript, di.disableinfo)
+    
+    if not r then 
+      error(err)
+    else
+      dotnetdetours['<fullnameDotFormat>']=nil
+    end    
+  end
+end
+local detourinfo={}
+
+local csharpscript=]].."[["..[[
+
+using System.Runtime.CompilerServices; //for NoInlining
+//feel free to add more
+
+<optionalnamespace>
+public class patched<classname> : <classname>
+{
+
+  public <methodreturntype> new<methodname><methodparamlist>
+  {
+    //you have access to public fields.  Use reflection if you wish to access private fields
+    return old<methodname>(<methodparamlistvaluesonly>);
+  }
+
+  [MethodImpl(MethodImplOptions.NoInlining)]
+  public <methodreturntype> old<methodname><methodparamlist>
+  {
+    //don't bother putting code in here. It will get replaced (just some stuff to make sure there's space)
+    return <methodtypedefaultvalue>;
+  }
+}
+<optionalnamespaceend>
+]].."]]"..[[
+
+local references=dotnetpatch_getAllReferences() --you're free to build your own list
+local csfile,msg=compileCS(csharpscript, references)
+
+if csfile==nil then 
+  if msg==nil then msg=' (?Unknown error?)' end
+  messageDialog('Compilation error:'..msg, mtError) --show compile error in a dialog instead of a lua error only
+  error(msg)
+end
+
+--still here, c# dll created, now inject and hook
+local result, disableinfo, disablescript=InjectDotNetDetour(csfile, "<fullname>","<newfullname>","<oldfullname>")
+
+if result then
+  detourinfo.disableinfo=di
+  detourinfo.disablescript=disablescript
+  detourinfo.processid=getOpenedProcessID()
+  dotnetdetours['<fullnameDotFormat>']=detourinfo
+else   
+  if disableinfo==nil then disableinfo='no reason' end  
+  error('InjectDotNetDetour failed : '..disableinfo) --prevents checking  
+end
+{$asm}
+
+
+[disable]
+{$lua}
+if syntaxcheck then return end
+
+if dotnetdetours['<fullnameDotFormat>'] then
+  autoassemble(dotnetdetours['<fullnameDotFormat>'].disablescript, dotnetdetours['<fullnameDotFormat>'].disableinfo) 
+end
+{$asm}
+]]
+
+  --replace the tokens with the names  
+  local tokens={}  
+  local fullname=Class.Name..'::'..Method.Name 
+
+    
+  local fullnameDotFormat=Class.Name..'.'..Method.Name  
+  
+  print("fullname="..fullname);  
+  
+  local namespace, classname, methodname=SplitDotNetName(fullname)
+  
+  print("namespace="..namespace)
+  print("classname="..classname)
+  print("methodname="..methodname)
+  
+  local newclassname='patched'..classname
+  if namespace and namespace~='' then
+    newclassname=namespace..'.'..newclassname
+  end
+  
+  
+  tokens['fullname']=fullname
+  tokens['newfullname']=newclassname..'::new'..methodname
+  tokens['oldfullname']=newclassname..'::old'..methodname
+  
+  
+  tokens['fullnameDotFormat']=fullnameDotFormat
+  
+  if Class.Image.Domain.Control==CONTROL_MONO then 
+    tokens['initcode']='LaunchMonoDataCollector()'
+  else
+    tokens['initcode']='LaunchDotNetInterface()'
+  end
+  
+  if namespace and namespace~='' then
+    tokens['optionalnamespace']='namespace '..namespace..'{'
+    tokens['optionalnamespaceend']='}'
+  else
+    tokens['optionalnamespace']=''
+    tokens['optionalnamespaceend']=''
+  end
+  
+  
+  
+
+  tokens['classname']=classname --namespace.classname
+  tokens['methodname']=methodname
+  tokens['methodreturntype']=Method.ReturnType --(System.Void)
+  tokens['methodparamlist']=Method.Parameters  --(int x, int y, int z)
+  
+  print("Method.Parameters="..Method.Parameters)
+  local parameterstring=string.gsub(Method.Parameters,"%((.-)%)",function(x) return x end)
+  
+  print("parameterstring="..parameterstring)
+  
+  local pl=table.pack(string.split(parameterstring,', '))
+  local i
+  local varstring=''
+  for i=1,#pl do
+    local vartype,varname=pl[i]:split(' ')
+    if i>1 then
+      varstring=varstring..', '
+    end
+    
+    varstring=varstring..varname    
+  end
+  
+  tokens['methodparamlistvaluesonly']=varstring --x,y,z
+  
+  
+  --get a generic default return value so the compiler doesn't complains
+  methodtypedefaultvalue={}
+  methodtypedefaultvalue['System.Void']=''
+  methodtypedefaultvalue['void']=''
+  methodtypedefaultvalue['System.Boolean']='true'
+  methodtypedefaultvalue['boolean']='true'
+  methodtypedefaultvalue['System.Int32']='0'
+  methodtypedefaultvalue['int']='0'
+  methodtypedefaultvalue['System.Single']='0'
+  methodtypedefaultvalue['float']='0'
+    
+  
+  tokens['methodtypedefaultvalue']=methodtypedefaultvalue[Method.ReturnType]  
+  
+  if tokens['methodtypedefaultvalue']==nil then --unknown type, assume class object
+    tokens['methodtypedefaultvalue']='null'
+  end
+  
+  
+  script=ParseScriptTokens(script,tokens)
+
+  createAutoAssemblerForm(script)
+  
+  
+  
+end
+
 
 local function OpenAddressOfSelectedMethod(frmDotNetInfo)
   local Class=frmDotNetInfo.CurrentlyDisplayedClass
@@ -1431,6 +1666,35 @@ local function lvFieldsDblClick(frmDotNetInfo,sender)
   end
 end
 
+local function InjectInvasiveCollector()
+  if dotnetpipe then return end
+  
+  LaunchDotNetInterface() 
+  
+  if dotnetpipe then
+    --clear all method data
+    local i,j,k
+    for i=1,#DataSource.Domains do
+      if DataSource.Domains[i].Images then
+        for j=1,#DataSource.Domains[i].Images  do   
+          if DataSource.Domains[i].Images[j] and DataSource.Domains[i].Images[j].Classes  then        
+            for k=1,#DataSource.Domains[i].Images[j].Classes do
+              DataSource.Domains[i].Images[j].Classes[k].Methods=nil
+              DataSource.Domains[i].Images[j].Classes[k].Fields=nil
+            end      
+          end
+        end
+      end
+    end
+    
+    
+    
+    for i=1, #frmDotNetInfos do --refresh
+      if (frmDotNetInfos[i].lbClasses.ItemIndex~=-1) then ClassSelectionChange(frmDotNetInfos[i], frmDotNetInfo.lbClasses) end
+    end
+  end
+end
+
 
 function miDotNetInfoClick(sender)
   --print("miDotNetInfoClick")
@@ -1596,8 +1860,14 @@ function miDotNetInfoClick(sender)
   frmDotNetInfo.miFindField.OnClick=function() spawnDotNetSearchDialog(DataSource, frmDotNetInfo, 1) end
   frmDotNetInfo.miFindMethod.OnClick=function() spawnDotNetSearchDialog(DataSource, frmDotNetInfo, 2) end
   
+  frmDotNetInfo.miInjectInvasiveCollector.OnClick=function() InjectInvasiveCollector(frmDotNetInfo) end
+  
   frmDotNetInfo.miJitMethod.Default=true
   frmDotNetInfo.miJitMethod.OnClick=function() OpenAddressOfSelectedMethod(frmDotNetInfo) end
+  
+  frmDotNetInfo.miGeneratePatchTemplateForMethod.OnClick=function() GeneratePatchTemplateForMethod(frmDotNetInfo) end
+  
+  
   frmDotNetInfo.lvMethods.OnDblClick=frmDotNetInfo.miJitMethod.OnClick
   
   frmDotNetInfo.comboFieldBaseAddress.OnChange=function(sender) comboFieldBaseAddressChange(frmDotNetInfo, sender) end
@@ -1647,7 +1917,8 @@ function miDotNetInfoClick(sender)
     CurrentProcess=nil --maybe later
     messageDialog(translate('No .NET info found'),mtError,mbOK)
     frmDotNetInfo.destroy()
-  else
+  else    
+    frmDotNetInfo.miDotNetInterfaceMenu.visible=(DataSource.Domains[1].Control==CONTROL_DOTNET)     
     frmDotNetInfo.show()  
   end
   

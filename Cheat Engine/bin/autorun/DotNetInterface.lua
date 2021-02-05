@@ -26,6 +26,7 @@ DOTNETCMD_GETFIELDTYPENAME=3
 DOTNETCMD_GETFIELDVALUE=4
 DOTNETCMD_SETFIELDVALUE=5
 DOTNETCMD_LOADMODULE=6
+DOTNETCMD_GETMETHODPARAMETERS=7
 
 
 DOTNETCMD_EXIT=255
@@ -33,12 +34,78 @@ DOTNETCMD_EXIT=255
 
 dotnetmodulelist={}
 
+function dotnet_findDotNetMethodAddress(namespace, classname, methodname, modulename)
+  print(string.format("dotnet_findDotNetMethodAddress('%s','%s','%s','%s')",namespace,classname, methodname, modulename))
+
+  local fcn
+
+  if namespace==nil then namespace='' end
+  if modulename then modulename=modulename:lower() end
+
+  if namespace~='' then
+    fcn=namespace..'.'..classname
+  else
+    fcn=classname
+  end
+
+  local dc=getDotNetDataCollector()
+
+  local moduleid
+
+
+  local domains=dc.enumDomains()
+  local i
+  for i=1,#domains do
+    local modules=dc.enumModuleList(domains[i].DomainHandle)
+    local j
+    for j=1,#modules do
+      if (modulename==nil) or (modulename==extractFileName(modules[j].Name):lower()) then
+        local classes=dc.enumTypeDefs(modules[j].ModuleHandle)
+        local k
+        t={}
+
+        for k=1,#classes do
+          --printf("%d: %s (%d) <=>%s (%d)",k, classes[k].Name, #classes[k].Name, fcn, #fcn)
+          t[k]=classes[k].Name
+
+          if classes[k].Name==fcn then
+            --found the class
+            --print("yes")
+            local ml=dc.getTypeDefMethods(modules[j].ModuleHandle, classes[k].TypeDefToken)
+            local l
+            for l=1,#ml do
+              if ml[l].Name==methodname then
+                print("Found method. Calling dotnet_getMethodEntryPoint")
+                local r=dotnet_getMethodEntryPoint(dotnet_getModuleID(extractFileName(modules[j].Name)), ml[l].MethodToken)
+                
+                if r then
+                  printf("%s at address %8x", methodname, r)
+                  return r
+                else
+                  print("failure")
+                end
+              end
+            end
+          end
+        end
+      end
+    end
+  end
+end
+
 function dotnet_loadModule(path)
+  if path==nil then
+    print(debug.traceback())
+    error('dotnet_loadModule: path is nil')
+  end
   local r
   dotnetpipe.lock()
   dotnetpipe.writeByte(DOTNETCMD_LOADMODULE) 
+  dotnetpipe.writeDword(#path);
   dotnetpipe.writeString(path)
   r=dotnetpipe.readDword()
+  if dotnetpipe==nil then return false end
+  
   dotnetpipe.unlock()
   
   if r==1 then  
@@ -56,6 +123,9 @@ function dotnet_initModuleList()
   dotnetpipe.lock()
   dotnetpipe.writeByte(DOTNETCMD_INITMODULELIST)   
   local count=dotnetpipe.readDword()
+  
+  if not (count or dotnetpipe) then return end
+    
   local i
   for i=1,count do
     local stringsize=dotnetpipe.readDword()
@@ -124,6 +194,24 @@ function dotnet_getMethodEntryPoint(moduleid, methoddef)
   return result
 end
 
+function dotnet_getMethodParameters(moduleid, methoddef)
+  if moduleid==nil then error('moduleid is nil') end
+  if methoddef==nil then error('methoddef is nil') end
+  
+  local returntype,parameters,sz
+  dotnetpipe.lock()
+  dotnetpipe.writeByte(DOTNETCMD_GETMETHODPARAMETERS)
+  dotnetpipe.writeDword(moduleid)
+  dotnetpipe.writeDword(methoddef)
+  sz=dotnetpipe.readDword()  
+  returntype=dotnetpipe.readString(sz)
+  sz=dotnetpipe.readDword()  
+  parameters=dotnetpipe.readString(sz)  
+  dotnetpipe.unlock()
+  
+  return returntype, parameters  
+end
+
 function dotnet_getModuleID(modulename)
   if dotnetmodulelist==nil then
     dotnet_initModuleList()
@@ -137,6 +225,18 @@ function dotnet_getModuleID(modulename)
   end
 end
 
+function dotnet_disconnect()
+print("dotnet_disconnect")
+  if dotnetpipe then
+    dotnetpipe.lock()
+    dotnetpipe.writeByte(DOTNETCMD_EXIT) 
+    dotnetpipe.unlock()
+    
+    dotnetpipe.destroy()
+  end
+  dotnetpipe=nil
+end
+
 function LaunchDotNetInterface()
   local dllname
   local remotePipeHandle
@@ -146,8 +246,11 @@ function LaunchDotNetInterface()
   end
   
   if dotnetpipe then
-    dotnetpipe.destroy()
-    dotnetpipe=nil
+    dotnet_disconnect()
+    if dotnetpipe~=nil then
+      dotnetpipe.destroy()
+      dotnetpipe=nil
+    end
   end
  
   dllname="DotNetInterface.dll"     --it's an "Any CPU" library    
@@ -156,6 +259,8 @@ function LaunchDotNetInterface()
   --create a pipe and duplicate it's handle to the target process
   local serverpipe=createPipe('cedotnetpipe_pid'..getOpenedProcessID(), 256*1024,1024)    
   remotePipeHandle=duplicateHandle(serverpipe.Handle)
+  
+  serverpipe.destroy()
   
   --print(string.format("new handle=%d", remotePipeHandle)) 
   
@@ -182,7 +287,8 @@ function LaunchDotNetInterface()
   
   
   dotnetpipe.OnError=function(self)
-    --print("dotnetpipe error")
+    print("dotnetpipe error")
+    dotnetpipe=nil
   end 
 
   dotnetpipe.OnTimeout=function(self)  
@@ -210,6 +316,7 @@ function LaunchDotNetInterface()
     
     messageDialog('pipe connection error (invalid value returned)', mtError, mbOK);
     if dotnetpipe~=nil then
+
       dotnetpipe.destroy()
       dotnetpipe=nil
     end

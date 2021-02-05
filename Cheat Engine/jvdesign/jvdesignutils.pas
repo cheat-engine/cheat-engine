@@ -15,7 +15,8 @@ uses
   windows,
   win32proc,
   {$endif}
-  SysUtils, LCLProc, LCLType, LResources, LCLIntf, LMessages,    Classes, Controls, Graphics, Forms, dialogs;
+  SysUtils, LCLProc, LCLType, LResources, LCLIntf, LMessages,    Classes, Controls,
+  Graphics, Forms, dialogs;
 
 type
   TDesignerDCFlag = (

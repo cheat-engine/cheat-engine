@@ -26,7 +26,7 @@
       <AutoIncrementBuild Value="True"/>
       <MajorVersionNr Value="7"/>
       <MinorVersionNr Value="2"/>
-      <BuildNr Value="6796"/>
+      <BuildNr Value="6808"/>
       <Language Value=""/>
       <CharSet Value=""/>
       <StringTable CompanyName="Cheat Engine" FileDescription="Cheat Engine" ProductVersion="7.2"/>
@@ -637,7 +637,7 @@
         <PackageName Value="LCL"/>
       </Item8>
     </RequiredPackages>
-    <Units Count="403">
+    <Units Count="404">
       <Unit0>
         <Filename Value="cheatengine.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -2762,6 +2762,10 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="CSharpCompiler"/>
       </Unit402>
+      <Unit403>
+        <Filename Value="betterControls\newhintwindow.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit403>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

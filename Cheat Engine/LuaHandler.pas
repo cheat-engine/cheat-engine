@@ -3893,6 +3893,7 @@ var
   ext: string='';
   self: boolean=false;
   script: tstringlist;
+  enable,disable: Tstringlist;
 begin
   address:='';
   addressTo:='';
@@ -3917,12 +3918,26 @@ begin
     lua_pop(L, lua_gettop(L));
 
     script:=tstringlist.create;
+    enable:=tstringlist.create;
+    disable:=tstringlist.create;
     try
+      script.add('[enable]');
+      script.add('');
+      script.add('[disable]');
+      script.add('');
+
       generateAPIHookScript(script, address, addressto, addresstogetnewcalladdress,ext,self);
-      lua_pushstring(L, pchar(script.text));
-      result:=1;
+
+      getEnableOrDisableScript(script, enable, true);
+      getEnableOrDisableScript(script, disable, false);
+
+      lua_pushstring(L, pchar(enable.text));
+      lua_pushstring(L, pchar(disable.text));
+      result:=2;
     finally
       script.free;
+      enable.free;
+      disable.free;
     end;
   end;
 

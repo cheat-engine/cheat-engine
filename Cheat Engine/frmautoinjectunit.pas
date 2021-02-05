@@ -1273,6 +1273,10 @@ begin
     oldsymhandler:=symhandler;
     symhandler:=selfsymhandler;
     processhandler.processhandle:=processhandle;
+  end
+  else
+  begin
+    processhandle:=processhandler.processhandle;
   end;
 
   try
@@ -1355,6 +1359,7 @@ begin
       codesize:=a-b;
     end;
 
+
     getmem(originalcodebuffer,codesize);
     if ReadProcessMemory(processhandle,pointer(b), originalcodebuffer, codesize, br) then
     begin
@@ -1369,6 +1374,7 @@ begin
 
     freememandnil(originalcodebuffer);
     originalcodebuffer:=nil;
+
 
 
 
@@ -1528,6 +1534,13 @@ begin
 
     if disablepos<>-1 then
     begin
+      with disablescript do
+      begin
+        add('dealloc(originalcall'+nameextension+')');
+        if processhandler.is64bit then
+          add('dealloc(jumptrampoline)');
+      end;
+
       for i:=0 to disablescript.Count-1 do
         script.Insert(disablepos+i+1,disablescript[i]);
     end;

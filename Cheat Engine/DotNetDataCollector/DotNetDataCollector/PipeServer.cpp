@@ -745,57 +745,7 @@ void CPipeServer::enumMethodParameters(UINT64 hModule, mdMethodDef MethodDef)
 		int i;	
 		WriteDword(count);
 
-		{
-			mdTypeDef Class;
-			WCHAR methodname[255];
-			ULONG methodnamesize;
-			PCCOR_SIGNATURE sig;
-			ULONG sigsize;
-			ULONG rva;
-			DWORD flags;
-			ULONG dataOut[200];
-			ULONG dataLen;
 
-			
-			/*
-			nvm. Paramnames is good enough.  todo: inject in a .net dll that fetches that data using refelection (if it's really requested a lot)
-			if (MetaData->GetMethodProps(MethodDef, &Class, methodname, 255, &methodnamesize, &attribs, &sig, &sigsize, &rva, &flags) == S_OK)
-			{
-				int x;
-				ULONG pos = 0;
-				if (pos <= sigsize)
-				{
-
-					ULONG callconv = sig[pos];
-					pos++;
-
-					if (pos <= sigsize)
-					{
-						ULONG TypeArgCount;
-						if (callconv && IMAGE_CEE_CS_CALLCONV_GENERIC)
-						{
-							x = CorSigUncompressData(&sig[pos], &TypeArgCount);
-							pos += x;
-						}
-
-						ULONG ArgCount;
-						x = CorSigUncompressData(&sig[pos], &ArgCount);
-						pos += x;
-
-						ULONG ReturnType;
-						x=CorSigUncompressData(&sig[pos], &ReturnType);
-						pos += x;
-
-
-					}
-				}
-
-				
-			}*/
-			
-		}
-
-	
 
 		for (i = 0; i < count; i++)
 		{
@@ -894,7 +844,7 @@ void CPipeServer::enumTypeDefMethods(UINT64 hModule, mdTypeDef TypeDef)
 
 				if (module->GetFunctionFromToken(methods[i], &df)==S_OK)
 				{
-					ICorDebugCode *Code;
+			 		ICorDebugCode *Code;
 					if (df->GetILCode(&Code)==S_OK)
 					{
 						Code->GetAddress(&ILCode);

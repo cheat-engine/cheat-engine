@@ -1451,7 +1451,7 @@ begin
     if color<>clDefault then
       DesignPaintGrid(Canvas, ClientRect, ColorToRGB(color), InvertColor(ColorToRGB(color)), scalex(8,96))
     else
-      DesignPaintGrid(Canvas, ClientRect, clBtnFace,clBlack, scalex(8,96));
+      DesignPaintGrid(Canvas, ClientRect, clBtnFace,clWindowtext, scalex(8,96));
   end;
 end;
 

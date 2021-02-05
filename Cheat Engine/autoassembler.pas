@@ -32,6 +32,7 @@ uses
 
 
 function getenableanddisablepos(code:tstrings;var enablepos,disablepos: integer): boolean;
+procedure getEnableOrDisableScript(code: TStrings; newscript: tstrings; enablescript: boolean);
 function autoassemble(code: tstrings;popupmessages: boolean):boolean; overload;
 function autoassemble(code: Tstrings; popupmessages,enable,syntaxcheckonly, targetself: boolean):boolean; overload;
 function autoassemble(code: Tstrings; popupmessages,enable,syntaxcheckonly, targetself: boolean;var CEAllocarray: TCEAllocArray; var exceptionlist:TCEExceptionListArray; registeredsymbols: tstringlist=nil; memrec: pointer=nil; ccodesymbols: TSymbolListHandler=nil): boolean; overload;
@@ -3951,7 +3952,6 @@ begin
   end;
 end;
 
-
 function getenableanddisablepos(code:tstrings;var enablepos,disablepos: integer): boolean;
 var i,j: integer;
     currentline: string;
@@ -4000,7 +4000,7 @@ begin
 end;
 
 
-procedure getScript(code: TStrings; newscript: tstrings; enablescript: boolean);
+procedure getEnableOrDisableScript(code: TStrings; newscript: tstrings; enablescript: boolean);
 {
 removes the enable or disable section from a script leaving only the outer code and the selected script routine
 }
@@ -4145,11 +4145,11 @@ begin
 
       if enable then
       begin
-        getscript(code, tempstrings, true);
+        getEnableOrDisableScript(code, tempstrings, true);
       end
       else
       begin
-        getscript(code, tempstrings,false);
+        getEnableOrDisableScript(code, tempstrings,false);
       end;
     end;
 

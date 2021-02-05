@@ -1030,7 +1030,7 @@ begin
       pausebutton.Hint:=rsPauseTheGame+pausehotkeystring;
 
       timer1.Enabled:=false;
-      mainform.ProcessLabel.Font.Color:=clMenuText;
+      mainform.ProcessLabel.Font.Color:=clWindowtext;
       mainform.ProcessLabel.Caption:=plabel;
     end;
 

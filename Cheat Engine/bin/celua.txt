@@ -3760,3 +3760,7 @@ properties
 methods
   executeStub(ExecuteCodeExStub,{parameters},timeout,waittilldone) 
 
+
+ce lua extensions:
+string table:
+split(character) -> table of strings separated by character  

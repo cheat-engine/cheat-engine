@@ -30,7 +30,9 @@ function compilecsharp(script: string; references: tstringlist): string;  //comp
 
 implementation
 
+{$ifndef standalonetest}
 uses cefuncproc, globals;
+{$endif}
 
 var counter: integer;
 
@@ -159,7 +161,7 @@ begin
   usedtempdir:=IncludeTrailingPathDelimiter(usedtempdir)+'Cheat Engine'+pathdelim;
 
   inc(counter);
-  filename:='ce-cscode-'+inttostr(getcurrentprocessid)+'-'+inttostr(counter)+'.dll';
+  filename:=usedtempdir+'ce-cscode-'+inttostr(getcurrentprocessid)+'-'+inttostr(counter)+'.dll';
 
   c:=TCSharpCompiler.create;
   errorlog:=tstringlist.create;
@@ -170,7 +172,6 @@ begin
     if c.compile(script, filename, errorlog)=false then
       raise TCSharpCompilerError.create(errorlog.text);
 
-    //create a penis.dll.lock file
     result:=filename;
   finally
     errorlog.free;
@@ -204,7 +205,10 @@ var
   end;
   r: integer;
 begin
+
   r:=DotNetExecuteClassMethod({$ifdef standalonetest}'D:\git\cheat-engine\Cheat Engine\bin\CSCompiler.dll'{$else}CheatEngineDir+'CSCompiler.dll'{$endif},'CSCompiler','Compiler','NewCompiler',inttostr(ptruint(@delegates)));
+
+  //r:=DotNetExecuteClassMethod({$ifdef standalonetest}'D:\git\cheat-engine\Cheat Engine\bin\CSCompiler.dll'{$else}CheatEngineDir+'CSCompiler.dll'{$endif},'CSCompiler','Compiler','NewCompiler',inttostr(ptruint(@delegates)));
   if r<>1 then raise exception.create('C-Sharp compiler creation failed');
 
   pointer(dCompileCode):=delegates.CompileCode;

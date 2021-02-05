@@ -29,17 +29,21 @@ var r: trect;
 begin
   inherited paint;
 
-  r:=Self.GetClientRect;
+  if ShouldAppsUseDarkMode and darkmode then
+  begin
 
-  if sections.count>0 then
-    r.left:=sections[sections.count-1].Right;
+    r:=Self.GetClientRect;
 
-  if r.left>clientwidth-1 then r.left:=clientwidth-1;   //for the last border
+    if sections.count>0 then
+      r.left:=sections[sections.count-1].Right;
 
-  canvas.brush.color:=colorset.TextBackground;
-  canvas.pen.color:=colorset.ButtonBorderColor;
-  canvas.FillRect(r);
-  canvas.Rectangle(r);
+    if r.left>clientwidth-1 then r.left:=clientwidth-1;   //for the last border
+
+    canvas.brush.color:=colorset.TextBackground;
+    canvas.pen.color:=colorset.ButtonBorderColor;
+    canvas.FillRect(r);
+    canvas.Rectangle(r);
+  end;
 
 end;
 

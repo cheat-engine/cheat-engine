@@ -1,5 +1,6 @@
 Mac: Hex editing files
 
+
 add {$C#-code} sections and {$C#} blocks (which end up as injected dll's)
 
 {$luacode} might like the allocated memory addresses afterwards  (perhaps generate a table with these variables inside the ref can later be filled in)

@@ -45,6 +45,7 @@ namespace CSCompiler
             cp.OutputAssembly=outputpath;
 
             CodeDomProvider provider = CodeDomProvider.CreateProvider("CSharp");
+    
             CompilerResults r = provider.CompileAssemblyFromSource(cp, script);
 
             if (r.Errors.Count > 0)
