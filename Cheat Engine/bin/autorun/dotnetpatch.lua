@@ -20,14 +20,25 @@ end
 function dotnetpatch_getAllReferences()
   --gets a list of all assemblies
   --todo: if they are in-memory only, export them to a file first (create the mz/pe manually, just the metadata)
-  local r={} 
-  
+  local r={}
+  local sysfile
+
   if monopipe then
-    --not yet implemented
-    return
+    mono_enumImages(function(img)
+      local n=mono_image_get_filename(img)
+      local ln=extractFileName(n:lower())
+      if ln~='mscorlib.dll' and ln~='netstandard.dll' then
+        table.insert(r,n)
+      else
+        if sysfile==nil then
+          sysfile=n
+        end
+      end
+    end)
+    return r,sysfile
   end
-  
-     
+
+
   local dc=getDotNetDataCollector()
   local d=dc.enumDomains()
   local i
@@ -36,13 +47,17 @@ function dotnetpatch_getAllReferences()
     local j
     for j=1,#ml do
       local ln=extractFileName(ml[j].Name):lower()
-      if ln~='mscorlib.dll' and ln~='netstandard.dll' then        
-        r[#r+1]=ml[j].Name        
+      if ln~='mscorlib.dll' and ln~='netstandard.dll' then
+        r[#r+1]=ml[j].Name
+      else
+        if sysfile==nil then
+          sysfile=ml[j].Name
+        end
       end
     end
   end
-  
-  return r
+
+  return r,sysfile
 end
 
 local function SplitDotNetCommonName(name)

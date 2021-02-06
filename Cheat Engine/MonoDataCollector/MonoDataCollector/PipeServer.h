@@ -51,6 +51,7 @@
 #define MONOCMD_GETCLASSIMAGE 42
 #define MONOCMD_FREE 43
 #define MONOCMD_GETIMAGEFILENAME 44
+#define MONOCMD_GETCLASSNESTINGTYPE 45
 
 
 typedef struct {} MonoType;
@@ -101,6 +102,7 @@ typedef void* (__cdecl *MONO_CLASS_GET_FIELDS)(void *klass, void *iter);
 typedef void* (__cdecl *MONO_CLASS_GET_PARENT)(void *klass);
 typedef void* (__cdecl *MONO_CLASS_GET_IMAGE)(void *klass);
 typedef void* (__cdecl *MONO_CLASS_VTABLE)(void *domain, void *klass);
+typedef int (__cdecl *MONO_CLASS_INSTANCE_SIZE)(void *klass);
 typedef void* (__cdecl *MONO_CLASS_FROM_MONO_TYPE)(void *type);
 typedef void* (__cdecl *MONO_CLASS_GET_ELEMENT_CLASS)(void *klass);
 typedef int (__cdecl *MONO_CLASS_IS_GENERIC)(void *klass);
@@ -186,6 +188,8 @@ typedef void* (__cdecl *IL2CPP_FIELD_STATIC_SET_VALUE)(void* field, void* input)
 typedef void* (__cdecl *MONO_VALUE_BOX)(void *domain, void *klass, void* val);
 typedef void* (__cdecl *MONO_OBJECT_UNBOX)(void *obj);
 typedef void* (__cdecl *MONO_CLASS_GET_TYPE)(void *klass);
+typedef void* (__cdecl *MONO_CLASS_GET_NESTING_TYPE)(void *klass);
+
 
 
 //il2cpp:
@@ -229,6 +233,7 @@ private:
 	MONO_CLASS_GET_PARENT mono_class_get_parent;
 	MONO_CLASS_GET_IMAGE mono_class_get_image;	
 	MONO_CLASS_VTABLE mono_class_vtable;
+	MONO_CLASS_INSTANCE_SIZE mono_class_instance_size;
 	MONO_CLASS_FROM_MONO_TYPE mono_class_from_mono_type;
 	MONO_CLASS_IS_GENERIC mono_class_is_generic;
 
@@ -318,6 +323,8 @@ private:
 	MONO_VALUE_BOX mono_value_box;
 	MONO_OBJECT_UNBOX mono_object_unbox;
 	MONO_CLASS_GET_TYPE mono_class_get_type;
+	MONO_CLASS_GET_NESTING_TYPE mono_class_get_nesting_type;
+
 
 	MONO_METHOD_DESC_SEARCH_IN_IMAGE mono_method_desc_search_in_image;
 	MONO_RUNTIME_INVOKE mono_runtime_invoke;
@@ -381,6 +388,7 @@ private:
 	void GetMethodSignature();
 	void GetMethodParameters();
 	void GetParentClass();
+	void GetClassNestingType();
 	void GetClassImage();
 	void GetVTableFromClass();
 	void GetStaticFieldAddressFromClass();

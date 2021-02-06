@@ -94,7 +94,34 @@ local function getClassMethods(Class)
         e.Name=methods[i].name
         e.Class=Class
         
-        e.Parameters=getParameterFromMethod(e.Handle)        
+        --e.Parameters=getParameterFromMethod(e.Handle)    
+        local types,paramnames,returntype=mono_method_getSignature(e.Handle)        
+       
+        if types then        
+          local typenames={}
+          local tn
+          for tn in string.gmatch(types, '([^,]+)') do
+            table.insert(typenames, tn)
+          end
+          
+          local r='('
+          if #typenames==#paramnames then         
+            local i
+            
+            for i=1,#paramnames do
+              if i>1 then r=r..', ' end
+                
+              r=r..typenames[i]..' '..paramnames[i]              
+            end
+          end 
+          r=r..')'    
+
+          e.Parameters=r
+          
+          if returntype then
+            e.ReturnType=returntype
+          end
+        end
        
         table.insert(Class.Methods, e)
       end
@@ -228,17 +255,26 @@ local function getClasses(Image)
     if classlist then         
       for i=1,#classlist do
         local e={}        
+        e.NestingTypeHandle=mono_class_getNestingType(classlist[i].class)
+        if e.NestingTypeHandle==0 then e.NestingTypeHandle=nil end   
+        
         e.Name=classlist[i].classname
         e.NameSpace=classlist[i].namespace
-        if e.NameSpace and e.NameSpace~='' then
-          e.FullName=classlist[i].namespace..'.'..e.Name
-        else
-          e.FullName=e.Name
-        end
         
+        if e.NestingTypeHandle then
+          e.FullName=mono_class_getFullName(classlist[i].class)        
+        else
+          if e.NameSpace~='' then
+            e.FullName=e.NameSpace..'.'..e.Name
+          else
+            e.FullName=e.Name
+          end
+        end
         e.Handle=classlist[i].class
-        e.ParentHandle=mono_class_getParent(e.Handle)         
-        e.Image=Image
+        e.ParentHandle=mono_class_getParent(e.Handle)                 
+          
+        e.Image=Image       
+        
         
         table.insert(Image.Classes,e)
       end     
@@ -509,7 +545,11 @@ local function FillClassInfoFields(frmDotNetInfo, Class)
       local li=frmDotNetInfo.lvMethods.Items.add()   
       li.Caption=Class.Methods[i].Name
       if Class.Methods[i].ReturnType then
-        li.SubItems.add(Class.Methods[i].ReturnType.." "..Class.Methods[i].Parameters)
+        if Class.Methods[i].Parameters then
+          li.SubItems.add(Class.Methods[i].ReturnType.." "..Class.Methods[i].Parameters)
+        else
+          li.SubItems.add(Class.Methods[i].ReturnType.." (bugged)")
+        end
       else
         li.SubItems.add(Class.Methods[i].Parameters)
       end
@@ -570,7 +610,7 @@ local function ClassSelectionChange(frmDotNetInfo, sender)
     frmDotNetInfo.gbClassInformation.Caption='Class Information ('..Class.Name..')'
 
 
-    --erase the old inhgeritcance fields  
+    --erase the old inheritance fields  
     while frmDotNetInfo.gbInheritance.ControlCount>0 do
       frmDotNetInfo.gbInheritance.Control[0].destroy()    
     end  
@@ -674,11 +714,14 @@ local function ImageSelectionChange(frmDotNetInfo, sender)
       local fullname
       
       for i=1,#classlistchunk do
-        if classlistchunk[i].NameSpace and classlistchunk[i].NameSpace~='' then
-          fullname=classlistchunk[i].NameSpace..'.'..classlistchunk[i].Name
-        else          
-          fullname=classlistchunk[i].Name
-        end        
+        fullname=classlistchunk[i].FullName
+        --print(fullname)
+
+        --if classlistchunk[i].NameSpace and classlistchunk[i].NameSpace~='' then
+        --  fullname=classlistchunk[i].NameSpace..'.'..classlistchunk[i].Name
+        --else          
+        --  fullname=classlistchunk[i].Name
+        --end        
         
         if ClassFilterText=='' then 
           addToList=true
@@ -907,7 +950,7 @@ else
   local di=dotnetdetours['<fullnameDotFormat>']
   if di and di.processid==getOpenedProcessID() then
     --already detoured. Undo first
-    local r,err=autoassemble(di.disablescript, di.disableinfo)
+    local r,err=autoAssemble(di.disablescript, di.disableinfo)
     
     if not r then 
       error(err)
@@ -930,7 +973,7 @@ public class patched<classname> : <classname>
   public <methodreturntype> new<methodname><methodparamlist>
   {
     //you have access to public fields.  Use reflection if you wish to access private fields
-    return old<methodname>(<methodparamlistvaluesonly>);
+    <calloldmethod>    
   }
 
   [MethodImpl(MethodImplOptions.NoInlining)]
@@ -943,12 +986,12 @@ public class patched<classname> : <classname>
 <optionalnamespaceend>
 ]].."]]"..[[
 
-local references=dotnetpatch_getAllReferences() --you're free to build your own list
-local csfile,msg=compileCS(csharpscript, references)
+local references, sysfile=dotnetpatch_getAllReferences() --you're free to build your own list
+local csfile,msg=compileCS(csharpscript, references, sysfile)
 
 if csfile==nil then 
   if msg==nil then msg=' (?Unknown error?)' end
-  messageDialog('Compilation error:'..msg, mtError) --show compile error in a dialog instead of a lua error only
+  messageDialog('Compilation error:'..msg, mtError, mbOK) --show compile error in a dialog instead of a lua error only
   error(msg)
 end
 
@@ -1024,7 +1067,7 @@ end
 
   tokens['classname']=classname --namespace.classname
   tokens['methodname']=methodname
-  tokens['methodreturntype']=Method.ReturnType --(System.Void)
+  
   tokens['methodparamlist']=Method.Parameters  --(int x, int y, int z)
   
   print("Method.Parameters="..Method.Parameters)
@@ -1037,14 +1080,27 @@ end
   local varstring=''
   for i=1,#pl do
     local vartype,varname=pl[i]:split(' ')
-    if i>1 then
-      varstring=varstring..', '
+    
+    if varname then
+      if i>1 then
+        varstring=varstring..', '
+      end     
+      
+      varstring=varstring..varname    
     end
     
-    varstring=varstring..varname    
   end
-  
-  tokens['methodparamlistvaluesonly']=varstring --x,y,z
+
+  if (Method.ReturnType=="System.Void") or (Method.ReturnType=="Void") then --System.Void and Void can not be used as return type
+    tokens['methodreturntype']='void'
+    
+    tokens['calloldmethod']=[[
+old]]..methodname..'('..varstring..[[);
+    return;]]
+  else
+    tokens['methodreturntype']=Method.ReturnType --(e.g System.Int32)
+    tokens['calloldmethod']='return old'..methodname..'('..varstring..');'
+  end
   
   
   --get a generic default return value so the compiler doesn't complains

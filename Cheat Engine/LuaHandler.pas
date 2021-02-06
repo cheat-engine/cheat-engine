@@ -13321,6 +13321,8 @@ var
   references: tstringlist;
   script: string;
   fn: string;
+
+  coreAssembly: string;
 begin
   try
     if lua_gettop(L)<1 then raise exception.create('script parameter missing');
@@ -13345,7 +13347,13 @@ begin
         end;
       end;
 
-      fn:=compilecsharp(script, references);
+      if lua_gettop(L)>2 then
+        coreAssembly:=Lua_ToString(L,3)
+      else
+        coreAssembly:='';
+
+
+      fn:=compilecsharp(script, references, coreAssembly);
       lua_pushstring(L,fn);
       result:=1;
     finally
@@ -14197,6 +14205,9 @@ begin
       s.add('dbvm_raise_privilege=0x'+inttohex(ptruint(@vmxfunctions.dbvm_raise_privilege),8));
       s.add('dbvm_restore_interrupts=0x'+inttohex(ptruint(@vmxfunctions.dbvm_restore_interrupts),8));
       s.add('dbvm_changeselectors=0x'+inttohex(ptruint(@vmxfunctions.dbvm_changeselectors),8));
+
+      s.add('clWindow=0x'+inttohex(clWindow,8));
+      s.add('clWindowText=0x'+inttohex(clWindowtext,8));
       {$endif}
 
       //5.2 backward compatibility:

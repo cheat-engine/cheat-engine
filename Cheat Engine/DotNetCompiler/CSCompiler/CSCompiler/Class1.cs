@@ -20,6 +20,9 @@ namespace CSCompiler
         private delegate void delegateAddAssemblyReference(string path);
 
         [UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Ansi)]
+        private delegate void delegateSetCoreAssembly(string path);
+
+        [UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Ansi)]
         public delegate void delegateCompileError(IntPtr userdata,  string errormsg);
 
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
@@ -28,10 +31,17 @@ namespace CSCompiler
         
         CompilerParameters cp;
 
+        string CoreAssembly;
+
 
         public void AddAssemblyReference(string path)
         {
             cp.ReferencedAssemblies.Add(path);            
+        }
+
+        public void SetCoreAssembly(string path)
+        {
+            CoreAssembly = path;
         }
 
         public Boolean CompileCode(string script, string outputpath, IntPtr userdata, delegateCompileError error)
@@ -43,9 +53,10 @@ namespace CSCompiler
             }
 
             cp.OutputAssembly=outputpath;
+            if (CoreAssembly!="")
+                cp.CoreAssemblyFileName = CoreAssembly;
 
             CodeDomProvider provider = CodeDomProvider.CreateProvider("CSharp");
-    
             CompilerResults r = provider.CompileAssemblyFromSource(cp, script);
 
             if (r.Errors.Count > 0)
@@ -78,6 +89,7 @@ namespace CSCompiler
             
             public IntPtr CompileCode;
             public IntPtr AddReference;
+            public IntPtr SetCoreAssembly;
             public IntPtr Release;
         }
 
@@ -104,6 +116,7 @@ namespace CSCompiler
 
                 s.CompileCode = Marshal.GetFunctionPointerForDelegate((delegateCompile)(newCompiler.CompileCode));
                 s.AddReference = Marshal.GetFunctionPointerForDelegate((delegateAddAssemblyReference)(newCompiler.AddAssemblyReference));
+                s.SetCoreAssembly = Marshal.GetFunctionPointerForDelegate((delegateAddAssemblyReference)(newCompiler.SetCoreAssembly));
                 s.Release = Marshal.GetFunctionPointerForDelegate((delegateRelease)(newCompiler.Release));
 
                 Marshal.StructureToPtr<CompilerFunctions>(s, (IntPtr)a, false);

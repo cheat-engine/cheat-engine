@@ -65,6 +65,7 @@ MONOCMD_SETSTATICFIELDVALUE=41
 MONOCMD_GETCLASSIMAGE=42
 MONOCMD_FREE=43
 MONOCMD_GETIMAGEFILENAME=44
+MONOCMD_GETCLASSNESTINGTYPE=45
 
 
 MONO_TYPE_END        = 0x00       -- End of List
@@ -688,8 +689,13 @@ function mono_addressLookupCallback(address)
       if namespace~='' then
         namespace=namespace..':'
       end
-
-      result=namespace..classname..":"..mono_method_getName(ji.method)
+      
+      if mono_class_getNestingType(class) then
+        result=mono_class_getFullName(class)..":"..mono_method_getName(ji.method)            
+      else
+        result=namespace..classname..":"..mono_method_getName(ji.method)      
+      end      
+      
       if address~=ji.code_start then
         result=result..string.format("+%x",address-ji.code_start)
       end
@@ -980,7 +986,25 @@ function mono_isil2cpp(class)
   result=monopipe.readByte()==1
 
   monopipe.unlock()
-  return result;
+  return result
+end
+
+
+function mono_class_getNestingType(class)
+  --returns the parent class if nested. 0 if not nested
+  local result
+  monopipe.lock()
+  monopipe.writeByte(MONOCMD_GETCLASSNESTINGTYPE)  
+  monopipe.writeQword(class)
+  result=monopipe.readQword()
+  if monopipe==nil then
+    print("mono_class_getNestingType crashed:")
+    print(debug.traceback())
+    return nil
+  end
+  monopipe.unlock()
+  
+  return result
 end
 
 function mono_class_getName(class)
@@ -1000,7 +1024,7 @@ function mono_class_getName(class)
 
     monopipe.unlock()
   end
-  return result;
+  return result
 end
 
 

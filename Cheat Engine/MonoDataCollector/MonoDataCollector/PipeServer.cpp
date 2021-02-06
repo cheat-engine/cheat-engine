@@ -326,6 +326,7 @@ void CPipeServer::InitMono()
 				mono_class_vtable = (MONO_CLASS_VTABLE)GetProcAddress(hMono, "il2cpp_class_vtable");
 				mono_class_from_mono_type = (MONO_CLASS_FROM_MONO_TYPE)GetProcAddress(hMono, "il2cpp_class_from_mono_type");
 				mono_class_get_element_class = (MONO_CLASS_GET_ELEMENT_CLASS)GetProcAddress(hMono, "il2cpp_class_get_element_class");
+				mono_class_instance_size = (MONO_CLASS_INSTANCE_SIZE)GetProcAddress(hMono, "il2cpp_class_instance_size");
 
 				mono_class_num_fields = (MONO_CLASS_NUM_FIELDS)GetProcAddress(hMono, "il2cpp_class_num_fields");
 				mono_class_num_methods = (MONO_CLASS_NUM_METHODS)GetProcAddress(hMono, "il2cpp_class_num_methods");
@@ -392,6 +393,8 @@ void CPipeServer::InitMono()
 				mono_assembly_open = (MONO_ASSEMBLY_OPEN)GetProcAddress(hMono, "il2cpp_assembly_open");
 				mono_image_open = (MONO_IMAGE_OPEN)GetProcAddress(hMono, "il2cpp_image_open");
 				mono_image_get_filename = (MONO_IMAGE_GET_FILENAME)GetProcAddress(hMono, "il2cpp_image_get_filename");
+
+				mono_class_get_nesting_type = (MONO_CLASS_GET_NESTING_TYPE)GetProcAddress(hMono, "mono_class_get_nesting_type");
 
 				il2cpp_field_static_get_value = (IL2CPP_FIELD_STATIC_GET_VALUE)GetProcAddress(hMono, "il2cpp_field_static_get_value");
 				il2cpp_field_static_set_value = (IL2CPP_FIELD_STATIC_SET_VALUE)GetProcAddress(hMono, "il2cpp_field_static_set_value");
@@ -468,6 +471,7 @@ void CPipeServer::InitMono()
 				mono_class_vtable = (MONO_CLASS_VTABLE)GetProcAddress(hMono, "mono_class_vtable");
 				mono_class_from_mono_type = (MONO_CLASS_FROM_MONO_TYPE)GetProcAddress(hMono, "mono_class_from_mono_type");
 				mono_class_get_element_class = (MONO_CLASS_GET_ELEMENT_CLASS)GetProcAddress(hMono, "mono_class_get_element_class");
+				mono_class_instance_size = (MONO_CLASS_INSTANCE_SIZE)GetProcAddress(hMono, "mono_class_instance_size");
 
 				mono_class_num_fields = (MONO_CLASS_NUM_FIELDS)GetProcAddress(hMono, "mono_class_num_fields");
 				mono_class_num_methods = (MONO_CLASS_NUM_METHODS)GetProcAddress(hMono, "mono_class_num_methods");
@@ -523,6 +527,7 @@ void CPipeServer::InitMono()
 				mono_object_new = (MONO_OBJECT_NEW)GetProcAddress(hMono, "mono_object_new");
 
 				mono_class_get_type = (MONO_CLASS_GET_TYPE)GetProcAddress(hMono, "mono_class_get_type");
+				mono_class_get_nesting_type = (MONO_CLASS_GET_NESTING_TYPE)GetProcAddress(hMono, "mono_class_get_nesting_type");
 
 				mono_method_desc_search_in_image = (MONO_METHOD_DESC_SEARCH_IN_IMAGE)GetProcAddress(hMono, "mono_method_desc_search_in_image");
 				mono_runtime_invoke = (MONO_RUNTIME_INVOKE)GetProcAddress(hMono, "mono_runtime_invoke");
@@ -1421,15 +1426,32 @@ void CPipeServer::GetMethodSignature()
 void CPipeServer::GetParentClass(void)
 {
 	void *klass = (void *)ReadQword();
-	UINT_PTR parent = mono_class_get_parent ? (UINT_PTR)mono_class_get_parent(klass) : 0;
+	UINT_PTR parent = 0;
+	if (klass)
+		 parent = mono_class_get_parent ? (UINT_PTR)mono_class_get_parent(klass) : 0;
+
 	WriteQword(parent);
 }
 
+void CPipeServer::GetClassNestingType(void)
+{
+	UINT_PTR nestingtype = 0;
+	void *klass = (void *)ReadQword();
+	if (klass)
+		nestingtype = mono_class_get_nesting_type ? (UINT_PTR)mono_class_get_nesting_type(klass) : 0;
+
+	WriteQword(nestingtype);
+}
+
+
 void CPipeServer::GetClassImage(void)
 {
+	INT_PTR image = 0;
 	void *klass = (void *)ReadQword();
-	UINT_PTR parent = mono_class_get_image ? (UINT_PTR)mono_class_get_image(klass) : 0;
-	WriteQword(parent);
+	if (klass)
+		image = mono_class_get_image ? (UINT_PTR)mono_class_get_image(klass) : 0;
+
+	WriteQword(image);
 }
 
 
@@ -1976,14 +1998,29 @@ void CPipeServer::GetStaticFieldValue()
                         
                         if (sfd>(void*)0x10000)
                         {
-                             mono_field_static_get_value(Vtable, Field, &val);
+	
+							if (mono_class_instance_size)
+							{
+								int sizeNeeded = mono_class_instance_size(mono_class_from_mono_type(mono_field_get_type(Field)));
+
+								if (sizeNeeded <= 8)
+								{
+									mono_field_static_get_value(Vtable, Field, &val);
+								}
+							}
                             
                         }
                         
                         
                     }
-                    else
-                        mono_field_static_get_value(Vtable, Field, &val);
+					else
+					{
+						int sizeNeeded = mono_class_instance_size(mono_class_from_mono_type(mono_field_get_type(Field)));
+						if (sizeNeeded <= 8)
+						{
+							mono_field_static_get_value(Vtable, Field, &val);
+						}
+					}
                 }
             }
         }
@@ -2208,6 +2245,11 @@ void CPipeServer::Start(void)
 				case MONOCMD_GETCLASSIMAGE:
 					GetClassImage();
 					break;
+
+				case MONOCMD_GETCLASSNESTINGTYPE:
+					GetClassNestingType();
+					break;
+
 
 				case MONOCMD_FREE:
 					FreeObject();
