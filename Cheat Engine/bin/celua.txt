@@ -320,6 +320,7 @@ showSelectionList(title, caption, stringlist, allowCustomInput OPTIONAL): intege
 
 messageDialog(text, type, buttons...) : pops up a messagebox with a specific icon/sound with the specified buttons (mbok, mbyes, ....)
 messageDialog(title, text, type, buttons...): ^ but adds a custom title
+messageDialog(text) : shows an information dialog with the text
 
 sleep(milliseconds): pauses for the number of specified milliseconds (1000= 1 sec...)
 

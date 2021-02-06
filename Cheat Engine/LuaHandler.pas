@@ -3750,50 +3750,70 @@ var
   dialogtypeindex: integer;
 begin
   result:=0;
+  dialogtypeindex:=0;
   parameters:=lua_gettop(L);
-  if parameters>=3 then
+  if parameters>=1 then
   begin
-
     title:='';
-    if lua_type(L,2)=LUA_TSTRING then
+
+    if parameters>=2 then
     begin
-      dialogtypeindex:=3;
-      title:=Lua_ToString(L,1);
-      message:=lua_tostring(L,2);
+      if lua_type(L,2)=LUA_TSTRING then
+      begin
+        if parameters>=3 then
+          dialogtypeindex:=3;
+
+        title:=Lua_ToString(L,1);
+        message:=lua_tostring(L,2);
+      end
+      else
+      begin
+        message:=lua_tostring(L,1);
+        if parameters>=2 then
+          dialogtypeindex:=2;
+      end;
     end
     else
-    begin
       message:=lua_tostring(L,1);
-      dialogtypeindex:=2;
-    end;
 
-    dialogtype:=TMsgDlgType(lua_tointeger(L,dialogtypeindex));
+    if dialogtypeindex=0 then
+      dialogtype:=mtConfirmation
+    else
+      dialogtype:=TMsgDlgType(lua_tointeger(L,dialogtypeindex));
 
     b:=[];
-    for i:=dialogtypeindex+1 to parameters do
+
+    if dialogtypeindex>0 then
     begin
-      buttontype:=lua_tointeger(L,i);
-      case buttontype of
-        0:  b:=b+[mbYes];
-        1:  b:=b+[mbNo];
-        2:  b:=b+[mbOK];
-        3:  b:=b+[mbCancel];
-        4:  b:=b+[mbAbort];
-        5:  b:=b+[mbRetry];
-        6:  b:=b+[mbIgnore];
-        7:  b:=b+[mbAll];
-        8:  b:=b+[mbNoToAll];
-        9:  b:=b+[mbYesToAll];
-        10: b:=b+[mbHelp];
-        11: b:=b+[mbClose];
-        else b:=b+[mbyes];
+      for i:=dialogtypeindex+1 to parameters do
+      begin
+        buttontype:=lua_tointeger(L,i);
+        case buttontype of
+          0:  b:=b+[mbYes];
+          1:  b:=b+[mbNo];
+          2:  b:=b+[mbOK];
+          3:  b:=b+[mbCancel];
+          4:  b:=b+[mbAbort];
+          5:  b:=b+[mbRetry];
+          6:  b:=b+[mbIgnore];
+          7:  b:=b+[mbAll];
+          8:  b:=b+[mbNoToAll];
+          9:  b:=b+[mbYesToAll];
+          10: b:=b+[mbHelp];
+          11: b:=b+[mbClose];
+          else b:=b+[mbyes];
+        end;
       end;
     end;
+
+    if b=[] then
+      b:=[mbOk];
+
     lua_pop(L, parameters);
 
 
-    if dialogtypeindex=3 then
-      r:=messageDlg(title,string(message),dialogtype,b,0)
+    if title<>'' then
+      r:=messageDlg(title,message,dialogtype,b,0)
     else
       r:=messageDlg(message, dialogtype, b,0);
 
