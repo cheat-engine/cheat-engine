@@ -7995,7 +7995,7 @@ begin
     begin
       doc:=TXMLDocument.Create;
       try
-        SaveXML(doc, dontDeactivateDesignerForms);
+        SaveXML(doc, dontDeactivateDesignerForms, true);
         WriteXMLFile(doc, s);
         lua_pushboolean(L,true);
         result:=1;

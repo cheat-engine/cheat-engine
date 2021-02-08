@@ -32,8 +32,8 @@ procedure SaveTable(Filename: string; protect: boolean=false; dontDeactivateDesi
 procedure LoadTable(Filename: string;merge: boolean);
 procedure SaveCEM(Filename:string;address:ptrUint; size:dword);
 procedure LoadXML(doc: TXMLDocument; merge: boolean; isTrainer: boolean=false);
-procedure SaveXML(doc: TXMLDocument; dontDeactivateDesignerForms: boolean=false); overload;
-procedure SaveXML(filename: string; dontDeactivateDesignerForms: boolean=false); overload;
+procedure SaveXML(doc: TXMLDocument; dontDeactivateDesignerForms: boolean=false; skipsign: boolean=false); overload;
+procedure SaveXML(filename: string; dontDeactivateDesignerForms: boolean=false; skipsign: boolean=false); overload;
 
 
 
@@ -1194,7 +1194,7 @@ begin
   end;
 end;
 
-procedure SaveXML(doc: TXMLDocument; dontDeactivateDesignerForms: boolean=false);
+procedure SaveXML(doc: TXMLDocument; dontDeactivateDesignerForms: boolean=false; skipsign: boolean=false);
 var
   CheatTable: TDOMElement;
   Files, Forms,Entries,Symbols, Structures, Comment,luascript, luascriptentry, dcomments: TDOMNode;
@@ -1352,17 +1352,17 @@ begin
   end;
 
   {$ifdef windows}
-  if cansigntables and formsettings.cbAlwaysSignTable.checked then
+  if (not skipsign) and cansigntables and formsettings.cbAlwaysSignTable.checked then
     signTable(cheattable);
   {$endif}
 
 end;
 
-procedure SaveXML(Filename: string; dontDeactivateDesignerForms: boolean=false);
+procedure SaveXML(Filename: string; dontDeactivateDesignerForms: boolean=false; skipsign: boolean=false);
 var doc: TXMLDocument;
 begin
   doc:=TXMLDocument.Create;
-  SaveXML(doc, dontDeactivateDesignerForms);
+  SaveXML(doc, dontDeactivateDesignerForms, skipsign);
   WriteXMLFile(doc, filename);
   doc.Free;
 end;
