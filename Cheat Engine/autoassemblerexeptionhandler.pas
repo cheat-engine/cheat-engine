@@ -188,8 +188,7 @@ var
   x: ptruint;
 
   ehallocated: boolean;
-  allocs: TCEAllocArray;
-  exceptions: TCEExceptionListArray; //will hopefully be 0 long
+  disableinfo: tdisableinfo;
   i: integer;
 
 begin
@@ -443,22 +442,29 @@ begin
     init.add('createthreadandwait(registereh)');
 
     //Clipboard.AsText:=init.text;
+    disableinfo:=TDisableInfo.create;
 
-    if autoassemble(init, false, true,false,false,allocs, exceptions)=false then
-      raise exception.create('Failure to assemble exception handler');
+    try
+      if autoassemble(init, false, true,false,false,disableinfo)=false then
+        raise exception.create('Failure to assemble exception handler');
 
-    for i:=0 to length(allocs)-1 do
-      if lowercase(allocs[i].varname)='signature' then
-        signatureaddress:=allocs[i].address
-      else
-      if lowercase(allocs[i].varname)='list' then
-        listaddress:=allocs[i].address
-      else
-      if lowercase(allocs[i].varname)='setlist' then
-        setlistaddress:=allocs[i].address;
+      for i:=0 to length(disableinfo.allocs)-1 do
+      begin
+        if lowercase(disableinfo.allocs[i].varname)='signature' then
+          signatureaddress:=disableinfo.allocs[i].address
+        else
+        if lowercase(disableinfo.allocs[i].varname)='list' then
+          listaddress:=disableinfo.allocs[i].address
+        else
+        if lowercase(disableinfo.allocs[i].varname)='setlist' then
+          setlistaddress:=disableinfo.allocs[i].address;
+      end;
 
 
-    init.free;
+    finally
+      init.free;
+      disableinfo.free;
+    end;
 
     pid:=processid;
   end;

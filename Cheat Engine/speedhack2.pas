@@ -34,8 +34,8 @@ resourcestring
 constructor TSpeedhack.create;
 var i: integer;
     script: tstringlist;
-    AllocArray: TCEAllocArray;
-    exceptionlist: TCEExceptionListArray;
+
+    disableinfo: TDisableInfo;
     x: ptrUint;
 //      y: dword;
     a,b: ptrUint;
@@ -273,19 +273,23 @@ begin
       //  Clipboard.AsText:=script.text;
       {$endif}
 
+      disableinfo:=TDisableInfo.create;
       try
-        setlength(AllocArray,0);
+        disableinfo:=TDisableInfo.create;
+        try
+          autoassemble(script,false,true,false,false,disableinfo);
+          //clipboard.AsText:=script.text;
 
-        autoassemble(script,false,true,false,false,AllocArray, exceptionlist);
-        //clipboard.AsText:=script.text;
-
-        //fill in the address for the init region
-        for i:=0 to length(AllocArray)-1 do
-          if AllocArray[i].varname='init' then
-          begin
-            initaddress:=AllocArray[i].address;
-            break;
-          end;
+          //fill in the address for the init region
+          for i:=0 to length(disableinfo.allocs)-1 do
+            if disableinfo.allocs[i].varname='init' then
+            begin
+              initaddress:=disableinfo.allocs[i].address;
+              break;
+            end;
+        finally
+          disableinfo.free;
+        end;
 
 
       except

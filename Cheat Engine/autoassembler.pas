@@ -30,12 +30,29 @@ uses
 
 {$endif}
 
+type
+  TDisableInfo=class
+  private
+  public
+    allocs: TCEAllocArray;
+    exceptions:TCEExceptionListArray;
+    registeredsymbols: tstringlist;
+    ccodesymbols: TSymbolListHandler;
+    donotfreeccodesymbols: boolean;
+
+    allsymbols: tstringlist; //filled at the end with all known symbols (allocs, labels, kallocs, aobscan results, defines that are addresses, etc...)
+
+    constructor create;
+    destructor destroy; override;
+  end;
+
+  TMemoryrecord=pointer;
+
 
 function getenableanddisablepos(code:tstrings;var enablepos,disablepos: integer): boolean;
 procedure getEnableOrDisableScript(code: TStrings; newscript: tstrings; enablescript: boolean);
 function autoassemble(code: tstrings;popupmessages: boolean):boolean; overload;
-function autoassemble(code: Tstrings; popupmessages,enable,syntaxcheckonly, targetself: boolean):boolean; overload;
-function autoassemble(code: Tstrings; popupmessages,enable,syntaxcheckonly, targetself: boolean;var CEAllocarray: TCEAllocArray; var exceptionlist:TCEExceptionListArray; registeredsymbols: tstringlist=nil; memrec: pointer=nil; ccodesymbols: TSymbolListHandler=nil): boolean; overload;
+function autoassemble(code: Tstrings; popupmessages,enable,syntaxcheckonly, targetself: boolean; disableinfo: TDisableInfo=nil; memrec: TMemoryrecord=nil): boolean; overload;
 
 type TAutoAssemblerPrologue=procedure(code: TStrings; syntaxcheckonly: boolean) of object;
 type TAutoAssemblerCallback=function(parameters: string; syntaxcheckonly: boolean): string of object;
@@ -254,6 +271,31 @@ end;
 
 
 //----------------------------
+
+destructor TDisableInfo.destroy;
+begin
+  setlength(Allocs,0);
+  setlength(exceptions,0);
+  freeandnil(registeredsymbols);
+  if (ccodesymbols<>nil) and (donotfreeccodesymbols=false) then
+    freeandnil(ccodesymbols);
+end;
+
+constructor TDisableInfo.create;
+begin
+  setlength(Allocs,0);
+  setlength(exceptions,0);
+
+  registeredsymbols:=tstringlist.create;
+  registeredsymbols.CaseSensitive:=false;
+  registeredsymbols.Duplicates:=dupIgnore;
+
+  ccodesymbols:=TSymbolListHandler.create;
+
+  allsymbols:=TStringList.create;
+  allsymbols.CaseSensitive:=false;
+  allsymbols.Duplicates:=dupIgnore;
+end;
 
 function lastChanceAllocPrefered(prefered: ptruint; size: integer; protection:dword): ptruint;
 var
@@ -1329,7 +1371,7 @@ end;
 
 var nextaaid: longint;
 
-function autoassemble2(code: tstrings;popupmessages: boolean;syntaxcheckonly:boolean; targetself: boolean ;var ceallocarray:TCEAllocArray; var ceexceptionlist: TCEExceptionListArray; registeredsymbols: tstringlist=nil; memrec: TMemoryRecord=nil; ccodesymbols: TSymbolListHandler=nil):boolean;
+function autoassemble2(code: tstrings;popupmessages: boolean;syntaxcheckonly:boolean; targetself: boolean; disableinfo: TDisableInfo=nil; memrec: TMemoryRecord=nil):boolean;
 {
 registeredsymbols is a stringlist that is initialized by the caller as case insensitive and no duplicates
 }
@@ -1515,24 +1557,24 @@ begin
   currentaddress:=0;
 
 
-
-
-  if syntaxcheckonly and (registeredsymbols<>nil) then
+  //add all symbols as defined labels
+  if disableinfo<>nil then
   begin
-    //add the symbols as defined labels
-    setlength(labels,registeredsymbols.count);
-    for i:=0 to registeredsymbols.count-1 do
+    setlength(labels,disableinfo.allsymbols.count);
+    for i:=0 to disableinfo.allsymbols.count-1 do
     begin
-      labels[i].labelname:=registeredsymbols[i];
+      labels[i].labelname:=disableinfo.allsymbols[i];
       labels[i].defined:=true;
-      labels[i].address:=0;
+      labels[i].address:=ptruint(disableinfo.allsymbols.Objects[i]);
       labels[i].assemblerline:=0;
       setlength(labels[i].references,0);
       setlength(labels[i].references2,0);
     end;
   end;
 
+
   {$ifndef jni}
+
   if targetself then
   begin
     //get this function to use the symbolhandler that's pointing to CE itself and the self processid/handle
@@ -1665,8 +1707,8 @@ begin
                 setlength(addsymbollist,length(addsymbollist)+1);
                 addsymbollist[length(addsymbollist)-1]:=s1;
 
-                if registeredsymbols<>nil then
-                  registeredsymbols.Add(s1);
+                if disableinfo<>nil then
+                  disableinfo.registeredsymbols.Add(s1);
               end;
             end
             else raise exception.Create(rsSyntaxError);
@@ -2220,7 +2262,7 @@ begin
 
 
 
-          if uppercase(copy(currentline,1,17))='UNREGISTERSYMBOL(' then
+          if (disableinfo<>nil) and (uppercase(copy(currentline,1,17))='UNREGISTERSYMBOL(') then
           begin
             //add this symbol to the register symbollist
             a:=pos('(',currentline);
@@ -2233,10 +2275,10 @@ begin
               if s1='*' then
               begin
                 j:=length(deletesymbollist);
-                setlength(deletesymbollist, j+ registeredsymbols.Count);
+                setlength(deletesymbollist, j+ disableinfo.registeredsymbols.Count);
 
-                for k:=0 to registeredsymbols.Count-1 do
-                  deletesymbollist[j+k]:=registeredsymbols[k];
+                for k:=0 to disableinfo.registeredsymbols.Count-1 do
+                  deletesymbollist[j+k]:=disableinfo.registeredsymbols[k];
               end
               else
               begin
@@ -2354,49 +2396,46 @@ begin
             end else raise exception.Create(rsSyntaxError);
           end;
 
-          if (uppercase(copy(currentline,1,8))='DEALLOC(') then
+          if (disableinfo<>nil) and (uppercase(copy(currentline,1,8))='DEALLOC(') then
           begin
-            if (ceallocarray<>nil) then//memory dealloc=possible
+            //syntax: dealloc(x)  x=name of region to deallocate
+            //later on in the code there has to be a line with "labelname:"
+            a:=pos('(',currentline);
+            b:=pos(')',currentline);
+
+            if (a>0) and (b>0) then
             begin
+              s1:=trim(copy(currentline,a+1,b-a-1));
 
-              //syntax: dealloc(x)  x=name of region to deallocate
-              //later on in the code there has to be a line with "labelname:"
-              a:=pos('(',currentline);
-              b:=pos(')',currentline);
-
-              if (a>0) and (b>0) then
+              if s1='*' then
               begin
-                s1:=trim(copy(currentline,a+1,b-a-1));
+                //everything that the script allocated
+                setlength(dealloc, length(disableinfo.allocs));
+                for j:=0 to length(disableinfo.allocs)-1 do
+                  dealloc[j]:=disableinfo.allocs[j].address;
 
-                if s1='*' then
+              end
+              else
+              begin
+                slist:=s1.Split([',',' ']);
+
+                for sli:=0 to length(slist)-1 do
                 begin
-                  //everything that the script allocated
-                  setlength(dealloc, length(ceallocarray));
-                  for j:=0 to length(ceallocarray)-1 do
-                    dealloc[j]:=ceallocarray[j].address;
+                  s1:=slist[sli];
 
-                end
-                else
-                begin
-                  slist:=s1.Split([',',' ']);
-
-                  for sli:=0 to length(slist)-1 do
+                  //find s1 in the ceallocarray
+                  for j:=0 to length(disableinfo.allocs)-1 do
                   begin
-                    s1:=slist[sli];
-
-                    //find s1 in the ceallocarray
-                    for j:=0 to length(ceallocarray)-1 do
+                    if uppercase(disableinfo.allocs[j].varname)=uppercase(s1) then
                     begin
-                      if uppercase(ceallocarray[j].varname)=uppercase(s1) then
-                      begin
-                        setlength(dealloc,length(dealloc)+1);
-                        dealloc[length(dealloc)-1]:=ceallocarray[j].address;
-                      end;
+                      setlength(dealloc,length(dealloc)+1);
+                      dealloc[length(dealloc)-1]:=disableinfo.allocs[j].address;
                     end;
                   end;
                 end;
               end;
             end;
+
             setlength(assemblerlines,length(assemblerlines)-1);
             continue;
           end;
@@ -2585,11 +2624,11 @@ begin
 
 
               //still here, so more complex
-              if syntaxcheckonly and (registeredsymbols<>nil) then
+              if syntaxcheckonly and (disableinfo<>nil) then
               begin
                 //replace tokens with registered symbols from the enable part
-                for j:=0 to registeredsymbols.count-1 do
-                  currentline:=replacetoken(currentline, registeredsymbols[j], '00000000');
+                for j:=0 to disableinfo.registeredsymbols.count-1 do
+                  currentline:=replacetoken(currentline, disableinfo.registeredsymbols[j], '00000000');
               end;
 
               try
@@ -3344,8 +3383,15 @@ begin
           begin
             if i=labels[j].assemblerline then
             begin
-              labels[j].address:=currentaddress;
-              labels[j].defined:=true;
+              if labels[j].defined=true then
+              begin
+                currentaddress:=labels[j].address
+              end
+              else
+              begin
+                labels[j].address:=currentaddress;
+                labels[j].defined:=true;
+              end;
               ok1:=true;
 
 
@@ -3483,14 +3529,17 @@ begin
       for i:=0 to length(dataForAACodePass2.cdata.references)-1 do
         dataForAACodePass2.cdata.references[i].address:=getAddressFromScript(dataForAACodePass2.cdata.references[i].name);
 
-      AutoassemblerCodePass2(dataForAACodePass2, ccodesymbols);
+      if disableinfo<>nil then
+        AutoassemblerCodePass2(dataForAACodePass2, disableinfo.ccodesymbols)
+      else
+        AutoassemblerCodePass2(dataForAACodePass2, nil);
 
-      if ccodesymbols<>nil then
+      if disableinfo<>nil then
       begin
         if targetself then
-          selfsymhandler.AddSymbolList(ccodesymbols)
+          selfsymhandler.AddSymbolList(disableinfo.ccodesymbols)
         else
-          symhandler.AddSymbolList(ccodesymbols);
+          symhandler.AddSymbolList(disableinfo.ccodesymbols);
       end;
 
       //reassemble c-code reference
@@ -3674,18 +3723,18 @@ begin
     end
     else
     begin
-      //if ceallocarray<>nil then
+      if disableinfo<>nil then
       begin
         //see if all allocs are deallocated
-        for i:=0 to length(ceallocarray)-1 do
+        for i:=0 to length(disableinfo.allocs)-1 do
         begin
           //free the ceinternal_autofree entries (if they aren't already marked)
-          if ceallocarray[i].varname.StartsWith('ceinternal_autofree') then
+          if disableinfo.allocs[i].varname.StartsWith('ceinternal_autofree') then
           begin
             ok1:=false;
             for j:=0 to length(dealloc)-1 do
             begin
-              if dealloc[j]=ceallocarray[i].address then
+              if dealloc[j]=disableinfo.allocs[i].address then
               begin
                 ok1:=true;
                 break;
@@ -3697,12 +3746,12 @@ begin
             begin
               j:=length(dealloc);
               setlength(dealloc, j-1);
-              dealloc[j]:=ceallocarray[i].address;
+              dealloc[j]:=disableinfo.allocs[i].address;
             end;
           end;
         end;
 
-        if (length(dealloc)>0) and (length(dealloc)=length(ceallocarray)) then //free everything
+        if (length(dealloc)>0) and (length(dealloc)=length(disableinfo.allocs)) then //free everything
         begin
           {$ifdef cpu64}
           baseaddress:=ptrUint($FFFFFFFFFFFFFFFF);
@@ -3710,7 +3759,7 @@ begin
           baseaddress:=$FFFFFFFF;
           {$endif}
 
-          for i:=0 to length(ceallocarray)-1 do
+          for i:=0 to length(disableinfo.allocs)-1 do
           begin
             virtualfreeex(processhandle,pointer(dealloc[i]),0,MEM_RELEASE);
             if (targetself=false) and allocsAddToUnexpectedExceptionList then
@@ -3721,29 +3770,26 @@ begin
 
           //virtualfreeex(processhandle,pointer(baseaddress),0,MEM_RELEASE);
 
-          if ccodesymbols<>nil then
-          begin
-            ccodesymbols.clear;
-            symhandler.RemoveSymbolList(ccodesymbols);  //caller needs to delete it though
-          end;
+          disableinfo.ccodesymbols.clear;
+          disableinfo.ccodesymbols.unregisterList;
         end;
 
-        setlength(ceallocarray,length(allocs));
+        setlength(disableinfo.allocs,length(allocs));
         for i:=0 to length(allocs)-1 do
-          ceallocarray[i]:=allocs[i];
+          disableinfo.allocs[i]:=allocs[i];
       end;
 
-      if (length(ceexceptionlist)>0) and (AutoAssemblerExceptionHandlerHasEntries) then
+      if (length(disableinfo.exceptions)>0) and (AutoAssemblerExceptionHandlerHasEntries) then
       begin
-        for i:=0 to length(ceexceptionlist)-1 do
-          AutoAssemblerExceptionHandlerRemoveExceptionRange(ceexceptionlist[i]);
+        for i:=0 to length(disableinfo.exceptions)-1 do
+          AutoAssemblerExceptionHandlerRemoveExceptionRange(disableinfo.exceptions[i]);
 
         AutoAssemblerExceptionHandlerApplyChanges;
       end;
 
-      setlength(ceexceptionlist, length(exceptionlist));
-      for i:=0 to length(ceexceptionlist)-1 do
-        ceexceptionlist[i]:=getAddressFromScript(exceptionlist[i].trylabel);
+      setlength(disableinfo.exceptions, length(exceptionlist));
+      for i:=0 to length(disableinfo.exceptions)-1 do
+        disableinfo.exceptions[i]:=getAddressFromScript(exceptionlist[i].trylabel);
 
       //check the addsymbollist array and deletesymbollist array
 
@@ -3798,6 +3844,7 @@ begin
 
       //still here, so create threads if needed
       if length(createthread)>0 then
+      begin
         for i:=0 to length(createthread)-1 do
         begin
           ok1:=true;
@@ -3859,6 +3906,28 @@ begin
             end;
           end;
         end;
+      end;  //^ thread creation
+
+      //fill "allSymbols"
+      if disableinfo<>nil then
+      begin
+        for i:=0 to length(labels)-1 do
+          disableinfo.allsymbols.AddObject(labels[i].labelname, tobject(labels[i].address));
+
+        for i:=0 to length(allocs)-1 do
+          disableinfo.allsymbols.AddObject(allocs[i].varname, tobject(allocs[i].address));
+
+        for i:=0 to length(kallocs)-1 do
+          disableinfo.allsymbols.AddObject(kallocs[i].varname, tobject(kallocs[i].address));
+
+        for i:=0 to length(defines)-1 do
+        begin
+          testptr:=symhandler.getAddressFromName(defines[j].whatever,false,ok1);
+          if ok1=false then
+            disableinfo.allsymbols.AddObject(defines[i].name, tobject(testptr));
+        end;
+      end;
+
 
       {$IFNDEF jni}
       if popupmessages then
@@ -4089,7 +4158,7 @@ begin
   end;
 end;
 
-function autoassemble(code: Tstrings; popupmessages,enable,syntaxcheckonly, targetself: boolean;var CEAllocarray: TCEAllocArray; var exceptionlist:TCEExceptionListArray; registeredsymbols: tstringlist=nil; memrec: pointer=nil; ccodesymbols: TSymbolListHandler=nil): boolean; overload;
+function autoassemble(code: Tstrings; popupmessages,enable,syntaxcheckonly, targetself: boolean; disableinfo: TDisableinfo=nil; memrec: TMemoryRecord=nil): boolean; overload;
 {
 targetself defines if the process that gets injected to is CE itself or the target process
 }
@@ -4159,28 +4228,15 @@ begin
 
     Stripcpuspecificcode(tempstrings, strip32bitcode); //todo: change to set for other types like arm
 
-    result:=autoassemble2(tempstrings,popupmessages,syntaxcheckonly,targetself,ceallocarray, exceptionlist, registeredsymbols, memrec, ccodesymbols);
+    result:=autoassemble2(tempstrings,popupmessages,syntaxcheckonly,targetself, disableinfo, memrec);
   finally
     tempstrings.Free;
   end;
 end;
 
-function autoassemble(code: Tstrings; popupmessages,enable,syntaxcheckonly, targetself: boolean):boolean; overload;
-var
-  aa: TCEAllocArray;
-  ae: TCEExceptionListArray;
-begin
-  setlength(aa,0);
-  result:=autoassemble(code,popupmessages,enable,syntaxcheckonly,targetself,aa,ae);
-end;
-
 function autoassemble(code: tstrings;popupmessages: boolean):boolean; overload;
-var
-  aa: TCEAllocArray;
-  ae: TCEExceptionListArray;
 begin
-  setlength(aa,0);
-  result:=autoassemble(code,popupmessages,true,false,false,aa,ae,nil);
+  result:=autoassemble(code,popupmessages,true,false,false);
 end;
 
 

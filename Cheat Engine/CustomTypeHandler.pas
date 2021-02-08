@@ -47,16 +47,12 @@ type
     routine: pointer;
     reverseroutine: pointer;
 
-
-    {$ifndef jni}
-    c: TCEAllocArray;
-    ce: TCEExceptionListArray;
-    {$endif}
     currentscript: tstringlist;
     fCustomTypeType: TCustomTypeType; //plugins set this to cttPlugin
     fScriptUsesFloat: boolean;
     fScriptUsesCDecl: boolean;
 
+    disableinfo: tobject;//Tdisableinfo;
 
 
     procedure unloadscript;
@@ -484,7 +480,7 @@ begin
 
     if currentscript<>nil then
     begin
-      autoassemble(currentscript,false, false, false, true, c, ce); //popupmessages is false so it won't complain if there is no disable section
+      autoassemble(currentscript,false, false, false, true, tdisableinfo(disableinfo)); //popupmessages is false so it won't complain if there is no disable section
       freeandnil(currentscript);
     end;
   end;
@@ -514,9 +510,8 @@ var i: integer;
   newreverseroutine, oldreverseroutine: pointer;
   newbytesize, oldbytesize: integer;
 
-{$IFNDEF jni}
-  oldallocarray: TCEAllocArray;
-{$ENDIF}
+  newdisableinfo: TDisableInfo;
+
 begin
 
   {$IFNDEF jni}
@@ -529,49 +524,47 @@ begin
   oldScriptUsesFloat:=fScriptUsesFloat;
   oldScriptUsesCDecl:=fScriptUsesCDecl;
 
-  setlength(oldallocarray, length(c));
-  for i:=0 to length(c)-1 do
-    oldallocarray[i]:=c[i];
-
   try
     //if anything goes wrong the old values get set back
 
     if not luascript then
     begin
-      setlength(c,0);
       s:=tstringlist.create;
       try
         s.text:=script;
 
-        if autoassemble(s,false, true, false, true, c, ce) then
+
+        newdisableinfo:=tdisableinfo.create;
+
+        if autoassemble(s,false, true, false, true, newdisableinfo) then
         begin
           newpreferedalignment:=-1;
           newScriptUsesFloat:=false;
           newScriptUsesCDecl:=false;
 
           //find alloc "ConvertRoutine"
-          for i:=0 to length(c)-1 do
+          for i:=0 to length(newdisableinfo.allocs)-1 do
           begin
-            if uppercase(c[i].varname)='TYPENAME' then
-              name:=pchar(c[i].address);
+            if uppercase(newdisableinfo.allocs[i].varname)='TYPENAME' then
+              name:=pchar(newdisableinfo.allocs[i].address);
 
-            if uppercase(c[i].varname)='CONVERTROUTINE' then
-              newroutine:=pointer(c[i].address);
+            if uppercase(newdisableinfo.allocs[i].varname)='CONVERTROUTINE' then
+              newroutine:=pointer(newdisableinfo.allocs[i].address);
 
-            if uppercase(c[i].varname)='BYTESIZE' then
-              newbytesize:=pinteger(c[i].address)^;
+            if uppercase(newdisableinfo.allocs[i].varname)='BYTESIZE' then
+              newbytesize:=pinteger(newdisableinfo.allocs[i].address)^;
 
-            if uppercase(c[i].varname)='PREFEREDALIGNMENT' then
-              newpreferedalignment:=pinteger(c[i].address)^;
+            if uppercase(newdisableinfo.allocs[i].varname)='PREFEREDALIGNMENT' then
+              newpreferedalignment:=pinteger(newdisableinfo.allocs[i].address)^;
 
-            if uppercase(c[i].varname)='USESFLOAT' then
-              newScriptUsesFloat:=pbyte(c[i].address)^<>0;
+            if uppercase(newdisableinfo.allocs[i].varname)='USESFLOAT' then
+              newScriptUsesFloat:=pbyte(newdisableinfo.allocs[i].address)^<>0;
 
-            if uppercase(c[i].varname)='CALLMETHOD' then
-               newScriptUsesCDecl:=pbyte(c[i].address)^<>0;
+            if uppercase(newdisableinfo.allocs[i].varname)='CALLMETHOD' then
+               newScriptUsesCDecl:=pbyte(newdisableinfo.allocs[i].address)^<>0;
 
-            if uppercase(c[i].varname)='CONVERTBACKROUTINE' then
-              newreverseroutine:=pointer(c[i].address);
+            if uppercase(newdisableinfo.allocs[i].varname)='CONVERTBACKROUTINE' then
+              newreverseroutine:=pointer(newdisableinfo.allocs[i].address);
           end;
 
           if newpreferedalignment=-1 then
@@ -598,8 +591,10 @@ begin
           currentscript:=tstringlist.create;
           currentscript.text:=script;
 
+          if disableinfo<>nil then
+            freeandnil(disableinfo);
 
-
+          disableinfo:=newdisableinfo;
         end;
 
       finally
@@ -678,9 +673,7 @@ begin
 
       fScriptUsesCDecl:=oldScriptUsesCDecl;
 
-      setlength(c,length(oldallocarray));
-      for i:=0 to length(oldallocarray)-1 do
-        c[i]:=oldallocarray[i];
+
 
       raise TCustomTypeException.create(e.Message); //and now raise the error
     end;

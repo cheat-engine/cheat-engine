@@ -641,22 +641,17 @@ procedure TfrmAutoInject.btnExecuteClick(Sender: TObject);
 var
     a,b,i: integer;
 
-    aa: TCEAllocArray;
-    exceptionlist: TCEExceptionListArray;
+    disableinfo: TDisableInfo;
 
 
     //variables for injectintomyself:
     check: boolean;
-    registeredsymbols: TStringlist;
-    ccodesymbols: TSymbolListHandler;
     errmsg: string;
 
     sl: TStringlist;
 begin
 {$ifndef standalonetrainerwithassembler}
-  registeredsymbols:=tstringlist.Create;
-  registeredsymbols.CaseSensitive:=false;
-  registeredsymbols.Duplicates:=dupIgnore;
+  disableinfo:=TDisableInfo.create;
 
   case scriptmode of
     smlua:
@@ -674,15 +669,15 @@ begin
 
         //check if both scripts are valid before allowing the edit
 
-        setlength(aa,1);
         getenableanddisablepos(assemblescreen.Lines,a,b);
         if not CustomTypeScript then
           if (a=-1) and (b=-1) then raise exception.create(rsCodeNeedsEnableAndDisable);
 
 
+
         try
-          check:=autoassemble(assemblescreen.lines,false,true,true,injectintomyself,aa,exceptionlist,registeredsymbols,memrec) and
-                 autoassemble(assemblescreen.lines,false,false,true,injectintomyself,aa,exceptionlist,registeredsymbols,memrec);
+          check:=autoassemble(assemblescreen.lines,false,true,true,injectintomyself,disableinfo,memrec) and
+                 autoassemble(assemblescreen.lines,false,false,true,injectintomyself,disableinfo,memrec);
 
           if not check then
             errmsg:=format(rsNotAllCodeIsInjectable,['']);
@@ -711,25 +706,23 @@ begin
       else
       begin
         try
-          ccodesymbols:=tsymbollisthandler.create;   //this will cause the AA to register the symbols
-          ccodesymbols.name:='AA Single Execute';
+          disableinfo.ccodesymbols.name:='AA Single Execute';
 
-          autoassemble(assemblescreen.lines,true,true,false,false,aa,exceptionlist,nil,nil,ccodesymbols);
-          if ccodesymbols.count>0 then
+          autoassemble(assemblescreen.lines,true,true,false,false,disableinfo);
+          if disableinfo.ccodesymbols.count>0 then
           begin
             sl:=tstringlist.create;
-            ccodesymbols.GetSymbolList(sl);
+            disableinfo.ccodesymbols.GetSymbolList(sl);
             if MessageDlg('The following C-Code symbols where registered:'+sl.text+#13#10+'Do you wish to keep these?',mtConfirmation, [mbyes,mbno],0)<>mryes then
-              ccodesymbols.free;
-
-            ccodesymbols.refcount:=0;
+              disableinfo.free
+            else
+            begin
+              disableinfo.ccodesymbols.refcount:=0;
+              disableinfo.donotfreeccodesymbols:=true; //has to be manually deleted
+            end;
 
             sl.free;
-          end
-          else
-            ccodesymbols.Free;
-
-
+          end;
 
         except
           on e:exception do
@@ -748,7 +741,8 @@ begin
     end;
 
   end;
-  registeredsymbols.free;
+
+  disableinfo.free;
 {$endif}
 end;
 
@@ -1169,31 +1163,19 @@ end;
 
 procedure TfrmAutoInject.Assigntocurrentcheattable1Click(Sender: TObject);
 var a,b: integer;
-    aa:TCEAllocArray;
-    exceptionlist:TCEExceptionListArray;
-    registeredsymbols: TStringlist;
 begin
-  registeredsymbols:=tstringlist.Create;
-  registeredsymbols.CaseSensitive:=false;
-  registeredsymbols.Duplicates:=dupIgnore;
 
+  getenableanddisablepos(assemblescreen.Lines,a,b);
+  if (a=-1) and (b=-1) then raise exception.create(rsCodeNeedsEnableAndDisable);
 
+  if autoassemble(assemblescreen.lines,true,true,true,false) and
+     autoassemble(assemblescreen.lines,true,false,true,false) then
+  begin
+    //add a entry with type 255
+    mainform.AddAutoAssembleScript(assemblescreen.text);
+  end
+  else showmessage(rsFailedToAddToTableNotAllCodeIsInjectable);
 
-  try
-    setlength(aa,0);
-    getenableanddisablepos(assemblescreen.Lines,a,b);
-    if (a=-1) and (b=-1) then raise exception.create(rsCodeNeedsEnableAndDisable);
-
-    if autoassemble(assemblescreen.lines,true,true,true,false,aa,exceptionlist,registeredsymbols) and
-       autoassemble(assemblescreen.lines,true,false,true,false,aa,exceptionlist,registeredsymbols) then
-    begin
-      //add a entry with type 255
-      mainform.AddAutoAssembleScript(assemblescreen.text);
-    end
-    else showmessage(rsFailedToAddToTableNotAllCodeIsInjectable);
-  finally
-    freeandnil(registeredsymbols);
-  end;
 end;
 
 procedure Getjumpandoverwrittenbytes(address,addressto: ptrUint; jumppart,originalcodepart: tstrings);

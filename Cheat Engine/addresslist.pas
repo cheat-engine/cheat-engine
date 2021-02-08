@@ -214,7 +214,8 @@ type
 implementation
 
 uses dialogs, formAddressChangeUnit, TypePopup, PasteTableentryFRM, MainUnit,
-  ProcessHandlerUnit, frmEditHistoryUnit, globals, Filehandler, ceregistry;
+  ProcessHandlerUnit, frmEditHistoryUnit, globals, Filehandler, ceregistry,
+  memrecDataStructures;
 
 resourcestring
   rsDoYouWantToDeleteTheSelectedAddress = 'Do you want to delete the selected address?';

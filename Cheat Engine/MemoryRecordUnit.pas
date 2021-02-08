@@ -9,7 +9,7 @@ uses
   Windows, forms, graphics, Classes, SysUtils, controls, stdctrls, comctrls,
   symbolhandler, SymbolListHandler, cefuncproc,newkernelhandler, hotkeyhandler,
   dom, XMLRead,XMLWrite, customtypehandler, fileutil, LCLProc, commonTypeDefs,
-  pointerparser, LazUTF8, LuaClass, math, betterControls;
+  pointerparser, LazUTF8, LuaClass, math, betterControls, memrecDataStructures;
 {$endif}
 
 {$ifdef darwin}
@@ -17,7 +17,7 @@ uses
   macport, forms, graphics, Classes, SysUtils, controls, stdctrls, comctrls,
   symbolhandler, SymbolListHandler, cefuncproc,newkernelhandler, hotkeyhandler,
   dom, XMLRead,XMLWrite, CustomTypeHandler, fileutil, LCLProc, commonTypeDefs,
-  pointerparser, LazUTF8, LuaClass, math;
+  pointerparser, LazUTF8, LuaClass, math,memrecDataStructures;
 {$endif}
 
 {$ifdef jni}
@@ -41,53 +41,15 @@ resourcestring
   rsIncreaseValue = 'Increase Value';
   rsDecreaseValue = 'Decrease Value';
   rsAdjustMRwithRelativeAddress = 'Do you wish to adjust memory records with relative addresses as well?';
-type TMemrecHotkeyAction=(mrhToggleActivation=0, mrhToggleActivationAllowIncrease=1, mrhToggleActivationAllowDecrease=2, mrhActivate=3, mrhDeactivate=4, mrhSetValue=5, mrhIncreaseValue=6, mrhDecreaseValue=7);
-
-type TFreezeType=(ftFrozen, ftAllowIncrease, ftAllowDecrease);
-
-
-
-type TMemrecOption=(moHideChildren, moActivateChildrenAsWell, moDeactivateChildrenAsWell, moRecursiveSetValue, moAllowManualCollapseAndExpand, moManualExpandCollapse, moAlwaysHideChildren);
-type TMemrecOptions=set of TMemrecOption;
-
-type TMemrecStringData=record
-  unicode: boolean;
-  codepage: boolean;
-  length: integer;
-  ZeroTerminate: boolean;
-end;
-
-type TMemRecBitData=record
-      Bit     : Byte;
-      bitlength: integer;
-      showasbinary: boolean;
-    end;
-
-type TMemRecByteData=record
-      bytelength: integer;
-    end;
-
-type TMemRecAutoAssemblerData=record
-      script: tstringlist;
-      allocs: TCEAllocArray;
-      exceptionlist: TCEExceptionListArray;
-      registeredsymbols: TStringlist;
-      ccodesymbols: TSymbolListHandler;
-      lastExecutionFailed: boolean;
-      lastExecutionFailedReason: string;
-    end;
-
-type TMemRecExtraData=record
-    case integer of
-      1: (stringData: TMemrecStringData); //if this is the last level (maxlevel) this is an PPointerList
-      2: (bitData: TMemRecBitData);   //else it's a PReversePointerListArray
-      3: (byteData: TMemRecByteData);
-  end;
-
-
-
 
 type
+  TMemrecHotkeyAction=(mrhToggleActivation=0, mrhToggleActivationAllowIncrease=1, mrhToggleActivationAllowDecrease=2, mrhActivate=3, mrhDeactivate=4, mrhSetValue=5, mrhIncreaseValue=6, mrhDecreaseValue=7);
+  TFreezeType=(ftFrozen, ftAllowIncrease, ftAllowDecrease);
+
+  TMemrecOption=(moHideChildren, moActivateChildrenAsWell, moDeactivateChildrenAsWell, moRecursiveSetValue, moAllowManualCollapseAndExpand, moManualExpandCollapse, moAlwaysHideChildren);
+  TMemrecOptions=set of TMemrecOption;
+
+
   TMemoryRecordHotkey=class;
   TMemoryRecord=class;
   TMemoryRecordProcessingThread=class;
@@ -460,6 +422,7 @@ type
   private
     owner: TMemoryRecord;
     state: boolean;
+    procedure reinterpretAddresses;
   public
     procedure Execute; override;
     constructor Create(o: TMemoryRecord; s: boolean);
@@ -482,14 +445,20 @@ uses mainunit, addresslist, formsettingsunit, LuaHandler, lua, lauxlib, lualib, 
 
 
 {---------------------TMemoryRecordProcessingThread-------------------------}
+
+procedure TMemoryRecordProcessingThread.reinterpretAddresses;
+begin
+  TAddresslist(owner.fOwner).ReinterpretAddresses;
+end;
+
 procedure TMemoryRecordProcessingThread.Execute;
 begin
   try
-    if autoassemble(owner.autoassemblerdata.script, false, state, false, false, owner.autoassemblerdata.allocs, owner.autoassemblerdata.exceptionlist, owner.autoassemblerdata.registeredsymbols, owner, owner.autoassemblerdata.ccodesymbols) then
+    if autoassemble(owner.autoassemblerdata.script, false, state, false, false, owner.autoassemblerdata.disableinfo, owner) then
     begin
       owner.fActive:=state;
-      if (owner.autoassemblerdata.registeredsymbols.Count>0) or (owner.autoassemblerdata.ccodesymbols.count>0)  then //if it has a registered symbol then reinterpret all addresses
-        TAddresslist(owner.fOwner).ReinterpretAddresses;
+      if (owner.autoassemblerdata.disableinfo.registeredsymbols.Count>0) or (owner.autoassemblerdata.disableinfo.ccodesymbols.count>0)  then //if it has a registered symbol then reinterpret all addresses
+        Queue(ReinterpretAddresses);
 
       owner.autoassemblerdata.lastExecutionFailed:=false;
     end
@@ -1166,11 +1135,8 @@ begin
     autoassemblerdata.script.free;
 
   //free script info
-  if autoassemblerdata.registeredsymbols<>nil then
-    freeandnil(autoassemblerdata.registeredsymbols);
-
-  if autoassemblerdata.ccodesymbols<>nil then
-    freeandnil(autoassemblerdata.ccodesymbols);
+  if autoassemblerdata.disableinfo<>nil then
+    freeandnil(autoassemblerdata.disableinfo);
 
   //free the group's children
   {$IFNDEF JNI}
@@ -1499,12 +1465,10 @@ begin
           if AutoAssemblerData.script<>nil then
             freeAndNil(AutoAssemblerData.script);
 
-          setlength(AutoAssemblerData.allocs,0);
-          if AutoAssemblerData.registeredsymbols<>nil then
-            freeandnil(AutoAssemblerData.registeredsymbols);
+          if AutoAssemblerData.disableinfo<>nil then
+            freeandnil(AutoAssemblerData.disableinfo);
 
-          if autoassemblerdata.ccodesymbols<>nil then
-            freeandnil(autoassemblerdata.ccodesymbols);
+          AutoAssemblerData.disableinfo:=TDisableInfo.create;
 
 
           AutoAssemblerData.script:=tstringlist.Create;
@@ -2587,13 +2551,13 @@ begin
     begin
       {$IFNDEF jni}
       //aa script
-      if autoassemblerdata.registeredsymbols=nil then
-        autoassemblerdata.registeredsymbols:=tstringlist.create;
+      if (state=true) and (autoassemblerdata.disableinfo<>nil) then
+        freeandnil(autoassemblerdata.disableinfo);
 
-      if autoassemblerdata.ccodesymbols=nil then
-        autoassemblerdata.ccodesymbols:=TSymbolListHandler.create;
+      if autoassemblerdata.disableinfo=nil then
+        autoassemblerdata.disableinfo:=TDisableInfo.create;
 
-      autoassemblerdata.ccodesymbols.name:='Memoryrecord '+intTostr(id)+':'+Description;
+      autoassemblerdata.disableinfo.ccodesymbols.name:='Memoryrecord '+intTostr(id)+':'+Description;
 
       if async then
       begin
@@ -2607,10 +2571,11 @@ begin
       else
       begin
         try
-          if autoassemble(autoassemblerdata.script, false, state, false, false, autoassemblerdata.allocs, autoassemblerdata.exceptionlist, autoassemblerdata.registeredsymbols, self, autoassemblerdata.ccodesymbols) then
+
+          if autoassemble(autoassemblerdata.script, false, state, false, false, autoassemblerdata.disableinfo, self) then
           begin
             fActive:=state;
-            if (autoassemblerdata.registeredsymbols.Count>0) or (autoassemblerdata.ccodesymbols.Count>0) then //if it has a registered symbol then reinterpret all addresses
+            if (autoassemblerdata.disableinfo.registeredsymbols.Count>0) or (autoassemblerdata.disableinfo.ccodesymbols.Count>0) then //if it has a registered symbol then reinterpret all addresses
               TAddresslist(fOwner).ReinterpretAddresses;
 
             autoassemblerdata.lastExecutionFailed:=false;

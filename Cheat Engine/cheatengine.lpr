@@ -116,7 +116,7 @@ uses
   frmMicrotransactionsUnit, frmSyntaxHighlighterEditor, LuaCustomImageList,
   dotnethost, rttihelper, cefreetype, LuaDotNetPipe, LuaRemoteExecutor,
   newRadioButton, newCheckbox, newbutton, autoassemblercode, CSharpCompiler,
-  newhintwindow;
+  newhintwindow, memrecDataStructures;
 
 {$R cheatengine.res}
 {$IFDEF windows}

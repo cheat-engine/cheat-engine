@@ -26,7 +26,7 @@
       <AutoIncrementBuild Value="True"/>
       <MajorVersionNr Value="7"/>
       <MinorVersionNr Value="2"/>
-      <BuildNr Value="6808"/>
+      <BuildNr Value="6813"/>
       <Language Value=""/>
       <CharSet Value=""/>
       <StringTable CompanyName="Cheat Engine" FileDescription="Cheat Engine" ProductVersion="7.2"/>
@@ -637,7 +637,7 @@
         <PackageName Value="LCL"/>
       </Item8>
     </RequiredPackages>
-    <Units Count="404">
+    <Units Count="405">
       <Unit0>
         <Filename Value="cheatengine.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -2766,6 +2766,11 @@
         <Filename Value="betterControls\newhintwindow.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit403>
+      <Unit404>
+        <Filename Value="memrecdatastructures.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="memrecDataStructures"/>
+      </Unit404>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

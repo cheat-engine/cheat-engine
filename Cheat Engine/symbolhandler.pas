@@ -5877,8 +5877,6 @@ end;
 
 destructor TSymhandler.destroy;
 begin
-
-
   if symbolloaderthread<>nil then
   begin
     symbolloaderthread.Terminate;

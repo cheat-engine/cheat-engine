@@ -127,14 +127,13 @@ type
 
     fExtraSymbolDataList: TExtraSymbolDataList;
     fPID: dword;
-    fTargetSelf: boolean;
     fname: string;
     frefcount: integer;
     function A2SCheck(Tree: TAvgLvlTree; Data1, Data2: pointer): integer;
     function S2ACheck(Tree: TAvgLvlTree; Data1, Data2: pointer): integer;
     function getCount: integer;
   public
-    constructor create(targetself: boolean=false);
+    constructor create;
     destructor destroy; override;
     procedure AddExtraSymbolData(d: TExtraSymbolData);
     procedure RemoveExtraSymbolData(d: TExtraSymbolData);
@@ -152,7 +151,6 @@ type
     procedure DeleteSymbol(searchkey: string); overload;
     procedure DeleteSymbol(address: qword); overload;
     procedure clear;
-    procedure registerList;
     procedure unregisterList;
   published
     property ExtraSymbolDataList: TExtraSymbolDataList read fExtraSymbolDataList;
@@ -734,36 +732,14 @@ begin
   fExtraSymbolDataList.Remove(d);
 end;
 
-procedure TSymbolListHandler.registerList;
-begin
-  if ftargetself then
-  begin
-    if selfsymhandler<>nil then
-      selfsymhandler.AddSymbolList(self);
-  end
-  else
-  begin
-    if symhandler<>nil then
-      symhandler.AddSymbolList(self);
-  end;
-end;
-
 procedure TSymbolListHandler.unregisterList;
 begin
-  if ftargetself then
-  begin
-    if selfsymhandler<>nil then
-      selfsymhandler.RemoveSymbolList(self);
-  end
-  else
-  begin
-    if symhandler<>nil then
-      symhandler.RemoveSymbolList(self);
-  end;
+  if selfsymhandler<>nil then selfsymhandler.RemoveSymbolList(self);
+  if symhandler<>nil then symhandler.RemoveSymbolList(self);
 end;
 
 
-constructor TSymbolListHandler.create(targetself: boolean=false);
+constructor TSymbolListHandler.create;
 begin
   inherited create;
 
@@ -777,10 +753,8 @@ begin
 
   log('TSymbolListHandler.create exit');
 
-  fTargetSelf:=targetself;
-
   frefcount:=1;
-
+  fname:='unnamed';
 end;
 
 destructor TSymbolListHandler.destroy;

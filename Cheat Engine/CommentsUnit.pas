@@ -9,7 +9,7 @@ uses
   windows,
   {$endif}
   LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, ExtCtrls, LResources, ComCtrls, LuaHandler, CEFuncProc, betterControls;
+  Dialogs, StdCtrls, ExtCtrls, LResources, ComCtrls, CEFuncProc, betterControls;
 
 type
 
@@ -43,7 +43,7 @@ var
 
 implementation
 
-uses MainUnit;
+uses LuaHandler, MainUnit;
 
 {$ifdef windows}
 procedure TComments.WMGetMinMaxInfo(var Message: TMessage);
