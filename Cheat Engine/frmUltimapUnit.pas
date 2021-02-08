@@ -740,7 +740,7 @@ begin
     isretdisassembler.disassemble(a, x);
     isret:=iscalldisassembler.LastDisassembleData.isret;
 
-    callTable.Add(address, isret);
+    rettable.Add(address, isret);
   end;
 
   result:=isret;
