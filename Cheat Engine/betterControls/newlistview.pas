@@ -41,6 +41,9 @@ type
     procedure pp(var msg: TMessage); message WM_NOTIFY;
   protected
     procedure ChildHandlesCreated; override;
+    function CustomDraw(const ARect: TRect; AStage: TCustomDrawStage): Boolean;  override;
+    function CustomDrawItem(AItem: TListItem; AState: TCustomDrawState; AStage: TCustomDrawStage): Boolean; override;
+    function CustomDrawSubItem(AItem: TListItem; ASubItem: Integer; AState: TCustomDrawState; AStage: TCustomDrawStage): Boolean; override;
   public
   published
     property ViewStyle: TViewStyle read getViewStyle write setViewStyle;
@@ -82,6 +85,25 @@ function TNewListView.getViewStyle: TViewStyle;
 begin
   result:=inherited ViewStyle;
 end;
+
+function TNewListView.CustomDraw(const ARect: TRect; AStage: TCustomDrawStage): Boolean;
+begin
+  if ShouldAppsUseDarkMode then Canvas.Brush.style:=bsClear;
+  result:=inherited customdraw(ARect, AStage);
+end;
+
+function TNewListView.CustomDrawItem(AItem: TListItem; AState: TCustomDrawState; AStage: TCustomDrawStage): Boolean;
+begin
+  if ShouldAppsUseDarkMode then Canvas.Brush.style:=bsClear;
+  result:=inherited CustomDrawItem(AItem, AState, AStage);
+end;
+
+function TNewListView.CustomDrawSubItem(AItem: TListItem; ASubItem: Integer; AState: TCustomDrawState; AStage: TCustomDrawStage): Boolean;
+begin
+  if ShouldAppsUseDarkMode then Canvas.Brush.style:=bsClear;
+  result:=inherited CustomDrawSubItem(AItem, ASubItem, AState, AStage);
+end;
+
 
 procedure TNewListView.ChildHandlesCreated;
 var
