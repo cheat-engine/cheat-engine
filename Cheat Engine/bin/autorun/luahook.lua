@@ -2,6 +2,22 @@
 
 --return debug.getinfo(function).source
 
+
+
+--luaTypes-- 
+LUA_TNONE          = -1
+LUA_TNIL           = 0
+LUA_TBOOLEAN       = 1
+LUA_TLIGHTUSERDATA = 2
+LUA_TNUMBER        = 3
+LUA_TSTRING        = 4
+LUA_TTABLE         = 5
+LUA_TFUNCTION      = 6
+LUA_TUSERDATA      = 7
+LUA_TTHREAD        = 8
+LUA_NUMTAGS        = 9
+  
+
 function hookLua()
   --get the most commonly used lua functions
   
@@ -159,13 +175,80 @@ function lua_tostring(index)
   end
 end
 
+function lua_gettable(index)
+  if luastubs and lua_state and luastubs.lua_gettable then
+    return LuaExecutor.executeStub(luastubs.lua_gettable,{lua_state, index})    
+  end
+end
+
+function lua_settable(index)
+  if luastubs and lua_state and luastubs.lua_settable then
+    return LuaExecutor.executeStub(luastubs.lua_settable,{lua_state, index})    
+  end
+end
+
+
+function lua_type(index)
+  if luastubs and lua_state and luastubs.lua_type then
+    return LuaExecutor.executeStub(luastubs.lua_type,{lua_state, index})    
+  end
+end
+
+function lua_istable(index)
+  return lua_type(index)==LUA_TTABLE; 
+end
+
+function lua_isnil(index)
+   return lua_type(index)==LUA_TNIL
+end
+
+function lua_isstring(index)
+  if luastubs and lua_state and luastubs.lua_isstring then
+    return LuaExecutor.executeStub(luastubs.lua_isstring,{lua_state, index})    
+  end
+end
+
+function lua_isinteger(index)
+  if luastubs and lua_state and luastubs.lua_isinteger then
+    return LuaExecutor.executeStub(luastubs.lua_isinteger,{lua_state, index})    
+  end
+end
+
+function lua_isnumber(index)
+  if luastubs and lua_state and luastubs.lua_isnumber then
+    return LuaExecutor.executeStub(luastubs.lua_isnumber,{lua_state, index})    
+  end
+end
+
+function lua_iscfunction(index)
+  if luastubs and lua_state and luastubs.lua_iscfunction then
+    return LuaExecutor.executeStub(luastubs.lua_iscfunction,{lua_state, index})    
+  end
+end
+
+function lua_isuserdata(index)
+  if luastubs and lua_state and luastubs.lua_isuserdata then
+    return LuaExecutor.executeStub(luastubs.lua_isuserdata,{lua_state, index})    
+  end
+end
+
+function lua_rawlen(index)
+  if luastubs and lua_state and luastubs.lua_rawlen then
+    return LuaExecutor.executeStub(luastubs.lua_rawlen,{lua_state, index})    
+  end
+end
+
+function lua_objlen(index)
+  return lua_rawlen(index);
+end;   
+
+
+
 function lual_loadstring(script)
   if luastubs and lua_state and luastubs.lual_loadstring then
     return LuaExecutor.executeStub(luastubs.lual_loadstring,{lua_state, script})
   end
 end
-
-
 
 function lua_pcallUnlocked(lua_state, argcount, resultcount, errfunc)  
   if luastubs and lua_state then
@@ -220,7 +303,11 @@ function luaopen_debug()
 end
 
 function lua_registerdebug()
+  local oldstack=lua_gettop()
   luaopen_debug()
+  if oldstack~=lua_gettop() then  
+    lua_setglobal('debug')
+  end
 end
 
 
@@ -303,6 +390,47 @@ ret
   end   
 end
 
+function lua_startrecordcalls()
+--[[
+celog={}
+celogging=true
+debug.sethook(function(event)
+  table.insert(celog,debug.getinfo(2))
+
+  count=count-1
+  if celogging==false then
+    debug.sethook()
+  end
+end,'c')
+--]]
+  local oldstack=lua_gettop()
+  lua_dostring([[
+celog={}
+celogging=true
+debug.sethook(function(event)
+  table.insert(celog,debug.getinfo(2))
+
+  if celogging==false then
+    debug.sethook()
+  end
+end,'c')  
+  ]])
+  
+  if lua_gettop()~=oldstack then
+    print("Error:"..lua_tostring(-1))
+    lua_pop(1)
+  end
+
+end
+
+function lua_stoprecordcalls()
+  lua_dostring('debug.sethook()')
+end
+
+function lua_getcalllog()
+end
+
+
 function setLuaState(ls)
   lua_state=ls  
 end
@@ -338,12 +466,28 @@ function LockLuaState(timeout)
       luastubs={}
       luastubs.processid=getOpenedProcessID()
       luastubs.lua_gettop=createExecuteCodeExStub(1,'lua_gettop',0)
+      luastubs.lua_settop=createExecuteCodeExStub(1,'lua_settop',0,0)      
+            
       luastubs.lua_pushinteger=createExecuteCodeExStub(1,'lua_pushinteger',0,0)
       luastubs.lua_tointegerx=createExecuteCodeExStub(1,'lua_tointegerx',0,0,{type=5, size=4})      
       if getAddressSafe('lua_tointeger') then
         luastubs.lua_tointegerx=createExecuteCodeExStub(1,'lua_tointeger',0,0)    
       end
-      luastubs.lua_settop=createExecuteCodeExStub(1,'lua_settop',0,0)      
+      
+      luastubs.lua_type=createExecuteCodeExStub(1,'lua_type',0,0);
+ 
+      luastubs.lua_gettable=createExecuteCodeExStub(1,'lua_gettable',0,0)      
+      luastubs.lua_settable=createExecuteCodeExStub(1,'lua_settable',0,0) 
+      
+      luastubs.lua_rawlen=createExecuteCodeExStub(1,'lua_rawlen',0,0) 
+      
+      
+      
+      luastubs.lua_isstring=createExecuteCodeExStub(1,'lua_isstring',0,0) 
+      luastubs.lua_isinteger=createExecuteCodeExStub(1,'lua_isinteger',0,0) 
+      luastubs.lua_isnumber=createExecuteCodeExStub(1,'lua_isnumber',0,0) 
+      luastubs.lua_iscfunction=createExecuteCodeExStub(1,'lua_iscfunction',0,0) 
+      luastubs.lua_isuserdata=createExecuteCodeExStub(1,'lua_isuserdata',0,0) 
       
       luastubs.lual_loadstring=createExecuteCodeExStub(1,'lual_loadstring',0,3)   
       luastubs.lua_pcallk=createExecuteCodeExStub(1,'lua_pcallk',0,0,0,0,0,0) 
