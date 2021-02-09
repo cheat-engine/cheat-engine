@@ -2,12 +2,12 @@ object formAddressChange: TformAddressChange
   Left = 806
   Height = 295
   Top = 226
-  Width = 120
+  Width = 263
   AutoSize = True
   BorderIcons = [biSystemMenu]
   Caption = 'Change address'
   ClientHeight = 295
-  ClientWidth = 120
+  ClientWidth = 263
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   OnResize = FormResize
@@ -108,7 +108,7 @@ object formAddressChange: TformAddressChange
     Left = 8
     Height = 23
     Top = 95
-    Width = 104
+    Width = 247
     Anchors = [akTop, akLeft, akRight]
     BorderSpacing.Right = 8
     ItemHeight = 15
@@ -136,13 +136,13 @@ object formAddressChange: TformAddressChange
     Left = 8
     Height = 24
     Top = 118
-    Width = 121
+    Width = 264
     Anchors = [akTop, akLeft, akRight]
     AutoSize = True
     BorderSpacing.Bottom = 10
     BevelOuter = bvNone
     ClientHeight = 24
-    ClientWidth = 121
+    ClientWidth = 264
     TabOrder = 3
     object cbHex: TCheckBox
       AnchorSideLeft.Control = HexAndSignedPanel
@@ -446,7 +446,7 @@ object formAddressChange: TformAddressChange
     Left = 8
     Height = 23
     Top = 55
-    Width = 104
+    Width = 247
     Anchors = [akTop, akLeft, akRight]
     BorderSpacing.Right = 8
     TabOrder = 1
@@ -477,14 +477,14 @@ object formAddressChange: TformAddressChange
   end
   object Timer1: TTimer
     OnTimer = Timer1Timer
-    Left = 136
-    Top = 8
+    Left = 128
+    Top = 40
   end
   object Timer2: TTimer
     Interval = 1
     OnTimer = Timer2Timer
     Left = 64
-    Top = 8
+    Top = 48
   end
   object pmOffset: TPopupMenu
     Images = caImageList
@@ -551,8 +551,8 @@ object formAddressChange: TformAddressChange
     end
   end
   object caImageList: TImageList
-    Left = 168
-    Top = 16
+    Left = 176
+    Top = 40
     Bitmap = {
       4C69040000001000000010000000606060C4808080E0808080E0808080E08080
       80E0808080E0808080E0777777E098989856FFFFFF00FFFFFF00FFFFFF00FFFF

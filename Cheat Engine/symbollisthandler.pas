@@ -311,7 +311,7 @@ begin
 
   while si<>nil do
   begin
-    list.AddObject(si^.originalstring, tobject(si^.address));
+    list.AddObject(si^.originalstring, tobject(ptruint(si^.address)));
     si:=si^.next;
   end;
 
