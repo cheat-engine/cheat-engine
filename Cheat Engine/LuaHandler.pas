@@ -2893,6 +2893,7 @@ begin
         lua_pushinteger(L, disableinfo.exceptions[i]);
         lua_settable(L, tableIndex);
       end;
+      lua_settable(L, secondaryResultTable);
 
       lua_pushstring(L,'symbols');
       lua_newtable(L);
