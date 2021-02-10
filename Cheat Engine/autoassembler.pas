@@ -3777,20 +3777,20 @@ begin
         setlength(disableinfo.allocs,length(allocs));
         for i:=0 to length(allocs)-1 do
           disableinfo.allocs[i]:=allocs[i];
-      end;
 
-      if (length(disableinfo.exceptions)>0) and (AutoAssemblerExceptionHandlerHasEntries) then
-      begin
+
+        if (length(disableinfo.exceptions)>0) and (AutoAssemblerExceptionHandlerHasEntries) then
+        begin
+          for i:=0 to length(disableinfo.exceptions)-1 do
+            AutoAssemblerExceptionHandlerRemoveExceptionRange(disableinfo.exceptions[i]);
+
+          AutoAssemblerExceptionHandlerApplyChanges;
+        end;
+
+        setlength(disableinfo.exceptions, length(exceptionlist));
         for i:=0 to length(disableinfo.exceptions)-1 do
-          AutoAssemblerExceptionHandlerRemoveExceptionRange(disableinfo.exceptions[i]);
-
-        AutoAssemblerExceptionHandlerApplyChanges;
+          disableinfo.exceptions[i]:=getAddressFromScript(exceptionlist[i].trylabel);
       end;
-
-      setlength(disableinfo.exceptions, length(exceptionlist));
-      for i:=0 to length(disableinfo.exceptions)-1 do
-        disableinfo.exceptions[i]:=getAddressFromScript(exceptionlist[i].trylabel);
-
       //check the addsymbollist array and deletesymbollist array
 
       //first delete

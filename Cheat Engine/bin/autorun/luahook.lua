@@ -164,6 +164,12 @@ function lua_tointeger(index)
   end  
 end
 
+function lua_touserdata(index)
+  if luastubs and lua_state and luastubs.lua_touserdata then    
+    return LuaExecutor.executeStub(luastubs.lua_touserdata,{lua_state, index})    
+  end    
+end
+
 function lua_tostring(index)
   if luastubs and lua_state and luastubs.lua_tolstring then
     local stringLength={0,0,0,0,0,0,0,0}
@@ -473,6 +479,8 @@ function LockLuaState(timeout)
       if getAddressSafe('lua_tointeger') then
         luastubs.lua_tointegerx=createExecuteCodeExStub(1,'lua_tointeger',0,0)    
       end
+      
+      luastubs.lua_touserdata=createExecuteCodeExStub(1,'lua_touserdata',0,0)    
       
       luastubs.lua_type=createExecuteCodeExStub(1,'lua_type',0,0);
  
