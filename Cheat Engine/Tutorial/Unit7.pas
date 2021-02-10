@@ -66,7 +66,7 @@ resourcestring
     'When done scanning it may return 1 or a few hundred addresses. Most of the time the address you need will be the '+
     'smallest one. Now click on the "Add Address Manually" button and select the pointer checkbox.'+#13#10+
     ''+#13#10+
-    'The window will change and allow you to type in the address of a pointer and a offset.'+#13#10+
+    'The window will change and allow you to type in the address of a pointer and an offset.'+#13#10+
     'Fill in as address the address you just found.'+#13#10+
     'If the assembler instruction has a calculation (e.g: [esi+12]) at the end then type the value in that''s at the end. else '+
     'leave it 0. If it was a more complicated instruction look at the calculation.'+#13#10+
