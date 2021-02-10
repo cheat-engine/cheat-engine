@@ -43,7 +43,7 @@ resourcestring
   rsLOSER = 'BOO';
 
   rsTutorialStep5=
-      'Sometimes the location of where something is stored at changes when you restart the game, or even while you''re playing.. In '+
+      'Sometimes the location of a value is stored at changes, when you restart the game, or even while you''re playing.. In '+
       'that case you can use 2 things to still make a table that works.'+#13#10+
       'In this step I''ll try to describe how to use the Code Finder function.'+#13#10+
       ''+#13#10+
@@ -52,7 +52,7 @@ resourcestring
       'First try to find the address. (you''ve got to this point so I assume you know how to)'+#13#10+
       'When you''ve found the address, right-click the address in Cheat Engine and choose "Find out what writes to this '+
       'address". A window will pop up with an empty list.'+#13#10+
-      'Then click on the Change value button in this tutorial, and go back to Cheat Engine. If everything went right there '+
+      'Then click on the Change value button in this tutorial, and go back to Cheat Engine. If everything went right, there '+
       'should be an address with assembler code there now.'+#13#10+
       'Click it and choose the replace option to replace it with code that does nothing. That will also add the code address '+
       'to the code list in the advanced options window. (Which gets saved if you save your table)'+#13#10+
