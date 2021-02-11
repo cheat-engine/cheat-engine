@@ -1553,22 +1553,19 @@ begin
   setlength(sallocs,0);
   setlength(createthread,0);
   setlength(createthreadandwait,0);
+  setlength(defines,0);
 
   currentaddress:=0;
 
 
-  //add all symbols as defined labels
+  //add all symbols as defines
   if disableinfo<>nil then
   begin
-    setlength(labels,disableinfo.allsymbols.count);
+    setlength(defines,disableinfo.allsymbols.count);
     for i:=0 to disableinfo.allsymbols.count-1 do
     begin
-      labels[i].labelname:=disableinfo.allsymbols[i];
-      labels[i].defined:=true;
-      labels[i].address:=ptruint(disableinfo.allsymbols.Objects[i]);
-      labels[i].assemblerline:=0;
-      setlength(labels[i].references,0);
-      setlength(labels[i].references2,0);
+      defines[i].name:=disableinfo.allsymbols[i];
+      defines[i].whatever:=inttohex(ptruint(disableinfo.allsymbols.Objects[i]),8);
     end;
   end;
 
@@ -1615,7 +1612,7 @@ begin
     setlength(fullaccess,0);
     setlength(addsymbollist,0);
     setlength(deletesymbollist,0);
-    setlength(defines,0);
+
     setlength(loadbinary,0);
     setlength(exceptionlist,0);
 
@@ -3922,7 +3919,7 @@ begin
 
         for i:=0 to length(defines)-1 do
         begin
-          testptr:=symhandler.getAddressFromName(defines[j].whatever,false,ok1);
+          testptr:=symhandler.getAddressFromName(defines[i].whatever,false,ok1);
           if ok1=false then
             disableinfo.allsymbols.AddObject(defines[i].name, tobject(testptr));
         end;
