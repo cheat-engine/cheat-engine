@@ -622,8 +622,10 @@ type TCEForm=class(TForm) //TCustomForm)
     designsurface: TJvDesignSurface;
     procedure ResyncWithLua(Base: TComponent); overload;
     procedure ResyncWithLua; overload;
+    procedure SaveToStream(s: tstream);
     procedure SaveToFile(filename: string);
     procedure SaveToFileLFM(filename: string);
+    procedure LoadFromStream(s: TStream);
     procedure LoadFromFile(filename: string);
     procedure LoadFromFileLFM(filename: string);
     procedure SaveToXML(Node: TDOMNode; dontdeactivate:boolean=false);
@@ -1363,7 +1365,8 @@ begin
   active:=wasActive;
 end;
 
-procedure TCEForm.SaveToFile(filename: string);
+
+procedure TCEForm.SaveToStream(s: tstream);
 var
   xmldoc: TXMLDocument;
   formnode: TDOMNode;
@@ -1375,7 +1378,20 @@ begin
   SaveCurrentStateasDesign;
   SaveToXML(formnode,true);
 
-  WriteXML(xmldoc, filename);
+  WriteXML(xmldoc, s);
+end;
+
+
+procedure TCEForm.SaveToFile(filename: string);
+var
+  fs: TFilestream;
+begin
+  fs:=TFileStream.Create(filename, fmCreate);
+  try
+    SaveToStream(fs);
+  finally
+    fs.free;
+  end;
 end;
 
 procedure TCEForm.SaveToFileLFM(filename: string);
@@ -1389,13 +1405,13 @@ begin
   ms.Destroy;
 end;
 
-procedure TCEForm.LoadFromFile(filename: string);
+procedure TCEForm.LoadFromStream(s: TStream);
 var
   formnode: TDOMNode;
   xmldoc: TXMLDocument;
 begin
   xmldoc:=nil;
-  ReadXMLFile(xmldoc, filename);
+  ReadXMLFile(xmldoc, s);
 
   if xmldoc<>nil then
   begin
@@ -1416,6 +1432,18 @@ begin
       color:=clWindow;
       font.color:=clWindowtext;
     end;
+end;
+
+procedure TCEForm.LoadFromFile(filename: string);
+var
+  fs: TFileStream;
+begin
+  fs:=TFileStream.Create(filename, fmOpenRead);
+  try
+    LoadFromStream(fs);
+  finally
+    fs.free;
+  end;
 end;
 
 procedure TCEForm.LoadFromFileLFM(filename: string);

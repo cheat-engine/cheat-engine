@@ -24,10 +24,12 @@ type
     froundingY: integer;
     fCustomDrawn: boolean;
     fgrowFont: boolean;
+    fShowPrefix: boolean;
 
     fButtonColor: Tcolor;
     fButtonHighlightedColor: TColor;
     fButtonDownColor: TColor;
+    fDrawBorder: boolean;
     fBorderColor: Tcolor;
     fbordersize: integer;
     fFocusedSize: integer;
@@ -57,7 +59,9 @@ type
     procedure setRoundingX(x: integer);
     procedure setRoundingY(y: integer);
     procedure setCustomDrawn(state: boolean);
+    procedure setShowPrefix(state: boolean);
     procedure setGrowFont(state: boolean);
+    procedure setDrawBorder(state: boolean);
 
     procedure setFramesPerSecond(fps: integer);
 
@@ -88,7 +92,9 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor destroy; override;
   published
+    property ShowPrefix: boolean read fShowPrefix write setShowPrefix;
     property Alignment: TAlignment read fAlignment write fAlignment;
+    property DrawBorder: Boolean read fDrawBorder write setDrawBorder;
     property BorderColor: TColor read fBorderColor write setBorderColor;
     property BorderSize: integer read fBorderSize write setBorderSize;
     property ButtonColor: TColor read fButtonColor write setButtonColor;
@@ -260,6 +266,18 @@ begin
   invalidate;
 end;
 
+procedure TCECustomButton.setDrawBorder(state: boolean);
+begin
+  fDrawBorder:=state;
+  invalidate;;
+end;
+
+procedure TCECustomButton.setShowPrefix(state: boolean);
+begin
+  fShowPrefix:=state;
+  invalidate;;
+end;
+
 procedure TCECustomButton.setDrawFocusRect(state: boolean);
 begin
   fDrawFocusRect:=state;
@@ -352,6 +370,9 @@ begin
   h:=0;
   canvas.GetTextSize(Caption,w,h);
 
+  w:=w+2*canvas.GetTextWidth(' ');
+  inc(h,4);
+
   clientwidth:=2+w+roundingx div 3;
   clientheight:=2+h+roundingy div 4;
 end;
@@ -439,10 +460,20 @@ begin
 
 
 
-    canvas.Pen.Color:=borderc;
+
     canvas.brush.color:=buttonc;
     canvas.brush.Style:=bsSolid;
-    canvas.pen.Width:=fbordersize;
+
+    if fDrawBorder then
+    begin
+      canvas.Pen.Color:=borderc;
+      canvas.pen.Width:=fbordersize;
+    end
+    else
+    begin
+      canvas.Pen.Color:=buttonc;
+      canvas.pen.Width:=1;
+    end;
 
     Canvas.RoundRect(0,0,width, height,froundingX,froundingY);
 
@@ -457,8 +488,8 @@ begin
       canvas.pen.SetPattern(p);
       canvas.pen.color:=fFocusElipseColor;
       canvas.pen.width:=fFocusedSize;
-
       Canvas.RoundRect(1,1,width-1, height-1,froundingX,froundingY);
+
 
       canvas.pen.style:=psSolid;
     end;
@@ -476,6 +507,8 @@ begin
     ts.Alignment:=Alignment;
     ts.Layout:=tlCenter;
     ts.EndEllipsis:=true;
+
+    ts.ShowPrefix:=ShowPrefix;
     canvas.TextRect(ClientRect,0,0,caption, ts);
   end;
 end;
@@ -507,6 +540,7 @@ begin
   fFramesPerSecond:=24;
 
   fDrawFocusRect:=true;
+  fDrawBorder:=true;
   fFocusedSize:=1;
 
   fbordersize:=1;

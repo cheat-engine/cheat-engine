@@ -1088,11 +1088,13 @@ methods
 CEForm Class: (Inheritance: Form->ScrollingWinControl->CustomControl->WinControl->Control->Component->Object)
 createForm(visible OPT): creates a CEForm class object(window) and returns the pointer for it. Visible is default true but can be changed
 createFormFromFile(filename): Returns the generated CEform
+createFormFromStream(stream): Returns the generated CEform
 
 properties
   DoNotSaveInTable: boolean - Set this if you do not wish to save the forms in the table
 methods
   saveToFile(filename): Saves a userdefined form
+  saveToStream(s): Saves the userdefined form to the given stream
   getDoNotSaveInTable(): Returns the DoNotSaveInTable property
   setDoNotSaveInTable(boolean): Sets the DoNotSaveInTable property
   saveCurrentStateAsDesign() : Sets the current state of the form as the state that will be saved when the table is saved
@@ -3763,13 +3765,18 @@ methods
 
 CECustomButton class(Inheritance: CustomControl->WinControl->Control->Component->Object)
 A more customizable button instead of the windows theme'd button, and lets you repaint it from scratch as well
+
+createCECustomButton(owner)
+
 properties
+  ShowPrefix: boolean - Process first single '&' per line as an underscore and draw '&&' as '&'  
   BorderColor: Color  - The color of the button border
   BorderSize: integer - The thickness of the border
   ButtonColor: Color - The color of the button face
   ButtonHighlightedColor: Color  - The color of the buttonface when highlighted(hovered over with the mouse)
   ButtonDownColor: Color - The color of the buttonface when the mouse is pressed down on it
   DrawFocusRect: boolean   - If true will draw a focus roundrect showing it has focus
+  DrawBorder: boolean - default=true.  Will draw a border around the button
   FocusedSize: integer - The with of the focus roundrect
   FocusElipseColor: Color - The color of the focus roundrect
   GrowFont: boolean read - When true the font will get resized till the caption fits the button
