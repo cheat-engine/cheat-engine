@@ -3761,6 +3761,28 @@ properties
 methods
   executeStub(ExecuteCodeExStub,{parameters},timeout,waittilldone) 
 
+CECustomButton class(Inheritance: CustomControl->WinControl->Control->Component->Object)
+A more customizable button instead of the windows theme'd button, and lets you repaint it from scratch as well
+properties
+  BorderColor: Color  - The color of the button border
+  BorderSize: integer - The thickness of the border
+  ButtonColor: Color - The color of the button face
+  ButtonHighlightedColor: Color  - The color of the buttonface when highlighted(hovered over with the mouse)
+  ButtonDownColor: Color - The color of the buttonface when the mouse is pressed down on it
+  DrawFocusRect: boolean   - If true will draw a focus roundrect showing it has focus
+  FocusedSize: integer - The with of the focus roundrect
+  FocusElipseColor: Color - The color of the focus roundrect
+  GrowFont: boolean read - When true the font will get resized till the caption fits the button
+  RoundingX: integer 
+  RoundingY: integer 
+  CustomDrawn: boolean - Do your own drawing in the OnPaint property of the button
+  FramesPerSecond: integer - If animation is used this will determine how often per second the OnPaint gets called
+  ButtonAnimationSpeed: integer - If not customdrawn, this determnines how long the animations for enter/leave take
+                                                                                                                      
+
+methods
+  startAnimatorTimer() - Starts the animator timer which will trigger an OnPaint with the speed of the current framesPerSecond property
+  stopAnimatorTimer() - Stops the animator timer
 
 ce lua extensions:
 string table:

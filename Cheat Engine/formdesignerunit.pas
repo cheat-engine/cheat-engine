@@ -78,6 +78,7 @@ type
     RadioButton: TToolButton;
     ScrollBox: TToolButton;
     CheckListBox: TToolButton;
+    CECustomButton: TToolButton;
     ToolButton6: TToolButton;
     CEImage: TToolButton;
     procedure controlPopupPopup(Sender: TObject);
@@ -733,8 +734,25 @@ begin
 end;
 
 procedure TFormDesigner.FormShow(Sender: TObject);
+var
+  w: integer;
+  i: integer;
 begin
-  dpihelper.AdjustToolbar(Toolbar1);
+  //dpihelper.AdjustToolbar(Toolbar1);
+  if loadedfromsave=false then
+  begin
+    w:=0;
+    for i:=0 to toolbar1.ButtonCount-1 do
+      inc(w, toolbar1.buttons[i].Width);
+
+    if screen.width<oid.width+10+w then
+      w:=screen.width-oid.width+10;
+
+    self.clientwidth:=w+2;
+  end;
+
+  toolbar1.ButtonHeight:=scaley(32, 96);
+
   self.clientheight:=max(toolbar1.height, toolbar1.ButtonHeight);
 end;
 

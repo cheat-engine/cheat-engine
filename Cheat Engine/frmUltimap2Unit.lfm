@@ -1,7 +1,7 @@
 object frmUltimap2: TfrmUltimap2
-  Left = 457
+  Left = 671
   Height = 688
-  Top = 241
+  Top = 218
   Width = 739
   AutoSize = True
   Caption = 'Ultimap 2'
@@ -14,7 +14,7 @@ object frmUltimap2: TfrmUltimap2
   OnDestroy = FormDestroy
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '2.0.0.4'
+  LCLVersion = '2.0.6.0'
   object Panel5: TPanel
     Left = 0
     Height = 521
@@ -78,7 +78,7 @@ object frmUltimap2: TfrmUltimap2
         Left = 0
         Height = 25
         Top = 123
-        Width = 264
+        Width = 263
         Anchors = [akTop, akLeft, akRight]
         AutoSize = True
         BorderSpacing.Top = 2
@@ -95,7 +95,7 @@ object frmUltimap2: TfrmUltimap2
         Left = 0
         Height = 25
         Top = 96
-        Width = 264
+        Width = 263
         Anchors = [akTop, akLeft, akRight]
         AutoSize = True
         BorderSpacing.Top = 2
@@ -108,7 +108,7 @@ object frmUltimap2: TfrmUltimap2
         AnchorSideLeft.Side = asrBottom
         AnchorSideTop.Control = btnFilterCallCount
         AnchorSideTop.Side = asrCenter
-        Left = 267
+        Left = 266
         Height = 23
         Top = 97
         Width = 40
@@ -121,7 +121,7 @@ object frmUltimap2: TfrmUltimap2
         AnchorSideLeft.Side = asrBottom
         AnchorSideTop.Control = edtCallCount
         AnchorSideTop.Side = asrCenter
-        Left = 310
+        Left = 309
         Height = 25
         Top = 96
         Width = 90
@@ -140,7 +140,7 @@ object frmUltimap2: TfrmUltimap2
         Left = 0
         Height = 25
         Top = 69
-        Width = 264
+        Width = 263
         Anchors = [akTop, akLeft, akRight]
         AutoSize = True
         BorderSpacing.Top = 2
@@ -156,7 +156,7 @@ object frmUltimap2: TfrmUltimap2
         Left = 0
         Height = 25
         Top = 42
-        Width = 264
+        Width = 263
         Anchors = [akTop, akLeft, akRight]
         AutoSize = True
         BorderSpacing.Top = 2
@@ -171,11 +171,11 @@ object frmUltimap2: TfrmUltimap2
         AnchorSideTop.Side = asrCenter
         AnchorSideRight.Control = Panel4
         AnchorSideRight.Side = asrBottom
-        Left = 267
+        Left = 266
         Height = 19
         Hint = 'When checked (default) will mark all subsequent paths after this as filtered out'
         Top = 45
-        Width = 139
+        Width = 140
         Anchors = [akTop, akRight]
         BorderSpacing.Left = 3
         Caption = 'Exclude new addresses'
@@ -194,7 +194,7 @@ object frmUltimap2: TfrmUltimap2
         Left = 0
         Height = 25
         Top = 15
-        Width = 264
+        Width = 263
         Anchors = [akTop, akLeft, akRight]
         AutoSize = True
         Caption = 'Code did not get executed'
@@ -234,7 +234,7 @@ object frmUltimap2: TfrmUltimap2
         AnchorSideLeft.Side = asrCenter
         AnchorSideTop.Control = cbfilterOutNewEntries
         AnchorSideTop.Side = asrBottom
-        Left = 61
+        Left = 60
         Height = 25
         Top = 172
         Width = 143
@@ -500,7 +500,7 @@ object frmUltimap2: TfrmUltimap2
         Height = 19
         Hint = 'When enabled will write the sequence of events as they happen as plain text to a file called cpu#trace.txt.'#13#10'This file contains the disassemble and some event data that happens along the way.'#13#10#13#10'It is recommended to use a very small range, and a stop condition'
         Top = 248
-        Width = 129
+        Width = 130
         Caption = 'Parse trace to textfile'
         OnChange = cbParseToTextfileChange
         ParentShowHint = False
@@ -640,7 +640,7 @@ object frmUltimap2: TfrmUltimap2
         Left = 5
         Height = 19
         Top = 27
-        Width = 118
+        Width = 117
         BorderSpacing.Left = 5
         Caption = 'Trace all processes'
         OnChange = cbTraceAllProcessesChange
@@ -746,8 +746,8 @@ object frmUltimap2: TfrmUltimap2
   object pmRangeOptions: TPopupMenu
     Images = um2ImageList
     OnPopup = pmRangeOptionsPopup
-    left = 216
-    top = 192
+    Left = 216
+    Top = 192
     object miRangeDeleteSelected: TMenuItem
       Caption = 'Delete Selected'
       Default = True
@@ -764,13 +764,13 @@ object frmUltimap2: TfrmUltimap2
     Enabled = False
     Interval = 500
     OnTimer = tActivatorTimer
-    left = 224
-    top = 240
+    Left = 224
+    Top = 240
   end
   object PopupMenu1: TPopupMenu
     Images = um2ImageList
-    left = 216
-    top = 384
+    Left = 216
+    Top = 384
     object MenuItem1: TMenuItem
       Caption = 'Copy selection to clipboard'
       ImageIndex = 0
@@ -781,12 +781,12 @@ object frmUltimap2: TfrmUltimap2
     Enabled = False
     Interval = 2000
     OnTimer = tProcessorTimer
-    left = 400
-    top = 243
+    Left = 400
+    Top = 243
   end
   object um2ImageList: TImageList
-    left = 553
-    top = 337
+    Left = 553
+    Top = 337
     Bitmap = {
       4C69040000001000000010000000606060C4808080E0808080E0808080E08080
       80E0808080E0808080E0777777E098989856FFFFFF00FFFFFF00FFFFFF00FFFF
@@ -921,8 +921,8 @@ object frmUltimap2: TfrmUltimap2
   end
   object MainMenu1: TMainMenu
     Images = um2ImageList
-    left = 493
-    top = 249
+    Left = 493
+    Top = 249
     object MenuItem2: TMenuItem
       Caption = 'File'
       object MenuItem3: TMenuItem
@@ -942,13 +942,13 @@ object frmUltimap2: TfrmUltimap2
     end
   end
   object OpenDialog1: TOpenDialog
-    left = 248
+    Left = 248
   end
   object pmSetHotkey: TPopupMenu
     Images = um2ImageList
     OnPopup = pmSetHotkeyPopup
-    left = 208
-    top = 456
+    Left = 208
+    Top = 456
     object miSetHotkey: TMenuItem
       Caption = 'Set hotkey'
       ImageIndex = 1

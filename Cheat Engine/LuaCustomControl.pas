@@ -68,6 +68,7 @@ begin
   lua_register(LuaVM, 'customcontrol_getCanvas', customControl_getCanvas);
 end;
 
+
 initialization
   luaclass_register(TCustomControl, customcontrol_addMetaData);
 

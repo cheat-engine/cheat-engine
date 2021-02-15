@@ -1162,19 +1162,24 @@ end;
 
 
 procedure TfrmAutoInject.Assigntocurrentcheattable1Click(Sender: TObject);
-var a,b: integer;
+var
+  a,b: integer;
+  di: TDisableInfo;
 begin
 
   getenableanddisablepos(assemblescreen.Lines,a,b);
   if (a=-1) and (b=-1) then raise exception.create(rsCodeNeedsEnableAndDisable);
 
-  if autoassemble(assemblescreen.lines,true,true,true,false) and
-     autoassemble(assemblescreen.lines,true,false,true,false) then
+  di:=TDisableInfo.create;
+  if autoassemble(assemblescreen.lines,true,true,true,false,di) and
+     autoassemble(assemblescreen.lines,true,false,true,false,di) then
   begin
     //add a entry with type 255
     mainform.AddAutoAssembleScript(assemblescreen.text);
   end
   else showmessage(rsFailedToAddToTableNotAllCodeIsInjectable);
+
+  di.free;
 
 end;
 

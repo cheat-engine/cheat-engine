@@ -15,6 +15,7 @@ type
    // procedure WndProc(var TheMessage: TLMessage); override;
   public
     constructor Create(TheOwner: TComponent); override;
+    constructor CreateNew(AOwner: TComponent; Num: Integer=0); override;
   end;
 
 
@@ -45,6 +46,23 @@ begin
   end;
 end;
 
+constructor TNewForm.CreateNew(AOwner: TComponent; Num: Integer=0);
+var ldark: dword;
+begin
+  inherited CreateNew(AOwner, num);
+  if ShouldAppsUseDarkMode() then
+  begin
+    AllowDarkModeForWindow(handle,1);
+
+    color:=$242424;
+    font.color:=colorset.FontColor;
+    if InitDwmLibrary then
+    begin
+      ldark:=1;
+      DwmSetWindowAttribute(handle, 19, @Ldark, sizeof(Ldark));
+    end;
+  end;
+end;
 
 end.
 

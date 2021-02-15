@@ -54,6 +54,7 @@ var
   clHighlight: TColor=graphics.clHighlight;
   clBtnFace: TColor=graphics.clBtnFace;
   clBtnText: TColor=graphics.clBtnText;
+  clBtnBorder: TColor=graphics.clBtnText;
 
   darkmodestring: string=''; //contains ' dark' if darkmode is used (used for settings)
 
@@ -264,6 +265,8 @@ initialization
           ColorSet.InactiveCheckboxFillColor:=$999999;
           clBtnFace:=inccolor(ColorSet.TextBackground,8);
           clBtnText:=ColorSet.FontColor;
+
+          clBtnBorder:=$9b9b9b;
 
           clWindow:=colorset.TextBackground;
 

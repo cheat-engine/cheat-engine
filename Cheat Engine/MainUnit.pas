@@ -4230,8 +4230,6 @@ var
   br: TRect;
 begin
   f := tceform.CreateNew(nil);
-
-
   f.autosize := False;
 
   j := 1;
@@ -4264,6 +4262,9 @@ begin
   formdesigner.designForm(f);
 
   formdesigner.Show;
+
+  f.clientwidth:=ScaleX(200,96);
+  f.clientheight:=ScaleY(200,96);
 
   f.Show;
 
