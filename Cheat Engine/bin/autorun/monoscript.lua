@@ -2377,6 +2377,9 @@ function mono_invoke_method_dialog(domain, method, address)
   mifinfo.cbInstance.AnchorSideRight.Control=mifinfo.mif
   mifinfo.cbInstance.AnchorSideRight.Side=asrRight
   mifinfo.cbInstance.Anchors='[akLeft, akRight, akTop]'
+  mifinfo.cbInstance.BorderSpacing.Left=2
+  mifinfo.cbInstance.BorderSpacing.Right=2
+
 
 
 
