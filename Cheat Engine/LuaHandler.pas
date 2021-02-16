@@ -6154,6 +6154,85 @@ begin
   result:=0;
 end;
 
+function lua_dmvm_watch_getstatus(L: PLua_State): integer; cdecl;
+var last,best: TEPTWatchLogData;
+begin
+  if dbvm_watch_getstatus(last,best) then
+  begin
+    lua_createtable(L,0,2);
+
+    lua_pushstring(L,'last');
+    lua_createtable(L,0,7);
+
+    lua_pushstring(L,'physicalAddress');
+    lua_pushinteger(L,last.physicalAddress);
+    lua_settable(L,-3);
+
+    lua_pushstring(L,'initialID');
+    lua_pushinteger(L,last.initialID);
+    lua_settable(L,-3);
+
+    lua_pushstring(L,'actualID');
+    lua_pushinteger(L,last.actualID);
+    lua_settable(L,-3);
+
+    lua_pushstring(L,'rip');
+    lua_pushinteger(L,last.rip);
+    lua_settable(L,-3);
+
+    lua_pushstring(L,'data');
+    lua_pushinteger(L,last.data);
+    lua_settable(L,-3);
+
+    lua_pushstring(L,'cacheIssue');
+    lua_pushinteger(L,last.cacheIssue);
+    lua_settable(L,-3);
+
+    lua_pushstring(L,'skipped');
+    lua_pushinteger(L,last.skipped);
+    lua_settable(L,-3);
+
+    lua_settable(L,-3);
+
+    lua_pushstring(L,'best');
+    lua_createtable(L,0,7);
+
+    lua_pushstring(L,'physicalAddress');
+    lua_pushinteger(L,best.physicalAddress);
+    lua_settable(L,-3);
+
+    lua_pushstring(L,'initialID');
+    lua_pushinteger(L,best.initialID);
+    lua_settable(L,-3);
+
+    lua_pushstring(L,'actualID');
+    lua_pushinteger(L,best.actualID);
+    lua_settable(L,-3);
+
+    lua_pushstring(L,'rip');
+    lua_pushinteger(L,best.rip);
+    lua_settable(L,-3);
+
+    lua_pushstring(L,'data');
+    lua_pushinteger(L,best.data);
+    lua_settable(L,-3);
+
+    lua_pushstring(L,'cacheIssue');
+    lua_pushinteger(L,best.cacheIssue);
+    lua_settable(L,-3);
+
+    lua_pushstring(L,'skipped');
+    lua_pushinteger(L,best.skipped);
+    lua_settable(L,-3);
+
+    lua_settable(L,-3);
+
+    result:=1;
+  end
+  else
+    result:=0;
+end;
+
 function lua_dbvm_cloak_activate(L: PLua_State): integer; cdecl;
 var PA, VA: QWORD;
   mode :integer;
@@ -13788,6 +13867,7 @@ begin
     lua_register(L, 'dbvm_watch_executes', lua_dbvm_watch_executes);
     lua_register(L, 'dbvm_watch_retrievelog', lua_dbvm_watch_retrievelog);
     lua_register(L, 'dbvm_watch_disable', lua_dbvm_watch_disable);
+    lua_register(L, 'dbvm_watch_getstatus', lua_dmvm_watch_getstatus);
 
     lua_register(L, 'dbvm_cloak_activate', lua_dbvm_cloak_activate);
     lua_register(L, 'dbvm_cloak_deactivate', lua_dbvm_cloak_deactivate);

@@ -7,8 +7,8 @@ add {$C#-code} sections and {$C#} blocks (which end up as injected dll's)
 
 
 DBVM: Add a "start record all PA access"  "stop record all PA access" which records the PA, VA, CR3, CS:RIP for each access
-DBVM: Add a local break and trace
-DBVM: Add debug output for NP/EPT watch entries (and allow cpunr specification)
+DBVM: Add a local break and trace 
+DBVM: Add vmcall: dbvm_readmemory and dbvm_writememory for inspection of global variables
 
 
 'sub rsp,20+(4*8)+(6*8)'

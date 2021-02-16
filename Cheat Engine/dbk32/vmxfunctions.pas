@@ -86,6 +86,8 @@ const
   VMCALL_DISABLETSCHOOK=66;
   VMCALL_ENABLETSCHOOK=67;
 
+  VMCALL_WATCH_GETSTATUS=68;
+
 
   //---
   //watch options:
@@ -392,6 +394,16 @@ type
   end;
   PDBVMBreakpoint=^TDBVMBreakpoint;
 
+  TEPTWatchLogData=record
+    physicalAddress: QWORD;
+    initialID: QWORD;
+    actualID: QWORD;
+    rip: QWORD;
+    data: QWORD;
+    cacheIssue: QWORD;
+    skipped: QWORD;
+  end;
+
 
 function dbvm_version: dword; stdcall;
 function dbvm_changepassword(password1,password2: dword):dword; stdcall;
@@ -442,6 +454,7 @@ function dbvm_watch_reads(PhysicalAddress: QWORD; size: integer; Options: DWORD;
 function dbvm_watch_executes(PhysicalAddress: QWORD; size: integer; Options: DWORD; MaxEntryCount: Integer): integer;
 function dbvm_watch_retrievelog(ID: integer; results: PPageEventListDescriptor; var resultsize: integer): integer;
 function dbvm_watch_delete(ID: integer): boolean;
+function dbvm_watch_getstatus(out last: TEPTWatchLogData; out best: TEPTWatchLogData): boolean;
 
 function dbvm_cloak_activate(PhysicalBase: QWORD; virtualAddress: Qword=0; mode: integer=1): integer;
 function dbvm_cloak_deactivate(PhysicalBase: QWORD): boolean;
@@ -1459,6 +1472,27 @@ begin
   vmcallinfo.command:=VMCALL_WATCH_DELETE;
   vmcallinfo.ID:=ID;
   result:=vmcall(@vmcallinfo,vmx_password1)=0;  //returns 0 on success
+end;
+
+function dbvm_watch_getstatus(out last: TEPTWatchLogData; out best: TEPTWatchLogData): boolean; //just a debug function to verify things work without the need to attach a debugger to dbvm
+var vmcallinfo: packed record
+  structsize: dword;
+  level2pass: dword;
+  command: dword;
+  last: TEPTWatchLogData;
+  best: TEPTWatchLogData;
+end;
+begin
+  vmcallinfo.structsize:=sizeof(vmcallinfo);
+  vmcallinfo.level2pass:=vmx_password2;
+  vmcallinfo.command:=VMCALL_WATCH_GETSTATUS;
+  result:=vmcall(@vmcallinfo,vmx_password1)=0;  //returns 0 on success
+
+  if result then
+  begin
+    last:=vmcallinfo.last;
+    best:=vmcallinfo.best;
+  end;
 end;
 
 function dbvm_cloak_activate(PhysicalBase: QWORD; virtualAddress: QWORD=0; mode: integer=1): integer;
