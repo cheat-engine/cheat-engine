@@ -282,6 +282,9 @@ type
     function getBaseAddress: ptrUint; //return the base address, if offset, the calculated address
     procedure RefreshCustomType;
     function ReinterpretAddress(forceremovalofoldaddress: boolean=false): boolean;
+
+    function parseAddressString(s: string; out address: ptruint): boolean;
+
     //property Value: string read GetValue write SetValue;
     property bytesize: integer read getByteSize;
 
@@ -2717,6 +2720,32 @@ procedure TMemoryRecord.RefreshCustomType;
 begin
   if vartype=vtCustom then
     fCustomType:=GetCustomTypeFromName(fCustomTypeName);
+end;
+
+function TMemoryRecord.parseAddressString(s: string; out address: ptruint): boolean;
+//parses the addressString based on the memoryrecord it's in (relative offsets are memrec dependant)
+var
+  err: boolean;
+  relative: boolean;
+  parentmr: TMemoryrecord;
+begin
+  result:=false;
+
+  address:=symhandler.getAddressFromName(s,false,err);
+  result:=not err;
+  if result then
+  begin
+    s:=trim(s);
+    if hasparent and ((s<>'') and (s[1] in ['+','-'])) then
+    begin
+      //relative
+      parentMR:=parent;
+      while ((parentMR.interpretableaddress='') or (parentMR.interpretableaddress='0')) and parentMR.hasParent do parentMR:=parentMR.parent; // find first ancestor with interpretableaddress
+
+      if not ((parentMR.interpretableaddress='') or (parentMR.interpretableaddress='0')) then
+        address:=parentMR.RealAddress+address; //assuming that the ancestor has had it's real address calculated first
+    end;
+  end;
 end;
 
 function TMemoryRecord.ReinterpretAddress(forceremovalofoldaddress: boolean=false): boolean;

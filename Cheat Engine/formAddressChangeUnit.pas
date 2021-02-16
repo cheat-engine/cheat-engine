@@ -801,7 +801,12 @@ end;
 procedure TPointerInfo.basechange(sender: Tobject);
 var e: boolean;
 begin
-  fBaseAddress:=symhandler.getAddressFromName(utf8toansi(baseAddress.text), false, e);
+
+  if (owner.memoryrecord<>nil) then
+    e:=not owner.memoryrecord.parseAddressString(utf8toansi(baseAddress.text),fBaseAddress)
+  else
+    fBaseAddress:=symhandler.getAddressFromName(utf8toansi(baseAddress.text),false,e);
+
   fInvalidBaseAddress:=e;
 
   if fInvalidBaseAddress then
@@ -1331,7 +1336,10 @@ var
 begin
   //read the address and display the value it points to
 
-  a:=symhandler.getAddressFromName(utf8toansi(editAddress.Text),false,e);
+  if (memoryrecord<>nil) then
+    e:=not memoryrecord.parseAddressString(utf8toansi(editAddress.Text),a)
+  else
+    a:=symhandler.getAddressFromName(utf8toansi(editAddress.Text),false,e);
 
   if (not e) and (cbvarType.ItemIndex<>-1) then
   begin
