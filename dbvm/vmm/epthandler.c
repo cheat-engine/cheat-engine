@@ -23,6 +23,12 @@
 #include "displaydebug.h"
 #include "nphandler.h"
 
+
+
+EPTWatchLogData lastSeenEPTWatch; //debugging ept
+EPTWatchLogData lastSeenEPTWatchVerySure;
+
+
 QWORD EPTMapPhysicalMemory(pcpuinfo currentcpuinfo, QWORD physicalAddress, int forcesmallpage);
 
 criticalSection eptWatchListCS;
@@ -1237,6 +1243,9 @@ int ept_getWatchID(QWORD address)
   return -1;
 }
 
+
+
+
 BOOL ept_handleWatchEvent(pcpuinfo currentcpuinfo, VMRegisters *registers, PFXSAVE64 fxsave, QWORD PhysicalAddress)
 //Used by Intel and AMD
 {
@@ -1260,6 +1269,10 @@ BOOL ept_handleWatchEvent(pcpuinfo currentcpuinfo, VMRegisters *registers, PFXSA
     return FALSE;
   }
 
+  lastSeenEPTWatch.physicalAddress=PhysicalAddress;
+  lastSeenEPTWatch.initialID=ID;
+
+
   QWORD RIP;
   QWORD RSP;
 
@@ -1276,17 +1289,25 @@ BOOL ept_handleWatchEvent(pcpuinfo currentcpuinfo, VMRegisters *registers, PFXSA
   {
     RIP=vmread(vm_guest_rip);
     RSP=vmread(vm_guest_rsp);
-
   }
+
+  lastSeenEPTWatch.skipped=-1;
+  lastSeenEPTWatch.rip=RIP;
 
   QWORD PhysicalAddressBase=PhysicalAddress & 0xfffffffffffff000ULL;
   EPT_VIOLATION_INFO evi;
   NP_VIOLATION_INFO nvi;
 
   if (isAMD)
+  {
     nvi.ErrorCode=currentcpuinfo->vmcb->EXITINFO1;
+    lastSeenEPTWatch.data=nvi.ErrorCode;
+  }
   else
+  {
     evi.ExitQualification=vmread(vm_exit_qualification);
+    lastSeenEPTWatch.data=evi.ExitQualification;
+  }
 
   //nosendchar[getAPICID()]=0;
   sendstringf("Handling something that resembles watch ID %d\n", ID);
@@ -1332,6 +1353,7 @@ BOOL ept_handleWatchEvent(pcpuinfo currentcpuinfo, VMRegisters *registers, PFXSA
     }
   }
 
+  lastSeenEPTWatch.actualID=ID;
   sendstringf("Handling watch ID %d\n", ID);
 
   //todo: release the eptWatchListCS and obtain only the log
@@ -1341,12 +1363,14 @@ BOOL ept_handleWatchEvent(pcpuinfo currentcpuinfo, VMRegisters *registers, PFXSA
   PPTE_PAE npte;
   PEPT_PTE epte;
 
+  lastSeenEPTWatch.cacheIssue=0;
   if (isAMD)
   {
     npte=(PPTE_PAE)currentcpuinfo->eptWatchList[ID];
     if ((npte->EXB==0) && (npte->P) && (npte->RW))
     {
       sendstringf("This entry was already marked with full access (check caches) (AMD)\n");
+      lastSeenEPTWatch.cacheIssue=1;
     }
   }
   else
@@ -1355,6 +1379,7 @@ BOOL ept_handleWatchEvent(pcpuinfo currentcpuinfo, VMRegisters *registers, PFXSA
     if ((epte->XA) && (epte->RA) && (epte->WA))
     {
       sendstringf("This entry was already marked with full access (check caches)\n");
+      lastSeenEPTWatch.cacheIssue=1;
     }
   }
 
@@ -1382,6 +1407,7 @@ BOOL ept_handleWatchEvent(pcpuinfo currentcpuinfo, VMRegisters *registers, PFXSA
   if ((eptWatchList[ID].Options & EPTO_INTERRUPT) && (PhysicalAddress>=eptWatchList[ID].PhysicalAddress) && (PhysicalAddress<eptWatchList[ID].PhysicalAddress+eptWatchList[ID].Size))
   {
     //This is the specific address that was being requested
+    lastSeenEPTWatch.skipped=1; //it's an interrupt triggering one (rare)
     currentcpuinfo->BPAfterStep=1;
     csLeave(&eptWatchListCS);
     return TRUE; //no need to log it
@@ -1391,15 +1417,17 @@ BOOL ept_handleWatchEvent(pcpuinfo currentcpuinfo, VMRegisters *registers, PFXSA
 
 
   //save this state?
-  if ((eptWatchList[ID].Type!=EPTW_EXECUTE) && (evi.R==0) && (evi.X==1))
+  if ((isAMD==0) && (eptWatchList[ID].Type!=EPTW_EXECUTE) && (evi.R==0) && (evi.X==1))
   {
     sendstringf("This was an execute operation and no read. No need to log\n", ID);
+    lastSeenEPTWatch.skipped=2;
     csLeave(&eptWatchListCS);
     return TRUE; //execute operation (this cpu doesn't support execute only)
   }
 
   if (eptWatchList[ID].CopyInProgress) //a copy operation is in progress
   {
+    lastSeenEPTWatch.skipped=3; //copy was in progress.
     eptWatchList[ID].Log->missedEntries++;
     sendstringf("This watchlist is currently being copied, not logging this\n");
     csLeave(&eptWatchListCS);
@@ -1412,10 +1440,13 @@ BOOL ept_handleWatchEvent(pcpuinfo currentcpuinfo, VMRegisters *registers, PFXSA
       (PhysicalAddress>=eptWatchList[ID].PhysicalAddress+eptWatchList[ID].Size)
       ))
   {
+    lastSeenEPTWatch.skipped=4; //not a perfect physical address match
     sendstringf("%d: Not logging all and the physical address(%6) is not in the exact range (%p-%p)\n", currentcpuinfo->cpunr, PhysicalAddress, eptWatchList[ID].PhysicalAddress, eptWatchList[ID].PhysicalAddress+eptWatchList[ID].Size);
     csLeave(&eptWatchListCS);
     return TRUE; //no need to log it
   }
+
+  lastSeenEPTWatchVerySure=lastSeenEPTWatch;
 
 
 
@@ -1445,6 +1476,9 @@ BOOL ept_handleWatchEvent(pcpuinfo currentcpuinfo, VMRegisters *registers, PFXSA
         sendstringf(" and EPTO_MULTIPLERIP is 0.  Not logging (just increase count)\n");
         peb->Count++;
         csLeave(&eptWatchListCS);
+
+        lastSeenEPTWatch.skipped=5;
+        lastSeenEPTWatchVerySure.skipped=5; //already logged
         return TRUE; //no extra RIP's
       }
       else
@@ -1476,6 +1510,10 @@ BOOL ept_handleWatchEvent(pcpuinfo currentcpuinfo, VMRegisters *registers, PFXSA
         sendstringf("  The registers match the state so skipping the log. (Just increase count)\n");
         peb->Count++;
         csLeave(&eptWatchListCS);
+
+        lastSeenEPTWatch.skipped=6;
+        lastSeenEPTWatchVerySure.skipped=6; //already logged and not different
+
         return TRUE; //already in the list
       }
 
@@ -1494,6 +1532,8 @@ BOOL ept_handleWatchEvent(pcpuinfo currentcpuinfo, VMRegisters *registers, PFXSA
       sendstringf(". Discarding event\n");
       eptWatchList[ID].Log->missedEntries++;
       csLeave(&eptWatchListCS);
+      lastSeenEPTWatch.skipped=7;
+      lastSeenEPTWatchVerySure.skipped=7; //list full
       return TRUE; //can't add more
     }
 
@@ -1517,6 +1557,9 @@ BOOL ept_handleWatchEvent(pcpuinfo currentcpuinfo, VMRegisters *registers, PFXSA
       eptWatchList[ID].Options=eptWatchList[ID].Options & (~EPTO_GROW_WHENFULL); //stop trying
       eptWatchList[ID].Log->missedEntries++;
       csLeave(&eptWatchListCS);
+
+      lastSeenEPTWatch.skipped=8; //list full and out of memory
+      lastSeenEPTWatchVerySure.skipped=8;
       return TRUE; //can't add more
     }
 
@@ -1583,6 +1626,8 @@ BOOL ept_handleWatchEvent(pcpuinfo currentcpuinfo, VMRegisters *registers, PFXSA
 
   eptWatchList[ID].Log->numberOfEntries++;
 
+  lastSeenEPTWatch.skipped=0;
+  lastSeenEPTWatchVerySure.skipped=0; //got added to the list
 
   sendstringf("Added it to the list. numberOfEntries for ID %d is now %d\n", ID, eptWatchList[ID].Log->numberOfEntries);
 

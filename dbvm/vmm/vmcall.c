@@ -1999,43 +1999,67 @@ int _handleVMCallInstruction(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, 
     }
 #endif
 
-  case VMCALL_CAUSEDDEBUGBREAK:
-  {
-    vmregisters->rax=currentcpuinfo->BPCausedByDBVM;
-    currentcpuinfo->BPCausedByDBVM=0;
-    break;
-  }
-
-  case VMCALL_ENABLETSCHOOK:
-  {
-    vmx_enableTSCHook();
-    break;
-  }
-
-  case VMCALL_DISABLETSCHOOK:
-  {
-    if (useSpeedhack==FALSE)
+    case VMCALL_WATCH_GETSTATUS:
     {
-      vmx_disableTSCHook();
-      vmregisters->rax=1;
+      typedef struct
+      {
+        VMCALL_BASIC vmcall;
+        EPTWatchLogData last;
+        EPTWatchLogData best;
+      } __attribute__((__packed__)) *PVMCALL_WATCH_GETSTATUS_PARAM;
+
+
+      PVMCALL_WATCH_GETSTATUS_PARAM p=(PVMCALL_WATCH_GETSTATUS_PARAM)vmcall_instruction;
+
+
+      p->last=lastSeenEPTWatch;
+      p->best=lastSeenEPTWatchVerySure;
+      vmregisters->rax = 0;
+      break;
     }
-    else
-      vmregisters->rax=0;
-    break;
-  }
+
+    case VMCALL_CAUSEDDEBUGBREAK:
+    {
+      vmregisters->rax=currentcpuinfo->BPCausedByDBVM;
+      currentcpuinfo->BPCausedByDBVM=0;
+      break;
+    }
+
+    case VMCALL_ENABLETSCHOOK:
+    {
+      vmx_enableTSCHook();
+      break;
+    }
+
+    case VMCALL_DISABLETSCHOOK:
+    {
+      if (useSpeedhack==FALSE)
+      {
+        vmx_disableTSCHook();
+        vmregisters->rax=1;
+      }
+      else
+        vmregisters->rax=0;
+      break;
+    }
 
 
-	case VMCALL_KERNELMODE:
-	{
-		WORD newCS = *(WORD*)&vmcall_instruction[3];
-		vmregisters->rax = VMCALL_SwitchToKernelMode(currentcpuinfo, newCS);
-		break;
-	}
-	case VMCALL_USERMODE:
-	{
-		vmregisters->rax = VMCALL_ReturnToUserMode(currentcpuinfo);
-		break;
-	}
+
+
+    case VMCALL_KERNELMODE:
+    {
+      WORD newCS = *(WORD*)&vmcall_instruction[3];
+      vmregisters->rax = VMCALL_SwitchToKernelMode(currentcpuinfo, newCS);
+      break;
+    }
+
+    case VMCALL_USERMODE:
+    {
+      vmregisters->rax = VMCALL_ReturnToUserMode(currentcpuinfo);
+      break;
+    }
+
+
 
     default:
       vmregisters->rax = 0xcedead;

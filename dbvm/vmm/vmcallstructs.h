@@ -267,6 +267,8 @@ typedef struct
 } __attribute__((__packed__)) VMCALL_GET_STATISTICS_PARAM, *PVMCALL_GET_STATISTICS_PARAM;
 #endif
 
+
+
 typedef struct
 {
   VMCALL_BASIC vmcall;

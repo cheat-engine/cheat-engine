@@ -15,6 +15,18 @@
 #include "list.h"
 #include "maps.h"
 
+typedef struct
+{
+  QWORD physicalAddress;
+  QWORD initialID;
+  QWORD actualID;
+  QWORD rip;
+  QWORD data;
+  QWORD cacheIssue;
+  QWORD skipped; //0=taken
+
+} EPTWatchLogData;
+
 
 #define MTC_UC  0
 #define MTC_WC  1
@@ -36,6 +48,9 @@
 
 extern PAddressList CloakedPagesList;
 extern PMapInfo CloakedPagesMap;
+
+extern EPTWatchLogData lastSeenEPTWatch;
+extern EPTWatchLogData lastSeenEPTWatchVerySure;
 
 
 void initMemTypeRanges();

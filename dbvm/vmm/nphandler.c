@@ -332,6 +332,8 @@ QWORD NPMapPhysicalMemory(pcpuinfo currentcpuinfo, QWORD physicalAddress, int fo
     else
       cloakdata=addresslist_find(CloakedPagesList, physicalAddress & MAXPHYADDRMASKPB);
 
+
+
     if (cloakdata==NULL)
     {
 
