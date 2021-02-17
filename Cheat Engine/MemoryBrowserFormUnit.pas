@@ -4766,6 +4766,7 @@ begin
         else
           unlockaddress:=0;
 
+        frmchangedaddresses.address:=address;
 
         frmchangedaddresses.dbvmwatchid:=id;
         frmchangedaddresses.dbvmwatch_unlock:=unlockaddress;

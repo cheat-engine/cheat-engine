@@ -714,7 +714,7 @@ begin
             sl:=tstringlist.create;
             disableinfo.ccodesymbols.GetSymbolList(sl);
             if MessageDlg('The following C-Code symbols where registered:'+sl.text+#13#10+'Do you wish to keep these?',mtConfirmation, [mbyes,mbno],0)<>mryes then
-              disableinfo.free
+              freeandnil(disableinfo.ccodesymbols)
             else
             begin
               disableinfo.ccodesymbols.refcount:=0;

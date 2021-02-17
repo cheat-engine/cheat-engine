@@ -373,8 +373,8 @@ begin
   w:=w+2*canvas.GetTextWidth(' ');
   inc(h,4);
 
-  clientwidth:=2+w+roundingx div 3;
-  clientheight:=2+h+roundingy div 4;
+  clientwidth:=2+w+trunc(arctan(roundingx));
+  clientheight:=2+h+trunc(arctan(roundingy));
 end;
 
 procedure TCECustomButton.Paint;

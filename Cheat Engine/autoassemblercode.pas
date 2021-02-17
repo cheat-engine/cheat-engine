@@ -486,6 +486,10 @@ begin
           syminfo:=nextsyminfo;
         end;
       end;
+    end
+    else
+    begin
+      raise Exception.Create('ccode section compilation failed:'+errorlog.text);
     end;
 
 
