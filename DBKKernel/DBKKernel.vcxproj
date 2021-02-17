@@ -191,7 +191,7 @@
     <OutDir>..\Cheat Engine\bin\</OutDir>
     <Inf2CatUseLocalTime>false</Inf2CatUseLocalTime>
     <Inf2CatVerbose>true</Inf2CatVerbose>
-    <TimeStampServer>http://timestamp.globalsign.com/scripts/timstamp.dll</TimeStampServer>
+    <TimeStampServer>http://timestamp.globalsign.com/?signature=sha2</TimeStampServer>
     <EnableInf2cat>false</EnableInf2cat>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">

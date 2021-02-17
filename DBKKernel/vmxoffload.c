@@ -40,6 +40,8 @@ typedef struct _INITVARS
 	UINT64 nextstack; //The virtual address of the stack for the next CPU (vmloader only sets it up when 0)
 	UINT64 extramemory; //Physical address of some extra initial memory (physically contiguous)
 	UINT64 extramemorysize; //the number of pages that extramemory spans
+	UINT64 contiguousmemory; //Physical address of some extra initial memory (physically contiguous)
+	UINT64 contiguousmemorysize; //the number of pages that extramemory spans
 } INITVARS, *PINITVARS;
 
 
@@ -307,7 +309,6 @@ Runs at passive mode
 
 			if (statusblock.Status == STATUS_SUCCESS)
 			{
-
 				DWORD vmmsize = fsi.EndOfFile.LowPart;// -(startsector * 512);
 
 				//now read the vmdisk into the allocated memory
@@ -586,8 +587,24 @@ Runs at passive mode
 					initvars->vmmstart = vmmPA;
 					initvars->pagedirlvl4 = 0x00400000 + ((UINT64)PageMapLevel4 - (UINT64)vmm);
 					initvars->nextstack = 0x00400000 + ((UINT64)mainstack - (UINT64)vmm) + (16 * 4096) - 0x40;
+					initvars->contiguousmemory = 0;
+					
 
-					//add 64KB extra per CPU
+					maxPA.QuadPart = MAXULONG64;
+					void *contiguous = MmAllocateContiguousMemory(8*4096, maxPA );
+					if (contiguous)
+					{
+						RtlZeroMemory(contiguous, 8 * 4096);
+						initvars->contiguousmemory = MmGetPhysicalAddress(contiguous).QuadPart;
+						DbgPrint("contiguous PA =%llx\n", initvars->contiguousmemory);
+						
+						initvars->contiguousmemorysize = 8;
+
+					}
+					else
+						DbgPrint("Failed allocating 32KB of contiguous memory");
+
+
 					initializedvmm = TRUE;
 
 					KeInitializeSpinLock(&LoadedOSSpinLock);
