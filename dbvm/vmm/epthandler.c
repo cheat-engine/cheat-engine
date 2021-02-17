@@ -1111,15 +1111,18 @@ void saveStack(pcpuinfo currentcpuinfo, unsigned char *stack) //stack is 4096 by
   int error;
   QWORD pagefaultaddress;
   int size=4096;
+  QWORD rsp=isAMD?currentcpuinfo->vmcb->RSP:vmread(vm_guest_rsp);
+
+
 
   zeromemory(stack, 4096);
   //copy it but don't care about pagefaults (if there is a pagefault I 'could' trigger a pf and then wait and try again, but fuck it, it's not 'that' important
-  unsigned char *gueststack=(unsigned char *)mapVMmemoryEx(currentcpuinfo, vmread(vm_guest_rsp), 4096, &error, &pagefaultaddress, 1);
+  unsigned char *gueststack=(unsigned char *)mapVMmemoryEx(currentcpuinfo, rsp, 4096, &error, &pagefaultaddress, 1);
 
   if (error)
   {
     if (error==2)
-      size=pagefaultaddress-vmread(vm_guest_rsp);
+      size=pagefaultaddress-rsp;
     else
       return;
   }
@@ -1538,9 +1541,6 @@ BOOL ept_handleWatchEvent(pcpuinfo currentcpuinfo, VMRegisters *registers, PFXSA
     }
 
     //reallocate the buffer
-#ifdef MEMORYCHECK
-    while (1); //I don't have this when doing the test
-#endif
 
     int newmax=eptWatchList[ID].Log->numberOfEntries*2;
     PPageEventListDescriptor temp=realloc(eptWatchList[ID].Log, sizeof(PageEventListDescriptor)+logentrysize*newmax);
@@ -1575,24 +1575,12 @@ BOOL ept_handleWatchEvent(pcpuinfo currentcpuinfo, VMRegisters *registers, PFXSA
   {
     case PE_BASIC:
     {
-#ifdef MEMORYCHECK
-  //make sure it's all 0xce
-      if (checkmem((unsigned char*)&eptWatchList[ID].Log->pe.basic[i], sizeof(PageEventBasic)))
-        while (1);
-
-#endif
-
       fillPageEventBasic(&eptWatchList[ID].Log->pe.basic[i], registers);
       break;
     }
 
     case PE_EXTENDED:
     {
-#ifdef MEMORYCHECK
-  //make sure it's all 0xce
-      if (checkmem((unsigned char*)&eptWatchList[ID].Log->pe.extended[i], sizeof(PageEventExtended)))
-        while (1);
-#endif
       fillPageEventBasic(&eptWatchList[ID].Log->pe.extended[i].basic, registers);
       eptWatchList[ID].Log->pe.extended[i].fpudata=*fxsave;
       break;
@@ -1600,11 +1588,6 @@ BOOL ept_handleWatchEvent(pcpuinfo currentcpuinfo, VMRegisters *registers, PFXSA
 
     case PE_BASICSTACK:
     {
-#ifdef MEMORYCHECK
-  //make sure it's all 0xce
-      if (checkmem((unsigned char*)&eptWatchList[ID].Log->pe.basics[i], sizeof(PageEventBasicWithStack)))
-        while (1);
-#endif
       fillPageEventBasic(&eptWatchList[ID].Log->pe.basics[i].basic, registers);
       saveStack(currentcpuinfo, eptWatchList[ID].Log->pe.basics[i].stack);
       break;
@@ -1612,11 +1595,6 @@ BOOL ept_handleWatchEvent(pcpuinfo currentcpuinfo, VMRegisters *registers, PFXSA
 
     case PE_EXTENDEDSTACK:
     {
-#ifdef MEMORYCHECK
-  //make sure it's all 0xce
-      if (checkmem((unsigned char*)&eptWatchList[ID].Log->pe.extendeds[i], sizeof(PageEventExtendedWithStack)))
-        while (1);
-#endif
       fillPageEventBasic(&eptWatchList[ID].Log->pe.extendeds[i].basic, registers);
       eptWatchList[ID].Log->pe.extendeds[i].fpudata=*fxsave;
       saveStack(currentcpuinfo, eptWatchList[ID].Log->pe.extendeds[i].stack);
