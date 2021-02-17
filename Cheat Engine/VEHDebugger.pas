@@ -166,6 +166,7 @@ function TVEHDebugInterface.SetThreadContext(hThread: THandle; const lpContext: 
 var c: PContext;
 {$ifdef cpu64}
     c32: PContext32 absolute c;
+    i: integer;
 {$endif}
 begin
 
@@ -207,7 +208,10 @@ begin
       c32.SegSs:=lpcontext.SegSs;
 
       CopyMemory(@c32.ext, @lpContext.fltsave,sizeof(c32.ext));
-      CopyMemory(@c32.FloatSave.RegisterArea[0], @lpContext.fltsave.FloatRegisters[0], 10*8);
+
+      for i:=0 to 7 do
+        CopyMemory(@c32.FloatSave.RegisterArea[i*10], @lpContext.fltsave.FloatRegisters[i], 10);
+
     end else c^:=lpContext;
 
    // end;// else lpContext:=c^;
@@ -401,10 +405,6 @@ begin
         {$ifdef cpu64}
         if is64bit then
         begin
-
-
-
-
           lpDebugEvent.Exception.ExceptionRecord.ExceptionCode:=VEHDebugView.Exception64.ExceptionCode;
           lpDebugEvent.Exception.ExceptionRecord.ExceptionFlags:=VEHDebugView.Exception64.ExceptionFlags;
           lpDebugEvent.Exception.ExceptionRecord.ExceptionRecord:=pointer(VEHDebugView.Exception64.ExceptionRecord);
