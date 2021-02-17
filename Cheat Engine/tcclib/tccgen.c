@@ -3426,7 +3426,7 @@ redo:
         gv(is_float(vtop->type.t & VT_BTYPE) ? RC_FLOAT : RC_INT);
 }
 
-#if defined TCC_TARGET_ARM64 || defined TCC_TARGET_RISCV64 || defined TCC_TARGET_ARM
+#if defined TCC_TARGET_ARM64 || defined TCC_TARGET_RISCV64 || defined TCC_TARGET_ARM || defined TCC_TARGET_X86_64  //cheat engine : Added check for TCC_TARGET_X86_64
 #define gen_cvt_itof1 gen_cvt_itof
 #else
 /* generic itof for unsigned long long case */
@@ -3453,7 +3453,7 @@ static void gen_cvt_itof1(int t)
 }
 #endif
 
-#if defined TCC_TARGET_ARM64 || defined TCC_TARGET_RISCV64
+#if defined TCC_TARGET_ARM64 || defined TCC_TARGET_RISCV64 || defined TCC_TARGET_X86_64
 #define gen_cvt_ftoi1 gen_cvt_ftoi
 #else
 /* generic ftoi for unsigned long long case */
