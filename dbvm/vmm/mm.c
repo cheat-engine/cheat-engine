@@ -81,7 +81,50 @@ int AllocListPos=0;
 
 UINT64 TotalAvailable;
 
+
+void* contiguousMemory; //alloc once memory. Doesn't allow free yet
+int contiguousMemoryPagesFree;
+
+
 void free2(void *address, unsigned int size);
+
+
+void* allocateContiguousMemory(int pagecount)
+{
+  void *result=NULL;
+  csEnter(&AllocCS);
+
+  sendstringf("allocateContiguousMemory(%d)\n", pagecount);
+  sendstringf("contiguousMemoryPagesFree=%d\n", contiguousMemoryPagesFree);
+  sendstringf("contiguousMemory=%p\n", contiguousMemory);
+
+
+  if (contiguousMemoryPagesFree>=pagecount)
+  {
+    result=contiguousMemory;
+
+    (*(QWORD*)&contiguousMemory)+=4096*pagecount;
+    contiguousMemoryPagesFree-=pagecount;
+  }
+  else
+  {
+    nosendchar[getAPICID()]=0;
+    sendstringf("contiguousMemoryPagesFree<pagecount");
+    while (1)
+    {
+      sendstringf("contiguousMemoryPagesFree<pagecount");
+
+      outportb(0x80,0x01);
+      outportb(0x80,0x10);
+    }
+  }
+
+
+
+  csLeave(&AllocCS);
+
+  return result;
+}
 
 /*
  * There was a time where the memory manager would free blocks it shouldn't. this is a test for that scenario)
@@ -589,7 +632,7 @@ void unmapPhysicalMemoryGlobal(void *virtualaddress, int size)
   {
     sendstringf("invalid global address (%6) given to unmapPhysicalMemoryGlobal\n",virtualaddress);
     ddDrawRectangle(0,DDVerticalResolution-100,100,100,0xff0000);
-    while (1) outportb(0x80,0xcd);
+    while (1) outportb(0x80,0x01);
   }
 
 
@@ -688,7 +731,7 @@ void SetPageToWriteThrough(void *address)
   }
 }
 
-void *addPhysicalPageToDBVM(QWORD address)
+void *addPhysicalPageToDBVM(QWORD address, int inuse)
 /*
  * Adds a physical page to the physicalPage List.
  * they will be mapped as virtual addresses at 0x1000000000 and beyond
@@ -763,7 +806,11 @@ void *addPhysicalPageToDBVM(QWORD address)
 
 
   //now mark these 4096 bytes as available to the memory manager
-  AllocationInfoList[PhysicalPageListSize].BitMask=0;
+  if (!inuse)
+    AllocationInfoList[PhysicalPageListSize].BitMask=0;
+  else
+    AllocationInfoList[PhysicalPageListSize].BitMask=0xffffffffffffffffULL;
+
   PhysicalPageListSize++;
 
   if (PhysicalPageListSize>=PhysicalPageListMaxSize)
@@ -784,23 +831,30 @@ void *addPhysicalPageToDBVM(QWORD address)
   return (void *)VirtualAddress;
 }
 
-void addPhysicalPagesToDBVM(QWORD address, int count)
+void* addPhysicalPagesToDBVM(QWORD address, int count, int inuse)
 {
   int i;
+  void* result=NULL;
   address=address & 0xfffffffffffff000ULL; //sanitize
 
   csEnter(&AllocCS);
   for (i=0; i<count; i++)
-    addPhysicalPageToDBVM(address+i*4096);
+  {
+    void* va=addPhysicalPageToDBVM(address+i*4096, inuse);
+    if (i==0)
+      result=va;
+  }
   csLeave(&AllocCS);
+
+  return result;
 }
 
-void mmAddPhysicalPageListToDBVM(QWORD *pagelist, int count)
+void mmAddPhysicalPageListToDBVM(QWORD *pagelist, int count, int inuse)
 {
   int i;
   csEnter(&AllocCS);
   for (i=0; i<count; i++)
-    addPhysicalPageToDBVM(pagelist[i]);
+    addPhysicalPageToDBVM(pagelist[i], inuse);
   csLeave(&AllocCS);
 }
 
@@ -1326,12 +1380,30 @@ void InitializeMM(UINT64 FirstFreeVirtualAddress)
   UINT64 currentaddress=FirstFreeVirtualAddress;
   while (currentaddress<0x007fffff)
   {
-    addPhysicalPageToDBVM(VirtualToPhysical((void *)currentaddress));
+    addPhysicalPageToDBVM(VirtualToPhysical((void *)currentaddress),0);
     currentaddress+=4096;
   }
 
-  if (extramemory)
-    addPhysicalPagesToDBVM(extramemory, extramemorysize);
+  if (extramemory && extramemorysize) //this is contiguous memory originally intended for allocs
+  {
+    if (contiguousmemoryPA==0) //no dedicated contiguous memory specified. Nibble some of the extra memory
+    {
+      int contiguousSize=extramemorysize>8?8:extramemorysize;
+
+      extramemory-=contiguousSize;
+      contiguousMemory=addPhysicalPagesToDBVM(extramemory, contiguousmemorysize, 1);
+      contiguousMemoryPagesFree=contiguousmemorysize;
+
+      extramemory+=4096*contiguousSize;
+    }
+    addPhysicalPagesToDBVM(extramemory, extramemorysize,0);
+  }
+
+  if (contiguousmemoryPA)
+  {
+    contiguousMemory=addPhysicalPagesToDBVM(contiguousmemoryPA, contiguousmemorysize, 1);
+    contiguousMemoryPagesFree=contiguousmemorysize;
+  }
 
   //todo: add indexes to free memory blocks
 

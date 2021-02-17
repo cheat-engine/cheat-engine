@@ -18,12 +18,18 @@ extern QWORD FirstFreeAddress;
 extern QWORD extramemory;
 extern QWORD extramemorysize;
 
+extern QWORD contiguousmemoryPA;
+extern QWORD contiguousmemorysize;
+
 extern unsigned char MAXPHYADDR;
 extern QWORD MAXPHYADDRMASK;
 extern QWORD MAXPHYADDRMASKPB;
 
 
 extern PPDPTE_PAE pml4table;
+
+
+
 
 
 void InitializeMM(UINT64 FirstFreeVirtualAddress);
@@ -57,6 +63,8 @@ void free2(void* pointer, unsigned int size);
 void *realloc(void *old, size_t size);
 void *realloc2(void *oldaddress, unsigned int oldsize, unsigned int newsize);
 
+void *allocateContiguousMemory(int pagecount);
+
 unsigned int maxAllocatableMemory(void);
 void printMMregions();
 UINT64 VirtualToPhysical(void *address);
@@ -70,7 +78,7 @@ void markPageAsWritable(void *address);
 
 void VirtualAddressToPageEntries(QWORD address, PPDPTE_PAE *pml4entry, PPDPTE_PAE *pagedirpointerentry, PPDE_PAE *pagedirentry, PPTE_PAE *pagetableentry);
 
-void mmAddPhysicalPageListToDBVM(QWORD *pagelist, int count);
+void mmAddPhysicalPageListToDBVM(QWORD *pagelist, int count, int inuse);
 void mmtest();
 
 //void wtftest(void); //test routine to figure out why some memory gets paged out

@@ -1915,7 +1915,7 @@ int _handleVMCallInstruction(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, 
 
       nosendchar[getAPICID()]=0;
       sendstringf("VMCALL_ADD_MEMORY\n");
-      mmAddPhysicalPageListToDBVM(p->PhysicalPages, pagecount);
+      mmAddPhysicalPageListToDBVM(p->PhysicalPages, pagecount,0);
       vmregisters->rax = pagecount; //0;
       break;
     }
@@ -2027,7 +2027,7 @@ int _handleVMCallInstruction(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, 
 
     case VMCALL_ENABLETSCHOOK:
     {
-      vmx_enableTSCHook();
+      vmx_enableTSCHook(currentcpuinfo);
       break;
     }
 
@@ -2035,7 +2035,7 @@ int _handleVMCallInstruction(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, 
     {
       if (useSpeedhack==FALSE)
       {
-        vmx_disableTSCHook();
+        vmx_disableTSCHook(currentcpuinfo);
         vmregisters->rax=1;
       }
       else

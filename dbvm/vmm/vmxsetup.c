@@ -198,7 +198,13 @@ void setupVMX_AMD(pcpuinfo currentcpuinfo)
   {
     int i;
     //allocate a MSR bitmap
-    MSRBitmap=malloc(2*4096);
+    MSRBitmap=allocateContiguousMemory(2); //
+
+    if (MSRBitmap==NULL)
+    {
+      sendstringf("allocateContiguousMemory failed. MSRBitmap=NULL\n");
+      while(1);
+    }
     //fill with 1's (the msr's that have a 1 do not cause an intercept)
 
     //bochsbp();
@@ -1149,68 +1155,201 @@ void setup8086WaitForSIPI(pcpuinfo currentcpuinfo, int setupvmcontrols)
 
 void vmx_setMSRReadExit(DWORD msrValue)
 {
-  if (msrValue<0xc0000000)
-    MSRBitmap[msrValue/8]|=1 << (msrValue % 8);
+  if (isAMD)
+  {
+    /*
+    The MSR permissions bitmap consists of four separate bit vectors of 16
+Kbits (2 Kbytes) each. Each 16 Kbit vector controls guest access to a defined range of 8K MSRs. Each
+MSR is covered by two bits defining the guest read and write access permissions. The lsb of the two
+bits controls read access to the MSR and the msb controls write access. A value of 1 indicates that the
+operation is intercepted. The four separate bit vectors must be packed together and located in two
+contiguous physical pages of memory. If the MSR_PROT intercept is active any attempt to read or
+write an MSR not covered by the MSRPM will automatically cause an intercept.
+
+MSRPM Byte Offset   MSR Range
+000h–7FFh           0000_0000h–0000_1FFFh
+800h–FFFh           C000_0000h–C000_1FFFh
+1000h–17FFh         C001_0000h–C001_1FFFh
+1800h–1FFFh         Reserved
+     */
+    if (msrValue<=0x1fff)
+    {
+      MSRBitmap[(msrValue*2)/8]|=1 << ((msrValue*2) % 8);
+      return;
+    }
+
+    if ((msrValue>=0xc0000000) && (msrValue<=0xc0001fff))
+    {
+      msrValue=msrValue-0xc0000000;
+      MSRBitmap[0x800+(msrValue*2)/8]|=1 << ((msrValue*2) % 8);
+      return;
+    }
+
+    if ((msrValue>=0xc0010000) && (msrValue<=0xc0011fff))
+    {
+      msrValue=msrValue-0xc0010000;
+      MSRBitmap[0x800+(msrValue*2)/8]|=1 << ((msrValue*2) % 8);
+      return;
+    }
+  }
   else
   {
-    msrValue=msrValue-0xc0000000;
-    MSRBitmap[1024+msrValue/8]|=1 << (msrValue % 8);
+    if (msrValue<0xc0000000)
+      MSRBitmap[msrValue/8]|=1 << (msrValue % 8);
+    else
+    {
+      msrValue=msrValue-0xc0000000;
+      MSRBitmap[1024+msrValue/8]|=1 << (msrValue % 8);
+    }
   }
 }
 
 void vmx_removeMSRReadExit(DWORD msrValue)
 {
-  if (msrValue<0xc0000000)
-    MSRBitmap[msrValue/8]&=~(1 << (msrValue % 8));
+  if (isAMD)
+  {
+    if (msrValue<=0x1fff)
+    {
+      MSRBitmap[(msrValue*2)/8]&=~(1 << ((msrValue*2) % 8));
+      return;
+    }
+
+    if ((msrValue>=0xc0000000) && (msrValue<=0xc0001fff))
+    {
+      msrValue=msrValue-0xc0000000;
+      MSRBitmap[0x800+(msrValue*2)/8]&=~(1 << ((msrValue*2) % 8));
+      return;
+    }
+
+    if ((msrValue>=0xc0010000) && (msrValue<=0xc0011fff))
+    {
+      msrValue=msrValue-0xc0010000;
+      MSRBitmap[0x800+(msrValue*2)/8]&=~(1 << ((msrValue*2) % 8));
+      return;
+    }
+  }
   else
   {
-    msrValue=msrValue-0xc0000000;
-    MSRBitmap[1024+msrValue/8]&=~(1 << (msrValue % 8));
+    if (msrValue<0xc0000000)
+      MSRBitmap[msrValue/8]&=~(1 << (msrValue % 8));
+    else
+    {
+      msrValue=msrValue-0xc0000000;
+      MSRBitmap[1024+msrValue/8]&=~(1 << (msrValue % 8));
+    }
   }
 }
 
 void vmx_setMSRWriteExit(DWORD msrValue)
 {
-  if (msrValue<0xc0000000)
-    MSRBitmap[2048+msrValue/8]|=1 << (msrValue % 8);
+  if (isAMD)
+  {
+    if (msrValue<=0x1fff)
+    {
+      MSRBitmap[(msrValue*2)/8]|=2 << ((msrValue*2) % 8);
+      return;
+    }
+
+    if ((msrValue>=0xc0000000) && (msrValue<=0xc0001fff))
+    {
+      msrValue=msrValue-0xc0000000;
+      MSRBitmap[0x800+(msrValue*2)/8]|=2 << ((msrValue*2) % 8);
+      return;
+    }
+
+    if ((msrValue>=0xc0010000) && (msrValue<=0xc0011fff))
+    {
+      msrValue=msrValue-0xc0010000;
+      MSRBitmap[0x800+(msrValue*2)/8]|=2 << ((msrValue*2) % 8);
+      return;
+    }
+  }
   else
   {
-    msrValue=msrValue-0xc0000000;
-    MSRBitmap[3072+msrValue/8]|=1 << (msrValue % 8);
+    if (msrValue<0xc0000000)
+      MSRBitmap[2048+msrValue/8]|=1 << (msrValue % 8);
+    else
+    {
+      msrValue=msrValue-0xc0000000;
+      MSRBitmap[3072+msrValue/8]|=1 << (msrValue % 8);
+    }
   }
 }
 
 void vmx_removeMSRWriteExit(DWORD msrValue)
 {
-  if (msrValue<0xc0000000)
-    MSRBitmap[2048+msrValue/8]&=~(1 << (msrValue % 8));
+  if (isAMD)
+  {
+    if (msrValue<=0x1fff)
+    {
+      MSRBitmap[(msrValue*2)/8]&=~(2 << ((msrValue*2) % 8));
+      return;
+    }
+
+    if ((msrValue>=0xc0000000) && (msrValue<=0xc0001fff))
+    {
+      msrValue=msrValue-0xc0000000;
+      MSRBitmap[0x800+(msrValue*2)/8]&=~(2 << ((msrValue*2) % 8));
+      return;
+    }
+
+    if ((msrValue>=0xc0010000) && (msrValue<=0xc0011fff))
+    {
+      msrValue=msrValue-0xc0010000;
+      MSRBitmap[0x800+(msrValue*2)/8]&=~(2 << ((msrValue*2) % 8));
+      return;
+    }
+  }
   else
   {
-    msrValue=msrValue-0xc0000000;
-    MSRBitmap[3072+msrValue/8]&=~(1 << (msrValue % 8));
+    if (msrValue<0xc0000000)
+      MSRBitmap[2048+msrValue/8]&=~(1 << (msrValue % 8));
+    else
+    {
+      msrValue=msrValue-0xc0000000;
+      MSRBitmap[3072+msrValue/8]&=~(1 << (msrValue % 8));
+    }
   }
 }
 
 
-void vmx_enableTSCHook()
+void vmx_enableTSCHook(pcpuinfo currentcpuinfo)
 {
-  if ((readMSR(IA32_VMX_PROCBASED_CTLS_MSR)>>32) & RDTSC_EXITING)
-    vmwrite(vm_execution_controls_cpu, vmread(vm_execution_controls_cpu) | RDTSC_EXITING);
+  if (isAMD)
+  {
+    currentcpuinfo->vmcb->InterceptRDTSC=1;
+    currentcpuinfo->vmcb->InterceptRDTSCP=1;
+  }
+  else
+  {
+    if ((readMSR(IA32_VMX_PROCBASED_CTLS_MSR)>>32) & RDTSC_EXITING)
+      vmwrite(vm_execution_controls_cpu, vmread(vm_execution_controls_cpu) | RDTSC_EXITING);
+
+
+
+  }
 
   vmx_setMSRReadExit(IA32_TIME_STAMP_COUNTER);
   vmx_setMSRWriteExit(IA32_TIME_STAMP_COUNTER);
-
   vmx_setMSRWriteExit(IA32_TSC_ADJUST);
+
 
   TSCHooked=1;
 }
 
-void vmx_disableTSCHook()
+void vmx_disableTSCHook(pcpuinfo currentcpuinfo)
 {
   if (useSpeedhack==0)
   {
-    if ((readMSR(IA32_VMX_PROCBASED_CTLS_MSR)>>32) & RDTSC_EXITING)
-      vmwrite(vm_execution_controls_cpu, vmread(vm_execution_controls_cpu) & (QWORD)~(QWORD)RDTSC_EXITING);
+    if (isAMD)
+    {
+      currentcpuinfo->vmcb->InterceptRDTSC=0;
+    }
+    else
+    {
+      if ((readMSR(IA32_VMX_PROCBASED_CTLS_MSR)>>32) & RDTSC_EXITING)
+        vmwrite(vm_execution_controls_cpu, vmread(vm_execution_controls_cpu) & (QWORD)~(QWORD)RDTSC_EXITING);
+    }
 
     vmx_removeMSRReadExit(IA32_TIME_STAMP_COUNTER);
     vmx_removeMSRWriteExit(IA32_TIME_STAMP_COUNTER);

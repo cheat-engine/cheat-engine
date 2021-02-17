@@ -83,8 +83,8 @@ void vmx_removeMSRReadExit(DWORD msrValue);
 void vmx_setMSRWriteExit(DWORD msrValue);
 void vmx_removeMSRWriteExit(DWORD msrValue);
 
-void vmx_enableTSCHook(void);
-void vmx_disableTSCHook(void);
+void vmx_enableTSCHook(pcpuinfo currentcpuinfo);
+void vmx_disableTSCHook(pcpuinfo currentcpuinfo);
 
 
 void setupVMX(pcpuinfo currentcpuinfo);

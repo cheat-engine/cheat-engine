@@ -57,6 +57,8 @@ void setDescriptorAccessedFlag(PGDT_ENTRY gdt, PGDT_ENTRY ldt, ULONG selector);
 ULONG getSegmentAccessRights(PGDT_ENTRY gdt, PGDT_ENTRY ldt, ULONG selector);
 ULONG getSegmentAttrib(PGDT_ENTRY gdt, PGDT_ENTRY ldt, ULONG selector);
 
+int handle_rdtsc(pcpuinfo currentcpuinfo, VMRegisters *vmregisters);
+
 int setVM_CR0(pcpuinfo currentcpuinfo, UINT64 newcr0);
 int setVM_CR3(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, UINT64 newcr3);
 int setVM_CR4(pcpuinfo currentcpuinfo, UINT64 newcr4);
@@ -72,6 +74,7 @@ int emulateExceptionInterrupt(pcpuinfo currentcpuinfo, VMRegisters *vmregisters,
 WORD convertSegmentAccessRightsToSegmentAttrib(ULONG accessrights);
 
 extern volatile QWORD globalTSC;
+extern volatile QWORD lowestTSC;
 
 extern criticalSection CR3ValueLogCS;
 extern QWORD *CR3ValueLog; //if not NULL, record
@@ -81,6 +84,8 @@ extern int adjustTimestampCounters;
 extern int adjustTimestampCounterTimeout;
 
 extern int useSpeedhack;
+
+
 
 void speedhack_setspeed(double speed);
 

@@ -46,6 +46,9 @@ GLOBAL initcs
 GLOBAL extramemory
 GLOBAL extramemorysize
 
+GLOBAL contiguousmemoryPA
+GLOBAL contiguousmemorysize
+
 GLOBAL dbvmversion
 GLOBAL exportlist
 
@@ -68,6 +71,8 @@ pagedirlvl4:        dq 0 ;virtual address of the pml4 page (the memory after thi
 nextstack:          dq 0 ;start of stack for the next cpu
 extramemory:        dq 0 ;physical address of a contiguous block of physical memory available to DBVM
 extramemorysize:    dq 0 ;number of pages in extramemory
+contiguousmemoryPA: dq 0 ;physical address of a contiguous block of physical memory available for device access
+contiguousmemorysize:dq 0 ;number of pages left in contiguousmemoryPA
 dbvmversion:        dq 11
 exportlist:         dq 0
 ;uefibooted:         dq 0 ;if set it means this has to launch the AP cpu's as well

@@ -319,8 +319,9 @@ void vmm_entry(void)
    * 12=vpid
    * 13=basic TSC emulation
    * 14=properly emulate debug step
+   * 15=some amd fixes/contiguous memory param
    */
-  dbvmversion=14;
+  dbvmversion=15;
   int1redirection=1; //redirect to int vector 1 (might change this to the perfcounter interrupt in the future so I don't have to deal with interrupt prologue/epilogue)
   int3redirection=3;
   int14redirection=14;

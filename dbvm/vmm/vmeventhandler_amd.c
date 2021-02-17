@@ -515,6 +515,23 @@ int handleVMEvent_amd(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, FXSAVE6
       return 0;
     }
 
+    case VMEXIT_RDTSC:
+    {
+      int r;
+      r=handle_rdtsc(currentcpuinfo, vmregisters);
+      currentcpuinfo->lastTSCTouch=_rdtsc();
+      return r;
+    }
+
+    case VMEXIT_RDTSCP:
+    {
+      int r=handle_rdtsc(currentcpuinfo, vmregisters);
+      currentcpuinfo->lastTSCTouch=_rdtsc();
+
+      vmregisters->rcx=readMSR(IA32_TSC_AUX_MSR);
+      return r;
+    }
+
     case VMEXIT_MSR:
     {
 
@@ -524,10 +541,34 @@ int handleVMEvent_amd(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, FXSAVE6
 
       if (currentcpuinfo->vmcb->EXITINFO1)
       {
-        sendstringf("WRITE %x\n", vmregisters->rcx);
+        QWORD newvalue=((vmregisters->rdx & 0xffffffff) << 32) + (currentcpuinfo->vmcb->RAX & 0xffffffff);
+
+        sendstringf("WRITE %6 to msr %x\n", newvalue, vmregisters->rcx);
 
         switch (vmregisters->rcx & 0xffffffff)
         {
+          case IA32_TIME_STAMP_COUNTER:
+            sendstringf("write to IA32_TIME_STAMP_COUNTER\n");
+            writeMSR(IA32_TIME_STAMP_COUNTER, newvalue);
+
+            currentcpuinfo->lowestTSC=0;
+            globalTSC=newvalue;
+            currentcpuinfo->lastTSCTouch=newvalue;
+
+            lowestTSC=0;
+            break;
+
+          case IA32_TSC_ADJUST:
+            sendstringf("write to IA32_TSC_ADJUST\n");
+            writeMSR(IA32_TSC_ADJUST, newvalue);
+            globalTSC=_rdtsc();
+            currentcpuinfo->lasttsc=_rdtsc();
+            currentcpuinfo->lastTSCTouch=globalTSC;
+            currentcpuinfo->lowestTSC=0;
+            lowestTSC=0;
+
+            break;
+
           case 0xc0000080://efer
             //store the efer the guest wants it to be
             currentcpuinfo->efer=((vmregisters->rdx & 0xffffffff) << 32) + (currentcpuinfo->vmcb->RAX & 0xffffffff);
@@ -562,6 +603,10 @@ int handleVMEvent_amd(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, FXSAVE6
 
         switch (vmregisters->rcx & 0xffffffff)
         {
+          case IA32_TIME_STAMP_COUNTER:
+            return handle_rdtsc(currentcpuinfo, vmregisters); //will be responsible for adjust rip as well
+
+
           case 0xc0000080://efer
             //update LMA
 

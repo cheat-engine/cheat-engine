@@ -3775,7 +3775,6 @@ void speedhack_setspeed(double speed)
 int handle_rdtsc(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 {
   QWORD t;
-  double s;
   QWORD lTSC=lowestTSC;
   QWORD realtime;
 
@@ -3837,22 +3836,61 @@ int handle_rdtsc(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
     }
   }
 
-  vmregisters->rax=t & 0xffffffff;
+  if (isAMD)
+    currentcpuinfo->vmcb->RAX = t & 0xffffffff;
+  else
+    vmregisters->rax=t & 0xffffffff;
+
   vmregisters->rdx=t >> 32;
 
   if (lowestTSC<t)
     lowestTSC=t;
 
 
+  if (isAMD)
+  {
+    if (AMD_hasNRIPS)
+    {
+      currentcpuinfo->vmcb->RIP=currentcpuinfo->vmcb->nRIP;
+    }
+    else
+    {
+      int i,error;
+      UINT64 pagefaultaddress;
 
+     // sendstringf("DB:1:currentcpuinfo->AvailableVirtualAddress=%6\n", currentcpuinfo->AvailableVirtualAddress);
 
-  vmwrite(vm_guest_rip,vmread(vm_guest_rip)+vmread(vm_exit_instructionlength));
+      unsigned char *bytes=(unsigned char *)mapVMmemory(currentcpuinfo, currentcpuinfo->vmcb->cs_base+currentcpuinfo->vmcb->RIP, 15, &error, &pagefaultaddress);
+      if (!bytes)
+          bytes=mapVMmemory(currentcpuinfo, currentcpuinfo->vmcb->cs_base+currentcpuinfo->vmcb->RIP, pagefaultaddress-currentcpuinfo->vmcb->cs_base+currentcpuinfo->vmcb->RIP, &error, &pagefaultaddress);
 
-  RFLAGS flags;
-  flags.value=vmread(vm_guest_rflags);
+      for (i=0; i<15; i++)
+      {
+        sendstringf("%x ", bytes[i]);
+        if (bytes[i]==0x0f)
+        {
+          sendstringf("%x ", bytes[i+1]);
+          sendstringf("%x ", bytes[i+2]);
+          sendstringf("%x ", bytes[i+3]);
+          currentcpuinfo->vmcb->RIP+=i+2;
+          break;
+        }
+      }
 
-  if (flags.TF==1)
-    vmwrite(vm_pending_debug_exceptions,0x4000);
+      unmapVMmemory(bytes,15);
+    }
+
+  }
+  else
+  {
+    vmwrite(vm_guest_rip,vmread(vm_guest_rip)+vmread(vm_exit_instructionlength));
+
+    RFLAGS flags;
+    flags.value=vmread(vm_guest_rflags);
+
+    if (flags.TF==1)
+      vmwrite(vm_pending_debug_exceptions,0x4000);
+  }
 
   return 0;
 }
