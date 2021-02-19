@@ -2143,8 +2143,6 @@ end
 
 function mono_string_readString(stringobject)
   if stringobject==nil then
-    print("mono_string_readString called with nil")
-    print(debug.traceback())
     return nil,'invalid parameter'
   end
 

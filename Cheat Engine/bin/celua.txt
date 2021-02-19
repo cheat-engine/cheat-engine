@@ -1046,6 +1046,7 @@ methods
 
 Form Class: (Inheritance: ScrollingWinControl->CustomControl->WinControl->Control->Component->Object)
 properties
+  DesignTimePPI: integer - the PPI/DPI at the time the form was designed
   AllowDropFiles: boolean - Allows files to be dragged into the form
   ModalResult: integer - The current ModalResult value of the form. Note: When this value gets set the modal form will close
   Menu: MainMenu - The main menu of the form
@@ -1056,6 +1057,7 @@ properties
 
 
 methods
+  fixDPI() : Resizes controls and fonts based on the current DPI and the DPI used to create the form. Only use this on forms that are not designed with variable DPI in mind
   centerScreen(); : Places the form at the center of the screen
   hide() : Hide the form
   show() : show the form

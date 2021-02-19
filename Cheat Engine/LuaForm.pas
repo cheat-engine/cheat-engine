@@ -51,6 +51,17 @@ begin
 
 end;
 
+
+function customform_fixDPI(L: PLua_State): integer; cdecl;
+var
+  c: TCustomForm;
+begin
+  c:=luaclass_getClassObject(L);
+  c.AutoAdjustLayout(lapAutoAdjustForDPI,c.DesignTimePPI,screen.PixelsPerInch,c.width,scaley(c.width,c.DesignTimePPI));
+  result:=0;
+end;
+
+
 function customform_getOnClose(L: PLua_State): integer; cdecl;
 var
   c: TCustomForm;
@@ -314,6 +325,7 @@ begin
   end;
 
 end;
+
 
 function createFormFromFile(L: Plua_State): integer; cdecl;
 var filename: string;
@@ -711,6 +723,7 @@ begin
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'saveFormPosition', customform_saveFormPosition);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'loadFormPosition', customform_loadFormPosition);
 
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'fixDPI', customform_fixDPI);
 
 
   luaclass_addPropertyToTable(L, metatable, userdata, 'OnClose', customform_getOnClose, customform_setOnClose);

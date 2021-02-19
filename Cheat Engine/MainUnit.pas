@@ -3952,8 +3952,6 @@ begin
     exit;
   end;
 
-
-
   frmTrainerGenerator.Show;
   {$endif}
 end;
@@ -4230,6 +4228,7 @@ var
   br: TRect;
 begin
   f := tceform.CreateNew(nil);
+  f.DesignTimePPI:=screen.PixelsPerInch;
   f.autosize := False;
 
   j := 1;

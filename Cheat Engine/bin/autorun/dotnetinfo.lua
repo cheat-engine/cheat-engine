@@ -1327,6 +1327,9 @@ DotNetValueReaders[ELEMENT_TYPE_PTR]=function(address)
 end
 
 local function readDotNetString(address, Field)
+  if address==0 or address==nil then return nil,'address is invalid' end
+  if Field==nil then return nil,'Field is nil' end
+  
 --assumption: address points to the start of the string object, so not the pointer to the object
   if Field.Class.Image.Domain.Control==CONTROL_MONO then
     return mono_string_readString(address)
@@ -1477,7 +1480,12 @@ local function FieldValueUpdaterTimer(frmDotNetInfo, sender)
         
         if Class.Fields[ci].Address and (Class.Fields[ci].Address~=0) and (not (isKeyPressed(VK_CONTROL))) then
           if (Class.Fields[ci].VarType==ELEMENT_TYPE_STRING) or (Class.Fields[ci].VarTypeName == "System.String") then     
-            value=readDotNetString(readPointer(Class.Fields[ci].Address), Class.Fields[ci])
+            local a=readPointer(Class.Fields[ci].Address)
+            if a then
+              value=readDotNetString(a, Class.Fields[ci])
+            else
+              value='?'
+            end
           else
             local reader=DotNetValueReaders[Class.Fields[ci].VarType]
             if reader==nil then
@@ -1508,7 +1516,12 @@ local function FieldValueUpdaterTimer(frmDotNetInfo, sender)
         local a=address+Class.Fields[ci].Offset
        
         if (Class.Fields[ci].VarType==ELEMENT_TYPE_STRING) or (Class.Fields[ci].VarTypeName == "System.String") then        
-          value=readDotNetString(readPointer(a), Class.Fields[ci])        
+          local address=readPointer(a)
+          if address then
+            value=readDotNetString(address, Class.Fields[ci])        
+          else
+            value='?'
+          end 
         else
           local reader=DotNetValueReaders[Class.Fields[ci].VarType]
           if reader==nil then

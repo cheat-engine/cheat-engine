@@ -1,12 +1,12 @@
 object frmTrainerGenerator: TfrmTrainerGenerator
-  Left = 819
+  Left = 407
   Height = 412
-  Top = 152
-  Width = 778
+  Top = 224
+  Width = 731
   AutoSize = True
   Caption = 'Trainer generator'
   ClientHeight = 412
-  ClientWidth = 778
+  ClientWidth = 731
   Constraints.MinHeight = 310
   Constraints.MinWidth = 690
   OnClose = FormClose
@@ -23,11 +23,11 @@ object frmTrainerGenerator: TfrmTrainerGenerator
     Left = 0
     Height = 412
     Top = 0
-    Width = 285
+    Width = 238
     Anchors = [akTop, akLeft, akRight, akBottom]
     AutoSize = True
     ClientHeight = 412
-    ClientWidth = 285
+    ClientWidth = 238
     TabOrder = 0
     OnResize = Panel2Resize
     object lvCheats: TListView
@@ -37,7 +37,7 @@ object frmTrainerGenerator: TfrmTrainerGenerator
       Left = 1
       Height = 377
       Top = 1
-      Width = 261
+      Width = 214
       Align = alCustom
       Anchors = [akTop, akLeft, akRight, akBottom]
       Columns = <      
@@ -60,11 +60,11 @@ object frmTrainerGenerator: TfrmTrainerGenerator
       Left = 1
       Height = 33
       Top = 378
-      Width = 283
+      Width = 236
       Align = alBottom
       AutoSize = True
       ClientHeight = 33
-      ClientWidth = 283
+      ClientWidth = 236
       TabOrder = 1
       object btnDelete: TButton
         AnchorSideLeft.Control = Panel3
@@ -103,7 +103,7 @@ object frmTrainerGenerator: TfrmTrainerGenerator
       end
     end
     object Panel4: TPanel
-      Left = 262
+      Left = 215
       Height = 377
       Top = 1
       Width = 22
@@ -177,7 +177,7 @@ object frmTrainerGenerator: TfrmTrainerGenerator
     AnchorSideRight.Side = asrBottom
     AnchorSideBottom.Control = Owner
     AnchorSideBottom.Side = asrBottom
-    Left = 285
+    Left = 238
     Height = 412
     Top = 0
     Width = 493

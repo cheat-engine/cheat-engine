@@ -17,9 +17,11 @@ type
     //state: T
     fAlignment : TAlignment;
 
+    fScaled: boolean;
     fDrawFocusRect: boolean;
     fFocusElipseColor: TColor;
 
+    hasSetRounding: boolean;
     froundingX: integer;
     froundingY: integer;
     fCustomDrawn: boolean;
@@ -71,10 +73,10 @@ type
     procedure setFocusedSize(size: integer);
     procedure setButtonColor(c: TColor);
     procedure setDrawFocusRect(state: boolean);
-
   protected
 
-    procedure SetFocus; override;
+
+    procedure ChildHandlesCreated; override;
 
     procedure Paint; override;
     procedure MouseEnter; override;
@@ -82,11 +84,13 @@ type
     procedure MouseDown(Button: TMouseButton; Shift: TShiftState; X, Y: Integer); override;
     procedure MouseUp(Button: TMouseButton; Shift: TShiftState; X, Y: Integer); override;
 
-    procedure DoAutoSize; override;
+    procedure CalculatePreferredSize(var PreferredWidth, PreferredHeight: integer; WithThemeSpace: Boolean); override;
 
     function getCaption: string; virtual;
     procedure setCaption(c: string); virtual;
   public
+    procedure SetFocus; override;
+
     procedure startAnimatorTimer;   //starts the timer based on the current fps.  note: does not stop if CustomDrawnn is true
     procedure stopAnimatorTimer;
     constructor Create(AOwner: TComponent); override;
@@ -110,6 +114,7 @@ type
     property DrawFocusRect: boolean read fDrawFocusRect write setDrawFocusRect;
     property FocusedSize: integer read fFocusedSize write setFocusedSize;
     property FocusElipseColor: tcolor read fFocusElipseColor write fFocusElipseColor;
+    property Scaled: boolean read fScaled write fScaled default true;
 
     property Align;
     property Anchors;
@@ -173,6 +178,8 @@ type
 
 implementation
 
+uses forms;
+
 procedure TCECustomButton.timertimer(sender: TObject);
 begin
   Invalidate;
@@ -212,6 +219,7 @@ procedure TCECustomButton.setRoundingX(x: integer);
 begin
   if x>=0 then
   begin
+    hasSetRounding:=true;
     froundingX:=x;
 
     if AutoSize then DoAutoSize;
@@ -223,6 +231,7 @@ procedure TCECustomButton.setRoundingY(y: integer);
 begin
   if y>=0 then
   begin
+    hasSetRounding:=true;
     froundingY:=y;
 
     if AutoSize then DoAutoSize;
@@ -323,10 +332,34 @@ begin
   inherited MouseLeave;
 end;
 
+procedure TCECustomButton.ChildHandlesCreated;
+var
+  p: twincontrol;
+  f: TCustomForm absolute p;
+begin
+  if scaled and hasSetRounding then
+  begin
+    p:=parent;
+    while (p<>nil) and (not (p is TCustomForm)) do
+      p:=p.Parent;
+
+    if p<>nil then
+    begin
+      fRoundingX:=scalex(froundingx, f.DesignTimePPI);
+      fRoundingY:=scaley(froundingy, f.DesignTimePPI);
+    end;
+
+    Invalidate;
+  end;
+
+  inherited ChildHandlesCreated;
+end;
+
 procedure TCECustomButton.SetFocus;
 begin
   inherited SetFocus;
   invalidate;
+
 end;
 
 procedure TCECustomButton.MouseDown(Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
@@ -363,19 +396,17 @@ begin
   result:=inherited caption;
 end;
 
-procedure TCECustomButton.DoAutoSize;
-var w,h: integer;
+procedure TCECustomButton.CalculatePreferredSize(var PreferredWidth, PreferredHeight: integer; WithThemeSpace: Boolean);
 begin
-  w:=0;
-  h:=0;
-  canvas.GetTextSize(Caption,w,h);
+  PreferredWidth:=0;
+  PreferredHeight:=0;
+  canvas.GetTextSize(Caption,PreferredWidth,PreferredHeight);
 
-  w:=w+2*canvas.GetTextWidth(' ');
-  inc(h,4);
-
-  clientwidth:=2+w+trunc(arctan(roundingx));
-  clientheight:=2+h+trunc(arctan(roundingy));
+  PreferredWidth:=4+PreferredWidth+2*canvas.GetTextWidth(' ');
+  PreferredHeight:=4+PreferredHeight;
 end;
+
+
 
 procedure TCECustomButton.Paint;
 var
@@ -526,8 +557,8 @@ begin
   inherited Create(AOwner);
 
   Alignment:=taCenter;
-  froundingY:=20;
-  froundingX:=20;
+  froundingY:=20; //scaley(20,96);
+  froundingX:=20; //scalex(20,96);
   ControlStyle:=ControlStyle - [csOpaque] + [csParentBackground, csClickEvents];
 
   fButtonColor:=clBtnFace;
@@ -546,6 +577,8 @@ begin
   fbordersize:=1;
 
   ffocusElipseColor:=clHighlight;
+  fscaled:=true;
+
   TabStop:=true;
 end;
 
