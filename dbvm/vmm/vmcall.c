@@ -876,6 +876,16 @@ int vmcall_readPhysicalMemory(pcpuinfo currentcpuinfo, VMRegisters *vmregisters,
 }
 
 
+VMSTATUS vmcall_traceonbp_retrievelog(pcpuinfo currentcpuinfo, VMRegisters *vmregisters,  PVMCALL_TRACEONBP_RETRIEVELOG_PARAM params)
+{
+  QWORD *errorcode;
+  if (isAMD)
+    errorcode=&currentcpuinfo->vmcb->RAX;
+  else
+    errorcode=&vmregisters->rax;
+
+  return ept_traceonbp_retrievelog(params->results, &params->resultsize, &params->copied, errorcode);
+}
 
 VMSTATUS vmcall_watch_retrievelog(pcpuinfo currentcpuinfo, VMRegisters *vmregisters,  PVMCALL_WATCH_RETRIEVELOG_PARAM params)
 {
@@ -888,9 +898,9 @@ VMSTATUS vmcall_watch_retrievelog(pcpuinfo currentcpuinfo, VMRegisters *vmregist
     errorcode=&vmregisters->rax;
 
   return ept_watch_retrievelog(params->ID, params->results, &params->resultsize, &params->copied, errorcode);
-
-
 }
+
+
 
 int vmcall_watch_delete(PVMCALL_WATCH_DISABLE_PARAM params)
 {
@@ -1082,10 +1092,11 @@ int _handleVMCallInstruction(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, 
       if (isAMD)
       {
         //start intercepting
+        /*
         if (vmcall_instruction[3] == 2) //2 is disable redirect alltogether
           currentcpuinfo->vmcb->InterceptExceptions&=~(1<<1); //unset bit 1 (int1 exception)
-        else
-          currentcpuinfo->vmcb->InterceptExceptions|=(1<<1); //set bit 1 (int1 exception)
+        else*/
+          currentcpuinfo->vmcb->InterceptExceptions|=(1<<1); //set bit 1 (int1 exception)*/
 
         currentcpuinfo->vmcb->VMCB_CLEAN_BITS&=~(1 << 0); //the intercepts got changed
       }
@@ -1273,9 +1284,9 @@ int _handleVMCallInstruction(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, 
       if (isAMD)
       {
         //start intercepting
-        if (vmcall_instruction[3] == 2) //2 is disable redirect alltogether
+       /* if (vmcall_instruction[3] == 2) //2 is disable redirect alltogether
           currentcpuinfo->vmcb->InterceptExceptions&=~(1<<14); //unset bit 1 (int1 exception)
-        else
+        else*/
           currentcpuinfo->vmcb->InterceptExceptions|=(1<<14); //set bit 1 (int1 exception)
 
         currentcpuinfo->vmcb->VMCB_CLEAN_BITS&=~(1 << 0); //the intercepts got changed
@@ -1314,10 +1325,10 @@ int _handleVMCallInstruction(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, 
       if (isAMD)
       {
         //start intercepting
-        if (vmcall_instruction[3] == 2) //2 is disable redirect alltogether
+        /* if (vmcall_instruction[3] == 2) //2 is disable redirect alltogether
           currentcpuinfo->vmcb->InterceptExceptions&=~(1<<3); //unset bit 1 (int1 exception)
-        else
-          currentcpuinfo->vmcb->InterceptExceptions|=(1<<3); //set bit 1 (int1 exception)
+        else*/
+          currentcpuinfo->vmcb->InterceptExceptions|=(1<<3); //set bit 1 (int1 exception)*/
 
         currentcpuinfo->vmcb->VMCB_CLEAN_BITS&=~(1 << 0); //the intercepts got changed
       }
@@ -1722,7 +1733,7 @@ int _handleVMCallInstruction(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, 
 
     case VMCALL_CLOAK_CHANGEREGONBP:
     {
-      if (hasEPTsupport)
+      if (hasEPTsupport || hasNPsupport)
         vmregisters->rax=ept_cloak_changeregonbp(((PVMCALL_CLOAK_CHANGEREG_PARAM)vmcall_instruction)->physicalAddress, &((PVMCALL_CLOAK_CHANGEREG_PARAM)vmcall_instruction)->changereginfo);
       else
         vmregisters->rax=0xcedead;
@@ -1732,11 +1743,72 @@ int _handleVMCallInstruction(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, 
 
     case VMCALL_CLOAK_REMOVECHANGEREGONBP:
     {
-      if (hasEPTsupport)
+      if (hasEPTsupport || hasNPsupport)
         vmregisters->rax=ept_cloak_removechangeregonbp(((PVMCALL_CLOAK_REMOVECHANGEREG_PARAM)vmcall_instruction)->physicalAddress);
       else
         vmregisters->rax=0xcedead;
       break;
+    }
+
+
+    case VMCALL_CLOAK_TRACEONBP:
+    {
+      if (hasEPTsupport || hasNPsupport)
+      {
+        PVMCALL_CLOAK_TRACEONBP_PARAM p=(PVMCALL_CLOAK_TRACEONBP_PARAM)vmcall_instruction;
+
+        vmregisters->rax=ept_cloak_traceonbp(p->physicalAddress, p->flags, p->tracecount);
+      }
+      else
+        vmregisters->rax=0xcedead;
+
+      break;
+    }
+
+    case VMCALL_CLOAK_TRACEONBP_GETSTATUS:
+    {
+      if (hasEPTsupport || hasNPsupport)
+      {
+        PVMCALL_CLOAK_TRACEONBP_GETSTATUS_PARAM p=(PVMCALL_CLOAK_TRACEONBP_GETSTATUS_PARAM)vmcall_instruction;
+        nosendchar[getAPICID()]=0;
+
+        sendstringf("VMCALL_CLOAK_TRACEONBP_GETSTATUS:\nbefore p->count=%d p->maxcount=%d", p->count, p->maxcount);
+
+        vmregisters->rax=ept_cloak_traceonbp_getstatus(&p->count,&p->maxcount);
+        sendstringf("after p->count=%d p->maxcount=%d", p->count, p->maxcount);
+      }
+      else
+        vmregisters->rax=0xcedead;
+      break;
+    }
+
+
+    case VMCALL_CLOAK_TRACEONBP_STOPTRACE:
+    {
+      //tells the trace to stop
+      if (hasEPTsupport || hasNPsupport)
+        vmregisters->rax=ept_cloak_traceonbp_stoptrace();
+      else
+        vmregisters->rax=0xcedead;
+
+      break;
+    }
+
+    case VMCALL_CLOAK_TRACEONBP_REMOVE:
+    {
+      //deletes everything related to the trace if successful (if force is true, it's successful)
+      if (hasEPTsupport || hasNPsupport)
+        vmregisters->rax=ept_cloak_traceonbp_remove(((PVMCALL_CLOAK_TRACEONBP_REMOVE_PARAM)vmcall_instruction)->force);
+      else
+        vmregisters->rax=0xcedead;
+      break;
+    }
+
+    case VMCALL_CLOAK_TRACEONBP_READLOG:
+    {
+      nosendchar[getAPICID()]=0;
+      sendstringf("VMCALL_CLOAK_TRACEONBP_READLOG\n");
+      return vmcall_traceonbp_retrievelog(currentcpuinfo, vmregisters, (PVMCALL_TRACEONBP_RETRIEVELOG_PARAM)vmcall_instruction);
     }
 
     case VMCALL_EPT_RESET:

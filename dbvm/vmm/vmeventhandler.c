@@ -3612,19 +3612,40 @@ int handleInterruptProtectedMode(pcpuinfo currentcpuinfo, VMRegisters *vmregiste
   return 0;
 }
 
-BOOL handleSoftwareBreakpoint(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, FXSAVE64 *fxsave)
+BOOL handleHardwareBreakpoint(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, FXSAVE64 *fxsave)
 {
-  //handle software breakpoints
-  sendstringf("Software breakpoint\n");
-  if (hasEPTsupport)
+  //handle specialized software breakpoints
+  sendstringf("Hardware breakpoint\n");
+  if (hasEPTsupport || hasNPsupport)
   {
-    if (ept_handleSoftwareBreakpoint(currentcpuinfo, vmregisters, fxsave))
+    if (ept_handleHardwareBreakpoint(currentcpuinfo, vmregisters, fxsave))
       return TRUE;
   }
 
-  //perhaps future breakpoint handlers here
+  //future hardware reakpoint handlers here
 
   //still here
+  return FALSE; //unhandled
+}
+
+BOOL handleSoftwareBreakpoint(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, FXSAVE64 *fxsave)
+{
+  //handle specialized software breakpoints
+  sendstringf("Software breakpoint\n");
+  if (hasEPTsupport || hasNPsupport)
+  {
+    if (ept_handleSoftwareBreakpoint(currentcpuinfo, vmregisters, fxsave))
+    {
+      sendstring("handleSoftwareBreakpoint: ept_handleSoftwareBreakpoint handled it. Returning TRUE\n");
+      return TRUE;
+    }
+  }
+
+  //future software breakpoint handlers here
+
+
+  //still here
+  sendstringf("Unhandled Software breakpoint\n");
   return FALSE; //unhandled
 }
 
@@ -3643,11 +3664,22 @@ VMSTATUS handleInterrupt(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, FXSA
 
   intinfo.interruption_information=vmread(vm_exit_interruptioninfo);
 
+
+  if ((intinfo.interruptvector==1) && (intinfo.type==itHardwareException))
+  {
+    if (handleHardwareBreakpoint(currentcpuinfo, vmregisters, fxsave))
+      return VM_OK;
+  }
+
+
   if ((intinfo.interruptvector==3) && (intinfo.type==itSoftwareException))
   {
     if (handleSoftwareBreakpoint(currentcpuinfo, vmregisters, fxsave))
       return VM_OK;
   }
+
+
+
 
  // interrorcode=vmread(vm_exit_interruptionerror);
   //idtvectorinfo.idtvector_info=vmread(vm_idtvector_information);

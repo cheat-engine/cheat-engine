@@ -23,6 +23,7 @@
 #include "displaydebug.h"
 #include "nphandler.h"
 
+void recordState(void *liststart, int datatype, int currentEntryNr, pcpuinfo currentcpuinfo, VMRegisters *vmregisters, PFXSAVE64 fxsave);
 
 
 EPTWatchLogData lastSeenEPTWatch; //debugging ept
@@ -49,6 +50,9 @@ criticalSection ChangeRegBPListCS; //2
 ChangeRegBPEntry *ChangeRegBPList;
 int ChangeRegBPListSize;
 int ChangeRegBPListPos;
+
+TraceOnBPEntry *TraceOnBP; //not NULL when active. (There can be only one active one at a time globally, as the trap flag can switch between cpu's)
+
 
 #ifdef MEMORYCHECK
 int checkmem(unsigned char *x, int len)
@@ -756,6 +760,199 @@ int ept_cloak_writeOriginal(pcpuinfo currentcpuinfo,  VMRegisters *registers, QW
   return 0;
 }
 
+int ept_cloak_traceonbp_getstatus(DWORD *count, DWORD *maxcount)
+//return: 0=no trace configured. 1=trace configured but not started yet, 2=trace configured and started, 3=trace done
+{
+  int result=0;
+  *count=0;
+  *maxcount=0;
+  csEnter(&CloakedPagesCS);
+  if (TraceOnBP)
+  {
+
+    sendstringf("TraceOnBP->numberOfEntries=%d\n", TraceOnBP->numberOfEntries);
+    sendstringf("TraceOnBP->count=%d\n", TraceOnBP->count);
+    *count=TraceOnBP->numberOfEntries;
+    *maxcount=TraceOnBP->count+TraceOnBP->numberOfEntries;
+
+    sendstringf("*maxcount=%d\n", *maxcount);
+    result=1;
+
+    if (TraceOnBP->triggered)
+    {
+      result=2;
+      if (TraceOnBP->finished)
+      {
+        result=3;
+      }
+    }
+  }
+  csLeave(&CloakedPagesCS);
+
+  return result;
+}
+
+int ept_cloak_traceonbp_stoptrace() //stops it, but doesn't delete it
+//0=no trace going on
+//1=trace configured, but not triggered yet
+//2=trace was configured and already triggered, but not finished yet
+//3=trace was finished
+{
+  int result=0;
+  csEnter(&CloakedPagesCS);
+  if (TraceOnBP)
+  {
+    result=1;
+    TraceOnBP->shouldquit=1;
+
+    if (TraceOnBP->triggered==0)
+    {
+      unsigned char *executable=(unsigned char *)TraceOnBP->cloakdata->Executable;
+      executable[TraceOnBP->PhysicalAddress & 0xfff]=TraceOnBP->originalbyte;
+    }
+    else
+      result=2;
+
+    if (TraceOnBP->finished)
+    {
+      result=3;
+    }
+  }
+  csLeave(&CloakedPagesCS);
+
+  return result;
+}
+
+int ept_cloak_traceonbp_remove(int forcequit)
+{
+  if (TraceOnBP)
+  {
+    csEnter(&CloakedPagesCS);
+    if (TraceOnBP)
+    {
+      if (TraceOnBP->triggered==FALSE)
+      {
+        //still needs to restore the byte
+        unsigned char *executable=(unsigned char *)TraceOnBP->cloakdata->Executable;
+        executable[TraceOnBP->PhysicalAddress & 0xfff]=TraceOnBP->originalbyte;
+      }
+      else
+      {
+        if (TraceOnBP->finished==FALSE)
+        {
+          //trace is still going
+          TraceOnBP->shouldquit=1;
+
+          if (forcequit==0)
+          {
+            csLeave(&CloakedPagesCS);
+            return 2; //can not disable yet (tell CE to try again in a bit)
+          }
+        }
+      }
+
+      free(TraceOnBP);
+      TraceOnBP=NULL;
+
+      csLeave(&CloakedPagesCS);
+      return 1;
+    }
+
+    csLeave(&CloakedPagesCS);
+  }
+
+  return 0; //no trace to delete
+}
+
+int ept_cloak_traceonbp(QWORD physicalAddress, DWORD flags, DWORD tracecount)
+{
+  int result=1;
+  if (ept_cloak_traceonbp_remove(0)==2) return 2;
+
+  QWORD physicalBase=physicalAddress & MAXPHYADDRMASKPB;
+  ept_cloak_activate(physicalBase,0); //just making sure
+
+  sendstringf("ept_cloak_traceonbp for %6", physicalAddress);
+
+  csEnter(&CloakedPagesCS);
+
+  PCloakedPageData cloakdata;
+  if (CloakedPagesMap)
+    cloakdata=map_getEntry(CloakedPagesMap, physicalBase);
+  else
+    cloakdata=addresslist_find(CloakedPagesList, physicalBase);
+
+
+  if (cloakdata)
+  {
+    //found it.  Create an int3 bp at that spot
+    int offset=physicalAddress & 0xfff;
+    unsigned char *executable=cloakdata->Executable;
+
+    //
+
+    int entrytype=0;
+    int entrysize=sizeof(PageEventBasic);
+    int logfpu=(flags & 1);
+    int logstack=(flags & 2);
+    int logsize;
+
+    if ((logfpu==0) && (logstack==0))
+    {
+      entrytype=0;
+      entrysize=sizeof(PageEventBasic);
+    }
+    else
+    if ((logfpu==1) && (logstack==0))
+    {
+      entrytype=1;
+      entrysize=sizeof(PageEventExtended);
+    }
+    else
+    if ((logfpu==0) && (logstack==1))
+    {
+      entrytype=2;
+      entrysize=sizeof(PageEventBasicWithStack);
+    }
+    else //fpu=1 and stack=1
+    {
+      entrytype=3;
+      entrysize=sizeof(PageEventExtendedWithStack);
+    }
+
+    logsize=sizeof(TraceOnBPEntry)*2+entrysize*tracecount;
+
+    sendstringf("Going to allocate %d bytes for the log...", logsize);
+
+    TraceOnBP=malloc(logsize);
+    if (TraceOnBP)
+    {
+      zeromemory(TraceOnBP, logsize);
+      sendstringf("Success. Allocated at %6\n", TraceOnBP);
+      TraceOnBP->PhysicalAddress=physicalAddress;
+      TraceOnBP->triggered=0;
+      TraceOnBP->finished=0;
+      TraceOnBP->shouldquit=0;
+      TraceOnBP->count=tracecount;
+      TraceOnBP->cloakdata=cloakdata;
+      TraceOnBP->originalbyte=executable[offset];
+      TraceOnBP->datatype=entrytype;
+
+      executable[offset]=0xcc; //int3 bp's will happen now (even on other CPU's)
+
+      result=0;
+    }
+    else
+      result=3; //not enough memory free
+  }
+
+  csLeave(&CloakedPagesCS);
+
+  return result;
+
+
+}
+
 int ept_cloak_changeregonbp(QWORD physicalAddress, PCHANGEREGONBPINFO changereginfo)
 {
   int result=1;
@@ -899,22 +1096,187 @@ int ept_cloak_removechangeregonbp(QWORD physicalAddress)
   return result;
 }
 
+BOOL ept_handleHardwareBreakpoint(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, FXSAVE64 *fxsave)
+{
+  int result=FALSE;
+  if (TraceOnBP)
+  {
+    QWORD RIP=isAMD?currentcpuinfo->vmcb->RIP:vmread(vm_guest_rip);
+    csEnter(&CloakedPagesCS);
+
+    nosendchar[getAPICID()]=0;
+    sendstringf("%6: ept_handleHardwareBreakpoint:\n", RIP);
+
+    if (TraceOnBP && (TraceOnBP->triggered))
+    {
+      regDR6 dr6;
+      QWORD cr3;
+      QWORD fsbase,gsbase;
+      if (isAMD)
+      {
+        dr6.DR6=currentcpuinfo->vmcb->DR6;
+        cr3=currentcpuinfo->vmcb->CR3;
+        fsbase=currentcpuinfo->vmcb->fs_base;
+        gsbase=currentcpuinfo->vmcb->gs_base;
+      }
+      else
+      {
+        dr6.DR6=getDR6();
+        cr3=vmread(vm_guest_cr3);
+        fsbase=vmread(vm_guest_fs_base);
+        gsbase=vmread(vm_guest_gs_base);
+      }
+
+      sendstringf("Checking state:\n");
+      sendstringf("DR6=%8  DR6.BS=%d\n", dr6.DR6, dr6.BS);
+      sendstringf("TraceOnBP->triggeredcr3=%8\n" , TraceOnBP->triggeredcr3);
+      sendstringf("TraceOnBP->triggeredfsbase=%8\n" , TraceOnBP->triggeredfsbase);
+      sendstringf("TraceOnBP->triggeredgsbase=%8\n" , TraceOnBP->triggeredgsbase);
+      sendstringf("TraceOnBP->cr3=%8\n" , cr3);
+      sendstringf("TraceOnBP->fsbase=%8\n" , fsbase);
+      sendstringf("TraceOnBP->gsbase=%8\n" , gsbase);
+
+      if ((dr6.BS) && (TraceOnBP->triggeredcr3==cr3) && (TraceOnBP->triggeredfsbase==fsbase) && (TraceOnBP->triggeredgsbase==gsbase))
+      {
+        //todo:save the state
+
+        recordState(&TraceOnBP->pe, TraceOnBP->datatype, TraceOnBP->numberOfEntries, currentcpuinfo, vmregisters, fxsave);
+        TraceOnBP->numberOfEntries++;
+
+
+        TraceOnBP->count--;
+        if (TraceOnBP->count<=0)
+          TraceOnBP->shouldquit=1;
+
+
+
+        //setup resume state
+        RFLAGS flags;
+        flags.value=isAMD?currentcpuinfo->vmcb->RFLAGS:vmread(vm_guest_rflags);
+        flags.RF=1; //resume, but leave the TF flag
+
+        if (TraceOnBP->shouldquit==0)
+        {
+          sendstringf("Setting TF\n");
+          flags.TF=1;
+        }
+        else
+        {
+          sendstringf("Finishing trace\n");
+          flags.TF=0;
+          TraceOnBP->finished=1;
+        }
+
+        dr6.BS=0;
+        if (isAMD)
+        {
+          currentcpuinfo->vmcb->RFLAGS=flags.value;
+          currentcpuinfo->vmcb->DR6=dr6.DR6;
+        }
+        else
+        {
+          vmwrite(vm_guest_rflags, flags.value);
+          setDR6(dr6.DR6);
+        }
+
+        result=TRUE;
+      }
+      else
+        sendstringf("unexpected hardware breakpoint while tracing. skipping\n");
+    }
+    else
+      sendstringf("tracing hasn't started. skipping\n");
+
+    csLeave(&CloakedPagesCS);
+  }
+  else
+    sendstring("no tracing going on. skipping\n");
+
+  return result;
+}
+
 BOOL ept_handleSoftwareBreakpoint(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, FXSAVE64 *fxsave)
 {
   //check if it is a cloaked instruction
   int i;
   int result=FALSE;
+  QWORD RIP=isAMD?currentcpuinfo->vmcb->RIP:vmread(vm_guest_rip);
+
+  nosendchar[getAPICID()]=0;
 
 
   //convert RIP into a physical address  (note that RIP has not been decreased by 1 yet)
 
 
   int notpaged;
-  QWORD PA=getPhysicalAddressVM(currentcpuinfo, vmread(vm_guest_rip), &notpaged);
+  QWORD PA=getPhysicalAddressVM(currentcpuinfo, RIP, &notpaged);
+
+  sendstringf("ept_handleSoftwareBreakpoint.  RIP=%6 PA=%6\n", RIP, PA);
 
   if (notpaged==0) //should be since it's a software interrupt...
   {
+    sendstringf("paged\n");
     csEnter(&CloakedPagesCS);
+
+    sendstringf("TraceOnBP->PhysicalAddres=%6  PA=%6\n", TraceOnBP->PhysicalAddress, PA);
+
+
+    if (TraceOnBP && (TraceOnBP->PhysicalAddress==PA))
+    {
+
+      if (TraceOnBP->triggered)
+      {
+        sendstringf("already triggered\n");
+        csLeave(&CloakedPagesCS);
+        return TRUE; //try again (something else got it first and likely restored the byte)
+      }
+
+      //todo: if option is to step through interrupts use vmx_enableSingleStepMode() and just follow this cpu instead of process
+
+      //for now, just set stepping (which is visible to interrupts and pushf in that code)
+      sendstringf("setting TF\n");
+
+      RFLAGS flags;
+      flags.value=isAMD?currentcpuinfo->vmcb->RFLAGS:vmread(vm_guest_rflags);
+      flags.TF=1;
+
+      if (isAMD)
+        currentcpuinfo->vmcb->RFLAGS=flags.value;
+      else
+        vmwrite(vm_guest_rflags, flags.value);
+
+
+      int offset=TraceOnBP->PhysicalAddress & 0xfff;
+      unsigned char *executable=(unsigned char *)TraceOnBP->cloakdata->Executable;
+      executable[offset]=TraceOnBP->originalbyte;
+
+      //save the first state
+
+      recordState(&TraceOnBP->pe, TraceOnBP->datatype, TraceOnBP->numberOfEntries, currentcpuinfo, vmregisters, fxsave);
+      TraceOnBP->numberOfEntries++;
+      TraceOnBP->count--;
+
+
+      TraceOnBP->triggered=1;
+      TraceOnBP->triggeredcr3=isAMD?currentcpuinfo->vmcb->CR3:vmread(vm_guest_cr3);
+      TraceOnBP->triggeredgsbase=isAMD?currentcpuinfo->vmcb->gs_base:vmread(vm_guest_gs_base);
+      TraceOnBP->triggeredfsbase=isAMD?currentcpuinfo->vmcb->fs_base:vmread(vm_guest_fs_base);
+
+
+      sendstringf("TraceOnBP->triggeredcr3=%6\n", TraceOnBP->triggeredcr3);
+      sendstringf("TraceOnBP->triggeredfsbase=%6\n", TraceOnBP->triggeredfsbase);
+      sendstringf("TraceOnBP->triggeredgsbase=%6\n", TraceOnBP->triggeredgsbase);
+
+      csLeave(&CloakedPagesCS);
+
+      sendstringf("returning true\n");
+      sendstringf("currentcpuinfo->vmcb->InterceptExceptions=%6\n", currentcpuinfo->vmcb->InterceptExceptions);
+      return TRUE;
+    }
+    else
+      sendstringf("not a traceonbp\n");
+
+
     csEnter(&ChangeRegBPListCS);
     for (i=0; i<ChangeRegBPListPos; i++)
     {
@@ -922,22 +1284,40 @@ BOOL ept_handleSoftwareBreakpoint(pcpuinfo currentcpuinfo, VMRegisters *vmregist
       {
         if (ChangeRegBPList[i].Active)
         {
-          QWORD oldRIP=vmread(vm_guest_rip);
+          QWORD oldRIP=RIP;
           //it's a match
           //Todo: Only change if the processID matches  (todo: Add a getProcessID option provided by the OS based caller)
           //For now, make sure that the physical page is not shared, or that the register change is compatible with different processes (e.g kernelmode only, or a Flag change)
 
           //change regs
 
-          if (ChangeRegBPList[i].changereginfo.Flags.changeRAX) vmregisters->rax=ChangeRegBPList[i].changereginfo.newRAX;
+          if (ChangeRegBPList[i].changereginfo.Flags.changeRAX)
+          {
+            if (isAMD)
+              currentcpuinfo->vmcb->RAX=ChangeRegBPList[i].changereginfo.newRAX;
+            else
+              vmregisters->rax=ChangeRegBPList[i].changereginfo.newRAX;
+          }
           if (ChangeRegBPList[i].changereginfo.Flags.changeRBX) vmregisters->rbx=ChangeRegBPList[i].changereginfo.newRBX;
           if (ChangeRegBPList[i].changereginfo.Flags.changeRCX) vmregisters->rcx=ChangeRegBPList[i].changereginfo.newRCX;
           if (ChangeRegBPList[i].changereginfo.Flags.changeRDX) vmregisters->rdx=ChangeRegBPList[i].changereginfo.newRDX;
           if (ChangeRegBPList[i].changereginfo.Flags.changeRSI) vmregisters->rsi=ChangeRegBPList[i].changereginfo.newRSI;
           if (ChangeRegBPList[i].changereginfo.Flags.changeRDI) vmregisters->rdi=ChangeRegBPList[i].changereginfo.newRDI;
           if (ChangeRegBPList[i].changereginfo.Flags.changeRBP) vmregisters->rbp=ChangeRegBPList[i].changereginfo.newRBP;
-          if (ChangeRegBPList[i].changereginfo.Flags.changeRSP) vmwrite(vm_guest_rsp, ChangeRegBPList[i].changereginfo.newRSP);
-          if (ChangeRegBPList[i].changereginfo.Flags.changeRIP) vmwrite(vm_guest_rip, ChangeRegBPList[i].changereginfo.newRIP);
+          if (ChangeRegBPList[i].changereginfo.Flags.changeRSP)
+          {
+            if (isAMD)
+              currentcpuinfo->vmcb->RSP=ChangeRegBPList[i].changereginfo.newRSP;
+            else
+              vmwrite(vm_guest_rsp, ChangeRegBPList[i].changereginfo.newRSP);
+          }
+          if (ChangeRegBPList[i].changereginfo.Flags.changeRIP)
+          {
+            if (isAMD)
+              currentcpuinfo->vmcb->RIP=ChangeRegBPList[i].changereginfo.newRIP;
+            else
+              vmwrite(vm_guest_rip, ChangeRegBPList[i].changereginfo.newRIP);
+          }
           if (ChangeRegBPList[i].changereginfo.Flags.changeR8)  vmregisters->r8=ChangeRegBPList[i].changereginfo.newR8;
           if (ChangeRegBPList[i].changereginfo.Flags.changeR9)  vmregisters->r9=ChangeRegBPList[i].changereginfo.newR9;
           if (ChangeRegBPList[i].changereginfo.Flags.changeR10) vmregisters->r10=ChangeRegBPList[i].changereginfo.newR10;
@@ -984,14 +1364,17 @@ BOOL ept_handleSoftwareBreakpoint(pcpuinfo currentcpuinfo, VMRegisters *vmregist
 
 
           RFLAGS flags;
-          flags.value=vmread(vm_guest_rflags);
+          flags.value=isAMD?currentcpuinfo->vmcb->RFLAGS:vmread(vm_guest_rflags);
           if (ChangeRegBPList[i].changereginfo.Flags.changeCF) flags.CF=ChangeRegBPList[i].changereginfo.Flags.newCF;
           if (ChangeRegBPList[i].changereginfo.Flags.changePF) flags.PF=ChangeRegBPList[i].changereginfo.Flags.newPF;
           if (ChangeRegBPList[i].changereginfo.Flags.changeAF) flags.AF=ChangeRegBPList[i].changereginfo.Flags.newAF;
           if (ChangeRegBPList[i].changereginfo.Flags.changeZF) flags.ZF=ChangeRegBPList[i].changereginfo.Flags.newZF;
           if (ChangeRegBPList[i].changereginfo.Flags.changeSF) flags.SF=ChangeRegBPList[i].changereginfo.Flags.newSF;
           if (ChangeRegBPList[i].changereginfo.Flags.changeOF) flags.OF=ChangeRegBPList[i].changereginfo.Flags.newOF;
-          vmwrite(vm_guest_rflags, flags.value);
+          if (isAMD)
+            currentcpuinfo->vmcb->RFLAGS=flags.value;
+          else
+            vmwrite(vm_guest_rflags, flags.value);
 
 
           //continue:
@@ -1010,7 +1393,16 @@ BOOL ept_handleSoftwareBreakpoint(pcpuinfo currentcpuinfo, VMRegisters *vmregist
             vmx_enableSingleStepMode();
             vmx_addSingleSteppingReason(currentcpuinfo, 3,i); //change reg on bp, restore int3 bp
 
-            vmwrite(vm_guest_interruptability_state,2); //no interrupts for one instruction (no other interrupts are pending, it was an int3 that caused this)
+            //no interrupts for one instruction (no other interrupts are pending, it was an int3 that caused this)
+            if (isAMD)
+            {
+              //
+              currentcpuinfo->vmcb->INTERRUPT_SHADOW=1;
+            }
+            else
+            {
+              vmwrite(vm_guest_interruptability_state,2);
+            }
 
             /* on systems with no exec only support, this means there will be 2 single step reasons.
              * One for the breakpoint restore, and one to set the read disable back
@@ -1033,6 +1425,8 @@ BOOL ept_handleSoftwareBreakpoint(pcpuinfo currentcpuinfo, VMRegisters *vmregist
     csLeave(&ChangeRegBPListCS);
     csLeave(&CloakedPagesCS);
   }
+  else
+    sendstringf("Unreadable memory address for an int3 bp....\n");
 
   return result;
 }
@@ -1210,6 +1604,46 @@ void fillPageEventBasic(PageEventBasic *peb, VMRegisters *registers)
   }
   peb->Count=0;
 }
+
+void recordState(void *liststart, int datatype, int currentEntryNr, pcpuinfo currentcpuinfo, VMRegisters *vmregisters, PFXSAVE64 fxsave)
+{
+
+  sendstringf("recordState(%p, %d, %d, %p, %p, %p)",liststart, datatype, currentEntryNr, currentcpuinfo, vmregisters, fxsave);
+  int logentrysize=0;
+  switch (datatype)
+  {
+    case PE_BASIC:
+      logentrysize=sizeof(PageEventBasic);
+      PageEventBasic *peb=(PageEventBasic *)((QWORD)(liststart)+currentEntryNr*logentrysize);
+      fillPageEventBasic(peb, vmregisters); //physical and linear are ignored if a tracer log
+      break;
+
+    case PE_EXTENDED:
+      logentrysize=sizeof(PageEventExtended);
+      PageEventExtended *pee=(PageEventExtended *)((QWORD)(liststart)+currentEntryNr*logentrysize);
+      fillPageEventBasic((PageEventBasic*)pee, vmregisters);
+      pee->fpudata=*fxsave;
+      break;
+
+    case PE_BASICSTACK:
+      logentrysize=sizeof(PageEventBasicWithStack);
+      PageEventBasicWithStack *pebws=(PageEventBasicWithStack *)((QWORD)(liststart)+currentEntryNr*logentrysize);
+      fillPageEventBasic((PageEventBasic*)pebws, vmregisters);
+      saveStack(currentcpuinfo, pebws->stack);
+      break;
+
+    case PE_EXTENDEDSTACK:
+      logentrysize=sizeof(PageEventExtendedWithStack);
+      PageEventExtendedWithStack *peews=(PageEventExtendedWithStack *)((QWORD)(liststart)+currentEntryNr*logentrysize);
+      fillPageEventBasic((PageEventBasic*)peews, vmregisters);
+      saveStack(currentcpuinfo, peews->stack);
+      peews->fpudata=*fxsave;
+      break;
+  }
+  if (datatype<0)
+    return;
+}
+
 
 
 int ept_isWatchIDPerfectMatch(QWORD address, int ID)
@@ -1746,15 +2180,208 @@ int ept_handleWatchEventAfterStep(pcpuinfo currentcpuinfo,  int ID)
   return 0;
 }
 
+
+
+VMSTATUS ept_traceonbp_retrievelog(QWORD results, DWORD *resultSize, DWORD *offset, QWORD *errorcode)
+//same as ept_watch_retrievelog, but there's only only one list
+{
+
+  //sendstringf("ept_watch_retrievelog(ID=%d)\n", ID);
+
+  sendstring("ept_traceonbp_retrievelog\n");
+
+  csEnter(&CloakedPagesCS);
+
+  DWORD sizeneeded=8;
+  int maxid=TraceOnBP->numberOfEntries;
+
+  switch (TraceOnBP->datatype)
+  {
+    case PE_BASIC:
+      sizeneeded+=(QWORD)(&TraceOnBP->pe.basic[maxid])-(QWORD)(&TraceOnBP->datatype);
+      break;
+
+    case PE_EXTENDED:
+      sizeneeded+=(QWORD)(&TraceOnBP->pe.extended[maxid])-(QWORD)(&TraceOnBP->datatype);
+      break;
+
+    case 2:
+      sizeneeded+=(QWORD)(&TraceOnBP->pe.basics[maxid])-(QWORD)(&TraceOnBP->datatype);
+      break;
+
+    case 3:
+      sizeneeded+=(QWORD)(&TraceOnBP->pe.extendeds[maxid])-(QWORD)(&TraceOnBP->datatype);
+      break;
+  }
+
+  sendstringf("sizeneeded=%d  *resultSize=%d\n", sizeneeded, *resultSize);
+
+
+  if ((*resultSize) < sizeneeded)
+  {
+    sendstringf("Too small\n");
+    *resultSize=sizeneeded;
+    if (isAMD)
+    {
+      if (AMD_hasNRIPS)
+        getcpuinfo()->vmcb->RIP=getcpuinfo()->vmcb->nRIP;
+      else
+        getcpuinfo()->vmcb->RIP+=3;
+    }
+    else
+      vmwrite(vm_guest_rip,vmread(vm_guest_rip)+vmread(vm_exit_instructionlength));
+    *errorcode=2; //invalid size
+    csLeave(&CloakedPagesCS);
+    return VM_OK;
+  }
+
+
+
+  if (results==0)
+  {
+    sendstringf("results==0\n");
+    if (isAMD)
+    {
+      if (AMD_hasNRIPS)
+        getcpuinfo()->vmcb->RIP=getcpuinfo()->vmcb->nRIP;
+      else
+        getcpuinfo()->vmcb->RIP+=3;
+    }
+    else
+      vmwrite(vm_guest_rip,vmread(vm_guest_rip)+vmread(vm_exit_instructionlength));
+    *errorcode=4; //results==0
+    csLeave(&CloakedPagesCS);
+    return VM_OK;
+  }
+
+  if ((*offset)>sizeneeded)
+  {
+    sendstringf("(*offset)>sizeneeded\n");
+    if (isAMD)
+    {
+      if (AMD_hasNRIPS)
+        getcpuinfo()->vmcb->RIP=getcpuinfo()->vmcb->nRIP;
+      else
+        getcpuinfo()->vmcb->RIP+=3;
+    }
+    else
+      vmwrite(vm_guest_rip,vmread(vm_guest_rip)+vmread(vm_exit_instructionlength));
+    *errorcode=6; //offset is too high
+    csLeave(&CloakedPagesCS);
+    return VM_OK;
+  }
+
+
+
+  int sizeleft=sizeneeded-(*offset); //decrease bytes left by bytes already copied
+  sendstringf("*offset=%d\n", *offset);
+  sendstringf("sizeleft=%d\n", sizeleft);
+
+  int error;
+  QWORD pagefaultaddress;
+  QWORD destinationaddress=results+(*offset);
+  int blocksize=sizeleft;
+  if (blocksize>16*4096)
+    blocksize=16*4096;
+
+
+  sendstringf("TraceOnBP->datatype=%d\n",TraceOnBP->datatype);
+  sendstringf("TraceOnBP->numberOfEntries=%d\n",TraceOnBP->numberOfEntries);
+
+  unsigned char *source=(unsigned char *)(QWORD)(&TraceOnBP->datatype)+(*offset);
+  unsigned char *destination=mapVMmemoryEx(NULL, destinationaddress, blocksize, &error, &pagefaultaddress,1);
+
+
+  if (*offset==0)
+  {
+    DWORD *p=source;
+    sendstringf("p[0]=%d\n",p[0]);
+    sendstringf("p[1]=%d\n",p[1]);
+  }
+
+
+
+  if (error)
+  {
+    sendstringf("Error during map (%d)\n", error);
+    if (error==2)
+    {
+      sendstringf("Pagefault at address %x\n", pagefaultaddress);
+      blocksize=pagefaultaddress-destinationaddress;
+      sendstringf("blocksize=%d\n", blocksize);
+    }
+    else
+    {
+      sendstringf("Not a pagefault\n");
+      if (isAMD)
+      {
+        if (AMD_hasNRIPS)
+          getcpuinfo()->vmcb->RIP=getcpuinfo()->vmcb->nRIP;
+        else
+          getcpuinfo()->vmcb->RIP+=3;
+      }
+      else
+        vmwrite(vm_guest_rip,vmread(vm_guest_rip)+vmread(vm_exit_instructionlength));
+      *errorcode=0x1000+error; //map error
+      csLeave(&CloakedPagesCS);
+      return VM_OK;
+    }
+  }
+
+
+
+  if (blocksize)
+  {
+    //sendstringf("Copying to destination\n");
+    copymem(destination, source, blocksize);
+    unmapVMmemory(destination, blocksize);
+
+    *offset=(*offset)+blocksize;
+  }
+
+  if (error==2)
+  {
+    sendstringf("Raising the pagefault\n");
+    csLeave(&CloakedPagesCS);
+    return raisePagefault(getcpuinfo(), pagefaultaddress);
+  }
+
+
+  if ((*offset)>=sizeneeded)
+  {
+    //once all data has been copied
+    sendstringf("All data has been copied\n");
+    *resultSize=*offset;
+
+   // sendstringf("Going to the next instruction\n");
+    if (isAMD)
+    {
+      if (AMD_hasNRIPS)
+        getcpuinfo()->vmcb->RIP=getcpuinfo()->vmcb->nRIP;
+      else
+        getcpuinfo()->vmcb->RIP+=3;
+    }
+    else
+      vmwrite(vm_guest_rip,vmread(vm_guest_rip)+vmread(vm_exit_instructionlength));
+
+    *errorcode=0;
+  }
+  else
+  {
+    sendstringf("not everything copied yet. Rerun\n");
+
+  }
+
+  csLeave(&CloakedPagesCS);
+  return VM_OK;
+}
+
 VMSTATUS ept_watch_retrievelog(int ID, QWORD results, DWORD *resultSize, DWORD *offset, QWORD *errorcode)
 /*
  * Retrieves the collected log
  * offset is the offset from what point the log should continue copying (works like a rep xxx instruction)
  */
 {
-
-  //sendstringf("ept_watch_retrievelog(ID=%d)\n", ID);
-
   if (ID>=eptWatchListPos) //out of range
   {
     sendstringf("Invalid ID\n");
@@ -1802,32 +2429,21 @@ VMSTATUS ept_watch_retrievelog(int ID, QWORD results, DWORD *resultSize, DWORD *
   switch (eptWatchList[ID].Log->entryType)
   {
     case 0:
-     //entrysize=sizeof(PageEventBasic);
       sizeneeded+=(QWORD)(&eptWatchList[ID].Log->pe.basic[maxid])-(QWORD)(&eptWatchList[ID].Log->pe.basic[0]);
       break;
 
     case 1:
-     // entrysize=sizeof(PageEventExtended);
       sizeneeded+=(QWORD)(&eptWatchList[ID].Log->pe.extended[maxid])-(QWORD)(&eptWatchList[ID].Log->pe.extended[0]);
-
-      //int offset=(QWORD)(&eptWatchList[ID].Log->pe.extended[0].fpudata)-(QWORD)(&eptWatchList[ID].Log->pe.extended[0]);
-      //sendstringf("fpudata is at offset %d\n", offset);
       break;
 
     case 2:
-     // entrysize=sizeof(PageEventBasicWithStack);
       sizeneeded+=(QWORD)(&eptWatchList[ID].Log->pe.basics[maxid])-(QWORD)(&eptWatchList[ID].Log->pe.basics[0]);
       break;
 
     case 3:
-     // entrysize=sizeof(PageEventExtendedWithStack);
       sizeneeded+=(QWORD)(&eptWatchList[ID].Log->pe.extendeds[maxid])-(QWORD)(&eptWatchList[ID].Log->pe.extendeds[0]);
       break;
   }
-
-  //sendstringf("entrytype=%d (size = %d)\n", eptWatchList[ID].Log->entryType, entrysize);
-  //sendstringf("sizeneeded=%d\n", sizeneeded);
-  //sendstringf("resultsize=%d\n", *resultSize);
 
   if ((*resultSize) < sizeneeded)
   {

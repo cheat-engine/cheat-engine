@@ -177,7 +177,7 @@ void setupVMX_AMD(pcpuinfo currentcpuinfo)
   currentcpuinfo->vmcb->InterceptVMMCALL=1;
   currentcpuinfo->vmcb->MSR_PROT=1; //some msr's need to be protected
 
-  currentcpuinfo->vmcb->InterceptExceptions=1;// | (1<<3);// | (1<<14); //intercept int1, 3 and 14
+  currentcpuinfo->vmcb->InterceptExceptions=(1<<1) | (1<<3);// | (1<<14); //intercept int1, 3 and 14
  // currentcpuinfo->vmcb->InterceptDR0_15Write=(1<<6); //dr6 so I can see what changed
 
 
@@ -679,12 +679,12 @@ int vmx_addSingleSteppingReason(pcpuinfo currentcpuinfo, int reason, int ID)
 int vmx_enableSingleStepMode(void)
 {
   pcpuinfo c=getcpuinfo();
-  sendstringf("%d Enabling single step mode\n", c->cpunr);
+  //sendstringf("%d Enabling single step mode\n", c->cpunr);
 
 
   if (isAMD)
   {
-    sendstringf("%d CS:RIP=%x:%6 RCX=%d\n", c->cpunr, c->vmcb->cs_selector, c->vmcb->RIP);
+   // sendstringf("%d CS:RIP=%x:%6 RCX=%d\n", c->cpunr, c->vmcb->cs_selector, c->vmcb->RIP);
 
     //break on external interrupts and exceptions
     c->vmcb->InterceptVINTR=1;
@@ -701,6 +701,8 @@ int vmx_enableSingleStepMode(void)
 
     RFLAGS v;
     v.value=c->vmcb->RFLAGS;
+    c->singleStepping.PreviousTFState=v.TF;
+
     v.TF=1; //single step mode
     v.RF=1;
     if (v.IF)
@@ -759,7 +761,7 @@ int vmx_disableSingleStepMode(void)
     //shouldn't be needed but do it anyhow
     RFLAGS v;
     v.value=c->vmcb->RFLAGS;
-    v.TF=0; //single step mode
+    v.TF=c->singleStepping.PreviousTFState;  // 0; //single step mode
     //todo: intercept pushf/popf/iret
 
     c->vmcb->RFLAGS=v.value;
@@ -767,7 +769,7 @@ int vmx_disableSingleStepMode(void)
 
     c->vmcb->InterceptVINTR=0;
     c->vmcb->InterceptINTR=0;
-    c->vmcb->InterceptExceptions=0; //todo: load current exceptions hooks
+    c->vmcb->InterceptExceptions=(1<<1) | (1<<3); // todo: load current exceptions hooks
 
 
     //mark the intercepts as changed

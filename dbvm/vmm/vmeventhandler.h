@@ -58,6 +58,7 @@ ULONG getSegmentAccessRights(PGDT_ENTRY gdt, PGDT_ENTRY ldt, ULONG selector);
 ULONG getSegmentAttrib(PGDT_ENTRY gdt, PGDT_ENTRY ldt, ULONG selector);
 
 int handle_rdtsc(pcpuinfo currentcpuinfo, VMRegisters *vmregisters);
+BOOL handleSoftwareBreakpoint(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, FXSAVE64 *fxsave);
 
 int setVM_CR0(pcpuinfo currentcpuinfo, UINT64 newcr0);
 int setVM_CR3(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, UINT64 newcr3);

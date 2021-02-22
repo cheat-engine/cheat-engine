@@ -612,10 +612,12 @@ typedef volatile struct tcpuinfo
   struct //single stepping data
   {
     int Method;
+    int PreviousTFState;
 
     SingleStepReason *Reasons;
     int ReasonsPos;
     int ReasonsLength;
+
   } singleStepping;
 
   int BPAfterStep;

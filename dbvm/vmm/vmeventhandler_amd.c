@@ -35,6 +35,8 @@ int handleVMEvent_amd(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, FXSAVE6
 
   nosendchar[getAPICID()]=1;
 
+
+
   sendstringf("getAPICID()=%d VM_HSAVE_PA_MSR=%6\n", getAPICID(),readMSR(VM_HSAVE_PA_MSR));
 
 
@@ -58,8 +60,8 @@ int handleVMEvent_amd(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, FXSAVE6
 
   if ((currentcpuinfo->singleStepping.ReasonsPos) && (currentcpuinfo->vmcb->EXITCODE!=VMEXIT_NPF)) //ANYTHING except NPF is counted as a single step (in case of interrupts)
   {
-    nosendchar[getAPICID()]=0;
-    sendstringf("AMD Handler: currentcpuinfo->singleStepping.ReasonsPos=%d Calling handleSingleStep()\n",currentcpuinfo->singleStepping.ReasonsPos);
+    //nosendchar[getAPICID()]=0;
+    //sendstringf("AMD Handler: currentcpuinfo->singleStepping.ReasonsPos=%d Calling handleSingleStep()\n",currentcpuinfo->singleStepping.ReasonsPos);
 
     handleSingleStep(currentcpuinfo);
     sendstring("After handleSingleStep()\n");
@@ -68,6 +70,15 @@ int handleVMEvent_amd(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, FXSAVE6
     {
       sendstring("It was an int1 so skip this\n"); //Todo: Check if it was a int1 or other BP before the step
 
+
+      //sendstringf("%6:\n", currentcpuinfo->vmcb->RIP);
+
+      if (currentcpuinfo->singleStepping.PreviousTFState)
+      {
+        nosendchar[getAPICID()]=0;
+        sendstring("Previous TF state was 1. calling ept_handleHardwareBreakpoint");
+        ept_handleHardwareBreakpoint(currentcpuinfo, vmregisters, fxsave);
+      }
 
       //no further handling is needed
       return 0;
@@ -107,10 +118,16 @@ int handleVMEvent_amd(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, FXSAVE6
       int isFault=0; //on amd it seems it ever ever set RF. isDebugFault(currentcpuinfo->vmcb->DR6, currentcpuinfo->vmcb->DR7);
 
       //int1 breakpoint
-
       nosendchar[getAPICID()]=0; //urrentcpuinfo->vmcb->CPL!=3;
-
       sendstringf("INT1 breakpoint\n");
+
+      if (ept_handleHardwareBreakpoint(currentcpuinfo, vmregisters, fxsave))
+        return 0;
+
+
+
+
+
       sendstringf("dr0=%x\n", getDR0());
       sendstringf("dr1=%x\n", getDR1());
       sendstringf("dr2=%x\n", getDR2());
@@ -173,6 +190,13 @@ int handleVMEvent_amd(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, FXSAVE6
 
       ShowCurrentInstructions(currentcpuinfo);
 
+      if (handleSoftwareBreakpoint(currentcpuinfo, vmregisters, fxsave))
+      {
+        sendstring("VMEXIT_EXCP3: handleSoftwareBreakpoint handled it. Returning 0\n");
+        return 0;
+      }
+
+
       //set RIP to after the instruction
       if (AMD_hasNRIPS)
       {
@@ -201,6 +225,8 @@ int handleVMEvent_amd(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, FXSAVE6
         unmapVMmemory(bytes, 15);
       }
       sendstringf("new RIP=%6\n", currentcpuinfo->vmcb->RIP);
+
+
 
       //and raise the interrupt
       if ((int3redirection_idtbypass==0) || (ISREALMODE(currentcpuinfo)))

@@ -285,9 +285,6 @@ typedef struct _pageeventlistdescriptor
 
 } PageEventListDescriptor, *PPageEventListDescriptor;
 
-
-
-
 typedef struct
 {
   QWORD PhysicalAddress;
@@ -298,19 +295,6 @@ typedef struct
   int CopyInProgress; //if 1 events will be ignored
   PPageEventListDescriptor Log;
 } EPTWatchEntry, *PEPTWatchEntry;
-
-/* obsolete
-typedef struct
-{
-  QWORD PhysicalAddressExecutable; //the PA of the original page and used for execute
-  QWORD PhysicalAddressData; //the PA of the page shown when read/write operations happen
-  void *Data;
-  void *Executable;
-  //int *MegaJmpMap; //when the PhysicalAddressExecutable gets changed, it will keep track of code changes, including megajmp's
-  //int MegaJmpCount;
-
-} CloakedPageInfo, *PCloakedPageInfo;
-*/
 
 typedef struct
 {
@@ -339,6 +323,33 @@ typedef struct
   unsigned char originalbyte;
   CHANGEREGONBPINFO changereginfo;
 } ChangeRegBPEntry, *PChangeRegBPEntry;
+
+typedef struct
+{
+  int triggered; //set to true if it has been started
+  QWORD triggeredcr3;
+  QWORD triggeredfsbase;
+  QWORD triggeredgsbase;
+  int count; //number of steps left to log
+
+  int shouldquit;
+  int finished;
+  QWORD PhysicalAddress;
+  unsigned char originalbyte;
+  PCloakedPageData cloakdata; //needed to disable it
+
+  //copy from here to the client
+  int datatype;
+  int numberOfEntries;
+  union
+  {
+    PageEventBasic basic[0];
+    PageEventExtended extended[0];
+    PageEventBasicWithStack basics[0];
+    PageEventExtendedWithStack extendeds[0];
+  } pe;
+
+} TraceOnBPEntry, *PTraceOnBPEntry;
 
 
 #endif /* VMM_EPTSTRUCTS_H_ */

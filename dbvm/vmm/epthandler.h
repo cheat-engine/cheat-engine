@@ -79,7 +79,14 @@ int ept_cloak_readOriginal(pcpuinfo currentcpuinfo, VMRegisters *registers, QWOR
 int ept_cloak_writeOriginal(pcpuinfo currentcpuinfo, VMRegisters *registers, QWORD physicalAddress, QWORD source);
 int ept_cloak_changeregonbp(QWORD physicalAddress, PCHANGEREGONBPINFO changereginfo);
 int ept_cloak_removechangeregonbp(QWORD physicalAddress);
+int ept_cloak_traceonbp(QWORD physicalAddress, DWORD flags, DWORD count);
+int ept_cloak_traceonbp_remove(int forcequit);
+int ept_cloak_traceonbp_getstatus(DWORD *count, DWORD *maxcount);
+VMSTATUS ept_traceonbp_retrievelog(QWORD results, DWORD *resultSize, DWORD *offset, QWORD *errorcode);
+int ept_cloak_traceonbp_stoptrace();
+
 BOOL ept_handleSoftwareBreakpoint(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, FXSAVE64 *fxsave);
+BOOL ept_handleHardwareBreakpoint(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, FXSAVE64 *fxsave);
 
 void ept_reset();
 void ept_invalidate();

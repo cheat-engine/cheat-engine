@@ -1034,11 +1034,6 @@ void *malloc2(unsigned int size)
   }
 
   sendstring("OUT OF MEMORY\n");
-  ddDrawRectangle(0,DDVerticalResolution-100,100,100,0xff0000);
-
-  while (1) outportb(0x80,0xd0);
-
-
   return NULL; //still here so no memory allocated
 }
 
