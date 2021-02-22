@@ -2868,6 +2868,7 @@ procedure TMainForm.openProcessEpilogue(oldprocessname: string; oldprocess: dwor
 var
   i, j: integer;
   fname, expectedfilename: string;
+  path: string;
 
   wasActive: boolean;
   DoNotOpenAssociatedTable: boolean;
@@ -3067,22 +3068,31 @@ begin
     expectedFilename := FName + '.ct';
 
 
+
   if not (autoattachopen or DoNotOpenAssociatedTable) then
   begin
-    if fileexists(TablesDir +  pathdelim + expectedfilename) or fileexists(expectedfilename) or
-      fileexists(cheatenginedir + expectedfilename) then
+    path:='';
+
+    if fileexists(TablesDir +  pathdelim + expectedfilename) then
+      path:=TablesDir +  pathdelim + expectedfilename
+    else
+    if fileexists(expectedfilename) then
+      path:=expectedfilename
+    else if fileexists(cheatenginedir + expectedfilename) then
+      path:=cheatenginedir + expectedfilename
+    else if fileexists( IncludeTrailingPathDelimiter(opendialog1.InitialDir)+expectedfilename) then
+      path:=IncludeTrailingPathDelimiter(opendialog1.InitialDir)+expectedfilename
+    else if fileexists( IncludeTrailingPathDelimiter(extractfilepath(opendialog1.FileName))+expectedfilename) then
+      path:=IncludeTrailingPathDelimiter(extractfilepath(opendialog1.FileName))+expectedfilename;
+
+    if path<>'' then
     begin
       if messagedlg(Format(rsLoadTheAssociatedTable, [expectedFilename]),
         mtConfirmation, [mbYes, mbNo], 0) = mrYes then
       begin
         autoopen := True;
-        if fileexists(TablesDir + pathdelim + expectedfilename) then
-          opendialog1.FileName := TablesDir + pathdelim + expectedfilename
-        else
-        if fileexists(expectedfilename) then
-          opendialog1.FileName := expectedfilename
-        else
-          opendialog1.FileName := cheatenginedir + expectedfilename;
+        if fileexists(path) then
+          opendialog1.FileName := path;
 
         LoadButton.Click;
       end;

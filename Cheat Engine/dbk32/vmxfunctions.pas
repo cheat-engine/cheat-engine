@@ -88,6 +88,13 @@ const
 
   VMCALL_WATCH_GETSTATUS=68;
 
+  VMCALL_CLOAK_TRACEONBP=69;
+  VMCALL_CLOAK_TRACEONBP_REMOVE=70;
+  VMCALL_CLOAK_TRACEONBP_READLOG=71;
+  VMCALL_CLOAK_TRACEONBP_GETSTATUS=72;
+  VMCALL_CLOAK_TRACEONBP_STOPTRACE=73;
+
+
 
   //---
   //watch options:
@@ -273,8 +280,24 @@ type
 //      2: (basics:    TPageEventBasicStackArray);
 //      3: (extendeds: TPageEventExtendedStackArray);
   end;
-
   PPageEventListDescriptor=^TPageEventListDescriptor;
+
+
+  TTracerListDescriptor=packed record
+    datatype: DWORD ;
+    count: DWORD;
+    //followed by results
+    //case integer of
+//      0: (basic:     array [0..0] of TPageEventBasic);
+//      1: (extended:  TPageEventBasic);//TPageEventExtendedArray);
+//      2: (basics:    TPageEventBasicStackArray);
+//      3: (extendeds: TPageEventExtendedStackArray);
+  end;
+
+  PTracerListDescriptor=^TTracerListDescriptor;
+
+
+
 
   TChangeRegOnBPInfo=packed record
     Flags: bitpacked record
@@ -463,6 +486,13 @@ function dbvm_cloak_writeoriginal(PhysicalBase: QWORD; source: pointer): integer
 
 function dbvm_cloak_changeregonbp(PhysicalAddress: QWORD; var changeregonbpinfo: TChangeRegOnBPInfo; VirtualAddress: qword=0): integer;
 function dbvm_cloak_removechangeregonbp(PhysicalAddress: QWORD): integer;
+
+function dbvm_cloak_traceonbp(PhysicalAddress: QWORD; count: integer; options: dword; VirtualAddress: qword=0): integer;
+function dbvm_cloak_traceonbp_getstatus(out count: dword; out  max: dword): integer;
+function dbvm_cloak_traceonbp_stoptrace: integer;
+function dbvm_cloak_traceonbp_remove(PhysicalAddress: QWORD=0; force: boolean=false): integer;
+function dbvm_cloak_traceonbp_readlog(results: PTracerListDescriptor; var resultsize: integer): integer; //VMCALL_CLOAK_TRACEONBP_READLOG
+
 
 procedure dbvm_ept_reset;
 
@@ -1651,6 +1681,182 @@ begin
 end;
 
 
+function dbvm_cloak_traceonbp_readlog(results: PTracerListDescriptor; var resultsize: integer): integer;
+var vmcallinfo: packed record
+  structsize: dword;
+  level2pass: dword;
+  command: dword;
+  results: QWORD;
+  resultssize: DWORD;
+  copied: DWORD;
+end;
+begin
+  OutputDebugString('vmxfunctions.pas: dbvm_cloak_traceonbp_readlog (results='+inttohex(QWORD(results),8)+' resultsize='+inttostr(resultsize)+')');
+  result:=1;
+  vmcallinfo.structsize:=sizeof(vmcallinfo);
+  vmcallinfo.level2pass:=vmx_password2;
+  vmcallinfo.command:=VMCALL_CLOAK_TRACEONBP_READLOG;
+  vmcallinfo.results:=QWORD(results);
+  vmcallinfo.resultssize:=resultsize;
+  vmcallinfo.copied:=0;
+
+  result:=vmcall(@vmcallinfo,vmx_password1);  //returns 2 on a too small size
+  resultsize:=vmcallinfo.resultssize;
+
+  OutputDebugString('vmxfunctions.pas: dbvm_cloak_traceonbp_readlog returned '+inttostr(result)+' resultsize='+inttostr(resultsize)+' vmcallinfo.copied='+inttostr(vmcallinfo.copied));
+end;
+
+function dbvm_cloak_traceonbp_remove(PhysicalAddress: QWORD=0; force: boolean=false): integer;
+var
+  vmcallinfo: packed record
+    structsize: dword;
+    level2pass: dword;
+    command: dword;
+    forced: DWORD;
+  end;
+  i,j: integer;
+begin
+  vmcallinfo.structsize:=sizeof(vmcallinfo);
+  vmcallinfo.level2pass:=vmx_password2;
+  vmcallinfo.command:=VMCALL_CLOAK_TRACEONBP_REMOVE;
+  vmcallinfo.forced:=ifthen(force,1,0);
+  result:=vmcall(@vmcallinfo,vmx_password1);
+
+  if PhysicalAddress<>0 then
+  begin
+    breakpointsCS.Enter;
+    for i:=0 to length(breakpoints)-1 do
+      if breakpoints[i].PhysicalAddress=PhysicalAddress then
+      begin
+        for j:=i to length(breakpoints)-2 do
+          breakpoints[j]:=breakpoints[j+1];
+
+        setlength(breakpoints, length(breakpoints)-1);
+        break;
+      end;
+
+    if (GetCurrentThreadId=MainThreadID) and (frmbreakPointList<>nil) and (frmbreakPointList.visible) then
+      frmbreakPointList.updatebplist;
+
+    hassetbp:=length(breakpoints)<>0;
+
+    breakpointsCS.Leave;
+
+    flushCloakedMemoryCache(PhysicalAddress); //flush out that int3 which will confuse users for half a second
+  end;
+
+end;
+
+function dbvm_cloak_traceonbp_getstatus(out count: dword; out max: dword): integer;
+var
+  vmcallinfo: packed record
+    structsize: dword;
+    level2pass: dword;
+    command: dword;
+    count: dword;
+    max: dword;
+  end;
+begin
+  vmcallinfo.structsize:=sizeof(vmcallinfo);
+  vmcallinfo.level2pass:=vmx_password2;
+  vmcallinfo.command:=VMCALL_CLOAK_TRACEONBP_GETSTATUS;
+
+  result:=vmcall(@vmcallinfo,vmx_password1);
+
+  OutputDebugString(pchar(format('dbvm_cloak_traceonbp_getstatus:  result=%d count=%d max=%d',[result, vmcallinfo.count, vmcallinfo.max])));
+
+
+  count:=vmcallinfo.count;
+  max:=vmcallinfo.max;
+end;
+
+function dbvm_cloak_traceonbp_stoptrace: integer;
+var
+  vmcallinfo: packed record
+    structsize: dword;
+    level2pass: dword;
+    command: dword;
+  end;
+
+begin
+  vmcallinfo.structsize:=sizeof(vmcallinfo);
+  vmcallinfo.level2pass:=vmx_password2;
+  vmcallinfo.command:=VMCALL_CLOAK_TRACEONBP_STOPTRACE;
+
+  result:=vmcall(@vmcallinfo,vmx_password1);
+
+  flushCloakedMemoryCache;
+end;
+
+
+function dbvm_cloak_traceonbp(PhysicalAddress: QWORD; count: integer; options: dword; VirtualAddress: qword=0): integer;
+var
+  vmcallinfo: packed record
+    structsize: dword;
+    level2pass: dword;
+    command: dword;
+    PhysicalAddress: QWORD;
+    flags: DWORD;
+    tracecount: DWORD;
+  end;
+
+  ob: byte;
+  br: ptruint;
+  i: integer;
+  PhysicalBase: qword;
+begin
+  if virtualaddress<>0 then
+    ReadProcessMemory(processhandle, pointer(virtualaddress), @ob,1,br);
+
+  vmcallinfo.structsize:=sizeof(vmcallinfo);
+  vmcallinfo.level2pass:=vmx_password2;
+  vmcallinfo.command:=VMCALL_CLOAK_TRACEONBP;
+  vmcallinfo.PhysicalAddress:=PhysicalAddress;
+  vmcallinfo.flags:=options;
+  vmcallinfo.tracecount:=count;
+  result:=vmcall(@vmcallinfo,vmx_password1);
+
+  outputdebugstring('dbvm_cloak_traceonbp returned '+inttostr(result));
+
+
+  if (result=0) then
+  begin
+    breakpointsCS.enter;
+    setlength(breakpoints,length(breakpoints)+1);
+    breakpoints[length(breakpoints)-1].PhysicalAddress:=PhysicalAddress;
+    breakpoints[length(breakpoints)-1].VirtualAddress:=virtualAddress;
+    breakpoints[length(breakpoints)-1].BreakOption:=integer(bo_BreakAndTrace);
+    breakpoints[length(breakpoints)-1].originalbyte:=ob;
+    hassetbp:=true;
+    breakpointscs.leave;
+
+    if (VirtualAddress<>0) then
+    begin
+      cloakedregionscs.Enter;
+      try
+        PhysicalBase:=PhysicalAddress and MAXPHYADDRMASKPB;
+
+        for i:=0 to length(cloakedregions)-1 do
+          if cloakedregions[i].PhysicalAddress=PhysicalBase then exit;   //already in the list
+
+        i:=length(cloakedregions);
+        setlength(cloakedregions,i+1);
+        cloakedregions[i].PhysicalAddress:=PhysicalBase;
+        cloakedregions[i].virtualAddress:=virtualAddress and qword($fffffffffffff000);
+
+        outputdebugstring('added it to entry '+inttostr(i));
+      finally
+        cloakedregionscs.leave;
+      end;
+    end;
+
+    if (GetCurrentThreadId=MainThreadID) and (frmbreakPointList<>nil) and (frmbreakPointList.visible) then
+      frmbreakPointList.updatebplist;
+  end
+  else
+    log('VMCALL_CLOAK_TRACEONBP failed. it returned '+inttohex(result,8));
+end;
+
 function dbvm_cloak_changeregonbp(PhysicalAddress: QWORD; var changeregonbpinfo: TChangeRegOnBPInfo; VirtualAddress: qword=0): integer;
 var
   vmcallinfo: packed record
@@ -1729,7 +1935,7 @@ var
 begin
   vmcallinfo.structsize:=sizeof(vmcallinfo);
   vmcallinfo.level2pass:=vmx_password2;
-  vmcallinfo.command:=VMCALL_CLOAK_REMOVECHANGEREGONBP;
+  vmcallinfo.command:=VMCALL_CLOAK_TRACEONBP_REMOVE;
   vmcallinfo.PhysicalAddress:=PhysicalAddress;
   result:=vmcall(@vmcallinfo,vmx_password1);
 
@@ -1741,6 +1947,7 @@ begin
         breakpoints[j]:=breakpoints[j+1];
 
       setlength(breakpoints, length(breakpoints)-1);
+      break;
     end;
 
   if (GetCurrentThreadId=MainThreadID) and (frmbreakPointList<>nil) and (frmbreakPointList.visible) then

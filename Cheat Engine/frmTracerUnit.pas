@@ -13,7 +13,8 @@ uses
   {$endif}
   NewKernelHandler, LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, ExtCtrls, Buttons, LResources, commonTypeDefs, frmFindDialogUnit,
-  Menus, ComCtrls, frmStackviewunit, frmFloatingPointPanelUnit, disassembler, debuggertypedefinitions, betterControls;
+  Menus, ComCtrls, frmStackviewunit, frmFloatingPointPanelUnit, disassembler,
+  debuggertypedefinitions, betterControls;
 
 type
   TTraceDebugInfo=class
@@ -42,9 +43,20 @@ type
     procedure saveToStream(s: tstream);
     constructor createFromStream(s: tstream);
     destructor destroy; override;
-end;
+  end;
 
-type
+  TDBVMStatusUpdater=class(TPanel)
+  private
+    found: TLabel;
+    progressbar: TProgressbar;
+    cancelButton: TButton;
+    timer: TTimer;
+    procedure CancelAndGetResultClick(sender: TObject);
+    procedure checkDBVMTracerStatus(sender: TObject);
+  public
+    OnTraceDone: TNotifyEvent;
+    constructor Create(TheOwner: TComponent); override;
+  end;
 
   { TfrmTracer }
 
@@ -183,6 +195,9 @@ type
 
     defaultBreakpointMethod: TBreakpointmethod;
 
+    physicaladdress: int64;
+    DBVMStatusUpdater: TDBVMStatusUpdater;
+
     procedure configuredisplay;
     procedure setSavestack(x: boolean);
     procedure updatestackview;
@@ -195,6 +210,7 @@ type
     function getEntry(index: integer): TTraceDebugInfo;
     function getCount: integer;
     function getSelectionCount: integer;
+    procedure DBVMTraceDone(sender: TObject);
   public
     { Public declarations }
     returnfromignore: boolean;
@@ -217,11 +233,12 @@ implementation
 uses  LuaByteTable, clipbrd, CEDebugger, debughelper, MemoryBrowserFormUnit, frmTracerConfigUnit,
   ProcessHandlerUnit, Globals, Parsers, strutils, CEFuncProc,
   LuaHandler, symbolhandler, byteinterpreter,
-  tracerIgnore, LuaForm, lua, lualib,lauxlib, LuaClass;
+  tracerIgnore, LuaForm, lua, lualib,lauxlib, LuaClass,vmxfunctions, DBK32functions;
 
 resourcestring
   rsSearch = 'Search';
   rsTypeTheLUAConditionYouWantToSearchForExampleEAX0x1 = 'Type the (LUA) condition you want to search for (Example: EAX==0x1234)    '#13#10'Also available: referencedAddress (integer), referencedBytes (bytetable), instruction (string)';
+  rsWaitingForTraceToStart = 'Waiting for trace to start';
 
 destructor TTraceDebugInfo.destroy;
 begin
@@ -328,6 +345,116 @@ begin
   s.writebuffer(stack.stack^, stack.savedsize);
 end;
 
+
+//----------------------TDBVMStatusUpdater-------------------------
+procedure TDBVMStatusUpdater.CancelAndGetResultClick(sender: TObject);
+begin
+  dbvm_cloak_traceonbp_stoptrace;
+  if assigned(OnTraceDone) then
+    OnTraceDone(self);
+end;
+
+procedure TDBVMStatusUpdater.checkDBVMTracerStatus(sender: TObject);
+var
+  status: integer;
+  count, max: dword;
+  s: string;
+begin
+  OutputDebugString('checkDBVMTracerStatus');
+  status:=dbvm_cloak_traceonbp_getstatus(count,max);
+
+  OutputDebugString(format('status=%d count=%d max=%d',[status, count, max]));
+
+  case status of
+    0: s:='No trace active';
+    1: s:='Trace ready to spring';
+    2: s:='Trace activated and recording';
+    3: s:='Trace finished recording';
+    else s:='Unknown status';
+  end;
+  if status<>0 then
+    s:=s+#13#10+format('%d/%d',[count, max]);
+
+  if status=2 then
+  begin
+    if progressbar.style<>pbstNormal then
+      progressbar.Style:=pbstNormal;
+
+    if cancelbutton=nil then
+    begin
+      cancelButton:=tbutton.create(self);
+      cancelbutton.caption:='Cancel and get results';
+      cancelbutton.autosize:=true;
+      cancelbutton.parent:=self;
+      cancelbutton.AnchorSideTop.Control:=progressbar;
+      cancelbutton.AnchorSideTop.side:=asrBottom;
+      cancelbutton.AnchorSideLeft.control:=self;
+      cancelbutton.AnchorSideLeft.side:=asrCenter;
+
+      cancelbutton.BorderSpacing.top:=4;
+      cancelbutton.BorderSpacing.bottom:=4;
+      cancelbutton.OnClick:=CancelAndGetResultClick;
+    end;
+
+    if max<>0 then
+      progressbar.position:=trunc((count/max)*100);
+  end;
+
+
+  if status=3 then //time to close
+  begin
+    progressbar.Position:=100;
+    if assigned(OnTraceDone) then
+      OnTraceDone(self);
+  end;
+end;
+
+constructor TDBVMStatusUpdater.Create(TheOwner: TComponent);
+begin
+  inherited create(TheOwner);
+  OutputDebugString('TDBVMStatusUpdater.create');
+  OutputDebugString('create progressbar');
+  progressbar:=TProgressBar.create(self);
+  progressbar.parent:=self;
+  progressbar.style:=pbstMarquee;
+
+  OutputDebugString('create found label');
+  found:=TLabel.create(self);
+  found.caption:=rsWaitingForTraceToStart;
+  found.parent:=self;
+  found.WordWrap:=true;
+
+  found.AnchorSideTop.control:=self;
+  found.anchorsideTop.side:=asrTop;
+  found.anchorsideleft.control:=self;
+  found.anchorsideleft.side:=asrCenter;
+  found.borderspacing.Top:=4;
+  found.anchors:=[akleft,aktop,akright];
+
+  progressbar.AnchorSideTop.control:=found;
+  progressbar.anchorsideTop.side:=asrBottom;
+  progressbar.anchorsideleft.control:=self;
+  progressbar.anchorsideleft.side:=asrLeft;
+  progressbar.anchorsideright.control:=self;
+  progressbar.anchorsideright.side:=asrright;
+  progressbar.borderspacing.Top:=4;
+  progressbar.borderspacing.Bottom:=4;
+  progressbar.anchors:=[akleft,aktop,akright];
+
+
+
+  autosize:=true;
+
+  OutputDebugString('create timer');
+  Timer:=TTimer.create(self);
+  Timer.Interval:=250;
+  Timer.OnTimer:=checkDBVMTracerStatus;
+  Timer.Enabled:=true;
+
+  OutputDebugString('TDBVMStatusUpdater.create returned');
+end;
+
+//--------------------------TfrmTracer------------------------
 
 constructor TfrmTracer.createWithBreakpointMethodSet(Owner: TComponent; DataTrace: boolean=false; skipconfig: boolean=false; breakpointmethod: tbreakpointmethod=bpmDebugRegister); overload;
 begin
@@ -821,6 +948,216 @@ begin
   end;
 end;
 
+procedure TfrmTracer.DBVMTraceDone(sender: TObject);
+var
+  desc: PTracerListDescriptor;
+  listsize: integer;
+  r: integer;
+  count,max: dword;
+  startwait: qword;
+
+  list: PPageEventExtendedArray;
+  stacklist: PPageEventExtendedWithStackArray absolute list;
+
+  err: string;
+
+  i: integer;
+  desciterator: integer;
+  s,s2: string;
+
+  basic: PPageEventBasic;
+  fpu: PFXSAVE64;
+  stack: PByteArray;
+
+  a: ptruint;
+  d: TTraceDebugInfo;
+
+  thisnode, thatnode, x: TTreenode;
+
+begin
+  OutputDebugString('DBVMTraceDone');
+  dbvm_cloak_traceonbp_stoptrace;
+  freeandnil(DBVMStatusUpdater);
+
+
+  startwait:=gettickcount64; //in case the user canceled the trace
+  while (dbvm_cloak_traceonbp_getstatus(count,max)<>3) and (gettickcount64<startwait+3000) do
+    sleep(50);
+
+
+  listsize:=0;
+  r:=dbvm_cloak_traceonbp_readlog(nil,listsize);
+  if r=2 then
+  begin
+    getmem(desc, listsize*2);
+    lvTracer.Items.BeginUpdate;
+    try
+      r:=dbvm_cloak_traceonbp_readlog(desc, listsize);
+
+      if r=0 then
+      begin
+        list:=PPageEventExtendedArray(qword(desc)+sizeof(TTracerListDescriptor));
+
+        da:=tdisassembler.Create;
+        da.showsymbols:=symhandler.showsymbols;
+        da.showmodules:=symhandler.showmodules;
+        da.showsections:=symhandler.showsections;
+
+        for desciterator:=0 to desc.count-1 do
+        begin
+          if desc.datatype=1 then
+          begin
+            //extended
+            basic:=@list[desciterator].basic;
+            fpu:=@list[desciterator].fpudata;
+            stack:=nil;
+          end
+          else
+          begin
+            //list with stack
+            basic:=@stacklist[desciterator].basic;
+            fpu:=@stacklist[desciterator].fpudata;
+            stack:=@stacklist[desciterator].stack;
+          end;
+
+          //same as addrecord, but limited by what dbvm can do
+          a:=basic^.RIP;
+          s:=da.disassemble(a,s2);
+          i:=posex('-',s);
+          i:=posex('-',s,i+1);
+          s:=copy(s,i+2,length(s));
+
+          d:=TTraceDebugInfo.Create;
+          d.instructionsize:=a-basic^.RIP;
+          d.c.P1Home:=basic^.FSBASE; //just using these field for storage
+          d.c.p2home:=basic^.GSBASE;
+          d.c.p3home:=basic^.CR3;
+          d.c.EFlags:=basic^.FLAGS;
+          d.c.Rax:=basic^.RAX;
+          d.c.Rbx:=basic^.RBX;
+          d.c.Rcx:=basic^.RCX;
+          d.c.Rdx:=basic^.RDX;
+          d.c.Rsi:=basic^.RSI;
+          d.c.Rdi:=basic^.RDI;
+          d.c.R8:=basic^.R8;
+          d.c.R9:=basic^.R9;
+          d.c.R10:=basic^.R10;
+          d.c.R11:=basic^.R11;
+          d.c.R12:=basic^.R12;
+          d.c.R13:=basic^.R13;
+          d.c.R14:=basic^.R14;
+          d.c.R15:=basic^.R15;
+          d.c.Rbp:=basic^.RBP;
+          d.c.Rsp:=basic^.RSP;
+          d.c.Rip:=basic^.RIP;
+          d.c.SegCs:=basic^.CS;
+          d.c.SegDs:=basic^.DS;
+          d.c.SegEs:=basic^.ES;
+          d.c.SegSs:=basic^.SS;
+          d.c.SegFs:=basic^.FS;
+          d.c.SegGs:=basic^.GS;
+          copymemory(@d.c.FltSave, fpu,512);
+
+          d.instruction:=s;
+          d.referencedAddress:=0;
+          d.isfloat:=false;
+          d.bytes:=nil;
+          d.bytesize:=0;
+
+          if stack<>nil then
+          begin
+            getmem(d.stack.stack,4096);
+            copymemory(d.stack.stack,stack,4096);
+            d.stack.savedsize:=4096;
+          end;
+
+          s:=symhandler.getNameFromAddress(basic^.rip)+' - '+s;
+
+          if returnfromignore then
+          begin
+            //00500DD9
+            returnfromignore:=false;
+            if (currentAppendage<>nil) then
+              currentAppendage:=currentAppendage.Parent;
+          end;
+
+          if currentAppendage<>nil then
+            thisnode:=lvTracer.Items.AddChildObject(currentAppendage,s,d)
+          else
+            thisnode:=lvTracer.Items.AddObject(nil,s,d);
+
+          if not stepover and da.LastDisassembleData.iscall then
+             currentAppendage:=thisnode;
+
+          if (da.LastDisassembleData.isret) then
+          begin
+            returnfromignore:=false;
+            if currentAppendage<>nil then
+            begin
+              currentAppendage:=currentAppendage.Parent;
+
+              if currentAppendage<>nil then
+              begin
+                //check if the return is valid, could be it's a parent jump
+                d:=TTraceDebugInfo(currentAppendage.Data);
+                if (d.c.{$ifdef cpu64}Rip{$else}eip{$endif}+d.instructionsize<>a) then
+                begin
+                  //see if a parent can be found that does match
+                  x:=currentappendage.Parent;
+                  while x<>nil do
+                  begin
+                    d:=TTraceDebugInfo(x.Data);
+
+                    if (d.c.{$ifdef cpu64}Rip{$else}eip{$endif}+d.instructionsize=a) then
+                    begin
+                      //match found
+                      currentAppendage:=x;
+                      break;
+                    end;
+
+                    x:=x.parent;
+                  end;
+                end;
+
+              end;
+            end
+            else
+            begin
+              //create a node at the top and append the current top node to it
+              thisnode:=lvTracer.items.AddFirst(nil,'');
+
+              thatnode:=thisnode.GetNextSibling;
+              while thatnode<>nil do
+              begin
+                thatnode.MoveTo(thisnode, naAddChild);
+                thatnode:=thisnode.GetNextSibling;
+              end;
+            end;
+          end;
+
+        end;
+
+      end
+      else
+      begin
+        case r of
+          4: err:='invalid address for buffer';
+          6: err:='offset too high';
+          else err:='unknown error '+inttostr(r);
+        end;
+        MessageDlg('Failure getting DBVM trace. : '+err, mtError,[mbok],0);
+      end;
+    finally
+      freemem(desc);
+      lvTracer.Items.EndUpdate;
+    end;
+  end
+  else
+    MessageDlg('Unexpected result from DBVM. dbvm_cloak_traceonbp_readlog returned '+inttostr(r), mtError,[mbok],0);
+
+  //load the list
+end;
+
 procedure TfrmTracer.miNewTraceClick(Sender: TObject);
 var tcount: integer;
     startcondition,stopcondition: string;
@@ -830,6 +1167,20 @@ var tcount: integer;
     toaddress: ptruint;
 
     bpTrigger: TBreakpointTrigger;
+    b: byte;
+    actual: SIZE_T;
+    oldprotect: dword;
+    v: boolean;
+    r: integer;
+
+    options: dword;
+    count: integer;
+    i: integer;
+
+    oldpages: qword;
+    newpages: qword;
+
+    memneeded: integer;
 begin
   if frmTracerConfig=nil then
     frmTracerConfig:=TfrmTracerConfig.create(application);
@@ -840,6 +1191,7 @@ begin
     breakpointmethod:=defaultBreakpointMethod;
     if showmodal=mrok then
     begin
+
       currentAppendage:=nil;
       stopsearch:=false;
 
@@ -863,6 +1215,103 @@ begin
       stepover:=cbStepOver.checked;
       nosystem:=cbSkipSystemModules.checked;
 
+      if cbDBVMBreakAndTrace.checked then
+      begin
+        //setup dbvm trace
+        if (owner is TMemoryBrowser) then
+          fromaddress:=(owner as TMemoryBrowser).disassemblerview.SelectedAddress
+        else
+          fromaddress:=memorybrowser.disassemblerview.SelectedAddress;
+
+        if cbDBVMTriggerCOW.checked then
+        begin
+
+          if ReadProcessMemory(processhandle, pointer(fromaddress), @b,1,actual) then
+          begin
+            v:=(SkipVirtualProtectEx=false) and VirtualProtectEx(processhandle, pointer(fromaddress),1, PAGE_EXECUTE_READWRITE, oldprotect);
+            WriteProcessMemory(processhandle,pointer(fromaddress),@b,1,actual);
+            if v then
+              VirtualProtectEx(processhandle,pointer(fromaddress),1,oldprotect,oldprotect);
+          end;
+        end;
+
+        options:=1;
+        if cbSaveStack.checked then options:=3;
+
+        if GetPhysicalAddress(processhandle,pointer(fromaddress), physicaladdress)=false then
+          raise exception.create('Failure getting the physical address of this ');
+
+        outputdebugstring(format('Calling dbvm_cloak_traceonbp(0x%x,%d,0x%x,0x%x)',[physicaladdress, tcount, options, fromaddress]));
+
+
+        r:=dbvm_cloak_traceonbp(physicalAddress, tcount,options,fromaddress);
+        count:=0;
+        while (count<20) and (r<>0) do
+        begin
+          outputdebugstring('r='+inttostr(r)+' count='+inttostr(count));
+          case r of
+            1: raise exception.create('BP Cloak error');
+            2:
+            begin
+              dbvm_cloak_traceonbp_stoptrace;
+
+              if count>15 then  //takes too long, force it
+                dbvm_cloak_traceonbp_remove(0,true);
+            end;
+            3:
+            begin
+              //need to allocate more memory
+              if options=1 then memneeded:=sizeof(TTracerListDescriptor)+sizeof(TPageEventExtended)*tcount
+              else memneeded:=sizeof(TTracerListDescriptor)+sizeof(TPageEventExtendedWithStack)*tcount;
+
+              outputdebugstring('DBVM needs '+inttostr(memneeded)+' bytes free');
+
+              memneeded:=1+(memneeded div 4096);
+              dbvm_getMemory(oldpages);
+              allocateMemoryForDBVM(i);
+              dbvm_getMemory(newpages);
+
+              if newpages<=oldpages then raise exception.create('Failure allocating '+inttostr(memneeded)+' pages of physcal memory to DBVM');
+            end;
+          end;
+
+          sleep(250);
+          r:=dbvm_cloak_traceonbp(physicalAddress, tcount,options,fromaddress);
+          inc(count);
+        end;
+
+        if r<>0 then
+        begin
+          outputdebugstring('r is still not 0. Error out');
+          case r of
+            1: raise exception.create('BP Cloak error');
+            2: raise exception.create('Failure to kill previous trace');
+            3: raise exception.create('Not enough DBVM memory free');
+          end;
+        end;
+
+        //still here, trace activation was succesful
+
+        OutputDebugString('after TDBVMStatusUpdater');
+        DBVMStatusUpdater:=TDBVMStatusUpdater.create(Self);
+        DBVMStatusUpdater.parent:=self;
+        DBVMStatusUpdater.AnchorSideTop.control:=self;
+        DBVMStatusUpdater.AnchorSideTop.side:=asrCenter;
+        DBVMStatusUpdater.AnchorSideLeft.Control:=self;
+        DBVMStatusUpdater.AnchorSideLeft.Side:=asrLeft;
+        DBVMStatusUpdater.AnchorSideRight.Control:=self;
+        DBVMStatusUpdater.AnchorSideRight.Side:=asrRight;
+        DBVMStatusUpdater.anchors:=[aktop, akright, akLeft];
+        DBVMStatusUpdater.OnTraceDone:=DBVMTraceDone;
+
+        OutputDebugString('after config of DBVMStatusUpdater');
+
+        OutputDebugString('calling checkDBVMTracerStatus');
+        DBVMStatusUpdater.checkDBVMTracerStatus(nil);
+        OutputDebugString('after checkDBVMTracerStatus');
+
+      end
+      else
       if startdebuggerifneeded then
       begin
         if fDataTrace then
@@ -890,10 +1339,10 @@ begin
             debuggerthread.setBreakAndTraceBreakpoint(self, memorybrowser.disassemblerview.SelectedAddress, bptExecute, breakpointmethod, 1, tcount, startcondition, stopcondition, StepOver, nosystem);
         end;
       end;
-
-
     end;
   end;
+
+  OutputDebugString('reached end of miNewTraceClick');
 end;
 
 procedure TfrmTracer.cleanuptv(tv: TTreeview);
@@ -1396,6 +1845,12 @@ begin
   cleanuptv(lvTracer);
 
   action:=cafree; //if still buggy, change to cahide
+
+  if DBVMStatusUpdater<>nil then
+  begin
+    freeandnil(DBVMStatusUpdater);
+    dbvm_cloak_traceonbp_remove(physicaladdress);
+  end;
 end;
 
 procedure TfrmTracer.Button1Click(Sender: TObject);

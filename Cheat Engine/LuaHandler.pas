@@ -5756,276 +5756,277 @@ begin
   result:=1;
 end;
 
+procedure lua_push_watch_basic_fields(L: PLua_state; pbasic: PPageEventBasic; index: integer);
+begin
+  lua_pushstring(L,'VirtualAddress');
+  lua_pushinteger(L,pbasic^.VirtualAddress);
+  lua_settable(L,index);
+
+  lua_pushstring(L,'PhysicalAddress');
+  lua_pushinteger(L,pbasic^.PhysicalAddress);
+  lua_settable(L,index);
+
+  lua_pushstring(L,'CR3');
+  lua_pushinteger(L,pbasic^.CR3);
+  lua_settable(L,index);
+
+  lua_pushstring(L,'FSBASE');
+  lua_pushinteger(L,pbasic^.FSBASE);
+  lua_settable(L,index);
+
+  lua_pushstring(L,'GSBASE');
+  lua_pushinteger(L,pbasic^.GSBASE);
+  lua_settable(L,index);
+
+  lua_pushstring(L,'FLAGS');
+  lua_pushinteger(L,pbasic^.FLAGS);
+  lua_settable(L,index);
+
+  lua_pushstring(L,'RAX');
+  lua_pushinteger(L,pbasic^.RAX);
+  lua_settable(L,index);
+
+  lua_pushstring(L,'RBX');
+  lua_pushinteger(L,pbasic^.RBX);
+  lua_settable(L,index);
+
+  lua_pushstring(L,'RCX');
+  lua_pushinteger(L,pbasic^.RCX);
+  lua_settable(L,index);
+
+  lua_pushstring(L,'RDX');
+  lua_pushinteger(L,pbasic^.RDX);
+  lua_settable(L,index);
+
+  lua_pushstring(L,'RSI');
+  lua_pushinteger(L,pbasic^.RSI);
+  lua_settable(L,index);
+
+  lua_pushstring(L,'RDI');
+  lua_pushinteger(L,pbasic^.RDI);
+  lua_settable(L,index);
+
+  lua_pushstring(L,'R8');
+  lua_pushinteger(L,pbasic^.R8);
+  lua_settable(L,index);
+
+  lua_pushstring(L,'R9');
+  lua_pushinteger(L,pbasic^.R9);
+  lua_settable(L,index);
+
+  lua_pushstring(L,'R10');
+  lua_pushinteger(L,pbasic^.R10);
+  lua_settable(L,index);
+
+  lua_pushstring(L,'R11');
+  lua_pushinteger(L,pbasic^.R11);
+  lua_settable(L,index);
+
+  lua_pushstring(L,'R12');
+  lua_pushinteger(L,pbasic^.R12);
+  lua_settable(L,index);
+
+  lua_pushstring(L,'R13');
+  lua_pushinteger(L,pbasic^.R13);
+  lua_settable(L,index);
+
+  lua_pushstring(L,'R14');
+  lua_pushinteger(L,pbasic^.R14);
+  lua_settable(L,index);
+
+  lua_pushstring(L,'R15');
+  lua_pushinteger(L,pbasic^.R15);
+  lua_settable(L,index);
+
+  lua_pushstring(L,'RBP');
+  lua_pushinteger(L,pbasic^.RBP);
+  lua_settable(L,index);
+
+  lua_pushstring(L,'RSP');
+  lua_pushinteger(L,pbasic^.RSP);
+  lua_settable(L,index);
+
+  lua_pushstring(L,'RIP');
+  lua_pushinteger(L,pbasic^.RIP);
+  lua_settable(L,index);
+
+  lua_pushstring(L,'CS');
+  lua_pushinteger(L,pbasic^.CS);
+  lua_settable(L,index);
+
+  lua_pushstring(L,'DS');
+  lua_pushinteger(L,pbasic^.DS);
+  lua_settable(L,index);
+
+  lua_pushstring(L,'ES');
+  lua_pushinteger(L,pbasic^.ES);
+  lua_settable(L,index);
+
+  lua_pushstring(L,'SS');
+  lua_pushinteger(L,pbasic^.SS);
+  lua_settable(L,index);
+
+  lua_pushstring(L,'FS');
+  lua_pushinteger(L,pbasic^.FS);
+  lua_settable(L,index);
+
+  lua_pushstring(L,'GS');
+  lua_pushinteger(L,pbasic^.GS);
+  lua_settable(L,index);
+
+  lua_pushstring(L,'Count');
+  lua_pushinteger(L,pbasic^.Count);
+  lua_settable(L,index);
+end;
+
+procedure lua_push_watch_fxsave_fields(L: PLua_state; fpudata: PFXSAVE64; index: integer);
+var index2: integer;
+begin
+  lua_pushstring(L,'FXSAVE64');
+  lua_createtable(L,0,32);
+  index2:=lua_gettop(L); //should be index+2
+
+  lua_pushstring(L,'FCW');
+  lua_pushinteger(L,fpudata^.FCW);
+  lua_settable(L,index2);
+
+  lua_pushstring(L,'FSW');
+  lua_pushinteger(L,fpudata^.FSW);
+  lua_settable(L,index2);
+
+  lua_pushstring(L,'FTW');
+  lua_pushinteger(L,fpudata^.FTW);
+  lua_settable(L,index2);
+
+  lua_pushstring(L,'FOP');
+  lua_pushinteger(L,fpudata^.FOP);
+  lua_settable(L,index2);
+
+  lua_pushstring(L,'IP');
+  lua_pushinteger(L,fpudata^.FPU_IP);
+  lua_settable(L,index2);
+
+  lua_pushstring(L,'DP');
+  lua_pushinteger(L,fpudata^.FPU_DP);
+  lua_settable(L,index2);
+
+  lua_pushstring(L,'MXCSR');
+  lua_pushinteger(L,fpudata^.MXCSR);
+  lua_settable(L,index2);
+
+  lua_pushstring(L,'MXCSR_MASK');
+  lua_pushinteger(L,fpudata^.MXCSR_MASK);
+  lua_settable(L,index2);
+
+  lua_pushstring(L,'FP_MM0');
+  CreateByteTableFromPointer(L, @fpudata.FP_MM0,16);
+  lua_settable(L,index2);
+
+  lua_pushstring(L,'FP_MM1');
+  CreateByteTableFromPointer(L, @fpudata.FP_MM1,16);
+  lua_settable(L,index2);
+
+  lua_pushstring(L,'FP_MM2');
+  CreateByteTableFromPointer(L, @fpudata.FP_MM2,16);
+  lua_settable(L,index2);
+
+  lua_pushstring(L,'FP_MM3');
+  CreateByteTableFromPointer(L, @fpudata.FP_MM3,16);
+  lua_settable(L,index2);
+
+  lua_pushstring(L,'FP_MM4');
+  CreateByteTableFromPointer(L, @fpudata.FP_MM4,16);
+  lua_settable(L,index2);
+
+  lua_pushstring(L,'FP_MM5');
+  CreateByteTableFromPointer(L, @fpudata.FP_MM5,16);
+  lua_settable(L,index2);
+
+  lua_pushstring(L,'FP_MM6');
+  CreateByteTableFromPointer(L, @fpudata.FP_MM6,16);
+  lua_settable(L,index2);
+
+  lua_pushstring(L,'FP_MM7');
+  CreateByteTableFromPointer(L, @fpudata.FP_MM7,16);
+  lua_settable(L,index2);
+
+  lua_pushstring(L,'XMM0');
+  CreateByteTableFromPointer(L, @fpudata.XMM0,16);
+  lua_settable(L,index2);
+
+  lua_pushstring(L,'XMM1');
+  CreateByteTableFromPointer(L, @fpudata.XMM1,16);
+  lua_settable(L,index2);
+
+  lua_pushstring(L,'XMM2');
+  CreateByteTableFromPointer(L, @fpudata.XMM2,16);
+  lua_settable(L,index2);
+
+  lua_pushstring(L,'XMM3');
+  CreateByteTableFromPointer(L, @fpudata.XMM3,16);
+  lua_settable(L,index2);
+
+  lua_pushstring(L,'XMM4');
+  CreateByteTableFromPointer(L, @fpudata.XMM4,16);
+  lua_settable(L,index2);
+
+  lua_pushstring(L,'XMM5');
+  CreateByteTableFromPointer(L, @fpudata.XMM5,16);
+  lua_settable(L,index2);
+
+  lua_pushstring(L,'XMM6');
+  CreateByteTableFromPointer(L, @fpudata.XMM6,16);
+  lua_settable(L,index2);
+
+  lua_pushstring(L,'XMM7');
+  CreateByteTableFromPointer(L, @fpudata.XMM7,16);
+  lua_settable(L,index2);
+
+  lua_pushstring(L,'XMM8');
+  CreateByteTableFromPointer(L, @fpudata.XMM8,16);
+  lua_settable(L,index2);
+
+  lua_pushstring(L,'XMM9');
+  CreateByteTableFromPointer(L, @fpudata.XMM9,16);
+  lua_settable(L,index2);
+
+  lua_pushstring(L,'XMM10');
+  CreateByteTableFromPointer(L, @fpudata.XMM10,16);
+  lua_settable(L,index2);
+
+  lua_pushstring(L,'XMM11');
+  CreateByteTableFromPointer(L, @fpudata.XMM11,16);
+  lua_settable(L,index2);
+
+  lua_pushstring(L,'XMM12');
+  CreateByteTableFromPointer(L, @fpudata.XMM12,16);
+  lua_settable(L,index2);
+
+  lua_pushstring(L,'XMM13');
+  CreateByteTableFromPointer(L, @fpudata.XMM13,16);
+  lua_settable(L,index2);
+
+  lua_pushstring(L,'XMM14');
+  CreateByteTableFromPointer(L, @fpudata.XMM14,16);
+  lua_settable(L,index2);
+
+  lua_pushstring(L,'XMM15');
+  CreateByteTableFromPointer(L, @fpudata.XMM15,16);
+  lua_settable(L,index2);
+
+
+  lua_settable(L,index);
+end;
+
+procedure lua_push_watch_stack(L: PLua_state; stack: pointer; index: integer);
+begin
+  lua_pushstring(L,'Stack');
+  CreateByteTableFromPointer(L, stack, 4096);
+  lua_settable(L,index);
+end;
+
+
 function lua_dbvm_watch_retrievelog(L: PLua_state): integer; cdecl;
-  procedure lua_push_watch_basic_fields(pbasic: PPageEventBasic; index: integer);
-  begin
-    lua_pushstring(L,'VirtualAddress');
-    lua_pushinteger(L,pbasic^.VirtualAddress);
-    lua_settable(L,index);
-
-    lua_pushstring(L,'PhysicalAddress');
-    lua_pushinteger(L,pbasic^.PhysicalAddress);
-    lua_settable(L,index);
-
-    lua_pushstring(L,'CR3');
-    lua_pushinteger(L,pbasic^.CR3);
-    lua_settable(L,index);
-
-    lua_pushstring(L,'FSBASE');
-    lua_pushinteger(L,pbasic^.FSBASE);
-    lua_settable(L,index);
-
-    lua_pushstring(L,'GSBASE');
-    lua_pushinteger(L,pbasic^.GSBASE);
-    lua_settable(L,index);
-
-    lua_pushstring(L,'FLAGS');
-    lua_pushinteger(L,pbasic^.FLAGS);
-    lua_settable(L,index);
-
-    lua_pushstring(L,'RAX');
-    lua_pushinteger(L,pbasic^.RAX);
-    lua_settable(L,index);
-
-    lua_pushstring(L,'RBX');
-    lua_pushinteger(L,pbasic^.RBX);
-    lua_settable(L,index);
-
-    lua_pushstring(L,'RCX');
-    lua_pushinteger(L,pbasic^.RCX);
-    lua_settable(L,index);
-
-    lua_pushstring(L,'RDX');
-    lua_pushinteger(L,pbasic^.RDX);
-    lua_settable(L,index);
-
-    lua_pushstring(L,'RSI');
-    lua_pushinteger(L,pbasic^.RSI);
-    lua_settable(L,index);
-
-    lua_pushstring(L,'RDI');
-    lua_pushinteger(L,pbasic^.RDI);
-    lua_settable(L,index);
-
-    lua_pushstring(L,'R8');
-    lua_pushinteger(L,pbasic^.R8);
-    lua_settable(L,index);
-
-    lua_pushstring(L,'R9');
-    lua_pushinteger(L,pbasic^.R9);
-    lua_settable(L,index);
-
-    lua_pushstring(L,'R10');
-    lua_pushinteger(L,pbasic^.R10);
-    lua_settable(L,index);
-
-    lua_pushstring(L,'R11');
-    lua_pushinteger(L,pbasic^.R11);
-    lua_settable(L,index);
-
-    lua_pushstring(L,'R12');
-    lua_pushinteger(L,pbasic^.R12);
-    lua_settable(L,index);
-
-    lua_pushstring(L,'R13');
-    lua_pushinteger(L,pbasic^.R13);
-    lua_settable(L,index);
-
-    lua_pushstring(L,'R14');
-    lua_pushinteger(L,pbasic^.R14);
-    lua_settable(L,index);
-
-    lua_pushstring(L,'R15');
-    lua_pushinteger(L,pbasic^.R15);
-    lua_settable(L,index);
-
-    lua_pushstring(L,'RBP');
-    lua_pushinteger(L,pbasic^.RBP);
-    lua_settable(L,index);
-
-    lua_pushstring(L,'RSP');
-    lua_pushinteger(L,pbasic^.RSP);
-    lua_settable(L,index);
-
-    lua_pushstring(L,'RIP');
-    lua_pushinteger(L,pbasic^.RIP);
-    lua_settable(L,index);
-
-    lua_pushstring(L,'CS');
-    lua_pushinteger(L,pbasic^.CS);
-    lua_settable(L,index);
-
-    lua_pushstring(L,'DS');
-    lua_pushinteger(L,pbasic^.DS);
-    lua_settable(L,index);
-
-    lua_pushstring(L,'ES');
-    lua_pushinteger(L,pbasic^.ES);
-    lua_settable(L,index);
-
-    lua_pushstring(L,'SS');
-    lua_pushinteger(L,pbasic^.SS);
-    lua_settable(L,index);
-
-    lua_pushstring(L,'FS');
-    lua_pushinteger(L,pbasic^.FS);
-    lua_settable(L,index);
-
-    lua_pushstring(L,'GS');
-    lua_pushinteger(L,pbasic^.GS);
-    lua_settable(L,index);
-
-    lua_pushstring(L,'Count');
-    lua_pushinteger(L,pbasic^.Count);
-    lua_settable(L,index);
-  end;
-
-  procedure lua_push_watch_fxsave_fields(fpudata: PFXSAVE64; index: integer);
-  var index2: integer;
-  begin
-    lua_pushstring(L,'FXSAVE64');
-    lua_createtable(L,0,32);
-    index2:=lua_gettop(L); //should be index+2
-
-    lua_pushstring(L,'FCW');
-    lua_pushinteger(L,fpudata^.FCW);
-    lua_settable(L,index2);
-
-    lua_pushstring(L,'FSW');
-    lua_pushinteger(L,fpudata^.FSW);
-    lua_settable(L,index2);
-
-    lua_pushstring(L,'FTW');
-    lua_pushinteger(L,fpudata^.FTW);
-    lua_settable(L,index2);
-
-    lua_pushstring(L,'FOP');
-    lua_pushinteger(L,fpudata^.FOP);
-    lua_settable(L,index2);
-
-    lua_pushstring(L,'IP');
-    lua_pushinteger(L,fpudata^.FPU_IP);
-    lua_settable(L,index2);
-
-    lua_pushstring(L,'DP');
-    lua_pushinteger(L,fpudata^.FPU_DP);
-    lua_settable(L,index2);
-
-    lua_pushstring(L,'MXCSR');
-    lua_pushinteger(L,fpudata^.MXCSR);
-    lua_settable(L,index2);
-
-    lua_pushstring(L,'MXCSR_MASK');
-    lua_pushinteger(L,fpudata^.MXCSR_MASK);
-    lua_settable(L,index2);
-
-    lua_pushstring(L,'FP_MM0');
-    CreateByteTableFromPointer(L, @fpudata.FP_MM0,16);
-    lua_settable(L,index2);
-
-    lua_pushstring(L,'FP_MM1');
-    CreateByteTableFromPointer(L, @fpudata.FP_MM1,16);
-    lua_settable(L,index2);
-
-    lua_pushstring(L,'FP_MM2');
-    CreateByteTableFromPointer(L, @fpudata.FP_MM2,16);
-    lua_settable(L,index2);
-
-    lua_pushstring(L,'FP_MM3');
-    CreateByteTableFromPointer(L, @fpudata.FP_MM3,16);
-    lua_settable(L,index2);
-
-    lua_pushstring(L,'FP_MM4');
-    CreateByteTableFromPointer(L, @fpudata.FP_MM4,16);
-    lua_settable(L,index2);
-
-    lua_pushstring(L,'FP_MM5');
-    CreateByteTableFromPointer(L, @fpudata.FP_MM5,16);
-    lua_settable(L,index2);
-
-    lua_pushstring(L,'FP_MM6');
-    CreateByteTableFromPointer(L, @fpudata.FP_MM6,16);
-    lua_settable(L,index2);
-
-    lua_pushstring(L,'FP_MM7');
-    CreateByteTableFromPointer(L, @fpudata.FP_MM7,16);
-    lua_settable(L,index2);
-
-    lua_pushstring(L,'XMM0');
-    CreateByteTableFromPointer(L, @fpudata.XMM0,16);
-    lua_settable(L,index2);
-
-    lua_pushstring(L,'XMM1');
-    CreateByteTableFromPointer(L, @fpudata.XMM1,16);
-    lua_settable(L,index2);
-
-    lua_pushstring(L,'XMM2');
-    CreateByteTableFromPointer(L, @fpudata.XMM2,16);
-    lua_settable(L,index2);
-
-    lua_pushstring(L,'XMM3');
-    CreateByteTableFromPointer(L, @fpudata.XMM3,16);
-    lua_settable(L,index2);
-
-    lua_pushstring(L,'XMM4');
-    CreateByteTableFromPointer(L, @fpudata.XMM4,16);
-    lua_settable(L,index2);
-
-    lua_pushstring(L,'XMM5');
-    CreateByteTableFromPointer(L, @fpudata.XMM5,16);
-    lua_settable(L,index2);
-
-    lua_pushstring(L,'XMM6');
-    CreateByteTableFromPointer(L, @fpudata.XMM6,16);
-    lua_settable(L,index2);
-
-    lua_pushstring(L,'XMM7');
-    CreateByteTableFromPointer(L, @fpudata.XMM7,16);
-    lua_settable(L,index2);
-
-    lua_pushstring(L,'XMM8');
-    CreateByteTableFromPointer(L, @fpudata.XMM8,16);
-    lua_settable(L,index2);
-
-    lua_pushstring(L,'XMM9');
-    CreateByteTableFromPointer(L, @fpudata.XMM9,16);
-    lua_settable(L,index2);
-
-    lua_pushstring(L,'XMM10');
-    CreateByteTableFromPointer(L, @fpudata.XMM10,16);
-    lua_settable(L,index2);
-
-    lua_pushstring(L,'XMM11');
-    CreateByteTableFromPointer(L, @fpudata.XMM11,16);
-    lua_settable(L,index2);
-
-    lua_pushstring(L,'XMM12');
-    CreateByteTableFromPointer(L, @fpudata.XMM12,16);
-    lua_settable(L,index2);
-
-    lua_pushstring(L,'XMM13');
-    CreateByteTableFromPointer(L, @fpudata.XMM13,16);
-    lua_settable(L,index2);
-
-    lua_pushstring(L,'XMM14');
-    CreateByteTableFromPointer(L, @fpudata.XMM14,16);
-    lua_settable(L,index2);
-
-    lua_pushstring(L,'XMM15');
-    CreateByteTableFromPointer(L, @fpudata.XMM15,16);
-    lua_settable(L,index2);
-
-
-    lua_settable(L,index);
-  end;
-
-  procedure lua_push_watch_stack(stack: pointer; index: integer);
-  begin
-    lua_pushstring(L,'Stack');
-    CreateByteTableFromPointer(L, stack, 4096);
-    lua_settable(L,index);
-  end;
-
 var
   id: integer;
   size: integer;
@@ -6109,35 +6110,38 @@ begin
       0:
       begin
         //basic
-        lua_push_watch_basic_fields(@basic[i], 3);
+        lua_push_watch_basic_fields(L, @basic[i], 3);
       end;
 
       1:
       begin
         //extended
-        lua_push_watch_basic_fields(@extended^[i].basic, 3);
-        lua_push_watch_fxsave_fields(@extended^[i].fpudata, 3);
+        lua_push_watch_basic_fields(L, @extended^[i].basic, 3);
+        lua_push_watch_fxsave_fields(L, @extended^[i].fpudata, 3);
       end;
 
       2:
       begin
         //basics
-        lua_push_watch_basic_fields(@basics^[i].basic, 3);
-        lua_push_watch_stack(@basics^[i].stack[0], 3);
+        lua_push_watch_basic_fields(L, @basics^[i].basic, 3);
+        lua_push_watch_stack(L, @basics^[i].stack[0], 3);
       end;
 
       3:
       begin
         //extendeds
-        lua_push_watch_basic_fields(@extendeds^[i].basic, 3);
-        lua_push_watch_fxsave_fields(@extendeds^[i].fpudata, 3);
-        lua_push_watch_stack(@extendeds^[i].stack[0], 3);
+        lua_push_watch_basic_fields(L, @extendeds^[i].basic, 3);
+        lua_push_watch_fxsave_fields(L, @extendeds^[i].fpudata, 3);
+        lua_push_watch_stack(L, @extendeds^[i].stack[0], 3);
       end;
     end;
 
     lua_settable(L,1);
 
   end;
+
+  if buf<>nil then
+    freemem(buf);
 
   result:=1;
 end;
@@ -6307,6 +6311,217 @@ begin
       result:=1;
     end;
   end;
+end;
+
+function lua_dbvm_traceonbp(L: PLua_State): integer; cdecl;
+(*
+dbvm_traceonbp(pa, count, va, {secondaryoptions})
+secondaryoptions is a table:
+  logFPU: boolean
+  logStack: boolean
+  ...
+*)
+var
+  pa,va: qword;
+  count: integer;
+  options: dword;
+
+  logFPU: boolean;
+  logStack: boolean;
+  r: integer;
+begin
+  if lua_gettop(L)>=2 then
+  begin
+    pa:=lua_tointeger(L,1);
+    count:=lua_tointeger(L,2);
+
+    if count<=0 then
+    begin
+      lua_pushnil(L);
+      lua_pushstring(L,'count has to be > 0 ');
+      exit(2);
+    end;
+
+    if lua_gettop(L)>=3 then
+      va:=lua_toaddress(L,3)
+    else
+      va:=0;
+
+    logFPU:=false;
+    logStack:=false;
+    if lua_gettop(L)>=4 then
+    begin
+      if lua_istable(L,4) then
+      begin
+        lua_pushstring(L,'logFPU');
+        lua_gettable(L,4);
+        if lua_isboolean(L,-1) then
+          logFPU:=lua_toboolean(L,-1);
+
+        lua_pop(L,1);
+
+        lua_pushstring(L,'logStack');
+        lua_gettable(L,4);
+        if lua_isboolean(L,-1) then
+          logStack:=lua_toboolean(L,-1);
+
+        lua_pop(L,1);
+      end;
+    end;
+
+    options:=0;
+    if logfpu then options:=options or 1;
+    if logstack then options:=options or 2;
+    r:=dbvm_cloak_traceonbp(pa,count,options,va);
+
+    lua_pushinteger(L,r);
+    result:=1;
+  end
+  else
+    result:=0;
+end;
+
+function lua_dbvm_traceonbp_retrievelog(L: PLua_state): integer; cdecl;
+var
+  id: integer;
+  size: integer;
+  buf: PTracerListDescriptor;
+  i: integer;
+
+  basic: PPageEventBasicArray;
+  extended: PPageEventExtendedArray absolute basic;
+  basics: PPageEventBasicWithStackArray absolute basic;
+  extendeds: PPageEventExtendedWithStackArray absolute basic;
+begin
+
+  OutputDebugString('lua_dbvm_traceonbp_retrievelog');
+  result:=0;
+  lua_pop(L,lua_gettop(L));
+
+  buf:=nil;
+  size:=0;
+  i:=dbvm_cloak_traceonbp_readlog(buf,size);
+  while i=2 do
+  begin
+    //must be 2
+    OutputDebugString(format('reallocating buffer for tracelog (should be at least %d bytes)',[size]));
+
+    if (buf<>nil) then
+      freememandnil(buf);
+
+    size:=size*2;
+    getmem(buf, size);
+    if (buf=nil) then exit;
+
+    FillMemory(buf, size,$ce);
+    i:=dbvm_cloak_traceonbp_readlog(buf,size);
+  end;
+
+  if i<>0 then
+  begin
+    lua_pushnil(L);
+    case i of
+      4: lua_pushstring(L,'invalid address for buffer');
+      6: lua_pushstring(L,'offset too high');
+      else lua_pushstring(L,'unknown error '+inttostr(i));
+    end;
+
+    exit(2);
+  end;
+
+  outputdebugstring('Buf allocated at '+inttohex(QWORD(buf),8));
+
+  basic:=PPageEventBasicArray(qword(buf)+sizeof(TTracerListDescriptor));
+
+
+  outputdebugstring('sizeof(TTracerListDescriptor)='+inttostr(sizeof(TTracerListDescriptor)));
+  outputdebugstring('  buf^.datatype='+inttostr(buf^.datatype));
+  outputdebugstring('  buf^.count='+inttostr(buf^.count));
+
+
+  lua_createtable(L, buf^.count, 0); //index 1
+
+  for i:=0 to buf^.count-1 do
+  begin
+    lua_pushinteger(L,i+1); //2
+    lua_createtable(L, 0, 32); //3
+
+    case buf^.datatype of
+      0:
+      begin
+        //basic
+        lua_push_watch_basic_fields(L, @basic[i], 3);
+      end;
+
+      1:
+      begin
+        //extended
+        lua_push_watch_basic_fields(L, @extended^[i].basic, 3);
+        lua_push_watch_fxsave_fields(L, @extended^[i].fpudata, 3);
+      end;
+
+      2:
+      begin
+        //basics
+        lua_push_watch_basic_fields(L, @basics^[i].basic, 3);
+        lua_push_watch_stack(L, @basics^[i].stack[0], 3);
+      end;
+
+      3:
+      begin
+        //extendeds
+        lua_push_watch_basic_fields(L, @extendeds^[i].basic, 3);
+        lua_push_watch_fxsave_fields(L, @extendeds^[i].fpudata, 3);
+        lua_push_watch_stack(L, @extendeds^[i].stack[0], 3);
+      end;
+    end;
+
+    lua_settable(L,1);
+
+  end;
+
+//  if (buf<>nil) then
+//    freemem(buf);
+
+  result:=1;
+end;
+
+function lua_dbvm_traceonbp_getstatus(L: PLua_State): integer; cdecl;
+var
+  count, maxcount: dword;
+  r: integer;
+begin
+  r:=dbvm_cloak_traceonbp_getstatus(count, maxcount);
+
+  lua_pushinteger(L,r);
+  lua_pushinteger(L,count);
+  lua_pushinteger(L,maxcount);
+  result:=3;
+end;
+
+function lua_dbvm_traceonbp_stoptrace(L: PLua_State): integer; cdecl;
+var r: integer;
+begin
+  r:=dbvm_cloak_traceonbp_stoptrace();
+  lua_pushinteger(L,r);
+  result:=r;
+end;
+
+function lua_dbvm_traceonbp_remove(L: PLua_State): integer; cdecl;
+var
+  pa: qword=0;
+  force: boolean=false;
+  r: integer;
+begin
+  if lua_gettop(L)>=1 then
+    pa:=lua_tointeger(L,1);
+
+  if lua_gettop(L)>=2 then
+    force:=lua_toboolean(L,2);
+
+  r:=dbvm_cloak_traceonbp_remove(pa, force);
+  lua_pushinteger(L,r);
+  result:=1;
 end;
 
 function lua_dbvm_changeregonbp(L: PLua_State): integer; cdecl;
@@ -13875,6 +14090,14 @@ begin
     lua_register(L, 'dbvm_cloak_writeOriginal', lua_dbvm_cloak_writeOriginal);
     lua_register(L, 'dbvm_changeregonbp', lua_dbvm_changeregonbp);
     lua_register(L, 'dbvm_removechangeregonbp', lua_dbvm_removechangeregonbp);
+
+    lua_register(L, 'dbvm_traceonbp', lua_dbvm_traceonbp);
+    lua_register(L, 'dbvm_traceonbp_getstatus', lua_dbvm_traceonbp_getstatus);
+    lua_register(L, 'dbvm_traceonbp_stoptrace', lua_dbvm_traceonbp_stoptrace);
+    lua_register(L, 'dbvm_traceonbp_remove', lua_dbvm_traceonbp_remove);
+    lua_register(L, 'dbvm_traceonbp_retrievelog', lua_dbvm_traceonbp_retrievelog);
+
+
 
     lua_register(L, 'dbvm_ept_reset', lua_dbvm_ept_reset);
     lua_register(L, 'dbvm_log_cr3_start', lua_dbvm_log_cr3_start);

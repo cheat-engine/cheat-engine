@@ -1,7 +1,7 @@
 object MemoryBrowser: TMemoryBrowser
-  Left = 433
+  Left = 527
   Height = 536
-  Top = 127
+  Top = 224
   Width = 708
   HelpContext = 12
   Caption = 'Memory Viewer'
@@ -1385,10 +1385,10 @@ object MemoryBrowser: TMemoryBrowser
       ImageIndex = 9
       OnClick = Findoutwhataddressesthisinstructionaccesses1Click
     end
-    object DBVMFindoutwhataddressesthisinstructionaccesses: TMenuItem
+    object miDBVMFindoutwhataddressesthisinstructionaccesses: TMenuItem
       Caption = 'DBVM Find out what addresses this instruction accesses'
       ImageIndex = 50
-      OnClick = DBVMFindoutwhataddressesthisinstructionaccessesClick
+      OnClick = miDBVMFindoutwhataddressesthisinstructionaccessesClick
     end
     object miConditionalBreak: TMenuItem
       Caption = 'Set/Change break condition'
