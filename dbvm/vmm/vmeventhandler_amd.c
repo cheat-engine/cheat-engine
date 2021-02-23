@@ -62,6 +62,12 @@ int handleVMEvent_amd(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, FXSAVE6
   {
     //nosendchar[getAPICID()]=0;
     //sendstringf("AMD Handler: currentcpuinfo->singleStepping.ReasonsPos=%d Calling handleSingleStep()\n",currentcpuinfo->singleStepping.ReasonsPos);
+    if (currentcpuinfo->singleStepping.ReasonsPos>=2)
+    {
+      nosendchar[getAPICID()]=0;
+      sendstringf("Handling multiple single step reasons\n");
+    }
+
 
     handleSingleStep(currentcpuinfo);
     sendstring("After handleSingleStep()\n");

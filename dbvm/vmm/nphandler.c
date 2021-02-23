@@ -339,6 +339,7 @@ QWORD NPMapPhysicalMemory(pcpuinfo currentcpuinfo, QWORD physicalAddress, int fo
 
       if (currentcpuinfo->eptUpdated==0) //if it's not due to a pending EPT update then make it accessible (just to prevent issues)
       {
+        nosendchar[getAPICID()]=0;
         sendstringf("%d(%d): Not cloaked and the memorymap isn't updating. Restoring\n", getcpunr(), currentcpuinfo->cpunr);
         *(QWORD*)pagetable=physicalAddress & MAXPHYADDRMASKPB;
         pagetable->P=1;

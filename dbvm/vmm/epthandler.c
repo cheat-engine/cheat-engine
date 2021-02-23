@@ -367,8 +367,22 @@ int ept_handleCloakEventAfterStep(pcpuinfo currentcpuinfo,  PCloakedPageData clo
 
   if (isAMD)
   {
+    sendstringf("%d: ept_handleCloakEventAfterStep for AMD. cloakdata=%6\n", currentcpuinfo->cpunr, cloakdata);
+    sendstringf("swapping the current page back with the data page\n", cloakdata);
+
+    sendstringf("old npentry value = %6\n",*(QWORD *)(cloakdata->npentry[currentcpuinfo->cpunr]));
+
     *(QWORD *)(cloakdata->npentry[currentcpuinfo->cpunr])=cloakdata->PhysicalAddressData; //back to the non-executable state
     cloakdata->npentry[currentcpuinfo->cpunr]->EXB=1;
+
+    cloakdata->npentry[currentcpuinfo->cpunr]->P=1;
+    cloakdata->npentry[currentcpuinfo->cpunr]->RW=1;
+    cloakdata->npentry[currentcpuinfo->cpunr]->US=1;
+
+
+    sendstringf("new npentry value = %6\n",*(QWORD *)(cloakdata->npentry[currentcpuinfo->cpunr]));
+
+
   }
   else
   {
@@ -957,10 +971,15 @@ int ept_cloak_changeregonbp(QWORD physicalAddress, PCHANGEREGONBPINFO changeregi
 {
   int result=1;
 
+  nosendchar[getAPICID()]=0;
+  sendstringf("ept_cloak_changeregonbp(%6,%6)\n", physicalAddress, changereginfo);
 
+  sendstringf("Removing old changeregonbp\n");
   ept_cloak_removechangeregonbp(physicalAddress);
 
   QWORD physicalBase=physicalAddress & MAXPHYADDRMASKPB;
+
+  sendstringf("Activating cloak at base %6 (if not yet active)\n", physicalBase);
   ept_cloak_activate(physicalBase,0); //just making sure
 
   sendstringf("ept_cloak_changeregonbp:\n");
@@ -1215,10 +1234,11 @@ BOOL ept_handleSoftwareBreakpoint(pcpuinfo currentcpuinfo, VMRegisters *vmregist
 
   if (notpaged==0) //should be since it's a software interrupt...
   {
-    sendstringf("paged\n");
+    //sendstringf("paged\n");
     csEnter(&CloakedPagesCS);
 
-    sendstringf("TraceOnBP->PhysicalAddres=%6  PA=%6\n", TraceOnBP->PhysicalAddress, PA);
+    if (TraceOnBP)
+      sendstringf("TraceOnBP->PhysicalAddres=%6  PA=%6\n", TraceOnBP->PhysicalAddress, PA);
 
 
     if (TraceOnBP && (TraceOnBP->PhysicalAddress==PA))
@@ -1273,8 +1293,7 @@ BOOL ept_handleSoftwareBreakpoint(pcpuinfo currentcpuinfo, VMRegisters *vmregist
       sendstringf("currentcpuinfo->vmcb->InterceptExceptions=%6\n", currentcpuinfo->vmcb->InterceptExceptions);
       return TRUE;
     }
-    else
-      sendstringf("not a traceonbp\n");
+
 
 
     csEnter(&ChangeRegBPListCS);

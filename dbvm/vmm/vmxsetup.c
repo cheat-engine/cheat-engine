@@ -701,7 +701,9 @@ int vmx_enableSingleStepMode(void)
 
     RFLAGS v;
     v.value=c->vmcb->RFLAGS;
-    c->singleStepping.PreviousTFState=v.TF;
+
+    if (c->singleStepping.ReasonsPos==0) //first one
+      c->singleStepping.PreviousTFState=v.TF;
 
     v.TF=1; //single step mode
     v.RF=1;
