@@ -1686,6 +1686,9 @@ int ept_getWatchID(QWORD address)
 BOOL ept_handleWatchEvent(pcpuinfo currentcpuinfo, VMRegisters *registers, PFXSAVE64 fxsave, QWORD PhysicalAddress)
 //Used by Intel and AMD
 {
+  EPT_VIOLATION_INFO evi;
+  NP_VIOLATION_INFO nvi;
+
   int ID;
   int logentrysize;
   int i;
@@ -1693,9 +1696,29 @@ BOOL ept_handleWatchEvent(pcpuinfo currentcpuinfo, VMRegisters *registers, PFXSA
   if (eptWatchListPos==0)
     return FALSE;
 
+  if (isAMD)
+  {
+    nvi.ErrorCode=currentcpuinfo->vmcb->EXITINFO1;
+    if (nvi.ID)
+    {
+      //instruction fetch.  Apparently, PA is not exact and on a 16 byte radius or worse
+      sendstringf("ept_handleWatchEvent execute (ID) on AMD.  RIP=%6 PA=%6\n", currentcpuinfo->vmcb->RIP, PhysicalAddress);
+
+      PhysicalAddress=(PhysicalAddress & 0xfffffffffffff000ULL) | (currentcpuinfo->vmcb->RIP & 0xfff);
+
+      sendstringf("changed PhysicalAddress to %6\n", PhysicalAddress);
+
+
+
+    }
+  }
+  else
+  {
+    evi.ExitQualification=vmread(vm_exit_qualification);
+
+  }
+
   csEnter(&eptWatchListCS);
-
-
 
   ID=ept_getWatchID(PhysicalAddress);
 
@@ -1705,6 +1728,12 @@ BOOL ept_handleWatchEvent(pcpuinfo currentcpuinfo, VMRegisters *registers, PFXSA
     csLeave(&eptWatchListCS);
     return FALSE;
   }
+
+  if (isAMD)
+    lastSeenEPTWatch.data=nvi.ErrorCode;
+
+  else
+    lastSeenEPTWatch.data=evi.ExitQualification;
 
   lastSeenEPTWatch.physicalAddress=PhysicalAddress;
   lastSeenEPTWatch.initialID=ID;
@@ -1732,19 +1761,8 @@ BOOL ept_handleWatchEvent(pcpuinfo currentcpuinfo, VMRegisters *registers, PFXSA
   lastSeenEPTWatch.rip=RIP;
 
   QWORD PhysicalAddressBase=PhysicalAddress & 0xfffffffffffff000ULL;
-  EPT_VIOLATION_INFO evi;
-  NP_VIOLATION_INFO nvi;
 
-  if (isAMD)
-  {
-    nvi.ErrorCode=currentcpuinfo->vmcb->EXITINFO1;
-    lastSeenEPTWatch.data=nvi.ErrorCode;
-  }
-  else
-  {
-    evi.ExitQualification=vmread(vm_exit_qualification);
-    lastSeenEPTWatch.data=evi.ExitQualification;
-  }
+
 
   //nosendchar[getAPICID()]=0;
   sendstringf("Handling something that resembles watch ID %d\n", ID);
@@ -1877,8 +1895,10 @@ BOOL ept_handleWatchEvent(pcpuinfo currentcpuinfo, VMRegisters *registers, PFXSA
       (PhysicalAddress>=eptWatchList[ID].PhysicalAddress+eptWatchList[ID].Size)
       ))
   {
+    QWORD RIP=isAMD?currentcpuinfo->vmcb->RIP:vmread(vm_guest_rip);
     lastSeenEPTWatch.skipped=4; //not a perfect physical address match
     sendstringf("%d: Not logging all and the physical address(%6) is not in the exact range (%p-%p)\n", currentcpuinfo->cpunr, PhysicalAddress, eptWatchList[ID].PhysicalAddress, eptWatchList[ID].PhysicalAddress+eptWatchList[ID].Size);
+    sendstringf("RIP was %6\n", RIP);
     csLeave(&eptWatchListCS);
     return TRUE; //no need to log it
   }
