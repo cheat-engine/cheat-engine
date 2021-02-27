@@ -94,17 +94,22 @@ const
   VMCALL_CLOAK_TRACEONBP_GETSTATUS=72;
   VMCALL_CLOAK_TRACEONBP_STOPTRACE=73;
 
+  VMCALL_GETBROKENTHREADLISTSIZE=74;
+  VMCALL_GETBROKENTHREADENTRYSHORT=75;
+  VMCALL_GETBROKENTHREADENTRYFULL=76;
+  VMCALL_RESUMEBROKENTHREAD=77;
 
 
   //---
   //watch options:
-  EPTO_MULTIPLERIP =1 shl 0; //log the same RIP multiple times (if different registers)
-  EPTO_LOG_ALL     =1 shl 1; //log every access in the page
-  EPTO_SAVE_FXSAVE =1 shl 2; //logs contain the xsave state
-  EPTO_SAVE_STACK  =1 shl 3; //logs contain a 4kb stack snapshot
-  EPTO_PMI_WHENFULL=1 shl 4; //Trigger a performance monitor interrupt when full (only use when you have a kernelmode driver)
+  EPTO_MULTIPLERIP  =1 shl 0; //log the same RIP multiple times (if different registers)
+  EPTO_LOG_ALL      =1 shl 1; //log every access in the page
+  EPTO_SAVE_FXSAVE  =1 shl 2; //logs contain the xsave state
+  EPTO_SAVE_STACK   =1 shl 3; //logs contain a 4kb stack snapshot
+  EPTO_PMI_WHENFULL =1 shl 4; //Trigger a performance monitor interrupt when full (only use when you have a kernelmode driver)
   EPTO_GROW_WHENFULL=1 shl 5; //Grow if the given size is too small (beware, if DBVM runs out of memory, your system will crash)
-  EPTO_INTERRUPT   =1 shl 6; //Trigger a debug interrupt when hit, no logging
+  EPTO_INTERRUPT    =1 shl 6; //Trigger a debug interrupt when hit, no logging
+  EPTO_DBVMBP       =1 shl 7; //On trigger save the state and change RIP to an infinite int3 loop (if interuptable)
 
 type
   TOriginalState=packed record
@@ -127,6 +132,17 @@ type
     cpunr: QWORD;
   end;
   PULTIMAPDEBUGINFO=^TULTIMAPDEBUGINFO;
+
+  TDBVMBPShortState=record
+    status: integer;
+    cs: DWORD;
+    rip: QWORD;
+    cr3: QWORD;
+    fsbase: QWORD;
+    gsbase: qword;
+    heartbeat: qword;
+  end;
+
 
   TPageEventBasic=record
     VirtualAddress: QWORD;
@@ -472,12 +488,17 @@ function dbvm_getProcAddress(functionname: string): pointer;
 
 procedure dbvm_testPSOD;
 
-function dbvm_watch_writes(PhysicalAddress: QWORD; size: integer; Options: DWORD; MaxEntryCount: Integer): integer;
-function dbvm_watch_reads(PhysicalAddress: QWORD; size: integer; Options: DWORD; MaxEntryCount: Integer): integer;
-function dbvm_watch_executes(PhysicalAddress: QWORD; size: integer; Options: DWORD; MaxEntryCount: Integer): integer;
+function dbvm_watch_writes(PhysicalAddress: QWORD; size: integer; Options: DWORD; MaxEntryCount: Integer; UserModeLoop: qword=0; KernelModeLoop: qword=0): integer;
+function dbvm_watch_reads(PhysicalAddress: QWORD; size: integer; Options: DWORD; MaxEntryCount: Integer; UserModeLoop: qword=0; KernelModeLoop: qword=0): integer;
+function dbvm_watch_executes(PhysicalAddress: QWORD; size: integer; Options: DWORD; MaxEntryCount: Integer; UserModeLoop: qword=0; KernelModeLoop: qword=0): integer;
 function dbvm_watch_retrievelog(ID: integer; results: PPageEventListDescriptor; var resultsize: integer): integer;
 function dbvm_watch_delete(ID: integer): boolean;
 function dbvm_watch_getstatus(out last: TEPTWatchLogData; out best: TEPTWatchLogData): boolean;
+
+function dbvm_bp_getBrokenThreadListSize:integer;
+function dbvm_bp_getBrokenThreadEventShort(id: integer; var shortstate: TDBVMBPShortState):integer;
+function dbvm_bp_getBrokenThreadEventFull(id: integer; var status: integer; var state: TPageEventExtended):integer;
+function dbvm_bp_resumeBrokenThread(id: integer; continueMethod: integer): integer;
 
 function dbvm_cloak_activate(PhysicalBase: QWORD; virtualAddress: Qword=0; mode: integer=1): integer;
 function dbvm_cloak_deactivate(PhysicalBase: QWORD): boolean;
@@ -1345,12 +1366,14 @@ begin
 end;
 
 
-function dbvm_watch_writes(PhysicalAddress: QWORD; size: integer; Options: DWORD; MaxEntryCount: Integer): integer;
+function dbvm_watch_writes(PhysicalAddress: QWORD; size: integer; Options: DWORD; MaxEntryCount: Integer; UserModeLoop: qword=0; KernelModeLoop: qword=0): integer;
 var vmcallinfo: packed record
       structsize: dword;   //0
       level2pass: dword;   //4
       command: dword;      //8
       PhysicalAddress: QWORD; //12
+      OptionalField1: QWORD;
+      OptionalField2: QWORD;
       Size: integer;          //20
       Options: DWORD;         //24
       MaxEntryCount: integer; //28
@@ -1367,6 +1390,8 @@ begin
   vmcallinfo.command:=VMCALL_WATCH_WRITES;
 
   vmcallinfo.PhysicalAddress:=PhysicalAddress;
+  vmcallinfo.OptionalField1:=UserModeLoop;
+  vmcallinfo.OptionalField2:=KernelModeLoop;
   vmcallinfo.Size:=size;
   vmcallinfo.Options:=Options;
   vmcallinfo.MaxEntryCount:=MaxEntryCount;
@@ -1384,12 +1409,14 @@ begin
   OutputDebugString('returning '+inttostr(result));
 end;
 
-function dbvm_watch_reads(PhysicalAddress: QWORD; size: integer; Options: DWORD; MaxEntryCount: Integer): integer;
+function dbvm_watch_reads(PhysicalAddress: QWORD; size: integer; Options: DWORD; MaxEntryCount: Integer; UserModeLoop: qword=0; KernelModeLoop: qword=0): integer;
 var vmcallinfo: packed record
       structsize: dword;   //0
       level2pass: dword;   //4
       command: dword;      //8
       PhysicalAddress: QWORD; //12
+      OptionalField1: QWORD;
+      OptionalField2: QWORD;
       Size: integer;          //20
       Options: DWORD;         //24
       MaxEntryCount: integer; //28
@@ -1405,6 +1432,8 @@ begin
   vmcallinfo.level2pass:=vmx_password2;
   vmcallinfo.command:=VMCALL_WATCH_READS;
   vmcallinfo.PhysicalAddress:=PhysicalAddress;
+  vmcallinfo.OptionalField1:=UserModeLoop;
+  vmcallinfo.OptionalField2:=KernelModeLoop;
   vmcallinfo.Size:=size;
   vmcallinfo.Options:=Options;
   vmcallinfo.MaxEntryCount:=MaxEntryCount;
@@ -1422,12 +1451,14 @@ begin
   OutputDebugString('returning '+inttostr(result));
 end;
 
-function dbvm_watch_executes(PhysicalAddress: QWORD; size: integer; Options: DWORD; MaxEntryCount: Integer): integer;
+function dbvm_watch_executes(PhysicalAddress: QWORD; size: integer; Options: DWORD; MaxEntryCount: Integer; UserModeLoop: qword=0; KernelModeLoop: qword=0): integer;
 var vmcallinfo: packed record
       structsize: dword;   //0
       level2pass: dword;   //4
       command: dword;      //8
       PhysicalAddress: QWORD; //12
+      OptionalField1:   QWORD;
+      OptionalField2:   QWORD;
       Size: integer;          //20
       Options: DWORD;         //24
       MaxEntryCount: integer; //28
@@ -1443,8 +1474,12 @@ begin
   vmcallinfo.level2pass:=vmx_password2;
   vmcallinfo.command:=VMCALL_WATCH_EXECUTES;
   vmcallinfo.PhysicalAddress:=PhysicalAddress;
+  vmcallinfo.OptionalField1:=UserModeLoop;
+  vmcallinfo.OptionalField2:=KernelModeLoop;
   vmcallinfo.Size:=size;
   vmcallinfo.Options:=Options;
+
+
   vmcallinfo.MaxEntryCount:=MaxEntryCount;
   vmcallinfo.ID:=-1;
 
@@ -1524,6 +1559,100 @@ begin
     best:=vmcallinfo.best;
   end;
 end;
+
+function dbvm_bp_getBrokenThreadListSize:integer;
+var
+  vmcallinfo: packed record
+    structsize: dword;
+    level2pass: dword;
+    command: dword;
+  end;
+begin
+  vmcallinfo.structsize:=sizeof(vmcallinfo);
+  vmcallinfo.level2pass:=vmx_password2;
+  vmcallinfo.command:=VMCALL_GETBROKENTHREADLISTSIZE;
+  result:=vmcall(@vmcallinfo,vmx_password1);
+end;
+
+
+function dbvm_bp_getBrokenThreadEventShort(id: integer; var shortstate: TDBVMBPShortState):integer;
+var
+  vmcallinfo: packed record
+    structsize: dword;
+    level2pass: dword;
+    command: dword;
+    id: integer;
+    status: integer;
+    cs: DWORD;
+    rip: QWORD;
+    cr3: QWORD;
+    FSBASE: QWORD;
+    GSBASE: qword;
+    Heartbeat: qword;
+  end;
+begin
+  vmcallinfo.structsize:=sizeof(vmcallinfo);
+  vmcallinfo.level2pass:=vmx_password2;
+  vmcallinfo.command:=VMCALL_GETBROKENTHREADENTRYSHORT;
+  vmcallinfo.id:=id;
+  result:=vmcall(@vmcallinfo,vmx_password1);
+
+  if result=0 then
+  begin
+    shortstate.status:=vmcallinfo.status;
+    shortstate.cs:=vmcallinfo.cs;
+    shortstate.rip:=vmcallinfo.rip;
+    shortstate.cr3:=vmcallinfo.cr3;
+    shortstate.FSBASE:=vmcallinfo.FSBASE;
+    shortstate.GSBASE:=vmcallinfo.GSBASE;
+    shortstate.Heartbeat:=vmcallinfo.Heartbeat;
+  end;
+end;
+
+function dbvm_bp_getBrokenThreadEventFull(id: integer; var status: integer; var state: TPageEventExtended): integer;
+var
+  vmcallinfo: packed record
+    structsize: dword;
+    level2pass: dword;
+    command: dword;
+    id: integer;
+    status: integer;
+    state: TPageEventExtended;
+  end;
+begin
+  vmcallinfo.structsize:=sizeof(vmcallinfo);
+  vmcallinfo.level2pass:=vmx_password2;
+  vmcallinfo.command:=VMCALL_GETBROKENTHREADENTRYFULL;
+  vmcallinfo.id:=id;
+  result:=vmcall(@vmcallinfo,vmx_password1);
+
+  if result=0 then
+  begin
+    state:=vmcallinfo.state;
+    status:=vmcallinfo.status;
+  end;
+end;
+
+function dbvm_bp_resumeBrokenThread(id: integer; continueMethod: integer): integer;
+var
+  vmcallinfo: packed record
+    structsize: dword;
+    level2pass: dword;
+    command: dword;
+    id: integer;
+    continueMethod: integer;
+  end;
+begin
+  OutputDebugString(format('dbvm_bp_resumeBrokenThread(%d,%d)',[id, continueMethod]));
+  vmcallinfo.structsize:=sizeof(vmcallinfo);
+  vmcallinfo.level2pass:=vmx_password2;
+  vmcallinfo.command:=VMCALL_RESUMEBROKENTHREAD;
+  vmcallinfo.id:=id;
+  vmcallinfo.continueMethod:=continueMethod;
+  result:=vmcall(@vmcallinfo,vmx_password1);
+end;
+
+
 
 function dbvm_cloak_activate(PhysicalBase: QWORD; virtualAddress: QWORD=0; mode: integer=1): integer;
 var
@@ -1873,7 +2002,7 @@ var
   ob: byte;
   br: size_t;
 begin
-  log('dbvm_cloak_changeregonbp');
+  log(format('dbvm_cloak_changeregonbp(%x,struct,%x)',[PhysicalAddress, VirtualAddress]));
 
   if virtualaddress<>0 then
     ReadProcessMemory(processhandle, pointer(virtualaddress), @ob,1,br);
@@ -1935,7 +2064,7 @@ var
 begin
   vmcallinfo.structsize:=sizeof(vmcallinfo);
   vmcallinfo.level2pass:=vmx_password2;
-  vmcallinfo.command:=VMCALL_CLOAK_TRACEONBP_REMOVE;
+  vmcallinfo.command:=VMCALL_CLOAK_REMOVECHANGEREGONBP;
   vmcallinfo.PhysicalAddress:=PhysicalAddress;
   result:=vmcall(@vmcallinfo,vmx_password1);
 

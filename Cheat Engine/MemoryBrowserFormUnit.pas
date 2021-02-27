@@ -3985,6 +3985,13 @@ begin
       disassemblerview.Update;
       exit;
     end;
+
+    if bo=4 then //break and trace
+    begin
+      dbvm_cloak_traceonbp_remove(PA);
+      disassemblerview.Update;
+      exit;
+    end;
   end;
 
   try

@@ -2505,9 +2505,10 @@ end;
 function lua_MapViewOfSection(L: PLua_State): integer; cdecl;
 {$IFDEF windows}
 var
+  basep: pointer;
   sh: thandle;
   base: pointer;
-  basep: pointer;
+
   offset: LARGE_INTEGER;
   n: NTSTATUS;
   si: SECTION_INHERIT;
@@ -2537,7 +2538,6 @@ begin
 
     offset.QuadPart:=0;
     viewsize.QuadPart:=0;
-
 
     n:=ZwMapViewOfSection(sh,processhandle, @base,0,0,nil,@viewsize,2,0,PAGE_EXECUTE_READWRITE);
     if succeeded(n) then
@@ -5653,6 +5653,9 @@ var
   MaxEntryCount: integer;
 
   top: integer;
+
+  usermodeLoop: qword=0;
+  kernelmodeLoop: qword=0;
 begin
   top:=lua_gettop(L);
   if top>=1 then
@@ -5678,7 +5681,25 @@ begin
   else
     MaxEntryCount:=16;
 
-  lua_pushinteger(L, dbvm_watch_writes(physicalAddress, Size, Options, MaxEntryCount));
+
+  if (options and EPTO_DBVMBP) = EPTO_DBVMBP then
+  begin
+    //needs usermode field
+    if top>=5 then
+      usermodeloop:=lua_tointeger(L,5)
+    else
+    begin
+      lua_pushnil(L);
+      lua_pushstring(L,'option DBVMBP needs a usermode loop address');
+      exit(2);
+    end;
+
+    if top>=6 then
+      kernelmodeLoop:=lua_tointeger(L,6); //NOT recommended.  If CE writes it, CE will freeze.
+  end;
+
+
+  lua_pushinteger(L, dbvm_watch_writes(physicalAddress, Size, Options, MaxEntryCount,UserModeLoop, kernelmodeloop));   //there is no kernelmode loop, so those will be skipped
   result:=1;
 end;
 
@@ -5688,8 +5709,12 @@ var
   size: integer;
   options: DWORD;
   MaxEntryCount: integer;
-
+  usermode :qword;
   top: integer;
+
+
+  usermodeLoop: qword=0;
+  kernelmodeLoop: qword=0;
 begin
   top:=lua_gettop(L);
   if top>=1 then
@@ -5715,7 +5740,23 @@ begin
   else
     MaxEntryCount:=16;
 
-  lua_pushinteger(L, dbvm_watch_reads(physicalAddress, Size, Options, MaxEntryCount));
+  if (options and EPTO_DBVMBP) = EPTO_DBVMBP then
+  begin
+    //needs usermode field
+    if top>=5 then
+      usermodeloop:=lua_tointeger(L,5)
+    else
+    begin
+      lua_pushnil(L);
+      lua_pushstring(L,'option DBVMBP needs a usermode loop address');
+      exit(2);
+    end;
+
+    if top>=6 then
+      kernelmodeLoop:=lua_tointeger(L,6); //NOT recommended.  If CE writes it, CE will freeze.
+  end;
+
+  lua_pushinteger(L, dbvm_watch_reads(physicalAddress, Size, Options, MaxEntryCount, usermodeLoop, kernelmodeloop));
   result:=1;
 end;
 
@@ -5727,6 +5768,9 @@ var
   MaxEntryCount: integer;
 
   top: integer;
+
+  usermodeLoop: qword=0;
+  kernelmodeLoop: qword=0;
 begin
   top:=lua_gettop(L);
   if top>=1 then
@@ -5752,7 +5796,26 @@ begin
   else
     MaxEntryCount:=16;
 
-  lua_pushinteger(L, dbvm_watch_executes(physicalAddress, Size, Options, MaxEntryCount));
+
+  if (options and EPTO_DBVMBP) = EPTO_DBVMBP then
+  begin
+    //needs usermode field
+    if top>=5 then
+      usermodeloop:=lua_tointeger(L,5)
+    else
+    begin
+      lua_pushnil(L);
+      lua_pushstring(L,'option DBVMBP needs a usermode loop address');
+      exit(2);
+    end;
+
+    if top>=6 then
+      kernelmodeLoop:=lua_tointeger(L,6);
+  end;
+
+
+
+  lua_pushinteger(L, dbvm_watch_executes(physicalAddress, Size, Options, MaxEntryCount, usermodeloop, kernelmodeloop));
   result:=1;
 end;
 
@@ -6926,6 +6989,158 @@ begin
   lua_pushinteger(L, dbvm_findCR3(processhandle));
   result:=1;
 end;
+
+
+function lua_dbvm_bp_getBrokenThreadListSize(L: PLua_State): integer; cdecl;
+begin
+  lua_pushinteger(L,dbvm_bp_getBrokenThreadListSize());
+  result:=1;
+end;
+
+function lua_dbvm_bp_getBrokenThreadEventShort(L: PLua_State): integer; cdecl;
+var
+  id: integer;
+  r: integer;
+  shortstate: TDBVMBPShortState;
+begin
+  if lua_Gettop(L)>=1 then
+  begin
+    id:=lua_tointeger(L,1);
+    r:=dbvm_bp_getBrokenThreadEventShort(id,shortstate);
+    if r=0 then
+    begin
+      lua_createtable(L,0,7);
+      lua_pushstring(L,'Status');
+      lua_pushinteger(L,shortstate.status);
+      lua_settable(L,-3);
+
+      lua_pushstring(L,'CS');
+      lua_pushinteger(L,shortstate.cs);
+      lua_settable(L,-3);
+
+      lua_pushstring(L,'RIP');
+      lua_pushinteger(L,shortstate.rip);
+      lua_settable(L,-3);
+
+      lua_pushstring(L,'CR3');
+      lua_pushinteger(L,shortstate.cr3);
+      lua_settable(L,-3);
+
+      lua_pushstring(L,'FSBASE');
+      lua_pushinteger(L,shortstate.fsbase);
+      lua_settable(L,-3);
+
+      lua_pushstring(L,'GSBASE');
+      lua_pushinteger(L,shortstate.gsbase);
+      lua_settable(L,-3);
+
+      lua_pushstring(L,'Heartbeat');
+      lua_pushinteger(L,shortstate.heartbeat);
+      lua_settable(L,-3);
+
+      result:=1;
+    end
+    else
+    begin
+      lua_pushnil(L);
+      case r of
+        1: lua_pushstring(L,'invalid id');
+        2: lua_pushstring(L,'not active');
+        else
+          lua_pushstring(L,'unknown');
+      end;
+
+      exit(2);
+
+    end;
+  end;
+end;
+
+function lua_dbvm_bp_getBrokenThreadEventFull(L: PLua_State): integer; cdecl;
+var
+  id: integer;
+  r: integer;
+  shortstate: TPageEventExtended ;
+  status: integer;
+  ti: integer;
+begin
+  if lua_Gettop(L)>=1 then
+  begin
+    id:=lua_tointeger(L,1);
+    r:=dbvm_bp_getBrokenThreadEventFull(id,status, shortstate);
+    if r=0 then
+    begin
+      lua_newtable(L);
+      ti:=lua_gettop(L);
+      lua_push_watch_basic_fields(L, @shortstate.basic, ti);
+      lua_push_watch_fxsave_fields(L, @shortstate.fpudata, ti);
+
+      lua_pushstring(L,'Count');
+      lua_pushnil(L);
+      lua_settable(L,ti);
+
+      lua_pushstring(L,'Heartbeat');
+      lua_pushinteger(L,shortstate.basic.Count);
+      lua_settable(L,ti);
+
+      lua_pushstring(L,'Status');
+      lua_pushinteger(L,status);
+      lua_settable(L,ti);
+
+
+
+
+      result:=1;
+    end
+    else
+    begin
+      lua_pushnil(L);
+      case r of
+        1: lua_pushstring(L,'invalid id');
+        2: lua_pushstring(L,'not active');
+        else
+          lua_pushstring(L,'unknown');
+      end;
+
+      exit(2);
+
+    end;
+  end;
+end;
+
+function lua_dbvm_bp_resumeBrokenThread(L: PLua_state): integer; cdecl;
+var
+  id, continueMethod: integer;
+  r: integer;
+begin
+  if lua_Gettop(L)>=2 then
+  begin
+    id:=lua_tointeger(L,1);
+    continuemethod:=lua_tointeger(L,2);
+
+    r:=dbvm_bp_resumeBrokenThread(id,continueMethod);
+    if r=0 then
+    begin
+      lua_pushboolean(L,true);
+      exit(1);
+    end
+    else
+    begin
+      lua_pushnil(L);
+      case r of
+        1: lua_pushstring(L,'invalid id');
+        2: lua_pushstring(L,'not active');
+        3: lua_pushstring(L,'was already set to continue');
+        4: lua_pushstring(L,'abandoned.  Has been marked as free now');
+        else
+          lua_pushstring(L,'unknown');
+      end;
+
+      exit(2);
+    end;
+  end;
+end;
+
 
 function dbk_readMSR(L: PLua_State): integer; cdecl;
 var
@@ -14097,6 +14312,11 @@ begin
     lua_register(L, 'dbvm_traceonbp_remove', lua_dbvm_traceonbp_remove);
     lua_register(L, 'dbvm_traceonbp_retrievelog', lua_dbvm_traceonbp_retrievelog);
 
+
+    lua_register(L, 'dbvm_bp_getBrokenThreadListSize', lua_dbvm_bp_getBrokenThreadListSize);
+    lua_register(L, 'dbvm_bp_getBrokenThreadEventShort', lua_dbvm_bp_getBrokenThreadEventShort);
+    lua_register(L, 'dbvm_bp_getBrokenThreadEventFull', lua_dbvm_bp_getBrokenThreadEventFull);
+    lua_register(L, 'dbvm_bp_resumeBrokenThread', lua_dbvm_bp_resumeBrokenThread);
 
 
     lua_register(L, 'dbvm_ept_reset', lua_dbvm_ept_reset);

@@ -2127,7 +2127,7 @@ begin
 
 
     if (errs='Access violation') and (miEnableLCLDebug.checked) then
-      errs:=errs+#13#10'Please send the errorlog.txt file to Dark Byte. Thanks';
+      errs:=errs+#13#10'Please send the cedebug.txt file to Dark Byte. Thanks';
 
 
     MessageDlg(errs, mtError, [mbOK], 0);
