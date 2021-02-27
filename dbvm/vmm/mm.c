@@ -630,6 +630,7 @@ void unmapPhysicalMemoryGlobal(void *virtualaddress, int size)
   }
   else
   {
+    nosendchar[getAPICID()]=0;
     sendstringf("invalid global address (%6) given to unmapPhysicalMemoryGlobal\n",virtualaddress);
     ddDrawRectangle(0,DDVerticalResolution-100,100,100,0xff0000);
     while (1) outportb(0x80,0x01);
@@ -654,6 +655,7 @@ void unmapPhysicalMemory(void *virtualaddress, int size)
 
   if ((pos<0) || (pos>1024))
   {
+    nosendchar[getAPICID()]=0;
     sendstringf("%d: invalid address given to unmapPhysicalMemory (%6)\n",c->cpunr, virtualaddress);
     ddDrawRectangle(0,DDVerticalResolution-100,100,100,0xff0000);
     while (1) outportb(0x80,0xce);
@@ -790,6 +792,7 @@ void *addPhysicalPageToDBVM(QWORD address, int inuse)
 
   if (pagetableentry->P)
   {
+    nosendchar[getAPICID()]=0;
     sendstringf("!Assertion failure! Virtual address %6 was already present (PhysicalPageListSize=%d)\n", VirtualAddress, PhysicalPageListSize);
     ddDrawRectangle(0,DDVerticalResolution-100,100,100,0xff0000);
     while (1) outportb(0x80,0xcf);
@@ -1173,6 +1176,7 @@ void *realloc(void *old, size_t size)
   }
   else
   {
+    nosendchar[getAPICID()]=0;
     sendstringf("realloc error\n");
     ddDrawRectangle(0,DDVerticalResolution-100,100,100,0xff0000);
     while (1) outportb(0x80,0xd1);
@@ -1284,6 +1288,7 @@ void InitializeMM(UINT64 FirstFreeVirtualAddress)
 
   if (pagedirlvl4[pml4index].P) //pml4index should be 511
   {
+    nosendchar[getAPICID()]=0;
     sendstring("Assertion failed. pagedirlvl4[pml4index].P is not 0. It should be\n");
     ddDrawRectangle(0,DDVerticalResolution-100,100,100,0xff0000);
     while (1) outportb(0x80,0xd1);

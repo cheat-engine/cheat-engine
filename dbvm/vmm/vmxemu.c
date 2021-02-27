@@ -1323,6 +1323,9 @@ int handle_vmxoff(pcpuinfo currentcpuinfo, VMRegisters *vmregisters UNUSED)
 int handleIntelVMXInstruction(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 {
   int r;
+  nosendchar[getAPICID()]=0;
+  sendstring(" - nested vm is not 100% working\n");
+
   sendstringf("handleIntelVMXInstruction. emulatevmx=%d\n", emulatevmx);
   if (emulatevmx==0)
     return raiseInvalidOpcodeException(currentcpuinfo);

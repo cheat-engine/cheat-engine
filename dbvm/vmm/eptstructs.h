@@ -241,7 +241,7 @@ typedef struct _pageevent_basic
   WORD SS;
   WORD FS;
   WORD GS;
-  DWORD Count; //number of times this block has been seen
+  DWORD Count; //number of times this block has been seen, or heartbeat when used for internal dbvm bp
 } PageEventBasic, *PPageEventBasic;
 
 typedef struct _pageevent_extended
@@ -291,6 +291,8 @@ typedef struct
   int Size;
   int Type; //0=write, 1=access,2=execute
   DWORD Options;
+  QWORD LoopUserMode;
+  QWORD LoopKernelMode;
   int Active;
   int CopyInProgress; //if 1 events will be ignored
   PPageEventListDescriptor Log;
@@ -350,6 +352,17 @@ typedef struct
   } pe;
 
 } TraceOnBPEntry, *PTraceOnBPEntry;
+
+typedef struct
+{
+  int inuse;//1 if this entry contains a thread
+  int continueMethod; //0=no, 1=single step, 2=run  (resets to 0 after taking a step.  if 2 then inuse turns false
+
+  QWORD UserModeLoop; //where to go to after a step
+  QWORD KernelModeLoop;
+
+  PageEventExtended state; //contains CR3, FSBASE and GSBASE
+} BrokenThreadEntry, *PBrokenThreadEntry;
 
 
 #endif /* VMM_EPTSTRUCTS_H_ */

@@ -76,6 +76,11 @@ unsigned char inportb(unsigned int port)
 
 void outportb(unsigned int port,unsigned char value)
 {
+  if (port==0x80)
+  {
+    nosendchar[getAPICID()]=0;
+    sendstringf("            -  Debug Code %2  -\n", value);
+  }
    asm volatile ("outb %%al,%%dx": :"d" (port), "a" (value));
 }
 
@@ -131,14 +136,16 @@ size_t strspn(const char *str, const char *chars)
 
 void exit(int status)
 {
-	sendstringf("Exited DBVM with status %d\n", status);
+  nosendchar[getAPICID()]=0;
+	sendstringf("Exit DBVM with status %d\n", status);
 	ddDrawRectangle(0,DDVerticalResolution-100,100,100,0xff0000);
 	while (1) outportb(0x80,0xc0);
 }
 
 void abort(void)
 {
-  sendstringf("Exited DBVM\n");
+  nosendchar[getAPICID()]=0;
+  sendstringf("Abort DBVM\n");
   ddDrawRectangle(0,DDVerticalResolution-100,100,100,0xff0000);
   while (1) outportb(0x80,0xc1);
 }
@@ -1095,6 +1102,7 @@ void csLeave(PcriticalSection CS)
   }
   else
   {
+    nosendchar[getAPICID()]=0;
     sendstringf("csLeave called for a non-locked or non-owned critical section\n");
     ddDrawRectangle(0,DDVerticalResolution-100,100,100,0xff0000);
     while (1) outportb(0x80,0xc2);

@@ -145,8 +145,13 @@ void CheckCRCValues(void)
 void vmm_entry2_hlt(pcpuinfo currentcpuinfo)
 {
   UINT64 a,b,c,d;
+
+  nosendchar[getAPICID()]=0;
+
   if (currentcpuinfo)
     sendstringf("CPU %d : Terminating...\n\r",currentcpuinfo->cpunr);
+  else
+    sendstringf("Unknown(%d) terminating...", getcpunr() );
 
   while (1)
   {
@@ -258,10 +263,7 @@ void vmm_entry2(void)
 
   startvmx(cpuinfo);
 
-   // while (1); //debug
-
-
-
+  nosendchar[getAPICID()]=0;
   sendstringf("Application cpu returned from startvmx\n\r");
 
   vmm_entry2_hlt(cpuinfo);
@@ -286,6 +288,8 @@ void vmm_entry(void)
   if (isAP)
   {
     vmm_entry2();
+
+    nosendchar[getAPICID()]=0;
     sendstringf("vmm_entry2 has PHAILED!!!!");
     while (1) outportb(0x80,0xc7);
   }
@@ -479,6 +483,7 @@ void vmm_entry(void)
       sendstringf("original->cpucount=%d\n", original->cpucount);
       if (original->cpucount>1000)
       {
+        nosendchar[getAPICID()]=0;
         sendstringf("More than 1000 cpu\'s are currently not supported\n");
         ddDrawRectangle(0,DDVerticalResolution-100,100,100,0xff0000);
         while (1);
@@ -617,6 +622,7 @@ void vmm_entry(void)
 
   if (GDT_BASE==NULL)
   {
+    nosendchar[getAPICID()]=0;
     sendstring("Memory allocation failed\n");
     ddDrawRectangle(0,DDVerticalResolution-100,100,100,0xff0000);
     while (1) outportb(0x80,0xc8);
@@ -2160,6 +2166,7 @@ void startvmx(pcpuinfo currentcpuinfo)
 
           launchVMX(currentcpuinfo);
 
+          nosendchar[getAPICID()]=0;
           sendstring("launchVMX returned\n");
           while (1) outportb(0x80,0xc9);
 
@@ -2250,6 +2257,7 @@ void startvmx(pcpuinfo currentcpuinfo)
 
         if (currentcpuinfo->vmxon_region==NULL)
         {
+          nosendchar[getAPICID()]=0;
           sendstringf(">>>>>>>>>>>>>>>>>>>>vmxon allocation has failed<<<<<<<<<<<<<<<<<<<<<<<<<<\n");
           ddDrawRectangle(0,DDVerticalResolution-100,100,100,0xff0000);
           while (1) outportb(0x80,0xca);
@@ -2265,6 +2273,7 @@ void startvmx(pcpuinfo currentcpuinfo)
 
         if (currentcpuinfo->vmcs_region==NULL)
         {
+          nosendchar[getAPICID()]=0;
           ddDrawRectangle(0,DDVerticalResolution-100,100,100,0xff0000);
           sendstringf(">>>>>>>>>>>>>>>>>>>>vmcs_region allocation has failed<<<<<<<<<<<<<<<<<<<<<<<<<<\n");
           while (1) outportb(0x80,0xcb);

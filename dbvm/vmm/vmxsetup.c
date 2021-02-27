@@ -1714,7 +1714,7 @@ void setupVMX(pcpuinfo currentcpuinfo)
 
 
       //needs less interrupt hooks
-      vmwrite(vm_exception_bitmap,(1<<1) | (1<<3));
+      vmwrite(vm_exception_bitmap,  (1<<1) | (1<<3));
 
     }
     else
@@ -1826,10 +1826,8 @@ void setupVMX(pcpuinfo currentcpuinfo)
 
         if ((IA32_VMX_SECONDARY_PROCBASED_CTLS >> 32) & SPBEF_ENABLE_RDTSCP) //can it enable rdtscp ?
         {
-//#ifndef TSCHOOK
           sendstringf("Enabling rdtscp\n");
           secondarycpu|=SPBEF_ENABLE_RDTSCP;
-//#endif
         }
 
 
@@ -2243,6 +2241,7 @@ void setupVMX(pcpuinfo currentcpuinfo)
 
         if (lowregion==-1)
         {
+          nosendchar[getAPICID()]=0;
           sendstringf("No low region:\n");
           sendARD();
           ddDrawRectangle(0,DDVerticalResolution-100,100,100,0xff0000);

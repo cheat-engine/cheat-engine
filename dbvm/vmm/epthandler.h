@@ -41,6 +41,23 @@ typedef struct
 #define EPTO_PMI_WHENFULL   (1<<4) //triggers a PMI when full
 #define EPTO_GROW_WHENFULL  (1<<5) //grows the buffer when full
 #define EPTO_INTERRUPT      (1<<6) //raise interrupt on match instead of log
+#define EPTO_DBVMBP         (1<<7) /*similar to EPTO_INTERRUPT but push RIP onto the stack and change RIP to a designated
+                                     loop location(possibly cloaked) specified by the watch initiator and log this thread
+                                     as currently broken (the thread will have no communicating with pipes or events. It's
+                                     just a thread in a loop)
+
+                                     the loop will have to trigger DBVM exits for DBVM to resume it when the user wishes,
+                                     so just an ebfe won't do.
+
+                                     just a single cc (int3) should work.  It will trigger DBVM and might cause some
+                                     performance issues, so needs to be evaluated. Otherwise a longer loop might be preferred
+
+                                     Use a change reg on bp if you wish to let the usermode program deal with this
+                                   */
+
+
+
+
 
 #define EPTW_WRITE 0
 #define EPTW_READWRITE 1
@@ -63,14 +80,20 @@ VMSTATUS handleEPTMisconfig(pcpuinfo currentcpuinfo, VMRegisters *vmregisters);
 int ept_handleWatchEventAfterStep(pcpuinfo currentcpuinfo, int ID);
 int ept_handleCloakEventAfterStep(pcpuinfo currentcpuinfo, PCloakedPageData cloakdata);
 int ept_handleSoftwareBreakpointAfterStep(pcpuinfo currentcpuinfo,  int ID);
+int ept_handleStepAndBreak(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, FXSAVE64 *fxsave, int brokenthreadid);
 
-int ept_watch_activate(QWORD PhysicalAddress, int Size, int Type, DWORD Options, int MaxEntryCount, int *outID);
+int ept_watch_activate(QWORD PhysicalAddress, int Size, int Type, DWORD Options, int MaxEntryCount, int *outID, QWORD OptionalField1, QWORD OptionalField2);
 int ept_watch_deactivate(int ID);
 
 
 VMSTATUS ept_watch_retrievelog(int ID, QWORD results, DWORD *resultSize, DWORD *offset, QWORD *errorcode);
 //int ept_activateWatch(pcpuinfo currentcpuinfo, int ID);
 
+
+int ept_getBrokenThreadListCount(void);
+int ept_getBrokenThreadEntryShort(int id, int *status, QWORD *CR3, QWORD *FSBASE, QWORD *GSBASE, DWORD *CS, QWORD *RIP, QWORD *heartbeat);
+int ept_getBrokenThreadEntryFull(int id, int *status, PPageEventExtended entry);
+int ept_resumeBrokenThread(int id, int continueMethod);
 
 
 int ept_cloak_activate(QWORD physicalAddress, int mode);

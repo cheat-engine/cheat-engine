@@ -57,6 +57,9 @@ VMSTATUS handleInvalidEntryState(pcpuinfo currentcpuinfo,VMRegisters *vmregister
 
   outportb(0x80,0xc0);
   enableserial();
+
+  nosendchar[getAPICID()]=0;
+
  // outportb(0x80,0xc1);
 
   sendstring("Handling invalid entry state\n\r");
@@ -141,9 +144,23 @@ VMSTATUS handleInvalidEntryState(pcpuinfo currentcpuinfo,VMRegisters *vmregister
 
 
         QWORD cr0=vmread(vm_guest_cr0);
-        if (cr0 & CR0_PG) while (1) outportb(0x80,0xe0); //paging on in realmode
-        if (cr0 & CR0_PE) while (1) outportb(0x80,0xe0); //protected mode in realmode
-        if (vmread(vm_entry_controls) & VMENTRYC_IA32E_MODE_GUEST) while (1) outportb(0x80,0xe1); //ia32e mode entry in realmode
+        if (cr0 & CR0_PG)
+        {
+          sendstringf("paging on in realmode\n");
+          while (1) outportb(0x80,0xe0); //paging on in realmode
+        }
+
+        if (cr0 & CR0_PE)
+        {
+          sendstringf("protected mode in realmode\n");
+          while (1) outportb(0x80,0xe0); //protected mode in realmode
+        }
+
+        if (vmread(vm_entry_controls) & VMENTRYC_IA32E_MODE_GUEST)
+        {
+          sendstringf("ia32e mode entry in realmode\n");
+          while (1) outportb(0x80,0xe1); //ia32e mode entry in realmode
+        }
 
         RFLAGS rflags;
         rflags.value=(QWORD)vmread(vm_guest_rflags);

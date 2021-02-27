@@ -69,7 +69,7 @@ int handleVMEvent_amd(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, FXSAVE6
     }
 
 
-    handleSingleStep(currentcpuinfo);
+    handleSingleStep(currentcpuinfo, vmregisters, fxsave);
     sendstring("After handleSingleStep()\n");
 
     if (currentcpuinfo->vmcb->EXITCODE==VMEXIT_EXCP1)
@@ -566,6 +566,9 @@ int handleVMEvent_amd(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, FXSAVE6
 
     case VMEXIT_MSR:
     {
+      int error=0;
+      int exceptionnr=0;
+      unsigned int msr=vmregisters->rcx & 0xffffffff;
 
       sendstring("VMEXIT_MSR\n");
       sendstringf("EXITINFO1=%d\n", currentcpuinfo->vmcb->EXITINFO1);
@@ -573,11 +576,12 @@ int handleVMEvent_amd(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, FXSAVE6
 
       if (currentcpuinfo->vmcb->EXITINFO1)
       {
+
         QWORD newvalue=((vmregisters->rdx & 0xffffffff) << 32) + (currentcpuinfo->vmcb->RAX & 0xffffffff);
 
         sendstringf("WRITE %6 to msr %x\n", newvalue, vmregisters->rcx);
 
-        switch (vmregisters->rcx & 0xffffffff)
+        switch (msr)
         {
           case IA32_TIME_STAMP_COUNTER:
             sendstringf("write to IA32_TIME_STAMP_COUNTER\n");
@@ -622,6 +626,34 @@ int handleVMEvent_amd(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, FXSAVE6
             currentcpuinfo->guest_VM_HSAVE_PA=((vmregisters->rdx & 0xffffffff) << 32) + (currentcpuinfo->vmcb->RAX & 0xffffffff);
             break;
 
+          default:
+            nosendchar[getAPICID()]=0;
+            sendstringf("Unhandled WRMSR(%8, %6)", vmregisters->rcx & 0xffffffff, newvalue);
+            try
+            {
+              writeMSR(vmregisters->rcx, newvalue);
+            }
+            except
+            {
+              error=1;
+              exceptionnr=lastexception & 0xff;
+            }
+            tryend
+
+            if (error)
+            {
+              int er;
+              sendstringf("Exception during MSR write (interrupt %d)\n",exceptionnr);
+              sendstringf("Calling raiseGeneralProtectionFault\n");
+              er=raiseGeneralProtectionFault(0);
+              sendstringf("raiseGeneralProtectionFault returned %d", er);
+              return er;
+            }
+
+
+            break;
+
+
 
 
         }
@@ -654,6 +686,32 @@ int handleVMEvent_amd(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, FXSAVE6
 
           case 0xc0010117:
             value=currentcpuinfo->guest_VM_HSAVE_PA;
+            break;
+
+          default:
+            nosendchar[getAPICID()]=0;
+            sendstringf("Unhandled RDMSR(%8)", msr);
+            try
+            {
+              value=readMSR(msr);
+            }
+            except
+            {
+              error=1;
+              exceptionnr=lastexception & 0xff;
+            }
+            tryend
+
+            if (error)
+            {
+              int er;
+              sendstringf("Exception during MSR read (%8) (interrupt %d)\n",msr, exceptionnr);
+              sendstringf("Calling raiseGeneralProtectionFault\n");
+              er=raiseGeneralProtectionFault(0);
+              sendstringf("raiseGeneralProtectionFault returned %d", er);
+              return er;
+            }
+
             break;
         }
 

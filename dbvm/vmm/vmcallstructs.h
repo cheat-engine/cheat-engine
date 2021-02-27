@@ -40,6 +40,8 @@ typedef struct
 {
   VMCALL_BASIC vmcall;
   QWORD PhysicalAddress;
+  QWORD OptionalField1; //usermode loop address for DBVMBP
+  QWORD OptionalField2; //kernelmode loop address for DBVMBP
   int Size;
   int Options; //binary.
                //  Bit 0: 0=Log RIP once. 1=Log RIP multiple times (when different registers)

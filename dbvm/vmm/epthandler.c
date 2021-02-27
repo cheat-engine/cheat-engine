@@ -24,7 +24,7 @@
 #include "nphandler.h"
 
 void recordState(void *liststart, int datatype, int currentEntryNr, pcpuinfo currentcpuinfo, VMRegisters *vmregisters, PFXSAVE64 fxsave);
-
+void fillPageEventBasic(PageEventBasic *peb, VMRegisters *registers);
 
 EPTWatchLogData lastSeenEPTWatch; //debugging ept
 EPTWatchLogData lastSeenEPTWatchVerySure;
@@ -52,6 +52,12 @@ int ChangeRegBPListSize;
 int ChangeRegBPListPos;
 
 TraceOnBPEntry *TraceOnBP; //not NULL when active. (There can be only one active one at a time globally, as the trap flag can switch between cpu's)
+
+
+criticalSection BrokenThreadListCS; //2
+BrokenThreadEntry *BrokenThreadList;
+int BrokenThreadListSize;
+int BrokenThreadListPos;
 
 
 #ifdef MEMORYCHECK
@@ -1214,6 +1220,101 @@ BOOL ept_handleHardwareBreakpoint(pcpuinfo currentcpuinfo, VMRegisters *vmregist
   return result;
 }
 
+BOOL ept_handleFrozenThread(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, FXSAVE64 *fxsave, int id)
+//pre: brokenThreadListCS should be locked during this call
+{
+  int result=TRUE;
+  RFLAGS v;
+  v.value=BrokenThreadList[id].state.basic.FLAGS;
+  sendstringf("ept_handleFrozenThread\n");
+
+  BrokenThreadList[id].state.basic.Count++;//heartbeat to show it's still triggering the BP
+  if (BrokenThreadList[id].continueMethod)
+  {
+    sendstringf("continueMethod is not 0\n");
+
+    v.RF=1; //tell the watch handler to skip this
+
+
+
+    //restore the state according to the saved state (could have been changed) and do a single step
+    if (isAMD)
+    {
+      currentcpuinfo->vmcb->RIP=BrokenThreadList[id].state.basic.RIP;
+      currentcpuinfo->vmcb->RAX=BrokenThreadList[id].state.basic.RAX;
+      currentcpuinfo->vmcb->RSP=BrokenThreadList[id].state.basic.RSP;
+      currentcpuinfo->vmcb->RFLAGS=v.value;
+    }
+    else
+    {
+      vmwrite(vm_guest_rip,BrokenThreadList[id].state.basic.RIP);
+      vmwrite(vm_guest_rsp, BrokenThreadList[id].state.basic.RSP);
+      vmwrite(vm_guest_rflags, v.value);
+    }
+    vmregisters->rbx=BrokenThreadList[id].state.basic.RBX;
+    vmregisters->rcx=BrokenThreadList[id].state.basic.RCX;
+    vmregisters->rdx=BrokenThreadList[id].state.basic.RDX;
+    vmregisters->rsi=BrokenThreadList[id].state.basic.RSI;
+    vmregisters->rdi=BrokenThreadList[id].state.basic.RDI;
+    vmregisters->rbp=BrokenThreadList[id].state.basic.RBP;
+    vmregisters->r8=BrokenThreadList[id].state.basic.R8;
+    vmregisters->r9=BrokenThreadList[id].state.basic.R9;
+    vmregisters->r10=BrokenThreadList[id].state.basic.R10;
+    vmregisters->r11=BrokenThreadList[id].state.basic.R11;
+    vmregisters->r12=BrokenThreadList[id].state.basic.R12;
+    vmregisters->r13=BrokenThreadList[id].state.basic.R13;
+    vmregisters->r14=BrokenThreadList[id].state.basic.R14;
+    vmregisters->r15=BrokenThreadList[id].state.basic.R15;
+
+    *fxsave=BrokenThreadList[id].state.fpudata;
+
+    if (BrokenThreadList[id].continueMethod==1)
+    {
+      sendstringf("This is a single step, so setting single step mode\n");
+      //set single stepping
+      vmx_enableSingleStepMode();
+      vmx_addSingleSteppingReason(currentcpuinfo, SSR_STEPANDBREAK, id); //restore rip back to int3 bp after the step
+    }
+    else
+    {
+      BrokenThreadList[id].inuse=0; //continue (on purpuse)
+      BrokenThreadList[id].continueMethod=0;
+
+      sendstringf("Just continue.  It should continue at %2:%6\n",BrokenThreadList[id].state.basic.CS, BrokenThreadList[id].state.basic.RIP);
+      if (isAMD)
+      {
+        sendstringf("It will continue at %2:%6\n",(unsigned char)currentcpuinfo->vmcb->cs_selector, currentcpuinfo->vmcb->RIP);
+      }
+      else
+      {
+        sendstringf("It will continue at %2:%6\n",(unsigned char)vmread(vm_guest_cs), vmread(vm_guest_rip));
+      }
+
+
+      //do one instruction at least
+      if (isAMD)
+      {
+        if (v.IF)
+          currentcpuinfo->vmcb->INTERRUPT_SHADOW=1;
+      }
+      else
+      {
+        vmwrite(vm_guest_interruptability_state,1); //pop ss state
+      }
+
+
+
+    }
+  }
+  else
+  {
+
+    sendstringf("Still frozen.  CR8=%6 IF=%d RF=%d INTERRUPT_SHADOW=%d\n", getCR8(), v.IF, v.RF, currentcpuinfo->vmcb->INTERRUPT_SHADOW);
+  }
+
+  return result;
+}
+
 BOOL ept_handleSoftwareBreakpoint(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, FXSAVE64 *fxsave)
 {
   //check if it is a cloaked instruction
@@ -1235,6 +1336,44 @@ BOOL ept_handleSoftwareBreakpoint(pcpuinfo currentcpuinfo, VMRegisters *vmregist
   if (notpaged==0) //should be since it's a software interrupt...
   {
     //sendstringf("paged\n");
+    csEnter(&BrokenThreadListCS);
+    if (BrokenThreadList && BrokenThreadListPos)
+    {
+      sendstringf("Checking the broken threadlist");
+      for (i=0; i<BrokenThreadListPos; i++)
+      {
+        if (BrokenThreadList[i].inuse)
+        {
+          QWORD cr3;
+          QWORD gsbase;
+          QWORD fsbase;
+
+          if (isAMD)
+          {
+            cr3=currentcpuinfo->vmcb->CR3;
+            gsbase=currentcpuinfo->vmcb->gs_base;
+            fsbase=currentcpuinfo->vmcb->fs_base;
+          }
+          else
+          {
+            vmread(vm_guest_cr3);
+            vmread(vm_guest_fs_base);
+            vmread(vm_guest_gs_base);
+          }
+
+          //check if it's matches this thread
+          if ((BrokenThreadList[i].state.basic.CR3==cr3) && (BrokenThreadList[i].state.basic.FSBASE==fsbase) && (BrokenThreadList[i].state.basic.GSBASE==gsbase) )
+          {
+            result=ept_handleFrozenThread(currentcpuinfo, vmregisters, fxsave, i);
+            break;
+          }
+        }
+      }
+    }
+    csLeave(&BrokenThreadListCS);
+    if (result) return result; //it was a frozen thread
+
+
     csEnter(&CloakedPagesCS);
 
     if (TraceOnBP)
@@ -1281,7 +1420,6 @@ BOOL ept_handleSoftwareBreakpoint(pcpuinfo currentcpuinfo, VMRegisters *vmregist
       TraceOnBP->triggeredcr3=isAMD?currentcpuinfo->vmcb->CR3:vmread(vm_guest_cr3);
       TraceOnBP->triggeredgsbase=isAMD?currentcpuinfo->vmcb->gs_base:vmread(vm_guest_gs_base);
       TraceOnBP->triggeredfsbase=isAMD?currentcpuinfo->vmcb->fs_base:vmread(vm_guest_fs_base);
-
 
       sendstringf("TraceOnBP->triggeredcr3=%6\n", TraceOnBP->triggeredcr3);
       sendstringf("TraceOnBP->triggeredfsbase=%6\n", TraceOnBP->triggeredfsbase);
@@ -1450,6 +1588,182 @@ BOOL ept_handleSoftwareBreakpoint(pcpuinfo currentcpuinfo, VMRegisters *vmregist
   return result;
 }
 
+int ept_handleStepAndBreak(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, FXSAVE64 *fxsave, int brokenthreadid)
+{
+
+  //first check if you can break here. If not, goodbye (todo:step till you can)
+  nosendchar[getAPICID()]=0;
+  sendstringf("ept_handleStepAndBreak\n");
+  DWORD CR8=getCR8();
+  RFLAGS flags;
+  flags.value=isAMD?currentcpuinfo->vmcb->RFLAGS:vmread(vm_guest_rflags);
+
+
+  if ((CR8==0) && (flags.IF)) //if interruptable with no mask (on windows called passive mode)
+  {
+    int kernelmode=0;
+    if (isAMD)
+    {
+      Segment_Attribs csattrib;
+      csattrib.SegmentAttrib=currentcpuinfo->vmcb->cs_attrib;
+      kernelmode=csattrib.DPL==0;
+    }
+    else
+    {
+      Access_Rights csar;
+      csar.AccessRights=vmread(vm_guest_cs_access_rights);
+      kernelmode=csar.DPL==0;
+    }
+
+    csEnter(&BrokenThreadListCS);
+
+    QWORD newRIP=0;
+
+    if (BrokenThreadList[brokenthreadid].continueMethod==1) //single step
+      newRIP=kernelmode?BrokenThreadList[brokenthreadid].KernelModeLoop:BrokenThreadList[brokenthreadid].UserModeLoop; //anything else, will be a run
+
+    if (newRIP) //e.g if no kernelmode is provided, skip kernelmode
+    {
+      //save the current state
+      fillPageEventBasic(&BrokenThreadList[brokenthreadid].state.basic, vmregisters);
+      BrokenThreadList[brokenthreadid].state.fpudata=*fxsave;
+
+      //adjust RIP
+      if (isAMD)
+        currentcpuinfo->vmcb->RIP=newRIP;
+      else
+        vmwrite(vm_guest_rip, newRIP);
+
+      BrokenThreadList[brokenthreadid].continueMethod=0;
+    }
+    else
+    {
+      //delete
+      BrokenThreadList[brokenthreadid].inuse=2; //mark it as lost
+      BrokenThreadList[brokenthreadid].continueMethod=0;
+    }
+
+    csLeave(&BrokenThreadListCS);
+  }
+  else
+  {
+    csEnter(&BrokenThreadListCS);
+    sendstringf("Can not be broken due to interrupt state. Deleting stepping mode\n");
+    BrokenThreadList[brokenthreadid].inuse=2; //lost
+    BrokenThreadList[brokenthreadid].continueMethod=0;
+    csLeave(&BrokenThreadListCS);
+
+
+    //else can't be broken here. bye bye
+  }
+
+  return 0;
+}
+
+int ept_getBrokenThreadListCount(void)
+{
+  return BrokenThreadListPos;
+}
+
+
+
+int ept_getBrokenThreadEntryShort(int id, int *Status, QWORD *CR3, QWORD *FSBASE, QWORD *GSBASE, DWORD *CS, QWORD *RIP, QWORD *heartbeat)
+{
+  int result=0;
+  csEnter(&BrokenThreadListCS);
+  if ((id>=0) && (id<BrokenThreadListPos))
+  {
+    if (BrokenThreadList[id].inuse)
+    {
+      *Status=BrokenThreadList[id].inuse;
+      *CR3=BrokenThreadList[id].state.basic.CR3;
+      *FSBASE=BrokenThreadList[id].state.basic.FSBASE;
+      *GSBASE=BrokenThreadList[id].state.basic.GSBASE;
+      *CS=BrokenThreadList[id].state.basic.CS;
+      *RIP=BrokenThreadList[id].state.basic.RIP;
+      *heartbeat=BrokenThreadList[id].state.basic.Count;
+    }
+    else
+      result=2;
+  }
+  else
+    result=1;
+
+  csLeave(&BrokenThreadListCS);
+  return result;
+}
+
+int ept_getBrokenThreadEntryFull(int id, int *status, PPageEventExtended entry)
+{
+  int result=0;
+  csEnter(&BrokenThreadListCS);
+  if ((id>=0) && (id<BrokenThreadListPos))
+  {
+    if (BrokenThreadList[id].inuse)
+    {
+      *status=BrokenThreadList[id].inuse; //1=ok. 2=lost it
+      *entry=BrokenThreadList[id].state;
+    }
+    else
+      result=2;
+  }
+  else
+    result=1;
+
+  csLeave(&BrokenThreadListCS);
+  return result;
+}
+
+
+int ept_resumeBrokenThread(int id, int continueMethod)
+{
+  int result=0;
+  sendstringf("ept_resumeBrokenThread(%d,%d)\n",id, continueMethod);
+  csEnter(&BrokenThreadListCS);
+  if ((id>=0) && (id<BrokenThreadListPos))
+  {
+    if (BrokenThreadList[id].inuse)
+    {
+      if (BrokenThreadList[id].inuse==2)
+      {
+        sendstringf("This thread was abandoned. Releasing it's spot\n");
+
+        //just release it
+        BrokenThreadList[id].inuse=0;
+        result=4;
+      }
+      else
+      {
+        if (BrokenThreadList[id].continueMethod==0)
+        {
+          sendstringf("Setting broken thread %d to continueMethod %d\n", id, continueMethod);
+          BrokenThreadList[id].continueMethod=continueMethod;
+        }
+        else
+        {
+          sendstringf("already set to continue\n");
+          result=3; //already set to continue
+        }
+      }
+    }
+    else
+    {
+      sendstringf("ID (%d) not in use\n", id);
+      result=2; //not in use
+    }
+  }
+  else
+  {
+    sendstringf("ID (%d) out of range\n", id);
+    result=1; //out of range
+  }
+
+  csLeave(&BrokenThreadListCS);
+
+  return result;
+}
+
+
 
 int ept_handleSoftwareBreakpointAfterStep(pcpuinfo currentcpuinfo UNUSED,  int ID)
 {
@@ -1473,6 +1787,7 @@ int ept_handleSoftwareBreakpointAfterStep(pcpuinfo currentcpuinfo UNUSED,  int I
 
   return result;
 }
+
 
 
 /*
@@ -1546,13 +1861,6 @@ void saveStack(pcpuinfo currentcpuinfo, unsigned char *stack) //stack is 4096 by
 
 void fillPageEventBasic(PageEventBasic *peb, VMRegisters *registers)
 {
-#ifdef MEMORYCHECK
-  //make sure it's all 0xce
-  if (checkmem((unsigned char*)peb, sizeof(PageEventBasic)))
-      while (1);
-
-#endif
-
   if (isAMD)
   {
     pcpuinfo c=getcpuinfo();
@@ -1857,6 +2165,101 @@ BOOL ept_handleWatchEvent(pcpuinfo currentcpuinfo, VMRegisters *registers, PFXSA
     }
   }
 
+
+
+  if ((eptWatchList[ID].Options & EPTO_DBVMBP) && (PhysicalAddress>=eptWatchList[ID].PhysicalAddress) && (PhysicalAddress<eptWatchList[ID].PhysicalAddress+eptWatchList[ID].Size))
+  {
+    sendstringf("EPTO_DBVMBP hit\n");
+    //This is the specific address that was being requested
+    //if the current state has interrupts disabled or masked (cr8<>0) then skip (todo: step until it is)
+
+    DWORD CR8=getCR8();
+    RFLAGS flags;
+    flags.value=isAMD?currentcpuinfo->vmcb->RFLAGS:vmread(vm_guest_rflags);
+    sendstringf("CR8=%6 IF=%d RF=%d\n", CR8,flags.IF,flags.RF);
+
+
+    if ((CR8==0) && (flags.IF) && (flags.RF==0)) //if interruptable with no mask (on windows called passive mode)
+    {
+      int kernelmode=0;
+      if (isAMD)
+      {
+        Segment_Attribs csattrib;
+        csattrib.SegmentAttrib=currentcpuinfo->vmcb->cs_attrib;
+        kernelmode=csattrib.DPL==0;
+      }
+      else
+      {
+        Access_Rights csar;
+        csar.AccessRights=vmread(vm_guest_cs_access_rights);
+        kernelmode=csar.DPL==0;
+      }
+
+      QWORD newRIP=kernelmode?eptWatchList[ID].LoopKernelMode:eptWatchList[ID].LoopUserMode;
+
+      if (newRIP) //e.g if no kernelmode is provided, skip kernelmode (needed for read/write watches as those will also see CE. Just trigger a COW please...)
+      {
+
+        lastSeenEPTWatch.skipped=-1;
+        csLeave(&eptWatchListCS);
+
+
+        sendstringf("Interruptable state. 'Breaking' this code (Saving the state and setting it to RIP %6)\n, newRIP");
+
+        //save this thread's data in a structure so that when the int3 keepalive happens dbvm knows to skip it
+        BrokenThreadEntry e;
+        e.inuse=1;
+        e.continueMethod=0;
+        e.UserModeLoop=eptWatchList[ID].LoopUserMode;
+        e.KernelModeLoop=eptWatchList[ID].LoopKernelMode;
+
+        fillPageEventBasic(&e.state.basic, registers);
+        e.state.fpudata=*fxsave;
+
+        if (isAMD)
+          currentcpuinfo->vmcb->RIP=newRIP;
+        else
+          vmwrite(vm_guest_rip, newRIP);
+
+
+        csEnter(&BrokenThreadListCS);
+        if (BrokenThreadList==NULL)
+        {
+          //allocate the list
+          BrokenThreadList=malloc(sizeof(BrokenThreadEntry)*8);
+          BrokenThreadListSize=8;
+          BrokenThreadListPos=0;
+        }
+
+        if (BrokenThreadListPos>=BrokenThreadListSize) //list full
+        {
+          BrokenThreadList=realloc(BrokenThreadList, sizeof(BrokenThreadEntry)*BrokenThreadListSize+32); //add 32
+          BrokenThreadListSize+=32;
+        }
+
+        //find an unused spot, else add to the end
+        for (i=0; i<BrokenThreadListPos; i++)
+        {
+          if (BrokenThreadList[i].inuse==0)
+          {
+            BrokenThreadList[i]=e;
+            csLeave(&BrokenThreadListCS);
+            return TRUE; //no need to log it or continue
+          }
+        }
+
+        //still here, so add it to the end
+        BrokenThreadList[BrokenThreadListPos]=e;
+        BrokenThreadListPos++;
+        csLeave(&BrokenThreadListCS);
+
+        return TRUE; //no need to log it or continue
+      }
+    }
+    //else can't be broken here
+  }
+
+
   //run once
   sendstringf("%d Making page fully accessible", currentcpuinfo->cpunr);
 
@@ -1875,8 +2278,15 @@ BOOL ept_handleWatchEvent(pcpuinfo currentcpuinfo, VMRegisters *registers, PFXSA
   sendstringf("Page is accessible. Doing single step\n");
 
   vmx_enableSingleStepMode();
-  vmx_addSingleSteppingReason(currentcpuinfo, 1, ID);
+  vmx_addSingleSteppingReason(currentcpuinfo, SSR_HANDLEWATCH, ID);
 
+
+  /*todo:
+  if ((eptWatchList[ID].Options & EPTO_DBVMBP) && (PhysicalAddress>=eptWatchList[ID].PhysicalAddress) && (PhysicalAddress<eptWatchList[ID].PhysicalAddress+eptWatchList[ID].Size))
+  {
+    //still happened? And kernelloop/userloop is valid? Then it's a step until interruptable
+  }
+  */
 
   if ((eptWatchList[ID].Options & EPTO_INTERRUPT) && (PhysicalAddress>=eptWatchList[ID].PhysicalAddress) && (PhysicalAddress<eptWatchList[ID].PhysicalAddress+eptWatchList[ID].Size))
   {
@@ -1886,9 +2296,6 @@ BOOL ept_handleWatchEvent(pcpuinfo currentcpuinfo, VMRegisters *registers, PFXSA
     csLeave(&eptWatchListCS);
     return TRUE; //no need to log it
   }
-
-
-
 
   //save this state?
   if ((isAMD==0) && (eptWatchList[ID].Type!=EPTW_EXECUTE) && (evi.R==0) && (evi.X==1))
@@ -2331,15 +2738,6 @@ VMSTATUS ept_traceonbp_retrievelog(QWORD results, DWORD *resultSize, DWORD *offs
   unsigned char *destination=mapVMmemoryEx(NULL, destinationaddress, blocksize, &error, &pagefaultaddress,1);
 
 
-  if (*offset==0)
-  {
-    DWORD *p=source;
-    sendstringf("p[0]=%d\n",p[0]);
-    sendstringf("p[1]=%d\n",p[1]);
-  }
-
-
-
   if (error)
   {
     sendstringf("Error during map (%d)\n", error);
@@ -2540,10 +2938,6 @@ VMSTATUS ept_watch_retrievelog(int ID, QWORD results, DWORD *resultSize, DWORD *
 
   if ((*offset) && (eptWatchList[ID].CopyInProgress==0))
   {
-#ifdef MEMORYCHECK
-    while (1);
-
-#endif
     if (isAMD)
     {
       if (AMD_hasNRIPS)
@@ -2560,9 +2954,6 @@ VMSTATUS ept_watch_retrievelog(int ID, QWORD results, DWORD *resultSize, DWORD *
 
   if ((*offset)>sizeneeded)
   {
-#ifdef MEMORYCHECK
-    while (1);
-#endif
     if (isAMD)
     {
       if (AMD_hasNRIPS)
@@ -2693,10 +3084,10 @@ VMSTATUS ept_watch_retrievelog(int ID, QWORD results, DWORD *resultSize, DWORD *
 }
 
 
-int ept_watch_activate(QWORD PhysicalAddress, int Size, int Type, DWORD Options, int MaxEntryCount, int *outID)
+int ept_watch_activate(QWORD PhysicalAddress, int Size, int Type, DWORD Options, int MaxEntryCount, int *outID, QWORD OptionalField1, QWORD OptionalField2)
 {
   int result=0;
-  sendstringf("+ ept_watch_activate(%6, %d, %d, %x, %d, %6)\n", PhysicalAddress, Size, Options, MaxEntryCount, outID);
+  sendstringf("+ ept_watch_activate(%6, %d, %d, %x, %d, %6, %6,%6)\n", PhysicalAddress, Size, Options, MaxEntryCount, outID, OptionalField1, OptionalField2);
 
   if ((MaxEntryCount==0) && ((EPTO_INTERRUPT & Options)==0) )
   {
@@ -2733,17 +3124,16 @@ int ept_watch_activate(QWORD PhysicalAddress, int Size, int Type, DWORD Options,
 
   eptWatchList[ID].PhysicalAddress=PhysicalAddress;
   eptWatchList[ID].Type=Type;
+  if (Options & EPTO_DBVMBP)
+  {
+    eptWatchList[ID].LoopUserMode=OptionalField1;
+    eptWatchList[ID].LoopKernelMode=OptionalField2;
+  }
+
+
   eptWatchList[ID].Log=malloc(sizeof(PageEventListDescriptor)*2+structsize*MaxEntryCount); //*2 because i'm not sure how the alignment of the final entry goes
   zeromemory(eptWatchList[ID].Log, sizeof(PageEventListDescriptor)*2+structsize*MaxEntryCount);
 
-#ifdef MEMORYCHECK
-  memset(eptWatchList[ID].Log, 0xce, sizeof(PageEventListDescriptor)*2+structsize*MaxEntryCount);
-
-
-  if (checkmem((unsigned char*)&eptWatchList[ID].Log->pe.basic[0], structsize*MaxEntryCount))
-    while (1);
-
-#endif
 
   eptWatchList[ID].Log->ID=ID;
   eptWatchList[ID].Log->entryType=structtype;
@@ -3643,6 +4033,7 @@ QWORD EPTMapPhysicalMemory(pcpuinfo currentcpuinfo, QWORD physicalAddress, int f
     getMTRRMapInfo(physicalAddress & MAXPHYADDRMASKPB,0x1000, &fullmap, &memtype);
     if (!fullmap)
     {
+      nosendchar[getAPICID()]=0;
       sendstring("Assertion Fail: fullmap is false for a 1 page range");
       ddDrawRectangle(0,DDVerticalResolution-100,100,100,0xff0000);
       while (1) outportb(0x80,0xc3);
@@ -3724,6 +4115,7 @@ VMSTATUS handleEPTViolation(pcpuinfo currentcpuinfo, VMRegisters *vmregisters UN
 
 VMSTATUS handleEPTMisconfig(pcpuinfo currentcpuinfo UNUSED, VMRegisters *vmregisters UNUSED)
 {
+  nosendchar[getAPICID()]=0;
   sendstring("handleEPTMisconfig\n");
   //could have been a timing misconfig, try again
 

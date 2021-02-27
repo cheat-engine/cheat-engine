@@ -4,6 +4,13 @@
 #include "main.h"
 #include "vmmhelper.h"
 
+//single step reasons
+#define SSR_HANDLEWATCH 1 //restore the protection after step
+#define SSR_HANDLECLOAK 2
+#define SSR_HANDLESOFTWAREBREAKPOINT 3
+#define SSR_STEPANDBREAK 4 //do a single step and then change RIP to the loop routine
+#define SSR_STEPTILLINTERUPTABLE 5 //nyi
+
 typedef struct
 /* this struct is to keep track of what the guest sets in the comport */
 {
@@ -64,7 +71,7 @@ int setVM_CR0(pcpuinfo currentcpuinfo, UINT64 newcr0);
 int setVM_CR3(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, UINT64 newcr3);
 int setVM_CR4(pcpuinfo currentcpuinfo, UINT64 newcr4);
 
-int handleSingleStep(pcpuinfo currentcpuinfo);
+int handleSingleStep(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, FXSAVE64 *fxsave);
 int handleRealModeInt0x15(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, int instructionsize);
 int raisePMI();
 int raiseNMI(void);

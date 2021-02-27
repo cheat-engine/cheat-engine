@@ -324,8 +324,14 @@ int cinthandler(unsigned long long *stack, int intnr) //todo: move to it's own s
   DWORD thisAPICID;
   int cpunr=0;
 
+  thisAPICID=getAPICID();
+  nosendchar[getAPICID()]=0;
+
   enableserial();
 
+  sendstring("\n------------------------------------------\n");
+  sendstringf("|             EXCEPTION %d               |\n", intnr);
+  sendstring("------------------------------------------\n");
 
   ddDrawRectangle(DDHorizontalResolution-100,0,100,100,_rdtsc());
 
@@ -376,7 +382,7 @@ int cinthandler(unsigned long long *stack, int intnr) //todo: move to it's own s
     setDR7(0ULL);
   }
 
-  thisAPICID=getAPICID();
+
 
 #ifdef CHECKAPICID
   if (thisAPICID!=cpuinfo->apicid)
@@ -400,7 +406,7 @@ int cinthandler(unsigned long long *stack, int intnr) //todo: move to it's own s
 
   sendstringf("cpunr=%d (apicid=%d)\n\r",cpunr, thisAPICID);
   sendstringf("intnr=%d\n\r",intnr);
-  sendstringf("rsp=%x\n\r",getRSP());
+  sendstringf("rsp=%6\n\r",getRSP());
   sendstringf("cr2=%6\n\r",getCR2());
   errorcode=0;
 
@@ -482,6 +488,7 @@ int cinthandler(unsigned long long *stack, int intnr) //todo: move to it's own s
 
   sendstringf("Checking if it was an expected interrupt\n\r");
   cpuinfo->LastExceptionRIP=stack[16+errorcode];
+  cpuinfo->LastInterrupt=(unsigned char)intnr;
 
   if (cpuinfo->OnException[0].RIP)
   {

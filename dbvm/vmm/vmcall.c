@@ -913,7 +913,7 @@ int vmcall_watch_delete(PVMCALL_WATCH_DISABLE_PARAM params)
 
 int vmcall_watch_activate(PVMCALL_WATCH_PARAM params, int Type)
 {
-  return ept_watch_activate(params->PhysicalAddress, params->Size, Type, params->Options, params->MaxEntryCount, &params->ID);
+  return ept_watch_activate(params->PhysicalAddress, params->Size, Type, params->Options, params->MaxEntryCount, &params->ID, params->OptionalField1, params->OptionalField2);
 }
 
 int _handleVMCallInstruction(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, ULONG *vmcall_instruction)
@@ -2090,8 +2090,68 @@ int _handleVMCallInstruction(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, 
       break;
     }
 
+    case VMCALL_GETBROKENTHREADLISTSIZE:
+    {
+      vmregisters->rax=ept_getBrokenThreadListCount();
+      break;
+
+    }
+
+    case VMCALL_GETBROKENTHREADENTRYSHORT:
+    {
+      typedef struct
+      {
+        VMCALL_BASIC vmcall;
+        int id;
+        int Status;
+        DWORD CS;
+        QWORD RIP;
+        QWORD CR3;
+        QWORD FSBASE;
+        QWORD GSBASE;
+        QWORD Heartbeat;
+
+      }  __attribute__((__packed__)) *PGETBROKENTHREADENTRYSHORT_PARAM;
+      PGETBROKENTHREADENTRYSHORT_PARAM p=(PGETBROKENTHREADENTRYSHORT_PARAM)vmcall_instruction;
+
+      vmregisters->rax=ept_getBrokenThreadEntryShort(p->id, &p->Status, &p->CR3, &p->FSBASE, &p->GSBASE, &p->CS, &p->RIP, &p->Heartbeat);
+      break;
+    }
+
+    case VMCALL_GETBROKENTHREADENTRYFULL:
+    {
+      typedef struct
+      {
+        VMCALL_BASIC vmcall;
+        int id;
+        int status;
+        PageEventExtended entry;
+      }  __attribute__((__packed__)) *PGETBROKENTHREADENTRYFULL_PARAM;
+      PGETBROKENTHREADENTRYFULL_PARAM p=(PGETBROKENTHREADENTRYFULL_PARAM)vmcall_instruction;
+
+      vmregisters->rax=ept_getBrokenThreadEntryFull(p->id, &p->status, &p->entry);
+      break;
+    }
+
+    case VMCALL_RESUMEBROKENTHREAD:
+    {
+      typedef struct
+      {
+        VMCALL_BASIC vmcall;
+        DWORD id;
+        DWORD continueMethod;
+      }  __attribute__((__packed__)) *PVMCALL_RESUMEBROKENTHREAD_PARAM;
+      PVMCALL_RESUMEBROKENTHREAD_PARAM p=(PVMCALL_RESUMEBROKENTHREAD_PARAM)vmcall_instruction;
+
+      sendstringf("VMCALL_RESUMEBROKENTHREAD %d\n", p->id);
+      vmregisters->rax=ept_resumeBrokenThread(p->id, p->continueMethod);
+      break;
+    }
+
     case VMCALL_CAUSEDDEBUGBREAK:
     {
+
+      //When DBVM causes an int1 BP this says so (on the cpu that cause it, once)
       vmregisters->rax=currentcpuinfo->BPCausedByDBVM;
       currentcpuinfo->BPCausedByDBVM=0;
       break;
@@ -2196,6 +2256,9 @@ int _handleVMCall(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
       ddDrawRectangle(0,DDVerticalResolution-100,100,100,0xff0000);
       if (r)
       {
+        nosendchar[getAPICID()]=0;
+        sendstringf("handleRealModeInt0x15 returned %d (should be 0)\n",r);
+
         while (1) outportb(0x80,0xd2);
       }
       return 0;

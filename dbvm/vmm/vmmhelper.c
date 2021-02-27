@@ -1280,6 +1280,9 @@ int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers, void *fxsave)
         	  break;
 
         }
+
+        skip=1; //skip all rdmsr
+
         break;
 
       }
@@ -1296,6 +1299,8 @@ int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers, void *fxsave)
           break;
 
         }
+
+        skip=1;
 
         break;
       }
@@ -1314,6 +1319,9 @@ int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers, void *fxsave)
       {
         //int cs=vmread(vm_guest_cs);
         //unsigned long long rip=vmread(vm_guest_rip);
+        nosendchar[getAPICID()]=0;
+        sendstringf("invalid guest\n");
+
         skip=verbosity; //never
 
 
