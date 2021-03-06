@@ -3837,7 +3837,7 @@ begin
         5: vtype:=vtDouble;
       end;
 
-      if cbtype.itemindex>=6 then
+      if cbtype.itemindex>=8 then
       begin
         vtype:=vtCustom;
         ct:=TCustomType(cbtype.Items.Objects[cbtype.itemindex]);
