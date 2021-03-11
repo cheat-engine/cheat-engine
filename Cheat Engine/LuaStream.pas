@@ -312,6 +312,7 @@ var
   ms: Tmemorystream;
   r: boolean=false;
 begin
+  result:=0;
   ms:=luaclass_getClassObject(L);
   if lua_gettop(L)>=1 then
   try
@@ -331,6 +332,8 @@ end;
 function memorystream_saveToFileNoError(L: PLua_State): integer; cdecl;
 var ms: Tmemorystream;
 begin
+  result:=0;
+
   ms:=luaclass_getClassObject(L);
   if lua_gettop(L)>=1 then
   try
@@ -346,7 +349,6 @@ begin
     end;
   end;
 
-  result:=0;
 end;
 
 procedure memorystream_addMetaData(L: PLua_state; metatable: integer; userdata: integer );

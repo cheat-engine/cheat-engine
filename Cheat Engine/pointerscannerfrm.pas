@@ -3835,9 +3835,11 @@ begin
         3: vtype:=vtQword;
         4: vtype:=vtSingle;
         5: vtype:=vtDouble;
+        6: vtype:=vtString;
+        7: vtype:=vtUnicodeString;
       end;
 
-      if cbtype.itemindex>=6 then
+      if cbtype.itemindex>=8 then
       begin
         vtype:=vtCustom;
         ct:=TCustomType(cbtype.Items.Objects[cbtype.itemindex]);

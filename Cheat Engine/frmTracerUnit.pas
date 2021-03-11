@@ -239,6 +239,8 @@ resourcestring
   rsSearch = 'Search';
   rsTypeTheLUAConditionYouWantToSearchForExampleEAX0x1 = 'Type the (LUA) condition you want to search for (Example: EAX==0x1234)    '#13#10'Also available: referencedAddress (integer), referencedBytes (bytetable), instruction (string)';
   rsWaitingForTraceToStart = 'Waiting for trace to start';
+  rsDBVMBreakAndTraceNeedsDBVM = 'DBVM Break and Trace needs DBVM. Loading '
+    +'DBVM can potentially cause a system freeze. Are you sure?';
 
 destructor TTraceDebugInfo.destroy;
 begin
@@ -397,7 +399,10 @@ begin
     end;
 
     if max<>0 then
+    begin
       progressbar.position:=trunc((count/max)*100);
+      found.caption:=format('%d/%d  (%d %%)', [count, max, progressbar.position]);
+    end;
   end;
 
 
@@ -1217,6 +1222,9 @@ begin
 
       if cbDBVMBreakAndTrace.checked then
       begin
+        if loaddbvmifneeded(rsDBVMBreakAndTraceNeedsDBVM)=false then exit;
+
+
         //setup dbvm trace
         if (owner is TMemoryBrowser) then
           fromaddress:=(owner as TMemoryBrowser).disassemblerview.SelectedAddress
@@ -1847,10 +1855,10 @@ begin
   action:=cafree; //if still buggy, change to cahide
 
   if DBVMStatusUpdater<>nil then
-  begin
     freeandnil(DBVMStatusUpdater);
+
+  if physicaladdress<>0 then
     dbvm_cloak_traceonbp_remove(physicaladdress);
-  end;
 end;
 
 procedure TfrmTracer.Button1Click(Sender: TObject);

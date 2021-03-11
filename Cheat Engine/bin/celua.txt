@@ -2728,7 +2728,7 @@ dbvm_getCR4(): Returns the real Control Register 4 state
 dbvm_readPhysicalMemory(address, size): bytetable
 dbvm_writePhysicalMemory(address, bytetable)
 
-dbvm_watch_writes(PhysicalAddress, bytesize OPTIONAL, OPTIONS OPTIONAL,  internalentrycount OPTIONAL) : 
+dbvm_watch_writes(PhysicalAddress, bytesize OPTIONAL, OPTIONS OPTIONAL,  internalentrycount OPTIONAL, Optional1, Optional2) : 
   Starts watching writes to the given address range
   OPTIONS is a binary field.
     (1 << 0): Log the same RIP multiple times (if different registers)
@@ -2737,11 +2737,13 @@ dbvm_watch_writes(PhysicalAddress, bytesize OPTIONAL, OPTIONS OPTIONAL,  interna
     (1 << 3): Logs contain a 4KB stack snapshot
     (1 << 4): does nothing
     (1 << 5): If the number of recorded entries gets bigger than internalentrycount, grow the list instead of discarding the entries
-
+    (1 << 6): <reserved>
+    (1 << 7): DBVMBP.  Not a watch! When triggered changes RIP to Optional1 if in UserMode and Optional2 if in Kernelmode.  These addresses need to contain an 0xcc (int3) . If 0 RIP will not be changed, and also not if the current state is not interuptable. Look at dbvm_bp_* functions for more information
   On success returns an ID to use with dbvm_watch_retrievelog and dbvm_watch_disable
 
 
-dbvm_watch_reads(PhysicalAddress, bytesize OPTIONAL, OPTIONS OPTIONAL,  internalentrycount OPTIONAL) : see dbvm_watch_writes but then for reads and writes
+dbvm_watch_reads(PhysicalAddress, bytesize OPTIONAL, OPTIONS OPTIONAL,  internalentrycount OPTIONAL, Optional1, Optional2) : see dbvm_watch_writes but then for reads and writes
+dbvm_watch_executes(PhysicalAddress, bytesize OPTIONAL, OPTIONS OPTIONAL,  internalentrycount OPTIONAL, Optional1, Optional2) : see dbvm_watch_writes but then for executes
 dbvm_watch_retrievelog(ID) : Returns an array of watch event data. (Context of the system at the time of the event, like registers)
 dbvm_watch_disable(ID) : Disables the watch operation
 
@@ -2792,6 +2794,10 @@ dbvm_traceonbp_stoptrace() : requests the trace to stop
 dbvm_traceonbp_remove(pa,force: boolean) - Disables the current trace and removes all results
 dbvm_traceonbp_retrievelog() : Returns an array of traceentries. (Context of the system at the time of the event, like registers)
 
+dbvm_bp_getBrokenThreadListSize() : Returns the number of breakpoint slots currently available
+dbvm_bp_getBrokenThreadEventShort(id) : Returns a table with information about the specific breakpoint slow
+dbvm_bp_getBrokenThreadEventFull(id) : Returns a bigger table (fpu and stack) 
+dbvm_bp_resumeBrokenThread(id, continueMethod) : Resumes the specific thread.  continueMethod can be 0=run, 1=step into
 
 
 dbvm_log_cr3_start() : Tells DBVM to record (up to 512) unique CR3 values it encounters
