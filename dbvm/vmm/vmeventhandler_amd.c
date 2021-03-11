@@ -22,6 +22,8 @@
 
 int c=0;
 
+
+
 criticalSection debugoutput;
 int handleVMEvent_amd(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, FXSAVE64 *fxsave)
 {
@@ -108,6 +110,25 @@ int handleVMEvent_amd(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, FXSAVE6
 
   switch (currentcpuinfo->vmcb->EXITCODE)
   {
+
+    case VMEXIT_CR3_WRITE:
+    {
+      int gpr=currentcpuinfo->vmcb->EXITINFO1 & 0xf;
+      int result;
+      QWORD value=getRegister(currentcpuinfo, vmregisters, gpr);
+
+      sendstringf("cpu %d: CR3 write operation: %6 (gpr=%d  value=%6)\n", currentcpuinfo->cpunr, currentcpuinfo->vmcb->EXITINFO1, gpr, value);
+
+      result=setVM_CR3(currentcpuinfo, vmregisters, value);
+
+      if (CR3ValueLog==NULL) //stop logging
+        currentcpuinfo->vmcb->InterceptCR0_15Write&=~(1<<3);
+
+      if (result==0)
+        currentcpuinfo->vmcb->RIP=currentcpuinfo->vmcb->nRIP;
+
+      return result;
+    }
 
     case VMEXIT_INTR:
     {
@@ -198,7 +219,7 @@ int handleVMEvent_amd(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, FXSAVE6
 
       if (handleSoftwareBreakpoint(currentcpuinfo, vmregisters, fxsave))
       {
-        sendstring("VMEXIT_EXCP3: handleSoftwareBreakpoint handled it. Returning 0\n");
+        //sendstring("VMEXIT_EXCP3: handleSoftwareBreakpoint handled it. Returning 0\n");
         return 0;
       }
 

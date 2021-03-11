@@ -1136,13 +1136,16 @@ BOOL ept_handleHardwareBreakpoint(pcpuinfo currentcpuinfo, VMRegisters *vmregist
     {
       regDR6 dr6;
       QWORD cr3;
-      QWORD fsbase,gsbase;
+      QWORD fsbase,gsbase, kernelgsbase;
+      kernelgsbase=readMSR(0xc0000102);
+
       if (isAMD)
       {
         dr6.DR6=currentcpuinfo->vmcb->DR6;
         cr3=currentcpuinfo->vmcb->CR3;
         fsbase=currentcpuinfo->vmcb->fs_base;
         gsbase=currentcpuinfo->vmcb->gs_base;
+        //kernelgsbase=currentcpuinfo->vmcb->KernelGsBase; //maybe?
       }
       else
       {
@@ -1160,10 +1163,11 @@ BOOL ept_handleHardwareBreakpoint(pcpuinfo currentcpuinfo, VMRegisters *vmregist
       sendstringf("TraceOnBP->cr3=%8\n" , cr3);
       sendstringf("TraceOnBP->fsbase=%8\n" , fsbase);
       sendstringf("TraceOnBP->gsbase=%8\n" , gsbase);
+      sendstringf("TraceOnBP->gsbasekernel=%8\n" , kernelgsbase);
+
 
       if ((dr6.BS) && (TraceOnBP->triggeredcr3==cr3) && (TraceOnBP->triggeredfsbase==fsbase) && (TraceOnBP->triggeredgsbase==gsbase))
       {
-        //todo:save the state
 
         recordState(&TraceOnBP->pe, TraceOnBP->datatype, TraceOnBP->numberOfEntries, currentcpuinfo, vmregisters, fxsave);
         TraceOnBP->numberOfEntries++;
@@ -1226,18 +1230,18 @@ BOOL ept_handleFrozenThread(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, F
   int result=TRUE;
   RFLAGS v;
   v.value=BrokenThreadList[id].state.basic.FLAGS;
-  sendstringf("ept_handleFrozenThread\n");
+  //sendstringf("ept_handleFrozenThread\n");
 
   BrokenThreadList[id].state.basic.Count++;//heartbeat to show it's still triggering the BP
   if (BrokenThreadList[id].continueMethod)
   {
     sendstringf("continueMethod is not 0\n");
 
-    v.RF=1; //tell the watch handler to skip this
+    v.RF=1; //tell the watch handler to skip this if it returns at the same spot again
 
 
 
-    //restore the state according to the saved state (could have been changed) and do a single step
+    //restore the state according to the saved state (could have been changed) and do a single step or run
     if (isAMD)
     {
       currentcpuinfo->vmcb->RIP=BrokenThreadList[id].state.basic.RIP;
@@ -1274,6 +1278,8 @@ BOOL ept_handleFrozenThread(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, F
       //set single stepping
       vmx_enableSingleStepMode();
       vmx_addSingleSteppingReason(currentcpuinfo, SSR_STEPANDBREAK, id); //restore rip back to int3 bp after the step
+
+      BrokenThreadList[id].watchid=-1; //set it as single stepping
     }
     else
     {
@@ -1309,7 +1315,7 @@ BOOL ept_handleFrozenThread(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, F
   else
   {
 
-    sendstringf("Still frozen.  CR8=%6 IF=%d RF=%d INTERRUPT_SHADOW=%d\n", getCR8(), v.IF, v.RF, currentcpuinfo->vmcb->INTERRUPT_SHADOW);
+    //sendstringf("Still frozen.  CR8=%6 IF=%d RF=%d INTERRUPT_SHADOW=%d\n", getCR8(), v.IF, v.RF, currentcpuinfo->vmcb->INTERRUPT_SHADOW);
   }
 
   return result;
@@ -1331,7 +1337,7 @@ BOOL ept_handleSoftwareBreakpoint(pcpuinfo currentcpuinfo, VMRegisters *vmregist
   int notpaged;
   QWORD PA=getPhysicalAddressVM(currentcpuinfo, RIP, &notpaged);
 
-  sendstringf("ept_handleSoftwareBreakpoint.  RIP=%6 PA=%6\n", RIP, PA);
+ // sendstringf("ept_handleSoftwareBreakpoint.  RIP=%6 PA=%6\n", RIP, PA);
 
   if (notpaged==0) //should be since it's a software interrupt...
   {
@@ -1339,30 +1345,29 @@ BOOL ept_handleSoftwareBreakpoint(pcpuinfo currentcpuinfo, VMRegisters *vmregist
     csEnter(&BrokenThreadListCS);
     if (BrokenThreadList && BrokenThreadListPos)
     {
-      sendstringf("Checking the broken threadlist");
+      //sendstringf("Checking the broken threadlist");
       for (i=0; i<BrokenThreadListPos; i++)
       {
         if (BrokenThreadList[i].inuse)
         {
           QWORD cr3;
-          QWORD gsbase;
-          QWORD fsbase;
+          QWORD rip;
 
           if (isAMD)
           {
             cr3=currentcpuinfo->vmcb->CR3;
-            gsbase=currentcpuinfo->vmcb->gs_base;
-            fsbase=currentcpuinfo->vmcb->fs_base;
+            rip=currentcpuinfo->vmcb->RIP;
           }
           else
           {
-            vmread(vm_guest_cr3);
-            vmread(vm_guest_fs_base);
-            vmread(vm_guest_gs_base);
+            cr3=vmread(vm_guest_cr3);
+            rip=vmread(vm_guest_rip);
           }
 
+          //warning: In windows, kernelmode gsbase changes depending on the cpu so can not be used as identifier then
+
           //check if it's matches this thread
-          if ((BrokenThreadList[i].state.basic.CR3==cr3) && (BrokenThreadList[i].state.basic.FSBASE==fsbase) && (BrokenThreadList[i].state.basic.GSBASE==gsbase) )
+          if ((cr3==BrokenThreadList[i].state.basic.CR3) && ((rip==BrokenThreadList[i].KernelModeLoop) || (rip==BrokenThreadList[i].UserModeLoop)))
           {
             result=ept_handleFrozenThread(currentcpuinfo, vmregisters, fxsave, i);
             break;
@@ -1376,8 +1381,8 @@ BOOL ept_handleSoftwareBreakpoint(pcpuinfo currentcpuinfo, VMRegisters *vmregist
 
     csEnter(&CloakedPagesCS);
 
-    if (TraceOnBP)
-      sendstringf("TraceOnBP->PhysicalAddres=%6  PA=%6\n", TraceOnBP->PhysicalAddress, PA);
+    //if (TraceOnBP)
+    //  sendstringf("TraceOnBP->PhysicalAddres=%6  PA=%6\n", TraceOnBP->PhysicalAddress, PA);
 
 
     if (TraceOnBP && (TraceOnBP->PhysicalAddress==PA))
@@ -1599,7 +1604,7 @@ int ept_handleStepAndBreak(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, FX
   flags.value=isAMD?currentcpuinfo->vmcb->RFLAGS:vmread(vm_guest_rflags);
 
 
-  if ((CR8==0) && (flags.IF)) //if interruptable with no mask (on windows called passive mode)
+  if ((CR8==0) && (flags.IF)) //if interruptable with no mask (on windows called passive mode) (not 100% if on win32, but who uses that...)
   {
     int kernelmode=0;
     if (isAMD)
@@ -1616,6 +1621,13 @@ int ept_handleStepAndBreak(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, FX
     }
 
     csEnter(&BrokenThreadListCS);
+
+    if (isAMD) //normally this gets reset after the single step handler. But it needs to be reset here already
+    {
+      flags.TF=currentcpuinfo->singleStepping.PreviousTFState;
+      currentcpuinfo->vmcb->RFLAGS=flags.value;
+    }
+
 
     QWORD newRIP=0;
 
@@ -1667,7 +1679,7 @@ int ept_getBrokenThreadListCount(void)
 
 
 
-int ept_getBrokenThreadEntryShort(int id, int *Status, QWORD *CR3, QWORD *FSBASE, QWORD *GSBASE, DWORD *CS, QWORD *RIP, QWORD *heartbeat)
+int ept_getBrokenThreadEntryShort(int id, int *WatchID, int *Status, QWORD *CR3, QWORD *FSBASE, QWORD *GSBASE, QWORD *GSBASE_KERNEL, DWORD *CS, QWORD *RIP, QWORD *heartbeat)
 {
   int result=0;
   csEnter(&BrokenThreadListCS);
@@ -1675,10 +1687,13 @@ int ept_getBrokenThreadEntryShort(int id, int *Status, QWORD *CR3, QWORD *FSBASE
   {
     if (BrokenThreadList[id].inuse)
     {
-      *Status=BrokenThreadList[id].inuse;
+      *WatchID=BrokenThreadList[id].watchid;
+      *Status=BrokenThreadList[id].inuse | (BrokenThreadList[id].continueMethod << 8);
+
       *CR3=BrokenThreadList[id].state.basic.CR3;
       *FSBASE=BrokenThreadList[id].state.basic.FSBASE;
       *GSBASE=BrokenThreadList[id].state.basic.GSBASE;
+      *GSBASE_KERNEL=BrokenThreadList[id].state.basic.GSBASE_KERNEL;
       *CS=BrokenThreadList[id].state.basic.CS;
       *RIP=BrokenThreadList[id].state.basic.RIP;
       *heartbeat=BrokenThreadList[id].state.basic.Count;
@@ -1693,7 +1708,7 @@ int ept_getBrokenThreadEntryShort(int id, int *Status, QWORD *CR3, QWORD *FSBASE
   return result;
 }
 
-int ept_getBrokenThreadEntryFull(int id, int *status, PPageEventExtended entry)
+int ept_getBrokenThreadEntryFull(int id, int *watchid, int *status, PPageEventExtended entry)
 {
   int result=0;
   csEnter(&BrokenThreadListCS);
@@ -1701,8 +1716,11 @@ int ept_getBrokenThreadEntryFull(int id, int *status, PPageEventExtended entry)
   {
     if (BrokenThreadList[id].inuse)
     {
-      *status=BrokenThreadList[id].inuse; //1=ok. 2=lost it
+      //0..7:1=ok. 2=lost it
+      //8..15: continuemethod (if not 0, still waiting to precess)
+      *status=BrokenThreadList[id].inuse | (BrokenThreadList[id].continueMethod << 8);
       *entry=BrokenThreadList[id].state;
+      *watchid=BrokenThreadList[id].watchid;
     }
     else
       result=2;
@@ -1714,6 +1732,24 @@ int ept_getBrokenThreadEntryFull(int id, int *status, PPageEventExtended entry)
   return result;
 }
 
+int ept_setBrokenThreadEntryFull(int id, PPageEventExtended entry)
+{
+  int result=0;
+  csEnter(&BrokenThreadListCS);
+  if ((id>=0) && (id<BrokenThreadListPos))
+  {
+    if (BrokenThreadList[id].inuse)
+      BrokenThreadList[id].state=*entry;
+    else
+      result=2;
+  }
+  else
+    result=1;
+
+  csLeave(&BrokenThreadListCS);
+  return result;
+
+}
 
 int ept_resumeBrokenThread(int id, int continueMethod)
 {
@@ -1738,6 +1774,7 @@ int ept_resumeBrokenThread(int id, int continueMethod)
         {
           sendstringf("Setting broken thread %d to continueMethod %d\n", id, continueMethod);
           BrokenThreadList[id].continueMethod=continueMethod;
+          BrokenThreadList[id].watchid=-1;
         }
         else
         {
@@ -1861,6 +1898,8 @@ void saveStack(pcpuinfo currentcpuinfo, unsigned char *stack) //stack is 4096 by
 
 void fillPageEventBasic(PageEventBasic *peb, VMRegisters *registers)
 {
+
+  peb->GSBASE_KERNEL=readMSR(IA32_GS_BASE_KERNEL_MSR);
   if (isAMD)
   {
     pcpuinfo c=getcpuinfo();
@@ -1870,6 +1909,7 @@ void fillPageEventBasic(PageEventBasic *peb, VMRegisters *registers)
     peb->CR3=c->vmcb->CR3;
     peb->FSBASE=c->vmcb->fs_base;
     peb->GSBASE=c->vmcb->gs_base;
+
     peb->FLAGS=c->vmcb->RFLAGS;
     peb->RAX=c->vmcb->RAX;
     peb->RBX=registers->rbx;
@@ -1888,6 +1928,12 @@ void fillPageEventBasic(PageEventBasic *peb, VMRegisters *registers)
     peb->RBP=registers->rbp;
     peb->RSP=c->vmcb->RSP;
     peb->RIP=c->vmcb->RIP;
+    peb->DR0=getDR0();
+    peb->DR1=getDR1();
+    peb->DR2=getDR2();
+    peb->DR3=getDR3();
+    peb->DR6=c->vmcb->DR6;
+    peb->DR7=c->vmcb->DR7;
     peb->CS=c->vmcb->cs_selector;
     peb->DS=c->vmcb->ds_selector;
     peb->ES=c->vmcb->es_selector;
@@ -1922,6 +1968,14 @@ void fillPageEventBasic(PageEventBasic *peb, VMRegisters *registers)
     peb->RBP=registers->rbp;
     peb->RSP=vmread(vm_guest_rsp);
     peb->RIP=vmread(vm_guest_rip);
+
+    peb->DR0=getDR0();
+    peb->DR1=getDR1();
+    peb->DR2=getDR2();
+    peb->DR3=getDR3();
+
+    peb->DR6=getDR6();
+    peb->DR7=vmread(vm_guest_dr7);
     peb->CS=vmread(vm_guest_cs);
     peb->DS=vmread(vm_guest_ds);
     peb->ES=vmread(vm_guest_es);
@@ -2200,16 +2254,19 @@ BOOL ept_handleWatchEvent(pcpuinfo currentcpuinfo, VMRegisters *registers, PFXSA
       if (newRIP) //e.g if no kernelmode is provided, skip kernelmode (needed for read/write watches as those will also see CE. Just trigger a COW please...)
       {
 
+        nosendchar[getAPICID()]=0;
+
         lastSeenEPTWatch.skipped=-1;
         csLeave(&eptWatchListCS);
 
 
-        sendstringf("Interruptable state. 'Breaking' this code (Saving the state and setting it to RIP %6)\n, newRIP");
+        sendstringf("EPTO_DBVMBP: Interruptable state. 'Breaking' this code (Saving the state and setting it to RIP %6)\n, newRIP");
 
         //save this thread's data in a structure so that when the int3 keepalive happens dbvm knows to skip it
         BrokenThreadEntry e;
         e.inuse=1;
         e.continueMethod=0;
+        e.watchid=ID;
         e.UserModeLoop=eptWatchList[ID].LoopUserMode;
         e.KernelModeLoop=eptWatchList[ID].LoopKernelMode;
 
@@ -3089,13 +3146,13 @@ int ept_watch_activate(QWORD PhysicalAddress, int Size, int Type, DWORD Options,
   int result=0;
   sendstringf("+ ept_watch_activate(%6, %d, %d, %x, %d, %6, %6,%6)\n", PhysicalAddress, Size, Options, MaxEntryCount, outID, OptionalField1, OptionalField2);
 
-  if ((MaxEntryCount==0) && ((EPTO_INTERRUPT & Options)==0) )
+  if ((MaxEntryCount==0) && (((EPTO_INTERRUPT|EPTO_DBVMBP) & Options)==0) )
   {
     sendstringf("MaxEntryCount=0\n");
     return 1;
   }
   else
-    sendstringf("MaxEntryCount=%d\n", MaxEntryCount);
+    sendstringf("MaxEntryCount=%d (this is ok)\n", MaxEntryCount);
 
   csEnter(&eptWatchListCS);
 

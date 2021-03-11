@@ -217,6 +217,7 @@ typedef struct _pageevent_basic
   QWORD CR3; //in case of kernel or other process
   QWORD FSBASE;
   QWORD GSBASE;
+  QWORD GSBASE_KERNEL;
   QWORD FLAGS;
   QWORD RAX;
   QWORD RBX;
@@ -235,6 +236,12 @@ typedef struct _pageevent_basic
   QWORD RBP;
   QWORD RSP;
   QWORD RIP;
+  QWORD DR0;
+  QWORD DR1;
+  QWORD DR2;
+  QWORD DR3;
+  QWORD DR6;
+  QWORD DR7;
   WORD CS;
   WORD DS;
   WORD ES;
@@ -357,6 +364,7 @@ typedef struct
 {
   int inuse;//1 if this entry contains a thread
   int continueMethod; //0=no, 1=single step, 2=run  (resets to 0 after taking a step.  if 2 then inuse turns false
+  int watchid; //the watchid that caused the break.  -1 if it's a single step
 
   QWORD UserModeLoop; //where to go to after a step
   QWORD KernelModeLoop;

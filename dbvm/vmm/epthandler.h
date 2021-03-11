@@ -91,8 +91,9 @@ VMSTATUS ept_watch_retrievelog(int ID, QWORD results, DWORD *resultSize, DWORD *
 
 
 int ept_getBrokenThreadListCount(void);
-int ept_getBrokenThreadEntryShort(int id, int *status, QWORD *CR3, QWORD *FSBASE, QWORD *GSBASE, DWORD *CS, QWORD *RIP, QWORD *heartbeat);
-int ept_getBrokenThreadEntryFull(int id, int *status, PPageEventExtended entry);
+int ept_getBrokenThreadEntryShort(int id, int *WatchID, int *status, QWORD *CR3, QWORD *FSBASE, QWORD *GSBASE, QWORD *GSBASE_KERNEL, DWORD *CS, QWORD *RIP, QWORD *heartbeat);
+int ept_getBrokenThreadEntryFull(int id, int *watchid, int *status, PPageEventExtended entry);
+int ept_setBrokenThreadEntryFull(int id, PPageEventExtended entry);
 int ept_resumeBrokenThread(int id, int continueMethod);
 
 

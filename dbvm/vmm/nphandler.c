@@ -376,7 +376,7 @@ VMSTATUS handleNestedPagingFault(pcpuinfo currentcpuinfo, VMRegisters *vmregiste
 {
   //handle the paging event
 
-  nosendchar[getAPICID()]=0;
+  nosendchar[getAPICID()]=1;
   QWORD PhysicalAddress=currentcpuinfo->vmcb->EXITINFO2;
   QWORD ErrorInfo=currentcpuinfo->vmcb->EXITINFO1;
 

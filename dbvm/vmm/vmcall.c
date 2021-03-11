@@ -359,7 +359,11 @@ int raisePrivilege(pcpuinfo currentcpuinfo)
 
 }
 
-int VMCALL_SwitchToKernelMode(pcpuinfo cpuinfo, WORD newCS) {
+int VMCALL_SwitchToKernelMode(pcpuinfo cpuinfo, WORD newCS)
+{
+  nosendchar[getAPICID()]=0;
+  sendstringf("Calling kernelmode\n");
+
 	pvmcb vmcb = cpuinfo->vmcb;
 
 	//Referenced to syscall (only valid in 64bit)
@@ -1821,10 +1825,12 @@ int _handleVMCallInstruction(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, 
     case VMCALL_LOG_CR3VALUES_START:
     {
 
-      //Todo: When CR3 exiting has been disabled, add an enable exit on CR3 change
-
       if (CR3ValueLog)
       {
+        //already exists, just tell this cpu to do the logging
+        if (isAMD)
+          currentcpuinfo->vmcb->InterceptCR0_15Write|=(1<<3); //break on cr3 write
+
         vmregisters->rax=0;
         break;
       }
@@ -1833,15 +1839,22 @@ int _handleVMCallInstruction(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, 
       CR3ValuePos=0;
       CR3ValueLog=malloc(4096);
       zeromemory(CR3ValueLog,4096);
+
       csLeave(&CR3ValueLogCS);
 
       vmregisters->rax=1;
+
+
       break;
     }
 
     case VMCALL_LOG_CR3VALUES_STOP:
     {
       PVMCALL_LOGCR3_STOP_PARAM param=(PVMCALL_LOGCR3_STOP_PARAM)vmcall_instruction;
+
+      nosendchar[getAPICID()]=0;
+      sendstringf("Stopping CR3 log.  CR3ValuePos=%d\n",CR3ValuePos);
+
 
       if (CR3ValueLog==NULL)
       {
@@ -1877,8 +1890,11 @@ int _handleVMCallInstruction(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, 
 
       CR3ValuePos=0;
       free(CR3ValueLog);
-      CR3ValueLog=NULL;
+      CR3ValueLog=NULL; //this stops all other cpu's from logging
       csLeave(&CR3ValueLogCS);
+
+      if (isAMD)
+        currentcpuinfo->vmcb->InterceptCR0_15Write&=~(1<<3); //can speed up this cpu already
 
       vmregisters->rax=1;
       break;
@@ -2103,18 +2119,20 @@ int _handleVMCallInstruction(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, 
       {
         VMCALL_BASIC vmcall;
         int id;
+        int Watchid;
         int Status;
         DWORD CS;
         QWORD RIP;
         QWORD CR3;
         QWORD FSBASE;
         QWORD GSBASE;
+        QWORD GSBASE_KERNEL;
         QWORD Heartbeat;
 
       }  __attribute__((__packed__)) *PGETBROKENTHREADENTRYSHORT_PARAM;
       PGETBROKENTHREADENTRYSHORT_PARAM p=(PGETBROKENTHREADENTRYSHORT_PARAM)vmcall_instruction;
 
-      vmregisters->rax=ept_getBrokenThreadEntryShort(p->id, &p->Status, &p->CR3, &p->FSBASE, &p->GSBASE, &p->CS, &p->RIP, &p->Heartbeat);
+      vmregisters->rax=ept_getBrokenThreadEntryShort(p->id, &p->Watchid, &p->Status, &p->CR3, &p->FSBASE, &p->GSBASE, &p->GSBASE_KERNEL, &p->CS, &p->RIP, &p->Heartbeat);
       break;
     }
 
@@ -2124,12 +2142,27 @@ int _handleVMCallInstruction(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, 
       {
         VMCALL_BASIC vmcall;
         int id;
+        int watchid;
         int status;
         PageEventExtended entry;
       }  __attribute__((__packed__)) *PGETBROKENTHREADENTRYFULL_PARAM;
       PGETBROKENTHREADENTRYFULL_PARAM p=(PGETBROKENTHREADENTRYFULL_PARAM)vmcall_instruction;
 
-      vmregisters->rax=ept_getBrokenThreadEntryFull(p->id, &p->status, &p->entry);
+      vmregisters->rax=ept_getBrokenThreadEntryFull(p->id, &p->watchid,  &p->status, &p->entry);
+      break;
+    }
+
+    case VMCALL_SETBROKENTHREADENTRYFULL:
+    {
+      typedef struct
+      {
+        VMCALL_BASIC vmcall;
+        int id;
+        PageEventExtended entry;
+      }  __attribute__((__packed__)) *PGETBROKENTHREADENTRYFULL_PARAM;
+      PGETBROKENTHREADENTRYFULL_PARAM p=(PGETBROKENTHREADENTRYFULL_PARAM)vmcall_instruction;
+
+      vmregisters->rax=ept_setBrokenThreadEntryFull(p->id, &p->entry);
       break;
     }
 
@@ -2143,6 +2176,7 @@ int _handleVMCallInstruction(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, 
       }  __attribute__((__packed__)) *PVMCALL_RESUMEBROKENTHREAD_PARAM;
       PVMCALL_RESUMEBROKENTHREAD_PARAM p=(PVMCALL_RESUMEBROKENTHREAD_PARAM)vmcall_instruction;
 
+      nosendchar[getAPICID()]=0;
       sendstringf("VMCALL_RESUMEBROKENTHREAD %d\n", p->id);
       vmregisters->rax=ept_resumeBrokenThread(p->id, p->continueMethod);
       break;
@@ -2180,6 +2214,7 @@ int _handleVMCallInstruction(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, 
 
     case VMCALL_KERNELMODE:
     {
+
       WORD newCS = *(WORD*)&vmcall_instruction[3];
       vmregisters->rax = VMCALL_SwitchToKernelMode(currentcpuinfo, newCS);
       break;

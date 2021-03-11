@@ -1772,7 +1772,7 @@ int handleWRMSR(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
       if (error)
       {
         nosendchar[getAPICID()]=0;
-        sendstringf("Exception during MSR write (interrupt %d)\n",currentcpuinfo->LastInterrupt);
+        sendstringf("Exception during MSR write (interrupt %d)\n",exceptionnr);
         return raiseGeneralProtectionFault(0);
       }
 
@@ -2028,7 +2028,10 @@ void setRegister(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, int general_
 	switch (general_purpose_register)
   {
     case 0: //RAX
-      vmregisters->rax=value;
+      if (isAMD)
+        currentcpuinfo->vmcb->RAX=value;
+      else
+        vmregisters->rax=value;
       break;
 
     case 1: //RCX
@@ -2044,7 +2047,10 @@ void setRegister(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, int general_
       break;
 
     case 4: //RSP
-      vmwrite(vm_guest_rsp,value);
+      if (isAMD)
+        currentcpuinfo->vmcb->RSP=value;
+      else
+        vmwrite(vm_guest_rsp,value);
       break;
 
     case 5: //RBP
@@ -2095,14 +2101,17 @@ void setRegister(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, int general_
 
 }
 
-UINT64 getRegister(VMRegisters *vmregisters, int general_purpose_register)
+UINT64 getRegister(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, int general_purpose_register)
 /* called by handleCRaccess on the changeCR event */
 {
 
 	switch (general_purpose_register)
   {
   	case 0: //RAX
-  	  return vmregisters->rax;
+  	  if (isAMD)
+  	    return currentcpuinfo->vmcb->RAX;
+  	  else
+  	    return vmregisters->rax;
 
     case 1: //RCX
       return vmregisters->rcx;
@@ -2114,7 +2123,10 @@ UINT64 getRegister(VMRegisters *vmregisters, int general_purpose_register)
 			return vmregisters->rbx;
 
     case 4: //RSP
-      return vmread(vm_guest_rsp);
+      if (isAMD)
+        return currentcpuinfo->vmcb->RSP;
+      else
+        return vmread(vm_guest_rsp);
 
     case 5: //RBP
       return vmregisters->rbp;
@@ -2527,8 +2539,8 @@ int setVM_CR3(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, UINT64 newcr3)
  * Called when the system changes the CR3 register
  */
 {
-  int shouldInvalidate=hasVPIDSupport;
-  sendstringf("3:Setting CR3 (%6)\n\r", newcr3);
+  int shouldInvalidate=hasVPIDSupport || isAMD;
+  sendstringf("setVM_CR3: Setting CR3 (%6)\n\r", newcr3);
 
 
   //This is likely a contextswitch. Update the lowestTSC to normal
@@ -2537,8 +2549,9 @@ int setVM_CR3(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, UINT64 newcr3)
 
 
   //Ultimap
-  if (currentcpuinfo->Ultimap.Active)
+  if ((currentcpuinfo->Ultimap.Active) && (!isAMD))
     ultimap_handleCR3Change(currentcpuinfo, currentcpuinfo->guestCR3, newcr3);
+
 
   /* From intel reference docs:
    * If CR4.PCIDE = 1, bit 63 of the source operand to MOV to CR3 determines whether the instruction invalidates
@@ -2547,7 +2560,7 @@ Paging-Structure Caches,” in the Intel® 64 and IA-32 Architectures Software D
 instruction does not modify bit 63 of CR3, which is reserved and always 0.
    */
 
-  QWORD cr4=vmread(vm_guest_cr4);
+  QWORD cr4=isAMD?currentcpuinfo->vmcb->CR4:vmread(vm_guest_cr4);
 
   sendstringf("cr4=%6\n", cr4);
 
@@ -2600,52 +2613,65 @@ instruction does not modify bit 63 of CR3, which is reserved and always 0.
   if (!IS64BITPAGING(currentcpuinfo))
     currentcpuinfo->guestCR3=currentcpuinfo->guestCR3 & 0xffffffff;
 
-  if (hasUnrestrictedSupport)
+  if ((hasUnrestrictedSupport) || (isAMD))
   {
-    vmwrite(vm_guest_cr3,newcr3);
+    if (isAMD)
+    {
+      currentcpuinfo->vmcb->CR3=newcr3;
+      currentcpuinfo->vmcb->VMCB_CLEAN_BITS&=~(1 << 5); //CR3 changed
+    }
+    else
+      vmwrite(vm_guest_cr3,newcr3);
+
     if (shouldInvalidate)
     {
-      int type=3;
-  	  INVVPIDDESCRIPTOR desc;
-  	  desc.LinearAddress=0;
-  	  desc.zero=0;
-  	  desc.VPID=1;
+      if (isAMD)
+      {
+        currentcpuinfo->vmcb->TLB_CONTROL=1;
+      }
+      else
+      {
+        int type=3;
+        INVVPIDDESCRIPTOR desc;
+        desc.LinearAddress=0;
+        desc.zero=0;
+        desc.VPID=1;
 
-  	  if (has_VPID_INVVPIDSingleContextRetainingGlobals)
-        type=3;
-  	  else
-  		if (has_VPID_INVVPIDSingleContext)
-    	  type=2;
-    	else
-    	  type=1; //all
+        if (has_VPID_INVVPIDSingleContextRetainingGlobals)
+          type=3;
+        else
+        if (has_VPID_INVVPIDSingleContext)
+          type=2;
+        else
+          type=1; //all
 
-      _invvpid(type, &desc);
+        _invvpid(type, &desc);
+      }
     }
-
-
-
     return 0;
   }
 
   //if paging is enabled then set the pagetable to this else just do it and ignore till it is enabled
-  if (vmread(vm_cr0_read_shadow) & (1<<31))
+  if (!isAMD)
   {
-    if (currentcpuinfo->cr3_callback.cr3_change_callback)
-      return handle_cr3_callback(currentcpuinfo,vmregisters);
+    if (vmread(vm_cr0_read_shadow) & (1<<31))
+    {
+      if (currentcpuinfo->cr3_callback.cr3_change_callback)
+        return handle_cr3_callback(currentcpuinfo,vmregisters);
 
-    //paging is enabled, emulate the pagetable update
-    sendstringf("Paging is enabled, so emulate the pagetable update\n\r");
+      //paging is enabled, emulate the pagetable update
+      sendstringf("Paging is enabled, so emulate the pagetable update\n\r");
 
-    emulatePaging(currentcpuinfo);
+      emulatePaging(currentcpuinfo);
+    }
+    else
+    {
+      sendstringf("paging isn't enabled , so don't apply the update yet\n\r");
+    }
+
+    sendstringf("guestCR3=%8\n\r",currentcpuinfo->guestCR3);
+    sendstringf("realguestCR3=%8\n\r",vmread(vm_guest_cr3));
   }
-  else
-  {
-    sendstringf("paging isn't enabled , so don't apply the update yet\n\r");
-  }
-
-
-  sendstringf("guestCR3=%8\n\r",currentcpuinfo->guestCR3);
-  sendstringf("realguestCR3=%8\n\r",vmread(vm_guest_cr3));
 
   return 0;
 }
@@ -2849,7 +2875,7 @@ int handleCRaccess(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
           else
           {
             sendstringf("0:PUTTING THE VALUE OF REGISTER %d INTO CR0\n\r", general_purpose_register);
-					  newcr0=getRegister(vmregisters,general_purpose_register);
+					  newcr0=getRegister(currentcpuinfo, vmregisters,general_purpose_register);
             if (!IS64BITCODE(currentcpuinfo))
               newcr0=newcr0 & 0xffffffff; //32-bit mask
           }
@@ -2899,7 +2925,7 @@ int handleCRaccess(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
           sendstringf("3:PUTTING THE VALUE OF REGISTER %d INTO CR3\n\r", general_purpose_register);
 
 
-					currentcpuinfo->guestCR3=getRegister(vmregisters,general_purpose_register);
+					currentcpuinfo->guestCR3=getRegister(currentcpuinfo, vmregisters,general_purpose_register);
           if (!IS64BITPAGING(currentcpuinfo))
             currentcpuinfo->guestCR3=currentcpuinfo->guestCR3 & 0xffffffff;
 
@@ -2921,7 +2947,7 @@ int handleCRaccess(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
           sendstringf("guestCR3=%8\n\r",currentcpuinfo->guestCR3);
           */
 
-          result = setVM_CR3(currentcpuinfo, vmregisters, getRegister(vmregisters,general_purpose_register));
+          result = setVM_CR3(currentcpuinfo, vmregisters, getRegister(currentcpuinfo, vmregisters,general_purpose_register));
           if (result==0)
           {
             vmwrite(vm_guest_rip,vmread(vm_guest_rip)+vmread(vm_exit_instructionlength)); //adjust eip to go after this instruction (we handled/emulated it)
@@ -2966,7 +2992,7 @@ int handleCRaccess(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
         case 0: //move to CR4
         {
           //UINT64 oldCR4=vmread(0x6006);
-          UINT64 newCR4=getRegister(vmregisters,general_purpose_register);
+          UINT64 newCR4=getRegister(currentcpuinfo, vmregisters,general_purpose_register);
 
 
           sendstringf("PUTTING THE VALUE OF REGISTER %d INTO CR4 (%8)\n\r", general_purpose_register,newCR4);
@@ -3693,7 +3719,7 @@ BOOL handleSoftwareBreakpoint(pcpuinfo currentcpuinfo, VMRegisters *vmregisters,
   {
     if (ept_handleSoftwareBreakpoint(currentcpuinfo, vmregisters, fxsave))
     {
-      sendstring("handleSoftwareBreakpoint: ept_handleSoftwareBreakpoint handled it. Returning TRUE\n");
+      //sendstring("handleSoftwareBreakpoint: ept_handleSoftwareBreakpoint handled it. Returning TRUE\n");
       return TRUE;
     }
   }
