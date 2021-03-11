@@ -14,7 +14,7 @@ object formSettings: TformSettings
   OnDestroy = FormDestroy
   OnShow = FormShow
   Position = poMainFormCenter
-  LCLVersion = '2.0.6.0'
+  LCLVersion = '2.0.10.0'
   object pnlConfig: TPanel
     Left = 0
     Height = 571
@@ -63,9 +63,9 @@ object formSettings: TformSettings
       Height = 569
       Top = 1
       Width = 660
-      ActivePage = GeneralSettings
+      ActivePage = Assembler
       Align = alClient
-      TabIndex = 0
+      TabIndex = 6
       TabOrder = 1
       OnChange = pcSettingChange
       object GeneralSettings: TTabSheet
@@ -1368,13 +1368,13 @@ object formSettings: TformSettings
           Height = 541
           Top = 0
           Width = 652
-          HorzScrollBar.Page = 631
+          HorzScrollBar.Page = 648
           HorzScrollBar.Tracking = True
-          VertScrollBar.Page = 520
+          VertScrollBar.Page = 511
           VertScrollBar.Tracking = True
           Align = alClient
           ClientHeight = 520
-          ClientWidth = 631
+          ClientWidth = 648
           TabOrder = 0
           object replacewithnops: TCheckBox
             AnchorSideLeft.Control = Label4
@@ -1413,28 +1413,27 @@ object formSettings: TformSettings
             AnchorSideRight.Control = ScrollBox3
             AnchorSideRight.Side = asrBottom
             Left = 8
-            Height = 129
-            Top = 308
-            Width = 324
-            AutoSize = True
+            Height = 86
+            Top = 327
+            Width = 528
             BorderSpacing.Top = 2
             Caption = 'Debugger interface config'
-            ClientHeight = 109
-            ClientWidth = 320
+            ClientHeight = 66
+            ClientWidth = 524
             TabOrder = 2
             object pcDebugConfig: TPageControl
               Left = 0
-              Height = 109
+              Height = 66
               Top = 0
-              Width = 320
-              ActivePage = tsVEHDebugConfig
+              Width = 524
+              ActivePage = TabSheet1
               Align = alClient
-              TabIndex = 0
+              TabIndex = 4
               TabOrder = 0
               object tsVEHDebugConfig: TTabSheet
                 Caption = 'VEH Debugger'
-                ClientHeight = 81
-                ClientWidth = 312
+                ClientHeight = 38
+                ClientWidth = 516
                 object rbVEHHookThreadCreation: TRadioButton
                   AnchorSideLeft.Control = tsVEHDebugConfig
                   AnchorSideTop.Control = rbVEHPollThread
@@ -1503,8 +1502,8 @@ object formSettings: TformSettings
               end
               object tsWindowsDebuggerConfig: TTabSheet
                 Caption = 'Windows Debugger'
-                ClientHeight = 19
-                ClientWidth = 234
+                ClientHeight = 38
+                ClientWidth = 516
                 object CheckBox1: TCheckBox
                   AnchorSideLeft.Control = tsWindowsDebuggerConfig
                   AnchorSideTop.Control = tsWindowsDebuggerConfig
@@ -1520,7 +1519,7 @@ object formSettings: TformSettings
               object tsKernelDebugConfig: TTabSheet
                 Caption = 'Kernel Debug'
                 ClientHeight = 38
-                ClientWidth = 203
+                ClientWidth = 516
                 object cbGlobalDebug: TCheckBox
                   AnchorSideLeft.Control = tsKernelDebugConfig
                   AnchorSideTop.Control = tsKernelDebugConfig
@@ -1545,15 +1544,15 @@ object formSettings: TformSettings
               end
               object tsMacDebuggerInterface: TTabSheet
                 Caption = 'Mac Debug'
-                ClientHeight = 36
-                ClientWidth = 92
+                ClientHeight = 38
+                ClientWidth = 516
                 object rbMacDebugTaskLevel: TRadioButton
                   AnchorSideLeft.Control = tsMacDebuggerInterface
                   AnchorSideTop.Control = tsMacDebuggerInterface
                   Left = 0
-                  Height = 18
+                  Height = 19
                   Top = 0
-                  Width = 81
+                  Width = 73
                   Caption = 'Task Level'
                   Checked = True
                   TabOrder = 1
@@ -1564,11 +1563,37 @@ object formSettings: TformSettings
                   AnchorSideTop.Control = rbMacDebugTaskLevel
                   AnchorSideTop.Side = asrBottom
                   Left = 0
-                  Height = 18
-                  Top = 18
-                  Width = 92
+                  Height = 19
+                  Top = 19
+                  Width = 83
                   Caption = 'Thread level'
                   TabOrder = 0
+                end
+              end
+              object TabSheet1: TTabSheet
+                Caption = 'DBVM'
+                ClientHeight = 38
+                ClientWidth = 516
+                object cbDBVMDebugTriggerCOW: TCheckBox
+                  AnchorSideLeft.Control = TabSheet1
+                  AnchorSideTop.Control = TabSheet1
+                  Left = 0
+                  Height = 19
+                  Top = 0
+                  Width = 274
+                  Caption = 'Trigger copy-on-write before activating watches'
+                  TabOrder = 0
+                end
+                object cbDBVMDebugTargetedProcessOnly: TCheckBox
+                  AnchorSideLeft.Control = TabSheet1
+                  AnchorSideTop.Control = cbDBVMDebugTriggerCOW
+                  AnchorSideTop.Side = asrBottom
+                  Left = 0
+                  Height = 19
+                  Top = 19
+                  Width = 135
+                  Caption = 'Targeted process only'
+                  TabOrder = 1
                 end
               end
             end
@@ -1578,7 +1603,7 @@ object formSettings: TformSettings
             AnchorSideTop.Control = edtStacksize
             AnchorSideTop.Side = asrBottom
             Left = 8
-            Height = 96
+            Height = 115
             Top = 210
             Width = 400
             AutoSize = True
@@ -1589,7 +1614,7 @@ object formSettings: TformSettings
             ChildSizing.ShrinkHorizontal = crsScaleChilds
             ChildSizing.ShrinkVertical = crsScaleChilds
             ChildSizing.ControlsPerLine = 1
-            ClientHeight = 76
+            ClientHeight = 95
             ClientWidth = 396
             TabOrder = 3
             object cbUseVEHDebugger: TRadioButton
@@ -1681,6 +1706,20 @@ object formSettings: TformSettings
               OnChange = cbDebuggerInterfaceChange
               OnClick = cbDebuggerInterfaceChange
               TabOrder = 4
+            end
+            object cbUseDBVMDebugger: TRadioButton
+              Tag = 3
+              AnchorSideLeft.Control = cbUseMacDebugger
+              AnchorSideTop.Control = cbUseMacDebugger
+              AnchorSideTop.Side = asrBottom
+              Left = 6
+              Height = 19
+              Top = 76
+              Width = 158
+              Caption = 'Use DBVM-level debugger'
+              OnChange = cbDebuggerInterfaceChange
+              OnClick = cbDebuggerInterfaceChange
+              TabOrder = 5
             end
           end
           object Label4: TLabel
@@ -1813,7 +1852,7 @@ object formSettings: TformSettings
             AnchorSideRight.Side = asrBottom
             Left = 8
             Height = 96
-            Top = 439
+            Top = 415
             Width = 357
             AutoSize = True
             BorderSpacing.Top = 2
@@ -1962,14 +2001,14 @@ object formSettings: TformSettings
       end
       object Extra: TTabSheet
         Caption = 'Extra'
-        ClientHeight = 520
-        ClientWidth = 1008
+        ClientHeight = 541
+        ClientWidth = 652
         ImageIndex = 6
         object TauntOldOsUser: TLabel
           Left = 0
           Height = 15
-          Top = 505
-          Width = 1008
+          Top = 526
+          Width = 652
           Align = alBottom
           Alignment = taCenter
           Caption = 'I really recommend upgrading to Windows 2000 or later mister Flintstone'
@@ -1980,14 +2019,14 @@ object formSettings: TformSettings
           Left = 5
           Height = 77
           Top = 0
-          Width = 998
+          Width = 642
           Align = alTop
           AutoSize = True
           BorderSpacing.Left = 5
           BorderSpacing.Right = 5
           Caption = 'Use the following CE Kernel routines instead of the original windows version'
           ClientHeight = 57
-          ClientWidth = 994
+          ClientWidth = 638
           TabOrder = 0
           object cbKernelQueryMemoryRegion: TCheckBox
             AnchorSideLeft.Control = GroupBox3

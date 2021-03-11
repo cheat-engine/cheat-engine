@@ -103,7 +103,7 @@ begin
   rbBPDBVM.enabled:=((CurrentDebuggerInterface<>nil) and (dbcDBVMBreakpoint in CurrentDebuggerInterface.DebuggerCapabilities)) or (formsettings.cbKDebug.Checked);
 
   cbDBVMBreakAndTrace.visible:=isDBVMCapable;
-  cbDBVMBreakAndTrace.enabled:=isRunningDBVM;
+  cbDBVMBreakAndTrace.enabled:=isDBVMCapable;
 
   if (CurrentDebuggerInterface=nil) and isRunningDBVM then //no debugger running, go for dbvm by default
     cbDBVMBreakAndTrace.Checked:=true;

@@ -811,8 +811,16 @@ begin
 end;
 
 procedure TMemoryBrowser.setShowDebugPanels(state: boolean);
+var
+  oldstackwidth: integer;
+  oldpanel3width: integer;
+
+  cw: integer;
+  ew: integer;
 begin
-  if state then
+  oldstackwidth:=pnlStacktrace.Width;
+  oldpanel3width:=panel3.width;
+  {if state then
   begin
     //resizing should change the stack, not the hexview
     panel3.Align:=alLeft;
@@ -826,7 +834,7 @@ begin
     pnlStacktrace.align:=alRight;
     splitter3.Align:=alRight;
     panel3.Align:=alclient;
-  end;
+  end; }
 
   FShowDebugPanels:=state;
   registerview.Visible:=state;
@@ -834,7 +842,7 @@ begin
   splitter2.Visible:=state;
   splitter3.Visible:=state;
 
-
+  pnlStacktrace.width:=oldstackwidth;
 end;
 
 procedure TMemoryBrowser.SetStacktraceSize(size: integer);
@@ -1267,7 +1275,7 @@ begin
   begin
     VA:=disassemblerview.SelectedAddress;
 
-    if GetPhysicalAddress(processhandle,pointer(VA),int64(PA)) then
+    if GetPhysicalAddress(processhandle,pointer(VA),PA) then
       dbvm_cloak_activate(PA,VA);
   end;
   {$endif}
@@ -3976,7 +3984,7 @@ var
   PA: qword;
   bo: integer;
 begin
-  //first check if it's a dbvm changeregonbp bp, and if so, disable it
+  //first check if it's a cloaked dbvm bp, and if so, disable it
   if dbvm_isBreakpoint(disassemblerview.SelectedAddress, PA, BO, b) then
   begin
     if bo=1 then //changeregonbp
@@ -4743,32 +4751,32 @@ begin
     s:=disassemble(address2);
 
     //spawn a DBVM watch config screen where the user can select options like lock memory
-    if frmDBVMWatchConfig=nil then
-      frmDBVMWatchConfig:=TfrmDBVMWatchConfig.create(self);
+    if frmDBVMWatchConfigFindWhatCodeAccesses=nil then
+      frmDBVMWatchConfigFindWhatCodeAccesses:=TfrmDBVMWatchConfig.create(self);
 
-    frmDBVMWatchConfig.address:=address;
-    frmDBVMWatchConfig.rbExecuteAccess.checked:=true;
-    frmDBVMWatchConfig.gbAccessType.visible:=false;
+    frmDBVMWatchConfigFindWhatCodeAccesses.address:=address;
+    frmDBVMWatchConfigFindWhatCodeAccesses.rbExecuteAccess.checked:=true;
+    frmDBVMWatchConfigFindWhatCodeAccesses.gbAccessType.visible:=false;
 
-    frmDBVMWatchConfig.cbMultipleRIP.checked:=true;
-    frmDBVMWatchConfig.cbMultipleRIP.Visible:=false;
-    frmDBVMWatchConfig.cbWholePage.Visible:=false;
+    frmDBVMWatchConfigFindWhatCodeAccesses.cbMultipleRIP.checked:=true;
+    frmDBVMWatchConfigFindWhatCodeAccesses.cbMultipleRIP.Visible:=false;
+    frmDBVMWatchConfigFindWhatCodeAccesses.cbWholePage.Visible:=false;
 
-    if frmDBVMWatchConfig.showmodal=mrok then
+    if frmDBVMWatchConfigFindWhatCodeAccesses.showmodal=mrok then
     begin
-      if frmDBVMWatchConfig.LockPage then
+      if frmDBVMWatchConfigFindWhatCodeAccesses.LockPage then
         unlockaddress:=LockMemory(processid, address and QWORD($fffffffffffff000),4096)
       else
         unlockaddress:=0;
 
-      id:=dbvm_watch_executes(frmDBVMWatchConfig.PhysicalAddress, address2-address, frmDBVMWatchConfig.Options, frmDBVMWatchConfig.MaxEntries);
+      id:=dbvm_watch_executes(frmDBVMWatchConfigFindWhatCodeAccesses.PhysicalAddress, address2-address, frmDBVMWatchConfigFindWhatCodeAccesses.Options, frmDBVMWatchConfigFindWhatCodeAccesses.MaxEntries);
 
       if (id<>-1) then
       begin
         //spawn a frmchangedaddresses
         frmchangedaddresses:=tfrmChangedAddresses.Create(application);
 
-        if frmDBVMWatchConfig.LockPage then
+        if frmDBVMWatchConfigFindWhatCodeAccesses.LockPage then
           unlockaddress:=LockMemory(processid, address and QWORD($fffffffffffff000),4096)
         else
           unlockaddress:=0;
@@ -4810,9 +4818,6 @@ begin
         MessageDlg('dbvm_watch failed', mtError, [mbok],0);
 
     end;
-    freeandnil(frmDBVMWatchConfig);
-
-
   end;
   {$endif}
 end;

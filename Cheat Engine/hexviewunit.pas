@@ -199,8 +199,6 @@ type
     procedure lineDown(sender: TObject);
 
     function DisplayTypeByteSize(dt: TDisplayType): integer; inline;
-
-
   protected
     procedure KeyDown(var Key: Word; Shift: TShiftState); override;
     procedure UTF8KeyPress(var UTF8Key: TUTF8Char); override;
@@ -298,7 +296,7 @@ implementation
 
 {$IFNDEF STANDALONEHV}
 uses formsettingsunit, Valuechange, MainUnit, ProcessHandlerUnit, parsers,
-  StructuresFrm2, MemoryBrowserFormUnit, BreakpointTypeDef, globals;
+  StructuresFrm2, MemoryBrowserFormUnit, BreakpointTypeDef, globals, DBK32functions;
 {$ENDIF}
 
 resourcestring
@@ -1689,7 +1687,9 @@ begin
     memoryinfo:=memoryinfo+' '+rsSize+'='+IntTohex(mbi.RegionSize, 1);
 
     {$ifdef windows}
-    if (formsettings<>nil) and assigned(GetPhysicalAddress) and formsettings.cbKernelOpenProcess.checked and GetPhysicalAddress(processhandle,pointer(fAddress),a64) then
+    if (formsettings<>nil) and
+        formsettings.cbKernelOpenProcess.checked and
+        GetPhysicalAddress(processhandle,pointer(fAddress),a64) then
       memoryInfo:=memoryInfo+' '+rsPhysicalAddress+'='+IntToHex(a64, 8);
     {$endif}
 

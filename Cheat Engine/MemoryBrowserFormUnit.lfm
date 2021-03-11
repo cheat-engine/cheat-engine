@@ -1,12 +1,12 @@
 object MemoryBrowser: TMemoryBrowser
-  Left = 527
+  Left = 403
   Height = 536
-  Top = 224
-  Width = 708
+  Top = 95
+  Width = 643
   HelpContext = 12
   Caption = 'Memory Viewer'
   ClientHeight = 516
-  ClientWidth = 708
+  ClientWidth = 643
   Menu = MainMenu1
   OnActivate = FormActivate
   OnClose = FormClose
@@ -15,13 +15,13 @@ object MemoryBrowser: TMemoryBrowser
   OnResize = FormResize
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '2.0.6.0'
+  LCLVersion = '2.0.10.0'
   object Splitter1: TSplitter
     Cursor = crVSplit
     Left = 0
     Height = 5
     Top = 364
-    Width = 708
+    Width = 643
     Align = alTop
     AutoSnap = False
     Beveled = True
@@ -35,15 +35,15 @@ object MemoryBrowser: TMemoryBrowser
     Left = 0
     Height = 364
     Top = 0
-    Width = 708
+    Width = 643
     Align = alTop
     BevelOuter = bvNone
     ClientHeight = 364
-    ClientWidth = 708
+    ClientWidth = 643
     ParentFont = False
     TabOrder = 0
     object Splitter2: TSplitter
-      Left = 488
+      Left = 423
       Height = 364
       Top = 0
       Width = 5
@@ -56,11 +56,11 @@ object MemoryBrowser: TMemoryBrowser
       Left = 0
       Height = 364
       Top = 0
-      Width = 488
+      Width = 423
       Align = alClient
       BevelOuter = bvNone
       ClientHeight = 364
-      ClientWidth = 488
+      ClientWidth = 423
       ParentFont = False
       TabOrder = 0
       OnClick = Panel5Click
@@ -68,7 +68,7 @@ object MemoryBrowser: TMemoryBrowser
         Left = 0
         Height = 42
         Top = 0
-        Width = 488
+        Width = 423
         AutoSize = True
         ButtonHeight = 40
         ButtonWidth = 23
@@ -169,7 +169,7 @@ object MemoryBrowser: TMemoryBrowser
       end
     end
     object RegisterView: TPanel
-      Left = 493
+      Left = 428
       Height = 364
       Top = 0
       Width = 215
@@ -683,16 +683,16 @@ object MemoryBrowser: TMemoryBrowser
     Left = 0
     Height = 147
     Top = 369
-    Width = 708
+    Width = 643
     Align = alClient
     BevelOuter = bvNone
     BorderWidth = 1
     ClientHeight = 147
-    ClientWidth = 708
+    ClientWidth = 643
     ParentFont = False
     TabOrder = 1
     object Splitter3: TSplitter
-      Left = 493
+      Left = 428
       Height = 145
       Top = 1
       Width = 5
@@ -706,14 +706,14 @@ object MemoryBrowser: TMemoryBrowser
       Left = 1
       Height = 145
       Top = 1
-      Width = 492
+      Width = 427
       Align = alClient
       BevelOuter = bvNone
       ParentFont = False
       TabOrder = 0
     end
     object pnlStacktrace: TPanel
-      Left = 498
+      Left = 433
       Height = 145
       Top = 1
       Width = 209

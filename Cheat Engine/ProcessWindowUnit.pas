@@ -856,7 +856,9 @@ end;
 procedure TProcessWindow.btnAttachDebuggerClick(Sender: TObject);
 var ProcessIDString: String;
     i:               Integer;
+    oldpid,newpid: dword;
 begin
+  oldpid:=processid;
 
   if Processlist.ItemIndex>-1 then
   begin
@@ -873,9 +875,9 @@ begin
         inc(i);
       end;
 
-      val('$'+ProcessIDString,ProcessHandler.processid,i);
+      val('$'+ProcessIDString,newpid,i);
 
-      if Processhandle<>0 then
+      if (Processhandle<>0) and (oldpid<>newpid) then
       begin
         CloseHandle(ProcessHandle);
         ProcessHandler.ProcessHandle:=0;
@@ -884,7 +886,7 @@ begin
       try
         if processid=GetCurrentProcessId then raise exception.create(rsPleaseSelectAnotherProcess);
 
-        Debuggerthread:=TDebuggerThread.MyCreate2(processid);
+        Debuggerthread:=TDebuggerThread.MyCreate2(newpid);
       except
         on e: exception do
         begin

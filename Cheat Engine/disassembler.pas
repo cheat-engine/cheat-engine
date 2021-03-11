@@ -13407,6 +13407,23 @@ begin
                       end;
                     end;
 
+                6:  begin
+                      if $66 in prefix2 then
+                      begin
+                        description:='Undefined';
+                        lastdisassembledata.opcode:='ud d3 /6';
+                        lastdisassembledata.parameters:=modrm(memory,prefix2,1,1,last,16)+colorreg+'cl'+endcolor;
+                        inc(offset,last-1);
+                      end
+                      else
+                      begin
+                        description:='Undefined';
+                        lastdisassembledata.opcode:='ud d3 /6';
+                        lastdisassembledata.parameters:=modrm(memory,prefix2,1,0,last)+colorreg+'cl'+endcolor;
+                        inc(offset,last-1);
+                      end;
+                    end;
+
                 7:  begin
                       if $66 in prefix2 then
                       begin

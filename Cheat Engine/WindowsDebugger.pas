@@ -14,7 +14,8 @@ uses
   Classes, SysUtils, DebuggerInterface, windows, cefuncproc,newkernelhandler,
   symbolhandler, dialogs;
 
-type TWindowsDebuggerInterface=class(TDebuggerInterface)
+type
+  TWindowsDebuggerInterface=class(TDebuggerInterface)
   public
 
     function WaitForDebugEvent(var lpDebugEvent: TDebugEvent; dwMilliseconds: DWORD): BOOL; override;
@@ -78,14 +79,14 @@ function TWindowsDebuggerInterface.DebugActiveProcess(dwProcessId: DWORD): WINBO
 var d: tstringlist;
 begin
  // OutputDebugString('Windows Debug Active Process');
-  processhandler.processid:=dwProcessID;
+  if processhandler.processid<>dwProcessId then
+  begin
+    processhandler.processid:=dwProcessID;
+    Open_Process;
 
-//  OutputDebugString('Before calling Open_Process');
-  Open_Process;
-
- // OutputDebugString('After calling Open_Process');
-  symhandler.reinitialize;
-  symhandler.waitforsymbolsloaded(true);
+    symhandler.reinitialize;
+    symhandler.waitforsymbolsloaded(true);
+  end;
 
   if PreventDebuggerDetection then
   begin

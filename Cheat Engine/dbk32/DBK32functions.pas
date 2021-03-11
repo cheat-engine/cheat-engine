@@ -275,6 +275,7 @@ var hdevice: thandle=INVALID_HANDLE_VALUE; //handle to my the device driver
 
 function CTL_CODE(DeviceType, Func, Method, Access : integer) : integer;
 function IsValidHandle(hProcess:THandle):BOOL; stdcall;
+function IsDBKHandle(hProcess:THandle):BOOL; stdcall;
 Function {OpenProcess}OP(dwDesiredAccess:DWORD;bInheritHandle:BOOL;dwProcessId:DWORD):THANDLE; stdcall;
 Function {OpenThread}OT(dwDesiredAccess:DWORD;bInheritHandle:BOOL;dwThreadId:DWORD):THANDLE; stdcall;
 function {ReadProcessMemory}RPM(hProcess:THANDLE;lpBaseAddress:pointer;lpBuffer:pointer;nSize:DWORD;var NumberOfBytesRead:PtrUInt):BOOL; stdcall;
@@ -303,7 +304,7 @@ function GetThreadListEntryOffset: dword; stdcall;
 
 function ReadPhysicalMemory(hProcess:THANDLE;lpBaseAddress:pointer;lpBuffer:pointer;nSize:DWORD;var NumberOfBytesRead:PTRUINT):BOOL; stdcall;
 function WritePhysicalMemory(hProcess:THANDLE;lpBaseAddress:pointer;lpBuffer:pointer;nSize:DWORD;var NumberOfBytesWritten:PTRUINT):BOOL; stdcall;
-function GetPhysicalAddress(hProcess:THandle;lpBaseAddress:pointer;var Address:int64): BOOL; stdcall;
+function GetPhysicalAddress(hProcess:THandle;lpBaseAddress:pointer;var Address:qword): BOOL; stdcall;
 function GetMemoryRanges(var ranges: TPhysicalMemoryRanges): boolean;
 function VirtualQueryExPhysical(hProcess: THandle; lpAddress: Pointer; var lpBuffer: TMemoryBasicInformation; dwLength: DWORD): DWORD; stdcall;
 
@@ -830,7 +831,10 @@ begin
     cc:=IOCTL_CE_GETCR4;
     if deviceiocontrol(hdevice,cc,nil,0,@res,sizeof(res),x,nil) then
       result:=res;
-  end;
+  end
+  else
+  if isRunningDBVM then
+    result:=dbvm_getRealCR4;
 end;
 
 
@@ -1090,7 +1094,7 @@ end;
 
 
 
-function GetPhysicalAddress(hProcess:THandle;lpBaseAddress:pointer;var Address:int64): BOOL; stdcall;
+function GetPhysicalAddress(hProcess:THandle;lpBaseAddress:pointer;var Address:qword): BOOL; stdcall;
 type TInputstruct=record
   ProcessID: UINT64;
   BaseAddress: UINT64;
@@ -1469,6 +1473,17 @@ begin
   end;
 end;
 
+function IsDBKHandle(hProcess:THandle):BOOL; stdcall;
+var l: THandleListEntry;
+begin
+  result:=false;
+  handlemapmrew.Beginread;
+  try
+    result:=handlemap.HasId(hProcess);
+  finally
+    handlemapmrew.Endread;
+  end;
+end;
 
 function IsValidHandle(hProcess:THandle):BOOL; stdcall;
 var l: THandleListEntry;

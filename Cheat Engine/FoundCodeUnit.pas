@@ -1126,6 +1126,7 @@ begin
           lblVirtualAddress.caption:=format('Virtual Address=%.8x',[coderecord.dbvmcontextbasic^.VirtualAddress]);
           lblFSBase.caption:=format('FS Base=%.8x',[coderecord.dbvmcontextbasic^.FSBASE]);
           lblGSBase.caption:=format('GS Base=%.8x',[coderecord.dbvmcontextbasic^.GSBASE]);
+          lblGSBaseKernel.caption:=format('GS Base Kernel=%.8x',[coderecord.dbvmcontextbasic^.GSBASE_KERNEL]);
           lblCR3.caption:=format('CR3=%.8x',[coderecord.dbvmcontextbasic^.CR3]);
         end
         else

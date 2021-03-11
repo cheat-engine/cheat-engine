@@ -323,7 +323,7 @@ begin
   end;
 
   newkernelhandler.OpenProcess:=@NetworkOpenProcess;
-  newkernelhandler.ReadProcessMemory:=@NetworkReadProcessMemory;
+  newkernelhandler.ReadProcessMemoryActual:=@NetworkReadProcessMemory;
   newkernelhandler.WriteProcessMemoryActual:=@NetworkWriteProcessMemory;
   newkernelhandler.VirtualProtectEx:=@NetworkVirtualProtectEx;
   newkernelhandler.VirtualQueryEx:=@NetworkVirtualQueryEx;

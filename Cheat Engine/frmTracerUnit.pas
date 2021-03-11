@@ -195,7 +195,7 @@ type
 
     defaultBreakpointMethod: TBreakpointmethod;
 
-    physicaladdress: int64;
+    physicaladdress: qword;
     DBVMStatusUpdater: TDBVMStatusUpdater;
 
     procedure configuredisplay;
@@ -1276,7 +1276,7 @@ begin
 
               memneeded:=1+(memneeded div 4096);
               dbvm_getMemory(oldpages);
-              allocateMemoryForDBVM(i);
+              allocateMemoryForDBVM(memneeded);
               dbvm_getMemory(newpages);
 
               if newpages<=oldpages then raise exception.create('Failure allocating '+inttostr(memneeded)+' pages of physcal memory to DBVM');

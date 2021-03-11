@@ -87,6 +87,7 @@ begin
   result:=nil;
   ms:=tmemscan.create(nil);
   ms.parseProtectionflags(protectionflags);
+  ms.isUnique:=isunique;
   ms.onlyone:=true;
 
   if modulename='' then

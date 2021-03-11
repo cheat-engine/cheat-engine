@@ -20,6 +20,7 @@ type
 
   TFormFoundCodeListExtra = class(TForm)
     eiImageList: TImageList;
+    lblGSBaseKernel: TLabel;
     lblGSBase: TLabel;
     lblCR3: TLabel;
     Label18: TLabel;

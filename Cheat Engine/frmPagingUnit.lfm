@@ -8,7 +8,7 @@ object frmPaging: TfrmPaging
   ClientWidth = 412
   OnCreate = FormCreate
   OnDestroy = FormDestroy
-  LCLVersion = '2.0.0.4'
+  LCLVersion = '2.0.10.0'
   object tvPage: TTreeView
     Left = 0
     Height = 185
@@ -101,13 +101,13 @@ object frmPaging: TfrmPaging
   object FindDialog1: TFindDialog
     Options = [frDown, frHideMatchCase, frHideWholeWord, frHideUpDown, frDisableMatchCase, frDisableUpDown, frDisableWholeWord, frEntireScope]
     OnFind = FindDialog1Find
-    left = 49
-    top = 114
+    Left = 49
+    Top = 114
   end
   object PopupMenu1: TPopupMenu
     Images = pImageList
-    left = 124
-    top = 83
+    Left = 124
+    Top = 83
     object MenuItem1: TMenuItem
       Caption = 'Find'
       ImageIndex = 0
@@ -116,8 +116,8 @@ object frmPaging: TfrmPaging
     end
   end
   object pImageList: TImageList
-    left = 266
-    top = 123
+    Left = 266
+    Top = 123
     Bitmap = {
       4C69010000001000000010000000FFFFFF00A0A0A060808080C0808080C08080
       80C0808080C0808080C0808080C0808080C0808080C0808080C0747474BFBCBC

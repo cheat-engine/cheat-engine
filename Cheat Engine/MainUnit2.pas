@@ -819,6 +819,19 @@ begin
 
           if reg.ValueExists('Use Kernel Debugger') then
             cbKdebug.checked:=reg.ReadBool('Use Kernel Debugger');
+
+          if reg.ValueExists('Use DBVM Debugger') then
+            cbUseDBVMDebugger.checked:=reg.ReadBool('Use DBVM Debugger');
+
+          if reg.ValueExists('DBVMBP Trigger COW') then
+            dbvmbp_options.TriggerCOW:=reg.ReadBool('DBVMBP Trigger COW');
+
+          if reg.ValueExists('DBVMBP This Process Only') then
+            dbvmbp_options.TargetedProcessOnly:=reg.ReadBool('DBVMBP This Process Only');
+
+          cbDBVMDebugTriggerCOW.checked:=dbvmbp_options.TriggerCOW;
+          cbDBVMDebugTargetedProcessOnly.checked:=dbvmbp_options.TargetedProcessOnly;
+
           {$endif}
 
           if reg.ValueExists('Wait After Gui Update') then
@@ -1072,7 +1085,7 @@ begin
   {$ifdef net}
   MemoryBrowser.Kerneltools1.visible:=false;
   {$else}
-  MemoryBrowser.Kerneltools1.Enabled:={$ifdef windows}DBKLoaded{$else}false{$endif};
+  MemoryBrowser.Kerneltools1.Enabled:={$ifdef windows}DBKLoaded or isRunningDBVM{$else}false{$endif};
   {$endif}
 
 

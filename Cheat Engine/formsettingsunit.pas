@@ -89,6 +89,8 @@ type
     cbAllDouble: TCheckBox;
     cbAllCustom: TCheckBox;
     cbDisableDarkModeSupport: TCheckBox;
+    cbDBVMDebugTriggerCOW: TCheckBox;
+    cbDBVMDebugTargetedProcessOnly: TCheckBox;
     combothreadpriority: TComboBox;
     defaultbuffer: TPopupMenu;
     Default1: TMenuItem;
@@ -153,6 +155,7 @@ type
     miUnexpectedBreakpointsIgnore: TRadioButton;
     miUnexpectedBreakpointsBreak: TRadioButton;
     miUnexpectedBreakpointsBreakWhenInsideRegion: TRadioButton;
+    cbUseDBVMDebugger: TRadioButton;
     rbMacDebugThreadLevel: TRadioButton;
     cbUseMacDebugger: TRadioButton;
     rbMacDebugTaskLevel: TRadioButton;
@@ -171,6 +174,7 @@ type
     spbDown: TSpeedButton;
     spbUp: TSpeedButton;
     Languages: TTabSheet;
+    TabSheet1: TTabSheet;
     tsMacDebuggerInterface: TTabSheet;
     tsLua: TTabSheet;
     tsSigning: TTabSheet;
@@ -843,6 +847,15 @@ begin
         reg.WriteBool('Use Windows Debugger',cbUseWindowsDebugger.checked);
         reg.WriteBool('Use Kernel Debugger',cbKdebug.checked);
         reg.WriteBool('Use Global Debug Routines',cbGlobalDebug.checked);
+        reg.WriteBool('Use DBVM Debugger', cbUseDBVMDebugger.checked);
+
+        reg.writeBool('DBVMBP Trigger COW', cbDBVMDebugTriggerCOW.checked);
+        reg.writeBool('DBVMBP This Process Only', cbDBVMDebugTargetedProcessOnly.checked);
+
+        dbvmbp_options.TriggerCOW:=cbDBVMDebugTriggerCOW.checked;
+        dbvmbp_options.TargetedProcessOnly:=cbDBVMDebugTargetedProcessOnly.checked;
+
+
 
         waitafterguiupdate:=cbWaitAfterGuiUpdate.checked;
         reg.WriteBool('Wait After Gui Update', waitafterguiupdate);
@@ -1236,6 +1249,12 @@ begin
   begin
     pcDebugConfig.ActivePageIndex:=3;
     pcDebugConfig.TabIndex:=3;
+  end
+  else
+  if cbUseDBVMDebugger.checked then
+  begin
+    pcDebugConfig.ActivePageIndex:=4;
+    pcDebugConfig.TabIndex:=4;
   end;
 
   rbPageExceptions.enabled:=not cbKDebug.checked; //currently the kerneldebugger doesn't handle pageexceptions yet (can be added, but not right now)

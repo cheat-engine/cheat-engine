@@ -615,6 +615,8 @@ var
   bo: integer;
   ob: byte;
 begin
+  zeromemory(@tempregedit, sizeof(tempregedit));
+
   tempregedit.address:=address;
   tempregedit.change_eax:=edtEAX.text<>'';
   tempregedit.change_ebx:=edtEBX.text<>'';

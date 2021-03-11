@@ -12,7 +12,7 @@ uses
   Classes, SysUtils{$ifdef windows},windows{$endif},NewKernelHandler, debuggertypedefinitions{$ifdef darwin}, macport, macportdefines{$endif};
 
 type
-  TDebuggerCapabilities=(dbcHardwareBreakpoint, dbcSoftwareBreakpoint, dbcExceptionBreakpoint, dbcDBVMBreakpoint, dbcBreakOnEntry);
+  TDebuggerCapabilities=(dbcHardwareBreakpoint, dbcSoftwareBreakpoint, dbcExceptionBreakpoint, dbcDBVMBreakpoint, dbcBreakOnEntry, dbcCanUseInt1BasedBreakpoints);
   TDebuggerCapabilitiesSet=set of TDebuggerCapabilities;
   TDebuggerInterface=class
   protected
@@ -25,6 +25,9 @@ type
     noBreakList: array of thandle;
   public
     name: string;
+
+    constructor create;
+
     function WaitForDebugEvent(var lpDebugEvent: TDebugEvent; dwMilliseconds: DWORD): BOOL; virtual; abstract;
     function ContinueDebugEvent(dwProcessId: DWORD; dwThreadId: DWORD; dwContinueStatus: DWORD): BOOL; virtual; abstract;
     function SetThreadContext(hThread: THandle; const lpContext: TContext; isFrozenThread: Boolean=false): BOOL; virtual;
@@ -35,12 +38,15 @@ type
     function DebugActiveProcessStop(dwProcessID: DWORD): BOOL; virtual;
     function GetLastBranchRecords(lbr: pointer): integer; virtual;
     function isInjectedEvent: boolean; virtual;
+    function usesDebugRegisters: boolean; virtual;
 
     function inNoBreakList(threadid: integer): boolean; virtual;
     procedure AddToNoBreakList(threadid: integer); virtual;
     procedure RemoveFromNoBreakList(threadid: integer); virtual;
 
     function canReportExactDebugRegisterTrigger: boolean; virtual;
+    function needsToAttach: boolean; virtual;
+    function controlsTheThreadList: boolean; virtual;
 
     property DebuggerCapabilities: TDebuggerCapabilitiesSet read fDebuggerCapabilities;
     property errorstring: string read ferrorstring;
@@ -49,12 +55,11 @@ type
     property maxWatchpointBreakpointCount: integer read fmaxWatchpointBreakpointCount;
     property maxSharedBreakpointCount: integer read fmaxSharedBreakpointCount;
 
-
 end;
 
 implementation
 
-function TDebuggerInterface. SetThreadContext(hThread: THandle; const lpContext: TContext; isFrozenThread: Boolean=false): BOOL;
+function TDebuggerInterface.SetThreadContext(hThread: THandle; const lpContext: TContext; isFrozenThread: Boolean=false): BOOL;
 begin
   result:=false;
 end;
@@ -131,6 +136,26 @@ end;
 function TDebuggerInterface.canReportExactDebugRegisterTrigger: boolean;
 begin
   result:=true;
+end;
+
+function TDebuggerInterface.needsToAttach: boolean;
+begin
+  result:=true;
+end;
+
+function TDebuggerInterface.controlsTheThreadList: boolean;
+begin
+  result:=true;
+end;
+
+function TDebuggerInterface.usesDebugRegisters: boolean;
+begin
+  result:=true;
+end;
+
+constructor TDebuggerInterface.create;
+begin
+  fDebuggerCapabilities:=[dbcCanUseInt1BasedBreakpoints]; //all except DBVM (which will remove this flags)
 end;
 
 end.

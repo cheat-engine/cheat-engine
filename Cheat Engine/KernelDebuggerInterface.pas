@@ -186,10 +186,13 @@ begin
 
   if result then
   begin
-    processhandler.processid:=dwProcessID;
-    Open_Process;
-    symhandler.reinitialize;
-    symhandler.waitforsymbolsloaded(true);
+    if processhandler.processid<>dwProcessId then
+    begin
+      processhandler.processid:=dwProcessID;
+      Open_Process;
+      symhandler.reinitialize;
+      symhandler.waitforsymbolsloaded(true);
+    end;
 
     pid:=dwProcessID;
 

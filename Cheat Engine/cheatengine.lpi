@@ -26,7 +26,7 @@
       <AutoIncrementBuild Value="True"/>
       <MajorVersionNr Value="7"/>
       <MinorVersionNr Value="2"/>
-      <BuildNr Value="6813"/>
+      <BuildNr Value="6842"/>
       <Language Value=""/>
       <CharSet Value=""/>
       <StringTable CompanyName="Cheat Engine" FileDescription="Cheat Engine" ProductVersion="7.2"/>
@@ -568,10 +568,11 @@
 -dcemain
 -dNDEBUG
 -dD3DDebug
--dNOVMX
 -dCUSTOMFLOAT
--dXDEBUG"/>
-            <OtherDefines Count="13">
+-dXDEBUG
+-dDBVMFORAMDISWORKING
+-dDEBUGDEBUGGER"/>
+            <OtherDefines Count="14">
               <Define0 Value="NOTMULTITHREADED"/>
               <Define1 Value="benchmarkps"/>
               <Define2 Value="cemain"/>
@@ -585,6 +586,7 @@
               <Define10 Value="memorymapped"/>
               <Define11 Value="privatebuild"/>
               <Define12 Value="DBVMFORAMDISWORKING"/>
+              <Define13 Value="DEBUGDEBUGGER"/>
             </OtherDefines>
           </Other>
         </CompilerOptions>
@@ -637,7 +639,7 @@
         <PackageName Value="LCL"/>
       </Item8>
     </RequiredPackages>
-    <Units Count="405">
+    <Units Count="406">
       <Unit0>
         <Filename Value="cheatengine.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -2771,6 +2773,11 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="memrecDataStructures"/>
       </Unit404>
+      <Unit405>
+        <Filename Value="dbvmdebuggerinterface.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="DBVMDebuggerInterface"/>
+      </Unit405>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

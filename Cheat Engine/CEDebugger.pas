@@ -13,7 +13,7 @@ uses {$ifdef darwin}
      {$endif}
      Classes,LCLIntf,sysutils,CEFuncProc,Messages,forms,SyncObjs,
      dialogs,controls,Graphics,NewKernelHandler,symbolhandler,StrUtils,
-     ComCtrls ,Assemblerunit,addressparser;
+     ComCtrls ,Assemblerunit,addressparser, vmxfunctions;
 
 
 type TReadonly = record
@@ -78,14 +78,7 @@ type
   end;
 
   NTSTATUS = LONG;
-  _CLIENT_ID = record
-    UniqueProcess: HANDLE;
-    UniqueThread: HANDLE;
-  end;
-  CLIENT_ID = _CLIENT_ID;
-  PCLIENT_ID = ^CLIENT_ID;
-  TClientID = CLIENT_ID;
-  PClientID = ^TClientID;
+
 
   KPRIORITY = LONG;
   KAFFINITY = ULONG_PTR;

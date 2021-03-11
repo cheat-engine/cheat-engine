@@ -97,7 +97,8 @@ const
   VMCALL_GETBROKENTHREADLISTSIZE=74;
   VMCALL_GETBROKENTHREADENTRYSHORT=75;
   VMCALL_GETBROKENTHREADENTRYFULL=76;
-  VMCALL_RESUMEBROKENTHREAD=77;
+  VMCALL_SETBROKENTHREADENTRYFULL=77;
+  VMCALL_RESUMEBROKENTHREAD=78;
 
 
   //---
@@ -111,7 +112,22 @@ const
   EPTO_INTERRUPT    =1 shl 6; //Trigger a debug interrupt when hit, no logging
   EPTO_DBVMBP       =1 shl 7; //On trigger save the state and change RIP to an infinite int3 loop (if interuptable)
 
+
+  //new debuger flags
+  DBG_CONTINUE_SINGLESTEP = $00010003; //continueDebugEvent continuestatus only for DBVM BP's
+  EXCEPTION_DBVM_BREAKPOINT = $CEDB0001;
+
 type
+  _CLIENT_ID = record
+    UniqueProcess: HANDLE;
+    UniqueThread: HANDLE;
+  end;
+  CLIENT_ID = _CLIENT_ID;
+  PCLIENT_ID = ^CLIENT_ID;
+  TClientID = CLIENT_ID;
+  PClientID = ^TClientID;
+
+
   TOriginalState=packed record
     oldflags: dword;
     oldcs, oldss, oldds, oldes, oldfs, oldgs: word;
@@ -134,12 +150,14 @@ type
   PULTIMAPDEBUGINFO=^TULTIMAPDEBUGINFO;
 
   TDBVMBPShortState=record
+    watchid: integer;
     status: integer;
     cs: DWORD;
     rip: QWORD;
     cr3: QWORD;
     fsbase: QWORD;
     gsbase: qword;
+    gsbase_kernel: qword;
     heartbeat: qword;
   end;
 
@@ -150,6 +168,7 @@ type
     CR3: QWORD;
     FSBASE: QWORD;
     GSBASE: QWORD;
+    GSBASE_KERNEL: QWORD;
     FLAGS: QWORD;
     RAX: QWORD;
     RBX: QWORD;
@@ -168,6 +187,12 @@ type
     RBP: QWORD;
     RSP: QWORD;
     RIP: QWORD;
+    DR0: QWORD;
+    DR1: QWORD;
+    DR2: QWORD;
+    DR3: QWORD;
+    DR6: QWORD;
+    DR7: QWORD;
     CS: WORD;
     DS: WORD;
     ES: WORD;
@@ -497,7 +522,9 @@ function dbvm_watch_getstatus(out last: TEPTWatchLogData; out best: TEPTWatchLog
 
 function dbvm_bp_getBrokenThreadListSize:integer;
 function dbvm_bp_getBrokenThreadEventShort(id: integer; var shortstate: TDBVMBPShortState):integer;
-function dbvm_bp_getBrokenThreadEventFull(id: integer; var status: integer; var state: TPageEventExtended):integer;
+function dbvm_bp_getBrokenThreadEventFull(id: integer; out watchid: integer; out status: integer; out state: TPageEventExtended):integer;
+function dbvm_bp_setBrokenThreadEventFull(id: integer; state: TPageEventExtended):integer;
+
 function dbvm_bp_resumeBrokenThread(id: integer; continueMethod: integer): integer;
 
 function dbvm_cloak_activate(PhysicalBase: QWORD; virtualAddress: Qword=0; mode: integer=1): integer;
@@ -543,6 +570,13 @@ function hasCloakedRegionInRange(virtualAddress: qword; size: integer; out VA:qw
 
 procedure dbvm_getBreakpointList(l: TStrings);
 function dbvm_isBreakpoint(virtualAddress: ptruint; out physicalAddress: qword; out breakoption: integer; var originalbyte: byte): boolean;
+
+
+function getClientIDFromDBVMBPState(const state: TPageEventExtended; out clientid: TClientID): boolean;
+function getClientIDFromDBVMBPShortState(state: TDBVMBPShortState; out clientid: TClientID): boolean;
+
+
+
 
 var
   vmx_password1: dword;
@@ -698,6 +732,7 @@ var
   VA,PA: qword;
   x: ptruint;
   i: integer;
+  cr3: qword;
 begin
   if hasCloakedRegionInRange(qword(lpBaseAddress),nsize, VA, PA) then
   begin
@@ -741,6 +776,7 @@ begin
   end
   else
     result:=ReadProcessMemory(processhandle, lpBaseAddress, lpBuffer, nSize, lpNumberOfBytesRead);
+
 end;
 
 function WriteProcessMemoryWithCloakSupport(hProcess: THandle; lpBaseAddress, lpBuffer: Pointer; nSize: DWORD; var lpNumberOfBytesWritten: PTRUINT): BOOL; stdcall;
@@ -1582,12 +1618,14 @@ var
     level2pass: dword;
     command: dword;
     id: integer;
+    watchid: integer;
     status: integer;
     cs: DWORD;
     rip: QWORD;
     cr3: QWORD;
     FSBASE: QWORD;
     GSBASE: qword;
+    GSBASE_KERNEL: qword;
     Heartbeat: qword;
   end;
 begin
@@ -1599,23 +1637,26 @@ begin
 
   if result=0 then
   begin
+    shortstate.watchid:=vmcallinfo.watchid;
     shortstate.status:=vmcallinfo.status;
     shortstate.cs:=vmcallinfo.cs;
     shortstate.rip:=vmcallinfo.rip;
     shortstate.cr3:=vmcallinfo.cr3;
     shortstate.FSBASE:=vmcallinfo.FSBASE;
     shortstate.GSBASE:=vmcallinfo.GSBASE;
+    shortstate.GSBASE_KERNEL:=vmcallinfo.GSBASE_KERNEL;
     shortstate.Heartbeat:=vmcallinfo.Heartbeat;
   end;
 end;
 
-function dbvm_bp_getBrokenThreadEventFull(id: integer; var status: integer; var state: TPageEventExtended): integer;
+function dbvm_bp_getBrokenThreadEventFull(id: integer; out watchid: integer; out status: integer; out state: TPageEventExtended): integer;
 var
   vmcallinfo: packed record
     structsize: dword;
     level2pass: dword;
     command: dword;
     id: integer;
+    watchid: integer;
     status: integer;
     state: TPageEventExtended;
   end;
@@ -1628,9 +1669,28 @@ begin
 
   if result=0 then
   begin
+    watchid:=vmcallinfo.watchid;
     state:=vmcallinfo.state;
     status:=vmcallinfo.status;
   end;
+end;
+
+function dbvm_bp_setBrokenThreadEventFull(id: integer; state: TPageEventExtended):integer;
+var
+  vmcallinfo: packed record
+    structsize: dword;
+    level2pass: dword;
+    command: dword;
+    id: integer;
+    state: TPageEventExtended;
+  end;
+begin
+  vmcallinfo.structsize:=sizeof(vmcallinfo);
+  vmcallinfo.level2pass:=vmx_password2;
+  vmcallinfo.command:=VMCALL_SETBROKENTHREADENTRYFULL;
+  vmcallinfo.id:=id;
+  vmcallinfo.state:=state;
+  result:=vmcall(@vmcallinfo,vmx_password1);
 end;
 
 function dbvm_bp_resumeBrokenThread(id: integer; continueMethod: integer): integer;
@@ -2256,7 +2316,7 @@ begin
   end;
 end;
 
-function dbvm_log_cr3values_start: boolean;
+function dbvm_log_cr3_start_amd(parameters: pointer): BOOL; stdcall;
 var vmcallinfo: packed record
   structsize: dword;
   level2pass: dword;
@@ -2267,6 +2327,26 @@ begin
   vmcallinfo.level2pass:=vmx_password2;
   vmcallinfo.command:=VMCALL_LOG_CR3VALUES_START;
   result:=vmcall(@vmcallinfo,vmx_password1)<>0;
+end;
+
+function dbvm_log_cr3values_start: boolean;
+var vmcallinfo: packed record
+  structsize: dword;
+  level2pass: dword;
+  command: dword;
+end;
+begin
+  if isAMD then
+  begin
+    foreachcpu(dbvm_log_cr3_start_amd,nil);
+  end
+  else
+  begin
+    vmcallinfo.structsize:=sizeof(vmcallinfo);
+    vmcallinfo.level2pass:=vmx_password2;
+    vmcallinfo.command:=VMCALL_LOG_CR3VALUES_START;
+    result:=vmcall(@vmcallinfo,vmx_password1)<>0;
+  end;
 end;
 
 function dbvm_log_cr3values_stop(log: pointer): boolean;
@@ -2599,7 +2679,10 @@ begin
 
     i:=kernelfunctions.IndexOf('ExAllocatePool');
     if i<>-1 then
+    begin
+      OutputDebugString('ExAllocatePool at '+inttohex(ptruint(kernelfunctions.Objects[i]),8));
       ExAllocatePool:=pointer(kernelfunctions.Objects[i]);
+    end;
   end;
   {$ENDIF}
 
@@ -3026,16 +3109,79 @@ function dbvm_kernelalloc(size: dword): pointer;
 {
 use dbvm to allocate kernelmode memory
 }
-var command: TCommand;
+var
+  command: TCommand;
+  r: pointer;
 begin
   setupKernelFunctionList;
 
+  r:=nil;
+
   command.command:=0;
-  command.result:=@result;
+  command.result:=@r;
   command.param1:=size;
 
   dbvm_switchToKernelMode($10, @dbvm_localIntHandler_entry, @command);
+
+  result:=r;
 end;
+
+
+
+function getClientIDFromDBVMBPShortState(state: TDBVMBPShortState; out clientid: TClientID): boolean;
+//Tries to get the process and client id
+var
+  umgsbase: qword;
+  br: ptruint;
+
+  pid32: dword;
+  tid32: dword;
+begin
+  umgsbase:=min(state.gsbase, state.gsbase_kernel);   //get the usermode gsbase
+
+  {$ifdef cpu64}
+  if umgsbase=0 then exit(false);
+  exit(ReadProcessMemoryCR3(state.cr3,pointer(umgsbase+$40),@clientid,16,br));
+  {$else}
+  if iswow64 then
+  begin
+    if umgsbase=0 then exit(false);
+    exit(ReadProcessMemoryCR3(state.cr3,pointer(umgsbase+$40),@clientid,16,br));
+  end
+  else
+  begin
+    //untested, I do not use 32-bit windows anymore
+    result:=ReadProcessMemoryCR3(state.cr3,pointer(state.fsbase+$20),@pid32,4,br);
+    if result then
+      result:=ReadProcessMemoryCR3(state.cr3,pointer(state.fsbase+$24),@tid32,4,br);
+
+    if result then
+    begin
+      clientid.UniqueProcess:=pid32;
+      clientid.UniqueThread:=tid32;
+    end;
+  end;
+  {$endif}
+
+
+end;
+
+function getClientIDFromDBVMBPState(const state: TPageEventExtended; out clientid: TClientID): boolean;
+//convert a fullstate to a shortstate and call getClientIDFromDBVMBPShortState
+var short: TDBVMBPShortState;
+begin
+  short.watchid:=-1;
+  short.status:=0;
+  short.cs:=state.basic.cs;
+  short.rip:=state.basic.RIP;
+  short.cr3:=state.basic.CR3;
+  short.fsbase:=state.basic.FSBASE;
+  short.gsbase:=state.basic.GSBASE;
+  short.gsbase_kernel:=state.basic.GSBASE_KERNEL;
+  short.heartbeat:=1;
+  exit(getClientIDFromDBVMBPShortState(short,clientid));
+end;
+
 
 
 

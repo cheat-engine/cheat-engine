@@ -61,6 +61,7 @@ type
 
 var
   frmDBVMWatchConfig: TfrmDBVMWatchConfig;
+  frmDBVMWatchConfigFindWhatCodeAccesses: TfrmDBVMWatchConfig;
 
 implementation
 

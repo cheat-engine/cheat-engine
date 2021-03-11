@@ -63,7 +63,7 @@ type
   published
     property connected: boolean read fConnected;
     property OnTimeout: TNotifyEvent read fOnTimeout write fOnTimeout;
-    property OnError: TNotifyEvent read fOnTimeout write fOnTimeout;
+    property OnError: TNotifyEvent read fOnError write fOnError;
     property Handle: THandle read pipe write pipe;
   end;
 

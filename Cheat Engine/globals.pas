@@ -169,6 +169,12 @@ var
   UseOriginalRenderingSystem: boolean;
   {$endif}
 
+  dbvmbp_options: record
+    TriggerCOW:boolean;
+    TargetedProcessOnly:boolean;
+  end;
+
+
 
 
 implementation

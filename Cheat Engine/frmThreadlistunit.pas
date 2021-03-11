@@ -263,7 +263,8 @@ begin
   threadTreeview.BeginUpdate;
   threadTreeview.Items.Clear;
 
-  if debuggerthread<>nil then
+
+  if (debuggerthread<>nil) and (CurrentDebuggerInterface.controlsTheThreadList) then
   begin
     threadlist:=debuggerthread.lockThreadlist;
     try

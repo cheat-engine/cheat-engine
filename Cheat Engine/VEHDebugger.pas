@@ -485,9 +485,13 @@ var
   err: boolean;
 begin
   try
-    processhandler.processid:=dwProcessID;
-    Open_Process;
-    symhandler.reinitialize;
+    if dwProcessID<>processhandler.processid then
+    begin
+      processhandler.processid:=dwProcessID;
+
+      Open_Process;
+      symhandler.reinitialize;
+    end;
 
     is64bit:=processhandler.is64Bit;
     if is64bit then
