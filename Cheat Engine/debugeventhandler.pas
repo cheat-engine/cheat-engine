@@ -1535,7 +1535,7 @@ begin
         debuggerCS.leave;
 
         if found then
-          Result := DispatchBreakpoint(bp^.address, -2, dwContinueStatus);
+          Result := DispatchBreakpoint(bp^.address, -2, dwContinueStatus)
         else
           Result := DispatchBreakpoint(context^.{$ifdef cpu64}Rip{$else}eip{$endif}, -2, dwContinueStatus);
       end;
