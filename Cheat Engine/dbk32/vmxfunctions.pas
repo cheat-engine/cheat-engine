@@ -3129,7 +3129,7 @@ end;
 
 
 function getClientIDFromDBVMBPShortState(state: TDBVMBPShortState; out clientid: TClientID): boolean;
-//Tries to get the process and client id
+//Tries to get the process and client id (won't work when it's in kernelmoade and swapped the process as gsbase usermode is unreadable
 var
   umgsbase: qword;
   br: ptruint;

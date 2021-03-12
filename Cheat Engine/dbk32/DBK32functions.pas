@@ -1404,7 +1404,7 @@ begin
     exit(numberofbytesread=nSize);
   end;
 
-  OutputDebugString('Using normal dbk method');
+  //OutputDebugString('Using normal dbk method');
 
   result:=false;
   numberofbytesread:=0;

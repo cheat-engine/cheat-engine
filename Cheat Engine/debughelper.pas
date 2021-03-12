@@ -1036,6 +1036,8 @@ begin
 
       if GetPhysicalAddress(processhandle,pointer(breakpoint^.address),pa) then
       begin
+        DBVMWatchBPActive:=true;
+
         case breakpoint^.breakpointTrigger of
           bptExecute: breakpoint^.dbvmwatchid:=dbvm_watch_executes(PA,1,EPTO_DBVMBP,0, TDBVMDebugInterface(currentdebuggerinterface).usermodeloopint3, TDBVMDebugInterface(currentdebuggerinterface).kernelmodeloopint3);
           bptAccess: breakpoint^.dbvmwatchid:=dbvm_watch_reads(PA,1,EPTO_DBVMBP,0, TDBVMDebugInterface(currentdebuggerinterface).usermodeloopint3, TDBVMDebugInterface(currentdebuggerinterface).kernelmodeloopint3);
@@ -1283,12 +1285,14 @@ begin
     dbvm_watch_delete(breakpoint^.dbvmwatchid);
 
   breakpoint^.active := false;
+
 end;
 
 procedure TDebuggerThread.RemoveBreakpoint(breakpoint: PBreakpoint);
 var
   i,j: integer;
   bp: PBreakpoint;
+  state: boolean;
 begin
   debuggercs.enter;
   try
@@ -1324,6 +1328,19 @@ begin
     breakpoint^.markedfordeletion := True;
     breakpoint^.deletetickcount:=GetTickCount;
 
+
+    state:=false;
+    for j:=0 to breakpointlist.Count-1 do
+    begin
+      BP := breakpointlist.items[j];
+      if bp^.active and (bp^.breakpointMethod=bpmDBVMNative) then
+      begin
+        state:=true;
+        break;
+      end;
+    end;
+
+    if state then DBVMWatchBPActive:=state;
 
 
 

@@ -173,7 +173,7 @@ var
     TriggerCOW:boolean;
     TargetedProcessOnly:boolean;
   end;
-
+  DBVMWatchBPActive: boolean;
 
 
 

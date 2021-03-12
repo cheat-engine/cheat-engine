@@ -8,7 +8,7 @@ interface
 uses SysUtils, MacOSAll, MacOSXPosix, macport;
 {$else}
 uses jwawindows, windows,LCLIntf,sysutils, dialogs, classes, controls,
-     dbk32functions, vmxfunctions,debug, multicpuexecution, contnrs, Clipbrd;
+     dbk32functions, vmxfunctions,debug, multicpuexecution, contnrs, Clipbrd, globals;
 {$endif}
 
 const dbkdll='DBK32.dll';
@@ -1122,9 +1122,11 @@ begin
 
   {$ifdef cpu64}
 
-  if ((qword(lpBaseAddress) and (qword(1) shl 63))<>0) and //kernelmode access
+  if (((qword(lpBaseAddress) and (qword(1) shl 63))<>0) and //kernelmode access
       (@WriteProcessMemoryActual=defaultWPM) and
-      isRunningDBVM //but DBVM is loaded
+      isRunningDBVM) //but DBVM is loaded
+  or
+      DBVMWatchBPActive
   then
   begin
     if dbk32functions.GetCR3(hProcess, cr3) then   //todo: maybe just a getkernelcr3
@@ -1147,9 +1149,11 @@ function ReadProcessMemory(hProcess: THandle; lpBaseAddress, lpBuffer: Pointer; 
 var cr3: ptruint;
 begin
   {$ifdef cpu64}
-  if ((qword(lpBaseAddress) and (qword(1) shl 63))<>0) and //kernelmode access
+  if (((qword(lpBaseAddress) and (qword(1) shl 63))<>0) and //kernelmode access
      (defaultRPM=@ReadProcessMemoryActual) and
-     isRunningDBVM //but DBVM is loaded
+     isRunningDBVM) //but DBVM is loaded
+  or
+     DBVMWatchBPActive
   then
   begin
     if dbk32functions.GetCR3(hProcess, cr3) then
