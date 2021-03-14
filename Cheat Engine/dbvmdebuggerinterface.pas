@@ -150,7 +150,7 @@ begin
     else
     begin
       //failure getting it. Use the CR3 and GSBASE (or FSBASE if gs is 0)
-      lpDebugEvent.dwProcessId:=currentFrozenState.basic.CR3 and (1 shl 31); //set the MSB to signal it's a 'special' id (it's not  big enough)
+      lpDebugEvent.dwProcessId:=currentFrozenState.basic.CR3 or (1 shl 31); //set the MSB to signal it's a 'special' id (it's not  big enough)
       lpDebugEvent.dwThreadId:=currentFrozenState.basic.GSBASE;
       if lpDebugEvent.dwThreadId=0 then
         lpDebugEvent.dwThreadId:=currentFrozenState.basic.FSBASE;
@@ -158,7 +158,7 @@ begin
       if lpDebugEvent.dwThreadId=0 then
         lpDebugEvent.dwThreadId:=currentFrozenState.basic.GSBASE_KERNEL;
 
-      lpDebugEvent.dwThreadId:=lpDebugEvent.dwThreadId and (1 shl 31);
+      lpDebugEvent.dwThreadId:=lpDebugEvent.dwThreadId or (1 shl 31);
     end;
 
 
@@ -407,7 +407,11 @@ begin
     lpContext.Rip:=currentFrozenState.basic.Rip;
 
     lpContext.P1Home:=currentFrozenState.basic.Count;
-    lpContext.P2Home:=currentFrozenState.basic.CR3;
+    if processCR3<>currentFrozenState.basic.CR3 then
+      lpContext.P2Home:=currentFrozenState.basic.CR3 //give the special cr3
+    else
+      lpContext.P2Home:=0; //normal access
+
     CopyMemory(@lpContext.FltSave, @currentFrozenState.fpudata,512);
 
     result:=true;
@@ -463,59 +467,62 @@ begin
     end;
   end;
 
-
-  if kernelmodeloopint3=0 then
+  if dbvmbp_options.KernelmodeBreaks then
   begin
-
-    symhandler.waitforsymbolsloaded(true);
-    if symhandler.getmodulebyname('ntoskrnl.exe',mi) then
+    if kernelmodeloopint3=0 then
     begin
-      for i:=0 to 512 do
+      symhandler.waitforsymbolsloaded(true);
+      if symhandler.getmodulebyname('ntoskrnl.exe',mi) then
       begin
-        if cr3log[i]=0 then break;  //end of the list
-
-        ka:=mi.baseaddress;
-        while (kernelmodeloopint3=0) and (ka<mi.baseaddress+mi.basesize) do
+        for i:=0 to 512 do
         begin
-          if GetPageInfoCR3(cr3log[i],ka,mbi) then //get some page info (like if it's executable)
+          if cr3log[i]=0 then break;  //end of the list
+
+          ka:=mi.baseaddress;
+          while (kernelmodeloopint3=0) and (ka<mi.baseaddress+mi.basesize) do
           begin
-            if mbi.Protect in [PAGE_EXECUTE_READ,PAGE_EXECUTE_READWRITE] then
+            if GetPageInfoCR3(cr3log[i],ka,mbi) then //get some page info (like if it's executable)
             begin
-              while (kernelmodeloopint3=0) and (ka<ptruint(mbi.BaseAddress)+mbi.RegionSize) do
+              if mbi.Protect in [PAGE_EXECUTE_READ,PAGE_EXECUTE_READWRITE] then
               begin
-                if ReadProcessMemoryCR3(cr3log[i],pointer(ka),@buffer,4096,br) then
+                while (kernelmodeloopint3=0) and (ka<ptruint(mbi.BaseAddress)+mbi.RegionSize) do
                 begin
-                  for j:=0 to 4095 do
-                    if buffer[j]=$cc then
-                    begin
-                      kernelmodeloopint3:=ka+j;
-                      break;
-                    end;
+                  if ReadProcessMemoryCR3(cr3log[i],pointer(ka),@buffer,4096,br) then
+                  begin
+                    for j:=0 to 4095 do
+                      if buffer[j]=$cc then
+                      begin
+                        kernelmodeloopint3:=ka+j;
+                        break;
+                      end;
+                  end;
+                  inc(ka,4096);
                 end;
-                inc(ka,4096);
-              end;
-            end else ka:=ptruint(mbi.BaseAddress)+mbi.RegionSize;
-          end else inc(ka,4096);
-        end;
+              end else ka:=ptruint(mbi.BaseAddress)+mbi.RegionSize;
+            end else inc(ka,4096);
+          end;
 
-        if kernelmodeloopint3<>0 then break;
+          if kernelmodeloopint3<>0 then break;
 
-        if (i=0) then
-        begin
-          //need to fill the other cr3 values
-          if dbvm_log_cr3values_start then
+          if (i=0) then
           begin
-            ReadProcessMemory(processhandle,0,@br, 1,br);
-            sleep(2000);
-            if dbvm_log_cr3values_stop(@cr3log[1])=false then break; //give up
-          end
-          else break;
+            //need to fill the other cr3 values
+            if dbvm_log_cr3values_start then
+            begin
+              ReadProcessMemory(processhandle,0,@br, 1,br);
+              sleep(2000);
+              if dbvm_log_cr3values_stop(@cr3log[1])=false then break; //give up
+            end
+            else break;
 
-          //the other cr3 values are now filled in
+            //the other cr3 values are now filled in
+          end;
         end;
       end;
     end;
-  end;
+  end
+  else
+    kernelmodeloopint3:=0;
 
   result:=true;
 end;

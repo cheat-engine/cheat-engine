@@ -60,6 +60,7 @@ type
     neverstarted: boolean;
     pid: THandle;
 
+    procedure DBVMSteppingLost(sender: TObject);
     function getDebugThreadHanderFromThreadID(tid: dword): TDebugThreadHandler;
 
     procedure GetBreakpointList(address: uint_ptr; size: integer; var bplist: TBreakpointSplitArray);
@@ -1052,9 +1053,9 @@ begin
         DBVMWatchBPActive:=true;
 
         case breakpoint^.breakpointTrigger of
-          bptExecute:breakpoint^.dbvmwatchid:=dbvm_watch_executes(PA,1,EPTO_DBVMBP,0, TDBVMDebugInterface(currentdebuggerinterface).usermodeloopint3, TDBVMDebugInterface(currentdebuggerinterface).kernelmodeloopint3);
-          bptAccess: breakpoint^.dbvmwatchid:=dbvm_watch_reads(PA,1,EPTO_DBVMBP,0, TDBVMDebugInterface(currentdebuggerinterface).usermodeloopint3, TDBVMDebugInterface(currentdebuggerinterface).kernelmodeloopint3);
-          bptWrite: breakpoint^.dbvmwatchid:=dbvm_watch_writes(PA,1,EPTO_DBVMBP,0, TDBVMDebugInterface(currentdebuggerinterface).usermodeloopint3, TDBVMDebugInterface(currentdebuggerinterface).kernelmodeloopint3);
+          bptExecute:breakpoint^.dbvmwatchid:=dbvm_watch_executes(PA,breakpoint^.size,EPTO_DBVMBP,0, TDBVMDebugInterface(currentdebuggerinterface).usermodeloopint3, TDBVMDebugInterface(currentdebuggerinterface).kernelmodeloopint3);
+          bptAccess: breakpoint^.dbvmwatchid:=dbvm_watch_reads(PA,breakpoint^.size,EPTO_DBVMBP,0, TDBVMDebugInterface(currentdebuggerinterface).usermodeloopint3, TDBVMDebugInterface(currentdebuggerinterface).kernelmodeloopint3);
+          bptWrite: breakpoint^.dbvmwatchid:=dbvm_watch_writes(PA,breakpoint^.size,EPTO_DBVMBP,0, TDBVMDebugInterface(currentdebuggerinterface).usermodeloopint3, TDBVMDebugInterface(currentdebuggerinterface).kernelmodeloopint3);
         end;
 
         if breakpoint^.dbvmwatchid=-1 then
@@ -2800,6 +2801,11 @@ begin
   formSettings.setNoteAboutDebuggerInterfaces;
 end;
 
+procedure TDebuggerthread.DBVMSteppingLost(sender: TObject);
+begin
+  //
+end;
+
 procedure TDebuggerthread.defaultConstructorcode;
 begin
   debuggerCS := TGuiSafeCriticalSection.Create;
@@ -2832,7 +2838,11 @@ begin
         CurrentDebuggerInterface:=TKernelDebugInterface.create(globalDebug, formsettings.cbCanStepKernelcode.checked);
       end
       else if formsettings.cbUseDBVMDebugger.checked then
+      begin
         CurrentDebuggerInterface:=TDBVMDebugInterface.create;
+        TDBVMDebugInterface(CurrentDebuggerInterface).OnSteppingthreadLoss:=DBVMSteppingLost;
+
+      end
       {$endif}
 
       {$ifdef darwin}

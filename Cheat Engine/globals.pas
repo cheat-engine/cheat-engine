@@ -172,6 +172,7 @@ var
   dbvmbp_options: record
     TriggerCOW:boolean;
     TargetedProcessOnly:boolean;
+    KernelmodeBreaks: boolean;
   end;
   DBVMWatchBPActive: boolean;
 

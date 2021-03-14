@@ -286,7 +286,7 @@ var
   pb: PByteArray;
 begin
 
-  if handle<>0 then
+  if (handle<>0) or ((currentdebuggerinterface.controlsTheThreadList=false) and ishandled) then
   begin
     debuggercs.enter;
 
@@ -319,7 +319,7 @@ var
 begin
   outputdebugstring(pchar(format('setThreadContext(%x, %x, %p). dr0=%x dr1=%x dr2=%x dr3=%x dr7=%x',[threadid, handle,context, context^.dr0, context^.dr1, context^.dr2, context^.dr3, context^.dr7])));
 
-  if handle<>0 then
+  if (handle<>0) or ((currentdebuggerinterface.controlsTheThreadList=false) and ishandled) then
   begin
     debuggercs.enter;
 
@@ -1762,7 +1762,10 @@ begin
       if debugevent.CreateThread.hThread<>0 then
         closehandle(handle);
 
-      handle  := OpenThread(THREAD_ALL_ACCESS, false, threadid );
+      if currentdebuggerinterface.controlsTheThreadList then
+        handle  := OpenThread(THREAD_ALL_ACCESS, false, threadid )
+      else
+        handle := 0;
     end;
   end;
 

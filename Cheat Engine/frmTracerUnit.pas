@@ -20,6 +20,7 @@ type
   TTraceDebugInfo=class
   private
   public
+    cr3:qword;
     instruction: string;
     instructionsize: integer;
     referencedAddress: ptrUint;
@@ -192,6 +193,7 @@ type
     registerCompareIgnore: array [0..16] of boolean;
 
     da: TDisassembler;
+    dacr3: TCR3Disassembler;
 
     defaultBreakpointMethod: TBreakpointmethod;
 
@@ -215,6 +217,8 @@ type
     { Public declarations }
     returnfromignore: boolean;
 
+    isdbvminterface: boolean; //faster than xxx is tdbvmdebuggerinterface
+
     procedure setDataTrace(state: boolean);
     procedure addRecord;
     procedure finish;
@@ -233,7 +237,8 @@ implementation
 uses  LuaByteTable, clipbrd, CEDebugger, debughelper, MemoryBrowserFormUnit, frmTracerConfigUnit,
   ProcessHandlerUnit, Globals, Parsers, strutils, CEFuncProc,
   LuaHandler, symbolhandler, byteinterpreter,
-  tracerIgnore, LuaForm, lua, lualib,lauxlib, LuaClass,vmxfunctions, DBK32functions;
+  tracerIgnore, LuaForm, lua, lualib,lauxlib, LuaClass,vmxfunctions, DBK32functions,
+  DebuggerInterfaceAPIWrapper, DBVMDebuggerInterface;
 
 resourcestring
   rsSearch = 'Search';
@@ -277,17 +282,26 @@ procedure TTraceDebugInfo.fillbytes(datasize: integer);
 begin
   getmem(bytes, datasize);
   bytesize:=0;
-  ReadProcessMemory(processhandle, pointer(referencedaddress), bytes, datasize, bytesize);
+  if cr3=0 then
+    ReadProcessMemory(processhandle, pointer(referencedaddress), bytes, datasize, bytesize)
+  else
+    ReadProcessMemoryCR3(cr3, pointer(referencedaddress), bytes, datasize, bytesize);
 end;
 
 procedure TTraceDebugInfo.SaveStack;
 begin
   getmem(stack.stack, savedStackSize);
-  if ReadProcessMemory(processhandle, pointer(c.{$ifdef cpu64}Rsp{$else}esp{$endif}), stack.stack, savedStackSize, stack.savedsize)=false then
+
+  if cr3=0 then
   begin
-    stack.savedsize:=4096-(c.{$ifdef cpu64}Rsp{$else}esp{$endif} mod 4096);
-    ReadProcessMemory(processhandle, pointer(c.{$ifdef cpu64}Rsp{$else}esp{$endif}), stack.stack, stack.savedsize, stack.savedsize);
-  end;
+    if ReadProcessMemory(processhandle, pointer(c.{$ifdef cpu64}Rsp{$else}esp{$endif}), stack.stack, savedStackSize, stack.savedsize)=false then
+    begin
+      stack.savedsize:=4096-(c.{$ifdef cpu64}Rsp{$else}esp{$endif} mod 4096);
+      ReadProcessMemory(processhandle, pointer(c.{$ifdef cpu64}Rsp{$else}esp{$endif}), stack.stack, stack.savedsize, stack.savedsize);
+    end;
+  end
+  else
+    ReadProcessMemoryCR3(cr3, pointer(c.{$ifdef cpu64}Rsp{$else}esp{$endif}), stack.stack, savedStackSize, stack.savedsize);
 end;
 
 constructor TTraceDebugInfo.createFromStream(s: tstream);
@@ -499,6 +513,10 @@ var s,s2: string;
 
     datasize: integer;
     isfloat: boolean;
+
+
+    currentda: TDisassembler;
+    cr3: qword;
 begin
   //the debuggerthread is now paused so get the context and add it to the list
 
@@ -514,13 +532,34 @@ begin
       da.showmodules:=symhandler.showmodules;
       da.showsections:=symhandler.showsections;
     end;
-    s:=da.disassemble(a, s2);
 
-    datasize:=da.LastDisassembleData.datasize;
+    if isdbvminterface and (dacr3=nil) then
+    begin
+      dacr3:=tcr3disassembler.Create;
+      da.showsymbols:=symhandler.showsymbols;
+      da.showmodules:=symhandler.showmodules;
+      da.showsections:=symhandler.showsections;
+    end;
+
+    if isdbvminterface and (debuggerthread.CurrentThread.context.P2Home<>0) then
+    begin
+      cr3:=debuggerthread.CurrentThread.context.P2Home;
+      currentda:=dacr3;
+      dacr3.CR3:=cr3;
+    end
+    else
+    begin
+      currentda:=da;
+      cr3:=0;
+    end;
+
+    s:=currentda.disassemble(a, s2);
+
+    datasize:=currentda.LastDisassembleData.datasize;
     if datasize=0 then
       datasize:=4;
 
-    isfloat:=da.LastDisassembleData.isfloat;
+    isfloat:=currentda.LastDisassembleData.isfloat;
 
     referencedAddress:=0;
     if dereference then
@@ -540,6 +579,7 @@ begin
 
 
     d:=TTraceDebugInfo.Create;
+    d.cr3:=cr3;
     d.instructionsize:=a-address;
     d.c:=debuggerthread.CurrentThread.context^;
     d.instruction:=s;
@@ -565,10 +605,10 @@ begin
     else
       thisnode:=lvTracer.Items.AddObject(nil,s,d);
 
-    if not stepover and da.LastDisassembleData.iscall then
+    if not stepover and currentda.LastDisassembleData.iscall then
       currentAppendage:=thisnode;
 
-    if (da.LastDisassembleData.isret) {or returnfromignore} then
+    if (currentda.LastDisassembleData.isret) {or returnfromignore} then
     begin
       returnfromignore:=false;
       if currentAppendage<>nil then
@@ -1003,10 +1043,13 @@ begin
       begin
         list:=PPageEventExtendedArray(qword(desc)+sizeof(TTracerListDescriptor));
 
-        da:=tdisassembler.Create;
-        da.showsymbols:=symhandler.showsymbols;
-        da.showmodules:=symhandler.showmodules;
-        da.showsections:=symhandler.showsections;
+        if da=nil then
+        begin
+          da:=tdisassembler.Create;
+          da.showsymbols:=symhandler.showsymbols;
+          da.showmodules:=symhandler.showmodules;
+          da.showsections:=symhandler.showsections;
+        end;
 
         for desciterator:=0 to desc.count-1 do
         begin
@@ -1220,6 +1263,17 @@ begin
       stepover:=cbStepOver.checked;
       nosystem:=cbSkipSystemModules.checked;
 
+      if cbDBVMTriggerCOW.checked then
+      begin
+        if ReadProcessMemory(processhandle, pointer(fromaddress), @b,1,actual) then
+        begin
+          v:=(SkipVirtualProtectEx=false) and VirtualProtectEx(processhandle, pointer(fromaddress),1, PAGE_EXECUTE_READWRITE, oldprotect);
+          WriteProcessMemory(processhandle,pointer(fromaddress),@b,1,actual);
+          if v then
+            VirtualProtectEx(processhandle,pointer(fromaddress),1,oldprotect,oldprotect);
+        end;
+      end;
+
       if cbDBVMBreakAndTrace.checked then
       begin
         if loaddbvmifneeded(rsDBVMBreakAndTraceNeedsDBVM)=false then exit;
@@ -1231,17 +1285,7 @@ begin
         else
           fromaddress:=memorybrowser.disassemblerview.SelectedAddress;
 
-        if cbDBVMTriggerCOW.checked then
-        begin
 
-          if ReadProcessMemory(processhandle, pointer(fromaddress), @b,1,actual) then
-          begin
-            v:=(SkipVirtualProtectEx=false) and VirtualProtectEx(processhandle, pointer(fromaddress),1, PAGE_EXECUTE_READWRITE, oldprotect);
-            WriteProcessMemory(processhandle,pointer(fromaddress),@b,1,actual);
-            if v then
-              VirtualProtectEx(processhandle,pointer(fromaddress),1,oldprotect,oldprotect);
-          end;
-        end;
 
         options:=1;
         if cbSaveStack.checked then options:=3;
@@ -1322,6 +1366,8 @@ begin
       else
       if startdebuggerifneeded then
       begin
+        isdbvminterface:=CurrentDebuggerInterface is TDBVMDebugInterface;
+
         if fDataTrace then
         begin
           //get breakpoint trigger
@@ -1870,6 +1916,9 @@ procedure TfrmTracer.FormDestroy(Sender: TObject);
 begin
   if da<>nil then
     da.free;
+
+  if dacr3<>nil then
+    dacr3.free;
 
   saveformposition(self);
 end;

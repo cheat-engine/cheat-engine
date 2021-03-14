@@ -168,7 +168,8 @@ implementation
 
 uses CEFuncProc, CEDebugger,debughelper, debugeventhandler, MemoryBrowserFormUnit,
      MainUnit,kerneldebugger, AdvancedOptionsUnit ,formFoundcodeListExtraUnit,
-     MainUnit2, ProcessHandlerUnit, Globals, Parsers, DBK32functions, symbolhandler;
+     MainUnit2, ProcessHandlerUnit, Globals, Parsers, DBK32functions, symbolhandler,
+     DebuggerInterfaceAPIWrapper, DBVMDebuggerInterface;
 
 
 
@@ -802,7 +803,7 @@ begin
   if itemindex<>-1 then
   begin
     FormFoundCodeListExtra:=TFormFoundCodeListExtra.Create(application);
-    if useexceptions then
+    if useexceptions or (currentdebuggerinterface is TDBVMDebugInterface) then
       FormFoundCodeListExtra.Label18.Visible:=false
     else
       FormFoundCodeListExtra.Label18.Visible:=true;
@@ -826,6 +827,17 @@ begin
 
     address:=coderecord.address;
     {$IFDEF windows}
+    if CurrentDebuggerInterface is TDBVMDebugInterface then
+    begin
+      if coderecord.context.P2Home<>0 then
+      begin
+        d:=TCR3Disassembler.Create;
+        TCR3Disassembler(d).CR3:=coderecord.context.P2Home;
+      end
+      else
+        d:=TDisassembler.Create;
+    end
+    else
     if coderecord.dbvmcontextbasic<>nil then
     begin
       d:=TCR3Disassembler.Create;
@@ -1103,18 +1115,20 @@ begin
           lblR15.Align:=lblrcx.Align;
           lblR15.Color:=lblRAX.Color;
 
-
+          if (currentdebuggerinterface is TDBVMDebugInterface) and (coderecord.context.P2Home<>0) then
+          begin
+            lblR16:=tlabel.Create(FormFoundCodeListExtra);
+            lblR16.caption:=' CR3='+IntToHex(coderecord.context.P2Home,8);
+            lblR16.parent:=FormFoundCodeListExtra.pnlRegisters;
+            lblR16.OnMouseDown:=registerMouseDown;
+            lblR16.OnDblClick:=RegisterDblClick;
+            lblR16.Align:=lblrcx.Align;
+            lblR16.Color:=lblRAX.Color;
+          end;
 
           lblRBP.BringToFront;
           lblRSP.BringToFront;
           lblRIP.BringToFront;
-
-
-     {     Constraints.MinHeight:=panel6.top+(lblR15.top+lblR15.height)+16+panel5.height;
-          if height<Constraints.MinHeight then
-            height:=Constraints.MinHeight;     }
-  //        if panel6.clientheight<lblR15.top+lblR15.height then //make room
-  //          height:=height+(lblR15.top+lblR15.height)-(lblRDI.top+lblRDI.height);
         end;
         {$endif}
 

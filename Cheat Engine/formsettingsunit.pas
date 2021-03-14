@@ -91,6 +91,7 @@ type
     cbDisableDarkModeSupport: TCheckBox;
     cbDBVMDebugTriggerCOW: TCheckBox;
     cbDBVMDebugTargetedProcessOnly: TCheckBox;
+    cbDBVMDebugKernelmodeBreaks: TCheckBox;
     combothreadpriority: TComboBox;
     defaultbuffer: TPopupMenu;
     Default1: TMenuItem;
@@ -851,9 +852,11 @@ begin
 
         reg.writeBool('DBVMBP Trigger COW', cbDBVMDebugTriggerCOW.checked);
         reg.writeBool('DBVMBP This Process Only', cbDBVMDebugTargetedProcessOnly.checked);
+        reg.writeBool('DBVMBP Kernelmode', cbDBVMDebugKernelmodeBreaks.checked);
 
         dbvmbp_options.TriggerCOW:=cbDBVMDebugTriggerCOW.checked;
         dbvmbp_options.TargetedProcessOnly:=cbDBVMDebugTargetedProcessOnly.checked;
+        dbvmbp_options.KernelmodeBreaks:=cbDBVMDebugKernelmodeBreaks.checked;
 
 
 

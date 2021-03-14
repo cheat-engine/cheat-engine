@@ -829,8 +829,16 @@ begin
           if reg.ValueExists('DBVMBP This Process Only') then
             dbvmbp_options.TargetedProcessOnly:=reg.ReadBool('DBVMBP This Process Only');
 
+          if reg.ValueExists('DBVMBP Kernelmode') then
+            dbvmbp_options.KernelmodeBreaks:=reg.readBool('DBVMBP Kernelmode')
+          else
+            dbvmbp_options.KernelmodeBreaks:=true;
+
+
+
           cbDBVMDebugTriggerCOW.checked:=dbvmbp_options.TriggerCOW;
           cbDBVMDebugTargetedProcessOnly.checked:=dbvmbp_options.TargetedProcessOnly;
+          cbDBVMDebugKernelmodeBreaks.checked:=dbvmbp_options.KernelmodeBreaks;
 
           {$endif}
 

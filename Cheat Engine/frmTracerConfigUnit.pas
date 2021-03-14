@@ -56,10 +56,14 @@ implementation
 { TfrmTracerConfig }
 
 uses NewKernelHandler, DebugHelper, debuggerinterface, DebuggerInterfaceAPIWrapper,
-  formsettingsunit;
+  formsettingsunit, DBVMDebuggerInterface;
 
 function TfrmTracerConfig.getBreakpointmethod: TBreakpointmethod;
 begin
+  if (CurrentDebuggerInterface<>nil) and (CurrentDebuggerInterface is TDBVMDebugInterface) then
+    exit(bpmDBVMNative);
+
+
   result:=bpmDebugRegister;
 
   if rbBPHardware.checked then
@@ -97,9 +101,9 @@ begin
   if hasEPTSupport=false then
     rbBPDBVM.visible:=false;
 
-  rbBPHardware.enabled:=true;
-  rbBPSoftware.enabled:=((CurrentDebuggerInterface<>nil) and (dbcSoftwareBreakpoint in CurrentDebuggerInterface.DebuggerCapabilities)) or (formsettings.cbKDebug.Checked=false);
-  rbBPException.enabled:=((CurrentDebuggerInterface<>nil) and (dbcExceptionBreakpoint in CurrentDebuggerInterface.DebuggerCapabilities)) or (formsettings.cbKDebug.Checked=false);
+  rbBPHardware.enabled:=CurrentDebuggerInterface.usesDebugRegisters;
+  rbBPSoftware.enabled:=((CurrentDebuggerInterface<>nil) and (dbcSoftwareBreakpoint in CurrentDebuggerInterface.DebuggerCapabilities)) and (formsettings.cbKDebug.Checked=false);
+  rbBPException.enabled:=((CurrentDebuggerInterface<>nil) and (dbcExceptionBreakpoint in CurrentDebuggerInterface.DebuggerCapabilities)) and (formsettings.cbKDebug.Checked=false);
   rbBPDBVM.enabled:=((CurrentDebuggerInterface<>nil) and (dbcDBVMBreakpoint in CurrentDebuggerInterface.DebuggerCapabilities)) or (formsettings.cbKDebug.Checked);
 
   cbDBVMBreakAndTrace.visible:=isDBVMCapable;
@@ -108,6 +112,8 @@ begin
   if (CurrentDebuggerInterface=nil) and isRunningDBVM then //no debugger running, go for dbvm by default
     cbDBVMBreakAndTrace.Checked:=true;
 
+  if (CurrentDebuggerInterface<>nil) and (CurrentDebuggerInterface is TDBVMDebugInterface) then
+    groupbox1.visible:=false;
 end;
 
 procedure TfrmTracerConfig.cbDBVMBreakAndTraceChange(Sender: TObject);
@@ -134,7 +140,7 @@ begin
   end
   else
   begin
-    cbDBVMTriggerCOW.visible:=false;
+    cbDBVMTriggerCOW.visible:=formSettings.cbUseDBVMDebugger.checked;
     cbDereferenceAddresses.enabled:=true;
     cbStepOver.enabled:=true;
     cbSkipSystemModules.enabled:=true;

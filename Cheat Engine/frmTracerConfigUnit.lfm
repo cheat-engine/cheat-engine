@@ -10,7 +10,7 @@ object frmTracerConfig: TfrmTracerConfig
   ClientWidth = 288
   OnCreate = FormCreate
   Position = poScreenCenter
-  LCLVersion = '2.0.6.0'
+  LCLVersion = '2.0.10.0'
   object edtMaxTrace: TEdit
     AnchorSideLeft.Control = Label1
     AnchorSideTop.Control = Label1
@@ -256,6 +256,7 @@ object frmTracerConfig: TfrmTracerConfig
     end
   end
   object cbDBVMBreakAndTrace: TCheckBox
+    AnchorSideLeft.Control = Label1
     AnchorSideTop.Control = Owner
     Left = 16
     Height = 19
@@ -270,6 +271,7 @@ object frmTracerConfig: TfrmTracerConfig
     TabOrder = 11
   end
   object cbDBVMTriggerCOW: TCheckBox
+    AnchorSideLeft.Control = Label1
     AnchorSideTop.Control = cbDBVMBreakAndTrace
     AnchorSideTop.Side = asrBottom
     Left = 16
