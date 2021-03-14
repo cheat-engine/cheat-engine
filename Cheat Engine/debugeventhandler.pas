@@ -71,6 +71,7 @@ type
 
 
     currentBP: PBreakpoint;
+    dbvm_currentCR3: qword;
 
 
     function CheckIfConditionIsMet(bp: PBreakpoint; script: string=''): boolean;
@@ -264,9 +265,12 @@ begin
 
   TDebuggerthread(debuggerthread).execlocation:=412;
 
-
   if WaitingToContinue and (TDebuggerthread(debuggerthread).CurrentThread<>nil) then //no lua script or it returned 0, or it DID continue and returned 0...
   begin
+    if currentdebuggerinterface is TDBVMDebugInterface then
+      memorybrowser.cr3:=dbvm_currentCR3;
+
+
     TDebuggerthread(debuggerthread).execlocation:=413;
     MemoryBrowser.UpdateDebugContext(self.Handle, self.ThreadId, true, TDebuggerthread(debuggerthread));
   end;
@@ -1493,6 +1497,7 @@ begin
 end;
 
 
+
 function TDebugThreadHandler.HandleExceptionDebugEvent(debugEvent: TDEBUGEVENT; var dwContinueStatus: dword): boolean;
 var
   exceptionAddress: ptrUint;
@@ -1513,6 +1518,14 @@ begin
     EXCEPTION_DBVM_BREAKPOINT:
     begin
       outputdebugstring('EXCEPTION_DBVM_BREAKPOINT');
+
+
+      if (debugevent.Exception.ExceptionRecord.NumberParameters>=6) and (debugevent.Exception.ExceptionRecord.ExceptionInformation[5]=1) then
+        dbvm_currentCR3:=debugevent.Exception.ExceptionRecord.ExceptionInformation[1] and MAXPHYADDRMASKPB
+      else
+        dbvm_currentCR3:=0;
+
+
       //dwContinueStatus supports DBG_CONTINUE_SINGLESTEP
       if debugEvent.Exception.ExceptionRecord.ExceptionFlags=dword(-1) then
         result:= singleStep(dwContinueStatus)
@@ -2097,18 +2110,13 @@ begin
   debuggercs.leave;
 
   //The most important data has been gathered (DR6 of the thread). it's safe from this point to occasionally release the lock
+  currentdebugEvent:=debugEvent;
 
   if newthread and (frmthreadlist<>nil) then
-  begin
-    currentdebugEvent:=debugEvent;
     TDebuggerthread(debuggerthread).Synchronize(TDebuggerthread(debuggerthread), updatethreadlist);
-  end;
 
   if frmDebugEvents<>nil then
-  begin
-    currentdebugEvent:=debugEvent;
     TDebuggerthread(debuggerthread).Synchronize(TDebuggerthread(debuggerthread), UpdateDebugEventWindow);
-  end;
 
 
   TDebuggerthread(debuggerthread).execlocation:=11;

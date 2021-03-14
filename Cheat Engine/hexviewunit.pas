@@ -143,6 +143,8 @@ type
     drawer: TIntfFreeTypeDrawer;
  {$endif}
 
+    fcr3: qword;
+
     procedure setHexFont(f: TFont);
 
     procedure LoadMemoryRegion;
@@ -199,6 +201,11 @@ type
     procedure lineDown(sender: TObject);
 
     function DisplayTypeByteSize(dt: TDisplayType): integer; inline;
+    procedure setCR3(pa: QWORD);
+
+    function ReadProcessMemory(hProcess: THandle; lpBaseAddress, lpBuffer: Pointer; nSize: size_t; var lpNumberOfBytesRead: PTRUINT): BOOL;
+    function WriteProcessMemory(hProcess: THandle; const lpBaseAddress: Pointer; lpBuffer: Pointer; nSize: DWORD; var lpNumberOfBytesWritten: PTRUINT): BOOL;
+    function VirtualQueryEx(hProcess: THandle; lpAddress: Pointer; var lpBuffer: TMemoryBasicInformation; dwLength: DWORD): DWORD;
   protected
     procedure KeyDown(var Key: Word; Shift: TShiftState); override;
     procedure UTF8KeyPress(var UTF8Key: TUTF8Char); override;
@@ -290,6 +297,7 @@ type
     property breakpointBackgroundColor: TColor read colors[hcsbreakpoint].backgroundcolor write colors[hcsbreakpoint].backgroundcolor;
     property differentFontColor: TColor read colors[hcsdifferent].fontcolor write colors[hcsdifferent].fontcolor;
     property differentBackgroundColor: TColor read colors[hcsdifferent].backgroundcolor write colors[hcsdifferent].backgroundcolor;
+    property CR3: QWORD read fCR3 write setCR3;
   end;
 
 implementation
@@ -1694,7 +1702,8 @@ begin
     {$endif}
 
 
-    if symhandler.getmodulebyaddress(fAddress,mi) then
+
+    if (fcr3=0) and symhandler.getmodulebyaddress(fAddress,mi) then
       memoryInfo:=memoryInfo+' '+rsModule+'='+mi.modulename;
 
   except
@@ -1725,7 +1734,7 @@ begin
 {$IFDEF STANDALONEHV}
       p.inModule:=(a and (1 shl 12))>0
 {$else}
-      p.inModule:=symhandler.inModule(a)
+      p.inModule:=((fcr3=0) and symhandler.inModule(a))
 {$ENDIF}
     else
       p.inModule:=false;
@@ -2893,6 +2902,40 @@ begin
 
   hexviewResize(self);
   update;
+end;
+
+procedure THexview.setCR3(pa: QWORD);
+begin
+  fcr3:=pa;
+end;
+
+function THexview.ReadProcessMemory(hProcess: THandle; lpBaseAddress, lpBuffer: Pointer; nSize: size_t; var lpNumberOfBytesRead: PTRUINT): BOOL;
+begin
+  if fcr3=0 then
+    result:=newkernelhandler.ReadProcessMemory(hProcess, lpBaseAddress, lpBuffer, nsize, lpNumberOfBytesRead)
+  else
+    result:=ReadProcessMemoryCR3(fcr3,lpBaseAddress, lpBuffer, nsize, lpNumberOfBytesRead);
+end;
+
+function THexview.WriteProcessMemory(hProcess: THandle; const lpBaseAddress: Pointer; lpBuffer: Pointer; nSize: DWORD; var lpNumberOfBytesWritten: PTRUINT): BOOL;
+begin
+  if fcr3=0 then
+    result:=newkernelhandler.WriteProcessMemory(hProcess, lpBaseAddress, lpBuffer, nSize, lpNumberOfBytesWritten)
+  else
+    result:=WriteProcessMemoryCR3(fcr3, lpBaseAddress, lpBuffer, nsize, lpNumberOfBytesWritten);
+end;
+
+function THexview.VirtualQueryEx(hProcess: THandle; lpAddress: Pointer; var lpBuffer: TMemoryBasicInformation; dwLength: DWORD): DWORD;
+begin
+  if fcr3=0 then
+    result:=newkernelhandler.VirtualQueryEx(hProcess, lpAddress, lpBuffer, dwLength)
+  else
+  begin
+    if GetPageInfoCR3(fcr3,ptruint(lpAddress), lpBuffer) then
+      result:=dwlength
+    else
+      result:=0;
+  end;
 end;
 
 destructor THexview.destroy;

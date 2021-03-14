@@ -1618,7 +1618,7 @@ begin
     {$endif}
 
     MemoryBrowser.Kerneltools1.Enabled:=DBKLoaded or isRunningDBVM;
-
+    MemoryBrowser.miCR3Switcher.visible:=MemoryBrowser.Kerneltools1.Enabled;
   end;
 {$endif}
 end;

@@ -724,6 +724,7 @@ var
   PA: qword;
 
   newdr7: qword;
+  old: byte;
 
 procedure displayDebugInfo(reason: string);
 var debuginfo:tstringlist;
@@ -1034,12 +1035,24 @@ begin
       {$ifdef windows}
       loaddbvmifneeded;
 
+      if dbvmbp_options.TriggerCOW and (breakpoint^.breakpointTrigger=bptExecute) then
+      begin
+        //trigger COW before placing the bp
+        if ReadProcessMemory(processhandle, pointer(breakpoint^.address), @old,1,bw) then
+        begin
+          vpe:=(SkipVirtualProtectEx=false) and VirtualProtectEx(processhandle, pointer(breakpoint.address), 1, PAGE_EXECUTE_READWRITE, oldprotect);
+          WriteProcessMemoryActual(processhandle, pointer(breakpoint.address), @old, 1, bw); //skip the DBVM version and use the native kernelmode/winapi one
+          if vpe then
+            VirtualProtectEx(processhandle, pointer(breakpoint.address), 1, oldprotect, oldprotect);
+        end;
+      end;
+
       if GetPhysicalAddress(processhandle,pointer(breakpoint^.address),pa) then
       begin
         DBVMWatchBPActive:=true;
 
         case breakpoint^.breakpointTrigger of
-          bptExecute: breakpoint^.dbvmwatchid:=dbvm_watch_executes(PA,1,EPTO_DBVMBP,0, TDBVMDebugInterface(currentdebuggerinterface).usermodeloopint3, TDBVMDebugInterface(currentdebuggerinterface).kernelmodeloopint3);
+          bptExecute:breakpoint^.dbvmwatchid:=dbvm_watch_executes(PA,1,EPTO_DBVMBP,0, TDBVMDebugInterface(currentdebuggerinterface).usermodeloopint3, TDBVMDebugInterface(currentdebuggerinterface).kernelmodeloopint3);
           bptAccess: breakpoint^.dbvmwatchid:=dbvm_watch_reads(PA,1,EPTO_DBVMBP,0, TDBVMDebugInterface(currentdebuggerinterface).usermodeloopint3, TDBVMDebugInterface(currentdebuggerinterface).kernelmodeloopint3);
           bptWrite: breakpoint^.dbvmwatchid:=dbvm_watch_writes(PA,1,EPTO_DBVMBP,0, TDBVMDebugInterface(currentdebuggerinterface).usermodeloopint3, TDBVMDebugInterface(currentdebuggerinterface).kernelmodeloopint3);
         end;
@@ -1340,7 +1353,7 @@ begin
       end;
     end;
 
-    if state then DBVMWatchBPActive:=state;
+    DBVMWatchBPActive:=state;
 
 
 

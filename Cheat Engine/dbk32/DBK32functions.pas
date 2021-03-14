@@ -909,7 +909,7 @@ begin
         x:=l.processid;
         result:=deviceiocontrol(hdevice,cc,@x,4,@_cr3,8,y,nil);
 
-        outputdebugstring(pchar('GetCR3: return '+inttohex(_cr3,16)));
+       // outputdebugstring(pchar('GetCR3: return '+inttohex(_cr3,16)));
         if result then CR3:=_cr3 else cr3:=$11223344;
       end;
 
@@ -949,7 +949,7 @@ begin
     x:=pid;
     result:=deviceiocontrol(hdevice,cc,@x,4,@_cr3,8,y,nil);
 
-    outputdebugstring(pchar('GetCR3: return '+inttohex(_cr3,16)));
+    //outputdebugstring(pchar('GetCR3: return '+inttohex(_cr3,16)));
 
     if (_cr3 and $fff)>0 then
     begin
@@ -1339,6 +1339,13 @@ var ao: array [0..511] of byte;
     bufpointer2: pointer;
     towrite: dword;
 begin
+  if vmx_loaded and (dbvm_version>=$ce00000a) then
+  begin
+    NumberOfBytesWritten:=dbvm_write_physical_memory(qword(lpBaseAddress), lpBuffer, nSize);
+    exit(NumberOfBytesWritten=nSize);
+  end;
+
+
   result:=false;
   NumberOfByteswritten:=0;
   //find the hprocess in the handlelist, if it isn't use the normal method (I could of course use NtQueryProcessInformation but it's undocumented and I'm too lazy to dig it up

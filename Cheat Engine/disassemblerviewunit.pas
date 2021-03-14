@@ -92,6 +92,7 @@ type TDisassemblerview=class(TPanel)
     fOnDisassemblerViewOverride: TDisassemblerViewOverrideCallback;
 
 
+    fCR3: qword;
 
     procedure updateScrollbox;
     procedure scrollboxResize(Sender: TObject);
@@ -126,7 +127,7 @@ type TDisassemblerview=class(TPanel)
     procedure synchronizeDisassembler;
     procedure StatusInfoLabelCopy(sender: TObject);
 
-
+    procedure setCR3(pa: QWORD);
   protected
     procedure HandleSpecialKey(key: word);
     procedure WndProc(var msg: TMessage); override;
@@ -153,6 +154,8 @@ type TDisassemblerview=class(TPanel)
     IntfImage: TLazIntfImage;
     drawer: TIntfFreeTypeDrawer;
     {$endif}
+
+    currentDisassembler: TDisassembler;
 
     procedure DoDisassemblerViewLineOverride(address: ptruint; var addressstring: string; var bytestring: string; var opcodestring: string; var parameterstring: string; var specialstring: string);
 
@@ -192,6 +195,7 @@ type TDisassemblerview=class(TPanel)
     property Osb: TBitmap read offscreenbitmap;
     property OnExtraLineRender: TDisassemblerExtraLineRender read fOnExtraLineRender write fOnExtraLineRender;
     property OnDisassemblerViewOverride: TDisassemblerViewOverrideCallback read fOnDisassemblerViewOverride write fOnDisassemblerViewOverride;
+    property CR3: qword read fCR3 write setCR3;
 end;
 
 
@@ -1135,6 +1139,28 @@ begin
 end;
 
 
+procedure TDisassemblerview.setCR3(pa: QWORD);
+begin
+  if pa=fcr3 then exit;
+
+  freeAndNil(currentDisassembler);
+  if pa<>0 then
+  begin
+    currentDisassembler:=TCR3Disassembler.Create;
+    TCR3Disassembler(currentDisassembler).CR3:=pa;
+    currentDisassembler.syntaxhighlighting:=true;
+  end
+  else
+  begin
+    currentDisassembler:=TDisassembler.Create;
+    currentDisassembler.syntaxhighlighting:=true;
+  end;
+
+  fCR3:=pa;
+
+  update;
+end;
+
 destructor TDisassemblerview.destroy;
 begin
   destroyed:=true;
@@ -1165,6 +1191,9 @@ begin
   if statusinfo<>nil then
     freeandnil(statusinfo);
 
+  if currentDisassembler<>nil then
+    freeandnil(currentDisassembler);
+
 
   inherited destroy;
 end;
@@ -1175,6 +1204,10 @@ var
   mi: TMenuItem;
 begin
   inherited create(AOwner);
+
+  currentDisassembler:=TDisassembler.Create;
+  currentDisassembler.syntaxhighlighting:=true;
+
 
   {$ifdef USELAZFREETYPE}
   if loadCEFreeTypeFonts then

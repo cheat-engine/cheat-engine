@@ -7311,7 +7311,7 @@ begin
         if not lua_isnil(L,-1) then state.basic.R9:=lua_tointeger(L,-1);
         lua_pop(L,1);
 
-        lua_pushstring(L,'R0');
+        lua_pushstring(L,'R10');
         lua_gettable(L,2);
         if not lua_isnil(L,-1) then state.basic.R10:=lua_tointeger(L,-1);
         lua_pop(L,1);

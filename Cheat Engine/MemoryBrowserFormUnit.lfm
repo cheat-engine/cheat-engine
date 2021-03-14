@@ -1,7 +1,7 @@
 object MemoryBrowser: TMemoryBrowser
-  Left = 403
+  Left = 627
   Height = 536
-  Top = 95
+  Top = 107
   Width = 643
   HelpContext = 12
   Caption = 'Memory Viewer'
@@ -1678,6 +1678,11 @@ object MemoryBrowser: TMemoryBrowser
           RadioItem = True
           OnClick = miBinutilsSelectClick
         end
+      end
+      object miCR3Switcher: TMenuItem
+        Caption = 'CR3 Switcher'
+        Visible = False
+        OnClick = miCR3SwitcherClick
       end
       object miTextPreferences: TMenuItem
         Caption = 'Preferences'

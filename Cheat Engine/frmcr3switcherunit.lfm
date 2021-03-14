@@ -1,0 +1,91 @@
+object frmCR3Switcher: TfrmCR3Switcher
+  Left = 351
+  Height = 240
+  Top = 145
+  Width = 320
+  AutoSize = True
+  Caption = 'Pagebase Switcher (CR3)'
+  ClientHeight = 240
+  ClientWidth = 320
+  OnCreate = FormCreate
+  OnDestroy = FormDestroy
+  OnShow = FormShow
+  Position = poScreenCenter
+  LCLVersion = '2.0.10.0'
+  object edtNewCR3: TEdit
+    AnchorSideLeft.Control = Owner
+    AnchorSideTop.Control = Label1
+    AnchorSideTop.Side = asrBottom
+    Left = 4
+    Height = 23
+    Hint = 'Set to 0 or empty and click set to go back to normal windows or DBK memory API'
+    Top = 37
+    Width = 204
+    BorderSpacing.Left = 4
+    BorderSpacing.Top = 4
+    ParentShowHint = False
+    ShowHint = True
+    TabOrder = 0
+  end
+  object lbCR3List: TListBox
+    AnchorSideLeft.Control = Owner
+    AnchorSideTop.Control = edtNewCR3
+    AnchorSideTop.Side = asrBottom
+    AnchorSideRight.Control = Owner
+    AnchorSideRight.Side = asrBottom
+    AnchorSideBottom.Control = Owner
+    AnchorSideBottom.Side = asrBottom
+    Left = 3
+    Height = 174
+    Top = 63
+    Width = 314
+    Anchors = [akTop, akLeft, akRight, akBottom]
+    BorderSpacing.Left = 3
+    BorderSpacing.Top = 3
+    BorderSpacing.Right = 3
+    BorderSpacing.Bottom = 3
+    ItemHeight = 0
+    OnDblClick = lbCR3ListDblClick
+    OnSelectionChange = lbCR3ListSelectionChange
+    PopupMenu = pmCR3List
+    TabOrder = 1
+  end
+  object btnSetCR3: TButton
+    AnchorSideLeft.Control = edtNewCR3
+    AnchorSideLeft.Side = asrBottom
+    AnchorSideTop.Control = edtNewCR3
+    AnchorSideTop.Side = asrCenter
+    Left = 212
+    Height = 25
+    Top = 36
+    Width = 75
+    BorderSpacing.Left = 4
+    Caption = 'Set'
+    OnClick = btnSetCR3Click
+    TabOrder = 2
+  end
+  object Label1: TLabel
+    AnchorSideLeft.Control = Owner
+    AnchorSideTop.Control = Owner
+    AnchorSideRight.Control = Owner
+    AnchorSideRight.Side = asrBottom
+    Left = 3
+    Height = 30
+    Top = 3
+    Width = 317
+    Anchors = [akTop, akLeft, akRight]
+    BorderSpacing.Left = 3
+    BorderSpacing.Top = 3
+    Caption = 'Select or type the new page base address (CR3) for this memory view window'
+    ParentColor = False
+    WordWrap = True
+  end
+  object pmCR3List: TPopupMenu
+    Left = 136
+    Top = 112
+    object MenuItem1: TMenuItem
+      Caption = 'Record CR3 list'
+      OnClick = MenuItem1Click
+    end
+  end
+end

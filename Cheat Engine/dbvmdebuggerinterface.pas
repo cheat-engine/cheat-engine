@@ -132,12 +132,13 @@ begin
     lpDebugEvent.Exception.ExceptionRecord.ExceptionAddress:=pointer(currentFrozenState.basic.RIP);
     lpDebugEvent.Exception.ExceptionRecord.ExceptionCode:=EXCEPTION_DBVM_BREAKPOINT;
     lpDebugEvent.Exception.ExceptionRecord.ExceptionFlags:=watchid; //-1 when stepping
-    lpDebugEvent.Exception.ExceptionRecord.NumberParameters:=5;
+    lpDebugEvent.Exception.ExceptionRecord.NumberParameters:=6;
     lpDebugEvent.Exception.ExceptionRecord.ExceptionInformation[0]:=frozenThreadID;
     lpDebugEvent.Exception.ExceptionRecord.ExceptionInformation[1]:=currentFrozenState.basic.CR3;
     lpDebugEvent.Exception.ExceptionRecord.ExceptionInformation[2]:=currentFrozenState.basic.FSBASE;
     lpDebugEvent.Exception.ExceptionRecord.ExceptionInformation[3]:=currentFrozenState.basic.GSBASE;
     lpDebugEvent.Exception.ExceptionRecord.ExceptionInformation[4]:=currentFrozenState.basic.GSBASE_KERNEL;
+    lpDebugEvent.Exception.ExceptionRecord.ExceptionInformation[5]:=ifthen<ULONG_PTR>(processCR3<>currentFrozenState.basic.CR3,1,0);
 
     if getClientIDFromDBVMBPState(currentFrozenState, clientID) then
     begin
@@ -159,6 +160,8 @@ begin
 
       lpDebugEvent.dwThreadId:=lpDebugEvent.dwThreadId and (1 shl 31);
     end;
+
+
   end;
 end;
 
@@ -404,6 +407,7 @@ begin
     lpContext.Rip:=currentFrozenState.basic.Rip;
 
     lpContext.P1Home:=currentFrozenState.basic.Count;
+    lpContext.P2Home:=currentFrozenState.basic.CR3;
     CopyMemory(@lpContext.FltSave, @currentFrozenState.fpudata,512);
 
     result:=true;

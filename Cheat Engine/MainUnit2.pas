@@ -1086,6 +1086,7 @@ begin
   MemoryBrowser.Kerneltools1.visible:=false;
   {$else}
   MemoryBrowser.Kerneltools1.Enabled:={$ifdef windows}DBKLoaded or isRunningDBVM{$else}false{$endif};
+  MemoryBrowser.miCR3Switcher.visible:=MemoryBrowser.Kerneltools1.Enabled;
   {$endif}
 
 

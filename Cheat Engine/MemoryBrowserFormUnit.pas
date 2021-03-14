@@ -20,7 +20,8 @@ uses
   debughelper, debuggertypedefinitions,frmMemviewPreferencesUnit, registry,
   disassemblerComments, multilineinputqueryunit, frmMemoryViewExUnit,
   LastDisassembleData, ProcessHandlerUnit, commonTypeDefs, binutils,
-  fontSaveLoadRegistry, LazFileUtils, ceregistry, betterControls,ScrollBoxEx;
+  fontSaveLoadRegistry, LazFileUtils, ceregistry, frmCR3SwitcherUnit,
+  betterControls, ScrollBoxEx;
 
 
 type
@@ -48,6 +49,7 @@ type
     GSlabel: TLabel;
     MenuItem4: TMenuItem;
     copyBytesAndOpcodesAndComments: TMenuItem;
+    miCR3Switcher: TMenuItem;
     miShowSectionAddresses: TMenuItem;
     miOpenInDissectData: TMenuItem;
     miCopyOpcodesOnly: TMenuItem;
@@ -342,6 +344,7 @@ type
     procedure MenuItem11Click(Sender: TObject);
     procedure MenuItem12Click(Sender: TObject);
     procedure MenuItem14Click(Sender: TObject);
+    procedure miCR3SwitcherClick(Sender: TObject);
     procedure miDBVMFindoutwhataddressesthisinstructionaccessesClick(Sender: TObject);
     procedure MenuItem4Click(Sender: TObject);
     procedure miOpenInDissectDataClick(Sender: TObject);
@@ -610,6 +613,10 @@ type
     preferedF5BreakpointMethod: TBreakpointMethod;
 
     followRegister: integer;
+
+    fcr3: qword;
+    fcr3switcher: TfrmCR3Switcher;
+    procedure cr3switcherCR3Change(sender: TObject);
     procedure SetStacktraceSize(size: integer);
     procedure setShowDebugPanels(state: boolean);
     function getShowValues: boolean;
@@ -623,6 +630,12 @@ type
     procedure setContextValueByTag(value: ptruint; tag: integer);
     function  getContextValueByTag(tag: integer): ptruint;
     procedure ApplyFollowRegister;
+    procedure setCR3(newcr3: qword);
+    function ReadProcessMemory(hProcess: THandle; lpBaseAddress, lpBuffer: Pointer; nSize: size_t; var lpNumberOfBytesRead: PTRUINT): BOOL;
+
+    procedure setCaption(c: string);
+    function getCaption: string;
+
   public
     { Public declarations }
     FSymbolsLoaded: Boolean;
@@ -675,6 +688,9 @@ type
     procedure miStopDifferenceClick(Sender: TObject);
     procedure Scrollboxscroll(sender: TObject);
     procedure AddToDisassemblerBackList(address: pointer);
+
+    procedure createcr3switcher;
+    property cr3switcher: TfrmCR3Switcher read fcr3switcher;
   published
     //support for old scripts that reference these
     property Run1: TMenuItem read miDebugRun;
@@ -690,6 +706,8 @@ type
     property Symbolhandler1: TMenuItem read miUserdefinedSymbols;
     property AccessedRegisterColor: TColor read faccessedRegisterColor write faccessedRegisterColor;
     property ChangedRegisterColor: TColor read fChangedRegisterColor write fChangedRegisterColor;
+    property CR3: QWORD read fCR3 write setCR3;
+    property Caption: string read getCaption write setCaption;
   end;
 
 var
@@ -859,7 +877,39 @@ begin
   reloadStacktrace;
 end;
 
+procedure TMemoryBrowser.setCaption(c: string);
+var cr3pos, cr3posend: integer;
+begin
+  cr3pos:=pos(' (CR3 ',c);
+  if (fcr3<>0) and (cr3pos=0) then //add the statement which CR3 this is
+    c:=c+' (CR3 '+inttohex(fcr3,8)+')';
+
+
+  if (fcr3=0) and (cr3pos<>0) then //delete it
+  begin
+    cr3posend:=Pos(')',c,cr3pos+1);
+    if cr3posend>0 then
+      c:=copy(c,1,cr3pos-1)+copy(c,cr3posend+1);
+  end;
+
+  inherited caption:=c;
+end;
+
+function TMemoryBrowser.getCaption: string;
+begin
+  result:=inherited caption;
+end;
+
 //^^^^
+
+
+function TMemoryBrowser.ReadProcessMemory(hProcess: THandle; lpBaseAddress, lpBuffer: Pointer; nSize: size_t; var lpNumberOfBytesRead: PTRUINT): BOOL;
+begin
+  if fcr3=0 then
+    result:=newkernelhandler.ReadProcessMemory(hProcess, lpBaseAddress, lpBuffer, nsize, lpNumberOfBytesRead)
+  else
+    result:=ReadProcessMemoryCR3(fcr3,lpBaseAddress, lpBuffer, nsize, lpNumberOfBytesRead);
+end;
 
 
 
@@ -1181,6 +1231,45 @@ end;
 procedure TMemoryBrowser.MenuItem14Click(Sender: TObject);
 begin
   EnableWindowsSymbols(true);
+end;
+
+procedure TMemorybrowser.setCR3(newcr3: qword);
+begin
+  fcr3:=newcr3;
+  disassemblerview.cr3:=fcr3;
+  hexview.cr3:=fcr3;
+
+  if newcr3<>0 then
+  begin
+    createcr3switcher;
+    fcr3switcher.addCR3ToList(newcr3);
+
+    fcr3switcher.Show;
+  end;
+
+  caption:=caption;
+end;
+
+procedure TMemoryBrowser.cr3switcherCR3Change(sender: TObject);
+begin
+  //cr3 changed, notify the disassembler and hexview
+  cr3:=cr3switcher.cr3;
+end;
+
+procedure TMemoryBrowser.createcr3switcher;
+begin
+  if fcr3switcher=nil then
+  begin
+    fcr3switcher:=TfrmCR3Switcher.Create(self);
+    fcr3switcher.OnCR3Change:=cr3switcherCR3Change;
+  end;
+end;
+
+procedure TMemoryBrowser.miCR3SwitcherClick(Sender: TObject);
+begin
+  //the cr3 switcher is unique for each memview window
+  createcr3switcher;
+  fcr3switcher.Show;
 end;
 
 procedure TMemoryBrowser.miDBVMFindoutwhataddressesthisinstructionaccessesClick(Sender: TObject);
@@ -3361,10 +3450,17 @@ begin
 
         bytelength:=length(bytes);
 
-        vpe:=(SkipVirtualProtectEx=false) and VirtualProtectEx(processhandle,  pointer(Address),bytelength,PAGE_EXECUTE_READWRITE,p);
-        WriteProcessMemoryWithCloakSupport(processhandle,pointer(Address),@bytes[0],bytelength,a);
-        if vpe then
-          VirtualProtectEx(processhandle,pointer(Address),bytelength,p,p);
+        if fcr3=0 then
+        begin
+          vpe:=(SkipVirtualProtectEx=false) and VirtualProtectEx(processhandle,  pointer(Address),bytelength,PAGE_EXECUTE_READWRITE,p);
+          WriteProcessMemoryWithCloakSupport(processhandle,pointer(Address),@bytes[0],bytelength,a);
+          if vpe then
+            VirtualProtectEx(processhandle,pointer(Address),bytelength,p,p);
+        end
+        else
+        begin
+          WriteProcessMemoryCR3(fcr3, pointer(address),@bytes[0], bytelength,a);
+        end;
 
         hexview.update;
         disassemblerview.Update;
@@ -4527,7 +4623,7 @@ begin
     caption:=caption+'* ('+ns+')';
 
     Kerneltools1.enabled:=memorybrowser.Kerneltools1.enabled;
-
+    miCR3Switcher.visible:=Kerneltools1.Enabled;
     ischild:=true;
     show;
   end;

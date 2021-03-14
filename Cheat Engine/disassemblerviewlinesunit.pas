@@ -342,7 +342,10 @@ var
     w,h: single;
     {$endif}
 
+    d: TDisassembler;
+
 begin
+  d:=TDisassemblerview(owner).currentDisassembler;
 
   fcanvas.font.style:=[];
 
@@ -388,16 +391,19 @@ begin
 
 
 
+
+
+
   if iscurrentinstruction then
-    visibleDisassembler.context:=@MemoryBrowser.lastdebugcontext
+    d.context:=@MemoryBrowser.lastdebugcontext
   else
-    visibleDisassembler.context:=nil;
+    d.context:=nil;
 
-  fdisassembled:=visibleDisassembler.disassemble(address,fdescription);
+  fdisassembled:=d.disassemble(address,fdescription);
 
-  addressstring:=inttohex(visibleDisassembler.LastDisassembleData.address,8);
-  bytestring:=visibleDisassembler.getLastBytestring;
-  opcodestring:=visibleDisassembler.LastDisassembleData.prefix+visibleDisassembler.LastDisassembleData.opcode;
+  addressstring:=inttohex(d.LastDisassembleData.address,8);
+  bytestring:=d.getLastBytestring;
+  opcodestring:=d.LastDisassembleData.prefix+d.LastDisassembleData.opcode;
 
   //Correction for rendering bug.
   if (processhandler.isNetwork=true) and (processhandler.SystemArchitecture=archarm) then
@@ -406,17 +412,17 @@ begin
     opcodestring+=' ';
   end;       
   
-  parameterstring:=visibleDisassembler.LastDisassembleData.parameters+' ';
-  specialstring:=visibleDisassembler.DecodeLastParametersToString;
+  parameterstring:=d.LastDisassembleData.parameters+' ';
+  specialstring:=d.DecodeLastParametersToString;
 
-  if iscurrentinstruction and visibleDisassembler.LastDisassembleData.isconditionaljump and visibleDisassembler.LastDisassembleData.willJumpAccordingToContext then
+  if iscurrentinstruction and d.LastDisassembleData.isconditionaljump and d.LastDisassembleData.willJumpAccordingToContext then
     parameterstring:=parameterstring+'  ---> ';
 
 
 
   //userdefined comments
   if dassemblercomments<>nil then
-    comment:=dassemblercomments.comments[visibleDisassembler.LastDisassembleData.address]
+    comment:=dassemblercomments.comments[d.LastDisassembleData.address]
   else
     comment:='';
 
@@ -438,7 +444,7 @@ begin
 
   //split up into lines
   specialstrings.text:=specialstring;
-  customheaderstrings.text:=dassemblercomments.commentHeader[visibleDisassembler.LastDisassembleData.address];
+  customheaderstrings.text:=dassemblercomments.commentHeader[d.LastDisassembleData.address];
 
 
 
@@ -576,18 +582,18 @@ begin
 
 
 
-  fisJump:=visibleDisassembler.LastDisassembleData.isjump;
+  fisJump:=d.LastDisassembleData.isjump;
 
   if fisJump then
   begin
     fisjump:=cefuncproc.isjumporcall(faddress, fJumpsTo);
 
 
-    if visibleDisassembler.LastDisassembleData.iscall then
+    if d.LastDisassembleData.iscall then
       fjumpcolor:= TDisassemblerview(owner).jlCallColor
     else
     begin
-      if visibleDisassembler.LastDisassembleData.isconditionaljump then
+      if d.LastDisassembleData.isconditionaljump then
         fjumpcolor:=TDisassemblerview(owner).jlConditionalJumpColor
       else
         fjumpcolor:=TDisassemblerview(owner).jlUnConditionalJumpColor ;
