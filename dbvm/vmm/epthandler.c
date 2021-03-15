@@ -1314,8 +1314,10 @@ BOOL ept_handleFrozenThread(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, F
   }
   else
   {
+    //RFLAGS v2;
+    //v2.value=currentcpuinfo->vmcb->RFLAGS;
 
-    //sendstringf("Still frozen.  CR8=%6 IF=%d RF=%d INTERRUPT_SHADOW=%d\n", getCR8(), v.IF, v.RF, currentcpuinfo->vmcb->INTERRUPT_SHADOW);
+    //sendstringf("Still frozen.  CR8=%6 stored: IF=%d RF=%d current: IF=%d rd=%d INTERRUPT_SHADOW=%d\n", getCR8(), v.IF, v.RF, v2.IF, v2.RF, currentcpuinfo->vmcb->INTERRUPT_SHADOW);
   }
 
   return result;
@@ -1718,7 +1720,8 @@ int ept_getBrokenThreadEntryFull(int id, int *watchid, int *status, PPageEventEx
     {
       //0..7:1=ok. 2=lost it
       //8..15: continuemethod (if not 0, still waiting to precess)
-      *status=BrokenThreadList[id].inuse | (BrokenThreadList[id].continueMethod << 8);
+      *status=BrokenThreadList[id].inuse | (BrokenThreadList[id].continueMethod << 8);  //257=0x101 (inuse,continuemethod=step)   513=0x201  (inuse,run)
+
       *entry=BrokenThreadList[id].state;
       *watchid=BrokenThreadList[id].watchid;
     }
@@ -2079,6 +2082,8 @@ BOOL ept_handleWatchEvent(pcpuinfo currentcpuinfo, VMRegisters *registers, PFXSA
 
   if (isAMD)
   {
+    //nosendchar[getAPICID()]=0;
+
     nvi.ErrorCode=currentcpuinfo->vmcb->EXITINFO1;
     if (nvi.ID)
     {
@@ -2189,6 +2194,9 @@ BOOL ept_handleWatchEvent(pcpuinfo currentcpuinfo, VMRegisters *registers, PFXSA
     }
   }
 
+
+ // nosendchar[getAPICID()]=0;
+
   lastSeenEPTWatch.actualID=ID;
   sendstringf("Handling watch ID %d\n", ID);
 
@@ -2218,7 +2226,6 @@ BOOL ept_handleWatchEvent(pcpuinfo currentcpuinfo, VMRegisters *registers, PFXSA
       lastSeenEPTWatch.cacheIssue=1;
     }
   }
-
 
 
   if ((eptWatchList[ID].Options & EPTO_DBVMBP) && (PhysicalAddress>=eptWatchList[ID].PhysicalAddress) && (PhysicalAddress<eptWatchList[ID].PhysicalAddress+eptWatchList[ID].Size))
@@ -2254,7 +2261,7 @@ BOOL ept_handleWatchEvent(pcpuinfo currentcpuinfo, VMRegisters *registers, PFXSA
       if (newRIP) //e.g if no kernelmode is provided, skip kernelmode (needed for read/write watches as those will also see CE. Just trigger a COW please...)
       {
 
-        nosendchar[getAPICID()]=0;
+        //nosendchar[getAPICID()]=0;
 
         lastSeenEPTWatch.skipped=-1;
         csLeave(&eptWatchListCS);
@@ -2466,7 +2473,8 @@ BOOL ept_handleWatchEvent(pcpuinfo currentcpuinfo, VMRegisters *registers, PFXSA
 
   if (eptWatchList[ID].Log->numberOfEntries>=eptWatchList[ID].Log->maxNumberOfEntries)
   {
-    sendstringf("List is full");
+
+    sendstringf("List is full.  (%d / %d) ", eptWatchList[ID].Log->numberOfEntries, eptWatchList[ID].Log->maxNumberOfEntries);
     if ((eptWatchList[ID].Options & EPTO_GROW_WHENFULL)==0)
     {
       sendstringf(". Discarding event\n");
@@ -2489,7 +2497,7 @@ BOOL ept_handleWatchEvent(pcpuinfo currentcpuinfo, VMRegisters *registers, PFXSA
     }
     else
     {
-      sendstringf(" and out of memory\n");
+      sendstringf(" and out of memory (fuuuuu)\n");
 
       eptWatchList[ID].Options=eptWatchList[ID].Options & (~EPTO_GROW_WHENFULL); //stop trying
       eptWatchList[ID].Log->missedEntries++;

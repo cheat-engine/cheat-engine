@@ -613,6 +613,9 @@ typedef volatile struct tcpuinfo
   {
     int Method;
     int PreviousTFState;
+    QWORD PreviousEFER; //AMD single step
+    QWORD PreviousFMASK;
+    int LastInstructionWasSyscall;//AMD single step
 
     SingleStepReason *Reasons;
     int ReasonsPos;

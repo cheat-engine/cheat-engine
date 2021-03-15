@@ -22,22 +22,42 @@
 
 int c=0;
 
-
-
 criticalSection debugoutput;
+
+
+int isPrefix(unsigned char b)
+{
+  switch(b)
+  {
+    case 0x26:
+    case 0x2e:
+    case 0x36:
+    case 0x3e:
+    case 0x64:
+    case 0x65:
+    case 0x66:
+    case 0x67:
+    case 0xf0:
+    case 0xf2:
+    case 0xf3:
+      return TRUE;
+  }
+
+  return FALSE;
+}
+
 int handleVMEvent_amd(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, FXSAVE64 *fxsave)
 {
   int i;
+  int wasStep;
 /*
   c++;
   if (c>50)
     while (1);*/
 
-
+  wasStep=currentcpuinfo->singleStepping.ReasonsPos>0;
 
   nosendchar[getAPICID()]=1;
-
-
 
   sendstringf("getAPICID()=%d VM_HSAVE_PA_MSR=%6\n", getAPICID(),readMSR(VM_HSAVE_PA_MSR));
 
@@ -60,8 +80,103 @@ int handleVMEvent_amd(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, FXSAVE6
     ept_invalidate();
   }
 
+
+
+
   if ((currentcpuinfo->singleStepping.ReasonsPos) && (currentcpuinfo->vmcb->EXITCODE!=VMEXIT_NPF)) //ANYTHING except NPF is counted as a single step (in case of interrupts)
   {
+    //restore EFER
+    currentcpuinfo->vmcb->EFER=currentcpuinfo->singleStepping.PreviousEFER;
+    currentcpuinfo->vmcb->VMCB_CLEAN_BITS&=~(1<< 5); //crx and EFER
+
+    if (currentcpuinfo->singleStepping.LastInstructionWasSyscall)
+    {
+
+      if (currentcpuinfo->vmcb->RIP!=currentcpuinfo->vmcb->LSTAR)
+      {
+        nosendchar[getAPICID()]=0;
+        sendstringf("FUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUCK\n");
+      }
+
+      sendstringf("%d: exit. singleStepping.LastInstructionWasSyscall:  ExitCode=%x\n", currentcpuinfo->cpunr, currentcpuinfo->vmcb->EXITCODE);
+      sendstringf("%d: RIP=%6 (rflags=%x) - Last instruction was a syscall.  Changing R11(%x) to hide the TF flag and restore the flag mask\n",currentcpuinfo->cpunr, currentcpuinfo->vmcb->RIP, currentcpuinfo->vmcb->RFLAGS, vmregisters->r11);
+
+      vmregisters->r11 &= ~(QWORD)(1<<8);
+
+      currentcpuinfo->vmcb->SFMASK=currentcpuinfo->singleStepping.PreviousFMASK;
+
+      sendstringf("%d: r11=%x\n", currentcpuinfo->cpunr, vmregisters->r11);
+
+      //efer is restored, fmask is restored, going to handle the step like always
+    }
+
+    if (currentcpuinfo->vmcb->EXITCODE==VMEXIT_EXCP6)
+    {
+     // nosendchar[getAPICID()]=0;
+      sendstringf("%d: UD exception while single stepping at %6.  Could be a syscall\n", currentcpuinfo->cpunr, currentcpuinfo->vmcb->RIP);
+
+      int error;
+      UINT64 pagefaultaddress;
+
+      sendstringf("%d: csbase=%6\n rip=%6\n",currentcpuinfo->cpunr, currentcpuinfo->vmcb->cs_base, currentcpuinfo->vmcb->RIP);
+
+      unsigned char *bytes=(unsigned char *)mapVMmemory(currentcpuinfo, currentcpuinfo->vmcb->cs_base+currentcpuinfo->vmcb->RIP, 15, &error, &pagefaultaddress);
+      if (!bytes)
+        bytes=mapVMmemory(currentcpuinfo, currentcpuinfo->vmcb->cs_base+currentcpuinfo->vmcb->RIP, pagefaultaddress-currentcpuinfo->vmcb->cs_base+currentcpuinfo->vmcb->RIP, &error, &pagefaultaddress);
+
+      if (bytes)
+      {
+        int start=-1;
+
+        //check if it's a syscall (0f 05)
+        for (i=0; i<15; i++)
+          if (isPrefix(bytes[i])==FALSE)
+          {
+            start=i;
+            break;
+          }
+
+        if ((start==-1) || (start>=14))
+        {
+          sendstringf("Just a bunch of prefixes. WTF?\n");
+          currentcpuinfo->vmcb->EVENTINJ=currentcpuinfo->vmcb->EXITINTINFO; //retrigger
+          return 0;
+        }
+        else
+        {
+          //valid instruction
+          if ((bytes[start]==0x0f) && (bytes[start+1]==0x05))
+          {
+            sendstringf("%d: it IS a syscall\n", currentcpuinfo->cpunr);
+            currentcpuinfo->singleStepping.LastInstructionWasSyscall=1;
+            currentcpuinfo->singleStepping.PreviousFMASK=currentcpuinfo->vmcb->SFMASK;
+
+            currentcpuinfo->vmcb->SFMASK=currentcpuinfo->singleStepping.PreviousFMASK & ~(QWORD)(1<<8);
+            sendstringf("%d: old IA32_FMASK was %6\nnew IA32_FMASK is  %6\n", currentcpuinfo->cpunr, currentcpuinfo->singleStepping.PreviousFMASK, currentcpuinfo->vmcb->SFMASK);
+
+
+            sendstringf("%d: current rflags before syscall is %x\n", currentcpuinfo->cpunr, currentcpuinfo->vmcb->RFLAGS);
+
+            sendstringf("%d: Next step should be at %6\n", currentcpuinfo->cpunr, currentcpuinfo->vmcb->LSTAR);
+
+            //currentcpuinfo->vmcb->VMCB_CLEAN_BITS=0;
+
+
+            //efer was already restored, so repeat this instruction
+            return 0;
+          }
+
+        }
+
+      }
+      else
+      {
+        sendstringf("Failed reading the memory that was just executed and caused an UD... Guess it's not a syscall... fuuuuu (error=%d pagefaultaddress=%6)\n", error, pagefaultaddress);
+        currentcpuinfo->vmcb->EVENTINJ=currentcpuinfo->vmcb->EXITINTINFO; //retrigger
+        return 0;
+      }
+    }
+
     //nosendchar[getAPICID()]=0;
     //sendstringf("AMD Handler: currentcpuinfo->singleStepping.ReasonsPos=%d Calling handleSingleStep()\n",currentcpuinfo->singleStepping.ReasonsPos);
     if (currentcpuinfo->singleStepping.ReasonsPos>=2)
@@ -92,7 +207,7 @@ int handleVMEvent_amd(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, FXSAVE6
       return 0;
     }
 
-    sendstring("Need to do some further handling\n");//eg external interrupts
+    sendstringf("%d: Need to do some further handling (rflags=%x)\n", currentcpuinfo->cpunr, currentcpuinfo->vmcb->RFLAGS);//eg external interrupts
   }
   else
   {
@@ -132,10 +247,48 @@ int handleVMEvent_amd(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, FXSAVE6
 
     case VMEXIT_INTR:
     {
-      sendstringf("%d: VMEXIT_INTR: EXITINFO1=%6 EXITINFO2=%6 EXITINTINFO=%6", currentcpuinfo->cpunr, currentcpuinfo->vmcb->EXITINFO1, currentcpuinfo->vmcb->EXITINFO2, currentcpuinfo->vmcb->EXITINTINFO);
+      //nosendchar[getAPICID()]=0;
+      sendstringf("%d: VMEXIT_INTR: EXITINFO1=%6 EXITINFO2=%6 EXITINTINFO=%6 RFLAGS=%x", currentcpuinfo->cpunr, currentcpuinfo->vmcb->EXITINFO1, currentcpuinfo->vmcb->EXITINFO2, currentcpuinfo->vmcb->EXITINTINFO, currentcpuinfo->vmcb->RFLAGS);
      // while(1);
       currentcpuinfo->vmcb->EVENTINJ=currentcpuinfo->vmcb->EXITINTINFO; //retrigger
 
+      return 0;
+
+    }
+
+    case VMEXIT_EXCP0:
+    case VMEXIT_EXCP2:
+    case VMEXIT_EXCP4:
+    case VMEXIT_EXCP5:
+    case VMEXIT_EXCP6:
+    case VMEXIT_EXCP7:
+    case VMEXIT_EXCP8:
+    case VMEXIT_EXCP9:
+    case VMEXIT_EXCP10:
+    case VMEXIT_EXCP11:
+    case VMEXIT_EXCP12:
+    case VMEXIT_EXCP13:
+    case VMEXIT_EXCP15:
+    case VMEXIT_EXCP16:
+    case VMEXIT_EXCP17:
+    case VMEXIT_EXCP18:
+    case VMEXIT_EXCP19:
+    case VMEXIT_EXCP20:
+    case VMEXIT_EXCP21:
+    case VMEXIT_EXCP22:
+    case VMEXIT_EXCP23:
+    case VMEXIT_EXCP24:
+    case VMEXIT_EXCP25:
+    case VMEXIT_EXCP26:
+    case VMEXIT_EXCP27:
+    case VMEXIT_EXCP28:
+    case VMEXIT_EXCP29:
+    case VMEXIT_EXCP30:
+    case VMEXIT_EXCP31:
+    {
+      nosendchar[getAPICID()]=0;
+      sendstringf("One of the other exceptions (%d) (not INTR) got intercepted (wasStep=%d)\n", (int)(currentcpuinfo->vmcb->EXITCODE-VMEXIT_EXCP0), wasStep);
+      currentcpuinfo->vmcb->EVENTINJ=currentcpuinfo->vmcb->EXITINTINFO; //retrigger
       return 0;
 
     }
@@ -146,12 +299,22 @@ int handleVMEvent_amd(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, FXSAVE6
 
       //int1 breakpoint
       nosendchar[getAPICID()]=0; //urrentcpuinfo->vmcb->CPL!=3;
-      sendstringf("INT1 breakpoint\n");
+      sendstringf("%d: INT1 breakpoint at %6 (rflags=%x)\n", currentcpuinfo->cpunr, currentcpuinfo->vmcb->RIP, currentcpuinfo->vmcb->RFLAGS);
 
       if (ept_handleHardwareBreakpoint(currentcpuinfo, vmregisters, fxsave))
         return 0;
 
 
+      if (wasStep)
+      {
+        sendstringf("wasStep=1 so retrigger\n");
+        currentcpuinfo->vmcb->EVENTINJ=currentcpuinfo->vmcb->EXITINTINFO; //retrigger
+        return 0;
+      }
+      else
+      {
+        sendstringf("wasStep=0\n");
+      }
 
 
 
@@ -206,6 +369,7 @@ int handleVMEvent_amd(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, FXSAVE6
 
       break;
     }
+
 
     case VMEXIT_EXCP3:
     {
@@ -309,7 +473,7 @@ int handleVMEvent_amd(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, FXSAVE6
 
       if ((int14redirection_idtbypass==0) || (ISREALMODE(currentcpuinfo)))
       {
-        sendstring("Realmode bp? or No idtbypass\n");
+        sendstring("Realmode int14 or No idtbypass\n");
 
         if (ISREALMODE(currentcpuinfo))
         {

@@ -323,7 +323,7 @@ void vmm_entry(void)
    * 12=vpid
    * 13=basic TSC emulation
    * 14=properly emulate debug step
-   * 15=some amd fixes/contiguous memory param
+   * 15=some amd fixes/contiguous memory param/dbvmbp
    */
   dbvmversion=15;
   int1redirection=1; //redirect to int vector 1 (might change this to the perfcounter interrupt in the future so I don't have to deal with interrupt prologue/epilogue)
@@ -343,9 +343,9 @@ void vmm_entry(void)
   MAXPHYADDRMASK=~(MAXPHYADDRMASK << MAXPHYADDR); //<< 36 = 0xfffffff000000000 .  after inverse : 0x0000000fffffffff
   MAXPHYADDRMASKPB=MAXPHYADDRMASK & 0xfffffffffffff000ULL; //0x0000000ffffff000
 
-  sendstringf("MAXPHYADDR=%d", MAXPHYADDR);
-  sendstringf("MAXPHYADDRMASK=%6", MAXPHYADDRMASK);
-  sendstringf("MAXPHYADDRMASKPB=%6", MAXPHYADDRMASK);
+  sendstringf("MAXPHYADDR=%d\n", MAXPHYADDR);
+  sendstringf("MAXPHYADDRMASK=%6\n", MAXPHYADDRMASK);
+  sendstringf("MAXPHYADDRMASKPB=%6\n", MAXPHYADDRMASKPB);
 
 
 
