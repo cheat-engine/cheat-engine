@@ -101,6 +101,9 @@ const
   VMCALL_RESUMEBROKENTHREAD=78;
 
 
+  VMCALL_DEBUG_SETSPINLOCKTIMEOUT=254;
+
+
   //---
   //watch options:
   EPTO_MULTIPLERIP  =1 shl 0; //log the same RIP multiple times (if different registers)
@@ -571,6 +574,8 @@ function hasCloakedRegionInRange(virtualAddress: qword; size: integer; out VA:qw
 procedure dbvm_getBreakpointList(l: TStrings);
 function dbvm_isBreakpoint(virtualAddress: ptruint; out physicalAddress: qword; out breakoption: integer; var originalbyte: byte): boolean;
 
+
+procedure dbvm_debug_setSpinlockTimeout(timeout: qword);
 
 function getClientIDFromDBVMBPState(const state: TPageEventExtended; out clientid: TClientID): boolean;
 function getClientIDFromDBVMBPShortState(state: TDBVMBPShortState; out clientid: TClientID): boolean;
@@ -2196,6 +2201,22 @@ begin
   finally
     breakpointscs.leave;
   end;
+end;
+
+procedure dbvm_debug_setSpinlockTimeout(timeout: qword);
+var
+  vmcallinfo: packed record
+    structsize: dword;
+    level2pass: dword;
+    command: dword;
+    timeout: qword;
+  end;
+begin
+  vmcallinfo.structsize:=sizeof(vmcallinfo);
+  vmcallinfo.level2pass:=vmx_password2;
+  vmcallinfo.command:=VMCALL_DEBUG_SETSPINLOCKTIMEOUT;
+  vmcallinfo.timeout:=timeout;
+  vmcall(@vmcallinfo,vmx_password1);
 end;
 
 function dbvm_get_statistics(out statistics: TDBVMStatistics):qword;

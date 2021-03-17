@@ -1365,7 +1365,9 @@ begin
     VA:=disassemblerview.SelectedAddress;
 
     if GetPhysicalAddress(processhandle,pointer(VA),PA) then
-      dbvm_cloak_activate(PA,VA);
+      dbvm_cloak_activate(PA,VA)
+    else
+      MessageDlg('Failed obtaining the physical address of this memory', mtError, [mbok],0);
   end;
   {$endif}
 end;
@@ -4400,10 +4402,10 @@ begin
   miConditionalBreak.visible:=miConditionalBreak.enabled;
 
   miDBVMActivateCloak.visible:={$ifdef windows}isRunningDBVM and hasEPTSupport and (not hasCloakedRegionInRange(disassemblerview.SelectedAddress, 1, VA,PA)){$else}false{$endif};
-  miDBVMActivateCloak.enabled:=miDBVMActivateCloak.visible and DBKLoaded;
+  miDBVMActivateCloak.enabled:=miDBVMActivateCloak.visible;
 
   miDBVMDisableCloak.visible:={$ifdef windows}isRunningDBVM and hasEPTSupport and (hasCloakedRegionInRange(disassemblerview.SelectedAddress, 1, VA,PA)){$else}false{$endif};
-  miDBVMDisableCloak.enabled:=miDBVMDisableCloak.visible and DBKLoaded;
+  miDBVMDisableCloak.enabled:=miDBVMDisableCloak.visible;
 
   miTogglebreakpoint.visible:=(not ischild);
 
@@ -4490,7 +4492,7 @@ begin
   miAddToTheCodelist.visible:=not inadvancedoptions;
 
   miDBVMFindoutwhataddressesthisinstructionaccesses.visible:={$ifdef windows}isDBVMCapable and miSetSpecificBreakpoint.visible{$else}false{$endif};
-  miDBVMFindoutwhataddressesthisinstructionaccesses.enabled:=miDBVMFindoutwhataddressesthisinstructionaccesses.visible and DBKLoaded;
+  miDBVMFindoutwhataddressesthisinstructionaccesses.enabled:=miDBVMFindoutwhataddressesthisinstructionaccesses.visible;
 
   //
   miSetBreakpointHW.enabled:=(CurrentDebuggerInterface=nil) or (dbcHardwareBreakpoint in CurrentDebuggerInterface.DebuggerCapabilities);
@@ -4848,7 +4850,7 @@ begin
 
     //spawn a DBVM watch config screen where the user can select options like lock memory
     if frmDBVMWatchConfigFindWhatCodeAccesses=nil then
-      frmDBVMWatchConfigFindWhatCodeAccesses:=TfrmDBVMWatchConfig.create(self);
+      frmDBVMWatchConfigFindWhatCodeAccesses:=TfrmDBVMExecuteWatchConfig.create(self);
 
     frmDBVMWatchConfigFindWhatCodeAccesses.address:=address;
     frmDBVMWatchConfigFindWhatCodeAccesses.rbExecuteAccess.checked:=true;

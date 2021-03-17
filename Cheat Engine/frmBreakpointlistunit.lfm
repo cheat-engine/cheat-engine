@@ -9,7 +9,7 @@ object frmBreakpointlist: TfrmBreakpointlist
   OnClose = FormClose
   OnCreate = FormCreate
   Position = poScreenCenter
-  LCLVersion = '2.0.0.4'
+  LCLVersion = '2.0.10.0'
   object ListView1: TListView
     Left = 0
     Height = 283
@@ -58,14 +58,14 @@ object frmBreakpointlist: TfrmBreakpointlist
   object Timer1: TTimer
     Interval = 500
     OnTimer = Timer1Timer
-    left = 45
-    top = 108
+    Left = 45
+    Top = 108
   end
   object pmBreakpoint: TPopupMenu
     Images = bplImageList
     OnPopup = pmBreakpointPopup
-    left = 140
-    top = 112
+    Left = 140
+    Top = 112
     object MenuItem2: TMenuItem
       Caption = 'Disable breakpoint'
       Visible = False
@@ -99,8 +99,8 @@ object frmBreakpointlist: TfrmBreakpointlist
     end
   end
   object bplImageList: TImageList
-    left = 281
-    top = 150
+    Left = 281
+    Top = 150
     Bitmap = {
       4C69020000001000000010000000FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
       FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF

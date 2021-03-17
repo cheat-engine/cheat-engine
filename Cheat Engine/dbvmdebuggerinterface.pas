@@ -228,7 +228,7 @@ begin
       if dbvm_bp_getBrokenThreadEventShort(i,shortstate)=0 then
       begin
         inuse:=shortstate.status and $ff;
-        continueMethod:=shortstate.status shl 8;
+        continueMethod:=shortstate.status shr 8;
 
         if inuse=1 then
         begin

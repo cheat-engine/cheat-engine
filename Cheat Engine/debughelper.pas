@@ -494,7 +494,7 @@ begin
   end;
 
   if idle and updated and (frmBreakpointlist<>nil) then
-    postmessage(frmBreakpointlist.handle, WM_BPUPDATE,0,0); //tell the breakpointlist that there's been an update
+    queue(tthread.CurrentThread, frmBreakpointlist.updatebplist); //tell the breakpointlist that there's been an update
 end;
 
 
@@ -1364,7 +1364,7 @@ begin
   end;
 
   if frmBreakpointlist<>nil then
-    postmessage(frmBreakpointlist.handle, WM_BPUPDATE,0,0); //tell the breakpointlist that there's been an update
+    queue(tthread.CurrentThread, frmBreakpointlist.updatebplist);
 end;
 
 function TDebuggerThread.AddBreakpoint(owner: PBreakpoint; address: uint_ptr; size: integer; bpt: TBreakpointTrigger; bpm: TBreakpointMethod; bpa: TBreakpointAction; debugregister: integer=-1; foundcodedialog: Tfoundcodedialog=nil; threadID: dword=0; frmchangedaddresses: Tfrmchangedaddresses=nil; FrmTracer: TFrmTracer=nil; tcount: integer=0; changereg: pregistermodificationBP=nil; OnBreakpoint: TBreakpointEvent=nil): PBreakpoint;
@@ -1447,7 +1447,7 @@ begin
   Result := newbp;
 
   if frmBreakpointlist<>nil then
-    postmessage(frmBreakpointlist.handle, WM_BPUPDATE,0,0); //tell the breakpointlist that there's been an update
+    queue(tthread.CurrentThread, frmBreakpointlist.updatebplist);
 end;
 
 procedure TDebuggerThread.GetBreakpointList(address: uint_ptr; size: integer; var bplist: TBreakpointSplitArray);
@@ -1878,7 +1878,11 @@ begin
     RemoveBreakpoint(bp);
 
 
-  method:=preferedBreakpointMethod;
+  if CurrentDebuggerInterface is TDBVMDebugInterface then
+    method:=bpmDBVMNative
+  else
+    method:=preferedBreakpointMethod;
+
   usedDebugRegister:=-1;
   if method=bpmDebugRegister then
   begin
@@ -2005,6 +2009,9 @@ begin
   else
     method:=preferedBreakpointMethod;
 
+  if CurrentDebuggerInterface is TDBVMDebugInterface then
+    method:=bpmDBVMNative;
+
   usedDebugRegister:=-1;
   if method=bpmDebugRegister then
   begin
@@ -2118,9 +2125,6 @@ end;
 
 
 procedure TDebuggerthread.updatebplist(lv: TListview; showshadow: boolean);
-{
-Only called by the breakpointlist form running in the main thread. It's called after the WM_BPUPDATE is sent to the breakpointlist window
-}
 var
   i: integer;
   li: TListitem;

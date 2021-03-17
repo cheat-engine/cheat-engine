@@ -5627,6 +5627,14 @@ begin
   result:=1;
 end;
 
+function lua_dbvm_debug_setSpinlockTimeout(L: PLua_state): integer; cdecl;
+var timeout: qword;
+begin
+  timeout:=lua_tointeger(L,1);
+  dbvm_debug_setSpinlockTimeout(timeout);
+  result:=0;
+end;
+
 function lua_dbvm_get_statistics(L: PLua_state): integer; cdecl;
 var
   stats: TDBVMStatistics;
@@ -8402,6 +8410,25 @@ begin
   lua_pop(L, lua_gettop(L));
   result:=1;
   lua_pushinteger(L, GetTickCount64);
+end;
+
+function lua_rdtsc(L: PLua_State): integer; cdecl;
+var v: qword;
+begin
+  asm
+    push rdx
+    rdtsc
+    shl rax,32
+    shr rax,32
+    shl rdx,32
+    or rax,rdx
+    pop rdx
+
+    mov v,rax
+  end;
+
+  lua_pushinteger(L,v);
+  result:=1;
 end;
 
 function processMessages(L: PLua_State): integer; cdecl;
@@ -14767,6 +14794,7 @@ begin
     lua_register(L ,'dbvm_psod', lua_dbvm_psod);
     lua_register(L ,'dbvm_getNMIcount', lua_dbvm_getNMIcount);
     lua_register(L, 'dbvm_get_statistics',lua_dbvm_get_statistics);
+    lua_register(L, 'dbvm_debug_setSpinlockTimeout', lua_dbvm_debug_setSpinlockTimeout);
     lua_register(L, 'dbvm_watch_writes', lua_dbvm_watch_writes);
     lua_register(L, 'dbvm_watch_reads', lua_dbvm_watch_reads);
     lua_register(L, 'dbvm_watch_executes', lua_dbvm_watch_executes);
@@ -14871,6 +14899,9 @@ begin
 
     lua_register(L, 'shellExecute', lua_shellExecute);
     lua_register(L, 'getTickCount', getTickCount_lua);
+    lua_register(L, 'rdtsc', lua_rdtsc);
+
+
     lua_register(L, 'processMessages', processMessages);
 
     lua_register(L, 'integerToUserData', integerToUserData);

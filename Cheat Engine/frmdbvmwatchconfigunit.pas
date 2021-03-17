@@ -59,9 +59,11 @@ type
     { public declarations }
   end;
 
+  TfrmDBVMExecuteWatchConfig=class(TfrmDBVMWatchConfig);
+
 var
   frmDBVMWatchConfig: TfrmDBVMWatchConfig;
-  frmDBVMWatchConfigFindWhatCodeAccesses: TfrmDBVMWatchConfig;
+  frmDBVMWatchConfigFindWhatCodeAccesses: TfrmDBVMExecuteWatchConfig;
 
 implementation
 
