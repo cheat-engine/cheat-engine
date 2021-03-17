@@ -664,8 +664,7 @@ int rotations=0;
 int cpu2=0; //debug to stop cpu1 when cpu2 is spawned
 
 int vmeventcount=0;
-criticalSection vmexitlock;
-
+criticalSection vmexitlock={.name="vmexitlock", .debuglevel=0};
 
 
 int vmexit_amd(pcpuinfo currentcpuinfo, UINT64 *registers, void *fxsave UNUSED)
@@ -673,6 +672,7 @@ int vmexit_amd(pcpuinfo currentcpuinfo, UINT64 *registers, void *fxsave UNUSED)
  // displayline("vmexit_amd called. currentcpuinfo=%p\n", currentcpuinfo);
  // displayline("cpunr=%d\n", currentcpuinfo->cpunr);
   int result=0;
+  currentcpuinfo->insideHandler=1;
 
   nosendchar[getAPICID()]=1;
 
@@ -686,8 +686,18 @@ int vmexit_amd(pcpuinfo currentcpuinfo, UINT64 *registers, void *fxsave UNUSED)
   vmeventcount++;
 
 
+
 #ifdef DEBUG
   csEnter(&vmexitlock);
+
+  if ((int)(vmexitlock.apicid-1)!=(int)(currentcpuinfo->apicid))
+  {
+    nosendchar[getAPICID()]=0;
+    while (1)
+    {
+      sendstringf("lockcount inconsistency 3.  %d != %d  (%d)\n",vmexitlock.apicid,currentcpuinfo->apicid, getAPICID() );
+    }
+  }
 
 
   //sendstringf("vmexit_amd for cpu %d\n", currentcpuinfo->cpunr);
@@ -698,20 +708,47 @@ int vmexit_amd(pcpuinfo currentcpuinfo, UINT64 *registers, void *fxsave UNUSED)
   {
     BOOL r=dbvm_plugin_exit_pre(exportlist, currentcpuinfo, registers, fxsave);
     if (r)
+    {
+      sendstring("dbvm_plugin_exit_pre returned TRUE");
+#ifdef DEBUG
+      csLeave(&vmexitlock);
+#endif
+      currentcpuinfo->insideHandler=0;
       return 0;
+    }
   }
 
   result=handleVMEvent_amd(currentcpuinfo, (VMRegisters*)registers, fxsave);
 
-
-
   if (dbvm_plugin_exit_post)
     dbvm_plugin_exit_post(exportlist, currentcpuinfo, registers, fxsave, &result);
 
+
+
 #ifdef DEBUG
+  if (vmexitlock.lockcount>1)
+  {
+    nosendchar[getAPICID()]=0;
+    while (1)
+    {
+      sendstringf("lockcount inconsistency");
+    }
+
+  }
   csLeave(&vmexitlock);
 #endif
 
+  currentcpuinfo->insideHandler=0;
+
+  if ((vmexitlock.lockcount>0) && ((int)(vmexitlock.apicid-1)==(int)(currentcpuinfo->apicid)))
+  {
+    nosendchar[getAPICID()]=0;
+    while (1)
+    {
+      sendstringf("lockcount inconsistency 2");
+    }
+
+  }
 
   return result;
 }

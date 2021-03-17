@@ -476,7 +476,7 @@ int setupRealModePaging(pcpuinfo currentcpuinfo)
   return setupNonPagedPaging(currentcpuinfo);
 }
 
-criticalSection setupNonPagedPagingCS;
+criticalSection setupNonPagedPagingCS={.name="setupNonPagedPagingCS", .debuglevel=2};
 int setupNonPagedPaging(pcpuinfo currentcpuinfo)
 {
 //sets up a identify mapped memory (faking the vmm memory as ffpages)

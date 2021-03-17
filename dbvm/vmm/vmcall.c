@@ -2226,6 +2226,26 @@ int _handleVMCallInstruction(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, 
       break;
     }
 
+    case VMCALL_DEBUG_SETSPINLOCKTIMEOUT:
+    {
+#ifdef DEBUG
+      typedef struct
+      {
+        VMCALL_BASIC vmcall;
+        QWORD timeout;
+      }  __attribute__((__packed__)) *PVMCALL_DEBUG_SETSPINLOCKTIMEOUT;
+      PVMCALL_DEBUG_SETSPINLOCKTIMEOUT p=(PVMCALL_DEBUG_SETSPINLOCKTIMEOUT)vmcall_instruction;
+
+      nosendchar[getAPICID()]=0;
+      sendstringf("Setting spinlocktimeout to %6", p->timeout);
+      spinlocktimeout=p->timeout;
+      vmregisters->rax=0;
+#else
+      vmregisters->rax=0xCEDEAD;
+#endif
+      break;
+    }
+
 
 
     default:
@@ -2402,7 +2422,7 @@ int _handleVMCall(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 }
 
 //serialize these calls in case one makes an internal change that affects global (e.g alloc)
-criticalSection vmcallCS;
+criticalSection vmcallCS={.name="vmcallCS", .debuglevel=2};
 int handleVMCall(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 {
   int result;

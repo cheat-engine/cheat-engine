@@ -29,7 +29,7 @@ vmeventhandler.c: This will handle the events
 #define sendstring(s)
 #endif
 
-criticalSection CR3ValueLogCS;
+criticalSection CR3ValueLogCS={.name="CR3ValueLogCS", .debuglevel=2};
 QWORD *CR3ValueLog; //if not NULL, record
 int CR3ValuePos;
 
@@ -50,7 +50,7 @@ QWORD speedhackInitialTime=0;
 //QWORD rdtscTime=6000;
 //QWORD rdtscpTime=10;
 
-criticalSection TSCCS;
+criticalSection TSCCS={.name="TSCCS", .debuglevel=2};
 
 int handle_rdtsc(pcpuinfo currentcpuinfo, VMRegisters *vmregisters);
 
@@ -1917,7 +1917,7 @@ int handleRDMSR(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 }
 
 
-criticalSection cpuidsourcesCS;
+criticalSection cpuidsourcesCS={.name="cpuidsourcesCS", .debuglevel=2};
 
 int handleCPUID(VMRegisters *vmregisters)
 {
@@ -3843,7 +3843,7 @@ int handleSingleStep(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, FXSAVE64
   {
     int i=currentcpuinfo->singleStepping.ReasonsPos-1;
     int r=0;
-    sendstringf("  ID %d Reason %d\n",i, currentcpuinfo->singleStepping.Reasons[i].Reason);
+    sendstringf("%d:  ID %d Reason %d\n", currentcpuinfo->cpunr, i, currentcpuinfo->singleStepping.Reasons[i].Reason);
 
     switch (currentcpuinfo->singleStepping.Reasons[i].Reason)
     {
@@ -3852,10 +3852,20 @@ int handleSingleStep(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, FXSAVE64
       case SSR_HANDLESOFTWAREBREAKPOINT: r=ept_handleSoftwareBreakpointAfterStep(currentcpuinfo, currentcpuinfo->singleStepping.Reasons[i].ID); break;
       //todo: case SSR_STEPTILLINTERUPTABLE: return singleStepTillInteruptable
       case SSR_STEPANDBREAK: r=ept_handleStepAndBreak(currentcpuinfo, vmregisters, fxsave, currentcpuinfo->singleStepping.Reasons[i].ID); break;
+      default:
+      {
+        nosendchar[getAPICID()]=0;
+
+        sendstringf("singleStepping memory corruption\n");
+        r=1;
+      }
+
     }
 
     if (r)
     {
+      nosendchar[getAPICID()]=0;
+      sendstringf("handleSingleStep: r=%d\n",r);
       ddDrawRectangle(0,DDVerticalResolution-100,100,100,0xff0000);
       while (1) outportb(0x80,0xd7);
     }

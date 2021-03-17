@@ -93,8 +93,10 @@ typedef volatile struct _criticalSection
   volatile int locked;
   volatile int apicid;
   int lockcount;
+  char *name;
 #ifdef DEBUG
   int ignorelock;
+  int debuglevel;
 #endif
 } criticalSection, *PcriticalSection;
 
@@ -231,6 +233,9 @@ int strcoll(const char *s1, const char *s2);
 //#ifdef DEBUG
   void sendstring(char *s);
   void sendstringf(char *string, ...);
+#ifdef DEBUG
+  void sendstringf_nolock(char *string UNUSED, ...); //debug only
+#endif
 
   int sprintf(char *str, const char *format, ...);
   int snprintf(char *str, size_t size, const char *format, ...);
@@ -295,6 +300,9 @@ void sendDissectedFlags(PRFLAGS rflags);
 void csEnter(PcriticalSection CS);
 void csLeave(PcriticalSection CS);
 
+#ifdef DEBUG
+extern QWORD spinlocktimeout;
+#endif
 int spinlock(volatile int *CS); //returns 0
 
 void lockedQwordIncrement(volatile QWORD *address, QWORD inccount);
@@ -310,6 +318,12 @@ typedef struct textvideo {
 typedef TEXTVIDEO TEXTVIDEOLINE[80];
 
 unsigned char nosendchar[256];
+
+int emergencyOutputOnly;
+int emergencyOutputLevel;
+unsigned char emergencyOutputAPICID;
+
+
 
 int currentdisplayline;
 int currentdisplayrow;

@@ -169,4 +169,6 @@ extern pcpuinfo firstcpuinfo;
 #define vmread2 _vmread2
 #define vmwrite2 _vmwrite2
 
+void menu(void);
+
 #endif /*MAIN_H_*/

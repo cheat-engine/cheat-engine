@@ -23,7 +23,7 @@
 #include "common.h"
 
 
-criticalSection setupVMX_lock;
+criticalSection setupVMX_lock={.name="setupVMX_lock", .debuglevel=2};
 
 volatile unsigned char *MSRBitmap;
 volatile unsigned char *IOBitmap;
@@ -717,6 +717,8 @@ int vmx_enableSingleStepMode(void)
 
     //turn of syscall, and when syscall is executed, capture the UD, re-enable it, but change the flags mask to keep the TF enabled, and the step after that adjust R11 so that the TF is gone and restore the flags mask.  Then continue as usual;
     c->singleStepping.PreviousEFER=c->vmcb->EFER;
+    c->singleStepping.PreviousFMASK=c->vmcb->SFMASK;
+
     c->singleStepping.LastInstructionWasSyscall=0;
     c->vmcb->EFER&=0xfffffffffffffffeULL;
     c->vmcb->VMCB_CLEAN_BITS&=~(1<< 5); //efer got changed
@@ -767,12 +769,19 @@ int vmx_disableSingleStepMode(void)
   if (isAMD)
   {
     //shouldn't be needed but do it anyhow
+
+    sendstringf("%d RFLAGS was %x\n", c->cpunr, c->vmcb->RFLAGS);
+
+
     RFLAGS v;
     v.value=c->vmcb->RFLAGS;
     v.TF=c->singleStepping.PreviousTFState;  // 0; //single step mode
-    //todo: intercept pushf/popf/iret
 
     c->vmcb->RFLAGS=v.value;
+    sendstringf("%d RFLAGS is %x\n", c->cpunr, c->vmcb->RFLAGS);
+
+
+
     c->singleStepping.Method=0;
 
     c->vmcb->InterceptVINTR=0;
@@ -785,6 +794,12 @@ int vmx_disableSingleStepMode(void)
     c->vmcb->VMCB_CLEAN_BITS&=~(1<<0);
     c->vmcb->VMCB_CLEAN_BITS=0;
     sendstringf("a c->vmcb->VMCB_CLEAN_BITS=%6\n",c->vmcb->VMCB_CLEAN_BITS);
+
+    c->vmcb->EFER=c->singleStepping.PreviousEFER;
+    c->vmcb->SFMASK=c->singleStepping.PreviousFMASK;
+    c->singleStepping.LastInstructionWasSyscall=0;
+
+    c->vmcb->VMCB_CLEAN_BITS&=~(1<< 5); //efer
 
     return 1;
   }
@@ -1384,6 +1399,11 @@ void setupVMX(pcpuinfo currentcpuinfo)
 
 
   csEnter(&setupVMX_lock);
+
+  char *eptcsname=malloc(32);
+  snprintf(eptcsname,64,"EPTPML4CS %d", currentcpuinfo->cpunr);
+
+  currentcpuinfo->EPTPML4CS.name=eptcsname;
 
 
 //  currentcpuinfo->AvailableVirtualAddress=(UINT64)(currentcpuinfo->cpunr+16) << 28;

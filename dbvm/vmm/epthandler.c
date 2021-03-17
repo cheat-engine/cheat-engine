@@ -32,13 +32,13 @@ EPTWatchLogData lastSeenEPTWatchVerySure;
 
 QWORD EPTMapPhysicalMemory(pcpuinfo currentcpuinfo, QWORD physicalAddress, int forcesmallpage);
 
-criticalSection eptWatchListCS;
+criticalSection eptWatchListCS={.name="eptWatchListCS", .debuglevel=2};
 PEPTWatchEntry eptWatchList;
 int eptWatchListSize;
 int eptWatchListPos;
 
 
-criticalSection CloakedPagesCS; //1
+criticalSection CloakedPagesCS={.name="CloakedPagesCS", .debuglevel=2}; //1
 PAddressList CloakedPagesList; //up to 40 entries can be found in 5 steps (worst case scenario)
 PMapInfo CloakedPagesMap; //can be found in 5 steps, always (and eats memory) , so if CloakedPagesPos>40 then start using this (and move the old list over)
 //todo: Create a MapList object that combines both into one
@@ -46,7 +46,7 @@ PMapInfo CloakedPagesMap; //can be found in 5 steps, always (and eats memory) , 
 
 
 
-criticalSection ChangeRegBPListCS; //2
+criticalSection ChangeRegBPListCS={.name="ChangeRegBPListCS", .debuglevel=2}; //2
 ChangeRegBPEntry *ChangeRegBPList;
 int ChangeRegBPListSize;
 int ChangeRegBPListPos;
@@ -54,7 +54,7 @@ int ChangeRegBPListPos;
 TraceOnBPEntry *TraceOnBP; //not NULL when active. (There can be only one active one at a time globally, as the trap flag can switch between cpu's)
 
 
-criticalSection BrokenThreadListCS; //2
+criticalSection BrokenThreadListCS={.name="BrokenThreadListCS", .debuglevel=2}; //2
 BrokenThreadEntry *BrokenThreadList;
 int BrokenThreadListSize;
 int BrokenThreadListPos;
@@ -2195,10 +2195,12 @@ BOOL ept_handleWatchEvent(pcpuinfo currentcpuinfo, VMRegisters *registers, PFXSA
   }
 
 
- // nosendchar[getAPICID()]=0;
+  //nosendchar[getAPICID()]=0;
 
   lastSeenEPTWatch.actualID=ID;
-  sendstringf("Handling watch ID %d\n", ID);
+  sendstringf("%d: handling watch ID %d\n", currentcpuinfo->cpunr, ID);
+  sendstringf("%d: RIP=%6\n", currentcpuinfo->cpunr, currentcpuinfo->vmcb->RIP);
+
 
   //todo: release the eptWatchListCS and obtain only the log
 
@@ -2325,6 +2327,7 @@ BOOL ept_handleWatchEvent(pcpuinfo currentcpuinfo, VMRegisters *registers, PFXSA
 
 
   //run once
+
   sendstringf("%d Making page fully accessible", currentcpuinfo->cpunr);
 
   if (isAMD)
@@ -2343,6 +2346,9 @@ BOOL ept_handleWatchEvent(pcpuinfo currentcpuinfo, VMRegisters *registers, PFXSA
 
   vmx_enableSingleStepMode();
   vmx_addSingleSteppingReason(currentcpuinfo, SSR_HANDLEWATCH, ID);
+
+  csLeave(&eptWatchListCS);
+  return TRUE; //no need to log it
 
 
   /*todo:
@@ -2633,7 +2639,8 @@ int ept_handleWatchEventAfterStep(pcpuinfo currentcpuinfo,  int ID)
 
   	  case EPTW_EXECUTE:
   	  {
-  	    sendstringf("execute type. So making it non-executable\n");
+
+  	    sendstringf("%d: execute type. So making it non-executable\n", currentcpuinfo->cpunr);
         if (isAMD)
         {
           PPTE_PAE pte;
@@ -3153,6 +3160,7 @@ int ept_watch_activate(QWORD PhysicalAddress, int Size, int Type, DWORD Options,
 {
   int result=0;
   sendstringf("+ ept_watch_activate(%6, %d, %d, %x, %d, %6, %6,%6)\n", PhysicalAddress, Size, Options, MaxEntryCount, outID, OptionalField1, OptionalField2);
+// ept_watch_activate(00000004030190d8, 8, 1, 20, 8390248, 0000000000000000, 0000000000000000,0000008000800668)
 
   if ((MaxEntryCount==0) && (((EPTO_INTERRUPT|EPTO_DBVMBP) & Options)==0) )
   {
@@ -3469,7 +3477,7 @@ typedef struct _MEMRANGE
   int memtype;
 } MEMRANGE, *PMEMRANGE;
 
-criticalSection memoryrangesCS;
+criticalSection memoryrangesCS={.name="memoryrangesCS", .debuglevel=2};
 MEMRANGE *memoryranges;
 int memoryrangesLength;
 int memoryrangesPos;

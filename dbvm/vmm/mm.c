@@ -30,8 +30,8 @@ Just used for basic initialization allocation, frees shouldn't happen too often
 #define GLOBALMAPPEDMEMORY 0x07000000000ULL
 
 //for virtual memory allocs
-criticalSection AllocCS;
-criticalSection GlobalMapCS;
+criticalSection AllocCS={.name="cinthandlerMenuCS", .debuglevel=2};
+criticalSection GlobalMapCS={.name="GlobalMapCS", .debuglevel=2};
 
 
 PageAllocationInfo *AllocationInfoList=(PageAllocationInfo *)BASE_VIRTUAL_ADDRESS;
@@ -218,7 +218,7 @@ void unmapAddressAtPML4(PPTE_PAE base)
 
 PPTE_PAE mapAddressAtPML4(QWORD address)
 {
-  static criticalSection CS;
+  static criticalSection CS={.name="static mapAddressAtPML4 CS", .debuglevel=2};
   int index;
 
   csEnter(&CS);
@@ -531,8 +531,12 @@ void* mapPhysicalMemoryAddresses(QWORD *addresses, int count)
   int pos=mmFindMapPositionForSize(c, count*4096);
   if (pos==-1)
   {
+    nosendchar[getAPICID()]=0;
     sendstring("mapPhysicalMemoryAddresses: Out of virtual memory to map region.  Check the size and make sure you unmap as well\n");
-    while (FreezeOnMapAllocFail);
+    while (FreezeOnMapAllocFail)
+    {
+      outportb(0x80,2);
+    }
     return NULL;
   }
 
@@ -570,8 +574,12 @@ void* mapPhysicalMemory(QWORD PhysicalAddress, int size)
 
   if (pos==-1)
   {
+    nosendchar[getAPICID()]=0;
     sendstring("mapPhysicalMemory: Out of virtual memory to map region.  Check the size and make sure you unmap as well\n");
-    while (FreezeOnMapAllocFail);
+    while (FreezeOnMapAllocFail)
+    {
+      outportb(0x80,0x02);
+    }
     return NULL;
   }
 
@@ -1036,6 +1044,7 @@ void *malloc2(unsigned int size)
 
   }
 
+  nosendchar[getAPICID()]=0;
   sendstring("OUT OF MEMORY\n");
   return NULL; //still here so no memory allocated
 }

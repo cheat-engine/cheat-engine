@@ -47,7 +47,7 @@
 
 
 
-void menu(void);
+
 void menu2(void);
 
 

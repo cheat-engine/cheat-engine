@@ -8,6 +8,7 @@ BITS 64
 
 extern loadedOS
 extern textmemory
+
 ;
 ;getcpunr
 ;
@@ -112,21 +113,82 @@ lockedQwordIncrement:
 lock add qword [rdi],rsi
 ret
 
+
+;qword getTSC
+getTSC:
+push rdx
+rdtsc
+shl rax,32
+shr rax,32
+
+shl rdx,32
+or rax,rdx
+pop rdx
+ret
+
+%ifdef SERIALPORT
+%if SERIALPORT != 0
+extern spinlocktimeout
+%endif
+%endif
+
+
 ;---------------------------;
 ;int spinlock(int *lockvar);
 ;---------------------------;
+
 global spinlock
 spinlock:
+%ifdef SERIALPORT
+%if SERIALPORT != 0
+sub rsp,8 ;[rsp=starttime]
+call getTSC
+mov [rsp],rax
+%endif
+%endif
+
+spinlock_afterinit:
+
 lock bts dword [rdi],0 ;put the value of bit nr 0 into CF, and then set it to 1
 jc spinlock_wait
+
+xor rax,rax ;return 0:lock obtained
+%ifdef SERIALPORT
+%if SERIALPORT != 0
+add rsp,8
+%endif
+%endif
 ret
 
 spinlock_wait:
+%ifdef SERIALPORT
+%if SERIALPORT != 0
+cmp qword [spinlocktimeout],0
+je spinlock_aftertimeoutcheck
+
+;check the time
+call getTSC
+sub rax,[rsp]
+cmp rax,[spinlocktimeout]
+ja spinlock_timeout
+
+spinlock_aftertimeoutcheck:
+%endif
+%endif
+
 pause
 cmp dword [rdi],0
-je spinlock
+je spinlock_afterinit
 jmp spinlock_wait
 
+%ifdef SERIALPORT
+%if SERIALPORT != 0
+spinlock_timeout:
+mov rax,1
+add rsp,8
+ret
+%endif
+%endif
 
 
 

@@ -636,6 +636,7 @@ typedef volatile struct tcpuinfo
   } SwitchKernel;
 
   int LastVMCall;
+  int insideHandler;
 
 } tcpuinfo, *pcpuinfo; //allocated when the number of cpu's is known
 
