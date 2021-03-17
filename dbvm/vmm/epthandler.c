@@ -1314,10 +1314,12 @@ BOOL ept_handleFrozenThread(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, F
   }
   else
   {
-    //RFLAGS v2;
-    //v2.value=currentcpuinfo->vmcb->RFLAGS;
+    RFLAGS v2;
+    v2.value=currentcpuinfo->vmcb->RFLAGS;
 
-    //sendstringf("Still frozen.  CR8=%6 stored: IF=%d RF=%d current: IF=%d rd=%d INTERRUPT_SHADOW=%d\n", getCR8(), v.IF, v.RF, v2.IF, v2.RF, currentcpuinfo->vmcb->INTERRUPT_SHADOW);
+    sendstringf("%d: Still frozen at %6  CR8=%x stored: IF=%d RF=%d current: IF=%d rd=%d INTERRUPT_SHADOW=%d EFER=%x FMASK=%x\n", currentcpuinfo->cpunr, BrokenThreadList[id].state.basic.RIP, getCR8(), v.IF, v.RF, v2.IF, v2.RF, currentcpuinfo->vmcb->INTERRUPT_SHADOW,
+        currentcpuinfo->vmcb->EFER,
+        currentcpuinfo->vmcb->SFMASK);
   }
 
   return result;
@@ -1339,7 +1341,7 @@ BOOL ept_handleSoftwareBreakpoint(pcpuinfo currentcpuinfo, VMRegisters *vmregist
   int notpaged;
   QWORD PA=getPhysicalAddressVM(currentcpuinfo, RIP, &notpaged);
 
- // sendstringf("ept_handleSoftwareBreakpoint.  RIP=%6 PA=%6\n", RIP, PA);
+ // sendstringf("ept_handleSoftwareBreakpoint. RFLAGS=%x\n", RIP, PA);
 
   if (notpaged==0) //should be since it's a software interrupt...
   {
@@ -2055,7 +2057,7 @@ int ept_getWatchID(QWORD address)
  */
 {
   int i;
-  sendstringf("ept_getWatchID(%6)\n", address);
+  //sendstringf("ept_getWatchID(%6)\n", address);
   address=address & 0xfffffffffffff000ULL;
   for (i=0; i<eptWatchListPos; i++)
     if (ept_isWatchIDMatch(address, i))
@@ -2082,7 +2084,7 @@ BOOL ept_handleWatchEvent(pcpuinfo currentcpuinfo, VMRegisters *registers, PFXSA
 
   if (isAMD)
   {
-    //nosendchar[getAPICID()]=0;
+
 
     nvi.ErrorCode=currentcpuinfo->vmcb->EXITINFO1;
     if (nvi.ID)
@@ -2232,7 +2234,8 @@ BOOL ept_handleWatchEvent(pcpuinfo currentcpuinfo, VMRegisters *registers, PFXSA
 
   if ((eptWatchList[ID].Options & EPTO_DBVMBP) && (PhysicalAddress>=eptWatchList[ID].PhysicalAddress) && (PhysicalAddress<eptWatchList[ID].PhysicalAddress+eptWatchList[ID].Size))
   {
-    sendstringf("EPTO_DBVMBP hit\n");
+    nosendchar[getAPICID()]=0;
+    sendstringf("%d: EPTO_DBVMBP hit (RIP=%6)\n", currentcpuinfo->cpunr, isAMD?currentcpuinfo->vmcb->RIP:vmread(vm_guest_rip));
     //This is the specific address that was being requested
     //if the current state has interrupts disabled or masked (cr8<>0) then skip (todo: step until it is)
 
@@ -2269,7 +2272,7 @@ BOOL ept_handleWatchEvent(pcpuinfo currentcpuinfo, VMRegisters *registers, PFXSA
         csLeave(&eptWatchListCS);
 
 
-        sendstringf("EPTO_DBVMBP: Interruptable state. 'Breaking' this code (Saving the state and setting it to RIP %6)\n, newRIP");
+        sendstringf("EPTO_DBVMBP: Interruptable state. 'Breaking' this code (Saving the state and setting it to RIP %6 )\n", newRIP);
 
         //save this thread's data in a structure so that when the int3 keepalive happens dbvm knows to skip it
         BrokenThreadEntry e;
@@ -2322,13 +2325,17 @@ BOOL ept_handleWatchEvent(pcpuinfo currentcpuinfo, VMRegisters *registers, PFXSA
         return TRUE; //no need to log it or continue
       }
     }
-    //else can't be broken here
+    else
+    {
+      sendstring("Not breaking this\n");
+    }
+
   }
 
 
   //run once
 
-  sendstringf("%d Making page fully accessible", currentcpuinfo->cpunr);
+  sendstringf("%d Making page fully accessible\n", currentcpuinfo->cpunr);
 
   if (isAMD)
   {
@@ -2347,6 +2354,12 @@ BOOL ept_handleWatchEvent(pcpuinfo currentcpuinfo, VMRegisters *registers, PFXSA
   vmx_enableSingleStepMode();
   vmx_addSingleSteppingReason(currentcpuinfo, SSR_HANDLEWATCH, ID);
 
+  if (eptWatchList[ID].Options & EPTO_DBVMBP)
+  {
+    sendstringf("%d: Returning from ept_handleevent\n", currentcpuinfo->cpunr);
+    csLeave(&eptWatchListCS);
+    return TRUE;
+  }
 
   /*todo:
   if ((eptWatchList[ID].Options & EPTO_DBVMBP) && (PhysicalAddress>=eptWatchList[ID].PhysicalAddress) && (PhysicalAddress<eptWatchList[ID].PhysicalAddress+eptWatchList[ID].Size))

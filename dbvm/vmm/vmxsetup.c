@@ -716,12 +716,16 @@ int vmx_enableSingleStepMode(void)
     c->singleStepping.Method=3; //Trap flag
 
     //turn of syscall, and when syscall is executed, capture the UD, re-enable it, but change the flags mask to keep the TF enabled, and the step after that adjust R11 so that the TF is gone and restore the flags mask.  Then continue as usual;
-    c->singleStepping.PreviousEFER=c->vmcb->EFER;
-    c->singleStepping.PreviousFMASK=c->vmcb->SFMASK;
+    if (c->singleStepping.ReasonsPos==0)
+    {
+      c->singleStepping.PreviousEFER=c->vmcb->EFER;
+      c->singleStepping.PreviousFMASK=c->vmcb->SFMASK;
+      c->singleStepping.LastInstructionWasSyscall=0;
 
-    c->singleStepping.LastInstructionWasSyscall=0;
-    c->vmcb->EFER&=0xfffffffffffffffeULL;
-    c->vmcb->VMCB_CLEAN_BITS&=~(1<< 5); //efer got changed
+      c->vmcb->EFER&=0xfffffffffffffffeULL;
+      c->vmcb->VMCB_CLEAN_BITS&=~(1<< 5); //efer got changed
+    }
+
 
     return 1;
 

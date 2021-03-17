@@ -3728,6 +3728,7 @@ BOOL handleSoftwareBreakpoint(pcpuinfo currentcpuinfo, VMRegisters *vmregisters,
 
 
   //still here
+  nosendchar[getAPICID()]=0;
   sendstringf("Unhandled Software breakpoint\n");
   return FALSE; //unhandled
 }

@@ -426,6 +426,9 @@ int handleVMEvent_amd(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, FXSAVE6
         return 0;
       }
 
+      nosendchar[getAPICID()]=0;
+      sendstringf("%d: Unhandled int3 bp at %6\n",currentcpuinfo->cpunr, isAMD?currentcpuinfo->vmcb->RIP:vmread(vm_guest_rip));
+
 
       //set RIP to after the instruction
       if (AMD_hasNRIPS)
