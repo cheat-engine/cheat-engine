@@ -128,7 +128,7 @@ end;
 constructor TVEHDebugInterface.create;
 begin
   inherited create;
-  fDebuggerCapabilities:=[dbcSoftwareBreakpoint,dbcHardwareBreakpoint, dbcExceptionBreakpoint];
+  fDebuggerCapabilities:=fDebuggerCapabilities+[dbcSoftwareBreakpoint,dbcHardwareBreakpoint, dbcExceptionBreakpoint];
   name:='VEH Debugger';
 
   fmaxSharedBreakpointCount:=4;

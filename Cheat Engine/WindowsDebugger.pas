@@ -41,7 +41,7 @@ resourcestring
 constructor TWindowsDebuggerInterface.create;
 begin
   inherited create;
-  fDebuggerCapabilities:=[dbcSoftwareBreakpoint, dbcHardwareBreakpoint, dbcExceptionBreakpoint, dbcBreakOnEntry];
+  fDebuggerCapabilities:=fDebuggerCapabilities+[dbcSoftwareBreakpoint, dbcHardwareBreakpoint, dbcExceptionBreakpoint, dbcBreakOnEntry];
   name:='Windows Debugger';
 
   fmaxSharedBreakpointCount:=4;

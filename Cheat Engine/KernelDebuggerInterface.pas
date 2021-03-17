@@ -495,7 +495,7 @@ begin
   DBKDebug_SetGlobalDebugState(globalDebug);
   injectedEvents:=TQueue.Create;
 
-  fDebuggerCapabilities:=[dbcHardwareBreakpoint, dbcDBVMBreakpoint];
+  fDebuggerCapabilities:=fDebuggerCapabilities+[dbcHardwareBreakpoint, dbcDBVMBreakpoint];
   name:='Kernelmode Debugger';
 
   fmaxSharedBreakpointCount:=4;
