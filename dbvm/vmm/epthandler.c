@@ -2347,9 +2347,6 @@ BOOL ept_handleWatchEvent(pcpuinfo currentcpuinfo, VMRegisters *registers, PFXSA
   vmx_enableSingleStepMode();
   vmx_addSingleSteppingReason(currentcpuinfo, SSR_HANDLEWATCH, ID);
 
-  csLeave(&eptWatchListCS);
-  return TRUE; //no need to log it
-
 
   /*todo:
   if ((eptWatchList[ID].Options & EPTO_DBVMBP) && (PhysicalAddress>=eptWatchList[ID].PhysicalAddress) && (PhysicalAddress<eptWatchList[ID].PhysicalAddress+eptWatchList[ID].Size))
