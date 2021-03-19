@@ -23,6 +23,10 @@ namespace DotNetInterface
             public const byte GETFIELDVALUE = 4;
             public const byte SETFIELDVALUE = 5;
             public const byte LOADMODULE = 6;
+            public const byte GETMETHODPARAMETERS = 7;
+            public const byte WRAPOBJECT = 8;
+            public const byte UNWRAPOBJECT = 9;
+            public const byte INVOKEMETHOD = 10;
             public const byte EXIT = 255;
         }
         
@@ -33,9 +37,20 @@ namespace DotNetInterface
 
         List<Module> ModuleList = new List<Module>();
 
+
+
+        public void WriteByte(byte v)
+        {
+            s.Write(BitConverter.GetBytes(v), 0, 1);
+        }
+
         
-
-
+        public byte ReadByte()
+        {
+            byte[] val = new byte[1];
+            s.Read(val, 0, 1);
+            return val[0];
+        }
 
         public void WriteWord(UInt16 v)
         {
@@ -88,6 +103,52 @@ namespace DotNetInterface
             return Encoding.UTF8.GetString(stringbytes);
         }
 
+        private void getMethodParameters()
+        {
+            int moduleid = (int)ReadDword();
+            int methoddef = (int)ReadDword();
+            string returntypestring = "void";
+            string parameterstring = "";
+
+            if ((moduleid >= 0) && (moduleid < ModuleList.Count))
+            {
+                Module m = ModuleList[moduleid];
+                try
+                {
+                    MethodBase mb = m.ResolveMethod(methoddef);
+                    if (mb is MethodInfo)
+                    {
+                        int i;
+                        MethodInfo mi = (MethodInfo)mb;
+                        returntypestring = mi.ReturnType.FullName;
+
+                        ParameterInfo[] pi= mi.GetParameters();
+                        for (i=0; i<pi.Length; i++)
+                        {
+                            string ps = "";
+                            ParameterInfo p = pi[i];
+                            ps = p.ParameterType.FullName + ' ' + p.Name;
+
+                            if (i == 0)
+                                parameterstring = ps;
+                            else
+                                parameterstring = parameterstring + ", " + ps;
+                        }
+
+                        
+                    }                    
+                }
+                catch
+                {
+                   
+                }
+            }
+
+            parameterstring = "(" + parameterstring + ")";
+            WriteUTF8String(returntypestring);
+            WriteUTF8String(parameterstring);
+
+        }
 
         private void getMethodEntryPoint()
         {
@@ -101,12 +162,12 @@ namespace DotNetInterface
                 Module m = ModuleList[moduleid];
                 try
                 {
-                    MethodBase mb = m.ResolveMethod(methoddef);                    
+                    MethodBase mb = m.ResolveMethod(methoddef);
+                    Marshal.PrelinkAll(mb.GetType());
 
                     System.Runtime.CompilerServices.RuntimeHelpers.PrepareMethod(mb.MethodHandle);
 
-                    Type t = mb.GetType();
-                    Marshal.PrelinkAll(t);
+                    Type t = mb.GetType();                    
                     
                     IntPtr p = mb.MethodHandle.GetFunctionPointer();
                     a = (UInt64)p.ToInt64();
@@ -124,6 +185,7 @@ namespace DotNetInterface
         private void initModuleList()
         {
             AppDomain cd=AppDomain.CurrentDomain;
+         
 
             Assembly[] AssemblyList = cd.GetAssemblies();
             ModuleList.Clear();          
@@ -176,13 +238,13 @@ namespace DotNetInterface
             object instance = null;
 
             GCHandle instanceGCH;
-
+            instanceGCH = GCHandle.Alloc(null);
             try
             {
+                
 
                 if (instanceptr!=IntPtr.Zero)
-                {
-                    instanceGCH = GCHandle.Alloc(null);
+                {                    
                     Marshal.WriteIntPtr((IntPtr)instanceGCH, instanceptr);
                     instance = instanceGCH.Target;
                 }
@@ -230,7 +292,7 @@ namespace DotNetInterface
                 {
                     instance = null;
                     try
-                    {
+                    {                       
                         Marshal.WriteIntPtr((IntPtr)instanceGCH, IntPtr.Zero);
                         instanceGCH.Free();
                     }
@@ -256,9 +318,11 @@ namespace DotNetInterface
 
             try
             {
+                instanceGCH = GCHandle.Alloc(null);
+
                 if (instanceptr != IntPtr.Zero)
                 {
-                    instanceGCH = GCHandle.Alloc(null);
+                    
                     Marshal.WriteIntPtr((IntPtr)instanceGCH, instanceptr);
                     instance = instanceGCH.Target;
                 }
@@ -341,6 +405,7 @@ namespace DotNetInterface
                 if (instanceptr != IntPtr.Zero)
                 {
                     instance = null;
+                    instanceGCH = GCHandle.FromIntPtr(IntPtr.Zero);
                     Marshal.WriteIntPtr((IntPtr)instanceGCH, IntPtr.Zero);
                     instanceGCH.Free();
                 }
@@ -358,12 +423,267 @@ namespace DotNetInterface
             try
             {                
                 Assembly a = Assembly.LoadFile(modulepath);
+                
+                Module[] ml = a.GetModules();
+                int i;
+                for (i=0; i<ml.Length; i++)
+                {                    
+                    Type[] types = ml[i].GetTypes();
+                    int j;
+                    for (j = 0; j < types.Length; j++)
+                    {
+                        MethodInfo[] mil=types[j].GetMethods();
+                        int k;
+                        for (k = 0; k < mil.Length; k++)
+                        {
+                            System.Runtime.CompilerServices.RuntimeHelpers.PrepareMethod(mil[k].MethodHandle);
+                            Marshal.Prelink(mil[k]);                            
+                        }
+                       
+                        //Marshal.PrelinkAll(types[j]);
+                    }
+                }
                 WriteDword(1);
             }
             catch
             {
                 WriteDword(0);
             }
+        }
+
+        List<object> reflist = new List<object>();
+
+        private void wrapObject()
+        {
+            UInt64 v=ReadQword(); //native address
+            GCHandle h = GCHandle.Alloc(null);
+            Marshal.WriteIntPtr((IntPtr)h, (IntPtr)v);
+
+            
+            object x = h.Target;
+
+            reflist.Add(x);
+
+            WriteQword((UInt64)GCHandle.ToIntPtr(h));
+        }
+
+        private void unwrapObject()
+        {
+            UInt64 v = ReadQword(); //gchandle wrapped address
+            GCHandle h=GCHandle.FromIntPtr((IntPtr)v);
+            object t = h.Target;
+
+            h.Free();
+            reflist.Remove(h.Target);            
+        }
+
+
+        private void invokeMethod()
+        {
+            int i;
+            int moduleid = (int)ReadDword();
+            int methoddef = (int)ReadDword();
+            GCHandle instancehandle = GCHandle.FromIntPtr((IntPtr)ReadQword()); //it's a gcobject
+            object instance = instancehandle.Target;
+            
+            int paramcount = (int)ReadByte();
+            object[] parameters = new object[paramcount];
+
+            for (i=0; i<paramcount; i++)
+            {
+                byte[] v;
+                object param = null;
+                byte type = (byte)ReadDword();
+                switch ((TypeCode)type)
+                {
+                    case TypeCode.Boolean:                                        
+                        param = ReadByte()!=0;
+                        break;  
+
+                    case TypeCode.Char:
+                        v = new byte[2];
+                        s.Read(v, 0, 2);
+                        param=BitConverter.ToChar(v, 0);                        
+                        break;
+
+                    case TypeCode.SByte:                        
+                        param = (sbyte)ReadByte();
+                        break;
+
+                    case TypeCode.Byte:
+                        param = ReadByte();
+                        break;
+
+                    case TypeCode.Int16:
+                        param = (Int16)ReadWord();
+                        break;
+
+                    case TypeCode.UInt16:
+                        param = ReadWord();
+                        break;
+
+                    case TypeCode.Int32:
+                        param = (Int32)ReadDword();
+                        break;
+
+                    case TypeCode.UInt32:
+                        param = ReadDword();
+                        break;
+
+                    case TypeCode.Int64:
+                        param = (Int64)ReadQword();
+                        break;
+
+                    case TypeCode.UInt64:
+                        param = ReadQword();
+                        break;
+
+                    case TypeCode.Single:
+                        v = new byte[4];
+                        s.Read(v, 0, 4);
+                        param = BitConverter.ToSingle(v, 0);
+                        break;
+
+                    case TypeCode.Double:
+                        v = new byte[8];
+                        s.Read(v, 0, 8);
+                        param = BitConverter.ToDouble(v, 0);
+                        break;
+
+                    case TypeCode.Decimal:                        
+                        v = new byte[8];                        
+                        s.Read(v, 0, 8);
+                        param = (decimal)BitConverter.ToDouble(v, 0); //convert the double to decimal
+                        break;
+
+                    /*
+                    v = new byte[16];
+                    s.Read(v, 0, 16);
+                    {
+                        int[] bits = new int[4];
+                        bits[0]=BitConverter.ToInt32(v, 0);
+                        bits[1]=BitConverter.ToInt32(v, 4);
+                        bits[2]=BitConverter.ToInt32(v, 8);
+                        bits[3]=BitConverter.ToInt32(v, 12);
+
+                        param = new decimal(bits);
+                    }
+* 
+                    */
+                    case TypeCode.DateTime:
+                        param=DateTime.FromFileTime((long)ReadQword());
+                        break;
+
+                    case TypeCode.String: //assuming utf8 string 
+                        param = ReadUTF8String();
+                        break;
+
+                    case TypeCode.Object:
+                    default: //handle as a wrapped gc handle
+                        {
+                            IntPtr val;
+
+                            v = new byte[IntPtr.Size];
+                            s.Read(v, 0, IntPtr.Size);
+                            if (IntPtr.Size == 4)
+                                val = (IntPtr)BitConverter.ToInt32(v, 0);
+                            else
+                                val = (IntPtr)BitConverter.ToInt64(v, 0);
+
+                            GCHandle h= GCHandle.FromIntPtr(val);
+                            param = h.Target;
+                           
+                            break;
+                        }
+
+
+                }
+
+
+                parameters[i] = param;
+            }
+        
+
+            if ((moduleid >= 0) && (moduleid < ModuleList.Count))
+            {
+                byte[] bytes;
+                Module m = ModuleList[moduleid];
+                MethodBase mb = m.ResolveMethod(methoddef);
+
+                object result=mb.Invoke(instance, parameters);
+
+                Type rtype = result.GetType();
+                TypeCode tc = Type.GetTypeCode(rtype);
+                WriteByte((byte)tc);
+                switch (tc)
+                {
+                    case TypeCode.Boolean:
+                        if ((Boolean)result)
+                            WriteByte(1);
+                        else
+                            WriteByte(0);
+
+                        break;
+
+                    case TypeCode.Char:                            
+                        bytes=BitConverter.GetBytes((Char)result);
+                        s.Write(bytes, 0, 2);                            
+                        break;
+
+                    case TypeCode.SByte:
+                    case TypeCode.Byte:
+                        WriteByte((byte)result);                            
+                        break;
+
+                    case TypeCode.Int16:
+                    case TypeCode.UInt16:
+                        WriteWord((UInt16)result);                            
+                        break;
+                        
+                    case TypeCode.Int32:
+                    case TypeCode.UInt32:
+                        WriteDword((UInt32)result);                            
+                        break;
+
+                    case TypeCode.Int64:
+                    case TypeCode.UInt64:
+                        WriteQword((UInt64)result);
+                        break;                        
+
+                    case TypeCode.Single:
+                        bytes = BitConverter.GetBytes((Single)result);
+                        s.Write(bytes, 0, 4);
+                        break;
+
+                    case TypeCode.Double:
+                        bytes = BitConverter.GetBytes((Double)result);
+                        s.Write(bytes, 0, 8);
+                        break;
+
+                    case TypeCode.Decimal:
+                        Double tempdouble = (Double)(Decimal)result;
+                        bytes = BitConverter.GetBytes(tempdouble);
+                        s.Write(bytes, 0, 8);
+                        break;
+
+                    case TypeCode.DateTime:
+                        //conver the time to filetime
+                        WriteQword((UInt64)((DateTime)result).ToFileTime());
+                        break;
+
+                    case TypeCode.String: //assuming utf8 string 
+                        WriteUTF8String((string)result);
+                        break;
+
+                    case TypeCode.Object:
+                    default: //return a gchandle
+                        WriteQword((UInt64)GCHandle.ToIntPtr(GCHandle.Alloc(result)));
+                        break; 
+                }
+
+            }
+  
+
         }
 
 
@@ -377,6 +697,9 @@ namespace DotNetInterface
             {
                 s = new NamedPipeServerStream(PipeDirection.InOut, false, false, sph);
                 s.WaitForConnection();
+
+                //sph.Close();                                
+                sph = null;
             }
             catch
             {
@@ -406,6 +729,10 @@ namespace DotNetInterface
                             getMethodEntryPoint();
                             break;
 
+                        case Commands.GETMETHODPARAMETERS:
+                            getMethodParameters();
+                            break;
+
                         case Commands.GETFIELDTYPENAME:
                             getFieldTypeName();
                             break;
@@ -422,7 +749,18 @@ namespace DotNetInterface
                             loadModule();
                             break;
 
-                            //case Commands.
+                        case Commands.WRAPOBJECT:
+                            wrapObject();
+                            break;
+
+                        case Commands.UNWRAPOBJECT:
+                            unwrapObject();
+                            break;
+
+                        case Commands.INVOKEMETHOD:
+                            invokeMethod();
+                            break;
+
                     }
                 }                                    
             }
@@ -430,7 +768,7 @@ namespace DotNetInterface
             {                
             }
             finally
-            {
+            {                
                 s.Close();
             }
 

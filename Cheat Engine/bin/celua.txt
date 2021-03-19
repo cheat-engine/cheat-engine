@@ -508,8 +508,10 @@ getAutoAttachList(): returns the AutoAttach StringList object. It can be control
 AOBScan(x,x,x,x,...):
 scans the currently opened process and returns a StringList object containing all the results. don't forget to free this list when done
 Bytevalue of higher than 255 or anything not an integer will be seen as a wildcard
-AOBScan(aobstring): see above but here you just input one string
-AOBScanUnique(aobstring)- Integer: scans for the aobstring and returns the first result it finds and nil if nothing is found. Make sure it is unique as it will return the first result found as it will return any random match
+AOBScan(aobstring, OPTIONAL protectionflags, OPTIONAL alignmenttype, OPTIONAL alignmentparam): see above but here you just input one string
+AOBScanUnique(aobstring, OPTIONAL protectionflags, OPTIONAL alignmenttype, OPTIONAL alignmentparam)- Integer: scans for the aobstring and returns the first result it finds and nil if nothing is found. Make sure it is unique as it will return the first result found as it will return any random match
+AOBScanModuleUnique(modulename, aobstring, OPTIONAL protectionflags, OPTIONAL alignmenttype, OPTIONAL alignmentparam)- Integer : scans for the aobstring in the designated module
+
 
 
 
@@ -2797,8 +2799,9 @@ dbvm_traceonbp_retrievelog() : Returns an array of traceentries. (Context of the
 dbvm_bp_getBrokenThreadListSize() : Returns the number of breakpoint slots currently available
 dbvm_bp_getBrokenThreadEventShort(id) : Returns a table with information about the specific breakpoint slow
 dbvm_bp_getBrokenThreadEventFull(id) : Returns a bigger table (fpu and stack) 
+dbvm_bp_setBrokenThreadEventFull(id,state) : Sets the state of the frozen thread
 dbvm_bp_resumeBrokenThread(id, continueMethod) : Resumes the specific thread.  continueMethod can be 0=run, 1=step into
-
+dbvm_bp_getProcessAndThreadIDFromEvent(ThreadEvent): processid,threadid - Returns the processid and threadid of the provided threadEvent. On failure processid will be nil, and threadid will contain text
 
 dbvm_log_cr3_start() : Tells DBVM to record (up to 512) unique CR3 values it encounters
 dbvm_log_cr3_stop() : Stops the logging and returns the results as a table

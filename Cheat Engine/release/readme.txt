@@ -11,12 +11,13 @@ Additions and changes:
   Added routines to do .NET(and mono) method detouring.  .NET info has a new contextmenu where you can create a detour template for the autoassembler
   [Disable] sections can now reference labels, defines, AOBScan results, and allocs created in the [ENABLE] section
   Userdefined symbollist has a secondary list for CCode symbols
-
+  The change address window now also supports relative offsets
 
 
   
 
 Fixes:
+  fixed some games freezing CE when symbols where accesses
   Lua debug now shows for loop variables
   several windows now save their position, and won't get corrupted if you don't show them the first time running CE
   fixed createthreadandwait when using a timeout
@@ -25,14 +26,20 @@ Fixes:
   ceshare: logout fixed
   fixed assembling movsq
   fixed ultimap ret filter
-  
+  fixed luapipe never calling OnError
+  fixed DBVM find what access/writes sometimes skipping entries on AMD
 
 lua:
   changes:
     saveTable won't ask to sign the table anymore
     messageDialog will work if you omit the buttonlist. (Defaults to mbOK then)
+    added custom designable button
 
-  New functions: 
+  New functions:
+     form.saveToStream 
+     compile()
+     compilecs()
+
 
 
 
