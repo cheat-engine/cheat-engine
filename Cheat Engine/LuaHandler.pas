@@ -14433,6 +14433,30 @@ begin
   end;
 end;
 
+function lua_signExtend(L: Plua_State): integer; cdecl;
+var
+  value: qword;
+  mostsignificantBit: integer;
+begin
+  result:=0;
+  if lua_gettop(L)>=2 then
+  begin
+    value:=lua_tointeger(L,1);
+    mostsignificantBit:=lua_tointeger(L,2);
+    if (value shr mostSignificantBit)=1 then //needs to be sign extended
+      value:=value or ((qword($ffffffffffffffff) shl mostSignificantBit));
+
+    lua_pushinteger(L,value);
+    result:=1;
+  end
+  else
+  begin
+    lua_pushnil(L);
+    lua_pushstring(L,'Incorrect paremeters: signExtend(value,mostSignificantBit)');
+    exit(2);
+  end;
+end;
+
 procedure InitLimitedLuastate(L: Plua_State);
 begin
   //just the bare basics, don't put in too much as it will slow down spawning of worker threads
@@ -15163,6 +15187,9 @@ begin
     lua_register(L, 'compileCS', lua_compilecs);
     lua_register(L, 'compileCSharp', lua_compilecs);
     lua_register(L, 'compilecsharp', lua_compilecs);
+
+
+    lua_register(L, 'signExtend', lua_signExtend);
 
 
 

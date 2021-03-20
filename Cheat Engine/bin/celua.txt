@@ -89,6 +89,8 @@ writeBytesLocal(address, table, , count) : See writeBytes but then it's for Chea
 readSmallInteger, readInteger, readSmallIntegerLocal, readIntegerLocal
 can also have second boolean parameter. If true, value will be signed.
 
+signExtend(value,mostSignificantBit): integer - Extends the bits so that if it's MSB bit is set, it will be negative
+
 wordToByteTable(number): {}          - Converts a word to a bytetable
 dwordToByteTable(number): {}         - Converts a dword to a bytetable
 qwordToByteTable(number): {}         - Converts a qword to a bytetable

@@ -48,8 +48,11 @@ namespace DotNetInterface
         public byte ReadByte()
         {
             byte[] val = new byte[1];
-            s.Read(val, 0, 1);
-            return val[0];
+            if (s.Read(val, 0, 1) == 1)
+                return val[0];
+            else
+                throw new Exception("ReadByte returned incorrect amount");
+                
         }
 
         public void WriteWord(UInt16 v)
@@ -109,6 +112,7 @@ namespace DotNetInterface
             int methoddef = (int)ReadDword();
             string returntypestring = "void";
             string parameterstring = "";
+            List<TypeCode> parameters = new List<TypeCode>{ }; //first one is the return type, the rest are the parameters
 
             if ((moduleid >= 0) && (moduleid < ModuleList.Count))
             {
@@ -122,6 +126,8 @@ namespace DotNetInterface
                         MethodInfo mi = (MethodInfo)mb;
                         returntypestring = mi.ReturnType.FullName;
 
+                        parameters.Add(Type.GetTypeCode(mi.ReturnType));
+
                         ParameterInfo[] pi= mi.GetParameters();
                         for (i=0; i<pi.Length; i++)
                         {
@@ -133,6 +139,8 @@ namespace DotNetInterface
                                 parameterstring = ps;
                             else
                                 parameterstring = parameterstring + ", " + ps;
+
+                            parameters.Add(Type.GetTypeCode(p.ParameterType));                            
                         }
 
                         
@@ -147,6 +155,10 @@ namespace DotNetInterface
             parameterstring = "(" + parameterstring + ")";
             WriteUTF8String(returntypestring);
             WriteUTF8String(parameterstring);
+
+            WriteByte((byte)parameters.Count);
+            for (int i=0; i<parameters.Count; i++)            
+                WriteByte((byte)parameters[i]);            
 
         }
 
@@ -493,7 +505,7 @@ namespace DotNetInterface
             {
                 byte[] v;
                 object param = null;
-                byte type = (byte)ReadDword();
+                byte type = (byte)ReadByte();
                 switch ((TypeCode)type)
                 {
                     case TypeCode.Boolean:                                        
@@ -574,7 +586,7 @@ namespace DotNetInterface
                         param=DateTime.FromFileTime((long)ReadQword());
                         break;
 
-                    case TypeCode.String: //assuming utf8 string 
+                    case TypeCode.String:
                         param = ReadUTF8String();
                         break;
 
@@ -583,15 +595,20 @@ namespace DotNetInterface
                         {
                             IntPtr val;
 
-                            v = new byte[IntPtr.Size];
-                            s.Read(v, 0, IntPtr.Size);
+                            v = new byte[8];
+                            s.Read(v, 0, 8);
                             if (IntPtr.Size == 4)
                                 val = (IntPtr)BitConverter.ToInt32(v, 0);
                             else
                                 val = (IntPtr)BitConverter.ToInt64(v, 0);
 
-                            GCHandle h= GCHandle.FromIntPtr(val);
-                            param = h.Target;
+                            if (val == IntPtr.Zero)
+                                param = null;
+                            else
+                            {
+                                GCHandle h = GCHandle.FromIntPtr(val);
+                                param = h.Target;
+                            }
                            
                             break;
                         }
@@ -612,73 +629,78 @@ namespace DotNetInterface
 
                 object result=mb.Invoke(instance, parameters);
 
-                Type rtype = result.GetType();
-                TypeCode tc = Type.GetTypeCode(rtype);
-                WriteByte((byte)tc);
-                switch (tc)
+                if (result == null)                
+                    WriteByte((byte)TypeCode.Empty);                
+                else
                 {
-                    case TypeCode.Boolean:
-                        if ((Boolean)result)
-                            WriteByte(1);
-                        else
-                            WriteByte(0);
+                    Type rtype = result.GetType();                                            
+                    TypeCode tc = Type.GetTypeCode(rtype);
+                    WriteByte((byte)tc);
+                    switch (tc)
+                    {
+                        case TypeCode.Boolean:
+                            if ((Boolean)result)
+                                WriteByte(1);
+                            else
+                                WriteByte(0);
 
-                        break;
+                            break;
 
-                    case TypeCode.Char:                            
-                        bytes=BitConverter.GetBytes((Char)result);
-                        s.Write(bytes, 0, 2);                            
-                        break;
+                        case TypeCode.Char:
+                            bytes = BitConverter.GetBytes((Char)result);
+                            s.Write(bytes, 0, 2);
+                            break;
 
-                    case TypeCode.SByte:
-                    case TypeCode.Byte:
-                        WriteByte((byte)result);                            
-                        break;
+                        case TypeCode.SByte:
+                        case TypeCode.Byte:
+                            WriteByte((byte)result);
+                            break;
 
-                    case TypeCode.Int16:
-                    case TypeCode.UInt16:
-                        WriteWord((UInt16)result);                            
-                        break;
-                        
-                    case TypeCode.Int32:
-                    case TypeCode.UInt32:
-                        WriteDword((UInt32)result);                            
-                        break;
+                        case TypeCode.Int16:
+                        case TypeCode.UInt16:
+                            WriteWord((UInt16)result);
+                            break;
 
-                    case TypeCode.Int64:
-                    case TypeCode.UInt64:
-                        WriteQword((UInt64)result);
-                        break;                        
+                        case TypeCode.Int32:
+                        case TypeCode.UInt32:
+                            WriteDword((UInt32)result);
+                            break;
 
-                    case TypeCode.Single:
-                        bytes = BitConverter.GetBytes((Single)result);
-                        s.Write(bytes, 0, 4);
-                        break;
+                        case TypeCode.Int64:
+                        case TypeCode.UInt64:
+                            WriteQword((UInt64)result);
+                            break;
 
-                    case TypeCode.Double:
-                        bytes = BitConverter.GetBytes((Double)result);
-                        s.Write(bytes, 0, 8);
-                        break;
+                        case TypeCode.Single:
+                            bytes = BitConverter.GetBytes((Single)result);
+                            s.Write(bytes, 0, 4);
+                            break;
 
-                    case TypeCode.Decimal:
-                        Double tempdouble = (Double)(Decimal)result;
-                        bytes = BitConverter.GetBytes(tempdouble);
-                        s.Write(bytes, 0, 8);
-                        break;
+                        case TypeCode.Double:
+                            bytes = BitConverter.GetBytes((Double)result);
+                            s.Write(bytes, 0, 8);
+                            break;
 
-                    case TypeCode.DateTime:
-                        //conver the time to filetime
-                        WriteQword((UInt64)((DateTime)result).ToFileTime());
-                        break;
+                        case TypeCode.Decimal:
+                            Double tempdouble = (Double)(Decimal)result;
+                            bytes = BitConverter.GetBytes(tempdouble);
+                            s.Write(bytes, 0, 8);
+                            break;
 
-                    case TypeCode.String: //assuming utf8 string 
-                        WriteUTF8String((string)result);
-                        break;
+                        case TypeCode.DateTime:
+                            //conver the time to filetime
+                            WriteQword((UInt64)((DateTime)result).ToFileTime());
+                            break;
 
-                    case TypeCode.Object:
-                    default: //return a gchandle
-                        WriteQword((UInt64)GCHandle.ToIntPtr(GCHandle.Alloc(result)));
-                        break; 
+                        case TypeCode.String: //assuming utf8 string 
+                            WriteUTF8String((string)result);
+                            break;
+
+                        case TypeCode.Object:
+                        default: //return a gchandle
+                            WriteQword((UInt64)GCHandle.ToIntPtr(GCHandle.Alloc(result)));
+                            break;
+                    }
                 }
 
             }
