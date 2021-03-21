@@ -295,6 +295,41 @@ dotnet_writeObjectValue[TypeCode.String]=function(s)
   dotnetpipe.writeString(s)
 end
 
+
+
+dotnet_StringToTypeCodeValue={}
+dotnet_StringToTypeCodeValue[TypeCode.Empty]=function(s) return 0 end
+dotnet_StringToTypeCodeValue[TypeCode.Object]=function(s) 
+  if s=='' then return 0 end --void gets handled as an object with address 0
+  if s:sub(1,2)=='0x' then 
+    return tonumber(s) 
+  else 
+    return tonumber(s,16) 
+  end
+end
+dotnet_StringToTypeCodeValue[TypeCode.DBNull]=dotnet_StringToTypeCodeValue[TypeCode.Object]
+dotnet_StringToTypeCodeValue[TypeCode.Boolean]=function(s) 
+  local s=s:upper()
+  if s=='1' or s=='TRUE' then return true end
+  if s=='0' or s=='FALSE' then return false end
+  return nil  
+end
+dotnet_StringToTypeCodeValue[TypeCode.Char]=function(s) return s:sub(1,1) end
+dotnet_StringToTypeCodeValue[TypeCode.SByte]=function(s) return tonumber(s) end
+dotnet_StringToTypeCodeValue[TypeCode.Byte]=dotnet_StringToTypeCodeValue[TypeCode.SByte]
+dotnet_StringToTypeCodeValue[TypeCode.Int16]=dotnet_StringToTypeCodeValue[TypeCode.SByte]
+dotnet_StringToTypeCodeValue[TypeCode.UInt16]=dotnet_StringToTypeCodeValue[TypeCode.SByte]
+dotnet_StringToTypeCodeValue[TypeCode.Int32]=dotnet_StringToTypeCodeValue[TypeCode.SByte]
+dotnet_StringToTypeCodeValue[TypeCode.UInt32]=dotnet_StringToTypeCodeValue[TypeCode.SByte]
+dotnet_StringToTypeCodeValue[TypeCode.Int64]=dotnet_StringToTypeCodeValue[TypeCode.SByte]
+dotnet_StringToTypeCodeValue[TypeCode.UInt64]=dotnet_StringToTypeCodeValue[TypeCode.SByte]
+dotnet_StringToTypeCodeValue[TypeCode.Single]=dotnet_StringToTypeCodeValue[TypeCode.SByte]
+dotnet_StringToTypeCodeValue[TypeCode.Double]=dotnet_StringToTypeCodeValue[TypeCode.SByte]
+dotnet_StringToTypeCodeValue[TypeCode.Decimal]=dotnet_StringToTypeCodeValue[TypeCode.SByte]
+dotnet_StringToTypeCodeValue[TypeCode.DateTime]=dotnet_StringToTypeCodeValue[TypeCode.SByte]
+dotnet_StringToTypeCodeValue[TypeCode.String]=function(s) return s end
+
+
 dotnet_readObjectValue={}
 dotnet_readObjectValue[TypeCode.Empty]=function() return nil end
 dotnet_readObjectValue[TypeCode.Object]=function() return dotnetpipe.readQword() end
@@ -317,6 +352,12 @@ dotnet_readObjectValue[TypeCode.String]=function()
   local length=dotnetpipe.readDword()
   return dotnetpipe.readString(length) 
 end 
+
+dotnet_readObjectValue[255]=function()
+  local msg=dotnet_readObjectValue[TypeCode.String]
+  print("Invoke Error: "..msg)
+  return nil
+end
 
 
 function dotnet_writeObject(parameter)
@@ -344,13 +385,18 @@ function dotnet_readObject()
   if handler then    
     return handler()
   else
-    print("Unknown read handler:"..Type)
+    if (Type~=nil)
+      print("Unknown read handler:"..Type)
+    else
+      print("Unknown read handler:"..Type)          
+    end
+      
     print(debug.traceback())
     return nil  
   end  
 end
 
-function dotnet_invokeMethod(moduleid, methoddef, wrappedObjectHandle, parameters)
+function dotnet_invoke_method(moduleid, methoddef, wrappedObjectHandle, parameters)
   local result
   dotnetpipe.lock() 
   dotnetpipe.writeByte(DOTNETCMD_INVOKEMETHOD)
@@ -358,7 +404,7 @@ function dotnet_invokeMethod(moduleid, methoddef, wrappedObjectHandle, parameter
   dotnetpipe.writeDword(methoddef)
   dotnetpipe.writeQword(wrappedObjectHandle)  
   
-  print("writing parameters")
+  --print("writing parameters")
   if parameters then
     dotnetpipe.writeByte(#parameters)
     local i
@@ -369,11 +415,85 @@ function dotnet_invokeMethod(moduleid, methoddef, wrappedObjectHandle, parameter
     dotnetpipe.writeByte(0)
   end
   
-  print("Reading result")
+ -- print("Reading result")
 
   result=dotnet_readObject()  
   dotnetpipe.unlock()  
   return result
+end
+
+function dotnet_invoke_method_dialog(name, moduleid, methoddef, wrappedAddress)
+  if wrappedAddress==nil then
+    return nil,'no wrapped object address provided'
+  end
+  if not inMainThread() then
+    return nil,'dotnet_invoke_method_dialog must run in the main thread' 
+  end
+  
+
+  local returntype, parameters, typeCodes=dotnet_getMethodParameters(moduleid, methoddef)
+  if returntype==nil then
+    return nil,'dotnet_getMethodParameters failed'
+  end
+  
+  parameters=parameters:sub(2,#parameters-1) --strip the braces
+  
+  local paramlist=table.pack(parameters:split(','))
+  
+  if #paramlist~=#typeCodes-1 then --bug?
+    paramlist={} 
+    local i
+    for i=1,#typeCodes do
+      paramlist[i]='tc'..typecodes[i]..' param'..i;
+    end
+  end
+  
+  --still here, so all checks are ok, spawn the dialog
+  local mifinfo
+  mifinfo=createMethodInvokedialog(name, paramlist, function()
+    local instance=wrappedAddress  
+  end)
+  
+  
+  --print("createMethodInvokedialog returned")
+  
+  
+  mifinfo.btnOk.OnClick=function(b)
+    --use typeCodes to fill the paramlist  
+    print("DotnetInterface: mifinfo.btnOk.OnClick ")
+    
+    local parameters={}
+    for i=2,#typeCodes do
+      local e={}
+      e.Type=typeCodes[i]
+      
+      local valuehandler=dotnet_StringToTypeCodeValue[e.Type]
+      if valuehandler then
+        e.Value=valuehandler(mifinfo.parameters[i-1].edtVarText.Text)        
+        if e.Value==nil then --nil is error
+          messageDialog('The input :"'..mifinfo.parameters[i].edtVarText.Text..'" could not be parsed for '..mifinfo.parameters[i].lblVarName, mtError,mbOK);        
+          return
+        end
+      else  
+        messageDialog('TypeCodes '..valuehandler..' is not known', mtError,mbOK);
+        return
+      end
+      
+      
+      table.insert(parameters,e)
+    end
+    
+    local result=dotnet_invoke_method(moduleid, methoddef, wrappedAddress, parameters)
+    
+    
+
+  end
+  
+ -- print("showing mifinfo.mif")
+  
+  mifinfo.mif.show()
+  
+  return mifinfo
 end
 
 
@@ -453,6 +573,7 @@ function LaunchDotNetInterface()
   
   dotnetpipe.OnError=function(self)
     print("dotnetpipe error")
+    print(debug.traceback())    
     dotnetpipe=nil
   end 
 

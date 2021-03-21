@@ -14107,6 +14107,20 @@ begin
     exit(0);
 end;
 
+function lua_trim(L: Plua_State): integer; cdecl;
+var s: string;
+begin
+  if lua_gettop(L)>=1 then
+  begin
+    s:=Lua_ToString(L,1);
+    lua_pushstring(L,trim(s));
+  end
+  else
+    lua_pushnil(L);
+
+  result:=1;
+end;
+
 function lua_split(L: Plua_State): integer; cdecl;
 var
   s: string;
@@ -15351,6 +15365,10 @@ begin
       lua_getglobal(L, 'string');
       lua_pushstring(L,'split');
       lua_pushcfunction(L, lua_split);
+      lua_settable(L,-3);
+
+      lua_pushstring(L,'trim');
+      lua_pushcfunction(L, lua_trim);
       lua_settable(L,-3);
       lua_pop(L,1);
 

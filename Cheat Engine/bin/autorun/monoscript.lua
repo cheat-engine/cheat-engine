@@ -15,6 +15,8 @@ else
   libfolder='dylibs'
 end
 
+local dpiscale=getScreenDPI()/96
+
 
 mono_timeout=3000 --change to 0 to never timeout (meaning: 0 will freeze your face off if it breaks on a breakpoint, just saying ...)
 
@@ -178,6 +180,180 @@ MONO_TYPE_NAME_FORMAT_REFLECTION=1
 MONO_TYPE_NAME_FORMAT_FULL_NAME=2
 MONO_TYPE_NAME_FORMAT_ASSEMBLY_QUALIFIED=3
 
+
+function createMethodInvokedialog(name, parameters, okclickfunction, customAddress, address)
+  local mifinfo={}
+  mifinfo.mif=createForm(false)
+  mifinfo.mif.position='poScreenCenter'
+  mifinfo.mif.borderStyle='bsSizeable'
+  
+  mifinfo.mif.Caption=translate('Invoke ')..name
+
+  if customAddress then
+    mifinfo.lblInstanceAddress=createLabel(mifinfo.mif)
+    mifinfo.lblInstanceAddress.Caption=translate('Instance address')  
+    mifinfo.cbInstance=createComboBox(mifinfo.mif)
+  end
+  
+  mifinfo.gbParams=createGroupBox(mifinfo.mif)
+  mifinfo.gbParams.Caption=translate('Parameters')
+
+  mifinfo.gbParams.AutoSize=true
+
+  mifinfo.pnlButtons=createPanel(mifinfo.mif)
+  mifinfo.pnlButtons.ChildSizing.ControlsPerLine=2
+  mifinfo.pnlButtons.ChildSizing.Layout='cclLeftToRightThenTopToBottom'
+
+  mifinfo.pnlButtons.BevelOuter='bvNone'
+  mifinfo.pnlButtons.BorderSpacing.Top=5
+  mifinfo.pnlButtons.BorderSpacing.Bottom=5
+  mifinfo.pnlButtons.ChildSizing.HorizontalSpacing=8
+
+
+  mifinfo.btnOk=createButton(mifinfo.mif)
+  mifinfo.btnCancel=createButton(mifinfo.mif)
+
+  mifinfo.btnOk.Parent=mifinfo.pnlButtons
+  mifinfo.btnCancel.Parent=mifinfo.pnlButtons
+
+  mifinfo.pnlButtons.AutoSize=true
+
+  mifinfo.btnOk.caption=translate('OK')
+  mifinfo.btnCancel.caption=translate('Cancel')
+  mifinfo.btnCancel.Cancel=true
+
+
+  mifinfo.pnlButtons.AnchorSideBottom.Control=mifinfo.mif
+  mifinfo.pnlButtons.AnchorSideBottom.Side=asrBottom
+  mifinfo.pnlButtons.AnchorSideLeft.Control=mifinfo.mif
+  mifinfo.pnlButtons.AnchorSideLeft.Side=asrCenter
+  mifinfo.pnlButtons.Anchors='[akLeft, akBottom]'
+ -- mifinfo.pnlButtons.Color=clRed
+
+
+  if customAddress then
+    mifinfo.lblInstanceAddress.AnchorSideTop.Control=mifinfo.mif
+    mifinfo.lblInstanceAddress.AnchorSideTop.Side=asrTop
+    mifinfo.lblInstanceAddress.AnchorSideTop.Left=mifinfo.mif
+    mifinfo.lblInstanceAddress.AnchorSideTop.Side=asrLeft
+    mifinfo.cbInstance.AnchorSideTop.Control=mifinfo.lblInstanceAddress
+    mifinfo.cbInstance.AnchorSideTop.Side=asrBottom
+    
+    mifinfo.cbInstance.AnchorSideLeft.Control=mifinfo.mif
+    mifinfo.cbInstance.AnchorSideLeft.Side=asrLeft
+    mifinfo.cbInstance.AnchorSideRight.Control=mifinfo.mif
+    mifinfo.cbInstance.AnchorSideRight.Side=asrRight
+    mifinfo.cbInstance.Anchors='[akLeft, akRight, akTop]'
+    mifinfo.cbInstance.BorderSpacing.Left=2*dpiscale
+    mifinfo.cbInstance.BorderSpacing.Right=2*dpiscale
+    
+    mifinfo.gbParams.AnchorSideTop.Control=mifinfo.cbInstance
+    mifinfo.gbParams.AnchorSideTop.Side=asrBottom    
+  else
+    mifinfo.gbParams.AnchorSideTop.Control=mifinfo.mif
+    mifinfo.gbParams.AnchorSideTop.Side=asrTop      
+  end
+
+  mifinfo.gbParams.AnchorSideLeft.Control=mifinfo.mif
+  mifinfo.gbParams.AnchorSideLeft.Side=asrLeft
+  mifinfo.gbParams.AnchorSideRight.Control=mifinfo.mif
+  mifinfo.gbParams.AnchorSideRight.Side=asrRight
+  mifinfo.gbParams.AnchorSideBottom.Control=mifinfo.pnlButtons
+  mifinfo.gbParams.AnchorSideBottom.Side=asrTop
+
+  mifinfo.gbParams.Anchors='[akLeft, akRight, akTop, akBottom]'
+
+  mifinfo.mif.AutoSize=true
+
+  mifinfo.parameters={}
+  local i
+  for i=1, #parameters do
+    local lblVarName=createLabel(mifinfo.mif)
+    local edtVarText=createEdit(mifinfo.mif)
+
+    lblVarName.Parent=mifinfo.gbParams
+    edtVarText.Parent=mifinfo.gbParams
+    
+    lblVarName.AnchorSideLeft.Control=mifinfo.gbParams
+    lblVarName.AnchorSideLeft.Side=asrLeft
+    lblVarName.BorderSpacing.Left=2*dpiscale
+       
+    lblVarName.AnchorSideTop.Control=edtVarText
+    lblVarName.AnchorSideTop.Side=asrCenter
+    
+    if i==1 then
+      edtVarText.AnchorSideTop.Control=mifinfo.gbParams
+      edtVarText.AnchorSideTop.Side=asrTop      
+      edtVarText.AnchorSideLeft.Control=mifinfo.gbParams
+      edtVarText.AnchorSideLeft.Side=asrLeft      
+      --borderspacing.Left will set the position      
+    else
+      edtVarText.AnchorSideTop.Control=mifinfo.parameters[i-1].edtVarText
+      edtVarText.AnchorSideTop.Side=asrBottom
+      edtVarText.AnchorSideLeft.Control=mifinfo.parameters[i-1].edtVarText
+      edtVarText.AnchorSideLeft.Side=asrLeft --same position as the top (which gets set later)
+    end
+    edtVarText.BorderSpacing.Top=2*dpiscale    
+    edtVarText.AnchorSideRight.Control=mifinfo.gbParams
+    edtVarText.AnchorSideRight.Side=asrRight
+    edtVarText.BorderSpacing.Right=2*dpiscale
+
+    edtVarText.Anchors='[akLeft, akRight, akTop]'
+
+    
+
+    lblVarName.Caption=parameters[i]:trim()
+
+    mifinfo.parameters[i]={}
+    mifinfo.parameters[i].lblVarName=lblVarName
+    mifinfo.parameters[i].edtVarText=edtVarText
+
+    lblVarName.BorderSpacing.CellAlignVertical='ccaCenter'
+  end
+
+  mifinfo.btnOk.OnClick=okclickfunction
+
+  mifinfo.btnCancel.OnClick=function(b) mifinfo.mif.close() end
+
+
+  mifinfo.mif.OnShow=function(s)
+    idf=s
+    if #mifinfo.parameters>0 then      
+      local labelwidth=0
+      local i
+      for i=1,#parameters do --get the min width needed
+        labelwidth=math.max(labelwidth, mifinfo.parameters[i].lblVarName.Width)
+      end
+      
+      mifinfo.parameters[1].edtVarText.BorderSpacing.Left=labelwidth+7*dpiscale
+    end
+  end
+
+  mifinfo.mif.onClose=function(f)
+    return caFree
+  end
+
+  mifinfo.mif.onDestroy=function(f)
+    --destroy all objects
+    mifinfo.btnOk.destroy()
+    mifinfo.btnOk=nil
+    
+    mifinfo.btnCancel.destroy()
+    mifinfo.btnCancel=nil
+
+    if mifinfo.cbInstance then
+      mifinfo.cbInstance.destroy()
+      mifinfo.cbInstance=nil
+    end
+    
+    mifinfo.gbParams.destroy()
+    mifinfo.gbParams=nil
+
+    mifinfo=nil
+  end  
+  
+  return mifinfo  
+end
 
 
 function monoTypeToVarType(monoType)
@@ -820,6 +996,7 @@ function mono_getImageFromAssembly(assembly)
 end
 
 function mono_image_get_name(image)
+  if image==nil then return nil,'invalid image' end
   --if debug_canBreak() then return nil end
 
   if monopipe==nil then return nil end  
@@ -829,9 +1006,13 @@ function mono_image_get_name(image)
   monopipe.writeByte(MONOCMD_GETIMAGENAME)
   monopipe.writeQword(image)
   local namelength=monopipe.readWord()
-  local name=monopipe.readString(namelength)
+  local name
+  
+  if monopipe then
+    name=monopipe.readString(namelength)
+    monopipe.unlock()
+  end
 
-  monopipe.unlock()
   return name
 end
 
@@ -2249,7 +2430,6 @@ function mono_writeVarType(vartype)
   end
 end
 
-
 function mono_invoke_method_dialog(domain, method, address)
   --spawn a dialog where the user can fill in fields like: instance and parameter values
   --parameter fields will be of the proper type
@@ -2261,7 +2441,7 @@ function mono_invoke_method_dialog(domain, method, address)
 
   if types==nil then return nil,'types==nil' end
 
-  local mifinfo={}
+  local mifinfo
 
   local typenames={}
   local tn
@@ -2271,150 +2451,20 @@ function mono_invoke_method_dialog(domain, method, address)
 
   if #typenames~=#paramnames then return nil end
 
-  mifinfo.mif=createForm(false)
-  mifinfo.mif.position='poScreenCenter'
-  mifinfo.mif.borderStyle='bsSizeable'
 
   local c=mono_method_getClass(method)
   local classname=''
   if c and (c~=0) then
     classname=mono_class_getName(c)..'.'
   end
-
-
-
-  mifinfo.mif.Caption=translate('Invoke ')..classname..mono_method_getName(method)
-  mifinfo.lblInstanceAddress=createLabel(mifinfo.mif)
-  mifinfo.lblInstanceAddress.Caption=translate('Instance address')
-
-  mifinfo.cbInstance=createComboBox(mifinfo.mif)
   
-  --start a scan to fill the combobox with results
-  if (address==nil) then
-    mifinfo.cbInstance.Items.add(translate('<Please wait...>'))
-    mono_class_findInstancesOfClass(nil,c,function(m)      
-        --print("Scan done")
-
-        if mifinfo.cbInstance then  --not destroyed yet
-          mifinfo.cbInstance.Items.clear()
-        
-          local fl=createFoundList(m) 
-          fl.initialize()
-          local i
-          for i=0, fl.Count-1 do
-            mifinfo.cbInstance.Items.Add(fl[i])
-          end
-          
-          fl.destroy()
-        end      
-        
-        m.destroy()
-      end
-    )
-  else
-    mifinfo.cbInstance.Text=string.format('%x',address)
+  paramstrings={}
+  for i=1,#typenames do
+    paramstrings[i]=typenames[i]..' '..paramnames[i]
   end
   
-  
-  --[[ alternatively, fill it on DropDown
-  mifinfo.cbInstance.OnDropDown=function(cb)
-    --fill the combobox with instances
-  end
-  ]]
-  
-  mifinfo.gbParams=createGroupBox(mifinfo.mif)
-  mifinfo.gbParams.Caption=translate('Parameters')
-
-
-  mifinfo.gbParams.ChildSizing.ControlsPerLine=2
-  mifinfo.gbParams.ChildSizing.Layout='cclLeftToRightThenTopToBottom'
-  mifinfo.gbParams.ChildSizing.HorizontalSpacing=8
-  mifinfo.gbParams.AutoSize=true
-
-  mifinfo.pnlButtons=createPanel(mifinfo.mif)
-  mifinfo.pnlButtons.ChildSizing.ControlsPerLine=2
-  mifinfo.pnlButtons.ChildSizing.Layout='cclLeftToRightThenTopToBottom'
-
-  mifinfo.pnlButtons.BevelOuter='bvNone'
-  mifinfo.pnlButtons.BorderSpacing.Top=5
-  mifinfo.pnlButtons.BorderSpacing.Bottom=5
-  mifinfo.pnlButtons.ChildSizing.HorizontalSpacing=8
-
-
-  mifinfo.btnOk=createButton(mifinfo.mif)
-  mifinfo.btnCancel=createButton(mifinfo.mif)
-
-  mifinfo.btnOk.Parent=mifinfo.pnlButtons
-  mifinfo.btnCancel.Parent=mifinfo.pnlButtons
-
-  mifinfo.pnlButtons.AutoSize=true
-
-  mifinfo.btnOk.caption=translate('OK')
-  mifinfo.btnCancel.caption=translate('Cancel')
-  mifinfo.btnCancel.Cancel=true
-
-
-  mifinfo.pnlButtons.AnchorSideBottom.Control=mifinfo.mif
-  mifinfo.pnlButtons.AnchorSideBottom.Side=asrBottom
-  mifinfo.pnlButtons.AnchorSideLeft.Control=mifinfo.mif
-  mifinfo.pnlButtons.AnchorSideLeft.Side=asrCenter
-  mifinfo.pnlButtons.Anchors='[akLeft, akBottom]'
- -- mifinfo.pnlButtons.Color=clRed
-
-
-
-  mifinfo.lblInstanceAddress.AnchorSideTop.Control=mifinfo.mif
-  mifinfo.lblInstanceAddress.AnchorSideTop.Side=asrTop
-  mifinfo.lblInstanceAddress.AnchorSideTop.Left=mifinfo.mif
-  mifinfo.lblInstanceAddress.AnchorSideTop.Side=asrLeft
-
-  mifinfo.cbInstance.AnchorSideTop.Control=mifinfo.lblInstanceAddress
-  mifinfo.cbInstance.AnchorSideTop.Side=asrBottom
-  mifinfo.cbInstance.AnchorSideLeft.Control=mifinfo.mif
-  mifinfo.cbInstance.AnchorSideLeft.Side=asrLeft
-  mifinfo.cbInstance.AnchorSideRight.Control=mifinfo.mif
-  mifinfo.cbInstance.AnchorSideRight.Side=asrRight
-  mifinfo.cbInstance.Anchors='[akLeft, akRight, akTop]'
-  mifinfo.cbInstance.BorderSpacing.Left=2
-  mifinfo.cbInstance.BorderSpacing.Right=2
-
-
-
-
-
-
-  mifinfo.gbParams.AnchorSideTop.Control=mifinfo.cbInstance
-  mifinfo.gbParams.AnchorSideTop.Side=asrBottom
-  mifinfo.gbParams.AnchorSideLeft.Control=mifinfo.mif
-  mifinfo.gbParams.AnchorSideLeft.Side=asrLeft
-  mifinfo.gbParams.AnchorSideRight.Control=mifinfo.mif
-  mifinfo.gbParams.AnchorSideRight.Side=asrRight
-  mifinfo.gbParams.AnchorSideBottom.Control=mifinfo.pnlButtons
-  mifinfo.gbParams.AnchorSideBottom.Side=asrTop
-
-  mifinfo.gbParams.Anchors='[akLeft, akRight, akTop, akBottom]'
-
-  mifinfo.mif.AutoSize=true
-
-  mifinfo.parameters={}
-  local i
-  for i=1, #typenames do
-    local lblVarName=createLabel(mifinfo.mif)
-    local edtVarText=createEdit(mifinfo.mif)
-
-    lblVarName.Parent=mifinfo.gbParams
-    edtVarText.Parent=mifinfo.gbParams
-
-    lblVarName.Caption=paramnames[i]..': '..typenames[i]
-
-    mifinfo.parameters[i]={}
-    mifinfo.parameters[i].lblVarName=lblVarName
-    mifinfo.parameters[i].edtVarText=edtVarText
-
-    lblVarName.BorderSpacing.CellAlignVertical='ccaCenter'
-  end
-
-  mifinfo.btnOk.OnClick=function(b)
+  mifinfo=createMethodInvokedialog(classname..mono_method_getName(method), paramstrings, function()
+    --ok button click
     local instance=getAddressSafe(mifinfo.cbInstance.Text)
     
     if instance==nil then
@@ -2453,34 +2503,35 @@ function mono_invoke_method_dialog(domain, method, address)
     local r=mono_invoke_method(domain, method, instance, args)
     if r then
       print('Method returned: '..r)
-    end
+    end    
+  end, true)
+  
+  --start a scan to fill the combobox with results
+  if (address==nil) then
+    mifinfo.cbInstance.Items.add(translate('<Please wait...>'))
+    mono_class_findInstancesOfClass(nil,c,function(m)      
+        --print("Scan done")
 
+        if mifinfo.cbInstance then  --not destroyed yet
+          mifinfo.cbInstance.Items.clear()
+        
+          local fl=createFoundList(m) 
+          fl.initialize()
+          local i
+          for i=0, fl.Count-1 do
+            mifinfo.cbInstance.Items.Add(fl[i])
+          end
+          
+          fl.destroy()
+        end      
+        
+        m.destroy()
+      end
+    )
+  else
+    mifinfo.cbInstance.Text=string.format('%x',address)
   end
-
-  mifinfo.btnCancel.OnClick=function(b) mifinfo.mif.close() end
-
-
-
-  mifinfo.mif.onClose=function(f)
-    return caFree
-  end
-
-  mifinfo.mif.onDestroy=function(f)
-    --destroy all objects
-    mifinfo.btnOk.destroy()
-    mifinfo.btnOk=nil
-    
-    mifinfo.btnCancel.destroy()
-    mifinfo.btnCancel=nil
-
-    mifinfo.cbInstance.destroy()
-    mifinfo.cbInstance=nil
-    
-    mifinfo.gbParams.destroy()
-    mifinfo.gbParams=nil
-
-    mifinfo=nil
-  end
+  
   mifinfo.mif.show()
 end
 
