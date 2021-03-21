@@ -385,7 +385,7 @@ function dotnet_readObject()
   if handler then    
     return handler()
   else
-    if (Type~=nil)
+    if (Type~=nil) then
       print("Unknown read handler:"..Type)
     else
       print("Unknown read handler:"..Type)          
