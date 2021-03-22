@@ -1235,7 +1235,7 @@ void CPipeServer::FreeObject()
 void CPipeServer::DisassembleMethod()
 {	
 	void *method = (void *)ReadQword();
-	if (il2cpp)
+	if (!il2cpp)
 	{
 		void *methodheader = mono_method_get_header(method);
 		UINT32 codesize, maxstack;
