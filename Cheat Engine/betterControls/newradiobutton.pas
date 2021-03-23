@@ -91,7 +91,7 @@ procedure TNewRadioButton.DefaultCustomPaint;
 var
   ts: TTextStyle;
   faceColor: TColor;
-  r: trect;
+  r,r2: trect;
 
   dpiscale: single;
 
@@ -123,17 +123,18 @@ begin
     fcanvas.Pen.JoinStyle:=pjsBevel;
 
     r:=rect(trunc(dpiscale)-1,trunc(3*dpiscale),(trunc(dpiscale)-1)*2+clientheight-trunc((3*dpiscale)*2),(trunc(dpiscale)-1)+clientheight-trunc((3*dpiscale)));
+
     fcanvas.Ellipse(r);
 
     case state of
       cbChecked, cbGrayed:
       begin
-        r.top:=r.top+trunc(dpiscale*3);
-        r.bottom:=r.bottom-trunc(dpiscale*3);
-        r.left:=r.left+trunc(dpiscale*3);
-        r.right:=r.right-trunc(dpiscale*3);
+        r2.top:=r.top+trunc(dpiscale*3);
+        r2.bottom:=r.bottom-trunc(dpiscale*3);
+        r2.left:=r.left+trunc(dpiscale*3);
+        r2.right:=r.right-trunc(dpiscale*3);
         fcanvas.brush.color:=fcanvas.pen.color;
-        fcanvas.Ellipse(r);
+        fcanvas.Ellipse(r2);
       end;
 
     end;
@@ -145,8 +146,9 @@ begin
       fcanvas.font.color:=colorset.InactiveFontColor;
 
     ts:=fcanvas.TextStyle;
-    ts.Alignment:=taRightJustify;
+    ts.Alignment:=taLeftJustify;
     x:=r.right+trunc(3*dpiscale);
+    //fcanvas.TextRect(rect(0,0,width-4,height),x,(height div 2)-(fcanvas.TextHeight(caption) div 2),'bla', ts);
     fcanvas.TextRect(rect(0,0,width-4,height),x,(height div 2)-(fcanvas.TextHeight(caption) div 2),caption, ts);
 
 

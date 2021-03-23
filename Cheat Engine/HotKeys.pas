@@ -94,7 +94,7 @@ type
     function getHotkeyAction: TMemrecHotkeyAction;
   public
     { Public declarations }
-
+  published
     property memrec: TMemoryRecord read fmemrec write SetMemrec;
   end;
 
