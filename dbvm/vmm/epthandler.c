@@ -1230,14 +1230,17 @@ BOOL ept_handleFrozenThread(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, F
   int result=TRUE;
   RFLAGS v;
   v.value=BrokenThreadList[id].state.basic.FLAGS;
-  //sendstringf("ept_handleFrozenThread\n");
+  QWORD RIP=isAMD?currentcpuinfo->vmcb->RIP:vmread(vm_guest_rip);
+
+  nosendchar[getAPICID()]=0;
+  //sendstringf("ept_handleFrozenThread: RIP=%6\n",RIP);
 
   BrokenThreadList[id].state.basic.Count++;//heartbeat to show it's still triggering the BP
   if (BrokenThreadList[id].continueMethod)
   {
+    nosendchar[getAPICID()]=0;
     sendstringf("continueMethod is not 0\n");
 
-    v.RF=1; //tell the watch handler to skip this if it returns at the same spot again
 
 
 
@@ -1247,13 +1250,16 @@ BOOL ept_handleFrozenThread(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, F
       currentcpuinfo->vmcb->RIP=BrokenThreadList[id].state.basic.RIP;
       currentcpuinfo->vmcb->RAX=BrokenThreadList[id].state.basic.RAX;
       currentcpuinfo->vmcb->RSP=BrokenThreadList[id].state.basic.RSP;
+
+      v.RF=1; //tell the watch handler to skip this if it returns at the same spot again
       currentcpuinfo->vmcb->RFLAGS=v.value;
     }
     else
     {
       vmwrite(vm_guest_rip,BrokenThreadList[id].state.basic.RIP);
       vmwrite(vm_guest_rsp, BrokenThreadList[id].state.basic.RSP);
-      vmwrite(vm_guest_rflags, v.value);
+
+      vmwrite(vm_guest_interruptability_state,1); //tell the watch handler to skip this if it returns at the same spot again
     }
     vmregisters->rbx=BrokenThreadList[id].state.basic.RBX;
     vmregisters->rcx=BrokenThreadList[id].state.basic.RCX;
@@ -1305,7 +1311,7 @@ BOOL ept_handleFrozenThread(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, F
       }
       else
       {
-        vmwrite(vm_guest_interruptability_state,1); //pop ss state
+        vmwrite(vm_guest_interruptability_state,1); //blocking by sti
       }
 
 
@@ -1314,12 +1320,14 @@ BOOL ept_handleFrozenThread(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, F
   }
   else
   {
-    RFLAGS v2;
-    v2.value=currentcpuinfo->vmcb->RFLAGS;
+    //RFLAGS v2;
+    //v2.value=currentcpuinfo->vmcb->RFLAGS;
 
-    sendstringf("%d: Still frozen at %6  CR8=%x stored: IF=%d RF=%d current: IF=%d rd=%d INTERRUPT_SHADOW=%d EFER=%x FMASK=%x\n", currentcpuinfo->cpunr, BrokenThreadList[id].state.basic.RIP, getCR8(), v.IF, v.RF, v2.IF, v2.RF, currentcpuinfo->vmcb->INTERRUPT_SHADOW,
-        currentcpuinfo->vmcb->EFER,
-        currentcpuinfo->vmcb->SFMASK);
+    //sendstringf("%d: Still frozen at %6  CR8=%x stored: IF=%d RF=%d current: IF=%d rd=%d INTERRUPT_SHADOW=%d EFER=%x FMASK=%x\n", currentcpuinfo->cpunr, BrokenThreadList[id].state.basic.RIP, getCR8(), v.IF, v.RF, v2.IF, v2.RF, currentcpuinfo->vmcb->INTERRUPT_SHADOW,
+    //    currentcpuinfo->vmcb->EFER,
+    //    currentcpuinfo->vmcb->SFMASK);
+
+
   }
 
   return result;
@@ -2242,10 +2250,24 @@ BOOL ept_handleWatchEvent(pcpuinfo currentcpuinfo, VMRegisters *registers, PFXSA
     DWORD CR8=getCR8();
     RFLAGS flags;
     flags.value=isAMD?currentcpuinfo->vmcb->RFLAGS:vmread(vm_guest_rflags);
-    sendstringf("CR8=%6 IF=%d RF=%d\n", CR8,flags.IF,flags.RF);
+    int is;
+    int canBreak=(CR8==0) && (flags.IF); //interruptable with no mask (on windows called passive mode)
 
+    if (isAMD)
+    {
+      sendstringf("CR8=%6 IF=%d RF=%d\n", CR8,flags.IF,flags.RF);
+      canBreak=canBreak && (flags.RF==0); //on AMD I use the TF flag to skip over dbvmbp watches
+    }
+    else
+    {
+      is=vmread(vm_guest_interruptability_state);
+      sendstringf("CR8=%6 IF=%d RF=%d Interruptibility state=%d\n", CR8,flags.IF,flags.RF, is);
+      canBreak=canBreak && ((is & (1<<0))==0); //on Intel I use the block by sti interruptability state to flag a skip (probably can't use the pop ss as it's used by the single step handler. But should test)
+    }
 
-    if ((CR8==0) && (flags.IF) && (flags.RF==0)) //if interruptable with no mask (on windows called passive mode)
+    sendstringf("canBreak=%d\n", canBreak);
+
+    if (canBreak)
     {
       int kernelmode=0;
       if (isAMD)
@@ -4171,6 +4193,11 @@ VMSTATUS handleEPTViolation(pcpuinfo currentcpuinfo, VMRegisters *vmregisters UN
     vmwrite(vm_entry_exceptionerrorcode, vmread(vm_idtvector_error)); //entry errorcode
     vmwrite(vm_entry_interruptioninfo, newintinfo.interruption_information); //entry info field
     vmwrite(vm_entry_instructionlength, vmread(vm_exit_instructionlength)); //entry instruction length
+  }
+  else
+  {
+    //problem: on intel this will set RF to 1.  So the handleWatchEvent cannot distinguish a resuming dbvmbp
+    //solution: use a "skip next watchevent" for this cpu
   }
 
  //vi.ExitQualification=vmread(vm_exit_qualification);

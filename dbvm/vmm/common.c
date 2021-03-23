@@ -14,6 +14,10 @@ multiple sources. (e.g vmm and vmloader)
 
 //#include <string.h>
 
+#ifdef DEBUG
+void sendstringf_nolock(char *string UNUSED, ...);
+#endif
+
 QWORD textmemory=0x0b8000;
 
 QWORD spinlocktimeout=0;
@@ -81,7 +85,7 @@ void outportb(unsigned int port,unsigned char value)
   if (port==0x80)
   {
     nosendchar[getAPICID()]=0;
-    sendstringf("            -  Debug Code %2  -\n", value);
+    sendstringf_nolock("            -  Debug Code %2  -\n", value);
   }
    asm volatile ("outb %%al,%%dx": :"d" (port), "a" (value));
 }
@@ -1165,6 +1169,8 @@ void csLeave(PcriticalSection CS)
 #endif
 
   int apicid=getAPICID()+1; //+1 so it never returns 0
+  int locked=CS->locked;
+  int ownerAPICID=CS->apicid;
 
 
   if ((CS->locked) && (CS->apicid==apicid))
@@ -1183,9 +1189,20 @@ void csLeave(PcriticalSection CS)
   else
   {
     nosendchar[getAPICID()]=0;
-    sendstringf("csLeave called for a non-locked or non-owned critical section\n");
+    sendstringf_nolock("csLeave called for a non-locked or non-owned critical section.  Name=%s\n", CS->name);
     ddDrawRectangle(0,DDVerticalResolution-100,100,100,0xff0000);
-    while (1) outportb(0x80,0xc2);
+    while (1)
+    {
+      outportb(0x80,0xc2);
+      if (locked)
+      {
+        outportb(0x80,0xc3);
+      }
+      if (ownerAPICID!=apicid)
+      {
+        outportb(0x80,0xc4);
+      }
+    }
   }
 }
 

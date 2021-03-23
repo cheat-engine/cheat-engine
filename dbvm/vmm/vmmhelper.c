@@ -658,7 +658,7 @@ int twister=0;
 #if DISPLAYDEBUG==1
 int verbosity=10;
 #else
-int verbosity=1;
+int verbosity=0;
 #endif
 int rotations=0;
 int cpu2=0; //debug to stop cpu1 when cpu2 is spawned
@@ -1390,11 +1390,6 @@ int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers, void *fxsave)
         return raiseNMI();
       }
 
-      if (currentcpuinfo->cpunr)
-      {
-        sendstring("cpunr!=0");
-      }
-
       if ((result==0) || ((result >> 8)==0xce))
       {
         if (debugmode)
@@ -1422,15 +1417,9 @@ int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers, void *fxsave)
       }
       */
 
-  if (currentcpuinfo->cpunr)
-  {
-    sendstring("cpunr!=0");
-  }
-
   enableserial();
   sendstringf("\n\r------------(%d)------------------\n\r",vmeventcount);
   sendstringf("Hello from vmexit-(cpunr=%d)",currentcpuinfo->cpunr);
-
 
 
   sendstringf("currentcpuinfo = %6  : APICID=%d  :  RSP=%6\n\r",(UINT64)currentcpuinfo, getAPICID(), getRSP());
@@ -1456,6 +1445,13 @@ int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers, void *fxsave)
   sendstringf("Pending debug exceptions = %x\n\r",vmread(vm_pending_debug_exceptions));
   sendstringf("Guest linear   address=%6\n\r",vmread(vm_guest_linear_address));
   sendstringf("Guest physical address=%6\n\r",vmread(vm_guest_physical_address));
+
+  RFLAGS rflags;
+  rflags.value=vmread(vm_guest_rflags);
+
+  sendstringf("rflags=%x (IF=%d TF=%d RF=%d)\n",rflags.value, rflags.IF, rflags.TF, rflags.RF);
+
+
 
   sendstringf("csbase=%6\n",vmread(vm_guest_cs_base));
   sendstringf("rip=%6\n",vmread(vm_guest_rip));

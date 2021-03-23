@@ -3714,7 +3714,8 @@ BOOL handleHardwareBreakpoint(pcpuinfo currentcpuinfo, VMRegisters *vmregisters,
 BOOL handleSoftwareBreakpoint(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, FXSAVE64 *fxsave)
 {
   //handle specialized software breakpoints
-  sendstringf("Software breakpoint\n");
+  nosendchar[getAPICID()]=0;
+  //sendstringf("Software breakpoint\n");
   if (hasEPTsupport || hasNPsupport)
   {
     if (ept_handleSoftwareBreakpoint(currentcpuinfo, vmregisters, fxsave))
@@ -4056,7 +4057,7 @@ int handleVMEvent_internal(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, FX
 
       result=handleInterrupt(currentcpuinfo, vmregisters, fxsave);
 
-      sendstringf("handleInterrupt returned %d", result);
+      //sendstringf("handleInterrupt returned %d", result);
 
       return result;
     }
