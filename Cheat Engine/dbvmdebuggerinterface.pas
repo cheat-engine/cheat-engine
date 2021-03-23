@@ -431,6 +431,8 @@ var
 
   cr3log: array [0..512] of qword;
   mbi: TMEMORYBASICINFORMATION;
+
+  oldforce: boolean;
 begin
   if (dwprocessid=0) or (dwProcessID=$ffffffff) then dwProcessId:=GetCurrentProcessId; //just a temporary id to get some usermode and kernelmode 'break'points
 
@@ -457,7 +459,11 @@ begin
 
 
   //scan executable memory for a CC
+  oldforce:=forceCR3VirtualQueryEx;
   try
+    if usedbkquery then
+      forceCR3VirtualQueryEx:=true; //kernelmode VQE does not support differentiating between executable and non-executable memory, so if it's used, use the CR3 vqe instead
+
     usermodeloopint3:=findaob('cc','+X',fsmNotAligned,'',true);
   except
     on e:exception do
@@ -466,6 +472,8 @@ begin
       exit(false);
     end;
   end;
+
+  forceCR3VirtualQueryEx:=oldforce;
 
   if dbvmbp_options.KernelmodeBreaks then
   begin

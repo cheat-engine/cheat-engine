@@ -8278,7 +8278,7 @@ begin
       0: newkernelhandler.OpenProcess:=pointer(address);
       1: newkernelhandler.ReadProcessMemoryActual:=pointer(address);
       2: newkernelhandler.WriteProcessMemoryActual:=pointer(address);
-      3: newkernelhandler.VirtualQueryEx:=pointer(address);
+      3: newkernelhandler.VirtualQueryExActual:=pointer(address);
     end;
 
   end
@@ -13780,17 +13780,40 @@ begin
   result:=1;
 end;
 
-function lua_enumMemoryRegions(L: PLua_state): integer; cdecl;
+
+function lua_setForceCR3VirtualQueryEx(L: PLua_state): integer; cdecl;
+begin
+  if lua_gettop(L)>=1 then
+    forceCR3VirtualQueryEx:=lua_toboolean(L,1);
+
+  result:=0;
+end;
+
+function lua_enumMemoryRegionsCR3(L: PLua_state): integer; cdecl;
 var
   mbi: TMEMORYBASICINFORMATION;
+  cr3: qword;
+  maxaddress: qword;
   address: ptruint;
   oldaddress: ptruint;
   i: integer;
 begin
   address:=0;
+
+  if lua_gettop(L)>=2 then
+    cr3:=lua_tointeger(L,1)
+  else
+    cr3:=0;
+
+  if lua_gettop(L)>=2 then
+    maxAddress:=lua_tointeger(L,2)
+  else
+    maxaddress:=0;
+
+
   lua_newtable(L);
   i:=1;
-  while newkernelhandler.VirtualQueryEx(processhandle, pointer(address),mbi,sizeof(mbi))=sizeof(mbi) do
+  while ((maxaddress=0) or (address<maxaddress) ) and (newkernelhandler.VirtualQueryExCR3(cr3, pointer(address),mbi,sizeof(mbi))=sizeof(mbi)) do
   begin
     lua_pushinteger(L,i);
     lua_newtable(L);
@@ -13834,6 +13857,70 @@ begin
 
   result:=1;
 end;
+
+function lua_enumMemoryRegions(L: PLua_state): integer; cdecl;
+var
+  mbi: TMEMORYBASICINFORMATION;
+  address: ptruint;
+  oldaddress: ptruint;
+  i: integer;
+  maxAddress: ptruint;
+begin
+  address:=0;
+  if lua_gettop(L)>=1 then
+    maxAddress:=lua_tointeger(L,1)
+  else
+    maxaddress:=0;
+
+  lua_newtable(L);
+  i:=1;
+  while ((maxaddress=0) or (address<maxaddress) ) and (newkernelhandler.VirtualQueryEx(processhandle, pointer(address),mbi,sizeof(mbi))=sizeof(mbi)) do
+  begin
+    lua_pushinteger(L,i);
+    lua_newtable(L);
+
+    lua_pushstring(L,'BaseAddress');
+    lua_pushinteger(L,ptruint(mbi.BaseAddress));
+    lua_settable(L,-3);
+
+    lua_pushstring(L,'AllocationBase');
+    lua_pushinteger(L,ptruint(mbi.AllocationBase));
+    lua_settable(L,-3);
+
+    lua_pushstring(L,'AllocationProtect');
+    lua_pushinteger(L,mbi.AllocationProtect);
+    lua_settable(L,-3);
+
+    lua_pushstring(L,'RegionSize');
+    lua_pushinteger(L,mbi.RegionSize);
+    lua_settable(L,-3);
+
+    lua_pushstring(L,'State');
+    lua_pushinteger(L,mbi.State);
+    lua_settable(L,-3);
+
+    lua_pushstring(L,'Protect');
+    lua_pushinteger(L,mbi.Protect);
+    lua_settable(L,-3);
+
+    lua_pushstring(L,'Type');
+    lua_pushinteger(L,mbi._Type);
+    lua_settable(L,-3);
+
+    lua_settable(L,-3);
+
+    oldaddress:=address;
+    address:=address+mbi.RegionSize;
+    if address<oldaddress then break;
+
+    inc(i);
+  end;
+
+  result:=1;
+end;
+
+
+
 
 function lua_enableWindowsSymbols(L: PLua_state): integer; cdecl;
 begin
@@ -14471,6 +14558,63 @@ begin
   end;
 end;
 
+
+function lua_getNextReadablePageCR3(L: Plua_State): integer; cdecl;
+var
+  cr3: qword;
+  address: qword;
+  newaddress: qword;
+begin
+  result:=0;
+  if lua_gettop(L)>=2 then
+  begin
+    cr3:=lua_tointeger(L,1) and MAXPHYADDRMASKPB;
+    address:=lua_toaddress(L,2);
+
+    if GetNextReadablePageCR3(cr3, address, newaddress) then
+    begin
+      lua_pushinteger(L,newaddress);
+      result:=1;
+    end;
+
+  end;
+end;
+
+function lua_getPageInfoCR3(L: Plua_State): integer; cdecl;
+var
+  cr3: qword;
+  address: qword;
+  mbi: TMEMORYBASICINFORMATION;
+
+begin
+  result:=0;
+  if lua_gettop(L)>=2 then
+  begin
+    cr3:=lua_tointeger(L,1) and MAXPHYADDRMASKPB;
+    address:=lua_toaddress(L,2);
+
+    if GetPageInfoCR3(cr3,address,mbi) then
+    begin
+      lua_newtable(L);
+
+      lua_pushstring(L,'BaseAddress');
+      lua_pushinteger(L,ptruint(mbi.BaseAddress));
+      lua_settable(L,-3);
+
+      lua_pushstring(L,'RegionSize');
+      lua_pushinteger(L,mbi.RegionSize);
+      lua_settable(L,-3);
+
+      lua_pushstring(L,'Protect');
+      lua_pushinteger(L,mbi.Protect);
+      lua_settable(L,-3);
+
+      result:=1;
+    end;
+  end;
+
+end;
+
 procedure InitLimitedLuastate(L: Plua_State);
 begin
   //just the bare basics, don't put in too much as it will slow down spawning of worker threads
@@ -14881,6 +15025,11 @@ begin
 
     lua_register(L, 'dbvm_findCR3', lua_dbvm_findCR3);
 
+    lua_register(L, 'getPageInfoCR3', lua_getPageInfoCR3);
+    lua_register(L, 'getNextReadablePageCR3', lua_getNextReadablePageCR3);
+
+
+
 
     lua_register(L, 'dbk_getPhysicalAddress', dbk_getPhysicalAddress);
     lua_register(L, 'dbk_writesIgnoreWriteProtection', dbk_writesIgnoreWriteProtection);
@@ -15170,6 +15319,10 @@ begin
 
     lua_register(L, 'getHotkeyHandlerThread', lua_getHotkeyHandlerThread);
     lua_register(L, 'enumMemoryRegions', lua_enumMemoryRegions);
+    lua_register(L, 'enumMemoryRegionsCR3', lua_enumMemoryRegionsCR3);
+    lua_register(L, 'setForceCR3VirtualQueryEx', lua_setForceCR3VirtualQueryEx);
+
+
     lua_register(L, 'enableWindowsSymbols', lua_enableWindowsSymbols);
     lua_register(L, 'enableKernelSymbols', lua_enableKernelSymbols);
 

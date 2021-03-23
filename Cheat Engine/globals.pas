@@ -176,6 +176,8 @@ var
   end;
   DBVMWatchBPActive: boolean;
 
+  forceCR3VirtualQueryEx: boolean;
+
 
 
 implementation
