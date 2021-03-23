@@ -101,7 +101,7 @@ begin
   if hasEPTSupport=false then
     rbBPDBVM.visible:=false;
 
-  rbBPHardware.enabled:=CurrentDebuggerInterface.usesDebugRegisters;
+  rbBPHardware.enabled:=((CurrentDebuggerInterface<>nil) and CurrentDebuggerInterface.usesDebugRegisters) or (formsettings.cbUseDBVMDebugger.checked=false);
   rbBPSoftware.enabled:=((CurrentDebuggerInterface<>nil) and (dbcSoftwareBreakpoint in CurrentDebuggerInterface.DebuggerCapabilities)) and (formsettings.cbKDebug.Checked=false);
   rbBPException.enabled:=((CurrentDebuggerInterface<>nil) and (dbcExceptionBreakpoint in CurrentDebuggerInterface.DebuggerCapabilities)) and (formsettings.cbKDebug.Checked=false);
   rbBPDBVM.enabled:=((CurrentDebuggerInterface<>nil) and (dbcDBVMBreakpoint in CurrentDebuggerInterface.DebuggerCapabilities)) or (formsettings.cbKDebug.Checked);
@@ -112,7 +112,7 @@ begin
   if (CurrentDebuggerInterface=nil) and isRunningDBVM then //no debugger running, go for dbvm by default
     cbDBVMBreakAndTrace.Checked:=true;
 
-  if (CurrentDebuggerInterface<>nil) and (CurrentDebuggerInterface is TDBVMDebugInterface) then
+  if (CurrentDebuggerInterface<>nil) and (CurrentDebuggerInterface is TDBVMDebugInterface) or (formSettings.cbUseDBVMDebugger.checked) then
     groupbox1.visible:=false;
 end;
 

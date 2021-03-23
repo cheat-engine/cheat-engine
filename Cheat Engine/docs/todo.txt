@@ -6,6 +6,7 @@ add {$C#-code} sections and {$C#} blocks (which end up as injected dll's)
 
 {$luacode} might like the allocated memory addresses afterwards  (perhaps generate a table with these variables inside the ref can later be filled in)
 
+dark mode: scantabs
 
 DBVM: Add a "start record all PA access"  "stop record all PA access" which records the PA, VA, CR3, CS:RIP for each access
 DBVM: Add a local break and trace (not undetected single step flag)

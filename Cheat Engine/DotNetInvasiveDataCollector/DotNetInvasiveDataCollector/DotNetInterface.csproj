@@ -18,4 +18,8 @@
     <OutputPath>D:\git\cheat-engine\Cheat Engine\bin\autorun\dlls\</OutputPath>
   </PropertyGroup>
 
+  <ItemGroup>
+    <Compile Include="..\PipeServer.cs" Link="PipeServer.cs" />
+  </ItemGroup>
+
 </Project>

@@ -1125,7 +1125,48 @@ old]]..methodname..'('..varstring..[[);
   script=ParseScriptTokens(script,tokens)
 
   createAutoAssemblerForm(script)
+end
+
+local function SpawnInjectMethodDialog(frmDotNetInfo)
+  local Class=frmDotNetInfo.CurrentlyDisplayedClass
+  if Class==nil then return end
   
+  local Method=Class.Methods[frmDotNetInfo.lvMethods.ItemIndex+1]
+  if Method==nil then return end
+ 
+  if (Method.Class.Image.Domain.Control~=CONTROL_MONO) then
+    if dotnetpipe==nil then    
+      if messageDialog("Inject the CE .NET interface into the target process?", mtConfirmation,mbYes,mbNo)~=mrYes then
+        return nil,'User declined injection'
+      else    
+        if LaunchDotNetInterface()~=true then
+          return nil,'DotNetInterface did not load'
+        end
+      end    
+    end
+    
+    local moduleid=dotnet_getModuleID(Class.Image.FileName)
+    local methodtoken=Method.Handle
+    local address=getAddressSafe(frmDotNetInfo.comboFieldBaseAddress.Text)
+    local wrappedAddress=dotnet_wrapobject(address)
+    local newaddress=readPointer(wrappedAddress)
+    if newaddress~=address then --wrapping sometimes changes the original address
+      frmDotNetInfo.comboFieldBaseAddress.Text=string.format("%.8x",newaddress)
+    end
+    
+    
+    local mifinfo=dotnet_invoke_method_dialog(Class.Name..'.'..Method.Name, moduleid, methodtoken, wrappedAddress)
+    
+    --also unwrap this address when done with it
+    local od=mifinfo.mif.onDestroy   --save the old ondestroy 
+    mifinfo.mif.onDestroy=function(sender)
+      dotnet_unwrapobject(wrappedAddress)    
+      od(sender) --call the old ondestroy
+    end
+  else
+    --use the already existing mono way
+    mono_invoke_method_dialog(Domain.DomainHandle, Method.Handle, getAddressSafe(frmDotNetInfo.comboFieldBaseAddress.Text)) 
+  end
   
   
 end
@@ -1933,7 +1974,7 @@ function miDotNetInfoClick(sender)
   
   frmDotNetInfo.miJitMethod.Default=true
   frmDotNetInfo.miJitMethod.OnClick=function() OpenAddressOfSelectedMethod(frmDotNetInfo) end
-  
+  frmDotNetInfo.miInvokeMethod.OnClick=function() SpawnInjectMethodDialog(frmDotNetInfo) end
   frmDotNetInfo.miGeneratePatchTemplateForMethod.OnClick=function() GeneratePatchTemplateForMethod(frmDotNetInfo) end
   
   

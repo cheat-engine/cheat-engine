@@ -1891,7 +1891,7 @@ begin
   exportedfunctions.StopRegisterChange:=nil; //@@StopRegisterChange;
   exportedfunctions.VirtualProtect:=@@VirtualProtect;
   exportedfunctions.VirtualProtectEx:=@@VirtualProtectEx;
-  exportedfunctions.VirtualQueryEx:=@@VirtualQueryEx;
+  exportedfunctions.VirtualQueryEx:=@@VirtualQueryExActual;
   exportedfunctions.VirtualAllocEx:=@@VirtualAllocEx;
   exportedfunctions.CreateRemoteThread:=@@CreateRemoteThread;
   exportedfunctions.OpenThread:=@@OpenThread;
