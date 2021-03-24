@@ -92,10 +92,12 @@ type
     procedure SetMemrec(x: TMemoryRecord);
     function HotkeyActionToText(a: TMemrecHotkeyAction): string;
     function getHotkeyAction: TMemrecHotkeyAction;
+    function getBtnOKCustomButton: TCustomButton;
   public
     { Public declarations }
   published
     property memrec: TMemoryRecord read fmemrec write SetMemrec;
+    property BitBtn1: TCustomButton read getBtnOKCustomButton; //compatibility with older versions
   end;
 
 
@@ -123,7 +125,10 @@ resourcestring
   rsDefaultDeactivated = '%s Deactivated';
 
 
-
+function THotkeyform.getBtnOKCustomButton: TCustomButton;
+begin
+  result:=btnOK as TCustomButton;
+end;
 
 function THotkeyform.getHotkeyAction: TMemrecHotkeyAction;
 begin

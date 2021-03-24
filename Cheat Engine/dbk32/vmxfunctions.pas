@@ -2337,7 +2337,7 @@ begin
   end;
 end;
 
-function dbvm_log_cr3_start_amd(parameters: pointer): BOOL; stdcall;
+function dbvm_log_cr3_start(parameters: pointer): BOOL; stdcall;
 var vmcallinfo: packed record
   structsize: dword;
   level2pass: dword;
@@ -2351,23 +2351,23 @@ begin
 end;
 
 function dbvm_log_cr3values_start: boolean;
+begin
+  foreachcpu(dbvm_log_cr3_start,nil);
+end;
+
+function dbvm_log_cr3_fullstop(parameters: pointer): BOOL; stdcall;   //needed to stop the cr3 watch on the other cpus
 var vmcallinfo: packed record
   structsize: dword;
   level2pass: dword;
   command: dword;
+  destination: QWORD;
 end;
 begin
-  if isAMD then
-  begin
-    foreachcpu(dbvm_log_cr3_start_amd,nil);
-  end
-  else
-  begin
-    vmcallinfo.structsize:=sizeof(vmcallinfo);
-    vmcallinfo.level2pass:=vmx_password2;
-    vmcallinfo.command:=VMCALL_LOG_CR3VALUES_START;
-    result:=vmcall(@vmcallinfo,vmx_password1)<>0;
-  end;
+  vmcallinfo.structsize:=sizeof(vmcallinfo);
+  vmcallinfo.level2pass:=vmx_password2;
+  vmcallinfo.command:=VMCALL_LOG_CR3VALUES_STOP;
+  vmcallinfo.destination:=0; //turn off
+  result:=vmcall(@vmcallinfo,vmx_password1)<>0;
 end;
 
 function dbvm_log_cr3values_stop(log: pointer): boolean;
@@ -2383,6 +2383,8 @@ begin
   vmcallinfo.command:=VMCALL_LOG_CR3VALUES_STOP;
   vmcallinfo.destination:=ptruint(log);
   result:=vmcall(@vmcallinfo,vmx_password1)<>0;
+
+  foreachcpu(dbvm_log_cr3_fullstop,nil);
 end;
 
 
