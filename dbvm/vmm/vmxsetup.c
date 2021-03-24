@@ -883,7 +883,7 @@ int setupEPT(pcpuinfo currentcpuinfo)
       QWORD eptp=pml4mapPA;
       PEPTP x=(PEPTP)&eptp;
       x->PAGEWALKLENGTH=3;
-      x->MEMTYPE=0;
+      x->MEMTYPE=6;
 
       vmwrite(vm_eptpointer, eptp);  //and set the EPTP field
 
