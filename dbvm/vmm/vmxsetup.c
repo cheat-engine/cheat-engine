@@ -880,15 +880,23 @@ int setupEPT(pcpuinfo currentcpuinfo)
 
       sendstringf("pml4map is at %6\n", pml4mapPA);
 
-      QWORD eptp=pml4mapPA;
-      PEPTP x=(PEPTP)&eptp;
-      x->PAGEWALKLENGTH=3;
-      x->MEMTYPE=6;
-
-      vmwrite(vm_eptpointer, eptp);  //and set the EPTP field
 
       TIA32_VMX_VPID_EPT_CAP eptinfo;
       eptinfo.IA32_VMX_VPID_EPT_CAP=readMSR(IA32_VMX_EPT_VPID_CAP_MSR);
+
+      QWORD eptp=pml4mapPA;
+      PEPTP x=(PEPTP)&eptp;
+      x->PAGEWALKLENGTH=3;
+
+      if (eptinfo.EPT_writeBackSupport)
+        x->MEMTYPE=6;
+      else
+        x->MEMTYPE=0;
+
+
+      vmwrite(vm_eptpointer, eptp);  //and set the EPTP field
+
+
       has_EPT_1GBsupport=eptinfo.EPT_1GBSupport;
       has_EPT_2MBSupport=eptinfo.EPT_2MBSupport;
       has_EPT_ExecuteOnlySupport=eptinfo.EPT_executeOnlySupport;

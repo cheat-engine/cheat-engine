@@ -44,6 +44,10 @@
 #define SECONDARY_EXECUTION_CONTROLS (1<<31)
 
 
+//primary processor base vm-execution flags
+#define PPBEF_CR3LOAD_EXITING       (1<<15)
+#define PPBEF_CR3STORE_EXITING      (1<<16)
+
 //secondary processor based vm-execution flags
 #define SPBEF_ENABLE_EPT            (1<<1)
 #define SPBEF_ENABLE_RDTSCP         (1<<3)
