@@ -6887,6 +6887,8 @@ var
   i,j: integer;
 begin
   result:=0;
+  ZeroMemory(@log[0],4096);
+
   r:=dbvm_log_cr3values_stop(@log[0]);
   if r then
   begin
