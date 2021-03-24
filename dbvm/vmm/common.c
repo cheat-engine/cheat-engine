@@ -1177,7 +1177,9 @@ void csLeave(PcriticalSection CS)
 
   if ((CS->locked) && (CS->apicid==apicid))
   {
+    asm volatile ("": : :"memory");
     CS->lockcount--;
+    asm volatile ("": : :"memory");
     if (CS->lockcount==0)
     {
       //unlock
@@ -1197,6 +1199,13 @@ void csLeave(PcriticalSection CS)
     ddDrawRectangle(0,DDVerticalResolution-100,100,100,0xff0000);
     while (1)
     {
+#ifdef DEBUG
+      if (CS->ignorelock)
+      {
+        outportb(0x80,0xc5); //todo: return
+      }
+#endif
+
       outportb(0x80,0xc2);
       if (locked)
       {
@@ -1206,6 +1215,8 @@ void csLeave(PcriticalSection CS)
       {
         outportb(0x80,0xc4);
       }
+
+
     }
   }
 }

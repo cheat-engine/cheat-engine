@@ -1138,6 +1138,7 @@ BOOL ept_handleHardwareBreakpoint(pcpuinfo currentcpuinfo, VMRegisters *vmregist
       QWORD cr3;
       QWORD fsbase,gsbase, kernelgsbase;
       kernelgsbase=readMSR(0xc0000102);
+      int isDuetoSingleStep;
 
       if (isAMD)
       {
@@ -1145,18 +1146,25 @@ BOOL ept_handleHardwareBreakpoint(pcpuinfo currentcpuinfo, VMRegisters *vmregist
         cr3=currentcpuinfo->vmcb->CR3;
         fsbase=currentcpuinfo->vmcb->fs_base;
         gsbase=currentcpuinfo->vmcb->gs_base;
+        isDuetoSingleStep=dr6.BS;
         //kernelgsbase=currentcpuinfo->vmcb->KernelGsBase; //maybe?
       }
       else
       {
         dr6.DR6=getDR6();
+
         cr3=vmread(vm_guest_cr3);
         fsbase=vmread(vm_guest_fs_base);
         gsbase=vmread(vm_guest_gs_base);
+
+        isDuetoSingleStep=(vmread(vm_exit_qualification) & 0x4000)!=0;
+
       }
 
+
+
       sendstringf("Checking state:\n");
-      sendstringf("DR6=%8  DR6.BS=%d\n", dr6.DR6, dr6.BS);
+      sendstringf("DR6=%8  DR6.BS=%d isDuetoSingleStep=%d\n", dr6.DR6, dr6.BS, isDuetoSingleStep);
       sendstringf("TraceOnBP->triggeredcr3=%8\n" , TraceOnBP->triggeredcr3);
       sendstringf("TraceOnBP->triggeredfsbase=%8\n" , TraceOnBP->triggeredfsbase);
       sendstringf("TraceOnBP->triggeredgsbase=%8\n" , TraceOnBP->triggeredgsbase);
@@ -1166,7 +1174,7 @@ BOOL ept_handleHardwareBreakpoint(pcpuinfo currentcpuinfo, VMRegisters *vmregist
       sendstringf("TraceOnBP->gsbasekernel=%8\n" , kernelgsbase);
 
 
-      if ((dr6.BS) && (TraceOnBP->triggeredcr3==cr3) && (TraceOnBP->triggeredfsbase==fsbase) && (TraceOnBP->triggeredgsbase==gsbase))
+      if ((isDuetoSingleStep) && (TraceOnBP->triggeredcr3==cr3) && (TraceOnBP->triggeredfsbase==fsbase) && (TraceOnBP->triggeredgsbase==gsbase))
       {
 
         recordState(&TraceOnBP->pe, TraceOnBP->datatype, TraceOnBP->numberOfEntries, currentcpuinfo, vmregisters, fxsave);
@@ -1204,7 +1212,21 @@ BOOL ept_handleHardwareBreakpoint(pcpuinfo currentcpuinfo, VMRegisters *vmregist
         }
         else
         {
+          sendstringf("bla\n");
+          flags.RF=1;
           vmwrite(vm_guest_rflags, flags.value);
+          if (flags.TF)
+          {
+            //dr6.BS=1;
+           // vmwrite(vm_pending_debug_exceptions, (1<<14)); //set the TF flag in pending debug registers
+
+          }
+          else
+          {
+            //dr6.BS=0;
+           //vmwrite(vm_pending_debug_exceptions, vmread(vm_pending_debug_exceptions) & ~(1<<14)); //unset the single step flag
+          }
+
           setDR6(dr6.DR6);
         }
 
@@ -1415,6 +1437,7 @@ BOOL ept_handleSoftwareBreakpoint(pcpuinfo currentcpuinfo, VMRegisters *vmregist
       RFLAGS flags;
       flags.value=isAMD?currentcpuinfo->vmcb->RFLAGS:vmread(vm_guest_rflags);
       flags.TF=1;
+
 
       if (isAMD)
         currentcpuinfo->vmcb->RFLAGS=flags.value;
