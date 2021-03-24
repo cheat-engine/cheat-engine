@@ -4047,6 +4047,9 @@ int handleVMEvent_internal(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, FX
   }
 
 
+  if (hasUnrestrictedSupport && canToggleCR3Exit)
+    currentcpuinfo->guestCR3=vmread(vm_guest_cr3); //for code that needs it
+
 
 
   switch (exit_reason) //exit reason

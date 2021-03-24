@@ -54,6 +54,7 @@ int has_EPT_INVEPTAllContext;
 
 int hasUnrestrictedSupport;
 int hasVPIDSupport;
+int canToggleCR3Exit;
 
 int has_VPID_INVVPIDIndividualAddress;
 int has_VPID_INVVPIDSingleContext;

@@ -1284,7 +1284,7 @@ int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers, void *fxsave)
 
         //if ((vmread(vm_exit_qualification) & 0xf)==3)
         {
-          skip=1;
+         // skip=1;
         }
 
 

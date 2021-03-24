@@ -1830,6 +1830,9 @@ int _handleVMCallInstruction(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, 
         //already exists, just tell this cpu to do the logging
         if (isAMD)
           currentcpuinfo->vmcb->InterceptCR0_15Write|=(1<<3); //break on cr3 write
+        else
+        if (canToggleCR3Exit)
+            vmwrite(vm_execution_controls_cpu, vmread(vm_execution_controls_cpu) | PPBEF_CR3LOAD_EXITING | PPBEF_CR3STORE_EXITING);
 
         vmregisters->rax=0;
         break;
@@ -1855,12 +1858,29 @@ int _handleVMCallInstruction(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, 
       nosendchar[getAPICID()]=0;
       sendstringf("Stopping CR3 log.  CR3ValuePos=%d\n",CR3ValuePos);
 
+      if (isAMD)
+        currentcpuinfo->vmcb->InterceptCR0_15Write&=~(1<<3);
+      else
+      if (canToggleCR3Exit)
+      {
+        vmwrite(vm_execution_controls_cpu, vmread(vm_execution_controls_cpu) & ~(PPBEF_CR3LOAD_EXITING | PPBEF_CR3STORE_EXITING));
+      }
+
 
       if (CR3ValueLog==NULL)
       {
         vmregisters->rax=0;
         break;
       }
+
+      if (param->destination==0) //just a toggle to turn it off, and no need for results
+      {
+        CR3ValueLog=NULL;
+        CR3ValuePos=0;
+        vmregisters->rax=0;
+        break;
+      }
+
 
       csEnter(&CR3ValueLogCS);
 

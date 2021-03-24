@@ -45,7 +45,7 @@
 
 
 //primary processor base vm-execution flags
-#define PPBEF_CR3LOAD_EXITING       (1<<15)
+#define PPBEF_CR3LOAD_EXITING      (1<<15)
 #define PPBEF_CR3STORE_EXITING      (1<<16)
 
 //secondary processor based vm-execution flags

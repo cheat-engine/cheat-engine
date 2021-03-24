@@ -32,6 +32,8 @@ int hasEPTsupport=0;
 int TSCHooked=0;
 int hasNPsupport=1;
 
+int canToggleCR3Exit=0; //intel only flag
+
 
 extern void realmode_inthooks();
 extern void realmode_inthooks_end();
@@ -1754,6 +1756,26 @@ void setupVMX(pcpuinfo currentcpuinfo)
       //needs less interrupt hooks
       vmwrite(vm_exception_bitmap,  (1<<1) | (1<<3));
 
+      //todo: check if it can do with less cr3 exits  (can turn that on at runtime)
+      //check the primary procbased capabilities if it can be set to 0
+
+      sendstringf("Checking if it supports CR3 access exit to 0\n");
+
+
+      QWORD procbasedcapabilities;
+      if (readMSR(IA32_VMX_BASIC_MSR) & ((QWORD)1<<55))
+        procbasedcapabilities=readMSR(IA32_VMX_TRUE_PROCBASED_CTLS_MSR);
+      else
+        procbasedcapabilities=readMSR(IA32_VMX_PROCBASED_CTLS_MSR);
+
+      sendstringf("procbasedcapabilities=%6\n", procbasedcapabilities);
+
+      canToggleCR3Exit=((procbasedcapabilities & (PPBEF_CR3LOAD_EXITING | PPBEF_CR3STORE_EXITING))==0); //0 means it can be set to 0
+
+      sendstringf("canToggleCR3Exit=%d\n", canToggleCR3Exit);
+
+      if (canToggleCR3Exit) //turn of cr3 exits
+        IA32_VMX_PROCBASED_CTLS = IA32_VMX_PROCBASED_CTLS & (QWORD)(~(PPBEF_CR3LOAD_EXITING | PPBEF_CR3STORE_EXITING));
     }
     else
     {
