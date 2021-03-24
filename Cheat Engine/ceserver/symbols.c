@@ -106,8 +106,8 @@ Caller must free output manually
     if (sectionHeaders)
       free(sectionHeaders);
 
-    if (output)
-      free(output);
+    if (*output)
+      free(*output);
 
     if (tempbuffer)
       free(tempbuffer);
