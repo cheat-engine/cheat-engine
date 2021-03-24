@@ -82,11 +82,13 @@ unsigned char inportb(unsigned int port)
 
 void outportb(unsigned int port,unsigned char value)
 {
+#ifdef DEBUG
   if (port==0x80)
   {
     nosendchar[getAPICID()]=0;
     sendstringf_nolock("            -  Debug Code %2  -\n", value);
   }
+#endif
    asm volatile ("outb %%al,%%dx": :"d" (port), "a" (value));
 }
 
@@ -1188,8 +1190,10 @@ void csLeave(PcriticalSection CS)
   }
   else
   {
+#ifdef DEBUG
     nosendchar[getAPICID()]=0;
     sendstringf_nolock("csLeave called for a non-locked or non-owned critical section.  Name=%s\n", CS->name);
+#endif
     ddDrawRectangle(0,DDVerticalResolution-100,100,100,0xff0000);
     while (1)
     {

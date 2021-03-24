@@ -94,9 +94,9 @@ typedef volatile struct _criticalSection
   volatile int apicid;
   int lockcount;
   char *name;
+  int debuglevel;
 #ifdef DEBUG
   int ignorelock;
-  int debuglevel;
 #endif
 } criticalSection, *PcriticalSection;
 
