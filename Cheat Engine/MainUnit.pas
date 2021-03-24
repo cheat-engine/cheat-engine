@@ -5210,8 +5210,8 @@ begin
     tabcounter := 3;
 
 
-    scantablist.Color := clBtnFace;
-    scantablist.Brush.Color := clBtnFace;
+    //scantablist.Color := clBtnFace;
+    scantablist.Brush.Color := panel5.color;
 
 
 

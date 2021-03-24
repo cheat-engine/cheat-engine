@@ -78,6 +78,8 @@ end;
 
 implementation
 
+uses betterControls;
+
 function TTablist.getTabText(i: integer): string;
 begin
   result:=fTabs[i];
@@ -275,11 +277,18 @@ var
   selectedx: integer;
 
 
+  gradientStart: TColor;
 begin
   inherited Paint;
 
   selectedx:=0;
   lastx:=0;
+
+  if ShouldAppsUseDarkMode then
+    gradientStart:=$222222
+  else
+    gradientStart:=clWhite;
+
 
   //create a total of 'fTabs.count' tabs
   for j:=offset to fTabs.count-1 do
@@ -294,12 +303,18 @@ begin
     end
     else
     begin
-      gradientColor:=$d0d0d0;
+      if ShouldAppsUseDarkMode then
+        gradientColor:=$444444
+      else
+        gradientColor:=$d0d0d0;
     end;
 
-    Canvas.Pen.Color:=$a0a0a0;
+    if ShouldAppsUseDarkMode then
+      Canvas.Pen.Color:=$505050
+    else
+      Canvas.Pen.Color:=$a0a0a0;
     canvas.Rectangle(lastx,0,lastx+tabWidth,height);
-    Canvas.GradientFill(rect(lastx+1,1,lastx+tabwidth-1,height-1),clWhite,gradientColor, gdVertical);
+    Canvas.GradientFill(rect(lastx+1,1,lastx+tabwidth-1,height-1),gradientStart,gradientColor, gdVertical);
 
     oldstyle:=canvas.Brush.Style;
 
@@ -310,7 +325,10 @@ begin
     inc(lastx, tabwidth);
   end;
 
-  canvas.Pen.Color:=$808080;
+  if ShouldAppsUseDarkMode then
+    canvas.Pen.Color:=$303030
+  else
+    canvas.Pen.Color:=$808080;
   canvas.Line(0,height-1,width,height-1);
 
   canvas.Pen.Color:=color;
@@ -391,6 +409,8 @@ begin
   controlWithArrows.AnchorSideRight.Control:=Self;
   controlWithArrows.AnchorSideRight.Side:=asrRight;
   controlWithArrows.BorderSpacing.Right:=50;
+
+
 end;
 
 destructor TTablist.Destroy;
