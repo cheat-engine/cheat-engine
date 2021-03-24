@@ -323,7 +323,10 @@ Caller must free output manually
       free(sectionHeaders);
 
     if (*output)
+    {
       free(*output);
+      *output=NULL;
+    }
 
     if (tempbuffer)
       free(tempbuffer);
