@@ -8,6 +8,7 @@ object frmBreakpointCondition: TfrmBreakpointCondition
   ClientHeight = 232
   ClientWidth = 533
   OnCreate = FormCreate
+  OnDestroy = FormDestroy
   OnShow = FormShow
   Position = poScreenCenter
   LCLVersion = '2.0.6.0'

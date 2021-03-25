@@ -8417,6 +8417,18 @@ end;
 function lua_rdtsc(L: PLua_State): integer; cdecl;
 var v: qword;
 begin
+  {$ifdef cpu32}
+  asm
+    push edx
+    push edi
+    rdtsc
+    lea edi,v
+    mov [edi],eax
+    mov [edi+4],edx
+    pop edi
+    pop edx
+  end;
+  {$else}
   asm
     push rdx
     rdtsc
@@ -8428,6 +8440,7 @@ begin
 
     mov v,rax
   end;
+  {$endif}
 
   lua_pushinteger(L,v);
   result:=1;
@@ -14565,7 +14578,7 @@ function lua_getNextReadablePageCR3(L: Plua_State): integer; cdecl;
 var
   cr3: qword;
   address: qword;
-  newaddress: qword;
+  newaddress: ptruint;
 begin
   result:=0;
   if lua_gettop(L)>=2 then

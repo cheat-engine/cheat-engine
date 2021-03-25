@@ -829,12 +829,14 @@ begin
     {$IFDEF windows}
     if CurrentDebuggerInterface is TDBVMDebugInterface then
     begin
+      {$ifdef cpu64}
       if coderecord.context.P2Home<>0 then
       begin
         d:=TCR3Disassembler.Create;
         TCR3Disassembler(d).CR3:=coderecord.context.P2Home;
       end
       else
+      {$endif}
         d:=TDisassembler.Create;
     end
     else

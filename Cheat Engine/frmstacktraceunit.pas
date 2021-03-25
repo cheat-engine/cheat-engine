@@ -270,7 +270,11 @@ end;
 procedure TfrmStacktrace.ListView1DblClick(Sender: TObject);
 begin
   if listview1.Selected<>nil then
+  begin
     memorybrowser.disassemblerview.TopAddress:=symhandler.getAddressFromName(listview1.Selected.Caption);
+    if memorybrowser.visible=false then
+      memorybrowser.show();
+  end;
 end;
 
 procedure TfrmStacktrace.shadowstacktrace(context: _context; stackcopy: pointer; stackcopysize: integer);

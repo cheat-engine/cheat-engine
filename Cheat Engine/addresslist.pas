@@ -1135,53 +1135,59 @@ var
 
   frmMemrecCombobox: TfrmMemrecCombobox;
 begin
-  if memrec.DropDownCount=0 then
-  begin
-    value:=AnsiToUtf8(memrec.value);
+  try
+    if memrec.DropDownCount=0 then
+    begin
+      value:=AnsiToUtf8(memrec.value);
 
 
-    if memrec.VarType=vtString then
-      canceled:=not MultilineInputQuery(rsChangeValue, rsWhatValueToChangeThisTo, value)
+      if memrec.VarType=vtString then
+        canceled:=not MultilineInputQuery(rsChangeValue, rsWhatValueToChangeThisTo, value)
+      else
+        canceled:=not InputQuery(rsChangeValue, rsWhatValueToChangeThisTo, value);
+
+
+      value:=TrimRight(Utf8ToAnsi(value));
+    end
     else
-      canceled:=not InputQuery(rsChangeValue, rsWhatValueToChangeThisTo, value);
+    begin
+      frmMemrecCombobox:=TfrmMemrecCombobox.Create(memrec);
+      canceled:=frmMemrecCombobox.showmodal<>mrok;
+
+      if memrec.DropDownReadOnly and memrec.DropDownDescriptionOnly and memrec.DisplayAsDropDownListItem and (frmMemrecCombobox.value='*') then
+        canceled:=true;
+
+      if not canceled then
+        value:=utf8toansi(frmMemrecCombobox.value);
+
+      frmMemrecCombobox.free;
+    end;
+
+    if not canceled  then
+    begin
 
 
-    value:=TrimRight(Utf8ToAnsi(value));
-  end
-  else
-  begin
-    frmMemrecCombobox:=TfrmMemrecCombobox.Create(memrec);
-    canceled:=frmMemrecCombobox.showmodal<>mrok;
-
-    if memrec.DropDownReadOnly and memrec.DropDownDescriptionOnly and memrec.DisplayAsDropDownListItem and (frmMemrecCombobox.value='*') then
-      canceled:=true;
-
-    if not canceled then
-      value:=utf8toansi(frmMemrecCombobox.value);
-
-    frmMemrecCombobox.free;
-  end;
-
-  if not canceled  then
-  begin
-
-
-    allError:=true;
-    someError:=false;
-    for i:=0 to count-1 do
-      if memrecitems[i].isSelected then
-      begin
-        try
-          memrecitems[i].SetValue(value);
-          memrecitems[i].treenode.update;
-          allError:=false;
-        except
-          someError:=true;
+      allError:=true;
+      someError:=false;
+      for i:=0 to count-1 do
+        if memrecitems[i].isSelected then
+        begin
+          try
+            memrecitems[i].SetValue(value);
+            memrecitems[i].treenode.update;
+            allError:=false;
+          except
+            someError:=true;
+          end;
         end;
-      end;
 
-    if AllError then raise exception.create(Format(rsTheValueCouldNotBeParsed, [value]));
-    if SomeError then raise exception.create(Format(rsNotAllValueTypesCouldHandleTheValue, [value]));
+      if AllError then raise exception.create(Format(rsTheValueCouldNotBeParsed, [value]));
+      if SomeError then raise exception.create(Format(rsNotAllValueTypesCouldHandleTheValue, [value]));
+    end;
+
+  except
+    on e:Exception do
+      MessageDlg(e.message,mtError,[mbok],0);
   end;
 end;
 

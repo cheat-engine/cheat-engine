@@ -1326,6 +1326,7 @@ begin
      (uppercase(fLine[3]) = 'U') and
      (uppercase(fLine[4]) = 'A') then
   begin
+    braceend:=length(fline);
     if (fLine[5] = '}') then
     begin
       changeHighlighter:=chlLua;

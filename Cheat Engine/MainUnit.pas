@@ -7682,8 +7682,9 @@ begin
           address := addresslist.selectedRecord.GetRealAddress
         else
         if res = mrYes then
-          address := symhandler.getAddressFromName(
-            addresslist.selectedRecord.interpretableaddress)
+        begin
+          addresslist.selectedRecord.parseAddressString(addresslist.selectedRecord.interpretableaddress, address);
+        end
         else
           exit;
       end;
@@ -7720,8 +7721,9 @@ begin
           address := addresslist.selectedRecord.GetRealAddress
         else
         if res = mrYes then
-          address := symhandler.getAddressFromName(
-            addresslist.selectedRecord.interpretableaddress)
+        begin
+          addresslist.selectedRecord.parseAddressString(addresslist.selectedRecord.interpretableaddress, address);
+        end
         else
           exit;
       end;

@@ -14,7 +14,7 @@ object formSettings: TformSettings
   OnDestroy = FormDestroy
   OnShow = FormShow
   Position = poMainFormCenter
-  LCLVersion = '2.0.10.0'
+  LCLVersion = '2.0.6.0'
   object pnlConfig: TPanel
     Left = 0
     Height = 571
@@ -29,7 +29,7 @@ object formSettings: TformSettings
       Left = 1
       Height = 569
       Top = 1
-      Width = 148
+      Width = 153
       Align = alLeft
       HideSelection = False
       Indent = 19
@@ -38,9 +38,10 @@ object formSettings: TformSettings
       ScrollBars = ssVertical
       ShowRoot = False
       TabOrder = 0
+      ToolTips = False
       OnChange = tvMenuSelectionChange
       OnCollapsing = tvMenuSelectionCollapsing
-      Options = [tvoAutoItemHeight, tvoKeepCollapsedNodes, tvoReadOnly, tvoRightClickSelect, tvoShowButtons, tvoShowLines, tvoToolTips]
+      Options = [tvoAutoItemHeight, tvoKeepCollapsedNodes, tvoReadOnly, tvoRightClickSelect, tvoShowButtons, tvoShowLines]
       Items.Data = {
         F9FFFFFF02000A000000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF010000000000
         0000011000000047656E6572616C2053657474696E6773FFFFFFFFFFFFFFFFFF
@@ -59,10 +60,10 @@ object formSettings: TformSettings
       }
     end
     object pcSetting: TPageControl
-      Left = 149
+      Left = 154
       Height = 569
       Top = 1
-      Width = 660
+      Width = 655
       ActivePage = Assembler
       Align = alClient
       TabIndex = 6
@@ -1361,20 +1362,20 @@ object formSettings: TformSettings
       object Assembler: TTabSheet
         Caption = 'Debugger Options'
         ClientHeight = 541
-        ClientWidth = 652
+        ClientWidth = 647
         ImageIndex = 5
         object ScrollBox3: TScrollBox
           Left = 0
           Height = 541
           Top = 0
-          Width = 652
-          HorzScrollBar.Page = 631
+          Width = 647
+          HorzScrollBar.Page = 626
           HorzScrollBar.Tracking = True
           VertScrollBar.Page = 520
           VertScrollBar.Tracking = True
           Align = alClient
           ClientHeight = 520
-          ClientWidth = 631
+          ClientWidth = 626
           TabOrder = 0
           object replacewithnops: TCheckBox
             AnchorSideLeft.Control = Label4

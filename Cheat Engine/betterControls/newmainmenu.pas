@@ -91,9 +91,10 @@ begin
   if ShouldAppsUseDarkMode() and (result=false) then
   begin
     result:=Parent.Menu is TMainMenu;
+    oldc:=acanvas.Brush.color;
+
     if result then
     begin
-      oldc:=acanvas.Brush.color;
       acanvas.Brush.color:=$313131;
 
       lastvisible:=-1;

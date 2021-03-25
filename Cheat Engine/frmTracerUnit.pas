@@ -541,6 +541,7 @@ begin
       da.showsections:=symhandler.showsections;
     end;
 
+    {$ifdef cpu64}
     if isdbvminterface and (debuggerthread.CurrentThread.context.P2Home<>0) then
     begin
       cr3:=debuggerthread.CurrentThread.context.P2Home;
@@ -548,6 +549,7 @@ begin
       dacr3.CR3:=cr3;
     end
     else
+    {$endif}
     begin
       currentda:=da;
       cr3:=0;
@@ -1077,16 +1079,19 @@ begin
 
           d:=TTraceDebugInfo.Create;
           d.instructionsize:=a-basic^.RIP;
+          {$ifdef cpu64}
           d.c.P1Home:=basic^.FSBASE; //just using these field for storage
           d.c.p2home:=basic^.GSBASE;
           d.c.p3home:=basic^.CR3;
+          {$endif}
           d.c.EFlags:=basic^.FLAGS;
-          d.c.Rax:=basic^.RAX;
-          d.c.Rbx:=basic^.RBX;
-          d.c.Rcx:=basic^.RCX;
-          d.c.Rdx:=basic^.RDX;
-          d.c.Rsi:=basic^.RSI;
-          d.c.Rdi:=basic^.RDI;
+          d.c.{$ifdef cpu32}Eax{$else}Rax{$endif}:=basic^.RAX;
+          d.c.{$ifdef cpu32}Ebx{$else}Rbx{$endif}:=basic^.RBX;
+          d.c.{$ifdef cpu32}Ecx{$else}Rcx{$endif}:=basic^.RCX;
+          d.c.{$ifdef cpu32}Edx{$else}Rdx{$endif}:=basic^.RDX;
+          d.c.{$ifdef cpu32}Esi{$else}Rsi{$endif}:=basic^.RSI;
+          d.c.{$ifdef cpu32}Edi{$else}Rdi{$endif}:=basic^.RDI;
+          {$ifdef cpu64}
           d.c.R8:=basic^.R8;
           d.c.R9:=basic^.R9;
           d.c.R10:=basic^.R10;
@@ -1095,16 +1100,22 @@ begin
           d.c.R13:=basic^.R13;
           d.c.R14:=basic^.R14;
           d.c.R15:=basic^.R15;
-          d.c.Rbp:=basic^.RBP;
-          d.c.Rsp:=basic^.RSP;
-          d.c.Rip:=basic^.RIP;
+          {$endif}
+          d.c.{$ifdef cpu32}Ebp{$else}Rbp{$endif}:=basic^.RBP;
+          d.c.{$ifdef cpu32}Esp{$else}Rsp{$endif}:=basic^.RSP;
+          d.c.{$ifdef cpu32}Eip{$else}Rip{$endif}:=basic^.RIP;
           d.c.SegCs:=basic^.CS;
           d.c.SegDs:=basic^.DS;
           d.c.SegEs:=basic^.ES;
           d.c.SegSs:=basic^.SS;
           d.c.SegFs:=basic^.FS;
           d.c.SegGs:=basic^.GS;
+
+          {$ifdef cpu64}
           copymemory(@d.c.FltSave, fpu,512);
+          {$else}
+          copymemory(@d.c.ext, fpu,512);
+          {$endif}
 
           d.instruction:=s;
           d.referencedAddress:=0;

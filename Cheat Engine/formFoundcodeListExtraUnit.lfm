@@ -498,6 +498,17 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
       ParentFont = False
       OnMouseDown = RegisterMouseDown
     end
+    object lblGSBaseKernel: TLabel
+      Left = 182
+      Height = 15
+      Top = 38
+      Width = 143
+      Caption = 'GSBase K=XXXXXXXX'
+      ParentColor = False
+      ParentFont = False
+      OnDblClick = RegisterDblClick
+      OnMouseDown = RegisterMouseDown
+    end
   end
   object pmCopy: TPopupMenu
     Images = eiImageList

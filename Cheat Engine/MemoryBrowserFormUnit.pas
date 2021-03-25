@@ -3157,14 +3157,20 @@ begin
   if(canceled)then
     exit;
 
-  oldAddress:=disassemblerview.SelectedAddress;
   try
-    disassemblerview.SelectedAddress:=symhandler.getaddressfromname(newaddress);
-  except
-    disassemblerview.SelectedAddress:=getaddress(newaddress);
-  end;
+    oldAddress:=disassemblerview.SelectedAddress;
+    try
+      disassemblerview.SelectedAddress:=symhandler.getaddressfromname(newaddress);
+    except
+      disassemblerview.SelectedAddress:=getaddress(newaddress);
+    end;
 
-  backlist.Push(pointer(oldAddress));
+    backlist.Push(pointer(oldAddress));
+
+  except
+    on e:exception do
+      MessageDlg(e.Message,mtError,[mbok],0);
+  end;
 end;
 
 procedure TMemoryBrowser.Search1Click(Sender: TObject);

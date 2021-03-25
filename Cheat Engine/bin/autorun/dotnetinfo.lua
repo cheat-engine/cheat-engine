@@ -1990,8 +1990,13 @@ function miDotNetInfoClick(sender)
   frmDotNetInfo.miBrowseField.OnClick=function(sender) miBrowseFieldClick(frmDotNetInfo, sender) end
   
   frmDotNetInfo.pmFields.OnPopup=function(sender)
-    frmDotNetInfo.miBrowseField.Visible=frmDotNetInfo.lvFields.Selected and frmDotNetInfo.comboFieldBaseAddress.Text~=''
+    frmDotNetInfo.miBrowseField.Enabled=frmDotNetInfo.lvFields.Selected and frmDotNetInfo.comboFieldBaseAddress.Text~=''    
   end
+  
+  frmDotNetInfo.pmMethods.OnPopup=function(sender)
+    frmDotNetInfo.miInvokeMethod.Enabled=(frmDotNetInfo.comboFieldBaseAddress.Text~='') and (getAddressSafe(frmDotNetInfo.comboFieldBaseAddress.Text)~=nil)
+  end
+  
   --Init
   
   

@@ -1440,10 +1440,9 @@ begin
   cbVEHRealContextOnThreadCreation.AutoSize:=true;
 
 
-
   j:=tvMenuSelection.Width;
   for i:=0 to tvMenuSelection.Items.Count-1 do
-    j:=max(j,tvMenuSelection.Canvas.TextWidth(tvMenuSelection.Items[i].Text)+tvMenuSelection.BorderWidth+tvMenuSelection.Indent*2);
+    j:=max(j,tvMenuSelection.Canvas.TextWidth(' '+tvMenuSelection.Items[i].Text+' ')+tvMenuSelection.BorderWidth+tvMenuSelection.Indent*2);
 
 
   tvMenuSelection.Width:=j;
@@ -1928,12 +1927,14 @@ begin
   cbUseWindowsDebugger.visible:=false;
   cbKDebug.enabled:=false;
   cbKDebug.visible:=false;
+  cbUseDBVMDebugger.enabled:=false;
+  cbUseDBVMDebugger.visible:=false;
   panel11.visible:=false;
 
   cbUseMacDebugger.checked:=true;
+
   {$else}
   cbUseMacDebugger.visible:=false;
-
   {$endif}
 end;
 
