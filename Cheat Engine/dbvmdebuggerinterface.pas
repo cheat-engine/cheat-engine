@@ -327,9 +327,11 @@ end;
 function TDBVMDebugInterface.SetThreadContext(hThread: THandle; const lpContext: TContext; isFrozenThread: Boolean=false): BOOL;
 var f: dword;
 begin
+  OutputDebugString('TDBVMDebugInterface.SetThreadContext');
 
   if isFrozenThread then
   begin
+    OutputDebugString('Is frozen');
     currentFrozenState.basic.FLAGS:=lpContext.EFlags;
     currentFrozenState.fpudata.MXCSR:=lpContext.MxCsr;
 
@@ -343,6 +345,7 @@ begin
 
     currentFrozenState.basic.RAX:=lpContext.Rax;
     currentFrozenState.basic.RCX:=lpContext.Rcx;
+   // OutputDebugString(format('RDX was %d. becomes %d', [currentFrozenState.basic.Rdx, lpContext.RDX]));
     currentFrozenState.basic.Rdx:=lpContext.RDX;
     currentFrozenState.basic.Rbx:=lpContext.RBX;
     currentFrozenState.basic.Rsp:=lpContext.RSP;
@@ -359,6 +362,8 @@ begin
     currentFrozenState.basic.R15:=lpContext.R15;
     currentFrozenState.basic.Rip:=lpContext.Rip;
     CopyMemory(@currentFrozenState.fpudata, @lpContext.FltSave,512);
+
+    dbvm_bp_setBrokenThreadEventFull(currentFrozenID, currentFrozenState);
 
     result:=true;
   end

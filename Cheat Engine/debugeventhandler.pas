@@ -421,11 +421,18 @@ begin
   if bp.changereg.change_eax then context^.{$ifdef cpu64}rax{$else}eax{$endif}:=bp.changereg.new_eax;
   if bp.changereg.change_ebx then context^.{$ifdef cpu64}rbx{$else}ebx{$endif}:=bp.changereg.new_ebx;
   if bp.changereg.change_ecx then context^.{$ifdef cpu64}rcx{$else}ecx{$endif}:=bp.changereg.new_ecx;
-  if bp.changereg.change_edx then context^.{$ifdef cpu64}rdx{$else}edx{$endif}:=bp.changereg.new_edx;
+  if bp.changereg.change_edx then
+  begin
+   // OutputDebugString(format('changing rdx.  It was %d it becomes %d', [context^.rdx, bp.changereg.new_edx]));
+    context^.{$ifdef cpu64}rdx{$else}edx{$endif}:=bp.changereg.new_edx;
+  end;
   if bp.changereg.change_esi then context^.{$ifdef cpu64}rsi{$else}esi{$endif}:=bp.changereg.new_esi;
   if bp.changereg.change_edi then context^.{$ifdef cpu64}rdi{$else}edi{$endif}:=bp.changereg.new_edi;
   if bp.changereg.change_esp then context^.{$ifdef cpu64}rsp{$else}esp{$endif}:=bp.changereg.new_esp;
   if bp.changereg.change_eip then context^.{$ifdef cpu64}rip{$else}eip{$endif}:=bp.changereg.new_eip;
+
+
+
 
   {$ifdef cpu64}
   if bp.changereg.change_r8 then context^.r8:=bp.changereg.new_r8;
@@ -528,7 +535,8 @@ var oldprotect: dword;
 begin
   TDebuggerthread(debuggerthread).execlocation:=39;
   debuggercs.enter;
-  context^.EFlags:=eflags_setTF(context^.EFlags,0);
+  if CurrentDebuggerInterface.usesDebugRegisters then
+    context^.EFlags:=eflags_setTF(context^.EFlags,0);
 
   try
     if (bp<>nil) then
@@ -1270,11 +1278,15 @@ begin
 
       bo_ChangeRegister:
       begin
+        //OutputDebugString('bo_ChangeRegister');
         TDebuggerthread(debuggerthread).execlocation:=31;
         //modify accordingly
         //outputdebugstring('Handling bo_ChangeRegister breakpoint');
 
         ModifyRegisters(bpp);
+
+        if CurrentDebuggerInterface is TDBVMDebugInterface then
+          setContext;
 
         //and
         continueFromBreakpoint(bpp, co_run); //just continue running
@@ -1552,6 +1564,8 @@ begin
         else
           Result := DispatchBreakpoint(context^.{$ifdef cpu64}Rip{$else}eip{$endif}, -2, dwContinueStatus);
       end;
+
+
 
       if singlestepping then
         dwContinueStatus:=DBG_CONTINUE_SINGLESTEP
