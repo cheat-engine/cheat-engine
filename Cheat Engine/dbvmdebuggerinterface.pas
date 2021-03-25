@@ -329,9 +329,11 @@ end;
 function TDBVMDebugInterface.SetThreadContext(hThread: THandle; const lpContext: TContext; isFrozenThread: Boolean=false): BOOL;
 var f: dword;
 begin
+  OutputDebugString('TDBVMDebugInterface.SetThreadContext');
 
   if isFrozenThread then
   begin
+    OutputDebugString('Is frozen');
     currentFrozenState.basic.FLAGS:=lpContext.EFlags;
 
     currentFrozenState.fpudata.MXCSR:={$ifdef cpu32}lpContext.FloatSave.ControlWord{$else}lpContext.MxCsr{$endif};
@@ -367,7 +369,7 @@ begin
     {$endif}
 
     currentFrozenState.basic.Rip:=lpContext.{$ifdef cpu32}eip{$else}Rip{$endif};
-
+    dbvm_bp_setBrokenThreadEventFull(currentFrozenID, currentFrozenState);
 
     result:=true;
   end
