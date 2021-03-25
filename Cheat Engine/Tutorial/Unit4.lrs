@@ -6,7 +6,7 @@ LazarusResources.Add('TForm4','FORMDATA',[
   +#7'Caption'#6#12'Tutorial End'#12'ClientHeight'#2'}'#11'ClientWidth'#3#171#1
   +#5'Color'#7#9'clBtnFace'#7'OnClose'#7#9'FormClose'#8'OnCreate'#7#10'FormCrea'
   +'te'#6'OnShow'#7#8'FormShow'#8'Position'#7#14'poScreenCenter'#10'LCLVersion'
-  +#6#7'1.6.0.4'#0#6'TLabel'#6'Label1'#22'AnchorSideLeft.Control'#7#5'Owner'#21
+  +#6#7'2.0.6.0'#0#6'TLabel'#6'Label1'#22'AnchorSideLeft.Control'#7#5'Owner'#21
   +'AnchorSideTop.Control'#7#5'Owner'#4'Left'#2#8#6'Height'#2#15#3'Top'#2#8#5'W'
   +'idth'#3'1'#1#18'BorderSpacing.Left'#2#8#17'BorderSpacing.Top'#2#8#19'Border'
   +'Spacing.Right'#2#8#7'Caption'#6'9Well done, you''ve completed the tutorial '

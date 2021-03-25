@@ -6,7 +6,7 @@ interface
 
 uses
   LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
-  Dialogs, ExtCtrls, StdCtrls, ComCtrls, Buttons, LResources;
+  Dialogs, ExtCtrls, StdCtrls, ComCtrls, Buttons, LResources, betterControls;
 
 type
   TForm3 = class(TForm)

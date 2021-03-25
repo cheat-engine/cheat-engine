@@ -7,7 +7,7 @@ interface
 
 uses
   {$ifdef windows}windows,{$endif} LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
-  Dialogs, Unit8, StdCtrls, Buttons, LResources, ExtCtrls, math;
+  Dialogs, Unit8, StdCtrls, Buttons, LResources, ExtCtrls, math, betterControls;
 
 type
   TPlayer=class

@@ -271,13 +271,13 @@ inherited Form10: TForm10
       Left = 482
       Height = 55
       Top = 0
-      Width = 85
+      Width = 83
       Anchors = [akLeft, akBottom]
       AutoSize = True
       BorderSpacing.Left = 15
       BevelOuter = bvNone
       ClientHeight = 55
-      ClientWidth = 85
+      ClientWidth = 83
       TabOrder = 4
       object Label9: TLabel
         AnchorSideLeft.Control = Panel4
@@ -285,7 +285,7 @@ inherited Form10: TForm10
         Left = 0
         Height = 15
         Top = 0
-        Width = 85
+        Width = 83
         Caption = 'C. Player 4: KITT'
         ParentColor = False
       end
@@ -305,7 +305,7 @@ inherited Form10: TForm10
         AnchorSideLeft.Side = asrCenter
         AnchorSideTop.Control = Label10
         AnchorSideTop.Side = asrBottom
-        Left = 12
+        Left = 11
         Height = 25
         Top = 30
         Width = 60

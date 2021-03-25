@@ -1,49 +1,17 @@
 object Form2: TForm2
   Left = 541
-  Height = 280
+  Height = 273
   Top = 524
   Width = 640
   BorderIcons = [biSystemMenu]
   Caption = 'Step 2'
-  ClientHeight = 280
+  ClientHeight = 273
   ClientWidth = 640
   Color = clBtnFace
   OnClose = FormClose
   OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
-  LCLVersion = '2.0.0.4'
-  object Label1: TLabel
-    AnchorSideLeft.Control = Label2
-    AnchorSideLeft.Side = asrBottom
-    AnchorSideTop.Control = Memo1
-    AnchorSideTop.Side = asrBottom
-    AnchorSideBottom.Control = Button2
-    Left = 326
-    Height = 15
-    Top = 203
-    Width = 18
-    Anchors = [akLeft, akBottom]
-    BorderSpacing.Left = 3
-    BorderSpacing.Top = 3
-    Caption = '100'
-    ParentColor = False
-  end
-  object Label2: TLabel
-    AnchorSideLeft.Control = Button1
-    AnchorSideTop.Control = Memo1
-    AnchorSideTop.Side = asrBottom
-    AnchorSideRight.Control = Button2
-    AnchorSideBottom.Control = Button2
-    Left = 285
-    Height = 15
-    Top = 203
-    Width = 38
-    Anchors = [akLeft, akBottom]
-    BorderSpacing.Left = 2
-    BorderSpacing.Top = 3
-    Caption = 'Health:'
-    ParentColor = False
-  end
+  LCLVersion = '2.0.6.0'
   object SpeedButton1: TSpeedButton
     AnchorSideRight.Control = Owner
     AnchorSideRight.Side = asrBottom
@@ -51,7 +19,7 @@ object Form2: TForm2
     AnchorSideBottom.Side = asrBottom
     Left = 614
     Height = 19
-    Top = 261
+    Top = 254
     Width = 26
     Anchors = [akRight, akBottom]
     AutoSize = True
@@ -60,13 +28,14 @@ object Form2: TForm2
     OnClick = SpeedButton1Click
   end
   object Memo1: TMemo
-    AnchorSideBottom.Control = Label2
+    AnchorSideBottom.Control = Panel1
     Left = 0
-    Height = 200
+    Height = 187
     Top = 0
     Width = 640
     Align = alTop
     Anchors = [akTop, akLeft, akRight, akBottom]
+    BorderSpacing.Bottom = 3
     Color = clBtnFace
     ReadOnly = True
     ScrollBars = ssVertical
@@ -81,7 +50,7 @@ object Form2: TForm2
     AnchorSideBottom.Side = asrBottom
     Left = 283
     Height = 25
-    Top = 252
+    Top = 245
     Width = 75
     Anchors = [akLeft, akBottom]
     AutoSize = True
@@ -95,12 +64,11 @@ object Form2: TForm2
   object Button2: TButton
     AnchorSideLeft.Control = Memo1
     AnchorSideLeft.Side = asrCenter
-    AnchorSideTop.Control = Label2
     AnchorSideTop.Side = asrBottom
     AnchorSideBottom.Control = Button1
     Left = 289
     Height = 25
-    Top = 221
+    Top = 214
     Width = 62
     Anchors = [akLeft, akBottom]
     AutoSize = True
@@ -110,10 +78,51 @@ object Form2: TForm2
     OnClick = Button2Click
     TabOrder = 2
   end
+  object Panel1: TPanel
+    AnchorSideLeft.Control = Owner
+    AnchorSideLeft.Side = asrCenter
+    AnchorSideBottom.Control = Button2
+    Left = 290
+    Height = 21
+    Top = 190
+    Width = 61
+    Anchors = [akLeft, akBottom]
+    AutoSize = True
+    BevelOuter = bvNone
+    ClientHeight = 21
+    ClientWidth = 61
+    TabOrder = 3
+    object Label2: TLabel
+      AnchorSideLeft.Control = Panel1
+      AnchorSideTop.Control = Panel1
+      Left = 2
+      Height = 15
+      Top = 3
+      Width = 38
+      BorderSpacing.Left = 2
+      BorderSpacing.Top = 3
+      BorderSpacing.Bottom = 3
+      Caption = 'Health:'
+      ParentColor = False
+    end
+    object Label1: TLabel
+      AnchorSideLeft.Control = Label2
+      AnchorSideLeft.Side = asrBottom
+      AnchorSideTop.Control = Panel1
+      Left = 43
+      Height = 15
+      Top = 3
+      Width = 18
+      BorderSpacing.Left = 3
+      BorderSpacing.Top = 3
+      Caption = '100'
+      ParentColor = False
+    end
+  end
   object Timer1: TTimer
     Interval = 250
     OnTimer = Timer1Timer
-    left = 136
-    top = 176
+    Left = 136
+    Top = 176
   end
 end

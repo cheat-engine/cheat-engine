@@ -6,7 +6,7 @@ interface
 
 uses
   {$ifdef windows}windows,{$endif} LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, LResources;
+  Dialogs, StdCtrls, LResources, betterControls;
 
 type
 

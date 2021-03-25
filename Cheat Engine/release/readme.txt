@@ -9,10 +9,12 @@ Additions and changes:
   Added {$CCODE} blocks for inline C coding (Check the forum, wiki, CE patreon discord or CE's youtube)
   Added a C# compiler (compilecs)
   Added routines to do .NET(and mono) method detouring.  .NET info has a new contextmenu where you can create a detour template for the autoassembler
+  Added invoke method to the .NET Info window as well
   [Disable] sections can now reference labels, defines, AOBScan results, and allocs created in the [ENABLE] section
   Userdefined symbollist has a secondary list for CCode symbols
   The change address window now also supports relative offsets
-
+  DBVM speed improvements
+  New debugger interface: DBVM-level debugger
 
   
 

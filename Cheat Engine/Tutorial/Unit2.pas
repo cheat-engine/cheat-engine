@@ -6,18 +6,19 @@ interface
 
 uses
   LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, ExtCtrls, Buttons, LResources;
+  Dialogs, StdCtrls, ExtCtrls, Buttons, LResources, betterControls;
 
 type
 
   { TForm2 }
 
   TForm2 = class(TForm)
-    Memo1: TMemo;
-    Button1: TButton;
     Label1: TLabel;
     Label2: TLabel;
+    Memo1: TMemo;
+    Button1: TButton;
     Button2: TButton;
+    Panel1: TPanel;
     Timer1: TTimer;
     SpeedButton1: TSpeedButton;
     procedure Button3Click(Sender: TObject);

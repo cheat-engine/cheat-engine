@@ -11,7 +11,7 @@ object Form1: TForm1
   OnCreate = FormCreate
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '2.0.0.4'
+  LCLVersion = '2.0.6.0'
   object Label1: TLabel
     AnchorSideLeft.Control = edtPassword
     AnchorSideLeft.Side = asrCenter
@@ -99,7 +99,7 @@ object Form1: TForm1
   object Timer1: TTimer
     Interval = 250
     OnTimer = Timer1Timer
-    left = 48
-    top = 120
+    Left = 48
+    Top = 120
   end
 end

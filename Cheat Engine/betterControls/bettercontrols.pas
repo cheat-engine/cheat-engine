@@ -8,7 +8,8 @@ uses
   windows,Classes, SysUtils, newRadioButton, newCheckBox, newButton, newListView,
   newEdit, newMainMenu, newForm, newListBox, newProgressBar, newMemo, newComboBox,
   newGroupBox, newSpeedButton, newTreeView, newHeaderControl, newScrollBar,
-  newScrollBox, newSynEdit, newPageControl, newtabcontrol, newStatusBar,
+  newScrollBox, {$ifndef bc_skipsynedit}newSynEdit,{$endif}
+  newPageControl, newtabcontrol, newStatusBar,
   newCheckListBox, newCheckGroup, newColorBox, newDirectoryEdit, NewHintwindow,
   Graphics, Themes, UxTheme, bettercontrolColorSet;
 
@@ -31,7 +32,9 @@ type
   THeaderControl=class(TNewHeaderControl);
   TScrollBar=class(TNewScrollBar);
   TScrollBox=class(TNewScrollBox);
+{$ifndef bc_skipsynedit}
   TSynEdit=class(TNewSynEdit);
+{$endif}
   TPageControl=class(TNewPageControl);
   TTabControl=class(TNewTabControl);
   TStatusBar=class(TNewStatusBar);

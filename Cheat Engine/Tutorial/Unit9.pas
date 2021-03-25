@@ -6,7 +6,7 @@ interface
 
 uses
   {$ifdef windows}windows, {$endif}LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, Buttons, LResources;
+  Dialogs, StdCtrls, Buttons, LResources, betterControls;
 
 type
   TForm9 = class(TForm)
