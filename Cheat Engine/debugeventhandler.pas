@@ -528,7 +528,8 @@ var oldprotect: dword;
 begin
   TDebuggerthread(debuggerthread).execlocation:=39;
   debuggercs.enter;
-  context^.EFlags:=eflags_setTF(context^.EFlags,0);
+  if CurrentDebuggerInterface.usesDebugRegisters then
+    context^.EFlags:=eflags_setTF(context^.EFlags,0);
 
   try
     if (bp<>nil) then
