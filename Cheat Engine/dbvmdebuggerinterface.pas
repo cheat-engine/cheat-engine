@@ -58,6 +58,8 @@ implementation
 uses DBK32functions, ProcessHandlerUnit, symbolhandler, simpleaobscanner,
   commonTypeDefs, symbolhandlerstructs, globals;
 
+resourcestring
+  rsDBVMLevelNotFor32Bit = 'DBVM level debug does not work on the 32-bit CE';
 
 
 procedure TDBVMResumerThread.Execute;
@@ -331,7 +333,8 @@ begin
   if isFrozenThread then
   begin
     currentFrozenState.basic.FLAGS:=lpContext.EFlags;
-    currentFrozenState.fpudata.MXCSR:=lpContext.MxCsr;
+
+    currentFrozenState.fpudata.MXCSR:={$ifdef cpu32}lpContext.FloatSave.ControlWord{$else}lpContext.MxCsr{$endif};
 
     currentFrozenState.basic.DR0:=lpContext.Dr0;
     currentFrozenState.basic.DR1:=lpContext.Dr1;
@@ -341,14 +344,15 @@ begin
     currentFrozenState.basic.DR7:=lpContext.Dr7;
 
 
-    currentFrozenState.basic.RAX:=lpContext.Rax;
-    currentFrozenState.basic.RCX:=lpContext.Rcx;
-    currentFrozenState.basic.Rdx:=lpContext.RDX;
-    currentFrozenState.basic.Rbx:=lpContext.RBX;
-    currentFrozenState.basic.Rsp:=lpContext.RSP;
-    currentFrozenState.basic.Rbp:=lpContext.RBP;
-    currentFrozenState.basic.Rsi:=lpContext.RSI;
-    currentFrozenState.basic.Rdi:=lpContext.RDI;
+    currentFrozenState.basic.RAX:=lpContext.{$ifdef cpu32}Eax{$else}Rax{$endif};
+    currentFrozenState.basic.RCX:=lpContext.{$ifdef cpu32}Ecx{$else}Rcx{$endif};
+    currentFrozenState.basic.Rdx:=lpContext.{$ifdef cpu32}Edx{$else}Rdx{$endif};
+    currentFrozenState.basic.Rbx:=lpContext.{$ifdef cpu32}Ebx{$else}Rbx{$endif};
+    currentFrozenState.basic.Rsp:=lpContext.{$ifdef cpu32}Esp{$else}Rsp{$endif};
+    currentFrozenState.basic.Rbp:=lpContext.{$ifdef cpu32}Ebp{$else}Rbp{$endif};
+    currentFrozenState.basic.Rsi:=lpContext.{$ifdef cpu32}Esi{$else}Rsi{$endif};
+    currentFrozenState.basic.Rdi:=lpContext.{$ifdef cpu32}Edi{$else}Rdi{$endif};
+    {$ifdef cpu64}
     currentFrozenState.basic.R8:=lpContext.R8;
     currentFrozenState.basic.R9:=lpContext.R9;
     currentFrozenState.basic.R10:=lpContext.R10;
@@ -357,8 +361,13 @@ begin
     currentFrozenState.basic.R13:=lpContext.R13;
     currentFrozenState.basic.R14:=lpContext.R14;
     currentFrozenState.basic.R15:=lpContext.R15;
-    currentFrozenState.basic.Rip:=lpContext.Rip;
     CopyMemory(@currentFrozenState.fpudata, @lpContext.FltSave,512);
+    {$else}
+    CopyMemory(@currentFrozenState.fpudata, @lpContext.ext,512);
+    {$endif}
+
+    currentFrozenState.basic.Rip:=lpContext.{$ifdef cpu32}eip{$else}Rip{$endif};
+
 
     result:=true;
   end
@@ -378,7 +387,7 @@ begin
     lpContext.SegGs:=currentFrozenState.basic.GS;
 
     lpContext.EFlags:=currentFrozenState.basic.FLAGS;
-    lpContext.MxCsr:=currentFrozenState.fpudata.MXCSR;
+    {$ifdef cpu32}lpContext.FloatSave.ControlWord{$else}lpContext.MxCsr{$endif}:=currentFrozenState.fpudata.MXCSR;
 
     lpContext.Dr0:=currentFrozenState.basic.DR0;
     lpContext.Dr1:=currentFrozenState.basic.DR1;
@@ -388,14 +397,15 @@ begin
     lpContext.Dr7:=currentFrozenState.basic.DR7;
 
 
-    lpContext.Rax:=currentFrozenState.basic.RAX;
-    lpContext.Rcx:=currentFrozenState.basic.RCX;
-    lpContext.Rdx:=currentFrozenState.basic.RDX;
-    lpContext.Rbx:=currentFrozenState.basic.RBX;
-    lpContext.Rsp:=currentFrozenState.basic.RSP;
-    lpContext.Rbp:=currentFrozenState.basic.RBP;
-    lpContext.Rsi:=currentFrozenState.basic.RSI;
-    lpContext.Rdi:=currentFrozenState.basic.RDI;
+    lpContext.{$ifdef cpu32}Eax{$else}Rax{$endif}:=currentFrozenState.basic.RAX;
+    lpContext.{$ifdef cpu32}Ecx{$else}Rcx{$endif}:=currentFrozenState.basic.RCX;
+    lpContext.{$ifdef cpu32}Edx{$else}Rdx{$endif}:=currentFrozenState.basic.RDX;
+    lpContext.{$ifdef cpu32}Ebx{$else}Rbx{$endif}:=currentFrozenState.basic.RBX;
+    lpContext.{$ifdef cpu32}Esp{$else}Rsp{$endif}:=currentFrozenState.basic.RSP;
+    lpContext.{$ifdef cpu32}Ebp{$else}Rbp{$endif}:=currentFrozenState.basic.RBP;
+    lpContext.{$ifdef cpu32}Esi{$else}Rsi{$endif}:=currentFrozenState.basic.RSI;
+    lpContext.{$ifdef cpu32}Edi{$else}Rdi{$endif}:=currentFrozenState.basic.RDI;
+    {$ifdef cpu64}
     lpContext.R8:=currentFrozenState.basic.R8;
     lpContext.R9:=currentFrozenState.basic.R9;
     lpContext.R10:=currentFrozenState.basic.R10;
@@ -404,7 +414,7 @@ begin
     lpContext.R13:=currentFrozenState.basic.R13;
     lpContext.R14:=currentFrozenState.basic.R14;
     lpContext.R15:=currentFrozenState.basic.R15;
-    lpContext.Rip:=currentFrozenState.basic.Rip;
+
 
     lpContext.P1Home:=currentFrozenState.basic.Count;
     if processCR3<>currentFrozenState.basic.CR3 then
@@ -413,6 +423,14 @@ begin
       lpContext.P2Home:=0; //normal access
 
     CopyMemory(@lpContext.FltSave, @currentFrozenState.fpudata,512);
+    {$else}
+    CopyMemory(@lpContext.ext, @currentFrozenState.fpudata,512);
+
+    {$endif}
+    lpContext.{$ifdef cpu32}Eip{$else}Rip{$endif}:=currentFrozenState.basic.Rip;
+
+
+
 
     result:=true;
   end
@@ -541,7 +559,6 @@ begin
   fDebuggerCapabilities:=fDebuggerCapabilities-[dbcCanUseInt1BasedBreakpoints];   //perhaps in the future add thread specific code
 
   resumerThread:=TDBVMResumerThread.Create(false);
-
 end;
 
 destructor TDBVMDebugInterface.destroy;
