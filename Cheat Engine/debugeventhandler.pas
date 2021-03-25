@@ -1276,6 +1276,10 @@ begin
 
         ModifyRegisters(bpp);
 
+        if CurrentDebuggerInterface is TDBVMDebugInterface then
+          setContext;
+
+
         //and
         continueFromBreakpoint(bpp, co_run); //just continue running
       end;
