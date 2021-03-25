@@ -1389,8 +1389,8 @@ begin
   cbunicode.visible:=cbvarType.itemindex = 7;
   cbCodePage.visible:=cbunicode.Visible;
 
-  cbHex.Enabled:=not (cbvarType.itemindex in [0,7,8]);
-  cbSigned.Enabled:=cbHex.Enabled;
+  cbHex.Enabled:=not (cbvarType.itemindex in [0,7]);
+  cbSigned.Enabled:=not (cbvarType.itemindex in [0,5,6,7,8]);
 
   AdjustHeight;
 
