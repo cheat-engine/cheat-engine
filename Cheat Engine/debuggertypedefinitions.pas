@@ -257,10 +257,11 @@ resourcestring
   rsOnExecute = 'On Execute';
   rsOnWrite = 'On Write';
   rsOnReadWrite = 'On Read/Write';
-  rsSoftwareBreakpoint = 'Software Breakpoint';
-  rsHardwareBreakpoint = 'Hardware Breakpoint';
-  rsExceptionBreakpoint = 'Exception Breakpoint';
-  rsDBVMBreakpoint = 'DBVM Breakpoint';
+  rsSoftwareBreakpoint =   'Software Breakpoint';
+  rsHardwareBreakpoint =   'Hardware Breakpoint';
+  rsExceptionBreakpoint =  'Exception Breakpoint';
+  rsDBVMBreakpoint =       'DBVM Breakpoint';
+  rsDBVMNativeBreakpoint = 'DBVM-Level Breakpoint';
   rsBreak = 'Break';
   rsChangeReg = 'Change reg';
   rsFindCode = 'Find code';
@@ -314,6 +315,7 @@ begin
     bpmDebugRegister:  result:=rsHardwareBreakpoint;
     bpmException:      result:=rsExceptionBreakpoint;
     bpmDBVM:           result:=rsDBVMBreakpoint;
+    bpmDBVMNative:     result:=rsDBVMNativeBreakpoint;
     else
        result:='Error';
   end;
