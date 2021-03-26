@@ -471,6 +471,7 @@ begin
 end;
 
 procedure TCustomType.unloadscript;
+var enablepos, disablepos: integer;
 begin
   {$IFNDEF jni}
   if fCustomTypeType=cttAutoAssembler then
@@ -480,7 +481,10 @@ begin
 
     if currentscript<>nil then
     begin
-      autoassemble(currentscript,false, false, false, true, tdisableinfo(disableinfo)); //popupmessages is false so it won't complain if there is no disable section
+      getenableanddisablepos(code, enablepos, disablepos);
+      if disablepos>=0 then
+        autoassemble(currentscript,false, false, false, true, tdisableinfo(disableinfo));
+
       freeandnil(currentscript);
     end;
   end;

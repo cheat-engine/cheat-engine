@@ -4414,8 +4414,10 @@ var
   customtypes: TStringList;
   i: integer;
   islua: boolean;
+  oldpos: integer;
 begin
   reg := tregistry.Create;
+  oldpos:=vartype.ItemIndex;
   vartype.OnChange := nil;
   //disable the onchange event so CreateCustomType doesn't keep setting it
   try
@@ -4450,6 +4452,7 @@ begin
     freeandnil(reg);
     RefreshCustomTypes;
   finally
+    vartype.itemindex:=oldpos;
     vartype.OnChange := VarTypeChange;   //set the onchange event back
   end;
 end;
