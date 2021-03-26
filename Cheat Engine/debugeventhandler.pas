@@ -425,6 +425,7 @@ begin
   if bp.changereg.change_esi then context^.{$ifdef cpu64}rsi{$else}esi{$endif}:=bp.changereg.new_esi;
   if bp.changereg.change_edi then context^.{$ifdef cpu64}rdi{$else}edi{$endif}:=bp.changereg.new_edi;
   if bp.changereg.change_esp then context^.{$ifdef cpu64}rsp{$else}esp{$endif}:=bp.changereg.new_esp;
+  if bp.changereg.change_ebp then context^.{$ifdef cpu64}rsp{$else}esp{$endif}:=bp.changereg.new_ebp;
   if bp.changereg.change_eip then context^.{$ifdef cpu64}rip{$else}eip{$endif}:=bp.changereg.new_eip;
 
   {$ifdef cpu64}
