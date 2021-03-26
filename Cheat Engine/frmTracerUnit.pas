@@ -1901,6 +1901,11 @@ begin
   if debuggerthread<>nil then
     debuggerthread.stopBreakAndTrace(self);
 
+
+
+
+
+
   if comparetv<>nil then
   begin
     cleanuptv(comparetv);
@@ -1912,7 +1917,10 @@ begin
   action:=cafree; //if still buggy, change to cahide
 
   if DBVMStatusUpdater<>nil then
+  begin
+    dbvm_cloak_traceonbp_stoptrace;
     freeandnil(DBVMStatusUpdater);
+  end;
 
   if physicaladdress<>0 then
     dbvm_cloak_traceonbp_remove(physicaladdress);
