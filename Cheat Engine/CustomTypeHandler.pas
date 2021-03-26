@@ -481,7 +481,7 @@ begin
 
     if currentscript<>nil then
     begin
-      getenableanddisablepos(code, enablepos, disablepos);
+      getenableanddisablepos(currentscript, enablepos, disablepos);
       if disablepos>=0 then
         autoassemble(currentscript,false, false, false, true, tdisableinfo(disableinfo));
 
