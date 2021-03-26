@@ -1278,6 +1278,7 @@ BOOL ept_handleFrozenThread(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, F
     }
     else
     {
+      vmregisters->rax=BrokenThreadList[id].state.basic.RAX;
       vmwrite(vm_guest_rip,BrokenThreadList[id].state.basic.RIP);
       vmwrite(vm_guest_rsp, BrokenThreadList[id].state.basic.RSP);
 
