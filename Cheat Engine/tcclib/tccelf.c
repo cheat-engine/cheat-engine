@@ -512,7 +512,10 @@ ST_FUNC addr_t get_sym_addr(TCCState *s1, const char *name, int err, int forc)
     sym = &((ElfW(Sym) *)s1->symtab->data)[sym_index];
     if (!sym_index || sym->st_shndx == SHN_UNDEF) {
         if (err)
+        {
+
             tcc_error("%s not defined", name);
+        }
         return (addr_t)-1;
     }
     return sym->st_value;
@@ -915,6 +918,22 @@ ST_FUNC void relocate_syms(TCCState *s1, Section *symtab, int do_resolve)
         sh_num = sym->st_shndx;
         if (sh_num == SHN_UNDEF) {
             name = (char *) s1->symtab->link->data + sym->st_name;
+            
+            
+                     //cheat engine symbol lookup start
+                     if (s1->symbol_lookup_func)
+                     {
+                         void *addr = s1->symbol_lookup_func(s1->symbol_lookup_data, name);
+                         if (addr)
+                         {
+                             tcc_add_symbol(s1, name, addr);
+                             sym->st_value = (addr_t) addr;
+                             goto found;
+                         }
+                             
+                     }
+                     //check engine symbol lookup end
+            
             /* Use ld.so to resolve symbol for us (for tcc -run) */
 			//sym->st_value = 0x2ce000000;
 			//goto found;
