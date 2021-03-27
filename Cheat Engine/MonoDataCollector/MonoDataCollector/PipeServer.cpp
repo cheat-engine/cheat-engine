@@ -1,23 +1,36 @@
 #ifdef _WINDOWS
 #include "StdAfx.h"
+#else
+#include <signal.h>
+#include <sys/types.h>
+#include <setjmp.h>
 #endif
 #include "PipeServer.h"
 
+
+BOOL ExpectingAccessViolations = FALSE;
+
 #ifdef _WINDOWS
 #pragma warning( disable : 4101)
-
-
 HANDLE MDC_ServerPipe = 0;
-BOOL ExpectingAccessViolations = FALSE;
 DWORD ExpectingAccessViolationsThread = 0;
+#else
+uint64_t ExpectingAccessViolationsThread = 0;
+#endif
 
 typedef uint64_t QWORD;
 
 void ErrorThrow(void)
 {
-	throw ("Access violation caught");
+    
+    OutputDebugString("ErrorThrow 2");
+    
+   // while (1);
+    
+	throw std::invalid_argument("Access violation caught");
 }
 
+#ifdef _WINDOWS
 int looper = 0;
 LONG NTAPI ErrorFilter(struct _EXCEPTION_POINTERS *ExceptionInfo)
 {
@@ -35,10 +48,48 @@ LONG NTAPI ErrorFilter(struct _EXCEPTION_POINTERS *ExceptionInfo)
 
 	return EXCEPTION_CONTINUE_SEARCH;
 }
+#else
+
+struct sigaction old_sa[33], new_sa[33];
+
+uint64_t ErrorRIP;
+uint64_t ErrorRBP;
+uint64_t ErrorRSP;
+jmp_buf onError;
+
+void ErrorFilter(int signr, siginfo_t *info, void *uap)
+{
+    char s[200];
+    snprintf(s,200, "Errorfilter %d", signr);
+    OutputDebugString(s);
+    ucontext_t *uap_c=(ucontext_t *)uap;
+    //check if it's the serverthread, and if so, change the instruction pointer to ErrorThrow
+    uint64_t tid;
+    pthread_threadid_np(NULL, &tid);
+    
+    if ((ExpectingAccessViolations) && (tid==ExpectingAccessViolationsThread))
+    {
+        OutputDebugString("It is this thread. Jumping to state saved in onError");
+        
+        longjmp(onError,1);
+        
+    }
+    else
+    {
+         OutputDebugString("calling original handler");
+    
+        if (old_sa[signr].sa_flags & SA_SIGINFO)
+            old_sa[signr].sa_sigaction(signr, info, uap);
+        else
+            old_sa[signr].sa_handler(signr);
+    }
+}
 #endif
+
 
 CPipeServer::CPipeServer(void)
 {
+    OutputDebugString("CPipeServer::CPipeServer");
 	attached = FALSE;
 #ifdef _WINDOWS
 	swprintf(datapipename, 256, L"\\\\.\\pipe\\cemonodc_pid%d", GetCurrentProcessId());
@@ -47,6 +98,19 @@ CPipeServer::CPipeServer(void)
 	AddVectoredExceptionHandler(1, ErrorFilter);
 #else
     sprintf((char*)datapipename, "cemonodc_pid%d",GetCurrentProcessId());
+    
+    int i;
+    for (i=10; i<12; i++)
+    {
+        new_sa[i].sa_sigaction=ErrorFilter;
+        new_sa[i].sa_flags=SA_SIGINFO;
+        sigemptyset(&new_sa[i].sa_mask);
+         
+        //sigaction(10, &new_sa, &old_sa);
+        sigaction(i, &new_sa[i], &old_sa[i]);
+    }
+
+    //while (1);
     
     
 #endif
@@ -1446,7 +1510,7 @@ void CPipeServer::GetClassNestingType(void)
 
 void CPipeServer::GetClassImage(void)
 {
-	INT_PTR image = 0;
+    UINT_PTR image = 0;
 	void *klass = (void *)ReadQword();
 	if (klass)
 		image = mono_class_get_image ? (UINT_PTR)mono_class_get_image(klass) : 0;
@@ -2052,21 +2116,34 @@ void CPipeServer::SetStaticFieldValue()
 
 void CPipeServer::Start(void)
 {
+   
 	BYTE command;
 	while (1)
 	{
 		CreatePipeandWaitForconnect();
 
+
+
+       
+        
 		try
 		{
+            if (setjmp(onError))
+            {
+                OutputDebugString("setjmp returned 1");
+                throw("Error during execution");
+            }
+            
 			while (TRUE)
 			{
 				command = ReadByte();
-                
+                ExpectingAccessViolations = TRUE;
 #ifdef _WINDOWS
-				ExpectingAccessViolations = TRUE;
 				ExpectingAccessViolationsThread = GetCurrentThreadId();
-#endif //only windows can capture the worst ones
+#else
+                pthread_threadid_np(NULL, &ExpectingAccessViolationsThread);
+#endif
+                
 
 				switch (command)
 				{
@@ -2257,20 +2334,15 @@ void CPipeServer::Start(void)
 
 				}
 
-
-
-				
-
-#ifdef _WINDOWS
 				ExpectingAccessViolations = FALSE;
-#endif
 			}
 		}
 		catch (char *e)
 		{
-			//Pipe error, or something else that wasn't caught. Exit the connection and start over	
-			//OutputDebugStringA("Pipe error:\n");
-			//OutputDebugStringA(e);
+			//Pipe error, or something else that wasn't caught. Exit the connection and start over
+            char s[200];
+            snprintf(s,200,"Pipe error: %s", e);
+			OutputDebugStringA(s);
 
 			if (attached)
 			{
@@ -2289,7 +2361,7 @@ void CPipeServer::Start(void)
 		}
 		catch (...)
 		{
-			//OutputDebugStringA("Unexpected pipe error\n");
+			OutputDebugStringA("Unexpected pipe error\n");
 			if (attached)
 			{
 				try
