@@ -7,7 +7,7 @@ interface
 uses
 {$IFNDEF STANDALONEHV}
   {$ifdef darwin}
-  macport,
+  macport, macportdefines,
   {$endif}
   {$ifdef windows}
   windows, commctrl,
@@ -202,6 +202,7 @@ type
 
     function DisplayTypeByteSize(dt: TDisplayType): integer; inline;
     procedure setCR3(pa: QWORD);
+
 
     function ReadProcessMemory(hProcess: THandle; lpBaseAddress, lpBuffer: Pointer; nSize: size_t; var lpNumberOfBytesRead: PTRUINT): BOOL;
     function WriteProcessMemory(hProcess: THandle; const lpBaseAddress: Pointer; lpBuffer: Pointer; nSize: DWORD; var lpNumberOfBytesWritten: PTRUINT): BOOL;
@@ -2911,31 +2912,38 @@ end;
 
 function THexview.ReadProcessMemory(hProcess: THandle; lpBaseAddress, lpBuffer: Pointer; nSize: size_t; var lpNumberOfBytesRead: PTRUINT): BOOL;
 begin
+
   if fcr3=0 then
-    result:=newkernelhandler.ReadProcessMemory(hProcess, lpBaseAddress, lpBuffer, nsize, lpNumberOfBytesRead)
+    result:={$ifdef windows}newkernelhandler.{$endif}{$ifdef darwin}macport.{$endif}ReadProcessMemory(hProcess, lpBaseAddress, lpBuffer, nsize, lpNumberOfBytesRead)
+  {$ifdef windows}
   else
-    result:=ReadProcessMemoryCR3(fcr3,lpBaseAddress, lpBuffer, nsize, lpNumberOfBytesRead);
+    result:=ReadProcessMemoryCR3(fcr3,lpBaseAddress, lpBuffer, nsize, lpNumberOfBytesRead)
+  {$endif};
 end;
 
 function THexview.WriteProcessMemory(hProcess: THandle; const lpBaseAddress: Pointer; lpBuffer: Pointer; nSize: DWORD; var lpNumberOfBytesWritten: PTRUINT): BOOL;
 begin
   if fcr3=0 then
-    result:=newkernelhandler.WriteProcessMemory(hProcess, lpBaseAddress, lpBuffer, nSize, lpNumberOfBytesWritten)
+    result:={$ifdef windows}newkernelhandler.{$endif}{$ifdef darwin}macport.{$endif}WriteProcessMemory(hProcess, lpBaseAddress, lpBuffer, nSize, lpNumberOfBytesWritten)
+  {$ifdef windows}
   else
-    result:=WriteProcessMemoryCR3(fcr3, lpBaseAddress, lpBuffer, nsize, lpNumberOfBytesWritten);
+    result:=WriteProcessMemoryCR3(fcr3, lpBaseAddress, lpBuffer, nsize, lpNumberOfBytesWritten)
+  {$endif};
 end;
 
 function THexview.VirtualQueryEx(hProcess: THandle; lpAddress: Pointer; var lpBuffer: TMemoryBasicInformation; dwLength: DWORD): DWORD;
 begin
   if fcr3=0 then
-    result:=newkernelhandler.VirtualQueryEx(hProcess, lpAddress, lpBuffer, dwLength)
+    result:={$ifdef windows}newkernelhandler.{$endif}{$ifdef darwin}macport.{$endif}VirtualQueryEx(hProcess, lpAddress, lpBuffer, dwLength)
+  {$ifdef windows}
   else
   begin
     if GetPageInfoCR3(fcr3,ptruint(lpAddress), lpBuffer) then
       result:=dwlength
     else
       result:=0;
-  end;
+  end
+  {$endif};
 end;
 
 destructor THexview.destroy;

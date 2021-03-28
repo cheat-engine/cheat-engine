@@ -5,7 +5,7 @@ unit LuaDissectCode;
 interface
 
 uses
-  Classes, SysUtils, lua, lauxlib, lualib;
+  {$ifdef darwin}MacPort,{$endif}Classes, SysUtils, lua, lauxlib, lualib;
 
 procedure initializeLuaDissectCode;
 

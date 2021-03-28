@@ -8,7 +8,12 @@ unit CSharpCompiler;
 interface
 
 uses
+  {$ifdef windows}
   jwawindows, windows, Classes, SysUtils, dotnethost{$ifndef standalonetest}, newkernelhandler{$endif};
+  {$else}
+  classes, SysUtils;
+  //todo: mono?
+  {$endif}
 
 type
   TCSharpCompilerError=class(exception);
@@ -63,6 +68,7 @@ TProcessEntry32 = PROCESSENTRY32;
 
 {$endif}
 
+{$ifdef windows}
 procedure cleanupcecsfiles;
 var
 DirInfo: TSearchRec;
@@ -143,14 +149,19 @@ begin
   pidlist.free;
 end;
 
+{$endif}
+
 function compilecsharp(script: string; references: tstringlist; coreAssembly:string=''): string;
+{$ifdef windows}
 var
   c: TCSharpCompiler;
   errorlog: Tstringlist;
   i: integer;
   usedtempdir: string;
   filename: string;
+  {$endif}
 begin
+  {$ifdef windows}
   {$ifdef standalonetest}
   usedtempdir:=GetTempDir;
   {$else}
@@ -182,6 +193,7 @@ begin
     errorlog.free;
     c.free;
   end;
+  {$endif}
 end;
 
 procedure OnErrorCallback(errorlog: tstrings; s: pchar);
@@ -217,6 +229,7 @@ var
   end;
   r: integer;
 begin
+  {$ifdef windows}
 
   r:=DotNetExecuteClassMethod({$ifdef standalonetest}'D:\git\cheat-engine\Cheat Engine\bin\CSCompiler.dll'{$else}CheatEngineDir+'CSCompiler.dll'{$endif},'CSCompiler','Compiler','NewCompiler',inttostr(ptruint(@delegates)));
 
@@ -227,6 +240,9 @@ begin
   pointer(dAddReference):=delegates.AddReference;
   pointer(dSetCoreAssembly):=delegates.SetCoreAssembly;
   pointer(dRelease):=delegates.Release;
+  {$else}
+  raise exception.create('C# compiler not implemented yet');
+  {$endif}
 end;
 
 destructor TCSharpCompiler.destroy;
@@ -238,7 +254,9 @@ begin
 end;
 
 finalization
+  {$ifdef windows}
   cleanupcecsfiles;
+  {$endif}
 
 end.
 

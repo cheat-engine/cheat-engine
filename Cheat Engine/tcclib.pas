@@ -6,7 +6,9 @@ unit tcclib;
 interface
 
 uses
-  windows, Classes, SysUtils, syncobjs{$ifndef standalonetest}, SymbolListHandler{$endif};
+  {$ifdef windows}windows,{$endif}
+  {$ifdef darwin}macport, dl,macportdefines, {$endif}
+  Classes, SysUtils, syncobjs{$ifndef standalonetest}, SymbolListHandler{$endif};
 
 
 type
@@ -136,11 +138,13 @@ end;
 constructor TTCC.create(target: TTCCTarget);
 var
   module: HModule;
+  p: string;
 begin
   if initDone=true then raise exception.create('Do not create more compilers after init');
   if cs=nil then
     cs:=TCriticalSection.create;
 
+  {$ifdef windows}
 
   {$ifdef cpu32}
   module:=LoadLibrary({$ifdef standalonetest}'D:\git\cheat-engine\Cheat Engine\bin\'+{$endif}'tcc32-32.dll'); //generates 32-bit code
@@ -150,6 +154,17 @@ begin
   else
     module:=loadlibrary({$ifdef standalonetest}'D:\git\cheat-engine\Cheat Engine\bin\'+{$endif}'tcc64-32.dll'); //generates 32-bit code
   {$endif}
+  {$else}
+  module:=loadlibrary({$ifdef standalonetest}'D:\git\cheat-engine\Cheat Engine\bin\'+{$endif}'libtcc.dylib');
+  if module=0 then
+  begin
+    p:=ExtractFilePath(application.ExeName)+'libtcc.dylib';
+
+
+    module:=loadlibrary(p);
+  end;
+  {$endif}
+
   working:=false;
 
   pointer(new):=GetProcAddress(module,'tcc_new');
@@ -592,6 +607,7 @@ end;
 
 function initTCCLib: boolean;
 begin
+{$ifdef windows}
   {$ifndef standalonetest}
   tcc32:=ttcc.create(i386);
  {$endif}
@@ -599,6 +615,10 @@ begin
   {$ifdef cpu64}
   tcc64:=ttcc.create(x86_64);
   {$endif}
+{$else}
+  tcc32:=ttcc.create(x86_64);
+  tcc64:=ttcc.create(x86_64);
+{$endif}
 
   initDone:=true;
   result:=initdone;

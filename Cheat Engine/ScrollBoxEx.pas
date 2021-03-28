@@ -8,7 +8,7 @@ uses
   Classes, SysUtils, lmessages, forms, messages, betterControls;
 
 type
-  TScrollBox=class(betterControls.TScrollbox)
+  TScrollBox=class({$ifdef windows}betterControls.{$else}Forms.{$endif}TScrollbox)
   private
     procedure WMVScroll(var Msg: TMessage); message WM_VSCROLL;
   public

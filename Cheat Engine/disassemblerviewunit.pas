@@ -1141,6 +1141,7 @@ end;
 
 procedure TDisassemblerview.setCR3(pa: QWORD);
 begin
+  {$ifdef windows}
   if pa=fcr3 then exit;
 
   freeAndNil(currentDisassembler);
@@ -1157,6 +1158,7 @@ begin
   end;
 
   fCR3:=pa;
+  {$endif}
 
   update;
 end;

@@ -13813,6 +13813,7 @@ var
   oldaddress: ptruint;
   i: integer;
 begin
+  {$ifdef windows}
   address:=0;
 
   if lua_gettop(L)>=2 then
@@ -13871,6 +13872,11 @@ begin
   end;
 
   result:=1;
+  {$else}
+  result:=2;
+  lua_pushnil(L);
+  lua_pushstring(L,'Not yet implemented');
+  {$endif}
 end;
 
 function lua_enumMemoryRegions(L: PLua_state): integer; cdecl;
@@ -14580,7 +14586,9 @@ var
   address: qword;
   newaddress: ptruint;
 begin
+
   result:=0;
+  {$ifdef windows}
   if lua_gettop(L)>=2 then
   begin
     cr3:=lua_tointeger(L,1) and MAXPHYADDRMASKPB;
@@ -14593,6 +14601,7 @@ begin
     end;
 
   end;
+  {$endif}
 end;
 
 function lua_getPageInfoCR3(L: Plua_State): integer; cdecl;
@@ -14603,6 +14612,7 @@ var
 
 begin
   result:=0;
+  {$ifdef windows}
   if lua_gettop(L)>=2 then
   begin
     cr3:=lua_tointeger(L,1) and MAXPHYADDRMASKPB;
@@ -14627,6 +14637,7 @@ begin
       result:=1;
     end;
   end;
+  {$endif}
 
 end;
 

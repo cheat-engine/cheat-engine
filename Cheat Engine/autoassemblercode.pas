@@ -60,7 +60,7 @@ procedure AutoAssemblerCodePass2(var dataForPass2: TAutoAssemblerCodePass2Data; 
 
 implementation
 
-uses windows,ProcessHandlerUnit, symbolhandler, luahandler, lua, lauxlib, lualib, StrUtils,
+uses {$ifdef windows}windows,{$endif}{$ifdef darwin}macport,macportdefines,math,{$endif}ProcessHandlerUnit, symbolhandler, luahandler, lua, lauxlib, lualib, StrUtils,
   Clipbrd, dialogs, lua_server, tcclib, Assemblerunit, NewKernelHandler;
 
 
@@ -913,7 +913,7 @@ begin
 
           uppercaseline:=uppercase(s);
 
-
+          {$ifdef windows}
           if copy(uppercaseline,1,9)='{$LUACODE' then
           begin
             if targetself or (processid=GetCurrentProcessId) then
@@ -945,6 +945,7 @@ begin
             AutoAssemblerLuaCodePass(script, parameters, i, syntaxcheckonly)
           end
           else
+          {$endif}
           if uppercaseline='{$C}' then
           begin
             AutoAssemblerCBlockPass1(script, i, dataForPass2);

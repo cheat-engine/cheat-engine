@@ -588,9 +588,10 @@ procedure DONTUseDBKOpenProcess;
 procedure UseDBKQueryMemoryRegion;
 procedure UseDBKReadWriteMemory;
 procedure UseDBKOpenProcess;
-
+ {$endif}
 procedure DBKFileAsMemory(fn:string; baseaddress: ptruint=0); overload;
 procedure DBKFileAsMemory; overload;
+{$ifdef windows}
 function VirtualQueryExPhysical(hProcess: THandle; lpAddress: Pointer; var lpBuffer: TMemoryBasicInformation; dwLength: DWORD): DWORD; stdcall;
 procedure DBKPhysicalMemory;
 procedure DBKPhysicalMemoryDBVM;
@@ -601,11 +602,14 @@ procedure OutputDebugString(msg: string);
 
 
 procedure NeedsDBVM(Reason: string='');
-function loaddbvmifneeded(reason:string=''): BOOL; stdcall;
-function isRunningDBVM: boolean;
-function isDBVMCapable: boolean;
+
 
 {$endif}
+function loaddbvmifneeded(reason:string=''): BOOL; stdcall;
+
+
+function isRunningDBVM: boolean;
+function isDBVMCapable: boolean;
 function hasEPTSupport: boolean;
 {$ifdef windows}
 
@@ -615,7 +619,6 @@ function isAMD: boolean;
 {$endif}
 function Is64bitOS: boolean;
 function Is64BitProcess(processhandle: THandle): boolean;
-{$ifdef windows}
 
 
 //I could of course have made it a parameter thing, but I'm lazy
@@ -625,6 +628,7 @@ function WriteProcessMemory(hProcess: THandle; const lpBaseAddress: Pointer; lpB
 function ReadProcessMemory(hProcess: THandle; lpBaseAddress, lpBuffer: Pointer; nSize: size_t; var lpNumberOfBytesRead: PTRUINT): BOOL; stdcall;
 function VirtualQueryEx(hProcess: THandle; lpAddress: Pointer; var lpBuffer: TMemoryBasicInformation; dwLength: DWORD): DWORD; stdcall;
 
+{$ifdef windows}
 
 
 function VirtualToPhysicalCR3(cr3: QWORD; VirtualAddress: QWORD; var PhysicalAddress: QWORD): boolean;
@@ -649,13 +653,14 @@ var
 
 {$ifdef windows}
   ReadProcessMemory64   :TReadProcessMemory64;
+  {$endif}
   ReadProcessMemoryActual     :TReadProcessMemory;
   WriteProcessMemoryActual  :TWriteProcessMemory;
 
   defaultRPM: pointer;
   defaultWPM: pointer;
   //WriteProcessMemory64  :TWriteProcessMemory64;
-{$endif}
+
   GetThreadContext      :TGetThreadContext;
   SetThreadContext      :TSetThreadContext;
   OpenProcess           :TOpenProcess;
@@ -856,9 +861,10 @@ resourcestring
   rsCouldnTBeOpened = '%s couldn''t be opened';
   rsDBVMIsNotLoadedThisFeatureIsNotUsable = 'DBVM is not loaded. This feature is not usable';
 
-{$ifdef windows}
+ {$ifndef JNI}
+  {$ifdef windows}
 
-{$ifndef JNI}
+
 function pageEntryToProtection(entry: qword): dword;
 var r,w,x: boolean;
 begin
@@ -1237,6 +1243,9 @@ begin
   result:=true;
 end;
 
+{$endif}
+
+
 function WriteProcessMemory(hProcess: THandle; const lpBaseAddress: Pointer; lpBuffer: Pointer; nSize: DWORD; var lpNumberOfBytesWritten: PTRUINT): BOOL; stdcall;
 var
   wle: TWriteLogEntry;
@@ -1258,6 +1267,7 @@ begin
     end;
   end;
 
+  {$ifdef windows}
   {$ifdef cpu64}
 
   if (((qword(lpBaseAddress) and (qword(1) shl 63))<>0) and //kernelmode access
@@ -1271,6 +1281,7 @@ begin
       result:=WriteProcessMemoryCR3(cr3, lpBaseAddress, lpBuffer, nSize, lpNumberOfBytesWritten);
   end
   else
+  {$endif}
   {$endif}
   result:=WriteProcessMemoryActual(hProcess, lpBaseAddress, lpbuffer, nSize, lpNumberOfBytesWritten);
 
@@ -1286,6 +1297,7 @@ end;
 function ReadProcessMemory(hProcess: THandle; lpBaseAddress, lpBuffer: Pointer; nSize: size_t; var lpNumberOfBytesRead: PTRUINT): BOOL; stdcall;
 var cr3: ptruint;
 begin
+  {$ifdef windows}
   {$ifdef cpu64}
   if (((qword(lpBaseAddress) and (qword(1) shl 63))<>0) and //kernelmode access
      (defaultRPM=@ReadProcessMemoryActual) and
@@ -1298,12 +1310,14 @@ begin
       exit(ReadProcessMemoryCR3(cr3, lpBaseAddress, lpBuffer, nSize, lpNumberOfBytesRead));
   end;
   {$endif}
+  {$endif}
   result:=ReadProcessMemoryActual(hProcess,lpBaseAddress, lpBuffer, nsize, lpNumberOfBytesRead);
 end;
 
 function VirtualQueryEx(hProcess: THandle; lpAddress: Pointer; var lpBuffer: TMemoryBasicInformation; dwLength: DWORD): DWORD; stdcall;
 var cr3: ptruint;
 begin
+  {$ifdef windows}
   {$ifdef cpu64}
   if forceCR3VirtualQueryEx then
   begin
@@ -1311,17 +1325,9 @@ begin
       exit(VirtualQueryExCR3(cr3, lpAddress, lpBuffer, dwLength));
   end;
   {$endif}
+  {$endif}
   result:=VirtualQueryExActual(hProcess,lpAddress, lpBuffer, dwLength);
 end;
-
-{$else}
-
-function WriteProcessMemory(hProcess: THandle; const lpBaseAddress: Pointer; lpBuffer: Pointer; nSize: DWORD; var lpNumberOfBytesWritten: PTRUINT): BOOL; stdcall;
-begin
-  result:=WriteProcessMemoryActual(hProcess, lpBaseAddress, lpbuffer, nSize, lpNumberOfBytesWritten);
-end;
-
-{$endif}
 
 function VirtualQueryEx_StartCache_stub(hProcess: THandle; flags: dword): boolean;
 begin
@@ -1410,11 +1416,14 @@ begin
 
 end;
 
+{$endif}
+
 function loaddbvmifneeded(reason: string=''): BOOL;  stdcall;
 var
   signed: BOOL;
   r: string;
 begin
+{$ifdef windows}
   result:=isRunningDBVM;
   if result then exit;
 
@@ -1457,6 +1466,9 @@ begin
 
   end;
 {$endif}
+{$else}
+  result:=false;
+{$endif}
 end;
 
 function isRunningDBVM: boolean;
@@ -1468,7 +1480,7 @@ begin
 {$endif}
 end;
 
-{$endif}
+
 
 
 
@@ -1774,6 +1786,7 @@ begin
 {$endif}
 end;
 
+{$endif}
 
 procedure DBKFileAsMemory; overload;
 {Changes the redirection of ReadProcessMemory, WriteProcessMemory and VirtualQueryEx to FileHandler.pas's ReadProcessMemoryFile, WriteProcessMemoryFile and VirtualQueryExFile }
@@ -1807,6 +1820,8 @@ begin
   DBKFileAsMemory;
 {$endif}
 end;
+
+{$ifdef windows}
 
 function VirtualQueryExPhysical(hProcess: THandle; lpAddress: Pointer; var lpBuffer: TMemoryBasicInformation; dwLength: DWORD): DWORD; stdcall;
 var buf:_MEMORYSTATUS;
@@ -2299,7 +2314,8 @@ initialization
   initMaxPhysMask;
 
   {$ifdef darwin}
-  ReadProcessMemory:=@macport.ReadProcessMemory;
+  ReadProcessMemoryActual:=@macport.ReadProcessMemory;
+  WriteProcessMemoryActual:=@macport.WriteProcessMemory;
   SetThreadContext:=@macport.SetThreadContext;
   GetThreadContext:=@macport.GetThreadContext;
   VirtualQueryExActual:=@macport.Virtualqueryex;

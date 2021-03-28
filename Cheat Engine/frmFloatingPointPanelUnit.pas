@@ -10,7 +10,7 @@ interface
 
 uses
   {$ifdef darwin}
-  macport,
+  macport, math,
   {$endif}
   {$ifdef windows}
   windows,

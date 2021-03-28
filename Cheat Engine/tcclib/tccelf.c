@@ -929,8 +929,7 @@ ST_FUNC void relocate_syms(TCCState *s1, Section *symtab, int do_resolve)
                              tcc_add_symbol(s1, name, addr);
                              sym->st_value = (addr_t) addr;
                              goto found;
-                         }
-                             
+                         }                             
                      }
                      //check engine symbol lookup end
             

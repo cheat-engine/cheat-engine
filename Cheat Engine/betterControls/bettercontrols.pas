@@ -4,6 +4,8 @@ unit betterControls;
 
 interface
 
+{$ifdef windows}
+
 uses
   windows,Classes, SysUtils, newRadioButton, newCheckBox, newButton, newListView,
   newEdit, newMainMenu, newForm, newListBox, newProgressBar, newMemo, newComboBox,
@@ -12,7 +14,11 @@ uses
   newPageControl, newtabcontrol, newStatusBar,
   newCheckListBox, newCheckGroup, newColorBox, newDirectoryEdit, NewHintwindow,
   Graphics, Themes, UxTheme, bettercontrolColorSet;
+{$else}
+uses macport, graphics,math, bettercontrolColorSet;
+{$endif}
 
+{$ifdef windows}
 type
   TButton=class(TNewButton);
   TCheckBox=class(TNewCheckBox);
@@ -45,11 +51,10 @@ type
   THintWindow=class(TNewHintwindow);
   THintWindowClass =class of TNewHintwindow;
 
+{$endif}
 var
   globalCustomDraw: boolean;
   currentColorSet: TBetterControlColorSet;
-
-  ColorSet: TBetterControlColorSet; //set based on querying the system
 
   //color overrides
   clWindowtext: TColor=graphics.clWindowText;
@@ -57,10 +62,13 @@ var
   clHighlight: TColor=graphics.clHighlight;
   clBtnFace: TColor=graphics.clBtnFace;
   clBtnText: TColor=graphics.clBtnText;
+
+  ColorSet: TBetterControlColorSet; //set based on querying the system
   clBtnBorder: TColor=graphics.clBtnText;
 
   darkmodestring: string=''; //contains ' dark' if darkmode is used (used for settings)
 
+{$ifdef windows}
 
 type
   TAllowDarkModeForWindow = function(hwnd: HWND; state: DWORD): BOOL; stdcall;
@@ -77,19 +85,24 @@ var
   FlushMenuThemes: TFlushMenuThemes;
   _ShouldAppsUseDarkMode: TShouldAppsUseDarkMode;
 
-  function incColor(c: tcolor; amount: integer): tcolor;
+
   procedure registerDarkModeHintHandler;
+  {$endif}
   function ShouldAppsUseDarkMode:BOOL;
+  function incColor(c: tcolor; amount: integer): tcolor;
+
 
 implementation
 
+{$ifdef windows}
 uses forms, controls, Registry, Win32Proc;
+
 
 var
   FHandle: THandle;
   FLoaded: Boolean;
   darkmodebuggy: boolean;
-
+{$endif}
 function inccolor(c: Tcolor; amount: integer): tcolor;
 var  R, G, B : Byte;
 begin
@@ -99,7 +112,7 @@ begin
   B := min(255, Integer(B) + amount);
   Result := RGBToColor(R, G, B);
 end;
-
+{$ifdef windows}
 procedure RefreshImmersiveColorPolicyState_stub; stdcall;
 begin
 end;
@@ -116,9 +129,13 @@ end;
 
 var UsesDarkMode: (dmUnknown, dmYes, dmNo)=dmUnknown;
 
+{$endif}
 function ShouldAppsUseDarkMode:BOOL; stdcall;
+{$ifdef windows}
 var reg: tregistry;
+{$endif}
 begin
+  {$ifdef windows}
   if darkmodebuggy then exit(false);
 
   if UsesDarkMode=dmUnknown then
@@ -163,7 +180,12 @@ begin
   end;
 
   exit(UsesDarkMode=dmyes);
+  {$else}
+  exit(false);
+  {$endif}
 end;
+
+{$ifdef windows}
 
 
 type
@@ -191,13 +213,15 @@ var
   i: integer;
   reg: TRegistry;
 
+{$endif}
 initialization
+
   //setup ColorSet
 
   ColorSet.FontColor:=clWindowtext;
   colorset.TextBackground:=clWindow;
 
-
+  {$ifdef windows}
   darkmodebuggy:=true;
   try
     currentColorSet:=ColorSet;
@@ -285,5 +309,6 @@ initialization
   except
 
   end;
+  {$endif}
 end.
 

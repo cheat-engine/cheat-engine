@@ -29,7 +29,7 @@ type
 
 implementation
 
-uses symbolhandler, newkernelhandler, ProcessHandlerUnit;
+uses symbolhandler, newkernelhandler, ProcessHandlerUnit{$ifdef darwin},macport{$endif};
 
 function TAddressEdit.getAddress: ptruint;
 var

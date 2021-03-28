@@ -6,19 +6,29 @@ unit DBVMDebuggerInterface;
 
 interface
 
+{$ifdef windows}
+
 uses
   jwawindows, windows, Classes, SysUtils,cefuncproc, newkernelhandler,
   DebuggerInterface,contnrs, vmxfunctions;
+{$else}
+uses classes, DebuggerInterface;
+{$endif}
+
+
 
 type
   TDBVMResumerThread=class(TThread)
   public
+    {$ifdef windows}
     procedure Execute; override; //frequently gets the frozen thread list and checks if it contains the CE process. If so, resume, and check more frequently
+    {$endif}
   end;
 
 
   TDBVMDebugInterface=class(TDebuggerInterface)
   private
+    {$ifdef windows}
     lastfrozenID: integer;
     currentFrozenID: integer;
     currentFrozenState: TPageEventExtended;
@@ -32,7 +42,9 @@ type
     procedure SteppingThreadLost;
 
     function setBreakEvent(var lpDebugEvent: TDebugEvent; frozenThreadID: integer): boolean;
+    {$endif}
   public
+    {$ifdef windows}
     usermodeloopint3: qword;
     kernelmodeloopint3: qword; static;
     OnSteppingthreadLoss: TNotifyEvent;
@@ -47,14 +59,16 @@ type
     function needsToAttach: boolean; override;
     function controlsTheThreadList: boolean; override;
     function usesDebugRegisters: boolean; override;
-
+    {$endif}
 
   end;
 
 var dbvm_bp_unfreezeselfcounter: integer;
 
+
 implementation
 
+{$ifdef windows}
 uses DBK32functions, ProcessHandlerUnit, symbolhandler, simpleaobscanner,
   commonTypeDefs, symbolhandlerstructs, globals;
 
@@ -569,6 +583,9 @@ begin
   freeandnil(resumerThread);
   inherited destroy;
 end;
+
+
+{$endif}
 
 end.
 

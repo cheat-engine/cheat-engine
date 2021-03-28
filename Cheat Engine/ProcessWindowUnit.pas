@@ -909,8 +909,7 @@ end;
 
 procedure TProcessWindow.btnOpenFileClick(Sender: TObject);
 begin
-
-
+  {$ifdef windows}
   if opendialog2.execute then
   begin
     if frmOpenFileAsProcessDialog=nil then
@@ -930,7 +929,9 @@ begin
       modalresult:=mrok;
     end;
   end;
-
+  {$else}
+  MessageDlg('Not yet implemented', mtError,[mbok],0);
+  {$endif}
 
 end;
 

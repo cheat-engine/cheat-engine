@@ -3160,6 +3160,7 @@ var
   pid32: dword;
   tid32: dword;
 begin
+  {$ifdef windows}
   umgsbase:=min(state.gsbase, state.gsbase_kernel);   //get the usermode gsbase
 
   {$ifdef cpu64}
@@ -3186,6 +3187,10 @@ begin
   end;
   {$endif}
 
+
+  {$else}
+  exit(false);
+  {$endif}
 
 end;
 

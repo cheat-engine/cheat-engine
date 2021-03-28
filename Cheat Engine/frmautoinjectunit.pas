@@ -11,7 +11,7 @@ uses
   windows,
   {$endif}
   LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  StdCtrls, ExtCtrls, Menus, MemoryRecordUnit, commonTypeDefs, customtypehandler,
+  StdCtrls, ExtCtrls, Menus, MemoryRecordUnit, commonTypeDefs, CustomTypeHandler,
   disassembler, symbolhandler, symbolhandlerstructs, SynEdit, SynHighlighterCpp,
   SynHighlighterAA, LuaSyntax, SynPluginMultiCaret, SynEditSearch, tablist,
   SynGutterBase, SynEditMarks, math, SynEditMiscClasses, SynEditTextBase,
@@ -405,7 +405,7 @@ uses frmAAEditPrefsUnit,MainUnit,memorybrowserformunit,APIhooktemplatesettingsfr
   Globals, Parsers, MemoryQuery, {$ifdef windows}GnuAssembler,{$endif} LuaCaller, SynEditTypes, CEFuncProc,
   StrUtils, types, ComCtrls, LResources, NewKernelHandler, MainUnit2, Assemblerunit,
   autoassembler,  registry, luahandler, memscan, foundlisthelper, ProcessHandlerUnit,
-  frmLuaEngineUnit, frmSyntaxHighlighterEditor, lua, lualib, lauxlib, luaclass, LuaForm, SymbolListHandler;
+  frmLuaEngineUnit, frmSyntaxHighlighterEditor, lua, lualib, lauxlib, LuaClass, LuaForm, SymbolListHandler;
 
 resourcestring
   rsExecuteScript = 'Execute script';
@@ -2376,6 +2376,10 @@ begin
   miRedo.ShortCut:=TextToShortCut('Shift+Meta+X');
   miFind.ShortCut:=TextToShortCut('Meta+F');
   mifindNext.ShortCutKey2:=TextToShortcut('Meta+G');
+
+  miNewWindow.Shortcut:=TextToShortCut('Meta+N');
+  load1.Shortcut:=TextToShortCut('Meta+O');
+  save1.Shortcut:=TextToShortCut('Meta+S');
 
   i:=assemblescreen.Keystrokes.FindCommand(ecSelectAll);
   if i<>-1 then assemblescreen.Keystrokes[i].ShortCut:=TextToShortCut('Meta+A');

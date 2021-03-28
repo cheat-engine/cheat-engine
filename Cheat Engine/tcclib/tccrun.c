@@ -309,7 +309,8 @@ static int tcc_relocate_ex(TCCState *s1, void *ptr, addr_t ptr_diff)
 				if (length)
 				{
 					void *zeromem = tcc_malloc(length);
-					ZeroMemory(zeromem, length);
+                    memset(zeromem, 0, length);
+					//ZeroMemory(zeromem, length);
 					s1->binary_writer_func(s1->binary_writer_param, ptr, zeromem, length);
 					tcc_free(zeromem);
 				}
@@ -350,6 +351,12 @@ static int tcc_relocate_ex(TCCState *s1, void *ptr, addr_t ptr_diff)
 
 static void set_pages_executable(TCCState *s1, void *ptr, unsigned long length)
 {
+  //Cheat Engine modification:  This code is not needed
+  return;
+  //Cheat Engine modification end
+
+
+
 #ifdef _WIN32
     unsigned long old_protect;
     VirtualProtect(ptr, length, PAGE_EXECUTE_READWRITE, &old_protect);

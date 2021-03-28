@@ -16,7 +16,8 @@ type
 
   THScrollEvent=procedure (sender: TObject; scrolledleft, maxscrolledleft: integer) of object;
 
-  TTreeView = class(betterControls.TTreeView)
+
+  TTreeView = class({$ifdef windows}betterControls.{$else}comctrls.{$endif}TTreeView)
   private
     fOnHScroll: THScrollEvent;
     fOnVScroll: TNotifyEvent;

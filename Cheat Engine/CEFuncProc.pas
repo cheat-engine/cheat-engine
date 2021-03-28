@@ -786,7 +786,8 @@ end;
 {$ifdef darwin}
 Procedure InjectDll(dllname: string; functiontocall: string='');
 var s: tstringlist;
-    allocs: TCEAllocArray;
+    di: TDisableInfo;
+    //allocs: TCEAllocArray;
     injector: qword;
     returnvalue: qword;
     i: integer;
@@ -799,7 +800,7 @@ var s: tstringlist;
 
     errorstring: string;
     tid: dword;
-    el: TCEExceptionListArray;
+    //el: TCEExceptionListArray;
 begin
   outputdebugstring('cefuncproc.InjectDLL('''+dllname+''','''+functiontocall+''')');
   s:=tstringlist.create;
@@ -932,20 +933,21 @@ begin
  // raise exception.create('copy to clipboard now');
 
 
-  setlength(allocs,0);
-  if autoassemble(s,false, true, false, false, allocs,el) then
+  di:=TDisableInfo.create;
+  //setlength(allocs,0);
+  if autoassemble(s,false, true, false, false, di) then
   begin
     injector:=0;
     returnvalue:=0;
-    for i:=0 to length(allocs)-1 do
-      if allocs[i].varname='injector' then
-        injector:=allocs[i].address
+    for i:=0 to length(di.allocs)-1 do
+      if di.allocs[i].varname='injector' then
+        injector:=di.allocs[i].address
       else
-      if allocs[i].varname='returnvalue' then
-        returnvalue:=allocs[i].address
+      if di.allocs[i].varname='returnvalue' then
+        returnvalue:=di.allocs[i].address
       else
-      if allocs[i].varname='errorstr' then
-        erroraddress:=allocs[i].address;
+      if di.allocs[i].varname='errorstr' then
+        erroraddress:=di.allocs[i].address;
 
     //showmessage('injector='+inttohex(injector,8));
 
@@ -978,7 +980,7 @@ begin
 
 
     //finally free the injector
-    autoassemble(s, false, false, false, false, allocs, el);   //disable
+    autoassemble(s, false, false, false, false, di);   //disable
 
     if r=2 then
     begin

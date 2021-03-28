@@ -193,7 +193,9 @@ type
     registerCompareIgnore: array [0..16] of boolean;
 
     da: TDisassembler;
+    {$ifdef windows}
     dacr3: TCR3Disassembler;
+    {$endif}
 
     defaultBreakpointMethod: TBreakpointmethod;
 
@@ -284,8 +286,9 @@ begin
   bytesize:=0;
   if cr3=0 then
     ReadProcessMemory(processhandle, pointer(referencedaddress), bytes, datasize, bytesize)
+  {$ifdef windows}
   else
-    ReadProcessMemoryCR3(cr3, pointer(referencedaddress), bytes, datasize, bytesize);
+    ReadProcessMemoryCR3(cr3, pointer(referencedaddress), bytes, datasize, bytesize){$endif};
 end;
 
 procedure TTraceDebugInfo.SaveStack;
@@ -300,8 +303,9 @@ begin
       ReadProcessMemory(processhandle, pointer(c.{$ifdef cpu64}Rsp{$else}esp{$endif}), stack.stack, stack.savedsize, stack.savedsize);
     end;
   end
+  {$ifdef windows}
   else
-    ReadProcessMemoryCR3(cr3, pointer(c.{$ifdef cpu64}Rsp{$else}esp{$endif}), stack.stack, savedStackSize, stack.savedsize);
+    ReadProcessMemoryCR3(cr3, pointer(c.{$ifdef cpu64}Rsp{$else}esp{$endif}), stack.stack, savedStackSize, stack.savedsize){$endif};
 end;
 
 constructor TTraceDebugInfo.createFromStream(s: tstream);
@@ -533,13 +537,16 @@ begin
       da.showsections:=symhandler.showsections;
     end;
 
+    {$ifdef windows}
     if isdbvminterface and (dacr3=nil) then
     begin
       dacr3:=tcr3disassembler.Create;
-      da.showsymbols:=symhandler.showsymbols;
-      da.showmodules:=symhandler.showmodules;
-      da.showsections:=symhandler.showsections;
+      dacr3.showsymbols:=symhandler.showsymbols;
+      dacr3.showmodules:=symhandler.showmodules;
+      dacr3.showsections:=symhandler.showsections;
     end;
+
+
 
     {$ifdef cpu64}
     if isdbvminterface and (debuggerthread.CurrentThread.context.P2Home<>0) then
@@ -549,6 +556,7 @@ begin
       dacr3.CR3:=cr3;
     end
     else
+    {$endif}
     {$endif}
     begin
       currentda:=da;
@@ -1285,6 +1293,7 @@ begin
         end;
       end;
 
+      {$ifdef windows}
       if cbDBVMBreakAndTrace.checked then
       begin
         if loaddbvmifneeded(rsDBVMBreakAndTraceNeedsDBVM)=false then exit;
@@ -1375,6 +1384,7 @@ begin
 
       end
       else
+      {$endif}
       if startdebuggerifneeded then
       begin
         isdbvminterface:=CurrentDebuggerInterface is TDBVMDebugInterface;
@@ -1936,8 +1946,10 @@ begin
   if da<>nil then
     da.free;
 
+  {$ifdef windows}
   if dacr3<>nil then
     dacr3.free;
+  {$endif}
 
   saveformposition(self);
 end;
