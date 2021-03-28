@@ -22,11 +22,6 @@ typedef uint64_t QWORD;
 
 void ErrorThrow(void)
 {
-    
-    OutputDebugString("ErrorThrow 2");
-    
-   // while (1);
-    
 	throw std::invalid_argument("Access violation caught");
 }
 
@@ -89,7 +84,7 @@ void ErrorFilter(int signr, siginfo_t *info, void *uap)
 
 CPipeServer::CPipeServer(void)
 {
-    OutputDebugString("CPipeServer::CPipeServer");
+    //OutputDebugString("CPipeServer::CPipeServer");
 	attached = FALSE;
 #ifdef _WINDOWS
 	swprintf(datapipename, 256, L"\\\\.\\pipe\\cemonodc_pid%d", GetCurrentProcessId());
@@ -2128,11 +2123,13 @@ void CPipeServer::Start(void)
         
 		try
 		{
+#ifndef _WINDOWS
             if (setjmp(onError))
             {
                 OutputDebugString("setjmp returned 1");
                 throw("Error during execution");
             }
+#endif
             
 			while (TRUE)
 			{
