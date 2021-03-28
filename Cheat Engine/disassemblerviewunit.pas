@@ -668,6 +668,10 @@ begin
   visibleDisassembler.showmodules:=symhandler.showModules;
   visibleDisassembler.showsymbols:=symhandler.showsymbols;
   visibleDisassembler.showsections:=symhandler.showsections;
+
+  currentDisassembler.showmodules:=symhandler.showModules;
+  currentDisassembler.showsymbols:=symhandler.showsymbols;
+  currentDisassembler.showsections:=symhandler.showsections;
 end;
 
 procedure TDisassemblerview.StatusInfoLabelCopy(sender: TObject);
