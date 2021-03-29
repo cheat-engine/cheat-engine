@@ -215,10 +215,7 @@ begin
   if listview1.ItemIndex<>-1 then
   begin
     if messagedlg(rsAreYouSureYouWantToRemoveThisSymbolFromTheList, mtconfirmation, [mbyes, mbno], 0)=mryes then
-    begin
       symhandler.DeleteUserdefinedSymbol(listview1.Items[listview1.ItemIndex].Caption);
-      listview1.Items[listview1.ItemIndex].Delete;
-    end;
   end;
 end;
 
