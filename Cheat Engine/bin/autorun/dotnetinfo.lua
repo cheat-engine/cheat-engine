@@ -991,7 +991,7 @@ local csfile,msg=compileCS(csharpscript, references, sysfile)
 
 if csfile==nil then
   --sometimes having the sysfile causes an issue. Try without  
-  local csfile,msg=compileCS(csharpscript, references)
+  csfile,msg=compileCS(csharpscript, references)
   if csfile==nil then 
     if msg==nil then msg=' (?Unknown error?)' end
     messageDialog('Compilation error:'..msg, mtError, mbOK) --show compile error in a dialog instead of a lua error only
