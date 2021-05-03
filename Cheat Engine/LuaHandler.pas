@@ -2196,11 +2196,11 @@ begin
   result:=0;
   try
     parameters:=lua_gettop(L);
-    if parameters=2 then
+    if parameters>=2 then
     begin
-      address:=lua_toaddress(L,-2,processhandle=GetCurrentProcess);
+      address:=lua_toaddress(L,1,processhandle=GetCurrentProcess);
 
-      v:=lua_tonumber(L, -1);
+      v:=lua_tonumber(L, 2);
 
       lua_pop(L, parameters);
 

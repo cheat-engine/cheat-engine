@@ -1446,8 +1446,12 @@ begin
 
   MenuItem3.ShortCutKey2:=TextToShortCut('Meta+S');
 
+  MenuItem11.ShortCut:=TextToShortCut('Meta+N');
+  MenuItem2.ShortCut:=TextToShortCut('Meta+O');
+  MenuItem3.ShortCut:=TextToShortCut('Meta+S');
+  miSaveCurrentScriptAs.ShortCut:=TextToShortCut('Meta+Alt+S');
 
-  {$endif}
+   {$endif}
 end;
 
 procedure TfrmLuaEngine.FormDestroy(Sender: TObject);
