@@ -215,10 +215,7 @@ begin
   if listview1.ItemIndex<>-1 then
   begin
     if messagedlg(rsAreYouSureYouWantToRemoveThisSymbolFromTheList, mtconfirmation, [mbyes, mbno], 0)=mryes then
-    begin
       symhandler.DeleteUserdefinedSymbol(listview1.Items[listview1.ItemIndex].Caption);
-      listview1.Items[listview1.ItemIndex].Delete;
-    end;
   end;
 end;
 
@@ -230,15 +227,20 @@ begin
 end;
 
 procedure TfrmSymbolhandler.MenuItem1Click(Sender: TObject);
-var i: integer;
+var
+  i: integer;
+  list: tstringlist;
 begin
   if messagedlg(rsAreYouSureYouWantToRemoveAllSymbolsFromTheList, mtconfirmation, [mbyes, mbno], 0)=mryes then
   begin
-    for i:=listview1.Items.Count-1 downto 0 do
-    begin
-      symhandler.DeleteUserdefinedSymbol(listview1.Items[i].Caption);
-      listview1.Items[i].Delete;
-    end;
+    list:=tstringlist.Create;
+    for i:=0 to ListView1.items.count-1 do
+      list.add(listview1.items[i].Caption);
+
+    for i:=0 to list.count-1 do
+      symhandler.DeleteUserdefinedSymbol(list[i]);
+
+    list.free;
 
 
     refreshlist;
