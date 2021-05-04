@@ -607,11 +607,14 @@ begin
 end;
 
 procedure TAdvancedOptions.miSetColorClick(Sender: TObject);
-var i: integer;
+var
+  i: integer;
+  cle: TCodeListEntry;
 begin
   if lvCodelist.Selected=nil then exit;
 
-  colordialog1.color:=TCodeListEntry(lvCodelist.selected.Data).color;
+  cle:=TCodeListEntry(lvCodelist.selected.Data);
+  colordialog1.color:=cle.color;
   if colordialog1.execute then
   begin
     for i:=0 to count-1 do
