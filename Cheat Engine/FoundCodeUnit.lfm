@@ -1,7 +1,7 @@
 object FoundCodeDialog: TFoundCodeDialog
-  Left = 682
+  Left = 985
   Height = 399
-  Top = 279
+  Top = 287
   Width = 430
   BorderIcons = [biSystemMenu]
   Caption = 'The following opcodes changed the selected address'
@@ -13,7 +13,7 @@ object FoundCodeDialog: TFoundCodeDialog
   OnDestroy = FormDestroy
   OnShow = FormShow
   Position = poOwnerFormCenter
-  LCLVersion = '2.0.10.0'
+  LCLVersion = '2.0.6.0'
   object Panel1: TPanel
     Left = 294
     Height = 398
@@ -549,9 +549,10 @@ object FoundCodeDialog: TFoundCodeDialog
       FF00FFFFFF00FFFFFF00FFFFFF00
     }
   end
-  object timerAddressStringLookup: TTimer
-    OnTimer = timerAddressStringLookupTimer
-    Left = 153
-    Top = 60
+  object timerEntryInfoUpdate: TTimer
+    Interval = 250
+    OnTimer = timerEntryInfoUpdateTimer
+    Left = 184
+    Top = 40
   end
 end
