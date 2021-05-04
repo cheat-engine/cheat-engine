@@ -3135,6 +3135,8 @@ var
   usesMath: boolean;
   lastBraceOpen: integer;
   f: single;
+
+  newundovalue: string;
 begin
   //check if it is a '(description)' notation
 
@@ -3249,7 +3251,8 @@ begin
   end;
 
   if (not isfreezer) then
-    undovalue:=GetValue;
+    newundovalue:=GetValue;
+
 
   realAddress:=GetRealAddress; //quick update
 
@@ -3492,6 +3495,9 @@ begin
   freememandnil(buf);
 
   frozenValue:=unparsedvalue;     //we got till the end, so update the frozen value
+
+  if (not isfreezer) and (GetValue<>newundovalue) then
+    undovalue:=newundovalue;
 
 end;
 

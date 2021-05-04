@@ -161,6 +161,7 @@ begin
   begin
     try
       memrec.Value:=text;
+      edited:=false;
     except
       beep;
     end;
