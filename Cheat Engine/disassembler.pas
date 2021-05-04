@@ -164,7 +164,8 @@ type
     context: PCONTEXT;
 
 //    showvalues: boolean;
-    function disassemble(var offset: ptrUint; var description: string): string;
+    function disassemble(var offset: ptrUint; var description: string): string; overload;
+    function disassemble(var offset: ptrUint): string; overload;
     procedure splitDisassembledString(disassembled: string; showvalues: boolean; var address: string; var bytes: string; var opcode: string; var special:string; context: PContext=nil);
 
     function DecodeLastParametersToString: string; //returns the special line splitDisassemblerstring used to return
@@ -1578,7 +1579,11 @@ begin
     result:=actualread;
 end;
 
-
+function TDisassembler.disassemble(var offset: ptrUint): string;
+var ignore: string;
+begin
+  result:=disassemble(offset, ignore);
+end;
 
 function TDisassembler.disassemble(var offset: ptrUint; var description: string): string;
 var

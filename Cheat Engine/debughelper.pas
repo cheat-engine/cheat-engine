@@ -60,6 +60,10 @@ type
     neverstarted: boolean;
     pid: THandle;
 
+    GUIObjectToFree: TObject;
+    procedure sync_FreeGUIObject;
+
+
     procedure DBVMSteppingLost(sender: TObject);
     function getDebugThreadHanderFromThreadID(tid: dword): TDebugThreadHandler;
 
@@ -449,6 +453,23 @@ begin
             begin
               outputdebugstring('cleanupDeletedBreakpoints: deleting bp');
               breakpointlist.Delete(i);
+
+              if (bp^.FoundcodeDialog<>nil) then
+              begin
+                //the foundcode dialog was closed(refcount=0), so can be deleted now
+                GUIObjectToFree:=bp^.FoundcodeDialog;
+                Synchronize(sync_FreeGUIObject);
+
+                bp^.FoundcodeDialog:=nil;
+              end;
+
+              if (bp^.frmchangedaddresses<>nil) then
+              begin
+                GUIObjectToFree:=bp^.frmchangedaddresses;
+                Synchronize(sync_FreeGUIObject);
+
+                bp^.frmchangedaddresses:=nil;
+              end;
 
               if bp^.conditonalbreakpoint.script<>nil then
                 StrDispose(bp^.conditonalbreakpoint.script);
@@ -1711,6 +1732,10 @@ begin
     bo_FindCode, usedDebugRegister,  foundcodedialog, 0);
 
 
+  foundcodedialog.breakpoint:=newbp;
+  inc(newbp.referencecount);
+
+
   if length(bplist) > 1 then
   begin
     for i := 1 to length(bplist) - 1 do
@@ -1853,10 +1878,8 @@ begin
       end;
 
     if Result then
-    begin
       RemoveBreakpoint(bp); //unsets and removes all breakpoints that belong to this
-      bp^.frmchangedaddresses:=nil;
-    end;
+
   finally
     debuggercs.leave;
   end;
@@ -2002,6 +2025,7 @@ var
   i: integer;
   s: string;
   tempaddress: ptruint;
+  bp: PBreakpoint;
 begin
   result:=nil;
   if foundCodeDialog<>nil then  //this is linked to a foundcode dialog
@@ -2079,7 +2103,12 @@ begin
   if foundcodedialog=nil then
     frmchangedaddresses.show;
 
-  AddBreakpoint(nil, address, 1, bptExecute, method, bo_FindWhatCodeAccesses, usedDebugRegister, nil, 0, frmchangedaddresses);
+  bp:=AddBreakpoint(nil, address, 1, bptExecute, method, bo_FindWhatCodeAccesses, usedDebugRegister, nil, 0, frmchangedaddresses);
+  if bp<>nil then
+  begin
+    inc(bp^.referencecount);  //so it doesn't get freed before the form is gone
+    frmChangedAddresses.breakpoint:=bp;
+  end;
 
 
   result:=frmChangedAddresses;
@@ -2808,6 +2837,11 @@ end;
 procedure TDebuggerthread.DBVMSteppingLost(sender: TObject);
 begin
   //
+end;
+
+procedure TDebuggerthread.sync_FreeGUIObject;
+begin
+  GUIObjectToFree.Free;
 end;
 
 procedure TDebuggerthread.defaultConstructorcode;

@@ -101,11 +101,13 @@ type
     procedure ContinueFromBreakpoint(bp: PBreakpoint; continueoption: TContinueOption; isTracerStepOver: boolean=false);
     function EnableOriginalBreakpointAfterThisBreakpointForThisThread(bp: Pbreakpoint; OriginalBreakpoint: PBreakpoint): boolean;
 
+    procedure foundCodeDialog_AddRecord;
+    procedure frmchangedaddresses_AddRecord;
+
     //sync functions
     procedure visualizeBreak;
     procedure AddDebugEventString;
-    procedure foundCodeDialog_AddRecord;
-    procedure frmchangedaddresses_AddRecord;
+
   public
     isHandled: boolean; //set to true if this thread is the current debug target
     needstocleanup: boolean;
@@ -164,52 +166,111 @@ uses foundcodeunit, DebugHelper, MemoryBrowserFormUnit, frmThreadlistunit,
      frmDebugEventsUnit, formdebugstringsunit, symbolhandler,
      networkInterface, networkInterfaceApi, ProcessHandlerUnit, globals,
      UnexpectedExceptionsHelper, frmcodefilterunit, frmBranchMapperUnit, LuaHandler,
-     LazLogger, Dialogs, vmxfunctions, debuggerinterface, DBVMDebuggerInterface;
+     LazLogger, Dialogs, vmxfunctions, debuggerinterface, DBVMDebuggerInterface,formChangedAddresses;
 
 resourcestring
   rsDebugHandleAccessViolationDebugEventNow = 'Debug HandleAccessViolationDebugEvent now';
   rsSpecialCase = 'Special case';
 
 procedure TDebugThreadHandler.frmchangedaddresses_AddRecord;
+//7.3 Not async anymore
+var
+  address: ptruint;
+  haserror: boolean;
+  e: TaddressEntry;
+
+  s: string;
+
+  f: Tfrmchangedaddresses;
 begin
   TDebuggerthread(debuggerthread).execlocation:=44;
 
-  if (((currentbp.breakpointMethod=bpmException) and not currentbp.markedfordeletion) or currentBP.active) and (currentBP.frmchangedaddresses<>nil) then
-    currentbp.frmchangedaddresses.AddRecord;
+  f:=currentbp^.frmchangedaddresses;
+  address:=symhandler.getAddressFromName(f.equation, false, haserror, context);
+  if not haserror then
+  begin
+    e:=nil;
+    f.addresslistCS.Enter;
+    try
+      if f.addresslist.GetData(address, e) then
+      begin
+        inc(e.count);
+        e.changed:=true; //the gui sets this to false after reading/parsing the value
+        exit;
+      end;
+
+      //still here so a new address
+      s:=inttohex(address,8);
+      if (f.foundcodedialog=nil) or (f.foundCount<8) then
+      begin
+        e:=TAddressEntry.create(f);
+        e.context:=context^;
+        e.address:=address;
+        e.count:=1;
+        e.changed:=true;
+        e.savestack;
+        f.addresslist.Add(address,e);
+      end;
+
+
+    finally
+      f.addresslistCS.Leave;
+    end;
+
+    if e<>nil then
+    begin
+      f.newRecord:=e;
+      TThread.Synchronize(TThread.CurrentThread, f.AddRecord);
+    end;
+  end;
 end;
 
 procedure TDebugThreadHandler.foundCodeDialog_AddRecord;
-begin
-  TDebuggerthread(debuggerthread).execlocation:=43;
+//7.3: Not ASYNC
+var
+  address, address2: ptruint;
+  desc: string;
+  d: TDisassembler;
+  hasAddress: boolean;
 
+  cr: FoundcodeUnit.Tcoderecord;
+begin
   if (((currentbp.breakpointMethod=bpmException) and not currentbp.markedfordeletion) or currentBP.active) and (currentbp.FoundcodeDialog<>nil) then  //it could have been deactivated
   begin
-    TDebuggerthread(debuggerthread).execlocation:=431;
-    currentBP.FoundcodeDialog.usesdebugregs:=currentBP.breakpointMethod=bpmDebugRegister;
-    currentBP.FoundcodeDialog.useexceptions:=currentBP.breakpointMethod=bpmException;
-
-    TDebuggerthread(debuggerthread).execlocation:=432;
-
-    if currentBP.FoundcodeDialog<>nil then
-    begin
-      try
-        currentBP.FoundcodeDialog.AddRecord;
-      except
-        on e:exception do
-          outputdebugstring('old error 432: currentBP.FoundcodeDialog.AddRecord: '+e.message);
-      end;
-    end
+    if processhandler.SystemArchitecture=archARM then
+      address:=armcontext.PC
     else
-      outputdebugstring('old error 432: foundCodeDialog_AddRecord: currentBP.FoundcodeDialog is nil');
+    begin
+      address:=context.{$ifdef cpu64}Rip{$else}eip{$endif};
+      if (currentBP.breakpointMethod=bpmDebugRegister) or (currentBP.breakpointMethod=bpmException) then //find out the previous opcode
+      begin
+        address2:=address;
+        d:=TDisassembler.Create;
+        d.disassemble(address2,desc);
+        if copy(d.LastDisassembleData.opcode,1,3)<>'REP' then
+          address:=previousopcode(address);
 
-    TDebuggerthread(debuggerthread).execlocation:=433;
-  end
-  else
-  begin
-   // beep;
+        freeandnil(d);
+      end;
+    end;
+
+
+    //check if this address is in the list, and if not, add it (sync), else increase the counter
+    currentBP^.FoundcodeDialog.seenAddressListCS.Enter;
+
+    hasAddress:=currentBP^.FoundcodeDialog.seenAddressList.GetData(address, cr);
+    if hasAddress then
+      cr.hitcount:=cr.hitcount+1;
+
+    currentBP^.FoundcodeDialog.seenAddressListCS.Leave;
+
+    //not in the list, add it:
+    if hasAddress=false then
+    begin
+      currentBP^.FoundcodeDialog.addRecord_Address:=address;
+      TDebuggerthread(debuggerthread).Synchronize(TThread.CurrentThread,currentBP^.FoundcodeDialog.AddRecord);
+    end;
   end;
-
-  TDebuggerthread(debuggerthread).execlocation:=439;
 end;
 
 procedure TDebugThreadHandler.AddDebugEventString;
@@ -1293,8 +1354,7 @@ begin
 
         if ((bpp.breakpointMethod=bpmException) and (not bpp.markedfordeletion)) or bpp.active then
         begin
-          TDebuggerthread(debuggerthread).Synchronize(TDebuggerthread(debuggerthread), foundCodeDialog_AddRecord);
-          TDebuggerthread(debuggerthread).guiupdate:=true;
+          foundCodeDialog_AddRecord;
 
           if CurrentDebuggerInterface is TNetworkDebuggerInterface then
             continueFromBreakpoint(bpp, co_run);  //explicitly continue from this breakpoint
@@ -1306,8 +1366,11 @@ begin
       bo_FindWhatCodeAccesses:
       begin
         TDebuggerthread(debuggerthread).execlocation:=33;
+        frmchangedaddresses_AddRecord;
+
+        {TDebuggerthread(debuggerthread).execlocation:=33;
         TDebuggerthread(debuggerthread).Synchronize(TDebuggerthread(debuggerthread), frmchangedaddresses_AddRecord);
-        TDebuggerthread(debuggerthread).guiupdate:=true;
+        TDebuggerthread(debuggerthread).guiupdate:=true;  }
 
         continueFromBreakpoint(bpp, co_run); //just continue running
       end;

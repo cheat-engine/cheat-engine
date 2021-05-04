@@ -672,6 +672,7 @@ begin
   currentDisassembler.showmodules:=symhandler.showModules;
   currentDisassembler.showsymbols:=symhandler.showsymbols;
   currentDisassembler.showsections:=symhandler.showsections;
+  currentDisassembler.is64bitOverride:=visibleDisassembler.is64bitOverride;
 end;
 
 procedure TDisassemblerview.StatusInfoLabelCopy(sender: TObject);

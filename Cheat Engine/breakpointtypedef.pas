@@ -50,6 +50,7 @@ type
 
 
     FoundcodeDialog: TFoundcodedialog;
+
     frmchangedaddresses: Tfrmchangedaddresses;
     frmTracer: TfrmTracer;
     tracecount: integer;
