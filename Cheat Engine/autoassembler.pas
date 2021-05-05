@@ -1554,18 +1554,21 @@ begin
   setlength(createthread,0);
   setlength(createthreadandwait,0);
   setlength(defines,0);
+  setlength(labels,0);
 
   currentaddress:=0;
 
 
-  //add all symbols as defines
+  //add all symbols as predefined labels
   if disableinfo<>nil then
   begin
-    setlength(defines,disableinfo.allsymbols.count);
+    setlength(labels, disableinfo.allsymbols.count);
     for i:=0 to disableinfo.allsymbols.count-1 do
     begin
-      defines[i].name:=disableinfo.allsymbols[i];
-      defines[i].whatever:=inttohex(ptruint(disableinfo.allsymbols.Objects[i]),8);
+      labels[i].defined:=true;
+      labels[i].address:=ptruint(disableinfo.allsymbols.Objects[i]);
+      labels[i].labelname:=disableinfo.allsymbols[i];
+      labels[i].assemblerline:=-2; //undo symbol label
     end;
   end;
 
@@ -1604,6 +1607,7 @@ begin
 
 //2 pass scanner
   try
+
     setlength(assembled,1);
     setlength(kallocs,0);
     setlength(allocs,0);
