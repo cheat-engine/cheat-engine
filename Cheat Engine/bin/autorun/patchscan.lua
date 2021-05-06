@@ -23,7 +23,7 @@ end
 function scanModuleForPatches(modulepath, loadedModuleBase, thread)
 
   local original=createMemoryStream()
-  r,e=original.loadFromFileNoError(modulepath)
+  local r,e=original.loadFromFileNoError(modulepath)
   if not r then
     original.destroy()
     return false,e
@@ -212,9 +212,11 @@ function scanModuleForPatches(modulepath, loadedModuleBase, thread)
           --local addressString=getNameFromAddress(VA+bytesOK)
           local entrynr=#results+1
           if (entrynr==1) or ((results[entrynr-1].Address+8)~=(VA+bytesOK)) then
-            results[entrynr]={}
+            results[entrynr]={}            
             results[entrynr].Address=VA+bytesOK
             results[entrynr].FileAddress=FA+bytesOK
+            results[entrynr].FileOffset=sections[i].PointerToRawData+bytesOK
+            
             results[entrynr].Size=8
           else
             results[entrynr-1].Size=results[entrynr-1].Size+8
@@ -240,8 +242,9 @@ function scanModuleForPatches(modulepath, loadedModuleBase, thread)
       return nil,'Terminated' 
     end   
       
-    results[i].OriginalBytes=readBytesLocal(results[i].FileAddress, results[i].Size, true) --original.read(results[i].Size)
+    results[i].OriginalBytes=readBytesLocal(results[i].FileAddress, results[i].Size, true) --original.read(results[i].Size)    
     results[i].PatchedBytes=readBytes(results[i].Address, results[i].Size, true)
+    results[i].ModulePath=modulepath
   end
 
 
@@ -326,6 +329,7 @@ function startPatchScan()
     local scanThread=nil
 
     pform.OnClose=function()
+      --print('done')
       --terminate the scanner if needed       
       if scanThread then   
         --don't wait , it's a free on terminate thread anyhow     
@@ -375,8 +379,10 @@ function startPatchScan()
       end
 
       local pm=createPopupMenu(rform)
-      local miRestore=createMenuItem(pm)
+      local miRestore=createMenuItem(pm)    
       local miPatch=createMenuItem(pm)
+      local miSeperator=createMenuItem(pm)
+      local miPatchExe=createMenuItem(pm)
 
       pm.Images=getMemoryViewForm().mvImageList
 
@@ -384,8 +390,16 @@ function startPatchScan()
       miRestore.ImageIndex=44
       miPatch.Caption=translate('Reapply patch')
       miPatch.ImageIndex=49
+      
+      miSeperator.Caption='-'
+      
+      miPatchExe.Caption=translate('Create patched exe from selected entries')
+      miPatchExe.ImageIndex=49
+      
       pm.Items.add(miRestore)
       pm.Items.add(miPatch)
+      pm.Items.add(miSeperator)
+      pm.Items.add(miPatchExe)
 
       miRestore.OnClick=function(s)
         local i
@@ -408,16 +422,79 @@ function startPatchScan()
           end
         end
       end
+      
+      miPatchExe.OnClick=function(s)
+        --check if all the same module
+        local i
+        local ModulePath=nil
+        patches={}       
+        
+        for i=0, lv.Items.Count-1 do
+          if lv.Items[i].Selected then
+            local ref=getRef(lv.Items[i].Data)
+            local mp=ref.ModulePath
+            
+            if ModulePath==nil then            
+              ModulePath=ref.ModulePath
+            else            
+              if ModulePath~=ref.ModulePath then
+                messageDialog('You can only select the same type of modules when making a patched exe')
+                return
+              end
+            end
+            
+            table.insert(patches, ref)
+          end          
+        end              
+      
+        local sd=createSaveDialog(rform)
+        sd.DefaultExt='.EXE'
+        sd.Filter='Executable Files (*.EXE; *.DLL)|*.EXE;*.DLL'
+        sd.Options='[ofOverwritePrompt]'
+        sd.FileName=extractFileNameWithoutExt(ModulePath)..'_Patched'..extractFileExt(ModulePath)
+        sd.InitialDir=extractFilePath(ModulePath)
+        
+        if sd.execute() then                
+          local filename=sd.FileName
+          
+          local ms=createMemoryStream()
+          local r,e=ms.loadFromFileNoError(ModulePath) --load the original file
+          if r then
+            --apply the patches                    
+            for i=1, #patches do
+              --printf("%d: Writing to patch offset %d", i, patches[i].FileOffset) 
+              writeBytesLocal(ms.Memory+patches[i].FileOffset, patches[i].PatchedBytes)
+            end          
+            
+            r,e=ms.saveToFileNoError(filename)          
+            if not r then
+              messageDialog(e)
+            end
+          else
+            messageDialog(e)
+          end
+          
+          ms.destroy()
+        end
+        
+        sd.destroy()
+      end
 
       lv.PopupMenu=pm
 
+      rform.PopupMode='pmNone'
       rform.position='poScreenCenter'
       rform.ClientWidth=caddress.Width+coriginal.Width+cpatched.Width
       rform.ClientHeight=MainForm.Canvas.getTextHeight('XGgxj')*10
       rform.BorderStyle='bsSizeable'
-      rform.show()
+      rform.show()      
+      processMessages()
+      
+      
+     -- print('done')
 
       rform.OnClose=function(f)
+        print('rform closed')
         local i
         for i=0,lv.Items.Count-1 do
           local ref=lv.Items[i].Data
