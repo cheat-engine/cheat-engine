@@ -1,3 +1,5 @@
+local DPIMultiplier=(getScreenDPI()/96)
+
 if getTranslationFolder()~='' then
   loadPOFile(getTranslationFolder()..'patchscan.po')
 end
@@ -18,7 +20,7 @@ function byteTableToHexString(bt)
 end
 
 
-function scanModuleForPatches(modulepath, loadedModuleBase)
+function scanModuleForPatches(modulepath, loadedModuleBase, thread)
 
   local original=createMemoryStream()
   r,e=original.loadFromFileNoError(modulepath)
@@ -94,6 +96,10 @@ function scanModuleForPatches(modulepath, loadedModuleBase)
 
   local i
   for i=1,SectionCount do
+    if thread and thread.Terminated then 
+      original.destroy()    
+      return nil,'Terminated' 
+    end  
     sections[i]={}
     sections[i].name=byteTableToString(original.read(8))
     sections[i].misc=original.readDword()
@@ -138,6 +144,11 @@ function scanModuleForPatches(modulepath, loadedModuleBase)
 
     original.position=RelocationTablePosition
     repeat
+      if thread and thread.Terminated then 
+        original.destroy()    
+        return nil,'Terminated' 
+      end  
+    
       local oldpos=original.position
       local VABase=original.readDword()
       local Size=original.readDword()
@@ -147,6 +158,11 @@ function scanModuleForPatches(modulepath, loadedModuleBase)
 
       local i
       for i=1,Entries do
+        if thread and thread.Terminated then 
+          original.destroy()    
+          return nil,'Terminated' 
+        end 
+        
         local relinfo=original.readWord()
         local reltype=relinfo >> 12
         local VA=VABase+(relinfo & 0xfff);
@@ -174,6 +190,8 @@ function scanModuleForPatches(modulepath, loadedModuleBase)
   local results={}
 
   for i=1 , #sections do
+    if thread and thread.Terminated then return nil,'Terminated' end   
+    
     if sections[i].Executable then
       local VA=loadedModuleBase+sections[i].virtualAddress
       local FA=original.Memory+sections[i].PointerToRawData
@@ -184,6 +202,11 @@ function scanModuleForPatches(modulepath, loadedModuleBase)
       --print(string.format("Checking section %s ranging from %x to %x", sections[i].name, VA,VA+sections[i].sizeOfRawData))
 
       while (result==false) and (bytesLeft>0) do
+        if thread and thread.Terminated then 
+          original.destroy()    
+          return nil,'Terminated' 
+        end 
+        
         result,bytesOK=compareMemory(VA,FA,bytesLeft,1) --VA in target, FA in CE, so method 1
         if (result==false) then
           --local addressString=getNameFromAddress(VA+bytesOK)
@@ -203,6 +226,7 @@ function scanModuleForPatches(modulepath, loadedModuleBase)
         end
 
         if result==nil then
+          original.destroy()
           return nil, translate("Compare error. ")
         end
       end
@@ -211,6 +235,11 @@ function scanModuleForPatches(modulepath, loadedModuleBase)
 
   --get the bytes
   for i=1,#results do
+    if thread and thread.Terminated then
+      original.destroy()
+      return nil,'Terminated' 
+    end   
+      
     results[i].OriginalBytes=readBytesLocal(results[i].FileAddress, results[i].Size, true) --original.read(results[i].Size)
     results[i].PatchedBytes=readBytes(results[i].Address, results[i].Size, true)
   end
@@ -277,144 +306,183 @@ function startPatchScan()
 
     --todo: use a thread to do the scan
 
-
-    --progressbar + currently scanned module
+    --progressbar + currently scanned module + cancel button
     local pform=createForm(false)
     pform.position='poScreenCenter'
-    pform.ClientWidth = 600
-    pform.ClientHeight = 30
+    pform.ClientWidth = DPIMultiplier*600
+    
     local psprogress = createProgressBar(pform)
-    psprogress.ClientWidth = 600
-    psprogress.ClientHeight = 30
+    --psprogress.ClientWidth = 600
+    --psprogress.ClientHeight = 30
     psprogress.Max = listbox.Items.Count-1
     psprogress.Min = 0
     psprogress.Position = 1
-    pform.show()
-    for i=0,listbox.Items.Count-1 do
-      psprogress.position = i
-      pform.Caption=string.format(translate("Scanning: %s"), l[i+1].Name)
-      if listbox.Selected[i] then
-        local modulepatches,emsg=scanModuleForPatches(l[i+1].PathToFile, l[i+1].Address)
+    psprogress.Style = "pbstMarquee"
+    
 
+    pform.AutoSize=true
+    pform.show()
+    
+    local scanThread=nil
+
+    pform.OnClose=function()
+      --terminate the scanner if needed       
+      if scanThread then   
+        --don't wait , it's a free on terminate thread anyhow     
+        scanThread.terminate()          
+        scanThread=nil
+      end
+      
+      local rform=createForm(false) 
+      local lv=createListView(rform)    
+
+      rform.Caption=translate('Patch list')
+      lv.Align='alClient'
+      lv.ViewStyle='vsReport'
+      lv.ReadOnly=true
+      lv.MultiSelect=true
+      lv.RowSelect=true
+      lv.HideSelection=false
+      lv.Name="lvResults"     
+      local caddress=lv.Columns.add()            
+      local coriginal=lv.Columns.add()          
+      local cpatched=lv.Columns.add()      
+
+      caddress.Width=rform.Canvas.GetTextWidth('XXXXXXXXXXXXXXXXXXXXXXXX')
+      caddress.Caption=translate('Address')
+      coriginal.Width=rform.Canvas.GetTextWidth('XX XX XX XX XX XX XX XX XX')
+      coriginal.Caption=translate('Original')
+      cpatched.Width=coriginal.Width
+      cpatched.Caption=translate('Patched')
+
+      for i=1,#allpatches do
+        local li=lv.Items.add()
+        local s=allpatches[i]
+        li.Caption=getNameFromAddress(s.Address)
+        li.SubItems.Add(byteTableToHexString(s.OriginalBytes))
+        li.SubItems.Add(byteTableToHexString(s.PatchedBytes))
+
+        li.Data=createRef(s)
+      end
+
+      lv.OnDblClick=function(s)
+        --_G.dbglv=lv
+        if lv.Selected then
+          local ref=getRef(lv.Selected.Data)
+
+          getMemoryViewForm().DisassemblerView.SelectedAddress=ref.Address
+        end
+      end
+
+      local pm=createPopupMenu(rform)
+      local miRestore=createMenuItem(pm)
+      local miPatch=createMenuItem(pm)
+
+      pm.Images=getMemoryViewForm().mvImageList
+
+      miRestore.Caption=translate('Restore with original')
+      miRestore.ImageIndex=44
+      miPatch.Caption=translate('Reapply patch')
+      miPatch.ImageIndex=49
+      pm.Items.add(miRestore)
+      pm.Items.add(miPatch)
+
+      miRestore.OnClick=function(s)
+        local i
+        for i=0, lv.Items.Count-1 do
+          if lv.Items[i].Selected then
+            local ref=getRef(lv.Items[i].Data)
+
+            writeBytes(ref.Address, ref.OriginalBytes)
+          end
+        end
+      end
+
+      miPatch.OnClick=function(s)
+        local i
+        for i=0, lv.Items.Count-1 do
+          if lv.Items[i].Selected then
+            local ref=getRef(lv.Items[i].Data)
+
+            writeBytes(ref.Address, ref.PatchedBytes)
+          end
+        end
+      end
+
+      lv.PopupMenu=pm
+
+      rform.position='poScreenCenter'
+      rform.ClientWidth=caddress.Width+coriginal.Width+cpatched.Width
+      rform.ClientHeight=MainForm.Canvas.getTextHeight('XGgxj')*10
+      rform.BorderStyle='bsSizeable'
+      rform.show()
+
+      rform.OnClose=function(f)
+        local i
+        for i=0,lv.Items.Count-1 do
+          local ref=lv.Items[i].Data
+          destroyRef(ref)
+        end
+
+        rform=nil
+        
+        msf.destroy()
+        msf=nil
+        return caFree
+      end      
+      pform=nil
+      return caFree
+    end
+    
+    
+    --spawn the scanner thread
+    local scannedmodules={}
+    local i
+    for i=0,listbox.Items.Count-1 do
+      if listbox.Selected[i] then            
+        table.insert(scannedmodules, l[i+1])      
+      end      
+    end
+    
+    _G.debug1=scannedmodules
+    _G.debug2=allpatches
+    
+    
+    scanThread=createThread(function(t)
+      local i
+      for i=1,#scannedmodules do      
+        local modulepatches,emsg=scanModuleForPatches(scannedmodules[i].PathToFile, scannedmodules[i].Address, t)
+        
         if modulepatches then
           local j
           for j=1,#modulepatches do
             local c=#allpatches+1
             allpatches[c]=modulepatches[j]
             allpatches[c].Modulename=l[i+1].Name --add the modulename (scanModuleForPatches doesn't add that)
-          end
+          end        
         else
-          messageDialog(translate('Error in ')..l[i].name..':'..emsg, mtError, mbOK)
+          synchronize(function()
+            messageDialog("Patch scan error:"..emsg)           
+          end)        
         end
       end
-    end
-    pform.close()
-    pform.destroy()
-    ---build a gui with the information in allpatches
-    -- _G.dbg=allpatches
-
-    local rform=createForm(false)
-    local lv=createListView(rform)
-
-    rform.Caption=translate('Patch list')
-
-    lv.Align='alClient'
-    lv.ViewStyle='vsReport'
-    lv.ReadOnly=true
-    lv.MultiSelect=true
-    lv.RowSelect=true
-    lv.HideSelection=false
-    local caddress=lv.Columns.add()
-    local coriginal=lv.Columns.add()
-    local cpatched=lv.Columns.add()
-
-    caddress.Width=rform.Canvas.GetTextWidth('XXXXXXXXXXXXXXXXXXXXXXXX')
-    caddress.Caption=translate('Address')
-    coriginal.Width=rform.Canvas.GetTextWidth('XX XX XX XX XX XX XX XX XX')
-    coriginal.Caption=translate('Original')
-    cpatched.Width=coriginal.Width
-    cpatched.Caption=translate('Patched')
-
-    for i=1,#allpatches do
-      local li=lv.Items.add()
-      local s=allpatches[i]
-      li.Caption=getNameFromAddress(s.Address)
-      li.SubItems.Add(byteTableToHexString(s.OriginalBytes))
-      li.SubItems.Add(byteTableToHexString(s.PatchedBytes))
-
-      li.Data=createRef(s)
-    end
-
-    lv.OnDblClick=function(s)
-      --_G.dbglv=lv
-      if lv.Selected then
-        local ref=getRef(lv.Selected.Data)
-
-        getMemoryViewForm().DisassemblerView.SelectedAddress=ref.Address
+      
+      --done 
+      if not t.Terminated then      
+        synchronize(function(t)          
+          if pform then
+            pform.close() --scanThread=nil so it won't free this thread
+          end
+        end,t) 
       end
-    end
-
-    local pm=createPopupMenu(rform)
-    local miRestore=createMenuItem(pm)
-    local miPatch=createMenuItem(pm)
-
-    pm.Images=getMemoryViewForm().mvImageList
-
-    miRestore.Caption=translate('Restore with original')
-    miRestore.ImageIndex=44
-    miPatch.Caption=translate('Reapply patch')
-    miPatch.ImageIndex=49
-    pm.Items.add(miRestore)
-    pm.Items.add(miPatch)
-
-    miRestore.OnClick=function(s)
-      local i
-      for i=0, lv.Items.Count-1 do
-        if lv.Items[i].Selected then
-          local ref=getRef(lv.Items[i].Data)
-
-          writeBytes(ref.Address, ref.OriginalBytes)
-        end
-      end
-    end
-
-    miPatch.OnClick=function(s)
-      local i
-      for i=0, lv.Items.Count-1 do
-        if lv.Items[i].Selected then
-          local ref=getRef(lv.Items[i].Data)
-
-          writeBytes(ref.Address, ref.PatchedBytes)
-        end
-      end
-    end
-
-
-    lv.PopupMenu=pm
-
-    rform.position='poScreenCenter'
-    rform.ClientWidth=caddress.Width+coriginal.Width+cpatched.Width
-    rform.ClientHeight=MainForm.Canvas.getTextHeight('XGgxj')*10
-    rform.BorderStyle='bsSizeable'
-
-    rform.show()
-
-    rform.OnClose=function(f)
-      local i
-      for i=0,lv.Items.Count-1 do
-        local ref=lv.Items[i].Data
-        destroyRef(ref)
-      end
-
-      rform=nil
-      return caFree
-    end
+      
+      --got to the end.  This means the form has been closed and no longer needed. It can be freed now
+    end)
+    
+  else
+    msf.destroy()
+    msf=nil
   end
-
-  msf.destroy()
-
-  if inMainThread() then processMessages() end
-
 end
 
 local mv=getMemoryViewForm()
