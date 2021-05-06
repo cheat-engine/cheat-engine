@@ -274,7 +274,7 @@ var
   path: string;
   noautorun: boolean;
 begin
-  Application.Title:='Cheat Engine 7.3';
+  Application.Title:='Muganha Core';
   {$ifdef darwin}
   macPortFixRegPath;
   {$endif}
