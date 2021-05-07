@@ -463,11 +463,21 @@ function startPatchScan()
             --apply the patches                    
             for i=1, #patches do
               --printf("%d: Writing to patch offset %d", i, patches[i].FileOffset) 
-              writeBytesLocal(ms.Memory+patches[i].FileOffset, patches[i].PatchedBytes)
+              
+              --only apply the changed bytes (in case of applied relocations)
+              local j
+              for j=1,#patches[i].PatchedBytes do
+                if patches[i].PatchedBytes[j]~=patches[i].OriginalBytes[j] then
+                  writeBytesLocal(ms.Memory+patches[i].FileOffset+j-1, patches[i].PatchedBytes[j]) 
+                end
+              end
+              
             end          
             
             r,e=ms.saveToFileNoError(filename)          
-            if not r then
+            if r then
+              messageDialog(filename..' has been created')
+            else              
               messageDialog(e)
             end
           else
