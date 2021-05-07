@@ -25,6 +25,10 @@ type
   { TfrmDissectCode }
 
   TfrmDissectCode = class(TForm)
+    edtCustomRangeStart: TEdit;
+    edtCustomRangeStop: TEdit;
+    Label10: TLabel;
+    Label8: TLabel;
     MainMenu1: TMainMenu;
     MenuItem1: TMenuItem;
     MenuItem2: TMenuItem;
@@ -82,7 +86,7 @@ uses frmReferencedFunctionsUnit, PEInfounit;
 resourcestring
   rsStop = 'Stop';
   rsStart = 'Start';
-  rsPleaseSelectSomethingToScan = 'Please select something to scan';
+  rsPleaseSelectSomethingToScan = 'Please select something to scan or enter a custom range';
   rsDone = 'done';
   rsDissectDataLoaded = 'Dissect data loaded';
 
@@ -95,6 +99,10 @@ var start,stop:PtrUInt;
     h,m,s,ms: word;
     n: integer;
     flipped: boolean;
+
+    customRangeStart: ptruint;
+    customRangeStop: ptruint;
+    hasCustomRange: boolean=false;
 begin
   if btnStart.caption=rsStop then
   begin
@@ -111,9 +119,18 @@ begin
     exit;
   end;
 
+  if (trim(edtCustomRangeStart.text)<>'') and (trim(edtCustomRangeStop.text)<>'') then
+  begin
+    customRangeStart:=symhandler.getAddressFromName(edtCustomRangeStart.text);
+    customRangeStop:=symhandler.getAddressFromName(edtCustomRangeStop.text);
+
+    hasCustomRange:=true;
+  end;
 
 
-  if lbModuleList.SelCount=0 then raise exception.Create(rsPleaseSelectSomethingToScan);
+
+
+  if (lbModuleList.SelCount=0) and (hasCustomRange=false) then raise exception.Create(rsPleaseSelectSomethingToScan);
 
   if dissectcode=nil then
     dissectcode:=TDissectCodeThread.create(false);
@@ -122,6 +139,27 @@ begin
 
 
   setlength(dissectcode.memoryregion,0);
+
+  if hasCustomRange then
+  begin
+    getexecutablememoryregionsfromregion(customRangeStart, customRangeStop, tempregions);
+    setlength(dissectcode.memoryregion,length(dissectcode.memoryregion)+length(tempregions));
+
+    for i:=0 to length(tempregions)-1 do
+    begin
+      if tempregions[i].BaseAddress<customrangestart then
+      begin
+        dec(tempregions[i].MemorySize, customrangestart-tempregions[i].BaseAddress);
+        tempregions[i].BaseAddress:=customrangestart;
+      end;
+
+      if (tempregions[i].BaseAddress+tempregions[i].MemorySize)>customrangestop then
+        tempregions[i].MemorySize:=customrangestop-tempregions[i].BaseAddress;
+
+
+      dissectcode.memoryregion[length(dissectcode.memoryregion)-length(tempregions)+i]:=tempregions[i];
+    end;
+  end;
 
   for i:=0 to lbModuleList.items.count-1 do
   begin
@@ -321,7 +359,8 @@ end;
 procedure TfrmDissectCode.FormShow(Sender: TObject);
 begin
   fillModuleList(cbIncludesystemModules.checked);
-  if lbModuleList.Count>0 then
+
+  if (lbModuleList.Count>0) and (trim(edtCustomRangeStart.text)='') and (trim(edtCustomRangeStop.text)='') then //select the first one
   begin
     lbModuleList.ItemIndex:=0;
     lbModuleList.Selected[0]:=true;

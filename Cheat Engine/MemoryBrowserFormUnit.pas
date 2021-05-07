@@ -4049,6 +4049,17 @@ begin
   if frmdissectcode=nil then
     frmdissectcode:=tfrmDissectcode.create(self);
 
+  if disassemblerview.SelectedAddress2<>disassemblerview.SelectedAddress then
+  begin
+    frmDissectCode.edtCustomRangeStart.text:=inttohex(MinX(disassemblerview.SelectedAddress, disassemblerview.SelectedAddress2),8);
+    frmDissectCode.edtCustomRangeStop.text:=inttohex(MaxX(disassemblerview.SelectedAddress, disassemblerview.SelectedAddress2),8);
+  end
+  else
+  begin
+    frmDissectCode.edtCustomRangeStart.text:='';
+    frmDissectCode.edtCustomRangeStop.text:='';
+  end;
+
   frmdissectcode.Show;
   {$endif}
 end;

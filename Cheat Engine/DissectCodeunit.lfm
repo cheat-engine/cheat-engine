@@ -1,12 +1,12 @@
 object frmDissectCode: TfrmDissectCode
   Left = 803
-  Height = 350
+  Height = 439
   Top = 245
-  Width = 327
+  Width = 348
   AutoSize = True
   Caption = 'Dissect Code'
-  ClientHeight = 330
-  ClientWidth = 327
+  ClientHeight = 419
+  ClientWidth = 348
   Menu = MainMenu1
   OnClose = FormClose
   OnCreate = FormCreate
@@ -16,8 +16,8 @@ object frmDissectCode: TfrmDissectCode
   object ProgressBar1: TProgressBar
     Left = 0
     Height = 21
-    Top = 309
-    Width = 327
+    Top = 398
+    Width = 348
     Align = alBottom
     ParentShowHint = False
     ShowHint = True
@@ -25,35 +25,39 @@ object frmDissectCode: TfrmDissectCode
   end
   object Panel1: TPanel
     Left = 0
-    Height = 309
+    Height = 398
     Top = 0
-    Width = 193
+    Width = 214
     Align = alClient
-    AutoSize = True
     BevelOuter = bvNone
-    ClientHeight = 309
-    ClientWidth = 193
+    ClientHeight = 398
+    ClientWidth = 214
     TabOrder = 0
     object lbModuleList: TListBox
+      AnchorSideTop.Control = Panel2
+      AnchorSideTop.Side = asrBottom
+      AnchorSideRight.Control = Panel1
+      AnchorSideRight.Side = asrBottom
       Left = 0
       Height = 260
       Top = 49
-      Width = 193
-      Align = alClient
+      Width = 214
+      Anchors = [akTop, akLeft, akRight]
       ItemHeight = 0
       MultiSelect = True
       TabOrder = 0
     end
     object Panel2: TPanel
+      AnchorSideLeft.Control = Panel1
+      AnchorSideTop.Control = Panel1
       Left = 0
       Height = 49
       Top = 0
-      Width = 193
-      Align = alTop
+      Width = 199
       AutoSize = True
       BevelOuter = bvNone
       ClientHeight = 49
-      ClientWidth = 193
+      ClientWidth = 199
       TabOrder = 1
       object Label2: TLabel
         AnchorSideLeft.Control = Panel2
@@ -72,8 +76,8 @@ object frmDissectCode: TfrmDissectCode
         Left = 0
         Height = 15
         Top = 15
-        Width = 150
-        Caption = 'Hold CTRL to select multiple'
+        Width = 199
+        Caption = 'Hold CTRL to select multiple modules'
         ParentColor = False
       end
       object cbIncludesystemModules: TCheckBox
@@ -89,16 +93,62 @@ object frmDissectCode: TfrmDissectCode
         TabOrder = 0
       end
     end
+    object Label8: TLabel
+      AnchorSideTop.Control = lbModuleList
+      AnchorSideTop.Side = asrBottom
+      Left = 0
+      Height = 15
+      Top = 311
+      Width = 101
+      BorderSpacing.Top = 2
+      Caption = 'Custom range start'
+      ParentColor = False
+    end
+    object edtCustomRangeStart: TEdit
+      AnchorSideTop.Control = Label8
+      AnchorSideTop.Side = asrBottom
+      AnchorSideRight.Control = Panel1
+      AnchorSideRight.Side = asrBottom
+      Left = 0
+      Height = 23
+      Top = 326
+      Width = 214
+      Anchors = [akTop, akLeft, akRight]
+      TabOrder = 2
+    end
+    object Label10: TLabel
+      AnchorSideTop.Control = edtCustomRangeStart
+      AnchorSideTop.Side = asrBottom
+      Left = 0
+      Height = 15
+      Top = 351
+      Width = 101
+      BorderSpacing.Top = 2
+      Caption = 'Custom range stop'
+      ParentColor = False
+    end
+    object edtCustomRangeStop: TEdit
+      AnchorSideTop.Control = Label10
+      AnchorSideTop.Side = asrBottom
+      AnchorSideRight.Control = Panel1
+      AnchorSideRight.Side = asrBottom
+      Left = 0
+      Height = 23
+      Top = 366
+      Width = 214
+      Anchors = [akTop, akLeft, akRight]
+      TabOrder = 3
+    end
   end
   object Panel3: TPanel
-    Left = 193
-    Height = 309
+    Left = 214
+    Height = 398
     Top = 0
     Width = 134
     Align = alRight
     AutoSize = True
     BevelOuter = bvNone
-    ClientHeight = 309
+    ClientHeight = 398
     ClientWidth = 134
     TabOrder = 2
     object Label6: TLabel
