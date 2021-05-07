@@ -78,9 +78,9 @@ begin
     canvas.Rectangle(arect);
 
     ts:=canvas.TextStyle;
-    ts.Alignment:=taCenter;
+    ts.Alignment:=section.Alignment;
     ts.Layout:=tlCenter;
-    canvas.TextRect(arect,0,0,section.Text,ts);
+    canvas.TextRect(arect,arect.left+2,0,section.Text,ts);
 
 
 
