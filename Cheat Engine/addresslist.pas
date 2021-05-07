@@ -1636,6 +1636,8 @@ function TAddresslist.valuecompare(_a: TTreenode; _b: TTreenode): integer;
 var
   va, vb: double;
   a,b: TMemoryRecord;
+
+  s1,s2: widestring;
 begin
   if sortlevel0only and (_a.level<>0) and (_b.level<>0) then exit(0);
 
@@ -1644,15 +1646,26 @@ begin
   if not TryStrToFloat(a.value, va) then va:=0;
   if not TryStrToFloat(b.value, vb) then vb:=0;
 
-  result:=0;
-  if vb>va then
-    result:=1;
+  if (a.VarType in [vtString, vtUnicodeString]) and
+     (b.VarType in [vtString, vtUnicodeString]) then
+  begin
+    s1:=a.value;
+    s2:=b.value;
+    result:=strcomp(pwidechar(s1),pwidechar(s2));
+  end
+  else
+  begin
+    result:=0;
+    if vb>va then
+      result:=1;
 
-  if vb<va then
-    result:=-1;
+    if vb<va then
+      result:=-1;
+  end;
 
   if not valuesortdirection then
     result:=-result;
+
 end;
 
 
