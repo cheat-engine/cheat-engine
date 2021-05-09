@@ -1236,7 +1236,11 @@ begin
     if active then active:=false;
   end;
 
-  if saveddesign=nil then exit; //nothing to save
+  if saveddesign=nil then
+    SaveCurrentStateasDesign;
+
+  if saveddesign=nil then
+    exit; //give up
 
   //for now use a binarystream instead of xml. the xmlwriter/reader does not support stringlists
   //create a stream for storage
