@@ -740,6 +740,8 @@ begin
             end;
             currentEntry:=currentEntry.NextSibling;
           end;
+
+          rebuildDescriptionCache;
         end;
       end;
     finally
