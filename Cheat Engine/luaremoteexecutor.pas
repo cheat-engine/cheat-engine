@@ -856,12 +856,12 @@ begin
       end;
 
       if (lua_gettop(L)>=3) and (not lua_isnil(L,3)) then
-        timeout:=lua_tointeger(L,2)
+        timeout:=lua_tointeger(L,3)
       else
         timeout:=INFINITE;
 
       if (lua_gettop(L)>=4) and (not lua_isnil(L,4)) then
-        waittilldone:=not lua_toboolean(L,3)
+        waittilldone:=not lua_toboolean(L,4)
       else
         waittilldone:=true;
 
