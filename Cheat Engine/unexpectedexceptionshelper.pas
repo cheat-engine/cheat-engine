@@ -209,10 +209,13 @@ begin
       try
         l:=tstringlist.create;
 
-        reg.GetValueNames(l);
+        try
+          reg.GetValueNames(l);
 
-        for i:=0 to l.count-1 do
-          reg.DeleteValue(l[i]);
+          for i:=0 to l.count-1 do
+            reg.DeleteValue(l[i]);
+        except
+        end;
 
         l.clear;
 
