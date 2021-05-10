@@ -1375,12 +1375,17 @@ begin
 
   if (Run=0) and
      (l>=4) and (fLine[1] = '$') and   //{$C}
-     (uppercase(fLine[2]) = 'C') and
-     (uppercase(fLine[3]) = '}') then
+     (uppercase(fLine[2]) = 'C') then
   begin
     //{$C} block
-    changeHighlighter:=chlCPP;
-    braceend:=3;
+    if (fLine[3] in ['}',' ']) then
+      for i:=3 to l do
+        if fline[i]='}' then
+        begin
+          changeHighlighter:=chlCPP;
+          braceend:=i;
+          break;
+        end;
   end;
 
 
