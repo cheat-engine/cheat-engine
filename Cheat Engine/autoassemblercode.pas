@@ -48,6 +48,9 @@ type
       end;
 
       targetself: boolean;
+
+      symbolPrefix: string;
+      kernelAlloc: boolean;
     end;
   end;
 
@@ -61,12 +64,12 @@ procedure AutoAssemblerCodePass2(var dataForPass2: TAutoAssemblerCodePass2Data; 
 implementation
 
 uses {$ifdef windows}windows,{$endif}{$ifdef darwin}macport,macportdefines,math,{$endif}ProcessHandlerUnit, symbolhandler, luahandler, lua, lauxlib, lualib, StrUtils,
-  Clipbrd, dialogs, lua_server, tcclib, Assemblerunit, NewKernelHandler;
+  Clipbrd, dialogs, lua_server, tcclib, Assemblerunit, NewKernelHandler, DBK32functions;
 
 
 type
   TAACodeType=(ctLua, ctC);
-  TLuaCodeParameter=record
+  TLuaCodeParameter=record   //also CCode parameters
     varname: string;
     contextitem: integer;
 
@@ -372,15 +375,12 @@ var
   _tcc: TTCC;
   s: string;
 
-  sl: TSymbolListHandler;
+  tempsymbollist: TStringlist;
 begin
   secondarylist:=TStringList.create;
   bytes:=tmemorystream.create;
 
-  if symbollist=nil then
-    sl:=TSymbolListHandler.create
-  else
-    sl:=symbollist;
+  tempsymbollist:=tstringlist.create;
 
   errorlog:=tstringlist.create;
 
@@ -409,35 +409,48 @@ begin
     for i:=0 to length(dataForPass2.cdata.references)-1 do
       secondarylist.AddObject(dataForPass2.cdata.references[i].name, tobject(dataForPass2.cdata.references[i].address));
 
-    if _tcc.compileScript(dataForPass2.cdata.cscript.Text, dataForPass2.cdata.address, bytes, symbollist, errorlog, secondarylist, dataForPass2.cdata.targetself ) then
+
+
+    if _tcc.compileScript(dataForPass2.cdata.cscript.Text, dataForPass2.cdata.address, bytes, tempsymbollist, errorlog, secondarylist, dataForPass2.cdata.targetself ) then
     begin
       if bytes.Size>dataForPass2.cdata.bytesize then
       begin
         //this will be a slight memoryleak but whatever
         //allocate 4x the amount of memory needed
 
-        newAddress:=ptruint(VirtualAllocEx(phandle,nil,4*bytes.size,mem_reserve or mem_commit, PAGE_EXECUTE_READWRITE));
+        if dataForPass2.cdata.kernelAlloc then
+          newAddress:=ptruint(KernelAlloc(4*bytes.size))
+        else
+          newAddress:=ptruint(VirtualAllocEx(phandle,nil,4*bytes.size,mem_reserve or mem_commit, PAGE_EXECUTE_READWRITE));
+
         if newAddress<>0 then
         begin
           dataForPass2.cdata.address:=newAddress;
           dataForPass2.cdata.bytesize:=4*bytes.size;
 
           //try again
-          sl.clear;
+          tempsymbollist.clear;
           bytes.clear;
           secondarylist.Clear;
           errorlog.clear;
-          if _tcc.compileScript(dataForPass2.cdata.cscript.text, dataForPass2.cdata.address, bytes, symbollist, errorlog, secondarylist, dataForPass2.cdata.targetself )=false then
+          if _tcc.compileScript(dataForPass2.cdata.cscript.text, dataForPass2.cdata.address, bytes, tempsymbollist, errorlog, secondarylist, dataForPass2.cdata.targetself )=false then
           begin
             //wtf? something really screwed up here
-            VirtualFreeEx(phandle, pointer(newAddress), 0,MEM_FREE);
+            if dataForPass2.cdata.kernelAlloc then
+              KernelFree(newAddress)
+            else
+              VirtualFreeEx(phandle, pointer(newAddress), 0,MEM_FREE);
             raise exception.create('3rd time failure of c-code');
           end;
 
 
           if bytes.Size>dataForPass2.cdata.bytesize then
           begin
-            VirtualFreeEx(phandle, pointer(newAddress), 0,MEM_FREE);
+            if dataForPass2.cdata.kernelAlloc then
+              KernelFree(newAddress)
+            else
+              VirtualFreeEx(phandle, pointer(newAddress), 0,MEM_FREE);
+
             raise exception.create('(Unexplained and unmitigated code growth)');
           end;
         end
@@ -454,36 +467,51 @@ begin
         j:=secondarylist.IndexOf(dataforpass2.cdata.linklist[i].name);
         if j=-1 then raise exception.create('Failure to link '+dataForPass2.cdata.linklist[i].fromname+' due to missing reference');
 
-        syminfo:=sl.FindSymbol(dataForPass2.cdata.linklist[i].fromname);
-        if syminfo=nil then exception.create('Failure to link '+dataForPass2.cdata.linklist[i].fromname+' due to it missing in the c-code');
+        k:=tempsymbollist.IndexOf(dataForPass2.cdata.linklist[i].fromname);
+        if k=-1 then exception.create('Failure to link '+dataForPass2.cdata.linklist[i].fromname+' due to it missing in the c-code');
 
-        a:=syminfo^.address;
+        a:=ptruint(tempsymbollist.Objects[k]);
         writeProcessMemory(phandle, pointer(dataForPass2.cdata.references[j].address),@a,psize,bw);
       end;
 
+
       for i:=0 to length(dataForPass2.cdata.symbols)-1 do
       begin
-        syminfo:=sl.FindSymbol(dataForPass2.cdata.symbols[i].name);
-        if syminfo<>nil then
-          dataforpass2.cdata.symbols[i].address:=syminfo^.address;
+        j:=tempsymbollist.IndexOf(dataForPass2.cdata.symbols[i].name);
+        if j<>-1 then
+          dataforpass2.cdata.symbols[i].address:=ptruint(tempsymbollist.Objects[j])
+        else
+        begin
+          //not found. prefixed ?
+          if dataForPass2.cdata.symbolPrefix<>'' then
+          begin
+            s:=dataForPass2.cdata.symbols[i].name;
+            if s.StartsWith(dataForPass2.cdata.symbolPrefix+'.') then
+            begin
+              s:=copy(s,length(dataForPass2.cdata.symbolPrefix)+2);
+              j:=tempsymbollist.IndexOf(s);
+              if j<>-1 then
+                dataforpass2.cdata.symbols[i].address:=ptruint(tempsymbollist.Objects[j])
+            end;
+          end;
+        end;
       end;
-
-
 
 
       if symbollist<>nil then //caller wants the list
       begin
-        //strip the ceinternal_autofree_cfunction and other non-useful symbols from the symbollist
-        syminfo:=symbollist.FindFirstSymbolFromBase(0);
-        while syminfo<>nil do
+        for i:=0 to tempsymbollist.count-1 do
         begin
-          nextsyminfo:=syminfo^.next;
-          s:=syminfo^.originalstring;
+          s:=tempsymbollist[i];
+          if s.StartsWith('ceinternal_autofree_cfunction') then continue; //strip the ceinternal_autofree_cfunction
 
-          if s.StartsWith('ceinternal_autofree_cfunction') then
-            symbollist.DeleteSymbol(syminfo^.address);
-
-          syminfo:=nextsyminfo;
+          if dataForPass2.cdata.symbolPrefix<>'' then
+          begin
+            symbollist.AddSymbol('',dataForPass2.cdata.symbolPrefix+'.'+tempsymbollist[i], ptruint(tempsymbollist.Objects[i]), 1);
+            symbollist.AddSymbol('',tempsymbollist[i], ptruint(tempsymbollist.Objects[i]), 1,true);
+          end
+          else
+            symbollist.AddSymbol('',tempsymbollist[i], ptruint(tempsymbollist.Objects[i]), 1);
         end;
       end;
     end
@@ -496,23 +524,53 @@ begin
   finally
     freeandnil(errorlog);
 
-    if symbollist=nil then
-      freeandnil(sl);
-
     freeandnil(bytes);
     freeandnil(secondarylist);
 
     freeandnil(dataForPass2.cdata.cscript);
+
+    freeandnil(tempsymbollist);
   end;
+end;
+
+
+procedure ParseCBlockSpecificParameters(s: string; var dataForPass2: TAutoAssemblerCodePass2Data);
+var
+  i,j: integer;
+  params: array of string;
+  us: string;
+
+begin
+  params:=s.Split([' ',',']);
+  for i:=0 to length(params)-1 do
+  begin
+    us:=uppercase(params[i]);
+    if (us='KALLOC') or (us='KERNELMODE') or (us='KERNEL') then
+      DataForPass2.cdata.kernelAlloc:=true;
+
+    if copy(us,1,7)='PREFIX=' then
+    begin
+      DataForPass2.cdata.symbolPrefix:=copy(params[i],8);
+    end;
+  end;
+
 end;
 
 procedure AutoAssemblerCBlockPass1(Script: TStrings; var i: integer; var dataForPass2: TAutoAssemblerCodePass2Data);
 //just copy the lines from script to cscript
+var
+  s: string;
 begin
   if dataForPass2.cdata.cscript=nil then
     dataForPass2.cdata.cscript:=tstringlist.create;
 
   dataForPass2.cdata.cscript.add('//{$C} block at line '+ptruint(script.Objects[i]).ToString);;
+
+  s:=trim(script[i]);
+  s:=copy(s,5,length(s)-5);
+  ParseCBlockSpecificParameters(s, dataForPass2);
+
+
   script.delete(i); //remove the {$C} line
   while i<script.Count-1 do
   begin
@@ -551,6 +609,9 @@ var
 
   _tcc: TTCC;
 begin
+  s:=trim(script[i]);
+  s:=copy(s,9,length(s)-9);
+  ParseCBlockSpecificParameters(s, dataForPass2);
 
   if dataForPass2.cdata.cscript=nil then
     dataForPass2.cdata.cscript:=tstringlist.create;
@@ -629,11 +690,12 @@ begin
   cscript.add('}');
 
 
+
   //allocate a spot for the linker stage to put the address
   if processhandler.is64Bit {$ifdef cpu64} or targetself{$endif} then
-    script.insert(0, 'alloc('+functionname+'_address,8)')
+    script.insert(0, ifthen(DataForPass2.cdata.kernelAlloc,'k','')+'alloc('+functionname+'_address,8)')
   else
-    script.insert(0, 'alloc('+functionname+'_address,4)');
+    script.insert(0, ifthen(DataForPass2.cdata.kernelAlloc,'k','')+'alloc('+functionname+'_address,4)');
 
   inc(scriptstart,1);
   inc(scriptend,1);
@@ -905,7 +967,7 @@ begin
       s:=script[i];
       if (length(s)>=4) and (s[1]='{') and (s[2]='$') and (s[3] in ['l','L','c','C']) then  //{$C or {$L
       begin
-        if (s[4] in ['u','U','c','C','}']) then  //{$CC, $CU, $LC, $LU , {$L}, {$C}
+        if (s[4] in ['u','U','c','C','}',' ']) then  //{$CC, $CU, $LC, $LU , {$L}, {$C},.. {$C ..., {$CU ....,....
         begin
           endpos:=pos('}',s);
           if endpos=-1 then
@@ -946,17 +1008,20 @@ begin
           end
           else
           {$endif}
-          if uppercaseline='{$C}' then
+          if copy(uppercaseline,1,3)='{$C' then
           begin
-            AutoAssemblerCBlockPass1(script, i, dataForPass2);
-          end
-          else
-          if copy(uppercaseline,1,7)='{$CCODE' then
-          begin
-            parameterstring:=copy(s,9,endpos-9);
-            setlength(parameters,0);
-            parseLuaCodeParameters(parameterstring, parameters);  //same data needed for C, so use it
-            AutoAssemblerCCodePass1(script, parameters, i,  dataForPass2, syntaxcheckonly, targetself);
+            if uppercaseline[4] in ['}',' '] then //{$C} {$C ....}
+            begin
+              AutoAssemblerCBlockPass1(script, i, dataForPass2);
+            end
+            else
+            if copy(uppercaseline,1,7)='{$CCODE' then
+            begin
+              parameterstring:=copy(s,9,endpos-9);
+              setlength(parameters,0);
+              parseLuaCodeParameters(parameterstring, parameters);  //same data needed for C, so use it
+              AutoAssemblerCCodePass1(script, parameters, i,  dataForPass2, syntaxcheckonly, targetself);
+            end;
           end;
         end;
       end;
@@ -1051,12 +1116,27 @@ begin
         for i:=imports.count to imports.count+length(dataforpass2.cdata.linklist)-1 do
           dataforpass2.cdata.references[i].name:=dataforpass2.cdata.linklist[i-imports.count].name;
 
-        setlength(dataforpass2.cdata.symbols, symbols.count);
-        for i:=0 to symbols.count-1 do
+        if dataforpass2.cdata.symbolPrefix<>'' then
+        begin //add another version with the prefix added
+          setlength(dataforpass2.cdata.symbols, symbols.count*2);
+          for i:=0 to symbols.count-1 do
+          begin
+            dataforpass2.cdata.symbols[i*2].name:=symbols[i shr 1];
+            dataforpass2.cdata.symbols[i*2].address:=0;
+            dataforpass2.cdata.symbols[i*2+1].name:=dataforpass2.cdata.symbolPrefix+'.'+symbols[i];
+            dataforpass2.cdata.symbols[i*2+1].address:=0;
+          end;
+        end
+        else
         begin
-          dataforpass2.cdata.symbols[i].name:=symbols[i];
-          dataforpass2.cdata.symbols[i].address:=0;
+          setlength(dataforpass2.cdata.symbols, symbols.count);
+          for i:=0 to symbols.count-1 do
+          begin
+            dataforpass2.cdata.symbols[i].name:=symbols[i];
+            dataforpass2.cdata.symbols[i].address:=0;
+          end;
         end;
+
 
 
       finally

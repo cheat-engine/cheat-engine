@@ -3809,7 +3809,7 @@ end;
 procedure TMainForm.miSetDropdownOptionsClick(Sender: TObject);
 begin
   if addresslist.selectedrecord<>nil then
-    TFrmMemoryRecordDropdownSettings.create(addresslist.SelectedRecord).showmodal;
+    TFrmMemoryRecordDropdownSettings.create(addresslist.SelectedRecord, addresslist).showmodal;
 end;
 
 
