@@ -12,15 +12,15 @@ object frmSymbolhandler: TfrmSymbolhandler
   Position = poScreenCenter
   LCLVersion = '2.0.6.0'
   object Panel1: TPanel
-    Left = 332
+    Left = 371
     Height = 432
     Top = 0
-    Width = 165
+    Width = 126
     Align = alRight
     AutoSize = True
     BevelOuter = bvNone
     ClientHeight = 432
-    ClientWidth = 165
+    ClientWidth = 126
     Constraints.MinHeight = 250
     TabOrder = 0
     object Label2: TLabel
@@ -32,7 +32,7 @@ object frmSymbolhandler: TfrmSymbolhandler
       Left = 8
       Height = 15
       Top = 58
-      Width = 149
+      Width = 110
       Alignment = taCenter
       Anchors = [akTop, akLeft, akRight]
       BorderSpacing.Left = 8
@@ -45,10 +45,13 @@ object frmSymbolhandler: TfrmSymbolhandler
       AnchorSideLeft.Control = Panel1
       AnchorSideTop.Control = Label2
       AnchorSideTop.Side = asrBottom
+      AnchorSideRight.Control = Panel1
+      AnchorSideRight.Side = asrBottom
       Left = 8
       Height = 23
       Top = 73
-      Width = 149
+      Width = 110
+      Anchors = [akTop, akLeft, akRight]
       BorderSpacing.Left = 8
       BorderSpacing.Right = 8
       TabOrder = 1
@@ -58,7 +61,7 @@ object frmSymbolhandler: TfrmSymbolhandler
       AnchorSideLeft.Side = asrCenter
       AnchorSideTop.Control = edtAddress
       AnchorSideTop.Side = asrBottom
-      Left = 37
+      Left = 18
       Height = 25
       Top = 104
       Width = 90
@@ -85,7 +88,7 @@ object frmSymbolhandler: TfrmSymbolhandler
       Left = 8
       Height = 15
       Top = 16
-      Width = 149
+      Width = 110
       Alignment = taCenter
       Anchors = [akTop, akLeft, akRight]
       BorderSpacing.Left = 8
@@ -103,7 +106,7 @@ object frmSymbolhandler: TfrmSymbolhandler
       Left = 8
       Height = 23
       Top = 31
-      Width = 149
+      Width = 110
       Anchors = [akTop, akLeft, akRight]
       BorderSpacing.Left = 8
       BorderSpacing.Right = 8
@@ -115,17 +118,17 @@ object frmSymbolhandler: TfrmSymbolhandler
     Left = 0
     Height = 432
     Top = 0
-    Width = 332
+    Width = 371
     Align = alClient
     BevelOuter = bvNone
     ClientHeight = 432
-    ClientWidth = 332
+    ClientWidth = 371
     TabOrder = 1
     object Label1: TLabel
       Left = 0
       Height = 15
       Top = 0
-      Width = 332
+      Width = 371
       Align = alTop
       Caption = 'Userdefined symbols:'
       ParentColor = False
@@ -134,7 +137,7 @@ object frmSymbolhandler: TfrmSymbolhandler
       Left = 0
       Height = 238
       Top = 15
-      Width = 332
+      Width = 371
       Align = alTop
       Columns = <      
         item
@@ -161,7 +164,7 @@ object frmSymbolhandler: TfrmSymbolhandler
       Left = 0
       Height = 159
       Top = 273
-      Width = 332
+      Width = 371
       Align = alClient
       PopupMenu = PopupMenu2
       ReadOnly = True
@@ -175,7 +178,7 @@ object frmSymbolhandler: TfrmSymbolhandler
       Left = 0
       Height = 5
       Top = 253
-      Width = 332
+      Width = 371
       Align = alTop
       ResizeAnchor = akTop
     end
@@ -183,7 +186,7 @@ object frmSymbolhandler: TfrmSymbolhandler
       Left = 0
       Height = 15
       Top = 258
-      Width = 332
+      Width = 371
       Align = alTop
       Caption = 'Symbol groups:'
       ParentColor = False

@@ -1,7 +1,7 @@
 object formAddressChange: TformAddressChange
-  Left = 806
+  Left = 828
   Height = 295
-  Top = 226
+  Top = 182
   Width = 263
   AutoSize = True
   BorderIcons = [biSystemMenu]
@@ -47,6 +47,7 @@ object formAddressChange: TformAddressChange
     Width = 36
     Caption = '=Value'
     ParentColor = False
+    PopupMenu = pmValue
   end
   object btnOk: TButton
     AnchorSideLeft.Control = Owner
@@ -684,5 +685,16 @@ object formAddressChange: TformAddressChange
       FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
       FF00FFFFFF00FFFFFF00FFFFFF00
     }
+  end
+  object pmValue: TPopupMenu
+    Left = 184
+    object miCopyFinalAddressToClipboard: TMenuItem
+      Caption = 'Copy this address to Clipboard'
+      OnClick = miCopyFinalAddressToClipboardClick
+    end
+    object miCopyValueToClipboard: TMenuItem
+      Caption = 'Copy this value to Clipboard'
+      OnClick = miCopyValueToClipboardClick
+    end
   end
 end

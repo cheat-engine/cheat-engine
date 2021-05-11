@@ -117,7 +117,7 @@ end
 
 
 function findDotNetMethodAddress(name, modulename)
-  print(string.format("findDotNetMethodAddress('%s','%s')", name, modulename));
+  --print(string.format("findDotNetMethodAddress('%s','%s')", name, modulename));
 
   local result
   local namespace, classname, methodname=SplitDotNetName(name)
@@ -159,7 +159,7 @@ end
 
 function detourdotnet(oldmethodaddress,newmethodaddress,oldmethodcalleraddress)
   --write jmp newmethod at the compiled address of oldmethod and if oldmethodcaller is provided write a jmp <trampolinetoold> at oldmethodcaller
-  print(string.format("detourdotnet(%08x,%08x,%08x)",oldmethodaddress, newmethodaddress, oldmethodcalleraddress))
+  --print(string.format("detourdotnet(%08x,%08x,%08x)",oldmethodaddress, newmethodaddress, oldmethodcalleraddress))
   
 
   local ahe,ahd=generateAPIHookScript(string.format("%.8x",oldmethodaddress), string.format("%.8x",newmethodaddress))
@@ -169,13 +169,13 @@ jmp originalcall
 ]],oldmethodcalleraddress)
   
   
-  print('-------ENABLE-------')
-  print(script)
-  print('--------------------')
-  print('');
-  print('------DISABLE------')
-  print(ahd)
-  print('-------------------')
+  --print('-------ENABLE-------')
+  --print(script)
+  --print('--------------------')
+  --print('');
+  --print('------DISABLE------')
+  --print(ahd)
+  --print('-------------------')
 
   local aaresult,disableinfo=autoAssemble(script)  
   if aaresult then
@@ -190,10 +190,11 @@ function InjectDotNetDetour(dllmodule, oldmethodname, newmethodname, oldmethodca
   --load the given dll, find and compile the methods, and call detourdotnet
   if dllmodule==nil then
     print(debug.traceback())
+    print('InjectDotNetDetour: dllmodule is nil')
     error('InjectDotNetDetour: dllmodule is nil')
   end  
   
-  print(string.format("InjectDotNetDetour(%s, %s, %s, %s)", dllmodule, oldmethodname, newmethodname, oldmethodcaller))
+  --print(string.format("InjectDotNetDetour(%s, %s, %s, %s)", dllmodule, oldmethodname, newmethodname, oldmethodcaller))
   
 
   if monopipe then
@@ -214,44 +215,44 @@ function InjectDotNetDetour(dllmodule, oldmethodname, newmethodname, oldmethodca
      
   else
     LaunchDotNetInterface()
-    print("injecting module")
+    --print("injecting module")
     if dotnet_loadModule(dllmodule)==false then
       return false,'loading '..dllmodule..' failed'
     end
     
-    print("Getting oldmethod address "..oldmethodname);
+    --print("Getting oldmethod address "..oldmethodname);
     local oldmethodAddress=getAddressSafe(oldmethodname)
     if oldmethodAddress==nil then
-      print(oldmethodname.." not perfect")
+      --print(oldmethodname.." not perfect")
       oldmethodaddress=findDotNetMethodAddress(oldmethodname)
       
       if oldmethodaddress==nil then error('Failure getting '..oldmethodname) end
     end  
-    printf("oldmethodaddress=%.8x",oldmethodaddress)
-    print("--------------")
+    --printf("oldmethodaddress=%.8x",oldmethodaddress)
+    --print("--------------")
     
     
-    print("Getting newmethod address "..newmethodname);
+    --print("Getting newmethod address "..newmethodname);
     local newmethodaddress=getAddressSafe(newmethodname)
     if newmethodaddress==nil then     
-      print(newmethodname.." not perfect")
+      --print(newmethodname.." not perfect")
       newmethodaddress=findDotNetMethodAddress(newmethodname, extractFileName(dllmodule))
      
       if newmethodaddress==nil then error('Failure getting '..newmethodname) end      
     end  
-    printf("newmethodaddress=%.8x",newmethodaddress)
-    print("--------------")
+    --printf("newmethodaddress=%.8x",newmethodaddress)
+    --print("--------------")
    
-    print("Getting oldmethodcaller address "..oldmethodcaller);
+    --print("Getting oldmethodcaller address "..oldmethodcaller);
     local oldmethodcalleraddress=getAddressSafe(oldmethodcaller)
     if oldmethodcalleraddress==nil then 
-      print(oldmethodcaller.." not perfect")
+      --print(oldmethodcaller.." not perfect")
       oldmethodcalleraddress=findDotNetMethodAddress(oldmethodcaller, extractFileName(dllmodule))
       
       if oldmethodcalleraddress==nil then error('Failure getting '..oldmethodcalleraddress) end  
     end       
-    printf("oldmethodcalleraddress=%.8x",oldmethodcalleraddress)
-    print("--------------")
+    --printf("oldmethodcalleraddress=%.8x",oldmethodcalleraddress)
+   -- print("--------------")
 
     
     if oldmethodaddress and newmethodaddress and oldmethodcalleraddress then

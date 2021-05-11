@@ -1173,6 +1173,13 @@ end
 
 function mono_class_getNestingType(class)
   --returns the parent class if nested. 0 if not nested
+  
+  if (class==nil) or (class==0) then 
+    print("mono_class_getNestingType received an invalid class")
+    print(debug.traceback())
+    return nil
+  end
+  
   local result
   monopipe.lock()
   monopipe.writeByte(MONOCMD_GETCLASSNESTINGTYPE)  

@@ -29,6 +29,8 @@ type
       synchronizeparam: integer;
       synchronizeparamcount: integer;
       syncvm: Plua_State;
+
+      selfdestructing: boolean;
       procedure NotifyEvent(sender: TObject);
       procedure SelectionChangeEvent(Sender: TObject; User: boolean);
       procedure MouseEvent(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
@@ -99,6 +101,7 @@ type
       procedure DisassemblerViewOverrideCallback(address: ptruint; var addressstring: string; var bytestring: string; var opcodestring: string; var parameterstring: string; var specialstring: string);
 
       procedure synchronize;
+      procedure queue;
 
       procedure pushFunction(L: PLua_state=nil);
 
@@ -345,6 +348,8 @@ var
   paramcount: integer;
   i: integer;
 begin
+  selfdestructing:=true;
+
   //no locking here (should already be obtained by the caller)
   PushFunction(syncvm);
   if synchronizeparam>0 then
@@ -365,6 +370,15 @@ begin
 
   lua_pcall(syncvm, paramcount,1,0);
 
+  free;
+end;
+
+procedure TLuaCaller.queue;
+begin
+  selfdestructing:=true;
+
+  PushFunction(syncvm);
+  lua_pcall(syncvm, 0,0,0);
   free;
 end;
 

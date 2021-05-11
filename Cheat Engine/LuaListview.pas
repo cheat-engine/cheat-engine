@@ -24,9 +24,10 @@ begin
     owner:=nil;
 
   ListView:=TCEListView.Create(owner);
-  ListView.ViewStyle:=vsReport;
   if owner<>nil then
     ListView.Parent:=owner;
+  ListView.ViewStyle:=vsReport;
+
 
   luaclass_newClass(L, ListView);
   result:=1;
