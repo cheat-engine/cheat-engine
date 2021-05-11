@@ -3353,7 +3353,7 @@ int handleInterruptProtectedMode(pcpuinfo currentcpuinfo, VMRegisters *vmregiste
     nosendchar[getAPICID()]=0;
     sendstring("Interrupt 1:\n");
 
-    setDR6((getDR6() & 0xfff0) | vmread(vm_exit_qualification)); //set bits in dr6 (qualification tells which bits)
+    setDR6((getDR6() & ~(0xf)) | (vmread(vm_exit_qualification) & 0xf)); //set bits in dr6 (qualification tells which bits)
 
     if (currentcpuinfo->Ultimap.Active)
       ultimap_handleDB(currentcpuinfo);
