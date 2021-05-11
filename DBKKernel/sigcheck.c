@@ -9,7 +9,7 @@ This is only in case of a signed release build
 #include <Ntstrsafe.h>
 #include <ntimage.h>
 
-
+#include "DBKFunc.h"
 #include "sigcheck.h"
 
 
