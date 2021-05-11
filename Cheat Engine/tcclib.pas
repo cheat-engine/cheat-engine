@@ -8,7 +8,7 @@ interface
 uses
   {$ifdef windows}windows,{$endif}
   {$ifdef darwin}macport, dl,macportdefines, {$endif}
-  Classes, SysUtils, syncobjs{$ifndef standalonetest}, SymbolListHandler{$endif};
+  Classes, SysUtils, syncobjs;
 
 
 type
@@ -64,9 +64,9 @@ type
     procedure setupCompileEnvironment(s: PTCCState; textlog: tstrings; targetself: boolean=false);
   public
     function testcompileScript(script: string; var bytesize: integer; referencedSymbols: TStrings; symbols: TStrings; textlog: tstrings=nil): boolean;
-    function compileScript(script: string; address: ptruint; output: tstream; symbollist: TSymbolListHandler; textlog: tstrings=nil; secondaryLookupList: tstrings=nil; targetself: boolean=false): boolean;
-    function compileScripts(scripts: tstrings; address: ptruint; output: tstream; symbollist: TSymbolListHandler; textlog: tstrings=nil; targetself: boolean=false): boolean;
-    function compileProject(files: tstrings; address: ptruint; output: tstream; symbollist: TSymbolListHandler; textlog: tstrings=nil; targetself: boolean=false): boolean;
+    function compileScript(script: string; address: ptruint; output: tstream; symbollist: TStrings; textlog: tstrings=nil; secondaryLookupList: tstrings=nil; targetself: boolean=false): boolean;
+    function compileScripts(scripts: tstrings; address: ptruint; output: tstream; symbollist: TStrings; textlog: tstrings=nil; targetself: boolean=false): boolean;
+    function compileProject(files: tstrings; address: ptruint; output: tstream; symbollist: TStrings; textlog: tstrings=nil; targetself: boolean=false): boolean;
 
     constructor create(target: TTCCTarget);
   end;
@@ -277,42 +277,8 @@ begin
 end;
 {$endif}
 
-procedure simplesymbolCallback(sl: TStrings; address: qword; name: pchar); cdecl;
-var s: string;
-begin
-  if (length(name)>=4) then  //strip not so useful symbols
-  begin
-    case name[0] of
-      '.': if name='.uw_base' then exit;
-      '_':
-      begin
 
-        case name[1] of
-          'e': if (name = '_etext') or (name='_edata') or (name='_end') then exit;
-          '_':
-          begin
-            s:=name;
-            if s.EndsWith('array_start') or s.EndsWith('array_end') then exit;
-          end;
-        end;
-      end;
-    end;
-  end;
-
-  {$ifndef standalonetest}
-  if sl<>nil then
-  begin
-    if (not ((length(name)>2) and (name[0]='_') and (name[1]='e'))) then  //no _e* symbols
-      sl.add(name); //not interested in the address
-  end;
-
-  {$else}
-
-  showmessage(inttohex(address,8)+' - '+name);
-  {$endif}
-end;
-
-procedure symbolCallback(sl: TSymbolListHandler; address: qword; name: pchar); cdecl;
+procedure symbolCallback(sl: TStrings; address: qword; name: pchar); cdecl;
 var s: string;
 begin
 
@@ -337,7 +303,7 @@ begin
 
   {$ifndef standalonetest}
   if sl<>nil then
-    sl.AddSymbol('',name,address,1);
+    sl.AddObject(name, tobject(address));
 
   {$else}
   showmessage(inttohex(address,8)+' - '+name);
@@ -402,7 +368,7 @@ begin
     relocate(s,$00400000);
 
     if symbols<>nil then
-      get_symbols(s, symbols, @simplesymbolCallback);
+      get_symbols(s, symbols, @symbolCallback);
 
 
     result:=true;
@@ -415,7 +381,7 @@ begin
   end;
 end;
 
-function ttcc.compileScript(script: string; address: ptruint; output: tstream; symbollist: TSymbolListHandler; textlog: tstrings=nil; secondaryLookupList: tstrings=nil; targetself: boolean=false): boolean;
+function ttcc.compileScript(script: string; address: ptruint; output: tstream; symbollist: TStrings; textlog: tstrings=nil; secondaryLookupList: tstrings=nil; targetself: boolean=false): boolean;
 var s: PTCCState;
   r: pointer;
 
@@ -479,7 +445,7 @@ begin
   end;
 end;
 
-function ttcc.compileScripts(scripts: tstrings; address: ptruint; output: tstream; symbollist: TSymbolListHandler; textlog: tstrings=nil; targetself: boolean=false):boolean;
+function ttcc.compileScripts(scripts: tstrings; address: ptruint; output: tstream; symbollist: TStrings; textlog: tstrings=nil; targetself: boolean=false):boolean;
 var
   s: PTCCState;
   i: integer;
@@ -542,7 +508,7 @@ begin
 end;
 
 
-function ttcc.compileProject(files: tstrings; address: ptruint; output: tstream; symbollist: TSymbolListHandler; textlog: tstrings=nil; targetself: boolean=false):boolean;
+function ttcc.compileProject(files: tstrings; address: ptruint; output: tstream; symbollist: TStrings; textlog: tstrings=nil; targetself: boolean=false):boolean;
 var
   s: PTCCState;
   i: integer;
