@@ -14410,9 +14410,11 @@ begin
           exit(2);
         end;
 
+{$ifdef windows}
         if useKernelAlloc then
           a:=ptruint(kernelalloc(bytes.size*2))
         else
+{$endif}
           a:=ptruint(VirtualAllocEx(ph,nil, bytes.Size*2,MEM_RESERVE or MEM_COMMIT,PAGE_EXECUTE_READWRITE));
 
         if a=0 then

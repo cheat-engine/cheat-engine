@@ -50,7 +50,9 @@ type
       targetself: boolean;
 
       symbolPrefix: string;
+{$ifdef windows}
       kernelAlloc: boolean;
+{$endif}
     end;
   end;
 
@@ -417,10 +419,11 @@ begin
       begin
         //this will be a slight memoryleak but whatever
         //allocate 4x the amount of memory needed
-
+{$ifdef windows}
         if dataForPass2.cdata.kernelAlloc then
           newAddress:=ptruint(KernelAlloc(4*bytes.size))
         else
+{$endif}
           newAddress:=ptruint(VirtualAllocEx(phandle,nil,4*bytes.size,mem_reserve or mem_commit, PAGE_EXECUTE_READWRITE));
 
         if newAddress<>0 then
@@ -436,9 +439,11 @@ begin
           if _tcc.compileScript(dataForPass2.cdata.cscript.text, dataForPass2.cdata.address, bytes, tempsymbollist, errorlog, secondarylist, dataForPass2.cdata.targetself )=false then
           begin
             //wtf? something really screwed up here
+{$ifdef windows}
             if dataForPass2.cdata.kernelAlloc then
               KernelFree(newAddress)
             else
+{$endif}
               VirtualFreeEx(phandle, pointer(newAddress), 0,MEM_FREE);
             raise exception.create('3rd time failure of c-code');
           end;
@@ -446,9 +451,11 @@ begin
 
           if bytes.Size>dataForPass2.cdata.bytesize then
           begin
+{$ifdef windows}
             if dataForPass2.cdata.kernelAlloc then
               KernelFree(newAddress)
             else
+{$endif}
               VirtualFreeEx(phandle, pointer(newAddress), 0,MEM_FREE);
 
             raise exception.create('(Unexplained and unmitigated code growth)');
@@ -545,8 +552,10 @@ begin
   for i:=0 to length(params)-1 do
   begin
     us:=uppercase(params[i]);
+{$ifdef windows}
     if (us='KALLOC') or (us='KERNELMODE') or (us='KERNEL') then
       DataForPass2.cdata.kernelAlloc:=true;
+{$endif}
 
     if copy(us,1,7)='PREFIX=' then
     begin
@@ -693,9 +702,9 @@ begin
 
   //allocate a spot for the linker stage to put the address
   if processhandler.is64Bit {$ifdef cpu64} or targetself{$endif} then
-    script.insert(0, ifthen(DataForPass2.cdata.kernelAlloc,'k','')+'alloc('+functionname+'_address,8)')
+    script.insert(0, {$ifdef windows}ifthen(DataForPass2.cdata.kernelAlloc,'k','')+{$endif}'alloc('+functionname+'_address,8)')
   else
-    script.insert(0, ifthen(DataForPass2.cdata.kernelAlloc,'k','')+'alloc('+functionname+'_address,4)');
+    script.insert(0, {$ifdef windows}ifthen(DataForPass2.cdata.kernelAlloc,'k','')+{$endif}'alloc('+functionname+'_address,4)');
 
   inc(scriptstart,1);
   inc(scriptend,1);
