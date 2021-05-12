@@ -943,7 +943,7 @@ int handleVMEvent_amd(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, FXSAVE6
         }
 
         currentcpuinfo->vmcb->RAX=(DWORD)value;
-        vmregisters->rdx=(DWORD)(currentcpuinfo->efer >> 32);
+        vmregisters->rdx=(DWORD)(value >> 32);
 
         sendstringf("vmregisters->rdx is %6\n", vmregisters->rdx);
         sendstringf("currentcpuinfo->vmcb->RAX is %6\n", currentcpuinfo->vmcb->RAX);
