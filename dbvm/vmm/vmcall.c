@@ -2371,10 +2371,6 @@ int _handleVMCall(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
   if (error)
   {
     sendstringf("1: Error. error=%d pagefaultaddress=%6\n\r",error,pagefaultaddress);
-
-    if (error==2) //caused by pagefault, raise pagefault
-      return raisePagefault(currentcpuinfo, pagefaultaddress);
-
     return raiseInvalidOpcodeException(currentcpuinfo);
   }
 
@@ -2426,10 +2422,7 @@ int _handleVMCall(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
     sendstringf("2: Error. error=%d pagefaultaddress=%8\n\r",error,pagefaultaddress);
 
     unmapVMmemory(vmcall_instruction, vmcall_instruction_size);
-
-    if (error==2) //caused by pagefault, raise pagefault
-      return raisePagefault(currentcpuinfo, pagefaultaddress);
-
+	  
     return raiseInvalidOpcodeException(currentcpuinfo);
   }
 
