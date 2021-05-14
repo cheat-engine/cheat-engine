@@ -13,6 +13,8 @@ extern memorylist
 extern clearScreen
 extern getAPICID
 
+
+
 GLOBAL amain
 GLOBAL vmmstart
 GLOBAL pagedirlvl4
@@ -185,11 +187,16 @@ vmcalltest_asm:
   add rsp,8+12
   ret
 
+
+extern Password1
+extern Password3
+
 global _vmcall
 _vmcall:
   sub rsp,8
-  mov rax,rsi  ;data
-  mov rdx,rdi  ;password1
+  mov rax,rdi  ;data
+  mov rdx,[Password1]  ;password1
+  mov rcx,[Password3]
   call [vmcall_instr]
   add rsp,8
   ret

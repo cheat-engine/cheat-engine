@@ -2402,7 +2402,19 @@ int _handleVMCall(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 
   if ((vmcall_instruction[0]<12) || (vmcall_instruction[1]!=Password2))
   {
+    int i, maxnr;
     sendstringf("Invalid password2 or structuresize. Given=%8 should be %8\n\r",vmcall_instruction[1], Password2);
+
+    sendstringf("0: %8", vmcall_instruction[0]);
+
+    maxnr=vmcall_instruction[i] / 4;
+    if (maxnr>3)
+      maxnr=3;
+
+    for (i=0; i<maxnr; i++)
+      sendstringf("%d: %8\n", i, vmcall_instruction[i]);
+
+
     unmapVMmemory(vmcall_instruction,12);
     return raiseInvalidOpcodeException(currentcpuinfo);
   }
