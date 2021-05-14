@@ -2361,7 +2361,7 @@ int _handleVMCall(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 
 
   //check password, if false, raise unknown opcode exception
-  if ((vmregisters->rdx != Password1) && (vmregisters->rcx != Password3))
+  if ((vmregisters->rdx != Password1) || (vmregisters->rcx != Password3))
   {
     int x;
     sendstringf("Invalid register password Given=%6 %6 should be %6 %6\n\r",vmregisters->rdx, vmregisters->rcx, Password1, Password3);
