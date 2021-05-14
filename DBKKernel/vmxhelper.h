@@ -306,8 +306,9 @@ unsigned int vmx_ultimap_resume();
 unsigned int vmx_ultimap_getDebugInfo(PULTIMAPDEBUGINFO debuginfo);
 
 unsigned int vmxusable;
-unsigned int vmx_password1;
+UINT64     vmx_password1;
 unsigned int vmx_password2;
+UINT64      vmx_password3;
 unsigned int vmx_version;
 
 UINT_PTR vmx_getLastSkippedPageFault();

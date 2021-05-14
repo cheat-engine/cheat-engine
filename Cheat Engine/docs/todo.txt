@@ -6,15 +6,11 @@ add {$C#-code} sections and {$C#} blocks (which end up as injected dll's)
 
 {$luacode} might like the allocated memory addresses afterwards  (perhaps generate a table with these variables inside the ref can later be filled in)
 
-dark mode: scantabs
-
-dpi: conditional breakpoint window
+DPI: symbol config address field is not correct
 
 DBVM: Add a "start record all PA access"  "stop record all PA access" which records the PA, VA, CR3, CS:RIP for each access
 DBVM: Add a local break and trace (not undetected single step flag)
-DBVM: Add vmcall: dbvm_readmemory and dbvm_writememory for inspection of global variables
-DBVM: Add a breakpoint handler in DBVM that just doesn't continue. (on intel set cpu state to wait for interrupts, and on amd perhaps save rip on the stack and set the new rip to an known invalid address (like 0xce101) and just capture the exception until another interrupt happens.  It will be slow, but works
-      Add to that, add a timer that if the gui doesn't heartbeat (e.g gui lock) continue bp
+
 
 DBVM: give the "find what this instruction accessess" it's own dbvm config window so it doesn't override the userdefined options
 

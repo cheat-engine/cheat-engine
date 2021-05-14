@@ -2726,6 +2726,7 @@ dbk_executeKernelMemory(address, parameter) :
 
 
 dbvm_initialize(offloados:Boolean OPTIONAL, reason:String OPTIONAL) : Initializes the dbvm functions (dbk_initialize also calls this) offloados is a boolean that when set will offload the system onto dbvm if it's not yet running (and only IF the dbk driver is loaded)
+dbvm_setKeys(key1,key2,key3) - Sets the keys to operate DBVM.  Key1 and Key3 are pointersize, key2 is 32-bit.  Note that if key1 or key3 are 64-bit wide, 32-bit CE can not use DBVM.  Returns true if DBVM is working, and automatically updates the current DBVM keys in CE and the driver if DBVM was already connected (e.g default keys)
 dbvm_addMemory(pagecount): Adds memory to DBVM (one page is 4096 bytes)
 dbvm_readMSR(msr): See dbk_readMSR but then using dbvm
 dbvm_writeMSR(msr, value): See dbk_writeMSR

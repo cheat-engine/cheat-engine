@@ -127,6 +127,10 @@
     /* glibc defines */
     #define __REDIRECT(name, proto, alias) name proto __asm__ (#alias)
     #define __REDIRECT_NTH(name, proto, alias) name proto __asm__ (#alias) __THROW
+#else
+  //Cheat Engine modification start (all externs are handled as __declspec(dllimport) )
+  #define extern __declspec(dllimport) extern 
+  //Cheat Engine modification end
 #endif
 
     /* skip __builtin... with -E */

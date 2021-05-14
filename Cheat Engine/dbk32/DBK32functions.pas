@@ -2868,7 +2868,7 @@ begin
     result:=deviceiocontrol(hdevice,cc,@input,sizeof(Input),nil,0,cc,nil);
 
 
-    configure_vmx(vmx_password1, vmx_password2);
+    configure_vmx(vmx_password1, vmx_password2, vmx_password3);
 
     if parameters<>nil then
     begin
@@ -3135,7 +3135,7 @@ var sav: pchar;
  //   win32size:dword;
     servicename,sysfile: widestring;
     ultimapservicename, ultimapsysfile: widestring;
-    vmx_p1_txt,vmx_p2_txt: string;
+    vmx_p1_txt,vmx_p2_txt,vmx_p3_txt: string;
 
 
     reg: tregistry;
@@ -3145,6 +3145,8 @@ var sav: pchar;
 //    servicestatus: _service_status;
 procedure DBK32Initialize;
 begin
+
+  outputdebugstring('DBK32Initialize');
   try
     if hdevice=INVALID_HANDLE_VALUE then
     begin
@@ -3177,11 +3179,13 @@ begin
         outputdebugstring('b');
         if not fileexists(dataloc) then
         begin
-          outputdebugstring('b1');
+          outputdebugstring('b0');
           servicename:='CEDRIVER60';
           ultimapservicename:='ULTIMAP2';
           processeventname:='DBKProcList60';
           threadeventname:='DBKThreadList60';
+
+          outputdebugstring('b1');
           if iswow64 then
           begin
             sysfile:='dbk64.sys';
@@ -3193,8 +3197,13 @@ begin
             ultimapsysfile:='';
           end;
 
+          outputdebugstring('b2');
+
           vmx_p1_txt:='76543210';
           vmx_p2_txt:='fedcba98';
+          vmx_p3_txt:='90909090';
+
+          outputdebugstring('b3');
         end
         else
         begin
@@ -3206,10 +3215,13 @@ begin
           readln(driverdat,sysfile);
           readln(driverdat,vmx_p1_txt);
           readln(driverdat,vmx_p2_txt);
+          readln(driverdat,vmx_p3_txt);
           readln(driverdat,ultimapservicename);
           readln(driverdat,ultimapsysfile);
           closefile(driverdat);
         end;
+
+        outputdebugstring('c');
 
         driverloc:=extractfilepath(apppath)+sysfile;
         ultimapdriverloc:=extractfilepath(apppath)+ultimapsysfile;
@@ -3218,15 +3230,18 @@ begin
       end;
 
 
+      outputdebugstring('d');
       try
-        configure_vmx(strtoint('$'+vmx_p1_txt), strtoint('$'+vmx_p2_txt) );
+        configure_vmx(strtoint64('$'+vmx_p1_txt), strtoint('$'+vmx_p2_txt), StrToInt64('$'+vmx_p3_txt)  );
       except
         //couldn't parse the password
+        outputdebugstring('e');
       end;
 
 
       if (not fileexists(driverloc)) and (not fileexists(ultimapdriverloc)) then
       begin
+        outputdebugstring('f');
         messagebox(0,PChar(rsYouAreMissingTheDriver),PChar(rsDriverError),MB_ICONERROR or mb_ok);
         hDevice:=INVALID_HANDLE_VALUE;
         hUltimapDevice:=INVALID_HANDLE_VALUE;
@@ -3234,8 +3249,11 @@ begin
       end;
 
 
+      outputdebugstring('g');
       if hscmanager<>0 then
       begin
+        outputdebugstring('hscmanager is valid');
+
         //try loading ultimap
         hUltimapService:=0;
         hultimapdevice:=INVALID_HANDLE_VALUE;
@@ -3325,9 +3343,13 @@ begin
 
         //load DBK
 
+        outputdebugstring('h');
+
         hService := OpenServiceW(hSCManager, pwidechar(servicename), SERVICE_ALL_ACCESS);
         if hService=0 then
         begin
+          outputdebugstring('i');
+
           hService:=CreateServiceW(
              hSCManager,           // SCManager database
              pwidechar(servicename),   // name of service
@@ -3346,6 +3368,7 @@ begin
         end
         else
         begin
+          outputdebugstring('j');
           //make sure the service points to the right file
           ChangeServiceConfigW(hservice,
                               SERVICE_KERNEL_DRIVER,
@@ -3362,8 +3385,11 @@ begin
 
         end;
 
+
+        outputdebugstring('k');
         if hservice<>0 then
         begin
+          outputdebugstring('l');
           sav:=nil;
 
           //setup the configuration parameters before starting the driver
@@ -3475,7 +3501,9 @@ begin
 
 
         closeservicehandle(hscmanager);
-      end;
+      end
+      else
+        OutputDebugString('hscmanager=0');
     end;
 
   finally

@@ -558,9 +558,10 @@ NTSTATUS debugger_getDebuggerState(PDebugStackState state)
 		state->r13=DebuggerState.LastStackPointer[si_r13];
 		state->r14=DebuggerState.LastStackPointer[si_r14];
 		state->r15=DebuggerState.LastStackPointer[si_r15];	
+		memcpy(state->fxstate, (void *)&DebuggerState.LastStackPointer[si_xmm], 512);
 	#endif		
 		
-		memcpy(state->fxstate, (void *)&DebuggerState.LastStackPointer[si_xmm],512);
+		
 
 
 		//generally speaking, NOTHING should touch the esp register, but i'll provide it anyhow
@@ -672,8 +673,9 @@ NTSTATUS debugger_setDebuggerState(PDebugStackState state)
 		DebuggerState.LastStackPointer[si_r13]=(UINT_PTR)state->r13;
 		DebuggerState.LastStackPointer[si_r14]=(UINT_PTR)state->r14;
 		DebuggerState.LastStackPointer[si_r15]=(UINT_PTR)state->r15;
-	#endif
 		memcpy((void *)&DebuggerState.LastStackPointer[si_xmm], state->fxstate, 512);
+	#endif
+		
 
 
 		if (!DebuggerState.globalDebug)
@@ -1382,7 +1384,7 @@ int interrupt1_handler(UINT_PTR *stackpointer, UINT_PTR *currentdebugregs)
 				if (SelectedStackEntry == NULL) //fuck
 					rs = breakpointHandler_kernel(stackpointer, currentdebugregs, LBR_Stack, causedbyDBVM);
 				else
-					rs = breakpointHandler_kernel(SelectedStackEntry->stacksnapshot, currentdebugregs, LBR_Stack, causedbyDBVM);
+					rs = breakpointHandler_kernel((UINT_PTR *)(SelectedStackEntry->stacksnapshot), currentdebugregs, LBR_Stack, causedbyDBVM);
 
 				
 				
@@ -1505,7 +1507,7 @@ int interrupt1_centry(UINT_PTR *stackpointer) //code segment 8 has a 32-bit stac
 #ifdef AMD64
 	naddress += ((UINT64)idt.vector[1].TopOffset << 32);
 #endif
-	stackpointer[si_errorcode] = naddress; //the errorcode is used as address to call the original function if needed
+	stackpointer[si_errorcode] = (UINT_PTR)naddress; //the errorcode is used as address to call the original function if needed
 		
 
 

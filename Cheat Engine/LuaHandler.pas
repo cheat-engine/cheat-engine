@@ -5143,7 +5143,9 @@ begin
     state:=isDriverLoaded(@x);
     lua_pushboolean(L, state);
     if state then
-      lua_pushinteger(L, hdevice);
+      lua_pushinteger(L, hdevice)
+    else
+      lua_pushnil(L);
 
     result:=2;
   end
@@ -8347,6 +8349,29 @@ begin
   result:=1;
   lua_pushboolean(L, dbvm_version>0);
   {$ENDIF}
+end;
+
+function dbvm_setKeys(L: PLua_State): integer; cdecl;
+var key1, key3: qword;
+  key2: dword;
+begin
+  if lua_gettop(L)>=3 then
+  begin
+    key1:=lua_tointeger(L,1);
+    key2:=lua_tointeger(L,2);
+    key3:=lua_tointeger(L,3);
+
+    configure_vmx(key1, key2, key3);
+
+    lua_pushboolean(L, dbvm_version>=$ce000000);
+    result:=1;
+  end
+  else
+  begin
+    lua_pushnil(L);
+    lua_pushstring(L,rsIncorrectNumberOfParameters);
+    result:=2;
+  end;
 end;
 
 function dbvm_addMemory(L: PLua_State): integer; cdecl;
@@ -15141,6 +15166,7 @@ begin
     lua_register(L, 'setAPIPointer', setAPIPointer);
 
     lua_register(L, 'dbvm_initialize', dbvm_initialize);
+    lua_register(L, 'dbvm_setKeys', dbvm_setKeys);
     lua_register(L, 'dbvm_addMemory', dbvm_addMemory);
 
     lua_register(L, 'shellExecute', lua_shellExecute);

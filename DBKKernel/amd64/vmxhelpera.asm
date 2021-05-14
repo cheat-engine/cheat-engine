@@ -6,18 +6,25 @@
 
 ;vmcall:  rdx = password1  info(rax)->password(@offset 4)=password 2
 
-;function call rcx,rdx , so call it using vmcall(info,password1)
+;vmcall(info)
+
+extern vmx_password1 : QWORD
+extern vmx_password3 : QWORD
 
 _TEXT SEGMENT 'CODE'
 PUBLIC dovmcall_intel
 dovmcall_intel:
 	mov rax,rcx
+	mov rdx,vmx_password1
+	mov rcx,vmx_password3
 	vmcall
 	ret
 	
 PUBLIC dovmcall_amd
 dovmcall_amd:
 	mov rax,rcx
+	mov rdx,vmx_password1
+	mov rcx,vmx_password3
 	vmmcall
 	ret	
 	

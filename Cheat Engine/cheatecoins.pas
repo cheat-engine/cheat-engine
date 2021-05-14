@@ -326,7 +326,7 @@ procedure decreaseCheatECoinCount; stdcall;
 begin
   asm
     {$ifdef cpu64}
-    lea r8,[_DecreaseCount]
+    lea r8,[rip+_DecreaseCount]
     xor dword [r8],$deadbeef
     {$else}
     add [_DecreaseCount],2
@@ -339,7 +339,7 @@ end;
 function getCheatECoinCount: integer; assembler; nostackframe;
 asm
   {$ifdef cpu64}
-  lea r8,[_GetCount]
+  lea r8,[rip+_GetCount]
   mov eax,[r8]
   {$else}
   lea eax,[_GetCount]

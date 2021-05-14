@@ -14,10 +14,12 @@ Additions and changes:
   Userdefined symbollist has a secondary list for CCode symbols
   The change address window now also supports relative offsets
   DBVM speed improvements
+  DBVM has an extra security level, and added dbvm_setKeys to easily change the access codes
   New debugger interface: DBVM-level debugger
   Improved performance of "Find what access/writes this address"
   Dissect code now lets you specify custom ranges
   Addresslist value sort now sorts values by alphabet if the record is a string type
+  The dropdown list of multiple entries can now be changed at the same time
 
   
 

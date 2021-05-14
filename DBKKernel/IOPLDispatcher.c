@@ -2156,12 +2156,15 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 
 		case IOCTL_CE_VMXCONFIG:
 			{
+#pragma pack(1)
 				struct input
 				{
 					ULONG Virtualization_Enabled;
-					ULONG Password1;
+					QWORD Password1;
 					ULONG Password2;
+					QWORD Password3;
   				} *pinp;
+#pragma pack()
 				
 
 				DbgPrint("IOCTL_CE_VMXCONFIG called\n");	
@@ -2173,6 +2176,10 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 				{
 					vmx_password1=pinp->Password1;
 					vmx_password2=pinp->Password2;
+					vmx_password3=pinp->Password3;
+
+					DbgPrint("new passwords are: %p-%x-%p\n", (void*)vmx_password1, vmx_password2, (void*)vmx_password3);
+
 					__try
 					{
 						vmx_version=vmx_getversion();
@@ -2432,7 +2439,7 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 			LowAddress.QuadPart = 0;
 			HighAddress.QuadPart = 0xffffffffffffffffI64;
 			SkipBytes.QuadPart = 0;
-			mdl = MmAllocatePagesForMdl(LowAddress, HighAddress, SkipBytes, pagecount * 4096); //do not free this, EVER
+			mdl = MmAllocatePagesForMdl(LowAddress, HighAddress, SkipBytes, (SIZE_T)pagecount * 4096); //do not free this, EVER
 			if (mdl)
 			{
 				int i;
@@ -2468,7 +2475,7 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 
 									for (j = 0; j < mi->Count; j++)
 									{
-										DbgPrint("%d : %p\n", j, (void*)mi->List[j]);
+										DbgPrint("%d : %p\n", j, (void*)((UINT_PTR)mi->List[j]));
 									}
 
 
