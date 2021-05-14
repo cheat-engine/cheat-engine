@@ -739,6 +739,7 @@ typedef struct _regDR6
       unsigned BD        :1;
       unsigned BS        :1;
       unsigned BT        :1;
+      unsigned RTM       :1;
     };
   };
 } __attribute__((__packed__)) regDR6,*PregDR6;

@@ -122,7 +122,18 @@ UINT_PTR vmmPA;
 int initializedvmm=0;
 
 
+void cleanupMemory()
+{
+  Print(L"Free unused memory\n");
 
+
+  st->BootServices->FreePages(originalstate->APEntryPage,1);
+  //st->BootServices->FreePages((EFI_PHYSICAL_ADDRESS)enterVMM2,1);
+
+
+  Print(L"Freed unused memory\n");
+
+}
 
 void InitializeDBVM(UINT64 vmm, int vmmsize)
 {
@@ -331,6 +342,22 @@ void InitializeDBVM(UINT64 vmm, int vmmsize)
       initvars->extramemory=0;
       initvars->extramemorysize=0;
     }
+
+    s=AllocatePages(AllocateAnyPages,EfiRuntimeServicesCode, 64,&address); //64 pages
+    if (s==EFI_SUCCESS)
+    {
+      Print(L"Allocated 64MB of extra ram at %lx\n", address);
+      initvars->contiguousmemory=address;
+      initvars->contiguousmemorysize=64;
+    }
+    else
+    {
+      Print(L"Failed to allocate extra ram\n");
+      initvars->contiguousmemory=0;
+      initvars->contiguousmemorysize=0;
+    }
+
+
     char something[201];
 
     Input(L"Type something : ", something, 200);

@@ -68,6 +68,7 @@ int cpu_type;
 int cpu_ext_modelID;
 int cpu_ext_familyID;
 
+int debugtestvar=0x12345678;
 
 
 unsigned long long IA32_APIC_BASE=0xfee00000;
@@ -307,6 +308,7 @@ void vmm_entry(void)
 
   Password1=0x76543210; //later to be filled in by user, sector on disk, or at compile time
   Password2=0xfedcba98;
+  Password3=0x90909090;
 
   /*version 1 was the 32-bit only version,
    * 2 added 64-bit,
@@ -324,8 +326,9 @@ void vmm_entry(void)
    * 13=basic TSC emulation
    * 14=properly emulate debug step
    * 15=some amd fixes/contiguous memory param/dbvmbp
+   * 16=3th vmcall password
    */
-  dbvmversion=15;
+  dbvmversion=16;
   int1redirection=1; //redirect to int vector 1 (might change this to the perfcounter interrupt in the future so I don't have to deal with interrupt prologue/epilogue)
   int3redirection=3;
   int14redirection=14;
@@ -684,13 +687,45 @@ BPTest:
   asm volatile ("": : :"memory");
 AfterBPTest:
   if (i==0)
-    sendstring("BPTest successfull\n");
+    sendstringf("BPTest success.  dr6=%6\n", getDR6());
   else
     sendstring(":(\n");
 
   cpuinfo->OnInterrupt.RSP=0;
   cpuinfo->OnInterrupt.RBP=0;
   cpuinfo->OnInterrupt.RIP=0;
+
+  try
+  {
+    sendstring("Trying memory access BP\n");
+
+    regDR7 dr7;
+    dr7.DR7=getDR7();
+
+    dr7.L1=1;
+    dr7.G1=1;
+    dr7.RW1=3;
+    dr7.LEN1=3;
+
+    setDR7(dr7.DR7);
+    setDR1((QWORD)((volatile void *)&debugtestvar));
+
+    setDR6(0xffffffff);
+    sendstringf("Before access DR6=%6\n",getDR6());
+    asm volatile ("": : :"memory");
+    debugtestvar=0;
+    debugtestvar=890;
+    asm volatile ("": : :"memory");
+
+    sendstringf("Memory access BP failure\n DR1=%6 DR7=%6", getDR1(), getDR7());
+
+  }
+  except
+  {
+    sendstringf("Except block success.  dr6=%6\n", getDR6());
+  }
+  tryend
+
 
 
 
@@ -1340,10 +1375,10 @@ void menu2(void)
             i->OnInterrupt.RBP=getRBP();
             i->OnInterrupt.RIP=(QWORD)((volatile void *)&&afterGDtest);
             asm volatile ("": : :"memory");
-            setDR6(0xfffffff0);
+            setDR6(0xffffffff);
             setDR7(getDR7() | (1<<13));
             asm volatile ("": : :"memory");
-            setDR6(0xffff0ff0);
+            setDR3(0x12345678);
 
             sendstringf("Failure to break on GD");
 
@@ -1351,6 +1386,7 @@ void menu2(void)
 afterGDtest:
 
             //RF
+            sendstringf("After GD test. DR6=%6\n", getDR6());
 
 
             displayline("Setting an execute breakpoint\n\r");
@@ -1388,11 +1424,12 @@ afterWRBPtest:
             displayline("done writing\n");
 
 
-            displayline("Setting the single step flag (this will give exceptions)\n\r");
+            displayline("Setting the single step flag (this will give unhandled exceptions)\n\r");
             rflags=getRFLAGS(); //NO RF
             setRFLAGS(rflags | (1<<8));
 
             setRFLAGS(rflags & (~(1<<8))); //unset
+
 
             break;
           }

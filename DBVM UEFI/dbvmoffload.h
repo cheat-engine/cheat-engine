@@ -147,8 +147,10 @@ typedef struct _INITVARS
 	UINT64 vmmstart; //physical address of virtual address 00400000 (obsoletish...)
 	UINT64 pagedirlvl4; //Virtual address of the pml4 table (the virtual memory after this until the next 4MB alignment is free to use)
 	UINT64 nextstack; //The virtual address of the stack for the next CPU (vmloader only sets it up when 0)
-	UINT64 extramemory; //Physical address of some extra initial memory (physically contiguous)
+	UINT64 extramemory; //Physical address of some extra initial memory
 	UINT64 extramemorysize; //the number of pages that extramemory spans
+  UINT64 contiguousmemory; //Physical address of some extra initial memory (physically contiguous)
+  UINT64 contiguousmemorysize; //the number of pages that extramemory spans
 } INITVARS, *PINITVARS;
 
 
@@ -156,5 +158,6 @@ typedef struct _INITVARS
 
 void InitializeDBVM(UINT64 vmm, int vmmsize);
 void LaunchDBVM();
+void cleanupMemory();
 
 #endif /* DBVMOFFLOAD_H_ */

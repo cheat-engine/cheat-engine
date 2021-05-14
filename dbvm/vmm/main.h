@@ -140,8 +140,11 @@ int IDT_SIZE;
 void menu(void);
 
 //filled in by vmm.map parser
-ULONG        Password1;
-ULONG        Password2;
+QWORD        Password1; //edx : if the upper bits of the field is filled in, this will disable access for 32-bit targets
+ULONG        Password2; //memory
+QWORD        Password3; //ecx  ^ see password1
+
+
 extern QWORD dbvmversion;
 
 //crc checksums

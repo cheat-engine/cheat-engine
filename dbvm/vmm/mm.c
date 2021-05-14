@@ -1393,6 +1393,8 @@ void InitializeMM(UINT64 FirstFreeVirtualAddress)
     currentaddress+=4096;
   }
 
+  sendstringf("extramemorysize=%d\n",extramemorysize);
+
   if (extramemory && extramemorysize) //this is contiguous memory originally intended for allocs
   {
     if (contiguousmemoryPA==0) //no dedicated contiguous memory specified. Nibble some of the extra memory
@@ -1403,17 +1405,19 @@ void InitializeMM(UINT64 FirstFreeVirtualAddress)
       contiguousMemory=addPhysicalPagesToDBVM(extramemory, contiguousmemorysize, 1);
       contiguousMemoryPagesFree=contiguousmemorysize;
 
-      extramemory+=4096*contiguousSize;
     }
     addPhysicalPagesToDBVM(extramemory, extramemorysize,0);
   }
 
+  sendstringf("contiguousmemorysize=%d\n",contiguousmemorysize);
   if (contiguousmemoryPA)
   {
     contiguousMemory=addPhysicalPagesToDBVM(contiguousmemoryPA, contiguousmemorysize, 1);
     contiguousMemoryPagesFree=contiguousmemorysize;
   }
 
+
+  sendstringf("InitializeMM finished\n");
   //todo: add indexes to free memory blocks
 
   //use VMCALL_ADD_PHYSICAL_MEMORY for more

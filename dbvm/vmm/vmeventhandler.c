@@ -3345,6 +3345,9 @@ int handleInterruptProtectedMode(pcpuinfo currentcpuinfo, VMRegisters *vmregiste
   {
 	//emulate the breakpoint interrupt
     regDR7 dr7;
+    dr7.DR7=vmread(vm_guest_dr7);
+
+    regDR6 dr6;
     int orig=nosendchar[getAPICID()];
 
 
@@ -3353,7 +3356,22 @@ int handleInterruptProtectedMode(pcpuinfo currentcpuinfo, VMRegisters *vmregiste
     nosendchar[getAPICID()]=0;
     sendstring("Interrupt 1:\n");
 
-    setDR6((getDR6() & ~(0xf)) | (vmread(vm_exit_qualification) & 0xf)); //set bits in dr6 (qualification tells which bits)
+    dr6.DR6=getDR6();
+
+    regDR6 dr6_exit_qualification;
+    dr6_exit_qualification.DR6=vmread(vm_exit_qualification);
+
+
+    //The documentation says about the exit qualification: Any of these bits may be set even if its corresponding enabling bit in DR7 is not set.
+    //The documentation also says for dr6: They may or may not be set if the breakpoint is not enabled by the Ln or the Gn flags in register DR7.
+    //therefore, just passing them 1 on 1
+
+    //also: Certain debug exceptions may clear bits 0-3. The remaining contents of the DR6 register are never cleared by the processor.
+    dr6.DR6&= ~(0xf); //zero the b0 to b3 flags
+    dr6.DR6 |= dr6_exit_qualification.DR6 & 0x600f; //the 4 b0-b3 flags, BS and BD
+    if (dr6_exit_qualification.RTM) dr6.RTM=0; //if this is set, set RTM to 0
+
+    setDR6(dr6.DR6);
 
     if (currentcpuinfo->Ultimap.Active)
       ultimap_handleDB(currentcpuinfo);
@@ -3362,7 +3380,6 @@ int handleInterruptProtectedMode(pcpuinfo currentcpuinfo, VMRegisters *vmregiste
 
 
     //set GD to 0
-    dr7.DR7=vmread(vm_guest_dr7);
     dr7.GD=0;
     vmwrite(vm_guest_dr7,dr7.DR7);
 
