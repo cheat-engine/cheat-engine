@@ -3368,7 +3368,12 @@ int handleInterruptProtectedMode(pcpuinfo currentcpuinfo, VMRegisters *vmregiste
 
     //also: Certain debug exceptions may clear bits 0-3. The remaining contents of the DR6 register are never cleared by the processor.
     dr6.DR6&= ~(0xf); //zero the b0 to b3 flags
-    dr6.DR6 |= dr6_exit_qualification.DR6 & 0x600f; //the 4 b0-b3 flags, BS and BD
+    RFLAGS rflags;
+    rflags.value = vmread(vm_guest_rflags);
+    if(rflags.TF)
+      dr6.DR6 |= dr6_exit_qualification.DR6 & 0x600f; //the 4 b0-b3 flags, BS and BD
+    else
+      dr6.DR6 |= dr6_exit_qualification.DR6 & 0x200f; //the 4 b0-b3 flags, BD
     if (dr6_exit_qualification.RTM) dr6.RTM=0; //if this is set, set RTM to 0
 
     setDR6(dr6.DR6);
