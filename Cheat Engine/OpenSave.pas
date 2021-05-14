@@ -28,7 +28,7 @@ var CurrentTableVersion: dword=35;
 
 procedure protecttrainer(filename: string);
 procedure unprotecttrainer(filename: string; stream: TStream);
-procedure SaveTable(Filename: string; protect: boolean=false; dontDeactivateDesignerForms: boolean=false);
+procedure SaveTable(Filename: string; protect: boolean=false; dontDeactivateDesignerForms: boolean=true);
 procedure LoadTable(Filename: string;merge: boolean);
 procedure SaveCEM(Filename:string;address:ptrUint; size:dword);
 procedure LoadXML(doc: TXMLDocument; merge: boolean; isTrainer: boolean=false);
@@ -1367,7 +1367,7 @@ begin
   doc.Free;
 end;
 
-procedure SaveTable(Filename: string; protect: boolean=false; dontDeactivateDesignerForms: boolean=false);
+procedure SaveTable(Filename: string; protect: boolean=false; dontDeactivateDesignerForms: boolean=true);
 begin
   try
     if Uppercase(utf8tosys(extractfileext(filename)))<>'.EXE' then
