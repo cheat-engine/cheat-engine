@@ -2803,6 +2803,8 @@ begin
   SetProcessAffinityMask(GetCurrentProcess, proc);
 end;
 
+var vmx_p1_txt,vmx_p2_txt,vmx_p3_txt: string;
+
 function internal_LaunchDBVM(parameters: pointer): BOOL; stdcall;
 var
   cc: dword;
@@ -2868,7 +2870,10 @@ begin
     result:=deviceiocontrol(hdevice,cc,@input,sizeof(Input),nil,0,cc,nil);
 
 
-    configure_vmx(vmx_password1, vmx_password2, vmx_password3);
+    try
+      configure_vmx(strtoint64('$'+vmx_p1_txt), strtoint('$'+vmx_p2_txt), StrToInt64('$'+vmx_p3_txt)  );
+    except
+    end;
 
     if parameters<>nil then
     begin
@@ -3135,7 +3140,7 @@ var sav: pchar;
  //   win32size:dword;
     servicename,sysfile: widestring;
     ultimapservicename, ultimapsysfile: widestring;
-    vmx_p1_txt,vmx_p2_txt,vmx_p3_txt: string;
+
 
 
     reg: tregistry;
