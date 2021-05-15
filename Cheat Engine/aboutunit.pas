@@ -208,27 +208,32 @@ var
   dmemfree: double;
   vers: DWORD;
 
-  oldvmx_password1: DWORD;
+  oldvmx_password1: QWORD;
   oldvmx_password2: DWORD;
+  oldvmx_password3: QWORD;
 
 begin
   {$ifdef windows}
   oldvmx_password1:=vmx_password1;
   oldvmx_password2:=vmx_password2;
+  oldvmx_password3:=vmx_password3;
   OutputDebugString('UpdateDBVMStatus');
 
-  if (vmx_password1=0) and (vmx_password2=0) then
+  if (vmx_password1=0) and (vmx_password2=0) and (vmx_password3=0) then
   begin
     OutputDebugString('vmx_password1=0');
     OutputDebugString('vmx_password2=0');
+    OutputDebugString('vmx_password3=0');
     vmx_password1:=$76543210;
     vmx_password2:=$fedcba98;
+    vmx_password3:=$90909090;
   end;
 
   if dbvm_version=0 then
   begin
     vmx_password1:=$76543210;
     vmx_password2:=$fedcba98;
+    vmx_password3:=$90909090;
   end;
 
   if (dbvm_version>0) then
@@ -267,10 +272,11 @@ begin
 
   vmx_password1:=oldvmx_password1;
   vmx_password2:=oldvmx_password2;
+  vmx_password3:=oldvmx_password3;
   {$else}
   lblDBVM.visible:=false;
   {$endif}
-end;
+end;                   
 
 
 initialization
