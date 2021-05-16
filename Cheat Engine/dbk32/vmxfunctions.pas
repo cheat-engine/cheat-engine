@@ -3261,7 +3261,12 @@ begin
       vmx_password3:=$90909090;
 
       if dbvm_version=0 then
+      begin
+        vmx_password1:=userpassword1;
+        vmx_password2:=userpassword2;
+        vmx_password3:=userpassword3;
         exit; //invalid password (I hope you remembered, else you'll have to sleep)
+      end;
       //else fall through to the changepassword part
     end
     else
