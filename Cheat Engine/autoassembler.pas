@@ -1633,6 +1633,22 @@ begin
     AutoAssemblerCodePass1(code,dataForAACodePass2, syntaxcheckonly, targetself); //replaces the {$luacode} and {$ccode} blocks with a call to extra routines added to the script
     //still here
 
+    //c-symbol addition
+    for i:=0 to length(dataForAACodePass2.cdata.symbols)-1 do
+    begin
+      //define the c-code symbol as an undefined labels
+      j:=length(labels);
+      setlength(labels, j+1);
+      labels[j].labelname:=dataForAACodePass2.cdata.symbols[i].name;
+      labels[j].defined:=false;
+      labels[j].afterccode:=true;
+      labels[j].assemblerline:=-1;
+      setlength(labels[j].references,0);
+      setlength(labels[j].references2,0);
+    end;
+    //c-symbol addition^
+
+
     //one more time getting rid of {$ASM} lines that have been added while they shouldn't be required
     for i:=0 to code.count-1 do
       if uppercase(TrimRight(code[i]))='{$ASM}' then
@@ -2686,6 +2702,9 @@ begin
           end;
 
 
+
+
+
           try
             //replace identifiers in the line with their address
             ok1:=false;
@@ -2726,40 +2745,7 @@ begin
                 end;
               end;
 
-              //c-symbol addition
-              if not ok1 then
-              begin
-                //last chance, try the c-code symbols
-                for j:=0 to length(dataForAACodePass2.cdata.symbols)-1 do
-                begin
-                  if processhandler.is64bit then
-                    currentline:=replacetoken(currentline,dataForAACodePass2.cdata.symbols[j].name,'ffffffffffffffff')
-                  else
-                    currentline:=replacetoken(currentline,dataForAACodePass2.cdata.symbols[j].name,'00000000');
 
-                  try
-                    ok1:=assemble(currentline,currentaddress,assembled[0].bytes, apNone, true);
-                    if ok1 then
-                    begin
-                      //define this c-code symbol as an undefined label
-                      k:=length(labels);
-                      setlength(labels, k+1);
-                      labels[k].labelname:=dataForAACodePass2.cdata.symbols[j].name;
-                      labels[k].defined:=false;
-                      labels[k].afterccode:=true;
-                      labels[k].assemblerline:=-1;
-                      setlength(labels[k].references,0);
-                      setlength(labels[k].references2,0);
-                      break;
-                    end;
-                  except
-                    //don't quit yet
-                  end;
-
-                end;
-
-              end;
-              //c-symbol addition^
 
             end;
 
@@ -3212,7 +3198,6 @@ begin
 
         for j:=0 to length(defines)-1 do
           currentline:=replacetoken(currentline,defines[j].name,defines[j].whatever);
-
 
         ok1:=false;
         if currentline[length(currentline)]<>':' then //if it's not a definition then
