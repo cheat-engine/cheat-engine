@@ -2236,7 +2236,7 @@ begin
               s1:=trim(copy(currentline,a+1,b-a-1));
 
               try
-                testptr:=symhandler.getAddressFromName(s1);
+                testptr:=getAddressFromScript(s1);
               except
                 raise exception.Create(format(rsXCouldNotBeFound, [s1]));
               end;
