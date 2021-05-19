@@ -214,7 +214,7 @@ end;
 procedure TfrmHighlighterEditor.FormCreate(Sender: TObject);
 begin
   LoadFormPosition(self);
-  pnlAttribs.color:=ColorSet.EditBackground;
+  pnlAttribs.color:=clWindow;
 end;
 
 procedure TfrmHighlighterEditor.FormDestroy(Sender: TObject);

@@ -783,6 +783,7 @@ ST_FUNC void put_stabs(TCCState *s1, const char *str, int type, int other, int d
     Stab_Sym *sym;
 
     unsigned offset;
+	
     if (type == N_SLINE
         && (offset = stab_section->data_offset)
         && (sym = (Stab_Sym*)(stab_section->data + offset) - 1)

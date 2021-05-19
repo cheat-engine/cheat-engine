@@ -5,6 +5,7 @@ object frameHotkeyConfig: TframeHotkeyConfig
   Width = 488
   ClientHeight = 414
   ClientWidth = 488
+  LCLVersion = '2.0.6.0'
   TabOrder = 0
   DesignLeft = 514
   DesignTop = 194

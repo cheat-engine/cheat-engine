@@ -991,6 +991,11 @@ struct TCCState {
 	void *binary_writer_param;
 	//Cheat Engine Binary Writer Addition Stop
 
+	//Cheat Engine <string> counter Start
+	int stringcompiles;
+	//Cheat Engine <string> counter Stop
+
+
 };
 
 struct filespec {

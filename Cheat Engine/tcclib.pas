@@ -8,7 +8,7 @@ interface
 uses
   {$ifdef windows}windows,{$endif}
   {$ifdef darwin}macport, dl,macportdefines, {$endif}
-  Classes, SysUtils, syncobjs;
+  Classes, SysUtils, syncobjs, maps;
 
 
 type
@@ -30,6 +30,36 @@ type
 
 
 
+  TLineNumberInfo=record
+    address: ptruint;
+    linenr: integer;
+    sourcecode: pchar; //just this line
+    sourcefile: tstrings; //the sourcecode this line belongs to
+  end;
+  PLineNumberInfo=^TLineNumberInfo;
+
+  TSourceCodeInfo=class(TObject)
+  private
+    AddressToLineNumberInfo: tmap;
+    sources: TStringlist;
+    minaddress: ptruint;
+    maxaddress: ptruint;
+  public
+    procedure outputDebugInfo(o: tstrings);
+    procedure add(address: ptruint; linenr: integer; sourceline: string; sourcefile: tstrings);
+    function get(address: ptruint): PLineNumberInfo;
+
+    procedure AddSource(sourcefilename: string; sourcecode: tstrings); //sourcecode string objects passed become owned by TSourceCodeInfo and will be destroyed when it gets destroyed
+    function GetSource(sourcefilename: string): tstrings;
+
+    procedure getRange(out start: ptruint; out stop: ptruint);
+
+    procedure register;
+    procedure unregister;
+
+    constructor create;
+    destructor destroy; override;
+  end;
 
   TTCC=class(TObject)
   private
@@ -52,6 +82,8 @@ type
     get_symbol:function(s: PTCCState; name: pchar):pointer; cdecl;
     get_symbols:function(s: PTCCState; userdata: pointer; functionToCall: pointer):pointer; cdecl;
 
+    get_stab: function(s: PTCCState; output: pointer; out outputlength: integer): integer; cdecl;
+
     delete:procedure(s: PTCCState); cdecl;
     add_file:function(s: PTCCState; filename: pchar): integer; cdecl;
     output_file:function(s: PTCCState; filename: pchar): integer; cdecl;
@@ -61,12 +93,13 @@ type
 
     add_symbol:function(s: PTCCState; name: pchar; val: pointer): integer; cdecl;
 
-    procedure setupCompileEnvironment(s: PTCCState; textlog: tstrings; targetself: boolean=false);
+    procedure setupCompileEnvironment(s: PTCCState; textlog: tstrings; targetself: boolean=false; nodebug: boolean=false);
+    procedure parseStabData(s: PTCCState; symbols: Tstrings; sourcecodeinfo: TSourceCodeInfo; stringsources: tstrings=nil);
   public
-    function testcompileScript(script: string; var bytesize: integer; referencedSymbols: TStrings; symbols: TStrings; textlog: tstrings=nil): boolean;
-    function compileScript(script: string; address: ptruint; output: tstream; symbollist: TStrings; textlog: tstrings=nil; secondaryLookupList: tstrings=nil; targetself: boolean=false): boolean;
-    function compileScripts(scripts: tstrings; address: ptruint; output: tstream; symbollist: TStrings; textlog: tstrings=nil; targetself: boolean=false): boolean;
-    function compileProject(files: tstrings; address: ptruint; output: tstream; symbollist: TStrings; textlog: tstrings=nil; targetself: boolean=false): boolean;
+    function testcompileScript(script: string; var bytesize: integer; referencedSymbols: TStrings; symbols: TStrings; sourcecodeinfo: TSourceCodeInfo=nil; textlog: tstrings=nil): boolean;
+    function compileScript(script: string; address: ptruint; output: tstream; symbollist: TStrings; sourcecodeinfo: TSourceCodeInfo=nil; textlog: tstrings=nil; secondaryLookupList: tstrings=nil; targetself: boolean=false): boolean;
+    function compileScripts(scripts: tstrings; address: ptruint; output: tstream; symbollist: TStrings; sourcecodeinfo: TSourceCodeInfo=nil; textlog: tstrings=nil; targetself: boolean=false): boolean;
+    function compileProject(files: tstrings; address: ptruint; output: tstream; symbollist: TStrings; sourcecodeinfo: TSourceCodeInfo=nil; textlog: tstrings=nil; targetself: boolean=false): boolean;
 
     constructor create(target: TTCCTarget);
   end;
@@ -75,9 +108,12 @@ type
   function tcc: TTCC;
   function tccself: TTCC;
 
+  procedure tcc_addCIncludePath(path: string);
+  procedure tcc_removeCIncludePath(path: string);
+
 implementation
 
-uses forms,dialogs{$ifndef standalonetest}, symbolhandler, ProcessHandlerUnit, newkernelhandler{$endif};
+uses forms,dialogs{$ifndef standalonetest}, symbolhandler, ProcessHandlerUnit, newkernelhandler, CEFuncProc, sourcecodehandler{$endif};
 const
   TCC_RELOCATE_AUTO=pointer(1); //relocate
   TCC_OUTPUT_MEMORY  = 1; { output will be run in memory (default) }
@@ -87,13 +123,36 @@ const
   TCC_OUTPUT_PREPROCESS = 5; { only preprocess (used internally) }
 
 
-
 var
   initDone: boolean;
   tcc32: TTCC;
   {$ifdef cpu64}
   tcc64: TTCC;
   {$endif}
+  additonalIncludePaths: tstringlist;
+
+
+procedure tcc_addCIncludePath(path: string);
+begin
+  if additonalIncludePaths=nil then
+    additonalIncludePaths:=tstringlist.create;
+
+  additonalIncludePaths.add(path);
+end;
+
+procedure tcc_removeCIncludePath(path: string);
+var i: integer;
+begin
+  if additonalIncludePaths<>nil then
+  begin
+    i:=additonalIncludePaths.IndexOf(path);
+    if i<>-1 then
+      additonalIncludePaths.Delete(i);
+
+    if additonalIncludePaths.count=0 then
+      freeandnil(additonalIncludePaths);
+  end;
+end;
 
 function tcc: TTCC;
 begin
@@ -131,6 +190,118 @@ begin
     p:=Memory;
     zeromemory(@p^[oldcapacity], newCapacity-oldcapacity);
   end;
+end;
+
+procedure TSourceCodeInfo.outputDebugInfo(o: tstrings);
+var
+  mi: TMapIterator;
+  e: TLineNumberInfo;
+begin
+  mi:=TMapIterator.Create(AddressToLineNumberInfo);
+  mi.First;
+  while not mi.EOM do
+  begin
+    mi.GetData(e);
+    o.AddText(inttohex(e.address,8)+':'+inttostr(e.linenr)+' - '+e.sourcecode);
+    mi.Next;
+  end;
+
+  mi.free;
+end;
+
+procedure TSourceCodeInfo.add(address: ptruint; linenr: integer; sourceline: string; sourcefile: tstrings);
+var e: TLineNumberInfo;
+begin
+  e.address:=address;
+  e.linenr:=linenr;
+  e.sourcecode:=strnew(pchar(sourceline));
+  e.sourcefile:=sourcefile;
+  AddressToLineNumberInfo.Add(address, e);
+
+  if minaddress=0 then
+    minaddress:=address
+  else
+    minaddress:=minx(minaddress,address);
+
+  if maxaddress=0 then
+    maxaddress:=address
+  else
+    maxaddress:=maxx(maxaddress,address);
+end;
+
+function TSourceCodeInfo.get(address: ptruint): PLineNumberInfo;
+begin
+  result:=AddressToLineNumberInfo.GetDataPtr(address);
+end;
+
+procedure TSourceCodeInfo.AddSource(sourcefilename: string; sourcecode: tstrings); //sourcecode string objects passed become owned by TSourceCodeInfo and will be destroyed when it gets destroyed
+begin
+  sources.AddObject(sourcefilename, sourcecode);
+end;
+
+function TSourceCodeInfo.GetSource(sourcefilename: string): tstrings;
+var i: integer;
+begin
+  i:=sources.IndexOf(sourcefilename);
+  if i<>-1 then
+    result:=tstrings(sources.Objects[i])
+  else
+    result:=nil;
+end;
+
+procedure TSourceCodeInfo.getRange(out start: ptruint; out stop: ptruint);
+//returns the range of addresses this code encompasses
+begin
+  start:=minaddress;
+  stop:=maxaddress;
+end;
+
+procedure TSourceCodeInfo.register;
+begin
+  if SourceCodeInfoCollection=nil then
+    SourceCodeInfoCollection:=TSourceCodeInfoCollection.create;
+
+  SourceCodeInfoCollection.addSourceCodeInfo(self);
+end;
+
+procedure TSourceCodeInfo.unregister;
+begin
+  if SourceCodeInfoCollection<>nil then
+    SourceCodeInfoCollection.removeSourceCodeInfo(self);
+end;
+
+constructor TSourceCodeInfo.create;
+begin
+  AddressToLineNumberInfo:=TMap.Create(ituPtrSize,sizeof(TLineNumberInfo));
+  sources:=TStringList.create;
+end;
+
+destructor TSourceCodeInfo.destroy;
+var
+  mi: TMapIterator;
+  i: integer;
+begin
+  unregister;
+
+  mi:=TMapIterator.Create(AddressToLineNumberInfo);
+  mi.First;
+  while not mi.EOM do
+  begin
+    StrDispose(PLineNumberInfo(mi.DataPtr)^.sourcecode);
+    PLineNumberInfo(mi.DataPtr)^.sourcecode:=nil;
+    mi.Next;
+  end;
+
+  mi.free;
+
+  AddressToLineNumberInfo.Free;
+  AddressToLineNumberInfo:=nil;
+
+  for i:=0 to sources.count-1 do
+    sources.Objects[i].Free;
+
+  sources.free;
+  inherited destroy;
 end;
 
 
@@ -187,6 +358,8 @@ begin
   pointer(get_symbols):=GetProcAddress(module,'tcc_get_symbols');
   pointer(delete):=GetProcAddress(module,'tcc_delete');
 
+  pointer(get_stab):=GetProcAddress(module,'tcc_get_stab');
+
 
   working:=(module<>0) and
            assigned(new) and
@@ -194,7 +367,8 @@ begin
            assigned(add_include_path) and
            assigned(compile_string) and
            assigned(output_file) and
-           assigned(delete);
+           assigned(delete) and
+           assigned(get_stab);
 end;
 
 procedure ErrorLogger(opaque: pointer; msg: pchar); cdecl;
@@ -281,6 +455,7 @@ end;
 procedure symbolCallback(sl: TStrings; address: qword; name: pchar); cdecl;
 var s: string;
 begin
+  if trim(name)='' then exit;
 
   if (length(name)>=4) then
   begin
@@ -301,33 +476,41 @@ begin
     end;
   end;
 
-  {$ifndef standalonetest}
   if sl<>nil then
     sl.AddObject(name, tobject(address));
 
-  {$else}
-  showmessage(inttohex(address,8)+' - '+name);
-  {$endif}
 end;
 
-procedure ttcc.setupCompileEnvironment(s: PTCCState; textlog: tstrings; targetself: boolean=false);
+procedure ttcc.setupCompileEnvironment(s: PTCCState; textlog: tstrings; targetself: boolean=false; nodebug: boolean=false);
+var
+  params: string;
+  i: integer;
 begin
   add_include_path(s,{$ifdef standalonetest}'D:\git\cheat-engine\Cheat Engine\bin\'+{$endif}'include');
+  {$ifdef windows}
   add_include_path(s,{$ifdef standalonetest}'D:\git\cheat-engine\Cheat Engine\bin\'+{$endif}'include\winapi');
+  {$endif}
   add_include_path(s,{$ifdef standalonetest}'D:\git\cheat-engine\Cheat Engine\bin\'+{$endif}'include\sys');
   add_include_path(s,pchar(ExtractFilePath(application.exename)+'include'));
+  {$ifdef windows}
   add_include_path(s,pchar(ExtractFilePath(application.exename)+'include\winapi'));
+  {$endif}
   add_include_path(s,pchar(ExtractFilePath(application.exename)+'include\sys'));
 
 
-
-
- // add_include_path(s,'D:\git\cheat-engine\Cheat Engine\bin\include');
+  if additonalIncludePaths<>nil then
+    for i:=0 to additonalIncludePaths.count-1 do
+      add_include_path(s,pchar(additonalIncludePaths[i]));
 
 
   if textlog<>nil then set_error_func(s,textlog,@ErrorLogger);
 
-  set_options(s,'-nostdlib Wl,-section-alignment=4');
+  params:='-nostdlib Wl,-section-alignment=4';
+  if nodebug=false then
+    params:='-g '+params;
+
+
+  set_options(s,pchar(params));
   set_output_type(s,TCC_OUTPUT_MEMORY);
 
 
@@ -339,10 +522,184 @@ begin
     set_symbol_lookup_func(s,nil,@symbolLookupFunction);
 end;
 
-function ttcc.testcompileScript(script: string; var bytesize: integer; referencedSymbols: TStrings; symbols: TStrings; textlog: tstrings=nil): boolean;
+procedure ttcc.parseStabData(s: PTCCState; symbols: Tstrings; sourcecodeinfo: TSourceCodeInfo; stringsources: tstrings=nil );
+type
+  {
+      unsigned int n_strx;         /* index into string table of name */
+      unsigned char n_type;         /* type of symbol */
+      unsigned char n_other;        /* misc info (usually empty) */
+      unsigned short n_desc;        /* description field */
+      unsigned int n_value;        /* value of symbol */
+  }
+  TCCStabEntry=packed record
+    n_strx: integer;
+    n_type: byte;
+    n_other: byte;
+    n_desc: word;
+    n_value: dword;
+  end;
+  PCCStabEntry=^TCCStabEntry;
+var
+  stabdatasize: integer;
+  stabdata: pointer;
+  stabsize: integer;
+  stabstrsize: integer;
+
+  stab: PCCStabEntry;
+  stabstr: pchar;
+  count: integer;
+  i,j,ln, si: integer;
+
+  address: ptruint;
+
+  currentSourceFile: string;
+  currentFunction: record
+    valid: boolean;
+    name: string;
+    address: ptruint;
+  end;
+
+  str: string;
+
+  sl: Tstringlist;
+  source: TStrings;
+begin
+  source:=nil;
+
+  if get_stab(s,nil, stabdatasize)=-2 then
+  begin
+    getmem(stabdata, stabdatasize);
+    try
+      if get_stab(s, stabdata, stabdatasize)=0 then
+      begin
+        //parse the stabdata and output linenumbers and sourcecode
+        stabsize:=pdword(stabdata)^;
+        stab:=pointer(ptruint(stabdata)+4);
+        stabstr:=pointer(ptruint(stabdata)+4+stabsize);
+        stabstrsize:=stabdatasize-4-stabsize;
+
+        count:=stabsize div (sizeof(TCCStabEntry)); //12
+
+        for i:=0 to count-1 do
+        begin
+          case stab[i].n_type of
+          //$a0/$80=  local vars
+
+            $24:
+            begin
+              //symbol/function
+              if stab[i].n_strx>=stabstrsize then continue;
+              str:=pchar(@stabstr[stab[i].n_strx]);
+              str:=str.Split(':')[0];
+
+              si:=symbols.IndexOf(str);
+              if si<>-1 then
+              begin
+                currentFunction.valid:=true;
+                currentFunction.name:=str;
+                currentFunction.address:=ptruint(symbols.Objects[si]);
+              end;
+            end;
+
+            $44: //Line number info
+            begin
+              if currentFunction.valid then
+              begin
+                ln:=stab[i].n_desc;
+                if ln>0 then
+                begin
+
+                  address:=currentFunction.address+stab[i].n_value;
+
+                  if (source<>nil) and (ln<=source.Count) then
+                  begin
+                    sl:=tstringlist.create;
+                    sl.add(source[ln-1]);
+                    source.Objects[ln-1]:=tobject(address);
+
+                    //deal with some code layout preferences
+                    if (ln<source.count) and (source[ln]='}') then
+                    begin
+                      sl.add(source[ln]);
+                      source.Objects[ln]:=tobject(address);
+                    end;
+
+                    if (ln>1) and (trim(source[ln-1])='{') then
+                    begin
+                      sl.Insert(0,source[ln-2]);
+                      source.Objects[ln-2]:=tobject(address);
+                    end;
+
+                    sourcecodeinfo.add(address, ln,sl.text, source);
+                  end;
+                end;
+
+
+              end;
+            end;
+
+            $84:
+            begin
+              currentFunction.valid:=false;
+              if stab[i].n_strx>=stabstrsize then
+              begin
+                source:=nil;
+                currentSourceFile:='';
+                continue;
+              end;
+
+              currentSourceFile:=pchar(@stabstr[stab[i].n_strx]);
+
+              if trim(currentSourceFile)='' then continue;
+
+              source:=sourcecodeinfo.GetSource(currentSourceFile);
+              if source=nil then
+              begin
+                source:=tstringlist.create;
+                if (stringsources<>nil) and (currentsourcefile.StartsWith('<string')) then
+                begin
+                  str:='';
+                  for j:=length(currentSourceFile)-1 downto 1 do
+                  begin
+                    if currentsourcefile[j] in ['0'..'9'] then
+                      str:=currentsourcefile[j]+str
+                    else
+                      break;
+                  end;
+
+                  j:=strtoint(str);
+                  if j<stringsources.Count then
+                    source.Text:=stringsources[j];
+                end
+                else
+                begin
+                  try
+                    source.LoadFromFile(currentSourceFile);
+                  except
+                    freeandnil(source);
+                    currentSourceFile:='';
+                    continue;
+                  end;
+                end;
+
+                sourcecodeinfo.AddSource(currentSourceFile, source);
+              end;
+            end;
+          end;
+        end;
+
+      end;
+    finally
+      freemem(stabdata);
+    end;
+  end;
+end;
+
+function ttcc.testcompileScript(script: string; var bytesize: integer; referencedSymbols: TStrings; symbols: TStrings; sourcecodeinfo: TSourceCodeInfo; textlog: tstrings=nil): boolean;
 var s: PTCCState;
   r: pointer;
   ms: Tmemorystream;
+
 begin
   result:=false;
   if not working then
@@ -356,7 +713,7 @@ begin
   s:=new();
   ms:=tmemorystream.create;
   try
-    setupCompileEnvironment(s, textlog);
+    setupCompileEnvironment(s, textlog,false, sourcecodeinfo=nil);
 
     set_binary_writer_func(s,nil,@NullWriter);
     set_symbol_lookup_func(s,referencedSymbols, @symbolLookupFunctionTestCompile);
@@ -381,12 +738,14 @@ begin
   end;
 end;
 
-function ttcc.compileScript(script: string; address: ptruint; output: tstream; symbollist: TStrings; textlog: tstrings=nil; secondaryLookupList: tstrings=nil; targetself: boolean=false): boolean;
+function ttcc.compileScript(script: string; address: ptruint; output: tstream; symbollist: TStrings; sourcecodeinfo: TSourceCodeInfo=nil; textlog: tstrings=nil; secondaryLookupList: tstrings=nil; targetself: boolean=false): boolean;
 var s: PTCCState;
   r: pointer;
 
   size: integer;
   tms: TTCCMemorystream=nil;
+
+  sources: tstringlist;
 begin
   result:=false;
   if not working then
@@ -405,7 +764,7 @@ begin
   cs.enter;
   s:=new();
   try
-    setupCompileEnvironment(s, textlog, targetself);
+    setupCompileEnvironment(s, textlog, targetself, sourcecodeinfo=nil);
 
     if output is TTCCMemorystream then
       tms:=TTCCMemorystream(output)
@@ -424,15 +783,21 @@ begin
     if relocate(s,0)=-1 then exit(false);
     if relocate(s,address)=-1 then exit(false);
 
-    {$ifndef standalonetest}
     if symbollist<>nil then
-    {$endif}
       get_symbols(s, symbollist, @symbolCallback);
 
     if (output is TTCCMemorystream)=false then
     begin
       tms.position:=0;
       tms.SaveToStream(output);
+    end;
+
+    if (symbollist<>nil) and (sourcecodeinfo<>nil) then
+    begin
+      sources:=tstringlist.create;
+      sources.Add(script);
+      parseStabData(s, symbollist, sourcecodeinfo, sources);
+      sources.free;
     end;
 
     result:=true;
@@ -445,7 +810,7 @@ begin
   end;
 end;
 
-function ttcc.compileScripts(scripts: tstrings; address: ptruint; output: tstream; symbollist: TStrings; textlog: tstrings=nil; targetself: boolean=false):boolean;
+function ttcc.compileScripts(scripts: tstrings; address: ptruint; output: tstream; symbollist: TStrings; sourcecodeinfo: TSourceCodeInfo=nil; textlog: tstrings=nil; targetself: boolean=false):boolean;
 var
   s: PTCCState;
   i: integer;
@@ -467,7 +832,7 @@ begin
   cs.enter;
   s:=new();
   try
-    setupCompileEnvironment(s, textlog, targetself);
+    setupCompileEnvironment(s, textlog, targetself, sourcecodeinfo=nil);
 
     if output is TTCCMemorystream then
       tms:=TTCCMemorystream(output)
@@ -496,6 +861,10 @@ begin
       tms.SaveToStream(output);
     end;
 
+    if (symbollist<>nil) and (sourcecodeinfo<>nil) then
+      parseStabData(s, symbollist, sourcecodeinfo, scripts);
+
+
     result:=true;
   finally
     delete(s);
@@ -508,7 +877,7 @@ begin
 end;
 
 
-function ttcc.compileProject(files: tstrings; address: ptruint; output: tstream; symbollist: TStrings; textlog: tstrings=nil; targetself: boolean=false):boolean;
+function ttcc.compileProject(files: tstrings; address: ptruint; output: tstream; symbollist: TStrings; sourcecodeinfo: TSourceCodeInfo=nil; textlog: tstrings=nil; targetself: boolean=false):boolean;
 var
   s: PTCCState;
   i: integer;
@@ -530,7 +899,7 @@ begin
   cs.enter;
   s:=new();
   try
-    setupCompileEnvironment(s, textlog, targetself);
+    setupCompileEnvironment(s, textlog, targetself, sourcecodeinfo=nil);
 
     if output is TTCCMemorystream then
       tms:=TTCCMemorystream(output)
@@ -557,6 +926,10 @@ begin
       tms.position:=0;
       tms.SaveToStream(output);
     end;
+
+    if (symbollist<>nil) and (sourcecodeinfo<>nil) then
+      parseStabData(s, symbollist, sourcecodeinfo);
+
 
 
     result:=true;

@@ -102,7 +102,7 @@ implementation
 uses
   MemoryBrowserFormUnit, DissectCodeThread,debuggertypedefinitions,
   dissectcodeunit, disassemblerviewunit, frmUltimap2Unit, frmcodefilterunit,
-  BreakpointTypeDef, vmxfunctions, globals;
+  BreakpointTypeDef, vmxfunctions, globals, sourcecodehandler, tcclib;
 
 resourcestring
   rsUn = '(Unconditional)';
@@ -330,6 +330,10 @@ var
     found :boolean;
     extrasymboldata: TExtraSymbolData;
 
+    sourcecodeinfo: TSourceCodeInfo;
+    lni: PLineNumberInfo;
+    sourcecodelineheight: integer;
+
     iscurrentinstruction: boolean;
 
     PA: qword;
@@ -447,8 +451,6 @@ begin
   customheaderstrings.text:=dassemblercomments.commentHeader[d.LastDisassembleData.address];
 
 
-
-
   bytestring:=truncatestring(bytestring, fHeaders.Items[1].Width-2, true);
   //opcodestring:=truncatestring(opcodestring, fHeaders.Items[2].Width-2, true);
   //specialstring:=truncatestring(specialstring, fHeaders.Items[3].Width-2);
@@ -553,9 +555,6 @@ begin
     refferencedbystrings:=tstringlist.create;
     buildReferencedByString(refferencedbystrings);
 
-
-
-
     if refferencedbystrings.count>0 then
     begin
       if referencedbylineheight=-1 then
@@ -577,6 +576,23 @@ begin
       refferencedbylinecount:=refferencedbystrings.count;
       refferencedbyheight:=refferencedbylinecount*referencedbylineheight;
       fheight:=height+refferencedbyheight;
+    end;
+  end;
+
+  lni:=nil;
+  if SourceCodeInfoCollection<>nil then
+  begin
+    sourcecodeinfo:=SourceCodeInfoCollection.getSourceCodeInfo(faddress);
+    if sourcecodeinfo<>nil then
+    begin
+      lni:=sourcecodeinfo.get(faddress);
+      if lni<>nil then
+      begin
+        fcanvas.Font.Style:=[fsItalic];
+        sourcecodelineheight:=fcanvas.TextHeight(lni.sourcecode);
+        fcanvas.Font.Style:=[];
+        fheight:=height+sourcecodelineheight;
+      end;
     end;
   end;
 
@@ -793,6 +809,15 @@ begin
     end;
     fcanvas.Font.Style:=[];
 
+  end;
+
+
+  if lni<>nil then  //render sourcecode lines
+  begin
+    fcanvas.Font.Style:=[fsItalic];
+    fcanvas.TextOut(fHeaders.Items[0].Left+5,linestart,AnsiToUtf8(lni.sourcecode));
+    linestart:=linestart+sourcecodelineheight;
+    fcanvas.Font.Style:=[];
   end;
 
   if customheaderstrings.count>0 then

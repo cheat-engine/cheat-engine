@@ -27,6 +27,7 @@ tcc_relocate
 tcc_set_error_func
 tcc_set_symbol_lookup_func
 tcc_set_binary_writer_func
+tcc_get_stab
 tcc_set_lib_path
 tcc_set_options
 tcc_set_output_type

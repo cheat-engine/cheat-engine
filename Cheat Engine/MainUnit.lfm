@@ -10,7 +10,7 @@ object MainForm: TMainForm
   AllowDropFiles = True
   AutoSize = True
   Caption = 'Cheat Engine'
-  ClientHeight = 642
+  ClientHeight = 662
   ClientWidth = 620
   Menu = MainMenu1
   OnClose = FormClose

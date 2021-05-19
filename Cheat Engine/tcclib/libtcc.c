@@ -632,6 +632,52 @@ LIBTCCAPI void tcc_set_binary_writer_func(TCCState *s, void *param, void(*binary
 	s->binary_writer_param = param;
 }
 
+LIBTCCAPI int tcc_get_stab(TCCState *s, void *output, int *outputlength) //returns both stabs and stabsstr.  The first 4 bytes is the size of .stabs , the rest is .stabsstr
+{
+	//-1 invalid parameters (null pointers)
+	//-2 not enough space (correct space is put in stabslength and stabsstr);
+	//-3 no stabs info
+
+	int i;
+	Section *stab = NULL;
+	Section *stabstr = NULL;
+
+	if (outputlength)
+	{
+		//find .stabs	
+		for (i = 1; i < s->nb_sections; i++)
+		{
+			if (strcmp(s->sections[i]->name, ".stab") == 0)
+				stab = s->sections[i];
+			else
+				if (strcmp(s->sections[i]->name, ".stabstr")==0)
+					stabstr = s->sections[i];
+		}
+
+		if (stab && stabstr)
+		{
+			int neededLength = stab->data_offset + stabstr->data_offset + sizeof(int);
+			if ((*outputlength < neededLength) || (output==NULL))
+			{
+				*outputlength = neededLength;
+				return -2;
+			}		
+
+			*outputlength = neededLength;
+
+			*(int *)output = stab->data_offset;
+			unsigned char *data = output;
+			memcpy(&data[sizeof(int)], stab->data, stab->data_offset);
+			memcpy(&data[sizeof(int)+stab->data_offset], stabstr->data, stabstr->data_offset);
+			return 0;
+		}
+		else
+			return -3; //no stabs
+	}
+	else
+		return -1; //invalid pointers
+	
+}
 //Cheat Engine stop
 
 
@@ -739,7 +785,14 @@ static int tcc_compile(TCCState *s1, int filetype, const char *str, int fd)
 
         if (fd == -1) {
             int len = strlen(str);
-            tcc_open_bf(s1, "<string>", len);
+			
+			//Cheat Engine <string> counter Start
+			char sourcename[200];
+			snprintf(sourcename, 200, "<string-%d>", s1->stringcompiles);
+			s1->stringcompiles++;
+			//Cheat Engine <string> counter Stop
+
+            tcc_open_bf(s1, sourcename, len);   //Cheat Engine <string> counter -> "<string>" -> sourcename 
             memcpy(file->buffer, str, len);
         } else {
             tcc_open_bf(s1, str, 0);

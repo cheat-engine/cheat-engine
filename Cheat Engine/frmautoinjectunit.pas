@@ -723,12 +723,12 @@ begin
           begin
             sl:=tstringlist.create;
             disableinfo.ccodesymbols.GetSymbolList(sl);
-            if MessageDlg('The following C-Code symbols where registered:'+sl.text+#13#10+'Do you wish to keep these?',mtConfirmation, [mbyes,mbno],0)<>mryes then
-              freeandnil(disableinfo.ccodesymbols)
-            else
+            if MessageDlg('The following C-Code symbols where registered:'+sl.text+#13#10+'Do you wish to keep these?',mtConfirmation, [mbyes,mbno],0)=mryes then
             begin
               disableinfo.ccodesymbols.refcount:=0;
-              disableinfo.donotfreeccodesymbols:=true; //has to be manually deleted
+              disableinfo.donotfreeccodedata:=true; //has to be manually deleted
+
+              //the sourcecode lines will stay. You've lost the ability to free this code anyhow
             end;
 
             sl.free;
@@ -3121,6 +3121,7 @@ var
 begin
   frmHighlighterEditor:=TfrmHighlighterEditor.create(self);
   CPPHighlighter.loadFromRegistryDefault(HKEY_CURRENT_USER, '\Software\Cheat Engine\CPP Highlighter'+darkmodestring);
+
   frmHighlighterEditor.highlighter:=CPPHighlighter;
   if frmHighlighterEditor.showmodal=mrok then
   begin

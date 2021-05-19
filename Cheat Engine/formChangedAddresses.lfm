@@ -1,7 +1,7 @@
 object frmChangedAddresses: TfrmChangedAddresses
-  Left = 1080
+  Left = 1296
   Height = 319
-  Top = 400
+  Top = 437
   Width = 389
   Caption = 'Changed Addresses'
   ClientHeight = 319
@@ -25,7 +25,7 @@ object frmChangedAddresses: TfrmChangedAddresses
     ClientHeight = 25
     ClientWidth = 389
     ParentBidiMode = False
-    TabOrder = 2
+    TabOrder = 0
     object labelCodeAddress: TLabel
       AnchorSideLeft.Control = PanelAddressInfo
       AnchorSideTop.Control = PanelAddressInfo
@@ -187,8 +187,8 @@ object frmChangedAddresses: TfrmChangedAddresses
   object PopupMenu1: TPopupMenu
     Images = caImageList
     OnPopup = PopupMenu1Popup
-    Left = 40
-    Top = 104
+    Left = 136
+    Top = 72
     object Showregisterstates1: TMenuItem
       Caption = 'Show register states'
       ShortCut = 16466

@@ -468,6 +468,52 @@ begin
 
   reg.free;
 
+  if result=false then
+  begin
+    if self is TSynCppSyn then //load default C colors
+    begin
+      with TSynCppSyn(Self) do
+      begin
+        if ShouldAppsUseDarkMode then
+        begin
+
+          CommentAttri.Foreground:=$ff00;
+          CommentAttri.Style:=[fsItalic];
+          CommentAttri.StyleMask:=[fsItalic];
+
+          IdentifierAttri.Foreground:=$ffff;
+          InvalidAttri.Foreground:=$ff;
+          NumberAttri.Foreground:=$ffff00;
+          DirecAttri.Foreground:=$5024b5;
+          KeyAttri.Foreground:=$e1af04;
+          KeyAttri.Style:=[fsBold];
+          KeyAttri.StyleMask:=[fsBold];
+          StringAttri.Foreground:=$c0dcc0;
+          SymbolAttri.Foreground:=$c0c0c0;
+        end
+        else
+        begin
+          CommentAttri.Foreground:=$808000;
+          CommentAttri.Style:=[fsItalic];
+          CommentAttri.StyleMask:=[fsItalic];
+
+          IdentifierAttri.Foreground:=$364bc5;
+          InvalidAttri.Foreground:=$ff;
+          NumberAttri.Foreground:=$ff0000;
+          DirecAttri.Foreground:=$5024b5;
+          KeyAttri.Foreground:=$800000;
+          KeyAttri.Style:=[fsBold];
+          KeyAttri.StyleMask:=[fsBold];
+          StringAttri.Foreground:=$3de12f;
+          SymbolAttri.Foreground:=$808080;
+
+        end;
+
+      end;
+    end;
+
+  end;
+
   DefHighlightChange(self);
 end;
 
@@ -1421,7 +1467,10 @@ begin
         if fCPPSyntaxHighlighter=nil then
         begin
           fCPPSyntaxHighlighter:=TSynCppSyn.Create(self);
+
+
           fCPPSyntaxHighlighter.loadFromRegistryDefault(HKEY_CURRENT_USER, '\Software\Cheat Engine\CPP Highlighter'+darkmodestring);
+
         end;
         fCurrentSecondaryHighlighter:=fCPPSyntaxHighlighter;
       end;

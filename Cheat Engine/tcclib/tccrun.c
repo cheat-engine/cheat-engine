@@ -295,8 +295,9 @@ static int tcc_relocate_ex(TCCState *s1, void *ptr, addr_t ptr_diff)
 
     for(i = 1; i < s1->nb_sections; i++) {
         s = s1->sections[i];
-        if (0 == (s->sh_flags & SHF_ALLOC))
-            continue;
+		if (0 == (s->sh_flags & SHF_ALLOC))
+			continue;
+		
         length = s->data_offset;
         ptr = (void*)s->sh_addr;
         if (s->sh_flags & SHF_EXECINSTR)
@@ -314,6 +315,7 @@ static int tcc_relocate_ex(TCCState *s1, void *ptr, addr_t ptr_diff)
 					s1->binary_writer_func(s1->binary_writer_param, ptr, zeromem, length);
 					tcc_free(zeromem);
 				}
+				
 			}
 			else
 		    //cheat engine binary writer addition stop

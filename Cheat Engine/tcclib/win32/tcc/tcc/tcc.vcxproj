@@ -188,6 +188,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Output to 32 (Release)|Win32'">
     <TargetName>tcc$(PlatformArchitecture)-32</TargetName>
     <LinkIncremental>false</LinkIncremental>
+    <OutDir>..\..\..\..\bin\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Output to 32 (Debug)|x64'">
     <LinkIncremental>false</LinkIncremental>

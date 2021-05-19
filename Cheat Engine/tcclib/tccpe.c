@@ -1283,6 +1283,8 @@ static int pe_check_symbols(struct pe_info *pe)
 						}
 					}
 				}
+
+				sym->st_other |= ST_PE_IMPORT;
 				//Cheat Engine Symbol Lookup Addition Start				
 				
 

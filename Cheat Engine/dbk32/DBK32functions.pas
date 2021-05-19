@@ -1,4 +1,4 @@
-unit DBK32functions;
+ unit DBK32functions;
 
 {$MODE Delphi}
 
@@ -3176,16 +3176,13 @@ begin
         else
           dataloc:=dataloc+'driver64.dat';
 
-        outputdebugstring('b');
         if not fileexists(dataloc) then
         begin
-          outputdebugstring('b0');
           servicename:='CEDRIVER60';
           ultimapservicename:='ULTIMAP2';
           processeventname:='DBKProcList60';
           threadeventname:='DBKThreadList60';
 
-          outputdebugstring('b1');
           if iswow64 then
           begin
             sysfile:='dbk64.sys';
@@ -3197,13 +3194,10 @@ begin
             ultimapsysfile:='';
           end;
 
-          outputdebugstring('b2');
-
           vmx_p1_txt:='76543210';
           vmx_p2_txt:='fedcba98';
           vmx_p3_txt:='90909090';
 
-          outputdebugstring('b3');
         end
         else
         begin
@@ -3221,8 +3215,6 @@ begin
           closefile(driverdat);
         end;
 
-        outputdebugstring('c');
-
         driverloc:=extractfilepath(apppath)+sysfile;
         ultimapdriverloc:=extractfilepath(apppath)+ultimapsysfile;
       finally
@@ -3230,30 +3222,23 @@ begin
       end;
 
 
-      outputdebugstring('d');
       try
         configure_vmx(strtoint64('$'+vmx_p1_txt), strtoint('$'+vmx_p2_txt), StrToInt64('$'+vmx_p3_txt)  );
       except
         //couldn't parse the password
-        outputdebugstring('e');
       end;
 
 
       if (not fileexists(driverloc)) and (not fileexists(ultimapdriverloc)) then
       begin
-        outputdebugstring('f');
         messagebox(0,PChar(rsYouAreMissingTheDriver),PChar(rsDriverError),MB_ICONERROR or mb_ok);
         hDevice:=INVALID_HANDLE_VALUE;
         hUltimapDevice:=INVALID_HANDLE_VALUE;
         exit;
       end;
 
-
-      outputdebugstring('g');
       if hscmanager<>0 then
       begin
-        outputdebugstring('hscmanager is valid');
-
         //try loading ultimap
         hUltimapService:=0;
         hultimapdevice:=INVALID_HANDLE_VALUE;
@@ -3310,11 +3295,7 @@ begin
             reg.WriteString('A','\Device\'+ultimapservicename);
             reg.WriteString('B','\DosDevices\'+ultimapservicename);
 
-            if startservice(hultimapservice,0,pointer(sav))=false then
-            begin
-              outputdebugstring('Failed to load ultimap2:'+inttostr(GetLastError));
-            end
-            else
+            if startservice(hultimapservice,0,pointer(sav)) then
               OutputDebugString('started ultimap2');
 
             closeservicehandle(hUltimapService);
@@ -3333,23 +3314,14 @@ begin
           reg.DeleteValue('B');
 
           freeandnil(reg);
-        end
-        else
-          OutputDebugString('Failed to open/create ultimap service');
+        end;
 
-
-        if hultimapDevice=INVALID_HANDLE_VALUE then
-          OutputDebugString('Failed to open ultimap device');
 
         //load DBK
-
-        outputdebugstring('h');
 
         hService := OpenServiceW(hSCManager, pwidechar(servicename), SERVICE_ALL_ACCESS);
         if hService=0 then
         begin
-          outputdebugstring('i');
-
           hService:=CreateServiceW(
              hSCManager,           // SCManager database
              pwidechar(servicename),   // name of service
@@ -3368,7 +3340,6 @@ begin
         end
         else
         begin
-          outputdebugstring('j');
           //make sure the service points to the right file
           ChangeServiceConfigW(hservice,
                               SERVICE_KERNEL_DRIVER,
@@ -3386,10 +3357,8 @@ begin
         end;
 
 
-        outputdebugstring('k');
         if hservice<>0 then
         begin
-          outputdebugstring('l');
           sav:=nil;
 
           //setup the configuration parameters before starting the driver

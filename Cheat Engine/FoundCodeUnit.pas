@@ -144,7 +144,6 @@ type
     procedure setdbvmwatchid(id: integer);
   public
     { Public declarations }
-
     addresswatched: ptruint;
     useexceptions: boolean;
     usesdebugregs: boolean;

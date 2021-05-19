@@ -2877,7 +2877,7 @@ begin
       //ccode symbollist
       if (disableinfo.ccodesymbols.count>0) then
       begin
-        disableinfo.donotfreeccodesymbols:=true; //will return later
+        disableinfo.donotfreeccodedata:=true; //will return later
         lua_pushstring(L,'ccodesymbols');
         luaclass_newClass(L,disableinfo.ccodesymbols);
         lua_settable(L, secondaryResultTable);
@@ -14355,6 +14355,9 @@ var
   list: TStringlist=nil;
   count: integer;
   useKernelAlloc: boolean;
+
+  NoDebug: boolean;
+  ln: TSourceCodeInfo;
 begin
   if lua_gettop(L)>=1 then
   begin
@@ -14404,6 +14407,10 @@ begin
     else
       useKernelAlloc:=false;
 
+    if lua_gettop(L)>=5 then
+      NoDebug:=lua_toboolean(L,5)
+    else
+      NoDebug:=false;
 
 
     bytes:=tmemorystream.Create;
@@ -14420,10 +14427,10 @@ begin
       if a=0 then //allocate myself
       begin
         //test compile to get the size
-        if ((list=nil) and (tcc.compileScript(s,$00400000,bytes,nil,errorlog,nil,targetself)=false)) or
+        if ((list=nil) and (tcc.compileScript(s,$00400000,bytes,nil,nil,errorlog,nil,targetself)=false)) or
            ((list<>nil) and (
-                             ((isfile=false) and (tcc.compileScripts(list,$00400000,bytes,nil,errorlog,targetself)=false) ) or
-                             ((isfile=true) and (tcc.compileProject(list,$00400000,bytes,nil,errorlog,targetself)=false) )
+                             ((isfile=false) and (tcc.compileScripts(list,$00400000,bytes,nil,nil,errorlog,targetself)=false) ) or
+                             ((isfile=true) and (tcc.compileProject(list,$00400000,bytes,nil,nil,errorlog,targetself)=false) )
                              ))
         then
         begin
@@ -14462,10 +14469,16 @@ begin
 
       //actual compile
 
-      if ((list=nil) and (tcc.compileScript(s,a,bytes,symbollist,errorlog,nil,targetself)=false)) or
+      if nodebug=false then
+        ln:=TSourceCodeInfo.create
+      else
+        ln:=nil;
+
+
+      if ((list=nil) and (tcc.compileScript(s,a,bytes,symbollist,ln,errorlog,nil,targetself)=false)) or
          ((list<>nil) and (
-                           ((isfile=false) and (tcc.compileScripts(list,a,bytes,symbollist,errorlog,targetself)=false) ) or
-                           ((isfile=true) and (tcc.compileProject(list,a,bytes,symbollist,errorlog,targetself)=false) )
+                           ((isfile=false) and (tcc.compileScripts(list,a,bytes,symbollist,ln,errorlog,targetself)=false) ) or
+                           ((isfile=true) and (tcc.compileProject(list,a,bytes,symbollist,ln,errorlog,targetself)=false) )
                            )) then
       begin
         lua_pop(L,lua_gettop(L));
@@ -14517,8 +14530,6 @@ begin
       freeandnil(errorlog);
     end;
   end;
-
-
 end;
 
 function lua_compile(L: Plua_State): integer; cdecl;
@@ -14530,6 +14541,21 @@ function lua_compilefiles(L: Plua_State): integer; cdecl;
 begin
   exit(_lua_compile(L,true));
 end;
+
+function lua_addCIncludePath(L: Plua_State): integer; cdecl;
+begin
+  result:=0;
+  if lua_gettop(L)>=1 then
+    tcc_addCIncludePath(Lua_ToString(L,1));
+end;
+
+function lua_removeCIncludePath(L: Plua_State): integer; cdecl;
+begin
+  result:=0;
+  if lua_gettop(L)>=1 then
+    tcc_removeCIncludePath(Lua_ToString(L,1));
+end;
+
 
 function lua_dotNetExecuteClassMethod(L: Plua_State): integer; cdecl;
 var
@@ -15437,6 +15463,10 @@ begin
 
     lua_register(L, 'compile', lua_compile);
     lua_register(L, 'compileFiles', lua_compilefiles);
+
+    lua_register(L, 'addCIncludePath', lua_addCIncludePath);
+    lua_register(L, 'removeCIncludePath', lua_removeCIncludePath);
+
     lua_register(L, 'dotNetExecuteClassMethod', lua_dotNetExecuteClassMethod);
     lua_register(L, 'compileCS', lua_compilecs);
     lua_register(L, 'compileCSharp', lua_compilecs);

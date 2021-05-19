@@ -924,7 +924,7 @@ begin
   if useCustomArrowSize then f.WriteDWord(fCustomArrowSize);
 
   f.writebyte(ifthen(useCustomArrowStyles,1,0));
-  if useCustomArrowStyles then f.WriteByte(byte(fCustomArrowStyles));
+  if useCustomArrowStyles then f.WriteByte(integer(fCustomArrowStyles));
 
 end;
 
@@ -984,7 +984,7 @@ begin
   if useCustomArrowSize then fCustomArrowSize:=f.ReadDWord;
 
   useCustomArrowStyles:=f.readbyte=1;
-  if useCustomArrowStyles then fCustomArrowStyles:=TArrowStyles(f.ReadByte);
+  if useCustomArrowStyles then fCustomArrowStyles:=TArrowStyles(integer(f.ReadByte));
 
 
 end;

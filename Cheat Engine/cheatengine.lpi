@@ -26,7 +26,7 @@
       <AutoIncrementBuild Value="True"/>
       <MajorVersionNr Value="7"/>
       <MinorVersionNr Value="2"/>
-      <BuildNr Value="6878"/>
+      <BuildNr Value="7009"/>
       <Language Value=""/>
       <CharSet Value=""/>
       <StringTable CompanyName="Cheat Engine" FileDescription="Cheat Engine" ProductVersion="7.2"/>
@@ -528,9 +528,6 @@
           </SearchPaths>
           <Parsing>
             <Style Value="1"/>
-            <SyntaxOptions>
-              <SyntaxMode Value="Delphi"/>
-            </SyntaxOptions>
           </Parsing>
           <CodeGeneration>
             <TargetCPU Value="x86_64"/>
@@ -568,11 +565,10 @@
 -dcemain
 -dNDEBUG
 -dD3DDebug
+-dNOVMX
 -dCUSTOMFLOAT
--dXDEBUG
--dDBVMFORAMDISWORKING
--dDEBUGDEBUGGER"/>
-            <OtherDefines Count="14">
+-dXDEBUG"/>
+            <OtherDefines Count="13">
               <Define0 Value="NOTMULTITHREADED"/>
               <Define1 Value="benchmarkps"/>
               <Define2 Value="cemain"/>
@@ -586,7 +582,6 @@
               <Define10 Value="memorymapped"/>
               <Define11 Value="privatebuild"/>
               <Define12 Value="DBVMFORAMDISWORKING"/>
-              <Define13 Value="DEBUGDEBUGGER"/>
             </OtherDefines>
           </Other>
         </CompilerOptions>
@@ -598,14 +593,12 @@
     </PublishOptions>
     <RunParams>
       <local>
-        <CommandLineParams Value="hasrights"/>
         <LaunchingApplication PathPlusParams="\usr\X11R6\bin\xterm -T 'Lazarus Run Output' -e $(LazarusDir)\tools\runwait.sh $(TargetCmdLine)"/>
       </local>
       <FormatVersion Value="2"/>
       <Modes Count="1">
         <Mode0 Name="default">
           <local>
-            <CommandLineParams Value="hasrights"/>
             <LaunchingApplication PathPlusParams="\usr\X11R6\bin\xterm -T 'Lazarus Run Output' -e $(LazarusDir)\tools\runwait.sh $(TargetCmdLine)"/>
           </local>
         </Mode0>
@@ -639,7 +632,7 @@
         <PackageName Value="LCL"/>
       </Item8>
     </RequiredPackages>
-    <Units Count="407">
+    <Units Count="409">
       <Unit0>
         <Filename Value="cheatengine.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -2701,6 +2694,7 @@
         <Filename Value="frmdebugsymbolstructurelistunit.pas"/>
         <IsPartOfProject Value="True"/>
         <HasResources Value="True"/>
+        <UnitName Value="frmDebugSymbolStructureListUnit"/>
       </Unit389>
       <Unit390>
         <Filename Value="macumm.pas"/>
@@ -2774,18 +2768,23 @@
         <UnitName Value="memrecDataStructures"/>
       </Unit404>
       <Unit405>
+        <Filename Value="luacecustombutton.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="LuaCECustomButton"/>
+      </Unit405>
+      <Unit406>
         <Filename Value="dbvmdebuggerinterface.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="DBVMDebuggerInterface"/>
-      </Unit405>
-      <Unit406>
-        <Filename Value="frmcr3switcherunit.pas"/>
-        <IsPartOfProject Value="True"/>
-        <ComponentName Value="frmCR3Switcher"/>
-        <HasResources Value="True"/>
-        <ResourceBaseClass Value="Form"/>
-        <UnitName Value="frmCR3SwitcherUnit"/>
       </Unit406>
+      <Unit407>
+        <Filename Value="tcclib.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit407>
+      <Unit408>
+        <Filename Value="sourcecodehandler.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit408>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

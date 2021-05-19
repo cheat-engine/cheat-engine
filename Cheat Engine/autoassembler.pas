@@ -24,7 +24,7 @@ uses
    Assemblerunit, classes, LCLIntf,symbolhandler, symbolhandlerstructs,
    sysutils,dialogs,controls, CEFuncProc, NewKernelHandler ,plugin,
    ProcessHandlerUnit, lua, lualib, lauxlib, luaclass, commonTypeDefs, OpenSave,
-   SymbolListHandler,
+   SymbolListHandler, tcclib,
    betterControls;
 
 
@@ -38,7 +38,8 @@ type
     exceptions:TCEExceptionListArray;
     registeredsymbols: tstringlist;
     ccodesymbols: TSymbolListHandler;
-    donotfreeccodesymbols: boolean;
+    sourcecodeinfo: TSourceCodeInfo;
+    donotfreeccodedata: boolean;
 
     allsymbols: tstringlist; //filled at the end with all known symbols (allocs, labels, kallocs, aobscan results, defines that are addresses, etc...)
 
@@ -277,8 +278,11 @@ begin
   setlength(Allocs,0);
   setlength(exceptions,0);
   freeandnil(registeredsymbols);
-  if (ccodesymbols<>nil) and (donotfreeccodesymbols=false) then
+  if (ccodesymbols<>nil) and (donotfreeccodedata=false) then
     freeandnil(ccodesymbols);
+
+  if (sourcecodeinfo<>nil) and (donotfreeccodedata=false) then
+    freeandnil(sourcecodeinfo);
 end;
 
 constructor TDisableInfo.create;
@@ -3526,7 +3530,18 @@ begin
           selfsymhandler.AddSymbolList(disableinfo.ccodesymbols)
         else
           symhandler.AddSymbolList(disableinfo.ccodesymbols);
+
+        disableinfo.sourcecodeinfo:=dataForAACodePass2.cdata.sourceCodeInfo;
+
+        if disableinfo.sourcecodeinfo<>nil then
+          disableinfo.sourcecodeinfo.register;
+      end
+      else
+      begin
+        //else do not register the symbols (You can't disable them otherwise)
+        freeandnil(dataForAACodePass2.cdata.sourceCodeInfo);
       end;
+
 
       //reassemble c-code reference
       for j:=0 to length(labels)-1 do
@@ -3758,6 +3773,8 @@ begin
 
           disableinfo.ccodesymbols.clear;
           disableinfo.ccodesymbols.unregisterList;
+
+          freeandnil(disableinfo.sourcecodeinfo);
         end;
 
         setlength(disableinfo.allocs,length(allocs));
