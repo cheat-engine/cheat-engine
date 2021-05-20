@@ -4,11 +4,11 @@ unit disassemblerviewlinesunit;
 
 interface
 
-uses LCLIntf,sysutils, classes,ComCtrls, graphics, CEFuncProc, disassembler,
+uses math,LCLIntf,sysutils, classes,ComCtrls, graphics, CEFuncProc, disassembler,
      CEDebugger, debughelper, KernelDebugger, symbolhandler, plugin,
-     disassemblerComments, SymbolListHandler, ProcessHandlerUnit
+     disassemblerComments, SymbolListHandler, ProcessHandlerUnit, tcclib,SynHighlighterCpp
      {$ifdef USELAZFREETYPE}
-     ,LazFreeTypeIntfDrawer, EasyLazFreeType, math
+     ,LazFreeTypeIntfDrawer, EasyLazFreeType
      {$endif}, betterControls;
 
 type
@@ -59,6 +59,11 @@ type
 
     refferencedByStart: integer;
 
+    sourcecodestart: integer;
+    sourcecodestop: integer;
+
+
+
     isbp,isultimap: boolean;
     focused: boolean;
 
@@ -70,6 +75,7 @@ type
     function truncatestring(s: string; maxwidth: integer; hasSpecialChars: boolean=false): string;
     procedure buildReferencedByString(sl: tstringlist);
     function DrawTextRectWithColor(const ARect: TRect; X, Y: integer; const Text: string): integer;
+    procedure renderCCodeLine(x,y: integer; text: string);
   public
 
 
@@ -77,6 +83,7 @@ type
     property instructionCenter: integer read fInstructionCenter;
     function isJumpOrCall(var addressitjumpsto: ptrUint): boolean;
     function getReferencedByAddress(y: integer):ptruint;
+    function getSourceCode(y: integer):PLineNumberInfo;
     function getHeight: integer;
     function getTop: integer;
     property description:string read fdescription;
@@ -102,7 +109,7 @@ implementation
 uses
   MemoryBrowserFormUnit, DissectCodeThread,debuggertypedefinitions,
   dissectcodeunit, disassemblerviewunit, frmUltimap2Unit, frmcodefilterunit,
-  BreakpointTypeDef, vmxfunctions, globals, sourcecodehandler, tcclib;
+  BreakpointTypeDef, vmxfunctions, globals, sourcecodehandler, SynHighlighterAA;
 
 resourcestring
   rsUn = '(Unconditional)';
@@ -111,6 +118,10 @@ resourcestring
   rsMemory = '(Code/Data)';
 
   rsInvalidDisassembly = 'Invalid disassembly';
+
+var
+  chighlighter: TSynCppSyn;  //the disassemblerview lines highlighter is accessed only from the GUI thread, so can be global
+
 
 procedure TDisassemblerLine.drawJumplineTo(yposition: integer; offset: integer; showendtriangle: boolean=true);
 var
@@ -184,9 +195,22 @@ begin
     end;
   end;
   freeandnil(sl);
-
 end;
 
+function TDisassemblerLine.getSourceCode(y: integer):PLineNumberInfo;
+var sci: TSourceCodeInfo;
+begin
+  result:=nil;
+  //check if y is between sourcecodestart/sourcecodestop, and if so get the sourcecode
+
+  if (sourcecodestart<>sourcecodestop) and InRange(y,sourcecodestart, sourcecodestop) then
+  begin
+    sci:=SourceCodeInfoCollection.getSourceCodeInfo(fAddress);
+    if sci<>nil then
+      result:=sci.get(fAddress);
+  end;
+
+end;
 
 function TDisassemblerLine.truncatestring(s: string; maxwidth: integer; hasSpecialChars: boolean=false): string;
 var
@@ -332,7 +356,10 @@ var
 
     sourcecodeinfo: TSourceCodeInfo;
     lni: PLineNumberInfo;
+    sourcecode: Tstringlist=nil;
     sourcecodelineheight: integer;
+    sourcecodeheight: integer;
+    sourcecodeindentationstart: integer; //after filename+linenumber
 
     iscurrentinstruction: boolean;
 
@@ -347,6 +374,8 @@ var
     {$endif}
 
     d: TDisassembler;
+
+    header0left: integer;
 
 begin
   d:=TDisassemblerview(owner).currentDisassembler;
@@ -460,7 +489,7 @@ begin
   if boldheight=-1 then
   begin
     {$ifdef USELAZFREETYPE}
-    if (not UseOriginalRenderingSystem) and (ftfont<>nil) then
+    if (not UseOriginalRenderingSystem) and (ftfontb<>nil) then
     begin
       boldheight:=ceil(ftfontb.TextHeight(fdisassembled));
     end
@@ -560,7 +589,7 @@ begin
       if referencedbylineheight=-1 then
       begin
         {$ifdef USELAZFREETYPE}
-        if (not UseOriginalRenderingSystem) and (ftfont<>nil) then
+        if (not UseOriginalRenderingSystem) and (ftfontb<>nil) then
         begin
           referencedbylineheight:=ceil(ftfontb.TextHeight('xxx'));
         end
@@ -588,9 +617,26 @@ begin
       lni:=sourcecodeinfo.get(faddress);
       if lni<>nil then
       begin
-        fcanvas.Font.Style:=[fsItalic];
-        sourcecodelineheight:=fcanvas.TextHeight(lni.sourcecode);
-        fcanvas.Font.Style:=[];
+        sourcecode:=Tstringlist.create;
+        sourcecode.text:=lni.sourcecode; //sourcecode has newline chars
+
+        {$ifdef USELAZFREETYPE}
+        if (not UseOriginalRenderingSystem) and (ftfont<>nil) then
+        begin
+          sourcecodelineheight:=ceil(ftfont.TextHeight('xxx'));
+          sourcecodeindentationstart:=ftfont.TextWidth(sourcecode[0]+' ');
+        end
+        else
+        {$endif}
+        begin
+          fcanvas.Font.Style:=[fsItalic];
+          sourcecodelineheight:=fcanvas.TextHeight('QjgPli');
+          fcanvas.Font.Style:=[];
+          sourcecodeindentationstart:=fcanvas.TextWidth(sourcecode[0]+' ');
+        end;
+
+        sourcecodeheight:=sourcecodelineheight*(sourcecode.Count-1); //first line is the file and linenumber
+
         fheight:=height+sourcecodelineheight;
       end;
     end;
@@ -814,10 +860,34 @@ begin
 
   if lni<>nil then  //render sourcecode lines
   begin
+    sourcecodestart:=linestart;
     fcanvas.Font.Style:=[fsItalic];
-    fcanvas.TextOut(fHeaders.Items[0].Left+5,linestart,AnsiToUtf8(lni.sourcecode));
-    linestart:=linestart+sourcecodelineheight;
+    {$ifdef USELAZFREETYPE}
+    if (not UseOriginalRenderingSystem) and (drawer<>nil) then
+      drawer.DrawText(AnsiToUtf8(sourcecode[0]), ftfont, fHeaders.Items[0].Left+5, linestart, tcolortofpcolor(colortorgb(fcanvas.Font.color)), [ftaLeft, ftaTop])
+    else
+    {$endif}
+    fcanvas.TextOut(fHeaders.Items[0].Left+5,linestart,AnsiToUtf8(sourcecode[0]));
+    for i:=1 to sourcecode.count-1 do
+    begin
+      {$ifdef USELAZFREETYPE}
+      if (not UseOriginalRenderingSystem) and (drawer<>nil) then
+        drawer.DrawText(AnsiToUtf8(sourcecode[i]), ftfont, fHeaders.Items[0].Left+5+sourcecodeindentationstart, linestart, tcolortofpcolor(colortorgb(fcanvas.Font.color)), [ftaLeft, ftaTop])
+      else
+      {$endif}
+      begin
+        renderCCodeLine(fHeaders.Items[2].Left,linestart,AnsiToUtf8(sourcecode[i]));
+      end;
+      inc(linestart, sourcecodelineheight);
+    end;
+
     fcanvas.Font.Style:=[];
+    sourcecodestop:=linestart;
+  end
+  else
+  begin
+    sourcecodestart:=0;
+    sourcecodestop:=0;
   end;
 
   if customheaderstrings.count>0 then
@@ -940,7 +1010,49 @@ begin
   if refferencedbystrings<>nil then
     freeandnil(refferencedbystrings);
 
+  if sourcecode<>nil then
+    freeandnil(sourcecode);
 
+
+end;
+
+
+procedure TDisassemblerLine.renderCCodeLine(x,y: integer; text: string);
+var
+  s: string;
+ // a: TToken
+ oldfg: tcolor;
+ oldstyle: TFontStyles;
+ w: integer;
+begin
+  if chighlighter=nil then
+  begin
+    chighlighter:=TSynCppSyn.Create(nil);
+    chighlighter.loadFromRegistryDefault;
+  end;
+
+  oldstyle:=fcanvas.font.style;
+  oldfg:=fcanvas.font.color;
+
+  chighlighter.ResetRange;
+  chighlighter.SetLine(text,0);
+
+  while not chighlighter.GetEol do
+  begin
+    s:=chighlighter.GetToken;
+
+    fcanvas.Font.color:=chighlighter.GetTokenAttribute.Foreground;
+    fcanvas.Font.style:=chighlighter.GetTokenAttribute.Style;
+
+    w:=fcanvas.GetTextWidth(s);
+    fcanvas.TextOut(x ,y,s);
+    inc(x,w);
+
+    chighlighter.Next;
+  end;
+
+  fcanvas.font.style:=oldstyle;
+  fcanvas.font.color:=oldfg;
 end;
 
 function TDisassemblerLine.DrawTextRectWithColor(const ARect: TRect; X, Y: integer; const Text: string): integer;
@@ -1154,6 +1266,7 @@ end;
 destructor TDisassemblerLine.destroy;
 begin
   freeandnil(specialstrings);
+
   inherited destroy;
 end;
 

@@ -218,6 +218,7 @@ begin
   e.sourcefile:=sourcefile;
   AddressToLineNumberInfo.Add(address, e);
 
+  {$ifndef standalonetest}
   if minaddress=0 then
     minaddress:=address
   else
@@ -227,6 +228,7 @@ begin
     maxaddress:=address
   else
     maxaddress:=maxx(maxaddress,address);
+  {$endif}
 end;
 
 function TSourceCodeInfo.get(address: ptruint): PLineNumberInfo;
@@ -258,16 +260,20 @@ end;
 
 procedure TSourceCodeInfo.register;
 begin
+  {$ifndef standalonetest}
   if SourceCodeInfoCollection=nil then
     SourceCodeInfoCollection:=TSourceCodeInfoCollection.create;
 
   SourceCodeInfoCollection.addSourceCodeInfo(self);
+  {$endif}
 end;
 
 procedure TSourceCodeInfo.unregister;
 begin
+  {$ifndef standalonetest}
   if SourceCodeInfoCollection<>nil then
     SourceCodeInfoCollection.removeSourceCodeInfo(self);
+  {$endif}
 end;
 
 constructor TSourceCodeInfo.create;
@@ -565,11 +571,13 @@ var
   source: TStrings;
 begin
   source:=nil;
+  stabdatasize:=0;
 
   if get_stab(s,nil, stabdatasize)=-2 then
   begin
-    getmem(stabdata, stabdatasize);
+    getmem(stabdata, stabdatasize*2);
     try
+      stabdatasize:=stabdatasize*2;
       if get_stab(s, stabdata, stabdatasize)=0 then
       begin
         //parse the stabdata and output linenumbers and sourcecode
@@ -588,7 +596,10 @@ begin
             $24:
             begin
               //symbol/function
-              if stab[i].n_strx>=stabstrsize then continue;
+              if stab[i].n_strx>=stabstrsize then
+              begin
+                continue;
+              end;
               str:=pchar(@stabstr[stab[i].n_strx]);
               str:=str.Split(':')[0];
 
@@ -614,6 +625,7 @@ begin
                   if (source<>nil) and (ln<=source.Count) then
                   begin
                     sl:=tstringlist.create;
+
                     sl.add(source[ln-1]);
                     source.Objects[ln-1]:=tobject(address);
 
@@ -629,6 +641,8 @@ begin
                       sl.Insert(0,source[ln-2]);
                       source.Objects[ln-2]:=tobject(address);
                     end;
+
+                    sl.insert(0, format('%s:%2d', [extractfilename(currentSourceFile),ln]));
 
                     sourcecodeinfo.add(address, ln,sl.text, source);
                   end;

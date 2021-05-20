@@ -24,7 +24,7 @@ uses {$ifdef darwin}macport,messages,lcltype,{$endif}
      {$ifdef windows}jwawindows, windows,commctrl,{$endif}
      sysutils, LCLIntf, forms, classes, controls, comctrls, stdctrls, extctrls, symbolhandler,
      cefuncproc, NewKernelHandler, graphics, disassemblerviewlinesunit, disassembler,
-     math, lmessages, menus, DissectCodeThread
+     math, lmessages, menus, DissectCodeThread, tcclib
 
      {$ifdef USELAZFREETYPE}
      ,cefreetype,FPCanvas, EasyLazFreeType, LazFreeTypeFontCollection, LazFreeTypeIntfDrawer,
@@ -175,6 +175,7 @@ type TDisassemblerview=class(TPanel)
 
     function getDisassemblerLineAtPoint(p: tpoint): TDisassemblerLine;
     function getReferencedByLineAtPos(p: tpoint): ptruint;
+    function getSourceCodeAtPos(p: tpoint): PLineNumberInfo;
     function ClientToCanvas(p: tpoint): TPoint;
 
     constructor create(AOwner: TComponent); override;
@@ -697,6 +698,18 @@ begin
   d:=getDisassemblerLineAtPoint(p);
   if d<>nil then
     result:=d.getReferencedByAddress(cp.y-d.top);
+end;
+
+function TDisassemblerview.getSourceCodeAtPos(p: tpoint): PLineNumberInfo;
+var cp: tpoint;
+  d: TDisassemblerLine;
+  y: integer;
+begin
+  result:=nil;
+  cp:=ClientToCanvas(p);
+  d:=getDisassemblerLineAtPoint(p);
+  if d<>nil then
+    result:=d.getSourceCode(cp.y-d.top);
 end;
 
 function TDisassemblerview.getDisassemblerLineAtPoint(p: tpoint): TDisassemblerLine;

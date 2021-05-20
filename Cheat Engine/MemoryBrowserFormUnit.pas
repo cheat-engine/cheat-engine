@@ -741,7 +741,7 @@ uses Valuechange, MainUnit, debugeventhandler, findwindowunit,
   vmxfunctions, frmstructurecompareunit, globals, UnexpectedExceptionsHelper,
   frmExceptionRegionListUnit, frmExceptionIgnoreListUnit, frmcodefilterunit,
   frmDBVMWatchConfigUnit, DBK32functions, DPIHelper, DebuggerInterface,
-  DebuggerInterfaceAPIWrapper, BreakpointTypeDef, CustomTypeHandler;
+  DebuggerInterfaceAPIWrapper, BreakpointTypeDef, CustomTypeHandler, tcclib;
 
 
 resourcestring
@@ -2547,6 +2547,7 @@ end;
 procedure TMemoryBrowser.disassemblerviewDblClick(Sender: TObject);
 var m: TPoint;
   a: ptruint;
+  lni: PLineNumberInfo;
 begin
   //find what column is clicked
 
@@ -2557,14 +2558,23 @@ begin
   begin
     backlist.Push(pointer(disassemblerview.SelectedAddress));
     disassemblerview.SelectedAddress:=a;
-  end
-  else
-  begin
-    if m.x>(disassemblerview.getheaderWidth(0)+disassemblerview.getheaderWidth(1)+disassemblerview.getheaderWidth(2)) then
-      miUserdefinedComment.click //comment click
-    else
-      assemble1.Click;
+    exit;
   end;
+
+  lni:=disassemblerview.getSourceCodeAtPos(m);
+  if lni<>nil then
+  begin
+    showmessage('todo: show sourcecode in a synedit with debug options:'+lni.sourcefile.Text);
+    exit;
+  end;
+
+  if m.x>(disassemblerview.getheaderWidth(0)+disassemblerview.getheaderWidth(1)+disassemblerview.getheaderWidth(2)) then
+  begin
+    miUserdefinedComment.click; //comment click
+    exit;
+  end;
+
+  assemble1.Click;
 end;
 
 procedure TMemoryBrowser.FormCreate(Sender: TObject);

@@ -924,7 +924,7 @@ begin
   if useCustomArrowSize then f.WriteDWord(fCustomArrowSize);
 
   f.writebyte(ifthen(useCustomArrowStyles,1,0));
-  if useCustomArrowStyles then f.WriteByte(integer(fCustomArrowStyles));
+  if useCustomArrowStyles then f.Write(fCustomArrowStyles, sizeof(fCustomArrowSize));
 
 end;
 
@@ -984,9 +984,7 @@ begin
   if useCustomArrowSize then fCustomArrowSize:=f.ReadDWord;
 
   useCustomArrowStyles:=f.readbyte=1;
-  if useCustomArrowStyles then fCustomArrowStyles:=TArrowStyles(integer(f.ReadByte));
-
-
+  if useCustomArrowStyles then f.read(fCustomArrowStyles, sizeof(fCustomArrowStyles));
 end;
 
 constructor TDiagramLink.create(diagramconfig: TDiagramConfig; _origin,_destination: TDiagramBlockSideDescriptor);

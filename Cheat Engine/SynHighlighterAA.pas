@@ -246,6 +246,7 @@ type
   TSynCustomHighlighterHelper=class helper for TSynCustomHighlighter
   public
     function loadFromRegistryDefault(RootKey: HKEY; Key: string): boolean;
+    function loadFromRegistryDefault: boolean;
   end;
 
 
@@ -515,6 +516,11 @@ begin
   end;
 
   DefHighlightChange(self);
+end;
+
+function TSynCustomHighlighterHelper.loadFromRegistryDefault: boolean;
+begin
+  result:=loadFromRegistryDefault(HKEY_CURRENT_USER, '\Software\Cheat Engine\CPP Highlighter'+darkmodestring);
 end;
 
 procedure aa_AddExtraCommand(command:pchar);

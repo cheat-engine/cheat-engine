@@ -663,6 +663,7 @@ LIBTCCAPI int tcc_get_stab(TCCState *s, void *output, int *outputlength) //retur
 				return -2;
 			}		
 
+			memset(output, 0, neededLength);
 			*outputlength = neededLength;
 
 			*(int *)output = stab->data_offset;

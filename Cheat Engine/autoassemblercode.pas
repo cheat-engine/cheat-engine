@@ -20,7 +20,7 @@ unit autoassemblercode;
 interface
 
 uses
-  Classes, SysUtils, SymbolListHandler;
+  Classes, SysUtils, SymbolListHandler,tcclib;
 
 type
   TAutoAssemblerCodePass2Data=record
@@ -50,6 +50,8 @@ type
       targetself: boolean;
 
       symbolPrefix: string;
+      nodebug: boolean;
+      sourceCodeInfo: TSourceCodeInfo;
 {$ifdef windows}
       kernelAlloc: boolean;
 {$endif}
@@ -66,7 +68,7 @@ procedure AutoAssemblerCodePass2(var dataForPass2: TAutoAssemblerCodePass2Data; 
 implementation
 
 uses {$ifdef windows}windows,{$endif}{$ifdef darwin}macport,macportdefines,math,{$endif}ProcessHandlerUnit, symbolhandler, luahandler, lua, lauxlib, lualib, StrUtils,
-  Clipbrd, dialogs, lua_server, tcclib, Assemblerunit, NewKernelHandler, DBK32functions;
+  Clipbrd, dialogs, lua_server, Assemblerunit, NewKernelHandler, DBK32functions;
 
 
 type
@@ -412,8 +414,11 @@ begin
       secondarylist.AddObject(dataForPass2.cdata.references[i].name, tobject(dataForPass2.cdata.references[i].address));
 
 
+    if dataForPass2.cdata.nodebug=false then
+      dataForPass2.cdata.sourceCodeInfo:=TSourceCodeInfo.create;
 
-    if _tcc.compileScript(dataForPass2.cdata.cscript.Text, dataForPass2.cdata.address, bytes, tempsymbollist, errorlog, secondarylist, dataForPass2.cdata.targetself ) then
+
+    if _tcc.compileScript(dataForPass2.cdata.cscript.Text, dataForPass2.cdata.address, bytes, tempsymbollist, dataForPass2.cdata.sourceCodeInfo, errorlog, secondarylist, dataForPass2.cdata.targetself ) then
     begin
       if bytes.Size>dataForPass2.cdata.bytesize then
       begin
@@ -436,7 +441,7 @@ begin
           bytes.clear;
           secondarylist.Clear;
           errorlog.clear;
-          if _tcc.compileScript(dataForPass2.cdata.cscript.text, dataForPass2.cdata.address, bytes, tempsymbollist, errorlog, secondarylist, dataForPass2.cdata.targetself )=false then
+          if _tcc.compileScript(dataForPass2.cdata.cscript.text, dataForPass2.cdata.address, bytes, tempsymbollist, dataForPass2.cdata.sourceCodeInfo, errorlog, secondarylist, dataForPass2.cdata.targetself )=false then
           begin
             //wtf? something really screwed up here
 {$ifdef windows}
@@ -557,10 +562,11 @@ begin
       DataForPass2.cdata.kernelAlloc:=true;
 {$endif}
 
+    if (us='NODEBUG') then
+      DataForPass2.cdata.nodebug:=true;
+
     if copy(us,1,7)='PREFIX=' then
-    begin
       DataForPass2.cdata.symbolPrefix:=copy(params[i],8);
-    end;
   end;
 
 end;
@@ -1077,7 +1083,7 @@ begin
 
       try
         bytesizeneeded:=0;
-        if _tcc.testcompileScript(dataForPass2.cdata.cscript.text, bytesizeneeded,imports, symbols, errorlog)=false then
+        if _tcc.testcompileScript(dataForPass2.cdata.cscript.text, bytesizeneeded,imports, symbols, nil, errorlog)=false then
         begin
           //example: <string>:6: error: 'fffff' undeclared
           //search for <string>: and replace the linenumber with the AA script linenumber
