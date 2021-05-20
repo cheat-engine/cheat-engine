@@ -1,7 +1,7 @@
 object MemoryBrowser: TMemoryBrowser
-  Left = 627
+  Left = 331
   Height = 536
-  Top = 107
+  Top = 170
   Width = 643
   HelpContext = 12
   Caption = 'Memory Viewer'
@@ -95,10 +95,10 @@ object MemoryBrowser: TMemoryBrowser
           Height = 40
           Top = 2
           Caption = 'tbSeparator1'
-          Style = tbsSeparator
+          Style = tbsDivider
         end
         object tbRun: TToolButton
-          Left = 113
+          Left = 110
           Hint = 'F9'
           Top = 2
           Caption = 'Run'
@@ -109,7 +109,7 @@ object MemoryBrowser: TMemoryBrowser
           ShowHint = True
         end
         object tbStepInto: TToolButton
-          Left = 150
+          Left = 144
           Hint = 'F7'
           Top = 2
           Caption = 'Step Into'
@@ -120,7 +120,7 @@ object MemoryBrowser: TMemoryBrowser
           ShowHint = True
         end
         object tbStepOver: TToolButton
-          Left = 205
+          Left = 199
           Hint = 'F8'
           Top = 2
           Caption = 'Step Over'
@@ -131,7 +131,7 @@ object MemoryBrowser: TMemoryBrowser
           ShowHint = True
         end
         object tbStepOut: TToolButton
-          Left = 264
+          Left = 258
           Hint = 'Shift+F8'
           Top = 2
           Caption = 'Step Out'
@@ -142,14 +142,14 @@ object MemoryBrowser: TMemoryBrowser
           ShowHint = True
         end
         object tbSeparator2: TToolButton
-          Left = 142
+          Left = 139
           Height = 40
           Top = 2
           Caption = 'tbSeparator2'
-          Style = tbsSeparator
+          Style = tbsDivider
         end
         object tbRunTill: TToolButton
-          Left = 326
+          Left = 317
           Hint = 'F4'
           Top = 2
           Caption = 'Run till...'
@@ -160,11 +160,11 @@ object MemoryBrowser: TMemoryBrowser
           ShowHint = True
         end
         object tbSeparator3: TToolButton
-          Left = 318
+          Left = 312
           Height = 40
           Top = 2
           Caption = 'tbSeparator3'
-          Style = tbsSeparator
+          Style = tbsDivider
         end
       end
     end
@@ -1419,7 +1419,7 @@ object MemoryBrowser: TMemoryBrowser
     Interval = 100
     OnTimer = Timer2Timer
     Left = 272
-    Top = 32
+    Top = 80
   end
   object MainMenu1: TMainMenu
     Images = mvImageList

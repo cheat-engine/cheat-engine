@@ -26,7 +26,7 @@
       <AutoIncrementBuild Value="True"/>
       <MajorVersionNr Value="7"/>
       <MinorVersionNr Value="2"/>
-      <BuildNr Value="7009"/>
+      <BuildNr Value="7020"/>
       <Language Value=""/>
       <CharSet Value=""/>
       <StringTable CompanyName="Cheat Engine" FileDescription="Cheat Engine" ProductVersion="7.2"/>
@@ -632,7 +632,7 @@
         <PackageName Value="LCL"/>
       </Item8>
     </RequiredPackages>
-    <Units Count="409">
+    <Units Count="410">
       <Unit0>
         <Filename Value="cheatengine.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -2785,6 +2785,14 @@
         <Filename Value="sourcecodehandler.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit408>
+      <Unit409>
+        <Filename Value="frmsourcedisplayunit.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="frmSourceDisplay"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+        <UnitName Value="frmSourceDisplayUnit"/>
+      </Unit409>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

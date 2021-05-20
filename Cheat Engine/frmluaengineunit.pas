@@ -1408,6 +1408,8 @@ begin
   mscript.Gutter.LineNumberPart.MarkupInfo.Background:=clBtnFace;
   mscript.Gutter.SeparatorPart.MarkupInfo.Background:=clBtnFace;
 
+  mscript.LineHighlightColor.Background:=ColorToRGB(mscript.Color) xor $212121;
+
 
   fq:=mscript.Font.Quality;
   if not (fq in [fqCleartypeNatural, fqDefault]) then

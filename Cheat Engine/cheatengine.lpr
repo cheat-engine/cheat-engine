@@ -116,7 +116,8 @@ uses
   frmMicrotransactionsUnit, frmSyntaxHighlighterEditor, LuaCustomImageList,
   dotnethost, rttihelper, cefreetype, LuaDotNetPipe, LuaRemoteExecutor,
   autoassemblercode, CSharpCompiler, newhintwindow, memrecDataStructures,
-  LuaCECustomButton, DBVMDebuggerInterface, frmCR3SwitcherUnit, tcclib, sourcecodehandler;
+  LuaCECustomButton, DBVMDebuggerInterface, frmCR3SwitcherUnit, tcclib,
+  sourcecodehandler, frmSourceDisplayUnit;
 
 {$R cheatengine.res}
 {$IFDEF windows}

@@ -741,7 +741,8 @@ uses Valuechange, MainUnit, debugeventhandler, findwindowunit,
   vmxfunctions, frmstructurecompareunit, globals, UnexpectedExceptionsHelper,
   frmExceptionRegionListUnit, frmExceptionIgnoreListUnit, frmcodefilterunit,
   frmDBVMWatchConfigUnit, DBK32functions, DPIHelper, DebuggerInterface,
-  DebuggerInterfaceAPIWrapper, BreakpointTypeDef, CustomTypeHandler, tcclib;
+  DebuggerInterfaceAPIWrapper, BreakpointTypeDef, CustomTypeHandler,
+  frmSourceDisplayUnit, sourcecodehandler, tcclib;
 
 
 resourcestring
@@ -2548,6 +2549,7 @@ procedure TMemoryBrowser.disassemblerviewDblClick(Sender: TObject);
 var m: TPoint;
   a: ptruint;
   lni: PLineNumberInfo;
+  f: TfrmSourceDisplay;
 begin
   //find what column is clicked
 
@@ -2564,7 +2566,9 @@ begin
   lni:=disassemblerview.getSourceCodeAtPos(m);
   if lni<>nil then
   begin
-    showmessage('todo: show sourcecode in a synedit with debug options:'+lni.sourcefile.Text);
+    f:=getSourceViewForm(lni);
+    if f<>nil then
+      f.show();
     exit;
   end;
 
@@ -4140,6 +4144,9 @@ begin
 
       DebuggerThread.ToggleOnExecuteBreakpoint(disassemblerview.SelectedAddress,bpm);
       disassemblerview.Update;
+
+      ApplySourceCodeDebugUpdate;
+
     end;
   except
     on e:exception do MessageDlg(e.message,mtError,[mbok],0);
@@ -6254,6 +6261,8 @@ begin
 
 
   ApplyFollowRegister;
+  ApplySourceCodeDebugUpdate;
+
   {for i:=0 to 4095 do
   begin
     if pbyte(ptruint(laststack)+stacktracesize+i)^<>$ce then
