@@ -576,6 +576,7 @@ begin
   if get_stab(s,nil, stabdatasize)=-2 then
   begin
     getmem(stabdata, stabdatasize*2);
+   // FillMemory(stabdata,stabdatasize, $cc);
     try
       stabdatasize:=stabdatasize*2;
       if get_stab(s, stabdata, stabdatasize)=0 then

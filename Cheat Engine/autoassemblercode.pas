@@ -968,10 +968,21 @@ var
   //
 begin
   dataForPass2.cdata.cscript:=nil;
+  dataForPass2.cdata.address:=0;
+  dataForPass2.cdata.bytesize:=0;
   dataForPass2.cdata.usesxmm:=false;
+  dataForPass2.cdata.symbols:=[];
+  dataForPass2.cdata.linklist:=[];
+  dataForPass2.cdata.references:=[];
   dataForPass2.cdata.targetself:=false;
-  setlength(dataForPass2.cdata.linklist,0);
-  setlength(dataForPass2.cdata.references,0);
+  dataForPass2.cdata.symbolPrefix:='';
+  dataForPass2.cdata.nodebug:=false;
+  dataForPass2.cdata.sourceCodeInfo:=nil;
+  {$ifdef windows}
+  dataForPass2.cdata.kernelAlloc:=false;
+  {$endif}
+  //setlength(dataForPass2.cdata.linklist,0);
+  //setlength(dataForPass2.cdata.references,0);
 
 
 

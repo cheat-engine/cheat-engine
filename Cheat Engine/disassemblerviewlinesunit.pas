@@ -876,7 +876,7 @@ begin
       else
       {$endif}
       begin
-        renderCCodeLine(fHeaders.Items[2].Left,linestart,AnsiToUtf8(sourcecode[i]));
+        renderCCodeLine(fHeaders.Items[2].Left+1,linestart,AnsiToUtf8(sourcecode[i]));
       end;
       inc(linestart, sourcecodelineheight);
     end;
