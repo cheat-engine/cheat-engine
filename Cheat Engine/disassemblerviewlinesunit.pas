@@ -203,7 +203,7 @@ begin
   result:=nil;
   //check if y is between sourcecodestart/sourcecodestop, and if so get the sourcecode
 
-  if (sourcecodestart<>sourcecodestop) and InRange(y,sourcecodestart, sourcecodestop) then
+  if (sourcecodestart<>sourcecodestop) and InRange(top+y,sourcecodestart, sourcecodestop) then
   begin
     sci:=SourceCodeInfoCollection.getSourceCodeInfo(fAddress);
     if sci<>nil then

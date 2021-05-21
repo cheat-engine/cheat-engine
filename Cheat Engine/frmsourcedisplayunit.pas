@@ -6,7 +6,8 @@ interface
 
 uses
   Classes, SysUtils, LResources, Forms, Controls, Graphics, Dialogs, ComCtrls,
-  ExtCtrls, SynEdit, SynEditMarks, MemoryBrowserFormUnit, tcclib, betterControls;
+  ExtCtrls, Menus, SynEdit, SynEditMarks, SynHighlighterCpp,
+  MemoryBrowserFormUnit, tcclib, betterControls, SynGutterBase;
 
 type
 
@@ -14,7 +15,10 @@ type
 
   TfrmSourceDisplay = class(TForm)
     ilDebug: TImageList;
+    MenuItem1: TMenuItem;
+    PopupMenu1: TPopupMenu;
     seSource: TSynEdit;
+    SynCppSyn1: TSynCppSyn;
     tbDebug: TToolBar;
     tbRun: TToolButton;
     tbRunTill: TToolButton;
@@ -28,6 +32,8 @@ type
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure FormShow(Sender: TObject);
+    procedure seSourceGutterClick(Sender: TObject; X, Y, Line: integer;
+      mark: TSynEditMark);
   private
     LoadedPosition: boolean;
 
@@ -41,7 +47,7 @@ type
 
 implementation
 
-uses maps, debughelper, CEFuncProc;
+uses maps, debughelper, cedebugger, CEFuncProc, SynHighlighterAA, BreakpointTypeDef;
 
 { TfrmSourceDisplay }
 
@@ -91,6 +97,9 @@ begin
 
         if f.updateMarks then
           f.show;
+
+
+        mi.Next;
       end;
     finally
       mi.free;
@@ -105,6 +114,7 @@ var
   ml: TSynEditMarkLine;
   i: integer;
   a: ptruint;
+  hasrip: boolean;
 begin
   //mark the lines with addresses and breakpoints
   result:=false;
@@ -121,19 +131,35 @@ begin
       mark.line:=i+1;
       mark.ImageList:=ilDebug;
 
-      a:= ptruint(seSource.Lines.Objects[i]) ;
-      if (debuggerthread<>nil) and (debuggerthread.isBreakpoint(a)<>nil) then
-        mark.ImageIndex:=1
-      else
-        mark.ImageIndex:=0;
-
-
       if (debuggerthread<>nil) and (debuggerthread.CurrentThread<>nil) and (a=debuggerthread.CurrentThread.context^.{$ifdef CPU64}rip{$else}eip{$endif}) then
       begin
         mark.imageindex:=2;
         sesource.CaretY:=i+1;
         result:=true;
       end;
+
+      a:= ptruint(seSource.Lines.Objects[i]) ;
+      if (debuggerthread<>nil) and (debuggerthread.isBreakpoint(a)<>nil) then
+      begin
+        //2(bp, no rip), or 3(bp, rip)
+        if not result then //result=true when address is rup
+          mark.ImageIndex:=2
+        else
+          mark.ImageIndex:=3;
+      end
+      else
+      begin
+        //0(no rip) or 1(rip)
+        if not result then
+          mark.ImageIndex:=0
+        else
+          mark.ImageIndex:=1;
+      end;
+
+
+
+
+
 
       mark.Visible:=true;
       seSource.Marks.Add(mark);
@@ -143,6 +169,7 @@ end;
 
 procedure TfrmSourceDisplay.FormCreate(Sender: TObject);
 begin
+  SynCppSyn1.loadFromRegistryDefault;
   seSource.Color:=colorset.TextBackground;
   seSource.Font.color:=colorset.FontColor;
   seSource.Gutter.Color:=clBtnFace;
@@ -169,6 +196,60 @@ begin
   begin
     width:=(Screen.PixelsPerInch div 96)*800;
     height:=(Screen.PixelsPerInch div 96)*600;
+  end;
+end;
+
+procedure TfrmSourceDisplay.seSourceGutterClick(Sender: TObject; X, Y,
+  Line: integer; mark: TSynEditMark);
+var
+  address: ptruint;
+  bp: PBreakpoint;
+  seml: TSynEditMarkLine;
+  i: integer;
+begin
+  address:=ptruint(seSource.Lines.Objects[line-1]);
+  if address=0 then exit;
+
+
+  seml:=seSource.Marks.Line[line];
+  for i:=0 to seml.count-1 do
+  begin
+    if seml[i].IsBookmark then continue;
+    mark:=seml[i];
+  end;
+
+
+  if (mark<>nil) then
+  begin
+    if mark.ImageIndex in [0,1] then
+    begin
+      //set breakpoint
+      try
+        if startdebuggerifneeded(true) then
+        begin
+          DebuggerThread.SetOnExecuteBreakpoint(address);
+          MemoryBrowser.disassemblerview.Update;
+          updateMarks;
+        end;
+      except
+        on e:exception do MessageDlg(e.message,mtError,[mbok],0);
+      end;
+
+    end
+    else
+    begin
+      //remove breakpoint
+      if DebuggerThread<>nil then
+      begin
+        debuggerthread.lockbplist;
+        bp:=DebuggerThread.isBreakpoint(address);
+        if bp<>nil then
+          debuggerthread.RemoveBreakpoint(bp);
+        DebuggerThread.unlockbplist;
+      end;
+
+      updateMarks;
+    end;
   end;
 end;
 
