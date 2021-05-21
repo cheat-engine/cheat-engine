@@ -32,6 +32,7 @@ type
 
   TLineNumberInfo=record
     address: ptruint;
+    functionaddress: ptruint;
     linenr: integer;
     sourcecode: pchar; //just this line
     sourcefile: tstrings; //the sourcecode this line belongs to
@@ -46,7 +47,7 @@ type
     maxaddress: ptruint;
   public
     procedure outputDebugInfo(o: tstrings);
-    procedure add(address: ptruint; linenr: integer; sourceline: string; sourcefile: tstrings);
+    procedure add(functionaddress, address: ptruint; linenr: integer; sourceline: string; sourcefile: tstrings);
     function get(address: ptruint): PLineNumberInfo;
 
     procedure AddSource(sourcefilename: string; sourcecode: tstrings); //sourcecode string objects passed become owned by TSourceCodeInfo and will be destroyed when it gets destroyed
@@ -209,9 +210,10 @@ begin
   mi.free;
 end;
 
-procedure TSourceCodeInfo.add(address: ptruint; linenr: integer; sourceline: string; sourcefile: tstrings);
+procedure TSourceCodeInfo.add(functionaddress, address: ptruint; linenr: integer; sourceline: string; sourcefile: tstrings);
 var e: TLineNumberInfo;
 begin
+  e.functionAddress:=functionaddress;
   e.address:=address;
   e.linenr:=linenr;
   e.sourcecode:=strnew(pchar(sourceline));
@@ -645,7 +647,7 @@ begin
 
                     sl.insert(0, format('%s:%2d', [extractfilename(currentSourceFile),ln]));
 
-                    sourcecodeinfo.add(address, ln,sl.text, source);
+                    sourcecodeinfo.add(currentFunction.address, address, ln, sl.text, source);
                   end;
                 end;
 

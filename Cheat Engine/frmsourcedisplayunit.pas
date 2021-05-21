@@ -32,8 +32,15 @@ type
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure FormShow(Sender: TObject);
+    procedure MenuItem1Click(Sender: TObject);
     procedure seSourceGutterClick(Sender: TObject; X, Y, Line: integer;
       mark: TSynEditMark);
+    procedure tbRunClick(Sender: TObject);
+    procedure tbRunTillClick(Sender: TObject);
+    procedure tbStepIntoClick(Sender: TObject);
+    procedure tbStepOutClick(Sender: TObject);
+    procedure tbStepOverClick(Sender: TObject);
+    procedure tbToggleBreakpointClick(Sender: TObject);
   private
     LoadedPosition: boolean;
 
@@ -47,7 +54,8 @@ type
 
 implementation
 
-uses maps, debughelper, cedebugger, CEFuncProc, SynHighlighterAA, BreakpointTypeDef;
+uses maps, debughelper, cedebugger, CEFuncProc, SynHighlighterAA, BreakpointTypeDef,
+  debuggertypedefinitions, sourcecodehandler;
 
 { TfrmSourceDisplay }
 
@@ -86,18 +94,28 @@ end;
 procedure ApplySourceCodeDebugUpdate;
 var mi: TMapIterator;
   f: TfrmSourceDisplay;
+  hasbroken: boolean;
 begin
   if sourceDisplayForms<>nil then
   begin
+    hasbroken:=(debuggerthread<>nil) and (debuggerthread.CurrentThread<>nil);
     mi:=TMapIterator.Create(sourceDisplayForms);
     try
       while not mi.EOM do
       begin
         mi.GetData(f);
 
+        f.tbDebug.BeginUpdate;
+        f.tbRun.enabled:=hasbroken;
+        f.tbStepInto.enabled:=hasbroken;
+        f.tbStepOver.enabled:=hasbroken;
+        f.tbStepOut.enabled:=hasbroken;
+        f.tbRunTill.enabled:=hasbroken;
+        f.tbDebug.EndUpdate;
+
+
         if f.updateMarks then
           f.show;
-
 
         mi.Next;
       end;
@@ -121,6 +139,7 @@ begin
 
   for i:=0 to seSource.Lines.Count-1 do
   begin
+    a:=ptruint(sesource.Lines.Objects[i]);
     ml:=sesource.Marks.Line[i+1];
     if ml<>nil then
       ml.Clear(true);
@@ -155,11 +174,6 @@ begin
         else
           mark.ImageIndex:=1;
       end;
-
-
-
-
-
 
       mark.Visible:=true;
       seSource.Marks.Add(mark);
@@ -197,6 +211,12 @@ begin
     width:=(Screen.PixelsPerInch div 96)*800;
     height:=(Screen.PixelsPerInch div 96)*600;
   end;
+end;
+
+procedure TfrmSourceDisplay.MenuItem1Click(Sender: TObject);
+begin
+  MemoryBrowser.disassemblerview.SelectedAddress:=ptruint(seSource.Lines.Objects[seSource.CaretY-1]);  ;
+  MemoryBrowser.show;
 end;
 
 procedure TfrmSourceDisplay.seSourceGutterClick(Sender: TObject; X, Y,
@@ -251,6 +271,91 @@ begin
       updateMarks;
     end;
   end;
+end;
+
+procedure TfrmSourceDisplay.tbRunClick(Sender: TObject);
+begin
+  MemoryBrowser.miDebugRun.Click;
+end;
+
+procedure TfrmSourceDisplay.tbRunTillClick(Sender: TObject);
+var address: ptruint;
+begin
+  address:=ptruint(seSource.Lines.Objects[seSource.CaretY-1]);
+
+  if address=0 then
+  begin
+    errorbeep;
+    exit;
+  end;
+
+  if debuggerthread<>nil then
+    debuggerthread.ContinueDebugging(co_runtill, address);
+end;
+
+procedure TfrmSourceDisplay.tbStepIntoClick(Sender: TObject);
+begin
+  memorybrowser.miDebugStep.click; //todo: start a single step session that goes on until a ret or a call, and then follow that call and see if it ends up in a sourcecode available function or not
+end;
+
+procedure TfrmSourceDisplay.tbStepOutClick(Sender: TObject);
+begin
+  memorybrowser.miDebugExecuteTillReturn.Click;
+end;
+
+procedure TfrmSourceDisplay.tbStepOverClick(Sender: TObject);
+var
+  i,linestart: integer;
+  currentaddress,nextaddress: ptruint;
+  sci: TSourceCodeInfo;
+  lni, lni2: PLineNumberInfo;
+
+begin
+  if (debuggerthread<>nil) and (debuggerthread.CurrentThread<>nil) then
+  begin
+    currentaddress:=debuggerthread.CurrentThread.context^.{$ifdef CPU64}rip{$else}eip{$endif};
+    sci:=SourceCodeInfoCollection.getSourceCodeInfo(currentaddress);
+
+    if sci<>nil then
+    begin
+      lni:=sci.get(currentaddress);
+      if lni<>nil then
+      begin
+        linestart:=lni^.sourcefile.IndexOfObject(tobject(currentaddress));
+        if linestart=-1 then exit; //never
+
+        nextaddress:=0;
+        for i:=linestart+1 to lni^.sourcefile.Count-1 do
+        begin
+          nextaddress:=ptruint(sesource.lines.Objects[i]);
+          if nextaddress<>0 then
+          begin
+            lni2:=sci.get(nextaddress);
+            if lni2<>nil then //never
+            begin
+              if lni^.functionaddress<>lni2^.functionaddress then break; //different function.  So return
+
+              debuggerthread.ContinueDebugging(co_runtill, nextaddress);
+              exit;
+            end;
+
+            //still here, so not possible to do a step over
+            break;
+          end;
+
+        end;
+      end;
+
+      //still here, so no next address, do a step
+      tbStepIntoClick(tbStepInto);
+
+    end;
+  end;
+end;
+
+procedure TfrmSourceDisplay.tbToggleBreakpointClick(Sender: TObject);
+begin
+  seSourceGutterClick(seSource,0,0,seSource.CaretY,nil);
 end;
 
 

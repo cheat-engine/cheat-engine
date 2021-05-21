@@ -1,7 +1,7 @@
 object frmSourceDisplay: TfrmSourceDisplay
-  Left = 730
+  Left = 685
   Height = 427
-  Top = 62
+  Top = 119
   Width = 715
   Caption = 'frmSourceDisplay'
   ClientHeight = 427
@@ -23,6 +23,7 @@ object frmSourceDisplay: TfrmSourceDisplay
     Font.Quality = fqNonAntialiased
     ParentColor = False
     ParentFont = False
+    PopupMenu = PopupMenu1
     TabOrder = 0
     Gutter.Width = 57
     Gutter.MouseActions = <>
@@ -531,6 +532,7 @@ object frmSourceDisplay: TfrmSourceDisplay
       Hint = 'Toggle Breakpoint (F5)'
       Top = 2
       ImageIndex = 4
+      OnClick = tbToggleBreakpointClick
       ParentShowHint = False
       ShowHint = True
     end
@@ -547,6 +549,7 @@ object frmSourceDisplay: TfrmSourceDisplay
       Top = 2
       Enabled = False
       ImageIndex = 0
+      OnClick = tbRunClick
       ParentShowHint = False
       ShowHint = True
     end
@@ -556,6 +559,7 @@ object frmSourceDisplay: TfrmSourceDisplay
       Top = 2
       Enabled = False
       ImageIndex = 1
+      OnClick = tbStepIntoClick
       ParentShowHint = False
       ShowHint = True
     end
@@ -565,6 +569,7 @@ object frmSourceDisplay: TfrmSourceDisplay
       Top = 2
       Enabled = False
       ImageIndex = 2
+      OnClick = tbStepOverClick
       ParentShowHint = False
       ShowHint = True
     end
@@ -574,6 +579,7 @@ object frmSourceDisplay: TfrmSourceDisplay
       Top = 2
       Enabled = False
       ImageIndex = 3
+      OnClick = tbStepOutClick
       ParentShowHint = False
       ShowHint = True
     end
@@ -589,7 +595,8 @@ object frmSourceDisplay: TfrmSourceDisplay
       Hint = '(Run Till...) F4'
       Top = 2
       Enabled = False
-      ImageIndex = 0
+      ImageIndex = 77
+      OnClick = tbRunTillClick
       ParentShowHint = False
       ShowHint = True
     end
@@ -998,6 +1005,7 @@ object frmSourceDisplay: TfrmSourceDisplay
     Top = 172
     object MenuItem1: TMenuItem
       Caption = 'View Disassembly'
+      OnClick = MenuItem1Click
     end
   end
 end
