@@ -1567,9 +1567,9 @@ begin
   a:=TMemoryRecord(_a.data);
   b:=TMemoryRecord(_b.data);
   result:=0; //equal
-  if b.description>a.description then
+  if UpCase(b.description)>UpCase(a.description) then
     result:=1;
-  if b.description<a.description then
+  if UpCase(b.description)<UpCase(a.description) then
     result:=-1;
 
   if not descriptionsortdirection then
