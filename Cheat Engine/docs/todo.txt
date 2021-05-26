@@ -1,6 +1,10 @@
 Mac: Hex editing files
 
-Mac (and perhaps Windows):  speedhack: Do not go for dylib(dll) injection but assemble it inside the target (either directly or manual mapped)
+
+paging window is not dpi aware
+manual staktrace is not dpi aware, not 64-bit aware, and buggy
+network connect display is not dpi aware
+
 
 add {$C#-code} sections and {$C#} blocks (which end up as injected dll's)
 

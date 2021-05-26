@@ -1,3 +1,6 @@
+// Copyright Cheat Engine. All Rights Reserved.
+
+
 unit CEFuncProc;
 
 {$MODE Delphi}
@@ -411,6 +414,8 @@ resourcestring
   rsCEFPDllInjectionFailedSymbolLookupError = 'Dll injection failed: symbol lookup error';
   rsCEFPICantGetTheProcessListYouArePropablyUseinWindowsNtEtc = 'I can''t get the process list. You are propably using windows NT. Use the window list instead!';
   rsPosition = ' Position';
+  rsThisCanTakeSomeTime = 'This can take some time if you are missing the '
+    +'PDB''s and CE will look frozen. Are you sure?';
 
 function ProcessID: dword;
 begin
@@ -3744,7 +3749,7 @@ begin
   path:=path+'Cheat Engine Symbols';
 
   ForceDirectory(path);
-  if warn and (messagedlg('This can take some time if you are missing the PDB''s and CE will look frozen. Are you sure?', mtWarning, [mbyes,mbno],0,mbno)<>mryes) then exit;
+  if warn and (messagedlg(rsThisCanTakeSomeTime, mtWarning, [mbyes, mbno], 0, mbno)<>mryes) then exit;
 
   getmem(shortpath,256);
   GetShortPathName(pchar(path),shortpath,255);

@@ -207,7 +207,7 @@ begin
   begin
     sci:=SourceCodeInfoCollection.getSourceCodeInfo(fAddress);
     if sci<>nil then
-      result:=sci.get(fAddress);
+      result:=sci.getLineInfo(fAddress);
   end;
 
 end;
@@ -614,7 +614,7 @@ begin
     sourcecodeinfo:=SourceCodeInfoCollection.getSourceCodeInfo(faddress);
     if sourcecodeinfo<>nil then
     begin
-      lni:=sourcecodeinfo.get(faddress);
+      lni:=sourcecodeinfo.getLineInfo(faddress);
       if lni<>nil then
       begin
         sourcecode:=Tstringlist.create;
@@ -637,7 +637,7 @@ begin
 
         sourcecodeheight:=sourcecodelineheight*(sourcecode.Count-1); //first line is the file and linenumber
 
-        fheight:=height+sourcecodelineheight;
+        fheight:=height+sourcecodeheight;
       end;
     end;
   end;

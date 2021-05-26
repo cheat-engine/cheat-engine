@@ -605,6 +605,7 @@ end;
 procedure AutoAssemblerCCodePass1(script: TStrings; parameters: TLuaCodeParams; var i: integer; var dataForPass2: TAutoAssemblerCodePass2Data; syntaxcheckonly: boolean; targetself: boolean);
 var
   j,k: integer;
+  tst: ptruint;
   s: string;
   endpos, scriptstart, scriptend: integer;
   scriptstartlinenr: integer;
@@ -656,6 +657,7 @@ begin
   functionname:='ceinternal_autofree_cfunction_at_line'+inttostr(ptruint(script.objects[scriptstart]));
   cscript.add('void '+functionname+'(void *parameters)');
   cscript.add('{');
+  cscript.add('  //get the values from the parameter pointer');
   //load the values from parameters pointer
 
   if processhandler.is64Bit {$ifdef cpu64}or targetself{$endif} then
@@ -663,19 +665,19 @@ begin
     for j:=0 to length(parameters)-1 do
     begin
       case parameters[j].contextitem of
-        0: s:='unsigned long long *'+parameters[j].varname+'=(unsigned long long *)*(unsigned long long *)((unsigned long long)parameters+0x228);'; //RAX
-        1..15: s:='unsigned long long *'+parameters[j].varname+'=(unsigned long long*)((unsigned long long)parameters+0x'+inttohex($200+(parameters[j].contextitem-1)*8,1)+');'; //RBX..R15
-        16: s:='float *'+parameters[j].varname+'=(float *)((unsigned long long)parameters+0x228);';
-        17..31: s:='float *'+parameters[j].varname+'=(float *)((unsigned long long)parameters+0x'+inttohex($200+(parameters[j].contextitem-1)*8,1)+');'; //RBX..R15
+        0: s:='unsigned long long '+parameters[j].varname+'=*(unsigned long long *)*(unsigned long long *)((unsigned long long)parameters+0x228);'; //RAX
+        1..15: s:='unsigned long long '+parameters[j].varname+'=*(unsigned long long*)((unsigned long long)parameters+0x'+inttohex($200+(parameters[j].contextitem-1)*8,1)+');'; //RBX..R15
+        16: s:='float '+parameters[j].varname+'=*(float *)((unsigned long long)parameters+0x228);';
+        17..31: s:='float '+parameters[j].varname+'=*(float *)((unsigned long long)parameters+0x'+inttohex($200+(parameters[j].contextitem-1)*8,1)+');'; //RBX..R15
         32..47:
         begin
           usesXMMType:=true;
-          s:='pxmmreg '+parameters[j].varname+'=(pxmmreg)((unsigned long long)parameters+0x'+inttohex($a0+(parameters[j].contextitem-32)*16,1)+');';
+          s:='xmmreg '+parameters[j].varname+'=*(pxmmreg)((unsigned long long)parameters+0x'+inttohex($a0+(parameters[j].contextitem-32)*16,1)+');';
         end;
-        48..111: s:='float *'+parameters[j].varname+'=(float *)((unsigned long long)parameters+0x'+inttohex($a0+(parameters[j].contextitem-48)*4,1)+');'; //RBX..R15
-        112..143: s:='double *'+parameters[j].varname+'=(double *)((unsigned long long)parameters+0x'+inttohex($a0+(parameters[j].contextitem-112)*8,1)+');';
+        48..111: s:='float '+parameters[j].varname+'=*(float *)((unsigned long long)parameters+0x'+inttohex($a0+(parameters[j].contextitem-48)*4,1)+');'; //RBX..R15
+        112..143: s:='double '+parameters[j].varname+'=*(double *)((unsigned long long)parameters+0x'+inttohex($a0+(parameters[j].contextitem-112)*8,1)+');';
       end;
-      cscript.insert(j+2,s);
+      cscript.add('  '+s);
     end;
   end
   else
@@ -683,24 +685,75 @@ begin
     for j:=0 to length(parameters)-1 do
     begin
       case parameters[j].contextitem of
-        0: s:='unsigned long *'+parameters[j].varname+'=(unsigned long *)*(unsigned long *)((unsigned long)parameters+0x214);'; //EAX
-        1..7: s:='unsigned long *'+parameters[j].varname+'=(unsigned long*)((unsigned long)parameters+0x'+inttohex($200+(parameters[j].contextitem-1)*4,1)+');'; //RBX..R15
-        16: s:='float *'+parameters[j].varname+'=(float *)((unsigned long)parameters+0x214);';
-        17..23: s:='float *'+parameters[j].varname+'=(float *)((unsigned long)parameters+0x'+inttohex($200+(parameters[j].contextitem-1)*4,1)+');'; //EBX..EBP
+        0: s:='unsigned long '+parameters[j].varname+'=*(unsigned long *)*(unsigned long *)((unsigned long)parameters+0x214);'; //EAX
+        1..7: s:='unsigned long '+parameters[j].varname+'=*(unsigned long*)((unsigned long)parameters+0x'+inttohex($200+(parameters[j].contextitem-1)*4,1)+');'; //RBX..R15
+        16: s:='float '+parameters[j].varname+'=*(float *)((unsigned long)parameters+0x214);';
+        17..23: s:='float '+parameters[j].varname+'=*(float *)((unsigned long)parameters+0x'+inttohex($200+(parameters[j].contextitem-1)*4,1)+');'; //EBX..EBP
         32..39:
         begin
           usesXMMType:=true;
-          s:='pxmmreg '+parameters[j].varname+'=(pxmmreg)((unsigned long)parameters+0x'+inttohex($a0+(parameters[j].contextitem-32)*16,1)+');';
+          s:='xmmreg '+parameters[j].varname+'=*(pxmmreg)((unsigned long)parameters+0x'+inttohex($a0+(parameters[j].contextitem-32)*16,1)+');';
         end;
-        48..79: s:='float *'+parameters[j].varname+'=(float *)((unsigned long)parameters+0x'+inttohex($a0+(parameters[j].contextitem-48)*4,1)+');'; //EBX..EBP
-        112..127: s:='double *'+parameters[j].varname+'=(double *)((unsigned long)parameters+0x'+inttohex($a0+(parameters[j].contextitem-112)*8,1)+');';
+        48..79: s:='float '+parameters[j].varname+'=*(float *)((unsigned long)parameters+0x'+inttohex($a0+(parameters[j].contextitem-48)*4,1)+');'; //EBX..EBP
+        112..127: s:='double '+parameters[j].varname+'=*(double *)((unsigned long)parameters+0x'+inttohex($a0+(parameters[j].contextitem-112)*8,1)+');';
       end;
-      cscript.insert(j+2,s);
+      cscript.add('  '+s);
     end;
   end;
 
+  cscript.add('  //start of user script');
   for j:=scriptstart+1 to scriptend-1 do
-    cscript.AddObject(script[j], script.objects[j]);
+  begin
+    tst:=ptruint(script.objects[j]);
+    cscript.AddObject(script[j], tobject(tst));
+  end;
+  cscript.add('  //end of user script');
+
+
+  //end of the script: write the values back
+
+  cscript.add('  //Write back values');
+
+  if processhandler.is64Bit {$ifdef cpu64}or targetself{$endif} then
+  begin
+    for j:=0 to length(parameters)-1 do
+    begin
+      case parameters[j].contextitem of
+        0: s:='*(unsigned long long *)*(unsigned long long *)((unsigned long long)parameters+0x228)='+parameters[j].varname+';'; //RAX
+        1..15: s:='*(unsigned long long*)((unsigned long long)parameters+0x'+inttohex($200+(parameters[j].contextitem-1)*8,1)+')='+parameters[j].varname+';'; //RBX..R15
+        16: s:='*(float *)((unsigned long long)parameters+0x228)='+parameters[j].varname+';';
+        17..31: s:='*(float *)((unsigned long long)parameters+0x'+inttohex($200+(parameters[j].contextitem-1)*8,1)+')='+parameters[j].varname+';'; //RBX..R15
+        32..47:
+        begin
+          usesXMMType:=true;
+          s:='*(pxmmreg)((unsigned long long)parameters+0x'+inttohex($a0+(parameters[j].contextitem-32)*16,1)+')='+parameters[j].varname+';';
+        end;
+        48..111: s:='*(float *)((unsigned long long)parameters+0x'+inttohex($a0+(parameters[j].contextitem-48)*4,1)+')='+parameters[j].varname+';'; //RBX..R15
+        112..143: s:='*(double *)((unsigned long long)parameters+0x'+inttohex($a0+(parameters[j].contextitem-112)*8,1)+')='+parameters[j].varname+';';
+      end;
+      cscript.add('  '+s);
+    end;
+  end
+  else
+  begin
+    for j:=0 to length(parameters)-1 do
+    begin
+      case parameters[j].contextitem of
+        0: s:='*(unsigned long *)*(unsigned long *)((unsigned long)parameters+0x214)='+parameters[j].varname+';'; //EAX
+        1..7: s:='*(unsigned long*)((unsigned long)parameters+0x'+inttohex($200+(parameters[j].contextitem-1)*4,1)+')='+parameters[j].varname+';'; //RBX..R15
+        16: s:='*(float *)((unsigned long)parameters+0x214)='+parameters[j].varname+';';
+        17..23: s:='*(float *)((unsigned long)parameters+0x'+inttohex($200+(parameters[j].contextitem-1)*4,1)+')='+parameters[j].varname+';'; //EBX..EBP
+        32..39:
+        begin
+          usesXMMType:=true;
+          s:='*(pxmmreg)((unsigned long)parameters+0x'+inttohex($a0+(parameters[j].contextitem-32)*16,1)+')='+parameters[j].varname+';';
+        end;
+        48..79: s:='*(float *)((unsigned long)parameters+0x'+inttohex($a0+(parameters[j].contextitem-48)*4,1)+')='+parameters[j].varname+';'; //EBX..EBP
+        112..127: s:='*(double *)((unsigned long)parameters+0x'+inttohex($a0+(parameters[j].contextitem-112)*8,1)+')='+parameters[j].varname+';';
+      end;
+      cscript.add('  '+s);
+    end;
+  end;
 
   cscript.add('}');
 
@@ -957,6 +1010,7 @@ var
   s, linenrstring: string;
   parameterstring: string;
   linenr: integer;
+  lnstart: integer;
   parameters:  TLuaCodeParams;
   hasAddedLuaServerCode: boolean=false;
   _tcc: TTCC;
@@ -1096,25 +1150,30 @@ begin
         bytesizeneeded:=0;
         if _tcc.testcompileScript(dataForPass2.cdata.cscript.text, bytesizeneeded,imports, symbols, nil, errorlog)=false then
         begin
-          //example: <string>:6: error: 'fffff' undeclared
-          //search for <string>: and replace the linenumber with the AA script linenumber
+          //example: <string-12>:6: error: 'fffff' undeclared
+          //search for <string*>: and replace the linenumber with the AA script linenumber
           for i:=0 to errorlog.count-1 do
           begin
             s:=errorlog[i];
-            if s.StartsWith('<string>:') then
+            if s.StartsWith('<string') then
             begin
+              Clipboard.AsText:=dataForPass2.cdata.cscript.text;
+
               linenrstring:='';
-              for j:=10 to length(s) do
+              lnstart:=pos('>:', s)+2;
+
+              for j:=lnstart to length(s) do
               begin
                 if not (s[j] in ['0'..'9']) then
                 begin
-                  if j>10 then
+                  if j>lnstart then
                   begin
-                    linenrstring:=copy(s,10,j-10);
-                    linenr:=strtoint(linenrstring)-1;
+                    linenrstring:=copy(s,lnstart,j-lnstart);
+                    linenr:=strtoint(linenrstring);
                     //convert linenr to AA linenr (if possible)
                     if (linenr>=0) and (linenr<dataForPass2.cdata.cscript.count) then
                     begin
+                      Clipboard.AsText:=dataForPass2.cdata.cscript[linenr-1];
                       linenr:=integer(ptruint(dataForPass2.cdata.cscript.objects[linenr-1]));
                       s:='Error at line '+linenr.ToString+' '+Copy(s, j);
                     end;

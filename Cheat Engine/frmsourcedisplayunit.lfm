@@ -25,6 +25,9 @@ object frmSourceDisplay: TfrmSourceDisplay
     ParentFont = False
     PopupMenu = PopupMenu1
     TabOrder = 0
+    OnMouseMove = seSourceMouseMove
+    OnMouseEnter = seSourceMouseEnter
+    OnMouseLeave = seSourceMouseLeave
     Gutter.Width = 57
     Gutter.MouseActions = <>
     RightGutter.Width = 0
@@ -526,7 +529,6 @@ object frmSourceDisplay: TfrmSourceDisplay
     ParentFont = False
     ShowCaptions = True
     TabOrder = 1
-    Visible = False
     object tbToggleBreakpoint: TToolButton
       Left = 1
       Hint = 'Toggle Breakpoint (F5)'
@@ -1007,5 +1009,12 @@ object frmSourceDisplay: TfrmSourceDisplay
       Caption = 'View Disassembly'
       OnClick = MenuItem1Click
     end
+  end
+  object itInfo: TIdleTimer
+    Enabled = False
+    Interval = 500
+    OnTimer = itInfoTimer
+    Left = 179
+    Top = 219
   end
 end

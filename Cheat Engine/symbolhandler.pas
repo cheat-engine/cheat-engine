@@ -2813,6 +2813,7 @@ begin
     //OutputDebugString('Symbol loader thread has finished without errors');
   except
     outputdebugstring(rsSymbolloaderthreadHasCrashed);
+    OutputDebugString('at part '+inttostr(debugpart));
   end;
 
   isloading:=false;
