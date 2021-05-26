@@ -947,9 +947,9 @@ begin
       begin
         for j:=0 to length(functions)-1 do
         begin
-          if (currentaddress>=functions[i].functionaddress) and (currentaddress<=functions[i].functionstop) then
+          if (currentaddress>=functions[j].functionaddress) and (currentaddress<=functions[j].functionstop) then
           begin
-            with functions[i] do
+            with functions[j] do
             begin
               for k:=0 to length(stackvars)-1 do
               begin
