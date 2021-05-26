@@ -19,6 +19,13 @@ type
     itInfo: TIdleTimer;
     ilDebug: TImageList;
     MenuItem1: TMenuItem;
+    MenuItem2: TMenuItem;
+    MenuItem3: TMenuItem;
+    MenuItem4: TMenuItem;
+    MenuItem5: TMenuItem;
+    MenuItem6: TMenuItem;
+    MenuItem7: TMenuItem;
+    N1: TMenuItem;
     PopupMenu1: TPopupMenu;
     seSource: TSynEdit;
     SynCppSyn1: TSynCppSyn;

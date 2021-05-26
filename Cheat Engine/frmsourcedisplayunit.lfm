@@ -1009,6 +1009,39 @@ object frmSourceDisplay: TfrmSourceDisplay
       Caption = 'View Disassembly'
       OnClick = MenuItem1Click
     end
+    object N1: TMenuItem
+      Caption = '-'
+    end
+    object MenuItem2: TMenuItem
+      Caption = 'Toggle BP'
+      ShortCut = 116
+      OnClick = tbToggleBreakpointClick
+    end
+    object MenuItem3: TMenuItem
+      Caption = 'Run'
+      ShortCut = 120
+      OnClick = tbRunClick
+    end
+    object MenuItem4: TMenuItem
+      Caption = 'Step Into'
+      ShortCut = 118
+      OnClick = tbStepIntoClick
+    end
+    object MenuItem5: TMenuItem
+      Caption = 'Step Over'
+      ShortCut = 119
+      OnClick = tbStepOverClick
+    end
+    object MenuItem6: TMenuItem
+      Caption = 'Step Out'
+      ShortCut = 8311
+      OnClick = tbStepOutClick
+    end
+    object MenuItem7: TMenuItem
+      Caption = 'Run Till...'
+      ShortCut = 115
+      OnClick = tbRunTillClick
+    end
   end
   object itInfo: TIdleTimer
     Enabled = False
