@@ -190,7 +190,7 @@ begin
       else
       begin
         //0(no rip) or 1(rip)
-        if not result then
+        if hasrip=false then
           mark.ImageIndex:=0
         else
           mark.ImageIndex:=1;
