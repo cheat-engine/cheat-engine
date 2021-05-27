@@ -5587,6 +5587,8 @@ begin
   miDebugSetAddress.enabled:=false;
   stacktrace1.Enabled:=false;
   miDebugExecuteTillReturn.Enabled:=false;
+
+  ApplySourceCodeDebugUpdate;
   {Other tasks}
   //...
 end;

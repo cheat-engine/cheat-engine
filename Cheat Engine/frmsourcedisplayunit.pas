@@ -8,8 +8,9 @@ interface
 
 uses
   Classes, SysUtils, LResources, Forms, Controls, Graphics, Dialogs, ComCtrls,
-  ExtCtrls, Menus, SynEdit, SynEditMarks, SynHighlighterCpp,
-  MemoryBrowserFormUnit, tcclib, betterControls, SynGutterBase;
+  ExtCtrls, Menus, SynEdit, SynEditMarks, SynHighlighterCpp, disassembler,
+  MemoryBrowserFormUnit, tcclib, betterControls, SynGutterBase, debugeventhandler,
+  BreakpointTypeDef;
 
 type
 
@@ -60,6 +61,12 @@ type
     hintwindow:THintWindow;
     LoadedPosition: boolean;
     SourceCodeInfo: TSourceCodeInfo;
+
+    d: TDisassembler;
+    stepIntoThread: TDebugThreadHandler;
+    stepIntoCountdown: integer; //counter to make sure it doesn't step too long (15 instructions max)
+
+    function StepIntoHandler(sender: TDebugThreadHandler; bp: PBreakpoint): boolean;
   public
     function updateMarks:boolean; //returns true if the current breakpoint matches a line in this source
   end;
@@ -70,7 +77,7 @@ type
 
 implementation
 
-uses maps, debughelper, cedebugger, CEFuncProc, SynHighlighterAA, BreakpointTypeDef,
+uses maps, debughelper, cedebugger, CEFuncProc, SynHighlighterAA,
   debuggertypedefinitions, sourcecodehandler, ProcessHandlerUnit, byteinterpreter,
   commonTypeDefs, NewKernelHandler;
 
@@ -189,7 +196,7 @@ begin
       if (debuggerthread<>nil) and (debuggerthread.isBreakpoint(a)<>nil) then
       begin
         //2(bp, no rip), or 3(bp, rip)
-        if not result then //result=true when address is rup
+        if hasrip=false then
           mark.ImageIndex:=2
         else
           mark.ImageIndex:=3;
@@ -224,6 +231,9 @@ begin
 end;
 
 procedure TfrmSourceDisplay.FormDestroy(Sender: TObject);
+var
+  l: TList;
+  i: integer;
 begin
   SaveFormPosition(self);
 
@@ -234,6 +244,23 @@ begin
 
   if sourceDisplayForms<>nil then //delete this form from the map
     sourceDisplayForms.Delete(tag);
+
+  if d<>nil then
+    freeandnil(d);
+
+  if stepIntoThread<>nil then //it still has an onhandlebreak set
+  begin
+    //first make sure that the stepIntoThread is still alive
+    if debuggerthread<>nil then
+    begin
+      l:=debuggerthread.lockThreadlist;
+
+      if l.IndexOf(stepIntoThread)<>-1 then //still alive
+        stepIntoThread.OnHandleBreakAsync:=nil;
+
+      debuggerthread.unlockThreadlist;
+    end;
+  end;
 end;
 
 procedure TfrmSourceDisplay.FormShow(Sender: TObject);
@@ -527,12 +554,80 @@ begin
   end;
 
   if debuggerthread<>nil then
+  begin
     debuggerthread.ContinueDebugging(co_runtill, address);
+    MemoryBrowser.OnMemoryViewerRunning;
+  end;
+end;
+
+function TfrmSourceDisplay.StepIntoHandler(sender: TDebugThreadHandler; bp: PBreakpoint): boolean;
+var a: ptruint;
+  sci: TSourceCodeInfo;
+begin
+  if stepintocountdown>0 then
+  begin
+    if bp<>nil then //nil when single stepping
+    begin
+      //a normal bp got hit, stop the stepping
+      sender.OnHandleBreakAsync:=nil;
+      stepIntoThread:=nil;
+      stepIntoCountdown:=0;
+      exit(false);
+    end;
+
+    //check if this is a call or ret, if so, set the stepintocountdown to 1 and set stepFinished:=true;
+    if d=nil then
+      d:=TDisassembler.Create; //even though this is async, it's still only 1 single thread, so this is safe
+
+
+    a:=sender.context^.{$ifdef cpu64}rip{$else}eip{$endif};
+    sci:=SourceCodeInfoCollection.getSourceCodeInfo(a);
+
+    if (sci<>nil) and (sci.getLineInfo(a)<>nil) then
+    begin
+      //found a sourcecode line
+      sender.OnHandleBreakAsync:=nil;
+      stepIntoThread:=nil;
+      stepIntoCountdown:=0;
+      exit(false); //do an actual break
+    end;
+
+
+
+    d.disassemble(a);
+    if d.LastDisassembleData.iscall or d.LastDisassembleData.isret then
+    begin
+      sender.OnHandleBreakAsync:=nil;
+      stepIntoThread:=nil;
+      stepIntoCountdown:=0;
+      //followed by a single step
+    end;
+
+    dec(stepIntoCountdown);
+    sender.continueDebugging(co_stepinto);
+    exit(true);// handled
+  end
+  else
+  begin
+    sender.OnHandleBreakAsync:=nil;
+    stepIntoThread:=nil;
+    stepIntoCountdown:=0;
+    sender.continueDebugging(co_run); //screw this , abandoning this stepping session
+    exit(true);
+  end;
 end;
 
 procedure TfrmSourceDisplay.tbStepIntoClick(Sender: TObject);
 begin
-  memorybrowser.miDebugStep.click; //todo: start a single step session that goes on until a ret or a call, and then follow that call and see if it ends up in a sourcecode available function or not
+
+  stepIntoCountdown:=15;
+  stepIntoThread:=debuggerthread.CurrentThread;
+
+  debuggerthread.CurrentThread.OnHandleBreakAsync:=@StepIntoHandler;
+
+
+  debuggerthread.ContinueDebugging(co_stepinto);
+  memorybrowser.OnMemoryViewerRunning;
 end;
 
 procedure TfrmSourceDisplay.tbStepOutClick(Sender: TObject);
@@ -573,6 +668,7 @@ begin
               if lni^.functionaddress<>lni2^.functionaddress then break; //different function.  So return
 
               debuggerthread.ContinueDebugging(co_runtill, nextaddress);
+              memorybrowser.OnMemoryViewerRunning;
               exit;
             end;
 

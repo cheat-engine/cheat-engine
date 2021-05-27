@@ -20,6 +20,10 @@ uses
 
 type
   TContextFields=(cfAll,cfDebug, cfRegisters, cfFloat);
+
+  TDebugThreadHandler=class;
+  THandleBreakEvent=function(sender: TDebugThreadHandler; bp: PBreakpoint): boolean of object;
+
   TDebugEventHandler = class;
 
   TDebugThreadHandler = class
@@ -73,6 +77,7 @@ type
     currentBP: PBreakpoint;
     dbvm_currentCR3: qword;
 
+    fOnHandleBreakAsync: THandleBreakEvent;
 
     function CheckIfConditionIsMet(bp: PBreakpoint; script: string=''): boolean;
     function InNoBreakList: boolean;
@@ -140,6 +145,7 @@ type
     property isWaitingToContinue: boolean read WaitingToContinue;
     property isUnhandledException: boolean read unhandledException;
     property lastUnhandledExceptionCode: dword read unhandledExceptionCode;
+    property OnHandleBreakAsync: THandleBreakEvent read fOnHandleBreakAsync write fOnHandleBreakAsync;
   end;
 
   TDebugEventHandler = class
@@ -992,20 +998,28 @@ begin
 end;
 
 procedure TDebugThreadHandler.HandleBreak(bp: PBreakpoint; var dwContinueStatus: dword);
+var handledByOnHandleBreakAsync: boolean;
 begin
 
   TDebuggerthread(debuggerthread).execlocation:=38;
 
+  handledByOnHandleBreakAsync:=false;
+  if assigned(fOnHandleBreakAsync) then
+    handledByOnHandleBreakAsync:=fOnHandleBreakAsync(self, bp);
+
 
   //synchronize(VisualizeBreak);
   //go to sleep and wait for an event that wakes it up. No need to worry about deleted breakpoints, since the cleanup will not be called until this routine exits
-  TDebuggerthread(debuggerthread).synchronize(TDebuggerthread(debuggerthread), VisualizeBreak);
-
-  if WaitingToContinue then
+  if handledByOnHandleBreakAsync=false then
   begin
-    //Outputdebugstring('updated gui');
-    onContinueEvent.WaitFor(infinite);
-    //Outputdebugstring('returned from gui');
+    TDebuggerthread(debuggerthread).synchronize(TDebuggerthread(debuggerthread), VisualizeBreak);
+
+    if WaitingToContinue then
+    begin
+      //Outputdebugstring('updated gui');
+      onContinueEvent.WaitFor(infinite);
+      //Outputdebugstring('returned from gui');
+    end;
   end;
 
   if continueHandled then
