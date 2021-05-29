@@ -74,6 +74,7 @@ uses DBK32functions, ProcessHandlerUnit, symbolhandler, simpleaobscanner,
 
 resourcestring
   rsDBVMLevelNotFor32Bit = 'DBVM level debug does not work on the 32-bit CE';
+  rsDBVMFunctionNeedsDBVM = 'Sorry, but you need DBVM for DBVM level debugging';
 
 
 procedure TDBVMResumerThread.Execute;
@@ -572,6 +573,10 @@ end;
 constructor TDBVMDebugInterface.create;
 begin
   inherited create;
+
+  if loaddbvmifneeded=false then
+      raise exception.create(rsDBVMFunctionNeedsDBVM);
+
   fDebuggerCapabilities:=fDebuggerCapabilities-[dbcCanUseInt1BasedBreakpoints];   //perhaps in the future add thread specific code
 
   resumerThread:=TDBVMResumerThread.Create(false);

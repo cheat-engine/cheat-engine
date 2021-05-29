@@ -1079,6 +1079,8 @@ var
 
   x: PTRUINT;
 begin
+  cr3:=cr3 and MAXPHYADDRMASKPB;
+
   result:=false;
   pml4index:=(VirtualAddress shr 39) and $1ff;
   pagedirptrindex:=(VirtualAddress shr 30) and $1ff;
