@@ -753,8 +753,13 @@ int vmexit_amd(pcpuinfo currentcpuinfo, UINT64 *registers, void *fxsave UNUSED)
   return result;
 }
 
+#ifdef debuglastexits
 int lastexits[10];
 int lastexitsindex=0;
+
+criticalSection lastexitsCS={.name="lastexitsCS", .debuglevel=1};
+#endif
+
 
 #ifdef DEBUG
 
@@ -828,14 +833,18 @@ int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers, void *fxsave)
 
 
 
+#ifdef debuglastexits
+  csEnter(&lastexitscs);
   lastexits[lastexitsindex]=vmread(vm_exit_reason);
-  lastexitsindex++;
+  lastexitsindex++; //<----multithreaded issues here
   lastexitsindex=lastexitsindex % 10;
+  csLease(&lastexitscs);
 
  // if ((showlife % 2)==0)
   {
     ddDrawRectangle(0,DDVerticalResolution-10,10,10,0x0000ff);
   }
+#endif
 
 
 
