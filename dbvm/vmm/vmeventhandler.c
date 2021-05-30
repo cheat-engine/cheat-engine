@@ -3389,7 +3389,7 @@ int handleInterruptProtectedMode(pcpuinfo currentcpuinfo, VMRegisters *vmregiste
     */
 
     dr6.DR6 |= dr6_exit_qualification.DR6 & 0x600f; //the 4 b0-b3 flags, BS and BD
-    dr6.RTM=~dr6.RTM;
+    dr6.RTM=~dr6_exit_qualification.RTM;
     //if ((dr6_exit_qualification.RTM)==0) dr6.RTM=1; //if this is 0, set RTM to 1
 
     setDR6(dr6.DR6);
