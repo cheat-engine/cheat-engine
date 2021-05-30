@@ -19,6 +19,7 @@ criticalSection cinthandlerMenuCS={.name="cinthandlerMenuCS", .debuglevel=2};
 #endif
 
 int IntHandlerDebug=0;
+int ClearDR6OnInterrupt=0;
 
 
 #define SETINT(INTNR) intvector[INTNR].wLowOffset=(WORD)(UINT64)inthandler##INTNR; \
@@ -625,6 +626,10 @@ int cinthandler(unsigned long long *stack, int intnr) //todo: move to it's own s
 
 
   sendstring("End of interrupt\n\r");
+
+
+  if ((intnr==1) && (ClearDR6OnInterrupt))
+    setDR6(0xffff0ff0);
 
 
 #ifdef DEBUGINTHANDLER

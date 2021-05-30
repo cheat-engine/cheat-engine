@@ -1037,6 +1037,8 @@ AfterBPTest:
 
   InitExports();
 
+  setDR6(0xffff0ff0);
+
   //outportb(0x80,0x10);
 
   menu2();
@@ -1317,6 +1319,8 @@ void menu2(void)
             UINT64 rflags;
             pcpuinfo i=getcpuinfo();
 
+            ClearDR6OnInterrupt=1;
+
 
 
             try
@@ -1429,6 +1433,8 @@ afterWRBPtest:
             setRFLAGS(rflags | (1<<8));
 
             setRFLAGS(rflags & (~(1<<8))); //unset
+
+            ClearDR6OnInterrupt=0;
 
 
             break;

@@ -3592,7 +3592,8 @@ void addToMemoryRanges(QWORD address, QWORD size, int type)
   //add memory for a new entry
   if (memoryrangesPos==memoryrangesLength)
   {
-    realloc2(memoryranges, memoryrangesLength*sizeof(MEMRANGE), 2*memoryrangesLength*sizeof(MEMRANGE));
+    sendstringf("addToMemoryRanges realloc\n");
+    memoryranges=realloc2(memoryranges, memoryrangesLength*sizeof(MEMRANGE), 2*memoryrangesLength*sizeof(MEMRANGE));
     memoryrangesLength=memoryrangesLength*2;
   }
 
@@ -3623,8 +3624,14 @@ void sanitizeMemoryRegions()
 
     if (i>100)
     {
-      sendstringf("Breaking here");
-      while(1);
+      while (1)
+      {
+        outportb(0x80,0x10);
+        sendstringf("It's OVER");
+        outportb(0x80,0x00);
+        sendstringf(" 100!!!!!!\n");
+      }
+
     }
 
     sendstringf("Checking %d (%6 - %6):%d for overlap\n", i, starta, stopa, memoryranges[i].memtype);
@@ -3638,8 +3645,13 @@ void sanitizeMemoryRegions()
 
       if (j>100)
       {
-        sendstringf("Breaking here");
-        while(1);
+        while (1)
+        {
+          outportb(0x80,0x11);
+          sendstringf("It's OVER");
+          outportb(0x80,0x10);
+          sendstringf(" 100 again!!!!!!\n");
+        }
       }
 
 
@@ -3711,6 +3723,9 @@ void sanitizeMemoryRegions()
         memoryranges[i].size=overlap.size;
         memoryranges[i].memtype=overlap.memtype;
         sendstringf("    This becomes (%6 - %6):%d\n", memoryranges[i].startaddress, memoryranges[i].startaddress+memoryranges[i].size-1, memoryranges[i].memtype);
+
+        starta = memoryranges[i].startaddress;
+        stopa = memoryranges[i].startaddress + memoryranges[i].size - 1;
 
 
         //mark as handled

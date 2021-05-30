@@ -65,6 +65,7 @@ void incrementRIP(int count)
       newRIP=newRIP & 0xffffffff;
 
     vmwrite(vm_guest_rip,newRIP);
+    vmwrite(vm_guest_interruptability_state, vmread(vm_guest_interruptability_state) & 0xfffffffc); //instruction emulated. Skip the block by ss and block by sti
   }
 }
 
@@ -1928,7 +1929,10 @@ int handleCPUID(VMRegisters *vmregisters)
   flags.value=vmread(vm_guest_rflags);
 
   if (flags.TF==1)
+  {
     vmwrite(vm_pending_debug_exceptions,0x4000);
+  }
+
 
   _cpuid(&(vmregisters->rax),&(vmregisters->rbx),&(vmregisters->rcx),&(vmregisters->rdx));
 
@@ -3368,8 +3372,25 @@ int handleInterruptProtectedMode(pcpuinfo currentcpuinfo, VMRegisters *vmregiste
 
     //also: Certain debug exceptions may clear bits 0-3. The remaining contents of the DR6 register are never cleared by the processor.
     dr6.DR6&= ~(0xf); //zero the b0 to b3 flags
+
+    /*
+    RFLAGS rflags;
+    rflags.value = vmread(vm_guest_rflags);
+    if(rflags.TF)
+    {
+      sendstring("TF is 1");
+      dr6.DR6 |= dr6_exit_qualification.DR6 & 0x600f; //the 4 b0-b3 flags, BS and BD
+    }
+    else
+    {
+      sendstring("TF is 0");
+      dr6.DR6 |= dr6_exit_qualification.DR6 & 0x200f; //the 4 b0-b3 flags, BD
+    }
+    */
+
     dr6.DR6 |= dr6_exit_qualification.DR6 & 0x600f; //the 4 b0-b3 flags, BS and BD
-    if (dr6_exit_qualification.RTM) dr6.RTM=0; //if this is set, set RTM to 0
+    dr6.RTM=~dr6_exit_qualification.RTM;
+    //if ((dr6_exit_qualification.RTM)==0) dr6.RTM=1; //if this is 0, set RTM to 1
 
     setDR6(dr6.DR6);
 

@@ -12,6 +12,7 @@
 
 extern PINT_VECTOR intvector;
 extern int IntHandlerDebug;
+extern int ClearDR6OnInterrupt;
 
 void setints(void);
 
