@@ -33,6 +33,8 @@ type
     Button10: TButton;
     Button11: TButton;
     Button12: TButton;
+    Button13: TButton;
+    Button14: TButton;
     Button2: TButton;
     edtTimeout: TEdit;
     Label1: TLabel;
@@ -53,12 +55,15 @@ type
     Button7: TButton;
     Button8: TButton;
     Button9: TButton;
+    Memo1: TMemo;
     Timer1: TTimer;
     Timer2: TTimer;
     Timer3: TTimer;
     procedure Button10Click(Sender: TObject);
     procedure Button11Click(Sender: TObject);
     procedure Button12Click(Sender: TObject);
+    procedure Button13Click(Sender: TObject);
+    procedure Button14Click(Sender: TObject);
     procedure Button1Click(Sender: TObject);
     procedure Button2Click(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -359,9 +364,41 @@ XXX:
   end;
 end;
 
-procedure TForm1.Button10Click(Sender: TObject);
-begin
+var debugtest: boolean;
 
+procedure bla;
+begin
+  showmessage('bla');
+end;
+
+function exhandler(ExceptionInfo: PEXCEPTION_POINTERS): LONG; stdcall;
+begin
+  form1.memo1.lines.add(inttohex(ExceptionInfo.ContextRecord^.Rip,8)+' RFLAGS='+inttohex(ExceptionInfo.ContextRecord^.EFlags,4)+' DR6='+inttohex(ExceptionInfo.ContextRecord^.Dr6,8));
+
+  if debugtest then
+  begin
+    //exceptioninfo^.ContextRecord^.Rip:=ptruint(@bla);
+    if (ExceptionInfo.ContextRecord^.Dr6 and (1 shl 14)) > 0 then
+    begin
+      ExceptionInfo.ContextRecord^.EFlags:=ExceptionInfo.ContextRecord^.EFlags or $100;
+      ExceptionInfo.ContextRecord^.dr6:=$ffff0ff0;
+    end;
+
+    exit(EXCEPTION_CONTINUE_EXECUTION);
+  end
+  else
+    exit(EXCEPTION_CONTINUE_SEARCH);
+end;
+
+procedure TForm1.Button10Click(Sender: TObject);
+var
+  k: THandle;
+  AddVectoredExceptionHandler: function (FirstHandler: Cardinal; VectoredHandler: PVECTORED_EXCEPTION_HANDLER): pointer; stdcall;
+begin
+  showmessage('button 10 click');
+  k:=LoadLibrary('kernel32.dll');
+  AddVectoredExceptionHandler:=GetProcAddress(k,'AddVectoredExceptionHandler');
+  AddVectoredExceptionHandler(1, @exhandler);
 end;
 
 procedure TForm1.Button11Click(Sender: TObject);
@@ -386,6 +423,54 @@ begin
 
   c.terminate;
   c.free;
+end;
+
+procedure TForm1.Button13Click(Sender: TObject);
+var x: pbyte;
+begin
+  x:=nil;
+  x^:=12;
+end;
+
+procedure TForm1.Button14Click(Sender: TObject);
+begin
+  debugtest:=true;
+  asm
+    pushfq
+    pushfq
+    pop rax
+
+    or rax,$100
+
+
+    push rax
+    popfq
+
+    nop
+    cpuid
+    nop
+    nop
+    mov ax,ss
+    mov ss,ax
+    cpuid
+    nop
+    nop
+    nop
+    rdtsc
+    nop
+    rdtscp
+    nop
+    rdtsc
+    rdtsc
+    rdtsc
+    nop
+    popfq
+    nop
+    nop
+    nop
+
+  end;
+  debugtest:=false;
 end;
 
 procedure TForm1.Button2Click(Sender: TObject);
@@ -510,21 +595,12 @@ end;
 
 procedure TForm1.Timer2Timer(Sender: TObject);
 begin
-  button10.click;
+ // button10.click;
 end;
 
-var ec: integer;
 procedure TForm1.Timer3Timer(Sender: TObject);
 begin
-  try
-    asm
-    int3
-    sub [ec],1
-    end;
-  except
-    inc(ec);
-  end;
-  label10.caption:=inttostr(ec);
+
 end;
 
 end.

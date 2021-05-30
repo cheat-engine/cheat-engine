@@ -2,17 +2,17 @@ object Form1: TForm1
   Left = 372
   Height = 287
   Top = 368
-  Width = 851
+  Width = 1168
   BorderStyle = bsSingle
   Caption = 'Form1'
   ClientHeight = 287
-  ClientWidth = 851
+  ClientWidth = 1168
   Font.Height = -14
   Font.Name = 'MS Sans Serif'
   OnClose = FormClose
   OnCreate = FormCreate
   Position = poScreenCenter
-  LCLVersion = '2.0.0.4'
+  LCLVersion = '2.0.6.0'
   object Label1: TLabel
     Left = 120
     Height = 16
@@ -167,9 +167,9 @@ object Form1: TForm1
     TabOrder = 8
   end
   object Button10: TButton
-    Left = 616
+    Left = 648
     Height = 25
-    Top = 88
+    Top = 32
     Width = 75
     Caption = 'Button10'
     OnClick = Button10Click
@@ -202,36 +202,65 @@ object Form1: TForm1
     Text = '0'
   end
   object Label10: TLabel
-    Left = 688
+    Left = 536
     Height = 16
-    Top = 200
+    Top = 216
     Width = 48
     Caption = 'Label10'
     ParentColor = False
   end
   object Label11: TLabel
-    Left = 688
+    Left = 528
     Height = 16
     Top = 184
     Width = 110
     Caption = 'int3 bp exceptions:'
     ParentColor = False
   end
+  object Button13: TButton
+    Left = 648
+    Height = 25
+    Top = 69
+    Width = 75
+    Caption = 'Button13'
+    OnClick = Button13Click
+    TabOrder = 13
+  end
+  object Memo1: TMemo
+    Left = 736
+    Height = 253
+    Top = 19
+    Width = 406
+    Lines.Strings = (
+      'Memo1'
+    )
+    ScrollBars = ssBoth
+    TabOrder = 14
+  end
+  object Button14: TButton
+    Left = 576
+    Height = 25
+    Top = 112
+    Width = 147
+    Caption = 'Test dbvm detect'
+    OnClick = Button14Click
+    TabOrder = 15
+  end
   object Timer1: TTimer
     OnTimer = Timer1Timer
-    left = 184
-    top = 128
+    Left = 184
+    Top = 128
   end
   object Timer2: TTimer
     Interval = 30
     OnTimer = Timer2Timer
-    left = 616
-    top = 136
+    Left = 536
+    Top = 128
   end
   object Timer3: TTimer
     Interval = 10
     OnTimer = Timer3Timer
-    left = 656
-    top = 208
+    Left = 656
+    Top = 208
   end
 end
