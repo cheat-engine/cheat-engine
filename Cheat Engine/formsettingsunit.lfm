@@ -1583,6 +1583,8 @@ object formSettings: TformSettings
                   Top = 0
                   Width = 274
                   Caption = 'Trigger copy-on-write before activating watches'
+                  Checked = True
+                  State = cbChecked
                   TabOrder = 0
                 end
                 object cbDBVMDebugTargetedProcessOnly: TCheckBox

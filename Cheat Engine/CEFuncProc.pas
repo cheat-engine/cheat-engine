@@ -3559,6 +3559,14 @@ begin
   result:=s1;
 end;
 
+
+var
+  StackStartCachePID: dword;
+  StackStartCache: tmap;
+  StackStartCacheCS: TCriticalSection;
+  StackStartCacheKernel32Address: ptruint;
+
+
 function GetStackStart(threadnr: integer=0): ptruint;
 {$IFDEF windows}
 var
@@ -3583,6 +3591,20 @@ var
 {$ENDIF}
 //gets the stack base of the main thread, then checks where the "exitThread" entry is located and uses that -pointersize as the stackbase
 begin
+
+  StackStartCacheCS.enter;
+  try
+    if StackStartCachePID<>processid then
+      StackStartCache.Clear //different pid, clear the old cache
+    else
+      if StackStartCache.GetData(threadnr,result) then exit;
+  finally
+    StackStartCacheCS.leave;
+  end;
+
+  //still here, so not cached
+
+
   result:=0;
 
   {$IFDEF windows}
@@ -3688,6 +3710,17 @@ begin
   end;
   {$ENDIF}
 
+  if result<>0 then
+  begin
+    StackStartCacheCS.enter;
+    try
+      StackStartCache.Add(threadnr, result);
+      StackStartCachePID:=processid;
+    finally
+      StackStartCacheCS.leave;
+    end;
+  end;
+
 end;
 
 function getDiskFreeFromPath(path: string): int64;
@@ -3769,6 +3802,10 @@ begin
 end;
 
 initialization
+  StackStartCache:=tmap.Create(itu4,sizeof(ptruint));
+  StackStartCachePID:=0;
+  StackStartCacheCS:=TCriticalSection.Create;
+
 
   if not assigned(OpenProcess) then
   begin

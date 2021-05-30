@@ -2817,7 +2817,7 @@ dbvm_speedhack_setSpeed(speed): Changes the speed the timestamp counter goes up 
 dbvm_setTSCAdjust(enabled, timeout): If enabled (default true with timeout 2000) will return a small(20-30) timestamp between multiple rdtsc/rdtscp instructions.  The timeout is the number of actual TSC to watch else the actual time is given. A high timeout can make your system unstable
 
 dbk_getCR0(): Returns Control Register 0
-dbk_getCR3(): Returns Control Register 3 of the currently opened process
+dbk_getCR3(): Returns Control Register 3 of the currently opened process.  (Note: This will also work without dbk when only dbvm is loaded)
 dbk_getCR4(): Returns Control Register 4
 dbk_getPhysicalAddress(address): Returns the physical address of the given address
 dbk_writesIgnoreWriteProtection(state): Set to true if you do not wish to initiate copy-on-write behaviour
@@ -3656,7 +3656,7 @@ enumTypeDefs(ModuleHandle) : table - Returns an indexed table containing informa
 getTypeDefMethods(ModuleHandle, TypedefToken) : table - Returns a table containing all the methods in the specified typedef. Each entry is build up as {MethodToken, Name, Attributes, ImplementationFlags, ILCode, NativeCode, SecondaryNativeCode[]: Integer)
 getTypeDefParent(ModuleHandle, TypedefToken): {ModuleHandle, TypedefToken}
 getTypeDefData(ModuleHandle, TypedefToken) : table - Returns a table containing all the fields in the specified typedef.  {ObjectType, ElementType, CountOffset, ElementSize, FirstElementOffset, ClassName, Fields[]{Offset, FieldType, Name} }
-getMethodParameters(ModuleHandle, MethodDefToken): table - Returns a table containing all the parameters of the method. {Name, CType}
+getMethodParameters(ModuleHandle, MethodDefToken): table - Returns a table containing all the parameters of the for method. {Name, CType}
 getAddressData(address): table - Queries a specific address and returns information about it, assuming it is a valid object. It contains the following data: {StartAddress, ObjectType, ElementType, CountOffset, ElementSize, FirstElementOffset, ClassName, Fields[]{Offset, FieldType, Name} }
 
 enumAllObjects(): table - Queries ALL defined objects. {StartAddress, Size, TypeID{token1,token2}, ClassName}   WARNING: This will take a LOOOOOONG time and if done from the main thread will make it look like CE is frozen

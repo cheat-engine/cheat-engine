@@ -824,7 +824,9 @@ begin
             cbUseDBVMDebugger.checked:=reg.ReadBool('Use DBVM Debugger');
 
           if reg.ValueExists('DBVMBP Trigger COW') then
-            dbvmbp_options.TriggerCOW:=reg.ReadBool('DBVMBP Trigger COW');
+            dbvmbp_options.TriggerCOW:=reg.ReadBool('DBVMBP Trigger COW')
+          else
+            dbvmbp_options.TriggerCOW:=true;
 
           if reg.ValueExists('DBVMBP This Process Only') then
             dbvmbp_options.TargetedProcessOnly:=reg.ReadBool('DBVMBP This Process Only');
