@@ -1235,7 +1235,7 @@ begin
   end;
 
   if sl<>nil then
-    sl.AddObject(name, tobject(address));
+    sl.AddObject(name, tobject(ptruint(address)));
 
 end;
 
