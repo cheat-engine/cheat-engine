@@ -720,6 +720,14 @@ BOOL walkPagingLayout(PEPROCESS PEProcess, UINT_PTR MaxAddress, PRESENTPAGECALLB
 					continue;
 				}
 
+				if (PPDPE->PS) //some systems have 1GB page support. But not sure windows uses these
+				{
+					DbgPrint("----->%llx is a 1GB range", currentAddress);
+					OnPresentPage(currentAddress, currentAddress + 0x40000000 - 1, PPDPE);
+					currentAddress += 0x40000000;
+					continue;
+				}
+
 				if (PPDE->P == 0)
 				{
 				

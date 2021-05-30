@@ -899,7 +899,8 @@ begin
     mov r,rax
 {$else}
     mov eax,vmcallinfo
-    mov edx,level1pass
+    mov edx,[vmx_password1]
+    mov ecx,[vmx_password3]
     vmmcall     //should raise an UD if the cpu does not support it  (or the password is wrong)
     mov r,eax
 {$endif}
@@ -932,7 +933,8 @@ begin
     mov r,rax
 {$else}
     mov eax,vmcallinfo
-    mov edx,level1pass
+    mov edx,[vmx_password1]
+    mov ecx,[vmx_password3]
     vmmcall     //should raise an UD if the cpu does not support it  (or the password is wrong)
     mov r,eax
     mov r2,edx
@@ -970,7 +972,8 @@ begin
     mov r,rax
 {$else}
     mov eax,vmcallinfo
-    mov edx,level1pass
+    mov edx,[vmx_password1]
+    mov ecx,[vmx_password3]
     vmcall     //should raise an UD if the cpu does not support it  (or the password is wrong)
     mov r,eax
     mov r2,edx
@@ -1006,8 +1009,8 @@ begin
     mov r,rax
 {$else}
     mov eax,vmcallinfo
-    mov edx,level1pass
-    mov ecx,level3pass
+    mov edx,[vmx_password1]
+    mov ecx,[vmx_password3]
     vmcall     //should raise an UD if the cpu does not support it  (or the password is wrong)
     mov r,eax
 {$endif}
