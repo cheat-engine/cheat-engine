@@ -1266,7 +1266,7 @@ BOOL ept_handleFrozenThread(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, F
 
 
 
-    //restore the state according to the saved state (could have been changed) and do a single step or run
+    //restore the state according to the saved state (could have been changed) and do a single step or run  (this also undoes the state used value in rax, which is good)
     if (isAMD)
     {
       currentcpuinfo->vmcb->RIP=BrokenThreadList[id].state.basic.RIP;
@@ -1386,18 +1386,22 @@ BOOL ept_handleSoftwareBreakpoint(pcpuinfo currentcpuinfo, VMRegisters *vmregist
         if (BrokenThreadList[i].inuse)
         {
           QWORD cr3;
-          QWORD rip;
+          QWORD rip,rax;
 
           if (isAMD)
           {
             cr3=currentcpuinfo->vmcb->CR3;
             rip=currentcpuinfo->vmcb->RIP;
+            rax=currentcpuinfo->vmcb->RAX;
           }
           else
           {
             cr3=vmread(vm_guest_cr3);
             rip=vmread(vm_guest_rip);
+            rax=vmregisters->rax;
           }
+
+          if (rax!=i) continue; //rax should match the brokenthreadlist id
 
           //warning: In windows, kernelmode gsbase changes depending on the cpu so can not be used as identifier then
 
@@ -1676,9 +1680,13 @@ int ept_handleStepAndBreak(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, FX
       fillPageEventBasic(&BrokenThreadList[brokenthreadid].state.basic, vmregisters);
       BrokenThreadList[brokenthreadid].state.fpudata=*fxsave;
 
-      //adjust RIP
+      //adjust RIP and RAX  (rip points to the parking spot, RAX contains the specific brokenthreadid (gets undone on resume anyhow)
+      vmregisters->rax=brokenthreadid;
       if (isAMD)
+      {
         currentcpuinfo->vmcb->RIP=newRIP;
+        currentcpuinfo->vmcb->RAX=brokenthreadid;
+      }
       else
         vmwrite(vm_guest_rip, newRIP);
 
@@ -2358,6 +2366,11 @@ BOOL ept_handleWatchEvent(pcpuinfo currentcpuinfo, VMRegisters *registers, PFXSA
           if (BrokenThreadList[i].inuse==0)
           {
             BrokenThreadList[i]=e;
+            if (isAMD)
+              currentcpuinfo->vmcb->RAX=i; //rax was already saved in the pageeventbasic structure. Use rax as brokenthreadlist id
+            else
+              registers->rax=i;
+
             csLeave(&BrokenThreadListCS);
             return TRUE; //no need to log it or continue
           }
@@ -2365,6 +2378,11 @@ BOOL ept_handleWatchEvent(pcpuinfo currentcpuinfo, VMRegisters *registers, PFXSA
 
         //still here, so add it to the end
         BrokenThreadList[BrokenThreadListPos]=e;
+        if (isAMD)
+          currentcpuinfo->vmcb->RAX=BrokenThreadListPos;
+        else
+          registers->rax=BrokenThreadListPos;
+
         BrokenThreadListPos++;
         csLeave(&BrokenThreadListCS);
 
