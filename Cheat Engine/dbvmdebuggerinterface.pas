@@ -453,7 +453,7 @@ begin
     result:=true;
   end
   else
-    result:=false;
+    result:=newkernelhandler.GetThreadContext(hthread, lpContext);
 end;
 
 
