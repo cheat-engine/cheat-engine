@@ -99,14 +99,6 @@ var
 begin
   self.context:=context;
 
-  //ebxlabel.top:=eaxlabel.top+eaxlabel.height;
-  //ecxlabel.top:=ebxlabel.top+ebxlabel.height;
-  //edxlabel.top:=ecxlabel.top+ecxlabel.height;
-  //esilabel.top:=edxlabel.top+edxlabel.height;
-  //edilabel.top:=esilabel.top+esilabel.height;
-  //ebplabel.top:=edilabel.top+edilabel.height;
-  //esplabel.top:=ebplabel.top+ebplabel.height;
-
   EAXLabel.ShowHint:=true;
   EAXLabel.Hint:=rsLabelRegisterHint;
   EBXlabel.ShowHint:=true;
@@ -149,6 +141,8 @@ begin
       r8label.AnchorSideTop.Side:=asrBottom;
       r8label.AnchorSideRight.Control:=EIPlabel;
       r8label.AnchorSideRight.Side:=asrBottom;
+
+      r8label.BorderSpacing.Top:=2;
     end;
 
     if R9Label=nil then
@@ -168,6 +162,7 @@ begin
       r9label.AnchorSideTop.Side:=asrBottom;
       r9label.AnchorSideRight.Control:=r8label;
       r9label.AnchorSideRight.Side:=asrBottom;
+      r9label.BorderSpacing.Top:=2;
     end;
 
     if R10Label=nil then
@@ -187,6 +182,7 @@ begin
       r10label.AnchorSideTop.Side:=asrBottom;
       r10label.AnchorSideRight.Control:=r9label;
       r10label.AnchorSideRight.Side:=asrBottom;
+      r10label.BorderSpacing.Top:=2;
     end;
 
     if R11Label=nil then
@@ -206,6 +202,7 @@ begin
       r11label.AnchorSideTop.Side:=asrBottom;
       r11label.AnchorSideRight.Control:=r10label;
       r11label.AnchorSideRight.Side:=asrBottom;
+      r11label.BorderSpacing.Top:=2;
     end;
 
     if R12Label=nil then
@@ -225,6 +222,7 @@ begin
       r12label.AnchorSideTop.Side:=asrBottom;
       r12label.AnchorSideRight.Control:=r11label;
       r12label.AnchorSideRight.Side:=asrBottom;
+      r12label.BorderSpacing.Top:=2;
     end;
 
     if R13Label=nil then
@@ -244,6 +242,7 @@ begin
       r13label.AnchorSideTop.Side:=asrBottom;
       r13label.AnchorSideRight.Control:=r12label;
       r13label.AnchorSideRight.Side:=asrBottom;
+      r13label.BorderSpacing.Top:=2;
     end;
 
     if R14Label=nil then
@@ -263,6 +262,7 @@ begin
       r14label.AnchorSideTop.Side:=asrBottom;
       r14label.AnchorSideRight.Control:=r13label;
       r14label.AnchorSideRight.Side:=asrBottom;
+      r14label.BorderSpacing.Top:=2;
     end;
 
     if R15Label=nil then
@@ -282,6 +282,7 @@ begin
       r15label.AnchorSideTop.Side:=asrBottom;
       r15label.AnchorSideRight.Control:=r14label;
       r15label.AnchorSideRight.Side:=asrBottom;
+      r15label.BorderSpacing.Top:=2;
     end;
 
 
@@ -337,13 +338,6 @@ begin
     sizeNeeded+= 10 * eiplabel.height;
   end;
 
-  sizeNeeded:=max(sizeNeeded, self.constraints.MinHeight);
-  self.constraints.MinHeight:=sizeNeeded;
-
-  sizeNeeded:=eaxlabel.left+eaxlabel.Canvas.TextWidth(eaxlabel.caption)+panel2.width+10;
-  sizeNeeded:=max(sizeNeeded, self.constraints.MinWidth);
-  self.constraints.MinWidth:=sizeNeeded;
-
   if _stack<>nil then
   begin
     if stack.stack<>nil then //free old stack copy
@@ -354,6 +348,14 @@ begin
 
     copymemory(stack.stack, _stack, stacksize);
   end;
+
+  panel1.autosize:=true;
+
+
+  autosize:=false;
+
+  autosize:=true;
+  DoAutoSize;
 end;
 
 procedure TRegisters.sbShowFloatsClick(Sender: TObject);
@@ -418,7 +420,7 @@ begin
 
   widthNeeded:=canvas.TextWidth('XX  '+caption+'  XX');
 
-  constraints.MinWidth:=max(constraints.MinWidth, widthNeeded);
+
 
   {$ifdef windows}
   if WindowsVersion>=wvVista then
@@ -599,8 +601,7 @@ end;
 
 procedure TRegisters.FormResize(Sender: TObject);
 begin
-  sbShowFloats.Top:=(clientheight div 2)-sbShowFloats.Height;
-  sbShowStack.top:=sbShowFloats.top+sbShowFloats.height;
+
 end;
 
 procedure TRegisters.sbShowStackClick(Sender: TObject);

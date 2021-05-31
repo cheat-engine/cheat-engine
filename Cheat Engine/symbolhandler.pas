@@ -131,6 +131,7 @@ type
     structureList: TStringList;
 
     amodulebase: pointer;
+    lastAliveCheck: qword;
 
     {$ifdef darwin}
 
@@ -2094,6 +2095,9 @@ var
 
   SearchResult: ptruint;
 
+  b: byte;
+  ar: size_t;
+
   {$ifdef darwin}
   sym: CSSymbolRef;
   symname: pchar;
@@ -2101,6 +2105,14 @@ var
   {$endif}
 begin
 //  sleep(5000);
+
+  if (amodulebase<>nil) and (gettickcount64>lastAliveCheck+1000) then
+  begin
+    if ReadProcessMemory(processhandle, amodulebase, @b,1,ar)=false then
+      terminate;
+
+    lastAliveCheck:=GetTickCount64;
+  end;
 
   if symbolloaderthreadeventqueue.count>0 then
   begin
