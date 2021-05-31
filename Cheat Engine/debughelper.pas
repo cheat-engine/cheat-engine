@@ -2424,6 +2424,9 @@ var
   usableDebugReg: integer;
   bplist: TBreakpointSplitArray;
 begin
+  if CurrentDebuggerInterface is TDBVMDebugInterface then
+    bpm:=bpmDBVMNative;
+
   found := False;
 
   result:=nil;
@@ -2479,6 +2482,9 @@ var
   usableDebugReg: integer;
   bplist: TBreakpointSplitArray;
 begin
+  if CurrentDebuggerInterface is TDBVMDebugInterface then
+    bpm:=bpmDBVMNative;
+
   found := False;
 
   result:=nil;
