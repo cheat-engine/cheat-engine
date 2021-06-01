@@ -24,6 +24,8 @@ loadTable(stream ,merge OPTIONAL, ignoreluascriptdialog BOOLEAN): Loads a table 
 saveTable(filename, protect OPTIONAL, dontDeactivateDesignerForms OPTIONAL): Saves the current table. If protect is provided and set to true and the filename has the .CETRAINER extension, it will protect it from reading normally
 saveTable(stream, dontDeactivateDesignerForms OPTIONAL): Saves the current table to a stream object
 
+signTable(filename) : If the current CE install has a valid cheta engine signature, this will sign the specific table with that signature (will pop up the password request)
+
 note: addresses can be strings, they will get interpreted by ce's symbolhandler
 
 copyMemory(sourceAddress: integer, size: integer, destinationAddress:integer SEMIOPTIONAL, Method:integer OPTIONAL): 

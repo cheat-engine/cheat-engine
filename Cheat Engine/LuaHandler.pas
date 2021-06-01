@@ -126,7 +126,7 @@ uses autoassembler, MainUnit, MainUnit2, LuaClass, frmluaengineunit, plugin, plu
   LuaDiagram, frmUltimap2Unit, frmcodefilterunit, BreakpointTypeDef, LuaSyntax,
   LazLogger, LuaSynedit, LuaRIPRelativeScanner, LuaCustomImageList ,ColorBox,
   rttihelper, LuaDotNetPipe, LuaRemoteExecutor, windows7taskbar, debugeventhandler,
-  tcclib, dotnethost, CSharpCompiler, LuaCECustomButton;
+  tcclib, dotnethost, CSharpCompiler, LuaCECustomButton, feces;
 
   {$warn 5044 off}
 
@@ -9078,6 +9078,44 @@ begin
   end;
 end;
 
+function lua_signTable(L: Plua_State): integer; cdecl;
+var
+  filename: string;
+begin
+  if lua_gettop(L)>0 then
+  begin
+    filename:=Lua_ToString(L,1);
+    if FileExists(filename) then
+    begin
+      try
+        signTableFile(filename);
+        lua_pushboolean(L,true);
+        exit(1);
+      except
+        on e: exception do
+        begin
+          lua_pushboolean(L,false);
+          lua_pushstring(L,e.message);
+          exit(2);
+        end;
+      end;
+    end
+    else
+    begin
+      lua_pushboolean(L,false);
+      lua_pushstring(L,filename+' not found');
+      exit(2);
+    end;
+  end
+  else
+  begin
+    lua_pushboolean(L,false);
+    lua_pushstring(L, rsIncorrectNumberOfParameters);
+    exit(2);
+  end;
+
+end;
+
 function lua_detachIfPossible(L: Plua_State): integer; cdecl;
 begin
   result:=0;
@@ -15240,6 +15278,8 @@ begin
 
     Lua_register(L, 'loadTable', lua_loadTable);
     Lua_register(L, 'saveTable', lua_saveTable);
+    Lua_register(L, 'signTable', lua_signTable);
+
     Lua_register(L, 'detachIfPossible', lua_DetachIfPossible);
     Lua_register(L, 'getComment', getComment);
     Lua_register(L, 'setComment', setComment);
@@ -15474,6 +15514,7 @@ begin
 
 
     lua_register(L, 'signExtend', lua_signExtend);
+
 
 
 

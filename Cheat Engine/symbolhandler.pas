@@ -2106,7 +2106,7 @@ var
 begin
 //  sleep(5000);
 
-  if (amodulebase<>nil) and (gettickcount64>lastAliveCheck+1000) then
+  if (targetself=false) and (amodulebase<>nil) and (gettickcount64>lastAliveCheck+1000) then
   begin
     if ReadProcessMemory(processhandle, amodulebase, @b,1,ar)=false then
       terminate;

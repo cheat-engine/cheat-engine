@@ -47,6 +47,8 @@ lua:
      form.saveToStream 
      compile()
      compilecs()
+     signExtend
+     signTable
 
 
 
