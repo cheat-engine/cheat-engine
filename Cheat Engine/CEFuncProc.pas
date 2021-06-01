@@ -3714,7 +3714,9 @@ begin
   begin
     StackStartCacheCS.enter;
     try
-      StackStartCache.Add(threadnr, result);
+      if StackStartCache.HasId(threadnr)=false then
+        StackStartCache.Add(threadnr, result);
+
       StackStartCachePID:=processid;
     finally
       StackStartCacheCS.leave;
