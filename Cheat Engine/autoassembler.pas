@@ -3746,7 +3746,7 @@ begin
             if ok1=false then //not in the list yet, add it
             begin
               j:=length(dealloc);
-              setlength(dealloc, j-1);
+              setlength(dealloc, j+1);
               dealloc[j]:=disableinfo.allocs[i].address;
             end;
           end;
