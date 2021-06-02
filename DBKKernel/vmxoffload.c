@@ -645,7 +645,7 @@ Runs at passive mode
 						initvars->contiguousmemory = MmGetMdlPfnArray(contiguousMDL)[0] << 12;
 						DbgPrint("contiguous PA =%llx\n", initvars->contiguousmemory);
 						initvars->contiguousmemorysize = 8;
-						MmUnlockPages(contiguousMDL);
+						ExFreePool(contiguousMDL);
 					}
 					else
 						DbgPrint("Failed allocating 32KB of contiguous memory");
