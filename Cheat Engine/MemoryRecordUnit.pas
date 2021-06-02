@@ -1372,6 +1372,8 @@ begin
   begin
     try
       fColor:=strtoint('$'+tempnode.textcontent);
+      if fcolor=graphics.clWindowText then
+        fcolor:=clWindowtext;
     except
     end;
   end;

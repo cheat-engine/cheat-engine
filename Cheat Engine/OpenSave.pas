@@ -475,6 +475,9 @@ begin
           begin
             if (CodeEntry.Attributes.GetNamedItem('GroupHeader')<>nil) then isCodeListGroupHeader:=CodeEntry.Attributes.GetNamedItem('GroupHeader').TextContent='1';
             if (CodeEntry.Attributes.GetNamedItem('Color')<>nil) then entrycolor:=strtoint('$'+CodeEntry.Attributes.GetNamedItem('Color').TextContent);
+
+            if entrycolor=graphics.clWindowText then //default color (wasn't supposed to be saved)
+              entrycolor:=clWindowtext;
           end;
 
 

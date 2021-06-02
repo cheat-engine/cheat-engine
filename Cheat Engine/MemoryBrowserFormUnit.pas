@@ -2432,7 +2432,8 @@ begin
 
   reg:=Tregistry.Create;
   try
-    if reg.OpenKey('\Software\Cheat Engine\Disassemblerview '+inttostr(screen.PixelsPerInch)+'\',true) then
+
+    if reg.OpenKey('\Software\Cheat Engine\Disassemblerview '+inttostr(screen.PixelsPerInch)+darkmodestring+'\',true) then
     begin
       reg.{$ifdef windows}WriteBinaryData{$else}WriteString{$endif}('colors', {$ifndef windows}bintohexs({$endif}disassemblerview.colors, sizeof(disassemblerview.colors)){$ifndef windows}){$endif};
 
@@ -2660,7 +2661,7 @@ begin
       disassemblerview.font:=f;
     end;
 
-    if reg.OpenKey('\Software\Cheat Engine\Disassemblerview '+inttostr(screen.PixelsPerInch)+'\',false) then
+    if reg.OpenKey('\Software\Cheat Engine\Disassemblerview '+inttostr(screen.PixelsPerInch)+darkmodestring+'\',false) then
     begin
       if reg.ValueExists('colors') then
       begin

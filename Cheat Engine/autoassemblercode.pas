@@ -1132,6 +1132,26 @@ begin
         dataForPass2.cdata.cscript.insert(15,'} xmmreg, *pxmmreg;');
       end;
 
+
+      {
+      typedef struct {
+        union{
+          struct{
+              float f0;
+              float f1;
+              float f2;
+              float f3;
+          };
+          struct{
+              double d0;
+              double d1;
+          };
+          float fa[4];
+          double da[2];
+        };
+      } xmmreg, *pxmmreg;
+      }
+
       //testcompile the full script
       if targetself then
         _tcc:=tccself
