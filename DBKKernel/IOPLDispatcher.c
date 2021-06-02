@@ -932,6 +932,7 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 				else
 					forOneCpu((CCHAR)pinp->cpuid, vmxoffload_dpc, NULL, NULL, NULL, vmxoffload_override);
 
+				cleanupDBVM();
 				DbgPrint("Returned from vmxoffload()\n");
 				break;
 			}
