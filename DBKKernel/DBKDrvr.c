@@ -11,7 +11,7 @@
 #include "threads.h"
 #include "vmxhelper.h"
 #include "debugger.h"
-
+#include "vmxoffload.h"
 
 #include "IOPLDispatcher.h"
 #include "interruptHook.h"
