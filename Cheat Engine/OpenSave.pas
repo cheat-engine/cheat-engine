@@ -476,7 +476,9 @@ begin
             if (CodeEntry.Attributes.GetNamedItem('GroupHeader')<>nil) then isCodeListGroupHeader:=CodeEntry.Attributes.GetNamedItem('GroupHeader').TextContent='1';
             if (CodeEntry.Attributes.GetNamedItem('Color')<>nil) then entrycolor:=strtoint('$'+CodeEntry.Attributes.GetNamedItem('Color').TextContent);
 
-            if entrycolor=graphics.clWindowText then //default color (wasn't supposed to be saved)
+            if (entrycolor=graphics.clWindowText) or
+               (entrycolor=graphics.clDefault)
+            then //default color (wasn't supposed to be saved)
               entrycolor:=clWindowtext;
           end;
 
@@ -1242,7 +1244,9 @@ begin
     begin
       CodeRecord:=CodeRecords.AppendChild(doc.CreateElement('CodeEntry'));
 
-      if TCodeListEntry(advancedoptions.lvCodelist.Items[i].data).color<>clWindowtext then //don't save the color if it's the default color
+      if (TCodeListEntry(advancedoptions.lvCodelist.Items[i].data).color<>clWindowtext) and
+         (TCodeListEntry(advancedoptions.lvCodelist.Items[i].data).color<>graphics.clDefault)
+      then //don't save the color if it's the default color
       begin
         a:=doc.CreateAttribute('Color');
         a.TextContent:=inttohex(TCodeListEntry(advancedoptions.lvCodelist.Items[i].data).color,8);

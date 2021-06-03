@@ -1282,16 +1282,7 @@ begin
       stepover:=cbStepOver.checked;
       nosystem:=cbSkipSystemModules.checked;
 
-      if cbDBVMTriggerCOW.checked then
-      begin
-        if ReadProcessMemory(processhandle, pointer(fromaddress), @b,1,actual) then
-        begin
-          v:=(SkipVirtualProtectEx=false) and VirtualProtectEx(processhandle, pointer(fromaddress),1, PAGE_EXECUTE_READWRITE, oldprotect);
-          WriteProcessMemory(processhandle,pointer(fromaddress),@b,1,actual);
-          if v then
-            VirtualProtectEx(processhandle,pointer(fromaddress),1,oldprotect,oldprotect);
-        end;
-      end;
+
 
       {$ifdef windows}
       if cbDBVMBreakAndTrace.checked then
@@ -1305,7 +1296,16 @@ begin
         else
           fromaddress:=memorybrowser.disassemblerview.SelectedAddress;
 
-
+        if cbDBVMTriggerCOW.checked then
+        begin
+          if ReadProcessMemory(processhandle, pointer(fromaddress), @b,1,actual) then
+          begin
+            v:=(SkipVirtualProtectEx=false) and VirtualProtectEx(processhandle, pointer(fromaddress),1, PAGE_EXECUTE_READWRITE, oldprotect);
+            WriteProcessMemory(processhandle,pointer(fromaddress),@b,1,actual);
+            if v then
+              VirtualProtectEx(processhandle,pointer(fromaddress),1,oldprotect,oldprotect);
+          end;
+        end;
 
         options:=1;
         if cbSaveStack.checked then options:=3;

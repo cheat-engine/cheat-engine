@@ -1246,7 +1246,9 @@ end;
 
 procedure TMemoryRecord.setColor(c: TColor);
 begin
-  if c=graphics.clWindowText then  //in case clWindowText isn't good to use
+  if (c=graphics.clWindowText) or
+     (c=graphics.clDefault)
+  then  //in case clWindowText isn't good to use
     c:=clWindowtext;
 
   fColor:=c;
@@ -1372,7 +1374,9 @@ begin
   begin
     try
       fColor:=strtoint('$'+tempnode.textcontent);
-      if fcolor=graphics.clWindowText then
+      if (fcolor=graphics.clWindowText) or
+         (fcolor=graphics.clDefault)
+      then
         fcolor:=clWindowtext;
     except
     end;
@@ -1895,7 +1899,9 @@ begin
   end;
 
 
-  if fcolor<>clWindowText then
+  if (fcolor<>clWindowText) and
+     (fcolor<>graphics.clDefault)
+  then
     cheatEntry.AppendChild(doc.CreateElement('Color')).TextContent:=inttohex(fcolor,6);
 
   if fisGroupHeader then

@@ -2381,7 +2381,7 @@ end;
 
 function dbvm_log_cr3values_start: boolean;
 begin
-  foreachcpu(dbvm_log_cr3_start,nil);
+  result:=foreachcpu(dbvm_log_cr3_start,nil);
 end;
 
 function dbvm_log_cr3_fullstop(parameters: pointer): BOOL; stdcall;   //needed to stop the cr3 watch on the other cpus
