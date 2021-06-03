@@ -372,6 +372,8 @@ type
     procedure GetSymbolLists(list: TList);
 
     procedure NotifyFinishedLoadingSymbols; //go through the list of functions to call when the symbollist has finished loading
+    function getMainSymbolList: TSymbolListHandler;
+
     constructor create;
     destructor destroy; override;
 end;
@@ -1955,6 +1957,7 @@ begin
   {$ifdef windows}
   hasmodulespecifier:=false;
   getmem(pSymInfo,sizeof(TSYMBOL_INFO)+100);
+  modulename:='';
 
 
 
@@ -5887,6 +5890,10 @@ begin
       SymbolsLoadedNotification[i](self);
 end;
 
+function TSymhandler.getMainSymbolList: TSymbolListHandler;
+begin
+  exit(symbollist);
+end;
 
 destructor TSymhandler.destroy;
 begin

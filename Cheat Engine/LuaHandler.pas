@@ -14813,6 +14813,8 @@ begin
   lua_register(L, 'inMainThread', inMainThread);
   lua_register(L, 'synchronize', lua_synchronize);
   lua_register(L, 'queue', lua_queue);
+
+  initializeLuaDisassembler(L);
 end;
 
 procedure InitializeLua;
@@ -15535,7 +15537,7 @@ begin
     initializeLuaD3DHook;
     initializeLuaStructure;
     initializeLuaRegion;
-    initializeLuaDisassembler;
+    initializeLuaDisassembler(L);
     initializeLuaDissectCode;
     initializeLuaByteTable;
     initializeLuaBinary;

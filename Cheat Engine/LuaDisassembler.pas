@@ -7,7 +7,7 @@ interface
 uses
   Classes, SysUtils, disassembler, lua, lauxlib, lualib, symbolhandler, LastDisassembleData;
 
-procedure initializeLuaDisassembler;
+procedure initializeLuaDisassembler(L: PLua_state);
 
 procedure LastDisassemblerDataToTable(L: PLua_State; t: integer; const ldd: TLastDisassembleData);
 procedure LastDisassemblerDataFromTable(L: PLua_State; t: integer; var ldd: TLastDisassembleData);
@@ -257,13 +257,13 @@ begin
 end;
 
 
-procedure initializeLuaDisassembler;
+procedure initializeLuaDisassembler(L: PLua_state);
 begin
-  lua_register(LuaVM, 'createDisassembler', createDisassembler);
-  lua_register(LuaVM, 'createCR3Disassembler', createCR3Disassembler);
+  lua_register(L, 'createDisassembler', createDisassembler);
+  lua_register(L, 'createCR3Disassembler', createCR3Disassembler);
 
-  lua_register(LuaVM, 'getDefaultDisassembler', getDefaultDisassembler);
-  lua_register(LuaVM, 'getVisibleDisassembler', getVisibleDisassembler);
+  lua_register(L, 'getDefaultDisassembler', getDefaultDisassembler);
+  lua_register(L, 'getVisibleDisassembler', getVisibleDisassembler);
 end;
 
 initialization

@@ -49,6 +49,8 @@ lua:
      compilecs()
      signExtend
      signTable
+     symbollist.getModuleList
+     symbollist.getSymbolList
 
 
 

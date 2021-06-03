@@ -4121,10 +4121,9 @@ var currentNode: TTreenode;
     clearSavedValueList: boolean;
 begin
   //update the childnode of the treenode with this struct to represent the new state
+  clearSavedValueList:=false;
   if mainStruct<>nil then
   begin
-    clearSavedValueList:=false;
-
 
     currentNode:=tvStructureView.Items.GetFirstNode;
     if currentnode=nil then
@@ -6753,6 +6752,8 @@ end;
 
 function TfrmStructures2.getGroup(i: integer): TStructGroup;
 begin
+  if (i<0) or (i>fgroups.count) then exit(nil);
+
   result:=TStructGroup(fgroups[i]);
 end;
 
