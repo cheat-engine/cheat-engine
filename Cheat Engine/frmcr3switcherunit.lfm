@@ -1,17 +1,17 @@
 object frmCR3Switcher: TfrmCR3Switcher
-  Left = 351
-  Height = 240
-  Top = 145
+  Left = 456
+  Height = 238
+  Top = 165
   Width = 320
   AutoSize = True
   Caption = 'Pagebase Switcher (CR3)'
-  ClientHeight = 240
+  ClientHeight = 238
   ClientWidth = 320
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '2.0.10.0'
+  LCLVersion = '2.0.6.0'
   object edtNewCR3: TEdit
     AnchorSideLeft.Control = Owner
     AnchorSideTop.Control = Label1
@@ -36,7 +36,7 @@ object frmCR3Switcher: TfrmCR3Switcher
     AnchorSideBottom.Control = Owner
     AnchorSideBottom.Side = asrBottom
     Left = 3
-    Height = 174
+    Height = 172
     Top = 63
     Width = 314
     Anchors = [akTop, akLeft, akRight, akBottom]
