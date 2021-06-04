@@ -441,6 +441,7 @@ begin
   //Correction for rendering bug.
   if (processhandler.isNetwork=true) and (processhandler.SystemArchitecture=archarm) then
   begin
+    addressstring+=' ';
     bytestring+=' ';
     opcodestring+=' ';
   end;       
