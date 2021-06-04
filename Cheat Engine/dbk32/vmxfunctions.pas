@@ -100,6 +100,8 @@ const
   VMCALL_SETBROKENTHREADENTRYFULL=77;
   VMCALL_RESUMEBROKENTHREAD=78;
 
+  VMCALL_HIDEDBVMPHYSICALADDRESSES=79;
+  VMCALL_HIDEDBVMPHYSICALADDRESSESALL=80;
 
   VMCALL_DEBUG_SETSPINLOCKTIMEOUT=254;
 
@@ -504,6 +506,9 @@ procedure dbvm_enterkernelmode(originalstate: POriginalState);
 procedure dbvm_returntousermode(originalstate: POriginalState);
 function dbvm_kernelalloc(size: dword): pointer;
 function dbvm_copyMemory(destination, target: pointer; size: integer): boolean;
+
+procedure dbvm_hidephysicalmemory;
+procedure dbvm_hidephysicalmemoryall;
 
 //got lost since last harddisk crash. Not 'that' important, but will take a while to reimplement
 function dbvm_executeDriverEntry(driverentry: pointer; DriverObject: pointer; RegistryPath: pointer): integer;
@@ -3178,6 +3183,31 @@ begin
   result:=r;
 end;
 
+procedure dbvm_hidephysicalmemory;
+var vmcallinfo: packed record
+  structsize: dword;
+  level2pass: dword;
+  command: dword;
+end;
+begin
+  vmcallinfo.structsize:=sizeof(vmcallinfo);
+  vmcallinfo.level2pass:=vmx_password2;
+  vmcallinfo.command:=VMCALL_HIDEDBVMPHYSICALADDRESSES;
+  vmcall(@vmcallinfo);
+end;
+
+procedure dbvm_hidephysicalmemoryall;
+var vmcallinfo: packed record
+  structsize: dword;
+  level2pass: dword;
+  command: dword;
+end;
+begin
+  vmcallinfo.structsize:=sizeof(vmcallinfo);
+  vmcallinfo.level2pass:=vmx_password2;
+  vmcallinfo.command:=VMCALL_HIDEDBVMPHYSICALADDRESSESALL;
+  vmcall(@vmcallinfo);
+end;
 
 
 function getClientIDFromDBVMBPShortState(state: TDBVMBPShortState; out clientid: TClientID): boolean;

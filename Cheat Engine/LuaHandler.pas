@@ -7048,6 +7048,18 @@ begin
   result:=1;
 end;
 
+function lua_dbvm_hidephysicalmemory(L: PLua_State): integer; cdecl;
+begin
+  result:=0;
+  dbvm_hidephysicalmemory;
+end;
+
+function lua_dbvm_hidephysicalmemoryall(L: PLua_State): integer; cdecl;
+begin
+  result:=0;
+  dbvm_hidephysicalmemoryall;
+end;
+
 
 function lua_dbvm_bp_getBrokenThreadListSize(L: PLua_State): integer; cdecl;
 begin
@@ -15174,6 +15186,8 @@ begin
     lua_register(L, 'dbvm_disableTSCHook', lua_dbvm_disableTSCHook);
 
     lua_register(L, 'dbvm_findCR3', lua_dbvm_findCR3);
+    lua_register(L, 'dbvm_hidephysicalmemory', lua_dbvm_hidephysicalmemory);
+    lua_register(L, 'dbvm_hidephysicalmemoryall', lua_dbvm_hidephysicalmemoryall);
 
     lua_register(L, 'getPageInfoCR3', lua_getPageInfoCR3);
     lua_register(L, 'getNextReadablePageCR3', lua_getNextReadablePageCR3);
