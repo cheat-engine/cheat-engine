@@ -2056,6 +2056,18 @@ int _handleVMCallInstruction(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, 
       break;
     }
 
+    case VMCALL_HIDEDBVMPHYSICALADDRESSES:
+    {
+      ept_hideDBVMPhysicalAddresses(currentcpuinfo);
+      break;
+    }
+
+    case VMCALL_HIDEDBVMPHYSICALADDRESSESALL:
+    {
+      ept_hideDBVMPhysicalAddressesAllCPUs(currentcpuinfo);
+      break;
+    }
+
     /*
     case VMCALL_DISABLE_EPT:
     {

@@ -399,10 +399,6 @@ int cinthandler(unsigned long long *stack, int intnr) //todo: move to it's own s
 
 
 
-  sendstringCS.lockcount=0;
-  sendstringCS.locked=0;
-  sendstringfCS.lockcount=0;
-  sendstringfCS.locked=0;
 
 
  // sendstringf("interrupt fired : %d (%x)\n\r", intnr,intnr);

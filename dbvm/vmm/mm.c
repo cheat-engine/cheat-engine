@@ -30,7 +30,7 @@ Just used for basic initialization allocation, frees shouldn't happen too often
 #define GLOBALMAPPEDMEMORY 0x07000000000ULL
 
 //for virtual memory allocs
-criticalSection AllocCS={.name="cinthandlerMenuCS", .debuglevel=2};
+criticalSection AllocCS={.name="AllocCS", .debuglevel=2};
 criticalSection GlobalMapCS={.name="GlobalMapCS", .debuglevel=2};
 
 
@@ -59,7 +59,7 @@ QWORD FirstFreeAddress;
 
 unsigned char MAXPHYADDR=0; //number of bits a physical address can be made up of
 QWORD MAXPHYADDRMASK=  0x0000000fffffffffULL; //mask to AND with a physical address to strip invalid bits
-QWORD MAXPHYADDRMASKPB=0x0000000ffffff000ULL; //same as MAXPHYADDRMASK but also aligns it to a page boundary1F4E20
+QWORD MAXPHYADDRMASKPB=0x0000000ffffff000ULL; //same as MAXPHYADDRMASK but also aligns it to a page boundary
 
 
 //alloc(not 2) keeps a list of allocs and their sizes.  This linked list (allocated using alloc2) is used to keep track of those allocs. Sorted by base
@@ -304,6 +304,8 @@ void VirtualAddressToIndexes(QWORD address, int *pml4index, int *pagedirptrindex
   *pagedirindex=(address >> 21) & 0x1ff;
   *pagetableindex=(address >> 12) & 0x1ff;
 }
+
+
 
 void *getMappedMemoryBase()
 /*
@@ -1046,6 +1048,15 @@ void *malloc2(unsigned int size)
 
   nosendchar[getAPICID()]=0;
   sendstring("OUT OF MEMORY\n");
+
+#ifdef DEBUG
+  while (1)
+  {
+    sendstring("OUT OF MEMORY\n");
+
+  }
+
+#endif
   return NULL; //still here so no memory allocated
 }
 
@@ -1616,8 +1627,74 @@ void mmtest(void)
   }
 
   sendstringf("Also OK\n");
+}
+
+void mmEnumAllPageEntries(MMENUMPAGESCALLBACK callbackfunction, int selfonly, void *context)
+//walks all DBVM pagetables and calls the callbackfunction for each entry
+{
+  QWORD pml4index;
+  QWORD pagedirptrindex;
+  QWORD pagedirindex;
+  QWORD pagetableindex;
 
 
+  QWORD LastAddedPhysicalMemory=BASE_VIRTUAL_ADDRESS+4096*PhysicalPageListSize;
 
+  for (pml4index=0; pml4index<512; pml4index++)
+  {
+    if (pml4table[pml4index].P)
+    {
+      QWORD s1=pml4index << 9;
+      for (pagedirptrindex=s1;  pagedirptrindex<s1+512; pagedirptrindex++)
+      {
+        if (pagedirptrtables[pagedirptrindex].P) //DBVM does not use 1GB pages for virtual memory (yet)
+        {
+          QWORD s3=(pagedirptrindex << 9);
+          for (pagedirindex=s3; pagedirindex<s3+512; pagedirindex++)
+          {
+            if (pagedirtables[pagedirindex].P)
+            {
+              QWORD VirtualAddress;
+              QWORD PhysicalAddress;
+              if (pagedirtables[pagedirindex].PS) //UEFI could have mapped it as 2MB pages
+              {
+                VirtualAddress=IndexesToVirtualAddress(pml4index, pagedirptrindex, pagedirindex, 0);
+                if (VirtualAddress & ((QWORD)1<<47))
+                  VirtualAddress|=0xffff000000000000;
+
+
+                if ((selfonly==0) || (((VirtualAddress>=0x00400000) && (VirtualAddress<LastAddedPhysicalMemory)) ) )
+                {
+                  PhysicalAddress=*(QWORD*)(&pagedirtables[pagedirindex]) & MAXPHYADDRMASKPB;
+                  callbackfunction(VirtualAddress, PhysicalAddress, 2*1024*1024, (PPTE_PAE)&pagedirtables[pagedirindex], context);
+                }
+              }
+              else
+              {
+                QWORD s4=((QWORD)pagedirindex << 9);
+
+                for (pagetableindex=s4; pagetableindex<s4+512; pagetableindex++)
+                {
+                  if (pagetables[pagetableindex].P)
+                  {
+                    VirtualAddress=IndexesToVirtualAddress(pml4index, pagedirptrindex, pagedirindex, pagetableindex);
+                    if (VirtualAddress & ((QWORD)1<<47))
+                      VirtualAddress|=0xffff000000000000;
+
+                    if ((selfonly==0) || (((VirtualAddress>=0x00400000) && (VirtualAddress<LastAddedPhysicalMemory)) ) )
+                    {
+                      PhysicalAddress=*(QWORD*)(&pagetables[pagetableindex]) & MAXPHYADDRMASKPB;
+                      callbackfunction(VirtualAddress, PhysicalAddress, 4096, (PPTE_PAE)&pagetables[pagetableindex], context);
+                    }
+                  }
+                }
+              }
+
+            }
+          }
+        }
+      }
+    }
+  }
 
 }

@@ -1240,7 +1240,7 @@ int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers, void *fxsave)
 
       case vm_exit_monitor_trap_flag:
       {
-        //skip=1;
+        skip=1;
         break;
       }
 
@@ -1253,7 +1253,7 @@ int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers, void *fxsave)
             break;
 
           case 0x80000301: //int1 bp
-            //skip=1;
+            skip=1;
             break;
 
           case 0x80000307: //fp exception
@@ -1262,7 +1262,7 @@ int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers, void *fxsave)
 
           case 0x80000b0e: //pagefault
             //if (currentcpuinfo->cpunr==0)
-             //skip=1;
+             skip=1;
             break;
 
           case 0x80000603:
@@ -1306,7 +1306,7 @@ int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers, void *fxsave)
         //int cs=vmread(vm_guest_cs);
         //unsigned long long rip=vmread(vm_guest_rip);
         skip=1;
-        verbosity=10;
+        //verbosity=10;
 
         break;
       }
@@ -1796,15 +1796,6 @@ int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers, void *fxsave)
         break;
       }
 
-
-
-      case 'm' :
-      {
-        sendstringf("MSRBitmap: %p (%x)\n",MSRBitmap, VirtualToPhysical((void*)MSRBitmap));
-        sendstringf("VM MSRBitmap=%x\n",vmread(0x2004));
-        break;
-      }
-
       case 'l' :
       {
 #if (defined SERIALPORT) && (SERIALPORT != 0)
@@ -1872,6 +1863,12 @@ int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers, void *fxsave)
         *(unsigned char *)address=bt;
         sendstring("\n\r");
         */
+        break;
+      }
+
+      case 'm':
+      {
+        ept_hideDBVMPhysicalAddressesAllCPUs();
         break;
       }
 

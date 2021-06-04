@@ -1,6 +1,6 @@
 /* vmm.c: This is the virtual machine
  * It will be loaded at virtual address 0x00400000 (vmma.asm that is which just jumps short to intialize paging)
- * On initialisation 0 to 4MB is identity mapped, to the stored memory regions are available to mess with
+ * On initialization 0 to 4MB is identity mapped, to the stored memory regions are available to mess with
  */
 
 
@@ -1661,6 +1661,8 @@ afterWRBPtest:
             dbvm_changeregonbp_test();
             break;
           }
+
+
 
 
           default:

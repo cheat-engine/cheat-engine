@@ -92,7 +92,7 @@ typedef volatile struct _criticalSection
 {
   volatile int locked;
   volatile int apicid;
-  int lockcount;
+  volatile int lockcount;
   char *name;
   int debuglevel;
 #ifdef DEBUG
