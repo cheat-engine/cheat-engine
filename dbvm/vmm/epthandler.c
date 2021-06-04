@@ -133,7 +133,7 @@ void ept_hideDBVMPhysicalAddresses_callbackIntel(QWORD VirtualAddress UNUSED, QW
   QWORD eptentryAddress=EPTMapPhysicalMemory(currentcpuinfo,PhysicalAddress,1);
   PEPT_PTE eptentry=mapPhysicalMemory(eptentryAddress,8);
 
-  eptentry->PFN=MAXPHYADDR >> 13; //unallocated memory (using 13 as sometimes accessing the most significant bit of the allowed PA will crash a system)
+  eptentry->PFN=MAXPHYADDRMASK >> 13; //unallocated memory (using 13 as sometimes accessing the most significant bit of the allowed PA will crash a system)
 
   unmapPhysicalMemory(eptentry,8);
 
@@ -145,7 +145,7 @@ void ept_hideDBVMPhysicalAddresses_callbackAMD(QWORD VirtualAddress UNUSED, QWOR
 {
   QWORD npentryAddress=NPMapPhysicalMemory(currentcpuinfo,PhysicalAddress,1);
   PPTE_PAE npentry=mapPhysicalMemory(npentryAddress,8);
-  npentry->PFN=MAXPHYADDR >> 13;
+  npentry->PFN=MAXPHYADDRMASK >> 13;
 
   unmapPhysicalMemory((void *)npentry,8);
 
