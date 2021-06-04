@@ -9,35 +9,12 @@ The following explanation is for ceserver only.
 #### Linux
 ・gcc
 
-```
-ceserver
-│  makefile
-│
-├─bin
-├─include
-│      api.h
-│      ceserver.h
-│      ceservertest.h
-│      context.h
-│      extensionfunctions.h
-│      extensionloader.h
-│      porthelp.h
-│      symbols.h
-│      threads.h
-│
-└─source
-        api.c
-        ceserver.c
-        ceservertest.c
-        context.c
-        extensionfunctions.c
-        extensionloader.c
-        porthelp.c
-        symbols.c
-        threads.c
-```
-In the above state, move to the ceserver folder and execute the `make` command.
+in directory of  
+cheat-engine/CheatEngine/ceserver/gcc  
 
+```
+make
+```
 
 #### Android
 ・AndroidNDK(ndk-build)
