@@ -667,7 +667,7 @@ Runs at passive mode
 			DbgPrint("Failure opening the file. Status=%x  (filename=%S)\n", OpenedFile, filename.Buffer);
 		}
 		//fill in some specific memory regions
-		MmUnlockPages(DBVMMDL);
+		MmUnmapLockedPages(vmm, DBVMMDL);
 	}
 	else
 	{
