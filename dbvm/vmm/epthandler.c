@@ -134,6 +134,7 @@ void ept_hideDBVMPhysicalAddresses_callbackIntel(QWORD VirtualAddress UNUSED, QW
   PEPT_PTE eptentry=mapPhysicalMemory(eptentryAddress,8);
 
   eptentry->PFN=MAXPHYADDRMASK >> 13; //unallocated memory (using 13 as sometimes accessing the most significant bit of the allowed PA will crash a system)
+  eptentry->MEMTYPE = 0;
 
   unmapPhysicalMemory(eptentry,8);
 
