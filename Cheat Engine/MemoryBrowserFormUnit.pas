@@ -1236,17 +1236,26 @@ begin
 end;
 
 procedure TMemorybrowser.setCR3(newcr3: qword);
+var oldcr3: qword;
 begin
+  oldcr3:=fcr3;
+  if debuggerthread<>nil then debuggerthread.execlocation:=4120;
+
   fcr3:=newcr3;
   disassemblerview.cr3:=fcr3;
+  if debuggerthread<>nil then debuggerthread.execlocation:=4121;
   hexview.cr3:=fcr3;
+  if debuggerthread<>nil then debuggerthread.execlocation:=4122;
 
-  if newcr3<>0 then
+  if (newcr3<>oldcr3) then
   begin
+    if debuggerthread<>nil then debuggerthread.execlocation:=4123;
     createcr3switcher;
+    if debuggerthread<>nil then debuggerthread.execlocation:=4124;
     fcr3switcher.addCR3ToList(newcr3);
-
+    if debuggerthread<>nil then debuggerthread.execlocation:=4125;
     fcr3switcher.Show;
+    if debuggerthread<>nil then debuggerthread.execlocation:=4126;
   end;
 
   caption:=caption;
