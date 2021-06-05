@@ -14713,6 +14713,11 @@ begin
   end;
 end;
 
+function lua_darkMode(L: Plua_State): integer; cdecl;
+begin
+  result:=1;
+  lua_pushboolean(L, ShouldAppsUseDarkMode);
+end;
 
 function lua_getNextReadablePageCR3(L: Plua_State): integer; cdecl;
 var
@@ -15530,6 +15535,8 @@ begin
 
 
     lua_register(L, 'signExtend', lua_signExtend);
+
+    lua_register(L, 'darkMode', lua_darkMode);
 
 
 

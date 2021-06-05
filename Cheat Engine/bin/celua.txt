@@ -11,8 +11,9 @@ Global Functions:
 getCEVersion(): Returns a floating point value specifying the version of cheat engine
 getCheatEngineFileVersion(): Returns the full version data of the cheat engine version. A raw integer, and a table containing major, minor, release and build
 
-
 getOperatingSystem(): Returns 0 for Windows, 1 for Mac
+
+darkMode(): Returns true if CE is running in windows Dark Mode. Has no effect on mac
 
 activateProtection(): Prevents basic memory scanners from opening the cheat engine process (Not that useful)
 enableDRM(altitude OPTIONAL, secondaryprocessid OPTIONAL ) : Prevents normal memory scanners from reading the Cheat Engine process (kernelmode)  The secondaryprocessid lets you protect another process. E.g the game itself, so they can't easily see what you change 
@@ -152,6 +153,7 @@ enumModules(processid OPTIONAL):
     Address: Integer representing the address the module is loaded
     Is64Bit: Boolean set to true if it's a 64-bit module
     PathToFile: String to the location this module is loaded
+
 
 md5memory(address, size): Returns a md5 sum calculated from the provided memory. 
 md5file(pathtofile): Returns a md5 sum calculated from the file. 
@@ -3196,8 +3198,7 @@ SymbolList class
 
 Global functions
   createSymbolList() : Creates an empty symbollist
-
-
+  getMainSymbolList(): Returns the symhandler internal symbol list (Note: This does not contain .net, modulelist, or other info)
 
 
 Properties
@@ -3218,6 +3219,8 @@ Methods
   deleteSymbol(address)
   register() : Registers the current symbol list with the symbol handler
   unregister(): Unregisters the current symbol list from the symbol handler
+  getModuleList(): Returns an indexed table with all the modules
+  getSymbolList(): Returns an unindex table with each symbol being an element containing an address
 
 
 Pagecontrol Class (WinControl->Control->Component->Object)
