@@ -2457,7 +2457,6 @@ begin
       end;
     end
     else
-    if bpm=bpmException then
       result:=AddBreakpoint(nil, address, size, bptWrite, bpm, bo_Break, -1, nil,0,nil,nil,0,nil, OnBreakpoint);
 
 
@@ -2514,7 +2513,6 @@ begin
       end;
     end
     else
-    if bpm=bpmException then
       result:=AddBreakpoint(nil, address, size, bptAccess, bpm, bo_Break,-1,nil,0,nil,nil,0,nil,OnBreakpoint);
 
   finally
