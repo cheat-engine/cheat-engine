@@ -26,7 +26,7 @@
       <AutoIncrementBuild Value="True"/>
       <MajorVersionNr Value="7"/>
       <MinorVersionNr Value="2"/>
-      <BuildNr Value="7020"/>
+      <BuildNr Value="7077"/>
       <Language Value=""/>
       <CharSet Value=""/>
       <StringTable CompanyName="Cheat Engine" FileDescription="Cheat Engine" ProductVersion="7.2"/>
@@ -632,7 +632,7 @@
         <PackageName Value="LCL"/>
       </Item8>
     </RequiredPackages>
-    <Units Count="410">
+    <Units Count="411">
       <Unit0>
         <Filename Value="cheatengine.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -2793,6 +2793,14 @@
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="frmSourceDisplayUnit"/>
       </Unit409>
+      <Unit410>
+        <Filename Value="frmcr3switcherunit.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="frmCR3Switcher"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+        <UnitName Value="frmCR3SwitcherUnit"/>
+      </Unit410>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
