@@ -278,7 +278,7 @@ Runs at passive mode
 	HighAddress.QuadPart = -1;
 	SkipBytes.QuadPart = 0;
 
-	DBVMMDL = MmAllocatePagesForMdlEx(LowAddress, HighAddress, SkipBytes, 4 * 1024 * 1024, MmCached, 0);
+	DBVMMDL = MmAllocatePagesForMdlEx(LowAddress, HighAddress, SkipBytes, 4 * 1024 * 1024, MmCached, MM_ALLOCATE_REQUIRE_CONTIGUOUS_CHUNKS | MM_ALLOCATE_FULLY_REQUIRED);
 	if (!DBVMMDL) {
 		DbgPrint("Failure allocating the required 4MB\n");
 		return;
@@ -640,7 +640,7 @@ Runs at passive mode
 					initvars->nextstack = 0x00400000 + ((UINT64)mainstack - (UINT64)vmm) + (16 * 4096) - 0x40;
 					initvars->contiguousmemory = 0;
 					
-					PMDL contiguousMDL = MmAllocatePagesForMdlEx(LowAddress, HighAddress, SkipBytes, 8 * 4096, MmCached, MM_ALLOCATE_REQUIRE_CONTIGUOUS_CHUNKS);
+					PMDL contiguousMDL = MmAllocatePagesForMdlEx(LowAddress, HighAddress, SkipBytes, 8 * 4096, MmCached, MM_ALLOCATE_REQUIRE_CONTIGUOUS_CHUNKS | MM_ALLOCATE_FULLY_REQUIRED);
 					if (contiguousMDL) {
 						initvars->contiguousmemory = MmGetMdlPfnArray(contiguousMDL)[0] << 12;
 						DbgPrint("contiguous PA =%llx\n", initvars->contiguousmemory);
