@@ -971,7 +971,7 @@ void vmxoffload_override(CCHAR cpunr, PKDEFERRED_ROUTINE Dpc, PVOID DeferredCont
 	LowAddress.QuadPart = 0;
 	HighAddress.QuadPart = 0xffffffffffffffffI64;
 	SkipBytes.QuadPart = 0;
-	mdl=MmAllocatePagesForMdl(LowAddress, HighAddress, SkipBytes, 64 * 1024); //do not free this, EVER
+	mdl = MmAllocatePagesForMdlEx(LowAddress, HighAddress, SkipBytes, 64 * 1024, MmCached, MM_ALLOCATE_REQUIRE_CONTIGUOUS_CHUNKS | MM_ALLOCATE_FULLY_REQUIRED); //do not free this, EVER
 
 	if (mdl)
 	{
