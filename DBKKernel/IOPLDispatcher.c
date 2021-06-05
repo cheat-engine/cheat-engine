@@ -2441,7 +2441,7 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 			LowAddress.QuadPart = 0;
 			HighAddress.QuadPart = 0xffffffffffffffffI64;
 			SkipBytes.QuadPart = 0;
-			mdl = MmAllocatePagesForMdl(LowAddress, HighAddress, SkipBytes, (SIZE_T)pagecount * 4096); //do not free this, EVER
+			mdl = MmAllocatePagesForMdlEx(LowAddress, HighAddress, SkipBytes, (SIZE_T)pagecount * 4096, MmCached, MM_ALLOCATE_REQUIRE_CONTIGUOUS_CHUNKS | MM_ALLOCATE_FULLY_REQUIRED); //do not free this, EVER
 			if (mdl)
 			{
 				int i;
