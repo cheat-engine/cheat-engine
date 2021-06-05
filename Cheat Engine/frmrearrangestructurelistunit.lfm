@@ -1,16 +1,16 @@
 object frmRearrangeStructureList: TfrmRearrangeStructureList
-  Left = 344
+  Left = 389
   Height = 162
-  Top = 114
+  Top = 148
   Width = 201
   BorderIcons = [biSystemMenu]
-  Caption = 'Rearrange structure list'
+  Caption = 'Manage structure list'
   ClientHeight = 162
   ClientWidth = 201
   OnClose = FormClose
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '1.6.4.0'
+  LCLVersion = '2.0.6.0'
   object Panel4: TPanel
     Left = 179
     Height = 162
@@ -33,7 +33,6 @@ object frmRearrangeStructureList: TfrmRearrangeStructureList
       Anchors = [akLeft, akBottom]
       BorderSpacing.Left = 1
       BorderSpacing.Bottom = 1
-      Enabled = False
       Glyph.Data = {
         76010000424D7601000000000000760000002800000020000000100000000100
         04000000000000010000120B0000120B00001000000000000000000000000000
@@ -59,7 +58,6 @@ object frmRearrangeStructureList: TfrmRearrangeStructureList
       Top = 106
       Width = 21
       Anchors = [akLeft, akBottom]
-      Enabled = False
       Glyph.Data = {
         76010000424D7601000000000000760000002800000020000000100000000100
         04000000000000010000120B0000120B00001000000000000000000000000000
@@ -85,7 +83,16 @@ object frmRearrangeStructureList: TfrmRearrangeStructureList
     Width = 179
     Align = alClient
     ItemHeight = 0
-    OnSelectionChange = lbStructlistSelectionChange
+    MultiSelect = True
+    PopupMenu = PopupMenu1
     TabOrder = 1
+  end
+  object PopupMenu1: TPopupMenu
+    Left = 51
+    Top = 47
+    object MenuItem1: TMenuItem
+      Caption = 'Delete selected records'
+      OnClick = MenuItem1Click
+    end
   end
 end

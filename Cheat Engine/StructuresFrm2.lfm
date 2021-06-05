@@ -135,7 +135,7 @@ object frmStructures2: TfrmStructures2
         OnClick = miExportAllClick
       end
       object MenuItem8: TMenuItem
-        Caption = 'Rearrange structurelist'
+        Caption = 'Manage structurelist'
         OnClick = MenuItem8Click
       end
       object MenuItem2: TMenuItem

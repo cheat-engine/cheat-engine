@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, ExtCtrls,
-  Buttons, StdCtrls, betterControls;
+  Buttons, StdCtrls, Menus, betterControls;
 
 type
 
@@ -14,12 +14,14 @@ type
 
   TfrmRearrangeStructureList = class(TForm)
     lbStructlist: TListBox;
+    MenuItem1: TMenuItem;
     Panel4: TPanel;
+    PopupMenu1: TPopupMenu;
     spbDown: TSpeedButton;
     spbUp: TSpeedButton;
     procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
     procedure FormShow(Sender: TObject);
-    procedure lbStructlistSelectionChange(Sender: TObject; User: boolean);
+    procedure MenuItem1Click(Sender: TObject);
     procedure spbDownClick(Sender: TObject);
     procedure spbUpClick(Sender: TObject);
   private
@@ -50,6 +52,24 @@ begin
   updatelist;
 end;
 
+procedure TfrmRearrangeStructureList.MenuItem1Click(Sender: TObject);
+var
+  s: TDissectedStruct;
+  i: integer;
+begin
+  if MessageDlg('are you sure you wish to delete the selection?',mtConfirmation,[mbyes,mbno],0)=mryes then
+  begin
+    for i:=DissectedStructs.count-1 downto 0 do
+      if lbStructlist.Selected[i] then
+      begin
+        s:=TDissectedStruct(lbStructlist.Items.Objects[i]);
+        s.free;
+      end;
+
+    lbStructlist.DeleteSelected;
+  end;
+end;
+
 procedure TfrmRearrangeStructureList.FormClose(Sender: TObject;
   var CloseAction: TCloseAction);
 var i: integer;
@@ -63,35 +83,38 @@ begin
     TfrmStructures2(frmStructures2[i]).onStructListChange;
 end;
 
-procedure TfrmRearrangeStructureList.lbStructlistSelectionChange(
-  Sender: TObject; User: boolean);
-var index: integer;
-begin
-  index:=lbStructlist.itemindex;
-  spbDown.enabled:=(index>=0) and (index<lbStructlist.count-1);
-  spbUp.enabled:=(index>=1);
-end;
+
 
 procedure TfrmRearrangeStructureList.spbDownClick(Sender: TObject);
+var i: integer;
 begin
-  if (lbStructlist.itemindex>=0) and (lbStructlist.Count>lbStructlist.itemindex+1) then
+  for i:=lbStructlist.items.count-2 downto 0 do
   begin
-    lbStructlist.Items.Exchange(lbStructlist.itemindex, lbStructlist.ItemIndex+1);
-    lbStructlist.itemindex:=lbStructlist.itemindex+1;
+    if lbStructlist.Selected[i] then
+    begin
+      lbStructlist.selected[i]:=false;
+      lbStructlist.Items.Exchange(i, i+1);
+      lbStructlist.selected[i+1]:=true;
+    end;
+
   end;
 
-  lbStructlistSelectionChange(lbStructlist,false);
 end;
 
 procedure TfrmRearrangeStructureList.spbUpClick(Sender: TObject);
+var i: integer;
 begin
-  if lbStructlist.itemindex>=1 then
+  for i:=1 to lbStructlist.items.count-1 do
   begin
-    lbStructlist.Items.Exchange(lbStructlist.itemindex, lbStructlist.ItemIndex-1);
-    lbStructlist.itemindex:=lbStructlist.itemindex-1;
+    if lbStructlist.Selected[i] then
+    begin
+      lbStructlist.selected[i]:=false;
+      lbStructlist.Items.Exchange(i, i-1);
+      lbStructlist.selected[i-1]:=true;
+    end;
+
   end;
 
-  lbStructlistSelectionChange(lbStructlist,false);
 end;
 
 end.
