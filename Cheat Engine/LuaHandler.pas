@@ -43,6 +43,8 @@ threadvar
   Thread_LuaVM: PLua_State;
   Thread_LuaRef: integer;
 
+
+
 function lua_strtofloat(s: string): double;
 function lua_strtoint(s: string): integer;
 
@@ -162,6 +164,10 @@ var
   waitforsymbols: boolean=true;
 
   autorunpath: string;
+
+threadvar
+  luadisassembler: TDisassembler; //so lua threads do not interfere with the mainthread disassembler
+
 
 
 function lua_oldprintoutput:TStrings;
@@ -7827,6 +7833,7 @@ end;
 function getInstructionSize(L: PLua_State): integer; cdecl;
 var parameters: integer;
   address, address2: ptruint;
+  d: TDisassembler;
 begin
   result:=0;
   parameters:=lua_gettop(L);
@@ -7837,7 +7844,11 @@ begin
     lua_pop(L, parameters);
 
     address2:=address;
-    disassemble(address);
+
+
+    d:=TDisassembler.create;
+    d.disassemble(address);
+    d.free;
     lua_pushinteger(L, address-address2);
     result:=1;
   end
@@ -7848,6 +7859,7 @@ end;
 function getPreviousOpcode(L: PLua_State): integer; cdecl;
 var parameters: integer;
   address, address2: ptruint;
+  d: TDisassembler;
 begin
   result:=0;
   parameters:=lua_gettop(L);
@@ -7857,7 +7869,9 @@ begin
 
     lua_pop(L, parameters);
 
-    lua_pushinteger(L, previousopcode(address));
+    d:=TDisassembler.create;
+    lua_pushinteger(L, previousopcode(address,d));
+    d.free;
     result:=1;
   end
   else
@@ -12349,6 +12363,9 @@ var
 
   ca: ptruint;
   x: string;
+
+  d: TDisassembler;
+
 begin
   result:=0;
   if lua_gettop(L)>=1 then
@@ -12361,10 +12378,15 @@ begin
       //no codesize given, calculate the number of bytes needed to put a 5 byte jmp in here. (make sure to use 3th alloc param, bitch please if you don't)
       codesize:=0;
       ca:=address;
+
+      d:=TDisassembler.create;
+
       while (ca-address)<5 do
-        disassemble(ca,x);
+        d.disassemble(ca,x);
 
       codesize:=ca-address;
+
+      d.free;
     end;
 
     if address<>0 then
@@ -15758,6 +15780,9 @@ begin
 
   if assigned(oldReleaseThreadVars) then
     oldReleaseThreadVars();
+
+  if luadisassembler<>nil then
+    freeandnil(luadisassembler);
 end;
 
 initialization

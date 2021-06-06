@@ -254,7 +254,7 @@ begin
         d:=TDisassembler.Create;
         d.disassemble(address2,desc);
         if copy(d.LastDisassembleData.opcode,1,3)<>'REP' then
-          address:=previousopcode(address);
+          address:=previousopcode(address,d);
 
         freeandnil(d);
       end;

@@ -98,9 +98,11 @@ type
 
     modrmposition: TMRPos;
 
-    cs: TCriticalSection;
+   // cs: TCriticalSection;
 
     ArmDisassembler: TArmDisassembler;
+
+   // firstThread: dword;
 
     function SIB(memory:PByteArray; sibbyte: integer; var last: dword; addresssize: integer=0): string;
     function MODRM(memory:PByteArray; prefix: TPrefix; modrmbyte: integer; inst: integer; out last: dword; position: TMRPos=mLeft): string; overload;
@@ -1622,9 +1624,16 @@ var
 
     td: dword;
     breaknow: boolean;
-
-
 begin
+ {
+  if firstthread=0 then
+    firstthread:=GetCurrentThreadId;
+
+  if firstthread<>GetCurrentThreadId then
+  asm
+  nop
+  end;  }
+
   try
     {if cs.TryEnter=false then
     begin
@@ -1635,9 +1644,9 @@ begin
       cs.enter;
     end; }
 
-    cs.enter;
+   // cs.enter;
 
-    try
+    //try
       debugpart:=0;
       LastDisassembleData.isfloat:=false;
       LastDisassembleData.isfloat64:=false;
@@ -15482,9 +15491,9 @@ begin
       end;
 
       debugpart:=22;
-    finally
-      cs.Leave;
-    end
+    //finally
+    //  cs.Leave;
+    //end
   {  for i:=32 to 63 do
       if _memory[i]<>$ce then
         raise exception.create('Memory corruption in the disassembler'); }
@@ -16327,12 +16336,12 @@ end;
 
 constructor TDisassembler.create;
 begin
-  cs:=TCriticalSection.Create;
+ // cs:=TCriticalSection.Create;
 end;
 
 destructor TDisassembler.destroy;
 begin
-  freeandnil(cs);
+ // freeandnil(cs);
   inherited destroy;
 end;
 
