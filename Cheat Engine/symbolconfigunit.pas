@@ -180,9 +180,9 @@ begin
   symhandler.DeleteUserdefinedSymbol(symbolname);
   symhandler.AddUserdefinedSymbol(edtaddress.Text,symbolname);
 
-  li:=listview1.Items.Add;
-  li.Caption:=symbolname;
-  li.SubItems.Add(edtaddress.Text);
+//  li:=listview1.Items.Add;
+//  li.Caption:=symbolname;
+ // li.SubItems.Add(edtaddress.Text);
 
   edtSymbolname.SetFocus;
   edtSymbolname.SelectAll;

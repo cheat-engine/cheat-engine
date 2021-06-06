@@ -4970,25 +4970,33 @@ var parameters: integer;
   address: string;
   donotsave: boolean;
 begin
-  result:=0;
+  result:=1;
 
   parameters:=lua_gettop(L);
   if (parameters>=2) then
   begin
-    symbolname:=Lua_ToString(L, -parameters);
-    if lua_isstring(L, -parameters+1) then
-      address:=lua_tostring(L,-parameters+1)
+    symbolname:=Lua_ToString(L, 1);
+    if lua_isstring(L, 2) then
+      address:=lua_tostring(L,2)
     else
-      address:=IntToHex(lua_tointeger(L,-parameters+1),1);
+      address:=IntToHex(lua_tointeger(L,2),1);
 
 
-    donotsave:=(parameters>=3) and (lua_toboolean(L, -parameters+2));
+    donotsave:=(parameters>=3) and (lua_toboolean(L, 3));
 
-
-    symhandler.AddUserdefinedSymbol(address, symbolname, donotsave);
+    try
+      symhandler.DeleteUserdefinedSymbol(symbolname);
+      symhandler.AddUserdefinedSymbol(address, symbolname, donotsave);
+      lua_pushboolean(L,true);
+    except
+      on e: exception do
+      begin
+        lua_pushboolean(L,false);
+        lua_pushstring(L,e);
+        result:=2;
+      end;
+    end;
   end;
-
-  lua_pop(L, lua_gettop(L));
 end;
 
 function unregisterSymbol(L: Plua_State): integer; cdecl;
@@ -5000,7 +5008,7 @@ begin
   parameters:=lua_gettop(L);
   if (parameters=1) then
   begin
-    symbolname:=Lua_ToString(L, -1);
+    symbolname:=Lua_ToString(L, 1);
     symhandler.DeleteUserdefinedSymbol(symbolname);
   end;
 
