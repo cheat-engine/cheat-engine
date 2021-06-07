@@ -4992,7 +4992,7 @@ begin
       on e: exception do
       begin
         lua_pushboolean(L,false);
-        lua_pushstring(L,e);
+        lua_pushstring(L,e.message);
         result:=2;
       end;
     end;
