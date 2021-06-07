@@ -1133,6 +1133,9 @@ var temp:dword;
     i: integer;
     ae: TAddressEntry;
 begin
+  if OKButton.caption=rsStop then
+    OKButton.Click;
+
   if breakpoint=nil then
     action:=caFree
   else
@@ -1346,8 +1349,7 @@ begin
     ae.free;
   end;
 
-  if OKButton.caption=rsStop then
-    debuggerthread.FindWhatCodeAccessesStop(self);
+
 
   setlength(x,3);
   x[0]:=changedlist.Column[0].Width;
