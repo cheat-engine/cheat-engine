@@ -1,4 +1,4 @@
-#pragma warning( disable: 4100 4706)
+#pragma warning( disable: 4100 4706 4996)
 
 #include <ntifs.h>
 #include <ntddk.h>
