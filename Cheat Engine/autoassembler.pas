@@ -693,6 +693,7 @@ begin
   for i:=0 to code.count-1 do
   begin
     currentline:=code[i];
+    instring:=false; //ce doesn't do multiline strings
 
     for j:=1 to length(currentline) do
     begin
@@ -714,7 +715,7 @@ begin
       end
       else
       begin
-        if currentline[j]='''' then instring:=not instring;
+        if (currentline[j]='''') then instring:=not instring;
         if currentline[j]=#9 then currentline[j]:=' '; //tabs are basicly comments
 
         if not instring then
