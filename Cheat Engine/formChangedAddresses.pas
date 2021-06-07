@@ -110,6 +110,7 @@ type
       Data: Integer; var Compare: Integer);
     procedure ChangedlistCustomDrawItem(Sender: TCustomListView;
       Item: TListItem; State: TCustomDrawState; var DefaultDraw: Boolean);
+    procedure FormCloseQuery(Sender: TObject; var CanClose: boolean); 
     procedure miCodeAddressBrowseMemoryRegionClick(Sender: TObject);
     procedure miCodeAddressCopyClick(Sender: TObject);
     procedure miCodeAddressDisassembleMemoryRegionClick(Sender: TObject);
@@ -748,6 +749,14 @@ begin
   DefaultDraw:=true;
 end;
 
+procedure TfrmChangedAddresses.FormCloseQuery(Sender: TObject;
+  var CanClose: boolean);
+begin
+  if OKButton.caption=rsStop then OKButton.Click;
+  CanClose:=true;
+end;
+
+
 procedure TfrmChangedAddresses.miCodeAddressCopyClick(Sender: TObject);
 begin
   clipboard.AsText:=editCodeAddress.Text;
@@ -1133,6 +1142,11 @@ var temp:dword;
     i: integer;
     ae: TAddressEntry;
 begin
+
+  if OKButton.Caption=rsStop then
+    if debuggerthread<>nil then
+      debuggerthread.FindWhatCodeAccessesStop(self);
+      
   if breakpoint=nil then
     action:=caFree
   else
