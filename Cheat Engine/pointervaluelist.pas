@@ -145,7 +145,7 @@ type
     procedure saveModuleListToResults(s: TStream);
 
     function findPointerValue(startvalue: ptrUint; var stopvalue: ptrUint): PPointerList;
-    constructor create(start, stop: ptrUint; alligned: boolean; progressbar: tprogressbar; noreadonly: boolean; mustbeclasspointers, allowNonModulePointers: boolean; useStacks: boolean; stacksAsStaticOnly: boolean; threadstacks: integer; stacksize: integer; specificBaseAsStaticOnly: boolean; baseStart: ptruint; baseStop: ptruint; includeSystemModules: boolean=false; regionfilename: string='');
+    constructor create(start, stop: ptrUint; alligned: boolean; progressbar: tprogressbar; noreadonly: boolean; mustbeclasspointers, allowNonModulePointers: boolean; useStacks: boolean; stacksAsStaticOnly: boolean; threadstacks: integer; stacksize: integer; specificBaseAsStaticOnly: boolean; baseStart: ptruint; baseStop: ptruint; includeSystemModules: boolean=false; regionfilename: string=''; shouldquit: pboolean=nil);
     constructor createFromStream(s: TStream; progressbar: tprogressbar=nil);
     constructor createFromStreamHeaderOnly(s: TStream);
     destructor destroy; override;
@@ -946,7 +946,7 @@ begin
 
 end;
 
-constructor TReversePointerListHandler.create(start, stop: ptrUint; alligned: boolean; progressbar: tprogressbar; noreadonly: boolean; mustbeclasspointers, allowNonModulePointers: boolean; useStacks: boolean; stacksAsStaticOnly: boolean; threadstacks: integer; stacksize: integer; specificBaseAsStaticOnly: boolean; baseStart: ptruint; baseStop: ptruint; includeSystemModules: boolean=false; regionfilename: string='');
+constructor TReversePointerListHandler.create(start, stop: ptrUint; alligned: boolean; progressbar: tprogressbar; noreadonly: boolean; mustbeclasspointers, allowNonModulePointers: boolean; useStacks: boolean; stacksAsStaticOnly: boolean; threadstacks: integer; stacksize: integer; specificBaseAsStaticOnly: boolean; baseStart: ptruint; baseStop: ptruint; includeSystemModules: boolean=false; regionfilename: string=''; ShouldQuit: pboolean=nil);
 var bytepointer: PByte;
     dwordpointer: PDword absolute bytepointer;
     qwordpointer: PQword absolute bytepointer;
@@ -1241,6 +1241,8 @@ begin
               if (alligned and ((qwordpointer^ mod 4)=0) and ispointer(qwordpointer^)) or
                  ((not alligned) and ispointer(qwordpointer^) ) then
               begin
+                if (ShouldQuit<>nil) and ShouldQuit^ then exit;
+
                 valid:=true;
 
                 //initial add
@@ -1285,6 +1287,7 @@ begin
                  ((not alligned) and ispointer(dwordpointer^) ) then
               begin
                 //initial add
+                if (ShouldQuit<>nil) and ShouldQuit^ then exit;
                 valid:=true;
 
                 if mustbeclasspointers then
@@ -1346,6 +1349,7 @@ begin
                  ((not alligned) and ispointer(qwordpointer^) ) then
               begin
                 //initial add
+                if (ShouldQuit<>nil) and ShouldQuit^ then exit;
                 valid:=true;
 
                 if mustbeclasspointers then
@@ -1393,7 +1397,9 @@ begin
                  ((not alligned) and ispointer(dwordpointer^) ) then
               begin
                 //initial add
+                if (ShouldQuit<>nil) and ShouldQuit^ then exit;
                 valid:=true;
+
 
                 if mustbeclasspointers then
                 begin
