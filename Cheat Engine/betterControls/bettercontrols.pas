@@ -13,6 +13,7 @@ uses
   newScrollBox, {$ifndef bc_skipsynedit}newSynEdit,{$endif}
   newPageControl, newtabcontrol, newStatusBar,
   newCheckListBox, newCheckGroup, newColorBox, newDirectoryEdit, NewHintwindow,
+  newToggleBox,
   Graphics, Themes, UxTheme, bettercontrolColorSet;
 {$else}
 uses macport, graphics,math, bettercontrolColorSet;
@@ -50,6 +51,8 @@ type
   TDirectoryEdit=class(TNewDirectoryEdit);
   THintWindow=class(TNewHintwindow);
   THintWindowClass =class of TNewHintwindow;
+
+  TToggleBox=class(TNewToggleBox);
 
 {$endif}
 var
