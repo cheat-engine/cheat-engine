@@ -131,7 +131,10 @@ type
     lastFail: integer;
     AllowRandomAccess: boolean; //set this if you wish to allow random access through the list. (EXTREMELY INEFFICIENT IF IT HAPPENS, addresslist purposes only)
     AllowNotFound: boolean; //set this if you wish to return nil instead of an exception if the address can't be found in the list
+
+    memscan: TObject;
     function getpointertoaddress(address:ptruint;valuetype:TVariableType; ct: TCustomType; recallifneeded: boolean=true): pointer;
+    function getStringFromAddress(address: ptruint; out r: string; Hexadecimal: boolean=false; Signed: boolean=false): boolean;
 
     procedure deinitialize;
     procedure reinitialize;
@@ -144,7 +147,8 @@ end;
 
 implementation
 
-uses Math, globals;
+uses Math, globals, memscan, lua, lauxlib, lualib, LuaClass, LuaObject,
+  LuaHandler, byteinterpreter;
 
 resourcestring
   rsMaxaddresslistcountIs0MeansTheAddresslistIsBad = 'maxaddresslistcount is 0 (Means: the addresslist is bad)';
@@ -294,6 +298,24 @@ begin
   end;
 
   LastAddressAccessed.index:=0; //reset the index
+end;
+
+function TSavedScanHandler.getStringFromAddress(address: ptruint; out r: string; Hexadecimal: boolean=false; Signed: boolean=false): boolean;
+var
+  p: pointer;
+  ms: TMemScan;
+begin
+  result:=false;
+  if memscan=nil then exit;
+
+
+  ms:=TMemscan(memscan);
+  p:=getpointertoaddress(address, ms.VarType, ms.Customtype);
+  if p<>nil then
+  begin
+    r:=readAndParsePointer(address, p, ms.VariableType, ms.Customtype, hexadecimal, Signed);
+    result:=true;
+  end;
 end;
 
 function TSavedScanHandler.getpointertoaddress(address:ptruint;valuetype:TVariableType; ct: Tcustomtype; recallifneeded: boolean=true): pointer;
@@ -772,6 +794,58 @@ begin
   InitializeScanHandler;
   deinitialized:=false;
 end;
+
+
+//---------------LUA-------------------
+function savedscanhandler_getStringFromAddress(L: PLua_State): integer; cdecl;
+var
+  address: ptruint;
+  ssh: TSavedScanHandler;
+  r: string;
+  hexadecimal, signed: boolean;
+begin
+  result:=0;
+  ssh:=luaclass_getClassObject(L);
+  if lua_gettop(L)>=1 then
+  begin
+    try
+      address:=lua_toaddress(L,1);
+    except
+      on e: exception do
+      begin
+        lua_pushnil(L);
+        lua_pushstring(L, e.Message);
+        exit(2);
+      end;
+    end;
+
+    if lua_Gettop(L)>=2 then
+      hexadecimal:=lua_toboolean(L,2)
+    else
+      hexadecimal:=false;
+
+    if lua_getProperty(L)>=3 then
+      signed:=lua_toboolean(L,3)
+    else
+      signed:=false;
+
+    if ssh.getStringFromAddress(address,r, hexadecimal, signed) then
+      lua_pushstring(L,r)
+    else
+      lua_pushnil(L);
+
+    result:=1;
+  end;
+end;
+
+procedure savedscanhandler_addMetaData(L: PLua_state; metatable: integer; userdata: integer );
+begin
+  object_addMetaData(L, metatable, userdata);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'getStringFromAddress', savedscanhandler_getStringFromAddress);
+end;
+
+initialization
+  luaclass_register(TSavedScanHandler, savedscanhandler_addMetaData);
 
 end.
 

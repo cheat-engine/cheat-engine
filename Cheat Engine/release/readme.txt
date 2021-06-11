@@ -4,7 +4,7 @@ Additions and changes:
   structure dissect add to addresslist uses the addressstring instead of number, so symbols will be preserved
   structure dissect now has a option to save the previous state of a column and show changes easier
   Added {$LUACODE} blocks for inline Lua coding
-  Added a c-compiler to CE (compile)
+  Added a c-compiler to CE
   Added {$C} blocks to the auto assembler. all {$C} blocks get combined into one script before execution
   Added {$CCODE} blocks for inline C coding (Check the forum, wiki, CE patreon discord or CE's youtube)
   Added a C# compiler (compilecs)
@@ -34,14 +34,17 @@ Fixes:
   fixed assembling movsq
   fixed ultimap ret filter
   fixed luapipe never calling OnError
+  fixed vehdebug in 64-bit CE zeroing out the FPU registers in 32-bit targets
   fixed DBVM find what access/writes sometimes skipping entries on AMD
   fixed undo not working on memory records when using the single line editor
+  fixed hide children group option when loading a table
 
 lua:
   changes:
     saveTable won't ask to sign the table anymore
     messageDialog will work if you omit the buttonlist. (Defaults to mbOK then)
     added more customizabe button
+    registerSymbol no longer errors out the whole script on failure.  It now overwrites existing symbols
 
   New functions:
      form.saveToStream 
@@ -51,8 +54,10 @@ lua:
      signTable
      symbollist.getModuleList
      symbollist.getSymbolList
+     memscan.getSavedResultHandler
+     memscan.getSavedResultList
 
-
+     SavedResultHandler class
 
 
 How to use:
