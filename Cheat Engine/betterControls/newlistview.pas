@@ -169,8 +169,7 @@ var
   p1: LPNMHDR;
   p2: LPNMCUSTOMDRAW;
 begin
-  if ShouldAppsUseDarkMode then
-  begin
+
     p1:=LPNMHDR(msg.lparam);
     if p1^.code=UINT(NM_CUSTOMDRAW) then
     begin
@@ -181,12 +180,16 @@ begin
         CDDS_PREPAINT: msg.Result:=CDRF_NOTIFYITEMDRAW;
         CDDS_ITEMPREPAINT:
         begin
-          SetTextColor(p2^.hdc, clwhite); //fDefaultTextColor);
           msg.result:=CDRF_DODEFAULT;
+
+          if (p2^.dwItemSpec>=0) and (p2^.dwItemSpec<ColumnCount) and (Column[p2^.dwItemSpec].Tag<>0) then //for black use $000001
+            SetTextColor(p2^.hdc, Column[p2^.dwItemSpec].Tag)
+          else
+            SetTextColor(p2^.hdc, clWindowtext);
         end;
       end;
     end;
-  end;
+
 end;
 
 
