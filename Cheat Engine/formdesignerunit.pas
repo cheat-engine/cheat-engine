@@ -199,7 +199,8 @@ implementation
 { TFormDesigner }
 
 
-uses mainunit, DPIHelper{$if lcl_fullversion>=2000000}, LazMsgDialogs{$endif}, IDEImagesIntf;
+uses mainunit, DPIHelper{$if lcl_fullversion>=2000000}, LazMsgDialogs{$endif}
+  , IDEImagesIntf, DwmApi, UxTheme;
 
 resourcestring
   rsInvalidObject = '{Invalid object}';
@@ -1193,6 +1194,32 @@ begin
   {$endif}
 end;
 
+procedure DarkenComponents(c: TComponent);
+var
+  i: integer;
+  wc: TWinControl;
+begin
+  if c is TPageControl then
+  begin
+    asm
+    nop
+    end;
+  end;
+
+  if c is twincontrol then
+  begin
+    wc:=twincontrol(c);
+    AllowDarkModeForWindow(wc.handle,1);
+    SetWindowTheme(wc.Handle, 'explorer', nil);
+
+    wc.Color:=clWindow;
+    wc.font.color:=clWindowtext;
+  end;
+
+  for i:=0 to c.ComponentCount-1 do
+    DarkenComponents(c.Components[i]);
+end;
+
 procedure TFormDesigner.designForm(f: tceform);
 var x: array of integer;
   r: trect;
@@ -1203,6 +1230,10 @@ var x: array of integer;
   reg: Tregistry;
   i: integer;
   dpmi: tmenuitem;
+  ldark: dword;
+
+  ip: TObjectInspectorPage;
+  wc: TWinControl;
 begin
 
   GlobalDesignHook.LookupRoot:=f;
@@ -1215,6 +1246,55 @@ begin
   if oid=nil then //no oid yet
   begin
     oid:=TObjectInspectorDlg.Create(self);
+    if ShouldAppsUseDarkMode then
+    begin
+      //force it into darkmode
+
+
+      with oid do
+      begin
+        AllowDarkModeForWindow(handle,1);
+
+        color:=$242424;
+        if font.color=clDefault then
+          font.color:=colorset.FontColor;
+
+        if InitDwmLibrary then
+        begin
+          ldark:=1;
+          DwmSetWindowAttribute(handle, 19, @Ldark, sizeof(Ldark));
+        end;
+
+
+
+        DarkenComponents(oid);
+
+        for ip:=oipgpProperties to oipgpRestricted do
+        begin
+          GridControl[ip].BackgroundColor:=clWindow;
+          GridControl[ip].GutterColor:=clWindow;
+          GridControl[ip].GutterEdgeColor:=clGray;
+          GridControl[ip].HighlightColor:=clGreen;
+
+          GridControl[ip].SubPropertiesColor:=clBlue;
+          GridControl[ip].ReadOnlyColor:=clGray;
+          GridControl[ip].NameFont.color:=clWindowtext;
+          GridControl[ip].DefaultValueFont.color:=clWindowtext;
+          GridControl[ip].ValueFont.color:=clWindowtext;
+          GridControl[ip].HighlightFont.color:=clAqua;
+
+          GridControl[ip].CheckboxForBoolean:=false;
+        end;
+
+        ComponentTree.BackgroundColor:=clWindow;
+        ComponentTree.ExpandSignColor:=clWindowtext;
+        ComponentTree.TreeLineColor:=clWindowtext;
+        ComponentTree.Font.color:=clWindowtext;
+
+        ComponentTree.options:=ComponentTree.options-[tvoThemedDraw];
+      end;
+    end;
+
     oid.AutoSize:=false;
     oid.PropertyEditorHook:=GlobalDesignHook; //needs to be created
     oid.ShowFavorites:=false;
@@ -1238,6 +1318,9 @@ begin
     finally
       reg.free;
     end;
+
+    if ShouldAppsUseDarkMode then
+      oid.PropertyGrid.CheckboxForBoolean:=false; //checkboxes are rendered themed and I have no control over these
 
     miChangeCheckboxSetting:=tmenuitem.create(oid.MainPopupMenu);
     miChangeCheckboxSetting.caption:=rsShowCheckboxesForBoolean;
