@@ -1,5 +1,6 @@
 Additions and changes:
   Added dark mode support (restart CE when you channge the setting)
+  All saved results are now shows in the foundlist (can be turned off)
   Hotkeys can be repeated by releasing the key and repressing if the repeat timer hasn't finished yet
   structure dissect add to addresslist uses the addressstring instead of number, so symbols will be preserved
   structure dissect now has a option to save the previous state of a column and show changes easier

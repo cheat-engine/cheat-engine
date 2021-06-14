@@ -249,7 +249,7 @@ end;
 
 function TTablist.AddTab(t: string): integer;
 begin
-  fTabs.Add(t);
+  fTabs.Add(t.QuotedString(' '));
   result:=ftabs.count-1;
 
   if assigned(fOnTabCreate) then
@@ -287,7 +287,12 @@ begin
   if ShouldAppsUseDarkMode then
     gradientStart:=$222222
   else
-    gradientStart:=clWhite;
+    gradientStart:=$ffffff;
+
+  canvas.brush.color:=color;
+  canvas.pen.color:=color;
+  canvas.brush.style:=bsSolid;
+  canvas.FillRect(ClientRect);
 
 
   //create a total of 'fTabs.count' tabs

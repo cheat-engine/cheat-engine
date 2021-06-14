@@ -168,6 +168,8 @@ procedure TNewListView.pp(var msg: TMessage);
 var
   p1: LPNMHDR;
   p2: LPNMCUSTOMDRAW;
+  columnid: integer;
+  c: tcolor;
 begin
 
     p1:=LPNMHDR(msg.lparam);
@@ -181,11 +183,15 @@ begin
         CDDS_ITEMPREPAINT:
         begin
           msg.result:=CDRF_DODEFAULT;
+          columnid:=p2^.dwItemSpec;
 
-          if (p2^.dwItemSpec>=0) and (p2^.dwItemSpec<ColumnCount) and (Column[p2^.dwItemSpec].Tag<>0) then //for black use $000001
-            SetTextColor(p2^.hdc, Column[p2^.dwItemSpec].Tag)
+          if (columnid>=0) and (columnid<columncount) and (column[columnid].tag<>0) then
+            c:=column[columnid].tag
           else
-            SetTextColor(p2^.hdc, clWindowtext);
+            c:=clWindowtext;
+
+
+          SetTextColor(p2^.hdc, c);
         end;
       end;
     end;

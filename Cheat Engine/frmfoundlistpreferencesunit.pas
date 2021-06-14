@@ -16,6 +16,7 @@ type
     btnOK: TButton;
     btnCancel: TButton;
     btnFont: TButton;
+    cbCompareTo: TColorBox;
     cbStatic: TColorBox;
     cbDynamic: TColorBox;
     cbBackground: TColorBox;
@@ -30,6 +31,7 @@ type
     Label4: TLabel;
     Label5: TLabel;
     Label6: TLabel;
+    Label7: TLabel;
     ListView1: TListView;
     Panel1: TPanel;
     Panel2: TPanel;
@@ -40,6 +42,7 @@ type
     pnlStatic: TPanel;
     procedure btnFontClick(Sender: TObject);
     procedure DisplayChange(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure ListView1CustomDrawItem(Sender: TCustomListView; Item: TListItem;
       State: TCustomDrawState; var DefaultDraw: Boolean);
@@ -59,12 +62,16 @@ type
     procedure setDynamicColor(c: TColor);
     function getBackgroundColor: TColor;
     procedure setBackgroundColor(c: TColor);
+    function getCompareToHeaderColor: TColor;
+    procedure setCompareToHeaderColor(c: TColor);
     function getFont: TFont;
     procedure setFont(f: TFont);
     function getShowStaticAsStatic: boolean;
     procedure setShowStaticAsStatic(state: boolean);
     function getUseThisFontSize: boolean;
     procedure setUseThisFontSize(state: boolean);
+
+
   public
     property NormalValueColor: TColor read getNormalValueColor write setNormalValueColor;
     property ChangedValueColor: TColor read getChangedValueColor write setChangedValueColor;
@@ -74,6 +81,7 @@ type
     property Font: TFont read getFont write setFont;
     property ShowStaticAsStatic: boolean read getShowStaticAsStatic write setShowStaticAsStatic;
     property UseThisFontSize: boolean read getUseThisFontSize write setUseThisFontSize;
+    property CompareToHeaderColor: TColor read getCompareToHeaderColor write setCompareToHeaderColor;
   end;
 
 implementation
@@ -141,6 +149,16 @@ begin
   listview1.Color:=c;
 end;
 
+function TfrmFoundlistPreferences.getCompareToHeaderColor: TColor;
+begin
+  result:=cbCompareTo.Selected;
+end;
+
+procedure TfrmFoundlistPreferences.setCompareToHeaderColor(c: TColor);
+begin
+  cbCompareTo.Selected:=c;
+end;
+
 function TfrmFoundlistPreferences.getFont: TFont;
 begin
   result:=fontdialog1.Font;
@@ -194,6 +212,7 @@ begin
   cbDynamic.Width:=cbNormal.Width;
 
   cbBackground.ItemHeight:=cbNormal.ItemHeight;
+  cbCompareTo.ItemHeight:=cbNormal.ItemHeight;
 
   updateScreen;
 end;
@@ -202,6 +221,11 @@ procedure TfrmFoundlistPreferences.DisplayChange(Sender: TObject);
 begin
   listview1.Color:=cbBackground.selected;
   listview1.Repaint;
+end;
+
+procedure TfrmFoundlistPreferences.FormCreate(Sender: TObject);
+begin
+
 end;
 
 procedure TfrmFoundlistPreferences.btnFontClick(Sender: TObject);

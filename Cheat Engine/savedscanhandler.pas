@@ -102,7 +102,7 @@ type
     addresslistmemory: pointer;  //can be an array of regions, an array of pointers or an array of tbitaddress definitions
     addresslistoffset: qword; //offset into the savedscanaddressFS file
     SavedScanmemory: pointer;
-    SavedScanMemoryOffset: qword; //the offset in the SavedScanmemoryFS file
+
 
     maxnumberofregions: integer;
     scandir: string;
@@ -138,6 +138,8 @@ type
 
     procedure deinitialize;
     procedure reinitialize;
+
+    property name: string read savedresultsname;
 
 
     constructor create(scandir: string; savedresultsname: string);
@@ -362,7 +364,7 @@ begin
 
     pm:=addresslistmemory;
 
-    if AllowRandomAccess and (currentregion>=0) and (address<pm[currentregion].baseaddress) then //out of order access. Start from scratch
+    if AllowRandomAccess and (currentregion>=0) and (address<pm^[currentregion].baseaddress+currentSubRegion) then //out of order access. Start from scratch
     begin
       currentRegion:=-1;
       currentSubRegion:=0;

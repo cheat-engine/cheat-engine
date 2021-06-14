@@ -1,13 +1,14 @@
 object frmFoundlistPreferences: TfrmFoundlistPreferences
   Left = 1077
-  Height = 239
+  Height = 303
   Top = 328
   Width = 509
   AutoSize = True
   BorderStyle = bsSingle
   Caption = 'Foundlist Customizer'
-  ClientHeight = 239
+  ClientHeight = 303
   ClientWidth = 509
+  OnCreate = FormCreate
   OnShow = FormShow
   Position = poOwnerFormCenter
   LCLVersion = '2.0.6.0'
@@ -18,14 +19,14 @@ object frmFoundlistPreferences: TfrmFoundlistPreferences
     AnchorSideBottom.Control = Owner
     AnchorSideBottom.Side = asrBottom
     Left = 0
-    Height = 224
+    Height = 288
     Top = 15
     Width = 160
     Anchors = [akTop, akLeft, akBottom]
     AutoSize = True
     BevelOuter = bvNone
     Caption = 'pnlExample'
-    ClientHeight = 224
+    ClientHeight = 288
     ClientWidth = 160
     TabOrder = 0
     object ListView1: TListView
@@ -34,7 +35,7 @@ object frmFoundlistPreferences: TfrmFoundlistPreferences
       AnchorSideBottom.Control = pnlExample
       AnchorSideBottom.Side = asrBottom
       Left = 0
-      Height = 224
+      Height = 288
       Top = 0
       Width = 160
       Anchors = [akTop, akLeft, akBottom]
@@ -70,7 +71,7 @@ object frmFoundlistPreferences: TfrmFoundlistPreferences
     AnchorSideTop.Side = asrBottom
     Left = 189
     Height = 25
-    Top = 204
+    Top = 247
     Width = 154
     AutoSize = True
     BorderSpacing.Top = 20
@@ -345,8 +346,9 @@ object frmFoundlistPreferences: TfrmFoundlistPreferences
     AnchorSideTop.Side = asrBottom
     Left = 164
     Height = 19
-    Top = 165
+    Top = 208
     Width = 272
+    Anchors = [akLeft]
     BorderSpacing.Top = 3
     Caption = 'Show static addresses using their static notation'
     Checked = True
@@ -365,6 +367,29 @@ object frmFoundlistPreferences: TfrmFoundlistPreferences
     BorderSpacing.Left = 5
     Caption = 'override font size'
     TabOrder = 6
+  end
+  object Label7: TLabel
+    Left = 164
+    Height = 15
+    Top = 168
+    Width = 139
+    Caption = '''Compare To'' header color'
+    ParentColor = False
+  end
+  object cbCompareTo: TColorBox
+    AnchorSideLeft.Control = Label7
+    AnchorSideTop.Control = Label7
+    AnchorSideTop.Side = asrBottom
+    Left = 164
+    Height = 22
+    Top = 184
+    Width = 204
+    Style = [cbStandardColors, cbExtendedColors, cbSystemColors, cbCustomColor, cbPrettyNames]
+    AutoSize = False
+    BorderSpacing.Top = 1
+    ItemHeight = 16
+    OnChange = DisplayChange
+    TabOrder = 7
   end
   object FontDialog1: TFontDialog
     MinFontSize = 0

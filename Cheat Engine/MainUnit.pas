@@ -17,7 +17,7 @@ uses
   ceguicomponents,formdesignerunit,xmlutils,vartypestrings,plugin,byteinterpreter,
   MenuItemExtra,frmgroupscanalgoritmgeneratorunit
 
-  , macport,LCLVersion, UTF8Process, macportdefines, betterControls;     //last one
+  , macport,LCLVersion, UTF8Process, macportdefines, fgl, betterControls;     //last one
   {$endif}
 
   {$ifdef windows}
@@ -40,7 +40,7 @@ uses
   groupscancommandparser, GraphType, IntfGraphics, RemoteMemoryManager,
   DBK64SecondaryLoader, savedscanhandler, debuggertypedefinitions, networkInterface,
   FrmMemoryRecordDropdownSettingsUnit, xmlutils, zstream, zstreamext, commonTypeDefs,
-  VirtualQueryExCache, LazLogger, LazUTF8, LCLVersion, betterControls;
+  VirtualQueryExCache, LazLogger, LazUTF8, LCLVersion, fgl, betterControls;
   {$endif}
 //the following are just for compatibility
 
@@ -68,6 +68,8 @@ type
     compareToSavedScan: boolean;
     currentlySelectedSavedResultname: string; //I love long variable names
 
+    compareToColumn: integer;
+
     cbCompareToSavedScan: record
       visible: boolean;
     end;
@@ -75,6 +77,8 @@ type
       Caption: string;
       Visible: boolean;
     end;
+
+
 
 
     FromAddress: record
@@ -275,6 +279,7 @@ type
     constructor Create(AddressList: TAddresslist; interval: integer);
   end;
 
+  TPreviousResultList=TFPGList<TSavedScanHandler>;
 
   TMainForm = class(TForm)
     actOpenLuaEngine: TAction;
@@ -305,6 +310,7 @@ type
     FromAddress: TEdit;
     andlabel: TLabel;
     lblcompareToSavedScan: TLabel;
+    miOnlyShowCurrentCompareToColumn: TMenuItem;
     miLoadRecent: TMenuItem;
     miAlwaysHideChildren: TMenuItem;
     miFoundListPreferences: TMenuItem;
@@ -561,6 +567,7 @@ type
     procedure Description1Click(Sender: TObject);
     procedure edtAlignmentKeyPress(Sender: TObject; var Key: char);
     procedure FormDropFiles(Sender: TObject; const FileNames: array of string);
+    procedure Foundlist3ColumnClick(Sender: TObject; Column: TListColumn);
     procedure Foundlist3CustomDrawItem(Sender: TCustomListView;
       Item: TListItem; State: TCustomDrawState; var DefaultDraw: boolean);
     procedure Foundlist3CustomDrawSubItem(Sender: TCustomListView;
@@ -582,6 +589,7 @@ type
     procedure miChangeValueBackClick(Sender: TObject);
     procedure miDBVMFindWhatWritesOrAccessesClick(Sender: TObject);
     procedure miAlwaysHideChildrenClick(Sender: TObject);
+    procedure miOnlyShowCurrentCompareToColumnClick(Sender: TObject);
     procedure miSignTableClick(Sender: TObject);
     procedure miAsyncScriptClick(Sender: TObject);
     procedure miFlFindWhatAccessesClick(Sender: TObject);
@@ -790,13 +798,17 @@ type
     SaveFirstScanThread: TSaveFirstScanThread;
 
     foundlist: Tfoundlist;
-    PreviousResults: TSavedScanHandler;
-    lastscantype: integer;
-
-    oldhandle: thandle;
 
     compareToSavedScan: boolean;
+    fActivePreviousResultColumn: integer; //the column index which is going to be compared against
     currentlySelectedSavedResultname: string; //I love long variable names
+
+    PreviousResultList: TPreviousResultList;
+
+
+
+    lastscantype: integer;
+    oldhandle: thandle;
 
     alignsizechangedbyuser: boolean;
     scantypechangedbyhotkey: boolean;
@@ -816,6 +828,7 @@ type
       ChangedValueColor: TColor;
       StaticColor: TColor;
       DynamicColor: TColor;
+      CompareToHeaderColor: TColor;
     end;
 
 
@@ -832,6 +845,8 @@ type
     AddressListOverrideFontSize: boolean;
 
     RecentFiles: Tstringlist;
+
+    InsideSetActivePreviousResult: boolean;
 
     procedure ClearRecentFiles(Sender:TObject);
     procedure RecentFilesClick(Sender:TObject);
@@ -935,6 +950,9 @@ type
     procedure setUseThreadToFreeze(state: boolean);
 
     procedure recentFilesUpdate(filepath: string);
+
+    procedure reloadPreviousResults;
+    procedure cleanupPreviousResults;
   public
     { Public declarations }
     addresslist: TAddresslist;
@@ -977,10 +995,13 @@ type
 
     imgSignature: TImage;
 
+
+
     {$ifdef darwin}
     cbDirty: TCheckbox;
     {$endif}
 
+    procedure setActivePreviousResultColumn(c: integer);
     procedure Hotkey2(command: integer);
 
 
@@ -1043,6 +1064,8 @@ type
 
     property SelectedVariableType: TVariableType read getSelectedVariableType;
     property isProtected: boolean read fIsProtected write setIsProtected;
+
+    property ActivePreviousResultColumn: integer read fActivePreviousResultColumn write setActivePreviousResultColumn;
   published
     property Progressbar1: TProgressBar read Progressbar write ProgressBar;
     property About1: TMenuItem read miAbout write miAbout;
@@ -3220,6 +3243,12 @@ begin
   end;
 end;
 
+procedure TMainForm.Foundlist3ColumnClick(Sender: TObject; Column: TListColumn);
+begin
+  if column.index>=1 then
+    setActivePreviousResultColumn(column.index);
+end;
+
 procedure TMainForm.Foundlist3CustomDrawItem(Sender: TCustomListView;
   Item: TListItem; State: TCustomDrawState; var DefaultDraw: boolean);
 var
@@ -3242,11 +3271,33 @@ var r: trect;
   drawn:boolean;
 
   fc: TColor;
+
+  changed: boolean;
+
+  subitemCompareIndex: integer;
 begin
+  //apparently the SubItem field includes the main item as well at index 0   (lazarus bug? Will be fixed someday? If so, expect crashes here)
+  if subitem=0 then exit;
+  subitem:=subitem-1;
+
   drawn:=false;
-  if miShowPreviousValue.checked and (PreviousResults<>nil) then
+  if miShowPreviousValue.checked and (PreviousResultList.count>0) then
   begin
-    if (item.subItems[1]<>rsNone) and (item.subitems[0]<>item.subitems[1]) then
+    subitemCompareIndex:=ActivePreviousResultColumn-1;
+
+
+    if subitem=0 then //current value
+    begin
+      //compare it against the currently selected compareto selection
+      changed:=(item.subItems[subitemCompareIndex]<>rsNone) and (item.subitems[0]<>item.subitems[subitemCompareIndex]);
+    end
+    else
+    begin
+      //compare against the current value
+      changed:=(item.subItems[subitem]<>rsNone) and (item.subitems[0]<>item.subitems[subitem]);
+    end;
+
+    if changed then
     begin
       sender.Canvas.Font.color:=foundlistColors.ChangedValueColor;
       sender.canvas.font.Style:=sender.canvas.font.Style+[fsBold];
@@ -3275,12 +3326,15 @@ procedure TMainForm.cbCompareToSavedScanChange(Sender: TObject);
 var
   s: tstringlist;
   l: TfrmSelectionList;
+  i,selindex: integer;
 
+  str: string;
 begin
   if cbCompareToSavedScan.checked then
   begin
     s := TStringList.Create;
     try
+      selindex:=-1;
       if (memscan.getsavedresults(s) > 1) then
       begin
         //popup a window where the user can select the scanresults
@@ -3290,6 +3344,8 @@ begin
         l.label1.Caption := rsSelectTheSavedScanResultFromTheListBelow;
         l.ItemIndex := 0;
 
+        selindex:=l.ItemIndex;
+
         if (l.showmodal = mrOk) and (l.ItemIndex <> -1) then
           currentlySelectedSavedResultname := l.selected
         else
@@ -3298,46 +3354,36 @@ begin
       else
         currentlySelectedSavedResultname := 'First';
 
-      compareToSavedScan := True;
-      lblcompareToSavedScan.Visible := s.Count>1;
-      lblcompareToSavedScan.Caption := '('+currentlySelectedSavedResultname+')';
+      //compareToSavedScan := True;
+      //lblcompareToSavedScan.Visible := s.Count>1;
+      //lblcompareToSavedScan.Caption := '('+currentlySelectedSavedResultname+')';
     finally
       freeandnil(s);
     end;
 
-
-    try
-      if PreviousResults<>nil then
-        freeandnil(PreviousResults);
-
-      PreviousResults:=TSavedScanHandler.create(memscan.getScanFolder, currentlySelectedSavedResultname);
-      PreviousResults.AllowNotFound:=true;
-      PreviousResults.AllowRandomAccess:=true;
-      foundlist3.Refresh;
-    except
+    for i:=0 to PreviousResultList.count-1 do
+    begin
+      str:=uppercase(PreviousResultList[i].name);
+      if str=uppercase(currentlySelectedSavedResultname) then
+      begin
+        ActivePreviousResultColumn:=i+2;
+        foundlist3.Refresh;
+        exit;
+      end;
     end;
 
-    foundlist3.Column[2].Caption:=rsSaved;
-
+    //language issues...
+    if selindex<>-1 then
+      ActivePreviousResultColumn:=2+selindex;
   end
   else
   begin
+    //unchecked, so compare against the last scan results
     compareToSavedScan := False;
     lblcompareToSavedScan.Visible := False;
 
-    try
-      if PreviousResults<>nil then
-        freeandnil(PreviousResults);
-
-      PreviousResults:=TSavedScanHandler.create(memscan.getScanFolder, 'TMP');
-      PreviousResults.AllowNotFound:=true;
-      PreviousResults.AllowRandomAccess:=true;
-      foundlist3.Refresh;
-    except
-    end;
-
-    foundlist3.Column[2].Caption:=rsPrevious;
-
+    ActivePreviousResultColumn:=2; //the TMP one
+    foundlist3.Refresh;
   end;
 end;
 
@@ -3599,6 +3645,7 @@ begin
   f.StaticColor:=foundlistColors.StaticColor;
   f.DynamicColor:=foundlistColors.DynamicColor;
   f.ShowStaticAsStatic:=showStaticAsStatic;
+  f.CompareToHeaderColor:=foundlistColors.compareToHeadercolor;
   f.UseThisFontSize:=AddressListOverrideFontSize;
   if f.showmodal=mrok then
   begin
@@ -3609,6 +3656,7 @@ begin
     foundlistColors.ChangedValueColor:=f.ChangedValueColor;
     foundlistColors.StaticColor:=f.StaticColor;
     foundlistColors.DynamicColor:=f.DynamicColor;
+    foundlistcolors.compareToHeadercolor:=f.CompareToHeaderColor;;
     showStaticAsStatic:=f.ShowStaticAsStatic;
     AddressListOverrideFontSize:=f.UseThisFontSize;
 
@@ -3625,6 +3673,7 @@ begin
         reg.WriteInteger('FoundList.StaticColor', foundlistcolors.StaticColor);
         reg.WriteInteger('FoundList.DynamicColor', foundlistcolors.DynamicColor);
         reg.WriteInteger('FoundList.BackgroundColor',foundlist3.Color);
+        reg.WriteInteger('FoundList.CompareToHeaderColor', foundlistcolors.CompareToHeaderColor);
         reg.WriteBool('FoundList.ShowStaticAsStatic',ShowStaticAsStatic);
         reg.WriteBool('FoundList.OverrideFontSize',AddressListOverrideFontSize);
 
@@ -3665,8 +3714,7 @@ procedure TMainForm.miForgotScanClick(Sender: TObject);
 begin
   if (foundlist.count=0) or (memscan.lastScanWasRegionScan) then exit;
 
-  if PreviousResults<>nil then
-    freeandnil(PreviousResults);
+  cleanupPreviousResults;
 
   foundlist.Deinitialize; //unlock file handles
 
@@ -4797,7 +4845,7 @@ begin
 
   scanstate.compareToSavedScan := comparetosavedscan;
   scanstate.currentlySelectedSavedResultname := currentlySelectedSavedResultname;
-  //I love long variable names
+  scanstate.compareToColumn := ActivePreviousResultColumn;
 
   scanstate.cbCompareToSavedScan.visible := cbCompareToSavedScan.Visible;
 
@@ -4933,12 +4981,8 @@ begin
   end;
 
   savecurrentstate(scanstate);
-
-  //initial scans don't have a previous scan
-  scanstate.cbCompareToSavedScan.visible:=false;
-  scanstate.lblcompareToSavedScan.Visible := False;
-  scanstate.compareToSavedScan := False;
-
+  reloadPreviousResults;
+  ActivePreviousResultColumn:=2;
 end;
 
 procedure TMainForm.ScanTabListTabChange(Sender: TObject; oldselection: integer);
@@ -4955,6 +4999,8 @@ begin
   begin
     //load
     mainform.BeginFormUpdate;
+    foundlist3.beginupdate;
+    foundlist.Deinitialize;
 
     foundlistDisplayOverride:=0;
 
@@ -4964,8 +5010,8 @@ begin
     rbdec.Onclick := nil;
     cbHexadecimal.OnClick := nil;
 
-    if PreviousResults<>nil then
-      freeandnil(PreviousResults);
+    //cleanupPreviousResults;
+
 
 
     scanvalue.Text := newstate.scanvalue.Text;
@@ -5060,13 +5106,10 @@ begin
 
 
 
-    mainform.EndFormUpdate;
 
 
-    foundlist3.beginupdate;
 
 
-    foundlist.Deinitialize;
 
     memscan := newstate.memscan;
     foundlist := newstate.foundlist;
@@ -5090,19 +5133,6 @@ begin
 
 
     foundcount := foundlist.Initialize(getvartype, memscan.customtype);
-
-
-    try
-      PreviousResults:=TSavedScanHandler.create(memscan.getScanFolder, currentlySelectedSavedResultname);
-
-      PreviousResults.AllowNotFound:=true;
-      PreviousResults.AllowRandomAccess:=true;
-    except
-      PreviousResults:=nil;
-    end;
-
-
-
 
 
     cbunicode.Visible := newstate.cbunicode.visible;
@@ -5135,7 +5165,7 @@ begin
       foundlist3.multiselect:=true;
     end;
 
-    foundlist3.endupdate;
+
 
     foundlistDisplayOverride:=newstate.foundlistDisplayOverride;
 
@@ -5143,6 +5173,14 @@ begin
     cbFloatSimple.checked:=newstate.cbfloatSimple.Checked;
 
     UpdateFloatRelatedPositions;
+
+    reloadPreviousResults;
+    ActivePreviousResultColumn:=newstate.compareToColumn;
+
+   // Panel5Resize(nil);
+    foundlist3.endupdate;
+
+    mainform.EndFormUpdate;
 
     //    foundlist3.TopItem:=foundlist3.items[newstate.foundlist.itemindex];
   end;
@@ -5185,13 +5223,15 @@ begin
 
 
     scantablist.PopupMenu := pmTablist;
-    scantablist.color := panel5.Color;
+    scantablist.color := panel5.GetRGBColorResolvingParent; //Color;
     scantablist.Parent:=panel5;
     scantablist.Anchors := [akTop, akLeft, akRight];
 
     scantablist.Height := scantablist.Canvas.TextHeight('WwJjDdQq')+4;
 
     label6.AnchorSideTop.Control:=scantablist;
+
+
     //lblcompareToSavedScan.AnchorSideTop.Control:=scantablist;
 
 
@@ -5306,6 +5346,7 @@ begin
     begin
       memscan.saveresults(n);
       cbCompareToSavedScan.caption:=rsCompareToSavedScan;
+      reloadPreviousResults;
     end;
   end;
 end;
@@ -5368,49 +5409,55 @@ end;
 procedure TMainForm.Panel5Resize(Sender: TObject);
 var
   widthleft,w,aw: integer;
+  i: integer;
+
+  f: double;
 begin
  // scanvalue2.width:=(((panel5.width-5)-scanvalue.left+((andlabel.width+10) div 2)) div 2);
-  w:=(panel5.clientwidth-scanvalue.left)-5 ;
-  aw:=andlabel.width+8;
-  scanvalue2.width:=(w div 2) - (aw div 2);
-
-  {cbSpeedhack.left := panel5.clientwidth - cbspeedhack.Width;
-  cbUnrandomizer.left := cbspeedhack.left;
-  gbScanOptions.Left := cbUnrandomizer.left - gbScanOptions.Width - 3;
-
-  speedbutton3.top := foundlist3.top + foundlist3.Height - speedbutton3.Height;
-  speedbutton3.left := foundlist3.left + foundlist3.Width + 2;
-
-
-  ScanText.left := scanvalue.left; //lazarus rev  25348 32-bit fix
-  if ScanText2 <> nil then
-    scantext2.left := scanvalue2.Left;
-
-  if andlabel <> nil then
-    andlabel.Left := scanvalue2.Left - 20;
-
-
-  lblcompareToSavedScan.left :=
-    btnNewScan.left + ((((btnNextScan.left + btnNextScan.Width) - btnNewScan.left) div 2) -
-    (lblcompareToSavedScan.Width div 2));
-
-  if cbpercentage <> nil then
-    cbpercentage.left := scantype.left + scantype.Width + 5;
-
-  }
+  if sender<>nil then
+  begin
+    w:=(panel5.clientwidth-scanvalue.left)-5 ;
+    aw:=andlabel.width+8;
+    scanvalue2.width:=(w div 2) - (aw div 2);
+  end;
 
   //resize the foundlist columns. Do NOT do this in the onresize of the foundlist
   widthleft:=foundlist3.clientwidth-foundlist3.Columns[0].Width;
 
   if miShowPreviousValue.checked then
   begin
-    if widthleft>0 then
-      w:=widthleft div 2
+    if miOnlyShowCurrentCompareToColumn.checked then
+    begin
+      //old method
+      w:=widthleft div 2;
+      foundlist3.columns[1].width:=ceil(w*1.1);
+      for i:=2 to foundlist3.columns.count-1 do
+      begin
+        if foundlist3.columns[i].visible then
+          foundlist3.columns[i].width:=trunc(w*0.9);
+      end;
+    end
     else
-      w:=1;
+    begin
 
-    foundlist3.columns[1].width:=TWidth(w);
-    foundlist3.columns[2].width:=foundlist3.columns[1].width;
+      if (widthleft>0) and (foundlist3.ColumnCount>1) then
+        w:=widthleft div (foundlist3.ColumnCount-1)
+      else
+        w:=4;
+
+      //column 1 will get a %10 longer size than the compare against columns
+      f:=w*1.1;
+      foundlist3.columns[1].width:=ceil(f);
+
+      widthleft:=widthleft-foundlist3.columns[1].width;
+      if (widthleft>0) and (foundlist3.ColumnCount>2) then
+        w:=widthleft div (foundlist3.ColumnCount-2)
+      else
+        w:=4;
+
+      for i:=2 to foundlist3.ColumnCount-1 do
+        foundlist3.columns[i].width:=TWidth(w);
+    end;
   end
   else
   begin
@@ -5456,22 +5503,38 @@ begin
 end;
 
 procedure TMainForm.miShowPreviousValueClick(Sender: TObject);
-var reg: Tregistry;
+var
+  reg: Tregistry;
+  i: integer;
 begin
   //Show/Hide the previousValue column
   //
 
   if miShowPreviousValue.checked then
   begin
-    foundlist3.column[1].Width:=foundlist3.column[1].width div 2;
-    foundlist3.Column[2].visible:=true;
+    miOnlyShowCurrentCompareToColumn.enabled:=true;
+    if miOnlyShowCurrentCompareToColumn.checked then
+    begin
+      foundlist3.Column[2].visible:=true;
+      for i:=3 to foundlist3.columncount-1 do
+        foundlist3.column[i].Visible:=false;
+    end
+    else
+    begin
+      for i:=2 to foundlist3.columncount-1 do
+        foundlist3.column[i].Visible:=true;
+    end;
   end
   else
   begin
-    foundlist3.Column[2].visible:=false;
+    miOnlyShowCurrentCompareToColumn.checked:=false;
+    miOnlyShowCurrentCompareToColumn.enabled:=false;
+    for i:=2 to foundlist3.columncount-1 do
+      foundlist3.column[i].Visible:=false;
   end;
-  //foundlist3.AutoWidthLastColumn:=false;
-  //foundlist3.AutoWidthLastColumn:=true;
+
+
+  Panel5Resize(nil);
 
   cereg.writeBool('Show previous value column', miShowPreviousValue.checked);
 end;
@@ -5513,8 +5576,8 @@ begin
     FreeAndNil(SaveFirstScanThread);
   end;
 
-  if PreviousResults<>nil then
-    freeandnil(PreviousResults);
+  cleanupPreviousResults;
+
 
   fastscan := formsettings.cbFastscan.Checked;
   //close files in case of a bug i might have missed...
@@ -5559,8 +5622,6 @@ begin
   if formsettings.cbPauseWhenScanningOnByDefault.checked then
     cbPauseWhileScanning.Checked:=true;
   {$endif}
-
-  foundlist3.Column[2].Caption:=rsPrevious;
 
   cbpercentage.checked:=false;
 end;
@@ -5646,6 +5707,10 @@ var
   createlog: boolean;
   s: string;
 begin
+  PreviousResultList:=TPreviousResultList.Create;
+
+
+
   {$if (LCL_FULLVERSION > 1060400) and (lcl_fullversion <=1080200)}
   Foundlist3.Dragmode:=dmManual; //perhaps this gets fixed in later lcl versions, but for now, it sucks
   {$endif}
@@ -7310,8 +7375,9 @@ begin
     FreeAndNil(SaveFirstScanThread);
   end;
 
-  if PreviousResults<>nil then
-    PreviousResults.deinitialize;
+  for i:=0 to PreviousResultList.count-1 do
+    PreviousResultList[i].deinitialize;
+
 
   if foundlist3.selcount = 1 then //use itemindex (faster)
   begin
@@ -7353,10 +7419,8 @@ begin
 
   foundcount:=foundlist.Reinitialize;
 
-  if PreviousResults<>nil then
-    PreviousResults.reinitialize;
-
-
+  for i:=0 to PreviousResultList.count-1 do
+    PreviousResultList[i].reinitialize;
 
 end;
 
@@ -7662,6 +7726,14 @@ begin
   end;
 end;
 
+procedure TMainForm.miOnlyShowCurrentCompareToColumnClick(Sender: TObject);
+begin
+  ActivePreviousResultColumn:=ActivePreviousResultColumn;
+  cereg.writeBool('Only show current compare column', miOnlyShowCurrentCompareToColumn.Checked);
+
+  Panel5Resize(nil);
+end;
+
 procedure TMainForm.Findoutwhataccessesthisaddress1Click(Sender: TObject);
 var
   address: ptrUint;
@@ -7822,22 +7894,17 @@ begin
 
   if messagedlg(strConfirmUndo, mtConfirmation, [mbYes, mbNo], 0) = mrYes then
   begin
-    if PreviousResults<>nil then
-      freeandnil(PreviousResults);
-
+    foundlist3.BeginUpdate;
+    cleanupPreviousResults;
 
     foundlist.Deinitialize;
     memscan.undolastscan;
     foundcount := foundlist.Initialize(getvartype, memscan.CustomType);
 
-    try
-      previousresults:=TSavedScanHandler.create(memscan.GetScanFolder, currentlySelectedSavedResultname);
-      previousresults.AllowNotFound:=true;
-      PreviousResults.AllowRandomAccess:=true;
-    except
-    end;
+    reloadPreviousResults;
 
     undoscan.Enabled := False;
+    foundlist3.EndUpdate;
   end;
 end;
 
@@ -7916,6 +7983,8 @@ begin
   if onetimeonly then
     exit;
 
+
+
   fontmultiplication:=ProcessLabel.Height/15; //normal dpi/font settings have this at 15.
 
   screen.HintFont:=font;
@@ -7984,9 +8053,8 @@ begin
     miShowPreviousValueClick(miShowPreviousValue);
   end;
 
-
-
-
+  if reg.ValueExists('Only show current compare column') then
+    miOnlyShowCurrentCompareToColumn.checked:=reg.ReadBool('Only show current compare column');
 
 
   //  animatewindow(mainform.Handle,10000,AW_CENTER);
@@ -8183,6 +8251,7 @@ begin
     if reg.ValueExists('FoundList.StaticColor') then foundlistcolors.StaticColor:=reg.ReadInteger('FoundList.StaticColor');
     if reg.ValueExists('FoundList.DynamicColor') then foundlistcolors.DynamicColor:=reg.ReadInteger('FoundList.DynamicColor');
     if reg.ValueExists('FoundList.BackgroundColor') then foundlist3.color:=reg.ReadInteger('FoundList.BackgroundColor');
+    if reg.ValueExists('FoundList.CompareToHeaderColor') then foundlistcolors.compareToHeadercolor:=reg.ReadInteger('FoundList.CompareToHeaderColor');
     if reg.ValueExists('FoundList.ShowStaticAsStatic') then showStaticAsStatic:=reg.ReadBool('FoundList.ShowStaticAsStatic');
     if reg.ValueExists('FoundList.OverrideFontSize') then AddressListOverrideFontSize:=reg.ReadBool('FoundList.OverrideFontSize');
 
@@ -8195,6 +8264,8 @@ begin
     foundlistColors.ChangedValueColor:=clRed;
     foundlistColors.StaticColor:=clGreen;
     foundlistColors.DynamicColor:=clWindowtext;
+    foundlistColors.CompareToHeaderColor:=clGreen;
+
     showStaticAsStatic:=true;
     Foundlist3.Font.Height:=i;
   end;
@@ -8392,6 +8463,8 @@ begin
     1: rt2.checked:=true;
     2: rt3.checked:=true;
   end;
+
+  ActivePreviousResultColumn:=2;
 
 end;
 
@@ -9210,7 +9283,7 @@ end;
 procedure TMainForm.Foundlist3Data(Sender: TObject; Item: TListItem);
 var
   extra: dword;
-  Value, PreviousValue: string;
+  Value, s, PreviousValue: string;
   Address: ptruint;
   addressString: string;
   valuetype: TVariableType;
@@ -9224,8 +9297,10 @@ var
   error: string;
 
   hexadecimal: boolean;
-begin
 
+  PreviousValueList: tstringlist=nil;
+  i: integer;
+begin
   //put in data
   ct:=foundlist.CustomType;
 
@@ -9239,8 +9314,9 @@ begin
     if (address=0) then
     begin
       item.Caption := rsProcessing;
-      item.subitems.add(rsProcessing);
-      item.subitems.add(rsProcessing);
+      for i:=1 to foundlist3.ColumnCount-1 do
+        item.subitems.add(rsProcessing);
+
       exit;
     end;
 
@@ -9321,8 +9397,9 @@ begin
       end;
     end;
 
-    if miShowPreviousValue.checked and (PreviousResults<>nil) then
+    if miShowPreviousValue.checked and (previousresultlist<>nil) then
     begin
+      PreviousValueList:=tstringlist.create;
       //get the previous value of this entry
       invalid:=false;
       case foundlist.vartype of
@@ -9341,16 +9418,30 @@ begin
 
       if not invalid then
       begin
-        p:=PreviousResults.getpointertoaddress(address, ssvt, ct);
-        if p=nil then
+
+        for i:=0 to PreviousResultList.count-1 do
         begin
-          if PreviousResults.lastFail=1 then
-            previousvalue:=rsFileInUse
+          if foundlist3.columns[i+2].Visible then
+          begin
+            //p:=PreviousResultList[i].getpointertoaddress(address, ssvt, ct);
+            if PreviousResultList[i].getStringFromAddress(address, s,hexadecimal,foundlist.isSigned)=false then
+            begin
+              if PreviousResultList[i].lastFail=1 then
+                s:=rsFileInUse
+              else
+                s:=rsBusy+' : '+inttostr(PreviousResultList[i].lastFail);
+            end;
+          end
           else
-            previousvalue:=rsBusy+' : '+inttostr(PreviousResults.lastFail)
-        end
-        else
-          previousvalue:=readAndParsePointer(address, p, valuetype, ct, hexadecimal, foundlist.isSigned);
+            s:='';
+
+          previousvaluelist.add(s);
+
+          {$ifdef darwin}
+          if i=fActivePreviousResultColumn+1 then
+            PreviousValue:=s;
+          {$endif}
+        end;
       end;
     end;
 
@@ -9366,7 +9457,13 @@ begin
 
     item.Caption := AddressString;
     item.subitems.add(Value);
-    item.subitems.add(previousvalue);
+    if previousvaluelist<>nil then
+    begin
+      for i:=0 to previousvaluelist.count-1 do
+        item.subitems.add(previousvaluelist[i]);
+    end;
+
+
 
 
   except
@@ -9396,8 +9493,15 @@ begin
         item.subitems.add(Value);
         item.subitems.add(error);
       end;
+
+      if PreviousResultList<>nil then
+        for i:=1 to PreviousResultList.count-1 do
+          item.subitems.add('');
     end;
   end;
+
+  if previousvaluelist<>nil then
+    freeandnil(previousvaluelist);
 end;
 
 procedure TMainForm.UpdateFoundlisttimerTimer(Sender: TObject);
@@ -9509,6 +9613,7 @@ begin
   if i=0 then currentlySelectedSavedResultname:='TMP';
 
   savedscan:=TSavedScanHandler.create(memscan.getScanFolder, currentlySelectedSavedResultname);
+  savedscan.memscan:=memscan;
   savedscan.AllowNotFound:=true;
   savedscan.AllowRandomAccess:=true;
 
@@ -9779,8 +9884,7 @@ begin
   {$endif}
 
 
-  if PreviousResults<>nil then
-    freeandnil(PreviousResults);
+  cleanupPreviousResults;
 
   if (memscan=nil) or (foundlist=nil) then raise exception.create(rsUnableToScanFixYourScanSettings);
 
@@ -9939,23 +10043,17 @@ begin
   c:=memscan.GetFoundCount;
   foundcount := c;
 
-  if PreviousResults<>nil then
-    freeandnil(PreviousResults);
+  cleanupPreviousResults;
 
   if not compareToSavedScan then
     previous:='TMP'
   else
     previous:=currentlySelectedSavedResultname;
 
-
-  try
-    PreviousResults:=TSavedScanHandler.create(memscan.getScanFolder, previous);
-    PreviousResults.AllowNotFound:=true;
-    PreviousResults.AllowRandomAccess:=true;
-  except
-    PreviousResults:=nil;
-  end;
-
+  reloadPreviousResults;
+  for i:=0 to PreviousResultList.count-1 do
+    if PreviousResultList[i].name=previous then
+      ActivePreviousResultColumn:=i+1;
 
   if (foundlist3.items.Count <> foundcount) and (not foundlist.isUnknownInitialValue) then
   begin
@@ -10081,8 +10179,7 @@ begin
   else
     percentage := False;
 
-  if PreviousResults<>nil then
-    freeandnil(PreviousResults);
+  cleanupPreviousResults;
 
   foundlist.Deinitialize; //unlock file handles
 
@@ -10709,6 +10806,169 @@ begin
 
   if boundsupdater.enabled=false then
     boundsupdater.enabled:=true;
+end;
+
+procedure TMainForm.reloadPreviousResults;
+var
+  l: tstringlist;
+  i: integer;
+  c: TListColumn;
+  ssh: TSavedScanHandler;
+
+  oldsizes: array of integer;
+begin
+  oldsizes:=[];
+  setlength(oldsizes, foundlist3.ColumnCount);
+  for i:=0 to foundlist3.columncount-1 do
+    oldsizes[i]:=foundlist3.columns[i].Width;
+
+  foundlist3.BeginUpdate;
+  try
+    cleanupPreviousResults;
+    l:=tstringlist.create;
+
+    c:=foundlist3.Columns.Add;
+    c.caption:=rsPrevious;
+    if c.Index=fActivePreviousResultColumn then
+      c.tag:=foundlistColors.CompareToHeaderColor;
+
+    c.visible:=(c.Index>=2) and miShowPreviousValue.checked and ((miOnlyShowCurrentCompareToColumn.Checked=false) or (c.index=fActivePreviousResultColumn));
+
+    try
+      ssh:=TSavedScanHandler.create(memscan.getScanFolder, 'TMP');
+    except
+      exit; //invalid state (e.g newscan)
+    end;
+    ssh.memscan:=memscan;
+    ssh.AllowNotFound:=true;
+    ssh.AllowRandomAccess:=true;
+    PreviousResultList.add(ssh);
+
+
+
+    memscan.getsavedresults(l);
+
+    for i:=l.count-1 downto 0 do
+    begin
+      c:=foundlist3.Columns.Add;
+      c.caption:=l[i];
+      if c.Index=fActivePreviousResultColumn then
+        c.tag:=foundlistColors.CompareToHeaderColor;
+
+      c.visible:=(c.Index>=2) and miShowPreviousValue.checked and ((miOnlyShowCurrentCompareToColumn.Checked=false) or (c.index=fActivePreviousResultColumn));
+
+
+      ssh:=TSavedScanHandler.create(memscan.getScanFolder, l[i]);
+      ssh.memscan:=memscan;
+      ssh.AllowNotFound:=true;
+      ssh.AllowRandomAccess:=true;
+
+      PreviousResultList.Add(ssh);
+    end;
+  finally
+
+    if foundlist3.ColumnCount=length(oldsizes) then
+    begin
+      for i:=0 to length(oldsizes)-1 do
+        foundlist3.Column[i].Width:=oldsizes[i];
+    end
+    else
+      panel5resize(nil); //columncount changed
+
+    foundlist3.EndUpdate;
+  end;
+
+end;
+
+procedure TMainForm.cleanupPreviousResults;
+//do a foundlist3.beginupdate first if this is just part of repopulating
+var i: integer;
+begin
+  foundlist3.BeginUpdate;
+  for i:=0 to PreviousResultList.Count-1 do
+  begin
+    if PreviousResultList[i]<>nil then
+      PreviousResultList[i].free;
+  end;
+
+  PreviousResultList.Clear;
+
+  //first 2 columns are address and current value, the ones following are the previous value
+  while foundlist3.Columns.count>2 do
+    foundlist3.Columns.Delete(2);
+
+  foundlist3.EndUpdate;
+end;
+
+procedure TMainForm.setActivePreviousResultColumn(c: integer);
+var
+  i: integer;
+begin
+  if InsideSetActivePreviousResult then exit;
+
+  InsideSetActivePreviousResult:=true;
+
+  cbCompareToSavedScan.OnChange:=nil;
+
+  if (c>=2) and (c<foundlist3.ColumnCount) then
+  begin
+    for i:=2 to foundlist3.ColumnCount-1 do
+    begin
+      foundlist3.Column[i].Tag:=0;
+
+      {$ifdef darwin}
+      foundlist3.Column[i].caption:=foundlist3.Column[i].caption.DeQuotedString("*");
+      {$endif}
+
+      if miOnlyShowCurrentCompareToColumn.Checked then
+      begin
+        if (i>=2) then
+          foundlist3.Columns[i].Visible:=(i=c) and miShowPreviousValue.checked; //only make the current compare column visible
+
+      end
+      else
+        foundlist3.Columns[i].Visible:=(i>=2) and miShowPreviousValue.checked;
+
+    end;
+
+    fActivePreviousResultColumn:=c;
+
+    if miOnlyShowCurrentCompareToColumn.Checked=false then //people that disable this likely want it the way the old CE showed it
+    begin
+      foundlist3.Column[c].tag:=foundlistColors.CompareToHeaderColor;
+
+      {$ifdef darwin}
+      foundlist3.Column[c].caption:=foundlist3.Column[c].caption.QuotedString("*");
+      {$endif}
+    end;
+
+    if (c-2)<PreviousResultList.count then
+      currentlySelectedSavedResultname:=PreviousResultList[c-2].name;
+
+    if c>=3 then
+    begin
+      cbCompareToSavedScan.checked:=true;
+      compareToSavedScan := True;
+      if PreviousResultList.count>2 then  //last, first are default
+      begin
+        lblcompareToSavedScan.Visible := true;
+        lblcompareToSavedScan.Caption := '('+currentlySelectedSavedResultname+')';
+      end
+      else
+         lblcompareToSavedScan.Visible := false;
+    end
+    else
+    begin
+      cbCompareToSavedScan.checked := false;
+      lblcompareToSavedScan.Visible := false;
+    end;
+  end;
+
+
+  cbCompareToSavedScan.OnChange:=cbCompareToSavedScanChange;
+
+  foundlist3.Refresh;
+  InsideSetActivePreviousResult:=false;
 end;
 
 initialization
