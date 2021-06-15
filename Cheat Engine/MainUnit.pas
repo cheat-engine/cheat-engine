@@ -10061,7 +10061,7 @@ begin
   reloadPreviousResults;
   for i:=0 to PreviousResultList.count-1 do
     if PreviousResultList[i].name=previous then
-      ActivePreviousResultColumn:=i+1;
+      ActivePreviousResultColumn:=i+2;
 
   if (foundlist3.items.Count <> foundcount) and (not foundlist.isUnknownInitialValue) then
   begin

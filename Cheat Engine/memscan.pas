@@ -7514,13 +7514,13 @@ begin
 
 
   //everything looks ok
-  waittilldone;
+  waittillreallydone;
 
 
 
   //copy the current scanresults to memory.savedscan and addresses.savedscan
-  CopyFile(pchar(fScanResultFolder+'MEMORY.TMP'), pchar(fScanResultFolder+'MEMORY.'+resultname), false);
-  CopyFile(pchar(fScanResultFolder+'ADDRESSES.TMP'), pchar(fScanResultFolder+'ADDRESSES.'+resultname), false);
+  CopyFile(pchar(fScanResultFolder+'MEMORY.TMP'), pchar(fScanResultFolder+'MEMORY.'+resultname), false,false);
+  CopyFile(pchar(fScanResultFolder+'ADDRESSES.TMP'), pchar(fScanResultFolder+'ADDRESSES.'+resultname), false, false);
 
   savedresults.Add(resultname);
 
