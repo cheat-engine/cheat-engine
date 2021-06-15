@@ -71,7 +71,7 @@ object frmFoundlistPreferences: TfrmFoundlistPreferences
     AnchorSideTop.Side = asrBottom
     Left = 189
     Height = 25
-    Top = 247
+    Top = 242
     Width = 154
     AutoSize = True
     BorderSpacing.Top = 20
@@ -342,13 +342,12 @@ object frmFoundlistPreferences: TfrmFoundlistPreferences
   end
   object cbShowStaticAsStatic: TCheckBox
     AnchorSideLeft.Control = cbBackground
-    AnchorSideTop.Control = cbBackground
+    AnchorSideTop.Control = cbCompareTo
     AnchorSideTop.Side = asrBottom
     Left = 164
     Height = 19
-    Top = 208
+    Top = 203
     Width = 272
-    Anchors = [akLeft]
     BorderSpacing.Top = 3
     Caption = 'Show static addresses using their static notation'
     Checked = True
@@ -369,9 +368,12 @@ object frmFoundlistPreferences: TfrmFoundlistPreferences
     TabOrder = 6
   end
   object Label7: TLabel
+    AnchorSideLeft.Control = cbBackground
+    AnchorSideTop.Control = cbBackground
+    AnchorSideTop.Side = asrBottom
     Left = 164
     Height = 15
-    Top = 168
+    Top = 162
     Width = 139
     Caption = '''Compare To'' header color'
     ParentColor = False
@@ -380,11 +382,14 @@ object frmFoundlistPreferences: TfrmFoundlistPreferences
     AnchorSideLeft.Control = Label7
     AnchorSideTop.Control = Label7
     AnchorSideTop.Side = asrBottom
+    AnchorSideRight.Control = Panel2
+    AnchorSideRight.Side = asrBottom
     Left = 164
     Height = 22
-    Top = 184
+    Top = 178
     Width = 204
     Style = [cbStandardColors, cbExtendedColors, cbSystemColors, cbCustomColor, cbPrettyNames]
+    Anchors = [akTop, akLeft, akRight]
     AutoSize = False
     BorderSpacing.Top = 1
     ItemHeight = 16
