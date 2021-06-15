@@ -229,6 +229,14 @@ begin
       end;
     end;
 
+    vtPointer:
+    begin
+      if processhandler.is64Bit then
+        result:=symhandler.getNameFromAddress(PQWord(@buf[0])^)
+      else
+        result:=symhandler.getNameFromAddress(PDWord(@buf[0])^);
+    end;
+
     vtSingle:
     begin
       if showashexadecimal then
@@ -362,6 +370,12 @@ begin
     vtQword:
     begin
       if ReadProcessMemory(processhandle,pointer(address),@buf[0],8,x) then
+        result:=readAndParsePointer(address, @buf[0], variabletype, customtype, showashexadecimal, showAsSigned, bytesize);
+    end;
+
+    vtPointer:
+    begin
+      if ReadProcessMemory(processhandle,pointer(address),@buf[0],processhandler.pointersize,x) then
         result:=readAndParsePointer(address, @buf[0], variabletype, customtype, showashexadecimal, showAsSigned, bytesize);
     end;
 

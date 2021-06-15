@@ -29,7 +29,7 @@ type
     FloatSettings: TFormatSettings;
 
     elements: array of record
-      wildcard: boolean;
+      wildcard: boolean; //for vtPointer means it has to be a valid pointer, so not nil
       offset: integer;
       vartype: TVariabletype;
       uservalue: string;
@@ -39,6 +39,7 @@ type
       bytesize: integer;
       command: string;
       picked: boolean;
+
     end;
 
     blocksize: integer;
@@ -53,33 +54,36 @@ type
 
 implementation
 
-uses Parsers;
+uses Parsers, ProcessHandlerUnit;
 
 procedure TGroupscanCommandParser.parseToken(s: string);
 var i,j,k: integer;
   command,value: string;
   ctn: string;
   bracketcount: integer;
-
-
   nextchar: integer;
 begin
 
   //deal with custom types with a ':' and don't mess up strings
   bracketcount:=0;
-  for i:=1 to length(s)-1 do
+  j:=0;
+  for i:=1 to length(s) do
   begin
     case s[i] of
-      ':': if bracketcount=0 then break; //found it
+      ':': if bracketcount=0 then
+      begin
+        j:=i;
+        break; //found it
+      end;
       '(': inc(bracketcount);
       ')': dec(bracketcount);
     end;
   end;
 
-  if i=length(s) then exit;
+  if j=0 then exit;
 
-  command:=uppercase(copy(s,1,i-1));
-  value:=copy(s,i+1, length(s));
+  command:=uppercase(copy(s,1,j-1));
+  value:=copy(s,j+1, length(s));
 
 
 
@@ -95,11 +99,19 @@ begin
     typeAligned:=value='A';
   end;
 
-  if (length(command)>=1) and (command[1] in ['1','2','4','8','F','D','C','S','W']) then
+  if (length(command)>=1) and (command[1] in ['1','2','4','8','F','D','C','S','W','P']) then
   begin
     j:=length(elements);
     setlength(elements, j+1);
 
+    //init the element to 0
+    elements[j].wildcard:=false;
+    elements[j].vartype:=vtByte;
+    elements[j].uservalue:='';
+    elements[j].valueint:=0;
+    elements[j].valuefloat:=0;
+    elements[j].customtype:=nil;
+    elements[j].bytesize:=1;
     elements[j].offset:=calculatedBlocksize;
     elements[j].command:=command;
 
@@ -130,6 +142,12 @@ begin
       begin
         elements[j].vartype:=vtQword;
         elements[j].bytesize:=8;
+      end;
+
+      'P':   //pointer
+      begin
+        elements[j].vartype:=vtPointer;
+        elements[j].bytesize:=processhandler.pointersize;
       end;
 
       'F':
@@ -218,6 +236,14 @@ begin
       case elements[j].vartype of
         vtByte..vtQword, vtCustom: elements[j].valueint:=StrToQWordEx(value);
 
+        vtPointer:
+        begin
+          //convert it to a normal type
+          if processhandler.is64Bit then
+            elements[j].vartype:=vtQword
+          else
+            elements[j].vartype:=vtDword;
+        end;
 
         vtSingle, vtDouble:
         begin

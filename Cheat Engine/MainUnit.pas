@@ -10826,6 +10826,7 @@ var
   oldsizes: array of integer;
 begin
   oldsizes:=[];
+  l:=nil;
   setlength(oldsizes, foundlist3.ColumnCount);
   for i:=0 to foundlist3.columncount-1 do
     oldsizes[i]:=foundlist3.columns[i].Width;
@@ -10833,7 +10834,11 @@ begin
   foundlist3.BeginUpdate;
   try
     cleanupPreviousResults;
+    if getVarType in [vtGrouped, vtString, vtUnicodeString, vtByteArray] then exit;
+
+
     l:=tstringlist.create;
+
 
     c:=foundlist3.Columns.Add;
     c.caption:=rsPrevious;
@@ -10874,6 +10879,9 @@ begin
       PreviousResultList.Add(ssh);
     end;
   finally
+
+    if l<>nil then
+      freemem(l);
 
     if foundlist3.ColumnCount=length(oldsizes) then
     begin

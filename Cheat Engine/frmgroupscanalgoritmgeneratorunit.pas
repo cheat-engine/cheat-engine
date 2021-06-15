@@ -110,7 +110,8 @@ begin
         6: result:=8;
         7: result:=length(edtvalue.text);
         8: result:=length(edtvalue.text)*2;
-        9:
+        9: result:=processhandler.pointersize;
+        10:
         begin
           try
             result:=strtoint(edtValue.text);
@@ -129,7 +130,7 @@ var ct: TCustomType;
   p: string;
 begin
   result:='';
-  if edtValue.text='' then exit;
+
 
   p:='';
   if (not skipPicked) and cbPicked.checked then
@@ -146,7 +147,8 @@ begin
     6: result:='d'+p+':';
     7: result:='s'+p+':''';
     8: result:='su'+p+':''';
-    9: result:='w'+p+':';
+    9: result:='p'+p+':';
+    10: result:='w'+p+':';
     else
     begin
       //custom
@@ -250,18 +252,19 @@ begin
   edtValue:=Tedit.create(self);
   cbVartype:=Tcombobox.create(self);
 
-  cbvartype.Items.Add('');
+  cbvartype.Items.Add('');                   //0
 
 
-  cbvartype.Items.Add(rs_vtByte);
-  cbvartype.Items.Add(rs_vtWord);
-  cbvartype.Items.Add(rs_vtDword);
-  cbvartype.Items.Add(rs_vtQword);
-  cbvartype.Items.Add(rs_vtSingle);
-  cbvartype.Items.Add(rs_vtDouble);
-  cbvartype.Items.Add(rs_vtString);
-  cbvartype.Items.Add(rs_vtUnicodeString);
-  cbvartype.Items.Add(rsWildcard);
+  cbvartype.Items.Add(rs_vtByte);            //1
+  cbvartype.Items.Add(rs_vtWord);            //2
+  cbvartype.Items.Add(rs_vtDword);           //3
+  cbvartype.Items.Add(rs_vtQword);           //4
+  cbvartype.Items.Add(rs_vtSingle);          //5
+  cbvartype.Items.Add(rs_vtDouble);          //6
+  cbvartype.Items.Add(rs_vtString);          //7
+  cbvartype.Items.Add(rs_vtUnicodeString);   //8
+  cbvartype.Items.Add(rs_vtPointer);         //9
+  cbvartype.Items.Add(rsWildcard);           //10
 
 
   for i:=0 to customTypes.count-1 do
@@ -472,7 +475,7 @@ procedure TfrmGroupScanAlgoritmGenerator.AddWildcard(count: integer);
 var x: TVariableInfo;
 begin
   x:=TVariableInfo(Varinfolist[Varinfolist.count-1]);
-  x.cbVartype.ItemIndex:=9;
+  x.cbVartype.ItemIndex:=10;
   x.vartypeselect(x.cbVartype);
   x.edtValue.text:=inttostr(count);
 end;
@@ -491,7 +494,7 @@ begin
     vtDouble: x.cbVartype.itemindex:=6;
     vtString: x.cbVartype.ItemIndex:=7;
     vtUnicodeString: x.cbVartype.ItemIndex:=8;
-    vtPointer: if processhandler.is64Bit then x.cbVartype.itemindex:=4 else x.cbVartype.itemindex:=3;
+    vtPointer: x.cbVartype.itemindex:=9;
     vtCustom: x.cbVartype.ItemIndex:=x.cbVartype.Items.IndexOf(customtype.name);
   end;
 
@@ -537,6 +540,7 @@ begin
 
       end;
       vtUnicodeString: x.cbVartype.ItemIndex:=8;
+      vtPointer: x.cbVartype.ItemIndex:=9;
       vtCustom: x.cbVartype.ItemIndex:=x.cbVartype.Items.IndexOf(gcp.elements[i].customtype.name);
     end;
 

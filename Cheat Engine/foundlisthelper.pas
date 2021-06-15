@@ -698,10 +698,10 @@ begin
           begin
             valuelist[j]:=valuelist[j]+gcp.elements[k].command+'['+inttohex(groupdata^.offsets[k],1)+']:';
 
-            if not gcp.elements[k].wildcard then
-              valuelist[j]:=valuelist[j]+readAndParseAddress(currentaddress+groupdata^.offsets[k], gcp.elements[k].vartype, gcp.elements[k].customtype, false, false, gcp.elements[k].bytesize)
-            else
-              valuelist[j]:=valuelist[j]+'*';
+            //if not gcp.elements[k].wildcard then
+              valuelist[j]:=valuelist[j]+readAndParseAddress(currentaddress+groupdata^.offsets[k], gcp.elements[k].vartype, gcp.elements[k].customtype, false, false, gcp.elements[k].bytesize);
+            //else
+            //  valuelist[j]:=valuelist[j]+'*';
 
 
             if k<>length(gcp.elements)-1 then

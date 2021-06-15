@@ -2399,6 +2399,8 @@ methods
 
   waitTillDone() : Waits for the memscan thread(s) to finish scanning. Always use this
   saveCurrentResults(name) : Save the current scanresults to a unique name for this memscan. This save can be used to compare against in a subsequent next scan
+  getSavedResultList(): Returns an indexed table of all the saved results (strings)
+  getSavedResultHandler(name): Gets the 'SavedResultHandler' object with this name (nil on failure)
   getAttachedFoundlist() : Returns a FoundList object if one is attached to this scanresults. Returns nil otherwise
 
 
@@ -2424,6 +2426,12 @@ methods
   getCount()
   getAddress(index) : Returns the address as a string
   getValue(index) : Returns the value as a string
+
+
+SavedResultHandler:
+  properties
+  methods
+    getStringFromAddress(address, hexadecimal:boolean OPTIONAL, signed: boolean OPTIONAL) : Returns the value in string format at the given address
 
 
 Memoryview class: (Inheritance: Form->ScrollingWinControl->CustomControl->WinControl->Control->Component->Object)
@@ -3003,7 +3011,7 @@ Disassembler Class (Inheritance: Object)
 
 
 createDisassembler() - Creates a disassembler object that can be used to disassemble an instruction and at the same time get more data
-getDefaultDisassembler() - Returns the default disassembler object used by a lot of ce's disassembler routines
+getDefaultDisassembler() - Returns the default disassembler object used by a lot of ce's disassembler routines (Only use this from the main thread)
 getVisibleDisassembler() - Returns the disassembler used by the disassemblerview. Special codes are: {H}=Hex value {R}=Register {S}=Symbol {N}=Nothing special {C######}=RGB color , {B######}=Background RGB color were ###### is 0xBBGGRR 
 
 registerGlobalDisassembleOverride(function(sender: Disassembler, address: integer, LastDisassembleData: Table): opcode, description): Same as Disassembler.OnDisassembleOverride, but does it for all disassemblers, including newly created ones.  Tip: Check the sender to see if you should use syntax highlighting codes or not
@@ -3345,7 +3353,7 @@ methods
 
 Database Class (Inheritance: CustomConnection->Component->Object)
 properties
-  Connected: Boolean
+  Connected: Boolean - Sewt this to true to activate the connection. (turns back to false on failure)
   DatabaseName: string
   KeepConnection: Boolean
   Params: Strings 
@@ -3382,6 +3390,7 @@ methods
 ODBCConnection class(Inheritance: SQLConnection->Database->CustomConnection->Component->Object) 
 createODBCConnection(owner) - creates an ODBCConnection object
 properties
+  DatabaseName: string - Name of the odbc connection
   Driver: string
   FileDSN: string
 

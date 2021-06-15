@@ -31,7 +31,7 @@ uses
      SyncObjs {$ifdef windows},windows7taskbar{$endif},SaveFirstScan, savedscanhandler, autoassembler,
      symbolhandler, CEFuncProc{$ifdef windows},shellapi{$endif}, CustomTypeHandler, lua,lualib,lauxlib,
      LuaHandler, {$ifdef windows}fileaccess,{$endif} groupscancommandparser, commonTypeDefs, LazUTF8,
-     forms, LazFileUtils, LCLProc, LCLVersion;
+     forms, LazFileUtils, LCLProc, LCLVersion, AvgLvlTree, Laz_AVL_Tree;
 {$define customtypeimplemented}
 {$endif}
 
@@ -56,6 +56,8 @@ type
 
   TGroupData=class  //separate for each scanner object
   private
+    is64bit: boolean;
+
     fblocksize: integer;
     fAlignsize: integer;
     outoforder: boolean;
@@ -80,10 +82,14 @@ type
 
     fscanner: TScanner;
 
+
+
     function ByteScan(value: byte; buf: Pbytearray; var startoffset: integer): boolean;
     function WordScan(value: word; buf: pointer; var startoffset: integer): boolean;
     function DWordScan(value: dword; buf: pointer; var startoffset: integer): boolean;
     function QWordScan(value: qword; buf: pointer; var startoffset: integer): boolean;
+    function Valid32BitPointerScan(value: qword; buf: pointer; var startoffset: integer): boolean;
+    function Valid64BitPointerScan(value: qword; buf: pointer; var startoffset: integer): boolean;
     function SingleScan(minf,maxf: double; buf: pointer; var startoffset: integer): boolean;
     function DoubleScan(minf,maxf: double; buf: pointer; var startoffset: integer): boolean;
     function CustomScan(ct: Tcustomtype; value: integer; buf: pointer; var startoffset: integer): boolean;
@@ -218,7 +224,10 @@ type
     //custom data
     currentAddress: PtrUInt;
 
+    isPointerLookupTree: TAvgLvlTree;
+
     //check routines:
+
     function Unknown(newvalue,oldvalue: pointer): boolean;
 
     function ByteExact(newvalue,oldvalue: pointer): boolean;
@@ -494,7 +503,10 @@ type
     isdoneEvent: TEvent; //gets set when the scan has finished
     isReallyDoneEvent: TEvent; //gets set when the results have been completely written
 
-
+    isPointerLookupTree: TAvgLvlTree; //init once and reuse by all threads
+    procedure FillIsPointerLookupTree;
+    function isPointer(address: ptruint): boolean;
+    procedure CleanupIsPointerLookupTree;
 
     procedure updategui;
     procedure errorpopup;
@@ -862,6 +874,7 @@ var start, i: integer;
 {$endif}
 begin
 {$ifndef jni}
+  is64bit:=processhandler.is64Bit;
   floatsettings:=DefaultFormatSettings;
   fscanner:=scanner;
 
@@ -960,6 +973,7 @@ begin
   begin
     if result=false then exit;
 
+
     case groupdata[i].vartype of
       vtByte:
       begin
@@ -1017,8 +1031,18 @@ begin
         inc(newvalue, groupdata[i].bytesize);
       end;
 
+      vtPointer: //only vtPointer if it's a wildcard pointer
+      begin
+        if is64bit then
+          result:=fscanner.OwningScanController.isPointer(pqword(newvalue)^)
+        else
+          result:=fscanner.OwningScanController.isPointer(pdword(newvalue)^);
+
+        inc(newvalue, groupdata[i].bytesize);
+      end;
       //todo: Convert customtype to unix
       {$ifdef customtypeimplemented}
+
       vtCustom:
       begin
         if groupdata[i].customType.scriptUsesFloat then
@@ -1127,6 +1151,64 @@ begin
   while i<blocksize-7 do
   begin
     if pqword(current)^=value then
+    begin
+      startoffset:=i+1;
+      result:=true;
+      exit;
+    end;
+
+    inc(current,align);
+    inc(i,align);
+  end;
+end;
+
+function TGroupData.Valid32BitPointerScan(value: qword; buf: pointer; var startoffset: integer): boolean;
+var current: pointer;
+  i: integer;
+  align: integer;
+begin
+  result:=false;
+  if outoforder_aligned then
+    align:=4
+  else
+    align:=1;
+
+  current:=buf;
+  inc(current, startoffset);
+  i:=startoffset;
+
+  while i<blocksize-3 do
+  begin
+    if fScanner.OwningScanController.isPointer(pdword(current)^) then
+    begin
+      startoffset:=i+1;
+      result:=true;
+      exit;
+    end;
+
+    inc(current,align);
+    inc(i,align);
+  end;
+end;
+
+function TGroupData.Valid64BitPointerScan(value: qword; buf: pointer; var startoffset: integer): boolean;
+var current: pointer;
+  i: integer;
+  align: integer;
+begin
+  result:=false;
+  if outoforder_aligned then
+    align:=4
+  else
+    align:=1;
+
+  current:=buf;
+  inc(current, startoffset);
+  i:=startoffset;
+
+  while i<blocksize-7 do
+  begin
+    if fScanner.OwningScanController.isPointer(pqword(current)^) then
     begin
       startoffset:=i+1;
       result:=true;
@@ -1335,6 +1417,7 @@ begin
     isin:=true;
 
     currentoffset:=0;
+
     case groupdata[i].vartype of
       vtByte:
       begin
@@ -1423,6 +1506,18 @@ begin
         end;
       end;
 
+      vtPointer:
+      begin
+        while result and isin do
+        begin
+          if is64bit then
+            result:=Valid64BitPointerScan(0,newvalue, currentoffset)
+          else
+            result:=Valid32BitPointerScan(0,newvalue, currentoffset);
+
+          isin:=result and isinlist;
+        end;
+      end;
 {$ifdef customtypeimplemented}
       vtCustom:
       begin
@@ -5653,8 +5748,11 @@ end;
 procedure TScanController.fillVariableAndFastScanAlignSize;
 var s: string;
     i,c: integer;
+
+    g: TGroupscanCommandParser;
 begin
   fastscan:=fastscanmethod<>fsmNotAligned;
+
 
   case variableType of
     vtByte:
@@ -5789,6 +5887,22 @@ begin
     end;
     {$ENDIF}
 
+    vtGrouped:
+    begin
+      //groupscan, check if it will use vtPointer (wildcard pointerscan)
+      g:=TGroupscanCommandParser.create(scanvalue1);
+      for i:=0 to length(g.elements)-1 do
+      begin
+        if g.elements[i].vartype=vtPointer then
+        begin
+          FillIsPointerLookupTree;
+          break;
+        end;
+      end;
+      g.free;
+
+    end;
+
   end;
 
 
@@ -5806,6 +5920,93 @@ begin
  // OutputDebugString(format('fastscanalignsize=%d',[fastscanalignsize]));
 end;
 
+
+
+type
+  TMemoryRegionInfo=record
+    baseaddress: ptruint;
+    size: size_t;
+  end;
+
+  PMemoryRegionInfo=^TMemoryRegionInfo;
+
+function RegionCompare(Item1, Item2: Pointer): Integer;
+var e1,e2: PMemoryRegionInfo;
+begin
+  e1:=item1;
+  e2:=item2;
+
+  if InRangeQ(e1^.baseaddress, e2^.baseaddress, e2^.baseaddress+e2^.size) or
+     InRangeQ(e2^.baseaddress, e1^.baseaddress, e1^.baseaddress+e1^.size) then
+    exit(0);
+
+  if e1^.baseaddress<e2^.baseaddress then exit(-1) else exit(1);
+end;
+
+procedure TScanController.FillIsPointerLookupTree;
+var
+  a: ptruint;
+  mbi: TMEMORYBASICINFORMATION;
+  e: PMemoryRegionInfo;
+begin
+  if isPointerLookupTree=nil then
+  begin
+    isPointerLookupTree:=TAvgLvlTree.Create(@RegionCompare);
+
+    a:=0;
+    zeromemory(@mbi,sizeof(mbi));
+    while (Virtualqueryex(processhandle,pointer(a),mbi,sizeof(mbi))<>0) do
+    begin
+      if (ptruint(mbi.BaseAddress)<a) or (qword(mbi.baseaddress)>QWORD($8000000000000000)) then break;
+
+      if mbi.State=mem_commit then
+      begin
+        getmem(e,sizeof(TMemoryRegionInfo));
+        e^.baseaddress:=ptruint(mbi.BaseAddress);
+        e^.size:=mbi.RegionSize;
+        isPointerLookupTree.Add(e);
+      end;
+
+      a:=PtrUint(mbi.baseaddress)+mbi.RegionSize;
+    end;
+  end;
+end;
+
+function TScanController.isPointer(address: ptruint): boolean;
+{
+Will return true/false depending on if the address is a pointer or not
+called by mutiple threads
+}
+var e: TMemoryRegionInfo;
+begin
+  e.baseaddress:=address;
+  e.size:=4;
+  result:=isPointerLookupTree.Find(@e)<>nil;
+end;
+
+procedure TScanController.CleanupIsPointerLookupTree;
+var e: TAVLTreeNodeEnumerator;
+  n: TAvgLvlTreeNode;
+begin
+  if isPointerLookupTree<>nil then
+  begin
+    e:=isPointerLookupTree.GetEnumerator;
+
+    while e.MoveNext do
+    begin
+      n:=e.Current;
+      if n<>nil then
+      begin
+        freemem(n.Data);
+        n.data:=nil;
+      end;
+    end;
+
+    freemem(e);
+    freemem(isPointerLookupTree);
+    isPointerLookupTree:=nil;
+  end;
+end;
 
 procedure TScanController.NextNextScan;
 {
@@ -5872,7 +6073,6 @@ begin
           scanners[i]:=tscanner.Create(true,OwningMemScan.ScanresultFolder);
           scanners[i].scannernr:=i;
           scanners[i].OwningScanController:=self;
-
 
           if totalAddresses>0 then
           begin
@@ -7114,6 +7314,8 @@ begin
    // outputdebugstring('Queue OwningMemScan.ScanDone');
     Queue(OwningMemScan.ScanDone);
   end;
+
+  CleanupIsPointerLookupTree;
 end;
 
 constructor TScanController.create(suspended: boolean);
