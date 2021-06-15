@@ -6664,7 +6664,7 @@ begin
         f:=tfrmstructures2.create(application);
         f.initialaddress:=p;
         f.show;
-        struct:=f.DefineNewStructure(4096);
+        struct:=f.DefineNewStructureDialog(4096);
 
         se:=getStructElementFromNode(node);
         if se<>nil then
