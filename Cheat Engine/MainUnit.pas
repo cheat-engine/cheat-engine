@@ -1294,9 +1294,9 @@ resourcestring
   rsFailureSettingTheLoadDriverPrivilege = 'Failure setting the load driver privilege. Debugging may be limited.';
   rsFailureSettingTheCreateGlobalPrivilege = 'Failure setting the CreateGlobal privilege.';
   rsCurrentProcess = 'Current process';
-  rsNone = '<none>';
   rsBusy = '<busy>';
   rsFileInUse = '<File in use>';
+  rsPleaseWait = '<Processing>';
   rsCEError = 'CE Error:';
   rsPart = ' part ';
   rsChangeValue = 'Change value';
@@ -2147,11 +2147,8 @@ begin
   begin
     errs:=err;
 
-
-
     if (errs='Access violation') and (miEnableLCLDebug.checked) then
       errs:=errs+#13#10'Please send the cedebug.txt file to Dark Byte. Thanks';
-
 
     MessageDlg(errs, mtError, [mbOK], 0);
     freememandnil(err);
@@ -3275,6 +3272,8 @@ var r: trect;
   changed: boolean;
 
   subitemCompareIndex: integer;
+
+  sic: integer;
 begin
   //apparently the SubItem field includes the main item as well at index 0   (lazarus bug? Will be fixed someday? If so, expect crashes here)
   if subitem=0 then exit;
@@ -3283,18 +3282,21 @@ begin
   drawn:=false;
   if miShowPreviousValue.checked and (PreviousResultList.count>0) then
   begin
+    sic:=item.SubItems.count;
     subitemCompareIndex:=ActivePreviousResultColumn-1;
 
+    if (subitemCompareIndex>=sic) or (subitem>=sic) or (sic=0) then
+      exit;
 
     if subitem=0 then //current value
     begin
       //compare it against the currently selected compareto selection
-      changed:=(item.subItems[subitemCompareIndex]<>rsNone) and (item.subitems[0]<>item.subitems[subitemCompareIndex]);
+      changed:=(item.subItems[subitemCompareIndex]<>rsPleaseWait) and (item.subitems[0]<>item.subitems[subitemCompareIndex]);
     end
     else
     begin
       //compare against the current value
-      changed:=(item.subItems[subitem]<>rsNone) and (item.subitems[0]<>item.subitems[subitem]);
+      changed:=(item.subItems[subitem]<>rsPleaseWait) and (item.subitems[0]<>item.subitems[subitem]);
     end;
 
     if changed then
@@ -5568,6 +5570,7 @@ begin
 end;
 
 procedure TMainForm.doNewScan;
+var c: TListColumn ;
 begin
   if SaveFirstScanThread <> nil then //stop saving the results of the fist scan
   begin
@@ -5577,6 +5580,11 @@ begin
   end;
 
   cleanupPreviousResults;
+  //create a dummy previous column
+  c:=foundlist3.Columns.Add;
+  c.caption:=rsPrevious;
+  c.tag:=foundlistColors.CompareToHeaderColor;
+  fActivePreviousResultColumn:=2;
 
 
   fastscan := formsettings.cbFastscan.Checked;
@@ -9427,7 +9435,7 @@ begin
             if PreviousResultList[i].getStringFromAddress(address, s,hexadecimal,foundlist.isSigned)=false then
             begin
               if PreviousResultList[i].lastFail=1 then
-                s:=rsFileInUse
+                s:=rsPleaseWait
               else
                 s:=rsBusy+' : '+inttostr(PreviousResultList[i].lastFail);
             end;
@@ -9450,7 +9458,7 @@ begin
 
     {$ifdef darwin}
     //no ownerdraw support for macos listview
-    if (previousvalue<>rsNone) and (value<>previousvalue) then
+    if (previousvalue<>rsPleaseWait) and (value<>previousvalue) then
       value:='* '+value+' *';
     {$endif}
 
@@ -10858,7 +10866,7 @@ begin
       c.visible:=(c.Index>=2) and miShowPreviousValue.checked and ((miOnlyShowCurrentCompareToColumn.Checked=false) or (c.index=fActivePreviousResultColumn));
 
 
-      ssh:=TSavedScanHandler.create(memscan.getScanFolder, l[i]);
+      ssh:=TSavedScanHandler.create(memscan.getScanFolder, l[i], true);
       ssh.memscan:=memscan;
       ssh.AllowNotFound:=true;
       ssh.AllowRandomAccess:=true;

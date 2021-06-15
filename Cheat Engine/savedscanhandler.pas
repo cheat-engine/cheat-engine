@@ -120,6 +120,10 @@ type
     currentRegion: integer;
     currentSubRegion: QWORD; //offset into the current region (governed by buffersize)
     Deinitialized: boolean; //if set do not lookup pointers
+
+    reinitializeLater: boolean;
+    reinitializeTimeout: qword;
+
     procedure cleanup;
     function loadIfNotLoadedRegion(p: pointer): pointer;
 
@@ -142,7 +146,7 @@ type
     property name: string read savedresultsname;
 
 
-    constructor create(scandir: string; savedresultsname: string);
+    constructor create(scandir: string; savedresultsname: string; reinitializeLaterOnFailure: boolean=false);
     destructor destroy; override;
 end;
 
@@ -342,8 +346,27 @@ begin
 
   if Deinitialized then
   begin
-    lastFail:=1;
-    exit;
+    if reinitializeLater and (gettickcount64>reinitializeTimeout) then  //if has to reinitialize check if enough time has passed and try again
+    begin
+      try
+        reinitialize;
+        //success
+        reinitializeLater:=false;
+        deinitialized:=false;
+      except
+        deinitialized:=true;
+        reinitializeLater:=true;
+        reinitializeTimeout:=GetTickCount64+1000;
+        lastFail:=1;
+        exit;
+      end;
+
+    end
+    else
+    begin
+      lastFail:=1;
+      exit;
+    end;
   end;
 
   if AllowRandomAccess then //no optimization if random access is used
@@ -744,7 +767,7 @@ begin
  end;
 end;
 
-constructor TSavedScanHandler.create(scandir: string; savedresultsname: string);
+constructor TSavedScanHandler.create(scandir: string; savedresultsname: string; reinitializeLaterOnFailure: boolean=false);
 begin
   inherited Create;
 
@@ -754,7 +777,22 @@ begin
 
   self.scandir:=scandir;
   self.savedresultsname:=savedresultsname;
-  InitializeScanHandler;
+
+  try
+    InitializeScanHandler;
+  except
+    on e:exception do
+    begin
+      if reinitializeLaterOnFailure then
+      begin
+        Deinitialized:=true;
+        reinitializeLater:=true;
+        reinitializeTimeout:=gettickcount64+1000;
+      end
+      else
+        raise;
+    end;
+  end;
 end;
 
 destructor TSavedScanHandler.destroy;
@@ -789,6 +827,7 @@ procedure TSavedScanHandler.deinitialize;
 begin
   cleanup;
   Deinitialized:=true;
+  reinitializeLater:=false;
 end;
 
 procedure TSavedScanHandler.reinitialize;
