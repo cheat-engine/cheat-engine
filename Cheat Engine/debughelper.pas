@@ -428,19 +428,22 @@ happened, and the breakpoints have already been disabled
 idle can be false if called from a thread that needed to clear it's breakpoint from an deleted breakpoint
 }
 var
-  i: integer;
+  i,j: integer;
   bp: PBreakpoint;
   deleted: boolean;
   updated: boolean;
 begin
-
+  execlocation:=500;
   i:=0;
   updated:=false;
   debuggercs.enter;
   try
+    execlocation:=501;
     while i<Breakpointlist.Count do
     begin
+      execlocation:=502;
       deleted:=false;
+
 
       bp:=PBreakpoint(breakpointlist[i]);
       if bp^.markedfordeletion then
@@ -454,22 +457,32 @@ begin
               outputdebugstring('cleanupDeletedBreakpoints: deleting bp');
               breakpointlist.Delete(i);
 
-              if (bp^.FoundcodeDialog<>nil) then
+              if (bp^.owner=nil) then
               begin
-                //the foundcode dialog was closed(refcount=0), so can be deleted now
-                GUIObjectToFree:=bp^.FoundcodeDialog;
-                Synchronize(sync_FreeGUIObject);
+                if (bp^.FoundcodeDialog<>nil) then
+                begin
+                  //the foundcode dialog was closed(refcount=0), so can be deleted now
+                  GUIObjectToFree:=bp^.FoundcodeDialog;
+                  Synchronize(sync_FreeGUIObject);
 
-                bp^.FoundcodeDialog:=nil;
+                  for j:=0 to Breakpointlist.count-1 do
+                  begin
+                    if pbreakpoint(BreakpointList[j]).owner=bp^.owner then
+                      pbreakpoint(BreakpointList[j]).FoundcodeDialog:=nil;
+                  end;
+                  bp^.FoundcodeDialog:=nil;
+                end;
+
+                if (bp^.frmchangedaddresses<>nil) then
+                begin
+                  GUIObjectToFree:=bp^.frmchangedaddresses;
+                  Synchronize(sync_FreeGUIObject);
+                  bp^.frmchangedaddresses:=nil;
+                end;
               end;
 
-              if (bp^.frmchangedaddresses<>nil) then
-              begin
-                GUIObjectToFree:=bp^.frmchangedaddresses;
-                Synchronize(sync_FreeGUIObject);
 
-                bp^.frmchangedaddresses:=nil;
-              end;
+
 
               if bp^.conditonalbreakpoint.script<>nil then
                 StrDispose(bp^.conditonalbreakpoint.script);
@@ -2846,6 +2859,7 @@ end;
 procedure TDebuggerthread.sync_FreeGUIObject;
 begin
   GUIObjectToFree.Free;
+  GUIObjectToFree:=nil;
 end;
 
 procedure TDebuggerthread.defaultConstructorcode;
