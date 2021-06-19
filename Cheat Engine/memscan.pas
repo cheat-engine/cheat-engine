@@ -1047,7 +1047,7 @@ begin
         if is64bit then
           result:=fscanner.OwningScanController.isPointer(pqword(newvalue)^, groupdata[i].pointertype)
         else
-          result:=fscanner.OwningScanController.isPointer(pqword(newvalue)^, groupdata[i].pointertype);
+          result:=fscanner.OwningScanController.isPointer(pdword(newvalue)^, groupdata[i].pointertype);
 
         inc(newvalue, groupdata[i].bytesize);
       end;
