@@ -39,7 +39,7 @@ type
       bytesize: integer;
       command: string;
       picked: boolean;
-
+      pointertype: TPointerType; // for vtPointer this restricts whether the pointer is static, dynamic, or either
     end;
 
     blocksize: integer;
@@ -112,6 +112,7 @@ begin
     elements[j].valuefloat:=0;
     elements[j].customtype:=nil;
     elements[j].bytesize:=1;
+    elements[j].pointertype:=ptAny;
     elements[j].offset:=calculatedBlocksize;
     elements[j].command:=command;
 
@@ -238,11 +239,24 @@ begin
 
         vtPointer:
         begin
-          //convert it to a normal type
-          if processhandler.is64Bit then
-            elements[j].vartype:=vtQword
+          if value = 'S' then
+          begin
+            elements[j].pointertype:=ptStatic;
+            elements[j].wildcard:=true;
+          end
+          else if value = 'D' then
+          begin
+            elements[j].pointertype:=ptDynamic;
+            elements[j].wildcard:=true;
+          end
           else
-            elements[j].vartype:=vtDword;
+          begin
+            //convert it to a normal type
+            if processhandler.is64Bit then
+              elements[j].vartype:=vtQword
+            else
+              elements[j].vartype:=vtDword;
+          end;
         end;
 
         vtSingle, vtDouble:
