@@ -79,7 +79,7 @@ type
       floataccuracy: integer;
 
       bytesize: integer;
-      pointertype: TPointerType;
+      pointertypes: TPointerTypes;
     end;
 
     groupdatalength: integer;  //saves a getLenghth lookup call
@@ -92,8 +92,8 @@ type
     function WordScan(value: word; buf: pointer; var startoffset: integer): boolean;
     function DWordScan(value: dword; buf: pointer; var startoffset: integer): boolean;
     function QWordScan(value: qword; buf: pointer; var startoffset: integer): boolean;
-    function Valid32BitPointerScan(value: qword; buf: pointer; var startoffset: integer; pointertype: TPointerType): boolean;
-    function Valid64BitPointerScan(value: qword; buf: pointer; var startoffset: integer; pointertype: TPointerType): boolean;
+    function Valid32BitPointerScan(value: qword; buf: pointer; var startoffset: integer; pointertypes: TPointerTypes): boolean;
+    function Valid64BitPointerScan(value: qword; buf: pointer; var startoffset: integer; pointertypes: TPointerTypes): boolean;
     function SingleScan(minf,maxf: double; buf: pointer; var startoffset: integer): boolean;
     function DoubleScan(minf,maxf: double; buf: pointer; var startoffset: integer): boolean;
     function CustomScan(ct: Tcustomtype; value: integer; buf: pointer; var startoffset: integer): boolean;
@@ -512,11 +512,9 @@ type
     isStaticPointerLookupTree: TAvgLvlTree; //init once and reuse by all threads
     isDynamicPointerLookupTree: TAvgLvlTree; // same ^
     isExecutablePointerLookupTree: TAvgLvlTree; // same ^
-    procedure FillStaticPointerLookupTree;
-    procedure FillDynamicPointerLookupTree;
-    procedure FillExecutablePointerLookupTree;
-    function isPointer(address: ptruint; pointertype: TPointerType): boolean;
-    procedure CleanupIsPointerLookupTree(lookupTreePtr: PAvgLvlTree);
+    procedure FillPointerLookupTrees(pointertypes: TPointertypes);
+    function isPointer(address: ptruint; pointertypes: TPointerTypes): boolean;
+    procedure CleanupIsPointerLookupTree(var lookupTree: TAvgLvlTree);
     procedure CleanupIsPointerLookupTrees;
 
     procedure updategui;
@@ -926,11 +924,11 @@ begin
       groupdata[i].maxfvalue:=groupdata[i].valuef+(1/(power(10,groupdata[i].floataccuracy)));
 
       groupdata[i].value:=uppercase(gcp.elements[i].uservalue);
-      groupdata[i].widevalue:=uppercase(gcp.elements[i].uservalue);
+      groupdata[i].widevalue:=UnicodeUpperCase(gcp.elements[i].uservalue);
 
       groupdata[i].bytesize:=gcp.elements[i].bytesize;
 
-      groupdata[i].pointertype:=gcp.elements[i].pointertype;
+      groupdata[i].pointertypes:=gcp.elements[i].pointertypes;
     end;
 
 
@@ -1048,9 +1046,9 @@ begin
       vtPointer: //only vtPointer if it's a wildcard pointer
       begin
         if is64bit then
-          result:=fscanner.OwningScanController.isPointer(pqword(newvalue)^, groupdata[i].pointertype)
+          result:=fscanner.OwningScanController.isPointer(pqword(newvalue)^, groupdata[i].pointertypes)
         else
-          result:=fscanner.OwningScanController.isPointer(pdword(newvalue)^, groupdata[i].pointertype);
+          result:=fscanner.OwningScanController.isPointer(pdword(newvalue)^, groupdata[i].pointertypes);
 
         inc(newvalue, groupdata[i].bytesize);
       end;
@@ -1176,7 +1174,7 @@ begin
   end;
 end;
 
-function TGroupData.Valid32BitPointerScan(value: qword; buf: pointer; var startoffset: integer; pointertype: TPointerType): boolean;
+function TGroupData.Valid32BitPointerScan(value: qword; buf: pointer; var startoffset: integer; pointertypes: TPointerTypes): boolean;
 var current: pointer;
   i: integer;
   align: integer;
@@ -1193,7 +1191,7 @@ begin
 
   while i<blocksize-3 do
   begin
-    if fScanner.OwningScanController.isPointer(pdword(current)^, pointertype) then
+    if fScanner.OwningScanController.isPointer(pdword(current)^, pointertypes) then
     begin
       startoffset:=i+1;
       result:=true;
@@ -1205,7 +1203,7 @@ begin
   end;
 end;
 
-function TGroupData.Valid64BitPointerScan(value: qword; buf: pointer; var startoffset: integer; pointertype: TPointerType): boolean;
+function TGroupData.Valid64BitPointerScan(value: qword; buf: pointer; var startoffset: integer; pointertypes: TPointerTypes): boolean;
 var current: pointer;
   i: integer;
   align: integer;
@@ -1222,7 +1220,7 @@ begin
 
   while i<blocksize-7 do
   begin
-    if fScanner.OwningScanController.isPointer(pqword(current)^, pointertype) then
+    if fScanner.OwningScanController.isPointer(pqword(current)^, pointertypes) then
     begin
       startoffset:=i+1;
       result:=true;
@@ -1525,9 +1523,9 @@ begin
         while result and isin do
         begin
           if is64bit then
-            result:=Valid64BitPointerScan(0,newvalue, currentoffset, groupdata[i].pointertype)
+            result:=Valid64BitPointerScan(0,newvalue, currentoffset, groupdata[i].pointertypes)
           else
-            result:=Valid32BitPointerScan(0,newvalue, currentoffset, groupdata[i].pointertype);
+            result:=Valid32BitPointerScan(0,newvalue, currentoffset, groupdata[i].pointertypes);
 
           isin:=result and isinlist;
         end;
@@ -5764,6 +5762,8 @@ var s: string;
     i,c: integer;
 
     g: TGroupscanCommandParser;
+
+    pointertypes: TPointerTypes;
 begin
   fastscan:=fastscanmethod<>fsmNotAligned;
 
@@ -5905,30 +5905,20 @@ begin
     begin
       //groupscan, check if it will use vtPointer (wildcard pointerscan)
       g:=TGroupscanCommandParser.create(scanvalue1);
+
+      PointerTypes:=[];
+
       for i:=0 to length(g.elements)-1 do
       begin
         if g.elements[i].vartype=vtPointer then
-        begin
-          if g.elements[i].pointertype=ptAny then
-          begin
-            FillStaticPointerLookupTree;
-            FillDynamicPointerLookupTree;
-            FillExecutablePointerLookupTree;
-          end
-          else if g.elements[i].pointertype=ptStatic then
-          begin
-            FillStaticPointerLookupTree;
-          end
-          else if g.elements[i].pointertype=ptDynamic then
-          begin
-            FillDynamicPointerLookupTree;
-          end
-          else if g.elements[i].pointertype=ptExecutable then
-          begin
-            FillExecutablePointerLookupTree;
-          end;
-        end;
+          pointertypes:=pointertypes+g.elements[i].pointertypes;
       end;
+
+
+      FillPointerLookupTrees(pointertypes);
+
+
+
       g.free;
 
     end;
@@ -5973,69 +5963,12 @@ begin
   if e1^.baseaddress<e2^.baseaddress then exit(-1) else exit(1);
 end;
 
-procedure TScanController.FillStaticPointerLookupTree;
+procedure TScanController.FillPointerLookupTrees(pointertypes: TPointertypes);
 var
   a: ptruint;
   mbi: TMEMORYBASICINFORMATION;
   e: PMemoryRegionInfo;
-begin
-  if isStaticPointerLookupTree=nil then
-  begin
-    isStaticPointerLookupTree:=TAvgLvlTree.Create(@RegionCompare);
-
-    a:=0;
-    zeromemory(@mbi,sizeof(mbi));
-    while (Virtualqueryex(processhandle,pointer(a),mbi,sizeof(mbi))<>0) do
-    begin
-      if (ptruint(mbi.BaseAddress)<a) or (qword(mbi.baseaddress)>QWORD($8000000000000000)) then break;
-
-      if (mbi.State=mem_commit) and ((mbi._type=mem_mapped) or (mbi._type=mem_image)) then
-      begin
-        getmem(e,sizeof(TMemoryRegionInfo));
-        e^.baseaddress:=ptruint(mbi.BaseAddress);
-        e^.size:=mbi.RegionSize;
-        isStaticPointerLookupTree.Add(e);
-      end;
-
-      a:=PtrUint(mbi.baseaddress)+mbi.RegionSize;
-    end;
-  end;
-end;
-
-procedure TScanController.FillDynamicPointerLookupTree;
-var
-  a: ptruint;
-  mbi: TMEMORYBASICINFORMATION;
-  e: PMemoryRegionInfo;
-begin
-  if isDynamicPointerLookupTree=nil then
-  begin
-    isDynamicPointerLookupTree:=TAvgLvlTree.Create(@RegionCompare);
-
-    a:=0;
-    zeromemory(@mbi,sizeof(mbi));
-    while (Virtualqueryex(processhandle,pointer(a),mbi,sizeof(mbi))<>0) do
-    begin
-      if (ptruint(mbi.BaseAddress)<a) or (qword(mbi.baseaddress)>QWORD($8000000000000000)) then break;
-
-      if (mbi.State=mem_commit) and not ((mbi._type=mem_mapped) or (mbi._type=mem_image)) then
-      begin
-        getmem(e,sizeof(TMemoryRegionInfo));
-        e^.baseaddress:=ptruint(mbi.BaseAddress);
-        e^.size:=mbi.RegionSize;
-        isDynamicPointerLookupTree.Add(e);
-      end;
-
-      a:=PtrUint(mbi.baseaddress)+mbi.RegionSize;
-    end;
-  end;
-end;
-
-procedure TScanController.FillExecutablePointerLookupTree;
-var
-  a: ptruint;
-  mbi: TMEMORYBASICINFORMATION;
-  e: PMemoryRegionInfo;
+  matchingPointerTypes: TPointertypes;
 begin
   if isExecutablePointerLookupTree=nil then
   begin
@@ -6043,16 +5976,53 @@ begin
 
     a:=0;
     zeromemory(@mbi,sizeof(mbi));
-    while (Virtualqueryex(processhandle,pointer(a),mbi,sizeof(mbi))<>0) do
+    while (Virtualqueryex(processhandle,pointer(a),mbi,sizeof(mbi))<>0) do //There is a setting which causes the whole virtualquerylookup to go very slow. Therefore, do it all in one loop
     begin
       if (ptruint(mbi.BaseAddress)<a) or (qword(mbi.baseaddress)>QWORD($8000000000000000)) then break;
 
-      if (mbi.State=mem_commit) and ((mbi.Protect=PAGE_EXECUTE) or (mbi.Protect=PAGE_EXECUTE_READ) or (mbi.Protect=PAGE_EXECUTE_READWRITE) or (mbi.Protect=PAGE_EXECUTE_WRITECOPY)) then
+      //check if it matches a pointertype
+      matchingPointerTypes:=[];
+      if (ptExecutable in pointertypes) and ((mbi.State=mem_commit) and ((mbi.Protect=PAGE_EXECUTE) or (mbi.Protect=PAGE_EXECUTE_READ) or (mbi.Protect=PAGE_EXECUTE_READWRITE) or (mbi.Protect=PAGE_EXECUTE_WRITECOPY))) then
+        matchingPointerTypes:=[ptExecutable];
+
+
+      if (ptDynamic in pointertypes) and ( (mbi.State=mem_commit) and not ((mbi._type=mem_mapped) or (mbi._type=mem_image))) then
+        matchingPointerTypes:=matchingPointerTypes+[ptDynamic];
+
+      if (ptStatic in pointertypes) and (mbi.State=mem_commit) and ((mbi._type=mem_mapped) or (mbi._type=mem_image)) then
+        matchingPointerTypes:=matchingPointerTypes+[ptStatic];
+
+      if matchingPointerTypes<>[] then
       begin
         getmem(e,sizeof(TMemoryRegionInfo));
         e^.baseaddress:=ptruint(mbi.BaseAddress);
         e^.size:=mbi.RegionSize;
-        isExecutablePointerLookupTree.Add(e);
+
+
+
+        if ptExecutable in matchingPointerTypes then
+        begin
+          if isExecutablePointerLookupTree=nil then
+            isExecutablePointerLookupTree:=TAvgLvlTree.Create(@RegionCompare);
+
+          isExecutablePointerLookupTree.Add(e);
+        end;
+
+        if ptDynamic in matchingPointerTypes then
+        begin
+          if isDynamicPointerLookupTree=nil then
+            isDynamicPointerLookupTree:=TAvgLvlTree.Create(@RegionCompare);
+
+          isDynamicPointerLookupTree.Add(e);
+        end;
+
+        if ptStatic in matchingPointerTypes then
+        begin
+          if isStaticPointerLookupTree=nil then
+            isStaticPointerLookupTree:=TAvgLvlTree.Create(@RegionCompare);
+
+          isStaticPointerLookupTree.Add(e);
+        end;
       end;
 
       a:=PtrUint(mbi.baseaddress)+mbi.RegionSize;
@@ -6060,7 +6030,9 @@ begin
   end;
 end;
 
-function TScanController.isPointer(address: ptruint; pointertype: TPointerType): boolean;
+
+
+function TScanController.isPointer(address: ptruint; pointertypes: TPointerTypes): boolean;
 {
 Will return true/false depending on if the address is a pointer or not
 called by mutiple threads
@@ -6069,24 +6041,15 @@ var e: TMemoryRegionInfo;
 begin
   e.baseaddress:=address;
   e.size:=4;
-  if pointerType = ptAny then
-    result:=(isStaticPointerLookupTree.Find(@e)<>nil) or (isDynamicPointerLookupTree.Find(@e)<>nil) // no need to scan the executable lookup tree here - static & dynamic covers everything
-  else if pointerType = ptStatic then
-    result:=(isStaticPointerLookupTree.Find(@e)<>nil)
-  else if pointerType = ptDynamic then
-    result:=(isDynamicPointerLookupTree.Find(@e)<>nil)
-  else if pointerType = ptExecutable then
-    result:=(isExecutablePointerLookupTree.Find(@e)<>nil)
-  else
-    raise exception.create(rsMSPointerTypeNotRecognised+IntToStr(Ord(pointertype)));
+  result:=((ptDynamic in pointertypes) and (isDynamicPointerLookupTree.Find(@e)<>nil)) or
+          ((ptStatic in pointertypes) and (isStaticPointerLookupTree.Find(@e)<>nil)) or
+          ((ptExecutable in pointertypes) and (isExecutablePointerLookupTree.Find(@e)<>nil));
 end;
 
-procedure TScanController.CleanupIsPointerLookupTree(lookupTreePtr: PAvgLvlTree);
+procedure TScanController.CleanupIsPointerLookupTree(var lookupTree: TAvgLvlTree);
 var e: TAVLTreeNodeEnumerator;
   n: TAvgLvlTreeNode;
-  lookupTree: TAvgLvlTree;
 begin
-  lookupTree:=lookupTreePtr^;
   if lookupTree<>nil then
   begin
     e:=lookupTree.GetEnumerator;
@@ -6103,15 +6066,17 @@ begin
 
     freemem(e);
     freemem(lookupTree);
-    lookupTreePtr^:=nil;
+
   end;
+
+  lookupTree:=nil;
 end;
 
 procedure TScanController.CleanupIsPointerLookupTrees;
 begin
-  CleanupIsPointerLookupTree(@isStaticPointerLookupTree);
-  CleanupIsPointerLookupTree(@isDynamicPointerLookupTree);
-  CleanupIsPointerLookupTree(@isExecutablePointerLookupTree);
+  CleanupIsPointerLookupTree(isStaticPointerLookupTree);
+  CleanupIsPointerLookupTree(isDynamicPointerLookupTree);
+  CleanupIsPointerLookupTree(isExecutablePointerLookupTree);
 end;
 
 procedure TScanController.NextNextScan;

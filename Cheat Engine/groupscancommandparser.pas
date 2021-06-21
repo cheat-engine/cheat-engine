@@ -41,7 +41,7 @@ type
       bytesize: integer;
       command: string;
       picked: boolean;
-      pointertype: TPointerType; // for vtPointer this restricts whether the pointer is static, dynamic, executable, or any
+      pointertypes: TPointerTypes; // for vtPointer this restricts whether the pointer is static, dynamic, executable
     end;
 
     blocksize: integer;
@@ -114,7 +114,7 @@ begin
     elements[j].valuefloat:=0;
     elements[j].customtype:=nil;
     elements[j].bytesize:=1;
-    elements[j].pointertype:=ptAny;
+    elements[j].pointertypes:=[ptStatic, ptDynamic];
     elements[j].offset:=calculatedBlocksize;
     elements[j].command:=command;
 
@@ -243,17 +243,17 @@ begin
         begin
           if value = 'S' then
           begin
-            elements[j].pointertype:=ptStatic;
+            elements[j].pointertypes:=[ptStatic];
             elements[j].wildcard:=true;
           end
           else if value = 'D' then
           begin
-            elements[j].pointertype:=ptDynamic;
+            elements[j].pointertypes:=[ptDynamic];
             elements[j].wildcard:=true;
           end
           else if value = 'E' then
           begin
-            elements[j].pointertype:=ptExecutable;
+            elements[j].pointertypes:=[ptExecutable];
             elements[j].wildcard:=true;
           end
           else
