@@ -230,6 +230,7 @@ type
 
     isStaticPointerLookupTree: TAvgLvlTree;
     isDynamicPointerLookupTree: TAvgLvlTree;
+    isExecutablePointerLookupTree: TAvgLvlTree;
 
     //check routines:
 
@@ -510,8 +511,10 @@ type
 
     isStaticPointerLookupTree: TAvgLvlTree; //init once and reuse by all threads
     isDynamicPointerLookupTree: TAvgLvlTree; // same ^
+    isExecutablePointerLookupTree: TAvgLvlTree; // same ^
     procedure FillStaticPointerLookupTree;
     procedure FillDynamicPointerLookupTree;
+    procedure FillExecutablePointerLookupTree;
     function isPointer(address: ptruint; pointertype: TPointerType): boolean;
     procedure CleanupIsPointerLookupTree(lookupTreePtr: PAvgLvlTree);
     procedure CleanupIsPointerLookupTrees;
@@ -5910,12 +5913,20 @@ begin
           begin
             FillStaticPointerLookupTree;
             FillDynamicPointerLookupTree;
+            FillExecutablePointerLookupTree;
           end
           else if g.elements[i].pointertype=ptStatic then
-            FillStaticPointerLookupTree
+          begin
+            FillStaticPointerLookupTree;
+          end
           else if g.elements[i].pointertype=ptDynamic then
+          begin
             FillDynamicPointerLookupTree;
-          break;
+          end
+          else if g.elements[i].pointertype=ptExecutable then
+          begin
+            FillExecutablePointerLookupTree;
+          end;
         end;
       end;
       g.free;
@@ -6020,6 +6031,35 @@ begin
   end;
 end;
 
+procedure TScanController.FillExecutablePointerLookupTree;
+var
+  a: ptruint;
+  mbi: TMEMORYBASICINFORMATION;
+  e: PMemoryRegionInfo;
+begin
+  if isExecutablePointerLookupTree=nil then
+  begin
+    isExecutablePointerLookupTree:=TAvgLvlTree.Create(@RegionCompare);
+
+    a:=0;
+    zeromemory(@mbi,sizeof(mbi));
+    while (Virtualqueryex(processhandle,pointer(a),mbi,sizeof(mbi))<>0) do
+    begin
+      if (ptruint(mbi.BaseAddress)<a) or (qword(mbi.baseaddress)>QWORD($8000000000000000)) then break;
+
+      if (mbi.State=mem_commit) and ((mbi.Protect=PAGE_EXECUTE) or (mbi.Protect=PAGE_EXECUTE_READ) or (mbi.Protect=PAGE_EXECUTE_READWRITE) or (mbi.Protect=PAGE_EXECUTE_WRITECOPY)) then
+      begin
+        getmem(e,sizeof(TMemoryRegionInfo));
+        e^.baseaddress:=ptruint(mbi.BaseAddress);
+        e^.size:=mbi.RegionSize;
+        isExecutablePointerLookupTree.Add(e);
+      end;
+
+      a:=PtrUint(mbi.baseaddress)+mbi.RegionSize;
+    end;
+  end;
+end;
+
 function TScanController.isPointer(address: ptruint; pointertype: TPointerType): boolean;
 {
 Will return true/false depending on if the address is a pointer or not
@@ -6030,11 +6070,13 @@ begin
   e.baseaddress:=address;
   e.size:=4;
   if pointerType = ptAny then
-    result:=(isStaticPointerLookupTree.Find(@e)<>nil) or (isDynamicPointerLookupTree.Find(@e)<>nil)
+    result:=(isStaticPointerLookupTree.Find(@e)<>nil) or (isDynamicPointerLookupTree.Find(@e)<>nil) // no need to scan the executable lookup tree here - static & dynamic covers everything
   else if pointerType = ptStatic then
     result:=(isStaticPointerLookupTree.Find(@e)<>nil)
   else if pointerType = ptDynamic then
     result:=(isDynamicPointerLookupTree.Find(@e)<>nil)
+  else if pointerType = ptExecutable then
+    result:=(isExecutablePointerLookupTree.Find(@e)<>nil)
   else
     raise exception.create(rsMSPointerTypeNotRecognised+IntToStr(Ord(pointertype)));
 end;
@@ -6069,6 +6111,7 @@ procedure TScanController.CleanupIsPointerLookupTrees;
 begin
   CleanupIsPointerLookupTree(@isStaticPointerLookupTree);
   CleanupIsPointerLookupTree(@isDynamicPointerLookupTree);
+  CleanupIsPointerLookupTree(@isExecutablePointerLookupTree);
 end;
 
 procedure TScanController.NextNextScan;

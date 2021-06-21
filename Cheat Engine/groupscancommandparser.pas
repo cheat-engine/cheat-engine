@@ -9,6 +9,8 @@ This unit contains the class that reads a groupscan command and parses it. The r
 interface
 
 
+
+
 {$ifdef jni}
 uses Classes, SysUtils, strutils, CustomTypeHandler, commonTypeDefs;
 {$else}
@@ -39,7 +41,7 @@ type
       bytesize: integer;
       command: string;
       picked: boolean;
-      pointertype: TPointerType; // for vtPointer this restricts whether the pointer is static, dynamic, or either
+      pointertype: TPointerType; // for vtPointer this restricts whether the pointer is static, dynamic, executable, or any
     end;
 
     blocksize: integer;
@@ -247,6 +249,11 @@ begin
           else if value = 'D' then
           begin
             elements[j].pointertype:=ptDynamic;
+            elements[j].wildcard:=true;
+          end
+          else if value = 'E' then
+          begin
+            elements[j].pointertype:=ptExecutable;
             elements[j].wildcard:=true;
           end
           else
