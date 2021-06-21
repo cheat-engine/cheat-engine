@@ -34,7 +34,7 @@ typedef struct _instruction_info_vm
 
 
 int handleIntelVMXInstruction(pcpuinfo currentcpuinfo, VMRegisters *vmregisters);
-int handleByGuest(pcpuinfo currentcpuinfo, VMRegisters *vmregisters);
+int emulateVMExit(pcpuinfo currentcpuinfo, VMRegisters *vmregisters);
 
 extern int emulatevmx;
 

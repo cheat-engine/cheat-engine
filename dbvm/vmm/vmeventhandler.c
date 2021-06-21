@@ -2683,19 +2683,21 @@ instruction does not modify bit 63 of CR3, which is reserved and always 0.
 int setVM_CR4(pcpuinfo currentcpuinfo, UINT64 newcr4)
 {
 
-  UINT64 oldCR4=(vmread(vm_guest_cr4) & (~vmread(vm_cr0_guest_host_mask))) | (vmread(vm_cr4_read_shadow) & vmread(vm_cr4_guest_host_mask));
+  UINT64 oldCR4=(vmread(vm_guest_cr4) & (~vmread(vm_cr4_guest_host_mask))) | (vmread(vm_cr4_read_shadow) & vmread(vm_cr4_guest_host_mask));
   UINT64 newCR4=newcr4;
   UINT64 IA32_VMX_CR4_FIXED0=readMSR(0x488);
   UINT64 IA32_VMX_CR4_FIXED1=readMSR(0x489);
 
+  nosendchar[getAPICID()]=0;
+
   if (!IS64BITCODE(currentcpuinfo))
     newCR4=newCR4 & 0xffffffff;
 
-  sendstring("setVM_CR4(...)\n\r");
+  //sendstringf("setVM_CR4(%8)  (oldCR4=%8)\n", newCR4, oldCR4);
 
   if ((IA32_VMX_CR4_FIXED1 & newCR4) != newCR4)
   {
-    sendstringf("THE GUEST OS WANTS TO SET A BIT THAT SHOULD STAY 0\n\r");
+    sendstringf("CR4: THE GUEST OS WANTS TO SET A BIT THAT SHOULD STAY 0\n\r");
     return 1;
   }
 
@@ -2736,7 +2738,7 @@ int setVM_CR4(pcpuinfo currentcpuinfo, UINT64 newcr4)
 
 
 
-  sendstringf("Set fake CR4 to %x  (old fake was %x)\n\r",newCR4, oldCR4);
+ // sendstringf("Set fake CR4 to %x  (old fake was %x)\n\r",newCR4, oldCR4);
   if (hasUnrestrictedSupport)
     vmwrite(vm_cr4_read_shadow,newCR4 & vmread(vm_cr4_guest_host_mask) ); //set the host bits accordingly
   else
@@ -2758,7 +2760,7 @@ int setVM_CR4(pcpuinfo currentcpuinfo, UINT64 newcr4)
   if (vmread(vm_cr0_read_shadow) & CR0_PG)
   {
     //paging is enabled, check if the pae flag has been changed
-    sendstringf("CR4 change and Paging is enabled\n\r");
+    //sendstringf("CR4 change and Paging is enabled\n\r");
 
 
     if ((oldCR4 & CR4_PAE) && ((newCR4 & CR4_PAE)==0))
@@ -4579,7 +4581,8 @@ int handleVMEvent_internal(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, FX
   return 1;
 }
 
-
+int reached7c00=0;
+int counter;
 int handleVMEvent(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, FXSAVE64 *fxsave)
 {
 
@@ -4587,17 +4590,62 @@ int handleVMEvent(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, FXSAVE64 *f
  //   outportb(0x80,exit_reason);
   int result;
   VMExit_idt_vector_information idtvectorinfo;
-  idtvectorinfo.idtvector_info=vmread(vm_idtvector_information);
 
+
+  currentcpuinfo->lastExitReason=vmread(vm_exit_reason);
   if (currentcpuinfo->vmxdata.runningvmx)
   {
+    int show=1;
+    int r;
+    int er=vmread(vm_exit_reason) & 0xff;
+    currentcpuinfo->lastExitWasWithRunningVMX=1;
+
+    //debug code:
     //check if I should handle it, if not
     nosendchar[getAPICID()]=0;
-    sendstring("nested vm is not 100% working\n");
-    return handleByGuest(currentcpuinfo, vmregisters);
+
+
+
+
+    switch (er)
+    {
+      case vm_exit_cpuid:
+      case vm_exit_io_access:
+      case vm_exit_externalinterupt:
+      case vm_exit_interrupt_window:
+      case vm_exit_apic_access:
+      case vm_exit_mwait:
+      case vm_exit_monitor:
+      case vm_exit_ept_violation:
+      case vm_exit_ept_misconfiguration:
+      case vm_exit_vmx_preemptiontimer_reachedzero:
+        show=0;
+        break;
+    }
+
+    counter++;
+    if (counter % 8192==0)
+      show=1; //show anyhow to show it's alive
+
+
+
+    if (show)
+      sendstringf("%d:%x:%6: event=%d (%s)  esi=%6 edi=%6 ecx=%6\n", currentcpuinfo->cpunr, vmread(vm_guest_cs), vmread(vm_guest_rip),  vmread(vm_exit_reason), getVMExitReassonString(), vmregisters->rsi, vmregisters->rdi, vmregisters->rcx);
+
+    r=emulateVMExit(currentcpuinfo, vmregisters); //after this
+
+    if (currentcpuinfo->vmxdata.runningvmx)
+    {
+      sendstringf("handleByGuest did not handle it...\n");
+      while(1);
+    }
+
+    return r;
   }
 
+  currentcpuinfo->lastExitWasWithRunningVMX=0;
 
+  idtvectorinfo.idtvector_info=vmread(vm_idtvector_information);
 
   result=handleVMEvent_internal(currentcpuinfo, vmregisters, fxsave);
 

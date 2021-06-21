@@ -559,6 +559,8 @@ vmxloop_vmexit:
 
 ;save registers
 
+;db 0xf1
+
 
 sub rsp,15*8
 
@@ -595,10 +597,10 @@ jne notfucker
 ;xchg bx,bx
 wbinvd
 
-mov rbx,0x681e
+mov rbx,0x681e  ;RIP
 vmread rax,rbx
 
-mov rbx,0x6808
+mov rbx,0x6808  ;CS
 vmread rbx,rbx
 
 
@@ -707,8 +709,12 @@ pop rax
 vmlaunch
 
 
+;db 0xf1 ;debug
+
 ;never executed unless on error
 ;restore state of vmm
+
+
 mov dword [fs:0x10],0xce00 ;exitreason 0xce00
 jmp vmxloop_vmexit
 
@@ -732,9 +738,10 @@ pop rax
 
 vmresume
 
+db 0xf1 ;debug
 
 ;never executed unless on error
-mov dword [fs:0x10],0xce00 ;exitreason 0xce00
+mov dword [fs:0x10],0xce01 ;exitreason 0xce01  (resume fail)
 jmp vmxloop_vmexit
 
 vmxloop_exitvm:  ;(esp-68)

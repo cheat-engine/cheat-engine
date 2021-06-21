@@ -286,11 +286,13 @@ int getDBVMVersion(void)
 {
   int result;
   VMCALL_BASIC param;
-  sendstringf("getDBVMVersion");
+//  sendstringf("getDBVMVersion\n");
 
   param.command=VMCALL_GETVERSION;
   param.password2=Password2;
   param.size=sizeof(param);
+
+  result=0;
 
   try
   {

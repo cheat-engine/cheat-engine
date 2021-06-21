@@ -36,7 +36,7 @@ displaydebug: clean install
 usb: install
 	@if [ -b /dev/sdb ] ;\
 	then \
-		dd if=vmdisk.img of=/dev/sdb ;\
+		dd if=vmdisk.img of=/dev/sdc ;\
 		sync ;\
 	else \
 		echo "/dev/sde does not exist. Did you just run this without understanding makefiles? This could have really fucked you up" ;\

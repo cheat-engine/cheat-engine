@@ -1235,6 +1235,7 @@ void menu2(void)
     key=0;
     while (!key)
     {
+      /*
       if ((!loadedOS) || (showfirstmenu))
       {
 #ifdef DELAYEDSERIAL
@@ -1247,7 +1248,7 @@ void menu2(void)
         else
           key=kbd_getchar();
       }
-      else
+      else*/
         key='0';
 
       while (IntHandlerDebug) ;
@@ -1744,6 +1745,7 @@ void menu(void)
 #endif
     sendstring("Your command:");
 
+
 #ifndef DEBUG
     if (autostart || loadedOS)
     {
@@ -1763,8 +1765,8 @@ void menu(void)
 #endif
       if (loadedOS)
       {
-//        command='0';
-        command=waitforchar();
+        command='0';
+//        command=waitforchar();
 
       }
       else
@@ -2015,6 +2017,19 @@ void menu(void)
         {
           sendstring("Trying vmcall\n");
           vmcalltest();
+          break;
+        }
+
+        case 'z':
+        {
+          QWORD old=getCR4();
+          sendstringf("testing cr4 value\n");
+          setCR4(0x370678);
+          sendstringf("pass 1 %8\n", getCR4());
+          setCR4(0x372678);
+          sendstringf("pass 2 %8\n", getCR4());
+          setCR4(old);
+          sendstringf("done\n");
           break;
         }
 

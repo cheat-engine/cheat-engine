@@ -341,12 +341,6 @@ int cinthandler(unsigned long long *stack, int intnr) //todo: move to it's own s
   if (readMSR(IA32_FS_BASE_MSR)==0)
   {
 
-#ifdef DEBUG
-  sendstringCS.ignorelock=1;
-  sendstringfCS.ignorelock=1;
-#endif
-
-
     sendstringf("Invalid FS base during exception %d  CR2=%6!!\n",intnr, getCR2());
 
 

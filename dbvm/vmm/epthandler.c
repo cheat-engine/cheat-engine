@@ -1451,6 +1451,7 @@ BOOL ept_handleSoftwareBreakpoint(pcpuinfo currentcpuinfo, VMRegisters *vmregist
     csEnter(&BrokenThreadListCS);
     if (BrokenThreadList && BrokenThreadListPos)
     {
+      int shouldHaveBeenHandled=0;
       //sendstringf("Checking the broken threadlist");
       for (i=0; i<BrokenThreadListPos; i++)
       {
@@ -1472,18 +1473,31 @@ BOOL ept_handleSoftwareBreakpoint(pcpuinfo currentcpuinfo, VMRegisters *vmregist
             rax=vmregisters->rax;
           }
 
-          if ((QWORD)rax!=(QWORD)i) continue; //rax should match the brokenthreadlist id
+          //rsp might be a good detection point as well
+
 
           //warning: In windows, kernelmode gsbase changes depending on the cpu so can not be used as identifier then
 
           //check if it's matches this thread
           if ((cr3==BrokenThreadList[i].state.basic.CR3) && ((rip==BrokenThreadList[i].KernelModeLoop) || (rip==BrokenThreadList[i].UserModeLoop)))
           {
+            shouldHaveBeenHandled=1;
+
+            if ((QWORD)rax!=(QWORD)i) continue; //rax should match the brokenthreadlist id
+
             result=ept_handleFrozenThread(currentcpuinfo, vmregisters, fxsave, i);
             break;
           }
         }
       }
+
+/*
+      if ((!result) && (shouldHaveBeenHandled))
+      {
+        while (1);
+      }
+      */
+
     }
     csLeave(&BrokenThreadListCS);
     if (result) return result; //it was a frozen thread

@@ -19,230 +19,12 @@
 #include "mm.h"
 #include "displaydebug.h"
 
+#include "vmxsetup.h"
+
 
 int emulatevmx=1;
 
 //todo: vmcs link pointer implementation
-
-
-void setHostState(vmxhoststate *hoststate)
-{
-  vmwrite(vm_host_es, hoststate->ES);
-  vmwrite(vm_host_cs, hoststate->CS);
-  vmwrite(vm_host_ss, hoststate->SS);
-  vmwrite(vm_host_ds, hoststate->DS);
-  vmwrite(vm_host_fs, hoststate->FS);
-  vmwrite(vm_host_gs, hoststate->GS);
-  vmwrite(vm_host_tr, hoststate->TR);
-  vmwrite(vm_host_IA32_PAT, hoststate->IA32_PAT);
-  vmwrite(vm_host_IA32_EFER, hoststate->IA32_EFER);
-  vmwrite(vm_host_IA32_PERF_GLOBAL_CTRL, hoststate->IA32_PERF_GLOBAL_CTRL);
-  vmwrite(vm_host_IA32_SYSENTER_CS, hoststate->IA32_SYSENTER_CS);
-
-  vmwrite(vm_host_cr0, hoststate->CR0);
-  vmwrite(vm_host_cr3, hoststate->CR3);
-  vmwrite(vm_host_cr4, hoststate->CR4);
-
-  vmwrite(vm_host_fs_base, hoststate->FS_BASE);
-  vmwrite(vm_host_gs_base, hoststate->GS_BASE);
-  vmwrite(vm_host_tr_base, hoststate->TR_BASE);
-  vmwrite(vm_host_gdtr_base, hoststate->GDTR_BASE);
-  vmwrite(vm_host_idtr_base, hoststate->IDTR_BASE);
-
-  vmwrite(vm_host_IA32_SYSENTER_ESP, hoststate->IA32_SYSENTER_ESP);
-  vmwrite(vm_host_IA32_SYSENTER_EIP, hoststate->IA32_SYSENTER_EIP);
-
-  vmwrite(vm_host_rsp, hoststate->RSP);
-  vmwrite(vm_host_rip, hoststate->RIP);
-
-}
-
-void getHostState(vmxhoststate *hoststate)
-/*
- * gets the host state of the currently loaded VMX and stores it into *hoststate
- */
-{
-
-  hoststate->ES=vmread(vm_host_es);
-  hoststate->CS=vmread(vm_host_cs);
-  hoststate->SS=vmread(vm_host_ss);
-  hoststate->DS=vmread(vm_host_ds);
-  hoststate->FS=vmread(vm_host_fs);
-  hoststate->GS=vmread(vm_host_gs);
-  hoststate->TR=vmread(vm_host_tr);
-  hoststate->IA32_PAT=vmread(vm_host_IA32_PAT);
-  hoststate->IA32_EFER=vmread(vm_host_IA32_EFER);
-  hoststate->IA32_PERF_GLOBAL_CTRL=vmread(vm_host_IA32_PERF_GLOBAL_CTRL);
-  hoststate->IA32_SYSENTER_CS=vmread(vm_host_IA32_SYSENTER_CS);
-
-  hoststate->CR0=vmread(vm_host_cr0);
-  hoststate->CR3=vmread(vm_host_cr3);
-  hoststate->CR4=vmread(vm_host_cr4);
-
-  hoststate->FS_BASE=vmread(vm_host_fs_base);
-  hoststate->GS_BASE=vmread(vm_host_gs_base);
-  hoststate->TR_BASE=vmread(vm_host_tr_base);
-  hoststate->GDTR_BASE=vmread(vm_host_gdtr_base);
-  hoststate->IDTR_BASE=vmread(vm_host_idtr_base);
-
-  hoststate->IA32_SYSENTER_ESP=vmread(vm_host_IA32_SYSENTER_ESP);
-  hoststate->IA32_SYSENTER_EIP=vmread(vm_host_IA32_SYSENTER_EIP);
-
-  hoststate->RSP=vmread(vm_host_rsp);
-  hoststate->RIP=vmread(vm_host_rip);
-}
-
-//handlebyDBVM(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)  //don't let the guest exit, just continue the host's guest
-
-int handleByGuest(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
-{
-  //switch to the default VMCS
-
-  if (currentcpuinfo->vmxdata.runningvmx==0)
-  {
-    sendstringf("handleByGuest was called while runningvmx is 0");
-    ddDrawRectangle(0,DDVerticalResolution-100,100,100,0xff0000);
-    while (1);
-  }
-  else
-  if (currentcpuinfo->vmxdata.insideVMXRootMode==0)
-  {
-    sendstringf("runningvmx but insideVMXRootMode is 0\n");
-    ddDrawRectangle(0,DDVerticalResolution-100,100,100,0xff0000);
-    while (1);
-  }
-
-  int ptrld=vmptrld(currentcpuinfo->vmcs_regionPA);
-
-  if (ptrld)
-  {
-    sendstringf("failure loading the vmcs_regionPA\n");
-    ddDrawRectangle(0,DDVerticalResolution-100,100,100,0xff0000);
-    while(1);
-  }
-
-  //sendstringf("ptrld=%d\n", ptrld);
-
-  //set the guest state to the original host state (load the GDT, map it, and then set the segment register accesses and limits properly. Like vmmhelper launchtime)
-  vmwrite(vm_guest_es, currentcpuinfo->vmxdata.originalhoststate.ES);
-  vmwrite(vm_guest_cs, currentcpuinfo->vmxdata.originalhoststate.CS);
-  vmwrite(vm_guest_ss, currentcpuinfo->vmxdata.originalhoststate.SS);
-  vmwrite(vm_guest_ds, currentcpuinfo->vmxdata.originalhoststate.DS);
-  vmwrite(vm_guest_fs, currentcpuinfo->vmxdata.originalhoststate.FS);
-  vmwrite(vm_guest_gs, currentcpuinfo->vmxdata.originalhoststate.GS);
-  vmwrite(vm_guest_tr, currentcpuinfo->vmxdata.originalhoststate.TR);
-
-
-
-
-
-
-  vmwrite(vm_guest_IA32_PAT, currentcpuinfo->vmxdata.originalhoststate.IA32_PAT);
-  vmwrite(vm_guest_IA32_EFER, currentcpuinfo->vmxdata.originalhoststate.IA32_EFER);
-  vmwrite(vm_guest_IA32_PERF_GLOBAL_CTRL, currentcpuinfo->vmxdata.originalhoststate.IA32_PERF_GLOBAL_CTRL);
-  vmwrite(vm_guest_IA32_SYSENTER_CS, currentcpuinfo->vmxdata.originalhoststate.IA32_SYSENTER_CS);
-
-  vmwrite(vm_guest_cr0, currentcpuinfo->vmxdata.originalhoststate.CR0);
-  vmwrite(vm_guest_cr3, currentcpuinfo->vmxdata.originalhoststate.CR3);
-  vmwrite(vm_guest_cr4, currentcpuinfo->vmxdata.originalhoststate.CR4);
-
-  currentcpuinfo->guestCR3=currentcpuinfo->vmxdata.originalhoststate.CR3;
-
-  vmwrite(vm_guest_fs_base, currentcpuinfo->vmxdata.originalhoststate.FS_BASE);
-  vmwrite(vm_guest_gs_base, currentcpuinfo->vmxdata.originalhoststate.GS_BASE);
-  vmwrite(vm_guest_tr_base, currentcpuinfo->vmxdata.originalhoststate.TR_BASE);
-
-  vmwrite(vm_guest_gdtr_base, currentcpuinfo->vmxdata.originalhoststate.GDTR_BASE);
-  vmwrite(vm_guest_idtr_base, currentcpuinfo->vmxdata.originalhoststate.IDTR_BASE);
-
-  vmwrite(vm_guest_IA32_SYSENTER_ESP, currentcpuinfo->vmxdata.originalhoststate.IA32_SYSENTER_ESP);
-  vmwrite(vm_guest_IA32_SYSENTER_EIP, currentcpuinfo->vmxdata.originalhoststate.IA32_SYSENTER_EIP);
-
-  vmwrite(vm_guest_rsp, currentcpuinfo->vmxdata.originalhoststate.RSP);
-  vmwrite(vm_guest_rip, currentcpuinfo->vmxdata.originalhoststate.RIP);
-
-  //now setup the segment limits/bases
-  PGDT_ENTRY gdt=NULL; //no LDT
-  //get the minimum size needed to map the GDT
-  int maxsegment=currentcpuinfo->vmxdata.originalhoststate.ES | 7;
-  maxsegment=max(maxsegment, currentcpuinfo->vmxdata.originalhoststate.CS | 7);
-  maxsegment=max(maxsegment, currentcpuinfo->vmxdata.originalhoststate.SS | 7);
-  maxsegment=max(maxsegment, currentcpuinfo->vmxdata.originalhoststate.DS | 7);
-  maxsegment=max(maxsegment, currentcpuinfo->vmxdata.originalhoststate.FS | 7);
-  maxsegment=max(maxsegment, currentcpuinfo->vmxdata.originalhoststate.GS | 7);
-  maxsegment=max(maxsegment, currentcpuinfo->vmxdata.originalhoststate.TR | 7);
-
-
-  int error=0;
-  QWORD pagefault;
-
-  gdt=mapVMmemory(currentcpuinfo, currentcpuinfo->vmxdata.originalhoststate.GDTR_BASE, maxsegment, &error, &pagefault);
-
-  if (gdt==NULL)
-  {
-    nosendchar[getAPICID()]=0;
-    sendstring("For some messed up reason the gdt is paged out...");
-    ddDrawRectangle(0,DDVerticalResolution-100,100,100,0xff0000);
-    while (1);
-  }
-
-  if (error)
-  {
-    sendstring("OK, WTF is going on here!");
-    ddDrawRectangle(0,DDVerticalResolution-100,100,100,0xff0000);
-    while (1);
-
-  }
-
-  vmwrite(vm_guest_es_base,getSegmentBase(gdt,NULL,currentcpuinfo->vmxdata.originalhoststate.ES & ~7));
-  vmwrite(vm_guest_es_limit,getSegmentLimit(gdt,NULL,currentcpuinfo->vmxdata.originalhoststate.ES & ~7));
-  vmwrite(vm_guest_es_access_rights,getSegmentAccessRights(gdt,NULL,currentcpuinfo->vmxdata.originalhoststate.ES & ~7) | 1);
-
-  vmwrite(vm_guest_cs_base,getSegmentBase(gdt,NULL,currentcpuinfo->vmxdata.originalhoststate.CS & ~7));
-  vmwrite(vm_guest_cs_limit,getSegmentLimit(gdt,NULL,currentcpuinfo->vmxdata.originalhoststate.CS & ~7));
-  vmwrite(vm_guest_cs_access_rights,getSegmentAccessRights(gdt,NULL,currentcpuinfo->vmxdata.originalhoststate.CS & ~7) | 1);
-
-  vmwrite(vm_guest_ss_base,getSegmentBase(gdt,NULL,currentcpuinfo->vmxdata.originalhoststate.SS & ~7));
-  vmwrite(vm_guest_ss_limit,getSegmentLimit(gdt,NULL,currentcpuinfo->vmxdata.originalhoststate.SS & ~7));
-  vmwrite(vm_guest_ss_access_rights,getSegmentAccessRights(gdt,NULL,currentcpuinfo->vmxdata.originalhoststate.SS & ~7) | 1);
-
-  vmwrite(vm_guest_ds_base,getSegmentBase(gdt,NULL,currentcpuinfo->vmxdata.originalhoststate.DS & ~7));
-  vmwrite(vm_guest_ds_limit,getSegmentLimit(gdt,NULL,currentcpuinfo->vmxdata.originalhoststate.DS & ~7));
-  vmwrite(vm_guest_ds_access_rights,getSegmentAccessRights(gdt,NULL,currentcpuinfo->vmxdata.originalhoststate.DS & ~7) | 1);
-
-  vmwrite(vm_guest_fs_access_rights,getSegmentAccessRights(gdt,NULL,currentcpuinfo->vmxdata.originalhoststate.FS & ~7) | 1);
-  vmwrite(vm_guest_gs_access_rights,getSegmentAccessRights(gdt,NULL,currentcpuinfo->vmxdata.originalhoststate.GS & ~7) | 1);
-
-  if (currentcpuinfo->vmxdata.originalhoststate.TR & ~7)
-    vmwrite(vm_guest_tr_access_rights,getSegmentAccessRights(gdt,NULL,currentcpuinfo->vmxdata.originalhoststate.TR & ~7));
-  else
-    vmwrite(vm_guest_tr_access_rights,0x8b);
-
-  if (vmread(vm_guest_tr_access_rights)==0)
-    vmwrite(vm_guest_tr_access_rights,0x8b);
-
-  vmwrite(vm_guest_tr_limit,getSegmentLimit(gdt,NULL,currentcpuinfo->vmxdata.originalhoststate.TR & ~7));
-  //vmwrite(vm_guest_tr,0);
-
-
-  if (gdt)
-    unmapVMmemory(gdt,maxsegment);
-
-  if (vmread(vm_guest_cr3)!=currentcpuinfo->vmxdata.originalhoststate.CR3)
-  {
-    sendvmstate(currentcpuinfo, vmregisters);
-
-    sendstringf("vm_guest_cr3(%6) does not match currentcpuinfo->vmxdata.originalhoststate.CR3(%6)\n",vmread(vm_guest_cr3),currentcpuinfo->vmxdata.originalhoststate.CR3 );
-    ddDrawRectangle(0,DDVerticalResolution-100,100,100,0xff0000);
-    while (1);
-  }
-
-
-
-  currentcpuinfo->vmxdata.runningvmx=0; //vmexit emulated
-
-  return 0; //return handled
-}
 
 void vmsucceed(void)
 /*
@@ -330,6 +112,371 @@ VMfailInvalid;
     VMfailInvalid();
 }
 
+void setHostState(vmxhoststate *hoststate)
+{
+  vmwrite(vm_host_es, hoststate->ES);
+  vmwrite(vm_host_cs, hoststate->CS);
+  vmwrite(vm_host_ss, hoststate->SS);
+  vmwrite(vm_host_ds, hoststate->DS);
+  vmwrite(vm_host_fs, hoststate->FS);
+  vmwrite(vm_host_gs, hoststate->GS);
+  vmwrite(vm_host_tr, hoststate->TR);
+  vmwrite(vm_host_IA32_PAT, hoststate->IA32_PAT);
+  vmwrite(vm_host_IA32_EFER, hoststate->IA32_EFER);
+  vmwrite(vm_host_IA32_PERF_GLOBAL_CTRL, hoststate->IA32_PERF_GLOBAL_CTRL);
+  vmwrite(vm_host_IA32_SYSENTER_CS, hoststate->IA32_SYSENTER_CS);
+
+  vmwrite(vm_host_cr0, hoststate->CR0);
+  vmwrite(vm_host_cr3, hoststate->CR3);
+  vmwrite(vm_host_cr4, hoststate->CR4);
+
+  vmwrite(vm_host_fs_base, hoststate->FS_BASE);
+  vmwrite(vm_host_gs_base, hoststate->GS_BASE);
+  vmwrite(vm_host_tr_base, hoststate->TR_BASE);
+  vmwrite(vm_host_gdtr_base, hoststate->GDTR_BASE);
+  vmwrite(vm_host_idtr_base, hoststate->IDTR_BASE);
+
+  vmwrite(vm_host_IA32_SYSENTER_ESP, hoststate->IA32_SYSENTER_ESP);
+  vmwrite(vm_host_IA32_SYSENTER_EIP, hoststate->IA32_SYSENTER_EIP);
+
+  vmwrite(vm_host_rsp, hoststate->RSP);
+  vmwrite(vm_host_rip, hoststate->RIP);
+
+}
+
+void getHostState(vmxhoststate *hoststate)
+/*
+ * gets the host state of the currently loaded VMX and stores it into *hoststate
+ */
+{
+
+  hoststate->ES=vmread(vm_host_es);
+  hoststate->CS=vmread(vm_host_cs);
+  hoststate->SS=vmread(vm_host_ss);
+  hoststate->DS=vmread(vm_host_ds);
+  hoststate->FS=vmread(vm_host_fs);
+  hoststate->GS=vmread(vm_host_gs);
+  hoststate->TR=vmread(vm_host_tr);
+  hoststate->IA32_PAT=vmread(vm_host_IA32_PAT);
+  hoststate->IA32_EFER=vmread(vm_host_IA32_EFER);
+  hoststate->IA32_PERF_GLOBAL_CTRL=vmread(vm_host_IA32_PERF_GLOBAL_CTRL);
+  hoststate->IA32_SYSENTER_CS=vmread(vm_host_IA32_SYSENTER_CS);
+
+  hoststate->CR0=vmread(vm_host_cr0);
+  hoststate->CR3=vmread(vm_host_cr3);
+  hoststate->CR4=vmread(vm_host_cr4);
+
+  hoststate->FS_BASE=vmread(vm_host_fs_base);
+  hoststate->GS_BASE=vmread(vm_host_gs_base);
+  hoststate->TR_BASE=vmread(vm_host_tr_base);
+  hoststate->GDTR_BASE=vmread(vm_host_gdtr_base);
+  hoststate->IDTR_BASE=vmread(vm_host_idtr_base);
+
+  hoststate->IA32_SYSENTER_ESP=vmread(vm_host_IA32_SYSENTER_ESP);
+  hoststate->IA32_SYSENTER_EIP=vmread(vm_host_IA32_SYSENTER_EIP);
+
+  hoststate->RSP=vmread(vm_host_rsp);
+  hoststate->RIP=vmread(vm_host_rip);
+}
+
+
+DWORD * getVMCS(pcpuinfo currentcpuinfo, QWORD PA)
+//cached lookup for the VMCA PA to a mapped VA
+{
+  int i;
+  DWORD *r;
+  //first check if this is in the list
+  for (i=0; i<10; i++)
+  {
+    if (currentcpuinfo->vmxdata.mappedVMCSBlocks[i].VMCS_PhysicalAddress==PA)
+      return currentcpuinfo->vmxdata.mappedVMCSBlocks[i].VMCS_VirtualAddress;
+
+    if (currentcpuinfo->vmxdata.mappedVMCSBlocks[i].VMCS_PhysicalAddress==0)
+    {
+      currentcpuinfo->vmxdata.mappedVMCSBlocks_nextIndex=i;
+      break;
+    }
+  }
+  //still here so not mapped. Map at mappedVMCSBlocks_nextIndex
+
+  i=currentcpuinfo->vmxdata.mappedVMCSBlocks_nextIndex;
+  if (currentcpuinfo->vmxdata.mappedVMCSBlocks[i].VMCS_VirtualAddress) //clean this one first
+    unmapPhysicalMemory(currentcpuinfo->vmxdata.mappedVMCSBlocks[i].VMCS_VirtualAddress, 4096);
+
+  r=(DWORD *)mapPhysicalMemory(PA,4096);
+  currentcpuinfo->vmxdata.mappedVMCSBlocks[i].VMCS_PhysicalAddress=PA;
+  currentcpuinfo->vmxdata.mappedVMCSBlocks[i].VMCS_VirtualAddress=r;
+
+  currentcpuinfo->vmxdata.mappedVMCSBlocks_nextIndex=(currentcpuinfo->vmxdata.mappedVMCSBlocks_nextIndex+1) % 10;
+  return r;
+
+}
+
+void emulateVMEntry(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
+{
+  nosendchar[getAPICID()]=0;
+  //sendstring("emulateVMEntry");
+
+  if (currentcpuinfo->vmxdata.dbvmhoststate.RIP==0) //only needs one time init
+    getHostState((vmxhoststate *)&currentcpuinfo->vmxdata.dbvmhoststate);
+
+
+  if (hasVMCSShadowingSupport)
+  {
+    vmclear(currentcpuinfo->vmxdata.guest_activeVMCS);
+   // sendstringf("Marking guest activeVMCS as normal");
+    DWORD *vmcsheader=getVMCS(currentcpuinfo, currentcpuinfo->vmxdata.guest_activeVMCS);
+    *vmcsheader &= ~(1<<31);
+  }
+
+  int r=vmptrld(currentcpuinfo->vmxdata.guest_activeVMCS);
+
+  if (r)
+  {
+    sendstringf("emulateVMEntry: failure to load guest vmcs\n");
+    VMfailInvalid();
+    return;
+  }
+
+
+  //if (vmread(vm_guest_activity_state)==0) //debug code to force it to run 1 thing
+  //  vmwrite(vm_guest_interruptability_state, BLOCKINGBYSTI);
+  getHostState(&currentcpuinfo->vmxdata.originalhoststate);
+  setHostState(&currentcpuinfo->vmxdata.dbvmhoststate);
+
+
+  //sendvmstateFull(currentcpuinfo, vmregisters);
+
+}
+
+int emulateVMExit(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
+{
+  //emulate a vmexit for the host (so switch to the default VMCS)
+  QWORD vmexitcontrol=vmread(vm_exit_controls);
+  QWORD vmexecutioncontrol=vmread(vm_execution_controls_cpu);
+
+  int HostAddressSpaceSize=vmexitcontrol & VMEXITC_HOST_ADDRESS_SPACE_SIZE;
+
+  //jtagbp();
+  nosendchar[getAPICID()]=0;
+
+  //sendstring("emulateVMExit\n");
+
+
+
+  if ((hasVPIDSupport) && (vmexecutioncontrol & SECONDARY_EXECUTION_CONTROLS))
+  {
+    QWORD vmexecutioncontrol2=vmread(vm_execution_controls_cpu_secondary);
+
+    if ((vmexecutioncontrol2 & SPBEF_ENABLE_VPID)==0) //27.5.5 VPID 0000 gets cleared when ENABLE_VPID is false
+    {
+      INVVPIDDESCRIPTOR desc;
+      desc.LinearAddress=0;
+      desc.zero=0;
+      desc.VPID=0;
+      _invvpid(1,&desc);
+    }
+  }
+
+
+
+  if (currentcpuinfo->vmxdata.runningvmx==0)
+  {
+    sendstringf("emulateVMExit was called while runningvmx is 0");
+    ddDrawRectangle(0,DDVerticalResolution-100,100,100,0xff0000);
+    while (1);
+  }
+  else
+  if (currentcpuinfo->vmxdata.insideVMXRootMode==0)
+  {
+    sendstringf("runningvmx but insideVMXRootMode is 0\n");
+    ddDrawRectangle(0,DDVerticalResolution-100,100,100,0xff0000);
+    while (1);
+  }
+
+  //restore the original state before continue
+  setHostState(&currentcpuinfo->vmxdata.originalhoststate);
+
+
+  int ptrld=vmptrld(currentcpuinfo->vmcs_regionPA); //leave the virtual virtual machine vmcs and go bnack to the virtual machine vmcs
+
+  if (ptrld)
+  {
+    sendstringf("failure loading the vmcs_regionPA\n");
+    ddDrawRectangle(0,DDVerticalResolution-100,100,100,0xff0000);
+    while(1);
+  }
+
+  //sendstringf("ptrld=%d\n", ptrld);
+
+
+  if (hasVMCSShadowingSupport)
+  {
+    vmclear(currentcpuinfo->vmxdata.guest_activeVMCS);
+   // sendstringf("Marking guest activeVMCS as shadow");
+    DWORD *vmcsheader=getVMCS(currentcpuinfo, currentcpuinfo->vmxdata.guest_activeVMCS);
+    *vmcsheader |= (1<<31);
+  }
+
+
+
+  //27.5.1:
+  vmwrite(vm_guest_cr0, currentcpuinfo->vmxdata.originalhoststate.CR0);
+  vmwrite(vm_guest_cr3, currentcpuinfo->vmxdata.originalhoststate.CR3);
+  currentcpuinfo->guestCR3=currentcpuinfo->vmxdata.originalhoststate.CR3;
+
+
+  if (HostAddressSpaceSize)
+    vmwrite(vm_guest_cr4, currentcpuinfo->vmxdata.originalhoststate.CR4 | CR4_PAE);
+  else
+    vmwrite(vm_guest_cr4, currentcpuinfo->vmxdata.originalhoststate.CR4 & ~CR4_PCIDE);
+
+
+
+  vmwrite(vm_guest_dr7,0x400);
+  vmwrite(vm_guest_IA32_DEBUGCTL,0);
+  vmwrite(vm_guest_IA32_SYSENTER_CS, currentcpuinfo->vmxdata.originalhoststate.IA32_SYSENTER_CS);
+  vmwrite(vm_guest_IA32_SYSENTER_ESP, currentcpuinfo->vmxdata.originalhoststate.IA32_SYSENTER_ESP);
+  vmwrite(vm_guest_IA32_SYSENTER_EIP, currentcpuinfo->vmxdata.originalhoststate.IA32_SYSENTER_EIP);
+
+
+  vmwrite(vm_guest_fs_base, currentcpuinfo->vmxdata.originalhoststate.FS_BASE);
+  vmwrite(vm_guest_gs_base, currentcpuinfo->vmxdata.originalhoststate.GS_BASE);
+
+  if (HostAddressSpaceSize)
+    vmwrite(vm_guest_IA32_EFER, vmread(vm_guest_IA32_EFER) | EFER_LME | EFER_LMA);
+  else
+    vmwrite(vm_guest_IA32_EFER, vmread(vm_guest_IA32_EFER) & ~(EFER_LME | EFER_LMA));
+
+
+  if (vmexitcontrol & VMEXITC_LOAD_IA32_PERF_GLOBAL_CTRL)
+    vmwrite(vm_guest_IA32_PERF_GLOBAL_CTRL, currentcpuinfo->vmxdata.originalhoststate.IA32_PERF_GLOBAL_CTRL);
+
+  if (vmexitcontrol & VMEXITC_LOAD_IA32_PAT)
+    vmwrite(vm_guest_IA32_PAT, currentcpuinfo->vmxdata.originalhoststate.IA32_PAT);
+
+  if (vmexitcontrol & VMEXITC_LOAD_IA32_EFER)
+    vmwrite(vm_guest_IA32_EFER, currentcpuinfo->vmxdata.originalhoststate.IA32_EFER);
+
+  if (vmexitcontrol & VMEXITC_CLEAR_IA32_BNDCFGS)
+    vmwrite(vm_guest_IA32_BNDCFGS,0);
+
+  if (vmexitcontrol & VMEXITC_CLEAR_IA32_RTIT_CTL)
+    vmwrite(vm_guest_IA32_RTIT_CTL,0);
+
+  if (vmexitcontrol & VMEXITC_LOAD_CET)
+  {
+    vmwrite(vm_guest_IA32_S_CET, currentcpuinfo->vmxdata.originalhoststate.IA32_S_CET);
+    vmwrite(vm_guest_IA32_INTERRUPT_SSP_TABLE_ADDR, currentcpuinfo->vmxdata.originalhoststate.IA32_INTERRUPT_SSP_TABLE_ADDR);
+  }
+
+  if (vmexitcontrol & VMEXITC_LOAD_PKRS)
+    vmwrite(vm_guest_IA32_PKRS, currentcpuinfo->vmxdata.originalhoststate.IA32_PKRS);
+
+  //27.5.2:
+  vmwrite(vm_guest_cs, currentcpuinfo->vmxdata.originalhoststate.CS);
+  vmwrite(vm_guest_cs_base,0);
+  vmwrite(vm_guest_cs_limit,0xffffffff);
+  if (HostAddressSpaceSize)
+    vmwrite(vm_guest_cs_access_rights, 0xa09b); //type=11, S=1, DPL=0, P=1, L=1, D_B=0, G=1
+  else
+    vmwrite(vm_guest_cs_access_rights, 0xc09b); //type=11, S=1, DPL=0, P=1, L=0, D_B=1, G=1
+
+  vmwrite(vm_guest_es, currentcpuinfo->vmxdata.originalhoststate.ES);
+  if ((currentcpuinfo->vmxdata.originalhoststate.ES) || HostAddressSpaceSize)
+  {
+    vmwrite(vm_guest_es_base,0);
+    vmwrite(vm_guest_es_limit,0xffffffff);
+  }
+  else
+    vmwrite(vm_guest_es_access_rights,0x10000);
+
+
+  vmwrite(vm_guest_ds, currentcpuinfo->vmxdata.originalhoststate.DS);
+  if ((currentcpuinfo->vmxdata.originalhoststate.DS) || HostAddressSpaceSize)
+  {
+    vmwrite(vm_guest_ds_base,0);
+    vmwrite(vm_guest_ds_limit,0xffffffff);
+    vmwrite(vm_guest_ds_access_rights, 0xc093); //type=3, S=1, DPL=0, P=1, L=0, D_B=1, G=1
+  }
+  else
+    vmwrite(vm_guest_ds_access_rights,0x10000);
+
+
+  vmwrite(vm_guest_ss, currentcpuinfo->vmxdata.originalhoststate.SS);
+  vmwrite(vm_guest_ss_base,0);
+  vmwrite(vm_guest_ss_limit,0xffffffff);
+  vmwrite(vm_guest_ss_access_rights, 0xc093); //type=3, S=1, DPL=0, P=1, L=0, D_B=1, G=1
+
+
+  vmwrite(vm_guest_fs, currentcpuinfo->vmxdata.originalhoststate.FS);
+  vmwrite(vm_guest_fs_limit,0xffffffff);
+  if ((currentcpuinfo->vmxdata.originalhoststate.FS) || HostAddressSpaceSize)
+    vmwrite(vm_guest_fs_access_rights, 0xc093); //type=3, S=1, DPL=0, P=1, L=0, D_B=1, G=1
+  else
+    vmwrite(vm_guest_fs_access_rights,0x10000);
+
+
+  vmwrite(vm_guest_gs, currentcpuinfo->vmxdata.originalhoststate.GS);
+  vmwrite(vm_guest_gs_limit,0xffffffff);
+  if ((currentcpuinfo->vmxdata.originalhoststate.GS) || HostAddressSpaceSize)
+    vmwrite(vm_guest_gs_access_rights, 0xc093); //type=3, S=1, DPL=0, P=1, L=0, D_B=1, G=1
+  else
+    vmwrite(vm_guest_gs_access_rights,0x10000);
+
+  vmwrite(vm_guest_tr, currentcpuinfo->vmxdata.originalhoststate.TR);
+  vmwrite(vm_guest_tr_base, currentcpuinfo->vmxdata.originalhoststate.TR_BASE);
+  vmwrite(vm_guest_tr_limit, 0x67);
+  vmwrite(vm_guest_tr_access_rights, 0x8b); //type=11, S=0, DPL=0, P=1, L=0, D_B=0, G=0
+
+
+  vmwrite(vm_guest_ldtr,0);
+  vmwrite(vm_guest_ldtr_base,0);
+  vmwrite(vm_guest_ldtr_limit,0);
+  vmwrite(vm_guest_ldtr_access_rights,0x10000);
+
+
+  vmwrite(vm_guest_gdtr_base, currentcpuinfo->vmxdata.originalhoststate.GDTR_BASE);
+  vmwrite(vm_guest_gdt_limit,0xffff);
+  vmwrite(vm_guest_idtr_base, currentcpuinfo->vmxdata.originalhoststate.IDTR_BASE);
+  vmwrite(vm_guest_idt_limit,0xffff);
+
+
+  //27.5.3:
+  vmwrite(vm_guest_rip, currentcpuinfo->vmxdata.originalhoststate.RIP);
+  vmwrite(vm_guest_rsp, currentcpuinfo->vmxdata.originalhoststate.RSP);
+  vmwrite(vm_guest_rflags,2);
+
+  if (vmexitcontrol & VMEXITC_LOAD_CET)
+    vmwrite(vm_guest_SSP, currentcpuinfo->vmxdata.originalhoststate.SSP);
+
+  //27.5.5
+  vmwrite(vm_guest_activity_state,0); //it was supposed to be in a vmlaunch or vmresume instruction, but just making sure
+  vmwrite(vm_guest_interruptability_state, (vmread(vm_guest_interruptability_state) & (~(BLOCKINGBYSTI | BLOCKINGBYSS)))  );
+  vmwrite(vm_pending_debug_exceptions,0);
+
+  //27.6 : skip  (The exit came from this specific vmcs, so it loaded the MSR's back already if it used this feature)
+
+  //27.7: nope nope nope
+
+  if (vmread(vm_guest_cr3)!=currentcpuinfo->vmxdata.originalhoststate.CR3)
+  {
+    sendvmstate(currentcpuinfo, vmregisters);
+
+    sendstringf("vm_guest_cr3(%6) does not match currentcpuinfo->vmxdata.originalhoststate.CR3(%6)\n",vmread(vm_guest_cr3),currentcpuinfo->vmxdata.originalhoststate.CR3 );
+    ddDrawRectangle(0,DDVerticalResolution-100,100,100,0xff0000);
+    while (1);
+  }
+
+
+
+  currentcpuinfo->vmxdata.runningvmx=0; //vmexit emulated
+
+  return 0; //return handled
+}
+
+
+
 QWORD regToVal(int reg, VMRegisters *vmregisters)
 {
   switch (reg)
@@ -389,6 +536,7 @@ QWORD getDestinationAddressFromInstructionInfo(VMRegisters *vmregisters)
   QWORD baseaddress=0;
   QWORD index=0;
   QWORD segment=0;
+  QWORD offset=vmread(vm_exit_qualification);
   instruction_info_vm ii;
   ii.instructioninfo=vmread(vm_instruction_information);
 
@@ -422,105 +570,34 @@ QWORD getDestinationAddressFromInstructionInfo(VMRegisters *vmregisters)
     case 5: segment=vmread(vm_guest_gs_base); break;
   }
 
-  return segment+baseaddress+index;
+  return segment+baseaddress+index+offset;
 }
 
-int handle_vmclear(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
-{
-  //
-  QWORD address=getDestinationAddressFromInstructionInfo(vmregisters);
-
-  sendstringf("handle_vmclear(%6)\n", address);
-
-  if ((currentcpuinfo->vmxdata.insideVMXRootMode==0) || (address==0))
-  {
-    sendstringf("invalid mode\n");
-    return raiseInvalidOpcodeException(currentcpuinfo);
-  }
-
-  //make sure the vmcb points to theirs
-
-  int error;
-  QWORD pagefault;
-  QWORD physicaladdress;
-  QWORD *ppa=mapVMmemory(currentcpuinfo, address, 8, &error, &pagefault);
-
-  if (error==2)
-    return raisePagefault(currentcpuinfo, pagefault);
-
-  physicaladdress=*ppa;
-  unmapVMmemory(ppa,8);
-
-  sendstringf("physical address=%6\n", physicaladdress);
-
-  int r;
-  if (currentcpuinfo->vmxdata.guest_activeVMCS==physicaladdress)
-  {
-    if (currentcpuinfo->vmxdata.guest_activeVMCS!=0xffffffffffffffff) //if there is an old VMCS, restore the hoststate with the original first
-    {
-      sendstringf("Restoring the guest vmx hoststate with original\n");
-      r=vmptrld(currentcpuinfo->vmxdata.guest_activeVMCS);
-      if (r==0)
-        setHostState((void *)&currentcpuinfo->vmxdata.originalhoststate);
-      else
-      {
-        sendstring("Failure restoring guest vmx hoststate");
-        ddDrawRectangle(0,DDVerticalResolution-100,100,100,0xff0000);
-        while (1);
-      }
-
-    }
-
-    r=vmclear(currentcpuinfo->vmxdata.guest_activeVMCS);
-  }
-  else
-    r=vmclear(physicaladdress); //vmclear on an address not the current vmcs. It shouldn't be modded so no need to change
-
-  sendstringf("vmclear returned %d\n", r);
-
-  if (r==0) //success
-  {
-    vmsucceed();
-
-    if (currentcpuinfo->vmxdata.guest_activeVMCS==address)
-    {
-      currentcpuinfo->vmxdata.guest_activeVMCS=0xffffffffffffffffull;
-    }
-  }
-  else
-  {
-    if (r==1)
-    {
-      VMfailInvalid();
-    }
-    else
-    {
-      int error=vmread(vm_errorcode);
-      sendstringf("vmclear error: %d\n", error);
-      VMfailValid(currentcpuinfo, error);
-    }
-  }
-
-  //if (address==0)
-
-  vmwrite(vm_guest_rip,vmread(vm_guest_rip)+vmread(vm_exit_instructionlength));
-
-  return 0;
-}
 
 int handle_vmlaunchFail(pcpuinfo currentcpuinfo)
 {
   sendstring("handle_vmlaunchFail\n");
+  sendstringf("VM error code=%8\n\r",  vmread(vm_errorcode));
+  sendstringf("Exit reason=%8\n\r", vmread(vm_exit_reason));
+
   vmptrld(currentcpuinfo->vmcs_regionPA);
+  currentcpuinfo->vmxdata.runningvmx=0;
+
+  VMfailInvalid();
+
+
+
   return 0;
 }
 
 int handle_vmlaunch(pcpuinfo currentcpuinfo, VMRegisters *vmregisters UNUSED)
 {
+  nosendchar[getAPICID()]=0;
+  //sendstring("handle_vmlaunch\n");
   if (currentcpuinfo->vmxdata.insideVMXRootMode==0)
     return raiseInvalidOpcodeException(currentcpuinfo);
 
-  vmwrite(vm_guest_rip,vmread(vm_guest_rip)+vmread(vm_exit_instructionlength));
+  incrementRIP(vmread(vm_exit_instructionlength));
 
   if (currentcpuinfo->vmxdata.guest_activeVMCS==0xffffffffffffffffULL)
   {
@@ -528,15 +605,11 @@ int handle_vmlaunch(pcpuinfo currentcpuinfo, VMRegisters *vmregisters UNUSED)
     return 0;
   }
 
-  int r=vmptrld(currentcpuinfo->vmxdata.guest_activeVMCS);
-
-  if (r)
+  if (vmread(vm_guest_interruptability_state) & BLOCKINGBYSS)
   {
-    sendstringf("handle_vmlaunch: failure to load guest vmcs\n");
-    VMfailInvalid();
+    VMfailValid(currentcpuinfo, 26);
     return 0;
   }
-
 
   //no need to make modifications here, as they where made when ptrld was called
   if (currentcpuinfo->vmxdata.runningvmx)
@@ -546,7 +619,11 @@ int handle_vmlaunch(pcpuinfo currentcpuinfo, VMRegisters *vmregisters UNUSED)
     while (1);
   }
 
+  emulateVMEntry(currentcpuinfo, vmregisters);
+
   currentcpuinfo->vmxdata.runningvmx=1;
+
+  //sendvmstateFull(currentcpuinfo, vmregisters);
 
 
   return 0xce00; //launch with the last entrystate
@@ -556,16 +633,19 @@ int handle_vmresumeFail(pcpuinfo currentcpuinfo)
 {
   sendstring("handle_vmresumeFail\n");
   vmptrld(currentcpuinfo->vmcs_regionPA);
+  currentcpuinfo->vmxdata.runningvmx=0;
+  VMfailInvalid();
   return 0;
 }
 
 int handle_vmresume(pcpuinfo currentcpuinfo, VMRegisters *vmregisters UNUSED)
 {
-  sendstring("handle_vmresume\n");
+  nosendchar[getAPICID()]=0;
+ // sendstring("handle_vmresume\n");
   if (currentcpuinfo->vmxdata.insideVMXRootMode==0)
     return raiseInvalidOpcodeException(currentcpuinfo);
 
-  vmwrite(vm_guest_rip,vmread(vm_guest_rip)+vmread(vm_exit_instructionlength));
+  incrementRIP(vmread(vm_exit_instructionlength));
 
   if (currentcpuinfo->vmxdata.guest_activeVMCS==0xffffffffffffffffULL)
   {
@@ -573,13 +653,9 @@ int handle_vmresume(pcpuinfo currentcpuinfo, VMRegisters *vmregisters UNUSED)
     return 0;
   }
 
-
-  int r=vmptrld(currentcpuinfo->vmxdata.guest_activeVMCS);
-
-  if (r)
+  if (vmread(vm_guest_interruptability_state) & BLOCKINGBYSS)
   {
-    sendstringf("handle_vmresume: failure to load guest vmcs\n");
-    VMfailInvalid();
+    VMfailValid(currentcpuinfo, 26);
     return 0;
   }
 
@@ -592,6 +668,15 @@ int handle_vmresume(pcpuinfo currentcpuinfo, VMRegisters *vmregisters UNUSED)
 
   currentcpuinfo->vmxdata.runningvmx=1;
 
+  emulateVMEntry(currentcpuinfo, vmregisters);
+
+  //sendvmstateFull(currentcpuinfo, vmregisters);
+
+
+  //vmwrite(vm_guest_interruptability_state,BLOCKINGBYSTI);
+  if (hasVMCSShadowingSupport)
+    return 0xce00; //do a launch instead of resume
+
   return 0xce01; //launch with the last entrystate and do a resume
 }
 
@@ -600,7 +685,7 @@ int handle_invept(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
   int vmcsinvepterror=0;
   int vmcsinvepterrorcode=0;
 
-  sendstringf("handle_invept\n");
+ // sendstringf("handle_invept\n");
   if (currentcpuinfo->vmxdata.insideVMXRootMode==0)
     return raiseInvalidOpcodeException(currentcpuinfo);
 
@@ -632,19 +717,16 @@ int handle_invept(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
   int error;
   QWORD pagefault;
 
-  sendstringf("invept: Type=%d data=%6\n", invepttype, inveptdataaddress);
+  //sendstringf("invept: Type=%d data=%6\n", invepttype, inveptdataaddress);
 
 
   PINVEPTDESCRIPTOR inveptdescriptor=mapVMmemory(currentcpuinfo, inveptdataaddress, 16, &error, &pagefault);
   if (error==2)
     return raisePagefault(currentcpuinfo, pagefault);
 
-
-
-
-  if (vmptrld(currentcpuinfo->vmxdata.guest_activeVMCS))
+  if ((currentcpuinfo->vmxdata.guest_activeVMCS!=0xffffffffffffffffULL) && (vmptrld(currentcpuinfo->vmxdata.guest_activeVMCS)))
   {
-    sendstringf("Failure to load guest active vmcs state");
+    sendstringf("Failure to load guest active vmcs state (%6)\n",currentcpuinfo->vmxdata.guest_activeVMCS);
     VMfailInvalid();
     unmapVMmemory(inveptdescriptor, 16);
     return 0;
@@ -661,10 +743,11 @@ int handle_invept(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 
   unmapVMmemory(inveptdescriptor, 16);
 
-  vmwrite(vm_guest_rip,vmread(vm_guest_rip)+vmread(vm_exit_instructionlength));
+  incrementRIP(vmread(vm_exit_instructionlength));
 
   if (vmcsinvepterror)
   {
+    sendstringf("vmcsinvepterror=%d\n", vmcsinvepterror);
     if (vmcsinvepterror==1)
       VMfailInvalid();
     else
@@ -681,7 +764,7 @@ int handle_invvpid(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
   int vmcsinvvpiderror=0;
   int vmcsinvvpiderrorcode=0;
 
-  sendstringf("handle_invept\n");
+  sendstringf("handle_invvpid\n");
   if (currentcpuinfo->vmxdata.insideVMXRootMode==0)
     return raiseInvalidOpcodeException(currentcpuinfo);
 
@@ -721,11 +804,12 @@ int handle_invvpid(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
     return raisePagefault(currentcpuinfo, pagefault);
 
 
+  incrementRIP(vmread(vm_exit_instructionlength));
 
 
-  if (vmptrld(currentcpuinfo->vmxdata.guest_activeVMCS))
+  if ((currentcpuinfo->vmxdata.guest_activeVMCS!=0xffffffffffffffffULL) && (vmptrld(currentcpuinfo->vmxdata.guest_activeVMCS)))
   {
-    sendstringf("Failure to load guest active vmcs state");
+    sendstringf("Failure to load guest active vmcs state (%6)\n", currentcpuinfo->vmxdata.guest_activeVMCS);
     VMfailInvalid();
     unmapVMmemory(invvpiddescriptor, 16);
     return 0;
@@ -742,11 +826,11 @@ int handle_invvpid(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 
   unmapVMmemory(invvpiddescriptor, 16);
 
-  vmwrite(vm_guest_rip,vmread(vm_guest_rip)+vmread(vm_exit_instructionlength));
+
 
   if (vmcsinvvpiderror)
   {
-    sendstringf("invept error");
+    sendstringf("vmcsinvvpiderror=%d\n", vmcsinvvpiderror);
     if (vmcsinvvpiderrorcode==1)
       VMfailInvalid();
     else
@@ -775,12 +859,13 @@ int handle_vmread(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
   QWORD destinationaddress=0;
   int destinationreg=-1;
   QWORD vmcsvalue;
+  int r;
 
 
-  sendstring("handle_vmread\n");
+  //sendstring("handle_vmread\n");
   if (currentcpuinfo->vmxdata.insideVMXRootMode==0)
   {
-    sendstringf("invalid mode\n");
+    sendstringf("vmread: invalid mode\n");
     return raiseInvalidOpcodeException(currentcpuinfo);
   }
 
@@ -789,6 +874,7 @@ int handle_vmread(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
   {
     sendstring("currentcpuinfo->vmxdata.guest_activeVMCS==0xffffffffffffffff\n");
     VMfailInvalid();
+    incrementRIP(vmread(vm_exit_instructionlength));
     return 0;
   }
 
@@ -810,8 +896,8 @@ int handle_vmread(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
     //
     //calculate the address
     destinationaddress=getDestinationAddressFromInstructionInfo(vmregisters);
-    sendstringf("instructioninfo=%8\n", ii.instructioninfo);
-    sendstringf("destinationaddress=%6\n", destinationaddress);
+    //sendstringf("instructioninfo=%8\n", ii.instructioninfo);
+    //sendstringf("destinationaddress=%6\n", destinationaddress);
   }
   else
   {
@@ -819,10 +905,12 @@ int handle_vmread(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
   }
 
 
-  if (vmptrld(currentcpuinfo->vmxdata.guest_activeVMCS))
+  r=vmptrld(currentcpuinfo->vmxdata.guest_activeVMCS);
+  if (r)
   {
-    sendstringf("Failure to load guest active vmcs state");
+    sendstringf("Failure to load guest active vmcs state (%6)  r=%d\n", currentcpuinfo->vmxdata.guest_activeVMCS, r);
     VMfailInvalid();
+    incrementRIP(vmread(vm_exit_instructionlength));
     return 0;
   }
 
@@ -831,56 +919,18 @@ int handle_vmread(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
   vmcsreaderror=vmread2(vmcsfield, &vmcsvalue);
   if (vmcsreaderror)
   {
+    sendstringf("vmread2 error\n");
     //update the eflags
     if (vmcsreaderror==1)
+    {
       VMfailInvalid();
+    }
     else
       vmcsreaderrorcode=vmread(vm_errorcode);
   }
 
 
-
-  //check if it's a host field that needs to be hidden
-  if ((((vmcsfield >> 10) & 3)==3) && (vmcsreaderror==0))
-  {
-    //change the result
-
-    switch (vmcsfield)
-    {
-      case vm_host_es: vmcsvalue=currentcpuinfo->vmxdata.originalhoststate.ES; break;
-      case vm_host_cs: vmcsvalue=currentcpuinfo->vmxdata.originalhoststate.CS; break;
-      case vm_host_ss: vmcsvalue=currentcpuinfo->vmxdata.originalhoststate.SS; break;
-      case vm_host_ds: vmcsvalue=currentcpuinfo->vmxdata.originalhoststate.DS; break;
-      case vm_host_fs: vmcsvalue=currentcpuinfo->vmxdata.originalhoststate.FS; break;
-      case vm_host_gs: vmcsvalue=currentcpuinfo->vmxdata.originalhoststate.GS; break;
-      case vm_host_tr: vmcsvalue=currentcpuinfo->vmxdata.originalhoststate.TR; break;
-      case vm_host_IA32_PAT: vmcsvalue=currentcpuinfo->vmxdata.originalhoststate.IA32_PAT; break;
-      case vm_host_IA32_EFER: vmcsvalue=currentcpuinfo->vmxdata.originalhoststate.IA32_EFER; break;
-      case vm_host_IA32_PERF_GLOBAL_CTRL: vmcsvalue=currentcpuinfo->vmxdata.originalhoststate.IA32_PERF_GLOBAL_CTRL; break;
-      case vm_host_IA32_SYSENTER_CS: vmcsvalue=currentcpuinfo->vmxdata.originalhoststate.IA32_SYSENTER_CS; break;
-      case vm_host_cr0: vmcsvalue=currentcpuinfo->vmxdata.originalhoststate.CR0; break;
-      case vm_host_cr3: vmcsvalue=currentcpuinfo->vmxdata.originalhoststate.CR3; break;
-      case vm_host_cr4: vmcsvalue=currentcpuinfo->vmxdata.originalhoststate.CR4; break;
-      case vm_host_fs_base: vmcsvalue=currentcpuinfo->vmxdata.originalhoststate.FS_BASE; break;
-      case vm_host_gs_base: vmcsvalue=currentcpuinfo->vmxdata.originalhoststate.GS_BASE; break;
-      case vm_host_tr_base: vmcsvalue=currentcpuinfo->vmxdata.originalhoststate.TR_BASE; break;
-      case vm_host_gdtr_base: vmcsvalue=currentcpuinfo->vmxdata.originalhoststate.GDTR_BASE; break;
-      case vm_host_idtr_base: vmcsvalue=currentcpuinfo->vmxdata.originalhoststate.IDTR_BASE; break;
-      case vm_host_IA32_SYSENTER_ESP: vmcsvalue=currentcpuinfo->vmxdata.originalhoststate.IA32_SYSENTER_ESP; break;
-      case vm_host_IA32_SYSENTER_EIP: vmcsvalue=currentcpuinfo->vmxdata.originalhoststate.IA32_SYSENTER_EIP; break;
-      case vm_host_rsp: vmcsvalue=currentcpuinfo->vmxdata.originalhoststate.RSP; break;
-      case vm_host_rip: vmcsvalue=currentcpuinfo->vmxdata.originalhoststate.RIP; break;
-    }
-  }
-  else
-  {
-    if (vmcsfield==vm_errorcode)
-    {
-      if (currentcpuinfo->vmxdata.currenterrorcode)
-        vmcsvalue=currentcpuinfo->vmxdata.currenterrorcode;
-    }
-  }
-
+  //the host fields are already restored, so no need to emulate that
 
 
   //back to the original state
@@ -946,8 +996,7 @@ int handle_vmread(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
       VMfailValid(currentcpuinfo, vmcsreaderrorcode);
   }
 
-
-  vmwrite(vm_guest_rip,vmread(vm_guest_rip)+vmread(vm_exit_instructionlength));
+  incrementRIP(vmread(vm_exit_instructionlength));
   return 0;
 }
 
@@ -961,7 +1010,7 @@ int handle_vmwrite(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
   int sourcereg=-1;
   QWORD vmcsvalue;
 
-  sendstring("handle_vmwrite\n");
+
 
   if (currentcpuinfo->vmxdata.insideVMXRootMode==0)
     return raiseInvalidOpcodeException(currentcpuinfo);
@@ -978,17 +1027,17 @@ int handle_vmwrite(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
   ii.instructioninfo=vmread(vm_instruction_information);
 
   vmcsfield=regToVal(ii.reg2, vmregisters);
-  sendstringf("vmwrite(%x)\n", vmcsfield);
+
 
   if (ii.usesreg==0)
   {
     //
     //calculate the address
-    sendstringf("ii.usesreg==0");
+    //sendstringf("ii.usesreg==0");
 
     sourceaddress=getDestinationAddressFromInstructionInfo(vmregisters);
-    sendstringf("instructioninfo=%8\n", ii.instructioninfo);
-    sendstringf("sourceaddress=%6\n", sourceaddress);
+    //sendstringf("instructioninfo=%8\n", ii.instructioninfo);
+    //sendstringf("sourceaddress=%6\n", sourceaddress);
   }
   else
   {
@@ -1038,6 +1087,8 @@ int handle_vmwrite(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
     }
   }
 
+  sendstringf("vmwrite(%x, %x)\n", vmcsfield, vmcsvalue);
+
   if (vmptrld(currentcpuinfo->vmxdata.guest_activeVMCS))
   {
     sendstringf("Failure to load the guest vmcs\n");
@@ -1045,51 +1096,31 @@ int handle_vmwrite(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
     return 0;
   }
 
-  if (((vmcsfield >> 10) & 3)==3) //host field
-  {
-    //update the original state instead of the vmcs
+  vmcswriteerror=vmwrite2(vmcsfield, vmcsvalue);
 
-    switch (vmcsfield)
+  if (vmcswriteerror==2)
+    vmcswriteerrorcode=vmread(vm_errorcode);
+
+  if (vmcswriteerror==0)
+  {
+    QWORD temp=0;
+    temp=vmread(vmcsfield);
+    if (temp!=vmcsvalue)
     {
-      case vm_host_es: currentcpuinfo->vmxdata.originalhoststate.ES=vmcsvalue; break;
-      case vm_host_cs: currentcpuinfo->vmxdata.originalhoststate.CS=vmcsvalue; break;
-      case vm_host_ss: currentcpuinfo->vmxdata.originalhoststate.SS=vmcsvalue; break;
-      case vm_host_ds: currentcpuinfo->vmxdata.originalhoststate.DS=vmcsvalue; break;
-      case vm_host_fs: currentcpuinfo->vmxdata.originalhoststate.FS=vmcsvalue; break;
-      case vm_host_gs: currentcpuinfo->vmxdata.originalhoststate.GS=vmcsvalue; break;
-      case vm_host_tr: currentcpuinfo->vmxdata.originalhoststate.TR=vmcsvalue; break;
-      case vm_host_IA32_PAT: currentcpuinfo->vmxdata.originalhoststate.IA32_PAT=vmcsvalue; break;
-      case vm_host_IA32_EFER: currentcpuinfo->vmxdata.originalhoststate.IA32_EFER=vmcsvalue; break;
-      case vm_host_IA32_PERF_GLOBAL_CTRL: currentcpuinfo->vmxdata.originalhoststate.IA32_PERF_GLOBAL_CTRL=vmcsvalue; break;
-      case vm_host_IA32_SYSENTER_CS: currentcpuinfo->vmxdata.originalhoststate.IA32_SYSENTER_CS=vmcsvalue; break;
-      case vm_host_cr0: currentcpuinfo->vmxdata.originalhoststate.CR0=vmcsvalue; break;
-      case vm_host_cr3: currentcpuinfo->vmxdata.originalhoststate.CR3=vmcsvalue; break;
-      case vm_host_cr4: currentcpuinfo->vmxdata.originalhoststate.CR4=vmcsvalue; break;
-      case vm_host_fs_base: currentcpuinfo->vmxdata.originalhoststate.FS_BASE=vmcsvalue; break;
-      case vm_host_gs_base: currentcpuinfo->vmxdata.originalhoststate.GS_BASE=vmcsvalue; break;
-      case vm_host_tr_base: currentcpuinfo->vmxdata.originalhoststate.TR_BASE=vmcsvalue; break;
-      case vm_host_gdtr_base: currentcpuinfo->vmxdata.originalhoststate.GDTR_BASE=vmcsvalue; break;
-      case vm_host_idtr_base: currentcpuinfo->vmxdata.originalhoststate.IDTR_BASE=vmcsvalue; break;
-      case vm_host_IA32_SYSENTER_ESP: currentcpuinfo->vmxdata.originalhoststate.IA32_SYSENTER_ESP=vmcsvalue; break;
-      case vm_host_IA32_SYSENTER_EIP: currentcpuinfo->vmxdata.originalhoststate.IA32_SYSENTER_EIP=vmcsvalue; break;
-      case vm_host_rsp: currentcpuinfo->vmxdata.originalhoststate.RSP=vmcsvalue; break;
-      case vm_host_rip: currentcpuinfo->vmxdata.originalhoststate.RIP=vmcsvalue; break;
-    }
+      //error
+      sendstring("vmwrite failed without error\n");
+      while (1);
 
-    vmsucceed();
-  }
-  else //pass through
-  {
-    vmcswriteerror=vmwrite2(vmcsfield, vmcsvalue);
-    if (vmcswriteerror==2)
-      vmcswriteerrorcode=vmread(vm_errorcode);
+    }
   }
 
   vmptrld(currentcpuinfo->vmcs_regionPA);
-  vmwrite(vm_guest_rip,vmread(vm_guest_rip)+vmread(vm_exit_instructionlength));
+
+  incrementRIP(vmread(vm_exit_instructionlength));
 
   if (vmcswriteerror)
   {
+    sendstringf("vmwrite error\n");
     if (vmcswriteerror==1)
       VMfailInvalid();
     else
@@ -1101,6 +1132,92 @@ int handle_vmwrite(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
   return 0;
 }
 
+int handle_vmclear(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
+{
+  //
+  QWORD address=getDestinationAddressFromInstructionInfo(vmregisters);
+
+  //sendstringf("handle_vmclear(%6)\n", address);
+
+  if ((currentcpuinfo->vmxdata.insideVMXRootMode==0) || (address==0))
+  {
+    sendstringf("invalid mode\n");
+    return raiseInvalidOpcodeException(currentcpuinfo);
+  }
+
+  //make sure the vmcb points to theirs
+
+  int error;
+  QWORD pagefault;
+  QWORD physicaladdress;
+  QWORD *ppa=mapVMmemory(currentcpuinfo, address, 8, &error, &pagefault);
+
+  if (error==2)
+    return raisePagefault(currentcpuinfo, pagefault);
+
+  physicaladdress=*ppa;
+  unmapVMmemory(ppa,8);
+
+ // sendstringf("physical address=%6\n", physicaladdress);
+
+  int r;
+
+  r=vmclear(physicaladdress);
+
+
+
+  if (r==0) //success
+  {
+  //  sendstringf("vmclear success\n");
+    vmsucceed();
+
+
+    if (currentcpuinfo->vmxdata.guest_activeVMCS==physicaladdress)
+    {
+     // sendstringf("This was the active VMCS. Setting it to 0xffffffffffffffff\n");
+      if ((hasVMCSShadowingSupport) && (currentcpuinfo->vmxdata.guest_activeVMCS!=0xffffffffffffffff))
+      {
+        //sendstringf("Marking guest activeVMCS as normal");
+        DWORD *vmcsheader=getVMCS(currentcpuinfo, currentcpuinfo->vmxdata.guest_activeVMCS);
+        *vmcsheader &= ~(1<<31);
+
+        vmwrite(vm_vmcs_link_pointer, 0xffffffffffffffffull);
+      }
+
+      currentcpuinfo->vmxdata.guest_activeVMCS=0xffffffffffffffffull;
+    }
+    else
+    {
+      //sendstringf("VMClear and this was not the active VMCS\n");
+    }
+  }
+  else
+  {
+    sendstringf("vmclear fail\n");
+    if (r==1)
+    {
+      VMfailInvalid();
+    }
+    else
+    {
+      int error=vmread(vm_errorcode);
+      sendstringf("vmclear error: %d\n", error);
+      VMfailValid(currentcpuinfo, error);
+    }
+  }
+
+
+
+
+
+  //if (address==0)
+
+  incrementRIP(vmread(vm_exit_instructionlength));
+
+  return 0;
+}
+
+
 int handle_vmptrld(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 {
 
@@ -1109,7 +1226,7 @@ int handle_vmptrld(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
   QWORD pagefaultaddress;
 
 
-  sendstringf("handle_vmptrld(%6)\n", address);
+ // sendstringf("%6: handle_vmptrld(%6)\n", vmread(vm_guest_rip), address);
 
 
 
@@ -1131,42 +1248,13 @@ int handle_vmptrld(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
   unmapVMmemory(mapped, 8);
 
 
-  if (currentcpuinfo->vmxdata.dbvmhoststate.FS_BASE==0) //only needs one time init
-    getHostState((vmxhoststate *)&currentcpuinfo->vmxdata.dbvmhoststate);
+ // sendstringf("address=%6\n", address);
 
-  vmwrite(vm_guest_rip,vmread(vm_guest_rip)+vmread(vm_exit_instructionlength));
+
+
+  incrementRIP(vmread(vm_exit_instructionlength));
 
   int r;
-
-  if (currentcpuinfo->vmxdata.guest_activeVMCS!=0xffffffffffffffff) //if there is an old VMCS, restore the hoststate with the original first
-  {
-    sendstringf("This guest already has a VMCS. Restore it\n");
-    r=vmptrld(currentcpuinfo->vmxdata.guest_activeVMCS);
-    if (r==0)
-    {
-      sendstringf("restore: vmptrld success\n");
-      setHostState((void *)&currentcpuinfo->vmxdata.originalhoststate);
-
-      sendstringf("CR3=%6\n", vmread(vm_guest_cr3));
-
-      r=vmptrld(currentcpuinfo->vmcs_regionPA); //back to normal
-      if (r)
-      {
-        sendstringf("restore: vmptrld failed: %d (error=%d)\n", vmread(vm_errorcode));
-        ddDrawRectangle(0,DDVerticalResolution-100,100,100,0xff0000);
-        while (1);
-      }
-    }
-    else
-    {
-      sendstringf("restore: vmptrld failed: %d (error=%d)\n", vmread(vm_errorcode));
-      //VMfailInvalid();
-      //return 0;
-      //it's a load, the old state could have been deleted
-    }
-  }
-
-  //now load the new vmptr
 
 
   if (address==currentcpuinfo->vmxdata.guest_vmxonaddress)
@@ -1177,18 +1265,17 @@ int handle_vmptrld(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
   }
 
 
-  sendstringf("calling vmptrld with address %6", address);
+ // sendstringf("calling vmptrld with address %6", address);
   r=vmptrld(address);
-  sendstringf("vmptrld(%6) returned %d\n", address, r);
 
-  if (r==0) //store the original hoststate
+  if (r==0)
   {
-    sendstringf("Storing the original hoststate\n");
-    getHostState((void *)&currentcpuinfo->vmxdata.originalhoststate);
+    //sendstringf("new guest_activeVMCS=%6", address);
     currentcpuinfo->vmxdata.guest_activeVMCS=address;
   }
   else
   {
+    sendstringf("vmptrld error (r=%d)\n", r);
     if (r==1)
     {
       VMfailInvalid();
@@ -1204,26 +1291,27 @@ int handle_vmptrld(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
     }
   }
 
-  //change the hoststate so it exits on dbvm
-  sendstring("Editing the guest vmcs state so it exits on this host\n");
-  setHostState((vmxhoststate *)&currentcpuinfo->vmxdata.dbvmhoststate);
-
-  //debug code, can go
-  vmxhoststate debugstate;
-  getHostState(&debugstate);
-
-  if (debugstate.CR3!=getCR3())
-  {
-    sendstringf("wrong cr3 was set in the hoststate");
-    ddDrawRectangle(0,DDVerticalResolution-100,100,100,0xff0000);
-    while (1);
-  }
-
-  //restore to normal (until launch/resume)
-  sendstring("Calling vmptrld to the default\n");
   vmptrld(currentcpuinfo->vmcs_regionPA);
 
-  sendstringf("Calling vmsucceed\n");
+
+  if (hasVMCSShadowingSupport)
+  {
+    //find this entries' shadow copy
+
+    //create a copy
+   // sendstringf("Marking guest activeVMCS as shadow");
+    vmclear(currentcpuinfo->vmxdata.guest_activeVMCS);
+
+    DWORD *vmcsheader=getVMCS(currentcpuinfo, currentcpuinfo->vmxdata.guest_activeVMCS);
+    *vmcsheader |= (1<<31);
+
+
+    vmwrite(vm_vmcs_link_pointer, currentcpuinfo->vmxdata.guest_activeVMCS);
+  }
+
+
+
+ // sendstringf("Calling vmsucceed\n");
   vmsucceed();
 
 
@@ -1235,6 +1323,8 @@ int handle_vmptrst(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
   QWORD address=getDestinationAddressFromInstructionInfo(vmregisters);
   int error;
   QWORD pagefaultaddress;
+
+  sendstring("handle_vmptrst");
 
   if (currentcpuinfo->vmxdata.insideVMXRootMode==0)
     return raiseInvalidOpcodeException(currentcpuinfo);
@@ -1261,7 +1351,7 @@ int handle_vmxon(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
   int error;
   QWORD pagefaultaddress;
 
-  sendstringf("handle_vmxon %6\n", address);
+  //sendstringf("handle_vmxon %6\n", address);
 
   if ((vmread(vm_guest_cr4) & CR4_VMXE)==0)
   {
@@ -1280,9 +1370,14 @@ int handle_vmxon(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
   currentcpuinfo->vmxdata.guest_activeVMCS=0xffffffffffffffff;
   currentcpuinfo->vmxdata.insideVMXRootMode=1;
 
+  //sendstringf("vmxonaddress=%6\n", *mapped);
+
+  if (hasVMCSShadowingSupport)
+    vmwrite(vm_vmcs_link_pointer, 0xffffffffffffffffull);
+
   unmapVMmemory(mapped, 8);
 
-  vmwrite(vm_guest_rip,vmread(vm_guest_rip)+vmread(vm_exit_instructionlength));
+  incrementRIP(vmread(vm_exit_instructionlength));
 
   vmsucceed();
   return 0;
@@ -1290,27 +1385,17 @@ int handle_vmxon(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 
 int handle_vmxoff(pcpuinfo currentcpuinfo, VMRegisters *vmregisters UNUSED)
 {
-  sendstringf("handle_vmxoff\n");
+  //sendstringf("handle_vmxoff\n");
   if (currentcpuinfo->vmxdata.insideVMXRootMode==0)
     return raiseInvalidOpcodeException(currentcpuinfo);
 
 
-  if (currentcpuinfo->vmxdata.guest_activeVMCS!=0xffffffffffffffff) //if there is an old VMCS, restore the hoststate with the original first
-  {
-    int r;
-    sendstringf("Restoring the guest vmx hoststate with original\n");
-    r=vmptrld(currentcpuinfo->vmxdata.guest_activeVMCS);
-    if (r==0)
-      setHostState((void *)&currentcpuinfo->vmxdata.originalhoststate);
-
-    vmptrld(currentcpuinfo->vmcs_regionPA);
-
-    currentcpuinfo->vmxdata.guest_activeVMCS=0xffffffffffffffffULL;
-  }
-
+  currentcpuinfo->vmxdata.guest_activeVMCS=0xffffffffffffffffULL;
+  if (hasVMCSShadowingSupport)
+    vmwrite(vm_vmcs_link_pointer, 0xffffffffffffffffull);
 
   currentcpuinfo->vmxdata.insideVMXRootMode=0;
-  vmwrite(vm_guest_rip,vmread(vm_guest_rip)+vmread(vm_exit_instructionlength));
+  incrementRIP(vmread(vm_exit_instructionlength));
 
   vmsucceed();
   return 0;
@@ -1324,9 +1409,9 @@ int handleIntelVMXInstruction(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 {
   int r;
   nosendchar[getAPICID()]=0;
-  sendstring(" - nested vm is not 100% working\n");
+  //sendstring(" - nested vm is not 100% working\n");
 
-  sendstringf("handleIntelVMXInstruction. emulatevmx=%d\n", emulatevmx);
+
   if (emulatevmx==0)
     return raiseInvalidOpcodeException(currentcpuinfo);
   else
@@ -1337,6 +1422,13 @@ int handleIntelVMXInstruction(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
     currentcpuinfo->guest_error=0;
     currentcpuinfo->vmxdata.currenterrorcode=0;
 
+    if (currentcpuinfo->guest_error)
+    {
+      if (currentcpuinfo->guest_error==0xce00)  sendstringf("%6: handleIntelVMXInstruction %d (VMLAUNCH ERROR)\n", vmread(vm_guest_rip), exit_reason);
+      if (currentcpuinfo->guest_error==0xce01)  sendstringf("%6: handleIntelVMXInstruction %d (VMRESUME ERROR)\n", vmread(vm_guest_rip), exit_reason);
+    }
+    //else
+    //  sendstringf("%6: handleIntelVMXInstruction %d (%s)\n", vmread(vm_guest_rip), exit_reason, getVMExitReassonString());
 
 
     try
@@ -1355,8 +1447,8 @@ int handleIntelVMXInstruction(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
   26 VMXOFF. Guest software attempted to execute VMXOFF.
   27 VMXON. Guest software attempted to execute VMXON.
        */
-        case 19: r=handle_vmclear(currentcpuinfo, vmregisters); break;
-        case 20: r=handle_vmlaunch(currentcpuinfo, vmregisters); break;
+        case vm_exit_vmclear: r=handle_vmclear(currentcpuinfo, vmregisters); break;
+        case vm_exit_vmlaunch: r=handle_vmlaunch(currentcpuinfo, vmregisters); break;
         case 0xce00: r=handle_vmlaunchFail(currentcpuinfo); break;
         case 21: r=handle_vmptrld(currentcpuinfo, vmregisters); break;
         case 22: r=handle_vmptrst(currentcpuinfo, vmregisters); break;
@@ -1364,8 +1456,8 @@ int handleIntelVMXInstruction(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
         case 24: r=handle_vmresume(currentcpuinfo, vmregisters); break;
         case 0xce01: r=handle_vmresumeFail(currentcpuinfo); break;
         case 25: r=handle_vmwrite(currentcpuinfo, vmregisters); break;
-        case 26: r=handle_vmxoff(currentcpuinfo, vmregisters); break;
-        case 27: r=handle_vmxon(currentcpuinfo, vmregisters); break;
+        case vm_exit_vmxoff: r=handle_vmxoff(currentcpuinfo, vmregisters); break;
+        case vm_exit_vmxon: r=handle_vmxon(currentcpuinfo, vmregisters); break;
         case vm_exit_invept:  r=handle_invept(currentcpuinfo, vmregisters); break;
         case vm_exit_invvpid: r=handle_invvpid(currentcpuinfo, vmregisters); break;
         default:
@@ -1385,6 +1477,7 @@ int handleIntelVMXInstruction(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
       while (1);
     }
     tryend
+
 
     return r;
 

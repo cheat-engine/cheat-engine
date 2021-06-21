@@ -54,14 +54,22 @@
 #define SPBEF_ENABLE_VPID           (1<<5)
 #define SPBEF_ENABLE_UNRESTRICTED   (1<<7)
 #define SPBEF_ENABLE_INVPCID        (1<<12)
+#define SPBEF_ENABLE_VMCS_SHADOWING (1<<14)
 #define SPBEF_ENABLE_XSAVES         (1<<20)
+#define SPBEF_USER_WAIT_AND_PAUSE   (1<<26)
 
 //vm-exit controls
 #define VMEXITC_SAVE_DEBUG_CONTROLS           (1<<2)
 #define VMEXITC_HOST_ADDRESS_SPACE_SIZE       (1<<9)
+#define VMEXITC_LOAD_IA32_PERF_GLOBAL_CTRL    (1<<12)
 #define VMEXITC_ACKNOWLEDGE_INTERRUPT_ON_EXIT (1<<15)
-#define VMEXITC_SAVE_IA32_EFER        (1<<20)
-#define VMEXITC_LOAD_IA32_EFER        (1<<21)
+#define VMEXITC_LOAD_IA32_PAT                 (1<<19)
+#define VMEXITC_SAVE_IA32_EFER                (1<<20)
+#define VMEXITC_LOAD_IA32_EFER                (1<<21)
+#define VMEXITC_CLEAR_IA32_BNDCFGS            (1<<23)
+#define VMEXITC_CLEAR_IA32_RTIT_CTL           (1<<25)
+#define VMEXITC_LOAD_CET                      (1<<28)
+#define VMEXITC_LOAD_PKRS                     (1<<29)
 
 //vm-entry controls
 #define VMENTRYC_RESTORE_DEBUG_CONTROLS              (1<<2)
@@ -78,28 +86,40 @@
 #define FEATURE_CONTROL_VMXON 		(1<<2)
 
 #define vm_exit_interrupt   0
+#define vm_exit_externalinterupt  1
 #define vm_exit_init        3
 #define vm_exit_sipi        4
+#define vm_exit_interrupt_window  7
 #define vm_exit_taskswitch  9
 #define vm_exit_cpuid      10
 #define vm_exit_invlpg     14
 #define vm_exit_rdtsc      16
 #define vm_exit_vmcall     18
+#define vm_exit_vmclear    19
 #define vm_exit_vmlaunch   20
 #define vm_exit_vmptrld    21
 #define vm_exit_vmread     23
 #define vm_exit_vmresume   24
 #define vm_exit_vmwrite    25
+#define vm_exit_vmxoff     26
+#define vm_exit_vmxon      27
 #define vm_exit_cr_access  28
 #define vm_exit_io_access  30
 #define vm_exit_rdmsr      31
 #define vm_exit_wrmsr      32
+
+#define vm_exit_mwait      36
+#define vm_exit_monitor    39
+
 #define vm_exit_monitor_trap_flag 37
+#define vm_exit_apic_access 44
 #define vm_exit_ept_violation 48
 #define vm_exit_ept_misconfiguration 49
 #define vm_exit_invept     50
 #define vm_exit_vmx_preemptiontimer_reachedzero  52
 #define vm_exit_invvpid    53
+#define vm_exit_wbinvd     54
+
 #define vm_exit_xsetbv     55
 #define vm_exit_invpcid    58
 #define vm_exit_invalid_guest_state  0x80000021

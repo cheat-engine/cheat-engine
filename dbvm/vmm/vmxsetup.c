@@ -28,9 +28,14 @@ criticalSection setupVMX_lock={.name="setupVMX_lock", .debuglevel=2};
 volatile unsigned char *MSRBitmap;
 volatile unsigned char *IOBitmap;
 
+volatile unsigned char *VMREADBitmap;
+volatile unsigned char *VMWRITEBitmap;
+
+
 int hasEPTsupport=0;
 int TSCHooked=0;
 int hasNPsupport=1;
+
 
 int canToggleCR3Exit=0; //intel only flag
 
@@ -841,8 +846,25 @@ int setupEPT(pcpuinfo currentcpuinfo)
   {
     //secondary procbased controls
     QWORD IA32_VMX_SECONDARY_PROCBASED_CTLS=readMSR(IA32_VMX_PROCBASED_CTLS2_MSR); //allowed1/allowed0
+    DWORD old_vm_execution_controls_cpu=vmread(vm_execution_controls_cpu);
+    DWORD new_vm_execution_controls_cpu=old_vm_execution_controls_cpu | SECONDARY_EXECUTION_CONTROLS;
 
-    vmwrite(vm_execution_controls_cpu, vmread(vm_execution_controls_cpu) | SECONDARY_EXECUTION_CONTROLS); //activate secondary controls
+    sendstringf("old_vm_execution_controls_cpu=%x  Want to set it to %6\n",old_vm_execution_controls_cpu, new_vm_execution_controls_cpu);
+    vmwrite(vm_execution_controls_cpu, new_vm_execution_controls_cpu); //activate secondary controls
+
+
+    DWORD current_vm_execution_controls_cpu=vmread(vm_execution_controls_cpu);
+    sendstringf("new_vm_execution_controls_cpu=%x\n",current_vm_execution_controls_cpu);
+
+
+
+
+    if (current_vm_execution_controls_cpu != new_vm_execution_controls_cpu)
+    {
+      sendstringf("Meh...\n");
+      while(1);
+    }
+
 
 
 
@@ -1036,6 +1058,12 @@ void setup8086WaitForSIPI(pcpuinfo currentcpuinfo, int setupvmcontrols)
       {
         sendstringf("Enabling INVPCID\n");
         secondarycpu|=SPBEF_ENABLE_INVPCID;
+      }
+
+      if ((IA32_VMX_SECONDARY_PROCBASED_CTLS >> 32) & SPBEF_USER_WAIT_AND_PAUSE) //can it enable XSAVES ?
+      {
+        sendstringf("Enabling xsaves\n");
+        secondarycpu|=SPBEF_USER_WAIT_AND_PAUSE;
       }
 
       vmwrite(vm_execution_controls_cpu_secondary, secondarycpu);
@@ -1776,6 +1804,33 @@ void setupVMX(pcpuinfo currentcpuinfo)
 
       if (canToggleCR3Exit) //turn of cr3 exits
         IA32_VMX_PROCBASED_CTLS = IA32_VMX_PROCBASED_CTLS & (QWORD)(~(PPBEF_CR3LOAD_EXITING | PPBEF_CR3STORE_EXITING));
+
+
+      if ((IA32_VMX_SECONDARY_PROCBASED_CTLS>>32) & SPBEF_ENABLE_VMCS_SHADOWING )
+      {
+        sendstringf("Supports VMCS shadowing\n");
+        vmwrite(vm_execution_controls_cpu_secondary, vmread(vm_execution_controls_cpu_secondary) | SPBEF_ENABLE_VMCS_SHADOWING);
+        hasVMCSShadowingSupport=1;
+
+        if (VMREADBitmap==NULL)
+        {
+          VMREADBitmap=malloc2(4096);
+          VMWRITEBitmap=malloc2(4096);
+
+          //corresponding VMREAD bit is in bit position x & 7 of the byte at physical address addr | (x » 3).
+          zeromemory(VMREADBitmap, 4096);
+          zeromemory(VMWRITEBitmap, 4096);
+
+
+          //example: VMREADBitmap[0x800 >> 3]|=(1 << (0x800 & 7));
+
+
+        }
+
+        vmwrite(vm_vmread_bitmap_address, VirtualToPhysical(VMREADBitmap));
+        vmwrite(vm_vmwrite_bitmap_address, VirtualToPhysical(VMWRITEBitmap));
+
+      }
     }
     else
     {
@@ -1783,6 +1838,10 @@ void setupVMX(pcpuinfo currentcpuinfo)
       hasUnrestrictedSupport=0;
     }
   }
+
+
+
+
 
 
 
@@ -1954,6 +2013,12 @@ void setupVMX(pcpuinfo currentcpuinfo)
       vmwrite(vm_guest_cr0, (ULONG)IA32_VMX_CR0_FIXED0 | originalstate->cr0);
       vmwrite(vm_guest_cr3, originalstate->cr3);
       vmwrite(vm_guest_cr4, (ULONG)IA32_VMX_CR4_FIXED0 | originalstate->cr4);
+
+      if (vmread(vm_guest_cr0)!=((ULONG)IA32_VMX_CR0_FIXED0 | originalstate->cr0))
+      {
+        sendstringf("vm_guest_cr0 = %6\n", vmread(vm_guest_cr0));
+        while (1);
+      }
 
       vmwrite(vm_guest_gdtr_base, (UINT64)originalstate->gdtbase);
       vmwrite(vm_guest_gdt_limit, (UINT64)originalstate->gdtlimit);

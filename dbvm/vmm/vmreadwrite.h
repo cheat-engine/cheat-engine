@@ -18,6 +18,10 @@
 #define vm_iobitmap_b				        0x2002
 
 #define vm_eptpointer               0x201a
+
+#define vm_vmread_bitmap_address    0x2026
+#define vm_vmwrite_bitmap_address   0x2028
+
 #define vm_guest_physical_address   0x2400
 
 #define vm_vmcs_link_pointer        0x2800
@@ -25,6 +29,10 @@
 #define vm_guest_IA32_PAT           0x2804
 #define vm_guest_IA32_EFER          0x2806
 #define vm_guest_IA32_PERF_GLOBAL_CTRL 0x2808
+
+#define vm_guest_IA32_BNDCFGS       0x2812
+#define vm_guest_IA32_RTIT_CTL      0x2814
+#define vm_guest_IA32_PKRS          0x2818
 
 #define vm_execution_controls_pin   0x4000
 #define vm_execution_controls_cpu   0x4002
@@ -107,6 +115,10 @@
 #define vm_guest_IA32_SYSENTER_ESP  0x6824
 #define vm_guest_IA32_SYSENTER_EIP  0x6826
 
+#define vm_guest_IA32_S_CET         0x6828
+#define vm_guest_SSP                0x682a
+#define vm_guest_IA32_INTERRUPT_SSP_TABLE_ADDR 0x682c
+
 //host 0x*c**
 #define vm_host_es                    0xc00
 #define vm_host_cs                    0xc02
@@ -119,6 +131,7 @@
 #define vm_host_IA32_PAT              0x2C00
 #define vm_host_IA32_EFER             0x2C02
 #define vm_host_IA32_PERF_GLOBAL_CTRL 0x2c04
+#define vm_host_IA32_PKRS             0x2c06
 
 #define vm_host_IA32_SYSENTER_CS      0x4c00
 
@@ -134,7 +147,9 @@
 #define vm_host_IA32_SYSENTER_EIP     0x6c12
 #define vm_host_rsp                   0x6c14
 #define vm_host_rip                   0x6c16
-
+#define vm_host_IA32_S_CET            0x6c18
+#define vm_host_SSP                   0x6c1a
+#define vm_host_IA32_INTERRUPT_SSP_TABLE_ADDR 0x6c1c
 
 
 #endif /*VMREADWRITE_H_*/
