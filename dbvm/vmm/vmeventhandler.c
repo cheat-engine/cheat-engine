@@ -4069,6 +4069,7 @@ int handle_rdtsc(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 
 #pragma GCC pop_options
 
+
 int handleVMEvent_internal(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, FXSAVE64 *fxsave)
 {
   int result;
@@ -4583,6 +4584,9 @@ int handleVMEvent_internal(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, FX
 
 int reached7c00=0;
 int counter;
+
+criticalSection bla;
+
 int handleVMEvent(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, FXSAVE64 *fxsave)
 {
 
@@ -4632,7 +4636,9 @@ int handleVMEvent(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, FXSAVE64 *f
     if (show)
       sendstringf("%d:%x:%6: event=%d (%s)  esi=%6 edi=%6 ecx=%6\n", currentcpuinfo->cpunr, vmread(vm_guest_cs), vmread(vm_guest_rip),  vmread(vm_exit_reason), getVMExitReassonString(), vmregisters->rsi, vmregisters->rdi, vmregisters->rcx);
 
+    csEnter(&bla);
     r=emulateVMExit(currentcpuinfo, vmregisters); //after this
+    csLeave(&bla);
 
     if (currentcpuinfo->vmxdata.runningvmx)
     {
@@ -4646,6 +4652,9 @@ int handleVMEvent(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, FXSAVE64 *f
   currentcpuinfo->lastExitWasWithRunningVMX=0;
 
   idtvectorinfo.idtvector_info=vmread(vm_idtvector_information);
+
+
+
 
   result=handleVMEvent_internal(currentcpuinfo, vmregisters, fxsave);
 
