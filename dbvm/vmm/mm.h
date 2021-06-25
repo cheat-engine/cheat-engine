@@ -86,6 +86,8 @@ void mmtest();
 
 typedef void(*MMENUMPAGESCALLBACK)(QWORD VirtualAddress, QWORD PhysicalAddress, int size, PPTE_PAE entry, void *context);
 
+int mmIsFreePage(void* address);
+
 void mmEnumAllPageEntries(MMENUMPAGESCALLBACK callbackfunction, int skipmapped, void *context);
 //void wtftest(void); //test routine to figure out why some memory gets paged out
 

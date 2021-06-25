@@ -29,6 +29,8 @@
 #include "interrupthandler.h"
 #include "test.h"
 
+#include "apic.h"
+
 
 #ifndef DEBUG
 #define sendstringf(s,x...)
@@ -798,6 +800,8 @@ int vmexit_amd(pcpuinfo currentcpuinfo, UINT64 *registers, void *fxsave UNUSED)
 
 
 
+
+
 #ifdef DEBUG
   csEnter(&vmexitlock);
 
@@ -871,7 +875,6 @@ int lastexitsindex=0;
 criticalSection lastexitsCS={.name="lastexitsCS", .debuglevel=1};
 #endif
 
-
 #ifdef DEBUG
 
 QWORD lastbeat=0;
@@ -889,6 +892,29 @@ int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers, void *fxsave)
 	  //sendstringf("*Alive*\n");
 	  lastbeat=_rdtsc();
   }
+
+  if (vmread(vm_exit_reason)==0)
+  {
+    VMExit_interruption_information intinfo;
+    intinfo.interruption_information=vmread(vm_exit_interruptioninfo);
+
+    if ((intinfo.interruptvector==2) && (intinfo.type==itNMI) && (currentcpuinfo->WaitTillDone))
+    {
+      nosendchar[getAPICID()]=0;
+      sendstringf("NMI %d waiting till done\n", currentcpuinfo->cpunr);
+      currentcpuinfo->WaitingTillDone=1;
+      //apic_eoi();
+      while (currentcpuinfo->WaitTillDone) _pause();
+
+      sendstringf("NMI %d done waiting\n", currentcpuinfo->cpunr);
+
+      if (currentcpuinfo->eptUpdated)
+        ept_invalidate();
+
+      return 0;
+    }
+  }
+
 
 
 
@@ -940,6 +966,25 @@ int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers, void *fxsave)
   int haspending=0;
   VMExit_idt_vector_information idtvectorinfo;
   idtvectorinfo.idtvector_info=vmread(vm_idtvector_information);
+
+#ifdef USENMIFORWAIT
+  if (vmread(vm_exit_reason)==0)
+  {
+    VMExit_interruption_information intinfo;
+    intinfo.interruption_information=vmread(vm_exit_interruptioninfo);
+    if ((intinfo.interruptvector==2) && (intinfo.type==itNMI) && (currentcpuinfo->WaitTillDone))
+    {
+      currentcpuinfo->WaitingTillDone=1;
+      while (currentcpuinfo->WaitTillDone) _pause();
+
+      if (currentcpuinfo->eptUpdated)
+        ept_invalidate();
+
+      return 0;
+    }
+  }
+#endif
+
 
 
 
@@ -2008,6 +2053,30 @@ int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers, void *fxsave)
         ept_hideDBVMPhysicalAddressesAllCPUs();
         break;
       }
+
+#ifdef USENMIFORWAIT
+      case 'n':
+      {
+        pcpuinfo c=firstcpuinfo;
+        while (c)
+        {
+          if (c!=currentcpuinfo)
+          {
+            c->WaitingTillDone=0;
+            c->WaitTillDone=1;
+            apic_sendWaitInterrupt(c->apicid-1);
+            while (c->WaitingTillDone==0) _pause();
+
+            sendstringf("%d paused %d\n", currentcpuinfo->cpunr, c->cpunr);
+
+            c->WaitTillDone=0;
+          }
+          c=c->next;
+        }
+        break;
+      }
+#endif
+
 
       default:
         sendstring("Unknown command\n\r");

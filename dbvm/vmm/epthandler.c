@@ -73,6 +73,26 @@ int checkmem(unsigned char *x, int len)
 }
 #endif
 
+
+//#define EPTINTEGRITY
+
+#ifdef EPTINTEGRITY
+void checkpage(PEPT_PTE e)
+{
+  int i;
+  for (i=0; i<512; i++)
+  {
+    if (e[i].ignored2 || e[i].ignored3 || e[i].reserved2 )
+    {
+      while (1) ;
+    }
+  }
+
+  //and check that the PA isn't inside the BrokenThreadList[] array
+}
+
+#endif
+
 void vpid_invalidate()
 {
   INVVPIDDESCRIPTOR vpidd;
@@ -1756,6 +1776,10 @@ int ept_handleStepAndBreak(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, FX
 
     QWORD newRIP=0;
 
+    if ((brokenthreadid<0) || (brokenthreadid>=BrokenThreadListPos))
+      while (1);
+
+
     if (BrokenThreadList[brokenthreadid].continueMethod==1) //single step
       newRIP=kernelmode?BrokenThreadList[brokenthreadid].KernelModeLoop:BrokenThreadList[brokenthreadid].UserModeLoop; //anything else, will be a run
 
@@ -2441,7 +2465,8 @@ BOOL ept_handleWatchEvent(pcpuinfo currentcpuinfo, VMRegisters *registers, PFXSA
 
         if (BrokenThreadListPos>=BrokenThreadListSize) //list full
         {
-          BrokenThreadList=realloc(BrokenThreadList, sizeof(BrokenThreadEntry)*BrokenThreadListSize+32); //add 32
+          void *oldaddress=(void *)BrokenThreadList;
+          BrokenThreadList=(BrokenThreadEntry *)realloc(BrokenThreadList, BrokenThreadListSize+sizeof(BrokenThreadEntry)*32); //add 32
           BrokenThreadListSize+=32;
         }
 
@@ -3379,13 +3404,26 @@ int ept_watch_activate(QWORD PhysicalAddress, int Size, int Type, DWORD Options,
   eptWatchList[ID].Active=1;
 
   //for each CPU mark this page as non writable/readable
+  pcpuinfo currentcpuinfo=getcpuinfo();
   pcpuinfo c=firstcpuinfo;
   while (c)
   {
     QWORD PA_PTE;
 
     sendstringf("Setting watch for CPU %d\n", c->cpunr);
+
     csEnter(&c->EPTPML4CS);
+
+#ifdef USENMIFORWAIT
+    if ((canExitOnNMI) && (c!=currentcpuinfo))
+    {
+      c->WaitingTillDone=0;
+      c->WaitTillDone=1;
+      apic_sendWaitInterrupt(c->apicid-1);
+      while (c->WaitingTillDone==0) _pause();
+    }
+#endif
+
 
     if (isAMD)
     {
@@ -3400,6 +3438,8 @@ int ept_watch_activate(QWORD PhysicalAddress, int Size, int Type, DWORD Options,
       c->eptWatchList=realloc(c->eptWatchList, eptWatchListSize*sizeof(EPT_PTE));
 
     c->eptWatchList[ID]=mapPhysicalMemoryGlobal(PA_PTE, sizeof(EPT_PTE)); //can use global as it's not a quick map/unmap procedure
+
+
 
     if (isAMD)
     {
@@ -3428,7 +3468,7 @@ int ept_watch_activate(QWORD PhysicalAddress, int Size, int Type, DWORD Options,
     {
 
       //Intel EPT
-      EPT_PTE temp=*c->eptWatchList[ID]; //using temp in case the cpu doesn't support a XA of 1 with an RA of 0
+      EPT_PTE temp=*(c->eptWatchList[ID]); //using temp in case the cpu doesn't support a XA of 1 with an RA of 0
 
       if (Type==EPTW_WRITE) //Writes
         temp.WA=0;
@@ -3451,10 +3491,14 @@ int ept_watch_activate(QWORD PhysicalAddress, int Size, int Type, DWORD Options,
 
     }
 
-
-
     _wbinvd();
     c->eptUpdated=1;
+
+#ifdef USENMIFORWAIT
+    if (canExitOnNMI && (c!=currentcpuinfo))
+      c->WaitTillDone=0;
+#endif
+
     csLeave(&c->EPTPML4CS);
 
     c=c->next;
@@ -3494,21 +3538,31 @@ int ept_watch_deactivate(int ID)
   int hasAnotherOne=0;
   sendstringf("ept_watch_deactivate(%d)", ID);
 
+  getcpuinfo()->LastVMCallDebugPos=1;
+
   csEnter(&eptWatchListCS);
+
+
 
   if (ID>=eptWatchListPos)
   {
+    getcpuinfo()->LastVMCallDebugPos=2;
     sendstringf("  Invalid entry\n");
     csLeave(&eptWatchListCS);
     return 1;
   }
 
+  getcpuinfo()->LastVMCallDebugPos=3;
+
   if (eptWatchList[ID].Active==0)
   {
+    getcpuinfo()->LastVMCallDebugPos=4;
     sendstringf("  Inactive entry\n");
     csLeave(&eptWatchListCS);
     return 2;
   }
+
+  getcpuinfo()->LastVMCallDebugPos=5;
 
   QWORD PhysicalBase=eptWatchList[ID].PhysicalAddress & 0xfffffffffffff000ULL;
 
@@ -3522,75 +3576,103 @@ int ept_watch_deactivate(int ID)
     }
   }
 
+  getcpuinfo()->LastVMCallDebugPos=6;
+
   if (hasAnotherOne==0)
   {
     pcpuinfo c=firstcpuinfo;
+    pcpuinfo currentcpuinfo=getcpuinfo();
+
 
     while (c)
     {
       //undo
-
       csEnter(&c->EPTPML4CS);
-
-      if (isAMD)
+#ifdef USENMIFORWAIT
+      if (canExitOnNMI && (c!=currentcpuinfo))
       {
-        _PTE_PAE temp=*(PPTE_PAE)(c->eptWatchList[ID]);
-        if (eptWatchList[ID].Type==EPTW_WRITE)
-        {
-          temp.RW=1; //back to writable
-        }
-        else if (eptWatchList[ID].Type==EPTW_READWRITE)
-        {
-          temp.P=1;
-          temp.RW=1;
-          temp.EXB=0;
-        }
-        else
-        {
-          temp.EXB=0;
-        }
-
-        *(PPTE_PAE)(c->eptWatchList[ID])=temp;
+        c->WaitingTillDone=0;
+        c->WaitTillDone=1;
+        apic_sendWaitInterrupt(c->apicid-1);
+        while (c->WaitingTillDone==0) _pause();
       }
-      else
-      {
+#endif
 
-        EPT_PTE temp=*(c->eptWatchList[ID]);
-        if (eptWatchList[ID].Type==EPTW_WRITE)
+
+
+      if ((c->eptWatchList) && (ID<c->eptWatchListLength) && (c->eptWatchList[ID]))
+      {
+        if (isAMD)
         {
-          sendstringf("  This was a write entry. Making it writable\n");
-          temp.WA=1;
-        }
-        else if (eptWatchList[ID].Type==EPTW_READWRITE)
-        {
-          sendstringf("  This was an access entry. Making it readable and writable");
-          temp.RA=1;
-          temp.WA=1;
-          if (has_EPT_ExecuteOnlySupport==0)
+          _PTE_PAE temp=*(PPTE_PAE)(c->eptWatchList[ID]);
+          if (eptWatchList[ID].Type==EPTW_WRITE)
           {
-            sendstringf(" and executable as this cpu does not support execute only pages\n");
-            temp.XA=1;
+            temp.RW=1; //back to writable
           }
+          else if (eptWatchList[ID].Type==EPTW_READWRITE)
+          {
+            temp.P=1;
+            temp.RW=1;
+            temp.EXB=0;
+          }
+          else
+          {
+            temp.EXB=0;
+          }
+
+          *(PPTE_PAE)(c->eptWatchList[ID])=temp;
         }
         else
         {
-            sendstringf("  This was an execute entry. Making it executable");
-            temp.XA=1;
+
+          EPT_PTE temp=*(c->eptWatchList[ID]);
+          if (eptWatchList[ID].Type==EPTW_WRITE)
+          {
+            sendstringf("  This was a write entry. Making it writable\n");
+            temp.WA=1;
+          }
+          else if (eptWatchList[ID].Type==EPTW_READWRITE)
+          {
+            sendstringf("  This was an access entry. Making it readable and writable");
+            temp.RA=1;
+            temp.WA=1;
+            if (has_EPT_ExecuteOnlySupport==0)
+            {
+              sendstringf(" and executable as this cpu does not support execute only pages\n");
+              temp.XA=1;
+            }
+          }
+          else
+          {
+              sendstringf("  This was an execute entry. Making it executable");
+              temp.XA=1;
+          }
+
+
+
+          *(c->eptWatchList[ID])=temp;
         }
 
+        _wbinvd();
+        c->eptUpdated=1;
+
+        unmapPhysicalMemoryGlobal(c->eptWatchList[ID], sizeof(EPT_PTE));
+        c->eptWatchList[ID]=NULL;
 
 
-        *(c->eptWatchList[ID])=temp;
       }
-      _wbinvd();
-      c->eptUpdated=1;
+
+#ifdef USENMIFORWAIT
+      if ((canExitOnNMI) && (c!=currentcpuinfo))
+        c->WaitTillDone=0;
+#endif
+
 
       csLeave(&c->EPTPML4CS);
-
-      unmapPhysicalMemoryGlobal(c->eptWatchList[ID], sizeof(EPT_PTE));
-      c->eptWatchList[ID]=NULL;
       c=c->next;
     }
+
+    getcpuinfo()->LastVMCallDebugPos=7;
 
     ept_invalidate();
   }
@@ -3599,11 +3681,15 @@ int ept_watch_deactivate(int ID)
     sendstringf("  hasAnotherOne is set\n");
   }
 
+  getcpuinfo()->LastVMCallDebugPos=8;
   eptWatchList[ID].Active=0;
   free(eptWatchList[ID].Log);
   eptWatchList[ID].Log=NULL;
 
+  getcpuinfo()->LastVMCallDebugPos=9;
   csLeave(&eptWatchListCS);
+
+  getcpuinfo()->LastVMCallDebugPos=10;
   return 0;
 }
 
@@ -4131,6 +4217,7 @@ int handleMSRWrite_MTRR(void)
   return 1;
 }
 
+
 QWORD EPTMapPhysicalMemory(pcpuinfo currentcpuinfo, QWORD physicalAddress, int forcesmallpage)
 /*
  * Maps the physical address into the EPT map.
@@ -4152,7 +4239,15 @@ QWORD EPTMapPhysicalMemory(pcpuinfo currentcpuinfo, QWORD physicalAddress, int f
 
   csEnter(&currentcpuinfo->EPTPML4CS);
 
+  if (currentcpuinfo->eptUpdated)
+    ept_invalidate();
+
+
   pml4=mapPhysicalMemory(currentcpuinfo->EPTPML4, 4096);
+#ifdef EPTINTEGRITY
+  checkpage((PEPT_PTE)pml4);
+#endif
+
   if (pml4[pml4index].RA==0)
   {
     sendstringf("allocating pagedirptr\n");
@@ -4163,15 +4258,25 @@ QWORD EPTMapPhysicalMemory(pcpuinfo currentcpuinfo, QWORD physicalAddress, int f
     pml4[pml4index].RA=1;
     pml4[pml4index].WA=1;
     pml4[pml4index].XA=1;
+
+#ifdef EPTINTEGRITY
+    checkpage((PEPT_PTE)temp);
+#endif
   }
 
   PA=(*(QWORD*)(&pml4[pml4index])) & MAXPHYADDRMASKPB;
   pagedirptr=mapPhysicalMemory(PA, 4096);
+#ifdef EPTINTEGRITY
+  checkpage((PEPT_PTE)pagedirptr);
+#endif
 
   PA+=8*pagedirptrindex;
 
   if (pml4)
   {
+#ifdef EPTINTEGRITY
+    checkpage((PEPT_PTE)pml4);
+#endif
     unmapPhysicalMemory(pml4, 4096);
     pml4=NULL;
   }
@@ -4198,6 +4303,9 @@ QWORD EPTMapPhysicalMemory(pcpuinfo currentcpuinfo, QWORD physicalAddress, int f
         pagedirptr[pagedirptrindex].XA=1;
         pagedirptr[pagedirptrindex].BIG=1;
         pagedirptr[pagedirptrindex].MEMTYPE=memtype;
+#ifdef EPTINTEGRITY
+        checkpage((PEPT_PTE)pagedirptr);
+#endif
         unmapPhysicalMemory(pagedirptr, 4096);
 
         csLeave(&currentcpuinfo->EPTPML4CS);
@@ -4217,10 +4325,17 @@ QWORD EPTMapPhysicalMemory(pcpuinfo currentcpuinfo, QWORD physicalAddress, int f
   PA=(*(QWORD*)(&pagedirptr[pagedirptrindex])) & MAXPHYADDRMASKPB;
   pagedir=mapPhysicalMemory(PA, 4096);
 
+#ifdef EPTINTEGRITY
+  checkpage((PEPT_PTE)pagedir);
+#endif
+
   PA+=8*pagedirindex;
 
   if (pagedirptr)
   {
+#ifdef EPTINTEGRITY
+    checkpage((PEPT_PTE)pagedirptr);
+#endif
     unmapPhysicalMemory(pagedirptr, 4096);
     pagedirptr=NULL;
   }
@@ -4246,6 +4361,9 @@ QWORD EPTMapPhysicalMemory(pcpuinfo currentcpuinfo, QWORD physicalAddress, int f
         pagedir[pagedirindex].XA=1;
         pagedir[pagedirindex].BIG=1;
         pagedir[pagedirindex].MEMTYPE=memtype;
+#ifdef EPTINTEGRITY
+        checkpage((PEPT_PTE)pagedir);
+#endif
         unmapPhysicalMemory(pagedir, 4096);
 
         csLeave(&currentcpuinfo->EPTPML4CS);
@@ -4265,11 +4383,17 @@ QWORD EPTMapPhysicalMemory(pcpuinfo currentcpuinfo, QWORD physicalAddress, int f
   //still here, so not mapped as a pagedir entry
   PA=(*(QWORD*)(&pagedir[pagedirindex])) & MAXPHYADDRMASKPB;
   pagetable=mapPhysicalMemory(PA, 4096);
+#ifdef EPTINTEGRITY
+  checkpage((PEPT_PTE)pagetable);
+#endif
 
   PA+=8*pagetableindex;
 
   if (pagedir)
   {
+#ifdef EPTINTEGRITY
+    checkpage((PEPT_PTE)pagedir);
+#endif
     unmapPhysicalMemory(pagedir,4096);
     pagedir=NULL;
   }
@@ -4305,7 +4429,9 @@ QWORD EPTMapPhysicalMemory(pcpuinfo currentcpuinfo, QWORD physicalAddress, int f
     pagetable[pagetableindex].WA=1;
     pagetable[pagetableindex].XA=1;
   }
-
+#ifdef EPTINTEGRITY
+  checkpage((PEPT_PTE)pagetable);
+#endif
   unmapPhysicalMemory(pagetable,4096);
 
   csLeave(&currentcpuinfo->EPTPML4CS);
@@ -4389,6 +4515,7 @@ VMSTATUS handleEPTMisconfig(pcpuinfo currentcpuinfo UNUSED, VMRegisters *vmregis
     return VM_OK;
   }
 
+  /*
   QWORD GuestAddress=vmread(vm_guest_physical_address);
   QWORD EPTAddress=EPTMapPhysicalMemory(currentcpuinfo, GuestAddress, 0);
 
@@ -4399,8 +4526,10 @@ VMSTATUS handleEPTMisconfig(pcpuinfo currentcpuinfo UNUSED, VMRegisters *vmregis
   else
   {
     sendstringf("handleEPTMisconfig(%x) : fuck\n", GuestAddress);
-  }
-  while (1) outportb(0x80,0xe0);
+  }*/
+
+  return 0; //try again
+  //while (1) outportb(0x80,0xe0);
 
   return VM_ERROR;
 }

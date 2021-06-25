@@ -398,6 +398,8 @@ typedef struct _singlestepreason
   void* Data; //pointer to the object for this reason (watchlist, cloaklist, changeregonbplist)
 } SingleStepReason, *PSingleStepReason;
 
+typedef void(*NMICallBack)(void* self);
+
 typedef volatile struct tcpuinfo
 {
   volatile struct tcpuinfo *self; //pointer to itself (must be offset 0)
@@ -652,10 +654,16 @@ typedef volatile struct tcpuinfo
   } SwitchKernel;
 
   int LastVMCall;
+  int LastVMCallDebugPos;
   int insideHandler;
 
   DWORD lastExitReason;
   int lastExitWasWithRunningVMX;
+
+#ifdef USENMIFORWAIT
+  int WaitTillDone;
+  int WaitingTillDone;
+#endif
 
 } tcpuinfo, *pcpuinfo; //allocated when the number of cpu's is known
 

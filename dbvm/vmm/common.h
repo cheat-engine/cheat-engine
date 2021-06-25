@@ -6,6 +6,7 @@
 
 //#define DELAYEDSERIAL
 
+//#define USENMIFORWAIT
 #define AMDNP  //enable AMD nested paging support
 
 #ifdef DELAYEDSERIAL

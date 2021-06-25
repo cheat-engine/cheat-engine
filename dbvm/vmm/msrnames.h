@@ -82,6 +82,7 @@
 #define IA32_RTIT_CTL_MSR         0x570
 #define IA32_DS_AREA              0x600
 
+#define IA32_X2APIC_ICR_MSR       0x830
 #define IA32_X2APIC_LVT_PMI_MSR   0x834
 
 

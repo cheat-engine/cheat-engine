@@ -47,10 +47,42 @@ typedef volatile struct {
   UINT128 Reserved10;
 } APIC, *PAPIC;
 
+typedef volatile union
+{
+  struct
+  {
+    unsigned int vector: 8; //0-7
+    unsigned int deliverymode: 3; //8-10
+    unsigned int destinationmode: 1; //11
+    unsigned int deliverystatus: 1; //12  (removed in x2apic)
+    unsigned int reserved1: 1; //13
+    unsigned int level: 1; //14
+    unsigned int triggermode: 1; //15
+    unsigned int reserved2: 2; //16-17
+    unsigned int destination_shorthand: 2; //18-19
+    unsigned int reserved3: 12; //20-31
+    union{
+      struct{
+        unsigned int reserved4: 24; //32-55
+        unsigned int destination: 8;
+      };
+      DWORD x2destination;
+    };
+  };
+  QWORD command;
+  struct
+  {
+    DWORD lower;
+    DWORD higher; //write this first
+  };
+} APIC_ICR, *PAPIC_ICR;
+
 extern unsigned int apic_getBootID(void);
 extern void apic_enableSVR(void);
 extern void initcpus(QWORD apic_base, DWORD entrypage);
 extern void apic_eoi(void);
+
+
 
 extern void APbootcode(void);
 extern void APbootcodeEnd(void);
@@ -58,6 +90,6 @@ extern QWORD APBootVar_CR3;
 extern QWORD APBootVar_GDT[24];
 extern WORD APBootVar_Size;
 
-
+void apic_sendWaitInterrupt(BYTE apicid);
 
 #endif /*APIC_H_*/

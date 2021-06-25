@@ -361,6 +361,23 @@ int cinthandler(unsigned long long *stack, int intnr) //todo: move to it's own s
   pcpuinfo cpuinfo=getcpuinfo();
   cpunr=cpuinfo->cpunr;
 
+#ifdef USENMIFORWAIT
+  if ((intnr==2) && (cpuinfo->WaitTillDone))
+  {
+    sendstringf("%d: NMI received while handling a vmexit\n", getcpunr());
+
+    cpuinfo->WaitingTillDone=1;
+    while (cpuinfo->WaitTillDone) _pause();
+
+    if (cpuinfo->eptUpdated)
+      ept_invalidate();
+
+
+    return 0;
+  }
+#endif
+
+
   //debug, remove:
   //if PIC_StillEnabled
   //outportb(0x20,0x20);

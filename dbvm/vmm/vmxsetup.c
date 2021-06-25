@@ -40,6 +40,36 @@ int hasNPsupport=1;
 int canToggleCR3Exit=0; //intel only flag
 
 
+#ifdef USENMIFORWAIT
+int canExitOnNMI=0;
+#endif
+
+int hasMTRRsupport;
+MTRRCAP MTRRCapabilities;
+MTRRDEF MTRRDefType;
+
+int has_EPT_1GBsupport;
+int has_EPT_2MBSupport;
+int has_EPT_ExecuteOnlySupport;
+int has_EPT_INVEPTSingleContext;
+int has_EPT_INVEPTAllContext;
+
+int hasUnrestrictedSupport;
+int hasVPIDSupport;
+int canToggleCR3Exit;
+int hasVMCSShadowingSupport;
+
+int has_VPID_INVVPIDIndividualAddress;
+int has_VPID_INVVPIDSingleContext;
+int has_VPID_INVVPIDAllContext;
+int has_VPID_INVVPIDSingleContextRetainingGlobals;
+
+//AMD
+int has_NP_1GBsupport;
+int has_NP_2MBsupport;
+
+
+
 extern void realmode_inthooks();
 extern void realmode_inthooks_end();
 
@@ -1782,7 +1812,11 @@ void setupVMX(pcpuinfo currentcpuinfo)
 
 
       //needs less interrupt hooks
-      vmwrite(vm_exception_bitmap,  (1<<1) | (1<<3));
+#ifdef USENMIFORWAIT      
+      vmwrite(vm_exception_bitmap,  (1<<1) | (1<<2) | (1<<3)); //int1 bp, int3 bp
+#else
+      vmwrite(vm_exception_bitmap,  (1<<1) | (1<<3)); //int1 bp, int3 bp
+#endif
 
       //todo: check if it can do with less cr3 exits  (can turn that on at runtime)
       //check the primary procbased capabilities if it can be set to 0
@@ -1840,7 +1874,11 @@ void setupVMX(pcpuinfo currentcpuinfo)
   }
 
 
+#ifdef USENMIFORWAIT
+  canExitOnNMI=vmx_enablePinBasedFeature(PINBEF_NMI_EXITING);
+#endif
 
+  //vmx_enablePinBasedFeature(EXTERNAL_INTERRUPT_EXITING);
 
 
 

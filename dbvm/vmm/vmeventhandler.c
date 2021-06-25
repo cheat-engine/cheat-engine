@@ -3688,11 +3688,15 @@ int handleInterruptProtectedMode(pcpuinfo currentcpuinfo, VMRegisters *vmregiste
   else
   {
     //pass the original int to the guest
+    sendstring("Passing original interrupt to guest\n");
     newintinfo.interruptvector=intinfo.interruptvector;
     newintinfo.type=intinfo.type;
     newintinfo.haserrorcode=intinfo.haserrorcode;
     newintinfo.valid=intinfo.valid; //should be 1...
     vmwrite(vm_entry_exceptionerrorcode, vmread(vm_exit_interruptionerror)); //entry errorcode
+
+    if (newintinfo.type==0)
+      return 0;
   }
 
   //nosendchar[getAPICID()]=0;
@@ -3778,6 +3782,8 @@ VMSTATUS handleInterrupt(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, FXSA
 {
  // int origsc;
 
+
+
   UINT64 fakeCR0=(vmread(vm_guest_cr0) & (~vmread(vm_cr0_guest_host_mask))) | (vmread(vm_cr0_read_shadow) & vmread(vm_cr0_guest_host_mask)); //   vmread(vm_cr0_read_shadow); //guestCR0
   //UINT64 fakeCR4=vmread(0x6006);
 
@@ -3788,7 +3794,6 @@ VMSTATUS handleInterrupt(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, FXSA
   //int doublefault=0;
 
   intinfo.interruption_information=vmread(vm_exit_interruptioninfo);
-
 
   if ((intinfo.interruptvector==1) && (intinfo.type==itHardwareException))
   {
@@ -4135,7 +4140,11 @@ int handleVMEvent_internal(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, FX
       else
       {
         sendstringf("External event received but not in HLT state\n\r");
-        return 1;
+        result=handleInterrupt(currentcpuinfo, vmregisters, fxsave);
+        return result;
+
+        //
+       // return 1;
       }
 
     }
@@ -4636,9 +4645,9 @@ int handleVMEvent(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, FXSAVE64 *f
     if (show)
       sendstringf("%d:%x:%6: event=%d (%s)  esi=%6 edi=%6 ecx=%6\n", currentcpuinfo->cpunr, vmread(vm_guest_cs), vmread(vm_guest_rip),  vmread(vm_exit_reason), getVMExitReassonString(), vmregisters->rsi, vmregisters->rdi, vmregisters->rcx);
 
-    csEnter(&bla);
+   // csEnter(&bla);
     r=emulateVMExit(currentcpuinfo, vmregisters); //after this
-    csLeave(&bla);
+   // csLeave(&bla);
 
     if (currentcpuinfo->vmxdata.runningvmx)
     {
@@ -4655,9 +4664,9 @@ int handleVMEvent(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, FXSAVE64 *f
 
 
 
-
+ // csEnter(&bla);
   result=handleVMEvent_internal(currentcpuinfo, vmregisters, fxsave);
-
+ // csLeave(&bla);
 
   if (idtvectorinfo.valid)
   {

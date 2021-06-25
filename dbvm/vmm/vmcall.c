@@ -2340,6 +2340,7 @@ int _handleVMCall(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 #endif
 
 
+  currentcpuinfo->LastVMCall=-1;
 
   if (realmode_inthook_calladdressPA) //realmode hook present
   {

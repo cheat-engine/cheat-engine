@@ -428,6 +428,7 @@ void vmm_entry(void)
 
 
 
+
   displayline("IA32_APIC_BASE=%6\n\r",IA32_APIC_BASE);
   sendstringf("IA32_APIC_BASE=%6\n\r",IA32_APIC_BASE);
   sendstringf("\tLocal APIC base=%6\n\r",IA32_APIC_BASE & 0xfffff000);
@@ -1221,6 +1222,7 @@ void menu2(void)
     displayline("v: control register test\n");
     displayline("e: efer test\n");
     displayline("o: out of memory test\n");
+    displayline("n: NMI Test\n");
 
     if (getDBVMVersion())
     {
@@ -1235,7 +1237,7 @@ void menu2(void)
     key=0;
     while (!key)
     {
-      /*
+
       if ((!loadedOS) || (showfirstmenu))
       {
 #ifdef DELAYEDSERIAL
@@ -1248,7 +1250,7 @@ void menu2(void)
         else
           key=kbd_getchar();
       }
-      else*/
+      else
         key='0';
 
       while (IntHandlerDebug) ;
