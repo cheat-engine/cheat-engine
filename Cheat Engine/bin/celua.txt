@@ -502,7 +502,7 @@ unloadLoadedFont(id)
 
 
 onAutoGuess(function) :
-  Registers an function to be called whenever autoguess is used to predict a variable type
+  Registers a function to be called whenever autoguess is used to predict a variable type
   function override (address, ceguess): Return the variable type you want it to be. If no change, just return ceguess
 
 
