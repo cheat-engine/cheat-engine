@@ -1270,6 +1270,7 @@ procedure TDissectedStruct.setName(newname: string);
 begin
   structname:=newname;
   DoFullStructChangeNotification;
+
 end;
 
 function TDissectedStruct.getElementCount: integer;
@@ -4157,6 +4158,8 @@ begin
       end;
       currentnode:=nextnode;
     end;
+
+    UpdateCurrentStructOptions;
 
   end;
 

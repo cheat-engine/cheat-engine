@@ -804,27 +804,27 @@ begin
 
 
 
-          z.add(pref+'AX='+inttohex(c.{$ifdef cpu64}Rax{$else}Eax{$endif},8));
-          z.add(pref+'BX='+inttohex(c.{$ifdef cpu64}Rbx{$else}Ebx{$endif},8));
-          z.add(pref+'CX='+inttohex(c.{$ifdef cpu64}Rcx{$else}Ecx{$endif},8));
-          z.add(pref+'DX='+inttohex(c.{$ifdef cpu64}Rdx{$else}Edx{$endif},8));
-          z.add(pref+'SI='+inttohex(c.{$ifdef cpu64}Rsi{$else}Esi{$endif},8));
-          z.add(pref+'DI='+inttohex(c.{$ifdef cpu64}Rdi{$else}Edi{$endif},8));
-          z.add(pref+'BP='+inttohex(c.{$ifdef cpu64}Rbp{$else}Ebp{$endif},8));
-          z.add(pref+'SP='+inttohex(c.{$ifdef cpu64}Rsp{$else}Esp{$endif},8));
-          z.add(pref+'IP='+inttohex(c.{$ifdef cpu64}Rip{$else}Eip{$endif},8));
+          z.add(pref+'AX='+inttohex(c.{$ifdef cpu64}Rax{$else}Eax{$endif},processhandler.hexdigitpreference));
+          z.add(pref+'BX='+inttohex(c.{$ifdef cpu64}Rbx{$else}Ebx{$endif},processhandler.hexdigitpreference));
+          z.add(pref+'CX='+inttohex(c.{$ifdef cpu64}Rcx{$else}Ecx{$endif},processhandler.hexdigitpreference));
+          z.add(pref+'DX='+inttohex(c.{$ifdef cpu64}Rdx{$else}Edx{$endif},processhandler.hexdigitpreference));
+          z.add(pref+'SI='+inttohex(c.{$ifdef cpu64}Rsi{$else}Esi{$endif},processhandler.hexdigitpreference));
+          z.add(pref+'DI='+inttohex(c.{$ifdef cpu64}Rdi{$else}Edi{$endif},processhandler.hexdigitpreference));
+          z.add(pref+'BP='+inttohex(c.{$ifdef cpu64}Rbp{$else}Ebp{$endif},processhandler.hexdigitpreference));
+          z.add(pref+'SP='+inttohex(c.{$ifdef cpu64}Rsp{$else}Esp{$endif},processhandler.hexdigitpreference));
+          z.add(pref+'IP='+inttohex(c.{$ifdef cpu64}Rip{$else}Eip{$endif},processhandler.hexdigitpreference));
 
           {$ifdef cpu64}
           if processhandler.is64bit then
           begin
-            z.add('R8='+inttohex(c.r8,8));
-            z.add('R9='+inttohex(c.r9,8));
-            z.add('R10='+inttohex(c.r10,8));
-            z.add('R11='+inttohex(c.r11,8));
-            z.add('R12='+inttohex(c.r12,8));
-            z.add('R13='+inttohex(c.r13,8));
-            z.add('R14='+inttohex(c.r14,8));
-            z.add('R15='+inttohex(c.r15,8));
+            z.add('R8='+inttohex(c.r8,processhandler.hexdigitpreference));
+            z.add('R9='+inttohex(c.r9,processhandler.hexdigitpreference));
+            z.add('R10='+inttohex(c.r10,processhandler.hexdigitpreference));
+            z.add('R11='+inttohex(c.r11,processhandler.hexdigitpreference));
+            z.add('R12='+inttohex(c.r12,processhandler.hexdigitpreference));
+            z.add('R13='+inttohex(c.r13,processhandler.hexdigitpreference));
+            z.add('R14='+inttohex(c.r14,processhandler.hexdigitpreference));
+            z.add('R15='+inttohex(c.r15,processhandler.hexdigitpreference));
           end;
           {$endif}
 
@@ -2031,72 +2031,72 @@ begin
       else
         prefix:='E';
 
-      temp:=prefix+'AX '+IntToHex(context.{$ifdef cpu64}rax{$else}Eax{$endif},8);
-      if (t2<>nil) and (t.c.{$ifdef cpu64}rax{$else}Eax{$endif}<>t2.c.{$ifdef cpu64}rax{$else}Eax{$endif}) then temp:=temp+' <> '+IntToHex(t2.c.{$ifdef cpu64}rax{$else}Eax{$endif},8);
+      temp:=prefix+'AX '+IntToHex(context.{$ifdef cpu64}rax{$else}Eax{$endif},processhandler.hexdigitpreference);
+      if (t2<>nil) and (t.c.{$ifdef cpu64}rax{$else}Eax{$endif}<>t2.c.{$ifdef cpu64}rax{$else}Eax{$endif}) then temp:=temp+' <> '+IntToHex(t2.c.{$ifdef cpu64}rax{$else}Eax{$endif},processhandler.hexdigitpreference);
       if temp<>eaxlabel.Caption then
       begin
         eaxlabel.Font.Color:=clred;
         eaxlabel.Caption:=temp;
       end else eaxlabel.Font.Color:=clWindowText;
 
-      temp:=prefix+'BX '+IntToHex(context.{$ifdef cpu64}rbx{$else}ebx{$endif},8);
-      if (t2<>nil) and (t.c.{$ifdef cpu64}rbx{$else}Ebx{$endif}<>t2.c.{$ifdef cpu64}rbx{$else}Ebx{$endif}) then temp:=temp+' <> '+IntToHex(t2.c.{$ifdef cpu64}rbx{$else}Ebx{$endif},8);
+      temp:=prefix+'BX '+IntToHex(context.{$ifdef cpu64}rbx{$else}ebx{$endif},processhandler.hexdigitpreference);
+      if (t2<>nil) and (t.c.{$ifdef cpu64}rbx{$else}Ebx{$endif}<>t2.c.{$ifdef cpu64}rbx{$else}Ebx{$endif}) then temp:=temp+' <> '+IntToHex(t2.c.{$ifdef cpu64}rbx{$else}Ebx{$endif},processhandler.hexdigitpreference);
       if temp<>ebxlabel.Caption then
       begin
         ebxlabel.Font.Color:=clred;
         ebxlabel.Caption:=temp;
       end else ebxlabel.Font.Color:=clWindowText;
 
-      temp:=prefix+'CX '+IntToHex(context.{$ifdef cpu64}rcx{$else}ecx{$endif},8);
-      if (t2<>nil) and (t.c.{$ifdef cpu64}rcx{$else}Ecx{$endif}<>t2.c.{$ifdef cpu64}rax{$else}Eax{$endif}) then temp:=temp+' <> '+IntToHex(t2.c.{$ifdef cpu64}rcx{$else}Ecx{$endif},8);
+      temp:=prefix+'CX '+IntToHex(context.{$ifdef cpu64}rcx{$else}ecx{$endif},processhandler.hexdigitpreference);
+      if (t2<>nil) and (t.c.{$ifdef cpu64}rcx{$else}Ecx{$endif}<>t2.c.{$ifdef cpu64}rax{$else}Eax{$endif}) then temp:=temp+' <> '+IntToHex(t2.c.{$ifdef cpu64}rcx{$else}Ecx{$endif},processhandler.hexdigitpreference);
       if temp<>eCxlabel.Caption then
       begin
         eCXlabel.Font.Color:=clred;
         eCXlabel.Caption:=temp;
       end else eCXlabel.Font.Color:=clWindowText;
 
-      temp:=prefix+'DX '+IntToHex(context.{$ifdef cpu64}rdx{$else}edx{$endif},8);
-      if (t2<>nil) and (t.c.{$ifdef cpu64}rdx{$else}Edx{$endif}<>t2.c.{$ifdef cpu64}rdx{$else}Edx{$endif}) then temp:=temp+' <> '+IntToHex(t2.c.{$ifdef cpu64}rdx{$else}Edx{$endif},8);
+      temp:=prefix+'DX '+IntToHex(context.{$ifdef cpu64}rdx{$else}edx{$endif},processhandler.hexdigitpreference);
+      if (t2<>nil) and (t.c.{$ifdef cpu64}rdx{$else}Edx{$endif}<>t2.c.{$ifdef cpu64}rdx{$else}Edx{$endif}) then temp:=temp+' <> '+IntToHex(t2.c.{$ifdef cpu64}rdx{$else}Edx{$endif},processhandler.hexdigitpreference);
       if temp<>eDxlabel.Caption then
       begin
         eDxlabel.Font.Color:=clred;
         eDxlabel.Caption:=temp;
       end else eDxlabel.Font.Color:=clWindowText;
 
-      temp:=prefix+'SI '+IntToHex(context.{$ifdef cpu64}rsi{$else}esi{$endif},8);
-      if (t2<>nil) and (t.c.{$ifdef cpu64}rsi{$else}esi{$endif}<>t2.c.{$ifdef cpu64}rsi{$else}Esi{$endif}) then temp:=temp+' <> '+IntToHex(t2.c.{$ifdef cpu64}rsi{$else}Esi{$endif},8);
+      temp:=prefix+'SI '+IntToHex(context.{$ifdef cpu64}rsi{$else}esi{$endif},processhandler.hexdigitpreference);
+      if (t2<>nil) and (t.c.{$ifdef cpu64}rsi{$else}esi{$endif}<>t2.c.{$ifdef cpu64}rsi{$else}Esi{$endif}) then temp:=temp+' <> '+IntToHex(t2.c.{$ifdef cpu64}rsi{$else}Esi{$endif},processhandler.hexdigitpreference);
       if temp<>eSIlabel.Caption then
       begin
         eSIlabel.Font.Color:=clred;
         eSIlabel.Caption:=temp;
       end else eSIlabel.Font.Color:=clWindowText;
 
-      temp:=prefix+'DI '+IntToHex(context.{$ifdef cpu64}rdi{$else}edi{$endif},8);
-      if (t2<>nil) and (t.c.{$ifdef cpu64}rdi{$else}edi{$endif}<>t2.c.{$ifdef cpu64}rdi{$else}Edi{$endif}) then temp:=temp+' <> '+IntToHex(t2.c.{$ifdef cpu64}rdi{$else}Edi{$endif},8);
+      temp:=prefix+'DI '+IntToHex(context.{$ifdef cpu64}rdi{$else}edi{$endif},processhandler.hexdigitpreference);
+      if (t2<>nil) and (t.c.{$ifdef cpu64}rdi{$else}edi{$endif}<>t2.c.{$ifdef cpu64}rdi{$else}Edi{$endif}) then temp:=temp+' <> '+IntToHex(t2.c.{$ifdef cpu64}rdi{$else}Edi{$endif},processhandler.hexdigitpreference);
       if temp<>eDIlabel.Caption then
       begin
         eDIlabel.Font.Color:=clred;
         eDIlabel.Caption:=temp;
       end else eDIlabel.Font.Color:=clWindowText;
 
-      temp:=prefix+'BP '+IntToHex(context.{$ifdef cpu64}rbp{$else}ebp{$endif},8);
-      if (t2<>nil) and (t.c.{$ifdef cpu64}rbp{$else}ebp{$endif}<>t2.c.{$ifdef cpu64}rbp{$else}Ebp{$endif}) then temp:=temp+' <> '+IntToHex(t2.c.{$ifdef cpu64}rbp{$else}Ebp{$endif},8);
+      temp:=prefix+'BP '+IntToHex(context.{$ifdef cpu64}rbp{$else}ebp{$endif},processhandler.hexdigitpreference);
+      if (t2<>nil) and (t.c.{$ifdef cpu64}rbp{$else}ebp{$endif}<>t2.c.{$ifdef cpu64}rbp{$else}Ebp{$endif}) then temp:=temp+' <> '+IntToHex(t2.c.{$ifdef cpu64}rbp{$else}Ebp{$endif},processhandler.hexdigitpreference);
       if temp<>eBPlabel.Caption then
       begin
         eBPlabel.Font.Color:=clred;
         eBPlabel.Caption:=temp;
       end else eBPlabel.Font.Color:=clWindowText;
 
-      temp:=prefix+'SP '+IntToHex(context.{$ifdef cpu64}rsp{$else}esp{$endif},8);
-      if (t2<>nil) and (t.c.{$ifdef cpu64}rsp{$else}esp{$endif}<>t2.c.{$ifdef cpu64}rsp{$else}Esp{$endif}) then temp:=temp+' <> '+IntToHex(t2.c.{$ifdef cpu64}rsp{$else}Esp{$endif},8);
+      temp:=prefix+'SP '+IntToHex(context.{$ifdef cpu64}rsp{$else}esp{$endif},processhandler.hexdigitpreference);
+      if (t2<>nil) and (t.c.{$ifdef cpu64}rsp{$else}esp{$endif}<>t2.c.{$ifdef cpu64}rsp{$else}Esp{$endif}) then temp:=temp+' <> '+IntToHex(t2.c.{$ifdef cpu64}rsp{$else}Esp{$endif},processhandler.hexdigitpreference);
       if temp<>eSPlabel.Caption then
       begin
         eSPlabel.Font.Color:=clred;
         eSPlabel.Caption:=temp;
       end else eSPlabel.Font.Color:=clWindowText;
 
-      temp:=prefix+'IP '+IntToHex(context.{$ifdef cpu64}rip{$else}eip{$endif},8);
-      if (t2<>nil) and (t.c.{$ifdef cpu64}rip{$else}eip{$endif}<>t2.c.{$ifdef cpu64}rip{$else}Eip{$endif}) then temp:=temp+' <> '+IntToHex(t2.c.{$ifdef cpu64}rip{$else}Eip{$endif},8);
+      temp:=prefix+'IP '+IntToHex(context.{$ifdef cpu64}rip{$else}eip{$endif},processhandler.hexdigitpreference);
+      if (t2<>nil) and (t.c.{$ifdef cpu64}rip{$else}eip{$endif}<>t2.c.{$ifdef cpu64}rip{$else}Eip{$endif}) then temp:=temp+' <> '+IntToHex(t2.c.{$ifdef cpu64}rip{$else}Eip{$endif},processhandler.hexdigitpreference);
       if temp<>eIPlabel.Caption then
       begin
         eIPlabel.Font.Color:=clred;
@@ -2108,64 +2108,64 @@ begin
       if length(rxlabels)>0 then
       begin
 
-        temp:='R8  '+IntToHex(context.r8,8);
-        if (t2<>nil) and (t.c.r8<>t2.c.r8) then temp:=temp+' <> '+IntToHex(t2.c.r8,8);
+        temp:='R8  '+IntToHex(context.r8,processhandler.hexdigitpreference);
+        if (t2<>nil) and (t.c.r8<>t2.c.r8) then temp:=temp+' <> '+IntToHex(t2.c.r8,processhandler.hexdigitpreference);
         if temp<>RXlabels[0].Caption then
         begin
           RXlabels[0].Font.Color:=clred;
           RXlabels[0].Caption:=temp;
         end else RXlabels[0].Font.Color:=clWindowText;
 
-        temp:='R9  '+IntToHex(context.r9,8);
-        if (t2<>nil) and (t.c.r9<>t2.c.r9) then temp:=temp+' <> '+IntToHex(t2.c.r9,8);
+        temp:='R9  '+IntToHex(context.r9,processhandler.hexdigitpreference);
+        if (t2<>nil) and (t.c.r9<>t2.c.r9) then temp:=temp+' <> '+IntToHex(t2.c.r9,processhandler.hexdigitpreference);
         if temp<>RXlabels[1].Caption then
         begin
           RXlabels[1].Font.Color:=clred;
           RXlabels[1].Caption:=temp;
         end else RXlabels[1].Font.Color:=clWindowText;
 
-        temp:='R10 '+IntToHex(context.r10,8);
-        if (t2<>nil) and (t.c.r10<>t2.c.r10) then temp:=temp+' <> '+IntToHex(t2.c.r10,8);
+        temp:='R10 '+IntToHex(context.r10,processhandler.hexdigitpreference);
+        if (t2<>nil) and (t.c.r10<>t2.c.r10) then temp:=temp+' <> '+IntToHex(t2.c.r10,processhandler.hexdigitpreference);
         if temp<>RXlabels[2].Caption then
         begin
           RXlabels[2].Font.Color:=clred;
           RXlabels[2].Caption:=temp;
         end else RXlabels[2].Font.Color:=clWindowText;
 
-        temp:='R11 '+IntToHex(context.r11,8);
-        if (t2<>nil) and (t.c.r11<>t2.c.r11) then temp:=temp+' <> '+IntToHex(t2.c.r11,8);
+        temp:='R11 '+IntToHex(context.r11,processhandler.hexdigitpreference);
+        if (t2<>nil) and (t.c.r11<>t2.c.r11) then temp:=temp+' <> '+IntToHex(t2.c.r11,processhandler.hexdigitpreference);
         if temp<>RXlabels[3].Caption then
         begin
           RXlabels[3].Font.Color:=clred;
           RXlabels[3].Caption:=temp;
         end else RXlabels[3].Font.Color:=clWindowText;
 
-        temp:='R12 '+IntToHex(context.r12,8);
-        if (t2<>nil) and (t.c.r12<>t2.c.r12) then temp:=temp+' <> '+IntToHex(t2.c.r12,8);
+        temp:='R12 '+IntToHex(context.r12,processhandler.hexdigitpreference);
+        if (t2<>nil) and (t.c.r12<>t2.c.r12) then temp:=temp+' <> '+IntToHex(t2.c.r12,processhandler.hexdigitpreference);
         if temp<>RXlabels[4].Caption then
         begin
           RXlabels[4].Font.Color:=clred;
           RXlabels[4].Caption:=temp;
         end else RXlabels[4].Font.Color:=clWindowText;
 
-        temp:='R13 '+IntToHex(context.r13,8);
-        if (t2<>nil) and (t.c.r13<>t2.c.r13) then temp:=temp+' <> '+IntToHex(t2.c.r13,8);
+        temp:='R13 '+IntToHex(context.r13,processhandler.hexdigitpreference);
+        if (t2<>nil) and (t.c.r13<>t2.c.r13) then temp:=temp+' <> '+IntToHex(t2.c.r13,processhandler.hexdigitpreference);
         if temp<>RXlabels[5].Caption then
         begin
           RXlabels[5].Font.Color:=clred;
           RXlabels[5].Caption:=temp;
         end else RXlabels[5].Font.Color:=clWindowText;
 
-        temp:='R14 '+IntToHex(context.r14,8);
-        if (t2<>nil) and (t.c.r14<>t2.c.r14) then temp:=temp+' <> '+IntToHex(t2.c.r14,8);
+        temp:='R14 '+IntToHex(context.r14,processhandler.hexdigitpreference);
+        if (t2<>nil) and (t.c.r14<>t2.c.r14) then temp:=temp+' <> '+IntToHex(t2.c.r14,processhandler.hexdigitpreference);
         if temp<>RXlabels[6].Caption then
         begin
           RXlabels[6].Font.Color:=clred;
           RXlabels[6].Caption:=temp;
         end else RXlabels[6].Font.Color:=clWindowText;
 
-        temp:='R15 '+IntToHex(context.r15,8);
-        if (t2<>nil) and (t.c.r15<>t2.c.r15) then temp:=temp+' <> '+IntToHex(t2.c.r15,8);
+        temp:='R15 '+IntToHex(context.r15,processhandler.hexdigitpreference);
+        if (t2<>nil) and (t.c.r15<>t2.c.r15) then temp:=temp+' <> '+IntToHex(t2.c.r15,processhandler.hexdigitpreference);
         if temp<>RXlabels[7].Caption then
         begin
           RXlabels[7].Font.Color:=clred;

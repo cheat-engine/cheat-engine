@@ -3951,7 +3951,7 @@ begin
       modulelistMREW.endread;
     end;
 
-    if moduleidstring='' then
+    //if moduleidstring='' then
     begin
       symbolloadervalid.Beginread;
       try
@@ -3972,11 +3972,14 @@ begin
       finally
         symbolloadervalid.endread;
       end;
-
     end;
 
 
-    if moduleidstring='' then exit;
+    if moduleidstring='' then
+    begin
+      symbolloaderthread.getStructureList(list);
+      exit(1);
+    end;
     if OpenDataBaseIfNeeded=false then exit;
 
     {$IFDEF windows}
@@ -4007,6 +4010,12 @@ begin
     end;
     {$ENDIF}
 
+
+    if list.count=0 then
+    begin
+      symbolloaderthread.getStructureList(list);
+      result:=1; //not a structinfo
+    end;
   end
   else
   begin

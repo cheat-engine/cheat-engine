@@ -302,7 +302,7 @@ begin
               begin
                 str:=str+inttohex(pba[j],2);
                 if j<15 then
-                  str:=str+' _ ';
+                  str:=str+'  _  ';
 
                 newLabel(inttohex(pba[j],2), (i*{$ifdef cpu64}16{$else}10{$endif})+j);
               end;
@@ -312,21 +312,21 @@ begin
 
             1:
             begin
-              mData.Lines.Add(inttohex(pwa[0],4)+' _ '+inttohex(pwa[1],4)+' _ '+inttohex(pwa[2],4)+' _ '+inttohex(pwa[3],4)+' _ '+inttohex(pwa[4],4){$ifdef cpu64}+' _ '+inttohex(pwa[5],4)+' _ '+inttohex(pwa[6],4)+' _ '+inttohex(pwa[7],4){$endif}); //2byte
+              mData.Lines.Add(inttohex(pwa[0],4)+'  _  '+inttohex(pwa[1],4)+'  _  '+inttohex(pwa[2],4)+'  _  '+inttohex(pwa[3],4)+'  _  '+inttohex(pwa[4],4){$ifdef cpu64}+'  _  '+inttohex(pwa[5],4)+'  _  '+inttohex(pwa[6],4)+'  _  '+inttohex(pwa[7],4){$endif}); //2byte
               for j:=0 to {$ifdef cpu64}7{$else}3{$endif} do
                 newLabel(inttohex(pwa[j],4), (i*{$ifdef cpu64}16{$else}10{$endif})+(j*2));
             end;
 
             2:
             begin
-              mData.Lines.Add(inttohex(pda[0],8)+' _ '+inttohex(pda[1],8){$ifdef cpu64}+' _ '+inttohex(pda[2],8)+' _ '+inttohex(pda[3],8){$endif}); //4byte
+              mData.Lines.Add(inttohex(pda[0],8)+'  _  '+inttohex(pda[1],8){$ifdef cpu64}+'  _  '+inttohex(pda[2],8)+'  _  '+inttohex(pda[3],8){$endif}); //4byte
               for j:=0 to {$ifdef cpu64}3{$else}1{$endif} do
                 newLabel(inttohex(pda[j],8), (i*{$ifdef cpu64}16{$else}10{$endif})+(j*4));
             end;
 
             3:
             begin
-              mData.Lines.Add(inttohex(pqa[0],16){$ifdef cpu64}+' _ '+inttohex(pqa[1],16){$endif}); //8 byte
+              mData.Lines.Add(inttohex(pqa[0],16){$ifdef cpu64}+'  _  '+inttohex(pqa[1],16){$endif}); //8 byte
               for j:=0 to {$ifdef cpu64}1{$else}0{$endif} do
                 newLabel(inttohex(pqa[j],17), (i*{$ifdef cpu64}16{$else}10{$endif})+(j*8));
             end;
@@ -411,7 +411,7 @@ begin
               begin
                 str:=str+inttohex(pba[j],2);
                 if j<15 then
-                  str:=str+' _ ';
+                  str:=str+'  _  ';
 
                 newLabel(inttohex(pba[j],2), i*16+j);
               end;
@@ -426,7 +426,7 @@ begin
               begin
                 str:=str+inttohex(pwa[j],4);
                 if j<7 then
-                  str:=str+' _ ';
+                  str:=str+'  _  ';
 
                 newLabel(inttohex(pwa[j],4), i*16+j*2);
               end;
@@ -443,7 +443,7 @@ begin
               begin
                 str:=str+inttohex(pda[j],8);
                 if j<3 then
-                  str:=str+' _ ';
+                  str:=str+'  _  ';
 
                 newLabel(inttohex(pda[j],8), i*16+j*4);
               end;
@@ -458,7 +458,7 @@ begin
               begin
                 str:=str+inttohex(pqa[j],16);
                 if j<1 then
-                  str:=str+' _ ';
+                  str:=str+'  _  ';
 
                 newLabel(inttohex(pqa[j],16), i*16+j*8);
               end;
@@ -473,7 +473,7 @@ begin
               begin
                 str:=str+format('%f',[psa[j]]);
                 if j<3 then
-                  str:=str+' _ ';
+                  str:=str+'  _  ';
 
                 newLabel(format('%f',[psa[j]]), i*16+j*4);
               end;
@@ -488,7 +488,7 @@ begin
               begin
                 str:=str+format('%f',[pssa[j]]);
                 if j<1 then
-                  str:=str+' _ ';
+                  str:=str+'  _  ';
 
                 newLabel(format('%f',[pssa[j]]), i*16+j*8);
               end;

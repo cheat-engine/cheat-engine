@@ -11,6 +11,7 @@ object About: TAbout
   ClientHeight = 310
   ClientWidth = 488
   OnClose = FormClose
+  OnCreate = FormCreate
   OnShow = FormShow
   Position = poScreenCenter
   LCLVersion = '2.0.6.0'
@@ -429,25 +430,25 @@ object About: TAbout
       AnchorSideTop.Control = GroupBox1
       AnchorSideRight.Control = GroupBox1
       AnchorSideRight.Side = asrBottom
-      Left = 400
-      Height = 60
+      Left = 397
+      Height = 43
       Top = 0
-      Width = 84
+      Width = 87
       Anchors = [akTop, akRight]
       AutoSize = True
-      ClientHeight = 60
-      ClientWidth = 84
+      ClientHeight = 43
+      ClientWidth = 87
       TabOrder = 1
       object Panel2: TPanel
         Left = 4
-        Height = 52
+        Height = 35
         Top = 4
-        Width = 76
+        Width = 79
         Align = alClient
         AutoSize = True
         BorderSpacing.Around = 3
-        ClientHeight = 52
-        ClientWidth = 76
+        ClientHeight = 35
+        ClientWidth = 79
         TabOrder = 0
         object Button2: TButton
           AnchorSideLeft.Control = Panel2
@@ -456,35 +457,17 @@ object About: TAbout
           Height = 25
           Hint = 'If you like Cheat Engine and want to contribute something to the development, just send a donation using Paypal.'
           Top = 6
-          Width = 64
+          Width = 67
           AutoSize = True
           BorderSpacing.Left = 2
           BorderSpacing.Top = 2
           BorderSpacing.Right = 2
           BorderSpacing.Around = 3
-          Caption = 'Donate'
-          OnClick = Button2Click
+          Caption = 'Patreon'
+          OnClick = Label4Click
           ParentShowHint = False
           ShowHint = True
           TabOrder = 0
-        end
-        object Label4: TLabel
-          AnchorSideLeft.Control = Button2
-          AnchorSideLeft.Side = asrCenter
-          AnchorSideTop.Control = Button2
-          AnchorSideTop.Side = asrBottom
-          Cursor = crHandPoint
-          Left = 18
-          Height = 15
-          Top = 34
-          Width = 41
-          BorderSpacing.Bottom = 2
-          Caption = 'Patreon'
-          Font.Color = clBlue
-          Font.Style = [fsUnderline]
-          ParentColor = False
-          ParentFont = False
-          OnClick = Label4Click
         end
       end
     end
