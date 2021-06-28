@@ -19,8 +19,17 @@ type
 
 {%region TRegisters }
 
+  { TRegisters }
+
   TRegisters = class(TForm)
     EAXLabel: TLabel;
+    lblCF: TLabel;
+    lblPF: TLabel;
+    lblAF: TLabel;
+    lblZF: TLabel;
+    lblSF: TLabel;
+    lblDF: TLabel;
+    lblOF: TLabel;
     EBPlabel: TLabel;
     EBXlabel: TLabel;
     ECXlabel: TLabel;
@@ -33,6 +42,7 @@ type
     miBrowseMemoryRegion: TMenuItem;
     miCopyRegisterValueToClipboard: TMenuItem;
     miSeparator1: TMenuItem;
+    pnlFlags: TPanel;
     rImageList: TImageList;
     miCopyAllRegistersToClipboard: TMenuItem;
     Panel1: TPanel;
@@ -296,28 +306,28 @@ begin
   end;
 
 
-  EAXLabel.Caption:=format(pre+'AX '+f,[context.{$ifdef cpu64}Rax{$else}Eax{$endif}]);
-  EBXLabel.Caption:=format(pre+'BX '+f,[context.{$ifdef cpu64}Rbx{$else}Ebx{$endif}]);
-  ECXLabel.Caption:=format(pre+'CX '+f,[context.{$ifdef cpu64}Rcx{$else}Ecx{$endif}]);
-  EDXLabel.Caption:=format(pre+'DX '+f,[context.{$ifdef cpu64}Rdx{$else}Edx{$endif}]);
-  ESILabel.Caption:=format(pre+'SI '+f,[context.{$ifdef cpu64}Rsi{$else}Esi{$endif}]);
-  EDILabel.Caption:=format(pre+'DI '+f,[context.{$ifdef cpu64}Rdi{$else}Edi{$endif}]);
-  EBPLabel.Caption:=format(pre+'BP '+f,[context.{$ifdef cpu64}Rbp{$else}Ebp{$endif}]);
-  ESPLabel.Caption:=format(pre+'SP '+f,[context.{$ifdef cpu64}Rsp{$else}Esp{$endif}]);
-  EIPLabel.Caption:=format(pre+'IP '+f,[context.{$ifdef cpu64}Rip{$else}Eip{$endif}]);
+  EAXLabel.Caption:=format(pre+'AX '+f,[context^.{$ifdef cpu64}Rax{$else}Eax{$endif}]);
+  EBXLabel.Caption:=format(pre+'BX '+f,[context^.{$ifdef cpu64}Rbx{$else}Ebx{$endif}]);
+  ECXLabel.Caption:=format(pre+'CX '+f,[context^.{$ifdef cpu64}Rcx{$else}Ecx{$endif}]);
+  EDXLabel.Caption:=format(pre+'DX '+f,[context^.{$ifdef cpu64}Rdx{$else}Edx{$endif}]);
+  ESILabel.Caption:=format(pre+'SI '+f,[context^.{$ifdef cpu64}Rsi{$else}Esi{$endif}]);
+  EDILabel.Caption:=format(pre+'DI '+f,[context^.{$ifdef cpu64}Rdi{$else}Edi{$endif}]);
+  EBPLabel.Caption:=format(pre+'BP '+f,[context^.{$ifdef cpu64}Rbp{$else}Ebp{$endif}]);
+  ESPLabel.Caption:=format(pre+'SP '+f,[context^.{$ifdef cpu64}Rsp{$else}Esp{$endif}]);
+  EIPLabel.Caption:=format(pre+'IP '+f,[context^.{$ifdef cpu64}Rip{$else}Eip{$endif}]);
 
   {$ifdef cpu64}
 
   if processhandler.is64Bit then
   begin
-    R8Label.Caption:=format(' R8 '+f,[context.R8]);
-    R9Label.Caption:=format(' R9 '+f,[context.R9]);
-    R10Label.Caption:=format('R10 '+f,[context.R10]);
-    R11Label.Caption:=format('R11 '+f,[context.R11]);
-    R12Label.Caption:=format('R12 '+f,[context.R12]);
-    R13Label.Caption:=format('R13 '+f,[context.R13]);
-    R14Label.Caption:=format('R14 '+f,[context.R14]);
-    R15Label.Caption:=format('R15 '+f,[context.R15]);
+    R8Label.Caption:=format(' R8 '+f,[context^.R8]);
+    R9Label.Caption:=format(' R9 '+f,[context^.R9]);
+    R10Label.Caption:=format('R10 '+f,[context^.R10]);
+    R11Label.Caption:=format('R11 '+f,[context^.R11]);
+    R12Label.Caption:=format('R12 '+f,[context^.R12]);
+    R13Label.Caption:=format('R13 '+f,[context^.R13]);
+    R14Label.Caption:=format('R14 '+f,[context^.R14]);
+    R15Label.Caption:=format('R15 '+f,[context^.R15]);
   end;
   {$endif}
 
@@ -330,6 +340,14 @@ begin
   if r14label<>nil then r14label.visible:=processhandler.is64Bit;
   if r15label<>nil then r15label.visible:=processhandler.is64Bit;
 
+
+  lblCF.caption:=IfThen<string>((EFLAGS_CF and context^.EFlags)>0, 'CF 1','CF 0');
+  lblPF.caption:=IfThen<string>((EFLAGS_PF and context^.EFlags)>0, 'PF 1','PF 0');
+  lblAF.caption:=IfThen<string>((EFLAGS_AF and context^.EFlags)>0, 'AF 1','AF 0');
+  lblZF.caption:=IfThen<string>((EFLAGS_ZF and context^.EFlags)>0, 'ZF 1','ZF 0');
+  lblSF.caption:=IfThen<string>((EFLAGS_SF and context^.EFlags)>0, 'SF 1','SF 0');
+  lblDF.caption:=IfThen<string>((EFLAGS_DF and context^.EFlags)>0, 'DF 1','DF 0');
+  lblOF.caption:=IfThen<string>((EFLAGS_OF and context^.EFlags)>0, 'OF 1','OF 0');
 
   sizeNeeded:=PanelRegistersList.top+eiplabel.top+eiplabel.height+20;
 
@@ -416,6 +434,10 @@ begin
 
   PanelRegistersList.Font.Height:=i;
   PanelRegistersList.Font.Color:=Font.Color;
+
+  pnlFlags.Font.Height:=i;
+  pnlFlags.Font.Color:=Font.Color;
+
   shape1.color:=clWindowtext;
 
   widthNeeded:=canvas.TextWidth('XX  '+caption+'  XX');

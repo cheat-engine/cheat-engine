@@ -1,11 +1,11 @@
 object Registers: TRegisters
-  Left = 1415
-  Height = 308
-  Top = 208
-  Width = 341
+  Left = 1556
+  Height = 309
+  Top = 160
+  Width = 338
   Caption = 'Registers'
-  ClientHeight = 308
-  ClientWidth = 341
+  ClientHeight = 309
+  ClientWidth = 338
   OnClose = FormClose
   OnShow = FormShow
   Position = poScreenCenter
@@ -19,11 +19,11 @@ object Registers: TRegisters
     Left = 0
     Height = 251
     Top = 0
-    Width = 248
+    Width = 306
     AutoSize = True
     BevelOuter = bvNone
     ClientHeight = 251
-    ClientWidth = 248
+    ClientWidth = 306
     TabOrder = 0
     object LabelRegisters: TLabel
       AnchorSideLeft.Control = Panel1
@@ -248,6 +248,126 @@ object Registers: TRegisters
         OnMouseDown = CopyRegisterValueToClipboardMouseRightClick
       end
     end
+    object pnlFlags: TPanel
+      AnchorSideLeft.Control = PanelRegistersList
+      AnchorSideLeft.Side = asrBottom
+      AnchorSideTop.Control = PanelRegistersList
+      AnchorSideRight.Control = Panel1
+      AnchorSideRight.Side = asrBottom
+      Left = 258
+      Height = 168
+      Top = 26
+      Width = 48
+      AutoSize = True
+      BorderSpacing.Left = 10
+      BevelOuter = bvNone
+      ChildSizing.HorizontalSpacing = 2
+      ChildSizing.Layout = cclLeftToRightThenTopToBottom
+      ChildSizing.ControlsPerLine = 1
+      ClientHeight = 168
+      ClientWidth = 48
+      Font.Name = 'Courier New'
+      ParentFont = False
+      TabOrder = 1
+      object lblCF: TLabel
+        AnchorSideRight.Side = asrBottom
+        Cursor = crHandPoint
+        Left = 0
+        Height = 22
+        Top = 2
+        Width = 48
+        BorderSpacing.Top = 2
+        Caption = 'CF 0'
+        ParentColor = False
+        PopupMenu = registerLabelContextMenu
+        OnDblClick = BrowseMemoryRegionClick
+        OnMouseDown = CopyRegisterValueToClipboardMouseRightClick
+      end
+      object lblPF: TLabel
+        AnchorSideRight.Side = asrBottom
+        Cursor = crHandPoint
+        Left = 0
+        Height = 22
+        Top = 26
+        Width = 48
+        BorderSpacing.Top = 2
+        Caption = 'PF 0'
+        ParentColor = False
+        PopupMenu = registerLabelContextMenu
+        OnDblClick = BrowseMemoryRegionClick
+        OnMouseDown = CopyRegisterValueToClipboardMouseRightClick
+      end
+      object lblAF: TLabel
+        AnchorSideRight.Side = asrBottom
+        Cursor = crHandPoint
+        Left = 0
+        Height = 22
+        Top = 50
+        Width = 48
+        BorderSpacing.Top = 2
+        Caption = 'AF 0'
+        ParentColor = False
+        PopupMenu = registerLabelContextMenu
+        OnDblClick = BrowseMemoryRegionClick
+        OnMouseDown = CopyRegisterValueToClipboardMouseRightClick
+      end
+      object lblZF: TLabel
+        AnchorSideRight.Side = asrBottom
+        Cursor = crHandPoint
+        Left = 0
+        Height = 22
+        Top = 74
+        Width = 48
+        BorderSpacing.Top = 2
+        Caption = 'ZF 0'
+        ParentColor = False
+        PopupMenu = registerLabelContextMenu
+        OnDblClick = BrowseMemoryRegionClick
+        OnMouseDown = CopyRegisterValueToClipboardMouseRightClick
+      end
+      object lblSF: TLabel
+        AnchorSideRight.Side = asrBottom
+        Cursor = crHandPoint
+        Left = 0
+        Height = 22
+        Top = 98
+        Width = 48
+        BorderSpacing.Top = 2
+        Caption = 'SF 0'
+        ParentColor = False
+        PopupMenu = registerLabelContextMenu
+        OnDblClick = BrowseMemoryRegionClick
+        OnMouseDown = CopyRegisterValueToClipboardMouseRightClick
+      end
+      object lblDF: TLabel
+        AnchorSideRight.Side = asrBottom
+        Cursor = crHandPoint
+        Left = 0
+        Height = 22
+        Top = 122
+        Width = 48
+        BorderSpacing.Top = 2
+        Caption = 'DF 0'
+        ParentColor = False
+        PopupMenu = registerLabelContextMenu
+        OnDblClick = BrowseMemoryRegionClick
+        OnMouseDown = CopyRegisterValueToClipboardMouseRightClick
+      end
+      object lblOF: TLabel
+        AnchorSideRight.Side = asrBottom
+        Cursor = crHandPoint
+        Left = 0
+        Height = 22
+        Top = 146
+        Width = 48
+        BorderSpacing.Top = 2
+        Caption = 'OF 0'
+        ParentColor = False
+        PopupMenu = registerLabelContextMenu
+        OnDblClick = BrowseMemoryRegionClick
+        OnMouseDown = CopyRegisterValueToClipboardMouseRightClick
+      end
+    end
   end
   object Panel2: TPanel
     AnchorSideTop.Control = Owner
@@ -255,13 +375,13 @@ object Registers: TRegisters
     AnchorSideRight.Side = asrBottom
     AnchorSideBottom.Control = Owner
     AnchorSideBottom.Side = asrBottom
-    Left = 318
-    Height = 308
+    Left = 315
+    Height = 309
     Top = 0
     Width = 23
     Anchors = [akTop, akRight, akBottom]
     AutoSize = True
-    ClientHeight = 308
+    ClientHeight = 309
     ClientWidth = 23
     TabOrder = 1
     object Panel4: TPanel
