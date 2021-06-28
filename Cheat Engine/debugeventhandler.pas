@@ -1220,7 +1220,10 @@ begin
 
   if found then
   begin
-    currentBP:=bpp;
+    if bpp^.owner<>nil then
+      currentbp:=bpp^.owner
+    else
+      currentbp:=bpp;   //always use the main, the children may get screwed over
 
     bpp:=bpp2;
     outputdebugstring('Handling breakpoint');
@@ -1368,6 +1371,7 @@ begin
 
         if ((bpp.breakpointMethod=bpmException) and (not bpp.markedfordeletion)) or bpp.active then
         begin
+
           foundCodeDialog_AddRecord;
 
           if CurrentDebuggerInterface is TNetworkDebuggerInterface then

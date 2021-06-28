@@ -465,11 +465,6 @@ begin
                   GUIObjectToFree:=bp^.FoundcodeDialog;
                   Synchronize(sync_FreeGUIObject);
 
-                  for j:=0 to Breakpointlist.count-1 do
-                  begin
-                    if pbreakpoint(BreakpointList[j]).owner=bp^.owner then
-                      pbreakpoint(BreakpointList[j]).FoundcodeDialog:=nil;
-                  end;
                   bp^.FoundcodeDialog:=nil;
                 end;
 
@@ -792,6 +787,8 @@ end;
 
 begin
   //issue: If a breakpoint is being handled and this is called, dr6 gets reset to 0 in windows 7, making it impossible to figure out what caused the breakpoint
+
+  if breakpoint^.markedfordeletion then exit;
 
   if CurrentDebuggerInterface is TDBVMDebugInterface then
     breakpoint^.breakpointMethod:=bpmDBVMNative;
@@ -1363,6 +1360,9 @@ begin
         bp^.markedfordeletion := True; //set this flag so it gets deleted on next no-event
         bp^.deletetickcount:=GetTickCount;
 
+        bp^.FoundcodeDialog:=nil;
+        bp^.frmTracer:=nil;
+        bp^.frmchangedaddresses:=nil;
 
       end
     end;
@@ -2728,8 +2728,8 @@ var
   i: integer;
   Result: TWaitResult;
   mresult: TModalResult;
-  starttime: dword;
-  currentloopstarttime: dword;
+  starttime: qword;
+  currentloopstarttime: qword;
   timeout: dword;
 
   userWantsToAttach: boolean;
@@ -2737,6 +2737,8 @@ var
   frmDebuggerAttachTimeout: TfrmDebuggerAttachTimeout;
 
   seconds: dword;
+
+  currenttime: qword;
 begin
 
 
@@ -2763,8 +2765,8 @@ begin
     while (gettickcount64-starttime)<=timeout do
     begin
 
-      currentloopstarttime:=GetTickCount;
-      while CheckSynchronize and ((GetTickCount-currentloopstarttime)<50) do
+      currentloopstarttime:=GetTickCount64;
+      while CheckSynchronize and ((GetTickCount64-currentloopstarttime)<50) do
       begin
         OutputDebugString('After CheckSynchronize');
         //synchronize for 50 milliseconds long
@@ -2775,6 +2777,14 @@ begin
 
       if result=wrSignaled then break;
     end;
+
+    currenttime:=GetTickCount64;
+
+    if (currenttime-starttime)<timeout then
+    asm
+    nop
+    end;
+
 
     if result<>wrSignaled then
     begin
