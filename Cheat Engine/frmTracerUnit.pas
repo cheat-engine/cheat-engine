@@ -84,8 +84,8 @@ type
     FSlabel: TLabel;
     GSlabel: TLabel;
     ftImageList: TImageList;
-    lblInstruction: TLabel;
     lblAddressed: TLabel;
+    lblInstruction: TLabel;
     lvTracer: TTreeView;
     MainMenu1: TMainMenu;
     MenuItem1: TMenuItem;
@@ -106,6 +106,7 @@ type
     Panel1: TPanel;
     Panel2: TPanel;
     Panel3: TPanel;
+    Panel4: TPanel;
     pnlRegisters: TPanel;
     pnlSegments: TPanel;
     pnlFlags: TPanel;
