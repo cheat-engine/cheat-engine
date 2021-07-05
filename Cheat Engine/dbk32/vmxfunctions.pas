@@ -1473,10 +1473,17 @@ var vmcallinfo: packed record
       ID: integer; //return value
     end;
     r: integer;
+
+    entrysize: integer;
 begin
   result:=-1;
   outputdebugstring('dbvm_watch_writes');
-  if not dbvm_ensure_pages_free(GetCPUCount*3) then exit;
+
+  entrysize:=sizeof(TPageEventBasic);
+  if (EPTO_SAVE_FXSAVE and options)<>0 then inc(entrysize,sizeof(TFXSAVE64)); //512
+  if (EPTO_SAVE_STACK and options)<>0 then inc(entrysize,4096);
+
+  if not dbvm_ensure_pages_free(GetCPUCount*3+((MaxEntryCount*entrysize) shl 12)) then exit;
 
   options:=options and (not EPTO_PMI_WHENFULL); //make sure this is not used
 
@@ -1518,10 +1525,16 @@ var vmcallinfo: packed record
       ID: integer; //return value
     end;
     r: integer;
+
+    entrysize: integer;
 begin
   result:=-1;
   outputdebugstring('dbvm_watch_reads');
-  if not dbvm_ensure_pages_free(GetCPUCount*3) then exit;
+
+  entrysize:=sizeof(TPageEventBasic);
+  if (EPTO_SAVE_FXSAVE and options)<>0 then inc(entrysize,sizeof(TFXSAVE64)); //512
+  if (EPTO_SAVE_STACK and options)<>0 then inc(entrysize,4096);
+  if not dbvm_ensure_pages_free(GetCPUCount*3+((MaxEntryCount*entrysize) shl 12)) then exit;
 
   options:=options and (not EPTO_PMI_WHENFULL); //make sure this is not used
 
@@ -1562,10 +1575,17 @@ var vmcallinfo: packed record
       ID: integer; //return value
     end;
     r: integer;
+
+    entrysize: integer;
 begin
   result:=-1;
   outputdebugstring(format('dbvm_watch_executes(%x,%d,%x,%d)',[PhysicalAddress, Size, Options, MaxEntryCount]));
-  if not dbvm_ensure_pages_free(GetCPUCount*3) then exit;
+
+  entrysize:=sizeof(TPageEventBasic);
+  if (EPTO_SAVE_FXSAVE and options)<>0 then inc(entrysize,sizeof(TFXSAVE64)); //512
+  if (EPTO_SAVE_STACK and options)<>0 then inc(entrysize,4096);
+  if not dbvm_ensure_pages_free(GetCPUCount*3+((MaxEntryCount*entrysize) shl 12)) then exit;
+
 
   options:=options and (not EPTO_PMI_WHENFULL); //make sure this is not used
 
