@@ -1483,7 +1483,7 @@ begin
   if (EPTO_SAVE_FXSAVE and options)<>0 then inc(entrysize,sizeof(TFXSAVE64)); //512
   if (EPTO_SAVE_STACK and options)<>0 then inc(entrysize,4096);
 
-  if not dbvm_ensure_pages_free(GetCPUCount*3+((MaxEntryCount*entrysize) shl 12)) then exit;
+  if not dbvm_ensure_pages_free(GetCPUCount*3+((MaxEntryCount*entrysize) shr 12)) then exit;
 
   options:=options and (not EPTO_PMI_WHENFULL); //make sure this is not used
 
@@ -1534,7 +1534,7 @@ begin
   entrysize:=sizeof(TPageEventBasic);
   if (EPTO_SAVE_FXSAVE and options)<>0 then inc(entrysize,sizeof(TFXSAVE64)); //512
   if (EPTO_SAVE_STACK and options)<>0 then inc(entrysize,4096);
-  if not dbvm_ensure_pages_free(GetCPUCount*3+((MaxEntryCount*entrysize) shl 12)) then exit;
+  if not dbvm_ensure_pages_free(GetCPUCount*3+((MaxEntryCount*entrysize) shr 12)) then exit;
 
   options:=options and (not EPTO_PMI_WHENFULL); //make sure this is not used
 
@@ -1584,7 +1584,7 @@ begin
   entrysize:=sizeof(TPageEventBasic);
   if (EPTO_SAVE_FXSAVE and options)<>0 then inc(entrysize,sizeof(TFXSAVE64)); //512
   if (EPTO_SAVE_STACK and options)<>0 then inc(entrysize,4096);
-  if not dbvm_ensure_pages_free(GetCPUCount*3+((MaxEntryCount*entrysize) shl 12)) then exit;
+  if not dbvm_ensure_pages_free(GetCPUCount*3+((MaxEntryCount*entrysize) shr 12)) then exit;
 
 
   options:=options and (not EPTO_PMI_WHENFULL); //make sure this is not used
