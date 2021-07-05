@@ -8408,6 +8408,18 @@ begin
   end;
 end;
 
+function lua_dbvm_getMemory(L: PLua_State): integer; cdecl;
+var
+  size: qword;
+  pages: qword;
+begin
+  size:=dbvm_getMemory(pages);
+
+  lua_pushinteger(L,size);
+  lua_pushinteger(L,pages);
+  result:=2;
+end;
+
 function dbvm_addMemory(L: PLua_State): integer; cdecl;
 var pagecount: qword;
 begin
@@ -15282,6 +15294,7 @@ begin
 
     lua_register(L, 'dbvm_initialize', dbvm_initialize);
     lua_register(L, 'dbvm_setKeys', dbvm_setKeys);
+    lua_register(L, 'dbvm_getMemory', lua_dbvm_getMemory);
     lua_register(L, 'dbvm_addMemory', dbvm_addMemory);
 
     lua_register(L, 'shellExecute', lua_shellExecute);

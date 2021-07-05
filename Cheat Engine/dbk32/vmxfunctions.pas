@@ -521,6 +521,8 @@ function dbvm_getProcAddress(functionname: string): pointer;
 
 procedure dbvm_testPSOD;
 
+function dbvm_ensure_pages_free(pagecount: integer): boolean;
+
 function dbvm_watch_writes(PhysicalAddress: QWORD; size: integer; Options: DWORD; MaxEntryCount: Integer; UserModeLoop: qword=0; KernelModeLoop: qword=0): integer;
 function dbvm_watch_reads(PhysicalAddress: QWORD; size: integer; Options: DWORD; MaxEntryCount: Integer; UserModeLoop: qword=0; KernelModeLoop: qword=0): integer;
 function dbvm_watch_executes(PhysicalAddress: QWORD; size: integer; Options: DWORD; MaxEntryCount: Integer; UserModeLoop: qword=0; KernelModeLoop: qword=0): integer;
@@ -1441,6 +1443,22 @@ begin
 end;
 
 
+function dbvm_ensure_pages_free(pagecount: integer): boolean;
+var pagesfree: qword;
+begin
+  dbvm_getMemory(pagesfree);
+  if pagesfree<qword(pagecount) then
+  begin
+    allocateMemoryForDBVM(pagecount*2);
+
+    dbvm_getMemory(pagesfree);
+    if pagesfree<pagecount then    //failed to allocate (e.g. no driver)
+      exit(false);
+  end;
+
+  result:=true;
+end;
+
 function dbvm_watch_writes(PhysicalAddress: QWORD; size: integer; Options: DWORD; MaxEntryCount: Integer; UserModeLoop: qword=0; KernelModeLoop: qword=0): integer;
 var vmcallinfo: packed record
       structsize: dword;   //0
@@ -1458,6 +1476,8 @@ var vmcallinfo: packed record
 begin
   result:=-1;
   outputdebugstring('dbvm_watch_writes');
+  if not dbvm_ensure_pages_free(GetCPUCount*3) then exit;
+
   options:=options and (not EPTO_PMI_WHENFULL); //make sure this is not used
 
   vmcallinfo.structsize:=sizeof(vmcallinfo);
@@ -1501,6 +1521,8 @@ var vmcallinfo: packed record
 begin
   result:=-1;
   outputdebugstring('dbvm_watch_reads');
+  if not dbvm_ensure_pages_free(GetCPUCount*3) then exit;
+
   options:=options and (not EPTO_PMI_WHENFULL); //make sure this is not used
 
   vmcallinfo.structsize:=sizeof(vmcallinfo);
@@ -1543,6 +1565,8 @@ var vmcallinfo: packed record
 begin
   result:=-1;
   outputdebugstring(format('dbvm_watch_executes(%x,%d,%x,%d)',[PhysicalAddress, Size, Options, MaxEntryCount]));
+  if not dbvm_ensure_pages_free(GetCPUCount*3) then exit;
+
   options:=options and (not EPTO_PMI_WHENFULL); //make sure this is not used
 
   vmcallinfo.structsize:=sizeof(vmcallinfo);
@@ -1764,6 +1788,8 @@ var
   end;
   i: integer;
 begin
+  if not dbvm_ensure_pages_free(GetCPUCount*3) then exit(-1);
+
   PhysicalBase:=PhysicalBase and MAXPHYADDRMASKPB;
   virtualAddress:=virtualAddress and qword($fffffffffffff000);
 

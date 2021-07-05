@@ -2932,40 +2932,42 @@ begin
 end;
 
 
+var
+  _CPUCOUNT: integer{$ifdef NOTMULTITHREADED}=1{$endif};
 
 function GetCPUCount: integer;
 {
 this function will return how many active cpu cores there are at your disposal
 }
 var
-    PA,SA: DWORD_PTR;
+  PA,SA: DWORD_PTR;
 begin
-
-{$ifdef NOTMULTITHREADED}
-  result:=1;
-  exit;
-{$endif}
-
-  {$IFDEF windows}
-  //get the cpu and system affinity mask, only processmask is used
-  GetProcessAffinityMask(getcurrentprocess,PA,SA);
-
-  result:=getbitcount(pa);
-  //in the future make use of getlogicalprocessorinformation
-
-  if result=0 then result:=1;
-  {$else}
-  result:=cpucount;
-
-  if result=1 then
+  if _CPUCOUNT=0 then
   begin
-    //doubt!
-  {$ifdef darwin}
-    exit(macport.getCPUCount);
-  {$endif}
 
+    {$IFDEF windows}
+    //get the cpu and system affinity mask, only processmask is used
+    GetProcessAffinityMask(getcurrentprocess,PA,SA);
+
+    _CPUCOUNT:=getbitcount(pa);
+    //in the future make use of getlogicalprocessorinformation
+
+    if _CPUCOUNT=0 then _CPUCOUNT:=1;
+    {$else}
+    _CPUCOUNT:=cpucount;
+
+    if result=1 then
+    begin
+      //doubt!
+    {$ifdef darwin}
+      _CPUCOUNT:=macport.getCPUCount;
+    {$endif}
+
+    end;
+    {$ENDIF}
   end;
-  {$ENDIF}
+
+  exit(_CPUCOUNT);
 end;
 
 
