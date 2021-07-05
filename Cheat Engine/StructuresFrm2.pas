@@ -5208,13 +5208,16 @@ procedure TfrmStructures2.tvStructureViewMouseDown(Sender: TObject;
 var i: integer;
   c: TStructColumn;
   n: TTreenode;
+  se: TStructelement;
+  error: boolean;
+  address: ptruint;
 begin
 
   c:=getColumnAtXPos(x+tvStructureView.ScrolledLeft);
   if c<>nil then
     c.focus;
 
-  if (button=mbRight) then //lazarus 32774: If rightclickselect is on it does not deselect other lines
+  if (button=mbRight) or (button=mbMiddle) then //lazarus 32774: If rightclickselect is on it does not deselect other lines
   begin
     n:=tvStructureView.GetNodeAt(x,y);
     if n<>nil then
@@ -5232,6 +5235,21 @@ begin
       end;
 
 
+    end;
+  end;
+
+  if (button=mbMiddle) then
+  begin
+    n:=tvStructureView.GetNodeAt(x,y);
+    if n<>nil then
+    begin
+      se:=getStructElementFromNode(N);
+      if se<>nil then
+      begin
+        address:=getAddressFromNode(n, c, error);
+        if not error then
+          clipboard.AsText:=se.getValue(address);
+      end;
     end;
   end;
 end;
