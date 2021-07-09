@@ -1,0 +1,53 @@
+msgid ""
+msgstr ""
+"Plural-Forms: nplurals=1; plural=0;\n"
+"Project-Id-Version: \n"
+"POT-Creation-Date: \n"
+"PO-Revision-Date: \n"
+"Last-Translator: SiderealArt <nelson22768384@gmail.com>\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: zh_TW\n"
+"X-Generator: Poedit 3.0\n"
+
+#: VC-U2CVICNEL
+msgid "Unable to check version (Invalid content, not enough lines)"
+msgstr "無法檢查更新 (內容無效且行數不足)"
+
+#: VC-U2CVIC
+msgid "Unable to check version (Invalid content)"
+msgstr "無法檢查更新 (內容無效)"
+
+#: VC-CFNV
+msgid "Check for new version"
+msgstr "檢查更新"
+
+#: VC-NCA
+msgid "Cheat Engine %s is available at www.cheatengine.org. Go there now?"
+msgstr "Cheat Engine %s 已於 www.cheatengine.org 開放下載。要現在前往嗎？"
+
+#: VC-UP2D
+msgid "You are up to date. The latest version is %s"
+msgstr "您已更新到最新版本。最新版本為 %s"
+
+#: VC-WTF
+msgid "Unable to check version (Can't connect)"
+msgstr "無法檢查更新 (連線失敗)"
+
+#: VC-UPDATETO
+msgid "Update to %s"
+msgstr "更新至 %s"
+
+#: VC-UPDATETO
+msgid "In how many days should I notify you again?"
+msgstr "我應該在幾天後再次通知您？"
+
+#: VC-SETTINGS-TEXT
+msgid "Check for updates when Cheat Engine starts"
+msgstr "開啟 Cheat Engine 時檢查更新"
+
+#: VC-INTERVAL
+msgid "Interval(days):"
+msgstr "間隔 (天)："
