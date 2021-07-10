@@ -375,7 +375,7 @@ begin
   //cbAddress.clientwidth:=tcustomform(aowner).canvas.TextWidth('DDDDDDDDDDDD');
   cbAddress.anchors:=[aktop, akright];
   cbAddress.BorderSpacing.Right:=8;
-  cbAddress.style:=csOwnerDrawFixed;
+  cbAddress.style:=csOwnerDrawEditableFixed;
   cbAddress.OnDrawItem:=cbAddressDrawItem;
   cbAddress.ItemHeight:=TfrmPointerScannerSettings(TPointerFileList(aowner).Owner).cbAddress.ItemHeight;
   //cbAddress.Height:=btnDelete.Height;
