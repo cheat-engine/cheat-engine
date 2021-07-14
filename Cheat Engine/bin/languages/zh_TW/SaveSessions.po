@@ -1,0 +1,33 @@
+msgid ""
+msgstr ""
+"Plural-Forms: nplurals=1; plural=0;\n"
+"Project-Id-Version: \n"
+"POT-Creation-Date: \n"
+"PO-Revision-Date: \n"
+"Last-Translator: SiderealArt <nelson22768384@gmail.com>\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: zh_TW\n"
+"X-Generator: Poedit 3.0\n"
+
+#: SS-OaPF
+msgid "Open a process first"
+msgstr "請先開啟處理程序"
+
+#: SS-CESF
+msgid "Cheat Engine Scan files"
+msgstr "Cheat Engine 掃描檔"
+
+#: SS-OaPFDaS
+msgid "Open a process first and do a scan"
+msgstr "請先開啟處理程序再執行掃描"
+
+#: SS-SSS
+msgid "Save scan session"
+msgstr "儲存掃描工作階段"
+
+#: SS-LSS
+msgid "Load scan session"
+msgstr "載入掃描工作階段"
