@@ -2223,13 +2223,10 @@ void startvmx(pcpuinfo currentcpuinfo)
             clearScreen();*/
 
 
-
-
-
           launchVMX(currentcpuinfo);
 
           nosendchar[getAPICID()]=0;
-          sendstring("launchVMX returned\n");
+          sendstring("launchVMX returned. Meh\n");
           while (1) outportb(0x80,0xc9);
 
 

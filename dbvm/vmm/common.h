@@ -178,8 +178,8 @@ extern void clearScreen(void);
 extern void debugbreak(void);
 
 extern void _cpuid(UINT64 *rax, UINT64 *rbx, UINT64 *rcx, UINT64 *rdx);
-extern ULONG getRSP(void);
-extern ULONG getRBP(void);
+extern UINT64 getRSP(void);
+extern UINT64 getRBP(void);
 
 int itoa(unsigned int value,int base, char *output,int maxsize);
 int lltoa(unsigned long long value,int base, char *output,int maxsize);

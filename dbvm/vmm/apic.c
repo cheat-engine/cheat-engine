@@ -12,9 +12,49 @@
 #include "msrnames.h"
 #include "mm.h"
 
+int getHighestPendingInterrupt()
+{
+  int result=-1;
+  QWORD APIC_PA=readMSR(IA32_APICBASE_MSR) & MAXPHYADDRMASKPB;
+  PAPIC apic=mapPhysicalMemory(APIC_PA, 4096);
+  SetPageToWriteThrough(apic);
+
+  int i;
+  for (i=7; i>=0; i--)
+  {
+    DWORD v=apic->Interrupt_Request[i].a;
+    if (v)
+    {
+      int j;
+      for (j=31; j>=0; j--)
+        if (v & (1<<j))
+        {
+          result=i*32+j;
+          break;
+        }
+      break;
+    }
+
+  }
+
+
+  unmapPhysicalMemory(apic,4096);
+
+  return result;
+}
+
 DWORD ReadAPICRegister(DWORD reg)
 {
-    return *((volatile DWORD*) ((IA32_APIC_BASE & 0xfffff000) + (reg * 16)));
+  DWORD result;
+  QWORD APIC_PA=readMSR(IA32_APICBASE_MSR) & MAXPHYADDRMASKPB;
+  PAPIC apic=mapPhysicalMemory(APIC_PA, 4096);
+  SetPageToWriteThrough(apic);
+
+  result=*(volatile DWORD*)((UINT64)apic + (reg * 0x10));
+
+  unmapPhysicalMemory(apic,4096);
+
+  return result;
 }
 
 DWORD WriteAPICRegister(DWORD reg, DWORD value)

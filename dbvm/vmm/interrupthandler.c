@@ -326,14 +326,14 @@ int cinthandler(unsigned long long *stack, int intnr) //todo: move to it's own s
   int cpunr=0;
 
   thisAPICID=getAPICID();
-  nosendchar[getAPICID()]=0;
+ // nosendchar[getAPICID()]=0;
 
   enableserial();
 
   emergencyOutputOnly=0;
 
   sendstring("\n------------------------------------------\n");
-  sendstringf("|             EXCEPTION %d               |\n", intnr);
+  sendstringf("|             EXCEPTION %d  (%x)               |\n", intnr, intnr);
   sendstring("------------------------------------------\n");
 
   ddDrawRectangle(DDHorizontalResolution-100,0,100,100,_rdtsc());
@@ -502,7 +502,7 @@ int cinthandler(unsigned long long *stack, int intnr) //todo: move to it's own s
 
   if (cpuinfo->OnException[0].RIP)
   {
-    nosendchar[thisAPICID]=0;
+    //nosendchar[thisAPICID]=0;
     sendstringf("OnException is set. Passing it to longjmp\n");  //no need to set rflags back, the original state contains that info
 
     longjmp(cpuinfo->OnException, 0x100 | intnr);

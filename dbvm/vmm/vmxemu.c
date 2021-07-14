@@ -15,11 +15,14 @@
 #include "common.h"
 #include "vmpaging.h"
 #include "vmeventhandler.h"
+#include "vmeventhandler_amd.h"
 #include "vmcall.h"
 #include "mm.h"
 #include "displaydebug.h"
 
 #include "vmxsetup.h"
+#include "msrnames.h"
+#include "apic.h"
 
 
 int emulatevmx=1;
@@ -1482,4 +1485,226 @@ int handleIntelVMXInstruction(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
     return r;
 
   }
+}
+
+//AMD
+
+extern QWORD doVMRUN(QWORD vmcb_pa, VMRegisters *vmregisters, UINT64 dbvm_hostPA, UINT64 hostPA);
+
+#ifdef DEBUG
+int debugcounter;
+#endif
+int handleAMDVMRUNInstruction(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, FXSAVE64 *fxsave)
+{
+  //call vmrun with the given physical address, and on return emulate a #VMEXIT on the original vmcb
+
+  //todo: modify so it returns extra events, etc...
+
+
+  nosendchar[getAPICID()]=1;
+  QWORD PA=currentcpuinfo->vmcb->RAX;
+
+  pvmcb guestvmcb=(pvmcb)mapPhysicalMemory(PA,4096);
+
+
+  if (((PRFLAGS)(&currentcpuinfo->vmcb->RFLAGS))->IF)
+  {
+    //sendstringf("IF==1\n");
+    setCR8(currentcpuinfo->vmcb->V_TPR);
+    asm("sti"); //GIF is still 0 so this should be safe
+
+  }
+  else
+  {
+    nosendchar[getAPICID()]=0;
+    sendstringf("VMRUN with IF==0\n");
+    asm("cli");
+  }
+
+  UINT64 newPAT;
+#ifdef DEBUG
+  int skip=0;
+
+  WORD oldcs=guestvmcb->cs_selector;
+  QWORD oldrip=guestvmcb->RIP;
+
+  UINT64 myrflags;
+
+  UINT64 myPAT=readMSR(IA32_PAT_MSR);
+  UINT64 vmcbPAT=currentcpuinfo->vmcb->G_PAT;
+
+
+
+  sendstringf("VMRUN: TPR=%d  -  Guest's Guest V_INTR_MASKING=%d IF=%d TPR=%d AVIC_ENABLED=%d\n",currentcpuinfo->vmcb->V_TPR,  guestvmcb->V_INTR_MASKING, ((PRFLAGS)(&guestvmcb->RFLAGS))->IF, guestvmcb->V_TPR, guestvmcb->AVIC_ENABLED);
+  myrflags=getRFLAGS();
+#endif
+
+  if (currentcpuinfo->vmcb_host_pa==0)
+  {
+    void *x=malloc2(4096);
+    zeromemory(x,4096);
+    currentcpuinfo->vmcb_host_pa=VirtualToPhysical(x);
+  }
+
+
+  setCR8(currentcpuinfo->vmcb->V_TPR);
+  setDR6(0xfff0ff0);
+  setDR7(0x401);
+
+  nosendchar[getAPICID()]=0;
+
+
+  UINT64 a=0, b=0, c=0,d=0;
+  a=0x8000000a;
+  _cpuid(&a,&b,&c,&d); //ebx gets the max ASID value
+
+
+  if (currentcpuinfo->vmcb->GuestASID==guestvmcb->GuestASID)
+  {
+    //change the host ASID (better than changing the guest each time)
+    nosendchar[getAPICID()]=0;
+    sendstringf("Host and guest have same ASID (Host=%d Guest=%d)\n", currentcpuinfo->vmcb->GuestASID, guestvmcb->GuestASID);
+
+    sendstringf("cpuid(0x8000000a).EBX=%d\n", b);
+
+    if ((b) && (b-1))
+    {
+      currentcpuinfo->vmcb->GuestASID=(_rdtsc() % (b-1));  //1
+      currentcpuinfo->vmcb->GuestASID=1+(currentcpuinfo->vmcb->GuestASID % b+1);
+
+      sendstringf("new currentcpuinfo->vmcb->GuestASID=%d\n", currentcpuinfo->vmcb->GuestASID);
+    }
+    currentcpuinfo->vmcb->VMCB_CLEAN_BITS&=~CLEAN_ASID;
+  }
+
+  if (guestvmcb->V_INTR_MASKING==0)
+  {
+    nosendchar[getAPICID()]=0;
+    sendstringf("Guest VMRUN with no INT_MASKING\n");
+  }
+
+  doVMRUN(PA, vmregisters, currentcpuinfo->vmcb_host_pa,  currentcpuinfo->vmcb_PA);
+
+
+  newPAT=readMSR(IA32_PAT_MSR);
+#ifdef DEBUG
+  skip=0;
+  switch (guestvmcb->EXITCODE)
+  {
+    case VMEXIT_VINTR:
+    case VMEXIT_CR4_WRITE:
+    case VMEXIT_HLT:
+      skip=20;
+      break;
+
+    case VMEXIT_INTR:
+    case VMEXIT_CPUID:
+      skip=40;
+      break;
+
+    case VMEXIT_IOIO:
+      skip=500;
+      break;
+
+    case VMEXIT_NPF:
+      skip=200;
+      break;
+
+  }
+
+  if (skip)
+  {
+    if (debugcounter%skip==0)
+      skip=0;
+  }
+
+  debugcounter++;
+
+
+
+  if (skip==0)
+  {
+    sendstringf("%d: (%6 (%d <-> %d)) %x:%x -> %x:%x Guest EXITCODE=%x  IF=%d TPR=%d", currentcpuinfo->cpunr, PA, guestvmcb->GuestASID, currentcpuinfo->vmcb->GuestASID, oldcs, oldrip, guestvmcb->cs_selector, guestvmcb->RIP, guestvmcb->EXITCODE, ((PRFLAGS)(&guestvmcb->RFLAGS))->IF, guestvmcb->V_TPR);
+    if (guestvmcb->EXITCODE==0x400)
+    {
+      sendstringf(" CR0=%x", guestvmcb->CR0);
+      sendstringf(" CR4=%x", guestvmcb->CR4);
+      sendstringf(" PA=%6", guestvmcb->EXITINFO2);
+      sendstringf(" Error=%x", guestvmcb->EXITINFO1);
+    }
+
+
+    if ((guestvmcb->EXITCODE==VMEXIT_INTR) || (guestvmcb->EXITCODE==VMEXIT_VINTR))
+    {
+      sendstring(" - ");
+      ShowPendingInterrupts();
+    }
+
+
+    if (guestvmcb->EXITCODE==VMEXIT_MSR)
+    {
+      if (currentcpuinfo->vmcb->EXITINFO1)
+        sendstringf(" write to ");
+      else
+        sendstringf(" read from ");
+
+      sendstringf(" MSR %6",vmregisters->rcx & 0xffffffff);
+    }
+
+    if (guestvmcb->EXITCODE==0x7b)
+    {
+      sendstringf(" IO Port %x", guestvmcb->EXITINFO1 >> 16);
+      if (guestvmcb->EXITINFO1 & 1)
+        sendstringf(" read");
+      else
+        sendstringf(" write");
+    }
+    if (guestvmcb->EXITCODE==0x41)
+    {
+      RFLAGS *f=(RFLAGS *)&guestvmcb->RFLAGS;
+     // regDR6 *dr6=&guestvmcb->DR6;
+      sendstringf(" RFLAGS=%6 (RF=%d TF=%d)", guestvmcb->RFLAGS, f->RF, f->TF);
+      sendstringf(" DR6=%6", guestvmcb->DR6);
+      sendstringf(" DR7=%6", guestvmcb->DR7);
+
+      sendstringf(" myDR6=%6", getDR6());
+      sendstringf(" myDR7=%6", getDR7());
+
+    }
+
+    if (guestvmcb->EXITINTINFO)
+      sendstringf(" EXITINTINFO=%x", guestvmcb->EXITINTINFO);
+
+    sendstringf("\n");
+
+    skip=0;
+  }
+
+#endif
+
+
+  asm("cli");
+
+
+
+  unmapPhysicalMemory((void*)guestvmcb,4096);
+
+  if (AMD_hasNRIPS)
+    currentcpuinfo->vmcb->RIP=currentcpuinfo->vmcb->nRIP;
+  else
+    currentcpuinfo->vmcb->RIP+=3;
+
+  currentcpuinfo->vmcb->DR6=getDR6();
+  currentcpuinfo->vmcb->DR7=0x400;
+  currentcpuinfo->vmcb->CR2=getCR2();
+  currentcpuinfo->vmcb->G_PAT=newPAT;
+
+
+  writeMSR(IA32_PAT_MSR,readMSR(IA32_PAT_MSR));
+
+  currentcpuinfo->vmcb->VMCB_CLEAN_BITS&=~(CLEAN_DRx | CLEAN_CR2);
+
+  setCR3(getCR3());
+
+  return 0;
 }

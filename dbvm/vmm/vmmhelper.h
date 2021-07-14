@@ -55,6 +55,7 @@ typedef struct _vmregisters /* DO NOT CHANGE THIS ORDER */
   UINT64         rcx;
   UINT64         rbx;
   UINT64         rax; //not valid in AMD
+  //UINT64         amd_savedfsbase;
 } VMRegisters;
 
 #ifdef DEBUG
@@ -233,12 +234,15 @@ typedef volatile struct _vmcb
 	BYTE  reserved2[3];
 	BYTE  V_TPR;  //60=correct
 	unsigned V_IRQ : 1;
-	unsigned reserved4: 7;
+	unsigned V_GIF : 1;
+	unsigned reserved4: 6;
 	unsigned V_INTR_PRIO: 4;
 	unsigned V_IGN_TPR: 1;
 	unsigned reserved5: 3;
 	unsigned V_INTR_MASKING : 1;
-	unsigned reserved6: 7;
+	unsigned V_GIF_ENABLED : 1;
+	unsigned reserved6: 5;
+	unsigned AVIC_ENABLED: 1;
 	BYTE  V_INTR_VECTOR; //64=correct
 	unsigned reserved6_1: 24;
 
@@ -251,8 +255,8 @@ typedef volatile struct _vmcb
 	};
 
 	QWORD EXITCODE; //70 correct
-	QWORD EXITINFO1;
-	QWORD EXITINFO2;
+	QWORD EXITINFO1;  //78
+	QWORD EXITINFO2;  //80
 	QWORD EXITINTINFO;
 
 	union{
@@ -282,6 +286,7 @@ typedef volatile struct _vmcb
 	  QWORD Enable_LBR_Virtualization;
 	  struct {
 	    unsigned LBR_VIRTUALIZATION_ENABLE: 1;
+	    unsigned VirtualizedVMSAVEandVMLOAD: 1;
 	  };
 	};
 	DWORD VMCB_CLEAN_BITS;
@@ -446,10 +451,14 @@ typedef volatile struct tcpuinfo
 
 
   void *vmcb_host;
+  UINT64 vmcb_host_pa; //separate storage for host info (not vmcb_host)
+
   pvmcb vmcb; //AMD's virtual machine control_block. Give the physical address of this to VMRUN
   UINT64 vmcb_PA;
 
   UINT64 guest_VM_HSAVE_PA; //the current VM_HSAVE_PA according to the guest
+  int vmcb_GIF;
+  unsigned char vmcb_pending[16];
 
 
 
@@ -660,6 +669,7 @@ typedef volatile struct tcpuinfo
   DWORD lastExitReason;
   int lastExitWasWithRunningVMX;
 
+  int showall;
 #ifdef USENMIFORWAIT
   int WaitTillDone;
   int WaitingTillDone;
@@ -755,6 +765,16 @@ typedef struct _regCR4
 
 #define EFER_LME        (1<<8)
 #define EFER_LMA        (1<<10)
+
+
+
+//AMD VMCB_CLEAN fields
+#define CLEAN_CR2       (1<<9)
+#define CLEAN_DRx       (1<<6)
+#define CLEAN_NP        (1<<4)
+#define CLEAN_TPR       (1<<3)
+#define CLEAN_ASID      (1<<2)
+#define CLEAN_I         (1<<1)
 
 
 
@@ -854,6 +874,8 @@ char *getVMInstructionErrorString(void);
 void ShowCurrentInstruction(pcpuinfo currentcpuinfo);
 void ShowCurrentInstructions(pcpuinfo currentcpuinfo);
 void displayPreviousStates(void);
+
+void ShowPendingInterrupts();
 
 int isDebugFault(QWORD dr6, QWORD dr7);
 

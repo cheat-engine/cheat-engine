@@ -64,6 +64,7 @@ extern int has_VPID_INVVPIDAllContext;
 extern int has_VPID_INVVPIDSingleContextRetainingGlobals;
 
 //AMD
+extern int has_VGIFSupport;
 extern int has_NP_1GBsupport;
 extern int has_NP_2MBsupport;
 

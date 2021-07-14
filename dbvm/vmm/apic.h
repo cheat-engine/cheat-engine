@@ -91,5 +91,8 @@ extern QWORD APBootVar_GDT[24];
 extern WORD APBootVar_Size;
 
 void apic_sendWaitInterrupt(BYTE apicid);
+int getHighestPendingInterrupt();
+
+DWORD ReadAPICRegister(DWORD reg);
 
 #endif /*APIC_H_*/

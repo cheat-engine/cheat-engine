@@ -108,14 +108,37 @@ void* allocateContiguousMemory(int pagecount)
   }
   else
   {
-    nosendchar[getAPICID()]=0;
-    sendstringf("contiguousMemoryPagesFree<pagecount");
-    while (1)
-    {
-      sendstringf("contiguousMemoryPagesFree<pagecount");
 
-      outportb(0x80,0x01);
-      outportb(0x80,0x10);
+    if (contiguousMemory==NULL)
+    {
+      result=malloc2(pagecount*4096); //assume that on systems without contiguousMemory it is already mapped as one contiguous block to begin with
+
+      QWORD a=VirtualToPhysical(result);
+      int i;
+      for (i=1;i<pagecount;i++)
+      {
+        QWORD b=VirtualToPhysical((void*)((QWORD)result)+4096);
+
+        if (b!=a+4096)
+        {
+          nosendchar[getAPICID()]=0;
+          sendstringf("Failure allocating contiguous memory (not contiguous)\n");
+          while (1);
+        }
+        a=b;
+      }
+    }
+    else
+    {
+      nosendchar[getAPICID()]=0;
+      sendstringf("contiguousMemoryPagesFree<pagecount");
+      while (1)
+      {
+        sendstringf("contiguousMemoryPagesFree<pagecount");
+
+        outportb(0x80,0x01);
+        outportb(0x80,0x10);
+      }
     }
   }
 

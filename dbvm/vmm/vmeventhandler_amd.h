@@ -163,6 +163,7 @@
 #define VMEXIT_INVALID     -1
 
 
+
 int handleVMEvent_amd(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, FXSAVE64 *fxsave);
 
 

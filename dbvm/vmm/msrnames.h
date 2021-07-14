@@ -56,6 +56,7 @@
 
 
 
+#define IA32_PAT_MSR    0x277
 
 #define IA32_MTRR_DEF_TYPE_MSR    0x2ff
 
@@ -88,7 +89,9 @@
 
 
 #define EFER_MSR				          0xc0000080
+#define IA32_STAR                 0xc0000081
 #define IA32_LSTAR                0xc0000082
+#define IA32_CSTAR                0xc0000083
 #define IA32_FMASK_MSR            0xc0000084
 #define IA32_FS_BASE_MSR          0xc0000100
 #define IA32_GS_BASE_MSR          0xc0000101
@@ -97,6 +100,7 @@
 #define IA32_TSC_MSR              0x10
 #define IA32_TSC_AUX_MSR          0xc0000103
 
+#define VM_IGGNE_MSR           0xc0010115
 #define VM_HSAVE_PA_MSR           0xc0010117 //AMD
 
 #endif /* MSRNAMES_H_ */

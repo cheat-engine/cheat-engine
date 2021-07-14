@@ -64,7 +64,10 @@ int has_VPID_INVVPIDSingleContext;
 int has_VPID_INVVPIDAllContext;
 int has_VPID_INVVPIDSingleContextRetainingGlobals;
 
+
+
 //AMD
+int has_VGIFSupport;
 int has_NP_1GBsupport;
 int has_NP_2MBsupport;
 
@@ -86,6 +89,8 @@ extern WORD realmode_inthook_conventional_memsize;
 
 void setupVMX_AMD(pcpuinfo currentcpuinfo)
 {
+  UINT64 eax, ebx, ecx,edx; //cpuid values
+
   //setup the vmcb
   Segment_Attribs reg_csaccessrights;
   Segment_Attribs reg_traccessrights UNUSED;
@@ -136,8 +141,67 @@ void setupVMX_AMD(pcpuinfo currentcpuinfo)
 
 #endif
 
+  currentcpuinfo->vmcb_pending[0]=0;
+  currentcpuinfo->vmcb_pending[1]=0;
+  currentcpuinfo->vmcb_pending[2]=0;
+  currentcpuinfo->vmcb_pending[3]=0;
+  currentcpuinfo->vmcb_pending[4]=0;
+  currentcpuinfo->vmcb_pending[5]=0;
+  currentcpuinfo->vmcb_pending[6]=0;
+  currentcpuinfo->vmcb_pending[7]=0;
+  currentcpuinfo->vmcb_pending[8]=0;
+  currentcpuinfo->vmcb_pending[9]=0;
+  currentcpuinfo->vmcb_pending[10]=0;
+  currentcpuinfo->vmcb_pending[11]=0;
+  currentcpuinfo->vmcb_pending[12]=0;
+  currentcpuinfo->vmcb_pending[13]=0;
+  currentcpuinfo->vmcb_pending[14]=0;
+  currentcpuinfo->vmcb_pending[15]=0;
+
+
+  currentcpuinfo->vmcb_GIF=1;
   currentcpuinfo->vmcb->InterceptVMRUN=1;
-  currentcpuinfo->vmcb->GuestASID=1;
+
+
+  //check if it can virtualize vmload/vmsave/GIF:
+  eax=0x8000000a;
+  _cpuid(&eax, &ebx, &ecx,&edx);
+
+  /*
+  //VMLOAD/VMSAVE (After testing, this can be disabled)
+  if (edx & (1<<15))
+  {
+    sendstringf("Supports Virtualized VMSAVE and VMLOAD\n");
+    currentcpuinfo->vmcb->VirtualizedVMSAVEandVMLOAD=1;
+  }
+  else
+  {
+    currentcpuinfo->vmcb->InterceptVMLOAD=1;
+    currentcpuinfo->vmcb->InterceptVMSAVE=1;
+  }
+  */
+
+  if (edx & (1<<16)) //virtualize GIF
+  {
+    sendstringf("Supports Virtualized GIF\n");
+    has_VGIFSupport=1;
+    currentcpuinfo->vmcb->V_GIF=1;
+    currentcpuinfo->vmcb->V_GIF_ENABLED=1;
+  }
+  else
+  {
+    currentcpuinfo->vmcb->InterceptCLGI=1;
+    currentcpuinfo->vmcb->InterceptSTGI=1;
+  }
+
+ // currentcpuinfo->vmcb->InterceptINVLPGA=1;
+
+  //currentcpuinfo->vmcb->InterceptHLT=1;
+
+
+
+  currentcpuinfo->vmcb->GuestASID=1;//+(_rdtsc()% (ebx-1));  //1
+
   currentcpuinfo->vmcb->EFER=0x1500 | (1<<8) | (1<<10);
 
   reg_traccessrights.SegmentAttrib=0;
@@ -215,6 +279,8 @@ void setupVMX_AMD(pcpuinfo currentcpuinfo)
   currentcpuinfo->vmcb->MSR_PROT=1; //some msr's need to be protected
 
   currentcpuinfo->vmcb->InterceptExceptions=(1<<1) | (1<<3);// | (1<<14); //intercept int1, 3 and 14
+
+ // currentcpuinfo->vmcb->InterceptINTR=1;
  // currentcpuinfo->vmcb->InterceptDR0_15Write=(1<<6); //dr6 so I can see what changed
 
 
@@ -250,6 +316,8 @@ void setupVMX_AMD(pcpuinfo currentcpuinfo)
 
     //Must protect 0xc0010117 (MSRPM_BASE_PA)
     MSRBitmap[0x1000+(0x0117*2)/8]|=3 << ((0x0117*2) % 8);
+
+    MSRBitmap[0x1000+(0x0115*2)/8]|=3 << ((0x0115*2) % 8);
 
     //also 0xc0000080 (EFER)
     //if (hideEFER)
@@ -320,7 +388,6 @@ void setupVMX_AMD(pcpuinfo currentcpuinfo)
     sendstringf("originalstate->fsbase=%6\n",originalstate->fsbase);
     sendstringf("originalstate->gsbase=%6\n",originalstate->gsbase);
 
-
     currentcpuinfo->vmcb->CR4=originalstate->cr4;
     currentcpuinfo->vmcb->CR3=originalstate->cr3;
     currentcpuinfo->vmcb->CR0=originalstate->cr0;
@@ -390,7 +457,7 @@ void setupVMX_AMD(pcpuinfo currentcpuinfo)
       currentcpuinfo->vmcb->es_base=0;
       currentcpuinfo->vmcb->fs_base=originalstate->fsbase;
       currentcpuinfo->vmcb->gs_base=originalstate->gsbase;
-      currentcpuinfo->vmcb->tr_base=getSegmentBaseEx(gdt,ldt,originalstate->tr, 1);
+      currentcpuinfo->vmcb->tr_base=getSegmentBaseEx(gdt,ldt,originalstate->tr, 1);      
     }
     else
     {

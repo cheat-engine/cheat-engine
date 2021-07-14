@@ -104,7 +104,7 @@ extern UINT64 loadedOS;
 PTSS mainTSS;
 
 int vmxloop(pcpuinfo currentcpuinfo, UINT64 *eaxbase);
-int vmxloop_amd(pcpuinfo currentcpuinfo, UINT64 vmcb_pa, UINT64 *eaxbase);
+int vmxloop_amd(pcpuinfo currentcpuinfo, UINT64 vmcb_pa, UINT64 vmcb_hostsave_pa, UINT64 *eaxbase);
 
 extern int vmxstartup_end;
 

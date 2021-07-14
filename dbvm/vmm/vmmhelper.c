@@ -444,7 +444,21 @@ void sendvmstate(pcpuinfo currentcpuinfo UNUSED, VMRegisters *registers UNUSED)
 
     PRFLAGS prflags=(PRFLAGS)&rflags;
 
+    sendstringf("GuestASID=%d", currentcpuinfo->vmcb->GuestASID);
     sendstringf("CPL=%d\n", currentcpuinfo->vmcb->CPL);
+
+    if (has_VGIFSupport)
+      sendstringf("V_GIF=%d\n", currentcpuinfo->vmcb->V_GIF);
+    else
+      sendstringf("GIF=%d\n", currentcpuinfo->vmcb_GIF);
+
+    if (registers)
+    {
+      UINT64 *fsbase=(UINT64 *)((UINT64)(&registers->rax)+8);
+      sendstringf("saved FS_BASE_MSR=%6\n", *fsbase);
+    }
+    sendstringf("FS_BASE_MSR=%6\n", readMSR(IA32_FS_BASE_MSR));
+    sendstringf("GS_BASE_MSR=%6\n", readMSR(IA32_GS_BASE_MSR));
 
     if (registers)    // print registers
     {
@@ -480,8 +494,7 @@ void sendvmstate(pcpuinfo currentcpuinfo UNUSED, VMRegisters *registers UNUSED)
     sendstringf("gdt: base=%6 limit=%x\n\r",currentcpuinfo->vmcb->gdtr_base, currentcpuinfo->vmcb->gdtr_limit);
     sendstringf("idt: base=%6 limit=%x\n\r",currentcpuinfo->vmcb->idtr_base, currentcpuinfo->vmcb->idtr_limit);
 
-    sendstringf("cr0=%6 cr3=%6 cr4=%6\n\r",currentcpuinfo->vmcb->CR0, currentcpuinfo->vmcb->CR3, currentcpuinfo->vmcb->CR4);
-
+    sendstringf("cr0=%6 cr3=%6 cr4=%6 cr8=%6 V_TPR=%d\n\r",currentcpuinfo->vmcb->CR0, currentcpuinfo->vmcb->CR3, currentcpuinfo->vmcb->CR4, getCR8(), currentcpuinfo->vmcb->V_TPR);
 
   }
   else
@@ -632,6 +645,8 @@ void sendvmstate(pcpuinfo currentcpuinfo UNUSED, VMRegisters *registers UNUSED)
     }
     else
       sendstringf("cr0=%6 cr3=%6 cr4=%6\n\r",vmread(vm_cr0_read_shadow), currentcpuinfo->guestCR3, vmread(vm_cr4_read_shadow));
+
+
   }
 
   if (currentcpuinfo->vmxdata.insideVMXRootMode)
@@ -644,6 +659,10 @@ void sendvmstate(pcpuinfo currentcpuinfo UNUSED, VMRegisters *registers UNUSED)
 
 
 #endif
+
+  sendstringf("Pending interrupts:");
+  ShowPendingInterrupts();
+  sendstringf("\n\r");
 
   if (isAMD==0)
   {
@@ -893,6 +912,7 @@ int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers, void *fxsave)
 	  lastbeat=_rdtsc();
   }
 
+#ifdef USENMIFORWAIT
   if (vmread(vm_exit_reason)==0)
   {
     VMExit_interruption_information intinfo;
@@ -914,6 +934,7 @@ int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers, void *fxsave)
       return 0;
     }
   }
+#endif
 
 
 
@@ -2100,13 +2121,23 @@ void launchVMX_AMD(pcpuinfo currentcpuinfo, POriginalState originalstate)
   sendvmstate(currentcpuinfo, NULL);
 
 
+  nosendchar[getAPICID()]=0;
+  sendstring("Starting...:\n");
+
+  writeMSR(IA32_GS_BASE_MSR, (UINT64)0xcece);
+
+  void *hoststate=malloc(4096);
+
 
   if (originalstate)
-    result=vmxloop_amd(currentcpuinfo, currentcpuinfo->vmcb_PA, &originalstate->rax);
+    result=vmxloop_amd(currentcpuinfo, currentcpuinfo->vmcb_PA, VirtualToPhysical(hoststate), &originalstate->rax);
   else
-    result=vmxloop_amd(currentcpuinfo, currentcpuinfo->vmcb_PA, NULL);
+    result=vmxloop_amd(currentcpuinfo, currentcpuinfo->vmcb_PA, VirtualToPhysical(hoststate), NULL);
 
-  displayline("Returned from vmxloop_amd. Result=%d\n\r", result);
+  nosendchar[getAPICID()]=0;
+  sendstringf("Returned from vmxloop_amd. Result=%d\n\r", result);
+
+  while (1);
 
 }
 
@@ -2133,6 +2164,7 @@ void launchVMX(pcpuinfo currentcpuinfo)
 
   if (isAMD)
     return launchVMX_AMD(currentcpuinfo, originalstate);
+
 
 
 
@@ -2530,6 +2562,7 @@ void CheckGuest(void)
 
 
 */
+
 void displayVMmemory(pcpuinfo currentcpuinfo)
 {
   char temps[17];
@@ -2598,6 +2631,27 @@ void displayVMmemory(pcpuinfo currentcpuinfo)
     sendstring("\n\r");
   }
 
+}
+
+void ShowPendingInterrupts()
+{
+  int i,j;
+
+//0=0-31
+//1=32-63
+  for (i=0; i<8; i++)
+  {
+    DWORD v=ReadAPICRegister(0x20+i);
+    if (v!=0)
+    {
+      int startint=i*32;
+      for (j=0; j<32; j++)
+      {
+        if (v & (1<<j))
+          sendstringf("%2 ", startint+j);
+      }
+    }
+  }
 }
 
 void ShowCurrentInstruction(pcpuinfo currentcpuinfo)
@@ -2681,7 +2735,8 @@ void ShowCurrentInstruction(pcpuinfo currentcpuinfo)
 
 void ShowCurrentInstructions(pcpuinfo currentcpuinfo)
 {
-  unsigned char buf[60];
+#define BUFSIZE 120
+  unsigned char buf[BUFSIZE];
   int     readable;
   int     is64bit=IS64BITCODE(currentcpuinfo);
   UINT64 address;
@@ -2701,15 +2756,15 @@ void ShowCurrentInstructions(pcpuinfo currentcpuinfo)
       address=vmread(vm_guest_cs_base)+vmread(vm_guest_rip);
   }
 
-  int bytesinfront=30;
+  int bytesinfront=BUFSIZE / 2;
   UINT64 startaddress=address-bytesinfront;
 
-  readable=ReadVMMemory(currentcpuinfo, startaddress,buf,60);
+  readable=ReadVMMemory(currentcpuinfo, startaddress,buf,BUFSIZE);
 
   while (!readable) //try till bytesinfront=0
   {
     startaddress=address-bytesinfront;
-    readable=ReadVMMemory(currentcpuinfo, startaddress,buf,60);
+    readable=ReadVMMemory(currentcpuinfo, startaddress,buf,BUFSIZE);
     if (!readable)
     {
       if (bytesinfront==0)
@@ -2725,7 +2780,7 @@ void ShowCurrentInstructions(pcpuinfo currentcpuinfo)
   if (readable)
   {
     //disassemble
-    _DecodedInst disassembled[22];
+    _DecodedInst disassembled[BUFSIZE/2];
     _DecodeType dt=Decode16Bits;
     Access_Rights cs_accessright;
     unsigned int i;
@@ -2757,7 +2812,7 @@ void ShowCurrentInstructions(pcpuinfo currentcpuinfo)
       dt=Decode16Bits;
 
 
-    distorm_decode(startaddress,buf, 60, dt, disassembled, 22, &used);
+    distorm_decode64(startaddress,buf, BUFSIZE, dt, disassembled, BUFSIZE / 2, &used);
 
     if (used)
     {
