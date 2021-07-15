@@ -1,0 +1,81 @@
+﻿msgid ""
+msgstr ""
+"Plural-Forms: nplurals=1; plural=0;\n"
+"Project-Id-Version: \n"
+"POT-Creation-Date: \n"
+"PO-Revision-Date: \n"
+"Last-Translator: SiderealArt <nelson22768384@gmail.com>\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: zh_TW\n"
+"X-Generator: Poedit 3.0\n"
+
+#: patchscan-nave
+msgid "Not a valid executable"
+msgstr "不是有效的執行檔"
+
+#: patchscan-navwe
+msgid "Not a valid windows executable"
+msgstr "不是有效的視窗執行檔"
+
+#: patchscan-ttomicns
+msgid "This type of module is currently not supported"
+msgstr "目前尚未支持此類型的模組"
+
+#: patchscan-ce
+msgid "Compare error. "
+msgstr "對比時發生錯誤。 "
+
+#: patchscan-ml
+msgid "Module List"
+msgstr "模組列表"
+
+#: patchscan-stmtsfp
+msgid "Select the modules to scan for patches. Hold shift/ctrl to select multiple modules"
+msgstr "選擇要掃描修補程式的模組。按下 Shift/Ctrl 以選擇多個模組"
+
+#: patchscan-ok
+msgid "  OK  "
+msgstr " OK "
+
+#: patchscan-cancel
+msgid "Cancel"
+msgstr "取消"
+
+#: patchscan-scanning
+msgid "Scanning: %s"
+msgstr "正在掃描：%s"
+
+#: patchscan-ei
+msgid "Error in "
+msgstr "錯誤發生於 "
+
+#: patchscan-pl
+msgid "Patch list"
+msgstr "修補程式列表"
+
+#: patchscan-address
+msgid "Address"
+msgstr "位址"
+
+#: patchscan-original
+msgid "Original"
+msgstr "原始"
+
+#: patchscan-patched
+msgid "Patched"
+msgstr "已修補"
+
+#: patchscan-rwo
+msgid "Restore with original"
+msgstr "還原"
+
+#: patchscan-rp
+msgid "Reapply patch"
+msgstr "重新修補"
+
+#: patchscan-sfp
+msgid "Scan for patches"
+msgstr "掃描修補程式"
