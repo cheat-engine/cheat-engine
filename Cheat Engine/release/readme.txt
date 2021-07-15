@@ -5,6 +5,7 @@ Additions and changes:
   Hotkeys can be repeated by releasing the key and repressing if the repeat timer hasn't finished yet
   structure dissect add to addresslist uses the addressstring instead of number, so symbols will be preserved
   structure dissect now has a option to save the previous state of a column and show changes easier
+  middle-mouse clicking now copies the value of a structure element to your clipboard
   Added {$LUACODE} blocks for inline Lua coding
   Added a c-compiler to CE
   Added {$C} blocks to the auto assembler. all {$C} blocks get combined into one script before execution
@@ -17,11 +18,13 @@ Additions and changes:
   The change address window now also supports relative offsets
   DBVM speed improvements
   DBVM has an extra security level, and added dbvm_setKeys to easily change the access codes
+  DBVM has now some basic support for nested VM's (only so you can run them, not yet modify)
   New debugger interface: DBVM-level debugger
   Improved performance of "Find what access/writes this address"
   Dissect code now lets you specify custom ranges
   Addresslist value sort now sorts values by alphabet if the record is a string type
   The dropdown list of multiple entries can now be changed at the same time
+  Standalone register window now shows flags values as well
 
   
 
@@ -40,6 +43,7 @@ Fixes:
   fixed DBVM find what access/writes sometimes skipping entries on AMD
   fixed undo not working on memory records when using the single line editor
   fixed hide children group option when loading a table
+  fixed some font issues in break and trace
 
 lua:
   changes:

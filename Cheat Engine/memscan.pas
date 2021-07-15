@@ -5442,6 +5442,8 @@ var i: integer;
     startregion: integer;
     stopregion: integer;
     phandle: thandle;
+
+    canOverlap: boolean;
 begin
   lastpart:=100;
   phandle:=processhandle;
@@ -5483,6 +5485,8 @@ begin
 
     for i:=startregion to stopregion do
     begin
+      canOverlap:=false;
+
       if terminated or OwningScanController.Terminated then exit;
 
       if i=startregion then
@@ -5494,6 +5498,9 @@ begin
       begin
         currentbase:=OwningScanController.memregion[i].BaseAddress;
         toread:=OwningScanController.memregion[i].MemorySize;
+
+        if ((i+1)<OwningScanController.memRegionPos-1) and (currentbase+toread=OwningScanController.memregion[i+1].BaseAddress) then  //next region is connected, include it if possible
+          canOverlap:=(scanOption<>soUnknownValue);
       end;
 
       if (i=stopregion) and ((currentbase+toread)>stopaddress) then
@@ -5505,19 +5512,27 @@ begin
         //05955958
         size:=toread;
 
-        if (size>buffersize) then size:=buffersize;
+        if (size>buffersize) then
+        begin
+          size:=buffersize;
+          canOverlap:=(scanOption<>soUnknownValue);
+        end;
 
         actualread:=0;
-        //variablesize:=0;
-        if size<toread then
-          _size:=size+variablesize-1
+
+        if canOverlap then
+          _size:=size+(variablesize-1)
         else
           _size:=size;
 
-        if (_size>buffersize) then _size:=buffersize;
-
 
         ReadProcessMemory(phandle,pointer(currentbase),memorybuffer,_size,actualread);
+        if (actualread=0) and canOverlap then
+        begin
+          //try without overlap
+          _size:=_size-(variablesize-1);
+          ReadProcessMemory(phandle,pointer(currentbase),memorybuffer,_size,actualread);
+        end;
 
         //sanitize the results
         if actualread>_size then actualread:=_size;
@@ -5570,8 +5585,9 @@ begin
         dec(toread,size);
 
         if (OnlyOne and (found>0)) then exit;
-        
-      until terminated or (toread=0);
+
+
+      until terminated or (toread<=0);
     end;
 
     lastpart:=103;

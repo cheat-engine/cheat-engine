@@ -107,8 +107,8 @@ procedure TAbout.FormCreate(Sender: TObject);
 begin
   if ShouldAppsUseDarkMode then
   begin
-    label8.color:=clTeal;
-    label9.color:=clTeal;
+    label8.font.color:=clTeal;
+    label9.font.color:=clTeal;
   end;
 end;
 

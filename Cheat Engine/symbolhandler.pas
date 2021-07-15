@@ -4677,6 +4677,7 @@ var mi: tmoduleinfo;
     tokens: TTokens;
     mathstring: string;
     hasMultiplication, hasPointer: boolean;
+    found: boolean;
 
     nextoperation: TCalculation;
     regnr: integer;
@@ -4716,6 +4717,7 @@ var mi: tmoduleinfo;
       nextTokenType:=ttQword; //reset to default
     end;
 begin
+
   nexttokentype:=ttQword;
   pointerstartpos:=0;
   pointerstartmax:=16;
@@ -4985,33 +4987,61 @@ begin
                   end;
                 end;
 
-                if si<>nil then
+                found:=false;
+                while si<>nil do
                 begin
                   if (si.extra<>nil) and (si.extra.forwarder) then
                   begin
                     if (si.extra.forwardsTo=0) then
                     begin
                       //parse the string at this address
-                      getmem(p,128);
+                      if si.extra.forwardsToString='' then
+                      begin
+                        getmem(p,128);
 
-                      if not targetself then
-                        haserror:=not readprocessmemory(processhandle, pointer(si.address),p,127,br)
-                      else
-                        haserror:=not readprocessmemory(GetCurrentProcess, pointer(si.address),p,127,br);
+                        br:=0;
+                        if not targetself then
+                          haserror:=not readprocessmemory(processhandle, pointer(si.address),p,127,br)
+                        else
+                          haserror:=not readprocessmemory(GetCurrentProcess, pointer(si.address),p,127,br);
 
-                      p[br]:=#0;
+                        p[br]:=#0;
 
-                      si.extra.forwardsTo:=getAddressFromName(p, waitforsymbols, hasError, context, shallow);
-                      si.extra.forwardsToString:=p;
-                      freememandnil(p);
+                        if haserror=false then
+                          si.extra.forwardsToString:=p;
+
+                        freememandnil(p);
+                      end;
+
+                      si.extra.forwardsTo:=getAddressFromName(si.extra.forwardsToString, waitforsymbols, hasError, context, shallow);
+                      if haserror then
+                      begin
+                        if si.alternative<>nil then
+                        begin
+                          si:=si.alternative; //try this alternative
+                          hasError:=false;
+                          continue;
+                        end
+                        else
+                          break;//not found
+                      end;
+
                     end;
 
                     tokens[i]:=inttohex(ApplyTokenType(si.extra.forwardsto),8);
+                    found:=true;
+                    break;
                   end
                   else
+                  begin
                     tokens[i]:=inttohex(ApplyTokenType(si.address),8);
-                  continue;
+                    found:=true;
+                    break;
+                  end;
+
                 end;
+
+                if found then continue;
 
               end;
             end;

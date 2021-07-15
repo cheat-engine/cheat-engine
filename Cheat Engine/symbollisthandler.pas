@@ -100,6 +100,8 @@ type
 
     previous: PCESymbolInfo;
     next: PCESymbolInfo;
+
+    alternative: PCESymbolInfo; //chain of duplicates
   end;
 
   TExtraSymbolDataList=TList;
@@ -445,6 +447,7 @@ function TSymbolListHandler.AddSymbol(module: string; searchkey: string; address
 var new: PCESymbolInfo;
   n: TAvgLvlTreeNode;
   prev, next: TAvgLvlTreeNode;
+  x: PCESymbolInfo;
 begin
   new:=getmem(sizeof(TCESymbolInfo));
   new^.module:=strnew(pchar(module));
@@ -452,6 +455,7 @@ begin
   new^.s:=strnew(pchar(lowercase(searchkey)));
   new^.address:=address;
   new^.size:=size;
+  new^.alternative:=nil;
   new^.extra:=extradata;
 
   cs.Beginwrite;
@@ -480,7 +484,21 @@ begin
       end;
     end;
 
-    StringToAddress.Add(new);
+    n:=StringToAddress.Find(new);
+    if (n<>nil) and (PCESymbolInfo(n.data)^.address<>new^.address)  then
+    begin
+      //different symbol, same name
+      x:=PCESymbolInfo(n.data);
+      while x^.alternative<>nil do //chain duplicates
+      begin
+        x:=x^.alternative;
+        if x^.address=new^.address then exit; //duplicate symbol. Same name and address.
+      end;
+
+      x^.alternative:=new;
+    end
+    else
+      n:=StringToAddress.Add(new);
   finally
     cs.Endwrite;
   end;
@@ -658,7 +676,26 @@ begin
   finally
     cs.Endwrite;
   end;
+end;
 
+procedure CleanSymbolInfoEntry(var d: PCESymbolInfo);
+begin
+  if d^.originalstring<>nil then
+    StrDispose(d^.originalstring);
+
+  if d^.s<>nil then
+    StrDispose(d^.s);
+
+  if d^.module<>nil then
+    strDispose(d^.module);
+
+  if d^.alternative<>nil then
+  begin
+    CleanSymbolInfoEntry(d^.alternative);
+    freememandnil(d^.alternative);
+  end;
+
+  freememandnil(d);
 end;
 
 procedure TSymbolListHandler.clear;
@@ -677,33 +714,11 @@ begin
       while x<>nil do
       begin
         d:=PCESymbolInfo(x.Data);
-
-        if d^.originalstring<>nil then
-          StrDispose(d^.originalstring);
-
-        if d^.s<>nil then
-          StrDispose(d^.s);
-
-        if d^.module<>nil then
-          strDispose(d^.module);
-
-        FreeMemAndNil(d);
+        CleanSymbolInfoEntry(d);
         x.data:=nil;
         x:=StringToAddress.FindSuccessor(x);
       end;
 
-      {
-      x:=StringToAddress.Root;
-      while x<>nil do
-      begin
-        if x.data<>nil then
-        begin
-          OutputDebugString('Missed one');
-        end;
-
-        StringToAddress.Delete(x);
-        x:=stringtoaddress.root;
-      end;}
 
 
       StringToAddress.Clear;
