@@ -1015,6 +1015,10 @@ end;
 {$endif}
 
 {$ifdef windows}
+
+
+type EInjectDLLFunctionFailure=class(Exception);
+
 Procedure InjectDll(dllname: string; functiontocall: string='');
 var LoadLibraryPtr: pointer;
     GetProcAddressPtr: Pointer;
@@ -1326,7 +1330,7 @@ begin
               case res of
                 1: ;//success
                 2: raise exception.Create(utf8toansi(rsFailedInjectingTheDLL));
-                3: raise exception.Create(utf8toansi(rsFailedExecutingTheFunctionOfTheDll));
+                3: raise EInjectDLLFunctionFailure.Create(utf8toansi(rsFailedExecutingTheFunctionOfTheDll));
                 else raise exception.Create(utf8toansi(rsUnknownErrorDuringInjection));
               end;
             end
