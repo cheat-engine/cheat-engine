@@ -1017,7 +1017,9 @@ end;
 {$ifdef windows}
 
 
-type EInjectDLLFunctionFailure=class(Exception);
+type
+  EInjectDLLFunctionFailure=class(Exception);
+  EInjectError=class(Exception);
 
 Procedure InjectDll(dllname: string; functiontocall: string='');
 var LoadLibraryPtr: pointer;
@@ -1329,9 +1331,9 @@ begin
             begin
               case res of
                 1: ;//success
-                2: raise exception.Create(utf8toansi(rsFailedInjectingTheDLL));
+                2: raise EInjectError.Create(utf8toansi(rsFailedInjectingTheDLL));
                 3: raise EInjectDLLFunctionFailure.Create(utf8toansi(rsFailedExecutingTheFunctionOfTheDll));
-                else raise exception.Create(utf8toansi(rsUnknownErrorDuringInjection));
+                else raise EInjectError.Create(utf8toansi(rsUnknownErrorDuringInjection));
               end;
             end
             else
@@ -1356,7 +1358,7 @@ begin
 
     end;
   except
-    on e:exception do
+    on e:EInjectError do
     begin
       forceLoadModule(dllname, functiontocall, 'dllInject failed: '+e.message);
     end;
