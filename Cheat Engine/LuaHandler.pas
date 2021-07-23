@@ -44,7 +44,6 @@ threadvar
   Thread_LuaRef: integer;
 
 
-
 function lua_strtofloat(s: string): double;
 function lua_strtoint(s: string): integer;
 
@@ -165,8 +164,6 @@ var
 
   autorunpath: string;
 
-threadvar
-  luadisassembler: TDisassembler; //so lua threads do not interfere with the mainthread disassembler
 
 
 
@@ -9128,9 +9125,11 @@ function lua_signTable(L: Plua_State): integer; cdecl;
 var
   filename: string;
 begin
+  {$ifdef windows}
   if lua_gettop(L)>0 then
   begin
     filename:=Lua_ToString(L,1);
+
     if FileExists(filename) then
     begin
       try
@@ -9159,7 +9158,11 @@ begin
     lua_pushstring(L, rsIncorrectNumberOfParameters);
     exit(2);
   end;
-
+  {$else}
+  lua_pushboolean(L,false);
+  lua_pushstring(L,'This version does not support signing yet');
+  exit(2);
+  {$endif}
 end;
 
 function lua_detachIfPossible(L: Plua_State): integer; cdecl;
@@ -15802,8 +15805,6 @@ begin
   if assigned(oldReleaseThreadVars) then
     oldReleaseThreadVars();
 
-  if luadisassembler<>nil then
-    freeandnil(luadisassembler);
 end;
 
 initialization

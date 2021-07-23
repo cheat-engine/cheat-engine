@@ -1449,10 +1449,12 @@ begin
   dbvm_getMemory(pagesfree);
   if pagesfree<qword(pagecount) then
   begin
+    {$ifdef windows}
     allocateMemoryForDBVM(pagecount*2);
 
     dbvm_getMemory(pagesfree);
     if pagesfree<pagecount then    //failed to allocate (e.g. no driver)
+    {$endif}
       exit(false);
   end;
 

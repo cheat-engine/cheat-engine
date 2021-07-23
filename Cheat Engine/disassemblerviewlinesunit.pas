@@ -625,7 +625,7 @@ begin
         if (not UseOriginalRenderingSystem) and (ftfont<>nil) then
         begin
           sourcecodelineheight:=ceil(ftfont.TextHeight('xxx'));
-          sourcecodeindentationstart:=ftfont.TextWidth(sourcecode[0]+' ');
+          sourcecodeindentationstart:=ceil(ftfont.TextWidth(sourcecode[0]+' '));
         end
         else
         {$endif}

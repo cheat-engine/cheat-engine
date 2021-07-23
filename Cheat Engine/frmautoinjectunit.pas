@@ -583,7 +583,8 @@ begin
   case mode of
     smLua:
     begin
-      assemblescreen.Highlighter:=LuaHighlighter;
+      if assemblescreen<>nil then
+        assemblescreen.Highlighter:=LuaHighlighter;
 
       //change gui to lua style
       btnExecute.Caption:=rsExecuteScript;
@@ -604,7 +605,8 @@ begin
 
     smAutoAssembler:
     begin
-      assemblescreen.Highlighter:=AAHighlighter;
+      if assemblescreen<>nil then
+        assemblescreen.Highlighter:=AAHighlighter;
 
 
       //change gui to autoassembler style
@@ -624,7 +626,8 @@ begin
 
     smGnuAssembler:
     begin
-      assemblescreen.Highlighter:=nil; //no highlighter for it yet
+      if assemblescreen<>nil then
+        assemblescreen.Highlighter:=nil; //no highlighter for it yet
 
       btnExecute.Caption:=rsWriteCode;
       opendialog1.DefaultExt:='CEGA';
@@ -2144,9 +2147,6 @@ begin
 
   l.free;
 
-
-
-
 {$endif}
 end;
 
@@ -2284,8 +2284,6 @@ begin
   assembleSearch:=TSyneditSearch.Create;
 
 
-
-
   assemblescreen:=TSynEditPlus.Create(self);
   assemblescreen.BorderStyle:=bsNone;
   assemblescreen.Highlighter:=AAHighlighter;
@@ -2293,11 +2291,6 @@ begin
   fq:=assemblescreen.Font.Quality;
   if not (fq in [fqCleartypeNatural, fqDefault]) then
     assemblescreen.Font.quality:=fqDefault;
-
- { if overridefont<>nil then
-    assemblescreen.Font.assign(overridefont)
-  else
-    assemblescreen.Font.Size:=10;    }
 
   //assemblescreen.Font.Quality:=fqDefault;
   assemblescreen.WantTabs:=true;
@@ -2381,8 +2374,11 @@ begin
   load1.Shortcut:=TextToShortCut('Meta+O');
   save1.Shortcut:=TextToShortCut('Meta+S');
 
-  i:=assemblescreen.Keystrokes.FindCommand(ecSelectAll);
-  if i<>-1 then assemblescreen.Keystrokes[i].ShortCut:=TextToShortCut('Meta+A');
+  if assemblescreen<>nil then
+  begin
+    i:=assemblescreen.Keystrokes.FindCommand(ecSelectAll);
+    if i<>-1 then assemblescreen.Keystrokes[i].ShortCut:=TextToShortCut('Meta+A');
+  end;
 {$endif}
 
 end;
@@ -3076,9 +3072,9 @@ end;
 
 procedure TfrmAutoInject.reloadHighlighterSettings;
 begin
-  LuaHighlighter.LoadFromRegistry(HKEY_CURRENT_USER, '\Software\Cheat Engine\Lua Highlighter'+darkmodestring);
+  {LuaHighlighter.LoadFromRegistry(HKEY_CURRENT_USER, '\Software\Cheat Engine\Lua Highlighter'+darkmodestring);
   AAHighlighter.LoadFromRegistry(HKEY_CURRENT_USER, '\Software\Cheat Engine\AA Highlighter'+darkmodestring);
-  CPPHighlighter.LoadFromRegistry(HKEY_CURRENT_USER, '\Software\Cheat Engine\CPP Highlighter'+darkmodestring);
+  CPPHighlighter.LoadFromRegistry(HKEY_CURRENT_USER, '\Software\Cheat Engine\CPP Highlighter'+darkmodestring);}
 end;
 
 procedure TfrmAutoInject.MenuItem2Click(Sender: TObject);
