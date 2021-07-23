@@ -1266,7 +1266,7 @@ var
   ExtraSymbolData: TExtraSymbolData;
 
 begin
-
+  self:=TSymbolloaderthread(UserContext);
   if symbolsize>64*1024 then
     symbolsize:=64*1024;
 
@@ -1278,8 +1278,11 @@ begin
   s:=pchar(@pSymInfo.Name);
 
 
-  self:=TSymbolloaderthread(UserContext);
+
   self.processThreadEvents;
+
+
+
 
 
   if self.currentModuleIsNotStandard then
@@ -1694,7 +1697,9 @@ var
 begin
   result:=false;
 
+
   {$IFNDEF UNIX}
+
   self:=TSymbolloaderthread(UserContext);
   self.CurrentModulename:=ModuleName;
 
@@ -1708,7 +1713,6 @@ begin
 
   self.processThreadEvents;
 
-
   if self.pdbonly then  //only files with a PDB
   begin
     for i:=0 to length(self.modulelist.withdebuginfo)-1 do
@@ -1721,13 +1725,18 @@ begin
   else
     result:=(self.terminated=false) and (SymEnumSymbols(self.thisprocesshandle, baseofdll, nil, @ES, self));
 
+
   //mark this module as loaded
   self.processThreadEvents;
 
   if self.terminated then exit;
   if symhandler=nil then exit;
 
-  symhandler.markModuleAsLoaded(baseofdll);
+  if result then
+    symhandler.markModuleAsLoaded(baseofdll)
+  else
+    result:=true;
+
   inc(self.enumeratedModules);
 
   self.fprogress:=ceil((self.enumeratedModules / self.modulecount) * 100);
@@ -2664,7 +2673,15 @@ begin
               //enumeratedModules:=0;
               pdbonly:=true;
 
+              if targetself=false then
+              asm
+              nop
+              end;
               SymEnumerateModules64(thisprocesshandle, @EM, self );
+              if targetself=false then
+              asm
+              nop
+              end;
 
 
               pdbsymbolsloaded:=true;
