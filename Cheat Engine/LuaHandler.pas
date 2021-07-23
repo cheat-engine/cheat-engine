@@ -2925,6 +2925,65 @@ begin
 
 end;
 
+function lua_assemble(L: PLua_State): integer; cdecl;
+var
+  address: ptruint;
+  line: string;
+  pref: TassemblerPreference;
+  skiprangecheck: boolean;
+
+  r: TAssemblerBytes;
+begin
+  if lua_gettop(L)>=1 then
+  begin
+    try
+      line:=Lua_ToString(L,1);
+      if lua_gettop(L)>=2 then
+        address:=lua_toaddress(L,2)
+      else
+        address:=0;
+
+
+      if lua_gettop(L)>=3 then
+        pref:=TassemblerPreference(lua_tointeger(L,3))
+      else
+        pref:=apNone;
+
+      if lua_gettop(L)>=4 then
+        skiprangecheck:=lua_toboolean(L,4)
+      else
+        skiprangecheck:=false;
+
+      if Assemble(line,address,r, pref,skiprangecheck) then
+      begin
+        CreateByteTableFromPointer(L,@r[0],length(r));
+        exit(1);
+      end
+      else
+      begin
+        lua_pushnil(L);
+        exit(1);
+      end;
+    except
+      on e: exception do
+      begin
+        lua_pushnil(L);
+        lua_pushstring(L,e.Message);
+        exit(2);
+      end;
+    end;
+
+
+  end
+  else
+  begin
+    lua_pushnil(L);
+    lua_pushstring(L,'invalid parameters');
+    exit(2);
+  end;
+
+end;
+
 function getPixel(L: PLua_State): integer; cdecl;
 var t:TCanvas;
   parameters: integer;
@@ -14919,6 +14978,7 @@ begin
 
     lua_register(L, 'autoAssemble', autoAssemble_lua);
     lua_register(L, 'autoAssembleCheck', AutoAssembleCheck_lua);
+    lua_register(L, 'assemble', lua_assemble);
     lua_register(L, 'deAlloc', deAlloc_lua);
     lua_register(L, 'deAllocLocal', deAllocLocal_lua);
     lua_register(L, 'showMessage', showMessage_lua);

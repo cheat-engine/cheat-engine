@@ -2697,7 +2697,7 @@ type TAssemblerBytes=array of byte;
 
 type TAssemblerEvent=procedure(address:qword; instruction: string; var bytes: TAssemblerBytes) of object;
 
-type TassemblerPreference=(apNone, apShort, apLong, apFar);
+type TassemblerPreference=(apNone=0, apShort=1, apLong=2, apFar=3);
 
 function Assemble(opcode:string; address: ptrUint;var bytes: TAssemblerBytes; assemblerPreference: TassemblerPreference=apNone; skiprangecheck: boolean=false): boolean;
 function GetOpcodesIndex(opcode: string): integer;
