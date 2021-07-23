@@ -357,13 +357,21 @@ begin
             {$ifdef windows}
             3: value:=readAndParseAddress(address,vtDword, nil,false,true); //long.  4 byte on PE, 8 byte on elf when in 64-bit.
             {$else}
-            3: value:=readAndParseAddress(address, ifthen<TVariableType>(processhandler.is64Bit, vtQword, vtDword), nil,false,true);
+            3:
+              if processhandler.is64Bit then
+                value:=readAndParseAddress(address, vtQword, nil,false,true)
+              else
+                value:=readAndParseAddress(address, vtDword, nil,false,true);
             {$endif}
             4: value:=readAndParseAddress(address, vtDword,nil,false,false); //unsigned integer
             {$ifdef windows}
             5: value:=readAndParseAddress(address,vtDword, nil,false,false); //long unsigned
             {$else}
-            5: value:=readAndParseAddress(address, ifthen<TVariableType>(processhandler.is64Bit, vtQword, vtDword), nil,false,false);
+            5:
+              if processhandler.is64Bit then
+                value:=readAndParseAddress(address, vtQword, nil,false,false)
+              else
+                value:=readAndParseAddress(address, vtDword, nil,false,false);
             {$endif}
             6,8: value:=readAndParseAddress(address,vtQword, nil,false,true); //int64
             7,9: value:=readAndParseAddress(address,vtQword, nil,false,false); //uint64

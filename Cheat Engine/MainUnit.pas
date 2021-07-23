@@ -10919,6 +10919,9 @@ end;
 procedure TMainForm.setActivePreviousResultColumn(c: integer);
 var
   i: integer;
+  {$ifdef darwin}
+  s: string;
+  {$endif}
 begin
   if InsideSetActivePreviousResult then exit;
 
@@ -10932,8 +10935,10 @@ begin
     begin
       foundlist3.Column[i].Tag:=0;
 
+
       {$ifdef darwin}
-      foundlist3.Column[i].caption:=foundlist3.Column[i].caption.DeQuotedString("*");
+      s:=foundlist3.Column[i].caption;
+      foundlist3.Column[i].caption:=s.DeQuotedString('*');
       {$endif}
 
       if miOnlyShowCurrentCompareToColumn.Checked then
@@ -10954,7 +10959,9 @@ begin
       foundlist3.Column[c].tag:=foundlistColors.CompareToHeaderColor;
 
       {$ifdef darwin}
-      foundlist3.Column[c].caption:=foundlist3.Column[c].caption.QuotedString("*");
+      s:=foundlist3.Column[c].caption;
+
+      foundlist3.Column[c].caption:=s.QuotedString('*');
       {$endif}
     end;
 

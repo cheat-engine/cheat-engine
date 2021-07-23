@@ -14,7 +14,7 @@ interface
 
 uses
   {$ifdef darwin}
-  macport,
+  macport, macportdefines,
   {$endif}
   {$ifdef windows}
   windows,

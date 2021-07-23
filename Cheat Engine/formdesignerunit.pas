@@ -200,7 +200,7 @@ implementation
 
 
 uses mainunit, DPIHelper{$if lcl_fullversion>=2000000}, LazMsgDialogs{$endif}
-  , IDEImagesIntf, DwmApi, UxTheme;
+  , IDEImagesIntf{$ifdef windows}, DwmApi, UxTheme{$endif};
 
 resourcestring
   rsInvalidObject = '{Invalid object}';
@@ -1194,6 +1194,8 @@ begin
   {$endif}
 end;
 
+{$ifdef windows}
+
 procedure DarkenComponents(c: TComponent);
 var
   i: integer;
@@ -1219,6 +1221,8 @@ begin
   for i:=0 to c.ComponentCount-1 do
     DarkenComponents(c.Components[i]);
 end;
+
+{$endif}
 
 procedure TFormDesigner.designForm(f: tceform);
 var x: array of integer;
@@ -1246,6 +1250,7 @@ begin
   if oid=nil then //no oid yet
   begin
     oid:=TObjectInspectorDlg.Create(self);
+    {$ifdef windows}
     if ShouldAppsUseDarkMode then
     begin
       //force it into darkmode
@@ -1253,6 +1258,7 @@ begin
 
       with oid do
       begin
+
         AllowDarkModeForWindow(handle,1);
 
         color:=$242424;
@@ -1264,6 +1270,7 @@ begin
           ldark:=1;
           DwmSetWindowAttribute(handle, 19, @Ldark, sizeof(Ldark));
         end;
+
 
 
 
@@ -1294,6 +1301,7 @@ begin
         ComponentTree.options:=ComponentTree.options-[tvoThemedDraw];
       end;
     end;
+    {$endif}
 
     oid.AutoSize:=false;
     oid.PropertyEditorHook:=GlobalDesignHook; //needs to be created
