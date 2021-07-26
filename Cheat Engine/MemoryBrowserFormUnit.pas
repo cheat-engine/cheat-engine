@@ -1871,6 +1871,9 @@ begin
     begin
       initialaddress:=memoryaddress;
       show;
+
+      if initialaddress=0 then //address 0 would normally NOT add a new address, but this is a user specified address, so do it anyhow
+      addColumn;
     end;
   end;
 end;
