@@ -106,7 +106,14 @@ begin
         end;
 
       if MenuIndex=lastvisible then //name='MenuItem3' then
-        ARect.Width:=tcustomform(owner).width;
+      begin
+        if owner is TCustomForm then
+          ARect.Width:=tcustomform(owner).width
+        else
+        begin
+          ARect.Width:=acanvas.width-arect.Left;
+        end;
+      end;
       acanvas.FillRect(arect);
 
       acanvas.font.color:=clWhite;
