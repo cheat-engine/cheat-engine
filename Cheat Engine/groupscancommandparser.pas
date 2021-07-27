@@ -263,6 +263,8 @@ begin
               elements[j].vartype:=vtQword
             else
               elements[j].vartype:=vtDword;
+
+            elements[j].valueint:=StrToQWordEx(value);
           end;
         end;
 

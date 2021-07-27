@@ -1,11 +1,11 @@
 Additions and changes:
   Added dark mode support (restart CE when you channge the setting)
-  All saved results are now shows in the foundlist (can be turned off)
+  All saved results are now shown in the foundlist (can be turned off)
   Groupscan now supports pointer wildcards. (only valid if the field is a proper pointer)
   Hotkeys can be repeated by releasing the key and repressing if the repeat timer hasn't finished yet
-  structure dissect add to addresslist uses the addressstring instead of number, so symbols will be preserved
-  structure dissect now has a option to save the previous state of a column and show changes easier
-  middle-mouse clicking now copies the value of a structure element to your clipboard
+  Structure dissect add to addresslist uses the addressstring instead of number, so symbols will be preserved
+  Structure dissect now has a option to save the previous state of a column and show changes easier
+  Middle-mouse clicking now copies the value of a structure element to your clipboard
   Added {$LUACODE} blocks for inline Lua coding
   Added a c-compiler to CE
   Added {$C} blocks to the auto assembler. all {$C} blocks get combined into one script before execution
@@ -43,7 +43,9 @@ Fixes:
   fixed DBVM find what access/writes sometimes skipping entries on AMD
   fixed undo not working on memory records when using the single line editor
   fixed hide children group option when loading a table
-  fixed some font issues in break and trace
+  fixed some font issues in the break and trace window
+  fixed pasting the other types in hexadecimal view
+  fixed the symbolloader fully crashing on unknown pdb symboldata
 
 lua:
   changes:
