@@ -1432,19 +1432,21 @@ begin
         ActivateSelected;}
 
     end;
-
-    if TMemoryRecord(node.data).Active then
-    begin
-      //arrow spot is clicked
-      //nothing->increased->decreased->nothing->...
-      if inrange(x, checkboxend+1, checkboxend+9) then
+    
+    if node.data <> nil then
+      if TMemoryRecord(node.data).Active then
       begin
-        if TMemoryRecord(node.data).allowIncrease then TMemoryRecord(node.data).allowDecrease:=true
-        else
-        if TMemoryRecord(node.data).allowDecrease then TMemoryRecord(node.data).allowDecrease:=false
-        else
-          TMemoryRecord(node.data).allowIncrease:=true
+        //arrow spot is clicked
+        //nothing->increased->decreased->nothing->...
+        if inrange(x, checkboxend+1, checkboxend+9) then
+        begin
+          if TMemoryRecord(node.data).allowIncrease then TMemoryRecord(node.data).allowDecrease:=true
+          else
+          if TMemoryRecord(node.data).allowDecrease then TMemoryRecord(node.data).allowDecrease:=false
+          else
+            TMemoryRecord(node.data).allowIncrease:=true
 
+        end;
       end;
     end;
 
