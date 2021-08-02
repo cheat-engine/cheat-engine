@@ -6,6 +6,10 @@ BITS 64
 ;3=rdx
 ;4=rcx
 
+extern password1
+extern password2
+extern password3
+
 GLOBAL testfunction
 
 testfunction:
@@ -332,11 +336,10 @@ enableInterrupts:
 
 GLOBAL dovmcall
 dovmcall:
-  push rdx
   mov rax,rdi
-  mov rdx,rsi
+  mov rdx,[rel password1]
+  mov rcx,[rel password3]
   vmcall
-  pop rdx
   ret
 
 GLOBAL dovmcall2
@@ -347,7 +350,8 @@ dovmcall2:
   mov r9,rcx
 
   mov rax,rdi
-  mov rdx,rsi
+  mov rdx,[rel password1]
+  mov rcx,[rel password3]
   vmcall
   mov [r8],rax
   mov [r9],rdx

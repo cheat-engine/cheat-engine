@@ -82,15 +82,22 @@ EXTERN InitStackPA
 
 GLOBAL doSystemTest
 doSystemTest:
+  sub rsp,8+4*8
+  mov [rsp+00h],rbx
+  mov [rsp+08h],rcx
+  mov [rsp+10h],rdx
+  mov rax,dr7
+  mov [rsp+18h],rax
+
   mov rax,0x402
   mov dr7,rax
   mov rax,dr7
   cmp rax,0x402
   je pass1
 
-  ;fail test1
   mov rax,1
-  ret
+  jmp doSystemTest_exit
+
 
 pass1:
   cpuid
@@ -100,10 +107,18 @@ pass1:
 
   ;fail test 2
   mov rax,2
-  ret
+  jmp doSystemTest_exit
 
 pass2:
   xor rax,rax
+
+doSystemTest_exit:
+  mov rbx,[rsp+18h]
+  mov dr7,rax
+  mov rdx,[rsp+10h]
+  mov rcx,[rsp+08h]
+  mov rbx,[rsp]
+  add rsp,8+4*8
   ret
 
 GLOBAL enterVMM
