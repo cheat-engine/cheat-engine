@@ -13,7 +13,7 @@ procedure pushSymbol(L: PLua_state; si: PCESymbolInfo);
 
 implementation
 
-uses LuaHandler, LuaObject, symbolhandler, ProcessHandlerUnit;
+uses LuaHandler, LuaObject, symbolhandler, ProcessHandlerUnit, NewKernelHandler;
 
 function getMainSymbolList(L: Plua_State): integer; cdecl;
 begin
@@ -286,10 +286,24 @@ begin
       parameters:='';
 
 
-    si:=sl.AddSymbol(modulename, searchkey, address, size, skipAddressToSymbol, esd);
+    si:=sl.AddSymbol(modulename, searchkey, address, size, skipAddressToSymbol, esd,true);
+
 
     if esd<>nil then
       esd.free;
+
+    if (si=pointer($55555555)) or (si=pointer($5555555555555555) )   then
+    begin
+     //outputdebugstring('sl.AddSymbol returned an invalid pointer');
+     exit(0);
+    end;
+
+    if si=nil then
+    begin
+      //outputdebugstring('sl.AddSymbol returned nil');
+      exit(0);
+    end;
+
 
     pushSymbol(L, si);
     result:=1;

@@ -438,9 +438,12 @@ begin
   pnlFlags.Font.Height:=i;
   pnlFlags.Font.Color:=Font.Color;
 
-  shape1.color:=clWindowtext;
+  shape1.brush.color:=clWindowtext;
+  shape1.pen.color:=clWindowtext;
 
   widthNeeded:=canvas.TextWidth('XX  '+caption+'  XX');
+
+
 
 
 
@@ -461,8 +464,10 @@ begin
     dec(i, GetSystemMetrics(SM_CXPADDEDBORDER));
     dec(i, GetSystemMetrics(SM_CXBORDER));
 
-    if i<widthNeeded then
-      Width:=max(Width, width+(widthNeeded-i));
+    widthNeeded:=max(panel1.width+panel2.width+4, widthneeded);
+
+    //if i<widthNeeded then
+    Width:=widthNeeded;
   end;
   {$endif}
 

@@ -146,7 +146,7 @@ type
     function getmodulebyname(modulename: string; var mi: TModuleInfo):BOOLEAN;
     procedure GetModuleList(var list: TExtraModuleInfoList);
     procedure GetSymbolList(list: TStrings);
-    function AddSymbol(module: string; searchkey: string; address: qword; size: integer; skipaddresstostringlookup: boolean=false; extraData: TExtraSymbolData=nil): PCESymbolInfo;
+    function AddSymbol(module: string; searchkey: string; address: qword; size: integer; skipaddresstostringlookup: boolean=false; extradata: TExtraSymbolData=nil; skipDuplicateSupport:boolean=false): PCESymbolInfo;
     function FindAddress(address: qword): PCESymbolInfo;
     function FindSymbol(s: string): PCESymbolInfo;
     function FindFirstSymbolFromBase(baseaddress: qword): PCESymbolInfo;
@@ -443,7 +443,7 @@ begin
   end;
 end;
 
-function TSymbolListHandler.AddSymbol(module: string; searchkey: string; address: qword; size: integer; skipaddresstostringlookup: boolean=false; extradata: TExtraSymbolData=nil): PCESymbolInfo;
+function TSymbolListHandler.AddSymbol(module: string; searchkey: string; address: qword; size: integer; skipaddresstostringlookup: boolean=false; extradata: TExtraSymbolData=nil; skipDuplicateSupport:boolean=false): PCESymbolInfo;
 var new: PCESymbolInfo;
   n: TAvgLvlTreeNode;
   prev, next: TAvgLvlTreeNode;
@@ -457,6 +457,8 @@ begin
   new^.size:=size;
   new^.alternative:=nil;
   new^.extra:=extradata;
+
+  result:=new;
 
   cs.Beginwrite;
 //  sleep(1);
@@ -484,25 +486,31 @@ begin
       end;
     end;
 
-    n:=StringToAddress.Find(new);
-    if (n<>nil) and (PCESymbolInfo(n.data)^.address<>new^.address)  then
+    if skipDuplicateSupport=false then
     begin
-      //different symbol, same name
-      x:=PCESymbolInfo(n.data);
-      while x^.alternative<>nil do //chain duplicates
+      n:=StringToAddress.Find(new);
+      if (n<>nil) and (PCESymbolInfo(n.data)^.address<>new^.address)  then
       begin
-        x:=x^.alternative;
-        if x^.address=new^.address then exit; //duplicate symbol. Same name and address.
-      end;
+        //different symbol, same name
+        x:=PCESymbolInfo(n.data);
+        while x^.alternative<>nil do //chain duplicates
+        begin
+          x:=x^.alternative;
+          if x^.address=new^.address then exit; //duplicate symbol. Same name and address.
+        end;
 
-      x^.alternative:=new;
+        x^.alternative:=new;
+      end
+      else
+        n:=StringToAddress.Add(new);
     end
     else
       n:=StringToAddress.Add(new);
+
   finally
     cs.Endwrite;
   end;
-  result:=new;
+
 end;
 
 function TSymbolListHandler.A2SCheck(Tree: TAvgLvlTree; Data1, Data2: pointer): integer;

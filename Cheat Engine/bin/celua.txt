@@ -190,6 +190,10 @@ errorOnLookupFailure(state): If set to true (default) address lookups in stringf
 waitforsymbols(state): If set to true looking up a symbol will wait for the symbol to be loaded(default true)
 
 generateAPIHookScript(address:string, addresstojumpto:string, addresstogetnewcalladdress:string OPT, ext:string OPT, targetself:boolean OPT) : Generates an auto assembler script which will hook the given address when executed
+assemble(line, address OPTIONAL, assemblePreference OPTIONAL, skipRangeCheck OPTIONAL): assembles a single line of code and returns a byte array of the generated code.  
+  address is the address to assemble this code at
+  assemblePreference: apNone=0, apShort=1, apLong=2, apFar=3
+  skipRangeCheck is a boolean.  Which will skip range checks if true and just assembles it, no matter of how wrong the result will be   
 autoAssemble(text, targetself OPTIONAL, disableInfo OPTIONAL) : runs the auto assembler with the given text. Returns true on success, with as secondary a table you can use when disabling (if targetself is set it will assemble into Cheat Engine itself). If disableInfo is provided the [Disable] section will be handled
 autoAssemble(text, disableInfo OPTIONAL)
 
@@ -359,7 +363,6 @@ function onOpenProcess(processid):
 MainForm.OnProcessOpened: function(processid, processhandle, caption) - Define this if you want to be notified when a new process has been opened. Called only once from the main thread. It is recommended to use this instead of onOpenProcess
 
 function onTableLoad(before): If defined this function will be called twice when a table gets loaded. Once before the loading, and once after.
-
 
 
 getOpenedProcessID() : Returns the currently opened process. If none is open, returns 0
@@ -945,6 +948,7 @@ properties
   Item[] : Array to access each child menuitem
   [] : Item[]
   OnClick: Function to call when the menu item is activated
+  FontColor: Color of the font. (Only works when in dark mode)
 
 methods
   getCaption() : Gets the caption of the menu item
@@ -2741,6 +2745,7 @@ dbk_executeKernelMemory(address, parameter) :
 
 dbvm_initialize(offloados:Boolean OPTIONAL, reason:String OPTIONAL) : Initializes the dbvm functions (dbk_initialize also calls this) offloados is a boolean that when set will offload the system onto dbvm if it's not yet running (and only IF the dbk driver is loaded)
 dbvm_setKeys(key1,key2,key3) - Sets the keys to operate DBVM.  Key1 and Key3 are pointersize, key2 is 32-bit.  Note that if key1 or key3 are 64-bit wide, 32-bit CE can not use DBVM.  Returns true if DBVM is working, and automatically updates the current DBVM keys in CE and the driver if DBVM was already connected (e.g default keys)
+dbvm_getMemory(): Returns the total memory free for DBVM, and the total number of full pages as secondary result
 dbvm_addMemory(pagecount): Adds memory to DBVM (one page is 4096 bytes)
 dbvm_readMSR(msr): See dbk_readMSR but then using dbvm
 dbvm_writeMSR(msr, value): See dbk_writeMSR
@@ -3618,6 +3623,8 @@ properties
 methods
   -
 
+----------------------------------------------------------
+
 HotkeyHandlerThread(Inheritence: Thread)
 getHotkeyHandlerThread() : Returns the hotkey handler thread used internally by CE
 
@@ -3834,6 +3841,29 @@ properties
 methods
   startAnimatorTimer() - Starts the animator timer which will trigger an OnPaint with the speed of the current framesPerSecond property
   stopAnimatorTimer() - Stops the animator timer
+
+
+------- XML ------- 
+DOMNode class(Inheritance:)
+properties
+methods
+  writeToFile(filename)
+  writeToStream(stream)
+
+
+DOMDocument class(Inheritance: DOMNode_TopLevel->DOMNode_WithChildren->DOMNode)
+properties
+methods
+
+
+XMLDocument class(Inheritance: DOMDocument->DOMNode_TopLevel->DOMNode_WithChildren->DOMNode)
+createXMLDocument() - Creates an empty XML document
+createXMLDocumentFromFile(filename) - reads the given filename and return an XMLDocument with the parsed contents of the file
+createXMLDocumentFromStream(stream) - reads the given stream and returns an XMLDocument with the parsed contents of the stream
+
+properties
+methods
+
 
 ce lua extensions:
 string table:

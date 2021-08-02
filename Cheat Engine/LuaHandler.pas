@@ -3448,7 +3448,7 @@ begin
     else
       lc.synchronizeparam:=0;
 
-    tthread.Queue(nil, lc.queue);
+    tthread.ForceQueue(TThread.CurrentThread, lc.queue);
 
     result:=0;
   end;
