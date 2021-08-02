@@ -292,12 +292,6 @@ begin
     if esd<>nil then
       esd.free;
 
-    if (si=pointer($55555555)) or (si=pointer($5555555555555555) )   then
-    begin
-     //outputdebugstring('sl.AddSymbol returned an invalid pointer');
-     exit(0);
-    end;
-
     if si=nil then
     begin
       //outputdebugstring('sl.AddSymbol returned nil');
