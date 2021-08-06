@@ -437,14 +437,6 @@ begin
   addressstring:=inttohex(d.LastDisassembleData.address,8);
   bytestring:=d.getLastBytestring;
   opcodestring:=d.LastDisassembleData.prefix+d.LastDisassembleData.opcode;
-
-  //Correction for rendering bug.
-  if (processhandler.isNetwork=true) and (processhandler.SystemArchitecture=archarm) then
-  begin
-    addressstring+=' ';
-    bytestring+=' ';
-    opcodestring+=' ';
-  end;       
   
   parameterstring:=d.LastDisassembleData.parameters+' ';
   specialstring:=d.DecodeLastParametersToString;
@@ -473,6 +465,14 @@ begin
     addressString:=symbolname
   else
     addressString:=truncatestring(addressString, fHeaders.Items[0].Width-2);
+
+  //Correction for rendering bug.
+  if (processhandler.isNetwork=true) and (processhandler.SystemArchitecture=archarm) then
+  begin
+    addressstring+=' ';
+    bytestring+=' ';
+    opcodestring+=' ';
+  end;
 
   TDisassemblerview(owner).DoDisassemblerViewLineOverride(address, addressstring, bytestring, opcodestring, parameterstring, specialstring);
 
