@@ -1,7 +1,7 @@
 object FoundCodeDialog: TFoundCodeDialog
-  Left = 985
+  Left = 913
   Height = 399
-  Top = 287
+  Top = 288
   Width = 430
   BorderIcons = [biSystemMenu]
   Caption = 'The following opcodes changed the selected address'
@@ -13,7 +13,7 @@ object FoundCodeDialog: TFoundCodeDialog
   OnDestroy = FormDestroy
   OnShow = FormShow
   Position = poOwnerFormCenter
-  LCLVersion = '2.0.6.0'
+  LCLVersion = '2.0.10.0'
   object Panel1: TPanel
     Left = 294
     Height = 398
@@ -27,8 +27,8 @@ object FoundCodeDialog: TFoundCodeDialog
     TabOrder = 0
     object Description: TLabel
       Left = 0
-      Height = 218
-      Top = 140
+      Height = 183
+      Top = 175
       Width = 136
       Align = alClient
       Alignment = taCenter
@@ -72,13 +72,13 @@ object FoundCodeDialog: TFoundCodeDialog
     end
     object Panel3: TPanel
       Left = 0
-      Height = 140
+      Height = 175
       Top = 0
       Width = 136
       Align = alTop
       AutoSize = True
       BevelOuter = bvNone
-      ClientHeight = 140
+      ClientHeight = 175
       ClientWidth = 136
       ParentFont = False
       TabOrder = 1
@@ -106,7 +106,7 @@ object FoundCodeDialog: TFoundCodeDialog
         ParentFont = False
         ParentShowHint = False
         ShowHint = True
-        TabOrder = 0
+        TabOrder = 1
       end
       object btnAddToCodeList: TButton
         AnchorSideLeft.Control = Panel3
@@ -132,7 +132,7 @@ object FoundCodeDialog: TFoundCodeDialog
         ParentFont = False
         ParentShowHint = False
         ShowHint = True
-        TabOrder = 1
+        TabOrder = 2
       end
       object btnOpenDisassembler: TButton
         AnchorSideLeft.Control = Panel3
@@ -158,7 +158,7 @@ object FoundCodeDialog: TFoundCodeDialog
         ParentFont = False
         ParentShowHint = False
         ShowHint = True
-        TabOrder = 2
+        TabOrder = 3
       end
       object btnReplacewithnops: TButton
         AnchorSideLeft.Control = Panel3
@@ -183,7 +183,33 @@ object FoundCodeDialog: TFoundCodeDialog
         ParentFont = False
         ParentShowHint = False
         ShowHint = True
-        TabOrder = 3
+        TabOrder = 4
+      end
+      object btnFindOut: TButton
+        AnchorSideLeft.Control = Panel3
+        AnchorSideTop.Control = btnExtraInfo
+        AnchorSideTop.Side = asrBottom
+        AnchorSideRight.Control = Panel3
+        AnchorSideRight.Side = asrBottom
+        Left = 5
+        Height = 30
+        Hint = 'Find out what addresses this instruction accesses'
+        Top = 145
+        Width = 126
+        Anchors = [akTop, akLeft, akRight]
+        AutoSize = True
+        BorderSpacing.Left = 5
+        BorderSpacing.Top = 5
+        BorderSpacing.Right = 5
+        Caption = 'Find out...'
+        Constraints.MinHeight = 30
+        Constraints.MinWidth = 100
+        Enabled = False
+        OnClick = btnFindOutClick
+        ParentFont = False
+        ParentShowHint = False
+        ShowHint = True
+        TabOrder = 0
       end
     end
   end

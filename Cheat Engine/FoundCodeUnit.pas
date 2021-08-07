@@ -73,6 +73,7 @@ type
 
 
   TFoundCodeDialog = class(TForm)
+    btnFindOut: TButton;
     FoundCodeList: TListView;
     fcdImageList: TImageList;
     dbvmMissedEntries: TLabel;
@@ -101,6 +102,7 @@ type
     Copyselectiontoclipboard1: TMenuItem;
     Splitter1: TSplitter;
     timerEntryInfoUpdate: TTimer;
+    procedure btnFindOutClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormDeactivate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
@@ -1275,6 +1277,17 @@ begin
   seenAddressListCS:=TCriticalSection.Create;
 end;
 
+procedure TFoundCodeDialog.btnFindOutClick(Sender: TObject);
+var coderecord: TCodeRecord;
+begin
+  if foundcodelist.itemindex<>-1 then
+  begin
+    coderecord:=TcodeRecord(foundcodelist.items[foundcodelist.itemindex].data);
+    MemoryBrowser.findWhatthisCodeAccesses(coderecord.address);
+
+  end;
+end;
+
 procedure TFoundCodeDialog.FormDeactivate(Sender: TObject);
 begin
 
@@ -1503,6 +1516,7 @@ begin
     btnOpenDisassembler.enabled:=true;
     btnAddToCodeList.enabled:=true;
     btnExtraInfo.Enabled:=true;
+    btnFindOut.enabled:=true;
 
     coderecord:=TCodeRecord(foundcodelist.Selected.data);
     description.Caption:=coderecord.description;
@@ -1529,6 +1543,7 @@ begin
     btnOpenDisassembler.enabled:=false;
     btnAddToCodeList.enabled:=false;
     btnExtraInfo.Enabled:=false;
+    btnFindOut.enabled:=false;
     if foundcodelist.Items.Count=0 then
       description.caption:=rsUseTheGameApplicationForAWhile
     else
