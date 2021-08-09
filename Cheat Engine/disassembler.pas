@@ -12667,17 +12667,15 @@ begin
                           inc(offset,last);
                         end;
 
-    {not in intel spec}
                     6:  begin
-                          lastdisassembledata.opcode:='rol';
+                          lastdisassembledata.opcode:='sal';
                           lastdisassembledata.parameters:=modrm(memory,prefix2,1,2,last,8);
                           lastdisassembledata.parametervaluetype:=dvtvalue;
                           lastdisassembledata.parametervalue:=memory[last];
                           lastdisassembledata.parameters:=lastdisassembledata.parameters+inttohexs(memory[last],2);
-                          description:='rotate eight bits left '+inttostr(memory[last])+' times';
+                          description:='signed multiply by 2, '+inttostr(memory[last])+' times';
                           inc(offset,last);
                         end;
-    {^^^^^^^^^^^^^^^^^^}
 
                     7:  begin
                           lastdisassembledata.opcode:='sar';
@@ -12829,6 +12827,29 @@ begin
                             lastdisassembledata.parametervalue:=memory[last];
                             lastdisassembledata.parameters:=lastdisassembledata.parameters+inttohexs(memory[last],2);
                             description:='unsigned divide by 2 '+inttostr(memory[last])+' times';
+                            inc(offset,last);
+                          end;
+                        end;
+
+                    6:  begin
+                          if $66 in prefix2 then
+                          begin
+                            lastdisassembledata.opcode:='sal';
+                            lastdisassembledata.parameters:=modrm(memory,prefix2,1,1,last,16);
+                            lastdisassembledata.parametervaluetype:=dvtvalue;
+                            lastdisassembledata.parametervalue:=memory[last];
+                            lastdisassembledata.parameters:=lastdisassembledata.parameters+inttohexs(memory[last],2);
+                            description:='signed multiply by 2 '+inttostr(memory[last])+' times';
+                            inc(offset,last);
+                          end
+                          else
+                          begin
+                            lastdisassembledata.opcode:='sal';
+                            lastdisassembledata.parameters:=modrm(memory,prefix2,1,0,last);
+                            lastdisassembledata.parametervaluetype:=dvtvalue;
+                            lastdisassembledata.parametervalue:=memory[last];
+                            lastdisassembledata.parameters:=lastdisassembledata.parameters+inttohexs(memory[last],2);
+                            description:='signed multiply by 2 '+inttostr(memory[last])+' times';
                             inc(offset,last);
                           end;
                         end;
@@ -13141,9 +13162,10 @@ begin
                         end;
 
                     6:  begin
-                          description:='not defined by the intel documentation';
-                          lastdisassembledata.opcode:='db';
-                          lastdisassembledata.parameters:=inttohexs(memory[0],2)+' '+inttohexs(memory[1],2);
+                          description:='signed multiply by 2, once';
+                          lastdisassembledata.opcode:='sal';
+                          lastdisassembledata.parameters:=modrm(memory,prefix2,1,2,last,8)+'1';
+                          inc(offset,last-1);
                         end;
 
                     7:  begin
@@ -13261,9 +13283,20 @@ begin
                         end;
 
                     6:  begin
-                          description:='undefined by the intel documentation';
-                          lastdisassembledata.opcode:='db';
-                          lastdisassembledata.parameters:=inttohexs(memory[0],2);
+                          if $66 in prefix2 then
+                          begin
+                            description:='signed multiply by 2, once';
+                            lastdisassembledata.opcode:='sal';
+                            lastdisassembledata.parameters:=modrm(memory,prefix2,1,1,last,16)+'1';
+                            inc(offset,last-1);
+                          end
+                          else
+                          begin
+                            description:='signed multiply by 2, once';
+                            lastdisassembledata.opcode:='sal';
+                            lastdisassembledata.parameters:=modrm(memory,prefix2,1,0,last)+'1';
+                            inc(offset,last-1);
+                          end;
                         end;
 
                     7:  begin
@@ -13333,7 +13366,7 @@ begin
 
                     6:  begin
                           description:='multiply by 2, cl times';
-                          lastdisassembledata.opcode:='shl';
+                          lastdisassembledata.opcode:='sal';
                           lastdisassembledata.parameters:=modrm(memory,prefix2,1,2,last,8)+colorreg+'cl'+endcolor;
                           inc(offset,last-1);
                         end;
@@ -13456,15 +13489,15 @@ begin
                     6:  begin
                           if $66 in prefix2 then
                           begin
-                            description:='Undefined';
-                            lastdisassembledata.opcode:='ud d3 /6';
+                            description:='signed multiply by 2, cl times';
+                            lastdisassembledata.opcode:='sal';
                             lastdisassembledata.parameters:=modrm(memory,prefix2,1,1,last,16)+colorreg+'cl'+endcolor;
                             inc(offset,last-1);
                           end
                           else
                           begin
-                            description:='Undefined';
-                            lastdisassembledata.opcode:='ud d3 /6';
+                            description:='signed multiply by 2, cl times';
+                            lastdisassembledata.opcode:='sal';
                             lastdisassembledata.parameters:=modrm(memory,prefix2,1,0,last)+colorreg+'cl'+endcolor;
                             inc(offset,last-1);
                           end;
