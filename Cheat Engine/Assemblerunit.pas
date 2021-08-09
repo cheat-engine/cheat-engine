@@ -1529,17 +1529,17 @@ const opcodes: array [1..opcodecount] of topcode =(
 
   (mnemonic:'SAHF';bytes:1;bt1:$9e),
 
-  (mnemonic:'SAL';opcode1:eo_reg4;paramtype1:par_rm32;paramtype2:par_1;bytes:1;bt1:$d1),
-  (mnemonic:'SAL';opcode1:eo_reg4;paramtype1:par_rm32;paramtype2:par_cl;bytes:1;bt1:$d3),
-  (mnemonic:'SAL';opcode1:eo_reg4;opcode2:eo_ib;paramtype1:par_rm32;paramtype2:par_imm8;bytes:1;bt1:$c1),
+  (mnemonic:'SAL';opcode1:eo_reg6;paramtype1:par_rm32;paramtype2:par_1;bytes:1;bt1:$d1),
+  (mnemonic:'SAL';opcode1:eo_reg6;paramtype1:par_rm32;paramtype2:par_cl;bytes:1;bt1:$d3),
+  (mnemonic:'SAL';opcode1:eo_reg6;opcode2:eo_ib;paramtype1:par_rm32;paramtype2:par_imm8;bytes:1;bt1:$c1),
 
-  (mnemonic:'SAL';opcode1:eo_reg4;paramtype1:par_rm16;paramtype2:par_1;bytes:2;bt1:$66;bt2:$d1),
-  (mnemonic:'SAL';opcode1:eo_reg4;paramtype1:par_rm16;paramtype2:par_cl;bytes:2;bt1:$66;bt2:$d3),
-  (mnemonic:'SAL';opcode1:eo_reg4;opcode2:eo_ib;paramtype1:par_rm16;paramtype2:par_imm8;bytes:2;bt1:$66;bt2:$c1),
+  (mnemonic:'SAL';opcode1:eo_reg6;paramtype1:par_rm16;paramtype2:par_1;bytes:2;bt1:$66;bt2:$d1),
+  (mnemonic:'SAL';opcode1:eo_reg6;paramtype1:par_rm16;paramtype2:par_cl;bytes:2;bt1:$66;bt2:$d3),
+  (mnemonic:'SAL';opcode1:eo_reg6;opcode2:eo_ib;paramtype1:par_rm16;paramtype2:par_imm8;bytes:2;bt1:$66;bt2:$c1),
 
-  (mnemonic:'SAL';opcode1:eo_reg4;paramtype1:par_rm8;paramtype2:par_1;bytes:1;bt1:$d0),
-  (mnemonic:'SAL';opcode1:eo_reg4;paramtype1:par_rm8;paramtype2:par_cl;bytes:1;bt1:$d2),
-  (mnemonic:'SAL';opcode1:eo_reg4;opcode2:eo_ib;paramtype1:par_rm8;paramtype2:par_imm8;bytes:1;bt1:$c0),
+  (mnemonic:'SAL';opcode1:eo_reg6;paramtype1:par_rm8;paramtype2:par_1;bytes:1;bt1:$d0),
+  (mnemonic:'SAL';opcode1:eo_reg6;paramtype1:par_rm8;paramtype2:par_cl;bytes:1;bt1:$d2),
+  (mnemonic:'SAL';opcode1:eo_reg6;opcode2:eo_ib;paramtype1:par_rm8;paramtype2:par_imm8;bytes:1;bt1:$c0),
 
   (mnemonic:'SAR';opcode1:eo_reg7;paramtype1:par_rm32;paramtype2:par_1;bytes:1;bt1:$d1),
   (mnemonic:'SAR';opcode1:eo_reg7;paramtype1:par_rm32;paramtype2:par_cl;bytes:1;bt1:$d3),
