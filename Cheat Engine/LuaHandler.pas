@@ -1779,6 +1779,57 @@ begin
   result:=readSmallIntegerEx(L, ProcessHandle);
 end;
 
+function readShortIntegerEx(L: PLua_State; processhandle: thandle): integer; cdecl;
+var
+  parameters: integer;
+  address: ptruint;
+  signed: boolean;
+
+  v: ShortInt;
+  r: PtrUInt;
+begin
+  result:=0;
+  try
+    parameters:=lua_gettop(L);
+    if parameters>=1 then
+    begin
+      address:=lua_toaddress(L,1, processhandle=GetCurrentProcess);
+
+      if parameters>=2 then
+        signed:=lua_toboolean(L,2)
+      else
+        signed:=false;
+
+      lua_pop(L, parameters);
+
+      v:=0;
+      if ReadProcessMemory(processhandle, pointer(address), @v, sizeof(v), r) then
+      begin
+        if signed then
+          lua_pushinteger(L, v)
+        else
+          lua_pushinteger(L, word(v));
+
+        result:=1;
+      end;
+
+    end;
+  except
+    result:=0;
+    lua_pop(L, lua_gettop(L));
+  end;
+end;
+
+function readShortIntegerLocal(L: PLua_State): integer; cdecl;
+begin
+  result:=readShortIntegerEx(L, GetCurrentProcess);
+end;
+
+function readShortInteger(L: PLua_State): integer; cdecl;
+begin
+  result:=readShortIntegerEx(L, ProcessHandle);
+end;
+
 function readIntegerEx(L: PLua_State; processhandle: thandle): integer; cdecl;
 var
   parameters: integer;
@@ -2060,6 +2111,43 @@ begin
   result:=readStringEx(L, processhandle);
 end;
 
+function writeShortIntegerEx(L: PLua_State; processhandle: THandle): integer; cdecl;
+var
+  parameters: integer;
+  address: ptruint;
+
+  v: shortint;
+  r: PtrUInt;
+begin
+  result:=0;
+  try
+    parameters:=lua_gettop(L);
+    if parameters=2 then
+    begin
+      address:=lua_toaddress(L,1,processhandle=GetCurrentProcess);
+
+      v:=lua_tointeger(L, 2);
+
+      lua_pop(L, parameters);
+      lua_pushboolean(L, WriteProcessMemory(processhandle, pointer(address), @v, sizeof(v), r));
+      result:=1;
+    end;
+  except
+    result:=0;
+    lua_pop(L, lua_gettop(L));
+  end;
+end;
+
+function writeShortIntegerLocal(L: PLua_State): integer; cdecl;
+begin
+  result:=writeShortIntegerEx(L, GetCurrentProcess);
+end;
+
+function writeShortInteger(L: PLua_State): integer; cdecl;
+begin
+  result:=writeShortIntegerEx(L, processhandle);
+end;
+
 function writeSmallIntegerEx(L: PLua_State; processhandle: THandle): integer; cdecl;
 var
   parameters: integer;
@@ -2073,9 +2161,9 @@ begin
     parameters:=lua_gettop(L);
     if parameters=2 then
     begin
-      address:=lua_toaddress(L,-2,processhandle=GetCurrentProcess);
+      address:=lua_toaddress(L,1,processhandle=GetCurrentProcess);
 
-      v:=lua_tointeger(L, -1);
+      v:=lua_tointeger(L, 2);
 
       lua_pop(L, parameters);
       lua_pushboolean(L, WriteProcessMemory(processhandle, pointer(address), @v, sizeof(v), r));
@@ -2110,9 +2198,9 @@ begin
     parameters:=lua_gettop(L);
     if parameters=2 then
     begin
-      address:=lua_toaddress(L,-2,processhandle=GetCurrentProcess);
+      address:=lua_toaddress(L,1,processhandle=GetCurrentProcess);
 
-      v:=lua_tointeger(L, -1);
+      v:=lua_tointeger(L, 2);
 
       lua_pop(L, parameters);
       lua_pushboolean(L, WriteProcessMemory(processhandle, pointer(address), @v, sizeof(v), r));
@@ -2147,9 +2235,9 @@ begin
     parameters:=lua_gettop(L);
     if parameters=2 then
     begin
-      address:=lua_toaddress(L,-2,processhandle=GetCurrentProcess);
+      address:=lua_toaddress(L,1,processhandle=GetCurrentProcess);
 
-      v:=lua_tointeger(L, -1);
+      v:=lua_tointeger(L, 2);
 
       lua_pop(L, parameters);
       lua_pushboolean(L, WriteProcessMemory(processhandle, pointer(address), @v, sizeof(v), r));
@@ -2241,9 +2329,9 @@ begin
     parameters:=lua_gettop(L);
     if parameters=2 then
     begin
-      address:=lua_toaddress(L,-2,processhandle=GetCurrentProcess);
+      address:=lua_toaddress(L,1,processhandle=GetCurrentProcess);
 
-      v:=lua_tonumber(L, -1);
+      v:=lua_tonumber(L, 2);
 
       lua_pop(L, parameters);
 
@@ -14894,6 +14982,8 @@ begin
 
   lua_register(L, 'readBytes', readbytes);
   lua_register(L, 'writeBytes', writebytes);
+  lua_register(L, 'readByte', readShortInteger);
+  lua_register(L, 'readShortInteger', readShortInteger);
   lua_register(L, 'readSmallInteger', readSmallInteger);
   lua_register(L, 'readInteger', readInteger);
   lua_register(L, 'readQword', readQword);
@@ -14901,6 +14991,8 @@ begin
   lua_register(L, 'readFloat', readFloat);
   lua_register(L, 'readDouble', readDouble);
   lua_register(L, 'readString', readString);
+  lua_register(L, 'readByteLocal', readShortIntegerLocal);
+  lua_register(L, 'readShortIntegerLocal', readShortIntegerLocal);
   lua_register(L, 'readSmallIntegerLocal', readSmallIntegerLocal);
   lua_register(L, 'readIntegerLocal', readIntegerLocal);
   lua_register(L, 'readQwordLocal', readQwordLocal);
@@ -14909,6 +15001,8 @@ begin
   lua_register(L, 'readDoubleLocal', readDoubleLocal);
   lua_register(L, 'readStringLocal', readStringLocal);
 
+  lua_register(L, 'writeShortInteger', writeShortInteger);
+  lua_register(L, 'writeByte', writeShortInteger);
   lua_register(L, 'writeSmallInteger', writeSmallInteger);
   lua_register(L, 'writeInteger', writeInteger);
   lua_register(L, 'writeQword', writeQword);
@@ -14916,6 +15010,8 @@ begin
   lua_register(L, 'writeFloat', writeFloat);
   lua_register(L, 'writeDouble', writeDouble);
   lua_register(L, 'writeString', writeString);
+  lua_register(L, 'writeByteLocal', writeShortIntegerLocal);
+  lua_register(L, 'writeShortIntegerLocal', writeShortIntegerLocal);
   lua_register(L, 'writeSmallIntegerLocal', writeSmallIntegerLocal);
   lua_register(L, 'writeIntegerLocal', writeIntegerLocal);
   lua_register(L, 'writeQwordLocal', writeQwordLocal);
