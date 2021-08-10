@@ -283,6 +283,13 @@ object FoundCodeDialog: TFoundCodeDialog
       ImageIndex = 6
       OnClick = btnExtraInfoClick
     end
+    object MenuItem4: TMenuItem
+      Caption = '-'
+    end
+    object miFindWhatCodeAccesses: TMenuItem
+      Caption = 'Find out what addresses this code accesses'
+      OnClick = miFindWhatCodeAccessesClick
+    end
     object miFindWhatAccesses: TMenuItem
       AutoCheck = True
       Caption = 'Check if found opcodes also access other addresses (max 8)'

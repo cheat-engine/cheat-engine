@@ -78,6 +78,8 @@ type
     dbvmMissedEntries: TLabel;
     MenuItem1: TMenuItem;
     MenuItem2: TMenuItem;
+    miFindWhatCodeAccesses: TMenuItem;
+    MenuItem4: TMenuItem;
     miFindWhatAccesses: TMenuItem;
     miSaveTofile: TMenuItem;
     mInfo: TMemo;
@@ -121,6 +123,7 @@ type
       Selected: Boolean);
     procedure MenuItem1Click(Sender: TObject);
     procedure miFindWhatAccessesClick(Sender: TObject);
+    procedure miFindWhatCodeAccessesClick(Sender: TObject);
     procedure miSaveTofileClick(Sender: TObject);
     procedure pmOptionsPopup(Sender: TObject);
     procedure Copyselectiontoclipboard1Click(Sender: TObject);
@@ -1586,6 +1589,13 @@ begin
     end;
 
   end;
+end;
+
+procedure TFoundCodeDialog.miFindWhatCodeAccessesClick(Sender: TObject);
+var a: ptruint;
+begin
+  if foundcodelist.ItemIndex<>-1 then
+    MemoryBrowser.findWhatthisCodeAccesses(TcodeRecord(foundcodelist.items[foundcodelist.itemindex].data).address);
 end;
 
 function TFoundCodeDialog.getSelection:string;
