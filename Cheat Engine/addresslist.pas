@@ -134,6 +134,7 @@ type
     function activecompare(_a: TTreenode; _b: TTreenode): integer;
     procedure sortByActive;
     function descriptioncompare(_a: TTreenode; _b: TTreenode): integer;
+    function descriptioncomparecasesensitive(_a: TTreenode; _b: TTreenode): integer;
     procedure sortByDescription;
     function addresscompare(_a: TTreenode; _b: TTreenode): integer;
     procedure sortByAddress;
@@ -1558,7 +1559,7 @@ begin
   activesortdirection:=not activesortdirection;
 end;
 
-function TAddresslist.descriptioncompare(_a: TTreenode; _b: TTreenode): integer;
+function TAddresslist.descriptioncomparecasesensitive(_a: TTreenode; _b: TTreenode): integer;
 var
   a,b: TMemoryRecord;
 begin
@@ -1576,13 +1577,36 @@ begin
     result:=-result;
 end;
 
+function TAddresslist.descriptioncompare(_a: TTreenode; _b: TTreenode): integer;
+var
+  a,b: TMemoryRecord;
+begin
+  if sortlevel0only and (_a.level<>0) and (_b.level<>0) then exit(0);
+
+  a:=TMemoryRecord(_a.data);
+  b:=TMemoryRecord(_b.data);
+  result:=0; //equal
+  if uppercase(b.description)>uppercase(a.description) then
+    result:=1;
+  if uppercase(b.description)<uppercase(a.description) then
+    result:=-1;
+
+  if not descriptionsortdirection then
+    result:=-result;
+end;
+
 procedure TAddresslist.sortByDescription;
 var n: TTreenode;
 begin
   if count=0 then exit;
 
   if treeview.Selected<>nil then n:=treeview.Selected else n:=treeview.Items[0];
-  sort(n, descriptioncompare, descriptionsortdirection);
+
+  if ssCtrl in GetKeyShiftState then
+    sort(n, descriptioncomparecasesensitive, descriptionsortdirection)
+  else
+    sort(n, descriptioncompare, descriptionsortdirection);
+
   descriptionsortdirection:=not descriptionsortdirection;
 end;
 
