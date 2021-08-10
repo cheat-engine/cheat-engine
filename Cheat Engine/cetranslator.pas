@@ -38,6 +38,7 @@ Modified for Cheat Engine use because filenames differ between 32 and 64-bit (al
 interface
 
 uses
+  {$ifdef darwin}macport,{$endif}
   Classes, SysUtils, LResources, GetText, Controls, typinfo, FileUtil, LCLProc,
   Translations, IniFiles, Dialogs, LazUTF8, LazFileUtils;
 
@@ -83,20 +84,24 @@ function FindLocaleFileName(LCExt: string): string;
 var
   Lang, T: string;
   i: integer;
+  languageIniFile: string;
   lini: TIniFile;
 
   function GetLocaleFileName(const LangID, LCExt: string): string;
   begin
+    {$ifdef Darwin}
+    OutputDebugString('GetLocaleFileName("'+LangID+'","'+LCExt+'")');
+    {$endif}
     if LangID <> '' then
     begin
       //ParamStrUTF8(0) is said not to work properly in linux, but I've tested it
-      Result := cheatenginedir + 'languages' + DirectorySeparator + LangID + DirectorySeparator + 'cheatengine'+LCEXT;
+      Result := cheatenginedir + {$ifdef Darwin}'../'+{$endif}'Languages' + DirectorySeparator + LangID + DirectorySeparator + 'cheatengine'+LCEXT;
       if FileExists(Result) then exit;
 
-      Result := cheatenginedir + 'languages' + DirectorySeparator + LangID + DirectorySeparator + 'cheatengine-x86_64'+LCEXT;
+      Result := cheatenginedir + {$ifdef Darwin}'../'+{$endif}'Languages' + DirectorySeparator + LangID + DirectorySeparator + 'cheatengine-x86_64'+LCEXT;
       if FileExists(Result) then exit;
 
-      Result := cheatenginedir + 'languages' + DirectorySeparator + LangID + DirectorySeparator + 'cheatengine-i386'+LCEXT;
+      Result := cheatenginedir + {$ifdef Darwin}'../'+{$endif}'Languages' + DirectorySeparator + LangID + DirectorySeparator + 'cheatengine-i386'+LCEXT;
       if FileExists(Result) then exit;
 
     end;
@@ -118,13 +123,27 @@ begin
   if Lang = '' then
     Lang := GetEnvironmentVariableUTF8('LANG');
 
-  if (lang = '') and (FileExists(cheatenginedir+ 'languages' + DirectorySeparator+'language.ini')) then
+
+  languageIniFile:=cheatenginedir+ {$ifdef darwin}'../'+{$endif}'Languages' + DirectorySeparator+'language.ini';
+  {$ifdef darwin}
+  OutputDebugString('languageIniFile='+languageIniFile);
+  {$endif}
+
+
+  if (lang = '') and (FileExists(languageIniFile)) then
   begin
     try
-      lini:=TIniFile.Create(cheatenginedir+'languages' + DirectorySeparator+'language.ini');
+      lini:=TIniFile.Create(languageIniFile);
       try
         lang:=lini.ReadString('Language','PreferedLanguage','');
-        if lang='*' then exit('');
+        if lang='*' then
+        begin
+          {$ifdef darwin}
+          outputdebugstring('ini lang=*.  Ask later');
+          {$endif}
+          exit('');
+
+        end;
       finally
         lini.Free;
       end;
@@ -268,12 +287,18 @@ begin
   //It is safe to place code here as no form is initialized before unit
   //initialization made
 //  if specificlocale then
-
+  {$ifdef darwin}
+  OutputDebugString('macOS: doTranslation is executed');
+  {$endif}
 
   LocalTranslator := nil;
   // search first po translation resources
   try
      lcfn := FindLocaleFileName('.po');
+
+     {$ifdef darwin}
+     OutputDebugString('locale filename = '+lcfn);
+     {$endif}
 
      if lcfn='' then exit;
 
@@ -281,6 +306,8 @@ begin
      currentTranslation:=ExtractFileName(ExtractFileDir(translationfilepath));
 
      lcfn:=SysToUTF8(lcfn);
+
+
 
      if lcfn <> '' then
      begin

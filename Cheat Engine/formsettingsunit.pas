@@ -1178,7 +1178,7 @@ begin
       preferedLanguage:='*';
 
     try
-      ini:=TIniFile.Create(cheatenginedir+'languages' + DirectorySeparator+'language.ini');
+      ini:=TIniFile.Create(cheatenginedir+{$ifdef darwin}'..'+DirectorySeparator+{$endif}'Languages' + DirectorySeparator+'language.ini');
       try
         old:=ini.ReadString('Language','PreferedLanguage','');
         ini.WriteString('Language','PreferedLanguage',preferedLanguage);
@@ -1657,19 +1657,22 @@ begin
   mainform.miLanguages.Add(mi);
 
   f:=TStringList.Create;
-  FindAllDirectories(f,CheatEngineDir+'\languages',false);
+  {$ifdef darwin}
+  OutputDebugString('ScanForLanguages: Looking in '+CheatEngineDir+{$ifdef darwin}PathDelim+'..'+{$endif}PathDelim+'Languages');
+  {$endif}
+  FindAllDirectories(f,CheatEngineDir+{$ifdef darwin}PathDelim+'..'+{$endif}PathDelim+'Languages',false);
   for i:=0 to f.Count-1 do
   begin
     n:=f[i];
-    if not (fileexists(n+'\cheatengine.po') or fileexists(n+'\cheatengine-x86_64.po') or fileexists(n+'\cheatengine-i386.po')) then
+    if not (fileexists(n+pathsep+'cheatengine.po') or fileexists(n+PathDelim+'cheatengine-x86_64.po') or fileexists(n+PathDelim+'cheatengine-i386.po')) then
       continue;
 
 
     e:=TLanguageEntry.Create;
     e.foldername:=ExtractFileName(n);
 
-    if FileExists(f[i]+'\name.txt') then
-      n:=ReadFileToString(f[i]+'\name.txt')
+    if FileExists(f[i]+PathDelim+'name.txt') then
+      n:=ReadFileToString(f[i]+PathDelim+'name.txt')
     else
       n:=e.foldername;
 

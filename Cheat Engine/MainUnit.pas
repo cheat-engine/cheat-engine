@@ -3309,7 +3309,7 @@ begin
 
       {$ifdef darwin}
       //no color or customdrawn support
-      item.subitems[0]:='* '+item.subitems[0]+' *';
+      //item.subitems[0]:='* '+item.subitems[0]+' *';
       {$endif}
     end;
   end;
@@ -8035,7 +8035,7 @@ begin
   begin
     reg.WriteBool('First Time User', False);
 
-    {$ifdef windows}    //mac: languages come later
+
     if formsettings.lbLanguages.Count>1 then
     begin
       i:=ShowSelectionList(self, rsLanguage, rsChooseLanguage, formSettings.lbLanguages.Items, s);
@@ -8045,7 +8045,7 @@ begin
         formsettings.btnSelectLanguage.Click;
       end;
     end;
-    {$endif}
+
 
     if messagedlg(rsTryTutorial, mtConfirmation, [mbYes, mbNo], 0) = mrYes then
     {$ifdef darwin}
@@ -9373,7 +9373,7 @@ begin
     end;
 
 
-    PreviousValue:='';
+    PreviousValue:=value;
 
 
     if foundlist.vartype = vtBinary then //binary
@@ -9407,6 +9407,7 @@ begin
 
     if miShowPreviousValue.checked and (previousresultlist<>nil) then
     begin
+      PreviousValue:='';
       PreviousValueList:=tstringlist.create;
       //get the previous value of this entry
       invalid:=false;
@@ -9446,7 +9447,7 @@ begin
           previousvaluelist.add(s);
 
           {$ifdef darwin}
-          if i=fActivePreviousResultColumn+1 then
+          if i+2=fActivePreviousResultColumn then
             PreviousValue:=s;
           {$endif}
         end;
