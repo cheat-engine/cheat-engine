@@ -321,17 +321,25 @@ procedure TDisassemblerComments.deleteAddress(address: ptruint);
 var
   search: TCommentData;
   n: TAvgLvlTreeNode;
+  c: PCommentData;
 begin
   search.address:=address;
   n:=commentstree.Find(@search);
   if n<>nil then
   begin
-    if PCommentData(n.data).comment<>nil then
-      StrDispose(PCommentData(n.data).comment);
+    c:=PCommentData(n.data);
+    if c.comment<>nil then
+      StrDispose(c.comment);
 
-    if PCommentData(n.data).header<>nil then
-      StrDispose(PCommentData(n.data).header);
+    if c.header<>nil then
+      StrDispose(c.header);
 
+    //unlink
+    if c.previous<>nil then
+      c.previous.next:=c.next;
+
+    if c.next<>nil then
+      c.next.previous:=c.previous;
 
     FreeMemAndNil(n.data);
     commentstree.Delete(n);
