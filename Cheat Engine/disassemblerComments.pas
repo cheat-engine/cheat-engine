@@ -20,7 +20,6 @@ uses
 
 type TDisassemblerComments=class
   private
-    commentstree: TAvgLvlTree;
     function getCount: integer;
 
     procedure setComment(address: ptruint; comment: string);
@@ -31,6 +30,7 @@ type TDisassemblerComments=class
     procedure setInterpretableAddress(address: ptruint; s: string);
     function getInterpretableAddress(address: ptruint): string;
   public
+  commentstree: TAvgLvlTree;
     procedure clear;
 
 
