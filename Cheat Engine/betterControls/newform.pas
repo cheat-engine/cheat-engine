@@ -59,7 +59,8 @@ begin
     if InitDwmLibrary then
     begin
       ldark:=1;
-      DwmSetWindowAttribute(handle, 19, @Ldark, sizeof(Ldark));
+
+      DwmSetWindowAttribute(handle, 20, @Ldark, sizeof(Ldark));
     end;
   end;
 end;
