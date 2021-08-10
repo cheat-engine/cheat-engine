@@ -4306,6 +4306,10 @@ var FloatSettings: TFormatSettings;
     s: string;
 
     signed: boolean;
+
+    tempvalue: int64;
+    tempsvalue: single;
+    tempdvalue: double;
 begin
   signed:=false;
   s:=copy(trim(scanvalue1),1,1);
@@ -4729,6 +4733,37 @@ begin
   if (scanOption in [soIncreasedValueBy, soDecreasedValueBy]) and (value=0) and (dvalue=0) then
     scanOption:=soUnchanged;
 
+
+  if scanOption=soValueBetween then  //make sure the values are from low to high
+  begin
+    if signed and (value>value2) then
+    begin
+      tempvalue:=value;
+      value:=value2;
+      value2:=tempvalue;
+    end
+    else
+    if (not signed) and (uint64(value)>uint64(value2)) then
+    begin
+      tempvalue:=value;
+      value:=value2;
+      value2:=tempvalue;
+    end;
+
+    if svalue>svalue2 then
+    begin
+      tempsvalue:=svalue;
+      svalue:=svalue2;
+      svalue2:=tempsvalue;
+    end;
+
+    if dvalue>dvalue2 then
+    begin
+      tempdvalue:=dvalue;
+      dvalue:=dvalue2;
+      dvalue2:=tempdvalue;
+    end;
+  end;
 
   case variableType of
     vtByte:
@@ -5326,7 +5361,6 @@ begin
     lastpart:=297;
     flushroutine; //save all results temporarily stored in memory
   finally
-    lastpart:=298;
     if oldAddressFile<>nil then oldAddressFile.free;
     if oldMemoryFile<>nil then oldMemoryFile.free;
     if oldmemory<>nil then virtualfree(oldmemory,0,MEM_RELEASE);
@@ -5336,7 +5370,6 @@ begin
       freememandnil(oldaddressesGroup);
       oldaddressesGroup:=nil;
     end;
-    lastpart:=299;
   end;
 end;
 
@@ -5636,6 +5669,9 @@ begin
     end;
 
     //tell scanwriter to stop
+
+    if savedscanhandler<>nil then freeandnil(savedscanhandler);
+
     lastpart:=2;
     scanwriter.flush;
     lastpart:=3;
