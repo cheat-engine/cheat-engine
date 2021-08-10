@@ -627,7 +627,8 @@ function LaunchMonoDataCollector()
   end
   
   monopipe.OnError=function(self)
-    print("monopipe error")
+    --print("monopipe error")
+    monopipe.OnTimeout(self)
   end
 
   monopipe.OnTimeout=function(self)  
@@ -644,7 +645,7 @@ function LaunchMonoDataCollector()
     if inMainThread() and monoSymbolEnum then
       monoSymbolEnum.terminate()    
       monoSymbolEnum.waitfor()
-      print("terminating monoSymbolEnum due to timeout")
+      print("terminating monoSymbolEnum due to timeout or error")
       monoSymbolEnum.destroy()
       monoSymbolEnum=nil
     end
