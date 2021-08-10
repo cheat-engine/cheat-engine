@@ -15792,7 +15792,7 @@ begin
     initializeLuaUltimap2;
     initializeLuaCodeFilter;
     initializeLuaSynEdit;
-    initializeLuaComments
+    initializeLuaComments;
     initializeLuaCustomImageList;
     initializeLuaDotNetPipe;
     InitializeLuaRemoteExecutor;
