@@ -707,7 +707,7 @@ begin
     tst:=ptruint(script.objects[j]);
     cscript.AddObject(script[j], tobject(tst));
   end;
-  cscript.add('  //end of user script');
+  cscript.add(';  //end of user script');
 
 
   //end of the script: write the values back
