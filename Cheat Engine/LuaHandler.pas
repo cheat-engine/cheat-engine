@@ -127,7 +127,7 @@ uses autoassembler, MainUnit, MainUnit2, LuaClass, frmluaengineunit, plugin, plu
   LuaDiagram, frmUltimap2Unit, frmcodefilterunit, BreakpointTypeDef, LuaSyntax,
   LazLogger, LuaSynedit, LuaRIPRelativeScanner, LuaCustomImageList ,ColorBox,
   rttihelper, LuaDotNetPipe, LuaRemoteExecutor, windows7taskbar, debugeventhandler,
-  tcclib, dotnethost, CSharpCompiler, LuaCECustomButton, feces;
+  tcclib, dotnethost, CSharpCompiler, LuaCECustomButton, feces, LuaComments;
 
   {$warn 5044 off}
 
@@ -15792,6 +15792,7 @@ begin
     initializeLuaUltimap2;
     initializeLuaCodeFilter;
     initializeLuaSynEdit;
+    initializeLuaComments
     initializeLuaCustomImageList;
     initializeLuaDotNetPipe;
     InitializeLuaRemoteExecutor;
