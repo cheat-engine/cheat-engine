@@ -386,7 +386,7 @@ begin
                   sections[j].name:='_'+p1;
 
                   try
-                    sections[j].address:=strtoint(p2)
+                    sections[j].address:=StrToQWord(p2)
                   except
                     sections[j].address:=symhandler.getAddressFromName(p2);
                   end;
