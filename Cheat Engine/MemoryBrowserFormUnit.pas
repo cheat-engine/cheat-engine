@@ -4854,7 +4854,6 @@ end;
 
 
 procedure TMemoryBrowser.FindwhatThiscodeAccesses(address: ptrUint);
-var i: integer;
 begin
   if not startdebuggerifneeded then exit;
   if debuggerthread<>nil then

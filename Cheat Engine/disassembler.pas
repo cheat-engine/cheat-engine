@@ -13197,7 +13197,7 @@ begin
                           begin
                             description:='rotate 32 bits left once';
                             lastdisassembledata.opcode:='rol';
-                            lastdisassembledata.parameters:=modrm(memory,prefix2,1,0,last)+'1';
+                            lastdisassembledata.parameters:=modrm(memory,prefix2,1,0,last, ifthen(rex_w,64,0) )+'1';
                             inc(offset,last-1);
                           end;
                         end;
@@ -13214,7 +13214,7 @@ begin
                           begin
                             description:='rotate 32 bits right once';
                             lastdisassembledata.opcode:='ror';
-                            lastdisassembledata.parameters:=modrm(memory,prefix2,1,0,last)+'1';
+                            lastdisassembledata.parameters:=modrm(memory,prefix2,1,0,last, ifthen(rex_w,64,0))+'1';
                             inc(offset,last-1);
                           end;
                         end;
@@ -13231,7 +13231,7 @@ begin
                           begin
                             description:='rotate 33 bits left once';
                             lastdisassembledata.opcode:='rcl';
-                            lastdisassembledata.parameters:=modrm(memory,prefix2,1,0,last)+'1';
+                            lastdisassembledata.parameters:=modrm(memory,prefix2,1,0,last, ifthen(rex_w,64,0))+'1';
                             inc(offset,last-1);
                           end;
                         end;
@@ -13248,7 +13248,7 @@ begin
                           begin
                             description:='rotate 33 bits right once';
                             lastdisassembledata.opcode:='rcr';
-                            lastdisassembledata.parameters:=modrm(memory,prefix2,1,0,last)+'1';
+                            lastdisassembledata.parameters:=modrm(memory,prefix2,1,0,last, ifthen(rex_w,64,0))+'1';
                             inc(offset,last-1);
                           end;
                         end;
@@ -13265,7 +13265,7 @@ begin
                           begin
                             description:='multiply by 2, once';
                             lastdisassembledata.opcode:='shl';
-                            lastdisassembledata.parameters:=modrm(memory,prefix2,1,0,last)+'1';
+                            lastdisassembledata.parameters:=modrm(memory,prefix2,1,0,last, ifthen(rex_w,64,0))+'1';
                             inc(offset,last-1);
                           end;
                         end;
@@ -13282,7 +13282,7 @@ begin
                           begin
                             description:='unsigned divide by 2, once';
                             lastdisassembledata.opcode:='shr';
-                            lastdisassembledata.parameters:=modrm(memory,prefix2,1,0,last)+'1';
+                            lastdisassembledata.parameters:=modrm(memory,prefix2,1,0,last, ifthen(rex_w,64,0))+'1';
                             inc(offset,last-1);
                           end;
                         end;
@@ -13300,7 +13300,7 @@ begin
                           begin
                             description:='signed multiply by 2, once';
                             lastdisassembledata.opcode:='sal';
-                            lastdisassembledata.parameters:=modrm(memory,prefix2,1,0,last)+'1';
+                            lastdisassembledata.parameters:=modrm(memory,prefix2,1,0,last, ifthen(rex_w,64,0))+'1';
                             inc(offset,last-1);
                           end;
 {^^^^^^^^^^^^^^^^^}
@@ -13318,7 +13318,7 @@ begin
                           begin
                             description:='signed divide by 2, once';
                             lastdisassembledata.opcode:='sar';
-                            lastdisassembledata.parameters:=modrm(memory,prefix2,1,0,last)+'1';
+                            lastdisassembledata.parameters:=modrm(memory,prefix2,1,0,last, ifthen(rex_w,64,0))+'1';
                             inc(offset,last-1);
                           end;
                         end;
@@ -15235,10 +15235,12 @@ begin
                     0:  begin
                           description:='increment by 1';
                           lastdisassembledata.opcode:='inc';
+
+
                           if $66 in prefix2 then
                             lastdisassembledata.parameters:=modrm(memory,prefix2,1,1,last,16)
                           else
-                            lastdisassembledata.parameters:=modrm(memory,prefix2,1,0,last);
+                            lastdisassembledata.parameters:=modrm(memory,prefix2,1,0,last,ifthen(Rex_W,64,0));
 
 
                           inc(offset,last-1);
@@ -15250,7 +15252,7 @@ begin
                           if $66 in prefix2 then
                             lastdisassembledata.parameters:=modrm(memory,prefix2,1,1,last,16)
                           else
-                            lastdisassembledata.parameters:=modrm(memory,prefix2,1,0,last);
+                            lastdisassembledata.parameters:=modrm(memory,prefix2,1,0,last,ifthen(Rex_W,64,0));
 
                           inc(offset,last-1);
                         end;

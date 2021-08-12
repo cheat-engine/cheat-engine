@@ -25,7 +25,7 @@ Additions and changes:
   Addresslist value sort now sorts values by alphabet if the record is a string type
   The dropdown list of multiple entries can now be changed at the same time
   Standalone register window now shows flags values as well
-
+  Value Between scans now autoswap the order if the first value is bigger than the 2nd
   
 
 Fixes:
