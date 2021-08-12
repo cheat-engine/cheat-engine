@@ -138,7 +138,7 @@ type
 
     memscan: TObject;
     function getpointertoaddress(address:ptruint;valuetype:TVariableType; ct: TCustomType; recallifneeded: boolean=true): pointer;
-    function getStringFromAddress(address: ptruint; out r: string; Hexadecimal: boolean=false; Signed: boolean=false): boolean;
+    function getStringFromAddress(address: ptruint; out r: string; Hexadecimal: boolean=false; Signed: boolean=false; allVT: TVariableType=vtAll; allCustomType: TCustomType=nil): boolean;
 
     procedure deinitialize;
     procedure reinitialize;
@@ -306,20 +306,35 @@ begin
   LastAddressAccessed.index:=0; //reset the index
 end;
 
-function TSavedScanHandler.getStringFromAddress(address: ptruint; out r: string; Hexadecimal: boolean=false; Signed: boolean=false): boolean;
+function TSavedScanHandler.getStringFromAddress(address: ptruint; out r: string; Hexadecimal: boolean=false; Signed: boolean=false; allVT: TVariableType=vtAll; allCustomType: TCustomType=nil): boolean;
 var
   p: pointer;
   ms: TMemScan;
+
+  vtype: TVariableType;
+  ct: TCustomType;
 begin
   result:=false;
   if memscan=nil then exit;
 
 
   ms:=TMemscan(memscan);
+
   p:=getpointertoaddress(address, ms.VarType, ms.Customtype);
   if p<>nil then
   begin
-    r:=readAndParsePointer(address, p, ms.VariableType, ms.Customtype, hexadecimal, Signed);
+    if ms.vartype=vtAll then
+    begin
+      vtype:=allVT;
+      ct:=allCustomType;
+    end
+    else
+    begin
+      vtype:=ms.VariableType;
+      ct:=ms.Customtype;
+    end;
+
+    r:=readAndParsePointer(address, p, vtype, ct, hexadecimal, Signed);
     result:=true;
   end;
 end;

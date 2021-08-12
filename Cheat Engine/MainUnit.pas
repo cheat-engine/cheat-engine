@@ -9433,7 +9433,7 @@ begin
           if foundlist3.columns[i+2].Visible then
           begin
             //p:=PreviousResultList[i].getpointertoaddress(address, ssvt, ct);
-            if PreviousResultList[i].getStringFromAddress(address, s,hexadecimal,foundlist.isSigned)=false then
+            if PreviousResultList[i].getStringFromAddress(address, s,hexadecimal,foundlist.isSigned, valuetype, ct)=false then //valuetype and CT are only used if the memscan was a vtAll type
             begin
               if PreviousResultList[i].lastFail=1 then
                 s:=rsPleaseWait
