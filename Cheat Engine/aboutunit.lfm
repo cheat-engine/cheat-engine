@@ -455,7 +455,7 @@ object About: TAbout
           AnchorSideTop.Control = Panel2
           Left = 6
           Height = 25
-          Hint = 'If you like Cheat Engine and want to contribute something to the development, just send a donation using Paypal.'
+          Hint = 'If you like Cheat Engine and want to contribute something to the development, join CE''s Patreon'
           Top = 6
           Width = 67
           AutoSize = True
