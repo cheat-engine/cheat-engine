@@ -104,6 +104,54 @@ LIBTCCAPI void *tcc_get_symbol(TCCState *s, const char *name);
 LIBTCCAPI void tcc_list_symbols(TCCState *s, void *ctx,
     void (*symbol_cb)(void *ctx, const char *name, const void *val));
 
+//Cheat Engine
+#ifndef _TCCINCLUDECTX_TYPEDEF_
+#define _TCCINCLUDECTX_TYPEDEF_
+struct TCCIncludeCtx;
+typedef struct TCCIncludeCtx TCCIncludeCtx;
+#endif
+
+struct TCCIncludeCtx {
+    // Get the originating compiler state
+    TCCState* (*get_state)(TCCIncludeCtx *c);
+
+    // #include "filename"` will result in 1
+    // #include <filename> will result in 0
+    int(*is_quoted)(TCCIncludeCtx* c);
+
+    // Get the filename that was the source of this #include
+    const char* (*get_source)(TCCIncludeCtx *c);
+
+    // resolve the include to an absolute filepath. when TCCIncludeFunc returns, filepath
+    // is searched in the include cache before any attempt is made to open it. (NULL filepath
+    // is ignored)
+    void (*resolve)(TCCIncludeCtx *c, const char* path);
+
+    // The following openers bypass the include cache and return -1 on failures.
+    int (*open_file)(TCCIncludeCtx *c, const char *filename);
+    int (*open_string)(TCCIncludeCtx *c, const char* str);
+    int (*open_named_string)(TCCIncludeCtx *c, const char* str, const char* strname);
+};
+
+// Callback for handling #include statements. Should return -1 if it cant resolve the include.
+// Note: IncludeCtx is only valid for the duration of the TCCIncludeFunc call.
+typedef int (*TCCIncludeFunc)(void* opaque, TCCIncludeCtx* c, char* filename);
+
+// Callback for enumerating paths in tcc_list_include_paths, etc.
+// Note: Operates on copies of the stored paths (cannot be used to modify)
+typedef int(*TCCPathCallback)(void* ctx, const char* path);
+
+LIBTCCAPI void tcc_set_include_func(TCCState *s, void *include_opaque, TCCIncludeFunc include_func);
+LIBTCCAPI TCCIncludeFunc tcc_get_include_func(TCCState *s);
+LIBTCCAPI void* tcc_get_include_opaque(TCCState *s);
+LIBTCCAPI int tcc_count_include_paths(TCCState *s);
+LIBTCCAPI int tcc_count_sysinclude_paths(TCCState *s);
+LIBTCCAPI int tcc_count_library_paths(TCCState *s);
+LIBTCCAPI void tcc_list_include_paths(TCCState *s, void* ctx, TCCPathCallback path_cb);
+LIBTCCAPI void tcc_list_sysinclude_paths(TCCState *s, void* ctx, TCCPathCallback path_cb);
+LIBTCCAPI void tcc_list_library_paths(TCCState *s, void* ctx, TCCPathCallback path_cb);
+//Cheat Engine Stop
+
 #ifdef __cplusplus
 }
 #endif

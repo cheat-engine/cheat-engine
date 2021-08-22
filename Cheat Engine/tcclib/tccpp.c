@@ -161,6 +161,15 @@ typedef struct tal_header_t {
 #endif
 } tal_header_t;
 
+// Cheat Engine
+#define TCC_LIBINC_FAILED -1
+#define TCC_LIBINC_RESOLVE 0
+#define TCC_LIBINC_OPENED  1
+
+extern int tcc_open_string(TCCState* s, const char* str, const char* filename);
+ST_FUNC int try_user_include_func(TCCState* s, char* buf, char* filename, int quoted);
+// Cheat Engine Stop
+
 /* ------------------------------------------------------------------------- */
 
 static TinyAlloc *tal_new(TinyAlloc **pal, unsigned limit, unsigned size)
@@ -1876,20 +1885,33 @@ ST_FUNC void preprocess(int is_bof)
 
         if (s1->include_stack_ptr >= s1->include_stack + INCLUDE_STACK_SIZE)
             tcc_error("#include recursion too deep");
+        // Cheat Engine
+        /* store current file in stack, but increment stack later below */
+        *s1->include_stack_ptr = file;
+        // Cheat Engine Stop
+        
         i = tok == TOK_INCLUDE_NEXT ? file->include_next_index + 1 : 0;
-        n = 2 + s1->nb_include_paths + s1->nb_sysinclude_paths;
+        n = /* CE: 2 */ 3 + s1->nb_include_paths + s1->nb_sysinclude_paths;
         for (; i < n; ++i) {
             char buf1[sizeof file->filename];
             CachedInclude *e;
             const char *path;
 
             if (i == 0) {
+            // Cheat Engine
+                int inc_cbr = try_user_include_func(s1, buf1, buf, c == '\"');
+                if(inc_cbr < 0) 
+                    continue;
+                else if(inc_cbr > 0)
+                    goto include_opened;
+            } else if (i == 1) {
+            // Cheat Engine Stop
                 /* check absolute include path */
                 if (!IS_ABSPATH(buf))
                     continue;
                 buf1[0] = 0;
 
-            } else if (i == 1) {
+            } else if (i == /* CE: 2 */ 2) {
                 /* search in file's dir if "header.h" */
                 if (c != '\"')
                     continue;
@@ -1899,7 +1921,7 @@ ST_FUNC void preprocess(int is_bof)
 
             } else {
                 /* search in all the include paths */
-                int j = i - 2, k = j - s1->nb_include_paths;
+                int j = i - /* CE: 2 */ 3, k = j - s1->nb_include_paths;
                 path = k < 0 ? s1->include_paths[j] : s1->sysinclude_paths[k];
                 pstrcpy(buf1, sizeof(buf1), path);
                 pstrcat(buf1, sizeof(buf1), "/");
@@ -1918,6 +1940,9 @@ ST_FUNC void preprocess(int is_bof)
 
             if (tcc_open(s1, buf1) < 0)
                 continue;
+// Cheat Engine
+include_opened:
+// Cheat Engine Stop
             /* push previous file on stack */
             *s1->include_stack_ptr++ = file->prev;
             file->include_next_index = i;
@@ -4078,3 +4103,9 @@ ST_FUNC int tcc_preprocess(TCCState *s1)
 }
 
 /* ------------------------------------------------------------------------- */
+
+// Cheat Engine
+#include "tccpp_ex.c"
+// Cheat Engine Stop
+
+

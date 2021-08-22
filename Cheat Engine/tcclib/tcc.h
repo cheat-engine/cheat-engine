@@ -738,6 +738,14 @@ struct sym_attr {
 #endif
 };
 
+// Cheat Engine
+#ifndef _TCCINCLUDECTX_TYPEDEF_
+#define _TCCINCLUDECTX_TYPEDEF_
+struct TCCIncludeCtx;
+typedef struct TCCIncludeCtx TCCIncludeCtx;
+#endif
+// Cheat Engine Stop
+
 struct TCCState {
     unsigned char verbose; /* if true, display some information during compilation */
     unsigned char nostdinc; /* if true, no standard headers are added */
@@ -980,6 +988,11 @@ struct TCCState {
     char *deps_outfile; /* option -MF */
     int argc;
     char **argv;
+
+	//Cheat Engine Include Handler Start
+	void* include_opaque;
+	int (*include_func)(void* opaque, TCCIncludeCtx* c, char* filename);
+	//Cheat Engine Include Handler Stop
 
 	//Cheat Engine Symbol Lookup Addition Start
 	void *(*symbol_lookup_func)(void* userdata, const char *symbolname);
