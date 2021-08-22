@@ -145,6 +145,7 @@ type
     procedure moreinfo;
     function getSelection: string;
     procedure setdbvmwatchid(id: integer);
+    procedure ChangedAddressClose(Sender: TObject; var CloseAction: TCloseAction);
   public
     { Public declarations }
     addresswatched: ptruint;
@@ -744,6 +745,19 @@ begin
   end;
 end;
 
+procedure TFoundCodedialog.ChangedAddressClose(Sender: TObject; var CloseAction: TCloseAction);
+var i: integer;
+  coderecord: Tcoderecord;
+begin
+  for i:=0 to FoundCodeList.Items.Count-1 do
+  begin
+    coderecord:=TCodeRecord(foundcodelist.items[i].data);
+    if coderecord.formChangedAddresses=sender then
+      coderecord.formChangedAddresses:=nil;
+  end;
+
+end;
+
 procedure TFoundCodedialog.moreinfo;
 var
   disassembled: array[1..5] of record
@@ -790,15 +804,16 @@ begin
     begin
       if not coderecord.formChangedAddresses.visible then //override userdefined positioning
       begin
-        LCLIntf.GetWindowRect(coderecord.formChangedAddresses.handle, cw);
-        LCLIntf.GetWindowRect(FormFoundCodeListExtra.handle, ew);
+        //LCLIntf.GetWindowRect(coderecord.formChangedAddresses.handle, cw);
+        //LCLIntf.GetWindowRect(FormFoundCodeListExtra.handle, ew);
 
-        coderecord.formChangedAddresses.left:=(ew.Left-(cw.Right-cw.left));
-        coderecord.formChangedAddresses.top:=FormFoundCodeListExtra.top;
+        //coderecord.formChangedAddresses.left:=(ew.Left-(cw.Right-cw.left));
+        //coderecord.formChangedAddresses.top:=FormFoundCodeListExtra.top;
 
       end;
 
       coderecord.formChangedAddresses.show;
+      coderecord.formChangedAddresses.AddHandlerClose(ChangedAddressClose);
     end;
 
 
@@ -1357,9 +1372,15 @@ end;
 procedure TFoundCodeDialog.FormClose(Sender: TObject;
   var Action: TCloseAction);
 begin
+  if miFindWhatAccesses.Checked then
+    miFindWhatAccesses.Click; //unchecks it
+
+
   if btnOK.caption=strStop then
     if debuggerthread<>nil then
       debuggerthread.CodeFinderStop(self);
+
+
 
   if breakpoint<>nil then
   begin
@@ -1585,7 +1606,10 @@ begin
     begin
       coderecord:=TCodeRecord(foundcodelist.items[i].data);
       if coderecord.formChangedAddresses<>nil then
-        freeandnil(coderecord.formChangedAddresses);
+      begin
+        coderecord.formChangedAddresses.Close; //brings reference count to 0, so will autodestroy
+        coderecord.formChangedAddresses:=nil;
+      end;
     end;
 
   end;
@@ -1630,6 +1654,7 @@ begin
   Showthisaddressinthedisassembler1.enabled:=foundcodelist.itemindex<>-1;
   Addtothecodelist1.enabled:=foundcodelist.selcount>0;
   MoreInfo1.Enabled:=foundcodelist.itemindex<>-1;
+  miFindWhatCodeAccesses.enabled:=foundcodelist.itemindex<>-1;
 
   Copyselectiontoclipboard1.enabled:=foundcodelist.selcount>0;
   miSaveTofile.enabled:=Copyselectiontoclipboard1.Enabled;
