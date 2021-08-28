@@ -1625,6 +1625,13 @@ var
     td: dword;
     breaknow: boolean;
 begin
+  if (self = visibleDisassembler) and (GetCurrentThreadId<>MainThreadID) then
+  begin
+    offset:=1;
+    description:='Should not happen';
+    exit('Visible disassembler used in an external thread');
+  end;
+
  {
   if firstthread=0 then
     firstthread:=GetCurrentThreadId;
