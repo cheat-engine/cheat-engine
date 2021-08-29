@@ -93,6 +93,7 @@ type TDisassemblerview=class(TPanel)
 
 
     fCR3: qword;
+    fCurrentDisassembler: TDisassembler;
 
     procedure updateScrollbox;
     procedure scrollboxResize(Sender: TObject);
@@ -155,7 +156,7 @@ type TDisassemblerview=class(TPanel)
     drawer: TIntfFreeTypeDrawer;
     {$endif}
 
-    currentDisassembler: TDisassembler;
+
 
     procedure DoDisassemblerViewLineOverride(address: ptruint; var addressstring: string; var bytestring: string; var opcodestring: string; var parameterstring: string; var specialstring: string);
 
@@ -197,6 +198,7 @@ type TDisassemblerview=class(TPanel)
     property OnExtraLineRender: TDisassemblerExtraLineRender read fOnExtraLineRender write fOnExtraLineRender;
     property OnDisassemblerViewOverride: TDisassemblerViewOverrideCallback read fOnDisassemblerViewOverride write fOnDisassemblerViewOverride;
     property CR3: qword read fCR3 write setCR3;
+    property CurrentDisassembler: TDisassembler read fCurrentDisassembler;
 end;
 
 
@@ -670,10 +672,10 @@ begin
   visibleDisassembler.showsymbols:=symhandler.showsymbols;
   visibleDisassembler.showsections:=symhandler.showsections;
 
-  currentDisassembler.showmodules:=symhandler.showModules;
-  currentDisassembler.showsymbols:=symhandler.showsymbols;
-  currentDisassembler.showsections:=symhandler.showsections;
-  currentDisassembler.is64bitOverride:=visibleDisassembler.is64bitOverride;
+  fCurrentDisassembler.showmodules:=symhandler.showModules;
+  fCurrentDisassembler.showsymbols:=symhandler.showsymbols;
+  fCurrentDisassembler.showsections:=symhandler.showsections;
+  fCurrentDisassembler.is64bitOverride:=visibleDisassembler.is64bitOverride;
 end;
 
 procedure TDisassemblerview.StatusInfoLabelCopy(sender: TObject);
@@ -1162,17 +1164,24 @@ begin
   {$ifdef windows}
   if pa=fcr3 then exit;
 
-  freeAndNil(currentDisassembler);
+  if fCurrentDisassembler<>visibleDisassembler then
+    freeAndNil(fCurrentDisassembler);
+
   if pa<>0 then
   begin
-    currentDisassembler:=TCR3Disassembler.Create;
-    TCR3Disassembler(currentDisassembler).CR3:=pa;
-    currentDisassembler.syntaxhighlighting:=true;
+    fCurrentDisassembler:=TCR3Disassembler.Create;
+    TCR3Disassembler(fCurrentDisassembler).CR3:=pa;
+    fCurrentDisassembler.syntaxhighlighting:=true;
   end
   else
   begin
-    currentDisassembler:=TDisassembler.Create;
-    currentDisassembler.syntaxhighlighting:=true;
+    if MainThreadID=GetCurrentThreadId then
+      fCurrentDisassembler:=visibleDisassembler
+    else
+    begin
+      fCurrentDisassembler:=TDisassembler.Create;
+      fCurrentDisassembler.syntaxhighlighting:=true;
+    end;
   end;
 
   fCR3:=pa;
@@ -1211,8 +1220,8 @@ begin
   if statusinfo<>nil then
     freeandnil(statusinfo);
 
-  if currentDisassembler<>nil then
-    freeandnil(currentDisassembler);
+  if fCurrentDisassembler<>nil then
+    freeandnil(fCurrentDisassembler);
 
 
   inherited destroy;
@@ -1225,8 +1234,13 @@ var
 begin
   inherited create(AOwner);
 
-  currentDisassembler:=TDisassembler.Create;
-  currentDisassembler.syntaxhighlighting:=true;
+  if MainThreadID=GetCurrentThreadId then
+    fCurrentDisassembler:=visibleDisassembler
+  else
+  begin
+    fCurrentDisassembler:=TDisassembler.Create;
+    fCurrentDisassembler.syntaxhighlighting:=true;
+  end;
 
 
   {$ifdef USELAZFREETYPE}
