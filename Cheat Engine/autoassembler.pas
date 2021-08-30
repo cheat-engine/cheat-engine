@@ -1521,6 +1521,43 @@ var i,j,k,l,e: integer;
       found:=false;
 
       if debug_getAddressFromScript then OutputDebugString('getAddressFromScript');
+
+      name:=uppercase(name);
+
+      if debug_getAddressFromScript then OutputDebugString('looking for '+name);
+
+
+      if debug_getAddressFromScript then OutputDebugString('allocs...');
+      for j:=0 to length(allocs)-1 do
+        if uppercase(allocs[j].varname)=name then
+          exit(allocs[j].address);
+
+      if debug_getAddressFromScript then OutputDebugString('kallocs...');
+      for j:=0 to length(kallocs)-1 do
+         if uppercase(kallocs[j].varname)=name then
+           exit(kallocs[j].address);
+
+
+      if debug_getAddressFromScript then OutputDebugString('labels...');
+      for j:=0 to length(labels)-1 do
+        if uppercase(labels[j].labelname)=name then
+        begin
+          if labels[j].defined then
+            exit(labels[j].address);
+        end;
+
+      if debug_getAddressFromScript then OutputDebugString('defines...');
+      for j:=0 to length(defines)-1 do
+        if uppercase(defines[j].name)=name then
+        begin
+          try
+            testptr:=symhandler.getAddressFromName(defines[j].whatever);
+            exit;
+          except
+          end;
+        end;
+
+      if debug_getAddressFromScript then OutputDebugString('symbols...');
       try
         if targetself then
           result:=selfsymhandler.getAddressFromName(name)
@@ -1535,41 +1572,6 @@ var i,j,k,l,e: integer;
 
       if debug_getAddressFromScript then OutputDebugString('not a registered symbol');
 
-      name:=uppercase(name);
-
-      if debug_getAddressFromScript then OutputDebugString('looking for '+name);
-
-
-      if debug_getAddressFromScript then OutputDebugString('labels...');
-
-      for j:=0 to length(labels)-1 do
-        if uppercase(labels[j].labelname)=name then
-        begin
-          if labels[j].defined then
-            exit(labels[j].address);
-        end;
-
-
-      if debug_getAddressFromScript then OutputDebugString('allocs...');
-      for j:=0 to length(allocs)-1 do
-        if uppercase(allocs[j].varname)=name then
-          exit(allocs[j].address);
-
-      if debug_getAddressFromScript then OutputDebugString('kallocs...');
-      for j:=0 to length(kallocs)-1 do
-         if uppercase(kallocs[j].varname)=name then
-           exit(kallocs[j].address);
-
-      if debug_getAddressFromScript then OutputDebugString('defines...');
-      for j:=0 to length(defines)-1 do
-        if uppercase(defines[j].name)=name then
-        begin
-          try
-            testptr:=symhandler.getAddressFromName(defines[j].whatever);
-            exit;
-          except
-          end;
-        end;
 
       if debug_getAddressFromScript then OutputDebugString('not found');
     end;
@@ -3547,11 +3549,6 @@ begin
         if dataForAACodePass2.cdata.references[i].address=0 then
         begin
           OutputDebugString('Failure getting reference for '+dataForAACodePass2.cdata.references[i].name);
-          debug_getAddressFromScript:=true;
-          x:=getAddressFromScript(dataForAACodePass2.cdata.references[i].name);;
-          dataForAACodePass2.cdata.references[i].address:=x;
-
-
         end;
       end;
 
