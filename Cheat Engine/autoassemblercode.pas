@@ -209,19 +209,27 @@ begin
       'R15F': o.contextItem:=31;
       else
       begin
-        if regname.StartsWith('XMM') then
+
+        if (length(regname)>=4) and regname.StartsWith('XMM') then
         begin
           if regname.Contains('.')=false then
           begin
             //xmm bytetable
-            xmmnr:=strtoint(regname.Substring(4)); //except on invalid data. That's ok
+            if regname[4]='-' then
+              xmmnr:=strtoint(regname.Substring(4)) //XMM-x
+            else
+              xmmnr:=strtoint(regname.Substring(3)); //except on invalid data. That's ok
             o.contextItem:=32+xmmnr;
           end
           else
           begin
             r3:=regname.Split('.');
             if length(r3)<>2 then raise exception.create('Invalid xmm register format (Invalid dot usage)');
-            xmmnr:=strtoint(r3[0].Substring(4));
+
+            if regname[4]='-' then
+              xmmnr:=strtoint(r3[0].Substring(4)) //XMM-x.yyyyyyz
+            else
+              xmmnr:=strtoint(r3[0].Substring(3));
 
             if (length(r3[1])>2) or (length(r3[1])=0) then raise exception.create('Invalid xmm register format');
 
@@ -785,6 +793,7 @@ begin
   setlength(dataForPass2.cdata.linklist,j+1);
   dataForPass2.cdata.linklist[j].name:=functionname+'_address';
   dataForPass2.cdata.linklist[j].fromname:=functionname;
+  dataForPass2.cdata.usesxmm:=usesXMMType;
 end;
 
 procedure AutoAssemblerLuaCodePass(script: TStrings; parameters: TLuaCodeParams; var i: integer; syntaxcheckonly: boolean);
@@ -1177,7 +1186,7 @@ begin
             s:=errorlog[i];
             if s.StartsWith('<string') then
             begin
-              Clipboard.AsText:=dataForPass2.cdata.cscript.text;
+             // Clipboard.AsText:=dataForPass2.cdata.cscript.text;
 
               linenrstring:='';
               lnstart:=pos('>:', s)+2;
@@ -1193,7 +1202,7 @@ begin
                     //convert linenr to AA linenr (if possible)
                     if (linenr>=0) and (linenr<dataForPass2.cdata.cscript.count) then
                     begin
-                      Clipboard.AsText:=dataForPass2.cdata.cscript[linenr-1];
+                      //Clipboard.AsText:=dataForPass2.cdata.cscript[linenr-1];
                       linenr:=integer(ptruint(dataForPass2.cdata.cscript.objects[linenr-1]));
                       s:='Error at line '+linenr.ToString+' '+Copy(s, j);
                     end;
