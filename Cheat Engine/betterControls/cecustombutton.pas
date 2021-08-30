@@ -453,8 +453,8 @@ begin
       RedGreenBlue(animationStopColor,  endred, endgreen, endblue);
 
       newred:=startred+trunc((integer(endred)-integer(startred))*animpos);
-      newgreen:=startred+trunc((integer(endgreen)-integer(startgreen))*animpos);
-      newblue:=startred+trunc((integer(endblue)-integer(startblue))*animpos);
+      newgreen:=startgreen+trunc((integer(endgreen)-integer(startgreen))*animpos);
+      newblue:=startblue+trunc((integer(endblue)-integer(startblue))*animpos);
 
       buttonc:=RGBToColor(newred,newgreen,newblue);
 
