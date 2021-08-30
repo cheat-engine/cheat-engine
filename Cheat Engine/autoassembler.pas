@@ -1509,6 +1509,9 @@ var i,j,k,l,e: integer;
 
     dataForAACodePass2: TAutoAssemblerCodePass2Data;
 
+
+    debug_getAddressFromScript: boolean=false;
+
     function getAddressFromScript(name: string): ptruint;
     var
       found: boolean;
@@ -1516,29 +1519,48 @@ var i,j,k,l,e: integer;
     begin
       result:=0;
       found:=false;
+
+      if debug_getAddressFromScript then OutputDebugString('getAddressFromScript');
       try
         if targetself then
           result:=selfsymhandler.getAddressFromName(name)
         else
           result:=symhandler.getAddressFromName(name);
-        exit;
+
+        if result<>0 then exit;
+
+        if debug_getAddressFromScript then OutputDebugString('result=0 and no exception....');
       except
       end;
 
+      if debug_getAddressFromScript then OutputDebugString('not a registered symbol');
+
       name:=uppercase(name);
+
+      if debug_getAddressFromScript then OutputDebugString('looking for '+name);
+
+
+      if debug_getAddressFromScript then OutputDebugString('labels...');
 
       for j:=0 to length(labels)-1 do
         if uppercase(labels[j].labelname)=name then
-          exit(labels[j].address);
+        begin
+          if labels[j].defined then
+            exit(labels[j].address);
+        end;
 
+
+      if debug_getAddressFromScript then OutputDebugString('allocs...');
       for j:=0 to length(allocs)-1 do
         if uppercase(allocs[j].varname)=name then
           exit(allocs[j].address);
 
+      if debug_getAddressFromScript then OutputDebugString('kallocs...');
       for j:=0 to length(kallocs)-1 do
          if uppercase(kallocs[j].varname)=name then
            exit(kallocs[j].address);
 
+      if debug_getAddressFromScript then OutputDebugString('defines...');
       for j:=0 to length(defines)-1 do
         if uppercase(defines[j].name)=name then
         begin
@@ -1548,6 +1570,8 @@ var i,j,k,l,e: integer;
           except
           end;
         end;
+
+      if debug_getAddressFromScript then OutputDebugString('not found');
     end;
 
 begin
@@ -3518,7 +3542,18 @@ begin
     begin
       dataForAACodePass2.cdata.address:=getAddressFromScript('ceinternal_autofree_ccode'); //warning: do not step over this with the debugger
       for i:=0 to length(dataForAACodePass2.cdata.references)-1 do
+      begin
         dataForAACodePass2.cdata.references[i].address:=getAddressFromScript(dataForAACodePass2.cdata.references[i].name);
+        if dataForAACodePass2.cdata.references[i].address=0 then
+        begin
+          OutputDebugString('Failure getting reference for '+dataForAACodePass2.cdata.references[i].name);
+          debug_getAddressFromScript:=true;
+          x:=getAddressFromScript(dataForAACodePass2.cdata.references[i].name);;
+          dataForAACodePass2.cdata.references[i].address:=x;
+
+
+        end;
+      end;
 
       if disableinfo<>nil then
         AutoassemblerCodePass2(dataForAACodePass2, disableinfo.ccodesymbols)

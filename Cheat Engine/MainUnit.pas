@@ -10312,6 +10312,9 @@ begin
     flashprocessbutton.Free;
   end;
 
+  if freezethread<>nil then
+    freeandnil(freezeThread);
+
   setlength(x,7);
   x[0]:=addresslist.headers.Sections[0].Width;
   x[1]:=addresslist.headers.Sections[1].Width;
