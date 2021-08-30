@@ -16391,6 +16391,12 @@ end;
 destructor TDisassembler.destroy;
 begin
  // freeandnil(cs);
+  if self=visibleDisassembler then
+    visibleDisassembler:=nil;
+
+  if self=defaultDisassembler then
+    defaultDisassembler:=nil;
+
   inherited destroy;
 end;
 

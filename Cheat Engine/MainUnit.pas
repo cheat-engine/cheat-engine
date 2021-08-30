@@ -10313,7 +10313,11 @@ begin
   end;
 
   if freezethread<>nil then
+  begin
+    freezeThread.Terminate;
+    freezeThread.WaitFor;
     freeandnil(freezeThread);
+  end;
 
   setlength(x,7);
   x[0]:=addresslist.headers.Sections[0].Width;

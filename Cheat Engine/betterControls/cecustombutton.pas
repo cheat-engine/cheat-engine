@@ -308,13 +308,15 @@ begin
 
   invalidate;
 
-  startAnimatorTimer;
+  if animationLength>0 then
+    startAnimatorTimer;
 
   inherited MouseEnter;
 end;
 
 procedure TCECustomButton.MouseLeave;
 begin
+
   btnstate:=btnstate-[sbsHighlighted];
 
   animationStart:=GetTickCount64;
@@ -435,7 +437,10 @@ begin
     if (timer<>nil) and timer.enabled then
     begin
       currenttime:=gettickcount64();
-      animpos:=(currenttime-animationstart) / animationlength;
+      if animationLength>0 then
+        animpos:=(currenttime-animationstart) / animationlength
+      else
+        animpos:=2;
 
       if animpos>1 then
       begin
