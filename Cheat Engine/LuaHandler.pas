@@ -13422,7 +13422,7 @@ begin
 
     2: //CE to target
     begin
-      if writeprocessmemory(processhandle, pointer(sourceAddress), pointer(destinationAddress), size, ar) then
+      if writeprocessmemory(processhandle, pointer(destinationAddress), pointer(sourceAddress), size, ar) then
       begin
         if ar=size then
         begin
