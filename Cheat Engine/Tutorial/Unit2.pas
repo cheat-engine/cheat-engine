@@ -66,8 +66,8 @@ resourcestring
     ''+#13#10+
     'When the value type is set correctly, make sure the scantype is set to ''Exact Value'''+#13#10+
     'Then fill in the number your health is in the value box. And click ''First Scan'''+#13#10+
-    'After a while (if you have a extremely slow pc) the scan is done and the results are shown in the list on the'+
-    ' left'+#13#10+
+    'After a while (if you have an extremely slow pc) the scan is done and the results are shown in the list on the'+
+    ' left.'+#13#10+
     ''+#13#10+
     'If you find more than 1 address and you don''t know for sure which address it is, click ''Hit me'', fill in the new'+
     ' health value into the value box, and click ''Next Scan'''+#13#10+
@@ -77,12 +77,12 @@ resourcestring
     ' showing you the current value.'+#13#10+
     'Double click the value, (or select it and press enter), and change the value to 1000.'+#13#10+
     ''+#13#10+
-    'If everything went ok the next button should become enabled, and you''re ready for the next step.'+#13#10+
+    'If everything went ok the Next button should become enabled, and you''re ready for the next step.'+#13#10+
     ''+#13#10+
     ''+#13#10+
     'Note:'+#13#10+
     'If you did anything wrong while scanning, click "New Scan" and repeat the scanning again.'+#13#10+
-    'Also, try playing around with the value and click ''hit me''';
+    'Also, try playing around with the value and click ''Hit me''.';
 
 
 

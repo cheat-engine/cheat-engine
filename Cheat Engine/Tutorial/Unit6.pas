@@ -38,29 +38,29 @@ uses Unit4, Unit7, frmHelpUnit;
 resourcestring
   rsWellDoneYouScrewedUpTheTutorial = 'Well done, you screwed up the tutorial!!!!';
   rsStep5CodeFinderPW = 'Step 5: Code finder (PW=%s)';
-  rsTryAgain6 = 'This may look difficult. but it''s basicly. Find health, rigthclick health, find what writes, change health, click replace, change health, '
-    +'done.  But don''t feel down if you don''t get it. at least you know the basics of memory scanning...  Are you sure you want to quit?';
+  rsTryAgain6 = 'This may look difficult, but it shouldn''t be. Basically find health, right click health, find what overwrites it, change health, click replace, change health, '
+    +'done.  But don''t feel down if you don''t get it. At least you know the basics of memory scanning...  Are you sure you want to quit?';
   rsLOSER = 'BOO';
 
   rsTutorialStep5=
-      'Sometimes the location of a value is stored at changes, when you restart the game, or even while you''re playing.. In '+
+      'Sometimes the location of a value is stored at changes, when you restart the game, or even while you''re playing. In '+
       'that case you can use 2 things to still make a table that works.'+#13#10+
       'In this step I''ll try to describe how to use the Code Finder function.'+#13#10+
       ''+#13#10+
       'The value down here will be at a different location each time you start the tutorial, so a normal entry in the address '+
       'list wouldn''t work.'+#13#10+
-      'First try to find the address. (you''ve got to this point so I assume you know how to)'+#13#10+
+      'First try to find the address. (You''ve got to this point so I assume you know how to do that.)'+#13#10+
       'When you''ve found the address, right-click the address in Cheat Engine and choose "Find out what writes to this '+
       'address". A window will pop up with an empty list.'+#13#10+
       'Then click on the Change value button in this tutorial, and go back to Cheat Engine. If everything went right, there '+
       'should be an address with assembler code there now.'+#13#10+
-      'Click it and choose the replace option to replace it with code that does nothing. That will also add the code address '+
-      'to the code list in the advanced options window. (Which gets saved if you save your table)'+#13#10+
+      'Click it and choose the Replace option to replace it with code that does nothing. That will also add the code address '+
+      'to the code list in the Advanced Options window. (Which gets saved if you save your table.)'+#13#10+
       ''+#13#10+
-      'Click on stop, so the game will start running normal again, and close to close the window.'+#13#10+
+      'Click on Stop, so the game will start running normal again, and click on Close to close the window.'+#13#10+
       'Now, click on Change value, and if everything went right the Next button should become enabled.'+#13#10+
       ''+#13#10+
-      'Note: When you''re freezing the address with a high enough speed it may happen that next becomes visible anyhow';
+      'Note: When you''re freezing the address with a high enough speed it may happen that Next becomes visible anyhow.';
 
 
 procedure TForm6.Button2Click(Sender: TObject);
