@@ -1606,9 +1606,9 @@ var f: string;
     protect: boolean;
 begin
   protect:=false;
-//  generateScript;
+  generateScript;
 
-  generateScript2;
+//  generateScript2;
 
 
   case cbOutput.ItemIndex of

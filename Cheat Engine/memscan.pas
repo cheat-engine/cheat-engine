@@ -5470,6 +5470,7 @@ var i: integer;
     currentbase: ptruint;
     size, _size: qword;
     actualread: ptrUint;
+    previousActualRead: ptruint;
     memorybuffer: ^byte;
     toread: qword;
     startregion: integer;
@@ -5539,6 +5540,9 @@ begin
       if (i=stopregion) and ((currentbase+toread)>stopaddress) then
         toread:=stopaddress-currentbase;
 
+    //  OutputDebugString(format('%.16x - %.16x (%.16x-%.16x)',[currentbase, currentbase+toread,OwningScanController.memregion[i].BaseAddress, OwningScanController.memregion[i].MemorySize ]));
+
+
       lastpart:=102;
 
       repeat
@@ -5559,12 +5563,20 @@ begin
           _size:=size;
 
 
+
         ReadProcessMemory(phandle,pointer(currentbase),memorybuffer,_size,actualread);
-        if (actualread=0) and canOverlap then
+
+        if (actualread<>_size) then
         begin
-          //try without overlap
-          _size:=_size-(variablesize-1);
-          ReadProcessMemory(phandle,pointer(currentbase),memorybuffer,_size,actualread);
+          if canOverlap then  //try without overlap
+          begin
+            _size:=size;
+            previousActualRead:=actualread;
+            actualread:=0;
+            ReadProcessMemory(phandle,pointer(currentbase+previousActualRead),pointer(ptruint(memorybuffer)+previousActualRead),_size-previousActualRead,actualread);
+
+            inc(actualread, previousActualRead);
+          end;
         end;
 
         //sanitize the results
@@ -6686,6 +6698,9 @@ begin
 
    // if (not (not scan_mem_private and (mbi._type=mem_private))) and (not (not scan_mem_image and (mbi._type=mem_image))) and (not (not scan_mem_mapped and (mbi._type=mem_mapped))) and (mbi.State=mem_commit) and ((mbi.Protect and page_guard)=0) and ((mbi.protect and page_noaccess)=0) then  //look if it is commited
     begin
+
+
+
       if PtrUint(mbi.BaseAddress)<startaddress then
       begin
         dec(mbi.RegionSize, startaddress-PtrUint(mbi.BaseAddress));
@@ -6801,7 +6816,8 @@ begin
   {$ifndef darwin}
   VirtualQueryEx_EndCache(processhandle);
   {$endif}
-    {
+
+   {
   OutputDebugString(format('memRegionPos=%d',[memRegionPos]));
   for i:=0 to memRegionPos-1 do
   BEGIN
@@ -6823,7 +6839,8 @@ begin
       end;
     end;
   end;
-        }
+  }
+
 
   totalAddresses:=totalProcessMemorySize;
 
