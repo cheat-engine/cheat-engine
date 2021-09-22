@@ -475,7 +475,7 @@ begin
   if GetCurrentThreadId=MainThreadID then
   begin
     oldlogWrites:=logwrites;
-
+    logwrites:=false;
     //oldlogWrites:=false;
     blockfilehandlerpopup:=true;
   end;
