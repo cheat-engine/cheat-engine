@@ -270,6 +270,7 @@ object FoundCodeDialog: TFoundCodeDialog
     object Showthisaddressinthedisassembler1: TMenuItem
       Caption = 'Show this address in the disassembler'
       ImageIndex = 5
+      ShortCut = 16452
       OnClick = btnOpenDisassemblerClick
     end
     object Addtothecodelist1: TMenuItem
