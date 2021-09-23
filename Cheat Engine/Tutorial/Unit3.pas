@@ -50,24 +50,24 @@ resourcestring
   rsTutorialStep3=
     'Ok, seeing that you''ve figured out how to find a value using exact value let''s move on to the next step.'+#13#10+
           ''+#13#10+
-          'First things first though. Since you are doing a new scan, you have to click on New Scan first, to start a new scan. (You may think this is straighforward, but you''d be surprised how many people get stuck on that step) I won''t be explaining this step again, so keep this in mind'+#13#10+
-          'Now that you''ve started a new scan, let''s continue'+#13#10+
+          'First things first though. Since you are doing a new scan, you have to click on New Scan first, to start a new scan. (You may think this is straighforward, but you''d be surprised how many people get stuck on that step) I won''t be explaining this step again, so keep this in mind.'+#13#10+
+          'Now that you''ve started a new scan, let''s continue.'+#13#10+
           ''+#13#10+
-          'In the previous test we knew the initial value so we could do a exact value, but now we have a status bar where '+
+          'In the previous test we knew the initial value so we could do an exact value search, but now we have a status bar where '+
           'we don''t know the starting value.'+#13#10+
-          'We only know that the value is between 0 and 500. And each time you click ''hit me'' you lose some health. The '+
+          'We only know that the value is between 0 and 500. And each time you click ''Hit me'' you lose some health. The '+
           'amount you lose each time is shown above the status bar.'+#13#10+
           ''+#13#10+
           'Again there are several different ways to find the value. (like doing a decreased value by... scan), but I''ll only '+
           'explain the easiest. "Unknown initial value", and decreased value.'+#13#10+
-          'Because you don''t know the value it is right now, a exact value wont do any good, so choose as scantype '+
-          '''Unknown initial value'', again, the value type is 4-bytes. (most windows apps use 4-bytes)'+
-          'click first scan and wait till it''s done.'+#13#10+
+          'Because you don''t know the value it is right now, exact value wont do any good, so choose as scantype '+
+          '''Unknown initial value'', again, the value type is 4-bytes. (Most windows apps use 4-bytes.) '+
+          'Click First scan and wait till it''s done.'+#13#10+
           ''+#13#10+
-          'When it is done click ''hit me''. You''ll lose some of your health. (the amount you lost shows for a few seconds and '+
+          'When it is done click ''Hit me''. You''ll lose some of your health. (the amount you lost shows for a few seconds and '+
           'then disappears, but you don''t need that)'+#13#10+
           'Now go to Cheat Engine, and choose ''Decreased Value'' and click ''Next Scan'''+#13#10+
-          'When that scan is done, click hit me again, and repeat the above till you only find a few. '+#13#10+
+          'When that scan is done, click ''Hit me'' again, and repeat the above till you only find a few. '+#13#10+
           ''+#13#10+
           'We know the value is between 0 and 500, so pick the one that is most likely the address we need, and add it to '+
           'the list.'+#13#10+
