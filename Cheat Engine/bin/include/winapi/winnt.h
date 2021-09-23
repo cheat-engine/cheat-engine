@@ -1090,11 +1090,8 @@ typedef DWORD LCID;
 	: "memory");
       return Value;
     }
-    LONG InterlockedExchangeAdd(LONG volatile *Addend,LONG Value);
+    
 
-#ifndef _X86AMD64_
-    __CRT_INLINE LONG InterlockedAdd(LONG volatile *Addend,LONG Value) { return InterlockedExchangeAdd(Addend,Value) + Value; }
-#endif
     __CRT_INLINE LONG InterlockedCompareExchange(LONG volatile *Destination,LONG ExChange,LONG Comperand) {
       LONG prev;
       __asm__ __volatile__("lock ; cmpxchgl %1,%2" : "=a" (prev) : "q" (ExChange),"m" (*Destination), "0" (Comperand) : "memory");
@@ -1125,11 +1122,30 @@ typedef DWORD LCID;
 	: "memory");
       return Value;
     }
-    LONG64 InterlockedExchangeAdd64(LONG64 volatile *Addend,LONG64 Value);
+    
+  
+      //LONG InterlockedExchangeAdd(LONG volatile *Addend,LONG Value);
+    
+    //cheat engine modification start
+    LONG InterlockedExchangeAdd(LONG volatile *Addend,LONG Value)
+    {
+      LONG Old;
+
+          do {
+              Old = *Addend;
+          } while (InterlockedCompareExchange(Addend,
+                                                Old + Value,
+                                                Old) != Old);
+
+          return Old;      
+    };
+
 
 #ifndef _X86AMD64_
-    __CRT_INLINE LONG64 InterlockedAdd64(LONG64 volatile *Addend,LONG64 Value) { return InterlockedExchangeAdd64(Addend,Value) + Value; }
+    __CRT_INLINE LONG InterlockedAdd(LONG volatile *Addend,LONG Value) { return InterlockedExchangeAdd(Addend,Value) + Value; }
 #endif
+    
+
 
     __CRT_INLINE LONG64 InterlockedCompareExchange64(LONG64 volatile *Destination,LONG64 ExChange,LONG64 Comperand) {
       LONG64 prev;
@@ -1148,6 +1164,25 @@ typedef DWORD LCID;
 	: "memory");
       return Value;
     }
+    
+    //cheat engine modification start
+    LONG64 InterlockedExchangeAdd64(LONG64 volatile *Addend,LONG64 Value)
+    {
+      LONGLONG Old;
+
+          do {
+              Old = *Addend;
+          } while (InterlockedCompareExchange64(Addend,
+                                                Old + Value,
+                                                Old) != Old);
+
+          return Old;      
+    };
+
+#ifndef _X86AMD64_
+    __CRT_INLINE LONG64 InterlockedAdd64(LONG64 volatile *Addend,LONG64 Value) { return InterlockedExchangeAdd64(Addend,Value) + Value; }
+#endif 
+   //cheat engine modification stop
 
 #define CacheLineFlush(Address) _mm_clflush(Address)
 
@@ -1212,6 +1247,7 @@ typedef DWORD LCID;
     DWORD64 ShiftLeft128(DWORD64 LowPart,DWORD64 HighPart,BYTE Shift);
     DWORD64 ShiftRight128(DWORD64 LowPart,DWORD64 HighPart,BYTE Shift);
 
+#ifndef cheatengine
 #define Multiply128 _mul128
 
     LONG64 Multiply128(LONG64 Multiplier,LONG64 Multiplicand,LONG64 *HighProduct);
@@ -1237,6 +1273,8 @@ typedef DWORD LCID;
       extractedProduct = ShiftRight128(lowProduct,highProduct,Shift);
       return extractedProduct;
     }
+
+#endif //cheatengine  (Cheat Engine Modification)
 
     __CRT_INLINE BYTE __readgsbyte(DWORD Offset) {
       BYTE ret;
@@ -5055,15 +5093,15 @@ typedef DWORD LCID;
 
     __CRT_INLINE PVOID RtlSecureZeroMemory(PVOID ptr,SIZE_T cnt) {
       volatile char *vptr =(volatile char *)ptr;
-#ifdef __x86_64
-      __stosb((PBYTE)((DWORD64)vptr),0,cnt);
-#else
+//#ifdef __x86_64  //cheat engine modification start
+//      __stosb((PBYTE)((DWORD64)vptr),0,cnt);
+//#else
       while(cnt) {
 	*vptr = 0;
 	vptr++;
 	cnt--;
       }
-#endif
+//#endif  //cheat engine modification stop
       return ptr;
     }
 

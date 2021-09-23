@@ -130,6 +130,7 @@
 #else
   //Cheat Engine modification start (all externs are handled as __declspec(dllimport) )
   #define extern __declspec(dllimport) extern 
+  #define cheatengine
   //Cheat Engine modification end
 #endif
 
