@@ -1282,7 +1282,7 @@ begin
 
                 symhandler.getAddressFromName('__floatundidf',false,symbolerror);
                 if symbolerror then
-                  raise exception.create('This code requires the TCC Library, but it failed to compiled');
+                  raise exception.create('This code requires the TCC Library, but it failed to compile');
               end;
             end;
           end;
