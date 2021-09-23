@@ -148,6 +148,28 @@ var
   //for __m* make
   tcclibimportlist: TStringHashList;
 
+  {
+  32-bit only:
+  __divdi3
+  __moddi3
+  __udivdi3
+  __umoddi3
+  __ashrdi3
+  __lshrdi3
+  __ashldi3
+  __floatundisf
+
+  //32 and 64-bit:
+  __floatundidf
+  __floatundixf
+  __fixunssfdi
+  __fixsfdi
+  __fixunsdfdi
+  __fixdfdi
+  __fixunsxfdi
+  __fixxfdi
+  }
+
 
 
 procedure parseLuaCodeParameters(s: string; var output: TLuaCodeParams);
@@ -1022,7 +1044,7 @@ end;
 procedure AutoAssemblerCodePass1(script: TStrings; out dataForPass2: TAutoAssemblerCodePass2Data; syntaxcheckonly: boolean; targetself: boolean);
 //this way the script only needs to be parsed once for quite similar code
 var
-  i,j: integer;
+  i,j,r: integer;
   endpos: integer;
   uppercaseline: string;
   s, linenrstring: string;
@@ -1037,15 +1059,29 @@ var
   symbols, imports, errorlog: tstringlist;
   ms: TMemorystream;
   bytesizeneeded: integer;
+  symbolerror: boolean;
   //
 begin
   if tcclibimportlist=nil then
   begin
     tcclibimportlist:=TStringHashList.Create(true);
+    tcclibimportlist.Add('__divdi3');
+    tcclibimportlist.Add('__moddi3');
+    tcclibimportlist.Add('__udivdi3');
+    tcclibimportlist.Add('__umoddi3');
+    tcclibimportlist.Add('__ashrdi3');
+    tcclibimportlist.Add('__lshrdi3');
+    tcclibimportlist.Add('__ashldi3');
     tcclibimportlist.Add('__floatundisf');
+    tcclibimportlist.Add('__floatundidf');
+    tcclibimportlist.Add('__floatundixf');
+    tcclibimportlist.Add('__fixunssfdi');
+    tcclibimportlist.Add('__fixsfdi');
+    tcclibimportlist.Add('__fixunsdfdi');
+    tcclibimportlist.Add('__fixdfdi');
+    tcclibimportlist.Add('__fixunsxfdi');
+    tcclibimportlist.Add('__fixxfdi');
   end;
-
-
 
 
   dataForPass2.cdata.cscript:=nil;
@@ -1236,7 +1272,18 @@ begin
           begin
             if tcclibimportlist.Find(imports[i])<>-1 then
             begin
-              //check if the libary has been compiled/injected yet, if not, do so now
+              symhandler.getAddressFromName('__floatundidf',false,symbolerror);
+              if symbolerror then
+              begin
+                j:=lua_gettop(LuaVM);
+                lua_getglobal(LuaVM, 'compileTCCLib');
+                r:=lua_pcall(LuaVM,0,0,0);
+                lua_settop(LuaVM,j);
+
+                symhandler.getAddressFromName('__floatundidf',false,symbolerror);
+                if symbolerror then
+                  raise exception.create('This code requires the TCC Library, but it failed to compiled');
+              end;
             end;
           end;
 

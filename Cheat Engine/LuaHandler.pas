@@ -14577,6 +14577,7 @@ begin
   result:=0;
 end;
 
+
 function _lua_compile(L: Plua_State; isfile: boolean): integer; cdecl;
 var
   s: string;
@@ -14796,6 +14797,79 @@ begin
   result:=0;
   if lua_gettop(L)>=1 then
     tcc_removeCIncludePath(Lua_ToString(L,1));
+end;
+
+
+
+function lua_compiletcclib(L: Plua_State): integer; cdecl;
+var
+  libfile: string;
+  sname: string;
+  address: ptruint;
+  slist: TSymbolListHandler;
+
+  lowestAddress: ptruint=0;
+  highestAddress: ptruint=0;
+begin
+  libfile:=CheatEngineDir+'tcclib\libtcc1.c';
+  if fileexists(libfile) then
+  begin
+    lua_settop(L,0);
+    lua_newtable(L);
+    lua_pushinteger(L,1);
+    lua_pushstring(L, libfile);
+    lua_settable(L,-3);
+    result:=lua_compilefiles(L);
+
+    if result>0 then
+    begin
+
+      if lua_istable(L,-1) then
+      begin
+        //succesful compilation, register the symbols
+        slist:=TSymbolListHandler.create;
+        slist.PID:=processhandler.processid;
+        slist.name:='TCC Library';
+
+        lua_pushnil(L);  //first key (nil)
+        while lua_next(L, -2)<>0 do
+        begin
+          sname:=Lua_ToString(L,-2);
+          address:=lua_tointeger(L,-1);
+          if lowestAddress=0 then lowestAddress:=address else lowestAddress:=min(lowestaddress, address);
+          if highestAddress=0 then highestAddress:=address else highestAddress:=max(highestAddress, address);
+
+          try
+            slist.AddSymbol('tcclib',sname,address,1);
+            symhandler.DeleteUserdefinedSymbol(sname);
+            symhandler.AddUserdefinedSymbol(inttohex(address,8),sname,true);
+          except
+          end;
+          lua_pop(L,1);
+        end;
+
+        slist.AddModule('tcc.lib',libfile,lowestAddress,highestAddress-lowestAddress, processhandler.is64Bit);
+        symhandler.AddSymbolList(slist);
+
+
+        lua_pushboolean(L, true);
+        exit(1);
+      end
+      else exit;
+    end
+    else
+    begin
+      lua_pushnil(L);
+      lua_pushstring(L,'invalid compilation result');
+      exit(2);
+    end;
+  end
+  else
+  begin
+    lua_pushnil(L);
+    lua_pushstring(L, libfile+' could not be found');
+    exit(2);
+  end;
 end;
 
 
@@ -15726,6 +15800,8 @@ begin
 
     lua_register(L, 'compile', lua_compile);
     lua_register(L, 'compileFiles', lua_compilefiles);
+    lua_register(L, 'compileTCCLib', lua_compiletcclib);
+
 
     lua_register(L, 'addCIncludePath', lua_addCIncludePath);
     lua_register(L, 'removeCIncludePath', lua_removeCIncludePath);
