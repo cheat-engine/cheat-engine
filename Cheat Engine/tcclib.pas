@@ -170,7 +170,7 @@ type
     add_file:function(s: PTCCState; filename: pchar): integer; cdecl;
     output_file:function(s: PTCCState; filename: pchar): integer; cdecl;
 
-    relocate:function(s: PTCCState; address: ptruint): integer; //address=0 gets size, address=1 let's tcc decide (nope) address>1 write there using the binary writer
+    relocate:function(s: PTCCState; address: ptruint): integer; cdecl; //address=0 gets size, address=1 let's tcc decide (nope) address>1 write there using the binary writer
 
 
     add_symbol:function(s: PTCCState; name: pchar; val: pointer): integer; cdecl;
@@ -182,7 +182,6 @@ type
     function compileScript(script: string; address: ptruint; output: tstream; symbollist: TStrings; sourcecodeinfo: TSourceCodeInfo=nil; textlog: tstrings=nil; secondaryLookupList: tstrings=nil; targetself: boolean=false): boolean;
     function compileScripts(scripts: tstrings; address: ptruint; output: tstream; symbollist: TStrings; sourcecodeinfo: TSourceCodeInfo=nil; textlog: tstrings=nil; targetself: boolean=false): boolean;
     function compileProject(files: tstrings; address: ptruint; output: tstream; symbollist: TStrings; sourcecodeinfo: TSourceCodeInfo=nil; textlog: tstrings=nil; targetself: boolean=false): boolean;
-
     constructor create(target: TTCCTarget);
   end;
 
@@ -1227,7 +1226,7 @@ begin
           '_':
           begin
             s:=name;
-            if s.EndsWith('array_start') or s.EndsWith('array_end') then exit;
+            if s.EndsWith('array_start') or s.EndsWith('array_end') or (s.StartsWith('__mzero') and s.EndsWith('f')) then exit;
           end;
         end;
       end;
