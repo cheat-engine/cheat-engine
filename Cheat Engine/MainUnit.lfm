@@ -1,8 +1,8 @@
 object MainForm: TMainForm
   Tag = 2
-  Left = 879
-  Height = 662
-  Top = 136
+  Left = 619
+  Height = 578
+  Top = 0
   Width = 650
   HelpContext = 1
   HorzScrollBar.Visible = False
@@ -10,7 +10,7 @@ object MainForm: TMainForm
   AllowDropFiles = True
   AutoSize = True
   Caption = 'Cheat Engine'
-  ClientHeight = 642
+  ClientHeight = 558
   ClientWidth = 650
   Menu = MainMenu1
   OnClose = FormClose
@@ -37,7 +37,7 @@ object MainForm: TMainForm
   object Panel1: TPanel
     Tag = 777
     Left = 0
-    Height = 178
+    Height = 94
     Top = 432
     Width = 650
     Align = alClient
@@ -51,7 +51,7 @@ object MainForm: TMainForm
   object Panel4: TPanel
     Left = 0
     Height = 32
-    Top = 610
+    Top = 526
     Width = 650
     Align = alBottom
     AutoSize = True

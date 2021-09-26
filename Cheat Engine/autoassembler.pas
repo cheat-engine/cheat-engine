@@ -1587,6 +1587,9 @@ begin
   setlength(defines,0);
   setlength(labels,0);
 
+  FillChar(dataForAACodePass2, sizeof(dataForAACodePass2),0);
+
+
   currentaddress:=0;
 
 

@@ -1,5 +1,5 @@
 Additions and changes:
-  Added dark mode support (restart CE when you channge the setting)
+  Added dark mode support (restart CE when you change the setting)
   All saved results are now shown in the foundlist (can be turned off)
   Groupscan now supports pointer wildcards. (only valid if the field is a proper pointer)
   Hotkeys can be repeated by releasing the key and repressing if the repeat timer hasn't finished yet

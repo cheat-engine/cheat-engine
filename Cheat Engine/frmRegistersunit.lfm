@@ -1,11 +1,12 @@
 object Registers: TRegisters
-  Left = 1556
+  Left = 1176
   Height = 309
-  Top = 160
-  Width = 338
+  Top = 173
+  Width = 364
+  AutoSize = True
   Caption = 'Registers'
   ClientHeight = 309
-  ClientWidth = 338
+  ClientWidth = 364
   OnClose = FormClose
   OnShow = FormShow
   Position = poScreenCenter
@@ -375,7 +376,7 @@ object Registers: TRegisters
     AnchorSideRight.Side = asrBottom
     AnchorSideBottom.Control = Owner
     AnchorSideBottom.Side = asrBottom
-    Left = 315
+    Left = 341
     Height = 309
     Top = 0
     Width = 23

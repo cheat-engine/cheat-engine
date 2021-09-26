@@ -1,3 +1,15 @@
+ceshare request window: 
+  make scrolling smooth
+  add option to delete your own request
+
+ceshare initial description field is too small (autosize issue I guess)
+
+pointerscan: make the last offset tabable
+
+
+form editor:  in dark mode the edit fields are white text with white background
+
+
 Mac: Hex editing files
 
 
