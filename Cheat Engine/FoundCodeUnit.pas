@@ -66,7 +66,7 @@ type
     procedure addEntriesToList;
   public
     id: integer;
-    fcd: TfoundCodeDialog;
+    fcd: TFoundCodeDialog;
     procedure execute; override;
   end;
   {$endif}
@@ -515,7 +515,7 @@ begin
   end;
 end;
 
-procedure TFoundCodedialog.AddRecord;
+procedure TFoundCodeDialog.AddRecord;
 {
 Invoked by the debugger thread
 It takes the data from the current thread and stores it in the processlist
@@ -600,7 +600,7 @@ begin
   {$endif}
 end;
 
-procedure TFoundCodedialog.setdbvmwatchid(id: integer);
+procedure TFoundCodeDialog.setdbvmwatchid(id: integer);
 begin
   {$IFDEF windows}
   fdbvmwatchid:=id;
@@ -621,7 +621,7 @@ begin
 end;
 
 
-procedure TFoundCodedialog.setChangedAddressCount(address :ptruint);
+procedure TFoundCodeDialog.setChangedAddressCount(address :ptruint);
 var i: integer;
 begin
   for i:=0 to foundcodelist.Items.Count-1 do
@@ -634,7 +634,7 @@ begin
     end;
 end;
 
-procedure TFoundCodedialog.addInfo(Coderecord: TCoderecord);
+procedure TFoundCodeDialog.addInfo(Coderecord: TCoderecord);
 var
   address: ptruint;
   disassembled: array[1..5] of string;
@@ -745,7 +745,7 @@ begin
   end;
 end;
 
-procedure TFoundCodedialog.ChangedAddressClose(Sender: TObject; var CloseAction: TCloseAction);
+procedure TFoundCodeDialog.ChangedAddressClose(Sender: TObject; var CloseAction: TCloseAction);
 var i: integer;
   coderecord: Tcoderecord;
 begin
@@ -758,7 +758,7 @@ begin
 
 end;
 
-procedure TFoundCodedialog.moreinfo;
+procedure TFoundCodeDialog.moreinfo;
 var
   disassembled: array[1..5] of record
     s: string;
@@ -1301,7 +1301,6 @@ end;
 procedure TFoundCodeDialog.FormDestroy(Sender: TObject);
 var i: integer;
     cr: Tcoderecord;
-    x: array of integer;
     s: string;
 begin
   stopDBVMWatch();
@@ -1324,10 +1323,7 @@ begin
     freeandnil(cr);
   end;
 
-  setlength(x,1);
-  x[0]:=FoundCodeList.Columns[0].Width;
 
-  saveformposition(self,x);
 
   FoundCodeList.Clear;
   timerEntryInfoUpdate.Enabled:=false;
@@ -1371,6 +1367,8 @@ end;
 
 procedure TFoundCodeDialog.FormClose(Sender: TObject;
   var Action: TCloseAction);
+var
+  x: array of integer;
 begin
   if miFindWhatAccesses.Checked then
     miFindWhatAccesses.Click; //unchecks it
@@ -1389,6 +1387,16 @@ begin
   end
   else
     action:=caFree;
+
+  setlength(x,1);
+  x[0]:=FoundCodeList.Columns[0].Width;
+  saveformposition(self,x);
+
+  try
+    //rename so that the next created dialog can have this name
+    self.name:=self.name+'_tobedeleted'+inttohex(random(65535),4)+inttohex(random(65535),4)+inttohex(random(65535),4)+inttohex(random(65535),4)+'_'+inttohex(GetTickCount64,1);
+  except
+  end;
 end;
 
 procedure TFoundCodeDialog.btnReplacewithnopsClick(Sender: TObject);
