@@ -274,6 +274,7 @@ type
   private
     fAddressList: TAddresslist;
     freezeInterval: integer;
+    procedure applyFreeze;
   public
     procedure Execute; override;
     constructor Create(AddressList: TAddresslist; interval: integer);
@@ -1391,11 +1392,16 @@ end;
 
 
 //--------------TFreezeThread------------
+procedure TFreezeThread.applyFreeze;
+begin
+  faddresslist.ApplyFreeze;
+end;
+
 procedure TFreezeThread.Execute;
 begin
   while not terminated do
   begin
-    faddresslist.ApplyFreeze;
+    synchronize(applyFreeze); //has to be synchronized as the addreslist records are accessed by treenode indexes, which are GUI based
     sleep(freezeInterval);
   end;
 end;
