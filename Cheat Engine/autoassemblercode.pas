@@ -195,7 +195,7 @@ begin
     r2:=r[i].Split('=');
 
     if length(r2)<>2 then
-      raise exception.create('Invalid parameter : '+r[i]);
+      continue;
 
     varname:=r2[0];
     regname:=uppercase(r2[1]);
