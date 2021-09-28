@@ -2,6 +2,9 @@ ceshare request window:
   make scrolling smooth
   add option to delete your own request
 
+saved scanresults are not deleted on new scan
+
+
 ceshare initial description field is too small (autosize issue I guess)
 
 pointerscan: make the last offset tabable

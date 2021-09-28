@@ -2790,15 +2790,14 @@ begin
         end;
 
         modulecount:=mpl.count;
-        if modulecount=0 then modulecount:=1;
 
         enumeratedModules:=0;
         for i:=0 to modulecount-1 do
         begin
           modinfo:=pmodinfo(mpl.Objects[i]);
 
-
-          c.enumSymbolsFromFile(self.owner.modulelist[i].modulepath, modinfo^.baseaddress, NetworkES);
+          if self.owner.modulelist[i].elfpart=0 then
+            c.enumSymbolsFromFile(self.owner.modulelist[i].modulepath, modinfo^.baseaddress, NetworkES);
 
           inc(enumeratedModules);
           fprogress:=ceil((i/modulecount)*100);
@@ -5546,6 +5545,8 @@ begin
                   newmodulelist[newmodulelistpos].is64bitmodule:=processhandler.is64Bit;
                   if pos('/system/',lowercase(x))=1 then //android thingy
                     newmodulelist[newmodulelistpos].isSystemModule:=true;
+
+                  newmodulelist[newmodulelistpos].elfpart:=me32.GlblcntUsage;
                 end;
 
                 if (not newmodulelist[newmodulelistpos].isSystemModule) and (commonModuleList<>nil) then //check if it's a common module (e.g nvidia physx dll's)

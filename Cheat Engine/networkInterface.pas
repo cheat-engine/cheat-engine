@@ -224,12 +224,13 @@ var ModulelistCommand: packed record
   r: packed record
     result: integer;
     modulebase: qword;
+    modulepart: dword;
     modulesize: dword;
     stringlength: dword;
   end;
 
   mname: pchar;
-
+  mnames: string;
 begin
 
   result:=false;
@@ -244,6 +245,7 @@ begin
     ModulelistCommand.handle:=hSnapshot and $ffffff;
     if send(@ModulelistCommand, sizeof(ModulelistCommand)) > 0 then
     begin
+      ZeroMemory(@r,sizeof(r));
       if receive(@r, sizeof(r))>0 then
       begin
         result:=r.result<>0;
@@ -254,17 +256,26 @@ begin
           receive(mname, r.stringlength);
           mname[r.stringlength]:=#0;
 
+          mnames:=mname;
+
+          if mname<>nil then
+            FreeMemAndNil(mname);
+
+          if r.modulepart<>0 then
+            mnames:=mnames+'.'+inttostr(r.modulepart);
+
+
+
           ZeroMemory(@lpme, sizeof(lpme));
           lpme.hModule:=r.modulebase;
           lpme.modBaseAddr:=pointer(r.modulebase);
           lpme.modBaseSize:=r.modulesize;
-          copymemory(@lpme.szExePath[0], mname, min(r.stringlength+1, MAX_PATH));
+          lpme.GlblcntUsage:=r.modulepart;
+          copymemory(@lpme.szExePath[0], @mnames[1], min(length(mnames)+1, MAX_PATH));
           lpme.szExePath[MAX_PATH-1]:=#0;
 
-          copymemory(@lpme.szModule[0], mname, min(r.stringlength+1, MAX_MODULE_NAME32));
+          copymemory(@lpme.szModule[0], @mnames[1], min(length(mnames)+1, MAX_MODULE_NAME32));
           lpme.szModule[MAX_MODULE_NAME32-1]:=#0;
-
-          FreeMemAndNil(mname);
         end;
 
       end;

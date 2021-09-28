@@ -265,6 +265,9 @@ end;
 procedure TfrmNetworkConfig.FormShow(Sender: TObject);
 begin
   requestlist;
+
+  edtHost.Width:=canvas.GetTextWidth('1234.1234.1234.1234');
+  edtPort.Width:=canvas.GetTextWidth(' 99999 ');
 end;
 
 

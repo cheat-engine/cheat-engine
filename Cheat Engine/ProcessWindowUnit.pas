@@ -163,7 +163,7 @@ implementation
 
 uses MainUnit, formsettingsunit, advancedoptionsunit,frmProcessWatcherUnit,
   memorybrowserformunit{$ifdef windows}, networkConfig{$endif}, ProcessHandlerUnit, processlist, globals,
-  registry, fontSaveLoadRegistry, frmOpenFileAsProcessDialogUnit;
+  registry, fontSaveLoadRegistry, frmOpenFileAsProcessDialogUnit, networkinterfaceapi;
 
 resourcestring
   rsIsnTAValidProcessID = '%s isn''t a valid processID';
@@ -685,10 +685,15 @@ begin
 
   if frmNetworkConfig.ShowModal=mrok then
   begin
+    tabheader.ShowTabs:=false;
+
     if TabHeader.TabIndex=1 then
       refreshlist
     else
+    begin
       TabHeader.Tabindex:=1;
+      refreshlist;
+    end;
   end;
   {$endif}
 end;
@@ -1055,6 +1060,9 @@ begin
 
   processlist.Canvas.font.color:=processlist.font.color;
   processlist.Canvas.TextOut(rect.Left+rect.Bottom-rect.Top+3,rect.Top,t);
+
+  if getConnection<>nil then exit;
+
   {$ifdef windows}
   if getprocessicons and (processlist.Items.Objects[index]<>nil) then
   begin
@@ -1078,6 +1086,8 @@ var
   s: string;
   i: integer;
 begin
+  if getconnection<>nil then
+    tabheader.ShowTabs:=true;
 
   OKButton.Constraints.MinHeight:=trunc(1.2*btnAttachDebugger.height);
   CancelButton.Constraints.MinHeight:=OKButton.Constraints.MinHeight;
