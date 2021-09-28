@@ -45,6 +45,7 @@
 typedef struct
 {
   unsigned long long baseAddress;
+  int part;
   int moduleSize;
   char *moduleName;
 
@@ -190,6 +191,8 @@ typedef struct _regDR6
 void CloseHandle(HANDLE h);
 BOOL Process32Next(HANDLE hSnapshot, PProcessListEntry processentry);
 BOOL Process32First(HANDLE hSnapshot, PProcessListEntry processentry);
+BOOL Module32First(HANDLE hSnapshot, PModuleListEntry moduleentry);
+BOOL Module32Next(HANDLE hSnapshot, PModuleListEntry moduleentry);
 HANDLE CreateToolhelp32Snapshot(DWORD dwFlags, DWORD th32ProcessID);
 HANDLE OpenProcess(DWORD pid);
 int VirtualQueryEx(HANDLE hProcess, void *lpAddress, PRegionInfo rinfo, char *mapsline);
@@ -228,7 +231,7 @@ extern pthread_mutex_t debugsocketmutex;
 #endif
 
 int debug_log(const char * format , ...); 
-long safe_ptrace(int request, pid_t pid, void * addr, void * data);
+uintptr_t safe_ptrace(int request, pid_t pid, void * addr, void * data);
 extern int MEMORY_SEARCH_OPTION;
 extern int ATTACH_PID;
 extern unsigned char SPECIFIED_ARCH;

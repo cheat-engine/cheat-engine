@@ -80,12 +80,11 @@ typedef struct {
 } CeProcessEntry, *PCeProcessEntry;
 
 typedef struct {
-    int result;
+    int32_t result;
     int64_t modulebase;
-    int modulesize;
-    int modulenamesize;
-    //modulename
-
+    int32_t modulepart;
+    int32_t modulesize;
+    int32_t modulenamesize;
 } CeModuleEntry, *PCeModuleEntry;
 
 typedef struct {
