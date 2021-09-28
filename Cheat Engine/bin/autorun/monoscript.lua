@@ -797,7 +797,7 @@ function mono_symbolLookupCallback(symbol)
 
   local parts={}
   local x
-  for x in string.gmatch(symbol, "[^:]+") do
+  for x in string.gmatch(symbol, "[^:.]+") do
     table.insert(parts, x)
   end
 
@@ -810,7 +810,13 @@ function mono_symbolLookupCallback(symbol)
     if (#parts>1) then
       classname=parts[#parts-1]
       if (#parts>2) then
-        namespace=parts[#parts-2]
+        for x=1,#parts-2 do
+          if x==1 then
+            namespace=parts[x]
+          else
+            namespace=namespace..'.'..parts[x]
+          end
+        end
       end
     end
   end
