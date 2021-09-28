@@ -518,6 +518,8 @@ function fillMissingFunctions()
   return result
 end
 
+local lastMonoError
+
 function LaunchMonoDataCollector()
   if debug_isBroken() then
     if inMainThread() then   
@@ -632,7 +634,7 @@ function LaunchMonoDataCollector()
   end
 
   monopipe.OnTimeout=function(self)  
-    --print("monopipe timeout")
+    
     local oldmonopipe=monopipe
     monopipe=nil
     mono_AttachedProcess=0
@@ -657,6 +659,20 @@ function LaunchMonoDataCollector()
       unregisterStructureAndElementListCallback(StructureElementCallbackID)
       StructureElementCallbackID=nil
     end
+    
+    if (lastMonoError==nil) or (getTickCount()>lastMonoError+200) then  
+      --print("monopipe error. Reattaching in 500 ms")
+      --auto re-attach after error
+      createTimer(200,function()
+        --print("Reattaching")
+        LaunchMonoDataCollector()    
+      end)      
+    --else
+    --  print("monopipe error. Last reattach too soon. Giving up")
+    end
+    
+    lastMonoError=getTickCount()
+    
   end
 
   --in case you implement the profiling tools use a secondary pipe to receive profiler events
@@ -899,6 +915,7 @@ function mono_object_getClass(address)
 
   local classaddress=monopipe.readQword()
   if (classaddress~=nil) and (classaddress~=0) then
+    if monopipe==nil then return nil end
     local stringlength=monopipe.readWord()
     local classname
 
