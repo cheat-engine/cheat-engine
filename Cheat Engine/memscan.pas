@@ -7893,6 +7893,7 @@ begin
   fLastscantype:=stNewScan;
   fLastScanValue:='';
 
+  savedresults.Clear;
   deletescanfolder;
   createscanfolder;
 
@@ -7903,6 +7904,7 @@ begin
   fpercentage:=false;
   fcompareToSavedScan:=false;
   fsavedscanname:='';
+
 
 end;
 
