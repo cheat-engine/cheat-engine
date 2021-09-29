@@ -39,10 +39,12 @@ type
     resumerThread: TDBVMResumerThread;
 
     processCR3: qword;
-    debuggerAttachStatus: string;
+
     procedure SteppingThreadLost;
 
     function setBreakEvent(var lpDebugEvent: TDebugEvent; frozenThreadID: integer): boolean;
+
+
     {$endif}
   public
     {$ifdef windows}
@@ -61,6 +63,7 @@ type
     function controlsTheThreadList: boolean; override;
     function usesDebugRegisters: boolean; override;
     {$endif}
+
 
   end;
 

@@ -15,6 +15,11 @@ type
   TDebuggerCapabilities=(dbcHardwareBreakpoint, dbcSoftwareBreakpoint, dbcExceptionBreakpoint, dbcDBVMBreakpoint, dbcBreakOnEntry, dbcCanUseInt1BasedBreakpoints);
   TDebuggerCapabilitiesSet=set of TDebuggerCapabilities;
   TDebuggerInterface=class
+  private
+    status: string;
+    statusmrew: TMultiReadExclusiveWriteSynchronizer;
+    function getCurrentDebugggerAttachStatus: string;
+    procedure setCurrentDebuggerAttachStatus(newstatus: string);
   protected
     fmaxInstructionBreakpointCount: integer;
     fmaxWatchpointBreakpointCount: integer;
@@ -27,6 +32,7 @@ type
     name: string;
 
     constructor create;
+    destructor destroy; override;
 
     function WaitForDebugEvent(var lpDebugEvent: TDebugEvent; dwMilliseconds: DWORD): BOOL; virtual; abstract;
     function ContinueDebugEvent(dwProcessId: DWORD; dwThreadId: DWORD; dwContinueStatus: DWORD): BOOL; virtual; abstract;
@@ -55,9 +61,25 @@ type
     property maxWatchpointBreakpointCount: integer read fmaxWatchpointBreakpointCount;
     property maxSharedBreakpointCount: integer read fmaxSharedBreakpointCount;
 
+    property debuggerAttachStatus: string read getCurrentDebugggerAttachStatus write setCurrentDebuggerAttachStatus; //threadsafe getter/setter for a string
+
 end;
 
 implementation
+
+function TDebuggerInterface.getCurrentDebugggerAttachStatus: string;
+begin
+  statusmrew.Beginread;
+  result:=status;
+  statusmrew.Endread;
+end;
+
+procedure TDebuggerInterface.setCurrentDebuggerAttachStatus(newstatus: string);
+begin
+  statusmrew.Beginwrite;
+  status:=newstatus;
+  statusmrew.Endwrite;
+end;
 
 function TDebuggerInterface.SetThreadContext(hThread: THandle; const lpContext: TContext; isFrozenThread: Boolean=false): BOOL;
 begin
@@ -155,7 +177,16 @@ end;
 
 constructor TDebuggerInterface.create;
 begin
+
   fDebuggerCapabilities:=[dbcCanUseInt1BasedBreakpoints]; //all except DBVM (which will remove this flags)
+
+  status:='Before attach';
+  statusmrew:=TMultiReadExclusiveWriteSynchronizer.Create;
+end;
+
+destructor TDebuggerInterface.destroy;
+begin
+  statusmrew.Free;
 end;
 
 end.
