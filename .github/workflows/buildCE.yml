@@ -1,0 +1,52 @@
+name: Build Cheat Engine
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - master
+
+jobs:
+  build:
+    runs-on: windows-latest
+    if: "!contains(github.event.head_commit.message, '[skip ci]')"
+    steps:
+      - name: Setup job variables
+        uses: allenevans/set-env@v2.0.1
+        with:
+          LAZARUS_VERSION: 2.0.10
+          FPC_VERSION: 3.2.0
+      - uses: actions/checkout@v2
+      - name: Install npm dependencies
+        shell: cmd
+        run: npm i --only=prod
+        working-directory: ./.github/workflows/scripts
+      - name: Get Lazarus dependencies
+        shell: bash
+        id: get-dependencies
+        run: echo "::set-output name=dependencies::$(node ./.github/workflows/scripts/getPackages.js)"
+      - name: Install Lazarus
+        uses: gcarreno/setup-lazarus@v3.0.2
+        with:
+          lazarus-version: ${{ env.LAZARUS_VERSION }}
+          include-packages: ${{ steps.get-dependencies.outputs.dependencies }}
+      - name: Install 32bit compat
+        shell: bash
+        run: node ./.github/workflows/scripts/install32bitCompat.js
+        env:
+          LAZARUS_VERSION: ${{ env.LAZARUS_VERSION }}
+          FPC_VERSION: ${{ env.FPC_VERSION }}
+      - name: Build 32-Bit
+        shell: cmd
+        run: lazbuild --build-mode="Release 32-bit" --no-write-project "Cheat Engine/cheatengine.lpi"
+      - name: Build 64-Bit
+        shell: cmd
+        run: lazbuild --build-mode="Release 64-bit" --no-write-project "Cheat Engine/cheatengine.lpi"
+      - name: Build 64-Bit O4 AVX2
+        shell: cmd
+        run: lazbuild --build-mode="Release 64-bit O4 AVX2" --no-write-project "Cheat Engine/cheatengine.lpi"
+      - name: Release artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: Release
+          path: "Cheat Engine/bin/"
