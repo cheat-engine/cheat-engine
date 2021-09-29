@@ -17,10 +17,11 @@ jobs:
           LAZARUS_VERSION: 2.0.10
           FPC_VERSION: 3.2.0
       - uses: actions/checkout@v2
-      - name: Install npm dependencies
-        shell: cmd
-        run: npm i --only=prod
-        working-directory: ./.github/workflows/scripts
+      - uses: bahmutov/npm-install@v1
+        with:
+          working-directory: ./.github/workflows/scripts
+        env:
+          NODE_ENV: production
       - name: Get Lazarus dependencies
         shell: bash
         id: get-dependencies
@@ -45,8 +46,12 @@ jobs:
       - name: Build 64-Bit O4 AVX2
         shell: cmd
         run: lazbuild --build-mode="Release 64-bit O4 AVX2" --no-write-project "Cheat Engine/cheatengine.lpi"
+      - name: Zip artifact
+        shell: cmd
+        run: 7z a -tzip release.zip * -r
+        working-directory: "./Cheat Engine/bin"
       - name: Release artifact
         uses: actions/upload-artifact@v2
         with:
           name: Release
-          path: "Cheat Engine/bin/"
+          path: "Cheat Engine/bin/release.zip"
