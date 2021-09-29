@@ -311,6 +311,7 @@ type
     FromAddress: TEdit;
     andlabel: TLabel;
     lblcompareToSavedScan: TLabel;
+    miDeleteSavedScanResults: TMenuItem;
     miOnlyShowCurrentCompareToColumn: TMenuItem;
     miLoadRecent: TMenuItem;
     miAlwaysHideChildren: TMenuItem;
@@ -581,6 +582,7 @@ type
     procedure Label3Click(Sender: TObject);
     procedure MenuItem12Click(Sender: TObject);
     procedure MenuItem15Click(Sender: TObject);
+    procedure miDeleteSavedScanResultsClick(Sender: TObject);
     procedure miFoundListPreferencesClick(Sender: TObject);
     procedure miAutoAssembleErrorMessageClick(Sender: TObject);
     procedure miHelpClick(Sender: TObject);
@@ -1190,6 +1192,8 @@ resourcestring
   rsSavedScanResults = 'Saved scan results';
   rsSelectTheSavedScanResultFromTheListBelow =
     'Select the saved scan result from the list below';
+  rsSelectTheSavedScanResultToDeleteFromTheListBelow =
+    'Select the saved scan result to delete from the list below';
   rsComparingTo = 'Comparing to %s';
   rsHex = 'Hex';
   rsDoYouWantToGoToTheCheatEngineWebsite =
@@ -3636,6 +3640,39 @@ begin
       exit;
     end;
   end;
+end;
+
+procedure TMainForm.miDeleteSavedScanResultsClick(Sender: TObject);
+var
+  s: tstringlist;
+  l: TfrmSelectionList;
+  i: integer;
+
+  tobedeleted: string;
+begin
+  s:=tstringlist.create;
+  i:=memscan.getsavedresults(s);
+  if i=1 then exit;
+
+
+  s.Delete(0);
+  l := TfrmSelectionList.Create(self, s);
+  l.Caption := rsSavedScanResults;
+  l.label1.Caption := rsSelectTheSavedScanResultFromTheListBelow;
+  l.ItemIndex := 0;
+
+  if (l.showmodal = mrOk) and (l.ItemIndex <> -1) then
+    tobedeleted := l.selected;
+
+  s.free;
+
+  if compareToSavedScan and (currentlySelectedSavedResultname=tobedeleted) then
+    cbCompareToSavedScan.checked:=false;
+
+
+
+  memscan.deleteSavedResult(tobedeleted);
+  reloadPreviousResults;
 end;
 
 
@@ -10676,6 +10713,9 @@ begin
   m.Caption:=rsClearRecentFiles;
   m.OnClick:=ClearRecentFiles;
   miLoadRecent.Add(m);
+
+
+  miDeleteSavedScanResults.visible:=memscan.SavedScanCount>0;
 end;
 
 procedure TMainForm.actOpenProcesslistExecute(Sender: TObject);

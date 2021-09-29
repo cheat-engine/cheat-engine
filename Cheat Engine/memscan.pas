@@ -686,6 +686,7 @@ type
     procedure createScanfolder;
     function DeleteFolder(dir: string) : boolean;
     procedure setVariableType(t: TVariableType);
+    function getSavedScanCount: integer;
   protected
     fOnScanDone: TNotifyEvent;
     fOnInitialScanDone: TNotifyEvent;
@@ -734,6 +735,7 @@ type
 
     procedure saveresults(resultname: string);
     function getsavedresults(r: tstrings): integer;
+    function deleteSavedResult(resultname: string): boolean;
 
     function canWriteResults: boolean;
 
@@ -782,6 +784,7 @@ type
     property Percentage: boolean read fPercentage write fPercentage;
     property CompareToSavedScan: boolean read fcompareToSavedScan write fcompareToSavedScan;
     property SavedScanName: string read fsavedscanname write fsavedscanname;
+    property SavedScanCount: integer read getSavedScanCount;
 
     property scanWritable: Tscanregionpreference read fscanWritable write fscanWritable;
     property scanExecutable: Tscanregionpreference read fscanExecutable write fscanExecutable;
@@ -7630,6 +7633,30 @@ begin
     r.AddStrings(savedresults);
 
   result:=r.count;
+end;
+
+function TMemscan.getSavedScanCount: integer;
+begin
+  if savedresults=nil then exit(0);
+  result:=savedresults.Count-1;
+end;
+
+function TMemscan.deleteSavedResult(resultname: string): boolean;
+var i: integer;
+begin
+  if (resultname='TMP') or (resultname='UNDO') then
+    raise exception.create(rsTMPAndUNDOAreNamesThatMayNotBeUsedTryAnotherName);
+
+  if savedresults=nil then exit(false);
+
+  i:=savedresults.IndexOf(resultname);
+  if i=-1 then exit(false);
+
+  savedresults.Delete(i);
+
+  DeleteFile(pchar(fScanResultFolder+'MEMORY.'+resultname));
+  DeleteFile(pchar(fScanResultFolder+'ADDRESSES.'+resultname));
+  result:=true;
 end;
 
 procedure TMemscan.saveresults(resultname: string);

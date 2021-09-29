@@ -2395,6 +2395,10 @@ object MainForm: TMainForm
         ShortCut = 41043
         OnClick = miSaveScanresultsClick
       end
+      object miDeleteSavedScanResults: TMenuItem
+        Caption = 'Delete scanresult'
+        OnClick = miDeleteSavedScanResultsClick
+      end
       object MenuItem6: TMenuItem
         Caption = '-'
       end
