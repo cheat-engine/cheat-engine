@@ -2054,7 +2054,9 @@ int ContinueFromDebugEvent(HANDLE hProcess, int tid, int ignoresignal)
         signal=0;
       }
 
+#if defined __i386__ || defined __x86_64__
       safe_ptrace(PTRACE_POKEUSER, tid, offsetof(struct user, u_debugreg[6]), 0);
+#endif
 
 
       //printf("Continue %d with signal %d\n", tid, signal);
