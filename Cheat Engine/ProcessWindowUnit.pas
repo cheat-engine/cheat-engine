@@ -14,7 +14,7 @@ uses
   LCLIntf, Messages, SysUtils, Classes, Graphics, Controls,
   Forms, Dialogs, StdCtrls, ExtCtrls, CEFuncProc,CEDebugger, ComCtrls, ImgList,
   Filehandler, Menus, LResources,{tlhelp32,}{$ifdef windows}vmxfunctions,{$endif} NewKernelHandler,
-  debugHelper{, KIcon}, commonTypeDefs, math, syncobjs, Contnrs, betterControls;
+  debugHelper{, KIcon}, commonTypeDefs, math,lcltype, syncobjs, Contnrs, betterControls;
 
 type
   TProcesslistlong = class(tthread)
@@ -1058,7 +1058,12 @@ begin
   end;
 
 
-  processlist.Canvas.font.color:=processlist.font.color;
+
+  if odSelected in state then
+    processlist.Canvas.font.color:=clHighlightText
+  else
+    processlist.Canvas.font.color:=processlist.font.color;
+
   processlist.Canvas.TextOut(rect.Left+rect.Bottom-rect.Top+3,rect.Top,t);
 
   if getConnection<>nil then exit;
