@@ -1167,11 +1167,13 @@ var
   old: string;
 
   settingsvis: boolean;
+  index: integer;
 begin
+  index:=lbLanguages.ItemIndex;
 
-  if lbLanguages.ItemIndex<>-1 then
+  if index<>-1 then
   begin
-    l:=TLanguageEntry(lbLanguages.Items.Objects[lbLanguages.ItemIndex]);
+    l:=TLanguageEntry(lbLanguages.Items.Objects[index]);
     if l<>nil then
       preferedLanguage:=l.foldername
     else
@@ -1198,26 +1200,6 @@ begin
     except
     end;
   end;
-
-
-  {settingsvis:=formSettings.Visible;
-
-  MemoryBrowser.Free;
-  MainForm.free;
-
-  Application.CreateForm(TMainForm, MainForm);
-  Application.CreateForm(TMemoryBrowser, MemoryBrowser);
-
-  MainForm.show;
-
-  Application.CreateForm(TformSettings, formSettings);
-
-  LoadSettingsFromRegistry;
-
-  if settingsvis then
-    modalresult:=formsettings.ShowModal;  }
-
-
 end;
 
 procedure TformSettings.cbAskIfTableHasLuascriptChange(Sender: TObject);
@@ -1618,6 +1600,7 @@ end;
 procedure TformSettings.ScanForLanguages;
 var
   i: integer;
+  index: integer;
   f: TStringList;
   n: string;
   e: TLanguageEntry;
@@ -1661,6 +1644,8 @@ begin
   OutputDebugString('ScanForLanguages: Looking in '+CheatEngineDir+{$ifdef darwin}PathDelim+'..'+{$endif}PathDelim+'Languages');
   {$endif}
   FindAllDirectories(f,CheatEngineDir+{$ifdef darwin}PathDelim+'..'+{$endif}PathDelim+'Languages',false);
+
+  index:=1;
   for i:=0 to f.Count-1 do
   begin
     n:=f[i];
@@ -1678,7 +1663,8 @@ begin
 
     mi:=TMenuItem.Create(mainform.MainMenu1);
     mi.Caption:=n;
-    mi.Tag:=i+1;
+    mi.Tag:=index;
+    inc(index);
     mi.RadioItem:=true;
     if uppercase(e.foldername)=uppercase(curr) then
     begin
