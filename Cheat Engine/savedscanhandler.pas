@@ -330,8 +330,16 @@ begin
     end
     else
     begin
-      vtype:=ms.VariableType;
-      ct:=ms.Customtype;
+      if allVT=vtAll then
+      begin
+        vtype:=ms.VariableType;
+        ct:=ms.Customtype;
+      end
+      else
+      begin
+        vtype:=allVT;
+        ct:=allCustomType;
+      end;
     end;
 
     r:=readAndParsePointer(address, p, vtype, ct, hexadecimal, Signed);
