@@ -729,7 +729,7 @@ begin
     end;
   end;
 
-  miDBVMFindWhatCodeAccesses.Enabled:={$ifdef windows}isIntel and isDBVMCapable and Findoutwhatthiscodechanges1.enabled{$else}false{$endif};
+  miDBVMFindWhatCodeAccesses.Enabled:={$ifdef windows}isDBVMCapable and Findoutwhatthiscodechanges1.enabled{$else}false{$endif};
   miDBVMFindWhatCodeAccesses.Caption:='DBVM '+Findoutwhatthiscodechanges1.Caption;
 
   //OutputDebugString('popupmenu2');
