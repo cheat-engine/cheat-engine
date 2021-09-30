@@ -1999,19 +1999,8 @@ begin
 
       28: //next scan same as first
       begin
-        if not btnNewScan.Enabled then
-          exit;
-
-
-        if btnNextScan.Enabled then
-        begin
-          scantypechangedbyhotkey := True;
-          scantype.ItemIndex := scantype.Items.Count - 1;
-          scantype.OnChange(scantype);
-          scantypechangedbyhotkey := False;
-        end
-        else
-          Errorbeep;
+        if cbCompareToSavedScan.enabled then
+          cbCompareToSavedScan.checked:=not cbCompareToSavedScan.checked;
       end;
 
       29: //undo lastscan
@@ -2022,7 +2011,7 @@ begin
 
 
         if undoscan.Enabled then
-          undoscan.Click
+          UndoScanClick(nil)
         else
           Errorbeep;
       end;
@@ -7943,7 +7932,7 @@ var
 
 begin
 
-  if messagedlg(strConfirmUndo, mtConfirmation, [mbYes, mbNo], 0) = mrYes then
+  if (sender<>undoscan) and (messagedlg(strConfirmUndo, mtConfirmation, [mbYes, mbNo], 0) = mrYes) then
   begin
     foundlist3.BeginUpdate;
     cleanupPreviousResults;
