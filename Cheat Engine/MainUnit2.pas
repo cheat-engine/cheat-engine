@@ -18,10 +18,10 @@ uses
      memscan,plugin, hotkeyhandler,frmProcessWatcherUnit, newkernelhandler,
      debuggertypedefinitions, commonTypeDefs, betterControls;
 
-const ceversion=7.3;
+const ceversion=7.31;
 
 resourcestring
-  cename = 'Cheat Engine 7.3';
+  cename = 'Cheat Engine 7.3.1';
   rsPleaseWait = 'Please Wait!';
 
 procedure UpdateToolsMenu;
