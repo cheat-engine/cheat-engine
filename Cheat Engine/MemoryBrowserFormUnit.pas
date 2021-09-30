@@ -49,6 +49,8 @@ type
     GSlabel: TLabel;
     MenuItem4: TMenuItem;
     copyBytesAndOpcodesAndComments: TMenuItem;
+    MenuItem5: TMenuItem;
+    MenuItem6: TMenuItem;
     miCR3Switcher: TMenuItem;
     miShowSectionAddresses: TMenuItem;
     miOpenInDissectData: TMenuItem;

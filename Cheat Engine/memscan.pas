@@ -7920,7 +7920,9 @@ begin
   fLastscantype:=stNewScan;
   fLastScanValue:='';
 
-  savedresults.Clear;
+  if savedresults<>nil then
+    savedresults.Clear;
+
   deletescanfolder;
   createscanfolder;
 

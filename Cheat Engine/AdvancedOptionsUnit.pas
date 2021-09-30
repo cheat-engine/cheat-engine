@@ -50,6 +50,7 @@ type
   TAdvancedOptions = class(TForm)
     aoImageList: TImageList;
     ColorDialog1: TColorDialog;
+    MenuItem1: TMenuItem;
     miNewGroup: TMenuItem;
     miSetColor: TMenuItem;
     N4: TMenuItem;
