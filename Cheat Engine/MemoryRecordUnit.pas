@@ -1860,7 +1860,7 @@ begin
     end;
   end;
 
-  if Value<>'??' then
+  if (Value<>'??') and (ssCtrl in GetKeyShiftState) then
   begin
     laststate:=cheatEntry.AppendChild(doc.CreateElement('LastState'));
     if VarType<>vtAutoAssembler then
@@ -1876,15 +1876,17 @@ begin
         laststate.Attributes.SetNamedItem(a);
       end;
     end;
+
+    if (laststate<>nil) and Active then
+    begin
+      a:=doc.CreateAttribute('Activated');
+      a.TextContent:='1';
+      laststate.Attributes.SetNamedItem(a);
+    end;
   end;
 
 
-  if (laststate<>nil) and Active then
-  begin
-    a:=doc.CreateAttribute('Activated');
-    a.TextContent:='1';
-    laststate.Attributes.SetNamedItem(a);
-  end;
+
 
 
   if showAsHex then

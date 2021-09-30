@@ -1331,6 +1331,7 @@ resourcestring
   rsDbvmWatchFailed = 'dbvm_watch failed';
   rsAreYouSure = 'Are you sure?';
   rsClearRecentFiles = 'Empty Recent Files List';
+  rsFirst = 'First';
 
 var
   ncol: TColor;
@@ -3353,7 +3354,7 @@ begin
           exit;
       end
       else
-        currentlySelectedSavedResultname := 'First';
+        currentlySelectedSavedResultname := rsFirst;
 
       //compareToSavedScan := True;
       //lblcompareToSavedScan.Visible := s.Count>1;
@@ -9465,6 +9466,7 @@ begin
           if foundlist3.columns[i+2].Visible then
           begin
             //p:=PreviousResultList[i].getpointertoaddress(address, ssvt, ct);
+
             if PreviousResultList[i].getStringFromAddress(address, s,hexadecimal,foundlist.isSigned, valuetype, ct)=false then //valuetype and CT are only used if the memscan was a vtAll type
             begin
               if PreviousResultList[i].lastFail=1 then
