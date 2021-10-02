@@ -864,7 +864,7 @@ function mono_addressLookupCallback(address)
   if monopipe.IL2CPP then return nil end
   
   if debug_isBroken() then return nil end
-  if monopipe.ProcessID~=getOpenedProcessID() then return nil end
+  if tonumber(monopipe.ProcessID)~=getOpenedProcessID() then return nil end
 
   local ji=mono_getJitInfo(address)
   local result=''
