@@ -42,12 +42,15 @@ var r: trect;
 begin
   inherited GetPreferredSize(PreferredWidth, PreferredHeight, Raw, WithThemeSpace);
 
-  dpiscale:=Screen.PixelsPerInch/96;
-  fcanvas.font.size:=font.size;
-  r:=rect(trunc(dpiscale)-1,trunc(3*dpiscale),(trunc(dpiscale)-1)*2+PreferredHeight-trunc((3*dpiscale)*2),(trunc(dpiscale)-1)+PreferredHeight-trunc((3*dpiscale)));
-  x:=r.right+trunc(3*dpiscale)+fcanvas.TextWidth(caption);
+  if ShouldAppsUseDarkMode and (font<>nil) then
+  begin
+    dpiscale:=Screen.PixelsPerInch/96;
+    fcanvas.font.size:=font.size;
+    r:=rect(trunc(dpiscale)-1,trunc(3*dpiscale),(trunc(dpiscale)-1)*2+PreferredHeight-trunc((3*dpiscale)*2),(trunc(dpiscale)-1)+PreferredHeight-trunc((3*dpiscale)));
+    x:=r.right+trunc(3*dpiscale)+fcanvas.TextWidth(caption);
 
-  PreferredWidth:=x+4;
+    PreferredWidth:=x+4;
+  end;
 
 end;
 
