@@ -9864,12 +9864,15 @@ begin
                 if newPID=GetCurrentProcessId then
                   continue; //Do not autoattach to self
 
+                openprocessPrologue;
+
                 oldpid := ProcessHandler.processid;
                 oldphandle := processhandler.processhandle;
 
                 ProcessHandler.processid := newPID;
                 unpause;
                 DetachIfPossible;
+
 
 
                 MainForm.ProcessLabel.Caption := pl.strings[j];
