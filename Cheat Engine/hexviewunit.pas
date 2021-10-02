@@ -187,6 +187,7 @@ type
     procedure mbCanvasDoubleClick(Sender: TObject);
     function getAddressFromPosition(x, y: integer; var region: THexRegion): ptrUint;
     procedure RefocusIfNeeded;
+    procedure makeVisible(visibleAddress: ptruint);
     procedure HandleEditKeyPress(wkey: tutf8char);
     procedure setDisplayType(newdt: TDisplaytype);
     procedure setCharEncoding(newce: TCharEncoding);
@@ -767,31 +768,43 @@ begin
   {$ENDIF}
 end;
 
-procedure THexView.RefocusIfNeeded;
+procedure THexView.makeVisible(visibleAddress: ptruint);
 var lastaddress: ptrUint;
-beforeoffset: ptrUint;
-afterOffset: ptrUint;
+beforeoffset: ptrint;
+afterOffset: ptrint;
 column: integer;
+rows: integer;
+begin
+  //check if the address in in the visible section, if not, adjust
+  lastaddress:=fAddress+bytesperline*(totallines-2);
+  if not inrangex(visibleAddress, faddress, lastaddress) then
+  begin
+    //outside, find out if it's above or below
+
+    //column:=(selected - fAddress) mod bytesperline;
+    if visibleAddress<faddress then
+    begin
+      //go up
+      rows:=1+((faddress-visibleAddress) div bytesperline);
+      address:=(address-bytesperline*rows);
+    end
+    else
+    begin
+      //go down
+      rows:=1+((visibleAddress-lastaddress) div bytesperline);
+      address:=(address+bytesperline*rows);
+    end;
+  end;
+
+end;
+
+procedure THexView.RefocusIfNeeded;
 begin
   if isEditing then
   begin
     //check if the selected address in in the visible section, if not, adjust
-    lastaddress:=fAddress+bytesperline*(totallines-2);
-    if not inrangex(selected, faddress, lastaddress) then
-    begin
-      //outside, find out if it's above or below
-
-      column:=(selected - fAddress) mod bytesperline;
-
-      beforeOffset:=fAddress-selected;
-      afterOffset:=selected-lastaddress;
-      if beforeOffset>afteroffset then
-        address:=Address+afterOffset-column
-      else
-        address:=Address-beforeOffset-column;
-
-      update;
-    end;
+    makeVisible(selected);
+    update;
   end;
 end;
 
@@ -920,13 +933,24 @@ begin
 
       vk_up:
       begin
-        if isEditing then
+        if (shift=[ssShift]) then
         begin
-          dec(selected,bytesPerLine);
-          selected2:=selected+1;
+          selected2:=selected2-bytesPerLine;
+          fhasSelection:=true;
+          isEditing:=false;
+          makeVisible(selected2);
         end
         else
-          address:=address-bytesPerLine;
+        begin
+
+          if isEditing then
+          begin
+            dec(selected,bytesPerLine);
+            selected2:=selected+1;
+          end
+          else
+            address:=address-bytesPerLine;
+        end;
 
 
         update;
@@ -934,6 +958,14 @@ begin
 
       vk_down:
       begin
+        if (shift=[ssShift]) then
+        begin
+          selected2:=selected2+bytesPerLine;
+          fhasSelection:=true;
+          isEditing:=false;
+          makeVisible(selected2);
+        end
+        else
         if isEditing then
         begin
           inc(selected,bytesPerLine);
@@ -947,6 +979,14 @@ begin
 
       vk_left:
       begin
+        if (shift=[ssShift]) then
+        begin
+          selected2:=selected2-1;
+          fhasSelection:=true;
+          isEditing:=false;
+          makeVisible(selected2);
+        end
+        else
         if isEditing then
         begin
           if editingType=hrChar then
@@ -983,6 +1023,14 @@ begin
 
       vk_right:
       begin
+        if (shift=[ssShift]) then
+        begin
+          selected2:=selected2+1;
+          fhasSelection:=true;
+          isEditing:=false;
+          makeVisible(selected2);
+        end
+        else
         if isEditing then
         begin
           if editingType=hrChar then
@@ -1019,6 +1067,14 @@ begin
 
       vk_prior:
       begin
+        if (shift=[ssShift]) then
+        begin
+          selected2:=selected2-bytesPerLine*(totallines-1);
+          fhasSelection:=true;
+          isEditing:=false;
+          makeVisible(selected2);
+        end
+        else
         if isEditing then
           dec(selected,bytesPerLine*(totallines-1))
         else
@@ -1029,6 +1085,14 @@ begin
 
       vk_next:
       begin
+        if (shift=[ssShift]) then
+        begin
+          selected2:=selected2+bytesPerLine*(totallines-1);
+          fhasSelection:=true;
+          isEditing:=false;
+          makeVisible(selected2);
+        end
+        else
         if isEditing then
           inc(selected,bytesPerLine*(totallines-1))
         else
