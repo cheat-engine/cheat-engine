@@ -27,6 +27,8 @@ type
 
   { TAdvancedOptions }
 
+  EAdvancedOptionsDuplicateException=class(Exception);
+
   TAdvancedOptionsCodeRecord=class
   private
   public
@@ -311,12 +313,14 @@ begin
       startb:=address;
       stopb:=address+sizeofopcode-1;
 
-      if ((starta>startb) and (starta<stopb)) or
-         ((startb>starta) and (startb<stopa)) then
+
+
+      if ((starta>=startb) and (starta<stopb)) or
+         ((startb>=starta) and (startb<stopa)) then
         if sizeofopcode=1 then
-          raise exception.Create(stralreadyinthelist)
+          raise EAdvancedOptionsDuplicateException.Create(stralreadyinthelist)
         else
-          raise exception.Create(strPartOfOpcodeInTheList);
+          raise EAdvancedOptionsDuplicateException.Create(strPartOfOpcodeInTheList);
     end;
   end;
 
