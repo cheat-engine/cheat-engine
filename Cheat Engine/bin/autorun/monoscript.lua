@@ -957,6 +957,8 @@ function mono_enumDomains()
   if monopipe==nil then return nil end
   
   monopipe.writeByte(MONOCMD_ENUMDOMAINS)  
+  if monopipe==nil then return nil end
+  
   local count=monopipe.readDword()
   if monopipe==nil then return nil end
   
