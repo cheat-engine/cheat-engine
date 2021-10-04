@@ -1220,9 +1220,8 @@ begin
   if statusinfo<>nil then
     freeandnil(statusinfo);
 
-  if fCurrentDisassembler<>nil then
-    freeandnil(fCurrentDisassembler);
-
+  if (fCurrentDisassembler<>nil) and (fCurrentDisassembler<>visibleDisassembler) then
+    freeAndNil(fCurrentDisassembler);
 
   inherited destroy;
 end;
