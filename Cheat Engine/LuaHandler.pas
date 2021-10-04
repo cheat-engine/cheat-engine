@@ -12636,6 +12636,8 @@ function lua_GenerateCodeInjectionScript(L: PLua_state): integer; cdecl;
 var
   script: TStrings;
   address: string;
+
+  farjmp: boolean;
 begin
   result:=0;
   if lua_gettop(L)>=1 then
@@ -12647,8 +12649,13 @@ begin
     else
       address:=inttohex(MemoryBrowser.disassemblerview.SelectedAddress,8);
 
+    if lua_gettop(L)>=3 then
+      farjmp:=lua_toboolean(L,3)
+    else
+      farjmp:=false;
+
     try
-      GenerateCodeInjectionScript(script, address);
+      GenerateCodeInjectionScript(script, address,farjmp);
       lua_pushboolean(L,true);
       result:=1;
     except
@@ -12661,6 +12668,7 @@ var
   script: TStrings;
   address, symbolname: string;
   lineCountToCopy: integer;
+  farjmp: boolean;
 begin
   result:=0;
   if lua_gettop(L)>=2 then
@@ -12678,6 +12686,11 @@ begin
     else
       linecountToCopy:=20;
 
+    if lua_gettop(L)>=5 then
+      farjmp:=lua_toboolean(L,5)
+    else
+      farjmp:=false;
+
     try
       GenerateAOBInjectionScript(script, address, symbolname, lineCountToCopy);
       lua_pushboolean(L,true);
@@ -12692,6 +12705,7 @@ var
   script: TStrings;
   address: string;
   lineCountToCopy: integer;
+  farjmp: boolean;
 begin
   result:=0;
   if lua_gettop(L)>=1 then
@@ -12707,6 +12721,11 @@ begin
       lineCountToCopy:=lua_tointeger(L,3)
     else
       linecountToCopy:=20;
+
+    if lua_gettop(L)>=4 then
+      farjmp:=lua_toboolean(L,4)
+    else
+      farjmp:=false;
 
     try
       GenerateFullInjectionScript(script, address, lineCountToCopy);
