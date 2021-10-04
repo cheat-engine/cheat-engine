@@ -2278,7 +2278,6 @@ begin
   AAHighlighter:=TSynAASyn.Create(self);
   CPPHighlighter:=TSynCppSyn.create(self);
   LuaHighlighter:=TSynLuaSyn.Create(self);
-
   reloadHighlighterSettings;
 
   assembleSearch:=TSyneditSearch.Create;
@@ -3072,9 +3071,9 @@ end;
 
 procedure TfrmAutoInject.reloadHighlighterSettings;
 begin
-  {LuaHighlighter.LoadFromRegistry(HKEY_CURRENT_USER, '\Software\Cheat Engine\Lua Highlighter'+darkmodestring);
+  LuaHighlighter.LoadFromRegistry(HKEY_CURRENT_USER, '\Software\Cheat Engine\Lua Highlighter'+darkmodestring);
   AAHighlighter.LoadFromRegistry(HKEY_CURRENT_USER, '\Software\Cheat Engine\AA Highlighter'+darkmodestring);
-  CPPHighlighter.LoadFromRegistry(HKEY_CURRENT_USER, '\Software\Cheat Engine\CPP Highlighter'+darkmodestring);}
+  CPPHighlighter.LoadFromRegistry(HKEY_CURRENT_USER, '\Software\Cheat Engine\CPP Highlighter'+darkmodestring);
 end;
 
 procedure TfrmAutoInject.MenuItem2Click(Sender: TObject);
