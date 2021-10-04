@@ -1175,6 +1175,11 @@ function mono_image_enumClasses(image)
 end
 
 function mono_class_isgeneric(class)
+  if class==nil then
+    print("mono_class_isgeneric with null pointer: ")
+    print(debug.traceback())
+    return nil
+  end
   local result=''
   monopipe.lock()
   monopipe.writeByte(MONOCMD_ISCLASSGENERIC)
