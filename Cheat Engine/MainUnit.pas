@@ -863,7 +863,8 @@ type
     procedure checkpaste;
     procedure hotkey(var Message: TMessage); {$ifdef windows}message WM_HOTKEY;{$endif}
 
-    procedure ScanDone(sender: TObject); //(var message: TMessage); message WM_SCANDONE;
+    procedure MemScanStart(sender: TObject);
+    procedure MemScanDone(sender: TObject);
     procedure PluginSync(var m: TMessage); message wm_pluginsync;
     procedure ShowError(var message: TMessage); message wm_showerror;
     procedure Edit;
@@ -5013,6 +5014,7 @@ begin
     scanstate.foundlist := TFoundList.Create(foundlist3, scanstate.memscan);    //build again
     scanstate.memscan.OnInitialScanDone:=memscan.OnInitialScanDone;
     scanstate.memscan.OnScanDone:=memscan.OnScanDone;
+    scanstate.memscan.OnScanStart:=memscan.OnScanStart;
   end;
 
   savecurrentstate(scanstate);
@@ -7933,7 +7935,7 @@ var
 
 begin
 
-  if (sender<>undoscan) and (messagedlg(strConfirmUndo, mtConfirmation, [mbYes, mbNo], 0) = mrYes) then
+  if (sender=undoscan) or (messagedlg(strConfirmUndo, mtConfirmation, [mbYes, mbNo], 0) = mrYes) then
   begin
     foundlist3.BeginUpdate;
     cleanupPreviousResults;
@@ -8192,7 +8194,8 @@ begin
   memscan := tmemscan.Create(ProgressBar);
   memscan.GuiScanner:=true;
   memscan.OnGuiUpdate:=MemscanGuiUpdate;
-  memscan.OnInitialScanDone:=scandone;
+  memscan.OnInitialScanDone:=MemScanDone;
+  memscan.OnScanStart:=MemScanStart;
 
   foundlist := tfoundlist.Create(foundlist3, memscan);
 
@@ -8623,7 +8626,7 @@ end;
 procedure TMainForm.SettingsClick(Sender: TObject);
 var
 
-  oldScanDone, oldInitialScanDone: TNotifyEvent;
+  oldScanDone, oldInitialScanDone, oldScanStart: TNotifyEvent;
 begin
 
   suspendhotkeyhandler;
@@ -8664,19 +8667,23 @@ begin
     if memscan <> nil then
     begin
       oldScanDone:=memscan.OnScanDone;
+      oldScanStart:=memscan.OnScanStart;
       oldInitialScanDone:=memscan.OnInitialScanDone;
       memscan.Free;
     end
     else
     begin
       oldScanDone:=nil;
-      oldInitialScanDone:=scanDone;
+      oldScanStart:=MemScanStart;
+      oldInitialScanDone:=MemScanDone;
     end;
 
     memscan := tmemscan.Create(ProgressBar);
     memscan.GuiScanner:=true;
+    memscan.OnScanStart:=memscanStart;
     memscan.OnGuiUpdate:=memscanGuiUpdate;
     memscan.OnScanDone:=oldScanDone;
+    memscan.OnScanStart:=oldScanStart;
     memscan.OnInitialScanDone:=oldInitialScanDone;
   end;
 end;
@@ -10031,7 +10038,13 @@ begin
   end;
 end;
 
-procedure TMainForm.ScanDone(sender: TObject);
+procedure TMainForm.MemScanStart(sender: TObject);
+begin
+  foundlist.Deinitialize; //unlock file handles
+  cleanupPreviousResults;
+end;
+
+procedure TMainForm.MemScanDone(sender: TObject);
 var
   i: integer;
   canceled: boolean;
@@ -10225,9 +10238,7 @@ begin
   else
     percentage := False;
 
-  cleanupPreviousResults;
 
-  foundlist.Deinitialize; //unlock file handles
 
   if cbPauseWhileScanning.Checked then
   begin
