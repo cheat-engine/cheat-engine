@@ -2614,6 +2614,8 @@ methods:
 structChange() : Forces a refresh
 addColumn(): Adds a new column in the currently focuses group and returns it's structColumn object
 addGroup(): Adds a new group and returns the structGroup object
+getSelectedStructElement(): Returns the currently selected StructureElement , and as second result a table containing an indexed list continaing 'struct', and 'element' describing the path to the base
+
 
 structColumn class:
 properties:
