@@ -42,6 +42,7 @@ Cheat Engine is a development environment focused on modding games and applicati
         * [Lazarus 32bit](https://sourceforge.net/projects/lazarus/files/Lazarus%20Windows%2032%20bits/Lazarus%202.0.10/lazarus-2.0.10-fpc-3.2.0-win32.exe/download)
         * [cross-x86_64-win64 addon](https://sourceforge.net/projects/lazarus/files/Lazarus%20Windows%2032%20bits/Lazarus%202.0.10/lazarus-2.0.10-fpc-3.2.0-cross-x86_64-win64-win32.exe/download)
       * 64bit Windows users can do the otherwise: download and install Lazarus 64bit from [here](https://sourceforge.net/projects/lazarus/files/Lazarus%20Windows%2064%20bits/Lazarus%202.0.10/) (plus "cross-i386-win32" addon if you want to develop 32bit applications)
+      * do _not_ download the most recent version of Lazarus. Cheat Engine works with FPC 3.2.0. You might encounter [problems](https://github.com/cheat-engine/cheat-engine/issues/1818) on later versions of FPC.
   2. Run Lazarus and click on `Project->Open Project`. Select `cheatengine.lpi` from the `Cheat Engine` folder as the project.
   3. Click on `Run->Build` or press <kbd>SHIFT+F9</kbd>.
       * you can also click on `Run->Compile many Modes` (tip: select first three compile modes)
