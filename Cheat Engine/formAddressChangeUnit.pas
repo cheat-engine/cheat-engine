@@ -1574,6 +1574,7 @@ begin
      or (fMemoryRecord.vartype = vtQword)
      or (fMemoryRecord.vartype = vtSingle)
      or (fMemoryRecord.vartype = vtDouble)
+     or (fMemoryRecord.vartype = vtByteArray)
      then
   begin
     cbHex.checked:=fMemoryRecord.ShowAsHex;
