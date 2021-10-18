@@ -864,7 +864,7 @@ function mono_addressLookupCallback(address)
   if monopipe.IL2CPP then return nil end
   
   if debug_isBroken() then return nil end
-
+  if tonumber(monopipe.ProcessID)~=getOpenedProcessID() then return nil end
 
   local ji=mono_getJitInfo(address)
   local result=''
@@ -957,6 +957,8 @@ function mono_enumDomains()
   if monopipe==nil then return nil end
   
   monopipe.writeByte(MONOCMD_ENUMDOMAINS)  
+  if monopipe==nil then return nil end
+  
   local count=monopipe.readDword()
   if monopipe==nil then return nil end
   
@@ -1173,6 +1175,11 @@ function mono_image_enumClasses(image)
 end
 
 function mono_class_isgeneric(class)
+  if class==nil then
+    print("mono_class_isgeneric with null pointer: ")
+    print(debug.traceback())
+    return nil
+  end
   local result=''
   monopipe.lock()
   monopipe.writeByte(MONOCMD_ISCLASSGENERIC)
@@ -1797,6 +1804,8 @@ end
 
 function mono_getJitInfo(address)
   --if debug_canBreak() then return nil end
+  
+  if monopipe==nil then return nil end
 
   local d=mono_enumDomains()
   if (d~=nil) then

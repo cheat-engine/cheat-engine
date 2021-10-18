@@ -1385,10 +1385,16 @@ object MemoryBrowser: TMemoryBrowser
       ImageIndex = 9
       OnClick = Findoutwhataddressesthisinstructionaccesses1Click
     end
+    object MenuItem5: TMenuItem
+      Caption = '-'
+    end
     object miDBVMFindoutwhataddressesthisinstructionaccesses: TMenuItem
       Caption = 'DBVM Find out what addresses this instruction accesses'
       ImageIndex = 50
       OnClick = miDBVMFindoutwhataddressesthisinstructionaccessesClick
+    end
+    object MenuItem6: TMenuItem
+      Caption = '-'
     end
     object miConditionalBreak: TMenuItem
       Caption = 'Set/Change break condition'

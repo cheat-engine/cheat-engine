@@ -172,6 +172,9 @@ object AdvancedOptions: TAdvancedOptions
       ImageIndex = 6
       OnClick = Findoutwhatthiscodechanges1Click
     end
+    object MenuItem1: TMenuItem
+      Caption = '-'
+    end
     object miDBVMFindWhatCodeAccesses: TMenuItem
       Caption = 'DBVM Find....'
       OnClick = miDBVMFindWhatCodeAccessesClick

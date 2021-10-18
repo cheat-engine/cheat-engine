@@ -964,11 +964,29 @@ begin
     if ignored then
     begin
       TDebuggerthread(debuggerthread).execlocation:=375;
-      tracewindow.returnfromignore:=true;
+      x:=0;
       ReadProcessMemory(processhandle, pointer(context^.{$ifdef cpu64}rsp{$else}esp{$endif}), @r, sizeof(processhandler.pointersize), x);
-      b:=TDebuggerthread(debuggerthread).SetOnExecuteBreakpoint(r , false, ThreadId);
-      b.OneTimeOnly:=true;
-      TDebuggerthread(debuggerthread).execlocation:=376;
+      if x=processhandler.pointersize then
+      begin
+        tracewindow.returnfromignore:=true;
+        try
+          b:=TDebuggerthread(debuggerthread).SetOnExecuteBreakpoint(r , false, ThreadId);
+          b.OneTimeOnly:=true;
+          TDebuggerthread(debuggerthread).execlocation:=376;
+        except
+          OutputDebugString('Trace step out set breakpoint error');
+          isTracing:=false;
+          TDebuggerthread(debuggerthread).Synchronize(TDebuggerthread(debuggerthread), tracewindow.Finish);
+        end;
+      end
+      else
+      begin
+        //error reading
+        OutputDebugString('Trace read stack error');
+        isTracing:=false;
+        TDebuggerthread(debuggerthread).Synchronize(TDebuggerthread(debuggerthread), tracewindow.Finish);
+      end;
+
       ContinueFromBreakpoint(nil, co_run);
     end
     else

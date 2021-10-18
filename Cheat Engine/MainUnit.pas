@@ -863,7 +863,8 @@ type
     procedure checkpaste;
     procedure hotkey(var Message: TMessage); {$ifdef windows}message WM_HOTKEY;{$endif}
 
-    procedure ScanDone(sender: TObject); //(var message: TMessage); message WM_SCANDONE;
+    procedure MemScanStart(sender: TObject);
+    procedure MemScanDone(sender: TObject);
     procedure PluginSync(var m: TMessage); message wm_pluginsync;
     procedure ShowError(var message: TMessage); message wm_showerror;
     procedure Edit;
@@ -1331,6 +1332,7 @@ resourcestring
   rsDbvmWatchFailed = 'dbvm_watch failed';
   rsAreYouSure = 'Are you sure?';
   rsClearRecentFiles = 'Empty Recent Files List';
+  rsFirst = 'First';
 
 var
   ncol: TColor;
@@ -1999,19 +2001,8 @@ begin
 
       28: //next scan same as first
       begin
-        if not btnNewScan.Enabled then
-          exit;
-
-
-        if btnNextScan.Enabled then
-        begin
-          scantypechangedbyhotkey := True;
-          scantype.ItemIndex := scantype.Items.Count - 1;
-          scantype.OnChange(scantype);
-          scantypechangedbyhotkey := False;
-        end
-        else
-          Errorbeep;
+        if cbCompareToSavedScan.enabled then
+          cbCompareToSavedScan.checked:=not cbCompareToSavedScan.checked;
       end;
 
       29: //undo lastscan
@@ -2022,7 +2013,7 @@ begin
 
 
         if undoscan.Enabled then
-          undoscan.Click
+          UndoScanClick(nil)
         else
           Errorbeep;
       end;
@@ -3364,7 +3355,7 @@ begin
           exit;
       end
       else
-        currentlySelectedSavedResultname := 'First';
+        currentlySelectedSavedResultname := rsFirst;
 
       //compareToSavedScan := True;
       //lblcompareToSavedScan.Visible := s.Count>1;
@@ -5023,6 +5014,7 @@ begin
     scanstate.foundlist := TFoundList.Create(foundlist3, scanstate.memscan);    //build again
     scanstate.memscan.OnInitialScanDone:=memscan.OnInitialScanDone;
     scanstate.memscan.OnScanDone:=memscan.OnScanDone;
+    scanstate.memscan.OnScanStart:=memscan.OnScanStart;
   end;
 
   savecurrentstate(scanstate);
@@ -7943,7 +7935,7 @@ var
 
 begin
 
-  if messagedlg(strConfirmUndo, mtConfirmation, [mbYes, mbNo], 0) = mrYes then
+  if (sender=undoscan) or (messagedlg(strConfirmUndo, mtConfirmation, [mbYes, mbNo], 0) = mrYes) then
   begin
     foundlist3.BeginUpdate;
     cleanupPreviousResults;
@@ -8202,7 +8194,8 @@ begin
   memscan := tmemscan.Create(ProgressBar);
   memscan.GuiScanner:=true;
   memscan.OnGuiUpdate:=MemscanGuiUpdate;
-  memscan.OnInitialScanDone:=scandone;
+  memscan.OnInitialScanDone:=MemScanDone;
+  memscan.OnScanStart:=MemScanStart;
 
   foundlist := tfoundlist.Create(foundlist3, memscan);
 
@@ -8633,7 +8626,7 @@ end;
 procedure TMainForm.SettingsClick(Sender: TObject);
 var
 
-  oldScanDone, oldInitialScanDone: TNotifyEvent;
+  oldScanDone, oldInitialScanDone, oldScanStart: TNotifyEvent;
 begin
 
   suspendhotkeyhandler;
@@ -8674,19 +8667,23 @@ begin
     if memscan <> nil then
     begin
       oldScanDone:=memscan.OnScanDone;
+      oldScanStart:=memscan.OnScanStart;
       oldInitialScanDone:=memscan.OnInitialScanDone;
       memscan.Free;
     end
     else
     begin
       oldScanDone:=nil;
-      oldInitialScanDone:=scanDone;
+      oldScanStart:=MemScanStart;
+      oldInitialScanDone:=MemScanDone;
     end;
 
     memscan := tmemscan.Create(ProgressBar);
     memscan.GuiScanner:=true;
+    memscan.OnScanStart:=memscanStart;
     memscan.OnGuiUpdate:=memscanGuiUpdate;
     memscan.OnScanDone:=oldScanDone;
+    memscan.OnScanStart:=oldScanStart;
     memscan.OnInitialScanDone:=oldInitialScanDone;
   end;
 end;
@@ -9476,6 +9473,7 @@ begin
           if foundlist3.columns[i+2].Visible then
           begin
             //p:=PreviousResultList[i].getpointertoaddress(address, ssvt, ct);
+
             if PreviousResultList[i].getStringFromAddress(address, s,hexadecimal,foundlist.isSigned, valuetype, ct)=false then //valuetype and CT are only used if the memscan was a vtAll type
             begin
               if PreviousResultList[i].lastFail=1 then
@@ -9873,12 +9871,15 @@ begin
                 if newPID=GetCurrentProcessId then
                   continue; //Do not autoattach to self
 
+                openprocessPrologue;
+
                 oldpid := ProcessHandler.processid;
                 oldphandle := processhandler.processhandle;
 
                 ProcessHandler.processid := newPID;
                 unpause;
                 DetachIfPossible;
+
 
 
                 MainForm.ProcessLabel.Caption := pl.strings[j];
@@ -10037,7 +10038,13 @@ begin
   end;
 end;
 
-procedure TMainForm.ScanDone(sender: TObject);
+procedure TMainForm.MemScanStart(sender: TObject);
+begin
+  foundlist.Deinitialize; //unlock file handles
+  cleanupPreviousResults;
+end;
+
+procedure TMainForm.MemScanDone(sender: TObject);
 var
   i: integer;
   canceled: boolean;
@@ -10231,9 +10238,7 @@ begin
   else
     percentage := False;
 
-  cleanupPreviousResults;
 
-  foundlist.Deinitialize; //unlock file handles
 
   if cbPauseWhileScanning.Checked then
   begin

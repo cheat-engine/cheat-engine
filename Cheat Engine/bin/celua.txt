@@ -320,9 +320,9 @@ registerAutoAssemblerTemplate(name, function(script: TStrings; sender: TFrmAutoI
 unregisterAutoAssemblerTemplate(ID)
 
 
-generateCodeInjectionScript(script: Tstrings, address: string) - Adds a default codeinjection script to the given script
-generateAOBInjectionScript(script: Tstrings, symbolname: string, address: string, commentradius(default 10)) - Adds an AOB injection script to the given script
-generateFullInjectionScript(script: Tstrings, address: string, commentradius(default 10)) - Adds a Full Injection script to the given script
+generateCodeInjectionScript(script: Tstrings, address: string, farjmp: boolean) - Adds a default codeinjection script to the given script
+generateAOBInjectionScript(script: Tstrings, symbolname: string, address: string, commentradius(default 10), farjmp: boolean) - Adds an AOB injection script to the given script
+generateFullInjectionScript(script: Tstrings, address: string, commentradius(default 10), farjmp: boolean) - Adds a Full Injection script to the given script
 
 getNextAllocNumber(script: TStrings): integer - scans the given script for alloc(newmem## and returns the next unused newmem number)
 addSnapshotAsComment(script: TStrings, address: integer, radius(Default 10)) - creates a comment section for AA scripts that contains a snapshot of the original code
@@ -2614,6 +2614,8 @@ methods:
 structChange() : Forces a refresh
 addColumn(): Adds a new column in the currently focuses group and returns it's structColumn object
 addGroup(): Adds a new group and returns the structGroup object
+getSelectedStructElement(): Returns the currently selected StructureElement , and as second result a table containing an indexed list continaing 'struct', and 'element' describing the path to the base
+
 
 structColumn class:
 properties:

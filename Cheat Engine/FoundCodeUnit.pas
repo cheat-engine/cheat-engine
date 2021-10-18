@@ -1421,20 +1421,26 @@ begin
         coderecord:=TcodeRecord(foundcodelist.items[j].data);
         codelength:=coderecord.size;
         //add it to the codelist
-        if advancedoptions.AddToCodeList(coderecord.address,coderecord.size,true, foundcodelist.SelCount>1) then
-        begin
-          setlength(nops,codelength);
-          for i:=0 to codelength-1 do
-            nops[i]:=$90;  // $90=nop
 
-
-          zeromemory(@mbi,sizeof(mbi));
-
-
-          RewriteCode(processhandle,coderecord.address,@nops[0],codelength);
-
-
+        try
+          advancedoptions.AddToCodeList(coderecord.address,coderecord.size,false, foundcodelist.SelCount>1);
+        except
+          //already in the list, undo
         end;
+
+        for i:=0 to AdvancedOptions.count-1 do
+        begin
+          if symhandler.getAddressFromName(AdvancedOptions.entries[i].code.symbolname,false)=coderecord.address then
+          begin
+            advancedoptions.lvCodelist.selected:=advancedoptions.lvCodelist.Items[i];
+            advancedoptions.lvCodelist.Items[i].Selected:=true;
+            if AdvancedOptions.entries[i].code.changed then
+              advancedoptions.miRestoreWithOriginalClick(advancedoptions.miRestoreWithOriginal)
+            else
+              advancedoptions.miReplaceWithNopsClick(advancedoptions.miReplaceWithNops);
+          end;
+        end;
+
       end;
     end;
   end;

@@ -49,6 +49,8 @@ type
     GSlabel: TLabel;
     MenuItem4: TMenuItem;
     copyBytesAndOpcodesAndComments: TMenuItem;
+    MenuItem5: TMenuItem;
+    MenuItem6: TMenuItem;
     miCR3Switcher: TMenuItem;
     miShowSectionAddresses: TMenuItem;
     miOpenInDissectData: TMenuItem;
@@ -4543,6 +4545,8 @@ begin
 
   miDBVMFindoutwhataddressesthisinstructionaccesses.visible:={$ifdef windows}isDBVMCapable and miSetSpecificBreakpoint.visible{$else}false{$endif};
   miDBVMFindoutwhataddressesthisinstructionaccesses.enabled:=miDBVMFindoutwhataddressesthisinstructionaccesses.visible;
+  menuitem5.visible:=miDBVMFindoutwhataddressesthisinstructionaccesses.visible;
+  menuitem6.visible:=miDBVMFindoutwhataddressesthisinstructionaccesses.visible;
 
   //
   miSetBreakpointHW.enabled:=(CurrentDebuggerInterface=nil) or (dbcHardwareBreakpoint in CurrentDebuggerInterface.DebuggerCapabilities);

@@ -640,7 +640,7 @@ void CPipeServer::Object_Init()
 		mono_runtime_object_init(object);
 		WriteByte(1);
 	}
-	catch (char *e)
+	catch (...)
 	{
 		WriteByte(0);
 		//OutputDebugStringA("Error initializing object:\n");
@@ -656,10 +656,6 @@ void CPipeServer::Object_GetClass()
 	char *classname;
 	void *klass;
 
-	//OutputDebugStringA("MONOCMD_OBJECT_GETCLASS");
-
-
-	//ExpectingAccessViolations = TRUE; //cause access violations to throw an exception
 	try
 	{
 		unsigned int i;
@@ -688,14 +684,10 @@ void CPipeServer::Object_GetClass()
 
 
 	}
-	catch (char *e)
+	catch (...)
 	{
-		//OutputDebugStringA("Error getting the class:\n");
-		//OutputDebugStringA(e);
 		WriteQword(0); //failure. Invalid object
 	}
-
-	//ExpectingAccessViolations = FALSE; //back to normal behaviour
 }
 
 void _cdecl DomainEnumerator(void *domain, std::vector<UINT64> *v)

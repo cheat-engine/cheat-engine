@@ -22,6 +22,8 @@ type
     procedure PaintWindow(DC: HDC); override;
     procedure FontChanged(Sender: TObject); override;
     procedure MouseMove(Shift: TShiftState; X, Y: Integer); override;
+  public
+    procedure GetPreferredSize(var PreferredWidth, PreferredHeight: integer; Raw: boolean=false; WithThemeSpace: boolean=true); override;
   published
    { property CustomDraw: boolean read fCustomDraw write fCustomDraw;
     property OnPaint: TNotifyEvent read fOnPaint write fOnPaint;
@@ -32,6 +34,25 @@ type
 implementation
 
 uses forms, betterControls;
+
+procedure TNewRadioButton.GetPreferredSize(var PreferredWidth, PreferredHeight: integer; Raw: boolean=false; WithThemeSpace: boolean=true);
+var r: trect;
+  x: integer;
+  dpiscale: single;
+begin
+  inherited GetPreferredSize(PreferredWidth, PreferredHeight, Raw, WithThemeSpace);
+
+  if ShouldAppsUseDarkMode and (font<>nil) then
+  begin
+    dpiscale:=Screen.PixelsPerInch/96;
+    fcanvas.font.size:=font.size;
+    r:=rect(trunc(dpiscale)-1,trunc(3*dpiscale),(trunc(dpiscale)-1)*2+PreferredHeight-trunc((3*dpiscale)*2),(trunc(dpiscale)-1)+PreferredHeight-trunc((3*dpiscale)));
+    x:=r.right+trunc(3*dpiscale)+fcanvas.TextWidth(caption);
+
+    PreferredWidth:=x+4;
+  end;
+
+end;
 
 procedure TNewRadioButton.MouseMove(Shift: TShiftState; X, Y: Integer);
 begin
@@ -105,6 +126,8 @@ begin
     fcanvas.brush.color:=facecolor;
     fcanvas.Clear;
 
+    fcanvas.font.size:=font.size;
+
     fcanvas.pen.Width:=1;
     if enabled then
     begin
@@ -150,7 +173,6 @@ begin
     x:=r.right+trunc(3*dpiscale);
     //fcanvas.TextRect(rect(0,0,width-4,height),x,(height div 2)-(fcanvas.TextHeight(caption) div 2),'bla', ts);
     fcanvas.TextRect(rect(0,0,width-4,height),x,(height div 2)-(fcanvas.TextHeight(caption) div 2),caption, ts);
-
 
     if self.Focused then
       fcanvas.DrawFocusRect(rect(x,2,x+fcanvas.TextWidth(caption),height-2));

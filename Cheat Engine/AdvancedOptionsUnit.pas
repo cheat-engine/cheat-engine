@@ -27,6 +27,8 @@ type
 
   { TAdvancedOptions }
 
+  EAdvancedOptionsDuplicateException=class(Exception);
+
   TAdvancedOptionsCodeRecord=class
   private
   public
@@ -50,6 +52,7 @@ type
   TAdvancedOptions = class(TForm)
     aoImageList: TImageList;
     ColorDialog1: TColorDialog;
+    MenuItem1: TMenuItem;
     miNewGroup: TMenuItem;
     miSetColor: TMenuItem;
     N4: TMenuItem;
@@ -310,12 +313,14 @@ begin
       startb:=address;
       stopb:=address+sizeofopcode-1;
 
-      if ((starta>startb) and (starta<stopb)) or
-         ((startb>starta) and (startb<stopa)) then
+
+
+      if ((starta>=startb) and (starta<stopb)) or
+         ((startb>=starta) and (startb<stopa)) then
         if sizeofopcode=1 then
-          raise exception.Create(stralreadyinthelist)
+          raise EAdvancedOptionsDuplicateException.Create(stralreadyinthelist)
         else
-          raise exception.Create(strPartOfOpcodeInTheList);
+          raise EAdvancedOptionsDuplicateException.Create(strPartOfOpcodeInTheList);
     end;
   end;
 
@@ -728,7 +733,7 @@ begin
     end;
   end;
 
-  miDBVMFindWhatCodeAccesses.Enabled:={$ifdef windows}isIntel and isDBVMCapable and Findoutwhatthiscodechanges1.enabled{$else}false{$endif};
+  miDBVMFindWhatCodeAccesses.Enabled:={$ifdef windows}isDBVMCapable and Findoutwhatthiscodechanges1.enabled{$else}false{$endif};
   miDBVMFindWhatCodeAccesses.Caption:='DBVM '+Findoutwhatthiscodechanges1.Caption;
 
   //OutputDebugString('popupmenu2');

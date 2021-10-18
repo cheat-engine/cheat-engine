@@ -688,6 +688,7 @@ type
     procedure setVariableType(t: TVariableType);
     function getSavedScanCount: integer;
   protected
+    fOnScanStart: TNotifyEvent;
     fOnScanDone: TNotifyEvent;
     fOnInitialScanDone: TNotifyEvent;
     fOnGuiUpdate: TMemScanGuiUpdateRoutine;
@@ -759,6 +760,7 @@ type
     property ScanresultFolder: string read fScanResultFolder; //read only, it's configured during creation
     property BusyformIsModal: boolean read fbusyformIsModal write fbusyformIsModal;
     property OnScanDone: TNotifyEvent read fOnScanDone write fOnScanDone;
+    property OnScanStart: TNotifyEvent read fOnScanStart write fOnScanStart;
     property OnInitialScanDone: TNotifyEvent read fOnInitialScanDone write fOnInitialScanDone;
     property OnGuiUpdate: TMemscanGuiUpdateRoutine read fOnGuiUpdate write fOnGuiUpdate;
 
@@ -7920,7 +7922,9 @@ begin
   fLastscantype:=stNewScan;
   fLastScanValue:='';
 
-  savedresults.Clear;
+  if savedresults<>nil then
+    savedresults.Clear;
+
   deletescanfolder;
   createscanfolder;
 
@@ -7960,6 +7964,9 @@ var
   {$endif}
   r: TModalResult;
 begin
+  if assigned(fOnScanStart) then
+    fOnScanStart(self);
+
   {$IFNDEF jni}
    if attachedFoundlist<>nil then
      TFoundList(Attachedfoundlist).Deinitialize;
@@ -8087,6 +8094,7 @@ procedure TMemscan.firstscan(_scanOption: TScanOption; _VariableType: TVariableT
   _scanvalue1, _scanvalue2: string; _startaddress,_stopaddress: ptruint; _hexadecimal,_binaryStringAsDecimal,_unicode,_casesensitive: boolean;
   _fastscanmethod: TFastScanMethod=fsmNotAligned; _fastscanparameter: string=''; _customtype: TCustomType=nil);
 begin
+
   Hexadecimal:=_hexadecimal;
 
   self.fastscanparameter:=_fastscanparameter;
@@ -8115,6 +8123,9 @@ end;
 
 procedure TMemScan.FirstScan;
 begin
+  if assigned(fOnScanStart) then
+    fOnScanStart(self);
+
   if (variableType=vtCustom) and (customtype=nil) then
     raise exception.create('customType=nil');
 
