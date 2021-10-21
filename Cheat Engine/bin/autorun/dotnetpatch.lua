@@ -114,7 +114,63 @@ function SplitDotNetName(dotnetname)
   return namespace, classname, methodname
 end
 
+-- Example signature: Lidgren.Network.NetClient:Disconnect<string>
+function findMethodAddress(signature, dllmodule)
+  -- TODO: Check vaility of the signature
+  local matcher = signature:gmatch('[^:<>]+')
+  local namespace = ''
+  local classname = matcher()
+  local methodname = matcher()
+  local arguments = matcher()
+  local _, classDotCount = classname:gsub('%.', '')
 
+  if classDotCount > 0 then
+    namespace = classname:gsub('^(.*)(%.[^.]+)$', '%1')
+    classname = classname:gsub('^.*%.([^.]+)$', '%1')
+  end
+
+  if monopipe then
+    local class
+
+    if dllmodule == nil then
+      class = mono_findClass(namespace, classname)
+    else
+      class = mono_image_findClass(dllmodule, namespace, classname)
+    end
+    if type(class) ~= 'number' or class == 0 then
+      local err = 'Failed finding class! Namespace=' .. namespace .. ', Class=' .. classname
+      error(err)
+      return nil, err
+    end
+
+    local methods = mono_class_enumMethods(class)
+    if type(methods) ~= 'table' or #methods < 1 then
+      local err = 'No methods found! Namespace=' .. namespace .. ', Class=' .. classname
+      error(err)
+      return nil, err
+    end
+
+    for k,method in pairs(methods) do
+      if methodname == method.name then
+        if arguments == nil or arguments == '' then
+          return method.method
+        else
+          local ok, sign = pcall(mono_method_getSignature, method.method)
+          if ok and sign ~= nil and sign:match(arguments) then
+            return method.method
+          end
+        end
+      end
+    end
+
+    local err = 'Method not found! Namespace=' .. namespace .. ', Class=' .. classname .. ', Method=' .. methodname .. ', Args=' .. arguments
+    error(err)
+    return nil, err
+  else
+    error('Just monopipe supported yet!')
+    return nil, 'Just monopipe supported yet!'
+  end
+end
 
 function findDotNetMethodAddress(name, modulename)
   --print(string.format("findDotNetMethodAddress('%s','%s')", name, modulename));
