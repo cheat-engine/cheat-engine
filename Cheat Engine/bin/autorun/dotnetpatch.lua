@@ -135,40 +135,44 @@ function findMethodAddress(signature, dllmodule)
     if dllmodule == nil then
       class = mono_findClass(namespace, classname)
     else
-      class = mono_image_findClass(dllmodule, namespace, classname)
+      local assembly = mono_loadAssemblyFromFile(dllmodule)
+      if assembly == nil or assembly == 0 then
+        return nil, showError('Loading dllmodule failed: ' .. dllmodule)
+      end
+
+      local image = mono_getImageFromAssembly(assembly)
+      if image == nil then
+        return nil, showError('Failed finding image! Namespace=' .. namespace .. ', Class=' .. classname)
+      end
+      class = mono_image_findClass(image, namespace, classname)
     end
     if type(class) ~= 'number' or class == 0 then
-      local err = 'Failed finding class! Namespace=' .. namespace .. ', Class=' .. classname
-      error(err)
-      return nil, err
+      return nil, showError('Failed finding class! Namespace=' .. namespace .. ', Class=' .. classname)
     end
 
     local methods = mono_class_enumMethods(class)
     if type(methods) ~= 'table' or #methods < 1 then
       local err = 'No methods found! Namespace=' .. namespace .. ', Class=' .. classname
-      error(err)
+      showError(err)
       return nil, err
     end
 
     for k,method in pairs(methods) do
       if methodname == method.name then
         if arguments == nil or arguments == '' then
-          return method.method
+          return mono_compile_method(method.method)
         else
           local ok, sign = pcall(mono_method_getSignature, method.method)
           if ok and sign ~= nil and sign:match(arguments) then
-            return method.method
+            return mono_compile_method(method.method)
           end
         end
       end
     end
 
-    local err = 'Method not found! Namespace=' .. namespace .. ', Class=' .. classname .. ', Method=' .. methodname .. ', Args=' .. arguments
-    error(err)
-    return nil, err
+    return nil, showError('Method not found! Namespace=' .. namespace .. ', Class=' .. classname .. ', Method=' .. methodname .. ', Args=' .. arguments)
   else
-    error('Just monopipe supported yet!')
-    return nil, 'Just monopipe supported yet!'
+    return nil, showError('Just monopipe supported yet!')
   end
 end
 
