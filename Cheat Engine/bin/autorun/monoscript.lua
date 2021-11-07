@@ -634,6 +634,7 @@ function LaunchMonoDataCollector()
   end
 
   monopipe.OnTimeout=function(self)  
+    print("monopipe disconnected")
     
     local oldmonopipe=monopipe
     monopipe=nil
@@ -663,10 +664,10 @@ function LaunchMonoDataCollector()
     if (lastMonoError==nil) or (getTickCount()>lastMonoError+200) then  
       --print("monopipe error. Reattaching in 500 ms")
       --auto re-attach after error
-      createTimer(200,function()
+      --createTimer(200,function()
         --print("Reattaching")
-        LaunchMonoDataCollector()    
-      end)      
+     --   LaunchMonoDataCollector()    
+      --end)      
     --else
     --  print("monopipe error. Last reattach too soon. Giving up")
     end
@@ -804,13 +805,9 @@ function mono_structureNameLookupCallback(address)
   end
 end
 
-
-function mono_symbolLookupCallback(symbol)
-  --if debug_canBreak() then return nil end
-
-  if monopipe == nil then return nil end  
-  if monopipe.IL2CPP then return nil end
-
+function mono_splitSymbol(symbol)
+  local result=nil
+  
   local parts={}
   local x
   for x in string.gmatch(symbol, "[^:.]+") do
@@ -822,7 +819,7 @@ function mono_symbolLookupCallback(symbol)
   local namespace=''
 
   if (#parts>0) then
-    methodname=parts[#parts]
+    methodname=(symbol:find("[:.]%.cc?tor$") ~= nil and '.' or '')..parts[#parts] --methodname=parts[#parts]    
     if (#parts>1) then
       classname=parts[#parts-1]
       if (#parts>2) then
@@ -836,6 +833,36 @@ function mono_symbolLookupCallback(symbol)
       end
     end
   end
+  --[[
+  if (methodname=='ctor' and symbol.endswith('.ctor')) or
+     (methodname=='cctor' and symbol.endswith('.cctor')) then
+     methodname='.'..methodname
+  end--]]
+  
+  
+  result={}
+  result.methodname=methodname
+  result.classname=classname
+  result.namespace=namespace  
+  
+  return result
+end
+
+function mono_symbolLookupCallback(symbol)
+  --if debug_canBreak() then return nil end
+
+  if monopipe == nil then return nil end  
+  if monopipe.IL2CPP then return nil end
+
+
+  local methodname=''
+  local classname=''
+  local namespace=''
+  
+  local ss=mono_splitSymbol(symbol)
+  methodname=ss.methodname
+  classname=ss.classname
+  namespace=ss.namespace
 
   if (methodname~='') and (classname~='') then
     local method=mono_findMethod(namespace, classname, methodname)
