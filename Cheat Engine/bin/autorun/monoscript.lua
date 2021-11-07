@@ -822,7 +822,7 @@ function mono_symbolLookupCallback(symbol)
   local namespace=''
 
   if (#parts>0) then
-    methodname=parts[#parts]
+    methodname=(symbol:find("[:.]%.cc?tor$") ~= nil and '.' or '')..parts[#parts]
     if (#parts>1) then
       classname=parts[#parts-1]
       if (#parts>2) then
