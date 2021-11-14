@@ -1,9 +1,9 @@
 #ifdef _WINDOWS
 #include "StdAfx.h"
+#include <setjmp.h>
 #else
 #include <signal.h>
 #include <sys/types.h>
-#include <setjmp.h>
 #endif
 #include "PipeServer.h"
 
@@ -20,12 +20,17 @@ uint64_t ExpectingAccessViolationsThread = 0;
 
 typedef uint64_t QWORD;
 
+jmp_buf onError;
+
 void ErrorThrow(void)
 {
-	throw std::invalid_argument("Access violation caught");
+	longjmp(onError, 1);
 }
 
 #ifdef _WINDOWS
+
+
+
 int looper = 0;
 LONG NTAPI ErrorFilter(struct _EXCEPTION_POINTERS *ExceptionInfo)
 {
@@ -86,6 +91,11 @@ CPipeServer::CPipeServer(void)
 {
     //OutputDebugString("CPipeServer::CPipeServer");
 	attached = FALSE;
+	limitedConnection = FALSE;
+	il2cpp = FALSE;
+	UWPMode = FALSE;
+	mono_selfthread = NULL;
+
 #ifdef _WINDOWS
 	swprintf(datapipename, 256, L"\\\\.\\pipe\\cemonodc_pid%d", GetCurrentProcessId());
 	//swprintf(eventpipename, 256,L"\\\\.\\pipe\\cemonodc_pid%d_events", GetCurrentProcessId());
@@ -474,8 +484,8 @@ void CPipeServer::InitMono()
 				il2cpp_class_from_type = (IL2CPP_CLASS_FROM_TYPE)GetProcAddress(hMono, "il2cpp_class_from_type");
 				il2cpp_string_chars = (IL2CPP_STRING_CHARS)GetProcAddress(hMono, "il2cpp_string_chars");
 
+				//mono_runtime_is_shutting_down = (MONO_RUNTIME_IS_SHUTTING_DOWN)GetProcAddress(hMono, "il2cpp_runtime_is_shutting_down");  //doesn't seem to exist in il2cpp....
 
-				mono_selfthread = mono_thread_attach(mono_domain_get());
 			}
 			else
 			{
@@ -601,22 +611,28 @@ void CPipeServer::InitMono()
 				mono_field_static_get_value = (MONO_FIELD_STATIC_GET_VALUE)GetProcAddress(hMono, "mono_field_static_get_value");
 				mono_field_static_set_value = (MONO_FIELD_STATIC_SET_VALUE)GetProcAddress(hMono, "mono_field_static_set_value");
 
-                void* domain=mono_get_root_domain();
-             	mono_selfthread = mono_thread_attach(domain);
-                
-                
+				mono_runtime_is_shutting_down = (MONO_RUNTIME_IS_SHUTTING_DOWN)GetProcAddress(hMono, "mono_runtime_is_shutting_down");
+
 			}
-			attached = TRUE;
-			
+
+			ConnectThreadToMonoRuntime();			
 		}
 		//else
 		//	OutputDebugStringA("Already attached");
 	}
-    
-    
-    
+}
 
+void CPipeServer::ConnectThreadToMonoRuntime()
+{
+	if (il2cpp)
+		mono_selfthread = mono_thread_attach(mono_domain_get());
+	else
+	{
+		void* domain = mono_get_root_domain();
+		mono_selfthread = mono_thread_attach(domain);
+	}
 
+	attached = mono_selfthread != NULL;
 }
 
 void CPipeServer::Object_New()
@@ -2115,13 +2131,7 @@ void CPipeServer::Start(void)
         
 		try
 		{
-#ifndef _WINDOWS
-            if (setjmp(onError))
-            {
-                OutputDebugString("setjmp returned 1");
-                throw("Error during execution");
-            }
-#endif
+
             
 			while (TRUE)
 			{
@@ -2132,7 +2142,16 @@ void CPipeServer::Start(void)
 #else
                 pthread_threadid_np(NULL, &ExpectingAccessViolationsThread);
 #endif
-                
+
+				if (setjmp(onError))
+				{
+					OutputDebugString(L"setjmp returned 1");
+					throw("Error during execution");
+				}
+
+				if (limitedConnection)
+					ConnectThreadToMonoRuntime();					
+				
 
 				switch (command)
 				{
@@ -2321,9 +2340,21 @@ void CPipeServer::Start(void)
 					FreeObject();
 					break;
 
+				case MONOCMD_LIMITEDCONNECTION:
+					limitedConnection = true;
+					break;
+
 				}
 
 				ExpectingAccessViolations = FALSE;
+
+				if (limitedConnection) //beware: If profiling gets added someday, this will likely cause issues
+				{
+					mono_thread_detach(mono_selfthread);
+					attached = false;
+					mono_selfthread = NULL;
+				}
+
 			}
 		}
 		catch (char *e)

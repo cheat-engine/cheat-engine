@@ -68,6 +68,7 @@ MONOCMD_GETCLASSIMAGE=42
 MONOCMD_FREE=43
 MONOCMD_GETIMAGEFILENAME=44
 MONOCMD_GETCLASSNESTINGTYPE=45
+MONOCMD_LIMITEDCONNECTION=46
 
 
 MONO_TYPE_END        = 0x00       -- End of List
@@ -520,7 +521,14 @@ end
 
 local lastMonoError
 
-function LaunchMonoDataCollector()
+function mono_connectionmode2()
+  monopipe.lock()
+  monopipe.writeByte(MONOCMD_LIMITEDCONNECTION)
+  monopipe.unlock()
+end
+
+
+function LaunchMonoDataCollector(internalReconnectDisconnectEachTime)
   if debug_isBroken() then
     if inMainThread() then   
       messageDialog(translate('You can not use this while the process is frozen'), mtError, mbOK)
@@ -745,9 +753,21 @@ function LaunchMonoDataCollector()
       else
         t.destroy()
       end
-
   end
   
+  if internalReconnectDisconnectEachTime==nil then --old scripts don't give the parameter
+    
+    
+    if AddressList.LoadedTableVersion and AddressList.LoadedTableVersion<=40 then
+      internalReconnectDisconnectEachTime=false --old behaviour
+    else
+      internalReconnectDisconnectEachTime=true
+    end
+  end
+  
+  if internalReconnectDisconnectEachTime then
+    mono_connectionmode2() --Change the behaviour from always connected to the mono runtime to only issuing a command, attach the handler thread to the mono runtime, and afterwards disconnect the thread from the mono runtime
+  end  
   
   return monoBase
 end

@@ -64,9 +64,9 @@ object formSettings: TformSettings
       Height = 569
       Top = 1
       Width = 655
-      ActivePage = Assembler
+      ActivePage = tsHotkeys
       Align = alClient
-      TabIndex = 6
+      TabIndex = 1
       TabOrder = 1
       OnChange = pcSettingChange
       object GeneralSettings: TTabSheet
@@ -659,31 +659,31 @@ object formSettings: TformSettings
       object tsHotkeys: TTabSheet
         Caption = 'Hotkeys'
         ClientHeight = 541
-        ClientWidth = 652
+        ClientWidth = 647
         ImageIndex = 7
         inline frameHotkeyConfig: TframeHotkeyConfig
           Height = 541
-          Width = 652
+          Width = 647
           Align = alClient
           ClientHeight = 541
-          ClientWidth = 652
+          ClientWidth = 647
           DesignLeft = 737
           DesignTop = 306
           inherited Panel1: TPanel
             Height = 491
-            Width = 426
+            Width = 421
             ClientHeight = 491
-            ClientWidth = 426
+            ClientWidth = 421
             inherited Label1: TLabel
-              Width = 426
+              Width = 421
             end
             inherited ListBox1: TListBox
               Height = 476
-              Width = 426
+              Width = 421
             end
           end
           inherited Panel2: TPanel
-            Left = 426
+            Left = 421
             Height = 491
             Width = 226
             ClientHeight = 491
@@ -707,8 +707,8 @@ object formSettings: TformSettings
             end
           end
           inherited Panel5: TPanel
-            Width = 652
-            ClientWidth = 652
+            Width = 647
+            ClientWidth = 647
             inherited Label4: TLabel
               Left = 121
             end
@@ -1236,7 +1236,7 @@ object formSettings: TformSettings
       object Languages: TTabSheet
         Caption = 'Languages'
         ClientHeight = 541
-        ClientWidth = 652
+        ClientWidth = 647
         object Panel1: TPanel
           AnchorSideLeft.Control = Languages
           AnchorSideTop.Control = Languages
@@ -1247,11 +1247,11 @@ object formSettings: TformSettings
           Left = 0
           Height = 541
           Top = 0
-          Width = 652
+          Width = 647
           Anchors = [akTop, akLeft, akRight, akBottom]
           BevelOuter = bvNone
           ClientHeight = 541
-          ClientWidth = 652
+          ClientWidth = 647
           TabOrder = 0
           object cbShowLanguageMenuItem: TCheckBox
             AnchorSideLeft.Control = Panel1
@@ -1274,7 +1274,7 @@ object formSettings: TformSettings
             Left = 0
             Height = 507
             Top = 15
-            Width = 532
+            Width = 527
             Anchors = [akTop, akLeft, akRight, akBottom]
             ItemHeight = 0
             OnDblClick = btnSelectLanguageClick
@@ -1296,7 +1296,7 @@ object formSettings: TformSettings
             AnchorSideTop.Side = asrBottom
             AnchorSideRight.Control = Panel1
             AnchorSideRight.Side = asrBottom
-            Left = 532
+            Left = 527
             Height = 67
             Top = 15
             Width = 120

@@ -21,9 +21,10 @@ uses
      StructuresFrm2, comctrls,dom, xmlread,xmlwrite, FileUtil, ceguicomponents,
      zstream, luafile, disassemblerComments, commonTypeDefs, lazutf8, betterControls;
 
+const _CurrentTableVersion=41;
 
-var CurrentTableVersion: dword=40;
-    lastLoadedTableVersion: dword;
+var CurrentTableVersion: dword=_CurrentTableVersion;
+    lastLoadedTableVersion: dword=_CurrentTableVersion;
     iscetrainer: integer=0;
 
 procedure protecttrainer(filename: string);

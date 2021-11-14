@@ -52,6 +52,7 @@
 #define MONOCMD_FREE 43
 #define MONOCMD_GETIMAGEFILENAME 44
 #define MONOCMD_GETCLASSNESTINGTYPE 45
+#define MONOCMD_LIMITEDCONNECTION 46
 
 
 typedef struct {} MonoType;
@@ -189,6 +190,8 @@ typedef void* (__cdecl *MONO_VALUE_BOX)(void *domain, void *klass, void* val);
 typedef void* (__cdecl *MONO_OBJECT_UNBOX)(void *obj);
 typedef void* (__cdecl *MONO_CLASS_GET_TYPE)(void *klass);
 typedef void* (__cdecl *MONO_CLASS_GET_NESTING_TYPE)(void *klass);
+
+typedef int (__cdecl *MONO_RUNTIME_IS_SHUTTING_DOWN)(void *klass);
 
 
 
@@ -333,6 +336,9 @@ private:
 	MONO_FIELD_STATIC_GET_VALUE mono_field_static_get_value;
 	MONO_FIELD_STATIC_SET_VALUE mono_field_static_set_value;
 
+	MONO_RUNTIME_IS_SHUTTING_DOWN mono_runtime_is_shutting_down;
+
+
 	//il2cpp
 	IL2CPP_FIELD_STATIC_GET_VALUE il2cpp_field_static_get_value;
 	IL2CPP_FIELD_STATIC_SET_VALUE il2cpp_field_static_set_value;
@@ -353,14 +359,18 @@ private:
 	IL2CPP_STRING_CHARS il2cpp_string_chars;
 
 
+	BOOL limitedConnection;
 	BOOL attached;
 	BOOL il2cpp;
 
 	BOOL UWPMode;
+	
 
 	void CreatePipeandWaitForconnect(void);
 
 	void InitMono();
+	void ConnectThreadToMonoRuntime();
+
 	void Object_GetClass();
 	void EnumDomains();
 	void SetCurrentDomain();

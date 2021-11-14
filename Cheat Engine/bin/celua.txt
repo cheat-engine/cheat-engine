@@ -2227,6 +2227,7 @@ global events
 
 Addresslist Class: (Inheritance: Panel->WinControl->Control->Component->Object)
 properties
+  LoadedTableVersion: integer - Returns the tableVersion of the last loaded table
   Count: Integer - The number of records in the table
   SelCount: integer- The number of records that are selected
   SelectedRecord: MemoryRecord - The main selected record
@@ -3872,3 +3873,6 @@ methods
 ce lua extensions:
 string table:
 split(character) -> table of strings separated by character  
+endsWith('string') : boolean - Returns true if the string ends with the given string
+startsWith('string') : boolean - Returns true if the string starts with the given string
+

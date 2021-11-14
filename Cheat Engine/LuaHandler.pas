@@ -14538,7 +14538,7 @@ begin
   result:=1;
 end;
 
-function lua_split(L: Plua_State): integer; cdecl;
+function lua_string_split(L: Plua_State): integer; cdecl;
 var
   s: string;
   sep: string;
@@ -14558,6 +14558,48 @@ begin
       lua_pushstring(L, arr[i]);
 
     result:=length(arr);
+  end;
+end;
+
+function lua_string_endswith(L: Plua_State): integer; cdecl;
+var
+  s, endswith: string;
+  ignoreCase: boolean;
+begin
+  result:=0;
+  if lua_gettop(L)>=2 then
+  begin
+    s:=Lua_ToString(L,1);
+    endswith:=Lua_ToString(L,2);
+
+    if lua_gettop(L)>=3 then
+      ignorecase:=lua_toboolean(L,3)
+    else
+      ignorecase:=false;
+
+    lua_pushboolean(L, s.EndsWith(s,ignorecase));
+    result:=1;
+  end;
+end;
+
+function lua_string_startswith(L: Plua_State): integer; cdecl;
+var
+  s, startswith: string;
+  ignoreCase: boolean;
+begin
+  result:=0;
+  if lua_gettop(L)>=2 then
+  begin
+    s:=Lua_ToString(L,1);
+    startswith:=Lua_ToString(L,2);
+
+    if lua_gettop(L)>=3 then
+      ignorecase:=lua_toboolean(L,3)
+    else
+      ignorecase:=false;
+
+    lua_pushboolean(L, s.StartsWith(s,ignorecase));
+    result:=1;
   end;
 end;
 
@@ -15995,7 +16037,15 @@ begin
 
       lua_getglobal(L, 'string');
       lua_pushstring(L,'split');
-      lua_pushcfunction(L, lua_split);
+      lua_pushcfunction(L, lua_string_split);
+      lua_settable(L,-3);
+
+      lua_pushstring(L,'endsWith');
+      lua_pushcfunction(L, lua_string_endswith);
+      lua_settable(L,-3);
+
+      lua_pushstring(L,'startsWith');
+      lua_pushcfunction(L, lua_string_startswith);
       lua_settable(L,-3);
 
       lua_pushstring(L,'trim');

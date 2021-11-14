@@ -3078,9 +3078,6 @@ begin
     generateFullInjectionScript(assemblescreen.Lines, address, 10, ssCtrl in GetKeyShiftState);
 end;
 
-
-
-
 procedure TfrmAutoInject.miReplaceClick(Sender: TObject);
 begin
   ReplaceDialog1.execute;
