@@ -1,6 +1,5 @@
 mono: .net info search for mono: search for result/parameter
 mono/il2cpp: debugging, resuming and then activating mono seems to give an error
-il2cpp: Show a small symbolload progressbar somewhere
 addresslist: add groupboxs like entries that auto deactivate the other entries on activate first
 
 when there is an aa error in a memoryrecord, rightclick any other record shows it as well

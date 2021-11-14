@@ -416,6 +416,9 @@ function monoIL2CPPSymbolEnum(t)
   local images={}
   local assemblies=mono_enumAssemblies() 
   
+  monoSymbolList.IL2CPPSymbolEnumProgress=0
+  
+  
   if assemblies then
     for i=1,#assemblies do      
       images[i]={}
@@ -432,19 +435,24 @@ function monoIL2CPPSymbolEnum(t)
   if monopipe==nil or t.Terminated then return end
   
   if priority then
-    --print("parsing "..images[priority].name..'(1/'..#images..')');
-  
     parseImage(t, images[priority])
+    monoSymbolList.IL2CPPSymbolEnumProgress=(1/#assemblies) * 100
   end
   if monopipe==nil or t.Terminated then return end
   
   for i=1,#images do
     local x=i
     
-    if priority then x=x+1 end
+    if i~=priority then        
+      parseImage(t, images[i])
+    end
     
-    --print("parsing "..images[i].name..'('..x..'/'..#images..')');
-    parseImage(t, images[i])
+    if priority then
+      monoSymbolList.IL2CPPSymbolEnumProgress=((i-1)/#assemblies) * 100    
+    else
+      monoSymbolList.IL2CPPSymbolEnumProgress=(i/#assemblies) * 100
+    end
+    
     if monopipe==nil or t.Terminated then return end
   end
 
@@ -732,9 +740,58 @@ function LaunchMonoDataCollector(internalReconnectDisconnectEachTime)
       monoSymbolList=createSymbolList()
       monoSymbolList.register() 
       monoSymbolList.ProcessID=getOpenedProcessID()
-      monoSymbolList.FullyLoaded=false        
+      monoSymbolList.FullyLoaded=false   
+      monoSymbolList.IL2CPPSymbolEnumProgress=0
       monoSymbolEnum=createThread(monoIL2CPPSymbolEnum)
+      
+      createTimer(500,function()
+        --print("0.5 second delayed timer running now")
+        if monoSymbolList.FullyLoaded==false then
+          --show a progressbar in CE                  
+          if monoSymbolList.progressbar then         
+            monoSymbolList.progressbar.destroy()
+            monoSymbolList.progressbar=nil
+          end
+          
+          local pb=monoSymbolList.progressbar
+          
+          pb=createProgressBar(MainForm.Panel4)
+          pb.Align=alBottom
+          pb.Max=100
 
+          local pbl=createLabel(pb)
+          pbl.Caption=translate('IL2CPP symbol enum: 0%')
+          pbl.AnchorSideLeft.Control=pb
+          pbl.AnchorSideLeft.Side=asrCenter
+
+          pbl.AnchorSideTop.Control=pb
+          pbl.AnchorSideTop.Side=asrCenter
+
+          pb.Height=pbl.Height 
+          monoSymbolList.progressbar=pb
+          local t=createTimer(pb)
+          t.enabled=true         
+          t.interval=250        
+          t.OnTimer=function()
+            --print("Check progress")
+            pb.Position=math.ceil(monoSymbolList.IL2CPPSymbolEnumProgress)
+    
+            pbl.Caption=string.format("IL2CPP symbol enum: %.f%%",monoSymbolList.IL2CPPSymbolEnumProgress)
+            if monoSymbolList.FullyLoaded then
+              --print("done. Turning off check timer, and starting cleanup timer in 1.5 seconds")
+              t.enabled=false
+              
+              pb.Position=100
+              pbl.Caption=string.format("IL2CPP symbol enum: Done"); --enum done. Now wait 1.5 seconds and then delete the bar 
+              
+              createTimer(1500,function()
+                --print("cleanup timer that runs after 1.5 seconds. destroying progressbar")                             
+                pb.destroy() --also destroys t
+              end)
+            end
+          end
+        end
+      end)
     end
   end
   
