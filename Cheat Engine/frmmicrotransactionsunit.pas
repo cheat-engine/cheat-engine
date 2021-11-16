@@ -46,7 +46,7 @@ var
 
 implementation
 
-uses MainUnit, cheatecoins{$IFDEF windows} , windows {$ENDIF};
+uses MainUnit, cheatecoins{$IFDEF windows} , windows {$ENDIF}, mainunit2;
 
 { TfrmMicroTransactions }
 
@@ -70,7 +70,7 @@ var ss: TStringstream;
 begin
   {$IFDEF windows}
   if internet=nil then
-    internet:=TWinInternet.Create('Cheat Engine microtransaction system');
+    internet:=TWinInternet.Create(strCheatEngine+' microtransaction system');
 
   ss:=tstringstream.create({$if FPC_FULLVERSION<030200}''{$endif});
   try
@@ -84,7 +84,7 @@ begin
         MessageDlg('There is an issue with the webserver. Please try again later',mtInformation, [mbok],0);
       end;
     except
-      MessageDlg('Sorry, but the Cheat Engine server is currently overloaded or you have no internet. Please try again later',mtInformation, [mbok],0);
+      MessageDlg('Sorry, but the '+strCheatEngine+' server is currently overloaded or you have no internet. Please try again later',mtInformation, [mbok],0);
     end;
   finally
     ss.free;

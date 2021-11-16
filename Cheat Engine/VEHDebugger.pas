@@ -61,13 +61,13 @@ type
 implementation
 
 {$ifdef windows}
-uses ProcessHandlerUnit, Globals, dialogs;
+uses ProcessHandlerUnit, Globals, dialogs, mainunit2;
 
 resourcestring
   rsErrorWhileTryingToCreateTheConfigurationStructure = 'Error while trying '
     +'to create the configuration structure! (Which effectively renders this '
     +'whole feature useless) Errorcode=%s';
-  rsCheatEngineFailedToGetIntoTheConfig = 'Cheat Engine failed to get into '
+  rsCheatEngineFailedToGetIntoTheConfig = strCheatEngine+' failed to get into '
     +'the config of the selected program. (Error=%s)';
   rsFailureDuplicatingTheEventHandlesToTheOtherProcess = 'Failure duplicating '
     +'the event handles to the other process';

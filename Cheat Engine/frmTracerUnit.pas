@@ -241,7 +241,7 @@ uses  LuaByteTable, clipbrd, CEDebugger, debughelper, MemoryBrowserFormUnit, frm
   ProcessHandlerUnit, Globals, Parsers, strutils, CEFuncProc,
   LuaHandler, symbolhandler, byteinterpreter,
   tracerIgnore, LuaForm, lua, lualib,lauxlib, LuaClass,vmxfunctions, DBK32functions,
-  DebuggerInterfaceAPIWrapper, DBVMDebuggerInterface;
+  DebuggerInterfaceAPIWrapper, DBVMDebuggerInterface, mainunit2;
 
 resourcestring
   rsSearch = 'Search';
@@ -1475,7 +1475,7 @@ begin
       m.free;
 
       if version<>{$ifdef cpu64}1{$else}0{$endif} then
-        raise exception.create('This trace was made with the '+{$ifdef cpu64}'32'{$else}'64'{$endif}+'-bit version of cheat engine. You need to use that version to see the register values and stacktrace');
+        raise exception.create('This trace was made with the '+{$ifdef cpu64}'32'{$else}'64'{$endif}+'-bit version of '+strCheatEngine+'. You need to use that version to see the register values and stacktrace');
 
       for i:=0 to comparetv.Items.Count-1 do
       begin
@@ -1536,7 +1536,7 @@ begin
       m.free;
 
       if version<>{$ifdef cpu64}1{$else}0{$endif} then
-        raise exception.create('This trace was made with the '+{$ifdef cpu64}'32'{$else}'64'{$endif}+'-bit version of cheat engine. You need to use that version to see the register values and stacktrace');
+        raise exception.create('This trace was made with the '+{$ifdef cpu64}'32'{$else}'64'{$endif}+'-bit version of '+strCheatEngine+'. You need to use that version to see the register values and stacktrace');
 
       for i:=0 to lvTracer.Items.Count-1 do
         lvTracer.Items[i].Data:=TTraceDebugInfo.createFromStream(f);

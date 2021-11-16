@@ -379,6 +379,9 @@ var
 
   ispointer: boolean;
 begin
+  currentFunctionAddress:=0;
+  ispointer:=false;
+
   if fullyParsed=false then
   begin
     fullyParsed:=true;

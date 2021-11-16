@@ -213,7 +213,7 @@ begin
     listview1.clear;
     fmemrec:=x;
 
-
+    caption:=caption+' : '+memrec.Description;
 
     for i:=0 to memrec.HotkeyCount-1 do
     begin

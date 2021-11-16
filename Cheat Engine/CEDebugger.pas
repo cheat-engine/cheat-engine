@@ -176,14 +176,14 @@ implementation
 uses debughelper,debuggertypedefinitions, debugeventhandler, MainUnit,frmFloatingPointPanelUnit,
      Memorybrowserformunit,disassembler,frmTracerUnit,foundcodeunit,kerneldebugger,
      advancedoptionsunit,formChangedAddresses,frmstacktraceunit,frmThreadlistunit,
-     formdebugstringsunit,formsettingsunit,processwindowunit,plugin,processhandlerunit(*,frmCreatedProcessListUnit*);
+     formdebugstringsunit,formsettingsunit,processwindowunit,plugin,processhandlerunit(*,frmCreatedProcessListUnit*), mainunit2;
 
 
 resourcestring
   rsPleaseTargetAnotherProcess = 'Please target another process';
   rsYouMustFirstOpenAProcess = 'You must first open a process';
-  rsThisWillAttachTheDebuggerOfCheatEngineToTheCurrent = 'This will attach the debugger of Cheat Engine to the current process.';
-  rsDoNotCloseCE = 'If you close Cheat Engine while the game is running, the game will close too. Are you sure you want to do this?';
+  rsThisWillAttachTheDebuggerOfCheatEngineToTheCurrent = 'This will attach the debugger of '+strCheatEngine+' to the current process.';
+  rsDoNotCloseCE = 'If you close '+strCheatEngine+' while the game is running, the game will close too. Are you sure you want to do this?';
   rsContinue = 'Continue?';
   rsDebugError = 'I couldn''t attach the debugger to this process! You could try to open the process using the processpicker and try that! If that also doesn''t work check if '
     +'you have debugging rights.';

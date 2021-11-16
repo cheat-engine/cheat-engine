@@ -163,7 +163,7 @@ implementation
 
 uses MainUnit, formsettingsunit, advancedoptionsunit,frmProcessWatcherUnit,
   memorybrowserformunit{$ifdef windows}, networkConfig{$endif}, ProcessHandlerUnit, processlist, globals,
-  registry, fontSaveLoadRegistry, frmOpenFileAsProcessDialogUnit, networkinterfaceapi;
+  registry, fontSaveLoadRegistry, frmOpenFileAsProcessDialogUnit, networkinterfaceapi, mainunit2;
 
 resourcestring
   rsIsnTAValidProcessID = '%s isn''t a valid processID';
@@ -608,7 +608,7 @@ begin
 
   reg:=tregistry.create;
   try
-    if reg.OpenKey('\Software\Cheat Engine\Process Window\Font'+darkmodestring,false) then
+    if reg.OpenKey('\Software\'+strCheatEngine+'\Process Window\Font'+darkmodestring,false) then
       LoadFontFromRegistry(processlist.Font, reg)
     else
       processlist.font.color:=colorset.FontColor;
@@ -656,7 +656,7 @@ begin
 
     reg:=tregistry.create;
     try
-      if reg.OpenKey('\Software\Cheat Engine\Process Window\Font'+darkmodestring,true) then
+      if reg.OpenKey('\Software\'+strCheatEngine+'\Process Window\Font'+darkmodestring,true) then
         SaveFontToRegistry(FontDialog1.Font, reg);
 
 

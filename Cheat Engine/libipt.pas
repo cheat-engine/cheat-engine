@@ -231,7 +231,7 @@ begin
   begin
     {$ifdef windows}
     hLibIPT:=LoadLibrary('libipt-64.dll');
-    if hLibIPT=0 then hLibIPT:=LoadLibrary('D:\svn\Cheat Engine\bin\libipt-64.dll'); //during debug
+   // if hLibIPT=0 then hLibIPT:=LoadLibrary('D:\svn\Cheat Engine\bin\libipt-64.dll'); //during debug
 
     if hLibIPT<>0 then
     begin

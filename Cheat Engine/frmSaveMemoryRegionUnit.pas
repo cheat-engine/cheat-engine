@@ -53,12 +53,12 @@ var
 
 implementation
 
-uses ProcessHandlerUnit, Parsers;
+uses ProcessHandlerUnit, Parsers, mainunit2;
 
 resourcestring
   rsPleaseAddAtLeastOneAddressRegionToTheList = 'Please add at least one address region to the list';
   rsNotAllTheMemoryWasReadableIn = 'Not all the memory was readable in';
-  rsNoStartAddress = 'If you don''t include the header data you''ll have to specify the startaddress yourself when loading the file(That means Cheat Engine wont fill in the '
+  rsNoStartAddress = 'If you don''t include the header data you''ll have to specify the startaddress yourself when loading the file(That means '+strCheatEngine+' won''t fill in the '
     +'startaddress text field when loaded for you)';
   rsIsNotAValidAddress = '%s is not a valid address';
 

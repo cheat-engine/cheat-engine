@@ -357,7 +357,7 @@ uses disassembler,CEDebugger,debughelper, symbolhandler, symbolhandlerstructs,
      frmProcessWatcherUnit, KernelDebugger, formsettingsunit, MemoryBrowserFormUnit,
      savedscanhandler, networkInterface, networkInterfaceApi, vartypestrings,
      processlist, Parsers, Globals, xinput, luahandler, LuaClass, LuaObject,
-     UnexpectedExceptionsHelper, LazFileUtils, autoassembler, Clipbrd;
+     UnexpectedExceptionsHelper, LazFileUtils, autoassembler, Clipbrd, mainunit2;
 
 
 resourcestring
@@ -2992,13 +2992,13 @@ begin
     reg:=tregistry.create;
     try
       Reg.RootKey := HKEY_CURRENT_USER;
-      if Reg.OpenKey('\Software\Cheat Engine',false) then
+      if Reg.OpenKey('\Software\'+strCheatEngine,false) then
       begin
         if reg.valueexists('Save window positions') then
           if reg.readbool('Save window positions') = false then exit;
       end;
 
-      if Reg.OpenKey('\Software\Cheat Engine\Window Positions '+inttostr(screen.PixelsPerInch),false) or Reg.OpenKey('\Software\Cheat Engine\Window Positions',false) then
+      if Reg.OpenKey('\Software\'+strCheatEngine+'\Window Positions '+inttostr(screen.PixelsPerInch),false) or Reg.OpenKey('\Software\'+strCheatEngine+'\Window Positions',false) then
       begin
         s:=form.Name;
         s:=s+rsPosition;
@@ -3083,7 +3083,7 @@ begin
       Reg.RootKey := HKEY_CURRENT_USER;
 
       //make sure the option to save is enabled
-      if Reg.OpenKey('\Software\Cheat Engine',false) then
+      if Reg.OpenKey('\Software\'+strCheatEngine,false) then
       begin
         if reg.valueexists('Save window positions') then
           if reg.readbool('Save window positions') = false then
@@ -3105,7 +3105,7 @@ begin
       end;
 
 
-      if Reg.OpenKey('\Software\Cheat Engine\Window Positions '+inttostr(screen.PixelsPerInch),true) then
+      if Reg.OpenKey('\Software\'+strCheatEngine+'\Window Positions '+inttostr(screen.PixelsPerInch),true) then
       begin
         //registry is open, gather data
         buf:=tmemorystream.Create;
@@ -3789,7 +3789,7 @@ begin
       path:=GetTempDir;
   end;
 
-  path:=path+'Cheat Engine Symbols';
+  path:=path+strCheatEngine+' Symbols';
 
   ForceDirectory(path);
   if warn and (messagedlg(rsThisCanTakeSomeTime, mtWarning, [mbyes, mbno], 0, mbno)<>mryes) then exit;

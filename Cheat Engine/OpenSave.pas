@@ -205,27 +205,27 @@ uses MainUnit, mainunit2, symbolhandler, symbolhandlerstructs, LuaHandler,
 
 resourcestring
   strCorruptIcon='The icon has been corrupted';
-  strCantLoadFilepatcher='The file patcher can''t be loaded by Cheat Engine!';
-  strNotACETrainer='This is not a trainer made by Cheat Engine (If it is a trainer at all!)';
-  strUnknownTrainerVersion='This version of Cheat Engine doesn''t know how to read this trainer! Trainerversion=';
-  strCantLoadProtectedfile='This trainer is protected from being opened by CE. Now go away!!!';
+  strCantLoadFilepatcher='The file patcher can''t be loaded by '+strCheatEngine+'!';
+  strNotACETrainer='This is not a '+strTrainer+' made by '+strCheatEngine+' (If it is a '+strTrainer+' at all!)';
+  strUnknownTrainerVersion='This version of '+strCheatEngine+' doesn''t know how to read this '+strTrainer+'! '+strTrainer+'version=';
+  strCantLoadProtectedfile='This '+strTrainer+' is protected from being opened by '+strCheatEngine+'. Now go away!!!';
   rsThisTableContainsALuaScriptDoYouWantToRunIt = 'This table contains a lua script. Do you want to run it?';
   rsErrorExecutingThisTableSLuaScript = 'Error executing this table''s lua script: %s';
   rsErrorExecutingThisTableSLuaScriptEntry = 'Error executing this table''s lua script named %s: %s';
   rsTheRegionAtWasPartiallyOrCompletlyUnreadable = 'The region at %s was partially or completely unreadable';
-  rsTheVersionOfIsIncompatibleWithThisCEVersion = 'The version of %s is incompatible with this CE version';
+  rsTheVersionOfIsIncompatibleWithThisCEVersion = 'The version of %s is incompatible with this '+strCheatEngine+' version';
   rsDoesnTContainNeededInformationWhereToPlaceTheMemor = '%s doesn''t contain needed information where to place the memory';
-  rsThisIsNotAValidCheatTable = 'This is not a valid cheat table';
+  rsThisIsNotAValidCheatTable = 'This is not a valid '+strCheatTableLower;
   rsThisIsNotAValidXmlFile = 'This is not a valid xml file';
   rsUnknownExtention = 'Unknown extension';
   rsYouCanOnlyProtectAFileIfItHasAnCETRAINERExtension = 'You can only protect a file if it has an .CETRAINER extension';
   rsErrorSaving = 'Error saving...';
-  rsAskIfStupid = 'Generating a trainer with the current state of the cheat '
-    +'table will likely result in a completely useless trainer that does '
+  rsAskIfStupid = 'Generating a '+strtrainerlower+' with the current state of the cheat '
+    +'table will likely result in a completely useless '+strtrainerlower+' that does '
     +'nothing. Are you sure?';
-  rsOSThereIsANewerVersionifCheatEngineOutEtc = 'There is a newer version of Cheat Engine out. It''s recommended to use that version instead';
-  rsOSThisCheatTableIsCorrupt = 'This cheat table is corrupt';
-  rsInvalidLuaForTrainer = 'The lua script in this trainer has some issues and will therefore not load';
+  rsOSThereIsANewerVersionifCheatEngineOutEtc = 'There is a newer version of '+strCheatEngine+' out. It''s recommended to use that version instead';
+  rsOSThisCheatTableIsCorrupt = 'This '+strCheatTableLower+' is corrupt';
+  rsInvalidLuaForTrainer = 'The lua script in this '+strTrainerLower+' has some issues and will therefore not load';
 
 
 type
@@ -766,7 +766,7 @@ begin
         try
           Reg.RootKey := HKEY_CURRENT_USER;
 
-          if Reg.OpenKey('\Software\Cheat Engine',false) then   //fill it from the registry (in case it's loaded before the settings are loaded)
+          if Reg.OpenKey('\Software\'+strCheatEngine,false) then   //fill it from the registry (in case it's loaded before the settings are loaded)
           begin
             if reg.ValueExists('LuaScriptAction') then
               i:=reg.ReadInteger('LuaScriptAction')

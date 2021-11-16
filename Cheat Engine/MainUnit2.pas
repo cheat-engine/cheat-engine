@@ -1,6 +1,7 @@
 unit MainUnit2;
 
 {$MODE Delphi}
+{$MACRO ON}
 
 //this unit is used by both the network client and the main program (USERINTERFACE)
 
@@ -19,16 +20,30 @@ uses
      debuggertypedefinitions, commonTypeDefs, betterControls;
 
 const ceversion=7.31;
+{$ifdef altname}  //i'd use $MACRO ON but fpc bugs out
+  strCheatEngine='Runtime Modifier'; //if you change this, also change it in first.pas
+  strCheatTable='Code Table';   //because it contains code.... duh.....
+  strCheatTableLower='code table';
+  strCheat='Modification';
+  strTrainer='Modifier';
+  strTrainerLower='modifier';
+{$else}
+  strCheatEngine='Cheat Engine';
+  strCheatTable='Cheat Table';
+  strCheatTableLower='cheat table';
+  strCheat='Cheat';
+  strTrainer='Trainer';
+  strTrainerLower='trainer';
+{$endif}
 
 resourcestring
-  cename = 'Cheat Engine 7.3.1';
+  cename = strCheatEngine+' 7.3.1';
+  rsCheatEngine = strCheatEngine;
   rsPleaseWait = 'Please Wait!';
 
 procedure UpdateToolsMenu;
 procedure LoadSettingsFromRegistry(skipPlugins: boolean=false);
 procedure initcetitle;
-
-
 
 
 const beta=''; //empty this for a release
@@ -145,7 +160,7 @@ begin
     reg:=Tregistry.Create;
     try
       Reg.RootKey := HKEY_CURRENT_USER;
-      if Reg.OpenKey('\Software\Cheat Engine',false) then
+      if Reg.OpenKey('\Software\'+strCheatEngine,false) then
       begin
 
         with formsettings do
@@ -319,11 +334,11 @@ begin
             {$endif}
 
 
-          if reg.ValueExists('Show Cheat Engine Hotkey') then
+          if reg.ValueExists('Show '+strCheatEngine+' Hotkey') then
             {$ifdef windows}
-            reg.ReadBinaryData('Show Cheat Engine Hotkey',temphotkeylist[1][0],10);
+            reg.ReadBinaryData('Show '+strCheatEngine+' Hotkey',temphotkeylist[1][0],10);
             {$else}
-            HexToBin(pchar(reg.ReadString('Show Cheat Engine Hotkey')),pchar(@temphotkeylist[1][0]),10);
+            HexToBin(pchar(reg.ReadString('Show '+strCheatEngine+' Hotkey')),pchar(@temphotkeylist[1][0]),10);
             {$endif}
 
           if reg.ValueExists('Pause process Hotkey') then
@@ -1005,7 +1020,7 @@ begin
 
       {$ifndef net}
       formsettings.lvtools.Clear;
-      if Reg.OpenKey('\Software\Cheat Engine\Tools',false) then
+      if Reg.OpenKey('\Software\'+strCheatEngine+'\Tools',false) then
       begin
         names:=TStringList.create;
         try
@@ -1043,7 +1058,7 @@ begin
 
 
 
-      if (not skipPlugins) and (Reg.OpenKey('\Software\Cheat Engine\Plugins'{$ifdef cpu64}+'64'{$else}+'32'{$endif},false)) then
+      if (not skipPlugins) and (Reg.OpenKey('\Software\'+strCheatEngine+'\Plugins'{$ifdef cpu64}+'64'{$else}+'32'{$endif},false)) then
       begin
         names:=TStringList.create;
         try

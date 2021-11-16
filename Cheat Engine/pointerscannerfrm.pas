@@ -376,7 +376,7 @@ uses PointerscannerSettingsFrm, {$ifdef windows}frmMemoryAllocHandlerUnit,frmSor
   frmpointerrescanconnectdialogunit, frmMergePointerscanResultSettingsUnit,  {$endif}
   ProcessHandlerUnit, {$ifdef windows}frmResumePointerscanUnit,{$endif} PointerscanConnector,
   {$ifdef windows}frmSetupPSNNodeUnit,{$endif} PointerscanNetworkStructures, parsers, byteinterpreter,
-  CustomTypeHandler, ceregistry, vartypestrings;
+  CustomTypeHandler, ceregistry, vartypestrings, mainunit2;
 
 resourcestring
   rsErrorDuringScan = 'Error during scan';
@@ -2018,7 +2018,7 @@ begin
   SaveFormPosition(self);
 
   reg:=tregistry.create;
-  if reg.OpenKey('\Software\Cheat Engine\Pointerscan', true) then
+  if reg.OpenKey('\Software\'+strCheatEngine+'\Pointerscan', true) then
   begin
     reg.writeInteger('Display Type', cbtype.itemindex);
     reg.writeBool('Display Signed',miSigned.checked);
@@ -3665,7 +3665,7 @@ begin
 
   reg:=TRegistry.Create;
 
-  if reg.OpenKey('\Software\Cheat Engine\Pointerscan', false) then
+  if reg.OpenKey('\Software\'+strCheatEngine+'\Pointerscan', false) then
   begin
     if reg.ValueExists('Display Type') then
       cbtype.itemindex:=reg.ReadInteger('Display Type');
