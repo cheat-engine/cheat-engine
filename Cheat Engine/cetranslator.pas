@@ -1,5 +1,39 @@
 unit CETranslator;
 
+{ Copyright (C) 2004-2010 V.I.Volchenko and Lazarus Developers Team
+
+  This library is free software; you can redistribute it and/or modify it
+  under the terms of the GNU Library General Public License as published by
+  the Free Software Foundation; either version 2 of the License, or (at your
+  option) any later version.
+
+  This program is distributed in the hope that it will be useful, but WITHOUT
+  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+  FITNESS FOR A PARTICULAR PURPOSE. See the GNU Library General Public License
+  for more details.
+
+  You should have received a copy of the GNU Library General Public License
+  along with this library; if not, write to the Free Software Foundation,
+  Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+}
+{This unit is needed for using translated form strings made by Lazarus IDE.
+It searches for translated .po/.mo files in some common places. If you need
+to have .po/.mo files anywhere else, don't use this unit but initialize
+LRSMoFile variable from LResources in your project by yourself.
+If you need standard translation, just use this unit in your project and enable
+i18n in project options.
+
+Another reason for including this unit may be using translated LCL messages.
+This unit localizes LCL too, if it finds lclstrconsts.xx.po/lclstrconsts.xx.mo
+in directory where your program translation files are placed.
+}
+
+{
+Modified for Cheat Engine use because filenames differ between 32 and 64-bit (also different po file, but just pick the one with the most data...)
+
+}
+
+
 {$mode objfpc}{$H+}
 
 interface
