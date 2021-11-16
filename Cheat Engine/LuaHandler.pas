@@ -15055,6 +15055,13 @@ begin
   lua_pushboolean(L, ShouldAppsUseDarkMode);
 end;
 
+
+function lua_getCEName(L: Plua_State): integer; cdecl;
+begin
+  lua_pushstring(strCheatEngine);
+  exit(1);
+end;
+
 function lua_getNextReadablePageCR3(L: Plua_State): integer; cdecl;
 var
   cr3: qword;
@@ -15885,6 +15892,7 @@ begin
     lua_register(L, 'signExtend', lua_signExtend);
 
     lua_register(L, 'darkMode', lua_darkMode);
+    lua_register(L, 'getCEName', lua_getCEName);
 
 
 
