@@ -15058,7 +15058,7 @@ end;
 
 function lua_getCEName(L: Plua_State): integer; cdecl;
 begin
-  lua_pushstring(strCheatEngine);
+  lua_pushstring(L, strCheatEngine);
   exit(1);
 end;
 
