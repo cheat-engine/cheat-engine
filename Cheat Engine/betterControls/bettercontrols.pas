@@ -98,7 +98,11 @@ var
 implementation
 
 {$ifdef windows}
-uses forms, controls, Registry, Win32Proc, mainunit2;
+uses forms, controls, Registry, Win32Proc{$ifndef skip_mainunit2}, mainunit2{$endif};
+
+{$ifdef skip_mainunit2}
+const strCheatEngine='Cheat Engine';
+{$endif}
 
 
 var
