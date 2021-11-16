@@ -18,7 +18,7 @@ uses
   windows,
   registry;
 
-var regname: string={$ifdef altname}'Runtime Modifier'{$else}'Cheat Engine'{$endif};
+const regname: string={$ifdef altname}'Runtime Modifier'{$else}'Cheat Engine'{$endif};
 
 
 procedure DeleteFullRegKey(reg: Tregistry; keyname: string);
@@ -31,7 +31,11 @@ begin
   if r.OpenKey(reg.CurrentPath+'\'+keyname, false) then
   begin
     s:=tstringlist.create;
-    r.GetKeyNames(s);
+    try
+      r.GetKeyNames(s);
+    except
+      exit;
+    end;
     for i:=0 to s.count-1 do
       DeleteFullRegKey(r, s[i]);
 
