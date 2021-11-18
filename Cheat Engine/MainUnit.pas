@@ -1321,6 +1321,7 @@ resourcestring
   rsAreYouSure = 'Are you sure?';
   rsClearRecentFiles = 'Empty Recent Files List';
   rsFirst = 'First';
+  rsEnableSpeedHack = 'Enable '+strSpeedHack;
 
 var
   ncol: TColor;
@@ -6147,6 +6148,8 @@ begin
   RecentFiles:=tstringlist.Create;
   cereg.readStrings('Recent Files', RecentFiles);
 
+
+  cbSpeedhack.caption:=rsEnableSpeedHack;
 
 
   {$ifdef darwin}

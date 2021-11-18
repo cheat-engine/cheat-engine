@@ -27,6 +27,8 @@ const ceversion=7.31;
   strCheat='Modification';
   strTrainer='Modifier';
   strTrainerLower='modifier';
+  strMyCheatTables='My Mod Tables';
+  strSpeedHack='Speedmodifier';
 {$else}
   strCheatEngine='Cheat Engine';
   strCheatTable='Cheat Table';
@@ -34,6 +36,8 @@ const ceversion=7.31;
   strCheat='Cheat';
   strTrainer='Trainer';
   strTrainerLower='trainer';
+  strMyCheatTables='My Cheat Tables';
+  strSpeedHack='Speedhack';
 {$endif}
 
 resourcestring
