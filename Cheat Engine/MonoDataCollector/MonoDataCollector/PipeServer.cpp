@@ -307,9 +307,7 @@ void CPipeServer::InitMono()
 				{
 					if (GetProcAddress(me.hModule, "mono_thread_attach"))
 					{
-						if (!_wcsicmp(me.szModule,L"GameAssembly.dll")) continue; //il2cppo has a smodulename GameAssembly, so it can't be mono
-
-						if (GetProcAddress(me.hModule, "mono_assembly_foreach"))
+						if (_wcsicmp(me.szModule, L"GameAssembly.dll") && (GetProcAddress(me.hModule, "mono_assembly_foreach")))
 						{
 							hMono = me.hModule;
 							break;
@@ -2355,9 +2353,12 @@ void CPipeServer::Start(void)
 
 				if (limitedConnection) //beware: If profiling gets added someday, this will likely cause issues
 				{
-					mono_thread_detach(mono_selfthread);
-					attached = false;
-					mono_selfthread = NULL;
+					if (mono_thread_detach)
+					{
+						mono_thread_detach(mono_selfthread);
+						attached = false;
+						mono_selfthread = NULL;
+					}
 				}
 
 			}
