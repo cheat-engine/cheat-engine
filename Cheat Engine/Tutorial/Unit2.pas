@@ -41,7 +41,7 @@ var
 
 implementation
 
-uses Unit3, frmHelpUnit;
+uses cetranslator, Unit3, frmHelpUnit;
 
 resourcestring
   rsAwYouReDeathLetMeReviveYou = 'Aw, you''re dead! Let me revive you';
@@ -130,7 +130,8 @@ end;
 
 procedure TForm2.FormCreate(Sender: TObject);
 begin
-  memo1.lines.text:=rsTutorialStep2;
+  caption:=altnamer(caption);
+  memo1.lines.text:=altnamer(rsTutorialStep2);
   memo1.Lines.Insert(0, rsStep2ExactValueScanningPW+inttostr(0)+inttostr(90453)+')');
   memo1.SelStart:=0;
   health:=100;

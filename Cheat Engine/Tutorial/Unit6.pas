@@ -33,7 +33,7 @@ var
 
 implementation
 
-uses Unit4, Unit7, frmHelpUnit;
+uses Unit4, Unit7, frmHelpUnit, cetranslator;
 
 resourcestring
   rsWellDoneYouScrewedUpTheTutorial = 'Well done, you screwed up the tutorial!!!!';
@@ -111,7 +111,8 @@ begin
   end;
   i^:=100;
 
-  memo1.lines.text:=rsTutorialStep5;
+  caption:=altnamer(caption);
+  memo1.lines.text:=altnamer(rsTutorialStep5);
   memo1.Lines.Insert(0, Format(rsStep5CodeFinderPW, [inttostr(888899)]));
   memo1.SelStart:=0;
   font.size:=12;

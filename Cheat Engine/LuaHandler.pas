@@ -10285,6 +10285,10 @@ begin
       end;
     end;
 
+    {$ifdef altname}
+    r:=altnamer(r);
+    {$endif}
+
     lua_pushstring(L, r);
     result:=1;
   end
@@ -10314,6 +10318,10 @@ begin
           r:=pofile.Translate('',r);
       end;
     end;
+
+    {$ifdef altname}
+    r:=altnamer(r);
+    {$endif}
 
     lua_pushstring(L, r);
     result:=1;

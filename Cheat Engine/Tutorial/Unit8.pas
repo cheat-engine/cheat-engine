@@ -33,7 +33,7 @@ var
 
 implementation
 
-uses Unit4, Unit9, frmHelpUnit;
+uses Unit4, Unit9, frmHelpUnit, cetranslator;
 
 resourcestring
   rsHealth = 'Health';
@@ -107,7 +107,8 @@ begin
   health:=100;
 
 
-  memo1.lines.text:=rsTutorialStep7;
+  caption:=altnamer(caption);
+  memo1.lines.text:=altnamer(rsTutorialStep7);
   memo1.Lines.Insert(0, Format(rsStep7CodeInjectionPW, [inttostr(0)+inttostr(13370)]));
   memo1.SelStart:=0;
   font.size:=12;

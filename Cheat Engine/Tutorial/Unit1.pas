@@ -135,7 +135,8 @@ begin
   forms.Application.ShowButtonGlyphs:=sbgNever;
   randomize;
 
-  memo1.lines.text:=rsTutorial1;
+  caption:=altnamer(caption);
+  memo1.lines.text:=altnamer(rsTutorial1);
 
   font.size:=12;
 

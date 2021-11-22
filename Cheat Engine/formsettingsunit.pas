@@ -1728,6 +1728,10 @@ begin
   tvMenuSelection.Items[6].Visible:=false;
   tvMenuSelection.Items[10].Visible:={$ifdef windows}cansigntables{$else}false{$endif};
 
+  {$ifdef altname}
+  tvMenuSelection.Items[9].Visible:=false; //the pussy version does not have kernelmode tools
+  {$endif}
+
   pcSetting.ShowTabs:=false;
 
   ScanForLanguages;

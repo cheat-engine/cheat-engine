@@ -86,7 +86,7 @@ var
 
 implementation
 
-uses Unit4, Unit10, frmHelpUnit;
+uses Unit4, Unit10, frmHelpUnit, cetranslator;
 
 resourcestring
   rsStep8MultilevelPointersPW = 'Step 8: Multilevel pointers: (PW=%s)';
@@ -185,7 +185,8 @@ begin
   basepointer.p.p.p.health:=random(4000);
   label1.caption:=inttostr(basepointer.p.p.p.health);
 
-  memo1.lines.text:=rsTutorialStep8;
+  caption:=altnamer(caption);
+  memo1.lines.text:=altnamer(rsTutorialStep8);
   memo1.Lines.Insert(0, Format(rsStep8MultilevelPointersPW, [inttostr(525)+inttostr(927)]));
   memo1.SelStart:=0;
   font.size:=12;
