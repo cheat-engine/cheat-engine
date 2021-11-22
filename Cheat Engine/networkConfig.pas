@@ -236,7 +236,13 @@ begin
   port:=ShortHostToNet(p);
 
   if getConnection=nil then
-    raise exception.create(rsFailedConnectingToTheServer);
+  begin
+    host.s_addr:=0;
+    if MainThreadID=GetCurrentThreadId then
+      MessageDlg(rsFailedConnectingToTheServer, mtError, [mbOK],0);
+
+    exit;
+  end;
 
 
   InitializeNetworkInterface;
