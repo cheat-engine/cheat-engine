@@ -1430,6 +1430,7 @@ begin
 
         for i:=0 to AdvancedOptions.count-1 do
         begin
+          advancedoptions.lvCodelist.ClearSelection;
           if symhandler.getAddressFromName(AdvancedOptions.entries[i].code.symbolname,false)=coderecord.address then
           begin
             advancedoptions.lvCodelist.selected:=advancedoptions.lvCodelist.Items[i];
