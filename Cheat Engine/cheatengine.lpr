@@ -117,7 +117,7 @@ uses
   dotnethost, rttihelper, cefreetype, LuaDotNetPipe, LuaRemoteExecutor,
   autoassemblercode, CSharpCompiler, newhintwindow, memrecDataStructures,
   LuaCECustomButton, DBVMDebuggerInterface, frmCR3SwitcherUnit, tcclib,
-  sourcecodehandler, frmSourceDisplayUnit, projectnameunit;
+  sourcecodehandler, frmSourceDisplayUnit;
 
 {$R cheatengine.res}
 {$IFDEF windows}
