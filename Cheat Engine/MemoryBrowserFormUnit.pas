@@ -3162,7 +3162,16 @@ begin
 
       if (ssalt in shift) or (ssctrl in shift) then exit; 
 
-      assemblepopup(lowercase(chr(key)));
+      try
+        assemblepopup(lowercase(chr(key)));
+      except
+        on e:exception do
+        begin
+          MessageDlg(e.message, mtError,[mbok],0);
+          exit;
+        end;
+
+      end;
     end;
   end;
 
@@ -3370,6 +3379,7 @@ end;
 
 procedure TMemoryBrowser.AssemblePopup(x:string);
 var assemblercode,desc: string;
+    totalbytes: TAssemblerBytes;
     bytes: tassemblerbytes;
     a,b,original,written:ptrUint;
     originalsize:ptrUint;
@@ -3519,7 +3529,12 @@ end;
 
 procedure TMemoryBrowser.Assemble1Click(Sender: TObject);
 begin
-  AssemblePopup('');
+  try
+    AssemblePopup('');
+  except
+    on e: exception do
+      MessageDlg(e.message, mtError, [mbok],0);
+  end;
 end;
 
 procedure TMemoryBrowser.HexEditKeyPress(Sender: TObject; var Key: Char);
