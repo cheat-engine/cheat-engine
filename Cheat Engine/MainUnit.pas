@@ -3063,10 +3063,13 @@ begin
   end
   else
   begin
-    cbSpeedhack.Checked:=false;
-    addresslist.disableAllWithoutExecute;
-    for i := 0 to AdvancedOptions.count - 1 do
-      if AdvancedOptions.code[i]<>nil then AdvancedOptions.code[i].changed := False;
+    if (oldprocess<>0) and (processid<>oldprocess) then
+    begin
+      cbSpeedhack.Checked:=false;
+      addresslist.disableAllWithoutExecute;
+      for i := 0 to AdvancedOptions.count - 1 do
+        if AdvancedOptions.code[i]<>nil then AdvancedOptions.code[i].changed := False;
+    end;
   end;
 
   enablegui(btnNextScan.Enabled);
