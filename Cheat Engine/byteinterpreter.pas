@@ -70,12 +70,55 @@ var v: qword;
     d: double;
     x: PTRUINT;
 
-    i: integer;
+    i,j: integer;
     ba: PByteArray;
 
     b: tbytes;
     us: Widestring;
+
+    gs: array of string;
+
+    vs: string;
+    offsetstring: string;
+    offset: integer;
 begin
+  if variabletype=vtGrouped then //parse the groupscan result string and pass each entry to this function again
+  begin
+    //value="type[offset]:value type[offset]:value type[offset]:value"
+    gs:=value.Split([' ']); //gs[0]="type[offset]:value" gs[1]="type[offset]:value"
+
+    for i:=0 to length(gs)-1 do
+    begin
+      j:=pos(']',gs[i]);
+      if j<=0 then exit;
+      if j>=length(gs[i]) then exit;
+      if gs[i][j+1]<>':' then exit; //has to have a ]:
+
+      if (length(gs[i])>=6) and (gs[i][2]='[') then
+      begin
+        case gs[i][1] of
+          '1': variabletype:=vtByte;
+          '2': variabletype:=vtWord;
+          '4': variabletype:=vtDword;
+          '8': variabletype:=vtQword;
+          's': variabletype:=vtSingle;
+          'd': variabletype:=vtDouble;
+          else exit;
+        end;
+
+        //get the offset
+        offsetstring:=copy(gs[i],3, j-3);
+        offset:=HexStrToInt64(offsetstring);
+        value:=copy(gs[i],j+2); //everything after the :
+
+        ParseStringAndWriteToAddress(value,address+offset,variabletype);
+      end
+      else exit;
+    end;
+
+    exit;
+  end;
+
   if hexadecimal and (variabletype in [vtsingle, vtDouble]) then
   begin
     if variabletype=vtSingle then
