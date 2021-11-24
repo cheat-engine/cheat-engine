@@ -1322,6 +1322,8 @@ resourcestring
   rsClearRecentFiles = 'Empty Recent Files List';
   rsFirst = 'First';
   rsEnableSpeedHack = 'Enable '+strSpeedHack;
+  rsPreviousValueList = 'Previous value list';
+  rsSelectTheSavedResult = 'Select the saved results you wish to use';
 
 var
   ncol: TColor;
@@ -7296,7 +7298,7 @@ begin
     Removeselectedaddresses1.enabled := not (GetVarType in [vtBinary, vtByteArray, vtAll]);
 
   miChangeValue.enabled:=Browsethismemoryarrea1.enabled;
-  miChangeValueBack.enabled:=Browsethismemoryarrea1.enabled;
+  miChangeValueBack.enabled:=Browsethismemoryarrea1.enabled and (PreviousResultList.count>0);
   miAddAddress.enabled:=Browsethismemoryarrea1.enabled;
 
   //updatwe the display override
@@ -7376,7 +7378,6 @@ var
   bit: byte;
   selected: array of integer;
 begin
-
   if SaveFirstScanThread <> nil then
   begin
     SaveFirstScanThread.WaitFor; //wait till it's done
@@ -9620,6 +9621,8 @@ var
 begin
   //show a list of possible options. Previous, last scan, savedscan
   if memscan=nil then exit;
+  if PreviousResultList.count=0 then exit;
+  if GetVarType in [vtBinary, vtByteArray, vtAll, vtGrouped] then exit;
 
   bytesize:=memscan.Getbinarysize div 8;
   if bytesize=0 then exit;
@@ -9629,7 +9632,7 @@ begin
   memscan.getsavedresults(s);
   s.insert(0,'Last Scan');
 
-  i:=ShowSelectionList(self,'Previous value liss','Select the saved results you wish to use',s,currentlySelectedSavedResultname);
+  i:=ShowSelectionList(self, rsPreviousValueList, rsSelectTheSavedResult, s, currentlySelectedSavedResultname);
   s.free;
   if i=-1 then exit;
   if i=0 then currentlySelectedSavedResultname:='TMP';
