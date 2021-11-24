@@ -349,7 +349,7 @@ type
     procedure PointerscanStart(sender: TObject);
     procedure doneui;
     procedure resyncloadedmodulelist;
-    procedure OpenPointerfile(filename: string);
+    procedure OpenPointerfile(filename: widestring);
     procedure stopscan(savestate: boolean);
     procedure PointerscanDone(sender: TObject; hasError: boolean; errorstring: string); //called by the pointerscan controller thread when done
   public
@@ -2540,7 +2540,7 @@ begin
 
 end;
 
-procedure Tfrmpointerscanner.OpenPointerfile(filename: string);
+procedure Tfrmpointerscanner.OpenPointerfile(filename: widestring);
 var
   i: integer;
 
@@ -2614,7 +2614,7 @@ end;
 procedure Tfrmpointerscanner.Open1Click(Sender: TObject);
 begin
   if opendialog1.Execute then
-    OpenPointerfile(utf8toansi(Opendialog1.filename));
+    OpenPointerfile(UTF8ToString(Opendialog1.filename));
 end;
 
 function TRescanWorker.isMatchToValue(p:pointer): boolean;

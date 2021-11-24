@@ -46,11 +46,11 @@ type
     maxlevel: integer;
     modulelist: tstringlist;
 
-    FFileName: string;
+    FFileName: widestring;
     files: array of record
       startindex: qword;
       lastindex: qword;
-      filename: string;
+      filename: widestring;
       filesize: qword;
       f,fm: Thandle;
     end;
@@ -111,12 +111,12 @@ type
 
     procedure ReleaseFiles;
 
-    constructor create(filename: string; original: TPointerscanresultReader=nil);
+    constructor create(filename: widestring; original: TPointerscanresultReader=nil);
 
     destructor destroy; override;
     property count: qword read FCount;
     property offsetCount: integer read maxlevel;
-    property filename: string read FFilename;
+    property filename: widestring read FFilename;
     property entrySize: integer read sizeOfEntry;
     property modulelistCount: integer read getModuleListcount;
     property modulename[index: integer]: string read getModuleName;
@@ -543,7 +543,7 @@ end;
 
 
 
-constructor TPointerscanresultReader.create(filename: string; original: TPointerscanresultReader=nil);
+constructor TPointerscanresultReader.create(filename: widestring; original: TPointerscanresultReader=nil);
 var
   configfile: TFileStream;
   modulelistLength: integer;
@@ -557,8 +557,8 @@ var
   error: boolean;
   a: ptruint;
 
-  fn: string;
-  filenames: array of string;
+  fn: widestring;
+  filenames: array of widestring;
 
   fnames: tstringlist;
 
@@ -697,7 +697,7 @@ begin
       files[j].filename:=fn;
 
 
-      files[j].f:=CreateFile(pchar(fn), GENERIC_READ, FILE_SHARE_READ or FILE_SHARE_DELETE, nil, OPEN_EXISTING, FILE_FLAG_SEQUENTIAL_SCAN, 0);
+      files[j].f:=CreateFileW(pwchar(fn), GENERIC_READ, FILE_SHARE_READ or FILE_SHARE_DELETE, nil, OPEN_EXISTING, FILE_FLAG_SEQUENTIAL_SCAN, 0);
 
       if (files[j].f<>0) and (files[j].f<>INVALID_HANDLE_VALUE) then
       begin
