@@ -288,6 +288,7 @@ begin
       currentcheat.parent:=cheatpanel;
       currentcheat.name:='CHEAT'+inttostr(i);
       currentcheat.cheatnr:=i;
+      currentcheat.tag:=i+1;
       currentcheat.AutoSize:=true;
 
       if lastcheat=nil then
