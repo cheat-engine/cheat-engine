@@ -1077,11 +1077,15 @@ ST_FUNC int tcc_add_file_internal(TCCState *s1, const char *filename, int flags)
         case AFF_BINTYPE_DYN:
             if (s1->output_type == TCC_OUTPUT_MEMORY) {
 #ifdef TCC_IS_NATIVE
+//Cheat Engine
+#ifndef _WINDOWS
                 void *dl = dlopen(filename, RTLD_GLOBAL | RTLD_LAZY);
                 if (dl) {
                     tcc_add_dllref(s1, filename)->handle = dl;
                     ret = 0;
                 }
+#endif //_WINDOWS
+//Cheat Engine Stop
 #endif
                 break;
             }

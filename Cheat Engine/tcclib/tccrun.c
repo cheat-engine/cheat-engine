@@ -385,7 +385,9 @@ static void set_pages_executable(TCCState *s1, void *ptr, unsigned long length)
 #ifdef TCC_TARGET_X86_64
 static void *win64_add_function_table(TCCState *s1)
 {
-    void *p = NULL;
+	void *p = NULL;
+	//cheat engine
+/*
     if (s1->uw_pdata) {
         p = (void*)s1->uw_pdata->sh_addr;
         RtlAddFunctionTable(
@@ -395,8 +397,13 @@ static void *win64_add_function_table(TCCState *s1)
             );
         s1->uw_pdata = NULL;
     }
+	*/
     return p;
+
+	//cheat engine stop
 }
+
+
 #endif
 
 #ifdef TCC_TARGET_X86_64
