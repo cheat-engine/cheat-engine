@@ -3399,131 +3399,152 @@ var assemblercode,desc: string;
     vpe: boolean;
 
     address: ptruint;
+
+    oldbp: PBreakpoint=nil;
 begin
 
   //make sure it doesnt have a breakpoint
   address:=disassemblerview.SelectedAddress;
-
-
-  if debuggerthread<>nil then
-  begin
-    if debuggerthread.isBreakpoint(Address)<>nil then
-    begin
-      beep; //Best sound effect cheat engine has
-      exit;
-    end;
-  end;
-
-
-  originalsize:=Address;
-
-  localdisassembler:=TDisassembler.Create;
   try
-    localdisassembler.disassemble(originalsize,desc);
-    assemblercode:=localdisassembler.LastDisassembleData.prefix+localdisassembler.LastDisassembleData.opcode+' '+localdisassembler.LastDisassembleData.parameters;
-  finally
-    localdisassembler.free;
-  end;
 
-  dec(originalsize,Address);
-
-
-  if x<>'' then assemblercode:=x;
-
-//  copy
-
-  assemblercode:=InputboxTop(rsCheatEngineSingleLingeAssembler, Format(rsTypeYourAssemblerCodeHereAddress, [inttohex(Address, 8)]), assemblercode, x='', canceled{$ifndef darwin},assemblerHistory{$endif});
-  if not canceled then
-  begin
-
-    if defaultBinutils<>nil then
+    if debuggerthread<>nil then
     begin
-      //use the gnuassembler for this
-      gnascript:=TStringList.create;
-      try
-        gnascript.add('.msection sline 0x'+inttohex(Address,8));
-        gnascript.Add(assemblercode);
-        gnuassemble(gnascript);
-      finally
-        gnascript.free;
+      debuggerthread.lockbplist;
+      oldbp:=debuggerthread.isBreakpoint(Address);
+
+      if (oldbp<>nil) and (oldbp^.breakpointMethod<>bpmInt3) then
+        oldbp:=nil;
+
+      if oldbp=nil then
+        debuggerthread.unlockbplist; //no need to keep this lock
+    end;
+
+
+    originalsize:=Address;
+
+    localdisassembler:=TDisassembler.Create;
+    try
+      localdisassembler.disassemble(originalsize,desc);
+      assemblercode:=localdisassembler.LastDisassembleData.prefix+localdisassembler.LastDisassembleData.opcode+' '+localdisassembler.LastDisassembleData.parameters;
+    finally
+      localdisassembler.free;
+    end;
+
+    dec(originalsize,Address);
+
+
+    if x<>'' then assemblercode:=x;
+
+  //  copy
+
+    assemblercode:=InputboxTop(rsCheatEngineSingleLingeAssembler, Format(rsTypeYourAssemblerCodeHereAddress, [inttohex(Address, 8)]), assemblercode, x='', canceled{$ifndef darwin},assemblerHistory{$endif});
+    if not canceled then
+    begin
+
+      if defaultBinutils<>nil then
+      begin
+        //use the gnuassembler for this
+        gnascript:=TStringList.create;
+        try
+          gnascript.add('.msection sline 0x'+inttohex(Address,8));
+          gnascript.Add(assemblercode);
+          gnuassemble(gnascript);
+        finally
+          gnascript.free;
+        end;
+
+        exit;
       end;
 
-      exit;
-    end;
-
-    try
-      if Assemble(assemblercode,Address,bytes) then
-      begin
-        if originalsize<>length(bytes) then
+      try
+        if Assemble(assemblercode,Address,bytes) then
         begin
-          if formsettings.replacewithnops.checked then
+          if originalsize<>length(bytes) then
           begin
-            if formsettings.askforreplacewithnops.checked then
+            if formsettings.replacewithnops.checked then
             begin
-              c:=messagedlg(Format(rsTheGeneratedCodeIsByteSLongButTheSelectedOpcodeIsB, [IntToStr(length(bytes)), IntToStr(originalsize)]), mtConfirmation, mbYesNoCancel, 0);
-              replace:=c=mryes;
-              if c=mrCancel then exit;
-            end else replace:=true;
-
-            if replace then
-            begin
-              while originalsize>length(bytes) do
+              if formsettings.askforreplacewithnops.checked then
               begin
-                setlength(bytes,length(bytes)+1);
-                bytes[length(bytes)-1]:=$90;
+                c:=messagedlg(Format(rsTheGeneratedCodeIsByteSLongButTheSelectedOpcodeIsB, [IntToStr(length(bytes)), IntToStr(originalsize)]), mtConfirmation, mbYesNoCancel, 0);
+                replace:=c=mryes;
+                if c=mrCancel then exit;
+              end else replace:=true;
+
+              if replace then
+              begin
+                while originalsize>length(bytes) do
+                begin
+                  setlength(bytes,length(bytes)+1);
+                  bytes[length(bytes)-1]:=$90;
+                end;
+
+                a:=Address+length(bytes);
+
+                b:=Address;
+                while b<a do disassemble(b,desc);
+
+                a:=b-Address;
+                while length(bytes)<a do
+                begin
+                  setlength(bytes,length(bytes)+1);
+                  bytes[length(bytes)-1]:=$90;
+                end;
               end;
 
-              a:=Address+length(bytes);
 
-              b:=Address;
-              while b<a do disassemble(b,desc);
-
-              a:=b-Address;
-              while length(bytes)<a do
-              begin
-                setlength(bytes,length(bytes)+1);
-                bytes[length(bytes)-1]:=$90;
-              end;
             end;
-
-
           end;
-        end;
 
-        //note to self, check the size of the current opcode and give the option to replace the missing or too many bytes with nops
-        //and put in a option to disable showing that message, and use a default action
+          //note to self, check the size of the current opcode and give the option to replace the missing or too many bytes with nops
+          //and put in a option to disable showing that message, and use a default action
 
-        // get old security and set new security   (not needed in win9x but nt doesnt even allow writeprocessmemory to do this
-        original:=0;
+          // get old security and set new security   (not needed in win9x but nt doesnt even allow writeprocessmemory to do this
+          original:=0;
 
-        bytelength:=length(bytes);
+          bytelength:=length(bytes);
 
-        if fcr3=0 then
-        begin
-          vpe:=(SkipVirtualProtectEx=false) and VirtualProtectEx(processhandle,  pointer(Address),bytelength,PAGE_EXECUTE_READWRITE,p);
-          WriteProcessMemoryWithCloakSupport(processhandle,pointer(Address),@bytes[0],bytelength,a);
-          if vpe then
-            VirtualProtectEx(processhandle,pointer(Address),bytelength,p,p);
-        end
-        else
-        begin
-          {$ifdef windows}
-          WriteProcessMemoryCR3(fcr3, pointer(address),@bytes[0], bytelength,a);
+          if oldbp<>nil then
+            debuggerthread.UnsetBreakpoint(oldbp);
+
+          a:=0;
+          if fcr3=0 then
+          begin
+            vpe:=(SkipVirtualProtectEx=false) and VirtualProtectEx(processhandle,  pointer(Address),bytelength,PAGE_EXECUTE_READWRITE,p);
+            WriteProcessMemoryWithCloakSupport(processhandle,pointer(Address),@bytes[0],bytelength,a);
+            if vpe then
+              VirtualProtectEx(processhandle,pointer(Address),bytelength,p,p);
+          end
+          else
+          begin
+            {$ifdef windows}
+            WriteProcessMemoryCR3(fcr3, pointer(address),@bytes[0], bytelength,a);
+            {$endif}
+          end;
+
+          if (a>0) and (oldbp<>nil) then
+          begin
+            oldbp^.originalbyte:=bytes[0];
+            debuggerthread.SetBreakpoint(oldbp);
+          end;
+
+          hexview.update;
+          disassemblerview.Update;
+
+          {$ifdef darwin}
+          SetFocus;
+          disassemblerview.SetFocus;
           {$endif}
-        end;
+        end else raise exception.create(Format(rsIDonTUnderstandWhatYouMeanWith, [assemblercode]));
+      except
+        raise exception.create(Format(rsIDonTUnderstandWhatYouMeanWith, [assemblercode]));
+      end;
 
-        hexview.update;
-        disassemblerview.Update;
-
-        {$ifdef darwin}
-        SetFocus;
-        disassemblerview.SetFocus;
-        {$endif}
-      end else raise exception.create(Format(rsIDonTUnderstandWhatYouMeanWith, [assemblercode]));
-    except
-      raise exception.create(Format(rsIDonTUnderstandWhatYouMeanWith, [assemblercode]));
     end;
 
+
+  finally
+    if oldbp<>nil then  //still needs to be unlocked
+      debuggerthread.unlockbplist;
   end;
 end;
 
