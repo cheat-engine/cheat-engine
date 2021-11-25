@@ -2181,12 +2181,16 @@ int WriteProcessMemoryDebug(HANDLE hProcess, PProcessData p, void *lpAddress, vo
 
       if (offset<size)
       {
-        debug_log("Still some bytes left: %d\n", size-offset);
+        debug_log("WPMD: Still some bytes left: %d\n", size-offset);
         //still a few bytes left
-        long int oldvalue=safe_ptrace(PTRACE_PEEKDATA, p->pid,  (void *)(uintptr_t)lpAddress+offset, (void*)0);
+        uintptr_t oldvalue=0;
+        oldvalue=safe_ptrace(PTRACE_PEEKDATA, p->pid,  (void *)(uintptr_t)lpAddress+offset, (void*)0);
         #ifdef __x86_64__
           //Even with 64 bits, peek_data can read only 4 bytes.
-          oldvalue += safe_ptrace(PTRACE_PEEKDATA, p->pid,  (void *)(uintptr_t)lpAddress+offset+4, (void*)0)*0x100000000;
+          debug_log("64-bit: oldvalue=%lx\n", oldvalue);
+          //oldvalue += safe_ptrace(PTRACE_PEEKDATA, p->pid,  (void *)(uintptr_t)lpAddress+offset+4, (void*)0)*0x100000000;
+
+          //debug_log("64-bit: oldvalue with full read=%lx\n", oldvalue);
         #endif
         unsigned char *oldbuf=(unsigned char *)&oldvalue;
         unsigned char *newmem=(unsigned char *)address;
@@ -2327,13 +2331,11 @@ int WriteProcessMemory(HANDLE hProcess, void *lpAddress, void *buffer, int size)
 
         if (offset<size)
         {
-        	printf("Still some bytes left: %d\n", size-offset);
+        	printf("WPM: Still some bytes left: %d\n", size-offset);
           //still a few bytes left
-          long int oldvalue=safe_ptrace(PTRACE_PEEKDATA, pid,  (void *)(uintptr_t)lpAddress+offset, (void*)0);
-          #ifdef __x86_64__
-            //Even with 64 bits, peek_data can read only 4 bytes.
-            oldvalue += safe_ptrace(PTRACE_PEEKDATA, p->pid,  (void *)(uintptr_t)lpAddress+offset+4, (void*)0)*0x100000000;
-          #endif
+        	uintptr_t oldvalue=0;
+        	oldvalue=safe_ptrace(PTRACE_PEEKDATA, pid,  (void *)(uintptr_t)lpAddress+offset, (void*)0);
+
           unsigned char *oldbuf=(unsigned char *)&oldvalue;
           unsigned char *newmem=(unsigned char *)address;
           int i;
@@ -3310,7 +3312,7 @@ BOOL Process32First(HANDLE hSnapshot, PProcessListEntry processentry)
 BOOL Module32Next(HANDLE hSnapshot, PModuleListEntry moduleentry)
 {
   //get the current iterator of the list and increase it. If the max has been reached, return false
-  debug_log("Module32First/Next(%d)\n", hSnapshot);
+ // debug_log("Module32First/Next(%d)\n", hSnapshot);
 
   if (GetHandleType(hSnapshot) == htTHSModule)
   {

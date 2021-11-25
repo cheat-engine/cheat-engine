@@ -8,7 +8,6 @@ RM := rm -rf
 
 # All of the sources participating in the build are defined here
 -include sources.mk
--include Release-android/subdir.mk
 -include subdir.mk
 -include objects.mk
 
@@ -36,14 +35,13 @@ ceserver: $(OBJS) $(USER_OBJS)
 
 # Other Targets
 clean:
-	-$(RM) $(OBJS)$(C_DEPS)$(EXECUTABLES) ceserver
+	-$(RM) $(EXECUTABLES)$(OBJS)$(C_DEPS) ceserver
 	-@echo ' '
 
 post-build:
-	-cp ceserver "/home/eric/workspace/ceserverbin"
+	-cp ceserver "/home/eric/eclipse-workspace/ceserverbin"
 	-@echo ' '
 
-.PHONY: all clean dependents
-.SECONDARY: post-build
+.PHONY: all clean dependents post-build
 
 -include ../makefile.targets

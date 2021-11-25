@@ -10,6 +10,7 @@ C_SRCS += \
 ../context.c \
 ../extensionfunctions.c \
 ../extensionloader.c \
+../native-api.c \
 ../porthelp.c \
 ../symbols.c \
 ../threads.c 
@@ -21,6 +22,7 @@ OBJS += \
 ./context.o \
 ./extensionfunctions.o \
 ./extensionloader.o \
+./native-api.o \
 ./porthelp.o \
 ./symbols.o \
 ./threads.o 
@@ -32,6 +34,7 @@ C_DEPS += \
 ./context.d \
 ./extensionfunctions.d \
 ./extensionloader.d \
+./native-api.d \
 ./porthelp.d \
 ./symbols.d \
 ./threads.d 
@@ -41,7 +44,7 @@ C_DEPS += \
 %.o: ../%.c
 	@echo 'Building file: $<'
 	@echo 'Invoking: GCC C Compiler'
-	gcc -D_FILE_OFFSET_BITS=64 -D_LARGEFILE64_SOURCE -O0 -g3 -Wall -c -fmessage-length=0 -MMD -MP -MF"$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -o "$@" "$<"
+	gcc -D_FILE_OFFSET_BITS=64 -D_LARGEFILE64_SOURCE -O0 -g3 -Wall -c -fmessage-length=0 -MMD -MP -MF"$(@:%.o=%.d)" -MT"$(@)" -o "$@" "$<"
 	@echo 'Finished building: $<'
 	@echo ' '
 
