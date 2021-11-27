@@ -324,7 +324,7 @@
     <OutDir>..\..\..\..\bin\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Output to 32 Linux ABI (Release)|Win32'">
-    <TargetName>tcc$(PlatformArchitecture)-32</TargetName>
+    <TargetName>tcc$(PlatformArchitecture)-32-linux</TargetName>
     <LinkIncremental>false</LinkIncremental>
     <OutDir>..\..\..\..\bin\</OutDir>
   </PropertyGroup>
@@ -343,7 +343,7 @@
     <LinkIncremental>false</LinkIncremental>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Output to 32 Linux ABI|Win32'">
-    <TargetName>tcc$(PlatformArchitecture)-32</TargetName>
+    <TargetName>tcc$(PlatformArchitecture)-32-linux</TargetName>
     <LinkIncremental>false</LinkIncremental>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Output to 64 (Debug)|x64'">

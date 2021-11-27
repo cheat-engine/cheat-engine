@@ -3593,7 +3593,7 @@ begin
   p.Executable:=(path);
   p.Execute;
   {$else}
-  shellexecute(0, 'open', pchar(cheatenginedir+{$ifdef altname}'rtm-tutorial-x86_64.exe'}{$else}'Tutorial-x86_64.exe'{$endif}), nil, nil, sw_show);
+  shellexecute(0, 'open', pchar(cheatenginedir+{$ifdef altname}'rtmtutorial-x86_64.exe'{$else}'Tutorial-x86_64.exe'{$endif}), nil, nil, sw_show);
   {$endif}
 end;
 
@@ -9563,7 +9563,7 @@ end;
 
 procedure TMainForm.miTutorialClick(Sender: TObject);
 begin
-  shellexecute(0, 'open', pchar(cheatenginedir+{$ifdef altname}'rtm-tutorial-i386.exe'}{$else}'Tutorial-i386.exe'{$endif}), nil, nil, sw_show);
+  shellexecute(0, 'open', pchar(cheatenginedir+{$ifdef altname}'rtmtutorial-i386.exe'{$else}'Tutorial-i386.exe'{$endif}), nil, nil, sw_show);
 end;
 
 procedure TMainForm.miFlFindWhatAccessesClick(Sender: TObject);

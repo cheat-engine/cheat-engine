@@ -264,6 +264,7 @@ end;
 {$ifdef windows}
 function tcc_linux: TTCC;
 begin
+  {$ifdef cpu64}
   if processhandler.is64bit then
   begin
     if tcc64_linux=nil then
@@ -272,6 +273,7 @@ begin
     result:=tcc64_linux
   end
   else
+  {$endif}
   begin
     if tcc32_linux=nil then
       tcc32_linux:=ttcc.create(i386_sysv);

@@ -36,6 +36,7 @@ var IsWow64Process        :TIsWow64Process;
     i: integer;
 
     cpuid7ebx: dword;
+    basename: widestring;
     exename: widestring;
 
     s: string;
@@ -45,6 +46,11 @@ begin
   exit;
   {$endif}
 
+  {$ifndef altname}
+  basename:='cheatengine';
+  {$else}
+  basename:='rt-mod';
+  {$endif}
 
   WindowsKernel:=LoadLibrary('Kernel32.dll'); //there is no kernel33.dll
   IsWow64Process:=   GetProcAddress(WindowsKernel, 'IsWow64Process');
@@ -72,7 +78,7 @@ begin
   //MessageBox(0, pchar(param),'bla',0);
 
   if launch32bit then
-    exename:='cheatengine-i386.exe'
+    exename:=basename+'-i386.exe'
   else
   begin
     asm
@@ -85,9 +91,9 @@ begin
     end;
 
     if (cpuid7ebx and (1 shl 5))>0 then
-      exename:='cheatengine-x86_64-SSE4-AVX2.exe'
+      exename:=basename+'-x86_64-SSE4-AVX2.exe'
     else
-      exename:='cheatengine-x86_64.exe';
+      exename:=basename+'-x86_64.exe';
   end;
 
   
