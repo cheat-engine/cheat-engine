@@ -151,7 +151,7 @@ begin
           generateAPIHookScript(script, fname, 'new_gettimeofday', 'real_gettimeofday');
 
           try
-            Clipboard.AsText:=script.text;
+            //Clipboard.AsText:=script.text;
             autoassemble(script,false);
           except
           end;
