@@ -457,6 +457,7 @@ begin
       dataForPass2.cdata.sourceCodeInfo:=TSourceCodeInfo.create;
 
 
+
     if _tcc.compileScript(dataForPass2.cdata.cscript.Text, dataForPass2.cdata.address, bytes, tempsymbollist, dataForPass2.cdata.sourceCodeInfo, errorlog, secondarylist, dataForPass2.cdata.targetself ) then
     begin
       if bytes.Size>dataForPass2.cdata.bytesize then
