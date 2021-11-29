@@ -863,9 +863,9 @@ function DisplaymethodToString(d:TdisplayMethod): string;
 begin
   result:='';
   case d of
-    dtUnsignedInteger: result:=rsUnsignedInteger;
-    dtSignedInteger: result:=rsSignedInteger;
-    dtHexadecimal: result:=rsHexadecimal;
+    dtUnsignedInteger: result:='unsigned integer';
+    dtSignedInteger: result:='signed integer';
+    dtHexadecimal: result:='hexadecimal';
   end;
 end;
 
