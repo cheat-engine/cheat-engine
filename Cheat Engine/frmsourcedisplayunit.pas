@@ -79,7 +79,7 @@ implementation
 
 uses maps, debughelper, cedebugger, CEFuncProc, SynHighlighterAA,
   debuggertypedefinitions, sourcecodehandler, ProcessHandlerUnit, byteinterpreter,
-  commonTypeDefs, NewKernelHandler;
+  commonTypeDefs, NewKernelHandler, globals;
 
 { TfrmSourceDisplay }
 
@@ -227,6 +227,11 @@ begin
   seSource.LineHighlightColor.Background:=ColorToRGB(seSource.Color) xor $212121;
 
   LoadedPosition:=LoadFormPosition(self);
+
+  if overridefont<>nil then
+    seSource.Font.size:=overridefont.size
+  else
+    seSource.Font.Size:=10;
 
 end;
 
