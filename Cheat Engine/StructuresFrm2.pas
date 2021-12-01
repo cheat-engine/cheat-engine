@@ -863,7 +863,7 @@ function DisplaymethodToString(d:TdisplayMethod): string;
 begin
   result:='';
   case d of
-    dtUnsignedInteger: result:='unsigned integer';
+    dtUnsignedInteger: result:='unsigned integer';   //do not translate/resourcestring this
     dtSignedInteger: result:='signed integer';
     dtHexadecimal: result:='hexadecimal';
   end;

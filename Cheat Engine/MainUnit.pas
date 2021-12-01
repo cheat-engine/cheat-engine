@@ -10454,6 +10454,7 @@ begin
 end;
 
 procedure TMainForm.cbSpeedhackChange(Sender: TObject);
+var ss: TShiftState;
 begin
   if cbSpeedhack.Checked then
   begin
@@ -10461,12 +10462,26 @@ begin
       if speedhack <> nil then
         FreeAndNil(speedhack);
 
+      ss:=GetKeyShiftState;
+      if (ssAlt in ss) and (ssCtrl in ss) then
+        raise exception.create('Speedhack alternate test');
+
       speedhack := TSpeedhack.Create;
     except
       on e: Exception do
       begin
+        lua_getglobal(luavm, 'activateAlternateSpeedhack');//failure. check if there is an alternative in lua
+        if lua_isfunction(luavm,-1) then
+        begin
+          lua_pushboolean(luavm,true);
+          lua_pcall(luavm, 1,0,0);
+          exit;
+        end
+        else
+          lua_pop(luavm,1);
+
         cbSpeedhack.Checked := False;
-        raise Exception.Create(e.Message);
+        MessageDlg(e.message,mtError,[mbok],0);
       end;
     end;
   end

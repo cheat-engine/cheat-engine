@@ -295,6 +295,7 @@ begin
   registeredsymbols.Duplicates:=dupIgnore;
 
   ccodesymbols:=TSymbolListHandler.create;
+  ccodesymbols.PID:=processid;
 
   allsymbols:=TStringList.create;
   allsymbols.CaseSensitive:=false;

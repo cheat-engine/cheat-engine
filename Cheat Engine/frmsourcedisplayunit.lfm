@@ -526,7 +526,6 @@ object frmSourceDisplay: TfrmSourceDisplay
     Caption = 'tbDebug'
     Images = MemoryBrowser.mvImageList
     ImagesWidth = 16
-    ParentFont = False
     ShowCaptions = True
     TabOrder = 1
     object tbToggleBreakpoint: TToolButton

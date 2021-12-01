@@ -63,6 +63,7 @@ type
 
   TSourceCodeInfo=class(TObject)
   private
+    fprocessid: dword;
     AddressToLineNumberInfo: tmap;
     sources: TStringlist;
     minaddress: ptruint;
@@ -76,7 +77,6 @@ type
     stabstr: pchar;
 
     fullyParsed: boolean;
-
 
     parsedsource: array of record
       sourcefile: string;
@@ -138,6 +138,7 @@ type
 
 
 
+    property processID: dword read fProcessID;
 
     constructor create;
     destructor destroy; override;
@@ -1071,6 +1072,7 @@ constructor TSourceCodeInfo.create;
 begin
   AddressToLineNumberInfo:=TMap.Create(ituPtrSize,sizeof(TLineNumberInfo));
   sources:=TStringList.create;
+  fprocessid:=processhandler.processid;
 end;
 
 destructor TSourceCodeInfo.destroy;
