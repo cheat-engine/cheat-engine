@@ -260,7 +260,7 @@ begin
           if reg.ValueExists('Time between hotkeypress') then
             hotkeyIdletime:=reg.ReadInteger('Time between hotkeypress')
           else
-            hotkeyIdletime:=100;
+            hotkeyIdletime:=350;
 
           frameHotkeyConfig.edtKeypollInterval.text:=inttostr(hotkeyPollInterval);
           frameHotkeyConfig.edtHotkeyDelay.text:=inttostr(hotkeyIdletime);
