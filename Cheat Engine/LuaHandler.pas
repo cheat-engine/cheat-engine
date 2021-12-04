@@ -1817,7 +1817,7 @@ begin
         if signed then
           lua_pushinteger(L, v)
         else
-          lua_pushinteger(L, word(v));
+          lua_pushinteger(L, byte(v));
 
         result:=1;
       end;
