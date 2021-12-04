@@ -529,7 +529,7 @@ begin
     for i:=0 to {$ifdef cpu64}15{$else}7{$endif} do
     begin
       //get the nibble for the xmm register
-      b:=(bp.changereg.change_XMM shl (i*4)) and $f;
+      b:=(bp.changereg.change_XMM shr (i*4)) and $f;
 
       if b>0 then //bits are set
       begin
