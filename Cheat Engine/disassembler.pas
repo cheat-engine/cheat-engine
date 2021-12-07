@@ -1809,8 +1809,9 @@ begin
 
       debugpart:=3;
 
-      if actualread>0 then
+      if (actualread>0) and (actualread<=32) then
       begin
+
         {$ifndef jni}
         if debuggerthread<>nil then
           for i:=0 to actualread-1 do

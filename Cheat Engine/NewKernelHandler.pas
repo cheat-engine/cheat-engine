@@ -834,6 +834,9 @@ var
     MAXPHYADDRMASKPB: QWORD=QWORD($ffffff000); //same as MAXPHYADDRMASK but also aligns it to a page boundary
     MAXPHYADDRMASKPBBIG: QWORD=QWORD($fffe00000);
 
+    MAXLINEARADDR: byte;//number of bits in a virtual address. All bits after it have to match
+    MAXLINEARADDRTEST: QWORD;
+    MAXLINEARADDRMASK: QWORD;
 
 
 implementation
@@ -863,6 +866,21 @@ resourcestring
 
  {$ifndef JNI}
   {$ifdef windows}
+
+function verifyAddress(a: qword): boolean; //inline;
+begin
+  result:=false;
+  if (a and MAXLINEARADDRTEST)>0 then
+  begin
+    //bits MAXLINEARADDR to 64 need to be 1
+    result:=(a and MAXLINEARADDRMASK) = MAXLINEARADDRMASK;
+  end
+  else
+  begin
+    //bits MAXLINEARADDR to 64 need to be 0
+    result:=(a and MAXLINEARADDRMASK) = 0;
+  end;
+end;
 
 
 function pageEntryToProtection(entry: qword): dword;
@@ -1139,6 +1157,9 @@ var
   nextreadable: ptruint;
   p: ptruint;
 begin
+  if not verifyAddress(qword(lpAddress)) then
+    exit(0);
+
   result:=0;
   lpbuffer.BaseAddress:=pointer(ptruint(lpAddress) and $fffffffffffff000);
 
@@ -1189,6 +1210,12 @@ var
 
   blocksize: integer;
 begin
+  if not verifyAddress(qword(lpBaseAddress)) then
+  begin
+    lpNumberOfBytesRead:=0;
+    exit(false);
+  end;
+
   cr3:=cr3 and MAXPHYADDRMASKPB;
 
   result:=false;
@@ -1224,6 +1251,12 @@ var
 
   blocksize: integer;
 begin
+  if not verifyAddress(qword(lpBaseAddress)) then
+  begin
+    lpNumberOfBytesWritten:=0;
+    exit(false);
+  end;
+
   cr3:=cr3 and MAXPHYADDRMASKPB;
 
   result:=false;
@@ -1252,12 +1285,19 @@ end;
 {$endif}
 
 
+
 function WriteProcessMemory(hProcess: THandle; const lpBaseAddress: Pointer; lpBuffer: Pointer; nSize: DWORD; var lpNumberOfBytesWritten: PTRUINT): BOOL; stdcall;
 var
   wle: TWriteLogEntry;
   x: PTRUINT;
   cr3: ptruint;
 begin
+  if not verifyAddress(qword(lpBaseAddress)) then
+  begin
+    lpNumberOfBytesWritten:=0;
+    exit(false);
+  end;
+
   result:=false;
   wle:=nil;
   if logWrites then
@@ -1303,6 +1343,13 @@ end;
 function ReadProcessMemory(hProcess: THandle; lpBaseAddress, lpBuffer: Pointer; nSize: size_t; var lpNumberOfBytesRead: PTRUINT): BOOL; stdcall;
 var cr3: ptruint;
 begin
+  if not verifyAddress(qword(lpBaseAddress)) then
+  begin
+    lpNumberOfBytesRead:=0;
+    exit(false);
+  end;
+
+
   {$ifdef windows}
   {$ifdef cpu64}
   if (((qword(lpBaseAddress) and (qword(1) shl 63))<>0) and //kernelmode access
@@ -2129,6 +2176,14 @@ begin
   MAXPHYADDRMASK:=MAXPHYADDRMASK shr MAXPHYADDR;
   MAXPHYADDRMASK:=not (MAXPHYADDRMASK shl MAXPHYADDR);
   MAXPHYADDRMASKPB:=MAXPHYADDRMASK and qword($fffffffffffff000);
+
+  MAXLINEARADDR:=(cpuidr.eax shr 8) and $ff;
+  MAXLINEARADDRMASK:=qword($ffffffffffffffff);
+  MAXLINEARADDRMASK:=MAXLINEARADDRMASK shr MAXLINEARADDR;
+  MAXLINEARADDRMASK:=MAXLINEARADDRMASK shl MAXLINEARADDR;
+
+  MAXLINEARADDRTEST:=qword(1) shl (MAXLINEARADDR-1);
+
 
   {$ifdef cpu64}
   MAXPHYADDRMASKPBBIG:=MAXPHYADDRMASK and qword($ffffffffffe00000);

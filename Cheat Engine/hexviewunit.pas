@@ -1886,6 +1886,7 @@ begin
   begin
     //get memory page info
     p.baseaddress:=a;
+    x:=0;
     p.readable:=readprocessmemory(processhandle, pointer(a), @p.data[0], 4096,x);
     if p.readable then
 {$IFDEF STANDALONEHV}
