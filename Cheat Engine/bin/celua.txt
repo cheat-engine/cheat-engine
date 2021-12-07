@@ -3056,6 +3056,7 @@ Methods
       isJump: boolean - Set to true if the disassembled instruction can change the EIP/RIP (not ret)
       isCall: boolean - Set to true if it's a Call
       isRet: boolean - Set to true if it's a Ret
+      isRep: boolean - Set to true if it's preceded by a Rep
       isConditionalJump: boolean - Set to true if it's a conditional jump
 
 

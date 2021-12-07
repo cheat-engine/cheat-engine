@@ -755,7 +755,7 @@ begin
           d:=TDisassembler.Create;
           nexteip:=context^.{$ifdef cpu64}rip{$else}eip{$endif};
           d.disassemble(nexteip, t);
-          if d.LastDisassembleData.iscall then
+          if d.LastDisassembleData.iscall or d.LastDisassembleData.isrep then
           begin
             //set an execute breakpoint for this thread only at the next instruction and run till there
             if CurrentDebuggerInterface.usesDebugRegisters then
@@ -773,6 +773,9 @@ begin
           end
           else  //if not, single step
           begin
+
+
+
             if dbcCanUseInt1BasedBreakpoints in CurrentDebuggerInterface.DebuggerCapabilities then
               context^.EFlags:=eflags_setTF(context^.EFlags,1);
           end;

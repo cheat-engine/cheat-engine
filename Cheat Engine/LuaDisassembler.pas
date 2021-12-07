@@ -198,6 +198,10 @@ begin
   lua_pushboolean(L, ldd.isret);
   lua_settable(L, t);
 
+  lua_pushstring(L,'isRep');
+  lua_pushboolean(L, ldd.isrep);
+  lua_settable(L, t);
+
   lua_pushstring(L,'isConditionalJump');
   lua_pushboolean(L, ldd.isConditionalJump);
   lua_settable(L, t);

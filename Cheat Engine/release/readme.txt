@@ -25,6 +25,7 @@ from 7.3.2-7.4:
   added shortcut to add this address to addresslist in hexview (numPlus)
   goto address popup now centers on the memview window, instead of screen center
   you can now change the font of the tracer tree
+  added isRep to the lua LastDisassemblerData field.  And stepover now steps over rep instructions
 
 
 

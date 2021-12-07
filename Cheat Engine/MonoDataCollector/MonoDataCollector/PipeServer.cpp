@@ -672,6 +672,9 @@ void CPipeServer::Object_GetClass()
 	char *classname;
 	void *klass;
 
+	ExpectingAccessViolations = FALSE;
+
+
 	try
 	{
 		unsigned int i;
@@ -702,6 +705,7 @@ void CPipeServer::Object_GetClass()
 	}
 	catch (...)
 	{
+		//OutputDebugStringA("Object_GetClass exception caught");
 		WriteQword(0); //failure. Invalid object
 	}
 }

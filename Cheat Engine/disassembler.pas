@@ -1655,6 +1655,7 @@ begin
 
     //try
       debugpart:=0;
+
       LastDisassembleData.isfloat:=false;
       LastDisassembleData.isfloat64:=false;
       LastDisassembleData.iscloaked:=false;
@@ -1735,6 +1736,7 @@ begin
       lastdisassembledata.isjump:=false;
       lastdisassembledata.iscall:=false;
       lastdisassembledata.isret:=false;
+      LastDisassembleData.isrep:=false;
       lastdisassembledata.isconditionaljump:=false;
       lastdisassembledata.modrmValueType:=dvtNone;
       lastdisassembledata.parameterValueType:=dvtNone;
@@ -1869,12 +1871,14 @@ begin
         begin
           tempresult:=tempresult+'repne ';
           noVEXPossible:=true;
+          LastDisassembleData.isrep:=true;
         end;
 
         if $f3 in prefix2 then
         begin
           tempresult:=tempresult+'repe ';
           noVEXPossible:=true;
+          LastDisassembleData.isrep:=true;
         end;
 
         LastDisassembleData.prefix:=tempresult;
