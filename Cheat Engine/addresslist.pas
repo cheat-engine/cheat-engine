@@ -877,6 +877,8 @@ begin
   begin
     caption:=rsALAddAddress;
     memoryrecord:=mr;
+
+
     if showmodal<>mrok then
     begin
       mr.free; //not ok, delete

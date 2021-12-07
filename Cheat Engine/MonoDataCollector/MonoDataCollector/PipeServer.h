@@ -191,7 +191,7 @@ typedef void* (__cdecl *MONO_OBJECT_UNBOX)(void *obj);
 typedef void* (__cdecl *MONO_CLASS_GET_TYPE)(void *klass);
 typedef void* (__cdecl *MONO_CLASS_GET_NESTING_TYPE)(void *klass);
 
-typedef int (__cdecl *MONO_RUNTIME_IS_SHUTTING_DOWN)(void *klass);
+typedef int (__cdecl *MONO_RUNTIME_IS_SHUTTING_DOWN)(void);
 
 
 

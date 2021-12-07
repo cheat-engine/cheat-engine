@@ -1819,7 +1819,10 @@ begin
     loadedWidth:=true;
   end;
 
-  //autosize:=true;
+
+  if editAddress.text<>'' then
+    editDescription.SetFocus;
+   //autosize:=true;
 end;
 
 procedure TformAddressChange.miCopyFinalAddressToClipboardClick(Sender: TObject);

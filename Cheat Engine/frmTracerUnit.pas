@@ -81,6 +81,7 @@ type
     ESIlabel: TLabel;
     ESlabel: TLabel;
     ESPlabel: TLabel;
+    FontDialog1: TFontDialog;
     FSlabel: TLabel;
     GSlabel: TLabel;
     ftImageList: TImageList;
@@ -91,6 +92,8 @@ type
     MenuItem1: TMenuItem;
     MenuItem2: TMenuItem;
     MenuItem3: TMenuItem;
+    MenuItem7: TMenuItem;
+    N1: TMenuItem;
     miRealignCompare: TMenuItem;
     miNewTrace: TMenuItem;
     miOpenTraceForCompare: TMenuItem;
@@ -137,6 +140,7 @@ type
       Y: Integer);
     procedure MenuItem5Click(Sender: TObject);
     procedure MenuItem6Click(Sender: TObject);
+    procedure MenuItem7Click(Sender: TObject);
     procedure miNewTraceClick(Sender: TObject);
     procedure miOpenTraceForCompareClick(Sender: TObject);
     procedure miLoadClick(Sender: TObject);
@@ -241,7 +245,8 @@ uses  LuaByteTable, clipbrd, CEDebugger, debughelper, MemoryBrowserFormUnit, frm
   ProcessHandlerUnit, Globals, Parsers, strutils, CEFuncProc,
   LuaHandler, symbolhandler, byteinterpreter,
   tracerIgnore, LuaForm, lua, lualib,lauxlib, LuaClass,vmxfunctions, DBK32functions,
-  DebuggerInterfaceAPIWrapper, DBVMDebuggerInterface, mainunit2;
+  DebuggerInterfaceAPIWrapper, DBVMDebuggerInterface, mainunit2, fontSaveLoadRegistry,
+  Registry;
 
 resourcestring
   rsSearch = 'Search';
@@ -708,7 +713,8 @@ end;
 
 procedure TfrmTracer.FormCreate(Sender: TObject);
 var
-    x: array of integer;
+  x: array of integer;
+  reg: TRegistry;
 begin
   //set a breakpoint and when that breakpoint gets hit trace a number of instructions
   if fskipconfig=false then
@@ -721,6 +727,16 @@ begin
 
   setlength(x,0);
   loadedformpos:=loadformposition(self,x);
+
+
+  reg:=Tregistry.Create;
+  try
+    if reg.OpenKey('\Software\'+strCheatEngine+'\TracerTree '+inttostr(screen.PixelsPerInch)+'\Font'+darkmodestring,false) then
+      LoadFontFromRegistry(lvtracer.Font, reg);
+  except
+  end;
+
+  reg.free;
 
 end;
 
@@ -1001,6 +1017,25 @@ begin
   begin
     t.Collapse(true);
     t:=t.GetNextSibling;
+  end;
+end;
+
+procedure TfrmTracer.MenuItem7Click(Sender: TObject);
+var reg: TRegistry;
+begin
+  fontdialog1.Font.assign(lvtracer.font);
+  if fontdialog1.execute then
+  begin
+    lvtracer.font.assign(fontdialog1.font);
+
+    reg:=Tregistry.Create;
+    try
+      if reg.OpenKey('\Software\'+strCheatEngine+'\TracerTree '+inttostr(screen.PixelsPerInch)+'\Font'+darkmodestring,true) then
+        SaveFontToRegistry(lvTracer.Font, reg);
+    except
+    end;
+
+    reg.free;
   end;
 end;
 

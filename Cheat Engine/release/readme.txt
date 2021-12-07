@@ -8,6 +8,7 @@ Additions and changes:
   debugger attach timeout window will now show the status on some debugger interfaces
   modules for 64-bit in 32-bit targets are more clearly marked as such
   mono will not try to re-attach after a disconnect
+  lua: fixed copyMemory mode 2  
 
 from 7.3.1-7.3.2:
   structure dissect watch for changes now also shows you when something has changed inbetween
@@ -18,7 +19,12 @@ from 7.3.1-7.3.2:
   lua's openProcess command now won't deactivate all entries when previously no process was selected
   you can now edit instructions with a breakpoint on them
   added linux ABI c-compiler dll's
+  by default mono now releases the .net thread
 
+from 7.3.2-7.4:
+  added shortcut to add this address to addresslist in hexview (numPlus)
+  goto address popup now centers on the memview window, instead of screen center
+  you can now change the font of the tracer tree
 
 
 
@@ -62,7 +68,10 @@ from 7.3.1-7.3.2:
   fixed pointerscan not loading results when in a path with non-ascii characters
   fixed the standalone trainer maker giving an error about duplicate entries
 
+from 7.3.2-7.4:
+  lua: fixed readByte signxtending when it shouldn't
+  fix changeregonbp where it only changed xmm0
+  window position saving of "find what addresses this code accesses" should be more predictable
 
-lua:
-  fixed copyMemory mode 2
+
  
