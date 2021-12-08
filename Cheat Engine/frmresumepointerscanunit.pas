@@ -65,7 +65,7 @@ implementation
 
 { TfrmResumePointerscan }
 
-uses DPIHelper;
+uses DPIHelper, mainunit2;
 
 procedure TfrmResumePointerscan.updateFileList;
 var
@@ -173,7 +173,7 @@ begin
   reg:=tregistry.create;
   try
     Reg.RootKey := HKEY_CURRENT_USER;
-    if Reg.OpenKey('\Software\Cheat Engine',false) then
+    if Reg.OpenKey('\Software\'+strCheatEngine,false) then
     begin
       if reg.ValueExists('Worker IP List') then
         iplist.Text:=reg.ReadString('Worker IP List');
@@ -216,7 +216,7 @@ begin
     if MultilineInputQuery(rsRPSIpList,rsRPSEnterTheIpAddressesToNotifyExplicitly, iplist) then  //save the new ip list
     begin
       Reg.RootKey := HKEY_CURRENT_USER;
-      if Reg.OpenKey('\Software\Cheat Engine',true) then
+      if Reg.OpenKey('\Software\'+strCheatEngine,true) then
         reg.WriteString('Worker IP List', iplist.text);
     end;
 

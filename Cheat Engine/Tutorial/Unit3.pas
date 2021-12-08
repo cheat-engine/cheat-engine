@@ -38,7 +38,7 @@ var
 
 implementation
 
-uses Unit4, Unit5, frmHelpUnit;
+uses Unit4, Unit5, frmHelpUnit, cetranslator;
 
 resourcestring
   rsStep3UnknownInitialValuePW = 'Step 3: Unknown initial value (PW=';
@@ -77,7 +77,8 @@ resourcestring
 
 procedure TForm3.FormCreate(Sender: TObject);
 begin
-  memo1.lines.text:=rsTutorialStep3;
+  caption:=altnamer(caption);
+  memo1.lines.text:=altnamer(rsTutorialStep3);
 
   health:=random(500);
   progressbar1.Min:=-2000;

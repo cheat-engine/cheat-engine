@@ -21,7 +21,7 @@ implementation
 
 {$ifdef windows}
 
-uses cefuncproc, CustomBase85, registry, formsettingsunit;
+uses cefuncproc, CustomBase85, registry, formsettingsunit, mainunit2;
 
 resourcestring
   rsFailedToGetSignatureSize = 'Failed to get the signature size';
@@ -36,9 +36,9 @@ resourcestring
   rsIsPasswordCorrect='Is the password correct?';
   rsCouldNotOpenTheAlgorithmProvider = 'Could not open the algorithm provider';
   rsBcryptCouldNotBeUsed = 'bcrypt could not be used';
-  rsSelectYourCheatEngineSignatureFile = 'Select your cheat engine signature '
+  rsSelectYourCheatEngineSignatureFile = 'Select your '+strCheatEngine+' signature '
     +'file';
-  rsCheatEngineSignatureFiles = 'Cheat engine signature files';
+  rsCheatEngineSignatureFiles = strCheatEngine+' signature files';
   rsThisTableHasBeenModified = 'This table has been modified. To load this '
     +'table, remove the signature part with an editor (And check the file for '
     +'suspicious things while you''re at it)';
@@ -47,11 +47,11 @@ resourcestring
   rsFailedHashingTable2 = 'Failed hashing table 2';
   rsFailedCreatingHash2 = 'Failed creating hash 2';
   rsInvalidPublicKey = 'The provided public key is invalid(Not signed by the '
-    +'Cheat Engine guy). Remove the signature section to load this table';
+    +strCheatEngine+' guy). Remove the signature section to load this table';
   rsFailedCreatingHasAlgorithmProvider2 = 'Failed creating has algorithm '
     +'provider';
   rsFailedToLoadTheTablePublicKey = 'Failed to load the table public key';
-  rsFailedToLoadCheatEnginePublicKey = 'Failed to load cheat engine public key';
+  rsFailedToLoadCheatEnginePublicKey = 'Failed to load '+strCheatEngine+' public key';
   rsNoSignedHash = 'This table''s signature does not contain a SignedHash '
     +'element';
   rsNoPublicKey =

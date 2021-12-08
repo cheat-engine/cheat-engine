@@ -1,7 +1,7 @@
 object frmSourceDisplay: TfrmSourceDisplay
-  Left = 685
+  Left = 757
   Height = 427
-  Top = 119
+  Top = 147
   Width = 715
   Caption = 'frmSourceDisplay'
   ClientHeight = 427
@@ -526,7 +526,6 @@ object frmSourceDisplay: TfrmSourceDisplay
     Caption = 'tbDebug'
     Images = MemoryBrowser.mvImageList
     ImagesWidth = 16
-    ParentFont = False
     ShowCaptions = True
     TabOrder = 1
     object tbToggleBreakpoint: TToolButton

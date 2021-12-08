@@ -11,7 +11,7 @@ procedure initializeLuaSettings;
 
 implementation
 
-uses luahandler, LuaClass, LuaObject, LuaByteTable;
+uses luahandler, LuaClass, LuaObject, LuaByteTable, mainunit2;
 
 type
   TLuaSettings=class    //A wrapper for the registry object to make access to the cheat engine settings easier and uniform
@@ -36,7 +36,7 @@ begin
   if pos('..',v)>0 then
     exit;
 
-  if freg.OpenKey('\Software\Cheat Engine\'+v, true) then
+  if freg.OpenKey('\Software\'+strCheatEngine+'\'+v, true) then
     fpath:=v;
 end;
 
@@ -138,7 +138,7 @@ begin
   if initialpath<>nil then
     path:=initialpath
   else
-    freg.OpenKey('\Software\Cheat Engine',true);
+    freg.OpenKey('\Software\'+strCheatEngine,true);
 
 
 end;

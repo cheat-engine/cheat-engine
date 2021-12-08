@@ -116,6 +116,8 @@ procedure TAbout.FormShow(Sender: TObject);
 var
     a,b,c,d: dword;
     i: integer;
+    rs: TResourceStream;
+    logopic: tpicture;
 begin
   {$ifdef net}
     groupbox1.Caption:=unit2.CEnorm;
@@ -139,6 +141,21 @@ begin
     label10.AnchorSideTop.Control:=panel4;
 
   UpdateDBVMStatus;
+
+  {$ifdef altname}
+  rs := TResourceStream.Create(HInstance, 'IMAGES_ALT_CELOGO', RT_RCDATA);
+  logopic:=TPicture.Create;
+  logopic.LoadFromStreamWithFileExt(rs,'.PNG');
+  image1.Picture:=logopic;
+  image1.Stretch:=true;
+
+
+  logopic.free;
+  freeandnil(rs);
+  {$endif}
+
+
+
 end;
 
 procedure TAbout.Label4Click(Sender: TObject);

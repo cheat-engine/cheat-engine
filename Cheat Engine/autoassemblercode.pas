@@ -457,6 +457,7 @@ begin
       dataForPass2.cdata.sourceCodeInfo:=TSourceCodeInfo.create;
 
 
+
     if _tcc.compileScript(dataForPass2.cdata.cscript.Text, dataForPass2.cdata.address, bytes, tempsymbollist, dataForPass2.cdata.sourceCodeInfo, errorlog, secondarylist, dataForPass2.cdata.targetself ) then
     begin
       if bytes.Size>dataForPass2.cdata.bytesize then
@@ -705,7 +706,8 @@ begin
     begin
       case parameters[j].contextitem of
         0: s:='unsigned long long '+parameters[j].varname+'=*(unsigned long long *)*(unsigned long long *)((unsigned long long)parameters+0x228);'; //RAX
-        1..15: s:='unsigned long long '+parameters[j].varname+'=*(unsigned long long*)((unsigned long long)parameters+0x'+inttohex($200+(parameters[j].contextitem-1)*8,1)+');'; //RBX..R15
+        1..5, 7..15: s:='unsigned long long '+parameters[j].varname+'=*(unsigned long long*)((unsigned long long)parameters+0x'+inttohex($200+(parameters[j].contextitem-1)*8,1)+');'; //RBX..R15
+        6: s:='unsigned long long '+parameters[j].varname+'=*(unsigned long long*)((unsigned long long)parameters+0x'+inttohex($200+(parameters[j].contextitem-1)*8,1)+')-24;'; //RSP
         16: s:='float '+parameters[j].varname+'=*(float *)((unsigned long long)parameters+0x228);';
         17..31: s:='float '+parameters[j].varname+'=*(float *)((unsigned long long)parameters+0x'+inttohex($200+(parameters[j].contextitem-1)*8,1)+');'; //RBX..R15
         32..47:
@@ -725,7 +727,8 @@ begin
     begin
       case parameters[j].contextitem of
         0: s:='unsigned long '+parameters[j].varname+'=*(unsigned long *)*(unsigned long *)((unsigned long)parameters+0x214);'; //EAX
-        1..7: s:='unsigned long '+parameters[j].varname+'=*(unsigned long*)((unsigned long)parameters+0x'+inttohex($200+(parameters[j].contextitem-1)*4,1)+');'; //RBX..R15
+        1..5,7: s:='unsigned long '+parameters[j].varname+'=*(unsigned long*)((unsigned long)parameters+0x'+inttohex($200+(parameters[j].contextitem-1)*4,1)+');'; //RBX..R15
+        6: s:='unsigned long '+parameters[j].varname+'=*(unsigned long*)((unsigned long)parameters+0x'+inttohex($200+(parameters[j].contextitem-1)*4,1)+')-12;'; //RBX..R15
         16: s:='float '+parameters[j].varname+'=*(float *)((unsigned long)parameters+0x214);';
         17..23: s:='float '+parameters[j].varname+'=*(float *)((unsigned long)parameters+0x'+inttohex($200+(parameters[j].contextitem-1)*4,1)+');'; //EBX..EBP
         32..39:
@@ -759,7 +762,8 @@ begin
     begin
       case parameters[j].contextitem of
         0: s:='*(unsigned long long *)*(unsigned long long *)((unsigned long long)parameters+0x228)='+parameters[j].varname+';'; //RAX
-        1..15: s:='*(unsigned long long*)((unsigned long long)parameters+0x'+inttohex($200+(parameters[j].contextitem-1)*8,1)+')='+parameters[j].varname+';'; //RBX..R15
+        1..5, 7..15: s:='*(unsigned long long*)((unsigned long long)parameters+0x'+inttohex($200+(parameters[j].contextitem-1)*8,1)+')='+parameters[j].varname+';'; //RBX..R15
+        //6: skip, do not write rsp
         16: s:='*(float *)((unsigned long long)parameters+0x228)='+parameters[j].varname+';';
         17..31: s:='*(float *)((unsigned long long)parameters+0x'+inttohex($200+(parameters[j].contextitem-1)*8,1)+')='+parameters[j].varname+';'; //RBX..R15
         32..47:
@@ -779,7 +783,8 @@ begin
     begin
       case parameters[j].contextitem of
         0: s:='*(unsigned long *)*(unsigned long *)((unsigned long)parameters+0x214)='+parameters[j].varname+';'; //EAX
-        1..7: s:='*(unsigned long*)((unsigned long)parameters+0x'+inttohex($200+(parameters[j].contextitem-1)*4,1)+')='+parameters[j].varname+';'; //RBX..R15
+        1..5,7: s:='*(unsigned long*)((unsigned long)parameters+0x'+inttohex($200+(parameters[j].contextitem-1)*4,1)+')='+parameters[j].varname+';'; //RBX..R15
+        //6: skip.  Do not write esp
         16: s:='*(float *)((unsigned long)parameters+0x214)='+parameters[j].varname+';';
         17..23: s:='*(float *)((unsigned long)parameters+0x'+inttohex($200+(parameters[j].contextitem-1)*4,1)+')='+parameters[j].varname+';'; //EBX..EBP
         32..39:

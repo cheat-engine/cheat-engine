@@ -12,7 +12,7 @@ uses
 
 
 type
-  TTCCTarget=(x86_64,i386);
+  TTCCTarget=(x86_64,i386{$ifdef windows}, x86_64_sysv, i386_sysv{$endif});
   PTCCState=pointer;
   {$ifdef standalonetest}
   TSymbolListHandler=pointer;
@@ -63,6 +63,7 @@ type
 
   TSourceCodeInfo=class(TObject)
   private
+    fprocessid: dword;
     AddressToLineNumberInfo: tmap;
     sources: TStringlist;
     minaddress: ptruint;
@@ -76,7 +77,6 @@ type
     stabstr: pchar;
 
     fullyParsed: boolean;
-
 
     parsedsource: array of record
       sourcefile: string;
@@ -138,6 +138,7 @@ type
 
 
 
+    property processID: dword read fProcessID;
 
     constructor create;
     destructor destroy; override;
@@ -187,6 +188,9 @@ type
 
 
   function tcc: TTCC;
+{$ifdef windows}
+  function tcc_linux: TTCC;
+{$endif}
   function tccself: TTCC;
 
   procedure tcc_addCIncludePath(path: string);
@@ -211,6 +215,14 @@ var
   {$ifdef cpu64}
   tcc64: TTCC;
   {$endif}
+
+  {$ifdef windows}
+  tcc32_linux: TTCC;
+  {$ifdef cpu64}
+  tcc64_linux: TTCC;
+  {$endif} //cpu64
+  {$endif} //windows
+
   additonalIncludePaths: tstringlist;
 
 procedure UpdateMinMax(address: ptruint; var minaddress: ptruint; var maxaddress: ptruint);
@@ -250,9 +262,37 @@ begin
   end;
 end;
 
+{$ifdef windows}
+function tcc_linux: TTCC;
+begin
+  {$ifdef cpu64}
+  if processhandler.is64bit then
+  begin
+    if tcc64_linux=nil then
+      tcc64_linux:=ttcc.create(x86_64_sysv);
+
+    result:=tcc64_linux
+  end
+  else
+  {$endif}
+  begin
+    if tcc32_linux=nil then
+      tcc32_linux:=ttcc.create(i386_sysv);
+
+    result:=tcc32_linux;
+  end;
+
+end;
+{$endif}
+
 function tcc: TTCC;
 begin
   {$ifndef standalonetest}
+    {$ifdef windows}
+    if processhandler.OSABI=abiSystemV then
+      exit(tcc_linux);
+    {$endif}
+
     {$ifdef cpu64}
     if processhandler.is64bit then
       result:=tcc64
@@ -262,6 +302,7 @@ begin
   {$else}
     result:=tcc64;
   {$endif}
+
 end;
 
 function tccself: TTCC;
@@ -379,6 +420,9 @@ var
 
   ispointer: boolean;
 begin
+  currentFunctionAddress:=0;
+  ispointer:=false;
+
   if fullyParsed=false then
   begin
     fullyParsed:=true;
@@ -1028,6 +1072,7 @@ constructor TSourceCodeInfo.create;
 begin
   AddressToLineNumberInfo:=TMap.Create(ituPtrSize,sizeof(TLineNumberInfo));
   sources:=TStringList.create;
+  fprocessid:=processhandler.processid;
 end;
 
 destructor TSourceCodeInfo.destroy;
@@ -1068,7 +1113,7 @@ var
   module: HModule;
   p: string;
 begin
-  if initDone=true then raise exception.create('Do not create more compilers after init');
+  if initDone {$ifdef windows}and (target in [x86_64, i386]){$endif} then raise exception.create('Do not create more compilers after init');
   if cs=nil then
     cs:=TCriticalSection.create;
 
@@ -1077,13 +1122,15 @@ begin
   {$ifdef cpu32}
   module:=LoadLibrary({$ifdef standalonetest}'D:\git\cheat-engine\Cheat Engine\bin\'+{$endif}'tcc32-32.dll'); //generates 32-bit code
   {$else}
-  if target=x86_64 then
-    module:=loadlibrary({$ifdef standalonetest}'D:\git\cheat-engine\Cheat Engine\bin\'+{$endif}'tcc64-64.dll')
-  else
-    module:=loadlibrary({$ifdef standalonetest}'D:\git\cheat-engine\Cheat Engine\bin\'+{$endif}'tcc64-32.dll'); //generates 32-bit code
+  case target of
+    i386:    module:=loadlibrary({$ifdef standalonetest}'D:\git\cheat-engine\Cheat Engine\bin\'+{$endif}'tcc64-32.dll'); //generates 32-bit code
+    x86_64:  module:=loadlibrary({$ifdef standalonetest}'D:\git\cheat-engine\Cheat Engine\bin\'+{$endif}'tcc64-64.dll');
+    i386_sysv: module:=loadlibrary({$ifdef standalonetest}'D:\git\cheat-engine\Cheat Engine\bin\'+{$endif}'tcc64-32-linux.dll'); //32-bit linux abi code
+    x86_64_sysv: module:=loadlibrary({$ifdef standalonetest}'D:\git\cheat-engine\Cheat Engine\bin\'+{$endif}'tcc64-64-linux.dll'); //64-bit linux
+  end;
   {$endif}
   {$else}
-  module:=loadlibrary({$ifdef standalonetest}'D:\git\cheat-engine\Cheat Engine\bin\'+{$endif}'libtcc.dylib');
+  module:=loadlibrary('libtcc.dylib');
   if module=0 then
   begin
     p:=ExtractFilePath(application.ExeName)+'libtcc.dylib';
@@ -1591,6 +1638,7 @@ begin
   initDone:=true;
   result:=initdone;
 end;
+
 
 initialization
   initTCCLib;

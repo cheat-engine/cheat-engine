@@ -115,6 +115,7 @@ type
     function AllocateAndGetContext(hProcess: Thandle; threadid: integer): pointer;
     function getVersion(var name: string): integer;
     function getArchitecture: integer;
+    function getABI: integer;
     function enumSymbolsFromFile(modulepath: string; modulebase: ptruint; callback: TNetworkEnumSymCallback): boolean;
     function loadModule(hProcess: THandle; modulepath: string): boolean;
     function loadExtension(hProcess: Thandle): boolean;
@@ -178,6 +179,7 @@ const
   //
   CMD_VIRTUALQUERYEXFULL=31;
   CMD_GETREGIONINFO=32; //extended version of VirtualQueryEx which also get the full string
+  CMD_GETABI=33;  //for c-code compilation
 
 
 procedure TCEConnection.TerminateServer;
@@ -1436,7 +1438,7 @@ begin
       name:=_name;
       FreeMemAndNil(_name);
 
-      result:=length(name);
+      result:=CeVersion.version;
     end;
   end;
 end;
@@ -1447,6 +1449,17 @@ var command: byte;
 begin
   result:=0;
   command:=CMD_GETARCHITECTURE;
+  if send(@command, 1)>0 then
+    if receive(@r, 1)>0 then
+      result:=r;
+end;
+
+function TCEConnection.getABI: integer;
+var command: byte;
+  r: byte;
+begin
+  result:=0;
+  command:=CMD_GETABI;
   if send(@command, 1)>0 then
     if receive(@r, 1)>0 then
       result:=r;

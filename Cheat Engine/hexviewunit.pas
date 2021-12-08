@@ -518,13 +518,33 @@ begin
 
   if newdt=dtByteDec then
   begin
-    byteSize:=offscreenbitmap.Canvas.TextWidth('XXX X'); //byte space and the character it represents
-    byteSizeWithoutChar:=offscreenbitmap.Canvas.TextWidth('XXX ');
+    {$ifdef USELAZFREETYPE}
+    if (FTFont<>nil) then
+    begin
+      byteSize:=ceil(FTFont.TextWidth('XXX X'));
+      byteSizeWithoutChar:=ceil(FTFont.TextWidth('XXX '));
+    end
+    else
+    {$endif}
+    begin
+      byteSize:=offscreenbitmap.Canvas.TextWidth('XXX X'); //byte space and the character it represents
+      byteSizeWithoutChar:=offscreenbitmap.Canvas.TextWidth('XXX ');
+    end;
   end
   else
   begin
-    byteSize:=offscreenbitmap.Canvas.TextWidth('XX X'); //byte space and the character it represents
-    byteSizeWithoutChar:=offscreenbitmap.Canvas.TextWidth('XX ');
+    {$ifdef USELAZFREETYPE}
+    if (FTFont<>nil) then
+    begin
+      byteSize:=ceil(FTFont.TextWidth('XX X'));
+      byteSizeWithoutChar:=ceil(FTFont.TextWidth('XX '));
+    end
+    else
+    {$endif}
+    begin
+      byteSize:=offscreenbitmap.Canvas.TextWidth('XX X'); //byte space and the character it represents
+      byteSizeWithoutChar:=offscreenbitmap.Canvas.TextWidth('XX ');
+    end;
   end;
 
 
@@ -1866,6 +1886,7 @@ begin
   begin
     //get memory page info
     p.baseaddress:=a;
+    x:=0;
     p.readable:=readprocessmemory(processhandle, pointer(a), @p.data[0], 4096,x);
     if p.readable then
 {$IFDEF STANDALONEHV}

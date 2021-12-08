@@ -34,6 +34,8 @@ var
 
 implementation
 
+uses cetranslator;
+
 
 procedure TForm4.Button1Click(Sender: TObject);
 begin
@@ -48,6 +50,11 @@ end;
 procedure TForm4.FormCreate(Sender: TObject);
 begin
   font.size:=12;
+
+  label1.caption:=altnamer(label1.caption);
+  label3.caption:=altnamer(label3.caption);
+  label4.caption:=altnamer(label4.caption);
+
 end;
 
 procedure TForm4.FormShow(Sender: TObject);

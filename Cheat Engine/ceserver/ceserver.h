@@ -48,6 +48,7 @@
 
 #define CMD_VIRTUALQUERYEXFULL      31
 #define CMD_GETREGIONINFO           32
+#define CMD_GETABI                  33
 
 #define CMD_AOBSCAN					200
 

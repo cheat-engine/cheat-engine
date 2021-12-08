@@ -200,7 +200,7 @@ implementation
 
 
 uses mainunit, DPIHelper{$if lcl_fullversion>=2000000}, LazMsgDialogs{$endif}
-  , IDEImagesIntf{$ifdef windows}, DwmApi, UxTheme{$endif};
+  , IDEImagesIntf{$ifdef windows}, DwmApi, UxTheme{$endif}, mainunit2;
 
 resourcestring
   rsInvalidObject = '{Invalid object}';
@@ -1186,7 +1186,7 @@ begin
   reg:=tregistry.create;
   try
     Reg.RootKey := HKEY_CURRENT_USER;
-    if Reg.OpenKey('\Software\Cheat Engine',true) then
+    if Reg.OpenKey('\Software\'+strCheatEngine,true) then
       reg.WriteBool('FormDesigner CheckboxForBoolean', oid.GridControl[oipgpProperties].CheckboxForBoolean);
   finally
     reg.free;
@@ -1316,7 +1316,7 @@ begin
     reg:=tregistry.create;
     try
       Reg.RootKey := HKEY_CURRENT_USER;
-      if Reg.OpenKey('\Software\Cheat Engine',false) then
+      if Reg.OpenKey('\Software\'+strCheatEngine,false) then
       begin
         if reg.ValueExists('FormDesigner CheckboxForBoolean') then
           oid.GridControl[oipgpProperties].CheckboxForBoolean:=reg.ReadBool('FormDesigner CheckboxForBoolean')

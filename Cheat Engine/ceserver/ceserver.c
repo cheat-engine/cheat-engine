@@ -35,7 +35,7 @@ int PORT;
 __thread int isDebuggerThread;
 __thread int debugfd;
 
-char versionstring[]="CHEATENGINE Network 2.0";
+char versionstring[]="CHEATENGINE Network 2.1";
 
 ssize_t recvall (int s, void *buf, size_t size, int flags)
 {
@@ -126,7 +126,7 @@ int DispatchCommand(int currentsocket, unsigned char command)
       int versionsize=strlen(versionstring);
       v=(PCeVersion)malloc(sizeof(CeVersion)+versionsize);
       v->stringsize=versionsize;
-      v->version=1;
+      v->version=2;
 
       memcpy((char *)v+sizeof(CeVersion), versionstring, versionsize);
 
@@ -135,6 +135,17 @@ int DispatchCommand(int currentsocket, unsigned char command)
 
       free(v);
 
+      break;
+    }
+
+    case CMD_GETABI:
+    {
+#ifdef WINDOWS
+      unsigned char abi=0;
+#else
+      unsigned char abi=1;
+#endif
+      sendall(currentsocket, &abi, sizeof(abi), 0);
       break;
     }
 
@@ -472,14 +483,14 @@ case CMD_SETTHREADCONTEXT:
         }
 
         r->result=result;
-
+/*
         if (result)
         {
           debug_log("CMD_MODULE32 returning %s : base=%x size=%x part=%d (me.part=%d)\n", me.moduleName, r->modulebase, r->modulesize, r->modulepart, me.part);
 
         }
         else
-          debug_log("CMD_MODULE32 returning <nomodule> : base=%x size=%x part=%d\n", r->modulebase, r->modulesize, r->modulepart);
+          debug_log("CMD_MODULE32 returning <nomodule> : base=%x size=%x part=%d\n", r->modulebase, r->modulesize, r->modulepart);*/
 
         sendall(currentsocket, r, size, 0);
 

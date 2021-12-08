@@ -80,7 +80,8 @@ initialization
     //check the registry
     r := TRegistry.Create;
     r.RootKey := HKEY_CURRENT_USER;
-    if r.OpenKey('\Software\Cheat Engine',false) then
+
+    if r.OpenKey('\Software\'+{$ifdef altname}'Runtime Modifier'{$else}'Cheat Engine'{$endif},false) then
     begin
       if (r.ValueExists('DPI Aware')=false) or r.ReadBool('DPI Aware') then
         setDPIAware;
@@ -88,7 +89,7 @@ initialization
     else
     begin
       //first time CE is ran, and not a trainer.
-      if r.OpenKey('\Software\Cheat Engine',true) then
+      if r.OpenKey('\Software\'+{$ifdef altname}'Runtime Modifier'{$else}'Cheat Engine'{$endif},true) then
       begin
         //I do have access
         setDPIAware; //default config is enabled

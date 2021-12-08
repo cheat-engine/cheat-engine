@@ -178,6 +178,8 @@ type
 
     procedure clear;
 
+    function getLoadedTableVersion: integer;
+
 
     property MemRecItems[Index: Integer]: TMemoryRecord read GetMemRecItemByIndex; default;
 
@@ -188,6 +190,7 @@ type
 
     property headers: THeaderControl read header;
   published
+    property LoadedTableVersion: integer read getLoadedTableVersion;
 
     property Count: Integer read GetCount;
     property SelCount: Integer read GetSelCount;
@@ -216,7 +219,7 @@ implementation
 
 uses dialogs, formAddressChangeUnit, TypePopup, PasteTableentryFRM, MainUnit,
   ProcessHandlerUnit, frmEditHistoryUnit, globals, Filehandler, ceregistry,
-  memrecDataStructures;
+  memrecDataStructures, opensave;
 
 resourcestring
   rsDoYouWantToDeleteTheSelectedAddress = 'Do you want to delete the selected address?';
@@ -284,6 +287,8 @@ begin
     if item<>nil then
       item.Free;
   end;
+
+  lastLoadedTableVersion:=CurrentTableVersion;
 end;
 
 procedure TAddresslist.RefreshCustomTypes;
@@ -872,6 +877,8 @@ begin
   begin
     caption:=rsALAddAddress;
     memoryrecord:=mr;
+
+
     if showmodal<>mrok then
     begin
       mr.free; //not ok, delete
@@ -2339,6 +2346,11 @@ function TAddresslist.focused: boolean;
 begin
   result:=inherited focused;
   if not result then result:=treeview.Focused;
+end;
+
+function TAddresslist.getLoadedTableVersion: integer;
+begin
+  result:=lastLoadedTableVersion;
 end;
 
 procedure TAddresslist.getAddressList(list: Tstrings);

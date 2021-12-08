@@ -60,61 +60,10 @@ function dotnetpatch_getAllReferences()
   return r,sysfile
 end
 
-local function SplitDotNetCommonName(name)
-  --format na.me.space.classname.methodname
-  local sr=table.pack(name:split('.'))  
-  local namespace=''
-  local classname, methodname
-  
-  if sr.n>=2 then
-    methodname=sr[sr.n]
-    sr.n=sr.n-1
-    
-    classname=sr[sr.n]
-    sr.n=sr.n-1
-    
-    local i
-    for i=1,sr.n do
-      namespace=namespace..sr[i]
-      if i~=sr.n then
-        namespace=namespace..'.'
-      end
-    end
-    
-    return namespace, classname, methodname
-  end
-end
-
-function SplitMonoName(mononame)
-  --format: na.me.space:classname:methodname
-  local namespace, classname, methodname=mononame:split(':')
-  if methodname==nil or methodname=='' or classname==nil or classname=='' then return SplitDotNetCommonName(mononame) end
-  
-  return namespace, classname, methodname
-end
-
 function SplitDotNetName(dotnetname)
-  --format: name.spa.ce.classname::methodname or namespace.classname::methodname or classname::methodname
-  local classandnamespace,methodname=dotnetname:split('::')
-  if methodname==nil or methodname=='' then
-    return SplitMonoName(dotnetname)
-  end
-
-  local sr=table.pack(classandnamespace:split('.'))
-  local i
-  local classname=sr[sr.n]
-  local namespace=''
-  for i=1,sr.n-1 do
-    namespace=namespace..sr[i]
-    if i~=sr.n-1 then
-      namespace=namespace..'.'
-    end
-  end
-
-  return namespace, classname, methodname
+  local r=mono_splitSymbol(dotnetname) --can handle both
+  return r.namespace, r.classname, r.methodname
 end
-
-
 
 function findDotNetMethodAddress(name, modulename)
   --print(string.format("findDotNetMethodAddress('%s','%s')", name, modulename));
@@ -127,10 +76,32 @@ function findDotNetMethodAddress(name, modulename)
     
   if monopipe then
     --mono  
-    local monoformat=''
-    if namespace~='' then monoformat=namespace..':' end
-    monoformat=monoformat..classname..':'..methodname
+    local dllmodulelower=modulename:lower()
     
+    --first try to get it manually using the .net interface currently used, if that fails, go for the symbolhandler method
+
+    --find the image      
+    local assemblies=mono_enumAssemblies() 
+    for i=1,#assemblies do
+      local img=mono_getImageFromAssembly(assemblies[i])
+      local imagename=mono_image_get_filename(img):lower()
+      
+      if imagename==dllmodulelower then
+        --find the class and method
+        local class=mono_image_findClass(img, namespace, classname)          
+        
+        if class then
+          local method=mono_class_findMethod(c, methodname)
+          if method then
+            return mono_compile_method(method)
+          end
+          
+        end
+        break
+      end
+    end
+    
+    --still here
     result=getAddressSafe(monoformat) --monoscript's symbolhandler will cause this method to get compiled
     
     if result==nil then
@@ -203,9 +174,11 @@ function InjectDotNetDetour(dllmodule, oldmethodname, newmethodname, oldmethodca
     end
 
     --get the address of oldmethodname, newmethodname, and optionally oldmethodcaller
+
+    
     local oldmethodaddress=getAddressSafe(oldmethodname)
-    local newmethodaddress=getAddressSafe(newmethodname)
-    local oldmethodcalleraddress=getAddressSafe(oldmethodcaller)
+    local oldmethodcalleraddress=getAddressSafe(oldmethodcaller)     
+    local newmethodaddress=findDotNetMethodAddress(newmethodname, extractFileName(dllmodule)) --get that from the injected dll, not the symhandler (in case there's a previously injected dll)
     
     if oldmethodcaller and newmethodaddress and oldmethodcalleraddress then
       return detourdotnet(oldmethodaddress,newmethodaddress,oldmethodcalleraddress)
@@ -233,13 +206,13 @@ function InjectDotNetDetour(dllmodule, oldmethodname, newmethodname, oldmethodca
     
     
     --print("Getting newmethod address "..newmethodname);
-    local newmethodaddress=getAddressSafe(newmethodname)
-    if newmethodaddress==nil then     
+    --local newmethodaddress=getAddressSafe(newmethodname)
+    --if newmethodaddress==nil then     
       --print(newmethodname.." not perfect")
-      newmethodaddress=findDotNetMethodAddress(newmethodname, extractFileName(dllmodule))
+    local newmethodaddress=findDotNetMethodAddress(newmethodname, extractFileName(dllmodule))
      
-      if newmethodaddress==nil then error('Failure getting '..newmethodname) end      
-    end  
+    --  if newmethodaddress==nil then error('Failure getting '..newmethodname) end      
+    --end  
     --printf("newmethodaddress=%.8x",newmethodaddress)
     --print("--------------")
    

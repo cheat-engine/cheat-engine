@@ -247,7 +247,7 @@ begin
       addresspos:=7+sizeof(sizeof(TBitAddress))*i
     else
     if vartype =vtGrouped then
-      addresspos:=7+sizeof(dword)+groupElementSize
+      addresspos:=7+sizeof(dword)+groupElementSize*i
     else
       addresspos:=7+sizeof(sizeof(ptruint))*i;
 

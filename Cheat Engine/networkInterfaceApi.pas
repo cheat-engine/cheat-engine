@@ -12,7 +12,7 @@ uses
   mactypes, macport,
   {$endif}
   {$ifdef windows}
-  {jwawindows,} windows,
+  {jwawindows,} windows, dialogs,
   {$endif}
   Classes, SysUtils, networkinterface, newkernelhandler, CEFuncProc;
   {$endif}
@@ -50,6 +50,7 @@ uses networkConfig;
 
 resourcestring
   rsNoConnection = 'No connection';
+  rsInvalidCeserverVersion = 'Invalid ceserver version. ( %s )';
 
 threadvar connection: TCEConnection;
 
@@ -303,12 +304,22 @@ end;
 
 procedure InitializeNetworkInterface;
 var tm: TThreadManager;
+    versionname: string;
 begin
   //hook the threadmanager if it hasn't been hooked yet
 
   {$ifdef windows}
 
   OutputDebugString('InitializeNetworkInterface');
+
+  if NetworkVersion(versionname)<2 then
+  begin
+    if MainThreadID=GetCurrentThreadId then
+      messageDlg(format(rsInvalidCeserverVersion, [versionname]), mterror, [mbok], 0);
+
+    exit;
+  end;
+
 
   if not threadManagerIsHooked then
   begin

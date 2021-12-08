@@ -68,6 +68,7 @@ MONOCMD_GETCLASSIMAGE=42
 MONOCMD_FREE=43
 MONOCMD_GETIMAGEFILENAME=44
 MONOCMD_GETCLASSNESTINGTYPE=45
+MONOCMD_LIMITEDCONNECTION=46
 
 
 MONO_TYPE_END        = 0x00       -- End of List
@@ -415,6 +416,9 @@ function monoIL2CPPSymbolEnum(t)
   local images={}
   local assemblies=mono_enumAssemblies() 
   
+  monoSymbolList.IL2CPPSymbolEnumProgress=0
+  
+  
   if assemblies then
     for i=1,#assemblies do      
       images[i]={}
@@ -431,19 +435,24 @@ function monoIL2CPPSymbolEnum(t)
   if monopipe==nil or t.Terminated then return end
   
   if priority then
-    --print("parsing "..images[priority].name..'(1/'..#images..')');
-  
     parseImage(t, images[priority])
+    monoSymbolList.IL2CPPSymbolEnumProgress=(1/#assemblies) * 100
   end
   if monopipe==nil or t.Terminated then return end
   
   for i=1,#images do
     local x=i
     
-    if priority then x=x+1 end
+    if i~=priority then        
+      parseImage(t, images[i])
+    end
     
-    --print("parsing "..images[i].name..'('..x..'/'..#images..')');
-    parseImage(t, images[i])
+    if priority then
+      monoSymbolList.IL2CPPSymbolEnumProgress=((i-1)/#assemblies) * 100    
+    else
+      monoSymbolList.IL2CPPSymbolEnumProgress=(i/#assemblies) * 100
+    end
+    
     if monopipe==nil or t.Terminated then return end
   end
 
@@ -520,7 +529,14 @@ end
 
 local lastMonoError
 
-function LaunchMonoDataCollector()
+function mono_connectionmode2()
+  monopipe.lock()
+  monopipe.writeByte(MONOCMD_LIMITEDCONNECTION)
+  monopipe.unlock()
+end
+
+
+function LaunchMonoDataCollector(internalReconnectDisconnectEachTime)
   if debug_isBroken() then
     if inMainThread() then   
       messageDialog(translate('You can not use this while the process is frozen'), mtError, mbOK)
@@ -634,6 +650,7 @@ function LaunchMonoDataCollector()
   end
 
   monopipe.OnTimeout=function(self)  
+    --print("monopipe disconnected")
     
     local oldmonopipe=monopipe
     monopipe=nil
@@ -663,10 +680,10 @@ function LaunchMonoDataCollector()
     if (lastMonoError==nil) or (getTickCount()>lastMonoError+200) then  
       --print("monopipe error. Reattaching in 500 ms")
       --auto re-attach after error
-      createTimer(200,function()
+      --createTimer(200,function()
         --print("Reattaching")
-        LaunchMonoDataCollector()    
-      end)      
+     --   LaunchMonoDataCollector()    
+      --end)      
     --else
     --  print("monopipe error. Last reattach too soon. Giving up")
     end
@@ -723,9 +740,58 @@ function LaunchMonoDataCollector()
       monoSymbolList=createSymbolList()
       monoSymbolList.register() 
       monoSymbolList.ProcessID=getOpenedProcessID()
-      monoSymbolList.FullyLoaded=false        
+      monoSymbolList.FullyLoaded=false   
+      monoSymbolList.IL2CPPSymbolEnumProgress=0
       monoSymbolEnum=createThread(monoIL2CPPSymbolEnum)
+      
+      createTimer(500,function()
+        --print("0.5 second delayed timer running now")
+        if monoSymbolList.FullyLoaded==false then
+          --show a progressbar in CE                  
+          if monoSymbolList.progressbar then         
+            monoSymbolList.progressbar.destroy()
+            monoSymbolList.progressbar=nil
+          end
+          
+          local pb=monoSymbolList.progressbar
+          
+          pb=createProgressBar(MainForm.Panel4)
+          pb.Align=alBottom
+          pb.Max=100
 
+          local pbl=createLabel(pb)
+          pbl.Caption=translate('IL2CPP symbol enum: 0%')
+          pbl.AnchorSideLeft.Control=pb
+          pbl.AnchorSideLeft.Side=asrCenter
+
+          pbl.AnchorSideTop.Control=pb
+          pbl.AnchorSideTop.Side=asrCenter
+
+          pb.Height=pbl.Height 
+          monoSymbolList.progressbar=pb
+          local t=createTimer(pb)
+          t.enabled=true         
+          t.interval=250        
+          t.OnTimer=function()
+            --print("Check progress")
+            pb.Position=math.ceil(monoSymbolList.IL2CPPSymbolEnumProgress)
+    
+            pbl.Caption=string.format("IL2CPP symbol enum: %.f%%",monoSymbolList.IL2CPPSymbolEnumProgress)
+            if monoSymbolList.FullyLoaded then
+              --print("done. Turning off check timer, and starting cleanup timer in 1.5 seconds")
+              t.enabled=false
+              
+              pb.Position=100
+              pbl.Caption=string.format("IL2CPP symbol enum: Done"); --enum done. Now wait 1.5 seconds and then delete the bar 
+              
+              createTimer(1500,function()
+                --print("cleanup timer that runs after 1.5 seconds. destroying progressbar")                             
+                pb.destroy() --also destroys t
+              end)
+            end
+          end
+        end
+      end)
     end
   end
   
@@ -744,9 +810,21 @@ function LaunchMonoDataCollector()
       else
         t.destroy()
       end
-
   end
   
+  if internalReconnectDisconnectEachTime==nil then --old scripts don't give the parameter
+    
+    
+    if AddressList.LoadedTableVersion and AddressList.LoadedTableVersion<=40 then
+      internalReconnectDisconnectEachTime=false --old behaviour
+    else
+      internalReconnectDisconnectEachTime=true
+    end
+  end
+  
+  if internalReconnectDisconnectEachTime then
+    mono_connectionmode2() --Change the behaviour from always connected to the mono runtime to only issuing a command, attach the handler thread to the mono runtime, and afterwards disconnect the thread from the mono runtime
+  end  
   
   return monoBase
 end
@@ -804,13 +882,9 @@ function mono_structureNameLookupCallback(address)
   end
 end
 
-
-function mono_symbolLookupCallback(symbol)
-  --if debug_canBreak() then return nil end
-
-  if monopipe == nil then return nil end  
-  if monopipe.IL2CPP then return nil end
-
+function mono_splitSymbol(symbol)
+  local result=nil
+  
   local parts={}
   local x
   for x in string.gmatch(symbol, "[^:.]+") do
@@ -822,7 +896,7 @@ function mono_symbolLookupCallback(symbol)
   local namespace=''
 
   if (#parts>0) then
-    methodname=parts[#parts]
+    methodname=(symbol:find("[:.]%.cc?tor$") ~= nil and '.' or '')..parts[#parts] --methodname=parts[#parts]    
     if (#parts>1) then
       classname=parts[#parts-1]
       if (#parts>2) then
@@ -836,6 +910,36 @@ function mono_symbolLookupCallback(symbol)
       end
     end
   end
+  --[[
+  if (methodname=='ctor' and symbol.endswith('.ctor')) or
+     (methodname=='cctor' and symbol.endswith('.cctor')) then
+     methodname='.'..methodname
+  end--]]
+  
+  
+  result={}
+  result.methodname=methodname
+  result.classname=classname
+  result.namespace=namespace  
+  
+  return result
+end
+
+function mono_symbolLookupCallback(symbol)
+  --if debug_canBreak() then return nil end
+
+  if monopipe == nil then return nil end  
+  if monopipe.IL2CPP then return nil end
+
+
+  local methodname=''
+  local classname=''
+  local namespace=''
+  
+  local ss=mono_splitSymbol(symbol)
+  methodname=ss.methodname
+  classname=ss.classname
+  namespace=ss.namespace
 
   if (methodname~='') and (classname~='') then
     local method=mono_findMethod(namespace, classname, methodname)

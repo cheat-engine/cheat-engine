@@ -39,7 +39,7 @@ DOTNETCMD_EXIT=255
 dotnetmodulelist={}
 
 function dotnet_findDotNetMethodAddress(namespace, classname, methodname, modulename)
-  print(string.format("dotnet_findDotNetMethodAddress('%s','%s','%s','%s')",namespace,classname, methodname, modulename))
+  --print(string.format("dotnet_findDotNetMethodAddress('%s','%s','%s','%s')",namespace,classname, methodname, modulename))
 
   local fcn
 

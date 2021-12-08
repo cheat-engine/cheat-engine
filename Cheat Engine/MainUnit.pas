@@ -858,7 +858,6 @@ type
     procedure doNewScan;
     procedure SetExpectedTableName;
 
-    procedure aprilfoolsscan;
     function CheckIfSaved: boolean;
     procedure checkpaste;
     procedure hotkey(var Message: TMessage); {$ifdef windows}message WM_HOTKEY;{$endif}
@@ -1149,23 +1148,14 @@ resourcestring
   rsRename = 'Rename';
   rsSaveToDisk = 'Save to disk';
   rsAreYouSureYouWantToDelete = 'Are you sure you want to delete %s?';
-  rsCheatEngine = 'Cheat Engine';
   rsWhatWillBeTheNewNameForThisTab = 'What will be the new name for this tab?';
   rsScan = 'Scan';
   rsScanresult = 'Scanresult';
   rsSaveScanResults = 'Save scan results';
   rsWhatNameDoYouWantToGiveToTheseScanresults =
     'What name do you want to give to these scanresults?';
-  rsThankYouForTryingOutCheatEngineBecauseItHasExpired =
-    'Thank you for trying out Cheat Engine. Because it has expired Cheat Engine will now close. Is that ok with you?';
-  rsWHATAreYouSayingYouReGoingToContinueUsingCEILLEGAL =
-    'WHAT!!! Are you saying you''re going to continue using CE ILLEGALLY??? If you say yes, i''m going to mail the cops to '
-    + 'get you and send you to jail!!!';
-  rsHrmpfBecauseIMInAGoodMoodILlLetYouGoThisTimeButDon =
-    'Hrmpf... Because I''m in a good mood i''ll let you go this time. But don''t do it again you filthy pirate';
-  rsAprilFools = 'April fools!!!!';
-  strClickToGoHome = 'Click here to go to the Cheat Engine homepage';
-  rsLuaScriptCheatTable = 'Lua script: Cheat Table';
+  strClickToGoHome = 'Click here to go to the '+strCheatEngine+' homepage';
+  rsLuaScriptCheatTable = 'Lua script: '+strCheatTable;
   strChangeDescription1 = 'Description';
   strChangeDescription2 = 'Change the description to:';
 
@@ -1198,7 +1188,7 @@ resourcestring
   rsComparingTo = 'Comparing to %s';
   rsHex = 'Hex';
   rsDoYouWantToGoToTheCheatEngineWebsite =
-    'Do you want to go to the Cheat Engine website?';
+    'Do you want to go to the '+strCheatEngine+' website?';
 
   strdeleteall = 'Are you sure you want to delete all addresses?';
   stralreadyin = 'This address is already in the list';
@@ -1219,8 +1209,8 @@ resourcestring
   strRemoveFromGroup = 'Remove from group ';
 
   strChangeScript = 'Change script';
-  strEnableCheat = 'Enable cheat';
-  strDisableCheat = 'Disable cheat';
+  strEnableCheat = 'Enable '+strCheat;
+  strDisableCheat = 'Disable '+strCheat;
 
   strForceRecheck = 'Force recheck symbols';
   rsSetChangeHotkeys = 'Set/Change hotkeys';
@@ -1245,17 +1235,15 @@ resourcestring
   strHideAll = 'will hide all windows';
   strUnHideForeground = 'will bring the foreground window back';
   strUnhideAll = 'will bring all windows back';
-  rsBringsCheatEngineToFront = 'brings Cheat Engine to front';
+  rsBringsCheatEngineToFront = 'brings '+strCheatEngine+' to front';
 
   strhappybirthday = 'Let''s sing Happy Birthday for Dark Byte today!';
   strXMess = 'Merry christmas and happy new year';
   strNewyear = 'And what are your good intentions for this year? ;-)';
-  strfuture = 'Wow,I never imagined people would use Cheat Engine up to today';
-  rsLicenseExpired =
-    'Your license to use Cheat Engine has expired. You can buy a license to use cheat engine for 1 month for $200, 6 months for only $1000 and for 1 year for ' + 'only $1800. If you don''t renew your license Cheat Engine will be severely limited in it''s abilities. (e.g: Next scan has been disabled)';
+  strfuture = 'Wow,I never imagined people would use '+strCheatEngine+' up to today';
   rsEXPIRED = 'EXPIRED';
   strdontbother =
-    'Don''t even bother. Cheat Engine uses the main thread to receive messages when the scan is done, freeze it and CE will crash!';
+    'Don''t even bother. '+strCheatEngine+' uses the main thread to receive messages when the scan is done, freeze it and CE will crash!';
   rsTheProcessIsnTFullyOpenedIndicatingAInvalidProcess =
     'The process isn''t fully opened. Indicating a invalid ProcessID. You still want to find out the EPROCESS? (BSOD is '
     + 'possible)';
@@ -1311,7 +1299,7 @@ resourcestring
   rsWasClickedAtPositon = ' was clicked at positon ';
   rsWidth = '   -   width=';
   rsHeight = ' , height=';
-  rsUnableToScanFixYourScanSettings = 'Unable to scan. Fix your scan settings and restart cheat engine';
+  rsUnableToScanFixYourScanSettings = 'Unable to scan. Fix your scan settings and restart '+strCheatEngine;
   rsCustomLuaType = 'Custom LUA type';
   rsCustomTypeName = 'Custom Type Name';
   rsLanguage = 'Language';
@@ -1333,6 +1321,9 @@ resourcestring
   rsAreYouSure = 'Are you sure?';
   rsClearRecentFiles = 'Empty Recent Files List';
   rsFirst = 'First';
+  rsEnableSpeedHack = 'Enable '+strSpeedHack;
+  rsPreviousValueList = 'Previous value list';
+  rsSelectTheSavedResult = 'Select the saved results you wish to use';
 
 var
   ncol: TColor;
@@ -3072,10 +3063,13 @@ begin
   end
   else
   begin
-    cbSpeedhack.Checked:=false;
-    addresslist.disableAllWithoutExecute;
-    for i := 0 to AdvancedOptions.count - 1 do
-      if AdvancedOptions.code[i]<>nil then AdvancedOptions.code[i].changed := False;
+    if (oldprocess<>0) and (processid<>oldprocess) then
+    begin
+      cbSpeedhack.Checked:=false;
+      addresslist.disableAllWithoutExecute;
+      for i := 0 to AdvancedOptions.count - 1 do
+        if AdvancedOptions.code[i]<>nil then AdvancedOptions.code[i].changed := False;
+    end;
   end;
 
   enablegui(btnNextScan.Enabled);
@@ -3599,7 +3593,7 @@ begin
   p.Executable:=(path);
   p.Execute;
   {$else}
-  shellexecute(0, 'open', pchar(cheatenginedir+'Tutorial-x86_64.exe'), nil, nil, sw_show);
+  shellexecute(0, 'open', pchar(cheatenginedir+{$ifdef altname}'rtmtutorial-x86_64.exe'{$else}'Tutorial-x86_64.exe'{$endif}), nil, nil, sw_show);
   {$endif}
 end;
 
@@ -3702,7 +3696,7 @@ begin
     try
       Reg.RootKey := HKEY_CURRENT_USER;
 
-      if Reg.OpenKey('\Software\Cheat Engine\FoundList'+darkmodestring, True) then
+      if Reg.OpenKey('\Software\'+strCheatEngine+'\FoundList'+darkmodestring, True) then
       begin
         reg.WriteInteger('FoundList.NormalValueColor', foundlistcolors.NormalValueColor);
         reg.WriteInteger('FoundList.ChangedValueColor', foundlistcolors.ChangedValueColor);
@@ -4505,7 +4499,7 @@ begin
   vartype.OnChange := nil;
   //disable the onchange event so CreateCustomType doesn't keep setting it
   try
-    if reg.OpenKey('\Software\Cheat Engine\CustomTypes\', False) then
+    if reg.OpenKey('\Software\'+strCheatEngine+'\CustomTypes\', False) then
     begin
       CustomTypes := TStringList.Create;
       try
@@ -4513,7 +4507,7 @@ begin
 
         for i := 0 to CustomTypes.Count - 1 do
         begin
-          if reg.OpenKey('\Software\Cheat Engine\CustomTypes\' + CustomTypes[i], False) then
+          if reg.OpenKey('\Software\'+strCheatEngine+'\CustomTypes\' + CustomTypes[i], False) then
           begin
             try
               islua := False;
@@ -4584,7 +4578,7 @@ begin
       mtConfirmation, [mbNo, mbYes], 0) = mrYes then
     begin
       reg := tregistry.Create;
-      reg.DeleteKey('\Software\Cheat Engine\CustomTypes\' + ct.Name);
+      reg.DeleteKey('\Software\'+strCheatEngine+'\CustomTypes\' + ct.Name);
       ct.remove;
       RefreshCustomTypes;
     end;
@@ -4623,7 +4617,7 @@ begin
       begin
         //delete the old one
         reg := Tregistry.Create;
-        reg.DeleteKey('\Software\Cheat Engine\CustomTypes\' + oldname);
+        reg.DeleteKey('\Software\'+strCheatEngine+'\CustomTypes\' + oldname);
         freeandnil(reg);
       end;
     end;
@@ -4632,7 +4626,7 @@ begin
 
     //Add/change this to the registry
     reg := Tregistry.Create;
-    if Reg.OpenKey('\Software\Cheat Engine\CustomTypes\' + ct.Name, True) then
+    if Reg.OpenKey('\Software\'+strCheatEngine+'\CustomTypes\' + ct.Name, True) then
     begin
       reg.WriteString('Script', script);
       if lua then
@@ -5578,32 +5572,6 @@ end;
 
 
 
-
-procedure TMainForm.aprilfoolsscan;
-begin
-  if aprilfools then
-  begin
-    if messagedlg(rsThankYouForTryingOutCheatEngineBecauseItHasExpired,
-      mtInformation, [mbYes, mbNo], 0) = mrYes then
-    begin
-      ShowMessage(rsAprilFools);
-
-    end
-    else
-    begin
-      if messagedlg(rsWHATAreYouSayingYouReGoingToContinueUsingCEILLEGAL,
-        mtWarning, [mbYes, mbNo], 0) = mrYes then
-        ShowMessage(
-          rsHrmpfBecauseIMInAGoodMoodILlLetYouGoThisTimeButDon)
-      else
-        ShowMessage(rsAprilFools);
-    end;
-
-    Caption := cenorm;
-    aprilfools := False;
-  end;
-end;
-
 procedure TMainForm.doNewScan;
 var c: TListColumn ;
 begin
@@ -5841,7 +5809,7 @@ begin
   if FileExists(s) then
     createlog:=true
   else
-    createlog:=cereg.readBool('Debug');
+    createlog:=false;
 
   miEnableLCLDebug.Checked:=createlog;
 
@@ -6185,6 +6153,8 @@ begin
   RecentFiles:=tstringlist.Create;
   cereg.readStrings('Recent Files', RecentFiles);
 
+
+  cbSpeedhack.caption:=rsEnableSpeedHack;
 
 
   {$ifdef darwin}
@@ -7331,7 +7301,7 @@ begin
     Removeselectedaddresses1.enabled := not (GetVarType in [vtBinary, vtByteArray, vtAll]);
 
   miChangeValue.enabled:=Browsethismemoryarrea1.enabled;
-  miChangeValueBack.enabled:=Browsethismemoryarrea1.enabled;
+  miChangeValueBack.enabled:=Browsethismemoryarrea1.enabled and (PreviousResultList.count>0);
   miAddAddress.enabled:=Browsethismemoryarrea1.enabled;
 
   //updatwe the display override
@@ -7411,7 +7381,6 @@ var
   bit: byte;
   selected: array of integer;
 begin
-
   if SaveFirstScanThread <> nil then
   begin
     SaveFirstScanThread.WaitFor; //wait till it's done
@@ -8022,6 +7991,8 @@ var
   {$endif}
   extrasize: integer;
   s: string;
+
+  rname: string;
 begin
   if onetimeonly then
     exit;
@@ -8045,9 +8016,9 @@ begin
   try
     Reg.RootKey := HKEY_CURRENT_USER;
 
-    if not Reg.OpenKey('\Software\Cheat Engine', False) then //can't be opened. Clean install
+    if not Reg.OpenKey('\Software\'+strCheatEngine, False) then //can't be opened. Clean install
     begin
-      if Reg.OpenKey('\Software\Cheat Engine', True) then
+      if Reg.OpenKey('\Software\'+strCheatEngine, True) then
       begin
         //write some default data into the registry
         reg.WriteBool('Undo', True);
@@ -8130,10 +8101,6 @@ begin
   if (month = 4) and (day = 1) then
     aprilfools := True;
 
-{  if aprilfools = True then
-    Messagedlg(
-      rsLicenseExpired, mtWarning, [mbOK], 0);
-}
 
   //aprilfools:=true;
   {$ifdef windows}
@@ -8201,11 +8168,20 @@ begin
 
 
   logo.Width:=settingsbutton.width;
+
+  {$ifdef altname}
+  rname:='IMAGES_ALT_CELOGO';
+  {$else}
+  rname:='IMAGES_CELOGO';
+  {$endif}
+
   {$ifdef windows}
+  {$ifndef altname}
   if logo.Width>=90 then
   {$endif}
+  {$endif}
   begin
-    rs := TResourceStream.Create(HInstance, 'IMAGES_CELOGO', RT_RCDATA);
+    rs := TResourceStream.Create(HInstance, rname, RT_RCDATA);
     logopic:=TPicture.Create;
     logopic.LoadFromStreamWithFileExt(rs,'.PNG');
     logo.Picture:=logopic;
@@ -8221,7 +8197,7 @@ begin
 
   if logo.Width>=80 then
   begin
-    rs := TResourceStream.Create(HInstance, 'IMAGES_CELOGO', RT_RCDATA);
+    rs := TResourceStream.Create(HInstance, rname, RT_RCDATA);
     logopic:=TPicture.Create;
     logopic.LoadFromStreamWithFileExt(rs,'.PNG');
     logo.Picture:=logopic;
@@ -8288,7 +8264,7 @@ begin
   fromaddress.Font.Height:=i;
   toaddress.Font.Height:=i;
 
-  if Reg.OpenKey('\Software\Cheat Engine\FoundList'+darkmodestring, false) then
+  if Reg.OpenKey('\Software\'+strCheatEngine+'\FoundList'+darkmodestring, false) then
   begin
     if reg.ValueExists('FoundList.NormalValueColor') then foundlistcolors.NormalValueColor:=reg.ReadInteger('FoundList.NormalValueColor');
     if reg.ValueExists('FoundList.ChangedValueColor') then foundlistcolors.ChangedValueColor:=reg.ReadInteger('FoundList.ChangedValueColor');
@@ -8851,7 +8827,7 @@ begin
   reg := Tregistry.Create;
   try
     Reg.RootKey := HKEY_CURRENT_USER;
-    if Reg.OpenKey('\Software\Cheat Engine', True) then
+    if Reg.OpenKey('\Software\'+strCheatEngine, True) then
       reg.WriteString('Initial tables dir', dir);
 
   finally
@@ -9587,7 +9563,7 @@ end;
 
 procedure TMainForm.miTutorialClick(Sender: TObject);
 begin
-  shellexecute(0, 'open', pchar(cheatenginedir+'Tutorial-i386.exe'), nil, nil, sw_show);
+  shellexecute(0, 'open', pchar(cheatenginedir+{$ifdef altname}'rtmtutorial-i386.exe'{$else}'Tutorial-i386.exe'{$endif}), nil, nil, sw_show);
 end;
 
 procedure TMainForm.miFlFindWhatAccessesClick(Sender: TObject);
@@ -9648,6 +9624,8 @@ var
 begin
   //show a list of possible options. Previous, last scan, savedscan
   if memscan=nil then exit;
+  if PreviousResultList.count=0 then exit;
+  if GetVarType in [vtBinary, vtByteArray, vtAll, vtGrouped] then exit;
 
   bytesize:=memscan.Getbinarysize div 8;
   if bytesize=0 then exit;
@@ -9657,7 +9635,7 @@ begin
   memscan.getsavedresults(s);
   s.insert(0,'Last Scan');
 
-  i:=ShowSelectionList(self,'Previous value liss','Select the saved results you wish to use',s,currentlySelectedSavedResultname);
+  i:=ShowSelectionList(self, rsPreviousValueList, rsSelectTheSavedResult, s, currentlySelectedSavedResultname);
   s.free;
   if i=-1 then exit;
   if i=0 then currentlySelectedSavedResultname:='TMP';
@@ -10378,9 +10356,6 @@ begin
 
   saveformposition(self, x);
 
-  cereg.writeBool('Debug', miEnableLCLDebug.checked);
-
-
   if foundlist <> nil then
     foundlist.Deinitialize;
 
@@ -10479,6 +10454,7 @@ begin
 end;
 
 procedure TMainForm.cbSpeedhackChange(Sender: TObject);
+var ss: TShiftState;
 begin
   if cbSpeedhack.Checked then
   begin
@@ -10486,12 +10462,26 @@ begin
       if speedhack <> nil then
         FreeAndNil(speedhack);
 
+      ss:=GetKeyShiftState;
+      if (ssAlt in ss) and (ssCtrl in ss) then
+        raise exception.create('Speedhack alternate test');
+
       speedhack := TSpeedhack.Create;
     except
       on e: Exception do
       begin
+        lua_getglobal(luavm, 'activateAlternateSpeedhack');//failure. check if there is an alternative in lua
+        if lua_isfunction(luavm,-1) then
+        begin
+          lua_pushboolean(luavm,true);
+          lua_pcall(luavm, 1,0,0);
+          exit;
+        end
+        else
+          lua_pop(luavm,1);
+
         cbSpeedhack.Checked := False;
-        raise Exception.Create(e.Message);
+        MessageDlg(e.message,mtError,[mbok],0);
       end;
     end;
   end

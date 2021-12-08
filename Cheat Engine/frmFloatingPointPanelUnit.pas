@@ -234,6 +234,8 @@ var i,j: integer;
 
     classic: boolean;
 
+    blocksize: integer;
+
     procedure newLabel(text: string; id: integer);
     begin
       lbl:=tlabel.create(sbData);
@@ -279,8 +281,6 @@ begin
           5: sbData.ChildSizing.ControlsPerLine:=1+2; //double
           6: sbData.ChildSizing.ControlsPerLine:=1+1; //extended
         end;
-
-
 
         for i:=0 to 7 do
         begin
@@ -511,7 +511,7 @@ begin
   if self<>frmFloatingPointPanel then //only show the new one on the memview version
   begin
     cbClassicView.checked:=true;
-    cbClassicView.visible:=false;
+    //cbClassicView.visible:=false;
   end;
 
   mData.Font.Height:=GetFontData(font.Handle).Height;
@@ -558,6 +558,9 @@ begin
   cbDisplayType.ItemIndex:=4;
   loadedFormPosition:=LoadFormPosition(self);
   sbdata.font.color:=clWindowtext;
+
+  mdata.font.Name:='Courier New';
+//  mdata.font.size:=;
 end;
 
 initialization

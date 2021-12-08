@@ -131,7 +131,11 @@ uses
 {$ENDIF}
 
 {$R sounds.res}
+{$ifdef altname}
+{$R Images_alt.res}
+{$else}
 {$R Images.res}
+{$endif}
 
 
 
@@ -276,6 +280,7 @@ var
   noautorun: boolean;
 begin
   Application.Title:='Cheat Engine 7.3';
+ //'Cheat Engine 7.3';
   {$ifdef darwin}
   macPortFixRegPath;
   {$endif}
@@ -320,7 +325,8 @@ begin
     r := TRegistry.Create;
 
     r.RootKey := HKEY_CURRENT_USER;
-    if r.OpenKey('\Software\Cheat Engine',false) then
+
+    if r.OpenKey('\Software\'+strCheatEngine,false) then
     begin
       if r.ValueExists('Override Default Font') then
       begin

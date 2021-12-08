@@ -287,6 +287,15 @@ begin
 
         printoutput.add(rsError+error);
 
+        lua_getglobal(L, 'debug');
+        lua_pushstring(L,'traceback');
+        lua_gettable(L,-2);
+        lua.lua_pcall(L,0,1,0);
+
+        printoutput.add(Lua_ToString(L,-1));
+
+
+
         if (frmLuaEngine<>nil) and usesluaengineform and (frmLuaEngine.cbShowOnPrint.checked) then
           frmLuaEngine.show;
 
@@ -1808,7 +1817,7 @@ begin
         if signed then
           lua_pushinteger(L, v)
         else
-          lua_pushinteger(L, word(v));
+          lua_pushinteger(L, byte(v));
 
         result:=1;
       end;
@@ -10276,6 +10285,10 @@ begin
       end;
     end;
 
+    {$ifdef altname}
+    r:=altnamer(r);
+    {$endif}
+
     lua_pushstring(L, r);
     result:=1;
   end
@@ -10305,6 +10318,10 @@ begin
           r:=pofile.Translate('',r);
       end;
     end;
+
+    {$ifdef altname}
+    r:=altnamer(r);
+    {$endif}
 
     lua_pushstring(L, r);
     result:=1;
@@ -14538,7 +14555,7 @@ begin
   result:=1;
 end;
 
-function lua_split(L: Plua_State): integer; cdecl;
+function lua_string_split(L: Plua_State): integer; cdecl;
 var
   s: string;
   sep: string;
@@ -14558,6 +14575,48 @@ begin
       lua_pushstring(L, arr[i]);
 
     result:=length(arr);
+  end;
+end;
+
+function lua_string_endswith(L: Plua_State): integer; cdecl;
+var
+  s, endswith: string;
+  ignoreCase: boolean;
+begin
+  result:=0;
+  if lua_gettop(L)>=2 then
+  begin
+    s:=Lua_ToString(L,1);
+    endswith:=Lua_ToString(L,2);
+
+    if lua_gettop(L)>=3 then
+      ignorecase:=lua_toboolean(L,3)
+    else
+      ignorecase:=false;
+
+    lua_pushboolean(L, s.EndsWith(s,ignorecase));
+    result:=1;
+  end;
+end;
+
+function lua_string_startswith(L: Plua_State): integer; cdecl;
+var
+  s, startswith: string;
+  ignoreCase: boolean;
+begin
+  result:=0;
+  if lua_gettop(L)>=2 then
+  begin
+    s:=Lua_ToString(L,1);
+    startswith:=Lua_ToString(L,2);
+
+    if lua_gettop(L)>=3 then
+      ignorecase:=lua_toboolean(L,3)
+    else
+      ignorecase:=false;
+
+    lua_pushboolean(L, s.StartsWith(s,ignorecase));
+    result:=1;
   end;
 end;
 
@@ -14830,7 +14889,10 @@ var
   lowestAddress: ptruint=0;
   highestAddress: ptruint=0;
 begin
-  libfile:=CheatEngineDir+'tcclib\libtcc1.c';
+  libfile:=CheatEngineDir+'tcclib\lib\libtcc1.c';  //release
+  if not fileexists(libfile) then
+    libfile:=CheatEngineDir+'..\tcclib\lib\libtcc1.c'; //development
+
   if fileexists(libfile) then
   begin
     lua_settop(L,0);
@@ -15002,6 +15064,13 @@ function lua_darkMode(L: Plua_State): integer; cdecl;
 begin
   result:=1;
   lua_pushboolean(L, ShouldAppsUseDarkMode);
+end;
+
+
+function lua_getCEName(L: Plua_State): integer; cdecl;
+begin
+  lua_pushstring(L, strCheatEngine);
+  exit(1);
 end;
 
 function lua_getNextReadablePageCR3(L: Plua_State): integer; cdecl;
@@ -15834,6 +15903,7 @@ begin
     lua_register(L, 'signExtend', lua_signExtend);
 
     lua_register(L, 'darkMode', lua_darkMode);
+    lua_register(L, 'getCEName', lua_getCEName);
 
 
 
@@ -15995,7 +16065,15 @@ begin
 
       lua_getglobal(L, 'string');
       lua_pushstring(L,'split');
-      lua_pushcfunction(L, lua_split);
+      lua_pushcfunction(L, lua_string_split);
+      lua_settable(L,-3);
+
+      lua_pushstring(L,'endsWith');
+      lua_pushcfunction(L, lua_string_endswith);
+      lua_settable(L,-3);
+
+      lua_pushstring(L,'startsWith');
+      lua_pushcfunction(L, lua_string_startswith);
       lua_settable(L,-3);
 
       lua_pushstring(L,'trim');

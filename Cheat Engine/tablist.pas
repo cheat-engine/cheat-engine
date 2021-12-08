@@ -413,7 +413,7 @@ begin
   controlWithArrows.AnchorSideBottom.Side:=asrTop;
   controlWithArrows.AnchorSideRight.Control:=Self;
   controlWithArrows.AnchorSideRight.Side:=asrRight;
-  controlWithArrows.BorderSpacing.Right:=50;
+  controlWithArrows.BorderSpacing.Right:=10;
 
 
 end;

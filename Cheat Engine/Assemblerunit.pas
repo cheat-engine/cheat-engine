@@ -24,6 +24,8 @@ const opcodecount=1915;  //I wish there was a easier way than to handcount
 
 type
   EAssemblerException=class(Exception);
+  EAssemblerExceptionOffsetTooBig=class(Exception);
+
 
 
 
@@ -7892,7 +7894,7 @@ begin
             //result:=HandleTooBigAddress(opcode,address, bytes, actualdisplacement);
 
             if skiprangecheck=false then  //for syntax checking
-              raise EAssemblerException.create(rsOffsetTooBig);
+              raise EAssemblerExceptionOffsetTooBig.create(rsOffsetTooBig);
           end
           else
             pdword(@bytes[relativeAddressLocation])^:=actualdisplacement-(address+length(bytes));

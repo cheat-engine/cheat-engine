@@ -85,6 +85,7 @@ resourcestring
   rsPickedHint='When checked this element will get added to the addresslist. Note: If all checkboxes are disabled, ALL elements will be added';
   rsGSGShouldBeAtLeast = 'Should be at least %d';
   rsGSGBlocksizeMustBeProvided = 'blocksize must be provided';
+  rsSStaticDDynamicEExecutable = 'S=Static D=Dynamic E=Executable';
 
 {$R *.lfm}
 
@@ -177,8 +178,16 @@ begin
       TVariableInfo.create(frm); //add a new line
   end;
 
+  if cbVartype.itemindex=9 then
+    edtValue.TextHint:=rsSStaticDDynamicEExecutable
+  else
+    edtValue.TextHint:='';
+
   edtValue.visible:=cbVartype.ItemIndex<>0;
   cbPicked.visible:=edtValue.visible;
+
+
+
 
   frm.sizechange;
 
