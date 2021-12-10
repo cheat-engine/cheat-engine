@@ -14889,9 +14889,11 @@ var
   lowestAddress: ptruint=0;
   highestAddress: ptruint=0;
 begin
-  libfile:=CheatEngineDir+'tcclib\lib\libtcc1.c';  //release
+
+  libfile:=CheatEngineDir+'tcclib'+PathDelim+'lib'+PathDelim+'libtcc1.c';  //release
   if not fileexists(libfile) then
-    libfile:=CheatEngineDir+'..\tcclib\lib\libtcc1.c'; //development
+    libfile:=CheatEngineDir+'..'+PathDelim+'tcclib'+PathDelim+'lib'+PathDelim+'libtcc1.c'; //development
+
 
   if fileexists(libfile) then
   begin
