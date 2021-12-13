@@ -2370,6 +2370,8 @@ begin
     lblHexTopLine.Font.color:=hexview.toplinecolor;
     lblHexSeperator.Font.color:=hexview.seperatorColor;
     lblHexCursor.Font.color:=hexview.cursorcolor;
+    lblHexFadeColor.font.color:=hexview.normalFontColor;
+    lblHexFadeColor.color:=hexview.fadecolor;
 
     lblRegHighLightChange.color:=fChangedRegisterColor;
     lblRegHighLightAccess.color:=fAccessedRegisterColor;
@@ -2414,6 +2416,7 @@ begin
       hexview.toplinecolor:=lblHexTopLine.Font.color;
       hexview.seperatorColor:=lblHexSeperator.Font.color;
       hexview.cursorcolor:=lblHexCursor.Font.color;
+      hexview.fadecolor:=lblHexFadeColor.color;
 
       fChangedRegisterColor:=lblRegHighLightChange.color;
       fAccessedRegisterColor:=lblRegHighLightAccess.color;
@@ -2474,8 +2477,13 @@ begin
     end;
 
     if reg.openkey('\Software\'+strCheatEngine+'\Hexview'+darkmodestring,true) then
+    begin
       reg.{$ifdef windows}WriteBinaryData{$else}WriteString{$endif}('colors', {$ifndef windows}bintohexs({$endif}hexview.colors, sizeof(hexview.colors)){$ifndef windows}){$endif};
-
+      reg.WriteInteger('SeperaterColor', hexview.fseperatorColor);
+      reg.WriteInteger('CursorColor', hexview.fcursorcolor);
+      reg.WriteInteger('TopLineColor', hexview.ftoplinecolor);
+      reg.WriteInteger('FadeColor', hexview.ffadeColor);
+    end;
 
     if reg.OpenKey('\Software\'+strCheatEngine+'\Hexview '+inttostr(screen.PixelsPerInch)+'\Font'+darkmodestring,true) then
       SaveFontToRegistry(hexview.hexfont, reg);
@@ -2737,6 +2745,11 @@ begin
         HexToBin(pchar(reg.ReadString('colors')),pchar(@hexview.colors),sizeof(hexview.colors));
         {$endif}
       end;
+
+      if reg.ValueExists('SeperaterColor') then  hexview.fseperatorColor:=reg.ReadInteger('SeperaterColor');
+      if reg.ValueExists('CursorColor') then  hexview.fcursorcolor:=reg.ReadInteger('CursorColor');
+      if reg.ValueExists('TopLineColor') then  hexview.ftoplinecolor:=reg.ReadInteger('TopLineColor');
+      if reg.ValueExists('FadeColor') then  hexview.ffadeColor:=reg.ReadInteger('FadeColor');
     end;
 
 

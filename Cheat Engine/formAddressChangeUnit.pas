@@ -258,6 +258,7 @@ type
     { Public declarations }
     index: integer;
     index2: integer;
+    focusDescription: boolean;
     property memoryrecord: TMemoryRecord read fMemoryRecord write setMemoryRecord;
     property vartype: TVariableType read getVartype write setVartype;
     property length: integer read gLength write sLength;
@@ -1819,9 +1820,10 @@ begin
     loadedWidth:=true;
   end;
 
-
-  if editAddress.text<>'' then
+  if focusDescription then
     editDescription.SetFocus;
+
+
    //autosize:=true;
 end;
 

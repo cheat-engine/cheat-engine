@@ -1210,7 +1210,7 @@ begin
         vartype:=vtDword;
     end;
 
-    mainform.addresslist.addAddressManually(inttohex(selected,8), Vartype, ctname);
+    mainform.addresslist.addAddressManually(inttohex(selected,8), Vartype, ctname, true);
   end;
   {$ENDIF}
 

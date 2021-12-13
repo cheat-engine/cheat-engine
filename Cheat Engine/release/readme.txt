@@ -70,9 +70,9 @@ from 7.3.1-7.3.2:
   fixed the standalone trainer maker giving an error about duplicate entries
 
 from 7.3.2-7.4:
-  lua: fixed readByte signxtending when it shouldn't
+  lua: fixed readByte signextending when it shouldn't
   fix changeregonbp where it only changed xmm0
   window position saving of "find what addresses this code accesses" should be more predictable
-
+  fixed saving of some color preferences in hexview, and added the fadecolor
 
  

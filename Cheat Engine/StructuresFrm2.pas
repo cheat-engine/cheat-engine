@@ -6026,6 +6026,7 @@ begin
   end;
 
 
+  tvStructureView.update;
 
 end;
 
