@@ -1577,6 +1577,35 @@ var i,j,k,l,e: integer;
       if debug_getAddressFromScript then OutputDebugString('not found');
     end;
 
+    procedure handleCreateThreadAndWait(ctawi: integer);
+    begin
+      //create the thread and wait for it's result
+      testptr:=getAddressFromScript(createthreadandwait[ctawi].name);
+
+      threadhandle:=createremotethread(processhandle,nil,0,pointer(testptr),nil,0,bw);
+      ok2:=threadhandle>0;
+
+      if ok2 then
+      begin
+        {$ifdef windows}
+        try
+          k:=createthreadandwait[ctawi].timeout;
+          if k<=0 then y:=INFINITE else y:=k;
+
+          if WaitForSingleObject(threadhandle, y)<>WAIT_OBJECT_0 then
+            raise EAssemblerException.create('createthreadandwait did not execute properly');
+        finally
+          closehandle(threadhandle);
+        end;
+        {$else}
+        sleep(5000); //todo: implement proper wait
+        {$endif}
+
+      end;
+
+      createthreadandwait[ctawi].position:=-1; //mark it as handled
+    end;
+
 begin
   setlength(readmems,0);
   setlength(allocs,0);
@@ -3704,33 +3733,7 @@ begin
         for j:=0 to assembled[i].createthreadandwait do
         begin
           if createthreadandwait[j].position<>-1 then
-          begin
-            //create the thread and wait for it's result
-            testptr:=getAddressFromScript(createthreadandwait[j].name);
-
-            threadhandle:=createremotethread(processhandle,nil,0,pointer(testptr),nil,0,bw);
-            ok2:=threadhandle>0;
-
-            if ok2 then
-            begin
-              {$ifdef windows}
-              try
-                k:=createthreadandwait[j].timeout;
-                if k<=0 then y:=INFINITE else y:=k;
-
-                if WaitForSingleObject(threadhandle, y)<>WAIT_OBJECT_0 then
-                  raise EAssemblerException.create('createthreadandwait did not execute properly');
-              finally
-                closehandle(threadhandle);
-              end;
-              {$else}
-              sleep(5000); //todo: implement proper wait
-              {$endif}
-
-            end;
-
-            createthreadandwait[j].position:=-1; //mark it as handled
-          end;
+            HandleCreateThreadAndWait(j);
         end;
       end;
     end;
@@ -3742,6 +3745,15 @@ begin
         ok2:=false;
     end;
     {$endif}
+
+    //handle the unhandled createthreadandwait blocks
+    for i:=0 to length(createthreadandwait)-1 do
+    begin
+      if createthreadandwait[i].position<>-1 then
+        HandleCreateThreadAndWait(i);
+    end;
+
+
 
 
 
