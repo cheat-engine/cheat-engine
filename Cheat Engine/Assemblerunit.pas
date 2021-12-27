@@ -24,7 +24,7 @@ const opcodecount=1915;  //I wish there was a easier way than to handcount
 
 type
   EAssemblerException=class(Exception);
-  EAssemblerExceptionOffsetTooBig=class(Exception);
+  EAssemblerExceptionOffsetTooBig=class(EAssemblerException);
 
 
 
