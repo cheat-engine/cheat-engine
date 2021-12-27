@@ -1552,7 +1552,7 @@ var i,j,k,l,e: integer;
         if uppercase(defines[j].name)=name then
         begin
           try
-            testptr:=symhandler.getAddressFromName(defines[j].whatever);
+            result:=symhandler.getAddressFromName(defines[j].whatever);
             exit;
           except
           end;
