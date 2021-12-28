@@ -1468,8 +1468,11 @@ begin
     if tv.Items[i].Data<>nil then
     begin
       d:=TTraceDebugInfo(tv.Items[i].Data);
-      tv.Items[i].Data:=nil;
-      d.Free;
+      if d<>nil then
+      begin
+        tv.Items[i].Data:=nil;
+        d.Free;
+      end;
     end;
   end;
 end;

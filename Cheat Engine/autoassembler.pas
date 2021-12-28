@@ -1629,6 +1629,8 @@ begin
     setlength(labels, disableinfo.allsymbols.count);
     for i:=0 to disableinfo.allsymbols.count-1 do
     begin
+      FillMemory(@labels[length(labels)-1],sizeof(labels[0]),0);
+
       labels[i].defined:=true;
       labels[i].address:=ptruint(disableinfo.allsymbols.Objects[i]);
       labels[i].labelname:=disableinfo.allsymbols[i];
@@ -1703,6 +1705,8 @@ begin
       //define the c-code symbol as an undefined labels
       j:=length(labels);
       setlength(labels, j+1);
+      ZeroMemory(@labels[j],sizeof(labels[j]));
+
       labels[j].labelname:=dataForAACodePass2.cdata.symbols[i].name;
       labels[j].defined:=false;
       labels[j].afterccode:=true;
@@ -2463,13 +2467,12 @@ begin
                 for k:=length(labels)-1 downto j+1 do
                   labels[k]:=labels[k-1];
 
-
+                ZeroMemory(@labels[l], sizeof(labels[l]));
                 labels[l].labelname:=s1;
                 labels[l].defined:=false;
 
                 setlength(labels[l].references,0);
                 setlength(labels[l].references2,0);
-
               end;
 
               setlength(assemblerlines,length(assemblerlines)-1);
@@ -2733,6 +2736,7 @@ begin
 
               j:=length(labels);
               setlength(labels,j+1);
+              ZeroMemory(@labels[j],sizeof(labels[j]));
 
               labels[j].labelname:=copy(currentline,1,length(currentline)-1);
               labels[j].assemblerline:=length(assemblerlines)-1;
@@ -2796,6 +2800,7 @@ begin
                     //define this potential label as a full label
                     k:=length(labels);
                     setlength(labels, k+1);
+                    ZeroMemory(@labels[k],sizeof(labels[k]));
                     labels[k].labelname:=potentiallabels[j];
                     labels[k].defined:=false;
                     labels[k].afterccode:=false;
