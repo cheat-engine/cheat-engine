@@ -168,7 +168,7 @@ type
 
     comparetv: TTreeView;
 
-    traceaddress: dword;
+   // traceaddress: dword;
     fpp: TfrmFloatingPointPanel;
     isConfigured: boolean;
     dereference: boolean;
@@ -727,6 +727,9 @@ begin
 
   setlength(x,0);
   loadedformpos:=loadformposition(self,x);
+
+  if length(x)>1 then
+    panel1.Width:=x[0];
 
 
   reg:=Tregistry.Create;
@@ -1950,11 +1953,6 @@ begin
   if debuggerthread<>nil then
     debuggerthread.stopBreakAndTrace(self);
 
-
-
-
-
-
   if comparetv<>nil then
   begin
     cleanuptv(comparetv);
@@ -1981,7 +1979,9 @@ begin
 end;
 
 procedure TfrmTracer.FormDestroy(Sender: TObject);
+var x: array of integer;
 begin
+
   if da<>nil then
     da.free;
 
@@ -1990,7 +1990,10 @@ begin
     dacr3.free;
   {$endif}
 
-  saveformposition(self);
+  setlength(x,1);
+  x[0]:=panel1.width;
+
+  saveformposition(self,x);
 end;
 
 procedure TfrmTracer.configuredisplay;
@@ -2086,7 +2089,7 @@ begin
       end else ebxlabel.Font.Color:=clWindowText;
 
       temp:=prefix+'CX '+IntToHex(context.{$ifdef cpu64}rcx{$else}ecx{$endif},processhandler.hexdigitpreference);
-      if (t2<>nil) and (t.c.{$ifdef cpu64}rcx{$else}Ecx{$endif}<>t2.c.{$ifdef cpu64}rax{$else}Eax{$endif}) then temp:=temp+' <> '+IntToHex(t2.c.{$ifdef cpu64}rcx{$else}Ecx{$endif},processhandler.hexdigitpreference);
+      if (t2<>nil) and (t.c.{$ifdef cpu64}rcx{$else}Ecx{$endif}<>t2.c.{$ifdef cpu64}rcx{$else}Ecx{$endif}) then temp:=temp+' <> '+IntToHex(t2.c.{$ifdef cpu64}rcx{$else}Ecx{$endif},processhandler.hexdigitpreference);
       if temp<>eCxlabel.Caption then
       begin
         eCXlabel.Font.Color:=clred;
