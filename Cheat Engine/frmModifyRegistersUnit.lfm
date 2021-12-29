@@ -639,86 +639,86 @@ object frmModifyRegisters: TfrmModifyRegisters
         Caption = 'Flags'
         ParentColor = False
       end
-      object cbCF: TCheckBox
+      object cbOF: TCheckBox
         AnchorSideLeft.Control = Label16
         AnchorSideTop.Control = Label16
         AnchorSideTop.Side = asrBottom
         Left = 10
         Height = 19
         Top = 15
-        Width = 34
+        Width = 35
         AllowGrayed = True
-        Caption = 'CF'
+        Caption = 'OF'
         ParentBidiMode = False
         State = cbGrayed
         TabOrder = 0
       end
-      object cbPF: TCheckBox
+      object cbSF: TCheckBox
         AnchorSideLeft.Control = Label16
-        AnchorSideTop.Control = cbCF
+        AnchorSideTop.Control = cbOF
         AnchorSideTop.Side = asrBottom
         Left = 10
         Height = 19
         Top = 34
-        Width = 33
-        AllowGrayed = True
-        Caption = 'PF'
-        ParentBidiMode = False
-        State = cbGrayed
-        TabOrder = 1
-      end
-      object cbAF: TCheckBox
-        AnchorSideLeft.Control = Label16
-        AnchorSideTop.Control = cbPF
-        AnchorSideTop.Side = asrBottom
-        Left = 10
-        Height = 19
-        Top = 53
-        Width = 34
-        AllowGrayed = True
-        Caption = 'AF'
-        ParentBidiMode = False
-        State = cbGrayed
-        TabOrder = 2
-      end
-      object cbZF: TCheckBox
-        AnchorSideLeft.Control = Label16
-        AnchorSideTop.Control = cbAF
-        AnchorSideTop.Side = asrBottom
-        Left = 10
-        Height = 19
-        Top = 72
-        Width = 33
-        AllowGrayed = True
-        Caption = 'ZF'
-        ParentBidiMode = False
-        State = cbGrayed
-        TabOrder = 3
-      end
-      object cbSF: TCheckBox
-        AnchorSideLeft.Control = Label16
-        AnchorSideTop.Control = cbZF
-        AnchorSideTop.Side = asrBottom
-        Left = 10
-        Height = 19
-        Top = 91
         Width = 32
         AllowGrayed = True
         Caption = 'SF'
         ParentBidiMode = False
         State = cbGrayed
-        TabOrder = 4
+        TabOrder = 1
       end
-      object cbOF: TCheckBox
+      object cbZF: TCheckBox
         AnchorSideLeft.Control = Label16
         AnchorSideTop.Control = cbSF
         AnchorSideTop.Side = asrBottom
         Left = 10
         Height = 19
-        Top = 110
-        Width = 35
+        Top = 53
+        Width = 33
         AllowGrayed = True
-        Caption = 'OF'
+        Caption = 'ZF'
+        ParentBidiMode = False
+        State = cbGrayed
+        TabOrder = 2
+      end
+      object cbAF: TCheckBox
+        AnchorSideLeft.Control = Label16
+        AnchorSideTop.Control = cbZF
+        AnchorSideTop.Side = asrBottom
+        Left = 10
+        Height = 19
+        Top = 72
+        Width = 34
+        AllowGrayed = True
+        Caption = 'AF'
+        ParentBidiMode = False
+        State = cbGrayed
+        TabOrder = 3
+      end
+      object cbPF: TCheckBox
+        AnchorSideLeft.Control = Label16
+        AnchorSideTop.Control = cbAF
+        AnchorSideTop.Side = asrBottom
+        Left = 10
+        Height = 19
+        Top = 91
+        Width = 33
+        AllowGrayed = True
+        Caption = 'PF'
+        ParentBidiMode = False
+        State = cbGrayed
+        TabOrder = 4
+      end
+      object cbCF: TCheckBox
+        AnchorSideLeft.Control = Label16
+        AnchorSideTop.Control = cbPF
+        AnchorSideTop.Side = asrBottom
+        Left = 10
+        Height = 19
+        Top = 110
+        Width = 34
+        AllowGrayed = True
+        Caption = 'CF'
         ParentBidiMode = False
         State = cbGrayed
         TabOrder = 5
@@ -733,7 +733,7 @@ object frmModifyRegisters: TfrmModifyRegisters
     Left = 32
     Height = 19
     Top = 486
-    Width = 206
+    Width = 207
     Caption = 'Change extended state (FPU/XMM)'
     OnChange = cbChangeExtChange
     TabOrder = 2
