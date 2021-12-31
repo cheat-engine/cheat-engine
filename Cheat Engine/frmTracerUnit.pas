@@ -1521,7 +1521,8 @@ begin
       for i:=0 to comparetv.Items.Count-1 do
       begin
         comparetv.Items[i].Data:=TTraceDebugInfo.createFromStream(f);
-        TTraceDebugInfo(lvTracer.items[i].data).compareindex:=i;
+        if i<lvtracer.items.Count then
+          TTraceDebugInfo(lvTracer.items[i].data).compareindex:=i;
       end;
 
       miRealignCompare.enabled:=true;
