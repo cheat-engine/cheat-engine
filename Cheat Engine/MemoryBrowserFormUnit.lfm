@@ -976,7 +976,7 @@ object MemoryBrowser: TMemoryBrowser
       end
     end
     object miLockRowsize: TMenuItem
-      Caption = 'Lock current rowsize'
+      Caption = 'Set custom alignment'
       OnClick = miLockRowsizeClick
     end
     object miShowRelative: TMenuItem
