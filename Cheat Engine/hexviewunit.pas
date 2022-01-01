@@ -2812,7 +2812,6 @@ begin
       statusbar.panels[0].Text:=format('%.8x %s',[SelectionStart, s])
   end;
 
-
   lastrendertime:=gettickcount64-starttime;
 end;
 
@@ -3196,7 +3195,7 @@ begin
 
   statusbar:=TStatusBar.Create(self);
   statusbar.ParentFont:=true;
-  statusbar.AutoSize:=false;
+  statusbar.AutoSize:=true; //false;
   statusbar.Name:='statusbar';
   statusbar.SimplePanel:=false;
   statusbar.align:=alBottom;
