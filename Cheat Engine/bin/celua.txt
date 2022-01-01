@@ -1062,6 +1062,20 @@ methods
   minimize()
 
 
+ControlScrollBar Class (Inheritance: Object)
+  Increment: Word - The amount the position moves when using the scrollbar arrows
+  Page: Word - slider size in pixels
+  Smooth: Boolean
+  Position: Integer - (limited to 0 to range-page)
+  Range: Integer 
+  Tracking: Boolean - Gives feedback when the slider is moved
+  Visible: Boolean
+
+ScrollingWinControl Class (Inheritance: CustomControl->WinControl->Control->Component->Object)
+properties 
+  HorzScrollBar: ControlScrollBar
+  VertScrollBar: ControlScrollBar
+
 Form Class: (Inheritance: ScrollingWinControl->CustomControl->WinControl->Control->Component->Object)
 properties
   DesignTimePPI: integer - the PPI/DPI at the time the form was designed
