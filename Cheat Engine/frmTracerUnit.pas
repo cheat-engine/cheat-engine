@@ -717,14 +717,6 @@ var
   reg: TRegistry;
 begin
   //set a breakpoint and when that breakpoint gets hit trace a number of instructions
-  if fskipconfig=false then
-  begin
-    miNewTrace.Click;
-
-
-  end;
-
-
   setlength(x,0);
   loadedformpos:=loadformposition(self,x);
 
@@ -1287,7 +1279,13 @@ var tcount: integer;
     newpages: qword;
 
     memneeded: integer;
+    StayInsideModule: boolean;
 begin
+  if (owner is TMemoryBrowser) then
+    fromaddress:=(owner as TMemoryBrowser).disassemblerview.SelectedAddress
+  else
+    fromaddress:=memorybrowser.disassemblerview.SelectedAddress;
+
   if frmTracerConfig=nil then
     frmTracerConfig:=TfrmTracerConfig.create(application);
 
@@ -1295,6 +1293,11 @@ begin
   begin
     DataTrace:=fDataTrace;
     breakpointmethod:=defaultBreakpointMethod;
+
+    cbStayInsideInitialModule.enabled:=symhandler.inModule(fromaddress);
+    if cbStayInsideInitialModule.enabled=false then
+      cbStayInsideInitialModule.checked:=false;
+
     if showmodal=mrok then
     begin
 
@@ -1321,6 +1324,8 @@ begin
       stepover:=cbStepOver.checked;
       nosystem:=cbSkipSystemModules.checked;
 
+      StayInsideModule:=cbStayInsideInitialModule.checked;
+
 
 
       {$ifdef windows}
@@ -1330,10 +1335,7 @@ begin
 
 
         //setup dbvm trace
-        if (owner is TMemoryBrowser) then
-          fromaddress:=(owner as TMemoryBrowser).disassemblerview.SelectedAddress
-        else
-          fromaddress:=memorybrowser.disassemblerview.SelectedAddress;
+
 
         if cbDBVMTriggerCOW.checked then
         begin
@@ -1448,9 +1450,9 @@ begin
         else
         begin
           if (owner is TMemoryBrowser) then
-            debuggerthread.setBreakAndTraceBreakpoint(self, (owner as TMemoryBrowser).disassemblerview.SelectedAddress, bptExecute, breakpointmethod, 1, tcount, startcondition, stopcondition, StepOver, Nosystem)
+            debuggerthread.setBreakAndTraceBreakpoint(self, (owner as TMemoryBrowser).disassemblerview.SelectedAddress, bptExecute, breakpointmethod, 1, tcount, startcondition, stopcondition, StepOver, Nosystem, stayinsidemodule)
           else
-            debuggerthread.setBreakAndTraceBreakpoint(self, memorybrowser.disassemblerview.SelectedAddress, bptExecute, breakpointmethod, 1, tcount, startcondition, stopcondition, StepOver, nosystem);
+            debuggerthread.setBreakAndTraceBreakpoint(self, memorybrowser.disassemblerview.SelectedAddress, bptExecute, breakpointmethod, 1, tcount, startcondition, stopcondition, StepOver, nosystem, StayInsideModule);
         end;
       end;
     end;

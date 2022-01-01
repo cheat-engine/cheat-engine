@@ -60,6 +60,9 @@ type
     traceQuitCondition: string;
     traceStepOver: boolean; //perhaps also trace branches ?
     traceNoSystem: boolean;
+    traceStayInsideModule: boolean;
+    traceStartmodulebase: ptruint;
+    traceStartmodulesize: dword;
     //------------------
 
     unhandledException: boolean;
@@ -933,6 +936,10 @@ begin
   if (not ignored) and traceNoSystem and symhandler.inSystemModule(context^.{$ifdef cpu64}rip{$else}eip{$endif}) then
     ignored:=true;
 
+  if (not ignored) and traceStayInsideModule and (not InRangeQ(context^.{$ifdef cpu64}rip{$else}eip{$endif}, traceStartmodulebase, traceStartmodulebase+traceStartmodulesize)) then
+    ignored:=true;
+
+
   TDebuggerthread(debuggerthread).execlocation:=371;
   if (tracewindow<>nil) and (not ignored) then
   begin
@@ -968,7 +975,8 @@ begin
     begin
       TDebuggerthread(debuggerthread).execlocation:=375;
       x:=0;
-      ReadProcessMemory(processhandle, pointer(context^.{$ifdef cpu64}rsp{$else}esp{$endif}), @r, sizeof(processhandler.pointersize), x);
+      r:=0;
+      ReadProcessMemory(processhandle, pointer(context^.{$ifdef cpu64}rsp{$else}esp{$endif}), @r, processhandler.pointersize, x);
       if x=processhandler.pointersize then
       begin
         tracewindow.returnfromignore:=true;
@@ -1353,6 +1361,10 @@ begin
             traceWindow:=bpp.frmTracer;
             traceStepOver:=bpp.tracestepOver;
             traceNoSystem:=bpp.traceNoSystem;
+            traceStayInsideModule:=bpp.traceStayInsideModule;
+            traceStartmodulebase:=bpp.traceStartmodulebase;
+            traceStartmodulesize:=bpp.traceStartmodulesize;
+
             if bpp.traceendcondition<>nil then
               traceQuitCondition:=bpp.traceendcondition
             else

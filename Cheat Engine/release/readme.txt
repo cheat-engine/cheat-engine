@@ -26,7 +26,7 @@ from 7.3.2-7.4:
   goto address popup now centers on the memview window, instead of screen center
   you can now change the font of the tracer tree
   added isRep to the lua LastDisassemblerData field.  And stepover now steps over rep instructions
-
+  break and trace: Added 'stay within module' option
 
 
 
@@ -74,5 +74,6 @@ from 7.3.2-7.4:
   fix changeregonbp where it only changed xmm0
   window position saving of "find what addresses this code accesses" should be more predictable
   fixed saving of some color preferences in hexview, and added the fadecolor
-
- 
+  fix AA createThreadAndWait not working in a standalone script
+  improved stability of mono
+  fixed break and trace ignore flag causing an stop instead of ignore on 64 bit targets

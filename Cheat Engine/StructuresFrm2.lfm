@@ -489,7 +489,7 @@ object frmStructures2: TfrmStructures2
       Caption = '-'
     end
     object miGoToOffset: TMenuItem
-      Caption = 'Go to Offest'
+      Caption = 'Go to Offset'
       ImageIndex = 20
       OnClick = miGoToOffsetClick
     end

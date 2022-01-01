@@ -4470,8 +4470,11 @@ begin
 end;
 
 procedure TMemoryBrowser.Breakandtraceinstructions1Click(Sender: TObject);
+var f: TFrmTracer;
 begin
-  TFrmTracer.create(self).show;
+  f:=TFrmTracer.create(self);
+  f.show;
+  f.miNewTrace.Click;
 end;
 
 procedure TMemoryBrowser.debuggerpopupPopup(Sender: TObject);
