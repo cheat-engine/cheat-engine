@@ -27,6 +27,7 @@ from 7.3.2-7.4:
   you can now change the font of the tracer tree
   added isRep to the lua LastDisassemblerData field.  And stepover now steps over rep instructions
   break and trace: Added 'stay within module' option
+  added custom alignment option to the hexviewer section of the memoryviewer
 
 
 
