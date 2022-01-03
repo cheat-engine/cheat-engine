@@ -50,7 +50,7 @@ procedure LoadSettingsFromRegistry(skipPlugins: boolean=false);
 procedure initcetitle;
 
 
-const beta=' beta'; //empty this for a release
+const beta=''; //empty this for a release
 
 var
   CEnorm:string;
