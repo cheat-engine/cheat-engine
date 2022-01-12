@@ -809,8 +809,6 @@ begin
   cscript.add('}');
 
 
-  showmessage(cscript.text);
-
 
   //allocate a spot for the linker stage to put the address
   if processhandler.is64Bit {$ifdef cpu64} or targetself{$endif} then
