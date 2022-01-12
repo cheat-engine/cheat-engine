@@ -1725,6 +1725,7 @@ begin
 
 
     strictmode:=false;
+    hastryexcept:=false;
     for i:=0 to code.count-1 do
     begin
       currentline:=uppercase(TrimRight(code[i]));
@@ -2347,7 +2348,7 @@ begin
 
 
 
-          if (disableinfo<>nil) and (uppercase(copy(currentline,1,17))='UNREGISTERSYMBOL(') then
+          if uppercase(copy(currentline,1,17))='UNREGISTERSYMBOL(' then
           begin
             //add this symbol to the register symbollist
             a:=pos('(',currentline);
@@ -2357,7 +2358,7 @@ begin
             begin
               s1:=trim(copy(currentline,a+1,b-a-1));
 
-              if s1='*' then
+              if (disableinfo<>nil) and (s1='*') then
               begin
                 j:=length(deletesymbollist);
                 setlength(deletesymbollist, j+ disableinfo.registeredsymbols.Count);
