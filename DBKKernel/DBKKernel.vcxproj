@@ -176,7 +176,7 @@
     <Inf2CatUseLocalTime>true</Inf2CatUseLocalTime>
     <OutDir>..\Cheat Engine\bin\</OutDir>
     <TargetName>DBK32</TargetName>
-    <TimeStampServer>http://timestamp.globalsign.com/scripts/timstamp.dll</TimeStampServer>
+    <TimeStampServer>http://timestamp.globalsign.com/?signature=sha2</TimeStampServer>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release without sig|Win32'">
     <DebuggerFlavor>DbgengKernelDebugger</DebuggerFlavor>
@@ -196,19 +196,21 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <DebuggerFlavor>DbgengKernelDebugger</DebuggerFlavor>
-    <TimeStampServer>http://timestamp.globalsign.com/scripts/timstamp.dll</TimeStampServer>
+    <TimeStampServer>http://timestamp.globalsign.com/?signature=sha2</TimeStampServer>
     <OutDir>..\Cheat Engine\bin\</OutDir>
     <TargetName>DBK64</TargetName>
     <Inf2CatUseLocalTime>false</Inf2CatUseLocalTime>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release without sig|x64'">
     <DebuggerFlavor>DbgengKernelDebugger</DebuggerFlavor>
-    <TimeStampServer>http://timestamp.globalsign.com/scripts/timstamp.dll</TimeStampServer>
+    <TimeStampServer>http://timestamp.globalsign.com/?signature=sha2</TimeStampServer>
     <OutDir>..\Cheat Engine\bin\</OutDir>
     <TargetName>DBK64</TargetName>
     <Inf2CatUseLocalTime>true</Inf2CatUseLocalTime>
     <EnableInf2cat>false</EnableInf2cat>
     <Inf2CatNoCatalog>true</Inf2CatNoCatalog>
+    <DiagnosticMode>true</DiagnosticMode>
+    <PostBuildEventUseInBuild>true</PostBuildEventUseInBuild>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
     <DebuggerFlavor>DbgengKernelDebugger</DebuggerFlavor>
@@ -237,10 +239,8 @@
       <AdditionalOptions>/INTEGRITYCHECK %(AdditionalOptions)</AdditionalOptions>
     </Link>
     <PostBuildEvent>
-      <Command>
-      </Command>
-      <Message>
-      </Message>
+      <Command>"$(WDKBinRoot_x64)\signtool.exe" sign /a /ac "$(TargetDir)..\release\sig\GlobalSign Root CA.crt" /tr http://rfc3161timestamp.globalsign.com/advanced /td SHA256 "$(TargetPath)"</Command>
+      <Message>sign driver</Message>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -255,10 +255,11 @@
       <AdditionalOptions>/INTEGRITYCHECK %(AdditionalOptions)</AdditionalOptions>
     </Link>
     <PostBuildEvent>
-      <Command>cd $(MSBuildProjectDirectory)\$(Inf2CatSource)
+      <Command>"$(WDKBinRoot_x64)\signtool.exe" sign /a /ac "$(TargetDir)..\release\sig\GlobalSign Root CA.crt" /tr http://rfc3161timestamp.globalsign.com/advanced /td SHA256 "$(TargetPath)"
+cd $(MSBuildProjectDirectory)\$(Inf2CatSource)
 copy ..\dbk64.pdb .
 makecab /f "$(ProjectDir)\dbk64.ddf"
-"$(DriverSignToolPath)signtool.exe" sign /v /ac "..\..\release\sig\GlobalSign Root CA.crt" /n "Cheat Engine" /t http://timestamp.globalsign.com/scripts/timstamp.dll disk1\dbk64.cab</Command>
+"$(DriverSignToolPath)signtool.exe" sign /v /a /ac "..\..\release\sig\GlobalSign Root CA.crt" /tr http://rfc3161timestamp.globalsign.com/advanced /td SHA256 disk1\dbk64.cab</Command>
     </PostBuildEvent>
     <PostBuildEvent>
       <Message>Generate and sign CAB</Message>
@@ -275,6 +276,15 @@ makecab /f "$(ProjectDir)\dbk64.ddf"
       <AdditionalDependencies>$(DDK_LIB_PATH)Ntstrsafe.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalOptions>/INTEGRITYCHECK %(AdditionalOptions)</AdditionalOptions>
     </Link>
+    <DriverSign>
+      <FileDigestAlgorithm>sha256</FileDigestAlgorithm>
+    </DriverSign>
+    <PostBuildEvent>
+      <Command>"$(WDKBinRoot_x64)\signtool.exe" sign /a /ac "$(TargetDir)..\release\sig\GlobalSign Root CA.crt" /tr http://rfc3161timestamp.globalsign.com/advanced /td SHA256 "$(TargetPath)"</Command>
+    </PostBuildEvent>
+    <PostBuildEvent>
+      <Message>Sign the CE driver</Message>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <Link>

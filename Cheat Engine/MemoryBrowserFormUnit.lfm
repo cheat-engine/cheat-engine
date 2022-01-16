@@ -1,7 +1,7 @@
 object MemoryBrowser: TMemoryBrowser
-  Left = 864
+  Left = 364
   Height = 530
-  Top = 193
+  Top = 319
   Width = 643
   HelpContext = 12
   Caption = 'Memory Viewer'
@@ -571,29 +571,28 @@ object MemoryBrowser: TMemoryBrowser
           ClientHeight = 138
           ClientWidth = 40
           TabOrder = 3
-          object oflabel: TLabel
-            Tag = 26
-            AnchorSideTop.Side = asrBottom
+          object cflabel: TLabel
+            Tag = 20
+            AnchorSideLeft.Side = asrBottom
             Left = 0
             Height = 18
             Top = 0
             Width = 40
-            Caption = 'OF 0'
+            Caption = 'CF 0'
             Font.Height = -16
             Font.Name = 'Courier New'
             ParentColor = False
             ParentFont = False
             OnClick = EAXLabelDblClick
-            OnDblClick = EAXLabelDblClick
           end
-          object dflabel: TLabel
-            Tag = 25
+          object pflabel: TLabel
+            Tag = 21
             AnchorSideTop.Side = asrBottom
             Left = 0
             Height = 18
             Top = 20
             Width = 40
-            Caption = 'DF 0'
+            Caption = 'PF 0'
             Font.Height = -16
             Font.Name = 'Courier New'
             ParentColor = False
@@ -601,14 +600,14 @@ object MemoryBrowser: TMemoryBrowser
             OnClick = EAXLabelDblClick
             OnDblClick = EAXLabelDblClick
           end
-          object sflabel: TLabel
-            Tag = 24
+          object aflabel: TLabel
+            Tag = 22
             AnchorSideTop.Side = asrBottom
             Left = 0
             Height = 18
             Top = 40
             Width = 40
-            Caption = 'SF 0'
+            Caption = 'AF 0'
             Font.Height = -16
             Font.Name = 'Courier New'
             ParentColor = False
@@ -631,14 +630,14 @@ object MemoryBrowser: TMemoryBrowser
             OnClick = EAXLabelDblClick
             OnDblClick = EAXLabelDblClick
           end
-          object aflabel: TLabel
-            Tag = 22
+          object sflabel: TLabel
+            Tag = 24
             AnchorSideTop.Side = asrBottom
             Left = 0
             Height = 18
             Top = 80
             Width = 40
-            Caption = 'AF 0'
+            Caption = 'SF 0'
             Font.Height = -16
             Font.Name = 'Courier New'
             ParentColor = False
@@ -646,14 +645,14 @@ object MemoryBrowser: TMemoryBrowser
             OnClick = EAXLabelDblClick
             OnDblClick = EAXLabelDblClick
           end
-          object pflabel: TLabel
-            Tag = 21
+          object dflabel: TLabel
+            Tag = 25
             AnchorSideTop.Side = asrBottom
             Left = 0
             Height = 18
             Top = 100
             Width = 40
-            Caption = 'PF 0'
+            Caption = 'DF 0'
             Font.Height = -16
             Font.Name = 'Courier New'
             ParentColor = False
@@ -661,19 +660,20 @@ object MemoryBrowser: TMemoryBrowser
             OnClick = EAXLabelDblClick
             OnDblClick = EAXLabelDblClick
           end
-          object cflabel: TLabel
-            Tag = 20
-            AnchorSideLeft.Side = asrBottom
+          object oflabel: TLabel
+            Tag = 26
+            AnchorSideTop.Side = asrBottom
             Left = 0
             Height = 18
             Top = 120
             Width = 40
-            Caption = 'CF 0'
+            Caption = 'OF 0'
             Font.Height = -16
             Font.Name = 'Courier New'
             ParentColor = False
             ParentFont = False
             OnClick = EAXLabelDblClick
+            OnDblClick = EAXLabelDblClick
           end
         end
       end
@@ -976,7 +976,7 @@ object MemoryBrowser: TMemoryBrowser
       end
     end
     object miLockRowsize: TMenuItem
-      Caption = 'Lock current rowsize'
+      Caption = 'Set custom alignment'
       OnClick = miLockRowsizeClick
     end
     object miShowRelative: TMenuItem
@@ -1020,6 +1020,7 @@ object MemoryBrowser: TMemoryBrowser
     object Addthisaddresstothelist1: TMenuItem
       Caption = 'Add this address to the list'
       ImageIndex = 16
+      ShortCut = 16491
       OnClick = Addthisaddresstothelist1Click
     end
     object Makepagewritable1: TMenuItem
@@ -1385,10 +1386,16 @@ object MemoryBrowser: TMemoryBrowser
       ImageIndex = 9
       OnClick = Findoutwhataddressesthisinstructionaccesses1Click
     end
+    object MenuItem5: TMenuItem
+      Caption = '-'
+    end
     object miDBVMFindoutwhataddressesthisinstructionaccesses: TMenuItem
       Caption = 'DBVM Find out what addresses this instruction accesses'
       ImageIndex = 50
       OnClick = miDBVMFindoutwhataddressesthisinstructionaccessesClick
+    end
+    object MenuItem6: TMenuItem
+      Caption = '-'
     end
     object miConditionalBreak: TMenuItem
       Caption = 'Set/Change break condition'

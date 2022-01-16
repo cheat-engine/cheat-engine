@@ -24,6 +24,8 @@ const opcodecount=1915;  //I wish there was a easier way than to handcount
 
 type
   EAssemblerException=class(Exception);
+  EAssemblerExceptionOffsetTooBig=class(EAssemblerException);
+
 
 
 
@@ -2042,12 +2044,12 @@ const opcodes: array [1..opcodecount] of topcode =(
   (mnemonic:'VMCALL';bytes:3;bt1:$0f;bt2:$01;bt3:$c1),  
   (mnemonic:'VMCLEAR';opcode1:eo_reg6;paramtype1:par_m64;bytes:3;bt1:$66;bt2:$0f;bt3:$c7),
 
-  (mnemonic:'VMIXPD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$5d;hasvex:true; vexL:0; vexOpcodeExtension: oe_66; vexLeadingOpcode: lo_0F; vexExtraParam:2),
-  (mnemonic:'VMIXPD';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$5d;hasvex:true; vexL:1; vexOpcodeExtension: oe_66; vexLeadingOpcode: lo_0F; vexExtraParam:2),
-  (mnemonic:'VMIXPS';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$5d;hasvex:true; vexL:0; vexOpcodeExtension: oe_none; vexLeadingOpcode: lo_0F; vexExtraParam:2),
-  (mnemonic:'VMIXPS';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$5d;hasvex:true; vexL:1; vexOpcodeExtension: oe_none; vexLeadingOpcode: lo_0F; vexExtraParam:2),
-  (mnemonic:'VMIXSD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m64; bytes:1;bt1:$5d;hasvex:true; vexL:0; vexOpcodeExtension: oe_f2; vexLeadingOpcode: lo_0F; vexExtraParam:2),
-  (mnemonic:'VMIXSS';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m32; bytes:1;bt1:$5d;hasvex:true; vexL:0; vexOpcodeExtension: oe_f3; vexLeadingOpcode: lo_0F; vexExtraParam:2),
+  (mnemonic:'VMINPD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$5d;hasvex:true; vexL:0; vexOpcodeExtension: oe_66; vexLeadingOpcode: lo_0F; vexExtraParam:2),
+  (mnemonic:'VMINPD';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$5d;hasvex:true; vexL:1; vexOpcodeExtension: oe_66; vexLeadingOpcode: lo_0F; vexExtraParam:2),
+  (mnemonic:'VMINPS';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m128; bytes:1;bt1:$5d;hasvex:true; vexL:0; vexOpcodeExtension: oe_none; vexLeadingOpcode: lo_0F; vexExtraParam:2),
+  (mnemonic:'VMINPS';opcode1:eo_reg;paramtype1:par_ymm;paramtype2:par_ymm;paramtype3:par_ymm_m256; bytes:1;bt1:$5d;hasvex:true; vexL:1; vexOpcodeExtension: oe_none; vexLeadingOpcode: lo_0F; vexExtraParam:2),
+  (mnemonic:'VMINSD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m64; bytes:1;bt1:$5d;hasvex:true; vexL:0; vexOpcodeExtension: oe_f2; vexLeadingOpcode: lo_0F; vexExtraParam:2),
+  (mnemonic:'VMINSS';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm;paramtype3:par_xmm_m32; bytes:1;bt1:$5d;hasvex:true; vexL:0; vexOpcodeExtension: oe_f3; vexLeadingOpcode: lo_0F; vexExtraParam:2),
 
 
   (mnemonic:'VMLAUNCH';bytes:3;bt1:$0f;bt2:$01;bt3:$c2),
@@ -7892,7 +7894,7 @@ begin
             //result:=HandleTooBigAddress(opcode,address, bytes, actualdisplacement);
 
             if skiprangecheck=false then  //for syntax checking
-              raise EAssemblerException.create(rsOffsetTooBig);
+              raise EAssemblerExceptionOffsetTooBig.create(rsOffsetTooBig);
           end
           else
             pdword(@bytes[relativeAddressLocation])^:=actualdisplacement-(address+length(bytes));

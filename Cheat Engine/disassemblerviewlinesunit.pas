@@ -207,7 +207,15 @@ begin
   begin
     sci:=SourceCodeInfoCollection.getSourceCodeInfo(fAddress);
     if sci<>nil then
+    begin
+      if sci.processID<>processid then
+      begin
+        sci.Free;
+        exit(nil);
+      end;
+
       result:=sci.getLineInfo(fAddress);
+    end;
   end;
 
 end;

@@ -1655,6 +1655,7 @@ begin
 
     //try
       debugpart:=0;
+
       LastDisassembleData.isfloat:=false;
       LastDisassembleData.isfloat64:=false;
       LastDisassembleData.iscloaked:=false;
@@ -1735,6 +1736,7 @@ begin
       lastdisassembledata.isjump:=false;
       lastdisassembledata.iscall:=false;
       lastdisassembledata.isret:=false;
+      LastDisassembleData.isrep:=false;
       lastdisassembledata.isconditionaljump:=false;
       lastdisassembledata.modrmValueType:=dvtNone;
       lastdisassembledata.parameterValueType:=dvtNone;
@@ -1809,8 +1811,9 @@ begin
 
       debugpart:=3;
 
-      if actualread>0 then
+      if (actualread>0) and (actualread<=32) then
       begin
+
         {$ifndef jni}
         if debuggerthread<>nil then
           for i:=0 to actualread-1 do
@@ -1868,12 +1871,14 @@ begin
         begin
           tempresult:=tempresult+'repne ';
           noVEXPossible:=true;
+          LastDisassembleData.isrep:=true;
         end;
 
         if $f3 in prefix2 then
         begin
           tempresult:=tempresult+'repe ';
           noVEXPossible:=true;
+          LastDisassembleData.isrep:=true;
         end;
 
         LastDisassembleData.prefix:=tempresult;
@@ -16391,6 +16396,12 @@ end;
 destructor TDisassembler.destroy;
 begin
  // freeandnil(cs);
+  if self=visibleDisassembler then
+    visibleDisassembler:=nil;
+
+  if self=defaultDisassembler then
+    defaultDisassembler:=nil;
+
   inherited destroy;
 end;
 

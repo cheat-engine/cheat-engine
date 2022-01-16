@@ -200,8 +200,6 @@ begin
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'rebuildDescriptionCache', addresslist_rebuildDescriptionCache);
 
 
-
-
   luaclass_addPropertyToTable(L, metatable, userdata, 'Count', addresslist_getCount, nil);
   luaclass_addPropertyToTable(L, metatable, userdata, 'SelectedRecord', addresslist_getSelectedRecord, addresslist_setSelectedRecord);
   luaclass_addPropertyToTable(L, metatable, userdata, 'MemoryRecord', addresslist_getMemoryRecord, nil);

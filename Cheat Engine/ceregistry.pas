@@ -39,12 +39,14 @@ var cereg: TCEReg;
 
 implementation
 
+uses mainunit2;
+
 function TCEReg.getRegistry(force: boolean):boolean;
 begin
   {$ifdef darwin}
   //all registry objects access the same object. and that object has the current key set...
   if reg<>nil then
-    reg.OpenKey('\Software\Cheat Engine\', false);
+    reg.OpenKey('\Software\'+strCheatEngine+'\', false);
 
 
   {$endif}
@@ -57,7 +59,7 @@ begin
     if reg=nil then
       reg:=tregistry.create;
 
-    openedregistry:=reg.OpenKey('\Software\Cheat Engine\', force);
+    openedregistry:=reg.OpenKey('\Software\'+strCheatEngine+'\', force);
 
     if (not openedregistry) then
     begin

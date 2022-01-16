@@ -27,6 +27,8 @@ type
     Label10: TLabel;
     Label11: TLabel;
     Label12: TLabel;
+    Label13: TLabel;
+    Label14: TLabel;
     Label4: TLabel;
     Label5: TLabel;
     Label6: TLabel;
@@ -168,6 +170,7 @@ var freq: int64;
 
   newtick: dword;
   newperf: int64;
+  q: qword;
 begin
   newtick:=gettickcount;
   label1.Caption:=inttostr(gettickcount div 1000);
@@ -197,8 +200,19 @@ begin
   label11.caption:='cpuid 2 diff='+inttostr(getcpuidtime(2));
   label12.caption:='cpuid 3 diff='+inttostr(getcpuidtime(3));
 
+  asm
+    push rdx
+    rdtsc
+    shl rdx,32
+    or rax,rdx
+    mov q,rax
+    pop rdx
+  end;
 
+  label13.caption:=inttostr(q);
 
+  QueryPerformanceCounter(newperf);
+  label14.caption:=inttostr(newperf);
 
 end;
 

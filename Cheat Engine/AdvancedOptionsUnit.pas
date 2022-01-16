@@ -27,6 +27,8 @@ type
 
   { TAdvancedOptions }
 
+  EAdvancedOptionsDuplicateException=class(Exception);
+
   TAdvancedOptionsCodeRecord=class
   private
   public
@@ -50,6 +52,7 @@ type
   TAdvancedOptions = class(TForm)
     aoImageList: TImageList;
     ColorDialog1: TColorDialog;
+    MenuItem1: TMenuItem;
     miNewGroup: TMenuItem;
     miSetColor: TMenuItem;
     N4: TMenuItem;
@@ -180,6 +183,7 @@ uses MainUnit, MemoryBrowserFormUnit,
 resourcestring
   stralreadyinthelist = 'This byte is already part of another opcode already present in the list';
   strPartOfOpcodeInTheList='At least one of these bytes is already in the list';
+  strAddAnyhow='Add anyhow? (It will break restore and undo if overlapping entries get modified)';
   strAddressAlreadyInTheList='This address is already in the list';
   strCECode='Code:';
   strNameCECode='What name do you want to give this code?';
@@ -284,6 +288,8 @@ var i: integer;
     li: tlistitem;
 
     e: TCodeListEntry;
+
+    msg: string;
 begin
   //check if the address is already in the list
 
@@ -310,12 +316,27 @@ begin
       startb:=address;
       stopb:=address+sizeofopcode-1;
 
-      if ((starta>startb) and (starta<stopb)) or
-         ((startb>starta) and (startb<stopa)) then
+
+
+      if ((starta>=startb) and (starta<stopb)) or
+         ((startb>=starta) and (startb<stopa)) then
+      begin
         if sizeofopcode=1 then
-          raise exception.Create(stralreadyinthelist)
+          msg:=stralreadyinthelist
         else
-          raise exception.Create(strPartOfOpcodeInTheList);
+          msg:=strPartOfOpcodeInTheList;
+
+
+
+        if MainThreadID=GetCurrentThreadId then
+        begin
+          msg:=msg+#13#10+strAddAnyhow;
+          if MessageDlg(msg,mtError,[mbyes,mbno],0)<>mryes then exit(false);
+        end
+        else
+          raise EAdvancedOptionsDuplicateException.Create(msg);
+
+      end;
     end;
   end;
 
@@ -728,7 +749,7 @@ begin
     end;
   end;
 
-  miDBVMFindWhatCodeAccesses.Enabled:={$ifdef windows}isIntel and isDBVMCapable and Findoutwhatthiscodechanges1.enabled{$else}false{$endif};
+  miDBVMFindWhatCodeAccesses.Enabled:={$ifdef windows}isDBVMCapable and Findoutwhatthiscodechanges1.enabled{$else}false{$endif};
   miDBVMFindWhatCodeAccesses.Caption:='DBVM '+Findoutwhatthiscodechanges1.Caption;
 
   //OutputDebugString('popupmenu2');
@@ -1137,7 +1158,7 @@ end;
 resourcestring
   StrSelectExeFor3D='Select the executable of the Direct-3D game';
   rsAOErrorWhileTryingToCreateTheSharedKeyStructureEtc = 'Error while trying to create the shared key structure! (Which efficiently renders this whole feature useless)';
-  rsAOCheatEngineFailedToGetIntoTheConfigOfSelectedProgram = 'Cheat Engine failed to get into the config of the selected program.';
+  rsAOCheatEngineFailedToGetIntoTheConfigOfSelectedProgram = strCheatEngine+' failed to get into the config of the selected program.';
   rsAOYouCanOnlyLoadExeFiles = 'You can only load EXE files';
 
 procedure TAdvancedOptions.Button4Click(Sender: TObject);

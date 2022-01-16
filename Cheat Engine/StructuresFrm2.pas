@@ -690,7 +690,7 @@ resourcestring
    rsAreYouSureYouWantToDelete = 'Are you sure you want to delete %s?';
    rsThisIsNotAValidStructureFile = 'This is not a valid structure file';
    rsWrongVersion = 'This structure file was generated with a newer version of '
-     +'Cheat Engine. (That means there''s more than likely a new version so '
+     +strCheatEngine+'. (That means there''s more than likely a new version so '
      +'please update....)';
    rsUnkownFileExtension = 'Unknown file extension';
    rsAreYouSureYouWantToRemoveAllStructures = 'Are you sure you want to remove '
@@ -776,6 +776,10 @@ resourcestring
   rsStructureName = 'Structure name';
   rsTheStructureGotChanged = 'The structure got changed. Aborting';
   rsWasOldValue = '(was %s)';
+  rsWatchForChanges = 'Watch for changes';
+  rsCreateNewStructureFromChanged = 'Create new structure from changed';
+  rsCreateNewStructureFromUnchanged = 'Create new structure from unchanged';
+  rsStopWatchForChanges = 'Stop watch for changes';
 
 
 var
@@ -859,9 +863,9 @@ function DisplaymethodToString(d:TdisplayMethod): string;
 begin
   result:='';
   case d of
-    dtUnsignedInteger: result:=rsUnsignedInteger;
-    dtSignedInteger: result:=rsSignedInteger;
-    dtHexadecimal: result:=rsHexadecimal;
+    dtUnsignedInteger: result:='unsigned integer';   //do not translate/resourcestring this
+    dtSignedInteger: result:='signed integer';
+    dtHexadecimal: result:='hexadecimal';
   end;
 end;
 
@@ -2036,7 +2040,7 @@ begin
   reg:=tregistry.create;
   try
     Reg.RootKey := HKEY_CURRENT_USER;
-    if Reg.OpenKey('\Software\Cheat Engine\DissectData',false) then
+    if Reg.OpenKey('\Software\'+strCheatEngine+'\DissectData',false) then
     begin
       if reg.ValueExists('Autocreate') then fAutoCreate:=reg.ReadBool('Autocreate');
       if reg.ValueExists('Autocreate Size') then fAutoCreateStructsize:=reg.ReadInteger('Autocreate Size');
@@ -2929,25 +2933,25 @@ begin
 
 
   miTakeSnapshot:=TMenuItem.create(columneditpopupmenu);
-  miTakeSnapshot.caption:='Watch for changes';
+  miTakeSnapshot.caption:=rsWatchForChanges;
   miTakeSnapshot.OnClick:=TakeSnapshotClick;
   columneditpopupmenu.Items.Add(miTakeSnapshot);
 
   miCreateNewStructureFromChanges:=TMenuItem.create(columneditpopupmenu);
-  miCreateNewStructureFromChanges.caption:='Create new structure from changed';
+  miCreateNewStructureFromChanges.caption:=rsCreateNewStructureFromChanged;
   miCreateNewStructureFromChanges.OnClick:=CreateNewStructureFromSnapshot;
   miCreateNewStructureFromChanges.tag:=0;
   columneditpopupmenu.Items.Add(miCreateNewStructureFromChanges);
 
   miCreateNewStructureFromUnChanged:=TMenuItem.create(columneditpopupmenu);
-  miCreateNewStructureFromUnChanged.caption:='Create new structure from unchanged';
+  miCreateNewStructureFromUnChanged.caption:=rsCreateNewStructureFromUnchanged;
   miCreateNewStructureFromUnChanged.OnClick:=CreateNewStructureFromSnapshot;
   miCreateNewStructureFromUnChanged.tag:=1;
   columneditpopupmenu.Items.Add(miCreateNewStructureFromUnChanged);
 
 
   miStopDifferenceWatch:=TMenuItem.create(columneditpopupmenu);
-  miStopDifferenceWatch.caption:='Stop watch for changes';
+  miStopDifferenceWatch.caption:=rsStopWatchForChanges;
   miStopDifferenceWatch.OnClick:=ClearSnapshotClick;
   columneditpopupmenu.Items.Add(miStopDifferenceWatch);
 
@@ -6022,6 +6026,7 @@ begin
   end;
 
 
+  tvStructureView.update;
 
 end;
 
@@ -6848,6 +6853,7 @@ var
   //varname: string;
 
 
+  wasChanged: boolean;
 
 begin
   if mainstruct=nil then exit; //no rendering
@@ -6938,18 +6944,27 @@ begin
 
       s:=s+c.currentNodeValue;
 
-      if (node.AbsoluteIndex>0) and (c.savedvalues<>nil) and (node.AbsoluteIndex<c.savedvalues.Count) and (c.savedvalues[node.AbsoluteIndex]<>c.currentNodeValue) then
+      if (node.AbsoluteIndex>0) and (c.savedvalues<>nil) and (node.AbsoluteIndex<c.savedvalues.Count) then
       begin
-        sender.canvas.brush.color:=clRed;
-        sender.canvas.brush.style:=bsSolid;
+        waschanged:=c.savedvalues[node.AbsoluteIndex]<>c.currentNodeValue;
+        if waschanged or (c.savedvalues.Objects[node.AbsoluteIndex]=pointer(1)) then
+        begin
+          if waschanged then
+            sender.canvas.brush.color:=clRed
+          else
+            sender.canvas.brush.color:=clGreen;
 
-        sender.canvas.pen.Color:=clWindowtext;
-        sender.canvas.font.color:=clWhite;
-        sender.canvas.Rectangle(clip);
+          sender.canvas.brush.style:=bsSolid;
 
-        s:=s+' '+Format(rsWasOldValue, [c.savedvalues[node.absoluteindex]]);
+          sender.canvas.pen.Color:=clWindowtext;
+          sender.canvas.font.color:=clWhite;
+          sender.canvas.Rectangle(clip);
 
+          if waschanged then
+            s:=s+' '+Format(rsWasOldValue, [c.savedvalues[node.absoluteindex]]);
 
+          c.savedvalues.Objects[node.AbsoluteIndex]:=pointer(1);
+        end;
       end;
 
       sender.Canvas.TextRect(clip,clip.left,textrect.Top,s);

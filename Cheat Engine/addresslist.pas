@@ -157,7 +157,7 @@ type
     procedure DeactivateSelected;
     procedure CreateGroup(groupname: string; withAddress: boolean=false);
     procedure addAutoAssembleScript(script: string);
-    function addAddressManually(initialaddress: string=''; vartype: TVariableType=vtDword; CustomTypeName: string=''): TMemoryRecord;
+    function addAddressManually(initialaddress: string=''; vartype: TVariableType=vtDword; CustomTypeName: string=''; focusOnDescription: boolean=false): TMemoryRecord;
     function addaddress(description: string; address: string; const offsets: array of integer; offsetcount: integer; vartype: TVariableType; customtypename: string=''; length: integer=0; startbit: integer=0; unicode: boolean=false; node: TTreenode=nil; attachmode: TNodeAttachMode=naAdd): TMemoryRecord;
     function getRecordWithDescription(description: string): TMemoryRecord;
     function getRecordWithID(id: integer): TMemoryRecord;
@@ -178,6 +178,8 @@ type
 
     procedure clear;
 
+    function getLoadedTableVersion: integer;
+
 
     property MemRecItems[Index: Integer]: TMemoryRecord read GetMemRecItemByIndex; default;
 
@@ -188,6 +190,7 @@ type
 
     property headers: THeaderControl read header;
   published
+    property LoadedTableVersion: integer read getLoadedTableVersion;
 
     property Count: Integer read GetCount;
     property SelCount: Integer read GetSelCount;
@@ -216,7 +219,7 @@ implementation
 
 uses dialogs, formAddressChangeUnit, TypePopup, PasteTableentryFRM, MainUnit,
   ProcessHandlerUnit, frmEditHistoryUnit, globals, Filehandler, ceregistry,
-  memrecDataStructures;
+  memrecDataStructures, opensave;
 
 resourcestring
   rsDoYouWantToDeleteTheSelectedAddress = 'Do you want to delete the selected address?';
@@ -284,6 +287,8 @@ begin
     if item<>nil then
       item.Free;
   end;
+
+  lastLoadedTableVersion:=CurrentTableVersion;
 end;
 
 procedure TAddresslist.RefreshCustomTypes;
@@ -475,7 +480,7 @@ begin
   if GetCurrentThreadId=MainThreadID then
   begin
     oldlogWrites:=logwrites;
-
+    logwrites:=false;
     //oldlogWrites:=false;
     blockfilehandlerpopup:=true;
   end;
@@ -853,7 +858,7 @@ begin
   result:=descriptionhashlist.Data[description]
 end;
 
-function TAddresslist.addAddressManually(initialaddress: string=''; vartype: TVariableType=vtDword; CustomTypeName: string=''): TMemoryRecord;
+function TAddresslist.addAddressManually(initialaddress: string=''; vartype: TVariableType=vtDword; CustomTypeName: string=''; focusOnDescription: boolean=false): TMemoryRecord;
 var mr: TMemoryRecord;
     edited: boolean;
 begin
@@ -872,6 +877,9 @@ begin
   begin
     caption:=rsALAddAddress;
     memoryrecord:=mr;
+
+    focusDescription:=focusOnDescription;
+
     if showmodal<>mrok then
     begin
       mr.free; //not ok, delete
@@ -2339,6 +2347,11 @@ function TAddresslist.focused: boolean;
 begin
   result:=inherited focused;
   if not result then result:=treeview.Focused;
+end;
+
+function TAddresslist.getLoadedTableVersion: integer;
+begin
+  result:=lastLoadedTableVersion;
 end;
 
 procedure TAddresslist.getAddressList(list: Tstrings);

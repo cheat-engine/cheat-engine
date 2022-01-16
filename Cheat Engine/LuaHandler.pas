@@ -1808,7 +1808,7 @@ begin
         if signed then
           lua_pushinteger(L, v)
         else
-          lua_pushinteger(L, word(v));
+          lua_pushinteger(L, byte(v));
 
         result:=1;
       end;
@@ -2465,6 +2465,9 @@ begin
     begin
       for i:=0 to x-1 do
         lua_pushinteger(L,bytes[i]);
+
+      if x>40 then exit(40);
+
       result:=x;
     end;
   end;
@@ -10276,6 +10279,10 @@ begin
       end;
     end;
 
+    {$ifdef altname}
+    r:=altnamer(r);
+    {$endif}
+
     lua_pushstring(L, r);
     result:=1;
   end
@@ -10305,6 +10312,10 @@ begin
           r:=pofile.Translate('',r);
       end;
     end;
+
+    {$ifdef altname}
+    r:=altnamer(r);
+    {$endif}
 
     lua_pushstring(L, r);
     result:=1;
@@ -12636,6 +12647,8 @@ function lua_GenerateCodeInjectionScript(L: PLua_state): integer; cdecl;
 var
   script: TStrings;
   address: string;
+
+  farjmp: boolean;
 begin
   result:=0;
   if lua_gettop(L)>=1 then
@@ -12647,8 +12660,13 @@ begin
     else
       address:=inttohex(MemoryBrowser.disassemblerview.SelectedAddress,8);
 
+    if lua_gettop(L)>=3 then
+      farjmp:=lua_toboolean(L,3)
+    else
+      farjmp:=false;
+
     try
-      GenerateCodeInjectionScript(script, address);
+      GenerateCodeInjectionScript(script, address,farjmp);
       lua_pushboolean(L,true);
       result:=1;
     except
@@ -12661,6 +12679,7 @@ var
   script: TStrings;
   address, symbolname: string;
   lineCountToCopy: integer;
+  farjmp: boolean;
 begin
   result:=0;
   if lua_gettop(L)>=2 then
@@ -12678,6 +12697,11 @@ begin
     else
       linecountToCopy:=20;
 
+    if lua_gettop(L)>=5 then
+      farjmp:=lua_toboolean(L,5)
+    else
+      farjmp:=false;
+
     try
       GenerateAOBInjectionScript(script, address, symbolname, lineCountToCopy);
       lua_pushboolean(L,true);
@@ -12692,6 +12716,7 @@ var
   script: TStrings;
   address: string;
   lineCountToCopy: integer;
+  farjmp: boolean;
 begin
   result:=0;
   if lua_gettop(L)>=1 then
@@ -12707,6 +12732,11 @@ begin
       lineCountToCopy:=lua_tointeger(L,3)
     else
       linecountToCopy:=20;
+
+    if lua_gettop(L)>=4 then
+      farjmp:=lua_toboolean(L,4)
+    else
+      farjmp:=false;
 
     try
       GenerateFullInjectionScript(script, address, lineCountToCopy);
@@ -13422,7 +13452,7 @@ begin
 
     2: //CE to target
     begin
-      if writeprocessmemory(processhandle, pointer(sourceAddress), pointer(destinationAddress), size, ar) then
+      if writeprocessmemory(processhandle, pointer(destinationAddress), pointer(sourceAddress), size, ar) then
       begin
         if ar=size then
         begin
@@ -14519,7 +14549,7 @@ begin
   result:=1;
 end;
 
-function lua_split(L: Plua_State): integer; cdecl;
+function lua_string_split(L: Plua_State): integer; cdecl;
 var
   s: string;
   sep: string;
@@ -14539,6 +14569,48 @@ begin
       lua_pushstring(L, arr[i]);
 
     result:=length(arr);
+  end;
+end;
+
+function lua_string_endswith(L: Plua_State): integer; cdecl;
+var
+  s, endswith: string;
+  ignoreCase: boolean;
+begin
+  result:=0;
+  if lua_gettop(L)>=2 then
+  begin
+    s:=Lua_ToString(L,1);
+    endswith:=Lua_ToString(L,2);
+
+    if lua_gettop(L)>=3 then
+      ignorecase:=lua_toboolean(L,3)
+    else
+      ignorecase:=false;
+
+    lua_pushboolean(L, s.EndsWith(s,ignorecase));
+    result:=1;
+  end;
+end;
+
+function lua_string_startswith(L: Plua_State): integer; cdecl;
+var
+  s, startswith: string;
+  ignoreCase: boolean;
+begin
+  result:=0;
+  if lua_gettop(L)>=2 then
+  begin
+    s:=Lua_ToString(L,1);
+    startswith:=Lua_ToString(L,2);
+
+    if lua_gettop(L)>=3 then
+      ignorecase:=lua_toboolean(L,3)
+    else
+      ignorecase:=false;
+
+    lua_pushboolean(L, s.StartsWith(s,ignorecase));
+    result:=1;
   end;
 end;
 
@@ -14576,6 +14648,7 @@ begin
 
   result:=0;
 end;
+
 
 function _lua_compile(L: Plua_State; isfile: boolean): integer; cdecl;
 var
@@ -14799,6 +14872,84 @@ begin
 end;
 
 
+
+function lua_compiletcclib(L: Plua_State): integer; cdecl;
+var
+  libfile: string;
+  sname: string;
+  address: ptruint;
+  slist: TSymbolListHandler;
+
+  lowestAddress: ptruint=0;
+  highestAddress: ptruint=0;
+begin
+
+  libfile:=CheatEngineDir+'tcclib'+PathDelim+'lib'+PathDelim+'libtcc1.c';  //release
+  if not fileexists(libfile) then
+    libfile:=CheatEngineDir+'..'+PathDelim+'tcclib'+PathDelim+'lib'+PathDelim+'libtcc1.c'; //development
+
+
+  if fileexists(libfile) then
+  begin
+    lua_settop(L,0);
+    lua_newtable(L);
+    lua_pushinteger(L,1);
+    lua_pushstring(L, libfile);
+    lua_settable(L,-3);
+    result:=lua_compilefiles(L);
+
+    if result>0 then
+    begin
+
+      if lua_istable(L,-1) then
+      begin
+        //succesful compilation, register the symbols
+        slist:=TSymbolListHandler.create;
+        slist.PID:=processhandler.processid;
+        slist.name:='TCC Library';
+
+        lua_pushnil(L);  //first key (nil)
+        while lua_next(L, -2)<>0 do
+        begin
+          sname:=Lua_ToString(L,-2);
+          address:=lua_tointeger(L,-1);
+          if lowestAddress=0 then lowestAddress:=address else lowestAddress:=min(lowestaddress, address);
+          if highestAddress=0 then highestAddress:=address else highestAddress:=max(highestAddress, address);
+
+          try
+            slist.AddSymbol('tcclib',sname,address,1);
+            symhandler.DeleteUserdefinedSymbol(sname);
+            symhandler.AddUserdefinedSymbol(inttohex(address,8),sname,true);
+          except
+          end;
+          lua_pop(L,1);
+        end;
+
+        slist.AddModule('tcc.lib',libfile,lowestAddress,highestAddress-lowestAddress, processhandler.is64Bit);
+        symhandler.AddSymbolList(slist);
+
+
+        lua_pushboolean(L, true);
+        exit(1);
+      end
+      else exit;
+    end
+    else
+    begin
+      lua_pushnil(L);
+      lua_pushstring(L,'invalid compilation result');
+      exit(2);
+    end;
+  end
+  else
+  begin
+    lua_pushnil(L);
+    lua_pushstring(L, libfile+' could not be found');
+    exit(2);
+  end;
+end;
+
+
 function lua_dotNetExecuteClassMethod(L: Plua_State): integer; cdecl;
 var
   path: string;
@@ -14909,6 +15060,13 @@ function lua_darkMode(L: Plua_State): integer; cdecl;
 begin
   result:=1;
   lua_pushboolean(L, ShouldAppsUseDarkMode);
+end;
+
+
+function lua_getCEName(L: Plua_State): integer; cdecl;
+begin
+  lua_pushstring(L, strCheatEngine);
+  exit(1);
 end;
 
 function lua_getNextReadablePageCR3(L: Plua_State): integer; cdecl;
@@ -15726,6 +15884,8 @@ begin
 
     lua_register(L, 'compile', lua_compile);
     lua_register(L, 'compileFiles', lua_compilefiles);
+    lua_register(L, 'compileTCCLib', lua_compiletcclib);
+
 
     lua_register(L, 'addCIncludePath', lua_addCIncludePath);
     lua_register(L, 'removeCIncludePath', lua_removeCIncludePath);
@@ -15739,6 +15899,7 @@ begin
     lua_register(L, 'signExtend', lua_signExtend);
 
     lua_register(L, 'darkMode', lua_darkMode);
+    lua_register(L, 'getCEName', lua_getCEName);
 
 
 
@@ -15900,7 +16061,15 @@ begin
 
       lua_getglobal(L, 'string');
       lua_pushstring(L,'split');
-      lua_pushcfunction(L, lua_split);
+      lua_pushcfunction(L, lua_string_split);
+      lua_settable(L,-3);
+
+      lua_pushstring(L,'endsWith');
+      lua_pushcfunction(L, lua_string_endswith);
+      lua_settable(L,-3);
+
+      lua_pushstring(L,'startsWith');
+      lua_pushcfunction(L, lua_string_startswith);
       lua_settable(L,-3);
 
       lua_pushstring(L,'trim');

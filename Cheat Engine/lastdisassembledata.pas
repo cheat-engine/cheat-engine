@@ -42,6 +42,7 @@ type
     isjump: boolean; //set for anything that can change eip/rip
     iscall: boolean; //set if it's a call
     isret: boolean; //set if it's a ret
+    isrep: boolean;
     isconditionaljump: boolean; //set if it's only effective when an conditon is met
     willJumpAccordingToContext: boolean; //only valid if a context was provided with the disassembler and isconditionaljump is true
 

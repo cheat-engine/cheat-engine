@@ -182,12 +182,19 @@ local function getClassMethods(Class)
 end
 
 local function getClassFields(Class)
+  if CurrentProcess~=getOpenedProcessID() then return nil end
+  
   local r={}
   
   local i
-  if Class.Image.Domain.Control==CONTROL_MONO then
-    local StaticFieldAddress=mono_class_getStaticFieldAddress(0,Class.Handle)
-  
+  if Class.Image.Domain.Control==CONTROL_MONO then  
+    local isGeneric=mono_class_isgeneric(Class.Handle)
+    local StaticFieldAddress=nil
+    
+    if isGeneric==false then      
+      StaticFieldAddress=mono_class_getStaticFieldAddress(0,Class.Handle)
+    end
+         
     local fields=mono_class_enumFields(Class.Handle, true)
     for i=1,#fields do
       local e={}
@@ -198,8 +205,10 @@ local function getClassFields(Class)
       e.Offset=fields[i].offset
       e.Static=fields[i].isStatic
       e.Const=fields[i].isConst
-      if e.Static and StaticFieldAddress and StaticFieldAddress~=0 then
-        e.Address=StaticFieldAddress+e.Offset        
+      if isGeneric==false then
+        if e.Static and StaticFieldAddress and StaticFieldAddress~=0 then
+          e.Address=StaticFieldAddress+e.Offset        
+        end
       end
       
 
@@ -350,7 +359,7 @@ end
 
 local function getDomains()  
   DataSource.Domains={}
-  
+    
   if monopipe then
     local mr=mono_enumDomains()  
     local i
@@ -1813,11 +1822,13 @@ end
 function miDotNetInfoClick(sender)
   --print("miDotNetInfoClick")
   --in case of a double case scenario where there's both .net and mono, go for net first if the user did not activate mono explicitly 
-  if (DataSource.DotNetDataCollector==nil) or (CurrentProcess~=getOpenedProcessID) then
+  if (DataSource.DotNetDataCollector==nil) or (CurrentProcess~=getOpenedProcessID()) then
     --print("getting getDotNetDataCollector")
     DataSource={}  
     DataSource.DotNetDataCollector=getDotNetDataCollector()    
   end
+  
+  CurrentProcess=getOpenedProcessID()
   
   
   --print("miDotNetInfoClick 2")

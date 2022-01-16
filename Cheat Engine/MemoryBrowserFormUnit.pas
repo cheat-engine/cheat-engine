@@ -49,6 +49,8 @@ type
     GSlabel: TLabel;
     MenuItem4: TMenuItem;
     copyBytesAndOpcodesAndComments: TMenuItem;
+    MenuItem5: TMenuItem;
+    MenuItem6: TMenuItem;
     miCR3Switcher: TMenuItem;
     miShowSectionAddresses: TMenuItem;
     miOpenInDissectData: TMenuItem;
@@ -742,7 +744,7 @@ uses Valuechange, MainUnit, debugeventhandler, findwindowunit,
   frmExceptionRegionListUnit, frmExceptionIgnoreListUnit, frmcodefilterunit,
   frmDBVMWatchConfigUnit, DBK32functions, DPIHelper, DebuggerInterface,
   DebuggerInterfaceAPIWrapper, BreakpointTypeDef, CustomTypeHandler,
-  frmSourceDisplayUnit, sourcecodehandler, tcclib;
+  frmSourceDisplayUnit, sourcecodehandler, tcclib, mainunit2;
 
 
 resourcestring
@@ -776,7 +778,7 @@ resourcestring
   rsYouWantToGiveAnAdditional32BitParameterWillShowUpI = 'You want to give an additional 32-bit parameter? (Will show up in (R)/(E)BX)';
   rsPleaseEnterAValidHexadecimalValue = 'Please enter a valid hexadecimal value';
   rsPleaseTargetAProcessFirst = 'Please target a process first';
-  rsPleaseTargetAnotherProcess = 'Start another version of Cheat Engine and attach to that instead';
+  rsPleaseTargetAnotherProcess = 'Start another version of '+strCheatEngine+' and attach to that instead';
   rsDoYouWantToExecuteAFunctionOfTheDll = 'Do you want to execute a function of the dll?';
   rsInjectDll = 'Inject dll';
   rsSelectTheFunctionYouWantToExecute = 'Select the function you want to execute';
@@ -814,6 +816,7 @@ resourcestring
   rsSetBreakpoint = 'Set breakpoint';
   rsRemoveBreakpoint = 'Remove breakpoint';
   rsInjectDYLIB = 'Inject DYLIB';
+  rsSetCustomAlignment = 'Set custom alignment';
 
 //property functions:
 function TMemoryBrowser.getShowValues: boolean;
@@ -921,13 +924,35 @@ begin
 end;
 
 procedure TMemoryBrowser.miLockRowsizeClick(Sender: TObject);
+var
+  rs: string;
+  waslocked: boolean;
+  newsize: integer;
 begin
-  miLockRowsize.Checked:=not miLockRowsize.Checked;
+  waslocked:=hexview.LockedRowSize<>0;
 
-  if miLockRowsize.Checked then
-    hexview.LockRowsize
+
+  hexview.LockRowsize; //fills in lockedRowSize
+  rs:=inttostr(hexview.LockedRowSize);
+
+  if InputQuery('Alignment','Enter the custom alignment (<=0 is automatic)', rs) then
+  begin
+    try
+      newsize:=StrToInt(rs);
+      if newsize<=0 then newsize:=0;
+
+      hexview.LockedRowSize:=newsize;
+    except
+      if waslocked=false then
+        hexview.UnlockRowsize;
+    end;
+  end
   else
-    hexview.UnlockRowsize;
+  begin
+    if waslocked=false then
+      hexview.UnlockRowsize;
+  end;
+
 end;
 
 procedure TMemoryBrowser.ShowDebugToolbar;
@@ -1197,6 +1222,11 @@ begin
   miWatchBPException.enabled:=(CurrentDebuggerInterface=nil) or (dbcSoftwareBreakpoint in CurrentDebuggerInterface.DebuggerCapabilities);
   miWatchBPDBVM.enabled:=(CurrentDebuggerInterface=nil) or (dbcExceptionBreakpoint in CurrentDebuggerInterface.DebuggerCapabilities);
   miWatchBPDBVM.visible:={$ifdef windows}hasEPTSupport{$else}false{$endif};
+
+  if hexview.LockedRowSize<>0 then
+    miLockRowsize.caption:=rsSetCustomAlignment+' ('+inttostr(hexview.LockedRowSize)+')'
+  else
+    miLockRowsize.caption:=rsSetCustomAlignment;
 
 end;
 
@@ -2368,6 +2398,8 @@ begin
     lblHexTopLine.Font.color:=hexview.toplinecolor;
     lblHexSeperator.Font.color:=hexview.seperatorColor;
     lblHexCursor.Font.color:=hexview.cursorcolor;
+    lblHexFadeColor.font.color:=hexview.normalFontColor;
+    lblHexFadeColor.color:=hexview.fadecolor;
 
     lblRegHighLightChange.color:=fChangedRegisterColor;
     lblRegHighLightAccess.color:=fAccessedRegisterColor;
@@ -2412,6 +2444,7 @@ begin
       hexview.toplinecolor:=lblHexTopLine.Font.color;
       hexview.seperatorColor:=lblHexSeperator.Font.color;
       hexview.cursorcolor:=lblHexCursor.Font.color;
+      hexview.fadecolor:=lblHexFadeColor.color;
 
       fChangedRegisterColor:=lblRegHighLightChange.color;
       fAccessedRegisterColor:=lblRegHighLightAccess.color;
@@ -2445,7 +2478,7 @@ begin
   reg:=Tregistry.Create;
   try
 
-    if reg.OpenKey('\Software\Cheat Engine\Disassemblerview '+inttostr(screen.PixelsPerInch)+darkmodestring+'\',true) then
+    if reg.OpenKey('\Software\'+strCheatEngine+'\Disassemblerview '+inttostr(screen.PixelsPerInch)+darkmodestring+'\',true) then
     begin
       reg.{$ifdef windows}WriteBinaryData{$else}WriteString{$endif}('colors', {$ifndef windows}bintohexs({$endif}disassemblerview.colors, sizeof(disassemblerview.colors)){$ifndef windows}){$endif};
 
@@ -2462,23 +2495,28 @@ begin
       reg.writeInteger('jlSpacing', disassemblerview.jlSpacing);
     end;
 
-    if reg.OpenKey('\Software\Cheat Engine\Disassemblerview '+inttostr(screen.PixelsPerInch)+'\Font'+darkmodestring,true) then
+    if reg.OpenKey('\Software\'+strCheatEngine+'\Disassemblerview '+inttostr(screen.PixelsPerInch)+'\Font'+darkmodestring,true) then
       SaveFontToRegistry(disassemblerview.font, reg);
 
-    if reg.OpenKey('\Software\Cheat Engine\Hexview '+inttostr(screen.PixelsPerInch),true) then
+    if reg.OpenKey('\Software\'+strCheatEngine+'\Hexview '+inttostr(screen.PixelsPerInch),true) then
     begin
       reg.writeInteger('spaceBetweenLines', hexview.spaceBetweenLines);
       reg.WriteBool('showStatusBar', hexview.statusbar.Visible);
     end;
 
-    if reg.openkey('\Software\Cheat Engine\Hexview'+darkmodestring,true) then
+    if reg.openkey('\Software\'+strCheatEngine+'\Hexview'+darkmodestring,true) then
+    begin
       reg.{$ifdef windows}WriteBinaryData{$else}WriteString{$endif}('colors', {$ifndef windows}bintohexs({$endif}hexview.colors, sizeof(hexview.colors)){$ifndef windows}){$endif};
+      reg.WriteInteger('SeperaterColor', hexview.fseperatorColor);
+      reg.WriteInteger('CursorColor', hexview.fcursorcolor);
+      reg.WriteInteger('TopLineColor', hexview.ftoplinecolor);
+      reg.WriteInteger('FadeColor', hexview.ffadeColor);
+    end;
 
-
-    if reg.OpenKey('\Software\Cheat Engine\Hexview '+inttostr(screen.PixelsPerInch)+'\Font'+darkmodestring,true) then
+    if reg.OpenKey('\Software\'+strCheatEngine+'\Hexview '+inttostr(screen.PixelsPerInch)+'\Font'+darkmodestring,true) then
       SaveFontToRegistry(hexview.hexfont, reg);
 
-    if reg.OpenKey('\Software\Cheat Engine\RegisterView '+inttostr(screen.PixelsPerInch)+'\Font'+darkmodestring,true) then
+    if reg.OpenKey('\Software\'+strCheatEngine+'\RegisterView '+inttostr(screen.PixelsPerInch)+'\Font'+darkmodestring,true) then
       SaveFontToRegistry(scrollbox1.Font, reg);
 
   finally
@@ -2667,13 +2705,13 @@ begin
   f:=TFont.create;
   reg:=Tregistry.Create;
   try
-    if reg.OpenKey('\Software\Cheat Engine\Disassemblerview '+inttostr(screen.PixelsPerInch)+'\Font'+darkmodestring,false) then
+    if reg.OpenKey('\Software\'+strCheatEngine+'\Disassemblerview '+inttostr(screen.PixelsPerInch)+'\Font'+darkmodestring,false) then
     begin
       LoadFontFromRegistry(f, reg);
       disassemblerview.font:=f;
     end;
 
-    if reg.OpenKey('\Software\Cheat Engine\Disassemblerview '+inttostr(screen.PixelsPerInch)+darkmodestring+'\',false) then
+    if reg.OpenKey('\Software\'+strCheatEngine+'\Disassemblerview '+inttostr(screen.PixelsPerInch)+darkmodestring+'\',false) then
     begin
       if reg.ValueExists('colors') then
       begin
@@ -2715,7 +2753,7 @@ begin
       disassemblerview.reinitialize;
     end;
 
-    if reg.OpenKey('\Software\Cheat Engine\Hexview '+inttostr(screen.PixelsPerInch),false) then
+    if reg.OpenKey('\Software\'+strCheatEngine+'\Hexview '+inttostr(screen.PixelsPerInch),false) then
     begin
       if reg.ValueExists('spaceBetweenLines') then
         hexview.spaceBetweenLines:=reg.ReadInteger('spaceBetweenLines');
@@ -2725,7 +2763,7 @@ begin
 
     end;
 
-    if reg.openkey('\Software\Cheat Engine\Hexview'+darkmodestring,true) then
+    if reg.openkey('\Software\'+strCheatEngine+'\Hexview'+darkmodestring,true) then
     begin
       if reg.ValueExists('colors') then
       begin
@@ -2735,17 +2773,22 @@ begin
         HexToBin(pchar(reg.ReadString('colors')),pchar(@hexview.colors),sizeof(hexview.colors));
         {$endif}
       end;
+
+      if reg.ValueExists('SeperaterColor') then  hexview.fseperatorColor:=reg.ReadInteger('SeperaterColor');
+      if reg.ValueExists('CursorColor') then  hexview.fcursorcolor:=reg.ReadInteger('CursorColor');
+      if reg.ValueExists('TopLineColor') then  hexview.ftoplinecolor:=reg.ReadInteger('TopLineColor');
+      if reg.ValueExists('FadeColor') then  hexview.ffadeColor:=reg.ReadInteger('FadeColor');
     end;
 
 
 
-    if reg.OpenKey('\Software\Cheat Engine\Hexview '+inttostr(screen.PixelsPerInch)+'\Font'+darkmodestring,false) then
+    if reg.OpenKey('\Software\'+strCheatEngine+'\Hexview '+inttostr(screen.PixelsPerInch)+'\Font'+darkmodestring,false) then
     begin
       LoadFontFromRegistry(f, reg);
       hexview.hexfont:=f;
     end;
 
-    if reg.OpenKey('\Software\Cheat Engine\RegisterView '+inttostr(screen.PixelsPerInch)+'\Font'+darkmodestring,false) then
+    if reg.OpenKey('\Software\'+strCheatEngine+'\RegisterView '+inttostr(screen.PixelsPerInch)+'\Font'+darkmodestring,false) then
     begin
       LoadFontFromRegistry(f, reg);
 //      scrollbox1.Font:=f;
@@ -2818,11 +2861,8 @@ begin
 
     if length(x)>=10 then
     begin
-      if x[8]=1 then
-      begin
-        miLockRowsize.Checked:=true;
+      if x[9]<>0 then
         hexview.LockedRowSize:=x[9];
-      end;
     end;
 
     if length(x)>=11 then
@@ -3160,7 +3200,16 @@ begin
 
       if (ssalt in shift) or (ssctrl in shift) then exit; 
 
-      assemblepopup(lowercase(chr(key)));
+      try
+        assemblepopup(lowercase(chr(key)));
+      except
+        on e:exception do
+        begin
+          MessageDlg(e.message, mtError,[mbok],0);
+          exit;
+        end;
+
+      end;
     end;
   end;
 
@@ -3368,6 +3417,7 @@ end;
 
 procedure TMemoryBrowser.AssemblePopup(x:string);
 var assemblercode,desc: string;
+    totalbytes: TAssemblerBytes;
     bytes: tassemblerbytes;
     a,b,original,written:ptrUint;
     originalsize:ptrUint;
@@ -3387,137 +3437,163 @@ var assemblercode,desc: string;
     vpe: boolean;
 
     address: ptruint;
+
+    oldbp: PBreakpoint=nil;
 begin
 
   //make sure it doesnt have a breakpoint
   address:=disassemblerview.SelectedAddress;
-
-
-  if debuggerthread<>nil then
-  begin
-    if debuggerthread.isBreakpoint(Address)<>nil then
-    begin
-      beep; //Best sound effect cheat engine has
-      exit;
-    end;
-  end;
-
-
-  originalsize:=Address;
-
-  localdisassembler:=TDisassembler.Create;
   try
-    localdisassembler.disassemble(originalsize,desc);
-    assemblercode:=localdisassembler.LastDisassembleData.prefix+localdisassembler.LastDisassembleData.opcode+' '+localdisassembler.LastDisassembleData.parameters;
-  finally
-    localdisassembler.free;
-  end;
 
-  dec(originalsize,Address);
-
-
-  if x<>'' then assemblercode:=x;
-
-//  copy
-
-  assemblercode:=InputboxTop(rsCheatEngineSingleLingeAssembler, Format(rsTypeYourAssemblerCodeHereAddress, [inttohex(Address, 8)]), assemblercode, x='', canceled{$ifndef darwin},assemblerHistory{$endif});
-  if not canceled then
-  begin
-
-    if defaultBinutils<>nil then
+    if debuggerthread<>nil then
     begin
-      //use the gnuassembler for this
-      gnascript:=TStringList.create;
-      try
-        gnascript.add('.msection sline 0x'+inttohex(Address,8));
-        gnascript.Add(assemblercode);
-        gnuassemble(gnascript);
-      finally
-        gnascript.free;
+      debuggerthread.lockbplist;
+      oldbp:=debuggerthread.isBreakpoint(Address);
+
+      if (oldbp<>nil) and (oldbp^.breakpointMethod<>bpmInt3) then
+        oldbp:=nil;
+
+      if oldbp=nil then
+        debuggerthread.unlockbplist; //no need to keep this lock
+    end;
+
+
+    originalsize:=Address;
+
+    localdisassembler:=TDisassembler.Create;
+    try
+      localdisassembler.disassemble(originalsize,desc);
+      assemblercode:=localdisassembler.LastDisassembleData.prefix+localdisassembler.LastDisassembleData.opcode+' '+localdisassembler.LastDisassembleData.parameters;
+    finally
+      localdisassembler.free;
+    end;
+
+    dec(originalsize,Address);
+
+
+    if x<>'' then assemblercode:=x;
+
+  //  copy
+
+    assemblercode:=InputboxTop(rsCheatEngineSingleLingeAssembler, Format(rsTypeYourAssemblerCodeHereAddress, [inttohex(Address, 8)]), assemblercode, x='', canceled{$ifndef darwin},assemblerHistory{$endif});
+    if not canceled then
+    begin
+
+      if defaultBinutils<>nil then
+      begin
+        //use the gnuassembler for this
+        gnascript:=TStringList.create;
+        try
+          gnascript.add('.msection sline 0x'+inttohex(Address,8));
+          gnascript.Add(assemblercode);
+          gnuassemble(gnascript);
+        finally
+          gnascript.free;
+        end;
+
+        exit;
       end;
 
-      exit;
-    end;
-
-    try
-      if Assemble(assemblercode,Address,bytes) then
-      begin
-        if originalsize<>length(bytes) then
+      try
+        if Assemble(assemblercode,Address,bytes) then
         begin
-          if formsettings.replacewithnops.checked then
+          if originalsize<>length(bytes) then
           begin
-            if formsettings.askforreplacewithnops.checked then
+            if formsettings.replacewithnops.checked then
             begin
-              c:=messagedlg(Format(rsTheGeneratedCodeIsByteSLongButTheSelectedOpcodeIsB, [IntToStr(length(bytes)), IntToStr(originalsize)]), mtConfirmation, mbYesNoCancel, 0);
-              replace:=c=mryes;
-              if c=mrCancel then exit;
-            end else replace:=true;
-
-            if replace then
-            begin
-              while originalsize>length(bytes) do
+              if formsettings.askforreplacewithnops.checked then
               begin
-                setlength(bytes,length(bytes)+1);
-                bytes[length(bytes)-1]:=$90;
+                c:=messagedlg(Format(rsTheGeneratedCodeIsByteSLongButTheSelectedOpcodeIsB, [IntToStr(length(bytes)), IntToStr(originalsize)]), mtConfirmation, mbYesNoCancel, 0);
+                replace:=c=mryes;
+                if c=mrCancel then exit;
+              end else replace:=true;
+
+              if replace then
+              begin
+                while originalsize>length(bytes) do
+                begin
+                  setlength(bytes,length(bytes)+1);
+                  bytes[length(bytes)-1]:=$90;
+                end;
+
+                a:=Address+length(bytes);
+
+                b:=Address;
+                while b<a do disassemble(b,desc);
+
+                a:=b-Address;
+                while length(bytes)<a do
+                begin
+                  setlength(bytes,length(bytes)+1);
+                  bytes[length(bytes)-1]:=$90;
+                end;
               end;
 
-              a:=Address+length(bytes);
 
-              b:=Address;
-              while b<a do disassemble(b,desc);
-
-              a:=b-Address;
-              while length(bytes)<a do
-              begin
-                setlength(bytes,length(bytes)+1);
-                bytes[length(bytes)-1]:=$90;
-              end;
             end;
-
-
           end;
-        end;
 
-        //note to self, check the size of the current opcode and give the option to replace the missing or too many bytes with nops
-        //and put in a option to disable showing that message, and use a default action
+          //note to self, check the size of the current opcode and give the option to replace the missing or too many bytes with nops
+          //and put in a option to disable showing that message, and use a default action
 
-        // get old security and set new security   (not needed in win9x but nt doesnt even allow writeprocessmemory to do this
-        original:=0;
+          // get old security and set new security   (not needed in win9x but nt doesnt even allow writeprocessmemory to do this
+          original:=0;
 
-        bytelength:=length(bytes);
+          bytelength:=length(bytes);
 
-        if fcr3=0 then
-        begin
-          vpe:=(SkipVirtualProtectEx=false) and VirtualProtectEx(processhandle,  pointer(Address),bytelength,PAGE_EXECUTE_READWRITE,p);
-          WriteProcessMemoryWithCloakSupport(processhandle,pointer(Address),@bytes[0],bytelength,a);
-          if vpe then
-            VirtualProtectEx(processhandle,pointer(Address),bytelength,p,p);
-        end
-        else
-        begin
-          {$ifdef windows}
-          WriteProcessMemoryCR3(fcr3, pointer(address),@bytes[0], bytelength,a);
+          if oldbp<>nil then
+            debuggerthread.UnsetBreakpoint(oldbp);
+
+          a:=0;
+          if fcr3=0 then
+          begin
+            vpe:=(SkipVirtualProtectEx=false) and VirtualProtectEx(processhandle,  pointer(Address),bytelength,PAGE_EXECUTE_READWRITE,p);
+            WriteProcessMemoryWithCloakSupport(processhandle,pointer(Address),@bytes[0],bytelength,a);
+            if vpe then
+              VirtualProtectEx(processhandle,pointer(Address),bytelength,p,p);
+          end
+          else
+          begin
+            {$ifdef windows}
+            WriteProcessMemoryCR3(fcr3, pointer(address),@bytes[0], bytelength,a);
+            {$endif}
+          end;
+
+          if (a>0) and (oldbp<>nil) then
+          begin
+            oldbp^.originalbyte:=bytes[0];
+            debuggerthread.SetBreakpoint(oldbp);
+          end;
+
+          hexview.update;
+          disassemblerview.Update;
+
+          {$ifdef darwin}
+          SetFocus;
+          disassemblerview.SetFocus;
           {$endif}
-        end;
+        end else raise exception.create(Format(rsIDonTUnderstandWhatYouMeanWith, [assemblercode]));
+      except
+        raise exception.create(Format(rsIDonTUnderstandWhatYouMeanWith, [assemblercode]));
+      end;
 
-        hexview.update;
-        disassemblerview.Update;
-
-        {$ifdef darwin}
-        SetFocus;
-        disassemblerview.SetFocus;
-        {$endif}
-      end else raise exception.create(Format(rsIDonTUnderstandWhatYouMeanWith, [assemblercode]));
-    except
-      raise exception.create(Format(rsIDonTUnderstandWhatYouMeanWith, [assemblercode]));
     end;
 
+
+  finally
+    if oldbp<>nil then  //still needs to be unlocked
+      debuggerthread.unlockbplist;
   end;
 end;
 
 procedure TMemoryBrowser.Assemble1Click(Sender: TObject);
 begin
-  AssemblePopup('');
+  try
+    AssemblePopup('');
+  except
+    on e: exception do
+      MessageDlg(e.message, mtError, [mbok],0);
+  end;
 end;
 
 procedure TMemoryBrowser.HexEditKeyPress(Sender: TObject; var Key: Char);
@@ -4419,8 +4495,11 @@ begin
 end;
 
 procedure TMemoryBrowser.Breakandtraceinstructions1Click(Sender: TObject);
+var f: TFrmTracer;
 begin
-  TFrmTracer.create(self).show;
+  f:=TFrmTracer.create(self);
+  f.show;
+  f.miNewTrace.Click;
 end;
 
 procedure TMemoryBrowser.debuggerpopupPopup(Sender: TObject);
@@ -4543,6 +4622,8 @@ begin
 
   miDBVMFindoutwhataddressesthisinstructionaccesses.visible:={$ifdef windows}isDBVMCapable and miSetSpecificBreakpoint.visible{$else}false{$endif};
   miDBVMFindoutwhataddressesthisinstructionaccesses.enabled:=miDBVMFindoutwhataddressesthisinstructionaccesses.visible;
+  menuitem5.visible:=miDBVMFindoutwhataddressesthisinstructionaccesses.visible;
+  menuitem6.visible:=miDBVMFindoutwhataddressesthisinstructionaccesses.visible;
 
   //
   miSetBreakpointHW.enabled:=(CurrentDebuggerInterface=nil) or (dbcHardwareBreakpoint in CurrentDebuggerInterface.DebuggerCapabilities);
@@ -4625,7 +4706,7 @@ begin
       if self.miShowModuleAddresses.checked then v:=v or 1;
       if self.miShowSectionAddresses.checked then v:=v or 2;
       params[7]:=v;
-      params[8]:=strtoint(BoolToStr(self.miLockRowsize.Checked,'1','0'));
+      //params[8]:=strtoint(BoolToStr(self.miLockRowsize.Checked,'1','0')); 7.4: obsolete
       params[9]:=self.hexview.LockedRowSize;
       params[10]:=strtoint(BoolToStr(self.Kernelmodesymbols1.checked,'1','0'));
 

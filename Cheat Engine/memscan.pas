@@ -686,7 +686,9 @@ type
     procedure createScanfolder;
     function DeleteFolder(dir: string) : boolean;
     procedure setVariableType(t: TVariableType);
+    function getSavedScanCount: integer;
   protected
+    fOnScanStart: TNotifyEvent;
     fOnScanDone: TNotifyEvent;
     fOnInitialScanDone: TNotifyEvent;
     fOnGuiUpdate: TMemScanGuiUpdateRoutine;
@@ -734,6 +736,7 @@ type
 
     procedure saveresults(resultname: string);
     function getsavedresults(r: tstrings): integer;
+    function deleteSavedResult(resultname: string): boolean;
 
     function canWriteResults: boolean;
 
@@ -757,6 +760,7 @@ type
     property ScanresultFolder: string read fScanResultFolder; //read only, it's configured during creation
     property BusyformIsModal: boolean read fbusyformIsModal write fbusyformIsModal;
     property OnScanDone: TNotifyEvent read fOnScanDone write fOnScanDone;
+    property OnScanStart: TNotifyEvent read fOnScanStart write fOnScanStart;
     property OnInitialScanDone: TNotifyEvent read fOnInitialScanDone write fOnInitialScanDone;
     property OnGuiUpdate: TMemscanGuiUpdateRoutine read fOnGuiUpdate write fOnGuiUpdate;
 
@@ -782,6 +786,7 @@ type
     property Percentage: boolean read fPercentage write fPercentage;
     property CompareToSavedScan: boolean read fcompareToSavedScan write fcompareToSavedScan;
     property SavedScanName: string read fsavedscanname write fsavedscanname;
+    property SavedScanCount: integer read getSavedScanCount;
 
     property scanWritable: Tscanregionpreference read fscanWritable write fscanWritable;
     property scanExecutable: Tscanregionpreference read fscanExecutable write fscanExecutable;
@@ -801,7 +806,7 @@ implementation
 uses ProcessHandlerUnit, parsers, Globals;
 {$else}
 uses formsettingsunit, StrUtils, foundlisthelper, ProcessHandlerUnit, parsers,
-     Globals, {$ifdef windows}frmBusyUnit,{$endif} controls;
+     Globals, {$ifdef windows}frmBusyUnit,{$endif} controls, mainunit2;
 {$endif}
 
 resourcestring
@@ -830,7 +835,7 @@ resourcestring
   rsMSNothingToScanFor = 'Nothing to scan for';
   rsMStupidAlignsize = 'Stupid alignsize';
   rsMSCustomTypeIsNil = 'Custom type is nil';
-  rsMSTheScanWasForcedToTerminateSubsequentScansMayNotFunctionProperlyEtc = 'The scan was forced to terminate. Subsequent scans may not function properly. It''s recommended to restart Cheat Engine';
+  rsMSTheScanWasForcedToTerminateSubsequentScansMayNotFunctionProperlyEtc = 'The scan was forced to terminate. Subsequent scans may not function properly. It''s recommended to restart '+strCheatEngine;
   rsThread = 'thread ';
   rsMSPointerTypeNotRecognised = 'Pointer type not recognised: ';
 //===============Local functions================//
@@ -5470,6 +5475,7 @@ var i: integer;
     currentbase: ptruint;
     size, _size: qword;
     actualread: ptrUint;
+    previousActualRead: ptruint;
     memorybuffer: ^byte;
     toread: qword;
     startregion: integer;
@@ -5539,6 +5545,9 @@ begin
       if (i=stopregion) and ((currentbase+toread)>stopaddress) then
         toread:=stopaddress-currentbase;
 
+    //  OutputDebugString(format('%.16x - %.16x (%.16x-%.16x)',[currentbase, currentbase+toread,OwningScanController.memregion[i].BaseAddress, OwningScanController.memregion[i].MemorySize ]));
+
+
       lastpart:=102;
 
       repeat
@@ -5559,12 +5568,20 @@ begin
           _size:=size;
 
 
+
         ReadProcessMemory(phandle,pointer(currentbase),memorybuffer,_size,actualread);
-        if (actualread=0) and canOverlap then
+
+        if (actualread<>_size) then
         begin
-          //try without overlap
-          _size:=_size-(variablesize-1);
-          ReadProcessMemory(phandle,pointer(currentbase),memorybuffer,_size,actualread);
+          if canOverlap then  //try without overlap
+          begin
+            _size:=size;
+            previousActualRead:=actualread;
+            actualread:=0;
+            ReadProcessMemory(phandle,pointer(currentbase+previousActualRead),pointer(ptruint(memorybuffer)+previousActualRead),_size-previousActualRead,actualread);
+
+            inc(actualread, previousActualRead);
+          end;
         end;
 
         //sanitize the results
@@ -6686,6 +6703,9 @@ begin
 
    // if (not (not scan_mem_private and (mbi._type=mem_private))) and (not (not scan_mem_image and (mbi._type=mem_image))) and (not (not scan_mem_mapped and (mbi._type=mem_mapped))) and (mbi.State=mem_commit) and ((mbi.Protect and page_guard)=0) and ((mbi.protect and page_noaccess)=0) then  //look if it is commited
     begin
+
+
+
       if PtrUint(mbi.BaseAddress)<startaddress then
       begin
         dec(mbi.RegionSize, startaddress-PtrUint(mbi.BaseAddress));
@@ -6801,7 +6821,8 @@ begin
   {$ifndef darwin}
   VirtualQueryEx_EndCache(processhandle);
   {$endif}
-    {
+
+   {
   OutputDebugString(format('memRegionPos=%d',[memRegionPos]));
   for i:=0 to memRegionPos-1 do
   BEGIN
@@ -6823,7 +6844,8 @@ begin
       end;
     end;
   end;
-        }
+  }
+
 
   totalAddresses:=totalProcessMemorySize;
 
@@ -7615,6 +7637,30 @@ begin
   result:=r.count;
 end;
 
+function TMemscan.getSavedScanCount: integer;
+begin
+  if savedresults=nil then exit(0);
+  result:=savedresults.Count-1;
+end;
+
+function TMemscan.deleteSavedResult(resultname: string): boolean;
+var i: integer;
+begin
+  if (resultname='TMP') or (resultname='UNDO') then
+    raise exception.create(rsTMPAndUNDOAreNamesThatMayNotBeUsedTryAnotherName);
+
+  if savedresults=nil then exit(false);
+
+  i:=savedresults.IndexOf(resultname);
+  if i=-1 then exit(false);
+
+  savedresults.Delete(i);
+
+  DeleteFile(pchar(fScanResultFolder+'MEMORY.'+resultname));
+  DeleteFile(pchar(fScanResultFolder+'ADDRESSES.'+resultname));
+  result:=true;
+end;
+
 procedure TMemscan.saveresults(resultname: string);
 var fname: string;
 begin
@@ -7876,6 +7922,9 @@ begin
   fLastscantype:=stNewScan;
   fLastScanValue:='';
 
+  if savedresults<>nil then
+    savedresults.Clear;
+
   deletescanfolder;
   createscanfolder;
 
@@ -7886,6 +7935,7 @@ begin
   fpercentage:=false;
   fcompareToSavedScan:=false;
   fsavedscanname:='';
+
 
 end;
 
@@ -7914,6 +7964,9 @@ var
   {$endif}
   r: TModalResult;
 begin
+  if assigned(fOnScanStart) then
+    fOnScanStart(self);
+
   {$IFNDEF jni}
    if attachedFoundlist<>nil then
      TFoundList(Attachedfoundlist).Deinitialize;
@@ -8041,6 +8094,7 @@ procedure TMemscan.firstscan(_scanOption: TScanOption; _VariableType: TVariableT
   _scanvalue1, _scanvalue2: string; _startaddress,_stopaddress: ptruint; _hexadecimal,_binaryStringAsDecimal,_unicode,_casesensitive: boolean;
   _fastscanmethod: TFastScanMethod=fsmNotAligned; _fastscanparameter: string=''; _customtype: TCustomType=nil);
 begin
+
   Hexadecimal:=_hexadecimal;
 
   self.fastscanparameter:=_fastscanparameter;
@@ -8069,6 +8123,9 @@ end;
 
 procedure TMemScan.FirstScan;
 begin
+  if assigned(fOnScanStart) then
+    fOnScanStart(self);
+
   if (variableType=vtCustom) and (customtype=nil) then
     raise exception.create('customType=nil');
 
@@ -8243,7 +8300,7 @@ begin
 
   usedtempdir:=IncludeTrailingPathDelimiter(usedtempdir);
 
-  fScanResultFolder:=usedtempdir+'Cheat Engine'+pathdelim;
+  fScanResultFolder:=usedtempdir+strCheatEngine+pathdelim;
 
  // OutputDebugString('fScanResultFolder='+fScanResultFolder);
 
@@ -8309,7 +8366,7 @@ begin
         usedtempdir:=GetTempDir;
 
 
-      if FindFirst(usedtempdir+'Cheat Engine'+pathdelim+'{*}',  faDirectory , info)=0 then
+      if FindFirst(usedtempdir+strCheatEngine+pathdelim+'{*}',  faDirectory , info)=0 then
       begin
         repeat
           if (info.Attr and faDirectory) = faDirectory then
@@ -8317,7 +8374,7 @@ begin
             if length(info.Name)>5 then
             begin
               //if found, delete them if older than 2 days
-              f:=usedtempdir+'Cheat Engine'+pathdelim+info.name;
+              f:=usedtempdir+strCheatEngine+pathdelim+info.name;
 
 
               age:=info.time; //FileAge('"'+f+'"');

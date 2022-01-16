@@ -350,7 +350,11 @@ begin
                     begin
                       funcaddress:=symhandler.getAddressFromName(importmodulename+'!'+importfunctionname, true, haserror);
                       if haserror then
-                        raise exception.create(rsMMLFailedFindingAddressOf+importmodulename+'!'+importfunctionname);
+                      begin
+                        funcaddress:=symhandler.getAddressFromName(importfunctionname, true, haserror);
+                        if haserror then
+                          raise exception.create(rsMMLFailedFindingAddressOf+importmodulename+'!'+importfunctionname);
+                      end;
 
                     end;
 

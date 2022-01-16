@@ -4545,7 +4545,7 @@ begin
         on e: exception do
         begin
           haserror:=true;
-          errorString:=rsFailureCopyingTargetProcessMemory;
+          errorString:=rsFailureCopyingTargetProcessMemory + '('+e.message+')';
 
           if assigned(fOnScanDone) then
             fOnScanDone(self, haserror, errorstring);

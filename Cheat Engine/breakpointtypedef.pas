@@ -57,6 +57,9 @@ type
     traceendcondition: pchar;
     tracestepOver: boolean; //when set the tracer will step over instead of single step
     traceNoSystem: boolean; //when set the tracer will step over system module addresses
+    traceStayInsideModule: boolean; //when set the tracer will step over any address not inside the startmodule
+    traceStartmodulebase: ptruint;
+    traceStartmodulesize: dword;
 
     isTracerStepOver: boolean; //
 

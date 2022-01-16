@@ -9,7 +9,7 @@ object frmNetworkConfig: TfrmNetworkConfig
   OnCreate = FormCreate
   OnShow = FormShow
   Position = poOwnerFormCenter
-  LCLVersion = '2.0.0.4'
+  LCLVersion = '2.0.6.0'
   object GroupBox1: TGroupBox
     Left = 0
     Height = 218
@@ -152,8 +152,8 @@ object frmNetworkConfig: TfrmNetworkConfig
   end
   object PopupMenu1: TPopupMenu
     Images = ctsImageList
-    left = 117
-    top = 60
+    Left = 117
+    Top = 60
     object MenuItem1: TMenuItem
       Caption = 'Refresh list'
       ImageIndex = 0
@@ -161,8 +161,8 @@ object frmNetworkConfig: TfrmNetworkConfig
     end
   end
   object ctsImageList: TImageList
-    left = 291
-    top = 85
+    Left = 291
+    Top = 85
     Bitmap = {
       4C69010000001000000010000000FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
       FF00E4E5E411AECAA75193C4867393C48672AEC9A74ECDD1CC236198539CFFFF

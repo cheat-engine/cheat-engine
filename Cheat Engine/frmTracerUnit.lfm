@@ -1,7 +1,7 @@
 object frmTracer: TfrmTracer
-  Left = 1022
+  Left = 1380
   Height = 535
-  Top = 286
+  Top = 73
   Width = 510
   BorderIcons = [biSystemMenu]
   Caption = 'Tracer'
@@ -645,6 +645,13 @@ object frmTracer: TfrmTracer
       Visible = False
       OnClick = miRealignCompareClick
     end
+    object N1: TMenuItem
+      Caption = '-'
+    end
+    object MenuItem7: TMenuItem
+      Caption = 'Change Font'
+      OnClick = MenuItem7Click
+    end
   end
   object OpenDialog1: TOpenDialog
     DefaultExt = '.cetrace'
@@ -786,5 +793,11 @@ object frmTracer: TfrmTracer
       80C0808080C0808080C0808080C0808080C0808080C0808080C0808080C08080
       80C0808080C06C656496D2CDCC25
     }
+  end
+  object FontDialog1: TFontDialog
+    MinFontSize = 0
+    MaxFontSize = 0
+    Left = 131
+    Top = 14
   end
 end

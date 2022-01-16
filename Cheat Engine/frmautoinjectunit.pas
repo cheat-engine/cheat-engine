@@ -384,9 +384,9 @@ type
 
 procedure Getjumpandoverwrittenbytes(address,addressto: ptrUINT; jumppart,originalcodepart: tstrings);
 procedure generateAPIHookScript(script: tstrings; address: string; addresstogoto: string; addresstostoreneworiginalfunction: string=''; nameextension:string='0'; targetself: boolean=false);
-procedure GenerateCodeInjectionScript(script: tstrings; addressstring: string);
-procedure GenerateAOBInjectionScript(script: TStrings; address: string; symbolname: string; commentradius: integer=10);
-procedure GenerateFullInjectionScript(Script: tstrings; address: string; commentradius: integer=10);
+procedure GenerateCodeInjectionScript(script: tstrings; addressstring: string; farjmp: boolean=false);
+procedure GenerateAOBInjectionScript(script: TStrings; address: string; symbolname: string; commentradius: integer=10; farjmp: boolean=false);
+procedure GenerateFullInjectionScript(Script: tstrings; address: string; commentradius: integer=10; farjmp: boolean=false);
 
 function registerAutoAssemblerTemplate(name: string; m: TAutoAssemblerTemplateCallback; shortcut: TShortCut=0): integer;
 procedure unregisterAutoAssemblerTemplate(id: integer);
@@ -413,8 +413,8 @@ resourcestring
   rsLUAScript = 'LUA Script';
   rsGNUAScript = 'GNU Assembler Script';
   rsWriteCode = 'Write code';
-  rsCEAFilter = 'Cheat Engine Assembly (*.CEA)|*.CEA|All Files ( *.* )|*.*';
-  rsCEGAFilter = 'Cheat Engine GNU Assembly (*.CEGA)|*.CEGA|All Files ( *.* )|*.*';
+  rsCEAFilter = strCheatEngine+' Assembly (*.CEA)|*.CEA|All Files ( *.* )|*.*';
+  rsCEGAFilter = strCheatEngine+' GNU Assembly (*.CEGA)|*.CEGA|All Files ( *.* )|*.*';
   rsAutoAssembler = 'Auto assembler';
   rsCodeNeedsEnableAndDisable = 'The code needs an [ENABLE] and a [DISABLE] section if you want to use this script as a table entry';
   rsNotAllCodeIsInjectable = 'Not all code is injectable.'#13#10'%s'#13#10'Are you sure you want to edit it to this?';
@@ -984,7 +984,7 @@ begin
 {$endif}
 end;
 
-procedure GenerateCodeInjectionScript(script: tstrings; addressstring: string);
+procedure GenerateCodeInjectionScript(script: tstrings; addressstring: string; farjmp: boolean=false);
 function inttostr(i:int64):string;
 begin
   if i=0 then result:='' else result:=sysutils.IntToStr(i);
@@ -1005,7 +1005,13 @@ var
     disablepos: integer;
     enablecode: tstringlist;
     disablecode: tstringlist;
+    jmpsize: integer;
 begin
+  if not processhandler.is64Bit then
+    farjmp:=false;
+
+  jmpsize:=ifthen(farjmp, 14, 5);
+
   try
     a:=StrToQWordEx('$'+addressstring);
   except
@@ -1020,7 +1026,7 @@ begin
   setlength(originalcode,0);
   codesize:=0;
 
-  while codesize<5 do
+  while codesize<jmpsize do
   begin
     setlength(originalcode,length(originalcode)+1);
     originalcode[length(originalcode)-1]:=disassemble(c,x);
@@ -1038,7 +1044,7 @@ begin
   try
     with enablecode do
     begin
-      if processhandler.is64bit then
+      if processhandler.is64bit and (not farjmp) then
         add('alloc(newmem'+inttostr(injectnr)+',2048,'+addressstring+') ')
       else
         add('alloc(newmem'+inttostr(injectnr)+',2048)');
@@ -1059,11 +1065,14 @@ begin
 
       add('');
       add(addressstring+':');
-      add('jmp newmem'+inttostr(injectnr)+'');
-      if codesize>5 then
+      if farjmp then
+        add('jmp far newmem'+inttostr(injectnr)+'')
+      else
+        add('jmp newmem'+inttostr(injectnr)+'');
+      if codesize>jmpsize then
       begin
-        if codesize-5>1 then
-          add('nop '+inttohex(codesize-5,1))
+        if codesize-jmpsize>1 then
+          add('nop '+inttohex(codesize-jmpsize,1))
         else
           add('nop');
       end;
@@ -1134,7 +1143,7 @@ begin
     address:=symhandler.getNameFromAddress(a);
 
   if inputquery(rsCodeInjectTemplate, rsOnWhatAddressDoYouWantTheJump, address) then
-    GenerateCodeInjectionScript(assemblescreen.lines, address);
+    GenerateCodeInjectionScript(assemblescreen.lines, address, ssCtrl in GetKeyShiftState);
 end;
 
 procedure TfrmAutoInject.Panel1Resize(Sender: TObject);
@@ -1650,7 +1659,7 @@ begin
 
     reg:=tregistry.create;
     try
-      if reg.OpenKey('\Software\Cheat Engine\Auto Assembler\',false) then
+      if reg.OpenKey('\Software\'+strCheatEngine+'\Auto Assembler\',false) then
       begin
         if reg.valueexists('Font.name') then
           assemblescreen.Font.Name:=reg.readstring('Font.name');
@@ -2278,7 +2287,6 @@ begin
   AAHighlighter:=TSynAASyn.Create(self);
   CPPHighlighter:=TSynCppSyn.create(self);
   LuaHighlighter:=TSynLuaSyn.Create(self);
-
   reloadHighlighterSettings;
 
   assembleSearch:=TSyneditSearch.Create;
@@ -2331,7 +2339,7 @@ begin
 
   reg:=tregistry.create;
   try
-    if reg.OpenKey('\Software\Cheat Engine\Auto Assembler\',false) then
+    if reg.OpenKey('\Software\'+strCheatEngine+'\Auto Assembler\',false) then
     begin
       if reg.valueexists('Show Line Numbers') then
         assemblescreen.Gutter.linenumberpart.visible:=reg.ReadBool('Show Line Numbers');
@@ -2664,7 +2672,7 @@ begin
         //save these settings
         reg:=tregistry.create;
         try
-          if reg.OpenKey('\Software\Cheat Engine\Auto Assembler\',true) then
+          if reg.OpenKey('\Software\'+strCheatEngine+'\Auto Assembler\',true) then
           begin
             reg.WriteString('Font.name', assemblescreen.Font.Name);
             reg.WriteInteger('Font.size', assemblescreen.Font.size);
@@ -2840,7 +2848,7 @@ begin
 end;
 
 // \/   http://forum.cheatengine.org/viewtopic.php?t=566415 (jgoemat and some mods by db)
-procedure GenerateFullInjectionScript(Script: tstrings; address: string; commentRadius: integer=10);
+procedure GenerateFullInjectionScript(Script: tstrings; address: string; commentRadius: integer=10; farjmp: boolean=false);
 var
   originalcode: array of string;
   originalbytes: array of byte;
@@ -2875,7 +2883,12 @@ var
   ddBytes: string;
 
   mi: TModuleInfo;
+  jmpsize: integer;
 begin
+  if not processhandler.is64Bit then
+    farjmp:=false;
+
+  jmpsize:=ifthen(farjmp, 14, 5);
 
   try
     a:=StrToQWordEx('$'+address);
@@ -2897,7 +2910,7 @@ begin
   setlength(originalcode,0);
   codesize:=0;
 
-  while codesize<5 do
+  while codesize<jmpsize do
   begin
     setlength(originalcode,length(originalcode)+1);
     originalcode[length(originalcode)-1]:=disassemble(c,x);
@@ -2955,7 +2968,7 @@ begin
     with enablecode do
     begin
       add('assert(address'+nr+',bytes'+nr+')');
-      if processhandler.is64bit then
+      if processhandler.is64bit and (not farjmp) then
         add('alloc(newmem' + nr + ',$1000,' + address + ')')
       else
         add('alloc(newmem' + nr + ',$1000)');
@@ -2973,11 +2986,14 @@ begin
 
       add('');
       add('address'+nr+':');
-      add('  jmp newmem'+nr+'');
-      if codesize>5 then
+      if farjmp then
+        add('  jmp far newmem'+nr+'')
+      else
+        add('  jmp newmem'+nr+'');
+      if codesize>jmpsize then
       begin
-        if codesize-5>1 then
-          add('  nop '+inttohex(codesize-5,1))
+        if codesize-jmpsize>1 then
+          add('  nop '+inttohex(codesize-jmpsize,1))
         else
           add('  nop');
       end;
@@ -3059,11 +3075,8 @@ begin
     address:=inttohex(a,8);
 
   if inputquery(rsCodeInjectTemplate, rsOnWhatAddressDoYouWantTheJump, address) then
-    generateFullInjectionScript(assemblescreen.Lines, address);
+    generateFullInjectionScript(assemblescreen.Lines, address, 10, ssCtrl in GetKeyShiftState);
 end;
-
-
-
 
 procedure TfrmAutoInject.miReplaceClick(Sender: TObject);
 begin
@@ -3072,9 +3085,9 @@ end;
 
 procedure TfrmAutoInject.reloadHighlighterSettings;
 begin
-  {LuaHighlighter.LoadFromRegistry(HKEY_CURRENT_USER, '\Software\Cheat Engine\Lua Highlighter'+darkmodestring);
-  AAHighlighter.LoadFromRegistry(HKEY_CURRENT_USER, '\Software\Cheat Engine\AA Highlighter'+darkmodestring);
-  CPPHighlighter.LoadFromRegistry(HKEY_CURRENT_USER, '\Software\Cheat Engine\CPP Highlighter'+darkmodestring);}
+  LuaHighlighter.LoadFromRegistry(HKEY_CURRENT_USER, '\Software\'+strCheatEngine+'\Lua Highlighter'+darkmodestring);
+  AAHighlighter.LoadFromRegistry(HKEY_CURRENT_USER, '\Software\'+strCheatEngine+'\AA Highlighter'+darkmodestring);
+  CPPHighlighter.LoadFromRegistry(HKEY_CURRENT_USER, '\Software\'+strCheatEngine+'\CPP Highlighter'+darkmodestring);
 end;
 
 procedure TfrmAutoInject.MenuItem2Click(Sender: TObject);
@@ -3082,11 +3095,11 @@ var
   frmHighlighterEditor: TfrmHighlighterEditor;
 begin
   frmHighlighterEditor:=TfrmHighlighterEditor.create(self);
-  LuaHighlighter.LoadFromRegistry(HKEY_CURRENT_USER, '\Software\Cheat Engine\Lua Highlighter'+darkmodestring);
+  LuaHighlighter.LoadFromRegistry(HKEY_CURRENT_USER, '\Software\'+strCheatEngine+'\Lua Highlighter'+darkmodestring);
   frmHighlighterEditor.highlighter:=LuaHighlighter;
   if frmHighlighterEditor.showmodal=mrok then
   begin
-    LuaHighlighter.SaveToRegistry(HKEY_CURRENT_USER, '\Software\Cheat Engine\Lua Highlighter'+darkmodestring);
+    LuaHighlighter.SaveToRegistry(HKEY_CURRENT_USER, '\Software\'+strCheatEngine+'\Lua Highlighter'+darkmodestring);
     reloadHighlighterSettings;
     ReloadAllLuaEngineHighlighters;
   end;
@@ -3100,11 +3113,11 @@ var
   frmHighlighterEditor: TfrmHighlighterEditor;
 begin
   frmHighlighterEditor:=TfrmHighlighterEditor.create(self);
-  AAHighlighter.LoadFromRegistry(HKEY_CURRENT_USER, '\Software\Cheat Engine\AA Highlighter'+darkmodestring);
+  AAHighlighter.LoadFromRegistry(HKEY_CURRENT_USER, '\Software\'+strCheatEngine+'\AA Highlighter'+darkmodestring);
   frmHighlighterEditor.highlighter:=AAHighlighter;
   if frmHighlighterEditor.showmodal=mrok then
   begin
-    AAHighlighter.SaveToRegistry(HKEY_CURRENT_USER, '\Software\Cheat Engine\AA Highlighter'+darkmodestring);
+    AAHighlighter.SaveToRegistry(HKEY_CURRENT_USER, '\Software\'+strCheatEngine+'AA Highlighter'+darkmodestring);
     ReloadAllAutoInjectHighlighters;
   end;
 
@@ -3116,19 +3129,19 @@ var
   frmHighlighterEditor: TfrmHighlighterEditor;
 begin
   frmHighlighterEditor:=TfrmHighlighterEditor.create(self);
-  CPPHighlighter.loadFromRegistryDefault(HKEY_CURRENT_USER, '\Software\Cheat Engine\CPP Highlighter'+darkmodestring);
+  CPPHighlighter.loadFromRegistryDefault(HKEY_CURRENT_USER, '\Software\'+strCheatEngine+'\CPP Highlighter'+darkmodestring);
 
   frmHighlighterEditor.highlighter:=CPPHighlighter;
   if frmHighlighterEditor.showmodal=mrok then
   begin
-    CPPHighlighter.SaveToRegistry(HKEY_CURRENT_USER, '\Software\Cheat Engine\CPP Highlighter'+darkmodestring);
+    CPPHighlighter.SaveToRegistry(HKEY_CURRENT_USER, '\Software\'+strCheatEngine+'\CPP Highlighter'+darkmodestring);
     ReloadAllAutoInjectHighlighters;
   end;
 
   frmHighlighterEditor.free;
 end;
 
-procedure GenerateAOBInjectionScript(script: TStrings; address: string; symbolname: string; commentradius: integer=10);
+procedure GenerateAOBInjectionScript(script: TStrings; address: string; symbolname: string; commentradius: integer=10; farjmp: boolean=false);
 var
   a,a2: ptrUint;                  // pointer to injection point
   originalcode: array of string;  // disassembled code we're replacing
@@ -3169,8 +3182,12 @@ var
   resultAOB: String;
   resultOffset: Integer;
   symbolNameWithOffset: String;
+  jmpsize: integer;
 begin
-  // now heavily modified code from "Code injection" menu
+  if not processhandler.is64Bit then
+    farjmp:=false;
+
+  jmpsize:=ifthen(farjmp, 14, 5);
 
   try
     a:=StrToQWordEx('$'+address);
@@ -3191,7 +3208,7 @@ begin
   setlength(originalcode,0);
   codesize:=0;
 
-  while codesize<5 do
+  while codesize<jmpsize do
   begin
     setlength(originalcode,length(originalcode)+1);
     originalcode[length(originalcode)-1]:=disassemble(c,x);
@@ -3254,7 +3271,7 @@ begin
       else
         add('aobscan(' + symbolName + ',' + resultAOB + ') // should be unique');
 
-      if processhandler.is64bit then
+      if processhandler.is64bit and (not farjmp) then
         add('alloc(newmem' + nr + ',$1000,' + symbolname + ')')
       else
         add('alloc(newmem' + nr + ',$1000)');
@@ -3272,11 +3289,14 @@ begin
 
       add('');
       add(symbolNameWithOffset + ':');
-      add('  jmp newmem' + nr + '');
-      if codesize>5 then
+      if farjmp then
+        add('  jmp far newmem' + nr + '')
+      else
+        add('  jmp newmem' + nr + '');
+      if codesize>jmpsize then
       begin
-        if codesize-5>1 then
-          add('  nop '+inttohex(codesize-5,1))
+        if codesize-jmpsize>1 then
+          add('  nop '+inttohex(codesize-jmpsize,1))
         else
           add('  nop');
       end;
@@ -3371,7 +3391,7 @@ begin
     symbolname:='INJECT'+nr;
 
     if inputquery(rsCodeInjectTemplate, rsWhatIdentifierDoYouWantToUse, symbolName) then
-      GenerateAOBInjectionScript(assemblescreen.Lines, address, symbolname);
+      GenerateAOBInjectionScript(assemblescreen.Lines, address, symbolname, 10, ssCtrl in GetKeyShiftState);
   end;
 end;
 

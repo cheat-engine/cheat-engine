@@ -46,6 +46,7 @@ type
     GroupBox6: TGroupBox;
     GroupBox7: TGroupBox;
     Label1: TLabel;
+    lblHexFadecolor: TLabel;
     lblRegHighLightAccess: TLabel;
     lblRegHighLightChange: TLabel;
     lblHexCursor: TLabel;
@@ -93,6 +94,8 @@ type
       Shift: TShiftState; X, Y: Integer);
     procedure GroupBox3Click(Sender: TObject);
     procedure GroupBox5Click(Sender: TObject);
+    procedure lblHexFadecolorMouseDown(Sender: TObject; Button: TMouseButton;
+      Shift: TShiftState; X, Y: Integer);
     procedure lblCallClick(Sender: TObject);
     procedure lblConditionalJumpClick(Sender: TObject);
     procedure lblHexClick(Sender: TObject);
@@ -334,6 +337,17 @@ end;
 procedure TfrmMemviewPreferences.GroupBox5Click(Sender: TObject);
 begin
 
+end;
+
+procedure TfrmMemviewPreferences.lblHexFadecolorMouseDown(Sender: TObject;
+  Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+var l: TLabel;
+begin
+  l:=tlabel(sender);
+  colordialog1.Title:=rsHexedit+' '+l.caption;
+  colordialog1.color:=l.color;
+  if colordialog1.execute then
+    l.color:=colordialog1.color;
 end;
 
 procedure TfrmMemviewPreferences.lblCallClick(Sender: TObject);

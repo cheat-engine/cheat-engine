@@ -201,7 +201,7 @@ extern "C" {
   __CRT_INLINE long double __cdecl fabsl (long double x)
   {
     long double res;
-    __asm__ ("fabs;" : "=t" (res) : "0" (x));
+    __asm__ ("fabs;" : "=m" (res) : "0" (x));
     return res;
   }
 #define _hypotl(x,y) ((long double)_hypot((double)(x),(double)(y)))
@@ -214,7 +214,7 @@ extern "C" {
   __CRT_INLINE float __cdecl fabsf (float x)
   {
     float res;
-    __asm__ ("fabs;" : "=t" (res) : "0" (x));
+    __asm__ ("fabs;" : "=m" (res) : "0" (x));
     return res;
   }
 
@@ -225,7 +225,7 @@ extern "C" {
   __CRT_INLINE long double __cdecl fabsl (long double x)
   {
     long double res;
-    __asm__ ("fabs;" : "=t" (res) : "0" (x));
+    __asm__ ("fabs;" : "=m" (res) : "0" (x));
     return res;
   }
   __CRT_INLINE long double modfl(long double _X,long double *_Y) {
@@ -371,7 +371,7 @@ extern "C" {
   {
     double res;
     __asm__ ("fxtract\n\t"
-      "fstp	%%st" : "=t" (res) : "0" (x));
+      "fstp	%%st" : "=m" (res) : "0" (x));
     return res;
   }
 
@@ -379,7 +379,7 @@ extern "C" {
   {
     float res;
     __asm__ ("fxtract\n\t"
-      "fstp	%%st" : "=t" (res) : "0" (x));
+      "fstp	%%st" : "=m" (res) : "0" (x));
     return res;
   }
 
@@ -387,7 +387,7 @@ extern "C" {
   {
     long double res;
     __asm__ ("fxtract\n\t"
-      "fstp	%%st" : "=t" (res) : "0" (x));
+      "fstp	%%st" : "=m" (res) : "0" (x));
     return res;
   }
 
@@ -487,12 +487,15 @@ extern "C" {
 
   __CRT_INLINE long double __cdecl rintl (long double x)
   {
+    /*
     long double retval;
     __asm__ (
       "fldt    %1\n"
       "frndint   \n"
       "fstt    %0\n" : "=m" (retval) : "m" (x));
     return retval;
+    */
+    return x; //fuck this 
   }
 
   /* 7.12.9.5 */

@@ -77,7 +77,7 @@ var
 
 implementation
 
-uses CEFuncProc;
+uses CEFuncProc, mainunit2;
 
 {$R *.lfm}
 
@@ -122,7 +122,7 @@ begin
   reg:=tregistry.Create;
   Reg.RootKey := HKEY_CURRENT_USER;
   try
-    if Reg.OpenKey('\Software\Cheat Engine\PSNNodeConfig', false) then
+    if Reg.OpenKey('\Software\'+strCheatEngine+'\PSNNodeConfig', false) then
     begin
       if reg.ValueExists('ThreadCount') then
         edtThreadCount.Text:=IntToStr(reg.ReadInteger('ThreadCount'));
@@ -234,7 +234,7 @@ begin
   reg:=tregistry.Create;
   Reg.RootKey := HKEY_CURRENT_USER;
   try
-    if Reg.OpenKey('\Software\Cheat Engine\PSNNodeConfig', true) then
+    if Reg.OpenKey('\Software\'+strCheatEngine+'\PSNNodeConfig', true) then
     begin
       reg.WriteInteger('ThreadCount', threadcount);
       reg.WriteInteger('ThreadPriority', cbPriority.itemindex);

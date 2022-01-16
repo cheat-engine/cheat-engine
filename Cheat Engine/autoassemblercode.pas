@@ -68,7 +68,7 @@ procedure AutoAssemblerCodePass2(var dataForPass2: TAutoAssemblerCodePass2Data; 
 implementation
 
 uses {$ifdef windows}windows,{$endif}{$ifdef darwin}macport,macportdefines,math,{$endif}ProcessHandlerUnit, symbolhandler, luahandler, lua, lauxlib, lualib, StrUtils,
-  Clipbrd, dialogs, lua_server, Assemblerunit, NewKernelHandler, DBK32functions;
+  Clipbrd, dialogs, lua_server, Assemblerunit, NewKernelHandler, DBK32functions, StringHashList;
 
 
 type
@@ -141,6 +141,37 @@ type
 
   TLuaCodeParams=array of TLuaCodeParameter;
 
+
+var
+  //list containing functions tcclib1.c defines.
+  //If any of these functions are used, compile tcclib1-ce.c into the target process.
+  //for __m* make
+  tcclibimportlist: TStringHashList;
+
+  {
+  32-bit only:
+  __divdi3
+  __moddi3
+  __udivdi3
+  __umoddi3
+  __ashrdi3
+  __lshrdi3
+  __ashldi3
+  __floatundisf
+
+  //32 and 64-bit:
+  __floatundidf
+  __floatundixf
+  __fixunssfdi
+  __fixsfdi
+  __fixunsdfdi
+  __fixdfdi
+  __fixunsxfdi
+  __fixxfdi
+  }
+
+
+
 procedure parseLuaCodeParameters(s: string; var output: TLuaCodeParams);
 var
   i: integer;
@@ -164,7 +195,7 @@ begin
     r2:=r[i].Split('=');
 
     if length(r2)<>2 then
-      raise exception.create('Invalid parameter : '+r[i]);
+      continue;
 
     varname:=r2[0];
     regname:=uppercase(r2[1]);
@@ -209,19 +240,27 @@ begin
       'R15F': o.contextItem:=31;
       else
       begin
-        if regname.StartsWith('XMM') then
+
+        if (length(regname)>=4) and regname.StartsWith('XMM') then
         begin
           if regname.Contains('.')=false then
           begin
             //xmm bytetable
-            xmmnr:=strtoint(regname.Substring(4)); //except on invalid data. That's ok
+            if regname[4]='-' then
+              xmmnr:=strtoint(regname.Substring(4)) //XMM-x
+            else
+              xmmnr:=strtoint(regname.Substring(3)); //except on invalid data. That's ok
             o.contextItem:=32+xmmnr;
           end
           else
           begin
             r3:=regname.Split('.');
             if length(r3)<>2 then raise exception.create('Invalid xmm register format (Invalid dot usage)');
-            xmmnr:=strtoint(r3[0].Substring(4));
+
+            if regname[4]='-' then
+              xmmnr:=strtoint(r3[0].Substring(4)) //XMM-x.yyyyyyz
+            else
+              xmmnr:=strtoint(r3[0].Substring(3));
 
             if (length(r3[1])>2) or (length(r3[1])=0) then raise exception.create('Invalid xmm register format');
 
@@ -416,6 +455,7 @@ begin
 
     if dataForPass2.cdata.nodebug=false then
       dataForPass2.cdata.sourceCodeInfo:=TSourceCodeInfo.create;
+
 
 
     if _tcc.compileScript(dataForPass2.cdata.cscript.Text, dataForPass2.cdata.address, bytes, tempsymbollist, dataForPass2.cdata.sourceCodeInfo, errorlog, secondarylist, dataForPass2.cdata.targetself ) then
@@ -625,6 +665,7 @@ var
 
   _tcc: TTCC;
 begin
+
   s:=trim(script[i]);
   s:=copy(s,9,length(s)-9);
   ParseCBlockSpecificParameters(s, dataForPass2);
@@ -666,7 +707,8 @@ begin
     begin
       case parameters[j].contextitem of
         0: s:='unsigned long long '+parameters[j].varname+'=*(unsigned long long *)*(unsigned long long *)((unsigned long long)parameters+0x228);'; //RAX
-        1..15: s:='unsigned long long '+parameters[j].varname+'=*(unsigned long long*)((unsigned long long)parameters+0x'+inttohex($200+(parameters[j].contextitem-1)*8,1)+');'; //RBX..R15
+        1..5, 7..15: s:='unsigned long long '+parameters[j].varname+'=*(unsigned long long*)((unsigned long long)parameters+0x'+inttohex($200+(parameters[j].contextitem-1)*8,1)+');'; //RBX..R15
+        6: s:='unsigned long long '+parameters[j].varname+'=*(unsigned long long*)((unsigned long long)parameters+0x'+inttohex($200+(parameters[j].contextitem-1)*8,1)+')+24;'; //RSP
         16: s:='float '+parameters[j].varname+'=*(float *)((unsigned long long)parameters+0x228);';
         17..31: s:='float '+parameters[j].varname+'=*(float *)((unsigned long long)parameters+0x'+inttohex($200+(parameters[j].contextitem-1)*8,1)+');'; //RBX..R15
         32..47:
@@ -686,7 +728,8 @@ begin
     begin
       case parameters[j].contextitem of
         0: s:='unsigned long '+parameters[j].varname+'=*(unsigned long *)*(unsigned long *)((unsigned long)parameters+0x214);'; //EAX
-        1..7: s:='unsigned long '+parameters[j].varname+'=*(unsigned long*)((unsigned long)parameters+0x'+inttohex($200+(parameters[j].contextitem-1)*4,1)+');'; //RBX..R15
+        1..5,7: s:='unsigned long '+parameters[j].varname+'=*(unsigned long*)((unsigned long)parameters+0x'+inttohex($200+(parameters[j].contextitem-1)*4,1)+');'; //RBX..R15
+        6: s:='unsigned long '+parameters[j].varname+'=*(unsigned long*)((unsigned long)parameters+0x'+inttohex($200+(parameters[j].contextitem-1)*4,1)+')+12;'; //RBX..R15
         16: s:='float '+parameters[j].varname+'=*(float *)((unsigned long)parameters+0x214);';
         17..23: s:='float '+parameters[j].varname+'=*(float *)((unsigned long)parameters+0x'+inttohex($200+(parameters[j].contextitem-1)*4,1)+');'; //EBX..EBP
         32..39:
@@ -718,9 +761,12 @@ begin
   begin
     for j:=0 to length(parameters)-1 do
     begin
+      s:='';
+
       case parameters[j].contextitem of
         0: s:='*(unsigned long long *)*(unsigned long long *)((unsigned long long)parameters+0x228)='+parameters[j].varname+';'; //RAX
-        1..15: s:='*(unsigned long long*)((unsigned long long)parameters+0x'+inttohex($200+(parameters[j].contextitem-1)*8,1)+')='+parameters[j].varname+';'; //RBX..R15
+        1..5, 7..15: s:='*(unsigned long long*)((unsigned long long)parameters+0x'+inttohex($200+(parameters[j].contextitem-1)*8,1)+')='+parameters[j].varname+';'; //RBX..R15
+        6: s:=''; //skip, do not write rsp
         16: s:='*(float *)((unsigned long long)parameters+0x228)='+parameters[j].varname+';';
         17..31: s:='*(float *)((unsigned long long)parameters+0x'+inttohex($200+(parameters[j].contextitem-1)*8,1)+')='+parameters[j].varname+';'; //RBX..R15
         32..47:
@@ -731,7 +777,9 @@ begin
         48..111: s:='*(float *)((unsigned long long)parameters+0x'+inttohex($a0+(parameters[j].contextitem-48)*4,1)+')='+parameters[j].varname+';'; //RBX..R15
         112..143: s:='*(double *)((unsigned long long)parameters+0x'+inttohex($a0+(parameters[j].contextitem-112)*8,1)+')='+parameters[j].varname+';';
       end;
-      cscript.add('  '+s);
+      if s<>'' then
+        cscript.add('  '+s);
+
     end;
   end
   else
@@ -740,7 +788,8 @@ begin
     begin
       case parameters[j].contextitem of
         0: s:='*(unsigned long *)*(unsigned long *)((unsigned long)parameters+0x214)='+parameters[j].varname+';'; //EAX
-        1..7: s:='*(unsigned long*)((unsigned long)parameters+0x'+inttohex($200+(parameters[j].contextitem-1)*4,1)+')='+parameters[j].varname+';'; //RBX..R15
+        1..5,7: s:='*(unsigned long*)((unsigned long)parameters+0x'+inttohex($200+(parameters[j].contextitem-1)*4,1)+')='+parameters[j].varname+';'; //RBX..R15
+        6: s:='';
         16: s:='*(float *)((unsigned long)parameters+0x214)='+parameters[j].varname+';';
         17..23: s:='*(float *)((unsigned long)parameters+0x'+inttohex($200+(parameters[j].contextitem-1)*4,1)+')='+parameters[j].varname+';'; //EBX..EBP
         32..39:
@@ -751,7 +800,9 @@ begin
         48..79: s:='*(float *)((unsigned long)parameters+0x'+inttohex($a0+(parameters[j].contextitem-48)*4,1)+')='+parameters[j].varname+';'; //EBX..EBP
         112..127: s:='*(double *)((unsigned long)parameters+0x'+inttohex($a0+(parameters[j].contextitem-112)*8,1)+')='+parameters[j].varname+';';
       end;
-      cscript.add('  '+s);
+      if s<>'' then
+        cscript.add('  '+s);
+
     end;
   end;
 
@@ -785,6 +836,7 @@ begin
   setlength(dataForPass2.cdata.linklist,j+1);
   dataForPass2.cdata.linklist[j].name:=functionname+'_address';
   dataForPass2.cdata.linklist[j].fromname:=functionname;
+  dataForPass2.cdata.usesxmm:=usesXMMType;
 end;
 
 procedure AutoAssemblerLuaCodePass(script: TStrings; parameters: TLuaCodeParams; var i: integer; syntaxcheckonly: boolean);
@@ -848,7 +900,8 @@ begin
 
       case parameters[j].contextitem of
         0: s:=s+'readPointer(readPointer(parameters+0x228))'; //RAX
-        1..15: s:=s+'readPointer(parameters+0x'+inttohex($200+(parameters[j].contextitem-1)*8,1)+')'; //RBX..R15
+        1..5,7..15: s:=s+'readPointer(parameters+0x'+inttohex($200+(parameters[j].contextitem-1)*8,1)+')'; //RBX..R15
+        6: s:=s+'readPointer(parameters+0x'+inttohex($200+(parameters[j].contextitem-1)*8,1)+'+24)';
         16: s:=s+'readFloat(readPointer(parameters+0x228))'; //RAX as float
         17..31: s:=s+'readFloat(parameters+0x'+inttohex($200+(parameters[j].contextitem-17)*8,1)+')'; //RBX..R15 as float
         32..47: s:=s+'readBytes(parameters+0x'+inttohex($a0+(parameters[j].contextitem-32)*16,1)+',16,true)';
@@ -867,7 +920,8 @@ begin
       s:='local '+parameters[j].varname+'=';
       case parameters[j].contextitem of
         0: s:=s+'readPointer(readPointer(parameters+0x214))'; //RAX
-        1..7: s:=s+'readPointer(parameters+0x'+inttohex($200+(parameters[j].contextitem-1)*4,1)+')'; //RBX..R15
+        1..5,7: s:=s+'readPointer(parameters+0x'+inttohex($200+(parameters[j].contextitem-1)*4,1)+')'; //RBX..R15
+        6: s:=s+'readPointer(parameters+0x'+inttohex($200+(parameters[j].contextitem-1)*8,1)+'+12)';
         16: s:=s+'readFloat(readPointer(parameters+0x214))'; //RAX as float
         17..23: s:=s+'readFloat(parameters+0x'+inttohex($200+(parameters[j].contextitem-17)*4,1)+')'; //RBX..R15 as float
         32..39: s:=s+'readBytes(parameters+0x'+inttohex($a0+(parameters[j].contextitem-32)*16,1)+',16,true)';
@@ -887,7 +941,8 @@ begin
     begin
       case parameters[j].contextitem of
         0: s:='writePointer(readPointer(parameters+0x228),'+parameters[j].varname+')';
-        1..15: s:='writePointer(parameters+0x'+inttohex($200+(parameters[j].contextitem-1)*8,1)+','+parameters[j].varname+')'; //RBX..R15
+        1..5,7..15: s:='writePointer(parameters+0x'+inttohex($200+(parameters[j].contextitem-1)*8,1)+','+parameters[j].varname+')'; //RBX..R15
+        6: s:='';
         16: s:='writeFloat(readPointer(parameters+0x228),'+parameters[j].varname+')'; //RAX as float
         17..31: s:='writeFloat(parameters+0x'+inttohex($200+(parameters[j].contextitem-17)*8,1)+','+parameters[j].varname+')'; //RBX..R15 as float
         32..47: s:='writeBytes(parameters+0x'+inttohex($a0+(parameters[j].contextitem-32)*16,1)+','+parameters[j].varname+')';
@@ -906,7 +961,8 @@ begin
     begin
       case parameters[j].contextitem of
         0: s:='writePointer(readPointer(parameters+0x214),'+parameters[j].varname+')';
-        1..7: s:='writePointer(parameters+0x'+inttohex($200+(parameters[j].contextitem-1)*4,1)+','+parameters[j].varname+')'; //EBX..EBP
+        1..5,7: s:='writePointer(parameters+0x'+inttohex($200+(parameters[j].contextitem-1)*4,1)+','+parameters[j].varname+')'; //EBX..EBP
+        6: s:='';
         16: s:='writeFloat(readPointer(parameters+0x214),'+parameters[j].varname+')'; //EAX as float
         17..23: s:='writeFloat(parameters+0x'+inttohex($200+(parameters[j].contextitem-17)*4,1)+','+parameters[j].varname+')'; //EBX..EBP as float
         32..39: s:='writeBytes(parameters+0x'+inttohex($a0+(parameters[j].contextitem-32)*16,1)+','+parameters[j].varname+')';
@@ -1004,7 +1060,7 @@ end;
 procedure AutoAssemblerCodePass1(script: TStrings; out dataForPass2: TAutoAssemblerCodePass2Data; syntaxcheckonly: boolean; targetself: boolean);
 //this way the script only needs to be parsed once for quite similar code
 var
-  i,j: integer;
+  i,j,r: integer;
   endpos: integer;
   uppercaseline: string;
   s, linenrstring: string;
@@ -1019,8 +1075,31 @@ var
   symbols, imports, errorlog: tstringlist;
   ms: TMemorystream;
   bytesizeneeded: integer;
+  symbolerror: boolean;
   //
 begin
+  if tcclibimportlist=nil then
+  begin
+    tcclibimportlist:=TStringHashList.Create(true);
+    tcclibimportlist.Add('__divdi3');
+    tcclibimportlist.Add('__moddi3');
+    tcclibimportlist.Add('__udivdi3');
+    tcclibimportlist.Add('__umoddi3');
+    tcclibimportlist.Add('__ashrdi3');
+    tcclibimportlist.Add('__lshrdi3');
+    tcclibimportlist.Add('__ashldi3');
+    tcclibimportlist.Add('__floatundisf');
+    tcclibimportlist.Add('__floatundidf');
+    tcclibimportlist.Add('__floatundixf');
+    tcclibimportlist.Add('__fixunssfdi');
+    tcclibimportlist.Add('__fixsfdi');
+    tcclibimportlist.Add('__fixunsdfdi');
+    tcclibimportlist.Add('__fixdfdi');
+    tcclibimportlist.Add('__fixunsxfdi');
+    tcclibimportlist.Add('__fixxfdi');
+  end;
+
+
   dataForPass2.cdata.cscript:=nil;
   dataForPass2.cdata.address:=0;
   dataForPass2.cdata.bytesize:=0;
@@ -1133,25 +1212,6 @@ begin
       end;
 
 
-      {
-      typedef struct {
-        union{
-          struct{
-              float f0;
-              float f1;
-              float f2;
-              float f3;
-          };
-          struct{
-              double d0;
-              double d1;
-          };
-          float fa[4];
-          double da[2];
-        };
-      } xmmreg, *pxmmreg;
-      }
-
       //testcompile the full script
       if targetself then
         _tcc:=tccself
@@ -1177,7 +1237,7 @@ begin
             s:=errorlog[i];
             if s.StartsWith('<string') then
             begin
-              Clipboard.AsText:=dataForPass2.cdata.cscript.text;
+             // Clipboard.AsText:=dataForPass2.cdata.cscript.text;
 
               linenrstring:='';
               lnstart:=pos('>:', s)+2;
@@ -1193,7 +1253,7 @@ begin
                     //convert linenr to AA linenr (if possible)
                     if (linenr>=0) and (linenr<dataForPass2.cdata.cscript.count) then
                     begin
-                      Clipboard.AsText:=dataForPass2.cdata.cscript[linenr-1];
+                      //Clipboard.AsText:=dataForPass2.cdata.cscript[linenr-1];
                       linenr:=integer(ptruint(dataForPass2.cdata.cscript.objects[linenr-1]));
                       s:='Error at line '+linenr.ToString+' '+Copy(s, j);
                     end;
@@ -1216,7 +1276,35 @@ begin
 
         //fill the functions this script referenced by name
         for i:=0 to imports.count-1 do
+        begin
+          if (length(imports[i])=9) and (imports[i][1]='_') and ((imports[i]='__mzerosf') or (imports[i]='__mzerodf')) then
+          begin
+            //it's using these negative 0 types it assumes it has access to.
+            if imports[i][8]='s' then dataForPass2.cdata.cscript.Insert(0,'float __mzerosf=-0.0f; //Autogenerated');
+            if imports[i][8]='d' then dataForPass2.cdata.cscript.Insert(0,'double __mzerodf=-0.0f; //Autogenerated');
+
+          end
+          else
+          begin
+            if tcclibimportlist.Find(imports[i])<>-1 then
+            begin
+              symhandler.getAddressFromName('__floatundidf',false,symbolerror);
+              if symbolerror then
+              begin
+                j:=lua_gettop(LuaVM);
+                lua_getglobal(LuaVM, 'compileTCCLib');
+                r:=lua_pcall(LuaVM,0,0,0);
+                lua_settop(LuaVM,j);
+
+                symhandler.getAddressFromName('__floatundidf',false,symbolerror);
+                if symbolerror then
+                  raise exception.create('This code requires the TCC Library, but it failed to compile');
+              end;
+            end;
+          end;
+
           dataforpass2.cdata.references[i].name:=imports[i];
+        end;
 
         for i:=imports.count to imports.count+length(dataforpass2.cdata.linklist)-1 do
           dataforpass2.cdata.references[i].name:=dataforpass2.cdata.linklist[i-imports.count].name;
@@ -1261,6 +1349,7 @@ begin
     raise; //reraise the exception
   end;
 end;
+
 
 end.
 

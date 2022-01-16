@@ -60,6 +60,9 @@ type
     traceQuitCondition: string;
     traceStepOver: boolean; //perhaps also trace branches ?
     traceNoSystem: boolean;
+    traceStayInsideModule: boolean;
+    traceStartmodulebase: ptruint;
+    traceStartmodulesize: dword;
     //------------------
 
     unhandledException: boolean;
@@ -529,7 +532,7 @@ begin
     for i:=0 to {$ifdef cpu64}15{$else}7{$endif} do
     begin
       //get the nibble for the xmm register
-      b:=(bp.changereg.change_XMM shl (i*4)) and $f;
+      b:=(bp.changereg.change_XMM shr (i*4)) and $f;
 
       if b>0 then //bits are set
       begin
@@ -755,7 +758,7 @@ begin
           d:=TDisassembler.Create;
           nexteip:=context^.{$ifdef cpu64}rip{$else}eip{$endif};
           d.disassemble(nexteip, t);
-          if d.LastDisassembleData.iscall then
+          if d.LastDisassembleData.iscall or d.LastDisassembleData.isrep then
           begin
             //set an execute breakpoint for this thread only at the next instruction and run till there
             if CurrentDebuggerInterface.usesDebugRegisters then
@@ -773,6 +776,9 @@ begin
           end
           else  //if not, single step
           begin
+
+
+
             if dbcCanUseInt1BasedBreakpoints in CurrentDebuggerInterface.DebuggerCapabilities then
               context^.EFlags:=eflags_setTF(context^.EFlags,1);
           end;
@@ -930,6 +936,10 @@ begin
   if (not ignored) and traceNoSystem and symhandler.inSystemModule(context^.{$ifdef cpu64}rip{$else}eip{$endif}) then
     ignored:=true;
 
+  if (not ignored) and traceStayInsideModule and (not InRangeQ(context^.{$ifdef cpu64}rip{$else}eip{$endif}, traceStartmodulebase, traceStartmodulebase+traceStartmodulesize)) then
+    ignored:=true;
+
+
   TDebuggerthread(debuggerthread).execlocation:=371;
   if (tracewindow<>nil) and (not ignored) then
   begin
@@ -964,11 +974,30 @@ begin
     if ignored then
     begin
       TDebuggerthread(debuggerthread).execlocation:=375;
-      tracewindow.returnfromignore:=true;
-      ReadProcessMemory(processhandle, pointer(context^.{$ifdef cpu64}rsp{$else}esp{$endif}), @r, sizeof(processhandler.pointersize), x);
-      b:=TDebuggerthread(debuggerthread).SetOnExecuteBreakpoint(r , false, ThreadId);
-      b.OneTimeOnly:=true;
-      TDebuggerthread(debuggerthread).execlocation:=376;
+      x:=0;
+      r:=0;
+      ReadProcessMemory(processhandle, pointer(context^.{$ifdef cpu64}rsp{$else}esp{$endif}), @r, processhandler.pointersize, x);
+      if x=processhandler.pointersize then
+      begin
+        tracewindow.returnfromignore:=true;
+        try
+          b:=TDebuggerthread(debuggerthread).SetOnExecuteBreakpoint(r , false, ThreadId);
+          b.OneTimeOnly:=true;
+          TDebuggerthread(debuggerthread).execlocation:=376;
+        except
+          OutputDebugString('Trace step out set breakpoint error');
+          isTracing:=false;
+          TDebuggerthread(debuggerthread).Synchronize(TDebuggerthread(debuggerthread), tracewindow.Finish);
+        end;
+      end
+      else
+      begin
+        //error reading
+        OutputDebugString('Trace read stack error');
+        isTracing:=false;
+        TDebuggerthread(debuggerthread).Synchronize(TDebuggerthread(debuggerthread), tracewindow.Finish);
+      end;
+
       ContinueFromBreakpoint(nil, co_run);
     end
     else
@@ -1332,6 +1361,10 @@ begin
             traceWindow:=bpp.frmTracer;
             traceStepOver:=bpp.tracestepOver;
             traceNoSystem:=bpp.traceNoSystem;
+            traceStayInsideModule:=bpp.traceStayInsideModule;
+            traceStartmodulebase:=bpp.traceStartmodulebase;
+            traceStartmodulesize:=bpp.traceStartmodulesize;
+
             if bpp.traceendcondition<>nil then
               traceQuitCondition:=bpp.traceendcondition
             else

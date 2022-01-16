@@ -14,7 +14,7 @@ uses
   LCLIntf, Messages, SysUtils, Classes, Graphics, Controls,
   Forms, Dialogs, StdCtrls, ExtCtrls, CEFuncProc,CEDebugger, ComCtrls, ImgList,
   Filehandler, Menus, LResources,{tlhelp32,}{$ifdef windows}vmxfunctions,{$endif} NewKernelHandler,
-  debugHelper{, KIcon}, commonTypeDefs, math, syncobjs, Contnrs, betterControls;
+  debugHelper{, KIcon}, commonTypeDefs, math,lcltype, syncobjs, Contnrs, betterControls;
 
 type
   TProcesslistlong = class(tthread)
@@ -163,7 +163,7 @@ implementation
 
 uses MainUnit, formsettingsunit, advancedoptionsunit,frmProcessWatcherUnit,
   memorybrowserformunit{$ifdef windows}, networkConfig{$endif}, ProcessHandlerUnit, processlist, globals,
-  registry, fontSaveLoadRegistry, frmOpenFileAsProcessDialogUnit;
+  registry, fontSaveLoadRegistry, frmOpenFileAsProcessDialogUnit, networkinterfaceapi, mainunit2;
 
 resourcestring
   rsIsnTAValidProcessID = '%s isn''t a valid processID';
@@ -608,7 +608,7 @@ begin
 
   reg:=tregistry.create;
   try
-    if reg.OpenKey('\Software\Cheat Engine\Process Window\Font'+darkmodestring,false) then
+    if reg.OpenKey('\Software\'+strCheatEngine+'\Process Window\Font'+darkmodestring,false) then
       LoadFontFromRegistry(processlist.Font, reg)
     else
       processlist.font.color:=colorset.FontColor;
@@ -656,7 +656,7 @@ begin
 
     reg:=tregistry.create;
     try
-      if reg.OpenKey('\Software\Cheat Engine\Process Window\Font'+darkmodestring,true) then
+      if reg.OpenKey('\Software\'+strCheatEngine+'\Process Window\Font'+darkmodestring,true) then
         SaveFontToRegistry(FontDialog1.Font, reg);
 
 
@@ -685,10 +685,15 @@ begin
 
   if frmNetworkConfig.ShowModal=mrok then
   begin
+    tabheader.ShowTabs:=false;
+
     if TabHeader.TabIndex=1 then
       refreshlist
     else
+    begin
       TabHeader.Tabindex:=1;
+      refreshlist;
+    end;
   end;
   {$endif}
 end;
@@ -1053,8 +1058,16 @@ begin
   end;
 
 
-  processlist.Canvas.font.color:=processlist.font.color;
+
+  if odSelected in state then
+    processlist.Canvas.font.color:=clHighlightText
+  else
+    processlist.Canvas.font.color:=processlist.font.color;
+
   processlist.Canvas.TextOut(rect.Left+rect.Bottom-rect.Top+3,rect.Top,t);
+
+  if getConnection<>nil then exit;
+
   {$ifdef windows}
   if getprocessicons and (processlist.Items.Objects[index]<>nil) then
   begin
@@ -1078,6 +1091,8 @@ var
   s: string;
   i: integer;
 begin
+  if getconnection<>nil then
+    tabheader.ShowTabs:=true;
 
   OKButton.Constraints.MinHeight:=trunc(1.2*btnAttachDebugger.height);
   CancelButton.Constraints.MinHeight:=OKButton.Constraints.MinHeight;

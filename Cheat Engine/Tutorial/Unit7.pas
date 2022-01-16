@@ -37,7 +37,7 @@ var
 
 implementation
 
-uses Unit4, Unit8, frmHelpUnit;
+uses Unit4, Unit8, frmHelpUnit, cetranslator;
 
 resourcestring
   rsWellDoneYouScrewedUpTheTutorial = 'Well done, you screwed up the tutorial!!!!';
@@ -57,33 +57,35 @@ resourcestring
     'For this step you don''t really need to know assembler, but it helps a lot if you do.'+#13#10+
     ''+#13#10+
     'First find the address of the value. When you''ve found it use the function to find out what accesses this address.'+#13#10+
-    'Change the value again, and a item will show in the list. Double click that item. (or select and click on more info) and '+
+    'Change the value again, and an item will show up in the list. Double click that item. (or select and click on more info) and '+
     'a new window will open with detailed information on what happened when the instruction ran.'+#13#10+
     'If the assembler instruction doesn''t have anything between a ''['' and '']'' then use another item in the list.'+#13#10+
     'If it does it will say what it think will be the value of the pointer you need.'+#13#10+
     'Go back to the main cheat engine window (you can keep this extra info window open if you want, but if you close it, '+
-    'remember what is between the [ and ] ) and do a 4 byte scan in hexadecimal for the value the extra info told you.'+#13#10+
+    'remember what is between the ''['' and '']'' ) and do a 4 byte scan in hexadecimal for the value the extra info told you.'+#13#10+
     'When done scanning it may return 1 or a few hundred addresses. Most of the time the address you need will be the '+
     'smallest one. Now click on the "Add Address Manually" button and select the pointer checkbox.'+#13#10+
     ''+#13#10+
     'The window will change and allow you to type in the address of a pointer and an offset.'+#13#10+
-    'Fill in as address the address you just found.'+#13#10+
-    'If the assembler instruction has a calculation (e.g: [esi+12]) at the end then type the value in that''s at the end. else '+
-    'leave it 0. If it was a more complicated instruction look at the calculation.'+#13#10+
+    'Fill in the address you just found. It can be in the form: "Tutorial-i386.exe"+xxxxxx (relative to the process), '+#13#10+
+	'or you can double click the address to add it to the address list and use the absolute address which appears there.'+#13#10+
+    'If the assembler instruction has a calculation (e.g: [esi+12]) at the end then type the value in that''s at the end above the '+
+	'address field. This is the offset. Otherwise '+
+    'leave it 0. If it was a more complicated instruction look at the following calculation.'+#13#10+
     ''+#13#10+
-    'example of a more complicated instruction:'+#13#10+
+    'Example of a more complicated instruction:'+#13#10+
     '[EAX*2+EDX+00000310] eax=4C and edx=00801234.'+#13#10+
     'In this case EDX would be the value the pointer has, and EAX*2+00000310 the offset, so the offset you''d fill in '+
-    'would be 2*4C+00000310=3A8.  (this is all in hex, use calc.exe from windows in scientific mode to calculate)'+#13#10+
+    'would be 2*4C+00000310=3A8. (This is all in hex, use calc.exe from Windows in Programmer mode to calculate hex values.)'+#13#10+
     ''+#13#10+
-    'Back to the tutorial, click OK and the address will be added, If all went right the address will show P->xxxxxxx, with '+
-    'xxxxxxx being the address of the value you found. If thats not right, you''ve done something wrong.'+#13#10+
-    'Now, change the value using the pointer you added in 5000 and freeze it. Then click Change pointer, and if all went '+#13#10+
-    'right the next button will become visible.'+#13#10+
+    'Back to the tutorial, click OK and the address will be added. If all went right the address will show P->xxxxxxx, with '+
+    'xxxxxxx being the address of the value you found. If that''s not right, you''ve done something wrong.'+#13#10+
+    'Now, change the value using the pointer you added in to 5000 and click in the ''Active'' coloumn to freeze it. Then click '+
+	'Change pointer, and if all went right the Next button will become visible.'+#13#10+
     ''+#13#10+
     ''+#13#10+
     'extra:'+#13#10+
-    'And you could also use the pointer scanner to find the pointer to this address';
+    'You could also use the pointer scanner to find the pointer to this address. https://cheatengine.org/help/pointer-scan.htm';
   rsDontFuckingFreezeThePointer = 'I''m sorry, but freezing the pointer is not'
     +' really a functional solution';
 
@@ -201,7 +203,8 @@ begin
   end;
   i^:=100;
 
-  memo1.lines.text:=rstutorialStep6;
+  caption:=altnamer(caption);
+  memo1.lines.text:=altnamer(rstutorialStep6);
   memo1.Lines.Insert(0, Format(rsStep6PointersPW, [inttostr(0)+inttostr(98712)]));
   memo1.SelStart:=0;
   font.size:=12;

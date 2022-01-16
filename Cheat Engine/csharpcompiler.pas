@@ -38,7 +38,7 @@ function compilecsharp(script: string; references: tstringlist; coreAssembly: st
 implementation
 
 {$ifndef standalonetest}
-uses cefuncproc, globals;
+uses cefuncproc, globals, mainunit2;
 {$endif}
 
 var counter: integer;
@@ -99,7 +99,7 @@ begin
     usedtempdir:=GetTempDir;
   {$endif}
 
-  usedtempdir:=IncludeTrailingPathDelimiter(usedtempdir)+'Cheat Engine'+pathdelim;
+  usedtempdir:=IncludeTrailingPathDelimiter(usedtempdir)+strCheatEngine+pathdelim;
 
   //first clean up my own crap
   for i:=counter-1 downto 0 do
@@ -171,7 +171,7 @@ begin
     usedtempdir:=GetTempDir;
   {$endif}
 
-  usedtempdir:=IncludeTrailingPathDelimiter(usedtempdir)+'Cheat Engine'+pathdelim;
+  usedtempdir:=IncludeTrailingPathDelimiter(usedtempdir)+strCheatEngine+pathdelim;
 
   inc(counter);
   filename:=usedtempdir+'ce-cscode-'+inttostr(getcurrentprocessid)+'-'+inttostr(counter)+'.dll';

@@ -163,11 +163,11 @@ begin
       if symhandler.getAddressFromName('vdso.clock_gettime', true,err)>0 then //prefered
         fname:='vdso.clock_gettime'
       else
-      if symhandler.getAddressFromName('librt.clock_gettime', true, err)>0 then //secondary
-        fname:='librt.clock_gettime'
-      else
       if symhandler.getAddressFromName('libc.clock_gettime', true, err)>0 then //seen this on android
         fname:='libc.clock_gettime'
+      else
+      if symhandler.getAddressFromName('librt.clock_gettime', true, err)>0 then //secondary
+        fname:='librt.clock_gettime'
       else
       if symhandler.getAddressFromName('clock_gettime', true, err)>0 then //really nothing else ?
         fname:='clock_gettime'
@@ -187,7 +187,7 @@ begin
           generateAPIHookScript(script, fname, 'new_clock_gettime', 'real_clock_gettime');
 
           try
-            //Clipboard.AsText:=script.text;
+           // Clipboard.AsText:=script.text;
             autoassemble(script,false);
           except
           end;

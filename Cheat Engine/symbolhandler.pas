@@ -460,7 +460,7 @@ uses Assemblerunit, driverlist, LuaHandler, lualib, lua, lauxlib,
   disassemblerComments, StructuresFrm2, networkInterface, networkInterfaceApi,
   ProcessHandlerUnit, Globals, Parsers, MemoryQuery, LuaCaller,
   UnexpectedExceptionsHelper, frmSymbolEventTakingLongUnit, MainUnit, addresslist,
-  MemoryRecordUnit;
+  MemoryRecordUnit, mainunit2;
 {$endif}
 
 
@@ -1515,7 +1515,7 @@ begin
     else
       usedtempdir:=GetTempDir;
 
-    symbolpath:=usedtempdir+'Cheat Engine Symbols'+pathdelim;
+    symbolpath:=usedtempdir+strCheatEngine+' Symbols'+pathdelim;
     ForceDirectory(symbolpath);
 
     InitializeSQLite;
@@ -2790,15 +2790,14 @@ begin
         end;
 
         modulecount:=mpl.count;
-        if modulecount=0 then modulecount:=1;
 
         enumeratedModules:=0;
         for i:=0 to modulecount-1 do
         begin
           modinfo:=pmodinfo(mpl.Objects[i]);
 
-
-          c.enumSymbolsFromFile(self.owner.modulelist[i].modulepath, modinfo^.baseaddress, NetworkES);
+          if self.owner.modulelist[i].elfpart=0 then
+            c.enumSymbolsFromFile(self.owner.modulelist[i].modulepath, modinfo^.baseaddress, NetworkES);
 
           inc(enumeratedModules);
           fprogress:=ceil((i/modulecount)*100);
@@ -4942,8 +4941,11 @@ begin
                   symbollistsMREW.Beginread;
                   for j:=0 to length(symbollists)-1 do
                   begin
-                    si:=symbollists[j].FindSymbol(tokens[i]);
-                    if si<>nil then break;
+                    if (symbollists[j].PID=0) or (processid=symbollists[j].PID) then
+                    begin
+                      si:=symbollists[j].FindSymbol(tokens[i]);
+                      if si<>nil then break;
+                    end;
                   end;
 
                   symbollistsMREW.EndRead;
@@ -5540,12 +5542,19 @@ begin
                     {$endif}
                   end;
                   {$endif}
+
+
+                  if processhandler.is64Bit<>newmodulelist[newmodulelistpos].is64bitmodule then
+                    newmodulelist[newmodulelistpos].modulename:='_'+newmodulelist[newmodulelistpos].modulename;
+
                 end
                 else
                 begin
                   newmodulelist[newmodulelistpos].is64bitmodule:=processhandler.is64Bit;
                   if pos('/system/',lowercase(x))=1 then //android thingy
                     newmodulelist[newmodulelistpos].isSystemModule:=true;
+
+                  newmodulelist[newmodulelistpos].elfpart:=me32.GlblcntUsage;
                 end;
 
                 if (not newmodulelist[newmodulelistpos].isSystemModule) and (commonModuleList<>nil) then //check if it's a common module (e.g nvidia physx dll's)
@@ -6070,7 +6079,7 @@ begin
   reg:=Tregistry.Create; //do this as the settings may not have been loaded yet
   try
     Reg.RootKey := HKEY_CURRENT_USER;
-    if Reg.OpenKey('\Software\Cheat Engine',false) then
+    if Reg.OpenKey('\Software\'+strCheatEngine,false) then
     begin
       if reg.ValueExists('Don''t use tempdir') then
         dontusetempdir:=reg.ReadBool('Don''t use tempdir');
@@ -6116,7 +6125,7 @@ begin
   if usedtempdir[length(usedtempdir)]<>PathDelim then
     usedtempdir:=usedtempdir+PathDelim;
 
-  databasepath:=usedtempdir+'Cheat Engine Symbols'+pathdelim+'structures.sqlite';
+  databasepath:=usedtempdir+strCheatEngine+' Symbols'+pathdelim+'structures.sqlite';
 end;
 
 initialization

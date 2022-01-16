@@ -328,7 +328,7 @@ implementation
 {$R *.lfm}
 
 uses symbolhandler, symbolhandlerstructs, frmSelectionlistunit, cpuidUnit, MemoryBrowserFormUnit,
-  AdvancedOptionsUnit, vmxfunctions, LuaHandler, frmHotkeyExUnit;
+  AdvancedOptionsUnit, vmxfunctions, LuaHandler, frmHotkeyExUnit, mainunit2;
 
 resourcestring
 rsRecording2 = 'Recording';
@@ -1874,7 +1874,7 @@ begin
 
   reg:=TRegistry.Create;
   try
-    if Reg.OpenKey('\Software\Cheat Engine',false) then
+    if Reg.OpenKey('\Software\'+strCheatEngine,false) then
     begin
       Reg.WriteString('Ultimap2 Folder', deTargetFolder.Directory);
       Reg.WriteBool('Ultimap2 Keep Trace Files', cbDontDeleteTraceFiles.checked);
@@ -2016,7 +2016,7 @@ begin
 
   reg:=TRegistry.Create;
   try
-    if Reg.OpenKey('\Software\Cheat Engine',false) then
+    if Reg.OpenKey('\Software\'+strCheatEngine,false) then
     begin
       if Reg.ValueExists('Ultimap2 Folder') then
         deTargetFolder.Directory:=Reg.ReadString('Ultimap2 Folder');

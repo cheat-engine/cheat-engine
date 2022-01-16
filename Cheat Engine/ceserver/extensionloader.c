@@ -548,7 +548,7 @@ printf("After wait 2. PID=%d\n", pid);
      debug_log("[%lx]=%lx", newregs.rsp, returnaddress);
 
 
-      newregs.rip=dlopen; //+2 //(test)
+      newregs.rip=dlopen;
       newregs.rax=0;
       newregs.rdi=str;
       newregs.rsi=RTLD_NOW;
@@ -787,6 +787,8 @@ printf("After wait 2. PID=%d\n", pid);
 
      debug_log("End...\n");
 
+     return 1;
+
 }
 
 int loadCEServerExtension(HANDLE hProcess)
@@ -799,7 +801,7 @@ int loadCEServerExtension(HANDLE hProcess)
 
     if (p->isDebugged)
     {
-      debug_log("this process id being debugged\n");
+      debug_log("this process is being debugged\n");
       //make sure this is executed by the debugger thread
       if (p->debuggerThreadID!=pthread_self())
       {

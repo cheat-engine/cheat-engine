@@ -81,6 +81,7 @@ type
     ESIlabel: TLabel;
     ESlabel: TLabel;
     ESPlabel: TLabel;
+    FontDialog1: TFontDialog;
     FSlabel: TLabel;
     GSlabel: TLabel;
     ftImageList: TImageList;
@@ -91,6 +92,8 @@ type
     MenuItem1: TMenuItem;
     MenuItem2: TMenuItem;
     MenuItem3: TMenuItem;
+    MenuItem7: TMenuItem;
+    N1: TMenuItem;
     miRealignCompare: TMenuItem;
     miNewTrace: TMenuItem;
     miOpenTraceForCompare: TMenuItem;
@@ -137,6 +140,7 @@ type
       Y: Integer);
     procedure MenuItem5Click(Sender: TObject);
     procedure MenuItem6Click(Sender: TObject);
+    procedure MenuItem7Click(Sender: TObject);
     procedure miNewTraceClick(Sender: TObject);
     procedure miOpenTraceForCompareClick(Sender: TObject);
     procedure miLoadClick(Sender: TObject);
@@ -164,7 +168,7 @@ type
 
     comparetv: TTreeView;
 
-    traceaddress: dword;
+   // traceaddress: dword;
     fpp: TfrmFloatingPointPanel;
     isConfigured: boolean;
     dereference: boolean;
@@ -241,7 +245,8 @@ uses  LuaByteTable, clipbrd, CEDebugger, debughelper, MemoryBrowserFormUnit, frm
   ProcessHandlerUnit, Globals, Parsers, strutils, CEFuncProc,
   LuaHandler, symbolhandler, byteinterpreter,
   tracerIgnore, LuaForm, lua, lualib,lauxlib, LuaClass,vmxfunctions, DBK32functions,
-  DebuggerInterfaceAPIWrapper, DBVMDebuggerInterface;
+  DebuggerInterfaceAPIWrapper, DBVMDebuggerInterface, mainunit2, fontSaveLoadRegistry,
+  Registry;
 
 resourcestring
   rsSearch = 'Search';
@@ -708,19 +713,25 @@ end;
 
 procedure TfrmTracer.FormCreate(Sender: TObject);
 var
-    x: array of integer;
+  x: array of integer;
+  reg: TRegistry;
 begin
   //set a breakpoint and when that breakpoint gets hit trace a number of instructions
-  if fskipconfig=false then
-  begin
-    miNewTrace.Click;
-
-
-  end;
-
-
   setlength(x,0);
   loadedformpos:=loadformposition(self,x);
+
+  if length(x)>1 then
+    panel1.Width:=x[0];
+
+
+  reg:=Tregistry.Create;
+  try
+    if reg.OpenKey('\Software\'+strCheatEngine+'\TracerTree '+inttostr(screen.PixelsPerInch)+'\Font'+darkmodestring,false) then
+      LoadFontFromRegistry(lvtracer.Font, reg);
+  except
+  end;
+
+  reg.free;
 
 end;
 
@@ -1004,6 +1015,25 @@ begin
   end;
 end;
 
+procedure TfrmTracer.MenuItem7Click(Sender: TObject);
+var reg: TRegistry;
+begin
+  fontdialog1.Font.assign(lvtracer.font);
+  if fontdialog1.execute then
+  begin
+    lvtracer.font.assign(fontdialog1.font);
+
+    reg:=Tregistry.Create;
+    try
+      if reg.OpenKey('\Software\'+strCheatEngine+'\TracerTree '+inttostr(screen.PixelsPerInch)+'\Font'+darkmodestring,true) then
+        SaveFontToRegistry(lvTracer.Font, reg);
+    except
+    end;
+
+    reg.free;
+  end;
+end;
+
 procedure TfrmTracer.DBVMTraceDone(sender: TObject);
 var
   desc: PTracerListDescriptor;
@@ -1249,7 +1279,13 @@ var tcount: integer;
     newpages: qword;
 
     memneeded: integer;
+    StayInsideModule: boolean;
 begin
+  if (owner is TMemoryBrowser) then
+    fromaddress:=(owner as TMemoryBrowser).disassemblerview.SelectedAddress
+  else
+    fromaddress:=memorybrowser.disassemblerview.SelectedAddress;
+
   if frmTracerConfig=nil then
     frmTracerConfig:=TfrmTracerConfig.create(application);
 
@@ -1257,6 +1293,11 @@ begin
   begin
     DataTrace:=fDataTrace;
     breakpointmethod:=defaultBreakpointMethod;
+
+    cbStayInsideInitialModule.enabled:=symhandler.inModule(fromaddress);
+    if cbStayInsideInitialModule.enabled=false then
+      cbStayInsideInitialModule.checked:=false;
+
     if showmodal=mrok then
     begin
 
@@ -1283,6 +1324,8 @@ begin
       stepover:=cbStepOver.checked;
       nosystem:=cbSkipSystemModules.checked;
 
+      StayInsideModule:=cbStayInsideInitialModule.checked;
+
 
 
       {$ifdef windows}
@@ -1292,10 +1335,7 @@ begin
 
 
         //setup dbvm trace
-        if (owner is TMemoryBrowser) then
-          fromaddress:=(owner as TMemoryBrowser).disassemblerview.SelectedAddress
-        else
-          fromaddress:=memorybrowser.disassemblerview.SelectedAddress;
+
 
         if cbDBVMTriggerCOW.checked then
         begin
@@ -1410,9 +1450,9 @@ begin
         else
         begin
           if (owner is TMemoryBrowser) then
-            debuggerthread.setBreakAndTraceBreakpoint(self, (owner as TMemoryBrowser).disassemblerview.SelectedAddress, bptExecute, breakpointmethod, 1, tcount, startcondition, stopcondition, StepOver, Nosystem)
+            debuggerthread.setBreakAndTraceBreakpoint(self, (owner as TMemoryBrowser).disassemblerview.SelectedAddress, bptExecute, breakpointmethod, 1, tcount, startcondition, stopcondition, StepOver, Nosystem, stayinsidemodule)
           else
-            debuggerthread.setBreakAndTraceBreakpoint(self, memorybrowser.disassemblerview.SelectedAddress, bptExecute, breakpointmethod, 1, tcount, startcondition, stopcondition, StepOver, nosystem);
+            debuggerthread.setBreakAndTraceBreakpoint(self, memorybrowser.disassemblerview.SelectedAddress, bptExecute, breakpointmethod, 1, tcount, startcondition, stopcondition, StepOver, nosystem, StayInsideModule);
         end;
       end;
     end;
@@ -1433,8 +1473,11 @@ begin
     if tv.Items[i].Data<>nil then
     begin
       d:=TTraceDebugInfo(tv.Items[i].Data);
-      tv.Items[i].Data:=nil;
-      d.Free;
+      if d<>nil then
+      begin
+        tv.Items[i].Data:=nil;
+        d.Free;
+      end;
     end;
   end;
 end;
@@ -1475,12 +1518,13 @@ begin
       m.free;
 
       if version<>{$ifdef cpu64}1{$else}0{$endif} then
-        raise exception.create('This trace was made with the '+{$ifdef cpu64}'32'{$else}'64'{$endif}+'-bit version of cheat engine. You need to use that version to see the register values and stacktrace');
+        raise exception.create('This trace was made with the '+{$ifdef cpu64}'32'{$else}'64'{$endif}+'-bit version of '+strCheatEngine+'. You need to use that version to see the register values and stacktrace');
 
       for i:=0 to comparetv.Items.Count-1 do
       begin
         comparetv.Items[i].Data:=TTraceDebugInfo.createFromStream(f);
-        TTraceDebugInfo(lvTracer.items[i].data).compareindex:=i;
+        if i<lvtracer.items.Count then
+          TTraceDebugInfo(lvTracer.items[i].data).compareindex:=i;
       end;
 
       miRealignCompare.enabled:=true;
@@ -1536,7 +1580,7 @@ begin
       m.free;
 
       if version<>{$ifdef cpu64}1{$else}0{$endif} then
-        raise exception.create('This trace was made with the '+{$ifdef cpu64}'32'{$else}'64'{$endif}+'-bit version of cheat engine. You need to use that version to see the register values and stacktrace');
+        raise exception.create('This trace was made with the '+{$ifdef cpu64}'32'{$else}'64'{$endif}+'-bit version of '+strCheatEngine+'. You need to use that version to see the register values and stacktrace');
 
       for i:=0 to lvTracer.Items.Count-1 do
         lvTracer.Items[i].Data:=TTraceDebugInfo.createFromStream(f);
@@ -1912,11 +1956,6 @@ begin
   if debuggerthread<>nil then
     debuggerthread.stopBreakAndTrace(self);
 
-
-
-
-
-
   if comparetv<>nil then
   begin
     cleanuptv(comparetv);
@@ -1943,7 +1982,9 @@ begin
 end;
 
 procedure TfrmTracer.FormDestroy(Sender: TObject);
+var x: array of integer;
 begin
+
   if da<>nil then
     da.free;
 
@@ -1952,7 +1993,10 @@ begin
     dacr3.free;
   {$endif}
 
-  saveformposition(self);
+  setlength(x,1);
+  x[0]:=panel1.width;
+
+  saveformposition(self,x);
 end;
 
 procedure TfrmTracer.configuredisplay;
@@ -2048,7 +2092,7 @@ begin
       end else ebxlabel.Font.Color:=clWindowText;
 
       temp:=prefix+'CX '+IntToHex(context.{$ifdef cpu64}rcx{$else}ecx{$endif},processhandler.hexdigitpreference);
-      if (t2<>nil) and (t.c.{$ifdef cpu64}rcx{$else}Ecx{$endif}<>t2.c.{$ifdef cpu64}rax{$else}Eax{$endif}) then temp:=temp+' <> '+IntToHex(t2.c.{$ifdef cpu64}rcx{$else}Ecx{$endif},processhandler.hexdigitpreference);
+      if (t2<>nil) and (t.c.{$ifdef cpu64}rcx{$else}Ecx{$endif}<>t2.c.{$ifdef cpu64}rcx{$else}Ecx{$endif}) then temp:=temp+' <> '+IntToHex(t2.c.{$ifdef cpu64}rcx{$else}Ecx{$endif},processhandler.hexdigitpreference);
       if temp<>eCxlabel.Caption then
       begin
         eCXlabel.Font.Color:=clred;

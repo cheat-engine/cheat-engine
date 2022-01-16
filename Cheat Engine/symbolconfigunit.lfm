@@ -281,7 +281,7 @@ object frmSymbolhandler: TfrmSymbolhandler
   end
   object PopupMenu2: TPopupMenu
     Images = scImageList
-    Left = 184
+    Left = 192
     Top = 328
     object miUnregister: TMenuItem
       Caption = 'Unregister'

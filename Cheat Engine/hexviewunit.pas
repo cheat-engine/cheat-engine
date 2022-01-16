@@ -187,6 +187,7 @@ type
     procedure mbCanvasDoubleClick(Sender: TObject);
     function getAddressFromPosition(x, y: integer; var region: THexRegion): ptrUint;
     procedure RefocusIfNeeded;
+    procedure makeVisible(visibleAddress: ptruint);
     procedure HandleEditKeyPress(wkey: tutf8char);
     procedure setDisplayType(newdt: TDisplaytype);
     procedure setCharEncoding(newce: TCharEncoding);
@@ -223,6 +224,7 @@ type
     statusbar: TStatusbar;
     lastrendertime: qword;
     procedure LockRowsize(size: integer=0);
+    procedure setLockedRowsize(s: integer);
     procedure UnlockRowsize;
     procedure CopySelectionToClipboard;
     procedure GetSelectionRange(var start: ptruint; var stop: ptruint);
@@ -275,7 +277,7 @@ type
     property PaintBox: TPaintbox read mbCanvas;
     property OSBitmap: TBitmap read offscreenBitmap;
     property HexFont: TFont read fHexFont write setHexFont;
-    property LockedRowSize: integer read fLockedRowSize write fLockedRowSize;
+    property LockedRowSize: integer read fLockedRowSize write setLockedRowsize;
     property spaceBetweenLines: integer read fspaceBetweenLines write fspaceBetweenLines;
     property UseRelativeBase: boolean read fUseRelativeBase write fUseRelativeBase;
     property RelativeBase: ptruint read fRelativeBase write fRelativeBase;
@@ -467,9 +469,16 @@ end;
 procedure THexView.LockRowsize(size: integer=0);
 begin
   if size=0 then
-    flockedRowSize:=bytesPerLine
+    LockedRowSize:=bytesPerLine
   else
-    flockedRowSize:=size;
+    LockedRowSize:=size;
+end;
+
+procedure THexview.setLockedRowsize(s: integer);
+begin
+  flockedRowSize:=s;
+  hexviewResize(self);
+  update;
 end;
 
 procedure THexView.UnlockRowsize;
@@ -517,13 +526,33 @@ begin
 
   if newdt=dtByteDec then
   begin
-    byteSize:=offscreenbitmap.Canvas.TextWidth('XXX X'); //byte space and the character it represents
-    byteSizeWithoutChar:=offscreenbitmap.Canvas.TextWidth('XXX ');
+    {$ifdef USELAZFREETYPE}
+    if (FTFont<>nil) then
+    begin
+      byteSize:=ceil(FTFont.TextWidth('XXX X'));
+      byteSizeWithoutChar:=ceil(FTFont.TextWidth('XXX '));
+    end
+    else
+    {$endif}
+    begin
+      byteSize:=offscreenbitmap.Canvas.TextWidth('XXX X'); //byte space and the character it represents
+      byteSizeWithoutChar:=offscreenbitmap.Canvas.TextWidth('XXX ');
+    end;
   end
   else
   begin
-    byteSize:=offscreenbitmap.Canvas.TextWidth('XX X'); //byte space and the character it represents
-    byteSizeWithoutChar:=offscreenbitmap.Canvas.TextWidth('XX ');
+    {$ifdef USELAZFREETYPE}
+    if (FTFont<>nil) then
+    begin
+      byteSize:=ceil(FTFont.TextWidth('XX X'));
+      byteSizeWithoutChar:=ceil(FTFont.TextWidth('XX '));
+    end
+    else
+    {$endif}
+    begin
+      byteSize:=offscreenbitmap.Canvas.TextWidth('XX X'); //byte space and the character it represents
+      byteSizeWithoutChar:=offscreenbitmap.Canvas.TextWidth('XX ');
+    end;
   end;
 
 
@@ -767,31 +796,43 @@ begin
   {$ENDIF}
 end;
 
-procedure THexView.RefocusIfNeeded;
+procedure THexView.makeVisible(visibleAddress: ptruint);
 var lastaddress: ptrUint;
-beforeoffset: ptrUint;
-afterOffset: ptrUint;
+beforeoffset: ptrint;
+afterOffset: ptrint;
 column: integer;
+rows: integer;
+begin
+  //check if the address in in the visible section, if not, adjust
+  lastaddress:=fAddress+bytesperline*(totallines-2);
+  if not inrangex(visibleAddress, faddress, lastaddress) then
+  begin
+    //outside, find out if it's above or below
+
+    //column:=(selected - fAddress) mod bytesperline;
+    if visibleAddress<faddress then
+    begin
+      //go up
+      rows:=1+((faddress-visibleAddress) div bytesperline);
+      address:=(address-bytesperline*rows);
+    end
+    else
+    begin
+      //go down
+      rows:=1+((visibleAddress-lastaddress) div bytesperline);
+      address:=(address+bytesperline*rows);
+    end;
+  end;
+
+end;
+
+procedure THexView.RefocusIfNeeded;
 begin
   if isEditing then
   begin
     //check if the selected address in in the visible section, if not, adjust
-    lastaddress:=fAddress+bytesperline*(totallines-2);
-    if not inrangex(selected, faddress, lastaddress) then
-    begin
-      //outside, find out if it's above or below
-
-      column:=(selected - fAddress) mod bytesperline;
-
-      beforeOffset:=fAddress-selected;
-      afterOffset:=selected-lastaddress;
-      if beforeOffset>afteroffset then
-        address:=Address+afterOffset-column
-      else
-        address:=Address-beforeOffset-column;
-
-      update;
-    end;
+    makeVisible(selected);
+    update;
   end;
 end;
 
@@ -920,13 +961,24 @@ begin
 
       vk_up:
       begin
-        if isEditing then
+        if (shift=[ssShift]) then
         begin
-          dec(selected,bytesPerLine);
-          selected2:=selected+1;
+          selected2:=selected2-bytesPerLine;
+          fhasSelection:=true;
+          isEditing:=false;
+          makeVisible(selected2);
         end
         else
-          address:=address-bytesPerLine;
+        begin
+
+          if isEditing then
+          begin
+            dec(selected,bytesPerLine);
+            selected2:=selected+1;
+          end
+          else
+            address:=address-bytesPerLine;
+        end;
 
 
         update;
@@ -934,6 +986,14 @@ begin
 
       vk_down:
       begin
+        if (shift=[ssShift]) then
+        begin
+          selected2:=selected2+bytesPerLine;
+          fhasSelection:=true;
+          isEditing:=false;
+          makeVisible(selected2);
+        end
+        else
         if isEditing then
         begin
           inc(selected,bytesPerLine);
@@ -947,6 +1007,14 @@ begin
 
       vk_left:
       begin
+        if (shift=[ssShift]) then
+        begin
+          selected2:=selected2-1;
+          fhasSelection:=true;
+          isEditing:=false;
+          makeVisible(selected2);
+        end
+        else
         if isEditing then
         begin
           if editingType=hrChar then
@@ -983,6 +1051,14 @@ begin
 
       vk_right:
       begin
+        if (shift=[ssShift]) then
+        begin
+          selected2:=selected2+1;
+          fhasSelection:=true;
+          isEditing:=false;
+          makeVisible(selected2);
+        end
+        else
         if isEditing then
         begin
           if editingType=hrChar then
@@ -1019,6 +1095,14 @@ begin
 
       vk_prior:
       begin
+        if (shift=[ssShift]) then
+        begin
+          selected2:=selected2-bytesPerLine*(totallines-1);
+          fhasSelection:=true;
+          isEditing:=false;
+          makeVisible(selected2);
+        end
+        else
         if isEditing then
           dec(selected,bytesPerLine*(totallines-1))
         else
@@ -1029,6 +1113,14 @@ begin
 
       vk_next:
       begin
+        if (shift=[ssShift]) then
+        begin
+          selected2:=selected2+bytesPerLine*(totallines-1);
+          fhasSelection:=true;
+          isEditing:=false;
+          makeVisible(selected2);
+        end
+        else
         if isEditing then
           inc(selected,bytesPerLine*(totallines-1))
         else
@@ -1126,7 +1218,7 @@ begin
         vartype:=vtDword;
     end;
 
-    mainform.addresslist.addAddressManually(inttohex(selected,8), Vartype, ctname);
+    mainform.addresslist.addAddressManually(inttohex(selected,8), Vartype, ctname, true);
   end;
   {$ENDIF}
 
@@ -1802,6 +1894,7 @@ begin
   begin
     //get memory page info
     p.baseaddress:=a;
+    x:=0;
     p.readable:=readprocessmemory(processhandle, pointer(a), @p.data[0], 4096,x);
     if p.readable then
 {$IFDEF STANDALONEHV}
@@ -2272,9 +2365,14 @@ begin
   if Parent=nil then exit;
 
   if displayType=dtByte then
-    bps:=fbytesPerSeperator
+  begin
+    bps:=fbytesPerSeperator;
+    if (bps<>0) and ((bytesperline mod bps)>0) then
+      bps:=0;
+  end
   else
     bps:=0;
+
 
   case bps of
     8: seperatorshift:=3;
@@ -2375,7 +2473,12 @@ begin
 
   charstart:=bytestart+bytesperline*byteSizeWithoutChar;
 
-
+  case displayType of //check if unaligned, and if so, add some extra space
+    dtWord, dtWordDec: if (bytesperline mod 2)>0 then inc(charstart, byteSizeWithoutChar*(bytesperline mod 2));
+    dtDWord, dtDwordDec, dtSingle: if (bytesperline mod 4)>0 then inc(charstart, byteSizeWithoutChar*(bytesperline mod 4));
+    dtQword, dtQwordDec, dtDouble: if (bytesperline mod 8)>0 then inc(charstart, byteSizeWithoutChar*(bytesperline mod 8));
+    dtCustom: if (bytesperline mod fcustomtype.bytesize)>0 then inc(charstart, byteSizeWithoutChar*(bytesperline mod fcustomtype.bytesize));
+  end;
 
   for i:=0 to bytesperline-1 do
   begin
@@ -2726,7 +2829,6 @@ begin
     else
       statusbar.panels[0].Text:=format('%.8x %s',[SelectionStart, s])
   end;
-
 
   lastrendertime:=gettickcount64-starttime;
 end;
@@ -3111,7 +3213,7 @@ begin
 
   statusbar:=TStatusBar.Create(self);
   statusbar.ParentFont:=true;
-  statusbar.AutoSize:=false;
+  statusbar.AutoSize:=true; //false;
   statusbar.Name:='statusbar';
   statusbar.SimplePanel:=false;
   statusbar.align:=alBottom;

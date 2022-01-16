@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CONFIG>
   <ProjectOptions>
-    <Version Value="10"/>
+    <Version Value="11"/>
     <PathDelim Value="\"/>
     <General>
       <MainUnit Value="0"/>
@@ -17,44 +17,40 @@
     <VersionInfo>
       <Language Value=""/>
       <CharSet Value=""/>
-      <StringTable ProductVersion=""/>
     </VersionInfo>
     <BuildModes Count="1">
       <Item1 Name="default" Default="True"/>
     </BuildModes>
     <PublishOptions>
       <Version Value="2"/>
-      <IgnoreBinaries Value="False"/>
-      <IncludeFileFilter Value="*.(pas|pp|inc|lfm|lpr|lrs|lpi|lpk|sh|xml)"/>
-      <ExcludeFileFilter Value="*.(bak|ppu|ppw|o|so);*~;backup"/>
     </PublishOptions>
     <RunParams>
-      <local>
-        <FormatVersion Value="1"/>
-      </local>
+      <FormatVersion Value="2"/>
+      <Modes Count="1">
+        <Mode0 Name="default"/>
+      </Modes>
     </RunParams>
-    <Units Count="4">
+    <Units Count="5">
       <Unit0>
         <Filename Value="Kernelmoduleunloader.lpr"/>
         <IsPartOfProject Value="True"/>
         <IsVisibleTab Value="True"/>
         <EditorIndex Value="1"/>
-        <TopLine Value="333"/>
-        <CursorPos X="26" Y="349"/>
+        <TopLine Value="294"/>
+        <CursorPos Y="327"/>
         <UsageCount Value="20"/>
         <Loaded Value="True"/>
       </Unit0>
       <Unit1>
         <Filename Value="..\multicpuexecution.pas"/>
         <IsPartOfProject Value="True"/>
-        <TopLine Value="43"/>
-        <CursorPos X="17" Y="8"/>
+        <CursorPos X="52" Y="12"/>
         <UsageCount Value="20"/>
         <Loaded Value="True"/>
       </Unit1>
       <Unit2>
         <Filename Value="C:\lazarus164\fpc\3.0.2\source\rtl\objpas\sysutils\filutilh.inc"/>
-        <EditorIndex Value="2"/>
+        <EditorIndex Value="3"/>
         <TopLine Value="151"/>
         <CursorPos X="11" Y="171"/>
         <UsageCount Value="10"/>
@@ -62,34 +58,142 @@
       </Unit2>
       <Unit3>
         <Filename Value="C:\lazarus164\fpc\3.0.2\source\rtl\win\sysutils.pp"/>
-        <EditorIndex Value="3"/>
+        <EditorIndex Value="4"/>
         <TopLine Value="350"/>
         <CursorPos X="3" Y="352"/>
         <UsageCount Value="10"/>
         <Loaded Value="True"/>
       </Unit3>
+      <Unit4>
+        <Filename Value="C:\development\fpc\rtl\inc\astrings.inc"/>
+        <EditorIndex Value="2"/>
+        <TopLine Value="197"/>
+        <CursorPos Y="215"/>
+        <UsageCount Value="10"/>
+        <Loaded Value="True"/>
+      </Unit4>
     </Units>
-    <JumpHistory Count="5" HistoryIndex="3">
+    <JumpHistory Count="30" HistoryIndex="29">
       <Position1>
         <Filename Value="Kernelmoduleunloader.lpr"/>
-        <Caret Line="12" Column="49"/>
+        <Caret Line="228" TopLine="210"/>
       </Position1>
       <Position2>
         <Filename Value="Kernelmoduleunloader.lpr"/>
-        <Caret Line="289" Column="22" TopLine="274"/>
+        <Caret Line="252" TopLine="235"/>
       </Position2>
       <Position3>
         <Filename Value="Kernelmoduleunloader.lpr"/>
-        <Caret Line="11" Column="3"/>
+        <Caret Line="253" TopLine="235"/>
       </Position3>
       <Position4>
         <Filename Value="Kernelmoduleunloader.lpr"/>
-        <Caret Line="347" Column="10" TopLine="333"/>
+        <Caret Line="278" TopLine="261"/>
       </Position4>
       <Position5>
-        <Filename Value="C:\lazarus164\fpc\3.0.2\source\rtl\win\sysutils.pp"/>
-        <Caret Line="352" Column="3" TopLine="350"/>
+        <Filename Value="Kernelmoduleunloader.lpr"/>
+        <Caret Line="279" TopLine="261"/>
       </Position5>
+      <Position6>
+        <Filename Value="Kernelmoduleunloader.lpr"/>
+        <Caret Line="302" TopLine="285"/>
+      </Position6>
+      <Position7>
+        <Filename Value="Kernelmoduleunloader.lpr"/>
+        <Caret Line="303" TopLine="285"/>
+      </Position7>
+      <Position8>
+        <Filename Value="Kernelmoduleunloader.lpr"/>
+        <Caret Line="305" TopLine="297"/>
+      </Position8>
+      <Position9>
+        <Filename Value="Kernelmoduleunloader.lpr"/>
+        <Caret Line="306" TopLine="297"/>
+      </Position9>
+      <Position10>
+        <Filename Value="Kernelmoduleunloader.lpr"/>
+        <Caret Line="316" Column="11" TopLine="297"/>
+      </Position10>
+      <Position11>
+        <Filename Value="Kernelmoduleunloader.lpr"/>
+        <Caret Line="151" TopLine="134"/>
+      </Position11>
+      <Position12>
+        <Filename Value="Kernelmoduleunloader.lpr"/>
+        <Caret Line="302" TopLine="285"/>
+      </Position12>
+      <Position13>
+        <Filename Value="Kernelmoduleunloader.lpr"/>
+        <Caret Line="303" TopLine="285"/>
+      </Position13>
+      <Position14>
+        <Filename Value="Kernelmoduleunloader.lpr"/>
+        <Caret Line="305" TopLine="285"/>
+      </Position14>
+      <Position15>
+        <Filename Value="Kernelmoduleunloader.lpr"/>
+        <Caret Line="306" TopLine="285"/>
+      </Position15>
+      <Position16>
+        <Filename Value="Kernelmoduleunloader.lpr"/>
+        <Caret Line="307" TopLine="285"/>
+      </Position16>
+      <Position17>
+        <Filename Value="Kernelmoduleunloader.lpr"/>
+        <Caret Line="317" Column="10" TopLine="306"/>
+      </Position17>
+      <Position18>
+        <Filename Value="Kernelmoduleunloader.lpr"/>
+        <Caret Line="123" TopLine="106"/>
+      </Position18>
+      <Position19>
+        <Filename Value="Kernelmoduleunloader.lpr"/>
+        <Caret Line="302" TopLine="285"/>
+      </Position19>
+      <Position20>
+        <Filename Value="Kernelmoduleunloader.lpr"/>
+        <Caret Line="303" TopLine="285"/>
+      </Position20>
+      <Position21>
+        <Filename Value="Kernelmoduleunloader.lpr"/>
+        <Caret Line="305" TopLine="285"/>
+      </Position21>
+      <Position22>
+        <Filename Value="Kernelmoduleunloader.lpr"/>
+        <Caret Line="306" TopLine="294"/>
+      </Position22>
+      <Position23>
+        <Filename Value="Kernelmoduleunloader.lpr"/>
+        <Caret Line="307" TopLine="294"/>
+      </Position23>
+      <Position24>
+        <Filename Value="Kernelmoduleunloader.lpr"/>
+        <Caret Line="302" TopLine="294"/>
+      </Position24>
+      <Position25>
+        <Filename Value="Kernelmoduleunloader.lpr"/>
+        <Caret Line="318" TopLine="294"/>
+      </Position25>
+      <Position26>
+        <Filename Value="Kernelmoduleunloader.lpr"/>
+        <Caret Line="328" TopLine="303"/>
+      </Position26>
+      <Position27>
+        <Filename Value="Kernelmoduleunloader.lpr"/>
+        <Caret Line="330" TopLine="303"/>
+      </Position27>
+      <Position28>
+        <Filename Value="Kernelmoduleunloader.lpr"/>
+        <Caret Line="331" TopLine="303"/>
+      </Position28>
+      <Position29>
+        <Filename Value="Kernelmoduleunloader.lpr"/>
+        <Caret Line="333" TopLine="305"/>
+      </Position29>
+      <Position30>
+        <Filename Value="Kernelmoduleunloader.lpr"/>
+        <Caret Line="455" Column="41" TopLine="457"/>
+      </Position30>
     </JumpHistory>
   </ProjectOptions>
   <CompilerOptions>
@@ -107,9 +211,9 @@
     </CodeGeneration>
     <Linking>
       <Debugging>
-        <GenerateDebugInfo Value="False"/>
         <UseLineInfoUnit Value="False"/>
         <StripSymbols Value="True"/>
+        <UseExternalDbgSyms Value="True"/>
       </Debugging>
       <LinkSmart Value="True"/>
       <Options>
@@ -120,15 +224,6 @@
     </Linking>
   </CompilerOptions>
   <Debugging>
-    <BreakPoints Count="1">
-      <Item1>
-        <Kind Value="bpkSource"/>
-        <WatchScope Value="wpsGlobal"/>
-        <WatchKind Value="wpkWrite"/>
-        <Source Value="Kernelmoduleunloader.lpr"/>
-        <Line Value="156"/>
-      </Item1>
-    </BreakPoints>
     <Exceptions Count="3">
       <Item1>
         <Name Value="EAbort"/>

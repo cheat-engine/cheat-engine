@@ -10,7 +10,7 @@ object frmDebuggerAttachTimeout: TfrmDebuggerAttachTimeout
   ClientWidth = 402
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '2.0.0.4'
+  LCLVersion = '2.0.6.0'
   object Label1: TLabel
     AnchorSideLeft.Control = Owner
     AnchorSideTop.Control = Owner
@@ -46,10 +46,24 @@ object frmDebuggerAttachTimeout: TfrmDebuggerAttachTimeout
     ModalResult = 3
     TabOrder = 0
   end
+  object lblStatus: TLabel
+    AnchorSideLeft.Control = Owner
+    AnchorSideLeft.Side = asrCenter
+    AnchorSideTop.Control = Owner
+    AnchorSideBottom.Control = Owner
+    AnchorSideBottom.Side = asrBottom
+    Left = 194
+    Height = 15
+    Top = 257
+    Width = 15
+    Anchors = [akLeft, akBottom]
+    Caption = '---'
+    ParentColor = False
+  end
   object Timer1: TTimer
     Interval = 250
     OnTimer = Timer1Timer
-    left = 14
-    top = 138
+    Left = 14
+    Top = 138
   end
 end

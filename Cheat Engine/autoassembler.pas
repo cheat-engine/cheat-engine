@@ -295,6 +295,7 @@ begin
   registeredsymbols.Duplicates:=dupIgnore;
 
   ccodesymbols:=TSymbolListHandler.create;
+  ccodesymbols.PID:=processid;
 
   allsymbols:=TStringList.create;
   allsymbols.CaseSensitive:=false;
@@ -1509,6 +1510,9 @@ var i,j,k,l,e: integer;
 
     dataForAACodePass2: TAutoAssemblerCodePass2Data;
 
+
+    debug_getAddressFromScript: boolean=false;
+
     function getAddressFromScript(name: string): ptruint;
     var
       found: boolean;
@@ -1516,38 +1520,90 @@ var i,j,k,l,e: integer;
     begin
       result:=0;
       found:=false;
+
+      if debug_getAddressFromScript then OutputDebugString('getAddressFromScript');
+
+      name:=uppercase(name);
+
+      if debug_getAddressFromScript then OutputDebugString('looking for '+name);
+
+
+      if debug_getAddressFromScript then OutputDebugString('allocs...');
+      for j:=0 to length(allocs)-1 do
+        if uppercase(allocs[j].varname)=name then
+          exit(allocs[j].address);
+
+      if debug_getAddressFromScript then OutputDebugString('kallocs...');
+      for j:=0 to length(kallocs)-1 do
+         if uppercase(kallocs[j].varname)=name then
+           exit(kallocs[j].address);
+
+
+      if debug_getAddressFromScript then OutputDebugString('labels...');
+      for j:=0 to length(labels)-1 do
+        if uppercase(labels[j].labelname)=name then
+        begin
+          if labels[j].defined then
+            exit(labels[j].address);
+        end;
+
+      if debug_getAddressFromScript then OutputDebugString('defines...');
+      for j:=0 to length(defines)-1 do
+        if uppercase(defines[j].name)=name then
+        begin
+          try
+            result:=symhandler.getAddressFromName(defines[j].whatever);
+            exit;
+          except
+          end;
+        end;
+
+      if debug_getAddressFromScript then OutputDebugString('symbols...');
       try
         if targetself then
           result:=selfsymhandler.getAddressFromName(name)
         else
           result:=symhandler.getAddressFromName(name);
-        exit;
+
+        if result<>0 then exit;
+
+        if debug_getAddressFromScript then OutputDebugString('result=0 and no exception....');
       except
       end;
 
-      name:=uppercase(name);
+      if debug_getAddressFromScript then OutputDebugString('not a registered symbol');
 
-      for j:=0 to length(labels)-1 do
-        if uppercase(labels[j].labelname)=name then
-          exit(labels[j].address);
 
-      for j:=0 to length(allocs)-1 do
-        if uppercase(allocs[j].varname)=name then
-          exit(allocs[j].address);
+      if debug_getAddressFromScript then OutputDebugString('not found');
+    end;
 
-      for j:=0 to length(kallocs)-1 do
-         if uppercase(kallocs[j].varname)=name then
-           exit(kallocs[j].address);
+    procedure handleCreateThreadAndWait(ctawi: integer);
+    begin
+      //create the thread and wait for it's result
+      testptr:=getAddressFromScript(createthreadandwait[ctawi].name);
 
-      for j:=0 to length(defines)-1 do
-        if uppercase(defines[j].name)=name then
-        begin
-          try
-            testptr:=symhandler.getAddressFromName(defines[j].whatever);
-            exit;
-          except
-          end;
+      threadhandle:=createremotethread(processhandle,nil,0,pointer(testptr),nil,0,bw);
+      ok2:=threadhandle>0;
+
+      if ok2 then
+      begin
+        {$ifdef windows}
+        try
+          k:=createthreadandwait[ctawi].timeout;
+          if k<=0 then y:=INFINITE else y:=k;
+
+          if WaitForSingleObject(threadhandle, y)<>WAIT_OBJECT_0 then
+            raise EAssemblerException.create('createthreadandwait did not execute properly');
+        finally
+          closehandle(threadhandle);
         end;
+        {$else}
+        sleep(5000); //todo: implement proper wait
+        {$endif}
+
+      end;
+
+      createthreadandwait[ctawi].position:=-1; //mark it as handled
     end;
 
 begin
@@ -1561,6 +1617,9 @@ begin
   setlength(defines,0);
   setlength(labels,0);
 
+  FillChar(dataForAACodePass2, sizeof(dataForAACodePass2),0);
+
+
   currentaddress:=0;
 
 
@@ -1570,6 +1629,8 @@ begin
     setlength(labels, disableinfo.allsymbols.count);
     for i:=0 to disableinfo.allsymbols.count-1 do
     begin
+      FillMemory(@labels[length(labels)-1],sizeof(labels[0]),0);
+
       labels[i].defined:=true;
       labels[i].address:=ptruint(disableinfo.allsymbols.Objects[i]);
       labels[i].labelname:=disableinfo.allsymbols[i];
@@ -1644,6 +1705,8 @@ begin
       //define the c-code symbol as an undefined labels
       j:=length(labels);
       setlength(labels, j+1);
+      ZeroMemory(@labels[j],sizeof(labels[j]));
+
       labels[j].labelname:=dataForAACodePass2.cdata.symbols[i].name;
       labels[j].defined:=false;
       labels[j].afterccode:=true;
@@ -1662,6 +1725,7 @@ begin
 
 
     strictmode:=false;
+    hastryexcept:=false;
     for i:=0 to code.count-1 do
     begin
       currentline:=uppercase(TrimRight(code[i]));
@@ -2284,7 +2348,7 @@ begin
 
 
 
-          if (disableinfo<>nil) and (uppercase(copy(currentline,1,17))='UNREGISTERSYMBOL(') then
+          if uppercase(copy(currentline,1,17))='UNREGISTERSYMBOL(' then
           begin
             //add this symbol to the register symbollist
             a:=pos('(',currentline);
@@ -2294,7 +2358,7 @@ begin
             begin
               s1:=trim(copy(currentline,a+1,b-a-1));
 
-              if s1='*' then
+              if (disableinfo<>nil) and (s1='*') then
               begin
                 j:=length(deletesymbollist);
                 setlength(deletesymbollist, j+ disableinfo.registeredsymbols.Count);
@@ -2377,8 +2441,8 @@ begin
                 j:=0;
                 while (j<length(labels)) and (length(labels[j].labelname)>=varsize) do
                 begin
-                  if labels[j].labelname=s1 then
-                    raise exception.Create(Format(rsIsBeingRedeclared, [s1]));
+                  //if labels[j].labelname=s1 then
+                  //  raise exception.Create(Format(rsIsBeingRedeclared, [s1]));
                   inc(j);
                 end;
 
@@ -2404,13 +2468,12 @@ begin
                 for k:=length(labels)-1 downto j+1 do
                   labels[k]:=labels[k-1];
 
-
+                ZeroMemory(@labels[l], sizeof(labels[l]));
                 labels[l].labelname:=s1;
                 labels[l].defined:=false;
 
                 setlength(labels[l].references,0);
                 setlength(labels[l].references2,0);
-
               end;
 
               setlength(assemblerlines,length(assemblerlines)-1);
@@ -2674,6 +2737,7 @@ begin
 
               j:=length(labels);
               setlength(labels,j+1);
+              ZeroMemory(@labels[j],sizeof(labels[j]));
 
               labels[j].labelname:=copy(currentline,1,length(currentline)-1);
               labels[j].assemblerline:=length(assemblerlines)-1;
@@ -2737,6 +2801,7 @@ begin
                     //define this potential label as a full label
                     k:=length(labels);
                     setlength(labels, k+1);
+                    ZeroMemory(@labels[k],sizeof(labels[k]));
                     labels[k].labelname:=potentiallabels[j];
                     labels[k].defined:=false;
                     labels[k].afterccode:=false;
@@ -3518,7 +3583,13 @@ begin
     begin
       dataForAACodePass2.cdata.address:=getAddressFromScript('ceinternal_autofree_ccode'); //warning: do not step over this with the debugger
       for i:=0 to length(dataForAACodePass2.cdata.references)-1 do
+      begin
         dataForAACodePass2.cdata.references[i].address:=getAddressFromScript(dataForAACodePass2.cdata.references[i].name);
+        if dataForAACodePass2.cdata.references[i].address=0 then
+        begin
+          OutputDebugString('Failure getting reference for '+dataForAACodePass2.cdata.references[i].name);
+        end;
+      end;
 
       if disableinfo<>nil then
         AutoassemblerCodePass2(dataForAACodePass2, disableinfo.ccodesymbols)
@@ -3668,33 +3739,7 @@ begin
         for j:=0 to assembled[i].createthreadandwait do
         begin
           if createthreadandwait[j].position<>-1 then
-          begin
-            //create the thread and wait for it's result
-            testptr:=getAddressFromScript(createthreadandwait[j].name);
-
-            threadhandle:=createremotethread(processhandle,nil,0,pointer(testptr),nil,0,bw);
-            ok2:=threadhandle>0;
-
-            if ok2 then
-            begin
-              {$ifdef windows}
-              try
-                k:=createthreadandwait[j].timeout;
-                if k<=0 then y:=INFINITE else y:=k;
-
-                if WaitForSingleObject(threadhandle, y)<>WAIT_OBJECT_0 then
-                  raise EAssemblerException.create('createthreadandwait did not execute properly');
-              finally
-                closehandle(threadhandle);
-              end;
-              {$else}
-              sleep(5000); //todo: implement proper wait
-              {$endif}
-
-            end;
-
-            createthreadandwait[j].position:=-1; //mark it as handled
-          end;
+            HandleCreateThreadAndWait(j);
         end;
       end;
     end;
@@ -3706,6 +3751,15 @@ begin
         ok2:=false;
     end;
     {$endif}
+
+    //handle the unhandled createthreadandwait blocks
+    for i:=0 to length(createthreadandwait)-1 do
+    begin
+      if createthreadandwait[i].position<>-1 then
+        HandleCreateThreadAndWait(i);
+    end;
+
+
 
 
 

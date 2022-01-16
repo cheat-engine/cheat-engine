@@ -155,9 +155,9 @@ int debug_log(const char * format , ...)
 }
 
 //Implementation for consistency with Android Studio.
-long safe_ptrace(int request, pid_t pid, void * addr, void * data)
+uintptr_t safe_ptrace(int request, pid_t pid, void * addr, void * data)
 {
-  int result;
+  uintptr_t result;
   errno = 0;
   result = ptrace(request, pid, addr, data);
   if(errno != 0)
@@ -169,8 +169,7 @@ long safe_ptrace(int request, pid_t pid, void * addr, void * data)
 
 int WakeDebuggerThread()
 {
-
-  sem_post(&sem_DebugThreadEvent);
+  return sem_post(&sem_DebugThreadEvent);
 }
 
 void mychildhandler(int signal, struct siginfo *info, void *context)
@@ -1928,12 +1927,14 @@ int WaitForDebugEvent(HANDLE hProcess, PDebugEvent devent, int timeout)
 
 #if defined __i386__ || defined __x86_64__
           //use DR6 to determine which bp (if possible)
-          uintptr_t DR0,DR1,DR2,DR3,DR7, IP;
+          uintptr_t DR0,DR1,DR2,DR3,DR7, IP, SP;
           regDR6 DR6;
 #if defined __i386__
           IP=safe_ptrace(PTRACE_PEEKUSER, p->debuggedThreadEvent.threadid, offsetof(struct user, regs.eip), 0);
+          SP=safe_ptrace(PTRACE_PEEKUSER, p->debuggedThreadEvent.threadid, offsetof(struct user, regs.esp), 0);
 #else
           IP=safe_ptrace(PTRACE_PEEKUSER, p->debuggedThreadEvent.threadid, offsetof(struct user, regs.rip), 0);
+          SP=safe_ptrace(PTRACE_PEEKUSER, p->debuggedThreadEvent.threadid, offsetof(struct user, regs.rsp), 0);
 #endif
           DR0=safe_ptrace(PTRACE_PEEKUSER, p->debuggedThreadEvent.threadid, offsetof(struct user, u_debugreg[0]), 0);
           DR1=safe_ptrace(PTRACE_PEEKUSER, p->debuggedThreadEvent.threadid, offsetof(struct user, u_debugreg[1]), 0);
@@ -1943,13 +1944,18 @@ int WaitForDebugEvent(HANDLE hProcess, PDebugEvent devent, int timeout)
           DR6.value=safe_ptrace(PTRACE_PEEKUSER, p->debuggedThreadEvent.threadid, offsetof(struct user, u_debugreg[6]), 0);
           DR7=safe_ptrace(PTRACE_PEEKUSER, p->debuggedThreadEvent.threadid, offsetof(struct user, u_debugreg[7]), 0);
 
-          debug_log("DR0=%lx\n",DR0);
-          debug_log("DR1=%lx\n",DR1);
-          debug_log("DR2=%lx\n",DR2);
-          debug_log("DR3=%lx\n",DR3);
-          debug_log("DR6=%lx\n",DR6.value);
-          debug_log("DR7=%lx\n",DR7);
-          debug_log("IP=%lx\n",IP);
+          debug_log("sizeof(dr0)=%d\n", sizeof(DR0));
+          debug_log("sizeof(long)=%d\n", sizeof(long));
+          debug_log("DR0=%p\n",(void*)DR0);
+          debug_log("DR1=%p\n",(void*)DR1);
+          debug_log("DR2=%p\n",(void*)DR2);
+          debug_log("DR3=%p\n",(void*)DR3);
+          debug_log("DR6=%p\n",(void*)(DR6.value));
+          debug_log("DR7=%p\n",(void*)DR7);
+          debug_log("IP=%p\n",(void*)IP);
+          debug_log("SP=%p\n",(void*)SP);
+
+
 
           p->debuggedThreadEvent.address=0; //something unexpected
           if (DR6.B0)
@@ -1968,7 +1974,6 @@ int WaitForDebugEvent(HANDLE hProcess, PDebugEvent devent, int timeout)
             p->debuggedThreadEvent.address=1;
 
 
-          safe_ptrace(PTRACE_POKEUSER, p->debuggedThreadEvent.threadid, offsetof(struct user, u_debugreg[6]), 0); //not sure if needed, or if this should be moved to continuefromdebugevent
 
 #endif
           debug_log("p->debuggedThreadEvent.address=%lx\n", p->debuggedThreadEvent.address);
@@ -2048,6 +2053,11 @@ int ContinueFromDebugEvent(HANDLE hProcess, int tid, int ignoresignal)
       {
         signal=0;
       }
+
+#if defined __i386__ || defined __x86_64__
+      safe_ptrace(PTRACE_POKEUSER, tid, offsetof(struct user, u_debugreg[6]), 0);
+#endif
+
 
       //printf("Continue %d with signal %d\n", tid, signal);
 
@@ -2171,12 +2181,16 @@ int WriteProcessMemoryDebug(HANDLE hProcess, PProcessData p, void *lpAddress, vo
 
       if (offset<size)
       {
-        debug_log("Still some bytes left: %d\n", size-offset);
+        debug_log("WPMD: Still some bytes left: %d\n", size-offset);
         //still a few bytes left
-        long int oldvalue=safe_ptrace(PTRACE_PEEKDATA, p->pid,  (void *)(uintptr_t)lpAddress+offset, (void*)0);
+        uintptr_t oldvalue=0;
+        oldvalue=safe_ptrace(PTRACE_PEEKDATA, p->pid,  (void *)(uintptr_t)lpAddress+offset, (void*)0);
         #ifdef __x86_64__
           //Even with 64 bits, peek_data can read only 4 bytes.
-          oldvalue += safe_ptrace(PTRACE_PEEKDATA, p->pid,  (void *)(uintptr_t)lpAddress+offset+4, (void*)0)*0x100000000;
+          debug_log("64-bit: oldvalue=%lx\n", oldvalue);
+          //oldvalue += safe_ptrace(PTRACE_PEEKDATA, p->pid,  (void *)(uintptr_t)lpAddress+offset+4, (void*)0)*0x100000000;
+
+          //debug_log("64-bit: oldvalue with full read=%lx\n", oldvalue);
         #endif
         unsigned char *oldbuf=(unsigned char *)&oldvalue;
         unsigned char *newmem=(unsigned char *)address;
@@ -2317,13 +2331,11 @@ int WriteProcessMemory(HANDLE hProcess, void *lpAddress, void *buffer, int size)
 
         if (offset<size)
         {
-        	printf("Still some bytes left: %d\n", size-offset);
+        	printf("WPM: Still some bytes left: %d\n", size-offset);
           //still a few bytes left
-          long int oldvalue=safe_ptrace(PTRACE_PEEKDATA, pid,  (void *)(uintptr_t)lpAddress+offset, (void*)0);
-          #ifdef __x86_64__
-            //Even with 64 bits, peek_data can read only 4 bytes.
-            oldvalue += safe_ptrace(PTRACE_PEEKDATA, p->pid,  (void *)(uintptr_t)lpAddress+offset+4, (void*)0)*0x100000000;
-          #endif
+        	uintptr_t oldvalue=0;
+        	oldvalue=safe_ptrace(PTRACE_PEEKDATA, pid,  (void *)(uintptr_t)lpAddress+offset, (void*)0);
+
           unsigned char *oldbuf=(unsigned char *)&oldvalue;
           unsigned char *newmem=(unsigned char *)address;
           int i;
@@ -3300,7 +3312,7 @@ BOOL Process32First(HANDLE hSnapshot, PProcessListEntry processentry)
 BOOL Module32Next(HANDLE hSnapshot, PModuleListEntry moduleentry)
 {
   //get the current iterator of the list and increase it. If the max has been reached, return false
-  debug_log("Module32First/Next(%d)\n", hSnapshot);
+ // debug_log("Module32First/Next(%d)\n", hSnapshot);
 
   if (GetHandleType(hSnapshot) == htTHSModule)
   {
@@ -3311,6 +3323,7 @@ BOOL Module32Next(HANDLE hSnapshot, PModuleListEntry moduleentry)
       moduleentry->baseAddress=ml->moduleList[ml->moduleListIterator].baseAddress;
       moduleentry->moduleName=ml->moduleList[ml->moduleListIterator].moduleName;
       moduleentry->moduleSize=ml->moduleList[ml->moduleListIterator].moduleSize;
+      moduleentry->part=ml->moduleList[ml->moduleListIterator].part;
 
       ml->moduleListIterator++;
 
@@ -3461,12 +3474,13 @@ HANDLE CreateToolhelp32Snapshot(DWORD dwFlags, DWORD th32ProcessID)
 
       PModuleListEntry mle=NULL;
       int phandle=OpenProcess(th32ProcessID);
-      int hasValidModuleSize=0;
 
 
 
       while (fgets(s, 511, f)) //read a line into s
       {
+
+        char *currentModule;
         unsigned long long start, stop;
         char memoryrange[64],protectionstring[32],modulepath[511];
         uint32_t magic;
@@ -3497,21 +3511,12 @@ HANDLE CreateToolhelp32Snapshot(DWORD dwFlags, DWORD th32ProcessID)
             }
           }
 
-          if ((mle) && (strcmp(modulepath, mle->moduleName)==0))
-          {
-            //same module as the last entry, adjust the size to encapsule this (may mark non module memory as module memory)
-            if (hasValidModuleSize==0)
-              mle->moduleSize=stop-(mle->baseAddress); //else use the already provided modulesize
-            continue;
-          }
-
           //new module, or not linkable
 
-//          debug_log("%llx : %s\n", start, modulepath);
+          mle=NULL;
 
-          //check if it starts with ELF
 
-           //printf("tempbuf=%s\n", tempbuf);
+          //check if it's readable
           i=ReadProcessMemory(phandle, (void *)start, &magic, 4);
           if (i==0)
           {
@@ -3519,22 +3524,33 @@ HANDLE CreateToolhelp32Snapshot(DWORD dwFlags, DWORD th32ProcessID)
             continue; //unreadable
           }
 
-          //printf("i=%d\n", i);
+          //check if this module is in the list. If so, mark it with a part tag
+          int part=0;
 
-          if (magic!=0x464c457f) //  7f 45 4c 46
+          //this is going to be slower than the original implementation. But lets assume cpu's have gotten faster by now
+
+          for (i=ml->moduleCount-1; i>=0; i--)
+          {
+            if (strcmp(ml->moduleList[i].moduleName, modulepath)==0)
+            {
+              part=ml->moduleList[i].part+1;
+              break;
+            }
+          }
+
+          if ((magic!=0x464c457f) && (part==0))  //  7f 45 4c 46 , not yet in the list, and not an ELF
           {
             //printf("%s is not an ELF(%llx).  tempbuf=%s\n", modulepath, start, tempbuf);
             continue; //not an ELF
           }
 
-          //printf("Found an ELF\n");
+          //it's either an ELF, or there is another entry with this name in the list that is an ELF
 
           mle=&ml->moduleList[ml->moduleCount];
           mle->moduleName=strdup(modulepath);
           mle->baseAddress=start;
-          mle->moduleSize=GetModuleSize(modulepath, 0);
-
-          hasValidModuleSize=mle->moduleSize!=0;
+          mle->moduleSize=stop-start; //GetModuleSize(modulepath, 0); GetModuleSize is not a good idea as some modules have gaps in them, and alloc will use those gaps (e.g ld*.so)
+          mle->part=part;
 
         //  debug_log("Setting size of %s to %x\n", modulepath, mle->moduleSize);
 

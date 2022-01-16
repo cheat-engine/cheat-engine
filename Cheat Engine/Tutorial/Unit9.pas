@@ -86,7 +86,7 @@ var
 
 implementation
 
-uses Unit4, Unit10, frmHelpUnit;
+uses Unit4, Unit10, frmHelpUnit, cetranslator;
 
 resourcestring
   rsStep8MultilevelPointersPW = 'Step 8: Multilevel pointers: (PW=%s)';
@@ -106,16 +106,16 @@ resourcestring
           'you''ll find will also be a pointer. You just have to find out the pointer to that pointer exactly the same way as you did '+
           'with the value. Find out what accesses that address you found, look at the assembler instruction, note the probable '+
           'instruction and offset, and use that.'+#13#10+
-          'and continue till you can''t get any further (usually when the base address is a static address, shown up as green)'+#13#10+
+          'And continue till you can''t get any further (usually when the base address is a static address, shown up as green.)'+#13#10+
           ''+#13#10+
           'Click Change Value to let the tutorial access the health.'+#13#10+
           'If you think you''ve found the pointer path click Change Register. The pointers and value will then change and you''ll '+
-          'have 3 seconds to freeze the address to 5000'+#13#10+
+          'have 3 seconds to freeze the address to 5000.'+#13#10+
           ''+#13#10+
-          'Extra: This problem can also be solved using a auto assembler script, or using the pointer scanner'+#13#10+
-          'Extra2: In some situations it is recommended to change ce''s codefinder settings to Access violations when '+#13#10+
-          'Encountering instructions like mov eax,[eax] since debugregisters show it AFTER it was changed, making it hard to '+
-          'find out the the value of the pointer'+#13#10+
+          'Extra: This problem can also be solved using an auto assembler script, or using the pointer scanner.'+#13#10+
+          'Extra2: In some situations it is recommended to change CE''s Codefinder settings to Access violations when '+#13#10+
+          'encountering instructions like mov eax,[eax] since debug registers show it AFTER it was changed, making it hard to '+
+          'find out the value of the pointer.'+#13#10+
           ''+#13#10+
           ''+#13#10+
           ''+#13#10+
@@ -124,7 +124,7 @@ resourcestring
           'Extra3: If you''re still reading. You might notice that when looking at the assembler instructions that the pointer is '+
           'being read and filled out in the same codeblock (same routine, if you know assembler, look up till the start of the '+
           'routine). This doesn''t always happen, but can be really useful in finding a '+
-          'pointer when debugging is troublesome';
+          'pointer when debugging is troublesome.';
 
 
 
@@ -185,7 +185,8 @@ begin
   basepointer.p.p.p.health:=random(4000);
   label1.caption:=inttostr(basepointer.p.p.p.health);
 
-  memo1.lines.text:=rsTutorialStep8;
+  caption:=altnamer(caption);
+  memo1.lines.text:=altnamer(rsTutorialStep8);
   memo1.Lines.Insert(0, Format(rsStep8MultilevelPointersPW, [inttostr(525)+inttostr(927)]));
   memo1.SelStart:=0;
   font.size:=12;
