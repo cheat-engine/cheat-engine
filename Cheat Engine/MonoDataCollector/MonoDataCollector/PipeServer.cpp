@@ -1336,12 +1336,15 @@ void CPipeServer::GetMethodParameters()
 
 		if (paramcount)
 		{
-			void *paramtype = il2cpp_method_get_param(method, i);
-			
-			if (paramtype)
-				WriteDword(mono_type_get_type(paramtype));
-			else
-				WriteDword(0);
+			for (i = 0; i < paramcount; i++)
+			{
+				void *paramtype = il2cpp_method_get_param(method, i);
+
+				if (paramtype)
+					WriteDword(mono_type_get_type(paramtype));
+				else
+					WriteDword(0);
+			}
 		}
 
 		{
@@ -1379,12 +1382,17 @@ void CPipeServer::GetMethodParameters()
 			if (paramcount)
 			{
 				gpointer iter = NULL;
-				MonoType *paramtype = mono_signature_get_params((MonoMethodSignature*)methodsignature, &iter);
+				MonoType *paramtype;
+				
+				for (i=0; i< paramcount; i++)
+				{
+					paramtype = mono_signature_get_params((MonoMethodSignature*)methodsignature, &iter);
 
-				if (paramtype)
-					WriteDword(mono_type_get_type(paramtype));
-				else
-					WriteDword(0);
+					if (paramtype)
+						WriteDword(mono_type_get_type(paramtype));
+					else
+						WriteDword(0);
+				};
 			}
 
 			{
