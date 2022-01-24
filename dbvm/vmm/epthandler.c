@@ -1958,10 +1958,10 @@ int ept_resumeBrokenThread(int id, int continueMethod)
 
 int ept_handleSoftwareBreakpointAfterStep(pcpuinfo currentcpuinfo UNUSED,  int ID)
 {
-  int result=1;
+  int result=0;
   csEnter(&CloakedPagesCS);
   csEnter(&ChangeRegBPListCS);
-  if (ChangeRegBPList[ID].Active)
+  if (ChangeRegBPList[ID].Active)//Just hope that you didn't quickly delete and then register a whole new breakpoint, as this will fuck you up
   {
 
     QWORD PA=ChangeRegBPList[ID].PhysicalAddress;
@@ -1972,6 +1972,7 @@ int ept_handleSoftwareBreakpointAfterStep(pcpuinfo currentcpuinfo UNUSED,  int I
     executable[offset]=0xcc; //set the breakpoint back
     result=0;
   }
+  //else it got deleted before the step finished or total memory corruption that blanked out several memory regions
 
   csLeave(&ChangeRegBPListCS);
   csLeave(&CloakedPagesCS);
