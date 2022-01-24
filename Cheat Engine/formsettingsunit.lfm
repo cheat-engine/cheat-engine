@@ -720,6 +720,7 @@ object formSettings: TformSettings
             end
             inherited edtHotkeyDelay: TEdit
               Width = 117
+              Text = '350'
             end
           end
         end

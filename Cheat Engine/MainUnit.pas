@@ -2142,7 +2142,9 @@ begin
     if (errs='Access violation') and (miEnableLCLDebug.checked) then
       errs:=errs+#13#10'Please send the cedebug.txt file to Dark Byte. Thanks';
 
-    MessageDlg(errs, mtError, [mbOK], 0);
+    if MainThreadID=GetCurrentThreadId then
+      MessageDlg(errs, mtError, [mbOK], 0);
+
     freememandnil(err);
   end
   else
@@ -3593,7 +3595,7 @@ begin
   p.Executable:=(path);
   p.Execute;
   {$else}
-  shellexecute(0, 'open', pchar(cheatenginedir+{$ifdef altname}'rtm-tutorial-x86_64.exe'}{$else}'Tutorial-x86_64.exe'{$endif}), nil, nil, sw_show);
+  shellexecute(0, 'open', pchar(cheatenginedir+{$ifdef altname}'rtmtutorial-x86_64.exe'{$else}'Tutorial-x86_64.exe'{$endif}), nil, nil, sw_show);
   {$endif}
 end;
 
@@ -9563,7 +9565,7 @@ end;
 
 procedure TMainForm.miTutorialClick(Sender: TObject);
 begin
-  shellexecute(0, 'open', pchar(cheatenginedir+{$ifdef altname}'rtm-tutorial-i386.exe'}{$else}'Tutorial-i386.exe'{$endif}), nil, nil, sw_show);
+  shellexecute(0, 'open', pchar(cheatenginedir+{$ifdef altname}'rtmtutorial-i386.exe'{$else}'Tutorial-i386.exe'{$endif}), nil, nil, sw_show);
 end;
 
 procedure TMainForm.miFlFindWhatAccessesClick(Sender: TObject);
@@ -10454,6 +10456,7 @@ begin
 end;
 
 procedure TMainForm.cbSpeedhackChange(Sender: TObject);
+var ss: TShiftState;
 begin
   if cbSpeedhack.Checked then
   begin
@@ -10461,12 +10464,26 @@ begin
       if speedhack <> nil then
         FreeAndNil(speedhack);
 
+      ss:=GetKeyShiftState;
+      if (ssAlt in ss) and (ssCtrl in ss) then
+        raise exception.create('Speedhack alternate test');
+
       speedhack := TSpeedhack.Create;
     except
       on e: Exception do
       begin
+        lua_getglobal(luavm, 'activateAlternateSpeedhack');//failure. check if there is an alternative in lua
+        if lua_isfunction(luavm,-1) then
+        begin
+          lua_pushboolean(luavm,true);
+          lua_pcall(luavm, 1,0,0);
+          exit;
+        end
+        else
+          lua_pop(luavm,1);
+
         cbSpeedhack.Checked := False;
-        raise Exception.Create(e.Message);
+        MessageDlg(e.message,mtError,[mbok],0);
       end;
     end;
   end

@@ -224,6 +224,7 @@ type
     statusbar: TStatusbar;
     lastrendertime: qword;
     procedure LockRowsize(size: integer=0);
+    procedure setLockedRowsize(s: integer);
     procedure UnlockRowsize;
     procedure CopySelectionToClipboard;
     procedure GetSelectionRange(var start: ptruint; var stop: ptruint);
@@ -276,7 +277,7 @@ type
     property PaintBox: TPaintbox read mbCanvas;
     property OSBitmap: TBitmap read offscreenBitmap;
     property HexFont: TFont read fHexFont write setHexFont;
-    property LockedRowSize: integer read fLockedRowSize write fLockedRowSize;
+    property LockedRowSize: integer read fLockedRowSize write setLockedRowsize;
     property spaceBetweenLines: integer read fspaceBetweenLines write fspaceBetweenLines;
     property UseRelativeBase: boolean read fUseRelativeBase write fUseRelativeBase;
     property RelativeBase: ptruint read fRelativeBase write fRelativeBase;
@@ -468,9 +469,16 @@ end;
 procedure THexView.LockRowsize(size: integer=0);
 begin
   if size=0 then
-    flockedRowSize:=bytesPerLine
+    LockedRowSize:=bytesPerLine
   else
-    flockedRowSize:=size;
+    LockedRowSize:=size;
+end;
+
+procedure THexview.setLockedRowsize(s: integer);
+begin
+  flockedRowSize:=s;
+  hexviewResize(self);
+  update;
 end;
 
 procedure THexView.UnlockRowsize;
@@ -1210,7 +1218,7 @@ begin
         vartype:=vtDword;
     end;
 
-    mainform.addresslist.addAddressManually(inttohex(selected,8), Vartype, ctname);
+    mainform.addresslist.addAddressManually(inttohex(selected,8), Vartype, ctname, true);
   end;
   {$ENDIF}
 
@@ -1886,6 +1894,7 @@ begin
   begin
     //get memory page info
     p.baseaddress:=a;
+    x:=0;
     p.readable:=readprocessmemory(processhandle, pointer(a), @p.data[0], 4096,x);
     if p.readable then
 {$IFDEF STANDALONEHV}
@@ -2356,9 +2365,14 @@ begin
   if Parent=nil then exit;
 
   if displayType=dtByte then
-    bps:=fbytesPerSeperator
+  begin
+    bps:=fbytesPerSeperator;
+    if (bps<>0) and ((bytesperline mod bps)>0) then
+      bps:=0;
+  end
   else
     bps:=0;
+
 
   case bps of
     8: seperatorshift:=3;
@@ -2459,7 +2473,12 @@ begin
 
   charstart:=bytestart+bytesperline*byteSizeWithoutChar;
 
-
+  case displayType of //check if unaligned, and if so, add some extra space
+    dtWord, dtWordDec: if (bytesperline mod 2)>0 then inc(charstart, byteSizeWithoutChar*(bytesperline mod 2));
+    dtDWord, dtDwordDec, dtSingle: if (bytesperline mod 4)>0 then inc(charstart, byteSizeWithoutChar*(bytesperline mod 4));
+    dtQword, dtQwordDec, dtDouble: if (bytesperline mod 8)>0 then inc(charstart, byteSizeWithoutChar*(bytesperline mod 8));
+    dtCustom: if (bytesperline mod fcustomtype.bytesize)>0 then inc(charstart, byteSizeWithoutChar*(bytesperline mod fcustomtype.bytesize));
+  end;
 
   for i:=0 to bytesperline-1 do
   begin
@@ -2810,7 +2829,6 @@ begin
     else
       statusbar.panels[0].Text:=format('%.8x %s',[SelectionStart, s])
   end;
-
 
   lastrendertime:=gettickcount64-starttime;
 end;
@@ -3195,7 +3213,7 @@ begin
 
   statusbar:=TStatusBar.Create(self);
   statusbar.ParentFont:=true;
-  statusbar.AutoSize:=false;
+  statusbar.AutoSize:=true; //false;
   statusbar.Name:='statusbar';
   statusbar.SimplePanel:=false;
   statusbar.align:=alBottom;

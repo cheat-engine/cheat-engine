@@ -863,9 +863,9 @@ function DisplaymethodToString(d:TdisplayMethod): string;
 begin
   result:='';
   case d of
-    dtUnsignedInteger: result:=rsUnsignedInteger;
-    dtSignedInteger: result:=rsSignedInteger;
-    dtHexadecimal: result:=rsHexadecimal;
+    dtUnsignedInteger: result:='unsigned integer';   //do not translate/resourcestring this
+    dtSignedInteger: result:='signed integer';
+    dtHexadecimal: result:='hexadecimal';
   end;
 end;
 
@@ -6026,6 +6026,7 @@ begin
   end;
 
 
+  tvStructureView.update;
 
 end;
 

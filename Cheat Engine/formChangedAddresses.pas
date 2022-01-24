@@ -1132,6 +1132,7 @@ procedure TfrmChangedAddresses.FormClose(Sender: TObject;
 var temp:dword;
     i: integer;
     ae: TAddressEntry;
+    x: array of integer;
 begin
   if OKButton.caption=rsStop then
     OKButton.Click;
@@ -1143,6 +1144,20 @@ begin
     dec(pbreakpoint(breakpoint).referencecount);
     action:=cahide;
   end;
+
+  setlength(x,3);
+  x[0]:=changedlist.Column[0].Width;
+  x[1]:=changedlist.Column[1].Width;
+  x[2]:=changedlist.Column[2].Width;
+
+  saveformposition(self,x);
+
+  try
+    //rename so that the next created dialog can have this name
+    self.name:=self.name+'_tobedeleted'+inttohex(random(65535),4)+inttohex(random(65535),4)+inttohex(random(65535),4)+inttohex(random(65535),4)+'_'+inttohex(GetTickCount64,1);
+  except
+  end;
+
 end;
 
 procedure TfrmChangedAddresses.FormShow(Sender: TObject);
@@ -1339,7 +1354,7 @@ procedure TfrmChangedAddresses.FormDestroy(Sender: TObject);
 var
   i: integer;
   ae: TAddressEntry;
-  x: array of integer;
+
 begin
   stopDBVMWatch();
 
@@ -1351,12 +1366,7 @@ begin
 
 
 
-  setlength(x,3);
-  x[0]:=changedlist.Column[0].Width;
-  x[1]:=changedlist.Column[1].Width;
-  x[2]:=changedlist.Column[2].Width;
 
-  saveformposition(self,x);
   if addresslist<>nil then
     freeandnil(addresslist);
 

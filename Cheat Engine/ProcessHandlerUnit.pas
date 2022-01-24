@@ -22,6 +22,7 @@ uses
 
 type
   TSystemArchitecture=(archX86=0, archArm=1);
+  TOperatingsystemABI=(abiWindows=0, abiSystemV=1);
 
 type TProcessHandler=class
   private
@@ -29,6 +30,7 @@ type TProcessHandler=class
     fprocesshandle: THandle;
     fpointersize: integer;
     fSystemArchitecture: TSystemArchitecture;
+    fOSABI: TOperatingsystemABI;  //for c-code
     fHexDigitPreference: integer;
     procedure setIs64bit(state: boolean);
     procedure setProcessHandle(processhandle: THandle);
@@ -43,6 +45,7 @@ type TProcessHandler=class
     property pointersize: integer read fPointersize;
     property processhandle: THandle read fProcessHandle write setProcessHandle;
     property SystemArchitecture: TSystemArchitecture read fSystemArchitecture;
+    property OSABI: TOperatingsystemABI read fOSABI;
     property hexdigitpreference: integer read fHexDigitPreference;
 end;
 
@@ -92,6 +95,7 @@ var
   c: TCEConnection;
   {$endif}
   arch: integer;
+  abi: integer;
 begin
   if (fprocesshandle<>0) and (fprocesshandle<>getcurrentprocess) and (processhandle<>getcurrentprocess) then
   begin
@@ -134,17 +138,29 @@ begin
       end;
     end;
 
+    abi:=c.GetABI;
+    case abi of
+      0: fOSABI:=abiWindows;
+      1: fOSABI:=abiSystemV;
+    end;
+
   end
   else
   {$endif}
   begin
     fSystemArchitecture:=archX86;
+    {$ifdef windows}
+    fOSABI:=abiWindows;
+    {$else}
+    fOSABI:=abiSystemV;
+    {$endif}
 
     setIs64Bit(newkernelhandler.Is64BitProcess(fProcessHandle));
   end;
 
   {$ifdef ARMTEST}
   fSystemArchitecture:=archArm;
+  fOSABI:=abiSystemV;
   setIs64Bit(false);
   {$endif}
 

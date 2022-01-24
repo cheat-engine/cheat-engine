@@ -8,6 +8,27 @@ Additions and changes:
   debugger attach timeout window will now show the status on some debugger interfaces
   modules for 64-bit in 32-bit targets are more clearly marked as such
   mono will not try to re-attach after a disconnect
+  lua: fixed copyMemory mode 2  
+
+from 7.3.1-7.3.2:
+  structure dissect watch for changes now also shows you when something has changed inbetween
+  added hints to how the pointer wildcard works 
+  created an alternate named CE version that runs without admin (not an UCE, do not think it is one, you will be disappointed)
+  the replace button in foundcode dialog now supports multiselect
+  You can now also change values of groupscan scan results directly in the foundlist
+  lua's openProcess command now won't deactivate all entries when previously no process was selected
+  you can now edit instructions with a breakpoint on them
+  added linux ABI c-compiler dll's
+  by default mono now releases the .net thread
+
+from 7.3.2-7.4:
+  added shortcut to add this address to addresslist in hexview (numPlus)
+  goto address popup now centers on the memview window, instead of screen center
+  you can now change the font of the tracer tree
+  added isRep to the lua LastDisassemblerData field.  And stepover now steps over rep instructions
+  break and trace: Added 'stay within module' option
+  added custom alignment option to the hexviewer section of the memoryviewer
+
 
 
 
@@ -36,21 +57,24 @@ Fixes:
   fixed {$ccode} and {$luacode} when not giving any parameters
   fixed some include files erroring out when used 
 
-lua:
-  fixed copyMemory mode 2
- 
+from 7.3.1-7.3.2:
+  network ceserver/linux: Fixed wpm corrupting the memory
+  fixed the elf symbol parser
+  fixed speedhack on linux
+  il2cpp now has a progressbar
+  fixed handling some newer il2cpp games
+  fixed vmin assembling  
+  fixed the ceshare color  (bug introduced in 7.3.1)
+  fixed freezing when entering the wrong ceserver details
+  fixed deleting groupscan entries from the scan
+  fixed pointerscan not loading results when in a path with non-ascii characters
+  fixed the standalone trainer maker giving an error about duplicate entries
 
-
-How to use:
-There's a tutorial program included with Cheat Engine,
-it teaches how to use the basics of Cheat Engine, also the helpfile may be of use.
-
-
-
-For comments or suggestions and such, contact me at:
-e-mail(msn) = dark_byte@hotmail.com
-
-
-For more information about Cheat Engine or tables for it 
-and other things, go to this url:
-http://www.cheatengine.org/
+from 7.3.2-7.4:
+  lua: fixed readByte signextending when it shouldn't
+  fix changeregonbp where it only changed xmm0
+  window position saving of "find what addresses this code accesses" should be more predictable
+  fixed saving of some color preferences in hexview, and added the fadecolor
+  fix AA createThreadAndWait not working in a standalone script
+  improved stability of mono
+  fixed break and trace ignore flag causing an stop instead of ignore on 64 bit targets

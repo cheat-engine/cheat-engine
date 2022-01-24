@@ -84,6 +84,7 @@ begin
   s:=StringReplace(s, 'runtimemodifier.org','cheatengine.org',[rfReplaceAll]);
   s:=StringReplace(s, 'cheat','modification',[rfReplaceAll]);
   s:=StringReplace(s, 'Tutorial-','rtm-Tutorial-',[rfReplaceAll, rfIgnoreCase]);
+  s:=StringReplace(s, ' CE',' RT-MOD',[rfReplaceAll]);
 
   {$endif}
   exit(s);

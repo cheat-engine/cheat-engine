@@ -4941,8 +4941,11 @@ begin
                   symbollistsMREW.Beginread;
                   for j:=0 to length(symbollists)-1 do
                   begin
-                    si:=symbollists[j].FindSymbol(tokens[i]);
-                    if si<>nil then break;
+                    if (symbollists[j].PID=0) or (processid=symbollists[j].PID) then
+                    begin
+                      si:=symbollists[j].FindSymbol(tokens[i]);
+                      if si<>nil then break;
+                    end;
                   end;
 
                   symbollistsMREW.EndRead;

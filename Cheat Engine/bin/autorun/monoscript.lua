@@ -650,7 +650,7 @@ function LaunchMonoDataCollector(internalReconnectDisconnectEachTime)
   end
 
   monopipe.OnTimeout=function(self)  
-    print("monopipe disconnected")
+    --print("monopipe disconnected")
     
     local oldmonopipe=monopipe
     monopipe=nil

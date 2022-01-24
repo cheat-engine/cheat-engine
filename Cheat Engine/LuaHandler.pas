@@ -287,15 +287,6 @@ begin
 
         printoutput.add(rsError+error);
 
-        lua_getglobal(L, 'debug');
-        lua_pushstring(L,'traceback');
-        lua_gettable(L,-2);
-        lua.lua_pcall(L,0,1,0);
-
-        printoutput.add(Lua_ToString(L,-1));
-
-
-
         if (frmLuaEngine<>nil) and usesluaengineform and (frmLuaEngine.cbShowOnPrint.checked) then
           frmLuaEngine.show;
 
@@ -1817,7 +1808,7 @@ begin
         if signed then
           lua_pushinteger(L, v)
         else
-          lua_pushinteger(L, word(v));
+          lua_pushinteger(L, byte(v));
 
         result:=1;
       end;
@@ -2474,6 +2465,9 @@ begin
     begin
       for i:=0 to x-1 do
         lua_pushinteger(L,bytes[i]);
+
+      if x>40 then exit(40);
+
       result:=x;
     end;
   end;
@@ -14889,7 +14883,12 @@ var
   lowestAddress: ptruint=0;
   highestAddress: ptruint=0;
 begin
-  libfile:=CheatEngineDir+'tcclib\libtcc1.c';
+
+  libfile:=CheatEngineDir+'tcclib'+PathDelim+'lib'+PathDelim+'libtcc1.c';  //release
+  if not fileexists(libfile) then
+    libfile:=CheatEngineDir+'..'+PathDelim+'tcclib'+PathDelim+'lib'+PathDelim+'libtcc1.c'; //development
+
+
   if fileexists(libfile) then
   begin
     lua_settop(L,0);

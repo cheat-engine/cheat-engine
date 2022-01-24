@@ -95,6 +95,7 @@ CPipeServer::CPipeServer(void)
 	il2cpp = FALSE;
 	UWPMode = FALSE;
 	mono_selfthread = NULL;
+	mono_runtime_is_shutting_down = NULL;
 
 #ifdef _WINDOWS
 	swprintf(datapipename, 256, L"\\\\.\\pipe\\cemonodc_pid%d", GetCurrentProcessId());
@@ -306,22 +307,15 @@ void CPipeServer::InitMono()
 				do
 				{
 					if (GetProcAddress(me.hModule, "mono_thread_attach"))
-					{
-						if (_wcsicmp(me.szModule, L"GameAssembly.dll") && (GetProcAddress(me.hModule, "mono_assembly_foreach")))
-						{
-							hMono = me.hModule;
-							break;
-						}
-					}
+						hMono = me.hModule;							
 
 					if (GetProcAddress(me.hModule, "il2cpp_thread_attach"))
 					{
 						il2cpp = true;
 						hMono = me.hModule;
-						break;
 					}
-
-				} while (Module32Next(ths, &me));
+						
+				} while (!hMono && Module32Next(ths, &me));
 
 			}
 			CloseHandle(ths);
@@ -488,6 +482,9 @@ void CPipeServer::InitMono()
 				il2cpp_string_chars = (IL2CPP_STRING_CHARS)GetProcAddress(hMono, "il2cpp_string_chars");
 
 				//mono_runtime_is_shutting_down = (MONO_RUNTIME_IS_SHUTTING_DOWN)GetProcAddress(hMono, "il2cpp_runtime_is_shutting_down");  //doesn't seem to exist in il2cpp....
+
+				mono_runtime_is_shutting_down = (MONO_RUNTIME_IS_SHUTTING_DOWN)GetProcAddress(hMono, "mono_runtime_is_shutting_down"); //some do, with this name...
+
 
 			}
 			else
@@ -675,6 +672,9 @@ void CPipeServer::Object_GetClass()
 	char *classname;
 	void *klass;
 
+	ExpectingAccessViolations = FALSE;
+
+
 	try
 	{
 		unsigned int i;
@@ -705,6 +705,7 @@ void CPipeServer::Object_GetClass()
 	}
 	catch (...)
 	{
+		//OutputDebugStringA("Object_GetClass exception caught");
 		WriteQword(0); //failure. Invalid object
 	}
 }
@@ -1335,12 +1336,15 @@ void CPipeServer::GetMethodParameters()
 
 		if (paramcount)
 		{
-			void *paramtype = il2cpp_method_get_param(method, i);
-			
-			if (paramtype)
-				WriteDword(mono_type_get_type(paramtype));
-			else
-				WriteDword(0);
+			for (i = 0; i < paramcount; i++)
+			{
+				void *paramtype = il2cpp_method_get_param(method, i);
+
+				if (paramtype)
+					WriteDword(mono_type_get_type(paramtype));
+				else
+					WriteDword(0);
+			}
 		}
 
 		{
@@ -1378,12 +1382,17 @@ void CPipeServer::GetMethodParameters()
 			if (paramcount)
 			{
 				gpointer iter = NULL;
-				MonoType *paramtype = mono_signature_get_params((MonoMethodSignature*)methodsignature, &iter);
+				MonoType *paramtype;
+				
+				for (i=0; i< paramcount; i++)
+				{
+					paramtype = mono_signature_get_params((MonoMethodSignature*)methodsignature, &iter);
 
-				if (paramtype)
-					WriteDword(mono_type_get_type(paramtype));
-				else
-					WriteDword(0);
+					if (paramtype)
+						WriteDword(mono_type_get_type(paramtype));
+					else
+						WriteDword(0);
+				};
 			}
 
 			{
@@ -2126,6 +2135,9 @@ void CPipeServer::Start(void)
 	BYTE command;
 	while (1)
 	{
+		if ((mono_runtime_is_shutting_down) && (mono_runtime_is_shutting_down()))
+			return;
+
 		CreatePipeandWaitForconnect();
 
 
