@@ -25,7 +25,7 @@ uses
    sysutils,dialogs,controls, CEFuncProc, NewKernelHandler ,plugin,
    ProcessHandlerUnit, lua, lualib, lauxlib, luaclass, commonTypeDefs, OpenSave,
    SymbolListHandler, tcclib,
-   betterControls;
+   betterControls, Regexpr;
 
 
 {$endif}
@@ -1275,16 +1275,18 @@ var
   i,j,k: integer;
   s: tstringlist;
   stack: integer;
+  luaErrLineNr: integer;
   str: string;
+  errStr: string;
   error: boolean;
   L: Plua_State;
+  re: TRegExpr;
 begin
   i:=0;
 
   while i<code.Count do
   begin
     //search for {$LUA}
-
     str:=uppercase(TrimRight(code[i]));
     if str='{$LUA}' then
     begin
@@ -1348,11 +1350,32 @@ begin
 
             if error then
             begin
+              // If Lua has error text, extract line number to use as offset of AA line nr.
+              luaErrLineNr := 0;
               if lua_isstring(L, -1) then
-                raise exception.create(rsAALuaErrorInTheScriptAtLine+inttostr(integer(code.Objects[i]))+':'+lua_tostring(L, -1))
+              begin
+                str := ReplaceRegExpr('^[\S \r\n]*]:', lua_tostring(L, -1), ''); // Remove the non-user Lua added earlier
+                // Extract lua error line nr
+                re := TRegExpr.Create('^(\d+)');
+                try
+                  if re.Exec(str) then
+                  begin
+                    luaErrLineNr := strtoint(re.Match[1]) - 1;
+                  end;
+                  str := ReplaceRegExpr('^(\d+)', str, inttostr(luaErrLineNr)); // Fix Lua error line nr
+                finally
+                  re.Free;
+                end;
+                errStr := ':'+LineEnding+str;
+              end
               else
-                raise exception.create(rsAALuaErrorInTheScriptAtLine+inttostr(integer(code.Objects[i])));
+              begin
+                errStr := '';
+              end;
 
+              // Raise AA error with Lua error if it is available
+              errStr := rsAALuaErrorInTheScriptAtLine+inttostr(integer(code.Objects[i]) + luaErrLineNr) + errStr;
+              raise exception.create(errStr);
             end;
 
           finally
