@@ -199,13 +199,13 @@ begin
             miLuaExecSignedOnly.checked:=true;
 
 
-          if reg.ValueExists('AllByte') then cbAllByte.checked:=reg.readBool('AllByte');
-          if reg.ValueExists('AllWord') then cbAllWord.checked:=reg.readBool('AllWord');
-          if reg.ValueExists('AllDWord') then cbAllDouble.checked:=reg.readBool('AllDWord');
-          if reg.ValueExists('AllQWord') then cbAllQword.checked:=reg.readBool('AllQWord');
-          if reg.ValueExists('AllFloat') then cbAllSingle.checked:=reg.readBool('AllFloat');
-          if reg.ValueExists('AllDouble') then cbAllDouble.checked:=reg.readBool('AllDouble');
-          if reg.ValueExists('AllCustom') then cbAllCustom.checked:=reg.readBool('AllCustom');
+          if reg.ValueExists('AllByte') then cbAllByte.checked:=reg.readBool('AllByte') else cbAllByte.checked:=false;
+          if reg.ValueExists('AllWord') then cbAllWord.checked:=reg.readBool('AllWord') else cbAllWord.checked:=false;
+          if reg.ValueExists('AllDWord') then cbAllDword.checked:=reg.readBool('AllDWord') else cbAllDWord.checked:=true;
+          if reg.ValueExists('AllQWord') then cbAllQword.checked:=reg.readBool('AllQWord') else cbAllQWord.checked:=false;
+          if reg.ValueExists('AllFloat') then cbAllSingle.checked:=reg.readBool('AllFloat') else cbAllSingle.checked:=true;
+          if reg.ValueExists('AllDouble') then cbAllDouble.checked:=reg.readBool('AllDouble') else cbAllDouble.checked:=true;
+          if reg.ValueExists('AllCustom') then cbAllCustom.checked:=reg.readBool('AllCustom') else cbAllDouble.checked:=false;
 
           ScanAllTypes:=[];
           if cbAllByte.checked then ScanAllTypes:=ScanAllTypes+[vtByte];
