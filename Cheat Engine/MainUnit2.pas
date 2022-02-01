@@ -210,7 +210,7 @@ begin
           ScanAllTypes:=[];
           if cbAllByte.checked then ScanAllTypes:=ScanAllTypes+[vtByte];
           if cbAllWord.checked then ScanAllTypes:=ScanAllTypes+[vtWord];
-          if cbAllDouble.checked then ScanAllTypes:=ScanAllTypes+[vtDword];
+          if cbAllDword.checked then ScanAllTypes:=ScanAllTypes+[vtDword];
           if cbAllQword.checked then ScanAllTypes:=ScanAllTypes+[vtQword];
           if cbAllSingle.checked then ScanAllTypes:=ScanAllTypes+[vtSingle];
           if cbAllDouble.checked then ScanAllTypes:=ScanAllTypes+[vtDouble];
