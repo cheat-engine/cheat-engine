@@ -786,6 +786,8 @@ begin
   begin
     for j:=0 to length(parameters)-1 do
     begin
+      s:='';
+
       case parameters[j].contextitem of
         0: s:='*(unsigned long *)*(unsigned long *)((unsigned long)parameters+0x214)='+parameters[j].varname+';'; //EAX
         1..5,7: s:='*(unsigned long*)((unsigned long)parameters+0x'+inttohex($200+(parameters[j].contextitem-1)*4,1)+')='+parameters[j].varname+';'; //RBX..R15
