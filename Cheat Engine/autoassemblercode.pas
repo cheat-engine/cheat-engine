@@ -710,7 +710,7 @@ begin
         1..5, 7..15: s:='unsigned long long '+parameters[j].varname+'=*(unsigned long long*)((unsigned long long)parameters+0x'+inttohex($200+(parameters[j].contextitem-1)*8,1)+');'; //RBX..R15
         6: s:='unsigned long long '+parameters[j].varname+'=*(unsigned long long*)((unsigned long long)parameters+0x'+inttohex($200+(parameters[j].contextitem-1)*8,1)+')+24;'; //RSP
         16: s:='float '+parameters[j].varname+'=*(float *)((unsigned long long)parameters+0x228);';
-        17..31: s:='float '+parameters[j].varname+'=*(float *)((unsigned long long)parameters+0x'+inttohex($200+(parameters[j].contextitem-1)*8,1)+');'; //RBX..R15
+        17..31: s:='float '+parameters[j].varname+'=*(float *)((unsigned long long)parameters+0x'+inttohex($200+(parameters[j].contextitem-1-16)*8,1)+');'; //RBX..R15
         32..47:
         begin
           usesXMMType:=true;
@@ -731,7 +731,7 @@ begin
         1..5,7: s:='unsigned long '+parameters[j].varname+'=*(unsigned long*)((unsigned long)parameters+0x'+inttohex($200+(parameters[j].contextitem-1)*4,1)+');'; //RBX..R15
         6: s:='unsigned long '+parameters[j].varname+'=*(unsigned long*)((unsigned long)parameters+0x'+inttohex($200+(parameters[j].contextitem-1)*4,1)+')+12;'; //RBX..R15
         16: s:='float '+parameters[j].varname+'=*(float *)((unsigned long)parameters+0x214);';
-        17..23: s:='float '+parameters[j].varname+'=*(float *)((unsigned long)parameters+0x'+inttohex($200+(parameters[j].contextitem-1)*4,1)+');'; //EBX..EBP
+        17..23: s:='float '+parameters[j].varname+'=*(float *)((unsigned long)parameters+0x'+inttohex($200+(parameters[j].contextitem-1-16)*4,1)+');'; //EBX..EBP
         32..39:
         begin
           usesXMMType:=true;
@@ -768,7 +768,7 @@ begin
         1..5, 7..15: s:='*(unsigned long long*)((unsigned long long)parameters+0x'+inttohex($200+(parameters[j].contextitem-1)*8,1)+')='+parameters[j].varname+';'; //RBX..R15
         6: s:=''; //skip, do not write rsp
         16: s:='*(float *)((unsigned long long)parameters+0x228)='+parameters[j].varname+';';
-        17..31: s:='*(float *)((unsigned long long)parameters+0x'+inttohex($200+(parameters[j].contextitem-1)*8,1)+')='+parameters[j].varname+';'; //RBX..R15
+        17..31: s:='*(float *)((unsigned long long)parameters+0x'+inttohex($200+(parameters[j].contextitem-1-16)*8,1)+')='+parameters[j].varname+';'; //RBX..R15
         32..47:
         begin
           usesXMMType:=true;
@@ -793,7 +793,7 @@ begin
         1..5,7: s:='*(unsigned long*)((unsigned long)parameters+0x'+inttohex($200+(parameters[j].contextitem-1)*4,1)+')='+parameters[j].varname+';'; //RBX..R15
         6: s:='';
         16: s:='*(float *)((unsigned long)parameters+0x214)='+parameters[j].varname+';';
-        17..23: s:='*(float *)((unsigned long)parameters+0x'+inttohex($200+(parameters[j].contextitem-1)*4,1)+')='+parameters[j].varname+';'; //EBX..EBP
+        17..23: s:='*(float *)((unsigned long)parameters+0x'+inttohex($200+(parameters[j].contextitem-1-16)*4,1)+')='+parameters[j].varname+';'; //EBX..EBP
         32..39:
         begin
           usesXMMType:=true;
