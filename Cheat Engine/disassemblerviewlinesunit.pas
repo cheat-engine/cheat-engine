@@ -1230,7 +1230,7 @@ begin
     end;
   end
   else
-    i:=length(text);
+    i:=length(text)+1;
 
   setcolor;
 
