@@ -123,7 +123,7 @@ type
     property offset[Index: Integer]: TOffsetInfo read getOffset;
 
     procedure processAddress; //reads the base address and all the offsets and shows what it all does
-    procedure setupPositionsAndSizes(const updateClientSize: boolean = True);
+    procedure setupPositionsAndSizes;
 
     procedure addOffsetAroundSelectedOffset(const addAbove: boolean; const selectedOffset: TOffsetInfo);
     procedure appendOffset(newOffset: TOffsetInfo);
@@ -888,7 +888,7 @@ begin
 end;
 
 
-procedure TPointerInfo.setupPositionsAndSizes(const updateClientSize: boolean = True);
+procedure TPointerInfo.setupPositionsAndSizes;
 var
   i: integer;
 begin
@@ -900,10 +900,7 @@ begin
 
   processAddress;
 
-  if updateClientSize then
-  begin
-    ClientHeight:=btnAddOffset.Top+btnAddOffset.Height+3;       //triggers onresize
-  end
+  ClientHeight:=btnAddOffset.Top+btnAddOffset.Height+3;       //triggers onresize
   //Width will be set using the UpdateLabels method of individial offsets when the current offset is too small
 
 
@@ -1152,7 +1149,8 @@ begin
   baseAddress.AnchorSideRight.side:=asrRight;
   baseAddress.Anchors:=[akLeft, akTop, akRight];
 
-  setupPositionsAndSizes(False); // Update sizes but not ClientSize, it will mess up when form is not fully initialized
+
+  setupPositionsAndSizes;
 end;
 
 {%endregion TPointerInfo }
