@@ -26,15 +26,15 @@ type
     pt_reglist_vectorsingle, pt_prfop, pt_sysop_at, pt_sysop_dc, pt_sysop_ic,
     pt_sysop_tlbi, pt_pstatefield_SP, pt_pstatefield_DAIFSet,
     pt_pstatefield_DAIFClr, pt_barrierOption, pt_systemreg, pt_creg, pt_xreg,
-    pt_wreg, pt_wreg2x, pt_xreg2x, pt_breg, pt_hreg, pt_sreg, pt_dreg, pt_qreg,
-    pt_imm, pt_xminimm,pt_immminx, pt_imm2, pt_imm2_8, pt_imm32or64, pt_imm_bitmask, pt_imm_1shlval, pt_imm_val0, pt_imm_val1,
+    pt_wreg, pt_wreg2x, pt_xreg2x, pt_breg, pt_hreg, pt_sreg, pt_dreg, pt_qreg, pt_sdreg, pt_hsreg,
+    pt_imm, pt_xminimm,pt_immminx, pt_imm2, pt_imm2_8, pt_imm32or64, pt_imm_bitmask, pt_imm_1shlval, pt_imm_val0_0, pt_imm_val0, pt_imm_val1,
     pt_imm_val2, pt_imm_val4, pt_imm_val8, pt_imm_mul4, pt_imm_mul8,
-    pt_imm_mul16, pt_simm, pt_pimm, pt_label, pt_addrlabel,
+    pt_imm_mul16, pt_simm, pt_pimm, pt_fpimm8,pt_scale, pt_label, pt_addrlabel,
     pt_indexwidthspecifier, pt_extend_amount, pt_extend_amount_Extended_Register,
     pt_lslSpecific, pt_mslSpecific, pt_lsl0or12, pt_lsldiv16, pt_shift16, pt_cond, pt_vreg_8B, pt_vreg_16B,
     pt_vreg_4H, pt_vreg_8H, pt_vreg_2S, pt_vreg_4S, pt_vreg_2D, pt_vreg_B_1bit,
-    pt_vreg_T, pt_vreg_T2, pt_vreg_T2_AssumeQ1, pt_vreg_T_sizenot3,pt_vreg_T_sizenot3or0, pt_vreg_SD_2bit, pt_vreg_B_Index, pt_vreg_H_Index, pt_vreg_S_Index, pt_vreg_D_Index,
-    pt_vreg_H_HLMIndex, pt_vreg_S_HLIndex, pt_vreg_D_HIndex
+    pt_vreg_T, pt_vreg_T2, pt_vreg_T2_AssumeQ1, pt_vreg_T_sizenot3,pt_vreg_T_sizenot3or0, pt_vreg_SD_2bit, pt_vreg_B_Index, pt_vreg_H_Index, pt_vreg_S_Index, pt_vreg_D_Index, pt_vreg_D_Index1,
+    pt_vreg_H_HLMIndex, pt_vreg_S_HLIndex, pt_vreg_HS_HLMIndex, pt_vreg_SD_HLIndex, pt_vreg_D_HIndex
     );
 
 
@@ -992,15 +992,216 @@ const
   );
 
 
-  ArmInstructionsFloatingPoint_FixedPointConversions: array of TOpcode=();
-  ArmInstructionsFloatingPointConditionalCompare: array of TOpcode=();
-  ArmInstructionsFloatingPointDataProcessing: array of TOpcode=();
-  ArmInstructionsFloatingPointConditionalSelect: array of TOpcode=();
-  ArmInstructionsFloatingPointImmediate: array of TOpcode=();
-  ArmInstructionsFloatingPointCompare: array of TOpcode=();
-  ArmInstructionsFloatingPointDataProcessing1Source: array of TOpcode=();
-  ArmInstructionsFloatingPoint_IntegerConversions: array of TOpcode=();
-  ArmInstructionsFloatingPointDataProcessing3Source: array of TOpcode=();
+  ArmInstructionsFloatingPoint_FixedPointConversions: array of TOpcode=(
+    (mnemonic:'SCVTF'; params:((ptype:pt_sreg; offset: 0),(ptype:pt_wreg; offset: 5), (ptype:pt_scale; offset: 10), (ptype:pt_cond; offset: 12; MaxVal: $3f)); mask:%11111111111111110000000000000000;  value:%00011110000000100000000000000000),
+    (mnemonic:'SCVTF'; params:((ptype:pt_dreg; offset: 0),(ptype:pt_wreg; offset: 5), (ptype:pt_scale; offset: 10), (ptype:pt_cond; offset: 12; MaxVal: $3f)); mask:%11111111111111110000000000000000;  value:%00011110010000100000000000000000),
+    (mnemonic:'SCVTF'; params:((ptype:pt_sreg; offset: 0),(ptype:pt_xreg; offset: 5), (ptype:pt_scale; offset: 10), (ptype:pt_cond; offset: 12; MaxVal: $3f)); mask:%11111111111111110000000000000000;  value:%10011110000000100000000000000000),
+    (mnemonic:'SCVTF'; params:((ptype:pt_dreg; offset: 0),(ptype:pt_xreg; offset: 5), (ptype:pt_scale; offset: 10), (ptype:pt_cond; offset: 12; MaxVal: $3f)); mask:%11111111111111110000000000000000;  value:%10011110010000100000000000000000),
+
+    (mnemonic:'UCVTF'; params:((ptype:pt_sreg; offset: 0),(ptype:pt_wreg; offset: 5), (ptype:pt_scale; offset: 10), (ptype:pt_cond; offset: 12; MaxVal: $3f)); mask:%11111111111111110000000000000000;  value:%00011110000000110000000000000000),
+    (mnemonic:'UCVTF'; params:((ptype:pt_dreg; offset: 0),(ptype:pt_wreg; offset: 5), (ptype:pt_scale; offset: 10), (ptype:pt_cond; offset: 12; MaxVal: $3f)); mask:%11111111111111110000000000000000;  value:%00011110010000110000000000000000),
+    (mnemonic:'UCVTF'; params:((ptype:pt_sreg; offset: 0),(ptype:pt_xreg; offset: 5), (ptype:pt_scale; offset: 10), (ptype:pt_cond; offset: 12; MaxVal: $3f)); mask:%11111111111111110000000000000000;  value:%10011110000000110000000000000000),
+    (mnemonic:'UCVTF'; params:((ptype:pt_dreg; offset: 0),(ptype:pt_xreg; offset: 5), (ptype:pt_scale; offset: 10), (ptype:pt_cond; offset: 12; MaxVal: $3f)); mask:%11111111111111110000000000000000;  value:%10011110010000110000000000000000),
+
+    (mnemonic:'FCVTZS'; params:((ptype:pt_sreg; offset: 0),(ptype:pt_wreg; offset: 5), (ptype:pt_scale; offset: 10), (ptype:pt_cond; offset: 12; MaxVal: $3f)); mask:%11111111111111110000000000000000;  value:%00011110000110000000000000000000),
+    (mnemonic:'FCVTZS'; params:((ptype:pt_dreg; offset: 0),(ptype:pt_wreg; offset: 5), (ptype:pt_scale; offset: 10), (ptype:pt_cond; offset: 12; MaxVal: $3f)); mask:%11111111111111110000000000000000;  value:%00011110010110000000000000000000),
+    (mnemonic:'FCVTZS'; params:((ptype:pt_sreg; offset: 0),(ptype:pt_xreg; offset: 5), (ptype:pt_scale; offset: 10), (ptype:pt_cond; offset: 12; MaxVal: $3f)); mask:%11111111111111110000000000000000;  value:%10011110000110000000000000000000),
+    (mnemonic:'FCVTZS'; params:((ptype:pt_dreg; offset: 0),(ptype:pt_xreg; offset: 5), (ptype:pt_scale; offset: 10), (ptype:pt_cond; offset: 12; MaxVal: $3f)); mask:%11111111111111110000000000000000;  value:%10011110010110000000000000000000),
+
+    (mnemonic:'FCVTZU'; params:((ptype:pt_sreg; offset: 0),(ptype:pt_wreg; offset: 5), (ptype:pt_scale; offset: 10), (ptype:pt_cond; offset: 12; MaxVal: $3f)); mask:%11111111111111110000000000000000;  value:%00011110000110010000000000000000),
+    (mnemonic:'FCVTZU'; params:((ptype:pt_dreg; offset: 0),(ptype:pt_wreg; offset: 5), (ptype:pt_scale; offset: 10), (ptype:pt_cond; offset: 12; MaxVal: $3f)); mask:%11111111111111110000000000000000;  value:%00011110010110010000000000000000),
+    (mnemonic:'FCVTZU'; params:((ptype:pt_sreg; offset: 0),(ptype:pt_xreg; offset: 5), (ptype:pt_scale; offset: 10), (ptype:pt_cond; offset: 12; MaxVal: $3f)); mask:%11111111111111110000000000000000;  value:%10011110000110010000000000000000),
+    (mnemonic:'FCVTZU'; params:((ptype:pt_dreg; offset: 0),(ptype:pt_xreg; offset: 5), (ptype:pt_scale; offset: 10), (ptype:pt_cond; offset: 12; MaxVal: $3f)); mask:%11111111111111110000000000000000;  value:%10011110010110010000000000000000)
+  );
+
+  ArmInstructionsFloatingPointConditionalCompare: array of TOpcode=(
+    (mnemonic:'FCCMP'; params:((ptype:pt_sreg; offset: 5),(ptype:pt_sreg; offset: 16), (ptype:pt_imm; offset: 16; MaxVal: $f), (ptype:pt_cond; offset: 12; MaxVal: $f)  ); mask:%11111111111000001111110000011111;  value:%00011110001000000010000000000000),
+    (mnemonic:'FCCMP'; params:((ptype:pt_dreg; offset: 5),(ptype:pt_dreg; offset: 16), (ptype:pt_imm; offset: 16; MaxVal: $f), (ptype:pt_cond; offset: 12; MaxVal: $f)  ); mask:%11111111111000001111110000011111;  value:%00011110011000000010000000000000),
+
+    (mnemonic:'FCCMPE'; params:((ptype:pt_sreg; offset: 5),(ptype:pt_sreg; offset: 16), (ptype:pt_imm; offset: 16; MaxVal: $f), (ptype:pt_cond; offset: 12; MaxVal: $f)  ); mask:%11111111111000001111110000011111;  value:%00011110001000000010000000010000),
+    (mnemonic:'FCCMPE'; params:((ptype:pt_dreg; offset: 5),(ptype:pt_dreg; offset: 16), (ptype:pt_imm; offset: 16; MaxVal: $f), (ptype:pt_cond; offset: 12; MaxVal: $f)  ); mask:%11111111111000001111110000011111;  value:%00011110011000000010000000010000)
+
+  );
+
+
+  ArmInstructionsFloatingPointDataProcessing2Source: array of TOpcode=(
+    (mnemonic:'FMUL'; params:((ptype:pt_sreg; offset: 0),(ptype:pt_sreg; offset: 5),(ptype:pt_sreg; offset: 16) ); mask:%11111111111000001111110000000000;  value:%00011110001000000000100000000000),
+    (mnemonic:'FMUL'; params:((ptype:pt_dreg; offset: 0),(ptype:pt_dreg; offset: 5),(ptype:pt_dreg; offset: 16) ); mask:%11111111111000001111110000000000;  value:%00011110011000000000100000000000),
+
+    (mnemonic:'FDIV'; params:((ptype:pt_sreg; offset: 0),(ptype:pt_sreg; offset: 5),(ptype:pt_sreg; offset: 16) ); mask:%11111111111000001111110000000000;  value:%00011110001000000001100000000000),
+    (mnemonic:'FDIV'; params:((ptype:pt_dreg; offset: 0),(ptype:pt_dreg; offset: 5),(ptype:pt_dreg; offset: 16) ); mask:%11111111111000001111110000000000;  value:%00011110011000000001100000000000),
+
+    (mnemonic:'FADD'; params:((ptype:pt_sreg; offset: 0),(ptype:pt_sreg; offset: 5),(ptype:pt_sreg; offset: 16) ); mask:%11111111111000001111110000000000;  value:%00011110001000000010100000000000),
+    (mnemonic:'FADD'; params:((ptype:pt_dreg; offset: 0),(ptype:pt_dreg; offset: 5),(ptype:pt_dreg; offset: 16) ); mask:%11111111111000001111110000000000;  value:%00011110011000000010100000000000),
+
+    (mnemonic:'FSUB'; params:((ptype:pt_sreg; offset: 0),(ptype:pt_sreg; offset: 5),(ptype:pt_sreg; offset: 16) ); mask:%11111111111000001111110000000000;  value:%00011110001000000011100000000000),
+    (mnemonic:'FSUB'; params:((ptype:pt_dreg; offset: 0),(ptype:pt_dreg; offset: 5),(ptype:pt_dreg; offset: 16) ); mask:%11111111111000001111110000000000;  value:%00011110011000000011100000000000),
+
+    (mnemonic:'FMAX'; params:((ptype:pt_sreg; offset: 0),(ptype:pt_sreg; offset: 5),(ptype:pt_sreg; offset: 16) ); mask:%11111111111000001111110000000000;  value:%00011110001000000100100000000000),
+    (mnemonic:'FMAX'; params:((ptype:pt_dreg; offset: 0),(ptype:pt_dreg; offset: 5),(ptype:pt_dreg; offset: 16) ); mask:%11111111111000001111110000000000;  value:%00011110011000000100100000000000),
+
+    (mnemonic:'FMIN'; params:((ptype:pt_sreg; offset: 0),(ptype:pt_sreg; offset: 5),(ptype:pt_sreg; offset: 16) ); mask:%11111111111000001111110000000000;  value:%00011110001000000101100000000000),
+    (mnemonic:'FMIN'; params:((ptype:pt_dreg; offset: 0),(ptype:pt_dreg; offset: 5),(ptype:pt_dreg; offset: 16) ); mask:%11111111111000001111110000000000;  value:%00011110011000000101100000000000),
+
+    (mnemonic:'FMAXNM'; params:((ptype:pt_sreg; offset: 0),(ptype:pt_sreg; offset: 5),(ptype:pt_sreg; offset: 16) ); mask:%11111111111000001111110000000000;  value:%00011110001000000110100000000000),
+    (mnemonic:'FMAXNM'; params:((ptype:pt_dreg; offset: 0),(ptype:pt_dreg; offset: 5),(ptype:pt_dreg; offset: 16) ); mask:%11111111111000001111110000000000;  value:%00011110011000000110100000000000),
+
+    (mnemonic:'FMINNM'; params:((ptype:pt_sreg; offset: 0),(ptype:pt_sreg; offset: 5),(ptype:pt_sreg; offset: 16) ); mask:%11111111111000001111110000000000;  value:%00011110001000000111100000000000),
+    (mnemonic:'FMINNM'; params:((ptype:pt_dreg; offset: 0),(ptype:pt_dreg; offset: 5),(ptype:pt_dreg; offset: 16) ); mask:%11111111111000001111110000000000;  value:%00011110011000000111100000000000),
+
+    (mnemonic:'FNMUL'; params:((ptype:pt_sreg; offset: 0),(ptype:pt_sreg; offset: 5),(ptype:pt_sreg; offset: 16) ); mask:%11111111111000001111110000000000;  value:%00011110001000001000100000000000),
+    (mnemonic:'FNMUL'; params:((ptype:pt_dreg; offset: 0),(ptype:pt_dreg; offset: 5),(ptype:pt_dreg; offset: 16) ); mask:%11111111111000001111110000000000;  value:%00011110011000001000100000000000)
+
+  );
+
+
+  ArmInstructionsFloatingPointConditionalSelect: array of TOpcode=(
+    (mnemonic:'FCSEL'; params:((ptype:pt_sreg; offset: 0),(ptype:pt_sreg; offset: 5), (ptype:pt_sreg; offset: 16), (ptype:pt_cond; offset: 12; MaxVal: $f)  ); mask:%11111111111000000000110000000000;  value:%00011110001000000000110000000000),
+    (mnemonic:'FCSEL'; params:((ptype:pt_dreg; offset: 0),(ptype:pt_dreg; offset: 5), (ptype:pt_dreg; offset: 16), (ptype:pt_cond; offset: 12; MaxVal: $f)  ); mask:%11111111111000000000110000000000;  value:%00011110011000000000110000000000)
+  );
+
+  ArmInstructionsFloatingPointImmediate: array of TOpcode=(
+    (mnemonic:'FMOV'; params:((ptype:pt_sreg; offset: 5),(ptype:pt_fpimm8; offset: 14;) ); mask:%11111111111000000001111111100000;  value:%00011110001000000001000000000000),
+    (mnemonic:'FMOV'; params:((ptype:pt_dreg; offset: 5),(ptype:pt_fpimm8; offset: 14;) ); mask:%11111111111000000001111111100000;  value:%00011110011000000001000000000000)
+  );
+
+  ArmInstructionsFloatingPointCompare: array of TOpcode=(
+    (mnemonic:'FCMP'; params:((ptype:pt_sreg; offset: 5),(ptype:pt_sreg; offset: 16) ); mask:%11111111111000001111110000011111;  value:%00011110001000000010000000000000),
+    (mnemonic:'FCMP'; params:((ptype:pt_sreg; offset: 5),(ptype:pt_imm_val0_0) );       mask:%11111111111111111111110000011111;  value:%00011110001000000010000000001000),
+    (mnemonic:'FCMP'; params:((ptype:pt_dreg; offset: 5),(ptype:pt_dreg; offset: 16) ); mask:%11111111111000001111110000011111;  value:%00011110011000000010000000000000),
+    (mnemonic:'FCMP'; params:((ptype:pt_dreg; offset: 5),(ptype:pt_imm_val0_0) );       mask:%11111111111111111111110000011111;  value:%00011110011000000010000000001000),
+
+    (mnemonic:'FCMPE'; params:((ptype:pt_sreg; offset: 5),(ptype:pt_sreg; offset: 16) ); mask:%11111111111000001111110000011111; value:%00011110001000000010000000010000),
+    (mnemonic:'FCMPE'; params:((ptype:pt_sreg; offset: 5),(ptype:pt_imm_val0_0) );       mask:%11111111111111111111110000011111; value:%00011110001000000010000000011000),
+    (mnemonic:'FCMPE'; params:((ptype:pt_dreg; offset: 5),(ptype:pt_dreg; offset: 16) ); mask:%11111111111000001111110000011111; value:%00011110011000000010000000010000),
+    (mnemonic:'FCMPE'; params:((ptype:pt_dreg; offset: 5),(ptype:pt_imm_val0_0) );       mask:%11111111111111111111110000011111; value:%00011110011000000010000000011000)
+
+  );
+
+  ArmInstructionsFloatingPointDataProcessing1Source: array of TOpcode=(
+    (mnemonic:'FMOV'; params:((ptype:pt_sreg; offset: 0),(ptype:pt_sreg; offset: 5) ); mask:%11111111111111111111110000000000;  value:%00011110001000000100000000000000),
+    (mnemonic:'FMOV'; params:((ptype:pt_dreg; offset: 0),(ptype:pt_dreg; offset: 5) ); mask:%11111111111111111111110000000000;  value:%00011110011000000100000000000000),
+
+    (mnemonic:'FABS'; params:((ptype:pt_sreg; offset: 0),(ptype:pt_sreg; offset: 5) ); mask:%11111111111111111111110000000000;  value:%00011110001000001100000000000000),
+    (mnemonic:'FABS'; params:((ptype:pt_dreg; offset: 0),(ptype:pt_dreg; offset: 5) ); mask:%11111111111111111111110000000000;  value:%00011110011000001100000000000000),
+
+    (mnemonic:'FNEG'; params:((ptype:pt_sreg; offset: 0),(ptype:pt_sreg; offset: 5) ); mask:%11111111111111111111110000000000;  value:%00011110001000010100000000000000),
+    (mnemonic:'FNEG'; params:((ptype:pt_dreg; offset: 0),(ptype:pt_dreg; offset: 5) ); mask:%11111111111111111111110000000000;  value:%00011110011000010100000000000000),
+
+    (mnemonic:'FSQRT'; params:((ptype:pt_sreg; offset: 0),(ptype:pt_sreg; offset: 5) ); mask:%11111111111111111111110000000000; value:%00011110001000011100000000000000),
+    (mnemonic:'FSQRT'; params:((ptype:pt_dreg; offset: 0),(ptype:pt_dreg; offset: 5) ); mask:%11111111111111111111110000000000; value:%00011110011000011100000000000000),
+
+    (mnemonic:'FCVT'; params:((ptype:pt_sreg; offset: 0),(ptype:pt_hreg; offset: 5) ); mask:%11111111111111111111110000000000;  value:%00011110111000100100000000000000),
+    (mnemonic:'FCVT'; params:((ptype:pt_dreg; offset: 0),(ptype:pt_hreg; offset: 5) ); mask:%11111111111111111111110000000000;  value:%00011110111000101100000000000000),
+    (mnemonic:'FCVT'; params:((ptype:pt_hreg; offset: 0),(ptype:pt_sreg; offset: 5) ); mask:%11111111111111111111110000000000;  value:%00011110001000111100000000000000),
+    (mnemonic:'FCVT'; params:((ptype:pt_dreg; offset: 0),(ptype:pt_sreg; offset: 5) ); mask:%11111111111111111111110000000000;  value:%00011110001000101100000000000000),
+    (mnemonic:'FCVT'; params:((ptype:pt_hreg; offset: 0),(ptype:pt_dreg; offset: 5) ); mask:%11111111111111111111110000000000;  value:%00011110011000111100000000000000),
+    (mnemonic:'FCVT'; params:((ptype:pt_sreg; offset: 0),(ptype:pt_dreg; offset: 5) ); mask:%11111111111111111111110000000000;  value:%00011110011000100100000000000000),
+
+    (mnemonic:'FRINTN'; params:((ptype:pt_sreg; offset:0),(ptype:pt_sreg;offset: 5));  mask:%11111111111111111111110000000000;  value:%00011110001001000100000000000000),
+    (mnemonic:'FRINTN'; params:((ptype:pt_dreg; offset:0),(ptype:pt_dreg;offset: 5));  mask:%11111111111111111111110000000000;  value:%00011110011001000100000000000000),
+
+    (mnemonic:'FRINTP'; params:((ptype:pt_sreg; offset:0),(ptype:pt_sreg;offset: 5));  mask:%11111111111111111111110000000000;  value:%00011110001001001100000000000000),
+    (mnemonic:'FRINTP'; params:((ptype:pt_dreg; offset:0),(ptype:pt_dreg;offset: 5));  mask:%11111111111111111111110000000000;  value:%00011110011001001100000000000000),
+
+    (mnemonic:'FRINTM'; params:((ptype:pt_sreg; offset:0),(ptype:pt_sreg;offset: 5));  mask:%11111111111111111111110000000000;  value:%00011110001001010100000000000000),
+    (mnemonic:'FRINTM'; params:((ptype:pt_dreg; offset:0),(ptype:pt_dreg;offset: 5));  mask:%11111111111111111111110000000000;  value:%00011110011001010100000000000000),
+
+    (mnemonic:'FRINTZ'; params:((ptype:pt_sreg; offset:0),(ptype:pt_sreg;offset: 5));  mask:%11111111111111111111110000000000;  value:%00011110001001011100000000000000),
+    (mnemonic:'FRINTZ'; params:((ptype:pt_dreg; offset:0),(ptype:pt_dreg;offset: 5));  mask:%11111111111111111111110000000000;  value:%00011110011001011100000000000000),
+
+    (mnemonic:'FRINTA'; params:((ptype:pt_sreg; offset:0),(ptype:pt_sreg;offset: 5));  mask:%11111111111111111111110000000000;  value:%00011110001001100100000000000000),
+    (mnemonic:'FRINTA'; params:((ptype:pt_dreg; offset:0),(ptype:pt_dreg;offset: 5));  mask:%11111111111111111111110000000000;  value:%00011110011001100100000000000000),
+
+    (mnemonic:'FRINTX'; params:((ptype:pt_sreg; offset:0),(ptype:pt_sreg;offset: 5));  mask:%11111111111111111111110000000000;  value:%00011110001001110100000000000000),
+    (mnemonic:'FRINTX'; params:((ptype:pt_dreg; offset:0),(ptype:pt_dreg;offset: 5));  mask:%11111111111111111111110000000000;  value:%00011110011001110100000000000000),
+
+    (mnemonic:'FRINTI'; params:((ptype:pt_sreg; offset:0),(ptype:pt_sreg;offset: 5));  mask:%11111111111111111111110000000000;  value:%00011110001001111100000000000000),
+    (mnemonic:'FRINTI'; params:((ptype:pt_dreg; offset:0),(ptype:pt_dreg;offset: 5));  mask:%11111111111111111111110000000000;  value:%00011110011001111100000000000000)
+  );
+
+  ArmInstructionsFloatingPoint_IntegerConversions: array of TOpcode=(
+    (mnemonic:'FCVTNS'; params:((ptype:pt_wreg; offset: 0),(ptype:pt_sreg; offset: 5) );  mask:%11111111111111111111110000000000;  value:%00011110001000000000000000000000),
+    (mnemonic:'FCVTNS'; params:((ptype:pt_xreg; offset: 0),(ptype:pt_sreg; offset: 5) );  mask:%11111111111111111111110000000000;  value:%10011110001000000000000000000000),
+    (mnemonic:'FCVTNS'; params:((ptype:pt_wreg; offset: 0),(ptype:pt_dreg; offset: 5) );  mask:%11111111111111111111110000000000;  value:%00011110011000000000000000000000),
+    (mnemonic:'FCVTNS'; params:((ptype:pt_xreg; offset: 0),(ptype:pt_dreg; offset: 5) );  mask:%11111111111111111111110000000000;  value:%10011110011000000000000000000000),
+
+    (mnemonic:'FCVTNU'; params:((ptype:pt_wreg; offset: 0),(ptype:pt_sreg; offset: 5) );  mask:%11111111111111111111110000000000;  value:%00011110001000010000000000000000),
+    (mnemonic:'FCVTNU'; params:((ptype:pt_xreg; offset: 0),(ptype:pt_sreg; offset: 5) );  mask:%11111111111111111111110000000000;  value:%10011110001000010000000000000000),
+    (mnemonic:'FCVTNU'; params:((ptype:pt_wreg; offset: 0),(ptype:pt_dreg; offset: 5) );  mask:%11111111111111111111110000000000;  value:%00011110011000010000000000000000),
+    (mnemonic:'FCVTNU'; params:((ptype:pt_xreg; offset: 0),(ptype:pt_dreg; offset: 5) );  mask:%11111111111111111111110000000000;  value:%10011110011000010000000000000000),
+
+    (mnemonic:'SCVTF';  params:((ptype:pt_sreg; offset: 0),(ptype:pt_wreg; offset: 5) );  mask:%11111111111111111111110000000000;  value:%00011110001000100000000000000000),
+    (mnemonic:'SCVTF';  params:((ptype:pt_dreg; offset: 0),(ptype:pt_wreg; offset: 5) );  mask:%11111111111111111111110000000000;  value:%10011110001000100000000000000000),
+    (mnemonic:'SCVTF';  params:((ptype:pt_sreg; offset: 0),(ptype:pt_xreg; offset: 5) );  mask:%11111111111111111111110000000000;  value:%00011110011000100000000000000000),
+    (mnemonic:'SCVTF';  params:((ptype:pt_dreg; offset: 0),(ptype:pt_xreg; offset: 5) );  mask:%11111111111111111111110000000000;  value:%10011110011000100000000000000000),
+
+    (mnemonic:'UCVTF';  params:((ptype:pt_sreg; offset: 0),(ptype:pt_wreg; offset: 5) );  mask:%11111111111111111111110000000000;  value:%00011110001000110000000000000000),
+    (mnemonic:'UCVTF';  params:((ptype:pt_dreg; offset: 0),(ptype:pt_wreg; offset: 5) );  mask:%11111111111111111111110000000000;  value:%10011110001000110000000000000000),
+    (mnemonic:'UCVTF';  params:((ptype:pt_sreg; offset: 0),(ptype:pt_xreg; offset: 5) );  mask:%11111111111111111111110000000000;  value:%00011110011000110000000000000000),
+    (mnemonic:'UCVTF';  params:((ptype:pt_dreg; offset: 0),(ptype:pt_xreg; offset: 5) );  mask:%11111111111111111111110000000000;  value:%10011110011000110000000000000000),
+
+    (mnemonic:'FCVTAS'; params:((ptype:pt_wreg; offset: 0),(ptype:pt_sreg; offset: 5) );  mask:%11111111111111111111110000000000;  value:%00011110001001000000000000000000),
+    (mnemonic:'FCVTAS'; params:((ptype:pt_xreg; offset: 0),(ptype:pt_sreg; offset: 5) );  mask:%11111111111111111111110000000000;  value:%10011110001001000000000000000000),
+    (mnemonic:'FCVTAS'; params:((ptype:pt_wreg; offset: 0),(ptype:pt_dreg; offset: 5) );  mask:%11111111111111111111110000000000;  value:%00011110011001000000000000000000),
+    (mnemonic:'FCVTAS'; params:((ptype:pt_xreg; offset: 0),(ptype:pt_dreg; offset: 5) );  mask:%11111111111111111111110000000000;  value:%10011110011001000000000000000000),
+
+    (mnemonic:'FCVTAU'; params:((ptype:pt_wreg; offset: 0),(ptype:pt_sreg; offset: 5) );  mask:%11111111111111111111110000000000;  value:%00011110001001010000000000000000),
+    (mnemonic:'FCVTAU'; params:((ptype:pt_xreg; offset: 0),(ptype:pt_sreg; offset: 5) );  mask:%11111111111111111111110000000000;  value:%10011110001001010000000000000000),
+    (mnemonic:'FCVTAU'; params:((ptype:pt_wreg; offset: 0),(ptype:pt_dreg; offset: 5) );  mask:%11111111111111111111110000000000;  value:%00011110011001010000000000000000),
+    (mnemonic:'FCVTAU'; params:((ptype:pt_xreg; offset: 0),(ptype:pt_dreg; offset: 5) );  mask:%11111111111111111111110000000000;  value:%10011110011001010000000000000000),
+
+    (mnemonic:'FMOV'; params:((ptype:pt_sreg; offset: 0),(ptype:pt_wreg; offset: 5) );    mask:%11111111111111111111110000000000;  value:%00011110001001110000000000000000),
+    (mnemonic:'FMOV'; params:((ptype:pt_wreg; offset: 0),(ptype:pt_sreg; offset: 5) );    mask:%11111111111111111111110000000000;  value:%00011110001001100000000000000000),
+    (mnemonic:'FMOV'; params:((ptype:pt_dreg; offset: 0),(ptype:pt_xreg; offset: 5) );    mask:%11111111111111111111110000000000;  value:%10011110011001110000000000000000),
+    (mnemonic:'FMOV';params:((ptype:pt_vreg_D_Index1;offset:0),(ptype:pt_xreg;offset:5)); mask:%11111111111111111111110000000000;  value:%10011110101011110000000000000000),
+    (mnemonic:'FMOV'; params:((ptype:pt_xreg; offset: 0),(ptype:pt_dreg; offset: 5) );    mask:%11111111111111111111110000000000;  value:%10011110011001100000000000000000),
+    (mnemonic:'FMOV'; params:((ptype:pt_xreg; offset: 0),(ptype:pt_vreg_D_Index1; offset: 5) );  mask:%11111111111111111111110000000000;  value:%10011110101011100000000000000000),
+
+    (mnemonic:'FCVTPS'; params:((ptype:pt_wreg; offset: 0),(ptype:pt_sreg; offset: 5) );  mask:%11111111111111111111110000000000;  value:%00011110001010000000000000000000),
+    (mnemonic:'FCVTPS'; params:((ptype:pt_xreg; offset: 0),(ptype:pt_sreg; offset: 5) );  mask:%11111111111111111111110000000000;  value:%10011110001010000000000000000000),
+    (mnemonic:'FCVTPS'; params:((ptype:pt_wreg; offset: 0),(ptype:pt_dreg; offset: 5) );  mask:%11111111111111111111110000000000;  value:%00011110011010000000000000000000),
+    (mnemonic:'FCVTPS'; params:((ptype:pt_xreg; offset: 0),(ptype:pt_dreg; offset: 5) );  mask:%11111111111111111111110000000000;  value:%10011110011010000000000000000000),
+
+    (mnemonic:'FCVTPU'; params:((ptype:pt_wreg; offset: 0),(ptype:pt_sreg; offset: 5) );  mask:%11111111111111111111110000000000;  value:%00011110001010010000000000000000),
+    (mnemonic:'FCVTPU'; params:((ptype:pt_xreg; offset: 0),(ptype:pt_sreg; offset: 5) );  mask:%11111111111111111111110000000000;  value:%10011110001010010000000000000000),
+    (mnemonic:'FCVTPU'; params:((ptype:pt_wreg; offset: 0),(ptype:pt_dreg; offset: 5) );  mask:%11111111111111111111110000000000;  value:%00011110011010010000000000000000),
+    (mnemonic:'FCVTPU'; params:((ptype:pt_xreg; offset: 0),(ptype:pt_dreg; offset: 5) );  mask:%11111111111111111111110000000000;  value:%10011110011010010000000000000000),
+
+    (mnemonic:'FCVTMS'; params:((ptype:pt_wreg; offset: 0),(ptype:pt_sreg; offset: 5) );  mask:%11111111111111111111110000000000;  value:%00011110001100000000000000000000),
+    (mnemonic:'FCVTMS'; params:((ptype:pt_xreg; offset: 0),(ptype:pt_sreg; offset: 5) );  mask:%11111111111111111111110000000000;  value:%10011110001100000000000000000000),
+    (mnemonic:'FCVTMS'; params:((ptype:pt_wreg; offset: 0),(ptype:pt_dreg; offset: 5) );  mask:%11111111111111111111110000000000;  value:%00011110011100000000000000000000),
+    (mnemonic:'FCVTMS'; params:((ptype:pt_xreg; offset: 0),(ptype:pt_dreg; offset: 5) );  mask:%11111111111111111111110000000000;  value:%10011110011100000000000000000000),
+
+    (mnemonic:'FCVTMU'; params:((ptype:pt_wreg; offset: 0),(ptype:pt_sreg; offset: 5) );  mask:%11111111111111111111110000000000;  value:%00011110001100010000000000000000),
+    (mnemonic:'FCVTMU'; params:((ptype:pt_xreg; offset: 0),(ptype:pt_sreg; offset: 5) );  mask:%11111111111111111111110000000000;  value:%10011110001100010000000000000000),
+    (mnemonic:'FCVTMU'; params:((ptype:pt_wreg; offset: 0),(ptype:pt_dreg; offset: 5) );  mask:%11111111111111111111110000000000;  value:%00011110011100010000000000000000),
+    (mnemonic:'FCVTMU'; params:((ptype:pt_xreg; offset: 0),(ptype:pt_dreg; offset: 5) );  mask:%11111111111111111111110000000000;  value:%10011110011100010000000000000000),
+
+    (mnemonic:'FCVTZS'; params:((ptype:pt_wreg; offset: 0),(ptype:pt_sreg; offset: 5) );  mask:%11111111111111111111110000000000;  value:%00011110001110000000000000000000),
+    (mnemonic:'FCVTZS'; params:((ptype:pt_xreg; offset: 0),(ptype:pt_sreg; offset: 5) );  mask:%11111111111111111111110000000000;  value:%10011110001110000000000000000000),
+    (mnemonic:'FCVTZS'; params:((ptype:pt_wreg; offset: 0),(ptype:pt_dreg; offset: 5) );  mask:%11111111111111111111110000000000;  value:%00011110011110000000000000000000),
+    (mnemonic:'FCVTZS'; params:((ptype:pt_xreg; offset: 0),(ptype:pt_dreg; offset: 5) );  mask:%11111111111111111111110000000000;  value:%10011110011110000000000000000000),
+
+    (mnemonic:'FCVTZU'; params:((ptype:pt_wreg; offset: 0),(ptype:pt_sreg; offset: 5) );  mask:%11111111111111111111110000000000;  value:%00011110001110010000000000000000),
+    (mnemonic:'FCVTZU'; params:((ptype:pt_xreg; offset: 0),(ptype:pt_sreg; offset: 5) );  mask:%11111111111111111111110000000000;  value:%10011110001110010000000000000000),
+    (mnemonic:'FCVTZU'; params:((ptype:pt_wreg; offset: 0),(ptype:pt_dreg; offset: 5) );  mask:%11111111111111111111110000000000;  value:%00011110011110010000000000000000),
+    (mnemonic:'FCVTZU'; params:((ptype:pt_xreg; offset: 0),(ptype:pt_dreg; offset: 5) );  mask:%11111111111111111111110000000000;  value:%10011110011110010000000000000000)
+  );
+
+  ArmInstructionsFloatingPointDataProcessing3Source: array of TOpcode=(
+    (mnemonic:'FMADD'; params:((ptype:pt_sreg; offset: 0),(ptype:pt_sreg; offset: 5),(ptype:pt_sreg; offset: 16),(ptype:pt_sreg; offset: 10)  ); mask:%11111111111000001000000000000000;  value:%00011111000000000000000000000000),
+    (mnemonic:'FMADD'; params:((ptype:pt_dreg; offset: 0),(ptype:pt_dreg; offset: 5),(ptype:pt_dreg; offset: 16),(ptype:pt_dreg; offset: 10)  ); mask:%11111111111000001000000000000000;  value:%00011111010000000000000000000000),
+
+    (mnemonic:'FMSUB'; params:((ptype:pt_sreg; offset: 0),(ptype:pt_sreg; offset: 5),(ptype:pt_sreg; offset: 16),(ptype:pt_sreg; offset: 10)  ); mask:%11111111111000001000000000000000;  value:%00011111000000001000000000000000),
+    (mnemonic:'FMSUB'; params:((ptype:pt_dreg; offset: 0),(ptype:pt_dreg; offset: 5),(ptype:pt_dreg; offset: 16),(ptype:pt_dreg; offset: 10)  ); mask:%11111111111000001000000000000000;  value:%00011111010000001000000000000000),
+
+    (mnemonic:'FNMADD'; params:((ptype:pt_sreg; offset: 0),(ptype:pt_sreg; offset: 5),(ptype:pt_sreg; offset: 16),(ptype:pt_sreg; offset: 10)  ); mask:%11111111111000001000000000000000;  value:%00011111001000000000000000000000),
+    (mnemonic:'FNMADD'; params:((ptype:pt_dreg; offset: 0),(ptype:pt_dreg; offset: 5),(ptype:pt_dreg; offset: 16),(ptype:pt_dreg; offset: 10)  ); mask:%11111111111000001000000000000000;  value:%00011111011000000000000000000000),
+
+    (mnemonic:'FNMSUB'; params:((ptype:pt_sreg; offset: 0),(ptype:pt_sreg; offset: 5),(ptype:pt_sreg; offset: 16),(ptype:pt_sreg; offset: 10)  ); mask:%11111111111000001000000000000000;  value:%00011111001000001000000000000000),
+    (mnemonic:'FNMSUB'; params:((ptype:pt_dreg; offset: 0),(ptype:pt_dreg; offset: 5),(ptype:pt_dreg; offset: 16),(ptype:pt_dreg; offset: 10)  ); mask:%11111111111000001000000000000000;  value:%00011111011000001000000000000000)
+  );
 
   ArmInstructionsAdvSIMDThreeSame: array of TOpcode=(
     (mnemonic:'SHADD'; params:((ptype:pt_vreg_T_sizenot3; offset:0), (ptype:pt_vreg_T_sizenot3; offset:5),  (ptype:pt_vreg_T_sizenot3; offset:16));  mask:%10111111001000001111110000000000; value:%00001110001000000000010000000000),
@@ -1478,8 +1679,48 @@ const
   );
 
   ArmInstructionsAdvSIMDVectorXIndexedElement: array of TOpcode=(
+    (mnemonic:'SMLAL'; params:((ptype:pt_vreg_SD_2bit; offset: 0),(ptype:pt_vreg_T_sizenot3or0; offset: 5),(ptype:pt_vreg_HS_HLMIndex; offset: 16));    mask:%11111111000000001111010000000000; value:%00001111000000000010000000000000),
+    (mnemonic:'SMLAL2'; params:((ptype:pt_vreg_SD_2bit; offset: 0),(ptype:pt_vreg_T_sizenot3or0; offset: 5),(ptype:pt_vreg_HS_HLMIndex; offset: 16));   mask:%11111111000000001111010000000000; value:%01001111000000000010000000000000),
+
+    (mnemonic:'SQDMLAL'; params:((ptype:pt_vreg_SD_2bit; offset: 0),(ptype:pt_vreg_T_sizenot3or0; offset: 5),(ptype:pt_vreg_HS_HLMIndex; offset: 16));  mask:%11111111000000001111010000000000; value:%00001111000000000011000000000000),
+    (mnemonic:'SQDMLAL2'; params:((ptype:pt_vreg_SD_2bit; offset: 0),(ptype:pt_vreg_T_sizenot3or0; offset: 5),(ptype:pt_vreg_HS_HLMIndex; offset: 16)); mask:%11111111000000001111010000000000; value:%01001111000000000011000000000000),
+
+    (mnemonic:'SMLSL'; params:((ptype:pt_vreg_SD_2bit; offset: 0),(ptype:pt_vreg_T_sizenot3or0; offset: 5),(ptype:pt_vreg_HS_HLMIndex; offset: 16));    mask:%11111111000000001111010000000000; value:%00001111000000000110000000000000),
+    (mnemonic:'SMLSL2'; params:((ptype:pt_vreg_SD_2bit; offset: 0),(ptype:pt_vreg_T_sizenot3or0; offset: 5),(ptype:pt_vreg_HS_HLMIndex; offset: 16));   mask:%11111111000000001111010000000000; value:%00001111000000000110000000000000),
+
+    (mnemonic:'SQDMLSL'; params:((ptype:pt_vreg_SD_2bit; offset: 0),(ptype:pt_vreg_T_sizenot3or0; offset: 5),(ptype:pt_vreg_HS_HLMIndex; offset: 16));  mask:%11111111000000001111010000000000; value:%00001111000000000111000000000000),
+    (mnemonic:'SQDMLSL2'; params:((ptype:pt_vreg_SD_2bit; offset: 0),(ptype:pt_vreg_T_sizenot3or0; offset: 5),(ptype:pt_vreg_HS_HLMIndex; offset: 16)); mask:%11111111000000001111010000000000; value:%01001111000000000111000000000000),
+
+    (mnemonic:'MUL'; params:((ptype:pt_vreg_T_sizenot3or0; offset: 0),(ptype:pt_vreg_T_sizenot3or0; offset: 5),(ptype:pt_vreg_HS_HLMIndex; offset: 16));mask:%10111111000000001111010000000000; value:%00001111000000001000000000000000),
+
+    (mnemonic:'SMULL'; params:((ptype:pt_vreg_SD_2bit; offset: 0),(ptype:pt_vreg_T_sizenot3or0; offset: 5),(ptype:pt_vreg_HS_HLMIndex; offset: 16));    mask:%11111111000000001111010000000000; value:%00001111000000001010000000000000),
+    (mnemonic:'SMULL2'; params:((ptype:pt_vreg_SD_2bit; offset: 0),(ptype:pt_vreg_T_sizenot3or0; offset: 5),(ptype:pt_vreg_HS_HLMIndex; offset: 16));   mask:%11111111000000001111010000000000; value:%01001111000000001010000000000000),
+
+    (mnemonic:'SQDMULL'; params:((ptype:pt_vreg_SD_2bit; offset: 0),(ptype:pt_vreg_T_sizenot3or0; offset: 5),(ptype:pt_vreg_HS_HLMIndex; offset: 16));  mask:%11111111000000001111010000000000; value:%00001111000000001011000000000000),
+    (mnemonic:'SQDMULL2'; params:((ptype:pt_vreg_SD_2bit; offset: 0),(ptype:pt_vreg_T_sizenot3or0; offset: 5),(ptype:pt_vreg_HS_HLMIndex; offset: 16)); mask:%11111111000000001111010000000000; value:%00001111000000001011000000000000),
+
+    (mnemonic:'SQDMULH'; params:((ptype:pt_vreg_T_sizenot3or0; offset: 0),(ptype:pt_vreg_T_sizenot3or0;offset:5),(ptype:pt_vreg_HS_HLMIndex;offset:16));mask:%10111111000000001111010000000000; value:%00001111000000001100000000000000),
+    (mnemonic:'SQRDMULH';params:((ptype:pt_vreg_T_sizenot3or0; offset: 0),(ptype:pt_vreg_T_sizenot3or0;offset:5),(ptype:pt_vreg_HS_HLMIndex;offset:16));mask:%10111111000000001111010000000000; value:%00001111000000001101000000000000),
+
+    (mnemonic:'FMLA'; params:((ptype:pt_vreg_SD_2bit; offset: 0),(ptype:pt_vreg_SD_2bit; offset: 5),(ptype:pt_vreg_SD_HLIndex;offset: 16));mask:%10111111100000001111010000000000; value:%00001111100000000001000000000000),
+    (mnemonic:'FMLS'; params:((ptype:pt_vreg_SD_2bit; offset: 0),(ptype:pt_vreg_SD_2bit; offset: 5),(ptype:pt_vreg_SD_HLIndex;offset: 16));mask:%10111111100000001111010000000000; value:%00001111100000000101000000000000),
+    (mnemonic:'FMUL'; params:((ptype:pt_vreg_SD_2bit; offset: 0),(ptype:pt_vreg_SD_2bit; offset: 5),(ptype:pt_vreg_SD_HLIndex;offset: 16));mask:%10111111100000001111010000000000; value:%00001111100000001001000000000000),
+
+    (mnemonic:'MLA'; params:((ptype:pt_vreg_T_sizenot3or0; offset: 0),(ptype:pt_vreg_T_sizenot3or0; offset: 5),(ptype:pt_vreg_HS_HLMIndex; offset: 16));mask:%10111111000000001111010000000000; value:%00101111000000000000000000000000),
+
+    (mnemonic:'UMLAL'; params:((ptype:pt_vreg_SD_2bit; offset: 0),(ptype:pt_vreg_T_sizenot3or0; offset: 5),(ptype:pt_vreg_HS_HLMIndex; offset: 16));    mask:%11111111000000001111010000000000; value:%00101111000000000010000000000000),
+    (mnemonic:'UMLAL2'; params:((ptype:pt_vreg_SD_2bit; offset: 0),(ptype:pt_vreg_T_sizenot3or0; offset: 5),(ptype:pt_vreg_HS_HLMIndex; offset: 16));   mask:%11111111000000001111010000000000; value:%01101111000000000010000000000000),
+
+    (mnemonic:'MLS'; params:((ptype:pt_vreg_T_sizenot3or0; offset: 0),(ptype:pt_vreg_T_sizenot3or0; offset: 5),(ptype:pt_vreg_HS_HLMIndex; offset: 16));mask:%10111111000000001111010000000000; value:%00101111000000000100000000000000),
+
+    (mnemonic:'UMLSL'; params:((ptype:pt_vreg_SD_2bit; offset: 0),(ptype:pt_vreg_T_sizenot3or0; offset: 5),(ptype:pt_vreg_HS_HLMIndex; offset: 16));    mask:%11111111000000001111010000000000; value:%00101111000000000110000000000000),
+    (mnemonic:'UMLSL2'; params:((ptype:pt_vreg_SD_2bit; offset: 0),(ptype:pt_vreg_T_sizenot3or0; offset: 5),(ptype:pt_vreg_HS_HLMIndex; offset: 16));   mask:%11111111000000001111010000000000; value:%01101111000000000110000000000000),
 
 
+    (mnemonic:'UMULL'; params:((ptype:pt_vreg_SD_2bit; offset: 0),(ptype:pt_vreg_T_sizenot3or0; offset: 5),(ptype:pt_vreg_HS_HLMIndex; offset: 16));    mask:%11111111000000001111010000000000; value:%00101111000000001010000000000000),
+    (mnemonic:'UMULL2'; params:((ptype:pt_vreg_SD_2bit; offset: 0),(ptype:pt_vreg_T_sizenot3or0; offset: 5),(ptype:pt_vreg_HS_HLMIndex; offset: 16));   mask:%11111111000000001111010000000000; value:%01101111000000001010000000000000),
+
+    (mnemonic:'FMULX'; params:((ptype:pt_vreg_T_sizenot3or0; offset: 0),(ptype:pt_vreg_T_sizenot3or0; offset: 5),(ptype:pt_vreg_HS_HLMIndex; offset: 16));mask:%10111111000000001111010000000000; value:%00101111100000001001000000000000)
   );
 
 
@@ -2145,9 +2386,29 @@ const
 
   );
 
-  ArmInstructionsCryptoAES: array of TOpcode=();
-  ArmInstructionsCryptoThreeRegSHA: array of TOpcode=();
-  ArmInstructionsCryptoTwoRegSHA: array of TOpcode=();
+  ArmInstructionsCryptoAES: array of TOpcode=(
+    (mnemonic:'AESE'; params:((ptype:pt_vreg_16B; offset: 0),(ptype:pt_vreg_16B; offset: 5));   mask:%11111111111111111111110000000000; value:%01001110001010000100100000000000),
+    (mnemonic:'AESD'; params:((ptype:pt_vreg_16B; offset: 0),(ptype:pt_vreg_16B; offset: 5));   mask:%11111111111111111111110000000000; value:%01001110001010000101100000000000),
+    (mnemonic:'AESMC'; params:((ptype:pt_vreg_16B; offset: 0),(ptype:pt_vreg_16B; offset: 5));  mask:%11111111111111111111110000000000; value:%01001110001010000110100000000000),
+    (mnemonic:'AESIMC'; params:((ptype:pt_vreg_16B; offset: 0),(ptype:pt_vreg_16B; offset: 5)); mask:%11111111111111111111110000000000; value:%01001110001010000111100000000000)
+  );
+
+  ArmInstructionsCryptoThreeRegSHA: array of TOpcode=(
+    (mnemonic:'SHA1C'; params:((ptype:pt_qreg; offset: 0), (ptype:pt_sreg; offset: 5), (ptype:pt_vreg_4S; offset: 16)); mask:%11111111111000001111110000000000; value:%01011110000000000000000000000000),
+    (mnemonic:'SHA1P'; params:((ptype:pt_qreg; offset: 0), (ptype:pt_sreg; offset: 5), (ptype:pt_vreg_4S; offset: 16)); mask:%11111111111000001111110000000000; value:%01011110000000000001000000000000),
+    (mnemonic:'SHA1M'; params:((ptype:pt_qreg; offset: 0), (ptype:pt_sreg; offset: 5), (ptype:pt_vreg_4S; offset: 16)); mask:%11111111111000001111110000000000; value:%01011110000000000010000000000000),
+    (mnemonic:'SHA1SU0'; params:((ptype:pt_qreg; offset: 0),(ptype:pt_sreg; offset: 5),(ptype:pt_vreg_4S; offset: 16)); mask:%11111111111000001111110000000000; value:%01011110000000000011000000000000),
+    (mnemonic:'SHA256H'; params:((ptype:pt_qreg; offset: 0),(ptype:pt_sreg; offset: 5),(ptype:pt_vreg_4S; offset: 16)); mask:%11111111111000001111110000000000; value:%01011110000000000100000000000000),
+    (mnemonic:'SHA256H2';params:((ptype:pt_qreg; offset: 0),(ptype:pt_sreg; offset: 5),(ptype:pt_vreg_4S; offset: 16)); mask:%11111111111000001111110000000000; value:%01011110000000000101000000000000),
+    (mnemonic:'SHA256SU1';params:((ptype:pt_qreg; offset: 0),(ptype:pt_sreg; offset: 5),(ptype:pt_vreg_4S; offset: 16));mask:%11111111111000001111110000000000; value:%01011110000000000110000000000000)
+  );
+
+
+  ArmInstructionsCryptoTwoRegSHA: array of TOpcode=(
+    (mnemonic:'SHA1H'; params:((ptype:pt_sreg; offset: 0), (ptype:pt_sreg; offset: 5)); mask:%11111111111111111111110000000000; value:%01011110001010000000100000000000),
+    (mnemonic:'SHA1SU1';params:((ptype:pt_sreg;offset: 0), (ptype:pt_sreg; offset: 5)); mask:%11111111111111111111110000000000; value:%01011110001010000001100000000000),
+    (mnemonic:'SHA256SU0';params:((ptype:pt_sreg;offset:0),(ptype:pt_sreg; offset: 5)); mask:%11111111111111111111110000000000; value:%01011110001010000010100000000000)
+  );
 
 
   //--------------------------- instruction groups----------------------------//
@@ -2210,7 +2471,7 @@ const
   ArmGroupSIMDAndFP: array of TInstructionGroup=(
     (mask:%01011111001000000000000000000000; value: %00011110000000000000000000000000; list: @ArmInstructionsFloatingPoint_FixedPointConversions; listType: igpInstructions),
     (mask:%01011111001000000000110000000000; value: %00011110001000000000010000000000; list: @ArmInstructionsFloatingPointConditionalCompare; listType: igpInstructions),
-    (mask:%01011111001000000000110000000000; value: %00011110001000000000100000000000; list: @ArmInstructionsFloatingPointDataProcessing; listType: igpInstructions),
+    (mask:%01011111001000000000110000000000; value: %00011110001000000000100000000000; list: @ArmInstructionsFloatingPointDataProcessing2Source; listType: igpInstructions),
     (mask:%01011111001000000000110000000000; value: %00011110001000000000110000000000; list: @ArmInstructionsFloatingPointConditionalSelect; listType: igpInstructions),
     (mask:%01011111001000000001110000000000; value: %00011110001000000001000000000000; list: @ArmInstructionsFloatingPointImmediate; listType: igpInstructions),
     (mask:%01011111001000000011110000000000; value: %00011110001000000010000000000000; list: @ArmInstructionsFloatingPointCompare; listType: igpInstructions),
@@ -2440,6 +2701,25 @@ begin
   exit(wmask);
 end;
 
+function bhsd(encoding2: integer): string;
+begin
+  case encoding2 and 3 of
+    %00: exit('B');
+    %01: exit('H');
+    %10: exit('S');
+    %11: exit('D');
+  end;
+end;
+
+function bhsd2(encoding2: integer): string;
+begin
+  case encoding2 and 3 of
+    %01: exit('B');
+    %10: exit('H');
+    %11: exit('S');
+  end;
+end;
+
 function getVectorSizeString(encoding3: integer): string;
 begin
   case encoding3 of
@@ -2484,6 +2764,35 @@ begin
   result:=result+'}';
 end;
 
+function fp8tofloat(v: byte): single;
+var
+  n: integer;
+  e: integer;
+  f: integer;
+  sign: integer;
+  exp: integer;
+  frac: integer;
+
+  r: single;
+  fr: bitpacked record
+    sign: 1..1;
+    exp: 0..255;
+    frac: 0..$3FFFFF;
+  end absolute r;
+
+begin
+  r:=0;
+  n:=32;
+  e:=8;
+  f:=n-e-1;
+
+  fr.sign:=(v shr 7) and 1;
+  fr.exp:=(not((v shr 6) and 1) shr 7) or (replicate((v shr 6) and 1, 1,e-3) shl 2) or ((v shr 4) and 3);
+  fr.frac:=(v and $f) shl 18;
+
+  result:=r;
+
+end;
 
 function TArm64Disassembler.ParseParameters(plist: TAParametersList): boolean;
 var
@@ -2561,6 +2870,27 @@ begin
         p:='Q'+inttostr(v);
       end;
 
+      pt_sdreg:
+      begin
+        v:=(opcode shr plist[i].offset) and 31;
+        case (opcode shr 22) and 3 of
+          0,3: exit(false);
+          1: p:='S'+inttostr(v);
+          2: p:='D'+inttostr(v);
+        end;
+      end;
+
+      pt_hsreg:
+      begin
+        v:=(opcode shr plist[i].offset) and 31;
+        case (opcode shr 22) and 3 of
+          0,3: exit(false);
+          1: p:='H'+inttostr(v);
+          2: p:='S'+inttostr(v);
+        end;
+      end;
+
+
       pt_vreg_8B:
       begin
         v:=(opcode shr plist[i].offset) and 31;
@@ -2611,6 +2941,49 @@ begin
         p:='V'+inttostr(v)+'.B['+inttohex(v2,1)+']';
       end;
 
+      pt_vreg_SD_HLIndex: //HL bits 11:21  size: 22
+      begin
+        v:=(opcode shr plist[i].offset) and plist[i].maxval;
+        p:='V'+inttostr(v)+'.';
+
+        v:=(opcode shr 22) and 1;
+        case v of
+          0:
+          begin
+            v2:=((opcode shr 21) and 1) or ((opcode shr 10) and 4);
+            p:='.S['+inttohex(v2,1)+']';
+          end;
+
+          1:
+          begin
+            v2:=(opcode shr 11) and 1;
+            p:='.D['+inttohex(v2,1)+']';
+          end;
+        end;
+      end;
+
+      pt_vreg_HS_HLMIndex: //HLM bits 11:21:20  size: 23:22
+      begin
+        v:=(opcode shr plist[i].offset) and plist[i].maxval;
+        p:='V'+inttostr(v)+'.';
+
+        v:=(opcode shr 22) and 3;
+        case v of
+          1:
+          begin
+            v2:=((opcode shr 20) and 3) or ((opcode shr 9) and 4);
+            p:='.H['+inttohex(v2,1)+']';
+          end;
+
+          2:
+          begin
+            v2:=((opcode shr 21) and 1) or ((opcode shr 10) and 2);
+            p:='.S['+inttohex(v2,1)+']';
+          end;
+        end;
+      end;
+
+
       pt_vreg_H_HLMIndex: //HLM = bits 11:21:20
       begin
         v:=(opcode shr plist[i].offset) and plist[i].maxval;
@@ -2651,6 +3024,13 @@ begin
         v:=(opcode shr plist[i].offset) and 31;
         v2:=(opcode shr plist[i].extra) and (plist[i].maxval);
         p:='V'+inttostr(v)+'.D['+inttohex(v2,1)+']';
+      end;
+
+      pt_vreg_D_Index1:
+      begin
+        v:=(opcode shr plist[i].offset) and 31;
+        v2:=(opcode shr plist[i].extra) and (plist[i].maxval);
+        p:='V'+inttostr(v)+'.D[1]';
       end;
 
       pt_label:
@@ -2707,6 +3087,7 @@ begin
         p:='#'+inttohex(1 shl v,1);
       end;
 
+      pt_imm_val0_0: p:='#0.0';
       pt_imm_val0: p:='#0';
       pt_imm_val1: p:='#1';
       pt_imm_val2: p:='#2';
@@ -2794,6 +3175,22 @@ begin
 
 
         p:='#'+inttohex(Int16(v),1);
+      end;
+
+      pt_fpimm8:
+      begin
+        v:=(opcode shr plist[i].offset) and plist[i].maxval;
+        try
+          p:=FloatToStr(fp8tofloat(v));
+        except
+          p:='#'+inttohex(v,1);
+        end;
+      end;
+
+      pt_scale:
+      begin
+        v:=(opcode shr plist[i].offset) and plist[i].maxval;
+        p:='#'+inttohex(64-v,1);
       end;
 
       pt_imm_bitmask:
@@ -3358,7 +3755,7 @@ begin
 
   FillArmInstructionsAssemblerListWithOpcodeArray(ArmInstructionsFloatingPoint_FixedPointConversions);
   FillArmInstructionsAssemblerListWithOpcodeArray(ArmInstructionsFloatingPointConditionalCompare);
-  FillArmInstructionsAssemblerListWithOpcodeArray(ArmInstructionsFloatingPointDataProcessing);
+  FillArmInstructionsAssemblerListWithOpcodeArray(ArmInstructionsFloatingPointDataProcessing2Source);
   FillArmInstructionsAssemblerListWithOpcodeArray(ArmInstructionsFloatingPointConditionalSelect);
   FillArmInstructionsAssemblerListWithOpcodeArray(ArmInstructionsFloatingPointImmediate);
   FillArmInstructionsAssemblerListWithOpcodeArray(ArmInstructionsFloatingPointCompare);
