@@ -1,5 +1,5 @@
 //copyright Cheat Engine 2022. All rights reserved
-unit disassemblerarm64;
+unit DisAssemblerARM64;
 
 {$mode objfpc}{$H+}
 {$WARN 3177 off : Some fields coming after "$1" were not initialized}
@@ -26,7 +26,7 @@ type
     pt_reglist_vectorsingle, pt_prfop, pt_sysop_at, pt_sysop_dc, pt_sysop_ic,
     pt_sysop_tlbi, pt_pstatefield_SP, pt_pstatefield_DAIFSet,
     pt_pstatefield_DAIFClr, pt_barrierOption, pt_systemreg, pt_creg, pt_xreg,
-    pt_wreg, pt_wreg2x, pt_xreg2x, pt_breg, pt_hreg, pt_sreg, pt_dreg, pt_qreg, pt_sdreg, pt_hsreg,
+    pt_wreg, pt_wreg2x, pt_xreg2x, pt_wreg_or_wsp, pt_xreg_or_sp, pt_breg, pt_hreg, pt_sreg, pt_dreg, pt_qreg, pt_sdreg, pt_hsreg,
     pt_imm, pt_xminimm,pt_immminx, pt_imm2, pt_imm2_8, pt_imm32or64, pt_imm_bitmask, pt_imm_1shlval, pt_imm_val0_0, pt_imm_val0, pt_imm_val1,
     pt_imm_val2, pt_imm_val4, pt_imm_val8, pt_imm_mul4, pt_imm_mul8,
     pt_imm_mul16, pt_simm, pt_pimm, pt_fpimm8,pt_scale, pt_label, pt_addrlabel,
@@ -65,36 +65,47 @@ type
   POpcode=^TOpcode;
   TOpcodeArray=array of TOpcode;
 
+  EInvalidInstruction=class(Exception);
 
-  TArm64Disassembler=object
+  TArm64ParameterTypes=set of TArm64ParameterType;
+
+  TArm64Instructionset=object
   private
     address: qword;
     opcode: uint32;
 
+    procedure InitARM64Support;
+
     function GetIMM2Value(mask: dword): dword;
     function GetIMM2_8Value(mask: dword): qword;
-    function ParseParameters(plist: TAParametersList): boolean;
+    procedure SetIMM2Value(mask: dword; v: dword);
+
+    function ParseParametersForDisassembler(plist: TAParametersList): boolean;
     function ScanOpcodeList(const list: topcodearray): boolean;
     function ScanGroupList(const list: TInstructionGroupArray): boolean;
+    //assembler
+    function ParseParameterForAssembler(param:TAParameters; paramstr: string): boolean;
+    function GuessTypes(param: string): TArm64ParameterTypes;
   public
     LastDisassembleData: TLastDisassembleData;
     function disassemble(var DisassembleAddress: ptruint{$ifdef armdev}; _opcode: dword{$endif}): string;
+    function assemble(_address: ptruint; instruction: string): DWORD;
   end;
 
   {$ifdef armdev}
   procedure GetArmInstructionsAssemblerListDebug(r: tstrings);
   {$endif}
 
-  procedure InitARM64Support;
+
+
 
 implementation
 
 {$ifndef armdev}
-uses NewKernelHandler,ProcessHandlerUnit,StringHashList;
+uses math, NewKernelHandler,ProcessHandlerUnit,StringHashList;
 {$else}
-uses StringHashList, math;
+uses StringHashList, math, windows, Rtti, RttiUtils, TypInfo;
 {$endif}
-
 
 
 const
@@ -714,10 +725,10 @@ const
   );
 
   ArmInstructionsAddSubtractImm: array of TOpcode=(
-    (mnemonic:'MOV';  params:((ptype:pt_wreg; offset:0),(ptype:pt_wreg; offset:5)); mask:%11111111111111111111111111100000; value:%00010001000000000000001111100000),
-    (mnemonic:'MOV';  params:((ptype:pt_xreg; offset:0),(ptype:pt_xreg; offset:5)); mask:%11111111111111111111111111100000; value:%10010001000000000000001111100000),
-    (mnemonic:'MOV';  params:((ptype:pt_wreg; offset:0),(ptype:pt_wreg; offset:5)); mask:%11111111111111111111100000111111; value:%00010001000000000000000000011111),
-    (mnemonic:'MOV';  params:((ptype:pt_xreg; offset:0),(ptype:pt_xreg; offset:5)); mask:%11111111111111111111100000111111; value:%10010001000000000000000000011111),
+    (mnemonic:'MOV';  params:((ptype:pt_wreg; offset:0),(ptype:pt_wreg_or_wsp; offset:5)); mask:%11111111111111111111111111100000; value:%00010001000000000000001111100000),
+    (mnemonic:'MOV';  params:((ptype:pt_xreg; offset:0),(ptype:pt_xreg_or_sp; offset:5)); mask:%11111111111111111111111111100000; value:%10010001000000000000001111100000),
+    (mnemonic:'MOV';  params:((ptype:pt_wreg; offset:0),(ptype:pt_wreg_or_wsp; offset:5)); mask:%11111111111111111111100000111111; value:%00010001000000000000000000011111),
+    (mnemonic:'MOV';  params:((ptype:pt_xreg; offset:0),(ptype:pt_xreg_or_sp; offset:5)); mask:%11111111111111111111100000111111; value:%10010001000000000000000000011111),
 
     (mnemonic:'CMN';  params:((ptype:pt_wreg; offset:0),(ptype:pt_imm; offset: 10; maxval:$fff), (ptype:pt_lsl0or12; offset:22; maxval:3; extra:0; optional: true; defvalue:0));  mask:%11111111000000000000000000011111; value:%00110001000000000000000000011111),
     (mnemonic:'CMN';  params:((ptype:pt_xreg; offset:0),(ptype:pt_imm; offset: 10; maxval:$fff), (ptype:pt_lsl0or12; offset:22; maxval:3; extra:0; optional: true; defvalue:0));  mask:%11111111000000000000000000011111; value:%10110001000000000000000000011111),
@@ -750,12 +761,12 @@ const
   );
 
   ArmInstructionsMoveWideImm: array of TOpcode=(
-    (mnemonic:'MOVN';  params:((ptype:pt_wreg; offset:0),(ptype:pt_imm; offset:5; maxval: $ffff),(ptype:pt_lsldiv16; offset: 21; maxval:3));  mask:%11111111100000000000000000000000; value:%00010010100000000000000000000000),
-    (mnemonic:'MOVN';  params:((ptype:pt_xreg; offset:0),(ptype:pt_imm; offset:5; maxval: $ffff),(ptype:pt_lsldiv16; offset: 21; maxval:3));  mask:%11111111100000000000000000000000; value:%10010010100000000000000000000000),
-    (mnemonic:'MOVZ';  params:((ptype:pt_wreg; offset:0),(ptype:pt_imm; offset:5; maxval: $ffff),(ptype:pt_lsldiv16; offset: 21; maxval:3));  mask:%11111111100000000000000000000000; value:%01010010100000000000000000000000),
-    (mnemonic:'MOVZ';  params:((ptype:pt_xreg; offset:0),(ptype:pt_imm; offset:5; maxval: $ffff),(ptype:pt_lsldiv16; offset: 21; maxval:3));  mask:%11111111100000000000000000000000; value:%11010010100000000000000000000000),
-    (mnemonic:'MOVK';  params:((ptype:pt_wreg; offset:0),(ptype:pt_imm; offset:5; maxval: $ffff),(ptype:pt_lsldiv16; offset: 21; maxval:3));  mask:%11111111100000000000000000000000; value:%01110010100000000000000000000000),
-    (mnemonic:'MOVK';  params:((ptype:pt_xreg; offset:0),(ptype:pt_imm; offset:5; maxval: $ffff),(ptype:pt_lsldiv16; offset: 21; maxval:3));  mask:%11111111100000000000000000000000; value:%11110010100000000000000000000000)
+    (mnemonic:'MOVN';  params:((ptype:pt_wreg; offset:0),(ptype:pt_imm; offset:5; maxval: $ffff),(ptype:pt_lsldiv16; offset: 21; maxval:3; extra:0; optional: true; defvalue:0));  mask:%11111111100000000000000000000000; value:%00010010100000000000000000000000),
+    (mnemonic:'MOVN';  params:((ptype:pt_xreg; offset:0),(ptype:pt_imm; offset:5; maxval: $ffff),(ptype:pt_lsldiv16; offset: 21; maxval:3; extra:0; optional: true; defvalue:0));  mask:%11111111100000000000000000000000; value:%10010010100000000000000000000000),
+    (mnemonic:'MOVZ';  params:((ptype:pt_wreg; offset:0),(ptype:pt_imm; offset:5; maxval: $ffff),(ptype:pt_lsldiv16; offset: 21; maxval:3; extra:0; optional: true; defvalue:0));  mask:%11111111100000000000000000000000; value:%01010010100000000000000000000000),
+    (mnemonic:'MOVZ';  params:((ptype:pt_xreg; offset:0),(ptype:pt_imm; offset:5; maxval: $ffff),(ptype:pt_lsldiv16; offset: 21; maxval:3; extra:0; optional: true; defvalue:0));  mask:%11111111100000000000000000000000; value:%11010010100000000000000000000000),
+    (mnemonic:'MOVK';  params:((ptype:pt_wreg; offset:0),(ptype:pt_imm; offset:5; maxval: $ffff),(ptype:pt_lsldiv16; offset: 21; maxval:3; extra:0; optional: true; defvalue:0));  mask:%11111111100000000000000000000000; value:%01110010100000000000000000000000),
+    (mnemonic:'MOVK';  params:((ptype:pt_xreg; offset:0),(ptype:pt_imm; offset:5; maxval: $ffff),(ptype:pt_lsldiv16; offset: 21; maxval:3; extra:0; optional: true; defvalue:0));  mask:%11111111100000000000000000000000; value:%11110010100000000000000000000000)
   );
 
   ArmInstructionsBitField: array of TOpcode=(
@@ -1753,14 +1764,14 @@ const
     (mnemonic:'MOVI'; params:((ptype:pt_vreg_2D; offset: 0), (ptype:pt_imm2_8; offset:%00000000000001110000001111100000), (ptype:pt_mslSpecific; offset: 16));  mask:%11111111111110001111110000000000; value:%01101111000000001110010000000000),
 
     //orr
-    (mnemonic:'ORR'; params:((ptype:pt_vreg_4H; offset: 0), (ptype:pt_imm2; offset:%00000000000001110000001111100000));  mask:%11111111111110001111110000000000; value:%00001111000000001001010000000000), //q=0 1001
-    (mnemonic:'ORR'; params:((ptype:pt_vreg_8H; offset: 0), (ptype:pt_imm2; offset:%00000000000001110000001111100000));  mask:%11111111111110001111110000000000; value:%01001111000000001001010000000000), //q=1 1001
+    (mnemonic:'ORR'; params:((ptype:pt_vreg_4H; offset: 0), (ptype:pt_imm2; offset:%00000000000001110000001111100000));                                    mask:%11111111111110001111110000000000; value:%00001111000000001001010000000000), //q=0 1001
+    (mnemonic:'ORR'; params:((ptype:pt_vreg_8H; offset: 0), (ptype:pt_imm2; offset:%00000000000001110000001111100000));                                    mask:%11111111111110001111110000000000; value:%01001111000000001001010000000000), //q=1 1001
 
     (mnemonic:'ORR'; params:((ptype:pt_vreg_4H; offset: 0), (ptype:pt_imm2; offset:%00000000000001110000001111100000),(ptype:pt_lslSpecific; offset: 8));  mask:%11111111111110001111110000000000; value:%00001111000000001011010000000000), //q=0 1011
     (mnemonic:'ORR'; params:((ptype:pt_vreg_8H; offset: 0), (ptype:pt_imm2; offset:%00000000000001110000001111100000),(ptype:pt_lslSpecific; offset: 8));  mask:%11111111111110001111110000000000; value:%01001111000000001011010000000000), //q=0 1011
 
-    (mnemonic:'ORR'; params:((ptype:pt_vreg_2S; offset: 0), (ptype:pt_imm2; offset:%00000000000001110000001111100000));  mask:%11111111111110001111110000000000; value:%00001111000000000001010000000000), //q=0 0001
-    (mnemonic:'ORR'; params:((ptype:pt_vreg_4S; offset: 0), (ptype:pt_imm2; offset:%00000000000001110000001111100000));  mask:%11111111111110001111110000000000; value:%01001111000000000001010000000000), //q=1 0001
+    (mnemonic:'ORR'; params:((ptype:pt_vreg_2S; offset: 0), (ptype:pt_imm2; offset:%00000000000001110000001111100000));                                    mask:%11111111111110001111110000000000; value:%00001111000000000001010000000000), //q=0 0001
+    (mnemonic:'ORR'; params:((ptype:pt_vreg_4S; offset: 0), (ptype:pt_imm2; offset:%00000000000001110000001111100000));                                    mask:%11111111111110001111110000000000; value:%01001111000000000001010000000000), //q=1 0001
     (mnemonic:'ORR'; params:((ptype:pt_vreg_2S; offset: 0), (ptype:pt_imm2; offset:%00000000000001110000001111100000),(ptype:pt_lslSpecific; offset: 8));  mask:%11111111111110001111110000000000;  value:%00001111000000000011010000000000), //q=0 0011
     (mnemonic:'ORR'; params:((ptype:pt_vreg_4S; offset: 0), (ptype:pt_imm2; offset:%00000000000001110000001111100000),(ptype:pt_lslSpecific; offset: 8));  mask:%11111111111110001111110000000000;  value:%01001111000000000011010000000000), //q=1 0011
     (mnemonic:'ORR'; params:((ptype:pt_vreg_2S; offset: 0), (ptype:pt_imm2; offset:%00000000000001110000001111100000),(ptype:pt_lslSpecific; offset: 16));  mask:%11111111111110001111110000000000; value:%00001111000000000101010000000000), //q=0 0101
@@ -2515,7 +2526,7 @@ const
 var
   ArmInstructionsAssemblerList: TStringHashList;
 
-
+  tlbilist: TStringHashList;
 
 
 function SignExtend(value: qword; mostSignificantBit: integer): qword; inline;
@@ -2529,7 +2540,7 @@ begin
   result:=value;
 end;
 
-function TArm64Disassembler.GetIMM2Value(mask: dword): dword;
+function TArm64Instructionset.GetIMM2Value(mask: dword): dword;
 //scan the bitmask for 1's and convert them a value
 var
   i: integer;
@@ -2565,7 +2576,7 @@ begin
   end;
 end;
 
-function TArm64Disassembler.GetIMM2_8Value(mask: dword): qword;
+function TArm64Instructionset.GetIMM2_8Value(mask: dword): qword;
 //scan the bitmask for 1's and convert them a value (there are 8 bits in this mask)
 var
   v: byte;
@@ -2720,6 +2731,34 @@ begin
   end;
 end;
 
+function getVectorSize2FromString(s: string): integer;
+begin
+  result:=-1;
+  case s of
+    '4H': exit(%000);
+    '2S': exit(%001);
+    '1D': exit(%010);
+    '8H': exit(%100);
+    '4S': exit(%101);
+    '2D': exit(%110);
+  end
+end;
+
+function getVectorSizeFromString(s: string):integer;
+begin
+  result:=-1;
+  case s of
+    '8B': exit(%000);
+    '4H': exit(%001);
+    '2S': exit(%010);
+    '1D': exit(%011);
+    '16B': exit(%100);
+    '8H': exit(%101);
+    '4S': exit(%110);
+    '2D': exit(%111);
+  end;
+end;
+
 function getVectorSizeString(encoding3: integer): string;
 begin
   case encoding3 of
@@ -2764,6 +2803,34 @@ begin
   result:=result+'}';
 end;
 
+function floatToFP8(f: single): byte;
+var
+  fi: single;
+  fib: bitpacked record
+    frac: 0..$3FFFFF;
+    exp: 0..255;
+    sign: 0..1;
+  end absolute fi;
+
+  rb: byte;
+  r: bitpacked record
+    frac: 0..$f;
+    exp: 0..7;
+    sign: 0..1;
+  end absolute rb;
+
+begin
+  fi:=f;
+
+  rb:=0;
+  r.sign:=fib.sign;
+  r.exp:=fib.Exp;
+  r.frac:=fib.frac shr 18;
+
+  result:=rb;
+
+end;
+
 function fp8tofloat(v: byte): single;
 var
   n: integer;
@@ -2794,7 +2861,7 @@ begin
 
 end;
 
-function TArm64Disassembler.ParseParameters(plist: TAParametersList): boolean;
+function TArm64Instructionset.ParseParametersForDisassembler(plist: TAParametersList): boolean;
 var
   i: integer;
   v,v2,v3: dword;
@@ -2830,6 +2897,24 @@ begin
         else
           p:=ArmRegistersNoName32[v];
 
+      end;
+
+      pt_wreg_or_wsp:
+      begin
+        v:=(opcode shr plist[i].offset) and 31;
+        if v=31 then
+          p:='WSP'
+        else
+          p:='W'+inttostr(v);
+      end;
+
+      pt_xreg_or_sp:
+      begin
+        v:=(opcode shr plist[i].offset) and 31;
+        if v=31 then
+          p:='SP'
+        else
+          p:='X'+inttostr(v);
       end;
 
       pt_wreg2x, pt_xreg2x:
@@ -2946,7 +3031,7 @@ begin
         v:=(opcode shr plist[i].offset) and plist[i].maxval;
         p:='V'+inttostr(v)+'.';
 
-        v:=(opcode shr 22) and 1;
+        v:=(opcode shr 22) and 1; //(size)
         case v of
           0:
           begin
@@ -2956,13 +3041,13 @@ begin
 
           1:
           begin
-            v2:=(opcode shr 11) and 1;
+            v2:=(opcode shr 11) and 1;  //L=0
             p:='.D['+inttohex(v2,1)+']';
           end;
         end;
       end;
 
-      pt_vreg_HS_HLMIndex: //HLM bits 11:21:20  size: 23:22
+      pt_vreg_HS_HLMIndex: //HLM bits 11(H):21(L):20(M)  size: 23:22
       begin
         v:=(opcode shr plist[i].offset) and plist[i].maxval;
         p:='V'+inttostr(v)+'.';
@@ -3222,7 +3307,7 @@ begin
           %10011: p:='PSTL2STRM';
           %10100: p:='PSTL3KEEP';
           %10101: p:='PSTL3STRM';
-          else p:='%'+inttohex(v,1);
+          else p:='#'+inttohex(v,1);
         end;
       end;
 
@@ -3312,7 +3397,7 @@ begin
       pt_systemreg:
       begin
         v:=(opcode shr plist[i].offset) and $7fff;
-        p:=IntToHex(v,4);
+        p:='#'+IntToHex(v,4);
       end;
 
 //      pt_vreg_T_size1or2:
@@ -3420,9 +3505,9 @@ begin
       begin
         v:=(opcode shr plist[i].offset) and $3;
         if v=%11 then
-          p:=p+'X'
+          p:='X'
         else
-          p:=p+'W';
+          p:='W';
 
         v:=(opcode shr plist[i].extra) and $1f;
         p:=p+inttostr(v);
@@ -3441,7 +3526,7 @@ begin
         v2:=(opcode shr plist[i].extra) and 1; //s
         if (v2=0) and (v=%011) then continue; //not even a ,
 
-        p:=p+' #'+inttostr(plist[i].maxval);
+        p:=p+' #'+inttohex(plist[i].maxval,1);
       end;
 
 
@@ -3482,9 +3567,7 @@ begin
       pt_lslSpecific:
       begin
         v:=plist[i].offset;
-
-        if v=1 then
-          p:='LSL #'+inttohex(v,1);
+        p:='LSL #'+inttohex(v,1);
       end;
 
       pt_mslSpecific:
@@ -3562,7 +3645,7 @@ begin
 
 end;
 
-function TArm64Disassembler.ScanOpcodeList(const list: topcodearray): boolean;
+function TArm64Instructionset.ScanOpcodeList(const list: topcodearray): boolean;
 var i: integer;
 begin
   result:=false;
@@ -3579,14 +3662,14 @@ begin
       LastDisassembleData.opcode:=list[i].mnemonic;
 
       //parse the parameters
-      if ParseParameters(list[i].params) then
+      if ParseParametersForDisassembler(list[i].params) then
         exit(true);
       //else invalid parameters (alt's have param rules)
     end;
   end;
 end;
 
-function TArm64Disassembler.ScanGroupList(const list: TInstructionGroupArray):boolean;
+function TArm64Instructionset.ScanGroupList(const list: TInstructionGroupArray):boolean;
 var i: integer;
 begin
   result:=false;
@@ -3607,11 +3690,13 @@ end;
 
 
 
-function TArm64Disassembler.disassemble(var DisassembleAddress: ptruint{$ifdef armdev}; _opcode: dword{$endif}): string;
+function TArm64Instructionset.disassemble(var DisassembleAddress: ptruint{$ifdef armdev}; _opcode: dword{$endif}): string;
 var
   x: ptruint;
   i: integer;
 begin
+  InitARM64Support;
+
   address:=DisassembleAddress;
   x:=0;
   setlength(LastDisassembleData.Bytes,4);
@@ -3665,11 +3750,1587 @@ begin
   inc(DisassembleAddress,4);
 end;
 
+
+
+
+function TArm64Instructionset.GuessTypes(param: string): TArm64ParameterTypes;
+var
+  li: longint;
+  i64: int64;
+  i: integer;
+  s: string;
+  f: single;
+begin
+  //pt_creg?
+  result:=[];
+  if length(param)=0 then exit;
+
+  param:=uppercase(param);
+
+  if TryStrToInt64('$'+param.Substring(1),i64) then
+    result:=result+[pt_label, pt_addrlabel, pt_systemreg];
+
+
+  if tlbilist.Find(param)<>-1 then
+     result:=result+[pt_sysop_tlbi];
+
+  for i:=0 to 15 do
+  begin
+    if param=ArmConditions[i] then
+       result:=result+[pt_cond];
+  end;
+
+
+  case param[1] of
+    '#':
+    begin
+      result:=result+[pt_barrierOption,pt_prfop];
+      if param='#0.0' then result:=result+[pt_imm_val0_0];
+
+      if TryStrToFloat(param.Substring(1),f) then
+        result:=result+[pt_fpimm8];
+
+      if TryStrToInt64('$'+param.Substring(1),i64) then
+      begin
+        result:=result+[pt_imm_1shlval, pt_imm2, pt_imm2_8, pt_immminx, pt_xminimm, pt_imm, pt_simm, pt_pimm, pt_fpimm8, pt_scale, pt_imm_bitmask];
+        case i64 of
+          0: result:=result+[pt_imm_val0];
+          1: result:=result+[pt_imm_val1];
+          2: result:=result+[pt_imm_val2];
+          4: result:=result+[pt_imm_val4];
+          8: result:=result+[pt_imm_val8];
+          32,64: result:=result+[pt_imm32or64];
+        end;
+
+        if i64 mod 4=0 then
+          result:=result+[pt_imm_mul4];
+
+        if i64 mod 8=0 then
+          result:=result+[pt_imm_mul8];
+
+        if i64 mod 16=0 then
+          result:=result+[pt_imm_mul16];
+
+      end;
+    end;
+
+    '{':
+    begin
+      //vectorlist
+      if param.EndsWith('}') then result:=result+[pt_reglist_vector_specificsize, pt_reglist_vector, pt_reglist_vectorsingle];
+      //else broken
+    end;
+
+    'A':
+    begin
+      if param.Substring(0,3)='ASR' then result:=result+[pt_shift16];
+    end;
+
+
+    'B': if TryStrToInt(param.Substring(1),li) then result:=result+[pt_breg];
+    'C':
+    begin
+      if TryStrToInt(param.Substring(1),li) then result:=result+[pt_creg];
+
+      if (param='CVAC') or (param='CSW') or (param='CVAU') or (param='CIVAC') or (param='CISW') then result:=result+[pt_sysop_dc];
+    end;
+    'D':
+    begin
+      if param='DAIFSET' then result:=result+[pt_pstatefield_DAIFSet]
+      else if param='DAIFCLR' then result:=result+[pt_pstatefield_DAIFSet];
+
+      if TryStrToInt(param.Substring(1),li) then result:=result+[pt_dreg, pt_sdreg, pt_hsreg];
+    end;
+
+    'H': if TryStrToInt(param.Substring(1),li) then result:=result+[pt_hreg, pt_hsreg];
+
+    'I':
+    begin
+      if param='ISHLD' then result:=result+[pt_barrierOption];
+      if param='ISHST' then result:=result+[pt_barrierOption];
+      if param='ISH' then result:=result+[pt_barrierOption];
+
+      if (param='IVAC') or (param='ISW') then result:=result+[pt_sysop_dc];
+      if (param='IALLUIS') or (param='IALLU') or (param='IVAU') then result:=result+[pt_sysop_ic];
+
+    end;
+
+    'L':
+    begin
+      if param='LD' then result:=result+[pt_barrierOption];
+      if param.Substring(0,3)='LSL' then
+      begin
+        result:=result+[pt_extend_amount, pt_extend_amount_Extended_Register, pt_lslSpecific,pt_shift16];
+        if (param='LSL #C') or (param='LSL #0') then
+          result:=result+[pt_lsl0or12];
+
+        if TryStrToInt64('$'+param.Substring(5),i64) then
+        begin
+          if i64 mod 16=0 then
+            result:=result+[pt_lsldiv16];
+        end;
+      end;
+
+      if param.Substring(0,3)='LSR' then
+        result:=result+[pt_shift16];
+
+    end;
+
+    'M':
+    begin
+      if param.Substring(0,3)='MSL' then result:=result+[pt_mslSpecific];
+    end;
+
+    'N':
+    begin
+      if param='NSHLD' then result:=result+[pt_barrierOption];
+      if param='NSHST' then result:=result+[pt_barrierOption];
+      if param='NSH' then result:=result+[pt_barrierOption];
+    end;
+
+    'O':
+    begin
+      if param='OSHLD' then result:=result+[pt_barrierOption];
+      if param='OSHST' then result:=result+[pt_barrierOption];
+      if param='OSH' then result:=result+[pt_barrierOption];
+    end;
+
+    'P':
+    begin
+      if param.EndsWith('KEEP') or param.EndsWith('STRM') then result:=result+[pt_prfop];
+
+
+    end;
+
+
+    'S':
+    begin
+      if param='SP' then result:=result+[pt_xreg_or_sp];
+      if param='SPSEL' then result:=result+[pt_pstatefield_SP];
+      if param='ST' then result:=result+[pt_barrierOption];
+      if param='SY' then result:=result+[pt_barrierOption];
+
+      if param.Substring(0,4)='SXTW' then result:=result+[pt_extend_amount, pt_extend_amount_Extended_Register];
+      if param.Substring(0,4)='SXTX' then result:=result+[pt_extend_amount, pt_extend_amount_Extended_Register];
+
+      if param.Substring(0,4)='SXTB' then result:=result+[pt_extend_amount_Extended_Register];
+      if param.Substring(0,4)='SXTH' then result:=result+[pt_extend_amount_Extended_Register];
+
+
+
+      if (length(param)>4) and (param[2]='1') and (param.EndsWith('R') or param.EndsWith('W')) then
+        result:=result+[pt_sysop_at];
+
+      if TryStrToInt(param.Substring(1),li) then result:=result+[pt_sreg, pt_sdreg];
+    end;
+
+    'U':
+    begin
+      if param.Substring(0,4)='UXTW' then result:=result+[pt_extend_amount,pt_extend_amount_Extended_Register];
+      if param.Substring(0,4)='UXTB' then result:=result+[pt_extend_amount_Extended_Register];
+      if param.Substring(0,4)='UXTH' then result:=result+[pt_extend_amount_Extended_Register];
+      if param.Substring(0,4)='UXTX' then result:=result+[pt_extend_amount_Extended_Register];
+
+
+
+    end;
+
+    'V':
+    begin
+      i:=param.IndexOf('.');
+      if i>0 then
+      begin
+        s:=param.Substring(i+1);
+        case s of
+          '8B': result:=result+[pt_vreg_8B,pt_vreg_T_sizenot3,pt_vreg_B_1bit,pt_vreg_T];
+          '16B': result:=result+[pt_vreg_16B,pt_vreg_T_sizenot3,pt_vreg_B_1bit,pt_vreg_T];
+          '4H': result:=result+[pt_vreg_4H,pt_vreg_T_sizenot3,pt_vreg_T_sizenot3or0,pt_vreg_T,pt_vreg_T2];
+          '8H': result:=result+[pt_vreg_8H,pt_vreg_T_sizenot3,pt_vreg_T_sizenot3or0,pt_vreg_T,pt_vreg_T2,pt_vreg_T2_AssumeQ1];
+          '2S': result:=result+[pt_vreg_2S,pt_vreg_T_sizenot3,pt_vreg_T_sizenot3or0,pt_vreg_SD_2bit,pt_vreg_T,pt_vreg_T2];
+          '4S': result:=result+[pt_vreg_4S,pt_vreg_T_sizenot3,pt_vreg_T_sizenot3or0,pt_vreg_SD_2bit,pt_vreg_T,pt_vreg_T2,pt_vreg_T2_AssumeQ1];
+          '1D': result:=result+[pt_vreg_T,pt_vreg_T2];
+          '2D': result:=result+[pt_vreg_2D,pt_vreg_SD_2bit,pt_vreg_T,pt_vreg_T2,pt_vreg_T2_AssumeQ1];
+          'B[': result:=result+[pt_vreg_B_Index];
+          'H[': result:=result+[pt_vreg_H_Index, pt_vreg_H_HLMIndex, pt_vreg_HS_HLMIndex];
+          'S[': result:=result+[pt_vreg_S_Index, pt_vreg_S_HLIndex, pt_vreg_SD_HLIndex, pt_vreg_HS_HLMIndex];
+          'D[': result:=result+[pt_vreg_D_Index, pt_vreg_D_HIndex, pt_vreg_SD_HLIndex, pt_vreg_D_Index1];
+        end;
+      end;
+    end;
+    'W':
+    begin
+      if TryStrToInt(param.Substring(1),li) then result:=result+[pt_wreg2x, pt_wreg, pt_indexwidthspecifier];
+      if param='WSP' then result:=result+[pt_wreg_or_wsp];
+    end;
+    'X': if TryStrToInt(param.Substring(1),li) then result:=result+[pt_xreg2x, pt_xreg, pt_indexwidthspecifier];
+    'Z': if param='ZVA' then result:=result+[pt_sysop_dc];
+  end;
+end;
+
+
+procedure TArm64Instructionset.SetIMM2Value(mask: dword; v: dword);
+//scan the bitmask for 1's and convert them a value
+var
+  i: integer;
+  bitcount: integer;
+
+begin
+  //scan for the first bit
+  bitcount:=0;
+  for i:=0 to 31 do
+  begin
+    if (mask and (1 shl i)) <> 0 then
+    begin
+      opcode:=opcode or (v shl bitcount);
+      inc(bitcount);
+    end;
+  end;
+
+end;
+
+function TArm64Instructionset.ParseParameterForAssembler(param:TAParameters; paramstr: string): boolean;
+var
+  s,s2,s3: string;
+  qv,qv2: qword;
+  v,v2: dword;
+  sv: integer;
+
+  i,j,k: integer;
+  b: boolean;
+begin
+  result:=false;
+
+  case param.ptype of
+    pt_creg:
+    begin
+      s:=paramstr.Substring(1);
+      v:=strtoint(s);
+      if v>15 then exit(false);
+
+      opcode:=opcode or (v shl param.offset);
+    end;
+
+    pt_xreg, pt_wreg, pt_breg, pt_hreg, pt_sreg, pt_dreg, pt_qreg:
+    begin
+      s:=paramstr.Substring(1);
+      v:=strtoint(s);
+      if v>31 then exit(false);
+
+      opcode:=opcode or (v shl param.offset);
+    end;
+
+    pt_wreg_or_wsp:
+    begin
+      if paramstr='WSP' then
+        v:=31
+      else
+      begin
+        s:=paramstr.Substring(1);
+        v:=strtoint(s);
+        if v>31 then exit(false);
+      end;
+
+      opcode:=opcode or (v shl param.offset);
+    end;
+
+    pt_xreg_or_sp:
+    begin
+      if paramstr='SP' then
+        v:=31
+      else
+      begin
+        s:=paramstr.Substring(1);
+        v:=strtoint(s);
+        if v>31 then exit(false);
+      end;
+
+      opcode:=opcode or (v shl param.offset);
+    end;
+
+    pt_sdreg:
+    begin
+      s:=paramstr.Substring(1);
+      v:=strtoint(s);
+      if v>31 then exit(false);
+      opcode:=opcode or (v shl param.offset);
+
+      if paramstr[1]='S' then
+        opcode:=opcode or (1 shl 22);
+
+      if paramstr[1]='D' then
+        opcode:=opcode or (2 shl 22);
+    end;
+
+    pt_hsreg:
+    begin
+      s:=paramstr.Substring(1);
+      v:=strtoint(s);
+      if v>31 then exit(false);
+      opcode:=opcode or (v shl param.offset);
+
+      if paramstr[1]='H' then
+        opcode:=opcode or (1 shl 22);
+
+      if paramstr[1]='S' then
+        opcode:=opcode or (2 shl 22);
+    end;
+
+    pt_wreg2x, pt_xreg2x:
+    begin
+      s:=paramstr.Substring(1);
+      v:=strtoint(s);
+      if v>31 then exit(false);
+
+      opcode:=opcode or (v shl param.offset);
+      opcode:=opcode or (v shl param.extra);
+    end;
+
+    pt_vreg_8B, pt_vreg_16B, pt_vreg_4H, pt_vreg_8H, pt_vreg_2S, pt_vreg_4S, pt_vreg_2D: //the guess already verified the types
+    begin
+      if paramstr[1]<>'V' then exit;
+      i:=paramstr.IndexOf('.');
+      if i=-1 then exit;
+
+      s:=paramstr.Substring(1,i-1);
+      v:=strtoint(s);
+      if v>31 then exit(false);
+
+      opcode:=opcode or (v shl param.offset);
+    end;
+
+    pt_vreg_B_Index:
+    begin
+      if paramstr[1]<>'V' then exit;
+      i:=paramstr.IndexOf('.');
+      if i=-1 then exit;
+
+      s:=paramstr.Substring(1,i-1);
+      v:=strtoint(s);
+
+      opcode:=opcode or (v shl param.offset);
+
+      j:=paramstr.indexof('[');
+      k:=paramstr.indexof(']');
+
+      if (j=-1) or (k=-1) then exit;
+
+      s:=paramstr.Substring(j+1,k-j-1);
+      v2:=strtoint(s);
+
+      v2:=v2 and param.maxval;
+      opcode:=opcode or (v2 shl param.extra);
+    end;
+
+    pt_vreg_SD_HLIndex:
+    begin
+      if paramstr[1]<>'V' then exit;
+      i:=paramstr.IndexOf('.');
+      if i=-1 then exit;
+
+      s:=paramstr.Substring(1,i-1);
+      v:=strtoint(s);
+
+      opcode:=opcode or (v shl param.offset);
+
+
+      j:=paramstr.indexof('[');
+      k:=paramstr.indexof(']');
+
+      if (j=-1) or (k=-1) then exit;
+
+      s:=paramstr.Substring(j+1,k-j-1);
+      v2:=strtoint('$'+s);
+
+      case paramstr[i+2] of
+        'S':
+        begin
+          //split between H and L
+          //v2 is a 2 bit value  (H:L)  (11:21)
+          opcode:=opcode or (((v2 shr 1) and 1) shl 11); //H
+          opcode:=opcode or ((v2 and 1) shl 21);     //L
+        end;
+
+        'D':
+        begin
+          opcode:=opcode or (1 shl 22); //size=1
+          opcode:=opcode or ((v2 and 1) shl 11);
+        end
+
+        else exit; //invalid
+      end;
+    end;
+
+    pt_vreg_HS_HLMIndex:
+    begin
+      if paramstr[1]<>'V' then exit;
+      i:=paramstr.IndexOf('.');
+      if i=-1 then exit;
+
+      s:=paramstr.Substring(1,i-1);
+      v:=strtoint(s);
+
+      opcode:=opcode or (v shl param.offset);
+
+
+      j:=paramstr.indexof('[');
+      k:=paramstr.indexof(']');
+
+      if (j=-1) or (k=-1) then exit;
+
+      s:=paramstr.Substring(j+1,k-j-1);
+      v2:=strtoint('$'+s);
+
+      case paramstr[i+2] of
+        'H':
+        begin
+          opcode:=opcode or (1 shl 22); //size=1
+          //v2 is a 3 bit value spread over H:L:M  (11:21:20)
+
+          opcode:=opcode or ((v2 and 3) shl 20); // (lower 2 bits of v2 to L:M)
+          opcode:=opcode or (((v2 shr 2) and 1) shl 11);  //bit 3 of v2 to H
+        end;
+
+        'S':
+        begin
+          opcode:=opcode or (2 shl 22); //size=2
+
+          //v2 is a 2 bit value spread over H:L (11:21)
+          opcode:=opcode or ((v2 and 1) shl 21); //L
+          opcode:=opcode or (((v2 shr 1) and 1) shl 11);
+        end
+
+        else exit; //invalid
+      end;
+    end;
+
+    pt_vreg_H_HLMIndex:
+    begin
+      if paramstr[1]<>'V' then exit;
+      i:=paramstr.IndexOf('.');
+      if i=-1 then exit;
+
+      s:=paramstr.Substring(1,i-1);
+      v:=strtoint(s);
+
+      opcode:=opcode or (v shl param.offset);
+
+
+      j:=paramstr.indexof('[');
+      k:=paramstr.indexof(']');
+
+      if (j=-1) or (k=-1) then exit;
+
+      s:=paramstr.Substring(j+1,k-j-1);
+      v2:=strtoint('$'+s);
+
+      if paramstr[i+2]<>'H' then exit;
+
+
+      opcode:=opcode or (1 shl 22); //size=1
+      //v2 is a 3 bit value spread over H:L:M  (11:21:20)
+
+      opcode:=opcode or ((v2 and 3) shl 20); // (lower 2 bits of v2 to L:M)
+      opcode:=opcode or (((v2 shr 2) and 1) shl 11);  //bit 3 of v2 to H
+    end;
+
+    pt_vreg_S_HLIndex:
+    begin
+      if paramstr[1]<>'V' then exit;
+      i:=paramstr.IndexOf('.');
+      if i=-1 then exit;
+
+      s:=paramstr.Substring(1,i-1);
+      v:=strtoint(s);
+
+      opcode:=opcode or (v shl param.offset);
+
+
+      j:=paramstr.indexof('[');
+      k:=paramstr.indexof(']');
+
+      if (j=-1) or (k=-1) then exit;
+
+      s:=paramstr.Substring(j+1,k-j-1);
+      v2:=strtoint('$'+s);
+
+      if paramstr[i+2]<>'S' then exit;
+
+
+      opcode:=opcode or (2 shl 22); //size=2
+
+      //v2 is a 2 bit value spread over H:L (11:21)
+      opcode:=opcode or ((v2 and 1) shl 21); //L
+      opcode:=opcode or (((v2 shr 1) and 1) shl 11);
+    end;
+
+
+    pt_vreg_D_HIndex:
+    begin
+      if paramstr[1]<>'V' then exit;
+      i:=paramstr.IndexOf('.');
+      if i=-1 then exit;
+
+      s:=paramstr.Substring(1,i-1);
+      v:=strtoint(s);
+
+      opcode:=opcode or (v shl param.offset);
+
+
+      j:=paramstr.indexof('[');
+      k:=paramstr.indexof(']');
+
+      if (j=-1) or (k=-1) then exit;
+
+      s:=paramstr.Substring(j+1,k-j-1);
+      v2:=strtoint('$'+s);
+
+      if paramstr[i+2]<>'D' then exit;
+      opcode:=opcode or (1 shl 22); //size=1
+      opcode:=opcode or ((v2 and 1) shl 11);
+    end;
+
+    pt_vreg_H_Index:
+    begin
+      if paramstr[1]<>'V' then exit;
+      i:=paramstr.IndexOf('.');
+      if i=-1 then exit;
+
+      s:=paramstr.Substring(1,i-1);
+      v:=strtoint(s);
+
+      opcode:=opcode or (v shl param.offset);
+
+
+      j:=paramstr.indexof('[');
+      k:=paramstr.indexof(']');
+
+      if (j=-1) or (k=-1) then exit;
+
+      s:=paramstr.Substring(j+1,k-j-1);
+      v2:=strtoint('$'+s);
+
+      v2:=v2 and param.maxval;
+
+      if paramstr[i+2]<>'H' then exit;
+
+      opcode:=opcode or (v2 shl param.extra);
+    end;
+
+    pt_vreg_S_Index:
+    begin
+      if paramstr[1]<>'V' then exit;
+      i:=paramstr.IndexOf('.');
+      if i=-1 then exit;
+
+      s:=paramstr.Substring(1,i-1);
+      v:=strtoint(s);
+
+      opcode:=opcode or (v shl param.offset);
+
+
+      j:=paramstr.indexof('[');
+      k:=paramstr.indexof(']');
+
+      if (j=-1) or (k=-1) then exit;
+
+      s:=paramstr.Substring(j+1,k-j-1);
+      v2:=strtoint('$'+s);
+
+      v2:=v2 and param.maxval;
+
+      if paramstr[i+2]<>'S' then exit;
+
+      opcode:=opcode or (v2 shl param.extra);
+    end;
+
+    pt_vreg_D_Index,pt_vreg_D_Index1:
+    begin
+      if paramstr[1]<>'V' then exit;
+      i:=paramstr.IndexOf('.');
+      if i=-1 then exit;
+
+      s:=paramstr.Substring(1,i-1);
+      v:=strtoint(s);
+
+      opcode:=opcode or (v shl param.offset);
+
+
+      j:=paramstr.indexof('[');
+      k:=paramstr.indexof(']');
+
+      if (j=-1) or (k=-1) then exit;
+
+      s:=paramstr.Substring(j+1,k-j-1);
+      v2:=strtoint('$'+s);
+
+      v2:=v2 and param.maxval;
+
+      if (param.ptype=pt_vreg_D_Index1) and (v2<>1) then exit;
+
+      if paramstr[i+2]<>'D' then exit;
+
+      opcode:=opcode or (v2 shl param.extra);
+    end;
+
+    pt_label:
+    begin
+      if paramstr[1]='#' then paramstr:=paramstr.Substring(1);
+
+      qv:=StrToInt64('$'+paramstr);
+      qv:=qv-address;
+
+      if address and %11 >0 then exit;
+
+      if abs(int64(qv)-int64(address))>param.maxval then exit;
+
+      qv:=qv shr 2;
+      qv2:=qv and param.maxval;
+
+      opcode:=opcode or (qv2 shl param.offset);
+    end;
+
+    pt_addrlabel:
+    begin
+      qv:=StrToInt64('$'+paramstr);
+
+
+      if param.extra=0 then
+      begin
+        qv:=qv-address;
+        if abs(int64(qv)-int64(address))>$7ffff then exit;
+
+        qv:=qv shr 2;
+        qv2:=qv and param.maxval;
+
+        opcode:=opcode or (qv2 shl param.offset);
+      end
+      else
+      begin
+        if (qv and $fff) <> 0 then exit;
+        if abs(int64(qv)-int64(address))>$7ffff000 then exit;
+
+        qv:=qv shr 12;
+        opcode:=opcode or (qv2 shl param.offset);
+      end;
+    end;
+
+    pt_pstatefield_SP: if paramstr<>'SPSEL' then exit;
+    pt_pstatefield_DAIFSet: if paramstr<>'DAIFSET' then exit;
+    pt_pstatefield_DAIFClr: if paramstr<>'DAIFCLR' then exit;
+
+    pt_barrierOption:
+    begin
+      v:=0;
+      case paramstr of
+        'OSHLD': v:=1;
+        'OSHST': v:=2;
+        'OSH':   v:=3;
+        'NSHLD': v:=5;
+        'NSHST': v:=6;
+        'NSH':   v:=7;
+        'ISHLD': v:=9;
+        'ISHST': v:=10;
+        'ISH':   v:=11;
+        'LD':    v:=13;
+        'ST':    v:=14;
+        'SY':    v:=15;
+        else
+        begin
+          if paramstr[1]='#' then
+          begin
+            s:=paramstr.Substring(1);
+            v:=strtoint('$'+s);
+          end else exit;
+        end;
+
+        v:=v and param.maxval;
+
+        opcode:=opcode or (v shl param.offset);
+      end;
+
+    end;
+
+    pt_imm_1shlval:
+    begin
+      if paramstr[1]<>'#' then exit;
+      s:=paramstr.Substring(1);
+      v:=strtoint('$'+s);
+      v:=v and param.maxval;
+      opcode:=opcode or (v shl param.offset);
+    end;
+
+    pt_imm_val0_0, pt_imm_val0,pt_imm_val1,pt_imm_val2, pt_imm_val4, pt_imm_val8: ; //already verified by the guess function
+
+    pt_imm_mul4:
+    begin
+      if paramstr[1]<>'#' then exit;
+      s:=paramstr.Substring(1);
+      v:=strtoint('$'+s);
+      if (v mod 4)<>0 then exit;
+
+      v:=v div 4;
+      if v>param.maxval then exit;
+
+      opcode:=opcode or (v shl param.offset);
+    end;
+
+    pt_imm_mul8:
+    begin
+      if paramstr[1]<>'#' then exit;
+      s:=paramstr.Substring(1);
+      v:=strtoint('$'+s);
+      if (v mod 8)<>0 then exit;
+
+      v:=v div 8;
+      if v>param.maxval then exit;
+
+      opcode:=opcode or (v shl param.offset);
+    end;
+
+    pt_imm_mul16:
+    begin
+      if paramstr[1]<>'#' then exit;
+      s:=paramstr.Substring(1);
+      v:=strtoint('$'+s);
+      if (v mod 16)<>0 then exit;
+
+      v:=v div 16;
+      if v>param.maxval then exit;
+
+      opcode:=opcode or (v shl param.offset);
+    end;
+
+    pt_imm32or64:
+    begin
+      if paramstr='#20' then v:=32
+      else if paramstr='#40' then v:=64 else exit;
+
+      opcode:=opcode or (v shl param.offset);
+    end;
+
+    pt_imm2,pt_imm2_8:
+    begin
+      if paramstr[1]<>'#' then exit;
+      s:=paramstr.Substring(1);
+      v:=strtoint('$'+s);
+      setImm2Value(param.offset,v);
+    end;
+
+    pt_immminx:
+    begin
+      if paramstr[1]<>'#' then exit;
+      s:=paramstr.Substring(1);
+      v:=strtoint('$'+s);
+      v:=param.extra-v;
+      v:=v and param.maxval;
+      opcode:=opcode or (v shl param.offset);
+    end;
+
+    pt_xminimm:
+    begin
+      if paramstr[1]<>'#' then exit;
+      s:=paramstr.Substring(1);
+      v:=strtoint('$'+s);
+      v:=v-param.extra;
+      v:=v and param.maxval;
+      opcode:=opcode or (v shl param.offset);
+    end;
+
+    pt_imm:
+    begin
+      if paramstr[1]<>'#' then exit;
+      s:=paramstr.Substring(1);
+      v:=strtoint('$'+s);
+      if (param.maxval<>0) and (v>param.maxval) then exit;
+
+      opcode:=opcode or (v shl param.offset);
+    end;
+
+    pt_simm, pt_pimm:
+    begin
+      if paramstr[1]<>'#' then exit;
+      s:=paramstr.Substring(1);
+      v:=strtoint('$'+s);
+
+      i:=highestbit(param.maxval);;
+
+      v2:=v shr (i+1);
+      if (v2<>0) and (v2<>ones(64-i)) then exit; //out of range
+
+      opcode:=opcode or (v shl param.offset);
+    end;
+
+    pt_fpimm8:
+    begin
+      if paramstr[1]<>'#' then exit;
+      s:=paramstr.Substring(1);
+      v:=floatToFP8(StrToFloat(s));
+      opcode:=opcode or (v shl param.offset);
+    end;
+
+    pt_scale:
+    begin
+      if paramstr[1]<>'#' then exit;
+      s:=paramstr.Substring(1);
+      v:=strtoint('$'+s);
+      v:=v-64;
+      opcode:=opcode or (v shl param.offset);
+    end;
+
+    pt_imm_bitmask:
+    begin //someday maybe
+      exit;
+    end;
+
+    pt_prfop:
+    begin
+      case paramstr of
+        'PLDL1KEEP': v:=%00000;
+        'PLDL1STRM': v:=%00001;
+        'PLDL2KEEP': v:=%00010;
+        'PLDL2STRM': v:=%00011;
+        'PLDL3KEEP': v:=%00100;
+        'PLDL3STRM': v:=%00101;
+        'PLIL1KEEP': v:=%01000;
+        'PLIL1STRM': v:=%01001;
+        'PLIL2KEEP': v:=%01010;
+        'PLIL2STRM': v:=%01011;
+        'PLIL3KEEP': v:=%01100;
+        'PLIL3STRM': v:=%01101;
+        'PSTL1KEEP': v:=%10000;
+        'PSTL1STRM': v:=%10001;
+        'PSTL2KEEP': v:=%10010;
+        'PSTL2STRM': v:=%10011;
+        'PSTL3KEEP': v:=%10100;
+        'PSTL3STRM': v:=%10101;
+        else
+          v:=strtoint('$'+paramstr);
+      end;
+      opcode:=opcode or (v shl param.offset);
+    end;
+
+    pt_sysop_at:
+    begin
+      case paramstr of
+        'S1E1R': v:=%00001111000000;
+        'S1E2R': v:=%10001111000000;
+        'S1E3R': v:=%11001111000000;
+        'S1E1W': v:=%00001111000001;
+        'S1E2W': v:=%10001111000001;
+        'S1E3W': v:=%11001111000001;
+        'S1E0R': v:=%00001111000010;
+        'S1E0W': v:=%00001111000011;
+        'S12E1R': v:=%10001111000100;
+        'S12E1W': v:=%10001111000101;
+        'S12E0R': v:=%10001111000110;
+        'S12E0W': v:=%10001111000111;
+        else
+          v:=strtoint('$'+paramstr);
+      end;
+      opcode:=opcode or (v shl param.offset);
+    end;
+
+    pt_sysop_dc:
+    begin
+      case paramstr of
+        'ZVA': v:=  %01101110100001;
+        'IVAC': v:= %00001110110001;
+        'ISW': v:=  %00001110110010;
+        'CVAC': v:= %01101111010001;
+        'CSW': v:=  %00001111010010;
+        'CVAU': v:= %01101111011001;
+        'CIVAC': v:=%01101111110001;
+        'CISW': v:= %00001111110010;
+        else
+          v:=strtoint('$'+paramstr);
+      end;
+      opcode:=opcode or (v shl param.offset);
+    end;
+
+    pt_sysop_ic:
+    begin
+      case paramstr of
+        'IALLUIS': v:=  %00001110001000;
+        'IALLU': v:= %00001110101000;
+        'IVAU': v:=  %01101110101001;
+        else
+          v:=strtoint('$'+paramstr);
+      end;
+      opcode:=opcode or (v shl param.offset);
+    end;
+
+    pt_sysop_tlbi:
+    begin
+      case paramstr of
+        'IPAS2E1IS': v:=   %10010000000001;
+        'IPAS2LE1IS': v:=  %10010000000101;
+        'VMALLE1IS': v:=   %00010000011000;
+        'ALLE2IS': v:=     %10010000011000;
+        'ALLE3IS': v:=     %11010000011000;
+        'VAE1IS': v:=      %00010000011001;
+        'VAE2IS': v:=      %10010000011001;
+        'VAE3IS': v:=      %11010000011001;
+        'ASIDE1IS': v:=    %00010000011010;
+        'VAAE1IS': v:=     %00010000011011;
+        'ALLE1IS': v:=     %10010000011100;
+        'VALE1IS': v:=     %00010000011101;
+        'VALE2IS': v:=     %10010000011101;
+        'VALE3IS': v:=     %11010000011101;
+        'VMALLS12E1IS': v:=%10010000011110;
+        'VAALE1IS': v:=    %00010000011111;
+        'IPAS2E1': v:=     %10010000100001;
+        'IPAS2LE1': v:=    %10010000100101;
+        'VMALLE1': v:=     %00010000111000;
+        'ALLE2': v:=       %10010000111000;
+        'ALLE3': v:=       %11010000111000;
+        'VAE1': v:=        %00010000111001;
+        'VAE2': v:=        %10010000111001;
+        'VAE3': v:=        %11010000111001;
+        'ASIDE1': v:=      %00010000111010;
+        'VAAE1': v:=       %00010000111011;
+        'ALLE1': v:=       %10010000111100;
+        'VALE1': v:=       %00010000111101;
+        'VALE2': v:=       %10010000111101;
+        'VALE3': v:=       %11010000111101;
+        'VMALLS12E1': v:=  %10010000111110;
+        'VAALE1': v:=      %00010000111111;
+        else
+          v:=strtoint('$'+paramstr);
+
+      end;
+
+      opcode:=opcode or (v shl param.offset);
+    end;
+
+    pt_systemreg:
+    begin
+      if paramstr[1]<>'#' then exit;
+      s:=paramstr.Substring(1);
+      v:=strtoint('$'+s);
+      opcode:=opcode or (v shl param.offset);
+    end;
+
+    pt_vreg_T_sizenot3or0:
+    begin
+      if paramstr[1]<>'V' then exit;
+
+      i:=paramstr.IndexOf('.');
+      if i=-1 then exit;
+
+      s:=paramstr.Substring(1,i-1);
+      v:=strtoint(s);
+
+      opcode:=opcode or (v shl param.offset);
+
+      s:=paramstr.Substring(i+1);
+      i:=getVectorSizeFromString(s);
+      if i=-1 then exit;
+
+      //not 3 or 0:
+      if (i and 3) in [0,3] then exit;
+
+      //i contains a 3 bit value.  The highest bit goes to Q (bit 30) and the lowest 2 bits at 23 and 22
+      opcode:=opcode or (((i shr 3) and 1) shl 30);
+      opcode:=opcode or ((i and 3) shl 22);
+    end;
+
+    pt_vreg_T_sizenot3:
+    begin
+      if paramstr[1]<>'V' then exit;
+
+      i:=paramstr.IndexOf('.');
+      if i=-1 then exit;
+
+      s:=paramstr.Substring(1,i-1);
+      v:=strtoint(s);
+
+      opcode:=opcode or (v shl param.offset);
+
+      s:=paramstr.Substring(i+1);
+      i:=getVectorSizeFromString(s);
+      if i=-1 then exit;
+
+      //not 3:
+      if (i and 3)=3 then exit;
+
+      //i contains a 3 bit value.  The highest bit goes to Q (bit 30) and the lowest 2 bits at 23 and 22
+      opcode:=opcode or (((i shr 3) and 1) shl 30);
+      opcode:=opcode or ((i and 3) shl 22);
+    end;
+
+    pt_vreg_B_1bit:
+    begin
+      if paramstr[1]<>'V' then exit;
+
+      i:=paramstr.IndexOf('.');
+      if i=-1 then exit;
+
+      s:=paramstr.Substring(1,i-1);
+      v:=strtoint(s);
+
+      opcode:=opcode or (v shl param.offset);
+      s:=paramstr.Substring(i+1);
+
+      if not ((s='8B') or (s='16B')) then exit;
+
+      if s='16B' then
+        opcode:=opcode or (1 shl 30);
+    end;
+
+    pt_vreg_SD_2bit:
+    begin
+      if paramstr[1]<>'V' then exit;
+
+      i:=paramstr.IndexOf('.');
+      if i=-1 then exit;
+
+      s:=paramstr.Substring(1,i-1);
+      v:=strtoint(s);
+
+      opcode:=opcode or (v shl param.offset);
+      s:=paramstr.Substring(i+1);
+
+      case s of
+        '2S': ;
+        '4S': opcode:=opcode or (1 shl 22); //sz=1 Q=0
+        '2D': opcode:=opcode or (1 shl 22) or (1 shl 30); //sz=1 Q=1
+      end;
+    end;
+
+    pt_vreg_T:
+    begin
+      if paramstr[1]<>'V' then exit;
+
+      i:=paramstr.IndexOf('.');
+      if i=-1 then exit;
+
+      s:=paramstr.Substring(1,i-1);
+      v:=strtoint(s);
+
+      opcode:=opcode or (v shl param.offset);
+
+      s:=paramstr.Substring(i+1);
+      i:=getVectorSizeFromString(s);
+      if i=-1 then exit;
+
+      //i contains a 3 bit value.  The highest bit goes to Q (bit 30) and the lowest 2 bits at 23 and 22
+      opcode:=opcode or (((i shr 3) and 1) shl 30);
+      opcode:=opcode or ((i and 3) shl 22);
+    end;
+
+    pt_vreg_T2:
+    begin
+      if paramstr[1]<>'V' then exit;
+
+      i:=paramstr.IndexOf('.');
+      if i=-1 then exit;
+
+      s:=paramstr.Substring(1,i-1);
+      v:=strtoint(s);
+
+      opcode:=opcode or (v shl param.offset);
+
+      s:=paramstr.Substring(i+1);
+      i:=getVectorSize2FromString(s);
+      if i=-1 then exit;
+
+      //i contains a 3 bit value.  The highest bit goes to Q (bit 30) and the lowest 2 bits at 23 and 22
+      opcode:=opcode or (((i shr 3) and 1) shl 30);
+      opcode:=opcode or ((i and 3) shl 22);
+    end;
+
+    pt_vreg_T2_AssumeQ1:
+    begin
+      if paramstr[1]<>'V' then exit;
+
+      i:=paramstr.IndexOf('.');
+      if i=-1 then exit;
+
+      s:=paramstr.Substring(1,i-1);
+      v:=strtoint(s);
+
+      opcode:=opcode or (v shl param.offset);
+
+      s:=paramstr.Substring(i+1);
+      i:=getVectorSize2FromString(s);
+      if i=-1 then exit;
+
+      //i contains a 3 bit value.  Q is assumed to be 1, but don't set it
+      opcode:=opcode or ((i and 3) shl 22);
+    end;
+
+    pt_reglist_vector_specificsize:
+    begin
+      if paramstr[1]<>'{' then exit;
+      i:=paramstr.IndexOf('}');
+      if i=-1 then exit;
+
+      s:=paramstr.Substring(1,i-1);
+
+      i:=s.IndexOf('-');
+      if i=-1 then exit;
+
+      s2:=trim(s.Substring(i+1));
+      s:=trim(s.Substring(0,i));
+
+      if s[1]<>'V' then exit;
+      if s2[1]<>'V' then exit;
+
+      i:=s.IndexOf('.');
+      if i=-1 then exit;
+
+      s3:=s.Substring(1,i-1);
+      v:=strtoint(s3);
+      opcode:=opcode or (v shl param.offset);
+
+      j:=s2.indexof('.');
+      if j=-1 then exit;
+      s3:=s2.Substring(1,j-1);
+      v2:=strtoint(s3);
+
+      if param.maxval<>(v2-v) then exit;
+
+      s3:=s.Substring(i+1);
+      if s3<>s2.Substring(j) then exit; //different vectorsize
+
+      i:=getVectorSizeFromString(s3);
+      if param.extra<>i then exit;
+    end;
+
+    pt_reglist_vector:
+    begin
+      if paramstr[1]<>'{' then exit;
+      i:=paramstr.IndexOf('}');
+      if i=-1 then exit;
+
+      s:=paramstr.Substring(1,i-1);
+
+      i:=s.IndexOf('-');
+      if i=-1 then exit;
+
+      s2:=trim(s.Substring(i+1));
+      s:=trim(s.Substring(0,i));
+
+      if s[1]<>'V' then exit;
+      if s2[1]<>'V' then exit;
+
+      i:=s.IndexOf('.');
+      if i=-1 then exit;
+
+      s3:=s.Substring(1,i-1);
+      v:=strtoint(s3);
+      opcode:=opcode or (v shl param.offset);
+
+      j:=s2.indexof('.');
+      if j=-1 then exit;
+      s3:=s2.Substring(1,j-1);
+      v2:=strtoint(s3);
+
+      if param.maxval<>(v2-v) then exit;
+
+      s3:=s.Substring(i+1);
+      if s3<>s2.Substring(j) then exit; //different vectorsize
+
+      i:=getVectorSizeFromString(s3);
+      SetIMM2Value(param.extra,i); //todo: not 100 correct ( i saw a 4 bit extra field)
+
+    end;
+
+    pt_reglist_vectorsingle:
+    begin
+      if paramstr[1]<>'{' then exit;
+      i:=paramstr.IndexOf('}');
+      if i=-1 then exit;
+
+      s:=paramstr.Substring(1,i-1);
+
+      i:=s.IndexOf('-');
+      if i<>-1 then
+      begin
+        s2:=trim(s.Substring(i+1));
+        s:=trim(s.Substring(0,i));
+
+        if s[1]<>'V' then exit;
+        if s2[1]<>'V' then exit;
+
+        i:=s.IndexOf('.');
+        if i=-1 then exit;
+
+        s3:=s.Substring(1,i-1);
+        v:=strtoint(s3);
+        opcode:=opcode or (v shl param.offset);
+
+        j:=s2.indexof('.');
+        if j=-1 then exit;
+        s3:=s2.Substring(1,j-1);
+        v2:=strtoint(s3);
+
+        if param.maxval<>(v2-v) then exit;
+
+        s3:=s.Substring(i+1);
+        if s3<>s2.Substring(j) then exit; //different vectorsize
+      end
+      else
+      begin
+        if param.maxval<>0 then exit;
+        i:=s.IndexOf('.');
+        if i=-1 then exit;
+
+        s3:=s.Substring(i+1);
+      end;
+
+      if ord(s3[1])<>((param.extra shr 32) and $ff) then exit; //different entry
+
+      i:=s3.IndexOf('[');
+      j:=s3.indexof(']');
+      if (i=-1) or (j=-1) then exit;
+
+      s:=s3.Substring(i,j-i);
+      v2:=strtoint('$'+s);
+      SetIMM2Value(dword(param.extra),v2);
+    end;
+
+    pt_indexwidthspecifier:
+    begin
+      s:=paramstr.Substring(1);
+      v:=strtoint(s);
+      if v>31 then exit(false);
+
+      if paramstr[1]='X' then opcode:=opcode or (%11 shl param.offset);
+      opcode:=opcode or (v shl param.extra);
+    end;
+
+    pt_extend_amount:
+    begin
+      i:=paramstr.IndexOf(' ');
+      if i=-1 then
+        s:=paramstr
+      else
+        s:=paramstr.Substring(0,i);
+
+      s:=trim(s);
+      v:=%011;
+      case s of
+        'UXTW': v:=%010;
+        'LSL': v:=%011;
+        'SXTW': v:=%110;
+        'SXTX': v:=%111;
+      end;
+      opcode:=opcode or (v shl param.offset);
+
+      v:=0;
+      if i<>-1 then
+      begin
+        s:=paramstr.Substring(i+1);
+        if s[1]<>'#' then exit;
+
+        s:=s.Substring(1);
+        v:=strtoint('$'+s);
+        if v<>param.maxval then exit; //incorrect number (in case there are different versions with different numbers)
+        opcode:=opcode or (1 shl param.extra);
+      end;
+
+    end;
+
+    pt_extend_amount_Extended_Register:
+    begin
+      i:=paramstr.IndexOf(' ');
+      if i=-1 then
+        s:=paramstr
+      else
+        s:=paramstr.Substring(0,i);
+
+      s:=trim(s);
+      case s of
+        'UXTB': v:=%000;
+        'UXTH': v:=%001;
+        'LSL':
+        begin
+          if not ((opcode and %11111=%11111) or (opcode and %1111100000=%1111100000)) then exit; //this parameter is parsed last so this check is valid
+          if (opcode and (1 shl 31))=1 then
+            v:=%011
+          else
+            v:=%010;
+        end;
+        'UXTW': v:=%010;
+        'UXTX': v:=%011;
+        'SXTB': v:=%100;
+        'SXTH': v:=%101;
+        'SXTW': v:=%110;
+        'SXTX': v:=%111;
+      end;
+
+      v:=0;
+      if i<>-1 then
+      begin
+        s2:=paramstr.Substring(i+1);
+        if s2[1]<>'#' then exit;
+        s2:=s2.Substring(1);
+        v:=strtoint('$'+s2);
+      end;
+
+      opcode:=opcode or (v shl param.extra);
+    end;
+
+    pt_lslSpecific: if paramstr<>'LSL #'+inttohex(param.extra,1) then exit;
+
+    pt_mslSpecific: if paramstr<>'MSL #'+inttohex(param.extra,1) then exit;
+
+    pt_lsl0or12:
+    begin
+      if not ((paramstr='LSL #0') or (paramstr='LSL #C')) then exit;
+
+      if paramstr='LSL #C' then
+        opcode:=opcode or (1 shl param.offset);
+    end;
+
+    pt_lsldiv16:
+    begin
+      if paramstr.StartsWith('LSL #')=false then exit;
+      s:=paramstr.Substring(5);
+      v:=strtoint('$'+s);
+      if (v mod 16)>0 then exit;
+
+      v:=v div 16;
+
+      opcode:=opcode or (v shl param.offset);
+    end;
+
+    pt_shift16:
+    begin
+      i:=paramstr.IndexOf(' ');
+      s:=paramstr.Substring(0,i);
+      s2:=paramstr.Substring(i+1);
+
+      case s of
+        'LSL': v:=0;
+        'LSR': v:=1;
+        'ASR': v:=2;
+        else exit;
+      end;
+
+      if s2[1]<>'#' then exit;
+      s2:=s2.Substring(1);
+      v2:=strtoint('$'+s2);
+      if v2>param.maxval then exit;
+
+      opcode:=opcode or (v shl param.offset);
+      opcode:=opcode or (v2 shl param.extra);
+    end;
+
+    pt_cond:
+    begin
+      b:=false;
+      for i:=0 to length(ArmConditions)-1 do
+      begin
+        if paramstr=ArmConditions[i] then
+        begin
+          opcode:=opcode or (i shl param.offset);
+          b:=true;
+        end;
+      end;
+      if not b then exit;
+    end;
+  end;
+
+  result:=true; //reached the end
+end;
+
+{$ifdef armdev}
+procedure DebugOutputOpcode(opcode: POpcode);
+var
+  s: string;
+  i: integer;
+  ti: PTypeInfo;
+  tn: string;
+
+  insideIndex: boolean;
+begin
+  s:='';
+  insideIndex:=false;
+  for i:=0 to length(opcode^.params)-1 do
+  begin
+    ti:=TypeInfo(TArm64ParameterType);
+    tn:=GetEnumName(ti, integer(opcode^.params[i].ptype));
+
+    if opcode^.params[i].ptype=pt_lslSpecific then
+      tn:=tn+' LSL #'+inttohex(opcode^.params[i].offset,1);
+
+    if (insideIndex=false) and (opcode^.params[i].index<>ind_no) then
+    begin
+      insideindex:=true;
+      tn:=tn+'[';
+    end;
+
+    if (insideIndex) and (opcode^.params[i].index in [ind_no, ind_stop, ind_stopexp, ind_single, ind_singleexp]) then
+    begin
+      insideindex:=false;
+      tn:=tn+']';
+
+      if opcode^.params[i].index in [ind_stopexp, ind_singleexp] then
+        tn:=tn+'!';
+    end;
+
+    if i>0 then s:=s+', ';
+    s:=s+tn;
+  end;
+
+  outputdebugstring(pchar(opcode^.mnemonic+'('+s+')'));
+end;
+{$endif}
+
+function TArm64Instructionset.assemble(_address: ptruint; instruction: string): dword;
+//raises EInvalidInstruction if it can't be assembled
+var
+  opcodestring,parameterstring: string;
+  parameterstringsplit: array of string;
+  i: integer;
+  listindex: integer;
+  selectedopcode: POpcode;
+  parameters: array of record
+    str: string;
+    possibletypes: TArm64ParameterTypes;
+    index: integer;
+  end;
+  inindex: boolean;
+
+  preindexed: boolean;
+
+  match: boolean;
+begin
+  InitARM64Support;
+
+  result:=0;
+
+  i:=pos(' ', instruction);
+  opcodestring:=copy(instruction,1,i-1);
+  parameterstring:=copy(instruction,i+1);
+
+  parameterstringsplit:=parameterstring.Split([',']);
+  setlength(parameters, length(parameterstringsplit));
+
+  preindexed:=false;
+  inindex:=false;
+
+  self.address:=_address;
+
+  for i:=0 to length(parameterstringsplit)-1 do
+  begin
+    parameters[i].index:=0;
+    parameters[i].possibletypes:=[];
+    parameters[i].str:=trim(parameterstringsplit[i]);
+    if parameters[i].str[1]='[' then
+    begin
+      parameters[i].index:=1;
+      parameters[i].str:=trim(copy(parameters[i].str,2));
+      inindex:=true;
+    end;
+
+    if parameters[i].str.EndsWith(']!') then
+    begin
+      parameters[i].str:=copy(parameters[i].str,1,length(parameters[i].str)-2);
+      inindex:=false;
+      preindexed:=true;
+    end;
+
+    if parameters[i].str.EndsWith(']') then
+    begin
+      parameters[i].str:=copy(parameters[i].str,1,length(parameters[i].str)-1);
+      inindex:=false;
+    end;
+
+    parameters[i].possibletypes:=GuessTypes(parameters[i].str);
+  end;
+
+
+  listindex:=ArmInstructionsAssemblerList.Find(opcodestring);
+  if listindex=-1 then exit;
+
+
+  while (listindex>0) and (uppercase(ArmInstructionsAssemblerList.List[listindex-1]^.Key)=uppercase(opcodestring)) do
+    dec(listindex); //find the actual start of the list
+
+  while (listindex<ArmInstructionsAssemblerList.Count) and (uppercase(ArmInstructionsAssemblerList.List[listindex]^.Key)=uppercase(opcodestring)) do
+  begin
+    //check if this entry matches the parameters given
+    selectedopcode:=POpcode(ArmInstructionsAssemblerList.List[listindex]^.Data);
+
+    {$ifdef armdev}
+    DebugOutputOpcode(selectedopcode);
+    {$endif}
+
+
+    if length(parameters)>length(selectedopcode^.params) then
+    begin
+      inc(listindex);
+      continue; //don't bother.  (the other way is possible though if optional parameters are present)
+    end;
+
+    match:=true;
+    //first a quick check to see if the parameters match type and count
+    for i:=0 to length(selectedopcode^.params)-1 do
+    begin
+      if i<length(parameters) then
+      begin
+        if not (selectedopcode^.params[i].ptype in parameters[i].possibletypes) then
+        begin
+          match:=false;
+          break;
+        end;
+      end
+      else if (not selectedopcode^.params[i].optional) then
+      begin //there is supposed to be another non-optional parameter
+        match:=false;
+        break;
+      end;
+    end;
+
+    if match then
+    begin
+      //all good, try to assemble it
+      opcode:=selectedopcode^.value;
+
+      //try to apply the parameters
+      for i:=0 to length(parameters)-1 do
+      begin
+        try
+          if ParseParameterForAssembler(selectedopcode^.params[i], parameters[i].str)=false then
+          begin
+            //the given parameter could not be parsed using the given type after all.
+            match:=false;
+            break;
+          end;
+        except
+          match:=false;
+          break;
+        end;
+      end;
+
+      //check for extra rules?
+    end;
+
+    if match then
+    begin
+      result:=opcode;
+      exit; //still a match, so use this
+    end;
+
+    inc(listindex);
+  end;
+
+  raise EInvalidInstruction.create('Invalid instruction');
+end;
+
 {$ifdef armdev}
 procedure GetArmInstructionsAssemblerListDebug(r: tstrings);
 var i,j: integer;
   x: string;
+
+
+  d: TArm64Instructionset;
 begin
+  d.InitARM64Support;
+
   for i:=0 to ArmInstructionsAssemblerList.Count-1 do
   begin
     x:='';
@@ -3688,6 +5349,8 @@ begin
   i:=ArmInstructionsAssemblerList.Find('CBZ');
   r.add('CBZ is at index '+inttostr(i));
 
+  i:=ArmInstructionsAssemblerList.Find('DUP');
+  r.add('DUP is at index '+inttostr(i));
 
 end;
 {$endif}
@@ -3705,7 +5368,7 @@ end;
 
 procedure InitializeArmInstructionsAssemblerList;
 begin
-  ArmInstructionsAssemblerList:=TStringHashList.Create(true);
+  ArmInstructionsAssemblerList:=TStringHashList.Create(false);
   FillArmInstructionsAssemblerListWithOpcodeArray(ArmInstructionsCompareAndBranch);
   FillArmInstructionsAssemblerListWithOpcodeArray(ArmInstructionsSystem);
   FillArmInstructionsAssemblerListWithOpcodeArray(ArmInstructionsSYS_ALTS);
@@ -3784,10 +5447,45 @@ begin
   FillArmInstructionsAssemblerListWithOpcodeArray(ArmInstructionsCryptoThreeRegSHA);
   FillArmInstructionsAssemblerListWithOpcodeArray(ArmInstructionsCryptoTwoRegSHA);
 
+  tlbilist:=TStringHashList.create(false);
+  tlbilist.Add('IPAS2E1IS', pointer(%10010000000001) );
+  tlbilist.Add('IPAS2LE1IS', pointer(%10010000000101) );
+
+  tlbilist.Add('VMALLE1IS',           pointer(%00010000011000) );
+  tlbilist.Add('ALLE2IS',             pointer(%10010000011000) );
+  tlbilist.Add('ALLE3IS',             pointer(%11010000011000) );
+  tlbilist.Add('VAE1IS',              pointer(%00010000011001) );
+  tlbilist.Add('VAE2IS',              pointer(%10010000011001) );
+  tlbilist.Add('VAE3IS',              pointer(%11010000011001) );
+  tlbilist.Add('ASIDE1IS',            pointer(%00010000011010) );
+  tlbilist.Add('VAAE1IS',             pointer(%00010000011011) );
+  tlbilist.Add('ALLE1IS',             pointer(%10010000011100) );
+  tlbilist.Add('VALE1IS',             pointer(%00010000011101) );
+  tlbilist.Add('VALE2IS',             pointer(%10010000011101) );
+  tlbilist.Add('VALE3IS',             pointer(%11010000011101) );
+  tlbilist.Add('VMALLS12E1IS',        pointer(%10010000011110) );
+  tlbilist.Add('VAALE1IS',            pointer(%00010000011111) );
+  tlbilist.Add('IPAS2E1',             pointer(%10010000100001) );
+  tlbilist.Add('IPAS2LE1',            pointer(%10010000100101) );
+  tlbilist.Add('VMALLE1',             pointer(%00010000111000) );
+  tlbilist.Add('ALLE2',               pointer(%10010000111000) );
+  tlbilist.Add('ALLE3',               pointer(%11010000111000) );
+  tlbilist.Add('VAE1',                pointer(%00010000111001) );
+  tlbilist.Add('VAE2',                pointer(%10010000111001) );
+  tlbilist.Add('VAE3',                pointer(%11010000111001) );
+  tlbilist.Add('ASIDE1',              pointer(%00010000111010) );
+  tlbilist.Add('VAAE1',               pointer(%00010000111011) );
+  tlbilist.Add('ALLE1',               pointer(%10010000111100) );
+  tlbilist.Add('VALE1',               pointer(%00010000111101) );
+  tlbilist.Add('VALE2',               pointer(%10010000111101) );
+  tlbilist.Add('VALE3',               pointer(%11010000111101) );
+  tlbilist.Add('VMALLS12E1',          pointer(%10010000111110) );
+  tlbilist.Add('VAALE1',              pointer(%00010000111111) );
+
 end;
 
 
-procedure InitARM64Support;
+procedure TArm64Instructionset.InitARM64Support;
 const initialized: boolean=false;
 begin
   if not initialized then
