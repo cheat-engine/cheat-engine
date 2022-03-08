@@ -329,64 +329,64 @@ const
     (mnemonic:'PRFM'; params:((ptype:pt_prfop; offset: 0),(ptype: pt_label; offset: 19; maxval:$7ffff)); mask:%11111111000000000000000000000000; value: %11011000000000000000000000000000)
   );
   ArmInstructionsLoadStoreNoAllocatePairOffset: array of TOpcode=(
-    (mnemonic:'STNP'; params:((ptype:pt_wreg; offset:0),(ptype:pt_wreg; offset:10),(ptype:pt_xreg; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_index),(ptype:pt_imm_mul4;  offset: 15; maxval:$7f; extra:0; optional:true; defvalue:0; index: ind_index)); mask: %11111111110000000000000000000000; value: %00101000000000000000000000000000),
-    (mnemonic:'STNP'; params:((ptype:pt_xreg; offset:0),(ptype:pt_xreg; offset:10),(ptype:pt_xreg; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_index),(ptype:pt_imm_mul8;  offset: 15; maxval:$7f; extra:0; optional:true; defvalue:0; index: ind_index)); mask: %11111111110000000000000000000000; value: %10101000000000000000000000000000),
-    (mnemonic:'STNP'; params:((ptype:pt_sreg; offset:0),(ptype:pt_sreg; offset:10),(ptype:pt_xreg; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_index),(ptype:pt_imm_mul4;  offset: 15; maxval:$7f; extra:0; optional:true; defvalue:0; index: ind_index)); mask: %11111111110000000000000000000000; value: %00101100000000000000000000000000),
-    (mnemonic:'STNP'; params:((ptype:pt_dreg; offset:0),(ptype:pt_dreg; offset:10),(ptype:pt_xreg; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_index),(ptype:pt_imm_mul8;  offset: 15; maxval:$7f; extra:0; optional:true; defvalue:0; index: ind_index)); mask: %11111111110000000000000000000000; value: %01101100000000000000000000000000),
-    (mnemonic:'STNP'; params:((ptype:pt_qreg; offset:0),(ptype:pt_qreg; offset:10),(ptype:pt_xreg; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_index),(ptype:pt_imm_mul16; offset: 15; maxval:$7f; extra:0; optional:true; defvalue:0; index: ind_index)); mask: %11111111110000000000000000000000; value: %10101100000000000000000000000000),
+    (mnemonic:'STNP'; params:((ptype:pt_wreg; offset:0),(ptype:pt_wreg; offset:10),(ptype:pt_xreg_or_sp; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_index),(ptype:pt_imm_mul4;  offset: 15; maxval:$7f; extra:0; optional:true; defvalue:0; index: ind_index)); mask: %11111111110000000000000000000000; value: %00101000000000000000000000000000),
+    (mnemonic:'STNP'; params:((ptype:pt_xreg; offset:0),(ptype:pt_xreg; offset:10),(ptype:pt_xreg_or_sp; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_index),(ptype:pt_imm_mul8;  offset: 15; maxval:$7f; extra:0; optional:true; defvalue:0; index: ind_index)); mask: %11111111110000000000000000000000; value: %10101000000000000000000000000000),
+    (mnemonic:'STNP'; params:((ptype:pt_sreg; offset:0),(ptype:pt_sreg; offset:10),(ptype:pt_xreg_or_sp; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_index),(ptype:pt_imm_mul4;  offset: 15; maxval:$7f; extra:0; optional:true; defvalue:0; index: ind_index)); mask: %11111111110000000000000000000000; value: %00101100000000000000000000000000),
+    (mnemonic:'STNP'; params:((ptype:pt_dreg; offset:0),(ptype:pt_dreg; offset:10),(ptype:pt_xreg_or_sp; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_index),(ptype:pt_imm_mul8;  offset: 15; maxval:$7f; extra:0; optional:true; defvalue:0; index: ind_index)); mask: %11111111110000000000000000000000; value: %01101100000000000000000000000000),
+    (mnemonic:'STNP'; params:((ptype:pt_qreg; offset:0),(ptype:pt_qreg; offset:10),(ptype:pt_xreg_or_sp; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_index),(ptype:pt_imm_mul16; offset: 15; maxval:$7f; extra:0; optional:true; defvalue:0; index: ind_index)); mask: %11111111110000000000000000000000; value: %10101100000000000000000000000000),
 
-    (mnemonic:'LDNP'; params:((ptype:pt_wreg; offset:0),(ptype:pt_wreg; offset:10),(ptype:pt_xreg; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_index),(ptype:pt_imm_mul4;  offset: 15; maxval:$7f; extra:0; optional:true; defvalue:0; index: ind_index)); mask: %11111111110000000000000000000000; value: %00101000010000000000000000000000),
-    (mnemonic:'LDNP'; params:((ptype:pt_xreg; offset:0),(ptype:pt_xreg; offset:10),(ptype:pt_xreg; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_index),(ptype:pt_imm_mul8;  offset: 15; maxval:$7f; extra:0; optional:true; defvalue:0; index: ind_index)); mask: %11111111110000000000000000000000; value: %10101000010000000000000000000000),
-    (mnemonic:'LDNP'; params:((ptype:pt_sreg; offset:0),(ptype:pt_sreg; offset:10),(ptype:pt_xreg; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_index),(ptype:pt_imm_mul4;  offset: 15; maxval:$7f; extra:0; optional:true; defvalue:0; index: ind_index)); mask: %11111111110000000000000000000000; value: %00101100010000000000000000000000),
-    (mnemonic:'LDNP'; params:((ptype:pt_dreg; offset:0),(ptype:pt_dreg; offset:10),(ptype:pt_xreg; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_index),(ptype:pt_imm_mul8;  offset: 15; maxval:$7f; extra:0; optional:true; defvalue:0; index: ind_index)); mask: %11111111110000000000000000000000; value: %01101100010000000000000000000000),
-    (mnemonic:'LDNP'; params:((ptype:pt_qreg; offset:0),(ptype:pt_qreg; offset:10),(ptype:pt_xreg; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_index),(ptype:pt_imm_mul16; offset: 15; maxval:$7f; extra:0; optional:true; defvalue:0; index: ind_index)); mask: %11111111110000000000000000000000; value: %10101100010000000000000000000000)
+    (mnemonic:'LDNP'; params:((ptype:pt_wreg; offset:0),(ptype:pt_wreg; offset:10),(ptype:pt_xreg_or_sp; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_index),(ptype:pt_imm_mul4;  offset: 15; maxval:$7f; extra:0; optional:true; defvalue:0; index: ind_index)); mask: %11111111110000000000000000000000; value: %00101000010000000000000000000000),
+    (mnemonic:'LDNP'; params:((ptype:pt_xreg; offset:0),(ptype:pt_xreg; offset:10),(ptype:pt_xreg_or_sp; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_index),(ptype:pt_imm_mul8;  offset: 15; maxval:$7f; extra:0; optional:true; defvalue:0; index: ind_index)); mask: %11111111110000000000000000000000; value: %10101000010000000000000000000000),
+    (mnemonic:'LDNP'; params:((ptype:pt_sreg; offset:0),(ptype:pt_sreg; offset:10),(ptype:pt_xreg_or_sp; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_index),(ptype:pt_imm_mul4;  offset: 15; maxval:$7f; extra:0; optional:true; defvalue:0; index: ind_index)); mask: %11111111110000000000000000000000; value: %00101100010000000000000000000000),
+    (mnemonic:'LDNP'; params:((ptype:pt_dreg; offset:0),(ptype:pt_dreg; offset:10),(ptype:pt_xreg_or_sp; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_index),(ptype:pt_imm_mul8;  offset: 15; maxval:$7f; extra:0; optional:true; defvalue:0; index: ind_index)); mask: %11111111110000000000000000000000; value: %01101100010000000000000000000000),
+    (mnemonic:'LDNP'; params:((ptype:pt_qreg; offset:0),(ptype:pt_qreg; offset:10),(ptype:pt_xreg_or_sp; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_index),(ptype:pt_imm_mul16; offset: 15; maxval:$7f; extra:0; optional:true; defvalue:0; index: ind_index)); mask: %11111111110000000000000000000000; value: %10101100010000000000000000000000)
 
   );
 
   ArmInstructionsLoadStoreRegisterPairPostIndexed: array of TOpcode=(
-    (mnemonic:'STP'; params:((ptype:pt_wreg; offset:0),(ptype:pt_wreg; offset:10),(ptype:pt_xreg; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_single),(ptype:pt_imm_mul4;  offset: 15; maxval:$7f; extra:0; optional:true; defvalue:0)); mask: %11111111110000000000000000000000; value: %00101000100000000000000000000000),
-    (mnemonic:'STP'; params:((ptype:pt_xreg; offset:0),(ptype:pt_xreg; offset:10),(ptype:pt_xreg; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_single),(ptype:pt_imm_mul8;  offset: 15; maxval:$7f; extra:0; optional:true; defvalue:0)); mask: %11111111110000000000000000000000; value: %10101000100000000000000000000000),
-    (mnemonic:'STP'; params:((ptype:pt_sreg; offset:0),(ptype:pt_sreg; offset:10),(ptype:pt_xreg; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_single),(ptype:pt_imm_mul4;  offset: 15; maxval:$7f; extra:0; optional:true; defvalue:0)); mask: %11111111110000000000000000000000; value: %00101100100000000000000000000000),
-    (mnemonic:'STP'; params:((ptype:pt_dreg; offset:0),(ptype:pt_dreg; offset:10),(ptype:pt_xreg; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_single),(ptype:pt_imm_mul8;  offset: 15; maxval:$7f; extra:0; optional:true; defvalue:0)); mask: %11111111110000000000000000000000; value: %01101100100000000000000000000000),
-    (mnemonic:'STP'; params:((ptype:pt_qreg; offset:0),(ptype:pt_qreg; offset:10),(ptype:pt_xreg; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_single),(ptype:pt_imm_mul16; offset: 15; maxval:$7f; extra:0; optional:true; defvalue:0)); mask: %11111111110000000000000000000000; value: %10101100100000000000000000000000),
+    (mnemonic:'STP'; params:((ptype:pt_wreg; offset:0),(ptype:pt_wreg; offset:10),(ptype:pt_xreg_or_sp; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_single),(ptype:pt_imm_mul4;  offset: 15; maxval:$7f; extra:0; optional:true; defvalue:0)); mask: %11111111110000000000000000000000; value: %00101000100000000000000000000000),
+    (mnemonic:'STP'; params:((ptype:pt_xreg; offset:0),(ptype:pt_xreg; offset:10),(ptype:pt_xreg_or_sp; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_single),(ptype:pt_imm_mul8;  offset: 15; maxval:$7f; extra:0; optional:true; defvalue:0)); mask: %11111111110000000000000000000000; value: %10101000100000000000000000000000),
+    (mnemonic:'STP'; params:((ptype:pt_sreg; offset:0),(ptype:pt_sreg; offset:10),(ptype:pt_xreg_or_sp; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_single),(ptype:pt_imm_mul4;  offset: 15; maxval:$7f; extra:0; optional:true; defvalue:0)); mask: %11111111110000000000000000000000; value: %00101100100000000000000000000000),
+    (mnemonic:'STP'; params:((ptype:pt_dreg; offset:0),(ptype:pt_dreg; offset:10),(ptype:pt_xreg_or_sp; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_single),(ptype:pt_imm_mul8;  offset: 15; maxval:$7f; extra:0; optional:true; defvalue:0)); mask: %11111111110000000000000000000000; value: %01101100100000000000000000000000),
+    (mnemonic:'STP'; params:((ptype:pt_qreg; offset:0),(ptype:pt_qreg; offset:10),(ptype:pt_xreg_or_sp; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_single),(ptype:pt_imm_mul16; offset: 15; maxval:$7f; extra:0; optional:true; defvalue:0)); mask: %11111111110000000000000000000000; value: %10101100100000000000000000000000),
 
-    (mnemonic:'LDP'; params:((ptype:pt_wreg; offset:0),(ptype:pt_wreg; offset:10),(ptype:pt_xreg; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_single),(ptype:pt_imm_mul4;  offset: 15; maxval:$7f; extra:0; optional:true; defvalue:0)); mask: %11111111110000000000000000000000; value: %00101000110000000000000000000000),
-    (mnemonic:'LDP'; params:((ptype:pt_xreg; offset:0),(ptype:pt_xreg; offset:10),(ptype:pt_xreg; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_single),(ptype:pt_imm_mul8;  offset: 15; maxval:$7f; extra:0; optional:true; defvalue:0)); mask: %11111111110000000000000000000000; value: %10101000110000000000000000000000),
-    (mnemonic:'LDP'; params:((ptype:pt_sreg; offset:0),(ptype:pt_sreg; offset:10),(ptype:pt_xreg; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_single),(ptype:pt_imm_mul4;  offset: 15; maxval:$7f; extra:0; optional:true; defvalue:0)); mask: %11111111110000000000000000000000; value: %00101100110000000000000000000000),
-    (mnemonic:'LDP'; params:((ptype:pt_dreg; offset:0),(ptype:pt_dreg; offset:10),(ptype:pt_xreg; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_single),(ptype:pt_imm_mul8;  offset: 15; maxval:$7f; extra:0; optional:true; defvalue:0)); mask: %11111111110000000000000000000000; value: %01101100110000000000000000000000),
-    (mnemonic:'LDP'; params:((ptype:pt_qreg; offset:0),(ptype:pt_qreg; offset:10),(ptype:pt_xreg; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_single),(ptype:pt_imm_mul16; offset: 15; maxval:$7f; extra:0; optional:true; defvalue:0)); mask: %11111111110000000000000000000000; value: %10101100110000000000000000000000),
+    (mnemonic:'LDP'; params:((ptype:pt_wreg; offset:0),(ptype:pt_wreg; offset:10),(ptype:pt_xreg_or_sp; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_single),(ptype:pt_imm_mul4;  offset: 15; maxval:$7f; extra:0; optional:true; defvalue:0)); mask: %11111111110000000000000000000000; value: %00101000110000000000000000000000),
+    (mnemonic:'LDP'; params:((ptype:pt_xreg; offset:0),(ptype:pt_xreg; offset:10),(ptype:pt_xreg_or_sp; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_single),(ptype:pt_imm_mul8;  offset: 15; maxval:$7f; extra:0; optional:true; defvalue:0)); mask: %11111111110000000000000000000000; value: %10101000110000000000000000000000),
+    (mnemonic:'LDP'; params:((ptype:pt_sreg; offset:0),(ptype:pt_sreg; offset:10),(ptype:pt_xreg_or_sp; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_single),(ptype:pt_imm_mul4;  offset: 15; maxval:$7f; extra:0; optional:true; defvalue:0)); mask: %11111111110000000000000000000000; value: %00101100110000000000000000000000),
+    (mnemonic:'LDP'; params:((ptype:pt_dreg; offset:0),(ptype:pt_dreg; offset:10),(ptype:pt_xreg_or_sp; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_single),(ptype:pt_imm_mul8;  offset: 15; maxval:$7f; extra:0; optional:true; defvalue:0)); mask: %11111111110000000000000000000000; value: %01101100110000000000000000000000),
+    (mnemonic:'LDP'; params:((ptype:pt_qreg; offset:0),(ptype:pt_qreg; offset:10),(ptype:pt_xreg_or_sp; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_single),(ptype:pt_imm_mul16; offset: 15; maxval:$7f; extra:0; optional:true; defvalue:0)); mask: %11111111110000000000000000000000; value: %10101100110000000000000000000000),
 
-    (mnemonic:'LDPSW'; params:((ptype:pt_xreg; offset:0),(ptype:pt_xreg; offset:10),(ptype:pt_xreg; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_single),(ptype:pt_imm_mul16; offset: 15; maxval:$7f; extra:0; optional:true; defvalue:0)); mask: %11111111110000000000000000000000;value:%01101000110000000000000000000000)
+    (mnemonic:'LDPSW'; params:((ptype:pt_xreg; offset:0),(ptype:pt_xreg; offset:10),(ptype:pt_xreg_or_sp; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_single),(ptype:pt_imm_mul16; offset: 15; maxval:$7f; extra:0; optional:true; defvalue:0)); mask: %11111111110000000000000000000000;value:%01101000110000000000000000000000)
 
   );
   ArmInstructionsLoadStoreRegisterPairOffset: array of TOpcode=(
-    (mnemonic:'STP'; params:((ptype:pt_wreg; offset:0),(ptype:pt_wreg; offset:10),(ptype:pt_xreg; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_index),(ptype:pt_imm_mul4;  offset: 15; maxval:$7f; extra:0; optional:true; defvalue:0; index: ind_index)); mask: %11111111110000000000000000000000; value: %00101001000000000000000000000000),
-    (mnemonic:'STP'; params:((ptype:pt_xreg; offset:0),(ptype:pt_xreg; offset:10),(ptype:pt_xreg; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_index),(ptype:pt_imm_mul8;  offset: 15; maxval:$7f; extra:0; optional:true; defvalue:0; index: ind_index)); mask: %11111111110000000000000000000000; value: %10101001000000000000000000000000),
-    (mnemonic:'STP'; params:((ptype:pt_sreg; offset:0),(ptype:pt_sreg; offset:10),(ptype:pt_xreg; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_index),(ptype:pt_imm_mul4;  offset: 15; maxval:$7f; extra:0; optional:true; defvalue:0; index: ind_index)); mask: %11111111110000000000000000000000; value: %00101101000000000000000000000000),
-    (mnemonic:'STP'; params:((ptype:pt_dreg; offset:0),(ptype:pt_dreg; offset:10),(ptype:pt_xreg; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_index),(ptype:pt_imm_mul8;  offset: 15; maxval:$7f; extra:0; optional:true; defvalue:0; index: ind_index)); mask: %11111111110000000000000000000000; value: %01101101000000000000000000000000),
-    (mnemonic:'STP'; params:((ptype:pt_qreg; offset:0),(ptype:pt_qreg; offset:10),(ptype:pt_xreg; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_index),(ptype:pt_imm_mul16; offset: 15; maxval:$7f; extra:0; optional:true; defvalue:0; index: ind_index)); mask: %11111111110000000000000000000000; value: %10101101000000000000000000000000),
+    (mnemonic:'STP'; params:((ptype:pt_wreg; offset:0),(ptype:pt_wreg; offset:10),(ptype:pt_xreg_or_sp; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_index),(ptype:pt_imm_mul4;  offset: 15; maxval:$7f; extra:0; optional:true; defvalue:0; index: ind_index)); mask: %11111111110000000000000000000000; value: %00101001000000000000000000000000),
+    (mnemonic:'STP'; params:((ptype:pt_xreg; offset:0),(ptype:pt_xreg; offset:10),(ptype:pt_xreg_or_sp; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_index),(ptype:pt_imm_mul8;  offset: 15; maxval:$7f; extra:0; optional:true; defvalue:0; index: ind_index)); mask: %11111111110000000000000000000000; value: %10101001000000000000000000000000),
+    (mnemonic:'STP'; params:((ptype:pt_sreg; offset:0),(ptype:pt_sreg; offset:10),(ptype:pt_xreg_or_sp; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_index),(ptype:pt_imm_mul4;  offset: 15; maxval:$7f; extra:0; optional:true; defvalue:0; index: ind_index)); mask: %11111111110000000000000000000000; value: %00101101000000000000000000000000),
+    (mnemonic:'STP'; params:((ptype:pt_dreg; offset:0),(ptype:pt_dreg; offset:10),(ptype:pt_xreg_or_sp; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_index),(ptype:pt_imm_mul8;  offset: 15; maxval:$7f; extra:0; optional:true; defvalue:0; index: ind_index)); mask: %11111111110000000000000000000000; value: %01101101000000000000000000000000),
+    (mnemonic:'STP'; params:((ptype:pt_qreg; offset:0),(ptype:pt_qreg; offset:10),(ptype:pt_xreg_or_sp; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_index),(ptype:pt_imm_mul16; offset: 15; maxval:$7f; extra:0; optional:true; defvalue:0; index: ind_index)); mask: %11111111110000000000000000000000; value: %10101101000000000000000000000000),
 
-    (mnemonic:'LDP'; params:((ptype:pt_wreg; offset:0),(ptype:pt_wreg; offset:10),(ptype:pt_xreg; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_index),(ptype:pt_imm_mul4;  offset: 15; maxval:$7f; extra:0; optional:true; defvalue:0; index: ind_index)); mask: %11111111110000000000000000000000; value: %00101001010000000000000000000000),
-    (mnemonic:'LDP'; params:((ptype:pt_xreg; offset:0),(ptype:pt_xreg; offset:10),(ptype:pt_xreg; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_index),(ptype:pt_imm_mul8;  offset: 15; maxval:$7f; extra:0; optional:true; defvalue:0; index: ind_index)); mask: %11111111110000000000000000000000; value: %10101001010000000000000000000000),
-    (mnemonic:'LDP'; params:((ptype:pt_sreg; offset:0),(ptype:pt_sreg; offset:10),(ptype:pt_xreg; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_index),(ptype:pt_imm_mul4;  offset: 15; maxval:$7f; extra:0; optional:true; defvalue:0; index: ind_index)); mask: %11111111110000000000000000000000; value: %00101101010000000000000000000000),
-    (mnemonic:'LDP'; params:((ptype:pt_dreg; offset:0),(ptype:pt_dreg; offset:10),(ptype:pt_xreg; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_index),(ptype:pt_imm_mul8;  offset: 15; maxval:$7f; extra:0; optional:true; defvalue:0; index: ind_index)); mask: %11111111110000000000000000000000; value: %01101101010000000000000000000000),
-    (mnemonic:'LDP'; params:((ptype:pt_qreg; offset:0),(ptype:pt_qreg; offset:10),(ptype:pt_xreg; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_index),(ptype:pt_imm_mul16; offset: 15; maxval:$7f; extra:0; optional:true; defvalue:0; index: ind_index)); mask: %11111111110000000000000000000000; value: %10101101010000000000000000000000),
+    (mnemonic:'LDP'; params:((ptype:pt_wreg; offset:0),(ptype:pt_wreg; offset:10),(ptype:pt_xreg_or_sp; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_index),(ptype:pt_imm_mul4;  offset: 15; maxval:$7f; extra:0; optional:true; defvalue:0; index: ind_index)); mask: %11111111110000000000000000000000; value: %00101001010000000000000000000000),
+    (mnemonic:'LDP'; params:((ptype:pt_xreg; offset:0),(ptype:pt_xreg; offset:10),(ptype:pt_xreg_or_sp; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_index),(ptype:pt_imm_mul8;  offset: 15; maxval:$7f; extra:0; optional:true; defvalue:0; index: ind_index)); mask: %11111111110000000000000000000000; value: %10101001010000000000000000000000),
+    (mnemonic:'LDP'; params:((ptype:pt_sreg; offset:0),(ptype:pt_sreg; offset:10),(ptype:pt_xreg_or_sp; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_index),(ptype:pt_imm_mul4;  offset: 15; maxval:$7f; extra:0; optional:true; defvalue:0; index: ind_index)); mask: %11111111110000000000000000000000; value: %00101101010000000000000000000000),
+    (mnemonic:'LDP'; params:((ptype:pt_dreg; offset:0),(ptype:pt_dreg; offset:10),(ptype:pt_xreg_or_sp; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_index),(ptype:pt_imm_mul8;  offset: 15; maxval:$7f; extra:0; optional:true; defvalue:0; index: ind_index)); mask: %11111111110000000000000000000000; value: %01101101010000000000000000000000),
+    (mnemonic:'LDP'; params:((ptype:pt_qreg; offset:0),(ptype:pt_qreg; offset:10),(ptype:pt_xreg_or_sp; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_index),(ptype:pt_imm_mul16; offset: 15; maxval:$7f; extra:0; optional:true; defvalue:0; index: ind_index)); mask: %11111111110000000000000000000000; value: %10101101010000000000000000000000),
 
-    (mnemonic:'LDPSW'; params:((ptype:pt_xreg; offset:0),(ptype:pt_xreg; offset:10),(ptype:pt_xreg; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_index),(ptype:pt_imm_mul16; offset: 15; maxval:$7f; extra:0; optional:true; defvalue:0; index: ind_index)); mask: %11111111110000000000000000000000;value:%01101001010000000000000000000000)
+    (mnemonic:'LDPSW'; params:((ptype:pt_xreg; offset:0),(ptype:pt_xreg; offset:10),(ptype:pt_xreg_or_sp; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_index),(ptype:pt_imm_mul16; offset: 15; maxval:$7f; extra:0; optional:true; defvalue:0; index: ind_index)); mask: %11111111110000000000000000000000;value:%01101001010000000000000000000000)
 
   );
   ArmInstructionsLoadStoreRegisterPairPreIndexed: array of TOpcode=(
-    (mnemonic:'STP'; params:((ptype:pt_wreg; offset:0),(ptype:pt_wreg; offset:10),(ptype:pt_xreg; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_index),(ptype:pt_imm_mul4;  offset: 15; maxval:$7f; extra:0; optional:true; defvalue:0; index: ind_stopexp)); mask: %11111111110000000000000000000000; value: %00101001100000000000000000000000),
-    (mnemonic:'STP'; params:((ptype:pt_xreg; offset:0),(ptype:pt_xreg; offset:10),(ptype:pt_xreg; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_index),(ptype:pt_imm_mul8;  offset: 15; maxval:$7f; extra:0; optional:true; defvalue:0; index: ind_stopexp)); mask: %11111111110000000000000000000000; value: %10101001100000000000000000000000),
-    (mnemonic:'STP'; params:((ptype:pt_sreg; offset:0),(ptype:pt_sreg; offset:10),(ptype:pt_xreg; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_index),(ptype:pt_imm_mul4;  offset: 15; maxval:$7f; extra:0; optional:true; defvalue:0; index: ind_stopexp)); mask: %11111111110000000000000000000000; value: %00101101100000000000000000000000),
-    (mnemonic:'STP'; params:((ptype:pt_dreg; offset:0),(ptype:pt_dreg; offset:10),(ptype:pt_xreg; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_index),(ptype:pt_imm_mul8;  offset: 15; maxval:$7f; extra:0; optional:true; defvalue:0; index: ind_stopexp)); mask: %11111111110000000000000000000000; value: %01101101100000000000000000000000),
-    (mnemonic:'STP'; params:((ptype:pt_qreg; offset:0),(ptype:pt_qreg; offset:10),(ptype:pt_xreg; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_index),(ptype:pt_imm_mul16; offset: 15; maxval:$7f; extra:0; optional:true; defvalue:0; index: ind_stopexp)); mask: %11111111110000000000000000000000; value: %10101101100000000000000000000000),
-    (mnemonic:'LDP'; params:((ptype:pt_wreg; offset:0),(ptype:pt_wreg; offset:10),(ptype:pt_xreg; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_index),(ptype:pt_imm_mul4;  offset: 15; maxval:$7f; extra:0; optional:true; defvalue:0; index: ind_stopexp)); mask: %11111111110000000000000000000000; value: %00101001110000000000000000000000),
-    (mnemonic:'LDP'; params:((ptype:pt_xreg; offset:0),(ptype:pt_xreg; offset:10),(ptype:pt_xreg; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_index),(ptype:pt_imm_mul8;  offset: 15; maxval:$7f; extra:0; optional:true; defvalue:0; index: ind_stopexp)); mask: %11111111110000000000000000000000; value: %10101001110000000000000000000000),
-    (mnemonic:'LDP'; params:((ptype:pt_sreg; offset:0),(ptype:pt_sreg; offset:10),(ptype:pt_xreg; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_index),(ptype:pt_imm_mul4;  offset: 15; maxval:$7f; extra:0; optional:true; defvalue:0; index: ind_stopexp)); mask: %11111111110000000000000000000000; value: %00101101110000000000000000000000),
-    (mnemonic:'LDP'; params:((ptype:pt_dreg; offset:0),(ptype:pt_dreg; offset:10),(ptype:pt_xreg; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_index),(ptype:pt_imm_mul8;  offset: 15; maxval:$7f; extra:0; optional:true; defvalue:0; index: ind_stopexp)); mask: %11111111110000000000000000000000; value: %01101101110000000000000000000000),
-    (mnemonic:'LDP'; params:((ptype:pt_qreg; offset:0),(ptype:pt_qreg; offset:10),(ptype:pt_xreg; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_index),(ptype:pt_imm_mul16; offset: 15; maxval:$7f; extra:0; optional:true; defvalue:0; index: ind_stopexp)); mask: %11111111110000000000000000000000; value: %10101101110000000000000000000000),
-    (mnemonic:'LDPSW'; params:((ptype:pt_xreg; offset:0),(ptype:pt_xreg; offset:10),(ptype:pt_xreg; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_index),(ptype:pt_imm_mul16; offset: 15; maxval:$7f; extra:0; optional:true; defvalue:0; index: ind_index)); mask: %11111111110000000000000000000000; value: %01101001110000000000000000000000)
+    (mnemonic:'STP'; params:((ptype:pt_wreg; offset:0),(ptype:pt_wreg; offset:10),(ptype:pt_xreg_or_sp; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_index),(ptype:pt_imm_mul4;  offset: 15; maxval:$7f; extra:0; optional:true; defvalue:0; index: ind_stopexp)); mask: %11111111110000000000000000000000; value: %00101001100000000000000000000000),
+    (mnemonic:'STP'; params:((ptype:pt_xreg; offset:0),(ptype:pt_xreg; offset:10),(ptype:pt_xreg_or_sp; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_index),(ptype:pt_imm_mul8;  offset: 15; maxval:$7f; extra:0; optional:true; defvalue:0; index: ind_stopexp)); mask: %11111111110000000000000000000000; value: %10101001100000000000000000000000),
+    (mnemonic:'STP'; params:((ptype:pt_sreg; offset:0),(ptype:pt_sreg; offset:10),(ptype:pt_xreg_or_sp; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_index),(ptype:pt_imm_mul4;  offset: 15; maxval:$7f; extra:0; optional:true; defvalue:0; index: ind_stopexp)); mask: %11111111110000000000000000000000; value: %00101101100000000000000000000000),
+    (mnemonic:'STP'; params:((ptype:pt_dreg; offset:0),(ptype:pt_dreg; offset:10),(ptype:pt_xreg_or_sp; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_index),(ptype:pt_imm_mul8;  offset: 15; maxval:$7f; extra:0; optional:true; defvalue:0; index: ind_stopexp)); mask: %11111111110000000000000000000000; value: %01101101100000000000000000000000),
+    (mnemonic:'STP'; params:((ptype:pt_qreg; offset:0),(ptype:pt_qreg; offset:10),(ptype:pt_xreg_or_sp; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_index),(ptype:pt_imm_mul16; offset: 15; maxval:$7f; extra:0; optional:true; defvalue:0; index: ind_stopexp)); mask: %11111111110000000000000000000000; value: %10101101100000000000000000000000),
+    (mnemonic:'LDP'; params:((ptype:pt_wreg; offset:0),(ptype:pt_wreg; offset:10),(ptype:pt_xreg_or_sp; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_index),(ptype:pt_imm_mul4;  offset: 15; maxval:$7f; extra:0; optional:true; defvalue:0; index: ind_stopexp)); mask: %11111111110000000000000000000000; value: %00101001110000000000000000000000),
+    (mnemonic:'LDP'; params:((ptype:pt_xreg; offset:0),(ptype:pt_xreg; offset:10),(ptype:pt_xreg_or_sp; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_index),(ptype:pt_imm_mul8;  offset: 15; maxval:$7f; extra:0; optional:true; defvalue:0; index: ind_stopexp)); mask: %11111111110000000000000000000000; value: %10101001110000000000000000000000),
+    (mnemonic:'LDP'; params:((ptype:pt_sreg; offset:0),(ptype:pt_sreg; offset:10),(ptype:pt_xreg_or_sp; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_index),(ptype:pt_imm_mul4;  offset: 15; maxval:$7f; extra:0; optional:true; defvalue:0; index: ind_stopexp)); mask: %11111111110000000000000000000000; value: %00101101110000000000000000000000),
+    (mnemonic:'LDP'; params:((ptype:pt_dreg; offset:0),(ptype:pt_dreg; offset:10),(ptype:pt_xreg_or_sp; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_index),(ptype:pt_imm_mul8;  offset: 15; maxval:$7f; extra:0; optional:true; defvalue:0; index: ind_stopexp)); mask: %11111111110000000000000000000000; value: %01101101110000000000000000000000),
+    (mnemonic:'LDP'; params:((ptype:pt_qreg; offset:0),(ptype:pt_qreg; offset:10),(ptype:pt_xreg_or_sp; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_index),(ptype:pt_imm_mul16; offset: 15; maxval:$7f; extra:0; optional:true; defvalue:0; index: ind_stopexp)); mask: %11111111110000000000000000000000; value: %10101101110000000000000000000000),
+    (mnemonic:'LDPSW'; params:((ptype:pt_xreg; offset:0),(ptype:pt_xreg; offset:10),(ptype:pt_xreg_or_sp; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_index),(ptype:pt_imm_mul16; offset: 15; maxval:$7f; extra:0; optional:true; defvalue:0; index: ind_index)); mask: %11111111110000000000000000000000; value: %01101001110000000000000000000000)
   );
 
   ArmInstructionsLoadStoreRegisterUnscaledImmediate: array of TOpcode=(
@@ -471,29 +471,29 @@ const
 
 
   ArmInstructionsLoadStoreRegisterImmediatePreIndexed: array of TOpcode=(
-    (mnemonic:'STRB'; params:((ptype:pt_wreg; offset:0),(ptype:pt_xreg; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_single),(ptype:pt_simm; offset: 12; maxval:$1ff; extra:0; optional:false; defvalue:0; index: ind_stopexp)); mask: %11111111111000000000110000000000; value: %00111000000000000000110000000000),
-    (mnemonic:'STRH'; params:((ptype:pt_wreg; offset:0),(ptype:pt_xreg; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_single),(ptype:pt_simm; offset: 12; maxval:$1ff; extra:0; optional:false; defvalue:0; index: ind_stopexp)); mask: %11111111111000000000110000000000; value: %01111000000000000000110000000000),
-    (mnemonic:'LDRB'; params:((ptype:pt_wreg; offset:0),(ptype:pt_xreg; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_single),(ptype:pt_simm; offset: 12; maxval:$1ff; extra:0; optional:false; defvalue:0; index: ind_stopexp)); mask: %11111111111000000000110000000000; value: %00111000010000000000110000000000),
-    (mnemonic:'LDRH'; params:((ptype:pt_wreg; offset:0),(ptype:pt_xreg; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_single),(ptype:pt_simm; offset: 12; maxval:$1ff; extra:0; optional:false; defvalue:0; index: ind_stopexp)); mask: %11111111111000000000110000000000; value: %01111000010000000000110000000000),
-    (mnemonic:'LDRSB'; params:((ptype:pt_wreg; offset:0),(ptype:pt_xreg; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_single),(ptype:pt_simm; offset: 12; maxval:$1ff; extra:0; optional:false; defvalue:0; index: ind_stopexp)); mask: %11111111111000000000110000000000; value: %00111000110000000000110000000000),
-    (mnemonic:'LDRSB'; params:((ptype:pt_xreg; offset:0),(ptype:pt_xreg; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_single),(ptype:pt_simm; offset: 12; maxval:$1ff; extra:0; optional:false; defvalue:0; index: ind_stopexp)); mask: %11111111111000000000110000000000; value: %00111000100000000000110000000000),
-    (mnemonic:'LDRSH'; params:((ptype:pt_wreg; offset:0),(ptype:pt_xreg; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_single),(ptype:pt_simm; offset: 12; maxval:$1ff; extra:0; optional:false; defvalue:0; index: ind_stopexp)); mask: %11111111111000000000110000000000; value: %01111000110000000000110000000000),
-    (mnemonic:'LDRSH'; params:((ptype:pt_xreg; offset:0),(ptype:pt_xreg; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_single),(ptype:pt_simm; offset: 12; maxval:$1ff; extra:0; optional:false; defvalue:0; index: ind_stopexp)); mask: %11111111111000000000110000000000; value: %01111000100000000000110000000000),
-    (mnemonic:'LDRSW'; params:((ptype:pt_xreg; offset:0),(ptype:pt_xreg; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_single),(ptype:pt_simm; offset: 12; maxval:$1ff; extra:0; optional:false; defvalue:0; index: ind_stopexp)); mask: %11111111111000000000110000000000; value: %10111000100000000000110000000000),
-    (mnemonic:'STR'; params:((ptype:pt_wreg; offset:0),(ptype:pt_xreg; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_single),(ptype:pt_simm; offset: 12; maxval:$1ff; extra:0; optional:false; defvalue:0; index: ind_stopexp)); mask: %11111111111000000000110000000000; value: %10111000000000000000110000000000),
-    (mnemonic:'STR'; params:((ptype:pt_xreg; offset:0),(ptype:pt_xreg; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_single),(ptype:pt_simm; offset: 12; maxval:$1ff; extra:0; optional:false; defvalue:0; index: ind_stopexp)); mask: %11111111111000000000110000000000; value: %11111000000000000000110000000000),
-    (mnemonic:'STR'; params:((ptype:pt_breg; offset:0),(ptype:pt_xreg; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_single),(ptype:pt_simm; offset: 12; maxval:$1ff; extra:0; optional:false; defvalue:0; index: ind_stopexp)); mask: %11111111111000000000110000000000; value: %00111100000000000000110000000000),
-    (mnemonic:'STR'; params:((ptype:pt_hreg; offset:0),(ptype:pt_xreg; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_single),(ptype:pt_simm; offset: 12; maxval:$1ff; extra:0; optional:false; defvalue:0; index: ind_stopexp)); mask: %11111111111000000000110000000000; value: %01111100000000000000110000000000),
-    (mnemonic:'STR'; params:((ptype:pt_sreg; offset:0),(ptype:pt_xreg; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_single),(ptype:pt_simm; offset: 12; maxval:$1ff; extra:0; optional:false; defvalue:0; index: ind_stopexp)); mask: %11111111111000000000110000000000; value: %10111100000000000000110000000000),
-    (mnemonic:'STR'; params:((ptype:pt_dreg; offset:0),(ptype:pt_xreg; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_single),(ptype:pt_simm; offset: 12; maxval:$1ff; extra:0; optional:false; defvalue:0; index: ind_stopexp)); mask: %11111111111000000000110000000000; value: %11111100000000000000110000000000),
-    (mnemonic:'STR'; params:((ptype:pt_qreg; offset:0),(ptype:pt_xreg; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_single),(ptype:pt_simm; offset: 12; maxval:$1ff; extra:0; optional:false; defvalue:0; index: ind_stopexp)); mask: %11111111111000000000110000000000; value: %00111100100000000000110000000000),
-    (mnemonic:'LDR'; params:((ptype:pt_wreg; offset:0),(ptype:pt_xreg; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_single),(ptype:pt_simm; offset: 12; maxval:$1ff; extra:0; optional:false; defvalue:0; index: ind_stopexp)); mask: %11111111111000000000110000000000; value: %10111000010000000000110000000000),
-    (mnemonic:'LDR'; params:((ptype:pt_xreg; offset:0),(ptype:pt_xreg; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_single),(ptype:pt_simm; offset: 12; maxval:$1ff; extra:0; optional:false; defvalue:0; index: ind_stopexp)); mask: %11111111111000000000110000000000; value: %11111000010000000000110000000000),
-    (mnemonic:'LDR'; params:((ptype:pt_breg; offset:0),(ptype:pt_xreg; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_single),(ptype:pt_simm; offset: 12; maxval:$1ff; extra:0; optional:false; defvalue:0; index: ind_stopexp)); mask: %11111111111000000000110000000000; value: %00111100010000000000110000000000),
-    (mnemonic:'LDR'; params:((ptype:pt_hreg; offset:0),(ptype:pt_xreg; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_single),(ptype:pt_simm; offset: 12; maxval:$1ff; extra:0; optional:false; defvalue:0; index: ind_stopexp)); mask: %11111111111000000000110000000000; value: %01111100010000000000110000000000),
-    (mnemonic:'LDR'; params:((ptype:pt_sreg; offset:0),(ptype:pt_xreg; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_single),(ptype:pt_simm; offset: 12; maxval:$1ff; extra:0; optional:false; defvalue:0; index: ind_stopexp)); mask: %11111111111000000000110000000000; value: %10111100010000000000110000000000),
-    (mnemonic:'LDR'; params:((ptype:pt_dreg; offset:0),(ptype:pt_xreg; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_single),(ptype:pt_simm; offset: 12; maxval:$1ff; extra:0; optional:false; defvalue:0; index: ind_stopexp)); mask: %11111111111000000000110000000000; value: %11111100010000000000110000000000),
-    (mnemonic:'LDR'; params:((ptype:pt_qreg; offset:0),(ptype:pt_xreg; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_single),(ptype:pt_simm; offset: 12; maxval:$1ff; extra:0; optional:false; defvalue:0; index: ind_stopexp)); mask: %11111111111000000000110000000000; value: %00111100110000000000110000000000)
+    (mnemonic:'STRB'; params:((ptype:pt_wreg; offset:0),(ptype:pt_xreg; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_index),(ptype:pt_simm; offset: 12; maxval:$1ff; extra:0; optional:false; defvalue:0; index: ind_stopexp)); mask: %11111111111000000000110000000000; value: %00111000000000000000110000000000),
+    (mnemonic:'STRH'; params:((ptype:pt_wreg; offset:0),(ptype:pt_xreg; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_index),(ptype:pt_simm; offset: 12; maxval:$1ff; extra:0; optional:false; defvalue:0; index: ind_stopexp)); mask: %11111111111000000000110000000000; value: %01111000000000000000110000000000),
+    (mnemonic:'LDRB'; params:((ptype:pt_wreg; offset:0),(ptype:pt_xreg; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_index),(ptype:pt_simm; offset: 12; maxval:$1ff; extra:0; optional:false; defvalue:0; index: ind_stopexp)); mask: %11111111111000000000110000000000; value: %00111000010000000000110000000000),
+    (mnemonic:'LDRH'; params:((ptype:pt_wreg; offset:0),(ptype:pt_xreg; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_index),(ptype:pt_simm; offset: 12; maxval:$1ff; extra:0; optional:false; defvalue:0; index: ind_stopexp)); mask: %11111111111000000000110000000000; value: %01111000010000000000110000000000),
+    (mnemonic:'LDRSB'; params:((ptype:pt_wreg; offset:0),(ptype:pt_xreg; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_index),(ptype:pt_simm; offset: 12; maxval:$1ff; extra:0; optional:false; defvalue:0; index: ind_stopexp)); mask: %11111111111000000000110000000000; value: %00111000110000000000110000000000),
+    (mnemonic:'LDRSB'; params:((ptype:pt_xreg; offset:0),(ptype:pt_xreg; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_index),(ptype:pt_simm; offset: 12; maxval:$1ff; extra:0; optional:false; defvalue:0; index: ind_stopexp)); mask: %11111111111000000000110000000000; value: %00111000100000000000110000000000),
+    (mnemonic:'LDRSH'; params:((ptype:pt_wreg; offset:0),(ptype:pt_xreg; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_index),(ptype:pt_simm; offset: 12; maxval:$1ff; extra:0; optional:false; defvalue:0; index: ind_stopexp)); mask: %11111111111000000000110000000000; value: %01111000110000000000110000000000),
+    (mnemonic:'LDRSH'; params:((ptype:pt_xreg; offset:0),(ptype:pt_xreg; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_index),(ptype:pt_simm; offset: 12; maxval:$1ff; extra:0; optional:false; defvalue:0; index: ind_stopexp)); mask: %11111111111000000000110000000000; value: %01111000100000000000110000000000),
+    (mnemonic:'LDRSW'; params:((ptype:pt_xreg; offset:0),(ptype:pt_xreg; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_index),(ptype:pt_simm; offset: 12; maxval:$1ff; extra:0; optional:false; defvalue:0; index: ind_stopexp)); mask: %11111111111000000000110000000000; value: %10111000100000000000110000000000),
+    (mnemonic:'STR'; params:((ptype:pt_wreg; offset:0),(ptype:pt_xreg; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_index),(ptype:pt_simm; offset: 12; maxval:$1ff; extra:0; optional:false; defvalue:0; index: ind_stopexp)); mask: %11111111111000000000110000000000; value: %10111000000000000000110000000000),
+    (mnemonic:'STR'; params:((ptype:pt_xreg; offset:0),(ptype:pt_xreg; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_index),(ptype:pt_simm; offset: 12; maxval:$1ff; extra:0; optional:false; defvalue:0; index: ind_stopexp)); mask: %11111111111000000000110000000000; value: %11111000000000000000110000000000),
+    (mnemonic:'STR'; params:((ptype:pt_breg; offset:0),(ptype:pt_xreg; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_index),(ptype:pt_simm; offset: 12; maxval:$1ff; extra:0; optional:false; defvalue:0; index: ind_stopexp)); mask: %11111111111000000000110000000000; value: %00111100000000000000110000000000),
+    (mnemonic:'STR'; params:((ptype:pt_hreg; offset:0),(ptype:pt_xreg; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_index),(ptype:pt_simm; offset: 12; maxval:$1ff; extra:0; optional:false; defvalue:0; index: ind_stopexp)); mask: %11111111111000000000110000000000; value: %01111100000000000000110000000000),
+    (mnemonic:'STR'; params:((ptype:pt_sreg; offset:0),(ptype:pt_xreg; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_index),(ptype:pt_simm; offset: 12; maxval:$1ff; extra:0; optional:false; defvalue:0; index: ind_stopexp)); mask: %11111111111000000000110000000000; value: %10111100000000000000110000000000),
+    (mnemonic:'STR'; params:((ptype:pt_dreg; offset:0),(ptype:pt_xreg; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_index),(ptype:pt_simm; offset: 12; maxval:$1ff; extra:0; optional:false; defvalue:0; index: ind_stopexp)); mask: %11111111111000000000110000000000; value: %11111100000000000000110000000000),
+    (mnemonic:'STR'; params:((ptype:pt_qreg; offset:0),(ptype:pt_xreg; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_index),(ptype:pt_simm; offset: 12; maxval:$1ff; extra:0; optional:false; defvalue:0; index: ind_stopexp)); mask: %11111111111000000000110000000000; value: %00111100100000000000110000000000),
+    (mnemonic:'LDR'; params:((ptype:pt_wreg; offset:0),(ptype:pt_xreg; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_index),(ptype:pt_simm; offset: 12; maxval:$1ff; extra:0; optional:false; defvalue:0; index: ind_stopexp)); mask: %11111111111000000000110000000000; value: %10111000010000000000110000000000),
+    (mnemonic:'LDR'; params:((ptype:pt_xreg; offset:0),(ptype:pt_xreg; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_index),(ptype:pt_simm; offset: 12; maxval:$1ff; extra:0; optional:false; defvalue:0; index: ind_stopexp)); mask: %11111111111000000000110000000000; value: %11111000010000000000110000000000),
+    (mnemonic:'LDR'; params:((ptype:pt_breg; offset:0),(ptype:pt_xreg; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_index),(ptype:pt_simm; offset: 12; maxval:$1ff; extra:0; optional:false; defvalue:0; index: ind_stopexp)); mask: %11111111111000000000110000000000; value: %00111100010000000000110000000000),
+    (mnemonic:'LDR'; params:((ptype:pt_hreg; offset:0),(ptype:pt_xreg; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_index),(ptype:pt_simm; offset: 12; maxval:$1ff; extra:0; optional:false; defvalue:0; index: ind_stopexp)); mask: %11111111111000000000110000000000; value: %01111100010000000000110000000000),
+    (mnemonic:'LDR'; params:((ptype:pt_sreg; offset:0),(ptype:pt_xreg; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_index),(ptype:pt_simm; offset: 12; maxval:$1ff; extra:0; optional:false; defvalue:0; index: ind_stopexp)); mask: %11111111111000000000110000000000; value: %10111100010000000000110000000000),
+    (mnemonic:'LDR'; params:((ptype:pt_dreg; offset:0),(ptype:pt_xreg; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_index),(ptype:pt_simm; offset: 12; maxval:$1ff; extra:0; optional:false; defvalue:0; index: ind_stopexp)); mask: %11111111111000000000110000000000; value: %11111100010000000000110000000000),
+    (mnemonic:'LDR'; params:((ptype:pt_qreg; offset:0),(ptype:pt_xreg; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_index),(ptype:pt_simm; offset: 12; maxval:$1ff; extra:0; optional:false; defvalue:0; index: ind_stopexp)); mask: %11111111111000000000110000000000; value: %00111100110000000000110000000000)
 
   );
   ArmInstructionsLoadStoreRegisterRegisterOffset: array of TOpcode=(
@@ -529,30 +529,30 @@ const
   );
 
   ArmInstructionsLoadStoreRegisterUnsignedImmediate: array of TOpcode=(
-    (mnemonic:'STRB'; params:((ptype:pt_wreg; offset:0),(ptype:pt_xreg; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_single),(ptype:pt_pimm; offset: 12; maxval:$fff; extra:0; optional:false; defvalue:0; index: ind_stop)); mask: %11111111110000000000000000000000; value: %00111001000000000000000000000000),
-    (mnemonic:'STRH'; params:((ptype:pt_wreg; offset:0),(ptype:pt_xreg; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_single),(ptype:pt_pimm; offset: 12; maxval:$fff; extra:0; optional:false; defvalue:0; index: ind_stop)); mask: %11111111110000000000000000000000; value: %01111001000000000000000000000000),
-    (mnemonic:'LDRB'; params:((ptype:pt_wreg; offset:0),(ptype:pt_xreg; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_single),(ptype:pt_pimm; offset: 12; maxval:$fff; extra:0; optional:false; defvalue:0; index: ind_stop)); mask: %11111111110000000000000000000000; value: %00111001010000000000000000000000),
-    (mnemonic:'LDRH'; params:((ptype:pt_wreg; offset:0),(ptype:pt_xreg; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_single),(ptype:pt_pimm; offset: 12; maxval:$fff; extra:0; optional:false; defvalue:0; index: ind_stop)); mask: %11111111110000000000000000000000; value: %01111001010000000000000000000000),
-    (mnemonic:'LDRSB'; params:((ptype:pt_wreg; offset:0),(ptype:pt_xreg; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_single),(ptype:pt_pimm; offset: 12; maxval:$fff; extra:0; optional:false; defvalue:0; index: ind_stop)); mask:%11111111110000000000000000000000; value: %00111001110000000000000000000000),
-    (mnemonic:'LDRSB'; params:((ptype:pt_xreg; offset:0),(ptype:pt_xreg; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_single),(ptype:pt_pimm; offset: 12; maxval:$fff; extra:0; optional:false; defvalue:0; index: ind_stop)); mask:%11111111110000000000000000000000; value: %00111001100000000000000000000000),
-    (mnemonic:'LDRSH'; params:((ptype:pt_wreg; offset:0),(ptype:pt_xreg; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_single),(ptype:pt_pimm; offset: 12; maxval:$fff; extra:0; optional:false; defvalue:0; index: ind_stop)); mask:%11111111110000000000000000000000; value: %01111001110000000000000000000000),
-    (mnemonic:'LDRSH'; params:((ptype:pt_xreg; offset:0),(ptype:pt_xreg; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_single),(ptype:pt_pimm; offset: 12; maxval:$fff; extra:0; optional:false; defvalue:0; index: ind_stop)); mask:%11111111110000000000000000000000; value: %01111001100000000000000000000000),
-    (mnemonic:'LDRSW'; params:((ptype:pt_xreg; offset:0),(ptype:pt_xreg; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_single),(ptype:pt_pimm; offset: 12; maxval:$fff; extra:0; optional:false; defvalue:0; index: ind_stop)); mask:%11111111110000000000000000000000; value: %10111001100000000000000000000000),
-    (mnemonic:'STR'; params:((ptype:pt_wreg; offset:0),(ptype:pt_xreg; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_single),(ptype:pt_pimm; offset: 12; maxval:$fff; extra:0; optional:false; defvalue:0; index: ind_stop)); mask:  %11111111110000000000000000000000; value: %10111001000000000000000000000000),
-    (mnemonic:'STR'; params:((ptype:pt_xreg; offset:0),(ptype:pt_xreg; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_single),(ptype:pt_pimm; offset: 12; maxval:$fff; extra:0; optional:false; defvalue:0; index: ind_stop)); mask:  %11111111110000000000000000000000; value: %11111001000000000000000000000000),
-    (mnemonic:'STR'; params:((ptype:pt_breg; offset:0),(ptype:pt_xreg; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_single),(ptype:pt_pimm; offset: 12; maxval:$fff; extra:0; optional:false; defvalue:0; index: ind_stop)); mask:  %11111111110000000000000000000000; value: %00111101000000000000000000000000),
-    (mnemonic:'STR'; params:((ptype:pt_hreg; offset:0),(ptype:pt_xreg; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_single),(ptype:pt_pimm; offset: 12; maxval:$fff; extra:0; optional:false; defvalue:0; index: ind_stop)); mask:  %11111111110000000000000000000000; value: %01111101000000000000000000000000),
-    (mnemonic:'STR'; params:((ptype:pt_sreg; offset:0),(ptype:pt_xreg; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_single),(ptype:pt_pimm; offset: 12; maxval:$fff; extra:0; optional:false; defvalue:0; index: ind_stop)); mask:  %11111111110000000000000000000000; value: %10111101000000000000000000000000),
-    (mnemonic:'STR'; params:((ptype:pt_dreg; offset:0),(ptype:pt_xreg; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_single),(ptype:pt_pimm; offset: 12; maxval:$fff; extra:0; optional:false; defvalue:0; index: ind_stop)); mask:  %11111111110000000000000000000000; value: %11111101000000000000000000000000),
-    (mnemonic:'STR'; params:((ptype:pt_qreg; offset:0),(ptype:pt_xreg; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_single),(ptype:pt_pimm; offset: 12; maxval:$fff; extra:0; optional:false; defvalue:0; index: ind_stop)); mask:  %11111111110000000000000000000000; value: %00111101100000000000000000000000),
-    (mnemonic:'LDR'; params:((ptype:pt_wreg; offset:0),(ptype:pt_xreg; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_single),(ptype:pt_pimm; offset: 12; maxval:$fff; extra:0; optional:false; defvalue:0; index: ind_stop)); mask:  %11111111110000000000000000000000; value: %10111001010000000000000000000000),
-    (mnemonic:'LDR'; params:((ptype:pt_xreg; offset:0),(ptype:pt_xreg; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_single),(ptype:pt_pimm; offset: 12; maxval:$fff; extra:0; optional:false; defvalue:0; index: ind_stop)); mask:  %11111111110000000000000000000000; value: %11111001010000000000000000000000),
-    (mnemonic:'LDR'; params:((ptype:pt_breg; offset:0),(ptype:pt_xreg; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_single),(ptype:pt_pimm; offset: 12; maxval:$fff; extra:0; optional:false; defvalue:0; index: ind_stop)); mask:  %11111111110000000000000000000000; value: %00111101010000000000000000000000),
-    (mnemonic:'LDR'; params:((ptype:pt_hreg; offset:0),(ptype:pt_xreg; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_single),(ptype:pt_pimm; offset: 12; maxval:$fff; extra:0; optional:false; defvalue:0; index: ind_stop)); mask:  %11111111110000000000000000000000; value: %01111101010000000000000000000000),
-    (mnemonic:'LDR'; params:((ptype:pt_sreg; offset:0),(ptype:pt_xreg; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_single),(ptype:pt_pimm; offset: 12; maxval:$fff; extra:0; optional:false; defvalue:0; index: ind_stop)); mask:  %11111111110000000000000000000000; value: %10111101010000000000000000000000),
-    (mnemonic:'LDR'; params:((ptype:pt_dreg; offset:0),(ptype:pt_xreg; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_single),(ptype:pt_pimm; offset: 12; maxval:$fff; extra:0; optional:false; defvalue:0; index: ind_stop)); mask:  %11111111110000000000000000000000; value: %11111101010000000000000000000000),
-    (mnemonic:'LDR'; params:((ptype:pt_qreg; offset:0),(ptype:pt_xreg; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_single),(ptype:pt_pimm; offset: 12; maxval:$fff; extra:0; optional:false; defvalue:0; index: ind_stop)); mask:  %11111111110000000000000000000000; value: %00111101110000000000000000000000),
-    (mnemonic:'PRFM'; params:((ptype:pt_prfop; offset:0),(ptype:pt_xreg; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_single),(ptype:pt_pimm; offset: 12; maxval:$fff; extra:0; optional:false; defvalue:0; index: ind_stop)); mask:%11111111110000000000000000000000; value: %11111001100000000000000000000000)
+    (mnemonic:'STRB'; params:((ptype:pt_wreg; offset:0),(ptype:pt_xreg; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_index),(ptype:pt_pimm; offset: 12; maxval:$fff; extra:0; optional:false; defvalue:0; index: ind_stop)); mask: %11111111110000000000000000000000; value: %00111001000000000000000000000000),
+    (mnemonic:'STRH'; params:((ptype:pt_wreg; offset:0),(ptype:pt_xreg; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_index),(ptype:pt_pimm; offset: 12; maxval:$fff; extra:0; optional:false; defvalue:0; index: ind_stop)); mask: %11111111110000000000000000000000; value: %01111001000000000000000000000000),
+    (mnemonic:'LDRB'; params:((ptype:pt_wreg; offset:0),(ptype:pt_xreg; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_index),(ptype:pt_pimm; offset: 12; maxval:$fff; extra:0; optional:false; defvalue:0; index: ind_stop)); mask: %11111111110000000000000000000000; value: %00111001010000000000000000000000),
+    (mnemonic:'LDRH'; params:((ptype:pt_wreg; offset:0),(ptype:pt_xreg; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_index),(ptype:pt_pimm; offset: 12; maxval:$fff; extra:0; optional:false; defvalue:0; index: ind_stop)); mask: %11111111110000000000000000000000; value: %01111001010000000000000000000000),
+    (mnemonic:'LDRSB'; params:((ptype:pt_wreg; offset:0),(ptype:pt_xreg; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_index),(ptype:pt_pimm; offset: 12; maxval:$fff; extra:0; optional:false; defvalue:0; index: ind_stop)); mask:%11111111110000000000000000000000; value: %00111001110000000000000000000000),
+    (mnemonic:'LDRSB'; params:((ptype:pt_xreg; offset:0),(ptype:pt_xreg; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_index),(ptype:pt_pimm; offset: 12; maxval:$fff; extra:0; optional:false; defvalue:0; index: ind_stop)); mask:%11111111110000000000000000000000; value: %00111001100000000000000000000000),
+    (mnemonic:'LDRSH'; params:((ptype:pt_wreg; offset:0),(ptype:pt_xreg; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_index),(ptype:pt_pimm; offset: 12; maxval:$fff; extra:0; optional:false; defvalue:0; index: ind_stop)); mask:%11111111110000000000000000000000; value: %01111001110000000000000000000000),
+    (mnemonic:'LDRSH'; params:((ptype:pt_xreg; offset:0),(ptype:pt_xreg; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_index),(ptype:pt_pimm; offset: 12; maxval:$fff; extra:0; optional:false; defvalue:0; index: ind_stop)); mask:%11111111110000000000000000000000; value: %01111001100000000000000000000000),
+    (mnemonic:'LDRSW'; params:((ptype:pt_xreg; offset:0),(ptype:pt_xreg; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_index),(ptype:pt_pimm; offset: 12; maxval:$fff; extra:0; optional:false; defvalue:0; index: ind_stop)); mask:%11111111110000000000000000000000; value: %10111001100000000000000000000000),
+    (mnemonic:'STR'; params:((ptype:pt_wreg; offset:0),(ptype:pt_xreg; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_index),(ptype:pt_pimm; offset: 12; maxval:$fff; extra:0; optional:false; defvalue:0; index: ind_stop)); mask:  %11111111110000000000000000000000; value: %10111001000000000000000000000000),
+    (mnemonic:'STR'; params:((ptype:pt_xreg; offset:0),(ptype:pt_xreg; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_index),(ptype:pt_pimm; offset: 12; maxval:$fff; extra:0; optional:false; defvalue:0; index: ind_stop)); mask:  %11111111110000000000000000000000; value: %11111001000000000000000000000000),
+    (mnemonic:'STR'; params:((ptype:pt_breg; offset:0),(ptype:pt_xreg; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_index),(ptype:pt_pimm; offset: 12; maxval:$fff; extra:0; optional:false; defvalue:0; index: ind_stop)); mask:  %11111111110000000000000000000000; value: %00111101000000000000000000000000),
+    (mnemonic:'STR'; params:((ptype:pt_hreg; offset:0),(ptype:pt_xreg; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_index),(ptype:pt_pimm; offset: 12; maxval:$fff; extra:0; optional:false; defvalue:0; index: ind_stop)); mask:  %11111111110000000000000000000000; value: %01111101000000000000000000000000),
+    (mnemonic:'STR'; params:((ptype:pt_sreg; offset:0),(ptype:pt_xreg; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_index),(ptype:pt_pimm; offset: 12; maxval:$fff; extra:0; optional:false; defvalue:0; index: ind_stop)); mask:  %11111111110000000000000000000000; value: %10111101000000000000000000000000),
+    (mnemonic:'STR'; params:((ptype:pt_dreg; offset:0),(ptype:pt_xreg; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_index),(ptype:pt_pimm; offset: 12; maxval:$fff; extra:0; optional:false; defvalue:0; index: ind_stop)); mask:  %11111111110000000000000000000000; value: %11111101000000000000000000000000),
+    (mnemonic:'STR'; params:((ptype:pt_qreg; offset:0),(ptype:pt_xreg; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_index),(ptype:pt_pimm; offset: 12; maxval:$fff; extra:0; optional:false; defvalue:0; index: ind_stop)); mask:  %11111111110000000000000000000000; value: %00111101100000000000000000000000),
+    (mnemonic:'LDR'; params:((ptype:pt_wreg; offset:0),(ptype:pt_xreg; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_index),(ptype:pt_pimm; offset: 12; maxval:$fff; extra:0; optional:false; defvalue:0; index: ind_stop)); mask:  %11111111110000000000000000000000; value: %10111001010000000000000000000000),
+    (mnemonic:'LDR'; params:((ptype:pt_xreg; offset:0),(ptype:pt_xreg; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_index),(ptype:pt_pimm; offset: 12; maxval:$fff; extra:0; optional:false; defvalue:0; index: ind_stop)); mask:  %11111111110000000000000000000000; value: %11111001010000000000000000000000),
+    (mnemonic:'LDR'; params:((ptype:pt_breg; offset:0),(ptype:pt_xreg; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_index),(ptype:pt_pimm; offset: 12; maxval:$fff; extra:0; optional:false; defvalue:0; index: ind_stop)); mask:  %11111111110000000000000000000000; value: %00111101010000000000000000000000),
+    (mnemonic:'LDR'; params:((ptype:pt_hreg; offset:0),(ptype:pt_xreg; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_index),(ptype:pt_pimm; offset: 12; maxval:$fff; extra:0; optional:false; defvalue:0; index: ind_stop)); mask:  %11111111110000000000000000000000; value: %01111101010000000000000000000000),
+    (mnemonic:'LDR'; params:((ptype:pt_sreg; offset:0),(ptype:pt_xreg; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_index),(ptype:pt_pimm; offset: 12; maxval:$fff; extra:0; optional:false; defvalue:0; index: ind_stop)); mask:  %11111111110000000000000000000000; value: %10111101010000000000000000000000),
+    (mnemonic:'LDR'; params:((ptype:pt_dreg; offset:0),(ptype:pt_xreg; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_index),(ptype:pt_pimm; offset: 12; maxval:$fff; extra:0; optional:false; defvalue:0; index: ind_stop)); mask:  %11111111110000000000000000000000; value: %11111101010000000000000000000000),
+    (mnemonic:'LDR'; params:((ptype:pt_qreg; offset:0),(ptype:pt_xreg; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_index),(ptype:pt_pimm; offset: 12; maxval:$fff; extra:0; optional:false; defvalue:0; index: ind_stop)); mask:  %11111111110000000000000000000000; value: %00111101110000000000000000000000),
+    (mnemonic:'PRFM'; params:((ptype:pt_prfop; offset:0),(ptype:pt_xreg; offset: 5; maxval:31; extra:0; optional:false; defvalue:0; index: ind_index),(ptype:pt_pimm; offset: 12; maxval:$fff; extra:0; optional:false; defvalue:0; index: ind_stop)); mask:%11111111110000000000000000000000; value: %11111001100000000000000000000000)
 
   );
 
@@ -725,25 +725,25 @@ const
   );
 
   ArmInstructionsAddSubtractImm: array of TOpcode=(
-    (mnemonic:'MOV';  params:((ptype:pt_wreg; offset:0),(ptype:pt_wreg_or_wsp; offset:5)); mask:%11111111111111111111111111100000; value:%00010001000000000000001111100000),
-    (mnemonic:'MOV';  params:((ptype:pt_xreg; offset:0),(ptype:pt_xreg_or_sp; offset:5)); mask:%11111111111111111111111111100000; value:%10010001000000000000001111100000),
-    (mnemonic:'MOV';  params:((ptype:pt_wreg; offset:0),(ptype:pt_wreg_or_wsp; offset:5)); mask:%11111111111111111111100000111111; value:%00010001000000000000000000011111),
-    (mnemonic:'MOV';  params:((ptype:pt_xreg; offset:0),(ptype:pt_xreg_or_sp; offset:5)); mask:%11111111111111111111100000111111; value:%10010001000000000000000000011111),
+    (mnemonic:'MOV';  params:((ptype:pt_wreg_or_wsp; offset:0),(ptype:pt_wreg_or_wsp; offset:5)); mask:%11111111111111111111111111100000; value:%00010001000000000000001111100000),
+    (mnemonic:'MOV';  params:((ptype:pt_xreg_or_sp; offset:0),(ptype:pt_xreg_or_sp; offset:5)); mask:%11111111111111111111111111100000; value:%10010001000000000000001111100000),
+    (mnemonic:'MOV';  params:((ptype:pt_wreg_or_wsp; offset:0),(ptype:pt_wreg_or_wsp; offset:5)); mask:%11111111111111111111100000111111; value:%00010001000000000000000000011111),
+    (mnemonic:'MOV';  params:((ptype:pt_xreg_or_sp; offset:0),(ptype:pt_xreg_or_sp; offset:5)); mask:%11111111111111111111100000111111; value:%10010001000000000000000000011111),
 
-    (mnemonic:'CMN';  params:((ptype:pt_wreg; offset:0),(ptype:pt_imm; offset: 10; maxval:$fff), (ptype:pt_lsl0or12; offset:22; maxval:3; extra:0; optional: true; defvalue:0));  mask:%11111111000000000000000000011111; value:%00110001000000000000000000011111),
-    (mnemonic:'CMN';  params:((ptype:pt_xreg; offset:0),(ptype:pt_imm; offset: 10; maxval:$fff), (ptype:pt_lsl0or12; offset:22; maxval:3; extra:0; optional: true; defvalue:0));  mask:%11111111000000000000000000011111; value:%10110001000000000000000000011111),
-    (mnemonic:'CMP';  params:((ptype:pt_wreg; offset:0),(ptype:pt_imm; offset: 10; maxval:$fff), (ptype:pt_lsl0or12; offset:22; maxval:3; extra:0; optional: true; defvalue:0));  mask:%11111111000000000000000000011111; value:%01110001000000000000000000011111),
-    (mnemonic:'CMP';  params:((ptype:pt_xreg; offset:0),(ptype:pt_imm; offset: 10; maxval:$fff), (ptype:pt_lsl0or12; offset:22; maxval:3; extra:0; optional: true; defvalue:0));  mask:%11111111000000000000000000011111; value:%11110001000000000000000000011111),
+    (mnemonic:'CMN';  params:((ptype:pt_wreg_or_wsp; offset:0),(ptype:pt_imm; offset: 10; maxval:$fff), (ptype:pt_lsl0or12; offset:22; maxval:3; extra:0; optional: true; defvalue:0));  mask:%11111111000000000000000000011111; value:%00110001000000000000000000011111),
+    (mnemonic:'CMN';  params:((ptype:pt_xreg_or_sp; offset:0),(ptype:pt_imm; offset: 10; maxval:$fff), (ptype:pt_lsl0or12; offset:22; maxval:3; extra:0; optional: true; defvalue:0));  mask:%11111111000000000000000000011111; value:%10110001000000000000000000011111),
+    (mnemonic:'CMP';  params:((ptype:pt_wreg_or_wsp; offset:0),(ptype:pt_imm; offset: 10; maxval:$fff), (ptype:pt_lsl0or12; offset:22; maxval:3; extra:0; optional: true; defvalue:0));  mask:%11111111000000000000000000011111; value:%01110001000000000000000000011111),
+    (mnemonic:'CMP';  params:((ptype:pt_xreg_or_sp; offset:0),(ptype:pt_imm; offset: 10; maxval:$fff), (ptype:pt_lsl0or12; offset:22; maxval:3; extra:0; optional: true; defvalue:0));  mask:%11111111000000000000000000011111; value:%11110001000000000000000000011111),
 
-    (mnemonic:'ADD';  params:((ptype:pt_wreg; offset:0),(ptype:pt_wreg; offset:5),(ptype:pt_imm; offset: 10; maxval:$fff), (ptype:pt_lsl0or12; offset:22; maxval:3; extra:0; optional: true; defvalue:0));  mask:%11111111000000000000000000000000; value:%00010001000000000000000000000000),
-    (mnemonic:'ADD';  params:((ptype:pt_xreg; offset:0),(ptype:pt_xreg; offset:5),(ptype:pt_imm; offset: 10; maxval:$fff), (ptype:pt_lsl0or12; offset:22; maxval:3; extra:0; optional: true; defvalue:0));  mask:%11111111000000000000000000000000; value:%10010001000000000000000000000000),
-    (mnemonic:'ADDS';  params:((ptype:pt_wreg; offset:0),(ptype:pt_wreg; offset:5),(ptype:pt_imm; offset: 10; maxval:$fff), (ptype:pt_lsl0or12; offset:22; maxval:3; extra:0; optional: true; defvalue:0));  mask:%11111111000000000000000000000000; value:%00110001000000000000000000000000),
-    (mnemonic:'ADDS';  params:((ptype:pt_xreg; offset:0),(ptype:pt_xreg; offset:5),(ptype:pt_imm; offset: 10; maxval:$fff), (ptype:pt_lsl0or12; offset:22; maxval:3; extra:0; optional: true; defvalue:0));  mask:%11111111000000000000000000000000; value:%10110001000000000000000000000000),
+    (mnemonic:'ADD';  params:((ptype:pt_wreg_or_wsp; offset:0),(ptype:pt_wreg_or_wsp; offset:5),(ptype:pt_imm; offset: 10; maxval:$fff), (ptype:pt_lsl0or12; offset:22; maxval:3; extra:0; optional: true; defvalue:0));  mask:%11111111000000000000000000000000; value:%00010001000000000000000000000000),
+    (mnemonic:'ADD';  params:((ptype:pt_xreg_or_sp; offset:0),(ptype:pt_xreg_or_sp; offset:5),(ptype:pt_imm; offset: 10; maxval:$fff), (ptype:pt_lsl0or12; offset:22; maxval:3; extra:0; optional: true; defvalue:0));  mask:%11111111000000000000000000000000; value:%10010001000000000000000000000000),
+    (mnemonic:'ADDS';  params:((ptype:pt_wreg_or_wsp; offset:0),(ptype:pt_wreg_or_wsp; offset:5),(ptype:pt_imm; offset: 10; maxval:$fff), (ptype:pt_lsl0or12; offset:22; maxval:3; extra:0; optional: true; defvalue:0));  mask:%11111111000000000000000000000000; value:%00110001000000000000000000000000),
+    (mnemonic:'ADDS';  params:((ptype:pt_xreg; offset:0),(ptype:pt_xreg_or_sp; offset:5),(ptype:pt_imm; offset: 10; maxval:$fff), (ptype:pt_lsl0or12; offset:22; maxval:3; extra:0; optional: true; defvalue:0));  mask:%11111111000000000000000000000000; value:%10110001000000000000000000000000),
 
-    (mnemonic:'SUB';  params:((ptype:pt_wreg; offset:0),(ptype:pt_wreg; offset:5),(ptype:pt_imm; offset: 10; maxval:$fff), (ptype:pt_lsl0or12; offset:22; maxval:3; extra:0; optional: true; defvalue:0));  mask:%11111111000000000000000000000000; value:%01010001000000000000000000000000),
-    (mnemonic:'SUB';  params:((ptype:pt_xreg; offset:0),(ptype:pt_xreg; offset:5),(ptype:pt_imm; offset: 10; maxval:$fff), (ptype:pt_lsl0or12; offset:22; maxval:3; extra:0; optional: true; defvalue:0));  mask:%11111111000000000000000000000000; value:%11010001000000000000000000000000),
-    (mnemonic:'SUBS';  params:((ptype:pt_wreg; offset:0),(ptype:pt_wreg; offset:5),(ptype:pt_imm; offset: 10; maxval:$fff), (ptype:pt_lsl0or12; offset:22; maxval:3; extra:0; optional: true; defvalue:0));  mask:%11111111000000000000000000000000; value:%01110001000000000000000000000000),
-    (mnemonic:'SUBS';  params:((ptype:pt_xreg; offset:0),(ptype:pt_xreg; offset:5),(ptype:pt_imm; offset: 10; maxval:$fff), (ptype:pt_lsl0or12; offset:22; maxval:3; extra:0; optional: true; defvalue:0));  mask:%11111111000000000000000000000000; value:%11110001000000000000000000000000)
+    (mnemonic:'SUB';  params:((ptype:pt_wreg_or_wsp; offset:0),(ptype:pt_wreg_or_wsp; offset:5),(ptype:pt_imm; offset: 10; maxval:$fff), (ptype:pt_lsl0or12; offset:22; maxval:3; extra:0; optional: true; defvalue:0));  mask:%11111111000000000000000000000000; value:%01010001000000000000000000000000),
+    (mnemonic:'SUB';  params:((ptype:pt_xreg_or_sp; offset:0),(ptype:pt_xreg_or_sp; offset:5),(ptype:pt_imm; offset: 10; maxval:$fff), (ptype:pt_lsl0or12; offset:22; maxval:3; extra:0; optional: true; defvalue:0));  mask:%11111111000000000000000000000000; value:%11010001000000000000000000000000),
+    (mnemonic:'SUBS';  params:((ptype:pt_wreg_or_wsp; offset:0),(ptype:pt_wreg; offset:5),(ptype:pt_imm; offset: 10; maxval:$fff), (ptype:pt_lsl0or12; offset:22; maxval:3; extra:0; optional: true; defvalue:0));  mask:%11111111000000000000000000000000; value:%01110001000000000000000000000000),
+    (mnemonic:'SUBS';  params:((ptype:pt_xreg_or_sp; offset:0),(ptype:pt_xreg_or_sp; offset:5),(ptype:pt_imm; offset: 10; maxval:$fff), (ptype:pt_lsl0or12; offset:22; maxval:3; extra:0; optional: true; defvalue:0));  mask:%11111111000000000000000000000000; value:%11110001000000000000000000000000)
 
   );
 
@@ -2529,6 +2529,63 @@ var
   tlbilist: TStringHashList;
 
 
+{$ifdef armdev}
+procedure DebugOutputOpcode(opcode: POpcode);
+var
+  s: string;
+  i: integer;
+  ti: PTypeInfo;
+  tn: string;
+
+  insideIndex: boolean;
+begin
+  s:='';
+  insideIndex:=false;
+  for i:=0 to length(opcode^.params)-1 do
+  begin
+    tn:='';
+    if (insideIndex=false) and (opcode^.params[i].index<>ind_no) then
+    begin
+      insideindex:=true;
+      tn:=tn+'[';
+    end;
+
+    ti:=TypeInfo(TArm64ParameterType);
+    tn:=tn+GetEnumName(ti, integer(opcode^.params[i].ptype));
+
+    if opcode^.params[i].ptype=pt_lslSpecific then
+      tn:=tn+' LSL #'+inttohex(opcode^.params[i].offset,1);
+
+    if opcode^.params[i].ptype=pt_simm then
+    begin
+      tn:=tn+format('(max=%x)',[opcode^.params[i].maxval]);
+    end;
+
+
+
+    if (insideIndex) and (opcode^.params[i].index in [ind_no, ind_stop, ind_stopexp, ind_single, ind_singleexp]) then
+    begin
+      insideindex:=false;
+      tn:=tn+']';
+
+      if opcode^.params[i].index in [ind_stopexp, ind_singleexp] then
+        tn:=tn+'!';
+    end;
+
+    if i>0 then s:=s+', ';
+    s:=s+tn;
+  end;
+
+
+  if insideindex then
+    s:=s+']';
+
+  outputdebugstring(pchar(opcode^.mnemonic+'('+s+')'));
+end;
+{$endif}
+
+
+
 function SignExtend(value: qword; mostSignificantBit: integer): qword; inline;
 {
 Signextends a given offset. mostSignificant bit defines what bit determines if it should be sign extended or not
@@ -2874,6 +2931,8 @@ begin
   result:=true;
   insideIndex:=false;
 
+
+
   for i:=0 to length(plist)-1 do
   begin
 
@@ -3133,9 +3192,15 @@ begin
       begin
         v:=((opcode shr 5) and $7FFFF) or ((opcode shr 29) and 3);
         v:=signextend(v,20);
-        if plist[i].extra=1 then
+        if plist[i].extra=1 then //page
+        begin
           v:=v shl 12;
-        qv:=address+v;
+          qv:=(address and QWORD($fffffffffffff000))+v;
+        end
+        else
+        begin
+          qv:=address+v;
+        end;
 
         p:=inttohex(qv,8);
       end;
@@ -3633,13 +3698,17 @@ begin
     LastDisassembleData.parameters:=LastDisassembleData.parameters+p;
 
 
-    if insideindex and (plist[i].index in [ind_single, ind_singleexp, ind_stop, ind_stopexp]) then
+    if insideindex and (plist[i].index in [ind_single, ind_singleexp, ind_stop, ind_stopexp, ind_index]) then
     begin
-      LastDisassembleData.parameters:=LastDisassembleData.parameters+']';
-      if plist[i].index in [ind_singleexp, ind_stopexp] then
-        LastDisassembleData.parameters:=LastDisassembleData.parameters+'!';
 
-      insideindex:=false;
+      if (plist[i].index<>ind_index) or (i=length(plist)-1) then
+      begin
+        LastDisassembleData.parameters:=LastDisassembleData.parameters+']';
+        if plist[i].index in [ind_singleexp, ind_stopexp] then
+          LastDisassembleData.parameters:=LastDisassembleData.parameters+'!';
+
+        insideindex:=false;
+      end;
     end;
   end;
 
@@ -3658,6 +3727,10 @@ begin
         result:=ScanOpcodeList(list[i].alt^);
         if result then exit;
       end;
+
+      {$ifdef armdev}
+      DebugOutputOpcode(@list[i]);
+      {$endif}
 
       LastDisassembleData.opcode:=list[i].mnemonic;
 
@@ -3767,7 +3840,9 @@ begin
 
   param:=uppercase(param);
 
-  if TryStrToInt64('$'+param.Substring(1),i64) then
+  if ((param[1]='#') and (TryStrToInt64('$'+param.Substring(1),i64))) or
+     ((param[1] in ['0'..'9','A'..'F']) and (TryStrToInt64('$'+param,i64)))
+  then
     result:=result+[pt_label, pt_addrlabel, pt_systemreg];
 
 
@@ -3959,10 +4034,10 @@ begin
     end;
     'W':
     begin
-      if TryStrToInt(param.Substring(1),li) then result:=result+[pt_wreg2x, pt_wreg, pt_indexwidthspecifier];
+      if TryStrToInt(param.Substring(1),li) then result:=result+[pt_wreg2x, pt_wreg, pt_wreg_or_wsp, pt_indexwidthspecifier];
       if param='WSP' then result:=result+[pt_wreg_or_wsp];
     end;
-    'X': if TryStrToInt(param.Substring(1),li) then result:=result+[pt_xreg2x, pt_xreg, pt_indexwidthspecifier];
+    'X': if TryStrToInt(param.Substring(1),li) then result:=result+[pt_xreg2x, pt_xreg, pt_xreg_or_sp, pt_indexwidthspecifier];
     'Z': if param='ZVA' then result:=result+[pt_sysop_dc];
   end;
 end;
@@ -4396,21 +4471,29 @@ begin
 
       if param.extra=0 then
       begin
-        qv:=qv-address;
+
         if abs(int64(qv)-int64(address))>$7ffff then exit;
-
+        qv:=qv-address;
         qv:=qv shr 2;
-        qv2:=qv and param.maxval;
 
-        opcode:=opcode or (qv2 shl param.offset);
+        opcode:=opcode or ((qv and 3) shl 29);
+        qv:=qv shr 3;
+        opcode:=opcode or (qv shr 5);
       end
       else
       begin
-        if (qv and $fff) <> 0 then exit;
-        if abs(int64(qv)-int64(address))>$7ffff000 then exit;
+        qv2:=address;
+        qv2:=qv2 and QWORD($fffffffffffff000);
 
+        if (qv and $fff) <> 0 then exit;
+        if abs(int64(qv)-int64(qv2))>$7ffff000 then exit;
+
+        qv:=qv-qv2;
         qv:=qv shr 12;
-        opcode:=opcode or (qv2 shl param.offset);
+
+        opcode:=opcode or ((qv and 3) shl 29);
+        qv:=qv shr 3;
+        opcode:=opcode or (qv shr 5);
       end;
     end;
 
@@ -5136,48 +5219,6 @@ begin
   result:=true; //reached the end
 end;
 
-{$ifdef armdev}
-procedure DebugOutputOpcode(opcode: POpcode);
-var
-  s: string;
-  i: integer;
-  ti: PTypeInfo;
-  tn: string;
-
-  insideIndex: boolean;
-begin
-  s:='';
-  insideIndex:=false;
-  for i:=0 to length(opcode^.params)-1 do
-  begin
-    ti:=TypeInfo(TArm64ParameterType);
-    tn:=GetEnumName(ti, integer(opcode^.params[i].ptype));
-
-    if opcode^.params[i].ptype=pt_lslSpecific then
-      tn:=tn+' LSL #'+inttohex(opcode^.params[i].offset,1);
-
-    if (insideIndex=false) and (opcode^.params[i].index<>ind_no) then
-    begin
-      insideindex:=true;
-      tn:=tn+'[';
-    end;
-
-    if (insideIndex) and (opcode^.params[i].index in [ind_no, ind_stop, ind_stopexp, ind_single, ind_singleexp]) then
-    begin
-      insideindex:=false;
-      tn:=tn+']';
-
-      if opcode^.params[i].index in [ind_stopexp, ind_singleexp] then
-        tn:=tn+'!';
-    end;
-
-    if i>0 then s:=s+', ';
-    s:=s+tn;
-  end;
-
-  outputdebugstring(pchar(opcode^.mnemonic+'('+s+')'));
-end;
-{$endif}
 
 function TArm64Instructionset.assemble(_address: ptruint; instruction: string): dword;
 //raises EInvalidInstruction if it can't be assembled
@@ -5216,7 +5257,11 @@ begin
 
   for i:=0 to length(parameterstringsplit)-1 do
   begin
-    parameters[i].index:=0;
+    if inindex then
+      parameters[i].index:=1
+    else
+      parameters[i].index:=0;
+
     parameters[i].possibletypes:=[];
     parameters[i].str:=trim(parameterstringsplit[i]);
     if parameters[i].str[1]='[' then
@@ -5260,6 +5305,7 @@ begin
     {$endif}
 
 
+
     if length(parameters)>length(selectedopcode^.params) then
     begin
       inc(listindex);
@@ -5272,7 +5318,12 @@ begin
     begin
       if i<length(parameters) then
       begin
-        if not (selectedopcode^.params[i].ptype in parameters[i].possibletypes) then
+        if (not (selectedopcode^.params[i].ptype in parameters[i].possibletypes))  or
+           ((parameters[i].index<>0) and (selectedopcode^.params[i].index=ind_no)) or
+           ((parameters[i].index=0) and (selectedopcode^.params[i].index<>ind_no)) or
+           ((selectedopcode^.params[i].index in [ind_singleexp,ind_stopexp]) and (not preindexed) ) or
+           ((selectedopcode^.params[i].index in [ind_single,ind_stop]) and (preindexed))
+        then
         begin
           match:=false;
           break;
