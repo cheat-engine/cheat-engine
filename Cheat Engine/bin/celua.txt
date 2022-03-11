@@ -420,6 +420,8 @@ convertKeyComboToString({key1,...}): ^
 outputDebugString(text): Outputs a message using the windows OutputDebugString message. You can use tools like dbgview to read this. Useful for testing situations where the GUI freezes
 
 shellExecute(command, parameters OPTIONAL, folder OPTIONAL, showcommand OPTIONAL): Executes a given command
+runCommand(exepath, parameters or {parameter1, parameter2}): Executes the given command and returns the output of the command as a string (Should not open a console window)
+
 
 getTickCount() :  Returns the current tickcount since windows was started. Each tick is one millisecond
 processMessages() :  Lets the main eventhandler process the new messages (allows for new button clicks)
@@ -572,7 +574,6 @@ getCheatEngineDir(): Returns the folder Cheat Engine is located at
 getCheatEngineProcessID(): Returns the processid of cheat engine
 
 getAutorunPath() : Returns the autorun path
-getUserDocumentsPath() : Returns the path to the user documents folder. 
 
 
 disassemble(address): Disassembles the given address and returns a string in the format of "address - bytes - opcode : extra"

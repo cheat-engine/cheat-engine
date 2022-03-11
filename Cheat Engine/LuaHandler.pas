@@ -127,7 +127,7 @@ uses autoassembler, MainUnit, MainUnit2, LuaClass, frmluaengineunit, plugin, plu
   LuaDiagram, frmUltimap2Unit, frmcodefilterunit, BreakpointTypeDef, LuaSyntax,
   LazLogger, LuaSynedit, LuaRIPRelativeScanner, LuaCustomImageList ,ColorBox,
   rttihelper, LuaDotNetPipe, LuaRemoteExecutor, windows7taskbar, debugeventhandler,
-  tcclib, dotnethost, CSharpCompiler, LuaCECustomButton, feces;
+  tcclib, dotnethost, CSharpCompiler, LuaCECustomButton, feces, process;
 
   {$warn 5044 off}
 
@@ -8586,6 +8586,64 @@ begin
     result:=0;
 end;
 
+function lua_runCommand(L: PLua_State): integer; cdecl;
+var
+  p: array of TProcessString;
+  exe: string;
+  parameters: string;
+
+  s: string;
+  i,pl: integer;
+begin
+  p:=[];
+  if lua_gettop(L)>=2 then
+  begin
+    s:='';
+
+    exe:=Lua_ToString(L,1);
+    if lua_istable(L,2) then
+    begin
+      pl:=lua_objlen(L, 2);
+      setlength(p,pl);
+
+      for i:=1 to pl do
+      begin
+        lua_pushinteger(L,i);
+        lua_gettable(L,2);
+
+        if lua_isstring(L,-1) then
+        begin
+          p[i-1]:=Lua_ToString(L,-1);
+          lua_pop(L,1);
+        end
+        else
+        begin
+          lua_pushnil(L);
+          lua_pushstring(L,'Invalid parameter at index '+inttostr(i));
+          exit(2);
+        end;
+
+      end;
+    end
+    else
+    if lua_isstring(L,2) then
+    begin
+      SetLength(p,1);
+      p[0]:=Lua_ToString(L,2);
+    end;
+    RunCommand(exe, p, s, [poNoConsole]);
+    lua_pushstring(L,s);
+    exit(1);
+  end
+  else
+  begin
+    lua_pushnil(L);
+    lua_pushstring(L,rsIncorrectNumberOfParameters);
+    exit(2);
+  end;
+
+end;
+
 function lua_shellExecute(L: PLua_State): integer; cdecl;
 var
   pcount: integer;
@@ -15615,6 +15673,8 @@ begin
     lua_register(L, 'dbvm_addMemory', dbvm_addMemory);
 
     lua_register(L, 'shellExecute', lua_shellExecute);
+    lua_register(L, 'runCommand', lua_runCommand);
+
     lua_register(L, 'getTickCount', getTickCount_lua);
     lua_register(L, 'rdtsc', lua_rdtsc);
 
