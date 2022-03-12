@@ -575,8 +575,6 @@ type
       Item: TListItem; SubItem: Integer; State: TCustomDrawState;
       var DefaultDraw: Boolean);
     procedure CreateGroupClick(Sender: TObject);
-    procedure Foundlist3SelectItem(Sender: TObject; Item: TListItem;
-      Selected: boolean);
     procedure gbScanOptionsChangeBounds(Sender: TObject);
     procedure Label3Click(Sender: TObject);
     procedure MenuItem12Click(Sender: TObject);
@@ -3543,12 +3541,6 @@ begin
     withAddress:=(messagedlg(rsDoYouWantTheGroupWithAddress, mtConfirmation, [mbYes, mbNo], 0)=mrYes);
     addresslist.CreateGroup(groupname, withAddress);
   end;
-end;
-
-procedure TMainForm.Foundlist3SelectItem(Sender: TObject; Item: TListItem;
-  Selected: boolean);
-begin
-
 end;
 
 procedure TMainForm.gbScanOptionsChangeBounds(Sender: TObject);
