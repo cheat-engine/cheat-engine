@@ -565,7 +565,6 @@ type
     procedure Copyselectedaddresses1Click(Sender: TObject);
     procedure EnableLCLClick(Sender: TObject);
     procedure cbFastScanChange(Sender: TObject);
-    procedure cbUnrandomizerChange(Sender: TObject);
     procedure Description1Click(Sender: TObject);
     procedure edtAlignmentKeyPress(Sender: TObject; var Key: char);
     procedure FormDropFiles(Sender: TObject; const FileNames: array of string);
@@ -3523,14 +3522,6 @@ begin
   alignsizechangedbyuser := False;
   VarType.OnChange(vartype);
 end;
-
-procedure TMainForm.cbUnrandomizerChange(Sender: TObject);
-begin
-
-end;
-
-
-
 
 procedure TMainForm.CreateGroupClick(Sender: TObject);
 var
