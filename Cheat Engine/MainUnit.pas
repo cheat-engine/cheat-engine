@@ -650,7 +650,6 @@ type
     procedure Panel5Resize(Sender: TObject);
     procedure pmTablistPopup(Sender: TObject);
     procedure pmValueTypePopup(Sender: TObject);
-    procedure ProcessLabelClick(Sender: TObject);
     procedure rbFsmAlignedChange(Sender: TObject);
     procedure rtChange(Sender: TObject);
     procedure Save1Click(Sender: TObject);
@@ -5476,11 +5475,6 @@ begin
   miDeleteCustomType.Visible := miEditCustomType.Visible;
 
   miShowCustomTypeDebug.visible:=miEditCustomType.Visible and (GetKeyState(VK_SHIFT) and 32768=32768);
-
-end;
-
-procedure TMainForm.ProcessLabelClick(Sender: TObject);
-begin
 
 end;
 
