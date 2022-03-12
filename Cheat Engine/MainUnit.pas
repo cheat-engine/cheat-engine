@@ -647,7 +647,6 @@ type
     procedure miWireframeClick(Sender: TObject);
     procedure miZbufferClick(Sender: TObject);
     procedure miZeroTerminateClick(Sender: TObject);
-    procedure ools1Click(Sender: TObject);
     procedure Panel1Click(Sender: TObject);
     procedure Panel5Resize(Sender: TObject);
     procedure pmTablistPopup(Sender: TObject);
@@ -5395,11 +5394,6 @@ begin
     (addresslist.selectedRecord.VarType = vtString) then
     addresslist.selectedRecord.Extra.stringData.ZeroTerminate := not
       addresslist.selectedRecord.Extra.stringData.ZeroTerminate;
-end;
-
-procedure TMainForm.ools1Click(Sender: TObject);
-begin
-
 end;
 
 procedure TMainForm.Panel1Click(Sender: TObject);
