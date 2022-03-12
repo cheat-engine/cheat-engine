@@ -737,7 +737,6 @@ type
     procedure Forcerechecksymbols1Click(Sender: TObject);
     procedure Smarteditaddresses1Click(Sender: TObject);
     procedure Pointerscanforthisaddress1Click(Sender: TObject);
-    procedure Label53Click(Sender: TObject);
     procedure Foundlist3Data(Sender: TObject; Item: TListItem);
     procedure UpdateFoundlisttimerTimer(Sender: TObject);
     procedure Foundlist3KeyDown(Sender: TObject; var Key: word; Shift: TShiftState);
@@ -9199,11 +9198,6 @@ begin
 end;
 
 procedure testx(arg1: pointer; arg2: pointer; arg3: pointer); stdcall;
-begin
-
-end;
-
-procedure TMainForm.Label53Click(Sender: TObject);
 begin
 
 end;
