@@ -576,7 +576,6 @@ type
       var DefaultDraw: Boolean);
     procedure CreateGroupClick(Sender: TObject);
     procedure gbScanOptionsChangeBounds(Sender: TObject);
-    procedure Label3Click(Sender: TObject);
     procedure MenuItem12Click(Sender: TObject);
     procedure MenuItem15Click(Sender: TObject);
     procedure miDeleteSavedScanResultsClick(Sender: TObject);
@@ -3549,12 +3548,6 @@ begin
 
   spawnBoundsUpdater;
 
-
-end;
-
-procedure TMainForm.Label3Click(Sender: TObject);
-
-begin
 
 end;
 
