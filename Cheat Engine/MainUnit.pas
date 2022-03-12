@@ -657,7 +657,6 @@ type
     procedure pmTablistPopup(Sender: TObject);
     procedure pmValueTypePopup(Sender: TObject);
     procedure ProcessLabelClick(Sender: TObject);
-    procedure rbAllMemoryChange(Sender: TObject);
     procedure rbFsmAlignedChange(Sender: TObject);
     procedure rtChange(Sender: TObject);
     procedure Save1Click(Sender: TObject);
@@ -3154,11 +3153,6 @@ begin
     exit;
 
   openProcessEpilogue(oldprocessname, oldprocess, oldprocesshandle);
-end;
-
-procedure TMainForm.rbAllMemoryChange(Sender: TObject);
-begin
-
 end;
 
 procedure TMainForm.rbFsmAlignedChange(Sender: TObject);
