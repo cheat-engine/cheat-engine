@@ -701,8 +701,6 @@ type
     procedure Copy2Click(Sender: TObject);
     procedure Paste2Click(Sender: TObject);
     procedure ccpmenuPopup(Sender: TObject);
-    procedure Splitter1CanResize(Sender: TObject; var NewSize: integer;
-      var Accept: boolean);
     procedure Splitter1Moved(Sender: TObject);
     procedure SettingsClick(Sender: TObject);
     procedure cbCaseSensitiveClick(Sender: TObject);
@@ -8530,12 +8528,6 @@ end;
 procedure TMainForm.ccpmenuPopup(Sender: TObject);
 begin
   checkpaste;
-end;
-
-procedure TMainForm.Splitter1CanResize(Sender: TObject; var NewSize: integer;
-  var Accept: boolean);
-begin
-
 end;
 
 procedure TMainForm.Splitter1Moved(Sender: TObject);
