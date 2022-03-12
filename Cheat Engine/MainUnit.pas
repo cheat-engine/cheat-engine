@@ -9191,11 +9191,6 @@ begin
   end;
 end;
 
-procedure testx(arg1: pointer; arg2: pointer; arg3: pointer); stdcall;
-begin
-
-end;
-
 procedure TMainForm.OnToolsClick(Sender: TObject);
 begin
   shellexecute(0, 'open', PChar(
