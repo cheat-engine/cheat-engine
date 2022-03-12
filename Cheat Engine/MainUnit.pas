@@ -685,8 +685,6 @@ type
     procedure Removeselectedaddresses1Click(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure CommentButtonClick(Sender: TObject);
-    procedure CommentButtonMouseMove(Sender: TObject; Shift: TShiftState;
-      X, Y: integer);
     procedure Copy1Click(Sender: TObject);
     procedure Cut1Click(Sender: TObject);
     procedure Paste1Click(Sender: TObject);
@@ -7514,12 +7512,6 @@ end;
 procedure TMainForm.CommentButtonClick(Sender: TObject);
 begin
   comments.Show;
-end;
-
-procedure TMainForm.CommentButtonMouseMove(Sender: TObject; Shift: TShiftState;
-  X, Y: integer);
-begin
-
 end;
 
 procedure TMainForm.CopySelectedRecords;
