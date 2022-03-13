@@ -2057,23 +2057,31 @@ function mono_image_findClassSlow(image, namespace, classname)
 
 --find a class in a specific image
   local result=0
-  
+
   if monopipe==nil then return 0 end
-  
-  
- 
-    
 
   monopipe.lock()
+
+  local fullnamerequested=classname:find("+") ~= nil
 
   local c=mono_image_enumClasses(image)
   if c then
     local i
     for i=1, #c do
       --check that classname is in c[i].classname
-      if c[i].classname==classname then
-        result=c[i].class
-        break;
+      if fullnamerequested then
+        local cname=mono_class_getFullName(c[i].class)
+        local r=mono_splitSymbol(cname)
+
+        if r.methodname==classname then --methodname is classname in this context
+          result=c[i].class
+          break
+        end
+      else
+        if c[i].classname==classname then
+          result=c[i].class
+          break;
+        end
       end
     end
 
@@ -2103,14 +2111,14 @@ function mono_findClass(namespace, classname)
   
   if ass==nil then return nil end
 
-  for i=1, #ass do
-
-    result=mono_image_findClass(mono_getImageFromAssembly(ass[i]), namespace, classname)
-    if (result~=0) then
-      return result;
+  local fullnamerequested=classname:find("+") ~= nil
+  if fullnamerequested==false then
+    for i=1, #ass do
+      result=mono_image_findClass(mono_getImageFromAssembly(ass[i]), namespace, classname)
+      if (result~=0) then
+        return result;
+      end
     end
-
-
   end
 
   --still here:
@@ -2622,7 +2630,7 @@ function mono_invoke_method_dialog(domain, method, address)
 
     local params=mono_method_get_parameters(method)
 
-    --use monoTypeToVartypeLookup to convert it to the type mono_method_invole likes it
+    --use monoTypeToVartypeLookup to convert it to the type mono_method_invoke likes it
     local args={}
     for i=1, #params.parameters do
       args[i]={}

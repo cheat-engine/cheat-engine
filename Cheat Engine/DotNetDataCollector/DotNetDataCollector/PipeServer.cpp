@@ -58,7 +58,7 @@ CPipeServer::CPipeServer(TCHAR *name)
 	if (StrCmp(name,L"BLA")==0)
 	{
 		//do some debug stuff
-		processid=0x9a0c;
+		processid=328484;
 		OpenOrAttachToProcess();
 
 
@@ -491,13 +491,12 @@ Enumerate the modules of the given ICorDebugAppDomain
 		TCHAR modulename[255];
 		ULONG32 modulenamelength;
 		CORDB_ADDRESS baseaddress;
+		mdModule ModuleToken;
 
 		WriteFile(pipehandle, &hModule, sizeof(hModule), &bw, NULL); //'handle'
 
-		//modulelist[i]->GetToken()
 		modulelist[i]->GetBaseAddress(&baseaddress);
 		WriteFile(pipehandle, &baseaddress, sizeof(baseaddress), &bw, NULL); //baseaddress  (uint64) 
-
 
 		if (modulelist[i]->GetName(255, &modulenamelength, modulename)==S_OK)
 			modulenamelength=sizeof(TCHAR)*modulenamelength;
@@ -1211,6 +1210,7 @@ void CPipeServer::sendType(COR_TYPEID cortypeid)
 			fields.clear();
 			fieldcount = getAllFields(cortypeid, layout, &fields);
 
+		
 			//send the fields
 			//if (CorDebugProcess5->GetTypeFields(objects[i].type, layout.numFields, fields, &fieldcount)==S_OK)
 			{
@@ -1227,7 +1227,7 @@ void CPipeServer::sendType(COR_TYPEID cortypeid)
 				unsigned char isStatic;				
 
 				//get the fields not in the layout
-				
+				if ((metadata) && (classtoken))				
 				{
 					HCORENUM fe=0;
 					mdFieldDef lfields[16];

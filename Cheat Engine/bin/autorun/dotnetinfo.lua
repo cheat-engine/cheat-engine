@@ -871,6 +871,7 @@ local function InheritanceResize(gbInheritance, now)
 end
 
 local function getMethodAddress(Method)
+  _G.lastmethod=Method
   if Method.Class.Image.Domain.Control==CONTROL_MONO then
     local address=mono_compile_method(Method.Handle)
     if address and address~=0 then 
@@ -887,6 +888,36 @@ local function getMethodAddress(Method)
       if Method.Class.Image.DotNetPipeModuleID==nil then
         --print("getting module id for "..Method.Class.Image.FileName)
         Method.Class.Image.DotNetPipeModuleID=dotnet_getModuleID(Method.Class.Image.FileName)
+   
+        --Method.Class.Image.DotNetPipeModuleID=nil --debug
+        
+        if Method.Class.Image.DotNetPipeModuleID==nil then
+          --not found by name, try finding 10 classes in this image
+          if Method.Class.Image.Classes==nil then
+            Method.Class.Image.Classes={} 
+          end
+          
+          if #Method.Class.Image.Classes==0 then
+            getClasses(Method.Class.Image)
+          end
+          
+          if #Method.Class.Image.Classes==0 then
+            return nil, "The image that contains this class, doesn't contain any classes..."
+          end
+          
+          local classnamelist={}
+          local c=0
+          for i=1,#Method.Class.Image.Classes do
+            local cn=Method.Class.Image.Classes[i].Name
+            if cn:find("%<")==nil and cn:find("%^")==nil then       
+              table.insert(classnamelist, Method.Class.Image.Classes[i].Name)
+              c=c+1
+              if c>=10 then break end
+            end
+          end
+          
+          Method.Class.Image.DotNetPipeModuleID=dotnet_getModuleIDFromClassList(Method.Class.Image.FileName, classnamelist)
+        end
       end
       
       if Method.Class.Image.DotNetPipeModuleID then
@@ -1178,7 +1209,7 @@ local function SpawnInjectMethodDialog(frmDotNetInfo)
     end
   else
     --use the already existing mono way
-    mono_invoke_method_dialog(Domain.DomainHandle, Method.Handle, getAddressSafe(frmDotNetInfo.comboFieldBaseAddress.Text)) 
+    mono_invoke_method_dialog(Method.Class.Image.Domain.Handle, Method.Handle, getAddressSafe(frmDotNetInfo.comboFieldBaseAddress.Text)) 
   end
   
   
