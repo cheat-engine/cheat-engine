@@ -3,7 +3,7 @@ unit dbvmPhysicalMemoryHandler;
 {$MODE Delphi}
 
 {
-implement replaced handlers for ReadProcssMemory and WriteProcessMemory so it
+implement replaced handlers for ReadProcessMemory and WriteProcessMemory so it
 reads/writes to the physical memory instead
 }
 
