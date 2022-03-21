@@ -1553,13 +1553,14 @@ end
 
 
 local function FieldValueUpdaterTimer(frmDotNetInfo, sender)
+--todo: only update the visible entries
   local i
   local address=getAddressSafe(frmDotNetInfo.comboFieldBaseAddress.Text)
   local Class=frmDotNetInfo.CurrentlyDisplayedClass
   local value
   
-  if Class then
-    for i=0, frmDotNetInfo.lvStaticFields.Items.Count-1 do
+  if Class and frmDotNetInfo.lvStaticFields.TopItem~=nil then
+    for i=frmDotNetInfo.lvStaticFields.TopItem.Index, math.min(frmDotNetInfo.lvStaticFields.Items.Count-1, frmDotNetInfo.lvStaticFields.TopItem.Index+frmDotNetInfo.lvStaticFields.VisibleRowCount) do
       local ci=frmDotNetInfo.lvStaticFields.Items[i].Data
       if ci>0 and ci<=#Class.Fields then
         
@@ -1595,7 +1596,8 @@ local function FieldValueUpdaterTimer(frmDotNetInfo, sender)
   end
   
   if address and Class then 
-    for i=0, frmDotNetInfo.lvFields.Items.Count-1 do
+    for i=frmDotNetInfo.lvFields.TopItem.Index, math.min(frmDotNetInfo.lvFields.Items.Count-1, frmDotNetInfo.lvFields.TopItem.Index+frmDotNetInfo.lvFields.VisibleRowCount) do
+    --for i=0, frmDotNetInfo.lvFields.Items.Count-1 do
       local ci=frmDotNetInfo.lvFields.Items[i].Data
       if ci>0 and ci<=#Class.Fields then
         local a=address+Class.Fields[ci].Offset
