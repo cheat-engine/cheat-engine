@@ -31,6 +31,7 @@ type
     cbFreezedirection: TComboBox;
     cbForceEnglishActivate: TCheckBox;
     cbForceEnglishDeactivate: TCheckBox;
+    cbOnlyWhileDown: TCheckBox;
     edtActivateText: TEdit;
     edtDeactivateText: TEdit;
     edtDescription: TEdit;
@@ -123,6 +124,8 @@ resourcestring
   rsTextToSpeechHint = 'The text to speak'#13#10'{Description} = The description of the hotkey'#13#10'{MRDescription} = The description field of the memory record'#13#10'{MRValue} = The value of the memory record';
   rsDefaultActivated = '%s Activated';
   rsDefaultDeactivated = '%s Deactivated';
+  rsDeactivateOnRelease = 'Deactivate on release';
+  rsRestoreToOriginalOnRelease = 'Restore to original on release';
 
 
 function THotkeyform.getBtnOKCustomButton: TCustomButton;
@@ -343,10 +346,11 @@ begin
     hk.action:=getHotkeyAction;
     hk.value:=edtFreezeValue.text;
     hk.fdescription:=edtDescription.text;
+    hk.fOnlyWhileDown:=cbOnlyWhileDown.checked;
     hk.registerkeys;
   end
   else
-    hk:=memrec.Addhotkey(keys, getHotkeyAction, edtFreezeValue.text, edtDescription.text );
+    hk:=memrec.Addhotkey(keys, getHotkeyAction, edtFreezeValue.text, edtDescription.text, cbOnlyWhileDown.checked );
 
 
 
@@ -447,11 +451,30 @@ begin
   begin
     onpossible:=cbFreezeDirection.itemindex in [0,1];
     offpossible:=cbFreezeDirection.itemindex in [0,2];
+
+    if onpossible then
+    begin
+      cbOnlyWhileDown.Caption:=rsDeactivateOnRelease;
+      cbOnlyWhileDown.visible:=true;
+    end
+    else
+      cbOnlyWhileDown.visible:=false;
   end
   else
   begin
     onpossible:=cbFreezeDirection.itemindex in [0,1,2,3,5,6,7];
     offpossible:=cbFreezeDirection.itemindex in [0,1,2,4];
+
+    if cbFreezeDirection.itemindex in [0,1,2,3,5] then
+    begin
+      case cbFreezeDirection.itemindex of
+        0, 1, 2, 3: cbOnlyWhileDown.Caption:=rsDeactivateOnRelease;
+        5: cbOnlyWhileDown.Caption:=rsRestoreToOriginalOnRelease;
+      end;
+      cbOnlyWhileDown.visible:=true;
+    end
+    else
+      cbOnlyWhileDown.visible:=false;
   end;
 
   lblActivateSound.enabled:=onpossible;
@@ -461,6 +484,8 @@ begin
   lblDeactivateSound.enabled:=offpossible;
   cbDeactivateSound.enabled:=offpossible;
   sbPlayDeactivate.enabled:=offpossible;
+
+
 
 end;
 

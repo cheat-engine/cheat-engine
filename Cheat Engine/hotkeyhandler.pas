@@ -48,6 +48,7 @@ type
     mainformhotkey2command: integer;
 
     procedure memrechotkey;
+    procedure memrechotkeydisable;
     procedure handleGenericHotkey;
     procedure mainformhotkey2;
   public
@@ -617,6 +618,15 @@ begin
   TMemoryRecordHotkey(memrechk).DoHotkey;
 end;
 
+procedure Thotkeythread.memrechotkeydisable;
+begin
+//  sendmessage(mainform.handle,integer(cefuncproc.WM_HOTKEY2),0,ptrUint(memrechk));
+
+  //not 100% sure why sendmessage works here but not from within the thread...
+  //but since we're here anyhow:
+  TMemoryRecordHotkey(memrechk).DoHotkeyDisable;
+end;
+
 procedure Thotkeythread.handleGenericHotkey;
 begin
   if assigned(generichk.onNotify) then
@@ -695,7 +705,14 @@ begin
 
           end
           else
+          begin
             hotkeylist[i].lastactivate:=0; //not currently down.  The user released the key so repeat can be skipped
+            if (hotkeylist[i].memrechotkey<>nil) and TMemoryrecordHotkey(hotkeylist[i].memrechotkey).down and TMemoryrecordHotkey(hotkeylist[i].memrechotkey).OnlyWhileDown then
+            begin
+              memrechk:=hotkeylist[i].memrechotkey;
+              synchronize(memrechotkeydisable);
+            end;
+          end;
 
         end;
 

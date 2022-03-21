@@ -290,10 +290,11 @@ type
 
     function hasHotkeys: boolean;
 
-    function Addhotkey(keys: tkeycombo; action: TMemrecHotkeyAction; value, description: string): TMemoryRecordHotkey;
+    function Addhotkey(keys: tkeycombo; action: TMemrecHotkeyAction; value, description: string; onlyWhileDown: boolean=false): TMemoryRecordHotkey;
     function removeHotkey(hk: TMemoryRecordHotkey): boolean;
 
     procedure DoHotkey(hk :TMemoryRecordHotkey); //execute the specific hotkey action
+    procedure DoHotkeyDisable(hk :TMemoryRecordHotkey); //disable the specific hotkey
 
 
     procedure disablewithoutexecute;
@@ -389,20 +390,27 @@ type
     fdeactivateSound: string;
     fActivateSoundFlag: THKSoundFlag;
     fDeactivateSoundFlag: THKSoundFlag;
+    fValueAtActivation: string;
 
   public
     fID: integer;
     fDescription: string;
+    fOnlyWhileDown: boolean;
     fOwner: TMemoryRecord;
     keys: Tkeycombo;
     fAction: TMemrecHotkeyAction;
     fValue: string;
+
+    Down: boolean;
+
+
 
 
     procedure playActivateSound;
     procedure playDeactivateSound;
 
     procedure doHotkey;
+    procedure doHotkeyDisable;
     procedure registerKeys;
     constructor create(AnOwner: TMemoryRecord);
     destructor destroy; override;
@@ -415,6 +423,7 @@ type
     property Description: string read fDescription write fDescription;
     property Action: TMemrecHotkeyAction read fAction write fAction;
     property Value: string read fValue write fValue;
+    property OnlyWhileDown: boolean read fOnlyWhileDown write fOnlyWhileDown;
     property Owner: TMemoryRecord read fOwner;
     property ID: integer read fID;
     property OnHotkey: TNotifyEvent read fOnHotkey write fOnHotkey;
@@ -572,8 +581,6 @@ begin
 
     if luaref=-1 then
     begin
-      //todo: add previous offset results that can be referenced
-
       foffset:=symhandler.getAddressFromName(text, false, finvalid);
       if finvalid then
         setoffsetText(text);
@@ -720,6 +727,15 @@ begin
   RegisterHotKey2(mainform.handle, -1, keys, self);
 end;
 
+procedure TMemoryRecordHotkey.doHotkeyDisable;
+begin
+  if Down then
+  begin
+    owner.DoHotkeyDisable(self);
+    down:=false;
+  end;
+end;
+
 procedure TMemoryRecordHotkey.doHotkey;
 begin
   if assigned(fonhotkey) then
@@ -728,8 +744,12 @@ begin
   if owner<>nil then //just be safe (e.g other app sending message)
     owner.DoHotkey(self);
 
+  down:=true;
+
   if assigned(fonPostHotkey) then
     fOnPostHotkey(self);
+
+
 end;
 
 procedure TMemoryRecordHotkey.playActivateSound;
@@ -1549,6 +1569,10 @@ begin
 
         if tempnode.ChildNodes[i].NodeName='Hotkey' then
         begin
+          a:=tempnode2.Attributes.GetNamedItem('OnlyWhileDown');
+          if (a<>nil) then
+            hk.OnlyWhileDown:=a.TextContent='1';
+
           hk.value:='';
           ZeroMemory(@hk.keys,sizeof(TKeyCombo));
 
@@ -1969,6 +1993,13 @@ begin
     begin
       hk:=hks.AppendChild(doc.CreateElement('Hotkey'));
       hk.AppendChild(doc.CreateElement('Action')).TextContent:=MemRecHotkeyActionToText(hotkey[i].action);
+      if hotkey[i].OnlyWhileDown then
+      begin
+        a:=doc.CreateAttribute('OnlyWhileDown');
+        a.TextContent:='1';
+        hk.Attributes.SetNamedItem(a);
+      end;
+
       hkkc:=hk.AppendChild(doc.createElement('Keys'));
       j:=0;
       while (j<5) and (hotkey[i].keys[j]<>0) do
@@ -2181,7 +2212,7 @@ begin
   end;
 end;
 
-function TMemoryRecord.Addhotkey(keys: tkeycombo; action: TMemrecHotkeyAction; value, description: string): TMemoryRecordHotkey;
+function TMemoryRecord.Addhotkey(keys: tkeycombo; action: TMemrecHotkeyAction; value, description: string; onlyWhileDown: boolean=false): TMemoryRecordHotkey;
 {
 adds and registers a hotkey and returns the hotkey index for this hotkey
 return -1 if failure
@@ -2196,6 +2227,7 @@ begin
   hk.action:=action;
   hk.value:=value;
   hk.fdescription:=description;
+  hk.fOnlyWhileDown:=onlyWhileDown;
   hk.RegisterKeys;
 
   result:=hk;
@@ -2286,10 +2318,25 @@ begin
   {$ENDIF}
 end;
 
+procedure TMemoryRecord.DoHotkeyDisable(hk :TMemoryRecordHotkey); //disable the specific hotkey
+begin
+  if (hk<>nil) and (hk.owner=self) and (hk.OnlyWhileDown) then
+  begin
+    try
+      case hk.Action of
+        mrhActivate, mrhToggleActivation, mrhToggleActivationAllowIncrease, mrhToggleActivationAllowDecrease: active:=false;
+        mrhSetValue: setvalue(hk.fValueAtActivation);
+      end;
+
+    except
+    end;
+  end;
+end;
+
 procedure TMemoryRecord.DoHotkey(hk: TMemoryRecordhotkey);
 var oldstate: boolean;
 begin
-  if (hk<>nil) and (hk.owner=self) then
+  if (hk<>nil) and (hk.owner=self) and (hk.down=false) then
   begin
     try
       case hk.action of
@@ -2311,6 +2358,9 @@ begin
 
         mrhSetValue:
         begin
+          if hk.down=false then
+            hk.fValueAtActivation:=GetValue;
+
           SetValue(hk.value);
 
           hk.playActivateSound;
@@ -2598,7 +2648,7 @@ begin
           else
           begin
             autoassemblerdata.lastExecutionFailed:=true;
-            autoassemblerdata.lastExecutionFailedReason:='Unknown';
+            autoassemblerdata.lastExecutionFailedReason:=rsUnknown;
           end;
         except
           //running the script failed, state unchanged
