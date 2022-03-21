@@ -1203,8 +1203,8 @@ const opcodes: array [1..opcodecount] of topcode =(
   (mnemonic:'PMINUW';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m128;bytes:4;bt1:$66;bt2:$0f;bt3:$38;bt4:$3a),
 
 
-  (mnemonic:'PMOVMSKB';opcode1:eo_reg;opcode2:eo_ib;paramtype1:par_r32;paramtype2:par_mm;paramtype3:par_imm8;bytes:2;bt1:$0f;bt2:$d7),
-  (mnemonic:'PMOVMSKB';opcode1:eo_reg;opcode2:eo_ib;paramtype1:par_r32;paramtype2:par_xmm;paramtype3:par_imm8;bytes:3;bt1:$66;bt2:$0f;bt3:$d7),
+  (mnemonic:'PMOVMSKB';opcode1:eo_reg;paramtype1:par_r32;paramtype2:par_mm;bytes:2;bt1:$0f;bt2:$d7),
+  (mnemonic:'PMOVMSKB';opcode1:eo_reg;paramtype1:par_r32;paramtype2:par_xmm;bytes:3;bt1:$66;bt2:$0f;bt3:$d7),
 
   (mnemonic:'PMOVSXBD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m32;bytes:4;bt1:$66;bt2:$0f;bt3:$38;bt4:$21),
   (mnemonic:'PMOVSXBQ';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m16;bytes:4;bt1:$66;bt2:$0f;bt3:$38;bt4:$22),
@@ -4782,9 +4782,7 @@ begin
     //handle it by the arm assembler
    // for i:=0 to nroftokens do
    //   tempstring:=tempstring+tokens[i]+' ';   //seperators like "," are gone, but the armassembler doesn't really care about that  (only tokens matter)
-
-    result:=ArmAssemble(address, opcode, bytes);
-    exit;
+    exit(ArmAssemble(address, opcode, bytes));
   end;
 
 
