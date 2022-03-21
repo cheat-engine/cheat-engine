@@ -2481,7 +2481,7 @@ begin
             end else raise exception.Create(rsSyntaxError);
           end;
 
-          if (disableinfo<>nil) and (uppercase(copy(currentline,1,8))='DEALLOC(') then
+          if (uppercase(copy(currentline,1,8))='DEALLOC(') then
           begin
             //syntax: dealloc(x)  x=name of region to deallocate
             //later on in the code there has to be a line with "labelname:"
@@ -2492,13 +2492,15 @@ begin
             begin
               s1:=trim(copy(currentline,a+1,b-a-1));
 
-              if s1='*' then
+              if (s1='*') then
               begin
                 //everything that the script allocated
-                setlength(dealloc, length(disableinfo.allocs));
-                for j:=0 to length(disableinfo.allocs)-1 do
-                  dealloc[j]:=disableinfo.allocs[j].address;
-
+                if (disableinfo<>nil) then
+                begin
+                  setlength(dealloc, length(disableinfo.allocs));
+                  for j:=0 to length(disableinfo.allocs)-1 do
+                    dealloc[j]:=disableinfo.allocs[j].address;
+                end;
               end
               else
               begin
@@ -4237,13 +4239,11 @@ begin
 
   if enablepos=-2 then
   begin
-    if not popupmessages then exit;
     raise EAssemblerException.create(rsYouCanOnlyHaveOneEnableSection);
   end;
 
   if disablepos=-2 then
   begin
-    if not popupmessages then exit;
     raise EAssemblerException.create(rsYouCanOnlyHaveOneDisableSection);
   end;
 
