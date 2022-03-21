@@ -572,6 +572,8 @@ begin
 
     if luaref=-1 then
     begin
+      //todo: add previous offset results that can be referenced
+
       foffset:=symhandler.getAddressFromName(text, false, finvalid);
       if finvalid then
         setoffsetText(text);
@@ -3232,7 +3234,7 @@ begin
             end;
 
 
-            '-','+','/','*': usesMath:=true;
+            '-','+','/','*': if i>1 then usesMath:=true;
 
           end;
           inc(i);
