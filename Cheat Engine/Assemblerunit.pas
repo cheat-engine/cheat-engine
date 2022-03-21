@@ -4579,6 +4579,8 @@ var tokens: ttokens;
     cannotencodewithrexw: boolean;
 
     //cpuinfo: TCPUIDResult;
+
+    bts: TAssemblerBytes;
 begin
   faddress:=address;
   VEXvvvv:=$f;
@@ -5062,7 +5064,8 @@ begin
   if (not overrideShort) and (not overrideLong) and (processhandler.is64Bit) then   //if 64-bit and no override is given
   begin
     //check if this is a jmp or call with relative value
-    if (tokens[mnemonic]='JMP') or (tokens[mnemonic]='CALL') then
+
+    if (tokens[mnemonic]='JMP') or (tokens[mnemonic]='CALL') or (tokens[mnemonic][1]='J') then
     begin
       if paramtype1=ttValue then
       begin
@@ -5071,7 +5074,6 @@ begin
           v2:=address-v
         else
           v2:=v-address;
-
 
         if (v2>$7fffffff) or (overrideFar) then //the user WANTS it to be called as a 'far' jump even if it's not needed
         begin
@@ -5086,10 +5088,32 @@ begin
             AddDword(bytes, 0);
           end
           else
+          if (tokens[mnemonic]='CALL') then
           begin
             add(bytes,[$15]); //call
             AddDword(bytes, 2);
             Add(bytes, [$eb, $08]);
+          end
+          else
+          if (tokens[mnemonic][1]='J') then
+          begin
+            //J* +2
+            //jmp short +14
+            //jmp far address
+            bytes:=[];
+            assemble(tokens[mnemonic]+' +2', address, bytes);
+
+            bts:=[];
+
+            assemble('jmp short +14', address+length(bytes), bts);
+            insert(bts, bytes,length(bytes));
+
+            bts:=[];
+            assemble('jmp far '+inttohex(v,8), address+length(bytes),bts);
+            insert(bts, bytes, length(bytes));
+
+            result:=true;
+            exit;
           end;
 
           AddQword(bytes,v);
