@@ -10465,8 +10465,7 @@ begin
         FreeAndNil(speedhack);
 
       ss:=GetKeyShiftState;
-      if (ssAlt in ss) and (ssCtrl in ss) then
-        raise exception.create('Speedhack alternate test');
+
 
       speedhack := TSpeedhack.Create;
     except
