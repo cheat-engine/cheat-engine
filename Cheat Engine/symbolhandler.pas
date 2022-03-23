@@ -446,6 +446,26 @@ var SymFromName: TSymFromName;
     SymLoadModuleEx:function(hProcess:THANDLE; hFile:THANDLE; ImageName:PSTR; ModuleName:PSTR; BaseOfDll:dword64; DllSize:dword; Data:pointer; Flags:dword):dword64;stdcall;
     UnDecorateSymbolName:function(name: PCSTR; outputString: PSTR;  maxStringLength: DWORD;  flags: DWORD): DWORD; stdcall;
 
+    SymEnumerateModules64:function(hProcess:THANDLE; EnumModulesCallback:TSYM_ENUMMODULES_CALLBACK64; UserContext:pointer):BOOL;stdcall;
+    SymLoadModule64:function(hProcess:THANDLE; hFile:THANDLE; ImageName:PSTR; ModuleName:PSTR; BaseOfDll:dword64; SizeOfDll:dword):dword64;stdcall;
+    SymSetContext:function(hProcess:THANDLE; StackFrame:PIMAGEHLP_STACK_FRAME; Context:PIMAGEHLP_CONTEXT):BOOL;stdcall;
+    SymEnumSymbols:function(hProcess:THANDLE; BaseOfDll:ULONG64; Mask:LPCSTR; EnumSymbolsCallback:TSYM_ENUMERATESYMBOLS_CALLBACK; UserContext:pointer):BOOL;stdcall;
+    SymGetTypeInfo:function(hProcess:THANDLE; ModBase:dword64; TypeId:ULONG; GetType:TIMAGEHLP_SYMBOL_TYPE_INFO; pInfo:pointer):BOOL;
+    SymEnumTypes:function(hProcess:THANDLE; BaseOfDll:ULONG64; EnumSymbolsCallback:TSYM_ENUMERATESYMBOLS_CALLBACK; UserContext:pointer):BOOL;stdcall;
+    SymGetTypeFromName:function(hProcess:THANDLE; BaseOfDll:ULONG64; Name:lpstr; Symbol:PSYMBOL_INFO):BOOL;stdcall;
+    StackWalk64:function(MachineType:dword; hProcess:THANDLE; hThread:THANDLE; StackFrame:LPSTACKFRAME64; ContextRecord:pointer; ReadMemoryRoutine:TREAD_PROCESS_MEMORY_ROUTINE64; FunctionTableAccessRoutine:TFUNCTION_TABLE_ACCESS_ROUTINE64; GetModuleBaseRoutine:TGET_MODULE_BASE_ROUTINE64; TranslateAddress:TTRANSLATE_ADDRESS_ROUTINE64):bool;stdcall;
+
+    SymSetOptions:function(SymOptions:dword):dword;stdcall;
+    SymGetOptions:function:dword;stdcall;
+    SymCleanup:function(hProcess:THANDLE):BOOL;stdcall;
+    SymEnumerateModules:function(hProcess:THANDLE; EnumModulesCallback:TSYM_ENUMMODULES_CALLBACK; UserContext:pointer):BOOL;stdcall;
+    SymEnumerateSymbols:function(hProcess:THANDLE; BaseOfDll:dword; EnumSymbolsCallback:TSYM_ENUMSYMBOLS_CALLBACK; UserContext:pointer):BOOL;stdcall;
+    SymGetModuleInfo:function(hProcess:THANDLE; dwAddr:dword; ModuleInfo:PIMAGEHLP_MODULE):BOOL;stdcall;
+    SymInitialize:function(hProcess:THANDLE; UserSearchPath:PSTR; fInvadeProcess:BOOL):BOOL;stdcall;
+
+
+
+
     {$endif}
 
 procedure symhandlerInitialize;
@@ -768,7 +788,12 @@ begin
             if assigned(SymLoadModuleEx) then
               symLoadModuleEx(thisprocesshandle,0,pchar(modulename),nil,ptrUint(x[i]),0,nil,ifthen(loadpdb,0,SLMFLAG_NO_SYMBOLS))
             else
-              SymLoadModule64(thisprocesshandle,0,pchar(modulename),nil,ptrUint(x[i]),0);
+            begin
+              if assigned(SymLoadModule64) then
+                SymLoadModule64(thisprocesshandle,0,pchar(modulename),nil,ptrUint(x[i]),0)
+              else
+                exit;
+            end;
           end;
 
           mi.SizeOfStruct:=sizeof(mi);
@@ -844,7 +869,12 @@ begin
             if assigned(SymLoadModuleEx) then
               r:=SymLoadModuleEx(thisprocesshandle,0,pchar(driverpath),pchar(extractfilename(driverpath)),ptrUint(x[i]),0,nil,ifthen(loadpdb,0, SLMFLAG_NO_SYMBOLS))
             else
-              r:=SymLoadModule64(thisprocesshandle,0,pchar(driverpath),pchar(extractfilename(driverpath)),ptrUint(x[i]),0);
+            begin
+              if assigned(SymLoadModule64) then
+                r:=SymLoadModule64(thisprocesshandle,0,pchar(driverpath),pchar(extractfilename(driverpath)),ptrUint(x[i]),0)
+              else
+                exit;
+            end;
 
             mi.SizeOfStruct:=sizeof(mi);
             if SymGetModuleInfo(thisprocesshandle, ptruint(x[i]), @mi) then
@@ -1203,7 +1233,10 @@ var es2address: pointer=@es2;
 
 {$IFDEF windows}
 var SES:function(hProcess:THANDLE; BaseOfDll:ULONG64; Mask:LPCSTR; EnumSymbolsCallback:TSYM_ENUMERATESYMBOLS_CALLBACK; UserContext:pointer):BOOL;stdcall; //external External_library name 'SymEnumSymbols';
+
+
 {$ENDIF}
+
 
 procedure TSymbolloaderthread.EnumerateExtendedDebugSymbols;
 var
@@ -1243,11 +1276,13 @@ begin
       ZeroMemory(c, sizeof(c)*2+1024);
 
       c.InstructionOffset:=self.extraSymbolData.symboladdress;
-      SymSetContext(self.thisprocesshandle, IMAGEHLP.PIMAGEHLP_STACK_FRAME(c), nil);
-
-      SES(self.thisprocesshandle, 0, nil, es2address, self);
-
+      if assigned(SymSetContext) then
+      begin
+        SymSetContext(self.thisprocesshandle, IMAGEHLP.PIMAGEHLP_STACK_FRAME(c), nil);
+        SES(self.thisprocesshandle, 0, nil, es2address, self);
+      end;
       self.extraSymbolData.filledin:=true;
+
 
       freemem(c);
     end;
@@ -2598,8 +2633,8 @@ begin
               DLLSymbolsLoaded:=true;
 
               processThreadEvents;
-
-              SymEnumerateModules64(thisprocesshandle, @EM, self );
+              if assigned(SymEnumerateModules64) then
+                SymEnumerateModules64(thisprocesshandle, @EM, self );
 
               processThreadEvents;
 
@@ -2677,7 +2712,9 @@ begin
               asm
               nop
               end;
-              SymEnumerateModules64(thisprocesshandle, @EM, self );
+              if assigned(SymEnumerateModules64) then
+                SymEnumerateModules64(thisprocesshandle, @EM, self );
+
               if targetself=false then
               asm
               nop
@@ -6054,6 +6091,27 @@ begin
   SymSearch:=GetProcAddress(dbghlp,'SymSearch');
   StackWalkEx:=GetProcAddress(dbghlp,'StackWalkEx');
   SymLoadModuleEx:=GetProcAddress(dbghlp,'SymLoadModuleEx');
+  SymEnumerateModules64:=GetProcAddress(dbghlp,'SymEnumerateModules64');
+  SymLoadModule64:=GetProcAddress(dbghlp,'SymLoadModule64');
+  SymSetContext:=GetProcAddress(dbghlp,'SymSetContext');
+  SymEnumSymbols:=GetProcAddress(dbghlp,'SymEnumSymbols');
+  SymGetTypeInfo:=GetProcAddress(dbghlp,'SymGetTypeInfo');
+  SymEnumTypes:=GetProcAddress(dbghlp,'SymEnumTypes');
+  SymGetTypeFromName:=GetProcAddress(dbghlp,'SymGetTypeFromName');
+
+
+  StackWalk64:=GetProcAddress(dbghlp,'StackWalk64');
+  SymSetOptions:=GetProcAddress(dbghlp,'SymSetOptions');
+  SymGetOptions:=GetProcAddress(dbghlp,'SymGetOptions');
+  SymCleanup:=GetProcAddress(dbghlp,'SymCleanup');
+  SymEnumerateModules:=GetProcAddress(dbghlp,'SymEnumerateModules');
+  SymEnumerateSymbols:=GetProcAddress(dbghlp,'SymEnumerateSymbols');
+  SymGetModuleInfo:=GetProcAddress(dbghlp,'SymGetModuleInfo');
+  SymInitialize:=GetProcAddress(dbghlp,'SymGetModuleInfo');
+
+
+  if not assigned(SymSetContext) then
+    MessageBox(0,'No SymSetContext','SymSetContext Missing',MB_OK);
 
   UnDecorateSymbolName:=GetProcAddress(dbghlp,'UnDecorateSymbolName');
 
@@ -6061,6 +6119,8 @@ begin
   psa:=loadlibrary('Psapi.dll');
   EnumProcessModules:=GetProcAddress(psa,'EnumProcessModules');
   EnumProcessModulesEx:=GetProcAddress(psa,'EnumProcessModulesEx');
+
+
   GetModuleFileNameEx:=GetProcAddress(psa,'GetModuleFileNameExA');
   if not assigned(EnumProcessModulesEx) then
     EnumProcessModulesEx:=EnumProcessModulesExNotImplemented;
