@@ -456,6 +456,10 @@ uses mainunit, addresslist, formsettingsunit, LuaHandler, lua, lauxlib, lualib, 
 {$endif}
 
 
+resourcestring
+  rsUnknown = 'Unknown';
+
+
 {---------------------TMemoryRecordProcessingThread-------------------------}
 
 procedure TMemoryRecordProcessingThread.reinterpretAddresses;
