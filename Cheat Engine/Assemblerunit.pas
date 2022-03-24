@@ -5105,7 +5105,7 @@ begin
 
             bts:=[];
 
-            assemble('jmp short +14', address+length(bytes), bts);
+            assemble('jmp short +e', address+length(bytes), bts);
             insert(bts, bytes,length(bytes));
 
             bts:=[];
