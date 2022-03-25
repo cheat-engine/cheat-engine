@@ -6107,7 +6107,7 @@ begin
   SymEnumerateModules:=GetProcAddress(dbghlp,'SymEnumerateModules');
   SymEnumerateSymbols:=GetProcAddress(dbghlp,'SymEnumerateSymbols');
   SymGetModuleInfo:=GetProcAddress(dbghlp,'SymGetModuleInfo');
-  SymInitialize:=GetProcAddress(dbghlp,'SymGetModuleInfo');
+  SymInitialize:=GetProcAddress(dbghlp,'SymInitialize');
 
 
   if not assigned(SymSetContext) then
