@@ -71,6 +71,8 @@ procedure unregisterAutoAssemblerPrologue(id: integer);
 
 var oldaamessage: boolean;
 
+function autoassemble2(code: tstrings;popupmessages: boolean;syntaxcheckonly:boolean; targetself: boolean; disableinfo: TDisableInfo=nil; memrec: TMemoryRecord=nil):boolean;
+
 implementation
 
 {$ifdef jni}
@@ -159,7 +161,7 @@ resourcestring
   rsNoPreferedRangeAllocWarning = 'None of the ALLOC statements specify a '
     +'prefered address.  Did you take into account that the JMP instruction is'
     +' going to be 14 bytes long?';
-  rsFailureAlloc = 'Failure allocating memory near %.8x';
+  rsFailureAlloc = 'Failure allocating memory near %.8x for variable named %s in script %s';
 
 //type
 //  TregisteredAutoAssemblerCommands =  TFPGList<TRegisteredAutoAssemblerCommand>;
@@ -3092,15 +3094,28 @@ begin
       begin
         //does this entry have a prefered location or a non default protection
 
-        if (allocs[i].prefered<>0) or (allocs[i].protection<>PAGE_EXECUTE_READWRITE) then
+        if allocs[i].protection<>protection then
+        begin
+          //increment x to the next pagebase
+          if (x and $fff>0) then
+          begin
+            y:=$1000- (x and $fff);
+            inc(x,y);
+            inc(allocs[i-1].size,y); //adjust the previous entry's size
+          end;
+
+          protection:=allocs[i].protection;
+        end;
+
+        if (allocs[i].prefered<>0) then
         begin
           //if yes, is it the same as the previous entry? (or was the previous one that doesn't care?)
           if prefered=0 then
             prefered:=allocs[i].prefered;
 
-          if (prefered<>allocs[i].prefered) or (protection<>allocs[i].protection) then
+          if (prefered<>allocs[i].prefered) then
           begin
-            //different prefered address or protection
+            //different prefered address
 
             if x>0 then //it has some previous entries with compatible locations
             begin
@@ -3119,7 +3134,7 @@ begin
                 if (prefered=0) and (oldprefered<>0) then
                   prefered:=oldprefered;
 
-                allocs[j].address:=ptrUint(virtualallocex(processhandle,pointer(prefered),x, MEM_RESERVE or MEM_COMMIT,protection));
+                allocs[j].address:=ptrUint(virtualallocex(processhandle,pointer(prefered),x, MEM_RESERVE or MEM_COMMIT,PAGE_EXECUTE_READWRITE));
                 if allocs[j].address=0 then
                 begin
                   OutputDebugString(rsFailureToAllocateMemory+' 1');
@@ -3134,7 +3149,7 @@ begin
 
               if allocs[j].address=0 then
               begin
-                raise EAssemblerException.create(format(rsFailureAlloc, [prefered]));
+                raise EAssemblerException.create(format(rsFailureAlloc, [prefered,allocs[j].varname, code.text]));
 //                if allocs[j].address=0 then
 
 //                allocs[j].address:=ptrUint(virtualallocex(processhandle,nil,x, MEM_RESERVE or MEM_COMMIT,protection));
@@ -3158,6 +3173,7 @@ begin
         end;
 
         //no prefered location specified, OR same prefered location
+
 
         inc(x,allocs[i].size);
       end; //after the loop
@@ -3183,7 +3199,7 @@ begin
             prefered:=oldprefered;
 
 
-          allocs[j].address:=ptrUint(virtualallocex(processhandle,pointer(prefered),x, MEM_RESERVE or MEM_COMMIT,protection));
+          allocs[j].address:=ptrUint(virtualallocex(processhandle,pointer(prefered),x, MEM_RESERVE or MEM_COMMIT,PAGE_EXECUTE_READWRITE));
           if allocs[j].address=0 then
           begin
             OutputDebugString(rsFailureToAllocateMemory+' 3 (prefered='+inttohex(prefered,8)+')');
@@ -3196,7 +3212,7 @@ begin
           allocs[j].address:=lastChanceAllocPrefered(prefered,x, protection);
 
         if allocs[j].address=0 then
-          raise EAssemblerException.create(format(rsFailureAlloc, [prefered]));
+          raise EAssemblerException.create(format(rsFailureAlloc, [prefered,allocs[j].varname, code.text]));
          // allocs[j].address:=ptrUint(virtualallocex(processhandle,nil,x, MEM_RESERVE or MEM_COMMIT,protection));
 
         if allocs[j].address=0 then raise EAssemblerException.create(rsFailureToAllocateMemory);
@@ -3205,6 +3221,13 @@ begin
           allocs[i].address:=allocs[i-1].address+allocs[i-1].size;
 
 
+      end;
+
+      //apply protections:
+      for i:=0 to length(allocs)-1 do
+      begin
+        if allocs[i].protection<>PAGE_EXECUTE_READWRITE then
+          VirtualProtectEx(processhandle, pointer(allocs[i].address), allocs[i].size, allocs[i].protection,protection);
       end;
     end;
 
