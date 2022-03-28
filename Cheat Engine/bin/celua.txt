@@ -167,6 +167,10 @@ extractFileExt(filepath): returns the file extension of the path
 extractFileNameWithoutExt(filepath): Returns the filename of the path, without the extension
 extractFilePath(filepath): removes the filename from the path
 
+getTempFolder() : Returns the path to the temp folder
+fileExists(pathtofile): Returns true if a file exists at that path
+deleteFile(pathtofile): Returns true if a file existed at that path, and now not anymore
+
 enableWindowsSymbols(): Will download the PDB files of Windows and load them (Takes a long time the first time)
 getAddress(string, local OPTIONAL): returns the address of a symbol. Can be a modulename or an export. set Local to true if you wish to querry the symboltable of the ce process
 enableKernelSymbols(): Will check the option for kernelmode symbols in memory view (Gets only the exports unless enableWindowsSymbols() is used)
@@ -332,7 +336,7 @@ getUniqueAOB(address): AOBString,Offset - Scans for a unique AOB for the given a
 
 showMessage(text) : shows a messagebox with the given text
 inputQuery(caption, prompt, initialstring): Shows a dialog where the user can input a string. This function returns the given string, or nil on cancel
-showSelectionList(title, caption, stringlist, allowCustomInput OPTIONAL): integer,string - Shows a menu with the given list. It returns the linenumber (starting at 0) and the selected string.  Linenumber is -1 if the user was allowed to enter custom input
+showSelectionList(title, caption, stringlist, allowCustomInput OPTIONAL, formname OPTIONAL): integer,string - Shows a menu with the given list. It returns the linenumber (starting at 0) and the selected string.  Linenumber is -1 if the user was allowed to enter custom input
 
 messageDialog(text, type, buttons...) : pops up a messagebox with a specific icon/sound with the specified buttons (mbok, mbyes, ....)
 messageDialog(title, text, type, buttons...): ^ but adds a custom title
@@ -420,7 +424,7 @@ convertKeyComboToString({key1,...}): ^
 outputDebugString(text): Outputs a message using the windows OutputDebugString message. You can use tools like dbgview to read this. Useful for testing situations where the GUI freezes
 
 shellExecute(command, parameters OPTIONAL, folder OPTIONAL, showcommand OPTIONAL): Executes a given command
-runCommand(exepath, parameters or {parameter1, parameter2}): Executes the given command and returns the output of the command as a string (Should not open a console window)
+runCommand(exepath, parameters or {parameter1, parameter2}, pathtoexecutein OPTIONAL): Executes the given command and returns the output of the command as a string and the exitcode as an integer (Should not open a console window) If pathtoexecutein is not provided the path will be the current working directory of CE
 
 
 getTickCount() :  Returns the current tickcount since windows was started. Each tick is one millisecond
