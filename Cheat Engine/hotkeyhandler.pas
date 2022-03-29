@@ -707,7 +707,7 @@ begin
           else
           begin
             hotkeylist[i].lastactivate:=0; //not currently down.  The user released the key so repeat can be skipped
-            if (hotkeylist[i].memrechotkey<>nil) and TMemoryrecordHotkey(hotkeylist[i].memrechotkey).down and TMemoryrecordHotkey(hotkeylist[i].memrechotkey).OnlyWhileDown then
+            if (hotkeylist[i].memrechotkey<>nil) and TMemoryrecordHotkey(hotkeylist[i].memrechotkey).OnlyWhileDown and TMemoryrecordHotkey(hotkeylist[i].memrechotkey).down then
             begin
               memrechk:=hotkeylist[i].memrechotkey;
               synchronize(memrechotkeydisable);

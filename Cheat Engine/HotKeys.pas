@@ -334,6 +334,8 @@ begin
   cbDeactivateSoundChange(cbDeactivateSound);
 
   cbFreezedirection.OnSelect(cbFreezedirection);
+
+  cbOnlyWhileDown.checked:=hk.OnlyWhileDown;
 end;
 
 procedure THotKeyForm.btnApplyClick(Sender: TObject);
@@ -389,7 +391,6 @@ begin
   listview1.selected.subitems[1]:=edtFreezeValue.text;
   listview1.selected.subitems[2]:=edtDescription.text;
   listview1.Selected.data:=hk;
-
 
   pagecontrol1.ActivePage:=tabsheet1;
   listview1.Enabled:=true;
