@@ -748,7 +748,8 @@ begin
   if owner<>nil then //just be safe (e.g other app sending message)
     owner.DoHotkey(self);
 
-  down:=true;
+  if OnlyWhileDown then
+    down:=true;
 
   if assigned(fonPostHotkey) then
     fOnPostHotkey(self);
@@ -2340,7 +2341,7 @@ end;
 procedure TMemoryRecord.DoHotkey(hk: TMemoryRecordhotkey);
 var oldstate: boolean;
 begin
-  if (hk<>nil) and (hk.owner=self) and (hk.down=false) then
+  if (hk<>nil) and (hk.owner=self) and ((not hk.OnlyWhileDown) or (hk.OnlyWhileDown and (hk.down=false)) ) then
   begin
     try
       case hk.action of
