@@ -504,7 +504,7 @@ function startPatchScan()
      -- print('done')
 
       rform.OnClose=function(f)
-        print('rform closed')
+--        print('rform closed')
         local i
         for i=0,lv.Items.Count-1 do
           local ref=lv.Items[i].Data

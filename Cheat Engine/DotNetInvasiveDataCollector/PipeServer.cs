@@ -27,6 +27,7 @@ namespace DotNetInterface
             public const byte WRAPOBJECT = 8;
             public const byte UNWRAPOBJECT = 9;
             public const byte INVOKEMETHOD = 10;
+            public const byte FIND_MODULEID_WITH_CLASSLIST = 11;
             public const byte EXIT = 255;
         }
         
@@ -197,7 +198,7 @@ namespace DotNetInterface
         private void initModuleList()
         {
             AppDomain cd=AppDomain.CurrentDomain;
-         
+
 
             Assembly[] AssemblyList = cd.GetAssemblies();
             ModuleList.Clear();          
@@ -209,12 +210,24 @@ namespace DotNetInterface
                 int j;
                 for (j=0; j<LocalModuleList.Length; j++)
                     ModuleList.Add(LocalModuleList[j]);
+
+               
+                
             }
 
             //send the list, the order of this list is going to be used as ID's for modulespecific access           
-            WriteDword((uint)ModuleList.Count); 
+            WriteDword((uint)ModuleList.Count);
             for (i = 0; i < ModuleList.Count; i++)
-                WriteUTF8String(ModuleList[i].Name);
+            {
+                Module l = ModuleList[i];
+
+
+                WriteUTF8String(l.Name);
+                WriteUTF8String(l.ScopeName);
+                WriteUTF8String(l.ModuleVersionId.ToString());
+            }
+
+            
         }
 
         private void getFieldTypeName()
@@ -716,6 +729,44 @@ namespace DotNetInterface
         }
 
 
+        private void findModuleIDWithClassList()
+        {
+            int i;
+            byte classcount = ReadByte();
+            bool found = false;
+
+            string[] classlist = new string[classcount];
+            for (i=0; i<classcount; i++)
+                classlist[i] = ReadUTF8String();
+       
+            for (i=0; i<ModuleList.Count; i++)
+            {
+                int j;
+                found = true;
+                
+                for (j=0; j<classcount; j++)
+                {
+                    Type r=ModuleList[i].GetType(classlist[j]);
+                   
+                    if (r == null)
+                    {
+                        found = false;
+                        break;
+                    }
+                }
+
+                if (found)
+                {
+                    WriteWord((ushort)i);
+                    break;
+                }                
+            }
+
+            if (!found)
+                WriteWord(0xffff);
+        }
+
+
 
 
         private void PipeServerThread()
@@ -788,6 +839,10 @@ namespace DotNetInterface
 
                         case Commands.INVOKEMETHOD:
                             invokeMethod();
+                            break;
+
+                        case Commands.FIND_MODULEID_WITH_CLASSLIST:
+                            findModuleIDWithClassList();
                             break;
 
                     }
