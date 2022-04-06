@@ -115,7 +115,7 @@ type
     function  isBreakpoint(address: uint_ptr; address2: uint_ptr=0; includeinactive: boolean=false): PBreakpoint;
     function  CodeFinderStop(codefinder: TFoundCodeDialog): boolean;
     function  setChangeRegBreakpoint(regmod: PRegisterModificationBP): PBreakpoint;
-    procedure setBreakAndTraceBreakpoint(frmTracer: TFrmTracer; address: ptrUint; BreakpointTrigger: TBreakpointTrigger; breakpointmethod: TBReakpointmethod; bpsize: integer; count: integer; startcondition:string=''; stopcondition:string=''; stepover: boolean=false; nosystem: boolean=false);
+    procedure setBreakAndTraceBreakpoint(frmTracer: TFrmTracer; address: ptrUint; BreakpointTrigger: TBreakpointTrigger; breakpointmethod: TBReakpointmethod; bpsize: integer; count: integer; startcondition:string=''; stopcondition:string=''; stepover: boolean=false; nosystem: boolean=false; stayInsideModule: boolean=false);
     function  stopBreakAndTrace(frmTracer: TFrmTracer): boolean;
     function FindWhatCodeAccesses(address: uint_ptr; FoundCodeDialog:TFoundCodeDialog=nil): tfrmChangedAddresses;
     function  FindWhatCodeAccessesStop(frmchangedaddresses: Tfrmchangedaddresses): boolean;
@@ -182,7 +182,8 @@ implementation
 uses CEDebugger, KernelDebugger, formsettingsunit, FormDebugStringsUnit,
      frmBreakpointlistunit, plugin, memorybrowserformunit, autoassembler,
      pluginexports, networkInterfaceApi, ProcessHandlerUnit, Globals, LuaCaller,
-     vmxfunctions, LuaHandler, frmDebuggerAttachTimeoutUnit, DBVMDebuggerInterface;
+     vmxfunctions, LuaHandler, frmDebuggerAttachTimeoutUnit, DBVMDebuggerInterface,
+     symbolhandlerstructs;
 
 //-----------Inside thread code---------
 
@@ -1941,12 +1942,16 @@ begin
 
 end;
 
-procedure TDebuggerthread.setBreakAndTraceBreakpoint(frmTracer: TFrmTracer; address: ptrUint; BreakpointTrigger: TBreakpointTrigger; breakpointmethod: TBreakpointmethod; bpsize: integer; count: integer; startcondition:string=''; stopcondition:string=''; stepover: boolean=false; nosystem: boolean=false);
+procedure TDebuggerthread.setBreakAndTraceBreakpoint(frmTracer: TFrmTracer; address: ptrUint; BreakpointTrigger: TBreakpointTrigger; breakpointmethod: TBreakpointmethod; bpsize: integer; count: integer; startcondition:string=''; stopcondition:string=''; stepover: boolean=false; nosystem: boolean=false; stayInsideModule: boolean=false);
 var
   useddebugregister: integer;
   bp,bpsecondary: PBreakpoint;
   bplist: TBreakpointSplitArray;
   i: integer;
+
+  mi: tmoduleinfo;
+  startModuleBase: ptruint;
+  startModuleSize: dword;
 begin
   debuggercs.enter;
   try
@@ -1989,6 +1994,17 @@ begin
       {$endif}
     end;
 
+    if stayInsideModule then
+    begin
+      if symhandler.getmodulebyaddress(address, mi) then
+      begin
+        startModuleBase:=mi.baseaddress;
+        startModuleSize:=mi.basesize;
+      end
+      else
+        stayInsideModule:=false;
+    end;
+
     bp:=AddBreakpoint(nil, address, bpsize, BreakpointTrigger, breakpointmethod, bo_BreakAndTrace, usedDebugRegister,  nil, 0, nil,frmTracer,count);
 
     if startcondition<>'' then
@@ -2010,6 +2026,12 @@ begin
       bp^.traceendcondition:=strnew(pchar(stopcondition));
       bp^.traceStepOver:=stepover;
       bp^.traceNosystem:=nosystem;
+      bp^.traceStayInsideModule:=stayInsideModule;
+      if stayInsideModule then
+      begin
+        bp^.traceStartmodulebase:=startModuleBase;
+        bp^.traceStartmodulesize:=startModuleSize;
+      end;
     end;
 
 
@@ -2022,6 +2044,12 @@ begin
       bpsecondary.traceendcondition:=strnew(pchar(stopcondition));
       bpsecondary.traceStepOver:=stepover;
       bpsecondary.traceNosystem:=nosystem;
+      bpsecondary.traceStayInsideModule:=stayInsideModule;
+      if stayInsideModule then
+      begin
+        bpsecondary.traceStartmodulebase:=startModuleBase;
+        bpsecondary.traceStartmodulesize:=startModuleSize;
+      end;
     end;
 
 

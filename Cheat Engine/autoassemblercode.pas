@@ -665,6 +665,7 @@ var
 
   _tcc: TTCC;
 begin
+
   s:=trim(script[i]);
   s:=copy(s,9,length(s)-9);
   ParseCBlockSpecificParameters(s, dataForPass2);
@@ -707,9 +708,9 @@ begin
       case parameters[j].contextitem of
         0: s:='unsigned long long '+parameters[j].varname+'=*(unsigned long long *)*(unsigned long long *)((unsigned long long)parameters+0x228);'; //RAX
         1..5, 7..15: s:='unsigned long long '+parameters[j].varname+'=*(unsigned long long*)((unsigned long long)parameters+0x'+inttohex($200+(parameters[j].contextitem-1)*8,1)+');'; //RBX..R15
-        6: s:='unsigned long long '+parameters[j].varname+'=*(unsigned long long*)((unsigned long long)parameters+0x'+inttohex($200+(parameters[j].contextitem-1)*8,1)+')-24;'; //RSP
+        6: s:='unsigned long long '+parameters[j].varname+'=*(unsigned long long*)((unsigned long long)parameters+0x'+inttohex($200+(parameters[j].contextitem-1)*8,1)+')+24;'; //RSP
         16: s:='float '+parameters[j].varname+'=*(float *)((unsigned long long)parameters+0x228);';
-        17..31: s:='float '+parameters[j].varname+'=*(float *)((unsigned long long)parameters+0x'+inttohex($200+(parameters[j].contextitem-1)*8,1)+');'; //RBX..R15
+        17..31: s:='float '+parameters[j].varname+'=*(float *)((unsigned long long)parameters+0x'+inttohex($200+(parameters[j].contextitem-1-16)*8,1)+');'; //RBX..R15
         32..47:
         begin
           usesXMMType:=true;
@@ -728,9 +729,9 @@ begin
       case parameters[j].contextitem of
         0: s:='unsigned long '+parameters[j].varname+'=*(unsigned long *)*(unsigned long *)((unsigned long)parameters+0x214);'; //EAX
         1..5,7: s:='unsigned long '+parameters[j].varname+'=*(unsigned long*)((unsigned long)parameters+0x'+inttohex($200+(parameters[j].contextitem-1)*4,1)+');'; //RBX..R15
-        6: s:='unsigned long '+parameters[j].varname+'=*(unsigned long*)((unsigned long)parameters+0x'+inttohex($200+(parameters[j].contextitem-1)*4,1)+')-12;'; //RBX..R15
+        6: s:='unsigned long '+parameters[j].varname+'=*(unsigned long*)((unsigned long)parameters+0x'+inttohex($200+(parameters[j].contextitem-1)*4,1)+')+12;'; //RBX..R15
         16: s:='float '+parameters[j].varname+'=*(float *)((unsigned long)parameters+0x214);';
-        17..23: s:='float '+parameters[j].varname+'=*(float *)((unsigned long)parameters+0x'+inttohex($200+(parameters[j].contextitem-1)*4,1)+');'; //EBX..EBP
+        17..23: s:='float '+parameters[j].varname+'=*(float *)((unsigned long)parameters+0x'+inttohex($200+(parameters[j].contextitem-1-16)*4,1)+');'; //EBX..EBP
         32..39:
         begin
           usesXMMType:=true;
@@ -760,12 +761,14 @@ begin
   begin
     for j:=0 to length(parameters)-1 do
     begin
+      s:='';
+
       case parameters[j].contextitem of
         0: s:='*(unsigned long long *)*(unsigned long long *)((unsigned long long)parameters+0x228)='+parameters[j].varname+';'; //RAX
         1..5, 7..15: s:='*(unsigned long long*)((unsigned long long)parameters+0x'+inttohex($200+(parameters[j].contextitem-1)*8,1)+')='+parameters[j].varname+';'; //RBX..R15
-        //6: skip, do not write rsp
+        6: s:=''; //skip, do not write rsp
         16: s:='*(float *)((unsigned long long)parameters+0x228)='+parameters[j].varname+';';
-        17..31: s:='*(float *)((unsigned long long)parameters+0x'+inttohex($200+(parameters[j].contextitem-1)*8,1)+')='+parameters[j].varname+';'; //RBX..R15
+        17..31: s:='*(float *)((unsigned long long)parameters+0x'+inttohex($200+(parameters[j].contextitem-1-16)*8,1)+')='+parameters[j].varname+';'; //RBX..R15
         32..47:
         begin
           usesXMMType:=true;
@@ -774,19 +777,23 @@ begin
         48..111: s:='*(float *)((unsigned long long)parameters+0x'+inttohex($a0+(parameters[j].contextitem-48)*4,1)+')='+parameters[j].varname+';'; //RBX..R15
         112..143: s:='*(double *)((unsigned long long)parameters+0x'+inttohex($a0+(parameters[j].contextitem-112)*8,1)+')='+parameters[j].varname+';';
       end;
-      cscript.add('  '+s);
+      if s<>'' then
+        cscript.add('  '+s);
+
     end;
   end
   else
   begin
     for j:=0 to length(parameters)-1 do
     begin
+      s:='';
+
       case parameters[j].contextitem of
         0: s:='*(unsigned long *)*(unsigned long *)((unsigned long)parameters+0x214)='+parameters[j].varname+';'; //EAX
         1..5,7: s:='*(unsigned long*)((unsigned long)parameters+0x'+inttohex($200+(parameters[j].contextitem-1)*4,1)+')='+parameters[j].varname+';'; //RBX..R15
-        //6: skip.  Do not write esp
+        6: s:='';
         16: s:='*(float *)((unsigned long)parameters+0x214)='+parameters[j].varname+';';
-        17..23: s:='*(float *)((unsigned long)parameters+0x'+inttohex($200+(parameters[j].contextitem-1)*4,1)+')='+parameters[j].varname+';'; //EBX..EBP
+        17..23: s:='*(float *)((unsigned long)parameters+0x'+inttohex($200+(parameters[j].contextitem-1-16)*4,1)+')='+parameters[j].varname+';'; //EBX..EBP
         32..39:
         begin
           usesXMMType:=true;
@@ -795,7 +802,9 @@ begin
         48..79: s:='*(float *)((unsigned long)parameters+0x'+inttohex($a0+(parameters[j].contextitem-48)*4,1)+')='+parameters[j].varname+';'; //EBX..EBP
         112..127: s:='*(double *)((unsigned long)parameters+0x'+inttohex($a0+(parameters[j].contextitem-112)*8,1)+')='+parameters[j].varname+';';
       end;
-      cscript.add('  '+s);
+      if s<>'' then
+        cscript.add('  '+s);
+
     end;
   end;
 
@@ -893,7 +902,8 @@ begin
 
       case parameters[j].contextitem of
         0: s:=s+'readPointer(readPointer(parameters+0x228))'; //RAX
-        1..15: s:=s+'readPointer(parameters+0x'+inttohex($200+(parameters[j].contextitem-1)*8,1)+')'; //RBX..R15
+        1..5,7..15: s:=s+'readPointer(parameters+0x'+inttohex($200+(parameters[j].contextitem-1)*8,1)+')'; //RBX..R15
+        6: s:=s+'readPointer(parameters+0x'+inttohex($200+(parameters[j].contextitem-1)*8,1)+'+24)';
         16: s:=s+'readFloat(readPointer(parameters+0x228))'; //RAX as float
         17..31: s:=s+'readFloat(parameters+0x'+inttohex($200+(parameters[j].contextitem-17)*8,1)+')'; //RBX..R15 as float
         32..47: s:=s+'readBytes(parameters+0x'+inttohex($a0+(parameters[j].contextitem-32)*16,1)+',16,true)';
@@ -912,7 +922,8 @@ begin
       s:='local '+parameters[j].varname+'=';
       case parameters[j].contextitem of
         0: s:=s+'readPointer(readPointer(parameters+0x214))'; //RAX
-        1..7: s:=s+'readPointer(parameters+0x'+inttohex($200+(parameters[j].contextitem-1)*4,1)+')'; //RBX..R15
+        1..5,7: s:=s+'readPointer(parameters+0x'+inttohex($200+(parameters[j].contextitem-1)*4,1)+')'; //RBX..R15
+        6: s:=s+'readPointer(parameters+0x'+inttohex($200+(parameters[j].contextitem-1)*8,1)+'+12)';
         16: s:=s+'readFloat(readPointer(parameters+0x214))'; //RAX as float
         17..23: s:=s+'readFloat(parameters+0x'+inttohex($200+(parameters[j].contextitem-17)*4,1)+')'; //RBX..R15 as float
         32..39: s:=s+'readBytes(parameters+0x'+inttohex($a0+(parameters[j].contextitem-32)*16,1)+',16,true)';
@@ -932,7 +943,8 @@ begin
     begin
       case parameters[j].contextitem of
         0: s:='writePointer(readPointer(parameters+0x228),'+parameters[j].varname+')';
-        1..15: s:='writePointer(parameters+0x'+inttohex($200+(parameters[j].contextitem-1)*8,1)+','+parameters[j].varname+')'; //RBX..R15
+        1..5,7..15: s:='writePointer(parameters+0x'+inttohex($200+(parameters[j].contextitem-1)*8,1)+','+parameters[j].varname+')'; //RBX..R15
+        6: s:='';
         16: s:='writeFloat(readPointer(parameters+0x228),'+parameters[j].varname+')'; //RAX as float
         17..31: s:='writeFloat(parameters+0x'+inttohex($200+(parameters[j].contextitem-17)*8,1)+','+parameters[j].varname+')'; //RBX..R15 as float
         32..47: s:='writeBytes(parameters+0x'+inttohex($a0+(parameters[j].contextitem-32)*16,1)+','+parameters[j].varname+')';
@@ -951,7 +963,8 @@ begin
     begin
       case parameters[j].contextitem of
         0: s:='writePointer(readPointer(parameters+0x214),'+parameters[j].varname+')';
-        1..7: s:='writePointer(parameters+0x'+inttohex($200+(parameters[j].contextitem-1)*4,1)+','+parameters[j].varname+')'; //EBX..EBP
+        1..5,7: s:='writePointer(parameters+0x'+inttohex($200+(parameters[j].contextitem-1)*4,1)+','+parameters[j].varname+')'; //EBX..EBP
+        6: s:='';
         16: s:='writeFloat(readPointer(parameters+0x214),'+parameters[j].varname+')'; //EAX as float
         17..23: s:='writeFloat(parameters+0x'+inttohex($200+(parameters[j].contextitem-17)*4,1)+','+parameters[j].varname+')'; //EBX..EBP as float
         32..39: s:='writeBytes(parameters+0x'+inttohex($a0+(parameters[j].contextitem-32)*16,1)+','+parameters[j].varname+')';

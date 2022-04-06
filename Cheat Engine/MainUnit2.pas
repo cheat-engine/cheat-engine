@@ -19,7 +19,7 @@ uses
      memscan,plugin, hotkeyhandler,frmProcessWatcherUnit, newkernelhandler,
      debuggertypedefinitions, commonTypeDefs, betterControls;
 
-const ceversion=7.32;
+const ceversion=7.4;
 {$ifdef altname}  //i'd use $MACRO ON but fpc bugs out
   strCheatEngine='Runtime Modifier'; //if you change this, also change it in first.pas
   strCheatTable='Code Table';   //because it contains code.... duh.....
@@ -41,7 +41,7 @@ const ceversion=7.32;
 {$endif}
 
 resourcestring
-  cename = strCheatEngine+' 7.3.2';
+  cename = strCheatEngine+' 7.4';
   rsCheatEngine = strCheatEngine;
   rsPleaseWait = 'Please Wait!';
 
@@ -199,18 +199,18 @@ begin
             miLuaExecSignedOnly.checked:=true;
 
 
-          if reg.ValueExists('AllByte') then cbAllByte.checked:=reg.readBool('AllByte');
-          if reg.ValueExists('AllWord') then cbAllWord.checked:=reg.readBool('AllWord');
-          if reg.ValueExists('AllDWord') then cbAllDouble.checked:=reg.readBool('AllDWord');
-          if reg.ValueExists('AllQWord') then cbAllQword.checked:=reg.readBool('AllQWord');
-          if reg.ValueExists('AllFloat') then cbAllSingle.checked:=reg.readBool('AllFloat');
-          if reg.ValueExists('AllDouble') then cbAllDouble.checked:=reg.readBool('AllDouble');
-          if reg.ValueExists('AllCustom') then cbAllCustom.checked:=reg.readBool('AllCustom');
+          if reg.ValueExists('AllByte') then cbAllByte.checked:=reg.readBool('AllByte') else cbAllByte.checked:=false;
+          if reg.ValueExists('AllWord') then cbAllWord.checked:=reg.readBool('AllWord') else cbAllWord.checked:=false;
+          if reg.ValueExists('AllDWord') then cbAllDword.checked:=reg.readBool('AllDWord') else cbAllDWord.checked:=true;
+          if reg.ValueExists('AllQWord') then cbAllQword.checked:=reg.readBool('AllQWord') else cbAllQWord.checked:=false;
+          if reg.ValueExists('AllFloat') then cbAllSingle.checked:=reg.readBool('AllFloat') else cbAllSingle.checked:=true;
+          if reg.ValueExists('AllDouble') then cbAllDouble.checked:=reg.readBool('AllDouble') else cbAllDouble.checked:=true;
+          if reg.ValueExists('AllCustom') then cbAllCustom.checked:=reg.readBool('AllCustom') else cbAllDouble.checked:=false;
 
           ScanAllTypes:=[];
           if cbAllByte.checked then ScanAllTypes:=ScanAllTypes+[vtByte];
           if cbAllWord.checked then ScanAllTypes:=ScanAllTypes+[vtWord];
-          if cbAllDouble.checked then ScanAllTypes:=ScanAllTypes+[vtDword];
+          if cbAllDword.checked then ScanAllTypes:=ScanAllTypes+[vtDword];
           if cbAllQword.checked then ScanAllTypes:=ScanAllTypes+[vtQword];
           if cbAllSingle.checked then ScanAllTypes:=ScanAllTypes+[vtSingle];
           if cbAllDouble.checked then ScanAllTypes:=ScanAllTypes+[vtDouble];

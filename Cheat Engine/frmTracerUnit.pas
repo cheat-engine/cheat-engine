@@ -168,7 +168,7 @@ type
 
     comparetv: TTreeView;
 
-    traceaddress: dword;
+   // traceaddress: dword;
     fpp: TfrmFloatingPointPanel;
     isConfigured: boolean;
     dereference: boolean;
@@ -717,16 +717,11 @@ var
   reg: TRegistry;
 begin
   //set a breakpoint and when that breakpoint gets hit trace a number of instructions
-  if fskipconfig=false then
-  begin
-    miNewTrace.Click;
-
-
-  end;
-
-
   setlength(x,0);
   loadedformpos:=loadformposition(self,x);
+
+  if length(x)>1 then
+    panel1.Width:=x[0];
 
 
   reg:=Tregistry.Create;
@@ -1284,7 +1279,13 @@ var tcount: integer;
     newpages: qword;
 
     memneeded: integer;
+    StayInsideModule: boolean;
 begin
+  if (owner is TMemoryBrowser) then
+    fromaddress:=(owner as TMemoryBrowser).disassemblerview.SelectedAddress
+  else
+    fromaddress:=memorybrowser.disassemblerview.SelectedAddress;
+
   if frmTracerConfig=nil then
     frmTracerConfig:=TfrmTracerConfig.create(application);
 
@@ -1292,6 +1293,11 @@ begin
   begin
     DataTrace:=fDataTrace;
     breakpointmethod:=defaultBreakpointMethod;
+
+    cbStayInsideInitialModule.enabled:=symhandler.inModule(fromaddress);
+    if cbStayInsideInitialModule.enabled=false then
+      cbStayInsideInitialModule.checked:=false;
+
     if showmodal=mrok then
     begin
 
@@ -1318,6 +1324,8 @@ begin
       stepover:=cbStepOver.checked;
       nosystem:=cbSkipSystemModules.checked;
 
+      StayInsideModule:=cbStayInsideInitialModule.checked;
+
 
 
       {$ifdef windows}
@@ -1327,10 +1335,7 @@ begin
 
 
         //setup dbvm trace
-        if (owner is TMemoryBrowser) then
-          fromaddress:=(owner as TMemoryBrowser).disassemblerview.SelectedAddress
-        else
-          fromaddress:=memorybrowser.disassemblerview.SelectedAddress;
+
 
         if cbDBVMTriggerCOW.checked then
         begin
@@ -1445,9 +1450,9 @@ begin
         else
         begin
           if (owner is TMemoryBrowser) then
-            debuggerthread.setBreakAndTraceBreakpoint(self, (owner as TMemoryBrowser).disassemblerview.SelectedAddress, bptExecute, breakpointmethod, 1, tcount, startcondition, stopcondition, StepOver, Nosystem)
+            debuggerthread.setBreakAndTraceBreakpoint(self, (owner as TMemoryBrowser).disassemblerview.SelectedAddress, bptExecute, breakpointmethod, 1, tcount, startcondition, stopcondition, StepOver, Nosystem, stayinsidemodule)
           else
-            debuggerthread.setBreakAndTraceBreakpoint(self, memorybrowser.disassemblerview.SelectedAddress, bptExecute, breakpointmethod, 1, tcount, startcondition, stopcondition, StepOver, nosystem);
+            debuggerthread.setBreakAndTraceBreakpoint(self, memorybrowser.disassemblerview.SelectedAddress, bptExecute, breakpointmethod, 1, tcount, startcondition, stopcondition, StepOver, nosystem, StayInsideModule);
         end;
       end;
     end;
@@ -1468,8 +1473,11 @@ begin
     if tv.Items[i].Data<>nil then
     begin
       d:=TTraceDebugInfo(tv.Items[i].Data);
-      tv.Items[i].Data:=nil;
-      d.Free;
+      if d<>nil then
+      begin
+        tv.Items[i].Data:=nil;
+        d.Free;
+      end;
     end;
   end;
 end;
@@ -1515,7 +1523,8 @@ begin
       for i:=0 to comparetv.Items.Count-1 do
       begin
         comparetv.Items[i].Data:=TTraceDebugInfo.createFromStream(f);
-        TTraceDebugInfo(lvTracer.items[i].data).compareindex:=i;
+        if i<lvtracer.items.Count then
+          TTraceDebugInfo(lvTracer.items[i].data).compareindex:=i;
       end;
 
       miRealignCompare.enabled:=true;
@@ -1947,11 +1956,6 @@ begin
   if debuggerthread<>nil then
     debuggerthread.stopBreakAndTrace(self);
 
-
-
-
-
-
   if comparetv<>nil then
   begin
     cleanuptv(comparetv);
@@ -1978,7 +1982,9 @@ begin
 end;
 
 procedure TfrmTracer.FormDestroy(Sender: TObject);
+var x: array of integer;
 begin
+
   if da<>nil then
     da.free;
 
@@ -1987,7 +1993,10 @@ begin
     dacr3.free;
   {$endif}
 
-  saveformposition(self);
+  setlength(x,1);
+  x[0]:=panel1.width;
+
+  saveformposition(self,x);
 end;
 
 procedure TfrmTracer.configuredisplay;
@@ -2083,7 +2092,7 @@ begin
       end else ebxlabel.Font.Color:=clWindowText;
 
       temp:=prefix+'CX '+IntToHex(context.{$ifdef cpu64}rcx{$else}ecx{$endif},processhandler.hexdigitpreference);
-      if (t2<>nil) and (t.c.{$ifdef cpu64}rcx{$else}Ecx{$endif}<>t2.c.{$ifdef cpu64}rax{$else}Eax{$endif}) then temp:=temp+' <> '+IntToHex(t2.c.{$ifdef cpu64}rcx{$else}Ecx{$endif},processhandler.hexdigitpreference);
+      if (t2<>nil) and (t.c.{$ifdef cpu64}rcx{$else}Ecx{$endif}<>t2.c.{$ifdef cpu64}rcx{$else}Ecx{$endif}) then temp:=temp+' <> '+IntToHex(t2.c.{$ifdef cpu64}rcx{$else}Ecx{$endif},processhandler.hexdigitpreference);
       if temp<>eCxlabel.Caption then
       begin
         eCXlabel.Font.Color:=clred;

@@ -865,9 +865,9 @@ resourcestring
   rsDBVMIsNotLoadedThisFeatureIsNotUsable = 'DBVM is not loaded. This feature is not usable';
 
  {$ifndef JNI}
-  {$ifdef windows}
 
-function verifyAddress(a: qword): boolean; //inline;
+
+function verifyAddress(a: qword): boolean; inline;
 begin
   result:=false;
   if (a and MAXLINEARADDRTEST)>0 then
@@ -882,7 +882,7 @@ begin
   end;
 end;
 
-
+     {$ifdef windows}
 function pageEntryToProtection(entry: qword): dword;
 var r,w,x: boolean;
 begin

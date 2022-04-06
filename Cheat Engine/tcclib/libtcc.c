@@ -1335,9 +1335,9 @@ LIBTCCAPI void tcc_get_symbols(TCCState *s, void* userdata, void(*callback)(void
 
 	if (callback)
 		for_each_elem(s->symtab, 1, sym, ElfW(Sym)) {
-		if ((sym->st_value) && (sym->st_shndx))
+		if ((sym->st_value) && (sym->st_shndx) && (sym->st_size))
 		{
-			char *name = (char *)s->symtab->link->data + sym->st_name;
+			char *name = (char *)s->symtab->link->data + sym->st_name;			
 			callback(userdata, sym->st_value, name);
 		}
 	}

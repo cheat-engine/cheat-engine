@@ -575,6 +575,7 @@ object frmMemviewPreferences: TfrmMemviewPreferences
       AnchorSideTop.Side = asrBottom
       Left = 8
       Height = 104
+      Hint = 'Left click to change the font color, rightclick to change the background color'
       Top = 67
       Width = 153
       AutoSize = True
@@ -585,6 +586,8 @@ object frmMemviewPreferences: TfrmMemviewPreferences
       ChildSizing.ControlsPerLine = 2
       ClientHeight = 84
       ClientWidth = 149
+      ParentShowHint = False
+      ShowHint = True
       TabOrder = 4
       object lblHexNormal: TLabel
         Cursor = crHandPoint
@@ -656,6 +659,22 @@ object frmMemviewPreferences: TfrmMemviewPreferences
         ParentColor = False
         OnMouseDown = lblHexMouseDown
       end
+    end
+    object lblHexFadecolor: TLabel
+      AnchorSideTop.Control = lblHexTopLine
+      AnchorSideRight.Control = GroupBox7
+      AnchorSideRight.Side = asrBottom
+      Left = 104
+      Height = 15
+      Top = 177
+      Width = 54
+      Anchors = [akTop, akRight]
+      BorderSpacing.Right = 3
+      Caption = 'FadeColor'
+      Color = clRed
+      ParentColor = False
+      Transparent = False
+      OnMouseDown = lblHexFadecolorMouseDown
     end
   end
   object GroupBox6: TGroupBox

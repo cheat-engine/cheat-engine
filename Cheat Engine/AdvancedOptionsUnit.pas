@@ -183,6 +183,7 @@ uses MainUnit, MemoryBrowserFormUnit,
 resourcestring
   stralreadyinthelist = 'This byte is already part of another opcode already present in the list';
   strPartOfOpcodeInTheList='At least one of these bytes is already in the list';
+  strAddAnyhow='Add anyhow? (It will break restore and undo if overlapping entries get modified)';
   strAddressAlreadyInTheList='This address is already in the list';
   strCECode='Code:';
   strNameCECode='What name do you want to give this code?';
@@ -287,6 +288,8 @@ var i: integer;
     li: tlistitem;
 
     e: TCodeListEntry;
+
+    msg: string;
 begin
   //check if the address is already in the list
 
@@ -317,10 +320,23 @@ begin
 
       if ((starta>=startb) and (starta<stopb)) or
          ((startb>=starta) and (startb<stopa)) then
+      begin
         if sizeofopcode=1 then
-          raise EAdvancedOptionsDuplicateException.Create(stralreadyinthelist)
+          msg:=stralreadyinthelist
         else
-          raise EAdvancedOptionsDuplicateException.Create(strPartOfOpcodeInTheList);
+          msg:=strPartOfOpcodeInTheList;
+
+
+
+        if MainThreadID=GetCurrentThreadId then
+        begin
+          msg:=msg+#13#10+strAddAnyhow;
+          if MessageDlg(msg,mtError,[mbyes,mbno],0)<>mryes then exit(false);
+        end
+        else
+          raise EAdvancedOptionsDuplicateException.Create(msg);
+
+      end;
     end;
   end;
 

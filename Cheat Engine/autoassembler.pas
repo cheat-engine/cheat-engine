@@ -71,6 +71,8 @@ procedure unregisterAutoAssemblerPrologue(id: integer);
 
 var oldaamessage: boolean;
 
+function autoassemble2(code: tstrings;popupmessages: boolean;syntaxcheckonly:boolean; targetself: boolean; disableinfo: TDisableInfo=nil; memrec: TMemoryRecord=nil):boolean;
+
 implementation
 
 {$ifdef jni}
@@ -159,7 +161,7 @@ resourcestring
   rsNoPreferedRangeAllocWarning = 'None of the ALLOC statements specify a '
     +'prefered address.  Did you take into account that the JMP instruction is'
     +' going to be 14 bytes long?';
-  rsFailureAlloc = 'Failure allocating memory near %.8x';
+  rsFailureAlloc = 'Failure allocating memory near %.8x for variable named %s in script %s';
 
 //type
 //  TregisteredAutoAssemblerCommands =  TFPGList<TRegisteredAutoAssemblerCommand>;
@@ -1552,7 +1554,7 @@ var i,j,k,l,e: integer;
         if uppercase(defines[j].name)=name then
         begin
           try
-            testptr:=symhandler.getAddressFromName(defines[j].whatever);
+            result:=symhandler.getAddressFromName(defines[j].whatever);
             exit;
           except
           end;
@@ -1575,6 +1577,35 @@ var i,j,k,l,e: integer;
 
 
       if debug_getAddressFromScript then OutputDebugString('not found');
+    end;
+
+    procedure handleCreateThreadAndWait(ctawi: integer);
+    begin
+      //create the thread and wait for it's result
+      testptr:=getAddressFromScript(createthreadandwait[ctawi].name);
+
+      threadhandle:=createremotethread(processhandle,nil,0,pointer(testptr),nil,0,bw);
+      ok2:=threadhandle>0;
+
+      if ok2 then
+      begin
+        {$ifdef windows}
+        try
+          k:=createthreadandwait[ctawi].timeout;
+          if k<=0 then y:=INFINITE else y:=k;
+
+          if WaitForSingleObject(threadhandle, y)<>WAIT_OBJECT_0 then
+            raise EAssemblerException.create('createthreadandwait did not execute properly');
+        finally
+          closehandle(threadhandle);
+        end;
+        {$else}
+        sleep(5000); //todo: implement proper wait
+        {$endif}
+
+      end;
+
+      createthreadandwait[ctawi].position:=-1; //mark it as handled
     end;
 
 begin
@@ -1600,6 +1631,8 @@ begin
     setlength(labels, disableinfo.allsymbols.count);
     for i:=0 to disableinfo.allsymbols.count-1 do
     begin
+      FillMemory(@labels[length(labels)-1],sizeof(labels[0]),0);
+
       labels[i].defined:=true;
       labels[i].address:=ptruint(disableinfo.allsymbols.Objects[i]);
       labels[i].labelname:=disableinfo.allsymbols[i];
@@ -1674,6 +1707,8 @@ begin
       //define the c-code symbol as an undefined labels
       j:=length(labels);
       setlength(labels, j+1);
+      ZeroMemory(@labels[j],sizeof(labels[j]));
+
       labels[j].labelname:=dataForAACodePass2.cdata.symbols[i].name;
       labels[j].defined:=false;
       labels[j].afterccode:=true;
@@ -1692,6 +1727,7 @@ begin
 
 
     strictmode:=false;
+    hastryexcept:=false;
     for i:=0 to code.count-1 do
     begin
       currentline:=uppercase(TrimRight(code[i]));
@@ -2314,7 +2350,7 @@ begin
 
 
 
-          if (disableinfo<>nil) and (uppercase(copy(currentline,1,17))='UNREGISTERSYMBOL(') then
+          if uppercase(copy(currentline,1,17))='UNREGISTERSYMBOL(' then
           begin
             //add this symbol to the register symbollist
             a:=pos('(',currentline);
@@ -2324,7 +2360,7 @@ begin
             begin
               s1:=trim(copy(currentline,a+1,b-a-1));
 
-              if s1='*' then
+              if (disableinfo<>nil) and (s1='*') then
               begin
                 j:=length(deletesymbollist);
                 setlength(deletesymbollist, j+ disableinfo.registeredsymbols.Count);
@@ -2434,13 +2470,12 @@ begin
                 for k:=length(labels)-1 downto j+1 do
                   labels[k]:=labels[k-1];
 
-
+                ZeroMemory(@labels[l], sizeof(labels[l]));
                 labels[l].labelname:=s1;
                 labels[l].defined:=false;
 
                 setlength(labels[l].references,0);
                 setlength(labels[l].references2,0);
-
               end;
 
               setlength(assemblerlines,length(assemblerlines)-1);
@@ -2448,7 +2483,7 @@ begin
             end else raise exception.Create(rsSyntaxError);
           end;
 
-          if (disableinfo<>nil) and (uppercase(copy(currentline,1,8))='DEALLOC(') then
+          if (uppercase(copy(currentline,1,8))='DEALLOC(') then
           begin
             //syntax: dealloc(x)  x=name of region to deallocate
             //later on in the code there has to be a line with "labelname:"
@@ -2459,13 +2494,15 @@ begin
             begin
               s1:=trim(copy(currentline,a+1,b-a-1));
 
-              if s1='*' then
+              if (s1='*') then
               begin
                 //everything that the script allocated
-                setlength(dealloc, length(disableinfo.allocs));
-                for j:=0 to length(disableinfo.allocs)-1 do
-                  dealloc[j]:=disableinfo.allocs[j].address;
-
+                if (disableinfo<>nil) then
+                begin
+                  setlength(dealloc, length(disableinfo.allocs));
+                  for j:=0 to length(disableinfo.allocs)-1 do
+                    dealloc[j]:=disableinfo.allocs[j].address;
+                end;
               end
               else
               begin
@@ -2704,6 +2741,7 @@ begin
 
               j:=length(labels);
               setlength(labels,j+1);
+              ZeroMemory(@labels[j],sizeof(labels[j]));
 
               labels[j].labelname:=copy(currentline,1,length(currentline)-1);
               labels[j].assemblerline:=length(assemblerlines)-1;
@@ -2767,6 +2805,7 @@ begin
                     //define this potential label as a full label
                     k:=length(labels);
                     setlength(labels, k+1);
+                    ZeroMemory(@labels[k],sizeof(labels[k]));
                     labels[k].labelname:=potentiallabels[j];
                     labels[k].defined:=false;
                     labels[k].afterccode:=false;
@@ -3055,15 +3094,28 @@ begin
       begin
         //does this entry have a prefered location or a non default protection
 
-        if (allocs[i].prefered<>0) or (allocs[i].protection<>PAGE_EXECUTE_READWRITE) then
+        if allocs[i].protection<>protection then
+        begin
+          //increment x to the next pagebase
+          if (x and $fff>0) then
+          begin
+            y:=$1000- (x and $fff);
+            inc(x,y);
+            inc(allocs[i-1].size,y); //adjust the previous entry's size
+          end;
+
+          protection:=allocs[i].protection;
+        end;
+
+        if (allocs[i].prefered<>0) then
         begin
           //if yes, is it the same as the previous entry? (or was the previous one that doesn't care?)
           if prefered=0 then
             prefered:=allocs[i].prefered;
 
-          if (prefered<>allocs[i].prefered) or (protection<>allocs[i].protection) then
+          if (prefered<>allocs[i].prefered) then
           begin
-            //different prefered address or protection
+            //different prefered address
 
             if x>0 then //it has some previous entries with compatible locations
             begin
@@ -3082,7 +3134,7 @@ begin
                 if (prefered=0) and (oldprefered<>0) then
                   prefered:=oldprefered;
 
-                allocs[j].address:=ptrUint(virtualallocex(processhandle,pointer(prefered),x, MEM_RESERVE or MEM_COMMIT,protection));
+                allocs[j].address:=ptrUint(virtualallocex(processhandle,pointer(prefered),x, MEM_RESERVE or MEM_COMMIT,PAGE_EXECUTE_READWRITE));
                 if allocs[j].address=0 then
                 begin
                   OutputDebugString(rsFailureToAllocateMemory+' 1');
@@ -3097,7 +3149,7 @@ begin
 
               if allocs[j].address=0 then
               begin
-                raise EAssemblerException.create(format(rsFailureAlloc, [prefered]));
+                raise EAssemblerException.create(format(rsFailureAlloc, [prefered,allocs[j].varname, code.text]));
 //                if allocs[j].address=0 then
 
 //                allocs[j].address:=ptrUint(virtualallocex(processhandle,nil,x, MEM_RESERVE or MEM_COMMIT,protection));
@@ -3121,6 +3173,7 @@ begin
         end;
 
         //no prefered location specified, OR same prefered location
+
 
         inc(x,allocs[i].size);
       end; //after the loop
@@ -3146,7 +3199,7 @@ begin
             prefered:=oldprefered;
 
 
-          allocs[j].address:=ptrUint(virtualallocex(processhandle,pointer(prefered),x, MEM_RESERVE or MEM_COMMIT,protection));
+          allocs[j].address:=ptrUint(virtualallocex(processhandle,pointer(prefered),x, MEM_RESERVE or MEM_COMMIT,PAGE_EXECUTE_READWRITE));
           if allocs[j].address=0 then
           begin
             OutputDebugString(rsFailureToAllocateMemory+' 3 (prefered='+inttohex(prefered,8)+')');
@@ -3159,7 +3212,7 @@ begin
           allocs[j].address:=lastChanceAllocPrefered(prefered,x, protection);
 
         if allocs[j].address=0 then
-          raise EAssemblerException.create(format(rsFailureAlloc, [prefered]));
+          raise EAssemblerException.create(format(rsFailureAlloc, [prefered,allocs[j].varname, code.text]));
          // allocs[j].address:=ptrUint(virtualallocex(processhandle,nil,x, MEM_RESERVE or MEM_COMMIT,protection));
 
         if allocs[j].address=0 then raise EAssemblerException.create(rsFailureToAllocateMemory);
@@ -3168,6 +3221,13 @@ begin
           allocs[i].address:=allocs[i-1].address+allocs[i-1].size;
 
 
+      end;
+
+      //apply protections:
+      for i:=0 to length(allocs)-1 do
+      begin
+        if allocs[i].protection<>PAGE_EXECUTE_READWRITE then
+          VirtualProtectEx(processhandle, pointer(allocs[i].address), allocs[i].size, allocs[i].protection,protection);
       end;
     end;
 
@@ -3704,33 +3764,7 @@ begin
         for j:=0 to assembled[i].createthreadandwait do
         begin
           if createthreadandwait[j].position<>-1 then
-          begin
-            //create the thread and wait for it's result
-            testptr:=getAddressFromScript(createthreadandwait[j].name);
-
-            threadhandle:=createremotethread(processhandle,nil,0,pointer(testptr),nil,0,bw);
-            ok2:=threadhandle>0;
-
-            if ok2 then
-            begin
-              {$ifdef windows}
-              try
-                k:=createthreadandwait[j].timeout;
-                if k<=0 then y:=INFINITE else y:=k;
-
-                if WaitForSingleObject(threadhandle, y)<>WAIT_OBJECT_0 then
-                  raise EAssemblerException.create('createthreadandwait did not execute properly');
-              finally
-                closehandle(threadhandle);
-              end;
-              {$else}
-              sleep(5000); //todo: implement proper wait
-              {$endif}
-
-            end;
-
-            createthreadandwait[j].position:=-1; //mark it as handled
-          end;
+            HandleCreateThreadAndWait(j);
         end;
       end;
     end;
@@ -3742,6 +3776,15 @@ begin
         ok2:=false;
     end;
     {$endif}
+
+    //handle the unhandled createthreadandwait blocks
+    for i:=0 to length(createthreadandwait)-1 do
+    begin
+      if createthreadandwait[i].position<>-1 then
+        HandleCreateThreadAndWait(i);
+    end;
+
+
 
 
 
@@ -4219,13 +4262,11 @@ begin
 
   if enablepos=-2 then
   begin
-    if not popupmessages then exit;
     raise EAssemblerException.create(rsYouCanOnlyHaveOneEnableSection);
   end;
 
   if disablepos=-2 then
   begin
-    if not popupmessages then exit;
     raise EAssemblerException.create(rsYouCanOnlyHaveOneDisableSection);
   end;
 

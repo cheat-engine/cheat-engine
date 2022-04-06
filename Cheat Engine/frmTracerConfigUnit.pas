@@ -21,6 +21,7 @@ type
     cbSkipSystemModules: TCheckBox;
     cbDBVMBreakAndTrace: TCheckBox;
     cbDBVMTriggerCOW: TCheckBox;
+    cbStayInsideInitialModule: TCheckBox;
     edtStartCondition: TEdit;
     edtMaxTrace: TEdit;
     edtStopCondition: TEdit;
@@ -121,6 +122,8 @@ begin
 
   if cbDBVMBreakAndTrace.Checked then
   begin
+    cbStayInsideInitialModule.checked:=false;
+    cbStayInsideInitialModule.enabled:=false;
     cbDBVMTriggerCOW.visible:=true;
     cbDereferenceAddresses.enabled:=false;
     cbStepOver.enabled:=false;
@@ -155,6 +158,8 @@ begin
 
     label2.enabled:=false;
     edtStopCondition.enabled:=true;
+
+    cbStayInsideInitialModule.enabled:=true;
   end;
 
 end;

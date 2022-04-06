@@ -157,7 +157,7 @@ type
     procedure DeactivateSelected;
     procedure CreateGroup(groupname: string; withAddress: boolean=false);
     procedure addAutoAssembleScript(script: string);
-    function addAddressManually(initialaddress: string=''; vartype: TVariableType=vtDword; CustomTypeName: string=''): TMemoryRecord;
+    function addAddressManually(initialaddress: string=''; vartype: TVariableType=vtDword; CustomTypeName: string=''; focusOnDescription: boolean=false): TMemoryRecord;
     function addaddress(description: string; address: string; const offsets: array of integer; offsetcount: integer; vartype: TVariableType; customtypename: string=''; length: integer=0; startbit: integer=0; unicode: boolean=false; node: TTreenode=nil; attachmode: TNodeAttachMode=naAdd): TMemoryRecord;
     function getRecordWithDescription(description: string): TMemoryRecord;
     function getRecordWithID(id: integer): TMemoryRecord;
@@ -858,7 +858,7 @@ begin
   result:=descriptionhashlist.Data[description]
 end;
 
-function TAddresslist.addAddressManually(initialaddress: string=''; vartype: TVariableType=vtDword; CustomTypeName: string=''): TMemoryRecord;
+function TAddresslist.addAddressManually(initialaddress: string=''; vartype: TVariableType=vtDword; CustomTypeName: string=''; focusOnDescription: boolean=false): TMemoryRecord;
 var mr: TMemoryRecord;
     edited: boolean;
 begin
@@ -878,6 +878,7 @@ begin
     caption:=rsALAddAddress;
     memoryrecord:=mr;
 
+    focusDescription:=focusOnDescription;
 
     if showmodal<>mrok then
     begin

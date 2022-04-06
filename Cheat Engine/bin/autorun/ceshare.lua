@@ -189,8 +189,10 @@ else
     end   
   
     local f=io.open(ceshare.path..[[server.txt]],'wb')
-    f:write(ceshare.base)
-    f:close()  
+    if f then
+      f:write(ceshare.base)
+      f:close()  
+    end
 
     ceshare.initialSetup.close()    
   end
@@ -203,7 +205,9 @@ else
 
   --create an empty file so this will never be shown ever again  
   local f=io.open(ceshare.path..[[server.txt]],'wb')
-  f:close()  
+  if f then
+    f:close()  
+  end
   
   ceshare.initialSetup.show()  
   ceshare.initialSetup.AutoSize=false

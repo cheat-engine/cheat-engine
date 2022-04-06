@@ -816,6 +816,7 @@ resourcestring
   rsSetBreakpoint = 'Set breakpoint';
   rsRemoveBreakpoint = 'Remove breakpoint';
   rsInjectDYLIB = 'Inject DYLIB';
+  rsSetCustomAlignment = 'Set custom alignment';
 
 //property functions:
 function TMemoryBrowser.getShowValues: boolean;
@@ -923,13 +924,35 @@ begin
 end;
 
 procedure TMemoryBrowser.miLockRowsizeClick(Sender: TObject);
+var
+  rs: string;
+  waslocked: boolean;
+  newsize: integer;
 begin
-  miLockRowsize.Checked:=not miLockRowsize.Checked;
+  waslocked:=hexview.LockedRowSize<>0;
 
-  if miLockRowsize.Checked then
-    hexview.LockRowsize
+
+  hexview.LockRowsize; //fills in lockedRowSize
+  rs:=inttostr(hexview.LockedRowSize);
+
+  if InputQuery('Alignment','Enter the custom alignment (<=0 is automatic)', rs) then
+  begin
+    try
+      newsize:=StrToInt(rs);
+      if newsize<=0 then newsize:=0;
+
+      hexview.LockedRowSize:=newsize;
+    except
+      if waslocked=false then
+        hexview.UnlockRowsize;
+    end;
+  end
   else
-    hexview.UnlockRowsize;
+  begin
+    if waslocked=false then
+      hexview.UnlockRowsize;
+  end;
+
 end;
 
 procedure TMemoryBrowser.ShowDebugToolbar;
@@ -1199,6 +1222,11 @@ begin
   miWatchBPException.enabled:=(CurrentDebuggerInterface=nil) or (dbcSoftwareBreakpoint in CurrentDebuggerInterface.DebuggerCapabilities);
   miWatchBPDBVM.enabled:=(CurrentDebuggerInterface=nil) or (dbcExceptionBreakpoint in CurrentDebuggerInterface.DebuggerCapabilities);
   miWatchBPDBVM.visible:={$ifdef windows}hasEPTSupport{$else}false{$endif};
+
+  if hexview.LockedRowSize<>0 then
+    miLockRowsize.caption:=rsSetCustomAlignment+' ('+inttostr(hexview.LockedRowSize)+')'
+  else
+    miLockRowsize.caption:=rsSetCustomAlignment;
 
 end;
 
@@ -2370,6 +2398,8 @@ begin
     lblHexTopLine.Font.color:=hexview.toplinecolor;
     lblHexSeperator.Font.color:=hexview.seperatorColor;
     lblHexCursor.Font.color:=hexview.cursorcolor;
+    lblHexFadeColor.font.color:=hexview.normalFontColor;
+    lblHexFadeColor.color:=hexview.fadecolor;
 
     lblRegHighLightChange.color:=fChangedRegisterColor;
     lblRegHighLightAccess.color:=fAccessedRegisterColor;
@@ -2414,6 +2444,7 @@ begin
       hexview.toplinecolor:=lblHexTopLine.Font.color;
       hexview.seperatorColor:=lblHexSeperator.Font.color;
       hexview.cursorcolor:=lblHexCursor.Font.color;
+      hexview.fadecolor:=lblHexFadeColor.color;
 
       fChangedRegisterColor:=lblRegHighLightChange.color;
       fAccessedRegisterColor:=lblRegHighLightAccess.color;
@@ -2474,8 +2505,13 @@ begin
     end;
 
     if reg.openkey('\Software\'+strCheatEngine+'\Hexview'+darkmodestring,true) then
+    begin
       reg.{$ifdef windows}WriteBinaryData{$else}WriteString{$endif}('colors', {$ifndef windows}bintohexs({$endif}hexview.colors, sizeof(hexview.colors)){$ifndef windows}){$endif};
-
+      reg.WriteInteger('SeperaterColor', hexview.fseperatorColor);
+      reg.WriteInteger('CursorColor', hexview.fcursorcolor);
+      reg.WriteInteger('TopLineColor', hexview.ftoplinecolor);
+      reg.WriteInteger('FadeColor', hexview.ffadeColor);
+    end;
 
     if reg.OpenKey('\Software\'+strCheatEngine+'\Hexview '+inttostr(screen.PixelsPerInch)+'\Font'+darkmodestring,true) then
       SaveFontToRegistry(hexview.hexfont, reg);
@@ -2737,6 +2773,11 @@ begin
         HexToBin(pchar(reg.ReadString('colors')),pchar(@hexview.colors),sizeof(hexview.colors));
         {$endif}
       end;
+
+      if reg.ValueExists('SeperaterColor') then  hexview.fseperatorColor:=reg.ReadInteger('SeperaterColor');
+      if reg.ValueExists('CursorColor') then  hexview.fcursorcolor:=reg.ReadInteger('CursorColor');
+      if reg.ValueExists('TopLineColor') then  hexview.ftoplinecolor:=reg.ReadInteger('TopLineColor');
+      if reg.ValueExists('FadeColor') then  hexview.ffadeColor:=reg.ReadInteger('FadeColor');
     end;
 
 
@@ -2820,11 +2861,8 @@ begin
 
     if length(x)>=10 then
     begin
-      if x[8]=1 then
-      begin
-        miLockRowsize.Checked:=true;
+      if x[9]<>0 then
         hexview.LockedRowSize:=x[9];
-      end;
     end;
 
     if length(x)>=11 then
@@ -4457,8 +4495,11 @@ begin
 end;
 
 procedure TMemoryBrowser.Breakandtraceinstructions1Click(Sender: TObject);
+var f: TFrmTracer;
 begin
-  TFrmTracer.create(self).show;
+  f:=TFrmTracer.create(self);
+  f.show;
+  f.miNewTrace.Click;
 end;
 
 procedure TMemoryBrowser.debuggerpopupPopup(Sender: TObject);
@@ -4665,7 +4706,7 @@ begin
       if self.miShowModuleAddresses.checked then v:=v or 1;
       if self.miShowSectionAddresses.checked then v:=v or 2;
       params[7]:=v;
-      params[8]:=strtoint(BoolToStr(self.miLockRowsize.Checked,'1','0'));
+      //params[8]:=strtoint(BoolToStr(self.miLockRowsize.Checked,'1','0')); 7.4: obsolete
       params[9]:=self.hexview.LockedRowSize;
       params[10]:=strtoint(BoolToStr(self.Kernelmodesymbols1.checked,'1','0'));
 

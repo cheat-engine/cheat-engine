@@ -24,7 +24,7 @@ const opcodecount=1915;  //I wish there was a easier way than to handcount
 
 type
   EAssemblerException=class(Exception);
-  EAssemblerExceptionOffsetTooBig=class(Exception);
+  EAssemblerExceptionOffsetTooBig=class(EAssemblerException);
 
 
 
@@ -1203,8 +1203,8 @@ const opcodes: array [1..opcodecount] of topcode =(
   (mnemonic:'PMINUW';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m128;bytes:4;bt1:$66;bt2:$0f;bt3:$38;bt4:$3a),
 
 
-  (mnemonic:'PMOVMSKB';opcode1:eo_reg;opcode2:eo_ib;paramtype1:par_r32;paramtype2:par_mm;paramtype3:par_imm8;bytes:2;bt1:$0f;bt2:$d7),
-  (mnemonic:'PMOVMSKB';opcode1:eo_reg;opcode2:eo_ib;paramtype1:par_r32;paramtype2:par_xmm;paramtype3:par_imm8;bytes:3;bt1:$66;bt2:$0f;bt3:$d7),
+  (mnemonic:'PMOVMSKB';opcode1:eo_reg;paramtype1:par_r32;paramtype2:par_mm;bytes:2;bt1:$0f;bt2:$d7),
+  (mnemonic:'PMOVMSKB';opcode1:eo_reg;paramtype1:par_r32;paramtype2:par_xmm;bytes:3;bt1:$66;bt2:$0f;bt3:$d7),
 
   (mnemonic:'PMOVSXBD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m32;bytes:4;bt1:$66;bt2:$0f;bt3:$38;bt4:$21),
   (mnemonic:'PMOVSXBQ';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m16;bytes:4;bt1:$66;bt2:$0f;bt3:$38;bt4:$22),
@@ -4579,6 +4579,8 @@ var tokens: ttokens;
     cannotencodewithrexw: boolean;
 
     //cpuinfo: TCPUIDResult;
+
+    bts: TAssemblerBytes;
 begin
   faddress:=address;
   VEXvvvv:=$f;
@@ -4782,9 +4784,7 @@ begin
     //handle it by the arm assembler
    // for i:=0 to nroftokens do
    //   tempstring:=tempstring+tokens[i]+' ';   //seperators like "," are gone, but the armassembler doesn't really care about that  (only tokens matter)
-
-    result:=ArmAssemble(address, opcode, bytes);
-    exit;
+    exit(ArmAssemble(address, opcode, bytes));
   end;
 
 
@@ -5064,7 +5064,8 @@ begin
   if (not overrideShort) and (not overrideLong) and (processhandler.is64Bit) then   //if 64-bit and no override is given
   begin
     //check if this is a jmp or call with relative value
-    if (tokens[mnemonic]='JMP') or (tokens[mnemonic]='CALL') then
+
+    if (tokens[mnemonic]='JMP') or (tokens[mnemonic]='CALL') or (tokens[mnemonic][1]='J') then
     begin
       if paramtype1=ttValue then
       begin
@@ -5073,7 +5074,6 @@ begin
           v2:=address-v
         else
           v2:=v-address;
-
 
         if (v2>$7fffffff) or (overrideFar) then //the user WANTS it to be called as a 'far' jump even if it's not needed
         begin
@@ -5088,10 +5088,32 @@ begin
             AddDword(bytes, 0);
           end
           else
+          if (tokens[mnemonic]='CALL') then
           begin
             add(bytes,[$15]); //call
             AddDword(bytes, 2);
             Add(bytes, [$eb, $08]);
+          end
+          else
+          if (tokens[mnemonic][1]='J') then
+          begin
+            //J* +2
+            //jmp short +14
+            //jmp far address
+            bytes:=[];
+            assemble(tokens[mnemonic]+' +2', address, bytes);
+
+            bts:=[];
+
+            assemble('jmp short +e', address+length(bytes), bts);
+            insert(bts, bytes,length(bytes));
+
+            bts:=[];
+            assemble('jmp far '+inttohex(v,8), address+length(bytes),bts);
+            insert(bts, bytes, length(bytes));
+
+            result:=true;
+            exit;
           end;
 
           AddQword(bytes,v);

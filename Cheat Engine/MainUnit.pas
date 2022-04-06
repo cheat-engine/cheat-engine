@@ -2142,7 +2142,9 @@ begin
     if (errs='Access violation') and (miEnableLCLDebug.checked) then
       errs:=errs+#13#10'Please send the cedebug.txt file to Dark Byte. Thanks';
 
-    MessageDlg(errs, mtError, [mbOK], 0);
+    if MainThreadID=GetCurrentThreadId then
+      MessageDlg(errs, mtError, [mbOK], 0);
+
     freememandnil(err);
   end
   else
@@ -4194,7 +4196,7 @@ begin
   while miTable.Count > 5 do
   begin
     if miTable.Items[4] <> miLuaFormsSeperator then
-      miTable.Delete(4)
+      miTable[4].Free
     else
       break;
   end;
@@ -4257,7 +4259,7 @@ begin
 
   //and now the files
   while miTable.Count > miTable.indexOf(miAddFile) + 1 do
-    miTable.Delete(miTable.indexOf(miAddFile) + 1);
+    miTable[miTable.indexOf(miAddFile) + 1].free;
 
   for i := 0 to luafiles.Count - 1 do
   begin
@@ -10463,8 +10465,7 @@ begin
         FreeAndNil(speedhack);
 
       ss:=GetKeyShiftState;
-      if (ssAlt in ss) and (ssCtrl in ss) then
-        raise exception.create('Speedhack alternate test');
+
 
       speedhack := TSpeedhack.Create;
     except
