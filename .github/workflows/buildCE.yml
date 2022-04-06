@@ -16,27 +16,19 @@ jobs:
         with:
           LAZARUS_VERSION: 2.0.10
           FPC_VERSION: 3.2.0
-      - uses: actions/checkout@v2
-      - uses: bahmutov/npm-install@v1
-        with:
-          working-directory: ./.github/workflows/scripts
-        env:
-          NODE_ENV: production
+      - uses: actions/checkout@v3
       - name: Get Lazarus dependencies
         shell: bash
         id: get-dependencies
         run: echo "::set-output name=dependencies::$(node ./.github/workflows/scripts/getPackages.js)"
       - name: Install Lazarus
-        uses: gcarreno/setup-lazarus@v3.0.2
+        uses: gcarreno/setup-lazarus@v3.0.16
         with:
           lazarus-version: ${{ env.LAZARUS_VERSION }}
           include-packages: ${{ steps.get-dependencies.outputs.dependencies }}
       - name: Install 32bit compat
         shell: bash
         run: node ./.github/workflows/scripts/install32bitCompat.js
-        env:
-          LAZARUS_VERSION: ${{ env.LAZARUS_VERSION }}
-          FPC_VERSION: ${{ env.FPC_VERSION }}
       - name: Build 32-Bit
         shell: cmd
         run: lazbuild --build-mode="Release 32-bit" --no-write-project "Cheat Engine/cheatengine.lpi"

@@ -1,7 +1,0 @@
-{
-  "name": "scripts",
-  "version": "1.0.0",
-  "dependencies": {
-    "@the-bds-maneger/fetchsync": "^10.12.4177"
-  }
-}
