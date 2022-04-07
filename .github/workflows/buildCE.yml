@@ -32,12 +32,15 @@ jobs:
       - name: Build 32-Bit
         shell: cmd
         run: lazbuild --build-mode="Release 32-bit" --no-write-project "Cheat Engine/cheatengine.lpi"
+        continue-on-error: true
       - name: Build 64-Bit
         shell: cmd
         run: lazbuild --build-mode="Release 64-bit" --no-write-project "Cheat Engine/cheatengine.lpi"
+        continue-on-error: true
       - name: Build 64-Bit O4 AVX2
         shell: cmd
         run: lazbuild --build-mode="Release 64-bit O4 AVX2" --no-write-project "Cheat Engine/cheatengine.lpi"
+        continue-on-error: true
       - name: Zip artifact
         shell: cmd
         run: 7z a -tzip release.zip * -r
