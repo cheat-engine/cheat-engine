@@ -541,7 +541,7 @@ begin
       begin
         if gcp.elements[i].wildcard then
         begin
-          x.cbVartype.itemindex:=9;
+          x.cbVartype.itemindex:=10;
           gcp.elements[i].uservalue:=inttostr(gcp.elements[i].bytesize);
         end
         else

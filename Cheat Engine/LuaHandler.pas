@@ -97,6 +97,7 @@ resourcestring
   rsThisTypeIsNotSupportedHere='This type is not supported here';
   rsIncorrectNumberOfParameters='Incorrect number of parameters';
 
+
 implementation
 
 uses autoassembler, MainUnit, MainUnit2, LuaClass, frmluaengineunit, plugin, pluginexports,
@@ -127,7 +128,7 @@ uses autoassembler, MainUnit, MainUnit2, LuaClass, frmluaengineunit, plugin, plu
   LuaDiagram, frmUltimap2Unit, frmcodefilterunit, BreakpointTypeDef, LuaSyntax,
   LazLogger, LuaSynedit, LuaRIPRelativeScanner, LuaCustomImageList ,ColorBox,
   rttihelper, LuaDotNetPipe, LuaRemoteExecutor, windows7taskbar, debugeventhandler,
-  tcclib, dotnethost, CSharpCompiler, LuaCECustomButton, feces;
+  tcclib, dotnethost, CSharpCompiler, LuaCECustomButton, feces, process;
 
   {$warn 5044 off}
 
@@ -8586,6 +8587,73 @@ begin
     result:=0;
 end;
 
+function lua_runCommand(L: PLua_State): integer; cdecl;
+var
+  p: array of TProcessString;
+  curdir: string;
+  exe: string;
+  parameters: string;
+
+  s: string;
+  i,pl: integer;
+  exitstatus: integer;
+begin
+  p:=[];
+  if lua_gettop(L)>=2 then
+  begin
+    s:='';
+
+    exe:=Lua_ToString(L,1);
+    if lua_istable(L,2) then
+    begin
+      pl:=lua_objlen(L, 2);
+      setlength(p,pl);
+
+      for i:=1 to pl do
+      begin
+        lua_pushinteger(L,i);
+        lua_gettable(L,2);
+
+        if lua_isstring(L,-1) then
+        begin
+          p[i-1]:=Lua_ToString(L,-1);
+          lua_pop(L,1);
+        end
+        else
+        begin
+          lua_pushnil(L);
+          lua_pushstring(L,'Invalid parameter at index '+inttostr(i));
+          exit(2);
+        end;
+
+      end;
+    end
+    else
+    if lua_isstring(L,2) then
+    begin
+      SetLength(p,1);
+      p[0]:=Lua_ToString(L,2);
+    end;
+
+    if lua_gettop(L)>=3 then
+      curdir:=Lua_ToString(L,3)
+    else
+      curdir:='';
+
+    RunCommandInDir(curdir, exe, p, s, exitstatus, [poNoConsole]);
+    lua_pushstring(L,s);
+    lua_pushinteger(L,exitstatus);
+    exit(2);
+  end
+  else
+  begin
+    lua_pushnil(L);
+    lua_pushstring(L,rsIncorrectNumberOfParameters);
+    exit(2);
+  end;
+
+end;
+
 function lua_shellExecute(L: PLua_State): integer; cdecl;
 var
   pcount: integer;
@@ -10644,7 +10712,7 @@ begin
 
   s:=tstringlist.create;
 
-  s.Add('allocXO(stub,4096,'+inttohex(address,8)+')');
+  s.Add('allocXO(stub,4096)'); //+inttohex(address,8)+')');
 
   s.add('stub:');
 
@@ -14013,6 +14081,7 @@ var
   list: Tstringlist;
   output: string;
   custominput: boolean;
+  formname: string;
   r: integer;
 begin
   if lua_gettop(L)>=3 then
@@ -14021,12 +14090,19 @@ begin
     caption:=Lua_ToString(L,2);
     list:=lua_ToCEUserData(L,3);
 
+
     if lua_gettop(L)>=4 then
       custominput:=lua_toboolean(L,4)
     else
       custominput:=false;
 
-    r:=ShowSelectionList(application,title, caption,list, output, custominput);
+    if lua_gettop(L)>=5 then
+      formname:=Lua_ToString(L,5)
+    else
+      formname:='';
+
+
+    r:=ShowSelectionList(application,title, caption,list, output, custominput,nil,formname);
 
     lua_pushinteger(L,r);
     lua_pushstring(L, output);
@@ -14595,21 +14671,21 @@ end;
 
 function lua_string_startswith(L: Plua_State): integer; cdecl;
 var
-  s, startswith: string;
+  s, searchstring: string;
   ignoreCase: boolean;
 begin
   result:=0;
   if lua_gettop(L)>=2 then
   begin
     s:=Lua_ToString(L,1);
-    startswith:=Lua_ToString(L,2);
+    searchstring:=Lua_ToString(L,2);
 
     if lua_gettop(L)>=3 then
       ignorecase:=lua_toboolean(L,3)
     else
       ignorecase:=false;
 
-    lua_pushboolean(L, s.StartsWith(s,ignorecase));
+    lua_pushboolean(L, s.StartsWith(searchstring,ignorecase));
     result:=1;
   end;
 end;
@@ -15067,6 +15143,36 @@ function lua_getCEName(L: Plua_State): integer; cdecl;
 begin
   lua_pushstring(L, strCheatEngine);
   exit(1);
+end;
+
+function lua_getTempFolder(L: Plua_State): integer; cdecl;
+begin
+  lua_pushstring(L, GetTempDir);
+  exit(1);
+end;
+
+function lua_deleteFile(L: Plua_State): integer; cdecl;
+var s: string;
+begin
+  result:=0;
+  if lua_gettop(L)>=1 then
+  begin
+    s:=Lua_ToString(L,1);
+    lua_pushboolean(L, DeleteFile(s));
+    exit(1);
+  end;
+end;
+
+function lua_fileExists(L: Plua_State): integer; cdecl;
+var s: string;
+begin
+  result:=0;
+  if lua_gettop(L)>=1 then
+  begin
+    s:=Lua_ToString(L,1);
+    lua_pushboolean(L, FileExists(s) );
+    exit(1);
+  end;
 end;
 
 function lua_getNextReadablePageCR3(L: Plua_State): integer; cdecl;
@@ -15615,6 +15721,8 @@ begin
     lua_register(L, 'dbvm_addMemory', dbvm_addMemory);
 
     lua_register(L, 'shellExecute', lua_shellExecute);
+    lua_register(L, 'runCommand', lua_runCommand);
+
     lua_register(L, 'getTickCount', getTickCount_lua);
     lua_register(L, 'rdtsc', lua_rdtsc);
 
@@ -15900,6 +16008,11 @@ begin
 
     lua_register(L, 'darkMode', lua_darkMode);
     lua_register(L, 'getCEName', lua_getCEName);
+    lua_register(L, 'getTempFolder', lua_getTempFolder);
+    lua_register(L, 'fileExists', lua_fileExists);
+    lua_register(L, 'deleteFile', lua_deleteFile);
+
+
 
 
 

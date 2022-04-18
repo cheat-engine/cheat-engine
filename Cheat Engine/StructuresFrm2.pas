@@ -671,7 +671,7 @@ resourcestring
    rsPointerTo = 'Pointer';
    rsUnnamedStructure = 'unnamed structure';
    rsStructureDefine = 'Structure define';
-   rsStructAlreadyExists = 'The structure named %s already exists. Are you sure you want to make another structure with this name ?';
+   rsStructAlreadyExists = 'This is detected as structure named %s which already exists. Define a new version of this structure? (Click no to go to the existing one)';
    rsGiveTheNameForThisStructure = 'Give the name for this structure';
    rsDoYouWantCheatEngineToTryAndFillInTheMostBasicType = 'Do you want Cheat '
      +'Engine to try and fill in the most basic types of the struct using the '
@@ -4280,6 +4280,7 @@ begin
     end;
 
     // check for existing structure with the same name
+    {
     repeat
     begin
       found := false;
@@ -4311,7 +4312,7 @@ begin
           structName := Concat(Copy(structName, 1, pos), IntToStr(StrToInt(Copy(structName, pos + 1, Length(structName) - pos)) + 1));
         end;
       end;
-    end until not found;
+    end until not found; }
 
     // if the name is the same as an existing structure, then make sure
     // the user wants to create a duplicate
@@ -4320,7 +4321,14 @@ begin
       for i:=0 to DissectedStructs.Count-1 do
         if TDissectedStruct(dissectedstructs[i]).name=structname then
         begin
-          if messagedlg(format(rsStructAlreadyExists,[structname]), mtWarning, [mbyes, mbno], 0)<>mryes then exit else break;
+          if messagedlg(format(rsStructAlreadyExists,[structname]), mtWarning, [mbyes, mbno], 0)=mrno then
+          begin
+            mainStruct:=TDissectedStruct(dissectedstructs[i]);
+            InitializeFirstNode;
+            UpdateCurrentStructOptions;
+            exit;
+          end;
+          break;
         end;
     end;
 
@@ -4338,14 +4346,6 @@ begin
 
     // if the name is the same as an existing structure, then make sure
     // the user wants to create a duplicate
-    if structName<>rsUnnamedStructure then
-    begin
-      for i:=0 to DissectedStructs.Count-1 do
-        if TDissectedStruct(dissectedstructs[i]).name=structname then
-        begin
-          if messagedlg(format(rsStructAlreadyExists,[structname]), mtWarning, [mbyes, mbno], 0)<>mryes then exit else break;
-        end;
-    end;
 
     mainStruct:=nil;
     tvStructureView.items.clear;
