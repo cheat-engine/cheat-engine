@@ -117,7 +117,7 @@ uses
   dotnethost, rttihelper, cefreetype, LuaDotNetPipe, LuaRemoteExecutor,
   autoassemblercode, CSharpCompiler, newhintwindow, memrecDataStructures,
   LuaCECustomButton, DBVMDebuggerInterface, frmCR3SwitcherUnit, tcclib,
-  sourcecodehandler, frmSourceDisplayUnit;
+  sourcecodehandler, frmSourceDisplayUnit, disassemblerarm64;
 
 {$R cheatengine.res}
 {$IFDEF windows}
@@ -279,7 +279,7 @@ var
   path: string;
   noautorun: boolean;
 begin
-  Application.Title:='Cheat Engine 7.4';
+  Application.Title:='Runtime Mod 7.4';
  //'Cheat Engine 7.3';
   {$ifdef darwin}
   macPortFixRegPath;

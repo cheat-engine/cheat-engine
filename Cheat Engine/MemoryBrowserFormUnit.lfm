@@ -1,7 +1,7 @@
 object MemoryBrowser: TMemoryBrowser
-  Left = 364
+  Left = 745
   Height = 530
-  Top = 319
+  Top = 379
   Width = 643
   HelpContext = 12
   Caption = 'Memory Viewer'
@@ -1672,6 +1672,31 @@ object MemoryBrowser: TMemoryBrowser
           GroupIndex = 1
           RadioItem = True
           OnClick = miDisassemblyAutodetectClick
+        end
+      end
+      object miArchitecture: TMenuItem
+        Caption = 'Architecture'
+        object miArchAutodetect: TMenuItem
+          AutoCheck = True
+          Caption = 'Autodetect'
+          Checked = True
+          GroupIndex = 8
+          RadioItem = True
+          OnClick = miArchChangeClick
+        end
+        object miArchX86: TMenuItem
+          AutoCheck = True
+          Caption = 'X86'
+          GroupIndex = 8
+          RadioItem = True
+          OnClick = miArchChangeClick
+        end
+        object miArchArm: TMenuItem
+          AutoCheck = True
+          Caption = 'ARM'
+          GroupIndex = 8
+          RadioItem = True
+          OnClick = miArchChangeClick
         end
       end
       object miBinUtils: TMenuItem

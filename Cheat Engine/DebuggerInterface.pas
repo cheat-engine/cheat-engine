@@ -38,8 +38,10 @@ type
     function ContinueDebugEvent(dwProcessId: DWORD; dwThreadId: DWORD; dwContinueStatus: DWORD): BOOL; virtual; abstract;
     function SetThreadContext(hThread: THandle; const lpContext: TContext; isFrozenThread: Boolean=false): BOOL; virtual;
     function SetThreadContextArm(hThread: THandle; const lpContext: TARMCONTEXT; isFrozenThread: Boolean=false): BOOL; virtual;
+    function SetThreadContextArm64(hThread: THandle; const lpContext: TARM64CONTEXT; isFrozenThread: Boolean=false): BOOL; virtual;
     function GetThreadContext(hThread: THandle; var lpContext: TContext; isFrozenThread: Boolean=false): BOOL; virtual;
     function GetThreadContextArm(hThread: THandle; var lpContext: TARMCONTEXT; isFrozenThread: Boolean=false): BOOL; virtual;
+    function GetThreadContextArm64(hThread: THandle; var lpContext: TARM64CONTEXT; isFrozenThread: Boolean=false): BOOL; virtual;
     function DebugActiveProcess(dwProcessId: DWORD): BOOL; virtual; abstract;
     function DebugActiveProcessStop(dwProcessID: DWORD): BOOL; virtual;
     function GetLastBranchRecords(lbr: pointer): integer; virtual;
@@ -91,7 +93,17 @@ begin
   result:=false;
 end;
 
+function TDebuggerInterface.SetThreadContextArm64(hThread: THandle; const lpContext: TARM64CONTEXT; isFrozenThread: Boolean=false): BOOL;
+begin
+  result:=false;
+end;
+
 function TDebuggerInterface.GetThreadContextArm(hThread: THandle; var lpContext: TARMCONTEXT; isFrozenThread: Boolean=false): BOOL;
+begin
+  result:=false;
+end;
+
+function TDebuggerInterface.GetThreadContextArm64(hThread: THandle; var lpContext: TARM64CONTEXT; isFrozenThread: Boolean=false): BOOL;
 begin
   result:=false;
 end;

@@ -11,7 +11,7 @@
 	<Platforms>
 		<Platform
 			Name="Win32"
-		/>
+		/>m,yicor
 		<Platform
 			Name="x64"
 		/>
@@ -354,10 +354,6 @@
 			</File>
 			<File
 				RelativePath=".\MyICorDebugDataTarget.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\MyICorDebugManagedCallback.cpp"
 				>
 			</File>
 			<File

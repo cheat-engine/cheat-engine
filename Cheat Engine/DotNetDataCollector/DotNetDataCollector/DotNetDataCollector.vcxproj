@@ -71,7 +71,7 @@
     <IntDir>$(Configuration)\</IntDir>
     <LinkIncremental>true</LinkIncremental>
     <TargetName>$(ProjectName)$(PlatformArchitecture)</TargetName>
-    <IncludePath>C:\Program Files %28x86%29\Windows Kits\NETFXSDK\4.7.2\Include\um;D:\git\cheat-engine\Cheat Engine\Common;$(IncludePath)</IncludePath>
+    <IncludePath>C:\Program Files %28x86%29\Windows Kits\NETFXSDK\4.7.2\Include\um;$(SolutionDir)..\Common\;$(IncludePath)</IncludePath>
     <LibraryPath>C:\Program Files %28x86%29\Windows Kits\NETFXSDK\4.7.2\Lib\um\x86;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -79,7 +79,7 @@
     <IntDir>$(Platform)\$(Configuration)\</IntDir>
     <LinkIncremental>true</LinkIncremental>
     <TargetName>$(ProjectName)$(PlatformArchitecture)</TargetName>
-    <IncludePath>C:\Program Files %28x86%29\Windows Kits\NETFXSDK\4.7.2\Include\um;D:\git\cheat-engine\Cheat Engine\Common;$(IncludePath)</IncludePath>
+    <IncludePath>C:\Program Files %28x86%29\Windows Kits\NETFXSDK\4.7.2\Include\um;$(SolutionDir)..\Common\;$(IncludePath)</IncludePath>
     <LibraryPath>C:\Program Files %28x86%29\Windows Kits\NETFXSDK\4.7.2\Lib\um\x64;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -87,7 +87,7 @@
     <IntDir>$(Configuration)\</IntDir>
     <LinkIncremental>false</LinkIncremental>
     <TargetName>$(ProjectName)$(PlatformArchitecture)</TargetName>
-    <IncludePath>C:\Program Files %28x86%29\Windows Kits\NETFXSDK\4.7.2\Include\um;D:\git\cheat-engine\Cheat Engine\Common;$(IncludePath)</IncludePath>
+    <IncludePath>C:\Program Files %28x86%29\Windows Kits\NETFXSDK\4.7.2\Include\um;$(SolutionDir)..\Common\;$(IncludePath)</IncludePath>
     <LibraryPath>C:\Program Files %28x86%29\Windows Kits\NETFXSDK\4.7.2\Lib\um\x86;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -95,7 +95,7 @@
     <IntDir>$(Platform)\$(Configuration)\</IntDir>
     <LinkIncremental>false</LinkIncremental>
     <TargetName>$(ProjectName)$(PlatformArchitecture)</TargetName>
-    <IncludePath>C:\Program Files %28x86%29\Windows Kits\NETFXSDK\4.7.2\Include\um;D:\git\cheat-engine\Cheat Engine\Common;$(IncludePath)</IncludePath>
+    <IncludePath>C:\Program Files %28x86%29\Windows Kits\NETFXSDK\4.7.2\Include\um;$(SolutionDir)..\Common\;$(IncludePath)</IncludePath>
     <LibraryPath>C:\Program Files %28x86%29\Windows Kits\NETFXSDK\4.7.2\Lib\um\x64;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">

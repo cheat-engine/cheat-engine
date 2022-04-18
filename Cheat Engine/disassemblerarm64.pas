@@ -5259,18 +5259,38 @@ begin
   InitARM64Support;
 
   result:=0;
+  parameters:=[];
 
   i:=pos(' ', instruction);
-  opcodestring:=copy(instruction,1,i-1);
-  parameterstring:=copy(instruction,i+1);
+  if i>0 then
+  begin
+    opcodestring:=copy(instruction,1,i-1);
+    parameterstring:=trim(copy(instruction,i+1));
+  end
+  else
+  begin
+    opcodestring:=instruction;
+    parameterstring:='';
+  end;
 
-  parameterstringsplit:=parameterstring.Split([',']);
-  setlength(parameters, length(parameterstringsplit));
+
+  if pos(',',parameterstring)>0 then
+  begin
+    parameterstringsplit:=parameterstring.Split([',']);
+    setlength(parameters, length(parameterstringsplit));
+  end
+  else
+  begin
+    parameterstringsplit:=[];
+    setlength(parameters,0);
+  end;
 
   preindexed:=false;
   inindex:=false;
 
   self.address:=_address;
+
+
 
   for i:=0 to length(parameterstringsplit)-1 do
   begin
@@ -5281,6 +5301,7 @@ begin
 
     parameters[i].possibletypes:=[];
     parameters[i].str:=trim(parameterstringsplit[i]);
+
     if parameters[i].str[1]='[' then
     begin
       parameters[i].index:=1;

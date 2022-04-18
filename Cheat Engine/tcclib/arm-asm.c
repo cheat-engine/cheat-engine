@@ -508,9 +508,12 @@ static void asm_data_processing_opcode(TCCState *s1, int token)
 {
     Operand ops[3];
     int nb_ops;
-    Operand shift = {};
+	Operand shift;// = {}; //cheat engine modification (won't compile in vs2017)
     int nb_shift = 0;
     uint32_t operands = 0;
+
+	shift.type = 0; //cheat engine modification (in vs2017: set to 0)
+	
 
     /* modulo 16 entries per instruction for the different condition codes */
     uint32_t opcode_idx = (ARM_INSTRUCTION_GROUP(token) - TOK_ASM_andeq) >> 4;

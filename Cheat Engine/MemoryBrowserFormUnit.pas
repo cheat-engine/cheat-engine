@@ -47,10 +47,14 @@ type
     ESPlabel: TLabel;
     FSlabel: TLabel;
     GSlabel: TLabel;
+    miArchX86: TMenuItem;
+    miArchArm: TMenuItem;
+    miArchAutodetect: TMenuItem;
     MenuItem4: TMenuItem;
     copyBytesAndOpcodesAndComments: TMenuItem;
     MenuItem5: TMenuItem;
     MenuItem6: TMenuItem;
+    miArchitecture: TMenuItem;
     miCR3Switcher: TMenuItem;
     miShowSectionAddresses: TMenuItem;
     miOpenInDissectData: TMenuItem;
@@ -346,6 +350,7 @@ type
     procedure MenuItem11Click(Sender: TObject);
     procedure MenuItem12Click(Sender: TObject);
     procedure MenuItem14Click(Sender: TObject);
+    procedure miArchChangeClick(Sender: TObject);
     procedure miCR3SwitcherClick(Sender: TObject);
     procedure miDBVMFindoutwhataddressesthisinstructionaccessesClick(Sender: TObject);
     procedure MenuItem4Click(Sender: TObject);
@@ -650,6 +655,7 @@ type
     hexview: THexview;
 
     lastdebugcontextarm: TARMCONTEXT;
+    lastdebugcontextarm64: TARM64CONTEXT;
     lastdebugcontext: _Context;
     laststack: pbytearray;
 
@@ -1264,6 +1270,8 @@ procedure TMemoryBrowser.MenuItem14Click(Sender: TObject);
 begin
   EnableWindowsSymbols(true);
 end;
+
+
 
 procedure TMemorybrowser.setCR3(newcr3: qword);
 var oldcr3: qword;
@@ -2234,6 +2242,27 @@ begin
   end;
 end;
 
+procedure TMemoryBrowser.miArchChangeClick(Sender: TObject);
+begin
+  if miArchAutodetect.checked then
+    visibleDisassembler.architecture:=darchAutoDetect
+  else
+  if miArchX86.checked then
+    visibleDisassembler.architecture:=darchX86
+  else
+    visibleDisassembler.architecture:=darchArm;
+
+  disassemblerview.Update;
+
+  if ssCtrl in GetKeyShiftState then
+  begin
+    case visibleDisassembler.architecture of
+      darchX86: processhandler.SystemArchitecture:=archX86;
+      darchArm: processhandler.SystemArchitecture:=archArm;
+    end;
+  end;
+end;
+
 procedure TMemoryBrowser.miDisassemblyAutodetectClick(Sender: TObject);
 begin
   if miDisassemblyAutodetect.checked then
@@ -2254,6 +2283,14 @@ begin
   defaultDisassembler.is64bitOverridestate:=visibleDisassembler.is64bitOverridestate;
 
   disassemblerview.update;
+
+  if ssCtrl in GetKeyShiftState then
+  begin
+    if miDisassembly32.checked then
+      processhandler.is64Bit:=false
+    else
+      processhandler.is64Bit:=true;
+  end;
 
 end;
 

@@ -1,0 +1,6 @@
+jre (folder)  : Standaloine java runtime with at least jre/bin/keytool.exe and jre/bin/java.exe
+adb.exe : android debug bridge exe  (*You may still have to install the android debug bridge driver for your phone version)
+adbwinapi.dll
+adbwinusbapi.dll
+apktool.jar
+zipalign.exe

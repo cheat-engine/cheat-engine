@@ -114,7 +114,7 @@ type
     function RemoveBreakpoint(hProcess: THandle; threadid: integer; debugregister: integer; wasWatchpoint: boolean): boolean;
     function AllocateAndGetContext(hProcess: Thandle; threadid: integer): pointer;
     function getVersion(var name: string): integer;
-    function getArchitecture: integer;
+    function getArchitecture(hProcess: THandle): integer;
     function getABI: integer;
     function enumSymbolsFromFile(modulepath: string; modulebase: ptruint; callback: TNetworkEnumSymCallback): boolean;
     function loadModule(hProcess: THandle; modulepath: string): boolean;
@@ -1443,13 +1443,17 @@ begin
   end;
 end;
 
-function TCEConnection.getArchitecture: integer;
-var command: byte;
+function TCEConnection.getArchitecture(hProcess: THandle): integer;
+var input: packed record
+    command: byte;
+    hprocess: uint32;
+  end;
   r: byte;
 begin
   result:=0;
-  command:=CMD_GETARCHITECTURE;
-  if send(@command, 1)>0 then
+  input.command:=CMD_GETARCHITECTURE;
+  input.hprocess:=hProcess and $ffffff;
+  if send(@input, sizeof(input))>0 then
     if receive(@r, 1)>0 then
       result:=r;
 end;

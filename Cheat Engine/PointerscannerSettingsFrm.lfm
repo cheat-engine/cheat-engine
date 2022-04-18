@@ -486,7 +486,7 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
         AnchorSideTop.Side = asrBottom
         Left = 16
         Height = 19
-        Hint = 'Enable this if you wish to only find pointer paths with a stack address.'#13#10'Combine this with "Only find paths with a static address" (default on) else this option will have no effect'#13#10#13#10'pro: You''ll only get paths from the stack'#13#10'con: You don''t get get paths from random dll''s or the .exe '
+        Hint = 'Enable this if you wish to only find pointer paths with a stack address.'#13#10'Combine this with "Only find paths with a static address" (default on) else this option will have no effect'#13#10#13#10'pro: You''ll only get paths from the stack'#13#10'con: You don''t get paths from random dll''s or the .exe '
         Top = 122
         Width = 224
         Caption = 'Stack addresses as ONLY static address'

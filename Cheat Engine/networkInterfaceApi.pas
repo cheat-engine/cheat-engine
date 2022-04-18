@@ -176,6 +176,7 @@ function NetworkReadProcessMemory(hProcess: THandle; lpBaseAddress, lpBuffer: Po
 var a,b: dword;
     c,d: ptruint;
 begin
+
   //log('NetworkReadProcessMemory');
   //log(format('Read %d bytes from %p into %p',[nsize, lpBaseAddress, lpBuffer]));
 

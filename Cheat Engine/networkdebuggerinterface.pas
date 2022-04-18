@@ -27,6 +27,7 @@ type
 
     function SetThreadContextArm(hThread: THandle; const lpContext: TArmContext; isFrozenThread: Boolean=false): BOOL; override;
     function GetThreadContextArm(hThread: THandle; var lpContext: TArmContext; isFrozenThread: Boolean=false):  BOOL; override;
+    function GetThreadContextArm64(hThread: THandle; var lpContext: TArm64Context; isFrozenThread: Boolean=false):  BOOL; override;
 
 
     function GetLastBranchRecords(lbr: pointer): integer; override;
@@ -122,6 +123,8 @@ type
 
   PNetworkArmContext=^TNetworkArmContext;
 
+  TNetworkArm64Context=TARM64CONTEXT;
+  PNetworkArm64Context=^TARM64CONTEXT;
 
 function TNetworkDebuggerInterface.WaitForDebugEvent(var lpDebugEvent: TDebugEvent; dwMilliseconds: DWORD): BOOL;
 var
@@ -224,6 +227,32 @@ begin
   result:=false;
 end;
 
+function TNetworkDebuggerInterface.GetThreadContextArm64(hThread: THandle; var lpContext: TArm64Context; isFrozenThread: Boolean=false):  BOOL;
+var
+  carm64: PNetworkArm64Context;
+  c: TCEConnection=nil;
+begin
+  result:=false;
+
+  c:=getConnection;
+  if c<>nil then
+  begin
+    carm64:=c.AllocateAndGetContext(handle, hThread);
+
+    if (carm64<>nil) and (processhandler.SystemArchitecture=archArm) then
+    begin
+      if processhandler.is64Bit then
+      begin
+        lpContext:=carm64^;
+        result:=true;
+      end; //else use GetThreadContextArm()
+    end; //else use GetThreadContext
+
+    if (carm64<>nil) then
+      FreeMemAndNil(carm64);
+  end;
+end;
+
 function TNetworkDebuggerInterface.GetThreadContextArm(hThread: THandle; var lpContext: TArmContext; isFrozenThread: Boolean=false):  BOOL;
 var
   carm: PNetworkArmContext;
@@ -263,6 +292,8 @@ begin
         lpContext.PC:=carm.PC;
         lpContext.CPSR:=carm.CPSR;
         lpContext.ORIG_R0:=carm.ORIG_R0;
+
+        result:=true;
       end;
     end; //else use GetThreadContext
 

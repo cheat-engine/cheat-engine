@@ -1423,7 +1423,6 @@ var s: PTCCState;
 
   sources: tstringlist;
 begin
-  result:=false;
   if not working then
   begin
     if textlog<>nil then textlog.add('Incorrect tcc library');
