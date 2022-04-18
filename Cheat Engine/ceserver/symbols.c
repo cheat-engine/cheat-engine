@@ -230,7 +230,7 @@ Caller must free output manually
   free(sectionHeaders);
 
 
-  debug_log("end:\n");
+ // debug_log("end:\n");
   strm.avail_in=tempbufferpos;
   strm.next_in=tempbuffer;
 
@@ -238,7 +238,7 @@ Caller must free output manually
   {
 
     i=deflate(&strm, Z_FINISH);
-    debug_log("i=%d\n", i);
+   // debug_log("i=%d\n", i);
     if (i==Z_STREAM_END) //done
       break;
 
@@ -444,7 +444,7 @@ Caller must free output manually
   free(sectionHeaders);
 
 
-  debug_log("end:\n");
+ // debug_log("end:\n");
   strm.avail_in=tempbufferpos;
   strm.next_in=tempbuffer;
 
@@ -452,7 +452,7 @@ Caller must free output manually
   {
 
     i=deflate(&strm, Z_FINISH);
-    debug_log("i=%d\n", i);
+    //debug_log("i=%d\n", i);
     if (i==Z_STREAM_END) //done
       break;
 
@@ -464,7 +464,7 @@ Caller must free output manually
 
     if (strm.avail_out==0)
     {
-      debug_log("Out buffer full. Reallocating :%d\n", maxoutputsize*2);
+     // debug_log("Out buffer full. Reallocating :%d\n", maxoutputsize*2);
       *output=realloc(*output, maxoutputsize*2);
 
       strm.next_out=(unsigned char *)&(*output)[maxoutputsize];
@@ -476,10 +476,10 @@ Caller must free output manually
 
   };
 
-  debug_log("strm.avail_out=%d\n", strm.avail_out);
+ // debug_log("strm.avail_out=%d\n", strm.avail_out);
 
-  debug_log("total_in = %lu\n", strm.total_in);
-  debug_log("total_out = %lu\n", strm.total_out);
+//  debug_log("total_in = %lu\n", strm.total_in);
+//  debug_log("total_out = %lu\n", strm.total_out);
 
   deflateEnd(&strm);
 
@@ -502,7 +502,7 @@ int GetSymbolListFromFile(char *filename, unsigned char **output, int *outputsiz
   int i, f;
   unsigned char *b=NULL;
 
-  debug_log("GetSymbolListFromFile(%s)\n", filename);
+ // debug_log("GetSymbolListFromFile(%s)\n", filename);
 
   *output=NULL;
   f=open(filename, O_RDONLY);
@@ -658,7 +658,7 @@ unsigned long long GetModuleSize(char *filename, unsigned long long defaultsize)
   f=open(filename, O_RDONLY);
   if (f==-1)
   {
-    debug_log("Failed to open %s\n", filename);
+    printf("Failed to open %s\n", filename);
     return defaultsize;
   }
   else
@@ -670,7 +670,7 @@ unsigned long long GetModuleSize(char *filename, unsigned long long defaultsize)
 
       if (*(uint32_t *)b!=0x464c457f)
       {
-        debug_log("%s is not an elf\n", filename);
+        printf("%s is not an elf\n", filename);
         free(b);
         close(f);
         return defaultsize; //not an ELF file

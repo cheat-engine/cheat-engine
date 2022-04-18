@@ -252,6 +252,8 @@ ssize_t recvall (int s, void *buf, size_t size, int flags);
 int DispatchCommand(int currentsocket, unsigned char command);
 int CheckForAndDispatchCommand(int currentsocket);
 
+extern int PORT;
+
 #if BUILD_OPTION == 1
   #define SHARED_LIBRARY
 #endif
