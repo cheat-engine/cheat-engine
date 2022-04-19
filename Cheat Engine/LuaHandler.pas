@@ -13820,12 +13820,12 @@ begin
       prot:=PAGE_EXECUTE_READWRITE;
 
 
-    a:=VirtualAllocEx(processhandle,base,size,MEM_COMMIT or MEM_RESERVE, PAGE_EXECUTE_READWRITE);
+    a:=VirtualAllocEx(processhandle,base,size,MEM_COMMIT or MEM_RESERVE, prot);
     if a=nil then
     begin
       //try to fix a mistake
       base:=FindFreeBlockForRegion(ptruint(base),size);
-      a:=VirtualAllocEx(processhandle,base,size,MEM_COMMIT or MEM_RESERVE, PAGE_EXECUTE_READWRITE);
+      a:=VirtualAllocEx(processhandle,base,size,MEM_COMMIT or MEM_RESERVE, prot);
       if a=nil then exit(0);
     end;
 
