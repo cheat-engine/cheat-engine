@@ -1,12 +1,12 @@
 object frmAutoInject: TfrmAutoInject
   Left = 419
-  Height = 314
+  Height = 313
   Top = 475
   Width = 431
   HelpContext = 1089
   AllowDropFiles = True
   Caption = 'Auto assemble'
-  ClientHeight = 294
+  ClientHeight = 293
   ClientWidth = 431
   Menu = MainMenu1
   OnClose = FormClose
@@ -19,7 +19,7 @@ object frmAutoInject: TfrmAutoInject
   object Panel1: TPanel
     Left = 0
     Height = 34
-    Top = 260
+    Top = 259
     Width = 431
     Align = alBottom
     AutoSize = True
@@ -60,7 +60,7 @@ object frmAutoInject: TfrmAutoInject
   end
   object Panel2: TPanel
     Left = 0
-    Height = 260
+    Height = 259
     Top = 0
     Width = 431
     Align = alClient

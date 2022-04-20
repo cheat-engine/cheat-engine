@@ -1006,7 +1006,10 @@ var
     enablecode: tstringlist;
     disablecode: tstringlist;
     jmpsize: integer;
+
+    d: TDisassembler;
 begin
+
   if not processhandler.is64Bit then
     farjmp:=false;
 
@@ -1025,6 +1028,8 @@ begin
   //disassemble the old code
   setlength(originalcode,0);
   codesize:=0;
+
+
 
   while codesize<jmpsize do
   begin

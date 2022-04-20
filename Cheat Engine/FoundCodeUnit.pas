@@ -32,6 +32,7 @@ type
    // eax,ebx,ecx,edx,esi,edi,ebp,esp,eip: dword;
     context: TContext;
     armcontext: TARMCONTEXT;
+    arm64context: TARM64CONTEXT;
     stack: record
       savedsize: ptruint;
       stack: pbyte;
@@ -503,7 +504,12 @@ var base: qword;
 begin
   getmem(stack.stack, savedStackSize);
   if processhandler.SystemArchitecture=archarm then
-    base:=armcontext.SP
+  begin
+    if processhandler.is64Bit then
+      base:=armcontext.SP
+    else
+      base:=arm64context.SP;
+  end
   else
     base:=qword(context.{$ifdef cpu64}Rsp{$else}esp{$endif});
 
@@ -551,7 +557,14 @@ begin
   coderecord.opcode:=opcode;
   coderecord.description:=desc;
   coderecord.context:=currentthread.context^;
-  coderecord.armcontext:=currentthread.armcontext;
+  if processhandler.SystemArchitecture=archARM then
+  begin
+    if processhandler.is64Bit then
+      coderecord.arm64context:=currentthread.arm64context
+    else
+      coderecord.armcontext:=currentthread.armcontext;
+
+  end;
   coderecord.LastDisassembleData:=ldi;
   coderecord.savestack;
   coderecord.hitcount:=1;
@@ -641,6 +654,7 @@ var
   firstchar: char;
   hexcount: integer;
   temp: string;
+  i: integer;
 begin
   if processhandler.is64Bit then
     hexcount:=16
@@ -682,24 +696,36 @@ begin
 
     if processhandler.SystemArchitecture=archarm then
     begin
-      minfo.Lines.Add('R10='+inttohex(coderecord.armcontext.R0,8));
-      minfo.Lines.Add('R11='+inttohex(coderecord.armcontext.R1,8));
-      minfo.Lines.Add('R12='+inttohex(coderecord.armcontext.R2,8));
-      minfo.Lines.Add('R13='+inttohex(coderecord.armcontext.R3,8));
-      minfo.Lines.Add('R14='+inttohex(coderecord.armcontext.R4,8));
-      minfo.Lines.Add('R15='+inttohex(coderecord.armcontext.R5,8));
-      minfo.Lines.Add('R16='+inttohex(coderecord.armcontext.R6,8));
-      minfo.Lines.Add('R17='+inttohex(coderecord.armcontext.R7,8));
-      minfo.Lines.Add('R18='+inttohex(coderecord.armcontext.R8,8));
-      minfo.Lines.Add('R19='+inttohex(coderecord.armcontext.R9,8));
-      minfo.Lines.Add('R10='+inttohex(coderecord.armcontext.R10,8));
-      minfo.Lines.Add('FP='+inttohex(coderecord.armcontext.FP,8));
-      minfo.Lines.Add('IP='+inttohex(coderecord.armcontext.IP,8));
-      minfo.Lines.Add('SP='+inttohex(coderecord.armcontext.SP,8));
-      minfo.Lines.Add('LR='+inttohex(coderecord.armcontext.LR,8));
-      minfo.Lines.Add('PC='+inttohex(coderecord.armcontext.PC,8));
-      minfo.Lines.Add('CPSR='+inttohex(coderecord.armcontext.CPSR,8));
-      minfo.Lines.Add('ORIG_R0='+inttohex(coderecord.armcontext.ORIG_R0,8));
+      if processhandler.is64Bit then
+      begin
+        for i:=0 to 30 do
+          minfo.Lines.Add(format('X%d=%.8x',[i, coderecord.arm64context.regs.X[i]]));
+
+        minfo.Lines.Add('SP='+inttohex(coderecord.arm64context.SP,8));
+        minfo.Lines.Add('PC='+inttohex(coderecord.arm64context.PC,8));
+        minfo.Lines.Add('PSTATE='+inttohex(coderecord.arm64context.PSTATE,8));
+      end
+      else
+      begin
+        minfo.Lines.Add('R10='+inttohex(coderecord.armcontext.R0,8));
+        minfo.Lines.Add('R11='+inttohex(coderecord.armcontext.R1,8));
+        minfo.Lines.Add('R12='+inttohex(coderecord.armcontext.R2,8));
+        minfo.Lines.Add('R13='+inttohex(coderecord.armcontext.R3,8));
+        minfo.Lines.Add('R14='+inttohex(coderecord.armcontext.R4,8));
+        minfo.Lines.Add('R15='+inttohex(coderecord.armcontext.R5,8));
+        minfo.Lines.Add('R16='+inttohex(coderecord.armcontext.R6,8));
+        minfo.Lines.Add('R17='+inttohex(coderecord.armcontext.R7,8));
+        minfo.Lines.Add('R18='+inttohex(coderecord.armcontext.R8,8));
+        minfo.Lines.Add('R19='+inttohex(coderecord.armcontext.R9,8));
+        minfo.Lines.Add('R10='+inttohex(coderecord.armcontext.R10,8));
+        minfo.Lines.Add('FP='+inttohex(coderecord.armcontext.FP,8));
+        minfo.Lines.Add('IP='+inttohex(coderecord.armcontext.IP,8));
+        minfo.Lines.Add('SP='+inttohex(coderecord.armcontext.SP,8));
+        minfo.Lines.Add('LR='+inttohex(coderecord.armcontext.LR,8));
+        minfo.Lines.Add('PC='+inttohex(coderecord.armcontext.PC,8));
+        minfo.Lines.Add('CPSR='+inttohex(coderecord.armcontext.CPSR,8));
+        minfo.Lines.Add('ORIG_R0='+inttohex(coderecord.armcontext.ORIG_R0,8));
+      end;
     end
     else
     begin
@@ -784,6 +810,8 @@ var
     cw: trect; //changed address window rect
 
     offset: integer;
+
+    lbl: TLabel;
 
   d: TDisassembler;
 begin
@@ -901,6 +929,8 @@ begin
 
     with FormFoundCodeListExtra do
     begin
+      pnlEPTWatch.visible:=false;
+
       label1.Caption:=disassembled[1].s;
       label1.tag:=disassembled[1].a;
 
@@ -918,99 +948,111 @@ begin
 
       if processhandler.SystemArchitecture=archarm then
       begin
-        //repurpose the x86 32-bit labels
-        lblRAX.caption:=' R0='+IntToHex(coderecord.armcontext.R0,8);
-        lblRDX.caption:=' R1='+IntToHex(coderecord.armcontext.R1,8);
-        lblRBP.caption:=' R2='+IntToHex(coderecord.armcontext.R2,8);
-        lblRBX.caption:=' R3='+IntToHex(coderecord.armcontext.R3,8);
-        lblRSI.caption:=' R4='+IntToHex(coderecord.armcontext.R4,8);
-        lblRSP.caption:=' R5='+IntToHex(coderecord.armcontext.R5,8);
-        lblRCX.caption:=' R6='+IntToHex(coderecord.armcontext.R6,8);
-        lblRDI.caption:=' R7='+IntToHex(coderecord.armcontext.R7,8);
-        lblRIP.caption:=' R8='+IntToHex(coderecord.armcontext.R8,8);
+        formfoundcodelistextra.label17.caption:='';
 
-        lblR9:=tlabel.Create(FormFoundCodeListExtra);
-        lblR9.Top:=lblRCX.top+(lblRCX.top-lblRBX.top);
-        lblR9.left:=lblRCX.left;
-        lblR9.caption:=' R9='+IntToHex(coderecord.armcontext.R9,8);
-        lblR9.parent:=FormFoundCodeListExtra.panel6;
-        lblR9.OnMouseDown:=registerMouseDown;
-        lblR9.OnDblClick:=RegisterDblClick;
-        lblR9.Align:=lblrcx.Align;
+        if processhandler.is64Bit then
+        begin
+          //just start from scratch
+          while pnlRegisters.ControlCount>0 do
+            pnlRegisters.Controls[0].Destroy;
 
-        lblR10:=tlabel.Create(FormFoundCodeListExtra);
-        lblR10.Top:=lblRCX.top+(lblRCX.top-lblRBX.top);
-        lblR10.left:=lblRDI.left;
-        lblR10.caption:='R10='+IntToHex(coderecord.armcontext.R10,8);
-        lblR10.parent:=FormFoundCodeListExtra.panel6;
-        lblR10.OnMouseDown:=registerMouseDown;
-        lblR10.OnDblClick:=RegisterDblClick;
-        lblR10.Align:=lblrcx.Align;
+          pnlRegisters.ChildSizing.ControlsPerLine:=6;
 
-        lblR11:=tlabel.Create(FormFoundCodeListExtra);
-        lblR11.Top:=lblRCX.top+(lblRCX.top-lblRBX.top);
-        lblR11.left:=lblRIP.left;
-        lblR11.caption:=' FP='+IntToHex(coderecord.armcontext.FP,8);
-        lblR11.parent:=FormFoundCodeListExtra.panel6;
-        lblR11.OnMouseDown:=registerMouseDown;
-        lblR11.OnDblClick:=RegisterDblClick;
-        lblR11.Align:=lblrcx.Align;
-                //new row
-        lblR12:=tlabel.Create(FormFoundCodeListExtra);
-        lblR12.Top:=lblR9.top+(lblRCX.top-lblRBX.top);
-        lblR12.left:=lblRCX.left;
-        lblR12.caption:=' IP='+IntToHex(coderecord.armcontext.IP,8);
-        lblR12.parent:=FormFoundCodeListExtra.panel6;
-        lblR12.OnMouseDown:=registerMouseDown;
-        lblR12.OnDblClick:=RegisterDblClick;
-        lblR12.Align:=lblrcx.Align;
+          for i:=0 to 30 do
+          begin
+            lbl:=tlabel.create(FormFoundCodeListExtra);
+            lbl.Caption:=format('X%d=%.8x',[i,coderecord.arm64context.regs.X[i]]);
+            lbl.parent:=pnlRegisters;
+            lbl.OnMouseDown:=registerMouseDown;
+            lbl.OnDblClick:=RegisterDblClick;
+          end;
 
-        lblR13:=tlabel.Create(FormFoundCodeListExtra);
-        lblR13.Top:=lblR9.top+(lblRCX.top-lblRBX.top);
-        lblR13.left:=lblRDI.left;
-        lblR13.caption:=' SP='+IntToHex(coderecord.armcontext.SP,8);
-        lblR13.parent:=FormFoundCodeListExtra.panel6;
-        lblR13.OnMouseDown:=registerMouseDown;
-        lblR13.OnDblClick:=RegisterDblClick;
-        lblR13.Align:=lblrcx.Align;
+          lbl:=tlabel.create(FormFoundCodeListExtra);
+          lbl.Caption:=format('SP=%.8x',[coderecord.arm64context.SP]);
+          lbl.parent:=pnlRegisters;
+          lbl.OnMouseDown:=registerMouseDown;
+          lbl.OnDblClick:=RegisterDblClick;
 
-        lblR14:=tlabel.Create(FormFoundCodeListExtra);
-        lblR14.Top:=lblR9.top+(lblRCX.top-lblRBX.top);
-        lblR14.left:=lblRIP.left;
-        lblR14.caption:=' LR='+IntToHex(coderecord.armcontext.LR,8);
-        lblR14.parent:=FormFoundCodeListExtra.panel6;
-        lblR14.OnMouseDown:=registerMouseDown;
-        lblR14.OnDblClick:=RegisterDblClick;
-        lblR14.Align:=lblrcx.Align;
-        //new line
+          lbl:=tlabel.create(FormFoundCodeListExtra);
+          lbl.Caption:=format('PC=%.8x',[coderecord.arm64context.PC]);
+          lbl.parent:=pnlRegisters;
+          lbl.OnMouseDown:=registerMouseDown;
+          lbl.OnDblClick:=RegisterDblClick;
 
-        lblR15:=tlabel.Create(FormFoundCodeListExtra);
-        lblR15.Top:=lblR12.top+(lblRCX.top-lblRBX.top);
-        lblR15.left:=lblRCX.left;
-        lblR15.caption:=' PC='+IntToHex(coderecord.armcontext.PC,8);
-        lblR15.parent:=FormFoundCodeListExtra.panel6;
-        lblR15.OnMouseDown:=registerMouseDown;
-        lblR15.OnDblClick:=RegisterDblClick;
-        lblR15.Align:=lblrcx.Align;
+          lbl:=tlabel.create(FormFoundCodeListExtra);
+          lbl.Caption:=format('PSTATE=%.8x',[coderecord.arm64context.PSTATE]);
+          lbl.parent:=pnlRegisters;
+          lbl.OnMouseDown:=registerMouseDown;
+          lbl.OnDblClick:=RegisterDblClick;
+        end
+        else
+        begin
+          //repurpose the x86 32-bit labels
+          lblRAX.caption:=' R0='+IntToHex(coderecord.armcontext.R0,8);
+          lblRDX.caption:=' R1='+IntToHex(coderecord.armcontext.R1,8);
+          lblRBP.caption:=' R2='+IntToHex(coderecord.armcontext.R2,8);
+          lblRBX.caption:=' R3='+IntToHex(coderecord.armcontext.R3,8);
+          lblRSI.caption:=' R4='+IntToHex(coderecord.armcontext.R4,8);
+          lblRSP.caption:=' R5='+IntToHex(coderecord.armcontext.R5,8);
+          lblRCX.caption:=' R6='+IntToHex(coderecord.armcontext.R6,8);
+          lblRDI.caption:=' R7='+IntToHex(coderecord.armcontext.R7,8);
+          lblRIP.caption:=' R8='+IntToHex(coderecord.armcontext.R8,8);
 
-        lblR16:=tlabel.Create(FormFoundCodeListExtra);
-        lblR16.Top:=lblR12.top+(lblRCX.top-lblRBX.top);
-        lblR16.left:=lblRDI.left;
-        lblR16.caption:=' CPSR='+IntToHex(coderecord.armcontext.CPSR,8);
-        lblR16.parent:=FormFoundCodeListExtra.panel6;
-        lblR16.OnMouseDown:=registerMouseDown;
-        lblR16.OnDblClick:=RegisterDblClick;
-        lblR16.Align:=lblrcx.Align;
+          lblR9:=tlabel.Create(FormFoundCodeListExtra);
+          lblR9.caption:=' R9='+IntToHex(coderecord.armcontext.R9,8);
+          lblR9.parent:=pnlRegisters;
+          lblR9.OnMouseDown:=registerMouseDown;
+          lblR9.OnDblClick:=RegisterDblClick;
 
-        lblR17:=tlabel.Create(FormFoundCodeListExtra);
-        lblR17.Top:=lblR12.top+(lblRCX.top-lblRBX.top);
-        lblR17.left:=lblRIP.left;
-        lblR17.caption:=' ORIG_R0='+IntToHex(coderecord.armcontext.ORIG_R0,8);
-        lblR17.parent:=FormFoundCodeListExtra.panel6;
-        lblR17.OnMouseDown:=registerMouseDown;
-        lblR17.OnDblClick:=RegisterDblClick;
-        lblR17.Align:=lblrcx.Align;
+          lblR10:=tlabel.Create(FormFoundCodeListExtra);
+          lblR10.caption:='R10='+IntToHex(coderecord.armcontext.R10,8);
+          lblR10.parent:=pnlRegisters;
+          lblR10.OnMouseDown:=registerMouseDown;
+          lblR10.OnDblClick:=RegisterDblClick;
 
+          lblR11:=tlabel.Create(FormFoundCodeListExtra);
+          lblR11.caption:=' FP='+IntToHex(coderecord.armcontext.FP,8);
+          lblR11.parent:=pnlRegisters;
+          lblR11.OnMouseDown:=registerMouseDown;
+          lblR11.OnDblClick:=RegisterDblClick;
+                  //new row
+          lblR12:=tlabel.Create(FormFoundCodeListExtra);
+          lblR12.caption:=' IP='+IntToHex(coderecord.armcontext.IP,8);
+          lblR12.parent:=pnlRegisters;
+          lblR12.OnMouseDown:=registerMouseDown;
+          lblR12.OnDblClick:=RegisterDblClick;
+
+          lblR13:=tlabel.Create(FormFoundCodeListExtra);
+          lblR13.caption:=' SP='+IntToHex(coderecord.armcontext.SP,8);
+          lblR13.parent:=pnlRegisters;
+          lblR13.OnMouseDown:=registerMouseDown;
+          lblR13.OnDblClick:=RegisterDblClick;
+
+          lblR14:=tlabel.Create(FormFoundCodeListExtra);
+          lblR14.caption:=' LR='+IntToHex(coderecord.armcontext.LR,8);
+          lblR14.parent:=pnlRegisters;
+          lblR14.OnMouseDown:=registerMouseDown;
+          lblR14.OnDblClick:=RegisterDblClick;
+          //new line
+
+          lblR15:=tlabel.Create(FormFoundCodeListExtra);
+          lblR15.caption:=' PC='+IntToHex(coderecord.armcontext.PC,8);
+          lblR15.parent:=pnlRegisters;
+          lblR15.OnMouseDown:=registerMouseDown;
+          lblR15.OnDblClick:=RegisterDblClick;
+
+          lblR16:=tlabel.Create(FormFoundCodeListExtra);
+          lblR16.caption:=' CPSR='+IntToHex(coderecord.armcontext.CPSR,8);
+          lblR16.parent:=pnlRegisters;
+          lblR16.OnMouseDown:=registerMouseDown;
+          lblR16.OnDblClick:=RegisterDblClick;
+
+          lblR17:=tlabel.Create(FormFoundCodeListExtra);
+          lblR17.caption:=' ORIG_R0='+IntToHex(coderecord.armcontext.ORIG_R0,8);
+          lblR17.parent:=pnlRegisters;
+          lblR17.OnMouseDown:=registerMouseDown;
+          lblR17.OnDblClick:=RegisterDblClick;
+        end;
         {Constraints.MinHeight:=panel6.top+(lblR17.top+lblR17.height)+16+panel5.height;
         if height<Constraints.MinHeight then
           height:=Constraints.MinHeight;   }
@@ -1186,7 +1228,8 @@ begin
           end;
         end; *)
 
-        formfoundcodelistextra.probably:=addresswatched-offset;
+        if processhandler.SystemArchitecture=archX86 then
+          formfoundcodelistextra.probably:=addresswatched-offset;
       end
       else
       begin

@@ -252,6 +252,12 @@ object frmChangedAddresses: TfrmChangedAddresses
       ShortCut = 16456
       OnClick = micbShowAsHexadecimalClick
     end
+    object micbShowAsSigned: TMenuItem
+      AutoCheck = True
+      Caption = 'Show as signed'
+      ShortCut = 16469
+      OnClick = micbShowAsHexadecimalClick
+    end
     object miCopyAddressToClipboard: TMenuItem
       Caption = 'Copy address to clipboard'
       ImageIndex = 2

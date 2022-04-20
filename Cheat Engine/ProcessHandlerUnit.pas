@@ -41,10 +41,11 @@ type TProcessHandler=class
     procedure Open;
     function isNetwork: boolean;  //perhaps name it isLinux ?
     procedure overridePointerSize(newsize: integer);
+
     property is64Bit: boolean read fIs64Bit write setIs64bit;
     property pointersize: integer read fPointersize;
     property processhandle: THandle read fProcessHandle write setProcessHandle;
-    property SystemArchitecture: TSystemArchitecture read fSystemArchitecture;
+    property SystemArchitecture: TSystemArchitecture read fSystemArchitecture write fSystemArchitecture;
     property OSABI: TOperatingsystemABI read fOSABI;
     property hexdigitpreference: integer read fHexDigitPreference;
 end;
@@ -111,7 +112,7 @@ begin
   c:=getConnection;
   if c<>nil then
   begin
-    arch:=c.getArchitecture;
+    arch:=c.getArchitecture(fprocesshandle);
     case arch of
       0:   //i386
       begin
@@ -131,7 +132,7 @@ begin
         setIs64Bit(false);
       end;
 
-      3: //arm64 (untested, not seen yet)
+      3: //arm64
       begin
         fSystemArchitecture:=archArm;
         setIs64Bit(true);

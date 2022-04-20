@@ -253,6 +253,58 @@ type
 
   PARMCONTEXT=^TARMCONTEXT;
 
+  TARM64CONTEXT_REGISTERS=packed record
+      case boolean of
+            true: (
+          X0: QWORD;
+          X1: QWORD;
+          X2: QWORD;
+          X3: QWORD;
+          X4: QWORD;
+          X5: QWORD;
+          X6: QWORD;
+          X7: QWORD;
+          X8: QWORD;
+          X9: QWORD;
+          X10: QWORD;
+          X11: QWORD;
+          X12: QWORD;
+          X13: QWORD;
+          X14: QWORD;
+          X15: QWORD;
+          X16: QWORD;
+          X17: QWORD;
+          X18: QWORD;
+          X19: QWORD;
+          X20: QWORD;
+          X21: QWORD;
+          X22: QWORD;
+          X23: QWORD;
+          X24: QWORD;
+          X25: QWORD;
+          X26: QWORD;
+          X27: QWORD;
+          X28: QWORD;
+          X29: QWORD;
+          X30: QWORD;  );
+
+            false: (
+            X: Array [0..30] of QWORD;
+            );
+
+   end;
+
+  TARM64CONTEXT=packed record
+     regs: TARM64CONTEXT_REGISTERS;
+
+     SP:  QWORD;
+     PC:  QWORD;
+     PSTATE: QWORD;
+
+  end;
+
+  PARM64CONTEXT=^TARM64CONTEXT;
+
   {$ifdef windows}
 type
 

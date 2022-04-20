@@ -809,6 +809,7 @@ end;
 var
   c: TContext;
   ca: TARMCONTEXT;
+  ca64: TARM64CONTEXT;
   tid: dword;
   th: thandle;
 

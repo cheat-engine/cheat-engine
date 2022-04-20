@@ -11,7 +11,8 @@ procedure initializeLuaSynEdit;
 
 implementation
 
-uses lua, lauxlib, lualib, luahandler, luaclass, controls, SynEdit, LuaCustomControl, LuaSyntax, SynHighlighterAA, betterControls;
+uses lua, lauxlib, lualib, luahandler, luaclass, controls, SynEdit, LuaCustomControl,
+  LuaSyntax, SynHighlighterAA, betterControls, SynHighlighterCpp;
 
 function createSynEdit(L: PLua_State): integer; cdecl;
 var
@@ -34,6 +35,7 @@ begin
       case mode of
         0: s.Highlighter:=TSynLuaSyn.Create(s);
         1: s.Highlighter:=TSynAASyn.Create(s);
+        2: s.Highlighter:=TSynCppSyn.Create(s);
       end;
     end;
 

@@ -73,6 +73,7 @@ type
     editCodeAddress: TEdit;
     labelCodeAddress: TLabel;
     lblInfo: TLabel;
+    micbShowAsSigned: TMenuItem;
     miCodeAddressCopy: TMenuItem;
     miCopyValueToClipboard: TMenuItem;
     miCopyAddressToClipboard: TMenuItem;
@@ -604,8 +605,10 @@ var i1, i2: TAddressEntry;
     d2: double absolute hex2;
     x: PtrUInt;
     varsize: integer;
-
+    signedcompare: boolean;
 begin
+  signedcompare:=micbShowAsSigned.checked;
+
   compare:=0;
   i1:=TAddressEntry(item1.data);
   i2:=TAddressEntry(item2.data);
@@ -663,16 +666,16 @@ begin
       else
       begin
         case cbDisplayType.itemindex of
-          cbDisplayTypeIndexByte: compare:=byte(hex)-byte(hex2);
-          cbDisplayTypeIndexWord: compare:=word(hex)-word(hex2);
-          cbDisplayTypeIndexDword: compare:=dword(hex)-dword(hex2);
-          cbDisplayTypeIndexQword: compare:=ULONG64(hex)-ULONG64(hex2);
+          cbDisplayTypeIndexByte: compare:=ifthen(signedcompare, CompareValue(Int8(hex), Int8(hex2)), CompareValue(Uint8(hex),Uint8(hex2)));
+          cbDisplayTypeIndexWord: compare:=ifthen(signedcompare, CompareValue(Int16(hex), Int16(hex2)), CompareValue(Uint16(hex),Uint16(hex2)));
+          cbDisplayTypeIndexDword: compare:=ifthen(signedcompare, CompareValue(Int32(hex), Int32(hex2)), CompareValue(Uint32(hex),Uint32(hex2)));
+          cbDisplayTypeIndexQword: compare:=ifthen(signedcompare, CompareValue(Int64(hex), Int64(hex2)), CompareValue(Uint64(hex),Uint64(hex2)));
           cbDisplayTypeIndexPointer:
             begin
               if processhandler.is64Bit then
-                compare:=ULONG64(hex)-ULONG64(hex2)
+                compare:=ifthen(signedcompare, CompareValue(Int64(hex), Int64(hex2)), CompareValue(Uint64(hex),Uint64(hex2)))
               else
-                compare:=dword(hex)-dword(hex2);
+                compare:=ifthen(signedcompare, CompareValue(Int32(hex), Int32(hex2)), CompareValue(Uint32(hex),Uint32(hex2)));
             end;
 
           cbDisplayTypeIndexSingle:
@@ -1222,6 +1225,9 @@ begin
   miDeleteSelectedEntries.enabled:=changedlist.SelCount>0;
 
   miDissect.enabled:=changedlist.SelCount>0;
+
+  micbShowAsSigned.Visible:=cbDisplayType.ItemIndex in [cbDisplayTypeIndexByte, cbDisplayTypeIndexWord, cbDisplayTypeIndexDword, cbDisplayTypeIndexQword];
+  micbShowAsSigned.Enabled:=not micbShowAsHexadecimal.checked;
 end;
 
 procedure TfrmChangedAddresses.refetchValues(specificaddress: ptruint=0; countonly: boolean=false);
@@ -1251,10 +1257,10 @@ begin
       if countonly=false then
       begin
         case cbDisplayType.ItemIndex of
-          cbDisplayTypeIndexByte: s:=ReadAndParseAddress(e.address, vtByte,  nil, micbShowAsHexadecimal.checked);
-          cbDisplayTypeIndexWord: s:=ReadAndParseAddress(e.address, vtWord,  nil, micbShowAsHexadecimal.checked);
-          cbDisplayTypeIndexDword: s:=ReadAndParseAddress(e.address, vtDWord, nil, micbShowAsHexadecimal.checked);
-          cbDisplayTypeIndexQword: s:=ReadAndParseAddress(e.address, vtQWord, nil, micbShowAsHexadecimal.checked);
+          cbDisplayTypeIndexByte: s:=ReadAndParseAddress(e.address, vtByte,  nil, micbShowAsHexadecimal.checked, micbShowAsSigned.checked);
+          cbDisplayTypeIndexWord: s:=ReadAndParseAddress(e.address, vtWord,  nil, micbShowAsHexadecimal.checked, micbShowAsSigned.checked);
+          cbDisplayTypeIndexDword: s:=ReadAndParseAddress(e.address, vtDWord, nil, micbShowAsHexadecimal.checked, micbShowAsSigned.checked);
+          cbDisplayTypeIndexQword: s:=ReadAndParseAddress(e.address, vtQWord, nil, micbShowAsHexadecimal.checked, micbShowAsSigned.checked);
           cbDisplayTypeIndexSingle: s:=ReadAndParseAddress(e.address, vtSingle,nil, micbShowAsHexadecimal.checked);
           cbDisplayTypeIndexDouble: s:=ReadAndParseAddress(e.address, vtDouble,nil, micbShowAsHexadecimal.checked);
           cbDisplayTypeIndexPointer:
@@ -1268,7 +1274,7 @@ begin
           else
             begin
               //custom type
-              s:=ReadAndParseAddress(e.address, vtCustom, TCustomType(cbDisplayType.Items.Objects[cbDisplayType.ItemIndex]), micbShowAsHexadecimal.checked);
+              s:=ReadAndParseAddress(e.address, vtCustom, TCustomType(cbDisplayType.Items.Objects[cbDisplayType.ItemIndex]), micbShowAsHexadecimal.checked, micbShowAsSigned.checked);
             end;
         end;
 

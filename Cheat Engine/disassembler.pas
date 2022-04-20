@@ -161,6 +161,8 @@ type
     is64bitOverride: boolean;
     is64BitOverrideState: boolean;
 
+    architecture: (darchAutoDetect, darchX86, darchArm);
+
     LastDisassembleData: TLastDisassembleData;
     MarkIPRelativeInstructions: boolean;
 
@@ -1712,13 +1714,12 @@ begin
       end;
 
 
-      if processhandler.SystemArchitecture=archarm then
+      if (processhandler.SystemArchitecture=archarm) or (architecture=darchARM) then
       begin
         result:=ArmDisassembler.disassemble(offset);
         LastDisassembleData:=armdisassembler.LastDisassembleData;
         exit;
       end;
-
 
       modrmposition:=mNone;
 

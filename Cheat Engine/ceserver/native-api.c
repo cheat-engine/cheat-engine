@@ -1,3 +1,6 @@
+#include <stdlib.h>
+#include <string.h>
+
 #include "api.h"
 #include "porthelp.h"
 #include "ceserver.h"

@@ -4280,6 +4280,8 @@ begin
 
           if checkroutine(@newmemory[alist[k]-currentbase],savedscanhandler.getpointertoaddress(alist[k],valuetype, customType )) xor inv then
             StoreResultRoutine(alist[k],@newmemory[alist[k]-currentbase]);
+
+          inc(scanned);
         end;
       end
       else
@@ -4290,6 +4292,8 @@ begin
 
           if CheckRoutine(@newmemory[alist[k]-currentbase],@oldmem[k*vsize]) xor inv then
             StoreResultRoutine(alist[k],@newmemory[alist[k]-currentbase]);
+
+          inc(scanned);
         end;
       end;
     end;
@@ -5359,7 +5363,7 @@ begin
         end;
       end;
 
-      inc(scanned,chunksize);
+      //inc(scanned,chunksize);
       inc(i,chunksize);
     end;
 

@@ -18,11 +18,15 @@ uses
 uses  macport, classes,SysUtils, newkernelhandler, cefuncproc,LastDisassembleData, DisassemblerThumb;
 {$endif}
 
+
+
 const ArmConditions: array [0..15] of string=('EQ','NE','CS', 'CC', 'MI', 'PL', 'VS', 'VC', 'HI', 'LS', 'GE', 'LT', 'GT', 'LE', '','NV');
 const DataProcessingOpcodes: array [0..15] of string=('AND','EOR','SUB', 'RSB', 'ADD', 'ADC', 'SBC', 'RSC', 'TST', 'TEQ', 'CMP', 'CMN', 'ORR', 'MOV', 'BIC','MVN');
 const ArmRegisters : array [0..15] of string=('R0','R1','R2','R3','R4','R5','R6','R7','R8','R9','R10','FP','IP','SP','LR','PC');
 const ArmRegistersNoName : array [0..15] of string=('R0','R1','R2','R3','R4','R5','R6','R7','R8','R9','R10','R11','R12','R13','R14','R15');
+//const Arm64Registers : array [0..15] of string=('X0','X1','X2','X3','X4','X5','X6','X7','X8','X9','X10','X11','X12','X13','X14','X15','X16');
 function SignExtend(value: int32; mostSignificantBit: integer): int32;
+
 
 type
   TArmDisassembler=object
@@ -44,6 +48,8 @@ type
     procedure CDP;
 
 
+
+
   public
     LastDisassembleData: TLastDisassembleData;
     function disassemble(var address: ptrUint): string;
@@ -55,7 +61,7 @@ type
 implementation
 
  {$ifndef ARMDEV}
-uses processhandlerunit;
+uses processhandlerunit, disassemblerarm64;
 {$endif}
 
 
@@ -252,6 +258,7 @@ begin
 
   end;
 end;
+
 
 procedure TArmDisassembler.MRS;
 var
@@ -565,11 +572,20 @@ begin
 
   _rlist:=_rlist+'}';
 
-
-  if L=0 then
-    _opcode:='STM'
+  IF (rn=%1101) and (rcount>=2) then
+  begin
+    _opcode:='PUSH';
+    LastDisassembleData.opcode:=_opcode+_cond;
+    LastDisassembleData.parameters:=_rlist;
+    exit;
+  end
   else
-    _opcode:='LDM';
+  begin
+    if L=0 then
+      _opcode:='STM'
+    else
+      _opcode:='LDM';
+  end;
 
   _rn:=ArmRegisters[Rn];
 
@@ -1970,13 +1986,26 @@ begin
 
 end;
 
+
+
+
+
 function TArmDisassembler.Disassemble(var address: ptrUint): string;
 var
   i: integer;
   x: ptruint;
   thumbdisassembler: TThumbDisassembler;
+  arm64disassembler: TArm64Instructionset;
 begin
   result:='';
+
+  if processhandler.is64Bit then
+  begin
+    result:=arm64disassembler.Disassemble(address);
+    lastdisassembledata:=arm64disassembler.LastDisassembleData;
+    exit;
+  end;
+
 
   if (address and 1) = 1 then //thumb
   begin
@@ -2018,6 +2047,8 @@ begin
 
   if (x=sizeof(opcode)) then
   begin
+
+
     if ((opcode shr 4) and $ffffff)=$12FFF1 then
       BX
     else
@@ -2033,7 +2064,7 @@ begin
     if (((opcode shr 23) and $3)=2) and (((opcode shr 26) and $3)=2)  and (((opcode shr 12) and $3ff)=$28f) then
       MSR_flg
     else
-    if ((opcode shr 25) and 7)=5 then
+    if ((opcode shr 25) and %110)=%101 then
       Branch
     else
     if (((opcode shr 26) and 3)=0) and (((opcode shr 4) and $f)<>9) then
@@ -2042,7 +2073,7 @@ begin
     if (opcode shr 26) and 3=1 then
       SingleDataTransfer
     else
-    if (opcode shr 25) and 7=4 then
+    if (opcode shr 25) and %110=%100 then
       LDM_STM
     else
     if ((opcode shr 23) and $1f=2) and ((opcode shr 20) and $3=0) and ((opcode shr 4) and $ff=9) then

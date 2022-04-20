@@ -126,6 +126,7 @@ type
     DebugRegistersUsedByCE: byte; //mask containing the bits for each DR used
     context: PContext;  //PContext but it does belong to this thread. It's due to alignment issues
     armcontext: TArmContext;
+    arm64context: TArm64Context;
 
 
 
@@ -196,9 +197,16 @@ begin
 
   f:=currentbp^.frmchangedaddresses;
   address:=symhandler.getAddressFromName(f.equation, false, haserror, context);
+
   if not haserror then
   begin
     e:=nil;
+    {$ifdef cpu64}
+    if not processhandler.is64Bit then
+      address:=address and $ffffffff;
+    {$endif}
+
+
     f.addresslistCS.Enter;
     try
       if f.addresslist.GetData(address, e) then
@@ -247,7 +255,12 @@ begin
   if (((currentbp.breakpointMethod=bpmException) and not currentbp.markedfordeletion) or currentBP.active) and (currentbp.FoundcodeDialog<>nil) then  //it could have been deactivated
   begin
     if processhandler.SystemArchitecture=archARM then
-      address:=armcontext.PC
+    begin
+      if processhandler.is64Bit then
+        address:=arm64context.PC
+      else
+        address:=armcontext.PC
+    end
     else
     begin
       address:=context.{$ifdef cpu64}Rip{$else}eip{$endif};
@@ -299,7 +312,12 @@ begin
   if processhandler.SystemArchitecture=archx86 then
     MemoryBrowser.lastdebugcontext:=context^
   else
-    MemoryBrowser.lastdebugcontextarm:=armcontext;
+  begin
+    if processhandler.is64Bit then
+      MemoryBrowser.lastdebugcontextarm64:=arm64context
+    else
+      MemoryBrowser.lastdebugcontextarm:=armcontext;
+  end;
 end;
 
 procedure TDebugThreadHandler.VisualizeBreak;
@@ -362,7 +380,10 @@ begin
 
     if processhandler.SystemArchitecture=archArm then
     begin
-      GetThreadContextArm(handle, armcontext, ishandled);
+      if processhandler.is64Bit then
+        GetThreadContextArm64(handle, arm64context, ishandled)
+      else
+        GetThreadContextArm(handle, armcontext, ishandled);
     end
     else
     begin

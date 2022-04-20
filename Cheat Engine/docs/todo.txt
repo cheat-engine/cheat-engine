@@ -1,14 +1,26 @@
+$C remove/rename symbols that are obtained from linking
+
+
 mono: .net info search for mono: search for result/parameter
 mono/il2cpp: debugging, resuming and then activating mono seems to give an error
 addresslist: add groupboxs like entries that auto deactivate the other entries on activate first
 
 when there is an aa error in a memoryrecord, rightclick any other record shows it as well
 
+aobscan non-zero flag (-2)
+
+
+tracer search: Skips calls taken (like call qword [xxx])
+
+hotkeys: Hotkey while down addresslist record hotkey (with a restore to set or saved value)
 
 
 ceshare request window: 
   make scrolling smooth
   add option to delete your own request
+
+ceshare: publish has colors in dark mode even in light mode
+
 
 saved scanresults are not deleted on new scan
 

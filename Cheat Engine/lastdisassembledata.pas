@@ -10,7 +10,7 @@ uses
 type
   TDisAssemblerValueType=(dvtNone=0, dvtAddress=1, dvtValue=2);
 
-  TDisassemblerClass=(dcX86, dcArm, dcThumb);
+  TDisassemblerClass=(dcX86, dcArm, dcArm64, dcThumb);
 
 
   TLastDisassembleData=record

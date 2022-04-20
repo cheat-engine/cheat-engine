@@ -198,6 +198,9 @@ type
 
     function getSelectionStart: ptruint;
     function getSelectionStop: ptruint;
+
+    procedure setSelectionStart(a: ptruint);
+    procedure setSelectionStop(a: ptruint);
     procedure updateScroller(speed: integer);
 
     procedure lineUp(sender: tobject);
@@ -261,8 +264,8 @@ type
     property Address: ptrUint read fAddress write setAddress;
     property TopAddress: ptrUint read fAddress write setAddress;
     property HasSelection: boolean read gethasSelection;
-    property SelectionStart: ptruint read getSelectionStart;
-    property SelectionStop: ptruint read getSelectionStop;
+    property SelectionStart: ptruint read getSelectionStart write setSelectionStart;
+    property SelectionStop: ptruint read getSelectionStop write setSelectionStop;
     property Osb: TBitmap read offscreenbitmap;
     property DisplayType: TDisplayType read fDisplayType write setDisplayType;
     property CustomType: TcustomType read fCustomType write fCustomType;
@@ -1232,6 +1235,22 @@ end;
 function THexView.GetSelectionStop: ptruint;
 begin
   result:=MaxX(selected,selected2);
+end;
+
+procedure THexView.setSelectionStart(a: ptruint);
+begin
+  if selected<selected2 then
+    selected:=a
+  else
+    selected2:=a;
+end;
+
+procedure THexView.setSelectionStop(a: ptruint);
+begin
+  if selected>selected2 then
+    selected:=a
+  else
+    selected2:=a;
 end;
 
 procedure THexView.GetSelectionRange(var start: ptruint; var stop: ptruint);
