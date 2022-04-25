@@ -17,6 +17,7 @@ end
 
 local dpiscale=getScreenDPI()/96
 
+--[[local]] monocache={}
 
 mono_timeout=3000 --change to 0 to never timeout (meaning: 0 will freeze your face off if it breaks on a breakpoint, just saying ...)
 
@@ -181,6 +182,10 @@ MONO_TYPE_NAME_FORMAT_REFLECTION=1
 MONO_TYPE_NAME_FORMAT_FULL_NAME=2
 MONO_TYPE_NAME_FORMAT_ASSEMBLY_QUALIFIED=3
 
+function mono_clearcache()
+  monocache={}
+  monocache.processid=getOpenedProcessID()
+end
 
 function createMethodInvokedialog(name, parameters, okclickfunction, customAddress, address)
   local mifinfo={}
@@ -824,7 +829,9 @@ function LaunchMonoDataCollector(internalReconnectDisconnectEachTime)
   
   if internalReconnectDisconnectEachTime then
     mono_connectionmode2() --Change the behaviour from always connected to the mono runtime to only issuing a command, attach the handler thread to the mono runtime, and afterwards disconnect the thread from the mono runtime
-  end  
+  end 
+
+  mono_clearcache()  
   
   return monoBase
 end
@@ -931,7 +938,9 @@ function mono_symbolLookupCallback(symbol)
   if monopipe == nil then return nil end  
   if monopipe.IL2CPP then return nil end
 
+  if symbol:match('[()%[%]]')~=nil then return nil end --no formulas/indexer
 
+  
   local methodname=''
   local classname=''
   local namespace=''
@@ -2096,6 +2105,7 @@ function mono_findClass(namespace, classname)
 
 --searches all images for a specific class
  -- print(string.format("mono_findClass: namespace=%s classname=%s", namespace, classname))
+  
   local i
   if namespace and classname==nil then  --user forgot namespace    
     classname=namespace
@@ -2105,6 +2115,11 @@ function mono_findClass(namespace, classname)
   if namespace==nil or classname==nil then
     return nil,'invalid parameters'
   end
+  
+  if monocache and (monocache.processid==getOpenedProcessID()) and monocache.nonfoundclasses and monocache.nonfoundclasses[namespace..'.'..classname] then
+    return nil
+  end
+  
 
   local ass=mono_enumAssemblies()
   local result
@@ -2129,8 +2144,13 @@ function mono_findClass(namespace, classname)
       return result;
     end
   end  
-
-
+  
+  --not found
+  if monocache==nil then mono_clearcache() end  
+  if monocache.nonfoundclasses==nil then
+    monocache.nonfoundclasses={}
+  end
+  monocache.nonfoundclasses[namespace..'.'..classname]=true
   return nil
 end
 
@@ -2725,6 +2745,8 @@ function mono_loadAssemblyFromFile(fname)
   monopipe.writeString(fname)
   local result = monopipe.readQword()
   monopipe.unlock()
+  
+  monocache.nonfoundclasses={}  --reset just the nonfound classes
   return result;  
 end
 
