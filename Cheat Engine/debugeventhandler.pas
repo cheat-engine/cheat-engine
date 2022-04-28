@@ -59,6 +59,8 @@ type
     traceWindow: TfrmTracer;
     traceQuitCondition: string;
     traceStepOver: boolean; //perhaps also trace branches ?
+    traceStepOverRep: boolean;
+    traceLastInstructionWasRep: boolean; //set by the addRecord function of the tracerform when adding.
     traceNoSystem: boolean;
     traceStayInsideModule: boolean;
     traceStartmodulebase: ptruint;
@@ -913,7 +915,10 @@ end;
 procedure TDebugThreadHandler.TraceWindowAddRecord;
 begin
   if traceWindow<>nil then
+  begin
     tracewindow.addRecord;
+    traceLastInstructionWasRep:=tracewindow.LastDisassembleData.isrep;
+  end;
 end;
 
 procedure TDebugThreadHandler.removeAllTracerStepOverBreakpoints;
@@ -1024,7 +1029,7 @@ begin
     else
     begin
       TDebuggerthread(debuggerthread).execlocation:=377;
-      if tracestepover then
+      if tracestepover or (tracestepoverrep and traceLastInstructionWasRep) then
         ContinueFromBreakpoint(nil, co_stepover, true)
       else
         ContinueFromBreakpoint(nil, co_stepinto);
@@ -1381,6 +1386,7 @@ begin
             tracecount:=bpp.TraceCount;
             traceWindow:=bpp.frmTracer;
             traceStepOver:=bpp.tracestepOver;
+            traceStepOverRep:=bpp.traceStepOverRep;
             traceNoSystem:=bpp.traceNoSystem;
             traceStayInsideModule:=bpp.traceStayInsideModule;
             traceStartmodulebase:=bpp.traceStartmodulebase;

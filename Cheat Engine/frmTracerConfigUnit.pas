@@ -22,6 +22,7 @@ type
     cbDBVMBreakAndTrace: TCheckBox;
     cbDBVMTriggerCOW: TCheckBox;
     cbStayInsideInitialModule: TCheckBox;
+    cbStepOverRep: TCheckBox;
     edtStartCondition: TEdit;
     edtMaxTrace: TEdit;
     edtStopCondition: TEdit;
@@ -37,6 +38,7 @@ type
     rbBreakOnAccess: TRadioButton;
     rbBreakOnWrite: TRadioButton;
     procedure cbDBVMBreakAndTraceChange(Sender: TObject);
+    procedure cbStepOverChange(Sender: TObject);
     procedure FormCreate(Sender: TObject);
   private
     { private declarations }
@@ -162,6 +164,15 @@ begin
     cbStayInsideInitialModule.enabled:=true;
   end;
 
+end;
+
+procedure TfrmTracerConfig.cbStepOverChange(Sender: TObject);
+begin
+  if cbStepOver.checked then
+  begin
+    cbStepOverRep.enabled:=false;
+    cbStepOverRep.checked:=true;
+  end;
 end;
 
 procedure TfrmTracerConfig.setDataTrace(state: boolean);

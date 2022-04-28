@@ -14,7 +14,7 @@ uses
   NewKernelHandler, LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, ExtCtrls, Buttons, LResources, commonTypeDefs, frmFindDialogUnit,
   Menus, ComCtrls, frmStackviewunit, frmFloatingPointPanelUnit, disassembler,
-  debuggertypedefinitions, betterControls;
+  debuggertypedefinitions, betterControls, LastDisassembleData;
 
 type
   TTraceDebugInfo=class
@@ -186,6 +186,7 @@ type
     fSkipconfig: boolean;
 
     stepover: boolean;
+    stepoverrep: boolean;
     nosystem: boolean;
 
     finddialog: TfrmFindDialog;
@@ -225,7 +226,7 @@ type
     returnfromignore: boolean;
 
     isdbvminterface: boolean; //faster than xxx is tdbvmdebuggerinterface
-
+    LastDisassembleData: TLastDisassembleData;
     procedure setDataTrace(state: boolean);
     procedure addRecord;
     procedure finish;
@@ -570,6 +571,8 @@ begin
     end;
 
     s:=currentda.disassemble(a, s2);
+
+    lastDisassembleData:=currentda.LastDisassembleData;
 
     datasize:=currentda.LastDisassembleData.datasize;
     if datasize=0 then
@@ -1322,6 +1325,7 @@ begin
       startcondition:=edtStartCondition.text;
       stopcondition:=edtStopCondition.text;
       stepover:=cbStepOver.checked;
+      stepoverrep:=cbStepOverRep.checked;
       nosystem:=cbSkipSystemModules.checked;
 
       StayInsideModule:=cbStayInsideInitialModule.checked;
@@ -1445,14 +1449,14 @@ begin
             memorybrowser.hexview.GetSelectionRange(fromaddress,toaddress);
 
           //set the breakpoint
-          debuggerthread.setBreakAndTraceBreakpoint(self, fromaddress, bpTrigger, breakpointmethod, 1+(toaddress-fromaddress), tcount, startcondition, stopcondition, stepover, nosystem);
+          debuggerthread.setBreakAndTraceBreakpoint(self, fromaddress, bpTrigger, breakpointmethod, 1+(toaddress-fromaddress), tcount, startcondition, stopcondition, stepover, stepoverrep, nosystem);
         end
         else
         begin
           if (owner is TMemoryBrowser) then
-            debuggerthread.setBreakAndTraceBreakpoint(self, (owner as TMemoryBrowser).disassemblerview.SelectedAddress, bptExecute, breakpointmethod, 1, tcount, startcondition, stopcondition, StepOver, Nosystem, stayinsidemodule)
+            debuggerthread.setBreakAndTraceBreakpoint(self, (owner as TMemoryBrowser).disassemblerview.SelectedAddress, bptExecute, breakpointmethod, 1, tcount, startcondition, stopcondition, StepOver, stepoverrep, Nosystem, stayinsidemodule)
           else
-            debuggerthread.setBreakAndTraceBreakpoint(self, memorybrowser.disassemblerview.SelectedAddress, bptExecute, breakpointmethod, 1, tcount, startcondition, stopcondition, StepOver, nosystem, StayInsideModule);
+            debuggerthread.setBreakAndTraceBreakpoint(self, memorybrowser.disassemblerview.SelectedAddress, bptExecute, breakpointmethod, 1, tcount, startcondition, stopcondition, StepOver, stepoverrep, nosystem, StayInsideModule);
         end;
       end;
     end;
