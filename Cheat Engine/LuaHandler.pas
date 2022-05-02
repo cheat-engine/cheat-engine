@@ -2677,12 +2677,14 @@ end;
 function deAllocEx(processhandle: THandle; L: PLua_State): integer; cdecl;
 var parameters: integer;
     address: ptruint;
+    size: integer;
 begin
   result:=1;
   parameters:=lua_gettop(L);
   if parameters=0 then begin lua_pushboolean(L, false); exit; end;
 
   address:=lua_toaddress(L,1, processhandle=GetCurrentProcess);
+  size:=lua_tointeger(L,2);
 
   lua_pop(L, parameters);
   lua_pushboolean(L, virtualfreeex(processhandle,pointer(address),0,MEM_RELEASE));
@@ -15233,7 +15235,163 @@ begin
     end;
   end;
   {$endif}
+end;
 
+function lua_growMemoryRegion(L: Plua_State): integer; cdecl;
+//Not very useful at the moment.
+var
+  address: qword;
+  paddress: pointer;
+  newsize: integer;
+  mbi, mbi2: TMemoryBasicInformation;
+
+  mem: pointer;
+  bc:  size_t;
+  p: dword;
+  r: boolean;
+begin
+  if processid=GetCurrentProcessId then
+  begin
+    lua_pushnil(L);
+    lua_pushstring(L,'Can''t grow memoryregions inside myself');
+    exit(2);
+  end;
+
+  result:=0;
+  if lua_Gettop(L)>=2 then
+  begin
+    address:=lua_toaddress(L,1);
+    newsize:=lua_tointeger(L,2);
+
+    ntsuspendProcess(processhandle);
+
+    try
+      if virtualqueryex(processhandle, pointer(address), mbi, sizeof(mbi))=sizeof(mbi) then
+      begin
+        if mbi._Type<>MEM_PRIVATE then
+        begin
+          lua_pushnil(L);
+          lua_pushstring(L,'Can only resize private type memory');
+          exit(2);
+        end;
+
+        if mbi.State<>MEM_COMMIT then
+        begin
+          lua_pushnil(L);
+          lua_pushstring(L,'Must be commited memory');
+          exit(2);
+        end;
+
+        if mbi.RegionSize>newsize then
+        begin
+          lua_pushnil(L);
+          lua_pushstring(L,'New size is smaller than the given region');
+          exit(2);
+        end;
+
+        if (ptruint(mbi.BaseAddress) and qword(not qword($fff)))<>ptruint(mbi.AllocationBase) then
+        begin
+          lua_pushnil(L);
+          lua_pushstring(L,'Can only resize a standalone memoryregion');
+          exit(2);
+        end;
+
+        if virtualqueryex(processhandle, pointer(address+mbi.RegionSize), mbi2, sizeof(mbi2))<>sizeof(mbi2) then
+        begin
+          lua_pushnil(L);
+          lua_pushstring(L,'Failure obtaining subsequent memoryregion info');
+          exit(2);
+        end;
+
+        if mbi2.State<>MEM_FREE then
+        begin
+          lua_pushnil(L);
+          lua_pushstring(L,'Failure growing the region as the next region is not free');
+          exit(2);
+        end;
+
+        mem:=getmem(newsize);
+        ZeroMemory(mem,newsize);
+
+        try
+
+          r:=ReadProcessMemory(processhandle, pointer(mbi.BaseAddress), mem, mbi.RegionSize,bc);
+
+          if (not r) or (bc<>mbi.RegionSize) then
+          begin
+            lua_pushnil(L);
+            lua_pushstring(L,'Failure reading original memory');
+            exit(2);
+          end;
+
+          if VirtualFreeEx(processhandle, mbi.BaseAddress, 0, MEM_RELEASE)=false then
+          begin
+            lua_pushnil(L);
+            lua_pushstring(L,'Failure releasing the original memoryregion');
+            exit(2);
+          end;
+
+          paddress:=VirtualAllocEx(processhandle,mbi.BaseAddress,newsize,MEM_COMMIT or MEM_RESERVE, PAGE_EXECUTE_READWRITE);
+
+          if (paddress=nil) or (paddress<>mbi.BaseAddress) then
+          begin
+            //fuuuuuuuuuuuuuu
+            errorbeep;
+
+            //try to restore it...
+            paddress:=VirtualAllocEx(processhandle,mbi.BaseAddress,mbi.RegionSize,MEM_COMMIT or MEM_RESERVE, PAGE_EXECUTE_READWRITE);
+
+            if (paddress=nil) or (paddress<>mbi.BaseAddress) then
+            begin
+              //double fuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuu
+              errorbeep;
+              errorbeep;
+
+              lua_pushnil(L);
+              lua_pushstring(L,'Failure allocating memory at the original region. Failed to restore original allocation. ALL DATA LOST, EXPECT MEMORY ERRORS!');
+              exit(2);
+            end;
+
+            //managed to restore the original memory
+            if WriteProcessMemory(processhandle, mbi.BaseAddress,mem,mbi.RegionSize,bc)=false then
+            begin
+              lua_pushnil(L);
+              lua_pushstring(L,'Failure allocating memory at the original region. Restoration of data failed. ALL DATA LOST!');
+              exit(2);
+            end;
+
+            VirtualProtectEx(processhandle, mbi.BaseAddress, mbi.RegionSize, mbi.Protect,p);
+
+            lua_pushnil(L);
+            lua_pushstring(L,'Failure allocating memory at the original region. No data lost');
+            exit(2);
+          end;
+
+          r:=WriteProcessMemory(processhandle, mbi.BaseAddress,mem,newsize,bc);
+
+          if (r=false) or (bc<>newsize) then
+          begin
+            lua_pushnil(L);
+            lua_pushstring(L,'Failure restoring data in reallocated block. ALL DATA LOST!');
+            exit(2);
+          end;
+
+          lua_pushboolean(L,ptruint(mbi.BaseAddress)+mbi.size);
+          exit(1);
+        finally
+          freemem(mem);
+        end;
+      end
+      else
+      begin
+        lua_pushnil(L);
+        lua_pushstring(L,'Failure obtaining target memory information');
+        exit(2);
+      end;
+    finally
+      ntResumeProcess(processhandle);
+    end
+  end;
 end;
 
 procedure InitLimitedLuastate(L: Plua_State);
@@ -16012,6 +16170,7 @@ begin
     lua_register(L, 'fileExists', lua_fileExists);
     lua_register(L, 'deleteFile', lua_deleteFile);
 
+    lua_register(L, 'growMemoryRegion', lua_growMemoryRegion);
 
 
 

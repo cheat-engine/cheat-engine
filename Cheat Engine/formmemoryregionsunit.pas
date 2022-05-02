@@ -55,8 +55,29 @@ type
 var
   FormMemoryRegions: TFormMemoryRegions;
 
-type TGetMappedFileName=function (hProcess: HANDLE; lpv: LPVOID; lpFilename: LPTSTR; nSize: DWORD): DWORD; stdcall;
+type
+  TGetMappedFileName=function (hProcess: HANDLE; lpv: LPVOID; lpFilename: LPTSTR; nSize: DWORD): DWORD; stdcall;
+
+ { TWIN32_MEMORY_REGION_INFORMATION=record
+    AllocationBase: pointer;
+    AllocatioinProtect: DWORD;
+    Flags: DWORD;
+    RegionSize: SIZE_T;
+    CommitSize: SIZE_T;
+  end;
+  PWIN32_MEMORY_REGION_INFORMATION=^TWIN32_MEMORY_REGION_INFORMATION;
+
+  const
+    MF_Private=1 shl 1;
+    MF_MappedDataFile=1 shl 2;
+    MF_MappedImage=1 shl 3;
+    MF_MappedPageFile=1 shl 4;
+    MF_MappedPhysical=1 shl 5;
+    MF_DirectMapped=1 shl 6;      }
+
+
 var GetMappedFileName: TGetMappedFileName;
+    //QueryVirtualMemoryInformation: function(hProcess: HANDLE; address: LPVOID; class0: dword; meminfo: PWIN32_MEMORY_REGION_INFORMATION; meminfosize: size_t; out returnsize: size_t): boolean;
 
 
 
@@ -100,6 +121,9 @@ var address: PtrUInt;
     i: integer;
 
     kernelmode: boolean=false;
+
+  {  meminfo: TWIN32_MEMORY_REGION_INFORMATION;
+    meminfosize: size_t; }
 begin
   {$ifdef windows}
   if DBKLoaded then
@@ -177,6 +201,15 @@ begin
       listview1.Items[listview1.Items.Count-1].SubItems.add(inttohex(mbi.regionsize,1));
 
      // if mbi._Type=MEM_MAPPED then
+     { if assigned(QueryVirtualMemoryInformation) then
+      begin
+        meminfosize:=sizeof(meminfo);
+        if QueryVirtualMemoryInformation(processhandle, mbi.BaseAddress,0, @meminfo, sizeof(meminfo),meminfosize) then
+        begin
+          mappedfilename:=inttohex(meminfo.Flags,1)+mappedfilename;
+        end;
+      end; }
+
       listview1.Items[listview1.Items.Count-1].SubItems.Add(mappedfilename);
 
 
@@ -327,11 +360,17 @@ end;
 
 procedure LoadPsApi;
 var psapi: THandle;
+    m: THandle;
+    s: integer;
 begin
   {$ifdef windows}
   psapi:=LoadLibrary('psapi.dll');
 
   GetMappedFileName:=GetProcAddress(psapi,'GetMappedFileNameA');
+     {
+  m:=LoadLibrary('Api-ms-win-core-memory-l1-1-4.dll');
+  if m<>0 then
+    QueryVirtualMemoryInformation:=GetProcAddress(m,'QueryVirtualMemoryInformation');  }
   {$endif}
 end;
 

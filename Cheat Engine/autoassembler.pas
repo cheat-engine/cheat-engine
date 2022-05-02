@@ -1500,8 +1500,8 @@ var i,j,k,l,e: integer;
     mi: TModuleInfo;
     aaid: longint;
     strictmode: boolean;
-
     hastryexcept: boolean;
+    //aggressiveAlloc: boolean;
     createthreadandwaitid: integer;
 
     vpe: boolean;
@@ -1736,6 +1736,11 @@ begin
 
       if currentline='{$TRY}' then
         hastryexcept:=true;
+
+      //if currentline='{$AGGRESSIVEALLOC}' then
+      //  aggressiveAlloc:=true;   //1: pause game, find mem_private block even close to here with some non-allocated space free, resize resume
+      //                           //2: allocate in reserved memory
+
     end;
 
 
