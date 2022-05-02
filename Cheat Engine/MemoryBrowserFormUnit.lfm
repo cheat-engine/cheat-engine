@@ -226,7 +226,7 @@ object MemoryBrowser: TMemoryBrowser
           Brush.Color = clBlack
         end
         object Label15: TLabel
-          AnchorSideLeft.Control = Panel2
+          AnchorSideLeft.Control = pnlGeneralRegisters
           AnchorSideLeft.Side = asrBottom
           AnchorSideTop.Control = ScrollBox1
           Left = 143
@@ -254,7 +254,7 @@ object MemoryBrowser: TMemoryBrowser
         end
         object Label16: TLabel
           AnchorSideLeft.Control = Label14
-          AnchorSideTop.Control = Panel2
+          AnchorSideTop.Control = pnlGeneralRegisters
           AnchorSideTop.Side = asrBottom
           Left = 8
           Height = 18
@@ -294,7 +294,7 @@ object MemoryBrowser: TMemoryBrowser
           ParentFont = False
           TabOrder = 0
         end
-        object Panel2: TPanel
+        object pnlGeneralRegisters: TPanel
           AnchorSideLeft.Control = Shape1
           AnchorSideTop.Control = Shape1
           AnchorSideTop.Side = asrBottom
@@ -454,7 +454,7 @@ object MemoryBrowser: TMemoryBrowser
             OnMouseDown = RegisterMouseDown
           end
         end
-        object Panel6: TPanel
+        object pnlExtraRegisters: TPanel
           AnchorSideLeft.Control = Shape3
           AnchorSideTop.Control = Shape3
           AnchorSideTop.Side = asrBottom
@@ -555,7 +555,7 @@ object MemoryBrowser: TMemoryBrowser
             OnClick = EAXLabelDblClick
           end
         end
-        object Panel7: TPanel
+        object pnlFlags: TPanel
           AnchorSideLeft.Control = Shape2
           AnchorSideTop.Control = Shape2
           AnchorSideTop.Side = asrBottom

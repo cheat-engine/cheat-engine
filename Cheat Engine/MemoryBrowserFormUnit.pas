@@ -21,15 +21,12 @@ uses
   disassemblerComments, multilineinputqueryunit, frmMemoryViewExUnit,
   LastDisassembleData, ProcessHandlerUnit, commonTypeDefs, binutils,
   fontSaveLoadRegistry, LazFileUtils, ceregistry, frmCR3SwitcherUnit,
-  betterControls, ScrollBoxEx, fgl;
+  betterControls, ScrollBoxEx;
 
 
 type
 
   { TMemoryBrowser }
-
-  TLabelList =  TFPGObjectList<TLabel>;
-
 
   TMemoryBrowser = class(TForm)
     aflabel: TLabel;
@@ -194,9 +191,9 @@ type
     Goto1: TMenuItem;
     debuggerpopup: TPopupMenu;
     oflabel: TLabel;
-    Panel2: TPanel;
-    Panel6: TPanel;
-    Panel7: TPanel;
+    pnlGeneralRegisters: TPanel;
+    pnlExtraRegisters: TPanel;
+    pnlFlags: TPanel;
     pflabel: TLabel;
     pmRegisters: TPopupMenu;
     pmDebugToolbar: TPopupMenu;
@@ -546,7 +543,9 @@ type
     R14Label: TLabel;
     R15Label: TLabel;
 
-    Registers: TLabelList; //removing labels in here also removes them from the scrollbox
+    xlabel: array [16..31] of tlabel;
+
+
 
 
     posloadedfromreg: boolean;
@@ -2682,7 +2681,6 @@ var x: array of integer;
   c: tcolor;
 begin
   registerpanelfont:=tfont.Create;
-  registers:=TLabelList.Create;
 
   MemoryBrowsers.Add(self);
 
@@ -5806,7 +5804,10 @@ begin
 
   if processhandler.is64Bit or (processhandler.SystemArchitecture=archArm) then
   begin
-    regstart:='R';
+    if (processhandler.SystemArchitecture=archArm) and processhandler.is64Bit then
+      regstart:='X'
+    else
+      regstart:='R';
 
     if processhandler.is64Bit then
       charcount:=16
@@ -5816,7 +5817,7 @@ begin
     if r8label=nil then
     begin
       r8label:=tlabel.create(self);
-      r8label.parent:=panel2;
+      r8label.parent:=pnlGeneralRegisters;
       r8label.Font:=eaxlabel.Font;
       r8label.Cursor:=eaxlabel.Cursor;
       r8label.Tag:=6408;
@@ -5828,7 +5829,7 @@ begin
     if r9label=nil then
     begin
       r9label:=tlabel.create(self);
-      r9label.parent:=panel2;
+      r9label.parent:=pnlGeneralRegisters;
       r9label.Font:=eaxlabel.Font;
       r9label.Cursor:=eaxlabel.Cursor;
       r9label.Tag:=6409;
@@ -5840,7 +5841,7 @@ begin
     if r10label=nil then
     begin
       r10label:=tlabel.create(self);
-      r10label.parent:=panel2;
+      r10label.parent:=pnlGeneralRegisters;
       r10label.Font:=eaxlabel.Font;
       r10label.Cursor:=eaxlabel.Cursor;
       r10label.Tag:=6410;
@@ -5852,7 +5853,7 @@ begin
     if r11label=nil then
     begin
       r11label:=tlabel.create(self);
-      r11label.parent:=panel2;
+      r11label.parent:=pnlGeneralRegisters;
       r11label.Font:=eaxlabel.Font;
       r11label.Cursor:=eaxlabel.Cursor;
       r11label.Tag:=6411;
@@ -5864,7 +5865,7 @@ begin
     if r12label=nil then
     begin
       r12label:=tlabel.create(self);
-      r12label.parent:=panel2;
+      r12label.parent:=pnlGeneralRegisters;
       r12label.Font:=eaxlabel.Font;
       r12label.Cursor:=eaxlabel.Cursor;
       r12label.Tag:=6412;
@@ -5876,7 +5877,7 @@ begin
     if r13label=nil then
     begin
       r13label:=tlabel.create(self);
-      r13label.parent:=panel2;
+      r13label.parent:=pnlGeneralRegisters;
       r13label.Font:=eaxlabel.Font;
       r13label.Cursor:=eaxlabel.Cursor;
       r13label.Tag:=6413;
@@ -5888,7 +5889,7 @@ begin
     if r14label=nil then
     begin
       r14label:=tlabel.create(self);
-      r14label.parent:=panel2;
+      r14label.parent:=pnlGeneralRegisters;
       r14label.Font:=eaxlabel.Font;
       r14label.Cursor:=eaxlabel.Cursor;
       r14label.Tag:=6414;
@@ -5900,7 +5901,7 @@ begin
     if r15label=nil then
     begin
       r15label:=tlabel.create(self);
-      r15label.parent:=panel2;
+      r15label.parent:=pnlGeneralRegisters;
       r15label.Font:=eaxlabel.Font;
       r15label.Cursor:=eaxlabel.Cursor;
       r15label.Tag:=6415;
@@ -5908,6 +5909,27 @@ begin
       r15label.onclick:=EAXLabelDblClick;
       r15label.OnMouseDown:=RegisterMouseDown;
     end;
+
+    if (processhandler.SystemArchitecture=archArm) and processhandler.is64Bit then
+    begin
+      //x16 to x31
+      for i:=16 to 31 do
+      begin
+        if xlabel[i]=nil then
+        begin
+          xlabel[i]:=tlabel.create(self);
+          xlabel[i].parent:=pnlGeneralRegisters;
+          xlabel[i].Font:=eaxlabel.Font;
+          xlabel[i].Cursor:=eaxlabel.Cursor;
+          xlabel[i].Tag:=6400+i;
+          xlabel[i].PopupMenu:=pmRegisters;
+          xlabel[i].onclick:=EAXLabelDblClick;
+          xlabel[i].OnMouseDown:=RegisterMouseDown;
+        end;
+      end;
+    end;
+
+
 
     eiplabel.BringToFront;
   end
@@ -5930,27 +5952,40 @@ begin
   if r14label<>nil then r14label.visible:=processhandler.is64Bit or (processhandler.SystemArchitecture=archArm);
   if r15label<>nil then r15label.visible:=processhandler.is64Bit ;
 
+  for i:=16 to 30 do
+  begin
+    if xlabel[i]<>nil then
+      xlabel[i].visible:=processhandler.is64Bit and (processhandler.SystemArchitecture=archArm);
+  end;
+
   if (accessedreglist<>nil) then
   begin
-    if accessedreglist.IndexOf('RAX')>=0 then eaxlabel.color:=faccessedRegisterColor else eaxlabel.color:=clNone;
-    if accessedreglist.IndexOf('RBX')>=0 then ebxlabel.color:=faccessedRegisterColor else ebxlabel.color:=clNone;
-    if accessedreglist.IndexOf('RCX')>=0 then ecxlabel.color:=faccessedRegisterColor else ecxlabel.color:=clNone;
-    if accessedreglist.IndexOf('RDX')>=0 then edxlabel.color:=faccessedRegisterColor else edxlabel.color:=clNone;
-    if accessedreglist.IndexOf('RSI')>=0 then esilabel.color:=faccessedRegisterColor else esilabel.color:=clNone;
-    if accessedreglist.IndexOf('RDI')>=0 then edilabel.color:=faccessedRegisterColor else edilabel.color:=clNone;
-    if accessedreglist.IndexOf('RBP')>=0 then ebplabel.color:=faccessedRegisterColor else ebplabel.color:=clNone;
-    if accessedreglist.IndexOf('RSP')>=0 then esplabel.color:=faccessedRegisterColor else esplabel.color:=clNone;
-
-    if processhandler.is64Bit then
+    if processhandler.SystemArchitecture=archX86 then
     begin
-      if accessedreglist.IndexOf('R8')>=0 then r8label.color:=faccessedRegisterColor else r8label.color:=clNone;
-      if accessedreglist.IndexOf('R9')>=0 then r9label.color:=faccessedRegisterColor else r9label.color:=clNone;
-      if accessedreglist.IndexOf('R10')>=0 then r10label.color:=faccessedRegisterColor else r10label.color:=clNone;
-      if accessedreglist.IndexOf('R11')>=0 then r11label.color:=faccessedRegisterColor else r11label.color:=clNone;
-      if accessedreglist.IndexOf('R12')>=0 then r12label.color:=faccessedRegisterColor else r12label.color:=clNone;
-      if accessedreglist.IndexOf('R13')>=0 then r13label.color:=faccessedRegisterColor else r13label.color:=clNone;
-      if accessedreglist.IndexOf('R14')>=0 then r14label.color:=faccessedRegisterColor else r14label.color:=clNone;
-      if accessedreglist.IndexOf('R15')>=0 then r15label.color:=faccessedRegisterColor else r15label.color:=clNone;
+      if accessedreglist.IndexOf('RAX')>=0 then eaxlabel.color:=faccessedRegisterColor else eaxlabel.color:=clNone;
+      if accessedreglist.IndexOf('RBX')>=0 then ebxlabel.color:=faccessedRegisterColor else ebxlabel.color:=clNone;
+      if accessedreglist.IndexOf('RCX')>=0 then ecxlabel.color:=faccessedRegisterColor else ecxlabel.color:=clNone;
+      if accessedreglist.IndexOf('RDX')>=0 then edxlabel.color:=faccessedRegisterColor else edxlabel.color:=clNone;
+      if accessedreglist.IndexOf('RSI')>=0 then esilabel.color:=faccessedRegisterColor else esilabel.color:=clNone;
+      if accessedreglist.IndexOf('RDI')>=0 then edilabel.color:=faccessedRegisterColor else edilabel.color:=clNone;
+      if accessedreglist.IndexOf('RBP')>=0 then ebplabel.color:=faccessedRegisterColor else ebplabel.color:=clNone;
+      if accessedreglist.IndexOf('RSP')>=0 then esplabel.color:=faccessedRegisterColor else esplabel.color:=clNone;
+
+      if processhandler.is64Bit then
+      begin
+        if accessedreglist.IndexOf('R8')>=0 then r8label.color:=faccessedRegisterColor else r8label.color:=clNone;
+        if accessedreglist.IndexOf('R9')>=0 then r9label.color:=faccessedRegisterColor else r9label.color:=clNone;
+        if accessedreglist.IndexOf('R10')>=0 then r10label.color:=faccessedRegisterColor else r10label.color:=clNone;
+        if accessedreglist.IndexOf('R11')>=0 then r11label.color:=faccessedRegisterColor else r11label.color:=clNone;
+        if accessedreglist.IndexOf('R12')>=0 then r12label.color:=faccessedRegisterColor else r12label.color:=clNone;
+        if accessedreglist.IndexOf('R13')>=0 then r13label.color:=faccessedRegisterColor else r13label.color:=clNone;
+        if accessedreglist.IndexOf('R14')>=0 then r14label.color:=faccessedRegisterColor else r14label.color:=clNone;
+        if accessedreglist.IndexOf('R15')>=0 then r15label.color:=faccessedRegisterColor else r15label.color:=clNone;
+      end;
+    end
+    else
+    begin
+      //todo arm registers
     end;
   end;
 
@@ -6007,16 +6042,27 @@ begin
       disassemblerview.SelectedAddress:=lastdebugcontext.{$ifdef CPU64}rip{$else}eip{$endif}
     else
     if processhandler.SystemArchitecture=archArm then
-      disassemblerview.SelectedAddress:=lastdebugcontextarm.PC;
+    begin
+      if processhandler.is64Bit then
+        disassemblerview.SelectedAddress:=lastdebugcontextarm64.PC
+      else
+        disassemblerview.SelectedAddress:=lastdebugcontextarm.PC;
+    end;
   end;
 
 
 
+  //todo: complete overhaul and use dynamic labels
 
   if processhandler.SystemArchitecture=archX86 then
     temp:=regstart+'AX '+IntToHex(lastdebugcontext.{$ifdef CPU64}rax{$else}eax{$endif},charcount)
   else
-    temp:=' R0 '+IntToHex(lastdebugcontextarm.R0,charcount);
+  begin
+    if processhandler.is64Bit then
+      temp:=' X0 '+IntToHex(lastdebugcontextarm64.regs.X0,charcount)
+    else
+      temp:=' R0 '+IntToHex(lastdebugcontextarm.R0,charcount);
+  end;
 
   if temp<>eaxlabel.Caption then
   begin
@@ -6029,7 +6075,13 @@ begin
   if processhandler.SystemArchitecture=archX86 then
     temp:=regstart+'BX '+IntToHex(lastdebugcontext.{$ifdef CPU64}rbx{$else}ebx{$endif},charcount)
   else
-    temp:=' R1 '+IntToHex(lastdebugcontextarm.R1, charcount);
+  begin
+    if processhandler.is64Bit then
+      temp:=' X1 '+IntToHex(lastdebugcontextarm64.regs.X1,charcount)
+    else
+      temp:=' R1 '+IntToHex(lastdebugcontextarm.R1,charcount);
+  end;
+
   if temp<>ebxlabel.Caption then
   begin
     ebxlabel.Font.Color:=fChangedRegisterColor;
@@ -6039,7 +6091,13 @@ begin
   if processhandler.SystemArchitecture=archX86 then
     temp:=regstart+'CX '+IntToHex(lastdebugcontext.{$ifdef CPU64}rcx{$else}ecx{$endif},charcount)
   else
-    temp:=' R2 '+IntToHex(lastdebugcontextarm.R2, charcount);
+  begin
+    if processhandler.is64Bit then
+      temp:=' X2 '+IntToHex(lastdebugcontextarm64.regs.X2,charcount)
+    else
+      temp:=' R2 '+IntToHex(lastdebugcontextarm.R2,charcount);
+  end;
+
   if temp<>eCxlabel.Caption then
   begin
     eCXlabel.Font.Color:=fChangedRegisterColor;
@@ -6049,7 +6107,13 @@ begin
   if processhandler.SystemArchitecture=archX86 then
     temp:=regstart+'DX '+IntToHex(lastdebugcontext.{$ifdef CPU64}rdx{$else}edx{$endif},charcount)
   else
-    temp:=' R3 '+IntToHex(lastdebugcontextarm.R3, charcount);
+  begin
+    if processhandler.is64Bit then
+      temp:=' X3 '+IntToHex(lastdebugcontextarm64.regs.X3,charcount)
+    else
+      temp:=' R3 '+IntToHex(lastdebugcontextarm.R3,charcount);
+  end;
+
   if temp<>eDxlabel.Caption then
   begin
     eDxlabel.Font.Color:=fChangedRegisterColor;
@@ -6059,7 +6123,13 @@ begin
   if processhandler.SystemArchitecture=archX86 then
     temp:=regstart+'SI '+IntToHex(lastdebugcontext.{$ifdef CPU64}rsi{$else}esi{$endif},charcount)
   else
-    temp:=' R4 '+IntToHex(lastdebugcontextarm.R4, charcount);
+  begin
+    if processhandler.is64Bit then
+      temp:=' X4 '+IntToHex(lastdebugcontextarm64.regs.X4,charcount)
+    else
+      temp:=' R4 '+IntToHex(lastdebugcontextarm.R4,charcount);
+  end;
+
   if temp<>eSIlabel.Caption then
   begin
     eSIlabel.Font.Color:=fChangedRegisterColor;
@@ -6069,7 +6139,13 @@ begin
   if processhandler.SystemArchitecture=archX86 then
     temp:=regstart+'DI '+IntToHex(lastdebugcontext.{$ifdef CPU64}rdi{$else}edi{$endif},charcount)
   else
-    temp:=' R5 '+IntToHex(lastdebugcontextarm.R5, charcount);
+  begin
+    if processhandler.is64Bit then
+      temp:=' X5 '+IntToHex(lastdebugcontextarm64.regs.X5,charcount)
+    else
+      temp:=' R5 '+IntToHex(lastdebugcontextarm.R5,charcount);
+  end;
+
   if temp<>eDIlabel.Caption then
   begin
     eDIlabel.Font.Color:=fChangedRegisterColor;
@@ -6079,7 +6155,13 @@ begin
   if processhandler.SystemArchitecture=archX86 then
     temp:=regstart+'BP '+IntToHex(lastdebugcontext.{$ifdef CPU64}rbp{$else}ebp{$endif},charcount)
   else
-    temp:=' R6 '+IntToHex(lastdebugcontextarm.R6, charcount);
+  begin
+    if processhandler.is64Bit then
+      temp:=' X6 '+IntToHex(lastdebugcontextarm64.regs.X6,charcount)
+    else
+      temp:=' R6 '+IntToHex(lastdebugcontextarm.R6,charcount);
+  end;
+
   if temp<>eBPlabel.Caption then
   begin
     eBPlabel.Font.Color:=fChangedRegisterColor;
@@ -6089,7 +6171,13 @@ begin
   if processhandler.SystemArchitecture=archX86 then
     temp:=regstart+'SP '+IntToHex(lastdebugcontext.{$ifdef CPU64}rsp{$else}esp{$endif},charcount)
   else
-    temp:=' R7 '+IntToHex(lastdebugcontextarm.R3, charcount);
+  begin
+    if processhandler.is64Bit then
+      temp:=' X7 '+IntToHex(lastdebugcontextarm64.regs.X7,charcount) //don't use SP here, it's in x31
+    else
+      temp:=' R7 '+IntToHex(lastdebugcontextarm.R7,charcount);
+  end;
+
   if temp<>eSPlabel.Caption then
   begin
     eSPlabel.Font.Color:=fChangedRegisterColor;
@@ -6099,7 +6187,13 @@ begin
   if processhandler.SystemArchitecture=archX86 then
     temp:=regstart+'IP '+IntToHex(lastdebugcontext.{$ifdef CPU64}rip{$else}eip{$endif},charcount)
   else
-    temp:='PC '+IntToHex(lastdebugcontextarm.PC, charcount);
+  begin
+    if processhandler.is64Bit then
+      temp:='PC '+IntToHex(lastdebugcontextarm64.PC, charcount)
+    else
+      temp:='PC '+IntToHex(lastdebugcontextarm.PC, charcount);
+  end;
+
   if temp<>eIPlabel.Caption then
   begin
     temp2:=ExtractWord(2,eIPlabel.Caption,[' ']);
@@ -6124,7 +6218,13 @@ begin
     if processhandler.SystemArchitecture=archX86 then
       temp:=' R8 '+IntToHex(lastdebugcontext.r8,16)
     else
-      temp:=' R8 '+IntToHex(lastdebugcontextarm.r8,8);
+    begin
+      if processhandler.is64Bit then
+        temp:=' X8 '+IntToHex(lastdebugcontextarm64.regs.x8,16)
+      else
+        temp:=' R8 '+IntToHex(lastdebugcontextarm.r8,8);
+    end;
+
     if temp<>r8label.Caption then
     begin
       r8label.Font.Color:=fChangedRegisterColor;
@@ -6134,7 +6234,12 @@ begin
     if processhandler.SystemArchitecture=archX86 then
       temp:=' R9 '+IntToHex(lastdebugcontext.r9,16)
     else
-      temp:=' R9 '+IntToHex(lastdebugcontextarm.r9,8);
+    begin
+      if processhandler.is64Bit then
+        temp:=' X9 '+IntToHex(lastdebugcontextarm64.regs.X9,16)
+      else
+        temp:=' R9 '+IntToHex(lastdebugcontextarm.r9,8);
+    end;
     if temp<>r9label.Caption then
     begin
       r9label.Font.Color:=fChangedRegisterColor;
@@ -6144,7 +6249,12 @@ begin
     if processhandler.SystemArchitecture=archX86 then
       temp:='R10 '+IntToHex(lastdebugcontext.r10,16)
     else
-      temp:='R10 '+IntToHex(lastdebugcontextarm.r10,8);
+    begin
+      if processhandler.is64Bit then
+        temp:='X10 '+IntToHex(lastdebugcontextarm64.regs.x10,16)
+      else
+        temp:='R10 '+IntToHex(lastdebugcontextarm.r10,8);
+    end;
     if temp<>r10label.Caption then
     begin
       r10label.Font.Color:=fChangedRegisterColor;
@@ -6154,7 +6264,12 @@ begin
     if processhandler.SystemArchitecture=archX86 then
       temp:='R11 '+IntToHex(lastdebugcontext.r11,16)
     else
-      temp:=' FP '+IntToHex(lastdebugcontextarm.FP,8);
+    begin
+      if processhandler.is64bit then
+        temp:=' X11 '+IntToHex(lastdebugcontextarm64.regs.X11,16)
+      else
+        temp:=' FP '+IntToHex(lastdebugcontextarm.FP,8);
+    end;
     if temp<>r11label.Caption then
     begin
       r11label.Font.Color:=fChangedRegisterColor;
@@ -6164,7 +6279,12 @@ begin
     if processhandler.SystemArchitecture=archX86 then
       temp:='R12 '+IntToHex(lastdebugcontext.r12,16)
     else
-      temp:=' IP '+IntToHex(lastdebugcontextarm.IP,8);
+    begin
+      if processhandler.is64Bit then
+        temp:='X12 '+IntToHex(lastdebugcontextarm64.regs.X12,16)
+      else
+        temp:=' IP '+IntToHex(lastdebugcontextarm.IP,8);
+    end;
     if temp<>r12label.Caption then
     begin
       r12label.Font.Color:=fChangedRegisterColor;
@@ -6174,7 +6294,12 @@ begin
     if processhandler.SystemArchitecture=archX86 then
       temp:='R13 '+IntToHex(lastdebugcontext.r13,16)
     else
-      temp:=' SP '+IntToHex(lastdebugcontextarm.SP,8);
+    begin
+      if processhandler.is64Bit then
+        temp:=' X13 '+IntToHex(lastdebugcontextarm64.regs.X13,16)
+      else
+        temp:=' SP '+IntToHex(lastdebugcontextarm.SP,8);
+    end;
     if temp<>r13label.Caption then
     begin
       r13label.Font.Color:=fChangedRegisterColor;
@@ -6184,7 +6309,12 @@ begin
     if processhandler.SystemArchitecture=archX86 then
       temp:='R14 '+IntToHex(lastdebugcontext.r14,16)
     else
-      temp:=' LR '+IntToHex(lastdebugcontextarm.LR,8);
+    begin
+      if processhandler.is64Bit then
+        temp:=' X14 '+IntToHex(lastdebugcontextarm64.regs.X14,16)
+      else
+        temp:=' LR '+IntToHex(lastdebugcontextarm.LR,8);
+    end;
     if temp<>r14label.Caption then
     begin
       r14label.Font.Color:=fChangedRegisterColor;
@@ -6199,6 +6329,43 @@ begin
         r15label.Font.Color:=fChangedRegisterColor;
         r15label.Caption:=temp;
       end else r15label.Font.Color:=clWindowText;
+    end
+    else
+    begin
+      //arm
+      if processhandler.is64Bit then
+      begin
+        temp:='X15 '+IntToHex(lastdebugcontextarm64.regs.X15,16);
+        if temp<>r15label.Caption then
+        begin
+          r15label.Font.Color:=fChangedRegisterColor;
+          r15label.Caption:=temp;
+        end else r15label.Font.Color:=clWindowText;
+
+        //the rest: (how it should have be done from the start)
+        for i:=15 to 30 do
+        begin
+          temp:='X'+inttostr(i)+' '+IntToHex(lastdebugcontextarm64.regs.X[i],16);
+          if temp<>xlabel[i].caption then
+          begin
+            xlabel[i].font.color:=fChangedRegisterColor;
+            xlabel[i].Caption:=temp;
+          end
+          else
+            xlabel[i].font.color:=clWindowtext;
+        end;
+
+        temp:='SP '+IntToHex(lastdebugcontextarm64.SP,16); //31
+        if temp<>xlabel[31].caption then
+        begin
+          xlabel[31].font.color:=fChangedRegisterColor;
+          xlabel[31].Caption:=temp;
+        end
+        else
+          xlabel[31].font.color:=clWindowtext;
+
+        //31
+      end;
     end;
   end;
   {$endif}
@@ -6325,7 +6492,10 @@ begin
     Label16.visible:=false;
     shape3.visible:=false;
 
-    cslabel.caption:='CSPR='+inttohex(lastdebugcontextarm.CPSR,8);
+    if processhandler.is64Bit then
+      cslabel.caption:='PSTATE='+inttohex(lastdebugcontextarm64.PSTATE,8) //todo: move to flags
+    else
+      cslabel.caption:='CSPR='+inttohex(lastdebugcontextarm.CPSR,8);
     sslabel.visible:=false;
     dslabel.visible:=false;
     eslabel.visible:=false;
