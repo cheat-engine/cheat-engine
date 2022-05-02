@@ -15376,7 +15376,7 @@ begin
             exit(2);
           end;
 
-          lua_pushboolean(L,ptruint(mbi.BaseAddress)+mbi.size);
+          lua_pushboolean(L,ptruint(mbi.BaseAddress)+mbi.RegionSize);
           exit(1);
         finally
           freemem(mem);
