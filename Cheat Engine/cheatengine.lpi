@@ -85,7 +85,7 @@
 -dcemain
 -dNDEBUG
 -dDBVMFORAMDISWORKING"/>
-            <OtherDefines Count="13">
+            <OtherDefines Count="14">
               <Define0 Value="NOTMULTITHREADED"/>
               <Define1 Value="benchmarkps"/>
               <Define2 Value="cemain"/>
@@ -99,6 +99,7 @@
               <Define10 Value="memorymapped"/>
               <Define11 Value="privatebuild"/>
               <Define12 Value="DBVMFORAMDISWORKING"/>
+              <Define13 Value="FORCEDDARKMODE"/>
             </OtherDefines>
           </Other>
         </CompilerOptions>
@@ -567,7 +568,7 @@
 -dNOVMX
 -dCUSTOMFLOAT
 -dXDEBUG"/>
-            <OtherDefines Count="13">
+            <OtherDefines Count="14">
               <Define0 Value="NOTMULTITHREADED"/>
               <Define1 Value="benchmarkps"/>
               <Define2 Value="cemain"/>
@@ -581,6 +582,7 @@
               <Define10 Value="memorymapped"/>
               <Define11 Value="privatebuild"/>
               <Define12 Value="DBVMFORAMDISWORKING"/>
+              <Define13 Value="FORCEDDARKMODE"/>
             </OtherDefines>
           </Other>
         </CompilerOptions>

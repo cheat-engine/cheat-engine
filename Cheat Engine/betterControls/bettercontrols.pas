@@ -142,6 +142,10 @@ function ShouldAppsUseDarkMode:BOOL; stdcall;
 var reg: tregistry;
 {$endif}
 begin
+  {$IFDEF FORCEDDARKMODE}
+  UsesDarkMode:=dmYes;
+  exit(true);
+  {$ENDIF}
   {$ifdef windows}
   if darkmodebuggy then exit(false);
 
@@ -273,7 +277,7 @@ initialization
       if not assigned(FlushMenuThemes) then FlushMenuThemes:=@RefreshImmersiveColorPolicyState_stub;
 
 
-      AllowDarkModeForApp(1);  //3 is disable, 2=force on, 1=system default
+      AllowDarkModeForApp({$IFDEF FORCEDDARKMODE}2{$ELSE}1{$ENDIF});  //3 is disable, 2=force on, 1=system default
 
 
       FlushMenuThemes;

@@ -21,12 +21,15 @@ uses
   disassemblerComments, multilineinputqueryunit, frmMemoryViewExUnit,
   LastDisassembleData, ProcessHandlerUnit, commonTypeDefs, binutils,
   fontSaveLoadRegistry, LazFileUtils, ceregistry, frmCR3SwitcherUnit,
-  betterControls, ScrollBoxEx;
+  betterControls, ScrollBoxEx, fgl;
 
 
 type
 
   { TMemoryBrowser }
+
+  TLabelList =  TFPGObjectList<TLabel>;
+
 
   TMemoryBrowser = class(TForm)
     aflabel: TLabel;
@@ -542,6 +545,8 @@ type
     R13Label: TLabel;
     R14Label: TLabel;
     R15Label: TLabel;
+
+    Registers: TLabelList; //removing labels in here also removes them from the scrollbox
 
 
     posloadedfromreg: boolean;
@@ -2677,6 +2682,7 @@ var x: array of integer;
   c: tcolor;
 begin
   registerpanelfont:=tfont.Create;
+  registers:=TLabelList.Create;
 
   MemoryBrowsers.Add(self);
 
@@ -5922,7 +5928,7 @@ begin
   if r12label<>nil then r12label.visible:=processhandler.is64Bit or (processhandler.SystemArchitecture=archArm);
   if r13label<>nil then r13label.visible:=processhandler.is64Bit or (processhandler.SystemArchitecture=archArm);
   if r14label<>nil then r14label.visible:=processhandler.is64Bit or (processhandler.SystemArchitecture=archArm);
-  if r15label<>nil then r15label.visible:=processhandler.is64Bit;
+  if r15label<>nil then r15label.visible:=processhandler.is64Bit ;
 
   if (accessedreglist<>nil) then
   begin

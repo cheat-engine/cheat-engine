@@ -1139,7 +1139,10 @@ var pc: pchar;
 begin
   i:=lua_gettop(Luavm);
   if i>0 then
+  begin
     OutputDebugString('luastack is not correct');
+    lua_settop(Luavm,0);
+  end;
 
   dodebug:=false;
 

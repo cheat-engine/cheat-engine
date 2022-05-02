@@ -1,5 +1,7 @@
 $C remove/rename symbols that are obtained from linking
+enumsymbols lua command: add way to figure out duplicates
 
+ce debug and dbvm: changeregonbp , add option for 1 time only
 
 mono: .net info search for mono: search for result/parameter
 mono/il2cpp: debugging, resuming and then activating mono seems to give an error
