@@ -381,7 +381,7 @@ end;
 
 procedure stringstream_addMetaData(L: PLua_state; metatable: integer; userdata: integer );
 begin
-  stream_addMetaData(L, metatable, userdata);
+  memorystream_addMetaData(L, metatable, userdata);
   luaclass_addPropertyToTable(L, metatable, userdata, 'DataString', stringstream_getDataString, nil);
 end;
 
