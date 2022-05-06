@@ -1344,11 +1344,13 @@ var
   x: PTRUINT;
   cr3: ptruint;
 begin
+   {$ifndef darwin}
   if not verifyAddress(qword(lpBaseAddress)) then
   begin
     lpNumberOfBytesWritten:=0;
     exit(false);
   end;
+   {$endif}
 
   result:=false;
   wle:=nil;
