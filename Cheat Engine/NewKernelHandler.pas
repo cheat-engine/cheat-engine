@@ -1395,11 +1395,13 @@ end;
 function ReadProcessMemory(hProcess: THandle; lpBaseAddress, lpBuffer: Pointer; nSize: size_t; var lpNumberOfBytesRead: PTRUINT): BOOL; stdcall;
 var cr3: ptruint;
 begin
+  {$ifndef darwin}
   if not verifyAddress(qword(lpBaseAddress)) then
   begin
     lpNumberOfBytesRead:=0;
     exit(false);
   end;
+  {$endif}
 
 
   {$ifdef windows}
@@ -1472,6 +1474,7 @@ function Is64BitProcess(processhandle: THandle): boolean;
 var iswow64: BOOL;
 begin
   {$ifdef darwin}
+  outputdebugstring('newkernelhandler.is64bitprocess');
   exit(macport.is64bit(processhandle));
   {$endif}
 {$ifdef windows}
@@ -2235,6 +2238,7 @@ begin
   MAXLINEARADDRMASK:=MAXLINEARADDRMASK shl MAXLINEARADDR;
 
   MAXLINEARADDRTEST:=qword(1) shl (MAXLINEARADDR-1);
+  outputdebugstring(format('cpuid $80000008=%x, %x, %x, %x',[cpuidr.eax, cpuidr.ebx, cpuidr.ecx, cpuidr.edx]));
 
 
   {$ifdef cpu64}
