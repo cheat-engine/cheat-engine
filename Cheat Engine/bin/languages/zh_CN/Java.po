@@ -1,0 +1,287 @@
+#: java-AAF
+msgid "Auto assembler failed:"
+msgstr "自动汇编失败:"
+
+#: java-JEST
+msgid "Java:eventserver terminated"
+msgstr "Java:服务器被中止"
+
+#: java-JD
+msgid "Java:Disconnected"
+msgstr "Java:断开连接"
+
+#: java-JUER
+msgid "Java:Unexpected event received"
+msgstr "Java:收到异常事件"
+
+#: java-JEHT
+msgid "Java:Event handler terminating"
+msgstr "Java:中止处理"
+
+#: java-IJS
+msgid "Invalid java signature"
+msgstr "无效的java签名"
+
+#: java-ARTANS
+msgid "Array return types are not supported"
+msgstr "不支持返回数组类型"
+
+#: java-PCDNM
+msgid "Parameter count does not match"
+msgstr "参数计数不匹配"
+
+#: java-SWNS
+msgid "Scantype was not set"
+msgstr "未设置扫描类型"
+
+#: java-Class
+msgid "Class"
+msgstr "类"
+
+#: java-Method
+msgid "Method"
+msgstr "方法"
+
+#: java-Position
+msgid "Position"
+msgstr "位置"
+
+#: java-MI
+msgid "More info %s.%s(%d)"
+msgstr "详细信息 %s.%s(%d)"
+
+#: java-TDMATGV
+msgid "The following methods accessed the given variable"
+msgstr "以下方法访问给定的变量"
+
+#: java-results
+msgid "results"
+msgstr "结果"
+
+#: java-OWWTJAILAS
+msgid "java_find_what_writes only works when the jvmti agent is launched at start"
+msgstr "java_find_what_writes 仅在启动jvmti agent时才起作用"
+
+#: java-Generic
+msgid "  Generic="
+msgstr "  通用="
+
+#: java-SC
+msgid "superclass="
+msgstr "超级类="
+
+#: java-II
+msgid "---Implemented interfaces---"
+msgstr "---实作界面---"
+
+#: java-Fields
+msgid "---Fields---"
+msgstr "---字段---"
+
+#: java-Methods
+msgid "---Methods---"
+msgstr "---方法---"
+
+#: java-SFC
+msgid "Search for class..."
+msgstr "搜索类..."
+
+#: java-SF
+msgid "Search for..."
+msgstr "搜索..."
+
+#: java-NewS
+msgid "New Scan"
+msgstr "新的扫描"
+
+#: java-FS
+msgid "First Scan"
+msgstr "首次扫描"
+
+#: java-JVScanner
+msgid "Java Variable Scanner"
+msgstr "扫描Java变量"
+
+#: java-Value
+msgid "Value"
+msgstr "数值"
+
+#: java-NextS
+msgid "Next Scan"
+msgstr "再次扫描"
+
+#: java-Found
+msgid "Found:"
+msgstr "结果:"
+
+#: java-FWATV
+msgid "Find what accesses this value"
+msgstr "找出是什么访问了该数值"
+
+#: java-Search
+msgid "Search"
+msgstr "搜索"
+
+#: java-FC
+msgid "Find Class"
+msgstr "查找类"
+
+#: java-Finddotdotdot
+msgid "Find..."
+msgstr "查找..."
+
+#: java-EM
+msgid "Edit method"
+msgstr "编辑方法"
+
+#: java-AJF
+msgid "Activate java features"
+msgstr "激活java特性"
+
+#: java-DJC
+msgid "Dissect java classes"
+msgstr "分析java类"
+
+#: java-JVScan
+msgid "Java variable scan"
+msgstr "扫描java变量"
+
+#: java-DCP
+msgid "Debug child processes"
+msgstr "调试子进程"
+
+#: java-JHDTI
+msgid "The java handler failed to initialize"
+msgstr "java程序初始化失败"
+
+#: tformsettings.btnmakekerneldebugpossible.caption
+msgid "Make possible"
+msgstr "使成为可能"
+
+#: java-SJMIEITTP
+msgid "Show java menu item even if the target process hasn't loaded jvm.dll (Used for the local setEnvironment option)"
+msgstr "即使目标进程未加载 jvm.dll也显示java菜单项 (使用本地设置环境选项)"
+
+#: javaclass-ICPTE
+msgid "Invalid constant pool tag encountered: "
+msgstr "遇到了无效的常量标记: "
+
+#: javaclass-Tag
+msgid " (tag="
+msgstr " (标记="
+
+#: javaclass-NAVC
+msgid "Not a valid classfile"
+msgstr "不是一个有效的类文件"
+
+#: javaclasseditor-ICNI
+msgid " is currently not implemented"
+msgstr " 目前尚未实现"
+
+#: javaclasseditor-WCNBUW
+msgid "wide can not be used with "
+msgstr "宽度不能用 "
+
+#: javaclasseditor-IAOPPF
+msgid "Invalid amount of parameters provided for "
+msgstr "提供的参数数量无效 "
+
+#: javaclasseditor-TL
+msgid "The label "
+msgstr "标签 "
+
+#: javaclasseditor-INYD
+msgid "is not yet defined"
+msgstr "尚未定义"
+
+#: javaclasseditor-TIICNI
+msgid "This instruction is currently not implemented"
+msgstr "此指令目前没有执行"
+
+#: javaclasseditor-UI
+msgid "unknown instruction:"
+msgstr "未知的指令:"
+
+#: javaclasseditor-YCORI
+msgid "You can only replace instructions on an instruction boundary"
+msgstr "只能在指令边界上替换指令"
+
+#: javaclasseditor-StartIndex
+msgid "si="
+msgstr "si="
+
+#: javaclasseditor-Offset
+msgid " offset="
+msgstr " 偏移="
+
+#: javaclasseditor-IL
+msgid "Insert line"
+msgstr "输入行"
+
+#: javaclasseditor-ITJAC
+msgid "Input the java assembly code you wish to insert at line "
+msgstr "输入java汇编码要插入行 "
+
+#: javaclasseditor-EL
+msgid "Edit line"
+msgstr "编辑行"
+
+#: javaclasseditor-DNL
+msgid "Define new label"
+msgstr "定义新的标签"
+
+#: javaclasseditor-GALFL
+msgid "Give a labelname for line "
+msgstr "给行定义标签名 "
+
+#: javaclasseditor-TIAALWTN
+msgid "There is already a label with this name"
+msgstr "这个名字已经有一个标签了"
+
+#: javaclasseditor-OBSNBS
+msgid "old bsize=%d new bsize=%d"
+msgstr "旧 bsize=%d 新 bsize=%d"
+
+#: javaclasseditor-OSNS
+msgid "old size=%d new size=%d"
+msgstr "旧 size=%d 新 size=%d"
+
+#: javaclasseditor-Method
+msgid "Method: "
+msgstr "方法: "
+
+#: javaclasseditor-MS
+msgid "Max Stack"
+msgstr "最大堆栈"
+
+#: javaclasseditor-ML
+msgid "Max Locals"
+msgstr "局部最大"
+
+#: javaclasseditor-SC
+msgid "Save changes"
+msgstr "保存更改"
+
+#: javaclasseditor-Index
+msgid "Index"
+msgstr "索引"
+
+#: javaclasseditor-BI
+msgid "ByteIndex"
+msgstr "字节索引"
+
+#: javaclasseditor-Label
+msgid "Label"
+msgstr "标签"
+
+#: javaclasseditor-Exception
+msgid "Exception"
+msgstr "异常"
+
+#: javaclasseditor-Instruction
+msgid "Instruction"
+msgstr "指令"
+
+#: javaclasseditor-DL
+msgid "Define label"
+msgstr "定义label"

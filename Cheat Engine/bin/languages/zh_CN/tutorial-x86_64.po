@@ -1,17 +1,361 @@
-#| XHXIAIEIN
-#| 271028354@qq.com
-#| 2021.03.10
-
-msgid ""
 msgstr "Content-Type: text/plain; charset=UTF-8"
+msgstr ""
+
+#: tform1.btnok.caption
+msgctxt "TFORM1.BTNOK.CAPTION"
+msgid "OK"
+msgstr "确定"
+
+#: tform1.button1.caption
+msgctxt "TFORM1.BUTTON1.CAPTION"
+msgid "Next"
+msgstr "下一步"
+
+#: tform1.caption
+msgid "Cheat Engine Tutorial v3.4"
+msgstr "Cheat Engine 教程 v3.4"
+
+#: tform1.edtpassword.hint
+msgid "Use this to go imeadiatly to the step you want to try"
+msgstr "使用这个密码立即去你想尝试的步骤"
+
+#: tform1.edtpassword.text
+msgid "090453"
+msgstr "090453"
+
+#: tform1.label1.caption
+msgid "Password"
+msgstr "密码"
+
+#: tform10.button3.caption
+msgid "Restart game"
+msgstr "重新启动游戏"
+
+#: tform10.button4.caption
+msgctxt "tform10.button4.caption"
+msgid "Attack"
+msgstr "攻击"
+
+#: tform10.button5.caption
+msgctxt "tform10.button5.caption"
+msgid "Attack"
+msgstr "攻击"
+
+#: tform10.button6.caption
+msgctxt "tform10.button6.caption"
+msgid "Restart game and autoplay"
+msgstr "重新启动游戏并自动执行"
+
+#: tform10.button7.caption
+msgctxt "tform10.button7.caption"
+msgid "Attack"
+msgstr "攻击"
+
+#: tform10.button8.caption
+msgctxt "TFORM10.BUTTON8.CAPTION"
+msgid "Attack"
+msgstr "攻击"
+
+#: tform10.caption
+msgid "Step 9"
+msgstr "步骤 9"
+
+#: tform10.label1.caption
+msgctxt "tform10.label1.caption"
+msgid "100"
+msgstr "100"
+
+#: tform10.label10.caption
+msgctxt "TFORM10.LABEL10.CAPTION"
+msgid "Health: 500"
+msgstr "健康: 500"
+
+#: tform10.label2.caption
+msgctxt "tform10.label2.caption"
+msgid "Health:"
+msgstr "健康:"
+
+#: tform10.label3.caption
+msgid "Player 1: Dave"
+msgstr "玩家 1: Dave"
+
+#: tform10.label4.caption
+msgctxt "tform10.label4.caption"
+msgid "Health: 100"
+msgstr "健康: 100"
+
+#: tform10.label5.caption
+msgid "Player 2: Eric"
+msgstr "玩家 2: Eric"
+
+#: tform10.label6.caption
+msgctxt "TFORM10.LABEL6.CAPTION"
+msgid "Health: 100"
+msgstr "健康: 100"
+
+#: tform10.label7.caption
+msgid "C. Player 3: HAL"
+msgstr "C. 玩家 3: HAL"
+
+#: tform10.label8.caption
+msgctxt "tform10.label8.caption"
+msgid "Health: 500"
+msgstr "健康: 500"
+
+#: tform10.label9.caption
+msgid "C. Player 4: KITT"
+msgstr "C. 玩家 4: KITT"
+
+#: tform2.button1.caption
+msgctxt "TFORM2.BUTTON1.CAPTION"
+msgid "Next"
+msgstr "下一步"
+
+#: tform2.button2.caption
+msgctxt "tform2.button2.caption"
+msgid "Hit me"
+msgstr "打我"
+
+#: tform2.caption
+msgid "Step 2"
+msgstr "步骤 2"
+
+#: tform2.label1.caption
+msgctxt "TFORM2.LABEL1.CAPTION"
+msgid "100"
+msgstr "100"
+
+#: tform2.label2.caption
+msgctxt "TFORM2.LABEL2.CAPTION"
+msgid "Health:"
+msgstr "健康:"
+
+#: tform2.speedbutton1.caption
+msgctxt "tform2.speedbutton1.caption"
+msgid "Skip"
+msgstr "跳过"
+
+#: tform3.button1.caption
+msgctxt "TFORM3.BUTTON1.CAPTION"
+msgid "Next"
+msgstr "下一步"
+
+#: tform3.button2.caption
+msgctxt "TFORM3.BUTTON2.CAPTION"
+msgid "Hit me"
+msgstr "打我"
+
+#: tform3.caption
+msgid "Step 3"
+msgstr "步骤 3"
+
+#: tform3.label1.caption
+msgid " "
+msgstr " "
+
+#: tform3.speedbutton1.caption
+msgctxt "TFORM3.SPEEDBUTTON1.CAPTION"
+msgid "Skip"
+msgstr "跳过"
+
+#: tform4.button1.caption
+msgctxt "TFORM4.BUTTON1.CAPTION"
+msgid "OK"
+msgstr "确定"
+
+#: tform4.caption
+msgid "Tutorial End"
+msgstr "教程结束"
+
+#: tform4.label1.caption
+msgid "Well done, you've completed the tutorial of Cheat Engine."
+msgstr "干得不错，你已经完成了 Cheat Engine 的教程。"
+
+#: tform4.label2.caption
+msgid "Just play around with the tutorial and learn how the other scanmethods work."
+msgstr "第一次玩本教程与学习如何在其它 scanmethods 上工作。"
+
+#: tform4.label3.caption
+msgid "And you can always check out the Cheat Engine Forum for useful information and ask for help"
+msgstr "你随时可以访问 Cheat Engine 论坛获取有用的信息或求助"
+
+#: tform4.label4.caption
+msgid "Cheat Engine Forum"
+msgstr "Cheat Engine 论坛"
+
+#: tform5.button1.caption
+msgid "Fire"
+msgstr "开火"
+
+#: tform5.button2.caption
+msgctxt "TFORM5.BUTTON2.CAPTION"
+msgid "Next"
+msgstr "下一步"
+
+#: tform5.button3.caption
+msgctxt "TFORM5.BUTTON3.CAPTION"
+msgid "Hit me"
+msgstr "打我"
+
+#: tform5.caption
+msgid "Step 4"
+msgstr "步骤 4"
+
+#: tform5.label1.caption
+msgctxt "TFORM5.LABEL1.CAPTION"
+msgid "100"
+msgstr "100"
+
+#: tform5.label2.caption
+msgid "Ammo"
+msgstr "弹药"
+
+#: tform5.label3.caption
+msgctxt "TFORM5.LABEL3.CAPTION"
+msgid "Health:"
+msgstr "健康:"
+
+#: tform5.label4.caption
+msgctxt "TFORM5.LABEL4.CAPTION"
+msgid "100"
+msgstr "100"
+
+#: tform5.label5.caption
+msgid "(float)"
+msgstr "(单浮点)"
+
+#: tform5.label6.caption
+msgid "(double)"
+msgstr "(双浮点)"
+
+#: tform5.speedbutton1.caption
+msgctxt "TFORM5.SPEEDBUTTON1.CAPTION"
+msgid "Skip"
+msgstr "跳过"
+
+#: tform6.button1.caption
+msgctxt "tform6.button1.caption"
+msgid "Change value"
+msgstr "改变数值"
+
+#: tform6.button2.caption
+msgctxt "TFORM6.BUTTON2.CAPTION"
+msgid "Next"
+msgstr "下一步"
+
+#: tform6.caption
+msgid "Step 5"
+msgstr "步骤 5"
+
+#: tform6.label1.caption
+msgctxt "TFORM6.LABEL1.CAPTION"
+msgid "100"
+msgstr "100"
+
+#: tform6.speedbutton1.caption
+msgctxt "TFORM6.SPEEDBUTTON1.CAPTION"
+msgid "Skip"
+msgstr "跳过"
+
+#: tform7.button1.caption
+msgctxt "TFORM7.BUTTON1.CAPTION"
+msgid "Change value"
+msgstr "改变数值"
+
+#: tform7.button2.caption
+msgctxt "TFORM7.BUTTON2.CAPTION"
+msgid "Next"
+msgstr "下一步"
+
+#: tform7.button3.caption
+msgctxt "tform7.button3.caption"
+msgid "Change pointer"
+msgstr "改变指针"
+
+#: tform7.caption
+msgid "Step 6"
+msgstr "步骤 6"
+
+#: tform7.label1.caption
+msgctxt "TFORM7.LABEL1.CAPTION"
+msgid "100"
+msgstr "100"
+
+#: tform7.label2.caption
+msgctxt "tform7.label2.caption"
+msgid "3"
+msgstr "3"
+
+#: tform7.speedbutton1.caption
+msgctxt "TFORM7.SPEEDBUTTON1.CAPTION"
+msgid "Skip"
+msgstr "跳过"
+
+#: tform8.button1.caption
+msgctxt "TFORM8.BUTTON1.CAPTION"
+msgid "Hit me"
+msgstr "打我"
+
+#: tform8.button2.caption
+msgctxt "TFORM8.BUTTON2.CAPTION"
+msgid "Next"
+msgstr "下一步"
+
+#: tform8.caption
+msgid "Step 7"
+msgstr "步骤 7"
+
+#: tform8.label1.caption
+msgctxt "TFORM8.LABEL1.CAPTION"
+msgid "Health: 100"
+msgstr "健康: 100"
+
+#: tform8.speedbutton1.caption
+msgctxt "TFORM8.SPEEDBUTTON1.CAPTION"
+msgid "Skip"
+msgstr "跳过"
+
+#: tform9.button1.caption
+msgctxt "TFORM9.BUTTON1.CAPTION"
+msgid "Change value"
+msgstr "改变数值"
+
+#: tform9.button2.caption
+msgctxt "TFORM9.BUTTON2.CAPTION"
+msgid "Next"
+msgstr "下一步"
+
+#: tform9.button3.caption
+msgctxt "TFORM9.BUTTON3.CAPTION"
+msgid "Change pointer"
+msgstr "改变指针"
+
+#: tform9.caption
+msgid "Step 8"
+msgstr "步骤 8"
+
+#: tform9.label1.caption
+msgctxt "TFORM9.LABEL1.CAPTION"
+msgid "100"
+msgstr "100"
+
+#: tform9.label2.caption
+msgctxt "TFORM9.LABEL2.CAPTION"
+msgid "3"
+msgstr "3"
+
+#: tform9.speedbutton1.caption
+msgctxt "TFORM9.SPEEDBUTTON1.CAPTION"
+msgid "Skip"
+msgstr "跳过"
 
 #: unit1.rsfirststeptoohardbettergiveupnow
 msgid "First step too hard? Go to forum.cheatengine.org, then click on \"Tutorials\" for helpful guides!"
-msgstr "第一关就太难了？不会吧？\n！"
+msgstr "第一步很难? 请访问forum.cheatengine.org, 然后点击 \"Tutorials\" 获取有用信息!"
 
 #: unit1.rstutorial1
 msgid ""
-"Welcome to the Cheat Engine Tutorial (v3.4)\n"
+"Welcome to the Cheat Engine Tutorial (v3.5)\n"
 "\n"
 "This tutorial will teach you the basics of cheating in video games. It will also show you foundational aspects of using Cheat Engine (or CE for short). Follow the steps below to get started.\n"
 "\n"
@@ -25,55 +369,100 @@ msgid ""
 "Click the \"Next\" button below to continue, or fill in the password and click the \"OK\" button to proceed to that step.)\n"
 "\n"
 "If you're having problems, simply head over to forum.cheatengine.org, then click on \"Tutorials\" to view beginner-friendly guides!\n"
+msgstr "欢迎使用 Cheat Engine 训练教程 (3.5)\n\n本教程将尝试讲解在游戏中作弊的一些基本知识. 并帮助你熟悉 Cheat Engine 的使用方法 (简称为CE). 请按下面的步骤开始.\n\n1: 首先要打开Cheat Engine (如果你还没有运行它的话).\n2: 然后点击"\打开进程\"图标（左上角那个带有电脑的图标,且位于\"文件\"下方.）.\n3: 当进程列表窗口打开后请在列表中找到这个教程程序. 它类似于 \"00001F98-Tutorial-x86_64.exe\" or \"0000047C-Tutorial-i386.exe\". (前面的8位数字/字母可能会有差异.)\n4: 如果你找到了这个进程就点击它, 然后点击 \"打开\" 按钮. (现在暂时不要理会其它的按钮，如果你有兴趣的话，以后再研究它们.)\n恭喜你! 如果以上步骤没什么意外的话, 进程列表窗口将会消失并且在 Cheat Engine 主界面的上方会显示选择的进程名称. \n\n好了，点击\"下一步\"按钮进入下一个步骤（或输入密码进入你要练习的步骤. ）\n\n如果你有什么问题, 请访问forum.cheatengine.org, 然后点击 \"Tutorials\" 查看初学者指南!\n"
+
+#: unit10.rsdead
+msgid "DEAD"
+msgstr "死亡"
+
+#: unit10.rsfailureyourteamdied
+msgid "Failure. Your team died"
+msgstr "失败了。你的团队死亡"
+
+#: unit10.rshealth
+msgid "Health: %s"
+msgstr "健康: %s"
+
+#: unit10.rsrestartgameandautoplay
+msgctxt "unit10.rsrestartgameandautoplay"
+msgid "Restart game and autoplay"
+msgstr "重新启动游戏并自动执行"
+
+#: unit10.rsstep9sharedcodepw
+msgid "Step 9: Shared code: (PW=%s)"
+msgstr "步骤 9: 注入++: (密码=%s)"
+
+#: unit10.rsstop
+msgid "Stop"
+msgstr "停止"
+
+#: unit10.rsthisplayerisalreadydeadrestartthegame
+msgid "This player is already dead. Restart the game"
+msgstr "这个玩家已经死亡，请重新启动游戏。"
+
+#: unit10.rstryagain10
+msgid "Can't figure out how to do this? Don't worry. Try asking in the forum at cheatengine.org or perhaps someone already explained it better there. Are you sure you want to quit?"
+msgstr "无法弄清楚如何做到这一点？别担心。试着在 cheatengine.org 论坛上询问，或许它已经有人解释得更好。确实要退出吗？"
+
+#: unit10.rstutorialstep9
+msgid ""
+"This step will explain how to deal with code that is used for other object of the same type\n"
+"\n"
+"Often when you've found health of a unit or your own player, you will find that if you remove the code, it affects enemies as well.\n"
+"In these cases you must find out how to distinguish between your and the enemies objects.\n"
+"Sometimes this is as easy as checking the first 4 bytes (Function pointer table) which often point to a unique location for the player, and sometimes it's a team number, or a pointer to a pointer to a pointer to a pointer to a pointer to a playername. It all depends on the complexity of the game, and your luck\n"
+"\n"
+"The easiest method is finding what addresses the code you found writes to and then use the dissect data feature to compare against two structures. (Your unit(s)/player and the enemies) And then see if you can find out a way to distinguish between them.\n"
+"When you have found out how to distinguish between you and the computer you can inject an assembler script that checks for the condition and then either do not execute the code or do something else. (One hit kills for example)\n"
+"Alternatively, you can also use this to build a so called \"Array of byte\" string which you can use to search which will result in a list of all your or the enemies players\n"
+"In this tutorial I have implemented the most amazing game you will ever play.\n"
+"It has 4 players. 2 Players belong to your team, and 2 Players belong to the computer. \n"
+"Your task is to find the code that writes the health and make it so you win the game WITHOUT freezing your health\n"
+"To continue, press \"Restart game and autoplay\" to test that your code is correct\n"
+"\n"
+"\n"
+"Tip: Health is a float\n"
+"Tip2: There are multiple solutions\n"
 msgstr ""
-"------------------------------------------------------------------\n"
-" ( •̀ ω •́ )✧ 欢迎来到 Cheat Engine 新手教程 (v3.4)\n"
-"------------------------------------------------------------------\n\n"
-"本教程会教你「如何在游戏中作弊」的基本知识。\n"
-"既然是个新手菜鸟，先从基本操作开始动手吧。\n"
+"\n这一步将会解释如何处理游戏中的共用代码, 这种代码是通用在除了自己以外的其他同类型对像上\n"
 "\n"
-"#1 启动 Cheat Engine 主程序\n"
-"如果你还没运行，先将它启动。\n"
+"常常你在修改游戏的时候, 你找到了一个单位的健康, 或是你自己角色的健康, 你会发现一种情况: 如果你把健康相关代码移除的话，其结果是你的角色无敌, 但你的敌人也无敌了。\n"
+"在这种情况下, 你必须想办法区分自己与敌人。\n"
+"有时候很简单, 你只要检查最前面的4个字节(函数指针表), 它通常指向一个独一无二的地址, 代表着游戏玩家角色，而有的时候它是一个团体号码, 或者也可能是一个指针, 它指向另一个指针, 该址针又指向下一个指针,搞不好还指向下下一个指针, 最后指向一个玩家名字。总之完全取决于游戏的复杂度, 以及你的运气\n"
 "\n"
-"\n"
-"#2 点击「打开进程」图标\n"
-" ▪ 它是工具栏第一个图标，像一个电脑+放大镜。\n"
-" ▪ 它位于菜单栏-文件的下方。\n"
-" ▪ 如果你是首次启动，可能还能看到它还有个不断闪烁的边框。\n"
-"\n"
-"\n"
-"#3 找到「Tutorial」进程\n"
-" ▪ 在进程列表窗口中，将列表拉到底部，找到本教程的进程。\n"
-" ▪ 它标题类似 “00001234-Tutorial-x86_64.exe” (前面的八个数字可能会不一样)\n"
+"最简单的方法是以\"找出是什么改写了这个地址\"去找出游戏代码，然后使用\"分析(新/旧)数据/结构\"的功能去比较两种结构。(你的单位和敌人的单位)然后看看是不是可以找到一个区分两者的方法。\n"
+"当你找到如何区分你和电脑单位的方法后，你可以注入一段自动汇编脚本来检查状态，然后看是要运行游戏的代码还是要做其他的修改。(例如一击必杀)\n"
+"另外, 你还可以用这个方法去创建一般所说的\"字节数组\"的字串, 它可以用来搜寻并产生一份所有你的单位或是敌人单位的列表\n"
+"在这个教程中, 我已经实现了你将会玩到的最惊人的游戏.\n"
+"这个游戏有4个玩家。2个属于你的阵容, 另外两个属于电脑方。\n"
+"你的任务是找到改写健康的代码, 并且修改以至于你可以获得胜利，但"绝不能"使用锁定HP的方法.\n"
+"完成修改以后, 请按 \"重新启动游戏并自动执行\" 来测试你的修改是否正确\n"
 "\n"
 "\n"
-"如果你已经看到了这个进程，选中它，然后点击「打开」按钮。\n（先别管其它按钮，如果你感兴趣，你会在后面接触到它们的）\n"
-"\n---\n\n"
-"先提前恭喜你！\n如果你全都做对了，进程列表窗口会自动关闭，并且在 Cheat Engine 页面中间顶部的位置看到该进程的名字。\n"
-"\n\n"
-"现在，你可以点击 “下一步” 按钮来继续学习教程了。如果你知道某个跳关密码，也可以输入它跳转到相应的教学关卡\n"
-"\n\n"
-"如果你遇到了任何问题，可以到交流论坛 forum.cheatengine.org 教程板块反馈，你还能在论坛中找到更多针对初学者的内容。\n"
+"提示1: 健康是一个单浮点数\n"
+"提示2: 解法不只一种\n"
+
+#: unit10.rsu10thiswasthelasttutorial
+msgid "This was the last tutorial and you skipped it. You lose"
+msgstr "你跳过了最后一个教程. 你输了"
 
 #: unit2.rsawyouredeathletmereviveyou
 msgctxt "unit2.rsawyouredeathletmereviveyou"
 msgid "Aw, you're dead! Let me revive you"
-msgstr "嘣，你已经死了！没事，让我复活你"
+msgstr "噢，你挂了！让我复活你"
 
 #: unit2.rsloser
 msgctxt "unit2.rsloser"
 msgid "BOO"
-msgstr "_(:з」∠)_"
+msgstr "BOO"
 
 #: unit2.rsquittingonstep2thisistheeasieststepthereisfindheal
 msgid "Quitting on step2? This is the easiest step there is. Find health, change health, done.... Sure you want to quit?"
-msgstr "什么？你要退出第2关？\n嘿！听着，后面没有比这更简单的一关了！你只要搜索数值，打我，再搜索数值，肯定能找到生命值的地址……\n确定要退出吗？"
+msgstr "要退出步骤 2? 这是最简单的步骤了。查找健康值，修改它，完成.... 确实要退出吗？"
 
 #: unit2.rsstep2exactvaluescanningpw
 msgid "Step 2: Exact Value scanning (PW="
-msgstr ""
-"------------------------------------------------------------------\n"
-"第2关：扫描精确值 (跳关密码="
+msgstr "步骤 2: 精确值扫描 (密码="
 
 #: unit2.rstutorialstep2
 msgid ""
@@ -104,63 +493,24 @@ msgid ""
 "Note:\n"
 "If you did anything wrong while scanning, click \"New Scan\" and repeat the scanning again.\n"
 "Also, try playing around with the value and click 'hit me'\n"
-msgstr ""
-"------------------------------------------------------------------\n\n"
-"要正式开始了！这次我们来修改游戏中的血量\n"
-"看到窗口底部的生命值了吗？，每次点击 ‹打我› 按钮，生命值就会减少！\n"
-"\n"
-"\n"
-"◆ 过关条件：将 生命值 数值修改为 1000 \n"
-"\n"
-"\n"
-"------------------------------------------------------------------\n\n"
-"\n"
-"【提示】\n\n"
-"尽管有各种不同的方法都能找到生命值的内存地址\n"
-"但是我会告诉你最简单的那个方法：\n"
-"\n"
-" ▪ 首先，将 [扫描类型] 设置为「精确数值」\n"
-" ▪ 接着，把 [数值类型] 设置为「4 字节」\n"
-" ▪ 然后，在上方的输入框填入当前 生命值 的数值，并点击 ‹首次扫描› \n"
-"\n"
-"等待扫描完毕，左边的列表会显示扫描结果。你可能会找到非常多的地址，而且你无法确认哪个才是真的。\n"
-"\n"
-"现在，可以点击 ‹打我› 按钮，让生命值发生变化，然后再次输入新的数值并点击「再次扫描」按钮。这样反复操作几次，直到你确定找到了真正的地址。（或者列表中只剩下一个地址）\n"
-"\n"
-"双击这个地址，它会出现在窗口下面的列表里，你还能看到它当前的数值，然后双击这个数值，（或者选中并按下回车键），把数值修改成 1000 \n"
-"\n"
-"\n"
-"如果操作正确，“下一步” 按钮就会变成激活的状态。\n"
-"恭喜你，过关了！准备好进入下一关吧！\n"
-"\n"
-"\n"
-"------------------------------------------------------------------\n\n"
-"【备注】\n"
-"如果你在扫描过程中，操作失误。或者填错了数值。可以点击 ‹新的扫描› 重新再试一次。\n"
-"\n"
-"\n"
-"\n"
-"\n"
-"对了对了，试着多点几次 ‹打我› 玩玩，会上瘾的！ (๐॔˃̶ᗜ˂̶๐॓) \n"
+msgstr "\n现在你已经用 Cheat Engine 中打开了教程，为我们下一步的练习做好了准备。\n\n你可以在本窗口的左下方看到显示的\"健康:XXX\"，\n在你每次点击\"打我\"按钮时，它的值便会减少。\n要进入下一关，你必须找到这个数值并把它改成 1000 。\n很多方法都可以找到这个数值的位置，但我将告诉你一个最简单的方法，\"精确数值\"扫描：\n首先确认数值类型是设置为2字节或4字节，设置成1字节也可以的，不过最终修改数据的时候便会有点麻烦了（虽然说这是很容易解决的问题）。假如该地址后边的字节数值都为 0 ，\n那么你设置成8字节也未尝不可，\n在这我们就不必赌一把了。单浮点数，双浮点数，以及其他的扫描方法在这里行不通的，因为它们储存数值的方式不同。\n当数值类型设置正确后，确认扫描类型设置了\"精确数值\"，把健康值填写在数值的输入框，并点击\"首次扫描\"，稍等一会儿（假设你的电脑非常的慢），扫描完毕，扫描的结果将会显示在主界面的左侧。\n如果检索结果多于一个，你无法确定哪一个是正确的地址，那么继续点击\"打我\"，并将变更后的\"健康值\"填写在数值输入框中，点击\"再次扫描\"，重复这些步骤，直到你能确认已经找到了地址（在地址列表中只有一个地址）。\n好，双击左侧列表中的地址，该地址便会移动到下方的地址列表中并显示它的当前数值。\r\n双击下方地址列表中的数值（或者选择它，按下回车），填写你要修改的数值：1000 。\n如果操作正确，\"下一步\"按钮将变成可点击状态，本关就完成了。\n\n提示：\n如果你在扫描过程中出现了错误，可以点击\"新的扫描\"重新再来。当然，你也可以点击\"打我\"去查找一些更有价值的线索。\n"
 
 #: unit3.rsdead
 msgid "Seems you've done it again! Let me get a replacement! (And restart your scan!)"
-msgstr "看来你又调皮了！很好，我再给你换一个血条！（然后重新开始扫描）"
+msgstr "看来你又做了一遍！让我找个替代品 (并重新启动你的扫描！)"
 
 #: unit3.rsloser
 msgctxt "unit3.rsloser"
 msgid "BOO"
-msgstr "_(:з」∠)_"
+msgstr "BOO"
 
 #: unit3.rsstep3unknowninitialvaluepw
 msgid "Step 3: Unknown initial value (PW="
-msgstr ""
-"------------------------------------------------------------------\n"
-"第3关：未知初始值 (跳关密码="
+msgstr "步骤 3: 未知的初始值 (密码="
 
 #: unit3.rstryagain3
 msgid "Step 3 isn't really that hard. Just do a new scan, unkown initial value and then decreased value till you find it. Almost everyone gets past this one. Sure you want to quit?"
-msgstr "等等，别放弃啊！第3关其实并不难！\n扫描一次未知初始值，然后减少数值，再次扫描，反复操作直到找到它。几乎所有人能通过这一关。\n你真的要退出吗？"
+msgstr "步骤 3是不是真的那么难？只是建立一个新的扫描，\"未知的初始值\"，然后重复\"减少的数值\"直到找到它。几乎所有人都能通过这一步骤。.确实要退出吗？"
 
 #: unit3.rstutorialstep3
 msgid ""
@@ -181,62 +531,28 @@ msgid ""
 "\n"
 "We know the value is between 0 and 500, so pick the one that is most likely the address we need, and add it to the list.\n"
 "Now change the health to 5000, to proceed to the next step.\n"
-msgstr ""
-"------------------------------------------------------------------\n\n"
-"看来你已经学会怎么利用精确数值查找地址了，这次提高一下难度。上一关，我们是已经知道初始值，所以可以用精确值进行扫描。\n"
-"\n"
-"但现在窗口底部只有一个「未知初始值」的血条，数值范围在 0 到 500 之间。每次点击 ‹打我› 按钮就会失去一些生命值。并且本次减少的数值会显示在血条上方。\n"
-"\n"
-"◆ 过关条件：将 生命值 数值修改为 5000 \n"
-"\n"
-"\n"
-"------------------------------------------------------------------\n"
-"\n"
-"\n"
-"【提示】\n\n"
-"同样，找到地址的方法也有好几种。例如每次扫描「数值减少了...」的精确值。\n"
-"这里我就讲解最简单的方法好了：\n"
-"\n"
-" ▪ 将 [扫描类型] 设置为「未知初始值」\n"
-" ▪ 把 [数值类型] 设置为「4 字节」\n"
-" ▪ 点击 ‹首次扫描› \n"
-"\n"
-"等待扫描完毕，左边列表上方可能提示已经找到了好几十万个地址，但是不要紧。\n"
-"\n"
-" ▪ 点击 ‹打我› 按钮，减少一些生命值。（损失的数量会显示几秒，然后马上消失）\n"
-" ▪ 更换 [扫描类型] 为「减少的数值」 \n"
-" ▪ 点击 ‹再次扫描› \n"
-"\n"
-"这样反复操作几次，直到列表只剩几个地址。\n"
-"前面我们已经知道了，数值在 0 到 500 之间。你现在应该能分辨出哪个最有可能是正确的地址了吧？修改它！\n"
-"\n"
-"\n"
-"如果操作正确，“下一步” 按钮就会变成激活的状态。\n"
-"恭喜你，又学会了新知识！\n"
-"\n"
+msgstr "\nOK, 看来你已经理解了如何利用\"精确数值\"扫描查找数值了，让我们进行下一步。\n\n首先说明下重点. 因为你要进行的是"新的扫描",所以你必须首先点击"新的扫描"才能开始一个"新的扫描". (你一定认为这很简单, 但是有很多人困在这一步啊)所以请记住这一步骤\n你现在应该已经点击了"新的扫描",让我们继续\n\n在上一关中我们知道初始数值的大小，所以我们可以利用\"精确数值\"扫描，但本关中仅有一个状态栏，我们并不知道它的初始数值。\n我们只知道这个数值在0到500之间，并且每次点击\"打我\"之后便会减些健康值，每次减少的健康值会显示在进度条的上方。\n同样有好几种方法可以找这个数值，（例如使用\"数值减少了...\"扫描方式），但我只教你最简单的方法，\"未知的初始值\"和\"减少的数值\"。 \n由于不知道当前数值的大小，\"精确数值\"扫描便派不上了用场，所以选择扫描方式\"未知初始数值\"。数值类型仍然选择 4 字节（这是因为大多数WINDOWS应用程序都使用 4 字节存放数据）。点击\"首次扫描\"并等待扫描结束。\n扫描完成后，点击\"打我\"，你会减少一些健康值。（减少的健康值显示几秒便会消失，你并不需要刻意记下它）。\n回到 Cheat Engine，在扫描类型中选择\"减少的数值\"，然后点击\"再次扫描\"。\n扫描完毕后，再次点击\"打我\"，并重复上述步骤，直到检索出很少的几个地址。 \n我们已经知道这个数值在0到500之间，所以挑出那个最为相似的地址，并将它加到下方的地址列表。\n现在，更改健康值为 5000，以便我们进入到下一关。\n"
 
 #: unit5.rsconfirmclose5
 msgid "Come on. This step is simple. For health do a float scan, and for ammo a double type. (don't forget to disable fastscan for double in this case) Just ignore the fact that it looks different because it has a \".\" in the value. You sure you want to quit?"
-msgstr "加油！其实这一关非常简单！不要放弃啊！\n用单浮点扫描生命值，用双浮点扫描子弹。\n确定要退出吗？"
+msgstr "来吧，这一步很简单。用浮点数扫描健康值和用双浮点数扫描弹药。 (使用双浮点类型扫描时别忘了关闭快速扫描选项) 其实你完全可以忽略那个数值中的 \".\" 确实要退出吗？"
 
 #: unit5.rsdead
 msgid "I think you're dead!%sPress ok to become a brain eating zombie"
-msgstr "我想你已经死了！%s按确定变成吃脑子的丧尸"
+msgstr "我想你一定挂了！%s按\"确定\"变成吃脑子的僵尸"
 
 #: unit5.rsloser
 msgctxt "unit5.rsloser"
 msgid "BOO"
-msgstr "_(:з」∠)_"
+msgstr "BOO"
 
 #: unit5.rsoutofammo
 msgid "Out of ammo!%sPress ok to stock up on some ammo"
-msgstr "没子弹了！%s按确认加点子弹"
+msgstr "没弹药了！%s按\"确定\"囤积点弹药"
 
 #: unit5.rsstep4floatingpointspw
 msgid "Step 4: Floating points (PW="
-msgstr ""
-"------------------------------------------------------------------\n"
-"第4关：浮点数 (跳关密码="
+msgstr "步骤 4: 浮点数 (密码="
 
 #: unit5.rstutorialstep4
 msgid ""
@@ -265,133 +581,55 @@ msgid ""
 "\n"
 "\n"
 "Hint: It is recommended to disable \"Fast Scan\" for type double\n"
-msgstr ""
-"------------------------------------------------------------------\n\n"
-"在之前的教程中，我们扫描的数值都是「字节」类型，因为它们都是一个整数。现实还有些游戏使用了「浮点数」进行存储。浮点数，就是带小数点的数值，例如 3.14 或 1234.5678 \n"
-"\n"
-"这次关卡有 2 个目标数值：生命值和子弹。它们的 [数值类型] 都是浮点数，但生命值是「单浮点」，而子弹是「双浮点」\n"
-"\n"
-"\n"
-"每次点击 ‹打我› 减少一些生命值 ，点击 ‹发射› 减少 0.5 发子弹\n"
-"\n"
-"\n"
-"◆ 过关条件：将两个数值都修改为 5000 或更高。\n"
-"\n"
-"------------------------------------------------------------------\n\n"
-"\n"
-"其实这关也没什么好提示的，跟前面的步骤没多大区别。\n"
-"\n"
-"\n"
-"\n"
-"\n"
-"\n"
-"【提示1】\n\n"
-"在本关卡「扫描精确数值」也可以很好的工作，但你应该想尝试点不一样的东西吧？\n"
-"\n"
-"\n"
-"\n"
-"\n"
-"\n"
-"\n"
-"\n"
-"\n"
-"\n"
-"\n"
-"\n"
-"【提示2】\n\n"
-"在扫描「双浮点」类型的时候，建议禁用「快速扫描」功能。\n"
+msgstr "\n在前面的教程中我们使用字节的方式进行扫描，但有些游戏使用了\"浮点数\"来存储数值（这么做是为了给菜鸟制造一些麻烦，让他们没那么容易修改游戏）。\n浮点数是带有小数点的数值（如 5.12 或 11321.1）。\n正如本关中的健康和弹药，两者都以浮点方法储存数据，不同的是，健康值为单精度浮点数，而弹药值为双精度浮点数。\n点击\"打我\"将减少一些健康值，而点击\"开火\"则消耗掉 0.5 的弹药。\n你得把这两项都修改到 5000 或者更多才能过关。\n\"精确数值\"扫描的方式虽然也可以完成本关的工作，但你应该试试其它更简练的扫描方式。\n\n\n\n\n\n\n\n\n\n\n\n\n\n提示: 扫描双浮点数类型建议禁用 \"快速扫描\" "
 
 #: unit6.rsloser
 msgctxt "unit6.rsloser"
 msgid "BOO"
-msgstr "_(:з」∠)_"
+msgstr "BOO"
 
 #: unit6.rsstep5codefinderpw
 msgid "Step 5: Code finder (PW=%s)"
-msgstr ""
-"------------------------------------------------------------------\n"
-"第5关：代码查找 (跳关密码=%s)"
+msgstr "步骤 5: 代码查找 (密码=%s)"
 
 #: unit6.rstryagain6
-msgid "This may look difficult. but it's basicly. Find health, rigthclick health, find what writes, change health, click replace, change health, done.  But don't feel down if you don't get it. at least you know the basicas of memory scanning...  Are you sure you want to quit?"
-msgstr "这一关确实看起来有些难，但这是必须掌握的基本功。\n先找出生命值地址，右键，找出是什么改写了它，接着点替换就完事了。\n\n实在不知道怎么操作也不要沮丧，没事的，至少你现在已经知道扫描内存的最基本原理了...\n\n确定要退出吗？"
+msgid "This may look difficult. but it's basicly. Find health, rigthclick health, find what writes, change health, click replace, change health, done.  But don't feel down if you don't get it. at least you know the basics of memory scanning...  Are you sure you want to quit?"
+msgstr "这一步看上去很难，但实际上很浅显的。 查找健康值，在健康值地址上点击右键， 找到是什么改写了它，改变健康值，点击替换，改变健康值，完成。没搞定也不要灰心，至少你已经知道基本的内存搜索方法...  确实要退出吗？"
 
 #: unit6.rstutorialstep5
 msgid ""
-"Sometimes the location of where something is stored at changes when you restart the game, or even while you're playing.. In that case you can use 2 things to still make a table that works.\n"
+"Sometimes the location of a value is stored at changes, when you restart the game, or even while you're playing.. In that case you can use 2 things to still make a table that works.\n"
 "In this step I'll try to describe how to use the Code Finder function.\n"
 "\n"
 "The value down here will be at a different location each time you start the tutorial, so a normal entry in the address list wouldn't work.\n"
 "First try to find the address. (you've got to this point so I assume you know how to)\n"
 "When you've found the address, right-click the address in Cheat Engine and choose \"Find out what writes to this address\". A window will pop up with an empty list.\n"
-"Then click on the Change value button in this tutorial, and go back to Cheat Engine. If everything went right there should be an address with assembler code there now.\n"
+"Then click on the Change value button in this tutorial, and go back to Cheat Engine. If everything went right, there should be an address with assembler code there now.\n"
 "Click it and choose the replace option to replace it with code that does nothing. That will also add the code address to the code list in the advanced options window. (Which gets saved if you save your table)\n"
 "\n"
 "Click on stop, so the game will start running normal again, and close to close the window.\n"
 "Now, click on Change value, and if everything went right the Next button should become enabled.\n"
 "\n"
 "Note: When you're freezing the address with a high enough speed it may happen that next becomes visible anyhow\n"
-msgstr ""
-"------------------------------------------------------------------\n\n"
-"你是否遇到过这样的情况：有时你重启了游戏，或是在游戏中切换场景，数值内存地址会发生改变。接下来，我会教你如何使用「代码查找」功能，来应对这种情况。\n"
-"\n"
-"窗口下方的生命值，每次进入教程或者点击按钮，它的内存地址都会存放在不同位置，因此正常修改方法对它是无效的。\n"
-"\n"
-"\n"
-"◆ 过关条件：锁定数值。即使点击 ‹改变数值› 按钮，也不让数值发生更改。\n"
-"\n"
-"\n"
-"------------------------------------------------------------------\n\n"
-"\n"
-"\n"
-"【提示】\n\n"
-"我们这一关的目标，是锁定数值。那么只需要将程序指令中关于「写入数值」类型的指令替换掉，防止它更改数值就可以了。\n"
-"\n"
-"首先，找到数值的地址，然后右键「找出是什么写入这个地址」\n"
-"\n"
-"再次「改变数值」，窗口列表中会出现一些汇编指令。它们大致上有几种形式：\n"
-" ▪ mov [**],**\n"
-" ▪ add [**],**\n"
-" ▪ sub [**],**\n"
-" ▪ *** [**],**\n"
-"\n"
-"如果你想查看内部汇编程序的指令，则可以双击它，或者选中后点击「更多信息」。\n"
-"\n"
-"\n"
-"\n"
-"在列表中找出写入类型的指令： mov [***], ***\n"
-"点击右上角的「替换」按钮，它将会把这条指令内容替换为「nop」，也就是空指令。程序读取到它时，将什么也不做。\n"
-"\n"
-"替换完成后，别忘了点击右下方的「停止」按钮，将进程附加器暂停。\n"
-"\n"
-"\n"
-"\n"
-"如果你操作失误，也可以回到 Cheat Engine 窗口左下方进入「高级选项」，找到目前所有修改的代码列表。\n"
-"被替换的指令在列表中显示的是红色文本。选中其中一条并右键「还原代码」，将其还原为初始指令，同时文本变成黑色。\n"
+msgstr "\n某些游戏重新开始时，数值会存储在与上次不同的地方, 甚至游戏的过程中数据的存储位置也会变动。在这种情况下，你还是可以简单几步搞定它。\n这次我将尽量阐述如何运用\"代码查找\"功能。\n下方的数值每次启动教程的时候都会存放在内存不同的位置，所以地址列表中的固定地址是不起作用的。\n我们要先找到这个数值当前的存储地址（要如何去做，相信不用我再啰嗦了）。\n当你找到了地址就添加在下方的地址列表中，然后右健单击该地址，在弹出的菜单中选择\"找出是什么改写了这个地址\"，将弹出一个空白的窗口。\n接着点击本教程窗体上的\"改变数值\"按钮，并返回 Cheat Engine 。如果操作没问题 在刚才弹出的空白窗口中会出现一些汇编代码。\n选中代码并点击\"替换\"按钮，将它替换成什么也不做的代码（空指令），同时，修改后的代码也将放置在\"高级选项\"的代码列表中去（保存地址列表时会同时保存）。\n点击\"停止\"，游戏会以正常的方式继续运行下去，点击\"关闭\"按钮，关掉窗口。\n现在，再次点击教程窗口上的\"改变数值\"，没问题的话，\"下一步\"将变为可点击的状态。\n\n提示：如果你以足够快的速度锁定住该地址，\"下一步\"按钮也会变为可点击的。"
 
 #: unit6.rswelldoneyouscrewedupthetutorial
 msgctxt "unit6.rswelldoneyouscrewedupthetutorial"
 msgid "Well done, you screwed up the tutorial!!!!"
-msgstr "很好，做的很好！你成功搞砸了教程！！！！"
-
-#: unit7.rsdontfuckingfreezethepointer
-msgid "I'm sorry, but freezing the pointer is not really a functional solution"
-msgstr "抱歉，冻结指针不是真正可行的办法"
+msgstr "干得不错，你搞砸了教程!!!!"
 
 #: unit7.rsloser
 msgctxt "unit7.rsloser"
 msgid "BOO"
-msgstr "_(:з」∠)_"
+msgstr "BOO"
 
 #: unit7.rsstep6pointerspw
 msgid "Step 6: Pointers: (PW=%s)"
-msgstr ""
-"------------------------------------------------------------------\n"
-"第6关：指针 (跳关密码=%s)"
+msgstr "步骤 6: 指针: (密码=%s)"
 
 #: unit7.rstryagain7
 msgid "So, pointers are too difficult eh? Don't worry, try again later. For most beginners this is difficult to grasp. But I have to tell you it's a powerful feature if you learn to use it. Are you sure you want to quit?"
-msgstr "所以，指针这玩意真的太难了吗？\n\n不要紧，放松一下心情，晚点再尝试。对大多数新手来说，这确实有些难以理解的。但我要告诉你，它是一个非常强大的功能，如果你能学会使用它的话。\n\n确认要退出吗？"
+msgstr "指针很难？别着急，晚点再试。指针对于大多数初学者来说都不是容易掌握的，但我要告诉你们这是一个强大的功能，只要你学会如何使用它。确实要退出吗？"
 
 #: unit7.rstutorialstep6
 msgid ""
@@ -406,9 +644,9 @@ msgid ""
 "If the assembler instruction doesn't have anything between a '[' and ']' then use another item in the list.\n"
 "If it does it will say what it think will be the value of the pointer you need.\n"
 "Go back to the main cheat engine window (you can keep this extra info window open if you want, but if you close it, remember what is between the [ and ] ) and do a 4 byte scan in hexadecimal for the value the extra info told you.\n"
-"When done scanning it may return 1 or a few hundred addresses. Most of the time the address you need will be the smallest one. Now click on manually add and select the pointer checkbox.\n"
+"When done scanning it may return 1 or a few hundred addresses. Most of the time the address you need will be the smallest one. Now click on the \"Add Address Manually\" button and select the pointer checkbox.\n"
 "\n"
-"The window will change and allow you to type in the address of a pointer and a offset.\n"
+"The window will change and allow you to type in the address of a pointer and an offset.\n"
 "Fill in as address the address you just found.\n"
 "If the assembler instruction has a calculation (e.g: [esi+12]) at the end then type the value in that's at the end. else leave it 0. If it was a more complicated instruction look at the calculation.\n"
 "\n"
@@ -423,121 +661,38 @@ msgid ""
 "\n"
 "extra:\n"
 "And you could also use the pointer scanner to find the pointer to this address\n"
-msgstr ""
-"------------------------------------------------------------------\n\n"
-"前面解释了怎么使用「代码查找」处理会变化的地址，但是在一些具有更高级防加密技术的游戏中，如果你只会用那个方法，其实很难找到实际要修改的数值地址。\n"
-"\n"
-"所以，这就是为什么还需要学习「指针」的原因。这一关你不需要懂汇编的知识，当然如果你稍微懂一点会有很大的帮助。\n"
-"\n"
-"现在窗口下面有两个按钮，一个改变数值，另一个改变数值的同时改变内存地址的指针\n"
-"\n"
-"\n"
-"◆ 过关条件：将生命值锁定为 5000。即使点击 ‹改变指针› 按钮，数值也不会变化。\n"
-"\n"
-"\n"
-"------------------------------------------------------------------\n\n"
-"\n"
-"【提示】\n\n"
-"首先，找到数值地址，然后右键「找出是什么写入这个地址」接着再次「改变数值」，窗口列表中会出现一条汇编指令，双击它，或者选中后点击「更多信息」\n"
-"\n"
-"\n"
-"接着会弹出一个新窗口，这里主要找汇编指令中 [ ] 之间的部分，这就是我们要找的指针。\n"
-"如果你看到 [ ] 之间没有任何东西，那么跳过它，使用列表中其他的地址。\n"
-"\n"
-"\n"
-"你可能注意到了，下方有一行提示：「要查找的这个地址的指针数值可能是 xxx」\n"
-"感谢这个贴心小功能，你等会就不需要手动输入地址了，只需要右键，将简单猜测复制到剪贴板。 \n"
-"\n"
-"\n"
-"回到 Cheat Engine 主窗口，进行新的扫描。这次勾选「十六进制数值」单选框，并使用「4字节」扫描刚才那个十六进制数值。\n"
-"\n"
-"扫描完成后它可能返回一个或几十个地址，多数时候你需要的地址是最小的那个地址。\n"
-"\n"
-"接着，点击「手动添加地址」并勾选底部的「指针」选项，在新的输入框里输入刚才找到的指针地址，添加后，此条记录的地址是「 P->XXXXX」其中的 xxx 就是你找到的指针数值地址。 \n"
-"\n"
-"如果指针地址没选错，数值应该是和教程窗口的数值是相同的。如果数值不相同，说明你地址选错了，尝试回到额外信息窗口的汇编指令列表，选择另一个地址。\n"
-"\n"
-"\n"
-"现在，只需要像往常一样，编辑数值为 5000，并勾选左边的锁定数值。然后点击「改变指针」按钮，下一步的按钮就能被激活了~\n"
-"\n"
-"\n"
-"\n"
-"\n"
-"\n"
-"\n"
-"\n"
-"\n"
-"【补充】\n"
-"在手动添加地址步骤中，如果汇编指令包含复杂的计算公式，则需要手动计算偏移值。\n"
-"\n"
-"简单例子：\n"
-"mov [edx+12C],eax \n"
-"那么，偏移值应该为 12C (0x12C)。注意，这里的偏移值都是十六进制的单位表示。\n"
-"\n"
-"\n"
-"更复杂指令的例子：\n"
-"[EAX*2+EDX+00000310] \n"
-"EAX=4C\n"
-"EDX=00801234\n"
-"\n"
-"这种情况下，我们拆开来分析：\n"
-"「EDX」是数值的指针，「EAX*2+00000310」是偏移值。\n"
-"\n"
-"将数值代入到计算公式中，变成：\n"
-" ▪ ->「4C*2 + 00000310」\n"
-" ▪ ->「98 + 00000310」\n"
-" ▪ ->「98 + 310」\n"
-" ▪ ->「3A8」\n"
-"\n"
-"因此，偏移值是「3A8」\n"
-"\n"
-"\n"
-"还是要提醒下，这里都是以十六进制来计算，而非十进制。\n"
-"你可以用系统自带计算器并切换到科学计算器。以 HEX 方式计算出结果。\n"
-"\n"
-"\n"
-"\n"
-"\n"
-"\n"
-"\n"
-"------------------------------------------------------------------\n"
-"\n"
-"如果这关实在不知道如何操作，可以访问 wiki 页面查看图文教程：\n"
-"https://wiki.cheatengine.org/index.php?title=Tutorials:Cheat_Engine_Tutorial_Guide_x32#Step_6\n"
-"\n"
+msgstr "\n上一步阐述了如何使用\"代码查找\"功能对付变化位置的数据地址，但这种方法往往不能达到预期的效果，\n所以我们需要学习如何利用指针。\n在本关的 Tutorial.exe 窗口下面有两个按钮，一个会改变数值，另一个不但能改变数值而且还会改变数值在内存中存储的位置。\n这一步，你不需要懂得汇编，但如果懂的话会很有帮助。\n首先找到数值的地址，然后再查找是什么改写了这个地址。\n再次改变数值，CE 便可以列出找到的汇编代码。 双击一行汇编代码（或选择它并点击\"详细信息\"）并打开\"详细信息\"窗口以显示详细的信息，用来告诉你当这个指令运行时发生了什么事情。\n如果在这条汇编指令中没看到方括号（[]）的存在，我们就应该查看下一条汇编代码的详细信息，\n如果看到了方括号，那很可能表示我们已经找到了需要的指针。\n返回到主 cheat engine 窗口 （只要你愿意，你可以保持这个额外的信息窗口为打开状态。如果你要关掉它，那么要记好方栝号中间的代码）并做一次 4 字节的扫描，扫描\"详细信息\"窗口中告诉你的一串十六进制数值。\n扫描完成时它可能返回一个或几百个地址。大多数时候你需要的地址将是最少的一个。现在点击\"手工添加地址\"按钮，并勾选\"指针\"选项。\n\"添加地址\"窗口将发生变化，多出了\"Address of Pointer（指针地址）\"和\"Offset (Hex)（偏移量(16进制)）\"的文本框，以便您键入一个指针的地址和偏移量。\n请尽量填入刚才扫描到的地址。\n如果汇编指令中的方栝号里存在计算（例如：[esi+12]）则把数值部分填在\"Offset (Hex)\"的文本框中，如果不存在，则让它保持为 0 。\n如果看上去是更复杂的计算指令的话（举例说明一下）：\n[EAX*2+EDX+00000310] eax=4C 并且 edx=00801234.\n这种情况下 EDX 便是数值的指针，而 EAX*2+00000310 则是它的偏移量, 所以你要填在\"Offset (Hex)\"的将是 2*4C+00000310=3A8。（这些都是在十六进制下计算的，你可以使用WINDOWS的计算器，在科学方式下用十六进制计算）。\n回到教程，点击\"确定\"这个地址便会加到 CE 主窗口下方的地址列表中，如果没做错，在地址栏将显示 P->xxxxxxxx，而 xxxxxxxx 和你扫描到的地址数值是一致的，如果不一致，那么可能是哪里出错了。\n现在, 改变那条指针地址的数值为 5000 并锁定它，然后点击 Tutorial.exe 窗口上的\"改变指针\"按钮，如果一切正确，\"下一步\"按钮将变为可点击状态。\n\n备注:\n你也可以使用\"指针扫描\"的方式来查找这个指针地址。"
 
 #: unit7.rswelldoneyouscrewedupthetutorial
 msgctxt "unit7.rswelldoneyouscrewedupthetutorial"
 msgid "Well done, you screwed up the tutorial!!!!"
-msgstr "做得好，你搞砸了这个教程！！！"
+msgstr "干得不错，你搞砸了教程！！！！"
 
 #: unit7.rsyouvegotsecondslefttochangethevalueto5000
 msgid "You have %s second%s left to change the value to 5000"
-msgstr "你还有 %s 秒时间改变数值为5000"
+msgstr "你有 %s 秒%s将剩下的值更改为 5000"
 
 #: unit8.rsawyouredeathletmereviveyou
 msgctxt "unit8.rsawyouredeathletmereviveyou"
 msgid "Aw, you're dead! Let me revive you"
-msgstr "噢，你死了，让我复活你"
+msgstr "噢，你挂了！让我复活你"
 
 #: unit8.rshealth
 msgid "Health"
-msgstr "生命值 "
+msgstr "健康"
 
 #: unit8.rsloser
 msgctxt "unit8.rsloser"
 msgid "BOO"
-msgstr "_(:з」∠)_"
+msgstr "BOO"
 
 #: unit8.rsstep7codeinjectionpw
 msgid "Step 7: Code Injection: (PW=%s)"
-msgstr ""
-"------------------------------------------------------------------\n"
-"第7关：代码注入 (跳关密码=%s)"
+msgstr "步骤 7: 代码注入: (密码=%s)"
 
 #: unit8.rstryagain8
 msgid "Code injections too tough? No problem, memory scanning and basic pointers should be enough to get you experienced enough and you can always try the tutorial later. Are you sure you want to quit?"
-msgstr "代码注入太难了？没关系的，下次再试。\n内存扫描和基本指针这些功能需要你有足够的编程经验才能理解，以后再回来继续挑战吧。\n\n确认要退出吗？"
+msgstr "代码注入很难？没问题的，内存扫描和基址指针需要你有丰富的经验，你可以晚点再继续尝试。确实要退出吗？"
 
 #: unit8.rstutorialstep7
 msgid ""
@@ -566,100 +721,20 @@ msgid ""
 "\n"
 "Notice 2:\n"
 "In some games the original code can exist out of multiple instructions, and sometimes, not always, it might happen that a code at another place jumps into your jump instruction end will then cause unknown behavior. If that happens, you should usually look near that instruction and see the jumps and fix it, or perhaps even choose to use a different address to do the code injection from. As long as you're able to figure out the address to change from inside your injected code.\n"
-msgstr ""
-"------------------------------------------------------------------\n\n"
-"代码注入是个技术活，你要把一段汇编代码注入到目标进程，让程序执行你的代码。\n"
-"\n"
-"\n"
-"在这个教程，你有一个「生命值」 ，以及每按1次就减少1点生命的「打我」按钮。\n"
-"\n"
-"\n"
-"◆ 过关条件：注入代码，将「打我」按钮的效果变成每次增加 2 点生命值。\n"
-"\n"
-"\n"
-"------------------------------------------------------------------\n"
-"\n"
-"\n"
-"【提示】\n\n"
-"和前面第5关操作一样，先找到地址，然后查看谁改写了它。\n"
-"\n"
-"但是，这里要做的不是“替换”，而是「显示反汇编程序」\n"
-"你会看到这行汇编指令大致是这样的：sub dword ptr [ebx+xxxx],01\n"
-"\n"
-"\n"
-"在内存浏览器窗口找到这行汇编指令，然后打开「自动汇编窗口（Ctrl+A）」\n"
-"或者通过「菜单栏 - 工具 - 自动汇编」找到它，就在列表最底部。\n"
-"\n"
-"\n"
-"在自动汇编窗口点击「模板」，选择代码注入。\n"
-"提示需要输入跳转地址，这里会给你自动输入跳转的地址，直接点击确定即可。如果它没有自动填入，那你可能要自己输入地址。\n"
-"\n"
-"\n"
-"接着窗口中会生成一段自动汇编注入的基本代码框架，方便你快速修改。\n"
-"\n"
-"\n"
-"注意，把你的代码写在蓝色注释 “place your code here” 的下方。\n"
-"\n"
-"\n"
-"先来分析一下原代码的汇编指令：\n"
-"sub dword ptr [ebx+xxxx], 01\n"
-"\n"
-"\n"
-"sub 是减法指令。sub a,b，也就是变成 a - b\n"
-"这里的意思就是每次将数值减去 1\n"
-"\n"
-"那么是不是把减法改成加法，就可以了呢？\n"
-"\n"
-"没错，加法的汇编指令是：ADD\n"
-"\n"
-"使用例子：\n"
-"ADD [00901234],9   —— 将 00901234 地址的数值加 9\n"
-"ADD [ESP+4],9      —— 将 ESP+4 指针指向的地址的数值增加 9\n"
-"\n"
-"\n"
-"那么，现在就有很多种方法可以过关了。\n"
-"例如直接修改 originalcode 源代码部分，把减少生命值的代码修改。\n"
-" ▪ 注释原来的代码，直接替换成增加 2 点生命值？( 0 + 2)\n"
-" ▪ 保留原来的代码，在后面补充增加 3 点生命值？(-1 + 3)\n"
-"\n"
-"反正办法有很多，你自己决定了。\n"
-"\n"
-"\n"
-"\n"
-"\n"
-"\n"
-"\n"
-"【补充】\n\n"
-"在某些游戏里，原代码可能位于多条指令的跳转之外。这种情况偶尔会发生，但不一定总是这样。\n"
-"它可能导致其它地方的一段代码跳转到你的代码后面，导致出现未知的行为。\n"
-"\n"
-"如果这样，你通常要看看附近是否存在跳转指令来修正它。或者可能要选另一个地址来注入代码，只要你能从你的注入代码里找到要改变的地址。\n"
-"\n"
-"\n"
-"\n"
-"\n"
-"\n"
-"\n"
-"------------------------------------------------------------------\n"
-"\n"
-"如果这关实在不知道如何操作，可以访问 wiki 页面查看图文教程：\n"
-"https://wiki.cheatengine.org/index.php?title=Tutorials:Cheat_Engine_Tutorial_Guide_x32#Step_7\n"
-"\n"
+msgstr "\n代码注入是将一小段你写出的代码注入到目标进程中并执行它的技巧。\n\n在这一步教程中，你将有一个健康值和一个每按一次将减少 1 点健康值的按钮，\n你的任务是利用\"代码注入\"，使你每按一次按钮就增加2点的健康值。\n\n查找这个地址，然后看看是什么在改写它（\"找出是什么改写了这个地址\"）。\n当你看到那条减少数值的汇编代码后，选择\"显示反汇编程序\"，然后打开\"自动汇编窗口\"（菜单-工具->自动汇编 或 按下快捷键 Ctrl+a )，选择\"模板\"中的\"代码注入\"。CE 将自动生成一部分汇编代码并为你输入指令做好准备（如果 CE 没有给出正确的地址，你也可以手工输入它）。\n注意 alloc 这部分代码，它会为你的代码分配出一小块空白的内存，过去，在 Win2000 之前的系统，这种行为存在安全隐患，很可能导致系统崩溃，幸运的是，这种情况在 win2000 以后的操作系统得到改善。\n也要注意line newmem: 、originalcode: 以及用文本\"此处放置你的代码\"标示出的空白部分\n正如你猜测的， 在这儿可以写下每次增加2点健康值的代码。\n在这种情况下推荐你使用 \"ADD\" 汇编指令，\n下面是一些示例：\n\"ADD [00901234],9\" 使 [00901234] 地址的值增加9\n\"ADD [ESP+4],9\" 使地址指针 [ESP+4] 的值增加9\n在本关的情况下，你可以使用相同的手法处理减少健康值的那条原代码方括号之间的部分。\n\n提示 1：\n推荐你从原代码中删除减少健康值的那行代码，否则你得加 3 点健康值（你增加了3点，原代码减去1点，最终结果才会增加2点），这样看上去很容易让人迷惑，但最终方案还是由你来决定好了。\n提示 2:\n某些游戏中，原代码可能在多条指令之外，有时候（并非一向如此），它可能由不同的地方跳转至你的指令中并结束运行，其结果可能引起未知的错误；如果出现了这种情况，通常应当查看附近的那些跳转指令，进行修改，或者尝试使用不同地址进行代码注入，确认无误后便可以将你修改的代码注入到原代码中了。\n"
 
 #: unit9.rsloser
 msgctxt "unit9.rsloser"
 msgid "BOO"
-msgstr "_(:з」∠)_"
+msgstr "BOO"
 
 #: unit9.rsstep8multilevelpointerspw
 msgid "Step 8: Multilevel pointers: (PW=%s)"
-msgstr ""
-"------------------------------------------------------------------\n"
-"第8关：多级指针 (跳关密码=%s)"
+msgstr "步骤 8: 多级指针: (密码=%s)"
 
 #: unit9.rstryagain9
 msgid "Aw, you've almost reached the end. But don't worry, multilevel pointers can be a real pain when dealing with. If you get more experienced someday you can try it again. Are you sure you want to quit?"
-msgstr "噢，你就快结束教程了，但没关系，多级指针真的很难学，等哪天你想起再来吧。确认退出？"
+msgstr "噢，你差一点就完成训练了。 不要急， 完成多级指针是个长期的计划。假如你哪天获得了足够的经验可以再尝试。确实要退出吗？"
 
 #: unit9.rstutorialstep8
 msgid ""
@@ -682,492 +757,15 @@ msgid ""
 "\n"
 "\n"
 "Extra3: If you're still reading. You might notice that when looking at the assembler instructions that the pointer is being read and filled out in the same codeblock (same routine, if you know assembler, look up till the start of the routine). This doesn't always happen, but can be really useful in finding a pointer when debugging is troublesome\n"
-msgstr ""
-"------------------------------------------------------------------\n\n"
-"在之前的第6关，你学到的是一级指针，搜索一次就能找到需要的基址。而「多级指针」就是像俄罗斯套娃一般，地址A指向B，B指向C，C指向真正需要找的D。\n"
-"\n"
-"这次的目标，是四级指针。也就是你得到的地址是指向指针的指针的指针的指针......嘻嘻，晕了吧！\n"
-"\n"
-"◆ 过关条件：将生命值锁定为 5000，即使点击「改变指针」按钮，数值也不会变化。\n"
-"\n"
-"\n"
-"------------------------------------------------------------------\n"
-"\n"
-"\n"
-"【提示】\n\n"
-"基本操作和第6关基本相同，找到地址后，找出谁改写这个地址，记下偏移值。将十六进制地址进行新的扫描，找出谁访问了地址，记下偏移值。新的扫描，再找出谁访问了地址，记下偏移值。新的扫描，再找出谁访问了地址，记下偏移值.....直到找到真正的基址。\n"
-"\n"
-"基址是一个静态的地址，文本显示为绿色，地址大致像 Tutorial-i386.exe+XXXXXX\n"
-"接着手动添加地址，将前面的偏移值从上至下的顺序依序填入。\n"
-"\n"
-"如果偏移值没有错误，在预览中看到基址指向的数值，应该是和教程相同的。然后你就可以点击「改变指针」按钮。接下来你有 3 秒钟时间把数值改成 5000 并锁定它。\n"
-"\n"
-"注意，按下改变指针按钮之后再进行锁定数值操作，否则将无效。\n"
-"\n"
-"\n"
-"------------------------------------------------------------------\n"
-"\n"
-"【补充】\n"
-"\n"
-"1. 你可以尝试用自动汇编脚本解决，或者使用指针扫描器。具体操作可以看窗口旁小灯泡的讲解视频。\n"
-"\n"
-"\n"
-"2. 当你遇到类似像 mov eax,[eax] 这样指令，调试寄存器会显示改变后的值，使它难以找到指针的数值。你可以尝试列表的另一条指令 cmp qword ptr [rsi],00 它会帮你找到地址。\n"
-"\n"
-"\n"
-"\n"
-"\n"
-"3.如果你还在读.....再给个提示吧。\n"
-"你在查看汇编指令时可能会注意到，这些指针总是在相同的代码块中被读写（如果你懂一些汇编知识，从进程入口位置开始查找）。但我想告诉你，其实这种情况不是总会发生，不过当你查找指针遇到了麻烦，这个小技巧可能会很有用。\n"
-"\n"
-"\n"
-"\n"
-"\n"
-"\n"
-"\n"
-"------------------------------------------------------------------\n"
-"\n"
-"如果这关实在不知道如何操作，可以访问 wiki 页面查看图文教程：\n"
-"https://wiki.cheatengine.org/index.php?title=Tutorials:Cheat_Engine_Tutorial_Guide_x32#Step_8\n"
-"\n"
+msgstr "\n在这一步将解释如何使用多级指针。\n在第 6 步，你已经清楚 1 级指针的概念和用途，并可以利用数值的首个地址找到存放数据真正的基址。\n在本关中，你将看到 4 级指针，它由第一个指针指向第二个指针，再由第二个指针指向第三个指针，由第三个指针指向第四个指针，最终指向健康值的真正地址。\n开始的几步与在第 6 步中的操作基本相同。找出是什么访问了这个地址，然后分析汇编指令，查找指针地址中的数值，以及它的偏移量，将它们记下来。但这次你按数值找出的仍然是一个指针，你得依据这些数值，使用同样的操作方法找出指向这个指针的指针。看看是什么访问了你发现的那个指针地址，分析汇编指令，留意可能的代码和偏移量，并加以利用。\n持续这种过程，直到不能更进一步查找为止（通常基址为静态时，地址将以绿色标示）。\n点击\"改变数值\"改变健康值，\n如果你发现列表中那些指针地址所指向的值发生同样的变化时，那表示你可以试着将基址中的值更改为 5000，并锁定它，以便完成本关的任务了。\n\n备注1: 本步骤也可以使用自动汇编程序脚本或者使用指针扫描器加以解决。\n备注2: 在某些情况下，可以改变 CE 软件\"代码查找\"的相关设置。\n当你遇到类似于 mov eax,[eax] 的指令时，调试程序将显示改变之后的寄存器中的值，也许利用它更容易找出指针的位置。\n\n\n\n\n\n备注3: 你还在读？！当你查看汇编指令时你可能已经注意到，这些指针是在相同的代码块（相同的程序，如果你懂汇编，可以查看程序的起始代码）位置被读写。这种情况并不总会发生，但是当你在查找某个指针遇到问题的时候，没准能起到很大的用处。\n"
 
 #: unit9.rsunrandomizerdetected
 msgid "Unrandomizer detected"
-msgstr "检测到你启用了禁止随机"
+msgstr "未检测到"
 
 #: unit9.rsyouvegotsecondslefttochangethevalueto5000
 msgid "You've got %s seconds left to change the value to 5000"
-msgstr "你还有 %s 秒时间改变数值为5000"
-
-#: unit10.rsstep9sharedcodepw
-msgid "Step 9: Shared code: (PW=%s)"
-msgstr ""
-"------------------------------------------------------------------\n"
-"第9关：共享代码 (跳关密码=%s)"
-
-#: unit10.rstryagain10
-msgid "Can't figure out how to do this? Don't worry. Try asking in the forum at cheatengine.org or perhaps someone already explained it better there. Are you sure you want to quit?"
-msgstr "这关玩的一头雾水，确实有点难？\n别担心。试着去百科搜索教程或者到论坛上询问，或许已经有人把它解释得非常简单。\n\n确定要退出吗？"
-
-#: unit10.rstutorialstep9
-msgid ""
-"This step will explain how to deal with code that is used for other object of the same type\n"
-"\n"
-"Often when you've found health of a unit or your own player, you will find that if you remove the code, it affects enemies as well.\n"
-"In these cases you must find out how to distinguish between your and the enemies objects.\n"
-"Sometimes this is as easy as checking the first 4 bytes (Function pointer table) which often point to a unique location for the player, and sometimes it's a team number, or a pointer to a pointer to a pointer to a pointer to a pointer to a playername. It all depends on the complexity of the game, and your luck\n"
-"\n"
-"The easiest method is finding what addresses the code you found writes to and then use the dissect data feature to compare against two structures. (Your unit(s)/player and the enemies) And then see if you can find out a way to distinguish between them.\n"
-"When you have found out how to distinguish between you and the computer you can inject an assembler script that checks for the condition and then either do not execute the code or do something else. (One hit kills for example)\n"
-"Alternatively, you can also use this to build a so called \"Array of byte\" string which you can use to search which will result in a list of all your or the enemies players\n"
-"In this tutorial I have implemented the most amazing game you will ever play.\n"
-"It has 4 players. 2 Players belong to your team, and 2 Players belong to the computer. \n"
-"Your task is to find the code that writes the health and make it so you win the game WITHOUT freezing your health\n"
-"To continue, press \"Restart game and autoplay\" to test that your code is correct\n"
-"\n"
-"\n"
-"Tip: Health is a float\n"
-"Tip2: There are multiple solutions\n"
-msgstr ""
-"------------------------------------------------------------------\n\n"
-"是时候来点真家伙了！本关教程，我开发出了一款你将会玩到的史上最惊人的游戏！\n"
-"这个游戏有4个玩家。左边2个菜鸡属于你的队伍, 另外两个属于电脑玩家。\n"
-"\n"
-"◆ 过关条件：修改他们的生命值，在不冻结生命值的前提下赢得战斗。\n"
-"\n"
-"\n"
-"当你认为自己能打赢时，点击「重启游戏并自动战斗」来测试你的代码是否正确。\n"
-"\n"
-"------------------------------------------------------------------\n"
-"\n"
-"\n"
-"通关办法有非常多种，太多了。如果你想到了什么，先去尝试一下，不行再来看提示。\n"
-"\n"
-"\n"
-"通常，在游戏中你找到一个单位的生命值，或是你自己角色的生命值。如果注入代码去修改它，你会发现如果把生命值相关代码移除的同时也会影响到敌人生命值。\n"
-"\n"
-"在这种情况下，你必须想办法区分你和敌人的对象。有时候很简单, 你只要检查最前面的4个字节(函数指针表), 它通常指向一个独一无二的地址来代表着玩家角色的属性，也有的时候它是一个队伍编号, 或者是一个指向指针的指针的指针的指针最后指向一个玩家的名字。总之完全取决于游戏的复杂度, 以及你的运气:)\n"
-"\n"
-"\n"
-"教你一个非常简单的方法，找到被代码改写了的哪个地址，然后使用「分析数据」功能来比较两个对象（你的角色和敌人），也许你能找到一个方法去区分它们\n"
-"\n"
-"当你找出怎么区分你和电脑后，就可以「注入汇编脚本」来检查判断条件，让他不执行某个部分的代码，或者让它去做别的事情（比如...一击必杀！）\n"
-"\n"
-"\n"
-"另外，你还可以用这个方法去创建一个叫「字节数组」的字符串，它能搜索并列出所有你的角色和敌人\n"
-"\n"
-"\n"
-"------------------------------------------------------------------\n"
-"\n"
-"\n"
-"你怎么还在看提示，还不知道怎么做吗？\n"
-"\n"
-"嗯？什么？找不到生命值的地址？不是吧！教程都快结束了，前面基本操作忘光了？\n"
-"\n"
-"\n"
-"提示：生命值是单浮点数\n"
-"\n"
-"\n"
-"\n"
-"\n"
-"\n"
-"\n"
-"------------------------------------------------------------------\n"
-"\n"
-"如果这关实在不知道如何操作，可以访问 wiki 页面查看图文教程：\n"
-"https://wiki.cheatengine.org/index.php?title=Tutorials:Cheat_Engine_Tutorial_Guide_x32#Step_9\n"
-"\n"
-
-#: unit10.rshealth
-msgid "Health: %s"
-msgstr "生命值: %s"
-
-#: unit10.rsdead
-msgid "DEAD"
-msgstr "死亡      "
-
-#: unit10.rsstop
-msgid "Stop"
-msgstr "停止战斗"
-
-#: unit10.rsrestartgameandautoplay
-msgctxt "unit10.rsrestartgameandautoplay"
-msgid "Restart game and autoplay"
-msgstr "重启游戏并再次战斗"
-
-#: unit10.rsthisplayerisalreadydeadrestartthegame
-msgid "This player is already dead. Restart the game"
-msgstr "这个玩家已经死亡，请重启游戏。"
-
-#: unit10.rsfailureyourteamdied
-msgid "Failure. Your team died"
-msgstr "战斗失败，你被团灭了"
-
-#: unit10.rsu10thiswasthelasttutorial
-msgid "This was the last tutorial and you skipped it. You lose"
-msgstr "这是最后一个教程，你跳过的话就会失败"
-
-#: tform10.button3.caption
-msgid "Restart game"
-msgstr "重启游戏"
-
-#: tform10.button4.caption
-msgctxt "tform10.button4.caption"
-msgid "Attack"
-msgstr "打他"
-
-#: tform10.button5.caption
-msgctxt "tform10.button5.caption"
-msgid "Attack"
-msgstr "打他"
-
-#: tform10.button6.caption
-msgctxt "tform10.button6.caption"
-msgid "Restart game and autoplay"
-msgstr "重启游戏并自动战斗"
-
-#: tform10.button7.caption
-msgctxt "tform10.button7.caption"
-msgid "Attack"
-msgstr "打他"
-
-#: tform10.button8.caption
-msgctxt "tform10.button8.caption"
-msgid "Attack"
-msgstr "打他"
-
-#: tform10.caption
-msgid "Step 9"
-msgstr "第 9 关"
-
-#: tform10.label1.caption
-msgctxt "tform10.label1.caption"
-msgid "100"
-msgstr "100"
-
-#: tform10.label2.caption
-msgctxt "tform10.label2.caption"
-msgid "Health:"
-msgstr "生命值:"
-
-#: tform10.label3.caption
-msgid "Player 1: Dave"
-msgstr "戴夫"
-
-#: tform10.label4.caption
-msgctxt "tform10.label4.caption"
-msgid "Health: 100"
-msgstr "生命值: 100"
-
-#: tform10.label5.caption
-msgid "Player 2: Eric"
-msgstr "艾里克"
-
-#: tform10.label6.caption
-msgctxt "tform10.label6.caption"
-msgid "Health: 100"
-msgstr "生命值: 100"
-
-#: tform10.label7.caption
-msgid "C. Player 3: HAL"
-msgstr "哈尔（电脑）"
-
-#: tform10.label8.caption
-msgctxt "tform10.label8.caption"
-msgid "Health: 500"
-msgstr "生命值: 500"
-
-#: tform10.label9.caption
-msgid "C. Player 4: KITT"
-msgstr "凯特（电脑）"
-
-#: tform10.label10.caption
-msgctxt "tform10.label10.caption"
-msgid "Health: 500"
-msgstr "生命值: 500"
-
-#: tform1.caption
-msgid "Cheat Engine Tutorial v3.4"
-msgstr "Cheat Engine 教程 v3.4"
-
-#: tform1.btnok.caption
-msgid "OK"
-msgstr "确定"
-
-#: tform1.button1.caption
-msgctxt "tform1.button1.caption"
-msgid "Next"
-msgstr "下一步"
-
-#: tform1.edtpassword.hint
-msgid "Use this to go imeadiatly to the step you want to try"
-msgstr "使用这个密码立即跳转到你想尝试的关卡"
-
-#: tform1.edtpassword.text
-msgid "090453"
-msgstr "090453"
-
-#: tform1.label1.caption
-msgid "Password"
-msgstr "跳关密码"
-
-#: tform2.button1.caption
-msgctxt "tform2.button1.caption"
-msgid "Next"
-msgstr "下一步"
-
-#: tform2.button2.caption
-msgctxt "tform2.button2.caption"
-msgid "Hit me"
-msgstr "打我"
-
-#: tform2.caption
-msgid "Step 2"
-msgstr "第 2 关"
-
-#: tform2.label1.caption
-msgctxt "tform2.label1.caption"
-msgid "100"
-msgstr "100"
-
-#: tform2.label2.caption
-msgctxt "tform2.label2.caption"
-msgid "Health:"
-msgstr "生命值:"
-
-#: tform2.speedbutton1.caption
-msgctxt "tform2.speedbutton1.caption"
-msgid "Skip"
-msgstr "跳过"
-
-#: tform3.button1.caption
-msgctxt "tform3.button1.caption"
-msgid "Next"
-msgstr "下一步"
-
-#: tform3.button2.caption
-msgctxt "tform3.button2.caption"
-msgid "Hit me"
-msgstr "打我"
-
-#: tform3.caption
-msgid "Step 3"
-msgstr "第 3 关"
-
-#: tform3.label1.caption
-msgid " "
-msgstr " "
-
-#: tform3.speedbutton1.caption
-msgctxt "tform3.speedbutton1.caption"
-msgid "Skip"
-msgstr "跳过"
-
-#: tform5.button1.caption
-msgid "Fire"
-msgstr "开火"
-
-#: tform5.button2.caption
-msgctxt "tform5.button2.caption"
-msgid "Next"
-msgstr "下一步"
-
-#: tform5.button3.caption
-msgctxt "tform5.button3.caption"
-msgid "Hit me"
-msgstr "打我"
-
-#: tform5.caption
-msgid "Step 4"
-msgstr "第 4 关"
-
-#: tform5.label1.caption
-msgctxt "tform5.label1.caption"
-msgid "100"
-msgstr "100"
-
-#: tform5.label2.caption
-msgid "Ammo"
-msgstr "子弹"
-
-#: tform5.label3.caption
-msgctxt "tform5.label3.caption"
-msgid "Health:"
-msgstr "生命值:"
-
-#: tform5.label4.caption
-msgctxt "tform5.label4.caption"
-msgid "100"
-msgstr "100"
-
-#: tform5.label5.caption
-msgid "(float)"
-msgstr "(单浮点)"
-
-#: tform5.label6.caption
-msgid "(double)"
-msgstr "(双浮点)"
-
-#: tform5.speedbutton1.caption
-msgctxt "tform5.speedbutton1.caption"
-msgid "Skip"
-msgstr "跳过"
-
-#: tform6.button1.caption
-msgctxt "tform6.button1.caption"
-msgid "Change value"
-msgstr "改变数值"
-
-#: tform6.button2.caption
-msgctxt "tform6.button2.caption"
-msgid "Next"
-msgstr "下一步"
-
-#: tform6.caption
-msgid "Step 5"
-msgstr "第 5 关"
-
-#: tform6.label1.caption
-msgctxt "tform6.label1.caption"
-msgid "100"
-msgstr "100"
-
-#: tform6.speedbutton1.caption
-msgctxt "tform6.speedbutton1.caption"
-msgid "Skip"
-msgstr "跳过"
-
-#: tform7.button1.caption
-msgctxt "TFORM7.BUTTON1.CAPTION"
-msgid "Change value"
-msgstr "改变数值"
-
-#: tform7.button2.caption
-msgctxt "TFORM7.BUTTON2.CAPTION"
-msgid "Next"
-msgstr "下一步"
-
-#: tform7.button3.caption
-msgctxt "tform7.button3.caption"
-msgid "Change pointer"
-msgstr "改变指针"
-
-#: tform7.caption
-msgid "Step 6"
-msgstr "第 6 关"
-
-#: tform7.label1.caption
-msgctxt "TFORM7.LABEL1.CAPTION"
-msgid "100"
-msgstr "100"
-
-#: tform7.label2.caption
-msgctxt "tform7.label2.caption"
-msgid "3"
-msgstr "3"
-
-#: tform7.speedbutton1.caption
-msgctxt "TFORM7.SPEEDBUTTON1.CAPTION"
-msgid "Skip"
-msgstr "跳过"
-
-#: tform8.button1.caption
-msgctxt "tform8.button1.caption"
-msgid "Hit me"
-msgstr "打我"
-
-#: tform8.button2.caption
-msgctxt "tform8.button2.caption"
-msgid "Next"
-msgstr "下一步"
-
-#: tform8.caption
-msgid "Step 7"
-msgstr "第 7 关"
-
-#: tform8.label1.caption
-msgctxt "tform8.label1.caption"
-msgid "Health: 100"
-msgstr "生命值: 100"
-
-#: tform8.speedbutton1.caption
-msgctxt "tform8.speedbutton1.caption"
-msgid "Skip"
-msgstr "跳过"
-
-#: tform9.button1.caption
-msgctxt "tform9.button1.caption"
-msgid "Change value"
-msgstr "改变数值"
-
-#: tform9.button2.caption
-msgctxt "tform9.button2.caption"
-msgid "Next"
-msgstr "下一步"
-
-#: tform9.button3.caption
-msgctxt "tform9.button3.caption"
-msgid "Change pointer"
-msgstr "改变指针"
-
-#: tform9.caption
-msgid "Step 8"
-msgstr "第 8 关"
-
-#: tform9.label1.caption
-msgctxt "tform9.label1.caption"
-msgid "100"
-msgstr ""
-
-#: tform9.label2.caption
-msgctxt "tform9.label2.caption"
-msgid "3"
-msgstr "3"
-
-#: tform9.speedbutton1.caption
-msgctxt "tform9.speedbutton1.caption"
-msgid "Skip"
-msgstr "跳过"
+msgstr "你还剩下 %s 秒将值更改为 5000"
 
 #: tfrmhelp.caption
 msgid "Help"
@@ -1175,4 +773,8 @@ msgstr "帮助"
 
 #: tfrmhelp.image1.hint
 msgid "More information like videos for this step and written tutorials"
-msgstr "更多信息如这一步的教程和视频"
+msgstr "更多信息如这一步骤的视频和文字教程"
+
+#: unit7.rsdontfuckingfreezethepointer
+msgid "I'm sorry, but freezing the pointer is not really a functional solution"
+msgstr "很抱歉,但冻结指针并不是一个真正有用的解决方案"

@@ -26,8 +26,6 @@ msgstr "分数"
 msgid "Version independent"
 msgstr "特定版本可用"
 
-# msgid "Signed"
-# msgstr ""
 #: frmCEShareCheatBrowser.Signed.Caption frmCEShareCheatBrowser.Match.Caption
 msgid "% Match"
 msgstr "% 匹配"
@@ -149,7 +147,7 @@ msgstr "完整文件哈希:"
 
 #: frmCESharePublishCheat.cbUseSecondaryModule.Caption
 msgid "Needs secondary modulecheck"
-msgstr ""
+msgstr "需要二次检查"
 
 #: frmCESharePublishCheat.lblModulename.Caption
 msgid "Modulename"
@@ -185,7 +183,7 @@ msgstr "更新权限"
 
 #: ceshare_permissions.lblIDTxt.Caption
 msgid "ID"
-msgstr ""
+msgstr "ID"
 
 #: ceshare_permissions.lblOwnerTxt.Caption
 msgid "Owner"
@@ -229,7 +227,7 @@ msgstr "CEShare社区网址"
 
 #: d.Caption
 msgid "Secondary identifier code"
-msgstr ""
+msgstr "二级识别码"
 
 #: btnAllow.Caption
 msgid "Allow"
@@ -237,15 +235,15 @@ msgstr "允许"
 
 #: header.caption
 msgid "This process needs a special identifier to set it apart from others with the same name. To generate this identifier the below code is needed. Do you agree with the execution of this code to generate the identifier?"
-msgstr ""
+msgstr "这个过程需要一个特殊的标识符，以便将它与其他同名的过程区分开来。为了生成这个标识符，需要使用下面的代码。你是否同意执行这段代码来生成标识符？"
 
 #: Error
 msgid "Error:"
-msgstr ""
+msgstr "错误:"
 
 #: IRFS
 msgid "Invalid reply from server:"
-msgstr ""
+msgstr "来自服务器的无效回复:"
 
 #: SDNR
 msgid "Server did not respond"
@@ -325,7 +323,7 @@ msgstr "请选择一个可更新的版本"
 
 #: ceshare_publish
 msgid "Invalid background update query list"
-msgstr ""
+msgstr "无效的后台更新查询列表"
 
 #: ceshare_publish
 msgid "Are you sure you wish to let 'Everyone' overwrite your table in the ceshare system ?"
@@ -357,7 +355,7 @@ msgstr "申请"
 
 #: ceshare_requests
 msgid "Score="
-msgstr "👍="
+msgstr "点赞="
 
 #: ceshare_fulltablelist
 msgid "  and %d more tables..."

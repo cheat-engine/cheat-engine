@@ -1,17 +1,3 @@
-msgid ""
-msgstr ""
-"Plural-Forms: nplurals=1; plural=0;\n"
-"Project-Id-Version: \n"
-"POT-Creation-Date: \n"
-"PO-Revision-Date: \n"
-"Last-Translator: \n"
-"Language-Team: \n"
-"MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=UTF-8\n"
-"Content-Transfer-Encoding: 8bit\n"
-"Language: zh_CN\n"
-"X-Generator: Poedit 2.2.3\n"
-
 #: pseudocodediagram-file
 msgid "File"
 msgstr "文件"
@@ -22,11 +8,11 @@ msgstr "从文件加载"
 
 #: pseudocodediagram-stfywto
 msgid "Select the file you wish to open"
-msgstr "选择你想打开的文件"
+msgstr "选择要打开的文件"
 
 #: pseudocodediagram-dfcc
 msgid "Diagram files (*.CEDIAG )|*.CEDIAG"
-msgstr "图表文件 (*.CEDIAG )|*.CEDIAG"
+msgstr "图表文件（.CEDIAG）|*.CEDIAG"
 
 #: pseudocodediagram-stf
 msgid "Save to file"
@@ -34,19 +20,19 @@ msgstr "保存到文件"
 
 #: pseudocodediagram-fitfywtstda
 msgid "Fill in the filename you wish to save this diagram as"
-msgstr "输入你想要保存这个图表的文件名"
+msgstr "填写要将此关系图另存为的文件名"
 
 #: pseudocodediagram-sdti
 msgid "Save diagram to image"
-msgstr "保存图表到图片"
+msgstr "将图表保存到图像"
 
 #: pseudocodediagram-fitfywtstdi
 msgid "Fill in the filename you wish to save this diagram image"
-msgstr "输入你想要保存这个图表图片的文件名"
+msgstr "填写要保存此图表图像的文件名"
 
 #: pseudocodediagram-pfpp
 msgid "PNG files (*.PNG )|*.PNG"
-msgstr "PNG 文件 (*.PNG )|*.PNG"
+msgstr "PNG文件（.PNG）|*.PNG"
 
 #: pseudocodediagram-close
 msgid "Close"
@@ -58,27 +44,27 @@ msgstr "显示"
 
 #: pseudocodediagram-spfu2oc
 msgid "Show path from Ultimap1/2 or Codefilter"
-msgstr "从 Ultimap1/2 或代码过滤 显示路径"
+msgstr "显示来自Ultimap1/2或Codefilter的路径"
 
 #: pseudocodediagram-spftw
 msgid "Show path from tracer window"
-msgstr "从追踪器窗口显示路径"
+msgstr "从跟踪器窗口显示路径"
 
 #: pseudocodediagram-tsa
 msgid "Tracer starting at %8x (%s)"
-msgstr "追踪器开始于 %8x (%s)"
+msgstr "跟踪程序从%8x开始（%s）"
 
 #: pseudocodediagram-tp
 msgid "Tracer paths"
-msgstr "追踪器路径"
+msgstr "追踪路径"
 
 #: pseudocodediagram-wtwsbu
 msgid "Which tracer window shall be used?"
-msgstr "应该用哪个追踪器窗口？"
+msgstr "应使用哪种示踪窗？"
 
 #: pseudocodediagram-ntwrv
 msgid "No tracerform with results visible"
-msgstr "无有结果的追踪器表单可见"
+msgstr "无可见结果的示踪剂"
 
 #: pseudocodediagram-v
 msgid "View"
@@ -102,27 +88,27 @@ msgstr "编辑"
 
 #: pseudocodediagram-nh
 msgid "new header"
-msgstr "新建 header"
+msgstr "新标题"
 
 #: pseudocodediagram-nbbc
 msgid "new block background color (0xBBGGRR)"
-msgstr "新的区块背景颜色 (0xBBGGRR)"
+msgstr "新块背景色（0xBBGGRR）"
 
 #: pseudocodediagram-sl
 msgid "Sources list"
-msgstr "源列表"
+msgstr "来源列表"
 
 #: pseudocodediagram-dl
 msgid "Destinations list"
-msgstr "目的列表"
+msgstr "目的地列表"
 
 #: pseudocodediagram-be
 msgid "Block editor"
-msgstr "区块编辑器"
+msgstr "块编辑器"
 
 #: pseudocodediagram-ok
 msgid "OK"
-msgstr "确定"
+msgstr "好的"
 
 #: pseudocodediagram-cancel
 msgid "Cancel"
@@ -134,39 +120,39 @@ msgstr "转到源"
 
 #: pseudocodediagram-gtd
 msgid "Go to destination"
-msgstr "转到目的"
+msgstr "前往目的地"
 
 #: pseudocodediagram-rap
 msgid "Remove all points"
-msgstr "移除所有点"
+msgstr "删除所有点"
 
 #: pseudocodediagram-ebh
 msgid "Edit block header"
-msgstr "编辑区块 header"
+msgstr "编辑块标题"
 
 #: pseudocodediagram-ebc
 msgid "Edit block color"
-msgstr "编辑区块颜色"
+msgstr "编辑块颜色"
 
 #: pseudocodediagram-ls
 msgid "List sources"
-msgstr "列出源"
+msgstr "列出来源"
 
 #: pseudocodediagram-ld
 msgid "List destinations"
-msgstr "列出目的"
+msgstr "列出目的地"
 
 #: pseudocodediagram-eac
 msgid "Edit annotation color"
-msgstr "编辑注释颜色"
+msgstr "编辑批注颜色"
 
 #: pseudocodediagram-da
 msgid "Delete annotation"
-msgstr "删除注释"
+msgstr "删除批注"
 
 #: pseudocodediagram-ca
 msgid "Create annotation"
-msgstr "创建注释"
+msgstr "创建批注"
 
 #: pseudocodediagram-mdi
 msgid "[Diagram info]"
@@ -174,19 +160,19 @@ msgstr "[图表信息]"
 
 #: pseudocodediagram-fstart
 msgid " Function start: 0x%X"
-msgstr " 函数开始：0x%X"
+msgstr "函数开始：X%X"
 
 #: pseudocodediagram-fstop
 msgid " Function stop: 0x%X"
-msgstr " 函数停止：0x%X"
+msgstr "函数停止：X%X"
 
 #: pseudocodediagram-dbc
 msgid " Diagram blocks count: %d"
-msgstr " 图表区块数：%d"
+msgstr "图表块计数%d"
 
 #: pseudocodediagram-dlc
 msgid " Diagram links count: %d"
-msgstr " 图表链接数：%d"
+msgstr "图表链接计数%d"
 
 #: pseudocodediagram-diagram
 msgid "Diagram"
@@ -194,4 +180,4 @@ msgstr "图表"
 
 #: pseudocodediagram-sd
 msgid "Spawn diagram"
-msgstr "生成图表"
+msgstr "生成关系图"
