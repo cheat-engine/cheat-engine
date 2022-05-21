@@ -119,10 +119,11 @@ resourcestring
     +'name %s already exists';
   rsFailureCreatingLuaObject = 'Failure creating lua object';
   rsOnlyReturnTypenameBytecountAndFunctiontypename = 'Only return typename, '
-    +'bytecount and functiontypename';
+    +'bytecount, functiontypename, usefloat';
   rsBytesizeIs0 = 'bytesize is 0';
   rsInvalidFunctiontypename = 'invalid functiontypename';
   rsInvalidTypename = 'invalid typename';
+  rsInvalidUseFloat = 'invalid (boolean) usefloat';
   rsUndefinedError = 'Undefined error';
   rsCTHParameter3IsNotAValidFunction = 'Parameter 3 is not a valid function';
   rsCTHParameter4IsNotAValidFunction = 'Parameter 4 is not a valid function';
@@ -494,6 +495,7 @@ var i: integer;
 //  templua: Plua_State;
 
   ftn,tn: pchar;
+  usefl: boolean;
 
   oldname: string;
   oldfunctiontypename: string;
@@ -603,15 +605,20 @@ begin
         if lua_dostring(luavm, pchar(script))=0 then //success, lua script loaded
         begin
           returncount:=lua_gettop(luavm);
-          if returncount<>3 then
+          if returncount<>4 then
             raise TCustomTypeException.create(rsOnlyReturnTypenameBytecountAndFunctiontypename);
 
-          //-1=functiontypename
-          //-2=bytecount
-          //-3=typename
-          ftn:=lua.lua_tostring(luavm,-1);
-          bytesize:=lua_tointeger(luavm,-2);
-          tn:=lua.lua_tostring(luavm,-3);
+          //-1=isfloat
+          //-2=functiontypename
+          //-3=bytecount
+          //-4=typename
+
+          if lua_isboolean(luavm,-1)=false then raise TCustomTypeException.create(rsInvalidUseFloat);
+
+          usefl:=lua.lua_toboolean(luavm,-1);
+          ftn:=lua.lua_tostring(luavm,-2);
+          bytesize:=lua_tointeger(luavm,-3);
+          tn:=lua.lua_tostring(luavm,-4);
 
           if bytesize=0 then raise TCustomTypeException.create(rsBytesizeIs0);
           if ftn=nil then raise TCustomTypeException.create(rsInvalidFunctiontypename);
@@ -619,6 +626,7 @@ begin
 
           name:=tn;
           functiontypename:=ftn;
+          fscriptUsesFloat:=usefl;
 
         end
         else
