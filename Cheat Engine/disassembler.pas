@@ -1646,6 +1646,7 @@ var
     breaknow: boolean;
 begin
 
+  hasvsib:=false;
   ZeroMemory(@opcodeflags,sizeof(opcodeflags));
 
   if (self = visibleDisassembler) and (GetCurrentThreadId<>MainThreadID) then
@@ -4362,6 +4363,32 @@ begin
                                            lastdisassembledata.parameters:=modrm(memory,prefix2,3,4,last,mleft)+xmm(memory[3]);
                                            inc(offset,last-1);
                                          end;
+                                       end;
+                                     end;
+                                   end;
+
+                              $92: begin
+                                     if $66 in prefix2 then
+                                     begin
+                                       if hasvex then
+                                       begin
+                                         if Rex_W then
+                                         begin
+                                           description:='Gather Packed DP FP Values Using Signed Dword/Qword Indices';
+                                           hasvsib:=true;
+                                           LastDisassembleData.opcode:='vgatherdpd';
+                                           lastdisassembledata.parameters:=xmm(memory[3])+','+modrm(memory,prefix2,3,4,last,32);
+                                           inc(offset,last-1);
+                                         end
+                                         else
+                                         begin
+                                           description:='Gather Packed SP FP values Using Signed Dword/Qword Indices';
+                                           hasvsib:=true;
+                                           LastDisassembleData.opcode:='vgatherdps';
+                                           lastdisassembledata.parameters:=xmm(memory[3])+','+modrm(memory,prefix2,3,4,last,32);
+                                           inc(offset,last-1);
+                                         end
+
                                        end;
                                      end;
                                    end;
