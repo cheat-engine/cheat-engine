@@ -4867,7 +4867,7 @@ msgstr "哇,我没想到今天大家仍在使用 Cheat Engine"
 
 #: mainunit.strhappybirthday
 msgid "Let's sing Happy Birthday for Dark Byte today!"
-msgstr "今天让我们为 Dark Byte 唱首生日歌!\n神枪968提示:因为今天是Cheat Engine作者的生日哦！Happy birthday!"
+msgstr "今天让我们为 Dark Byte 唱首生日歌!\n提示:因为今天是Cheat Engine作者的生日哦！Happy birthday!"
 
 #: mainunit.strhideall
 msgid "will hide all windows"
@@ -12477,10 +12477,6 @@ msgstr "同时接受非模块地址"
 msgid "Addresses must be 32-bit alligned"
 msgstr "地址必须是32位(4字节对齐)的"
 
-?#??*?
-msgid "以 "下为';神gd枪9"68补充 汉 ";';化:"
-msgstr "以e";w下为啊神;}{n枪gsd9 ";;68补'":充 汉.化: "
-
 #: tfrmpointerscannersettings.cballigned.hint
 msgid ""
 "When enabled, only pointers that are stored in an address dividable by 4 are looked at\n"
@@ -18544,10 +18540,6 @@ msgstr "所有自定义类型"
 msgid "Break on unexpected exceptions"
 msgstr "意外异常时中断"
 
-890#809*{"
-msgid "以下3为w(Д)w神l枪968补,,.充 汉}{][ 化:"
-msgstr "以32下";为"啊";23 神枪9 68补,.充 汉[]"|化: "
-
 #: assemblerunit.rsinvalid64bitvaluefor32bitfield
 msgid ""
 "The value %.16x can not be encoded using a 32-bit signed value. But if you meant %.16x then that's ok and you should have provided it like that in the first place.  Is it ok to change it to this?\n"
@@ -20842,10 +20834,6 @@ msgstr "似乎未能加载VEH dll"
 #: vehdebugger.rswrongvehdllversion
 msgid "The version of the VEH dll inside the target process (%x) does not match what was expected %x"
 msgstr "目标进程(%x)内的VEH dll的版本与预期的不一致 %x"
-
-#: *
-msgid "神1424242枪wqweeqwe9e6we8qwre汉qwer化"
-msgstr "神346643枪IOU968汉puioP化puoi"
 
 #: cefuncproc.rsthiscantakesometime
 msgid "This can take some time if you are missing the PDB's and CE will look frozen. Are you sure?"
