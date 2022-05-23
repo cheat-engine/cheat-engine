@@ -7846,7 +7846,7 @@ msgstr "Cheat Engine"
 
 #: tabout.label1.caption
 msgid "made by: Dark Byte"
-msgstr "作者:Dark Byte\r\n(以下内容为汉化者所留,与CE作者:Dark Byte 无关)\n汉化:神枪968\n---已汉化所有可以汉化的文本---有些不能汉化我也没办法---\n你可以通过加入QQ群575286297找到我\n你也可以加入QQ群交流学习\n如果你喜欢我的汉化,也可以加入QQ群赞助我,这将是我汉化的动力\n汉化可能有些地方不对(甚至完全是错的),欢迎反馈\n汉化不易,欢迎赞助,这是我的动力"
+msgstr "作者:Dark Byte\r\n汉化:神枪968"
 
 #: tabout.label10.caption
 msgid "Script engine powered by Lua"
