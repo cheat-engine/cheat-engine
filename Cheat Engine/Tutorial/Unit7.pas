@@ -56,7 +56,7 @@ resourcestring
     'the value.'+#13#10+
     'For this step you don''t really need to know assembler, but it helps a lot if you do.'+#13#10+
     ''+#13#10+
-    'First find the address of the value. When you''ve found it use the function to find out what accesses this address.'+#13#10+
+    'First find the address of the value. When you''ve found it use the function to find out what writes to this address.'+#13#10+
     'Change the value again, and an item will show up in the list. Double click that item. (or select and click on more info) and '+
     'a new window will open with detailed information on what happened when the instruction ran.'+#13#10+
     'If the assembler instruction doesn''t have anything between a ''['' and '']'' then use another item in the list.'+#13#10+
