@@ -305,7 +305,10 @@ int getBreakpointCapabilities(int tid, uint8_t *maxBreakpointCount, uint8_t *max
     *maxWatchpointCount=hwd.dbg_info & 0xf;
   }
   else
-    return 0;
+  {
+    debug_log("NT_ARM_HW_WATCH: Failure getting watch breakpoint information\n");
+    *maxWatchpointCount=0;
+  }
 
   iov.iov_base=&hwd;
   iov.iov_len=sizeof(hwd);
@@ -315,7 +318,10 @@ int getBreakpointCapabilities(int tid, uint8_t *maxBreakpointCount, uint8_t *max
     *maxBreakpointCount=hwd.dbg_info & 0xf;
   }
   else
-    return 0;
+  {
+    debug_log("NT_ARM_HW_BREAK: Failure getting breakpoint information\n");
+    *maxBreakpointCount=0;
+  }
 
   return 1;
 #endif

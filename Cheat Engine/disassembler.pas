@@ -75,11 +75,13 @@ type
       R: boolean;
       skipExtraRegOnMemoryAccess: boolean;
       skipExtraReg: boolean;
+      ignoreLForExtraReg: boolean;
     end;
     inttohexs: TIntToHexS;
     RexPrefix: byte;
     riprelative: boolean;
     hasvex: boolean;
+    hasvsib: boolean;
 
     colorhex: string;
     colorreg: string;
@@ -135,6 +137,7 @@ type
     function r32(bt:byte): string;
     function r64(bt:byte): string;  //for a few specific ones
     function xmm(bt:byte): string;
+    function xmm_ignoreL(bt:byte): string;
     function mm(bt:byte): string;
     function sreg(bt:byte): string;
     function cr(bt:byte): string;
@@ -652,6 +655,12 @@ begin
 end;
 
 
+function TDisassembler.xmm_ignoreL(bt:byte): string;
+var regnr: integer;
+begin
+  regnr:=getreg(bt);
+  result:=colorreg+regnrtostr(rtXMM, regnr)+endcolor;
+end;
 
 function TDisassembler.xmm(bt:byte): string;
 var regnr: integer;
@@ -1247,7 +1256,7 @@ begin
         1: ep:=regnrtostr(rt16, not opcodeflags.vvvv and $f);
         2: ep:=regnrtostr(rt8, not opcodeflags.vvvv and $f);
         3: ep:=regnrtostr(rtMM, not opcodeflags.vvvv and $f);
-        4: if opcodeflags.L then ep:=regnrtostr(rtYMM, not opcodeflags.vvvv and $f) else ep:=regnrtostr(rtXMM, not opcodeflags.vvvv and $f);
+        4: if opcodeflags.L and (not opcodeflags.ignoreLForExtraReg) then ep:=regnrtostr(rtYMM, not opcodeflags.vvvv and $f) else ep:=regnrtostr(rtXMM, not opcodeflags.vvvv and $f);
       end;
 
       case position of
@@ -1319,6 +1328,7 @@ begin
 
 
   offset:='';
+
   case base of
     0: result:='eax';
     1: result:='ecx';
@@ -1350,35 +1360,43 @@ begin
   if result<>'' then
     result:=colorreg+result+endcolor;
 
-
-  case index of
-    0: indexstring:='eax';
-    1: indexstring:='ecx';
-    2: indexstring:='edx';
-    3: indexstring:='ebx';
-    4: indexstring:='';//'esp';
-    5: indexstring:='ebp';
-    6: indexstring:='esi';
-    7: indexstring:='edi';
-    8: indexstring:='r8';
-    9: indexstring:='r9';
-   10: indexstring:='r10';
-   11: indexstring:='r11';
-   12: indexstring:='r12';
-   13: indexstring:='r13';
-   14: indexstring:='r14';
-   15: indexstring:='r15';
-   else
-     indexstring:='';
-  end;
-
-
-
-  if is64bit and (addresssize<>32) then
+  if hasvsib=false then
   begin
-    if indexstring<>'' then indexstring[1]:='r'; //quick replace
+    case index of
+      0: indexstring:='eax';
+      1: indexstring:='ecx';
+      2: indexstring:='edx';
+      3: indexstring:='ebx';
+      4: indexstring:='';//'esp';
+      5: indexstring:='ebp';
+      6: indexstring:='esi';
+      7: indexstring:='edi';
+      8: indexstring:='r8';
+      9: indexstring:='r9';
+     10: indexstring:='r10';
+     11: indexstring:='r11';
+     12: indexstring:='r12';
+     13: indexstring:='r13';
+     14: indexstring:='r14';
+     15: indexstring:='r15';
+     else
+       indexstring:='';
+    end;
 
+    if is64bit and (addresssize<>32) and (indexstring<>'') then
+      indexstring[1]:='r'; //quick replace
+  end
+  else
+  begin
+    if opcodeflags.L then
+      indexstring:='ymm'+inttostr(index)
+    else
+      indexstring:='xmm'+inttostr(index);
   end;
+
+
+
+
   if indexstring<>'' then
     indexstring:=colorreg+indexstring+endcolor;
 
@@ -1627,6 +1645,10 @@ var
     td: dword;
     breaknow: boolean;
 begin
+
+  hasvsib:=false;
+  ZeroMemory(@opcodeflags,sizeof(opcodeflags));
+
   if (self = visibleDisassembler) and (GetCurrentThreadId<>MainThreadID) then
   begin
     offset:=1;
@@ -4344,6 +4366,60 @@ begin
                                        end;
                                      end;
                                    end;
+
+                              $92: begin
+                                     if $66 in prefix2 then
+                                     begin
+                                       if hasvex then
+                                       begin
+                                         if Rex_W then
+                                         begin
+                                           description:='Gather Packed DP FP Values Using Signed Dword/Qword Indices';
+                                           hasvsib:=true;
+                                           LastDisassembleData.opcode:='vgatherdpd';
+                                           lastdisassembledata.parameters:=xmm(memory[3])+','+modrm(memory,prefix2,3,4,last,32);
+                                           inc(offset,last-1);
+                                         end
+                                         else
+                                         begin
+                                           description:='Gather Packed SP FP values Using Signed Dword/Qword Indices';
+                                           hasvsib:=true;
+                                           LastDisassembleData.opcode:='vgatherdps';
+                                           lastdisassembledata.parameters:=xmm(memory[3])+','+modrm(memory,prefix2,3,4,last,32);
+                                           inc(offset,last-1);
+                                         end
+
+                                       end;
+                                     end;
+                                   end;
+
+                              $93: begin
+                                     if $66 in prefix2 then
+                                     begin
+                                       if hasvex then
+                                       begin
+                                         if Rex_W then
+                                         begin
+                                           description:='Gather Packed SP FP values Using Signed Dword/Qword Indices';
+                                           hasvsib:=true;
+                                           LastDisassembleData.opcode:='vgatherqpd';
+                                           lastdisassembledata.parameters:=xmm(memory[3])+','+modrm(memory,prefix2,3,4,last,mLeft);
+                                           inc(offset,last-1);
+                                         end
+                                         else
+                                         begin
+                                           description:='Gather Packed SP FP values Using Signed Dword/Qword Indices';
+                                           hasvsib:=true;
+                                           LastDisassembleData.opcode:='vgatherqps';
+                                           opcodeflags.ignoreLForExtraReg:=true;
+                                           lastdisassembledata.parameters:=xmm_ignoreL(memory[3])+','+modrm(memory,prefix2,3,4,last,mLeft);
+                                           inc(offset,last-1);
+                                         end
+
+                                       end;
+                                     end;
+                                   end;
+
 
 
                               $96: begin

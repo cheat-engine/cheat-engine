@@ -3245,14 +3245,26 @@ begin
 
       pt_imm_mul4:
       begin
-        v:=((opcode shr plist[i].offset) and plist[i].maxval)*4;
-        p:='#'+inttohex(v,1);
+        v:=((opcode shr plist[i].offset) and plist[i].maxval);
+
+        v:=SignExtend(v,highestbit(plist[i].maxval));
+        v:=v shl 2;
+        if (v and (1 shl 9))<>0 then
+          p:='#-'+inttohex(integer(-v),1)
+        else
+          p:='#'+inttohex(integer(v),1)
       end;
 
       pt_imm_mul8:
       begin
-        v:=((opcode shr plist[i].offset) and plist[i].maxval)*8;
-        p:='#'+inttohex(v,1);
+        v:=((opcode shr plist[i].offset) and plist[i].maxval);
+
+        v:=SignExtend(v,highestbit(plist[i].maxval));
+        v:=v shl 3;
+        if (v and (1 shl 9))<>0 then
+          p:='#-'+inttohex(integer(-v),1)
+        else
+          p:='#'+inttohex(integer(v),1)
       end;
 
       pt_imm_mul16:
@@ -3834,6 +3846,7 @@ var
   i: integer;
   s: string;
   f: single;
+  r: boolean;
 begin
   //pt_creg?
   result:=[];
@@ -3866,7 +3879,16 @@ begin
       if TryStrToFloat(param.Substring(1),f) then
         result:=result+[pt_fpimm8];
 
-      if TryStrToInt64('$'+param.Substring(1),i64) then
+      param:=param.Substring(1);
+      if param.Substring(0,1)='-' then
+      begin
+        r:=TryStrToInt64('$'+param.Substring(1),i64);
+        i64:=-i64;
+      end
+      else
+        r:=TryStrToInt64('$'+param,i64);
+
+      if r then
       begin
         result:=result+[pt_imm_1shlval, pt_imm2, pt_imm2_8, pt_immminx, pt_xminimm, pt_imm, pt_simm, pt_pimm, pt_fpimm8, pt_scale, pt_imm_bitmask];
         case i64 of
@@ -4549,39 +4571,105 @@ begin
     begin
       if paramstr[1]<>'#' then exit;
       s:=paramstr.Substring(1);
-      v:=strtoint('$'+s);
-      if (v mod 4)<>0 then exit;
+      if s.Substring(0,1)='-' then
+      begin
+        s:=s.Substring(1);
+        sv:=-strtoint('$'+s);
+        b:=true;
+      end
+      else
+      begin
+        sv:=strtoint('$'+s);
+        b:=false;
+      end;
 
-      v:=v div 4;
-      if v>param.maxval then exit;
 
-      opcode:=opcode or (v shl param.offset);
+      if (sv mod 4)<>0 then exit;
+
+      sv:=sv div 4;
+
+
+      if b then
+      begin
+        if (-sv and (not param.maxval))<>0 then exit;
+      end
+      else
+      begin
+        if sv and (not param.maxval)<>0 then exit;
+      end;
+
+      sv:=sv and param.maxval;
+      opcode:=opcode or (sv shl param.offset);
     end;
 
     pt_imm_mul8:
     begin
       if paramstr[1]<>'#' then exit;
       s:=paramstr.Substring(1);
-      v:=strtoint('$'+s);
-      if (v mod 8)<>0 then exit;
+      if s.Substring(0,1)='-' then
+      begin
+        s:=s.Substring(1);
+        sv:=-strtoint('$'+s);
+        b:=true;
+      end
+      else
+      begin
+        sv:=strtoint('$'+s);
+        b:=false;
+      end;
 
-      v:=v div 8;
-      if v>param.maxval then exit;
 
-      opcode:=opcode or (v shl param.offset);
+      if (sv mod 8)<>0 then exit;
+
+      sv:=sv div 8;
+
+
+      if b then
+      begin
+        if (-sv and (not param.maxval))<>0 then exit;
+      end
+      else
+      begin
+        if sv and (not param.maxval)<>0 then exit;
+      end;
+
+      sv:=sv and param.maxval;
+      opcode:=opcode or (sv shl param.offset);
     end;
 
     pt_imm_mul16:
     begin
       if paramstr[1]<>'#' then exit;
       s:=paramstr.Substring(1);
-      v:=strtoint('$'+s);
-      if (v mod 16)<>0 then exit;
+      if s.Substring(0,1)='-' then
+      begin
+        s:=s.Substring(1);
+        sv:=-strtoint('$'+s);
+        b:=true;
+      end
+      else
+      begin
+        sv:=strtoint('$'+s);
+        b:=false;
+      end;
 
-      v:=v div 16;
-      if v>param.maxval then exit;
 
-      opcode:=opcode or (v shl param.offset);
+      if (sv mod 16)<>0 then exit;
+
+      sv:=sv div 16;
+
+
+      if b then
+      begin
+        if (-sv and (not param.maxval))<>0 then exit;
+      end
+      else
+      begin
+        if sv and (not param.maxval)<>0 then exit;
+      end;
+
+      sv:=sv and param.maxval;
+      opcode:=opcode or (sv shl param.offset);
     end;
 
     pt_imm32or64:
@@ -5342,6 +5430,10 @@ begin
     DebugOutputOpcode(selectedopcode);
     {$endif}
 
+  //  if listindex=405 then
+   // asm
+   // nop
+   // end;
 
 
     if length(parameters)>length(selectedopcode^.params) then
