@@ -2951,6 +2951,9 @@ begin
       pt_xreg,pt_wreg:
       begin
         v:=(opcode shr plist[i].offset) and 31;
+
+        if plist[i].optional and (plist[i].defvalue=v) then continue;
+
         if plist[i].ptype=pt_xreg then
           p:=ArmRegistersNoName[v]
         else
@@ -5379,8 +5382,16 @@ begin
   end
   else
   begin
-    parameterstringsplit:=[];
-    setlength(parameters,0);
+    if length(trim(parameterstring))=0 then
+    begin
+      parameterstringsplit:=[];
+      setlength(parameters,0);
+    end
+    else
+    begin
+      parameterstringsplit:=[parameterstring];
+      setlength(parameters,1);
+    end;
   end;
 
   preindexed:=false;
