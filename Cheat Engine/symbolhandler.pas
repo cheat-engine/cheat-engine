@@ -4878,7 +4878,7 @@ begin
               if (context<>nil) and (context^.{$ifdef cpu64}Rip{$else}Eip{$endif}<>0) then
               begin
                 //get the register value, and because this is an address specifier, use the full 32-bits
-                if tokens[i][1] in ['X','Y'] then //xmm/ymm
+                if tokens[i][1] in ['x','X','y','Y'] then //xmm/ymm
                 begin
                   tokens[i]:=inttohex(ApplyTokenType(pptruint(@context^.FltSave.XmmRegisters[regnr])^),8);
                   continue;
