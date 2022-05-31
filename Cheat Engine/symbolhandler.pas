@@ -476,7 +476,7 @@ implementation
 {$ifdef jni}
 uses networkInterface, networkInterfaceApi, ProcessHandlerUnit, Globals, Parsers;
 {$else}
-uses Assemblerunit, driverlist, LuaHandler, lualib, lua, lauxlib,
+uses Assemblerunit, DriverList, LuaHandler, lualib, lua, lauxlib,
   disassemblerComments, StructuresFrm2, networkInterface, networkInterfaceApi,
   ProcessHandlerUnit, Globals, Parsers, MemoryQuery, LuaCaller,
   UnexpectedExceptionsHelper, frmSymbolEventTakingLongUnit, MainUnit, addresslist,
@@ -2153,6 +2153,15 @@ var
 begin
 //  sleep(5000);
 
+  if GetCurrentThreadId<>self.ThreadID then
+  begin
+    raise exception.create('processThreadEvents from more than 1 thread');
+  end;
+
+  if terminated then exit;
+
+  te:=nil;
+
   if (targetself=false) and (amodulebase<>nil) and (gettickcount64>lastAliveCheck+1000) then
   begin
     if ReadProcessMemory(processhandle, amodulebase, @b,1,ar)=false then
@@ -2373,7 +2382,10 @@ var
   symname: pchar;
   range: CSRange;
 begin
+  result:=1;
   self:=si.param;
+
+  if self.terminated then exit;
 
   symname:=CSSymbolGetName(sym);
 
@@ -2381,6 +2393,8 @@ begin
   if symname[0]=#0 then exit;
 
   range:=CSSymbolGetRange(sym);
+
+  if self.terminated then exit;
 
   self.symbollist.AddSymbol(self.currentModuleName, self.currentModuleName+'.'+symname, range.location, range.length);
   self.symbollist.AddSymbol(self.currentModuleName, symname, range.location, range.length,true); //don't add it as a address->string lookup  , (this way it always shows modulename.symbol)
@@ -2398,9 +2412,13 @@ begin
   self:=mi.param;
   self.currentModuleName:=CSSymbolOwnerGetName(so);
 
+  if self.terminated then exit(1);
+
   si:=createIterator(@es, self);
   CSSymbolOwnerforEachSymbol(so, si);
   freeIterator(si);
+
+  if self.terminated then exit(1);
 
   self.processThreadEvents;
 
@@ -2412,6 +2430,8 @@ var mi: CSSymbolOwnerIterator;
 begin
   result:=false;
   cs:=CSSymbolicatorCreateWithPid(thisprocessid);
+
+  if self.terminated then exit;
 
   processThreadEvents;
 

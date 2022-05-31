@@ -15420,9 +15420,6 @@ begin
 
         if (k>=32) or (k<0) then
         begin
-          asm
-            db $cc;
-          end;
           MessageBox(0,pchar(inttohex(startoffset,8)+'disassembler error 1'),'debug here',MB_OK);
         end;
 
@@ -15430,9 +15427,6 @@ begin
         i:=k+td;
         if (td>=32) or (i>=32) or (i<0) then
         begin
-          asm
-            db $cc;
-          end;
           MessageBox(0,pchar(inttohex(startoffset,8)+'disassembler error 2'),'debug here',MB_OK);
         end;
 
