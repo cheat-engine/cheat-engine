@@ -4000,6 +4000,16 @@ begin
 
     end;
 
+    'Q':
+    begin
+      if TryStrToInt(param.Substring(1),li) then
+      begin
+
+        if li in [0..31] then
+          result:=result+[pt_qreg];
+      end;
+    end;
+
 
     'S':
     begin
