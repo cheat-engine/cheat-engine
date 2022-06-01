@@ -154,6 +154,20 @@ object frmAutoInject: TfrmAutoInject
     end
     object emplate1: TMenuItem
       Caption = 'Template'
+      object mi5ByteJMP: TMenuItem
+        AutoCheck = True
+        Caption = '5 byte JMP'
+        Checked = True
+        RadioItem = True
+      end
+      object mi14ByteJMP: TMenuItem
+        AutoCheck = True
+        Caption = '14 byte JMP'
+        RadioItem = True
+      end
+      object N1: TMenuItem
+        Caption = '-'
+      end
       object Codeinjection1: TMenuItem
         Caption = 'Code injection'
         ShortCut = 16457
