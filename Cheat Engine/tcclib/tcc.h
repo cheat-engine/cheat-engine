@@ -988,7 +988,7 @@ struct TCCState {
 	//Cheat Engine Symbol Lookup Addition Stop
 
 	//Cheat Engine Binary Writer Addition Start
-	void(*binary_writer_func)(void *userdata, void* address, void* data, int size);
+	void(*binary_writer_func)(void *userdata, void* address, void* data, int size, int executable);
 	void *binary_writer_param;
 	//Cheat Engine Binary Writer Addition Stop
 

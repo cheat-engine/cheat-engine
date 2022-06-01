@@ -619,7 +619,7 @@ begin
       savedialog1.DefaultExt:='CEA';
       savedialog1.Filter:=rsCEAFilter;
       Assigntocurrentcheattable1.Visible:=true;
-      emplate1.Visible:=true;
+      emplate1.Visible:=processhandler.SystemArchitecture=archX86;
       caption:=rsAutoAssembler;
       inject1.Visible:=false;
       helpcontext:=18; //auto asm help
@@ -2395,6 +2395,9 @@ begin
     i:=assemblescreen.Keystrokes.FindCommand(ecSelectAll);
     if i<>-1 then assemblescreen.Keystrokes[i].ShortCut:=TextToShortCut('Meta+A');
   end;
+
+  if processhandler.SystemArchitecture=archArm then emplate1.visible:=false;
+
 {$endif}
 
 end;

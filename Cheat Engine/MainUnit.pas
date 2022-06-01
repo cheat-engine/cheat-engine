@@ -311,6 +311,7 @@ type
     FromAddress: TEdit;
     andlabel: TLabel;
     lblcompareToSavedScan: TLabel;
+    MenuItem16: TMenuItem;
     miDeleteSavedScanResults: TMenuItem;
     miOnlyShowCurrentCompareToColumn: TMenuItem;
     miLoadRecent: TMenuItem;
@@ -582,6 +583,7 @@ type
     procedure Label3Click(Sender: TObject);
     procedure MenuItem12Click(Sender: TObject);
     procedure MenuItem15Click(Sender: TObject);
+    procedure MenuItem16Click(Sender: TObject);
     procedure miDeleteSavedScanResultsClick(Sender: TObject);
     procedure miFoundListPreferencesClick(Sender: TObject);
     procedure miAutoAssembleErrorMessageClick(Sender: TObject);
@@ -3582,6 +3584,21 @@ begin
 
 end;
 
+procedure TMainForm.MenuItem16Click(Sender: TObject);
+{$ifdef darwin}
+var p: TProcessUTF8;
+  path: string;
+{$endif}
+begin
+  {$ifdef darwin}
+  p:=TProcessUTF8.Create(self);
+  path:=ExtractFilePath(application.ExeName)+'tutorial-aarch64.app/Contents/MacOS/tutorial-aarch64';
+  //OutputDebugString('path='+path);
+  p.Executable:=(path);
+  p.Execute;
+  {$endif}
+end;
+
 procedure TMainForm.MenuItem12Click(Sender: TObject);
 {$ifdef darwin}
 var p: TProcessUTF8;
@@ -3590,7 +3607,8 @@ var p: TProcessUTF8;
 begin
   {$ifdef darwin}
   p:=TProcessUTF8.Create(self);
-  path:=ExtractFilePath(application.ExeName)+'tutorial-x86_64';
+  path:=ExtractFilePath(application.ExeName)+'tutorial-x86_64.app/Contents/MacOS/tutorial-x86_64';
+
   OutputDebugString('path='+path);
   p.Executable:=(path);
   p.Execute;
@@ -3628,6 +3646,8 @@ begin
     end;
   end;
 end;
+
+
 
 procedure TMainForm.miDeleteSavedScanResultsClick(Sender: TObject);
 var
@@ -5762,8 +5782,10 @@ begin
   {$endif}
   {$endif}
 
+  {$if defined(CPU386) or defined(CPUX86_64)}
   Set8087CW($133f);
   SetSSECSR($1f80);
+  {$endif}
 
   //FormDropFiles fix for win7, win8 and later (window message filter update)
   {$ifdef windows}
@@ -6026,10 +6048,11 @@ begin
   miResetRange.click;
 
   isbit := False;
-
+  {$if defined(CPU386) or defined(CPUX86_64)}
   old8087CW := Get8087CW;
   Set8087CW($133f);
   SetSSECSR($1f80);
+  {$endif}
 
 
 
@@ -6181,6 +6204,11 @@ begin
 
   miTutorial.Visible:=false;
   menuitem15.Visible:=false;
+
+
+  if MacIsArm64 then
+    MenuItem16.visible:=true;
+
   {$endif}
 end;
 
@@ -8007,8 +8035,10 @@ begin
 
 
   onetimeonly := True;
+  {$if defined(CPU386) or defined(CPUX86_64)}
   Set8087CW($133f);
   SetSSECSR($1f80);
+  {$endif}
 
   loadt := False;
   editsh2.Text := format('%.1f', [1.0]);

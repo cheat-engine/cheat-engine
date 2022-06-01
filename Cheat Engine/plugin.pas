@@ -913,7 +913,7 @@ var pluginhandler: TPluginhandler;
 
 implementation
 
-uses MainUnit,memorybrowserformunit,formsettingsunit, pluginexports, SynHighlighterAA,
+uses {$ifndef macstandalone}MainUnit,{$endif}memorybrowserformunit,formsettingsunit, pluginexports, SynHighlighterAA,
      {$ifdef windows}DBK32functions,{$endif} luahandler, processhandlerunit
      {$ifdef windows}, BetterDLLSearchPath{$endif}, dotnethost, PEInfoFunctions, luaclass;
 

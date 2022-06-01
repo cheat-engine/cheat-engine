@@ -2,3 +2,7 @@ Cheat Engine/lib
 Cheat Engine/backup
 Cheat Engine/bin
 
+.DS_Store
+*.lrj
+Cheat Engine/cheatengine.lps
+Cheat Engine/cheatengine.res
