@@ -6,7 +6,7 @@ interface
 
 uses
   {$ifdef darwin}
-  macport, LCLType, macportdefines,
+  LCLType,
   {$endif}
   {$ifdef windows}
   jwawindows, windows,imagehlp,
@@ -21,7 +21,7 @@ uses
   disassemblerComments, multilineinputqueryunit, frmMemoryViewExUnit,
   LastDisassembleData, ProcessHandlerUnit, commonTypeDefs, binutils,
   fontSaveLoadRegistry, LazFileUtils, ceregistry, frmCR3SwitcherUnit,
-  betterControls, ScrollBoxEx;
+  betterControls, ScrollBoxEx{$ifdef darwin}, macport, macportdefines{$endif} ;
 
 
 type
@@ -2927,6 +2927,8 @@ begin
 
   {$ifdef darwin}
   InjectDLL1.Caption:=rsInjectDYLIB;
+  miChangeProtectionRWE.enabled:=false; //impossible to set , execute can not go together with write
+  miChangeProtectionRWE.visible:=false;
   {$endif}
 
   if ShouldAppsUseDarkMode() then
@@ -3588,10 +3590,24 @@ begin
           a:=0;
           if fcr3=0 then
           begin
-            vpe:=(SkipVirtualProtectEx=false) and VirtualProtectEx(processhandle,  pointer(Address),bytelength,PAGE_EXECUTE_READWRITE,p);
+            if SystemSupportsWritableExecutableMemory or SkipVirtualProtectEx then
+              vpe:=(SkipVirtualProtectEx=false) and VirtualProtectEx(processhandle,  pointer(Address),bytelength,PAGE_EXECUTE_READWRITE,p)
+            else
+            begin
+              outputdebugstring('First making memory writable');
+              ntsuspendProcess(processhandle);
+              vpe:=(SkipVirtualProtectEx=false) and VirtualProtectEx(processhandle,  pointer(Address),bytelength,PAGE_READWRITE,p)
+            end;
             WriteProcessMemoryWithCloakSupport(processhandle,pointer(Address),@bytes[0],bytelength,a);
+
             if vpe then
+            begin
               VirtualProtectEx(processhandle,pointer(Address),bytelength,p,p);
+              outputdebugstring('restoring back to the original protection: '+p.ToString);
+            end;
+
+            if not (SystemSupportsWritableExecutableMemory or SkipVirtualProtectEx) then
+              ntresumeProcess(processhandle);
           end
           else
           begin
@@ -6266,7 +6282,7 @@ begin
     else
     begin
       if processhandler.is64bit then
-        temp:=' X11 '+IntToHex(lastdebugcontextarm64.regs.X11,16)
+        temp:='X11 '+IntToHex(lastdebugcontextarm64.regs.X11,16)
       else
         temp:=' FP '+IntToHex(lastdebugcontextarm.FP,8);
     end;
@@ -6296,7 +6312,7 @@ begin
     else
     begin
       if processhandler.is64Bit then
-        temp:=' X13 '+IntToHex(lastdebugcontextarm64.regs.X13,16)
+        temp:='X13 '+IntToHex(lastdebugcontextarm64.regs.X13,16)
       else
         temp:=' SP '+IntToHex(lastdebugcontextarm.SP,8);
     end;
@@ -6311,7 +6327,7 @@ begin
     else
     begin
       if processhandler.is64Bit then
-        temp:=' X14 '+IntToHex(lastdebugcontextarm64.regs.X14,16)
+        temp:='X14 '+IntToHex(lastdebugcontextarm64.regs.X14,16)
       else
         temp:=' LR '+IntToHex(lastdebugcontextarm.LR,8);
     end;

@@ -5,6 +5,8 @@ program cheatengine;
 uses
   {$ifdef darwin}
   cthreads,
+
+
   {$endif}
   first,
   {$IFDEF UNIX}{$IFDEF UseCThreads}
@@ -279,7 +281,7 @@ var
   path: string;
   noautorun: boolean;
 begin
-  Application.Title:='Cheat Engine 7.4';
+  Application.Title:='7.4.1';
  //'Cheat Engine 7.3';
   {$ifdef darwin}
   macPortFixRegPath;

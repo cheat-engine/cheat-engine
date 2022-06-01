@@ -100,7 +100,7 @@ begin
   lpNumberOfBytesRead:=nsize;
 
   result:=true;
-
+  {$ifndef CPUAARCH64}
   if bigendianfileaccess then
   begin
     i:=0;
@@ -138,7 +138,7 @@ begin
       inc(i, 4);
     end;
   end;
-
+  {$endif}
 end;
 
 function WriteProcessMemoryFile(hProcess: THandle; const lpBaseAddress: Pointer; lpBuffer: Pointer; nSize: DWORD; var lpNumberOfBytesWritten: ptruint): BOOL; stdcall;
@@ -208,6 +208,7 @@ begin
 
   result:=true;
 
+  {$ifndef CPUAARCH64}
   if bigendianfileaccess then
   begin
     i:=0;
@@ -245,7 +246,7 @@ begin
       inc(i, 4);
     end;
   end;
-
+  {$endif}
 end;
 
 function VirtualQueryExFile(hProcess: THandle; lpAddress: Pointer; var lpBuffer: TMemoryBasicInformation; dwLength: DWORD): DWORD; stdcall;

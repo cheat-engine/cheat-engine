@@ -38,7 +38,9 @@ var
   networkRPMCacheTimeout: single=1.0;
 
   systemtype: integer;
+  {$if defined(CPU386) or defined(CPUX86_64)}
   old8087CW: word;  //you never know...
+  {$endif}
   ProcessSelected: Boolean;
   //ProcessID: Dword; //deperecated
   //ProcessHandle: Thandle;
@@ -156,6 +158,7 @@ var
 
   luagc_MinSize: dword;
 
+  SystemSupportsWritableExecutableMemory: boolean={$ifdef windows}true{$else}false{$endif};
   SkipVirtualProtectEx: boolean;
   alwaysforceload: boolean;
 

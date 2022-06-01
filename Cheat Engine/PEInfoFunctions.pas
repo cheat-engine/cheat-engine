@@ -14,7 +14,7 @@ uses
   {$ifdef windows}
   windows,
   {$endif}
-  LCLIntf,SysUtils,classes, CEFuncProc,NewKernelHandler,filemapping, commonTypeDefs;
+  LCLIntf,SysUtils,classes, CEFuncProc,NewKernelHandler,FileMapping, commonTypeDefs;
 
 
 const

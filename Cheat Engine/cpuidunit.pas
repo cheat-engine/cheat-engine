@@ -21,6 +21,7 @@ implementation
 
 
 
+{$ifndef CPUAARCH64}
 
 {$ifdef cpu32}
 procedure _cpuid(p: pointer); assembler;
@@ -73,6 +74,7 @@ asm
   mov rbx,r9 //restore rbx
 end;
 {$endif}
+{$endif} //cpuaarch64
 
 function CPUID(index: dword; index2: dword=0): TCPUIDResult;
 var
@@ -83,7 +85,10 @@ begin
   r.ecx:=index2;
   r.edx:=0;
 
+  {$ifndef cpuaarch64}
   _cpuid(@r);
+  {$endif}
+
 
   result:=r;
 end;

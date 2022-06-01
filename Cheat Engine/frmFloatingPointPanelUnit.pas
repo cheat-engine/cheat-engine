@@ -54,7 +54,7 @@ type
   end;
 
 
-{$ifdef cpu64}
+{$ifdef cpux86_64}
 procedure doubletoextended(float64:pointer; outextended:pointer); assembler;
 procedure extendedtodouble(float80:pointer;var outdouble:double); assembler;
 {$endif}
@@ -66,7 +66,7 @@ implementation
 
 uses MemoryBrowserFormUnit, processhandlerunit, debughelper, DPIHelper;
 
-{$ifdef cpu64}
+{$ifdef cpux86_64}
 //coded by mgr.inz.player
 procedure extendedtodouble(float80:pointer;var outdouble:double); assembler;
   var
@@ -184,7 +184,7 @@ begin
       5: pss^:=StrToFloat(v);
       6:
       begin
-        {$ifdef cpu64}
+        {$ifdef cpux86_64}
         vd:=StrToFloat(v);
         doubleToExtended(@vd, p);
         {$else}
@@ -347,7 +347,7 @@ begin
 
             6:
             begin
-              {$ifdef cpu64}
+              {$ifdef cpux86_64}
               extendedtodouble(p, d);
               {$else}
               d:=pea[0];
