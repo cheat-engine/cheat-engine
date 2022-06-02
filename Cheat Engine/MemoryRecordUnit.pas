@@ -6,7 +6,7 @@ interface
 
 {$ifdef windows}
 uses
-  Windows, forms, graphics, Classes, SysUtils, controls, stdctrls, comctrls,
+  jwawindows, Windows, forms, graphics, Classes, SysUtils, controls, stdctrls, comctrls,
   symbolhandler, SymbolListHandler, cefuncproc,newkernelhandler, hotkeyhandler,
   dom, XMLRead,XMLWrite, customtypehandler, fileutil, LCLProc, commonTypeDefs,
   pointerparser, LazUTF8, LuaClass, math, betterControls, memrecDataStructures;

@@ -424,9 +424,11 @@ begin
       debuggercs.enter;
       if processhandler.is64Bit then
       begin
+        {$ifdef darwin}
         arm64context.ContextFlags:=0;
         if fields in [cfAll, cfDebug] then
           arm64context.ContextFlags:=arm64context.ContextFlags or 1;
+        {$endif}
 
 
         if not DebuggerInterfaceAPIWrapper.SetThreadContextArm64(self.handle, arm64context, isHandled) then
@@ -836,12 +838,14 @@ begin
 
         if continueoption=co_stepinto then
         begin
+          {$ifdef darwin}
           if (processhandler.SystemArchitecture=archArm) and processhandler.is64Bit then
           begin
             arm64context.debugstate.mdscr_el1:=1;
             setContext;
           end
           else
+          {$endif}
           if dbcCanUseInt1BasedBreakpoints in CurrentDebuggerInterface.DebuggerCapabilities then
             context^.EFlags:=eflags_setTF(context^.EFlags,1) //set the trap flag
         end
@@ -870,10 +874,11 @@ begin
           end
           else  //if not, single step
           begin
-
+            {$ifdef darwin}
             if (processhandler.SystemArchitecture=archArm) and processhandler.is64Bit then
               arm64context.debugstate.mdscr_el1:=1
             else
+            {$endif}
             if dbcCanUseInt1BasedBreakpoints in CurrentDebuggerInterface.DebuggerCapabilities then
               context^.EFlags:=eflags_setTF(context^.EFlags,1);
           end;

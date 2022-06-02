@@ -12,7 +12,7 @@ uses
 
 
 type
-  TTCCTarget=(x86_64,i386{$ifdef windows}, x86_64_sysv, i386_sysv{$endif}, {$ifdef darwin}aarch64{$endif});
+  TTCCTarget=(x86_64,i386{$ifdef windows}, x86_64_sysv, i386_sysv{$endif} {$ifdef darwin},aarch64{$endif});
   PTCCState=pointer;
   {$ifdef standalonetest}
   TSymbolListHandler=pointer;

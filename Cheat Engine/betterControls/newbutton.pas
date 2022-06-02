@@ -85,7 +85,8 @@ begin
     //setting color means default display
     fFaceColorUp:=c;
 
-    fFaceColorDisabled:=clDark;
+    ;
+    fFaceColorDisabled:=clDkGray; //cldark;
     fBorderColor:=clActiveBorder;
     fPenColorHover:=clBlue;
     fInactiveBorderColor:=clInactiveBorder;

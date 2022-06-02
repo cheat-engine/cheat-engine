@@ -842,7 +842,7 @@ begin
         exit;
       end;
 
-
+      {$ifdef darwin}
       if processhandler.SystemArchitecture=archArm then
       begin
         debuggercs.enter;
@@ -921,7 +921,7 @@ begin
           debuggercs.leave;
         end;
       end
-      else
+      else {$endif}
       begin
         Debugregistermask := 0;
         outputdebugstring(PChar('1:Debugregistermask=' + inttohex(Debugregistermask, 8)));

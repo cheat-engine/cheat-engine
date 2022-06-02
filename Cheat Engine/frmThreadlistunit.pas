@@ -908,16 +908,6 @@ begin
               AddChild(node,'SP='+inttohex(ca64.SP,8));
               AddChild(node,'PC='+inttohex(ca64.PC,8));
               AddChild(node,'PSTATE='+inttohex(ca64.PSTATE,8));
-
-              n:=AddChild(node,'Breakpoints');
-              for i:=0 to arm_breakpoints_count-1 do
-                AddChild(n, inttohex(ca64.debugstate.bvr[i],16)+' : '+inttohex(ca64.debugstate.bcr[i].value,1));
-
-              n:=AddChild(node,'Watchpoints');
-              for i:=0 to arm_watchpoints_count-1 do
-                AddChild(n, inttohex(ca64.debugstate.wvr[i],16)+' : '+inttohex(ca64.debugstate.wcr[i].value,1));
-
-              AddChild(node,'mdscr_el1='+inttohex(ca64.debugstate.mdscr_el1,8));
             end;
           end;
 
