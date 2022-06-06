@@ -420,7 +420,7 @@ begin
 
 
       TCEForm(GlobalDesignHook.LookupRoot).designsurface.Change;
-      {$if lcl_fullversion < 20202000}
+      {$if lcl_fullversion < 2020200}
       oid.ComponentTree.RebuildComponentNodes;
       {$else}
       oid.ComponentTree.BuildComponentNodes(true);
