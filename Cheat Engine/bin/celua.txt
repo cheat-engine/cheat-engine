@@ -272,6 +272,9 @@ registerAddressLookupCallback(function(integer):string): ID
 
 unregisterAddressLookupCallback(ID): Removes the callback
 
+registerGlobalStructureListUpdateNotification(function(sender)): ID -  Calls the given function each time the list is updated
+unregisterGlobalStructureListUpdateNotification(id) - removes the callback with the given ID
+
 
 registerStructureAndElementListCallback(function StructureListCallback(), function elementlistcallback(id1,id2) ) : Registers a function to be called when a structure needs to be dissected 
   function StructureListCallback() will be a function that returns an array of list of structures in table format

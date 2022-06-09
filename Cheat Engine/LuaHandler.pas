@@ -9840,6 +9840,48 @@ begin
     unregisterStructureNameLookup(lua_tointeger(L, 1));
 end;
 
+//
+function lua_registerGlobalStructureListUpdateNotification(L: PLua_State): integer; cdecl;
+var
+  f: integer;
+  routine: string;
+  lc: tluacaller;
+begin
+  result:=0;
+
+  if lua_gettop(L)=1 then
+  begin
+    if lua_isfunction(L, 1) then
+    begin
+      lua_pushvalue(L, 1);
+      f:=luaL_ref(L,LUA_REGISTRYINDEX);
+
+      lc:=TLuaCaller.create;
+      lc.luaroutineIndex:=f;
+    end
+    else
+    if lua_isstring(L,1) then
+    begin
+      routine:=lua_tostring(L,1);
+      lc:=TLuaCaller.create;
+      lc.luaroutine:=routine;
+    end
+    else exit;
+
+    lua_pushinteger(L, registerGlobalStructureListUpdateNotification(lc.NotifyEvent));
+    result:=1;
+  end;
+end;
+
+function lua_unregisterGlobalStructureListUpdateNotification(L: PLua_State): integer; cdecl;
+begin
+  result:=0;
+  if lua_gettop(L)>0 then
+    unregisterGlobalStructureListUpdateNotification(lua_tointeger(L, 1));
+end;
+
+//
+
 function lua_registerAssembler(L: PLua_State): integer; cdecl;
 var
   f: integer;
@@ -15987,6 +16029,12 @@ begin
 
     lua_register(L, 'registerGlobalDisassembleOverride', lua_registerGlobalDisassembleOverride);
     lua_register(L, 'unregisterGlobalDisassembleOverride', lua_unregisterGlobalDisassembleOverride);
+
+
+
+    lua_register(L, 'registerGlobalStructureListUpdateNotification', lua_registerGlobalStructureListUpdateNotification);
+    lua_register(L, 'unregisterGlobalStructureListUpdateNotification', lua_unregisterGlobalStructureListUpdateNotification);
+
 
     lua_register(L, 'registerStructureDissectOverride', lua_registerStructureDissectOverride);
     lua_register(L, 'unregisterStructureDissectOverride', lua_unregisterStructureDissectOverride);

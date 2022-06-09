@@ -649,6 +649,10 @@ function lookupStructureName(address: ptruint; defaultName: string) : string;
 function registerStructureNameLookup(m: TStructureNameLookup): integer;
 procedure unregisterStructureNameLookup(id: integer);
 
+function RegisterGlobalStructureListUpdateNotification(m: TNotifyEvent): integer;
+procedure UnregisterGlobalStructureListUpdateNotification(id: integer);
+
+
 implementation
 
 {$R *.lfm}
@@ -785,6 +789,41 @@ resourcestring
 var
   StructureDissectOverrides: array of TStructureDissectOverride;
   StructureNameLookups: array of TStructureNameLookup;
+  GlobalStructureListUpdateNotifications: array of TNotifyEvent;
+
+function RegisterGlobalStructureListUpdateNotification(m: TNotifyEvent): integer;
+var i: integer;
+begin
+  for i:=0 to length(GlobalStructureListUpdateNotifications)-1 do
+  begin
+    if assigned(GlobalStructureListUpdateNotifications[i])=false then
+    begin
+      GlobalStructureListUpdateNotifications[i]:=m;
+      exit(i);
+    end
+  end;
+
+  result:=length(GlobalStructureListUpdateNotifications);
+  setlength(GlobalStructureListUpdateNotifications, result+1);
+  GlobalStructureListUpdateNotifications[result]:=m;
+end;
+
+procedure UnregisterGlobalStructureListUpdateNotification(id: integer);
+begin
+  if id<length(GlobalStructureListUpdateNotifications) then
+  begin
+    CleanupLuaCall(TMethod(GlobalStructureListUpdateNotifications[id]));
+    GlobalStructureListUpdateNotifications[id]:=nil;
+  end;
+end;
+
+procedure CallGlobalStructureListUpdateNotifications(Sender: TObject);
+var i: integer;
+begin
+  for i:=0 to length(GlobalStructureListUpdateNotifications)-1 do
+    if assigned(GlobalStructureListUpdateNotifications) then
+      GlobalStructureListUpdateNotifications[i](sender);
+end;
 
 function registerStructureNameLookup(m: TStructureNameLookup): integer;
 var i: integer;
@@ -1274,6 +1313,8 @@ procedure TDissectedStruct.setName(newname: string);
 begin
   structname:=newname;
   DoFullStructChangeNotification;
+  if isInGlobalStructList then
+    CallGlobalStructureListUpdateNotifications();
 
 end;
 
@@ -7221,8 +7262,25 @@ begin
   end; }
 end;
 
+
+type
+  TDissectedStructsListObserver=class(TObject, IFPObserver)
+  public
+    Procedure FPOObservedChanged(ASender : TObject; Operation : TFPObservedOperation; Data : Pointer);
+  end;
+
+procedure TDissectedStructsListObserver.FPOObservedChanged(ASender : TObject; Operation : TFPObservedOperation; Data : Pointer);
+begin
+  CallGlobalStructureListUpdateNotifications(ASender);
+end;
+
+var DissectedStructsListObserver:TDissectedStructsListObserver;
+
 initialization
   DissectedStructs:=TList.create;
+  DissectedStructsListObserver:=TDissectedStructsListObserver.Create;
+  DissectedStructs.FPOAttachObserver(DissectedStructsListObserver);
+
   frmStructures2:=tlist.Create;
 
 end.
