@@ -1314,7 +1314,7 @@ begin
   structname:=newname;
   DoFullStructChangeNotification;
   if isInGlobalStructList then
-    CallGlobalStructureListUpdateNotifications();
+    CallGlobalStructureListUpdateNotifications(self);
 
 end;
 
