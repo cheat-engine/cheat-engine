@@ -47,6 +47,13 @@ begin
 
   if ShouldAppsUseDarkMode and (font<>nil) then
   begin
+    if fcanvas=nil then
+    begin
+      fcanvas:=TControlCanvas.Create;
+      TControlCanvas(FCanvas).Control := Self;
+
+      //beep;
+    end;
     dpiscale:=Screen.PixelsPerInch/96;
     fcanvas.font.size:=font.size;
     r:=rect(trunc(dpiscale)-1,trunc(3*dpiscale),(trunc(dpiscale)-1)*2+PreferredHeight-trunc((3*dpiscale)*2),(trunc(dpiscale)-1)+PreferredHeight-trunc((3*dpiscale)));
@@ -238,7 +245,9 @@ begin
   inherited CreateParams(Params);
   if ShouldAppsUseDarkMode then
   begin
-    fcanvas:=TControlCanvas.Create;
+    if fcanvas=nil then
+      fcanvas:=TControlCanvas.Create;
+
     TControlCanvas(FCanvas).Control := Self;
 
     if ShouldAppsUseDarkMode() then

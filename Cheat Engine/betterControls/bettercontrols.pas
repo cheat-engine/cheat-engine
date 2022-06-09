@@ -16,7 +16,7 @@ uses
   newToggleBox,
   Graphics, Themes, UxTheme, bettercontrolColorSet;
 {$else}
-uses macport, graphics,math, bettercontrolColorSet;
+uses {macport,} graphics,math, bettercontrolColorSet;
 {$endif}
 
 {$ifdef windows}
@@ -90,6 +90,10 @@ var
 
 
   procedure registerDarkModeHintHandler;
+  {$endif}
+
+  {$ifdef darwin}
+  type BOOL=boolean;
   {$endif}
   function ShouldAppsUseDarkMode:BOOL;
   function incColor(c: tcolor; amount: integer): tcolor;

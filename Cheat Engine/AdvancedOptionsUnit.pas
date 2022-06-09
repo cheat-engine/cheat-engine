@@ -677,13 +677,11 @@ begin
   begin
     miReplaceWithNops.enabled:=false;
     miRestoreWithOriginal.enabled:=false;
-    rename1.enabled:=false;
-    remove1.enabled:=false;
+    rename1.enabled:=not ((count=0) or (lvCodelist.ItemIndex=-1));
+    remove1.enabled:=not ((count=0) or (lvCodelist.ItemIndex=-1));
     Openthedisassemblerhere1.enabled:=false;
     Findoutwhatthiscodechanges1.enabled:=false;
     Replaceall1.enabled:=false;
-
-
   end else
   begin
     rename1.enabled:=true;
@@ -817,21 +815,35 @@ begin
 
 
     //set to read and write
-    vpe:=(SkipVirtualProtectEx=false) and VirtualProtectEx(processhandle,pointer(Address),length(code[i].actualopcode),PAGE_EXECUTE_READWRITE,original);  //I want to execute this, read it and write it. (so, full access)
-
-    //write
-    written:=0;
-    writeprocessmemory(processhandle,pointer(Address),@code[i].actualopcode[0],length(code[i].actualopcode),written);
-    if written<>lengthactualopcode then
+    if SystemSupportsWritableExecutableMemory or SkipVirtualProtectEx then
+      vpe:=(SkipVirtualProtectEx=false) and VirtualProtectEx(processhandle,pointer(Address),length(code[i].actualopcode),PAGE_EXECUTE_READWRITE,original)  //I want to execute this, read it and write it. (so, full access)
+    else
     begin
-      messagedlg(strCouldntrestorecode,mtWarning,[MBok],0);
-      if vpe then
-        VirtualProtectEx(processhandle,pointer(Address),lengthactualopcode,original,x);
-      exit;
+      ntsuspendProcess(processhandle);
+      vpe:=(SkipVirtualProtectEx=false) and VirtualProtectEx(processhandle,pointer(Address),length(code[i].actualopcode),PAGE_READWRITE,original)
     end;
 
-    //set back
-    if vpe then VirtualProtectEx(processhandle,pointer(Address),lengthactualopcode,original,x);
+    try
+      //write
+      written:=0;
+      writeprocessmemory(processhandle,pointer(Address),@code[i].actualopcode[0],length(code[i].actualopcode),written);
+      if written<>lengthactualopcode then
+      begin
+        messagedlg(strCouldntrestorecode,mtWarning,[MBok],0);
+        if vpe then
+          VirtualProtectEx(processhandle,pointer(Address),lengthactualopcode,original,x);
+        exit;
+      end;
+
+      //set back
+      if vpe then VirtualProtectEx(processhandle,pointer(Address),lengthactualopcode,original,x);
+
+    finally
+      if not (SystemSupportsWritableExecutableMemory or SkipVirtualProtectEx) then
+        ntresumeProcess(processhandle);
+    end;
+
+
 
     {$ifdef windows}
     FlushInstructionCache(processhandle,pointer(Address),lengthactualopcode);
@@ -897,19 +909,31 @@ begin
       nops[i]:=$90;  // $90=nop
 
    // get old security and set new security
-    vpe:=(SkipVirtualProtectEx=false) and VirtualProtectEx(processhandle,pointer(a),codelength,PAGE_EXECUTE_READWRITE,original);  //I want to execute this, read it and write it. (so, full access)
-
-    writeprocessmemory(processhandle,pointer(a),@nops[0],codelength,written);
-    if written<>dword(codelength) then
+    if SystemSupportsWritableExecutableMemory or SkipVirtualProtectEx then
+      vpe:=(SkipVirtualProtectEx=false) and VirtualProtectEx(processhandle,pointer(a),codelength,PAGE_EXECUTE_READWRITE,original)  //I want to execute this, read it and write it. (so, full access)
+    else
     begin
-      messagedlg(strcouldntwrite,mtError,[mbok],0);
-      exit;
+      ntsuspendProcess(processhandle);
+      vpe:=(SkipVirtualProtectEx=false) and VirtualProtectEx(processhandle,pointer(a),codelength,PAGE_READWRITE,original);
     end;
 
+    try
+      writeprocessmemory(processhandle,pointer(a),@nops[0],codelength,written);
+      if written<>dword(codelength) then
+      begin
+        messagedlg(strcouldntwrite,mtError,[mbok],0);
+        exit;
+      end;
 
-    //set old security back
-    if vpe then
-      VirtualProtectEx(processhandle,pointer(a),codelength,original,original);  //ignore a
+
+      //set old security back
+      if vpe then
+        VirtualProtectEx(processhandle,pointer(a),codelength,original,original);  //ignore a
+
+    finally
+      if not (SystemSupportsWritableExecutableMemory or SkipVirtualProtectEx) then
+        ntresumeProcess(processhandle);
+    end;
 
     {$ifdef windows}
     FlushInstructionCache(processhandle,pointer(a),codelength);
@@ -933,7 +957,12 @@ begin
   end
   else
   begin
-    if dialogs.messagedlg(rsDelete+' '+lvCodelist.selected.SubItems[0]+' ?', mtConfirmation, [mbyes, mbno], 0) <> mryes then exit;
+    if lvCodelist.selected.SubItems.count=0 then
+    begin
+      if dialogs.messagedlg(rsDelete+' '+lvCodelist.selected.caption+' ?', mtConfirmation, [mbyes, mbno], 0) <> mryes then exit;
+    end
+    else
+      if dialogs.messagedlg(rsDelete+' '+lvCodelist.selected.SubItems[0]+' ?', mtConfirmation, [mbyes, mbno], 0) <> mryes then exit;
   end;
 
   lvCodelist.Items.BeginUpdate;
@@ -969,7 +998,13 @@ procedure TAdvancedOptions.Rename1Click(Sender: TObject);
 var index: integer;
 begin
   index:=lvCodelist.ItemIndex;
-  lvCodelist.Items[index].SubItems[0]:=inputbox(rsNewName, rsGiveTheNewNameOfThisEntry, lvCodelist.Items[index].SubItems[0]);
+  if index<>-1 then
+  begin
+    if TCodeListEntry(lvCodelist.Items[index].Data).code=nil then
+      lvCodelist.Items[index].caption:=inputbox(rsNewName, rsGiveTheNewNameOfThisEntry, lvCodelist.Items[index].Caption)
+    else
+      lvCodelist.Items[index].SubItems[0]:=inputbox(rsNewName, rsGiveTheNewNameOfThisEntry, lvCodelist.Items[index].SubItems[0]);
+  end;
 end;
 
 procedure TAdvancedOptions.Findthiscodeinsideabinaryfile1Click(
@@ -995,7 +1030,7 @@ var i: integer;
     down: boolean;
     x: dword;
 begin
-  {$ifdef windows}
+
   down:=pausebutton.down;
   if down=oldpausestate then exit;
 
@@ -1015,17 +1050,19 @@ begin
         exit;
       end;
 
-      if (assigned(ntsuspendprocess)) then
+      {$ifdef windows}if (assigned(ntsuspendprocess)) then {$endif}
       begin
        // OutputDebugString('Calling ntsuspendProcess');
         if IsValidHandle(processhandle) then
         begin
           x:=ntsuspendProcess(processhandle);
+          {$ifdef windows}
           if (x<>0) and (DBKLoaded) then DBKSuspendProcess(processid);
+          {$endif}
         end
-        else
+        {$ifdef windows}   else
           if DBKLoaded then
-            DBKSuspendProcess(processid);
+            DBKSuspendProcess(processid){$endif}   ;
       end;
 
        pausebutton.Hint:=rsResumeTheGame+pausehotkeystring;
@@ -1041,16 +1078,18 @@ begin
     if (not down) then
     begin
       //resume
-      if assigned(ntresumeprocess) then
+      {$ifdef windows}if assigned(ntresumeprocess) then{$endif}
       begin
         if IsValidHandle(processhandle) then
         begin
           x:=ntresumeprocess(processhandle);
+           {$ifdef windows}
           if (x<>0) and (DBKLoaded) then DBKResumeProcess(processid);
-        end
+           {$endif}
+        end {$ifdef windows}
         else
           if DBKLoaded then
-            DBKResumeProcess(processid);
+            DBKResumeProcess(processid){$endif};
       end;
 
       pausebutton.Hint:=rsPauseTheGame+pausehotkeystring;
@@ -1063,7 +1102,7 @@ begin
   finally
     oldpausestate:=pausebutton.down;
   end;
-   {$endif}
+
 end;
 
 procedure TAdvancedOptions.PausebuttonMouseMove(Sender: TObject;
@@ -1117,21 +1156,30 @@ begin
     for i:=0 to codelength-1 do
       nops[i]:=$90;  //  $90=nop
 
-   // get old security and set new security
-    vpe:=(SkipVirtualProtectEx=false) and VirtualProtectEx(processhandle,pointer(a),codelength,PAGE_EXECUTE_READWRITE,original);  //I want to execute this, read it and write it. (so, full access)
-
-    writeprocessmemory(processhandle,pointer(a),@nops[0],codelength,written);
-    if written<>dword(codelength) then
+    // get old security and set new security
+    if SystemSupportsWritableExecutableMemory or SkipVirtualProtectEx then
+      vpe:=(SkipVirtualProtectEx=false) and VirtualProtectEx(processhandle,pointer(a),codelength,PAGE_EXECUTE_READWRITE,original)  //I want to execute this, read it and write it. (so, full access)
+    else
     begin
-      messagedlg(rsTheMemoryAtThisAddressCouldnTBeWritten, mtError, [mbok], 0);
-      exit;
+      ntSuspendProcess(processhandle);
+      vpe:=(SkipVirtualProtectEx=false) and VirtualProtectEx(processhandle,pointer(a),codelength,PAGE_READWRITE,original)
     end;
+    try
+      writeprocessmemory(processhandle,pointer(a),@nops[0],codelength,written);
+      if written<>dword(codelength) then
+      begin
+        messagedlg(rsTheMemoryAtThisAddressCouldnTBeWritten, mtError, [mbok], 0);
+        exit;
+      end;
 
 
-    //set old security back
-    if vpe then
-      VirtualProtectEx(processhandle,pointer(a),codelength,original,original);  //ignore a
-
+      //set old security back
+      if vpe then
+        VirtualProtectEx(processhandle,pointer(a),codelength,original,original);  //ignore a
+    finally
+      if not (SystemSupportsWritableExecutableMemory or SkipVirtualProtectEx) then
+        ntResumeProcess(processhandle);
+    end;
     {$ifdef windows}
     FlushInstructionCache(processhandle,pointer(a),codelength);
     {$endif}
@@ -1170,14 +1218,13 @@ procedure TAdvancedOptions.FormCreate(Sender: TObject);
 var x: array of integer;
 begin
   {$ifdef windows}
-  {$ifdef cpu64}
+  {$ifdef cpux64}
     //lazarus bug bypass
     if WindowsVersion=wvVista then
       lvCodelist.OnCustomDrawItem:=nil;
   {$endif}
-  {$else}
-  Pausebutton.visible:=false;
   {$endif}
+
 
  // pausebutton.Left:=savebutton.Left;
 

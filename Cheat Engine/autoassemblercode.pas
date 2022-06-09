@@ -68,7 +68,7 @@ procedure AutoAssemblerCodePass2(var dataForPass2: TAutoAssemblerCodePass2Data; 
 implementation
 
 uses {$ifdef windows}windows,{$endif}{$ifdef darwin}macport,macportdefines,math,{$endif}ProcessHandlerUnit, symbolhandler, luahandler, lua, lauxlib, lualib, StrUtils,
-  Clipbrd, dialogs, lua_server, Assemblerunit, NewKernelHandler, DBK32functions, StringHashList;
+  Clipbrd, dialogs, lua_server, Assemblerunit, NewKernelHandler, DBK32functions, StringHashList, globals;
 
 
 type
@@ -419,6 +419,9 @@ var
   s: string;
 
   tempsymbollist: TStringlist;
+
+  oldprotection: dword;
+  tccregions: TTCCRegionList;
 begin
   secondarylist:=TStringList.create;
   bytes:=tmemorystream.create;
@@ -426,6 +429,7 @@ begin
   tempsymbollist:=tstringlist.create;
 
   errorlog:=tstringlist.create;
+  tccregions:=TTCCRegionList.Create;
 
   dataForPass2.cdata.address:=align(dataForPass2.cdata.address,16);
 
@@ -458,7 +462,8 @@ begin
 
 
 
-    if _tcc.compileScript(dataForPass2.cdata.cscript.Text, dataForPass2.cdata.address, bytes, tempsymbollist, dataForPass2.cdata.sourceCodeInfo, errorlog, secondarylist, dataForPass2.cdata.targetself ) then
+
+    if _tcc.compileScript(dataForPass2.cdata.cscript.Text, dataForPass2.cdata.address, bytes, tempsymbollist, nil, dataForPass2.cdata.sourceCodeInfo, errorlog, secondarylist, dataForPass2.cdata.targetself ) then
     begin
       if bytes.Size>dataForPass2.cdata.bytesize then
       begin
@@ -469,7 +474,13 @@ begin
           newAddress:=ptruint(KernelAlloc(4*bytes.size))
         else
 {$endif}
-          newAddress:=ptruint(VirtualAllocEx(phandle,nil,4*bytes.size,mem_reserve or mem_commit, PAGE_EXECUTE_READWRITE));
+        begin
+          if SystemSupportsWritableExecutableMemory then
+            newAddress:=ptruint(VirtualAllocEx(phandle,nil,4*bytes.size,mem_reserve or mem_commit, PAGE_EXECUTE_READWRITE))
+          else
+            newAddress:=ptruint(VirtualAllocEx(phandle,nil,bytes.size,mem_reserve or mem_commit, PAGE_READWRITE)); //these systems already waste memory as is so no *4
+
+        end;
 
         if newAddress<>0 then
         begin
@@ -481,7 +492,7 @@ begin
           bytes.clear;
           secondarylist.Clear;
           errorlog.clear;
-          if _tcc.compileScript(dataForPass2.cdata.cscript.text, dataForPass2.cdata.address, bytes, tempsymbollist, dataForPass2.cdata.sourceCodeInfo, errorlog, secondarylist, dataForPass2.cdata.targetself )=false then
+          if _tcc.compileScript(dataForPass2.cdata.cscript.text, dataForPass2.cdata.address, bytes, tempsymbollist, tccregions, dataForPass2.cdata.sourceCodeInfo, errorlog, secondarylist, dataForPass2.cdata.targetself )=false then
           begin
             //wtf? something really screwed up here
 {$ifdef windows}
@@ -512,6 +523,13 @@ begin
 
       //still here so compilation is within the given parameters
       writeProcessMemory(phandle, pointer(dataforpass2.cdata.address),bytes.memory, bytes.size,bw);
+
+      if not SystemSupportsWritableExecutableMemory then
+      begin
+        //apply protections
+        for i:=0 to tccregions.Count-1 do
+          virtualprotectex(processhandle, pointer(tccregions[i].address), tccregions[i].size, tccregions[i].protection,oldprotection);
+      end;
 
       //fill in links
       for i:=0 to length(dataForPass2.cdata.linklist)-1 do
@@ -582,6 +600,7 @@ begin
     freeandnil(dataForPass2.cdata.cscript);
 
     freeandnil(tempsymbollist);
+    freeandnil(tccregions);
   end;
 end;
 

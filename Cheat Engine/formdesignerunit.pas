@@ -10,7 +10,7 @@ uses
   Dialogs, ComCtrls, StdCtrls, ExtCtrls, Buttons, Menus, JvDesignSurface,
   JvDesignImp, JvDesignUtils, typinfo, PropEdits, ObjectInspector, LResources,
   maps, ExtDlgs, PopupNotifier, IDEDialogs, ceguicomponents, LMessages, luacaller,
-  luahandler, cefuncproc, ListViewPropEdit, TreeViewPropEdit, AnchorEditor,
+  luahandler, cefuncproc, ListViewPropEdit, TreeViewPropEdit, {AnchorEditor,}
   LCLType, GraphicPropEdit, GraphPropEdits, registry, math, LCLVersion, betterControls;
 
 
@@ -198,9 +198,7 @@ implementation
 
 { TFormDesigner }
 
-
-uses mainunit, DPIHelper{$if lcl_fullversion>=2000000}, LazMsgDialogs{$endif}
-  , IDEImagesIntf{$ifdef windows}, DwmApi, UxTheme{$endif}, mainunit2;
+uses mainunit, DPIHelper,lazdialogs{$ifdef windows}, DwmApi, UxTheme{$endif}, mainunit2;
 
 resourcestring
   rsInvalidObject = '{Invalid object}';
@@ -283,6 +281,7 @@ end;
 procedure TFormDesigner.miAnchorEditorClick(Sender: TObject);
 var defaultwidth: integer;
 begin
+  {
   if AnchorDesigner=nil then
   begin
     AnchorDesigner:=TAnchorDesigner.Create(self);
@@ -347,6 +346,8 @@ begin
   end
   else
     AnchorDesigner.Show;
+
+    }
 end;
 
 procedure TFormDesigner.miDeleteClick(Sender: TObject);
@@ -417,8 +418,13 @@ begin
       p.Delete(i);
       p.Insert(i+1, mi);
 
+
       TCEForm(GlobalDesignHook.LookupRoot).designsurface.Change;
+      {$if lcl_fullversion < 2020100}
       oid.ComponentTree.RebuildComponentNodes;
+      {$else}
+      oid.ComponentTree.BuildComponentNodes(true);
+      {$endif}
     end;
 
   end;
@@ -444,7 +450,11 @@ begin
       p.Insert(i-1, mi);
 
       TCEForm(GlobalDesignHook.LookupRoot).designsurface.Change;
+      {$if lcl_fullversion < 2020100}
       oid.ComponentTree.RebuildComponentNodes;
+      {$else}
+      oid.ComponentTree.BuildComponentNodes(true);
+      {$endif}
     end;
 
   end;
@@ -607,7 +617,11 @@ begin
   TCEform(GlobalDesignHook.LookupRoot).designsurface.UpdateDesigner;
 
 
+  {$if lcl_fullversion < 2020100}
   oid.ComponentTree.RebuildComponentNodes;
+  {$else}
+  oid.ComponentTree.BuildComponentNodes(true);
+  {$endif}
 
 end;
 
@@ -675,13 +689,14 @@ begin
   LazIDESelectDirectory:=IDESelectDirectory;
   idedialogs.InitIDEFileDialog:=self.InitIDEFileDialog;
   idedialogs.StoreIDEFileDialog:=self.InitIDEFileDialog;
-  {$if lcl_fullversion>=2000000}
-  LazMsgDialogs.LazMessageDialog:=self.IDEMessageDialog;
+
+ { LazMsgDialogs.LazMessageDialog:=self.IDEMessageDialog;
   LazMsgDialogs.LazQuestionDialog:=self.IDEQuestionDialog;
-  {$else}
-  idedialogs.IDEMessageDialog:=self.IDEMessageDialog;
-  idedialogs.IDEQuestionDialog:=self.IDEQuestionDialog;
-  {$endif}
+
+  //todo: changed to  a class
+
+  }
+
 
   SurfaceList:=tlist.create;
 
@@ -802,9 +817,9 @@ begin
           if p is tcontrol then
             surface.Selector.AddToSelection(tcontrol(p));
         end;
-
+       {
         if AnchorDesigner<>nil then
-          GlobalDesignHook.SetSelection(oid.Selection);
+          GlobalDesignHook.SetSelection(oid.Selection);   }
           
         surface.onselectionchange:=designerSelectionChange;
       end;
@@ -880,9 +895,9 @@ begin
 
       oid.RefreshSelection;
     end;
-
+   {
     if AnchorDesigner<>nil then
-      GlobalDesignHook.SetSelection(oid.Selection);
+      GlobalDesignHook.SetSelection(oid.Selection);  }
 
 
     //laz 2 not needed anymore. gets it from designhook
@@ -908,7 +923,12 @@ end;
 
 procedure TFormDesigner.surfaceOnChange(sender: tobject);
 begin
+  {$if lcl_fullversion < 2020100}
   oid.FillComponentList;
+  {$else}
+  oid.FillComponentList(true);
+  {$endif}
+
   oid.RefreshPropertyValues;
   oid.RefreshComponentTreeSelection;
 
@@ -1096,9 +1116,9 @@ procedure TFormDesigner.FormClose(Sender: TObject; var CloseAction: TCloseAction
 begin
   if oid<>nil then
     FreeAndNil(oid);
-
+   {
   if AnchorDesigner<>nil then
-    FreeAndNil(AnchorDesigner);
+    FreeAndNil(AnchorDesigner);}
 
   if GlobalDesignHook<>nil then
     FreeAndNil(GlobalDesignHook);
@@ -1162,10 +1182,10 @@ end;
 
 procedure TFormDesigner.SAD(sender: tobject);
 begin
-  if AnchorDesigner=nil then
+ { if AnchorDesigner=nil then
     AnchorDesigner:=TAnchorDesigner.create(self);
 
-  AnchorDesigner.show;
+  AnchorDesigner.show;}
 end;
 
 //{$define OLDLAZARUS11}
@@ -1341,9 +1361,9 @@ begin
 
 //    AnchorDesigner:=TAnchorDesigner.Create(oid);
 
-
+     {
     ShowAnchorDesigner:=SAD; //panda       (I wanted to call it ShowAnchorDesigner but that was causing 'issues')
-
+        }
 
     ComponentTreeWindowProc:=oid.ComponentTree.WindowProc;
 
@@ -1424,11 +1444,19 @@ begin
 
 
   TCEForm(GlobalDesignHook.LookupRoot).designsurface.Change;
+  {$if lcl_fullversion < 2020100}
   oid.ComponentTree.RebuildComponentNodes;
+  {$else}
+  oid.ComponentTree.BuildComponentNodes(true);
+  {$endif}
 
   oid.RefreshPropertyValues;
   oid.RebuildPropertyLists;
+  {$if lcl_fullversion < 2020100}
   oid.FillComponentList;
+  {$else}
+  oid.FillComponentList(true);
+  {$endif}
   oid.UpdateComponentValues;
 
 end;

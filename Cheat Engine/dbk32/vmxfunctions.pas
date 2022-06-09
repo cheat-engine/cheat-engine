@@ -893,6 +893,10 @@ var
 {$endif}
   r: ptruint;
 begin
+  {$ifdef darwinarm64}
+  exit(0);
+  {$else}
+
   asm
 {$ifdef cpu64}
     mov originalrdx,rdx
@@ -914,6 +918,7 @@ begin
   end;
 
   result:=r;
+  {$endif}
 end;
 
 function vmcallSupported2_amd(vmcallinfo:pointer; output2: pptruint): PtrUInt; stdcall;
@@ -924,6 +929,9 @@ var
 {$endif}
   r,r2: ptruint;
 begin
+  {$ifdef darwinarm64}
+  exit(0);
+  {$else}
   asm
 {$ifdef cpu64}
     mov originalrdx,rdx
@@ -951,6 +959,7 @@ begin
   result:=r;
   if output2<>nil then
     output2^:=r2;
+{$endif}
 end;
 
 
@@ -963,6 +972,9 @@ var
   r: ptruint;
   r2: ptruint;
 begin
+  {$ifdef darwinarm64}
+  exit(0);
+  {$else}
   asm
 {$ifdef cpu64}
     mov originalrdx,rdx
@@ -990,6 +1002,7 @@ begin
   result:=r;
   if output2<>nil then
     output2^:=r2;
+{$endif}
 end;
 
 function vmcallSupported_intel(vmcallinfo:pointer): PtrUInt; stdcall;
@@ -1000,6 +1013,9 @@ var
 {$endif}
   r: ptruint;
 begin
+  {$ifdef darwinarm64}
+  exit(0);
+  {$else}
   asm
 {$ifdef cpu64}
     mov originalrdx,rdx
@@ -1024,6 +1040,7 @@ begin
   end;
 
   result:=r;
+  {$endif}
 end;
 
 
@@ -2799,6 +2816,8 @@ type TKernelmodeFunction=function (parameters: pointer): ptruint;
 
 procedure dbvm_enterkernelmode(originalstate: POriginalState); //mainly used for 64-bit systems requiring to stealth load the driver
 begin
+  {$ifdef darwinarm64}
+  {$else}
   setupKernelFunctionList;
 
   dbvm_block_interrupts;
@@ -2893,11 +2912,13 @@ begin
 
 
   dbvm_restore_interrupts;
+  {$endif}  //darwinarm64
 end;
 
 procedure dbvm_returntousermode(originalstate: POriginalState);
 begin
-
+   {$ifdef darwinarm64}
+   {$else}
   dbvm_block_interrupts;
 
 
@@ -2942,6 +2963,7 @@ begin
 
   dbvm_restore_interrupts;
 
+{$endif}
 
 end;
 
@@ -3011,6 +3033,10 @@ begin
 end;
 
 procedure dbvm_localIntHandler_entry; nostackframe; assembler; //usually 64-bit only
+{$ifdef darwinarm64}
+asm
+end;
+{$else}
 {$ifdef cpu32}
 //not implemented for 32-bit
 asm
@@ -3149,6 +3175,7 @@ asm
   add rsp,8 //undo errorcode (64-bit ALWAYS pushes an errorcode, in this emulation)
   db $48, $cf //iretq
 end;
+{$endif}
 {$endif}
 
 function dbvm_testSwitchToKernelmode: integer;

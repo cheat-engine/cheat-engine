@@ -7,11 +7,11 @@
       <SessionStorage Value="InProjectDir"/>
       <MainUnit Value="0"/>
       <AutoCreateForms Value="False"/>
-      <Title Value="Cheat Engine 7.4"/>
+      <Title Value="Cheat Engine 7.4.1"/>
       <UseXPManifest Value="True"/>
       <XPManifest>
         <DpiAware Value="True"/>
-        <ExecutionLevel Value="requireAdministrator"/>
+        <ExecutionLevel Value="highestAvailable"/>
         <TextName Value="Cheat Engine"/>
         <TextDesc Value="Scripting language and tools"/>
       </XPManifest>

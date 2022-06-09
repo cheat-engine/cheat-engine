@@ -20,6 +20,7 @@
 
 #include "tcc.h"
 
+
 /* only native compiler supports -run */
 #ifdef TCC_IS_NATIVE
 
@@ -221,6 +222,11 @@ LIBTCCAPI int tcc_run(TCCState *s1, int argc, char **argv)
  #define RUN_SECTION_ALIGNMENT 0
 #endif
 
+#if defined (TCC_TARGET_ARM64) && defined(__APPLE__)
+  #define RUN_SECTION_ALIGNMENT (16*1024)-1
+#endif
+
+
 /* relocate code. Return -1 on error, required size if ptr is NULL,
    otherwise copy code into buffer passed by the caller */
 static int tcc_relocate_ex(TCCState *s1, void *ptr, addr_t ptr_diff)
@@ -312,7 +318,7 @@ static int tcc_relocate_ex(TCCState *s1, void *ptr, addr_t ptr_diff)
 					void *zeromem = tcc_malloc(length);
                     memset(zeromem, 0, length);
 					//ZeroMemory(zeromem, length);
-					s1->binary_writer_func(s1->binary_writer_param, ptr, zeromem, length);
+					s1->binary_writer_func(s1->binary_writer_param, ptr, zeromem, length,0);
 					tcc_free(zeromem);
 				}
 				
@@ -327,7 +333,16 @@ static int tcc_relocate_ex(TCCState *s1, void *ptr, addr_t ptr_diff)
 			if (s1->binary_writer_func)
 			{
 				if (length)
-					s1->binary_writer_func(s1->binary_writer_param, ptr, s->data, length);
+                {
+                    int protection=0;
+                    if (s->sh_flags & SHF_EXECINSTR)
+                        protection=1;
+                    
+                    if (s->sh_flags & SHF_WRITE)
+                        protection=2;
+                    
+					s1->binary_writer_func(s1->binary_writer_param, ptr, s->data, length, protection);
+                }
 			}
 			else
 			//cheat engine binary writer addition stop

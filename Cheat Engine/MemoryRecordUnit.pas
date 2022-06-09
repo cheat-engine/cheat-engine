@@ -6,7 +6,7 @@ interface
 
 {$ifdef windows}
 uses
-  Windows, forms, graphics, Classes, SysUtils, controls, stdctrls, comctrls,
+  jwawindows, Windows, forms, graphics, Classes, SysUtils, controls, stdctrls, comctrls,
   symbolhandler, SymbolListHandler, cefuncproc,newkernelhandler, hotkeyhandler,
   dom, XMLRead,XMLWrite, customtypehandler, fileutil, LCLProc, commonTypeDefs,
   pointerparser, LazUTF8, LuaClass, math, betterControls, memrecDataStructures;
@@ -3195,7 +3195,7 @@ var
   check: boolean;
 
   oldluatop: integer;
-  vpe: boolean;
+  vpe: boolean=false;
 
   setvaluescript: Tstringlist;
 
@@ -3204,6 +3204,8 @@ var
   f: single;
 
   newundovalue: string;
+
+  suspended: boolean;
 begin
   //check if it is a '(description)' notation
 
@@ -3372,9 +3374,19 @@ begin
 
   getmem(buf,bufsize+2);
 
-
-  vpe:=(SkipVirtualProtectEx=false) and VirtualProtectEx(processhandle, pointer(realAddress), bufsize, PAGE_EXECUTE_READWRITE, originalprotection);
-
+  if SystemSupportsWritableExecutableMemory or SkipVirtualProtectEx then
+  begin
+    vpe:=(SkipVirtualProtectEx=false) and VirtualProtectEx(processhandle, pointer(realAddress), bufsize, PAGE_EXECUTE_READWRITE, originalprotection);
+  end
+  else
+  begin
+    if (SkipVirtualProtectEx=false) and (iswritable(realaddress)=false) then
+    begin
+      suspended:=true;
+      ntsuspendProcess(processhandle);
+      vpe:=(SkipVirtualProtectEx=false) and VirtualProtectEx(processhandle, pointer(realAddress), bufsize, PAGE_READWRITE, originalprotection);
+    end;
+  end;
   try
 
 
@@ -3557,6 +3569,8 @@ begin
     if vpe then
       VirtualProtectEx(processhandle, pointer(realAddress), bufsize, originalprotection, originalprotection);
 
+    if suspended then
+      ntresumeProcess(processhandle);
   end;
 
   freememandnil(buf);

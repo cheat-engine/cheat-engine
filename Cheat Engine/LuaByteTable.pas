@@ -128,7 +128,7 @@ begin
   if lua_gettop(L)=1 then
   begin
     v:=lua_tonumber(L, 1);
-{$ifdef cpu64}
+{$ifdef cpux86_64}
     doubletoextended(@v,@ex[0]);
     CreateByteTableFromPointer(L, @ex[0], 10);
 {$else}
@@ -249,7 +249,7 @@ begin
   if lua_gettop(L)=1 then
   begin
 
-{$ifdef cpu64}
+{$ifdef cpux86_64}
     readBytesFromTable(L, 1, @ex[0], 10);
     extendedtodouble(@ex[0],v);
 {$else}

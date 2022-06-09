@@ -153,7 +153,7 @@ implementation
 
 uses
   luahandler, LuaByteTable, MainUnit, disassemblerviewunit,
-  hexviewunit, d3dhookUnit, luaclass, debuggertypedefinitions, memscan,
+  hexviewunit, d3dhookUnit, LuaClass, debuggertypedefinitions, memscan,
   symbolhandler, symbolhandlerstructs, menus, BreakpointTypeDef;
 
 resourcestring
