@@ -12174,7 +12174,20 @@ begin
                   description:='no operation';
                   lastdisassembledata.opcode:='nop';
                   if prefixsize>0 then
-                    lastdisassembledata.parameters:=inttohexs(prefixsize+1,1);
+                  begin
+                    if RexPrefix<>0 then
+                    begin
+
+                      description:='Exchange '+ifthen(processhandler.is64bit,'R','E')+'AX with register';
+                      lastdisassembledata.opcode:='xchg';
+                      if rex_w then
+                        lastdisassembledata.parameters:=colorreg+'rax'+endcolor+','+rd(memory[0]-$90)
+                      else
+                        lastdisassembledata.parameters:=colorreg+'eax'+endcolor+','+rd(memory[0]-$90);
+                    end
+                    else
+                      lastdisassembledata.parameters:=inttohexs(prefixsize+1,1);
+                  end;
                 end;
 
           $91..$97:
