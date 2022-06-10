@@ -1421,7 +1421,8 @@ var i,j,k,l,e: integer;
     assembled: array of tassembled;
     x: ptruint;
     y,op,op2:dword;
-    ok1,ok2:boolean;
+    ok1:boolean=false;
+    ok2:boolean=false;
     loadbinary: array of record
       address: string; //string since it might be a label/alloc/define
       filename: string;
@@ -3256,7 +3257,7 @@ begin
         if (not SystemSupportsWritableExecutableMemory) or (allocs[i].protection<>PAGE_EXECUTE_READWRITE) then
           VirtualProtectEx(processhandle, pointer(allocs[i].address), allocs[i].size, allocs[i].protection,protection);
       end;
-
+    end;
 
     {$ifdef windows}
     {$ifndef net}
@@ -3818,7 +3819,7 @@ begin
         ok2:=false;
     end;
     {$endif}
-    end;
+
 
     //handle the unhandled createthreadandwait blocks
     for i:=0 to length(createthreadandwait)-1 do
