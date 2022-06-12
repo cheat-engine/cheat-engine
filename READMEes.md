@@ -53,6 +53,6 @@ Si deseas contribuir:
   1. Fork el repositorio en GitHub.
   2. Cree una rama para sus cambios.
       * A Lazarus le gusta hacer cambios en los archivos cuando los abre o mueve algo, así que asegúrese de realizar solo los cambios necesarios para lo que está tratando de lograr.
-  3. Empuje su rama a sufork personal.
+  3. Empuje su rama a su fork personal.
   4. Vaya al repositorio original de Cheat Engine y cree un 'Pull request'
       * Haga clic en `compare across forks` y seleccione su bifurcación como la bifurcación principal y su nueva rama.
