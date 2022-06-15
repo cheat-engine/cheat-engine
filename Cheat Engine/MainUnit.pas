@@ -4728,9 +4728,10 @@ begin
     with assemblescreen.Lines do
     begin
       Add('--Note: keep the function base name unique.');
-      Add('typename="' + n + '" --shown as the typename in ce');
-      Add('bytecount=4  --number of bytes of this type');
-      Add('functionbasename="' + fbn + '"');
+      Add('local typename="' + n + '" --shown as the typename in ce');
+      Add('local bytecount=4  --number of bytes of this type');
+      Add('local functionbasename="' + fbn + '"');
+      Add('local usesfloat=false');
       Add('');
       Add('function ' + fbn + '_bytestovalue(b1,b2,b3,b4,address)');
       Add('--Add extra byte parameters as required');
@@ -4744,7 +4745,7 @@ begin
       Add('return 0,0,0,0');
       Add('');
       Add('end');
-      Add('return typename,bytecount,functionbasename');
+      Add('return typename, bytecount, functionbasename, usesfloat');
     end;
     Show;
 

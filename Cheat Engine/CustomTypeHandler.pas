@@ -603,15 +603,18 @@ begin
         if lua_dostring(luavm, pchar(script))=0 then //success, lua script loaded
         begin
           returncount:=lua_gettop(luavm);
-          if returncount<>3 then
+          if returncount<3 then
             raise TCustomTypeException.create(rsOnlyReturnTypenameBytecountAndFunctiontypename);
 
-          //-1=functiontypename
-          //-2=bytecount
-          //-3=typename
-          ftn:=lua.lua_tostring(luavm,-1);
-          bytesize:=lua_tointeger(luavm,-2);
-          tn:=lua.lua_tostring(luavm,-3);
+
+          tn:=lua.lua_tostring(luavm,1);
+          bytesize:=lua_tointeger(luavm,2);
+          ftn:=lua.lua_tostring(luavm,3);
+
+          if returncount>=4 then
+            fScriptUsesFloat:=lua.lua_toboolean(luavm,4);
+
+
 
           if bytesize=0 then raise TCustomTypeException.create(rsBytesizeIs0);
           if ftn=nil then raise TCustomTypeException.create(rsInvalidFunctiontypename);
