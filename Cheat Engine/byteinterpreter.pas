@@ -190,6 +190,9 @@ begin
           try
             if ReadProcessMemory(processhandle, pointer(address), ba, customtype.bytesize, x) then
             begin
+              if customtype.scriptUsesString then
+                customtype.ConvertStringToData(pchar(value), ba, address)
+              else
               if customtype.scriptUsesFloat then
                 customtype.ConvertFloatToData(s, ba, address)
               else
@@ -370,14 +373,21 @@ begin
     begin
       if customtype<>nil then
       begin
-        if showashexadecimal and (customtype.scriptUsesFloat=false) then
-          result:=inttohex(customtype.ConvertDataToInteger(buf, address),8)
+        if customtype.scriptUsesString then
+        begin
+          result:=customtype.ConvertDataToString(buf, address);
+        end
         else
         begin
-          if customtype.scriptUsesFloat then
-            result:=FloatToStr(customtype.ConvertDataToFloat(buf, address))
+          if showashexadecimal and (customtype.scriptUsesFloat=false) then
+            result:=inttohex(customtype.ConvertDataToInteger(buf, address),8)
           else
-            result:=IntToStr(customtype.ConvertDataToInteger(buf, address));
+          begin
+            if customtype.scriptUsesFloat then
+              result:=FloatToStr(customtype.ConvertDataToFloat(buf, address))
+            else
+              result:=IntToStr(customtype.ConvertDataToInteger(buf, address));
+          end;
         end;
       end;
     end;
@@ -826,6 +836,8 @@ begin
       //not human readable, see if there is a custom type that IS human readable
       for i:=0 to customTypes.count-1 do
       begin
+        if TCustomType(customtypes[i]).scriptUsesString then continue
+        else
         if TCustomType(customtypes[i]).scriptUsesFloat then
         begin
           //float check

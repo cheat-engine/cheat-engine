@@ -391,6 +391,8 @@ type
     function CaseSensitiveUnicodeStringExact(newvalue,oldvalue: pointer):boolean;
     function CaseInsensitiveUnicodeStringExact(newvalue,oldvalue: pointer):boolean;
 
+    function CustomCaseSensitiveAnsiStringExact(newvalue,oldvalue: pointer):boolean;
+    function CustomCaseInsensitiveAnsiStringExact(newvalue,oldvalue: pointer):boolean;
 
 
     //save macthing address routines:
@@ -984,6 +986,7 @@ function TGroupData.compareblock(newvalue,oldvalue: pointer): boolean;
 //ordered scan
 var i: integer;
   f: single;
+  s: string;
 begin
   result:=true;
   for i:=0 to groupdatalength-1 do
@@ -1062,6 +1065,12 @@ begin
 
       vtCustom:
       begin
+        if groupdata[i].customType.scriptUsesString then
+        begin
+          s:=groupdata[i].customtype.ConvertDataToString(newvalue, fscanner.currentAddress);
+          result:=groupdata[i].wildcard or testString(pchar(s), @groupdata[i].value[1]);
+        end
+        else
         if groupdata[i].customType.scriptUsesFloat then
         begin
           f:=groupdata[i].customType.ConvertDataToFloat(newvalue, fscanner.currentAddress);
@@ -1543,7 +1552,9 @@ begin
           if outoforder_aligned then //adjust currentoffset to be aligned on the current type alignment
             currentoffset:=(currentoffset+3) and $fffffffc;
 
-
+          if groupdata[i].customtype.scriptUsesString then
+            result:=stringscan(pchar(groupdata[i].customtype.ConvertDataToString(newvalue, currentoffset)), newvalue, currentoffset)
+          else
           if groupdata[i].customtype.scriptUsesFloat then
             result:=CustomScanFloat(groupdata[i].customtype, groupdata[i].minfvalue, groupdata[i].maxfvalue, newvalue, currentoffset)
           else
@@ -1598,7 +1609,9 @@ begin
     for j:=0 to customtypecount-1 do
     begin
       customtype:=tcustomtype(customTypes[j]);
-
+      if customtype.scriptUsesString then
+        customtypesmatch[j]:=false
+      else
       if customtype.scriptUsesFloat then
         customtypesmatch[j]:=customtypesmatch[j] and (CustomFloatExact(newvalue,oldvalue) xor inverseScan)
       else
@@ -1643,7 +1656,9 @@ begin
     for j:=0 to customtypecount-1 do
     begin
       customtype:=tcustomtype(customTypes[j]);
-
+      if customtype.scriptUsesString then
+        customtypesmatch[j]:=false
+      else
       if customtype.scriptUsesFloat then
         customtypesmatch[j]:=customtypesmatch[j] and (CustomFloatLuaFormula(newvalue,oldvalue) xor inverseScan)
       else
@@ -1688,7 +1703,9 @@ begin
     for j:=0 to customtypecount-1 do
     begin
       customtype:=tcustomtype(customTypes[j]);
-
+      if customtype.scriptUsesString then
+        customtypesmatch[j]:=false
+      else
       if customtype.scriptUsesFloat then
         customtypesmatch[j]:=customtypesmatch[j] and (CustomFloatBetween(newvalue,oldvalue) xor inverseScan)
       else
@@ -1732,7 +1749,9 @@ begin
     for j:=0 to customtypecount-1 do
     begin
       customtype:=tcustomtype(customTypes[j]);
-
+      if customtype.scriptUsesString then
+        customtypesmatch[j]:=false
+      else
       if customtype.scriptUsesFloat then
         customtypesmatch[j]:=customtypesmatch[j] and (CustomFloatBetween(newvalue,oldvalue) xor inverseScan)
       else
@@ -1776,7 +1795,9 @@ begin
     for j:=0 to customtypecount-1 do
     begin
       customtype:=tcustomtype(customTypes[j]);
-
+      if customtype.scriptUsesString then
+        customtypesmatch[j]:=false
+      else
       if customtype.scriptUsesFloat then
         customtypesmatch[j]:=customtypesmatch[j] and (CustomFloatBetweenPercentage(newvalue,oldvalue) xor inverseScan)
       else
@@ -1820,6 +1841,9 @@ begin
     for j:=0 to customtypecount-1 do
     begin
       customtype:=tcustomtype(customTypes[j]);
+      if customtype.scriptUsesString then
+        customtypesmatch[j]:=false
+      else
       if customtype.scriptUsesFloat then
         customtypesmatch[j]:=customtypesmatch[j] and (CustomFloatBiggerThan(newvalue,oldvalue) xor inverseScan)
       else
@@ -1863,6 +1887,9 @@ begin
     for j:=0 to customtypecount-1 do
     begin
       customtype:=tcustomtype(customTypes[j]);
+      if customtype.scriptUsesString then
+        customtypesmatch[j]:=false
+      else
       if customtype.scriptUsesFloat then
         customtypesmatch[j]:=customtypesmatch[j] and (CustomFloatSmallerThan(newvalue,oldvalue) xor inverseScan)
       else
@@ -1906,6 +1933,9 @@ begin
     for j:=0 to customtypecount-1 do
     begin
       customtype:=tcustomtype(customTypes[j]);
+      if customtype.scriptUsesString then
+        customtypesmatch[j]:=false
+      else
       if customtype.scriptUsesFloat then
         customtypesmatch[j]:=customtypesmatch[j] and (CustomFloatIncreasedValue(newvalue,oldvalue) xor inverseScan)
       else
@@ -1949,6 +1979,9 @@ begin
     for j:=0 to customtypecount-1 do
     begin
       customtype:=tcustomtype(customTypes[j]);
+      if customtype.scriptUsesString then
+        customtypesmatch[j]:=false
+      else
       if customtype.scriptUsesFloat then
         customtypesmatch[j]:=customtypesmatch[j] and (CustomFloatIncreasedValueBy(newvalue,oldvalue) xor inverseScan)
       else
@@ -1992,6 +2025,9 @@ begin
     for j:=0 to customtypecount-1 do
     begin
       customtype:=tcustomtype(customTypes[j]);
+      if customtype.scriptUsesString then
+        customtypesmatch[j]:=false
+      else
       if customtype.scriptUsesFloat then
         customtypesmatch[j]:=customtypesmatch[j] and (CustomFloatIncreasedValueByPercentage(newvalue,oldvalue) xor inverseScan)
       else
@@ -2036,6 +2072,9 @@ begin
     for j:=0 to customtypecount-1 do
     begin
       customtype:=tcustomtype(customTypes[j]);
+      if customtype.scriptUsesString then
+        customtypesmatch[j]:=false
+      else
       if customtype.scriptUsesFloat then
         customtypesmatch[j]:=customtypesmatch[j] and (CustomFloatDecreasedValue(newvalue,oldvalue) xor inverseScan)
       else
@@ -2079,6 +2118,9 @@ begin
     for j:=0 to customtypecount-1 do
     begin
       customtype:=tcustomtype(customTypes[j]);
+      if customtype.scriptUsesString then
+        customtypesmatch[j]:=false
+      else
       if customtype.scriptUsesFloat then
         customtypesmatch[j]:=customtypesmatch[j] and (CustomFloatDecreasedValueBy(newvalue,oldvalue) xor inverseScan)
       else
@@ -2122,6 +2164,9 @@ begin
     for j:=0 to customtypecount-1 do
     begin
       customtype:=tcustomtype(customTypes[j]);
+      if customtype.scriptUsesString then
+        customtypesmatch[j]:=false
+      else
       if customtype.scriptUsesFloat then
         customtypesmatch[j]:=customtypesmatch[j] and (CustomFloatDecreasedValueByPercentage(newvalue,oldvalue) xor inverseScan)
       else
@@ -2165,6 +2210,9 @@ begin
     for j:=0 to customtypecount-1 do
     begin
       customtype:=tcustomtype(customTypes[j]);
+      if customtype.scriptUsesString then
+        customtypesmatch[j]:=false
+      else
       if customtype.scriptUsesFloat then
         customtypesmatch[j]:=customtypesmatch[j] and (CustomFloatChanged(newvalue,oldvalue) xor inverseScan)
       else
@@ -2208,6 +2256,9 @@ begin
     for j:=0 to customtypecount-1 do
     begin
       customtype:=tcustomtype(customTypes[j]);
+      if customtype.scriptUsesString then
+        customtypesmatch[j]:=false
+      else
       if customtype.scriptUsesFloat then
         customtypesmatch[j]:=customtypesmatch[j] and (CustomFloatUnchanged(newvalue,oldvalue) xor inverseScan)
       else
@@ -2231,6 +2282,18 @@ begin
         result:=true;
         exit;
       end;
+end;
+
+
+function TScanner.CustomCaseSensitiveAnsiStringExact(newvalue,oldvalue: pointer):boolean;
+begin
+  result:=customType.ConvertDataToString(newvalue, currentAddress)=scanvalue1;
+end;
+
+function TScanner.CustomCaseInsensitiveAnsiStringExact(newvalue,oldvalue: pointer):boolean;
+begin
+  //scanvalue1 has already been converted to uppercase in config
+  result:=uppercase(customType.ConvertDataToString(newvalue, currentAddress))=scanvalue1;
 end;
 
 function TScanner.CaseSensitiveAnsiStringExact(newvalue,oldvalue: pointer):boolean;
@@ -5112,7 +5175,17 @@ begin
 
       StoreResultRoutine:=GenericSaveResult;
 
-
+      if customType.scriptUsesString then
+      begin
+        case scanOption of
+          soExactValue:
+          begin
+            if casesensitive then CheckRoutine:=CustomCaseSensitiveAnsiStringExact;
+            if not casesensitive then CheckRoutine:=CustomCaseInsensitiveAnsiStringExact;
+          end;
+        end;
+      end
+      else
       if customType.scriptUsesFloat then
       begin
         case scanOption of

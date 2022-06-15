@@ -4732,6 +4732,7 @@ begin
       Add('local bytecount=4  --number of bytes of this type');
       Add('local functionbasename="' + fbn + '"');
       Add('local usesfloat=false');
+      Add('local usesstring=false');
       Add('');
       Add('function ' + fbn + '_bytestovalue(b1,b2,b3,b4,address)');
       Add('--Add extra byte parameters as required');
@@ -4745,7 +4746,7 @@ begin
       Add('return 0,0,0,0');
       Add('');
       Add('end');
-      Add('return typename, bytecount, functionbasename, usesfloat');
+      Add('return typename, bytecount, functionbasename, usesfloat, usesstring');
     end;
     Show;
 
@@ -4775,6 +4776,8 @@ begin
       Add('alloc(TypeName,256)');
       Add('alloc(ByteSize,4)');
       Add('alloc(UsesFloat,1)');
+      Add('alloc(UsesString,1)');
+      Add('alloc(MaxStringSize,2)');
       Add('alloc(CallMethod,1)');
       Add('');
       Add('TypeName:');
@@ -4785,6 +4788,12 @@ begin
       Add('');
       Add('UsesFloat:');
       Add('db 0 //Change to 1 if this custom type should be treated as a float');
+      Add('');
+      Add('UsesString:');
+      Add('db 0');
+      Add('');
+      Add('MaxStringSize:');
+      Add('dw #100');
       Add('');
       Add('CallMethod:');
       Add('db 1 //Remove or change to 0 for legacy call mechanism');

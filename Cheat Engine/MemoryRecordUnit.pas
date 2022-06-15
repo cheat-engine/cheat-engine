@@ -2265,6 +2265,7 @@ begin
         end
         else
         begin
+          if (VarType=vtCustom) and (customtype.scriptUsesString) then exit;
           oldvalue:=StrToQWordEx(getvalue);
           increasevalue:=StrToQWordEx(value);
           setvalue(IntToStr(oldvalue+increasevalue));
@@ -2303,6 +2304,7 @@ begin
         end
         else
         begin
+          if (VarType=vtCustom) and (customtype.scriptUsesString) then exit;
           oldvalue:=StrToQWordEx(getvalue);
           decreasevalue:=StrToQWordEx(value);
           setvalue(IntToStr(oldvalue-decreasevalue));
@@ -3060,6 +3062,11 @@ begin
       begin
         if fcustomtype<>nil then
         begin
+          if fCustomType.scriptUsesString then
+          begin
+            result:=fCustomType.ConvertDataToString(buf, realaddress);
+          end
+          else
           if fcustomtype.scriptUsesFloat then
           begin
             if ShowAsHex then  //so stupid, but whatever
@@ -3427,6 +3434,11 @@ begin
       begin
         if fcustomtype<>nil then
         Begin
+          if fcustomtype.scriptUsesString then
+          begin
+            fCustomType.ConvertStringToData(pchar(v), pb, RealAddress); //utf8 format
+          end
+          else
           if fcustomtype.scriptUsesFloat then
           begin
             if not fShowAsHex then
