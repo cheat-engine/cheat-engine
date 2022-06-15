@@ -74,6 +74,7 @@ type
     procedure setValueFromBase(baseaddress: ptruint; value: string);
     {$ifdef NESTEDSTRUCTURES}
     procedure setNestedStructure(state: boolean);
+    function getNestedStructure: boolean;
     {$endif}
     function isPointer: boolean;
     function getChildStruct: TDissectedStruct;
@@ -100,7 +101,7 @@ type
     property parent: TDissectedStruct read getParent;
     property ExpandChangesAddress: boolean read fExpandChangesAddress write fExpandChangesAddress;
     {$ifdef NESTEDSTRUCTURES}
-    property NestedStructure: boolean read fNestedStructure write setNestedStructure;
+    property NestedStructure: boolean read getNestedStructure write setNestedStructure;
     {$endif}
   end;
 
@@ -1187,6 +1188,12 @@ begin
   fNestedStructure:=state;
   parent.DoElementChangeNotification(self);
 end;
+
+function TStructelement.getNestedStructure: boolean;
+begin
+  result:=fNestedStructure and (vartype=vtPointer);
+end;
+
 {$endif}
 
 function TStructelement.isPointer: boolean;

@@ -5,12 +5,15 @@ unit frmStructures2ElementInfoUnit;
 interface
 
 uses
-  Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls,
+  {$ifdef windows}windows,{$endif}Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls,
   ExtCtrls, cefuncproc, StructuresFrm2, vartypestrings, math, CustomTypeHandler, commonTypeDefs, betterControls;
 
 resourcestring
   rsS2EILocalStruct = 'Local struct:';
   rsS2EIIfYouContinueTheOldLocallyDefinedType = 'If you continue the old locally defined type %s will be deleted. Continue? (Tip: You can make this type into a global type so it can be re-used over again)';
+  rsUndefined = 'Undefined';
+  rsMustSelectStructure = 'For a nested structure you must select a predefined'
+    +' structure';
 type
 
   { TfrmStructures2ElementInfo }
@@ -48,6 +51,7 @@ type
     procedure edtDescriptionChange(Sender: TObject);
     procedure edtOffsetChange(Sender: TObject);
     procedure FormCreate(Sender: TObject);
+    procedure FormShow(Sender: TObject);
     procedure pnlBackgroundClick(Sender: TObject);
   private
     { private declarations }
@@ -348,9 +352,8 @@ var i: integer;
 begin
   pnlBackground.color:=clWindow;
 
-  while cbStructType.items.count>1 do
-    cbStructType.Items.Delete(1);
-
+  cbStructType.Items.Clear;
+  cbStructType.items.add(rsUndefined);
 
   //fill the type combobox (for translations)
 
@@ -379,6 +382,23 @@ begin
   cbtype.items.EndUpdate;
 
   cbType.dropdowncount:=min(16, cbType.items.count);
+end;
+
+procedure TfrmStructures2ElementInfo.FormShow(Sender: TObject);
+{$ifdef windows}
+var
+  i, maxwidth: integer;
+{$endif}
+begin
+  {$ifdef windows}
+  maxwidth:=cbStructType.width;
+  for i:=0 to cbStructType.items.count-1 do
+    maxwidth:=max(maxwidth, cbStructType.Canvas.TextWidth(cbStructType.items[i]));
+
+
+
+  SendMessage(cbStructType.Handle, CB_SETDROPPEDWIDTH, maxwidth+10, 0);
+  {$endif}
 end;
 
 procedure TfrmStructures2ElementInfo.pnlBackgroundClick(Sender: TObject);
@@ -480,12 +500,47 @@ begin
 end;
 
 procedure TfrmStructures2ElementInfo.cbNestedStructureChange(Sender: TObject);
+var selected: integer;
 begin
+  {$ifdef NESTEDSTRUCTURES}
   ChangedVartype:=true;
+
+  if cbNestedStructure.checked then
+  begin
+    cbExpandChangesAddress.enabled:=false;
+    cbExpandChangesAddress.checked:=false;
+
+
+    if (cbStructType.Items.count>0) and (cbStructType.Items[0]=rsUndefined) then
+    begin
+      selected:=cbStructType.itemindex;
+      cbStructType.Items.Delete(0);
+      if selected=0 then
+      begin
+        cbStructType.itemindex:=-1;
+        cbStructType.Refresh;
+      end;
+    end;
+  end
+  else
+  begin
+    if (cbStructType.Items.count=0) or (cbStructType.Items[0]<>rsUndefined) then
+      cbStructType.Items.Insert(0, rsUndefined);
+
+    cbExpandChangesAddress.enabled:=true;
+  end;
+
+  {$endif}
 end;
 
 procedure TfrmStructures2ElementInfo.Button1Click(Sender: TObject);
 begin
+  if cbStructType.itemindex=-1 then
+  begin
+    MessageDlg(rsMustSelectStructure, mtError, [mbok],0);
+    exit;
+  end;
+
   if (localChild<>nil) and (localchild<>getChildStruct) then
     if MessageDlg(format(rsS2EIIfYouContinueTheOldLocallyDefinedType,[localChild.name]), mtWarning, [mbyes, mbno], 0)<>mryes then exit;
 
@@ -504,7 +559,7 @@ end;
 procedure TfrmStructures2ElementInfo.cbStructTypeChange(Sender: TObject);
 begin
   ChangedChildStruct:=true;
-  cbExpandChangesAddress.enabled:=cbStructType.ItemIndex>=1;
+  cbExpandChangesAddress.enabled:=(not cbNestedStructure.checked) and (cbStructType.ItemIndex>=1);
 
   if cbExpandChangesAddress.enabled=false then
     cbExpandChangesAddress.checked:=false;

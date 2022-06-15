@@ -9,6 +9,7 @@ object frmStructures2ElementInfo: TfrmStructures2ElementInfo
   ClientHeight = 299
   ClientWidth = 314
   OnCreate = FormCreate
+  OnShow = FormShow
   Position = poScreenCenter
   LCLVersion = '2.2.2.0'
   object Label1: TLabel
@@ -305,6 +306,7 @@ object frmStructures2ElementInfo: TfrmStructures2ElementInfo
   object cbNestedStructure: TCheckBox
     AnchorSideLeft.Control = cbSigned
     AnchorSideLeft.Side = asrBottom
+    AnchorSideTop.Control = cbSigned
     Left = 181
     Height = 19
     Top = 130
