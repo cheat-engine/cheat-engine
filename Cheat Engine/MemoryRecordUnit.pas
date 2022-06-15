@@ -1574,7 +1574,7 @@ begin
 
         if tempnode.ChildNodes[i].NodeName='Hotkey' then
         begin
-          a:=tempnode.Attributes.GetNamedItem('OnlyWhileDown');
+          a:=tempnode.ChildNodes[i].Attributes.GetNamedItem('OnlyWhileDown');
           if (a<>nil) then
             hk.OnlyWhileDown:=a.TextContent='1';
 
