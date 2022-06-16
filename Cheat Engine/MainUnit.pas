@@ -1327,6 +1327,21 @@ resourcestring
   rsPreviousValueList = 'Previous value list';
   rsSelectTheSavedResult = 'Select the saved results you wish to use';
 
+const
+  VARTYPE_INDEX_BINARY=0;
+  VARTYPE_INDEX_BYTE=1;
+  VARTYPE_INDEX_WORD=2;
+  VARTYPE_INDEX_DWORD=3;
+  VARTYPE_INDEX_QWORD=4;
+  VARTYPE_INDEX_SINGLE=5;
+  VARTYPE_INDEX_DOUBLE=6;
+  VARTYPE_INDEX_TEXT=7;
+  VARTYPE_INDEX_AOB=8;
+  VARTYPE_INDEX_ALL=9;
+  VARTYPE_INDEX_GROUPED=10;
+  VARTYPE_INDEX_CUSTOMBASE=11;
+
+
 var
   ncol: TColor;
 
@@ -2528,6 +2543,7 @@ begin
   old2 := scantype.OnSelect;
   scantype.OnChange := nil;
   scantype.OnSelect := nil;
+  ct:=TCustomtype(vartype.Items.Objects[vartype.itemindex]);
 
   try
     OldIndex := Scantype.ItemIndex;
@@ -2539,59 +2555,73 @@ begin
 
     ScanText.Caption := strScantextcaptiontoValue;
 
-    if (varType.ItemIndex in [1, 2, 3, 4, 5, 6, 9,10]) or (vartype.ItemIndex >= 11) then
+
+
+    if (varType.ItemIndex in [VARTYPE_INDEX_BYTE, VARTYPE_INDEX_WORD, VARTYPE_INDEX_DWORD, VARTYPE_INDEX_QWORD,
+                              VARTYPE_INDEX_SINGLE, VARTYPE_INDEX_DOUBLE, VARTYPE_INDEX_ALL,VARTYPE_INDEX_GROUPED]) or
+       (vartype.ItemIndex >= VARTYPE_INDEX_CUSTOMBASE) then
       //byte-word-dword--8bytes-float-double-all   - custom
     begin
-
-      if (vartype.ItemIndex in [5, 6, 9, 10]) or (vartype.ItemIndex >= 11) then //float/all/grouped, custom
+      if (ct<>nil) and ct.scriptUsesString then
       begin
-        ct:=TCustomtype(vartype.Items.Objects[vartype.itemindex]);
-        if (ct=nil) or (ct.scriptUsesFloat) then
-        begin
-          //handle as a float value
-          if oldindex = 0 then
-            floatvis := True;
-
-          if vartype.ItemIndex <> 9 then
-            hexvis := False;
-        end;
-      end;
-
-      ScanType.Items.Add(strExactValue);
-      ScanType.Items.Add(strBiggerThan);
-      ScanType.Items.Add(strsmallerThan);
-      ScanType.Items.Add(strValueBetween);
-
-      if btnNextScan.Enabled then
-      begin
-        scantype.Items.Add(strIncreasedValue);
-        Scantype.Items.Add(strIncreasedValueBy);
-        ScanType.Items.Add(strDecreasedValue);
-        ScanType.Items.Add(strDecreasedValueBy);
-        ScanType.Items.add(strChangedValue);
-        ScanType.Items.Add(strUnchangedValue);
-        ScanType.Items.Add(strIgnoreValue);
-
-
-        cbCompareToSavedScan.visible:=true;
-        t:=tstringlist.create;
-        if memscan.getsavedresults(t)>1 then
-          cbCompareToSavedScan.caption:=rsCompareToSavedScan
-        else
-          cbCompareToSavedScan.caption:=strCompareToFirstScan;
-
-        t.free;
+        //same as stringscan
+        ScanText.Caption := strScanTextCaptionToText;
+        ScanType.Items.Add(strSearchForText);
+        hexvis := False;
       end
       else
       begin
-        ScanType.Items.Add(strUnknownInitialValue);
 
+        if (vartype.ItemIndex in [VARTYPE_INDEX_SINGLE, VARTYPE_INDEX_DOUBLE, VARTYPE_INDEX_ALL, VARTYPE_INDEX_GROUPED]) or (vartype.ItemIndex >= VARTYPE_INDEX_CUSTOMBASE) then //float/all/grouped, custom
+        begin
+
+          if (ct=nil) or (ct.scriptUsesFloat) then
+          begin
+            //handle as a float value
+            if oldindex = 0 then
+              floatvis := True;
+
+            if vartype.ItemIndex <> VARTYPE_INDEX_ALL then
+              hexvis := False;
+          end;
+        end;
+
+        ScanType.Items.Add(strExactValue);
+        ScanType.Items.Add(strBiggerThan);
+        ScanType.Items.Add(strsmallerThan);
+        ScanType.Items.Add(strValueBetween);
+
+        if btnNextScan.Enabled then
+        begin
+          scantype.Items.Add(strIncreasedValue);
+          Scantype.Items.Add(strIncreasedValueBy);
+          ScanType.Items.Add(strDecreasedValue);
+          ScanType.Items.Add(strDecreasedValueBy);
+          ScanType.Items.add(strChangedValue);
+          ScanType.Items.Add(strUnchangedValue);
+          ScanType.Items.Add(strIgnoreValue);
+
+
+          cbCompareToSavedScan.visible:=true;
+          t:=tstringlist.create;
+          if memscan.getsavedresults(t)>1 then
+            cbCompareToSavedScan.caption:=rsCompareToSavedScan
+          else
+            cbCompareToSavedScan.caption:=strCompareToFirstScan;
+
+          t.free;
+        end
+        else
+        begin
+          ScanType.Items.Add(strUnknownInitialValue);
+
+        end;
       end;
-
     end
     else
+
       case varType.ItemIndex of
-        0:
+        VARTYPE_INDEX_BINARY:
         begin
           ScanType.Items.Add(strExact);
 
@@ -2599,7 +2629,7 @@ begin
 
 
 
-        7:
+        VARTYPE_INDEX_TEXT:
         begin  //text
           ScanText.Caption := strScanTextCaptionToText;
           ScanType.Items.Add(strSearchForText);
@@ -2608,7 +2638,7 @@ begin
           hexvis := False;
         end;
 
-        8:
+        VARTYPE_INDEX_AOB:
         begin  //array of bytes
           ScanText.Caption := vartype.Items[8];
           ScanType.Items.Add(strSearchforarray);
@@ -2659,7 +2689,7 @@ begin
       Scanvalue.Visible := True;
       cbHexadecimal.Visible := hexvis;
 
-      cbNot.Visible:=not (vartype.itemindex in [0,7,8,10]);
+      cbNot.Visible:=not ((vartype.itemindex in [VARTYPE_INDEX_BINARY,VARTYPE_INDEX_TEXT,VARTYPE_INDEX_AOB,VARTYPE_INDEX_GROUPED]) or ((ct<>nil) and ct.scriptUsesString ));
     end;
 
     pnlfloat.Visible := floatvis;
@@ -2688,7 +2718,7 @@ begin
 
     cbRepeatUntilStopped.visible:=GetScanType=soUnchanged;
 
-    cbLuaFormula.visible:=(GetScanType=soExactValue) and (getVarType in [vtByte, vtWord, vtDword, vtQword, vtSingle, vtDouble, vtCustom, vtAll]);
+    cbLuaFormula.visible:=(GetScanType=soExactValue) and (getVarType in [vtByte, vtWord, vtDword, vtQword, vtSingle, vtDouble, vtCustom, vtAll]) and ((ct=nil) or (ct.scriptUsesString=false));
     cbNewLuaState.visible:=cbLuaFormula.checked;
   finally
     scantype.OnChange := old;
@@ -6866,7 +6896,7 @@ var
   washex: boolean;
   oldvalue: string;
 
-
+  ct: TCustomType;
 begin
   //todo: rewrite this
   oldscantype := scantype.ItemIndex;
@@ -6887,22 +6917,22 @@ begin
   casevis := False;
 
   decbitvis := False;
+  ct:=TCustomType(vartype.Items.Objects[vartype.ItemIndex]);
 
   if rbFsmAligned.Checked and (not alignsizechangedbyuser) then
   begin
-    if vartype.Items.Objects[vartype.ItemIndex] <> nil then
+    if ct <> nil then
     begin
       //custom type is ALWAYS the decider
       if rbFsmAligned.Checked then
-        edtAlignment.Text := inttohex(
-          TCustomType(vartype.Items.Objects[vartype.ItemIndex]).preferedAlignment, 1);
+        edtAlignment.Text := inttohex(ct.preferedAlignment, 1);
     end
     else
     begin
       try
         case newvartype of
-          0, 1, 7, 8, 9: alignsize := 1; //byte, aob, string
-          2: alignsize := 2; //word
+          VARTYPE_INDEX_BINARY, VARTYPE_INDEX_BYTE, VARTYPE_INDEX_TEXT, VARTYPE_INDEX_AOB, VARTYPE_INDEX_ALL: alignsize := 1; //byte, aob, string
+          VARTYPE_INDEX_WORD: alignsize := 2; //word
           else
             alignsize := 4; //dword, float, single, etc...
         end;
@@ -6924,17 +6954,34 @@ begin
     exact_value, Advanced_Scan]) then
     scantype.ItemIndex := 0;
 
-  if (newvartype in [1, 2, 3, 4, 9]) or (newvartype >= 11) then //if normal or custom type
+
+
+  if (newvartype in [VARTYPE_INDEX_BYTE, VARTYPE_INDEX_WORD, VARTYPE_INDEX_DWORD, VARTYPE_INDEX_QWORD, VARTYPE_INDEX_ALL]) or (newvartype >= VARTYPE_INDEX_CUSTOMBASE) then //if normal or custom type
   begin
-    casevis := False;
-    hexvis := True;
-    scanvalue.MaxLength := 0;
-    cbHexadecimal.Enabled := btnNewScan.Enabled;
+    if (ct<>nil) and (ct.scriptUsesString) then
+    begin
+      scantype.ItemIndex := 0;
+      casevis := True;
+      if _oldvartype<>VARTYPE_INDEX_TEXT then
+        cbCasesensitive.Checked := True;
+
+      cbCasesensitive.ShowHint := False;
+      cbHexadecimal.Enabled := btnNewScan.Enabled;
+      hexvis := False;
+    end
+    else
+    begin
+      casevis := False;
+      hexvis := True;
+      scanvalue.MaxLength := 0;
+      cbHexadecimal.Enabled := btnNewScan.Enabled;
+    end;
     //cbHexadecimal.Checked:=hexstateForIntTypes;
   end
   else
+
     case newvartype of
-      0:
+      VARTYPE_INDEX_BINARY:
       begin //binary
         rbdec.Checked := True;
         cbHexadecimal.Checked := False;
@@ -6943,7 +6990,7 @@ begin
         Scantype.ItemIndex := 0;
       end;
 
-      5:
+      VARTYPE_INDEX_SINGLE:
       begin //float;
         casevis := False;
 
@@ -6952,7 +6999,7 @@ begin
         scanvalue.MaxLength := 0;
       end;
 
-      6:
+      VARTYPE_INDEX_DOUBLE:
       begin //double
         hexvis := False;
         temp := scanvalue.Text;
@@ -6963,25 +7010,21 @@ begin
         scanvalue.MaxLength := 0;
       end;
 
-      7:
+      VARTYPE_INDEX_TEXT:
       begin //text
         scantype.ItemIndex := 0;
         casevis := True;
-        if _oldvartype<>7 then
+        if _oldvartype<>VARTYPE_INDEX_TEXT then
           cbCasesensitive.Checked := True;
 
         cbCasesensitive.ShowHint := False;
         unicodevis := True;
 
-
-
         cbHexadecimal.Enabled := btnNewScan.Enabled;
-        //cbHexadecimal.checked:=cbCaseSensitive.checked;
         hexvis := False;
-        //hextext:='Unicode';
       end;
 
-      8:
+      VARTYPE_INDEX_AOB:
       begin  //array of byte
         scantype.ItemIndex := 0;
         scanvalue.MaxLength := 0;
@@ -10833,17 +10876,17 @@ end;
 function TMainForm.getVarType: TVariableType;
 begin
   case VarType.ItemIndex of
-    0: result:=vtBinary; //binary
-    1: result:=vtByte; //byte
-    2: result:=vtWord; //2 bytes
-    3: result:=vtDword; //4 bytes
-    4: result:=vtQword; //8 bytes
-    5: result:=vtSingle; //float
-    6: result:=vtDouble; //double
-    7: result:=vtString; //text
-    8: result:=vtByteArray; //array of byte
-    9: result:=vtAll; //all, only for new memscan
-    10: result:=vtGrouped; //grouped, only for memscan
+    VARTYPE_INDEX_BINARY: result:=vtBinary; //binary
+    VARTYPE_INDEX_BYTE: result:=vtByte; //byte
+    VARTYPE_INDEX_WORD: result:=vtWord; //2 bytes
+    VARTYPE_INDEX_DWORD: result:=vtDword; //4 bytes
+    VARTYPE_INDEX_QWORD: result:=vtQword; //8 bytes
+    VARTYPE_INDEX_SINGLE: result:=vtSingle; //float
+    VARTYPE_INDEX_DOUBLE: result:=vtDouble; //double
+    VARTYPE_INDEX_TEXT: result:=vtString; //text
+    VARTYPE_INDEX_AOB: result:=vtByteArray; //array of byte
+    VARTYPE_INDEX_ALL: result:=vtAll; //all, only for new memscan
+    VARTYPE_INDEX_GROUPED: result:=vtGrouped; //grouped, only for memscan
     else
       result:=vtCustom;
   end;
@@ -10854,17 +10897,17 @@ begin
   if vartype.enabled then
   begin
     case vt of
-      vtBinary: vartype.itemindex:=0;
-      vtByte: vartype.itemindex:=1;
-      vtWord: vartype.itemindex:=2;
-      vtDword: vartype.itemindex:=3;
-      vtQword: vartype.itemindex:=4;
-      vtSingle: vartype.itemindex:=5;
-      vtDouble: vartype.itemindex:=6;
-      vtString: vartype.itemindex:=7;
-      vtByteArray: vartype.itemindex:=8;
-      vtAll: vartype.itemindex:=9;
-      vtGrouped: vartype.itemindex:=10;
+      vtBinary: vartype.itemindex:=VARTYPE_INDEX_BINARY;
+      vtByte: vartype.itemindex:=VARTYPE_INDEX_BYTE;
+      vtWord: vartype.itemindex:=VARTYPE_INDEX_WORD;
+      vtDword: vartype.itemindex:=VARTYPE_INDEX_DWORD;
+      vtQword: vartype.itemindex:=VARTYPE_INDEX_QWORD;
+      vtSingle: vartype.itemindex:=VARTYPE_INDEX_SINGLE;
+      vtDouble: vartype.itemindex:=VARTYPE_INDEX_DOUBLE;
+      vtString: vartype.itemindex:=VARTYPE_INDEX_TEXT;
+      vtByteArray: vartype.itemindex:=VARTYPE_INDEX_AOB;
+      vtAll: vartype.itemindex:=VARTYPE_INDEX_ALL;
+      vtGrouped: vartype.itemindex:=VARTYPE_INDEX_GROUPED;
     end;
 
     vartype.OnChange(vartype);

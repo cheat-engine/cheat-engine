@@ -4441,9 +4441,15 @@ begin
     if scanvalue1='' then raise exception.Create(rsPleaseFillSomethingIn);
 
 
-    if (not luaformula) and (variableType in [vtByte,vtWord,vtDWord,vtQword,vtAll,vtCustom]) then
+    if (not luaformula) and
+       (variableType in [vtByte,vtWord,vtDWord,vtQword,vtAll,vtCustom]) and
+       ((variableType<>vtCustom) or (customType.scriptUsesString=false))
+
+
+    then
     begin
       //parse scanvalue1
+
 
       scanvalue1:=trim(scanvalue1);
       scanvalue2:=trim(scanvalue2);
@@ -4555,7 +4561,9 @@ begin
       end;
     end;
 
-    if (not luaformula) and (percentage or (variableType in [vtsingle,vtDouble,vtAll, vtCustom])) then
+    if (not luaformula) and (percentage or (variableType in [vtsingle,vtDouble,vtAll, vtCustom])) and
+       ((variableType<>vtCustom) or (customType.scriptUsesString=false))
+    then
     begin
       try
         if hexadecimal then
@@ -4673,11 +4681,9 @@ begin
 
     end;
                   
-    if variableType = vtString then
-    begin
-
+    if (variableType = vtString) or ((variabletype=vtCustom) and (customtype.scriptUsesString) ) then
       widescanvalue1:=UTF8ToUTF16(scanvalue1);
-    end;    
+
 
     nibbleSupport:=false;
     if variabletype = vtByteArray then
