@@ -95,6 +95,9 @@ type TDisassemblerview=class(TPanel)
     fCR3: qword;
     fCurrentDisassembler: TDisassembler;
 
+    fUseRelativeBase: boolean;
+    fRelativeBase: ptruint;
+
     procedure updateScrollbox;
     procedure scrollboxResize(Sender: TObject);
 
@@ -199,6 +202,9 @@ type TDisassemblerview=class(TPanel)
     property OnDisassemblerViewOverride: TDisassemblerViewOverrideCallback read fOnDisassemblerViewOverride write fOnDisassemblerViewOverride;
     property CR3: qword read fCR3 write setCR3;
     property CurrentDisassembler: TDisassembler read fCurrentDisassembler;
+
+    property RelativeBase: ptruint read fRelativeBase write fRelativeBase;
+    property UseRelativeBase: boolean read fUseRelativeBase write fUseRelativeBase;
 end;
 
 

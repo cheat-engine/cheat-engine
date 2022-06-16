@@ -47,6 +47,7 @@ type
     ESPlabel: TLabel;
     FSlabel: TLabel;
     GSlabel: TLabel;
+    miShowRelativeDisassembler: TMenuItem;
     miArchX86: TMenuItem;
     miArchArm: TMenuItem;
     miArchAutodetect: TMenuItem;
@@ -355,6 +356,7 @@ type
     procedure miDBVMFindoutwhataddressesthisinstructionaccessesClick(Sender: TObject);
     procedure MenuItem4Click(Sender: TObject);
     procedure miOpenInDissectDataClick(Sender: TObject);
+    procedure miShowRelativeDisassemblerClick(Sender: TObject);
     procedure miShowSectionAddressesClick(Sender: TObject);
     procedure miUndoLastEditClick(Sender: TObject);
     procedure miFollowInHexviewClick(Sender: TObject);
@@ -1345,6 +1347,27 @@ begin
     show;
   end;
 
+end;
+
+procedure TMemoryBrowser.miShowRelativeDisassemblerClick(Sender: TObject);
+begin
+  if miShowRelativeDisassembler.checked then
+  begin
+    if disassemblerview.SelectedAddress<>0 then
+    begin
+      disassemblerview.RelativeBase:=disassemblerview.SelectedAddress;
+      disassemblerview.UseRelativeBase:=true;
+    end
+    else
+    begin
+      disassemblerview.RelativeBase:=disassemblerview.TopAddress;
+      disassemblerview.UseRelativeBase:=true;
+    end;
+  end
+  else
+    disassemblerview.UseRelativeBase:=false;
+
+  disassemblerview.update;
 end;
 
 
