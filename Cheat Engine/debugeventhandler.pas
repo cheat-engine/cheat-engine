@@ -1815,6 +1815,7 @@ begin
       else
         dwContinueStatus:=DBG_CONTINUE;
 
+      setcontext;
     end;
 
     EXCEPTION_BREAKPOINT, STATUS_WX86_BREAKPOINT: //SW bp
@@ -2045,7 +2046,7 @@ begin
     begin
       if debugevent.CreateThread.hThread<>0 then
       begin
-        closehandle(debugevent.CreateThread.hThread);
+       // closehandle(debugevent.CreateThread.hThread); //not needed, windows controls this one
       end;
 
       if currentdebuggerinterface.controlsTheThreadList then
