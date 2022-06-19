@@ -459,8 +459,8 @@ var SymFromName: TSymFromName;
     SymGetOptions:function:dword;stdcall;
     SymCleanup:function(hProcess:THANDLE):BOOL;stdcall;
     SymEnumerateModules:function(hProcess:THANDLE; EnumModulesCallback:TSYM_ENUMMODULES_CALLBACK; UserContext:pointer):BOOL;stdcall;
-    SymEnumerateSymbols:function(hProcess:THANDLE; BaseOfDll:dword; EnumSymbolsCallback:TSYM_ENUMSYMBOLS_CALLBACK; UserContext:pointer):BOOL;stdcall;
-    SymGetModuleInfo:function(hProcess:THANDLE; dwAddr:dword; ModuleInfo:PIMAGEHLP_MODULE):BOOL;stdcall;
+    SymEnumerateSymbols:function(hProcess:THANDLE; BaseOfDll:qword; EnumSymbolsCallback:TSYM_ENUMSYMBOLS_CALLBACK; UserContext:pointer):BOOL;stdcall;
+    SymGetModuleInfo:function(hProcess:THANDLE; dwAddr:dword64; ModuleInfo:PIMAGEHLP_MODULE):BOOL;stdcall;
     SymInitialize:function(hProcess:THANDLE; UserSearchPath:PSTR; fInvadeProcess:BOOL):BOOL;stdcall;
 
 
@@ -834,7 +834,8 @@ var need:dword;
     count: integer;
     drivername: pchar;
     driverpath: string;
-    r: dword;
+   // r: dword;
+    base: dword64;
 
     modulename: pchar;
     modulelisttype: integer;
@@ -867,11 +868,11 @@ begin
             driverpath:=StringReplace(driverpath,'\SystemRoot\',systemroot,[rfIgnoreCase]);
 
             if assigned(SymLoadModuleEx) then
-              r:=SymLoadModuleEx(thisprocesshandle,0,pchar(driverpath),pchar(extractfilename(driverpath)),ptrUint(x[i]),0,nil,ifthen(loadpdb,0, SLMFLAG_NO_SYMBOLS))
+              base:=SymLoadModuleEx(thisprocesshandle,0,pchar(driverpath),pchar(extractfilename(driverpath)),ptrUint(x[i]),0,nil,ifthen(loadpdb,0, SLMFLAG_NO_SYMBOLS))
             else
             begin
               if assigned(SymLoadModule64) then
-                r:=SymLoadModule64(thisprocesshandle,0,pchar(driverpath),pchar(extractfilename(driverpath)),ptrUint(x[i]),0)
+                base:=SymLoadModule64(thisprocesshandle,0,pchar(driverpath),pchar(extractfilename(driverpath)),ptrUint(x[i]),0)
               else
                 exit;
             end;
@@ -6093,13 +6094,7 @@ var psa,dbghlp: THandle;
 begin
   symbolloaderthreadcs:=TCriticalSection.Create;
 
-  symhandler:=tsymhandler.create;
-  if selfsymhandler=nil then
-  begin
-    selfsymhandler:=Tsymhandler.create;
-    selfsymhandler.targetself:=true;
-    selfsymhandler.reinitialize;
-  end;
+
 
 
 {$ifdef windows}
@@ -6130,13 +6125,21 @@ begin
   SymGetOptions:=GetProcAddress(dbghlp,'SymGetOptions');
   SymCleanup:=GetProcAddress(dbghlp,'SymCleanup');
   SymEnumerateModules:=GetProcAddress(dbghlp,'SymEnumerateModules');
-  SymEnumerateSymbols:=GetProcAddress(dbghlp,'SymEnumerateSymbols');
-  SymGetModuleInfo:=GetProcAddress(dbghlp,'SymGetModuleInfo');
+  SymEnumerateSymbols:=GetProcAddress(dbghlp,'SymEnumerateSymbols64');
+  if not assigned(SymEnumerateSymbols) then
+    SymEnumerateSymbols:=GetProcAddress(dbghlp,'SymEnumerateSymbols');
+  SymGetModuleInfo:=GetProcAddress(dbghlp,'SymGetModuleInfo64');
+  if not assigned(SymGetModuleInfo) then
+    SymGetModuleInfo:=GetProcAddress(dbghlp,'SymGetModuleInfo');
   SymInitialize:=GetProcAddress(dbghlp,'SymInitialize');
 
 
   if not assigned(SymSetContext) then
     MessageBox(0,'No SymSetContext','SymSetContext Missing',MB_OK);
+
+  if not assigned(SymEnumerateModules64) then
+    MessageBox(0,'No SymEnumerateModules64','SymEnumerateModules64 Missing',MB_OK);
+
 
   UnDecorateSymbolName:=GetProcAddress(dbghlp,'UnDecorateSymbolName');
 
@@ -6149,6 +6152,15 @@ begin
   GetModuleFileNameEx:=GetProcAddress(psa,'GetModuleFileNameExA');
   if not assigned(EnumProcessModulesEx) then
     EnumProcessModulesEx:=EnumProcessModulesExNotImplemented;
+
+
+  symhandler:=tsymhandler.create;
+  if selfsymhandler=nil then
+  begin
+    selfsymhandler:=Tsymhandler.create;
+    selfsymhandler.targetself:=true;
+    selfsymhandler.reinitialize;
+  end;
 {$endif}
 end;
 
