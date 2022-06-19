@@ -6153,7 +6153,7 @@ begin
   if not assigned(EnumProcessModulesEx) then
     EnumProcessModulesEx:=EnumProcessModulesExNotImplemented;
 
-
+ {$endif}
   symhandler:=tsymhandler.create;
   if selfsymhandler=nil then
   begin
@@ -6161,7 +6161,7 @@ begin
     selfsymhandler.targetself:=true;
     selfsymhandler.reinitialize;
   end;
-{$endif}
+
 end;
 
 procedure initDatabasePath;  //just sets up the variable. Path creation will happen when needed (so trainers don't make it)
