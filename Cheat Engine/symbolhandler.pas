@@ -480,7 +480,7 @@ uses Assemblerunit, DriverList, LuaHandler, lualib, lua, lauxlib,
   disassemblerComments, StructuresFrm2, networkInterface, networkInterfaceApi,
   ProcessHandlerUnit, Globals, Parsers, MemoryQuery, LuaCaller,
   UnexpectedExceptionsHelper, frmSymbolEventTakingLongUnit, MainUnit, addresslist,
-  MemoryRecordUnit, mainunit2;
+  MemoryRecordUnit, mainunit2, BetterDLLSearchPath;
 {$endif}
 
 
@@ -1302,58 +1302,68 @@ var
   ExtraSymbolData: TExtraSymbolData;
 
 begin
-  self:=TSymbolloaderthread(UserContext);
-  if symbolsize>64*1024 then
-    symbolsize:=64*1024;
+  try
+    self:=TSymbolloaderthread(UserContext);
 
-  result:=true;
-  if pSymInfo.NameLen=0 then
-    exit;
+    if symbolsize>64*1024 then
+      symbolsize:=64*1024;
 
-
-  s:=pchar(@pSymInfo.Name);
-
+    result:=true;
+    if pSymInfo.NameLen=0 then
+      exit;
 
 
-  self.processThreadEvents;
+    s:=pchar(@pSymInfo.Name);
 
 
 
+    self.processThreadEvents;
 
 
-  if self.currentModuleIsNotStandard then
-    s:='_'+s;
-
-  if TSymTagEnum(pSymInfo.Tag)=SymTagFunction then
-  begin
-    extraSymbolData:=TExtraSymbolData.create;
-    self.symbollist.AddExtraSymbolData(extraSymbolData);
-
-    extraSymbolData.symboladdress:=pSymInfo.Address;
-    //fill the rest in later
-  end
-  else
-    extraSymbolData:=nil;
 
 
-  if (SYMFLAG_FORWARDER and pSymInfo.Flags)<>0 then
-  begin
-    extraSymbolData:=TExtraSymbolData.create;
-    self.symbollist.AddExtraSymbolData(extraSymbolData);
-    extraSymbolData.symboladdress:=pSymInfo.Address;
-    extraSymbolData.forwarder:=true;
+
+    if self.currentModuleIsNotStandard then
+      s:='_'+s;
+
+    if TSymTagEnum(pSymInfo.Tag)=SymTagFunction then
+    begin
+      extraSymbolData:=TExtraSymbolData.create;
+      self.symbollist.AddExtraSymbolData(extraSymbolData);
+
+      extraSymbolData.symboladdress:=pSymInfo.Address;
+      //fill the rest in later
+    end
+    else
+      extraSymbolData:=nil;
+
+
+    if (SYMFLAG_FORWARDER and pSymInfo.Flags)<>0 then
+    begin
+      extraSymbolData:=TExtraSymbolData.create;
+      self.symbollist.AddExtraSymbolData(extraSymbolData);
+      extraSymbolData.symboladdress:=pSymInfo.Address;
+      extraSymbolData.forwarder:=true;
+    end;
+
+    if self.pdbonly then
+      if self.symbollist.FindSymbol(self.currentModuleName+'.'+s)<>nil then
+        exit(not self.terminated);
+
+
+    sym:=self.symbollist.AddSymbol(self.currentModuleName, self.currentModuleName+'.'+s, pSymInfo.Address, symbolsize,false, extraSymbolData);
+    sym:=self.symbollist.AddSymbol(self.currentModuleName, s, pSymInfo.Address, symbolsize,true, extraSymbolData); //don't add it as a address->string lookup  , (this way it always shows modulename+symbol)
+
+
+    result:=not self.terminated;
+
+  except
+    on e:exception do
+    begin
+      OutputDebugString('EnumSymbols callback error:'+e.message);
+    end;
+
   end;
-
-  if self.pdbonly then
-    if self.symbollist.FindSymbol(self.currentModuleName+'.'+s)<>nil then
-      exit(not self.terminated);
-
-
-  sym:=self.symbollist.AddSymbol(self.currentModuleName, self.currentModuleName+'.'+s, pSymInfo.Address, symbolsize,false, extraSymbolData);
-  sym:=self.symbollist.AddSymbol(self.currentModuleName, s, pSymInfo.Address, symbolsize,true, extraSymbolData); //don't add it as a address->string lookup  , (this way it always shows modulename+symbol)
-
-
-  result:=not self.terminated;
 end;
 
 function ET(pSymInfo:PSYMBOL_INFO; SymbolSize:ULONG; UserContext:pointer):BOOL;stdcall;
@@ -1733,11 +1743,10 @@ var
 begin
   result:=false;
 
-
   {$IFNDEF UNIX}
-
   self:=TSymbolloaderthread(UserContext);
   self.CurrentModulename:=ModuleName;
+
 
 
   if symhandler.getmodulebyaddress(baseofdll, mi) then
@@ -1749,18 +1758,33 @@ begin
 
   self.processThreadEvents;
 
+  self.debugpart:=2000201;
+
   if self.pdbonly then  //only files with a PDB
   begin
+    self.debugpart:=2000202;
     for i:=0 to length(self.modulelist.withdebuginfo)-1 do
       if self.ModuleList.withdebuginfo[i].BaseOfImage=baseofdll then
       begin
-        result:=(self.terminated=false) and (SymEnumSymbols(self.thisprocesshandle, baseofdll, nil, @ES, self));
+        if i=240 then
+        aSM
+        nop
+        end;
+        result:=(self.terminated=false) and (SymEnumSymbols(self.thisprocesshandle, baseofdll,nil, @ES, self));
+        if result=false then
+        asm
+        nop
+        end;
+
+        result:=true;
         break;
       end;
   end
   else
     result:=(self.terminated=false) and (SymEnumSymbols(self.thisprocesshandle, baseofdll, nil, @ES, self));
 
+
+  self.debugpart:=2000204;
 
   //mark this module as loaded
   self.processThreadEvents;
@@ -2715,6 +2739,7 @@ begin
             begin
               symbolscleaned:=false;
 
+             // NameThreadForDebugging('Symbolhandler');
 
 
               debugpart:=2;
@@ -2722,6 +2747,7 @@ begin
 
               if kernelsymbols then LoadDriverSymbols(true);
               LoadDLLSymbols(true, needstoenumodules);
+              debugpart:=20001;
 
               processThreadEvents;
 
@@ -2733,13 +2759,18 @@ begin
               asm
               nop
               end;
+
+
+              debugpart:=20002;
               if assigned(SymEnumerateModules64) then
                 SymEnumerateModules64(thisprocesshandle, @EM, self );
 
+              debugpart:=20003;
               if targetself=false then
               asm
               nop
               end;
+
 
 
               pdbsymbolsloaded:=true;
@@ -2766,8 +2797,8 @@ begin
                 EnumerateExtendedDebugSymbols;
               debugpart:=5;
 
-              if not terminated then
-                EnumerateStructures;
+             // if not terminated then
+             //   EnumerateStructures;
 
 
                debugpart:=6;
@@ -6090,7 +6121,9 @@ end;
 
 
 procedure symhandlerInitialize;
-var psa,dbghlp: THandle;
+var
+  psa,dbghlp: THandle;
+  p: widestring;
 begin
   symbolloaderthreadcs:=TCriticalSection.Create;
 
@@ -6098,13 +6131,58 @@ begin
 
 
 {$ifdef windows}
-{$ifdef cpu32}
+  //first load the latest version
+  {$ifdef cpu32}
   dbghlp:=LoadLibrary(pchar(CheatEngineDir+'\win32\dbghelp.dll'));
-{$else}
+  {$else}
   dbghlp:=LoadLibrary(pchar(CheatEngineDir+'\win64\dbghelp.dll'));
-{$endif}
-  if dbghlp=0 then //fallback to the search path
+  {$endif}
+
+  if dbghlp=0 then //if that fails, try the old one with the same searchpath
+  begin
+    {$ifdef cpu32}
+    dbghlp:=LoadLibrary(pchar(CheatEngineDir+'\win32\old\dbghelp.dll'));
+    {$else}
+    dbghlp:=LoadLibrary(pchar(CheatEngineDir+'\win64\old\dbghelp.dll'));
+    {$endif}
+  end;
+
+  if dbghlp=0 then //fallback to the search path (will be the same as above on windows 8+ so likely fails if the above fails)
     dbghlp:=loadlibrary('Dbghelp.dll');
+
+  if dbghlp=0 then
+  begin
+    //change the searchpath to the old version that works on most systems
+    if DLLDirectoryCookie<>nil then
+    begin
+      RemoveDllDirectory(DLLDirectoryCookie);
+      DLLDirectoryCookie:=nil;
+    end;
+
+    {$ifdef cpu32}
+    p:=CheatEngineDir+'\win32\old';
+    {$else}
+    p:=CheatEngineDir+'\win64\old';
+    {$endif}
+    DLLDirectoryCookie:=AddDllDirectory(@p[1]);  //external dll's now use the old path
+
+    {$ifdef cpu32}
+    dbghlp:=LoadLibrary(pchar(CheatEngineDir+'\win32\old\dbghelp.dll'));
+    {$else}
+    dbghlp:=LoadLibrary(pchar(CheatEngineDir+'\win64\old\dbghelp.dll'));
+    {$endif}
+
+    if dbghlp=0 then
+      dbghlp:=loadlibrary('Dbghelp.dll');
+
+    if dbghlp=0 then
+      RemoveDllDirectory(DLLDirectoryCookie);
+
+    dbghlp:=loadlibrary('Dbghelp.dll');
+  end;
+
+
+
 
   SymFromName:=GetProcAddress(dbghlp,'SymFromName');
   SymFromAddr:=GetProcAddress(dbghlp,'SymFromAddr');
@@ -6134,12 +6212,12 @@ begin
   SymInitialize:=GetProcAddress(dbghlp,'SymInitialize');
 
 
-  if not assigned(SymSetContext) then
+{  if not assigned(SymSetContext) then
     MessageBox(0,'No SymSetContext','SymSetContext Missing',MB_OK);
 
   if not assigned(SymEnumerateModules64) then
     MessageBox(0,'No SymEnumerateModules64','SymEnumerateModules64 Missing',MB_OK);
-
+     }
 
   UnDecorateSymbolName:=GetProcAddress(dbghlp,'UnDecorateSymbolName');
 
