@@ -420,7 +420,7 @@ begin
 
 
       TCEForm(GlobalDesignHook.LookupRoot).designsurface.Change;
-      {$if lcl_fullversion < 2020100}
+      {$if lcl_fullversion < 2020000}
       oid.ComponentTree.RebuildComponentNodes;
       {$else}
       oid.ComponentTree.BuildComponentNodes(true);
@@ -450,7 +450,7 @@ begin
       p.Insert(i-1, mi);
 
       TCEForm(GlobalDesignHook.LookupRoot).designsurface.Change;
-      {$if lcl_fullversion < 2020100}
+      {$if lcl_fullversion < 2020000}
       oid.ComponentTree.RebuildComponentNodes;
       {$else}
       oid.ComponentTree.BuildComponentNodes(true);
@@ -617,7 +617,7 @@ begin
   TCEform(GlobalDesignHook.LookupRoot).designsurface.UpdateDesigner;
 
 
-  {$if lcl_fullversion < 2020100}
+  {$if lcl_fullversion < 2020000}
   oid.ComponentTree.RebuildComponentNodes;
   {$else}
   oid.ComponentTree.BuildComponentNodes(true);
@@ -923,7 +923,7 @@ end;
 
 procedure TFormDesigner.surfaceOnChange(sender: tobject);
 begin
-  {$if lcl_fullversion < 2020100}
+  {$if lcl_fullversion < 2020000}
   oid.FillComponentList;
   {$else}
   oid.FillComponentList(true);
@@ -1444,7 +1444,7 @@ begin
 
 
   TCEForm(GlobalDesignHook.LookupRoot).designsurface.Change;
-  {$if lcl_fullversion < 2020100}
+  {$if lcl_fullversion < 2020000}
   oid.ComponentTree.RebuildComponentNodes;
   {$else}
   oid.ComponentTree.BuildComponentNodes(true);
@@ -1452,7 +1452,7 @@ begin
 
   oid.RefreshPropertyValues;
   oid.RebuildPropertyLists;
-  {$if lcl_fullversion < 2020100}
+  {$if lcl_fullversion < 2020000}
   oid.FillComponentList;
   {$else}
   oid.FillComponentList(true);
