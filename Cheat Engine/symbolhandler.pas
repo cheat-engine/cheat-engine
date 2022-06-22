@@ -100,6 +100,7 @@ type
     currentSymbolDataBaseQueryObject: TSQLQuery;
     currentmoduleid: integer;
     currentModuleName: string;
+    CurrentModulenameMREW: TMultiReadExclusiveWriteSynchronizer;
     currentModuleIsNotStandard: boolean;
 
     extraSymbolData: TExtraSymbolData;
@@ -127,6 +128,9 @@ type
     symbolscleaned: boolean;
     pdbonly: boolean; //tells enummodules to skip modules without pdb info
     searchpdb: boolean;
+
+    loadingExtendedDebugSymbols: boolean;
+    parsingstructures: boolean;
 
     structureList: TStringList;
 
@@ -271,8 +275,10 @@ type
 
     function isTypeToken(token: string; var nextTokenType: TSymHandlerTokenType): boolean;
 
+    function isParsingDebugInfo: boolean;
     function isParsingStructures: boolean;
     function isloadingExtendedData: boolean;
+    function getCurrentModule: string;
   public
 
     kernelsymbols: boolean;
@@ -297,6 +303,8 @@ type
     property extendedDataProgess: integer read getExtendedDataProgress;
     property parsingStructures: boolean read isParsingStructures;
     property loadingExtendedData: boolean read isloadingExtendedData;
+    property parsingdebuginfo: boolean read isParsingDebugInfo;
+    property currentModule: string read getCurrentModule;
 
     procedure waitforsymbolsloaded(apisymbolsonly: boolean=false; specificmodule: string='');
     procedure waitForSections;
@@ -1261,7 +1269,6 @@ begin
   max:=self.symbollist.ExtraSymbolDataList.Count;
   for i:=0 to max-1 do
   begin
-    debugpart:=40000+i;
     ExtendedDebugSymbolProgress:=(i*100) div max;
 
     esd:=TExtraSymbolData(self.symbollist.ExtraSymbolDataList[i]);
@@ -1314,8 +1321,6 @@ begin
 
 
     s:=pchar(@pSymInfo.Name);
-
-
 
     self.processThreadEvents;
 
@@ -1745,8 +1750,9 @@ begin
 
   {$IFNDEF UNIX}
   self:=TSymbolloaderthread(UserContext);
+  self.CurrentModulenameMREW.beginwrite;
   self.CurrentModulename:=ModuleName;
-
+  self.CurrentModulenameMREW.endwrite;
 
 
   if symhandler.getmodulebyaddress(baseofdll, mi) then
@@ -1758,23 +1764,13 @@ begin
 
   self.processThreadEvents;
 
-  self.debugpart:=2000201;
 
   if self.pdbonly then  //only files with a PDB
   begin
-    self.debugpart:=2000202;
     for i:=0 to length(self.modulelist.withdebuginfo)-1 do
       if self.ModuleList.withdebuginfo[i].BaseOfImage=baseofdll then
       begin
-        if i=240 then
-        aSM
-        nop
-        end;
         result:=(self.terminated=false) and (SymEnumSymbols(self.thisprocesshandle, baseofdll,nil, @ES, self));
-        if result=false then
-        asm
-        nop
-        end;
 
         result:=true;
         break;
@@ -1782,9 +1778,6 @@ begin
   end
   else
     result:=(self.terminated=false) and (SymEnumSymbols(self.thisprocesshandle, baseofdll, nil, @ES, self));
-
-
-  self.debugpart:=2000204;
 
   //mark this module as loaded
   self.processThreadEvents;
@@ -2503,6 +2496,7 @@ var sp: pchar;
 begin
   debugpart:=0;
 
+
   try
     try
       c:=getConnection;
@@ -2642,7 +2636,7 @@ begin
 
             symsetoptions(d);
 
-            SymbolsLoaded:=SymInitialize(thisprocesshandle, pchar(''), true);
+            SymbolsLoaded:=false; //SymInitialize(thisprocesshandle, pchar(''), true);
 
             if symbolsloaded=false then
             begin
@@ -2747,7 +2741,7 @@ begin
 
               if kernelsymbols then LoadDriverSymbols(true);
               LoadDLLSymbols(true, needstoenumodules);
-              debugpart:=20001;
+              //debugpart:=20001;
 
               processThreadEvents;
 
@@ -2755,23 +2749,8 @@ begin
               //enumeratedModules:=0;
               pdbonly:=true;
 
-              if targetself=false then
-              asm
-              nop
-              end;
-
-
-              debugpart:=20002;
               if assigned(SymEnumerateModules64) then
                 SymEnumerateModules64(thisprocesshandle, @EM, self );
-
-              debugpart:=20003;
-              if targetself=false then
-              asm
-              nop
-              end;
-
-
 
               pdbsymbolsloaded:=true;
 
@@ -2783,26 +2762,23 @@ begin
 
               debugpart:=3;
 
-
-
-
               isloading:=false;
 
               while symbolloaderthreadeventqueue.Count>0 do
                 processThreadEvents;
 
 
-              debugpart:=4;
+              loadingExtendedDebugSymbols:=true;
               if not terminated then
                 EnumerateExtendedDebugSymbols;
-              debugpart:=5;
+              loadingExtendedDebugSymbols:=false;
 
-             // if not terminated then
-             //   EnumerateStructures;
-
-
-               debugpart:=6;
-
+              if not terminated then
+              begin
+                parsingstructures:=true;
+                EnumerateStructures;
+                parsingstructures:=false;
+              end;
 
               if (targetself=false) and (length(modulelist.withdebuginfo)>0) then
               begin
@@ -2959,6 +2935,8 @@ begin
     freeandnil(notfoundlist);
 
 
+  if CurrentModulenameMREW<>nil then
+    freeandnil(CurrentModulenameMREW);
 
   inherited destroy;
 end;
@@ -2997,6 +2975,8 @@ begin
   symbolloaderthreadeventqueueCS:=TCriticalSection.Create;
 
   driverlistMREW:=TMultiReadExclusiveWriteSynchronizer.Create;
+
+  CurrentModulenameMREW:=TMultiReadExclusiveWriteSynchronizer.create;
 
   inherited create(CreateSuspended);
 end;
@@ -3126,7 +3106,31 @@ begin
   result:=false;
   symbolloadervalid.beginread;
   if symbolloaderthread<>nil then
-    result:=symbolloaderthread.debugpart>4000;
+    result:=symbolloaderthread.loadingExtendedDebugSymbols;
+
+  symbolloadervalid.Endread;
+end;
+
+function TSymHandler.getCurrentModule: string;
+begin
+  result:='';
+  symbolloadervalid.beginread;
+  if symbolloaderthread<>nil then
+  begin
+    symbolloaderthread.CurrentModulenameMREW.Beginread;
+    result:=symbolloaderthread.CurrentModulename;
+    symbolloaderthread.CurrentModulenameMREW.Endread;
+  end;
+
+  symbolloadervalid.Endread;
+end;
+
+function TSymHandler.isParsingDebugInfo: boolean;
+begin
+  result:=false;
+  symbolloadervalid.beginread;
+  if symbolloaderthread<>nil then
+    result:=(not symbolloaderthread.Finished) and symbolloaderthread.pdbonly and (symbolloaderthread.pdbsymbolsloaded=false);
 
   symbolloadervalid.Endread;
 end;
@@ -3136,7 +3140,7 @@ begin
   result:=false;
   symbolloadervalid.beginread;
   if symbolloaderthread<>nil then
-    result:=symbolloaderthread.debugpart=5;
+    result:=symbolloaderthread.parsingstructures;
 
   symbolloadervalid.Endread;
 end;
