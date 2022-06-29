@@ -1325,6 +1325,7 @@ function TLuaCaller.SymbolLookupCallback(s: string): ptruint;
 var oldstack: integer;
 begin
   result:=0;
+  if Luavm=nil then exit;
   oldstack:=lua_gettop(Luavm);
   try
     PushFunction;

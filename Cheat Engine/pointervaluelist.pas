@@ -21,7 +21,7 @@ uses
   {$endif}
   LCLIntf, dialogs, SysUtils, classes, ComCtrls, CEFuncProc,
      NewKernelHandler, symbolhandler, symbolhandlerstructs, math,
-     bigmemallochandler, maps, luahandler, lua, lauxlib, lualib, luaclass,
+     bigmemallochandler, maps, luahandler, lua, lauxlib, lualib, LuaClass,
      LuaObject, zstream, commonTypeDefs;
 
 const scandataversion=1;
@@ -111,6 +111,10 @@ type
 
     ScannablePages: TMap;
 
+    progressbar: TProgressbar;
+    progressbarmax: integer;
+
+
     function BinSearchMemRegions(address: ptrUint): integer;
     function isModulePointer(address: ptrUint): boolean;
     function ispointer(address: ptrUint): boolean;
@@ -132,6 +136,9 @@ type
 
     procedure LoadModuleList(s: TStream);
     function  LoadHeader(s: TStream): qword;
+
+    procedure progressbarinit;
+    procedure progressbarstep;
   public
     count: qword;
 
@@ -145,7 +152,7 @@ type
     procedure saveModuleListToResults(s: TStream);
 
     function findPointerValue(startvalue: ptrUint; var stopvalue: ptrUint): PPointerList;
-    constructor create(start, stop: ptrUint; alligned: boolean; progressbar: tprogressbar; noreadonly: boolean; mustbeclasspointers, allowNonModulePointers: boolean; useStacks: boolean; stacksAsStaticOnly: boolean; threadstacks: integer; stacksize: integer; specificBaseAsStaticOnly: boolean; baseStart: ptruint; baseStop: ptruint; includeSystemModules: boolean=false; regionfilename: string=''; shouldquit: pboolean=nil);
+    constructor create(start, stop: ptrUint; alligned: boolean; _progressbar: tprogressbar; noreadonly: boolean; mustbeclasspointers, allowNonModulePointers: boolean; useStacks: boolean; stacksAsStaticOnly: boolean; threadstacks: integer; stacksize: integer; specificBaseAsStaticOnly: boolean; baseStart: ptruint; baseStop: ptruint; includeSystemModules: boolean=false; regionfilename: string=''; shouldquit: pboolean=nil);
     constructor createFromStream(s: TStream; progressbar: tprogressbar=nil);
     constructor createFromStreamHeaderOnly(s: TStream);
     destructor destroy; override;
@@ -167,6 +174,19 @@ resourcestring
   rsPVInvalidScandataFile = 'Invalid scandata file';
   rsPVInvalidScandataVersion = 'Invalid scandata version';
   rsPVNotEnoughMemoryFreeToScan = 'Not enough memory free to scan';
+
+procedure TReversePointerListHandler.progressbarinit;
+begin
+  progressbar.Min:=0;
+  progressbar.Step:=1;
+  progressbar.Position:=0;
+  progressbar.max:=progressbarmax;
+end;
+
+procedure TReversePointerListHandler.progressbarstep;
+begin
+  progressbar.StepIt;
+end;
 
 function TReversePointerListHandler.BinSearchMemRegions(address: ptrUint): integer;
 var
@@ -946,7 +966,7 @@ begin
 
 end;
 
-constructor TReversePointerListHandler.create(start, stop: ptrUint; alligned: boolean; progressbar: tprogressbar; noreadonly: boolean; mustbeclasspointers, allowNonModulePointers: boolean; useStacks: boolean; stacksAsStaticOnly: boolean; threadstacks: integer; stacksize: integer; specificBaseAsStaticOnly: boolean; baseStart: ptruint; baseStop: ptruint; includeSystemModules: boolean=false; regionfilename: string=''; ShouldQuit: pboolean=nil);
+constructor TReversePointerListHandler.create(start, stop: ptrUint; alligned: boolean; _progressbar: tprogressbar; noreadonly: boolean; mustbeclasspointers, allowNonModulePointers: boolean; useStacks: boolean; stacksAsStaticOnly: boolean; threadstacks: integer; stacksize: integer; specificBaseAsStaticOnly: boolean; baseStart: ptruint; baseStop: ptruint; includeSystemModules: boolean=false; regionfilename: string=''; ShouldQuit: pboolean=nil);
 var bytepointer: PByte;
     dwordpointer: PDword absolute bytepointer;
     qwordpointer: PQword absolute bytepointer;
@@ -981,6 +1001,7 @@ var bytepointer: PByte;
     prangelist: TPRangeDynArray;
 
 begin
+  self.progressbar:=_progressbar;
   OutputDebugString('TReversePointerListHandler.create');
   try
     bigalloc:=TBigMemoryAllocHandler.create;
@@ -1184,10 +1205,9 @@ begin
     For i:=0 to length(memoryregion)-1 do
       inc(TotalToRead,Memoryregion[i].MemorySize);
 
-    progressbar.Min:=0;
-    progressbar.Step:=1;
-    progressbar.Position:=0;
-    progressbar.max:=length(memoryregion)*2+1;
+    progressbarmax:=length(memoryregion)*2+1;
+
+    TThread.Queue(nil, progressbarinit);
 
 
     maxsize:=0;
@@ -1325,7 +1345,8 @@ begin
 
         end;
 
-        progressbar.StepIt;
+        TThread.Queue(nil, progressbarstep);
+        //progressbar.StepIt;
       end;
 
       //actual add
@@ -1438,15 +1459,15 @@ begin
           end;
         end;
 
-        progressbar.StepIt;
+        TThread.Queue(nil, progressbarstep);
+        //progressbar.StepIt;
       end;
 
       //and fill in the linked list
       OutputDebugString('filling linked list');
       fillLinkedList;
 
-      progressbar.Position:=0;
-
+      TThread.Queue(nil, progressbarinit);
     finally
       //OutputDebugString('Freeing the buffer');
       if buffer<>nil then
