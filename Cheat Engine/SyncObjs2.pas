@@ -34,8 +34,49 @@ type TSemaphore=class
     destructor destroy;  override;
 end;
 
+
+type
+  TThreadHelper=class helper for TThread
+    function WaitTillDone(timeout: DWORD; granularity: integer=25): boolean;
+  end;
+
+
+
+
 implementation
 
+function TThreadHelper.WaitTillDone(timeout: dword; granularity: integer=25): boolean;
+var
+  needsynchronize: boolean;
+  endtime: qword;
+begin
+  needsynchronize:=MainThreadID=GetCurrentThreadId;
+
+  if Finished then exit(true);
+  if timeout=0 then exit(Finished);
+  if timeout=$ffffffff then
+  begin
+    WaitFor;
+    exit(true);
+  end;
+  endtime:=gettickcount64+timeout;
+
+
+  repeat
+    if needsynchronize then
+      CheckSynchronize(granularity)
+    else
+    begin
+{$ifdef windows}
+      exit(waitforsingleobject(self.handle, timeout)=WAIT_OBJECT_0);
+{$else}
+      sleep(granularity);
+{$endif}
+    end;
+  until (gettickcount64>endtime) or Finished;
+
+  result:=finished;
+end;
 
 {$ifdef darwin}
 function sem_open(name: pchar; oflags: integer; mode: integer; value: integer):Psem_t;cdecl; external;

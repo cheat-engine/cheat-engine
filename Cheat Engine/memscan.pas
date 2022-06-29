@@ -28,7 +28,7 @@ uses
      windows,
      {$endif}
      FileUtil, LCLIntf,sysutils, classes,ComCtrls,dialogs, NewKernelHandler,math,
-     SyncObjs {$ifdef windows},windows7taskbar{$endif},SaveFirstScan, savedscanhandler, autoassembler,
+     SyncObjs, SyncObjs2 {$ifdef windows},windows7taskbar{$endif},SaveFirstScan, savedscanhandler, autoassembler,
      symbolhandler, CEFuncProc{$ifdef windows},shellapi{$endif}, CustomTypeHandler, lua,lualib,lauxlib,
      LuaHandler, {$ifdef windows}fileaccess,{$endif} groupscancommandparser, commonTypeDefs, LazUTF8,
      forms, LazFileUtils, LCLProc, LCLVersion, AvgLvlTree, Laz_AVL_Tree;
@@ -808,7 +808,7 @@ implementation
 uses ProcessHandlerUnit, parsers, Globals;
 {$else}
 uses formsettingsunit, StrUtils, foundlisthelper, ProcessHandlerUnit, parsers,
-     Globals, {$ifdef windows}frmBusyUnit,{$endif} controls, mainunit2;
+     Globals, frmBusyUnit, controls, mainunit2;
 {$endif}
 
 resourcestring
@@ -6372,16 +6372,9 @@ begin
       begin
         while not (terminated or scanners[i].isdone) do
         begin
-         {$ifdef android}
-         if not scanners[i].Finished then
-           sleep(25);
-         {$endif}
-
-         {$ifdef windows}
-         WaitForSingleObject(scanners[i].Handle,25); //25ms, an eternity for a cpu
-         {$endif}
-         if (OwningMemScan.progressbar<>nil) or (assigned(owningmemscan.OnGuiUpdate)) then
-           synchronize(updategui);
+          scanners[i].WaitTillDone(25);
+          if (OwningMemScan.progressbar<>nil) or (assigned(owningmemscan.OnGuiUpdate)) then
+            synchronize(updategui);
         end;
 
         //If terminated then stop the scanner thread and wait for it to finish
@@ -6611,13 +6604,9 @@ begin
   begin
     while not (terminated or scanners[i].isdone) do
     begin
-    {$IFDEF WINDOWS}
-      WaitForSingleObject(scanners[i].Handle,25); //25ms, an eternity for a cpu
+      scanners[i].WaitTillDone(25);
       if (OwningMemScan.progressbar<>nil) or (assigned(owningmemscan.OnGuiUpdate))  then
         synchronize(updategui);
-    {$else}
-      sleep(25);
-    {$ENDIF}
     end;
 
     //If terminated then stop the scanner thread and wait for it to finish
@@ -7133,15 +7122,9 @@ begin
     begin
       while not (terminated or scanners[i].isdone) do
       begin
-{$ifdef windows}
-        WaitForSingleObject(scanners[i].Handle,25); //25ms, an eternity for a cpu
-
+        scanners[i].WaitTillDone(25);
         if (OwningMemScan.progressbar<>nil) or (assigned(owningmemscan.OnGuiUpdate)) then
           synchronize(updategui);
-{$else}
-        sleep(25)
-{$endif}
-
       end;
 
 
@@ -8042,11 +8025,10 @@ end;
 
 procedure TMemscan.NextScan;
 var
-  {$ifdef windows}
   frmBusy: TfrmBusy;
-  {$endif}
   r: TModalResult;
 begin
+
   if assigned(fOnScanStart) then
     fOnScanStart(self);
 
@@ -8061,12 +8043,10 @@ begin
 
    if scanController<>nil then
    begin
-     {$ifdef windows}
-
-     if GUIScanner and (WaitForSingleObject(scancontroller.handle, 500)<>WAIT_OBJECT_0) then
+     if GUIScanner and (not scancontroller.WaitTillDone(500)) then
      begin
        frmBusy:=TfrmBusy.create(nil);
-       frmBusy.WaitForHandle:=scancontroller.handle;
+       frmBusy.WaitForThread:=scancontroller;
        frmBusy.memscan:=self;
        frmBusy.Reason:=postScanState;
 
@@ -8087,7 +8067,7 @@ begin
        frmBusy.free;
      end;
 
-     {$endif}
+
 
      scancontroller.WaitFor; //could be it's still saving the results of the previous scan
      freeandnil(scanController);
@@ -8096,12 +8076,12 @@ begin
    {$IFNDEF LOWMEMORYUSAGE}
    if SaveFirstScanThread<>nil then
    begin
-     {$ifdef windows}
-     if GUIScanner and (WaitForSingleObject(SaveFirstScanThread.handle, 500)<>WAIT_OBJECT_0) then
+
+     if GUIScanner and (not SaveFirstScanThread.WaitTillDone(500)) then
      begin
        postscanstate:=psSavingFirstScanResults2;
        frmBusy:=TfrmBusy.create(nil);
-       frmBusy.WaitForHandle:=SaveFirstScanThread.handle;
+       frmBusy.WaitForThread:=SaveFirstScanThread;
        frmBusy.memscan:=self;
        frmBusy.Reason:=postScanState;
 
@@ -8121,7 +8101,7 @@ begin
 
        frmBusy.free;
      end;
-     {$endif}
+
 
      SaveFirstScanThread.WaitFor; //wait till it's done
      freeandnil(SaveFirstScanThread);
