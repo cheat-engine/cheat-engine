@@ -1199,21 +1199,26 @@ var
   esde: TExtraSymbolDataEntry;
 begin
   {$IFDEF WINDOWS}
+
   result:=false;
   if pSymInfo.NameLen=0 then
     exit;
 
   slt:=TSymbolloaderthread(UserContext);
-
-
+  if slt.targetself then exit(false);
   if slt.terminated then exit;
+
 
 
 
   isparam:=(pSymInfo.Flags and SYMFLAG_PARAMETER)>0;
 
-  s:=GetTypeName(slt.thisprocesshandle, pSymInfo.ModBase, pSymInfo.TypeIndex);
-
+  try
+    s:=GetTypeName(slt.thisprocesshandle, pSymInfo.ModBase, pSymInfo.TypeIndex);
+  except
+    //error?
+    OutputDebugString('GetTypeName failure');
+  end;
 
   //add an extra symboldataentry
   esde:=TExtraSymbolDataEntry.create;
@@ -4936,7 +4941,7 @@ begin
                 //get the register value, and because this is an address specifier, use the full 32-bits
                 if tokens[i][1] in ['x','X','y','Y'] then //xmm/ymm
                 begin
-                  tokens[i]:=inttohex(ApplyTokenType(pptruint(@context^.FltSave.XmmRegisters[regnr])^),8);
+                  tokens[i]:=inttohex(ApplyTokenType(pptruint(@context^.{$ifdef cpu64}FltSave.XmmRegisters[regnr]{$else}ext.XMMRegisters.LongXMM[regnr]{$endif})^),8);
                   continue;
                 end;
 

@@ -123,7 +123,7 @@ begin
       total[length(total)-1]:=1;  //value
 
       setlength(values,length(values)+1);
-      values[length(values)-1]:=pptruint(@c^.{$ifdef cpu64}FltSave.XmmRegisters[xregnr]{$else}ext.XMMRegisters[xregnr]{$endif})^;
+      values[length(values)-1]:=pptruint(@c^.{$ifdef cpu64}FltSave.XmmRegisters[xregnr]{$else}ext.XMMRegisters.LongXMM[xregnr]{$endif})^;
     end
     else
       raise exception.Create(rsAPThisIsNotAValidAddress);

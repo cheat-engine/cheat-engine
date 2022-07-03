@@ -98,7 +98,7 @@ var
   arch: integer;
   abi: integer;
 begin
-  outputdebugstring('TProcessHandler.setProcessHandle');
+  //outputdebugstring('TProcessHandler.setProcessHandle');
   if (fprocesshandle<>0) and (fprocesshandle<>getcurrentprocess) and (processhandle<>getcurrentprocess) then
   begin
     try
@@ -150,7 +150,7 @@ begin
   else
   {$endif}
   begin
-    outputdebugstring('setProcessHandle not windows');
+    //outputdebugstring('setProcessHandle not windows');
 
     {$ifdef darwin}
     if MacIsArm64 then  //rosetta2 or I finally ported it to full armv8
