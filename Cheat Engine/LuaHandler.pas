@@ -8598,6 +8598,96 @@ begin
     result:=0;
 end;
 
+type
+  TNewProcess=class(TProcess)
+    function RunCommandLoop(out outputstring: string; out stderrstring: string;
+      out anexitstatus: integer): integer; override;
+  end;
+
+function TNewProcess.RunCommandLoop(out outputstring:string;
+                              out stderrstring:string; out anexitstatus:integer):integer;
+  var
+      bytesread : integer;
+      outputlength, stderrlength : integer;
+      stderrbytesread : integer;
+      gotoutput,gotoutputstderr : boolean;
+
+      tries: integer;
+  begin
+    OutputString:='';
+    result:=-1;
+      try
+      Options := Options + [poUsePipes];
+      bytesread:=0;
+      outputlength:=0;
+      stderrbytesread:=0;
+      stderrlength:=0;
+      Execute;
+      while Running do
+        begin
+          // Only call ReadFromStream if Data from corresponding stream
+          // is already available, otherwise, on  linux, the read call
+          // is blocking, and thus it is not possible to be sure to handle
+          // big data amounts bboth on output and stderr pipes. PM.
+          gotoutput:=ReadInputStream(output,BytesRead,OutputLength,OutputString,1);
+          // The check for assigned(P.stderr) is mainly here so that
+          // if we use poStderrToOutput in p.Options, we do not access invalid memory.
+          gotoutputstderr:=false;
+          if assigned(stderr) then
+              gotoutputstderr:=ReadInputStream(StdErr,StdErrBytesRead,StdErrLength,StdErrString,1);
+
+         { if (porunidle in options) and not gotoutput and not gotoutputstderr and Assigned(FOnRunCommandEvent) Then
+            FOnRunCommandEvent(self,Nil,RunCommandIdle,'');  }
+        end;
+      // Get left output after end of execution
+       WaitForThreadTerminate(FThreadHandle, 0);
+
+      //ThreadSwitch;
+      ReadInputStream(output,BytesRead,OutputLength,OutputString,2500);
+      setlength(outputstring,BytesRead);
+      if assigned(stderr) then
+        ReadInputStream(StdErr,StdErrBytesRead,StdErrLength,StdErrString,250);
+      setlength(stderrstring,StderrBytesRead);
+      anexitstatus:=exitstatus;
+      result:=0; // we came to here, document that.
+  {    if Assigned(FOnRunCommandEvent) then          // allow external apps to react to that and finish GUI
+        FOnRunCommandEvent(self,Nil,RunCommandFinished,'');}
+
+      except
+        on e : Exception do
+           begin
+             result:=1;
+             setlength(outputstring,BytesRead);
+             setlength(stderrstring,StderrBytesRead);
+             {if Assigned(FOnRunCommandEvent) then
+               FOnRunCommandEvent(self,Nil,RunCommandException,e.Message);  }
+           end;
+       end;
+  end;
+
+function RunCommandIndir2(const curdir:TProcessString;const exename:TProcessString;const commands:array of TProcessString;out outputstring:string;out exitstatus:integer; Options : TProcessOptions = [];SWOptions:TShowWindowOptions=swoNone):integer;
+Var
+    p : TNewProcess;
+    i : integer;
+    ErrorString : String;
+begin
+  p:=TNewProcess.create(nil);
+  if Options<>[] then
+    P.Options:=Options-[poWaitOnExit];
+  P.ShowWindow:=SwOptions;
+  p.Executable:=exename;
+  if curdir<>'' then
+    p.CurrentDirectory:=curdir;
+  if high(commands)>=0 then
+   for i:=low(commands) to high(commands) do
+     p.Parameters.add(commands[i]);
+  try
+    result:=p.RunCommandLoop(outputstring,errorstring,exitstatus);
+  finally
+    p.free;
+  end;
+end;
+
 function lua_runCommand(L: PLua_State): integer; cdecl;
 var
   p: array of TProcessString;
@@ -8651,7 +8741,7 @@ begin
     else
       curdir:='';
 
-    RunCommandInDir(curdir, exe, p, s, exitstatus, [poNoConsole]);
+    RunCommandInDir2(curdir, exe, p, s, exitstatus, [poNoConsole]);
     lua_pushstring(L,s);
     lua_pushinteger(L,exitstatus);
     exit(2);
