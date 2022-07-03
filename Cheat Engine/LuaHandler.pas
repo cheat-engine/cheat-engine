@@ -183,12 +183,18 @@ function GetLuaState: PLUA_State; inline;
 begin
   if Thread_LuaVM=nil then
   begin
-    _luacs.Enter;
-    try
-      Thread_LuaVM:=lua_newthread(_luavm);
-      Thread_LuaRef:=luaL_ref(_luavm, LUA_REGISTRYINDEX);
-    finally
-      _luacs.leave;
+    if (_luacs<>nil) and (_luavm<>nil) then
+    begin
+      _luacs.Enter;
+      try
+        if _luavm<>nil then
+        begin
+          Thread_LuaVM:=lua_newthread(_luavm);
+          Thread_LuaRef:=luaL_ref(_luavm, LUA_REGISTRYINDEX);
+        end;
+      finally
+        _luacs.leave;
+      end;
     end;
   end;
 
@@ -16596,11 +16602,17 @@ initialization
 
 
 finalization
-  if _LuaCS<>nil then
-    _LuaCS.free;
-
   if _LuaVM<>nil then
+  begin
     lua_close(_LuaVM);
+    _LuaVM:=nil;
+  end;
+
+  if _LuaCS<>nil then
+  begin
+    _LuaCS.free;
+    _LuaCS:=nil;
+  end;
 
 end.
 
