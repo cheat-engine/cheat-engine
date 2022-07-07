@@ -147,7 +147,7 @@ implementation
 { TfrmLuaEngine }
 
 uses LuaClass, SynPluginMultiCaret, SynEditTypes, globals, DPIHelper, frmSyntaxHighlighterEditor,
-  frmautoinjectunit, mainunit2;
+  frmautoinjectunit, mainunit2 ,MainUnit;
 
 resourcestring
   rsError = 'Script Error';
@@ -1137,6 +1137,8 @@ var pc: pchar;
   templist: tstringlist;
   pad: string;
 begin
+  if (mainform.isProtected) then exit;   //Protect trainer's code
+
   i:=lua_gettop(Luavm);
   if i>0 then
   begin
