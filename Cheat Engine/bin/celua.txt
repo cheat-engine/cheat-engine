@@ -1645,6 +1645,7 @@ properties
   [] = Items[]
   Index: Integer - The index based on the parent
   AbsoluteIndex: Integer - The index based on the TreeView's Treenodes object (Items)
+  ImageIndex: integer - The image to show from the attached ImageList
   Selected: Boolean - Set to true if currently selected
   MultiSelected: Boolean - Set to true if selected as well, but not the main selected object
   Data: Pointer - Space to store 4 or 8 bytes depending on which version of CE is used
