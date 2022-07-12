@@ -22,7 +22,7 @@
 
 #if !defined ONE_SOURCE || ONE_SOURCE
 //cheat engine api redirect
-#include "ceapiredirect.c"
+#include "apiredirect.c"
 //cheat engine api redirect
 #include "tccpp.c"
 #include "tccgen.c"
