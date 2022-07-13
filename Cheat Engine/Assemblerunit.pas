@@ -3454,6 +3454,86 @@ begin
   result:=(parametertype=ttRegisterYMM) or (parametertype=ttMemorylocation256);
 end;
 
+
+function isReservedToken(t: string): boolean;
+begin
+  result:=false;
+  if length(t)<3 then exit(false);
+
+  case t[1] of
+    'B' : //Byte, BYTE PTR
+    begin
+      if (t[2]='Y') and (t[3]='T') then //could be BYTE
+        exit((t='BYTE') or (t='BYTE PTR'));
+    end;
+
+    'D': //DQWORD, DWORD, DQWORD PTR, DWORD PTR
+    begin
+      case t[2] of
+        'Q' : //DQWORD or DQWORD PTR
+        begin
+          if t[3]='W' then
+            exit((t='DQWORD') or (t='DQWORD PTR'));
+        end;
+
+        'W' : //DWORD or DWORD PTR
+        begin
+          if t[3]='O' then
+            exit((t='DWORD') or (t='DWORD PTR'));
+        end;
+      end;
+    end;
+
+    'F' : //FAR
+    begin
+      if (t[2]='A') and (t[3]='R') then
+        exit(t='FAR');
+    end;
+
+    'L' : //LONG
+    begin
+      if (t[2]='O') and (t[3]='N') then
+        exit(t='LONG');
+    end;
+
+    'Q': //QWORD, QWORD PTR
+    begin
+      if (t[2]='W') and (t[3]='O') then //could be QWORD
+        exit((t='QWORD') or (t='QWORD PTR'));
+    end;
+
+    'S' : //SHORT
+    begin
+      if (t[2]='H') and (t[3]='O') then
+        exit(t='SHORT');
+    end;
+
+    'T': //TBYTE, TWORD, TBYTE PTR, TWORD PTR,
+    begin
+      case t[2] of
+        'B' : //TBYTE or TBYTE PTR
+        begin
+          if t[3]='Y' then
+            exit((t='TBYTE') or (t='TBYTE PTR'));
+        end;
+
+        'W' : //TWORD or TWORD PTR
+        begin
+          if t[3]='O' then
+            exit((t='TWORD') or (t='TWORD PTR'));
+        end;
+      end;
+
+    end;
+
+    'W' : //WORD, WORD PTR
+    begin
+      if (t[2]='O') and (t[3]='R') then //could be WORD
+        exit((t='WORD') or (t='WORD PTR'));
+    end;
+  end;
+end;
+
 function rewrite(var token:string): boolean;
 var i,j,err,err2: integer;
     a,b: qword;
@@ -3554,7 +3634,7 @@ begin
     if (length(tokens[i])>=1) and (not (tokens[i][1] in ['[',']','+','-','*',' '])) then //3/16/2011: 11:15 (replaced or with and)
     begin
       val('$'+tokens[i],j,err);
-      if (err<>0) and (getreg(tokens[i],false)=-1) then    //not a hexadecimal value and not a register
+      if (err<>0) and (getreg(tokens[i],false)=-1) and (isReservedToken(tokens[i])=false) then    //not a hexadecimal value and not a register
       begin
         temp:=inttohex(symhandler.getaddressfromname(tokens[i], true, haserror,nil),8);
         if not haserror then

@@ -2829,6 +2829,10 @@ begin
                   end;
                 except
                   //don't quit yet
+                  on e: exception do
+                  begin
+                    OutputDebugString('Potential labeling error:'+e.message);
+                  end
                 end;
               end;
 
