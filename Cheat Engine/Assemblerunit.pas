@@ -5206,11 +5206,11 @@ begin
             //jmp short +14
             //jmp far address
             bytes:=[];
-            assemble(tokens[mnemonic]+' +2', address, bytes);
+            assemble(tokens[mnemonic]+' +2', 0, bytes);
 
             bts:=[];
 
-            assemble('jmp short +e', address+length(bytes), bts);
+            assemble('jmp short +e', 0, bts);
             insert(bts, bytes,length(bytes));
 
             bts:=[];
