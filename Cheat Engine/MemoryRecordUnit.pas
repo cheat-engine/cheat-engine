@@ -2888,8 +2888,10 @@ begin
             olddecimalvalue:=StrToQWordEx(oldvalue);
           end;
 
-          if (allowIncrease and (newdecimalvalue>olddecimalvalue)) or
-             (allowDecrease and (newdecimalvalue<olddecimalvalue))
+          if (allowIncrease and ShowAsSigned and (int64(newdecimalvalue)>int64(olddecimalvalue))) or
+             (allowIncrease and (not ShowAsSigned) and (newdecimalvalue>olddecimalvalue)) or
+             (allowDecrease and (ShowAsSigned) and (int64(newdecimalvalue)<int64(olddecimalvalue))) or
+             (allowDecrease and (not ShowAsSigned) and (newdecimalvalue<olddecimalvalue))
           then
             frozenvalue:=newvalue;
 
