@@ -72,11 +72,13 @@ type
       customtype: TCustomtype;
       value: string;
       widevalue: widestring;
-      valuei: qword;
-      valuef: double;
+      valuei, valuei2: qword;
+    //  valuef, valuef2: double;
       minfvalue: double;
       maxfvalue: double;
       floataccuracy: integer;
+      range: boolean;
+      signed: boolean;
 
       bytesize: integer;
       pointertypes: TPointerTypes;
@@ -89,9 +91,13 @@ type
 
 
     function ByteScan(value: byte; buf: Pbytearray; var startoffset: integer): boolean;
+    function ByteScanRange(value,value2: byte; signed: boolean; buf: Pbytearray; var startoffset: integer): boolean;
     function WordScan(value: word; buf: pointer; var startoffset: integer): boolean;
+    function WordScanRange(value,value2: word; signed: boolean; buf: pointer; var startoffset: integer): boolean;
     function DWordScan(value: dword; buf: pointer; var startoffset: integer): boolean;
+    function DWordScanRange(value,value2: dword; signed: boolean; buf: pointer; var startoffset: integer): boolean;
     function QWordScan(value: qword; buf: pointer; var startoffset: integer): boolean;
+    function QWordScanRange(value,value2: qword; signed: boolean; buf: pointer; var startoffset: integer): boolean;
     function Valid32BitPointerScan(value: qword; buf: pointer; var startoffset: integer; pointertypes: TPointerTypes): boolean;
     function Valid64BitPointerScan(value: qword; buf: pointer; var startoffset: integer; pointertypes: TPointerTypes): boolean;
     function SingleScan(minf,maxf: double; buf: pointer; var startoffset: integer): boolean;
@@ -888,6 +894,9 @@ var start, i: integer;
   gcp: TGroupscanCommandParser;
 
   floatsettings: TFormatSettings;
+
+  fvalue: double;
+  tempq: qword;
 {$endif}
 begin
 {$ifndef jni}
@@ -920,15 +929,28 @@ begin
       groupdata[i].vartype:=gcp.elements[i].vartype;
       groupdata[i].customtype:=gcp.elements[i].customtype;
       groupdata[i].valuei:=gcp.elements[i].valueint;
-      groupdata[i].valuef:=gcp.elements[i].valuefloat;
+     // groupdata[i].valuef:=gcp.elements[i].valuefloat;
 
-      groupdata[i].floataccuracy:=pos(gcp.FloatSettings.DecimalSeparator,gcp.elements[i].uservalue);
-      if groupdata[i].floataccuracy>0 then
-        groupdata[i].floataccuracy:=length(gcp.elements[i].uservalue)-groupdata[i].floataccuracy;
+      groupdata[i].range:=gcp.elements[i].range;
+      if groupdata[i].range then
+      begin
+        groupdata[i].valuei2:=gcp.elements[i].valueint2;
+        groupdata[i].minfvalue:=gcp.elements[i].valuefloat;
+        groupdata[i].maxfvalue:=gcp.elements[i].valuefloat2;
+        groupdata[i].signed:=gcp.elements[i].signed;
 
 
-      groupdata[i].minfvalue:=groupdata[i].valuef-(1/(power(10,groupdata[i].floataccuracy)));
-      groupdata[i].maxfvalue:=groupdata[i].valuef+(1/(power(10,groupdata[i].floataccuracy)));
+      end
+      else
+      begin
+        fvalue:=gcp.elements[i].valuefloat;
+        groupdata[i].floataccuracy:=pos(gcp.FloatSettings.DecimalSeparator,gcp.elements[i].uservalue);
+        if groupdata[i].floataccuracy>0 then
+          groupdata[i].floataccuracy:=length(gcp.elements[i].uservalue)-groupdata[i].floataccuracy;
+
+        groupdata[i].minfvalue:=fvalue-(1/(power(10,groupdata[i].floataccuracy)));
+        groupdata[i].maxfvalue:=fvalue+(1/(power(10,groupdata[i].floataccuracy)));
+      end;
 
       groupdata[i].value:=uppercase(gcp.elements[i].uservalue);
       groupdata[i].widevalue:=UnicodeUpperCase(gcp.elements[i].uservalue);
@@ -993,35 +1015,55 @@ begin
   begin
     if result=false then exit;
 
-
     case groupdata[i].vartype of
       vtByte:
       begin
-        result:=groupdata[i].wildcard or (pbyte(newvalue)^=byte(groupdata[i].valuei));
+        result:=groupdata[i].wildcard or
+                (not groupdata[i].range and (pbyte(newvalue)^=byte(groupdata[i].valuei))) or
+                (groupdata[i].range and
+                   (groupdata[i].signed and (PSmallInt(newvalue)^>=smallint(groupdata[i].valuei)) and (PSmallInt(newvalue)^<=smallint(groupdata[i].valuei2))) or
+                   (not groupdata[i].signed and (PByte(newvalue)^>=Byte(groupdata[i].valuei)) and (PByte(newvalue)^<=Byte(groupdata[i].valuei2)))
+                );
+
         inc(newvalue, 1);
       end;
 
       vtWord:
       begin
-        result:=groupdata[i].wildcard or (pword(newvalue)^=word(groupdata[i].valuei));
+        result:=groupdata[i].wildcard or
+                (not groupdata[i].range and (pword(newvalue)^=word(groupdata[i].valuei))) or
+                (groupdata[i].range and
+                   (groupdata[i].signed and (PShortint(newvalue)^>=Shortint(groupdata[i].valuei)) and (PShortint(newvalue)^<=Shortint(groupdata[i].valuei2))) or
+                   (not groupdata[i].signed and (PWord(newvalue)^>=Word(groupdata[i].valuei)) and (PWord(newvalue)^<=Word(groupdata[i].valuei2)))
+                );
         inc(newvalue, 2);
       end;
 
       vtDWord:
       begin
-        result:=groupdata[i].wildcard or (pdword(newvalue)^=dword(groupdata[i].valuei));
+        result:=groupdata[i].wildcard or
+                (not groupdata[i].range and (pdword(newvalue)^=dword(groupdata[i].valuei))) or
+                (groupdata[i].range and
+                   (groupdata[i].signed and (Pinteger(newvalue)^>=integer(groupdata[i].valuei)) and (Pinteger(newvalue)^<=integer(groupdata[i].valuei2))) or
+                   (not groupdata[i].signed and (PDWord(newvalue)^>=DWord(groupdata[i].valuei)) and (PDWord(newvalue)^<=DWord(groupdata[i].valuei2)))
+                );
         inc(newvalue, 4);
       end;
 
       vtQWord:
       begin
-        result:=groupdata[i].wildcard or (pqword(newvalue)^=qword(groupdata[i].valuei));
+        result:=groupdata[i].wildcard or
+                (not groupdata[i].range and (pqword(newvalue)^=qword(groupdata[i].valuei))) or
+                (groupdata[i].range and
+                   (groupdata[i].signed and (Pint64(newvalue)^>=int64(groupdata[i].valuei)) and (Pint64(newvalue)^<=int64(groupdata[i].valuei2))) or
+                   (not groupdata[i].signed and (PQWord(newvalue)^>=QWord(groupdata[i].valuei)) and (PQWord(newvalue)^<=QWord(groupdata[i].valuei2)))
+                );
         inc(newvalue, 8);
       end;
 
       vtSingle:
       begin
-        result:=groupdata[i].wildcard or ((psingle(newvalue)^>groupdata[i].minfvalue) and (psingle(newvalue)^<groupdata[i].maxfvalue)); //default extreme rounded
+        result:=groupdata[i].wildcard or ((psingle(newvalue)^>=groupdata[i].minfvalue) and (psingle(newvalue)^<=groupdata[i].maxfvalue)); //default extreme rounded
 
         if result and (floatscanWithoutExponents and (pdword(newvalue)^>0) and (abs(127-(pdword(newvalue)^ shr 23) and $ff)>10)) then
           result:=false;
@@ -1031,7 +1073,7 @@ begin
 
       vtDouble:
       begin
-        result:=groupdata[i].wildcard or ((pdouble(newvalue)^>groupdata[i].minfvalue) and (pdouble(newvalue)^<groupdata[i].maxfvalue));
+        result:=groupdata[i].wildcard or ((pdouble(newvalue)^>=groupdata[i].minfvalue) and (pdouble(newvalue)^<=groupdata[i].maxfvalue));
 
         if result and (floatscanWithoutExponents and (pqword(newvalue)^>0) and (abs(integer(1023-(pqword(newvalue)^ shr 52) and $7ff))>10)) then
           result:=false;
@@ -1100,6 +1142,22 @@ begin
     end;
 end;
 
+function TGroupData.ByteScanRange(value,value2: byte; signed: boolean; buf: Pbytearray; var startoffset: integer): boolean;
+var i: integer;
+begin
+  result:=false;
+
+  for i:=startoffset to blocksize-1 do
+    if ((not signed) and (buf[i]>=value) and (buf[i]<=value2)) or
+       ((signed) and (Smallint(buf[i])>=Smallint(value)) and (Smallint(buf[i])<=Smallint(value2)))
+    then
+    begin
+      startoffset:=i+1;
+      result:=true;
+      exit;
+    end;
+end;
+
 function TGroupData.WordScan(value: word; buf: pointer; var startoffset: integer): boolean;
 var current: pointer;
   i: integer;
@@ -1119,6 +1177,38 @@ begin
   while i<blocksize-1 do
   begin
     if pword(current)^=value then
+    begin
+      startoffset:=i+1;
+      result:=true;
+      exit;
+    end;
+
+    inc(current, align);
+    inc(i, align);
+  end;
+end;
+
+function TGroupData.WordScanRange(value,value2: word; signed: boolean; buf: pointer; var startoffset: integer): boolean;
+var current: pointer;
+  i: integer;
+
+  align: integer;
+begin
+  result:=false;
+  if outoforder_aligned then
+    align:=2
+  else
+    align:=1;
+
+  current:=buf;
+  inc(current, startoffset);
+  i:=startoffset;
+
+  while i<blocksize-1 do
+  begin
+    if ((not signed) and (pword(current)^>=value) and (pword(current)^<=value2)) or
+       ((signed) and (PShortint(current)^>=Shortint(value)) and (PShortint(current)^<=Shortint(value2)))
+    then
     begin
       startoffset:=i+1;
       result:=true;
@@ -1159,6 +1249,37 @@ begin
   end;
 end;
 
+function TGroupData.DWordScanRange(value,value2: dword; signed: boolean; buf: pointer; var startoffset: integer): boolean;
+var current: pointer;
+  i: integer;
+  align: integer;
+begin
+  result:=false;
+  if outoforder_aligned then
+    align:=4
+  else
+    align:=1;
+
+  current:=buf;
+  inc(current, startoffset);
+  i:=startoffset;
+
+  while i<blocksize-3 do
+  begin
+    if ((not signed) and (pdword(current)^>=value) and (pdword(current)^<=value2)) or
+       ((signed) and (Pinteger(current)^>=integer(value)) and (PInteger(current)^<=Integer(value2)))
+    then
+    begin
+      startoffset:=i+1;
+      result:=true;
+      exit;
+    end;
+
+    inc(current,align);
+    inc(i,align);
+  end;
+end;
+
 function TGroupData.QWordScan(value: qword; buf: pointer; var startoffset: integer): boolean;
 var current: pointer;
   i: integer;
@@ -1177,6 +1298,37 @@ begin
   while i<blocksize-7 do
   begin
     if pqword(current)^=value then
+    begin
+      startoffset:=i+1;
+      result:=true;
+      exit;
+    end;
+
+    inc(current,align);
+    inc(i,align);
+  end;
+end;
+
+function TGroupData.QWordScanRange(value,value2: qword; signed: boolean; buf: pointer; var startoffset: integer): boolean;
+var current: pointer;
+  i: integer;
+  align: integer;
+begin
+  result:=false;
+  if outoforder_aligned then
+    align:=4
+  else
+    align:=1;
+
+  current:=buf;
+  inc(current, startoffset);
+  i:=startoffset;
+
+  while i<blocksize-7 do
+  begin
+    if ((not signed) and (pqword(current)^>=value) and (pqword(current)^<=value2)) or
+       ((signed) and (Pint64(current)^>=int64(value)) and (Pint64(current)^<=int64(value2)))
+    then
     begin
       startoffset:=i+1;
       result:=true;
@@ -1449,7 +1601,11 @@ begin
       begin
         while result and isin do
         begin
-          result:=ByteScan(groupdata[i].valuei, newvalue, currentoffset);
+          if not groupdata[i].range then
+            result:=ByteScan(groupdata[i].valuei, newvalue, currentoffset)
+          else
+            result:=ByteScanRange(groupdata[i].valuei, groupdata[i].valuei2, groupdata[i].signed, newvalue, currentoffset);
+
           isin:=result and isinlist;
         end;
       end;
@@ -1461,7 +1617,11 @@ begin
           if outoforder_aligned then //adjust currentoffset to be aligned on the current type alignment
             currentoffset:=(currentoffset+1) and $fffffffe;
 
-          result:=WordScan(groupdata[i].valuei, newvalue, currentoffset);
+          if not groupdata[i].range then
+            result:=WordScan(groupdata[i].valuei, newvalue, currentoffset)
+          else
+            result:=WordScanRange(groupdata[i].valuei, groupdata[i].valuei2, groupdata[i].signed, newvalue, currentoffset);
+
           isin:=result and isinlist;
         end;
       end;
@@ -1473,7 +1633,10 @@ begin
           if outoforder_aligned then //adjust currentoffset to be aligned on the current type alignment
             currentoffset:=(currentoffset+3) and $fffffffc;
 
-          result:=DWordScan(groupdata[i].valuei, newvalue, currentoffset);
+          if not groupdata[i].range then
+            result:=DWordScan(groupdata[i].valuei, newvalue, currentoffset)
+          else
+            result:=DWordScanRange(groupdata[i].valuei, groupdata[i].valuei2, groupdata[i].signed, newvalue, currentoffset);
           isin:=result and isinlist;
         end;
       end;
@@ -1485,7 +1648,11 @@ begin
           if outoforder_aligned then //adjust currentoffset to be aligned on the current type alignment
             currentoffset:=(currentoffset+3) and $fffffffc;
 
-          result:=QWordScan(groupdata[i].valuei, newvalue, currentoffset);
+          if not groupdata[i].range then
+            result:=QWordScan(groupdata[i].valuei, newvalue, currentoffset)
+          else
+            result:=QWordScanRange(groupdata[i].valuei, groupdata[i].valuei2, groupdata[i].signed, newvalue, currentoffset);
+
           isin:=result and isinlist;
         end;
       end;
@@ -1498,6 +1665,7 @@ begin
             currentoffset:=(currentoffset+3) and $fffffffc;
 
           result:=SingleScan(groupdata[i].minfvalue, groupdata[i].maxfvalue, newvalue, currentoffset);
+
           isin:=result and isinlist;
         end;
       end;
@@ -8409,6 +8577,9 @@ var usedtempdir: string;
 
 begin
  // OutputDebugString('TMemscan.DeleteScanfolder');
+ { if (attachedFoundlist<>nil) then
+    TFoundList(attachedFoundlist).Deinitialize; }
+
   if fScanResultFolder<>'' then
   begin
     try
