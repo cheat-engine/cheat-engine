@@ -687,6 +687,7 @@ begin
           newpreferedalignment:=-1;
           newScriptUsesFloat:=false;
           newScriptUsesCDecl:=false;
+          newScriptUsesString:=false;
 
           //find alloc "ConvertRoutine"
           for i:=0 to length(newdisableinfo.allocs)-1 do
