@@ -12,6 +12,9 @@
 
 //todo for in the far future: Hook syscalls
 
+
+#define TRACEPTRACE
+
 #define _FILE_OFFSET_BITS 64
 #define _LARGEFILE64_SOURCE
 
@@ -143,7 +146,7 @@ typedef struct
 
 int VerboseLevel=0;
 
-int MEMORY_SEARCH_OPTION = 0;
+int MEMORY_SEARCH_OPTION = 2;
 int ATTACH_PID = 0;
 int ATTACH_TO_ACCESS_MEMORY = 0;
 int ATTACH_TO_WRITE_MEMORY = 0;
@@ -185,7 +188,12 @@ char *PTraceToString(int request)
 uintptr_t safe_ptrace(int request, pid_t pid, void * addr, void * data)
 {
 #ifdef TRACEPTRACE
-  debug_log("ptrace called (%s(%x), %d, %p, %p)\n",PTraceToString(request),request, pid, addr, data);
+
+  debug_log("ATTACH_TO_ACCESS_MEMORY=%d\n", ATTACH_TO_ACCESS_MEMORY);
+  if (threadname)
+    debug_log("%s: ptrace called (%s(%x), %d, %p, %p)\n",threadname, PTraceToString(request),request, pid, addr, data);
+  else
+    debug_log("ptrace called (%s(%x), %d, %p, %p)\n",PTraceToString(request),request, pid, addr, data);
 #endif
   uintptr_t result;
   errno = 0;
@@ -2492,17 +2500,17 @@ int WriteProcessMemory(HANDLE hProcess, void *lpAddress, void *buffer, int size)
 
     if (p->isDebugged) //&& cannotdealwithotherthreads
     {
-      //printf("This process is being debugged\n");
+      debug_log("This process is being debugged\n");
       //use the debugger specific writeProcessMemory implementation
       return WriteProcessMemoryDebug(hProcess, p, lpAddress, buffer, size);
     }
 
+    debug_log("aquiring memorymutex\n");
     if (pthread_mutex_lock(&memorymutex) == 0)
     {
-      if ((MEMORY_SEARCH_OPTION == 2) && (process_vm_writev==NULL)) //user explicitly wants to use process_vm_writev but it's not available
-        MEMORY_SEARCH_OPTION=0; //fallback to 0
+      debug_log("aquired memorymutex\n");
 
-      if (MEMORY_SEARCH_OPTION == 2)
+      if ((MEMORY_SEARCH_OPTION == 2) && (process_vm_writev))
       {
         struct iovec local;
         struct iovec remote;
@@ -2521,15 +2529,31 @@ int WriteProcessMemory(HANDLE hProcess, void *lpAddress, void *buffer, int size)
           debug_log("process_vm_writev(%p, %d) failed: %s\n", lpAddress, size, strerror(errno));
           written=0;
         }
+        else
+          debug_log("Write successful\n");
+
+        pthread_mutex_unlock(&memorymutex);
         return written;
       }
+
+      if (MEMORY_SEARCH_OPTION==2)
+        debug_log("process_vm_writev==NULL. Using other method\n");
+
+      debug_log("WPM: ATTACH_TO_WRITE_MEMORY == %d\n",ATTACH_TO_WRITE_MEMORY);
+      debug_log("p->memrw=%d\n", p->memrw);
+      debug_log("p->mem=%d\n", p->mem);
+
+      if ((p->memrw==0) && (ATTACH_TO_WRITE_MEMORY==0))
+      {
+        debug_log("p->memrw is 0. Overriding ATTACH_TO_WRITE_MEMORY from 0 to 1\n");
+        ATTACH_TO_WRITE_MEMORY=1;
+      }
+
 
       if ((ATTACH_TO_WRITE_MEMORY==0) || (safe_ptrace(PTRACE_ATTACH, p->pid,0,0)==0))
       {
         int status;
-        debug_log("WPM: ATTACH_TO_WRITE_MEMORY == %d\n",ATTACH_TO_WRITE_MEMORY);
-        debug_log("p->memrw=%d\n", p->memrw);
-        debug_log("p->mem=%d\n", p->mem);
+
 
 
         pid_t pid=ATTACH_TO_WRITE_MEMORY ? wait(&status) : p->pid;
@@ -2550,7 +2574,7 @@ int WriteProcessMemory(HANDLE hProcess, void *lpAddress, void *buffer, int size)
         }
         else
         {
-          debug_log("WPM: MEMORY_SEARCH_OPTION == %d\n", MEMORY_SEARCH_OPTION);
+          debug_log("WPM: MEMORY_SEARCH_OPTION == %d p->memrw=%d\n", MEMORY_SEARCH_OPTION, p->memrw);
 
           int offset=0;
           int max=size-sizeof(long int);
@@ -3520,7 +3544,7 @@ HANDLE OpenProcess(DWORD pid)
         else
         {
           debug_log("Success. ReadOnly access.  Use an alternate write access routine\n");
-          ATTACH_TO_ACCESS_MEMORY=1;
+          ATTACH_TO_WRITE_MEMORY=1;
         }
       }
     }

@@ -49,6 +49,9 @@
 #define CMD_VIRTUALQUERYEXFULL      31
 #define CMD_GETREGIONINFO           32
 #define CMD_GETABI                  33
+//4
+#define CMD_SET_CONNECTION_NAME     34
+
 
 #define CMD_AOBSCAN					200
 
@@ -253,6 +256,8 @@ int DispatchCommand(int currentsocket, unsigned char command);
 int CheckForAndDispatchCommand(int currentsocket);
 
 extern int PORT;
+extern __thread char* threadname;
+
 
 #if BUILD_OPTION == 1
   #define SHARED_LIBRARY

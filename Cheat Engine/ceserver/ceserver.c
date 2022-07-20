@@ -40,7 +40,9 @@ int PORT;
 __thread int isDebuggerThread;
 __thread int debugfd;
 
-#define CESERVERVERSION 3
+__thread char* threadname;
+
+#define CESERVERVERSION 4
 char versionstring[]="CHEATENGINE Network 2.2";
 
 ssize_t recvall (int s, void *buf, size_t size, int flags)
@@ -129,6 +131,8 @@ int DispatchCommand(int currentsocket, unsigned char command)
     case CMD_GETVERSION:
     {
       PCeVersion v;
+      //debug_log("version request");
+      fflush(stdout);
       int versionsize=strlen(versionstring);
       v=(PCeVersion)malloc(sizeof(CeVersion)+versionsize);
       v->stringsize=versionsize;
@@ -140,6 +144,34 @@ int DispatchCommand(int currentsocket, unsigned char command)
       sendall(currentsocket, v, sizeof(CeVersion)+versionsize, 0);
 
       free(v);
+
+      break;
+    }
+
+    case CMD_SET_CONNECTION_NAME:
+    {
+      debug_log("CMD_SET_CONNECTION_NAME\n");
+      uint32_t namelength;
+
+
+      if (recvall(currentsocket, &namelength, sizeof(namelength), MSG_WAITALL)>0)
+      {
+        char name[namelength+1];
+
+        recvall(currentsocket, name, namelength, MSG_WAITALL);
+        name[namelength]=0;
+
+        if (threadname)
+        {
+          free(threadname);
+          threadname=NULL;
+        }
+        threadname=strdup(name);
+
+        debug_log("This thread is called %s\n", name);
+      }
+
+      fflush(stdout);
 
       break;
     }
@@ -161,7 +193,7 @@ int DispatchCommand(int currentsocket, unsigned char command)
       HANDLE h;
       //ce 7.4.1+ : Added the processhandle
 
-      debug_log("CMD_GETARCHITECTURE");
+      debug_log("CMD_GETARCHITECTURE\n");
 
       if (recvall(currentsocket, &h, sizeof(h), MSG_WAITALL)>0)
       {
@@ -1020,6 +1052,14 @@ case CMD_SETTHREADCONTEXT:
 
 		break;
 	}
+
+	debug_log("Unknown command received\n");
+  fflush(stdout);
+  close(currentsocket);
+
+  return 0;
+
+
   }
 }
 
@@ -1045,6 +1085,7 @@ void *newconnection(void *arg)
 
   int currentsocket=s;
 
+  threadname=NULL;
   isDebuggerThread=0;
   debugfd=-1;
   //printf("new connection. Using socket %d\n", s);
@@ -1119,7 +1160,10 @@ void *newconnection(void *arg)
     else
     if (r==0)
     {
-      debug_log("Peer has disconnected\n");
+      if (threadname)
+        debug_log("%s has disconnected\n", threadname);
+      else
+        debug_log("Peer has disconnected\n");
       fflush(stdout);
       close(currentsocket);
       return NULL;
@@ -1300,6 +1344,7 @@ int main(int argc, char *argv[])
   #endif
 
   debug_log("listening on port %d\n",PORT);
+  debug_log("---\n");
 
   done=0;
 
@@ -1309,6 +1354,8 @@ int main(int argc, char *argv[])
   #else
     debug_log("main=%p\n", main);
   #endif
+
+
   debug_log("sizeof(off_t)=%d\n",sizeof(off_t));
   debug_log("sizeof(off64_t)=%d\n",sizeof(off64_t));
   debug_log("sizeof(uintptr_t)=%d\n",sizeof(uintptr_t));

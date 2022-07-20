@@ -18,7 +18,7 @@
 #include <stdlib.h>
 #include <dlfcn.h>
 #include <stdarg.h>
-#ifdef ANDROID
+#ifdef __ANDROID__
 #include <android/log.h>
 #endif
 
