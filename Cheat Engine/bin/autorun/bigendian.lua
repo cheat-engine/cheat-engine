@@ -6,12 +6,15 @@ alloc(TypeName,256)
 alloc(ByteSize,4)
 alloc(ConvertRoutine,1024)
 alloc(ConvertBackRoutine,1024)
-
+alloc(UsesString, 1)
 TypeName:
 db '2 Byte Big Endian',0
 
 ByteSize:
 dd 2
+
+UsesString:
+db 0
 
 //The convert routine should hold a routine that converts the data to an integer (in eax)
 //function declared as: stdcall int ConvertRoutine(unsigned char *input);
@@ -93,12 +96,15 @@ alloc(TypeName,256)
 alloc(ByteSize,4)
 alloc(ConvertRoutine,1024)
 alloc(ConvertBackRoutine,1024)
-
+alloc(UsesString, 1)
 TypeName:
 db '4 Byte Big Endian',0
 
 ByteSize:
 dd 4
+
+UsesString:
+db 0
 
 //The convert routine should hold a routine that converts the data to an integer (in eax)
 //function declared as: stdcall int ConvertRoutine(unsigned char *input);
@@ -182,7 +188,7 @@ alloc(ByteSize,4)
 alloc(ConvertRoutine,1024)
 alloc(ConvertBackRoutine,1024)
 alloc(UsesFloat,1)
-  
+alloc(UsesString, 1)  
   
 TypeName:
 db 'Float Big Endian',0
@@ -194,6 +200,8 @@ dd 4
 UsesFloat:
 db 1
   
+UsesString:
+db 0
   
 ConvertRoutine:
 [64-bit]
@@ -320,5 +328,3 @@ sf.OnClose=function(sender, closeAction)
   end
   return result
 end
-
-
