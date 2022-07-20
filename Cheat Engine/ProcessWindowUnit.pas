@@ -163,7 +163,7 @@ implementation
 
 uses MainUnit, formsettingsunit, advancedoptionsunit,frmProcessWatcherUnit,
   memorybrowserformunit{$ifdef windows}, networkConfig{$endif}, ProcessHandlerUnit, processlist, globals,
-  registry, fontSaveLoadRegistry, frmOpenFileAsProcessDialogUnit, networkinterfaceapi, mainunit2;
+  registry, fontSaveLoadRegistry, frmOpenFileAsProcessDialogUnit, networkInterfaceApi, MainUnit2;
 
 resourcestring
   rsIsnTAValidProcessID = '%s isn''t a valid processID';
@@ -789,7 +789,7 @@ end;
 procedure TProcessWindow.OKButtonClick(Sender: TObject);
 var ProcessIDString: String; 
 begin
-  //Outputdebugstring('OK button click');
+  Outputdebugstring('OK button click');
   if Processlist.ItemIndex>-1 then
   begin
     unpause;
@@ -797,6 +797,7 @@ begin
 
     ProcessIDString:=copy(ProcessList.Items[Processlist.ItemIndex], 1, pos('-',ProcessList.Items[Processlist.ItemIndex])-1);
 
+    Outputdebugstring('calling PWOD');
     PWOP(ProcessIDString);
 
 
@@ -862,6 +863,8 @@ procedure TProcessWindow.btnAttachDebuggerClick(Sender: TObject);
 var ProcessIDString: String;
     i:               Integer;
     oldpid,newpid: dword;
+
+    starttime: qword;
 begin
   oldpid:=processid;
 
@@ -869,6 +872,7 @@ begin
   begin
     if MessageDlg(rsAttachdebuggerornot, mtConfirmation, [mbyes, mbno], 0)=mryes then
     begin
+
       unpause;
       DetachIfPossible;
 
@@ -891,7 +895,9 @@ begin
       try
         if processid=GetCurrentProcessId then raise exception.create(rsPleaseSelectAnotherProcess);
 
+        starttime:=GetTickCount64;
         Debuggerthread:=TDebuggerThread.MyCreate2(newpid);
+
       except
         on e: exception do
         begin
@@ -900,6 +906,8 @@ begin
           exit;
         end;
       end;
+
+      OutputDebugString('Debugger attach time='+(GetTickCount64-starttime).ToString);
 
       mainform.ProcessLabel.Caption:=ProcessList.Items[Processlist.ItemIndex];
 

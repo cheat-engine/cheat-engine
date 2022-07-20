@@ -476,6 +476,7 @@ begin
       coderecord.context.SegGs:=coderecord.dbvmcontextbasic^.GS;
 
       coderecord.hitcount:=coderecord.dbvmcontextbasic^.Count+1;
+      coderecord.diffcount:=0;
 
       OutputDebugString('adding to the foundlist');
       li:=fcd.FoundCodeList.Items.Add;
@@ -568,6 +569,7 @@ begin
   coderecord.LastDisassembleData:=ldi;
   coderecord.savestack;
   coderecord.hitcount:=1;
+  coderecord.diffcount:=0;
 
   seenAddressListCS.Enter;
   try
@@ -1744,7 +1746,7 @@ begin
 
       if gettickcount64-starttime>250 then updateAddressString:=false; //next time better
 
-      if miFindWhatAccesses.checked then
+      if miFindWhatAccesses.checked or (TCodeRecord(foundcodelist.Items[i].data).diffcount<>0) then
         news:=inttostr(c.hitcount)+' ('+inttostr(TCodeRecord(foundcodelist.Items[i].data).diffcount)+')'
       else
         news:=inttostr(c.hitcount);

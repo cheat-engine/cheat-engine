@@ -2184,6 +2184,11 @@ begin
       exit('???');
   end;
 
+  if customtype.scriptUsesString then
+  begin
+    result:=customtype.ConvertDataToString(@bytes[0],a);
+  end
+  else
   if CustomType.scriptUsesFloat then
   begin
     f:=CustomType.ConvertDataToFloat(@bytes[0],a);

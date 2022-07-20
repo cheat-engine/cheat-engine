@@ -13,7 +13,7 @@ uses
   {$endif}
   LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, Buttons, registry, CEFuncProc, ExtCtrls, LResources,
-  comCtrls, menus, hotkeyhandler, MemoryRecordUnit, commonTypeDefs, strutils, betterControls;
+  comCtrls, menus, hotkeyhandler, MemoryRecordUnit, commonTypeDefs, strutils, betterControls, LMessages;
 
 type
 
@@ -74,6 +74,7 @@ type
       Shift: TShiftState; X, Y: Integer);
     procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
     procedure FormCreate(Sender: TObject);
+    procedure FormShortCut(var Msg: TLMKey; var Handled: Boolean);
     procedure FormShow(Sender: TObject);
     procedure ListView1DblClick(Sender: TObject);
     procedure ListView1SelectItem(Sender: TObject; Item: TListItem;
@@ -634,6 +635,15 @@ begin
   sbPlayActivate.enabled:=false;
   sbPlayDeactivate.enabled:=false;
   {$endif}
+end;
+
+procedure THotKeyForm.FormShortCut(var Msg: TLMKey; var Handled: Boolean);
+begin
+  if (pagecontrol1.ActivePage<>tabsheet2) and (Msg.CharCode=VK_ESCAPE) then
+  begin
+    handled:=true;
+    close;
+  end;
 end;
 
 procedure THotKeyForm.FormShow(Sender: TObject);

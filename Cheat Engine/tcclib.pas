@@ -8,19 +8,30 @@ interface
 uses
   {$ifdef windows}windows,{$endif}
   {$ifdef darwin}macport, dl,macportdefines, {$endif}
-  Classes, SysUtils, syncobjs, maps;
+  Classes, SysUtils, syncobjs, maps, Generics.Collections;
 
 
 type
-  TTCCTarget=(x86_64,i386{$ifdef windows}, x86_64_sysv, i386_sysv{$endif});
+  TTCCTarget=(x86_64,i386{$ifdef windows}, x86_64_sysv, i386_sysv{$endif} {$ifdef darwin},aarch64{$endif});
   PTCCState=pointer;
   {$ifdef standalonetest}
   TSymbolListHandler=pointer;
   {$endif}
 
+  TTCCRegionInfo=record
+     address: ptruint;
+     size: integer;
+     protection: dword;
+  end;
+
+  TTCCRegionList=specialize tlist<TTCCRegionInfo>;
+
+
 
   TTCCMemorystream=class(TMemoryStream)
   private
+    protections: array of TTCCRegionInfo;
+
     base: ptruint; //this unit owns the TTCCMemorystream so it can access base no problem, the caller units not so much
   protected
     function Realloc(var NewCapacity: PtrInt): Pointer; override;
@@ -144,6 +155,10 @@ type
     destructor destroy; override;
   end;
 
+  TOpenFileCallback=function(filename: pchar; openflag: integer): integer; stdcall;
+  TReadFileCallback=function(fileHandle: integer; destination: pointer; maxcharcount: integer):integer;  stdcall;
+  TCloseFileCallback=function(fileHandle: integer): integer;  stdcall;
+
   TTCC=class(TObject)
   private
     cs: TCriticalSection; static;
@@ -175,14 +190,15 @@ type
 
 
     add_symbol:function(s: PTCCState; name: pchar; val: pointer): integer; cdecl;
+    install_filehook: procedure (OpenFileCallBack: TOpenFileCallback; ReadFileCallback: TReadFileCallback; CloseFileCallback: TCloseFileCallback); cdecl;
 
     procedure setupCompileEnvironment(s: PTCCState; textlog: tstrings; targetself: boolean=false; nodebug: boolean=false);
     procedure parseStabData(s: PTCCState; symbols: Tstrings; sourcecodeinfo: TSourceCodeInfo; stringsources: tstrings=nil);
   public
     function testcompileScript(script: string; var bytesize: integer; referencedSymbols: TStrings; symbols: TStrings; sourcecodeinfo: TSourceCodeInfo=nil; textlog: tstrings=nil): boolean;
-    function compileScript(script: string; address: ptruint; output: tstream; symbollist: TStrings; sourcecodeinfo: TSourceCodeInfo=nil; textlog: tstrings=nil; secondaryLookupList: tstrings=nil; targetself: boolean=false): boolean;
-    function compileScripts(scripts: tstrings; address: ptruint; output: tstream; symbollist: TStrings; sourcecodeinfo: TSourceCodeInfo=nil; textlog: tstrings=nil; targetself: boolean=false): boolean;
-    function compileProject(files: tstrings; address: ptruint; output: tstream; symbollist: TStrings; sourcecodeinfo: TSourceCodeInfo=nil; textlog: tstrings=nil; targetself: boolean=false): boolean;
+    function compileScript(script: string; address: ptruint; output: tstream; symbollist: TStrings; regionList: TTCCRegionList=nil; sourcecodeinfo: TSourceCodeInfo=nil; textlog: tstrings=nil; secondaryLookupList: tstrings=nil; targetself: boolean=false): boolean;
+    function compileScripts(scripts: tstrings; address: ptruint; output: tstream; symbollist: TStrings; regionList: TTCCRegionList=nil; sourcecodeinfo: TSourceCodeInfo=nil; textlog: tstrings=nil; targetself: boolean=false): boolean;
+    function compileProject(files: tstrings; address: ptruint; output: tstream; symbollist: TStrings; regionList: TTCCRegionList=nil; sourcecodeinfo: TSourceCodeInfo=nil; textlog: tstrings=nil; targetself: boolean=false): boolean;
     constructor create(target: TTCCTarget);
   end;
 
@@ -198,8 +214,8 @@ type
 
 implementation
 
-uses forms,dialogs, StrUtils {$ifndef standalonetest}, symbolhandler, ProcessHandlerUnit,
-  newkernelhandler, CEFuncProc, sourcecodehandler{$endif};
+uses forms,dialogs, StrUtils, Contnrs {$ifndef standalonetest}, symbolhandler, ProcessHandlerUnit,
+  newkernelhandler, CEFuncProc, sourcecodehandler, MainUnit{$endif};
 const
   TCC_RELOCATE_AUTO=pointer(1); //relocate
   TCC_OUTPUT_MEMORY  = 1; { output will be run in memory (default) }
@@ -1072,7 +1088,9 @@ constructor TSourceCodeInfo.create;
 begin
   AddressToLineNumberInfo:=TMap.Create(ituPtrSize,sizeof(TLineNumberInfo));
   sources:=TStringList.create;
+  {$ifndef standalonetest}
   fprocessid:=processhandler.processid;
+  {$endif}
 end;
 
 destructor TSourceCodeInfo.destroy;
@@ -1107,6 +1125,76 @@ begin
 end;
 
 
+type
+  TTC_OpenFileInfo=record
+   s: TMemoryStream;
+  end;
+
+var
+  TCC_OpenFiles: classes.TList;
+
+function TCC_OpenFileCallback(filename: pchar; openflag: integer): integer; stdcall;
+var
+  i,j: integer;
+  temp: TMemoryStream;
+
+  index: integer;
+begin
+  //7ce00000
+  //check if filename is in mainform.tablefiles
+  for i:=0 to mainform.LuaFiles.Count-1 do
+    if mainform.LuaFiles[i].name=filename then
+    begin
+      //mainform.LuaFiles;
+      temp:=TMemoryStream.Create;
+      temp.CopyFrom(mainform.LuaFiles[i].stream,0);
+      temp.position:=0;
+
+      index:=0;
+      for j:=0 to TCC_OpenFiles.Count-1 do
+        if TCC_OpenFiles[i]=nil then
+        begin
+          TCC_OpenFiles[i]:=temp;
+          exit($7ce00000+j);
+        end;
+
+      exit($7ce00000+TCC_OpenFiles.Add(temp));
+    end;
+
+  result:=-1;
+end;
+
+//TCC doesn't use seek for header files, so this is acceptable
+function TCC_ReadFileCallback(fileHandle: integer; destination: pointer; maxcharcount: integer):integer;  stdcall;
+var
+  s: tmemorystream;
+  i: integer;
+begin
+  i:=filehandle-$7ce00000;
+  if (i>=0) and (i<TCC_OpenFiles.count) then
+  begin
+    s:=tmemorystream(TCC_OpenFiles[i]);
+    i:=s.Read(destination^, min(maxcharcount, s.Size-s.Position));
+    exit(i);
+  end;
+  result:=-1;
+end;
+
+function TCC_CloseFileCallback(fileHandle: integer): integer;  stdcall;
+var
+  s: tmemorystream;
+  i: integer;
+begin
+  i:=filehandle-$7ce00000;
+  if (i>=0) and (i<TCC_OpenFiles.count) then
+  begin
+    s:=tmemorystream(TCC_OpenFiles[i]);
+    s.free;
+    TCC_OpenFiles[i]:=nil;
+    exit(0);
+  end;
+  result:=-1;
+end;
 
 constructor TTCC.create(target: TTCCTarget);
 var
@@ -1130,14 +1218,28 @@ begin
   end;
   {$endif}
   {$else}
-  module:=loadlibrary('libtcc.dylib');
-  if module=0 then
+  if target=aarch64 then
   begin
-    p:=ExtractFilePath(application.ExeName)+'libtcc.dylib';
-
-
+    p:={$ifdef standalonetest}'/Users/ericheijnen/Documents/GitHub/cheat-engine/Cheat Engine/bin/tcc/Release/'+{$endif}'libtcc_arm64.dylib';
     module:=loadlibrary(p);
+
+    if module=0 then
+    begin
+      p:=ExtractFilePath(application.ExeName)+'libtcc_arm64.dylib';
+      module:=loadlibrary(p);
+    end;
+  end
+  else
+  begin
+    module:=loadlibrary('libtcc_x86_64.dylib');
+
+    if module=0 then
+    begin
+      p:=ExtractFilePath(application.ExeName)+'libtcc_x86_64.dylib';
+      module:=loadlibrary(p);
+    end;
   end;
+
   {$endif}
 
   working:=false;
@@ -1164,6 +1266,9 @@ begin
 
   pointer(get_stab):=GetProcAddress(module,'tcc_get_stab');
 
+  pointer(install_filehook):=GetProcAddress(module,'tcc_install_filehook');
+
+
 
   working:=(module<>0) and
            assigned(new) and
@@ -1172,7 +1277,13 @@ begin
            assigned(compile_string) and
            assigned(output_file) and
            assigned(delete) and
-           assigned(get_stab);
+           assigned(get_stab) and
+           assigned(install_filehook);
+
+  if working then
+  begin
+    install_filehook(@TCC_OpenFileCallBack, @TCC_ReadFileCallback, @TCC_CloseFileCallback);
+  end;
 end;
 
 procedure ErrorLogger(opaque: pointer; msg: pchar); cdecl;
@@ -1231,24 +1342,41 @@ begin
 end;
 {$endif}
 
-
-procedure SelfWriter(userdata: tobject; address: ptruint; data: pointer; size: integer);  cdecl; //writes to the local process
+ {
+procedure SelfWriter(userdata: tobject; address: ptruint; data: pointer; size: integer; protection: integer);  cdecl; //writes to the local process
 begin
+  OutputDebugString(format('Binary writer 1: %p -> %p : %d',[pointer(address), pointer(address+size), protection]));
   CopyMemory(pointer(address), data, size);
+end;  }
+
+procedure NullWriter(userdata: tobject; address: ptruint; data: pointer; size: integer; protection: integer);  cdecl; //writes nothing
+begin
+  OutputDebugString(format('Binary writer 0: %p -> %p : %d',[pointer(address), pointer(address+size), protection]));
 end;
 
-procedure NullWriter(userdata: tobject; address: ptruint; data: pointer; size: integer);  cdecl; //writes nothing
+procedure TCCMemorystreamWriter(m: TTCCMemorystream; address: ptruint; data: pointer; size: integer; protection: integer);  cdecl; //Writes to a TTCCMemorystreamWriter based on the base address stored within
+var i: integer;
 begin
-end;
-
-procedure TCCMemorystreamWriter(m: TTCCMemorystream; address: ptruint; data: pointer; size: integer);  cdecl; //Writes to a TTCCMemorystreamWriter based on the base address stored within
-begin
+  OutputDebugString(format('Binary writer 2: %p -> %p : %d',[pointer(address), pointer(address+size), protection]));
   m.position:=address-m.base;
   m.WriteBuffer(data^,size);
+
+  i:=length(m.protections);
+  if (i>0) and ((protection=0) or ((protection=1) and (m.protections[i-1].protection=PAGE_EXECUTE_READ)) or ((protection=2) and (m.protections[i-1].protection=PAGE_READWRITE) )) then  //protection=0 is filler
+  begin
+    m.protections[i-1].size:=(address+size)-m.protections[i-1].address;
+  end
+  else
+  begin
+    setlength(m.protections,i+1);
+    m.protections[i].address:=address;
+    m.protections[i].size:=size;
+    if protection=1 then m.protections[i].protection:=PAGE_EXECUTE_READ else m.protections[i].protection:=PAGE_READWRITE;
+  end;
 end;
 
 {$ifndef standalonetest}
-procedure MemoryWriter(userdata: tobject; address: ptruint; data: pointer; size: integer);  cdecl; //Writes directly to the target process memory
+procedure MemoryWriter(userdata: tobject; address: ptruint; data: pointer; size: integer; protection: integer);  cdecl; //Writes directly to the target process memory
 var bw: size_t;
 begin
   WriteProcessMemory(processhandle,pointer(address),data,size,bw);
@@ -1290,11 +1418,11 @@ var
   params: string;
   i: integer;
 begin
-  add_include_path(s,{$ifdef standalonetest}'D:\git\cheat-engine\Cheat Engine\bin\'+{$endif}'include');
+  add_include_path(s,{$ifdef standalonetest}'/Users/ericheijnen/Documents/GitHub/cheat-engine/Cheat Engine/bin/cheatengine-x86_64.app/Contents/MacOS/'+{$endif}'include');
   {$ifdef windows}
   add_include_path(s,{$ifdef standalonetest}'D:\git\cheat-engine\Cheat Engine\bin\'+{$endif}'include\winapi');
   {$endif}
-  add_include_path(s,{$ifdef standalonetest}'D:\git\cheat-engine\Cheat Engine\bin\'+{$endif}'include\sys');
+  add_include_path(s,{$ifdef standalonetest}'/Users/ericheijnen/Documents/GitHub/cheat-engine/Cheat Engine/bin/cheatengine-x86_64.app/Contents/MacOS/'+{$endif}'include\sys');
   add_include_path(s,pchar(ExtractFilePath(application.exename)+'include'));
   {$ifdef windows}
   add_include_path(s,pchar(ExtractFilePath(application.exename)+'include\winapi'));
@@ -1414,7 +1542,7 @@ begin
   end;
 end;
 
-function ttcc.compileScript(script: string; address: ptruint; output: tstream; symbollist: TStrings; sourcecodeinfo: TSourceCodeInfo=nil; textlog: tstrings=nil; secondaryLookupList: tstrings=nil; targetself: boolean=false): boolean;
+function ttcc.compileScript(script: string; address: ptruint; output: tstream; symbollist: TStrings; regionList: TTCCRegionList=nil; sourcecodeinfo: TSourceCodeInfo=nil; textlog: tstrings=nil; secondaryLookupList: tstrings=nil; targetself: boolean=false): boolean;
 var s: PTCCState;
   r: pointer;
 
@@ -1422,6 +1550,7 @@ var s: PTCCState;
   tms: TTCCMemorystream=nil;
 
   sources: tstringlist;
+  i: integer;
 begin
   if not working then
   begin
@@ -1467,6 +1596,12 @@ begin
       tms.SaveToStream(output);
     end;
 
+    if regionList<>nil then
+    begin
+      for i:=0 to length(tms.protections)-1 do
+        regionList.Add(tms.protections[i]);;
+    end;
+
     if (symbollist<>nil) and (sourcecodeinfo<>nil) then
     begin
       sources:=tstringlist.create;
@@ -1485,7 +1620,7 @@ begin
   end;
 end;
 
-function ttcc.compileScripts(scripts: tstrings; address: ptruint; output: tstream; symbollist: TStrings; sourcecodeinfo: TSourceCodeInfo=nil; textlog: tstrings=nil; targetself: boolean=false):boolean;
+function ttcc.compileScripts(scripts: tstrings; address: ptruint; output: tstream; symbollist: TStrings; regionList: TTCCRegionList=nil; sourcecodeinfo: TSourceCodeInfo=nil; textlog: tstrings=nil; targetself: boolean=false):boolean;
 var
   s: PTCCState;
   i: integer;
@@ -1536,6 +1671,12 @@ begin
       tms.SaveToStream(output);
     end;
 
+    if regionList<>nil then
+    begin
+      for i:=0 to length(tms.protections)-1 do
+        regionList.Add(tms.protections[i]);;
+    end;
+
     if (symbollist<>nil) and (sourcecodeinfo<>nil) then
       parseStabData(s, symbollist, sourcecodeinfo, scripts);
 
@@ -1552,7 +1693,7 @@ begin
 end;
 
 
-function ttcc.compileProject(files: tstrings; address: ptruint; output: tstream; symbollist: TStrings; sourcecodeinfo: TSourceCodeInfo=nil; textlog: tstrings=nil; targetself: boolean=false):boolean;
+function ttcc.compileProject(files: tstrings; address: ptruint; output: tstream; symbollist: TStrings; regionList: TTCCRegionList=nil; sourcecodeinfo: TSourceCodeInfo=nil; textlog: tstrings=nil; targetself: boolean=false):boolean;
 var
   s: PTCCState;
   i: integer;
@@ -1602,6 +1743,12 @@ begin
       tms.SaveToStream(output);
     end;
 
+    if regionList<>nil then
+    begin
+      for i:=0 to length(tms.protections)-1 do
+        regionList.Add(tms.protections[i]);;
+    end;
+
     if (symbollist<>nil) and (sourcecodeinfo<>nil) then
       parseStabData(s, symbollist, sourcecodeinfo);
 
@@ -1621,6 +1768,7 @@ end;
 
 function initTCCLib: boolean;
 begin
+  TCC_OpenFiles:=classes.tlist.create;
 {$ifdef windows}
   {$ifndef standalonetest}
   tcc32:=ttcc.create(i386);
@@ -1630,8 +1778,18 @@ begin
   tcc64:=ttcc.create(x86_64);
   {$endif}
 {$else}
-  tcc32:=ttcc.create(x86_64);
-  tcc64:=ttcc.create(x86_64);
+  if MacIsArm64 then
+  begin
+     {$ifndef standalonetest}
+    tcc32:=ttcc.create(aarch64);
+     {$endif}
+    tcc64:=ttcc.create(aarch64);
+  end
+  else
+  begin
+    tcc32:=ttcc.create(x86_64);
+    tcc64:=ttcc.create(x86_64);
+  end;
 {$endif}
 
   initDone:=true;

@@ -87,7 +87,7 @@ procedure cleanModuleList(ModuleList: TStrings);
 
 function AvailMem:SIZE_T;
 function isreadable(address:ptrUint):boolean;
-
+function iswritable(address:ptrUint):boolean;
 
 procedure RemoveAddress(address: Dword;bit: Byte; vartype: Integer);
 
@@ -446,6 +446,19 @@ var mbi: _MEMORY_BASIC_INFORMATION;
 begin
   i:=VirtualQueryEx(processhandle,pointer(address),mbi,sizeof(mbi));
   result:=(i=sizeof(mbi)) and (mbi.State=mem_commit);
+end;
+
+function iswritable(address:ptrUint):boolean;
+var mbi: _MEMORY_BASIC_INFORMATION;
+  i: integer;
+begin
+  i:=VirtualQueryEx(processhandle,pointer(address),mbi,sizeof(mbi));
+  result:=(i=sizeof(mbi)) and (mbi.State=mem_commit);
+  if result then result:={$ifdef windows}
+                         ((mbi.Protect and PAGE_EXECUTE_READWRITE)=PAGE_EXECUTE_READWRITE) or
+                         ((mbi.Protect and PAGE_EXECUTE_WRITECOPY)=PAGE_EXECUTE_WRITECOPY) or
+  {$endif}
+                         ((mbi.Protect and PAGE_READWRITE)=PAGE_READWRITE);
 end;
 
 function RawToString(const buf: array of byte; vartype: integer;showashex: boolean; bufsize: integer):string;
@@ -2760,11 +2773,25 @@ var original,a: dword;
     v: boolean;
 begin
   //make writable, write, restore, flush
-  v:=(SkipVirtualProtectEx=false) and VirtualProtectEx(processhandle,  pointer(address),size,PAGE_EXECUTE_READWRITE,original);
-  result:=writeprocessmemory(processhandle,pointer(address),buffer,size,s);
-  size:=s;
-  if v then
-    VirtualProtectEx(processhandle,pointer(address),size,original,a);
+  if SystemSupportsWritableExecutableMemory or SkipVirtualProtectEx then
+  begin
+    v:=(SkipVirtualProtectEx=false) and VirtualProtectEx(processhandle,  pointer(address),size,PAGE_EXECUTE_READWRITE,original);
+    result:=writeprocessmemory(processhandle,pointer(address),buffer,size,s);
+    size:=s;
+    if v then
+      VirtualProtectEx(processhandle,pointer(address),size,original,a);
+  end
+  else
+  begin
+    ntsuspendProcess(processhandle);
+    v:=VirtualProtectEx(processhandle, pointer(address),size,PAGE_READWRITE,original);
+    if v then
+    begin
+      result:=writeprocessmemory(processhandle,pointer(address),buffer,size,s);
+      result:=result or VirtualProtectEx(processhandle, pointer(address),size,original,a);
+    end;
+    ntresumeProcess(processhandle);
+  end;
 end;
 
 function rewritecode(processhandle: thandle; address:ptrUint; buffer: pointer; var size:dword; force: boolean=false): boolean;
@@ -2835,6 +2862,9 @@ var a,b,c,d: dword;
 begin
   result:=false;
   succeed:=false;
+  {$ifdef darwinarm64}
+  exit(false);
+  {$else}
 
   {$IFDEF windows}
  needed:=0;
@@ -2933,7 +2963,7 @@ begin
     end;
 
   end;
-
+  {$endif}
 
 end;
 

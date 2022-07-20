@@ -98,6 +98,7 @@ var
   arch: integer;
   abi: integer;
 begin
+  //outputdebugstring('TProcessHandler.setProcessHandle');
   if (fprocesshandle<>0) and (fprocesshandle<>getcurrentprocess) and (processhandle<>getcurrentprocess) then
   begin
     try
@@ -149,7 +150,14 @@ begin
   else
   {$endif}
   begin
+    //outputdebugstring('setProcessHandle not windows');
+
+    {$ifdef darwin}
+    if MacIsArm64 then  //rosetta2 or I finally ported it to full armv8
+      fSystemArchitecture:=archArm;
+    {$else}
     fSystemArchitecture:=archX86;
+    {$endif}
     {$ifdef windows}
     fOSABI:=abiWindows;
     {$else}
@@ -167,6 +175,7 @@ begin
 
   if processhandle<>0 then
   begin
+    outputdebugstring('calling open');
     open;
   end;
 
@@ -175,6 +184,7 @@ end;
 procedure TProcessHandler.Open;
 var mn: string;
 begin
+  outputdebugstring('TProcessHandler.Open');
   //GetFirstModuleNa
   {$ifndef jni}
 

@@ -214,6 +214,9 @@ type
     menuAOBInjection: TMenuItem;
     menuFullInjection: TMenuItem;
     MenuItem1: TMenuItem;
+    mi14ByteJMP: TMenuItem;
+    mi5ByteJMP: TMenuItem;
+    N1: TMenuItem;
     miMoveLeft: TMenuItem;
     miMoveRight: TMenuItem;
     miLuaSyntaxCheck: TMenuItem;
@@ -616,7 +619,7 @@ begin
       savedialog1.DefaultExt:='CEA';
       savedialog1.Filter:=rsCEAFilter;
       Assigntocurrentcheattable1.Visible:=true;
-      emplate1.Visible:=true;
+      emplate1.Visible:=processhandler.SystemArchitecture=archX86;
       caption:=rsAutoAssembler;
       inject1.Visible:=false;
       helpcontext:=18; //auto asm help
@@ -1148,7 +1151,7 @@ begin
     address:=symhandler.getNameFromAddress(a);
 
   if inputquery(rsCodeInjectTemplate, rsOnWhatAddressDoYouWantTheJump, address) then
-    GenerateCodeInjectionScript(assemblescreen.lines, address, ssCtrl in GetKeyShiftState);
+    GenerateCodeInjectionScript(assemblescreen.lines, address, (ssCtrl in GetKeyShiftState) or mi14ByteJMP.checked);
 end;
 
 procedure TfrmAutoInject.Panel1Resize(Sender: TObject);
@@ -2392,6 +2395,9 @@ begin
     i:=assemblescreen.Keystrokes.FindCommand(ecSelectAll);
     if i<>-1 then assemblescreen.Keystrokes[i].ShortCut:=TextToShortCut('Meta+A');
   end;
+
+  if processhandler.SystemArchitecture=archArm then emplate1.visible:=false;
+
 {$endif}
 
 end;
@@ -3080,7 +3086,7 @@ begin
     address:=inttohex(a,8);
 
   if inputquery(rsCodeInjectTemplate, rsOnWhatAddressDoYouWantTheJump, address) then
-    generateFullInjectionScript(assemblescreen.Lines, address, 10, ssCtrl in GetKeyShiftState);
+    generateFullInjectionScript(assemblescreen.Lines, address, 10, (ssCtrl in GetKeyShiftState) or mi14ByteJMP.checked);
 end;
 
 procedure TfrmAutoInject.miReplaceClick(Sender: TObject);
@@ -3122,7 +3128,7 @@ begin
   frmHighlighterEditor.highlighter:=AAHighlighter;
   if frmHighlighterEditor.showmodal=mrok then
   begin
-    AAHighlighter.SaveToRegistry(HKEY_CURRENT_USER, '\Software\'+strCheatEngine+'AA Highlighter'+darkmodestring);
+    AAHighlighter.SaveToRegistry(HKEY_CURRENT_USER, '\Software\'+strCheatEngine+'\AA Highlighter'+darkmodestring);
     ReloadAllAutoInjectHighlighters;
   end;
 
@@ -3396,7 +3402,7 @@ begin
     symbolname:='INJECT'+nr;
 
     if inputquery(rsCodeInjectTemplate, rsWhatIdentifierDoYouWantToUse, symbolName) then
-      GenerateAOBInjectionScript(assemblescreen.Lines, address, symbolname, 10, ssCtrl in GetKeyShiftState);
+      GenerateAOBInjectionScript(assemblescreen.Lines, address, symbolname, 10, (ssCtrl in GetKeyShiftState) or mi14ByteJMP.checked);
   end;
 end;
 

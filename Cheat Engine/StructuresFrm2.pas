@@ -5,6 +5,8 @@ unit StructuresFrm2;
 
 interface
 
+
+
 uses
   {$ifdef darwin}
   macport,
@@ -43,6 +45,9 @@ type
     fchildstruct: TDissectedStruct;
     fchildstructstart: integer; //offset into the childstruct where this pointer starts. Always 0 for local structs, can be higher than 0 for other defined structs
     fExpandChangesAddress: boolean;
+    {$ifdef NESTEDSTRUCTURES}
+    fNestedStructure: boolean; //when set it's not a real pointer
+    {$endif}
   public
     delayLoadedStructname: string;
     constructor createFromXMLElement(parent:TDissectedStruct; element: TDOMElement);
@@ -67,6 +72,10 @@ type
     procedure setvalue(address: ptruint; value: string);
     function getValueFromBase(baseaddress: ptruint): string;
     procedure setValueFromBase(baseaddress: ptruint; value: string);
+    {$ifdef NESTEDSTRUCTURES}
+    procedure setNestedStructure(state: boolean);
+    function getNestedStructure: boolean;
+    {$endif}
     function isPointer: boolean;
     function getChildStruct: TDissectedStruct;
     procedure setChildStruct(newChildStruct: TDissectedStruct);
@@ -91,6 +100,9 @@ type
     property index: integer read getIndex;
     property parent: TDissectedStruct read getParent;
     property ExpandChangesAddress: boolean read fExpandChangesAddress write fExpandChangesAddress;
+    {$ifdef NESTEDSTRUCTURES}
+    property NestedStructure: boolean read getNestedStructure write setNestedStructure;
+    {$endif}
   end;
 
 
@@ -649,6 +661,10 @@ function lookupStructureName(address: ptruint; defaultName: string) : string;
 function registerStructureNameLookup(m: TStructureNameLookup): integer;
 procedure unregisterStructureNameLookup(id: integer);
 
+function RegisterGlobalStructureListUpdateNotification(m: TNotifyEvent): integer;
+procedure UnregisterGlobalStructureListUpdateNotification(id: integer);
+
+
 implementation
 
 {$R *.lfm}
@@ -785,6 +801,41 @@ resourcestring
 var
   StructureDissectOverrides: array of TStructureDissectOverride;
   StructureNameLookups: array of TStructureNameLookup;
+  GlobalStructureListUpdateNotifications: array of TNotifyEvent;
+
+function RegisterGlobalStructureListUpdateNotification(m: TNotifyEvent): integer;
+var i: integer;
+begin
+  for i:=0 to length(GlobalStructureListUpdateNotifications)-1 do
+  begin
+    if assigned(GlobalStructureListUpdateNotifications[i])=false then
+    begin
+      GlobalStructureListUpdateNotifications[i]:=m;
+      exit(i);
+    end
+  end;
+
+  result:=length(GlobalStructureListUpdateNotifications);
+  setlength(GlobalStructureListUpdateNotifications, result+1);
+  GlobalStructureListUpdateNotifications[result]:=m;
+end;
+
+procedure UnregisterGlobalStructureListUpdateNotification(id: integer);
+begin
+  if id<length(GlobalStructureListUpdateNotifications) then
+  begin
+    CleanupLuaCall(TMethod(GlobalStructureListUpdateNotifications[id]));
+    GlobalStructureListUpdateNotifications[id]:=nil;
+  end;
+end;
+
+procedure CallGlobalStructureListUpdateNotifications(Sender: TObject);
+var i: integer;
+begin
+  for i:=0 to length(GlobalStructureListUpdateNotifications)-1 do
+    if assigned(GlobalStructureListUpdateNotifications) then
+      GlobalStructureListUpdateNotifications[i](sender);
+end;
 
 function registerStructureNameLookup(m: TStructureNameLookup): integer;
 var i: integer;
@@ -903,6 +954,8 @@ begin
   if self.CustomType<>nil then
     elementnode.SetAttribute('Customtype', self.CustomType.name);
 
+
+
   elementnode.SetAttribute('Bytesize', IntToStr(self.Bytesize));
   elementnode.SetAttribute('DisplayMethod', DisplaymethodToString(self.DisplayMethod));
 
@@ -919,6 +972,9 @@ begin
     begin
       //set childstruct as an attribute
       elementnode.SetAttribute('ChildStruct', utf8toansi(self.ChildStruct.Name));
+      if self.NestedStructure then
+        elementnode.SetAttribute('Nested','1');
+
     end
     else
     begin
@@ -1126,6 +1182,20 @@ begin
   setvalue(baseaddress+offset, value);
 end;
 
+{$ifdef NESTEDSTRUCTURES}
+procedure TStructelement.setNestedStructure(state: boolean);
+begin
+  fNestedStructure:=state;
+  parent.DoElementChangeNotification(self);
+end;
+
+function TStructelement.getNestedStructure: boolean;
+begin
+  result:=fNestedStructure and (vartype=vtPointer);
+end;
+
+{$endif}
+
 function TStructelement.isPointer: boolean;
 begin
   result:=vartype=vtPointer;
@@ -1258,6 +1328,9 @@ begin
       fchildstruct:=TDissectedStruct.createFromXMLNode(childnode)
     else
       delayLoadedStructname:=AnsiToUtf8(element.GetAttribute('ChildStruct'));
+
+
+    NestedStructure:=element.GetAttribute('Nested')='1';
   end;
 
 end;
@@ -1274,6 +1347,8 @@ procedure TDissectedStruct.setName(newname: string);
 begin
   structname:=newname;
   DoFullStructChangeNotification;
+  if isInGlobalStructList then
+    CallGlobalStructureListUpdateNotifications(self);
 
 end;
 
@@ -3558,6 +3633,20 @@ begin
     else
       displacement:=0;
 
+    {$ifdef NESTEDSTRUCTURES}
+    if parentelement.NestedStructure then
+    begin
+      n:=getStructElementFromNode(node);
+      if n<>nil then
+        inc(baseaddress,n.Offset);
+
+      node:=prevnode;
+      continue;
+    end;
+    {$endif}
+
+
+
     n:=getStructElementFromNode(node);
     if n=nil then
     begin
@@ -3571,6 +3660,10 @@ begin
 
     node:=prevnode;
   end;
+
+  {$ifdef NESTEDSTRUCTURES}
+  setlength(offsetlist,i);
+  {$endif}
 
   //now at node.level=1
   //add the starting offset
@@ -4594,6 +4687,9 @@ begin
     childstruct:=structelement.childstruct;
     hexadecimal:=structelement.displayMethod=dtHexadecimal;
     signed:=structelement.displaymethod=dtSignedInteger;
+    {$ifdef NESTEDSTRUCTURES}
+    nested:=structelement.NestedStructure;
+    {$endif}
 
     ExpandChangesAddress:=structelement.ExpandChangesAddress;
 
@@ -4642,6 +4738,9 @@ begin
           begin
             structElement.vartype:=vartype;
             structElement.CustomType:=customtype;
+            {$ifdef NESTEDSTRUCTURES}
+            structelement.NestedStructure:=nested;
+            {$endif}
           end;
 
           if changedBytesize then
@@ -4752,6 +4851,10 @@ begin
           structElement.DisplayMethod:=dtSignedInteger
         else
           structElement.DisplayMethod:=dtUnsignedInteger; //default, but set anyhow
+
+        {$ifdef NESTEDSTRUCTURES}
+        structElement.NestedStructure:=nested;
+        {$endif}
 
         //set the selection to this entry
         if not asChild then
@@ -7221,8 +7324,25 @@ begin
   end; }
 end;
 
+
+type
+  TDissectedStructsListObserver=class(TObject, IFPObserver)
+  public
+    Procedure FPOObservedChanged(ASender : TObject; Operation : TFPObservedOperation; Data : Pointer);
+  end;
+
+procedure TDissectedStructsListObserver.FPOObservedChanged(ASender : TObject; Operation : TFPObservedOperation; Data : Pointer);
+begin
+  CallGlobalStructureListUpdateNotifications(ASender);
+end;
+
+var DissectedStructsListObserver:TDissectedStructsListObserver;
+
 initialization
   DissectedStructs:=TList.create;
+  DissectedStructsListObserver:=TDissectedStructsListObserver.Create;
+  DissectedStructs.FPOAttachObserver(DissectedStructsListObserver);
+
   frmStructures2:=tlist.Create;
 
 end.

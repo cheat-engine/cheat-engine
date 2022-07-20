@@ -23,7 +23,7 @@ uses
    {$endif}
    Assemblerunit, classes, LCLIntf,symbolhandler, symbolhandlerstructs,
    sysutils,dialogs,controls, CEFuncProc, NewKernelHandler ,plugin,
-   ProcessHandlerUnit, lua, lualib, lauxlib, luaclass, commonTypeDefs, OpenSave,
+   ProcessHandlerUnit, lua, lualib, lauxlib, LuaClass, commonTypeDefs, OpenSave,
    SymbolListHandler, tcclib,
    betterControls;
 
@@ -311,6 +311,9 @@ var
   address: ptruint;
   count: integer;
 begin
+  if SystemSupportsWritableExecutableMemory=false then
+    protection:=PAGE_READWRITE;
+
   starttime:=gettickcount64;
 
   address:=0;
@@ -1418,7 +1421,8 @@ var i,j,k,l,e: integer;
     assembled: array of tassembled;
     x: ptruint;
     y,op,op2:dword;
-    ok1,ok2:boolean;
+    ok1:boolean=false;
+    ok2:boolean=false;
     loadbinary: array of record
       address: string; //string since it might be a label/alloc/define
       filename: string;
@@ -2598,7 +2602,11 @@ begin
               else
                 allocs[j].prefered:=0;
 
-              allocs[j].protection:=PAGE_EXECUTE_READWRITE;
+              if SystemSupportsWritableExecutableMemory then
+                allocs[j].protection:=PAGE_EXECUTE_READWRITE
+              else
+                allocs[j].protection:=PAGE_EXECUTE_READ;
+
               if uppercase(copy(currentline,1,8))='ALLOCNX(' then
                 allocs[j].protection:=PAGE_READWRITE
               else
@@ -2821,6 +2829,10 @@ begin
                   end;
                 except
                   //don't quit yet
+                  on e: exception do
+                  begin
+                    OutputDebugString('Potential labeling error:'+e.message);
+                  end
                 end;
               end;
 
@@ -3102,12 +3114,21 @@ begin
         if allocs[i].protection<>protection then
         begin
           //increment x to the next pagebase
+          {$ifdef windows}
           if (x and $fff>0) then
           begin
             y:=$1000- (x and $fff);
             inc(x,y);
             inc(allocs[i-1].size,y); //adjust the previous entry's size
           end;
+          {$else}
+          if (x and (getPageSize-1)>0) then
+          begin
+            y:=getPageSize- (x and (getPageSize-1));
+            inc(x,y);
+            inc(allocs[i-1].size,y); //adjust the previous entry's size
+          end;
+          {$endif}
 
           protection:=allocs[i].protection;
         end;
@@ -3139,7 +3160,10 @@ begin
                 if (prefered=0) and (oldprefered<>0) then
                   prefered:=oldprefered;
 
-                allocs[j].address:=ptrUint(virtualallocex(processhandle,pointer(prefered),x, MEM_RESERVE or MEM_COMMIT,PAGE_EXECUTE_READWRITE));
+                if SystemSupportsWritableExecutableMemory then
+                  allocs[j].address:=ptrUint(virtualallocex(processhandle,pointer(prefered),x, MEM_RESERVE or MEM_COMMIT,PAGE_EXECUTE_READWRITE))
+                else
+                  allocs[j].address:=ptrUint(virtualallocex(processhandle,pointer(prefered),x, MEM_RESERVE or MEM_COMMIT,PAGE_READWRITE));
                 if allocs[j].address=0 then
                 begin
                   OutputDebugString(rsFailureToAllocateMemory+' 1');
@@ -3203,8 +3227,11 @@ begin
           if (prefered=0) and (oldprefered<>0) then
             prefered:=oldprefered;
 
+          if SystemSupportsWritableExecutableMemory then
+            allocs[j].address:=ptrUint(virtualallocex(processhandle,pointer(prefered),x, MEM_RESERVE or MEM_COMMIT,PAGE_EXECUTE_READWRITE))
+          else
+            allocs[j].address:=ptrUint(virtualallocex(processhandle,pointer(prefered),x, MEM_RESERVE or MEM_COMMIT,PAGE_READWRITE));
 
-          allocs[j].address:=ptrUint(virtualallocex(processhandle,pointer(prefered),x, MEM_RESERVE or MEM_COMMIT,PAGE_EXECUTE_READWRITE));
           if allocs[j].address=0 then
           begin
             OutputDebugString(rsFailureToAllocateMemory+' 3 (prefered='+inttohex(prefered,8)+')');
@@ -3231,7 +3258,7 @@ begin
       //apply protections:
       for i:=0 to length(allocs)-1 do
       begin
-        if allocs[i].protection<>PAGE_EXECUTE_READWRITE then
+        if (not SystemSupportsWritableExecutableMemory) or (allocs[i].protection<>PAGE_EXECUTE_READWRITE) then
           VirtualProtectEx(processhandle, pointer(allocs[i].address), allocs[i].size, allocs[i].protection,protection);
       end;
     end;
@@ -3576,14 +3603,17 @@ begin
     ok2:=true;
 
     //unprotectmemory
-    for i:=0 to length(fullaccess)-1 do
+    if SystemSupportsWritableExecutableMemory then
     begin
-      virtualprotectex(processhandle,pointer(fullaccess[i].address),fullaccess[i].size,PAGE_EXECUTE_READWRITE,op);
+      for i:=0 to length(fullaccess)-1 do
+      begin
+        virtualprotectex(processhandle,pointer(fullaccess[i].address),fullaccess[i].size,PAGE_EXECUTE_READWRITE,op);
 
-      {$ifdef windows}
-      if (fullaccess[i].address>$80000000) and (DBKLoaded) then
-        MakeWritable(fullaccess[i].address,(fullaccess[i].size div 4096)*4096,false);
-      {$endif}
+        {$ifdef windows}
+        if (fullaccess[i].address>$80000000) and (DBKLoaded) then
+          MakeWritable(fullaccess[i].address,(fullaccess[i].size div 4096)*4096,false);
+        {$endif}
+      end;
     end;
 
     //load binaries
@@ -3750,13 +3780,21 @@ begin
       end;
     end;
 
+    if (not SystemSupportsWritableExecutableMemory) and (not SkipVirtualProtectEx) then
+      ntsuspendProcess(processhandle);
+
+
     for i:=0 to length(assembled)-1 do
     begin
       if length(assembled[i].bytes)=0 then continue;
 
       testptr:=assembled[i].address;
 
-      vpe:=(SkipVirtualProtectEx=false) and virtualprotectex(processhandle,pointer(testptr),length(assembled[i].bytes),PAGE_EXECUTE_READWRITE,op);
+      if SystemSupportsWritableExecutableMemory or SkipVirtualProtectEx then
+        vpe:=(SkipVirtualProtectEx=false) and virtualprotectex(processhandle,pointer(testptr),length(assembled[i].bytes),PAGE_EXECUTE_READWRITE,op)
+      else
+        vpe:=(SkipVirtualProtectEx=false) and virtualprotectex(processhandle,pointer(testptr),length(assembled[i].bytes),PAGE_READWRITE,op);
+
       ok1:={$ifdef windows}WriteProcessMemoryWithCloakSupport{$else}WriteProcessMemory{$endif}(processhandle, pointer(testptr),@assembled[i].bytes[0],length(assembled[i].bytes),x);
       if vpe then
         virtualprotectex(processhandle,pointer(testptr),length(assembled[i].bytes),op,op2);
@@ -3774,6 +3812,10 @@ begin
       end;
     end;
 
+    if (not SystemSupportsWritableExecutableMemory) and (not SkipVirtualProtectEx) then
+      ntresumeProcess(processhandle);
+
+
     {$ifdef windows}
     if connection<>nil then  //group all writes
     begin
@@ -3781,6 +3823,7 @@ begin
         ok2:=false;
     end;
     {$endif}
+
 
     //handle the unhandled createthreadandwait blocks
     for i:=0 to length(createthreadandwait)-1 do

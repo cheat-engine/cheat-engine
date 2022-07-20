@@ -183,12 +183,18 @@ function GetLuaState: PLUA_State; inline;
 begin
   if Thread_LuaVM=nil then
   begin
-    _luacs.Enter;
-    try
-      Thread_LuaVM:=lua_newthread(_luavm);
-      Thread_LuaRef:=luaL_ref(_luavm, LUA_REGISTRYINDEX);
-    finally
-      _luacs.leave;
+    if (_luacs<>nil) and (_luavm<>nil) then
+    begin
+      _luacs.Enter;
+      try
+        if _luavm<>nil then
+        begin
+          Thread_LuaVM:=lua_newthread(_luavm);
+          Thread_LuaRef:=luaL_ref(_luavm, LUA_REGISTRYINDEX);
+        end;
+      finally
+        _luacs.leave;
+      end;
     end;
   end;
 
@@ -2533,9 +2539,18 @@ begin
   end;
 
   x:=0;
-  vpe:=(SkipVirtualProtectEx=false) and VirtualProtectEx(processhandle, pointer(address), bytecount, PAGE_EXECUTE_READWRITE, oldprotect);
+  if SystemSupportsWritableExecutableMemory or SkipVirtualProtectEx then
+    vpe:=(SkipVirtualProtectEx=false) and VirtualProtectEx(processhandle, pointer(address), bytecount, PAGE_EXECUTE_READWRITE, oldprotect)
+  else
+  begin
+    ntsuspendProcess(processhandle);
+    vpe:=(SkipVirtualProtectEx=false) and VirtualProtectEx(processhandle, pointer(address), bytecount, PAGE_READWRITE, oldprotect);
+  end;
   WriteProcessMemory(processhandle, pointer(address), @bytes[0], bytecount, x);
   if vpe then VirtualProtectEx(processhandle, pointer(address), bytecount, oldprotect, oldprotect);
+
+  if not (SystemSupportsWritableExecutableMemory or SkipVirtualProtectEx) then
+    ntresumeProcess(processhandle);
 
 
   lua_pop(L, parameters);
@@ -8589,6 +8604,96 @@ begin
     result:=0;
 end;
 
+type
+  TNewProcess=class(TProcess)
+    function RunCommandLoop(out outputstring: string; out stderrstring: string;
+      out anexitstatus: integer): integer; override;
+  end;
+
+function TNewProcess.RunCommandLoop(out outputstring:string;
+                              out stderrstring:string; out anexitstatus:integer):integer;
+  var
+      bytesread : integer;
+      outputlength, stderrlength : integer;
+      stderrbytesread : integer;
+      gotoutput,gotoutputstderr : boolean;
+
+      tries: integer;
+  begin
+    OutputString:='';
+    result:=-1;
+      try
+      Options := Options + [poUsePipes];
+      bytesread:=0;
+      outputlength:=0;
+      stderrbytesread:=0;
+      stderrlength:=0;
+      Execute;
+      while Running do
+        begin
+          // Only call ReadFromStream if Data from corresponding stream
+          // is already available, otherwise, on  linux, the read call
+          // is blocking, and thus it is not possible to be sure to handle
+          // big data amounts bboth on output and stderr pipes. PM.
+          gotoutput:=ReadInputStream(output,BytesRead,OutputLength,OutputString,1);
+          // The check for assigned(P.stderr) is mainly here so that
+          // if we use poStderrToOutput in p.Options, we do not access invalid memory.
+          gotoutputstderr:=false;
+          if assigned(stderr) then
+              gotoutputstderr:=ReadInputStream(StdErr,StdErrBytesRead,StdErrLength,StdErrString,1);
+
+         { if (porunidle in options) and not gotoutput and not gotoutputstderr and Assigned(FOnRunCommandEvent) Then
+            FOnRunCommandEvent(self,Nil,RunCommandIdle,'');  }
+        end;
+      // Get left output after end of execution
+       WaitForThreadTerminate(FThreadHandle, 0);
+
+      //ThreadSwitch;
+      ReadInputStream(output,BytesRead,OutputLength,OutputString,2500);
+      setlength(outputstring,BytesRead);
+      if assigned(stderr) then
+        ReadInputStream(StdErr,StdErrBytesRead,StdErrLength,StdErrString,250);
+      setlength(stderrstring,StderrBytesRead);
+      anexitstatus:=exitstatus;
+      result:=0; // we came to here, document that.
+  {    if Assigned(FOnRunCommandEvent) then          // allow external apps to react to that and finish GUI
+        FOnRunCommandEvent(self,Nil,RunCommandFinished,'');}
+
+      except
+        on e : Exception do
+           begin
+             result:=1;
+             setlength(outputstring,BytesRead);
+             setlength(stderrstring,StderrBytesRead);
+             {if Assigned(FOnRunCommandEvent) then
+               FOnRunCommandEvent(self,Nil,RunCommandException,e.Message);  }
+           end;
+       end;
+  end;
+
+function RunCommandIndir2(const curdir:TProcessString;const exename:TProcessString;const commands:array of TProcessString;out outputstring:string;out exitstatus:integer; Options : TProcessOptions = [];SWOptions:TShowWindowOptions=swoNone):integer;
+Var
+    p : TNewProcess;
+    i : integer;
+    ErrorString : String;
+begin
+  p:=TNewProcess.create(nil);
+  if Options<>[] then
+    P.Options:=Options-[poWaitOnExit];
+  P.ShowWindow:=SwOptions;
+  p.Executable:=exename;
+  if curdir<>'' then
+    p.CurrentDirectory:=curdir;
+  if high(commands)>=0 then
+   for i:=low(commands) to high(commands) do
+     p.Parameters.add(commands[i]);
+  try
+    result:=p.RunCommandLoop(outputstring,errorstring,exitstatus);
+  finally
+    p.free;
+  end;
+end;
+
 function lua_runCommand(L: PLua_State): integer; cdecl;
 var
   p: array of TProcessString;
@@ -8642,7 +8747,7 @@ begin
     else
       curdir:='';
 
-    RunCommandInDir(curdir, exe, p, s, exitstatus, [poNoConsole]);
+    RunCommandInDir2(curdir, exe, p, s, exitstatus, [poNoConsole]);
     lua_pushstring(L,s);
     lua_pushinteger(L,exitstatus);
     exit(2);
@@ -8704,6 +8809,7 @@ end;
 function lua_rdtsc(L: PLua_State): integer; cdecl;
 var v: qword;
 begin
+  {$ifndef darwinarm64}
   {$ifdef cpu32}
   asm
     push edx
@@ -8731,6 +8837,10 @@ begin
 
   lua_pushinteger(L,v);
   result:=1;
+{$else}
+  exit(0);
+{$endif}
+
 end;
 
 function processMessages(L: PLua_State): integer; cdecl;
@@ -9825,6 +9935,48 @@ begin
   if lua_gettop(L)>0 then
     unregisterStructureNameLookup(lua_tointeger(L, 1));
 end;
+
+//
+function lua_registerGlobalStructureListUpdateNotification(L: PLua_State): integer; cdecl;
+var
+  f: integer;
+  routine: string;
+  lc: tluacaller;
+begin
+  result:=0;
+
+  if lua_gettop(L)=1 then
+  begin
+    if lua_isfunction(L, 1) then
+    begin
+      lua_pushvalue(L, 1);
+      f:=luaL_ref(L,LUA_REGISTRYINDEX);
+
+      lc:=TLuaCaller.create;
+      lc.luaroutineIndex:=f;
+    end
+    else
+    if lua_isstring(L,1) then
+    begin
+      routine:=lua_tostring(L,1);
+      lc:=TLuaCaller.create;
+      lc.luaroutine:=routine;
+    end
+    else exit;
+
+    lua_pushinteger(L, registerGlobalStructureListUpdateNotification(lc.NotifyEvent));
+    result:=1;
+  end;
+end;
+
+function lua_unregisterGlobalStructureListUpdateNotification(L: PLua_State): integer; cdecl;
+begin
+  result:=0;
+  if lua_gettop(L)>0 then
+    unregisterGlobalStructureListUpdateNotification(lua_tointeger(L, 1));
+end;
+
+//
 
 function lua_registerAssembler(L: PLua_State): integer; cdecl;
 var
@@ -11809,6 +11961,7 @@ var
 
 
 begin
+  {$ifndef darwinarm64}
   {$ifdef cpu64}
   //allocate a stack for this call and fill in the parameters
   //setup the parameters at callstack $fff0-parametersize
@@ -12051,7 +12204,10 @@ afterp4:
   lua_pushstring(L,'executeCodeLocalEx is currently not supported on the 32-bit build');
   lua_error(L);
   {$endif}
-
+  {$else}
+  lua_pushstring(L,'executeCodeLocalEx is currently not supported on the aarch64 build');
+  lua_error(L);
+  {$endif}
 
 end;
 
@@ -14751,6 +14907,8 @@ var
 
   NoDebug: boolean;
   ln: TSourceCodeInfo;
+  tr: TTCCRegionList;
+  oldprotect: dword;
 begin
   if lua_gettop(L)>=1 then
   begin
@@ -14820,10 +14978,10 @@ begin
       if a=0 then //allocate myself
       begin
         //test compile to get the size
-        if ((list=nil) and (tcc.compileScript(s,$00400000,bytes,nil,nil,errorlog,nil,targetself)=false)) or
+        if ((list=nil) and (tcc.compileScript(s,$00400000,bytes,nil,nil,nil,errorlog,nil,targetself)=false)) or
            ((list<>nil) and (
-                             ((isfile=false) and (tcc.compileScripts(list,$00400000,bytes,nil,nil,errorlog,targetself)=false) ) or
-                             ((isfile=true) and (tcc.compileProject(list,$00400000,bytes,nil,nil,errorlog,targetself)=false) )
+                             ((isfile=false) and (tcc.compileScripts(list,$00400000,bytes,nil,nil,nil,errorlog,targetself)=false) ) or
+                             ((isfile=true) and (tcc.compileProject(list,$00400000,bytes,nil,nil,nil,errorlog,targetself)=false) )
                              ))
         then
         begin
@@ -14840,7 +14998,12 @@ begin
           a:=ptruint(kernelalloc(bytes.size*2))
         else
 {$endif}
-          a:=ptruint(VirtualAllocEx(ph,nil, bytes.Size*2,MEM_RESERVE or MEM_COMMIT,PAGE_EXECUTE_READWRITE));
+        begin
+          if SystemSupportsWritableExecutableMemory then
+            a:=ptruint(VirtualAllocEx(ph,nil, bytes.Size*2,MEM_RESERVE or MEM_COMMIT,PAGE_EXECUTE_READWRITE))
+          else
+            a:=ptruint(VirtualAllocEx(ph,nil, bytes.Size*2,MEM_RESERVE or MEM_COMMIT,PAGE_READWRITE))
+        end;
 
         if a=0 then
         begin
@@ -14867,11 +15030,12 @@ begin
       else
         ln:=nil;
 
+      tr:=TTCCRegionList.Create;
 
-      if ((list=nil) and (tcc.compileScript(s,a,bytes,symbollist,ln,errorlog,nil,targetself)=false)) or
+      if ((list=nil) and (tcc.compileScript(s,a,bytes,symbollist,tr,ln,errorlog,nil,targetself)=false)) or
          ((list<>nil) and (
-                           ((isfile=false) and (tcc.compileScripts(list,a,bytes,symbollist,ln,errorlog,targetself)=false) ) or
-                           ((isfile=true) and (tcc.compileProject(list,a,bytes,symbollist,ln,errorlog,targetself)=false) )
+                           ((isfile=false) and (tcc.compileScripts(list,a,bytes,symbollist,tr,ln,errorlog,targetself)=false) ) or
+                           ((isfile=true) and (tcc.compileProject(list,a,bytes,symbollist,tr,ln,errorlog,targetself)=false) )
                            )) then
       begin
         lua_pop(L,lua_gettop(L));
@@ -14908,6 +15072,15 @@ begin
           result:=2;
         end;
 
+        if not SystemSupportsWritableExecutableMemory then
+        begin
+          OutputDebugString('Setting protections accordingly');
+          for i:=0 to tr.Count-1 do
+          begin
+            OutputDebugString(format('%p : %d',[pointer(tr[i].address), tr[i].protection]));
+            virtualprotectex(processhandle, pointer(tr[i].address), tr[i].size, tr[i].protection, oldprotect);
+          end;
+        end;
       end
       else
       begin
@@ -15250,6 +15423,7 @@ var
   p: dword;
   r: boolean;
 begin
+  {$ifdef windows}
   if processid=GetCurrentProcessId then
   begin
     lua_pushnil(L);
@@ -15392,6 +15566,9 @@ begin
       ntResumeProcess(processhandle);
     end
   end;
+  {$else}
+  exit(0);
+  {$endif}
 end;
 
 procedure InitLimitedLuastate(L: Plua_State);
@@ -15949,6 +16126,12 @@ begin
     lua_register(L, 'registerGlobalDisassembleOverride', lua_registerGlobalDisassembleOverride);
     lua_register(L, 'unregisterGlobalDisassembleOverride', lua_unregisterGlobalDisassembleOverride);
 
+
+
+    lua_register(L, 'registerGlobalStructureListUpdateNotification', lua_registerGlobalStructureListUpdateNotification);
+    lua_register(L, 'unregisterGlobalStructureListUpdateNotification', lua_unregisterGlobalStructureListUpdateNotification);
+
+
     lua_register(L, 'registerStructureDissectOverride', lua_registerStructureDissectOverride);
     lua_register(L, 'unregisterStructureDissectOverride', lua_unregisterStructureDissectOverride);
 
@@ -16419,11 +16602,17 @@ initialization
 
 
 finalization
-  if _LuaCS<>nil then
-    _LuaCS.free;
-
   if _LuaVM<>nil then
+  begin
     lua_close(_LuaVM);
+    _LuaVM:=nil;
+  end;
+
+  if _LuaCS<>nil then
+  begin
+    _LuaCS.free;
+    _LuaCS:=nil;
+  end;
 
 end.
 

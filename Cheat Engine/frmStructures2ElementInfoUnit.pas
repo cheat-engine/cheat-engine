@@ -5,12 +5,15 @@ unit frmStructures2ElementInfoUnit;
 interface
 
 uses
-  Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls,
+  {$ifdef windows}windows,{$endif}Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls,
   ExtCtrls, cefuncproc, StructuresFrm2, vartypestrings, math, CustomTypeHandler, commonTypeDefs, betterControls;
 
 resourcestring
   rsS2EILocalStruct = 'Local struct:';
   rsS2EIIfYouContinueTheOldLocallyDefinedType = 'If you continue the old locally defined type %s will be deleted. Continue? (Tip: You can make this type into a global type so it can be re-used over again)';
+  rsUndefined = 'Undefined';
+  rsMustSelectStructure = 'For a nested structure you must select a predefined'
+    +' structure';
 type
 
   { TfrmStructures2ElementInfo }
@@ -23,6 +26,7 @@ type
     cbHexadecimal: TCheckBox;
     cbSigned: TCheckBox;
     cbExpandChangesAddress: TCheckBox;
+    cbNestedStructure: TCheckBox;
     ColorDialog1: TColorDialog;
     edtByteSize: TEdit;
     edtChildstart: TEdit;
@@ -38,6 +42,7 @@ type
     pnlBackground: TPanel;
     procedure Button1Click(Sender: TObject);
     procedure cbHexadecimalChange(Sender: TObject);
+    procedure cbNestedStructureChange(Sender: TObject);
     procedure cbSignedChange(Sender: TObject);
     procedure cbStructTypeChange(Sender: TObject);
     procedure cbTypeChange(Sender: TObject);
@@ -46,6 +51,7 @@ type
     procedure edtDescriptionChange(Sender: TObject);
     procedure edtOffsetChange(Sender: TObject);
     procedure FormCreate(Sender: TObject);
+    procedure FormShow(Sender: TObject);
     procedure pnlBackgroundClick(Sender: TObject);
   private
     { private declarations }
@@ -61,6 +67,10 @@ type
     function getHexadecimal: boolean;
     procedure setSigned(state: boolean);
     function getSigned: boolean;
+    {$ifdef NESTEDSTRUCTURES}
+    procedure setNested(state: boolean);
+    function getNested: boolean;
+    {$endif}
     procedure setVariableType(vt: TVariableType);
     function getVariableType: TVariableType;
     procedure setCustomType(ct: TCustomType);
@@ -94,6 +104,9 @@ type
     property offset: integer read getOffset write setOffset;
     property hexadecimal: boolean read getHexadecimal write setHexadecimal;
     property signed: boolean read getSigned write setsigned;
+    {$ifdef NESTEDSTRUCTURES}
+    property nested: boolean read getNested write setNested;
+    {$endif}
     property vartype: TVariableType read getVariableType write setVariableType;
     property customtype: TCustomtype read getCustomType write setCustomtype;
     property bytesize: integer read getBytesize write setBytesize;
@@ -112,7 +125,17 @@ implementation
 
 uses ProcessHandlerUnit;
 
-
+const
+  TYPEINDEX_BYTE=0;
+  TYPEINDEX_WORD=1;
+  TYPEINDEX_DWORD=2;
+  TYPEINDEX_QWORD=3;
+  TYPEINDEX_SINGLE=4;
+  TYPEINDEX_DOUBLE=5;
+  TYPEINDEX_STRING=6;
+  TYPEINDEX_WIDESTRING=7;
+  TYPEINDEX_AOB=8;
+  TYPEINDEX_POINTER=9;
 
 { TfrmStructures2ElementInfo }
 
@@ -206,16 +229,16 @@ end;
 procedure TfrmStructures2ElementInfo.setVariableType(vt: TVariableType);
 begin
   case vt of
-    vtByte: cbType.ItemIndex:=0;
-    vtWord: cbType.ItemIndex:=1;
-    vtDWord: cbType.ItemIndex:=2;
-    vtQWord: cbType.ItemIndex:=3;
-    vtSingle: cbType.ItemIndex:=4;
-    vtDouble: cbType.ItemIndex:=5;
-    vtString: cbType.ItemIndex:=6;
-    vtUnicodeString: cbType.ItemIndex:=7;
-    vtByteArray: cbType.ItemIndex:=8;
-    vtPointer: cbType.ItemIndex:=9;
+    vtByte: cbType.ItemIndex:=TYPEINDEX_BYTE;
+    vtWord: cbType.ItemIndex:=TYPEINDEX_WORD;
+    vtDWord: cbType.ItemIndex:=TYPEINDEX_DWORD;
+    vtQWord: cbType.ItemIndex:=TYPEINDEX_QWORD;
+    vtSingle: cbType.ItemIndex:=TYPEINDEX_SINGLE;
+    vtDouble: cbType.ItemIndex:=TYPEINDEX_DOUBLE;
+    vtString: cbType.ItemIndex:=TYPEINDEX_STRING;
+    vtUnicodeString: cbType.ItemIndex:=TYPEINDEX_WIDESTRING;
+    vtByteArray: cbType.ItemIndex:=TYPEINDEX_AOB;
+    vtPointer: cbType.ItemIndex:=TYPEINDEX_POINTER;
   end;
 
   label2.enabled:=vt in [vtString, vtUnicodeString, vtByteArray];
@@ -290,6 +313,18 @@ begin
   result:=cbsigned.checked;
 end;
 
+{$ifdef NESTEDSTRUCTURES}
+procedure TfrmStructures2ElementInfo.setNested(state: boolean);
+begin
+  cbNestedStructure.Checked:=state;
+end;
+
+function TfrmStructures2ElementInfo.getNested: boolean;
+begin
+  result:=cbNestedStructure.Checked;
+end;
+{$endif}
+
 procedure TfrmStructures2ElementInfo.setDescription(d: string);
 begin
   edtDescription.text:=d;
@@ -317,9 +352,8 @@ var i: integer;
 begin
   pnlBackground.color:=clWindow;
 
-  while cbStructType.items.count>1 do
-    cbStructType.Items.Delete(1);
-
+  cbStructType.Items.Clear;
+  cbStructType.items.add(rsUndefined);
 
   //fill the type combobox (for translations)
 
@@ -335,7 +369,11 @@ begin
   cbtype.items.add(rs_vtString);
   cbtype.items.add(rs_vtUnicodeString);
   cbtype.items.add(rs_vtByteArray);
+  {$ifdef NESTEDSTRUCTURES}
+  cbtype.items.add(rs_vtPointerOrNested);
+  {$else}
   cbtype.items.add(rs_vtPointer);
+  {$endif}
 
   //add custom types
   for i:=0 to customTypes.count-1 do
@@ -344,6 +382,23 @@ begin
   cbtype.items.EndUpdate;
 
   cbType.dropdowncount:=min(16, cbType.items.count);
+end;
+
+procedure TfrmStructures2ElementInfo.FormShow(Sender: TObject);
+{$ifdef windows}
+var
+  i, maxwidth: integer;
+{$endif}
+begin
+  {$ifdef windows}
+  maxwidth:=cbStructType.width;
+  for i:=0 to cbStructType.items.count-1 do
+    maxwidth:=max(maxwidth, cbStructType.Canvas.TextWidth(cbStructType.items[i]));
+
+
+
+  SendMessage(cbStructType.Handle, CB_SETDROPPEDWIDTH, maxwidth+10, 0);
+  {$endif}
 end;
 
 procedure TfrmStructures2ElementInfo.pnlBackgroundClick(Sender: TObject);
@@ -375,20 +430,26 @@ procedure TfrmStructures2ElementInfo.cbTypeChange(Sender: TObject);
 var i: integer;
 begin
   i:=cbType.itemindex;
-  edtBytesize.visible:=i in [6,7,8];
-  edtBytesize.enabled:=i in [6,7,8];
+
+  edtBytesize.visible:=i in [TYPEINDEX_STRING,TYPEINDEX_WIDESTRING,TYPEINDEX_AOB];
+  edtBytesize.enabled:=i in [TYPEINDEX_STRING,TYPEINDEX_WIDESTRING,TYPEINDEX_AOB];
   Label2.visible:=edtByteSize.visible;
 
-  cbHexadecimal.enabled:=i in [0,1,2,3,4,5,8];
-  cbSigned.enabled:=i in [0,1,2,3,8];
+  cbHexadecimal.enabled:=i in [TYPEINDEX_BYTE,TYPEINDEX_WORD,TYPEINDEX_DWORD,TYPEINDEX_QWORD,TYPEINDEX_SINGLE,TYPEINDEX_DOUBLE,TYPEINDEX_AOB];
+  cbSigned.enabled:=i in [TYPEINDEX_BYTE,TYPEINDEX_WORD,TYPEINDEX_DWORD,TYPEINDEX_QWORD,TYPEINDEX_AOB];
 
 
-  label5.Enabled:=i=9;
-  cbStructType.enabled:=i=9;
-  lblOffsetInto.Enabled:=i=9;
-  edtChildstart.enabled:=i=9;
+  label5.Enabled:=i=TYPEINDEX_POINTER;
+  cbStructType.enabled:=i=TYPEINDEX_POINTER;
+  lblOffsetInto.Enabled:=i=TYPEINDEX_POINTER;
+  edtChildstart.enabled:=i=TYPEINDEX_POINTER;
 
-  if i=9 then   //pointer, uncheck hex and signed
+  {$ifdef NESTEDSTRUCTURES}
+  cbNestedStructure.enabled:=i=TYPEINDEX_POINTER;
+  cbNestedStructure.visible:=i=TYPEINDEX_POINTER;
+  {$endif}
+
+  if i=TYPEINDEX_POINTER then   //pointer, uncheck hex and signed
   begin
     cbHexadecimal.checked:=false;
     cbSigned.checked:=false;
@@ -438,8 +499,48 @@ begin
   ChangedHexadecimal:=true;;
 end;
 
+procedure TfrmStructures2ElementInfo.cbNestedStructureChange(Sender: TObject);
+var selected: integer;
+begin
+  {$ifdef NESTEDSTRUCTURES}
+  ChangedVartype:=true;
+
+  if cbNestedStructure.checked then
+  begin
+    cbExpandChangesAddress.enabled:=false;
+    cbExpandChangesAddress.checked:=false;
+
+
+    if (cbStructType.Items.count>0) and (cbStructType.Items[0]=rsUndefined) then
+    begin
+      selected:=cbStructType.itemindex;
+      cbStructType.Items.Delete(0);
+      if selected=0 then
+      begin
+        cbStructType.itemindex:=-1;
+        cbStructType.Refresh;
+      end;
+    end;
+  end
+  else
+  begin
+    if (cbStructType.Items.count=0) or (cbStructType.Items[0]<>rsUndefined) then
+      cbStructType.Items.Insert(0, rsUndefined);
+
+    cbExpandChangesAddress.enabled:=true;
+  end;
+
+  {$endif}
+end;
+
 procedure TfrmStructures2ElementInfo.Button1Click(Sender: TObject);
 begin
+  if cbStructType.itemindex=-1 then
+  begin
+    MessageDlg(rsMustSelectStructure, mtError, [mbok],0);
+    exit;
+  end;
+
   if (localChild<>nil) and (localchild<>getChildStruct) then
     if MessageDlg(format(rsS2EIIfYouContinueTheOldLocallyDefinedType,[localChild.name]), mtWarning, [mbyes, mbno], 0)<>mryes then exit;
 
@@ -458,7 +559,7 @@ end;
 procedure TfrmStructures2ElementInfo.cbStructTypeChange(Sender: TObject);
 begin
   ChangedChildStruct:=true;
-  cbExpandChangesAddress.enabled:=cbStructType.ItemIndex>=1;
+  cbExpandChangesAddress.enabled:=(not cbNestedStructure.checked) and (cbStructType.ItemIndex>=1);
 
   if cbExpandChangesAddress.enabled=false then
     cbExpandChangesAddress.checked:=false;

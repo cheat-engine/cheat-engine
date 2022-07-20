@@ -678,7 +678,7 @@ begin
       if trim(floats[i].edt.Text)<>'' then
       begin
         tempregedit.change_FP:=tempregedit.change_FP or (1 shl i);
-        {$ifdef cpu64}
+        {$ifdef cpux86_64}
         d:=StrToFloat(trim(floats[i].edt.Text));
         doubletoextended(@d,pointer(ptruint(@tempregedit.new_FP0)+16*i));
         {$else}
@@ -971,7 +971,7 @@ begin
         if (currentbp.changereg.change_FP and (1 shl i))>0 then
         begin
           pex:=pextended(ptruint(@currentbp.changereg.new_FP0)+16*i);
-          {$ifdef cpu32}
+          {$ifndef cpux86_64}
           floats[i].edt.Text:=floattostr(pex^);
           {$else}
           extendedtodouble(pex,d);

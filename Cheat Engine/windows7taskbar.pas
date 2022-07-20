@@ -89,7 +89,9 @@ begin
   if WindowsVersion<wv7 then exit;
 
   { Make sure that COM is initialized }
-  CoInitializeEx(nil, 0);
+  //CoInitializeEx(nil, 0);
+  if assigned(InitProc) then
+    TProcedure(InitProc)();
 
   try
     { Obtain an IUnknown }

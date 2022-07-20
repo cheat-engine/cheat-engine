@@ -28,7 +28,7 @@ uses
      windows,
      {$endif}
      FileUtil, LCLIntf,sysutils, classes,ComCtrls,dialogs, NewKernelHandler,math,
-     SyncObjs {$ifdef windows},windows7taskbar{$endif},SaveFirstScan, savedscanhandler, autoassembler,
+     SyncObjs, SyncObjs2 {$ifdef windows},windows7taskbar{$endif},SaveFirstScan, savedscanhandler, autoassembler,
      symbolhandler, CEFuncProc{$ifdef windows},shellapi{$endif}, CustomTypeHandler, lua,lualib,lauxlib,
      LuaHandler, {$ifdef windows}fileaccess,{$endif} groupscancommandparser, commonTypeDefs, LazUTF8,
      forms, LazFileUtils, LCLProc, LCLVersion, AvgLvlTree, Laz_AVL_Tree;
@@ -72,11 +72,13 @@ type
       customtype: TCustomtype;
       value: string;
       widevalue: widestring;
-      valuei: qword;
-      valuef: double;
+      valuei, valuei2: qword;
+    //  valuef, valuef2: double;
       minfvalue: double;
       maxfvalue: double;
       floataccuracy: integer;
+      range: boolean;
+      signed: boolean;
 
       bytesize: integer;
       pointertypes: TPointerTypes;
@@ -89,9 +91,13 @@ type
 
 
     function ByteScan(value: byte; buf: Pbytearray; var startoffset: integer): boolean;
+    function ByteScanRange(value,value2: byte; signed: boolean; buf: Pbytearray; var startoffset: integer): boolean;
     function WordScan(value: word; buf: pointer; var startoffset: integer): boolean;
+    function WordScanRange(value,value2: word; signed: boolean; buf: pointer; var startoffset: integer): boolean;
     function DWordScan(value: dword; buf: pointer; var startoffset: integer): boolean;
+    function DWordScanRange(value,value2: dword; signed: boolean; buf: pointer; var startoffset: integer): boolean;
     function QWordScan(value: qword; buf: pointer; var startoffset: integer): boolean;
+    function QWordScanRange(value,value2: qword; signed: boolean; buf: pointer; var startoffset: integer): boolean;
     function Valid32BitPointerScan(value: qword; buf: pointer; var startoffset: integer; pointertypes: TPointerTypes): boolean;
     function Valid64BitPointerScan(value: qword; buf: pointer; var startoffset: integer; pointertypes: TPointerTypes): boolean;
     function SingleScan(minf,maxf: double; buf: pointer; var startoffset: integer): boolean;
@@ -391,6 +397,8 @@ type
     function CaseSensitiveUnicodeStringExact(newvalue,oldvalue: pointer):boolean;
     function CaseInsensitiveUnicodeStringExact(newvalue,oldvalue: pointer):boolean;
 
+    function CustomCaseSensitiveAnsiStringExact(newvalue,oldvalue: pointer):boolean;
+    function CustomCaseInsensitiveAnsiStringExact(newvalue,oldvalue: pointer):boolean;
 
 
     //save macthing address routines:
@@ -806,7 +814,7 @@ implementation
 uses ProcessHandlerUnit, parsers, Globals;
 {$else}
 uses formsettingsunit, StrUtils, foundlisthelper, ProcessHandlerUnit, parsers,
-     Globals, {$ifdef windows}frmBusyUnit,{$endif} controls, mainunit2;
+     Globals, frmBusyUnit, controls, mainunit2;
 {$endif}
 
 resourcestring
@@ -886,6 +894,9 @@ var start, i: integer;
   gcp: TGroupscanCommandParser;
 
   floatsettings: TFormatSettings;
+
+  fvalue: double;
+  tempq: qword;
 {$endif}
 begin
 {$ifndef jni}
@@ -918,15 +929,28 @@ begin
       groupdata[i].vartype:=gcp.elements[i].vartype;
       groupdata[i].customtype:=gcp.elements[i].customtype;
       groupdata[i].valuei:=gcp.elements[i].valueint;
-      groupdata[i].valuef:=gcp.elements[i].valuefloat;
+     // groupdata[i].valuef:=gcp.elements[i].valuefloat;
 
-      groupdata[i].floataccuracy:=pos(gcp.FloatSettings.DecimalSeparator,gcp.elements[i].uservalue);
-      if groupdata[i].floataccuracy>0 then
-        groupdata[i].floataccuracy:=length(gcp.elements[i].uservalue)-groupdata[i].floataccuracy;
+      groupdata[i].range:=gcp.elements[i].range;
+      if groupdata[i].range then
+      begin
+        groupdata[i].valuei2:=gcp.elements[i].valueint2;
+        groupdata[i].minfvalue:=gcp.elements[i].valuefloat;
+        groupdata[i].maxfvalue:=gcp.elements[i].valuefloat2;
+        groupdata[i].signed:=gcp.elements[i].signed;
 
 
-      groupdata[i].minfvalue:=groupdata[i].valuef-(1/(power(10,groupdata[i].floataccuracy)));
-      groupdata[i].maxfvalue:=groupdata[i].valuef+(1/(power(10,groupdata[i].floataccuracy)));
+      end
+      else
+      begin
+        fvalue:=gcp.elements[i].valuefloat;
+        groupdata[i].floataccuracy:=pos(gcp.FloatSettings.DecimalSeparator,gcp.elements[i].uservalue);
+        if groupdata[i].floataccuracy>0 then
+          groupdata[i].floataccuracy:=length(gcp.elements[i].uservalue)-groupdata[i].floataccuracy;
+
+        groupdata[i].minfvalue:=fvalue-(1/(power(10,groupdata[i].floataccuracy)));
+        groupdata[i].maxfvalue:=fvalue+(1/(power(10,groupdata[i].floataccuracy)));
+      end;
 
       groupdata[i].value:=uppercase(gcp.elements[i].uservalue);
       groupdata[i].widevalue:=UnicodeUpperCase(gcp.elements[i].uservalue);
@@ -984,41 +1008,62 @@ function TGroupData.compareblock(newvalue,oldvalue: pointer): boolean;
 //ordered scan
 var i: integer;
   f: single;
+  s: string;
 begin
   result:=true;
   for i:=0 to groupdatalength-1 do
   begin
     if result=false then exit;
 
-
     case groupdata[i].vartype of
       vtByte:
       begin
-        result:=groupdata[i].wildcard or (pbyte(newvalue)^=byte(groupdata[i].valuei));
+        result:=groupdata[i].wildcard or
+                (not groupdata[i].range and (pbyte(newvalue)^=byte(groupdata[i].valuei))) or
+                (groupdata[i].range and
+                   (groupdata[i].signed and (PSmallInt(newvalue)^>=smallint(groupdata[i].valuei)) and (PSmallInt(newvalue)^<=smallint(groupdata[i].valuei2))) or
+                   (not groupdata[i].signed and (PByte(newvalue)^>=Byte(groupdata[i].valuei)) and (PByte(newvalue)^<=Byte(groupdata[i].valuei2)))
+                );
+
         inc(newvalue, 1);
       end;
 
       vtWord:
       begin
-        result:=groupdata[i].wildcard or (pword(newvalue)^=word(groupdata[i].valuei));
+        result:=groupdata[i].wildcard or
+                (not groupdata[i].range and (pword(newvalue)^=word(groupdata[i].valuei))) or
+                (groupdata[i].range and
+                   (groupdata[i].signed and (PShortint(newvalue)^>=Shortint(groupdata[i].valuei)) and (PShortint(newvalue)^<=Shortint(groupdata[i].valuei2))) or
+                   (not groupdata[i].signed and (PWord(newvalue)^>=Word(groupdata[i].valuei)) and (PWord(newvalue)^<=Word(groupdata[i].valuei2)))
+                );
         inc(newvalue, 2);
       end;
 
       vtDWord:
       begin
-        result:=groupdata[i].wildcard or (pdword(newvalue)^=dword(groupdata[i].valuei));
+        result:=groupdata[i].wildcard or
+                (not groupdata[i].range and (pdword(newvalue)^=dword(groupdata[i].valuei))) or
+                (groupdata[i].range and
+                   (groupdata[i].signed and (Pinteger(newvalue)^>=integer(groupdata[i].valuei)) and (Pinteger(newvalue)^<=integer(groupdata[i].valuei2))) or
+                   (not groupdata[i].signed and (PDWord(newvalue)^>=DWord(groupdata[i].valuei)) and (PDWord(newvalue)^<=DWord(groupdata[i].valuei2)))
+                );
         inc(newvalue, 4);
       end;
 
       vtQWord:
       begin
-        result:=groupdata[i].wildcard or (pqword(newvalue)^=qword(groupdata[i].valuei));
+        result:=groupdata[i].wildcard or
+                (not groupdata[i].range and (pqword(newvalue)^=qword(groupdata[i].valuei))) or
+                (groupdata[i].range and
+                   (groupdata[i].signed and (Pint64(newvalue)^>=int64(groupdata[i].valuei)) and (Pint64(newvalue)^<=int64(groupdata[i].valuei2))) or
+                   (not groupdata[i].signed and (PQWord(newvalue)^>=QWord(groupdata[i].valuei)) and (PQWord(newvalue)^<=QWord(groupdata[i].valuei2)))
+                );
         inc(newvalue, 8);
       end;
 
       vtSingle:
       begin
-        result:=groupdata[i].wildcard or ((psingle(newvalue)^>groupdata[i].minfvalue) and (psingle(newvalue)^<groupdata[i].maxfvalue)); //default extreme rounded
+        result:=groupdata[i].wildcard or ((psingle(newvalue)^>=groupdata[i].minfvalue) and (psingle(newvalue)^<=groupdata[i].maxfvalue)); //default extreme rounded
 
         if result and (floatscanWithoutExponents and (pdword(newvalue)^>0) and (abs(127-(pdword(newvalue)^ shr 23) and $ff)>10)) then
           result:=false;
@@ -1028,7 +1073,7 @@ begin
 
       vtDouble:
       begin
-        result:=groupdata[i].wildcard or ((pdouble(newvalue)^>groupdata[i].minfvalue) and (pdouble(newvalue)^<groupdata[i].maxfvalue));
+        result:=groupdata[i].wildcard or ((pdouble(newvalue)^>=groupdata[i].minfvalue) and (pdouble(newvalue)^<=groupdata[i].maxfvalue));
 
         if result and (floatscanWithoutExponents and (pqword(newvalue)^>0) and (abs(integer(1023-(pqword(newvalue)^ shr 52) and $7ff))>10)) then
           result:=false;
@@ -1062,6 +1107,12 @@ begin
 
       vtCustom:
       begin
+        if groupdata[i].customType.scriptUsesString then
+        begin
+          s:=groupdata[i].customtype.ConvertDataToString(newvalue, fscanner.currentAddress);
+          result:=groupdata[i].wildcard or testString(pchar(s), @groupdata[i].value[1]);
+        end
+        else
         if groupdata[i].customType.scriptUsesFloat then
         begin
           f:=groupdata[i].customType.ConvertDataToFloat(newvalue, fscanner.currentAddress);
@@ -1091,6 +1142,22 @@ begin
     end;
 end;
 
+function TGroupData.ByteScanRange(value,value2: byte; signed: boolean; buf: Pbytearray; var startoffset: integer): boolean;
+var i: integer;
+begin
+  result:=false;
+
+  for i:=startoffset to blocksize-1 do
+    if ((not signed) and (buf[i]>=value) and (buf[i]<=value2)) or
+       ((signed) and (Smallint(buf[i])>=Smallint(value)) and (Smallint(buf[i])<=Smallint(value2)))
+    then
+    begin
+      startoffset:=i+1;
+      result:=true;
+      exit;
+    end;
+end;
+
 function TGroupData.WordScan(value: word; buf: pointer; var startoffset: integer): boolean;
 var current: pointer;
   i: integer;
@@ -1110,6 +1177,38 @@ begin
   while i<blocksize-1 do
   begin
     if pword(current)^=value then
+    begin
+      startoffset:=i+1;
+      result:=true;
+      exit;
+    end;
+
+    inc(current, align);
+    inc(i, align);
+  end;
+end;
+
+function TGroupData.WordScanRange(value,value2: word; signed: boolean; buf: pointer; var startoffset: integer): boolean;
+var current: pointer;
+  i: integer;
+
+  align: integer;
+begin
+  result:=false;
+  if outoforder_aligned then
+    align:=2
+  else
+    align:=1;
+
+  current:=buf;
+  inc(current, startoffset);
+  i:=startoffset;
+
+  while i<blocksize-1 do
+  begin
+    if ((not signed) and (pword(current)^>=value) and (pword(current)^<=value2)) or
+       ((signed) and (PShortint(current)^>=Shortint(value)) and (PShortint(current)^<=Shortint(value2)))
+    then
     begin
       startoffset:=i+1;
       result:=true;
@@ -1150,6 +1249,37 @@ begin
   end;
 end;
 
+function TGroupData.DWordScanRange(value,value2: dword; signed: boolean; buf: pointer; var startoffset: integer): boolean;
+var current: pointer;
+  i: integer;
+  align: integer;
+begin
+  result:=false;
+  if outoforder_aligned then
+    align:=4
+  else
+    align:=1;
+
+  current:=buf;
+  inc(current, startoffset);
+  i:=startoffset;
+
+  while i<blocksize-3 do
+  begin
+    if ((not signed) and (pdword(current)^>=value) and (pdword(current)^<=value2)) or
+       ((signed) and (Pinteger(current)^>=integer(value)) and (PInteger(current)^<=Integer(value2)))
+    then
+    begin
+      startoffset:=i+1;
+      result:=true;
+      exit;
+    end;
+
+    inc(current,align);
+    inc(i,align);
+  end;
+end;
+
 function TGroupData.QWordScan(value: qword; buf: pointer; var startoffset: integer): boolean;
 var current: pointer;
   i: integer;
@@ -1168,6 +1298,37 @@ begin
   while i<blocksize-7 do
   begin
     if pqword(current)^=value then
+    begin
+      startoffset:=i+1;
+      result:=true;
+      exit;
+    end;
+
+    inc(current,align);
+    inc(i,align);
+  end;
+end;
+
+function TGroupData.QWordScanRange(value,value2: qword; signed: boolean; buf: pointer; var startoffset: integer): boolean;
+var current: pointer;
+  i: integer;
+  align: integer;
+begin
+  result:=false;
+  if outoforder_aligned then
+    align:=4
+  else
+    align:=1;
+
+  current:=buf;
+  inc(current, startoffset);
+  i:=startoffset;
+
+  while i<blocksize-7 do
+  begin
+    if ((not signed) and (pqword(current)^>=value) and (pqword(current)^<=value2)) or
+       ((signed) and (Pint64(current)^>=int64(value)) and (Pint64(current)^<=int64(value2)))
+    then
     begin
       startoffset:=i+1;
       result:=true;
@@ -1440,7 +1601,11 @@ begin
       begin
         while result and isin do
         begin
-          result:=ByteScan(groupdata[i].valuei, newvalue, currentoffset);
+          if not groupdata[i].range then
+            result:=ByteScan(groupdata[i].valuei, newvalue, currentoffset)
+          else
+            result:=ByteScanRange(groupdata[i].valuei, groupdata[i].valuei2, groupdata[i].signed, newvalue, currentoffset);
+
           isin:=result and isinlist;
         end;
       end;
@@ -1452,7 +1617,11 @@ begin
           if outoforder_aligned then //adjust currentoffset to be aligned on the current type alignment
             currentoffset:=(currentoffset+1) and $fffffffe;
 
-          result:=WordScan(groupdata[i].valuei, newvalue, currentoffset);
+          if not groupdata[i].range then
+            result:=WordScan(groupdata[i].valuei, newvalue, currentoffset)
+          else
+            result:=WordScanRange(groupdata[i].valuei, groupdata[i].valuei2, groupdata[i].signed, newvalue, currentoffset);
+
           isin:=result and isinlist;
         end;
       end;
@@ -1464,7 +1633,10 @@ begin
           if outoforder_aligned then //adjust currentoffset to be aligned on the current type alignment
             currentoffset:=(currentoffset+3) and $fffffffc;
 
-          result:=DWordScan(groupdata[i].valuei, newvalue, currentoffset);
+          if not groupdata[i].range then
+            result:=DWordScan(groupdata[i].valuei, newvalue, currentoffset)
+          else
+            result:=DWordScanRange(groupdata[i].valuei, groupdata[i].valuei2, groupdata[i].signed, newvalue, currentoffset);
           isin:=result and isinlist;
         end;
       end;
@@ -1476,7 +1648,11 @@ begin
           if outoforder_aligned then //adjust currentoffset to be aligned on the current type alignment
             currentoffset:=(currentoffset+3) and $fffffffc;
 
-          result:=QWordScan(groupdata[i].valuei, newvalue, currentoffset);
+          if not groupdata[i].range then
+            result:=QWordScan(groupdata[i].valuei, newvalue, currentoffset)
+          else
+            result:=QWordScanRange(groupdata[i].valuei, groupdata[i].valuei2, groupdata[i].signed, newvalue, currentoffset);
+
           isin:=result and isinlist;
         end;
       end;
@@ -1489,6 +1665,7 @@ begin
             currentoffset:=(currentoffset+3) and $fffffffc;
 
           result:=SingleScan(groupdata[i].minfvalue, groupdata[i].maxfvalue, newvalue, currentoffset);
+
           isin:=result and isinlist;
         end;
       end;
@@ -1543,7 +1720,9 @@ begin
           if outoforder_aligned then //adjust currentoffset to be aligned on the current type alignment
             currentoffset:=(currentoffset+3) and $fffffffc;
 
-
+          if groupdata[i].customtype.scriptUsesString then
+            result:=stringscan(pchar(groupdata[i].customtype.ConvertDataToString(newvalue, currentoffset)), newvalue, currentoffset)
+          else
           if groupdata[i].customtype.scriptUsesFloat then
             result:=CustomScanFloat(groupdata[i].customtype, groupdata[i].minfvalue, groupdata[i].maxfvalue, newvalue, currentoffset)
           else
@@ -1598,7 +1777,9 @@ begin
     for j:=0 to customtypecount-1 do
     begin
       customtype:=tcustomtype(customTypes[j]);
-
+      if customtype.scriptUsesString then
+        customtypesmatch[j]:=false
+      else
       if customtype.scriptUsesFloat then
         customtypesmatch[j]:=customtypesmatch[j] and (CustomFloatExact(newvalue,oldvalue) xor inverseScan)
       else
@@ -1643,7 +1824,9 @@ begin
     for j:=0 to customtypecount-1 do
     begin
       customtype:=tcustomtype(customTypes[j]);
-
+      if customtype.scriptUsesString then
+        customtypesmatch[j]:=false
+      else
       if customtype.scriptUsesFloat then
         customtypesmatch[j]:=customtypesmatch[j] and (CustomFloatLuaFormula(newvalue,oldvalue) xor inverseScan)
       else
@@ -1688,7 +1871,9 @@ begin
     for j:=0 to customtypecount-1 do
     begin
       customtype:=tcustomtype(customTypes[j]);
-
+      if customtype.scriptUsesString then
+        customtypesmatch[j]:=false
+      else
       if customtype.scriptUsesFloat then
         customtypesmatch[j]:=customtypesmatch[j] and (CustomFloatBetween(newvalue,oldvalue) xor inverseScan)
       else
@@ -1732,7 +1917,9 @@ begin
     for j:=0 to customtypecount-1 do
     begin
       customtype:=tcustomtype(customTypes[j]);
-
+      if customtype.scriptUsesString then
+        customtypesmatch[j]:=false
+      else
       if customtype.scriptUsesFloat then
         customtypesmatch[j]:=customtypesmatch[j] and (CustomFloatBetween(newvalue,oldvalue) xor inverseScan)
       else
@@ -1776,7 +1963,9 @@ begin
     for j:=0 to customtypecount-1 do
     begin
       customtype:=tcustomtype(customTypes[j]);
-
+      if customtype.scriptUsesString then
+        customtypesmatch[j]:=false
+      else
       if customtype.scriptUsesFloat then
         customtypesmatch[j]:=customtypesmatch[j] and (CustomFloatBetweenPercentage(newvalue,oldvalue) xor inverseScan)
       else
@@ -1820,6 +2009,9 @@ begin
     for j:=0 to customtypecount-1 do
     begin
       customtype:=tcustomtype(customTypes[j]);
+      if customtype.scriptUsesString then
+        customtypesmatch[j]:=false
+      else
       if customtype.scriptUsesFloat then
         customtypesmatch[j]:=customtypesmatch[j] and (CustomFloatBiggerThan(newvalue,oldvalue) xor inverseScan)
       else
@@ -1863,6 +2055,9 @@ begin
     for j:=0 to customtypecount-1 do
     begin
       customtype:=tcustomtype(customTypes[j]);
+      if customtype.scriptUsesString then
+        customtypesmatch[j]:=false
+      else
       if customtype.scriptUsesFloat then
         customtypesmatch[j]:=customtypesmatch[j] and (CustomFloatSmallerThan(newvalue,oldvalue) xor inverseScan)
       else
@@ -1906,6 +2101,9 @@ begin
     for j:=0 to customtypecount-1 do
     begin
       customtype:=tcustomtype(customTypes[j]);
+      if customtype.scriptUsesString then
+        customtypesmatch[j]:=false
+      else
       if customtype.scriptUsesFloat then
         customtypesmatch[j]:=customtypesmatch[j] and (CustomFloatIncreasedValue(newvalue,oldvalue) xor inverseScan)
       else
@@ -1949,6 +2147,9 @@ begin
     for j:=0 to customtypecount-1 do
     begin
       customtype:=tcustomtype(customTypes[j]);
+      if customtype.scriptUsesString then
+        customtypesmatch[j]:=false
+      else
       if customtype.scriptUsesFloat then
         customtypesmatch[j]:=customtypesmatch[j] and (CustomFloatIncreasedValueBy(newvalue,oldvalue) xor inverseScan)
       else
@@ -1992,6 +2193,9 @@ begin
     for j:=0 to customtypecount-1 do
     begin
       customtype:=tcustomtype(customTypes[j]);
+      if customtype.scriptUsesString then
+        customtypesmatch[j]:=false
+      else
       if customtype.scriptUsesFloat then
         customtypesmatch[j]:=customtypesmatch[j] and (CustomFloatIncreasedValueByPercentage(newvalue,oldvalue) xor inverseScan)
       else
@@ -2036,6 +2240,9 @@ begin
     for j:=0 to customtypecount-1 do
     begin
       customtype:=tcustomtype(customTypes[j]);
+      if customtype.scriptUsesString then
+        customtypesmatch[j]:=false
+      else
       if customtype.scriptUsesFloat then
         customtypesmatch[j]:=customtypesmatch[j] and (CustomFloatDecreasedValue(newvalue,oldvalue) xor inverseScan)
       else
@@ -2079,6 +2286,9 @@ begin
     for j:=0 to customtypecount-1 do
     begin
       customtype:=tcustomtype(customTypes[j]);
+      if customtype.scriptUsesString then
+        customtypesmatch[j]:=false
+      else
       if customtype.scriptUsesFloat then
         customtypesmatch[j]:=customtypesmatch[j] and (CustomFloatDecreasedValueBy(newvalue,oldvalue) xor inverseScan)
       else
@@ -2122,6 +2332,9 @@ begin
     for j:=0 to customtypecount-1 do
     begin
       customtype:=tcustomtype(customTypes[j]);
+      if customtype.scriptUsesString then
+        customtypesmatch[j]:=false
+      else
       if customtype.scriptUsesFloat then
         customtypesmatch[j]:=customtypesmatch[j] and (CustomFloatDecreasedValueByPercentage(newvalue,oldvalue) xor inverseScan)
       else
@@ -2165,6 +2378,9 @@ begin
     for j:=0 to customtypecount-1 do
     begin
       customtype:=tcustomtype(customTypes[j]);
+      if customtype.scriptUsesString then
+        customtypesmatch[j]:=false
+      else
       if customtype.scriptUsesFloat then
         customtypesmatch[j]:=customtypesmatch[j] and (CustomFloatChanged(newvalue,oldvalue) xor inverseScan)
       else
@@ -2208,6 +2424,9 @@ begin
     for j:=0 to customtypecount-1 do
     begin
       customtype:=tcustomtype(customTypes[j]);
+      if customtype.scriptUsesString then
+        customtypesmatch[j]:=false
+      else
       if customtype.scriptUsesFloat then
         customtypesmatch[j]:=customtypesmatch[j] and (CustomFloatUnchanged(newvalue,oldvalue) xor inverseScan)
       else
@@ -2231,6 +2450,18 @@ begin
         result:=true;
         exit;
       end;
+end;
+
+
+function TScanner.CustomCaseSensitiveAnsiStringExact(newvalue,oldvalue: pointer):boolean;
+begin
+  result:=customType.ConvertDataToString(newvalue, currentAddress)=scanvalue1;
+end;
+
+function TScanner.CustomCaseInsensitiveAnsiStringExact(newvalue,oldvalue: pointer):boolean;
+begin
+  //scanvalue1 has already been converted to uppercase in config
+  result:=uppercase(customType.ConvertDataToString(newvalue, currentAddress))=scanvalue1;
 end;
 
 function TScanner.CaseSensitiveAnsiStringExact(newvalue,oldvalue: pointer):boolean;
@@ -4378,9 +4609,15 @@ begin
     if scanvalue1='' then raise exception.Create(rsPleaseFillSomethingIn);
 
 
-    if (not luaformula) and (variableType in [vtByte,vtWord,vtDWord,vtQword,vtAll,vtCustom]) then
+    if (not luaformula) and
+       (variableType in [vtByte,vtWord,vtDWord,vtQword,vtAll,vtCustom]) and
+       ((variableType<>vtCustom) or (customType.scriptUsesString=false))
+
+
+    then
     begin
       //parse scanvalue1
+
 
       scanvalue1:=trim(scanvalue1);
       scanvalue2:=trim(scanvalue2);
@@ -4492,7 +4729,9 @@ begin
       end;
     end;
 
-    if (not luaformula) and (percentage or (variableType in [vtsingle,vtDouble,vtAll, vtCustom])) then
+    if (not luaformula) and (percentage or (variableType in [vtsingle,vtDouble,vtAll, vtCustom])) and
+       ((variableType<>vtCustom) or (customType.scriptUsesString=false))
+    then
     begin
       try
         if hexadecimal then
@@ -4610,11 +4849,9 @@ begin
 
     end;
                   
-    if variableType = vtString then
-    begin
-
+    if (variableType = vtString) or ((variabletype=vtCustom) and (customtype.scriptUsesString) ) then
       widescanvalue1:=UTF8ToUTF16(scanvalue1);
-    end;    
+
 
     nibbleSupport:=false;
     if variabletype = vtByteArray then
@@ -5112,7 +5349,17 @@ begin
 
       StoreResultRoutine:=GenericSaveResult;
 
-
+      if customType.scriptUsesString then
+      begin
+        case scanOption of
+          soExactValue:
+          begin
+            if casesensitive then CheckRoutine:=CustomCaseSensitiveAnsiStringExact;
+            if not casesensitive then CheckRoutine:=CustomCaseInsensitiveAnsiStringExact;
+          end;
+        end;
+      end
+      else
       if customType.scriptUsesFloat then
       begin
         case scanOption of
@@ -6293,16 +6540,9 @@ begin
       begin
         while not (terminated or scanners[i].isdone) do
         begin
-         {$ifdef android}
-         if not scanners[i].Finished then
-           sleep(25);
-         {$endif}
-
-         {$ifdef windows}
-         WaitForSingleObject(scanners[i].Handle,25); //25ms, an eternity for a cpu
-         {$endif}
-         if (OwningMemScan.progressbar<>nil) or (assigned(owningmemscan.OnGuiUpdate)) then
-           synchronize(updategui);
+          scanners[i].WaitTillDone(25);
+          if (OwningMemScan.progressbar<>nil) or (assigned(owningmemscan.OnGuiUpdate)) then
+            synchronize(updategui);
         end;
 
         //If terminated then stop the scanner thread and wait for it to finish
@@ -6532,13 +6772,9 @@ begin
   begin
     while not (terminated or scanners[i].isdone) do
     begin
-    {$IFDEF WINDOWS}
-      WaitForSingleObject(scanners[i].Handle,25); //25ms, an eternity for a cpu
+      scanners[i].WaitTillDone(25);
       if (OwningMemScan.progressbar<>nil) or (assigned(owningmemscan.OnGuiUpdate))  then
         synchronize(updategui);
-    {$else}
-      sleep(25);
-    {$ENDIF}
     end;
 
     //If terminated then stop the scanner thread and wait for it to finish
@@ -7054,15 +7290,9 @@ begin
     begin
       while not (terminated or scanners[i].isdone) do
       begin
-{$ifdef windows}
-        WaitForSingleObject(scanners[i].Handle,25); //25ms, an eternity for a cpu
-
+        scanners[i].WaitTillDone(25);
         if (OwningMemScan.progressbar<>nil) or (assigned(owningmemscan.OnGuiUpdate)) then
           synchronize(updategui);
-{$else}
-        sleep(25)
-{$endif}
-
       end;
 
 
@@ -7963,11 +8193,10 @@ end;
 
 procedure TMemscan.NextScan;
 var
-  {$ifdef windows}
   frmBusy: TfrmBusy;
-  {$endif}
   r: TModalResult;
 begin
+
   if assigned(fOnScanStart) then
     fOnScanStart(self);
 
@@ -7982,12 +8211,10 @@ begin
 
    if scanController<>nil then
    begin
-     {$ifdef windows}
-
-     if GUIScanner and (WaitForSingleObject(scancontroller.handle, 500)<>WAIT_OBJECT_0) then
+     if GUIScanner and (not scancontroller.WaitTillDone(500)) then
      begin
        frmBusy:=TfrmBusy.create(nil);
-       frmBusy.WaitForHandle:=scancontroller.handle;
+       frmBusy.WaitForThread:=scancontroller;
        frmBusy.memscan:=self;
        frmBusy.Reason:=postScanState;
 
@@ -8008,7 +8235,7 @@ begin
        frmBusy.free;
      end;
 
-     {$endif}
+
 
      scancontroller.WaitFor; //could be it's still saving the results of the previous scan
      freeandnil(scanController);
@@ -8017,12 +8244,12 @@ begin
    {$IFNDEF LOWMEMORYUSAGE}
    if SaveFirstScanThread<>nil then
    begin
-     {$ifdef windows}
-     if GUIScanner and (WaitForSingleObject(SaveFirstScanThread.handle, 500)<>WAIT_OBJECT_0) then
+
+     if GUIScanner and (not SaveFirstScanThread.WaitTillDone(500)) then
      begin
        postscanstate:=psSavingFirstScanResults2;
        frmBusy:=TfrmBusy.create(nil);
-       frmBusy.WaitForHandle:=SaveFirstScanThread.handle;
+       frmBusy.WaitForThread:=SaveFirstScanThread;
        frmBusy.memscan:=self;
        frmBusy.Reason:=postScanState;
 
@@ -8042,7 +8269,7 @@ begin
 
        frmBusy.free;
      end;
-     {$endif}
+
 
      SaveFirstScanThread.WaitFor; //wait till it's done
      freeandnil(SaveFirstScanThread);
@@ -8350,6 +8577,9 @@ var usedtempdir: string;
 
 begin
  // OutputDebugString('TMemscan.DeleteScanfolder');
+ { if (attachedFoundlist<>nil) then
+    TFoundList(attachedFoundlist).Deinitialize; }
+
   if fScanResultFolder<>'' then
   begin
     try

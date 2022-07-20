@@ -5,7 +5,7 @@ unit NewKernelHandler;
 interface
 
 {$ifdef darwin}
-uses SysUtils, MacOSAll, MacOSXPosix, macport;
+uses SysUtils, MacOSAll, MacOSXPosix, macport, macportdefines;
 {$else}
 uses jwawindows, windows,LCLIntf,sysutils, dialogs, classes, controls,
      dbk32functions, vmxfunctions,debug, multicpuexecution, contnrs, Clipbrd, globals;
@@ -294,16 +294,18 @@ type
 
    end;
 
+  {$ifndef darwin}  //defined in macport.pas
   TARM64CONTEXT=packed record
+
      regs: TARM64CONTEXT_REGISTERS;
 
      SP:  QWORD;
      PC:  QWORD;
      PSTATE: QWORD;
-
   end;
 
   PARM64CONTEXT=^TARM64CONTEXT;
+  {$endif}
 
   {$ifdef windows}
 type

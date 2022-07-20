@@ -153,7 +153,7 @@ implementation
 
 uses
   luahandler, LuaByteTable, MainUnit, disassemblerviewunit,
-  hexviewunit, d3dhookUnit, luaclass, debuggertypedefinitions, memscan,
+  hexviewunit, d3dhookUnit, LuaClass, debuggertypedefinitions, memscan,
   symbolhandler, symbolhandlerstructs, menus, BreakpointTypeDef;
 
 resourcestring
@@ -1325,6 +1325,7 @@ function TLuaCaller.SymbolLookupCallback(s: string): ptruint;
 var oldstack: integer;
 begin
   result:=0;
+  if Luavm=nil then exit;
   oldstack:=lua_gettop(Luavm);
   try
     PushFunction;

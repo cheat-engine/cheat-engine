@@ -6,7 +6,7 @@ interface
 
 {$ifdef windows}
 uses
-  Windows, forms, graphics, Classes, SysUtils, controls, stdctrls, comctrls,
+  jwawindows, Windows, forms, graphics, Classes, SysUtils, controls, stdctrls, comctrls,
   symbolhandler, SymbolListHandler, cefuncproc,newkernelhandler, hotkeyhandler,
   dom, XMLRead,XMLWrite, customtypehandler, fileutil, LCLProc, commonTypeDefs,
   pointerparser, LazUTF8, LuaClass, math, betterControls, memrecDataStructures;
@@ -1574,7 +1574,7 @@ begin
 
         if tempnode.ChildNodes[i].NodeName='Hotkey' then
         begin
-          a:=tempnode.Attributes.GetNamedItem('OnlyWhileDown');
+          a:=tempnode.ChildNodes[i].Attributes.GetNamedItem('OnlyWhileDown');
           if (a<>nil) then
             hk.OnlyWhileDown:=a.TextContent='1';
 
@@ -2265,6 +2265,7 @@ begin
         end
         else
         begin
+          if (VarType=vtCustom) and (customtype.scriptUsesString) then exit;
           oldvalue:=StrToQWordEx(getvalue);
           increasevalue:=StrToQWordEx(value);
           setvalue(IntToStr(oldvalue+increasevalue));
@@ -2303,6 +2304,7 @@ begin
         end
         else
         begin
+          if (VarType=vtCustom) and (customtype.scriptUsesString) then exit;
           oldvalue:=StrToQWordEx(getvalue);
           decreasevalue:=StrToQWordEx(value);
           setvalue(IntToStr(oldvalue-decreasevalue));
@@ -2886,8 +2888,10 @@ begin
             olddecimalvalue:=StrToQWordEx(oldvalue);
           end;
 
-          if (allowIncrease and (newdecimalvalue>olddecimalvalue)) or
-             (allowDecrease and (newdecimalvalue<olddecimalvalue))
+          if (allowIncrease and ShowAsSigned and (int64(newdecimalvalue)>int64(olddecimalvalue))) or
+             (allowIncrease and (not ShowAsSigned) and (newdecimalvalue>olddecimalvalue)) or
+             (allowDecrease and (ShowAsSigned) and (int64(newdecimalvalue)<int64(olddecimalvalue))) or
+             (allowDecrease and (not ShowAsSigned) and (newdecimalvalue<olddecimalvalue))
           then
             frozenvalue:=newvalue;
 
@@ -3060,6 +3064,11 @@ begin
       begin
         if fcustomtype<>nil then
         begin
+          if fCustomType.scriptUsesString then
+          begin
+            result:=fCustomType.ConvertDataToString(buf, realaddress);
+          end
+          else
           if fcustomtype.scriptUsesFloat then
           begin
             if ShowAsHex then  //so stupid, but whatever
@@ -3195,7 +3204,7 @@ var
   check: boolean;
 
   oldluatop: integer;
-  vpe: boolean;
+  vpe: boolean=false;
 
   setvaluescript: Tstringlist;
 
@@ -3204,6 +3213,8 @@ var
   f: single;
 
   newundovalue: string;
+
+  suspended: boolean;
 begin
   //check if it is a '(description)' notation
 
@@ -3372,9 +3383,19 @@ begin
 
   getmem(buf,bufsize+2);
 
-
-  vpe:=(SkipVirtualProtectEx=false) and VirtualProtectEx(processhandle, pointer(realAddress), bufsize, PAGE_EXECUTE_READWRITE, originalprotection);
-
+  if SystemSupportsWritableExecutableMemory or SkipVirtualProtectEx then
+  begin
+    vpe:=(SkipVirtualProtectEx=false) and VirtualProtectEx(processhandle, pointer(realAddress), bufsize, PAGE_EXECUTE_READWRITE, originalprotection);
+  end
+  else
+  begin
+    if (SkipVirtualProtectEx=false) and (iswritable(realaddress)=false) then
+    begin
+      suspended:=true;
+      ntsuspendProcess(processhandle);
+      vpe:=(SkipVirtualProtectEx=false) and VirtualProtectEx(processhandle, pointer(realAddress), bufsize, PAGE_READWRITE, originalprotection);
+    end;
+  end;
   try
 
 
@@ -3415,6 +3436,11 @@ begin
       begin
         if fcustomtype<>nil then
         Begin
+          if fcustomtype.scriptUsesString then
+          begin
+            fCustomType.ConvertStringToData(pchar(v), pb, RealAddress); //utf8 format
+          end
+          else
           if fcustomtype.scriptUsesFloat then
           begin
             if not fShowAsHex then
@@ -3557,6 +3583,8 @@ begin
     if vpe then
       VirtualProtectEx(processhandle, pointer(realAddress), bufsize, originalprotection, originalprotection);
 
+    if suspended then
+      ntresumeProcess(processhandle);
   end;
 
   freememandnil(buf);

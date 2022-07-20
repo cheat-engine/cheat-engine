@@ -42,6 +42,7 @@ type
   private
     { private declarations }
     Varinfolist: TList;
+    calculatedWidth: integer;
     procedure sizechange;
   public
     { public declarations }
@@ -60,9 +61,12 @@ type
   private
     frm: TfrmGroupScanAlgoritmGenerator;
     cbVartype: TCombobox;
-    edtValue: Tedit;
+    edtContainer: TPanel;
+    edtValue, edtValue2: Tedit;
     cbPicked: Tcheckbox;
+    cbRange: TCheckbox;
     procedure vartypeselect(Sender: TObject);
+    procedure cbrangechange(sender: TObject);
   public
     function getParameterPart(skipPicked: boolean=true): string;
     function bytesize: integer;
@@ -77,11 +81,12 @@ var
 
 implementation
 
-uses ProcessHandlerUnit;
+uses ProcessHandlerUnit, ceregistry;
 
 resourcestring
   rsWildcard='Skip nr of bytes:';
   rsAdd='Add';
+  rsRange='Range';
   rsPickedHint='When checked this element will get added to the addresslist. Note: If all checkboxes are disabled, ALL elements will be added';
   rsGSGShouldBeAtLeast = 'Should be at least %d';
   rsGSGBlocksizeMustBeProvided = 'blocksize must be provided';
@@ -137,6 +142,9 @@ begin
   if (not skipPicked) and cbPicked.checked then
     p:='p';
 
+  if cbRange.Checked then
+    p:=p+'r';
+
 
   case cbVartype.itemindex of
     0: exit;
@@ -163,9 +171,17 @@ begin
 
   result:=result+edtValue.text;
 
+  if cbRange.checked then
+    result:=result+'-'+edtValue2.text;
+
   if cbVartype.itemindex in [7,8] then
     result:=result+'''';
 
+end;
+
+procedure TVariableInfo.cbrangechange(sender: TObject);
+begin
+  edtValue2.visible:=cbRange.checked;
 end;
 
 procedure TVariableInfo.vartypeselect(Sender: TObject);
@@ -183,11 +199,19 @@ begin
   else
     edtValue.TextHint:='';
 
+
+
+
   edtValue.visible:=cbVartype.ItemIndex<>0;
   cbPicked.visible:=edtValue.visible;
 
+  cbRange.visible:=edtValue.Visible;
+  if edtValue2<>nil then
+    edtValue2.visible:=cbRange.checked;
 
-
+  cbRange.enabled:=not (cbVartype.itemindex in [7,8,10]);
+  if not cbRange.enabled then
+    cbRange.checked:=false;
 
   frm.sizechange;
 
@@ -212,6 +236,8 @@ begin
     begin
       AnchorSideTop.Control:=previous;
       AnchorSideTop.Side:=asrBottom;
+
+      BorderSpacing.Top:=1;
     end;
   end;
 end;
@@ -255,10 +281,16 @@ begin
 
   Anchors := [akTop, akLeft, akRight];
 
-
-
+  edtContainer:=TPanel.Create(self);
+  edtContainer.BevelOuter:=bvnone;
+  edtContainer.ChildSizing.ControlsPerLine:=2;
+  edtContainer.ChildSizing.EnlargeHorizontal:=crsHomogenousChildResize;
+  edtContainer.ChildSizing.Layout:=cclLeftToRightThenTopToBottom;
+  edtContainer.ChildSizing.HorizontalSpacing:=trunc(2.5*(96/screen.PixelsPerInch));
+  edtContainer.autosize:=true;
 
   edtValue:=Tedit.create(self);
+  edtValue2:=Tedit.create(self);
   cbVartype:=Tcombobox.create(self);
 
   cbvartype.Items.Add('');                   //0
@@ -288,6 +320,10 @@ begin
   cbvartype.Style:=csDropDownList;
   cbVartype.DropDownCount:=min(16,cbVartype.items.count);
 
+  cbRange:=TCheckbox.create(self);
+  cbRange.caption:=rsRange;
+  cbRange.checked:=false;
+  cbRange.visible:=false;
 
 
   cbPicked:=TCheckBox.create(self);
@@ -304,34 +340,50 @@ begin
   cbVartype.AnchorSideLeft.Side:=asrLeft;
   cbVartype.BorderSpacing.left:=2;
 
+  cbRange.AnchorSideRight.Control:=cbPicked;
+  cbRange.AnchorSideRight.Side:=asrLeft;
+  cbRange.AnchorSideTop.Control:=edtContainer;
+  cbRange.AnchorSideTop.Side:=asrCenter;
+
   cbpicked.AnchorSideRight.Control:=self;
   cbpicked.AnchorSideRight.Side:=asrRight;
-  cbpicked.AnchorSideTop.Control:=edtValue;
-  cbPicked.AnchorSideTop.side:=asrCenter;
+  cbpicked.AnchorSideTop.Control:=edtContainer;
+  cbpicked.AnchorSideTop.side:=asrCenter;
   cbpicked.BorderSpacing.Right:=2;
 
+  edtContainer.AnchorSideLeft.control:=cbVartype;
+  edtContainer.AnchorSideLeft.side:=asrRight;
+  edtContainer.AnchorSideRight.control:=cbRange;
+  edtContainer.AnchorSideRight.Side:=asrLeft;
 
-  edtValue.AnchorSideLeft.control:=cbVartype;
-  edtValue.AnchorSideLeft.side:=asrRight;
+  edtContainer.BorderSpacing.Left:=6;
+  edtContainer.BorderSpacing.Right:=6;
+  edtContainer.BorderSpacing.Top:=1;
 
-  edtValue.AnchorSideRight.control:=cbPicked;
-  edtValue.AnchorSideRight.side:=asrLeft;
-  edtValue.BorderSpacing.Left:=6;
-  edtValue.BorderSpacing.Right:=6;
-  edtValue.BorderSpacing.Top:=1;
 
+  edtContainer.Anchors:=[akTop, akLeft, akRight];
   cbVartype.anchors:=[akTop, akLeft];
   cbPicked.anchors:=[akTop, akRight];
-  edtValue.anchors:=[akTop, akLeft, akRight];
+  cbRange.anchors:=[akTop, akRight];
 
+  edtValue.parent:=edtContainer;
+  edtValue2.parent:=edtContainer;
+
+  cbRange.parent:=self;
   cbvartype.parent:=self;
-  edtValue.parent:=self;
   cbpicked.parent:=self;
+
+  edtContainer.parent:=self;
+
+  //edtContainer.color:=clGreen;
 
   cbvartype.itemindex:=0;
   cbvartype.OnChange:=vartypeselect;
 
+  cbRange.OnChange:=cbrangechange;
+
   edtValue.visible:=false;
+  edtValue2.visible:=false;
 
 
   {$ifdef windows}
@@ -427,10 +479,13 @@ begin
 
     freeandnil(Varinfolist);
   end;
+
+  if width<>calculatedWidth then
+    cereg.writeInteger('GroupScanAlgoritmGenerator Width',width);
 end;
 
 procedure TfrmGroupScanAlgoritmGenerator.FormShow(Sender: TObject);
-var i: integer;
+var i,j: integer;
 begin
 //  clientheight:=panel1.top+btnOK.top+btnOK.height+10;
   autosize:=false;
@@ -449,10 +504,18 @@ begin
 
   //width:=canvas.
 
+
   if Varinfolist.count>0 then //should be true
   begin
-    i:=TVariableInfo(Varinfolist[0]).cbVartype.width*3;
+    i:=trunc(TVariableInfo(Varinfolist[0]).cbVartype.width*3.5);
+    j:=cereg.readInteger('GroupScanAlgoritmGenerator Width',i);
+
+    if j>i then
+      i:=j;
+
     width:=i;
+
+    calculatedWidth:=i;
 //    TVariableInfo(Varinfolist[0]).cbPicked.left+TVariableInfo(Varinfolist[0]).cbPicked.width
   end;
 
@@ -555,8 +618,11 @@ begin
 
     x.vartypeselect(x.cbVartype);
     x.edtValue.text:=gcp.elements[i].uservalue;
+    x.edtValue2.text:=gcp.elements[i].uservalue2;
 
     x.cbPicked.checked:=gcp.elements[i].picked;
+    x.cbRange.checked:=gcp.elements[i].range;
+
   end;
 
 

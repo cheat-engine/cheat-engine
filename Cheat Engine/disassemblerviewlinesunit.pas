@@ -431,10 +431,6 @@ begin
     extrasymboldata:=nil;
 
 
-
-
-
-
   if iscurrentinstruction then
     d.context:=@MemoryBrowser.lastdebugcontext
   else
@@ -442,7 +438,11 @@ begin
 
   fdisassembled:=d.disassemble(address,fdescription);
 
-  addressstring:=inttohex(d.LastDisassembleData.address,8);
+  if TDisassemblerview(owner).UseRelativeBase then
+    addressString:='+'+inttohex(d.LastDisassembleData.address-TDisassemblerview(owner).RelativeBase,8)
+  else
+    addressstring:=inttohex(d.LastDisassembleData.address,8);
+
   bytestring:=d.getLastBytestring;
   opcodestring:=d.LastDisassembleData.prefix+d.LastDisassembleData.opcode;
   
@@ -469,10 +469,17 @@ begin
     end;
   end;
 
+
   if symhandler.showsymbols or symhandler.showmodules then
-    addressString:=symbolname
+  begin
+    if TDisassemblerview(owner).UseRelativeBase then
+      addressString:=addressstring+' ('+symbolname+')'
+    else
+      addressString:=symbolname;
+  end
   else
     addressString:=truncatestring(addressString, fHeaders.Items[0].Width-2);
+
 
   //Correction for rendering bug.
   if (processhandler.isNetwork=true) and (processhandler.SystemArchitecture=archarm) then

@@ -6,7 +6,8 @@ interface
 
 uses
   LCLType, Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls,
-  ExtCtrls, MemoryRecordUnit, CEFuncProc, SynEdit, Menus, betterControls, addresslist;
+  ExtCtrls, MemoryRecordUnit, CEFuncProc, SynEdit, Menus, betterControls, addresslist,
+  synedittypes;
 
 resourcestring
 rsDDDropdownOtionsFor = 'Dropdown options for ';

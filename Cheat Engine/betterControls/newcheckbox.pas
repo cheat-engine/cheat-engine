@@ -36,21 +36,35 @@ type
 
 implementation
 
-uses forms, betterControls;
+uses forms, win32proc, betterControls;
 
 procedure TNewCheckBox.GetPreferredSize(var PreferredWidth, PreferredHeight: integer; Raw: boolean=false; WithThemeSpace: boolean=true);
 var r: trect;
   x: integer;
   dpiscale: single;
+  w,h: integer;
 begin
   inherited GetPreferredSize(PreferredWidth, PreferredHeight, Raw, WithThemeSpace);
 
   if ShouldAppsUseDarkMode and (font<>nil) then
   begin
+    if fcanvas=nil then
+    begin
+      fcanvas:=TControlCanvas.Create;
+      TControlCanvas(FCanvas).Control := Self;
+
+      //beep;
+    end;
+
+
     dpiscale:=Screen.PixelsPerInch/96;
-    fcanvas.font.size:=font.size;
+    fcanvas.font:=font; //.size:=font.size;
     r:=rect(trunc(dpiscale)-1,trunc(3*dpiscale),(trunc(dpiscale)-1)*2+PreferredHeight-trunc((3*dpiscale)*2),(trunc(dpiscale)-1)+PreferredHeight-trunc((3*dpiscale)));
-    x:=r.right+trunc(3*dpiscale)+fcanvas.TextWidth(caption);
+    x:=r.right+trunc(3*dpiscale);
+
+//    x:=x+fcanvas.TextWidth(caption);
+    MeasureTextForWnd(Handle, Text, w,h);
+    x:=x+w;
 
     PreferredWidth:=x+4;
   end;
@@ -238,7 +252,9 @@ begin
   inherited CreateParams(Params);
   if ShouldAppsUseDarkMode then
   begin
-    fcanvas:=TControlCanvas.Create;
+    if fcanvas=nil then
+      fcanvas:=TControlCanvas.Create;
+
     TControlCanvas(FCanvas).Control := Self;
 
     if ShouldAppsUseDarkMode() then

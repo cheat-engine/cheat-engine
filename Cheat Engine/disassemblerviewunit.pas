@@ -95,6 +95,9 @@ type TDisassemblerview=class(TPanel)
     fCR3: qword;
     fCurrentDisassembler: TDisassembler;
 
+    fUseRelativeBase: boolean;
+    fRelativeBase: ptruint;
+
     procedure updateScrollbox;
     procedure scrollboxResize(Sender: TObject);
 
@@ -199,6 +202,9 @@ type TDisassemblerview=class(TPanel)
     property OnDisassemblerViewOverride: TDisassemblerViewOverrideCallback read fOnDisassemblerViewOverride write fOnDisassemblerViewOverride;
     property CR3: qword read fCR3 write setCR3;
     property CurrentDisassembler: TDisassembler read fCurrentDisassembler;
+
+    property RelativeBase: ptruint read fRelativeBase write fRelativeBase;
+    property UseRelativeBase: boolean read fUseRelativeBase write fUseRelativeBase;
 end;
 
 
@@ -207,6 +213,7 @@ implementation
 uses processhandlerunit, parsers, Clipbrd, Globals;
 
 resourcestring
+  rsDebugSymbolsAreBeingLoaded = 'Debug symbols are being loaded (%d %% (%s))';
   rsSymbolsAreBeingLoaded = 'Symbols are being loaded (%d %%)';
   rsStructuresAreBeingParsed = 'Structures are being parsed';
   rsExtendedDebugInfoIsLoaded = 'Extended debug info is being loaded (%d %%)';
@@ -763,13 +770,20 @@ begin
 
   //if gettickcount-lastupdate>50 then
   begin
-    if (symhandler.loadingExtendedData or symhandler.parsingStructures or (not symhandler.isloaded)) and (not symhandler.haserror) then
+    if (symhandler.parsingdebuginfo or symhandler.loadingExtendedData or symhandler.parsingStructures or (not symhandler.isloaded)) and (not symhandler.haserror) then
     begin
       if processid>0 then
       begin
        // symhandler.currentState:=
+        if symhandler.parsingdebuginfo then
+        begin
+          statusinfolabel.Caption:=format(rsDebugSymbolsAreBeingLoaded,[symhandler.progress, symhandler.currentModule])
+        end
+        else
         if symhandler.loadingExtendedData then
+        begin
           statusinfolabel.Caption:=format(rsExtendedDebugInfoIsLoaded,[symhandler.extendedDataProgess])
+        end
         else
         if symhandler.parsingStructures then
           statusinfolabel.Caption:=rsStructuresAreBeingParsed
