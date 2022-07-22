@@ -21,36 +21,54 @@ function FillList()
   else
     op='64'
   end
-  
-  while c.Items.Count>1 do
-    c.Items.delete(1)
-  end
+  synchronize(function()  
+    while c.Items.Count>1 do
+      c.Items.delete(1)
+    end
+  end)
 
   modulelist=enumModules()
-  if modulelist then
-    local i
-    for i=1, #modulelist do
-      modulelist[i].OriginalName=modulelist[i].Name
-      if modulelist[i].Is64Bit ~= is64bit then
-        modulelist[i].OriginalName='_'..modulelist[i].OriginalName
-        modulelist[i].Name=modulelist[i].Name..' ('..op..'-bit)'
-      end
+  
+  synchronize(function()
+    if modulelist then
+      local i
+      for i=1, #modulelist do
+        modulelist[i].OriginalName=modulelist[i].Name
+        if modulelist[i].Is64Bit ~= is64bit then
+          modulelist[i].OriginalName='_'..modulelist[i].OriginalName
+          modulelist[i].Name=modulelist[i].Name..' ('..op..'-bit)'
+        end
 
-      c.Items.Add(modulelist[i].Name)
+        c.Items.Add(modulelist[i].Name)
+      end
     end
-  end
+  end)
 end
 
 c.OnMouseEnter=function(d)  
   if c.Items.Count<=1 then
     --print("enter")
-    FillList()
-    c.ItemIndex=0
+    if FillListThread==nil then
+      FillListThread=createThread(function(t)
+        FillList()
+        FillListThread=nil
+      end)
+      c.ItemIndex=0
+    end
   end
 end
 
 c.OnDropDown=function(d)
-  FillList()
+  if FillListThread==nil then
+    FillListThread=createThread(function(t)
+      FillList()
+      FillListThread=nil
+    end) 
+  end
+    
+  while FillListThread do
+    checkSynchronize(50)
+  end
 end
 
 c.OnSelect=function(d)

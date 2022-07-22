@@ -158,7 +158,7 @@ type
 
 implementation
 
-uses DotNetTypes;
+uses DotNetTypes, networkInterfaceApi;
 
 const
   CMD_TARGETPROCESS=0;
@@ -883,6 +883,8 @@ var
 {$endif}
 begin
   {$IFDEF windows}
+  if getConnection<>nil then exit(false);
+
   if fConnected then
     disconnect;
 

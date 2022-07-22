@@ -5,10 +5,10 @@ unit SyncObjs2;
 interface
 
 uses {$ifdef darwin}
-  macport, SyncObjs, cthreads, unix, unixtype, pthreads, baseunix,
+  macport, cthreads, unix, unixtype, pthreads, baseunix,
   {$else}
   windows,
-  {$endif}classes, sysutils, LCLIntf;
+  {$endif}SyncObjs, classes, sysutils, LCLIntf;
 
 type TSemaphore=class
   private
@@ -41,9 +41,73 @@ type
   end;
 
 
+{$ifdef THREADNAMESUPPORT}
+function GetThreadName(tid: TThreadID=0): string;
+{$endif}
 
 
 implementation
+
+uses networkInterfaceApi, maps;
+
+var
+  tm: TThreadManager;
+  oldSetThreadDebugNameA: procedure(threadHandle: TThreadID; const ThreadName: AnsiString);
+
+  threadnames: TMap;
+  threadnamesCS: TCriticalSection;
+
+{$ifdef THREADNAMESUPPORT}
+
+function GetThreadName(tid: TThreadID=0): string;
+var s: pstring;
+begin
+  result:='';
+  if tid=0 then tid:=GetCurrentThreadId;
+
+  threadnamesCS.enter;
+  s:=nil;
+  if threadnames.GetData(tid, s) then
+    result:=s^;
+
+  threadnamesCS.Leave;
+end;
+
+procedure SetThreadDebugNameA(tid: TThreadID; const ThreadName: AnsiString);
+var s: pstring;
+  str: string;
+begin
+  if assigned(oldSetThreadDebugNameA) then
+    oldSetThreadDebugNameA(tid, threadname);
+
+  threadnamesCS.enter;
+  if threadnames.GetData(tid, s) then
+  begin
+    DisposeStr(s);
+    threadnames.Delete(tid);
+  end;
+  threadnames.Add(tid, NewStr(threadname));
+  threadnamesCS.Leave;
+
+  if (tid=GetCurrentThreadId) and (getConnection<>nil) then
+    Getconnection.setconnectionname(threadname);
+
+
+end;
+
+procedure EndThread(exitcode: dword);
+var s: pstring;
+begin
+  threadnamesCS.enter;
+  if threadnames.GetData(GetCurrentThreadId, s) then
+  begin
+    DisposeStr(s);
+    threadnames.Delete(GetCurrentThreadId);
+  end;
+
+  threadnamesCS.Leave;
+end;
+{$endif}
 
 function TThreadHelper.WaitTillDone(timeout: dword; granularity: integer=25): boolean;
 var
@@ -234,6 +298,53 @@ begin
   {$endif}
 
 end;
+
+{$ifdef THREADNAMESUPPORT}
+procedure finalizeThreadNames;
+var i: TMapIterator;
+  s: pstring;
+begin
+  threadnamesCS.enter;
+  try
+    i:=TMapIterator.Create(threadnames);
+    i.First;
+    while not i.EOM do
+    begin
+      s:=nil;
+      i.GetData(s);
+
+      if s<>nil then
+        DisposeStr(s);
+
+      i.Next;
+    end;
+  finally
+    threadnamesCS.leave;
+  end;
+
+  freeandnil(threadnamesCS);
+  freeandnil(threadnames);
+end;
+{$endif}
+
+initialization
+  {$ifdef THREADNAMESUPPORT}
+  threadnames:=TMap.Create(itu4,sizeof(pointer));
+  threadnamesCS:=TCriticalSection.Create;
+
+
+  GetThreadManager(tm);
+  oldSetThreadDebugNameA:=tm.SetThreadDebugNameA;
+  tm.SetThreadDebugNameA:=@SetThreadDebugNameA;
+  SetThreadManager(tm);
+  {$endif}
+
+finalization
+  {$ifdef THREADNAMESUPPORT}
+  finalizeThreadNames();
+  {$endif}
+
+
 
 end.
 

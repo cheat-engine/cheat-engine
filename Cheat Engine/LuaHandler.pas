@@ -22,7 +22,7 @@ uses
   jwawindows, windows, ShellApi,
   {$endif}
   vmxfunctions, Classes, dialogs, SysUtils, lua, lualib,
-  lauxlib, syncobjs, CEFuncProc, NewKernelHandler, Graphics,
+  lauxlib, syncobjs, syncobjs2, CEFuncProc, NewKernelHandler, Graphics,
   controls, LuaCaller, forms, ExtCtrls, StdCtrls, comctrls, ceguicomponents,
   genericHotkey, luafile, xmplayer_server, ExtraTrainerComponents, customtimer,
   menus, XMLRead, XMLWrite, DOM, Clipbrd, typinfo, PEInfoFunctions,
@@ -4663,7 +4663,22 @@ var
   is64bitmodule: boolean;
 
   pid: integer;
+
+  st: qword;
+  tt: qword;
+
+ { ar: lua_debug;
+  s: pchar;}
 begin
+ { if MainThreadID=GetCurrentThreadId then
+  begin
+    ZeroMemory(@ar,sizeof(ar));
+    lua_getstack(L, 1,@ar);
+    lua_getinfo(L,'S',@ar);
+
+    showmessage(ar.source);
+  end;}
+
   result:=0;
 
   if lua_gettop(L)=1 then
@@ -4671,7 +4686,10 @@ begin
   else
     pid:=processid;
 
+  tt:=GetTickCount64;
+  st:=GetTickCount64;
   ths:=CreateToolhelp32Snapshot(TH32CS_SNAPMODULE or TH32CS_SNAPMODULE32, pid);
+  OutputDebugString('CreateToolhelp32Snapshot took '+inttostr(GetTickCount64-st)+' ms.');
   if ths<>0 then
   begin
     lua_newtable(L);
@@ -4679,9 +4697,13 @@ begin
 
     me32.dwSize:=sizeof(MODULEENTRY32);
 
+
+
     i:=1;
+    st:=GetTickCount64;
     if module32first(ths,me32) then
     repeat
+      OutputDebugString('module32first/next took '+inttostr(GetTickCount64-st)+' ms.');
       lua_newtable(L);
       entryindex:=lua_gettop(L);
 
@@ -4716,6 +4738,7 @@ begin
       lua_pop(L, 1); //remove the current entry table
 
       inc(i);
+      st:=GetTickCount64;
     until Module32Next(ths, me32)=false;
 
     lua_pushvalue(L, tableindex); //shouldn't be needed, but let's make sure
@@ -4724,6 +4747,8 @@ begin
     closehandle(ths);
 
   end;
+
+  OutputDebugString('enumModules took '+inttostr(GetTickCount64-tt)+' ms.');
 end;
 
 
@@ -8629,7 +8654,8 @@ function TNewProcess.RunCommandLoop(out outputstring:string;
       stderrbytesread:=0;
       stderrlength:=0;
       Execute;
-      while Running do
+
+      while WaitForSingleObject(FProcessHAndle,0)=WAIT_TIMEOUT do
         begin
           // Only call ReadFromStream if Data from corresponding stream
           // is already available, otherwise, on  linux, the read call
@@ -8646,7 +8672,10 @@ function TNewProcess.RunCommandLoop(out outputstring:string;
             FOnRunCommandEvent(self,Nil,RunCommandIdle,'');  }
         end;
       // Get left output after end of execution
-       WaitForThreadTerminate(FThreadHandle, 0);
+
+
+    //  WaitForSingleObject(FProcessHandle,INFINITE);
+     //  WaitForThreadTerminate(FThreadHandle, 0);
 
       //ThreadSwitch;
       ReadInputStream(output,BytesRead,OutputLength,OutputString,2500);
@@ -16572,7 +16601,11 @@ var
   tm: TThreadManager;
   oldReleaseThreadVars: procedure;
 
+
+
+
 procedure ReleaseLuaThreadVars;
+var s: pstring;
 begin
   if Thread_LuaVM<>nil then
   begin
@@ -16585,15 +16618,21 @@ begin
   if assigned(oldReleaseThreadVars) then
     oldReleaseThreadVars();
 
+
 end;
+
 
 initialization
   _LuaCS:=TCriticalSection.create;
   luarefcs:=TCriticalSection.create;
 
+
+
   GetThreadManager(tm);
   oldReleaseThreadVars:=tm.ReleaseThreadVars;
   tm.ReleaseThreadVars:=@ReleaseLuaThreadVars;
+
+
   SetThreadManager(tm);
 
 

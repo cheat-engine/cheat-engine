@@ -3706,7 +3706,9 @@ function mono_OpenProcessMT()
     end    
   end
   
-  mono_setMonoMenuItem(usesmono, usesdotnet)
+  synchronize(function()
+    mono_setMonoMenuItem(usesmono, usesdotnet)
+  end)
   
   if (usesmono==false) and (getOperatingSystem()==1) and (thread_checkifmonoanyhow==nil) then
     thread_checkifmonoanyhow=createThread(mono_checkifmonoanyhow)
@@ -3715,29 +3717,31 @@ function mono_OpenProcessMT()
 
   if (monopipe~=nil) and (monopipe.ProcessID~=getOpenedProcessID()) then
     --different process
-    monopipe.destroy()
-    monopipe=nil
+    synchronize(function()
+      monopipe.destroy()
+      monopipe=nil
 
-    if mono_AddressLookupID~=nil then
-      unregisterAddressLookupCallback(mono_AddressLookupID)
-      mono_AddressLookupID=nil
-    end
+      if mono_AddressLookupID~=nil then
+        unregisterAddressLookupCallback(mono_AddressLookupID)
+        mono_AddressLookupID=nil
+      end
 
 
-    if mono_SymbolLookupID~=nil then
-      unregisterSymbolLookupCallback(mono_SymbolLookupID)
-      mono_SymbolLookupID=nil
-    end
+      if mono_SymbolLookupID~=nil then
+        unregisterSymbolLookupCallback(mono_SymbolLookupID)
+        mono_SymbolLookupID=nil
+      end
 
-    if mono_StructureNameLookupID~=nil then
-      unregisterStructureNameLookup(mono_StructureNameLookupID)
-      mono_StructureNameLookupID=nil
-    end
+      if mono_StructureNameLookupID~=nil then
+        unregisterStructureNameLookup(mono_StructureNameLookupID)
+        mono_StructureNameLookupID=nil
+      end
 
-    if mono_StructureDissectOverrideID~=nil then
-      unregisterStructureDissectOverride(mono_StructureDissectOverrideID)
-      mono_StructureDissectOverrideID=nil
-    end
+      if mono_StructureDissectOverrideID~=nil then
+        unregisterStructureDissectOverride(mono_StructureDissectOverrideID)
+        mono_StructureDissectOverrideID=nil
+      end
+    end)
   end
 
 end
@@ -3747,8 +3751,18 @@ function mono_OnProcessOpened(processid, processhandle, caption)
   if mono_OldOnProcessOpened~=nil then
     mono_OldOnProcessOpened(processid, processhandle, caption)
   end
+  
+  if mono_OpenProcessMTThread==nil then --don't bother if it exists
+    mono_OpenProcessMTThread=createThread(function(t)       
+      t.Name='mono_OpenProcessMT'
+      --print("mono_OpenProcessMTThread")
+      mono_OpenProcessMT(t)
+      mono_OpenProcessMTThread=nil
+      --print("mono_OpenProcessMTThread finished")
+    end)  
+  end
 
-  mono_OpenProcessMT()
+  
 end
 
 function monoAA_USEMONO(parameters, syntaxcheckonly)

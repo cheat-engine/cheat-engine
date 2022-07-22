@@ -54,6 +54,8 @@ type
     socket: cint;
     fConnected: boolean;
 
+    version: integer;
+
     //todo: change rpmcache to a map
     rpmcache: array [0..15] of record //every connection is thread specific, so each thread has it's own rpmcache
         lastupdate: TLargeInteger; //contains the last time this page was updated
@@ -72,6 +74,7 @@ type
 
     VirtualQueryExCacheMap: TVQEMap;
     VirtualQueryExCacheMapCS: TCriticalSection;
+
 
 
     function receive(buffer: pointer; size: integer): integer;
@@ -121,6 +124,8 @@ type
     function loadExtension(hProcess: Thandle): boolean;
     function speedhack_setSpeed(hProcess: THandle; speed: single): boolean;
 
+    procedure setConnectionName(name: string);
+
     procedure TerminateServer;
 
     property connected: boolean read fConnected;
@@ -139,7 +144,7 @@ var
 
 implementation
 
-uses elfsymbols, Globals;
+uses elfsymbols, Globals, maps;
 
 const
   CMD_GETVERSION =0;
@@ -181,6 +186,56 @@ const
   CMD_GETREGIONINFO=32; //extended version of VirtualQueryEx which also get the full string
   CMD_GETABI=33;  //for c-code compilation
 
+  //4
+  CMD_SET_CONNECTION_NAME=34;
+  CMD_CREATETOOLHELP32SNAPSHOTEX =35;
+
+
+
+
+type
+  TLocalModuleListEntry=class
+    baseaddress: ptruint;
+    size: dword;
+    part: integer;
+    name: string;
+  end;
+
+{  TLocalProcessListEntry=class
+
+  end;}
+
+  TToolhelp32SnapshotInfo=class
+    handle: dword;
+    snapshottype: dword;
+    list: tfplist;
+
+  public
+    constructor create;
+    destructor destroy; override;
+  end;
+
+
+var
+  LocalToolhelpSnapshotsCS: TCriticalSection;
+  LocalToolhelpSnapshots: array of TToolhelp32SnapshotInfo;
+
+constructor TToolhelp32SnapshotInfo.create;
+begin
+  list:=tfplist.create;
+end;
+
+destructor TToolhelp32SnapshotInfo.destroy;
+var i: integer;
+begin
+  for i:=0 to list.count-1 do
+    tobject(list[i]).destroy;
+
+  list.free;
+  list:=nil;
+
+  inherited destroy;
+end;
 
 procedure TCEConnection.TerminateServer;
 var command: byte;
@@ -199,9 +254,33 @@ var CloseHandleCommand: packed record
   end;
 
   r: integer;
+  ths: TToolhelp32SnapshotInfo;
 begin
+  if ((handle shr 24) and $ff)= $cd then  //local fake handle
+  begin
+    try
+      LocalToolhelpSnapshotsCS.enter;
+      try
+        ths:=LocalToolhelpSnapshots[handle and $ffffff];
+        LocalToolhelpSnapshots[handle and $ffffff]:=nil;
+      finally
+        LocalToolhelpSnapshotsCS.Leave;
+      end;
 
+      if ths=nil then
+      begin
+        OutputDebugString('Tried to close invalid fake handle');
+        exit(false);
+      end;
 
+      ths.free;
+      result:=true;
+
+    except
+      result:=false;
+    end;
+  end
+  else
   if ((handle shr 24) and $ff)= $ce then
   begin
     CloseHandleCommand.command:=CMD_CLOSEHANDLE;
@@ -233,9 +312,52 @@ var ModulelistCommand: packed record
 
   mname: pchar;
   mnames: string;
+  ths: TToolhelp32SnapshotInfo;
+  index: integer;
+  mle: TLocalModuleListEntry;
 begin
 
   result:=false;
+
+  if ((hSnapshot shr 24) and $ff)= $cd then
+  begin
+    //local snapshot
+    LocalToolhelpSnapshotsCS.Enter;
+    try
+      ths:=LocalToolhelpSnapshots[hSnapshot and $ffffff];
+    finally
+      LocalToolhelpSnapshotsCS.Leave;
+    end;
+
+    if ths=nil then
+    begin
+      OutputDebugString('Module32First/Next on an invalid toolhelp handle');
+      exit;
+    end;
+
+    if ths.snapshottype<>TH32CS_SNAPMODULE then exit;
+
+
+    if isfirst then
+      lpme.th32ModuleID:=0;
+
+    if lpme.th32ModuleID>=ths.list.Count then exit(false);
+
+    mle:=TLocalModuleListEntry(ths.list[lpme.th32ModuleID]);
+    lpme.hModule:=mle.baseaddress;
+    lpme.modBaseAddr:=pointer(mle.baseaddress);
+    lpme.modBaseSize:=mle.size;
+    lpme.GlblcntUsage:=mle.part;
+    copymemory(@lpme.szExePath[0], @mle.name[1], min(length(mle.name)+1, MAX_PATH));
+    lpme.szExePath[MAX_PATH-1]:=#0;
+
+    copymemory(@lpme.szModule[0], @mle.name[1], min(length(mle.name)+1, MAX_MODULE_NAME32));
+    lpme.szModule[MAX_MODULE_NAME32-1]:=#0;
+
+    inc(lpme.th32ModuleID);
+    exit(true);
+  end;
+
 
   if ((hSnapshot shr 24) and $ff)= $ce then
   begin
@@ -359,17 +481,107 @@ var CTSCommand: packed record
     th32ProcessID: dword;
   end;
 
-var r: integer;
+  r: integer;
+  r2: packed record
+        result: integer;
+        modulebase: qword;
+        modulepart: dword;
+        modulesize: dword;
+        stringlength: dword;
+    end;
+
+  eol: boolean;
+
+  mname: pchar;
+  mnamesize: integer;
+
+  ths: TToolhelp32SnapshotInfo;
+  mle: TLocalModuleListEntry;
+  i: integer;
+
 begin
   result:=0;
 
   OutputDebugString('TCEConnection.CreateToolhelp32Snapshot()');
-  CTSCommand.command:=CMD_CREATETOOLHELP32SNAPSHOT;
+  CTSCommand.command:=CMD_CREATETOOLHELP32SNAPSHOTEX;
   CTSCommand.dwFlags:=dwFlags;
   CTSCommand.th32ProcessID:=th32ProcessID;
 
   r:=0;
   if send(@CTSCommand, sizeof(CTSCommand))>0 then
+  begin
+    if (dwFlags and TH32CS_SNAPMODULE)=TH32CS_SNAPMODULE then
+    begin
+      //it'll send me a list of modules now
+
+
+
+      ths:=TToolhelp32SnapshotInfo.create;
+      ths.handle:=0;
+      ths.snapshottype:=TH32CS_SNAPMODULE;
+
+      LocalToolhelpSnapshotsCS.enter;
+      try
+        for i:=0 to length(LocalToolhelpSnapshots)-1 do
+        begin
+          if LocalToolhelpSnapshots[i]=nil then
+          begin
+            LocalToolhelpSnapshots[i]:=ths;
+            ths.handle:=$cd000000 or i;
+            break;
+          end;
+        end;
+
+        if ths.handle=0 then
+        begin
+          i:=length(LocalToolhelpSnapshots);
+
+          setlength(LocalToolhelpSnapshots,length(LocalToolhelpSnapshots)+1);
+          LocalToolhelpSnapshots[i]:=ths;
+          ths.handle:=$cd000000 or i;
+        end;
+      finally
+        LocalToolhelpSnapshotsCS.leave;
+      end;
+
+      result:=ths.handle;
+
+      eol:=false;
+      mnamesize:=512;
+      getmem(mname, mnamesize);
+      while not eol do
+      begin
+        if receive(@r2, sizeof(r2))>0 then
+        begin
+          if r2.stringlength>mnamesize then //needs more memory
+          begin
+            freemem(mname);
+            mnamesize:=r2.stringlength;
+            getmem(mname, mnamesize);
+          end;
+
+
+          receive(mname, r2.stringlength);
+          mname[r2.stringlength]:=#0;
+
+          eol:=r2.result<>1;
+
+          if not eol then
+          begin
+            mle:=TLocalModuleListEntry.create;
+            mle.baseaddress:=r2.modulebase;
+            mle.part:=r2.modulepart;
+            mle.size:=r2.modulesize;
+            mle.name:=mname;
+
+            ths.list.add(mle);
+          end;
+        end;
+
+
+      end;
+    end
+    else //not handled yet
     if receive(@r, sizeof(r))>0 then
     begin
       if (r>0) then
@@ -377,6 +589,7 @@ begin
 
       result:=r;
     end;
+  end;
 end;
 
 function TCEConnection.CReadProcessMemory(hProcess: THandle; lpBaseAddress: Pointer; lpBuffer: Pointer; nSize: DWORD; var lpNumberOfBytesRead: PTRUINT): BOOL;
@@ -1439,6 +1652,7 @@ begin
       FreeMemAndNil(_name);
 
       result:=CeVersion.version;
+      self.version:=result;
     end;
   end;
 end;
@@ -1756,6 +1970,30 @@ begin
   end;
 end;
 
+procedure TCEConnection.setConnectionName(name: string);
+type
+  TInput=packed record
+    command: uint8;
+    namelength: uint32;
+    name: packed record end;
+  end;
+  PInput=^TInput;
+
+var
+  input: Pinput;
+  ignored: string;
+begin
+  if (getVersion(ignored)>=4) then
+  begin
+    getmem(input, sizeof(TInput)+length(name));
+    input^.command:=CMD_SET_CONNECTION_NAME;
+    input^.namelength:=length(name);
+    copymemory(@input^.name, @name[1], length(name));
+
+    send(input, sizeof(TInput)+length(name));
+  end;
+end;
+
 function TCEConnection.isNetworkHandle(handle: THandle): boolean;
 begin
   result:=((handle shr 24) and $ff)= $ce;
@@ -1763,8 +2001,12 @@ end;
 
 function TCEConnection.send(buffer: pointer; size: integer): integer;
 var i: integer;
+  B: BOOL=TRUE;
 begin
   result:=0;
+  fpsetsockopt(socket, IPPROTO_TCP, TCP_NODELAY, @B, sizeof(B));
+
+
   while (result<size) do
   begin
     i:=fpsend(socket, pointer(ptruint(buffer)+result), size, 0);
@@ -1883,6 +2125,12 @@ begin
     WriteProcessMemoryBufferCS.free;
 
 end;
+
+initialization
+  LocalToolhelpSnapshotsCS:=TCriticalSection.create;
+
+finalization
+  LocalToolhelpSnapshotsCS.free;
 
 end.
 

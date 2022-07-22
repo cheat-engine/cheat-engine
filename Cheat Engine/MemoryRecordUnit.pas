@@ -2867,7 +2867,7 @@ begin
   begin
     try
 
-      if allowIncrease or allowDecrease then
+      if allowIncrease or allowDecrease  then
       begin
         //get the new value
         oldvalue:=frozenValue;
@@ -2875,6 +2875,8 @@ begin
         if showashex or (VarType in [vtByte..vtQword, vtCustom]) then
         begin
           //handle as a decimal
+
+
 
 
           if showAsHex then

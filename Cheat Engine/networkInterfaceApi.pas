@@ -45,7 +45,7 @@ function NetworkGetRegionInfo(hProcess: THandle; lpAddress: Pointer; var lpBuffe
 implementation
 
 {$ifndef jni}
-uses networkConfig;
+uses networkConfig, syncobjs2;
 {$endif}
 
 resourcestring
@@ -59,6 +59,7 @@ var threadManagerIsHooked: boolean=false;
     oldendthread: TEndThreadHandler;
 
 function getConnection: TCEConnection;
+var s: string;
 begin
   //OutputDebugString('getConnection');
   result:=nil;
@@ -73,7 +74,16 @@ begin
 
       connection:=TCEConnection.create;
       if connection.connected then
-        result:=connection
+      begin
+        result:=connection;
+
+
+        {$ifdef THREADNAMESUPPORT}
+        s:=getthreadname;
+        if s<>'' then
+          connection.setConnectionName(s);
+        {$endif}
+      end
       else
         OutputDebugString('connection.connected=false');
 
@@ -125,7 +135,7 @@ end;
 
 function NetworkProcess32First(hSnapshot: HANDLE; var lppe: PROCESSENTRY32): BOOL; stdcall;
 begin
-  OutputDebugString('NetworkProcess32First');
+ // OutputDebugString('NetworkProcess32First');
   if getConnection<>nil then
     result:=connection.Process32First(hSnapshot, lppe)
   else

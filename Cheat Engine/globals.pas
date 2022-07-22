@@ -15,6 +15,9 @@ uses
 
 var
 //  AllIncludesCustomType: boolean;
+
+  mtid: TThreadID;
+
   overridefont: TFont;
   aprilfools: boolean;
 

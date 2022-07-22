@@ -39,7 +39,10 @@ type
     rbBreakOnWrite: TRadioButton;
     procedure cbDBVMBreakAndTraceChange(Sender: TObject);
     procedure cbStepOverChange(Sender: TObject);
+    procedure FormConstrainedResize(Sender: TObject; var MinWidth, MinHeight,
+      MaxWidth, MaxHeight: TConstraintSize);
     procedure FormCreate(Sender: TObject);
+    procedure FormShow(Sender: TObject);
   private
     { private declarations }
     fDataTrace: boolean;
@@ -119,6 +122,12 @@ begin
     groupbox1.visible:=false;
 end;
 
+procedure TfrmTracerConfig.FormShow(Sender: TObject);
+begin
+
+ // autosize:=false;
+end;
+
 procedure TfrmTracerConfig.cbDBVMBreakAndTraceChange(Sender: TObject);
 begin
 
@@ -158,7 +167,7 @@ begin
     label3.enabled:=true;
     edtStartCondition.enabled:=true;
 
-    label2.enabled:=false;
+    label2.enabled:=true;
     edtStopCondition.enabled:=true;
 
     cbStayInsideInitialModule.enabled:=true;
@@ -173,6 +182,13 @@ begin
     cbStepOverRep.enabled:=false;
     cbStepOverRep.checked:=true;
   end;
+end;
+
+procedure TfrmTracerConfig.FormConstrainedResize(Sender: TObject; var MinWidth,
+  MinHeight, MaxWidth, MaxHeight: TConstraintSize);
+begin
+  MaxHeight:=panel1.top+panel1.Height+8;
+  MinHeight:=MaxHeight;
 end;
 
 procedure TfrmTracerConfig.setDataTrace(state: boolean);

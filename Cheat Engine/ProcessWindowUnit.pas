@@ -243,6 +243,7 @@ var
   e: PIconFetchEntry;
   pid: dword;
 begin
+  NameThreadForDebugging('TIconFetchThread', ThreadID);
   while not terminated do
   begin
     wr:=hasdata.WaitFor(1000);
@@ -582,6 +583,8 @@ begin
   tsWindows.TabVisible:=false;
   tsWindows.Visible:=false;
   {$endif}
+
+
 
   {$ifdef windows}
   IconFetchThread:=TIconFetchThread.create;

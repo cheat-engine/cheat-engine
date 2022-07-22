@@ -5780,6 +5780,10 @@ var
   createlog: boolean;
   s: string;
 begin
+  mtid:=MainThreadID;
+
+  tthread.NameThreadForDebugging('Main GUI Thread', GetCurrentThreadId);
+
   PreviousResultList:=TPreviousResultList.Create;
 
 

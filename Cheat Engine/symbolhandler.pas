@@ -218,6 +218,7 @@ type
 
     modulelistpos: integer;
     modulelist: TModuleInfoArray;
+    modulelistLastUpdate: QWord;
 
     symbolloadervalid: TMultiReadExclusiveWriteSynchronizer;
     modulelistMREW: TMultiReadExclusiveWriteSynchronizer;
@@ -253,6 +254,11 @@ type
     symbolDataBase: TSQLite3Connection;
     {$endif}
 
+    fetchingModuleList: boolean;
+    ModuleListChangedNotificationListCS: TCriticalSection;
+    ModuleListChangedNotificationList: array of TNotifyEvent; //called async, so synchronize if needed
+
+
     function OpenDatabaseIfNeeded:boolean;
 
     function getusedprocesshandle :thandle;
@@ -279,6 +285,9 @@ type
     function isParsingStructures: boolean;
     function isloadingExtendedData: boolean;
     function getCurrentModule: string;
+
+    function loadmodulelistInternal: boolean;
+    procedure LoadModuleListThread;
   public
 
     kernelsymbols: boolean;
@@ -306,6 +315,7 @@ type
     property parsingdebuginfo: boolean read isParsingDebugInfo;
     property currentModule: string read getCurrentModule;
 
+
     procedure waitforsymbolsloaded(apisymbolsonly: boolean=false; specificmodule: string='');
     procedure waitForSections;
     procedure waitForExports;
@@ -316,7 +326,7 @@ type
     procedure EnumDotNetModule(m: TdotNetmodule; symbolhandler: TSymbolListHandler);
     procedure reinitializeDotNetSymbols(modulename: string='');
     procedure reinitialize(force: boolean=false);
-    function loadmodulelist: boolean; //returns true if a change was detected from the previous list
+    function loadmodulelist(async:boolean=false): boolean; //returns true if a change was detected from the previous list(if async, always false)
     procedure ReinitializeUserdefinedSymbolList;
     procedure fillMemoryRegionsWithModuleData(var mr: TMemoryregions; startaddress: ptruint; size: dword);
     procedure getModuleList(list: tstrings);
@@ -375,12 +385,20 @@ type
     procedure RemoveFinishedLoadingSymbolsNotification(n: TNotifyEvent);
     procedure AddFinishedLoadingSymbolsNotification(n: TNotifyEvent);
 
+    procedure RemoveModuleListChangedNotification(id : integer);
+    function AddModuleListChangedNotification(n: TNotifyEvent): integer;
+
+
     procedure AddSymbolList(sl: TSymbolListHandler);
     procedure RemoveSymbolList(sl: TSymbolListHandler);
     procedure GetSymbolLists(list: TList);
 
     procedure NotifyFinishedLoadingSymbols; //go through the list of functions to call when the symbollist has finished loading
     function getMainSymbolList: TSymbolListHandler;
+
+    function getLastModuleListUpdateTime: qword; //poll this when using async modulelist updates if you do wish to know when it finishes
+
+
 
     constructor create;
     destructor destroy; override;
@@ -1003,17 +1021,18 @@ begin
   {$ENDIF}
 end;
 
-function GetTypeName(h: HANDLE; modbase: UINT64; index: integer; infinitycheck: integer=50): string;
+function GetTypeName(h: HANDLE; modbase: UINT64; index: integer; infinitycheck: integer=3): string;
 var x: dword;
     type_symtag: TSymTagEnum;
     name: PWCHAR;
 begin
   {$IFDEF WINDOWS}
   result:='';
-  if infinitycheck<0 then exit;
+  if infinitycheck<=0 then exit;
 
   if SymGetTypeInfo(h, modbase, index, TI_GET_SYMTAG, @type_symtag) then
   begin
+
     case type_symtag of
       SymTagBaseType:
       begin
@@ -1050,8 +1069,8 @@ begin
 
       SymTagPointerType:
       begin
-        if SymGetTypeInfo(h, ModBase, index, TI_GET_TYPEID, @x) then
-          result:=GetTypeName(h, modbase, x, infinitycheck-1)
+       // if SymGetTypeInfo(h, ModBase, index, TI_GET_TYPEID, @x) then
+       //   result:=GetTypeName(h, modbase, x, infinitycheck-1)
       end;
 
       SymTagUDT:
@@ -1102,6 +1121,11 @@ begin
     end;
 
 
+  end;
+
+  if index=9390 then
+  begin
+    OutputDebugString('returning');
   end;
   {$ENDIF}
 
@@ -1209,18 +1233,21 @@ begin
   if slt.terminated then exit;
 
 
-
-
   isparam:=(pSymInfo.Flags and SYMFLAG_PARAMETER)>0;
 
+
+
   try
+   // OutputDebugString(format('name=%s modbase=%p typeindex=%d',[pchar(@pSymInfo.Name), pointer(psyminfo.ModBase), pSymInfo.TypeIndex]));
     s:=GetTypeName(slt.thisprocesshandle, pSymInfo.ModBase, pSymInfo.TypeIndex);
+   // OutputDebugString('done:'+s);
   except
     //error?
     OutputDebugString('GetTypeName failure');
   end;
 
   //add an extra symboldataentry
+  {
   esde:=TExtraSymbolDataEntry.create;
   esde.name:=pchar(@pSymInfo.Name);
   esde.vtype:=s;
@@ -1234,10 +1261,12 @@ begin
     slt.extraSymbolData.locals.Add(esde);
 
 
-  slt.processThreadEvents;
-
+  //slt.processThreadEvents;
+                         }
 
   result:=(slt.terminated=false);
+
+
   {$ENDIF}
 end;
 
@@ -1246,7 +1275,7 @@ var es2address: pointer=@es2;
 //var SES:function;
 
 {$IFDEF windows}
-var SES:function(hProcess:THANDLE; BaseOfDll:ULONG64; Mask:LPCSTR; EnumSymbolsCallback:TSYM_ENUMERATESYMBOLS_CALLBACK; UserContext:pointer):BOOL;stdcall; //external External_library name 'SymEnumSymbols';
+var SES:function(hProcess:THANDLE; BaseOfDll:ULONG64; Mask:LPCSTR; EnumSymbolsCallback:pointer; UserContext:pointer):BOOL;stdcall; //external External_library name 'SymEnumSymbols';
 
 
 {$ENDIF}
@@ -1265,39 +1294,55 @@ var
 begin
   {$IFDEF WINDOWS}
 
-  if not assigned(ses) then
-  begin
-    d:=loadlibrary('dbghelp.dll');
-    ses:=getprocaddress(d,'SymEnumSymbols');
-  end;
-
-  max:=self.symbollist.ExtraSymbolDataList.Count;
-  for i:=0 to max-1 do
-  begin
-    ExtendedDebugSymbolProgress:=(i*100) div max;
-
-    esd:=TExtraSymbolData(self.symbollist.ExtraSymbolDataList[i]);
-
-    if (not esd.forwarder) and (not esd.filledin) and (esd.symboladdress<>0) then
+  try
+    if not assigned(ses) then
     begin
-      //get the data
-      if terminated then exit;
+      d:=loadlibrary('dbghelp.dll');
+      ses:=getprocaddress(d,'SymEnumSymbols');
+    end;
 
-      self.extraSymbolData:=esd;
+    if self.symbollist.ExtraSymbolDataList=nil then exit;
 
-      getmem(c,sizeof(c)*2+1024);
-      ZeroMemory(c, sizeof(c)*2+1024);
 
-      c.InstructionOffset:=self.extraSymbolData.symboladdress;
-      if assigned(SymSetContext) then
+    outputdebugstring('self.symbollist.ExtraSymbolDataList.Count='+inttostr(self.symbollist.ExtraSymbolDataList.Count)+#13#10);
+    max:=self.symbollist.ExtraSymbolDataList.Count;
+    for i:=0 to max-1 do
+    begin
+      ExtendedDebugSymbolProgress:=(i*100) div max;
+
+      esd:=TExtraSymbolData(self.symbollist.ExtraSymbolDataList[i]);
+
+      //outputdebugstring('i='+inttostr(i)+#13#10);
+
+
+      if (not esd.forwarder) and (not esd.filledin) and (esd.symboladdress<>0) then
       begin
-        SymSetContext(self.thisprocesshandle, IMAGEHLP.PIMAGEHLP_STACK_FRAME(c), nil);
-        SES(self.thisprocesshandle, 0, nil, es2address, self);
+        //get the data
+        if terminated then exit;
+
+        self.extraSymbolData:=esd;
+
+        getmem(c,sizeof(c)*2+1024);
+        ZeroMemory(c, sizeof(c)*2+1024);
+
+        c.InstructionOffset:=self.extraSymbolData.symboladdress;
+        if assigned(SymSetContext) then
+        begin
+          SymSetContext(self.thisprocesshandle, IMAGEHLP.PIMAGEHLP_STACK_FRAME(c), nil);
+
+          SES(self.thisprocesshandle, 0, '*', @es2, self);
+        end;
+        self.extraSymbolData.filledin:=true;
+
+
+        freemem(c);
       end;
-      self.extraSymbolData.filledin:=true;
+    end;
 
-
-      freemem(c);
+  except
+    on e:exception do
+    begin
+      outputdebugstring('EnumerateExtendedDebugSymbols: Unexpected exception: '+e.message+#13#10);
     end;
   end;
   {$ENDIF}
@@ -2773,14 +2818,19 @@ begin
                 processThreadEvents;
 
 
+              OutputDebugString('loadingExtendedDebugSymbols'+#13#10);
               loadingExtendedDebugSymbols:=true;
               if not terminated then
                 EnumerateExtendedDebugSymbols;
               loadingExtendedDebugSymbols:=false;
 
+
+              OutputDebugString('after loadingExtendedDebugSymbols'+#13#10);
+
               if not terminated then
               begin
                 parsingstructures:=true;
+                OutputDebugString('parsingstructures'+#13#10);
                 EnumerateStructures;
                 parsingstructures:=false;
               end;
@@ -3423,7 +3473,7 @@ begin
 
     if fetchSymbols then
     begin
-      Log('loadmodulelist or force was true');
+      //Log('loadmodulelist or force was true');
       symbolloadervalid.Beginread;
       try
         if symbolloaderthread<>nil then
@@ -5496,7 +5546,7 @@ begin
   {$ENDIF}
 end;
 
-function TSymhandler.loadmodulelist: boolean;  //todo: change to a quicker lookup kind of storage (tree)
+function TSymhandler.loadmodulelistInternal: boolean;
 var
   ths: thandle;
   me32:MODULEENTRY32;
@@ -5520,7 +5570,6 @@ var
   sectionlist: TStringlist;
   si: TSectionInfo;
 begin
-
 
   result:=false;
   is64bitprocess:=processhandler.is64Bit;
@@ -5680,26 +5729,10 @@ begin
 
     finally
       modulelistmrew.EndRead;
-
     end;
 
     if newmodulelistpos<>modulelistpos then
       result:=true;
-
-
-    {begin
-      for i:=0 to modulelistpos-1 do
-      begin
-        if oldmodulelist[i]<>modulelist[i].baseaddress then
-        begin
-          //the order changed
-          result:=true;
-          break;
-        end;
-      end;
-    end
-    else
-      result:=true; //the length of the list changed}
 
     if result=true then
     begin
@@ -5712,18 +5745,54 @@ begin
       end;
     end;
 
+    modulelistLastUpdate:=GetTickCount64;
   except
     //MessageBox(0,'procedure TSymhandler.loadmodulelist','procedure TSymhandler.loadmodulelist',0);
+    on e:exception do
+      OutputDebugString('TSymhandler.loadmodulelist exception:'+e.message);
   end;
 
 
 {$ifndef jni}
   if result then
-    reinitializeDisassemblerComments; //the comments list is depending on the modulelist since it is written using modulename+offset
+  begin
+    ModuleListChangedNotificationListCS.Enter;
+    for i:=0 to length(ModuleListChangedNotificationList)-1 do
+      if assigned(ModuleListChangedNotificationList[i]) then
+        ModuleListChangedNotificationList[i](self);
 
+    ModuleListChangedNotificationListCS.Leave;
+
+    reinitializeDisassemblerComments; //the comments list is depending on the modulelist since it is written using modulename+offset
+  end;
 {$endif}
+
 end;
 
+procedure TSymhandler.LoadModuleListThread;
+begin
+  loadmodulelistInternal;
+  fetchingModuleList:=false;
+end;
+
+function TSymhandler.loadmodulelist(async: boolean=false): boolean;
+begin
+  if async then
+  begin
+    if fetchingModuleList then exit(false);
+
+    fetchingModuleList:=true;
+    TThread.ExecuteInThread(LoadModuleListThread);
+    exit(false);
+  end
+  else
+    exit(loadmodulelistInternal);
+end;
+
+function TSymhandler.getLastModuleListUpdateTime;
+begin
+  result:=modulelistLastUpdate;
+end;
 
 function TSymhandler.LookupStructureOffset(s: string; out offset: integer): boolean;
 //will search all defines structures and when found return the offset in "offset"
@@ -5982,6 +6051,37 @@ begin
   end;
 end;
 
+procedure TSymhandler.RemoveModuleListChangedNotification(id: integer);
+begin
+  ModuleListChangedNotificationListCS.Enter;
+  if id<length(ModuleListChangedNotificationList) then
+    ModuleListChangedNotificationList[id]:=nil;
+  ModuleListChangedNotificationListCS.Leave;
+end;
+
+function TSymhandler.AddModuleListChangedNotification(n: TNotifyEvent): integer;
+var i: integer;
+begin
+  ModuleListChangedNotificationListCS.Enter;
+  try
+    for i:=0 to length(ModuleListChangedNotificationList)-1 do
+      if not assigned(ModuleListChangedNotificationList[i]) then
+      begin
+        ModuleListChangedNotificationList[i]:=n;
+        exit(i);
+      end;
+
+    i:=length(ModuleListChangedNotificationList);
+    setlength(ModuleListChangedNotificationList, i+1);
+    ModuleListChangedNotificationList[i]:=n;
+    result:=i;
+  finally
+    ModuleListChangedNotificationListCS.Leave;
+  end;
+
+end;
+
+
 procedure TSymhandler.RemoveFinishedLoadingSymbolsNotification(n: TNotifyEvent);
 var i,j: integer;
 begin
@@ -6124,6 +6224,8 @@ begin
 
  // log('TSymhandler.create 3');
   symbollist:=TSymbolListHandler.create;
+
+  ModuleListChangedNotificationListCS:=TCriticalSection.Create;
 
  // log('TSymhandler.create exit');
 end;
