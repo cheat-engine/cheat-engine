@@ -457,6 +457,92 @@ case CMD_SETTHREADCONTEXT:
       break;
     }
 
+
+    case CMD_CREATETOOLHELP32SNAPSHOTEX:
+    {
+      CeCreateToolhelp32Snapshot params;
+      debug_log("CMD_CREATETOOLHELP32SNAPSHOTEX\n");
+
+      if (recvall(currentsocket, &params, sizeof(CeCreateToolhelp32Snapshot), MSG_WAITALL) > 0)
+      {
+        HANDLE r=CreateToolhelp32Snapshot(params.dwFlags, params.th32ProcessID);
+
+        if ((params.dwFlags & TH32CS_SNAPMODULE)==TH32CS_SNAPMODULE)
+        {
+          ModuleListEntry me;
+
+          char *outputstream;
+          int pos=0;
+
+          debug_log("CMD_CREATETOOLHELP32SNAPSHOTEX with TH32CS_SNAPMODULE\n");
+
+          outputstream=malloc(65536);
+          memset(outputstream,0,65536);
+
+          if (r && (Module32First(r, &me))) do
+          {
+            int namelen=strlen(me.moduleName);
+            PCeModuleEntry m;
+
+
+            if ((pos+sizeof(CeModuleEntry)+namelen) > 65536)
+            {
+              //flush the stream
+              debug_log("CMD_CREATETOOLHELP32SNAPSHOTEX: ModuleList flush in loop\n");
+              sendall(currentsocket, outputstream, pos, 0);
+              pos=0;
+            }
+
+            m=(PCeModuleEntry)&outputstream[pos];
+            m->modulebase=me.baseAddress;
+            m->modulesize=me.moduleSize;
+            m->modulenamesize=namelen;
+            m->modulepart=me.part;
+            m->result=1;
+
+            // Sending %s size %x\n, me.moduleName, r->modulesize
+            memcpy((char *)m+sizeof(CeModuleEntry), me.moduleName, namelen);
+
+            pos+=sizeof(CeModuleEntry)+namelen;
+
+
+          } while (Module32Next(r, &me));
+
+          if (pos) //flush the stream
+          {
+            debug_log("CMD_CREATETOOLHELP32SNAPSHOTEX: ModuleList flush after loop\n");
+            sendall(currentsocket, outputstream, pos, 0);
+          }
+
+          //send the end of list module
+          debug_log("CMD_CREATETOOLHELP32SNAPSHOTEX: ModuleList end of list\n");
+
+          CeModuleEntry eol;
+          eol.result=0;
+          eol.modulenamesize=0;
+          sendall(currentsocket, &eol, sizeof(eol), 0);
+
+          free(outputstream);
+
+          //if (r)
+          //  CloseHandle(r);
+
+        }
+        else
+        {
+          sendall(currentsocket, &r, sizeof(HANDLE), 0); //the others are not yet implemented
+        }
+      }
+      else
+      {
+        debug_log("Error during read for CMD_CREATETOOLHELP32SNAPSHOTEX\n");
+        fflush(stdout);
+        close(currentsocket);
+        return 0;
+      }
+      break;
+    }
+
     case CMD_CREATETOOLHELP32SNAPSHOT:
     {
       CeCreateToolhelp32Snapshot params;
@@ -470,7 +556,11 @@ case CMD_SETTHREADCONTEXT:
         result=CreateToolhelp32Snapshot(params.dwFlags, params.th32ProcessID);
        // debug_log("result of CreateToolhelp32Snapshot=%d\n", result);
 
-        fflush(stdout);
+       // fflush(stdout);
+
+
+
+
 
         sendall(currentsocket, &result, sizeof(HANDLE), 0);
 
@@ -1441,10 +1531,13 @@ int main(int argc, char *argv[])
 
       fflush(stdout);
 
-      setsockopt(a, IPPROTO_TCP, TCP_NODELAY, &b, sizeof(b));
+
 
       if (a != -1)
       {
+        int sor=setsockopt(a, IPPROTO_TCP, TCP_NODELAY, &b, sizeof(b));
+        if (sor)
+          debug_log("setsockopt TCP_NODELAY = 1 returned %d (%d)\n", sor, errno);
         pthread_create(&pth, NULL, (void *)newconnection, (void *)(uintptr_t)a);
       }
     }

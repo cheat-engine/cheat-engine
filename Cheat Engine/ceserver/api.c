@@ -2928,34 +2928,37 @@ int ReadProcessMemory(HANDLE hProcess, void *lpAddress, void *buffer, int size)
 
     //printf("Read without debug\n");
 
+    if ((MEMORY_SEARCH_OPTION == 2) && (process_vm_readv==NULL)) //user explicitly wants to use process_vm_readv but it's not available
+      MEMORY_SEARCH_OPTION=0; //fallback to 0
+
+
+    if (MEMORY_SEARCH_OPTION == 2)
+    {
+      struct iovec local;
+      struct iovec remote;
+
+      local.iov_base=buffer;
+      local.iov_len=size;
+
+      remote.iov_base=lpAddress;
+      remote.iov_len=size;
+
+
+
+
+      bread=process_vm_readv(p->pid,&local,1,&remote,1,0);
+      if (bread==-1)
+      {
+       // debug_log("process_vm_readv(%x, %d) failed: %s\n", lpAddress, size, strerror(errno));
+        bread=0;
+      }
+
+      return bread;
+    }
+
     if (pthread_mutex_lock(&memorymutex) == 0)
     {
-      if ((MEMORY_SEARCH_OPTION == 2) && (process_vm_readv==NULL)) //user explicitly wants to use process_vm_readv but it's not available
-        MEMORY_SEARCH_OPTION=0; //fallback to 0
 
-
-      if (MEMORY_SEARCH_OPTION == 2)
-      {
-        struct iovec local;
-        struct iovec remote;
-
-        local.iov_base=buffer;
-        local.iov_len=size;
-
-        remote.iov_base=lpAddress;
-        remote.iov_len=size;
-
-
-
-
-        bread=process_vm_readv(p->pid,&local,1,&remote,1,0);
-        if (bread==-1)
-        {
-         // debug_log("process_vm_readv(%x, %d) failed: %s\n", lpAddress, size, strerror(errno));
-          bread=0;
-        }
-      }
-      else
       {
         if ((ATTACH_TO_ACCESS_MEMORY==0) || (safe_ptrace(PTRACE_ATTACH, p->pid,0,0)==0))
         {
