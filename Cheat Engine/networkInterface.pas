@@ -573,6 +573,7 @@ begin
             mle.part:=r2.modulepart;
             mle.size:=r2.modulesize;
             mle.name:=mname;
+            mle.name:=mle.name+'.'+inttostr(r2.modulepart);
 
             ths.list.add(mle);
           end;
