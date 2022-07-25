@@ -16257,6 +16257,10 @@ begin
     lua_register(L, 'registerAutoAssemblerTemplate', lua_registerAutoAssemblerTemplate);
     lua_register(L, 'unregisterAutoAssemblerTemplate', lua_unregisterAutoAssemblerTemplate);
     lua_register(L, 'getUniqueAOB', lua_getUniqueAOB);
+    lua_register(L, 'addSnapshotAsComment',lua_addSnapshotAsComment);
+    lua_register(L, 'getNextAllocNumber',lua_getNextAllocNumber);
+
+
 
     lua_register(L, 'generateCodeInjectionScript', lua_GenerateCodeInjectionScript);
     lua_register(L, 'generateAOBInjectionScript', lua_GenerateAOBInjectionScript);
