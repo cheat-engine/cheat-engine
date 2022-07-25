@@ -179,25 +179,33 @@ int cenet_readProcessMemory(int fd, int pHandle, unsigned long long address, voi
   struct
   {
     char command;
-    int pHandle;
-    unsigned long long address;
-    int size;
+    uint32_t pHandle;
+    uint64_t address;
+    uint32_t size;
+    uint8_t compress;
+
   } rpm;
 #pragma pack()
 
   int result;
 
-  debug_log("cenet_readProcessMemory(%d, %d, %llx, %p, %d)", fd, pHandle, address, dest, size);
+ // printf("cenet_readProcessMemory\n");
+
+
+ // debug_log("cenet_readProcessMemory(%d, %d, %llx, %p, %d)", fd, pHandle, address, dest, size);
+ // fflush(stdout);
+
 
   rpm.command=CMD_READPROCESSMEMORY;
   rpm.pHandle=pHandle;
   rpm.address=address;
   rpm.size=size;
+  rpm.compress=0;
 
   sendall(fd, &rpm, sizeof(rpm), 0);
   recv(fd, &result, sizeof(result), MSG_WAITALL);
 
-  debug_log("result=%d\n", result);
+ // debug_log("result=%d\n", result);
   recv(fd, dest, result, MSG_WAITALL);
 
 
@@ -400,9 +408,11 @@ void *CESERVERTEST(int pid )
 {
   int fd;
   int arch;
+  int dest;
+  int i;
 
   pthread_t pth;
-  debug_log("CESERVERTEST: running\n");
+  debug_log("CESERVERTEST: running (v2)\n");
 
   //sleep(2);
   debug_log("connecting...\n");
@@ -415,10 +425,17 @@ void *CESERVERTEST(int pid )
 
   debug_log("pHandle=%d\n", pHandle);
 
-  arch=cenet_getArchitecture(fd, pHandle);
+  debug_log("going to read memory\n");
 
-  printf("arch=%d\n", arch);
+  while (1)
+    i=cenet_readProcessMemory(fd, pHandle, 0xffff0000, &dest,4);
 
+  printf("i=%d",i);
+//  arch=cenet_getArchitecture(fd, pHandle);
+
+//  printf("arch=%d\n", arch);
+
+  fflush(stdout);
   return NULL;
 
 
@@ -430,7 +447,7 @@ void *CESERVERTEST(int pid )
 
   //launch the debuggerthread
   //pthread_create(&pth, NULL, CESERVERTEST_DEBUGGERTHREAD, NULL);
-  CESERVERTEST_DEBUGGERTHREAD(NULL);
+ // CESERVERTEST_DEBUGGERTHREAD(NULL);
 
   //launch the rpmthread
  // sleep(1);
@@ -439,8 +456,8 @@ void *CESERVERTEST(int pid )
  // while (1);
 
 
-  fflush(stdout);
+//  fflush(stdout);
 
-  return NULL;
+ // return NULL;
 
 }

@@ -356,9 +356,8 @@ int loadExtension(int pid, char *path, int isBeingDebugged)
 
     if (!isBeingDebugged)
     {
-      safe_ptrace(PTRACE_ATTACH, pid, 0,0);
+      pid=ptrace_attach_andwait(pid);
 
-      pid=WaitForPid();
       debug_log("After wait. PID=%d\n", pid);
       safe_ptrace(PTRACE_CONT,pid,0,0);
     }

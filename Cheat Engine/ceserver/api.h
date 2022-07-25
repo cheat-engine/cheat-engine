@@ -247,6 +247,8 @@ PDebugEvent FindThreadDebugEventInQueue(PProcessData p, int tid);
 void AddDebugEventToQueue(PProcessData p, PDebugEvent devent);
 int RemoveThreadDebugEventFromQueue(PProcessData p, int tid);
 
+int ptrace_attach_andwait(int pid);
+
 void initAPI();
 
 extern pthread_mutex_t debugsocketmutex;

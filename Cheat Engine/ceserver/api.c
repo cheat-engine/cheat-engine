@@ -146,9 +146,9 @@ typedef struct
 
 int VerboseLevel=0;
 
-int MEMORY_SEARCH_OPTION = 2;
+int MEMORY_SEARCH_OPTION = 1; //0=file, 1=ptrace, 2=use process_vm_readv
 int ATTACH_PID = 0;
-int ATTACH_TO_ACCESS_MEMORY = 0;
+int ATTACH_TO_ACCESS_MEMORY = 1;
 int ATTACH_TO_WRITE_MEMORY = 0;
 unsigned char SPECIFIED_ARCH = 9;
 
@@ -184,16 +184,46 @@ char *PTraceToString(int request)
 }
 #endif
 
+pid_t ptraceowner=0;
 //Implementation for consistency with Android Studio.
 uintptr_t safe_ptrace(int request, pid_t pid, void * addr, void * data)
 {
 #ifdef TRACEPTRACE
-
-  debug_log("ATTACH_TO_ACCESS_MEMORY=%d\n", ATTACH_TO_ACCESS_MEMORY);
+ // debug_log("ATTACH_TO_ACCESS_MEMORY=%d\n", ATTACH_TO_ACCESS_MEMORY);
   if (threadname)
     debug_log("%s: ptrace called (%s(%x), %d, %p, %p)\n",threadname, PTraceToString(request),request, pid, addr, data);
   else
     debug_log("ptrace called (%s(%x), %d, %p, %p)\n",PTraceToString(request),request, pid, addr, data);
+
+
+  if (request==PTRACE_ATTACH)
+  {
+    if (ptraceowner)
+    {
+      debug_log("PTRACE_ATTACH while already attached\n");
+      while (1) debug_log("FFFF");;
+    }
+
+    ptraceowner=getpid();
+
+  }
+
+  if (ptraceowner==0)
+  {
+    debug_log("ptraceowner==0\n");
+    while (1) debug_log("FFFF");
+  }
+
+  if (ptraceowner!=getpid())
+  {
+    debug_log("ptrace from non-attached thread\n");
+    while (1) debug_log("FFFF");
+  }
+
+  if (request==PTRACE_DETACH)
+    ptraceowner=0;
+
+
 #endif
   uintptr_t result;
   errno = 0;
@@ -203,6 +233,66 @@ uintptr_t safe_ptrace(int request, pid_t pid, void * addr, void * data)
     debug_log("ptrace error(%s (%d))!\n",strerror(errno), errno);
   }
   return result;
+}
+
+int ptrace_attach_andwait(int pid)
+//call this for quick attach/detach purposes. returns <0 on error, else the attached tid (usually just pid)
+{
+  if (safe_ptrace(PTRACE_ATTACH, pid,0,0)==0)
+  {
+    int status;
+    while (1)
+    {
+      pid=waitpid(-1, &status,0);
+      if (WIFSTOPPED(status))
+      {
+        if (WSTOPSIG(status)==SIGSTOP)
+          return pid; //proper stop
+
+        //not a sigstop
+        debug_log("ptrace_attach_andwait:Received stop with signal %d instead of %d\n", WSTOPSIG(status), SIGSTOP);
+        safe_ptrace(PTRACE_CONT, pid, 0, WSTOPSIG(status));
+        continue;
+      }
+
+      if (WIFCONTINUED(status))
+      {
+        debug_log("ptrace_attach_andwait:It already continued?\n");
+        continue;
+      }
+
+      if (WIFEXITED(status))
+      {
+        debug_log("ptrace_attach_andwait:Target terminated with code %d\n", WEXITSTATUS(status));
+        return -2; //target exit
+      }
+
+      if (WIFSIGNALED(status))
+      {
+        debug_log("trace_attach_andwait:Target received a ");
+
+        if (WTERMSIG(status))
+          debug_log("terminate signal");
+
+        if (WCOREDUMP(status))
+          debug_log("core Dump");
+
+        debug_log("\n");
+        return -3;
+      }
+
+
+      debug_log("ptrace_attach_andwait: Unexpected status: %x\n", status);
+      return -4;
+    }
+
+  }
+  else
+  {
+    debug_log("ptrace_attach_andwait: ptrace attach failed\n");
+    return -1; //ptrace attach failed
+  }
+
 }
 
 int WakeDebuggerThread()
@@ -2549,14 +2639,26 @@ int WriteProcessMemory(HANDLE hProcess, void *lpAddress, void *buffer, int size)
         ATTACH_TO_WRITE_MEMORY=1;
       }
 
+      pid_t pid;
+      int canwrite=0;
 
-      if ((ATTACH_TO_WRITE_MEMORY==0) || (safe_ptrace(PTRACE_ATTACH, p->pid,0,0)==0))
+      if (ATTACH_TO_WRITE_MEMORY==0)
       {
-        int status;
+        pid=p->pid;
+        canwrite=1;
+
+      }
+      else
+      {
+        pid=ptrace_attach_andwait(p->pid);
+        if (pid>0)
+          canwrite=1;
+      }
 
 
+      if (canwrite)
+      {
 
-        pid_t pid=ATTACH_TO_WRITE_MEMORY ? wait(&status) : p->pid;
 
         if ((MEMORY_SEARCH_OPTION == 0) && (p->memrw))
         {
@@ -2626,8 +2728,8 @@ int WriteProcessMemory(HANDLE hProcess, void *lpAddress, void *buffer, int size)
         if (ATTACH_TO_WRITE_MEMORY)
           safe_ptrace(PTRACE_DETACH, pid,0,0);
       }
-      //else
-      //  debug_log("PTRACE ATTACH FAILED\n");
+      else
+        debug_log("PTRACE ATTACH FAILED\n");
 
 
       pthread_mutex_unlock(&memorymutex);
@@ -2654,7 +2756,7 @@ int ReadProcessMemoryDebug(HANDLE hProcess, PProcessData p, void *lpAddress, voi
 
   int bytesread=0;
 
- // debug_log("ReadProcessMemoryDebug");
+  debug_log("ReadProcessMemoryDebug");
 //  debug_log("lpAddress=%p\n", lpAddress);
 
 
@@ -2907,7 +3009,7 @@ int ReadProcessMemory(HANDLE hProcess, void *lpAddress, void *buffer, int size)
 
 
 
-  //printf("ReadProcessMemory\n");
+ // debug_log("ReadProcessMemory\n");
   int bread=0;
 
 
@@ -2917,16 +3019,15 @@ int ReadProcessMemory(HANDLE hProcess, void *lpAddress, void *buffer, int size)
 
     PProcessData p=(PProcessData)GetPointerFromHandle(hProcess);
 
-    //printf("hProcess=%d, lpAddress=%p, buffer=%p, size=%d\n", hProcess, lpAddress, buffer, size);
+  //  debug_log("hProcess=%d, lpAddress=%p, buffer=%p, size=%d\n", hProcess, lpAddress, buffer, size);
 
     if (p->isDebugged) //&& cannotdealwithotherthreads
     {
-      //printf("This process is being debugged\n");
+      debug_log("RPM: This process is being debugged. Doing the Debug version\n");
       //use the debugger specific readProcessMemory implementation
       return ReadProcessMemoryDebug(hProcess, p, lpAddress, buffer, size);
     }
 
-    //printf("Read without debug\n");
 
     if ((MEMORY_SEARCH_OPTION == 2) && (process_vm_readv==NULL)) //user explicitly wants to use process_vm_readv but it's not available
       MEMORY_SEARCH_OPTION=0; //fallback to 0
@@ -2943,9 +3044,6 @@ int ReadProcessMemory(HANDLE hProcess, void *lpAddress, void *buffer, int size)
       remote.iov_base=lpAddress;
       remote.iov_len=size;
 
-
-
-
       bread=process_vm_readv(p->pid,&local,1,&remote,1,0);
       if (bread==-1)
       {
@@ -2958,40 +3056,42 @@ int ReadProcessMemory(HANDLE hProcess, void *lpAddress, void *buffer, int size)
 
     if (pthread_mutex_lock(&memorymutex) == 0)
     {
+      debug_log("Read without debug. MEMORY_SEARCH_OPTION=%d ATTACH_TO_ACCESS_MEMORY=%d\n",MEMORY_SEARCH_OPTION, ATTACH_TO_ACCESS_MEMORY);
+
+
 
       {
-        if ((ATTACH_TO_ACCESS_MEMORY==0) || (safe_ptrace(PTRACE_ATTACH, p->pid,0,0)==0))
+        usleep(100);
+        int canreadnow=0;
+        pid_t pid;
+
+        if (ATTACH_TO_ACCESS_MEMORY==0)
         {
-          int status;
+          canreadnow=1;
+          pid=p->pid;
+        }
+        else
+        {
+          pid=ptrace_attach_andwait(p->pid);
+          if (pid>0)
+            canreadnow=1;
+        }
 
-        //  debug_log("Attach is 0 or attach is succesfull\n");
 
-          pid_t pid=ATTACH_TO_ACCESS_MEMORY ? wait(&status) : p->pid;
-
-        //  debug_log("after wait or skip\n");
-
+        if (canreadnow)
+        {
           if (MEMORY_SEARCH_OPTION == 0)
           {
-           // debug_log("MEMORY_SEARCH_OPTION == 0\n");
-          //  debug_log("Reading p->mem\n");
-
             lseek64(p->mem, (uintptr_t)lpAddress, SEEK_SET);
-
             bread=read(p->mem, buffer, size);
-
-           // debug_log("bread=%d\n",bread);
             if (bread==-1)
             {
               bread=0;
               //debug_log("pread error for address %p (error=%s) ", lpAddress, strerror(errno));
             }
-
           }
           else
           {
-            
-            //debug_log("MEMORY_SEARCH_OPTION != 0\n");
-
             int offset=0;
             int max=size-sizeof(long int);
 
@@ -3040,15 +3140,17 @@ int ReadProcessMemory(HANDLE hProcess, void *lpAddress, void *buffer, int size)
             }
           
           }
-          
-          //printf("bread=%d size=%d\n", bread, size);
-          
+
           if (ATTACH_TO_ACCESS_MEMORY)
-            safe_ptrace(PTRACE_DETACH, pid,0,0);
+          {
+            int r=safe_ptrace(PTRACE_DETACH, pid,0,0);
+            debug_log("PTRACE_DETACH returned %d\n", r);
+
+          }
 
         }
         else
-          debug_log("ptrace attach failed (pid=%d). This system might not be properly rooted\n", p->pid);
+          debug_log("ptrace attach failed (pid=%d). You may not have proper rights, or there's something interfering\n", p->pid);
 
       }
 
@@ -3666,6 +3768,8 @@ BOOL Process32First(HANDLE hSnapshot, PProcessListEntry processentry)
 
 BOOL Module32Next(HANDLE hSnapshot, PModuleListEntry moduleentry)
 {
+  //obsolete with the new createtoolhelpsnapshotex
+
   //get the current iterator of the list and increase it. If the max has been reached, return false
  // debug_log("Module32First/Next(%d)\n", hSnapshot);
 
