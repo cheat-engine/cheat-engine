@@ -146,10 +146,10 @@ typedef struct
 
 int VerboseLevel=0;
 
-int MEMORY_SEARCH_OPTION = 1; //0=file, 1=ptrace, 2=use process_vm_readv
+int MEMORY_SEARCH_OPTION = 2; //0=file, 1=ptrace, 2=use process_vm_readv
 int ATTACH_PID = 0;
-int ATTACH_TO_ACCESS_MEMORY = 1;
-int ATTACH_TO_WRITE_MEMORY = 0;
+int ATTACH_TO_ACCESS_MEMORY = 0;
+int ATTACH_TO_WRITE_MEMORY = 1;
 unsigned char SPECIFIED_ARCH = 9;
 
 //Implementation for shared library version ceserver.
@@ -184,7 +184,7 @@ char *PTraceToString(int request)
 }
 #endif
 
-pid_t ptraceowner=0;
+
 //Implementation for consistency with Android Studio.
 uintptr_t safe_ptrace(int request, pid_t pid, void * addr, void * data)
 {
@@ -194,34 +194,6 @@ uintptr_t safe_ptrace(int request, pid_t pid, void * addr, void * data)
     debug_log("%s: ptrace called (%s(%x), %d, %p, %p)\n",threadname, PTraceToString(request),request, pid, addr, data);
   else
     debug_log("ptrace called (%s(%x), %d, %p, %p)\n",PTraceToString(request),request, pid, addr, data);
-
-
-  if (request==PTRACE_ATTACH)
-  {
-    if (ptraceowner)
-    {
-      debug_log("PTRACE_ATTACH while already attached\n");
-      while (1) debug_log("FFFF");;
-    }
-
-    ptraceowner=getpid();
-
-  }
-
-  if (ptraceowner==0)
-  {
-    debug_log("ptraceowner==0\n");
-    while (1) debug_log("FFFF");
-  }
-
-  if (ptraceowner!=getpid())
-  {
-    debug_log("ptrace from non-attached thread\n");
-    while (1) debug_log("FFFF");
-  }
-
-  if (request==PTRACE_DETACH)
-    ptraceowner=0;
 
 
 #endif
@@ -2595,36 +2567,39 @@ int WriteProcessMemory(HANDLE hProcess, void *lpAddress, void *buffer, int size)
       return WriteProcessMemoryDebug(hProcess, p, lpAddress, buffer, size);
     }
 
+
+    if ((MEMORY_SEARCH_OPTION == 2) && (process_vm_writev))
+    {
+      struct iovec local;
+      struct iovec remote;
+
+      debug_log("WPM: MEMORY_SEARCH_OPTION == 2\n");
+
+      local.iov_base=buffer;
+      local.iov_len=size;
+
+      remote.iov_base=lpAddress;
+      remote.iov_len=size;
+
+      written=process_vm_writev(p->pid,&local,1,&remote,1,0);
+      if (written==-1)
+      {
+       debug_log("process_vm_writev(%p, %d) failed: %s\n", lpAddress, size, strerror(errno));
+       written=0;
+      }
+      else
+       debug_log("Write successful\n");
+
+      pthread_mutex_unlock(&memorymutex);
+      return written;
+    }
+
     debug_log("aquiring memorymutex\n");
     if (pthread_mutex_lock(&memorymutex) == 0)
     {
       debug_log("aquired memorymutex\n");
 
-      if ((MEMORY_SEARCH_OPTION == 2) && (process_vm_writev))
-      {
-        struct iovec local;
-        struct iovec remote;
 
-        debug_log("WPM: MEMORY_SEARCH_OPTION == 2\n");
-
-        local.iov_base=buffer;
-        local.iov_len=size;
-
-        remote.iov_base=lpAddress;
-        remote.iov_len=size;
-
-        written=process_vm_writev(p->pid,&local,1,&remote,1,0);
-        if (written==-1)
-        {
-          debug_log("process_vm_writev(%p, %d) failed: %s\n", lpAddress, size, strerror(errno));
-          written=0;
-        }
-        else
-          debug_log("Write successful\n");
-
-        pthread_mutex_unlock(&memorymutex);
-        return written;
-      }
 
       if (MEMORY_SEARCH_OPTION==2)
         debug_log("process_vm_writev==NULL. Using other method\n");
