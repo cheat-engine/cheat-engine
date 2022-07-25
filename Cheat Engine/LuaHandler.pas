@@ -3646,6 +3646,13 @@ begin
   result:=1;
 end;
 
+function debug_isStepping(L: PLua_state): integer; cdecl;
+var r: boolean;
+begin
+  r:=(debuggerthread<>nil) and (debuggerthread.CurrentThread<>nil) and (debuggerthread.CurrentThread.isSingleStepping);
+  lua_pushboolean(L, r);
+  result:=1;
+end;
 
 function debug_setBreakpointForThread(L: Plua_State): integer; cdecl;
 var
@@ -15736,6 +15743,7 @@ begin
     lua_register(L, 'debug_canBreak', debug_canBreak);
     lua_register(L, 'debug_breakThread', debug_breakThread);
     lua_register(L, 'debug_isBroken', debug_isBroken);
+    lua_register(L, 'debug_isStepping', debug_isStepping);
     lua_register(L, 'debug_setBreakpoint', debug_setBreakpoint);
     lua_register(L, 'debug_setBreakpointForThread', debug_setBreakpointForThread);
     lua_register(L, 'debug_removeBreakpoint', debug_removeBreakpoint);
