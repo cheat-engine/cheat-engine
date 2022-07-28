@@ -40,6 +40,8 @@ type
       procedure KeyEvent(Sender: TObject; var Key: Word; Shift: TShiftState);
       procedure TreeViewExpandOrCloseEvent(Sender: TObject; Node: TTreeNode; var Allow: Boolean);
 
+      procedure HelpEvent(Command: word; Data: PtrInt; var CallHelp: boolean);
+
       procedure LVCheckedItemEvent(Sender: TObject; Item: TListItem); //personal request to have this one added
       procedure LVColumnClickEvent(Sender: TObject; c: TListColumn);
       procedure LVSelectItemEvent(Sender: TObject; Item: TListItem; Selected: Boolean);
@@ -734,6 +736,21 @@ begin
     lua_pushinteger(luavm, y);
 
     lua_pcall(LuaVM, 3, 0, 0);
+  finally
+    lua_settop(Luavm, oldstack);
+  end;
+end;
+
+procedure TLuaCaller.HelpEvent(Command: word; Data: PtrInt; var CallHelp: boolean);
+var oldstack: integer;
+begin
+  oldstack:=lua_gettop(Luavm);
+  try
+    pushFunction;
+    lua_pushinteger(luavm, integer(Command));
+    lua_pushinteger(luavm, integer(Data));
+    lua_pushboolean(luavm, CallHelp);
+    lua_pcall(LuaVM, 3, 0, 0)
   finally
     lua_settop(Luavm, oldstack);
   end;
@@ -1870,6 +1887,29 @@ begin
 end;
 
 function LuaCaller_MouseMoveEvent(L: PLua_state): integer; cdecl;
+var
+  parameters: integer;
+  m: TMethod;
+  sender: TObject;
+  x,y: integer;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=3 then
+  begin
+    m.code:=lua_touserdata(L, lua_upvalueindex(1));
+    m.data:=lua_touserdata(L, lua_upvalueindex(2));
+    sender:=lua_toceuserdata(L, 1);
+    x:=lua_tointeger(L, 2);
+    y:=lua_tointeger(L, 3);
+    lua_pop(L, lua_gettop(L));
+
+    TMouseMoveEvent(m)(sender, [],x,y);
+  end
+  else
+    lua_pop(L, lua_gettop(L));
+end;
+function LuaCaller_HelpEvent(L: PLua_state): integer; cdecl;
 var
   parameters: integer;
   m: TMethod;
@@ -3065,6 +3105,8 @@ initialization
   registerLuaCall('TLVCompareEvent', LuaCaller_LVCompareEvent, pointer(TLuaCaller.LVCompareEvent),'function %s(sender, listitem1, listitem2, data)'#13#10#13#10'  return 0 --0=equal -1=smaller 1=bigger'#13#10'end'#13#10);
   registerLuaCall('TCanResizeEvent', LuaCaller_CanResizeEvent, pointer(TLuaCaller.CanResizeEvent),'function %s(sender, newsize)'#13#10#13#10' local accept=true'#13#10'return newsize, accept'#13#10'end'#13#10);
   registerLuaCall('TLVSelectItemEvent', LuaCaller_LVSelectItemEvent, pointer(TLuaCaller.LVSelectItemEvent),'function %s(sender, listitem, selected)'#13#10#13#10'end'#13#10);
+
+  registerLuaCall('THelpEvent', LuaCaller_HelpEvent, pointer(TLuaCaller.HelpEvent),'function %s(command, data ,callhelp)'#13#10#13#10'end'#13#10);
 
   //(Sender: TCustomListView; const ARect: TRect;  var DefaultDraw: Boolean
   registerLuaCall('TLVCustomDrawEvent', LuaCaller_LVCustomDrawEvent, pointer(TLuaCaller.LVCustomDrawEvent),'function %s(Sender, Rect)'#13#10#13#10'  return true --return true for DefaultDraw'#13#10'end'#13#10);
