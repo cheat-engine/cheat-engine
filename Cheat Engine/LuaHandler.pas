@@ -14824,6 +14824,7 @@ var
   s: string;
   sep: string;
 
+  bStackSpace: boolean;
   arr: TStringDynArray;
   i: integer;
 begin
@@ -14834,11 +14835,13 @@ begin
     sep:=Lua_ToString(L,2);
 
     arr:=SplitString(s,sep);
+    if lua_checkstack(L, length(arr)) then
+    begin
+      for i:=0 to length(arr)-1 do
+          lua_pushstring(L, arr[i]);
+      result:=length(arr);
+    end;
 
-    for i:=0 to length(arr)-1 do
-      lua_pushstring(L, arr[i]);
-
-    result:=length(arr);
   end;
 end;
 
