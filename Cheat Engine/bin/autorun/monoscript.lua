@@ -1487,7 +1487,25 @@ end
 
 --todo for the instance scanner: Get the fields and check that pointers are either nil or point to a valid address
 function mono_class_findInstancesOfClassListOnly(domain, klass, progressBar)
+
+  if debugInstanceLookup then 
+    if progressBar then
+      printf("progressBar is set. progressBar.ClassName=%s", progressBar.ClassName)
+    end
+  
+    print("mono_class_findInstancesOfClassListOnly")     
+  end
+
   local vtable=mono_class_getVTable(domain, klass)
+  if debugInstanceLookup then 
+    if vtable then
+      printf("vtable is %x", vtable)
+    else
+      print("vtable is nil") 
+    end
+  end
+
+  
   if (vtable) and (vtable~=0) then
     local ms=createMemScan(progressBar)  
     local scantype=vtDword
@@ -1497,7 +1515,10 @@ function mono_class_findInstancesOfClassListOnly(domain, klass, progressBar)
     
     ms.firstScan(soExactValue,scantype,rtRounded,string.format('%x',vtable),'', 0,0x7ffffffffffffffff, '', fsmAligned, "8",true, true,false,false)
 
-    ms.waitTillDone()  
+    ms.waitTillDone() 
+    if debugInstanceLookup then     
+      print("after ms.waitTillDone")
+    end
     
     local fl=createFoundList(ms)
     fl.initialize()
@@ -1508,8 +1529,13 @@ function mono_class_findInstancesOfClassListOnly(domain, klass, progressBar)
       result[i+1]=tonumber('0x'..fl[i])
     end
     
+    if debugInstanceLookup then print("Destroying fl and ms") end
+    
     fl.destroy()    
-    ms.destroy()    
+    ms.destroy()  
+    if debugInstanceLookup then 
+      printf("end of mono_class_findInstancesOfClassListOnly with valid vtable. #result=%d", #result)    
+    end
     
     return result
   end

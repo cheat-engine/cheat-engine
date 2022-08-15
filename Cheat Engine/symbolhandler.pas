@@ -2544,6 +2544,7 @@ var sp: pchar;
     b: byte;
     ar: ptruint;
 begin
+  NameThreadForDebugging('SymbolLoaderThread', GetCurrentThreadId);
   debugpart:=0;
 
 
@@ -4986,37 +4987,84 @@ begin
 
             if regnr<>-1 then
             begin
-              if (context<>nil) and (context^.{$ifdef cpu64}Rip{$else}Eip{$endif}<>0) then
+              if (context<>nil) then
               begin
-                //get the register value, and because this is an address specifier, use the full 32-bits
-                if tokens[i][1] in ['x','X','y','Y'] then //xmm/ymm
+                if processhandler.SystemArchitecture=archX86 then
                 begin
-                  tokens[i]:=inttohex(ApplyTokenType(pptruint(@context^.{$ifdef cpu64}FltSave.XmmRegisters[regnr]{$else}ext.XMMRegisters.LongXMM[regnr]{$endif})^),8);
-                  continue;
-                end;
+                  if (context^.{$ifdef cpu64}Rip{$else}Eip{$endif}<>0) then
+                  begin
+                    //get the register value, and because this is an address specifier, use the full 32-bits
+                    if tokens[i][1] in ['x','X','y','Y'] then //xmm/ymm
+                    begin
+                      tokens[i]:=inttohex(ApplyTokenType(pptruint(@context^.{$ifdef cpu64}FltSave.XmmRegisters[regnr]{$else}ext.XMMRegisters.LongXMM[regnr]{$endif})^),8);
+                      continue;
+                    end;
 
-                case regnr of
-                  0: tokens[i]:=inttohex(ApplyTokenType(context^.{$ifdef cpu64}rax{$else}eax{$endif}),8);
-                  1: tokens[i]:=inttohex(ApplyTokenType(context^.{$ifdef cpu64}rcx{$else}ecx{$endif}),8);
-                  2: tokens[i]:=inttohex(ApplyTokenType(context^.{$ifdef cpu64}rdx{$else}edx{$endif}),8);
-                  3: tokens[i]:=inttohex(ApplyTokenType(context^.{$ifdef cpu64}rbx{$else}ebx{$endif}),8);
-                  4: tokens[i]:=inttohex(ApplyTokenType(context^.{$ifdef cpu64}rsp{$else}esp{$endif}),8);
-                  5: tokens[i]:=inttohex(ApplyTokenType(context^.{$ifdef cpu64}rbp{$else}ebp{$endif}),8);
-                  6: tokens[i]:=inttohex(ApplyTokenType(context^.{$ifdef cpu64}rsi{$else}esi{$endif}),8);
-                  7: tokens[i]:=inttohex(ApplyTokenType(context^.{$ifdef cpu64}rdi{$else}edi{$endif}),8);
-                  {$ifdef cpu64}
-                  8: tokens[i]:=inttohex(ApplyTokenType(context^.r8),8);
-                  9: tokens[i]:=inttohex(ApplyTokenType(context^.r9),8);
-                  10: tokens[i]:=inttohex(ApplyTokenType(context^.r10),8);
-                  11: tokens[i]:=inttohex(ApplyTokenType(context^.r11),8);
-                  12: tokens[i]:=inttohex(ApplyTokenType(context^.r12),8);
-                  13: tokens[i]:=inttohex(ApplyTokenType(context^.r13),8);
-                  14: tokens[i]:=inttohex(ApplyTokenType(context^.r14),8);
-                  15: tokens[i]:=inttohex(ApplyTokenType(context^.r15),8);
-                  {$endif}
-                end;
+                    case regnr of
+                      0: tokens[i]:=inttohex(ApplyTokenType(context^.{$ifdef cpu64}rax{$else}eax{$endif}),8);
+                      1: tokens[i]:=inttohex(ApplyTokenType(context^.{$ifdef cpu64}rcx{$else}ecx{$endif}),8);
+                      2: tokens[i]:=inttohex(ApplyTokenType(context^.{$ifdef cpu64}rdx{$else}edx{$endif}),8);
+                      3: tokens[i]:=inttohex(ApplyTokenType(context^.{$ifdef cpu64}rbx{$else}ebx{$endif}),8);
+                      4: tokens[i]:=inttohex(ApplyTokenType(context^.{$ifdef cpu64}rsp{$else}esp{$endif}),8);
+                      5: tokens[i]:=inttohex(ApplyTokenType(context^.{$ifdef cpu64}rbp{$else}ebp{$endif}),8);
+                      6: tokens[i]:=inttohex(ApplyTokenType(context^.{$ifdef cpu64}rsi{$else}esi{$endif}),8);
+                      7: tokens[i]:=inttohex(ApplyTokenType(context^.{$ifdef cpu64}rdi{$else}edi{$endif}),8);
+                      {$ifdef cpu64}
+                      8: tokens[i]:=inttohex(ApplyTokenType(context^.r8),8);
+                      9: tokens[i]:=inttohex(ApplyTokenType(context^.r9),8);
+                      10: tokens[i]:=inttohex(ApplyTokenType(context^.r10),8);
+                      11: tokens[i]:=inttohex(ApplyTokenType(context^.r11),8);
+                      12: tokens[i]:=inttohex(ApplyTokenType(context^.r12),8);
+                      13: tokens[i]:=inttohex(ApplyTokenType(context^.r13),8);
+                      14: tokens[i]:=inttohex(ApplyTokenType(context^.r14),8);
+                      15: tokens[i]:=inttohex(ApplyTokenType(context^.r15),8);
+                      {$endif}
+                    end;
 
-                continue; //handled
+                    continue; //handled
+                  end;
+                end
+                else
+                begin
+                  if processhandler.is64Bit then
+                  begin
+                    if (PARM64CONTEXT(context)^.PC<>0) then
+                    begin
+                      if regnr=32 then
+                        tokens[i]:=inttohex(ApplyTokenType(PARM64CONTEXT(context)^.PC),8)
+                      else
+                        tokens[i]:=inttohex(ApplyTokenType(PARM64CONTEXT(context)^.regs.X[regnr]),8);
+
+                      continue;
+                    end;
+                  end
+                  else
+                  begin
+                    if (PARMCONTEXT(context)^.PC<>0) then
+                    begin
+                      case regnr of
+                        0:  tokens[i]:=inttohex(ApplyTokenType(PARMCONTEXT(context)^.R0 ),8);
+                        1:  tokens[i]:=inttohex(ApplyTokenType(PARMCONTEXT(context)^.R1 ),8);
+                        2:  tokens[i]:=inttohex(ApplyTokenType(PARMCONTEXT(context)^.R2 ),8);
+                        3:  tokens[i]:=inttohex(ApplyTokenType(PARMCONTEXT(context)^.R3 ),8);
+                        4:  tokens[i]:=inttohex(ApplyTokenType(PARMCONTEXT(context)^.R4 ),8);
+                        5:  tokens[i]:=inttohex(ApplyTokenType(PARMCONTEXT(context)^.R5 ),8);
+                        6:  tokens[i]:=inttohex(ApplyTokenType(PARMCONTEXT(context)^.R6 ),8);
+                        7:  tokens[i]:=inttohex(ApplyTokenType(PARMCONTEXT(context)^.R7 ),8);
+                        8:  tokens[i]:=inttohex(ApplyTokenType(PARMCONTEXT(context)^.R8 ),8);
+                        9:  tokens[i]:=inttohex(ApplyTokenType(PARMCONTEXT(context)^.R9 ),8);
+                        10: tokens[i]:=inttohex(ApplyTokenType(PARMCONTEXT(context)^.R10),8);
+                        11: tokens[i]:=inttohex(ApplyTokenType(PARMCONTEXT(context)^.FP ),8);
+                        12: tokens[i]:=inttohex(ApplyTokenType(PARMCONTEXT(context)^.IP ),8);
+                        13: tokens[i]:=inttohex(ApplyTokenType(PARMCONTEXT(context)^.SP ),8);
+                        14: tokens[i]:=inttohex(ApplyTokenType(PARMCONTEXT(context)^.LR ),8);
+                        15: tokens[i]:=inttohex(ApplyTokenType(PARMCONTEXT(context)^.PC ),8);
+                      end;
+                      continue;
+                    end;
+                  end;
+
+                end;
               end;
 
               //not handled, but since it's a register, quit now

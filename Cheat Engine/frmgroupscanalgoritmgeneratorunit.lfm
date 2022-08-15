@@ -2,15 +2,15 @@ object frmGroupScanAlgoritmGenerator: TfrmGroupScanAlgoritmGenerator
   Left = 555
   Height = 340
   Top = 330
-  Width = 357
+  Width = 473
   Caption = 'Generate groupscan command'
   ClientHeight = 340
-  ClientWidth = 357
+  ClientWidth = 473
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '2.0.6.0'
+  LCLVersion = '2.2.2.0'
   object ScrollBox1: TScrollBox
     AnchorSideLeft.Control = Owner
     AnchorSideTop.Control = lblWildcardExplanation
@@ -21,7 +21,7 @@ object frmGroupScanAlgoritmGenerator: TfrmGroupScanAlgoritmGenerator
     Left = 14
     Height = 150
     Top = 15
-    Width = 329
+    Width = 445
     HorzScrollBar.Page = 1
     HorzScrollBar.Tracking = True
     VertScrollBar.Increment = 1
@@ -39,7 +39,7 @@ object frmGroupScanAlgoritmGenerator: TfrmGroupScanAlgoritmGenerator
     AnchorSideLeft.Control = Owner
     AnchorSideLeft.Side = asrCenter
     AnchorSideTop.Control = Owner
-    Left = 70
+    Left = 128
     Height = 15
     Top = 0
     Width = 216
@@ -50,12 +50,12 @@ object frmGroupScanAlgoritmGenerator: TfrmGroupScanAlgoritmGenerator
     Left = 0
     Height = 161
     Top = 179
-    Width = 357
+    Width = 473
     Align = alBottom
     AutoSize = True
     BevelOuter = bvNone
     ClientHeight = 161
-    ClientWidth = 357
+    ClientWidth = 473
     TabOrder = 1
     object edtBlocksize: TEdit
       AnchorSideLeft.Control = lblBlocksize
@@ -64,7 +64,7 @@ object frmGroupScanAlgoritmGenerator: TfrmGroupScanAlgoritmGenerator
       Left = 16
       Height = 23
       Top = 21
-      Width = 80
+      Width = 96
       Enabled = False
       TabOrder = 0
     end
@@ -113,7 +113,7 @@ object frmGroupScanAlgoritmGenerator: TfrmGroupScanAlgoritmGenerator
       AnchorSideLeft.Side = asrBottom
       AnchorSideTop.Control = edtBlocksize
       AnchorSideTop.Side = asrCenter
-      Left = 100
+      Left = 116
       Height = 15
       Top = 25
       Width = 34
@@ -129,7 +129,7 @@ object frmGroupScanAlgoritmGenerator: TfrmGroupScanAlgoritmGenerator
       Left = 16
       Height = 23
       Top = 59
-      Width = 80
+      Width = 96
       OnChange = edtBlockalignmentChange
       TabOrder = 3
       Text = '4'
@@ -150,7 +150,7 @@ object frmGroupScanAlgoritmGenerator: TfrmGroupScanAlgoritmGenerator
       AnchorSideLeft.Side = asrBottom
       AnchorSideTop.Control = edtBlockalignment
       AnchorSideTop.Side = asrCenter
-      Left = 100
+      Left = 116
       Height = 15
       Top = 63
       Width = 119
@@ -164,7 +164,7 @@ object frmGroupScanAlgoritmGenerator: TfrmGroupScanAlgoritmGenerator
       AnchorSideLeft.Side = asrCenter
       AnchorSideTop.Control = cbTypeAligned
       AnchorSideTop.Side = asrBottom
-      Left = 99
+      Left = 157
       Height = 25
       Top = 128
       Width = 158

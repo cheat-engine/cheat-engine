@@ -3385,6 +3385,7 @@ begin
 
   getmem(buf,bufsize+2);
 
+  suspended:=false;
   if SystemSupportsWritableExecutableMemory or SkipVirtualProtectEx then
   begin
     vpe:=(SkipVirtualProtectEx=false) and VirtualProtectEx(processhandle, pointer(realAddress), bufsize, PAGE_EXECUTE_READWRITE, originalprotection);
@@ -3393,8 +3394,13 @@ begin
   begin
     if (SkipVirtualProtectEx=false) and (iswritable(realaddress)=false) then
     begin
-      suspended:=true;
-      ntsuspendProcess(processhandle);
+
+      if processid<>GetCurrentProcessId then
+      begin
+        ntsuspendProcess(processhandle);
+        suspended:=true;
+      end;
+
       vpe:=(SkipVirtualProtectEx=false) and VirtualProtectEx(processhandle, pointer(realAddress), bufsize, PAGE_READWRITE, originalprotection);
     end;
   end;

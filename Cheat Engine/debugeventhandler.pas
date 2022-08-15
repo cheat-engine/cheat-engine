@@ -14,7 +14,7 @@ uses
   Classes, SysUtils, syncobjs, GuiSafeCriticalSection,
   disassembler, CEFuncProc, newkernelhandler,debuggertypedefinitions, frmTracerUnit,
   DebuggerInterfaceAPIWrapper, lua, lauxlib, lualib,
-  tracerIgnore, BreakpointTypeDef, LCLProc {$ifdef darwin}
+  tracerIgnore, BreakpointTypeDef, LCLProc, contexthandler {$ifdef darwin}
   ,macport, macportdefines
   {$endif}  ;
 
@@ -84,6 +84,8 @@ type
 
     fOnHandleBreakAsync: THandleBreakEvent;
 
+    lastContext: PContext; //for network contexts only
+
     function CheckIfConditionIsMet(bp: PBreakpoint; script: string=''): boolean;
     function InNoBreakList: boolean;
 
@@ -118,6 +120,8 @@ type
     procedure visualizeBreak;
     procedure AddDebugEventString;
 
+    function changedcontext: boolean; //for network handlers only. returns true if the context was changed from last getContext
+
   public
     isHandled: boolean; //set to true if this thread is the current debug target
     needstocleanup: boolean;
@@ -126,11 +130,11 @@ type
     handle: THandle;
 
     DebugRegistersUsedByCE: byte; //mask containing the bits for each DR used
-    context: PContext;  //PContext but it does belong to this thread. It's due to alignment issues
-    armcontext: TArmContext;
-    arm64context: TArm64Context;
-
-
+    context: PContext;  //pointer to the context (can be x86, arm, of arm64, or whatever I add later)
+    contexthandler: TContextInfo;
+    {$ifdef windows}
+    _contextsize: integer; //debug
+    {$endif}
 
     procedure UpdateMemoryBrowserContext;
     procedure StartBranchMap;
@@ -143,6 +147,8 @@ type
     procedure breakThread;
     procedure clearDebugRegisters;
     procedure continueDebugging(continueOption: TContinueOption; handled: boolean=true);
+
+
 
     constructor Create(debuggerthread: TObject; attachEvent: Tevent; continueEvent: Tevent; breakpointlist: TList; threadlist: Tlist; debuggerCS: TGuiSafeCriticalSection);
     destructor destroy; override;
@@ -223,7 +229,7 @@ begin
       if (f.foundcodedialog=nil) or (f.foundCount<8) then
       begin
         e:=TAddressEntry.create(f);
-        e.context:=context^;
+        e.context:=context; //(duplicates the context so it's ok if this thread gets killed)
         e.address:=address;
         e.count:=1;
         e.changed:=true;
@@ -256,16 +262,9 @@ var
 begin
   if (((currentbp.breakpointMethod=bpmException) and not currentbp.markedfordeletion) or currentBP.active) and (currentbp.FoundcodeDialog<>nil) then  //it could have been deactivated
   begin
-    if processhandler.SystemArchitecture=archARM then
+    address:=contexthandler.InstructionPointerRegister^.getValue(context);
+    if processhandler.SystemArchitecture=archX86 then
     begin
-      if processhandler.is64Bit then
-        address:=arm64context.PC
-      else
-        address:=armcontext.PC
-    end
-    else
-    begin
-      address:=context.{$ifdef cpu64}Rip{$else}eip{$endif};
       if (currentBP.breakpointMethod=bpmDebugRegister) or (currentBP.breakpointMethod=bpmException) then //find out the previous opcode
       begin
         address2:=address;
@@ -311,15 +310,10 @@ end;
 
 procedure TDebugThreadHandler.UpdateMemoryBrowserContext;
 begin
-  if processhandler.SystemArchitecture=archx86 then
-    MemoryBrowser.lastdebugcontext:=context^
-  else
-  begin
-    if processhandler.is64Bit then
-      MemoryBrowser.lastdebugcontextarm64:=arm64context
-    else
-      MemoryBrowser.lastdebugcontextarm:=armcontext;
-  end;
+  if MemoryBrowser.Context<>nil then
+    freememandnil(memorybrowser.context);
+
+  MemoryBrowser.Context:=contexthandler.getCopy(context);
 end;
 
 procedure TDebugThreadHandler.VisualizeBreak;
@@ -368,6 +362,11 @@ begin
 
 end;
 
+function TDebugThreadHandler.changedcontext: boolean;
+begin
+  result:=contexthandler.isDifferent(lastcontext, context);
+end;
+
 procedure TDebugThreadHandler.fillContext;
 var
   i: integer;
@@ -388,14 +387,14 @@ begin
         {$ifdef darwin}
         arm64context.ContextFlags:=1; //get full state and debug regs
         {$endif}
-        DebuggerInterfaceAPIWrapper.GetThreadContextArm64(handle, arm64context, ishandled)
+        DebuggerInterfaceAPIWrapper.GetThreadContextArm64(handle, PARM64CONTEXT(context)^, ishandled)
       end
       else
-        DebuggerInterfaceAPIWrapper.GetThreadContextArm(handle, armcontext, ishandled);
+        DebuggerInterfaceAPIWrapper.GetThreadContextArm(handle, PARMCONTEXT(context)^, ishandled);
     end
     else
     begin
-      context^.ContextFlags := CONTEXT_ALL or CONTEXT_EXTENDED_REGISTERS;
+      contexthandler.setcontextflags(context, CONTEXT_ALL or CONTEXT_EXTENDED_REGISTERS);
 
       if not DebuggerInterfaceAPIWrapper.getthreadcontext(handle, context^,  isHandled) then
       begin
@@ -406,8 +405,18 @@ begin
 
     end;
 
+    if (CurrentDebuggerInterface is TNetworkDebuggerInterface) then
+    begin
+      if lastcontext<>nil then
+        FreeMemAndNil(lastcontext);
+
+      lastContext:=contexthandler.getCopy(context);
+    end;
+
     debuggercs.leave;
-  end else outputdebugstring('fillContext: handle=0');
+  end
+  else
+    outputdebugstring('fillContext: handle=0');
 
 
 end;
@@ -431,7 +440,7 @@ begin
         {$endif}
 
 
-        if not DebuggerInterfaceAPIWrapper.SetThreadContextArm64(self.handle, arm64context, isHandled) then
+        if not DebuggerInterfaceAPIWrapper.SetThreadContextArm64(self.handle, PARM64CONTEXT(context)^, isHandled) then
         begin
           outputdebugstring('setthreadcontextarm64 failed');
         end;
@@ -439,7 +448,7 @@ begin
       end
       else
       begin
-        if not DebuggerInterfaceAPIWrapper.SetThreadContextArm64(self.handle, arm64context, isHandled) then
+        if not DebuggerInterfaceAPIWrapper.SetThreadContextArm(self.handle, PARMCONTEXT(context)^, isHandled) then
         begin
 
           outputdebugstring('setthreadcontextarm failed');
@@ -459,6 +468,11 @@ begin
 
       {$ifdef windows}
       fields:=cfall; //just for vehdebug
+
+      //experiment:
+     // context.Dr7:=context.Dr7 or (1 shl 8); //DR7 LE
+      //context.Dr7:=context.Dr7 or (1 shl 9); //DR7 GE
+      //context.DebugControl:=qword($ffffffffffffffff);
       {$endif};
 
 
@@ -471,7 +485,8 @@ begin
 
       //context.dr7:=context.dr7 or $300;
 
-      if not DebuggerInterfaceAPIWrapper.setthreadcontext(self.handle, context^, isHandled) then
+
+      if not DebuggerInterfaceAPIWrapper.setthreadcontext(self.handle, PCONTEXT(context)^, isHandled) then
       begin
         i := getlasterror;
         outputdebugstring(PChar('setthreadcontext error:' + IntToStr(getlasterror)));
@@ -706,68 +721,16 @@ begin
           //if it is a network breakpoint delete it first. Not needed for x86 but arm can't continue if the breakpoint doesn't get removed (at least my transformer tablet does)
           //it's like windows XP where the RF flag is borked, and the added fun that is also affects read/write watchpoints and arm doesn't do single stepping
 
+          if bp.active then
+            TdebuggerThread(debuggerthread).UnsetBreakpoint(bp, nil, ThreadId); //remove the breakpoint just for this thread
 
-          TdebuggerThread(debuggerthread).UnsetBreakpoint(bp, nil, ThreadId); //remove the breakpoint just for this thread
-
-
-          TNetworkDebuggerInterface(CurrentDebuggerInterface).SingleStepNextContinue:=true; //if possible. Not all builds support it and it's bad...
-
-          //add a non persistent breakpoint using the last available debug register
-
-          {
-          //perhaps try to predict PC based on the instruction itself (e.g loading of R15 or a B/BL)
-          d:=TDisassembler.create;
-          pc:=armcontext.PC;
-          d.disassemble(pc, t);
-          }
-             {
-          pc:=armcontext.PC+4;
-
-
-          c:=getConnection;
-
-          if c.SetBreakpoint(processhandle, ThreadId, CurrentDebuggerInterface.maxInstructionBreakpointCount-1, pc,0, 1) then
-            expectedUndefinedBreakpoint:=pc;
-            }
-
-          setInt1Back:=true;
-          Int1SetBackBP:=bp;
-
-
-        //  d.free;
-
-         {
-          if (bp.OneTimeOnly=false) and (bp.breakpointAction<>bo_OnBreakpoint) then
+          if bp.markedfordeletion=false then
           begin
-
-            //add a one time breakpoint for this thread on the next instruction that when executed, reenables the current breakpoint
-            b:=TdebuggerThread(debuggerthread).SetOnExecuteBreakpoint(armcontext.PC+8, false, ThreadID);
-
-
-            inc(bp.referencecount); //prevent it from getting deleted
-
-            b.breakpointAction:=bo_OnBreakpoint;
-            b.OnBreakpointContext:=bp;
-            b.OnBreakpoint:=EnableOriginalBreakpointAfterThisBreakpointForThisThread; //hopefully this name is descriptive enough...
-          end;   }
-
-          exit;
+            setInt1Back:=true;
+            Int1SetBackBP:=bp;
+            TNetworkDebuggerInterface(CurrentDebuggerInterface).SingleStepNextContinue:=true; //if possible. Not all builds support it and it's bad...
+          end;
         end;
-
-
-        //
-        {
-         darwin
-        if (processhandler.SystemArchitecture=archArm) and processhandler.is64Bit then
-        begin
-          //remove active bp's
-          TdebuggerThread(debuggerthread).UnsetBreakpoint(bp);
-          setInt1Back:=true;
-          arm64context.debugstate.mdscr_el1:=arm64context.debugstate.mdscr_el1 or 1; //set the trap flag so it'll break on next instruction
-          Int1SetBackBP:=bp;
-          setContext(cfall);
-        end;
-       }
 
 {$ifdef cpu32}
         //----XP HACK----
@@ -824,9 +787,8 @@ begin
       begin
         //single step
         if (CurrentDebuggerInterface is TNetworkDebuggerInterface) then
-        begin
           TNetworkDebuggerInterface(CurrentDebuggerInterface).SingleStepNextContinue:=true;
-        end;
+
         singlestepping:=true;
 
         if ProcessHandler.SystemArchitecture=archX86 then
@@ -1175,11 +1137,23 @@ var
   oldprotect: dword;
   bw: PtrUInt;
   vpe: boolean;
+
+  connection: TCEConnection;
 begin
   TDebuggerthread(debuggerthread).execlocation:=35;
   OutputDebugString('Handling as a single step event');
   result:=true;
 
+
+  if (setint1back) then
+  begin
+    connection:=getConnection;
+    if (connection<>nil) {$ifdef darwin}or ((processhandler.SystemArchitecture=archArm) and (processhandler.is64Bit)) {$endif}then
+    begin
+      TdebuggerThread(debuggerthread).setBreakpoint(Int1SetBackBP, self);
+      setint1back:=false;
+    end;
+  end;
 
 
   {$if defined(cpu32) or defined(darwin)}
@@ -1331,7 +1305,7 @@ begin
   begin
     bpp:=PBreakpoint(breakpointlist.Items[i]);
 
-    if InRangeX(address, bpp.address, bpp.address+bpp.size-1) then
+    if InRangeX(address, bpp^.address, bpp^.address+bpp^.size-1) then
     begin
       {$ifdef darwin}
       if bpp^.active then
@@ -1763,10 +1737,8 @@ begin
   TDebuggerthread(debuggerthread).execlocation:=16;
   unhandledException:=false;
   bp:=nil;
-  if processhandler.SystemArchitecture=archArm then
-    OutputDebugString(inttohex(ThreadId,1)+'('+inttohex(arm64context.pc,8)+')'+':HandleExceptionDebugEvent:'+inttohex(debugEvent.Exception.ExceptionRecord.ExceptionCode,8))
-  else
-    OutputDebugString(inttohex(ThreadId,1)+'('+inttohex(context^.{$ifdef cpu64}Rip{$else}Eip{$endif},8)+')'+':HandleExceptionDebugEvent:'+inttohex(debugEvent.Exception.ExceptionRecord.ExceptionCode,8));
+
+  OutputDebugString(inttohex(ThreadId,1)+'('+inttohex(contexthandler.InstructionPointerRegister^.getvalue(context),8)+')'+':HandleExceptionDebugEvent:'+inttohex(debugEvent.Exception.ExceptionRecord.ExceptionCode,8));
   exceptionAddress := ptrUint(debugEvent.Exception.ExceptionRecord.ExceptionAddress);
 
 
@@ -1902,7 +1874,7 @@ begin
         context^.EFlags:=eflags_setTF(context^.EFlags,0); //not needed in windows, but let's clear it anyhow
         setContext;
 
-        if isSingleStepping then
+        if singlestepping then
           result:=SingleStep(dwContinueStatus)
         else
           result:=DispatchBreakpoint(breakAddress, -1, dwContinueStatus);
@@ -1939,10 +1911,14 @@ begin
       if (CurrentDebuggerInterface is TNetworkDebuggerInterface) then
       begin
         //the address that caused the break is stored in ExceptionRecord.exceptionaddress
-        if uint_ptr(debugEvent.Exception.ExceptionRecord.ExceptionAddress)=1 then
+        if singlestepping or (uint_ptr(debugEvent.Exception.ExceptionRecord.ExceptionAddress)=1) then
           Result := SingleStep(dwContinueStatus) //only x86 returns this (on a rare occasion)
         else
           DispatchBreakpoint(uint_ptr(debugEvent.Exception.ExceptionRecord.ExceptionAddress), -1, dwContinueStatus);
+
+
+        if changedcontext then //(check the context for changes first before sending it to the server for no reason)
+          setContext;
       end
       else
       begin
@@ -1950,7 +1926,7 @@ begin
 
         if processhandler.SystemArchitecture=archArm then
         begin
-          if exceptionAddress=-1 then
+          if exceptionAddress=QWORD(-1) then
             Result := SingleStep(dwContinueStatus)
           else
             Result := DispatchBreakpoint(exceptionAddress, -1, dwContinueStatus) ;
@@ -2258,7 +2234,7 @@ destructor TDebugThreadHandler.destroy;
 begin
   freememandnil(realcontextpointer);
 
-  if handle<>0 then
+  if (handle<>0) and (getConnection=nil) then
     closehandle(handle);
 
   inherited destroy;
@@ -2266,16 +2242,6 @@ end;
 
 
 constructor TDebugThreadHandler.Create(debuggerthread: TObject; attachEvent: Tevent; continueEvent: TEvent; breakpointlist: TList; threadlist: Tlist; debuggerCS: TGuiSafeCriticalSection);
-{
-
-BOOL WINAPI InitializeContext(
-  _Out_opt_ PVOID    Buffer,
-  _In_      DWORD    ContextFlags,
-  _Out_opt_ PCONTEXT *Context,
-  _Inout_   PWORD    ContextLength
-);
-
-}
 var
   InitializeContext: function(buffer: pointer; contextflags: DWORD; outputcontext: pointer; var length: word): BOOL; stdcall;
   k: HModule;
@@ -2285,39 +2251,46 @@ var
   es: string;
 begin
   //because fpc's structure is not alligned on a 16 byte base I have to allocate more memory and byteshift the structure if needed
-  getmem(realcontextpointer,sizeof(TCONTEXT)+4096);
-  zeromemory(realcontextpointer,sizeof(TCONTEXT)+4096);
+  contexthandler:=getBestContextHandler;
 
+  getmem(realcontextpointer,contexthandler.ContextSize+4096);
+  zeromemory(realcontextpointer,contexthandler.ContextSize+4096);
 
   {$ifdef windows}
-  k:=GetModuleHandle('kernel32.dll');
-  InitializeContext:=getprocaddress(k, 'InitializeContext');
-  if assigned(initializeContext) then
+  if processhandler.SystemArchitecture=archX86 then
   begin
-    contextsize:=sizeof(TCONTEXT)+4096;
-    if InitializeContext(realcontextpointer, CONTEXT_ALL or CONTEXT_EXTENDED_REGISTERS {$ifdef cpu64}or CONTEXT_XSTATE{$endif}, @context, contextsize)=false then
+    k:=GetModuleHandle('kernel32.dll');
+    InitializeContext:=getprocaddress(k, 'InitializeContext');
+    if assigned(initializeContext) then
     begin
-      if getlasterror=ERROR_INSUFFICIENT_BUFFER then
+      contextsize:=sizeof(TCONTEXT)+4096;
+      if InitializeContext(realcontextpointer, CONTEXT_ALL or CONTEXT_EXTENDED_REGISTERS {$ifdef cpu64}or CONTEXT_XSTATE{$endif}, @context, contextsize)=false then
       begin
-        freememandnil(realcontextpointer);
-        getmem(realcontextpointer, contextsize+1024);
-        contextsize:=contextsize+1024;
-        InitializeContext(realcontextpointer, CONTEXT_ALL or CONTEXT_EXTENDED_REGISTERS {$ifdef cpu64}or CONTEXT_XSTATE{$endif}, @context, contextsize);
-      end
-      else
-      begin
-        e:=GetLastError;
-        es:=GetLastErrorText(e);
-        OutputDebugString(es);
+        if getlasterror=ERROR_INSUFFICIENT_BUFFER then
+        begin
+          freememandnil(realcontextpointer);
+          getmem(realcontextpointer, contextsize+1024);
+          contextsize:=contextsize+1024;
+          InitializeContext(realcontextpointer, CONTEXT_ALL or CONTEXT_EXTENDED_REGISTERS {$ifdef cpu64}or CONTEXT_XSTATE{$endif}, @context, contextsize);
+        end
+        else
+        begin
+          e:=GetLastError;
+          es:=GetLastErrorText(e);
+          OutputDebugString(es);
+        end;
       end;
     end;
+
+    _contextsize:=contextsize;
   end;
   {$endif}
+
 
   if context=nil then
   begin
     context:=Align(realcontextpointer, 16);
-    context^.contextflags:=CONTEXT_ALL or CONTEXT_EXTENDED_REGISTERS;
+    contexthandler.setcontextflags(context, CONTEXT_ALL or CONTEXT_EXTENDED_REGISTERS)
   end;
 
 

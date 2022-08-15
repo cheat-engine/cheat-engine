@@ -3609,8 +3609,8 @@ begin
 end;
 
 procedure TMainForm.Label3Click(Sender: TObject);
-
 begin
+
 
 end;
 
@@ -8692,16 +8692,20 @@ procedure TMainForm.SettingsClick(Sender: TObject);
 var
 
   oldScanDone, oldInitialScanDone, oldScanStart: TNotifyEvent;
+  oldKernelQueryMemoryRegion, oldKernelReadWriteProcessMemory, oldKernelOpenProcess: boolean;
 begin
 
   suspendhotkeyhandler;
 
 
+  oldKernelQueryMemoryRegion:=formsettings.cbKernelQueryMemoryRegion.Checked;
+  oldKernelReadWriteProcessMemory:=formsettings.cbKernelReadWriteProcessMemory.Checked;
+  oldKernelOpenProcess:=formsettings.cbKernelOpenProcess.Checked;
 
   if formsettings.ShowModal <> mrOk then
   begin
     resumehotkeyhandler;
-    LoadSettingsFromRegistry(true);
+    LoadSettingsFromRegistry(true, true);
     exit;
   end;
 
@@ -8710,18 +8714,29 @@ begin
 
   {$ifdef windows}
 
-  if formsettings.cbKernelQueryMemoryRegion.Checked then
-    UseDBKQueryMemoryRegion
-  else
-    DontUseDBKQueryMemoryRegion;
-  if formsettings.cbKernelReadWriteProcessMemory.Checked then
-    UseDBKReadWriteMemory
-  else
-    DontUseDBKReadWriteMemory;
-  if formsettings.cbKernelOpenProcess.Checked then
-    UseDBKOpenProcess
-  else
-    DontUseDBKOpenProcess;
+  if oldKernelQueryMemoryRegion<>formsettings.cbKernelQueryMemoryRegion.Checked then
+  begin
+    if formsettings.cbKernelQueryMemoryRegion.Checked then
+      UseDBKQueryMemoryRegion
+    else
+      DontUseDBKQueryMemoryRegion;
+  end;
+
+  if oldKernelReadWriteProcessMemory<>formsettings.cbKernelReadWriteProcessMemory.Checked then
+  begin
+    if formsettings.cbKernelReadWriteProcessMemory.Checked then
+      UseDBKReadWriteMemory
+    else
+      DontUseDBKReadWriteMemory;
+  end;
+
+  if oldKernelOpenProcess<>formsettings.cbKernelOpenProcess.Checked then
+  begin
+    if formsettings.cbKernelOpenProcess.Checked then
+      UseDBKOpenProcess
+    else
+      DontUseDBKOpenProcess;
+  end;
   {$endif}
 
   adjustbringtofronttext;

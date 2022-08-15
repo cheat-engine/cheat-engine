@@ -721,7 +721,7 @@ begin
 
   //no exit yet, so use a enumeration of all threads and this processid
 
-  ths:=CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD,0);
+  ths:=CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD,processid);
   if ths<>0 then
   begin
     te.dwSize:=sizeof(te);
@@ -3657,7 +3657,7 @@ begin
 
 
 
-  ths:=CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD,0);
+  ths:=CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD,processid);
   if ths<>INVALID_HANDLE_VALUE then
   begin
     zeromemory(@te32,sizeof(te32));

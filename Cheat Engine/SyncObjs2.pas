@@ -80,6 +80,9 @@ begin
   if assigned(oldSetThreadDebugNameA) then
     oldSetThreadDebugNameA(tid, threadname);
 
+  if tid=TThreadID(-1) then
+    tid:=GetCurrentThreadId;
+
   threadnamesCS.enter;
   if threadnames.GetData(tid, s) then
   begin

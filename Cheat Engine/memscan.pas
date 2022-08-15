@@ -5919,6 +5919,9 @@ begin
   {$endif}
   *)
 
+  tthread.NameThreadForDebugging('Memscan TScanner thread '+inttostr(scannernr));
+
+
   lastpart:=0;
   SetExceptionMask([exInvalidOp, exDenormalized, exZeroDivide, exOverflow, exUnderflow, exPrecision]);
 
@@ -7423,6 +7426,7 @@ var err: dword;
     datatype: string[6];
 begin
  // OutputDebugString('TScanController.execute');
+  tthread.NameThreadForDebugging('Memscan TScanController thread');
 
   try
 

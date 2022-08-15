@@ -386,11 +386,12 @@ var
     header0left: integer;
 
 begin
+
   d:=TDisassemblerview(owner).currentDisassembler;
 
   fcanvas.font.style:=[];
 
-  iscurrentinstruction:=MemoryBrowser.lastdebugcontext.{$ifdef cpu64}rip{$else}EIP{$endif}=address;
+  iscurrentinstruction:=(memorybrowser.context<>nil) and (memorybrowser.contexthandler<>nil) and (memorybrowser.contexthandler.InstructionPointerRegister^.getValue(MemoryBrowser.context)=address);
 
   self.focused:=focused;
 
@@ -432,7 +433,7 @@ begin
 
 
   if iscurrentinstruction then
-    d.context:=@MemoryBrowser.lastdebugcontext
+    d.context:=MemoryBrowser.context
   else
     d.context:=nil;
 

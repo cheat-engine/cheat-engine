@@ -3054,23 +3054,67 @@ end;
 function getreg(reg: string;exceptonerror:boolean): integer; overload;
 begin
   result:=-1;
+  if processhandler.SystemArchitecture=archX86 then
+  begin
+    if (reg='RAX') or (reg='EAX') or (reg='AX') or (reg='AL') or (reg='MM0') or (reg='XMM0') or (reg='ST(0)') or (reg='ST') or (reg='ES') or (reg='CR0') or (reg='DR0') then exit(0);
+    if (reg='RCX') or (reg='ECX') or (reg='CX') or (reg='CL') or (reg='MM1') or (reg='XMM1') or (reg='ST(1)') or (reg='CS') or (reg='CR1') or (reg='DR1') then exit(1);
+    if (reg='RDX') or (reg='EDX') or (reg='DX') or (reg='DL') or (reg='MM2') or (reg='XMM2') or (reg='ST(2)') or (reg='SS') or (reg='CR2') or (reg='DR2') then exit(2);
+    if (reg='RBX') or (reg='EBX') or (reg='BX') or (reg='BL') or (reg='MM3') or (reg='XMM3') or (reg='ST(3)') or (reg='DS') or (reg='CR3') or (reg='DR3') then exit(3);
+    if (reg='SPL') or (reg='RSP') or (reg='ESP') or (reg='SP') or (reg='AH') or (reg='MM4') or (reg='XMM4') or (reg='ST(4)') or (reg='FS') or (reg='CR4') or (reg='DR4') then exit(4);
+    if (reg='BPL') or (reg='RBP') or (reg='EBP') or (reg='BP') or (reg='CH') or (reg='MM5') or (reg='XMM5') or (reg='ST(5)') or (reg='GS') or (reg='CR5') or (reg='DR5') then exit(5);
+    if (reg='SIL') or (reg='RSI') or (reg='ESI') or (reg='SI') or (reg='DH') or (reg='MM6') or (reg='XMM6') or (reg='ST(6)') or (reg='HS') or (reg='CR6') or (reg='DR6') then exit(6);
+    if (reg='DIL') or (reg='RDI') or (reg='EDI') or (reg='DI') or (reg='BH') or (reg='MM7') or (reg='XMM7') or (reg='ST(7)') or (reg='IS') or (reg='CR7') or (reg='DR7') then exit(7);
+    if (reg='R8') or (reg='XMM8') or (reg='YMM8') then exit(8);
+    if (reg='R9') or (reg='XMM9') or (reg='YMM9') then exit(9);
+    if (reg='R10') or (reg='XMM10') or (reg='YMM10') then exit(10);
+    if (reg='R11') or (reg='XMM11') or (reg='YMM11') then exit(11);
+    if (reg='R12') or (reg='XMM12') or (reg='YMM12') then exit(12);
+    if (reg='R13') or (reg='XMM13') or (reg='YMM13') then exit(13);
+    if (reg='R14') or (reg='XMM14') or (reg='YMM14') then exit(14);
+    if (reg='R15') or (reg='XMM15') or (reg='YMM15') then exit(15);
+  end
+  else
+  begin
+    if processhandler.is64Bit then
+    begin
 
-  if (reg='RAX') or (reg='EAX') or (reg='AX') or (reg='AL') or (reg='MM0') or (reg='XMM0') or (reg='ST(0)') or (reg='ST') or (reg='ES') or (reg='CR0') or (reg='DR0') then result:=0;
-  if (reg='RCX') or (reg='ECX') or (reg='CX') or (reg='CL') or (reg='MM1') or (reg='XMM1') or (reg='ST(1)') or (reg='CS') or (reg='CR1') or (reg='DR1') then result:=1;
-  if (reg='RDX') or (reg='EDX') or (reg='DX') or (reg='DL') or (reg='MM2') or (reg='XMM2') or (reg='ST(2)') or (reg='SS') or (reg='CR2') or (reg='DR2') then result:=2;
-  if (reg='RBX') or (reg='EBX') or (reg='BX') or (reg='BL') or (reg='MM3') or (reg='XMM3') or (reg='ST(3)') or (reg='DS') or (reg='CR3') or (reg='DR3') then result:=3;
-  if (reg='SPL') or (reg='RSP') or (reg='ESP') or (reg='SP') or (reg='AH') or (reg='MM4') or (reg='XMM4') or (reg='ST(4)') or (reg='FS') or (reg='CR4') or (reg='DR4') then result:=4;
-  if (reg='BPL') or (reg='RBP') or (reg='EBP') or (reg='BP') or (reg='CH') or (reg='MM5') or (reg='XMM5') or (reg='ST(5)') or (reg='GS') or (reg='CR5') or (reg='DR5') then result:=5;
-  if (reg='SIL') or (reg='RSI') or (reg='ESI') or (reg='SI') or (reg='DH') or (reg='MM6') or (reg='XMM6') or (reg='ST(6)') or (reg='HS') or (reg='CR6') or (reg='DR6') then result:=6;
-  if (reg='DIL') or (reg='RDI') or (reg='EDI') or (reg='DI') or (reg='BH') or (reg='MM7') or (reg='XMM7') or (reg='ST(7)') or (reg='IS') or (reg='CR7') or (reg='DR7') then result:=7;
-  if (reg='R8') or (reg='XMM8') or (reg='YMM8') then result:=8;
-  if (reg='R9') or (reg='XMM9') or (reg='YMM9') then result:=9;
-  if (reg='R10') or (reg='XMM10') or (reg='YMM10') then result:=10;
-  if (reg='R11') or (reg='XMM11') or (reg='YMM11') then result:=11;
-  if (reg='R12') or (reg='XMM12') or (reg='YMM12') then result:=12;
-  if (reg='R13') or (reg='XMM13') or (reg='YMM13') then result:=13;
-  if (reg='R14') or (reg='XMM14') or (reg='YMM14') then result:=14;
-  if (reg='R15') or (reg='XMM15') or (reg='YMM15') then result:=15;
+      if length(reg)>=2 then
+      begin
+        if (reg[1]='X') and (reg[2] in ['0'..'9']) then
+        begin
+          try
+            exit(reg.Substring(1).ToInteger);
+          except
+            exit(-1);
+          end;
+        end;
+
+        if reg='PC' then exit(32); //special number
+      end;
+
+    end
+    else
+    begin
+      if length(reg)>=2 then
+      begin
+        if (reg[1]='R') and (reg[2] in ['0'..'9']) then
+        begin
+          try
+            exit(reg.Substring(1).ToInteger);
+          except
+            exit(-1);
+          end;
+        end;
+
+        if reg='FP' then exit(11);
+        if reg='IP' then exit(12);
+        if reg='SP' then exit(13);
+        if reg='LR' then exit(14);
+        if reg='PC' then exit(15);
+      end;
+    end;
+  end;
+
 
   if (result=-1) and exceptonerror then raise EAssemblerException.create(rsInvalidRegister);
 end;

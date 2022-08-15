@@ -5,6 +5,9 @@ unit networkInterfaceApi;
 interface
 
 uses
+  {$ifdef windows}
+  jwawindows,
+  {$endif}
   {$ifdef JNI}
     Classes, SysUtils, networkinterface, unixporthelper, newkernelhandler;
   {$else}
@@ -12,7 +15,7 @@ uses
   mactypes, macport,
   {$endif}
   {$ifdef windows}
-  {jwawindows,} windows, dialogs,
+  windows, dialogs,
   {$endif}
   Classes, SysUtils, networkinterface, newkernelhandler, CEFuncProc;
   {$endif}
@@ -45,7 +48,7 @@ function NetworkGetRegionInfo(hProcess: THandle; lpAddress: Pointer; var lpBuffe
 implementation
 
 {$ifndef jni}
-uses networkConfig, syncobjs2;
+uses networkConfig, syncobjs2, plugin;
 {$endif}
 
 resourcestring
@@ -154,6 +157,22 @@ function NetworkModule32First(hSnapshot: HANDLE; var lpme: MODULEENTRY32): BOOL;
 begin
   if getConnection<>nil then
     result:=connection.Module32First(hSnapshot, lpme)
+  else
+    result:=FALSE;
+end;
+
+function NetworkThread32Next(hSnapshot: HANDLE; var lpte: THREADENTRY32): BOOL; stdcall;
+begin
+  if getConnection<>nil then
+    result:=connection.Thread32Next(hSnapshot, lpte)
+  else
+    result:=FALSE;
+end;
+
+function NetworkThread32First(hSnapshot: HANDLE; var lpte: THREADENTRY32): BOOL; stdcall;
+begin
+  if getConnection<>nil then
+    result:=connection.Thread32First(hSnapshot, lpte)
   else
     result:=FALSE;
 end;
@@ -313,9 +332,48 @@ begin
   result:=true;
 end;
 
+
+
+procedure ApplyNetworkAPIPointers;
+begin
+  newkernelhandler.OpenProcess:=@NetworkOpenProcess;
+  newkernelhandler.ReadProcessMemoryActual:=@NetworkReadProcessMemory;
+  newkernelhandler.WriteProcessMemoryActual:=@NetworkWriteProcessMemory;
+  newkernelhandler.VirtualProtectEx:=@NetworkVirtualProtectEx;
+  newkernelhandler.VirtualQueryExActual:=@NetworkVirtualQueryEx;
+  newkernelhandler.CreateToolhelp32Snapshot:=@NetworkCreateToolhelp32Snapshot;
+  newkernelhandler.Process32First:=@NetworkProcess32First;
+  newkernelhandler.Process32Next:=@NetworkProcess32Next;
+  newkernelhandler.Module32First:=@NetworkModule32First;
+  newkernelhandler.Module32Next:=@NetworkModule32Next;
+  newkernelhandler.Thread32First:=@NetworkThread32First;
+  newkernelhandler.Thread32Next:=@NetworkThread32Next;
+  newkernelhandler.closehandle:=@networkclosehandle;
+
+  newkernelhandler.VirtualAllocEx:=@networkVirtualAllocEx;
+  newkernelhandler.VirtualFreeEx:=@networkVirtualFreeEx;
+  newkernelhandler.CreateRemoteThread:=@networkCreateRemoteThread;
+
+  newkernelhandler.GetRegionInfo:=@NetworkGetRegionInfo;
+
+
+
+  newkernelhandler.VirtualQueryEx_StartCache:=@NetworkVirtualQueryEx_StartCache;
+  newkernelhandler.VirtualQueryEx_EndCache:=@NetworkVirtualQueryEx_EndCache;
+end;
+
+var oldApiPointerChange: TNotifyEvent;
+procedure NetworkApiPointerChange(sender: TObject);
+begin
+  ApplyNetworkAPIPointers;
+end;
+
+
 procedure InitializeNetworkInterface;
 var tm: TThreadManager;
     versionname: string;
+
+    m: TMethod;
 begin
   //hook the threadmanager if it hasn't been hooked yet
 
@@ -344,29 +402,16 @@ begin
     threadManagerIsHooked:=true;
   end;
 
-  newkernelhandler.OpenProcess:=@NetworkOpenProcess;
-  newkernelhandler.ReadProcessMemoryActual:=@NetworkReadProcessMemory;
-  newkernelhandler.WriteProcessMemoryActual:=@NetworkWriteProcessMemory;
-  newkernelhandler.VirtualProtectEx:=@NetworkVirtualProtectEx;
-  newkernelhandler.VirtualQueryExActual:=@NetworkVirtualQueryEx;
-  newkernelhandler.CreateToolhelp32Snapshot:=@NetworkCreateToolhelp32Snapshot;
-  newkernelhandler.Process32First:=@NetworkProcess32First;
-  newkernelhandler.Process32Next:=@NetworkProcess32Next;
-  newkernelhandler.Module32First:=@NetworkModule32First;
-  newkernelhandler.Module32Next:=@NetworkModule32Next;
-  newkernelhandler.closehandle:=@networkclosehandle;
 
-  newkernelhandler.VirtualAllocEx:=@networkVirtualAllocEx;
-  newkernelhandler.VirtualFreeEx:=@networkVirtualFreeEx;
-  newkernelhandler.CreateRemoteThread:=@networkCreateRemoteThread;
+  ApplyNetworkAPIPointers;
+  oldApiPointerChange:=onAPIPointerChange;
 
-  newkernelhandler.GetRegionInfo:=@NetworkGetRegionInfo;
+  m.Code:=@NetworkApiPointerChange;
+  m.Data:=nil;
+  onAPIPointerChange:=tnotifyevent(m);
 
 
-
-  newkernelhandler.VirtualQueryEx_StartCache:=@NetworkVirtualQueryEx_StartCache;
-  newkernelhandler.VirtualQueryEx_EndCache:=@NetworkVirtualQueryEx_EndCache;
-   {$endif}
+  {$endif}
 
 end;
 

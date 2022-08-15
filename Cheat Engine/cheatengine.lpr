@@ -119,7 +119,7 @@ uses
   dotnethost, rttihelper, cefreetype, LuaDotNetPipe, LuaRemoteExecutor,
   autoassemblercode, CSharpCompiler, newhintwindow, memrecDataStructures,
   LuaCECustomButton, DBVMDebuggerInterface, frmCR3SwitcherUnit, tcclib,
-  sourcecodehandler, frmSourceDisplayUnit, disassemblerarm64;
+  sourcecodehandler, frmSourceDisplayUnit, disassemblerarm64, contexthandler;
 
 {$R cheatengine.res}
 {$IFDEF windows}
@@ -280,6 +280,7 @@ var
 
   path: string;
   noautorun: boolean;
+
 begin
   Application.Title:='Cheat Engine 7.4.1';
  //'Cheat Engine 7.3';
@@ -393,7 +394,6 @@ begin
   handleparameters;
 
   OutputDebugString('Starting CE');
-
 
 
   Application.Run;

@@ -1,4 +1,42 @@
-$C remove/rename symbols that are obtained from linking
+add a memrec.OnValueChanged and memrec.OnValueChangedByUser
+cejvmti alloc can alloc outside the 2GB andf then passing pointers fails (https://forum.cheatengine.org/viewtopic.php?p=5780375#5780375)
+
+add lua command use getFileSize() when a file is open for hexediting
+
+find out what writes dialog is too small on high dpi
+refix the dark mode highlighting issue on the addresslist
+
+{$luacode sync} parameter
+{$luacode newluastate} parameter
+
+
+
+
+lua editor AND aa editor: when inside a string, the {$asm} inside the string disables lua mode.  Boith the parser and AA need to deal with that
+
+add symbol path configuration
+structure spider: dpi fixes (default window size and base address edit fields)
+structure spider: doubleclick on column 2 value should make you go there
+
+formeditor: include a new anchor editor
+
+mac/aarch64: show S registers (similar to xmm)
+mac:pointerscan sort by offset
+mac: memview/disassembler updates in a seperate thread and only render when done
+
+hexview: Select bytes->show disassembly (easy shortcut)
+
+vehdebug on tutorial-i386 fails (dll inject crashes tutorial)
+.net info: invoke method: String  (need to create a sting obnject from string)
+
+.net info: doubleclick on type of a field brings you to that type
+.net info: typing in the classes search should wait 250 ms before scanning fore the input.  (really improve smoothess in general)
+structure dissect : Nested structure
+
+Hexview typelink/colors
+
+autoassembler coloring fix
+
 enumsymbols lua command: add way to figure out duplicates
 
 ce debug and dbvm: changeregonbp , add option for 1 time only

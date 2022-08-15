@@ -46,7 +46,7 @@ resourcestring
   rsPleaseWait = 'Please Wait!';
 
 procedure UpdateToolsMenu;
-procedure LoadSettingsFromRegistry(skipPlugins: boolean=false);
+procedure LoadSettingsFromRegistry(skipPlugins: boolean=false; skipkernelapply: boolean=false);
 procedure initcetitle;
 
 
@@ -145,7 +145,7 @@ begin
   end;
 end;
 
-procedure LoadSettingsFromRegistry(skipPlugins: boolean=false);
+procedure LoadSettingsFromRegistry(skipPlugins: boolean=false; skipkernelapply: boolean=false);
 var reg : TRegistry;
     i,j: integer;
     temphotkeylist: array [0..cehotkeycount-1] of commontypedefs.tkeycombo;
@@ -910,9 +910,12 @@ begin
 
           {$ifdef windows}
 
-          if cbKernelQueryMemoryRegion.checked then UseDBKQueryMemoryRegion else DontUseDBKQueryMemoryRegion;
-          if cbKernelReadWriteProcessMemory.checked then UseDBKReadWriteMemory else DontUseDBKReadWriteMemory;
-          if cbKernelOpenProcess.Checked then UseDBKOpenProcess else DontUseDBKOpenProcess;
+          if skipkernelapply=false then
+          begin
+            if cbKernelQueryMemoryRegion.checked then UseDBKQueryMemoryRegion else DontUseDBKQueryMemoryRegion;
+            if cbKernelReadWriteProcessMemory.checked then UseDBKReadWriteMemory else DontUseDBKReadWriteMemory;
+            if cbKernelOpenProcess.Checked then UseDBKOpenProcess else DontUseDBKOpenProcess;
+          end;
 
           if cbProcessWatcher.Checked then
             if (frmProcessWatcher=nil) then //probably yes

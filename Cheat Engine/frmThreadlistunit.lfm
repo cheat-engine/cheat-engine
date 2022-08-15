@@ -12,10 +12,10 @@ object frmThreadlist: TfrmThreadlist
   OnDestroy = FormDestroy
   OnShow = FormShow
   Position = poOwnerFormCenter
-  LCLVersion = '2.2.0.4'
+  LCLVersion = '2.2.2.0'
   object threadTreeview: TTreeView
     Left = 0
-    Height = 171
+    Height = 172
     Top = 0
     Width = 313
     Align = alClient
@@ -32,12 +32,13 @@ object frmThreadlist: TfrmThreadlist
   end
   object lblIsWOW64: TLabel
     Left = 0
-    Height = 16
-    Top = 171
+    Height = 15
+    Top = 172
     Width = 313
     Align = alBottom
     Caption = 'Hold ctrl when expanding to see the 32-bit context of a thread'
     Color = clDefault
+    ParentColor = False
     Transparent = False
     Visible = False
   end

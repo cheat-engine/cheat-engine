@@ -14,7 +14,8 @@ uses
   LCLIntf, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls,CEFuncProc, ExtCtrls, ComCtrls, Menus, NewKernelHandler, LResources,
   disassembler, symbolhandler, byteinterpreter, CustomTypeHandler, maps, math, Clipbrd,
-  addressparser, commonTypeDefs, DBK32functions, vmxfunctions, betterControls, syncobjs;
+  addressparser, commonTypeDefs, DBK32functions, vmxfunctions, betterControls,
+  syncobjs, contexthandler;
 
 const
   cbDisplayTypeIndexByte=0;
@@ -28,10 +29,15 @@ const
 type
   TfrmChangedAddresses=class;
   TAddressEntry=class
+  private
+    fcontext: Pointer;
+    contexthandler: TContextInfo;
+
+    procedure setContext(c: pointer);
   public
     address: ptruint; //for whatever reason it could be used in the future
     base: ptruint;
-    context: TContext;
+
     stack: record
       stack: pbyte;
       savedsize: PtrUInt;
@@ -47,6 +53,8 @@ type
     procedure savestack;
     constructor create(AOwner: TfrmChangedAddresses);
     destructor destroy; override;
+
+    property context: pointer read fContext write setContext;
   end;
 
 
@@ -150,6 +158,8 @@ type
     currentFilter: string;
     currentFilterFunc: integer;
     filterExtraRegs: boolean;
+
+
     function checkFilter(entry: TaddressEntry): boolean;
     procedure rebuildListWithFilter;
 
@@ -217,6 +227,10 @@ begin
   if stack.stack<>nil then
     freememandnil(stack.stack);
 
+
+  if fcontext<>nil then
+    freememandnil(fcontext);
+
   inherited destroy;
 end;
 
@@ -225,26 +239,41 @@ begin
   owner:=aowner;
 end;
 
+procedure TAddressEntry.setContext(c: pointer);
+begin
+  if fcontext<>nil then
+    freememandnil(fcontext);
+
+  contexthandler:=getBestContextHandler;
+  fcontext:=contexthandler.getcopy(c);
+end;
+
+
 procedure TAddressEntry.fillBase;
 var ap: TAddressParser;
 begin
   if (base=0) and (owner<>nil) then
   begin
     ap:=TAddressParser.Create;
-    ap.setSpecialContext(@context);
+    ap.setSpecialContext(fcontext);
     base:=ap.getBaseAddress(owner.equation);
     ap.free;
   end;
 end;
 
 procedure TAddressEntry.savestack;
+var stackbase: ptruint;
 begin
   getmem(stack.stack, savedStackSize);
-  if ReadProcessMemory(processhandle, pointer(context.{$ifdef cpu64}Rsp{$else}esp{$endif}), stack.stack, savedStackSize, stack.savedsize)=false then
+  stackbase:=contexthandler.StackPointerRegister^.getValue(fcontext);
+
+
+
+  if ReadProcessMemory(processhandle, pointer(stackbase), stack.stack, savedStackSize, stack.savedsize)=false then
   begin
     //for some reason this sometimes returns 0 bytes read even if some of the bytes are readable.
-    stack.savedsize:=4096-(context.{$ifdef cpu64}Rsp{$else}esp{$endif} mod 4096);
-    ReadProcessMemory(processhandle, pointer(context.{$ifdef cpu64}Rsp{$else}esp{$endif}), stack.stack, stack.savedsize, stack.savedsize);
+    stack.savedsize:=4096-(stackbase mod 4096);
+    ReadProcessMemory(processhandle, pointer(stackbase), stack.stack, stack.savedsize, stack.savedsize);
   end;
 end;
 
@@ -363,7 +392,7 @@ begin
           end;
         end;
 
-        x.context:=c;
+        x.context:=@c;
 
         OutputDebugString('adding to the lists');
         s:=inttohex(address,8);
@@ -471,8 +500,9 @@ begin
 
   if foundcodedialog<>nil then
   begin
+     //TFoundCodeDialog(foundcodedialog).setChangedAddressCount(contexthan
+    TFoundCodeDialog(foundcodedialog).setChangedAddressCount(newRecord.contexthandler.InstructionPointerRegister^.getValue(newrecord.context));
 
-    TFoundCodeDialog(foundcodedialog).setChangedAddressCount(newRecord.context.{$ifdef cpu64}Rip{$else}eip{$endif});
     if (changedlist.Items.Count>=8) then //remove this breakpoint
       debuggerthread.FindWhatCodeAccessesStop(self);
   end;
@@ -560,7 +590,7 @@ begin
         if changedlist.Items[i].Selected then
         begin
           ae:=changedlist.items[i].data;
-          ap.setSpecialContext(@ae.context);
+          ap.setSpecialContext(@ae.fcontext);
           address:=ap.getBaseAddress(equation);
 
           maxoffset:=max(maxoffset, 8+strtoint64('$'+changedlist.Items[i].Caption)-address);
@@ -856,7 +886,7 @@ function TfrmChangedAddresses.checkFilter(entry: TaddressEntry): boolean;
 begin
   if currentFilterFunc=-1 then exit(true);
 
-  LUA_SetCurrentContextState(0,@entry.context, filterExtraRegs);
+  LUA_SetCurrentContextState(0,@entry.fcontext, filterExtraRegs);
   lua_rawgeti(LuaVM, LUA_REGISTRYINDEX, currentFilterFunc);
   if lua_pcall(LuaVM,0,1,0)=0 then
   begin
@@ -1324,7 +1354,7 @@ begin
 
       ae:=TAddressEntry(changedlist.Selected.Data);
 
-      SetContextPointer(@ae.context, ae.stack.stack, ae.stack.savedsize);
+      SetContextPointer(@ae.fcontext, ae.stack.stack, ae.stack.savedsize);
 
       show;
     end;

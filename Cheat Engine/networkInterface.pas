@@ -49,6 +49,7 @@ type
   TVQEMapCmp = specialize TLess<PtrUInt>;
   TVQEMap = specialize TMap<PtrUInt, TVirtualQueryExCache, TVQEMapCmp>;
 
+
   TCEConnection=class
   private
     socket: cint;
@@ -91,6 +92,9 @@ type
     function Module32Next(hSnapshot: HANDLE; var lpme: MODULEENTRY32; isfirst: boolean=false): BOOL;
     function Module32First(hSnapshot: HANDLE; var lpme: MODULEENTRY32): BOOL;
 
+    function Thread32Next(hSnapshot: HANDLE; var lpte: THREADENTRY32; isfirst: boolean=false): BOOL;
+    function Thread32First(hSnapshot: HANDLE; var lpte: THREADENTRY32): BOOL;
+
     function Process32Next(hSnapshot: HANDLE; var lppe: PROCESSENTRY32; isfirst: boolean=false): BOOL;
     function Process32First(hSnapshot: HANDLE; var lppe: PROCESSENTRY32): BOOL;
     function CreateToolhelp32Snapshot(dwFlags, th32ProcessID: DWORD): HANDLE;
@@ -115,7 +119,8 @@ type
     function ContinueDebugEvent(hProcess: THandle; threadid: dword; continuemethod: integer): BOOL;
     function SetBreakpoint(hProcess: THandle; threadid: integer; debugregister: integer; address: PtrUInt; bptype: integer; bpsize: integer): boolean;
     function RemoveBreakpoint(hProcess: THandle; threadid: integer; debugregister: integer; wasWatchpoint: boolean): boolean;
-    function AllocateAndGetContext(hProcess: Thandle; threadid: integer): pointer;
+    function AllocateAndGetContext(hProcess: Thandle; threadid: integer): Pointer;
+    function setContext(hProcess: Thandle; threadid: integer; context: pointer; contextsize: integer): boolean;
     function getVersion(var name: string): integer;
     function getArchitecture(hProcess: THandle): integer;
     function getABI: integer;
@@ -200,6 +205,12 @@ type
     part: integer;
     name: string;
   end;
+
+  TLocalThreadListEntry=class
+    threadid: dword;
+    ownerprocessid: dword;
+  end;
+
 
 {  TLocalProcessListEntry=class
 
@@ -413,6 +424,57 @@ begin
   result:=module32next(hSnapshot, lpme, true);
 end;
 
+function TCEConnection.Thread32Next(hSnapshot: HANDLE; var lpte: THREADENTRY32; isfirst: boolean=false): BOOL;
+var
+  ths: TToolhelp32SnapshotInfo;
+  index: integer;
+  tle: TLocalThreadListEntry;
+begin
+  result:=false;
+
+  if ((hSnapshot shr 24) and $ff)= $cd then
+  begin
+    //local snapshot
+    LocalToolhelpSnapshotsCS.Enter;
+    try
+      ths:=LocalToolhelpSnapshots[hSnapshot and $ffffff];
+    finally
+      LocalToolhelpSnapshotsCS.Leave;
+    end;
+
+    if ths=nil then
+    begin
+      OutputDebugString('Module32First/Next on an invalid toolhelp handle');
+      exit;
+    end;
+
+    if ths.snapshottype<>TH32CS_SNAPTHREAD then exit;
+
+
+    if isfirst then
+      lpte.dwFlags:=0;  //use dwFlags as counter
+
+    if lpte.dwFlags>=ths.list.Count then exit(false);
+
+    tle:=TLocalThreadListEntry(ths.list[lpte.dwFlags]);
+    lpte.cntUsage:=0;
+    lpte.tpDeltaPri:=0;
+    lpte.tpBasePri:=0;
+    lpte.th32OwnerProcessID:=tle.ownerprocessid;
+    lpte.th32ThreadID:=tle.ThreadID;
+    inc(lpte.dwFlags);
+    exit(true);
+  end;
+  //else unhandled.
+
+end;
+
+function TCEConnection.Thread32First(hSnapshot: HANDLE; var lpte: THREADENTRY32): BOOL;
+begin
+  exit(thread32next(hSnapshot, lpte, true));
+end;
+
+
 function TCEConnection.Process32Next(hSnapshot: HANDLE; var lppe: PROCESSENTRY32; isfirst: boolean=false): BOOL;
 var ProcesslistCommand: packed record
     command: byte;
@@ -497,7 +559,10 @@ var CTSCommand: packed record
 
   ths: TToolhelp32SnapshotInfo;
   mle: TLocalModuleListEntry;
+  tle: TLocalThreadListEntry;
   i: integer;
+
+  threadlist: array of integer;
 
 begin
   result:=0;
@@ -510,6 +575,57 @@ begin
   r:=0;
   if send(@CTSCommand, sizeof(CTSCommand))>0 then
   begin
+    if (dwFlags and TH32CS_SNAPTHREAD)=TH32CS_SNAPTHREAD then
+    begin
+      //it'll send a list of threadid's now
+      ths:=TToolhelp32SnapshotInfo.create;
+      ths.handle:=0;
+      ths.snapshottype:=TH32CS_SNAPTHREAD;
+
+      LocalToolhelpSnapshotsCS.enter;
+      try
+        for i:=0 to length(LocalToolhelpSnapshots)-1 do
+        begin
+          if LocalToolhelpSnapshots[i]=nil then
+          begin
+            LocalToolhelpSnapshots[i]:=ths;
+            ths.handle:=$cd000000 or i;
+            break;
+          end;
+        end;
+
+        if ths.handle=0 then
+        begin
+          i:=length(LocalToolhelpSnapshots);
+
+          setlength(LocalToolhelpSnapshots,length(LocalToolhelpSnapshots)+1);
+          LocalToolhelpSnapshots[i]:=ths;
+          ths.handle:=$cd000000 or i;
+        end;
+      finally
+        LocalToolhelpSnapshotsCS.leave;
+      end;
+
+      result:=ths.handle;
+
+      if receive(@r, sizeof(r))>0 then
+      begin
+        setlength(threadlist, r);
+        if receive(@threadlist[0],sizeof(integer)*r)>0 then
+        begin
+          for i:=0 to length(threadlist)-1 do
+          begin
+            tle:=TLocalThreadListEntry.create;
+            tle.ownerprocessid:=th32processid;
+            tle.threadid:=threadlist[i];
+            ths.list.add(tle);
+          end;
+        end;
+      end;
+
+
+    end
+    else
     if (dwFlags and TH32CS_SNAPMODULE)=TH32CS_SNAPMODULE then
     begin
       //it'll send me a list of modules now
@@ -573,7 +689,8 @@ begin
             mle.part:=r2.modulepart;
             mle.size:=r2.modulesize;
             mle.name:=mname;
-            mle.name:=mle.name+'.'+inttostr(r2.modulepart);
+            if r2.modulepart<>0 then
+              mle.name:=mle.name+'.'+inttostr(r2.modulepart);
 
             ths.list.add(mle);
           end;
@@ -1592,30 +1709,56 @@ begin
 
 end;
 
+function TCEConnection.setContext(hProcess: Thandle; threadid: integer; context: pointer; contextsize: integer): boolean;
+var
+  input: packed record
+    command: UINT8;
+    hProcess: uint32;
+    threadid: uint32;
+    contextsize: uint32;
+  end;
+  r: uint32;
+begin
+  result:=false;
+  input.command:=CMD_SETTHREADCONTEXT;
+  input.hProcess:=hProcess and $ffffff;
+  input.threadid:=threadid;
+  input.contextsize:=ContextSize;
+
+  if send(@input, sizeof(input))>0 then
+  begin
+    if send(context, contextsize)>0 then
+    begin
+      if receive(@r,sizeof(r))>0 then
+        result:=r<>0;
+    end;
+  end;
+end;
+
 function TCEConnection.AllocateAndGetContext(hProcess: Thandle; threadid: integer): pointer;
 //get he context and save it in an allocated memory block of variable size. The caller is responsible for freeing this block
+
 var
   Input: packed record
     command: UINT8;
     hprocess: uint32;
     threadid: uint32;
-    ctype: uint32;  //ignored for now
   end;
 
   contextsize: UINT32;
   r: integer;
+
 begin
   result:=nil;
   input.command:=CMD_GETTHREADCONTEXT;
   input.hprocess:=hProcess and $ffffff;
   input.threadid:=threadid;
-  input.ctype:=0;
+
 
   if send(@input, sizeof(input))>0 then
   begin
     if receive(@r, sizeof(r))>0 then
     begin
-
       if (r<>0) and (receive(@contextsize, sizeof(contextsize))>0) then
       begin
         getmem(result,  contextsize);
@@ -1625,10 +1768,8 @@ begin
           result:=nil;
         end;
       end;
-
     end;
   end;
-
 end;
 
 function TCEConnection.getVersion(var name: string): integer;
@@ -2113,7 +2254,7 @@ end;
 
 destructor TCEConnection.destroy;
 begin
-  if socket<>cint(INVALID_SOCKET) then
+  if not ((socket=cint(INVALID_SOCKET)) or (socket=0)) then
     CloseSocket(socket);
 
   if VirtualQueryExCacheMap<>nil then

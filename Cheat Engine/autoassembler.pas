@@ -3780,7 +3780,7 @@ begin
       end;
     end;
 
-    if (not SystemSupportsWritableExecutableMemory) and (not SkipVirtualProtectEx) then
+    if (not SystemSupportsWritableExecutableMemory) and (not SkipVirtualProtectEx) and (ProcessID<>GetCurrentProcessId) then
       ntsuspendProcess(processhandle);
 
 
@@ -3812,7 +3812,7 @@ begin
       end;
     end;
 
-    if (not SystemSupportsWritableExecutableMemory) and (not SkipVirtualProtectEx) then
+    if (not SystemSupportsWritableExecutableMemory) and (not SkipVirtualProtectEx) and (ProcessID<>GetCurrentProcessId) then
       ntresumeProcess(processhandle);
 
 

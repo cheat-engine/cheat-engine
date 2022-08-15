@@ -637,8 +637,8 @@ function LaunchDotNetInterface()
   
   
   dotnetpipe.OnError=function(self)
-    print("dotnetpipe error")
-    print(debug.traceback())    
+   -- print("dotnetpipe error")
+  --  print(debug.traceback())    
     dotnetpipe=nil
   end 
 

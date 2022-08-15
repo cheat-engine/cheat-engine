@@ -4,7 +4,7 @@ object frmPointerScanner: TfrmPointerScanner
   Top = 143
   Width = 749
   Caption = 'Pointer scan'
-  ClientHeight = 465
+  ClientHeight = 445
   ClientWidth = 749
   Menu = MainMenu1
   OnClose = FormClose
@@ -16,24 +16,24 @@ object frmPointerScanner: TfrmPointerScanner
   LCLVersion = '2.2.2.0'
   object Panel1: TPanel
     Left = 0
-    Height = 24
+    Height = 27
     Top = 0
     Width = 749
     Align = alTop
     AutoSize = True
     BevelOuter = bvNone
-    ClientHeight = 24
+    ClientHeight = 27
     ClientWidth = 749
     TabOrder = 0
     object cbType: TComboBox
       AnchorSideTop.Control = Panel1
       Left = 0
-      Height = 20
+      Height = 23
       Top = 2
       Width = 145
       BorderSpacing.Top = 2
       BorderSpacing.Bottom = 2
-      ItemHeight = 26
+      ItemHeight = 15
       ItemIndex = 2
       Items.Strings = (
         'Byte'
@@ -55,10 +55,10 @@ object frmPointerScanner: TfrmPointerScanner
     end
     object cbTestCrappyConnection: TCheckBox
       AnchorSideLeft.Control = Panel1
-      Left = 314
-      Height = 18
+      Left = 320
+      Height = 19
       Top = 6
-      Width = 159
+      Width = 146
       Anchors = [akTop]
       Caption = 'Simulate no connection'
       OnChange = cbTestCrappyConnectionChange
@@ -67,9 +67,9 @@ object frmPointerScanner: TfrmPointerScanner
     end
     object cbNonResponsive: TCheckBox
       Left = 480
-      Height = 18
+      Height = 19
       Top = 6
-      Width = 180
+      Width = 165
       Caption = 'Non responsive connection'
       OnChange = cbNonResponsiveChange
       TabOrder = 2
@@ -78,9 +78,9 @@ object frmPointerScanner: TfrmPointerScanner
   end
   object btnStopRescanLoop: TButton
     Left = 184
-    Height = 20
+    Height = 25
     Top = 0
-    Width = 118
+    Width = 114
     AutoSize = True
     Caption = 'Stop rescan loop'
     OnClick = btnStopRescanLoopClick
@@ -90,7 +90,7 @@ object frmPointerScanner: TfrmPointerScanner
   object pnlProgress: TPanel
     Left = 0
     Height = 24
-    Top = 441
+    Top = 421
     Width = 749
     Align = alBottom
     AutoSize = True
@@ -102,32 +102,32 @@ object frmPointerScanner: TfrmPointerScanner
       Left = 1
       Height = 22
       Top = 1
-      Width = 140
+      Width = 123
       Align = alLeft
       AutoSize = True
       BevelOuter = bvNone
       ClientHeight = 22
-      ClientWidth = 140
+      ClientWidth = 123
       TabOrder = 0
       object lblProgressbar1: TLabel
         AnchorSideTop.Side = asrCenter
         Left = 0
-        Height = 16
+        Height = 15
         Top = 0
-        Width = 140
+        Width = 123
         Caption = 'Generating pointermap'
         ParentColor = False
       end
     end
     object pnlProgressBar: TPanel
-      Left = 141
+      Left = 124
       Height = 22
       Top = 1
-      Width = 607
+      Width = 624
       Align = alClient
       AutoSize = True
       ClientHeight = 22
-      ClientWidth = 607
+      ClientWidth = 624
       TabOrder = 1
       object ProgressBar1: TProgressBar
         AnchorSideLeft.Control = pnlProgressBar
@@ -137,7 +137,7 @@ object frmPointerScanner: TfrmPointerScanner
         Left = 1
         Height = 20
         Top = 1
-        Width = 605
+        Width = 622
         Anchors = [akTop, akLeft, akRight]
         Step = 1
         TabOrder = 0
@@ -146,20 +146,20 @@ object frmPointerScanner: TfrmPointerScanner
   end
   object pnlData: TPanel
     Left = 0
-    Height = 417
-    Top = 24
+    Height = 394
+    Top = 27
     Width = 749
     Align = alClient
     BevelOuter = bvNone
     Caption = 'pnlData'
-    ClientHeight = 417
+    ClientHeight = 394
     ClientWidth = 749
     TabOrder = 4
     object tvInfo: TTreeView
       Left = 0
-      Height = 393
+      Height = 365
       Top = 0
-      Width = 581
+      Width = 590
       Align = alClient
       Indent = 19
       PopupMenu = miInfoPopup
@@ -171,18 +171,18 @@ object frmPointerScanner: TfrmPointerScanner
     end
     object pnlStop: TPanel
       Left = 0
-      Height = 24
-      Top = 393
+      Height = 29
+      Top = 365
       Width = 749
       Align = alBottom
       AutoSize = True
       BevelOuter = bvNone
-      ClientHeight = 24
+      ClientHeight = 29
       ClientWidth = 749
       TabOrder = 1
       object btnStopScan: TButton
         Left = 0
-        Height = 20
+        Height = 25
         Hint = 'This will stop the current scan and show you the results it has found'
         Top = 2
         Width = 90
@@ -198,15 +198,15 @@ object frmPointerScanner: TfrmPointerScanner
       end
     end
     object pnlControl: TPanel
-      Left = 581
-      Height = 393
+      Left = 590
+      Height = 365
       Top = 0
-      Width = 168
+      Width = 159
       Align = alRight
       AutoSize = True
       BevelOuter = bvNone
-      ClientHeight = 393
-      ClientWidth = 168
+      ClientHeight = 365
+      ClientWidth = 159
       TabOrder = 2
       object cbPriority: TComboBox
         AnchorSideLeft.Control = lblThreadPriority
@@ -215,12 +215,12 @@ object frmPointerScanner: TfrmPointerScanner
         AnchorSideRight.Control = pnlControl
         AnchorSideRight.Side = asrBottom
         Left = 2
-        Height = 20
-        Top = 193
-        Width = 164
+        Height = 23
+        Top = 199
+        Width = 155
         Anchors = [akTop, akLeft, akRight]
         BorderSpacing.Right = 2
-        ItemHeight = 26
+        ItemHeight = 15
         ItemIndex = 3
         Items.Strings = (
           'Idle'
@@ -239,14 +239,14 @@ object frmPointerScanner: TfrmPointerScanner
       object gbNetwork: TGroupBox
         AnchorSideRight.Side = asrBottom
         Left = 0
-        Height = 177
+        Height = 184
         Top = 0
-        Width = 168
+        Width = 159
         Align = alTop
         AutoSize = True
         Caption = 'Network'
-        ClientHeight = 158
-        ClientWidth = 158
+        ClientHeight = 164
+        ClientWidth = 155
         TabOrder = 1
         object edtIP: TEdit
           AnchorSideLeft.Control = lblIP
@@ -255,9 +255,9 @@ object frmPointerScanner: TfrmPointerScanner
           AnchorSideRight.Control = gbNetwork
           AnchorSideRight.Side = asrBottom
           Left = 2
-          Height = 22
-          Top = 18
-          Width = 154
+          Height = 23
+          Top = 17
+          Width = 151
           Anchors = [akTop, akLeft, akRight]
           BorderSpacing.Right = 2
           TabOrder = 0
@@ -266,9 +266,9 @@ object frmPointerScanner: TfrmPointerScanner
           AnchorSideLeft.Control = gbNetwork
           AnchorSideTop.Control = gbNetwork
           Left = 2
-          Height = 16
+          Height = 15
           Top = 2
-          Width = 12
+          Width = 10
           BorderSpacing.Left = 2
           BorderSpacing.Top = 2
           Caption = 'IP'
@@ -279,9 +279,9 @@ object frmPointerScanner: TfrmPointerScanner
           AnchorSideTop.Control = edtIP
           AnchorSideTop.Side = asrBottom
           Left = 2
-          Height = 16
+          Height = 15
           Top = 40
-          Width = 25
+          Width = 22
           Caption = 'Port'
           ParentColor = False
         end
@@ -290,8 +290,8 @@ object frmPointerScanner: TfrmPointerScanner
           AnchorSideTop.Control = lblPort
           AnchorSideTop.Side = asrBottom
           Left = 2
-          Height = 22
-          Top = 56
+          Height = 23
+          Top = 55
           Width = 80
           NumbersOnly = True
           TabOrder = 1
@@ -304,9 +304,9 @@ object frmPointerScanner: TfrmPointerScanner
           AnchorSideRight.Control = gbNetwork
           AnchorSideRight.Side = asrBottom
           Left = 2
-          Height = 22
-          Top = 94
-          Width = 154
+          Height = 23
+          Top = 93
+          Width = 151
           Anchors = [akTop, akLeft, akRight]
           BorderSpacing.Right = 2
           TabOrder = 2
@@ -316,9 +316,9 @@ object frmPointerScanner: TfrmPointerScanner
           AnchorSideTop.Control = edtPort
           AnchorSideTop.Side = asrBottom
           Left = 2
-          Height = 16
+          Height = 15
           Top = 78
-          Width = 58
+          Width = 50
           Caption = 'Password'
           ParentColor = False
         end
@@ -327,10 +327,10 @@ object frmPointerScanner: TfrmPointerScanner
           AnchorSideTop.Control = edtPassword
           AnchorSideTop.Side = asrBottom
           Left = 2
-          Height = 18
+          Height = 19
           Hint = 'Trust that this server will not disappear during the scan and that the children it trusts itself won''t do so either'
           Top = 116
-          Width = 103
+          Width = 90
           Caption = 'Trust stability'
           ParentShowHint = False
           ShowHint = True
@@ -341,9 +341,9 @@ object frmPointerScanner: TfrmPointerScanner
           AnchorSideTop.Control = cbTrusted
           AnchorSideTop.Side = asrBottom
           Left = 6
-          Height = 20
-          Top = 136
-          Width = 146
+          Height = 25
+          Top = 137
+          Width = 143
           AutoSize = True
           BorderSpacing.Left = 6
           BorderSpacing.Top = 2
@@ -359,9 +359,9 @@ object frmPointerScanner: TfrmPointerScanner
         AnchorSideTop.Control = gbNetwork
         AnchorSideTop.Side = asrBottom
         Left = 2
-        Height = 16
-        Top = 177
-        Width = 143
+        Height = 15
+        Top = 184
+        Width = 123
         BorderSpacing.Left = 2
         Caption = 'Scanner thread priority:'
         ParentColor = False
@@ -373,9 +373,9 @@ object frmPointerScanner: TfrmPointerScanner
         AnchorSideRight.Control = btnDecreaseThreadCount
         AnchorSideRight.Side = asrBottom
         Left = 2
-        Height = 20
-        Top = 251
-        Width = 148
+        Height = 25
+        Top = 265
+        Width = 142
         AutoSize = True
         BorderSpacing.Top = 2
         Caption = 'Increase worker count'
@@ -389,9 +389,9 @@ object frmPointerScanner: TfrmPointerScanner
         AnchorSideRight.Control = cbPriority
         AnchorSideRight.Side = asrBottom
         Left = 2
-        Height = 20
-        Top = 229
-        Width = 154
+        Height = 25
+        Top = 238
+        Width = 146
         AutoSize = True
         BorderSpacing.Top = 16
         BorderSpacing.Right = 2

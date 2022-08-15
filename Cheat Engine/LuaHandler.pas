@@ -1075,132 +1075,138 @@ begin
   lua_pushinteger(luavm, tid);
   lua_setglobal(luavm, 'THREADID');
 
-  {$ifdef cpu64}
-  lua_pushinteger(luavm, context^.{$ifdef cpu64}Rax{$else}eax{$endif});
-  lua_setglobal(luavm, 'RAX');
-  {$endif}
-  lua_pushinteger(luavm, context^.{$ifdef cpu64}Rax{$else}eax{$endif} and $ffffffff);
-  lua_setglobal(luavm, 'EAX');
-
-  {$ifdef cpu64}
-  lua_pushinteger(luavm, context^.{$ifdef cpu64}Rbx{$else}ebx{$endif});
-  lua_setglobal(luavm, 'RBX');
-  {$endif}
-  lua_pushinteger(luavm, context^.{$ifdef cpu64}Rbx{$else}ebx{$endif} and $ffffffff);
-  lua_setglobal(luavm, 'EBX');
-
-
-  {$ifdef cpu64}
-  lua_pushinteger(luavm, context^.{$ifdef cpu64}Rcx{$else}ecx{$endif});
-  lua_setglobal(luavm, 'RCX');
-  {$endif}
-  lua_pushinteger(luavm, context^.{$ifdef cpu64}Rcx{$else}ecx{$endif} and $ffffffff);
-  lua_setglobal(luavm, 'ECX');
-
-  {$ifdef cpu64}
-  lua_pushinteger(luavm, context^.{$ifdef cpu64}Rdx{$else}edx{$endif});
-  lua_setglobal(luavm, 'RDX');
-  {$endif}
-  lua_pushinteger(luavm, context^.{$ifdef cpu64}Rdx{$else}edx{$endif} and $ffffffff);
-  lua_setglobal(luavm, 'EDX');
-
-
-  {$ifdef cpu64}
-  lua_pushinteger(luavm, context^.{$ifdef cpu64}Rsi{$else}esi{$endif});
-  lua_setglobal(luavm, 'RSI');
-  {$endif}
-  lua_pushinteger(luavm, context^.{$ifdef cpu64}Rsi{$else}esi{$endif} and $ffffffff);
-  lua_setglobal(luavm, 'ESI');
-
-
-  {$ifdef cpu64}
-  lua_pushinteger(luavm, context^.{$ifdef cpu64}Rdi{$else}edi{$endif});
-  lua_setglobal(luavm, 'RDI');
-  {$endif}
-  lua_pushinteger(luavm, context^.{$ifdef cpu64}Rdi{$else}edi{$endif} and $ffffffff);
-  lua_setglobal(luavm, 'EDI');
-
-
-  {$ifdef cpu64}
-  lua_pushinteger(luavm, context^.{$ifdef cpu64}Rbp{$else}ebp{$endif});
-  lua_setglobal(luavm, 'RBP');
-  {$endif}
-  lua_pushinteger(luavm, context^.{$ifdef cpu64}RBP{$else}eBP{$endif} and $ffffffff);
-  lua_setglobal(luavm, 'EBP');
-
-
-  {$ifdef cpu64}
-  lua_pushinteger(luavm, context^.{$ifdef cpu64}RSP{$else}eSP{$endif});
-  lua_setglobal(luavm, 'RSP');
-  {$endif}
-  lua_pushinteger(luavm, context^.{$ifdef cpu64}RSP{$else}eSP{$endif} and $ffffffff);
-  lua_setglobal(luavm, 'ESP');
-
-  {$ifdef cpu64}
-  lua_pushinteger(luavm, context^.{$ifdef cpu64}RIP{$else}eIP{$endif});
-  lua_setglobal(luavm, 'RIP');
-  {$endif}
-  lua_pushinteger(luavm, context^.{$ifdef cpu64}RIP{$else}eIP{$endif} and $ffffffff);
-  lua_setglobal(luavm, 'EIP');
-
-  lua_pushinteger(luavm, context^.EFlags);
-  lua_setglobal(luavm, 'EFLAGS');
-
-
-
-  {$ifdef cpu64}
-  lua_pushinteger(luavm, context^.r8);
-  lua_setglobal(luavm, 'R8');
-
-  lua_pushinteger(luavm, context^.r9);
-  lua_setglobal(luavm, 'R9');
-
-  lua_pushinteger(luavm, context^.r10);
-  lua_setglobal(luavm, 'R10');
-
-  lua_pushinteger(luavm, context^.r11);
-  lua_setglobal(luavm, 'R11');
-
-  lua_pushinteger(luavm, context^.r12);
-  lua_setglobal(luavm, 'R12');
-
-  lua_pushinteger(luavm, context^.r13);
-  lua_setglobal(luavm, 'R13');
-
-  lua_pushinteger(luavm, context^.r14);
-  lua_setglobal(luavm, 'R14');
-
-  lua_pushinteger(luavm, context^.r15);
-  lua_setglobal(luavm, 'R15');
-  {$endif}
-
-  if extraregs then //default off as it's a bit slow
+  if processhandler.SystemArchitecture=archX86 then
   begin
-    for i:=0 to 7 do
+    {$ifdef cpu64}
+    lua_pushinteger(luavm, context^.{$ifdef cpu64}Rax{$else}eax{$endif});
+    lua_setglobal(luavm, 'RAX');
+    {$endif}
+    lua_pushinteger(luavm, context^.{$ifdef cpu64}Rax{$else}eax{$endif} and $ffffffff);
+    lua_setglobal(luavm, 'EAX');
+
+    {$ifdef cpu64}
+    lua_pushinteger(luavm, context^.{$ifdef cpu64}Rbx{$else}ebx{$endif});
+    lua_setglobal(luavm, 'RBX');
+    {$endif}
+    lua_pushinteger(luavm, context^.{$ifdef cpu64}Rbx{$else}ebx{$endif} and $ffffffff);
+    lua_setglobal(luavm, 'EBX');
+
+
+    {$ifdef cpu64}
+    lua_pushinteger(luavm, context^.{$ifdef cpu64}Rcx{$else}ecx{$endif});
+    lua_setglobal(luavm, 'RCX');
+    {$endif}
+    lua_pushinteger(luavm, context^.{$ifdef cpu64}Rcx{$else}ecx{$endif} and $ffffffff);
+    lua_setglobal(luavm, 'ECX');
+
+    {$ifdef cpu64}
+    lua_pushinteger(luavm, context^.{$ifdef cpu64}Rdx{$else}edx{$endif});
+    lua_setglobal(luavm, 'RDX');
+    {$endif}
+    lua_pushinteger(luavm, context^.{$ifdef cpu64}Rdx{$else}edx{$endif} and $ffffffff);
+    lua_setglobal(luavm, 'EDX');
+
+
+    {$ifdef cpu64}
+    lua_pushinteger(luavm, context^.{$ifdef cpu64}Rsi{$else}esi{$endif});
+    lua_setglobal(luavm, 'RSI');
+    {$endif}
+    lua_pushinteger(luavm, context^.{$ifdef cpu64}Rsi{$else}esi{$endif} and $ffffffff);
+    lua_setglobal(luavm, 'ESI');
+
+
+    {$ifdef cpu64}
+    lua_pushinteger(luavm, context^.{$ifdef cpu64}Rdi{$else}edi{$endif});
+    lua_setglobal(luavm, 'RDI');
+    {$endif}
+    lua_pushinteger(luavm, context^.{$ifdef cpu64}Rdi{$else}edi{$endif} and $ffffffff);
+    lua_setglobal(luavm, 'EDI');
+
+
+    {$ifdef cpu64}
+    lua_pushinteger(luavm, context^.{$ifdef cpu64}Rbp{$else}ebp{$endif});
+    lua_setglobal(luavm, 'RBP');
+    {$endif}
+    lua_pushinteger(luavm, context^.{$ifdef cpu64}RBP{$else}eBP{$endif} and $ffffffff);
+    lua_setglobal(luavm, 'EBP');
+
+
+    {$ifdef cpu64}
+    lua_pushinteger(luavm, context^.{$ifdef cpu64}RSP{$else}eSP{$endif});
+    lua_setglobal(luavm, 'RSP');
+    {$endif}
+    lua_pushinteger(luavm, context^.{$ifdef cpu64}RSP{$else}eSP{$endif} and $ffffffff);
+    lua_setglobal(luavm, 'ESP');
+
+    {$ifdef cpu64}
+    lua_pushinteger(luavm, context^.{$ifdef cpu64}RIP{$else}eIP{$endif});
+    lua_setglobal(luavm, 'RIP');
+    {$endif}
+    lua_pushinteger(luavm, context^.{$ifdef cpu64}RIP{$else}eIP{$endif} and $ffffffff);
+    lua_setglobal(luavm, 'EIP');
+
+    lua_pushinteger(luavm, context^.EFlags);
+    lua_setglobal(luavm, 'EFLAGS');
+
+
+
+    {$ifdef cpu64}
+    lua_pushinteger(luavm, context^.r8);
+    lua_setglobal(luavm, 'R8');
+
+    lua_pushinteger(luavm, context^.r9);
+    lua_setglobal(luavm, 'R9');
+
+    lua_pushinteger(luavm, context^.r10);
+    lua_setglobal(luavm, 'R10');
+
+    lua_pushinteger(luavm, context^.r11);
+    lua_setglobal(luavm, 'R11');
+
+    lua_pushinteger(luavm, context^.r12);
+    lua_setglobal(luavm, 'R12');
+
+    lua_pushinteger(luavm, context^.r13);
+    lua_setglobal(luavm, 'R13');
+
+    lua_pushinteger(luavm, context^.r14);
+    lua_setglobal(luavm, 'R14');
+
+    lua_pushinteger(luavm, context^.r15);
+    lua_setglobal(luavm, 'R15');
+    {$endif}
+
+    if extraregs then //default off as it's a bit slow
     begin
-      {$ifdef cpu32}
-      CreateByteTableFromPointer(luavm, @context^.FloatSave.RegisterArea[10*i], 10);
-      {$else}
-      CreateByteTableFromPointer(luavm, @context^.FltSave.FloatRegisters[i], 10);
-      {$endif}
-      lua_setglobal(luavm, pchar('FP'+inttostr(i)));
+      for i:=0 to 7 do
+      begin
+        {$ifdef cpu32}
+        CreateByteTableFromPointer(luavm, @context^.FloatSave.RegisterArea[10*i], 10);
+        {$else}
+        CreateByteTableFromPointer(luavm, @context^.FltSave.FloatRegisters[i], 10);
+        {$endif}
+        lua_setglobal(luavm, pchar('FP'+inttostr(i)));
+      end;
+
+      //xmm regs
+
+      for i:=0 to 15 do
+      begin
+        if (i>=8) and (not processhandler.is64Bit) then break;
+
+        {$ifdef cpu32}
+        CreateByteTableFromPointer(luavm, @context^.ext.XMMRegisters.LegacyXMM[i], 16);
+        {$else}
+        CreateByteTableFromPointer(luavm, @context^.FltSave.XmmRegisters[i], 16);
+        {$endif}
+        lua_setglobal(luavm, pchar('XMM'+inttostr(i)));
+      end;
     end;
-
-    //xmm regs
-
-    for i:=0 to 15 do
-    begin
-      if (i>=8) and (not processhandler.is64Bit) then break;
-
-      {$ifdef cpu32}
-      CreateByteTableFromPointer(luavm, @context^.ext.XMMRegisters.LegacyXMM[i], 16);
-      {$else}
-      CreateByteTableFromPointer(luavm, @context^.FltSave.XmmRegisters[i], 16);
-      {$endif}
-      lua_setglobal(luavm, pchar('XMM'+inttostr(i)));
-    end;
+  end
+  else
+  begin
+    //todo: ARM
   end;
-
 end;
 
 procedure LUA_GetNewContextState(context: PContext; extraregs: boolean=false);
@@ -2543,13 +2549,14 @@ begin
     vpe:=(SkipVirtualProtectEx=false) and VirtualProtectEx(processhandle, pointer(address), bytecount, PAGE_EXECUTE_READWRITE, oldprotect)
   else
   begin
-    ntsuspendProcess(processhandle);
+    if processid<>GetCurrentProcessId then
+      ntsuspendProcess(processhandle);
     vpe:=(SkipVirtualProtectEx=false) and VirtualProtectEx(processhandle, pointer(address), bytecount, PAGE_READWRITE, oldprotect);
   end;
   WriteProcessMemory(processhandle, pointer(address), @bytes[0], bytecount, x);
   if vpe then VirtualProtectEx(processhandle, pointer(address), bytecount, oldprotect, oldprotect);
 
-  if not (SystemSupportsWritableExecutableMemory or SkipVirtualProtectEx) then
+  if (not (SystemSupportsWritableExecutableMemory or SkipVirtualProtectEx)) and (processid<>GetCurrentProcessId) then
     ntresumeProcess(processhandle);
 
 
@@ -8638,9 +8645,19 @@ end;
 
 type
   TNewProcess=class(TProcess)
+
+   // function ges: boolean;
+
     function RunCommandLoop(out outputstring: string; out stderrstring: string;
       out anexitstatus: integer): integer; override;
   end;
+   {
+function tnewprocess.ges: boolean;
+begin
+  Result:=GetExitCodeProcess(ProcessHandle,FExitCode) and (FExitCode<>Still_Active);
+  if not result then
+    WaitForSingleObject(FProcessHandle,10);
+end;  }
 
 function TNewProcess.RunCommandLoop(out outputstring:string;
                               out stderrstring:string; out anexitstatus:integer):integer;
@@ -8662,7 +8679,7 @@ function TNewProcess.RunCommandLoop(out outputstring:string;
       stderrlength:=0;
       Execute;
 
-      while WaitForSingleObject(FProcessHAndle,0)=WAIT_TIMEOUT do
+      while WaitForSingleObject(FProcessHandle,0)=WAIT_TIMEOUT do
         begin
           // Only call ReadFromStream if Data from corresponding stream
           // is already available, otherwise, on  linux, the read call
@@ -8742,41 +8759,47 @@ var
   exitstatus: integer;
 begin
   p:=[];
-  if lua_gettop(L)>=2 then
+  if lua_gettop(L)>=1 then
   begin
     s:='';
 
     exe:=Lua_ToString(L,1);
-    if lua_istable(L,2) then
+
+    if lua_gettop(L)>=2 then
     begin
-      pl:=lua_objlen(L, 2);
-      setlength(p,pl);
-
-      for i:=1 to pl do
+      if lua_istable(L,2) then
       begin
-        lua_pushinteger(L,i);
-        lua_gettable(L,2);
+        pl:=lua_objlen(L, 2);
+        setlength(p,pl);
 
-        if lua_isstring(L,-1) then
+        for i:=1 to pl do
         begin
-          p[i-1]:=Lua_ToString(L,-1);
-          lua_pop(L,1);
-        end
-        else
-        begin
-          lua_pushnil(L);
-          lua_pushstring(L,'Invalid parameter at index '+inttostr(i));
-          exit(2);
+          lua_pushinteger(L,i);
+          lua_gettable(L,2);
+
+          if lua_isstring(L,-1) then
+          begin
+            p[i-1]:=Lua_ToString(L,-1);
+            lua_pop(L,1);
+          end
+          else
+          begin
+            lua_pushnil(L);
+            lua_pushstring(L,'Invalid parameter at index '+inttostr(i));
+            exit(2);
+          end;
+
         end;
-
+      end
+      else
+      if lua_isstring(L,2) then
+      begin
+        SetLength(p,1);
+        p[0]:=Lua_ToString(L,2);
       end;
     end
     else
-    if lua_isstring(L,2) then
-    begin
-      SetLength(p,1);
-      p[0]:=Lua_ToString(L,2);
-    end;
+      setlength(p,0);
 
     if lua_gettop(L)>=3 then
       curdir:=Lua_ToString(L,3)

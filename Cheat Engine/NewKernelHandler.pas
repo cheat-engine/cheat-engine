@@ -8,7 +8,7 @@ interface
 uses SysUtils, MacOSAll, MacOSXPosix, macport, macportdefines;
 {$else}
 uses jwawindows, windows,LCLIntf,sysutils, dialogs, classes, controls,
-     dbk32functions, vmxfunctions,debug, multicpuexecution, contnrs, Clipbrd, globals;
+     {$ifndef STANDALONECH}dbk32functions, vmxfunctions,debug, multicpuexecution,globals,{$endif} contnrs, Clipbrd;
 {$endif}
 
 const dbkdll='DBK32.dll';
@@ -242,13 +242,16 @@ type
      R8: DWORD;
      R9: DWORD;
      R10: DWORD;
-     FP: DWORD;
-     IP: DWORD;
-     SP: DWORD;
-     LR: DWORD;
-     PC: DWORD;
+     FP: DWORD;  //R11
+     IP: DWORD;  //R12
+     SP: DWORD;  //R13
+     LR: DWORD;  //R14
+     PC: DWORD;  //R15
      CPSR: DWORD;
      ORIG_R0: DWORD;
+
+     fpu: array [0..31] of uint64;
+     fpureg: dword;
   end;
 
   PARMCONTEXT=^TARMCONTEXT;
@@ -295,13 +298,25 @@ type
    end;
 
   {$ifndef darwin}  //defined in macport.pas
-  TARM64CONTEXT=packed record
+  {$ifdef cpu32}
+  type
+     M128A = record
+          Low: ULONGLONG;
+          High: LONGLONG;
+       end;
+  {$endif}
+  TARM64CONTEXT=record
+       regs: TARM64CONTEXT_REGISTERS;
+       SP:  QWORD;
+       PC:  QWORD;
+       PSTATE: QWORD;
 
-     regs: TARM64CONTEXT_REGISTERS;
-
-     SP:  QWORD;
-     PC:  QWORD;
-     PSTATE: QWORD;
+       fp: record
+         vregs: array [0..31] of m128a; //  __uint128_t vregs[32];
+         fpsr: UINT32; // __u32 fpsr;
+         fpcr: UINT32; // __u32 fpcr;
+         reserved: array [0..1] of UINT32; //             __u32 __reserved[2];
+       end;
   end;
 
   PARM64CONTEXT=^TARM64CONTEXT;
@@ -444,6 +459,7 @@ type
   {$else}
   CONTEXT=_CONTEXT;
   CONTEXT32=_CONTEXT;
+  PCONTEXT32=^CONTEXT32;
   TContext=CONTEXT;
   PContext = ^TContext;
   {$endif}
@@ -896,6 +912,7 @@ var
 implementation
 
 {$ifndef JNI}
+{$ifndef STANDALONECH}
 uses
      {$ifdef cemain}
      plugin,
@@ -903,6 +920,7 @@ uses
      {$endif}
      Filehandler,  //so I can let readprocessmemory point to ReadProcessMemoryFile in filehandler
      autoassembler, frmEditHistoryUnit, frmautoinjectunit, cpuidUnit, MemoryBrowserFormUnit;
+{$endif}
 {$endif}
 
 
@@ -1342,7 +1360,9 @@ end;
 
 function WriteProcessMemory(hProcess: THandle; const lpBaseAddress: Pointer; lpBuffer: Pointer; nSize: DWORD; var lpNumberOfBytesWritten: PTRUINT): BOOL; stdcall;
 var
+{$ifndef STANDALONECH}
   wle: TWriteLogEntry;
+{$endif}
   x: PTRUINT;
   cr3: ptruint;
 begin
@@ -1355,7 +1375,9 @@ begin
    {$endif}
 
   result:=false;
+   {$ifndef STANDALONECH}
   wle:=nil;
+
   if logWrites then
   begin
     if nsize<64*1024*1024 then
@@ -1368,6 +1390,7 @@ begin
       wle.originalsize:=x;
     end;
   end;
+{$endif}
 
   {$ifdef windows}
   {$ifdef cpu64}
@@ -1387,6 +1410,7 @@ begin
   {$endif}
   result:=WriteProcessMemoryActual(hProcess, lpBaseAddress, lpbuffer, nSize, lpNumberOfBytesWritten);
 
+{$ifndef STANDALONECH}
   if result and logwrites and (wle<>nil) then
   begin
     getmem(wle.newbytes, lpNumberOfBytesWritten);
@@ -1394,6 +1418,7 @@ begin
     wle.newsize:=x;
     addWriteLogEntryToList(wle);
   end;
+{$endif}
 end;
 
 function ReadProcessMemory(hProcess: THandle; lpBaseAddress, lpBuffer: Pointer; nSize: size_t; var lpNumberOfBytesRead: PTRUINT): BOOL; stdcall;
@@ -1535,7 +1560,7 @@ var
   signed: BOOL;
   r: string;
 begin
-{$ifdef windows}
+{$if defined(windows) and not defined(STANDALONECH)}
   result:=isRunningDBVM;
   if result then exit;
 
@@ -1585,7 +1610,7 @@ end;
 
 function isRunningDBVM: boolean;
 begin
-{$ifdef windows}
+{$if defined(windows) and not defined(STANDALONECH)}
   result:=dbvm_version>0;
 {$else}
   result:=false;
@@ -1746,7 +1771,7 @@ const
   IA32_VMX_PROCBASED_CTLS2_MSR=$48b;
 var procbased1flags: DWORD;
 begin
-  {$ifdef windows}
+  {$if defined(windows) and not defined(STANDALONECH)}
   try
     result:=isDBVMCapable; //assume yes until proven otherwise
 
@@ -1794,7 +1819,7 @@ end;
 
 procedure LoadDBK32; stdcall;
 begin
-{$ifdef windows}
+{$if defined(windows) and not defined(STANDALONECH)}
   if not DBKLoaded then
   begin
     outputdebugstring('LoadDBK32');
@@ -1903,7 +1928,7 @@ end;
 procedure DBKFileAsMemory; overload;
 {Changes the redirection of ReadProcessMemory, WriteProcessMemory and VirtualQueryEx to FileHandler.pas's ReadProcessMemoryFile, WriteProcessMemoryFile and VirtualQueryExFile }
 begin
-{$ifdef windows}
+{$if defined(windows) and not defined(STANDALONECH)}
   UseFileAsMemory:=true;
   usephysical:=false;
   Usephysicaldbvm:=false;
@@ -1921,7 +1946,7 @@ end;
 
 procedure DBKFileAsMemory(fn:string; baseaddress: ptruint=0); overload;
 begin
-{$ifdef windows}
+{$if defined(windows) and not defined(STANDALONECH)}
   filehandler.filename:=filename;
   if filehandler.filedata<>nil then
     freeandnil(filehandler.filedata);
@@ -1938,7 +1963,7 @@ end;
 function VirtualQueryExPhysical(hProcess: THandle; lpAddress: Pointer; var lpBuffer: TMemoryBasicInformation; dwLength: DWORD): DWORD; stdcall;
 var buf:_MEMORYSTATUS;
 begin
-{$ifdef windows}
+{$if defined(windows) and not defined(STANDALONECH)}
 
   if dbk32functions.hdevice<>INVALID_HANDLE_VALUE then
   begin
@@ -1991,7 +2016,7 @@ end;
 
 procedure DBKPhysicalMemory;
 begin
-{$ifdef windows}
+{$if defined(windows) and not defined(STANDALONECH)}
   LoadDBK32;
   If DBKLoaded=false then exit;
 
@@ -2017,7 +2042,7 @@ end;
 
 procedure DBKProcessMemory;
 begin
-{$ifdef windows}
+{$if defined(windows) and not defined(STANDALONECH)}
   usephysical:=false;
   Usephysicaldbvm:=false;
 
@@ -2045,7 +2070,7 @@ end;
 procedure DontUseDBKQueryMemoryRegion;
 {Changes the redirection of VirtualQueryEx back to the windows API virtualQueryEx}
 begin
-{$ifdef windows}
+{$if defined(windows) and not defined(STANDALONECH)}
   VirtualQueryExActual:=GetProcAddress(WindowsKernel,'VirtualQueryEx');
   usedbkquery:=false;
   if usephysicaldbvm then DbkPhysicalMemoryDBVM;
@@ -2062,7 +2087,7 @@ end;
 procedure UseDBKQueryMemoryRegion;
 {Changes the redirection of VirtualQueryEx to the DBK32 equivalent}
 begin
-{$ifdef windows}
+{$if defined(windows) and not defined(STANDALONECH)}
   LoadDBK32;
   If DBKLoaded=false then exit;
   UseDBKOpenProcess;
@@ -2084,7 +2109,7 @@ end;
 procedure DontUseDBKReadWriteMemory;
 {Changes the redirection of ReadProcessMemory and WriteProcessMemory back to the windows API ReadProcessMemory and WriteProcessMemory }
 begin
-{$ifdef windows}
+{$if defined(windows) and not defined(STANDALONECH)}
   DBKReadWrite:=false;
   ReadProcessMemoryActual:=GetProcAddress(WindowsKernel,'ReadProcessMemory');
   WriteProcessMemoryActual:=GetProcAddress(WindowsKernel,'WriteProcessMemory');
@@ -2108,7 +2133,7 @@ var
   old: pointer;
   olds: string;
 begin
-{$ifdef windows}
+{$if defined(windows) and not defined(STANDALONECH)}
   LoadDBK32;
   If DBKLoaded=false then exit;
   UseDBKOpenProcess;
@@ -2150,7 +2175,7 @@ end;
 procedure DontUseDBKOpenProcess;
 {Changes the redirection of OpenProcess and VirtualAllocEx  back to the windows API OpenProcess and VirtualAllocEx }
 begin
-{$ifdef windows}
+{$if defined(windows) and not defined(STANDALONECH)}
   OpenProcess:=GetProcAddress(WindowsKernel,'OpenProcess');
   OpenThread:=GetProcAddress(WindowsKernel,'OpenThread');
 
@@ -2166,7 +2191,7 @@ var
   zwc: pointer;
   func: pointer;
 begin
-{$ifdef windows}
+{$if defined(windows) and not defined(STANDALONECH)}
   LoadDBK32;
   If DBKLoaded=false then exit;
   OpenProcess:=@OP; //gives back the real handle, or if it fails it gives back a value only valid for the dll
@@ -2225,6 +2250,8 @@ begin
 end;
 
 {$endif}
+
+{$ifndef STANDALONECH}
 procedure initMaxPhysMask;
 var cpuidr: TCPUIDResult;
 iswow: BOOL;
@@ -2261,6 +2288,7 @@ begin
 
   {$endif}
 end;
+{$endif}
 
 {$ifdef windows}
 procedure getLBROffset;
@@ -2317,7 +2345,7 @@ resourcestring
 
 initialization
 
-  {$ifdef windows}
+  {$if defined(windows) and not defined(STANDALONECH)}
   DBKLoaded:=false;
 
   usephysical:=false;
@@ -2432,7 +2460,10 @@ initialization
 
   getLBROffset;
   {$endif}
+
+  {$ifndef STANDALONECH}
   initMaxPhysMask;
+  {$endif}
 
   {$ifdef darwin}
   ReadProcessMemoryActual:=@macport.ReadProcessMemory;
@@ -2441,6 +2472,25 @@ initialization
   GetThreadContext:=@macport.GetThreadContext;
   VirtualQueryExActual:=@macport.Virtualqueryex;
   OpenProcess:=@macport.OpenProcess;
+  {$else}
+{
+  OutputDebugString('TARM64CONTEXT:');
+  OutputDebugString(format('regs at %p',[@PARM64CONTEXT(0).regs]));
+  OutputDebugString(format('SP at %p',[@PARM64CONTEXT(0).SP]));
+  OutputDebugString(format('PC at %p',[@PARM64CONTEXT(0).PC]));
+  OutputDebugString(format('PSTATE at %p',[@PARM64CONTEXT(0).PSTATE]));
+  OutputDebugString(format('fp at %p',[@PARM64CONTEXT(0).fp]));
+  OutputDebugString(format('vregs[0] at %p',[@PARM64CONTEXT(0).fp.vregs[0]]));
+  OutputDebugString(format('vregs[1] at %p',[@PARM64CONTEXT(0).fp.vregs[1]]));
+  OutputDebugString(format('vregs[2] at %p',[@PARM64CONTEXT(0).fp.vregs[2]]));
+  OutputDebugString(format('vregs[30] at %p',[@PARM64CONTEXT(0).fp.vregs[30]]));
+  OutputDebugString(format('vregs[31] at %p',[@PARM64CONTEXT(0).fp.vregs[31]]));
+  OutputDebugString(format('fpsr at %p',[@PARM64CONTEXT(0).fp.fpsr]));
+  OutputDebugString(format('fpcr at %p',[@PARM64CONTEXT(0).fp.fpcr]));
+  OutputDebugString(format('reserved[0] at %p',[@PARM64CONTEXT(0).fp.reserved[0]]));
+  OutputDebugString(format('reserved[1] at %p',[@PARM64CONTEXT(0).fp.reserved[1]]));
+
+  }
 
   {$endif}
 

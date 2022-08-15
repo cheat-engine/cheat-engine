@@ -63,6 +63,7 @@
           </CodeGeneration>
           <Linking>
             <Debugging>
+              <DebugInfoType Value="dsDwarf2Set"/>
               <StripSymbols Value="True"/>
               <UseExternalDbgSyms Value="True"/>
             </Debugging>
@@ -87,8 +88,9 @@
 -dcemain
 -dNDEBUG
 -dDBVMFORAMDISWORKING
--dNESTEDSTRUCTURES"/>
-            <OtherDefines Count="14">
+-dNESTEDSTRUCTURES
+-dTHREADNAMESUPPORT"/>
+            <OtherDefines Count="13">
               <Define0 Value="NOTMULTITHREADED"/>
               <Define1 Value="benchmarkps"/>
               <Define2 Value="cemain"/>
@@ -102,7 +104,6 @@
               <Define10 Value="memorymapped"/>
               <Define11 Value="privatebuild"/>
               <Define12 Value="DBVMFORAMDISWORKING"/>
-              <Define13 Value="FORCEDDARKMODE"/>
             </OtherDefines>
           </Other>
         </CompilerOptions>
@@ -375,6 +376,9 @@
             </Optimizations>
           </CodeGeneration>
           <Linking>
+            <Debugging>
+              <DebugInfoType Value="dsDwarf2Set"/>
+            </Debugging>
             <Options>
               <Win32>
                 <GraphicApplication Value="True"/>
@@ -392,6 +396,21 @@
               <StopAfterErrCount Value="1000"/>
             </ConfigFile>
             <CustomOptions Value="-dNOTMULTITHREADED -dbenchmarkps -dcemain -WB00400000 -dNDEBUG -dD3DDebug -dNOVMX -dCUSTOMFLOAT -dXDEBUG -dNESTEDSTRUCTURES"/>
+            <OtherDefines Count="13">
+              <Define0 Value="NOTMULTITHREADED"/>
+              <Define1 Value="benchmarkps"/>
+              <Define2 Value="cemain"/>
+              <Define3 Value="NDEBUG"/>
+              <Define4 Value="D3DDebug"/>
+              <Define5 Value="NOVMX"/>
+              <Define6 Value="CUSTOMFLOAT"/>
+              <Define7 Value="XDEBUG"/>
+              <Define8 Value="memleaksearch"/>
+              <Define9 Value="checkassembleralphabet"/>
+              <Define10 Value="memorymapped"/>
+              <Define11 Value="privatebuild"/>
+              <Define12 Value="DBVMFORAMDISWORKING"/>
+            </OtherDefines>
           </Other>
         </CompilerOptions>
       </Item7>
@@ -576,8 +595,9 @@
 -dNOVMX
 -dCUSTOMFLOAT
 -dXDEBUG
--dNESTEDSTRUCTURES"/>
-            <OtherDefines Count="15">
+-dNESTEDSTRUCTURES
+-dTHREADNAMESUPPORT"/>
+            <OtherDefines Count="13">
               <Define0 Value="NOTMULTITHREADED"/>
               <Define1 Value="benchmarkps"/>
               <Define2 Value="cemain"/>
@@ -591,8 +611,6 @@
               <Define10 Value="memorymapped"/>
               <Define11 Value="privatebuild"/>
               <Define12 Value="DBVMFORAMDISWORKING"/>
-              <Define13 Value="FORCEDDARKMODE"/>
-              <Define14 Value="NESTEDSTRUCTURES"/>
             </OtherDefines>
           </Other>
         </CompilerOptions>
@@ -643,7 +661,7 @@
         <PackageName Value="LCL"/>
       </Item8>
     </RequiredPackages>
-    <Units Count="412">
+    <Units Count="413">
       <Unit0>
         <Filename Value="cheatengine.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -2817,6 +2835,10 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="DisAssemblerARM64"/>
       </Unit411>
+      <Unit412>
+        <Filename Value="contexthandler.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit412>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
@@ -2923,7 +2945,6 @@
       </Item10>
       <Item11>
         <Name Value="EAssemblerException"/>
-        <Enabled Value="False"/>
       </Item11>
       <Item12>
         <Name Value="EAutoAssembler"/>
@@ -2933,7 +2954,6 @@
       </Item13>
       <Item14>
         <Name Value="EFileMapError"/>
-        <Enabled Value="False"/>
       </Item14>
       <Item15>
         <Name Value="EParserError"/>

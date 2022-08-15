@@ -263,8 +263,7 @@ var
   allocs: TCEAllocarray;
 
 begin
-  if IsDebuggerPresent() then
-    self.NameThreadForDebugging('Debugger thread');
+  self.NameThreadForDebugging('Debugger thread', GetCurrentThreadId);
 
   if terminated then exit;
 
@@ -1053,6 +1052,7 @@ begin
 
                   currentthread.DebugRegistersUsedByCE:=currentthread.DebugRegistersUsedByCE or (1 shl breakpoint.debugregister);
                   newdr7:= (currentthread.context.Dr7 and clearmask) or Debugregistermask;     ;
+
                   currentthread.context.Dr7 := newdr7;
                   currentthread.setContext(cfDebug);
                   currentthread.fillContext;
@@ -2236,7 +2236,8 @@ begin
   end;
 
 
-  if uppercase(defaultDisassembler.LastDisassembleData.opcode)='RET' then
+
+  if (processhandler.SystemArchitecture=archX86) and (uppercase(defaultDisassembler.LastDisassembleData.opcode)='RET') then
   begin
     if processhandler.is64Bit then
       s:='[RSP]'
@@ -2251,13 +2252,27 @@ begin
     else
     begin
       //no [   ] part
-      if processhandler.is64Bit then
-        s:='RDI'
-      else
-        s:='EDI';
+      if processhandler.SystemArchitecture=archX86 then
+      begin
+        if processhandler.is64Bit then
+          s:='RDI'
+        else
+          s:='EDI';
+      end;
     end;
   end;
 
+  if processhandler.SystemArchitecture=archArm then
+  begin
+    //s is something like reg, #hexoffset  or reg, hexoffset or reg, reg
+    //strip the # and replace the , with a +
+    if pos('-',s)>0 then
+      s:=StringReplace(s,',','', [rfReplaceAll])
+    else
+      s:=StringReplace(s,',','+', [rfReplaceAll]);
+
+    s:=StringReplace(s,'#','', [rfReplaceAll]);
+  end;
 
   frmchangedaddresses.equation:=s; //so no need to disassemble every single time...
   frmchangedaddresses.FoundCodeDialog:=foundCodeDialog;

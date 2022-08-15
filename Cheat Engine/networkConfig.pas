@@ -13,7 +13,7 @@ uses
   {$endif}
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics,
   Dialogs, StdCtrls, ExtCtrls, ComCtrls, Menus, resolve, Sockets, ctypes,
-  registry;
+  registry, betterControls;
 
 type
 
@@ -281,7 +281,7 @@ end;
 procedure TfrmNetworkConfig.btnConnectClick(Sender: TObject);
 var reg: Tregistry;
 begin
-  CEconnect(edtHost.text, strtoint(edtPort.text));
+  CEconnect(trim(edtHost.text), strtoint(trim(edtPort.text)));
 
   //still here so the connection is made
   reg:=tregistry.create;

@@ -83,7 +83,7 @@ type
     procedure setprobably(address:ptrUint);
   public
     { Public declarations }
-    context: Context;
+    context: PContext;  //needs to free this on destroy
     stack: record
       savedsize: dword;
       stack: pbyte;
@@ -106,7 +106,7 @@ type
 
 implementation
 
-uses MemoryBrowserFormUnit;
+uses MemoryBrowserFormUnit, ProcessHandlerUnit;
 
 resourcestring
   rsTheValueOfThePointerNeededToFindThisAddressIsProba = 'The value of the '
@@ -182,6 +182,9 @@ begin
   if fpp<>nil then
     fpp.Free;
 
+  if context<>nil then
+    freememandnil(context);
+
   saveformposition(self);
 end;
 
@@ -256,45 +259,8 @@ begin
 end;
 
 procedure TFormFoundCodeListExtra.Panel6Resize(Sender: TObject);
-var maxrightwidth: integer;
 begin
-  {maxrightwidth:=lblRBP.width;
-  maxrightwidth:=max(maxrightwidth, lblRSP.Width);
-  maxrightwidth:=max(maxrightwidth, lblRIP.Width);
-  if lblR10<>nil then
-  begin
-    maxrightwidth:=max(maxrightwidth, lblR10.Width);
-    maxrightwidth:=max(maxrightwidth, lblR13.Width);
-  end;
 
-  lblRBP.Left:=(panel6.ClientWidth-sbShowFloats.width)-maxrightwidth-lblRAX.Left;
-  lblRSP.left:=lblRBP.left;
-  lblRIP.Left:=lblRBP.Left;
-
-  lblRDX.Left:=((panel6.ClientWidth-sbShowFloats.width) div 2)-(lblRDX.Width div 2);
-  lblRSI.left:=lblRDX.left;
-  lblRDI.Left:=lblRDX.left;
-
-  if lblR8<>nil then
-  begin
-    lblR9.left:=lblRDX.left;
-    lblR12.Left:=lblRDX.Left;
-    lblR15.Left:=lblRDX.Left;
-
-    lblR10.left:=lblRBP.left;
-    lblR13.left:=lblRBP.left;
-  end;
-
-
-  sbShowFloats.top:=lblRSP.Top+(lblRSP.height div 2)-(sbShowFloats.height);
-  sbShowFloats.Left:=panel6.ClientWidth-sbShowFloats.Width;
-
-  sbShowstack.top:=lblRSP.Top+(lblRSP.height div 2);
-  sbShowstack.left:=sbShowFloats.left;
-
-  label18.top:=panel6.clientheight-label18.height;
-
-         }
 end;
 
 procedure TFormFoundCodeListExtra.sbShowStackClick(Sender: TObject);
@@ -315,7 +281,7 @@ begin
 
   fpp.Left:=self.left+self.Width;
   fpp.Top:=self.top;
-  fpp.SetContextPointer(@context);
+  fpp.SetContextPointer(context);
   fpp.show;//pop to foreground
 end;
 

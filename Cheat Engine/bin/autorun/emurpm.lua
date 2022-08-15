@@ -1,4 +1,4 @@
-local emurpm = {}
+emurpm = {}
 
 local function fileExists(filename)
   local f=io.open(filename, "r")
@@ -54,20 +54,25 @@ end
 
 
 --allocate memory to store the base address of the emulated memory
-autoAssemble([[
+ar1,di1=autoAssemble([[
   alloc(EmuBaseAddress, 8)
+  alloc(EmuVirtualBaseAddress,8)
   alloc(EmuSize, 8)
   registersymbol(EmuBaseAddress)
   registersymbol(EmuSize)
+  registersymbol(EmuVirtualBaseAddress)
+
+  EmuVirtualBaseAddress:
+  dq 80000000
 
   EmuBaseAddress:
-  dq 1000
+  dq 0
 
   EmuSize:
   dq 100000
 ]], true)
 
-autoAssemble([[
+ar2,di2=autoAssemble([[
   alloc(EmuRPM, 512)
   alloc(EmuWPM, 512)
   alloc(EmuVQE, 512)
@@ -78,12 +83,28 @@ autoAssemble([[
 
   EmuRPM:
   [64-bit]
-  sub rdx,ffffffff80000000
+  //rcx=hProcess
+  //rdx=lpBaseAddress
+  //r8=lpBuffer
+  //r9=nSize
+  //[rsp+28]=lpNumberOfBytesread
+  
+  //e.g: EmuBaseAddress=0x00400000
+  //reading of address 0 should end up reading 0x00400000
+  
+  
+  sub rdx,[EmuVirtualBaseAddress]
   add rdx,[EmuBaseAddress] //adjust the address
   [/64-bit]
 
   [32-bit]
-  sub [esp+8],ffffffff80000000
+  //[esp+4]=hProcess
+  //[esp+8]=lpBaseAddress
+  //[esp+c]=lpBuffer
+  //[esp+10]=nSize
+  //[esp+14]=lpNumberOfBytesRead
+  mov eax,[EmuVirtualBaseAddress]
+  sub [esp+8],eax
 
   mov eax,[EmuBaseAddress]
   add [esp+8], eax //adjust address to read
@@ -93,42 +114,66 @@ autoAssemble([[
 
   EmuWPM:
   [64-bit]
-  sub rdx,ffffffff80000000
+  sub rdx,[EmuVirtualBaseAddress]
   add rdx,[EmuBaseAddress] //adjust the address
   [/64-bit]
 
   [32-bit]
-  sub [esp+8],ffffffff80000000
+  mov eax,[EmuVirtualBaseAddress]
+  sub [esp+8],eax
 
   mov eax,[EmuBaseAddress]
   add [esp+8], eax //adjust address to read
   [/32-bit]
   jmp kernel32.WriteProcessMemory
 
-  EmuVQE:
+EmuVQE:
   //Take the base address and fill in the MBI
   [64-bit]
   //RCX=hProcess
   //RDX=lpAddress
   //R8=lpBuffer
   //R9=dwLength
-  xor rax,rax
 
   cmp r9,#48
   jb invalidlength
 
-  cmp rdx,[EmuSize]
-  ja invalidlength //actually unreadable, but has the same effect for ce
+  mov rax,[EmuVirtualBaseAddress]
+  add rax,[EmuSize]
+  cmp rdx,rax
+  jae invalidlength //actually unreadable, but has the same effect for ce
+  
+  cmp rdx,[EmuVirtualBaseAddress]
+  jae insideregion
+  
+  //not yet there
 
-
+  
+  and rdx,fffffffffffff000
+  mov [r8+0],rdx //baseaddress
+  mov [r8+8],rax
+  mov [r8+10],1
+  
+  mov rax,[EmuVirtualBaseAddress]
+  sub rax,rdx
+  mov [r8+18],rax //region size
+  mov dword ptr [r8+20],10000 //MEM_FREE
+  mov dword ptr [r8+24],1
+  mov dword ptr [r8+28],0  
+  mov rax,#48 
+  ret  
+    
+  
+insideregion:
   and rdx,fffffffffffff000
   mov [r8+0],rdx //baseaddress
 
-  mov [r8+8],80000000 //allocationbase
+  mov rax,[EmuVirtualBaseAddress]
+  mov [r8+8],rax //allocationbase
   mov [r8+10],0x40 //allocation protect: page execute read write (actually a dword, but store as qword to zero the unused bytes)
 
 
-  sub rdx,ffffffff80000000
+  sub rdx,[EmuVirtualBaseAddress]
   mov rax,[EmuSize]
   sub rax,rdx
 
@@ -140,8 +185,10 @@ autoAssemble([[
   mov dword ptr [r8+28],0x20000 //type: mem_private
 
   mov rax,#48 //set the return size to 48 bytes
+  ret
 
   invalidlength:
+  xor rax,rax
   ret
 
   [/64-bit]
@@ -195,6 +242,7 @@ autoAssemble([[
 
 
 function emurpm.setEmuPointer()
+  print("emurpm.setEmuPointer")
   setAPIPointer(1, getAddress("EmuRPM", true)) --make RPM calls call emurpm
   setAPIPointer(2, getAddress("EmuWPM", true)) --make WPM calls call emuwpm
   setAPIPointer(3, getAddress("EmuVQE", true)) --make VQE calls call EmuVQE
@@ -203,7 +251,11 @@ end
 function emurpm.emuSetAddress(sender) --called by the (Re)Set address button
   --first undo the api pointer change since I need to read the actual memory
 
-  onAPIPointerChange(nil) --shouldn't be needed, but in case this ever gets changed so setAPIPointer calls it as well
+  print("emurpm.emuSetAddress")
+
+  if onAPIPointerChange then
+    onAPIPointerChange(nil) --shouldn't be needed, but in case this ever gets changed so setAPIPointer calls it as well
+  end
 
 
   setAPIPointer(1, windows_ReadProcessMemory) --make RPM calls call emurpm
@@ -211,13 +263,16 @@ function emurpm.emuSetAddress(sender) --called by the (Re)Set address button
   setAPIPointer(3, windows_VirtualQueryEx)
 
   writeQwordLocal("EmuBaseAddress", getAddress(frmEmuMemory.edtAddress.Text))
+  writeQwordLocal("EmuVirtualBaseAddress", tonumber(frmEmuMemory.edtVirtual0.Text,16))
   writeQwordLocal("EmuSize", loadstring('return '..frmEmuMemory.edtMemsize.Text)())
 
 
 
   emurpm.setEmuPointer() --hook
 
-  onAPIPointerChange(emurpm.setEmuPointer) --rehook when the hook gets lost
+  if onAPIPointerChange then
+    onAPIPointerChange(emurpm.setEmuPointer) --rehook when the hook gets lost
+  end
 end
 
 --add a menu option to configure the EmuBaseAddress
@@ -230,19 +285,23 @@ mf.Menu.Items.insert(mf.Menu.Items.Count-1, mi) --add it before the last entry (
 
 local mi2=createMenuItem(mf.Menu)
 mi2.Caption="Set Base Address"
-mi2.OnClick=function()
-  frmEmuMemory.showModal()
-  emurpm.settings.Value["baseaddress"]=frmEmuMemory.edtAddress.Text
-  emurpm.settings.Value["memorysize"]=frmEmuMemory.edtMemsize.Text
-  emurpm.settings.Value["autoactivate"]=frmEmuMemory.cbAutoActivate.Checked
+mi2.OnClick=function(self)
+  if frmEmuMemory.showModal()==mrOK then
+    emurpm.settings.Value["baseaddress"]=frmEmuMemory.edtAddress.Text
+    emurpm.settings.Value["virtual0"]=frmEmuMemory.edtVirtual0.Text    
+    emurpm.settings.Value["memorysize"]=frmEmuMemory.edtMemsize.Text
+    emurpm.settings.Value["autoactivate"]=frmEmuMemory.cbAutoActivate.Checked
 
-  if frmEmuMemory.cbAutoActivate.Checked then
-    if emurpm.hookedOnProcessOpened==false then --hook it
-      emurpm.OldOnProcessOpened=MainForm.OnProcessOpened
-      MainForm.OnProcessOpened=emurpm.OnProcessOpened
+    if frmEmuMemory.cbAutoActivate.Checked then
+      if emurpm.hookedOnProcessOpened==false then --hook it
+        emurpm.OldOnProcessOpened=MainForm.OnProcessOpened
+        MainForm.OnProcessOpened=emurpm.OnProcessOpened
 
-      emurpm.hookedOnProcessOpened=true
+        emurpm.hookedOnProcessOpened=true
+      end
     end
+    
+    emurpm.emuSetAddress(self)
   end
 end
 
@@ -258,6 +317,12 @@ local memorysize=emurpm.settings.Value["memorysize"]
 if memorysize~='' then
   frmEmuMemory.edtMemsize.Text=memorysize
 end
+
+local virtualbase=emurpm.settings.Value["virtual0"]
+if virtualbase~='' then
+  frmEmuMemory.edtVirtual0.Text=virtualbase 
+end
+
 
 local autoactivate=emurpm.settings.Value["autoactivate"]
 frmEmuMemory.cbAutoActivate.Checked=autoactivate=='1'
