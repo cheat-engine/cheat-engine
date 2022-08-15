@@ -2348,6 +2348,7 @@ begin
 
   currentThread := nil;
 
+
   for i := 0 to ThreadList.Count - 1 do
   begin
     if TDebugThreadHandler(ThreadList.Items[i]).threadid = debugEvent.dwThreadId then
@@ -2393,6 +2394,7 @@ begin
     newthread:=false;
 
   currentthread.isHandled:=CurrentDebuggerInterface.IsInjectedEvent=false;
+  currentThread.currentBP:=nil;
 
   currentthread.FillContext;
   TDebuggerthread(debuggerthread).currentThread:=currentThread;
