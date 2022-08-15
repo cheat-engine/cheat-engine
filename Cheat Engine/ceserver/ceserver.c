@@ -37,7 +37,7 @@ pthread_t identifierthread;
 volatile int done;
 int PORT;
 
-__thread int isDebuggerThread;
+__thread int isDebuggerThread; //0 when not, else it contains the processhandle
 __thread int debugfd;
 
 __thread char* threadname;
@@ -60,7 +60,10 @@ ssize_t recvall (int s, void *buf, size_t size, int flags)
 
     if (i==0)
     {
-      debug_log("Error: recv returned 0\n");
+      if (threadname)
+        debug_log("%s: Error: recv returned 0\n", threadname);
+      else
+        debug_log("Error: recv returned 0\n");
       return i;
     }
 
@@ -243,7 +246,7 @@ int DispatchCommand(int currentsocket, unsigned char command)
 
         if (r)
         {
-          isDebuggerThread=1;
+          isDebuggerThread=h;
           debugfd=GetDebugPort(h);
         }
       }
@@ -327,7 +330,9 @@ int DispatchCommand(int currentsocket, unsigned char command)
       {
         int r;
 
-        debug_log("Calling RemoveBreakpoint\n");
+
+
+        debug_log("%s: Calling RemoveBreakpoint\n", threadname);
         r=RemoveBreakpoint(rb.hProcess, rb.tid, rb.debugreg, rb.wasWatchpoint);
         debug_log("RemoveBreakpoint returned: %d\n", r);
         sendall(currentsocket, &r, sizeof(r), 0);
@@ -341,28 +346,28 @@ int DispatchCommand(int currentsocket, unsigned char command)
       struct
       {
         HANDLE hProcess;
-        int tid;
-        int type;
+        uint32_t tid;
       } gtc;
 #pragma pack()
 
       CONTEXT Context;
-      int result;
+      uint32_t result;
 
       debug_log("CMD_GETTHREADCONTEXT:\n");
 
       recvall(currentsocket, &gtc, sizeof(gtc), MSG_WAITALL);
 
-      debug_log("Going to call GetThreadContext(%d, %d, %p, %d)\n", gtc.hProcess, gtc.tid, &Context, gtc.type);
+      debug_log("Going to call GetThreadContext(%d, %d, %p)\n", gtc.hProcess, gtc.tid, &Context);
       memset(&Context, 0, sizeof(Context));
 
-      result=GetThreadContext(gtc.hProcess, gtc.tid, &Context, gtc.type);
+      result=GetThreadContext(gtc.hProcess, gtc.tid, &Context);
 
       debug_log("result=%d\n", result);
 
       if (result)
       {
-        uint32_t structsize=sizeof(Context);
+        debug_log("Context.structsize=%d\n", Context.structsize);
+        uint32_t structsize=Context.structsize;
         sendall(currentsocket, &result, sizeof(result), MSG_MORE);
         sendall(currentsocket, &structsize, sizeof(structsize), MSG_MORE);
         sendall(currentsocket, &Context, structsize, 0); //and context
@@ -380,25 +385,34 @@ case CMD_SETTHREADCONTEXT:
       struct
       {
         HANDLE hProcess;
-        int tid;
-        CONTEXT context;
-        int type;
+        uint32_t tid;
+        uint32_t structsize;
       } stc;
 #pragma pack()
 
-      int result;
+      uint32_t result;
+
+      PCONTEXT c;
 
       debug_log("CMD_SETTHREADCONTEXT:\n");
 
       recvall(currentsocket, &stc, sizeof(stc), MSG_WAITALL);
+      debug_log("hProcess=%d tid=%d structsize=%d\n", stc.hProcess, stc.tid, stc.structsize);
 
-      debug_log("Going to call SetThreadContext(%d, %d, %p, %d)\n", stc.hProcess, stc.tid, &stc.context, stc.type);
+      c=(PCONTEXT)malloc(stc.structsize);
+      recvall(currentsocket, c, stc.structsize, MSG_WAITALL);
 
-      result=SetThreadContext(stc.hProcess, stc.tid, &stc.context, stc.type);
+      debug_log("received a context with data: structsize=%d type=%d\n", c->structsize, c->type);
+
+      debug_log("Going to call SetThreadContext(%d, %d, %p)\n", stc.hProcess, stc.tid, c);
+
+      result=SetThreadContext(stc.hProcess, stc.tid, c);
+      free(c);
 
       debug_log("result=%d\n", result);
 
       sendall(currentsocket, &result, sizeof(result), 0);
+
 
       break;
 
@@ -467,6 +481,31 @@ case CMD_SETTHREADCONTEXT:
       {
         HANDLE r=CreateToolhelp32Snapshot(params.dwFlags, params.th32ProcessID);
 
+        if ((params.dwFlags & TH32CS_SNAPTHREAD)==TH32CS_SNAPTHREAD)
+        {
+          //send the list of threadid's
+
+          if (r)
+          {
+            PThreadList tl=(PThreadList)GetPointerFromHandle(r);
+
+            debug_log("threadCount=%d\n", tl->threadCount);
+            int i;
+            for (i=0; i<tl->threadCount; i++)
+              debug_log("%d=%d\n", i, tl->threadList[i]);
+
+            sendall(currentsocket, &tl->threadCount, sizeof(int), MSG_MORE);
+            sendall(currentsocket, &tl->threadList[0], tl->threadCount*sizeof(int),0);
+
+            CloseHandle(r);
+          }
+          else
+          {
+            int n=0;
+            sendall(currentsocket, &n, sizeof(int), 0);
+          }
+        }
+        else
         if ((params.dwFlags & TH32CS_SNAPMODULE)==TH32CS_SNAPMODULE)
         {
           ModuleListEntry me;
@@ -524,8 +563,8 @@ case CMD_SETTHREADCONTEXT:
 
           free(outputstream);
 
-          //if (r)
-          //  CloseHandle(r);
+          if (r)
+            CloseHandle(r);
 
         }
         else
@@ -1251,7 +1290,20 @@ void *newconnection(void *arg)
     if (r==0)
     {
       if (threadname)
+      {
         debug_log("%s has disconnected\n", threadname);
+
+        if (isDebuggerThread)
+        {
+          debug_log("This was a debugger thread\n");
+          StopDebug(isDebuggerThread);
+          //find the process that this debugger belongs to
+
+        }
+        //
+
+        //if p->debuggerThreadID
+      }
       else
         debug_log("Peer has disconnected\n");
       fflush(stdout);
@@ -1450,6 +1502,27 @@ int main(int argc, char *argv[])
   debug_log("sizeof(off64_t)=%d\n",sizeof(off64_t));
   debug_log("sizeof(uintptr_t)=%d\n",sizeof(uintptr_t));
   debug_log("sizeof(long)=%d\n",sizeof(long));
+/*
+  debug_log("TARM64CONTEXT:\n");
+
+  debug_log("structsize at %p\n", &((PCONTEXT)0)->structsize);
+  debug_log("structtype at %p\n", &((PCONTEXT)0)->type);
+
+  debug_log("regs at %p\n", &((PCONTEXT)0)->regs);
+  debug_log("SP at %p\n", &((PCONTEXT)0)->regs.sp);
+  debug_log("PC at %p\n", &((PCONTEXT)0)->regs.pc);
+  debug_log("PSTATE at %p\n", &((PCONTEXT)0)->regs.pstate);
+  debug_log("fp at %p\n", &((PCONTEXT)0)->fp);
+  debug_log("vregs[0] at %p\n", &((PCONTEXT)0)->fp.vregs[0]);
+  debug_log("vregs[1] at %p\n", &((PCONTEXT)0)->fp.vregs[1]);
+  debug_log("vregs[2] at %p\n", &((PCONTEXT)0)->fp.vregs[2]);
+  debug_log("vregs[30] at %p\n", &((PCONTEXT)0)->fp.vregs[30]);
+  debug_log("vregs[31] at %p\n", &((PCONTEXT)0)->fp.vregs[31]);
+  debug_log("fpsr at %p\n", &((PCONTEXT)0)->fp.fpsr);
+  debug_log("fpcr at %p\n", &((PCONTEXT)0)->fp.fpcr);
+  debug_log("reserved[0] at %p\n", &((PCONTEXT)0)->fp.__reserved[0]);
+  debug_log("reserved[1] at %p\n", &((PCONTEXT)0)->fp.__reserved[1]);
+*/
 
   debug_log("ATTACH_TO_ACCESS_MEMORY=%d\n", ATTACH_TO_ACCESS_MEMORY);
   debug_log("MEMORY_SEARCH_OPTION=%d\n", MEMORY_SEARCH_OPTION);

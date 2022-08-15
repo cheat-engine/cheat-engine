@@ -37,19 +37,55 @@
 
 #ifdef __arm__
   typedef struct pt_regs CONTEXT_REGS;
+  typedef struct pv_fpregs {
+    uint64_t regs[32];
+    uint32_t control; //todo: confirm this
+  } CONTEXT_FP;
 #endif
 
 
 #ifdef __aarch64__
+  struct pt_regs32 {
+    uint32_t uregs[18];
+  };
+
+  typedef struct {
+    uint64_t fpregs[32];
+    uint32_t xxx;
+  } CONTEXT_FP32;
+
   typedef struct user_pt_regs CONTEXT_REGS;
+  typedef struct user_fpsimd_state CONTEXT_FP;
+
 #endif
 
+#pragma pack(push, 1)
 typedef struct
 {
-  CONTEXT_REGS regs;
+  uint32_t structsize;
+  uint32_t type;
+  union
+  {
+#ifdef __aarch64__
+    struct {
+      struct pt_regs32 regs32; //alt
+      CONTEXT_FP32 fp32;
+    };
+#endif
+#ifdef __x86_64__
+    //todo: 32-bit x86 context regs32;
+#endif
+    struct {
+      CONTEXT_REGS regs;
+      CONTEXT_FP fp;
+    };
+  };
+
 } CONTEXT, *PCONTEXT;
+#pragma pack(pop)
+
+int getContext(int tid, CONTEXT *context);
+int setContext(int tid, CONTEXT *context);
 
 
-int getRegisters(int tid, CONTEXT_REGS *registerstore);
-int setRegisters(int tid, CONTEXT_REGS *registerstore);
 #endif /* CONTEXT_H_ */

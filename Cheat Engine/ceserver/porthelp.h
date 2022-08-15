@@ -14,6 +14,7 @@ typedef uint32_t HANDLE; //just an int, in case of a 32-bit ce version and a 64-
 typedef uint32_t DWORD;
 
 #define TH32CS_SNAPPROCESS  0x2
+#define TH32CS_SNAPTHREAD   0x4
 #define TH32CS_SNAPMODULE   0x8
 #define TH32CS_SNAPFIRSTMODULE 0x40000000
 
@@ -28,7 +29,7 @@ typedef uint32_t DWORD;
 #define MEM_MAPPED 262144
 #define MEM_PRIVATE 131072
 
-typedef enum {htEmpty=0, htProcesHandle, htThreadHandle, htTHSProcess, htTHSModule, htNativeThreadHandle} handleType; //The difference between ThreadHandle and NativeThreadHandle is that threadhandle is based on the processid of the thread, the NativeThreadHandle is in linux usually the pthread_t handle
+typedef enum {htEmpty=0, htProcesHandle, htThreadHandle, htTHSProcess, htTHSModule, htTHSThread, htNativeThreadHandle} handleType; //The difference between ThreadHandle and NativeThreadHandle is that threadhandle is based on the processid of the thread, the NativeThreadHandle is in linux usually the pthread_t handle
 typedef int BOOL;
 
 typedef int (*HANDLESEARCHCALLBACK) (void *data, void *searchdata);

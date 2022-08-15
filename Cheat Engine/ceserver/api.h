@@ -60,6 +60,30 @@ typedef struct
 
 } ProcessListEntry, *PProcessListEntry;
 
+typedef struct
+{
+  int ReferenceCount;
+  int processListIterator;
+  int processCount;
+  PProcessListEntry processList;
+} ProcessList, *PProcessList;
+
+typedef struct
+{
+  int ReferenceCount;
+  int moduleListIterator;
+  int moduleCount;
+  PModuleListEntry moduleList;
+} ModuleList, *PModuleList;
+
+typedef struct
+{
+  int ReferenceCount;
+  int threadListIterator;
+  int threadCount;
+  int *threadList;
+} ThreadList, *PThreadList;
+
 #pragma pack(1)
 
 typedef struct
@@ -240,8 +264,8 @@ int RemoveBreakpoint(HANDLE hProcess, int tid, int debugreg, int wasWatchpoint);
 int SuspendThread(HANDLE hProcess, int tid);
 int ResumeThread(HANDLE hProcess, int tid);
 
-int GetThreadContext(HANDLE hProcess, int tid, PCONTEXT Context, int type);
-int SetThreadContext(HANDLE hProcess, int tid, PCONTEXT Context, int type);
+BOOL GetThreadContext(HANDLE hProcess, int tid, PCONTEXT Context);
+BOOL SetThreadContext(HANDLE hProcess, int tid, PCONTEXT Context);
 
 PDebugEvent FindThreadDebugEventInQueue(PProcessData p, int tid);
 void AddDebugEventToQueue(PProcessData p, PDebugEvent devent);
