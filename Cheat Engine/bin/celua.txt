@@ -2700,6 +2700,7 @@ StructureElement class: (Inheritance: Object)
 Properties:
   Owner: structure - The structure this element belongs to. Readonly
   Offset: integer - The offset of this element
+  DisplayMethod: integer - one of dtUnsignedInteger, dtSignedInteger, dtHexadecimal
   Name: string - The name of this element
   Vartype: integer - The variable type of this element
   ChildStruct: structure - If not nil this element is a pointer to the structure defined here
@@ -2710,6 +2711,8 @@ Methods:
   getOwnerStructure(): Returns the structure this element belongs to
   getOffset(): Returns the offset of this element
   setOffset(offset): Sets the offset of this element
+  getDisplayMethod(): Returns the DisplayMethod of this element
+  setDisplayMethod(DisplayMethod): Sets the DisplayMethod of this element
   getName(): Returns the name of this element
   setName(name): Sets the name of this element (tip: Leave blank if you only want to set the name of the variable)
   getVartype(): Returns the variable type of this element (check Variable types in defines.lua)

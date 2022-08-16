@@ -384,6 +384,32 @@ begin
   se.offset:=offset;
 end;
 
+function structureElement_getDisplayMethod(L: PLua_State): integer; cdecl;
+var
+  se: TStructelement;
+begin
+  se:=luaclass_getClassObject(L);
+  lua_pushinteger(L, Ord(se.DisplayMethod));
+  result:=1;
+end;
+
+function structureElement_setDisplayMethod(L: PLua_State): integer; cdecl;
+var
+  se: TStructelement;
+  displayMethod: integer;
+begin
+  result:=0;
+  se:=luaclass_getClassObject(L);
+
+  displayMethod:=Lua_Tointeger(L, -1);
+  if (displayMethod < 0) or (displayMethod > 2) then
+  begin
+    lua_pushstring(L, 'display method must be one of dtUnsignedInteger,dtSignedInteger,dtHexadecimal');
+    lua_error(L);
+  end
+  else se.DisplayMethod:=TdisplayMethod(displayMethod);
+end;
+
 function structureElement_getValue(L: PLua_State): integer; cdecl;
 var
   se: TStructelement;
@@ -567,6 +593,10 @@ begin
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'setOffset', structureElement_setOffset);
   luaclass_addPropertyToTable(L, metatable, userdata, 'Offset', structureElement_getOffset, structureElement_setOffset);
 
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'getDisplayMethod', structureElement_getDisplayMethod);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'setDisplayMethod', structureElement_setDisplayMethod);
+  luaclass_addPropertyToTable(L, metatable, userdata, 'DisplayMethod', structureElement_getDisplayMethod, structureElement_setDisplayMethod);
+
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'getName', structureElement_getName);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'setName', structureElement_setName);
   luaclass_addPropertyToTable(L, metatable, userdata, 'Name', structureElement_getName, structureElement_setName);
@@ -625,6 +655,8 @@ begin
   lua_register(LuaVM, 'structureElement_getOwnerStructure', structureElement_getOwnerStructure);
   lua_register(LuaVM, 'structureElement_getOffset', structureElement_getOffset);
   lua_register(LuaVM, 'structureElement_setOffset', structureElement_setOffset);
+  lua_register(LuaVM, 'structureElement_getDisplayMethod', structureElement_getOffset);
+  lua_register(LuaVM, 'structureElement_setDisplayMethod', structureElement_setOffset);
   lua_register(LuaVM, 'structureElement_getName', structureElement_getName);
   lua_register(LuaVM, 'structureElement_setName', structureElement_setName);
   lua_register(LuaVM, 'structureElement_getVartype', structureElement_getVartype);

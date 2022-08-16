@@ -147,6 +147,11 @@ vtPointer=12 --Only used by autoguess and structures
 vtCustom=13
 vtGrouped=14
 
+--Structure Element Display Method
+dtUnsignedInteger=0
+dtSignedInteger=1
+dtHexadecimal=2
+
 --Key codes
 VK_LBUTTON = 1
 VK_RBUTTON = 2
