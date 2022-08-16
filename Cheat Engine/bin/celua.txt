@@ -2703,6 +2703,7 @@ Properties:
   Offset: integer - The offset of this element
   Name: string - The name of this element
   Vartype: integer - The variable type of this element
+  DisplayMethod: string - The displaymethod of the entry : 'dtUnsignedInteger', 'dtSignedInteger' or 'dtHexadecimal'
   ChildStruct: structure - If not nil this element is a pointer to the structure defined here
   ChildStructStart: integer - The number of bytes inside the provided childstruct. (E.g: It might point to offset 10 of a certain structure)
   Bytesize: integer - The number of bytes of this element. Readonly for basic types, writable for types that require a defined length like strings and array of bytes
