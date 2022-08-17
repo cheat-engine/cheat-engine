@@ -148,7 +148,7 @@ const X86_32Context_specialized: array of TContextElement_register=(
  (entrytype:0; name:'DS'; size:2; displayType: 0; ContextOffset: integer(@PCONTEXT32(nil)^.SegDs); BitStart:0),
  (entrytype:0; name:'ES'; size:2; displayType: 0; ContextOffset: integer(@PCONTEXT32(nil)^.SegEs); BitStart:0),
  (entrytype:0; name:'FS'; size:2; displayType: 0; ContextOffset: integer(@PCONTEXT32(nil)^.SegFs); BitStart:0),
- (entrytype:0; name:'GS'; size:2; displayType: 0; ContextOffset: integer(@PCONTEXT32(nil)^.SegGs); BitStart:0),
+ (entrytype:0; name:'GS'; size:2; displayType: 0; ContextOffset: integer(@PCONTEXT32(nil)^.SegGs); BitStart:0)
 );
 {$endif}
 
