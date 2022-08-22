@@ -5,6 +5,9 @@
 #include "Metadata.h"
 #endif
 
+
+#define MONO_DATACOLLECTORVERSION 22082022 
+
 #define MONOCMD_INITMONO 0
 #define MONOCMD_OBJECT_GETCLASS 1
 #define MONOCMD_ENUMDOMAINS 2
@@ -53,6 +56,7 @@
 #define MONOCMD_GETIMAGEFILENAME 44
 #define MONOCMD_GETCLASSNESTINGTYPE 45
 #define MONOCMD_LIMITEDCONNECTION 46
+#define MONOCMD_GETMONODATACOLLECTORVERSION 47
 
 
 typedef struct {} MonoType;
@@ -415,6 +419,7 @@ private:
     void FillOptionalFunctionList(); //mainly for unixbased systems
 	void GetStaticFieldValue();
 	void SetStaticFieldValue();
+	void GetMonoDataCollectorVersion();
 
 public:
 	CPipeServer(void);

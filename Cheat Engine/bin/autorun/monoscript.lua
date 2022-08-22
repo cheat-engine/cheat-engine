@@ -21,6 +21,8 @@ local dpiscale=getScreenDPI()/96
 
 mono_timeout=3000 --change to 0 to never timeout (meaning: 0 will freeze your face off if it breaks on a breakpoint, just saying ...)
 
+MONO_DATACOLLECTORVERSION=22082022;
+
 MONOCMD_INITMONO=0
 MONOCMD_OBJECT_GETCLASS=1
 MONOCMD_ENUMDOMAINS=2
@@ -70,6 +72,7 @@ MONOCMD_FREE=43
 MONOCMD_GETIMAGEFILENAME=44
 MONOCMD_GETCLASSNESTINGTYPE=45
 MONOCMD_LIMITEDCONNECTION=46
+MONOCMD_GETMONODATACOLLECTORVERSION=47
 
 
 MONO_TYPE_END        = 0x00       -- End of List
@@ -649,6 +652,17 @@ function LaunchMonoDataCollector(internalReconnectDisconnectEachTime)
     return 0 --failure
   end
   
+  local v=mono_getMonoDatacollectorDLLVersion();
+  if (v==nil) or (v~=MONO_DATACOLLECTORVERSION) then
+    local s='There is an inconsistency with the monodatacollector dll and monoscript.lua . Unexpected behaviour and crashes are to be expected'
+    if inMainThread then
+      messageDialog(s, mtWarning)
+    else
+      print('Warning:'..s)
+    end
+  end
+    
+  
   monopipe.OnError=function(self)
     --print("monopipe error")
     monopipe.OnTimeout(self)
@@ -692,6 +706,9 @@ function LaunchMonoDataCollector(internalReconnectDisconnectEachTime)
     --else
     --  print("monopipe error. Last reattach too soon. Giving up")
     end
+    
+    
+
     
     lastMonoError=getTickCount()
     
@@ -1089,6 +1106,19 @@ function mono_enumDomains()
 
   return result
 end
+
+function mono_getMonoDatacollectorDLLVersion()
+  local r=nil
+  monopipe.lock()
+  monopipe.writeByte(MONOCMD_GETMONODATACOLLECTORVERSION)
+  r=monopipe.readDword()  
+  if monopipe then
+    monopipe.unlock()
+  end
+  
+  return r
+end
+
 
 function mono_setCurrentDomain(domain)
   --if debug_canBreak() then return nil end

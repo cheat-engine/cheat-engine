@@ -393,13 +393,14 @@ function javaInjectAgent()
         mov rdx,arg0
         mov r8,arg1
         mov r9,arg2
-
-        mov [rsp],cmd
-        mov [rsp+8],arg0
-        mov [rsp+10],arg1
-        mov [rsp+18],arg2
-        mov [rsp+20],pipename
-
+        mov rax,pipename
+                       
+        mov [rsp],rcx
+        mov [rsp+8],rdx
+        mov [rsp+10],r8
+        mov [rsp+18],r9
+        mov [rsp+20],rax
+        
         call jvm.JVM_EnqueueOperation
         mov [result],eax
 

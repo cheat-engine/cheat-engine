@@ -1303,6 +1303,11 @@ void CPipeServer::FreeObject()
 	//not yet implemented
 }
 
+void CPipeServer::GetMonoDataCollectorVersion()
+{
+	WriteDword(MONO_DATACOLLECTORVERSION);
+}
+
 void CPipeServer::DisassembleMethod()
 {	
 	void *method = (void *)ReadQword();
@@ -2355,9 +2360,13 @@ void CPipeServer::Start(void)
 					FreeObject();
 					break;
 
+				case MONOCMD_GETMONODATACOLLECTORVERSION:
+					GetMonoDataCollectorVersion();
+					break;
+
 				case MONOCMD_LIMITEDCONNECTION:
 					limitedConnection = true;
-					break;
+					break;				
 
 				}
 
