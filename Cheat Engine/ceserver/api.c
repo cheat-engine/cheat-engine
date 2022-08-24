@@ -661,6 +661,7 @@ int SetBreakpoint(HANDLE hProcess, int tid, int debugreg, void *address, int bpt
 #ifdef __aarch64__
         struct user_pt_regs regset;
 
+        int armbpsize=ARM_BREAKPOINT_LEN_4;
 
         struct iovec iov;
         int maxWatchCount=0;
@@ -698,6 +699,12 @@ int SetBreakpoint(HANDLE hProcess, int tid, int debugreg, void *address, int bpt
           int i;
           for (i=0; i<18; i++)
             debug_log("uregs[%d]=%x\n", i, regset32->uregs[i]);
+
+          if (((uintptr_t)address) & 1) //CE uses bit 1 to tell ceserver it's thumb
+          {
+            armbpsize=ARM_BREAKPOINT_LEN_2;
+            address=(void *)((uintptr_t)address & 0xfffffffe); //ce might have set a bit
+          }
 
         }
         else
@@ -740,6 +747,7 @@ int SetBreakpoint(HANDLE hProcess, int tid, int debugreg, void *address, int bpt
 
         int btype=0;
         int bplist=NT_ARM_HW_BREAK;
+
         int listsize;
 
         if (bptype==0)
@@ -750,6 +758,10 @@ int SetBreakpoint(HANDLE hProcess, int tid, int debugreg, void *address, int bpt
 
           btype=ARM_BREAKPOINT_EXECUTE;
           listsize=maxBreakCount;
+
+          //armbpsize is already set properly
+
+
         }
         else
         {
@@ -766,6 +778,17 @@ int SetBreakpoint(HANDLE hProcess, int tid, int debugreg, void *address, int bpt
             btype=ARM_BREAKPOINT_STORE | ARM_BREAKPOINT_LOAD;
 
           listsize=maxWatchCount;
+
+
+          //watchpoints have variable sizes
+          if (bpsize<=1)
+            armbpsize=ARM_BREAKPOINT_LEN_1;
+          else if (bpsize<=2)
+            armbpsize=ARM_BREAKPOINT_LEN_2;
+          else if (bpsize<=4)
+            armbpsize=ARM_BREAKPOINT_LEN_4;
+          else
+            armbpsize=ARM_BREAKPOINT_LEN_8;
         }
 
 
@@ -783,7 +806,12 @@ int SetBreakpoint(HANDLE hProcess, int tid, int debugreg, void *address, int bpt
         for (i=0; i<listsize; i++)
         {
           if (hwd.dbg_regs[i].addr) //issue: PTRACE_GETREGSET bplist returns all debug registers as disabled.  Assume those with a proper address to not be disabled (so make sure to 0 the address when disabling)
-            hwd.dbg_regs[i].ctrl=hwd.dbg_regs[i].ctrl | 1; //encode_ctrl_reg(0, ARM_BREAKPOINT_LEN_4, btype, 0, 1);
+          {
+            if (bplist==NT_ARM_HW_BREAK)
+              hwd.dbg_regs[i].ctrl=encode_ctrl_reg(0, ARM_BREAKPOINT_LEN_2, ARM_BREAKPOINT_EXECUTE, 0, 1);//hwd.dbg_regs[i].ctrl | 1; //encode_ctrl_reg(0, ARM_BREAKPOINT_LEN_4, btype, 0, 1);
+            else
+              hwd.dbg_regs[i].ctrl=hwd.dbg_regs[i].ctrl | 1;
+          }
 
           if (i==debugreg) debug_log("*");
           debug_log("%p - %x\n", (void*)hwd.dbg_regs[i].addr, hwd.dbg_regs[i].ctrl);
@@ -793,7 +821,7 @@ int SetBreakpoint(HANDLE hProcess, int tid, int debugreg, void *address, int bpt
 
 
         hwd.dbg_regs[debugreg].addr=(uintptr_t)address;
-        hwd.dbg_regs[debugreg].ctrl=encode_ctrl_reg(0, ARM_BREAKPOINT_LEN_4, btype, 0, 1);
+        hwd.dbg_regs[debugreg].ctrl=encode_ctrl_reg(0, armbpsize, btype, 0, 1);
 
         debug_log("setting hwd.dbg_regs[%d].addr to %p\n",debugreg, hwd.dbg_regs[debugreg].addr);
         debug_log("setting hwd.dbg_regs[%d].ctrl to %x\n",debugreg, hwd.dbg_regs[debugreg].ctrl);
@@ -1226,7 +1254,12 @@ int RemoveBreakpoint(HANDLE hProcess, int tid, int debugreg,int wasWatchpoint)
         for (i=0; i<listsize; i++)
         {
           if (hwd.dbg_regs[i].addr)
-            hwd.dbg_regs[i].ctrl=hwd.dbg_regs[i].ctrl | 1; //encode_ctrl_reg(0, ARM_BREAKPOINT_LEN_4, btype, 0, 1);
+          {
+            if (bplist==NT_ARM_HW_BREAK)
+              hwd.dbg_regs[i].ctrl=encode_ctrl_reg(0, ARM_BREAKPOINT_LEN_2, ARM_BREAKPOINT_EXECUTE, 0, 1);
+            else
+              hwd.dbg_regs[i].ctrl= hwd.dbg_regs[i].ctrl | 1;
+          }
 
           if (i==debugreg) debug_log("*");
           debug_log("%p - %x\n", (void*)hwd.dbg_regs[i].addr, hwd.dbg_regs[i].ctrl);
