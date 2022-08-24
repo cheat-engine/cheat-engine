@@ -5904,7 +5904,7 @@ begin
     begin
       l:=tlabel(pnlFlags.controls[i]);
       cer:=PContextElement_register(l.tag);
-      temp:=padleft(cer^.name, contexthandler.GeneralPurposeRegisterMaxCharCount)+' '+cer^.getFlag(context).ToString;
+      temp:=padleft(cer^.name, contexthandler.GeneralPurposeFlagMaxCharCount)+' '+cer^.getFlag(context).ToString;
       if temp<>l.caption then
       begin
         l.Font.Color:=fChangedRegisterColor;

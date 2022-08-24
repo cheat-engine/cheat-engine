@@ -1694,6 +1694,7 @@ methods
   fullCollapse()  : Collapses all the nodes, including the children's nodes
   fullExpand() : Expands all the nodes and all their children
   saveToFile(filename): Saves the contents of the treeview to disk
+  loadFromFile(filename)
 
 
 

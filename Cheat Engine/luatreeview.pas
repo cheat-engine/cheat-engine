@@ -11,7 +11,7 @@ procedure initializeLuaTreeview;
 
 implementation
 
-uses LuaHandler, ceguicomponents;
+uses LuaHandler, lauxlib, ceguicomponents;
 
 function createTreeView(L: Plua_State): integer; cdecl;
 var

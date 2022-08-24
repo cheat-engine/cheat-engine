@@ -119,7 +119,8 @@ uses
   dotnethost, rttihelper, cefreetype, LuaDotNetPipe, LuaRemoteExecutor,
   autoassemblercode, CSharpCompiler, newhintwindow, memrecDataStructures,
   LuaCECustomButton, DBVMDebuggerInterface, frmCR3SwitcherUnit, tcclib,
-  sourcecodehandler, frmSourceDisplayUnit, disassemblerarm64, contexthandler;
+  sourcecodehandler, frmSourceDisplayUnit, disassemblerarm64, contexthandler,
+  DisAssemblerARM32;
 
 {$R cheatengine.res}
 {$IFDEF windows}

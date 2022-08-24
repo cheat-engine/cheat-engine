@@ -1660,6 +1660,7 @@ begin
     input.handle:=hProcess and $ffffff;
     input.tid:=threadid;
     input.debugregister:=debugregister;
+
     input.address:=address;
     input.bptype:=bptype;
     input.bpsize:=bpsize;

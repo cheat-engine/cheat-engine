@@ -261,11 +261,15 @@ const ARM_32Context_flags: array of TContextElement_register=(
   (entrytype:1; name:'C'; size:1; displayType: 0; ContextOffset: integer(@PARMCONTEXT(nil)^.CPSR); bitstart: 29),
   (entrytype:1; name:'V'; size:1; displayType: 0; ContextOffset: integer(@PARMCONTEXT(nil)^.CPSR); bitstart: 28),
   (entrytype:1; name:'Q'; size:1; displayType: 0; ContextOffset: integer(@PARMCONTEXT(nil)^.CPSR); bitstart: 27),
+//  (entrytype:1; name:'IT'; size:2; displayType: 0; ContextOffset: integer(@PARMCONTEXT(nil)^.CPSR); bitstart: 25),
+  (entrytype:1; name:'J'; size:1; displayType: 0; ContextOffset: integer(@PARMCONTEXT(nil)^.CPSR); bitstart: 24),
   (entrytype:1; name:'GE'; size:4; displayType: 0; ContextOffset: integer(@PARMCONTEXT(nil)^.CPSR); bitstart: 16),
+//  (entrytype:1; name:'IT'; size:6; displayType: 0; ContextOffset: integer(@PARMCONTEXT(nil)^.CPSR); bitstart: 10),
   (entrytype:1; name:'E'; size:1; displayType: 0; ContextOffset: integer(@PARMCONTEXT(nil)^.CPSR); bitstart: 9),
   (entrytype:1; name:'A'; size:1; displayType: 0; ContextOffset: integer(@PARMCONTEXT(nil)^.CPSR); bitstart: 8),
   (entrytype:1; name:'I'; size:1; displayType: 0; ContextOffset: integer(@PARMCONTEXT(nil)^.CPSR); bitstart: 7),
   (entrytype:1; name:'F'; size:1; displayType: 0; ContextOffset: integer(@PARMCONTEXT(nil)^.CPSR); bitstart: 6),
+  (entrytype:1; name:'T'; size:1; displayType: 0; ContextOffset: integer(@PARMCONTEXT(nil)^.CPSR); bitstart: 5),
   (entrytype:1; name:'M'; size:4; displayType: 0; ContextOffset: integer(@PARMCONTEXT(nil)^.CPSR); bitstart: 0)
 );
 
