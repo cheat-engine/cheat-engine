@@ -1279,6 +1279,8 @@ var
 
   connection: TCEConnection;
   vpe: boolean;
+  match: boolean;
+  bpa: qword;
 begin
   TDebuggerthread(debuggerthread).execlocation:=26;
   outputdebugstring(format('DispatchBreakpoint(%x)',[address]));
@@ -1305,7 +1307,20 @@ begin
   begin
     bpp:=PBreakpoint(breakpointlist.Items[i]);
 
-    if InRangeX(address, bpp^.address, bpp^.address+bpp^.size-1) then
+    if processhandler.SystemArchitecture=archX86 then
+      match:=InRangeX(address, bpp^.address, bpp^.address+bpp^.size-1)
+    else
+    begin
+      if bpp^.breakpointTrigger=bptExecute then
+      begin
+        bpa:=bpp^.address and $fffffffffffffffe;
+        match:=InRangeX(address, bpa, bpa+bpp^.size-1)
+      end
+      else
+        match:=InRangeX(address, bpp^.address, bpp^.address+bpp^.size-1);
+    end;
+
+    if match then
     begin
       {$ifdef darwin}
       if bpp^.active then

@@ -661,7 +661,7 @@
         <PackageName Value="LCL"/>
       </Item8>
     </RequiredPackages>
-    <Units Count="413">
+    <Units Count="414">
       <Unit0>
         <Filename Value="cheatengine.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -2839,6 +2839,11 @@
         <Filename Value="contexthandler.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit412>
+      <Unit413>
+        <Filename Value="disassemblerarm32.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="DisAssemblerARM32"/>
+      </Unit413>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

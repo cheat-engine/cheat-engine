@@ -341,7 +341,7 @@ begin
     carm.contextarm32.IP:=lpContext.IP;
     carm.contextarm32.SP:=lpContext.SP;
     carm.contextarm32.LR:=lpContext.LR;
-    carm.contextarm32.PC:=lpContext.PC;
+    carm.contextarm32.PC:=lpContext.PC and $fffffffe;
     carm.contextarm32.CPSR:=lpContext.CPSR;
     carm.contextarm32.ORIG_R0:=lpContext.ORIG_R0;
 
@@ -393,6 +393,9 @@ begin
           lpContext.PC:=carm^.contextarm32.PC;
           lpContext.CPSR:=carm^.contextarm32.CPSR;
           lpContext.ORIG_R0:=carm^.contextarm32.ORIG_R0;
+
+          if (lpContext.CPSR and (1 shl 5))<>0 then //Thumb bit
+            lpContext.PC:=lpContext.PC or 1; //quick hack to identify that thumb is used
 
           result:=true;
         end;

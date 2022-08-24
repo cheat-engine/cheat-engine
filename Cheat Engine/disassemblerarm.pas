@@ -22,7 +22,7 @@ uses  macport, classes,SysUtils, newkernelhandler, cefuncproc,LastDisassembleDat
 
 const ArmConditions: array [0..15] of string=('EQ','NE','CS', 'CC', 'MI', 'PL', 'VS', 'VC', 'HI', 'LS', 'GE', 'LT', 'GT', 'LE', '','NV');
 const DataProcessingOpcodes: array [0..15] of string=('AND','EOR','SUB', 'RSB', 'ADD', 'ADC', 'SBC', 'RSC', 'TST', 'TEQ', 'CMP', 'CMN', 'ORR', 'MOV', 'BIC','MVN');
-const ArmRegisters : array [0..15] of string=('R0','R1','R2','R3','R4','R5','R6','R7','R8','R9','R10','FP','IP','SP','LR','PC');
+const ArmRegisters : array [0..15] of string=      ('R0','R1','R2','R3','R4','R5','R6','R7','R8','R9','R10','FP', 'IP', 'SP', 'LR', 'PC');
 const ArmRegistersNoName : array [0..15] of string=('R0','R1','R2','R3','R4','R5','R6','R7','R8','R9','R10','R11','R12','R13','R14','R15');
 //const Arm64Registers : array [0..15] of string=('X0','X1','X2','X3','X4','X5','X6','X7','X8','X9','X10','X11','X12','X13','X14','X15','X16');
 function SignExtend(value: int32; mostSignificantBit: integer): int32;
@@ -61,7 +61,7 @@ type
 implementation
 
  {$ifndef ARMDEV}
-uses processhandlerunit, disassemblerarm64;
+uses processhandlerunit, disassemblerarm32, disassemblerarm64;
 {$endif}
 
 
@@ -1995,6 +1995,7 @@ var
   i: integer;
   x: ptruint;
   thumbdisassembler: TThumbDisassembler;
+  arm32disassembler: TArm32Instructionset;
   arm64disassembler: TArm64Instructionset;
 begin
   result:='';
@@ -2004,16 +2005,29 @@ begin
     result:=arm64disassembler.Disassemble(address);
     lastdisassembledata:=arm64disassembler.LastDisassembleData;
     exit;
-  end;
-
-
-  if (address and 1) = 1 then //thumb
+  end
+  else
   begin
-    result:=thumbdisassembler.Disassemble(address);
-    LastDisassembleData:=thumbdisassembler.LastDisassembleData;
-    exit;
+    if (address and 1) = 1 then //thumb
+    begin
+      result:=thumbdisassembler.Disassemble(address);
+      LastDisassembleData:=thumbdisassembler.LastDisassembleData;
+      exit;
+    end;
+
+    if (address and 3) = 0 then
+    begin
+      result:=arm32disassembler.Disassemble(address);
+      lastdisassembledata:=arm32disassembler.LastDisassembleData;
+      exit;
+    end;
   end;
 
+
+
+
+
+  //obsolete:
   {$ifdef ARMDEV}
   opcode:=pdword(address)^;
   setlength(LastDisassembleData.Bytes,4);

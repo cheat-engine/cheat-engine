@@ -1738,6 +1738,8 @@ begin
 
       if (processhandler.SystemArchitecture=archarm) or (architecture=darchARM) then
       begin
+
+
         result:=ArmDisassembler.disassemble(offset);
         LastDisassembleData:=armdisassembler.LastDisassembleData;
         exit;

@@ -49,7 +49,7 @@ end;
 
 implementation
 
-uses DisassemblerArm, ProcessHandlerUnit, DisAssemblerARM64;
+uses DisassemblerArm, ProcessHandlerUnit, DisassemblerARM32, DisAssemblerARM64;
 
 resourcestring
   rsTheValue = 'The value ';
@@ -1190,6 +1190,7 @@ var
   b: Tassemblerbytes;
 
   oldlength: integer;
+  d32: TArm32Instructionset;
   d64: TArm64Instructionset;
 begin
   result:=false;
@@ -1205,6 +1206,16 @@ begin
       exit(false);
     end;
 
+  end
+  else
+  begin
+    try
+      r:=d32.assemble(address, instruction);
+      setlength(bytes,4);
+      pdword(@bytes[0])^:=r;
+      exit(true);
+    except
+    end;
   end;
 
   r:=$ffffffff;
