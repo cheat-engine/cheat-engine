@@ -1004,6 +1004,7 @@ case CMD_SETTHREADCONTEXT:
         if (recvall(currentsocket, symbolpath, symbolpathsize, MSG_WAITALL)>0)
         {
           unsigned char *output=NULL;
+          int outputsize;
 
           //debug_log("symbolpath=%s\n", symbolpath);
 

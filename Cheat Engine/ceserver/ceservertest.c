@@ -334,6 +334,26 @@ int cenet_removeBreakpoint(int fd, int pHandle, int tid, int debugreg, int waswa
   return result;
 }
 
+int cenet_loadExtension(int fd, int pHandle)
+{
+#pragma pack(1)
+    struct
+    {
+      char command;
+      HANDLE hProcess;
+    } le;
+#pragma pack()
+  int result;
+
+  le.command=CMD_LOADEXTENSION;
+  le.hProcess=pHandle;
+  sendall(fd, &le, sizeof(le), 0);
+
+  recv(fd, &result, sizeof(result),MSG_WAITALL);
+  return result;
+}
+
+
 #define ARM_DBG_READ(N, M, OP2, VAL) do {\
          asm volatile("mrc p14, 0, %0, " #N "," #M ", " #OP2 : "=r" (VAL));\
 } while (0)
@@ -355,9 +375,6 @@ int cenet_VirtualQueryExFull(int fd, int pHandle, DWORD flags)
     vqef.flags=flags;
 
     sendall(fd, &vqef, sizeof(vqef),0);
-
-
-
 }
 
 void *CESERVERTEST_DEBUGGERTHREAD(void *arg)
@@ -499,6 +516,12 @@ void *CESERVERTEST(int pid )
 
   debug_log("pHandle=%d\n", pHandle);
   memset(&c, 0,sizeof(c));
+
+  debug_log("calling cenet_loadExtension\n");
+  i=cenet_loadExtension(fd, pHandle);
+  debug_log("cenet_loadExtension returned %d\n", i);
+  return NULL;
+
 
   debug_log("Getting thread context (Assuming arm64 target. Fuck you if it's not)\n");
   if (cenet_getThreadContext(fd, pHandle, pid, &c))
