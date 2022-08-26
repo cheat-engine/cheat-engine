@@ -63,7 +63,7 @@ readPointer(address): In a 64-bit target this equals readQword, in a 32-bit targ
 readFloat(address) : Reads a single precision floating point value from the specified address
 readDouble(address) : Reads a double precision floating point value from the specified address
 readString(address, maxlength, widechar OPTIONAL) : Reads a string till it encounters a 0-terminator. Maxlength is just so you won't freeze for too long, set to 6000 if you don't care too much. Set WideChar to true if it is encoded using a widechar formatting
-writeShortInteger(address,value) / writeByte(address,value) : Writes a 16-bit integer to the specified address. Returns true on success
+writeShortInteger(address,value) / writeByte(address,value) : Writes a 8-bit integer to the specified address. Returns true on success
 writeSmallInteger(address,value) : Writes a 16-bit integer to the specified address. Returns true on success
 writeInteger(address,value) : Writes a 32-bit integer to the specified address. Returns true on success
 writeQword(address, value): Write a 64-bit integer to the specified address. Returns true on success
