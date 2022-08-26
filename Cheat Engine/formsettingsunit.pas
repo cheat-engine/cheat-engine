@@ -92,6 +92,7 @@ type
     cbDBVMDebugTriggerCOW: TCheckBox;
     cbDBVMDebugTargetedProcessOnly: TCheckBox;
     cbDBVMDebugKernelmodeBreaks: TCheckBox;
+    cbSaveMemoryregionScanSettings: TCheckBox;
     combothreadpriority: TComboBox;
     defaultbuffer: TPopupMenu;
     Default1: TMenuItem;
@@ -658,6 +659,9 @@ begin
         reg.writebool('skip PAGE_NOCACHE',cbSkip_PAGE_NOCACHE.Checked);
         reg.writebool('skip PAGE_WRITECOMBINE',cbSkip_PAGE_WRITECOMBINE.Checked);
         reg.writebool('Pause when scanning on by default',cbPauseWhenScanningOnByDefault.Checked);
+        reg.writebool('Save memoryregion scansettings', cbSaveMemoryregionScanSettings.checked);
+
+
 
 
         reg.WriteInteger('Repeat Delay',repeatDelay);

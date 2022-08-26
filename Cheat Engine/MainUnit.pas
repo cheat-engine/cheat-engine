@@ -7643,6 +7643,27 @@ begin
     pluginhandler.free;
     pluginhandler:=nil;
   end;
+
+
+
+  if formsettings.cbSaveMemoryregionScanSettings.checked then
+  begin
+    //save to the registry
+    reg:=tregistry.Create;
+    try
+      Reg.RootKey := HKEY_CURRENT_USER;
+      if Reg.OpenKey('\Software\'+strCheatEngine,true) then
+      begin
+        reg.WriteInteger('scan CopyOnWrite', integer(cbCopyOnWrite.State));
+        reg.WriteInteger('scan Executable', integer(cbExecutable.State));
+        reg.WriteInteger('scan Writable', integer(cbWritable.State));
+      end;
+    except
+
+    end;
+
+    reg.free;
+  end;
 end;
 
 
@@ -10484,6 +10505,8 @@ begin
     end;
     FreeAndNil(scantablist);
   end;
+
+
 
 
 end;

@@ -118,7 +118,8 @@ implementation
 
 
 uses KernelDebugger,mainunit, DebugHelper, CustomTypeHandler, ProcessList, Globals,
-     frmEditHistoryUnit, DBK32functions, frameHotkeyConfigUnit, UnexpectedExceptionsHelper;
+     frmEditHistoryUnit, DBK32functions, frameHotkeyConfigUnit, UnexpectedExceptionsHelper,
+     TypInfo, StdCtrls;
 
 procedure UpdateToolsMenu;
 var i: integer;
@@ -736,6 +737,31 @@ begin
 
           Skip_PAGE_WRITECOMBINE:=cbSkip_PAGE_WRITECOMBINE.Checked;
 
+          if reg.ValueExists('Save memoryregion scansettings') then
+          begin
+            cbSaveMemoryregionScanSettings.checked:=reg.readbool('Save memoryregion scansettings');
+            if cbSaveMemoryregionScanSettings.checked then
+            begin
+              //load from the registry if available
+              if reg.ValueExists('scan CopyOnWrite') then
+              begin
+                i:=reg.ReadInteger('scan CopyOnWrite');
+                mainform.cbCopyOnWrite.State:=TCheckBoxState(i);
+              end;
+
+              if reg.ValueExists('scan Executable') then
+              begin
+                i:=reg.ReadInteger('scan Executable');
+                mainform.cbExecutable.State:=TCheckBoxState(i);
+              end;
+
+              if reg.ValueExists('scan Writable') then
+              begin
+                i:=reg.ReadInteger('scan Writable');
+                mainform.cbWritable.State:=TCheckBoxState(i);
+              end;
+            end;
+          end;
 
           if reg.ValueExists('Pause when scanning on by default') then
             cbPauseWhenScanningOnByDefault.Checked:=reg.readbool('Pause when scanning on by default');
