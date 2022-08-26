@@ -83,6 +83,7 @@ int getContext(int tid, CONTEXT *context)
 
 
       context->structsize=((uintptr_t)(&context->fp32)-(uintptr_t)context)+sizeof(CONTEXT_FP32);
+
     }
     else
     {

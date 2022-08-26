@@ -177,6 +177,8 @@ typedef struct {
   pthread_mutex_t debugEventQueueMutex; //probably not necessary as all queue operations are all done in the debuggerthread of the process
 
   struct debugEventQueueHead debugEventQueue;
+
+  uintptr_t dlopen;
 } ProcessData, *PProcessData;
 
 

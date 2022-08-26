@@ -17,7 +17,7 @@
  *  Execute it and wait till a sigtrap/sigseg happens on that specific invalid address
  *  Then restore the state back
  *
- *  On arm: Bit J and T in CPSR define the current execution state
+ *  On arm32: Bit J and T in CPSR define the current execution state
  *  J T
  *  0 0 = ARM
  *  0 1 = Thumb
@@ -25,7 +25,7 @@
  *  1 1 = ThumbEE*
  *
  *  If ARM so set to 0 0 and restore that as well
- *  Note that The least significant bit in an address specifier also determines if it's THUMB or ARM
+ *  Note that The least significant bit in an address specifier also determines if it's THUMB or ARM (edit: nope.  But lets go with this in CE)
  *  It doesn't seem to matter if you set the least significant bit in the PC register. It will ignore that but on execute. (probably a good idea to clear that bit anyhow)
  *
  *
@@ -44,8 +44,11 @@
  *
  */
 
+#include <stdlib.h>
+
 #include <stdio.h>
 #include <sys/wait.h>
+
 #include <sys/ptrace.h>
 
 #include <errno.h>
@@ -68,8 +71,12 @@
 
 #ifdef __aarch64__
 #include <elf.h>
+#ifdef __ANDROID__
+#include <arm-linux-androideabi/asm/ptrace.h>
+#endif
 #endif
 
+#include "symbols.h"
 #include "porthelp.h"
 #include "api.h"
 #include "ceserver.h"
@@ -83,13 +90,12 @@
 
 
 
-int WaitForPid()
+int WaitForPid(int *status)
 {
-  int status;
   int pid=-1;
   while (pid==-1)
   {
-    pid=waitpid(-1, &status, __WALL);
+    pid=waitpid(-1, status, __WALL);
     if ((pid==-1) && (errno!=EINTR))
     {
       debug_log("LoadExtension wait fail. :%d\n", errno);
@@ -101,6 +107,7 @@ int WaitForPid()
 
 int showRegisters(int pid)
 {
+  /*
 #ifdef __aarch64__
   struct user_pt_regs regs;
 #else
@@ -110,7 +117,7 @@ int showRegisters(int pid)
     struct user_regs_struct r;
   #endif
 #endif
-/*
+
 
 
 
@@ -143,19 +150,25 @@ int showRegisters(int pid)
 #endif
 */
 
+    return 0;
 }
 
-uintptr_t finddlopen(int pid)
+uintptr_t finddlopen(int pid, uintptr_t *_dlerror)  //todo: use the elf parsing routines (they work better now)
 {
     void *libdl;
     void *realdlopen;
-  libdl=dlopen("libdl.so", RTLD_NOW);
+    void *realdlerror;
+    libdl=dlopen("libdl.so", RTLD_NOW);
 
     debug_log("libdl=%p\n", libdl);
 
     realdlopen=dlsym(libdl,"dlopen");
+    realdlerror=dlsym(libdl,"dlerror");
     debug_log("dlopen=%p\n", dlopen);
     debug_log("realdlopen=%p\n", realdlopen);
+
+    debug_log("dlerror=%p\n", dlerror);
+    debug_log("realdlerror=%p\n", realdlerror);
 #ifndef __arm__
     if (dlopen==realdlopen)
       debug_log("Please tell db what you did to get this to function (excluding manually editing this if statement)\n");
@@ -195,6 +208,7 @@ uintptr_t finddlopen(int pid)
          )
       {
         unsigned int offset=(uintptr_t)realdlopen-currentmodulestart;
+        unsigned int offset2=(uintptr_t)realdlerror-currentmodulestart;
         char mapsfilename[255];
         debug_log("found it. Module: %s Offset=%x\n", currentmodule, offset);
 
@@ -231,6 +245,7 @@ uintptr_t finddlopen(int pid)
                 debug_log("found the module in the target process\n");
                 fclose(maps);
                 fclose(maps2);
+                *_dlerror=start+offset2;
                 return start+offset;
              }
           }
@@ -251,6 +266,8 @@ uintptr_t finddlopen(int pid)
     }
 
     fclose(maps);
+
+    return 1;
 }
 
 void writeString(int pid, uintptr_t address, char *string)
@@ -279,7 +296,7 @@ void writeString(int pid, uintptr_t address, char *string)
       bs=1;
     }
 
-    safe_ptrace(PTRACE_POKEDATA, pid, address+i, v);
+    safe_ptrace(PTRACE_POKEDATA, pid, (void*)(address+i), (void*)v);
     i+=bs;
   }
 }
@@ -328,18 +345,19 @@ int isExtensionLoaded(int pid)
   return result;
 }
 
-int loadExtension(int pid, char *path, int isBeingDebugged)
+int loadExtension(PProcessData p, char *path)
 {
 
-    uintptr_t dlopen;
+    int pid;
+    uintptr_t dlerror;
     uintptr_t str;
     int status;
     int pathlen=strlen(path)+1; //0-terminater
 
-    debug_log("loadExtension(%d, %s, %d)\n", pid, path, isBeingDebugged);
+    debug_log("loadExtension()\n");
 
     debug_log("Phase 0: Check if it's already open\n");
-    if (isExtensionLoaded(pid))
+    if (isExtensionLoaded(p->pid))
     {
       debug_log("Already loaded\n");
       return TRUE;
@@ -349,26 +367,47 @@ int loadExtension(int pid, char *path, int isBeingDebugged)
 
 
 
-    debug_log("Phase 1: Find dlopen in target\n");
 
-    dlopen=finddlopen(pid);
-    debug_log("dlopen=%p\n", (void *)dlopen);
 
-    if (!isBeingDebugged)
+    if (p->dlopen==0) //fallback to the old method
     {
-      pid=ptrace_attach_andwait(pid);
-
-      debug_log("After wait. PID=%d\n", pid);
-      safe_ptrace(PTRACE_CONT,pid,0,0);
+      debug_log("Phase 1: Find dlopen in target\n");
+      p->dlopen=finddlopen(p->pid, &dlerror);
     }
 
-    debug_log("Killing pid %d\n", pid);
-    int e=kill(pid, SIGSTOP);
+    if (p->dlopen==0)
+    {
+      debug_log("dlopen==NULL Abort!\n");
+      return 0;
+    }
 
-    debug_log("kill returned %d\n", e);
-    debug_log("Waiting...\n");
-    pid=WaitForPid();
+    debug_log("dlopen=%p\n", (void *)p->dlopen);
+    //debug_log("dlerror=%p\n", (void *)dlerror);
 
+
+    if (!p->isDebugged)
+    {
+      pid=ptrace_attach_andwait(p->pid);
+
+      debug_log("After wait. PID=%d\n", pid);
+      //safe_ptrace(PTRACE_CONT,pid,0,0);
+    }
+    else
+    {
+      debug_log("Killing pid %d\n", p->pid);
+
+      int e=kill(p->pid, SIGSTOP);
+      debug_log("kill returned %d\n", e);
+
+      debug_log("Waiting for thread to stop\n");
+      pid=WaitForPid(&status);
+
+      if (WIFSTOPPED(status))
+        debug_log("Stopped with signal %d\n", WSTOPSIG(status));
+      else
+        debug_log("Unexpected status: %x\n", status);
+
+    }
 
     showRegisters(pid);
 
@@ -400,12 +439,27 @@ printf("After wait 2. PID=%d\n", pid);
 #ifdef __aarch64__
   struct user_pt_regs origregs;
   struct user_pt_regs newregs;
+
+  typedef struct _pt_regs32 {
+    uint32_t uregs[18];
+  } pt_regs32, *ppt_regs32;
+  pt_regs32 origregs32;
+  pt_regs32 newregs32;
   struct iovec iov;
-#endif;
+#endif
 
 #ifdef __aarch64__
-      iov.iov_base=&newregs;
-      iov.iov_len=sizeof(newregs);
+      if (p->is64bit)
+      {
+        iov.iov_base=&newregs;
+        iov.iov_len=sizeof(newregs);
+      }
+      else
+      {
+        iov.iov_base=&newregs32;
+        iov.iov_len=sizeof(newregs32);
+      }
+
       if (ptrace(PTRACE_GETREGSET, pid, (void*)NT_PRSTATUS, &iov))
 #else
       if (ptrace(PTRACE_GETREGS, pid, 0, &newregs)!=0)
@@ -418,8 +472,16 @@ printf("After wait 2. PID=%d\n", pid);
       }
 
 #ifdef __aarch64__
-      iov.iov_base=&origregs;
-      iov.iov_len=sizeof(origregs);
+      if (p->is64bit)
+      {
+        iov.iov_base=&origregs;
+        iov.iov_len=sizeof(origregs);
+      }
+      else
+      {
+        iov.iov_base=&origregs32;
+        iov.iov_len=sizeof(origregs32);
+      }
       if (ptrace(PTRACE_GETREGSET, pid, (void*)NT_PRSTATUS, &iov))
 #else
       if (ptrace(PTRACE_GETREGS, pid, 0, &origregs)!=0)
@@ -446,7 +508,7 @@ printf("After wait 2. PID=%d\n", pid);
       writeString(pid, str, path);
 
       newregs.ARM_lr=returnaddress;
-      newregs.ARM_pc=dlopen;
+      newregs.ARM_pc=p->dlopen;
       newregs.ARM_r0=str;
       newregs.ARM_r1=RTLD_NOW;
 
@@ -479,8 +541,80 @@ printf("After wait 2. PID=%d\n", pid);
 #endif
 
 #ifdef __aarch64__
-      debug_log("extensionloader is not implemented yet for aarch64\n");
-      return FALSE;
+      //todo: if target is 32-bit .....
+      if (p->is64bit==0)
+      {
+        debug_log("orig pc=%lx\n", origregs32.ARM_pc);
+        debug_log("orig sp=%lx\n", origregs32.ARM_sp);
+        debug_log("orig cpsr=%lx\n", origregs32.ARM_cpsr);
+
+        newregs32.ARM_sp-=8+4*((pathlen+3)/ 4);
+
+        //not sur eif [sp] is written to with a push or if it's [sp-4] and then sp decreased, so start at sp+4 instead
+        str=newregs32.ARM_sp+4;
+        writeString(pid, str, path);
+
+        newregs32.ARM_lr=returnaddress;
+        newregs32.ARM_pc=p->dlopen;
+        newregs32.ARM_r0=str;
+        newregs32.ARM_r1=RTLD_NOW;
+
+        if (newregs32.ARM_pc & 1)
+        {
+           //THUMB Address link
+           debug_log("THUMB destination\n");
+           newregs32.ARM_cpsr=newregs32.ARM_cpsr | (1 << 5);
+
+           //not sure how to set the J bit (thumbee uses it...)
+           //for now disable it until a bug happens
+           newregs32.ARM_cpsr=newregs32.ARM_cpsr & (~(1<<25)); //unset J
+
+
+        }
+        else
+        {
+          debug_log("ARM destination\n");
+          debug_log("newregs32.ARM_cpsr was %x\n", newregs32.ARM_cpsr);
+          newregs32.ARM_cpsr=newregs32.ARM_cpsr & (~(1<<5)); //unset T
+          newregs32.ARM_cpsr=newregs32.ARM_cpsr & (~(1<<25)); //unset J
+          debug_log("newregs32.ARM_cpsr is %x\n", newregs32.ARM_cpsr);
+        }
+
+        debug_log("new pc=%lx\n", newregs32.ARM_pc);
+        debug_log("new sp=%lx\n", newregs32.ARM_sp);
+        debug_log("new cpsr=%lx\n", newregs32.ARM_cpsr);
+
+
+      }
+      else
+      {
+        debug_log("64-bit target\n");
+
+        debug_log("orig pc=%llx\n", origregs.pc);
+        debug_log("orig sp=%llx\n", origregs.sp);
+        debug_log("orig lr=%llx\n", origregs.regs[30]);
+        debug_log("orig x0=%llx\n", origregs.regs[0]);
+        debug_log("orig x1=%llx\n", origregs.regs[1]);
+
+        debug_log("extensionloader is not implemented yet for aarch64\n");
+        //allocate space in the stack
+
+        newregs.sp-=16+16*((pathlen+3)/16);
+        str=newregs.sp;
+        writeString(pid, str, path);
+
+
+        newregs.regs[30]=returnaddress;  //30=LR
+        newregs.pc=p->dlopen;
+        newregs.regs[0]=str;
+        newregs.regs[1]=RTLD_NOW;
+
+        debug_log("new pc=%llx\n", origregs.pc);
+        debug_log("new sp=%llx\n", origregs.sp);
+        debug_log("new lr=%llx\n", origregs.regs[30]);
+        debug_log("new x0=%llx\n", origregs.regs[0]);
+        debug_log("new x1=%llx\n", origregs.regs[1]);
+      }
 #endif
 
 #ifdef __x86_64__
@@ -547,7 +681,7 @@ printf("After wait 2. PID=%d\n", pid);
      debug_log("[%lx]=%lx", newregs.rsp, returnaddress);
 
 
-      newregs.rip=dlopen;
+      newregs.rip=p->dlopen;
       newregs.rax=0;
       newregs.rdi=str;
       newregs.rsi=RTLD_NOW;
@@ -609,13 +743,21 @@ printf("After wait 2. PID=%d\n", pid);
 
     writeString(pid, newregs.esp+12, path);
 
-    newregs.eip=dlopen;
+    newregs.eip=p->dlopen;
     newregs.orig_eax=0;
 #endif
 
 #ifdef __aarch64__
+    if (p->is64bit)
+    {
       iov.iov_base=&newregs;
       iov.iov_len=sizeof(newregs);
+    }
+    else
+    {
+      iov.iov_base=&newregs32;
+      iov.iov_len=sizeof(newregs32);
+    }
       if (ptrace(PTRACE_SETREGSET, pid, (void*)NT_PRSTATUS, &iov))
 #else
       if (ptrace(PTRACE_SETREGS, pid, 0, &newregs)!=0)
@@ -628,18 +770,26 @@ printf("After wait 2. PID=%d\n", pid);
       }
 
 #ifdef __aarch64__
-      iov.iov_base=&newregs;
-      iov.iov_len=sizeof(newregs);
-      if (ptrace(PTRACE_GETREGSET, pid, (void*)NT_PRSTATUS, &iov))
+     if (p->is64bit)
+     {
+       iov.iov_base=&newregs;
+       iov.iov_len=sizeof(newregs);
+     }
+     else
+     {
+       iov.iov_base=&newregs32;
+       iov.iov_len=sizeof(newregs32);
+     }
+     if (ptrace(PTRACE_GETREGSET, pid, (void*)NT_PRSTATUS, &iov))
 #else
-      if (ptrace(PTRACE_GETREGS, pid, 0, &newregs)!=0)
+     if (ptrace(PTRACE_GETREGS, pid, 0, &newregs)!=0)
 #endif
-      {
-        debug_log("PTRACE_GETREGS FAILED 4\n");
-        safe_ptrace(PTRACE_DETACH, pid,0,0);
+     {
+       debug_log("PTRACE_GETREGS FAILED 4\n");
+       safe_ptrace(PTRACE_DETACH, pid,0,0);
 
-        return FALSE;
-      }
+       return FALSE;
+     }
 
      debug_log("after setregs:\n");
 
@@ -648,6 +798,14 @@ printf("After wait 2. PID=%d\n", pid);
      debug_log("orig_r0=%lx\n", newregs.ARM_ORIG_r0);
      debug_log("pc=%lx\n", newregs.ARM_pc);
      debug_log("cpsr=%lx\n", newregs.ARM_cpsr);
+#endif
+
+#ifdef __aarch64__
+     debug_log("pc=%llx\n", newregs.pc);
+     debug_log("sp=%llx\n", newregs.sp);
+     debug_log("lr=%llx\n", newregs.regs[30]);
+     debug_log("x0=%llx\n", newregs.regs[0]);
+     debug_log("x1=%llx\n", newregs.regs[1]);
 #endif
 
 #ifdef __x86_64__
@@ -678,48 +836,97 @@ printf("After wait 2. PID=%d\n", pid);
 
     debug_log("PRACE_CONT=%d\n", ptr);
     if (ptr!=0)
+    {
+      debug_log("PTRACE_CONT FAILED\n");
+      return 1;
+    }
+
+    //wait for this thread to crash
+    int pid2;
+
+    pid2=-1;
+    while (pid2==-1)
+    {
+      pid2=waitpid(-1, &status,  WUNTRACED| __WALL);
+
+      if (WIFSTOPPED(status))
       {
-        debug_log("PTRACE_CONT FAILED\n");
-        return 1;
-      }
+        debug_log("Stopped with signal %d\n", WSTOPSIG(status));
 
-      //wait for this thread to crash
-
-      pid=-1;
-      while (pid==-1)
-      {
-        pid=waitpid(-1, &status,  WUNTRACED| __WALL);
-
-        if ((pid==-1) && (errno!=EINTR))
+        if (pid2!=pid)
         {
-          debug_log("LoadExtension wait fail. :%d\n", errno);
+          debug_log("It's a different thread\n");
+          if (!p->isDebugged)
+          {
+            debug_log("No debugger present. Continuing it unhandled\n");
 
-          return FALSE;
+            if (WSTOPSIG(status)!=SIGSTOP)
+              ptrace(PTRACE_CONT,pid2,(void *)0,(void *)(uintptr_t)WSTOPSIG(status));
+            else
+              ptrace(PTRACE_CONT,pid2,(void *)0,0);
+          }
+          else
+          {
+            //add it to the debug events
+            DebugEvent de;
+            de.threadid=pid2;
+            de.debugevent=WSTOPSIG(status);
+            AddDebugEventToQueue(p, &de);
+
+            debug_log("Debugger present. Added to the queue\n");
+          }
+          pid2=-1;
+          continue;
         }
 
-        if (pid==0)
-          pid=-1;
-        debug_log(".");
+      }
+      else
+        debug_log("Unexpected status: %x\n", status);
+
+
+      if ((pid2==-1) && (errno!=EINTR))
+      {
+        debug_log("LoadExtension wait fail. :%d\n", errno);
+
+        return FALSE;
       }
 
-     debug_log("after wait: pid=%d (status=%x)\n", pid, status);
+      if (pid2==0)
+        pid2=-1;
 
-     siginfo_t si;
-     if (ptrace(PTRACE_GETSIGINFO, pid, NULL, &si)!=0)
-     {
-       debug_log("GETSIGINFO FAILED\n");
-       safe_ptrace(PTRACE_DETACH, pid,0,0);
 
-       return FALSE;
-     }
 
-     debug_log("si.si_signo=%d\n", si.si_signo);
+      debug_log(".");
+    }
+
+    debug_log("after wait: pid=%d (status=%x)\n", pid, status);
+
+    siginfo_t si;
+    if (ptrace(PTRACE_GETSIGINFO, pid, NULL, &si)!=0)
+    {
+      debug_log("GETSIGINFO FAILED\n");
+      safe_ptrace(PTRACE_DETACH, pid,0,0);
+      return FALSE;
+    }
+
+    debug_log("si.si_signo=%d\n", si.si_signo);
+    if (si.si_signo==SIGSEGV)
+      debug_log("si._sifields._sigfault._addr=%x\n", si._sifields._sigfault._addr);
+
 
 
 
 #ifdef __aarch64__
-      iov.iov_base=&newregs;
-      iov.iov_len=sizeof(newregs);
+      if (p->is64bit)
+      {
+        iov.iov_base=&newregs;
+        iov.iov_len=sizeof(newregs);
+      }
+      else
+      {
+        iov.iov_base=&newregs32;
+        iov.iov_len=sizeof(newregs32);
+      }
       if (ptrace(PTRACE_GETREGSET, pid, (void*)NT_PRSTATUS, &iov))
 #else
      if (ptrace(PTRACE_GETREGS, pid, 0, &newregs)!=0)
@@ -737,6 +944,26 @@ printf("After wait 2. PID=%d\n", pid);
     debug_log("pc=%lx\n", newregs.ARM_pc);
     debug_log("sp=%lx\n", newregs.ARM_sp);
     debug_log("cpsr=%lx\n", newregs.ARM_cpsr);
+#endif
+
+#ifdef __aarch64__
+    if (p->is64bit)
+    {
+      debug_log("pc=%llx\n", newregs.pc);
+      debug_log("sp=%llx\n", newregs.sp);
+      debug_log("lr=%llx\n", newregs.regs[30]);
+      debug_log("x0=%llx\n", newregs.regs[0]);
+      debug_log("x1=%llx\n", newregs.regs[1]);
+    }
+    else
+    {
+      debug_log("r0=%lx\n", newregs32.ARM_r0);
+      debug_log("orig_r0=%lx\n", newregs32.ARM_ORIG_r0);
+      debug_log("pc=%lx\n", newregs32.ARM_pc);
+      debug_log("sp=%lx\n", newregs32.ARM_sp);
+      debug_log("cpsr=%lx\n", newregs32.ARM_cpsr);
+    }
+
 #endif
 
 #ifdef __x86_64__
@@ -761,8 +988,16 @@ printf("After wait 2. PID=%d\n", pid);
 
 
 #ifdef __aarch64__
-     iov.iov_base=&origregs;
-     iov.iov_len=sizeof(origregs);
+     if (p->is64bit)
+     {
+       iov.iov_base=&origregs;
+       iov.iov_len=sizeof(origregs);
+     }
+     else
+     {
+       iov.iov_base=&origregs32;
+       iov.iov_len=sizeof(origregs32);
+     }
      if (ptrace(PTRACE_SETREGSET, pid, (void*)NT_PRSTATUS, &iov))
 #else
      if (ptrace(PTRACE_SETREGS, pid, 0, &origregs)!=0)
@@ -771,7 +1006,7 @@ printf("After wait 2. PID=%d\n", pid);
        debug_log("PTRACE_SETREGS FAILED (20\n");
      }
 
-     if (!isBeingDebugged)
+     if (!p->isDebugged)
      {
        debug_log("Detaching\n");
        if (ptrace(PTRACE_DETACH, pid,0,0)!=0)
@@ -787,6 +1022,13 @@ printf("After wait 2. PID=%d\n", pid);
      debug_log("End...\n");
 
      return 1;
+
+}
+
+void finddlopencallback(uintptr_t address, char *symbolname, PProcessData context)
+{
+  debug_log("found dlopen at %llx\n", address);
+  context->dlopen=address;
 
 }
 
@@ -866,8 +1108,18 @@ int loadCEServerExtension(HANDLE hProcess)
         strcat(modulepath, "_x86");
 #endif
 
+#ifdef __x86_64__
+        if (p->is64bit)
+          strcat(modulepath, "_x86_64");
+        else
+          strcat(modulepath, "_x86");
+#endif
+
 #ifdef __aarch64__
-        strcat(modulepath, "_arm64");
+        if (p->is64bit)
+          strcat(modulepath, "_arm64");
+        else
+          strcat(modulepath, "_arm");
 #endif
 
 #ifdef __arm__
@@ -887,11 +1139,17 @@ int loadCEServerExtension(HANDLE hProcess)
 #endif
 
 #ifdef __x86_64__
-        strcat(modulepath, "_x86_64");
+        if (p->is64bit)
+          strcat(modulepath, "_x86_64");
+        else
+          strcat(modulepath, "_x86");
 #endif
 
 #ifdef __aarch64__
-        strcat(modulepath, "_arm64");
+        if (p->is64bit)
+          strcat(modulepath, "_arm64");
+        else
+          strcat(modulepath, "_arm");
 #endif
 
 #ifdef __arm__
@@ -901,8 +1159,6 @@ int loadCEServerExtension(HANDLE hProcess)
       }
 
       debug_log("modulepath = %s\n", modulepath);
-
-
 
 
       if (p->isDebugged)
@@ -918,6 +1174,12 @@ int loadCEServerExtension(HANDLE hProcess)
       if (p->hasLoadedExtension)
         debug_log("The extension is already loaded\n");
 
+      debug_log("Scanning for dlopen\n");
+      if (p->dlopen==0)
+        FindSymbol(hProcess,"dlopen", (symcallback)finddlopencallback, p);
+
+      if (p->dlopen==0)
+        debug_log("failure finding dlopen\n");
 
       {
         pthread_mutex_lock(&p->extensionMutex);
@@ -927,13 +1189,14 @@ int loadCEServerExtension(HANDLE hProcess)
           if (p->neverForceLoadExtension==0)
           {
             debug_log("Calling loadExtension\n");
-            p->hasLoadedExtension=loadExtension(p->pid, modulepath, p->isDebugged);
-
-            debug_log("p->hasLoadedExtension=%d\n", p->hasLoadedExtension);
+            p->hasLoadedExtension=loadExtension(p, modulepath);
           }
 
           if (p->hasLoadedExtension)
             p->hasLoadedExtension=openExtension(p->pid, &p->extensionFD);
+
+
+          debug_log("p->hasLoadedExtension=%d\n", p->hasLoadedExtension);
         }
 
         pthread_mutex_unlock(&p->extensionMutex);
