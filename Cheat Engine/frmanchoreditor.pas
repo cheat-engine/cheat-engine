@@ -373,8 +373,17 @@ end;
 
 procedure TAnchorEditor.FormShow(Sender: TObject);
 var a,b,c,d: TConstraintSize;
+  i: integer;
 begin
   autosize:=false;
+
+  i:=canvas.TextWidth('XXXXXX');
+  seLeftBorderspace.Width:=i;
+  seTopBorderspace.Width:=i;
+  seRightBorderspace.Width:=i;
+  seBottomBorderspace.Width:=i;
+  seBorderspace.Width:=i;
+
 
   gbleft.autosize:=false;
   gbRight.autosize:=false;

@@ -140,6 +140,7 @@ type topcode=record
   vexLeadingOpcode: TVEXLeadingopcode; //lo_0f),
   vexExtraParam: integer;
   vexSIB: boolean;
+  continueSearchingWhenOffsetTooBig: boolean;
  // RexPrefixOffset: byte; //if specified specifies which byte should be used for the rexw (e.g f3 before rex )
 
   //paramencoding: TParamEncoding;
@@ -851,6 +852,8 @@ const opcodes: array [1..opcodecount] of topcode =(
 
   (mnemonic:'MONITOR';bytes:3;bt1:$0f;bt2:$01;bt3:$c8),
 
+  (mnemonic:'MOV';opcode1:eo_reg;paramtype1:par_r32;paramtype2:par_rm32;bytes:1;bt1:$8b; continueSearchingWhenOffsetTooBig: true), //8b prefered over 89 in case of r32,r32, and over a1
+
   (mnemonic:'MOV';opcode1:eo_id;paramtype1:par_al;paramtype2:par_moffs8;bytes:1;bt1:$a0),
   (mnemonic:'MOV';opcode1:eo_id;paramtype1:par_ax;paramtype2:par_moffs16;bytes:2;bt1:$66;bt2:$a1),
   (mnemonic:'MOV';opcode1:eo_id;paramtype1:par_eax;paramtype2:par_moffs32;bytes:1;bt1:$a1),
@@ -860,7 +863,7 @@ const opcodes: array [1..opcodecount] of topcode =(
 
   (mnemonic:'MOV';opcode1:eo_reg;paramtype1:par_rm8;paramtype2:par_r8;bytes:1;bt1:$88),
   (mnemonic:'MOV';opcode1:eo_reg;paramtype1:par_rm16;paramtype2:par_r16;bytes:2;bt1:$66;bt2:$89),
-  (mnemonic:'MOV';opcode1:eo_reg;paramtype1:par_r32;paramtype2:par_rm32;bytes:1;bt1:$8b), //8b prefered over 89 in case of r32,r32
+
   (mnemonic:'MOV';opcode1:eo_reg;paramtype1:par_rm32;paramtype2:par_r32;bytes:1;bt1:$89),
   (mnemonic:'MOV';opcode1:eo_reg;paramtype1:par_r8;paramtype2:par_rm8;bytes:1;bt1:$8a),
   (mnemonic:'MOV';opcode1:eo_reg;paramtype1:par_r16;paramtype2:par_rm16;bytes:2;bt1:$66;bt2:$8b),
@@ -6358,6 +6361,26 @@ begin
             begin
               addopcode(bytes,j);
               result:=createmodrm(bytes,getreg(parameter1),parameter2);
+
+              if opcodes[j].continueSearchingWhenOffsetTooBig and (relativeAddressLocation<>-1) then //kinda hacky
+              begin
+                //uses riprelative addressing and there is an alternate version
+                if actualdisplacement>(address+length(bytes)) then
+                  v:=actualdisplacement-(address+length(bytes))
+                else
+                  v:=(address+length(bytes))-actualdisplacement;
+
+                if v>$7fffffff then
+                begin
+                  setlength(bytes,0);
+                  paramtype1:=oldParamtype1;
+                  paramtype2:=oldParamtype2;
+                  relativeAddressLocation:=-1;
+                  inc(j);
+                  result:=false;
+                  continue; //find something else
+                end;
+              end;
               exit;
             end
             else
