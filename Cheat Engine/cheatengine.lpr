@@ -120,7 +120,7 @@ uses
   autoassemblercode, CSharpCompiler, newhintwindow, memrecDataStructures,
   LuaCECustomButton, DBVMDebuggerInterface, frmCR3SwitcherUnit, tcclib,
   sourcecodehandler, frmSourceDisplayUnit, disassemblerarm64, contexthandler,
-  DisAssemblerARM32;
+  DisAssemblerARM32, frmAnchorEditor;
 
 {$R cheatengine.res}
 {$IFDEF windows}

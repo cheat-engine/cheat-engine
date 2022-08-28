@@ -661,7 +661,7 @@
         <PackageName Value="LCL"/>
       </Item8>
     </RequiredPackages>
-    <Units Count="414">
+    <Units Count="415">
       <Unit0>
         <Filename Value="cheatengine.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -2844,6 +2844,14 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="DisAssemblerARM32"/>
       </Unit413>
+      <Unit414>
+        <Filename Value="frmanchoreditor.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="AnchorEditor"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+        <UnitName Value="frmAnchorEditor"/>
+      </Unit414>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
