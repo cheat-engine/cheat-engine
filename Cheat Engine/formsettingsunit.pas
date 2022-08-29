@@ -93,6 +93,7 @@ type
     cbDBVMDebugTargetedProcessOnly: TCheckBox;
     cbDBVMDebugKernelmodeBreaks: TCheckBox;
     cbSaveMemoryregionScanSettings: TCheckBox;
+    cbSkipPDB: TCheckBox;
     combothreadpriority: TComboBox;
     defaultbuffer: TPopupMenu;
     Default1: TMenuItem;
@@ -614,6 +615,8 @@ begin
         reg.WriteInteger('Freeze interval',freezeinterval);
         reg.writebool('Show values as signed',cbShowAsSigned.checked);
 
+        reg.WriteBool('Skip PDB', cbSkipPDB.checked);
+        skippdb:=cbSkipPDB.checked;
 
         reg.WriteBool('Replace incomplete opcodes with NOPS',replacewithnops.checked);
         reg.WriteBool('Ask for replace with NOPS',askforreplacewithnops.checked);

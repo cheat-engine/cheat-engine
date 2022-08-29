@@ -657,6 +657,12 @@ begin
           if reg.ValueExists('Always AutoAttach') then
             cbAlwaysAutoAttach.checked:=reg.readbool('Always AutoAttach');
 
+          if reg.ValueExists('Skip PDB') then
+            cbSkipPDB.checked:=reg.readBool('Skip PDB');
+
+          skippdb:=cbSkipPDB.checked;
+
+
 
           if reg.ValueExists('Replace incomplete opcodes with NOPS') then
             replacewithnops.checked:=reg.readBool('Replace incomplete opcodes with NOPS');

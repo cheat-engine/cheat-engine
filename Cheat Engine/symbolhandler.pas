@@ -2777,9 +2777,6 @@ begin
 
             if terminated then exit;
 
-
-
-
             if symbolsloaded then
             begin
               symbolscleaned:=false;
@@ -2796,62 +2793,64 @@ begin
 
               processThreadEvents;
 
-              //enumerate the basic data from the symbols
-              //enumeratedModules:=0;
-              pdbonly:=true;
+              if skippdb=false then
+              begin
+                //enumerate the basic data from the symbols
+                //enumeratedModules:=0;
+                pdbonly:=true;
 
-              if assigned(SymEnumerateModules64) then
-                SymEnumerateModules64(thisprocesshandle, @EM, self );
+                if assigned(SymEnumerateModules64) then
+                  SymEnumerateModules64(thisprocesshandle, @EM, self );
 
-              pdbsymbolsloaded:=true;
-
-
-              if terminated then exit;
+                pdbsymbolsloaded:=true;
 
 
-              processThreadEvents;
+                if terminated then exit;
 
-              debugpart:=3;
 
-              isloading:=false;
-
-              while symbolloaderthreadeventqueue.Count>0 do
                 processThreadEvents;
 
+                debugpart:=3;
 
-              OutputDebugString('loadingExtendedDebugSymbols'+#13#10);
-              loadingExtendedDebugSymbols:=true;
-              if not terminated then
-                EnumerateExtendedDebugSymbols;
-              loadingExtendedDebugSymbols:=false;
+                isloading:=false;
+
+                while symbolloaderthreadeventqueue.Count>0 do
+                  processThreadEvents;
 
 
-              OutputDebugString('after loadingExtendedDebugSymbols'+#13#10);
+                OutputDebugString('loadingExtendedDebugSymbols'+#13#10);
+                loadingExtendedDebugSymbols:=true;
+                if not terminated then
+                  EnumerateExtendedDebugSymbols;
+                loadingExtendedDebugSymbols:=false;
 
-              if not terminated then
-              begin
-                parsingstructures:=true;
-                OutputDebugString('parsingstructures'+#13#10);
-                EnumerateStructures;
-                parsingstructures:=false;
-              end;
 
-              if (targetself=false) and (length(modulelist.withdebuginfo)>0) then
-              begin
-                while not terminated do
+                OutputDebugString('after loadingExtendedDebugSymbols'+#13#10);
+
+                if not terminated then
                 begin
-                  symbolloaderthreadeventevent.waitfor(100);
+                  parsingstructures:=true;
+                  OutputDebugString('parsingstructures'+#13#10);
+                  EnumerateStructures;
+                  parsingstructures:=false;
+                end;
 
-                  while symbolloaderthreadeventqueue.Count>0 do
-                    processThreadEvents;
-
-                  if ReadProcessMemory(processhandle, amodulebase, @b,1,ar)=false then       //release the debug symbols when the process terminates
+                if (targetself=false) and (length(modulelist.withdebuginfo)>0) then
+                begin
+                  while not terminated do
                   begin
-                    break;
+                    symbolloaderthreadeventevent.waitfor(100);
+
+                    while symbolloaderthreadeventqueue.Count>0 do
+                      processThreadEvents;
+
+                    if ReadProcessMemory(processhandle, amodulebase, @b,1,ar)=false then       //release the debug symbols when the process terminates
+                    begin
+                      break;
+                    end;
                   end;
                 end;
-              end;
-
+              end; //skippdb=false
               debugpart:=7;
               Symcleanup(thisprocesshandle);
               symbolscleaned:=true;
@@ -2870,6 +2869,7 @@ begin
           DLLSymbolsLoaded:=true;
           apisymbolsloaded:=true;
           dotnetsymbolsloaded:=true;
+          pdbsymbolsloaded:=true;
         end;
         {$endif}
         {$ifdef darwin}

@@ -184,6 +184,8 @@ var
 
   forceCR3VirtualQueryEx: boolean;
 
+  skippdb: boolean;
+
 
 
 implementation
