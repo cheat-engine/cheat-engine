@@ -9009,6 +9009,7 @@ begin
     try
       LoadTable(Opendialog1.filename, merge);
       SaveDialog1.filename:=Opendialog1.filename;
+      SaveDialog1.InitialDir:=opendialog1.InitialDir;
 
       UserDefinedTableName:=Opendialog1.filename;
       reinterpretaddresses;
@@ -9053,6 +9054,7 @@ begin
 
     saveGotCanceled:=false;
     opendialog1.FileName := savedialog1.filename;
+    opendialog1.InitialDir:=savedialog1.InitialDir;
     SaveIntialTablesDir(extractfilepath(savedialog1.filename));
 
     UserDefinedTableName:=savedialog1.filename;
