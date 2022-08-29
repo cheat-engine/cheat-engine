@@ -13906,6 +13906,17 @@ begin
   result:=0;
 end;
 
+function lua_getOpenedFileSize(L: Plua_State): integer; cdecl;
+begin
+  if (filehandler.filedata<>nil) then
+  begin
+    lua_pushinteger(L, filehandler.filedata.Size);
+    result:=1;
+  end
+  else
+    result:=0;
+end;
+
 function lua_openFileAsProcess(L: Plua_State): integer; cdecl;
 var
   filename: string;
@@ -16327,6 +16338,7 @@ begin
     lua_register(L, 'enableDRM', lua_enableDRM);
 
     lua_register(L, 'openFileAsProcess', lua_openFileAsProcess);
+    lua_register(L, 'getOpenedFileSize', lua_getOpenedFileSize);
     lua_register(L, 'saveOpenedFile', lua_saveOpenedFile);
 
 

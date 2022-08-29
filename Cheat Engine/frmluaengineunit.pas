@@ -243,7 +243,7 @@ var
 
   r: string;
 begin
-  identchars:=['.','a'..'z','A'..'Z','0'..'9','_'];
+  identchars:=['.','a'..'z','A'..'Z','0'..'9','_','[',']'];
 
   extra:='';
   if s='' then exit('');
@@ -433,6 +433,11 @@ begin
 
                 lua_pop(L,1);
               end;
+            end;
+
+            else
+            begin
+              outputdebugstring(pchar('unknown lua type: '+inttostr(lua_type(L, -1))));
             end;
 
           end;
