@@ -319,6 +319,9 @@ begin
     end;
   end;
 
+  if istrainer then
+    application.Scaled:=true;
+
   if not istrainer then
   begin
     //check the user preferences
