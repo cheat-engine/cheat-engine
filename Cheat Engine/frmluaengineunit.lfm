@@ -5,29 +5,29 @@ object frmLuaEngine: TfrmLuaEngine
   Width = 570
   HelpContext = 19
   Caption = 'Lua Engine'
-  ClientHeight = 338
+  ClientHeight = 318
   ClientWidth = 570
   Menu = MainMenu1
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '2.2.0.4'
+  LCLVersion = '2.2.2.0'
   object GroupBox1: TGroupBox
     Left = 0
-    Height = 202
+    Height = 182
     Top = 0
     Width = 570
     Align = alClient
     Caption = 'Output'
-    ClientHeight = 183
-    ClientWidth = 560
+    ClientHeight = 162
+    ClientWidth = 566
     TabOrder = 1
     object mOutput: TMemo
       Left = 0
-      Height = 183
+      Height = 162
       Top = 0
-      Width = 560
+      Width = 566
       Align = alClient
       ReadOnly = True
       ScrollBars = ssAutoBoth
@@ -37,7 +37,7 @@ object frmLuaEngine: TfrmLuaEngine
   object Panel1: TPanel
     Left = 0
     Height = 131
-    Top = 207
+    Top = 187
     Width = 570
     Align = alBottom
     BevelOuter = bvNone
@@ -781,7 +781,7 @@ object frmLuaEngine: TfrmLuaEngine
     Cursor = crVSplit
     Left = 0
     Height = 5
-    Top = 202
+    Top = 182
     Width = 570
     Align = alBottom
     ResizeAnchor = akBottom

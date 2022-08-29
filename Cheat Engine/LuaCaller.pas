@@ -58,6 +58,8 @@ type
       procedure CloseEvent(Sender: TObject; var CloseAction: TCloseAction);
       procedure CloseQueryEvent(Sender: TObject; var CanClose: boolean);
       function MemoryRecordActivateEvent(sender: TObject; before, currentstate: boolean): boolean;
+      procedure MemoryRecordChangedValueEvent(sender: TObject; oldvalue, newvalue: string);
+
       procedure DisassemblerSelectionChangeEvent(sender: TObject; address, address2: ptruint);
       function DisassemblerExtraLineRender(sender: TObject; Address: ptruint; AboveInstruction: boolean; selected: boolean; var x: integer; var y: integer): TRasterImage;
 
@@ -480,6 +482,29 @@ begin
         if lua_gettop(L)>0 then
           canclose:=lua_toboolean(L,-1);
       end;
+    end;
+  finally
+    lua_settop(L, oldstack);
+  end;
+end;
+
+procedure TLuaCaller.MemoryRecordChangedValueEvent(sender: TObject; oldvalue, newvalue: string);
+var
+  oldstack: integer;
+  l: Plua_State;
+begin
+  l:=GetLuaState;
+  oldstack:=lua_gettop(L);
+
+  try
+    if canRun then
+    begin
+      PushFunction;
+      luaclass_newClass(L, sender);
+      lua_pushstring(L, oldvalue);
+      lua_pushstring(L, newvalue);
+
+      lua_pcall(L, 3,1,0); //procedure(sender, oldvalue, newvalue)
     end;
   finally
     lua_settop(L, oldstack);
@@ -2399,6 +2424,31 @@ begin
     lua_pop(L, lua_gettop(L));
 end;
 
+function LuaCaller_MemoryRecordChangedValueEvent(L: PLua_state): integer; cdecl;
+var
+  m: TMethod;
+  sender: TObject;
+  oldvalue, newvalue: string;
+  r: boolean;
+begin
+  result:=0;
+  if lua_gettop(L)=3 then
+  begin
+    //(sender: TObject; before, currentstate: boolean):
+    m.code:=lua_touserdata(L, lua_upvalueindex(1));
+    m.data:=lua_touserdata(L, lua_upvalueindex(2));
+    sender:=lua_toceuserdata(L, 1);
+    oldvalue:=Lua_ToString(L, 2);
+    newvalue:=Lua_ToString(L, 3);
+    lua_pop(L, lua_gettop(L));
+
+    TMemoryRecordChangedValueEvent(m)(sender,oldvalue, newvalue);
+    result:=0;
+  end
+  else
+    lua_pop(L, lua_gettop(L));
+end;
+
 function LuaCaller_MemoryRecordActivateEvent(L: PLua_state): integer; cdecl;
 var
   m: TMethod;
@@ -3085,7 +3135,10 @@ initialization
 
 
 
-  registerLuaCall('TMemoryRecordActivateEvent', LuaCaller_MemoryRecordActivateEvent, pointer(TLuaCaller.MemoryRecordActivateEvent),'function %s(sender, before, current)'#13#10#13#10'end'#13#10);
+  registerLuaCall('TMemoryRecordActivateEvent',     LuaCaller_MemoryRecordActivateEvent,     pointer(TLuaCaller.MemoryRecordActivateEvent),'function %s(sender, before, current)'#13#10#13#10'end'#13#10);
+  registerLuaCall('TMemoryRecordChangedValueEvent', LuaCaller_MemoryRecordChangedValueEvent, pointer(TLuaCaller.MemoryRecordChangedValueEvent),'function %s(sender, oldvalue, newvalue)'#13#10#13#10'end'#13#10);
+
+
 
   registerLuaCall('TDisassemblerSelectionChangeEvent', LuaCaller_DisassemblerSelectionChangeEvent, pointer(TLuaCaller.DisassemblerSelectionChangeEvent),'function %s(sender, address, address2)'#13#10#13#10'end'#13#10);
   registerLuaCall('TDisassemblerExtraLineRender', LuaCaller_DisassemblerExtraLineRender, pointer(TLuaCaller.DisassemblerExtraLineRender),'function %s(sender, Address, AboveInstruction, Selected)'#13#10#13#10'return nil,0,0'#13#10#13#10'end'#13#10);
@@ -3113,5 +3166,8 @@ initialization
   registerLuaCall('TMeasureItemEvent', LuaCaller_MeasureItemEvent, pointer(TLuaCaller.MeasureItemEvent),'function %s(sender, index, height)'#13#10'  return height'#13#10'end'#13#10);
 
   registerLuaCall('TDisassemblerViewOverrideCallback', LuaCaller_DisassemblerViewOverrideCallback, pointer(TLuaCaller.DisassemblerViewOverrideCallback),'function %s(address, addressstring, bytestring, opcodestring, parameterstring, specialstring)'#13#10'  return addressstring, bytestring, opcodestring, parameterstring, specialstring'#13#10'end'#13#10);
+
+
+
 end.
 

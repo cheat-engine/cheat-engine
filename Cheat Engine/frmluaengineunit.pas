@@ -147,7 +147,7 @@ implementation
 { TfrmLuaEngine }
 
 uses LuaClass, SynPluginMultiCaret, SynEditTypes, globals, DPIHelper, frmSyntaxHighlighterEditor,
-  frmautoinjectunit, mainunit2;
+  frmautoinjectunit, mainunit2, TypInfo;
 
 resourcestring
   rsError = 'Script Error';
@@ -287,6 +287,8 @@ var
   c: TComponent absolute o;
 
   f: boolean;
+
+  pp: pproplist;
 begin
 
   scLuaCompleter.ItemList.Clear;
@@ -382,11 +384,15 @@ begin
                     properties.Add(c.Components[i].Name);
                 end;
 
-              temp:=ce_getPropertylist(o);
-              if temp<>nil then
-                properties.AddStrings(temp);
+              pp:=nil;
+              i:=GetPropList(c, pp);
+              if i>0 then
+                for j:=0 to i-1 do
+                  properties.Add(pp^[j].Name);
 
-              temp.free;
+              if pp<>nil then
+                freememandnil(pp);
+
             end;
 
             LUA_TTABLE:

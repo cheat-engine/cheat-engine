@@ -103,13 +103,15 @@ type
   TMemoryRecordActivateEvent=function (sender: TObject; before, currentstate: boolean): boolean of object;
   TGetDisplayValueEvent=function(sender: TObject; var value: string): boolean of object;
 
+  TMemoryRecordChangedValueEvent=procedure (sender: TObject; oldvalue: string; newvalue: string) of object;
+
   TMemoryRecord=class
   private
     fID: integer;
-    FrozenValue : string;
-    CurrentValue: string;
-    UndoValue   : string;  //keeps the last value before a manual edit
-
+    FrozenValue   : string;
+    CurrentValue  : string;
+    UndoValue     : string;  //keeps the last value before a manual edit
+    LastSeenValue : string;
 
     UnreadablePointer: boolean;
     BaseAddress: ptrUint; //Base address
@@ -172,6 +174,8 @@ type
     fonactivate, fondeactivate: TMemoryRecordActivateEvent;
     fOnDestroy: TNotifyEvent;
     fOnGetDisplayValue: TGetDisplayValueEvent;
+
+    fOnValueChanged, fOnValueChangedByUser: TMemoryRecordChangedValueEvent;
 
     fpointeroffsets: array of TMemrecOffset; //if longer than 0, this is a pointer
 
@@ -378,6 +382,9 @@ type
     property Description: string read fDescription write setDescription;
     property CachedAddress: ptruint read realAddress;
     property HasMouseFocus: boolean read hasMouseOver;
+
+    property OnValueChanged: TMemoryRecordChangedValueEvent read fOnValueChanged write fOnValuechanged;
+    property OnValueChangedByUser: TMemoryRecordChangedValueEvent read fOnValueChangedByUser write fOnValueChangedByUser;
   end;
 
   THKSoundFlag=(hksPlaySound=0, hksSpeakText=1, hksSpeakTextEnglish=2); //playSound excludes speakText
@@ -3144,6 +3151,11 @@ begin
   end;
 
   freememandnil(buf);
+
+  if assigned(fOnValueChanged) and (result<>LastSeenValue) then
+    fOnValueChanged(self, LastSeenValue, result);
+
+  LastSeenValue:=result;
 end;
 
 function TMemoryrecord.canUndo: boolean;
@@ -3354,6 +3366,7 @@ begin
 
 
   if fisGroupHeader then exit;
+
 
 
   currentValue:={utf8toansi}(v);
@@ -3599,8 +3612,17 @@ begin
 
   frozenValue:=unparsedvalue;     //we got till the end, so update the frozen value
 
-  if (not isfreezer) and (GetValue<>newundovalue) then
-    undovalue:=newundovalue;
+  if (not isfreezer) then
+  begin
+    if (GetValue<>newundovalue) then
+      undovalue:=newundovalue;
+
+    if assigned(fOnValueChangedByUser) then
+      fOnValueChangedByUser(self, newundovalue, LastSeenValue);
+  end;
+
+
+
 
 end;
 
