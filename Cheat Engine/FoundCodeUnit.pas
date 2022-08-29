@@ -134,6 +134,7 @@ type
     procedure timerEntryInfoUpdateTimer(Sender: TObject);
   private
     { Private declarations }
+    loadedPosition: boolean;
     setcountwidth: boolean;
     fdbvmwatchid: integer;
     {$ifdef windows}
@@ -1261,7 +1262,8 @@ begin
   btnOk.caption:=strStop;
 
   setlength(x,0);
-  loadformposition(self,x);
+  if loadformposition(self,x) then
+    loadedPosition:=true;
 
   if length(x)>=1 then
   begin
@@ -1323,6 +1325,13 @@ begin
   begin
     FoundCodeList.Column[0].Width:=max(FoundCodeList.Column[0].Width, FoundCodeList.Canvas.TextWidth('9999'));
     setcountwidth:=true;
+  end;
+
+  if not loadedPosition then
+  begin
+    width:=canvas.TextWidth('XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX');
+    height:=canvas.TextHeight('Q')*20;
+    FoundCodeList.Columns[0].Width:=canvas.TextWidth(' '+FoundCodeList.Columns[0].Caption+' ');
   end;
 end;
 
