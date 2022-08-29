@@ -22,6 +22,7 @@ type
     fhitcount: integer;
     fcontext: pointer;
     contexthandler: TContextInfo;
+    function getContext: pointer;
     procedure setContext(ctx: Pointer);
 
     procedure setHitcount(c: integer);
@@ -48,7 +49,7 @@ type
     formChangedAddresses: TfrmChangedAddresses;
 
     property hitcount: integer read fhitcount write setHitcount;
-    property context: pointer read fcontext write setContext;
+    property context: pointer read getContext write setContext;
     procedure savestack;
     constructor create;
     destructor destroy; override;
@@ -290,6 +291,8 @@ var
   skip: boolean;
 
   debug,debug2: pointer;
+
+
 begin
   outputdebugstring('addEntriesToList');
 
@@ -371,11 +374,11 @@ begin
 
       coderecord:=TCoderecord.create;
       getmem(coderecord.dbvmcontextbasic, sizeof(TPageEventBasicArray));
-      zeromemory(@coderecord.context, sizeof(coderecord.context));
+      c:=coderecord.context;
 
       coderecord.dbvmcontextbasic^:=basicinfo;
 
-      c:=coderecord.context;
+
 
       outputdebugstring('created coderecord and  dbvmcontextbasic');
 
@@ -488,6 +491,19 @@ procedure TCodeRecord.setHitcount(c: integer);
 begin
   fHitcount:=c;
   lastSeen:=now;
+end;
+
+function TCodeRecord.getContext: pointer;
+begin
+  if fcontext=nil then
+  begin
+    outputdebugstring('TCodeRecord.getContext: fContext was nil. Allocating it');
+    contexthandler:=getBestContextHandler;
+    fcontext:=getmem(contexthandler.ContextSize);
+    ZeroMemory(fcontext, contexthandler.ContextSize);
+  end;
+
+  result:=fcontext;
 end;
 
 procedure TCodeRecord.setContext(ctx: Pointer);
