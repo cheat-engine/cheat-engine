@@ -546,6 +546,7 @@ type
       var AllowExpansion: Boolean);
   private
     { private declarations }
+    loadedPosition: boolean;
     fmainStruct: TDissectedStruct;
     fgroups: Tlist;
 
@@ -3454,6 +3455,7 @@ begin
   setlength(x,3);
   if LoadFormPosition(self, x) then
   begin
+    loadedPosition:=true;
     if length(x)>0 then
     begin
       miShowAddresses.checked:=x[0]=1;
@@ -3482,6 +3484,14 @@ end;
 procedure TfrmStructures2.FormShow(Sender: TObject);
 begin
   HeaderControl1.Height:=canvas.TextHeight('XgjQh'+HeaderControl1.Sections[0].Text)+4;
+  if loadedPosition=false then
+  begin
+    HeaderControl1.Sections[0].Width:=canvas.textWidth('Offset - Description      ');
+    Width:=5*HeaderControl1.Sections[0].Width;
+    position:=poDesigned;
+    position:=poScreenCenter;
+  end;
+
   if (initialaddress<>0) and (columnCount=0) then  //add the initial address, else it looks so sad...
   begin
     addColumn;
@@ -3496,6 +3506,9 @@ begin
 
   if (frmStructuresConfig<>nil) and (frmStructuresConfig.customfont) then
     tvStructureView.font.Assign(frmStructuresConfig.GroupBox1.Font);
+
+
+
 end;
 
 
