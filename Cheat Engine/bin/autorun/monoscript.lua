@@ -749,9 +749,7 @@ function LaunchMonoDataCollector(internalReconnectDisconnectEachTime)
 
   end
 
-  if (monoSettings==nil) then
-    monoSettings=getSettings("MonoExtension")  
-  end
+
   
   StructureElementCallbackID=registerStructureAndElementListCallback(mono_StructureListCallback, mono_ElementListCallback)
 
@@ -3673,20 +3671,22 @@ function mono_setMonoMenuItem(usesmono, usesdotnet)
         end
       end
     end
-
-    miMonoTopMenuItem.miMonoActivate.Visible=true
-    miMonoTopMenuItem.miMonoDissect.Visible=true
-    miMonoTopMenuItem.miDotNetSeperator.Visible=true
-      
-    if usesmono and not usesdotnet then
-      miMonoTopMenuItem.Caption=translate("Mono")
-    elseif usesdotnet and not usesmono then  
-      miMonoTopMenuItem.Caption=translate(".Net")
-      miMonoTopMenuItem.miMonoActivate.Visible=false
-      miMonoTopMenuItem.miMonoDissect.Visible=false      
-      miMonoTopMenuItem.miDotNetSeperator.Visible=false
-    else
-      miMonoTopMenuItem.Caption=translate("Mono/.Net")     
+    
+    if miMonoTopMenuItem then
+      miMonoTopMenuItem.miMonoActivate.Visible=true
+      miMonoTopMenuItem.miMonoDissect.Visible=true
+      miMonoTopMenuItem.miDotNetSeperator.Visible=true
+        
+      if usesmono and not usesdotnet then
+        miMonoTopMenuItem.Caption=translate("Mono")
+      elseif usesdotnet and not usesmono then  
+        miMonoTopMenuItem.Caption=translate(".Net")
+        miMonoTopMenuItem.miMonoActivate.Visible=false
+        miMonoTopMenuItem.miMonoDissect.Visible=false      
+        miMonoTopMenuItem.miDotNetSeperator.Visible=false
+      else
+        miMonoTopMenuItem.Caption=translate("Mono/.Net")     
+      end
     end
 
     
@@ -4722,6 +4722,8 @@ end
 
 function mono_initialize()
   --register a function to be called when a process is opened
+  monoSettings=getSettings("MonoExtension")  
+  
   if (mono_init1==nil) then
     mono_init1=true
     mono_OldOnProcessOpened=MainForm.OnProcessOpened
