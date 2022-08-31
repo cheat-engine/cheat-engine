@@ -213,6 +213,8 @@ type
     function ReadProcessMemory(hProcess: THandle; lpBaseAddress, lpBuffer: Pointer; nSize: size_t; var lpNumberOfBytesRead: PTRUINT): BOOL;
     function WriteProcessMemory(hProcess: THandle; const lpBaseAddress: Pointer; lpBuffer: Pointer; nSize: DWORD; var lpNumberOfBytesWritten: PTRUINT): BOOL;
     function VirtualQueryEx(hProcess: THandle; lpAddress: Pointer; var lpBuffer: TMemoryBasicInformation; dwLength: DWORD): DWORD;
+
+    function getRegionBase(address: ptruint): ptruint;
   protected
     procedure KeyDown(var Key: Word; Shift: TShiftState); override;
     procedure UTF8KeyPress(var UTF8Key: TUTF8Char); override;
@@ -919,7 +921,7 @@ start, stop: ptruint;
 gotoaddress: qword;
 begin
 
-  if (shift=[]) or (shift=[ssshift]) then
+  if (shift=[]) or (shift=[ssshift]) or (shift=[ssCtrl]) then
   begin
     case key of
       VK_DELETE:
@@ -964,6 +966,17 @@ begin
 
       vk_up:
       begin
+        if (shift=[ssCtrl]) then
+        begin
+          x:=getRegionBase(address);
+          if x<>0 then
+          begin
+            address:=x;
+            selected:=address;
+            isEditing:=false;
+          end;
+        end
+        else
         if (shift=[ssShift]) then
         begin
           selected2:=selected2-bytesPerLine;
@@ -3129,6 +3142,7 @@ begin
   {$endif};
 end;
 
+
 function THexview.VirtualQueryEx(hProcess: THandle; lpAddress: Pointer; var lpBuffer: TMemoryBasicInformation; dwLength: DWORD): DWORD;
 begin
   if fcr3=0 then
@@ -3143,6 +3157,30 @@ begin
   end
   {$endif};
 end;
+
+function THexview.getRegionBase(address: ptruint): ptruint;
+var
+  mbi: TMemoryBasicInformation;
+  currentstart: ptruint;
+begin
+  result:=0;
+  if VirtualQueryEx(processhandle, pointer(address), mbi, sizeof(mbi))=sizeof(mbi) then
+  begin
+    currentstart:=ptruint(mbi.AllocationBase);
+    VirtualQueryEx(processhandle, pointer(currentstart), mbi, sizeof(mbi)) ;
+
+    while VirtualQueryEx(processhandle, pointer(mbi.BaseAddress+mbi.RegionSize), mbi, sizeof(mbi))=sizeof(mbi) do
+    begin
+      if ptruint(mbi.BaseAddress)<currentstart then exit(0); //overflow...
+      if ptruint(mbi.BaseAddress)>address then
+        exit(currentstart);
+
+      currentstart:=ptruint(mbi.BaseAddress);
+    end;
+
+  end;
+end;
+
 
 destructor THexview.destroy;
 begin
