@@ -1519,10 +1519,11 @@ var i,j,k,l,e: integer;
 
     debug_getAddressFromScript: boolean=false;
 
-    function getAddressFromScript(name: string): ptruint;
+    function getAddressFromScript(name: string; alternate: boolean=false): ptruint;
     var
       found: boolean;
-      j: integer;
+      j,k: integer;
+      temps: string;
     begin
       result:=0;
       found:=false;
@@ -1578,6 +1579,24 @@ var i,j,k,l,e: integer;
       end;
 
       if debug_getAddressFromScript then OutputDebugString('not a registered symbol');
+
+      if (not alternate) and
+         (not processhandler.is64Bit) and
+         (name[1]='_') and
+         (name[length(name)] in ['0'..'9']) and
+         name.Contains('@')
+      then
+      begin
+        //it could be a _symbolname@###
+        j:=name.IndexOf('@');
+        temps:=name.Substring(j+1);
+        if TryStrToInt(temps,k) then
+        begin
+          //it is a _symbolname@###
+          temps:=name.Substring(1,j-1);
+          exit(getAddressFromScript(temps,true));
+        end;
+      end;
 
 
       if debug_getAddressFromScript then OutputDebugString('not found');

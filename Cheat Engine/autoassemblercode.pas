@@ -416,7 +416,7 @@ var
   phandle: THandle;
 
   _tcc: TTCC;
-  s: string;
+  s,s2: string;
 
   tempsymbollist: TStringlist;
 
@@ -535,10 +535,16 @@ begin
       for i:=0 to length(dataForPass2.cdata.linklist)-1 do
       begin
         j:=secondarylist.IndexOf(dataforpass2.cdata.linklist[i].name);
-        if j=-1 then raise exception.create('Failure to link '+dataForPass2.cdata.linklist[i].fromname+' due to missing reference');
+        if j=-1 then
+        begin
+          raise exception.create('Failure to link '+dataForPass2.cdata.linklist[i].fromname+' due to missing reference');
+        end;
 
         k:=tempsymbollist.IndexOf(dataForPass2.cdata.linklist[i].fromname);
-        if k=-1 then exception.create('Failure to link '+dataForPass2.cdata.linklist[i].fromname+' due to it missing in the c-code');
+        if k=-1 then
+        begin
+          raise exception.create('Failure to link '+dataForPass2.cdata.linklist[i].fromname+' due to it missing in the c-code');
+        end;
 
         a:=ptruint(tempsymbollist.Objects[k]);
         writeProcessMemory(phandle, pointer(dataForPass2.cdata.references[j].address),@a,psize,bw);
