@@ -47,7 +47,9 @@
 #include <signal.h>
 
 #ifdef __ANDROID__
+#if defined (__arm__) || defined(__aarch64__)
 #include <arm-linux-androideabi/asm/ptrace.h>
+#endif
 #endif
 
 #ifndef __x86_64__

@@ -22,10 +22,24 @@ int getContext(int tid, CONTEXT *context)
   debug_log("context->fp=%p\n", &context->fp);
 
 #ifndef NT_PRSTATUS
-  int r;
-  r=safe_ptrace(PTRACE_GETREGS, tid, 0, contextPos);
-  contextPos+=sizeof(context->regs);
-  context->structsize=contextPos-context;
+  int r,r2;
+  r=safe_ptrace(PTRACE_GETREGS, tid, 0, &context->regs);
+
+  if (r==0)
+  {
+#ifdef __arm__
+    debug_log("PC=%x\n", context->regs.ARM_pc);
+    debug_log("ARM_cpsr=%x", context->regs.ARM_cpsr);
+
+    if (context->regs.ARM_cpsr & (1<<5))
+      debug_log(" (THUMB MODE)");
+
+    debug_log("\n");
+
+#endif
+    r2=safe_ptrace(PTRACE_GETVFPREGS, tid, 0, &context->fp.regs[1]);
+  }
+
 #ifdef __i386__
   context->type=0;
 #endif
