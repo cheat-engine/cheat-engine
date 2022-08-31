@@ -183,22 +183,19 @@ BOOL cenet_getThreadContext(int fd, int pHandle, int tid, void* context)
     recv(fd, &structsize, sizeof(uint32_t), MSG_WAITALL);
 
     debug_log("structsize=%d\n", structsize);
+
+
     if (structsize<=sizeof(c))
     {
       recv(fd, &c, structsize, MSG_WAITALL);
 
+      if (c.type==2)
+        debug_log("ARM32 context type\n");
 
       if (c.type==3)
-      {
         debug_log("ARM64 context type\n");
-#ifdef __aarch64__
-        debug_log("PC=%llx\n", c.regs.pc);
 
-        memcpy(context, &c, sizeof(c));
-
-#endif
-      }
-
+      memcpy(context, &c, sizeof(c));
     }
     else
       debug_log("Received context is too big\n");
@@ -515,17 +512,24 @@ void *CESERVERTEST(int pid )
   pHandle=cenet_OpenProcess(fd, pid);
 
   debug_log("pHandle=%d\n", pHandle);
-  memset(&c, 0,sizeof(c));
-
+  memset(&c, 0xce,sizeof(c));
+/*
   debug_log("calling cenet_loadExtension\n");
   i=cenet_loadExtension(fd, pHandle);
   debug_log("cenet_loadExtension returned %d\n", i);
-  return NULL;
+  return NULL;*/
 
 
-  debug_log("Getting thread context (Assuming arm64 target. Fuck you if it's not)\n");
+
+  debug_log("Getting thread context\n");
   if (cenet_getThreadContext(fd, pHandle, pid, &c))
   {
+    debug_log("Success:\n");
+#ifdef __arm__
+    debug_log("PC=%x\n", c.regs.ARM_pc);
+    debug_log("ARM_cpsr=%x\n", c.regs.ARM_cpsr);
+#endif
+#ifdef __aarch64__
     __uint128_t v;
 
     debug_log("Success:\n");
@@ -551,10 +555,13 @@ void *CESERVERTEST(int pid )
 
       debug_log("%.2d %.2d\n",d[0],d[1]);
     }
+#endif
 
 
     return 1;
   }
+  else
+    debug_log("Fail\n");
 
 
   return 0;
