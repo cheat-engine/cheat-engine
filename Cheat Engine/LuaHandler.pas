@@ -15641,9 +15641,63 @@ begin
   {$endif}
 end;
 
+function lua_getGlobalVariable(L: Plua_State):integer; cdecl;
+var s: string;
+begin
+  result:=0;
+  if lua_gettop(L)>=1 then
+  begin
+    s:=Lua_ToString(L,1);
+
+    lua_getglobal(LuaVM, pchar(s));
+
+    result:=1;
+
+    case lua_type(LuaVM,-1) of
+      LUA_TNIL: lua_pushnil(L);
+      LUA_TBOOLEAN: lua_pushboolean(L, lua_toboolean(LuaVM,-1));
+      LUA_TLIGHTUSERDATA: lua_pushlightuserdata(L, lua_ToCEUserData(LuaVM,-1));
+      LUA_TNUMBER:  lua_pushnumber(L, lua_tonumber(LuaVM,-1));
+      LUA_TSTRING:  lua_pushstring(L, Lua_ToString(LuaVM,-1));
+      LUA_TUSERDATA: lua_pushlightuserdata(L, lua_touserdata(LuaVM,-1));
+      else
+        result:=0;
+    end;
+
+    lua_pop(LuaVM,1);
+  end;
+
+end;
+
+function lua_setGlobalVariable(L: Plua_State):integer; cdecl;
+var s: string;
+begin
+  result:=0;
+  if lua_gettop(L)>=2 then
+  begin
+    s:=Lua_ToString(L,1);
+
+    case lua_type(L,2) of
+      LUA_TNIL: lua_pushnil(LuaVM);
+      LUA_TBOOLEAN: lua_pushboolean(LuaVM, lua_toboolean(L,-1));
+      LUA_TLIGHTUSERDATA: lua_pushlightuserdata(L, lua_ToCEUserData(LuaVM,-1));
+      LUA_TNUMBER:  lua_pushnumber(LuaVM, lua_tonumber(L,-1));
+      LUA_TSTRING:  lua_pushstring(LuaVM, Lua_ToString(L,-1));
+      LUA_TUSERDATA: lua_pushlightuserdata(LuaVM, lua_touserdata(L,-1));
+      else exit(0);
+    end;
+
+    lua_setglobal(LuaVM, pchar(s));
+    lua_pushboolean(L,true);
+    exit(1);
+  end;
+end;
+
 procedure InitLimitedLuastate(L: Plua_State);
 begin
   //just the bare basics, don't put in too much as it will slow down spawning of worker threads
+  luaL_openlibs(L);
+
   lua_register(L, 'print', print);
   lua_register(L, 'sleep', lua_sleep);
   lua_register(L, 'cheatEngineIs64Bit', cheatEngineIs64Bit);
@@ -15700,7 +15754,50 @@ begin
   lua_register(L, 'synchronize', lua_synchronize);
   lua_register(L, 'queue', lua_queue);
 
+
+  lua_register(L, 'pause', pause);
+  lua_register(L, 'unpause', unpause);
+
+  lua_register(L, 'autoAssemble', autoAssemble_lua);
+  lua_register(L, 'autoAssembleCheck', AutoAssembleCheck_lua);
+  lua_register(L, 'assemble', lua_assemble);
+  lua_register(L, 'deAlloc', deAlloc_lua);
+  lua_register(L, 'deAllocLocal', deAllocLocal_lua);
+  lua_register(L, 'showMessage', showMessage_lua);
+  lua_register(L, 'inputQuery', inputQuery_lua);
+  lua_register(L, 'getPixel', getPixel);
+  lua_register(L, 'getMousePos', getMousePos);
+  lua_register(L, 'setMousePos', setMousePos);
+  lua_register(L, 'createTableEntry', createTableEntry);
+  lua_register(L, 'getTableEntry', getTableEntry);
+
+  lua_register(L, 'createSection',lua_createSection);
+  lua_register(L, 'mapViewOfSection',lua_MapViewOfSection);
+  lua_register(L, 'unMapViewOfSection', lua_unMapViewOfSection);
+
+  lua_register(L, 'getSystemMetrics', lua_getSystemMetrics);
+
+  lua_register(L, 'getScreenHeight', lua_getScreenHeight);
+  lua_register(L, 'getScreenWidth', lua_getScreenWidth);
+  lua_register(L, 'getScreenDPI', lua_getScreenDPI);
+
+  lua_register(L, 'getWorkAreaHeight', lua_getWorkAreaHeight);
+  lua_register(L, 'getWorkAreaWidth', lua_getWorkAreaWidth);
+
+
+  lua_register(L, 'getScreenCanvas', lua_getScreenCanvas);
+  lua_register(L, 'getHandleList', lua_getHandleList);
+  lua_register(L, 'closeRemoteHandle', lua_closeRemoteHandle);
+
+  lua_register(L, 'injectDLL', injectDLL);
+  lua_register(L, 'injectLibrary', injectDLL);
+
+  lua_register(L, 'getGlobalVariable', lua_getGlobalVariable);
+  lua_register(L, 'setGlobalVariable', lua_setGlobalVariable);
+
+
   initializeLuaDisassembler(L);
+  initializeLuaCanvas(L);
 end;
 
 procedure InitializeLua;
@@ -15734,28 +15831,14 @@ begin
   L:=LUAVM;
   if L<>nil then
   begin
-    luaL_openlibs(L);
+
 
     lua_atpanic(L, LuaPanic);
     InitLimitedLuastate(L);
 
 
 
-    lua_register(L, 'pause', pause);
-    lua_register(L, 'unpause', unpause);
 
-    lua_register(L, 'autoAssemble', autoAssemble_lua);
-    lua_register(L, 'autoAssembleCheck', AutoAssembleCheck_lua);
-    lua_register(L, 'assemble', lua_assemble);
-    lua_register(L, 'deAlloc', deAlloc_lua);
-    lua_register(L, 'deAllocLocal', deAllocLocal_lua);
-    lua_register(L, 'showMessage', showMessage_lua);
-    lua_register(L, 'inputQuery', inputQuery_lua);
-    lua_register(L, 'getPixel', getPixel);
-    lua_register(L, 'getMousePos', getMousePos);
-    lua_register(L, 'setMousePos', setMousePos);
-    lua_register(L, 'createTableEntry', createTableEntry);
-    lua_register(L, 'getTableEntry', getTableEntry);
 
     initializeLuaMemoryRecord;
 
@@ -15810,8 +15893,7 @@ begin
     lua_register(L, 'messageDialog', messageDialog);
     lua_register(L, 'speedhack_setSpeed', speedhack_setSpeed);
     lua_register(L, 'speedhack_getSpeed', speedhack_getSpeed);
-    lua_register(L, 'injectDLL', injectDLL);
-    lua_register(L, 'injectLibrary', injectDLL);
+
     lua_register(L, 'getAutoAttachList', getAutoAttachList);
 
 
@@ -16350,23 +16432,7 @@ begin
 
     lua_register(L, 'try', lua_try);
 
-    lua_register(L, 'createSection',lua_createSection);
-    lua_register(L, 'mapViewOfSection',lua_MapViewOfSection);
-    lua_register(L, 'unMapViewOfSection', lua_unMapViewOfSection);
 
-    lua_register(L, 'getSystemMetrics', lua_getSystemMetrics);
-
-    lua_register(L, 'getScreenHeight', lua_getScreenHeight);
-    lua_register(L, 'getScreenWidth', lua_getScreenWidth);
-    lua_register(L, 'getScreenDPI', lua_getScreenDPI);
-
-    lua_register(L, 'getWorkAreaHeight', lua_getWorkAreaHeight);
-    lua_register(L, 'getWorkAreaWidth', lua_getWorkAreaWidth);
-
-
-    lua_register(L, 'getScreenCanvas', lua_getScreenCanvas);
-    lua_register(L, 'getHandleList', lua_getHandleList);
-    lua_register(L, 'closeRemoteHandle', lua_closeRemoteHandle);
 
     lua_register(L, 'showSelectionList', lua_showSelectionList);
     lua_register(L, 'cpuid', lua_cpuid);
@@ -16442,7 +16508,7 @@ begin
     initializeLuaPen;
     initializeLuaBrush;
     initializeLuaFont;
-    initializeLuaCanvas;
+
     initializeLuaMenu;
 
     initializeLuaDebug; //eventually I should add a LuaLuaDebug...

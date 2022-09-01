@@ -126,6 +126,8 @@ writeRegionToFile(filename, sourceaddress,size) : Writes the given region to a f
 readRegionFromFile(filename, destinationaddress)
 
 resetLuaState(): This will create a new lua state that will be used. (Does not destroy the old one, so memory leak)
+getGlobalVariable(string): Returns the given variable from the main lua state. Only basic types are supported.  (Handy for new lua state threads)
+setGlobalVariable(string, something): Sets the global variable names string in the main lua state.  Only basic types are supported
 
 createRef(...): integer - Returns an integer reference that you can use with getRef. Useful for objects that can only store integers and need to reference lua objects.  (Component.Tag...)
 getRef(integer): ... - Returns whatever the reference points out
@@ -383,6 +385,7 @@ openFileAsProcess(filename,is64bit OPTIONAL,startaddress OPTIONAL): causes cheat
 getOpenedFileSize(): Returns the file of the opened file
 saveOpenedFile(filename OPTIONAL): Saves the changes of the opened file, set filename if you want a different file
 setPointerSize(size): Sets the size cheat engine will deal with pointers in bytes. (Some 64-bit processes can only use 32-bit addresses)
+getPointerSize() : Gets the current pointersize
 setAssemblerMode(int): 0=32-bit, 1=64-bit
 pause() : pauses the current opened process
 unpause(): resumes the current opened process
