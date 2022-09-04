@@ -81,6 +81,8 @@ type
     eflags: dword;
     esp: dword;
     ss: integer;
+
+    fp: TXmmSaveArea;
   end;
 
   PNetworkX86_32Context=^TNetworkX86_32Context;
@@ -113,6 +115,7 @@ type
     es: qword;
     fs: qword;
     gs: qword;
+    fp: TXmmSaveArea;
   end;
   PNetworkX86_64Context=^TNetworkX86_64Context;
 
@@ -136,6 +139,11 @@ type
     PC: DWORD;
     CPSR: DWORD;
     ORIG_R0: DWORD;
+
+    fpu: record
+      regs: array [0..31] of QWORD;
+      control: DWORD;
+    end;
   end;
 
   TNetworkARM_64Context=TARM64CONTEXT;
@@ -193,6 +201,7 @@ begin
       context.contextx86_64.es:=lpcontext.Seges;
       context.contextx86_64.fs:=lpcontext.Segfs;
       context.contextx86_64.gs:=lpcontext.Seggs;
+      context.contextx86_64.fp:=lpcontext.FltSave;
     end
     else
     begin
@@ -215,6 +224,7 @@ begin
       context.contextx86.eflags:=lpcontext.EFlags;
       context.contextx86.esp:=lpcontext.{$ifdef cpu64}rsp{$else}esp{$endif};
       context.contextx86.ss:=lpcontext.segss;
+      context.contextx86.fp:=lpcontext.FltSave;
     end;
 
 
@@ -275,6 +285,7 @@ begin
           lpcontext.Seges:=context^.contextx86_64.es;
           lpcontext.Segfs:=context^.contextx86_64.fs;
           lpcontext.Seggs:=context^.contextx86_64.gs;
+          lpcontext.FltSave:=context^.contextx86_64.fp;
         end
         else
         {$endif}
@@ -302,6 +313,7 @@ begin
           lpcontext.EFlags:=context^.contextx86.eflags;
           lpcontext.{$ifdef cpu64}rsp{$else}esp{$endif}:=context^.contextx86.esp;
           lpcontext.segss:=context^.contextx86.ss;
+          lpcontext.FltSave:=context^.contextx86.fp;
         end;
       end; //you should use GetThreadContextArm
     finally
@@ -344,6 +356,9 @@ begin
     carm.contextarm32.PC:=lpContext.PC and $fffffffe;
     carm.contextarm32.CPSR:=lpContext.CPSR;
     carm.contextarm32.ORIG_R0:=lpContext.ORIG_R0;
+
+    CopyMemory(@carm.contextarm32.fpu.regs[0], @lpContext.fpu[0], 32*sizeof(qword));
+    carm.contextarm32.fpu.control:=lpContext.fpureg;
 
     result:=c.setContext(processhandle, hThread, @carm, carm.contextsize);
   end;
@@ -396,6 +411,11 @@ begin
 
           if (lpContext.CPSR and (1 shl 5))<>0 then //Thumb bit
             lpContext.PC:=lpContext.PC or 1; //quick hack to identify that thumb is used
+
+
+          CopyMemory(@lpContext.fpu[0], @carm^.contextarm32.fpu.regs[0], 32*sizeof(qword) );
+          lpcontext.fpureg:=carm^.contextarm32.fpu.control;
+
 
           result:=true;
         end;
