@@ -28,10 +28,12 @@
 
 #ifdef __i386__
   typedef struct user_regs_struct CONTEXT_REGS;
+  typedef struct user_fpxregs_struct CONTEXT_FP;
 #endif
 
 #ifdef __x86_64__
   typedef struct user_regs_struct CONTEXT_REGS;
+  typedef struct user_fpxregs_struct CONTEXT_FP;
 #endif
 
 

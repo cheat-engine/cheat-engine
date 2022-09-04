@@ -35,9 +35,16 @@ int getContext(int tid, CONTEXT *context)
       debug_log(" (THUMB MODE)");
 
     debug_log("\n");
+    r2=safe_ptrace(PTRACE_GETVFPREGS, tid, 0, &context->fp);
+#endif
+
+#ifdef __i386__
+    debug_log("EIP=%x\n", context->regs.eip);
+
+    r2=safe_ptrace(PTRACE_GETFPXREGS, tid,0, &context->fp);
 
 #endif
-    r2=safe_ptrace(PTRACE_GETVFPREGS, tid, 0, &context->fp.regs[1]);
+
   }
 
 #ifdef __i386__
