@@ -530,30 +530,51 @@ void *CESERVERTEST(int pid )
     debug_log("ARM_cpsr=%x\n", c.regs.ARM_cpsr);
 #endif
 #ifdef __aarch64__
-    __uint128_t v;
 
-    debug_log("Success:\n");
-    debug_log("PC=%llx\n", c.regs.pc);
-    debug_log("fp.fpsr=%x\n", c.fp.fpsr);
-    debug_log("fp.fpcr=%x\n", c.fp.fpcr);
-    for (i=0; i<32; i++)
+    if (c.type==2)
     {
-      debug_log("%.2d : ",i);
+      debug_log("Success: 32-bit result\n");
+      debug_log("PC=%x\n", c.regs32.uregs[15]);
+      debug_log("ARM_cpsr=%x\n", c.regs32.uregs[16]);
+      for (i=0; i<32; i++)
+      {
+        debug_log("%.2d : ",i);
 
-      float *f=(float *)&c.fp.vregs[i];
+        float *f=(float *)&c.fp32.fpregs[i];
+        uint32_t *d=(uint32_t *)&c.fp32.fpregs[i];
 
-      debug_log("%.2f %.2f %.2f %.2f\n",f[0],f[1],f[2],f[3]);
+        debug_log("%.8x - %.8x == %.2f %.2f\n",d[0],d[1],f[0],f[1]);
+      }
     }
 
-    debug_log("---------------------------------");
-    for (i=0; i<32; i++)
+    if (c.type==3)
     {
-      debug_log("%.2d : ",i);
+
+      __uint128_t v;
+
+      debug_log("Success:\n");
+      debug_log("PC=%llx\n", c.regs.pc);
+      debug_log("fp.fpsr=%x\n", c.fp.fpsr);
+      debug_log("fp.fpcr=%x\n", c.fp.fpcr);
+      for (i=0; i<32; i++)
+      {
+        debug_log("%.2d : ",i);
+
+        float *f=(float *)&c.fp.vregs[i];
+
+        debug_log("%.2f %.2f %.2f %.2f\n",f[0],f[1],f[2],f[3]);
+      }
+
+      debug_log("---------------------------------");
+      for (i=0; i<32; i++)
+      {
+        debug_log("%.2d : ",i);
 
 
-      double *d=(double *)&c.fp.vregs[i];
+        double *d=(double *)&c.fp.vregs[i];
 
-      debug_log("%.2d %.2d\n",d[0],d[1]);
+        debug_log("%.2d %.2d\n",d[0],d[1]);
+      }
     }
 #endif
 

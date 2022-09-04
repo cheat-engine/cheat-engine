@@ -45,6 +45,13 @@ int getContext(int tid, CONTEXT *context)
 
 #endif
 
+#ifdef __x86_64__
+    debug_log("RIP=%x\n", context->regs.rip);
+
+    r2=safe_ptrace(PTRACE_GETFPXREGS, tid,0, &context->fp);
+
+#endif
+
   }
 
 #ifdef __i386__
@@ -105,20 +112,29 @@ int getContext(int tid, CONTEXT *context)
 
       context->structsize=((uintptr_t)(&context->fp32)-(uintptr_t)context)+sizeof(CONTEXT_FP32);
 
+      iov.iov_len=sizeof(CONTEXT_FP32);
+      debug_log("iov_base=%p Trying to get NT_ARM_VFP stats (iov_len=%d)\n", iov.iov_base, iov.iov_len);
+
+      r2=safe_ptrace(PTRACE_GETREGSET, tid, (void*)NT_ARM_VFP, &iov);
+      debug_log("Getting NT_ARM_VFP returned %d (iov_len=%d)\n", r2, iov.iov_len);
+
     }
     else
     {
       debug_log("This is an aarch64 context\n");
       context->type=3;
+
+      iov.iov_len=sizeof(CONTEXT_FP);
+      debug_log("iov_base=%p Trying to get FPREG stats (iov_len=%d)\n", iov.iov_base, iov.iov_len);
+
+      r2=safe_ptrace(PTRACE_GETREGSET, tid, (void*)NT_PRFPREG, &iov);
+      debug_log("Getting FPREG returned %d (iov_len=%d)\n", r2, iov.iov_len);
+
     }
 #endif
 
 
-    iov.iov_len=sizeof(CONTEXT_FP);
-    debug_log("iov_base=%p Trying to get FPREG stats (iov_len=%d)\n", iov.iov_base, iov.iov_len);
 
-    r2=safe_ptrace(PTRACE_GETREGSET, tid, (void*)NT_PRFPREG, &iov);
-    debug_log("Getting FPREG returned %d (iov_len=%d)\n", r2, iov.iov_len);
   }
   return r;
 #endif
