@@ -8,6 +8,8 @@
 #ifndef CONTEXT_H_
 #define CONTEXT_H_
 
+#include <stdint.h>
+
 #ifdef HAS_LINUX_USER_H
 #include <linux/user.h>
 #else

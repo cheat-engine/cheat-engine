@@ -910,8 +910,9 @@ printf("After wait 2. PID=%d\n", pid);
     }
 
     debug_log("si.si_signo=%d\n", si.si_signo);
-    if (si.si_signo==SIGSEGV)
-      debug_log("si._sifields._sigfault._addr=%x\n", si._sifields._sigfault._addr);
+
+//    if (si.si_signo==SIGSEGV)
+      //debug_log("si._sifields._sigfault._addr=%x\n", si._sifields._sigfault._addr);
 
 
 

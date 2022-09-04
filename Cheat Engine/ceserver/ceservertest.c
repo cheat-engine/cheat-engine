@@ -15,8 +15,14 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#ifndef __ANDROID__
+#include <sys/ptrace.h>
+#endif
 #include <asm/ptrace.h>
 #include <linux/types.h>
+
+
+
 #include "ceserver.h"
 #include "api.h" //for debugevent
 
