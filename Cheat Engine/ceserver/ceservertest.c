@@ -531,6 +531,11 @@ void *CESERVERTEST(int pid )
   if (cenet_getThreadContext(fd, pHandle, pid, &c))
   {
     debug_log("Success:\n");
+
+#ifdef __x86_64__
+    debug_log("RIP=%x\n", c.regs.rip);
+#endif
+
 #ifdef __arm__
     debug_log("PC=%x\n", c.regs.ARM_pc);
     debug_log("ARM_cpsr=%x\n", c.regs.ARM_cpsr);

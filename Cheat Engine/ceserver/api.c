@@ -173,7 +173,9 @@ char *PTraceToString(int request)
     case PTRACE_SINGLESTEP: return "PTRACE_SINGLESTEP";
     case PTRACE_SETREGS: return "PTRACE_SETREGS";
     case PTRACE_GETREGS: return "PTRACE_GETREGS";
+#ifdef PT_GETFPXREGS
     case PTRACE_GETFPXREGS: return "PTRACE_GETFPXREGS";
+#endif
     default:
       return "";
 
