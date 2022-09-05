@@ -101,6 +101,8 @@ type
       procedure TabGetImageEvent(Sender: TObject; TabIndex: Integer; var ImageIndex: Integer);
       procedure MeasureItemEvent(Control: TWinControl; Index: Integer; var AHeight: Integer);
       procedure DisassemblerViewOverrideCallback(address: ptruint; var addressstring: string; var bytestring: string; var opcodestring: string; var parameterstring: string; var specialstring: string);
+      function HelpEvent(Command: Word; Data: PtrInt; var CallHelp: Boolean): Boolean;
+
 
       procedure synchronize;
       procedure queue;
@@ -1756,6 +1758,25 @@ begin
   end;
 end;
 
+function TLuaCaller.HelpEvent(Command: Word; Data: PtrInt; var CallHelp: Boolean): Boolean;
+var
+  oldstack: integer;
+begin
+  result:=false;
+  oldstack:=lua_gettop(Luavm);
+  try
+    pushFunction;
+    lua_pushinteger(LuaVM, Command);
+    lua_pushinteger(LuaVM, Data);
+    lua_pushboolean(LuaVM, CallHelp);
+    lua_pcall(LuaVM, 3,2,0);
+
+    if not lua_isnil(LuaVM,-2) then result:=lua_toboolean(LuaVM,-2);
+    if not lua_isnil(LuaVM,-1) then CallHelp:=lua_toboolean(LuaVM,-1);
+  finally
+    lua_settop(LuaVM, oldstack);
+  end;
+end;
 
 //----------------------------Lua implementation-----------------------------
 function LuaCaller_NotifyEvent(L: PLua_state): integer; cdecl;
@@ -3086,6 +3107,30 @@ begin
     lua_pop(L, lua_gettop(L));
 end;
 
+
+function LuaCaller_HelpEvent(L: PLua_state): integer; cdecl; // function(Command: Word; Data: PtrInt; var CallHelp: Boolean): Boolean of object;  <>  function(Command, Data, CallHelp): result, newCallHelp
+var command: word;
+  data: ptrint;
+  CallHelp: Boolean;
+
+  m: TMethod;
+  r: boolean;
+begin
+  if lua_gettop(L)=3 then
+  begin
+    m.code:=lua_touserdata(L, lua_upvalueindex(1));
+    m.data:=lua_touserdata(L, lua_upvalueindex(2));
+    command:=lua_tointeger(L,1);
+    data:=lua_tointeger(L,2);
+    CallHelp:=lua_toboolean(L,3);
+
+    r:=THelpEvent(m)(command, data, callhelp);
+    lua_pushboolean(L,r);
+    lua_pushboolean(L,callhelp);
+    result:=2;
+  end;
+end;
+
 procedure registerLuaCall(typename: string; getmethodprop: lua_CFunction; setmethodprop: pointer; luafunctionheader: string);
 var t: TLuaCallData;
 begin
@@ -3167,7 +3212,7 @@ initialization
 
   registerLuaCall('TDisassemblerViewOverrideCallback', LuaCaller_DisassemblerViewOverrideCallback, pointer(TLuaCaller.DisassemblerViewOverrideCallback),'function %s(address, addressstring, bytestring, opcodestring, parameterstring, specialstring)'#13#10'  return addressstring, bytestring, opcodestring, parameterstring, specialstring'#13#10'end'#13#10);
 
-
+  registerLuaCall('THelpEvent', LuaCaller_HelpEvent, pointer(TLuaCaller.HelpEvent),'function %s(command, data ,callhelp)'#13#10#13#10'  return result, callhelp'#13#10'end'#13#10);
 
 end.
 
