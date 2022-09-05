@@ -2476,10 +2476,11 @@ begin
     end
     else
     begin
+      while lua_checkstack(L,x)=false do
+        x:=x div 2;
+
       for i:=0 to x-1 do
         lua_pushinteger(L,bytes[i]);
-
-      if x>40 then exit(40);
 
       result:=x;
     end;
@@ -14869,10 +14870,14 @@ begin
 
     arr:=SplitString(s,sep);
 
-    for i:=0 to length(arr)-1 do
-      lua_pushstring(L, arr[i]);
+    lua_pop(L,lua_gettop(L));
+    if lua_checkstack(L, length(arr)) then
+    begin
+      for i:=0 to length(arr)-1 do
+        lua_pushstring(L, arr[i]);
 
-    result:=length(arr);
+      result:=length(arr);
+    end;
   end;
 end;
 
