@@ -8,6 +8,8 @@
 #ifndef CONTEXT_H_
 #define CONTEXT_H_
 
+#include <stdint.h>
+
 #ifdef HAS_LINUX_USER_H
 #include <linux/user.h>
 #else
@@ -33,7 +35,7 @@
 
 #ifdef __x86_64__
   typedef struct user_regs_struct CONTEXT_REGS;
-  typedef struct user_fpxregs_struct CONTEXT_FP;
+  typedef struct user_fpregs_struct CONTEXT_FP;
 #endif
 
 
