@@ -48,7 +48,7 @@ int getContext(int tid, CONTEXT *context)
 #ifdef __x86_64__
     debug_log("RIP=%x\n", context->regs.rip);
 
-    r2=safe_ptrace(PTRACE_GETFPXREGS, tid,0, &context->fp);
+    r2=safe_ptrace(PTRACE_GETFPREGS, tid,0, &context->fp);
 
 #endif
 

@@ -1524,9 +1524,18 @@ int main(int argc, char *argv[])
   debug_log("reserved[0] at %p\n", &((PCONTEXT)0)->fp.__reserved[0]);
   debug_log("reserved[1] at %p\n", &((PCONTEXT)0)->fp.__reserved[1]);
 */
-
-  debug_log("ATTACH_TO_ACCESS_MEMORY=%d\n", ATTACH_TO_ACCESS_MEMORY);
   debug_log("MEMORY_SEARCH_OPTION=%d\n", MEMORY_SEARCH_OPTION);
+  debug_log("ATTACH_TO_ACCESS_MEMORY=%d\n", ATTACH_TO_ACCESS_MEMORY);
+
+
+  if ((MEMORY_SEARCH_OPTION == 2) && (process_vm_readv==NULL)) //user explicitly wants to use process_vm_readv but it's not available
+  {
+    debug_log("process_vm_readv==NULL, so MEMORY_SEARCH_OPTION can not be 2. Setting it to 0\n");
+    MEMORY_SEARCH_OPTION=0; //fallback to 0
+  }
+
+  debug_log("MEMORY_SEARCH_OPTION=%d\n", MEMORY_SEARCH_OPTION);
+
 
   debug_log("CEServer. Waiting for client connection\n");
 

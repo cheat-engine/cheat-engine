@@ -171,6 +171,9 @@ char *PTraceToString(int request)
     case PTRACE_GETSIGINFO: return "PTRACE_GETSIGINFO";
     case PTRACE_GETREGSET: return "PTRACE_GETREGSET";
     case PTRACE_SINGLESTEP: return "PTRACE_SINGLESTEP";
+    case PTRACE_SETREGS: return "PTRACE_SETREGS";
+    case PTRACE_GETREGS: return "PTRACE_GETREGS";
+    case PTRACE_GETFPXREGS: return "PTRACE_GETFPXREGS";
     default:
       return "";
 
@@ -3165,10 +3168,6 @@ int ReadProcessMemory(HANDLE hProcess, void *lpAddress, void *buffer, int size)
  // debug_log("ReadProcessMemory\n");
   int bread=0;
 
-  if ((MEMORY_SEARCH_OPTION == 2) && (process_vm_readv==NULL)) //user explicitly wants to use process_vm_readv but it's not available
-    MEMORY_SEARCH_OPTION=0; //fallback to 0
-
-
   if (GetHandleType(hProcess) == htProcesHandle )
   { //valid handle
     //debug_log("ReadProcessMemory(%d, %p, %p, %d)  ATTACH_TO_ACCESS_MEMORY=%d MEMORY_SEARCH_OPTION=%d \n", (int)hProcess, lpAddress, buffer, size, ATTACH_TO_ACCESS_MEMORY, MEMORY_SEARCH_OPTION);
@@ -3215,7 +3214,7 @@ int ReadProcessMemory(HANDLE hProcess, void *lpAddress, void *buffer, int size)
 
 
       {
-        usleep(100);
+        //usleep(100);
         int canreadnow=0;
         pid_t pid;
 
@@ -3236,13 +3235,18 @@ int ReadProcessMemory(HANDLE hProcess, void *lpAddress, void *buffer, int size)
         {
           if (MEMORY_SEARCH_OPTION == 0)
           {
-            lseek64(p->mem, (uintptr_t)lpAddress, SEEK_SET);
-            bread=read(p->mem, buffer, size);
-            if (bread==-1)
+            if (p->mem)
             {
-              bread=0;
-              //debug_log("pread error for address %p (error=%s) ", lpAddress, strerror(errno));
+              lseek64(p->mem, (uintptr_t)lpAddress, SEEK_SET);
+              bread=read(p->mem, buffer, size);
+              if (bread==-1)
+              {
+                bread=0;
+                //debug_log("pread error for address %p (error=%s) ", lpAddress, strerror(errno));
+              }
             }
+            else
+              bread=0;
           }
           else
           {
@@ -3799,6 +3803,17 @@ HANDLE OpenProcess(DWORD pid)
         if (p->mem==-1)
         {
           debug_log("Also failed\n");
+          if (process_vm_readv && process_vm_writev)
+          {
+            debug_log("Falling back to MEMORY_SEARCH_OPTION=2 (process_vm_readv and process_vm_writev)\n");
+            MEMORY_SEARCH_OPTION=2;
+          }
+          else
+          {
+            MEMORY_SEARCH_OPTION=1;
+            ATTACH_TO_ACCESS_MEMORY=1;
+            debug_log("Falling back to MEMORY_SEARCH_OPTION=1 (ptrace)\n");
+          }
         }
         else
         {
