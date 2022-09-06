@@ -2401,6 +2401,8 @@ function mono_method_getSignature(method)
   monopipe.writeQword(method)
 
   local paramcount=monopipe.readByte()
+  if paramcount==nil then return nil end --invalid method (monopipe is likely dead now)
+  
   local i
   
   for i=1, paramcount do
@@ -3183,6 +3185,9 @@ end
 
 
 function monoform_context_onpopup(sender)
+  if monopipe==nil then return end  
+  if tonumber(monopipe.ProcessID)~=getOpenedProcessID() then return end
+  
   local node=monoForm.TV.Selected
 
   local methodsEnabled = (node~=nil) and (node.Level==4) and (node.Parent.Text=='methods')
