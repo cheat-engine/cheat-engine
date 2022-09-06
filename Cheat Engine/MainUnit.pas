@@ -566,7 +566,6 @@ type
     procedure Copyselectedaddresses1Click(Sender: TObject);
     procedure EnableLCLClick(Sender: TObject);
     procedure cbFastScanChange(Sender: TObject);
-    procedure cbUnrandomizerChange(Sender: TObject);
     procedure Description1Click(Sender: TObject);
     procedure edtAlignmentKeyPress(Sender: TObject; var Key: char);
     procedure FormDropFiles(Sender: TObject; const FileNames: array of string);
@@ -577,10 +576,7 @@ type
       Item: TListItem; SubItem: Integer; State: TCustomDrawState;
       var DefaultDraw: Boolean);
     procedure CreateGroupClick(Sender: TObject);
-    procedure Foundlist3SelectItem(Sender: TObject; Item: TListItem;
-      Selected: boolean);
     procedure gbScanOptionsChangeBounds(Sender: TObject);
-    procedure Label3Click(Sender: TObject);
     procedure MenuItem12Click(Sender: TObject);
     procedure MenuItem15Click(Sender: TObject);
     procedure MenuItem16Click(Sender: TObject);
@@ -653,13 +649,9 @@ type
     procedure miWireframeClick(Sender: TObject);
     procedure miZbufferClick(Sender: TObject);
     procedure miZeroTerminateClick(Sender: TObject);
-    procedure ools1Click(Sender: TObject);
-    procedure Panel1Click(Sender: TObject);
     procedure Panel5Resize(Sender: TObject);
     procedure pmTablistPopup(Sender: TObject);
     procedure pmValueTypePopup(Sender: TObject);
-    procedure ProcessLabelClick(Sender: TObject);
-    procedure rbAllMemoryChange(Sender: TObject);
     procedure rbFsmAlignedChange(Sender: TObject);
     procedure rtChange(Sender: TObject);
     procedure Save1Click(Sender: TObject);
@@ -695,8 +687,6 @@ type
     procedure Removeselectedaddresses1Click(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure CommentButtonClick(Sender: TObject);
-    procedure CommentButtonMouseMove(Sender: TObject; Shift: TShiftState;
-      X, Y: integer);
     procedure Copy1Click(Sender: TObject);
     procedure Cut1Click(Sender: TObject);
     procedure Paste1Click(Sender: TObject);
@@ -713,8 +703,6 @@ type
     procedure Copy2Click(Sender: TObject);
     procedure Paste2Click(Sender: TObject);
     procedure ccpmenuPopup(Sender: TObject);
-    procedure Splitter1CanResize(Sender: TObject; var NewSize: integer;
-      var Accept: boolean);
     procedure Splitter1Moved(Sender: TObject);
     procedure SettingsClick(Sender: TObject);
     procedure cbCaseSensitiveClick(Sender: TObject);
@@ -739,7 +727,6 @@ type
     procedure Forcerechecksymbols1Click(Sender: TObject);
     procedure Smarteditaddresses1Click(Sender: TObject);
     procedure Pointerscanforthisaddress1Click(Sender: TObject);
-    procedure Label53Click(Sender: TObject);
     procedure Foundlist3Data(Sender: TObject; Item: TListItem);
     procedure UpdateFoundlisttimerTimer(Sender: TObject);
     procedure Foundlist3KeyDown(Sender: TObject; var Key: word; Shift: TShiftState);
@@ -3189,10 +3176,6 @@ begin
   openProcessEpilogue(oldprocessname, oldprocess, oldprocesshandle);
 end;
 
-procedure TMainForm.rbAllMemoryChange(Sender: TObject);
-begin
-
-end;
 
 procedure TMainForm.rbFsmAlignedChange(Sender: TObject);
 begin
@@ -3563,13 +3546,6 @@ begin
   VarType.OnChange(vartype);
 end;
 
-procedure TMainForm.cbUnrandomizerChange(Sender: TObject);
-begin
-
-end;
-
-
-
 
 procedure TMainForm.CreateGroupClick(Sender: TObject);
 var
@@ -3593,26 +3569,11 @@ begin
   end;
 end;
 
-procedure TMainForm.Foundlist3SelectItem(Sender: TObject; Item: TListItem;
-  Selected: boolean);
-begin
-
-end;
-
 procedure TMainForm.gbScanOptionsChangeBounds(Sender: TObject);
-
 begin
-
   spawnBoundsUpdater;
-
-
 end;
 
-procedure TMainForm.Label3Click(Sender: TObject);
-begin
-
-
-end;
 
 procedure TMainForm.MenuItem16Click(Sender: TObject);
 {$ifdef darwin}
@@ -5488,17 +5449,6 @@ begin
       addresslist.selectedRecord.Extra.stringData.ZeroTerminate;
 end;
 
-procedure TMainForm.ools1Click(Sender: TObject);
-begin
-
-end;
-
-procedure TMainForm.Panel1Click(Sender: TObject);
-begin
-
-end;
-
-
 procedure TMainForm.Panel5Resize(Sender: TObject);
 var
   widthleft,w,aw: integer;
@@ -5583,10 +5533,6 @@ begin
 
 end;
 
-procedure TMainForm.ProcessLabelClick(Sender: TObject);
-begin
-
-end;
 
 procedure TMainForm.miShowCustomTypeDebugClick(Sender: TObject);
 var ct: TCustomType;
@@ -7672,12 +7618,6 @@ begin
   comments.Show;
 end;
 
-procedure TMainForm.CommentButtonMouseMove(Sender: TObject; Shift: TShiftState;
-  X, Y: integer);
-begin
-
-end;
-
 procedure TMainForm.CopySelectedRecords;
 begin
   clipboard.astext := addresslist.GetTableXMLAsText(True);
@@ -8698,12 +8638,6 @@ begin
   checkpaste;
 end;
 
-procedure TMainForm.Splitter1CanResize(Sender: TObject; var NewSize: integer;
-  var Accept: boolean);
-begin
-
-end;
-
 procedure TMainForm.Splitter1Moved(Sender: TObject);
 begin
   panel5.Repaint;
@@ -9321,16 +9255,6 @@ begin
     frmPointerScanner.Method3Fastspeedandaveragememoryusage1.Click;
 
   end;
-end;
-
-procedure testx(arg1: pointer; arg2: pointer; arg3: pointer); stdcall;
-begin
-
-end;
-
-procedure TMainForm.Label53Click(Sender: TObject);
-begin
-
 end;
 
 procedure TMainForm.OnToolsClick(Sender: TObject);
@@ -10598,9 +10522,11 @@ begin
     except
       on e: Exception do
       begin
+        outputdebugstring('Normal speedhack activation failed. Checking for :"activateAlternateSpeedhack"');
         lua_getglobal(luavm, 'activateAlternateSpeedhack');//failure. check if there is an alternative in lua
         if lua_isfunction(luavm,-1) then
         begin
+          OutputDebugString('Calling activateAlternateSpeedhack');
           lua_pushboolean(luavm,true);
           lua_pcall(luavm, 1,0,0);
           exit;
