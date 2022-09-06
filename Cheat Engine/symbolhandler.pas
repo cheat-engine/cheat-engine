@@ -2720,11 +2720,13 @@ begin
               enumeratedModules:=0;
 
               if terminated then exit;
-              DLLSymbolsLoaded:=true;
+
 
               processThreadEvents;
               if assigned(SymEnumerateModules64) then
                 SymEnumerateModules64(thisprocesshandle, @EM, self );
+
+              DLLSymbolsLoaded:=true;
 
               processThreadEvents;
 
@@ -3602,7 +3604,7 @@ begin
 
   if symbolloaderthread<>nil then
   begin
-    while (not symbolloaderthread.Finished) and (not symbolloaderthread.DLLSymbolsLoaded) do
+    while (not symbolloaderthread.Finished) and (not symbolloaderthread.apisymbolsloaded) do
     begin
       sleep(25);
       if GetCurrentThreadID = MainThreadID then
