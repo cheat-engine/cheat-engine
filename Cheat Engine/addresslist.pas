@@ -1126,6 +1126,8 @@ begin
       MemRecItems[i].VarType:=newtype;
       MemRecItems[i].Extra:=extra;
       MemRecItems[i].CustomTypeName:=customtypename;
+      MemRecItems[i].ShowAsSigned:=memrec.ShowAsSigned;
+      MemRecItems[i].ShowAsHex:=memrec.ShowAsHex;
 
       MemRecItems[i].treenode.update;
     end;
