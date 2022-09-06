@@ -19,6 +19,7 @@ activateProtection(): Prevents basic memory scanners from opening the cheat engi
 enableDRM(altitude OPTIONAL, secondaryprocessid OPTIONAL ) : Prevents normal memory scanners from reading the Cheat Engine process (kernelmode)  The secondaryprocessid lets you protect another process. E.g the game itself, so they can't easily see what you change 
 
 fullAccess(address,size): Changes the protection of a block of memory to writable and executable
+setMemoryProtection(address, size, {R:boolean; W: Boolean; X: Boolean}): Sets the given protection on the address range. Note, some systems do not support X and W to be true at the same time
 
 loadTable(filename, merge OPTIONAL): Loads a .ct or .cetrainer. If merge is provided and set to true it will not clear the old table
 loadTable(stream ,merge OPTIONAL, ignoreluascriptdialog BOOLEAN): Loads a table from a stream object

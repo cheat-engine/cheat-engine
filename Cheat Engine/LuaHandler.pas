@@ -4704,7 +4704,7 @@ begin
   tt:=GetTickCount64;
   st:=GetTickCount64;
   ths:=CreateToolhelp32Snapshot(TH32CS_SNAPMODULE or TH32CS_SNAPMODULE32, pid);
-  OutputDebugString('CreateToolhelp32Snapshot took '+inttostr(GetTickCount64-st)+' ms.');
+ // OutputDebugString('CreateToolhelp32Snapshot took '+inttostr(GetTickCount64-st)+' ms.');
   if ths<>0 then
   begin
     lua_newtable(L);
@@ -4718,7 +4718,7 @@ begin
     st:=GetTickCount64;
     if module32first(ths,me32) then
     repeat
-      OutputDebugString('module32first/next took '+inttostr(GetTickCount64-st)+' ms.');
+     // OutputDebugString('module32first/next took '+inttostr(GetTickCount64-st)+' ms.');
       lua_newtable(L);
       entryindex:=lua_gettop(L);
 
@@ -4763,7 +4763,7 @@ begin
 
   end;
 
-  OutputDebugString('enumModules took '+inttostr(GetTickCount64-tt)+' ms.');
+  //OutputDebugString('enumModules took '+inttostr(GetTickCount64-tt)+' ms.');
 end;
 
 
@@ -9231,6 +9231,94 @@ begin
 
     if virtualprotectex(processhandle,pointer(address),size,PAGE_EXECUTE_READWRITE,op) then
       lua_pushboolean(L,true)
+    else
+      lua_pushboolean(L,false);
+
+    result:=1;
+  end;
+end;
+
+function lua_setMemoryProtection(L: PLua_state): integer; cdecl;
+var parameters: integer;
+  address: ptruint;
+  size: integer;
+  prot: dword;
+  op: dword;
+  R,W,X: boolean;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=3 then
+  begin
+    address:=lua_toaddress(L,1);
+    size:=lua_tointeger(L,2);
+    if lua_istable(L,3) then
+    begin
+      lua_pushstring(L,'R');
+      lua_gettable(L,3);
+      if lua_isnil(L,-1) then
+        r:=false
+      else
+        r:=lua_toboolean(L,-1);
+      lua_pop(L,1);
+
+      lua_pushstring(L,'W');
+      lua_gettable(L,3);
+      if lua_isnil(L,-1) then
+        w:=false
+      else
+        w:=lua_toboolean(L,-1);
+      lua_pop(L,1);
+
+      lua_pushstring(L,'X');
+      lua_gettable(L,3);
+      if lua_isnil(L,-1) then
+        x:=false
+      else
+        x:=lua_toboolean(L,-1);
+      lua_pop(L,1);
+
+      if (not SystemSupportsWritableExecutableMemory) and (w and x) then
+      begin
+        lua_pushboolean(L,false);
+        lua_pushstring(L,'This system does not support writable executable memory.  Tip: Pause the process, make writable, write, make executable, continue');
+        exit(2);
+      end;
+
+      if not (r or w or x) then
+        prot:=PAGE_NOACCESS
+      else
+      begin
+        if not w and not x then
+          prot:=PAGE_READONLY
+        else
+        if w and not x then
+          prot:=PAGE_READWRITE
+        else
+        if not w and x then
+          prot:=PAGE_EXECUTE_READ
+        else
+        if w and x then
+          prot:=PAGE_EXECUTE_READWRITE;
+      end;
+    end
+    else
+    if lua_isnumber(L,3) then //undocumented
+      prot:=lua_tointeger(L,3)
+    else
+    begin
+      lua_pushboolean(L,false);
+      lua_pushstring(L,'Unexpected type for memory protection');
+      exit(2);
+    end;
+
+    lua_pop(L, lua_gettop(l));
+
+    if virtualprotectex(processhandle,pointer(address),size,prot,op) then
+    begin
+      lua_pushboolean(L,true);
+      lua_pushinteger(L, op);
+    end
     else
       lua_pushboolean(L,false);
 
@@ -14046,15 +14134,20 @@ begin
     if lua_gettop(L)>=3 then
       prot:=lua_tointeger(L,3)
     else
-      prot:=PAGE_EXECUTE_READWRITE;
+    begin
+      if SystemSupportsWritableExecutableMemory then
+        prot:=PAGE_EXECUTE_READWRITE
+      else
+        prot:=PAGE_READWRITE;
+    end;
 
 
-    a:=VirtualAllocEx(processhandle,base,size,MEM_COMMIT or MEM_RESERVE, PAGE_EXECUTE_READWRITE);
+    a:=VirtualAllocEx(processhandle,base,size,MEM_COMMIT or MEM_RESERVE, prot);
     if a=nil then
     begin
       //try to fix a mistake
       base:=FindFreeBlockForRegion(ptruint(base),size);
-      a:=VirtualAllocEx(processhandle,base,size,MEM_COMMIT or MEM_RESERVE, PAGE_EXECUTE_READWRITE);
+      a:=VirtualAllocEx(processhandle,base,size,MEM_COMMIT or MEM_RESERVE, prot);
       if a=nil then exit(0);
     end;
 
@@ -15700,7 +15793,7 @@ end;
 
 procedure InitLimitedLuastate(L: Plua_State);
 begin
-  //just the bare basics, don't put in too much as it will slow down spawning of worker threads
+  //don't put functioncallback events in here, as limited luastates can be destroyed
   luaL_openlibs(L);
 
   lua_register(L, 'print', print);
@@ -15801,6 +15894,34 @@ begin
   lua_register(L, 'setGlobalVariable', lua_setGlobalVariable);
 
 
+  lua_register(L, 'loadPlugin', loadPlugin);
+
+  lua_register(L, 'getCEVersion', getCEVersion);
+
+  lua_register(L, 'utf8ToAnsi', lua_Utf8ToAnsi);
+  lua_register(L, 'UTF8ToAnsi', lua_Utf8ToAnsi);
+  lua_register(L, 'ansiToUtf8', lua_AnsiToUtf8);
+  lua_register(L, 'ansiToUTF8', lua_AnsiToUtf8);
+
+
+
+  lua_register(L, 'fullAccess', fullAccess);
+  lua_register(L, 'setMemoryProtection', lua_setMemoryProtection);
+
+  lua_register(L, 'waitForSections', waitForSections);
+  lua_register(L, 'waitForExports', waitForExports);
+  lua_register(L, 'waitForDotNet', waitForDotNet);
+  lua_register(L, 'waitForPDB', waitForPDB);
+  lua_register(L, 'waitforExports', waitForExports);
+  lua_register(L, 'waitforDotNet', waitForDotNet);
+  lua_register(L, 'waitforPDB', waitForPDB);
+  lua_register(L, 'searchPDBWhileLoading', searchPDBWhileLoading);
+  lua_register(L, 'reinitializeSymbolhandler', reinitializeSymbolhandler);
+  lua_register(L, 'reinitializeDotNetSymbolhandler', reinitializeDotNetSymbolhandler);
+  lua_register(L, 'reinitializeSelfSymbolhandler', reinitializeSelfSymbolhandler);
+  lua_register(L, 'enumModules', enumModules);
+
+
   initializeLuaDisassembler(L);
   initializeLuaCanvas(L);
 end;
@@ -15846,9 +15967,6 @@ begin
 
 
     initializeLuaMemoryRecord;
-
-
-
 
 
     lua_register(L, 'mouse_event', lua_mouse_event);
@@ -15914,18 +16032,7 @@ begin
     lua_register(L, 'getModuleSize', getModuleSize);
 
 
-    lua_register(L, 'waitForSections', waitForSections);
-    lua_register(L, 'waitForExports', waitForExports);
-    lua_register(L, 'waitForDotNet', waitForDotNet);
-    lua_register(L, 'waitForPDB', waitForPDB);
-    lua_register(L, 'waitforExports', waitForExports);
-    lua_register(L, 'waitforDotNet', waitForDotNet);
-    lua_register(L, 'waitforPDB', waitForPDB);
-    lua_register(L, 'searchPDBWhileLoading', searchPDBWhileLoading);
-    lua_register(L, 'reinitializeSymbolhandler', reinitializeSymbolhandler);
-    lua_register(L, 'reinitializeDotNetSymbolhandler', reinitializeDotNetSymbolhandler);
-    lua_register(L, 'reinitializeSelfSymbolhandler', reinitializeSelfSymbolhandler);
-    lua_register(L, 'enumModules', enumModules);
+
 
 
 
@@ -16237,18 +16344,7 @@ begin
     lua_register(L, 'errorOnLookupFailure', errorOnLookupFailure);
     lua_register(L, 'waitforsymbols', lua_waitforsymbols);
 
-    lua_register(L, 'loadPlugin', loadPlugin);
 
-    lua_register(L, 'getCEVersion', getCEVersion);
-
-    lua_register(L, 'utf8ToAnsi', lua_Utf8ToAnsi);
-    lua_register(L, 'UTF8ToAnsi', lua_Utf8ToAnsi);
-    lua_register(L, 'ansiToUtf8', lua_AnsiToUtf8);
-    lua_register(L, 'ansiToUTF8', lua_AnsiToUtf8);
-
-
-
-    lua_register(L, 'fullAccess', fullAccess);
 
     lua_register(L, 'getWindowlist', getWindowList_lua);
     lua_register(L, 'getWindowList', getWindowList_lua);
