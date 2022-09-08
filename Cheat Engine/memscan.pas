@@ -6593,8 +6593,8 @@ var
 
   i,j: integer;
   totalProcessMemorySize: qword;
-  blocksize: dword;
-  leftfromprevious: dword;
+  blocksize: qword;
+  leftfromprevious: qword;
   offsetincurrentregion: PtrUint;
   
   currentblocksize: qword;
@@ -6846,7 +6846,7 @@ var
   Blocksize: qword;
   currentblocksize: qword;
   totalProcessMemorySize: qword;
-  leftfromprevious: dword;
+  leftfromprevious: qword;
   offsetincurrentregion: qword;
 
   isWritable, isExecutable, isCopyOnWrite{$ifdef darwin}, isDirty{$endif}: boolean;
