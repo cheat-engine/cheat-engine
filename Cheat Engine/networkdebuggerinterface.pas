@@ -168,6 +168,7 @@ begin
   c:=getConnection;
   if c<>nil then
   begin
+    {$ifdef cpu64}
     if processhandler.is64Bit then
     begin
       context.contextsize:=sizeof(TNetworkX86_64Context)+8;
@@ -204,6 +205,7 @@ begin
       context.contextx86_64.fp:=lpcontext.FltSave;
     end
     else
+    {$endif}
     begin
       context.contextsize:=sizeof(TNetworkX86_64Context)+8;
       context.contexttype:=0; // x86
@@ -224,7 +226,7 @@ begin
       context.contextx86.eflags:=lpcontext.EFlags;
       context.contextx86.esp:=lpcontext.{$ifdef cpu64}rsp{$else}esp{$endif};
       context.contextx86.ss:=lpcontext.segss;
-      context.contextx86.fp:=lpcontext.FltSave;
+      context.contextx86.fp:=lpcontext.{$ifdef cpu64}FltSave{$else}ext{$endif};
     end;
 
 
@@ -313,7 +315,7 @@ begin
           lpcontext.EFlags:=context^.contextx86.eflags;
           lpcontext.{$ifdef cpu64}rsp{$else}esp{$endif}:=context^.contextx86.esp;
           lpcontext.segss:=context^.contextx86.ss;
-          lpcontext.FltSave:=context^.contextx86.fp;
+          lpcontext.{$ifdef cpu64}FltSave{$else}ext{$endif}:=context^.contextx86.fp;
         end;
       end; //you should use GetThreadContextArm
     finally

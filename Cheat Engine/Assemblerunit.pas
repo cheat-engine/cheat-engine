@@ -4870,7 +4870,7 @@ begin
 
     'N': //N*
     begin
-      if (length(tokens)=2) and ((tokens[0]='NOP') and (length(tokens[1])>=1) and (tokens[1][1] in ['a'..'f','A'..'F','0'..'9'])) then //NOP HEXVALUE
+      if (processhandler.SystemArchitecture=archX86) and (length(tokens)=2) and ((tokens[0]='NOP') and (length(tokens[1])>=1) and (tokens[1][1] in ['a'..'f','A'..'F','0'..'9'])) then //NOP HEXVALUE
       begin
         try
           j:=HexStrToInt(tokens[1]);

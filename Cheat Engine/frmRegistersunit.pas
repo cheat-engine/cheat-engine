@@ -90,7 +90,7 @@ type
 
   public
     { Public declarations }
-    procedure SetContextPointer(context: PContext; _stack: PByte; stacksize: integer);
+    procedure SetContextPointer(newcontext: PContext; _stack: PByte; stacksize: integer);
   end;
 
 {%endregion TRegisters }
@@ -103,7 +103,7 @@ resourcestring
   rsLabelRegisterHint = 'DoubleClick: Browse this memory region.' + LineEnding + 'Right Mouse Click: Register Value will be copied to Clipboard and Context Menu will open.';
   rsNoDescription = 'No Description';
 
-procedure TRegisters.SetContextPointer(context: PContext; _stack: PByte; stacksize: integer);
+procedure TRegisters.SetContextPointer(newcontext: PContext; _stack: PByte; stacksize: integer);
 var
   pre,f: string;
   sizeNeeded: integer;
@@ -118,7 +118,7 @@ var
 begin
   oldContextHandler:=contexthandler;
 
-  self.context:=context;
+  self.context:=newcontext;
   contexthandler:=getBestContextHandler;
 
 

@@ -601,7 +601,7 @@ begin
         {$ifdef cpu64}
         copymemory(@context^.FltSave.FloatRegisters[i], n,10);
         {$else}
-        copymemory(@context^.ext.FPURegisters[i], n,10);
+        copymemory(@context^.ext.FloatRegisters[i], n,10);
         copymemory(@context^.FloatSave.RegisterArea[10*i], n,10);
         {$endif}
       end;
@@ -625,7 +625,7 @@ begin
             {$ifdef cpu64}
             PXMMFIELDS(@context^.FltSave.XmmRegisters[i])^[j]:=PXMMFIELDS(ptruint(@bp.changereg.new_XMM0)+16*i)^[j];
             {$else}
-            PXMMFIELDS(@context^.ext.XMMRegisters.LegacyXMM[j])^[j]:=bp.changereg.new_XMM0[j];
+            PXMMFIELDS(@context^.ext.XMMRegisters[j])^[j]:=bp.changereg.new_XMM0[j];
             {$endif}
           end;
         end;

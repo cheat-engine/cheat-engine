@@ -120,7 +120,7 @@ uses
   autoassemblercode, CSharpCompiler, newhintwindow, memrecDataStructures,
   LuaCECustomButton, DBVMDebuggerInterface, frmCR3SwitcherUnit, tcclib,
   sourcecodehandler, frmSourceDisplayUnit, disassemblerarm64, contexthandler,
-  DisAssemblerARM32, frmAnchorEditor;
+  DisAssemblerARM32, frmAnchorEditor, disassemblerArm32Thumb;
 
 {$R cheatengine.res}
 {$IFDEF windows}
@@ -320,7 +320,6 @@ begin
   end;
 
   if istrainer then
-    application.Scaled:=true;
 
   if not istrainer then
   begin

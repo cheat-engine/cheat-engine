@@ -63,15 +63,17 @@ TModuleEntry32 = MODULEENTRY32;
 {$ifdef cpu32}
 const
   CONTEXT_EXTENDED_REGISTERS = (CONTEXT_i386 or $00000020);
+
+type
+   M128A = record
+        Low: ULONGLONG;
+        High: LONGLONG;
+     end;
+   _M128A = M128A;
+   TM128A = M128A;
+   PM128A = TM128A;
+
 {$endif}
-
-{$ifdef cpu64}
-const
-  CONTEXT_EXTENDED_REGISTERS = 0;
-
-//  CONTEXT_XSTATE          = (CONTEXT_AMD64 or $00100040);
-  CONTEXT_XSTATE          = (CONTEXT_AMD64 or $00000040);
-
 
 type
    XMM_SAVE_AREA32 = record
@@ -95,6 +97,16 @@ type
    _XMM_SAVE_AREA32 = XMM_SAVE_AREA32;
    TXmmSaveArea = XMM_SAVE_AREA32;
    PXmmSaveArea = ^TXmmSaveArea;
+
+{$ifdef cpu64}
+const
+  CONTEXT_EXTENDED_REGISTERS = 0;
+
+//  CONTEXT_XSTATE          = (CONTEXT_AMD64 or $00100040);
+  CONTEXT_XSTATE          = (CONTEXT_AMD64 or $00000040);
+
+
+
 
 const
    LEGACY_SAVE_AREA_LENGTH = sizeof(XMM_SAVE_AREA32);
@@ -298,13 +310,6 @@ type
    end;
 
   {$ifndef darwin}  //defined in macport.pas
-  {$ifdef cpu32}
-  type
-     M128A = record
-          Low: ULONGLONG;
-          High: LONGLONG;
-       end;
-  {$endif}
   TARM64CONTEXT=record
        regs: TARM64CONTEXT_REGISTERS;
        SP:  QWORD;
@@ -450,7 +455,7 @@ type
     Esp: DWORD;
     SegSs: DWORD;
 
-    ext: TExtendedRegisters;
+    ext: TXmmSaveArea;
   end;
   {$ifdef cpu64}
   CONTEXT32=_CONTEXT32;

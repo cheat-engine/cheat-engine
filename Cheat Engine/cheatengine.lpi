@@ -499,6 +499,10 @@
             </Optimizations>
           </CodeGeneration>
           <Linking>
+            <Debugging>
+              <DebugInfoType Value="dsDwarf2Set"/>
+              <UseExternalDbgSyms Value="True"/>
+            </Debugging>
             <Options>
               <Win32>
                 <GraphicApplication Value="True"/>
@@ -525,7 +529,7 @@
 -dCUSTOMFLOAT
 -dXDEBUG
 -dNESTEDSTRUCTURES"/>
-            <OtherDefines Count="10">
+            <OtherDefines Count="13">
               <Define0 Value="NOTMULTITHREADED"/>
               <Define1 Value="benchmarkps"/>
               <Define2 Value="cemain"/>
@@ -536,6 +540,9 @@
               <Define7 Value="XDEBUG"/>
               <Define8 Value="memleaksearch"/>
               <Define9 Value="checkassembleralphabet"/>
+              <Define10 Value="memorymapped"/>
+              <Define11 Value="privatebuild"/>
+              <Define12 Value="DBVMFORAMDISWORKING"/>
             </OtherDefines>
           </Other>
         </CompilerOptions>
@@ -661,7 +668,7 @@
         <PackageName Value="LCL"/>
       </Item8>
     </RequiredPackages>
-    <Units Count="415">
+    <Units Count="416">
       <Unit0>
         <Filename Value="cheatengine.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -1604,6 +1611,7 @@
       <Unit171>
         <Filename Value="luabrush.pas"/>
         <IsPartOfProject Value="True"/>
+        <UnitName Value="LuaBrush"/>
       </Unit171>
       <Unit172>
         <Filename Value="LuaPicture.pas"/>
@@ -2852,6 +2860,11 @@
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="frmAnchorEditor"/>
       </Unit414>
+      <Unit415>
+        <Filename Value="disassemblerarm32thumb.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="disassemblerArm32Thumb"/>
+      </Unit415>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

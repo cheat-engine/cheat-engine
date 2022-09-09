@@ -1,24 +1,30 @@
-add a memrec.OnValueChanged and memrec.OnValueChangedByUser
-cejvmti alloc can alloc outside the 2GB andf then passing pointers fails (https://forum.cheatengine.org/viewtopic.php?p=5780375#5780375)
+ctrl+space to sync disasembler with hexview is broken
 
-add lua command use getFileSize() when a file is open for hexediting
+frmregisters seems to have the wrong values
+autoassemble execute seems to do a full symbollist enum ?
+assembling in thuimbmode seems to not negate the extra bit
+thumb might not be correct
 
-find out what writes dialog is too small on high dpi
-refix the dark mode highlighting issue on the addresslist
+add option for big endian pointer support
+
+
+tcc: not all code is debugable/visible(see script at https://pastebin.com/MZGaJ0Su )
+
+break and trace compare gives access violation  (unreprocducable)
+fix/rewrite thumb disAssembler
+
 
 {$luacode sync} parameter
 {$luacode newluastate} parameter
 
-
-
+luacode for mac
+luacode for ceserver (create a socket in the target which connects to ceserver, and ceserver connects to ce)
 
 lua editor AND aa editor: when inside a string, the {$asm} inside the string disables lua mode.  Boith the parser and AA need to deal with that
 
 add symbol path configuration
 structure spider: dpi fixes (default window size and base address edit fields)
 structure spider: doubleclick on column 2 value should make you go there
-
-formeditor: include a new anchor editor
 
 mac/aarch64: show S registers (similar to xmm)
 mac:pointerscan sort by offset

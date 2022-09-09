@@ -148,7 +148,7 @@ const X86_32Context_specialized: array of TContextElement_register=(
  (entrytype:0; name:'DS'; size:2; displayType: 0; ContextOffset: integer(@PCONTEXT32(nil)^.SegDs); BitStart:0),
  (entrytype:0; name:'ES'; size:2; displayType: 0; ContextOffset: integer(@PCONTEXT32(nil)^.SegEs); BitStart:0),
  (entrytype:0; name:'FS'; size:2; displayType: 0; ContextOffset: integer(@PCONTEXT32(nil)^.SegFs); BitStart:0),
- (entrytype:0; name:'GS'; size:2; displayType: 0; ContextOffset: integer(@PCONTEXT32(nil)^.SegGs); BitStart:0),
+ (entrytype:0; name:'GS'; size:2; displayType: 0; ContextOffset: integer(@PCONTEXT32(nil)^.SegGs); BitStart:0)
 );
 {$endif}
 
@@ -611,7 +611,7 @@ begin
   for i:=0 to 7 do
   begin
     e.name:='XMM'+inttostr(i);
-    e.ContextOffset:=integer(@PCONTEXT32(nil)^.Ext.XmmRegisters.LegacyXMM[i]);
+    e.ContextOffset:=integer(@PCONTEXT32(nil)^.Ext.XmmRegisters[i]);
   end;
 
   ContextInfo_X86_32.setFloatingPointRegisters(@X86_32Context_fpu);
@@ -619,10 +619,11 @@ begin
   e.entrytype:=0;
   e.size:=10;
   e.displayType:=0;
+  setlength(X86_32Context_fpu2,8);
 
   for i:=0 to 7 do
   begin
-    e.name:='FP('+inttostr(i)+')'
+    e.name:='FP('+inttostr(i)+')';
     e.ContextOffset:=integer(@PCONTEXT32(nil)^.FloatSave.RegisterArea[i*10]);
     X86_32Context_fpu2[i]:=e;
   end;

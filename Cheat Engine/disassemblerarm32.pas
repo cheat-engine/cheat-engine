@@ -5,7 +5,7 @@ unit DisAssemblerARM32;
 {$WARN 3177 off : Some fields coming after "$1" were not initialized}
 interface
 
-//lasty update at :a5.5
+//last update at :a7
 
 uses
   Classes, SysUtils, LastDisassembleData;

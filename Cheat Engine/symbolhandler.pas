@@ -1372,6 +1372,9 @@ begin
 
     s:=pchar(@pSymInfo.Name);
 
+  {  if uppercase(s).StartsWith('GETTICK') then
+      OutputDebugString('ES: symbol:'+s);  }
+
     self.processThreadEvents;
 
 
@@ -1381,8 +1384,10 @@ begin
     if self.currentModuleIsNotStandard then
       s:='_'+s;
 
-    if TSymTagEnum(pSymInfo.Tag)=SymTagFunction then
+    if (TSymTagEnum(pSymInfo.Tag)=SymTagFunction) then
     begin
+      if self.pdbonly=false then exit(true); //hello wine, no thank you
+
       extraSymbolData:=TExtraSymbolData.create;
       self.symbollist.AddExtraSymbolData(extraSymbolData);
 
@@ -4998,7 +5003,7 @@ begin
                     //get the register value, and because this is an address specifier, use the full 32-bits
                     if tokens[i][1] in ['x','X','y','Y'] then //xmm/ymm
                     begin
-                      tokens[i]:=inttohex(ApplyTokenType(pptruint(@context^.{$ifdef cpu64}FltSave.XmmRegisters[regnr]{$else}ext.XMMRegisters.LongXMM[regnr]{$endif})^),8);
+                      tokens[i]:=inttohex(ApplyTokenType(pptruint(@context^.{$ifdef cpu64}FltSave.XmmRegisters[regnr]{$else}ext.XMMRegisters[regnr]{$endif})^),8);
                       continue;
                     end;
 

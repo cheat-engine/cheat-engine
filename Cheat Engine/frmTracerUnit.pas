@@ -951,7 +951,7 @@ begin
           {$ifdef cpu64}
           different:=CompareMem(@compareinfo.c.FltSave.XmmRegisters[0], @thisinfo.c.FltSave.XmmRegisters[0], xmmcount*sizeof(M128A));
           {$else}
-          different:=CompareMem(@compareinfo.c.ext.XMMRegisters.LegacyXMM[0], @thisinfo.c.ext.XMMRegisters.LegacyXMM[0], xmmcount*sizeof(TJclXMMRegister));
+          different:=CompareMem(@compareinfo.c.ext.XMMRegisters[0], @thisinfo.c.ext.XMMRegisters[0], xmmcount*sizeof(M128A));
           {$endif}
 
           if not different then

@@ -1060,7 +1060,7 @@ begin
     lua_pushstring(L,'XMM'+inttostr(i));
 
     {$ifdef cpu32}
-    CreateByteTableFromPointer(luavm, @context^.ext.XMMRegisters.LegacyXMM[i], 16);
+    CreateByteTableFromPointer(luavm, @context^.ext.XMMRegisters[i], 16);
     {$else}
     CreateByteTableFromPointer(luavm, @context^.FltSave.XmmRegisters[i], 16);
     {$endif}
@@ -1195,7 +1195,7 @@ begin
         if (i>=8) and (not processhandler.is64Bit) then break;
 
         {$ifdef cpu32}
-        CreateByteTableFromPointer(luavm, @context^.ext.XMMRegisters.LegacyXMM[i], 16);
+        CreateByteTableFromPointer(luavm, @context^.ext.XMMRegisters[i], 16);
         {$else}
         CreateByteTableFromPointer(luavm, @context^.FltSave.XmmRegisters[i], 16);
         {$endif}
@@ -1357,7 +1357,7 @@ begin
       begin
         t:=lua_gettop(LuaVM);
         {$ifdef cpu32}
-        readBytesFromTable(luavm, t, @context.ext.XMMRegisters.LegacyXMM[i], 16);
+        readBytesFromTable(luavm, t, @context.ext.XMMRegisters[i], 16);
         {$else}
         readBytesFromTable(luavm, t, @context.FltSave.XmmRegisters[i], 16);
         {$endif}

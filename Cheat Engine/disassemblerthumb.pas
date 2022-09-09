@@ -5068,7 +5068,7 @@ begin
   {$else}
   x:=0;
 
-  if readprocessmemory(processhandle, pointer(address-1), @opcode, sizeof(opcode), x) then
+  if readprocessmemory(processhandle, pointer(address and $fffffffe), @opcode, sizeof(opcode), x) then
     puint16(@LastDisassembleData.Bytes[0])^:=opcode;
   {$endif}
 
