@@ -1354,7 +1354,7 @@ begin
 
       ae:=TAddressEntry(changedlist.Selected.Data);
 
-      SetContextPointer(@ae.fcontext, ae.stack.stack, ae.stack.savedsize);
+      SetContextPointer(ae.context, ae.stack.stack, ae.stack.savedsize);
 
       show;
     end;
