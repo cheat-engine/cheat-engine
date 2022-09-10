@@ -120,6 +120,7 @@ type
     pmTracer: TPopupMenu;
     ProgressBar1: TProgressBar;
     SaveDialog1: TSaveDialog;
+    SaveDialogText: TSaveDialog;
     sbShowFloats: TSpeedButton;
     sbShowstack: TSpeedButton;
     sflabel: TLabel;
@@ -790,7 +791,7 @@ var
   pref: string;
 begin
   //save the results of the trace to disk
-  if savedialog1.Execute then
+  if SaveDialogText.Execute then
   begin
     z:=tstringlist.create;
     try
@@ -851,7 +852,7 @@ begin
         end;
       end;
 
-      z.SaveToFile(savedialog1.filename);
+      z.SaveToFile(SaveDialogText.filename);
     finally
       z.free;
     end;
@@ -1570,6 +1571,9 @@ begin
     try
       f.ReadBuffer(temp, sizeof(temp));
       version:=temp;
+      if not (version in [0,1]) then
+        raise exception.create('Unsupported tracefile');
+
 
       f.readbuffer(temp, sizeof(temp));
 
