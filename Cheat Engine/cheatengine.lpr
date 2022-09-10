@@ -272,6 +272,10 @@ begin
   end;
 end;
 
+procedure setScaledTrue;
+begin
+  application.Scaled:=true; //put it here because the lazarus ide will just nuke it on setting change otherwise
+end;
 
 var
   i: integer;
@@ -319,7 +323,8 @@ begin
     end;
   end;
 
-  if istrainer then
+  if istrainer then setScaledTrue;
+
 
   if not istrainer then
   begin
