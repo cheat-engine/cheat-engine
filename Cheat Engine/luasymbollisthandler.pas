@@ -21,6 +21,26 @@ begin
   luaclass_newClass(L, symhandler.GetMainSymbolList);
 end;
 
+
+function enumRegisteredSymbolLists(L: Plua_State): integer; cdecl;
+var
+  list: tlist;
+  i: integer;
+begin
+  result:=1;
+  list:=tlist.create;
+  symhandler.GetSymbolLists(list);
+  lua_createtable(L,list.count,0);
+
+  for i:=0 to list.count-1 do
+  begin
+    lua_pushinteger(L,i+1);
+    luaclass_newClass(L,list[i]);
+    lua_settable(L,-3);
+  end;
+  exit(1);
+end;
+
 function createSymbolList(L: Plua_State): integer; cdecl;
 begin
   result:=1;
@@ -365,6 +385,7 @@ procedure initializeLuaSymbolListHandler;
 begin
   lua_register(LuaVM, 'createSymbolList', createSymbolList);
   lua_register(LuaVM, 'getMainSymbolList', getMainSymbolList);
+  lua_register(LuaVM, 'enumRegisteredSymbolLists', enumRegisteredSymbolLists);
 end;
 
 initialization

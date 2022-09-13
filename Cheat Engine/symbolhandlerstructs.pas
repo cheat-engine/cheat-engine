@@ -34,15 +34,17 @@ type
   end;
 
 
-type TUserdefinedsymbol=record
-  symbolname: string;
-  address: ptrUint;
-  addressstring: string;
+  TUserdefinedsymbol=record
+    symbolname: string;
+    address: ptrUint;
+    addressstring: string;
 
-  allocsize: dword; //if it is a global alloc, allocsize>0
-  processid: dword; //the processid this memory was allocated to (in case of processswitches)
-  doNotSave: boolean; //if true this will cause this entry to not be saved when the user saves the table
-end;
+    allocsize: dword; //if it is a global alloc, allocsize>0
+    processid: dword; //the processid this memory was allocated to (in case of processswitches)
+    doNotSave: boolean; //if true this will cause this entry to not be saved when the user saves the table
+  end;
+
+  TUserdefinedSymbolsList=array of TUserdefinedsymbol;
 
 type TModuleInfo=record
   modulename: string;

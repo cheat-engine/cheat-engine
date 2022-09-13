@@ -15797,6 +15797,61 @@ begin
   exit(0);
 end;
 
+function lua_enumRegisteredSymbols(L: Plua_State):integer; cdecl;
+var
+  list: TUserdefinedSymbolsList;
+  s: integer;
+  i: integer;
+begin
+  list:=[];
+  symhandler.EnumerateUserdefinedSymbols(list);
+
+  lua_createtable(L,length(list),0);
+  for i:=0 to length(list)-1 do
+  begin
+    s:=2;
+    if list[i].allocsize>0 then inc(s,2);
+    if list[i].doNotSave then inc(s);
+
+    lua_pushinteger(L,i+1);
+    lua_createtable(L,0,s);
+
+    lua_pushstring(L,'symbolname');
+    lua_pushstring(L,list[i].symbolname);
+    lua_settable(L,-3);
+    lua_pushstring(L,'address');
+    lua_pushinteger(L,list[i].address);
+    lua_settable(L,-3);
+
+    if list[i].allocsize>0 then
+    begin
+      lua_pushstring(L,'allocsize');
+      lua_pushinteger(L,list[i].allocsize);
+      lua_settable(L,-3);
+      lua_pushstring(L,'processid');
+      lua_pushinteger(L,list[i].processid);
+      lua_settable(L,-3);
+    end;
+
+    if list[i].doNotSave then
+    begin
+      lua_pushstring(L,'donotsave');
+      lua_pushboolean(L,list[i].donotsave);
+      lua_settable(L,-3);
+    end;
+
+    lua_settable(L,-3);
+  end;
+
+  result:=1;
+end;
+
+function lua_deleteAllUserdefinedSymbols(L: Plua_State):integer; cdecl;
+begin
+  symhandler.deleteAllUserdefinedSymbols;
+  exit(0);
+end;
+
 procedure InitLimitedLuastate(L: Plua_State);
 begin
   //don't put functioncallback events in here, as limited luastates can be destroyed
@@ -15933,6 +15988,11 @@ begin
 
 
   lua_register(L, 'releaseDebugFiles', lua_releaseDebugFiles);
+  lua_register(L, 'enumRegisteredSymbols', lua_enumRegisteredSymbols);
+
+  lua_register(L, 'deleteAllRegisteredSymbols', lua_deleteAllUserdefinedSymbols);
+
+
 
 end;
 

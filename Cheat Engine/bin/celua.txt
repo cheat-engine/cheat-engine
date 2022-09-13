@@ -191,6 +191,7 @@ waitForDotNet(): Waits till all .NET symbols are loaded (this includes DLL Expor
 waitForPDB(): Waits till all PDB symbols are loaded (this includes DLL Exports, and .NET)
 searchPDBWhileLoading(state: boolean): Will interrupt symbol enum to query the debughelp symbol handler about a specific symbol. This can take a while. Default is false
 
+
 errorOnLookupFailure(state): If set to true (default) address lookups in stringform will raise an error if it can not be looked up. This includes symbolnames that are not defined and pointers that are bad. If set to false it will return 0 in those cases
   (Useful for pointers that don't work 100% of the time)
 6.4+:Returns the original state
@@ -685,6 +686,11 @@ getMethodProperty(Class, propertyname): Returns a function you can use to call t
 
 registerSymbol(symbolname, address, OPTIONAL donotsave): Registers a userdefined symbol. If donotsave is true this symbol will not get saved when the table is saved
 unregisterSymbol(symbolname)
+
+enumRegisteredSymbols(): Returns a table with elements containing {symbolname, address, OPTIONAL {allocsize, processid, donotsave}}
+
+deleteAllRegisteredSymbols() : Deletes all symbols registered with registerSymbols, both in AA and Lua scripts (Does not remove registered symbolLists)
+
 
 getNameFromAddress(address,ModuleNames OPTIONAL=true, Symbols OPTIONAL=true, Sections OPTIONAL=false): Returns the given address as a string. Registered symbolname, modulename+offset, or just a hexadecimal string depending on what address
 inModule(address) : returns true if the given address is inside a module
@@ -3253,9 +3259,13 @@ SymbolList class
 Global functions
   createSymbolList() : Creates an empty symbollist
   getMainSymbolList(): Returns the symhandler internal symbol list (Note: This does not contain .net, modulelist, or other info)
+  enumRegisteredSymbolLists() : Returns a table containing all the registered symbollists
 
 
 Properties
+  PID: integer - The processid it refers to
+  Name: string - A name that can be set to make it easier to identify
+
 Methods
   clear()
   getSymbolFromAddress(address) : Searches the list for the given address. The address does not have to match the exact address. As long as it falls withing the range

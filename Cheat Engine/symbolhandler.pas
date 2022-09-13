@@ -365,11 +365,14 @@ type
 
     //userdefined symbols
     function DeleteUserdefinedSymbol(symbolname:string):boolean;
+    procedure DeleteAllUserdefinedSymbols;
     function GetUserdefinedSymbolByName(symbolname:string):ptrUint;
     function SetUserdefinedSymbolAllocSize(symbolname:string; size: dword; preferedaddress: ptruint=0): boolean;
     function GetUserdefinedSymbolByAddress(address:ptrUint):string;
     procedure AddUserdefinedSymbol(addressstring: string; symbolname: string; donotsave: boolean=false);
-    procedure EnumerateUserdefinedSymbols(list:tstrings);
+    procedure EnumerateUserdefinedSymbols(var list: TUserdefinedSymbolsList); overload;
+    procedure EnumerateUserdefinedSymbols(list:tstrings); overload;
+
 
     function ParseAsPointer(s: string; list:tstrings): boolean;
     function ParseRange(s: string; var start: QWORD; var stop: QWORD): boolean;
@@ -3653,6 +3656,13 @@ begin
   end;
 end;
 
+procedure TSymhandler.DeleteAllUserdefinedSymbols;
+begin
+  userdefinedsymbolsCS.enter;
+  userdefinedsymbolspos:=0;
+  userdefinedsymbolsCS.leave;
+end;
+
 
 function TSymhandler.DeleteUserdefinedSymbol(symbolname:string):boolean;
 var i,j: integer;
@@ -3664,12 +3674,6 @@ begin
       if uppercase(userdefinedsymbols[i].symbolname)=uppercase(symbolname) then
       begin
         //found it
-
-        {       NO, not anymore
-        //check if it had a alloc, if so, free it
-        if (userdefinedsymbols[i].allocsize>0) and (userdefinedsymbols[i].processid=processid) then
-          VirtualFreeEx(processhandle,pointer(userdefinedsymbols[i].address),0,MEM_RELEASE);}
-
         //now move up all the others and decrease the list
         for j:=i to userdefinedsymbolspos-2 do
           userdefinedsymbols[j]:=userdefinedsymbols[j+1];
@@ -3879,6 +3883,20 @@ begin
 
   if assigned(UserdefinedSymbolCallback) then
     UserdefinedSymbolCallback();
+end;
+
+procedure TSymhandler.EnumerateUserdefinedSymbols(var list: TUserdefinedSymbolsList);
+var i: integer;
+begin
+  userdefinedsymbolsCS.enter;
+  try
+    setlength(list, userdefinedsymbolspos);
+    for i:=0 to userdefinedsymbolspos-1 do
+      list[i]:=userdefinedsymbols[i];
+
+  finally
+    userdefinedsymbolsCS.Leave;
+  end;
 end;
 
 procedure TSymhandler.EnumerateUserdefinedSymbols(list:tstrings);
@@ -6232,6 +6250,7 @@ begin
     symbolloadervalid.Endread;
   end;
 end;
+
 
 destructor TSymhandler.destroy;
 begin
