@@ -398,6 +398,7 @@ type
 
     function getLastModuleListUpdateTime: qword; //poll this when using async modulelist updates if you do wish to know when it finishes
 
+    procedure StopSymbolLoaderThread;
 
 
     constructor create;
@@ -6216,6 +6217,20 @@ end;
 function TSymhandler.getMainSymbolList: TSymbolListHandler;
 begin
   exit(symbollist);
+end;
+
+procedure TSymhandler.StopSymbolLoaderThread;
+begin
+  symbolloadervalid.Beginread;
+  try
+    if symbolloaderthread<>nil then
+    begin
+      symbolloaderthread.Terminate;
+      symbolloaderthread.WaitFor;
+    end;
+  finally
+    symbolloadervalid.Endread;
+  end;
 end;
 
 destructor TSymhandler.destroy;

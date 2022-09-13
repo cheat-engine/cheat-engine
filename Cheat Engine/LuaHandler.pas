@@ -15791,6 +15791,12 @@ begin
   end;
 end;
 
+function lua_releaseDebugFiles(L: Plua_State):integer; cdecl;
+begin
+  symhandler.StopSymbolLoaderThread;
+  exit(0);
+end;
+
 procedure InitLimitedLuastate(L: Plua_State);
 begin
   //don't put functioncallback events in here, as limited luastates can be destroyed
@@ -15924,6 +15930,10 @@ begin
 
   initializeLuaDisassembler(L);
   initializeLuaCanvas(L);
+
+
+  lua_register(L, 'releaseDebugFiles', lua_releaseDebugFiles);
+
 end;
 
 procedure InitializeLua;
