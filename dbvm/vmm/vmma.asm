@@ -355,6 +355,23 @@ vmload ;this way I don't have to fuck with the fsbase msr
 
 db 0x48
 fxsave [rsp+fxsavespace]
+movdqa [rsp+fxsavespace+0xA0], xmm0
+movdqa [rsp+fxsavespace+0xB0], xmm1
+movdqa [rsp+fxsavespace+0xC0], xmm2
+movdqa [rsp+fxsavespace+0xD0], xmm3
+movdqa [rsp+fxsavespace+0xE0], xmm4
+movdqa [rsp+fxsavespace+0xF0], xmm5
+movdqa [rsp+fxsavespace+0x100], xmm6
+movdqa [rsp+fxsavespace+0x110], xmm7
+movdqa [rsp+fxsavespace+0x120], xmm8
+movdqa [rsp+fxsavespace+0x130], xmm9
+movdqa [rsp+fxsavespace+0x140], xmm10
+movdqa [rsp+fxsavespace+0x150], xmm11
+movdqa [rsp+fxsavespace+0x160], xmm12
+movdqa [rsp+fxsavespace+0x170], xmm13
+movdqa [rsp+fxsavespace+0x180], xmm14
+movdqa [rsp+fxsavespace+0x190], xmm15
+
 mov [rsp+saved_r15],r15
 mov [rsp+saved_r14],r14
 mov [rsp+saved_r13],r13
@@ -386,6 +403,23 @@ je vmrun_exit
 
 db 0x48
 fxrstor [rsp+fxsavespace]
+movdqa xmm0, [rsp+fxsavespace+0xA0]
+movdqa xmm1, [rsp+fxsavespace+0xB0]
+movdqa xmm2, [rsp+fxsavespace+0xC0]
+movdqa xmm3, [rsp+fxsavespace+0xD0]
+movdqa xmm4, [rsp+fxsavespace+0xE0]
+movdqa xmm5, [rsp+fxsavespace+0xF0]
+movdqa xmm6, [rsp+fxsavespace+0x100]
+movdqa xmm7, [rsp+fxsavespace+0x110]
+movdqa xmm8, [rsp+fxsavespace+0x120]
+movdqa xmm9, [rsp+fxsavespace+0x130]
+movdqa xmm10, [rsp+fxsavespace+0x140]
+movdqa xmm11, [rsp+fxsavespace+0x150]
+movdqa xmm12, [rsp+fxsavespace+0x160]
+movdqa xmm13, [rsp+fxsavespace+0x170]
+movdqa xmm14, [rsp+fxsavespace+0x180]
+movdqa xmm15, [rsp+fxsavespace+0x190]
+
 mov r15,[rsp+saved_r15]
 mov r14,[rsp+saved_r14]
 mov r13,[rsp+saved_r13]
