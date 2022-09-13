@@ -1170,6 +1170,34 @@ begin
     CV_AMD64_R13    : result:='R13';
     CV_AMD64_R14    : result:='R14';
     CV_AMD64_R15    : result:='R15';
+
+    CV_AMD64_R8B    : result:='R8B';
+    CV_AMD64_R9B    : result:='R9B';
+    CV_AMD64_R10B   : result:='R10B';
+    CV_AMD64_R11B   : result:='R11B';
+    CV_AMD64_R12B   : result:='R12B';
+    CV_AMD64_R13B   : result:='R13B';
+    CV_AMD64_R14B   : result:='R14B';
+    CV_AMD64_R15B   : result:='R15B';
+
+    CV_AMD64_R8W    : result:='R8W';
+    CV_AMD64_R9W    : result:='R9W';
+    CV_AMD64_R10W   : result:='R10W';
+    CV_AMD64_R11W   : result:='R11W';
+    CV_AMD64_R12W   : result:='R12W';
+    CV_AMD64_R13W   : result:='R13W';
+    CV_AMD64_R14W   : result:='R14W';
+    CV_AMD64_R15W   : result:='R15W';
+
+    CV_AMD64_R8D    : result:='R8D';
+    CV_AMD64_R9D    : result:='R9D';
+    CV_AMD64_R10D   : result:='R10D';
+    CV_AMD64_R11D   : result:='R11D';
+    CV_AMD64_R12D   : result:='R12D';
+    CV_AMD64_R13D   : result:='R13D';
+    CV_AMD64_R14D   : result:='R14D';
+    CV_AMD64_R15D   : result:='R15D';
+
     CV_REG_EAX      : result:='EAX';
     CV_REG_ECX      : result:='ECX';
     CV_REG_EDX      : result:='EDX';
@@ -1179,7 +1207,7 @@ begin
     CV_REG_ESI      : result:='ESI';
     CV_REG_EDI      : result:='EDI';
     else
-      result:='?';
+      result:='? ('+inttostr(reg)+')';
   end;
 
 

@@ -314,14 +314,14 @@ begin
         5: if rexprefix=0 then result:='ch' else result:='bpl';
         6: if rexprefix=0 then result:='dh' else result:='sil';
         7: if rexprefix=0 then result:='bh' else result:='dil';
-        8: result:='r8l';
-        9: result:='r9l';
-        10: result:='r10l';
-        11: result:='r11l';
-        12: result:='r12l';
-        13: result:='r13l';
-        14: result:='r14l';
-        15: result:='r15l';
+        8: result:='r8b';
+        9: result:='r9b';
+        10: result:='r10b';
+        11: result:='r11b';
+        12: result:='r12b';
+        13: result:='r13b';
+        14: result:='r14b';
+        15: result:='r15b';
       end;
     end;
 
@@ -579,14 +579,14 @@ begin
     5: if rexprefix=0 then result:='ch' else result:='bpl';
     6: if rexprefix=0 then result:='dh' else result:='sil';
     7: if rexprefix=0 then result:='bh' else result:='dil';
-    8: result:='r8l';
-    9: result:='r9l';
-    10: result:='r10l';
-    11: result:='r11l';
-    12: result:='r12l';
-    13: result:='r13l';
-    14: result:='r14l';
-    15: result:='r15l';
+    8: result:='r8b';
+    9: result:='r9b';
+    10: result:='r10b';
+    11: result:='r11b';
+    12: result:='r12b';
+    13: result:='r13b';
+    14: result:='r14b';
+    15: result:='r15b';
     else result:='';
   end;
 
@@ -1215,7 +1215,7 @@ begin
              12: case inst of
                    0: if rex_w or (opperandsize=64) then result:='r12' else result:='r12d';
                    1: result:='r12w';
-                   2: result:='r12l';
+                   2: result:='r12b';
                    3: result:='mm12';
                    4: if opcodeflags.L then result:='ymm12' else result:='xmm12';
                  end;

@@ -3145,14 +3145,14 @@ begin
     if (reg='BPL') then exit(5);
     if (reg='SIL') then exit(6);
     if (reg='DIL') then exit(7);
-    if (reg='R8') or (reg='R8D') or (reg='R8W') or (reg='R8L') or (reg='MM8') or (reg='XMM8') or (reg='YMM8') or (reg='ST(8)') or (reg='JS') or (reg='CR8') or (reg='DR8') then exit(8);
-    if (reg='R9') or (reg='R9D') or (reg='R9W') or (reg='R9L') or (reg='MM9') or (reg='XMM9') or (reg='YMM9') or (reg='ST(9)') or (reg='KS') or (reg='CR9') or (reg='DR9') then exit(9);
-    if (reg='R10') or (reg='R10D') or (reg='R10W') or (reg='R10L') or (reg='MM10') or (reg='XMM10') or (reg='YMM10') or (reg='ST(10)') or (reg='KS') or (reg='CR10') or (reg='DR10') then exit(10);
-    if (reg='R11') or (reg='R11D') or (reg='R11W') or (reg='R11L') or (reg='MM11') or (reg='XMM11') or (reg='YMM11') or (reg='ST(11)') or (reg='LS') or (reg='CR11') or (reg='DR11') then exit(11);
-    if (reg='R12') or (reg='R12D') or (reg='R12W') or (reg='R12L') or (reg='MM12') or (reg='XMM12') or (reg='YMM12') or (reg='ST(12)') or (reg='MS') or (reg='CR12') or (reg='DR12') then exit(12);
-    if (reg='R13') or (reg='R13D') or (reg='R13W') or (reg='R13L') or (reg='MM13') or (reg='XMM13') or (reg='YMM13') or (reg='ST(13)') or (reg='NS') or (reg='CR13') or (reg='DR13') then exit(13);
-    if (reg='R14') or (reg='R14D') or (reg='R14W') or (reg='R14L') or (reg='MM14') or (reg='XMM14') or (reg='YMM14') or (reg='ST(14)') or (reg='OS') or (reg='CR14') or (reg='DR14') then exit(14);
-    if (reg='R15') or (reg='R15D') or (reg='R15W') or (reg='R15L') or (reg='MM15') or (reg='XMM15') or (reg='YMM15') or (reg='ST(15)') or (reg='PS') or (reg='CR15') or (reg='DR15') then exit(15);
+    if (reg='R8') or (reg='R8D') or (reg='R8W')    or (reg='R8L')  or (reg='R8B')  or (reg='MM8')  or (reg='XMM8')  or (reg='YMM8')  or (reg='ST(8)')  or (reg='JS') or (reg='CR8')  or (reg='DR8') then exit(8);
+    if (reg='R9') or (reg='R9D') or (reg='R9W')    or (reg='R9L')  or (reg='R9B')  or (reg='MM9')  or (reg='XMM9')  or (reg='YMM9')  or (reg='ST(9)')  or (reg='KS') or (reg='CR9')  or (reg='DR9') then exit(9);
+    if (reg='R10') or (reg='R10D') or (reg='R10W') or (reg='R10L') or (reg='R10B') or (reg='MM10') or (reg='XMM10') or (reg='YMM10') or (reg='ST(10)') or (reg='KS') or (reg='CR10') or (reg='DR10') then exit(10);
+    if (reg='R11') or (reg='R11D') or (reg='R11W') or (reg='R11L') or (reg='R11B') or (reg='MM11') or (reg='XMM11') or (reg='YMM11') or (reg='ST(11)') or (reg='LS') or (reg='CR11') or (reg='DR11') then exit(11);
+    if (reg='R12') or (reg='R12D') or (reg='R12W') or (reg='R12L') or (reg='R12B') or (reg='MM12') or (reg='XMM12') or (reg='YMM12') or (reg='ST(12)') or (reg='MS') or (reg='CR12') or (reg='DR12') then exit(12);
+    if (reg='R13') or (reg='R13D') or (reg='R13W') or (reg='R13L') or (reg='R13B') or (reg='MM13') or (reg='XMM13') or (reg='YMM13') or (reg='ST(13)') or (reg='NS') or (reg='CR13') or (reg='DR13') then exit(13);
+    if (reg='R14') or (reg='R14D') or (reg='R14W') or (reg='R14L') or (reg='R14B') or (reg='MM14') or (reg='XMM14') or (reg='YMM14') or (reg='ST(14)') or (reg='OS') or (reg='CR14') or (reg='DR14') then exit(14);
+    if (reg='R15') or (reg='R15D') or (reg='R15W') or (reg='R15L') or (reg='R15B') or (reg='MM15') or (reg='XMM15') or (reg='YMM15') or (reg='ST(15)') or (reg='PS') or (reg='CR15') or (reg='DR15') then exit(15);
   end;
 
   if (result=1000) and exceptonerror then raise EAssemblerException.create(rsInvalidRegister);
@@ -3330,14 +3330,14 @@ begin
       if token='DIL' then result:=ttRegister8BitWithPrefix else
 
 
-      if token='R8L' then result:=ttRegister8Bit else
-      if token='R9L' then result:=ttRegister8Bit else
-      if token='R10L' then result:=ttRegister8Bit else
-      if token='R11L' then result:=ttRegister8Bit else
-      if token='R12L' then result:=ttRegister8Bit else
-      if token='R13L' then result:=ttRegister8Bit else
-      if token='R14L' then result:=ttRegister8Bit else
-      if token='R15L' then result:=ttRegister8Bit else
+      if (token='R8L')  or (token='R8B') then result:=ttRegister8Bit else
+      if (token='R9L')  or (token='R9B') then result:=ttRegister8Bit else
+      if (token='R10L') or (token='R10B') then result:=ttRegister8Bit else
+      if (token='R11L') or (token='R11B') then result:=ttRegister8Bit else
+      if (token='R12L') or (token='R12B') then result:=ttRegister8Bit else
+      if (token='R13L') or (token='R13B') then result:=ttRegister8Bit else
+      if (token='R14L') or (token='R14B') then result:=ttRegister8Bit else
+      if (token='R15L') or (token='R15B') then result:=ttRegister8Bit else
 
       if token='R8W' then result:=ttRegister16Bit else
       if token='R9W' then result:=ttRegister16Bit else
@@ -4555,22 +4555,22 @@ begin
   begin
     //register //modrm c0 to ff
     setmod(modrm[0],3);
-    if (param='RAX') or (param='EAX') or (param='AX') or (param='AL') or (param='MM0') or (param='XMM0') or (param='YMM0') then setrm(modrm[0],0) else
-    if (param='RCX') or (param='ECX') or (param='CX') or (param='CL') or (param='MM1') or (param='XMM1') or (param='YMM1') then setrm(modrm[0],1) else
-    if (param='RDX') or (param='EDX') or (param='DX') or (param='DL') or (param='MM2') or (param='XMM2') or (param='YMM2') then setrm(modrm[0],2) else
-    if (param='RBX') or (param='EBX') or (param='BX') or (param='BL') or (param='MM3') or (param='XMM3') or (param='YMM3') then setrm(modrm[0],3) else
-    if (param='SPL') or (param='RSP') or (param='ESP') or (param='SP') or (param='AH') or (param='MM4') or (param='XMM4') or (param='YMM4') then setrm(modrm[0],4) else
-    if (param='BPL') or (param='RBP') or (param='EBP') or (param='BP') or (param='CH') or (param='MM5') or (param='XMM5') or (param='YMM5') then setrm(modrm[0],5) else
-    if (param='SIL') or (param='RSI') or (param='ESI') or (param='SI') or (param='DH') or (param='MM6') or (param='XMM6') or (param='YMM6') then setrm(modrm[0],6) else
-    if (param='DIL') or (param='RDI') or (param='EDI') or (param='DI') or (param='BH') or (param='MM7') or (param='XMM7') or (param='YMM7') then setrm(modrm[0],7) else
-    if (param='R8') or (param='R8D') or (param='R8W') or (param='R8L') or (param='MM8') or (param='XMM8') or (param='YMM8') then setrm(modrm[0],8) else
-    if (param='R9') or (param='R9D') or (param='R9W') or (param='R9L') or (param='MM9') or (param='XMM9') or (param='YMM9') then setrm(modrm[0],9) else
-    if (param='R10') or (param='R10D') or (param='R10W') or (param='R10L') or (param='MM10') or (param='XMM10') or (param='YMM10') then setrm(modrm[0],10) else
-    if (param='R11') or (param='R11D') or (param='R11W') or (param='R11L') or (param='MM11') or (param='XMM11') or (param='YMM11') then setrm(modrm[0],11) else
-    if (param='R12') or (param='R12D') or (param='R12W') or (param='R12L') or (param='MM12') or (param='XMM12') or (param='YMM12') then setrm(modrm[0],12) else
-    if (param='R13') or (param='R13D') or (param='R13W') or (param='R13L') or (param='MM13') or (param='XMM13') or (param='YMM13') then setrm(modrm[0],13) else
-    if (param='R14') or (param='R14D') or (param='R14W') or (param='R14L') or (param='MM14') or (param='XMM14') or (param='YMM14') then setrm(modrm[0],14) else
-    if (param='R15') or (param='R15D') or (param='R15W') or (param='R15L') or (param='MM15') or (param='XMM15') or (param='YMM15') then setrm(modrm[0],15) else
+    if (param='RAX') or (param='EAX')  or (param='AX')   or (param='AL')   or (param='MM0') or (param='XMM0') or (param='YMM0') then setrm(modrm[0],0) else
+    if (param='RCX') or (param='ECX')  or (param='CX')   or (param='CL')   or (param='MM1') or (param='XMM1') or (param='YMM1') then setrm(modrm[0],1) else
+    if (param='RDX') or (param='EDX')  or (param='DX')   or (param='DL')   or (param='MM2') or (param='XMM2') or (param='YMM2') then setrm(modrm[0],2) else
+    if (param='RBX') or (param='EBX')  or (param='BX')   or (param='BL')   or (param='MM3') or (param='XMM3') or (param='YMM3') then setrm(modrm[0],3) else
+    if (param='SPL') or (param='RSP')  or (param='ESP')  or (param='SP')   or (param='AH') or (param='MM4') or (param='XMM4') or (param='YMM4') then setrm(modrm[0],4) else
+    if (param='BPL') or (param='RBP')  or (param='EBP')  or (param='BP')   or (param='CH') or (param='MM5') or (param='XMM5') or (param='YMM5') then setrm(modrm[0],5) else
+    if (param='SIL') or (param='RSI')  or (param='ESI')  or (param='SI')   or (param='DH') or (param='MM6') or (param='XMM6') or (param='YMM6') then setrm(modrm[0],6) else
+    if (param='DIL') or (param='RDI')  or (param='EDI')  or (param='DI')   or (param='BH') or (param='MM7') or (param='XMM7') or (param='YMM7') then setrm(modrm[0],7) else
+    if (param='R8')  or (param='R8D')  or (param='R8W')  or (param='R8L')  or (param='R8B') or (param='MM8') or (param='XMM8') or (param='YMM8') then setrm(modrm[0],8) else
+    if (param='R9')  or (param='R9D')  or (param='R9W')  or (param='R9L')  or (param='R9B') or (param='MM9') or (param='XMM9') or (param='YMM9') then setrm(modrm[0],9) else
+    if (param='R10') or (param='R10D') or (param='R10W') or (param='R10L') or (param='R10B')or (param='MM10') or (param='XMM10') or (param='YMM10') then setrm(modrm[0],10) else
+    if (param='R11') or (param='R11D') or (param='R11W') or (param='R11L') or (param='R11B')or (param='MM11') or (param='XMM11') or (param='YMM11') then setrm(modrm[0],11) else
+    if (param='R12') or (param='R12D') or (param='R12W') or (param='R12L') or (param='R12B')or (param='MM12') or (param='XMM12') or (param='YMM12') then setrm(modrm[0],12) else
+    if (param='R13') or (param='R13D') or (param='R13W') or (param='R13L') or (param='R13B')or (param='MM13') or (param='XMM13') or (param='YMM13') then setrm(modrm[0],13) else
+    if (param='R14') or (param='R14D') or (param='R14W') or (param='R14L') or (param='R14B')or (param='MM14') or (param='XMM14') or (param='YMM14') then setrm(modrm[0],14) else
+    if (param='R15') or (param='R15D') or (param='R15W') or (param='R15L') or (param='R15B')or (param='MM15') or (param='XMM15') or (param='YMM15') then setrm(modrm[0],15) else
     raise EAssemblerException.create(rsIDontUnderstandWhatYouMeanWith+param);
   end else setmodrm(modrm,address, length(bytes));
 
