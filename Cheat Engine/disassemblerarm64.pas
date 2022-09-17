@@ -3869,7 +3869,10 @@ begin
   for i:=0 to 15 do
   begin
     if param=ArmConditions[i] then
-       result:=result+[pt_cond];
+    begin
+      result:=result+[pt_cond];
+      break;
+    end;
   end;
 
 

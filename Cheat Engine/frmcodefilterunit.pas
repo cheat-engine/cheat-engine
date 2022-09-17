@@ -879,34 +879,38 @@ begin
     else
     if ext='.ceaddress' then
     begin
-      f:=tfilestream.create(opendialog.filename, fmOpenRead);
-      count:=f.ReadWord;
+      f:=tfilestream.create(opendialog.filename, fmOpenRead or fmShareDenyNone);
+      try
+        count:=f.ReadWord;
 
-      ml:=tstringlist.create;
+        ml:=tstringlist.create;
 
-      setlength(baseaddresses, count);
-      for i:=0 to count-1 do
-      begin
-        s:=f.ReadAnsiString;
-        ml.add(s);
-        if symhandler.getmodulebyname(s,modinfo) then
-          baseaddresses[i]:=modinfo.baseaddress
-        else
-          baseaddresses[i]:=0;
-      end;
-
-
-      while f.Position<f.Size do
-      begin
-        x:=f.ReadWord;
-        if x=$ffff then
-          addAddress(f.ReadQWord)
-        else
+        setlength(baseaddresses, count);
+        for i:=0 to count-1 do
         begin
-          address:=f.ReadQWord;
-          if baseaddresses[x]<>0 then
-            addAddress(baseaddresses[x]+address);
+          s:=f.ReadAnsiString;
+          ml.add(s);
+          if symhandler.getmodulebyname(s,modinfo) then
+            baseaddresses[i]:=modinfo.baseaddress
+          else
+            baseaddresses[i]:=0;
         end;
+
+
+        while f.Position<f.Size do
+        begin
+          x:=f.ReadWord;
+          if x=$ffff then
+            addAddress(f.ReadQWord)
+          else
+          begin
+            address:=f.ReadQWord;
+            if baseaddresses[x]<>0 then
+              addAddress(baseaddresses[x]+address);
+          end;
+        end;
+      finally
+        f.free;
       end;
     end;
 

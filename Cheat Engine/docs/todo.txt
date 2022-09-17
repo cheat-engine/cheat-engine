@@ -1,4 +1,19 @@
+test nmi's in windows in dbvm
+
+ceserver historylist  (and perhaps find out why discovery is broken)
+
+fontcolor in ultimap2 edit fields for seconds and filesize is wrong in dark mode
+
+check if the system uses 'efficient' cores and if so, do not force the scans to use those affinity
+
+luacode and ccode in macos (ccode likely uses windows calling convention)
+
 ctrl+space to sync disasembler with hexview is broken
+referencedBytes in trace seems to not work
+ultimap2 default view is too small for high dpi
+
+import list of instructions from "what accesses this" into ultimap
+
 
 frmregisters seems to have the wrong values
 autoassemble execute seems to do a full symbollist enum ?

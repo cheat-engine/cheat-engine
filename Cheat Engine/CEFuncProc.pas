@@ -169,6 +169,8 @@ procedure getDriverList(list: tstrings);
 
 function EscapeStringForRegEx(const S: string): string;
 
+function getthreadCount(pid: qword): integer;
+
 function GetStackStart(threadnr: integer=0): ptruint;
 function getDiskFreeFromPath(path: string): int64;
 procedure protectme(pid: dword=0);
@@ -2383,7 +2385,7 @@ begin
   if Thread32First(ths,te32) then
   repeat
     if te32.th32OwnerProcessID=processid then
-      threadlist.Add(inttohex(te32.th32ThreadID,1));
+      threadlist.AddObject(inttohex(te32.th32ThreadID,1), tobject(te32.th32ThreadID));
 
   until Thread32next(ths,te32)=false;
 
@@ -3597,13 +3599,28 @@ begin
   result:=s1;
 end;
 
+function getthreadCount(pid: qword): integer;
+var
+  ths: THandle;
+  c: integer;
+  te: TThreadEntry32;
+begin
+  result:=0;
+  ths:=CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD, pid);
+
+  te.dwsize:=sizeof(te);;
+  if Thread32First(ths, te) then repeat
+    if te.th32OwnerProcessID=pid then inc(result);
+  until Thread32Next(ths,te)=false;
+
+  closehandle(ths);
+end;
 
 var
   StackStartCachePID: dword;
   StackStartCache: tmap;
   StackStartCacheCS: TCriticalSection;
   StackStartCacheKernel32Address: ptruint;
-
 
 function GetStackStart(threadnr: integer=0): ptruint;
 {$IFDEF windows}

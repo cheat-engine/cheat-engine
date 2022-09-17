@@ -36,11 +36,22 @@ type
                        pt_imm5_1_shl1_label,
                        pt_imm_shl2_poslabel, //positive label
                        pt_imm_shl2,
+                       pt_immx, //offset if an aob of offsets, and maxval is an aob of bitlength (so max 4 encodings)
                        pt_simm_shl1_label,
                        pt_reglist13,
                        pt_reglist8,
                        pt_reglist8_exclude_rreg3, //reglist, but if extra offset in extra contains an rreg specified in this entry, it's invalid
-                       pt_reglist8_withExtra //the pbyte(@extra)[0]=extra registernr, pbyte(@extra)[1]=bitposition for 1/0
+                       pt_reglist8_withExtra, //the pbyte(@extra)[0]=extra registernr, pbyte(@extra)[1]=bitposition for 1/0
+                       pt_cond,
+
+                       //32 bit
+                       pt_const_thumb, //A6.3.2
+                       pt_const_thumb_noenc,
+                       pt_const_thumb_noenc16, //same as pt_const_thumb_noenc but adds appends imm4 to tyhe value at offset 16
+                       pt_const_thumb_poslabel,//pc relative
+                       pt_const_thumb_neglabel,
+
+                       pt_shift5_thumb
                        );
 
 
@@ -60,9 +71,9 @@ type
   TInstructionUse=(iuBoth=0, iuAssembler=1, iuDisassembler=2);
 
   TOpcodeAdditions=(
+                    opa_s20,
                     opa_ITCond_S, //if/then block condition, else S
                     opa_tcond8 //opcode followed by conditional (EQ, NZ, etc...) bit 8 contains the condition
-
 
                     );
 
@@ -151,12 +162,18 @@ const
 
     (mnemonic:'POP'; additions:[];  params:((ptype:pt_reglist8_withExtra; offset:0; maxval:0; extra:$080f));                  mask: %1111111000000000; value: %1011110000000000),
 
-    (mnemonic:'BKPT'; additions:[]; params:((ptype:pt_imm; offset:0; maxval:255));                                            mask: %1111111100000000; value: %1011111000000000)
+    (mnemonic:'BKPT'; additions:[]; params:((ptype:pt_imm; offset:0; maxval:255));                                            mask: %1111111100000000; value: %1011111000000000),
 
 
     //if then and hints
 
-//    (mnemonic:'IT'; additions:[];
+    (mnemonic:'NOP'; additions:[]; params:();                                                                                 mask: %1111111111111111; value: %1011111100000000),
+    (mnemonic:'YIELD'; additions:[]; params:();                                                                               mask: %1111111111111111; value: %1011111100010000),
+    (mnemonic:'WFE'; additions:[]; params:();                                                                                 mask: %1111111111111111; value: %1011111100100000),
+    (mnemonic:'WFI'; additions:[]; params:();                                                                                 mask: %1111111111111111; value: %1011111100110000),
+    (mnemonic:'SEV'; additions:[]; params:();                                                                                 mask: %1111111111111111; value: %1011111101000000),
+
+    (mnemonic:'IT'; additions:[];  params:((ptype:pt_cond; offset:4; maxval:15), (ptype:pt_imm; offset:0; maxval:15));        mask: %1111111100000000; value: %1011111100000000)
 
   );
 
@@ -233,17 +250,90 @@ const
 
   );
 
+  ThumbInstructionsConditionalBranchAndSupervisorCall16: array of TOpcode=(
+  //1101********
+    (mnemonic:'UDF';  additions:[];  params:((ptype:pt_imm; offset:0; maxval:255));                      mask: %1111111100000000; value: %1101111000000000),
+    (mnemonic:'SVC';  additions:[];  params:((ptype:pt_imm; offset:0; maxval:255));                      mask: %1111111100000000; value: %1101111100000000),
+    (mnemonic:'B';    additions:[opa_tcond8]; params:((ptype:pt_simm_shl1_label; offset:0; maxval:255)); mask: %1111000000000000; value: %1101000000000000)
+  );
+
+  //32 bit
+
+  ThumbInstructionsUndefined: array of TOpcode=(
+    (mnemonic:'UNDEFINED';  additions:[];  params:();  mask: %00000000000000000000000000000000; value: %00000000000000000000000000000000)
+  );
+
+
+  ThumbInstructionsDataProcessingModifiedImmediate: array of TOpcode=(
+    //11110*0*********0***************
+    (mnemonic:'TST';  additions:[]; params:((ptype:pt_rreg4; offset:16),(ptype:pt_const_thumb));                                    mask: %11111011111100001000111100000000; value: %11110000000100000000111100000000),  //16
+    (mnemonic:'TEQ';  additions:[]; params:((ptype:pt_rreg4; offset:16),(ptype:pt_const_thumb));                                    mask: %11111011111100001000111100000000; value: %11110000100100000000111100000000),  //16
+    (mnemonic:'CMN';  additions:[]; params:((ptype:pt_rreg4; offset:16),(ptype:pt_const_thumb));                                    mask: %11111011111100001000111100000000; value: %11110001000100000000111100000000),  //16
+    (mnemonic:'CMP';  additions:[]; params:((ptype:pt_rreg4; offset:16),(ptype:pt_const_thumb));                                    mask: %11111011111100001000111100000000; value: %11110001101100000000111100000000),  //16
+    (mnemonic:'MOV';  additions:[opa_s20]; params:((ptype:pt_rreg4; offset:8),(ptype:pt_const_thumb));                              mask: %11111011111011111000000000000000; value: %11110000010011110000000000000000),  //15
+    (mnemonic:'MVN';  additions:[opa_s20]; params:((ptype:pt_rreg4; offset:8),(ptype:pt_const_thumb));                              mask: %11111011111011111000000000000000; value: %11110000011011110000000000000000),  //15
+    (mnemonic:'AND';  additions:[opa_s20]; params:((ptype:pt_rreg4; offset:8), (ptype:pt_rreg4; offset:16),(ptype:pt_const_thumb)); mask: %11111011111000001000000000000000; value: %11110000000000000000000000000000),  //11
+    (mnemonic:'BIC';  additions:[opa_s20]; params:((ptype:pt_rreg4; offset:8), (ptype:pt_rreg4; offset:16),(ptype:pt_const_thumb)); mask: %11111011111000001000000000000000; value: %11110000001000000000000000000000),  //11
+    (mnemonic:'ORR';  additions:[opa_s20]; params:((ptype:pt_rreg4; offset:8), (ptype:pt_rreg4; offset:16),(ptype:pt_const_thumb)); mask: %11111011111000001000000000000000; value: %11110000010000000000000000000000),  //11
+    (mnemonic:'ORN';  additions:[opa_s20]; params:((ptype:pt_rreg4; offset:8), (ptype:pt_rreg4; offset:16),(ptype:pt_const_thumb)); mask: %11111011111000001000000000000000; value: %11110000011000000000000000000000),  //11
+    (mnemonic:'EOR';  additions:[opa_s20]; params:((ptype:pt_rreg4; offset:8), (ptype:pt_rreg4; offset:16),(ptype:pt_const_thumb)); mask: %11111011111000001000000000000000; value: %11110000100000000000000000000000),  //11
+    (mnemonic:'ADD';  additions:[opa_s20]; params:((ptype:pt_rreg4; offset:8), (ptype:pt_rreg4; offset:16),(ptype:pt_const_thumb)); mask: %11111011111000001000000000000000; value: %11110001000000000000000000000000),  //11
+    (mnemonic:'ADC';  additions:[opa_s20]; params:((ptype:pt_rreg4; offset:8), (ptype:pt_rreg4; offset:16),(ptype:pt_const_thumb)); mask: %11111011111000001000000000000000; value: %11110001010000000000000000000000),  //11
+    (mnemonic:'SBC';  additions:[opa_s20]; params:((ptype:pt_rreg4; offset:8), (ptype:pt_rreg4; offset:16),(ptype:pt_const_thumb)); mask: %11111011111000001000000000000000; value: %11110001011000000000000000000000),  //11
+    (mnemonic:'SUB';  additions:[opa_s20]; params:((ptype:pt_rreg4; offset:8), (ptype:pt_rreg4; offset:16),(ptype:pt_const_thumb)); mask: %11111011111000001000000000000000; value: %11110001101000000000000000000000),  //11
+    (mnemonic:'RSB';  additions:[opa_s20]; params:((ptype:pt_rreg4; offset:8), (ptype:pt_rreg4; offset:16),(ptype:pt_const_thumb)); mask: %11111011111000001000000000000000; value: %11110001110000000000000000000000)   //11
+  );
+
+  ThumbInstructionsDataProcessingPlainBinaryImmediate: array of TOpcode=(
+    //11110*1*********0***************
+    (mnemonic:'ADR.W';additions:[]; params:((ptype:pt_rreg4; offset:8), (ptype:pt_const_thumb_poslabel));                          mask: %11111011111111111000000000000000; value: %11110010000011110000000000000000),  //16
+    (mnemonic:'ADR.W';additions:[]; params:((ptype:pt_rreg4; offset:8), (ptype:pt_const_thumb_neglabel));                          mask: %11111011111111111000000000000000; value: %11110010101011110000000000000000),  //16
+    (mnemonic:'ADDW'; additions:[]; params:((ptype:pt_rreg4; offset:8), (ptype:pt_rreg4; offset:16),(ptype:pt_const_thumb_noenc)); mask: %11111011111100001000000000000000; value: %11110010000000000000000000000000),  //12
+    (mnemonic:'MOVW'; additions:[]; params:((ptype:pt_rreg4; offset:8), (ptype:pt_const_thumb_noenc16));                           mask: %11111011111100001000000000000000; value: %11110010010000000000000000000000),  //12
+    (mnemonic:'SUBW'; additions:[]; params:((ptype:pt_rreg4; offset:8), (ptype:pt_rreg4; offset:16),(ptype:pt_const_thumb_noenc)); mask: %11111011111100001000000000000000; value: %11110010101000000000000000000000),  //12
+    (mnemonic:'MOVT'; additions:[]; params:((ptype:pt_rreg4; offset:8), (ptype:pt_const_thumb_noenc16));                           mask: %11111011111100001000000000000000; value: %11110010110000000000000000000000),  //12
+
+
+    (mnemonic:'SBFX'; additions:[]; params:((ptype:pt_rreg4; offset:8), (ptype:pt_rreg4; offset:16),(ptype:pt_immx; offset:$00000c06; maxval:$00000302),  (ptype:pt_imm; offset:0; maxval:$1f)); mask: %11111111111100001000000000100000; value: %11110011010000000000000000000000), //14
+    (mnemonic:'SSAT16';additions:[];params:((ptype:pt_rreg4; offset:8), (ptype:pt_imm; offset:0; maxval:$f), (ptype:pt_rreg4; offset:16));                                                       mask: %11111111111100001111000011110000; value: %11110011001000000000000000000000), //20
+    (mnemonic:'SSAT'; additions:[]; params:((ptype:pt_rreg4; offset:8), (ptype:pt_imm; offset:0; maxval:$1f), (ptype:pt_rreg4; offset:16), (ptype:pt_shift5_thumb; offset:4));                   mask: %11111111110100001000000000100000; value: %11110011000000000000000000000000),  //13
+
+    (mnemonic:'BFC'; additions:[]; params:((ptype:pt_rreg4; offset:8), (ptype:pt_immx; offset:$00000c06; maxval:$00000302),  (ptype:pt_imm; offset:0; maxval:$1f));                              mask: %11111111111111111000000000100000; value: %11110011011011110000000000000000), //18
+    (mnemonic:'BFI'; additions:[]; params:((ptype:pt_rreg4; offset:8), (ptype:pt_rreg4; offset:16),(ptype:pt_immx; offset:$00000c06; maxval:$00000302),  (ptype:pt_imm; offset:0; maxval:$1f));  mask: %11111111111100001000000000100000; value: %11110011011000000000000000000000), //14
+
+    (mnemonic:'USAT16';additions:[];params:((ptype:pt_rreg4; offset:8), (ptype:pt_imm; offset:0; maxval:$f), (ptype:pt_rreg4; offset:16));                                                       mask: %11111111111100001111000011110000; value: %11110011101000000000000000000000),
+    (mnemonic:'USAT'; additions:[]; params:((ptype:pt_rreg4; offset:8), (ptype:pt_imm; offset:0; maxval:$1f), (ptype:pt_rreg4; offset:16), (ptype:pt_shift5_thumb; offset:4));                   mask: %11111111110100001000000000100000; value: %11110011100000000000000000000000),
+
+    (mnemonic:'UBFX'; additions:[]; params:((ptype:pt_rreg4; offset:8), (ptype:pt_rreg4; offset:16),(ptype:pt_immx; offset:$00000c06; maxval:$00000302),  (ptype:pt_imm; offset:0; maxval:$1f)); mask: %11111111111100001000000000100000; value: %11110011110000000000000000000000) //14
+
+
+  );
+
+  ThumbInstructionsBranchesAndMiscellaneousControl:array of TOpcode=(    );
+
+
+
+  ThumbInstructionsLoadStoreMultiple32: array of TOpcode=(    );
+  ThumbInstructionsLoadStoreDualLoadStoreExclusiveTableBranch32: array of TOpcode=(    );
+  ThumbInstructionsDataProcessingShiftedRegister: array of TOpcode=(    );
+
+
+  ThumbInstructionsStoreSingleDataItem: array of TOpcode=(    );
+  ThumbInstructionsLoadByteMemoryHints: array of TOpcode=(    );
+  ThumbInstructionsLoadHalfWordMemoryHints: array of TOpcode=(    );
+  ThumbInstructionsLoadWord:   array of TOpcode=(    );
+  ThumbInstructionsMultiplyMultiplyAccumulateAndAbsoleDifference:array of TOpcode=(    );
+  ThumbInstructionsLongMultiplyLongMultiplyAccumulateAndDivide:array of TOpcode=(    );
+
+  ThumbInstructionsChangeProcessorState:array of TOpcode=(    );
+  ThumbInstructionsMiscellaneousControlInstructions:array of TOpcode=(    );
+
+
+
 //--------------------------- instruction groups----------------------------//
 
 
-
  //
-
-
-
-  ThumbGroupConditionalBranchAndSupervisorCall: array of TInstructionGroup=();
-  //    (mnemonic:'B';    additions:[opa_tcond8]; params:((ptype:pt_simm_shl1_label; offset:0; maxval:$7ff)); mask: %1111000000000000; value: %1101000000000000)
-
 
 
   ThumbGroupBase16: array of TInstructionGroup=(
@@ -260,7 +350,7 @@ const
     (mask:%1111000000000000; value: %1011000000000000; list: @ThumbInstructionsMiscellaneous16BitInstructions; listType: igpInstructions; name: 'ThumbInstructionsMiscellaneous16BitInstructions'),
 
 
-    (mask:%1111000000000000; value: %1101000000000000; list: @ThumbGroupConditionalBranchAndSupervisorCall; listType: igpGroup; name: 'ThumbGroupConditionalBranchAndSupervisorCall'),
+    (mask:%1111000000000000; value: %1101000000000000; list: @ThumbInstructionsConditionalBranchAndSupervisorCall16; listType: igpInstructions; name: 'ThumbGroupConditionalBranchAndSupervisorCall'),
 
 
     (mask:%1111000000000000; value: %0101000000000000; list: @ThumbInstructionsLoadStoreSingleDataItem; listType: igpInstructions; name: 'ThumbInstructionsLoadStoreSingleDataItem'),
@@ -271,17 +361,52 @@ const
     (mask:%1100000000000000; value: %0000000000000000; list: @ThumbInstructionsShiftAddSubtractMoveAndCompare16; listType: igpInstructions; name: 'ThumbInstructionsShiftAddSubtractMoveAndCompare')
   );
 
+
+
+  //32
+  ThumbGroupCoprocessorAdvancedSIMDAndFloatingPointInstructions: array of TInstructionGroup=();
+
+  ThumbGroupBranchesAndMiscellaneousControl: array of TInstructionGroup=(
+         //11110***********1***************          11110***********1***************
+    (mask:%11111111111100001101000000000000; value: %11110011101000001000000000000000; list: @ThumbInstructionsChangeProcessorState; listType: igpInstructions; name: 'ThumbInstructionsChangeProcessorState'),
+    (mask:%11111111111100001101000000000000; value: %11110011101100001000000000000000; list: @ThumbInstructionsMiscellaneousControlInstructions; listType: igpInstructions; name: 'ThumbInstructionsMiscellaneousControlInstructions'),
+    (mask:%00000000000000000000000000000000; value: %00000000000000000000000000000000; list: @ThumbInstructionsBranchesAndMiscellaneousControl; listType: igpInstructions; name: 'ThumbInstructionsBranchesAndMiscellaneousControl')
+  );
+
+  ThumbGroupAdvancedSIMDElementOrStructureLoadStoreInstructions: array of TInstructionGroup=();
+  ThumbGroupDataProcessingRegister: array of TInstructionGroup=();
+
+
   ThumbGroupBase32: array of TInstructionGroup=(
-    //(mask:%00000000000000000000000000000000; value: %11110000000000000000000000000000; list: @ThumbGroupUnconditionalInstructions; listType: igpGroup; name: 'ThumbGroupUnconditionalInstructions'),
+    //note: the words are swapped
+    //111*****************************
+
+    (mask:%11111110010000000000000000000000; value: %11101000000000000000000000000000; list: @ThumbInstructionsLoadStoreMultiple32; listType: igpInstructions; name: 'ThumbInstructionsLoadStoreMultiple32'),
+    (mask:%11111110010000000000000000000000; value: %11101000010000000000000000000000; list: @ThumbInstructionsLoadStoreDualLoadStoreExclusiveTableBranch32; listType: igpInstructions; name: 'ThumbInstructionsLoadStoreDualLoadStoreExclusiveTableBranch32'),
+    (mask:%11111110000000000000000000000000; value: %11101010000000000000000000000000; list: @ThumbInstructionsDataProcessingShiftedRegister; listType: igpInstructions; name: 'ThumbInstructionsDataProcessingShiftedRegister'),
+    (mask:%11111100000000000000000000000000; value: %11101100000000000000000000000000; list: @ThumbGroupCoprocessorAdvancedSIMDAndFloatingPointInstructions; listType: igpGroup; name: 'ThumbGroupCoprocessorAdvancedSUMDAndFloatingPointInstructions'),
+
+    (mask:%11111010000000001000000000000000; value: %11110000000000000000000000000000; list: @ThumbInstructionsDataProcessingModifiedImmediate; listType: igpInstructions; name: 'ThumbInstructionsDataProcessingModifiedImmediate'),
+    (mask:%11111010000000001000000000000000; value: %11110010000000000000000000000000; list: @ThumbInstructionsDataProcessingPlainBinaryImmediate; listType: igpInstructions; name: 'ThumbInstructionsDataProcessingPlainBinaryImmediate'),
+    (mask:%11111000000000001000000000000000; value: %11110000000000001000000000000000; list: @ThumbGroupBranchesAndMiscellaneousControl; listType: igpGroup; name: 'ThumbGroupBranchesAndMiscellaneousControl'),
+
+    (mask:%11111111000100000000000000000000; value: %11111000000000000000000000000000; list: @ThumbInstructionsStoreSingleDataItem; listType: igpInstructions; name: 'ThumbInstructionsStoreSingleDataItem'),
+    (mask:%11111110011100000000000000000000; value: %11111000000100000000000000000000; list: @ThumbInstructionsLoadByteMemoryHints; listType: igpInstructions; name: 'ThumbInstructionsLoadByteMemoryHints'),
+    (mask:%11111110011100000000000000000000; value: %11111000001100000000000000000000; list: @ThumbInstructionsLoadHalfWordMemoryHints; listType: igpInstructions; name: 'ThumbInstructionsLoadHalfWordMemoryHints'),
+    (mask:%11111110011100000000000000000000; value: %11111000010100000000000000000000; list: @ThumbInstructionsLoadWord; listType: igpInstructions; name: 'ThumbInstructionsLoadWord'),
+
+    (mask:%11111110011100000000000000000000; value: %11111000011100000000000000000000; list: @ThumbInstructionsUndefined; listType: igpInstructions; name: 'ThumbInstructionsUndefined'),
+
+    (mask:%11111111000100000000000000000000; value: %11111001000000000000000000000000; list: @ThumbGroupAdvancedSIMDElementOrStructureLoadStoreInstructions; listType: igpGroup; name: 'ThumbGroupAdvancedSIMDElementOrStructureLoadStoreInstructions'),
+    (mask:%11111111000000000000000000000000; value: %11111010000000000000000000000000; list: @ThumbGroupDataProcessingRegister; listType: igpGroup; name: 'ThumbGroupDataProcessingRegister'),
+
+    (mask:%11111111100000000000000000000000; value: %11111011000000000000000000000000; list: @ThumbInstructionsMultiplyMultiplyAccumulateAndAbsoleDifference; listType: igpInstructions; name: 'ThumbInstructionsMultiplyMultiplyAccumulateAndAbsoleDifference'),
+    (mask:%11111111100000000000000000000000; value: %11111011100000000000000000000000; list: @ThumbInstructionsLongMultiplyLongMultiplyAccumulateAndDivide; listType: igpInstructions; name: 'ThumbInstructionsLongMultiplyLongMultiplyAccumulateAndDivide'),
+
+    (mask:%11111100000000000000000000000000; value: %11111100000000000000000000000000; list: @ThumbGroupCoprocessorAdvancedSIMDAndFloatingPointInstructions;  listType: igpGroup; name: 'ThumbGroupCoprocessorAdvancedSIMDAndFloatingPointInstructions')
+
   );
 
-  ThumbGroupBase: array of TInstructionGroup=(
-    (mask:%00000000000000001111100000000000; value: %00000000000000001110100000000000; list: @ThumbGroupBase32; listType: igpGroup; name: 'ThumbGroupBase32'),
-    (mask:%00000000000000001111100000000000; value: %00000000000000001111000000000000; list: @ThumbGroupBase32; listType: igpGroup; name: 'ThumbGroupBase32'),
-    (mask:%00000000000000001111100000000000; value: %00000000000000001111100000000000; list: @ThumbGroupBase32; listType: igpGroup; name: 'ThumbGroupBase32'),
-    (mask:%00000000000000000000000000000000; value: %00000000000000000000000000000000; list: @ThumbGroupBase16; listType: igpGroup; name: 'ThumbGroupBase16')
-
-  );
 
 var
   ThumbInstructionsAssemblerList: TStringHashList;
@@ -583,6 +708,103 @@ begin
   if s='PC' then exit(15);
 end;
 
+function thumbEncodeImm(v: dword): dword;
+var
+  i: integer;
+  ba: PByte;
+begin
+  //try pattern method
+
+  ba:=@v;
+
+  if (ba[1]=0) and (ba[2]=0) and (ba[3]=0) then exit(v);
+  if (ba[1]=0) and (ba[2]=ba[0]) and (ba[3]=0) then exit((1 shl 8) or ba[0]);
+  if (ba[0]=0) and (ba[1]=ba[3]) and (ba[2]=0) then exit((2 shl 8) or ba[1]);
+  if (ba[0]=ba[1]) and (ba[1]=ba[2]) and (ba[2]=ba[3]) then exit((3 shl 8) or ba[1]);
+
+
+  //still here
+  //cut down the value
+  i:=0;
+  while v and (1 shl 31)=0 do
+  begin
+    v:=v shl 1;
+    inc(i);
+  end;
+  v:=v shl 1; //one extra because the last bit is assumed a 1
+  if (v and $007fffff)<>0 then raise exception.create('Value can not be encoded');
+
+  v:=v shr 25;
+  v:=v or ((i+8) shl 7);
+  exit(v);
+
+end;
+
+function thumbExpandImm(v: dword): dword;
+var v2: dword;
+  rot: integer;
+begin
+  if (v shr 10)=0 then
+  begin
+    v2:=v and $ff;
+    case v shr 8 and 3 of
+      0: result:=v2;
+      1: result:=(v2 shl 16) or v2;
+      2: result:=(v2 shl 24) or (v2 shl 8);
+      3: result:=(v2 shl 24) or (v2 shl 16) or (v2 shl 8) or v2;
+    end;
+  end
+  else
+  begin
+    v2:=v and $7f;
+    v2:=v2 or (1 shl 7);
+
+    rot:=v shr 7;
+    result:=RorDWord(v2, rot);
+  end;
+end;
+
+function getimmx(value: dword; offsets, bitcounts: PByte; arraylength: integer): dword;
+var
+  i: integer;
+  bitlen: integer;
+  mask: dword;
+  t: dword;
+begin
+  result:=0;
+  bitlen:=0;
+  for i:=0 to arraylength-1 do
+  begin
+    if bitcounts[i]=0 then break; //end reached
+    mask:=(1 shl bitcounts[i])-1;
+
+    t:=((value shr offsets[i]) and mask) shl bitlen;
+    result:=result or t;
+    inc(bitlen, bitcounts[i]);
+  end;
+end;
+
+procedure setimmx(var value: dword; valueToSet: dword; offsets, bitcounts: PByte; arraylength: integer);
+var
+  i: integer;
+  bitpos: integer;
+  mask: dword;
+
+  t: dword;
+begin
+  bitpos:=0;
+  for i:=0 to arraylength-1 do
+  begin
+    mask:=(1 shl bitcounts[i])-1;
+    value:=value and ((not mask) shl offsets[i]); //erase the old value (should be 0, but lets be sure)
+
+    t:=((valueToSet shr bitpos) and mask) shl offsets[i];
+    value:=value or t;
+
+    inc(bitpos, bitcounts[i]);
+  end;
+end;
+
 function TThumbInstructionset.ParseParametersForDisassembler(plist: TAParametersList): boolean;
 var
   i,j: integer;
@@ -593,6 +815,8 @@ var
 
   insideIndex: boolean;
   first: boolean;
+
+  pb,pb2: pbyte;
 begin
   result:=true;
   insideIndex:=false;
@@ -669,6 +893,12 @@ begin
         p:='#'+v.ToHexString(1);
       end;
 
+      pt_immx:
+      begin
+        v:=getimmx(opcode, @plist[i].offset, @plist[i].maxval,4);
+        p:='#'+v.ToHexString(1);
+      end;
+
       pt_reglist8,
       pt_reglist8_withExtra:
       begin
@@ -740,6 +970,69 @@ begin
         p:=p+'}';
       end;
 
+      pt_cond:
+      begin
+        v:=(opcode shr plist[i].offset) and $f;
+        p:=ArmConditions[v];
+      end;
+
+      pt_const_thumb, pt_const_thumb_noenc, pt_const_thumb_noenc16:
+      begin
+        v:=opcode and $ff;
+
+        v2:=(opcode shr 12) and 7;
+        v2:=v2 or (((opcode shr 26) and 1) shl 3);
+        v:=(v2 shl 8) or v;
+
+        if plist[i].ptype=pt_const_thumb then
+          v:=thumbExpandImm(v);
+
+        if plist[i].ptype=pt_const_thumb_noenc16 then
+          v:=v or (((opcode shr 16) and $f) shl 12);
+
+        p:='#'+v.ToHexString(1);
+      end;
+
+      pt_const_thumb_poslabel:
+      begin
+        v:=opcode and $ff;
+
+        v2:=(opcode shr 12) and 7;
+        v2:=v2 or (((opcode shr 26) and 1) shl 3);
+        v:=(v2 shl 8) or v;
+
+        v:=address+v+4;
+
+        p:=v.ToHexString(1);
+      end;
+
+      pt_const_thumb_neglabel:
+      begin
+        v:=opcode and $ff;
+
+        v2:=(opcode shr 12) and 7;
+        v2:=v2 or (((opcode shr 26) and 1) shl 3);
+        v:=(v2 shl 8) or v;
+
+        v:=address-v+4;
+
+        p:=v.ToHexString(1);
+      end;
+
+      pt_shift5_thumb: //shift is stored in imm3:imm2 stored at offset 6 and 12 . Type is stored in the 2 bits pointed at by offset (usually offset 4, but can be different)
+      begin
+        v:=(opcode shr 6) and 3;
+        v:=v or ((opcode shr 12) and 7);
+        v2:=(opcode shr plist[i].offset) and 3;
+
+        case v2 of //type
+          0: if v=0 then continue else p:='LSL #'+inttohex(v,1);
+          1: if v=0 then p:='LSR #20' else p:='LSR #'+inttohex(v,1);
+          2: if v=0 then p:='ASR #20' else p:='ASR #'+inttohex(v,1);
+          3: if v=0 then p:='RRX' else p:='ROR #'+inttohex(v,1);
+        end;
+      end;
+
 
     end;
 
@@ -793,6 +1086,9 @@ begin
 
       LastDisassembleData.opcode:=list[i].mnemonic;
 
+      if (opa_s20 in list[i].additions) and ((list[i].mask and $100000) = 0) and ((opcode and $100000)=$100000) then
+        LastDisassembleData.opcode:=LastDisassembleData.opcode+LastDisassembleData.opcode+'S';
+
       if (opa_tcond8 in list[i].additions) then
         LastDisassembleData.opcode:=LastDisassembleData.opcode+ArmConditions[(opcode shr 8) and $f];
 
@@ -830,6 +1126,8 @@ function TThumbInstructionset.disassemble(var DisassembleAddress: ptruint{$ifdef
 var
   x: ptruint;
   i: integer;
+
+  t: dword;
 begin
   InitThumbSupport;
 
@@ -868,6 +1166,12 @@ begin
     %11111:
     begin
       size:=4;
+
+      //swap the words
+      t:=opcode;
+
+      opcode:=t shr 16;
+      opcode:=opcode or (t shl 16);
       ScanGroupList(ThumbGroupBase32);
     end
     else
@@ -953,14 +1257,14 @@ begin
   begin
     if TryStrToUInt('$'+param,v) then
     begin
-      result:=result+[pt_imm_shl2, pt_imm];
+      result:=result+[pt_imm_shl2, pt_imm, pt_immx, pt_const_thumb, pt_const_thumb_noenc, pt_const_thumb_noenc16];
 
       if v=0 then
         result:=result+[pt_imm_val0];
 
 
       if notlabel=false then
-        result:=result+[pt_imm_shl2_poslabel, pt_simm_shl1_label, pt_imm5_1_shl1_label];
+        result:=result+[pt_imm_shl2_poslabel, pt_simm_shl1_label, pt_imm5_1_shl1_label, pt_const_thumb_poslabel, pt_const_thumb_neglabel];
     end;
   end;
 
@@ -969,6 +1273,33 @@ begin
     begin
       if param.EndsWith('}') then
         result:=result+[pt_reglist13, pt_reglist8_exclude_rreg3, pt_reglist8, pt_reglist8_withExtra];
+    end;
+
+    'R':
+    begin
+      if (param.Substring(0,3)='ROR') or (param.Substring(0,3)='RRX') then
+        result:=result+[pt_shift5_thumb];
+    end;
+
+    'L':
+    begin
+      if (param.Substring(0,3)='LSL') or (param.Substring(0,3)='LSR') then
+        result:=result+[pt_shift5_thumb];
+    end;
+
+    'A': //ASR/APSR
+    begin
+      if (param.Substring(0,3)='ASR') then
+        result:=result+[pt_shift5_thumb];
+    end;
+  end;
+
+  for i:=0 to 15 do
+  begin
+    if param=ArmConditions[i] then
+    begin
+      result:=result+[pt_cond];
+      break;
     end;
   end;
 
@@ -1060,13 +1391,22 @@ begin
       opcode:=opcode or ((v and param.maxval) shl param.offset);
     end;
 
+    pt_immx:
+    begin
+      if trim(paramstr).StartsWith('#') then
+        paramstr:=trim(paramstr).Substring(1);
+
+      v:=StrToInt('$'+paramstr);
+      setimmx(opcode, v,@param.offset, @param.maxval,4);
+    end;
+
     pt_simm_shl1_label:
     begin
       if trim(paramstr).StartsWith('#') then
         paramstr:=trim(paramstr).Substring(1);
 
       v:=StrToInt('$'+paramstr);
-      v:=v-address;
+      v:=v-(address+4);
       if (v and 1)<>0 then exit;
       v:=v shr 1;
 
@@ -1096,7 +1436,7 @@ begin
         paramstr:=trim(paramstr).Substring(1);
 
       v:=StrToInt('$'+paramstr);
-      v:=v-address;
+      v:=v-(address+2*size);
       if (v and 3)<>0 then exit;
       v:=v shr 2;
       opcode:=opcode or ((v and param.maxval) shl param.offset);
@@ -1212,6 +1552,95 @@ begin
         end;
       end;
     end;
+
+    pt_cond:
+    begin
+      b:=false;
+      for i:=0 to length(ArmConditions)-1 do
+      begin
+        if paramstr=ArmConditions[i] then
+        begin
+          opcode:=opcode or (i shl param.offset);
+          b:=true;
+        end;
+      end;
+      if not b then exit;
+    end;
+
+    pt_const_thumb, pt_const_thumb_noenc, pt_const_thumb_noenc16:
+    begin
+      if trim(paramstr).StartsWith('#') then
+        paramstr:=trim(paramstr).Substring(1);
+
+      v:=StrToInt('$'+paramstr);
+
+      if param.ptype=pt_const_thumb then
+        v:=thumbEncodeImm(v);
+
+      opcode:=opcode or (v and $ff);
+      opcode:=opcode or (((v shr 8) and 7) shl 12);
+      opcode:=opcode or (((v shr 11) and 1) shl 26);
+
+      if param.ptype=pt_const_thumb_noenc16 then
+        opcode:=opcode or (((v shr 12) and $f) shl 16);
+    end;
+
+    pt_const_thumb_poslabel:
+    begin
+      if trim(paramstr).StartsWith('#') then
+        paramstr:=trim(paramstr).Substring(1);
+
+      v:=StrToInt('$'+paramstr);
+      v:=v-(address+2*size);
+
+      if v>4096 then exit;
+
+      opcode:=opcode or (v and $ff);
+      opcode:=opcode or (((v shr 8) and 7) shl 12);
+      opcode:=opcode or (((v shr 11) and 1) shl 26);
+    end;
+
+    pt_const_thumb_neglabel:
+    begin
+      if trim(paramstr).StartsWith('#') then
+        paramstr:=trim(paramstr).Substring(1);
+
+      v:=StrToInt('$'+paramstr);
+      v:=(address+2*size)-v;
+
+      if v>4096 then exit;
+
+      opcode:=opcode or (v and $ff);
+      opcode:=opcode or (((v shr 8) and 7) shl 12);
+      opcode:=opcode or (((v shr 11) and 1) shl 26);
+    end;
+
+    pt_shift5_thumb:
+    begin
+      if paramstr.Substring(0,3)='RRX' then opcode:=opcode or (3 shl param.offset) else
+      begin
+        i:=paramstr.IndexOf('#');
+        if i=-1 then exit;
+
+        s:=trim(paramstr.Substring(0,i-1));
+        s2:=paramstr.Substring(i+1);
+
+        case s of
+          'LSL': ;
+          'LSR': opcode:=opcode or (1 shl (param.offset));
+          'ASR': opcode:=opcode or (2 shl (param.offset));
+          'ROR': opcode:=opcode or (3 shl (param.offset));
+          else exit; //invalid
+        end;
+
+        i:=strtoint('$'+s2);
+        i:=i and 63;
+
+        opcode:=opcode or ((i and 3) shl 6);
+        opcode:=opcode or (((i shr 2) and 7) shl 12);
+      end;
+    end;
+
 
 
   end;
@@ -1426,6 +1855,15 @@ begin
 
     if match then
     begin
+      if selectedopcode^.value>65535 then
+      begin
+        //32-bit opcode
+        result:=0;
+        result:=opcode shl 16;
+        result:=result or (opcode shr 16);
+        exit;
+      end;
+
       result:=opcode;
       exit; //still a match, so use this
     end;
@@ -1469,6 +1907,7 @@ begin
   begin
     if list[i].use=iuDisassembler then continue;
 
+
     ThumbInstructionsAssemblerList.Add(list[i].mnemonic,@list[i]);
   end;
 end;
@@ -1489,7 +1928,8 @@ end;
 procedure InitializeThumbInstructionsAssemblerList;
 begin
   ThumbInstructionsAssemblerList:=TStringHashList.Create(false);
-  FillThumbInstructionsAssemblerListWithInstructionGroupArray(ThumbGroupBase);
+  FillThumbInstructionsAssemblerListWithInstructionGroupArray(ThumbGroupBase16);
+  FillThumbInstructionsAssemblerListWithInstructionGroupArray(ThumbGroupBase32);
 end;
 
 

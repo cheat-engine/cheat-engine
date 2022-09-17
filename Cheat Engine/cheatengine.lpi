@@ -668,7 +668,7 @@
         <PackageName Value="LCL"/>
       </Item8>
     </RequiredPackages>
-    <Units Count="416">
+    <Units Count="417">
       <Unit0>
         <Filename Value="cheatengine.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -2865,6 +2865,10 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="disassemblerArm32Thumb"/>
       </Unit415>
+      <Unit416>
+        <Filename Value="iptnative.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit416>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
