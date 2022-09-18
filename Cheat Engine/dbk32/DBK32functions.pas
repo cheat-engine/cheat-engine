@@ -512,9 +512,11 @@ procedure ultimap2_disable;
 var
   cc,br: dword;
 begin
-  OutputDebugString('disable ultimap2');
-  cc:=IOCTL_CE_DISABLEULTIMAP2;
-  deviceiocontrol(hultimapdevice,cc,nil,0,nil,0,br,nil);
+  if (hUltimapDevice<>0) and (hUltimapDevice<>INVALID_HANDLE_VALUE) then
+  begin
+    cc:=IOCTL_CE_DISABLEULTIMAP2;
+    deviceiocontrol(hultimapdevice,cc,nil,0,nil,0,br,nil);
+  end;
 end;
 
 

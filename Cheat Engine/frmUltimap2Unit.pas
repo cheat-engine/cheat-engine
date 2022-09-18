@@ -198,13 +198,13 @@ type
   end;
 
 
-  TDataDispatcherEvent=(ddeStartProcessingData, ddeStopProcessingData, ddeSuspendProcessingOfThread, ddeResumeProcessingOfThread, ddeFetchLatestDataAndNotifyWhenDone);
+  TDataDispatcherEvent=(ddeStartProcessingData, ddeStopProcessingData, ddeSuspendProcessingOfThread, ddeResumeProcessingOfThread, ddeFlush, ddeStartFileProcessing);
   TDataDispatcherEventData=record
     event: TDataDispatcherEvent;
     case TDataDispatcherEvent of
       ddeResumeProcessingOfThread,ddeResumeProcessingOfThread: (threadhandle: thandle);
       //ddeSuspendProcessingOfThread: (threadhandle: thandle);
-      ddeFetchLatestDataAndNotifyWhenDone: (frm: TfrmUltimap2);
+      ddeFlush,ddeStartFileProcessing: (done: TEvent);
   end;
   PDataDispatcherEventData=^TDataDispatcherEventData;
 
@@ -221,6 +221,7 @@ type
 
     timesseen: integer;
     lostdata: integer;
+    filename: pchar;
     filehandle: thandle;
     overlapped: OVERLAPPED;
 
@@ -251,7 +252,6 @@ type
     hasEvent: TEvent; //in case the dispatcher has received ddeStopProcessingData mode and is now idling
 
     paused: boolean;
-    notifyWhenDone: TfrmUltimap2;
 
     trace: PIPT_TRACE_DATA;
     tracesize: dword;
@@ -266,17 +266,23 @@ type
 
     procedure showError;
     function processData: boolean;
-    procedure notifyultimap2frm;
+    procedure StartFileProcessingInternal;
     procedure addEvent(e: TDataDispatcherEventData);
 
   protected
     procedure TerminatedSet; override;
   public
+    keepTraceFiles: boolean;
+    parseAsText: boolean;
+    textfolder: string;
     procedure resumeProcessing;
     procedure pauseProcessing;
     procedure suspendThreadProcessing(threadHandle: THandle);
     procedure resumeThreadProcessing(threadhandle: THandle);
-    procedure fetchLatestDataAndNotifyWhenDone(frm: TfrmUltimap2);
+    procedure flushAndWait;
+    procedure flush;
+    procedure startFileProcessing;
+    function getTotalDataCollected: qword;
     procedure execute; override;
 
     constructor Create(CreateSuspended: Boolean; const StackSize: SizeUInt=DefaultStackSize);
@@ -406,6 +412,7 @@ type
     { private declarations }
     debugmode: boolean; //when set the kernelmode part is disabled, but processing of files sitll happens
 
+
     modulelist: tstringlist;
     ultimap2Initialized: dword;
 
@@ -430,6 +437,7 @@ type
     ticks: integer;
     FlushInterval: integer;
     maxfilesize: integer;
+    LastTotalDataCollected: qword;
 
     filterHotkey: array [-1..1] of TGenericHotkey; //-1,0,1 due to existing tags
 
@@ -462,7 +470,6 @@ type
 
     function IsMatchingAddress(address: ptruint; count: pinteger=nil): boolean;
 
-    procedure doneProcessing;
   published
     property Count: integer read getMatchCount;
   end;
@@ -477,7 +484,7 @@ implementation
 {$R *.lfm}
 
 uses symbolhandler, symbolhandlerstructs, frmSelectionlistunit, cpuidUnit, MemoryBrowserFormUnit,
-  AdvancedOptionsUnit, vmxfunctions, LuaHandler, frmHotkeyExUnit, mainunit2;
+  AdvancedOptionsUnit, vmxfunctions, LuaHandler, frmHotkeyExUnit, mainunit2, debughelper, globals;
 
 resourcestring
 rsRecording2 = 'Recording';
@@ -585,12 +592,6 @@ begin
   MessageDlg('IPTDataDispatcher error: '+error, mtError,[mbok],0);
 end;
 
-procedure TIPTDataDispatcher.notifyultimap2frm;
-begin
-  notifyWhenDone.doneProcessing;
-end;
-
-
 procedure TIPTDataDispatcher.resumeProcessing;
 var e: TDataDispatcherEventData;
 begin
@@ -621,12 +622,57 @@ begin
   addEvent(e);
 end;
 
-procedure TIPTDataDispatcher.fetchLatestDataAndNotifyWhenDone(frm: TfrmUltimap2);
-var e: TDataDispatcherEventData;
+procedure TIPTDataDispatcher.flushAndWait;
+var
+  e: TDataDispatcherEventData;
+  done: Tevent;
 begin
-  e.event:=ddeFetchLatestDataAndNotifyWhenDone;
-  e.frm:=notifyWhenDone;
+  e.event:=ddeFlush;
+
+  done:=tevent.Create(nil,false,false,'');
+  e.done:=done;
   addEvent(e);
+
+  if GetCurrentThreadId=MainThreadID then
+  begin
+    while done.WaitFor(25)=wrTimeout do
+      CheckSynchronize;
+  end
+  else
+    done.WaitFor(INFINITE);
+
+  done.Free;
+end;
+
+procedure TIPTDataDispatcher.flush;
+var
+  e: TDataDispatcherEventData;
+begin
+  e.event:=ddeFlush;
+  e.done:=nil;
+  addEvent(e);
+end;
+
+procedure TIPTDataDispatcher.startFileProcessing;
+var
+  e: TDataDispatcherEventData;
+  done: TEvent;
+begin
+  e.event:=ddeStartFileProcessing;
+
+  done:=tevent.Create(nil,false,false,'');
+  e.done:=done;
+  addEvent(e);
+
+  if GetCurrentThreadId=MainThreadID then
+  begin
+    while done.WaitFor(25)=wrTimeout do
+      CheckSynchronize;
+  end
+  else
+    done.WaitFor(INFINITE);
+
+  done.Free;
 end;
 
 procedure TIPTDataDispatcher.addEvent(e: TDataDispatcherEventData);
@@ -640,6 +686,57 @@ begin
   eventscs.Leave;
 
   hasEvent.SetEvent;
+end;
+
+function TIPTDataDispatcher.getTotalDataCollected: qword;
+var
+  mi: TMapIterator;
+  ti: PUltimap2ThreadInfo;
+begin
+  result:=0;
+  threadlistMREW.Beginread;
+  mi:=tmapiterator.Create(threadlist);
+  mi.First;
+  while not mi.eom do
+  begin
+    result:=result+ti^.totaldata;
+    mi.next;
+  end;
+
+  threadlistMREW.Endread;
+end;
+
+procedure TIPTDataDispatcher.StartFileProcessingInternal;
+var
+  mi: TMapIterator;
+  ti: PUltimap2ThreadInfo;
+  e: TUltimap2DataEvent;
+begin
+  threadlistMREW.beginread;
+
+  mi:=TMapIterator.create(threadlist);
+  mi.first;
+  while not mi.eom do
+  begin
+    mi.GetData(ti);
+
+    closehandle(ti^.filehandle);
+    RenameFile(ti^.filename, ti^.filename+'.processing');
+
+    ti^.filehandle:=CreateFile(pchar(ti^.filename),GENERIC_WRITE, FILE_SHARE_READ, nil,CREATE_ALWAYS, FILE_FLAG_OVERLAPPED,0);
+
+    ti^.worker.filemap:=TFileMapping.create(ti^.filename+'.processing');
+    ti^.worker.totalsize:=0;
+    ti^.worker.done:=false;
+
+    ti^.worker.processWindowsIPTData(ti^.worker.filemap.fileContent, ti^.worker.filemap.filesize, nil, nil);
+
+    mi.next;
+  end;
+  mi.free;
+
+  threadlistMREW.Endread;
+
 end;
 
 
@@ -666,12 +763,13 @@ var
   workersActive: plongint;
   h: PIPT_TRACE_HEADER;
 begin
+  //hevent is a pointer to the threadinfo
   ti:=PUltimap2ThreadInfo(overlapped^.hevent);
   h:=ti^.WriteCompleteDataPart1.h;
 
   if ti^.WriteCompleteDataPart1.lengthpart2>0 then
   begin
-    overlapped^.hEvent:=handle(@ti^.WriteCompleteDataPart1.workersActive);
+    overlapped^.hEvent:=handle(ti^.WriteCompleteDataPart1.workersActive);
     overlapped^.Offset:=$ffffffff;
     overlapped^.OffsetHigh:=$ffffffff;
 
@@ -743,23 +841,31 @@ begin
       threadlist.Add(h^.threadid, ti);
       threadlistMREW.Endwrite;
 
+      ti^.worker:=TUltimap2Worker.create(false, ti^.threadid, ownerform, Handle);
+
       if logtofolder then //create a file for this thread
       begin
-        ti^.filehandle:=CreateFile(pchar(outputfolder+rsthread+inttohex(ti^.threadid,1)+'.trace'),GENERIC_WRITE, FILE_SHARE_READ, nil,CREATE_ALWAYS, FILE_FLAG_OVERLAPPED,0);
+        ti^.filename:=strnew(pchar(outputfolder+rsthread+inttohex(ti^.threadid,1)+'.trace'));
+        ti^.filehandle:=CreateFile(ti^.filename,GENERIC_WRITE, FILE_SHARE_READ, nil,CREATE_ALWAYS, FILE_FLAG_OVERLAPPED,0);
 
         if (ti^.filehandle=0) or (ti^.filehandle=INVALID_HANDLE_VALUE) then
         begin
-          error:='Failure creating file '+outputfolder+rsthread+inttohex(ti^.threadid,1)+'.trace';
+          error:='Failure creating file '+ti^.filename;
           synchronize(@showerror);
           terminate;
           exit;
         end;
+
+        ti^.worker.fromFile:=logtofolder;
+        ti^.worker.Filename:=ti^.filename;
+        ti^.worker.KeepTraceFiles:=keeptracefiles;
+        ti^.worker.parseAsText:=parseAsText;
+        ti^.worker.textfolder:=textfolder;
+
+
       end
       else
         ti^.filehandle:=0;
-
-
-      ti^.worker:=TUltimap2Worker.create(false, ti^.threadid, ownerform, Handle);
     end;
 
     if ti^.paused=false then
@@ -804,7 +910,7 @@ begin
         if logtofolder then
         begin
           //pass this data to the file
-          ti^.overlapped.hEvent:=thandle(@ti^.WriteCompleteDataPart1);
+          ti^.overlapped.hEvent:=thandle(ti);
           ti^.overlapped.Offset:=$ffffffff;
           ti^.overlapped.OffsetHigh:=$ffffffff;
           ti^.WriteCompleteDataPart1.h:=h;
@@ -874,8 +980,8 @@ begin
 
 
 
-  while workersActive>0 do
-    SleepEx(10000,true);
+  while (workersActive>0) and (not terminated) do
+    SleepEx(2000,true);
 
   exit(true);
 end;
@@ -904,7 +1010,11 @@ begin
       if dde<>nil then
       begin
         case dde^.event of
-          ddeStartProcessingData: paused:=false;
+          ddeStartProcessingData:
+          begin
+            paused:=false;
+          end;
+
           ddeStopProcessingData:
           begin
             paused:=true;
@@ -914,15 +1024,22 @@ begin
 
           ddeSuspendProcessingOfThread: PauseThreadIptTracing(dde^.threadhandle, r);
           ddeResumeProcessingOfThread: ResumeThreadIptTracing(dde^.threadhandle, r);
-          ddeFetchLatestDataAndNotifyWhenDone:
+          ddeFlush:
           begin
             if processData=false then
             if processData=false then
               processData; //try 3 times at most
 
-            waspaused:=false;
-            notifyWhenDone:=dde^.frm;
-            synchronize(@notifyultimap2frm);
+            waspaused:=paused;
+            if dde^.done<>nil then
+              dde^.done.SetEvent;
+          end;
+
+          ddeStartFileProcessing:
+          begin
+            StartFileProcessingInternal;
+            if dde^.done<>nil then
+              dde^.done.SetEvent;
           end;
         end;
         freemem(dde);
@@ -977,6 +1094,8 @@ begin
       d^.worker.free;
       d^.worker:=nil;
     end;
+
+    strdispose(d^.filename);
 
     freemem(d);
     i.Next;
@@ -1536,15 +1655,12 @@ end;
 procedure TUltimap2Worker.processWindowsIPTDataImplementation(data: pointer; datasize: dword; oncompletion: PAPCFUNC; workersActive: plongint);
 var
   e: TUltimap2DataEvent;
-  t: qword;
 begin
   e.Address:=qword(data);
   e.Size:=datasize;
   e.Cpunr:=id;
   try
-    t:=GetTickCount64;
     processData(e);
-    OutputDebugString('processData took '+(gettickcount64-t).ToString+' ms');
   except
     on x: exception do
     begin
@@ -1552,10 +1668,9 @@ begin
     end;
   end;
 
-  if QueueUserAPC(oncompletion, ownerThreadHandle, qword(workersActive))=0 then
-  asm
-  nop
-  end;
+  if assigned(oncompletion) and (workersActive<>nil) then
+    QueueUserAPC(oncompletion, ownerThreadHandle, qword(workersActive));
+
 end;
 
 procedure TUltimap2Worker.processWindowsIPTDataWithRollOver(data1: pointer; datasize1: dword; data2: pointer; datasize2: dword; oncompletion: PAPCFUNC; workersActive: plongint);
@@ -2187,26 +2302,7 @@ begin
   setConfigGUIState(false);
 end;
 
-procedure TfrmUltimap2.doneProcessing;
-begin
-  if cbPauseTargetWhileProcessing.checked then
-  begin
-    advancedoptions.Pausebutton.down := false;
-    advancedoptions.Pausebutton.Click;
-  end;
 
-
-  btnShowResults.Enabled:=true;
-  btnRecordPause.enabled:=true;
-
-  if PostProcessingFilter<>foNone then
-  begin
-    Filter(PostProcessingFilter);
-    state:=rsRecording;
-  end
-  else
-    state:=rsStopped;
-end;
 
 procedure TfrmUltimap2.FlushResults(f: TFilterOption=foNone);
 var i:integer;
@@ -2234,7 +2330,9 @@ begin
 
     if cbWindowsBasedIPT.checked then
     begin
-      iptdatadispatcher.fetchLatestDataAndNotifyWhenDone(self);
+      iptdatadispatcher.flushAndWait;
+      iptdatadispatcher.startFileProcessing;
+      lvThreads.Columns[3].Visible:=true;   //processing column visible
     end
     else
     begin
@@ -2245,8 +2343,8 @@ begin
         workers[i].done:=false;
         workers[i].processFile.SetEvent;
       end;
-      tActivator.enabled:=true;
     end;
+    tActivator.enabled:=true;
 
     OutputDebugString('4');
 
@@ -2326,7 +2424,8 @@ begin
 end;
 
 procedure TfrmUltimap2.cleanup;
-var i: integer;
+var
+  i: integer;
 begin
   {$ifdef windows}
   if iptdatadispatcher<>nil then
@@ -2365,12 +2464,14 @@ begin
 
 
 
-
-
   enableConfigGUI;
+
+  if (debuggerthread=nil) or (useintelptfordebug=false) then
+    StopProcessIptTracing(processhandle);
 
   ultimap2_disable;
   ultimap2Initialized:=0;
+
   {$endif}
 end;
 
@@ -2538,6 +2639,14 @@ begin
         iptdatadispatcher.ownerform:=self;
         if iptdatadispatcher.outputfolder[length(iptdatadispatcher.outputfolder)]<>PathDelim then
           iptdatadispatcher.outputfolder:=iptdatadispatcher.outputfolder+PathDelim;
+
+
+        iptdatadispatcher.KeepTraceFiles:=cbDontDeleteTraceFiles.checked;
+
+        iptdatadispatcher.parseAsText:=cbParseToTextfile.Checked;
+        iptdatadispatcher.textFolder:=Utf8ToAnsi(deTextOut.Directory);
+        if (iptdatadispatcher.textFolder<>'') and (iptdatadispatcher.textFolder[length(iptdatadispatcher.textFolder)]<>PathDelim) then
+          iptdatadispatcher.textFolder:=iptdatadispatcher.textFolder+PathDelim;
 
         setlength(workers,0);
       end
@@ -2733,6 +2842,7 @@ begin
 end;
 
 procedure TfrmUltimap2.tProcessorTimer(Sender: TObject);
+var d: qword;
 begin
   //check the state
   {$ifdef windows}
@@ -2748,8 +2858,20 @@ begin
   if cbWhenFilesizeAbove.checked then
   begin
     //check if the filesize has reached the proper size
-    if ultimap2_getTraceSize>MaxFileSize then
-      FlushResults;
+    if cbWindowsBasedIPT.checked then
+    begin
+      d:=iptdatadispatcher.getTotalDataCollected;
+      if d>LastTotalDataCollected+MaxFileSize then
+      begin
+        flushresults;
+        LastTotalDataCollected:=d;
+      end;
+    end
+    else
+    begin
+      if ultimap2_getTraceSize>MaxFileSize then
+        FlushResults;
+    end;
   end;
  // FlushResults(foNone);
 
@@ -2769,7 +2891,13 @@ var
   tid: qword;
   i,j: integer;
   li: Tlistitem;
+
+  totalprocessed: qword;
+  totalsize: qword;
 begin
+  totalprocessed:=0;
+  totalsize:=0;
+
   tl:=tstringlist.create;
   getThreadList(tl);
 
@@ -2799,7 +2927,7 @@ begin
 
       for j:=i to results.count-1 do
       begin
-        ti:=PUltimap2ThreadInfo(results[i]);
+        ti:=PUltimap2ThreadInfo(results[j]);
         if tid=ti^.threadid then
         begin
           results.Move(j,i);
@@ -2812,6 +2940,7 @@ begin
     while lvthreads.items.count>results.count do
       lvthreads.items[lvthreads.items.count-1].Delete;
 
+    lvthreads.OnSelectItem:=nil;
     for i:=0 to results.count-1 do
     begin
       ti:=PUltimap2ThreadInfo(results[i]);
@@ -2832,13 +2961,28 @@ begin
         li.caption:=inttohex(ti^.threadid,4);
         li.subitems.add(''); //data received
         li.subitems.add(''); //buffers missed
+        li.subitems.add(''); //processing
         li.Data:=ti;
         li.Checked:=true;
       end;
 
       li.subitems[0]:=format('%.0n', [double(ti^.totaldata)]);
       li.subitems[1]:=format('%d/%d (%.2f %%)', [ti^.lostdata, ti^.timesseen, ti^.lostdata/ti^.timesseen*100]);
+
+      if state=rsProcessing then
+      begin
+        totalprocessed:=totalprocessed+ti^.worker.processed;
+        totalsize:=totalsize+ti^.worker.totalsize;
+
+        li.subitems[2]:=format('%.2f %%',[ti^.worker.processed/ti^.worker.totalsize*100]);
+      end
+      else
+        li.subitems[2]:='';
+
+      li.checked:=not ti^.paused;
     end;
+
+    lvthreads.OnItemChecked:=@lvThreadsItemChecked;
     //lvthreads.EndUpdate;
 
     results.free;
@@ -3744,26 +3888,45 @@ var
   done: boolean;
   i: integer;
   totalprocessed, totalsize: qword;
+  mi: TMapIterator;
+  ti: PUltimap2ThreadInfo;
 begin
-  OutputDebugString('Activator timer');
   done:=true;
   totalprocessed:=0;
   totalsize:=0;
-  for i:=0 to length(workers)-1 do
+  if cbWindowsBasedIPT.checked then
   begin
-    if not workers[i].done then
+    iptdatadispatcher.threadlistMREW.Beginread;
+    mi:=TMapIterator.Create(iptdatadispatcher.threadlist);
+    mi.first;
+    while not mi.eom do
     begin
-      done:=false;
-      OutputDebugString('worker '+inttostr(i)+' is not done yet');
+      mi.GetData(ti);
+      totalprocessed:=totalprocessed+ti^.worker.processed;
+      totalsize:=totalsize+ti^.worker.totalsize;
+      if not ti^.worker.done then
+        done:=false;
+
+      mi.next;
+    end;
+    iptdatadispatcher.threadlistMREW.endread;
+  end
+  else
+  begin
+    for i:=0 to length(workers)-1 do
+    begin
+      if not workers[i].done then
+        done:=false;
+
+      if workers[i].totalsize<>0 then
+      begin
+        totalprocessed:=totalprocessed+workers[i].processed;
+        totalsize:=totalsize+workers[i].totalsize;
+      end
+      else
+        totalsize:=totalsize*2;
     end;
 
-    if workers[i].totalsize<>0 then
-    begin
-      totalprocessed:=totalprocessed+workers[i].processed;
-      totalsize:=totalsize+workers[i].totalsize;
-    end
-    else
-      totalsize:=totalsize*2;
   end;
 
   if not done then
@@ -3776,7 +3939,27 @@ begin
     exit;
   end;
 
-  doneProcessing;
+  tActivator.enabled:=false;
+
+  lvThreads.Columns[3].Visible:=false;
+
+  if cbPauseTargetWhileProcessing.checked then
+  begin
+    advancedoptions.Pausebutton.down := false;
+    advancedoptions.Pausebutton.Click;
+  end;
+
+
+  btnShowResults.Enabled:=true;
+  btnRecordPause.enabled:=true;
+
+  if PostProcessingFilter<>foNone then
+  begin
+    Filter(PostProcessingFilter);
+    state:=rsRecording;
+  end
+  else
+    state:=rsStopped;
 end;
 
 //lua

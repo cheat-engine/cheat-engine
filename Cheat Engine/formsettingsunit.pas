@@ -94,6 +94,7 @@ type
     cbDBVMDebugKernelmodeBreaks: TCheckBox;
     cbSaveMemoryregionScanSettings: TCheckBox;
     cbSkipPDB: TCheckBox;
+    cbUseIntelPT: TCheckBox;
     combothreadpriority: TComboBox;
     defaultbuffer: TPopupMenu;
     Default1: TMenuItem;
@@ -367,7 +368,7 @@ uses
   aboutunit, MainUnit, MainUnit2, frmExcludeHideUnit, ModuleSafetyUnit,
   frmProcessWatcherUnit, CustomTypeHandler, processlist, commonTypeDefs,
   frmEditHistoryUnit, Globals, fontSaveLoadRegistry, CETranslator,
-  MemoryBrowserFormUnit, DBK32functions, feces, UnexpectedExceptionsHelper;
+  MemoryBrowserFormUnit, DBK32functions, feces, UnexpectedExceptionsHelper, cpuidUnit;
 
 
 type TLanguageEntry=class
@@ -617,6 +618,10 @@ begin
 
         reg.WriteBool('Skip PDB', cbSkipPDB.checked);
         skippdb:=cbSkipPDB.checked;
+
+        reg.WriteBool('Use Intel PT For Debug', cbUseIntelPT.Checked);
+        useintelptfordebug:=cbUseIntelPT.Checked;
+
 
         reg.WriteBool('Replace incomplete opcodes with NOPS',replacewithnops.checked);
         reg.WriteBool('Ask for replace with NOPS',askforreplacewithnops.checked);
@@ -1718,7 +1723,6 @@ var i: integer;
 
   KVAShadowInfo: dword;
   rl: DWORD;
-
 begin
   tvMenuSelection.Items[0].Data:=GeneralSettings;
   tvMenuSelection.Items[1].Data:=tsTools;
@@ -1855,6 +1859,11 @@ begin
       btnMakeKernelDebugPossible.visible:=true;
     end;
   end;
+
+
+
+  cbUseIntelPT.enabled:=systemSupportsIntelPT;
+
   {$endif}
 
   //check if it should be disabled

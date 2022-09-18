@@ -662,6 +662,11 @@ begin
 
           skippdb:=cbSkipPDB.checked;
 
+          if reg.valueExists('Use Intel PT For Debug') then
+            cbUseIntelPT.checked:=reg.readBool('Use Intel PT For Debug');
+
+
+
 
 
           if reg.ValueExists('Replace incomplete opcodes with NOPS') then

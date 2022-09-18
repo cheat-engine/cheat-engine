@@ -359,7 +359,7 @@ uses disassembler,CEDebugger,debughelper, symbolhandler, symbolhandlerstructs,
      frmProcessWatcherUnit, KernelDebugger, formsettingsunit, MemoryBrowserFormUnit,
      savedscanhandler, networkInterface, networkInterfaceApi, vartypestrings,
      processlist, Parsers, Globals, xinput, luahandler, LuaClass, LuaObject,
-     UnexpectedExceptionsHelper, LazFileUtils, autoassembler, Clipbrd, mainunit2;
+     UnexpectedExceptionsHelper, LazFileUtils, autoassembler, Clipbrd, mainunit2, cpuidUnit;
 
 
 resourcestring
@@ -3858,6 +3858,8 @@ begin
 
 end;
 
+var r: TCPUIDResult;
+
 initialization
   StackStartCache:=tmap.Create(itu4,sizeof(ptruint));
   StackStartCachePID:=0;
@@ -3900,6 +3902,13 @@ initialization
 
   {$IFDEF windows}
   GetSystemInfo(@systeminfo);
+
+  r:=CPUID(0);
+  systemSupportsIntelPT:=((r.ebx=1970169159) and (r.ecx=1818588270) and (r.edx=1231384169)) and //intel
+   ((CPUID(7,0).ebx shr 25) and 1=1) and //has IPT
+   ((CPUID($14,0).ebx and 1)=1); //can select process
+
+
   {$ENDIF}
 
   username:=GetUserNameFromPID(GetCurrentProcessId);

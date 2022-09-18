@@ -185,10 +185,12 @@ var
   forceCR3VirtualQueryEx: boolean;
 
   skippdb: boolean;
-
+  systemSupportsIntelPT: boolean=false;
+  useintelptfordebug: boolean;
 
 
 implementation
+
 
 end.
 
