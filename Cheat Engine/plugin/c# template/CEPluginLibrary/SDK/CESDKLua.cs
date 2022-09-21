@@ -106,9 +106,9 @@ namespace CESDK
 
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        private delegate int dlua_callk(IntPtr state, int nargs, int nresults, IntPtr context, IntPtr k);
+        private delegate int dlua_callk(IntPtr state, int nargs, int nresults, IntPtr context, IntPtr k);   
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        private delegate int dlua_pcallk(IntPtr state, int nargs, int nresults, IntPtr context, IntPtr k);
+        private delegate int dlua_pcallk(IntPtr state, int nargs, int nresults, int errfunc, IntPtr context, IntPtr k); 
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         private delegate int dluaL_loadstring(IntPtr state, [MarshalAs(UnmanagedType.LPStr)]string script);
