@@ -664,9 +664,20 @@ begin
 
           if reg.valueExists('Use Intel PT For Debug') then
             cbUseIntelPT.checked:=reg.readBool('Use Intel PT For Debug');
+          useintelptfordebug:=cbUseIntelPT.checked;
+
+          if reg.valueExists('Hide IPT Capability') then
+            cbHideIPTCapability.checked:=reg.readbool('Hide IPT Capability');
+          hideiptcapability:=cbHideIPTCapability.checked;
 
 
+          if reg.ValueExists('Log IPT buffers inside FindWhat results') then
+            cbRecordIPTForFindWhatRoutines.checked:=reg.ReadBool('Log IPT buffers inside FindWhat results');
+          inteliptlogfindwhatroutines:=cbRecordIPTForFindWhatRoutines.checked;
 
+          if reg.ValueExists('Max IPT Size') then
+             cbIPTTraceSize.ItemIndex:=reg.readinteger('Max IPT Size');
+          maxiptconfigsize:=cbIPTTraceSize.ItemIndex;
 
 
           if reg.ValueExists('Replace incomplete opcodes with NOPS') then

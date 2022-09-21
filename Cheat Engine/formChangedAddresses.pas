@@ -42,6 +42,11 @@ type
       stack: pbyte;
       savedsize: PtrUInt;
     end;
+
+    ipt: record
+      log: pointer;
+      size: integer;
+    end;
     count: integer;
 
     group: integer;
@@ -81,6 +86,7 @@ type
     editCodeAddress: TEdit;
     labelCodeAddress: TLabel;
     lblInfo: TLabel;
+    miShowIPTLog: TMenuItem;
     micbShowAsSigned: TMenuItem;
     miCodeAddressCopy: TMenuItem;
     miCopyValueToClipboard: TMenuItem;
@@ -133,6 +139,7 @@ type
     procedure miDissectClick(Sender: TObject);
     procedure miResetCountClick(Sender: TObject);
     procedure miScanForCommonalitiesClick(Sender: TObject);
+    procedure miShowIPTLogClick(Sender: TObject);
     procedure OKButtonClick(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormShow(Sender: TObject);
@@ -197,7 +204,7 @@ uses CEDebugger, MainUnit, frmRegistersunit, MemoryBrowserFormUnit, debughelper,
   debugeventhandler, debuggertypedefinitions, FoundCodeUnit, StructuresFrm2,
   ProcessHandlerUnit, Globals, Parsers, frmStackViewUnit, frmSelectionlistunit,
   frmChangedAddressesCommonalityScannerUnit, LastDisassembleData, lua, lauxlib,
-  lualib, luahandler, BreakpointTypeDef;
+  lualib, luahandler, BreakpointTypeDef, DebuggerInterfaceAPIWrapper, iptlogdisplay;
 
 resourcestring
   rsStop='Stop';
@@ -220,6 +227,9 @@ resourcestring
   rsEnterLuaFormula = 'Enter a Lua formula to use to filter. E.g RCX==0x2301'
     +'adc0.  Empty for no filter';
 
+  rsNeedsIPTFindWhat = 'The debugger did not collect any IPT data. This may be due to the Intel PT feature not being enabled in settings/malfunctioning, or that the option to also log the trace in "find what..." results was disabled. Do you wish to enable this for this debugging session? You will need to recollect this information again though.'#13#10'(This is for this session only. If you wish to always turn it on from the start, go to settings->debugger options, and enable "Use Intel-PT feature" and the suboption for recording elements in "find what ..." routines)';
+
+
 
 
 destructor TAddressEntry.destroy;
@@ -227,6 +237,8 @@ begin
   if stack.stack<>nil then
     freememandnil(stack.stack);
 
+  if ipt.log<>nil then
+    freememandnil(ipt.log);
 
   if fcontext<>nil then
     freememandnil(fcontext);
@@ -1128,6 +1140,38 @@ begin
   f.initlist;
 end;
 
+procedure TfrmChangedAddresses.miShowIPTLogClick(Sender: TObject);
+var
+  f: TfrmIPTLogDisplay;
+  ae: TAddressEntry;
+begin
+  if changedlist.Selected=nil then exit;
+
+  ae:=TAddressEntry(changedlist.Selected.Data);
+
+  if (ae.ipt.log=nil) then
+  begin
+    if debuggerthread<>nil then
+    begin
+      if (useintelptfordebug=false) or (inteliptlogfindwhatroutines=false) then
+      begin
+        if messagedlg(rsNeedsIPTFindWhat, mtConfirmation, [mbyes,mbno],0)=mryes then
+        begin
+          useintelptfordebug:=true;
+          inteliptlogfindwhatroutines:=true;
+          debuggerthread.initIntelPTTracing;
+        end;
+      end;
+    end;
+  end
+  else
+  begin
+    f:=TfrmIPTLogDisplay.create(application);
+    f.show;
+    f.loadlog('log'+faddress.ToHexString+GetTickCount64.ToHexString, ae.ipt.log, ae.ipt.size, faddress);
+  end;
+end;
+
 procedure TfrmChangedAddresses.miDeleteSelectedEntriesClick(Sender: TObject);
 var
   i: integer;
@@ -1437,6 +1481,9 @@ begin
 
   addresslistCS:=TCriticalSection.Create;
   addresslist:=TMap.Create(ituPtrSize,sizeof(pointer));
+
+  miShowIPTLog.Visible:=systemSupportsIntelPT and not hideiptcapability and (CurrentDebuggerInterface<>nil) and CurrentDebuggerInterface.canUseIPT;
+
 end;
 
 procedure TfrmChangedAddresses.stopdbvmwatch;

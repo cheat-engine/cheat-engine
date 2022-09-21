@@ -603,8 +603,9 @@
 -dCUSTOMFLOAT
 -dXDEBUG
 -dNESTEDSTRUCTURES
--dTHREADNAMESUPPORT"/>
-            <OtherDefines Count="13">
+-dTHREADNAMESUPPORT
+-dLINUXTCCTEST"/>
+            <OtherDefines Count="16">
               <Define0 Value="NOTMULTITHREADED"/>
               <Define1 Value="benchmarkps"/>
               <Define2 Value="cemain"/>
@@ -618,6 +619,9 @@
               <Define10 Value="memorymapped"/>
               <Define11 Value="privatebuild"/>
               <Define12 Value="DBVMFORAMDISWORKING"/>
+              <Define13 Value="NESTEDSTRUCTURES"/>
+              <Define14 Value="THREADNAMESUPPORT"/>
+              <Define15 Value="LINUXTCCTEST"/>
             </OtherDefines>
           </Other>
         </CompilerOptions>
@@ -668,7 +672,7 @@
         <PackageName Value="LCL"/>
       </Item8>
     </RequiredPackages>
-    <Units Count="417">
+    <Units Count="418">
       <Unit0>
         <Filename Value="cheatengine.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -2869,6 +2873,13 @@
         <Filename Value="iptnative.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit416>
+      <Unit417>
+        <Filename Value="iptlogdisplay.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="frmIPTLogDisplay"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+      </Unit417>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

@@ -16,6 +16,7 @@ type
   public
     constructor Create(TheOwner: TComponent); override;
     constructor CreateNew(AOwner: TComponent; Num: Integer=0); override;
+  published
   end;
 
 

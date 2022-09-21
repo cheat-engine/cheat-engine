@@ -787,6 +787,7 @@ object frmUltimap2: TfrmUltimap2
         RowSelect = True
         TabOrder = 0
         ViewStyle = vsReport
+        OnDblClick = lvThreadsDblClick
         OnItemChecked = lvThreadsItemChecked
       end
     end

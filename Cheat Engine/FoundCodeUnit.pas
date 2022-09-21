@@ -40,6 +40,11 @@ type
       stack: pbyte;
     end;
 
+    ipt: record
+      log: pointer;
+      size: integer;
+    end;
+
     dbvmcontextbasic:    PPageEventBasic;
 
 
@@ -162,6 +167,8 @@ type
 
 
     addRecord_Address: ptruint;
+    iptlog: pointer; //do not free this.  owned by the debugthreadhandler
+    iptlogsize: integer;
     breakpoint: pointer;
 
     seenAddressListCS: TCriticalSection; //should only be accessed by the debugger thread, but just in case...
@@ -256,6 +263,9 @@ destructor TCodeRecord.Destroy;
 begin
   if stack.stack<>nil then
     freememandnil(stack.stack);
+
+  if ipt.log<>nil then
+    freememandnil(ipt.log);
 
   if fcontext<>nil then
     freememandnil(fcontext);
@@ -567,6 +577,11 @@ begin
   coderecord.savestack;
   coderecord.hitcount:=1;
   coderecord.diffcount:=0;
+
+  getmem(coderecord.ipt.log, iptlogsize);
+  copymemory(coderecord.ipt.log, iptlog, iptlogsize);
+  coderecord.ipt.size:=iptlogsize;
+
 
   seenAddressListCS.Enter;
   try
@@ -1247,8 +1262,14 @@ begin
       CopyMemory(formfoundcodelistextra.stack.stack, coderecord.stack.stack, coderecord.stack.savedsize);
     end;
 
+    if coderecord.ipt.log<>nil then
+    begin
+      getmem(formfoundcodelistextra.ipt.log, coderecord.ipt.size);
+      formfoundcodelistextra.ipt.size:=coderecord.ipt.size;
+      copymemory(FormFoundCodeListExtra.ipt.log, coderecord.ipt.log, coderecord.ipt.size);
+    end;
+
     FormFoundCodeListExtra.Show;
-  //  FormFoundCodeListExtra.free;
   end;
 end;
 

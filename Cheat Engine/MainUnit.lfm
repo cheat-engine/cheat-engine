@@ -21,6 +21,7 @@ object MainForm: TMainForm
   OnShow = FormShow
   Position = poScreenCenter
   LCLVersion = '2.2.2.0'
+  Scaled = False
   object Splitter1: TSplitter
     Cursor = crVSplit
     Left = 0
@@ -1701,6 +1702,15 @@ object MainForm: TMainForm
       Caption = '<xxxx>'
       ParentColor = False
       Visible = False
+    end
+    object Label3: TLabel
+      Left = 296
+      Height = 15
+      Top = 32
+      Width = 34
+      Caption = 'Label3'
+      ParentColor = False
+      OnClick = Label3Click
     end
   end
   object UpdateTimer: TTimer

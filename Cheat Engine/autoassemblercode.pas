@@ -67,8 +67,10 @@ procedure AutoAssemblerCodePass2(var dataForPass2: TAutoAssemblerCodePass2Data; 
 
 implementation
 
-uses {$ifdef windows}windows,{$endif}{$ifdef darwin}macport,macportdefines,math,{$endif}ProcessHandlerUnit, symbolhandler, luahandler, lua, lauxlib, lualib, StrUtils,
-  Clipbrd, dialogs, lua_server, Assemblerunit, NewKernelHandler, DBK32functions, StringHashList, globals;
+uses {$ifdef windows}windows,{$endif}{$ifdef darwin}macport,macportdefines,math,{$endif}
+  ProcessHandlerUnit, symbolhandler, luahandler, lua, lauxlib, lualib, StrUtils,
+  Clipbrd, dialogs, lua_server, Assemblerunit, NewKernelHandler, DBK32functions,
+  StringHashList, globals, networkInterfaceApi;
 
 
 type
@@ -422,6 +424,7 @@ var
 
   oldprotection: dword;
   tccregions: TTCCRegionList;
+
 begin
   secondarylist:=TStringList.create;
   bytes:=tmemorystream.create;
@@ -447,7 +450,14 @@ begin
     else
     begin
       phandle:=processhandle;
+      if getConnection<>nil then
+        _tcc:=tcc_linux
+      else
+      {$ifdef LINUXTCCTEST}
+      _tcc:=tcc_linux;
+      {$else}
        _tcc:=tcc;
+      {$endif}
 
       psize:=processhandler.pointersize;
     end;
@@ -463,10 +473,12 @@ begin
 
 
 
-    if _tcc.compileScript(dataForPass2.cdata.cscript.Text, dataForPass2.cdata.address, bytes, tempsymbollist, nil, dataForPass2.cdata.sourceCodeInfo, errorlog, secondarylist, dataForPass2.cdata.targetself ) then
+    if _tcc.compileScript(dataForPass2.cdata.cscript.Text, dataForPass2.cdata.address, bytes, tempsymbollist, tccregions, dataForPass2.cdata.sourceCodeInfo, errorlog, secondarylist, dataForPass2.cdata.targetself ) then
     begin
       if bytes.Size>dataForPass2.cdata.bytesize then
       begin
+        tccregions.Clear;
+
         //this will be a slight memoryleak but whatever
         //allocate 4x the amount of memory needed
 {$ifdef windows}
@@ -1243,10 +1255,19 @@ begin
       if targetself then
         _tcc:=tccself
       else
-        _tcc:=tcc;
-
+      begin
+        {$ifdef LINUXTCCTEST}
+        _tcc:=tcc_linux;
+        {$else}
+        if getConnection<>nil then
+          _tcc:=tcc_linux
+        else
+          _tcc:=tcc;
+        {$endif}
+      end;
 
       //clipboard.AsText:=dataForPass2.cdata.cscript.text;
+
 
       ms:=TMemoryStream.Create;
       errorlog:=tstringlist.create;

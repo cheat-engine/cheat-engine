@@ -266,6 +266,7 @@ type
 
     procedure showError;
     function processData: boolean;
+    procedure decreaseIPTSize;
     procedure StartFileProcessingInternal;
     procedure addEvent(e: TDataDispatcherEventData);
 
@@ -391,6 +392,7 @@ type
     procedure FormShow(Sender: TObject);
     procedure ListView1Data(Sender: TObject; Item: TListItem);
     procedure ListView1DblClick(Sender: TObject);
+    procedure lvThreadsDblClick(Sender: TObject);
     procedure lvThreadsItemChecked(Sender: TObject; Item: TListItem);
     procedure MenuItem1Click(Sender: TObject);
     procedure MenuItem4Click(Sender: TObject);
@@ -469,7 +471,7 @@ type
     allNewAreInvalid: boolean;
 
     function IsMatchingAddress(address: ptruint; count: pinteger=nil): boolean;
-
+    procedure lowerIPTSize;
   published
     property Count: integer read getMatchCount;
   end;
@@ -524,7 +526,7 @@ rsYouMustSelectABuffersize = 'You must select a buffersize';
 
 
 
-function iptReadMemory(buffer: PByteArray; size: SIZE_T; asid: PPT_ASID; ip: uint64; context: pointer): integer; cdecl;
+function iptReadMemory(buffer: PByte; size: SIZE_T; asid: PPT_ASID; ip: uint64; context: pointer): integer; cdecl;
 var worker: TUltimap2Worker;
   n: TAvgLvlTreeNode;
   e: TRegionInfo;
@@ -575,7 +577,7 @@ begin
     if size>0 then
     begin
       ip:=ip+s;
-      s:=s+iptReadMemory(@buffer^[s], size, asid, ip, context);
+      s:=s+iptReadMemory(@buffer[s], size, asid, ip, context);
     end
     else
       result:=s;
@@ -590,6 +592,19 @@ end;
 procedure TIPTDataDispatcher.showError;
 begin
   MessageDlg('IPTDataDispatcher error: '+error, mtError,[mbok],0);
+end;
+
+procedure TIPTDataDispatcher.decreaseIPTSize;
+begin
+  try
+    ownerform.lowerIPTSize;
+  except
+    on e:exception do
+    begin
+      terminate;
+      OutputDebugString('Failure lowering the ipt size: '+e.message);
+    end;
+  end;
 end;
 
 procedure TIPTDataDispatcher.resumeProcessing;
@@ -803,6 +818,7 @@ begin
   if GetProcessIptTraceSize(processhandle, s)=false then
   begin
     outputdebugstring('GetProcessIptTraceSize failed');
+    synchronize(@decreaseIPTSize);
     exit;
   end;
 
@@ -1753,6 +1769,8 @@ begin
           end;
         end;
 
+        freemem(command);
+
       until terminated or (command=nil);
 
     end
@@ -2426,6 +2444,7 @@ end;
 procedure TfrmUltimap2.cleanup;
 var
   i: integer;
+  options: IPT_OPTIONS;
 begin
   {$ifdef windows}
   if iptdatadispatcher<>nil then
@@ -2433,6 +2452,8 @@ begin
     iptdatadispatcher.Terminate;
     iptdatadispatcher.WaitFor;
     freeandnil(iptdatadispatcher);
+
+    StopProcessIptTracing(processhandle);
   end;
 
   FreeValidList;
@@ -2461,18 +2482,28 @@ begin
     freeandnil(regiontree);
   end;
 
-
-
-
   enableConfigGUI;
 
-  if (debuggerthread=nil) or (useintelptfordebug=false) then
-    StopProcessIptTracing(processhandle);
+
+
+  if (debuggerthread<>nil) and (useintelptfordebug=false) then
+    debuggerthread.initIntelPTTracing;
 
   ultimap2_disable;
   ultimap2Initialized:=0;
 
   {$endif}
+end;
+
+procedure TfrmUltimap2.lowerIPTSize;
+begin
+  //called when the size seems to be too big
+  if cbWinIPTBufferSize.itemindex>0 then
+    cbWinIPTBufferSize.itemindex:=cbWinIPTBufferSize.itemindex-1
+  else
+    raise exception.create('Minimum size reached');
+
+  startWindowsBasedIPT;
 end;
 
 procedure TfrmUltimap2.startWindowsBasedIPT;
@@ -3404,6 +3435,11 @@ begin
     MemoryBrowser.disassemblerview.SelectedAddress:=entry^.address;
     MemoryBrowser.show;
   end;
+end;
+
+procedure TfrmUltimap2.lvThreadsDblClick(Sender: TObject);
+begin
+
 end;
 
 procedure TfrmUltimap2.lvThreadsItemChecked(Sender: TObject; Item: TListItem);

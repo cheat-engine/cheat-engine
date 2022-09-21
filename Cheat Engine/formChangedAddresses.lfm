@@ -194,6 +194,11 @@ object frmChangedAddresses: TfrmChangedAddresses
       ShortCut = 16466
       OnClick = Showregisterstates1Click
     end
+    object miShowIPTLog: TMenuItem
+      Caption = 'Show IPT log'
+      ShortCut = 16460
+      OnClick = miShowIPTLogClick
+    end
     object miChangeValue: TMenuItem
       Caption = 'Change value'
       ImageIndex = 0

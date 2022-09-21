@@ -16,6 +16,7 @@ object MemoryBrowser: TMemoryBrowser
   OnShow = FormShow
   Position = poScreenCenter
   LCLVersion = '2.2.2.0'
+  Scaled = False
   object Splitter1: TSplitter
     Cursor = crVSplit
     Left = 0
@@ -1506,6 +1507,12 @@ object MemoryBrowser: TMemoryBrowser
     end
     object View1: TMenuItem
       Caption = 'View'
+      OnClick = View1Click
+      object miIPTLog: TMenuItem
+        Caption = 'IPT Log'
+        ImageIndex = 64
+        OnClick = miIPTLogClick
+      end
       object Stacktrace1: TMenuItem
         Caption = 'Stacktrace'
         ImageIndex = 64
@@ -1723,10 +1730,6 @@ object MemoryBrowser: TMemoryBrowser
       Caption = 'Debug'
       SubMenuImages = mvImageList
       OnClick = Debug1Click
-      object MenuItem8: TMenuItem
-        Caption = 'test'
-        OnClick = MenuItem8Click
-      end
       object miDebugRun: TMenuItem
         Caption = 'Run'
         Enabled = False

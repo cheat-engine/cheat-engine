@@ -191,12 +191,17 @@ var
   pt_insn_free_decoder:procedure(decoder: ppt_insn_decoder); cdecl;
   pt_insn_set_image:function(decoder: ppt_insn_decoder; image: PPT_Image): integer; cdecl;
   pt_insn_sync_forward:function(decoder: ppt_insn_decoder): integer; cdecl;
+  pt_insn_sync_backward:function(decoder: ppt_insn_decoder): integer; cdecl;
+  pt_insn_sync_set:function(decoder: ppt_insn_decoder; offset: qword): integer; cdecl;
   pt_insn_next: function(decoder: ppt_insn_decoder; insn: Ppt_insn; size: size_t): integer; cdecl;
   pt_insn_get_offset:function(decoder: Ppt_insn_decoder; offset: PQWord): integer; cdecl;
+  pt_insn_get_sync_offset:function(decoder: Ppt_insn_decoder; offset: PQWord): integer; cdecl;
 
   pt_qry_alloc_decoder:function(config: ppt_config): ppt_query_decoder; cdecl;
   pt_qry_free_decoder:procedure(decoder: ppt_query_decoder); cdecl;
   pt_qry_sync_forward: function(decoder: ppt_query_decoder; ip: pqword): integer; cdecl;
+
+
   pt_qry_get_offset: function(decoder: ppt_query_decoder; offset: pqword): integer; cdecl;
   pt_qry_indirect_branch: function(decoder: ppt_query_decoder; ip: pqword): integer; cdecl;
   pt_qry_event:function(decoder: ppt_query_decoder; event: Ppt_event; size: size_t): integer; cdecl;
@@ -248,8 +253,11 @@ begin
       pt_insn_set_image:=GetProcAddress(hLibIPT, 'pt_insn_set_image');
 
       pt_insn_sync_forward:=GetProcAddress(hLibIPT, 'pt_insn_sync_forward');
+      pt_insn_sync_backward:=GetProcAddress(hLibIPT, 'pt_insn_sync_backward');
+      pt_insn_sync_set:=GetProcAddress(hLibIPT, 'pt_insn_sync_set');
       pt_insn_next:=GetProcAddress(hLibIPT, 'pt_insn_next');
       pt_insn_get_offset:=GetProcAddress(hLibIPT, 'pt_insn_get_offset');
+      pt_insn_get_sync_offset:=GetProcAddress(hLibIPT, 'pt_insn_get_sync_offset');
 
       pt_qry_alloc_decoder:=GetProcAddress(hLibIPT, 'pt_qry_alloc_decoder');
       pt_qry_free_decoder:=GetProcAddress(hLibIPT, 'pt_qry_free_decoder');

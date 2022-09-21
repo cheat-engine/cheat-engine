@@ -21,7 +21,8 @@ uses
   disassemblerComments, multilineinputqueryunit, frmMemoryViewExUnit,
   LastDisassembleData, ProcessHandlerUnit, commonTypeDefs, binutils,
   fontSaveLoadRegistry, LazFileUtils, ceregistry, frmCR3SwitcherUnit,
-  betterControls, ScrollBoxEx, contexthandler{$ifdef darwin}, macport, macportdefines{$endif} ;
+  betterControls, ScrollBoxEx, contexthandler,iptlogdisplay
+  {$ifdef darwin}, macport, macportdefines{$endif} ;
 
 
 type
@@ -47,7 +48,7 @@ type
     ESPlabel: TLabel;
     FSlabel: TLabel;
     GSlabel: TLabel;
-    MenuItem8: TMenuItem;
+    miIPTLog: TMenuItem;
     miShowRelativeDisassembler: TMenuItem;
     miArchX86: TMenuItem;
     miArchArm: TMenuItem;
@@ -357,6 +358,7 @@ type
     procedure miCR3SwitcherClick(Sender: TObject);
     procedure miDBVMFindoutwhataddressesthisinstructionaccessesClick(Sender: TObject);
     procedure MenuItem4Click(Sender: TObject);
+    procedure miIPTLogClick(Sender: TObject);
     procedure miOpenInDissectDataClick(Sender: TObject);
     procedure miShowRelativeDisassemblerClick(Sender: TObject);
     procedure miShowSectionAddressesClick(Sender: TObject);
@@ -524,6 +526,7 @@ type
     procedure DisplayTypeClick(Sender: TObject);
     procedure Showjumplines1Click(Sender: TObject);
     procedure Onlyshowjumplineswithinrange1Click(Sender: TObject);
+    procedure View1Click(Sender: TObject);
     procedure Watchmemoryallocations1Click(Sender: TObject);
     procedure Maxstacktracesize1Click(Sender: TObject);
     procedure All1Click(Sender: TObject);
@@ -672,6 +675,8 @@ type
 
     ischild: boolean; //determines if it's the main memorybrowser or a child
     backlist: TStack;
+
+    frmiptlog: TfrmIPTLogDisplay;
 
 
 
@@ -1282,11 +1287,7 @@ end;
 
 procedure TMemoryBrowser.MenuItem8Click(Sender: TObject);
 begin
-  processhandler.is64Bit:=true;
-  processhandler.SystemArchitecture:=archX86;
-  UpdateDebugContext(0,0);
 
-  setShowDebugPanels(true);
 end;
 
 
@@ -1348,6 +1349,51 @@ procedure TMemoryBrowser.MenuItem4Click(Sender: TObject);
 begin
   if tbDebug.Visible=true then HideDebugToolbar;
   tbDebug.Tag:=-1;
+end;
+
+procedure TMemoryBrowser.miIPTLogClick(Sender: TObject);
+var log: pointer;
+    logsize: integer;
+begin
+  log:=nil;
+  if (debuggerthread<>nil) and (debuggerthread.CurrentThread<>nil) then
+  begin
+    //broken state
+    if debuggerthread.CurrentThread.getLastIPTLog(log,logsize)=false then
+    begin
+      if useintelptfordebug=false then
+      begin
+        if messagedlg('This will require the IPT feature to be enabled in the debugger. Activate it now? (You will need a new break to record a log)', mtConfirmation, [mbyes,mbno],0)=mryes then
+        begin
+          useintelptfordebug:=true;
+          debuggerthread.initIntelPTTracing;
+        end;
+      end
+      else
+      begin
+        if debuggerthread.initIntelPTTracing then
+          messagedlg('Error retrieving the IPT log. Try again later', mtError, [mbok],0)
+        else
+          messagedlg('Error activating the IPT log', mtError, [mbok],0)
+      end;
+      exit;
+    end;
+
+    if frmiptlog=nil then
+    begin
+      frmiptlog:=TfrmIPTLogDisplay.Create(MemoryBrowser);
+      frmiptlog.OnClose:=nil;
+    end;
+
+    frmiptlog.show;
+    if log<>nil then
+    begin
+      frmiptlog.loadlog(debuggerthread.CurrentThread.ThreadId.ToHexString+'-'+GetTickCount.ToHexString,log,logsize, contexthandler.InstructionPointerRegister^.getValue(context));
+      freemem(log);
+    end;
+
+  end;
+
 end;
 
 procedure TMemoryBrowser.miOpenInDissectDataClick(Sender: TObject);
@@ -5089,6 +5135,12 @@ begin
 
 end;
 
+procedure TMemoryBrowser.View1Click(Sender: TObject);
+begin
+  miIPTLog.visible:=systemSupportsIntelPT and not hideiptcapability;
+  miIPTLog.enabled:=debuggerthread<>nil;
+end;
+
 procedure TMemoryBrowser.Watchmemoryallocations1Click(Sender: TObject);
 begin
   if processid=0 then
@@ -5690,6 +5742,9 @@ var temp: string='';
     gprlist, flaglist, speciallist: PContextElementRegisterList;
 
     cer: PContextElement_register;
+
+    iptlog: pointer;
+    iptlogsize: integer;
 begin
   if _debuggerthread<>nil then debuggerthread.execlocation:=41301;
 
@@ -5995,6 +6050,12 @@ begin
   if _debuggerthread<>nil then _debuggerthread.execlocation:=41313;
 
 
+  if (debuggerthread<>nil) and debuggerthread.usingIPT and (frmiptlog<>nil) and (frmiptlog.visible) and (debuggerthread.CurrentThread<>nil) then
+  begin
+    debuggerthread.CurrentThread.getLastIPTLog(iptlog,iptlogsize);
+    frmiptlog.loadlog('',iptlog, iptlogsize);
+    freemem(iptlog);
+  end;
 
 
   registerview.OnResize(registerview);

@@ -3469,6 +3469,30 @@ begin
                       end;
                     end;
 
+                    if mustbefar=false then
+                    begin
+                      if dataForAACodePass2.cdata.cscript<>nil then
+                      begin
+                        for k:=0 to length(dataForAACodePass2.cdata.symbols)-1 do
+                        begin
+                          if lowercase(labels[j].labelname)=lowercase(dataForAACodePass2.cdata.symbols[k].name) then
+                          begin
+                            //the c code could be outside reach from the current point
+                            testptr:=getAddressFromScript('ceinternal_autofree_ccode');
+                            if currentaddress>testptr then
+                              diff:=currentaddress-testptr
+                            else
+                              diff:=testptr-currentaddress;
+
+                            if diff>=$80000000 then
+                              mustbefar:=true;
+
+                            break;
+                          end;
+                        end;
+                      end;
+                    end;
+
                     if mustbefar then
                       currentline:=replacetoken(currentline,labels[j].labelname,IntToHex(currentaddress+$2000FFFFF,8))
                     else

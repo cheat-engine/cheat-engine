@@ -52,6 +52,7 @@ type
     procedure AddToNoBreakList(threadid: integer); virtual;
     procedure RemoveFromNoBreakList(threadid: integer); virtual;
 
+    function canUseIPT: boolean; virtual;
     function canReportExactDebugRegisterTrigger: boolean; virtual;
     function needsToAttach: boolean; virtual;
     function controlsTheThreadList: boolean; virtual;
@@ -64,7 +65,6 @@ type
     property maxSharedBreakpointCount: integer read fmaxSharedBreakpointCount;
 
     property debuggerAttachStatus: string read getCurrentDebugggerAttachStatus write setCurrentDebuggerAttachStatus; //threadsafe getter/setter for a string
-
 end;
 
 implementation
@@ -171,6 +171,11 @@ begin
       setlength(nobreaklist, length(nobreaklist)-1);
     end;
   end;
+end;
+
+function TDebuggerInterface.canUseIPT: boolean;
+begin
+  result:=false;
 end;
 
 function TDebuggerInterface.canReportExactDebugRegisterTrigger: boolean;

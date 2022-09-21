@@ -161,7 +161,7 @@ var
 
   luagc_MinSize: dword;
 
-  SystemSupportsWritableExecutableMemory: boolean={$ifdef windows}true{$else}false{$endif};
+  SystemSupportsWritableExecutableMemory: boolean={$ifdef windows}{true}false{$else}false{$endif};
   SkipVirtualProtectEx: boolean;
   alwaysforceload: boolean;
 
@@ -187,7 +187,9 @@ var
   skippdb: boolean;
   systemSupportsIntelPT: boolean=false;
   useintelptfordebug: boolean;
-
+  inteliptlogfindwhatroutines: boolean;
+  maxiptconfigsize: integer;
+  hideiptcapability: boolean; //in case it's unstable and you really really do not wish to accidentally use it
 
 implementation
 

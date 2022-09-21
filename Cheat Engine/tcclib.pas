@@ -215,7 +215,7 @@ type
 implementation
 
 uses forms,dialogs, StrUtils, Contnrs {$ifndef standalonetest}, symbolhandler, ProcessHandlerUnit,
-  newkernelhandler, CEFuncProc, sourcecodehandler, MainUnit{$endif};
+  newkernelhandler, CEFuncProc, sourcecodehandler, MainUnit, globals{$endif};
 const
   TCC_RELOCATE_AUTO=pointer(1); //relocate
   TCC_OUTPUT_MEMORY  = 1; { output will be run in memory (default) }
@@ -1437,7 +1437,13 @@ begin
 
   if textlog<>nil then set_error_func(s,textlog,@ErrorLogger);
 
-  params:='-nostdlib Wl,-section-alignment=4';
+  if SystemSupportsWritableExecutableMemory then
+    params:='-nostdlib'
+  else
+    params:='-nostdlib -Wl,-section-alignment='{$ifdef windows}+'1000'{$else}+inttohex(getPageSize,1){$endif};
+
+
+
   if nodebug=false then
     params:='-g '+params;
 

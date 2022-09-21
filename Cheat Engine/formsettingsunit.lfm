@@ -1,7 +1,7 @@
 object formSettings: TformSettings
-  Left = 498
+  Left = 693
   Height = 627
-  Top = 134
+  Top = 183
   Width = 865
   AutoSize = True
   BorderIcons = [biSystemMenu]
@@ -15,6 +15,7 @@ object formSettings: TformSettings
   OnShow = FormShow
   Position = poMainFormCenter
   LCLVersion = '2.2.2.0'
+  Scaled = False
   object pnlConfig: TPanel
     Left = 0
     Height = 590
@@ -1430,7 +1431,7 @@ object formSettings: TformSettings
             AnchorSideRight.Side = asrBottom
             Left = 8
             Height = 121
-            Top = 365
+            Top = 432
             Width = 528
             BorderSpacing.Top = 2
             Caption = 'Debugger interface config'
@@ -1635,7 +1636,7 @@ object formSettings: TformSettings
             AnchorSideTop.Side = asrBottom
             Left = 8
             Height = 115
-            Top = 248
+            Top = 315
             Width = 400
             AutoSize = True
             Caption = 'Debugger method'
@@ -1770,7 +1771,7 @@ object formSettings: TformSettings
             AnchorSideTop.Side = asrBottom
             Left = 8
             Height = 15
-            Top = 210
+            Top = 277
             Width = 252
             BorderSpacing.Top = 4
             Caption = 'Size of stack to record on "Find what... routines"'
@@ -1782,7 +1783,7 @@ object formSettings: TformSettings
             AnchorSideTop.Side = asrBottom
             Left = 8
             Height = 23
-            Top = 225
+            Top = 292
             Width = 45
             TabOrder = 4
             Text = '4096'
@@ -1794,7 +1795,7 @@ object formSettings: TformSettings
             AnchorSideTop.Side = asrCenter
             Left = 55
             Height = 15
-            Top = 229
+            Top = 296
             Width = 28
             BorderSpacing.Left = 2
             Caption = 'Bytes'
@@ -1806,7 +1807,7 @@ object formSettings: TformSettings
             AnchorSideTop.Side = asrBottom
             Left = 8
             Height = 19
-            Top = 187
+            Top = 254
             Width = 310
             Caption = 'Override existing breakpoints when setting breakpoints'
             Checked = True
@@ -1863,12 +1864,12 @@ object formSettings: TformSettings
           end
           object cbWaitAfterGuiUpdate: TCheckBox
             AnchorSideLeft.Control = replacewithnops
-            AnchorSideTop.Control = cbUseIntelPT
+            AnchorSideTop.Control = cbIPTTraceSize
             AnchorSideTop.Side = asrBottom
             Left = 8
             Height = 19
             Hint = 'Sometimes when using one of the "find out what..." functions they get hit so often that the gui has no time to update, resulting in anoying behaviour like certain windows not closing or unresponsive buttons.'#13#10'With this option enabled the debugger will give the gui some time to handle the messages before it sends it a new update.'#13#10'Downside: The game may become slightly slower when using these functions. (Of course, if it has been hammering the gui, it would already have been frozen)'
-            Top = 168
+            Top = 235
             Width = 136
             Caption = 'Wait after gui updates'
             ParentShowHint = False
@@ -1883,7 +1884,7 @@ object formSettings: TformSettings
             AnchorSideRight.Side = asrBottom
             Left = 8
             Height = 96
-            Top = 488
+            Top = 555
             Width = 357
             AutoSize = True
             BorderSpacing.Top = 2
@@ -1952,7 +1953,86 @@ object formSettings: TformSettings
             Top = 149
             Width = 285
             Caption = 'Use intel-PT feature when the debugger is enabled'
+            OnChange = cbUseIntelPTChange
             TabOrder = 10
+          end
+          object cbIPTTraceSize: TComboBox
+            AnchorSideLeft.Control = askforreplacewithnops
+            AnchorSideTop.Control = cbRecordIPTForFindWhatRoutines
+            AnchorSideTop.Side = asrBottom
+            Left = 152
+            Height = 23
+            Top = 210
+            Width = 72
+            Anchors = [akTop]
+            BorderSpacing.Top = 2
+            BorderSpacing.Bottom = 2
+            ItemHeight = 15
+            ItemIndex = 1
+            Items.Strings = (
+              '4KB'
+              '8KB'
+              '16KB'
+              '32KB'
+              '64KB'
+              '128KB'
+              '256KB'
+              '512KB'
+              '1MB'
+              '2MB'
+              '4MB'
+              '8MB'
+              '16MB'
+              '32MB'
+              '64MB'
+              '128MB'
+            )
+            Style = csDropDownList
+            TabOrder = 11
+            Text = '8KB'
+            Visible = False
+          end
+          object lblMaxIPTSize: TLabel
+            AnchorSideLeft.Control = askforreplacewithnops
+            AnchorSideTop.Control = cbIPTTraceSize
+            AnchorSideTop.Side = asrCenter
+            Left = 24
+            Height = 15
+            Top = 214
+            Width = 120
+            Caption = 'Maximum ipt tracesize'
+            ParentColor = False
+            Visible = False
+          end
+          object cbRecordIPTForFindWhatRoutines: TCheckBox
+            AnchorSideLeft.Control = askforreplacewithnops
+            AnchorSideTop.Control = cbHideIPTCapability
+            AnchorSideTop.Side = asrBottom
+            Left = 24
+            Height = 19
+            Hint = 'When selected every single element in "find what ..." routines will get a copy of the trace for that threat at that time. (Can eat a lot of memory if this is high)'#13#10'When deselected you can only get the trace information when stopped on a breakpoint. '
+            Top = 189
+            Width = 290
+            BorderSpacing.Top = 2
+            Caption = 'Record trace in elements of "Find what ... " routines'
+            Checked = True
+            OnChange = cbRecordIPTForFindWhatRoutinesChange
+            ParentShowHint = False
+            ShowHint = True
+            State = cbChecked
+            TabOrder = 12
+            Visible = False
+          end
+          object cbHideIPTCapability: TCheckBox
+            Left = 24
+            Height = 19
+            Hint = 'In case you really do not wish to be reminded of this'
+            Top = 168
+            Width = 160
+            Caption = 'Hide IPT features from GUI'
+            ParentShowHint = False
+            ShowHint = True
+            TabOrder = 13
           end
         end
       end

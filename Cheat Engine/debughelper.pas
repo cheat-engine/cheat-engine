@@ -15,7 +15,8 @@ uses
   foundcodeunit, debugeventhandler, CEFuncProc, newkernelhandler, comctrls,
   debuggertypedefinitions, formChangedAddresses, frmTracerUnit, VEHDebugger,
   DebuggerInterfaceAPIWrapper, DebuggerInterface,symbolhandler,
-  fgl, disassembler, NetworkDebuggerInterface, Clipbrd, commonTypeDefs ,BreakpointTypeDef{$ifdef darwin},  macportdefines{$endif};
+  fgl, disassembler, NetworkDebuggerInterface, Clipbrd, commonTypeDefs ,
+  BreakpointTypeDef,iptnative{$ifdef darwin},  macportdefines{$endif};
 
 {$warn 4056 off}
 
@@ -49,6 +50,9 @@ type
 
 
     fcurrentThread: TDebugThreadHandler;
+    hasfetchediptlog: boolean;
+
+
     globalDebug: boolean; //kernelmode debugger only
 
     fRunning: boolean;
@@ -61,6 +65,13 @@ type
     pid: THandle;
 
     GUIObjectToFree: TObject;
+
+    fetchediptlog: boolean;
+    fulliptlog: PIPT_TRACE_DATA;
+    fulliptlogsize: dword;
+
+
+    usesipt: boolean;
     procedure sync_FreeGUIObject;
 
 
@@ -153,11 +164,17 @@ type
     procedure startBranchMapper(tidlist: tlist=nil);
     procedure stopBranchMapper;
 
+    function initIntelPTTracing: boolean;
+    procedure stopIntelPTTracing;
+
+    function getLastIPT(var log: pointer; var size: integer): boolean;
+
     property CurrentThread: TDebugThreadHandler read getCurrentThread write setCurrentThread;
     property NeedsToSetEntryPointBreakpoint: boolean read fNeedsToSetEntryPointBreakpoint;
     property running: boolean read fRunning;
 
     property usesGlobalDebug: boolean read globalDebug;
+    property usingIPT: boolean read usesipt;
 
     procedure Terminate;
     procedure Execute; override;
@@ -334,6 +351,9 @@ begin
 
       debugging := True;
 
+      if systemSupportsIntelPT and useintelptfordebug then
+        initIntelPTTracing;
+
 
       while (not terminated) and debugging do
       begin
@@ -341,7 +361,9 @@ begin
         execlocation:=1;
 
         if CurrentDebuggerInterface.needsToAttach=false then
-          OnAttachEvent.SetEvent; //no need to wait if the debufferinterface does not need to wait
+          OnAttachEvent.SetEvent; //no need to wait if the debuggerinterface does not need to wait
+
+        fetchediptlog:=false;
 
 
         if WaitForDebugEvent(debugEvent, 100) then
@@ -389,6 +411,10 @@ begin
 
   finally
     outputdebugstring('End of debugger');
+
+    if usesipt then
+      StopProcessIptTracing(processhandle);
+
     if currentprocesid <> 0 then
       debuggerinterfaceAPIWrapper.DebugActiveProcessStop(currentprocesid);
 
@@ -1925,6 +1951,125 @@ begin
   //it doesn't really matter if it returns false, that would just mean the breakpoint got and it's tracing or has finished tracing
 end;
 
+function TDebuggerThread.initIntelPTTracing: boolean;
+var
+  options: IPT_OPTIONS;
+  size: dword;
+  sizeadjust: integer;
+begin
+  result:=false;
+  if hideiptcapability then exit;
+
+  if useintelptfordebug then
+  begin
+    sizeadjust:=0;
+
+    options.AsUlongLong:=0;
+    options.flags.OptionVersion:=1;
+
+    repeat
+      StopProcessIptTracing(processhandle);
+      options.flags.TopaPagesPow2:=maxiptconfigsize-sizeadjust;
+      if StartProcessIptTracing(processhandle, options) then
+      begin
+        if GetProcessIptTraceSize(processhandle, size) then
+        begin
+          usesipt:=true;
+          exit(true);
+        end;
+
+        inc(sizeadjust);
+
+      end
+      else exit(false); //failure activating
+    until (sizeadjust>maxiptconfigsize);
+  end;
+end;
+
+procedure TDebuggerThread.stopIntelPTTracing;
+begin
+  StopProcessIptTracing(processhandle);
+end;
+
+function TDebuggerThread.getLastIPT(var log: pointer; var size: integer): boolean;
+//get a direct pointer to the debuggerthread's current log. (fetches the log if it hasn't done so yet)
+var
+  tracesize: dword;
+  h: PIPT_TRACE_HEADER;
+  last: qword;
+  i: integer;
+  loopcount: integer;
+begin
+  result:=false;
+  if usesipt=false then exit;
+
+  if fcurrentThread<>nil then
+  begin
+    if not fetchediptlog then
+    begin
+      loopcount:=0;
+      while not fetchediptlog do
+      begin
+        if GetProcessIptTraceSize(processhandle, tracesize)=false then
+        begin
+          initIntelPTTracing; //reinit. It may get a smaller size. perhaps next time more luck
+          exit;
+        end;
+
+
+        if (fulliptlog=nil) or (tracesize>fulliptlogsize) then
+        begin
+          if (fulliptlog<>nil) then
+            FreeMemAndNil(fulliptlog);
+
+          getmem(fulliptlog, tracesize);
+          if fulliptlog=nil then exit;
+
+          fulliptlogsize:=tracesize;
+        end;
+
+        fetchediptlog:=GetProcessIptTrace(processhandle, fulliptlog, tracesize);
+
+        if not fetchediptlog then
+        begin
+          inc(loopcount);
+          if loopcount>10 then exit; //fuck it, something is broken
+        end;
+      end;
+    end;
+
+    //parse the log for this thread
+    h:=@fulliptlog^.TraceData[0];
+    last:=ptruint(@fulliptlog^.TraceData[0])+fulliptlog^.TraceSize;
+
+    while ptruint(h)<last do
+    begin
+      if h^.ThreadId=fcurrentthread.ThreadId then
+      begin
+        if (log=nil) or (memsize(log)<h^.tracesize) then
+        begin
+          if log<>nil then
+            freemem(log);
+
+          getmem(log, h^.TraceSize);
+        end;
+
+        size:=h^.tracesize;
+        copymemory(log, @h^.Trace[h^.RingBufferOffset], size-h^.RingBufferOffset);
+        copymemory(log+(size-h^.RingBufferOffset), @h^.Trace[0], h^.RingBufferOffset);
+        exit(True);
+      end;
+
+      if h^.tracesize=0 then break;
+      h:=PIPT_TRACE_HEADER(ptruint(@h^.Trace[0])+h^.tracesize);
+    end;
+
+  end
+  else
+    exit;
+end;
+
+
 procedure TDebuggerThread.startBranchMapper(tidlist: TList=nil);
 var
   i,j: integer;
@@ -3149,6 +3294,10 @@ begin
   end;
 
 
+  if fulliptlog<>nil then
+    freememandnil(fulliptlog);
+
+
   if OnAttachEvent <> nil then
   begin
     OnAttachEvent.SetEvent;
@@ -3175,6 +3324,8 @@ begin
 
   if eventhandler <> nil then
     FreeAndNil(eventhandler);
+
+
 
   inherited Destroy;
 end;

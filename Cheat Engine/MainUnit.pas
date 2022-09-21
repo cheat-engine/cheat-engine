@@ -310,6 +310,7 @@ type
     CreateGroup: TMenuItem;
     FromAddress: TEdit;
     andlabel: TLabel;
+    Label3: TLabel;
     lblcompareToSavedScan: TLabel;
     MenuItem16: TMenuItem;
     miDeleteSavedScanResults: TMenuItem;
@@ -577,6 +578,7 @@ type
       var DefaultDraw: Boolean);
     procedure CreateGroupClick(Sender: TObject);
     procedure gbScanOptionsChangeBounds(Sender: TObject);
+    procedure Label3Click(Sender: TObject);
     procedure MenuItem12Click(Sender: TObject);
     procedure MenuItem15Click(Sender: TObject);
     procedure MenuItem16Click(Sender: TObject);
@@ -1090,7 +1092,7 @@ uses cefuncproc, MainUnit2, ProcessWindowUnit, MemoryBrowserFormUnit, TypePopup,
   PointerscanresultReader, Parsers, Globals {$ifdef windows},GnuAssembler, xinput{$endif} ,DPIHelper,
   multilineinputqueryunit {$ifdef windows},winsapi{$endif} ,LuaClass, Filehandler{$ifdef windows}, feces{$endif}
   {$ifdef windows},frmDBVMWatchConfigUnit, frmDotNetObjectListUnit{$endif} ,ceregistry ,UnexpectedExceptionsHelper
-  ,frmFoundlistPreferencesUnit, fontSaveLoadRegistry{$ifdef windows}, cheatecoins{$endif},strutils;
+  ,frmFoundlistPreferencesUnit, fontSaveLoadRegistry{$ifdef windows}, cheatecoins{$endif},strutils, iptlogdisplay;
 
 resourcestring
   rsInvalidStartAddress = 'Invalid start address: %s';
@@ -3572,6 +3574,11 @@ end;
 procedure TMainForm.gbScanOptionsChangeBounds(Sender: TObject);
 begin
   spawnBoundsUpdater;
+end;
+
+procedure TMainForm.Label3Click(Sender: TObject);
+begin
+
 end;
 
 

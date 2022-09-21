@@ -86,6 +86,11 @@ type
 
     lastContext: PContext; //for network contexts only
 
+
+    hasiptlog: boolean;
+    lastiptlog: pointer;
+    lastiptlogsize: integer;
+
     function CheckIfConditionIsMet(bp: PBreakpoint; script: string=''): boolean;
     function InNoBreakList: boolean;
 
@@ -148,6 +153,7 @@ type
     procedure clearDebugRegisters;
     procedure continueDebugging(continueOption: TContinueOption; handled: boolean=true);
 
+    function getLastIPTLog(out log: pointer; out size: integer): boolean;
 
 
     constructor Create(debuggerthread: TObject; attachEvent: Tevent; continueEvent: Tevent; breakpointlist: TList; threadlist: Tlist; debuggerCS: TGuiSafeCriticalSection);
@@ -184,14 +190,14 @@ uses foundcodeunit, DebugHelper, MemoryBrowserFormUnit, frmThreadlistunit,
      frmDebugEventsUnit, formdebugstringsunit, symbolhandler,
      networkInterface, networkInterfaceApi, ProcessHandlerUnit, globals,
      UnexpectedExceptionsHelper, frmcodefilterunit, frmBranchMapperUnit, LuaHandler,
-     LazLogger, Dialogs, vmxfunctions, debuggerinterface, DBVMDebuggerInterface,formChangedAddresses;
+     LazLogger, Dialogs, vmxfunctions, debuggerinterface, DBVMDebuggerInterface,
+     formChangedAddresses, iptnative;
 
 resourcestring
   rsDebugHandleAccessViolationDebugEventNow = 'Debug HandleAccessViolationDebugEvent now';
   rsSpecialCase = 'Special case';
 
 procedure TDebugThreadHandler.frmchangedaddresses_AddRecord;
-//7.3 Not async anymore
 var
   address: ptruint;
   haserror: boolean;
@@ -244,14 +250,28 @@ begin
 
     if e<>nil then
     begin
+
+
+      if systemSupportsIntelPT and useintelptfordebug and inteliptlogfindwhatroutines then
+        hasiptlog:=TDebuggerthread(debuggerthread).getLastIPT(lastiptlog, lastiptlogsize);
+
+      if hasiptlog then
+      begin
+        e.ipt.log:=getmem(lastiptlogsize);
+        e.ipt.size:=lastiptlogsize;
+        CopyMemory(e.ipt.log, lastiptlog, lastiptlogsize);
+      end
+      else
+        e.ipt.log:=nil;
+
       f.newRecord:=e;
+
       TThread.Synchronize(TThread.CurrentThread, f.AddRecord);
     end;
   end;
 end;
 
 procedure TDebugThreadHandler.foundCodeDialog_AddRecord;
-//7.3: Not ASYNC
 var
   address, address2: ptruint;
   desc: string;
@@ -290,7 +310,19 @@ begin
     //not in the list, add it:
     if hasAddress=false then
     begin
+      if systemSupportsIntelPT and useintelptfordebug and inteliptlogfindwhatroutines then
+        hasiptlog:=TDebuggerthread(debuggerthread).getLastIPT(lastiptlog, lastiptlogsize);
+
+
       currentBP^.FoundcodeDialog.addRecord_Address:=address;
+      if hasiptlog then
+      begin
+        currentBP^.FoundcodeDialog.iptlog:=lastiptlog;
+        currentBP^.FoundcodeDialog.iptlogsize:=lastiptlogsize;
+      end
+      else
+        currentBP^.FoundcodeDialog.iptlog:=nil;
+
       TDebuggerthread(debuggerthread).Synchronize(TThread.CurrentThread,currentBP^.FoundcodeDialog.AddRecord);
     end;
   end;
@@ -644,6 +676,20 @@ begin
     onContinueEvent.SetEvent;
   end;
 
+end;
+
+function TDebugThreadHandler.getLastIPTLog(out log: pointer; out size: integer): boolean;
+begin
+  if hasiptlog=false then
+    hasiptlog:=TDebuggerthread(debuggerthread).getLastIPT(lastiptlog, lastiptlogsize);
+
+  if hasiptlog then
+  begin
+    getmem(log, lastiptlogsize);
+    size:=lastiptlogsize;
+    copymemory(log, lastiptlog,lastiptlogsize);
+    result:=true;
+  end;
 end;
 
 function TDebugThreadHandler.EnableOriginalBreakpointAfterThisBreakpointForThisThread(bp: Pbreakpoint; OriginalBreakpoint: PBreakpoint): boolean;
@@ -2252,6 +2298,9 @@ begin
   if (handle<>0) and (getConnection=nil) then
     closehandle(handle);
 
+  if lastiptlog<>nil then
+    freememandnil(lastiptlog);
+
   inherited destroy;
 end;
 
@@ -2381,6 +2430,7 @@ begin
   else
     newthread:=false;
 
+  currentthread.hasiptlog:=false;
   currentthread.isHandled:=CurrentDebuggerInterface.IsInjectedEvent=false;
   currentThread.currentBP:=nil;
 

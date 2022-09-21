@@ -48,6 +48,8 @@ type
     function SetThreadContext(hThread: THandle; const lpContext: TContext; isFrozenThread: Boolean=false): BOOL; override;
     function GetThreadContext(hThread: THandle; var lpContext: TContext; isFrozenThread: Boolean=false):  BOOL; override;
 
+    function canUseIPT: boolean; override;
+
     function DebugActiveProcess(dwProcessId: DWORD): WINBOOL; override;
     function DebugActiveProcessStop(dwProcessID: DWORD): WINBOOL; override;
     procedure AddToNoBreakList(threadid: integer); override;
@@ -746,6 +748,12 @@ begin
 
   lastthreadpoll:=GetTickCount64;
 end;
+
+function TVEHDebugInterface.canUseIPT: boolean;
+begin
+  canUseIPT:=true;
+end;
+
 {$endif}
 
 end.

@@ -184,7 +184,7 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
     AnchorSideTop.Side = asrBottom
     Left = 0
     Height = 36
-    Top = 268
+    Top = 299
     Width = 592
     Anchors = [akTop, akLeft, akRight]
     AutoSize = True
@@ -222,7 +222,7 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
     AnchorSideRight.Control = Owner
     AnchorSideRight.Side = asrBottom
     Left = 4
-    Height = 60
+    Height = 91
     Top = 185
     Width = 588
     Anchors = [akTop, akLeft, akRight]
@@ -230,7 +230,7 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
     BorderSpacing.Left = 4
     BorderSpacing.Top = 5
     BevelOuter = bvNone
-    ClientHeight = 60
+    ClientHeight = 91
     ClientWidth = 588
     ParentFont = False
     TabOrder = 3
@@ -364,13 +364,13 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
       AnchorSideRight.Control = Panel6
       AnchorSideRight.Side = asrBottom
       Left = 567
-      Height = 60
+      Height = 91
       Top = 0
       Width = 21
       Anchors = [akTop, akRight]
       AutoSize = True
       BevelOuter = bvNone
-      ClientHeight = 60
+      ClientHeight = 91
       ClientWidth = 21
       ParentFont = False
       TabOrder = 1
@@ -384,6 +384,8 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
         Hint = 'Stack view'
         Top = 0
         Width = 21
+        Constraints.MinHeight = 30
+        Constraints.MinWidth = 21
         Caption = 'S'
         OnClick = sbShowStackClick
         ShowHint = True
@@ -392,17 +394,39 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
       end
       object sbShowFloats: TSpeedButton
         AnchorSideLeft.Control = Panel8
+        AnchorSideTop.Control = sbShowIPT
+        AnchorSideTop.Side = asrBottom
+        AnchorSideRight.Control = Panel8
+        AnchorSideRight.Side = asrBottom
+        Left = 0
+        Height = 31
+        Hint = 'Floating point registers'
+        Top = 60
+        Width = 21
+        Constraints.MinHeight = 31
+        Constraints.MinWidth = 21
+        Caption = 'F'
+        OnClick = sbShowFloatsClick
+        ShowHint = True
+        ParentFont = False
+        ParentShowHint = False
+      end
+      object sbShowIPT: TSpeedButton
+        AnchorSideLeft.Control = Panel8
         AnchorSideTop.Control = sbShowStack
         AnchorSideTop.Side = asrBottom
         AnchorSideRight.Control = Panel8
         AnchorSideRight.Side = asrBottom
         Left = 0
         Height = 30
-        Hint = 'Floating point registers'
+        Hint = 'Stack view'
         Top = 30
         Width = 21
-        Caption = 'F'
-        OnClick = sbShowFloatsClick
+        AutoSize = True
+        Constraints.MinHeight = 30
+        Constraints.MinWidth = 21
+        Caption = 'IPT'
+        OnClick = sbShowIPTClick
         ShowHint = True
         ParentFont = False
         ParentShowHint = False
@@ -415,7 +439,7 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
     AnchorSideTop.Side = asrBottom
     Left = 4
     Height = 15
-    Top = 253
+    Top = 284
     Width = 687
     Anchors = [akTop, akLeft, akRight]
     BorderSpacing.Left = 4
