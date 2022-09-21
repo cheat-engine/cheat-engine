@@ -349,7 +349,7 @@ namespace CESDK
         public string ToString(int idx) { return ToString(State, idx); }
 
         public int PCall(IntPtr L, int nargs, int nresults) {
-            int pcr=lua_pcallk(L, nargs, nresults, IntPtr.Zero, IntPtr.Zero);
+            int pcr=lua_pcallk(L, nargs, nresults, 0, IntPtr.Zero, IntPtr.Zero);
             if (pcr!=0)
                 throw new System.ApplicationException("PCall failed with error " + pcr.ToString() + " (" + ToString(-1) + ")");
 
