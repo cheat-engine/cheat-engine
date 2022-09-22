@@ -926,11 +926,15 @@ begin
     case key of
       VK_DELETE:
       begin
-        if isediting and (fDisplayType in [dtByteDec, dtWordDec, dtDwordDec, dtQwordDec, dtSingle, dtDouble, dtCustom]) then
-          HandleEditKeyPress(chr(7)); //there's no delete char and I can't be assed to change the whole function to tak a virtual key
+        if shift=[] then
+        begin
+          if isediting and (fDisplayType in [dtByteDec, dtWordDec, dtDwordDec, dtQwordDec, dtSingle, dtDouble, dtCustom]) then
+            HandleEditKeyPress(chr(7)); //there's no delete char and I can't be assed to change the whole function to tak a virtual key
 
-        key:=0;
-        exit;
+          key:=0;
+
+          exit;
+        end;
       end;
 
       VK_BACK:
@@ -947,15 +951,21 @@ begin
         end
         else
         begin
-          key:=0;
-          back;
+          if shift=[] then
+          begin
+            key:=0;
+            back;
+          end;
         end;
       end;
 
       VK_SPACE:
       begin
-        key:=0;
-        follow;
+        if shift=[] then
+        begin
+          key:=0;
+          follow;
+        end;
       end;
 
       VK_ESCAPE:
