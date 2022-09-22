@@ -161,7 +161,7 @@ var
 
   luagc_MinSize: dword;
 
-  SystemSupportsWritableExecutableMemory: boolean={$ifdef windows}{true}false{$else}false{$endif};
+  SystemSupportsWritableExecutableMemory: boolean={$ifdef windows}false{$else}false{$endif};
   SkipVirtualProtectEx: boolean;
   alwaysforceload: boolean;
 
