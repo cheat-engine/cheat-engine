@@ -714,6 +714,7 @@ begin
   mi.First;
   while not mi.eom do
   begin
+    mi.GetData(ti);
     result:=result+ti^.totaldata;
     mi.next;
   end;
