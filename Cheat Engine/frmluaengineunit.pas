@@ -1758,10 +1758,14 @@ begin
 
       CompleterInvokedByDot:=true;
 
-      scLuaCompleter.Execute('.',p2+p);
+      try
+        scLuaCompleter.Execute('.',p2+p);
 
-      if (scLuaCompleter.TheForm<>nil) and scLuaCompleter.TheForm.CanFocus then
-        scLuaCompleter.TheForm.SetFocus;
+        if (scLuaCompleter.TheForm<>nil) and scLuaCompleter.TheForm.CanFocus then
+          scLuaCompleter.TheForm.SetFocus;
+
+      except
+      end;
 
     end;
   end;
