@@ -254,9 +254,12 @@ begin
 
   if getConnection=nil then
   begin
-    host.s_addr:=0;
-    if MainThreadID=GetCurrentThreadId then
-      MessageDlg(rsFailedConnectingToTheServer, mtError, [mbOK],0);
+    if host.s_addr<>0 then //it's 0 when it terminated earlier
+    begin
+      host.s_addr:=0;
+      if MainThreadID=GetCurrentThreadId then
+        MessageDlg(rsFailedConnectingToTheServer, mtError, [mbOK],0);
+    end;
 
     exit;
   end;

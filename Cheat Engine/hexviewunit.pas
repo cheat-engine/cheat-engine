@@ -65,7 +65,6 @@ type
   THexView=class(TCustomPanel)
   private
     MemoryMap: TMap;
-    MemoryMapItterator: TMapIterator;
 
     verticalscrollbar: TScrollbar;
     mbCanvas: TPaintbox;
@@ -1930,9 +1929,8 @@ var
     x: ptrUint;
 begin
   a:=a and (not $fff);
-  if MemoryMapItterator.Locate(a) then
-    result:=MemoryMapItterator.DataPtr
-  else
+  result:=memorymap.GetDataPtr(a);
+  if result=nil then
   begin
     //get memory page info
     p.baseaddress:=a;
@@ -1947,9 +1945,13 @@ begin
     else
       p.inModule:=false;
 
-    memorymap.Add(a, p);
-    MemoryMapItterator.Locate(a);
-    result:=MemoryMapItterator.DataPtr;
+{$ifdef asserthexviewisthreadsafe}
+    if mainthreadid<>getcurrentthreadid then raise exception.create('Do not touch the hexview from other threads');
+{$endif}
+    if memorymap.HasId(a)=false then
+      memorymap.Add(a, p);
+
+    result:=memorymap.GetDataPtr(a);
   end;
 end;
 
@@ -3209,9 +3211,6 @@ begin
   if offscreenbitmap<>nil then
     freeandnil(offscreenbitmap);
 
-  if MemoryMapItterator<>nil then
-    freeandnil(memorymapitterator);
-
   if MemoryMap<>nil then
     freeandnil(memorymap);
 
@@ -3247,7 +3246,6 @@ begin
   DoubleBuffered:=true; // http://cheatengine.org/mantis/view.php?id=280 , no effect for me, but should help those with no theme
 
   MemoryMap:=TMap.create(ituPtrSize, sizeof(TPageinfo));
-  MemoryMapItterator:=TMapIterator.create(MemoryMap);
 
   changelist:=TChangelist.create;
 
