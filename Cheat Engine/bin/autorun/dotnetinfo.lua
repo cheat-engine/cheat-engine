@@ -184,6 +184,9 @@ local function getClassMethods(Class)
       end
     end
   end
+
+
+  table.sort(Class.Methods,function(m1,m2) return m1.Name:upper()<m2.Name:upper() end)  
 end
 
 local function getClassFields(Class)
@@ -567,6 +570,8 @@ local function FillClassInfoFields(frmDotNetInfo, Class)
       else
         li.SubItems.add(Class.Methods[i].Parameters)
       end
+      
+      li.Data=i
     end
   end
 
@@ -587,6 +592,8 @@ local function FillClassInfoFields(frmDotNetInfo, Class)
   --print("frmDotNetInfo.CurrentlyDisplayedClass.Name = "..frmDotNetInfo.CurrentlyDisplayedClass.Name)
   
 end
+
+
 
 
 
@@ -2064,6 +2071,7 @@ function miDotNetInfoClick(sender)
     frmDotNetInfo.miInvokeMethod.Enabled=(frmDotNetInfo.comboFieldBaseAddress.Text~='') and (getAddressSafe(frmDotNetInfo.comboFieldBaseAddress.Text)~=nil)
   end
   
+ 
   --Init
   
   
