@@ -8,7 +8,7 @@ interface
 uses
   {$ifdef windows}windows,{$endif}
   {$ifdef darwin}macport, dl,macportdefines, {$endif}
-  Classes, SysUtils, syncobjs, maps, Generics.Collections;
+  Classes, SysUtils, syncobjs, maps, math, Generics.Collections;
 
 
 type

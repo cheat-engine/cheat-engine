@@ -7,7 +7,7 @@ object ProcessWindow: TProcessWindow
   AutoSize = True
   BorderIcons = [biSystemMenu]
   Caption = 'Process List'
-  ClientHeight = 382
+  ClientHeight = 402
   ClientWidth = 285
   Menu = MainMenu1
   OnClose = FormClose
@@ -18,30 +18,30 @@ object ProcessWindow: TProcessWindow
   LCLVersion = '2.2.2.0'
   object Panel1: TPanel
     Left = 0
-    Height = 112
-    Top = 270
+    Height = 102
+    Top = 300
     Width = 285
     Align = alBottom
     AutoSize = True
     BevelInner = bvLowered
     BevelOuter = bvNone
-    ClientHeight = 112
+    ClientHeight = 102
     ClientWidth = 285
     ParentFont = False
     TabOrder = 0
     object Panel5: TPanel
       AnchorSideLeft.Control = Panel1
       AnchorSideLeft.Side = asrCenter
-      Left = 55
-      Height = 98
+      Left = 46
+      Height = 88
       Top = 7
-      Width = 175
+      Width = 192
       AutoSize = True
       BorderSpacing.Top = 6
       BorderSpacing.Bottom = 6
       BevelOuter = bvNone
-      ClientHeight = 98
-      ClientWidth = 175
+      ClientHeight = 88
+      ClientWidth = 192
       Constraints.MinWidth = 175
       ParentFont = False
       TabOrder = 0
@@ -53,7 +53,7 @@ object ProcessWindow: TProcessWindow
         Left = 0
         Height = 30
         Top = 4
-        Width = 175
+        Width = 192
         Anchors = [akTop, akLeft, akRight]
         AutoSize = True
         BorderSpacing.Top = 4
@@ -63,14 +63,14 @@ object ProcessWindow: TProcessWindow
         ChildSizing.Layout = cclLeftToRightThenTopToBottom
         ChildSizing.ControlsPerLine = 2
         ClientHeight = 30
-        ClientWidth = 175
+        ClientWidth = 192
         ParentFont = False
         TabOrder = 0
         object OKButton: TButton
           Left = 0
           Height = 30
           Top = 0
-          Width = 84
+          Width = 92
           AutoSize = True
           Caption = 'Open'
           Constraints.MinHeight = 30
@@ -85,10 +85,10 @@ object ProcessWindow: TProcessWindow
           AnchorSideLeft.Side = asrBottom
           AnchorSideRight.Control = Panel3
           AnchorSideRight.Side = asrBottom
-          Left = 92
+          Left = 100
           Height = 30
           Top = 0
-          Width = 83
+          Width = 92
           AutoSize = True
           Cancel = True
           Caption = 'Cancel'
@@ -104,9 +104,9 @@ object ProcessWindow: TProcessWindow
         AnchorSideTop.Control = Panel3
         AnchorSideTop.Side = asrBottom
         Left = 0
-        Height = 25
+        Height = 20
         Top = 43
-        Width = 175
+        Width = 192
         AutoSize = True
         BorderSpacing.Top = 9
         Caption = 'Attach debugger to process'
@@ -122,9 +122,9 @@ object ProcessWindow: TProcessWindow
         AnchorSideRight.Control = btnAttachDebugger
         AnchorSideRight.Side = asrBottom
         Left = 0
-        Height = 25
-        Top = 73
-        Width = 175
+        Height = 20
+        Top = 68
+        Width = 192
         Anchors = [akTop, akLeft, akRight]
         AutoSize = True
         BorderSpacing.Top = 5
@@ -137,12 +137,12 @@ object ProcessWindow: TProcessWindow
   end
   object TabHeader: TPageControl
     Left = 0
-    Height = 270
+    Height = 300
     Top = 0
     Width = 285
-    ActivePage = tsProcesses
+    ActivePage = tsWindows
     Align = alClient
-    TabIndex = 1
+    TabIndex = 2
     TabOrder = 2
     OnChange = TabHeaderChange
     OnResize = TabHeaderResize
@@ -157,10 +157,12 @@ object ProcessWindow: TProcessWindow
     end
   end
   object ProcessList: TListBox
+    AnchorSideTop.Control = TabHeader
     Left = 8
-    Height = 208
+    Height = 256
     Top = 32
     Width = 267
+    Anchors = [akLeft]
     BorderStyle = bsNone
     ItemHeight = 0
     OnDblClick = OKButtonClick

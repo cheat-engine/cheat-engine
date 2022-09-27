@@ -4516,6 +4516,10 @@ begin
     for i:=0 to modulelistpos-1 do
       if (address>=modulelist[i].baseaddress) and (address<modulelist[i].baseaddress+modulelist[i].basesize) then
       begin
+        if modulelist[i].is64bitmodule=false then
+        asm
+        nop
+        end;
         mi:=modulelist[i];
 
         result:=true;
@@ -5805,6 +5809,12 @@ begin
                 else
                 begin
                   newmodulelist[newmodulelistpos].is64bitmodule:=processhandler.is64Bit;
+
+                  if newmodulelist[newmodulelistpos].is64bitmodule=false then
+                  asm
+                  nop
+                  end;
+
                   if pos('/system/',lowercase(x))=1 then //android thingy
                     newmodulelist[newmodulelistpos].isSystemModule:=true;
 

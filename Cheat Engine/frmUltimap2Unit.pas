@@ -766,11 +766,13 @@ var
   e: plongint;
   h: HANDLE;
 begin
+  {$IFDEF WINDOWS}
   h:=overlapped^.hEvent;
   //hevent is just a pointer to workersActive
   e:=plongint(h);
 
   InterLockedDecrement(e^);   //I don't think an interlocked is necesary as the overlapped routine runs in an APC from the caller thread
+  {$ENDIF}
 end;
 
 procedure writeCompletePart1(errorcode:DWORD; dwNumberOfBytesTransfered:DWORD; overlapped:LPOVERLAPPED);stdcall;
@@ -779,6 +781,7 @@ var
   workersActive: plongint;
   h: PIPT_TRACE_HEADER;
 begin
+  {$IFDEF WINDOWS}
   //hevent is a pointer to the threadinfo
   ti:=PUltimap2ThreadInfo(overlapped^.hevent);
   h:=ti^.WriteCompleteDataPart1.h;
@@ -793,6 +796,7 @@ begin
   end
   else
     InterLockedDecrement(ti^.WriteCompleteDataPart1.workersActive^);
+  {$ENDIF}
 end;
 
 
@@ -813,6 +817,7 @@ var
 
 begin
   result:=false;
+  {$IFDEF WINDOWS}
   //get the IPT data, and assign worker threads to either save to disk, or process it
 
 
@@ -1001,6 +1006,7 @@ begin
     SleepEx(2000,true);
 
   exit(true);
+  {$ENDIF}
 end;
 
 procedure TIPTDataDispatcher.execute;
@@ -1039,8 +1045,10 @@ begin
           end;
 
 
+{$IFDEF WINDOWS}
           ddeSuspendProcessingOfThread: PauseThreadIptTracing(dde^.threadhandle, r);
           ddeResumeProcessingOfThread: ResumeThreadIptTracing(dde^.threadhandle, r);
+ {$ENDIF}
           ddeFlush:
           begin
             if processData=false then
@@ -1673,6 +1681,7 @@ procedure TUltimap2Worker.processWindowsIPTDataImplementation(data: pointer; dat
 var
   e: TUltimap2DataEvent;
 begin
+  {$IFDEF WINDOWS}
   e.Address:=qword(data);
   e.Size:=datasize;
   e.Cpunr:=id;
@@ -1687,6 +1696,7 @@ begin
 
   if assigned(oncompletion) and (workersActive<>nil) then
     QueueUserAPC(oncompletion, ownerThreadHandle, qword(workersActive));
+  {$ENDIF}
 
 end;
 
@@ -1863,6 +1873,7 @@ end;
 
 constructor TUltimap2Worker.create(CreateSuspended: boolean; tid: qword; owner: TfrmUltimap2; ownerthread: TThreadID);
 begin
+  {$IFDEF WINDOWS}
   windowsBasedIPT:=true;
 
   id:=tid;
@@ -1884,6 +1895,7 @@ begin
   localregiontree:=TAvgLvlTree.CreateObjectCompare(@RegionCompare);
 
   inherited create(createsuspended);
+  {$ENDIF}
 end;
 
 procedure TUltimap2FilterWorker.FilterExecuted(ri: TRegionInfo);  //removes executed entries
@@ -2510,6 +2522,7 @@ end;
 procedure TfrmUltimap2.startWindowsBasedIPT;
 var options: IPT_OPTIONS ;
 begin
+  {$IFDEF WINDOWS}
   options.AsUlongLong:=0;
   options.flags.OptionVersion:=1;
   options.flags.TopaPagesPow2:=cbWinIPTBufferSize.itemindex;
@@ -2521,6 +2534,7 @@ begin
     if not StartProcessIptTracing(processhandle, options) then
       raise exception.create('Failure starting windows based IPT session: '+getlasterror.ToString);
   end;
+  {$ENDIF}
 end;
 
 procedure TfrmUltimap2.tbRecordPauseChange(Sender: TObject);

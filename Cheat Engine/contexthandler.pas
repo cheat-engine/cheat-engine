@@ -9,7 +9,7 @@ unit contexthandler;
 interface
 
 uses
-  {$ifdef darwin}macport,{$endif}{$ifdef windows}windows, {$endif}Classes, SysUtils,StringHashList, newkernelhandler;
+  {$ifdef darwin}macport,{$endif}{$ifdef windows}windows, {$endif}Classes, SysUtils,StringHashList, newkernelhandler,math;
 
 type
 
@@ -150,6 +150,8 @@ const X86_32Context_specialized: array of TContextElement_register=(
  (entrytype:0; name:'FS'; size:2; displayType: 0; ContextOffset: integer(@PCONTEXT32(nil)^.SegFs); BitStart:0),
  (entrytype:0; name:'GS'; size:2; displayType: 0; ContextOffset: integer(@PCONTEXT32(nil)^.SegGs); BitStart:0)
 );
+
+const X86_32Context_controlreg: TContextElement_register=(entrytype:0; name:'ContextFlags'; size:2; displayType: 0; ContextOffset: integer(@PCONTEXT32(nil)^.ContextFlags); BitStart:0);
 {$endif}
 
 
@@ -187,6 +189,7 @@ const X86_32Context_specialized: array of TContextElement_register=(
  (entrytype:0; name:'GS'; size:2; displayType: 0; ContextOffset: integer(@PCONTEXT(nil)^.SegGs); BitStart:0)
 );
 
+const X86_32Context_controlreg: TContextElement_register=(entrytype:0; name:'ContextFlags'; size:2; displayType: 0; ContextOffset: integer(@PCONTEXT(nil)^.ContextFlags); BitStart:0);
 
 var X86_32Context_fpu, X86_32Context_fpu2: array of TContextElement_register;
 
@@ -232,6 +235,7 @@ const X86_64Context_specialized: array of TContextElement_register=(
  (entrytype:0; name:'FS'; size:2; displayType: 0; ContextOffset: integer(@PCONTEXT(nil)^.SegFs); BitStart:0),
  (entrytype:0; name:'GS'; size:2; displayType: 0; ContextOffset: integer(@PCONTEXT(nil)^.SegGs); BitStart:0)
 );
+const X86_64Context_controlreg: TContextElement_register=(entrytype:0; name:'ContextFlags'; size:2; displayType: 0; ContextOffset: integer(@PCONTEXT(nil)^.ContextFlags); BitStart:0);
 
 {$endif}
 
@@ -291,6 +295,11 @@ const ARM_64Context_flags: array of TContextElement_register=(
   (entrytype:1; name:'M32'; size:1; displayType: 0; ContextOffset: integer(@PARM64CONTEXT(nil)^.PSTATE); bitstart: 4),
   (entrytype:1; name:'M'; size:4; displayType: 0; ContextOffset: integer(@PARM64CONTEXT(nil)^.PSTATE); bitstart: 0)
 );
+
+{$ifdef darwin}
+const ARM_64Context_controlreg: TContextElement_register=(entrytype:0; name:'ContextFlags'; size:2; displayType: 0; ContextOffset: integer(@PARM64CONTEXT(nil)^.ContextFlags); BitStart:0);
+{$endif}
+
 
 var ARM_64Context_fpu:  array of TContextElement_register;
 
@@ -633,7 +642,7 @@ begin
 
   ContextInfo_X86_32.fInstructionPointerRegister:=ContextInfo_X86_32.getRegister('EIP');
   ContextInfo_X86_32.fStackPointerRegister:=ContextInfo_X86_32.getRegister('ESP');
-  ContextInfo_X86_32.fContextFlagsField:=ContextInfo_X86_32.getRegister('ContextFlags');
+  ContextInfo_X86_32.fContextFlagsField:=@X86_32Context_controlreg;
 
   {$endif}
 
@@ -680,7 +689,7 @@ begin
   ContextInfo_X86_32.secondaryfpuname:='FPU';
   ContextInfo_X86_32.fInstructionPointerRegister:=ContextInfo_X86_32.getRegister('EIP');
   ContextInfo_X86_32.fStackPointerRegister:=ContextInfo_X86_32.getRegister('ESP');
-  ContextInfo_X86_32.fContextFlagsField:=ContextInfo_X86_32.getRegister('ContextFlags');
+  ContextInfo_X86_32.fContextFlagsField:=@X86_32Context_controlreg;
 
   //----normal----
   ContextInfo_X86_64:=TContextInfo.Create;
@@ -710,7 +719,7 @@ begin
   ContextInfo_X86_64.secondaryfpuname:='FPU';
   ContextInfo_X86_64.fInstructionPointerRegister:=ContextInfo_X86_64.getRegister('RIP');
   ContextInfo_X86_64.fStackPointerRegister:=ContextInfo_X86_64.getRegister('RSP');
-  ContextInfo_X86_32.fContextFlagsField:=ContextInfo_X86_64.getRegister('ContextFlags');
+  ContextInfo_X86_64.fContextFlagsField:=@X86_64Context_controlreg;
   {$endif}
 
 
@@ -774,10 +783,8 @@ begin
   ContextInfo_ARM_64.setFloatingPointRegisters(@ARM_64Context_fpu);
   ContextInfo_ARM_64.fInstructionPointerRegister:=ContextInfo_ARM_64.getRegister('PC');
   ContextInfo_ARM_64.fStackPointerRegister:=ContextInfo_ARM_64.getRegister('SP');
-
-
   {$ifdef darwin}
-  todo: implement your fucking context here mofo
+  ContextInfo_ARM_64.fContextFlagsField:=@ARM_64Context_controlreg;
   {$endif}
 end;
 

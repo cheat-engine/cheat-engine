@@ -1351,7 +1351,9 @@ var plist: TStringlist;
   i,j: integer;
   pname: string;
   compareto: string;
+  {$IFDEF WINDOWS}
   ProcessListInfo: PProcessListInfo;
+  {$ENDIF}
 
   bestpick: record
     i: integer;
@@ -1378,8 +1380,12 @@ begin
       //processname found
       if compareto=pname then
       begin
+        {$IFDEF WINDOWS}
         ProcessListInfo:=PProcessListInfo(plist.Objects[i]);
         result:=ProcessListInfo.processID;
+        {$ELSE}
+        result:=strtoint('$'+copy(plist[i],1,j-1));
+        {$endif}
         exit;
       end;
     end;
@@ -1401,8 +1407,12 @@ begin
       begin
         if j=1 then
         begin
+          {$IFDEF WINDOWS}
           ProcessListInfo:=PProcessListInfo(plist.Objects[i]);
           result:=ProcessListInfo.processID;
+          {$ELSE}
+          result:=strtoint('$'+copy(plist[i],1,j-1));
+          {$ENDIF}
           exit;
         end;
 
@@ -1417,8 +1427,12 @@ begin
 
       if bestpick.i<>-1 then
       begin
+        {$IFDEF WINDOWS}
         ProcessListInfo:=PProcessListInfo(plist.Objects[bestpick.i]);
         result:=ProcessListInfo.processID;
+        {$ELSE}
+        result:=strtoint('$'+copy(plist[i],1,j-1));
+        {$ENDIF}
         exit;
       end;
     end;

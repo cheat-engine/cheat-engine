@@ -161,9 +161,10 @@ var
     i: integer;
 
     li: TListitem;
+        contexthandler: TContextInfo;
     {$endif}
 
-    contexthandler: TContextInfo;
+
 begin
 {$ifdef windows}
   contexthandler:=getBestContextHandler;

@@ -6,18 +6,19 @@ interface
 
 uses
   {$ifdef windows}
-  jwawindows,
+  jwawindows, windows,
   {$endif}
+  Classes, SysUtils, networkInterface, NewKernelHandler, CEFuncProc
   {$ifdef JNI}
-    Classes, SysUtils, networkinterface, unixporthelper, newkernelhandler;
+  ,unixporthelper, newkernelhandler;
   {$else}
   {$ifdef darwin}
-  mactypes, macport,
+  ,mactypes, macport, macportdefines, dialogs;
   {$endif}
   {$ifdef windows}
-  windows, dialogs,
+  dialogs;
   {$endif}
-  Classes, SysUtils, networkinterface, newkernelhandler, CEFuncProc;
+
   {$endif}
 
 
@@ -394,8 +395,6 @@ var tm: TThreadManager;
 begin
   //hook the threadmanager if it hasn't been hooked yet
 
-  {$ifdef windows}
-
   OutputDebugString('InitializeNetworkInterface');
 
   if NetworkVersion(versionname)<2 then
@@ -426,9 +425,6 @@ begin
   m.Code:=@NetworkApiPointerChange;
   m.Data:=nil;
   onAPIPointerChange:=tnotifyevent(m);
-
-
-  {$endif}
 
 end;
 

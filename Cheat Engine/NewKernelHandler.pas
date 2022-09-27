@@ -75,6 +75,7 @@ type
 
 {$endif}
 
+
 type
    XMM_SAVE_AREA32 = record
         ControlWord: WORD;
@@ -97,6 +98,7 @@ type
    _XMM_SAVE_AREA32 = XMM_SAVE_AREA32;
    TXmmSaveArea = XMM_SAVE_AREA32;
    PXmmSaveArea = ^TXmmSaveArea;
+
 
 {$ifdef cpu64}
 const
@@ -547,13 +549,18 @@ type TGetThreadSelectorEntry=function(hThread: THandle; dwSelector: DWORD; var l
 type TSuspendThread=function(hThread: THandle): DWORD; stdcall;
 type TResumeThread=function(hThread: THandle): DWORD; stdcall;
 
+{$endif}
 type TCreateToolhelp32Snapshot=function(dwFlags, th32ProcessID: DWORD): THandle; stdcall;
+
+
 type TProcess32First=function(hSnapshot: THandle; var lppe: TProcessEntry32): BOOL; stdcall;
 type TProcess32Next=function(hSnapshot: THandle; var lppe: TProcessEntry32): BOOL; stdcall;
+
 type TThread32First=function (hSnapshot: THandle; var lpte: TThreadEntry32): BOOL; stdcall;
 type TThread32Next=function (hSnapshot: THandle; var lpte: TThreadENtry32): BOOL; stdcall;
 type TModule32First=function (hSnapshot: THandle; var lpme: TModuleEntry32): BOOL; stdcall;
 type TModule32Next=function (hSnapshot: THandle; var lpme: TModuleEntry32): BOOL; stdcall;
+{$ifdef windows}
 type THeap32ListFirst=function (hSnapshot: THandle; var lphl: THeapList32): BOOL; stdcall;
 type THeap32ListNext=function (hSnapshot: THandle; var lphl: THeapList32): BOOL; stdcall;
 type TIsWow64Process=function (processhandle: THandle; var isWow: BOOL): BOOL; stdcall;
@@ -561,14 +568,18 @@ type TIsWow64Process=function (processhandle: THandle; var isWow: BOOL): BOOL; s
 type TWaitForDebugEvent=function(var lpDebugEvent: TDebugEvent; dwMilliseconds: DWORD): BOOL; stdcall;
 type TContinueDebugEvent=function(dwProcessId, dwThreadId, dwContinueStatus: DWORD): BOOL; stdcall;
 type TDebugActiveProcess=function(dwProcessId: DWORD): BOOL; stdcall;
-type TVirtualFreeEx=function(hProcess: HANDLE; lpAddress: LPVOID; dwSize: SIZE_T; dwFreeType: DWORD): BOOL; stdcall;
+
 type TVirtualProtect=function(lpAddress: Pointer; dwSize, flNewProtect: DWORD; var OldProtect: DWORD): BOOL; stdcall;
-type TVirtualProtectEx=function(hProcess: THandle; lpAddress: Pointer; dwSize, flNewProtect: DWORD; var OldProtect: DWORD): BOOL; stdcall;
+
 {$endif}
+type TVirtualFreeEx=function(hProcess: HANDLE; lpAddress: LPVOID; dwSize: SIZE_T; dwFreeType: DWORD): BOOL; stdcall;
+type TVirtualProtectEx=function(hProcess: THandle; lpAddress: Pointer; dwSize, flNewProtect: DWORD; var OldProtect: DWORD): BOOL; stdcall;
 type TVirtualQueryEx=function(hProcess: THandle; lpAddress: Pointer; var lpBuffer: TMemoryBasicInformation; dwLength: DWORD): DWORD; stdcall;
-{$ifdef windows}
+
 type TVirtualAllocEx=function(hProcess: THandle; lpAddress: Pointer; dwSize, flAllocationType: DWORD; flProtect: DWORD): Pointer; stdcall;
 type TCreateRemoteThread=function(hProcess: THandle; lpThreadAttributes: Pointer; dwStackSize: DWORD; lpStartAddress: TFNThreadStartRoutine; lpParameter: Pointer;  dwCreationFlags: DWORD; var lpThreadId: DWORD): THandle; stdcall;
+
+{$ifdef windows}
 type TOpenThread=function(dwDesiredAccess:DWORD;bInheritHandle:BOOL;dwThreadId:DWORD):THANDLE; stdcall;
 type TGetPEProcess=function(ProcessID:DWORD):UINT64; stdcall;
 type TGetPEThread=function(Threadid: dword):UINT64; stdcall;
@@ -652,10 +663,11 @@ type Tdbvm_raise_privilege=function: DWORD; stdcall;
 type Tdbvm_read_physical_memory=function(PhysicalAddress: UINT64; destination: pointer; size: integer): dword; stdcall;
 type Tdbvm_write_physical_memory=function(PhysicalAddress: UINT64; source: pointer; size: integer): dword; stdcall;
 
-
+{$endif}
 type TVirtualQueryEx_StartCache=function(hProcess: THandle; flags: DWORD): boolean;
 type TVirtualQueryEx_EndCache=procedure(hProcess: THandle);
 
+{$ifdef windows}
 
 procedure DONTUseDBKQueryMemoryRegion;
 procedure DONTUseDBKReadWriteMemory;
@@ -752,13 +764,17 @@ var
   ResumeThread          :TResumeThread;
 
 
+  {$endif}
   CreateToolhelp32Snapshot: TCreateToolhelp32Snapshot;
+
   Process32First        :TProcess32First;
   Process32Next         :TProcess32Next;
+
   Thread32First         :TThread32First;
   Thread32Next          :TThread32Next;
   Module32First         :TModule32First;
   Module32Next          :TModule32Next;
+  {$ifdef windows}
   Heap32ListFirst       :THeap32ListFirst;
   Heap32ListNext        :THeap32ListNext;
   IsWow64Process        :TIsWow64Process;
@@ -771,13 +787,14 @@ var
 
   GetLargePageMinimum   :TGetLargePageMinimum;
   VirtualProtect        :TVirtualProtect;
+  {$endif}
   VirtualProtectEx      :TVirtualProtectEx;
-{$endif}
   VirtualQueryExActual  :TVirtualQueryEx;
-{$ifdef windows}
   VirtualAllocEx        :TVirtualAllocEx;
   VirtualFreeEx         :TVirtualFreeEx;
   CreateRemoteThread    :TCreateRemoteThread;
+    {$ifdef windows}
+
   OpenThread            :TOpenThread;
 //  GetPEProcess          :TGetPEProcess;
 //  GetPEThread           :TGetPEThread;
@@ -854,18 +871,20 @@ var
   DBKDebug_StopDebugging      : TDBKDebug_StopDebugging;
   DBKDebug_GD_SetBreakpoint   : TDBKDebug_GD_SetBreakpoint;
 
-
+  {$endif}
   closeHandle                 : function (hObject:HANDLE):WINBOOL; stdcall;
+  {$ifdef windows}
 
   GetLogicalProcessorInformation: function(Buffer: PSYSTEM_LOGICAL_PROCESSOR_INFORMATION; ReturnedLength: PDWORD): BOOL; stdcall;
   PrintWindow                 : function (hwnd: HWND; hdcBlt: HDC; nFlags: UINT): BOOL; stdcall;
   ChangeWindowMessageFilter   : function (msg: Cardinal; Action: Dword): BOOL; stdcall;
 
+    {$endif}
   VirtualQueryEx_StartCache: TVirtualQueryEx_StartCache;
   VirtualQueryEx_EndCache: TVirtualQueryEx_EndCache;
 
   GetRegionInfo: function (hProcess: THandle; lpAddress: Pointer; var lpBuffer: TMemoryBasicInformation; dwLength: DWORD; var mapsline: string): DWORD;  stdcall;
-
+  {$ifdef windows}
   SetProcessDEPPolicy: function(dwFlags: DWORD): BOOL; stdcall;
   GetProcessDEPPolicy: function(h: HANDLE; dwFlags: PDWORD; permanent: PBOOL):BOOL; stdcall;
 
@@ -2349,6 +2368,8 @@ resourcestring
 {$endif}
 
 initialization
+  VirtualQueryEx_StartCache:=VirtualQueryEx_StartCache_stub;
+  VirtualQueryEx_EndCache:=VirtualQueryEx_EndCache_stub;
 
   {$if defined(windows) and not defined(STANDALONECH)}
   DBKLoaded:=false;
@@ -2365,8 +2386,7 @@ initialization
   Denylist:= false;
   //globaldenylist:= false;
 
-  VirtualQueryEx_StartCache:=VirtualQueryEx_StartCache_stub;
-  VirtualQueryEx_EndCache:=VirtualQueryEx_EndCache_stub;
+
 
 
   WindowsKernel:=LoadLibrary('Kernel32.dll'); //there is no kernel33.dll
@@ -2476,7 +2496,24 @@ initialization
   SetThreadContext:=@macport.SetThreadContext;
   GetThreadContext:=@macport.GetThreadContext;
   VirtualQueryExActual:=@macport.Virtualqueryex;
+  VirtualProtectEx:=@macport.VirtualProtectEx;
   OpenProcess:=@macport.OpenProcess;
+  CreateToolhelp32Snapshot:=@macport.CreateToolhelp32Snapshot;
+
+  Process32First:=@macport.Process32First;
+  Process32Next:=@macport.Process32Next;
+  Thread32First:=@macport.Thread32First;
+  Thread32Next:=@macport.Thread32Next;
+  Module32First:=@macport.Module32First;
+  Module32Next:=@macport.Module32Next;
+
+  closeHandle:=@macport.closeHandle;
+  VirtualAllocEx:=@macport.virtualallocex;
+  VirtualFreeEx:=@macport.virtualfreeex;
+  CreateRemoteThread:=@macport.CreateRemoteThread;
+
+  GetRegionInfo:=@macport.GetRegionInfo;
+
   {$else}
 {
   OutputDebugString('TARM64CONTEXT:');

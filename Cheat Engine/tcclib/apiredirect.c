@@ -1,5 +1,11 @@
 #define NOREDIRECT
+#ifdef WINDOWS
 #include <io.h>
+#else
+#include <sys/types.h>
+#include <sys/uio.h>
+#include <unistd.h>
+#endif
 #include "tcc.h"
 #undef NOREDIRECT
 
@@ -33,7 +39,7 @@ int __cdecl redirectedopen(char const* _FileName, int _OpenFlag, ...)
 	return r;
 }
 
-int __cdecl redirectedclose(_In_ int _FileHandle)
+int __cdecl redirectedclose(int _FileHandle)
 {
 	int r=-1;
 	if (closefile_override)

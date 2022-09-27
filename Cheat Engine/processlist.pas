@@ -28,7 +28,7 @@ var
 
 implementation
 
-uses Globals, commonTypeDefs{$ifdef windows}, networkInterfaceApi{$endif}
+uses Globals, commonTypeDefs, networkInterfaceApi
   {$ifdef darwin}
   , macportdefines //must be at the end
   {$endif}
@@ -62,25 +62,29 @@ end;
 procedure sanitizeProcessList(processlist: TStrings);
 var
   i: integer;
+{$IFDEF WINDOWS}
   ProcessListInfo: PProcessListInfo;
+  {$ENDIF}
 begin
+  {$ifdef windows}
   for i:=0 to processlist.count-1 do
     if processlist.Objects[i]<>nil then
     begin
       ProcessListInfo:= pointer( processlist.Objects[i]);
-{$ifdef windows}
+
       if (ProcessListInfo^.processIcon<>0) and (ProcessListInfo^.processIcon<>HWND(-1)) then
       begin
         if ProcessListInfo^.processID<>GetCurrentProcessId then
           DestroyIcon(ProcessListInfo^.processIcon);
       end;
-{$endif}
+
 
 
       freemem(ProcessListInfo);
 
       processlist.Objects[i]:=nil;
     end;
+  {$endif}
 end;
 
 procedure cleanProcessList(processlist: TStrings);
@@ -94,17 +98,24 @@ procedure GetProcessList(ProcessList: TStrings; NoPID: boolean=false; noProcessI
 var SNAPHandle: THandle;
     ProcessEntry: PROCESSENTRY32;
     Check: Boolean;
+    {$IFDEF WINDOWS}
+    lwindir: string;
     HI: HICON;
     ProcessListInfo: PProcessListInfo;
+    {$ENDIF}
     i,j: integer;
     s,s2: string;
 
-    lwindir: string;
+
 begin
   cleanProcessList(ProcessList);
 
   {$ifdef darwin}
-  macport.GetProcessList(processlist);
+  if getconnection=nil then
+  begin
+    macport.GetProcessList(processlist);
+    exit;
+  end;
   {$endif}
 
   {$ifdef windows}
@@ -117,6 +128,7 @@ begin
   j:=0;
 
 //  OutputDebugString('GetProcessList()');
+  {$endif}
 
 
 
@@ -148,9 +160,12 @@ begin
    // OutputDebugString('Setting up ProcessEntry dwSize');
     ProcessEntry.dwSize:=SizeOf(ProcessEntry);
 
-
+    {$ifdef windows}
     if getconnection<>nil then
       noProcessInfo:=true;
+    {$else}
+    noProcessInfo:=true;
+    {$endif}
 
     Check:=Process32First(SnapHandle,ProcessEntry);
     while check do
@@ -208,14 +223,15 @@ begin
     raise exception.Create(rsICanTGetTheProcessListYouArePropablyUsingWindowsNT);
     {$endif}
   end;
-  {$endif}
 end;
 
 {$ifndef JNI}
 procedure GetProcessList(ProcessList: TListBox; NoPID: boolean=false);
+{$IFDEF WINDOWS}
 var sl: tstringlist;
     i: integer;
     pli: PProcessListInfo;
+{$ENDIF}
 begin
   {$ifdef darwin}
   macport.GetProcessList(processlist.Items);

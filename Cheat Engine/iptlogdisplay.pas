@@ -5,13 +5,15 @@ unit iptlogdisplay;
 interface
 
 uses
-  windows, ProcessHandlerUnit, Classes, SysUtils, LResources, Forms, Controls,
+  {$ifdef windows}windows,{$endif} ProcessHandlerUnit, Classes, SysUtils, LResources, Forms, Controls,
   Graphics, Dialogs, StdCtrls, ComCtrls, ExtCtrls, Menus, betterControls,
   libipt, pagemap, Contnrs, syncobjs,maps;
 
 type
 
   { TfrmIPTLogDisplay }
+
+{$ifdef windows}
 
   TIPList=record
     list: pqword;   //max 64MB(8388608 entries) / block
@@ -81,7 +83,7 @@ type
     destructor destroy; override;
     property OnDataReady: TIPTLogDataReadyEvent read fOnDataReady write fOnDataReady;
   end;
-
+{$endif}
   TfrmIPTLogDisplay = class(TForm)
     btnFetchMore: TButton;
     btnFetchAll: TButton;
@@ -104,6 +106,7 @@ type
     procedure lvResultsDblClick(Sender: TObject);
     procedure Timer1Timer(Sender: TObject);
   private
+    {$ifdef windows}
     logloader: TIPTLogLoader;
 
     iptracedata: PPIPList;
@@ -116,6 +119,7 @@ type
     stopIP: ptruint;
     procedure cleardata;
     procedure LogLoaderDataReady(sender: TObject; log: PPIPList; count: integer);
+    {$endif}
   public
     procedure loadlog(logname: string; iptlog: pointer; size:dword; endAtIP: ptruint=0);
 
@@ -126,6 +130,7 @@ implementation
 
 uses math, cefuncproc, disassembler, MemoryBrowserFormUnit, symbolhandler;
 
+{$ifdef windows}
 function iptReadMemory(buffer: PByte; size: SIZE_T; asid: PPT_ASID; ip: uint64; context: pointer): integer; cdecl;
 var
   br: ptruint;
@@ -504,10 +509,13 @@ begin
 
   inherited create(false);
 end;
+{$endif}
+
 
 procedure TfrmIPTLogDisplay.loadlog(logname: string; iptlog: pointer; size:dword; endAtIP: ptruint=0);
 begin
   //reset to default
+  {$ifdef windows}
   if logloader<>nil then
   begin
     logloader.terminate;
@@ -537,11 +545,12 @@ begin
   fetchingData:=true;
 
   stopIP:=endAtIP;
+  {$endif}
 end;
 
 procedure TfrmIPTLogDisplay.btnFetchMoreClick(Sender: TObject);
 begin
-
+ {$ifdef windows}
 
   btnFetchMore.enabled:=false;
   btnFetchAll.enabled:=false;
@@ -556,12 +565,14 @@ begin
   end;
 
   fetchingData:=true;
+  {$endif}
 end;
 
 procedure TfrmIPTLogDisplay.btnFetchAllClick(Sender: TObject);
 begin
 
 
+  {$IFDEF WINDOWS}
   btnFetchMore.enabled:=false;
   btnFetchAll.enabled:=false;
   lvResults.cursor:=crHourGlass;
@@ -575,8 +586,10 @@ begin
 
   timer1.enabled:=true;
   Progressbar.visible:=true;
+  {$ENDIF}
 end;
 
+{$IFDEF WINDOWS}
 procedure TfrmIPTLogDisplay.cleardata;
 var i: integer;
 begin
@@ -589,7 +602,9 @@ begin
     iptracedata:=nil
   end;
 end;
+{$ENDIF}
 
+{$IFDEF WINDOWS}
 procedure TfrmIPTLogDisplay.LogLoaderDataReady(sender: TObject; log: PPIPList; count: integer);
 var oldtop: integer;
   oldindex: integer;
@@ -726,26 +741,32 @@ begin
 
 
 end;
+{$ENDIF}
 
 procedure TfrmIPTLogDisplay.FormClose(Sender: TObject;
   var CloseAction: TCloseAction);
 begin
+  {$IFDEF WINDOWS}
   if logloader<>nil then
     logloader.Terminate;
 
   closeaction:=cafree;
+  {$ENDIF}
 end;
 
 procedure TfrmIPTLogDisplay.FormCreate(Sender: TObject);
 begin
+  {$IFDEF WINDOWS}
   ripseen:=tmap.Create(ituPtrSize,sizeof(qword));
 
   LoadFormPosition(self);
   if not libIptInit then raise exception.create('Failure loading libipt');
+  {$ENDIF}
 end;
 
 procedure TfrmIPTLogDisplay.FormDestroy(Sender: TObject);
 begin
+  {$IFDEF WINDOWS}
   if logloader<>nil then
   begin
     logloader.terminate;
@@ -758,12 +779,15 @@ begin
   cleardata;
 
   SaveFormPosition(Self);
+  {$ENDIF}
 end;
 
 procedure TfrmIPTLogDisplay.FormShow(Sender: TObject);
 begin
+  {$IFDEF WINDOWS}
   lvResults.Column[0].width:=canvas.TextWidth(' Frequency ( ) ');
   lvResults.Column[1].width:=canvas.TextWidth(' XXXXXXXXXXXXXXXXXX ');
+  {$ENDIF}
 end;
 
 procedure TfrmIPTLogDisplay.lvResultsData(Sender: TObject; Item: TListItem);
@@ -774,7 +798,8 @@ var
   current: integer;
   timesseen: pqword;
 begin
-  current:=0;
+  {$IFDEF WINDOWS}
+ current:=0;
   c:=item.Index;
 
 
@@ -810,6 +835,7 @@ begin
   end;
 
   item.caption:='error '+item.index.ToString;
+ {$ENDIF}
 
 end;
 
@@ -818,7 +844,8 @@ var i: integer;
   current: integer;
   c: integer;
 begin
-  current:=0;
+  {$IFDEF WINDOWS}
+ current:=0;
   if lvResults.selected<>nil then
   begin
     c:=lvResults.Selected.Index;
@@ -837,11 +864,14 @@ begin
         inc(current, iptracedata[i]^.listpos);
     end;
   end;
+ {$ENDIF}
 end;
 
 procedure TfrmIPTLogDisplay.Timer1Timer(Sender: TObject);
 begin
-  Progressbar.Position:=ceil((logloader.progress / logloader.logsize) * 100);
+{$IFDEF WINDOWS}
+Progressbar.Position:=ceil((logloader.progress / logloader.logsize) * 100);
+{$ENDIF}
 end;
 
 

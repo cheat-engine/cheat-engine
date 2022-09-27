@@ -69,6 +69,7 @@ type
   TDynDwordArray=array of dword;
 
 
+{$IFDEF WINDOWS}
 type TProcessListInfo=record
   processID: dword;
   winhandle: HWND;
@@ -76,6 +77,7 @@ type TProcessListInfo=record
   //issystemprocess: boolean;
 end;
 PProcessListInfo=^TProcessListInfo;
+{$ENDIF}
 
 
 type tmoduledata =class

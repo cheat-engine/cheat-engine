@@ -32,7 +32,7 @@ Ported to pascal by Eric Heijnen 2022
 interface
 
 uses
-  Classes, SysUtils, Windows;
+  Classes, SysUtils{$ifdef darwin},ctypes, macport{$endif}{$ifdef windows}, Windows{$endif};
 
 
   const
@@ -282,7 +282,7 @@ uses
   {$error invalid size of IPT_OUTPUT_BUFFER}
   {$endif}
 
-
+  {$ifdef windows}
 //
 // IOCTLs that the IPT Driver Handles
 //
@@ -313,9 +313,11 @@ function PauseThreadIptTracing(hThread: THandle; out r: BOOLEAN): boolean;
 function ResumeThreadIptTracing(hThread: THandle; out r: BOOLEAN): boolean;
 
 function ConfigureThreadAddressFilterRange(hThread: THandle; dwRangeIndex: DWORD; dwRangeConfig: IPT_FILTER_RANGE_SETTINGS; ullStartAddress: QWORD; ullEndAddress: QWORD): boolean;
+{$endif}
 
 implementation
 
+{$ifdef windows}
 procedure InitializeIptBuffer(out input: IPT_INPUT_BUFFER;  InputType: IPT_INPUT_TYPE);
 begin
   zeromemory(@input, sizeof(input));
@@ -659,6 +661,8 @@ begin
     closehandle(hIpt);
   end;
 end;
+
+{$endif}
 
 finalization
 

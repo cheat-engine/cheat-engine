@@ -42,7 +42,7 @@ type
 
 
 {$ifdef THREADNAMESUPPORT}
-function GetThreadName(tid: TThreadID=0): string;
+function GetThreadName(tid: TThreadID={$ifdef windows}0{$else}nil{$endif}): string;
 {$endif}
 
 
@@ -59,11 +59,11 @@ var
 
 {$ifdef THREADNAMESUPPORT}
 
-function GetThreadName(tid: TThreadID=0): string;
+function GetThreadName(tid: TThreadID={$ifdef windows}0{$else}nil{$endif}): string;
 var s: pstring;
 begin
   result:='';
-  if tid=0 then tid:=GetCurrentThreadId;
+  if {$ifdef windows}tid=0{$else}tid=nil{$endif} then tid:=GetCurrentThreadId;
 
   threadnamesCS.enter;
   s:=nil;

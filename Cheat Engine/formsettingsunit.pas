@@ -1895,6 +1895,9 @@ begin
 
   cbUseIntelPT.enabled:=systemSupportsIntelPT;
   cbHideIPTCapability.visible:=systemSupportsIntelPT;
+  {$else}
+  cbUseIntelPT.visible:=false;
+  cbHideIPTCapability.visible:=false;
   {$endif}
 
 
@@ -1977,6 +1980,8 @@ begin
   {$else}
   cbUseMacDebugger.visible:=false;
   {$endif}
+
+  pcSetting.ActivePageIndex:=0;
 end;
 
 procedure TformSettings.cbKernelQueryMemoryRegionClick(Sender: TObject);
