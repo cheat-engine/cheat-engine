@@ -155,7 +155,9 @@ type
     procedure clearDebugRegisters;
     procedure continueDebugging(continueOption: TContinueOption; handled: boolean=true);
 
+    {$IFDEF WINDOWS}
     function getLastIPTLog(out log: pointer; out size: integer): boolean;
+    {$ENDIF}
 
 
     constructor Create(debuggerthread: TObject; attachEvent: Tevent; continueEvent: Tevent; breakpointlist: TList; threadlist: Tlist; debuggerCS: TGuiSafeCriticalSection);
@@ -255,8 +257,10 @@ begin
     begin
 
 
+      {$IFDEF WINDOWS}
       if systemSupportsIntelPT and useintelptfordebug and inteliptlogfindwhatroutines then
         hasiptlog:=TDebuggerthread(debuggerthread).getLastIPT(lastiptlog, lastiptlogsize);
+
 
       if hasiptlog then
       begin
@@ -266,7 +270,7 @@ begin
       end
       else
         e.ipt.log:=nil;
-
+      {$ENDIF}
       f.newRecord:=e;
 
       TThread.Synchronize(TThread.CurrentThread, f.AddRecord);
@@ -313,8 +317,10 @@ begin
     //not in the list, add it:
     if hasAddress=false then
     begin
+      {$IFDEF WINDOWS}
       if systemSupportsIntelPT and useintelptfordebug and inteliptlogfindwhatroutines then
         hasiptlog:=TDebuggerthread(debuggerthread).getLastIPT(lastiptlog, lastiptlogsize);
+      {$ENDIF}
 
 
       currentBP^.FoundcodeDialog.addRecord_Address:=address;
@@ -420,7 +426,9 @@ begin
       if processhandler.is64Bit then
       begin
         {$ifdef darwin}
-        arm64context.ContextFlags:=1; //get full state and debug regs
+        if processhandler.isNetwork=false then
+          contexthandler.setcontextflags(context, $ffffffff);
+
         {$endif}
         DebuggerInterfaceAPIWrapper.GetThreadContextArm64(handle, PARM64CONTEXT(context)^, ishandled)
       end
@@ -469,9 +477,10 @@ begin
       if processhandler.is64Bit then
       begin
         {$ifdef darwin}
-        arm64context.ContextFlags:=0;
+        PARM64CONTEXT(context)^.ContextFlags:=0;
+
         if fields in [cfAll, cfDebug] then
-          arm64context.ContextFlags:=arm64context.ContextFlags or 1;
+          PARM64CONTEXT(context)^.ContextFlags:=PARM64CONTEXT(context)^.ContextFlags or 1;
         {$endif}
 
 
@@ -694,6 +703,7 @@ begin
 
 end;
 
+{$IFDEF WINDOWS}
 function TDebugThreadHandler.getLastIPTLog(out log: pointer; out size: integer): boolean;
 begin
   if hasiptlog=false then
@@ -707,6 +717,7 @@ begin
     result:=true;
   end;
 end;
+{$ENDIF}
 
 function TDebugThreadHandler.EnableOriginalBreakpointAfterThisBreakpointForThisThread(bp: Pbreakpoint; OriginalBreakpoint: PBreakpoint): boolean;
 begin
@@ -747,10 +758,8 @@ begin
     context^.EFlags:=eflags_setTF(context^.EFlags,0);
 
   {$ifdef darwin}
-
-
   if (processhandler.SystemArchitecture=archArm) and processhandler.is64Bit and (setInt1Back=false) then
-    arm64context.debugstate.mdscr_el1:=0;
+    parm64context(context)^.debugstate.mdscr_el1:=0;
   {$endif}
 
   try
@@ -865,7 +874,7 @@ begin
           {$ifdef darwin}
           if (processhandler.SystemArchitecture=archArm) and processhandler.is64Bit then
           begin
-            arm64context.debugstate.mdscr_el1:=1;
+            parm64context(context)^.debugstate.mdscr_el1:=1;
             setContext;
           end
           else
@@ -900,7 +909,7 @@ begin
           begin
             {$ifdef darwin}
             if (processhandler.SystemArchitecture=archArm) and processhandler.is64Bit then
-              arm64context.debugstate.mdscr_el1:=1
+              parm64context(context)^.debugstate.mdscr_el1:=1
             else
             {$endif}
             if dbcCanUseInt1BasedBreakpoints in CurrentDebuggerInterface.DebuggerCapabilities then
@@ -1497,12 +1506,12 @@ begin
     if (processhandler.SystemArchitecture=archArm) and (processhandler.is64Bit) then
     begin
       if bpp^.breakpointTrigger=bptExecute then
-        arm64context.debugstate.bcr[bpp^.debugRegister].bits.enabled:=0
+        parm64context(context)^.debugstate.bcr[bpp^.debugRegister].bits.enabled:=0
       else
-        arm64context.debugstate.wcr[bpp^.debugRegister].bits.enabled:=0;
+        parm64context(context)^.debugstate.wcr[bpp^.debugRegister].bits.enabled:=0;
 
       //TdebuggerThread(debuggerthread).UnsetBreakpoint(bpp, nil, ThreadId);
-      arm64context.debugstate.mdscr_el1:=arm64context.debugstate.mdscr_el1 or 1;   //single step
+      parm64context(context)^.debugstate.mdscr_el1:=parm64context(context)^.debugstate.mdscr_el1 or 1;   //single step
       setcontext(cfDebug);
       setInt1Back:=true;
       Int1SetBackBP:=bpp;
@@ -2146,11 +2155,12 @@ begin
     end;
 
 
-    {$ifdef windows}
-    if (CurrentDebuggerInterface is TKernelDebugInterface) or
+
+    if {$ifdef windows} (CurrentDebuggerInterface is TKernelDebugInterface) or {$endif}
        (CurrentDebuggerInterface is TNetworkDebuggerInterface) then //the kerneldebuginterface and networkdebuginterface do not give a breakpoint as init so use create as attachevent
       onAttachEvent.SetEvent;
 
+    {$ifdef windows}
     if (CurrentDebuggerInterface is TWindowsDebuggerInterface) and (debugEvent.CreateProcessInfo.hFile<>0) then
       closeHandle(debugEvent.CreateProcessInfo.hFile); //we don't need this
     {$endif}

@@ -62,7 +62,7 @@ implementation
 {$ifdef jni}
 uses networkinterface, networkInterfaceApi;
 {$else}
-uses LuaHandler, mainunit, {$ifdef windows}networkinterface, networkInterfaceApi,{$endif} ProcessList, lua, FileUtil;
+uses LuaHandler, mainunit, networkinterface, networkInterfaceApi, ProcessList, lua, FileUtil;
 {$endif}
 
 procedure TProcessHandler.overridePointerSize(newsize: integer);
@@ -72,11 +72,7 @@ end;
 
 function TProcessHandler.isNetwork: boolean;
 begin
-  {$ifdef windows}
   result:=(((processhandle shr 24) and $ff)=$ce) and (getConnection<>nil);
-  {$else}
-  result:=false;
-  {$endif}
 end;
 
 procedure TProcessHandler.setIs64bit(state: boolean);
@@ -92,9 +88,7 @@ end;
 
 procedure TProcessHandler.setProcessHandle(processhandle: THandle);
 var
-  {$ifdef windows}
   c: TCEConnection;
-  {$endif}
   arch: integer;
   abi: integer;
 begin
@@ -109,7 +103,7 @@ begin
   end;
 
   fprocesshandle:=processhandle;
-  {$ifdef windows}
+
   c:=getConnection;
   if c<>nil then
   begin
@@ -148,7 +142,6 @@ begin
 
   end
   else
-  {$endif}
   begin
     //outputdebugstring('setProcessHandle not windows');
 

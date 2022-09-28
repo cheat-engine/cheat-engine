@@ -1898,7 +1898,7 @@ PUB_FUNC void tcc_exit_state(void);
 #ifndef NOREDIRECT
 int __cdecl redirectedopen(char const* _FileName, int _OpenFlag, ...);
 int __cdecl redirectedread(int _FileHandle, void* _DstBuf,  unsigned int _MaxCharCount);
-int __cdecl redirectedclose(_In_ int _FileHandle);
+int __cdecl redirectedclose(int _FileHandle);
 
 #define read redirectedread
 #define open redirectedopen

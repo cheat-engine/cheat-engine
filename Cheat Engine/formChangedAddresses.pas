@@ -43,10 +43,12 @@ type
       savedsize: PtrUInt;
     end;
 
+    {$IFDEF WINDOWS}
     ipt: record
       log: pointer;
       size: integer;
     end;
+    {$ENDIF}
     count: integer;
 
     group: integer;
@@ -237,8 +239,10 @@ begin
   if stack.stack<>nil then
     freememandnil(stack.stack);
 
+  {$IFDEF WINDOWS}
   if ipt.log<>nil then
     freememandnil(ipt.log);
+  {$ENDIF}
 
   if fcontext<>nil then
     freememandnil(fcontext);
@@ -1145,6 +1149,7 @@ var
   f: TfrmIPTLogDisplay;
   ae: TAddressEntry;
 begin
+  {$IFDEF WINDOWS}
   if changedlist.Selected=nil then exit;
 
   ae:=TAddressEntry(changedlist.Selected.Data);
@@ -1170,6 +1175,7 @@ begin
     f.show;
     f.loadlog('log'+faddress.ToHexString+GetTickCount64.ToHexString, ae.ipt.log, ae.ipt.size, faddress);
   end;
+  {$ENDIF}
 end;
 
 procedure TfrmChangedAddresses.miDeleteSelectedEntriesClick(Sender: TObject);

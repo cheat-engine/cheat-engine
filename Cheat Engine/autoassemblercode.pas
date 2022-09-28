@@ -450,14 +450,12 @@ begin
     else
     begin
       phandle:=processhandle;
+{$ifdef windows}
       if getConnection<>nil then
         _tcc:=tcc_linux
       else
-      {$ifdef LINUXTCCTEST}
-      _tcc:=tcc_linux;
-      {$else}
+{$endif}
        _tcc:=tcc;
-      {$endif}
 
       psize:=processhandler.pointersize;
     end;
@@ -1256,14 +1254,12 @@ begin
         _tcc:=tccself
       else
       begin
-        {$ifdef LINUXTCCTEST}
-        _tcc:=tcc_linux;
-        {$else}
+        {$ifdef windows}
         if getConnection<>nil then
           _tcc:=tcc_linux
         else
-          _tcc:=tcc;
         {$endif}
+          _tcc:=tcc;
       end;
 
       //clipboard.AsText:=dataForPass2.cdata.cscript.text;

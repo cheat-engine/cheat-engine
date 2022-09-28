@@ -2624,7 +2624,9 @@ var previouswinhandle, winhandle: Hwnd;
     x: tstringlist;
     i,j:integer;
 
+    {$IFDEF WINDOWS}
     ProcessListInfo: PProcessListInfo;
+    {$ENDIF}
     tempptruint: ptruint;
 begin
   {$IFDEF windows}
@@ -2694,16 +2696,6 @@ begin
 end;
 
 procedure GetWindowList(ProcessListBox: TListBox; showInvisible: boolean=true);
-var previouswinhandle, winhandle: Hwnd;
-    winprocess: Dword;
-    temp: Pchar;
-    wintitle: string;
-
-    x: tstringlist;
-    i,j:integer;
-
-    ProcessListInfo: PProcessListInfo;
-    tempdword: dword;
 begin
   GetWindowList(ProcessListBox.Items, showInvisible);
 end;

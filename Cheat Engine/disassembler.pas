@@ -19,8 +19,8 @@ uses windows, classes, imagehlp,sysutils,LCLIntf,byteinterpreter, symbolhandler,
 
 {$ifdef darwin}
 uses LCLIntf, LCLType, macport, macportdefines, classes,sysutils,byteinterpreter, symbolhandler, symbolhandlerstructs,
-  CEFuncProc, NewKernelHandler, ProcessHandlerUnit, LastDisassembleData, disassemblerarm,
-  commonTypeDefs, maps, math,vextypedef, syncobjs;
+  CEFuncProc, ProcessHandlerUnit, LastDisassembleData, disassemblerarm,
+  commonTypeDefs, maps, math,vextypedef, syncobjs, NewKernelHandler;
 {$endif}
 
 //translation: There is no fucking way I change the descriptions to resource strings
@@ -1731,7 +1731,13 @@ begin
         {$endif}
 
         if symhandler.getmodulebyaddress(offset, mi) then
+        begin
           is64bit:=mi.is64bitmodule;
+          if not is64bit then
+          asm
+          nop
+          end;
+        end;
 
       end;
 

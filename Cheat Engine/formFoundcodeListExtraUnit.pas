@@ -283,6 +283,7 @@ procedure TFormFoundCodeListExtra.sbShowIPTClick(Sender: TObject);
 var
   f: TfrmIPTLogDisplay;
 begin
+  {$IFDEF WINDOWS}
   if (ipt.log=nil) then
   begin
     if debuggerthread<>nil then
@@ -304,6 +305,7 @@ begin
     f.show;
     f.loadlog('log'+GetTickCount64.ToHexString, ipt.log, ipt.size, context^.{$ifdef cpu64}Rip{$else}Eip{$endif});
   end;
+  {$ENDIF}
 end;
 
 procedure TFormFoundCodeListExtra.sbShowStackClick(Sender: TObject);

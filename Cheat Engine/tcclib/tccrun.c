@@ -370,7 +370,7 @@ static int tcc_relocate_ex(TCCState *s1, void *ptr, addr_t ptr_diff)
 
 					if (protection == 0)
 					{
-						MessageBoxA(0, "IT IS 0!!!! FUUUUUUUUUCK", "BLA", 0);
+						//MessageBoxA(0, "IT IS 0!!!! FUUUUUUUUUCK", "BLA", 0);
 					}
                     
 					s1->binary_writer_func(s1->binary_writer_param, ptr, s->data, length, protection);
@@ -782,9 +782,9 @@ static void rt_getcontext(ucontext_t *uc, rt_context *rc)
 #elif defined(__aarch64__) && defined(__OpenBSD__)
     rc->ip = uc->sc_elr;
     rc->fp = uc->sc_x[29];
-#elif defined(__aarch64__)
-    rc->ip = uc->uc_mcontext.pc;
-    rc->fp = uc->uc_mcontext.regs[29];
+#elif defined(__aarch64__) //darwin in this case  (Cheat engine modification start)
+    rc->ip = uc->uc_mcontext->__ss.__pc;
+    rc->fp = uc->uc_mcontext->__ss.__fp;  // (Cheat engine modification stop)
 #elif defined(__riscv)
     rc->ip = uc->uc_mcontext.__gregs[REG_PC];
     rc->fp = uc->uc_mcontext.__gregs[REG_S0];

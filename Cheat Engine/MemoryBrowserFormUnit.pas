@@ -1355,6 +1355,7 @@ procedure TMemoryBrowser.miIPTLogClick(Sender: TObject);
 var log: pointer;
     logsize: integer;
 begin
+  {$IFDEF WINDOWS}
   log:=nil;
   if (debuggerthread<>nil) and (debuggerthread.CurrentThread<>nil) then
   begin
@@ -1393,6 +1394,7 @@ begin
     end;
 
   end;
+  {$ENDIF}
 
 end;
 
@@ -6050,12 +6052,14 @@ begin
   if _debuggerthread<>nil then _debuggerthread.execlocation:=41313;
 
 
+  {$IFDEF WINDOWS}
   if (debuggerthread<>nil) and debuggerthread.usingIPT and (frmiptlog<>nil) and (frmiptlog.visible) and (debuggerthread.CurrentThread<>nil) then
   begin
     debuggerthread.CurrentThread.getLastIPTLog(iptlog,iptlogsize);
     frmiptlog.loadlog('',iptlog, iptlogsize);
     freemem(iptlog);
   end;
+  {$ENDIF}
 
 
   registerview.OnResize(registerview);

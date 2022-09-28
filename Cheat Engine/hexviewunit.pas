@@ -3137,7 +3137,7 @@ function THexview.ReadProcessMemory(hProcess: THandle; lpBaseAddress, lpBuffer: 
 begin
 
   if fcr3=0 then
-    result:={$ifdef windows}newkernelhandler.{$endif}{$ifdef darwin}macport.{$endif}ReadProcessMemory(hProcess, lpBaseAddress, lpBuffer, nsize, lpNumberOfBytesRead)
+    result:=newkernelhandler.ReadProcessMemory(hProcess, lpBaseAddress, lpBuffer, nsize, lpNumberOfBytesRead)
   {$ifdef windows}
   else
     result:=ReadProcessMemoryCR3(fcr3,lpBaseAddress, lpBuffer, nsize, lpNumberOfBytesRead)
@@ -3147,7 +3147,7 @@ end;
 function THexview.WriteProcessMemory(hProcess: THandle; const lpBaseAddress: Pointer; lpBuffer: Pointer; nSize: DWORD; var lpNumberOfBytesWritten: PTRUINT): BOOL;
 begin
   if fcr3=0 then
-    result:={$ifdef windows}newkernelhandler.{$endif}{$ifdef darwin}macport.{$endif}WriteProcessMemory(hProcess, lpBaseAddress, lpBuffer, nSize, lpNumberOfBytesWritten)
+    result:=newkernelhandler.WriteProcessMemory(hProcess, lpBaseAddress, lpBuffer, nSize, lpNumberOfBytesWritten)
   {$ifdef windows}
   else
     result:=WriteProcessMemoryCR3(fcr3, lpBaseAddress, lpBuffer, nsize, lpNumberOfBytesWritten)
@@ -3158,7 +3158,7 @@ end;
 function THexview.VirtualQueryEx(hProcess: THandle; lpAddress: Pointer; var lpBuffer: TMemoryBasicInformation; dwLength: DWORD): DWORD;
 begin
   if fcr3=0 then
-    result:={$ifdef windows}newkernelhandler.{$endif}{$ifdef darwin}macport.{$endif}VirtualQueryEx(hProcess, lpAddress, lpBuffer, dwLength)
+    result:=newkernelhandler.VirtualQueryEx(hProcess, lpAddress, lpBuffer, dwLength)
   {$ifdef windows}
   else
   begin

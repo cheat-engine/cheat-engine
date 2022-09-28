@@ -66,13 +66,18 @@ type
 
     GUIObjectToFree: TObject;
 
+    {$ifdef windows}
     fetchediptlog: boolean;
+
     fulliptlog: PIPT_TRACE_DATA;
     fulliptlogsize: dword;
+    {$endif}
 
 
     launchanyhow: boolean;
+    {$ifdef windows}
     usesipt: boolean;
+    {$endif}
     procedure sync_FreeGUIObject;
     procedure vmwareRunningAskLaunch;
 
@@ -166,17 +171,20 @@ type
     procedure startBranchMapper(tidlist: tlist=nil);
     procedure stopBranchMapper;
 
+    {$ifdef windows}
     function initIntelPTTracing: boolean;
     procedure stopIntelPTTracing;
 
     function getLastIPT(var log: pointer; var size: integer): boolean;
-
+    {$endif}
     property CurrentThread: TDebugThreadHandler read getCurrentThread write setCurrentThread;
     property NeedsToSetEntryPointBreakpoint: boolean read fNeedsToSetEntryPointBreakpoint;
     property running: boolean read fRunning;
 
     property usesGlobalDebug: boolean read globalDebug;
+    {$ifdef windows}
     property usingIPT: boolean read usesipt;
+    {$endif}
 
     procedure Terminate;
     procedure Execute; override;
@@ -356,8 +364,10 @@ begin
 
       debugging := True;
 
+      {$IFDEF WINDOWS}
       if systemSupportsIntelPT and useintelptfordebug then
         initIntelPTTracing;
+      {$ENDIF}
 
 
       while (not terminated) and debugging do
@@ -368,7 +378,9 @@ begin
         if CurrentDebuggerInterface.needsToAttach=false then
           OnAttachEvent.SetEvent; //no need to wait if the debuggerinterface does not need to wait
 
+        {$IFDEF WINDOWS}
         fetchediptlog:=false;
+        {$ENDIF}
 
 
         if WaitForDebugEvent(debugEvent, 100) then
@@ -417,8 +429,10 @@ begin
   finally
     outputdebugstring('End of debugger');
 
+    {$IFDEF WINDOWS}
     if usesipt then
       StopProcessIptTracing(processhandle);
+    {$ENDIF}
 
     if currentprocesid <> 0 then
       debuggerinterfaceAPIWrapper.DebugActiveProcessStop(currentprocesid);
@@ -895,8 +909,9 @@ begin
             case breakpoint.breakpointTrigger of
               bptExecute: //bcr
               begin
-                bcr:=@currentthread.arm64context.debugstate.bcr[breakpoint^.debugRegister];
-                bvr:=@currentthread.arm64context.debugstate.bvr[breakpoint^.debugRegister];
+
+                bcr:=@PARM64CONTEXT(currentthread.context)^.debugstate.bcr[breakpoint^.debugRegister];
+                bvr:=@PARM64CONTEXT(currentthread.context)^.debugstate.bvr[breakpoint^.debugRegister];
 
                 bvr^:=breakpoint^.address;
                 bcr^.bits.enabled:=1; // 0..1;    //0 - 0=off, 1=on
@@ -913,8 +928,8 @@ begin
 
               bptAccess, bptWrite:  //wcr
               begin
-                wcr:=@currentthread.arm64context.debugstate.wcr[breakpoint^.debugRegister];
-                wvr:=@currentthread.arm64context.debugstate.wvr[breakpoint^.debugRegister];
+                wcr:=@PARM64CONTEXT(currentthread.context)^.debugstate.wcr[breakpoint^.debugRegister];
+                wvr:=@PARM64CONTEXT(currentthread.context)^.debugstate.wvr[breakpoint^.debugRegister];
 
                 wvr^:=breakpoint^.address;
                 wcr^.bits.enabled:=1;
@@ -1315,8 +1330,8 @@ begin
           if processhandler.is64Bit then
           begin
             case breakpoint.breakpointTrigger of
-              bptExecute: currentthread.arm64context.debugstate.bcr[breakpoint^.debugRegister].bits.enabled:=0;
-              bptAccess, bptWrite: currentthread.arm64context.debugstate.wcr[breakpoint^.debugRegister].bits.enabled:=0;
+              bptExecute: PARM64CONTEXT(currentthread.context)^.debugstate.bcr[breakpoint^.debugRegister].bits.enabled:=0;
+              bptAccess, bptWrite: PARM64CONTEXT(currentthread.context)^.debugstate.wcr[breakpoint^.debugRegister].bits.enabled:=0;
             end;
           end;
           currentthread.setContext(cfDebug);
@@ -1372,8 +1387,8 @@ begin
               if processhandler.is64Bit then
               begin
                 case breakpoint.breakpointTrigger of
-                  bptExecute: currentthread.arm64context.debugstate.bcr[breakpoint^.debugRegister].bits.enabled:=0;
-                  bptAccess, bptWrite: currentthread.arm64context.debugstate.wcr[breakpoint^.debugRegister].bits.enabled:=0;
+                  bptExecute: PARM64CONTEXT(currentthread.context)^.debugstate.bcr[breakpoint^.debugRegister].bits.enabled:=0;
+                  bptAccess, bptWrite: PARM64CONTEXT(currentthread.context)^.debugstate.wcr[breakpoint^.debugRegister].bits.enabled:=0;
                 end;
               end;
               currentthread.setContext(cfDebug);
@@ -1956,6 +1971,7 @@ begin
   //it doesn't really matter if it returns false, that would just mean the breakpoint got and it's tracing or has finished tracing
 end;
 
+{$ifdef windows}
 function TDebuggerThread.initIntelPTTracing: boolean;
 var
   options: IPT_OPTIONS;
@@ -2008,8 +2024,10 @@ begin
   StopProcessIptTracing(processhandle);
 end;
 
+
 function TDebuggerThread.getLastIPT(var log: pointer; var size: integer): boolean;
 //get a direct pointer to the debuggerthread's current log. (fetches the log if it hasn't done so yet)
+
 var
   tracesize: dword;
   h: PIPT_TRACE_HEADER;
@@ -2018,6 +2036,7 @@ var
   loopcount: integer;
 begin
   result:=false;
+
   if usesipt=false then exit;
 
   if fcurrentThread<>nil then
@@ -2084,8 +2103,10 @@ begin
   end
   else
     exit;
+
 end;
 
+ {$endif}
 
 procedure TDebuggerThread.startBranchMapper(tidlist: TList=nil);
 var
@@ -2124,6 +2145,7 @@ begin
   for i:=0 to ThreadList.count-1 do
     TDebugThreadHandler(threadlist[i]).StopBranchMap;
 end;
+
 
 function TDebuggerThread.CodeFinderStop(codefinder: TFoundCodeDialog): boolean;
 var
@@ -3316,8 +3338,10 @@ begin
   end;
 
 
+  {$IFDEF WINDOWS}
   if fulliptlog<>nil then
     freememandnil(fulliptlog);
+  {$ENDIF}
 
 
   if OnAttachEvent <> nil then

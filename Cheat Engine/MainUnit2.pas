@@ -822,15 +822,24 @@ begin
 
 
 
-          try cbKernelQueryMemoryRegion.checked:=reg.ReadBool('Use dbk32 QueryMemoryRegionEx'); except end;
-          try cbKernelReadWriteProcessMemory.checked:=reg.ReadBool('Use dbk32 ReadWriteProcessMemory'); except end;
-          try cbKernelOpenProcess.checked:=reg.ReadBool('Use dbk32 OpenProcess'); except end;
 
 
-          try unrandomizersettings.defaultreturn:=reg.ReadInteger('Unrandomizer: default value'); except end;
-          try unrandomizersettings.incremental:=reg.ReadBool('Unrandomizer: incremental'); except end;
+          if reg.ValueExists('Unrandomizer: default value') then
+            unrandomizersettings.defaultreturn:=reg.ReadInteger('Unrandomizer: default value');
+
+          if reg.ValueExists('Unrandomizer: incremental') then
+            unrandomizersettings.incremental:=reg.ReadBool('Unrandomizer: incremental');
 
           {$ifdef windows}
+          if reg.ValueExists('Use dbk32 QueryMemoryRegionEx') then
+            cbKernelQueryMemoryRegion.checked:=reg.ReadBool('Use dbk32 QueryMemoryRegionEx');
+
+          if reg.ValueExists('Use dbk32 ReadWriteProcessMemory') then
+            cbKernelReadWriteProcessMemory.checked:=reg.ReadBool('Use dbk32 ReadWriteProcessMemory');
+
+          if reg.ValueExists('Use dbk32 OpenProcess') then
+            cbKernelOpenProcess.checked:=reg.ReadBool('Use dbk32 OpenProcess');
+
           if reg.ValueExists('ModuleList as Denylist') then
             DenyList:=reg.ReadBool('ModuleList as Denylist')
           else

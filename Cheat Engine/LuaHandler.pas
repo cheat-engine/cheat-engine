@@ -8680,22 +8680,26 @@ function TNewProcess.RunCommandLoop(out outputstring:string;
       stderrlength:=0;
       Execute;
 
+      {$ifdef windows}
       while WaitForSingleObject(FProcessHandle,0)=WAIT_TIMEOUT do
-        begin
-          // Only call ReadFromStream if Data from corresponding stream
-          // is already available, otherwise, on  linux, the read call
-          // is blocking, and thus it is not possible to be sure to handle
-          // big data amounts bboth on output and stderr pipes. PM.
-          gotoutput:=ReadInputStream(output,BytesRead,OutputLength,OutputString,1);
-          // The check for assigned(P.stderr) is mainly here so that
-          // if we use poStderrToOutput in p.Options, we do not access invalid memory.
-          gotoutputstderr:=false;
-          if assigned(stderr) then
-              gotoutputstderr:=ReadInputStream(StdErr,StdErrBytesRead,StdErrLength,StdErrString,1);
+      {$else}
+      while running do
+      {$endif}
+      begin
+        // Only call ReadFromStream if Data from corresponding stream
+        // is already available, otherwise, on  linux, the read call
+        // is blocking, and thus it is not possible to be sure to handle
+        // big data amounts bboth on output and stderr pipes. PM.
+        gotoutput:=ReadInputStream(output,BytesRead,OutputLength,OutputString,1);
+        // The check for assigned(P.stderr) is mainly here so that
+        // if we use poStderrToOutput in p.Options, we do not access invalid memory.
+        gotoutputstderr:=false;
+        if assigned(stderr) then
+            gotoutputstderr:=ReadInputStream(StdErr,StdErrBytesRead,StdErrLength,StdErrString,1);
 
-         { if (porunidle in options) and not gotoutput and not gotoutputstderr and Assigned(FOnRunCommandEvent) Then
-            FOnRunCommandEvent(self,Nil,RunCommandIdle,'');  }
-        end;
+       { if (porunidle in options) and not gotoutput and not gotoutputstderr and Assigned(FOnRunCommandEvent) Then
+          FOnRunCommandEvent(self,Nil,RunCommandIdle,'');  }
+      end;
       // Get left output after end of execution
 
 

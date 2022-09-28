@@ -469,7 +469,21 @@
 -dCUSTOMFLOAT
 -dXDEBUG
 -dUSELAZFREETYPE
--dNESTEDSTRUCTURES"/>
+-dNESTEDSTRUCTURES
+-dTHREADNAMESUPPORT"/>
+            <OtherDefines Count="11">
+              <Define0 Value="NOTMULTITHREADED"/>
+              <Define1 Value="benchmarkps"/>
+              <Define2 Value="cemain"/>
+              <Define3 Value="NDEBUG"/>
+              <Define4 Value="D3DDebug"/>
+              <Define5 Value="NOVMX"/>
+              <Define6 Value="CUSTOMFLOAT"/>
+              <Define7 Value="XDEBUG"/>
+              <Define8 Value="USELAZFREETYPE"/>
+              <Define9 Value="NESTEDSTRUCTURES"/>
+              <Define10 Value="THREADNAMESUPPORT"/>
+            </OtherDefines>
           </Other>
         </CompilerOptions>
       </Item8>

@@ -10570,6 +10570,7 @@ var
 
   tempicon: Graphics.TIcon;
   tempp: tpicture;
+  p: integer;
 
 begin
   //fill with processlist
@@ -10592,11 +10593,21 @@ begin
       j := sl.Count - 1 - i;
       currentmi := TMenuItemExtra.Create(self);
       currentmi.Caption := sl[i];
-      currentmi.Default := dword(sl.Objects[i]) = ProcessID;
+      {$ifdef windows}
+      currentmi.Default := dword(ptrUint(PProcessListInfo(sl.Objects[i])^.processid)) = ProcessID;
       currentmi.Data := pointer(ptrUint(PProcessListInfo(sl.Objects[i])^.processid));
+      {$else}
+      if TryStrToInt('$'+copy(sl[i],1,pos('-',sl[i])), p) then
+      begin
+        currentmi.Data := pointer(p);
+        currentmi.default:=p=processid;
+      end;
+      {$endif}
+
       currentmi.OnClick := ProcessItemClick;
 
 
+      {$IFDEF WINDOWS}
       if PProcessListInfo(sl.Objects[i])^.processIcon > 0 then
       begin
         tempicon := Graphics.TIcon.Create;
@@ -10610,6 +10621,7 @@ begin
         tempicon.free;
       end
       else
+      {$ENDIF}
         currentmi.ImageIndex := -1;
 
       mi[j] := currentmi;

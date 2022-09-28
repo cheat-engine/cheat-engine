@@ -406,6 +406,9 @@ begin
           lpme.modBaseAddr:=pointer(r.modulebase);
           lpme.modBaseSize:=r.modulesize;
           lpme.GlblcntUsage:=r.modulepart;
+          {$ifdef darwin}
+          lpme.is64bit:=processhandler.is64Bit;
+          {$endif}
           copymemory(@lpme.szExePath[0], @mnames[1], min(length(mnames)+1, MAX_PATH));
           lpme.szExePath[MAX_PATH-1]:=#0;
 

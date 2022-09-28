@@ -425,7 +425,7 @@ begin
 
             li:=lvIPList.Items.add;
             if name<>'' then
-              li.caption:=name
+              li.caption:=name+' ('+ip+')'
             else
               li.caption:=ip;
 

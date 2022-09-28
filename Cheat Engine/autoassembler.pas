@@ -82,7 +82,7 @@ uses strutils, memscan, disassembler, networkInterface, networkInterfaceApi,
 
 
 uses simpleaobscanner, StrUtils, LuaHandler, memscan, disassembler{$ifdef windows}, networkInterface{$endif},
-     {$ifdef windows}networkInterfaceApi,{$endif} LuaCaller, SynHighlighterAA, Parsers, Globals, memoryQuery,
+     networkInterfaceApi, LuaCaller, SynHighlighterAA, Parsers, Globals, memoryQuery,
      MemoryBrowserFormUnit, MemoryRecordUnit{$ifdef windows}, vmxfunctions{$endif}, autoassemblerexeptionhandler,
      UnexpectedExceptionsHelper, types, autoassemblercode;
 {$endif}
