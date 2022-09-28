@@ -141,6 +141,8 @@ type
     _contextsize: integer; //debug
     {$endif}
 
+    fissuspended: boolean;
+
     procedure UpdateMemoryBrowserContext;
     procedure StartBranchMap;
     procedure StopBranchMap;
@@ -164,6 +166,7 @@ type
     property isUnhandledException: boolean read unhandledException;
     property lastUnhandledExceptionCode: dword read unhandledExceptionCode;
     property OnHandleBreakAsync: THandleBreakEvent read fOnHandleBreakAsync write fOnHandleBreakAsync;
+    property issuspended: boolean read fissuspended;
   end;
 
   TDebugEventHandler = class
@@ -498,6 +501,11 @@ begin
     begin
       debuggercs.enter;
 
+      if (handle<>0) and (not fissuspended) then
+      asm
+      nop
+      end;
+
       {$ifdef windows}
       fields:=cfall; //just for vehdebug
 
@@ -531,13 +539,21 @@ end;
 procedure TDebugThreadHandler.suspend;
 begin
   if handle<>0 then
+  begin
     suspendthread(handle);
+    fissuspended:=true;
+  end;
+
+
 end;
 
 procedure TDebugThreadHandler.resume;
 begin
   if handle<>0 then
+  begin
     resumethread(handle);
+    fissuspended:=false;
+  end;
 end;
 
 procedure TDebugThreadHandler.breakThread;
@@ -1212,7 +1228,7 @@ begin
     if setint1back {$ifdef darwin}and (processhandler.SystemArchitecture=archArm){$endif} then
     begin
       //set the breakpoint back
-      TdebuggerThread(debuggerthread).SetBreakpoint(Int1SetBackBP);
+      TdebuggerThread(debuggerthread).SetBreakpoint(Int1SetBackBP, self);
       setInt1Back:=false;
       hasSetInt1Back:=true;
       dwContinueStatus:=DBG_CONTINUE;

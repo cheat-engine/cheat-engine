@@ -71,8 +71,10 @@ type
     fulliptlogsize: dword;
 
 
+    launchanyhow: boolean;
     usesipt: boolean;
     procedure sync_FreeGUIObject;
+    procedure vmwareRunningAskLaunch;
 
 
     procedure DBVMSteppingLost(sender: TObject);
@@ -261,6 +263,9 @@ resourcestring
   rsDepSettingTimeout = 'Timeout while trying to set DEP policy. Continue with'
     +' the breakpoint?';
   rsDebuggerAttachAborted = 'Debugger attach aborted';
+  rsVMWareIsRunningIPTBAD = 'VMWare seems to be running. It''s known that some'
+    +' versions of vmware will cause a BSOD in combination with intel IPT. Do '
+    +'you still want to use intel IPT?';
 
 procedure TDebuggerthread.Execute;
 var
@@ -1962,6 +1967,18 @@ begin
 
   if useintelptfordebug then
   begin
+
+    if ce_getProcessIDFromProcessName('vmware-vmx.exe')<>0 then
+    begin
+      launchanyhow:=false;
+      if MainThreadID=GetCurrentThreadId then
+        vmwareRunningAskLaunch
+      else
+        synchronize(vmwareRunningAskLaunch);
+
+      if not launchanyhow then exit;
+    end;
+
     sizeadjust:=0;
 
     options.AsUlongLong:=0;
@@ -3181,6 +3198,11 @@ procedure TDebuggerthread.sync_FreeGUIObject;
 begin
   GUIObjectToFree.Free;
   GUIObjectToFree:=nil;
+end;
+
+procedure TDebuggerthread.vmwareRunningAskLaunch;
+begin
+  launchanyhow:=MessageDlg(rsVMWareIsRunningIPTBAD, mtWarning, [mbyes, mbno], 0)=mryes;
 end;
 
 procedure TDebuggerthread.defaultConstructorcode;
