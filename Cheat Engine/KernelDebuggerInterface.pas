@@ -395,7 +395,6 @@ begin
   if currentthread<>0 then
   begin
     ResumeThread(currentthread);
-    closeHandle(currentThread);
     currentthread:=0;
   end;
 
