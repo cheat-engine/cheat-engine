@@ -472,7 +472,11 @@ begin
           lpContext.PSTATE:=carm64^.contextarm64.PSTATE;
           copymemory(@lpContext.fp.vregs[0], @carm64^.contextarm64.fp.vregs[0],32*16);
           lpContext.fp.fpsr:=carm64^.contextarm64.fp.fpsr;
+          {$ifdef darwin}
           lpContext.fp.fpcs:=carm64^.contextarm64.fp.fpcr;
+          {$else}
+          lpContext.fp.fpcr:=carm64^.contextarm64.fp.fpcr;
+          {$endif}
 
 
           result:=true;
@@ -502,7 +506,11 @@ begin
     carm64.contextarm64.PSTATE:=lpcontext.PSTATE;
     copymemory(@carm64.contextarm64.fp.vregs[0], @lpcontext.fp.vregs[0],32*16);
     carm64.contextarm64.fp.fpsr:=lpcontext.fp.fpsr;
+    {$ifdef darwin}
     carm64.contextarm64.fp.fpcr:=lpcontext.fp.fpcs;
+    {$else}
+    carm64.contextarm64.fp.fpcr:=lpcontext.fp.fpcr;
+    {$endif}
 
     result:=c.setContext(processhandle, hThread, @carm64, carm64.contextsize);
   end;

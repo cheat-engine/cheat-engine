@@ -418,6 +418,11 @@ begin
 
   if (handle<>0) or ((currentdebuggerinterface.controlsTheThreadList=false) and ishandled) then
   begin
+    if (handle<>0) and (not ishandled) and (not fissuspended) then
+    begin
+      exit;
+    end;
+
     debuggercs.enter;
 
     if processhandler.SystemArchitecture=archArm then
@@ -468,6 +473,11 @@ procedure TDebugThreadHandler.setContext(fields: TContextFields=cfAll);
 var
   i: integer;
 begin
+  if (handle<>0) and (not ishandled) and (not fissuspended) then
+  begin
+    exit;
+  end;
+
   if processhandler.SystemArchitecture=archArm then
   begin
     outputdebugstring('TDebugThreadHandler.setThreadContext() for ARM');
@@ -509,38 +519,39 @@ begin
     if (handle<>0) or ((currentdebuggerinterface.controlsTheThreadList=false) and ishandled) then
     begin
       debuggercs.enter;
+      try
 
-      if (handle<>0) and (not fissuspended) then
-      asm
-      nop
+
+
+        {$ifdef windows}
+        fields:=cfall; //just for vehdebug
+
+        //experiment:
+       // context.Dr7:=context.Dr7 or (1 shl 8); //DR7 LE
+        //context.Dr7:=context.Dr7 or (1 shl 9); //DR7 GE
+        //context.DebugControl:=qword($ffffffffffffffff);
+        {$endif};
+
+
+        case fields of
+          cfAll: context^.ContextFlags := CONTEXT_ALL or CONTEXT_EXTENDED_REGISTERS;
+          cfDebug: context^.ContextFlags := CONTEXT_DEBUG_REGISTERS;
+          cfFloat: context^.ContextFlags := CONTEXT_FLOATING_POINT or CONTEXT_EXTENDED_REGISTERS;
+          cfRegisters: context^.ContextFlags := CONTEXT_INTEGER or CONTEXT_CONTROL or CONTEXT_SEGMENTS;
+        end;
+
+        //context.dr7:=context.dr7 or $300;
+
+
+        if not DebuggerInterfaceAPIWrapper.setthreadcontext(self.handle, PCONTEXT(context)^, isHandled) then
+        begin
+          i := getlasterror;
+          outputdebugstring(PChar('setthreadcontext error:' + IntToStr(getlasterror)));
+        end;
+      finally
+        debuggercs.leave;
       end;
 
-      {$ifdef windows}
-      fields:=cfall; //just for vehdebug
-
-      //experiment:
-     // context.Dr7:=context.Dr7 or (1 shl 8); //DR7 LE
-      //context.Dr7:=context.Dr7 or (1 shl 9); //DR7 GE
-      //context.DebugControl:=qword($ffffffffffffffff);
-      {$endif};
-
-
-      case fields of
-        cfAll: context^.ContextFlags := CONTEXT_ALL or CONTEXT_EXTENDED_REGISTERS;
-        cfDebug: context^.ContextFlags := CONTEXT_DEBUG_REGISTERS;
-        cfFloat: context^.ContextFlags := CONTEXT_FLOATING_POINT or CONTEXT_EXTENDED_REGISTERS;
-        cfRegisters: context^.ContextFlags := CONTEXT_INTEGER or CONTEXT_CONTROL or CONTEXT_SEGMENTS;
-      end;
-
-      //context.dr7:=context.dr7 or $300;
-
-
-      if not DebuggerInterfaceAPIWrapper.setthreadcontext(self.handle, PCONTEXT(context)^, isHandled) then
-      begin
-        i := getlasterror;
-        outputdebugstring(PChar('setthreadcontext error:' + IntToStr(getlasterror)));
-      end;
-      debuggercs.leave;
     end else outputdebugstring('fillContext: handle=0');
   end;
 end;
@@ -2106,11 +2117,6 @@ begin
       handle  := debugevent.CreateThread.hThread
     else
     begin
-      if debugevent.CreateThread.hThread<>0 then
-      begin
-       // closehandle(debugevent.CreateThread.hThread); //not needed, windows controls this one
-      end;
-
       if currentdebuggerinterface.controlsTheThreadList then
         handle  := OpenThread(THREAD_ALL_ACCESS, false, threadid )
       else
@@ -2122,8 +2128,6 @@ begin
 
   Result    := true;
 
-  //set all the debugregister breakpoints for this thread
-  //TDebuggerThread(debuggerthread).UpdateDebugRegisterBreakpointsForThread(self);   (now done on cleanup)
 
   dwContinueStatus:=DBG_CONTINUE;
 end;
@@ -2459,6 +2463,7 @@ begin
   currentthread.hasiptlog:=false;
   currentthread.isHandled:=CurrentDebuggerInterface.IsInjectedEvent=false;
   currentThread.currentBP:=nil;
+
 
   currentthread.FillContext;
   TDebuggerthread(debuggerthread).currentThread:=currentThread;

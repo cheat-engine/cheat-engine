@@ -16,7 +16,7 @@ uses
   ,mactypes, macport, macportdefines, dialogs;
   {$endif}
   {$ifdef windows}
-  dialogs;
+  ,dialogs;
   {$endif}
 
   {$endif}

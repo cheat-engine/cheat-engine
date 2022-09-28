@@ -10,7 +10,7 @@ uses
   jwaNtStatus, Windows,
   Classes, SysUtils,symbolhandler, symbolhandlerstructs,
   VEHDebugSharedMem,cefuncproc, autoassembler,newkernelhandler,DebuggerInterface,
-  Clipbrd;
+  Clipbrd,maps;
 
 type
 
@@ -38,6 +38,8 @@ type
     Heartbeat: TThread;
 
     CurrentThread: THandle;
+
+    threads: TMap;  //internal threadhandle map
 
     procedure SynchronizeNoBreakList;
     procedure DoThreadPoll;
@@ -140,6 +142,8 @@ begin
 
   lastthreadlist.Sorted:=true;
   lastthreadlist.Duplicates:=dupIgnore;
+
+  threads:=tmap.Create(ituPtrSize,sizeof(THandle));
 end;
 
 
@@ -160,6 +164,9 @@ begin
 
   if injectedEvents<>nil then
     freeandnil(InjectedEvents);
+
+  if threads<>nil then
+    freeandnil(threads);
 
   inherited destroy;
 end;
@@ -298,15 +305,14 @@ var i: integer;
     c32: PContext32 absolute c;
 {$endif}
     inj: TInjectedEvent;
-
+    h: THandle;
 begin
   currentThread:=0;  //just making sure
 
   if injectedEvents.count>0 then
   begin
-    fisInjectedEvent:=true;
-    //fill in lpDebugEvent
 
+    //fill in lpDebugEvent
     inj:=TInjectedEvent(injectedEvents[0]);
     lpDebugEvent.dwProcessId:=processid;
     lpDebugEvent.dwThreadId:=inj.ThreadId;
@@ -314,13 +320,18 @@ begin
     if inj.eventtype=etThreadCreate then
     begin
       //create thread
+
       lpDebugEvent.dwDebugEventCode:=CREATE_THREAD_DEBUG_EVENT;
       lpDebugEvent.CreateThread.hThread:=OpenThread(THREAD_ALL_ACCESS,false, inj.ThreadId);
 
       lpDebugEvent.CreateThread.lpStartAddress:=nil;
       lpDebugEvent.CreateThread.lpThreadLocalBase:=nil;
 
-      CurrentThread:=OpenThread(THREAD_ALL_ACCESS,false, lpDebugEvent.dwThreadId);
+      if threads.GetData(lpDebugEvent.dwThreadId,currentthread)=false then
+      begin
+        CurrentThread:=OpenThread(THREAD_ALL_ACCESS,false, lpDebugEvent.dwThreadId);
+        threads.Add(lpDebugEvent.dwThreadId, currentthread);
+      end;
       suspendThread(CurrentThread);
     end
     else
@@ -328,6 +339,12 @@ begin
       //destroy thread
       lpDebugEvent.dwDebugEventCode:=EXIT_THREAD_DEBUG_EVENT;
       lpDebugEvent.ExitThread.dwExitCode:=0;
+
+      if threads.GetData(lpDebugEvent.dwThreadId,h) then
+      begin
+        closehandle(h);
+        threads.Delete(lpDebugEvent.dwThreadId);
+      end;
     end;
 
     inj.free;
@@ -357,13 +374,22 @@ begin
         lpDebugEvent.dwDebugEventCode:=CREATE_PROCESS_DEBUG_EVENT;
         lpDebugEvent.CreateProcessInfo.hFile:=0;
         lpDebugEvent.CreateProcessInfo.hProcess:=processhandle;
-        lpDebugEvent.CreateProcessInfo.hThread:=OpenThread(THREAD_ALL_ACCESS,false, lpDebugEvent.dwThreadId);
+
+        if threads.GetData(lpDebugEvent.dwThreadId,lpDebugEvent.CreateProcessInfo.hThread)=false then
+        begin
+          lpDebugEvent.CreateProcessInfo.hThread:=OpenThread(THREAD_ALL_ACCESS,false, lpDebugEvent.dwThreadId);
+          threads.Add(lpDebugEvent.dwThreadId,lpDebugEvent.CreateProcessInfo.hThread);
+        end;
       end;
 
       $ce000001: //create thread
       begin
         lpDebugEvent.dwDebugEventCode:=CREATE_THREAD_DEBUG_EVENT;
-        lpDebugEvent.CreateThread.hThread:=OpenThread(THREAD_ALL_ACCESS,false, lpDebugEvent.dwThreadId);
+        if threads.GetData(lpDebugEvent.dwThreadId,lpDebugEvent.CreateThread.hThread)=false then
+        begin
+          lpDebugEvent.CreateThread.hThread:=OpenThread(THREAD_ALL_ACCESS,false, lpDebugEvent.dwThreadId);
+          threads.Add(lpDebugEvent.dwThreadId, lpDebugEvent.CreateThread.hThread);
+        end;
         lpDebugEvent.CreateThread.lpStartAddress:=nil;
         lpDebugEvent.CreateThread.lpThreadLocalBase:=nil;
         lastthreadlist.Add(inttohex(lpDebugEvent.dwThreadId,1));
@@ -376,6 +402,12 @@ begin
       begin
         lpDebugEvent.dwDebugEventCode:=EXIT_THREAD_DEBUG_EVENT;
         lpDebugEvent.ExitThread.dwExitCode:=0;
+
+        if threads.GetData(lpDebugEvent.dwThreadId,h) then
+        begin
+          closehandle(h);
+          threads.Delete(lpDebugEvent.dwThreadId);
+        end;
 
         i:=lastthreadlist.indexof(inttohex(lpDebugEvent.dwThreadId,1));
         if i<>-1 then
@@ -469,7 +501,6 @@ begin
   if currentthread<>0 then
   begin
     resumeThread(currentThread);
-    closeHandle(currentThread);
     currentThread:=0;
   end;
 
