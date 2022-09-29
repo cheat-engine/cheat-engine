@@ -425,6 +425,9 @@ var
   oldprotection: dword;
   tccregions: TTCCRegionList;
 
+  writesuccess: boolean;
+  writesuccess2: boolean;
+
 begin
   secondarylist:=TStringList.create;
   bytes:=tmemorystream.create;
@@ -532,14 +535,30 @@ begin
       end;
 
       //still here so compilation is within the given parameters
-      writeProcessMemory(phandle, pointer(dataforpass2.cdata.address),bytes.memory, bytes.size,bw);
 
-      if not SystemSupportsWritableExecutableMemory then
+
+      if not SystemSupportsWritableExecutableMemory then //could have been made execute readonly earlier, undo that here
+        virtualprotectex(processhandle,pointer(dataforpass2.cdata.address),bytes.size,PAGE_READWRITE,oldprotection);
+
+
+
+      OutputDebugString('Writing c-code to '+dataforpass2.cdata.address.ToHexString+' ( '+bytes.size.ToString+' bytes )');
+      writesuccess:=writeProcessMemory(phandle, pointer(dataforpass2.cdata.address),bytes.memory, bytes.size,bw);
+
+      {$ifdef darwin}
+      if (writesuccess) then
       begin
-        //apply protections
-        for i:=0 to tccregions.Count-1 do
-          virtualprotectex(processhandle, pointer(tccregions[i].address), tccregions[i].size, tccregions[i].protection,oldprotection);
+        outputdebugstring('success. Wrote:');
+        s:='';
+        for i:=0 to bytes.size-1 do
+        begin
+          s:=s+pbyte(bytes.memory)[i].ToHexString(2)+' ';
+        end;
+
+        outputdebugstring(s);
       end;
+      {$endif}
+
 
       //fill in links
       for i:=0 to length(dataForPass2.cdata.linklist)-1 do
@@ -557,7 +576,7 @@ begin
         end;
 
         a:=ptruint(tempsymbollist.Objects[k]);
-        writeProcessMemory(phandle, pointer(dataForPass2.cdata.references[j].address),@a,psize,bw);
+        writesuccess2:=writeProcessMemory(phandle, pointer(dataForPass2.cdata.references[j].address),@a,psize,bw);
       end;
 
 
@@ -600,6 +619,20 @@ begin
             symbollist.AddSymbol('',tempsymbollist[i], ptruint(tempsymbollist.Objects[i]), 1);
         end;
       end;
+
+      if not SystemSupportsWritableExecutableMemory then
+      begin
+        //apply protections
+        for i:=0 to tccregions.Count-1 do
+          virtualprotectex(processhandle, pointer(tccregions[i].address), tccregions[i].size, tccregions[i].protection,oldprotection);
+      end;
+
+      if not writesuccess then
+        raise exception.create('Failure writing the generated c-code to memory');
+
+
+      if not writesuccess2 then
+        raise exception.create('Failure writing referenced addresses');
     end
     else
     begin
@@ -698,7 +731,6 @@ var
   ms: TMemorystream;
   bytesizeneeded: integer;
 
-  _tcc: TTCC;
 begin
 
   s:=trim(script[i]);
@@ -709,10 +741,6 @@ begin
     dataForPass2.cdata.cscript:=tstringlist.create;
 
 
-  if targetself then
-    _tcc:=tccself
-  else
-    _tcc:=tcc;
 
   scriptstartlinenr:=ptruint(script.Objects[i]);
 

@@ -823,131 +823,138 @@ var s: tstringlist;
     //el: TCEExceptionListArray;
 begin
   outputdebugstring('cefuncproc.InjectDLL('''+dllname+''','''+functiontocall+''')');
-  s:=tstringlist.create;
-  s.add('[enable]');
-  s.add('registersymbol(v1)');
-  s.add('registersymbol(v2)');
-  s.add('registersymbol(v3)');
-  s.add('registersymbol(injector)');
-  s.add('registersymbol(errorstr)');
-  if processhandler.is64bit then
+  if MacIsArm64 then
   begin
-    s.add('alloc(v1, 8)');
-    s.add('alloc(v2, 8)');
-    s.add('alloc(v3, 8)');
-    s.add('alloc(errorstr, 8)');
+    raise exception.create('module injection is not yet supported on m1');
   end
   else
   begin
-    s.add('alloc(v1, 4)');
-    s.add('alloc(v2, 4)');
-    s.add('alloc(v3, 4)');
-    s.add('alloc(errorstr, 4)');
+
+    s:=tstringlist.create;
+    s.add('[enable]');
+    s.add('registersymbol(v1)');
+    s.add('registersymbol(v2)');
+    s.add('registersymbol(v3)');
+    s.add('registersymbol(injector)');
+    s.add('registersymbol(errorstr)');
+    if processhandler.is64bit then
+    begin
+      s.add('alloc(v1, 8)');
+      s.add('alloc(v2, 8)');
+      s.add('alloc(v3, 8)');
+      s.add('alloc(errorstr, 8)');
+    end
+    else
+    begin
+      s.add('alloc(v1, 4)');
+      s.add('alloc(v2, 4)');
+      s.add('alloc(v3, 4)');
+      s.add('alloc(errorstr, 4)');
+    end;
+
+    s.add('alloc(injector,512)');
+    s.add('alloc(returnvalue, 4)');
+    s.add('label(dllname)');
+    s.add('label(error)');
+    s.add('label(cleanup)');
+    s.add('');
+    s.add('injector:');
+    if processhandler.is64bit then
+    begin
+      //rsp=*8
+      s.add('mov rax,v1');
+      s.add('mov [rax],rsp');
+      s.add('push rbp');
+
+      //rsp=*0
+      s.add('mov rax,v2');
+      s.add('mov [rax],rsp');
+    end
+    else
+    begin
+      //esp=*c
+      s.add('mov [v1],esp');
+      s.add('push ebp');
+      //esp=*8
+      s.add('mov [v2],esp');
+    end;
+
+    if processhandler.is64Bit then
+    begin
+      s.add('mov rdi,dllname');
+      s.add('mov rsi,1');
+    end
+    else
+    begin
+      s.add('push 1'); //rtld lazy
+      //esp=*4
+      s.add('push dllname');
+      //esp=*0
+    end;
+
+    //64-bit: rsp=*0
+    //32-bit: esp=*0
+
+    if processhandler.is64Bit then
+    begin
+      s.add('mov rax,v3');
+      s.add('mov [rax],rsp');
+    end
+    else
+      s.add('mov [v3],esp');
+
+    s.add('call dlopen');
+    //s.add('xor eax,eax');
+
+    s.add('cmp eax,0');
+    s.add('je short error');
+
+    if processhandler.is64Bit then
+    begin
+      s.add('mov rax,returnvalue');
+      s.add('mov dword [rax],1');
+      s.adD('jmp short cleanup');
+      s.add('error:');
+      s.add('mov rax,returnvalue');
+      s.add('mov dword [rax],2');
+      s.add('call dlerror');
+      s.add('mov rsi,errorstr');
+      s.add('mov [rsi],rax');
+    end
+    else
+    begin
+      s.add('mov dword [returnvalue],1');
+      s.adD('jmp short cleanup');
+      s.add('error:');
+      s.add('mov dword [returnvalue],2');
+      s.add('call dlerror');
+      s.add('mov [errorstr],eax');
+    end;
+    s.add('cleanup:');
+
+    if processhandler.is64Bit then
+    begin
+      s.add('pop rbp');
+    end
+    else
+    begin
+      s.add('add esp,8');  //dlopen is a cdecl  (64-bit has no pushed params)
+      s.add('pop ebp');
+    end;
+
+
+    s.add('ret');
+    s.add('');
+    s.add('dllname:');
+    s.add('db '''+dllname+''',0');
+    s.add('');
+    s.add('returnvalue:');
+    s.add('dd 0');
+    s.add('');
+    s.add('[disable]');
+    s.add('dealloc(injector)');
+    s.add('dealloc(returnvalue)');
   end;
-
-  s.add('alloc(injector,512)');
-  s.add('alloc(returnvalue, 4)');
-  s.add('label(dllname)');
-  s.add('label(error)');
-  s.add('label(cleanup)');
-  s.add('');
-  s.add('injector:');
-  if processhandler.is64bit then
-  begin
-    //rsp=*8
-    s.add('mov rax,v1');
-    s.add('mov [rax],rsp');
-    s.add('push rbp');
-
-    //rsp=*0
-    s.add('mov rax,v2');
-    s.add('mov [rax],rsp');
-  end
-  else
-  begin
-    //esp=*c
-    s.add('mov [v1],esp');
-    s.add('push ebp');
-    //esp=*8
-    s.add('mov [v2],esp');
-  end;
-
-  if processhandler.is64Bit then
-  begin
-    s.add('mov rdi,dllname');
-    s.add('mov rsi,1');
-  end
-  else
-  begin
-    s.add('push 1'); //rtld lazy
-    //esp=*4
-    s.add('push dllname');
-    //esp=*0
-  end;
-
-  //64-bit: rsp=*0
-  //32-bit: esp=*0
-
-  if processhandler.is64Bit then
-  begin
-    s.add('mov rax,v3');
-    s.add('mov [rax],rsp');
-  end
-  else
-    s.add('mov [v3],esp');
-
-  s.add('call dlopen');
-  //s.add('xor eax,eax');
-
-  s.add('cmp eax,0');
-  s.add('je short error');
-
-  if processhandler.is64Bit then
-  begin
-    s.add('mov rax,returnvalue');
-    s.add('mov dword [rax],1');
-    s.adD('jmp short cleanup');
-    s.add('error:');
-    s.add('mov rax,returnvalue');
-    s.add('mov dword [rax],2');
-    s.add('call dlerror');
-    s.add('mov rsi,errorstr');
-    s.add('mov [rsi],rax');
-  end
-  else
-  begin
-    s.add('mov dword [returnvalue],1');
-    s.adD('jmp short cleanup');
-    s.add('error:');
-    s.add('mov dword [returnvalue],2');
-    s.add('call dlerror');
-    s.add('mov [errorstr],eax');
-  end;
-  s.add('cleanup:');
-
-  if processhandler.is64Bit then
-  begin
-    s.add('pop rbp');
-  end
-  else
-  begin
-    s.add('add esp,8');  //dlopen is a cdecl  (64-bit has no pushed params)
-    s.add('pop ebp');
-  end;
-
-
-  s.add('ret');
-  s.add('');
-  s.add('dllname:');
-  s.add('db '''+dllname+''',0');
-  s.add('');
-  s.add('returnvalue:');
-  s.add('dd 0');
-  s.add('');
-  s.add('[disable]');
-  s.add('dealloc(injector)');
-  s.add('dealloc(returnvalue)');
-
   //clipboard.AsText:=s.Text;
 
  // raise exception.create('copy to clipboard now');

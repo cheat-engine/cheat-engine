@@ -209,8 +209,16 @@ type
 {$endif}
   function tccself: TTCC;
 
+
+
   procedure tcc_addCIncludePath(path: string);
   procedure tcc_removeCIncludePath(path: string);
+
+  {$ifdef darwin}  //test
+  var
+    tccrosetta: TTCC; //for compiling in c code
+  {$endif}
+
 
 implementation
 
@@ -231,6 +239,7 @@ var
   {$ifdef cpu64}
   tcc64: TTCC;
   {$endif}
+
 
   {$ifdef windows}
   tcc32_linux: TTCC;
@@ -1786,10 +1795,10 @@ begin
 {$else}
   if MacIsArm64 then
   begin
-     {$ifndef standalonetest}
     tcc32:=ttcc.create(aarch64);
-     {$endif}
     tcc64:=ttcc.create(aarch64);
+
+    tccrosetta:=ttcc.create(x86_64);
   end
   else
   begin

@@ -214,6 +214,8 @@ var
 begin
   TDebuggerthread(debuggerthread).execlocation:=44;
 
+  outputdebugstring('frmchangedaddresses_AddRecord: Evaluating '+f.equation);
+
   f:=currentbp^.frmchangedaddresses;
   address:=symhandler.getAddressFromName(f.equation, false, haserror, context);
 
@@ -1225,7 +1227,7 @@ begin
   TDebuggerthread(debuggerthread).execlocation:=35;
   OutputDebugString('Handling as a single step event');
   result:=true;
-
+  hasSetInt1Back:=false;
 
   if (setint1back) then
   begin
@@ -1234,12 +1236,13 @@ begin
     begin
       TdebuggerThread(debuggerthread).setBreakpoint(Int1SetBackBP, self);
       setint1back:=false;
+      hasSetInt1Back:=true;
     end;
   end;
 
 
   {$if defined(cpu32) or defined(darwin)}
-  hasSetInt1Back:=false;
+
   {$ifdef windows}
   if not (CurrentDebuggerInterface is TKernelDebugInterface) then
   {$endif}
@@ -1612,8 +1615,9 @@ begin
         begin
 
           foundCodeDialog_AddRecord;
-
+          //{$ifndef darwin}
           if CurrentDebuggerInterface is TNetworkDebuggerInterface then
+          //{$endif}
             continueFromBreakpoint(bpp, co_run);  //explicitly continue from this breakpoint
         end;
 
