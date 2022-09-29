@@ -23,6 +23,7 @@ uses
 
 type
 
+  EDebuggerAttachException=class(Exception);
 
   TDebuggerthread = class(TThread)
   private
@@ -3143,7 +3144,7 @@ begin
       frmDebuggerAttachTimeout.free;
 
       if mresult=mrAbort then
-        raise exception.create(rsDebuggerAttachAborted);
+        raise EDebuggerAttachException.create(rsDebuggerAttachAborted);
 
       if mresult=mrok then break;
 

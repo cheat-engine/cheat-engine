@@ -21,7 +21,7 @@ uses
   NewKernelHandler,syncobjs, SymbolListHandler, fgl, typinfo, cvconst, PEInfoFunctions,
   DotNetPipe, DotNetTypes, commonTypeDefs, math, LazUTF8, contnrs, LazFileUtils,
   db, sqldb, sqlite3dyn, sqlite3conn, registry, symbolhandlerstructs, forms, controls,
-  AvgLvlTree
+  AvgLvlTree,contexthandler
   {$ifdef darwin}
   ,macportdefines
   {$endif};
@@ -4921,6 +4921,8 @@ var mi: tmoduleinfo;
     v64: qword;
 
     mr: TMemoryrecord;
+    contexthandler: TContextInfo;
+    reg: PContextElement_register;
 
     function ApplyTokenType(value: qword): qword;
     begin
@@ -4939,8 +4941,10 @@ var mi: tmoduleinfo;
 
       nextTokenType:=ttQword; //reset to default
     end;
-begin
 
+
+begin
+  contexthandler:=nil;
   nexttokentype:=ttQword;
   pointerstartpos:=0;
   pointerstartmax:=16;
@@ -5036,7 +5040,23 @@ begin
               end;
             end;
 
+            if (not shallow) and (context<>nil) then
+            begin
+              if contexthandler=nil then
+                contexthandler:=getBestContextHandler;
+
+              reg:=contexthandler.getRegister(tokens[i]);
+              if reg<>nil then
+              begin
+                tokens[i]:=inttohex(reg^.getValue(context),8);
+                continue;
+              end;
+            end;
+
+
+
             {$IFDEF windows}
+            (*
             if not shallow then
               regnr:=getreg(uppercase(tokens[i]),false)
             else
@@ -5129,7 +5149,7 @@ begin
               hasError:=true;
               exit(0);
             end
-            else
+            else      *)
             {$ENDIF}
             begin
               //no context or not a register

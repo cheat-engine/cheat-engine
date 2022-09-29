@@ -66,6 +66,7 @@ type
     procedure setFloatingPointRegisters(list: PContextElementRegisterList);
     procedure setSpecializedRegisters(list: PContextElementRegisterList);
     procedure setSecondaryFloatingPointRegisters(list: PContextElementRegisterList);
+    procedure setAltnameRegisters(list: PContextElementRegisterList);
   public
     function getGeneralPurposeRegisters: PContextElementRegisterList; //the main ones (so not the parts that are subparts of the main ones)
     function getGeneralPurposeFlags: PContextElementRegisterList;
@@ -151,6 +152,30 @@ const X86_32Context_specialized: array of TContextElement_register=(
  (entrytype:0; name:'GS'; size:2; displayType: 0; ContextOffset: integer(@PCONTEXT32(nil)^.SegGs); BitStart:0)
 );
 
+const X86_32Context_altnames: array of TContextElement_register=(
+  (entrytype:0; name:'AX';  size:2; displayType: 0; ContextOffset: integer(@PCONTEXT32(nil)^.eax); BitStart:0),
+  (entrytype:0; name:'AH';  size:1; displayType: 0; ContextOffset: integer(@PCONTEXT32(nil)^.eax)+1; BitStart:0),
+  (entrytype:0; name:'AL';  size:1; displayType: 0; ContextOffset: integer(@PCONTEXT32(nil)^.eax); BitStart:0),
+
+  (entrytype:0; name:'CX';  size:2; displayType: 0; ContextOffset: integer(@PCONTEXT32(nil)^.ecx); BitStart:0),
+  (entrytype:0; name:'CH';  size:1; displayType: 0; ContextOffset: integer(@PCONTEXT32(nil)^.ecx)+1; BitStart:0),
+  (entrytype:0; name:'CL';  size:1; displayType: 0; ContextOffset: integer(@PCONTEXT32(nil)^.ecx); BitStart:0),
+
+  (entrytype:0; name:'DX';  size:2; displayType: 0; ContextOffset: integer(@PCONTEXT32(nil)^.edx); BitStart:0),
+  (entrytype:0; name:'DH';  size:1; displayType: 0; ContextOffset: integer(@PCONTEXT32(nil)^.edx)+1; BitStart:0),
+  (entrytype:0; name:'DL';  size:1; displayType: 0; ContextOffset: integer(@PCONTEXT32(nil)^.edx); BitStart:0),
+
+
+  (entrytype:0; name:'BX';  size:2; displayType: 0; ContextOffset: integer(@PCONTEXT32(nil)^.ebx); BitStart:0),
+  (entrytype:0; name:'BH';  size:1; displayType: 0; ContextOffset: integer(@PCONTEXT32(nil)^.ebx)+1; BitStart:0),
+  (entrytype:0; name:'BL';  size:1; displayType: 0; ContextOffset: integer(@PCONTEXT32(nil)^.ebx); BitStart:0),
+
+  (entrytype:0; name:'SP';  size:2; displayType: 0; ContextOffset: integer(@PCONTEXT32(nil)^.esp); BitStart:0),
+  (entrytype:0; name:'BP';  size:2; displayType: 0; ContextOffset: integer(@PCONTEXT32(nil)^.ebp); BitStart:0),
+  (entrytype:0; name:'SI';  size:2; displayType: 0; ContextOffset: integer(@PCONTEXT32(nil)^.esi); BitStart:0),
+  (entrytype:0; name:'DI';  size:2; displayType: 0; ContextOffset: integer(@PCONTEXT32(nil)^.edi); BitStart:0)
+);
+
 const X86_32Context_controlreg: TContextElement_register=(entrytype:0; name:'ContextFlags'; size:2; displayType: 0; ContextOffset: integer(@PCONTEXT32(nil)^.ContextFlags); BitStart:0);
 {$endif}
 
@@ -189,6 +214,31 @@ const X86_32Context_specialized: array of TContextElement_register=(
  (entrytype:0; name:'GS'; size:2; displayType: 0; ContextOffset: integer(@PCONTEXT(nil)^.SegGs); BitStart:0)
 );
 
+const X86_32Context_altnames: array of TContextElement_register=(
+  (entrytype:0; name:'AX';  size:2; displayType: 0; ContextOffset: integer(@PCONTEXT(nil)^.Rax); BitStart:0),
+  (entrytype:0; name:'AH';  size:1; displayType: 0; ContextOffset: integer(@PCONTEXT(nil)^.Rax)+1; BitStart:0),
+  (entrytype:0; name:'AL';  size:1; displayType: 0; ContextOffset: integer(@PCONTEXT(nil)^.Rax); BitStart:0),
+
+  (entrytype:0; name:'CX';  size:2; displayType: 0; ContextOffset: integer(@PCONTEXT(nil)^.Rcx); BitStart:0),
+  (entrytype:0; name:'CH';  size:1; displayType: 0; ContextOffset: integer(@PCONTEXT(nil)^.Rcx)+1; BitStart:0),
+  (entrytype:0; name:'CL';  size:1; displayType: 0; ContextOffset: integer(@PCONTEXT(nil)^.Rcx); BitStart:0),
+
+  (entrytype:0; name:'DX';  size:2; displayType: 0; ContextOffset: integer(@PCONTEXT(nil)^.Rdx); BitStart:0),
+  (entrytype:0; name:'DH';  size:1; displayType: 0; ContextOffset: integer(@PCONTEXT(nil)^.Rdx)+1; BitStart:0),
+  (entrytype:0; name:'DL';  size:1; displayType: 0; ContextOffset: integer(@PCONTEXT(nil)^.Rdx); BitStart:0),
+
+
+  (entrytype:0; name:'BX';  size:2; displayType: 0; ContextOffset: integer(@PCONTEXT(nil)^.Rbx); BitStart:0),
+  (entrytype:0; name:'BH';  size:1; displayType: 0; ContextOffset: integer(@PCONTEXT(nil)^.Rbx)+1; BitStart:0),
+  (entrytype:0; name:'BL';  size:1; displayType: 0; ContextOffset: integer(@PCONTEXT(nil)^.Rbx); BitStart:0),
+
+  (entrytype:0; name:'SP';  size:2; displayType: 0; ContextOffset: integer(@PCONTEXT(nil)^.Rsp); BitStart:0),
+  (entrytype:0; name:'BP';  size:2; displayType: 0; ContextOffset: integer(@PCONTEXT(nil)^.Rbp); BitStart:0),
+  (entrytype:0; name:'SI';  size:2; displayType: 0; ContextOffset: integer(@PCONTEXT(nil)^.Rsi); BitStart:0),
+  (entrytype:0; name:'DI';  size:2; displayType: 0; ContextOffset: integer(@PCONTEXT(nil)^.Rdi); BitStart:0)
+);
+
+
 const X86_32Context_controlreg: TContextElement_register=(entrytype:0; name:'ContextFlags'; size:2; displayType: 0; ContextOffset: integer(@PCONTEXT(nil)^.ContextFlags); BitStart:0);
 
 var X86_32Context_fpu, X86_32Context_fpu2: array of TContextElement_register;
@@ -211,6 +261,83 @@ const X86_64Context: array of TContextElement_register=(
   (entrytype:0; name:'R14'; size:8; displayType: 0; ContextOffset: integer(@PCONTEXT(nil)^.R14); BitStart:0),
   (entrytype:0; name:'R15'; size:8; displayType: 0; ContextOffset: integer(@PCONTEXT(nil)^.R15); BitStart:0),
   (entrytype:0; name:'RIP'; size:8; displayType: 0; ContextOffset: integer(@PCONTEXT(nil)^.Rip); BitStart:0)
+);
+
+const X86_64Context_altnames: array of TContextElement_register=(
+  (entrytype:0; name:'EAX'; size:4; displayType: 0; ContextOffset: integer(@PCONTEXT(nil)^.rax); BitStart:0),
+  (entrytype:0; name:'EBX'; size:4; displayType: 0; ContextOffset: integer(@PCONTEXT(nil)^.rbx); BitStart:0),
+  (entrytype:0; name:'ECX'; size:4; displayType: 0; ContextOffset: integer(@PCONTEXT(nil)^.rcx); BitStart:0),
+  (entrytype:0; name:'EDX'; size:4; displayType: 0; ContextOffset: integer(@PCONTEXT(nil)^.rdx); BitStart:0),
+  (entrytype:0; name:'ESI'; size:4; displayType: 0; ContextOffset: integer(@PCONTEXT(nil)^.rsi); BitStart:0),
+  (entrytype:0; name:'EDI'; size:4; displayType: 0; ContextOffset: integer(@PCONTEXT(nil)^.rdi); BitStart:0),
+  (entrytype:0; name:'EBP'; size:4; displayType: 0; ContextOffset: integer(@PCONTEXT(nil)^.rbp); BitStart:0),
+  (entrytype:0; name:'ESP'; size:4; displayType: 0; ContextOffset: integer(@PCONTEXT(nil)^.rsp); BitStart:0),
+  (entrytype:0; name:'EIP'; size:4; displayType: 0; ContextOffset: integer(@PCONTEXT(nil)^.rip); BitStart:0),
+
+  (entrytype:0; name:'AX';  size:2; displayType: 0; ContextOffset: integer(@PCONTEXT(nil)^.Rax); BitStart:0),
+  (entrytype:0; name:'AH';  size:1; displayType: 0; ContextOffset: integer(@PCONTEXT(nil)^.Rax)+1; BitStart:0),
+  (entrytype:0; name:'AL';  size:1; displayType: 0; ContextOffset: integer(@PCONTEXT(nil)^.Rax); BitStart:0),
+
+  (entrytype:0; name:'CX';  size:2; displayType: 0; ContextOffset: integer(@PCONTEXT(nil)^.Rcx); BitStart:0),
+  (entrytype:0; name:'CH';  size:1; displayType: 0; ContextOffset: integer(@PCONTEXT(nil)^.Rcx)+1; BitStart:0),
+  (entrytype:0; name:'CL';  size:1; displayType: 0; ContextOffset: integer(@PCONTEXT(nil)^.Rcx); BitStart:0),
+
+  (entrytype:0; name:'DX';  size:2; displayType: 0; ContextOffset: integer(@PCONTEXT(nil)^.Rdx); BitStart:0),
+  (entrytype:0; name:'DH';  size:1; displayType: 0; ContextOffset: integer(@PCONTEXT(nil)^.Rdx)+1; BitStart:0),
+  (entrytype:0; name:'DL';  size:1; displayType: 0; ContextOffset: integer(@PCONTEXT(nil)^.Rdx); BitStart:0),
+
+
+  (entrytype:0; name:'BX';  size:2; displayType: 0; ContextOffset: integer(@PCONTEXT(nil)^.Rbx); BitStart:0),
+  (entrytype:0; name:'BH';  size:1; displayType: 0; ContextOffset: integer(@PCONTEXT(nil)^.Rbx)+1; BitStart:0),
+  (entrytype:0; name:'BL';  size:1; displayType: 0; ContextOffset: integer(@PCONTEXT(nil)^.Rbx); BitStart:0),
+
+  (entrytype:0; name:'SP';  size:2; displayType: 0; ContextOffset: integer(@PCONTEXT(nil)^.Rsp); BitStart:0),
+  (entrytype:0; name:'SPL'; size:1; displayType: 0; ContextOffset: integer(@PCONTEXT(nil)^.Rsp); BitStart:0),
+  (entrytype:0; name:'BP';  size:2; displayType: 0; ContextOffset: integer(@PCONTEXT(nil)^.Rbp); BitStart:0),
+  (entrytype:0; name:'BPL'; size:1; displayType: 0; ContextOffset: integer(@PCONTEXT(nil)^.Rbp); BitStart:0),
+  (entrytype:0; name:'SI';  size:2; displayType: 0; ContextOffset: integer(@PCONTEXT(nil)^.Rsi); BitStart:0),
+  (entrytype:0; name:'SIL'; size:1; displayType: 0; ContextOffset: integer(@PCONTEXT(nil)^.Rsi); BitStart:0),
+  (entrytype:0; name:'DI';  size:2; displayType: 0; ContextOffset: integer(@PCONTEXT(nil)^.Rdi); BitStart:0),
+  (entrytype:0; name:'DIL'; size:1; displayType: 0; ContextOffset: integer(@PCONTEXT(nil)^.Rdi); BitStart:0),
+  (entrytype:0; name:'R8B'; size:1; displayType: 0; ContextOffset: integer(@PCONTEXT(nil)^.R8); BitStart:0),
+  (entrytype:0; name:'R8L'; size:1; displayType: 0; ContextOffset: integer(@PCONTEXT(nil)^.R8); BitStart:0),
+  (entrytype:0; name:'R8W'; size:2; displayType: 0; ContextOffset: integer(@PCONTEXT(nil)^.R8); BitStart:0),
+  (entrytype:0; name:'R8D'; size:4; displayType: 0; ContextOffset: integer(@PCONTEXT(nil)^.R8); BitStart:0),
+
+  (entrytype:0; name:'R9B'; size:1; displayType: 0; ContextOffset: integer(@PCONTEXT(nil)^.R9); BitStart:0),
+  (entrytype:0; name:'R9L'; size:1; displayType: 0; ContextOffset: integer(@PCONTEXT(nil)^.R9); BitStart:0),
+  (entrytype:0; name:'R9W'; size:2; displayType: 0; ContextOffset: integer(@PCONTEXT(nil)^.R9); BitStart:0),
+  (entrytype:0; name:'R9D'; size:4; displayType: 0; ContextOffset: integer(@PCONTEXT(nil)^.R9); BitStart:0),
+
+  (entrytype:0; name:'R10B'; size:1; displayType: 0; ContextOffset: integer(@PCONTEXT(nil)^.R10); BitStart:0),
+  (entrytype:0; name:'R10L'; size:1; displayType: 0; ContextOffset: integer(@PCONTEXT(nil)^.R10); BitStart:0),
+  (entrytype:0; name:'R10W'; size:2; displayType: 0; ContextOffset: integer(@PCONTEXT(nil)^.R10); BitStart:0),
+  (entrytype:0; name:'R10D'; size:4; displayType: 0; ContextOffset: integer(@PCONTEXT(nil)^.R10); BitStart:0),
+
+  (entrytype:0; name:'R11B'; size:1; displayType: 0; ContextOffset: integer(@PCONTEXT(nil)^.R11); BitStart:0),
+  (entrytype:0; name:'R11L'; size:1; displayType: 0; ContextOffset: integer(@PCONTEXT(nil)^.R11); BitStart:0),
+  (entrytype:0; name:'R11W'; size:2; displayType: 0; ContextOffset: integer(@PCONTEXT(nil)^.R11); BitStart:0),
+  (entrytype:0; name:'R11D'; size:4; displayType: 0; ContextOffset: integer(@PCONTEXT(nil)^.R11); BitStart:0),
+
+  (entrytype:0; name:'R12B'; size:1; displayType: 0; ContextOffset: integer(@PCONTEXT(nil)^.R12); BitStart:0),
+  (entrytype:0; name:'R12L'; size:1; displayType: 0; ContextOffset: integer(@PCONTEXT(nil)^.R12); BitStart:0),
+  (entrytype:0; name:'R12W'; size:2; displayType: 0; ContextOffset: integer(@PCONTEXT(nil)^.R12); BitStart:0),
+  (entrytype:0; name:'R12D'; size:4; displayType: 0; ContextOffset: integer(@PCONTEXT(nil)^.R12); BitStart:0),
+
+  (entrytype:0; name:'R13B'; size:1; displayType: 0; ContextOffset: integer(@PCONTEXT(nil)^.R13); BitStart:0),
+  (entrytype:0; name:'R13L'; size:1; displayType: 0; ContextOffset: integer(@PCONTEXT(nil)^.R13); BitStart:0),
+  (entrytype:0; name:'R13W'; size:2; displayType: 0; ContextOffset: integer(@PCONTEXT(nil)^.R13); BitStart:0),
+  (entrytype:0; name:'R13D'; size:4; displayType: 0; ContextOffset: integer(@PCONTEXT(nil)^.R13); BitStart:0),
+
+  (entrytype:0; name:'R14B'; size:1; displayType: 0; ContextOffset: integer(@PCONTEXT(nil)^.R14); BitStart:0),
+  (entrytype:0; name:'R14L'; size:1; displayType: 0; ContextOffset: integer(@PCONTEXT(nil)^.R14); BitStart:0),
+  (entrytype:0; name:'R14W'; size:2; displayType: 0; ContextOffset: integer(@PCONTEXT(nil)^.R14); BitStart:0),
+  (entrytype:0; name:'R14D'; size:4; displayType: 0; ContextOffset: integer(@PCONTEXT(nil)^.R14); BitStart:0),
+
+  (entrytype:0; name:'R15B'; size:1; displayType: 0; ContextOffset: integer(@PCONTEXT(nil)^.R15); BitStart:0),
+  (entrytype:0; name:'R15L'; size:1; displayType: 0; ContextOffset: integer(@PCONTEXT(nil)^.R15); BitStart:0),
+  (entrytype:0; name:'R15W'; size:2; displayType: 0; ContextOffset: integer(@PCONTEXT(nil)^.R15); BitStart:0),
+  (entrytype:0; name:'R15D'; size:4; displayType: 0; ContextOffset: integer(@PCONTEXT(nil)^.R15); BitStart:0)
 );
 
 
@@ -332,16 +459,18 @@ var
 begin
   if entrytype=0 then
   begin
-    if size=4 then
-      exit(getDword(context))
-    else
-    if size=8 then
-      exit(getQword(context))
-    else
-    begin
-      mask:=(1 shl (size*8))-1;
-      v:=getQword(context);
-      v:=v and mask;
+    case size of
+      1: exit(getDword(context) and $ff);
+      2: exit(getDword(context) and $ffff);
+      4: exit(getDword(context));
+      8: exit(getQword(context));
+      16: exit(getQword(context));
+      else
+      begin
+        mask:=(1 shl (size*8))-1;
+        v:=getQword(context);
+        v:=v and mask;
+      end;
     end;
   end
   else
@@ -465,6 +594,15 @@ begin
     nameToEntryLookup.Add(list^[i].name, @list^[i]);
     fGeneralPurposeRegisterMaxCharCount:=max(fGeneralPurposeRegisterMaxCharCount, length(list^[i].name));
   end;
+end;
+
+procedure TContextInfo.setAltnameRegisters(list: PContextElementRegisterList);
+var i: integer;
+begin
+  //this list does not get enumerated, so no need to keep a charcount
+  altgeneral:=list;
+  for i:=0 to length(list^)-1 do
+    nameToEntryLookup.Add(list^[i].name, @list^[i]);
 end;
 
 procedure TContextInfo.setGeneralPurposeFlags(list: PContextElementRegisterList);
@@ -608,6 +746,7 @@ begin
   ContextInfo_X86_32.setGeneralPurposeRegisters(@X86_32Context);
   ContextInfo_X86_32.setGeneralPurposeFlags(@X86_32Context_flags);
   ContextInfo_X86_32.setSpecializedRegisters(@X86_32Context_specialized);
+  ContextInfo_X86_32.setAltnameRegisters(@X86_32Context_altnames);
 
 
   setlength(X86_32Context_fpu, 8);
@@ -654,6 +793,7 @@ begin
   ContextInfo_X86_32.setGeneralPurposeRegisters(@X86_32Context);
   ContextInfo_X86_32.setGeneralPurposeFlags(@X86_32Context_flags);
   ContextInfo_X86_32.setSpecializedRegisters(@X86_32Context_specialized);
+  ContextInfo_X86_32.setAltnameRegisters(@X86_32Context_altnames);
 
 
   setlength(X86_32Context_fpu, 8);
@@ -684,6 +824,7 @@ begin
     e.name:='FP('+inttostr(i)+')';
     e.ContextOffset:=integer(@PCONTEXT(nil)^.FltSave.FloatRegisters[0]);
     X86_32Context_fpu2[i]:=e;
+    ContextInfo_X86_32.nameToEntryLookup.Add(e.name,@X86_32Context_fpu2[i]);
   end;
   ContextInfo_X86_32.setSecondaryFloatingPointRegisters(@X86_32Context_fpu2);
   ContextInfo_X86_32.secondaryfpuname:='FPU';
@@ -698,6 +839,7 @@ begin
   ContextInfo_X86_64.setGeneralPurposeRegisters(@X86_64Context);
   ContextInfo_X86_64.setGeneralPurposeFlags(@X86_64Context_flags);
   ContextInfo_X86_64.setSpecializedRegisters(@X86_64Context_specialized);
+  ContextInfo_X86_64.setAltnameRegisters(@X86_64Context_altnames);
 
   setlength(X86_64Context_fpu, 16);
 
@@ -711,6 +853,8 @@ begin
     e.name:='XMM'+inttostr(i);
     e.ContextOffset:=integer(@PCONTEXT(nil)^.FltSave.XmmRegisters[i]);
     X86_64Context_fpu[i]:=e;
+
+    ContextInfo_X86_64.nameToEntryLookup.Add('YMM'+inttostr(i),@X86_64Context_fpu[i]); //I currently don't support YMM, but lookups can still use the basic part
   end;
 
   ContextInfo_X86_64.setFloatingPointRegisters(@X86_64Context_fpu);
