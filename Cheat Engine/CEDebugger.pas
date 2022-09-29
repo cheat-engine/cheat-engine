@@ -236,7 +236,7 @@ begin
       try
         Debuggerthread:=TDebuggerThread.MyCreate2(processid);
       except
-        raise exception.Create(rsDebugError);
+        raise EDebuggerAttachException.Create(rsDebugError);
       end;
 
       result:=true;

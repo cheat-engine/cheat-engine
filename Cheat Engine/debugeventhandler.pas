@@ -2329,8 +2329,8 @@ destructor TDebugThreadHandler.destroy;
 begin
   freememandnil(realcontextpointer);
 
-  if (handle<>0) and (getConnection=nil) then
-    closehandle(handle);
+  {if (handle<>0) and (getConnection=nil) then
+    closehandle(handle);} //do not close, handle is owned by the debuggerinterface
 
   if lastiptlog<>nil then
     freememandnil(lastiptlog);
