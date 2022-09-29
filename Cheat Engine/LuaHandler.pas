@@ -15856,6 +15856,69 @@ begin
   exit(0);
 end;
 
+{$ifdef darwin}
+function lua_createMachThread(L: Plua_State):integer; cdecl;
+var
+  address: qword;
+  createdThread: thread_act_t;
+  ca64: TARM64CONTEXT;
+
+  stack: pointer;
+  i: integer;
+begin
+  result:=0;
+  if lua_gettop(L)>=1 then
+  begin
+    address:=lua_tointeger(L,1);
+
+    stack:=VirtualAllocEx(processhandle,nil,64*1024,MEM_RESERVE or MEM_COMMIT, PAGE_READWRITE);
+    if stack=nil then
+    begin
+      lua_pushnil(L);
+      lua_pushstring(L,'stack creation failure');
+      exit(2);
+    end;
+    if macport.thread_create(processhandle, createdThread)=0 then
+    begin
+
+
+      //createdThread is an unintialized thread, init it
+      //c.ContextFlags:=CONTEXT_ALL;
+      //GetThreadContext(createdThread, c);
+      if processhandler.SystemArchitecture=archArm then
+      begin
+        ca64.ContextFlags:=MACAARCH64_CONTEXT_ALL;
+        macport.GetThreadContextArm64(createdThread,ca64);
+        ca64.SP:=ptruint(stack)+64*1024-1;
+        ca64.SP:=ca64.SP and $ffffffffffffff80;    //128 bit alignment
+        ca64.PC:=address;
+
+        macport.SetThreadContextArm64(createdThread, ca64);
+
+        i:=ResumeThread(createdThread);
+
+        lua_pushinteger(L,i);
+        lua_pushinteger(L, createdThread);
+        exit(2);
+      end
+      else
+      begin
+        //x86.
+      end;
+    end
+    else
+    begin
+      lua_pushnil(L);
+      lua_pushstring(L,'thread_create failure');
+      exit(2);
+    end;
+
+
+  end;
+
+end;
+{$endif}
+
 procedure InitLimitedLuastate(L: Plua_State);
 begin
   //don't put functioncallback events in here, as limited luastates can be destroyed
@@ -15996,6 +16059,10 @@ begin
 
   lua_register(L, 'deleteAllRegisteredSymbols', lua_deleteAllUserdefinedSymbols);
 
+
+{$ifdef darwin}
+  lua_register(L, 'createMachThread', lua_createMachThread);
+{$endif}
 
 
 end;

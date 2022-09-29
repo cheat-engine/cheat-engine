@@ -45,7 +45,7 @@ end;
 
 
 
-  function ArmAssemble(address: int32; instruction: string; var bytes: TAssemblerBytes): boolean;
+  function ArmAssemble(address: ptruint; instruction: string; var bytes: TAssemblerBytes): boolean;
 
 implementation
 
@@ -1180,7 +1180,7 @@ begin
 end;
 
 
-function ArmAssemble(address: int32; instruction: string; var bytes: TAssemblerBytes): boolean;
+function ArmAssemble(address: ptruint; instruction: string; var bytes: TAssemblerBytes): boolean;
 var
   opcode: string;
   i,j: integer;

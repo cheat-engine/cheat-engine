@@ -4936,6 +4936,7 @@ begin
     //handle it by the arm assembler
    // for i:=0 to nroftokens do
    //   tempstring:=tempstring+tokens[i]+' ';   //seperators like "," are gone, but the armassembler doesn't really care about that  (only tokens matter)
+    outputdebugstring('TSingleLineAssembler.Assembler: Assembling ARM instruction '+opcode+' at '+inttohex(address,8));
     exit(ArmAssemble(address, opcode, bytes));
   end;
 

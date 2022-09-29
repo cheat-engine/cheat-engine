@@ -5045,10 +5045,16 @@ begin
               if contexthandler=nil then
                 contexthandler:=getBestContextHandler;
 
+              {$ifdef darwin}
+              outputdebugstring('is '+tokens[i]+' a register?');
+              {$endif}
               reg:=contexthandler.getRegister(tokens[i]);
               if reg<>nil then
               begin
                 tokens[i]:=inttohex(reg^.getValue(context),8);
+                {$ifdef darwin}
+                outputdebugstring('yes: '+tokens[i]);
+                {$endif}
                 continue;
               end;
             end;
