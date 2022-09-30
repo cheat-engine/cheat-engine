@@ -792,7 +792,7 @@ end;
 
 procedure TfrmIPTLogDisplay.lvResultsData(Sender: TObject; Item: TListItem);
 var
-  address: qword;
+  address: ptruint;
   c: integer;
   i: integer;
   current: integer;
