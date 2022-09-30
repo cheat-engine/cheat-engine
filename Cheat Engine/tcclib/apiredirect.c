@@ -1,5 +1,5 @@
 #define NOREDIRECT
-#ifdef WINDOWS
+#ifdef _WINDOWS
 #include <io.h>
 #else
 #include <sys/types.h>
