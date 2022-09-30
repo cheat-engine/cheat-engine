@@ -29,7 +29,8 @@ type
     is64bit: boolean; //stored local so it doesn't have to evaluate the property (saves some time)
     hasPausedProcess: boolean;
 
-    fisInjectedEvent: boolean;
+    fisInjectedEvent: boolean; //obsolete(ish)
+    wasInjectedEvent: boolean;
     injectedEvents: TList;
 
     lastthreadlist: TStringList;
@@ -38,6 +39,8 @@ type
     Heartbeat: TThread;
 
     CurrentThread: THandle;
+
+
 
     threads: TMap;  //internal threadhandle map
 
@@ -306,11 +309,16 @@ var i: integer;
 {$endif}
     inj: TInjectedEvent;
     h: THandle;
+
+    r:dword;
 begin
   currentThread:=0;  //just making sure
 
+  fisInjectedEvent:=false;
+  wasInjectedEvent:=false;
   if injectedEvents.count>0 then
   begin
+    wasInjectedEvent:=true;
 
     //fill in lpDebugEvent
     inj:=TInjectedEvent(injectedEvents[0]);
@@ -332,6 +340,7 @@ begin
         CurrentThread:=OpenThread(THREAD_ALL_ACCESS,false, lpDebugEvent.dwThreadId);
         threads.Add(lpDebugEvent.dwThreadId, currentthread);
       end;
+
       suspendThread(CurrentThread);
     end
     else
@@ -351,11 +360,10 @@ begin
 
     injectedEvents.Delete(0);
     exit(true);
-  end
-  else
-    fisInjectedEvent:=false;
+  end;
 
-  result:=waitforsingleobject(HasDebugEvent, dwMilliseconds)=WAIT_OBJECT_0;
+  r:=waitforsingleobject(HasDebugEvent, dwMilliseconds);
+  result:=r=WAIT_OBJECT_0;
   if result then
   begin
     ZeroMemory(@lpDebugEvent, sizeof(TdebugEvent));
@@ -378,6 +386,8 @@ begin
         if threads.GetData(lpDebugEvent.dwThreadId,lpDebugEvent.CreateProcessInfo.hThread)=false then
         begin
           lpDebugEvent.CreateProcessInfo.hThread:=OpenThread(THREAD_ALL_ACCESS,false, lpDebugEvent.dwThreadId);
+          currentthread:=lpDebugEvent.CreateProcessInfo.hThread;
+          suspendthread(CurrentThread);
           threads.Add(lpDebugEvent.dwThreadId,lpDebugEvent.CreateProcessInfo.hThread);
         end;
       end;
@@ -395,6 +405,8 @@ begin
         lastthreadlist.Add(inttohex(lpDebugEvent.dwThreadId,1));
         lastthreadpoll:=GetTickCount64;
 
+        currentthread:=lpDebugEvent.CreateThread.hThread;
+        suspendthread(CurrentThread);
 
       end;
 
@@ -493,16 +505,16 @@ begin
   hasPausedProcess:=false;
   VEHDebugView.ContinueMethod:=dwContinueStatus;
 
-  if fisInjectedEvent then
-    fisInjectedEvent:=false
-  else
-    SetEvent(HasHandledDebugEvent);
-
   if currentthread<>0 then
   begin
     resumeThread(currentThread);
     currentThread:=0;
   end;
+
+  if wasInjectedEvent=false then
+    SetEvent(HasHandledDebugEvent);
+
+
 
   result:=true;
 end;
