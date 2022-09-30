@@ -720,6 +720,7 @@ end;
 {$IFDEF WINDOWS}
 function TDebugThreadHandler.getLastIPTLog(out log: pointer; out size: integer): boolean;
 begin
+  result:=false;
   if hasiptlog=false then
     hasiptlog:=TDebuggerthread(debuggerthread).getLastIPT(lastiptlog, lastiptlogsize);
 
@@ -1228,7 +1229,9 @@ begin
   TDebuggerthread(debuggerthread).execlocation:=35;
   OutputDebugString('Handling as a single step event');
   result:=true;
+  {$if defined(cpu32) or defined(darwin)}
   hasSetInt1Back:=false;
+  {$endif}
 
   if (setint1back) then
   begin
@@ -1237,7 +1240,9 @@ begin
     begin
       TdebuggerThread(debuggerthread).setBreakpoint(Int1SetBackBP, self);
       setint1back:=false;
+      {$ifdef darwin}
       hasSetInt1Back:=true;
+      {$endif}
     end;
   end;
 
