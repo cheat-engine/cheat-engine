@@ -19,7 +19,7 @@ uses
      memscan,plugin, hotkeyhandler,frmProcessWatcherUnit, newkernelhandler,
      debuggertypedefinitions, commonTypeDefs, betterControls;
 
-const ceversion=7.41;
+const ceversion=7.42;
 {$ifdef altname}  //i'd use $MACRO ON but fpc bugs out
   strCheatEngine='Runtime Modifier'; //if you change this, also change it in first.pas
   strCheatTable='Code Table';   //because it contains code.... duh.....
@@ -41,7 +41,7 @@ const ceversion=7.41;
 {$endif}
 
 resourcestring
-  cename = strCheatEngine+' 7.4.1';
+  cename = strCheatEngine+' 7.4.2';
   rsCheatEngine = strCheatEngine;
   rsPleaseWait = 'Please Wait!';
 

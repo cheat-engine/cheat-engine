@@ -288,7 +288,7 @@ var
   noautorun: boolean;
 
 begin
-  Application.Title:='Cheat Engine 7.4.1';
+  Application.Title:='Cheat Engine 7.4.2';
  //'Cheat Engine 7.3';
   {$ifdef darwin}
   macPortFixRegPath;
