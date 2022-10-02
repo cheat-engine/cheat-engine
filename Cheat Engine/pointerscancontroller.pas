@@ -2578,8 +2578,10 @@ begin
             end;
           end;
 
-          if (childnodes[i].socket<>nil) and (childnodes[i].scandatauploader=nil) and (GetTickCount64-childnodes[i].LastUpdateReceived>120000) then
+          {$ifndef DEBUGPROTOCOL}
+          if (childnodes[i].socket<>nil) and (childnodes[i].scandatauploader=nil) and (childnodes[i].LastUpdateReceived<>0) and (GetTickCount64-childnodes[i].LastUpdateReceived>120000) then
             handleChildException(i, rsNoUpdateFromTheClientForOver120Sec); //marks the child as disconnected
+          {$endif}
 
           inc(i);
         end;
@@ -4957,6 +4959,9 @@ begin
       child.connectdata.password:=entry.password;
       child.trusted:=entry.trusted;
     end;
+
+    child.LastUpdateReceived:=GetTickCount64;
+
 
 
     len:=sizeof(ipname);

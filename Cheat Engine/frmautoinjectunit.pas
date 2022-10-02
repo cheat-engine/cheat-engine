@@ -3682,6 +3682,7 @@ var
   mask : Boolean;
   count : Integer;
 begin
+  result:=[];
   setlength(result, size);
 
 

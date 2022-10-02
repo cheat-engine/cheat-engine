@@ -130,6 +130,9 @@ begin
       if reg.ValueExists('ThreadPriority') then
         cbPriority.ItemIndex:=reg.ReadInteger('ThreadPriority');
 
+      if reg.ValueExists('ListenPort') then
+        edtPort.Text:=reg.ReadInteger('ListenPort').ToString;
+
       if reg.ValueExists('PublicName') then
         edtPublicname.text:=reg.ReadString('PublicName');
 
@@ -238,6 +241,7 @@ begin
     begin
       reg.WriteInteger('ThreadCount', threadcount);
       reg.WriteInteger('ThreadPriority', cbPriority.itemindex);
+      reg.WriteInteger('ListenPort', listenport);
       reg.WriteString('PublicName', edtPublicname.text);
       reg.WriteBool('AllowIncomingParents', cbAllowParents.Checked);
       reg.WriteString('ParentPassword', edtParentPassword.text);
