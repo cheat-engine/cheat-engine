@@ -1581,7 +1581,9 @@ function CheckIfConditionIsMetContext(threadid: dword; context: PContext; script
 {
 precondition: script returns a value (so already has the 'return ' part appended for single line scripts)
 }
-var i: integer;
+var
+  i: integer;
+  s: string;
 begin
   result:=false;
   try
@@ -1592,6 +1594,11 @@ begin
       i:=lua_gettop(LuaVM);
       if i=1 then //valid return
         result:=lua_toboolean(LuaVM, -1);
+    end
+    else
+    begin
+      s:=Lua_ToString(LuaVM,-1);
+      outputdebugstring('CheckIfConditionIsMetContext error:' +s);
     end;
   finally
     lua_pop(LuaVM, lua_gettop(luavm));
