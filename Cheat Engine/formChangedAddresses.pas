@@ -606,7 +606,7 @@ begin
         if changedlist.Items[i].Selected then
         begin
           ae:=changedlist.items[i].data;
-          ap.setSpecialContext(@ae.fcontext);
+          ap.setSpecialContext(ae.fcontext);
           address:=ap.getBaseAddress(equation);
 
           maxoffset:=max(maxoffset, 8+strtoint64('$'+changedlist.Items[i].Caption)-address);
@@ -902,7 +902,7 @@ function TfrmChangedAddresses.checkFilter(entry: TaddressEntry): boolean;
 begin
   if currentFilterFunc=-1 then exit(true);
 
-  LUA_SetCurrentContextState(0,@entry.fcontext, filterExtraRegs);
+  LUA_SetCurrentContextState(0,entry.fcontext, filterExtraRegs);
   lua_rawgeti(LuaVM, LUA_REGISTRYINDEX, currentFilterFunc);
   if lua_pcall(LuaVM,0,1,0)=0 then
   begin
