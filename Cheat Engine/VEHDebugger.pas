@@ -183,7 +183,7 @@ var c: PContext;
 begin
 
 
-  if isFrozenThread then //use the VEHDebugView context
+  if (not wasInjectedEvent) and isFrozenThread then //use the VEHDebugView context
   begin
     result:=true;
 
@@ -245,9 +245,9 @@ var c: PContext;
 {$endif}
 
 begin
-  if isFrozenThread then //use the VEHDebugView context
+  if (not wasInjectedEvent) and isFrozenThread then //use the VEHDebugView context
   begin
-    OutputDebugString('VEH GetThreadContext. From frozen');
+    //OutputDebugString('VEH GetThreadContext. From frozen');
     result:=true;
     c:=@VEHDebugView.CurrentContext[0];
     {$ifdef cpu64}
@@ -291,7 +291,7 @@ begin
   end
   else
   begin
-    OutputDebugString('VEH GetThreadContext. not frozen');
+   // OutputDebugString('VEH GetThreadContext. not frozen');
     result:=NewKernelHandler.GetThreadContext(hThread,lpContext);
   end;
 end;
@@ -341,7 +341,10 @@ begin
         threads.Add(lpDebugEvent.dwThreadId, currentthread);
       end;
 
-      suspendThread(CurrentThread);
+      if CurrentThread<>0 then
+      begin
+        suspendThread(CurrentThread);
+      end;
     end
     else
     begin
@@ -351,7 +354,8 @@ begin
 
       if threads.GetData(lpDebugEvent.dwThreadId,h) then
       begin
-        closehandle(h);
+        if h<>0 then
+          closehandle(h);
         threads.Delete(lpDebugEvent.dwThreadId);
       end;
     end;
@@ -386,10 +390,11 @@ begin
         if threads.GetData(lpDebugEvent.dwThreadId,lpDebugEvent.CreateProcessInfo.hThread)=false then
         begin
           lpDebugEvent.CreateProcessInfo.hThread:=OpenThread(THREAD_ALL_ACCESS,false, lpDebugEvent.dwThreadId);
-          currentthread:=lpDebugEvent.CreateProcessInfo.hThread;
-          suspendthread(CurrentThread);
           threads.Add(lpDebugEvent.dwThreadId,lpDebugEvent.CreateProcessInfo.hThread);
         end;
+
+        currentthread:=lpDebugEvent.CreateProcessInfo.hThread;
+        suspendthread(CurrentThread);
       end;
 
       $ce000001: //create thread
