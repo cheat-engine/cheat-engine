@@ -71,6 +71,7 @@ procedure unregisterAutoAssemblerPrologue(id: integer);
 
 var oldaamessage: boolean;
 
+
 function autoassemble2(code: tstrings;popupmessages: boolean;syntaxcheckonly:boolean; targetself: boolean; disableinfo: TDisableInfo=nil; memrec: TMemoryRecord=nil):boolean;
 
 implementation
@@ -84,7 +85,7 @@ uses strutils, memscan, disassembler, networkInterface, networkInterfaceApi,
 uses simpleaobscanner, StrUtils, LuaHandler, memscan, disassembler{$ifdef windows}, networkInterface{$endif},
      networkInterfaceApi, LuaCaller, SynHighlighterAA, Parsers, Globals, memoryQuery,
      MemoryBrowserFormUnit, MemoryRecordUnit{$ifdef windows}, vmxfunctions{$endif}, autoassemblerexeptionhandler,
-     UnexpectedExceptionsHelper, types, autoassemblercode;
+     UnexpectedExceptionsHelper, types, autoassemblercode, System.UITypes;
 {$endif}
 
 
@@ -174,6 +175,36 @@ var
 
   AutoAssemblerPrologues: TAutoAssemblerPrologues;
   AutoAssemblerProloguesPostAOBSCAN: TAutoAssemblerPrologues;
+
+
+type
+  TAllocWarn=class
+  public
+    preferedaddress: ptruint;
+    procedure AllocFailedQuestion;
+    procedure warn;
+  end;
+
+
+procedure TAllocWarn.AllocFailedQuestion;
+var r:TModalResult;
+begin
+  r:=MessageDlg('This script uses nearby allocation but it is impossible to allocate nearby '+preferedaddress.ToHexString+'. Please rewrite the script to function without nearby allocation.  Try executing the script anyhow and allocate on a region outside reach of 2GB? The target will crash if the script was not designed with this failure in mind', mtError,[mbyes,mbno,mbYesToAll, mbNoToAll],0);
+  if r in [mryes,mrYesToAll] then NearbyAllocationFailureFatal:=false;
+
+  if r=mrYesToAll then
+    WarnOnNearbyAllocationFailure:=false;
+end;
+
+procedure TAllocWarn.warn;
+begin
+  if MainThreadID=GetCurrentThreadId then
+    AllocFailedQuestion
+  else
+    tthread.Synchronize(nil, AllocFailedQuestion);
+end;
+
+
 
 function registerAutoAssemblerPrologue(m: TAutoAssemblerPrologue; postAOBSCAN: boolean=false): integer;
 var i: integer;
@@ -3197,11 +3228,25 @@ begin
 
               if allocs[j].address=0 then
               begin
-                raise EAssemblerException.create(format(rsFailureAlloc, [prefered,allocs[j].varname, code.text]));
-//                if allocs[j].address=0 then
+                if WarnOnNearbyAllocationFailure then
+                begin
+                  with TAllocWarn.create do
+                  begin
+                    preferedaddress:=prefered;
+                    warn;
+                    free;
+                  end;
+                end;
 
-//                allocs[j].address:=ptrUint(virtualallocex(processhandle,nil,x, MEM_RESERVE or MEM_COMMIT,protection));
-//                OutputDebugString(rsFailureToAllocateMemory+' 2');
+                if NearbyAllocationFailureFatal then
+                  raise EAssemblerException.create(format(rsFailureAlloc, [prefered,allocs[j].varname, code.text]))
+                else
+                begin
+                  if SystemSupportsWritableExecutableMemory then
+                    allocs[j].address:=ptrUint(virtualallocex(processhandle,nil,x, MEM_RESERVE or MEM_COMMIT,PAGE_EXECUTE_READWRITE))
+                  else
+                    allocs[j].address:=ptrUint(virtualallocex(processhandle,nil,x, MEM_RESERVE or MEM_COMMIT,PAGE_READWRITE));
+                end;
               end;
 
               if allocs[j].address=0 then raise EAssemblerException.create(rsFailureToAllocateMemory);

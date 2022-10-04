@@ -167,6 +167,9 @@ var
 
   allocsAddToUnexpectedExceptionList: boolean;
 
+  WarnOnNearbyAllocationFailure: boolean=true; //not saved in settings. Inconvenience the user every fucking time they restart (Learn to use 14 byte jmps people)
+  NearbyAllocationFailureFatal: boolean=true;
+
   {$ifdef darwin}
   speedhack_HookMachAbsoluteTime:boolean;
   {$endif}
