@@ -1910,7 +1910,7 @@ void setupVMX(pcpuinfo currentcpuinfo)
       if ((IA32_VMX_SECONDARY_PROCBASED_CTLS>>32) & SPBEF_ENABLE_VMCS_SHADOWING )
       {
         sendstringf("Supports VMCS shadowing\n");
-        vmwrite(vm_execution_controls_cpu_secondary, vmread(vm_execution_controls_cpu_secondary) | SPBEF_ENABLE_VMCS_SHADOWING);
+
         hasVMCSShadowingSupport=1;
 
         if (VMREADBitmap==NULL)
