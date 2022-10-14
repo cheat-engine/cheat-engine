@@ -1123,6 +1123,8 @@ begin
         setlength(staticscanner.mustendwithoffsetlist, frmpointerscannersettings.offsetlist.count);
         for i:=0 to frmpointerscannersettings.offsetlist.count-1 do
           staticscanner.mustendwithoffsetlist[i]:=TOffsetEntry(frmpointerscannersettings.offsetlist[i]).offset;
+
+        staticscanner.mustEndWithSpecificOffsetMaxDeviation:=frmpointerscannersettings.maxOffsetDeviation;
       end;
 
       staticscanner.instantrescan:=frmpointerscannersettings.cbCompareToOtherPointermaps.checked;

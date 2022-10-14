@@ -9,7 +9,7 @@ interface
 
 uses
   {$ifdef windows}
-  windows, Classes, SysUtils, Sockets, winsock, ssockets, NewKernelHandler;
+  windows, Classes, SysUtils, Sockets, winsock, ssockets, NewKernelHandler, syncobjs2;
   {$endif}
   {$ifdef darwin}
   Classes, SysUtils, Sockets, ssockets, NewKernelHandler, ctypes, baseunix, macport;
@@ -155,7 +155,13 @@ var
   i: integer;
   t: TTimeVal;
   fdset: TFDSet;
+  {$ifdef THREADNAMESUPPORT}
+  tname: string;
+  {$endif}
 begin
+  {$ifdef THREADNAMESUPPORT}
+  tname:=GetThreadName;
+  {$endif}
   {$ifdef DEBUGPROTOCOL}
   timeout:=0; //just let me test in peace
   {$endif}
@@ -201,18 +207,18 @@ begin
             i:={$ifdef unix}fpselect{$else}select{$endif}(socket, nil, @fdset, nil, nil);
 
           if i=0 then
-            raise TSocketException.create(rsTimeoutWhileSendingData);
+            raise TSocketException.create({$ifdef THREADNAMESUPPORT}'Thread '+tname+':'+{$endif}rsTimeoutWhileSendingData);
 
           if i<0 then
-            raise TSocketException.create(rsErrorWhileSendingData+inttostr(socketerror));
+            raise TSocketException.create({$ifdef THREADNAMESUPPORT}'Thread '+tname+':'+{$endif}rsErrorWhileSendingData+inttostr(socketerror));
 
           i:=0;
         end
         else
-          raise TSocketException.Create(rsErrorWhileSendingData+inttostr(i));
+          raise TSocketException.Create({$ifdef THREADNAMESUPPORT}'Thread '+tname+':'+{$endif}rsErrorWhileSendingData+inttostr(i));
       end
       else
-        raise TSocketException.Create(rsDisconnectedWhileSendingData);
+        raise TSocketException.Create({$ifdef THREADNAMESUPPORT}'Thread '+tname+':'+{$endif}rsDisconnectedWhileSendingData);
     end;
 
     inc(result, i);
@@ -224,13 +230,20 @@ var
   i: integer;
   t: TTimeVal;
   fdset: TFDSet;
+  {$ifdef THREADNAMESUPPORT}
+  tname: string;
+  {$endif}
 begin
+  {$ifdef THREADNAMESUPPORT}
+  tname:=GetThreadName;
+  {$endif}
+
   {$ifdef DEBUGPROTOCOL}
   timeout:=0;
   {$endif}
 
   if debug_connectionfailure then
-    raise TSocketException.Create(rsWhoopdeedoo);
+    raise TSocketException.Create({$ifdef THREADNAMESUPPORT}'Thread '+tname+':'+{$endif}rsWhoopdeedoo);
 
   result:=0;
   while (result<size) do
@@ -267,20 +280,22 @@ begin
           if i=0 then
           begin
             OutputDebugString('Timeout');
-            raise TSocketException.create(rsTimeoutWhileReceivingData);
+            raise TSocketException.create({$ifdef THREADNAMESUPPORT}'Thread '+tname+':'+{$endif}rsTimeoutWhileReceivingData);
           end;
 
           if i<0 then
-            raise TSocketException.create(rsErrorWhileReceivingData+inttostr(i));
+            raise TSocketException.create({$ifdef THREADNAMESUPPORT}'Thread '+tname+':'+{$endif}rsErrorWhileReceivingData+inttostr(i));
 
           i:=0;
 
         end
         else
-          raise TSocketException.Create(rsErrorWhileReceivingData+inttostr(i));
+        begin
+          raise TSocketException.Create({$ifdef THREADNAMESUPPORT}'Thread '+tname+':'+{$endif}rsErrorWhileReceivingData+inttostr(i));
+        end;
       end
       else
-        raise TSocketException.Create(rsDisconnectedWhileReceivingData);
+        raise TSocketException.Create({$ifdef THREADNAMESUPPORT}'Thread '+tname+':'+{$endif}rsDisconnectedWhileReceivingData);
     end;
 
     inc(result, i);
