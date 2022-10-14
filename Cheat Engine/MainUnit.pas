@@ -310,7 +310,6 @@ type
     CreateGroup: TMenuItem;
     FromAddress: TEdit;
     andlabel: TLabel;
-    Label3: TLabel;
     lblcompareToSavedScan: TLabel;
     MenuItem16: TMenuItem;
     miDeleteSavedScanResults: TMenuItem;
@@ -7296,6 +7295,11 @@ begin
     miAutoAssembleErrorMessage.visible:=selectedrecord.LastAAExecutionFailed;
     if selectedrecord.LastAAExecutionFailed then
       miAutoAssembleErrorMessage.Caption:='<<'+selectedrecord.LastAAExecutionFailedReason+'>>';
+  end
+  else
+  begin
+    miAutoAssembleErrorMessage.visible:=false;
+    miAutoAssembleErrorMessage.Caption:='';
   end;
 end;
 
