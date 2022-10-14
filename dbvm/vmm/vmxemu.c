@@ -864,11 +864,12 @@ int handle_vmread(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
   QWORD vmcsvalue;
   int r;
 
+  nosendchar[getAPICID()]=0;
 
-  //sendstring("handle_vmread\n");
+  sendstring("handle_vmread\n");
   if (currentcpuinfo->vmxdata.insideVMXRootMode==0)
   {
-    sendstringf("vmread: invalid mode\n");
+    sendstringf("vmread: invalid mode. Raising InvalidOpcodeException\n");
     return raiseInvalidOpcodeException(currentcpuinfo);
   }
 
@@ -1303,6 +1304,12 @@ int handle_vmptrld(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 
     //create a copy
    // sendstringf("Marking guest activeVMCS as shadow");
+
+    if (address!=0xffffffffffffffff)
+      vmwrite(vm_execution_controls_cpu_secondary, vmread(vm_execution_controls_cpu_secondary) | SPBEF_ENABLE_VMCS_SHADOWING);
+    else
+      vmwrite(vm_execution_controls_cpu_secondary, vmread(vm_execution_controls_cpu_secondary) &~(SPBEF_ENABLE_VMCS_SHADOWING));
+
     vmclear(currentcpuinfo->vmxdata.guest_activeVMCS);
 
     DWORD *vmcsheader=getVMCS(currentcpuinfo, currentcpuinfo->vmxdata.guest_activeVMCS);
@@ -1376,7 +1383,11 @@ int handle_vmxon(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
   //sendstringf("vmxonaddress=%6\n", *mapped);
 
   if (hasVMCSShadowingSupport)
+  {
     vmwrite(vm_vmcs_link_pointer, 0xffffffffffffffffull);
+    vmwrite(vm_execution_controls_cpu_secondary, vmread(vm_execution_controls_cpu_secondary) &~(SPBEF_ENABLE_VMCS_SHADOWING));
+
+  }
 
   unmapVMmemory(mapped, 8);
 
@@ -1395,7 +1406,10 @@ int handle_vmxoff(pcpuinfo currentcpuinfo, VMRegisters *vmregisters UNUSED)
 
   currentcpuinfo->vmxdata.guest_activeVMCS=0xffffffffffffffffULL;
   if (hasVMCSShadowingSupport)
+  {
     vmwrite(vm_vmcs_link_pointer, 0xffffffffffffffffull);
+    vmwrite(vm_execution_controls_cpu_secondary, vmread(vm_execution_controls_cpu_secondary) &~(SPBEF_ENABLE_VMCS_SHADOWING));
+  }
 
   currentcpuinfo->vmxdata.insideVMXRootMode=0;
   incrementRIP(vmread(vm_exit_instructionlength));
