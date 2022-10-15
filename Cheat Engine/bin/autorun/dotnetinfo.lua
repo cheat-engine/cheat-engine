@@ -713,11 +713,10 @@ local function ImageSelectionChange(frmDotNetInfo, sender)
     frmDotNetInfo.lbClasses.Cursor=crHourGlass
     
     local Domain=DataSource.Domains[frmDotNetInfo.lbDomains.ItemIndex+1]
-    local Image=Domain.Images[frmDotNetInfo.lbImages.ItemIndex+1]
-    
-    
-    
-    
+    local Image=Domain.Images[frmDotNetInfo.lbImages.ItemIndex+1]     
+
+    local sl = createStringlist()
+
     StartClassFetch(frmDotNetInfo, Image, function(thread, classlistchunk, StartIndex)
       --print("StartIndex="..StartIndex)
       --executed every 10 lines or so, in the main thread
@@ -751,20 +750,21 @@ local function ImageSelectionChange(frmDotNetInfo, sender)
         end
         
         if addToList then
-          frmDotNetInfo.lbClasses.Items.add(string.format('%s',  fullname), StartIndex+i-1)
+          sl.add(string.format('%s',  fullname), StartIndex+i-1)
         end
         
       end
-      
+
 
     end,
     function()
       --called when done
       frmDotNetInfo.lbClasses.Enabled=true
-      frmDotNetInfo.lbClasses.Cursor=crDefault      
-    end)
-    
-    
+      frmDotNetInfo.lbClasses.Cursor=crDefault   
+      frmDotNetInfo.lbClasses.Items = sl
+	    sl.destroy()
+    end)   
+
   end
 end
 
