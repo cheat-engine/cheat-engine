@@ -2197,6 +2197,7 @@ int WaitForDebugEvent(HANDLE hProcess, PDebugEvent devent, int timeout)
         if (p->debuggedThreadEvent.debugevent==SIGTRAP)
         {
           siginfo_t si;
+          memset(&si, 0, sizeof(si));
           debug_log("SIGTRAP\n");
 
           //fill in the address
@@ -2753,8 +2754,15 @@ int WriteProcessMemory(HANDLE hProcess, void *lpAddress, void *buffer, int size)
     {
       struct iovec local;
       struct iovec remote;
+      int attachedpid=-1;
 
       debug_log("WPM: MEMORY_SEARCH_OPTION == 2\n");
+
+      if (ATTACH_TO_WRITE_MEMORY)
+      {
+        debug_log("WPM: ATTACH_TO_WRITE_MEMORY=%d\n",ATTACH_TO_WRITE_MEMORY);
+        attachedpid=ptrace_attach_andwait(p->pid);
+      }
 
       local.iov_base=buffer;
       local.iov_len=size;
@@ -2771,8 +2779,18 @@ int WriteProcessMemory(HANDLE hProcess, void *lpAddress, void *buffer, int size)
       else
        debug_log("Write successful\n");
 
+      if (attachedpid>=0)
+      {
+        debug_log("WPM: Detaching\n");
+        safe_ptrace(PTRACE_DETACH, attachedpid,0,0);
+      }
+
       pthread_mutex_unlock(&memorymutex);
-      return written;
+
+      if ((written) || (size==0))
+        return written;
+
+      //else try the other writes
     }
 
     debug_log("aquiring memorymutex\n");
@@ -2783,7 +2801,7 @@ int WriteProcessMemory(HANDLE hProcess, void *lpAddress, void *buffer, int size)
 
 
       if (MEMORY_SEARCH_OPTION==2)
-        debug_log("process_vm_writev==NULL. Using other method\n");
+        debug_log("process_vm_writev==NULL or failure.  Using other method\n");
 
       debug_log("WPM: ATTACH_TO_WRITE_MEMORY == %d\n",ATTACH_TO_WRITE_MEMORY);
       debug_log("p->memrw=%d\n", p->memrw);
@@ -3211,7 +3229,7 @@ int ReadProcessMemory(HANDLE hProcess, void *lpAddress, void *buffer, int size)
 
     if (pthread_mutex_lock(&memorymutex) == 0)
     {
-      debug_log("Read without debug. MEMORY_SEARCH_OPTION=%d ATTACH_TO_ACCESS_MEMORY=%d\n",MEMORY_SEARCH_OPTION, ATTACH_TO_ACCESS_MEMORY);
+      //debug_log("Read without debug. MEMORY_SEARCH_OPTION=%d ATTACH_TO_ACCESS_MEMORY=%d\n",MEMORY_SEARCH_OPTION, ATTACH_TO_ACCESS_MEMORY);
 
 
 
