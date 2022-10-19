@@ -1339,7 +1339,10 @@ void *IdentifierThread(void *arg)
   fflush(stdout);
 
   s=socket(PF_INET, SOCK_DGRAM, 0);
+  v=1;
   i=setsockopt(s, SOL_SOCKET, SO_BROADCAST, &v, sizeof(v));
+
+  debug_log("IdentifierThread: setting SO_BROADCAST returned %d\n", i);
 
   memset(&addr, 0, sizeof(addr));
 
@@ -1354,12 +1357,17 @@ void *IdentifierThread(void *arg)
     {
       memset(&addr_client, 0, sizeof(addr_client));
       addr_client.sin_family=PF_INET;
-      addr_client.sin_addr.s_addr=INADDR_ANY;
+      addr_client.sin_addr.s_addr=INADDR_BROADCAST;
       addr_client.sin_port=htons(3296);
 
       clisize=sizeof(addr_client);
 
+      debug_log("IdentifierThread: Calling recvfrom size %d\n",sizeof(packet));
+      fflush(stdout);
       i=recvfrom(s, &packet, sizeof(packet), 0, (struct sockaddr *)&addr_client, &clisize);
+
+      debug_log("IdentifierThread: recvfrom returned %d\n", i);
+      fflush(stdout);
 
       //i=recv(s, &v, sizeof(v), 0);
       if (i>=0)
@@ -1526,6 +1534,7 @@ int main(int argc, char *argv[])
 */
   debug_log("MEMORY_SEARCH_OPTION=%d\n", MEMORY_SEARCH_OPTION);
   debug_log("ATTACH_TO_ACCESS_MEMORY=%d\n", ATTACH_TO_ACCESS_MEMORY);
+  debug_log("ATTACH_TO_WRITE_MEMORY=%d\n", ATTACH_TO_WRITE_MEMORY);
 
 
   if ((MEMORY_SEARCH_OPTION == 2) && (process_vm_readv==NULL)) //user explicitly wants to use process_vm_readv but it's not available

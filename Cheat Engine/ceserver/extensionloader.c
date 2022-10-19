@@ -559,6 +559,7 @@ printf("After wait 2. PID=%d\n", pid);
         newregs32.ARM_r0=str;
         newregs32.ARM_r1=RTLD_NOW;
 
+
         if (newregs32.ARM_pc & 1)
         {
            //THUMB Address link
@@ -596,18 +597,21 @@ printf("After wait 2. PID=%d\n", pid);
         debug_log("orig x0=%llx\n", origregs.regs[0]);
         debug_log("orig x1=%llx\n", origregs.regs[1]);
 
-        debug_log("extensionloader is not implemented yet for aarch64\n");
+
+
         //allocate space in the stack
 
         newregs.sp-=16+16*((pathlen+3)/16);
         str=newregs.sp;
         writeString(pid, str, path);
 
+        debug_log("injecting in aarch64\n");
 
         newregs.regs[30]=returnaddress;  //30=LR
         newregs.pc=p->dlopen;
         newregs.regs[0]=str;
         newregs.regs[1]=RTLD_NOW;
+        newregs.regs[2]=p->dlopencaller; //needed by android: loader_dlopen
 
         debug_log("new pc=%llx\n", origregs.pc);
         debug_log("new sp=%llx\n", origregs.sp);
@@ -1176,8 +1180,73 @@ int loadCEServerExtension(HANDLE hProcess)
         debug_log("The extension is already loaded\n");
 
       debug_log("Scanning for dlopen\n");
+
+#ifdef __ANDROID__
+      debug_log("Trying to find __loader_dlopen\n");
+      FindSymbol(hProcess,"__loader_dlopen", (symcallback)finddlopencallback, p);
+
+      if (p->dlopen)
+        debug_log("__loader_dlopen at %p\n", p->dlopen);
+      else
+        debug_log("__loader_dlopen not found\n");
+
+      if (p->dlopencaller==0)
+      {
+        //find the first system module base address
+        debug_log("trying to find a suitable caller origin\n");
+        HANDLE ths;
+        ModuleListEntry me;
+        ths=CreateToolhelp32Snapshot(TH32CS_SNAPMODULE,p->pid);
+
+        if (Module32First(ths, &me)) do
+        {
+          if (strncmp(me.moduleName,"/system/bin/",12)==0)
+          {
+            debug_log("found: ");
+            debug_log(me.moduleName);
+            debug_log("\n");
+            p->dlopencaller=me.baseAddress+0x1000;
+            break;
+          }
+        } while (Module32Next(ths,&me));
+
+        if ((p->dlopencaller==0) && (Module32First(ths, &me))) do
+        {
+          debug_log("no /system/bin, trying system\n");
+          if (strncmp(me.moduleName,"/system/bin/",12)==0)
+          {
+            debug_log("found: ");
+            debug_log(me.moduleName);
+            debug_log("\n");
+            p->dlopencaller=me.baseAddress+0x1000;
+            break;
+          }
+        } while (Module32Next(ths,&me));
+
+        if ((p->dlopencaller==0) && (Module32First(ths, &me)))
+        {
+          debug_log("no /system. fuck it! picking the first module I see: \n");
+          debug_log("found: ");
+          debug_log(me.moduleName);
+          debug_log("\n");
+          p->dlopencaller=me.baseAddress+0x1000;
+        }
+
+        CloseHandle(ths);
+
+      }
+#endif
+
       if (p->dlopen==0)
+      {
+        debug_log("Trying to find dlopen\n");
         FindSymbol(hProcess,"dlopen", (symcallback)finddlopencallback, p);
+
+        if (p->dlopen)
+          debug_log("dlopen at %p\n", p->dlopen);
+        else
+          debug_log("dlopen not found\n");
+      }
 
       if (p->dlopen==0)
         debug_log("failure finding dlopen\n");
@@ -1191,6 +1260,7 @@ int loadCEServerExtension(HANDLE hProcess)
           {
             debug_log("Calling loadExtension\n");
             p->hasLoadedExtension=loadExtension(p, modulepath);
+
           }
 
           if (p->hasLoadedExtension)

@@ -179,6 +179,7 @@ typedef struct {
   struct debugEventQueueHead debugEventQueue;
 
   uintptr_t dlopen;
+  uintptr_t dlopencaller;
 } ProcessData, *PProcessData;
 
 
