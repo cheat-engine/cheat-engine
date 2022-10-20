@@ -106,6 +106,7 @@ type
     function VirtualQueryEx(hProcess: THandle; lpAddress: Pointer; var lpBuffer: TMemoryBasicInformation; dwLength: DWORD): DWORD;
     function VirtualQueryEx_StartCache(hProcess: THandle; flags: DWORD): boolean;
     procedure VirtualQueryEx_EndCache(hProcess: THandle);
+    function VirtualProtectEx(hProcess: THandle; lpAddress: Pointer; dwSize, flNewProtect: DWORD; var OldProtect: DWORD): BOOL;
 
     function GetRegionInfo(hProcess: THandle; lpAddress: Pointer; var lpBuffer: TMemoryBasicInformation; dwLength: DWORD; var mapsline: string): DWORD;
 
@@ -194,6 +195,8 @@ const
   //4
   CMD_SET_CONNECTION_NAME=34;
   CMD_CREATETOOLHELP32SNAPSHOTEX =35;
+
+  CMD_CHANGEMEMORYPROTECTION=36;
 
 
 
@@ -1432,8 +1435,58 @@ begin
     else
       result:=windows.VirtualQueryEx(hProcess, lpAddress, lpBuffer, dwLength)
     {$endif};
+  end;
+end;
+
+function TCEConnection.VirtualProtectEx(hProcess: THandle; lpAddress: Pointer; dwSize, flNewProtect: DWORD; var OldProtect: DWORD): BOOL;
+var
+  input: packed record
+    command: byte;
+    handle: integer;
+    address: qword;
+    size: UINT32;
+    newprotect: uint32;
 
   end;
+
+  output: packed record
+    result: uint32;
+    oldprotection: uint32;
+  end;
+begin
+  result:=false;
+
+  if isNetworkHandle(hProcess) then
+  begin
+    input.command:=CMD_CHANGEMEMORYPROTECTION;
+    input.handle:=hProcess and $ffffff;
+    input.address:=qword(lpAddress);
+    input.size:=dwsize;
+    input.newprotect:=flNewProtect;
+    if send(@input, sizeof(input))>0 then
+    begin
+      if receive(@output, sizeof(output))>0 then
+      begin
+        if output.result>0 then
+        begin
+          oldprotect:=output.oldprotection;
+          exit(true);
+        end
+        else
+          exit(false);
+      end
+      else
+      begin
+        OutputDebugString('CMD_CHANGEMEMORYPROTECTION failed');
+      end;
+    end;
+
+  end
+  {$ifdef windows}
+  else
+    result:=windows.VirtualProtectEx(hProcess, lpAddress, dwSize, flNewProtect, @OldProtect);
+  {$endif};
+
 end;
 
 function TCEConnection.GetRegionInfo(hProcess: THandle; lpAddress: Pointer; var lpBuffer: TMemoryBasicInformation; dwLength: DWORD; var mapsline: string): DWORD;
