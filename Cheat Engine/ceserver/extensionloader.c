@@ -511,6 +511,8 @@ printf("After wait 2. PID=%d\n", pid);
       newregs.ARM_pc=p->dlopen;
       newregs.ARM_r0=str;
       newregs.ARM_r1=RTLD_NOW;
+      newregs.ARM_r2=p->dlopencaller; //needed by android: loader_dlopen
+
 
       if (newregs.ARM_pc & 1)
       {
@@ -558,6 +560,8 @@ printf("After wait 2. PID=%d\n", pid);
         newregs32.ARM_pc=p->dlopen;
         newregs32.ARM_r0=str;
         newregs32.ARM_r1=RTLD_NOW;
+        newregs32.ARM_r2=p->dlopencaller; //needed by android: loader_dlopen
+
 
 
         if (newregs32.ARM_pc & 1)
@@ -689,6 +693,7 @@ printf("After wait 2. PID=%d\n", pid);
       newregs.rax=0;
       newregs.rdi=str;
       newregs.rsi=RTLD_NOW;
+      newregs.rdx=p->dlopencaller;
       newregs.orig_rax=0;
 #endif
 

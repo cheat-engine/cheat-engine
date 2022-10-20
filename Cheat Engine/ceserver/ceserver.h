@@ -54,6 +54,8 @@
 
 #define CMD_CREATETOOLHELP32SNAPSHOTEX 35
 
+#define CMD_CHANGEMEMORYPROTECTION 36
+
 #define CMD_AOBSCAN					200
 
 //just in case I ever get over 255 commands this value will be reserved for a secondary command list (FF 00 -  FF 01 - ... - FF FE - FF FF 01 - FF FF 02 - .....
@@ -240,6 +242,14 @@ typedef struct {
 typedef struct {
   uint32_t result;
 } CeSpeedhackSetSpeedOutput, *PCeSpeedhackSetSpeedOutput;
+
+typedef struct {
+  HANDLE hProcess;
+  uint64_t address;
+  uint32_t size;
+  uint32_t windowsprotection;
+} CeChangeMemoryProtection, *PCeChangeMemoryProtection;
+
 
 typedef struct {
 	HANDLE hProcess;

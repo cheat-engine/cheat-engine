@@ -22,6 +22,8 @@
 #include <errno.h>
 #include <dlfcn.h>
 
+#include <sys/mman.h>
+
 
 
 
@@ -1146,6 +1148,47 @@ case CMD_SETTHREADCONTEXT:
         r=ext_speedhack_setSpeed(c.hProcess, c.speed);
 
         sendall(currentsocket, &r, sizeof(r),0);
+      }
+
+      break;
+    }
+
+    case CMD_CHANGEMEMORYPROTECTION:
+    {
+      CeChangeMemoryProtection c;
+      debug_log("CESERVER: CMD_CHANGEMEMORYPROTECTION \n");
+      if (recvall(currentsocket, &c, sizeof(c),0)>0)
+      {
+        RegionInfo ri;
+        uint32_t r;
+        uint32_t oldprotection;
+        uint32_t newprotection;
+
+        if (VirtualQueryEx(c.hProcess, (void*)c.address, &ri, NULL))
+        {
+          oldprotection=ri.protection;
+
+
+          //convert the given protection to a linux protection
+          newprotection=0;
+          switch (c.windowsprotection)
+          {
+            newprotection=0;
+
+            case PAGE_EXECUTE_READWRITE: newprotection=PROT_WRITE | PROT_READ | PROT_EXEC; break;
+            case PAGE_EXECUTE_READ: newprotection=PROT_READ | PROT_EXEC; break;
+            case PAGE_EXECUTE: newprotection=PROT_EXEC; break;
+            case PAGE_READWRITE: newprotection=PROT_READ | PROT_WRITE; break;
+            case PAGE_READONLY: newprotection=PROT_READ; break;
+          }
+
+          r=ext_changememoryprotection(c.hProcess, c.address, c.size, newprotection);
+        }
+        else
+          debug_log("Failure getting the old protection");
+
+        sendall(currentsocket, &r, sizeof(r),MSG_MORE);
+        sendall(currentsocket, &oldprotection, sizeof(oldprotection),0);
       }
 
       break;

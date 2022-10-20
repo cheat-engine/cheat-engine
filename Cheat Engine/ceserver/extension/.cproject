@@ -1111,17 +1111,23 @@
         		
         <configuration configurationName="Release-Android-x86"/>
         		
+        <configuration configurationName="Release-Android-x86_old"/>
+        		
         <configuration configurationName="Release-Android">
             			
             <resource resourceType="PROJECT" workspacePath="/ceserver-extension"/>
             		
         </configuration>
         		
+        <configuration configurationName="Release-Android-arm"/>
+        		
         <configuration configurationName="Debug-Linux">
             			
             <resource resourceType="PROJECT" workspacePath="/ceserver-extension"/>
             		
         </configuration>
+        		
+        <configuration configurationName="Release-Android-x86_64"/>
         		
         <configuration configurationName="Release">
             			
@@ -1136,76 +1142,6 @@
         </configuration>
         		
         <configuration configurationName="Release-Android-arm64"/>
-        	
-    </storageModule>
-    	
-    <storageModule moduleId="scannerConfiguration">
-        		
-        <autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
-        		
-        <scannerConfigBuildInfo instanceId="cdt.managedbuild.config.gnu.cross.exe.release.11823139.878848786;cdt.managedbuild.config.gnu.cross.exe.release.11823139.878848786.;cdt.managedbuild.tool.gnu.cross.c.compiler.944680769;cdt.managedbuild.tool.gnu.c.compiler.input.282826520">
-            			
-            <autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileC"/>
-            		
-        </scannerConfigBuildInfo>
-        		
-        <scannerConfigBuildInfo instanceId="cdt.managedbuild.config.gnu.cross.exe.debug.1358909468.1869431552">
-            			
-            <autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
-            		
-        </scannerConfigBuildInfo>
-        		
-        <scannerConfigBuildInfo instanceId="cdt.managedbuild.config.gnu.cross.so.debug.1388177519;cdt.managedbuild.config.gnu.cross.so.debug.1388177519.;cdt.managedbuild.tool.gnu.cross.c.compiler.1460960264;cdt.managedbuild.tool.gnu.c.compiler.input.1714379932">
-            			
-            <autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileC"/>
-            			
-            <profile id="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileC">
-                				
-                <buildOutputProvider>
-                    					
-                    <openAction enabled="true" filePath=""/>
-                    					
-                    <parser enabled="true"/>
-                    				
-                </buildOutputProvider>
-                				
-                <scannerInfoProvider id="specsFile">
-                    					
-                    <runAction arguments="-E -P -v -dD &quot;${plugin_state_location}/specs.c&quot;" command="arm-linux-androideabi-gcc" useDefault="true"/>
-                    					
-                    <parser enabled="true"/>
-                    				
-                </scannerInfoProvider>
-                			
-            </profile>
-            		
-        </scannerConfigBuildInfo>
-        		
-        <scannerConfigBuildInfo instanceId="cdt.managedbuild.config.gnu.cross.so.release.1593536990;cdt.managedbuild.config.gnu.cross.so.release.1593536990.;cdt.managedbuild.tool.gnu.cross.c.compiler.1906152945;cdt.managedbuild.tool.gnu.c.compiler.input.284285820">
-            			
-            <autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileC"/>
-            			
-            <profile id="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileC">
-                				
-                <buildOutputProvider>
-                    					
-                    <openAction enabled="true" filePath=""/>
-                    					
-                    <parser enabled="true"/>
-                    				
-                </buildOutputProvider>
-                				
-                <scannerInfoProvider id="specsFile">
-                    					
-                    <runAction arguments="-E -P -v -dD &quot;${plugin_state_location}/specs.c&quot;" command="arm-linux-androideabi-gcc" useDefault="true"/>
-                    					
-                    <parser enabled="true"/>
-                    				
-                </scannerInfoProvider>
-                			
-            </profile>
-            		
-        </scannerConfigBuildInfo>
         	
     </storageModule>
     	
@@ -1250,5 +1186,81 @@
     </storageModule>
     	
     <storageModule moduleId="org.eclipse.cdt.internal.ui.text.commentOwnerProjectMappings"/>
+    	
+    <storageModule moduleId="scannerConfiguration">
+        		
+        <autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
+        		
+        <scannerConfigBuildInfo instanceId="cdt.managedbuild.config.gnu.cross.so.release.1593536990;cdt.managedbuild.config.gnu.cross.so.release.1593536990.;cdt.managedbuild.tool.gnu.cross.c.compiler.1906152945;cdt.managedbuild.tool.gnu.c.compiler.input.284285820">
+            			
+            <autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileC"/>
+            			
+            <profile id="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileC">
+                				
+                <buildOutputProvider>
+                    					
+                    <openAction enabled="true" filePath=""/>
+                    					
+                    <parser enabled="true"/>
+                    				
+                </buildOutputProvider>
+                				
+                <scannerInfoProvider id="specsFile">
+                    					
+                    <runAction arguments="-E -P -v -dD &quot;${plugin_state_location}/specs.c&quot;" command="arm-linux-androideabi-gcc" useDefault="true"/>
+                    					
+                    <parser enabled="true"/>
+                    				
+                </scannerInfoProvider>
+                			
+            </profile>
+            		
+        </scannerConfigBuildInfo>
+        		
+        <scannerConfigBuildInfo instanceId="cdt.managedbuild.config.gnu.cross.exe.debug.1358909468.1869431552">
+            			
+            <autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
+            		
+        </scannerConfigBuildInfo>
+        		
+        <scannerConfigBuildInfo instanceId="cdt.managedbuild.config.gnu.cross.exe.release.11823139.878848786.59856166;cdt.managedbuild.config.gnu.cross.exe.release.11823139.878848786.59856166.;cdt.managedbuild.tool.gnu.cross.c.compiler.70616554;cdt.managedbuild.tool.gnu.c.compiler.input.128517512">
+            			
+            <autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
+            		
+        </scannerConfigBuildInfo>
+        		
+        <scannerConfigBuildInfo instanceId="cdt.managedbuild.config.gnu.cross.so.debug.1388177519;cdt.managedbuild.config.gnu.cross.so.debug.1388177519.;cdt.managedbuild.tool.gnu.cross.c.compiler.1460960264;cdt.managedbuild.tool.gnu.c.compiler.input.1714379932">
+            			
+            <autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileC"/>
+            			
+            <profile id="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileC">
+                				
+                <buildOutputProvider>
+                    					
+                    <openAction enabled="true" filePath=""/>
+                    					
+                    <parser enabled="true"/>
+                    				
+                </buildOutputProvider>
+                				
+                <scannerInfoProvider id="specsFile">
+                    					
+                    <runAction arguments="-E -P -v -dD &quot;${plugin_state_location}/specs.c&quot;" command="arm-linux-androideabi-gcc" useDefault="true"/>
+                    					
+                    <parser enabled="true"/>
+                    				
+                </scannerInfoProvider>
+                			
+            </profile>
+            		
+        </scannerConfigBuildInfo>
+        		
+        <scannerConfigBuildInfo instanceId="cdt.managedbuild.config.gnu.cross.exe.release.11823139.878848786;cdt.managedbuild.config.gnu.cross.exe.release.11823139.878848786.;cdt.managedbuild.tool.gnu.cross.c.compiler.944680769;cdt.managedbuild.tool.gnu.c.compiler.input.282826520">
+            			
+            <autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileC"/>
+            		
+        </scannerConfigBuildInfo>
+        	
+    </storageModule>
     
 </cproject>
