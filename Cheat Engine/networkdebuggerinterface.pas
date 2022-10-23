@@ -178,6 +178,7 @@ var
   context: TNetworkContext;
   c: TCEConnection=nil;
 begin
+  result:=false;
   c:=getConnection;
   if c<>nil then
   begin
@@ -345,6 +346,7 @@ var
   carm: TNetworkContext;
   c: TCEConnection=nil;
 begin
+  result:=false;
   c:=getConnection;
   if c<>nil then
   begin
@@ -494,6 +496,7 @@ var
   carm64: TNetworkContext;
   c: TCEConnection=nil;
 begin
+  result:=false;
   c:=getConnection;
   if c<>nil then
   begin

@@ -315,7 +315,7 @@ begin
   if Stackview=nil then
     stackview:=TfrmStackView.create(self);
 
-  stackview.SetContextPointer(@context, stack.stack, stack.savedsize);
+  stackview.SetContextPointer(context, stack.stack, stack.savedsize);
   stackview.show;
 end;
 

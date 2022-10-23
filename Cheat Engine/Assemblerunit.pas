@@ -29,7 +29,8 @@ type
 
 
 
-type TTokenType=(
+type
+  TCEAATokenType=(
   ttInvalidtoken, ttRegister8Bit, ttRegister16Bit, ttRegister32Bit, ttRegister64Bit, ttRegister8BitWithPrefix, //ttRegister64Bit and ttRegister8BitWithPrefix is just internal to set the rexflags
   ttRegisterMM, ttRegisterXMM, ttRegisterYMM, ttRegisterST, ttRegisterSreg,
   ttRegisterCR, ttRegisterDR, ttMemoryLocation, ttMemoryLocation8,
@@ -2713,10 +2714,10 @@ function Assemble(opcode:string; address: ptrUint;var bytes: TAssemblerBytes; as
 function GetOpcodesIndex(opcode: string): integer;
 
 //function tokenize(opcode:string; var tokens: ttokens): boolean;
-function gettokentype(var token:string;token2: string): TTokenType;
+function gettokentype(var token:string;token2: string): TCEAATokenType;
 function getreg(reg: string;exceptonerror:boolean): integer; overload;
 function getreg(reg: string): integer; overload;
-function TokenToRegisterbit(token:string): TTokenType;
+function TokenToRegisterbit(token:string): TCEAATokenType;
 
 
 type TSingleLineAssembler=class
@@ -2763,7 +2764,10 @@ type TSingleLineAssembler=class
 
 end;
 
-var SingleLineAssembler: TSingleLineAssembler;
+
+threadvar
+  sla: TSingleLineAssembler;
+//var SingleLineAssembler: TSingleLineAssembler;
 
 
 var parameter1,parameter2,parameter3: integer;
@@ -3088,6 +3092,7 @@ begin
           try
             exit(reg.Substring(1).ToInteger);
           except
+            if exceptonerror then raise EAssemblerException.create(rsInvalidRegister);
             exit(-1);
           end;
         end;
@@ -3105,6 +3110,7 @@ begin
           try
             exit(reg.Substring(1).ToInteger);
           except
+            if exceptonerror then raise EAssemblerException.create(rsInvalidRegister);
             exit(-1);
           end;
         end;
@@ -3165,7 +3171,7 @@ end;
 
 
 
-function TokenToRegisterbit(token:string): TTokenType;
+function TokenToRegisterbit(token:string): TCEAATokenType;
 //todo: Optimize with a case statement A->AL/AH/AX , B->BL/ .....
 begin
   result:=ttRegister32bit;
@@ -3378,7 +3384,7 @@ begin
   end;
 end;
 
-function gettokentype(var token:string;token2: string): TTokenType;
+function gettokentype(var token:string;token2: string): TCEAATokenType;
 var err: integer;
     temp:string;
     i64: int64;
@@ -3446,57 +3452,57 @@ begin
 
 end;
 
-function isrm8(parametertype:TTokenType): boolean;
+function isrm8(parametertype:TCEAATokenType): boolean;
 begin
   result:=(parametertype=ttMemorylocation8) or (parametertype=ttRegister8bit);
 end;
 
-function isrm16(parametertype:TTokenType): boolean;
+function isrm16(parametertype:TCEAATokenType): boolean;
 begin
   result:=(parametertype=ttmemorylocation16) or (parametertype=ttregister16bit);
 end;
 
-function isrm32(parametertype:TTokenType): boolean;
+function isrm32(parametertype:TCEAATokenType): boolean;
 begin
   result:=(parametertype=ttmemorylocation32) or (parametertype=ttregister32bit);
 end;
 
-function ismm_m32(parametertype:TTokenType): boolean;
+function ismm_m32(parametertype:TCEAATokenType): boolean;
 begin
   result:=(parametertype=ttRegisterMM) or (parametertype=ttMemorylocation32);
 end;
 
-function ismm_m64(parametertype:TTokenType): boolean;
+function ismm_m64(parametertype:TCEAATokenType): boolean;
 begin
   result:=(parametertype=ttRegisterMM) or (parametertype=ttMemorylocation64);
 end;
 
-function isxmm_m32(parametertype:TTokenType): boolean;
+function isxmm_m32(parametertype:TCEAATokenType): boolean;
 begin
   result:=(parametertype=ttRegisterXMM) or (parametertype=ttMemorylocation32);
 end;
 
-function isxmm_m16(parametertype:TTokenType; params: string): boolean;
+function isxmm_m16(parametertype:TCEAATokenType; params: string): boolean;
 begin
   result:=(parametertype=ttRegisterXMM) or (parametertype=ttMemorylocation16) or ((parametertype=ttmemorylocation32) and isMemoryLocationDefault(params));
 end;
 
-function isxmm_m8(parametertype:TTokenType; params: string): boolean;
+function isxmm_m8(parametertype:TCEAATokenType; params: string): boolean;
 begin
   result:=(parametertype=ttRegisterXMM) or (parametertype=ttMemorylocation8) or ((parametertype=ttmemorylocation32) and isMemoryLocationDefault(params));
 end;
 
-function isxmm_m64(parametertype:TTokenType): boolean;
+function isxmm_m64(parametertype:TCEAATokenType): boolean;
 begin
   result:=(parametertype=ttRegisterXMM) or (parametertype=ttMemorylocation64);
 end;
 
-function isxmm_m128(parametertype:TTokenType):boolean;
+function isxmm_m128(parametertype:TCEAATokenType):boolean;
 begin
   result:=(parametertype=ttRegisterXMM) or (parametertype=ttMemorylocation128);
 end;
 
-function isymm_m256(parametertype:TTokenType):boolean;
+function isymm_m256(parametertype:TCEAATokenType):boolean;
 begin
   result:=(parametertype=ttRegisterYMM) or (parametertype=ttMemorylocation256);
 end;
@@ -4697,7 +4703,8 @@ end;
 
 function Assemble(opcode:string; address: ptrUint;var bytes: TAssemblerBytes; assemblerPreference: TassemblerPreference=apNone; skiprangecheck: boolean=false): boolean;
 begin
-  result:=SingleLineAssembler.assemble(opcode, address, bytes, assemblerPreference, skiprangecheck);
+  if sla=nil then sla:=TSingleLineAssembler.Create;
+  result:=sla.assemble(opcode, address, bytes, assemblerPreference, skiprangecheck);
 end;
 
 function TSingleLineAssembler.Assemble(opcode:string; address: ptrUint;var bytes: TAssemblerBytes;assemblerPreference: TassemblerPreference=apNone; skiprangecheck: boolean=false): boolean;
@@ -4705,8 +4712,8 @@ var tokens: ttokens;
     i,j,k,l: integer;
     v,v2, newv: qword;
     mnemonic,nroftokens: integer;
-    oldParamtype1, oldParamtype2: TTokenType;
-    paramtype1,paramtype2,paramtype3,paramtype4: TTokenType;
+    oldParamtype1, oldParamtype2: TCEAATokenType;
+    paramtype1,paramtype2,paramtype3,paramtype4: TCEAATokenType;
     parameter1,parameter2,parameter3,parameter4: string;
     vtype,v2type: integer;
     signedvtype,signedv2type: integer;
@@ -4715,25 +4722,56 @@ var tokens: ttokens;
 
     tempstring: string;
     tempwstring: widestring;
-    overrideShort, overrideLong, overrideFar: boolean;
+    overrideShort: boolean=false;
+    overrideLong: boolean=false;
+    overrideFar: boolean=false;
 
-    is64bit: boolean;
-
-
-    b: byte;
-    br: PTRUINT;
-    canDoAddressSwitch: boolean;
+    is64bit: boolean=false;
 
 
-    bigvex: boolean;
-    VEXvvvv: integer;
+    b: byte=0;
+    br: PTRUINT=0;
+    canDoAddressSwitch: boolean=false;
 
-    cannotencodewithrexw: boolean;
+
+    bigvex: boolean=false;
+    VEXvvvv: integer=0;
+
+    cannotencodewithrexw: boolean=false;
 
     //cpuinfo: TCPUIDResult;
 
     bts: TAssemblerBytes;
 begin
+  i:=0;
+  j:=0;
+  k:=0;
+  l:=0;
+  v:=0;
+  v2:=0;
+  newv:=0;
+  mnemonic:=0;
+  nroftokens:=0;
+
+  oldParamtype1:=ttInvalidtoken;
+  oldParamtype2:=ttInvalidtoken;
+  paramtype1:=ttInvalidtoken;
+  paramtype2:=ttInvalidtoken;
+  paramtype3:=ttInvalidtoken;
+  paramtype4:=ttInvalidtoken;
+  parameter1:='';
+  parameter2:='';
+  parameter3:='';
+  parameter4:='';
+
+  vtype:=0;
+  v2type:=0;
+  signedvtype:=0;
+  signedv2type:=0;
+
+
+  setlength(bts,0);
+
   faddress:=address;
   VEXvvvv:=$f;
   needsAddressSwitchPrefix:=false;
@@ -4741,6 +4779,7 @@ begin
 
   setlength(bytes,0);
   is64bit:=processhandler.is64Bit;
+
 
 
   {$ifdef checkassembleralphabet}
@@ -4753,6 +4792,12 @@ begin
 
   relativeAddressLocation:=-1;
   rexprefix:=0;
+  RexPrefixLocation:=0;
+  actualdisplacement:=0;
+  needsAddressSwitchPrefix:=false;
+  usesVexSIB:=false;
+
+
   result:=false;
 
   tokenize(opcode,tokens);
@@ -4982,7 +5027,7 @@ begin
   if processhandler.is64Bit then
     overrideFar:=(Pos('FAR ',tempstring)>0)
   else
-    overrideLong:=overrideLong or (Pos('FAR ',tempstring)>0);
+    overrideFar:=overrideLong or (Pos('FAR ',tempstring)>0);
 
 
   if not (overrideShort or overrideLong or overridefar) and (assemblerPreference<>apNone) then //no override choice by the user and not a normal preference
@@ -6373,6 +6418,8 @@ begin
 
                 if v>$7fffffff then
                 begin
+                  OutputDebugString('Assembler could not assemble using r32,rm32: searching of alternatives');
+
                   setlength(bytes,0);
                   paramtype1:=oldParamtype1;
                   paramtype2:=oldParamtype2;
@@ -8373,6 +8420,18 @@ var i,j,k: integer;
     lastentry: integer=1;
     lastindex: PIndexArray=nil;
 
+    tm: TThreadManager;
+    oldReleaseThreadVars: procedure;
+
+procedure releasesla;
+begin
+  if sla<>nil then
+    freeandnil(sla);
+
+  if assigned(oldReleaseThreadVars) then
+    oldReleaseThreadVars;
+end;
+
 initialization
 //setup the index for the assembler
 
@@ -8381,9 +8440,9 @@ initialization
     assemblerindex[i].startentry:=-1;
     assemblerindex[i].NextEntry:=-1;
     assemblerindex[i].SubIndex:=nil;
+    k:=0;
     for j:=lastentry to opcodecount do
     begin
-
       if ord(opcodes[j].mnemonic[1])=(ord('A')+i) then
       begin
         //found the first entry with this as first character
@@ -8403,6 +8462,8 @@ initialization
     end;
 
   end;
+
+
 
   if assemblerindex[25].startentry<>-1 then
     assemblerindex[25].NextEntry:=opcodecount;
@@ -8444,10 +8505,18 @@ initialization
     end;
   end;
 
-  SingleLineAssembler:=TSingleLineassembler.create;
+
+  GetThreadManager(tm);
+  oldReleaseThreadVars:=tm.ReleaseThreadVars;
+  tm.ReleaseThreadVars:=@ReleaseSLA;
+  SetThreadManager(tm);
+
+  sla:=TSingleLineassembler.create;
 
 finalization
-  if SingleLineAssembler<>nil then
-    SingleLineAssembler.free;
+
+  if sla<>nil then
+    freeandnil(sla);
+
 
 end.

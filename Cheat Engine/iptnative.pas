@@ -313,6 +313,7 @@ function PauseThreadIptTracing(hThread: THandle; out r: BOOLEAN): boolean;
 function ResumeThreadIptTracing(hThread: THandle; out r: BOOLEAN): boolean;
 
 function ConfigureThreadAddressFilterRange(hThread: THandle; dwRangeIndex: DWORD; dwRangeConfig: IPT_FILTER_RANGE_SETTINGS; ullStartAddress: QWORD; ullEndAddress: QWORD): boolean;
+function QueryThreadAddressFilterRange(hThread: THandle; dwRangeIndex: DWORD; out dwRangeConfig: IPT_FILTER_RANGE_SETTINGS; out ullStartAddress: QWORD; out ullEndAddress: QWORD): boolean;
 {$endif}
 
 implementation

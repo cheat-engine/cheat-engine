@@ -2773,6 +2773,7 @@ var original,a: dword;
     s: PtrUInt;
     v: boolean;
 begin
+  result:=false;
   //make writable, write, restore, flush
   if SystemSupportsWritableExecutableMemory or SkipVirtualProtectEx then
   begin

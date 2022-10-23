@@ -177,7 +177,7 @@ end;
 procedure TProcessHandler.Open;
 var mn: string;
 begin
-  outputdebugstring('TProcessHandler.Open');
+ // outputdebugstring('TProcessHandler.Open');
   //GetFirstModuleNa
   {$ifndef jni}
 

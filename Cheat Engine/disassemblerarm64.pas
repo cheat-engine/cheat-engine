@@ -2699,7 +2699,7 @@ var
   i: integer;
   r: qword;
 begin
-  if sourcesize=0 then exit;
+  if sourcesize=0 then exit(0);
 
   repval:=v and zeroextend(v, sourcesize);
 

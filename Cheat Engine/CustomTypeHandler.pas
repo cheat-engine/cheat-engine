@@ -669,6 +669,7 @@ begin
   oldScriptUsesFloat:=fScriptUsesFloat;
   oldScriptUsesCDecl:=fScriptUsesCDecl;
   oldScriptUsesString:=fScriptUsesString;
+  oldstringsize:=textbuffersize;;
 
   try
     //if anything goes wrong the old values get set back

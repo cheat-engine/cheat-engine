@@ -516,7 +516,7 @@ begin
   end
   else
   begin
-    outputdebugstring(pchar(format('setThreadContext(%x, %x, %p). dr0=%x dr1=%x dr2=%x dr3=%x dr7=%x',[threadid, handle,context, context^.dr0, context^.dr1, context^.dr2, context^.dr3, context^.dr7])));
+    //outputdebugstring(pchar(format('setThreadContext(%x, %x, %p). dr0=%x dr1=%x dr2=%x dr3=%x dr7=%x',[threadid, handle,context, context^.dr0, context^.dr1, context^.dr2, context^.dr3, context^.dr7])));
 
 
     if (handle<>0) or ((currentdebuggerinterface.controlsTheThreadList=false) and ishandled) then
@@ -2191,7 +2191,7 @@ var
   i: integer;
 begin
   TDebuggerthread(debuggerthread).execlocation:=19;
-  Outputdebugstring('ExitThreadDebugEvent');
+  Outputdebugstring(format('ExitThreadDebugEvent %x',[debugevent.dwThreadId]));
   TDebuggerThread(debuggerthread).CurrentThread:=nil;
   Result := true;
   dwContinueStatus:=DBG_CONTINUE;
@@ -2356,9 +2356,11 @@ var
 begin
   //because fpc's structure is not alligned on a 16 byte base I have to allocate more memory and byteshift the structure if needed
   contexthandler:=getBestContextHandler;
+  contextsize:=contexthandler.ContextSize+4096;
 
-  getmem(realcontextpointer,contexthandler.ContextSize+4096);
-  zeromemory(realcontextpointer,contexthandler.ContextSize+4096);
+  getmem(realcontextpointer,ContextSize);
+  zeromemory(realcontextpointer,ContextSize);
+
 
   {$ifdef windows}
   if processhandler.SystemArchitecture=archX86 then
@@ -2391,11 +2393,8 @@ begin
   {$endif}
 
 
-  if context=nil then
-  begin
-    context:=Align(realcontextpointer, 16);
-    contexthandler.setcontextflags(context, CONTEXT_ALL or CONTEXT_EXTENDED_REGISTERS)
-  end;
+  context:=Align(realcontextpointer, 16);
+  contexthandler.setcontextflags(context, CONTEXT_ALL or CONTEXT_EXTENDED_REGISTERS);
 
 
   self.debuggerthread := debuggerthread;

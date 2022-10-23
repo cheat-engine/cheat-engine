@@ -1467,7 +1467,7 @@ begin
     begin
       if receive(@output, sizeof(output))>0 then
       begin
-        if output.result>0 then
+        if output.result=0 then
         begin
           oldprotect:=output.oldprotection;
           exit(true);

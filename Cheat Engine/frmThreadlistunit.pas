@@ -24,6 +24,8 @@ type
   { TfrmThreadlist }
 
   TfrmThreadlist = class(TForm)
+    miRefresh: TMenuItem;
+    Separator1: TMenuItem;
     tlImageList: TImageList;
     lblIsWOW64: TLabel;
     MenuItem1: TMenuItem;
@@ -43,6 +45,7 @@ type
     procedure miClearDebugRegistersClick(Sender: TObject);
     procedure miCopyValueToClipboardClick(Sender: TObject);
     procedure miFreezeThreadClick(Sender: TObject);
+    procedure miRefreshClick(Sender: TObject);
     procedure miResumeThreadClick(Sender: TObject);
     procedure PopupMenu1Popup(Sender: TObject);
     procedure threadTreeviewDblClick(Sender: TObject);
@@ -499,6 +502,11 @@ begin
 
   end;
   {$endif}
+end;
+
+procedure TfrmThreadlist.miRefreshClick(Sender: TObject);
+begin
+  FillThreadlist;
 end;
 
 procedure TfrmThreadlist.miResumeThreadClick(Sender: TObject);

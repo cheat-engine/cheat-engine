@@ -24,7 +24,7 @@ var
   SetProcessDPIAware:function: BOOL; stdcall;
   l: HModule;
 begin
-  OutputDebugString('setDPIAware');
+ // OutputDebugString('setDPIAware');
   l:=LoadLibrary('Shcore.dll');
   if l<>0 then
   begin

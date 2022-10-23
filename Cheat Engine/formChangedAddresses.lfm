@@ -1,5 +1,5 @@
 object frmChangedAddresses: TfrmChangedAddresses
-  Left = 1296
+  Left = 1119
   Height = 319
   Top = 437
   Width = 389

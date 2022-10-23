@@ -91,7 +91,7 @@
 -dDBVMFORAMDISWORKING
 -dNESTEDSTRUCTURES
 -dTHREADNAMESUPPORT"/>
-            <OtherDefines Count="13">
+            <OtherDefines Count="18">
               <Define0 Value="NOTMULTITHREADED"/>
               <Define1 Value="benchmarkps"/>
               <Define2 Value="cemain"/>
@@ -105,6 +105,11 @@
               <Define10 Value="memorymapped"/>
               <Define11 Value="privatebuild"/>
               <Define12 Value="DBVMFORAMDISWORKING"/>
+              <Define13 Value="NESTEDSTRUCTURES"/>
+              <Define14 Value="THREADNAMESUPPORT"/>
+              <Define15 Value="LINUXTCCTEST"/>
+              <Define16 Value="asserthexviewisthreadsafe"/>
+              <Define17 Value="DEBUGPROTOCOL"/>
             </OtherDefines>
           </Other>
         </CompilerOptions>
@@ -620,7 +625,7 @@
 -dNESTEDSTRUCTURES
 -dTHREADNAMESUPPORT
 -dLINUXTCCTEST"/>
-            <OtherDefines Count="16">
+            <OtherDefines Count="18">
               <Define0 Value="NOTMULTITHREADED"/>
               <Define1 Value="benchmarkps"/>
               <Define2 Value="cemain"/>
@@ -637,6 +642,8 @@
               <Define13 Value="NESTEDSTRUCTURES"/>
               <Define14 Value="THREADNAMESUPPORT"/>
               <Define15 Value="LINUXTCCTEST"/>
+              <Define16 Value="asserthexviewisthreadsafe"/>
+              <Define17 Value="DEBUGPROTOCOL"/>
             </OtherDefines>
           </Other>
         </CompilerOptions>

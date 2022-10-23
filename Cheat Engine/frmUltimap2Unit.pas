@@ -210,7 +210,9 @@ type
 
   TUltimap2ThreadInfo=record
     threadid: qword;
+    appliedranges: boolean;
     paused: boolean;
+    pausecount: integer; //if not 0 paused will be set to true when it turns from 1 to 0
     waspaused: boolean;
     lastoffset: dword;
     overflowsseen: dword;
@@ -242,6 +244,7 @@ type
   private
     error: string;
 
+    doNotProcessNewThreads: boolean;
     logtofolder: boolean;
     outputfolder: string;
 
@@ -263,6 +266,7 @@ type
 
     waspaused: boolean; //set when the first processdata after a resume
 
+    ranges: TURangeArray;
 
     procedure showError;
     function processData: boolean;
@@ -316,6 +320,7 @@ type
     cbKernelmode: TCheckBox;
     cbWindowsBasedIPT: TCheckBox;
     cbWinIPTBufferSize: TComboBox;
+    cbIPTDoNotProcessNewThreads: TCheckBox;
     deTargetFolder: TDirectoryEdit;
     deTextOut: TDirectoryEdit;
     edtFlushInterval: TEdit;
@@ -331,10 +336,13 @@ type
     MenuItem3: TMenuItem;
     MenuItem4: TMenuItem;
     MenuItem5: TMenuItem;
+    miGetRangeConfig: TMenuItem;
     miRemoveHotkey: TMenuItem;
     miSetHotkey: TMenuItem;
     OpenDialog1: TOpenDialog;
     pmSetHotkey: TPopupMenu;
+    pmThreadlist: TPopupMenu;
+    Splitter1: TSplitter;
     tThreadlistUpdater: TTimer;
     um2ImageList: TImageList;
     Label1: TLabel;
@@ -398,6 +406,7 @@ type
     procedure MenuItem4Click(Sender: TObject);
     procedure MenuItem5Click(Sender: TObject);
     procedure miCloseClick(Sender: TObject);
+    procedure miGetRangeConfigClick(Sender: TObject);
     procedure miRangeDeleteSelectedClick(Sender: TObject);
     procedure miRangeDeleteAllClick(Sender: TObject);
     procedure miRemoveHotkeyClick(Sender: TObject);
@@ -405,6 +414,7 @@ type
     procedure Panel5Click(Sender: TObject);
     procedure pmRangeOptionsPopup(Sender: TObject);
     procedure pmSetHotkeyPopup(Sender: TObject);
+    procedure pmThreadlistPopup(Sender: TObject);
     procedure rbLogToFolderChange(Sender: TObject);
     procedure tActivatorTimer(Sender: TObject);
     procedure tbRecordPauseChange(Sender: TObject);
@@ -413,6 +423,8 @@ type
   private
     { private declarations }
     debugmode: boolean; //when set the kernelmode part is disabled, but processing of files sitll happens
+
+    ranges: TURangeArray;
 
 
     modulelist: tstringlist;
@@ -736,16 +748,24 @@ begin
   begin
     mi.GetData(ti);
 
+    if ti^.worker.filemap<>nil then
+      freeandnil(ti^.worker.filemap);
+
     closehandle(ti^.filehandle);
     RenameFile(ti^.filename, ti^.filename+'.processing');
 
     ti^.filehandle:=CreateFile(pchar(ti^.filename),GENERIC_WRITE, FILE_SHARE_READ, nil,CREATE_ALWAYS, FILE_FLAG_OVERLAPPED,0);
 
-    ti^.worker.filemap:=TFileMapping.create(ti^.filename+'.processing');
-    ti^.worker.totalsize:=0;
-    ti^.worker.done:=false;
+    try
+      ti^.worker.filemap:=TFileMapping.create(ti^.filename+'.processing');
+      ti^.worker.totalsize:=0;
+      ti^.worker.done:=false;
+      ti^.worker.processWindowsIPTData(ti^.worker.filemap.fileContent, ti^.worker.filemap.filesize, nil, nil);
 
-    ti^.worker.processWindowsIPTData(ti^.worker.filemap.fileContent, ti^.worker.filemap.filesize, nil, nil);
+    except
+      ti^.worker.filemap:=nil;
+      ti^.worker.done:=true;
+    end;
 
     mi.next;
   end;
@@ -814,9 +834,13 @@ var
 
   workersActive: longint;
 
-
+  firsttime: boolean;
+  th: thandle;
 begin
   result:=false;
+
+
+
   {$IFDEF WINDOWS}
   //get the IPT data, and assign worker threads to either save to disk, or process it
 
@@ -843,6 +867,7 @@ begin
   last:=ptruint(@trace^.TraceData[0])+trace^.TraceSize;
   h:=@trace^.TraceData[0];
 
+  firsttime:=threadlist.Count=0;
   workersActive:=0;
   while ptruint(h)<last do
   begin
@@ -856,8 +881,33 @@ begin
       ti^.lostdata:=0;
       ti^.timesseen:=0;
       ti^.overflowsseen:=0;
-      ti^.paused:=false;
       ti^.waspaused:=false;
+      ti^.paused:=(not firsttime) and doNotProcessNewThreads;
+      ti^.appliedranges:=false;
+
+      if length(ranges)>0 then
+      begin
+        //set it to record only the specified range
+        th:=OpenThread(THREAD_ALL_ACCESS,false, h^.threadid);
+        if th<>0 then
+        begin
+          for i:=0 to length(ranges)-1 do
+          begin
+            if ranges[i].isStopRange=0 then
+              ti^.appliedranges:=ConfigureThreadAddressFilterRange(th, i, IptFilterRangeIp, ranges[i].startAddress, ranges[i].endaddress)
+            else
+              ti^.appliedranges:=ConfigureThreadAddressFilterRange(th, i, IptFilterRangeTraceStop, ranges[i].startAddress, ranges[i].endaddress);
+          end;
+          closehandle(th);
+        end;
+
+        if ti^.paused=false then
+        begin
+          ti^.paused:=true;
+          ti^.pausecount:=2; //skip this and the next time so all useless data is skipped (the speed of collecting should make this a non issue)
+        end;
+      end;
+
 
       threadlistMREW.Beginwrite;
       threadlist.Add(h^.threadid, ti);
@@ -890,7 +940,7 @@ begin
         ti^.filehandle:=0;
     end;
 
-    if ti^.paused=false then
+    if (ti^.paused=false) then
     begin
 
       ti^.lastseen:=gettickcount64;
@@ -995,6 +1045,13 @@ begin
     begin
       ti^.waspaused:=true;
       ti^.lastoffset:=h^.RingBufferOffset;
+
+      if ti^.pausecount>0 then
+      begin
+        dec(ti^.pausecount);
+        if ti^.pausecount=0 then
+          ti^.paused:=false
+      end;
     end;
     if h^.tracesize=0 then break;
     h:=PIPT_TRACE_HEADER(ptruint(@h^.Trace[0])+h^.tracesize);
@@ -1334,11 +1391,6 @@ var
   e: TRegionInfo;
   n: TAvgLvlTreeNode;
 begin
-  if ip=$10002B490 then
-  asm
-  nop
-  end;
-
   if (lastRegion<>nil) and ((ip>=lastRegion^.address) and (ip<lastRegion^.address+lastRegion^.size)) then
   begin
     HandleIPForRegion(ip,c, lastRegion);
@@ -1399,12 +1451,21 @@ begin
         if id<>qword(-1) then
           ultimap2_releasefile(id);
 
-        filemap:=TFileMapping.create(filename+'.processing');
+        if filemap<>nil then
+          freeandnil(filemap);
 
-        e.Address:=ptruint(filemap.fileContent);
-        e.Size:=filemap.filesize;
-        e.Cpunr:=id;
-        result:=true;
+        try
+          filemap:=TFileMapping.create(filename+'.processing');
+          e.Address:=ptruint(filemap.fileContent);
+          e.Size:=filemap.filesize;
+          e.Cpunr:=id;
+          result:=true;
+        except
+          filemap:=nil;
+        end;
+
+
+
       end;
     end
     else
@@ -2339,20 +2400,20 @@ procedure TfrmUltimap2.FlushResults(f: TFilterOption=foNone);
 var i:integer;
 begin
   {$ifdef windows}
-  OutputDebugString('TfrmUltimap2.FlushResults');
+ // OutputDebugString('TfrmUltimap2.FlushResults');
   if cbWindowsBasedIPT.checked=false then
   begin
     ultimap2_resetTraceSize;
 
-    OutputDebugString('1');
+  //  OutputDebugString('1');
     ultimap2_flush;
 
-    OutputDebugString('2');
+   // OutputDebugString('2');
   end;
 
   if rbLogToFolder.checked and (state=rsRecording) then
   begin
-    OutputDebugString('3');
+   // OutputDebugString('3');
     if cbPauseTargetWhileProcessing.checked then
     begin
       advancedoptions.Pausebutton.down := True;
@@ -2377,7 +2438,7 @@ begin
     end;
     tActivator.enabled:=true;
 
-    OutputDebugString('4');
+   // OutputDebugString('4');
 
 
     btnShowResults.enabled:=false;
@@ -2391,24 +2452,24 @@ begin
 
     if f<>foNone then
     begin
-      OutputDebugString('5');
+      //OutputDebugString('5');
       FilterGUI(false);
-      OutputDebugString('6');
+     // OutputDebugString('6');
     end;
-    OutputDebugString('7');
+   // OutputDebugString('7');
   end
   else
   begin
 
-    OutputDebugString('8');
+    //OutputDebugString('8');
     //flush only returns after all data has been handled, or the data has already been handled by the file workers
     if f<>foNone then
     begin
-      OutputDebugString('9');
+     // OutputDebugString('9');
       Filter(f);
-      OutputDebugString('10');
+      //OutputDebugString('10');
     end;
-    OutputDebugString('11');
+   // OutputDebugString('11');
   end;
   {$endif}
 end;
@@ -2520,12 +2581,23 @@ begin
 end;
 
 procedure TfrmUltimap2.startWindowsBasedIPT;
-var options: IPT_OPTIONS ;
+var
+  options: IPT_OPTIONS ;
+  i,j: integer;
+  rangeconfig: IPT_FILTER_RANGE_SETTINGS;
+  tl: TStringlist;
+  confresult: boolean;
+  errors: integer=0;
+  th: thandle;
+  tid: dword;
 begin
   {$IFDEF WINDOWS}
   options.AsUlongLong:=0;
   options.flags.OptionVersion:=1;
   options.flags.TopaPagesPow2:=cbWinIPTBufferSize.itemindex;
+
+  if length(ranges)>0 then
+    NtSuspendProcess(processhandle);
 
   if not StartProcessIptTracing(processhandle, options) then
   begin
@@ -2534,14 +2606,48 @@ begin
     if not StartProcessIptTracing(processhandle, options) then
       raise exception.create('Failure starting windows based IPT session: '+getlasterror.ToString);
   end;
+
+
+
+  if length(ranges)>0 then
+  begin
+    confresult:=true;
+    tl:=tstringlist.create;
+    GetThreadList(tl);
+
+    for i:=0 to length(ranges)-1 do
+    begin
+      if ranges[i].isStopRange<>0 then
+        rangeconfig:=IptFilterRangeTraceStop
+      else
+        rangeconfig:=IptFilterRangeIp;
+
+
+      for j:=0 to tl.count-1 do
+      begin
+        tid:=ptruint(tl.Objects[j]);
+        th:=OpenThread(THREAD_ALL_ACCESS,false,tid);
+        if th<>0 then
+        begin
+          confresult:=ConfigureThreadAddressFilterRange(th,i,rangeconfig,ranges[i].startAddress,ranges[i].endaddress);
+          if not confresult then inc(errors);
+        end;
+      end;
+    end;
+
+    tl.free;
+
+    NtResumeProcess(processhandle);
+  end;
   {$ENDIF}
+
 end;
 
 procedure TfrmUltimap2.tbRecordPauseChange(Sender: TObject);
 var
   bsize: dword;
   s: string;
-  ranges: TURangeArray;
+
   r: TCPUIDResult;
   i: integer;
 
@@ -2682,7 +2788,9 @@ begin
         iptdatadispatcher:=TIPTDataDispatcher.Create(true);
         iptdatadispatcher.logtofolder:=rbLogToFolder.Checked;
         iptdatadispatcher.outputfolder:=Utf8ToAnsi(deTargetFolder.Directory);
+        iptdatadispatcher.doNotProcessNewThreads:=cbIPTDoNotProcessNewThreads.checked;
         iptdatadispatcher.ownerform:=self;
+        iptdatadispatcher.ranges:=ranges;
         if iptdatadispatcher.outputfolder[length(iptdatadispatcher.outputfolder)]<>PathDelim then
           iptdatadispatcher.outputfolder:=iptdatadispatcher.outputfolder+PathDelim;
 
@@ -3341,7 +3449,7 @@ begin
     exit;
   end;
 
-  OutputDebugString('going to launch a filter thread');
+  //OutputDebugString('going to launch a filter thread');
 
   //suspend gui
   FilterGUI(false);
@@ -3508,6 +3616,40 @@ end;
 procedure TfrmUltimap2.miCloseClick(Sender: TObject);
 begin
   close;
+end;
+
+procedure TfrmUltimap2.miGetRangeConfigClick(Sender: TObject);
+var
+  ti: PUltimap2ThreadInfo;
+  th: thandle;
+  rc: IPT_FILTER_RANGE_SETTINGS;
+  startAddress: qword;
+  endaddress: qword;
+begin
+  if lvThreads.Selected<>nil then
+  begin
+    ti:=PUltimap2ThreadInfo(lvThreads.selected.data);
+    if ti<>nil then
+    begin
+      th:=openthread(THREAD_ALL_ACCESS, false, ti^.threadid);
+      if th<>0 then
+      begin
+        if QueryThreadAddressFilterRange(th, 0,rc, startAddress, endAddress) then
+          if rc=IptFilterRangeDisable then
+            showmessage('disabled')
+          else
+          if rc=IptFilterRangeIp then
+            showmessage('IptFilterRangeIp :'+inttohex(startAddress,8)+' - '+ inttohex(endAddress,8))
+          else
+          if rc=IptFilterRangeTraceStop then
+            showmessage('IptFilterRangeTraceStop :'+inttohex(startAddress,8)+' - '+ inttohex(endAddress,8))
+          else
+            showmessage('?'+ord(rc).ToString+'? :'+inttohex(startAddress,8)+' - '+ inttohex(endAddress,8));
+
+        closehandle(th);
+      end;
+    end;
+  end;
 end;
 
 function TfrmUltimap2.ValidListCompare(Tree: TAvgLvlTree; Data1, Data2: Pointer): integer;
@@ -3704,6 +3846,7 @@ begin
   lblBufferSizePerThread.visible:=c;;
   cbWinIPTBufferSize.visible:=c;
   gbThreads.Visible:=c;
+  cbIPTDoNotProcessNewThreads.visible:=c;
   lblBuffersPerCPU.Visible:=not c;
   edtBufSize.visible:=not c;
   lblKB.visible:=not c;
@@ -3714,15 +3857,8 @@ begin
 
 
 
-
   cbWinIPTBufferSizeDropDown(nil);
-
-
-
-  if cbWinIPTBufferSize.items.Count>10 then
-    cbWinIPTBufferSize.ItemIndex:=10
-  else
-    cbWinIPTBufferSize.ItemIndex:=cbWinIPTBufferSize.items.Count-1;
+  cbWinIPTBufferSize.ItemIndex:=cbWinIPTBufferSize.items.Count-1;
 
   EndFormUpdate;
 end;
@@ -3917,6 +4053,11 @@ begin
     miSetHotkey.enabled:=false;
     miRemoveHotkey.enabled:=false;
   end;
+end;
+
+procedure TfrmUltimap2.pmThreadlistPopup(Sender: TObject);
+begin
+  miGetRangeConfig.visible:=lvThreads.Selected<>nil;
 end;
 
 procedure TfrmUltimap2.rbLogToFolderChange(Sender: TObject);

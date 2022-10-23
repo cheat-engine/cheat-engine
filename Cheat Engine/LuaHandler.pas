@@ -128,7 +128,8 @@ uses autoassembler, MainUnit, MainUnit2, LuaClass, frmluaengineunit, plugin, plu
   LuaDiagram, frmUltimap2Unit, frmcodefilterunit, BreakpointTypeDef, LuaSyntax,
   LazLogger, LuaSynedit, LuaRIPRelativeScanner, LuaCustomImageList ,ColorBox,
   rttihelper, LuaDotNetPipe, LuaRemoteExecutor, windows7taskbar, debugeventhandler,
-  tcclib, dotnethost, CSharpCompiler, LuaCECustomButton, feces, process;
+  tcclib, dotnethost, CSharpCompiler, LuaCECustomButton, feces, process,
+  networkInterface, networkInterfaceApi;
 
   {$warn 5044 off}
 
@@ -9296,9 +9297,8 @@ begin
         exit(2);
       end;
 
-      if not (r or w or x) then
-        prot:=PAGE_NOACCESS
-      else
+      prot:=PAGE_NOACCESS;
+      if (r or w or x) then
       begin
         if not w and not x then
           prot:=PAGE_READONLY
@@ -15863,6 +15863,33 @@ begin
   exit(0);
 end;
 
+function lua_loadCEServerExtension(L: Plua_State):integer; cdecl;
+var c: TCEconnection;
+begin
+  c:=getConnection;
+
+  if c<>nil then
+  begin
+    if processhandle<>0 then
+    begin
+      lua_pushboolean(L, c.loadExtension(processhandle));
+      exit(1);
+    end
+    else
+    begin
+      lua_pushboolean(L,false);
+      lua_pushstring(L,'No process open');
+      exit(2);
+    end;
+  end
+  else
+  begin
+    lua_pushboolean(L,false);
+    lua_pushstring(L,'Not connected');
+    exit(2);
+  end;
+end;
+
 {$ifdef darwin}
 function lua_createMachThread(L: Plua_State):integer; cdecl;
 var
@@ -16745,6 +16772,8 @@ begin
     lua_register(L, 'deleteFile', lua_deleteFile);
 
     lua_register(L, 'growMemoryRegion', lua_growMemoryRegion);
+
+    lua_register(L, 'loadCEServerExtension', lua_loadCEServerExtension);
 
 
 

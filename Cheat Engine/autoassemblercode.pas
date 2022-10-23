@@ -1013,6 +1013,8 @@ begin
         32..47: s:='writeBytes(parameters+0x'+inttohex($a0+(parameters[j].contextitem-32)*16,1)+','+parameters[j].varname+')';
         48..111: s:='writeFloat(parameters+0x'+inttohex($a0+(parameters[j].contextitem-48)*4,1)+','+parameters[j].varname+')';
         112..143: s:='writeDouble(parameters+0x'+inttohex($a0+(parameters[j].contextitem-112)*8,1)+','+parameters[j].varname+')';
+        else
+          s:='';
       end;
 
       luascript.add(s);

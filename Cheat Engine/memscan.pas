@@ -7884,6 +7884,8 @@ end;
 function TMemscan.deleteSavedResult(resultname: string): boolean;
 var i: integer;
 begin
+  if resultname='' then exit(false);
+
   if (resultname='TMP') or (resultname='UNDO') then
     raise exception.create(rsTMPAndUNDOAreNamesThatMayNotBeUsedTryAnotherName);
 

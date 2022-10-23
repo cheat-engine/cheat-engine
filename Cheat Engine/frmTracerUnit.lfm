@@ -1,5 +1,5 @@
 object frmTracer: TfrmTracer
-  Left = 1234
+  Left = 998
   Height = 535
   Top = 89
   Width = 510

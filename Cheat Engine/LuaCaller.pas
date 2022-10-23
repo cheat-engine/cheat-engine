@@ -3116,6 +3116,7 @@ var command: word;
   m: TMethod;
   r: boolean;
 begin
+  result:=0;
   if lua_gettop(L)=3 then
   begin
     m.code:=lua_touserdata(L, lua_upvalueindex(1));

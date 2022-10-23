@@ -3654,6 +3654,7 @@ var
 
   tobedeleted: string;
 begin
+  tobedeleted:='';
   s:=tstringlist.create;
   i:=memscan.getsavedresults(s);
   if i=1 then exit;
@@ -3673,9 +3674,9 @@ begin
   if compareToSavedScan and (currentlySelectedSavedResultname=tobedeleted) then
     cbCompareToSavedScan.checked:=false;
 
+  if tobedeleted<>'' then
+    memscan.deleteSavedResult(tobedeleted);
 
-
-  memscan.deleteSavedResult(tobedeleted);
   reloadPreviousResults;
 end;
 

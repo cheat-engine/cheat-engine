@@ -5507,7 +5507,13 @@ begin
           begin
             offset:=a-PCONTEXT(context)^.{$ifdef cpu64}rbp{$else}Ebp{$endif};
             refname:=pref+'bp';
+          end
+          else
+          begin
+            offset:=a-StackReference;
+            refname:=' ';
           end;
+
         end;
 
         if offset<0 then

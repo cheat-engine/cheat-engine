@@ -970,7 +970,7 @@ begin
       else {$endif}
       begin
         Debugregistermask := 0;
-        outputdebugstring(PChar('1:Debugregistermask=' + inttohex(Debugregistermask, 8)));
+       // outputdebugstring(PChar('1:Debugregistermask=' + inttohex(Debugregistermask, 8)));
 
         case breakpoint.breakpointTrigger of
           bptWrite: Debugregistermask := $1 or Debugregistermask;
@@ -985,7 +985,7 @@ begin
         end;
 
 
-        outputdebugstring(PChar('2:Debugregistermask=' + inttohex(Debugregistermask, 8)));
+        //outputdebugstring(PChar('2:Debugregistermask=' + inttohex(Debugregistermask, 8)));
 
         Debugregistermask := (Debugregistermask shl (16 + 4 * breakpoint.debugRegister));
         //set the RWx amd LENx to the proper position
@@ -996,8 +996,8 @@ begin
         clearmask := (($F shl (16 + 4 * breakpoint.debugRegister)) or (1 shl (breakpoint.debugregister * 2))) xor $FFFFFFFF;
         //create a mask that can be used to undo the old settings
 
-        outputdebugstring(PChar('3:Debugregistermask=' + inttohex(Debugregistermask, 8)));
-        outputdebugstring(PChar('clearmask=' + inttohex(clearmask, 8)));
+       // outputdebugstring(PChar('3:Debugregistermask=' + inttohex(Debugregistermask, 8)));
+       // outputdebugstring(PChar('clearmask=' + inttohex(clearmask, 8)));
 
         breakpoint^.active := True;
 
@@ -1510,8 +1510,8 @@ var
 begin
   debuggercs.enter;
   try
-    outputdebugstring('RemoveBreakpoint');
-    outputdebugstring(PChar('breakpointlist.Count=' + IntToStr(breakpointlist.Count)));
+   // outputdebugstring('RemoveBreakpoint');
+  //  outputdebugstring(PChar('breakpointlist.Count=' + IntToStr(breakpointlist.Count)));
 
     while breakpoint.owner <> nil do //it's a child, but we need the owner
       breakpoint := breakpoint.owner;
@@ -1561,7 +1561,7 @@ begin
 
 
 
-    OutputDebugString('Disabled the breakpoint');
+ //   OutputDebugString('Disabled the breakpoint');
   finally
     debuggercs.leave;
   end;
@@ -3309,7 +3309,13 @@ begin
   start;
   WaitTillAttachedOrError;
 
-  if not terminated then lockSettings;
+
+
+  if not terminated then
+  begin
+    processhandler.open; //notify onopenprocess and set process
+    lockSettings;
+  end;
 end;
 
 constructor TDebuggerthread.MyCreate2(processID: THandle);

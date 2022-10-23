@@ -470,6 +470,7 @@ begin
         mask:=(1 shl (size*8))-1;
         v:=getQword(context);
         v:=v and mask;
+        exit(v);
       end;
     end;
   end

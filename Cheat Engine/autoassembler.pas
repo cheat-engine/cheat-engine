@@ -1443,36 +1443,49 @@ type tdefine=record
   name: string;
   whatever: string;
 end;
-var i,j,k,l,e: integer;
-    currentline, currentline2: string;
-    currentlinenr: integer;
-    currentlinep: pchar;
+var i: integer=0;
+    j: integer=0;
+    k: integer=0;
+    l: integer=0;
+    e: integer=0;
+    currentline: string='';
+    currentline2: string='';
+    currentlinenr: integer=0;
+    currentlinep: pchar=nil;
 
-    currentaddress: ptrUint;
-    assembled: array of tassembled;
-    x: ptruint;
-    y,op,op2:dword;
+    currentaddress: ptrUint=0;
+    assembled: array of tassembled=[];
+    x: ptruint=0;
+    y:dword=0;
+    op: dword=0;
+    op2:dword=0;
     ok1:boolean=false;
     ok2:boolean=false;
     loadbinary: array of record
       address: string; //string since it might be a label/alloc/define
       filename: string;
-    end;
+    end=[];
 
     readmems: array of record
       bytelength: integer;
       bytes: PByteArray;
-    end;
+    end=[];
 
-    globalallocs, allocs, kallocs, sallocs: array of tcealloc;
+    //allocs:
+    globalallocs: array of tcealloc=[];
+    allocs:       array of tcealloc=[];
+    kallocs:      array of tcealloc=[];
+    sallocs:      array of tcealloc=[];
+
+
     tempalloc: tcealloc;
-    labels: array of tlabel;
-    defines: array of tdefine;
-    fullaccess: array of tfullaccess;
-    dealloc: array of PtrUInt;
-    addsymbollist: array of string;
-    deletesymbollist: array of string;
-    createthread: array of string;
+    labels: array of tlabel=[];
+    defines: array of tdefine=[];
+    fullaccess: array of tfullaccess=[];
+    dealloc: array of PtrUInt=[];
+    addsymbollist: array of string=[];
+    deletesymbollist: array of string=[];
+    createthread: array of string=[];
 
     createthreadandwait: array of record
       name: string;
@@ -1483,67 +1496,67 @@ var i,j,k,l,e: integer;
     a,b,c,d: integer;
     s1,s2,s3: string;
 
-    slist: TStringDynArray;
-    sli: integer; //slist iterator
+    slist: TStringDynArray=[];
+    sli: integer=0; //slist iterator
 
-    diff: ptruint;
+    diff: ptruint=0;
 
 
     assemblerlines: array of record
       linenr: integer;
       line: string;
-    end;
+    end=[];
 
-    exceptionlist: TAAExceptionInfoList;
+    exceptionlist: TAAExceptionInfoList=[];
 
-    varsize: integer;
-    tokens: tstringlist;
-    baseaddress: ptrUint;
+    varsize: integer=0;
+    tokens: tstringlist=nil;
+    baseaddress: ptrUint=0;
 
-    multilineinjection: tstringlist;
-    include: tstringlist;
+    multilineinjection: tstringlist=nil;
+    include: tstringlist=nil;
     testdword,bw: dword;
-    testPtr: ptrUint;
-    binaryfile: tmemorystream;
+    testPtr: ptrUint=0;
+    binaryfile: tmemorystream=nil;
 
-    incomment: boolean;
+    incomment: boolean=false;
 
-    bytebuf: PByteArray;
+    bytebuf: PByteArray=nil;
 
-    processhandle: THandle;
-    ProcessID: DWORD;
+    processhandle: THandle=0;
+    ProcessID: DWORD=0;
 
-    bytes: tbytes;
-    oldprefered: ptrUint;
-    prefered: ptrUint;
-    protection: dword;
+    bytes: tbytes=[];
+    oldprefered: ptrUint=0;
+    prefered: ptrUint=0;
+    protection: dword=0;
 
-    oldhandle: thandle;
-    oldsymhandler: TSymHandler;
+    oldhandle: thandle=0;
+    oldsymhandler: TSymHandler=nil;
 
 
-    disassembler: TDisassembler;
+    disassembler: TDisassembler=nil;
 
-    threadhandle: THandle;
+    threadhandle: THandle=0;
 
-    potentiallabels: TStringlist;
+    potentiallabels: TStringlist=nil;
 
      {$ifdef windows}
-    connection: TCEConnection;
+    connection: TCEConnection=nil;
     {$endif}
 
     mi: TModuleInfo;
-    aaid: longint;
-    strictmode: boolean;
-    hastryexcept: boolean;
+    aaid: longint=0;
+    strictmode: boolean=false;
+    hastryexcept: boolean=false;
     //aggressiveAlloc: boolean;
-    createthreadandwaitid: integer;
+    createthreadandwaitid: integer=0;
 
-    vpe: boolean;
+    vpe: boolean=false;
 
-    nops: Tassemblerbytes;
-    mustbefar: boolean;
-    usesaobscan: boolean;
+    nops: Tassemblerbytes=[];
+    mustbefar: boolean=false;
+    usesaobscan: boolean=false;
 
     dataForAACodePass2: TAutoAssemblerCodePass2Data;
 
@@ -1556,6 +1569,12 @@ var i,j,k,l,e: integer;
       j,k: integer;
       temps: string;
     begin
+      if name='' then
+      begin
+        OutputDebugString('getAddressFromScript with an empty name');
+        exit(0);
+      end;
+
       result:=0;
       found:=false;
 
@@ -1675,6 +1694,12 @@ begin
 
   FillChar(dataForAACodePass2, sizeof(dataForAACodePass2),0);
 
+  connection:=nil;
+  i:=0;
+  j:=0;
+  k:=0;
+  l:=0;
+  e:=0;
 
   currentaddress:=0;
 
@@ -3553,13 +3578,13 @@ begin
                 assembled[length(assembled)-1].address:=currentaddress;
                 assemble(currentline,currentaddress,assembled[length(assembled)-1].bytes, apnone, true);
                 a:=length(assembled[length(assembled)-1].bytes);
-
                 assemble(s1,currentaddress,assembled[length(assembled)-1].bytes, apnone, true);
                 b:=length(assembled[length(assembled)-1].bytes);
 
                 if a>b then //pick the biggest one
                   assemble(currentline,currentaddress,assembled[length(assembled)-1].bytes);
 
+                //add this instruction to the list of lines that reference this label
                 setlength(labels[j].references,length(labels[j].references)+1);
                 labels[j].references[length(labels[j].references)-1]:=length(assembled)-1;
 
@@ -3610,6 +3635,11 @@ begin
 
                 b:=length(assembled[labels[j].references[k]].bytes); //new size
                 setlength(assembled[labels[j].references[k]].bytes,a); //original size (original size is always bigger or equal than newsize)
+
+                if b>a then
+                begin
+                  raise exception.create('Assembler error. The generated instruction referencing a label ended up bigger than expected. Try using the far indicator');
+                end;
 
                 if (b<a) and (a<12) then //try to grow the instruction as some people cry about nops (unless it was a megajmp/call as those are less efficient)
                 begin
