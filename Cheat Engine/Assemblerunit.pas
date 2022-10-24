@@ -3597,6 +3597,8 @@ var i,j,err,err2: integer;
     haserror: boolean;
     inQuote: boolean;
     quotechar: char;
+
+    split: array of string;
 begin
   if length(token)=0 then exit(false); //empty string
 
@@ -3689,18 +3691,22 @@ begin
       val('$'+tokens[i],j,err);
       if (err<>0) and (getreg(tokens[i],false)=-1) and (isReservedToken(tokens[i])=false) then    //not a hexadecimal value and not a register
       begin
+        j:=pos('*', tokens[i]);
+        if j>0 then //getreg failed, but could be it's the 'other' one
+        begin
+          split:=tokens[i].Split('*');
+          if (length(split)=2) and
+             (
+               (getreg(trim(split[0]),false)<>-1) or
+               (getreg(trim(split[1]),false)<>-1)
+             ) then continue;
+        end;
+
         temp:=inttohex(symhandler.getaddressfromname(tokens[i], true, haserror,nil),8);
         if not haserror then
           tokens[i]:=temp //can be rewritten as a hexadecimal
         else
         begin
-          j:=pos('*', tokens[i]);
-          if j>0 then //getreg failed, but could be it's the 'other' one
-          begin
-            if (length(tokens[i])>j) and (copy(tokens[i],j+1,1)[1] in ['2','4','8']) then
-              continue; //reg*2 / *3, /*4
-          end;
-
           if (i<length(tokens)-1) then
           begin
             //perhaps it can be concatenated with the next one
