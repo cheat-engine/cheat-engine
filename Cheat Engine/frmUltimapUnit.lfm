@@ -553,6 +553,11 @@ object frmUltimap: TfrmUltimap
       ImageIndex = 2
       OnClick = MenuItem1Click
     end
+    object miCopyToClipboard: TMenuItem
+      Caption = 'Copy selection to clipboard'
+      ImageIndex = 1
+      OnClick = miCopyToClipboardClick
+    end
   end
   object pmSetHotkey: TPopupMenu
     Images = umImageList
