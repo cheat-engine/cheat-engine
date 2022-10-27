@@ -1590,8 +1590,15 @@ begin
       if version<>{$ifdef cpu64}1{$else}0{$endif} then
         raise exception.create('This trace was made with the '+{$ifdef cpu64}'32'{$else}'64'{$endif}+'-bit version of '+strCheatEngine+'. You need to use that version to see the register values and stacktrace');
 
+      dereference:=false;
       for i:=0 to lvTracer.Items.Count-1 do
+      begin
         lvTracer.Items[i].Data:=TTraceDebugInfo.createFromStream(f);
+        if not dereference and (TTraceDebugInfo(lvTracer.Items[i].Data).bytesize>0) then
+          dereference:=true;
+      end;
+
+
 
       miOpenTraceForCompare.Enabled:=true;
       miOpenTraceForCompare.Visible:=true;
