@@ -5,7 +5,7 @@ object MemoryBrowser: TMemoryBrowser
   Width = 732
   HelpContext = 12
   Caption = 'Memory Viewer'
-  ClientHeight = 530
+  ClientHeight = 510
   ClientWidth = 732
   Menu = MainMenu1
   OnActivate = FormActivate
@@ -92,14 +92,14 @@ object MemoryBrowser: TMemoryBrowser
           ShowHint = True
         end
         object tbSeparator1: TToolButton
-          Left = 119
+          Left = 105
           Height = 40
           Top = 2
           Caption = 'tbSeparator1'
           Style = tbsDivider
         end
         object tbRun: TToolButton
-          Left = 124
+          Left = 110
           Hint = 'F9'
           Top = 2
           Caption = 'Run'
@@ -110,7 +110,7 @@ object MemoryBrowser: TMemoryBrowser
           ShowHint = True
         end
         object tbStepInto: TToolButton
-          Left = 160
+          Left = 144
           Hint = 'F7'
           Top = 2
           Caption = 'Step Into'
@@ -121,7 +121,7 @@ object MemoryBrowser: TMemoryBrowser
           ShowHint = True
         end
         object tbStepOver: TToolButton
-          Left = 223
+          Left = 199
           Hint = 'F8'
           Top = 2
           Caption = 'Step Over'
@@ -132,7 +132,7 @@ object MemoryBrowser: TMemoryBrowser
           ShowHint = True
         end
         object tbStepOut: TToolButton
-          Left = 291
+          Left = 258
           Hint = 'Shift+F8'
           Top = 2
           Caption = 'Step Out'
@@ -143,14 +143,14 @@ object MemoryBrowser: TMemoryBrowser
           ShowHint = True
         end
         object tbSeparator2: TToolButton
-          Left = 155
+          Left = 139
           Height = 40
           Top = 2
           Caption = 'tbSeparator2'
           Style = tbsDivider
         end
         object tbRunTill: TToolButton
-          Left = 358
+          Left = 317
           Hint = 'F4'
           Top = 2
           Caption = 'Run till...'
@@ -161,7 +161,7 @@ object MemoryBrowser: TMemoryBrowser
           ShowHint = True
         end
         object tbSeparator3: TToolButton
-          Left = 353
+          Left = 312
           Height = 40
           Top = 2
           Caption = 'tbSeparator3'
@@ -186,8 +186,8 @@ object MemoryBrowser: TMemoryBrowser
         Height = 362
         Top = 1
         Width = 213
-        HorzScrollBar.Page = 196
-        VertScrollBar.Page = 345
+        HorzScrollBar.Page = 193
+        VertScrollBar.Page = 348
         VertScrollBar.Tracking = True
         Align = alClient
         BorderStyle = bsNone
@@ -201,9 +201,9 @@ object MemoryBrowser: TMemoryBrowser
           AnchorSideLeft.Control = ScrollBox1
           AnchorSideTop.Control = ScrollBox1
           Left = 8
-          Height = 19
+          Height = 20
           Top = 0
-          Width = 102
+          Width = 100
           BorderSpacing.Left = 8
           Caption = 'Registers:'
           ParentColor = False
@@ -216,8 +216,8 @@ object MemoryBrowser: TMemoryBrowser
           AnchorSideRight.Side = asrBottom
           Left = 8
           Height = 2
-          Top = 20
-          Width = 102
+          Top = 21
+          Width = 100
           Anchors = [akTop, akLeft, akRight]
           BorderSpacing.Top = 1
           Brush.Color = clBlack
@@ -226,10 +226,10 @@ object MemoryBrowser: TMemoryBrowser
           AnchorSideLeft.Control = pnlGeneralRegisters
           AnchorSideLeft.Side = asrBottom
           AnchorSideTop.Control = ScrollBox1
-          Left = 145
-          Height = 19
+          Left = 143
+          Height = 20
           Top = 0
-          Width = 51
+          Width = 50
           BorderSpacing.Left = 15
           Caption = 'Flags'
           ParentColor = False
@@ -239,10 +239,10 @@ object MemoryBrowser: TMemoryBrowser
           AnchorSideTop.Control = sRegisters
           AnchorSideRight.Control = lblFlags
           AnchorSideRight.Side = asrBottom
-          Left = 145
+          Left = 143
           Height = 2
-          Top = 20
-          Width = 51
+          Top = 21
+          Width = 50
           Anchors = [akTop, akLeft, akRight]
           Brush.Color = clBlack
         end
@@ -251,9 +251,9 @@ object MemoryBrowser: TMemoryBrowser
           AnchorSideTop.Control = pnlGeneralRegisters
           AnchorSideTop.Side = asrBottom
           Left = 8
-          Height = 19
-          Top = 206
-          Width = 71
+          Height = 20
+          Top = 208
+          Width = 70
           BorderSpacing.Top = 5
           Caption = 'Special'
           ParentColor = False
@@ -266,8 +266,8 @@ object MemoryBrowser: TMemoryBrowser
           AnchorSideRight.Side = asrBottom
           Left = 8
           Height = 2
-          Top = 225
-          Width = 71
+          Top = 228
+          Width = 70
           Anchors = [akTop, akLeft, akRight]
           Brush.Color = clBlack
         end
@@ -276,23 +276,23 @@ object MemoryBrowser: TMemoryBrowser
           AnchorSideTop.Control = sRegisters
           AnchorSideTop.Side = asrBottom
           Left = 8
-          Height = 179
-          Top = 22
-          Width = 122
+          Height = 180
+          Top = 23
+          Width = 120
           AutoSize = True
           BevelOuter = bvNone
           ChildSizing.VerticalSpacing = 2
           ChildSizing.Layout = cclLeftToRightThenTopToBottom
           ChildSizing.ControlsPerLine = 1
-          ClientHeight = 179
-          ClientWidth = 122
+          ClientHeight = 180
+          ClientWidth = 120
           TabOrder = 0
           object EAXLabel: TLabel
             Cursor = crHandPoint
             Left = 0
             Height = 18
             Top = 0
-            Width = 122
+            Width = 120
             Caption = 'EAX 00000000'
             Font.Height = -16
             Font.Name = 'Courier New'
@@ -306,9 +306,9 @@ object MemoryBrowser: TMemoryBrowser
             Tag = 1
             Cursor = crHandPoint
             Left = 0
-            Height = 19
+            Height = 20
             Top = 20
-            Width = 122
+            Width = 120
             Caption = 'EBX 00000000'
             Font.Height = -17
             Font.Name = 'Courier New'
@@ -323,8 +323,8 @@ object MemoryBrowser: TMemoryBrowser
             Cursor = crHandPoint
             Left = 0
             Height = 18
-            Top = 41
-            Width = 122
+            Top = 42
+            Width = 120
             Caption = 'ECX 00000000'
             Font.Height = -16
             Font.Name = 'Courier New'
@@ -339,8 +339,8 @@ object MemoryBrowser: TMemoryBrowser
             Cursor = crHandPoint
             Left = 0
             Height = 18
-            Top = 61
-            Width = 122
+            Top = 62
+            Width = 120
             Caption = 'EDX 00000000'
             Font.Height = -16
             Font.Name = 'Courier New'
@@ -355,8 +355,8 @@ object MemoryBrowser: TMemoryBrowser
             Cursor = crHandPoint
             Left = 0
             Height = 18
-            Top = 81
-            Width = 122
+            Top = 82
+            Width = 120
             Caption = 'ESI 00000000'
             Font.Height = -16
             Font.Name = 'Courier New'
@@ -371,8 +371,8 @@ object MemoryBrowser: TMemoryBrowser
             Cursor = crHandPoint
             Left = 0
             Height = 18
-            Top = 101
-            Width = 122
+            Top = 102
+            Width = 120
             Caption = 'EDI 00000000'
             Font.Height = -16
             Font.Name = 'Courier New'
@@ -387,8 +387,8 @@ object MemoryBrowser: TMemoryBrowser
             Cursor = crHandPoint
             Left = 0
             Height = 18
-            Top = 121
-            Width = 122
+            Top = 122
+            Width = 120
             Caption = 'EBP 00000000'
             Font.Height = -16
             Font.Name = 'Courier New'
@@ -403,8 +403,8 @@ object MemoryBrowser: TMemoryBrowser
             Cursor = crHandPoint
             Left = 0
             Height = 18
-            Top = 141
-            Width = 122
+            Top = 142
+            Width = 120
             Caption = 'ESP 00000000'
             Font.Height = -16
             Font.Name = 'Courier New'
@@ -419,8 +419,8 @@ object MemoryBrowser: TMemoryBrowser
             Cursor = crHandPoint
             Left = 0
             Height = 18
-            Top = 161
-            Width = 122
+            Top = 162
+            Width = 120
             Caption = 'EIP 00000000'
             Font.Height = -16
             Font.Name = 'Courier New'
@@ -437,15 +437,15 @@ object MemoryBrowser: TMemoryBrowser
           AnchorSideTop.Side = asrBottom
           Left = 8
           Height = 118
-          Top = 227
-          Width = 67
+          Top = 230
+          Width = 70
           AutoSize = True
           BevelOuter = bvNone
           ChildSizing.VerticalSpacing = 2
           ChildSizing.Layout = cclLeftToRightThenTopToBottom
           ChildSizing.ControlsPerLine = 1
           ClientHeight = 118
-          ClientWidth = 67
+          ClientWidth = 70
           TabOrder = 1
           object CSLabel: TLabel
             Tag = 9
@@ -453,7 +453,7 @@ object MemoryBrowser: TMemoryBrowser
             Left = 0
             Height = 18
             Top = 0
-            Width = 67
+            Width = 70
             Caption = 'CS 0000'
             Font.Height = -16
             Font.Name = 'Courier New'
@@ -467,7 +467,7 @@ object MemoryBrowser: TMemoryBrowser
             Left = 0
             Height = 18
             Top = 20
-            Width = 67
+            Width = 70
             Caption = 'SS 0000'
             Font.Height = -16
             Font.Name = 'Courier New'
@@ -481,7 +481,7 @@ object MemoryBrowser: TMemoryBrowser
             Left = 0
             Height = 18
             Top = 40
-            Width = 67
+            Width = 70
             Caption = 'DS 0000'
             Font.Height = -16
             Font.Name = 'Courier New'
@@ -495,7 +495,7 @@ object MemoryBrowser: TMemoryBrowser
             Left = 0
             Height = 18
             Top = 60
-            Width = 67
+            Width = 70
             Caption = 'ES 0000'
             Font.Height = -16
             Font.Name = 'Courier New'
@@ -509,7 +509,7 @@ object MemoryBrowser: TMemoryBrowser
             Left = 0
             Height = 18
             Top = 80
-            Width = 67
+            Width = 70
             Caption = 'FS 0000'
             Font.Height = -16
             Font.Name = 'Courier New'
@@ -523,7 +523,7 @@ object MemoryBrowser: TMemoryBrowser
             Left = 0
             Height = 18
             Top = 100
-            Width = 67
+            Width = 70
             Caption = 'GS 0000'
             Font.Height = -16
             Font.Name = 'Courier New'
@@ -536,17 +536,17 @@ object MemoryBrowser: TMemoryBrowser
           AnchorSideLeft.Control = sFlags
           AnchorSideTop.Control = sFlags
           AnchorSideTop.Side = asrBottom
-          Left = 145
+          Left = 143
           Height = 138
-          Top = 22
-          Width = 38
+          Top = 23
+          Width = 40
           AutoSize = True
           BevelOuter = bvNone
           ChildSizing.VerticalSpacing = 2
           ChildSizing.Layout = cclLeftToRightThenTopToBottom
           ChildSizing.ControlsPerLine = 1
           ClientHeight = 138
-          ClientWidth = 38
+          ClientWidth = 40
           TabOrder = 2
           object cflabel: TLabel
             Tag = 20
@@ -554,7 +554,7 @@ object MemoryBrowser: TMemoryBrowser
             Left = 0
             Height = 18
             Top = 0
-            Width = 38
+            Width = 40
             Caption = 'CF 0'
             Font.Height = -16
             Font.Name = 'Courier New'
@@ -568,7 +568,7 @@ object MemoryBrowser: TMemoryBrowser
             Left = 0
             Height = 18
             Top = 20
-            Width = 38
+            Width = 40
             Caption = 'PF 0'
             Font.Height = -16
             Font.Name = 'Courier New'
@@ -583,7 +583,7 @@ object MemoryBrowser: TMemoryBrowser
             Left = 0
             Height = 18
             Top = 40
-            Width = 38
+            Width = 40
             Caption = 'AF 0'
             Font.Height = -16
             Font.Name = 'Courier New'
@@ -598,7 +598,7 @@ object MemoryBrowser: TMemoryBrowser
             Left = 0
             Height = 18
             Top = 60
-            Width = 38
+            Width = 40
             Caption = 'ZF 0'
             Font.Height = -16
             Font.Name = 'Courier New'
@@ -613,7 +613,7 @@ object MemoryBrowser: TMemoryBrowser
             Left = 0
             Height = 18
             Top = 80
-            Width = 38
+            Width = 40
             Caption = 'SF 0'
             Font.Height = -16
             Font.Name = 'Courier New'
@@ -628,7 +628,7 @@ object MemoryBrowser: TMemoryBrowser
             Left = 0
             Height = 18
             Top = 100
-            Width = 38
+            Width = 40
             Caption = 'DF 0'
             Font.Height = -16
             Font.Name = 'Courier New'
@@ -643,7 +643,7 @@ object MemoryBrowser: TMemoryBrowser
             Left = 0
             Height = 18
             Top = 120
-            Width = 38
+            Width = 40
             Caption = 'OF 0'
             Font.Height = -16
             Font.Name = 'Courier New'
@@ -673,19 +673,19 @@ object MemoryBrowser: TMemoryBrowser
   end
   object Panel4: TPanel
     Left = 0
-    Height = 161
+    Height = 141
     Top = 369
     Width = 732
     Align = alClient
     BevelOuter = bvNone
     BorderWidth = 1
-    ClientHeight = 161
+    ClientHeight = 141
     ClientWidth = 732
     ParentFont = False
     TabOrder = 1
     object Splitter3: TSplitter
       Left = 517
-      Height = 159
+      Height = 139
       Top = 1
       Width = 5
       Align = alRight
@@ -696,7 +696,7 @@ object MemoryBrowser: TMemoryBrowser
     end
     object Panel3: TPanel
       Left = 1
-      Height = 159
+      Height = 139
       Top = 1
       Width = 516
       Align = alClient
@@ -706,12 +706,12 @@ object MemoryBrowser: TMemoryBrowser
     end
     object pnlStacktrace: TPanel
       Left = 522
-      Height = 159
+      Height = 139
       Top = 1
       Width = 209
       Align = alRight
       BevelInner = bvLowered
-      ClientHeight = 159
+      ClientHeight = 139
       ClientWidth = 209
       ParentFont = False
       PopupMenu = pmStacktrace
@@ -719,7 +719,7 @@ object MemoryBrowser: TMemoryBrowser
       Visible = False
       object lvStacktraceData: TListView
         Left = 2
-        Height = 155
+        Height = 135
         Hint = 'Shows the current stack.'#13#10'Tip: When doubleclicking the value and it represents an address, then you can hold shift to make it show in the disassembler, and ctrl to make it show in the memory view. Else Cheat Engine will guess it for you based on if it''s executable memory or not'
         Top = 2
         Width = 205
@@ -736,7 +736,7 @@ object MemoryBrowser: TMemoryBrowser
           end        
           item
             Caption = 'Value'
-            Width = 28
+            Width = 41
           end>
         HideSelection = False
         MultiSelect = True
@@ -788,10 +788,10 @@ object MemoryBrowser: TMemoryBrowser
       ShortCut = 16454
       OnClick = Search1Click
     end
-    object MenuItem11: TMenuItem
+    object miSearchForAccessibleStrings: TMenuItem
       Caption = 'Search for accessible strings'
       ImageIndex = 9
-      OnClick = MenuItem11Click
+      OnClick = miSearchForAccessibleStringsClick
     end
     object N13: TMenuItem
       Caption = '-'
@@ -904,7 +904,7 @@ object MemoryBrowser: TMemoryBrowser
         OnClick = DisplayTypeClick
       end
     end
-    object MenuItem21: TMenuItem
+    object miTextEncoding: TMenuItem
       Caption = 'Text Encoding'
       object miTextEncodingAscii: TMenuItem
         AutoCheck = True
@@ -1128,7 +1128,7 @@ object MemoryBrowser: TMemoryBrowser
       Visible = False
       OnClick = Follow1Click
     end
-    object MenuItem23: TMenuItem
+    object miSetUnsetBookmark: TMenuItem
       Caption = 'Set/Unset bookmark'
       ImageIndex = 19
       object miSetBookmark0: TMenuItem
@@ -1191,7 +1191,7 @@ object MemoryBrowser: TMemoryBrowser
         OnClick = SetBookmarkClick
       end
     end
-    object MenuItem24: TMenuItem
+    object miGotoBookmark: TMenuItem
       Caption = 'Goto bookmark'
       ImageIndex = 20
       object miGotoBookmark0: TMenuItem
@@ -1403,10 +1403,10 @@ object MemoryBrowser: TMemoryBrowser
     object MenuItem1: TMenuItem
       Caption = '-'
     end
-    object MenuItem2: TMenuItem
+    object miSelectCurrentFunction: TMenuItem
       Caption = 'Select current function'
       ImageIndex = 41
-      OnClick = MenuItem2Click
+      OnClick = miSelectCurrentFunctionClick
     end
     object miUserdefinedComment: TMenuItem
       Caption = 'Set/Change comment'
@@ -1486,10 +1486,10 @@ object MemoryBrowser: TMemoryBrowser
       object MenuItem19: TMenuItem
         Caption = '-'
       end
-      object MenuItem20: TMenuItem
+      object miLoadTrace: TMenuItem
         Caption = 'Load trace'
         ImageIndex = 72
-        OnClick = MenuItem20Click
+        OnClick = miLoadTraceClick
       end
     end
     object Search2: TMenuItem
@@ -1518,11 +1518,11 @@ object MemoryBrowser: TMemoryBrowser
         ImageIndex = 64
         OnClick = Stacktrace1Click
       end
-      object MenuItem27: TMenuItem
+      object miWatchList: TMenuItem
         Caption = 'Watchlist'
         ImageIndex = 25
         ShortCut = 16471
-        OnClick = MenuItem27Click
+        OnClick = miWatchListClick
       end
       object Breakpointlist1: TMenuItem
         Caption = 'Breakpointlist'
@@ -1547,10 +1547,10 @@ object MemoryBrowser: TMemoryBrowser
         ImageIndex = 68
         OnClick = miDebugEventsClick
       end
-      object MenuItem25: TMenuItem
+      object miUserWriteInteger: TMenuItem
         Caption = 'User write history'
         ImageIndex = 26
-        OnClick = MenuItem25Click
+        OnClick = miUserWriteIntegerClick
       end
       object N5: TMenuItem
         Caption = '-'
@@ -1898,11 +1898,11 @@ object MemoryBrowser: TMemoryBrowser
         ShortCut = 16452
         OnClick = miDissectData2Click
       end
-      object MenuItem29: TMenuItem
+      object miCompareStructures: TMenuItem
         Caption = 'Compare data/structures'
         ImageIndex = 30
         ShortCut = 24643
-        OnClick = MenuItem29Click
+        OnClick = miCompareStructuresClick
       end
       object Disectwindow1: TMenuItem
         Caption = 'Dissect window(s)'
@@ -1949,11 +1949,11 @@ object MemoryBrowser: TMemoryBrowser
         ShortCut = 24646
         OnClick = miCodeFilterClick
       end
-      object MenuItem22: TMenuItem
+      object miWatchMemoryPageAccess: TMenuItem
         Caption = 'Watch memory page access'
         ImageIndex = 38
         ShortCut = 24641
-        OnClick = MenuItem22Click
+        OnClick = miWatchMemoryPageAccessClick
       end
       object Watchmemoryallocations1: TMenuItem
         Caption = 'Watch memory allocations'
@@ -2078,7 +2078,7 @@ object MemoryBrowser: TMemoryBrowser
       GroupIndex = 1
       OnClick = Nonsystemmodulesonly1Click
     end
-    object MenuItem28: TMenuItem
+    object miStackTraceSep: TMenuItem
       Caption = '-'
     end
     object miSVCopy: TMenuItem

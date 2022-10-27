@@ -76,7 +76,7 @@ type
     mvImageList: TImageList;
     MenuItem1: TMenuItem;
     MenuItem10: TMenuItem;
-    MenuItem11: TMenuItem;
+    miSearchForAccessibleStrings: TMenuItem;
     MenuItem12: TMenuItem;
     MenuItem13: TMenuItem;
     MenuItem14: TMenuItem;
@@ -92,19 +92,19 @@ type
     MenuItem17: TMenuItem;
     MenuItem18: TMenuItem;
     MenuItem19: TMenuItem;
-    MenuItem20: TMenuItem;
+    miLoadTrace: TMenuItem;
     dispChar: TMenuItem;
     dispShorts: TMenuItem;
     DispLongs: TMenuItem;
-    MenuItem21: TMenuItem;
-    MenuItem22: TMenuItem;
-    MenuItem23: TMenuItem;
-    MenuItem24: TMenuItem;
-    MenuItem25: TMenuItem;
+    miTextEncoding: TMenuItem;
+    miWatchMemoryPageAccess: TMenuItem;
+    miSetUnsetBookmark: TMenuItem;
+    miGotoBookmark: TMenuItem;
+    miUserWriteInteger: TMenuItem;
     miUltimap2: TMenuItem;
-    MenuItem27: TMenuItem;
-    MenuItem28: TMenuItem;
-    MenuItem29: TMenuItem;
+    miWatchList: TMenuItem;
+    miStackTraceSep: TMenuItem;
+    miCompareStructures: TMenuItem;
     miCodeFilter: TMenuItem;
     miExceptionIgnoreList: TMenuItem;
     N19: TMenuItem;
@@ -168,7 +168,7 @@ type
     miAddEBP: TMenuItem;
     miAddESP: TMenuItem;
     miFindWhatWrites: TMenuItem;
-    MenuItem2: TMenuItem;
+    miSelectCurrentFunction: TMenuItem;
     MenuItem3: TMenuItem;
     miDataBreakPointMenu: TMenuItem;
     miWatchAccess: TMenuItem;
@@ -350,7 +350,7 @@ type
     procedure Makepagewritable1Click(Sender: TObject);
     procedure memorypopupPopup(Sender: TObject);
     procedure MenuItem10Click(Sender: TObject);
-    procedure MenuItem11Click(Sender: TObject);
+    procedure miSearchForAccessibleStringsClick(Sender: TObject);
     procedure MenuItem12Click(Sender: TObject);
     procedure MenuItem14Click(Sender: TObject);
     procedure MenuItem8Click(Sender: TObject);
@@ -373,12 +373,12 @@ type
     procedure miUltimapClick(Sender: TObject);
     procedure MenuItem17Click(Sender: TObject);
     procedure MenuItem18Click(Sender: TObject);
-    procedure MenuItem20Click(Sender: TObject);
-    procedure MenuItem22Click(Sender: TObject);
-    procedure MenuItem25Click(Sender: TObject);
+    procedure miLoadTraceClick(Sender: TObject);
+    procedure miWatchMemoryPageAccessClick(Sender: TObject);
+    procedure miUserWriteIntegerClick(Sender: TObject);
     procedure miUltimap2Click(Sender: TObject);
-    procedure MenuItem27Click(Sender: TObject);
-    procedure MenuItem29Click(Sender: TObject);
+    procedure miWatchListClick(Sender: TObject);
+    procedure miCompareStructuresClick(Sender: TObject);
     procedure miAddRefClick(Sender: TObject);
     procedure miBreakOnExceptionsClick(Sender: TObject);
     procedure miChangeProtectionClick(Sender: TObject);
@@ -404,7 +404,7 @@ type
     procedure miCopyBytesOnlyClick(Sender: TObject);
     procedure miDissectData2Click(Sender: TObject);
     procedure miPointerSpiderClick(Sender: TObject);
-    procedure MenuItem2Click(Sender: TObject);
+    procedure miSelectCurrentFunctionClick(Sender: TObject);
     procedure miDataBreakPointMenuClick(Sender: TObject);
     procedure miWatchAccessClick(Sender: TObject);
     procedure miWatchWriteClick(Sender: TObject);
@@ -1259,7 +1259,7 @@ begin
   frmStringMap.show;
 end;
 
-procedure TMemoryBrowser.MenuItem11Click(Sender: TObject);
+procedure TMemoryBrowser.miSearchForAccessibleStringsClick(Sender: TObject);
 begin
   if frmStringPointerscan=nil then
     frmStringpointerscan:=Tfrmstringpointerscan.create(MemoryBrowser);
@@ -1540,7 +1540,7 @@ begin
   TfrmMemoryViewEx.create(self).show;
 end;
 
-procedure TMemoryBrowser.MenuItem20Click(Sender: TObject);
+procedure TMemoryBrowser.miLoadTraceClick(Sender: TObject);
 var t: Tfrmtracer;
 begin
   t:=TFrmTracer.create(self,false,true);
@@ -1560,7 +1560,7 @@ begin
 
 end;
 
-procedure TMemoryBrowser.MenuItem22Click(Sender: TObject);
+procedure TMemoryBrowser.miWatchMemoryPageAccessClick(Sender: TObject);
 begin
   if frmAccessedMemory=nil then
     frmAccessedMemory:=TfrmAccessedMemory.Create(application);
@@ -1568,7 +1568,7 @@ begin
   frmAccessedMemory.Show;
 end;
 
-procedure TMemoryBrowser.MenuItem25Click(Sender: TObject);
+procedure TMemoryBrowser.miUserWriteIntegerClick(Sender: TObject);
 begin
   if frmEditHistory=nil then
     frmEditHistory:=tfrmEditHistory.create(application);
@@ -1585,7 +1585,7 @@ begin
   frmUltimap2.show;
 end;
 
-procedure TMemoryBrowser.MenuItem27Click(Sender: TObject);
+procedure TMemoryBrowser.miWatchListClick(Sender: TObject);
 begin
   if frmWatchlist=nil then
     frmWatchlist:=tfrmWatchlist.create(Application);
@@ -1594,7 +1594,7 @@ begin
   frmWatchlist.show;
 end;
 
-procedure TMemoryBrowser.MenuItem29Click(Sender: TObject);
+procedure TMemoryBrowser.miCompareStructuresClick(Sender: TObject);
 begin
   if frmStructureCompare=nil then
     frmStructureCompare:=tfrmStructureCompare.create(application);
@@ -2024,7 +2024,7 @@ begin
   frmStringpointerscan.show;
 end;
 
-procedure TMemoryBrowser.MenuItem2Click(Sender: TObject);
+procedure TMemoryBrowser.miSelectCurrentFunctionClick(Sender: TObject);
 var start,stop: ptrUint;
   pa, a: ptruint;
 
@@ -5939,7 +5939,10 @@ begin
   end;
 
   if changeselection then
+  begin
+    backlist.Push(pointer(disassemblerview.SelectedAddress));
     disassemblerview.SelectedAddress:=contexthandler.InstructionPointerRegister^.getValue(context);
+  end;
 
 
   //apply the values
