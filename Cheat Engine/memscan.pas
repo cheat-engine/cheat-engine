@@ -5922,65 +5922,70 @@ begin
   tthread.NameThreadForDebugging('Memscan TScanner thread '+inttostr(scannernr));
 
 
-  lastpart:=0;
-  SetExceptionMask([exInvalidOp, exDenormalized, exZeroDivide, exOverflow, exUnderflow, exPrecision]);
-
-
   try
-    scanwriter:=TScanfilewriter.create(self,self.OwningScanController,addressfile,memoryfile);
-    lastpart:=1;
+    lastpart:=0;
+    SetExceptionMask([exInvalidOp, exDenormalized, exZeroDivide, exOverflow, exUnderflow, exPrecision]);
 
-    if scantype=stFirstScan then firstscan;
-    if scantype=stNextScan then
-    begin
-      if useNextNextScan then
-        nextnextscan
-      else
-        firstnextscan;
+
+    try
+      scanwriter:=TScanfilewriter.create(self,self.OwningScanController,addressfile,memoryfile);
+      lastpart:=1;
+
+      if scantype=stFirstScan then firstscan;
+      if scantype=stNextScan then
+      begin
+        if useNextNextScan then
+          nextnextscan
+        else
+          firstnextscan;
+      end;
+
+      //tell scanwriter to stop
+
+      if savedscanhandler<>nil then freeandnil(savedscanhandler);
+
+      lastpart:=2;
+      scanwriter.flush;
+      lastpart:=3;
+
+      if scanwriter.writeError then
+        raise exception.Create(Format(rsDiskWriteError, [scanwriter.errorString]));
+
+      if OnlyOne and (AddressFound<>0) then
+      begin
+        //tell siblings to go kill themselves. This one won the price
+        for i:=0 to length(OwningScanController.scanners)-1 do
+          OwningScanController.scanners[i].Terminate;
+      end;
+
+    except
+      on e: exception do
+      begin
+        haserror:=true;
+        errorstring:=rsThread+inttostr(scannernr)+':'+e.message+' ('+inttostr(lastpart)+')';
+
+        log('Scanner exception:'+errorstring);
+
+
+        {$if lcl_fullversion < 2000000}
+        DebugLn('Scanner exception:'+errorstring);
+        DumpExceptionBackTrace;
+        {$endif}
+
+        //tell all siblings to terminate, something messed up
+        //and I can just do this, since the ScanController is waiting for us, and terminate is pretty much atomic
+        //for i:=0 to length(OwningScanController.scanners)-1 do
+
+        OwningScanController.Terminate;
+
+      end;
     end;
 
-    //tell scanwriter to stop
 
-    if savedscanhandler<>nil then freeandnil(savedscanhandler);
-
-    lastpart:=2;
-    scanwriter.flush;
-    lastpart:=3;
-
-    if scanwriter.writeError then
-      raise exception.Create(Format(rsDiskWriteError, [scanwriter.errorString]));
-
-    if OnlyOne and (AddressFound<>0) then
-    begin
-      //tell siblings to go kill themselves. This one won the price
-      for i:=0 to length(OwningScanController.scanners)-1 do
-        OwningScanController.scanners[i].Terminate;
-    end;
-
-  except
-    on e: exception do
-    begin
-      haserror:=true;
-      errorstring:=rsThread+inttostr(scannernr)+':'+e.message+' ('+inttostr(lastpart)+')';
-
-      log('Scanner exception:'+errorstring);
-
-
-      {$if lcl_fullversion < 2000000}
-      DebugLn('Scanner exception:'+errorstring);
-      DumpExceptionBackTrace;
-      {$endif}
-
-      //tell all siblings to terminate, something messed up
-      //and I can just do this, since the ScanController is waiting for us, and terminate is pretty much atomic
-      //for i:=0 to length(OwningScanController.scanners)-1 do
-
-      OwningScanController.Terminate;
-
-    end;
+  finally
+    isdone:=true;
   end;
 
-  isdone:=true;
 end;
 
 destructor TScanner.destroy;
@@ -6541,7 +6546,7 @@ begin
       //and now we wait
       for i:=0 to threadcount-1 do
       begin
-        while not (terminated or scanners[i].isdone) do
+        while not (terminated or scanners[i].isdone or scanners[i].Finished) do
         begin
           scanners[i].WaitTillDone(25);
           if (OwningMemScan.progressbar<>nil) or (assigned(owningmemscan.OnGuiUpdate)) then
@@ -6773,7 +6778,7 @@ begin
   //and now we wait
   for i:=0 to threadcount-1 do
   begin
-    while not (terminated or scanners[i].isdone) do
+    while not (terminated or scanners[i].isdone or scanners[i].Finished) do
     begin
       scanners[i].WaitTillDone(25);
       if (OwningMemScan.progressbar<>nil) or (assigned(owningmemscan.OnGuiUpdate))  then
@@ -7291,7 +7296,7 @@ begin
     //and now we wait
     for i:=0 to threadcount-1 do
     begin
-      while not (terminated or scanners[i].isdone) do
+      while not (terminated or scanners[i].isdone or scanners[i].Finished) do
       begin
         scanners[i].WaitTillDone(25);
         if (OwningMemScan.progressbar<>nil) or (assigned(owningmemscan.OnGuiUpdate)) then
