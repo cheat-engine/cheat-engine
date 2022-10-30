@@ -196,7 +196,7 @@ uses foundcodeunit, DebugHelper, MemoryBrowserFormUnit, frmThreadlistunit,
      networkInterface, networkInterfaceApi, ProcessHandlerUnit, globals,
      UnexpectedExceptionsHelper, frmcodefilterunit, frmBranchMapperUnit, LuaHandler,
      LazLogger, Dialogs, vmxfunctions, debuggerinterface, DBVMDebuggerInterface,
-     formChangedAddresses, iptnative;
+     formChangedAddresses, iptnative, commonTypeDefs;
 
 resourcestring
   rsDebugHandleAccessViolationDebugEventNow = 'Debug HandleAccessViolationDebugEvent now';
@@ -631,79 +631,110 @@ var
   i,j: integer;
   b: byte;
   n: pointer;
+
+  po, pm, pv: PQWordArray;
+  pbo: PQWordArray absolute po;
+  pbm: PQWordArray absolute pm;
+  pbv: PQWordArray absolute pv;
+  contextsize: integer;
+  last: integer;
 begin
   TDebuggerthread(debuggerthread).execlocation:=36;
-  if bp.changereg.change_af then context^.EFlags:=eflags_setAF(context^.Eflags, booltoint(bp.changereg.new_af));
-  if bp.changereg.change_cf then context^.EFlags:=eflags_setCF(context^.Eflags, booltoint(bp.changereg.new_cf));
-  if bp.changereg.change_of then context^.EFlags:=eflags_setOF(context^.Eflags, booltoint(bp.changereg.new_of));
-  if bp.changereg.change_pf then context^.EFlags:=eflags_setPF(context^.Eflags, booltoint(bp.changereg.new_pf));
-  if bp.changereg.change_sf then context^.EFlags:=eflags_setSF(context^.Eflags, booltoint(bp.changereg.new_sf));
-  if bp.changereg.change_zf then context^.EFlags:=eflags_setZF(context^.Eflags, booltoint(bp.changereg.new_zf));
 
-  if bp.changereg.change_eax then context^.{$ifdef cpu64}rax{$else}eax{$endif}:=bp.changereg.new_eax;
-  if bp.changereg.change_ebx then context^.{$ifdef cpu64}rbx{$else}ebx{$endif}:=bp.changereg.new_ebx;
-  if bp.changereg.change_ecx then context^.{$ifdef cpu64}rcx{$else}ecx{$endif}:=bp.changereg.new_ecx;
-  if bp.changereg.change_edx then context^.{$ifdef cpu64}rdx{$else}edx{$endif}:=bp.changereg.new_edx;
-  if bp.changereg.change_esi then context^.{$ifdef cpu64}rsi{$else}esi{$endif}:=bp.changereg.new_esi;
-  if bp.changereg.change_edi then context^.{$ifdef cpu64}rdi{$else}edi{$endif}:=bp.changereg.new_edi;
-  if bp.changereg.change_esp then context^.{$ifdef cpu64}rsp{$else}esp{$endif}:=bp.changereg.new_esp;
-  if bp.changereg.change_ebp then context^.{$ifdef cpu64}rbp{$else}ebp{$endif}:=bp.changereg.new_ebp;
-  if bp.changereg.change_eip then context^.{$ifdef cpu64}rip{$else}eip{$endif}:=bp.changereg.new_eip;
 
-  {$ifdef cpu64}
-  if bp.changereg.change_r8 then context^.r8:=bp.changereg.new_r8;
-  if bp.changereg.change_r9 then context^.r9:=bp.changereg.new_r9;
-  if bp.changereg.change_r10 then context^.r10:=bp.changereg.new_r10;
-  if bp.changereg.change_r11 then context^.r11:=bp.changereg.new_r11;
-  if bp.changereg.change_r12 then context^.r12:=bp.changereg.new_r12;
-  if bp.changereg.change_r13 then context^.r13:=bp.changereg.new_r13;
-  if bp.changereg.change_r14 then context^.r14:=bp.changereg.new_r14;
-  if bp.changereg.change_r15 then context^.r15:=bp.changereg.new_r15;
-  {$endif}
 
-  if bp.changereg.change_FP<>0 then
+  if bp^.breakpointAction=bo_ChangeRegisterEx then
   begin
-    b:=bp.changereg.change_FP;
-    for i:=0 to 7 do
+    contextsize:=contexthandler.ContextSize;
+    i:=0;
+
+    po:=PQWordArray(context);
+    pm:=bp^.changeregEx.mask;
+    pv:=bp^.changeregEx.context;
+    for i:=0 to (contextsize div 8)-1 do
+      po[i]:=(po[i] and (not pm[i])) or pv[i];
+
+    last:=((contextsize div 8)-1)*8;
+    if last<contextsize then
     begin
-      if b and (1 shl i)>0 then
+      for i:=last to contextsize-1 do
+        pbo[i]:=(pbo[i] and (not pbm[i])) or pbv[i];
+    end;
+  end
+  else
+  begin
+    //old method
+    if bp.changereg.change_af then context^.EFlags:=eflags_setAF(context^.Eflags, booltoint(bp.changereg.new_af));
+    if bp.changereg.change_cf then context^.EFlags:=eflags_setCF(context^.Eflags, booltoint(bp.changereg.new_cf));
+    if bp.changereg.change_of then context^.EFlags:=eflags_setOF(context^.Eflags, booltoint(bp.changereg.new_of));
+    if bp.changereg.change_pf then context^.EFlags:=eflags_setPF(context^.Eflags, booltoint(bp.changereg.new_pf));
+    if bp.changereg.change_sf then context^.EFlags:=eflags_setSF(context^.Eflags, booltoint(bp.changereg.new_sf));
+    if bp.changereg.change_zf then context^.EFlags:=eflags_setZF(context^.Eflags, booltoint(bp.changereg.new_zf));
+
+    if bp.changereg.change_eax then context^.{$ifdef cpu64}rax{$else}eax{$endif}:=bp.changereg.new_eax;
+    if bp.changereg.change_ebx then context^.{$ifdef cpu64}rbx{$else}ebx{$endif}:=bp.changereg.new_ebx;
+    if bp.changereg.change_ecx then context^.{$ifdef cpu64}rcx{$else}ecx{$endif}:=bp.changereg.new_ecx;
+    if bp.changereg.change_edx then context^.{$ifdef cpu64}rdx{$else}edx{$endif}:=bp.changereg.new_edx;
+    if bp.changereg.change_esi then context^.{$ifdef cpu64}rsi{$else}esi{$endif}:=bp.changereg.new_esi;
+    if bp.changereg.change_edi then context^.{$ifdef cpu64}rdi{$else}edi{$endif}:=bp.changereg.new_edi;
+    if bp.changereg.change_esp then context^.{$ifdef cpu64}rsp{$else}esp{$endif}:=bp.changereg.new_esp;
+    if bp.changereg.change_ebp then context^.{$ifdef cpu64}rbp{$else}ebp{$endif}:=bp.changereg.new_ebp;
+    if bp.changereg.change_eip then context^.{$ifdef cpu64}rip{$else}eip{$endif}:=bp.changereg.new_eip;
+
+    {$ifdef cpu64}
+    if bp.changereg.change_r8 then context^.r8:=bp.changereg.new_r8;
+    if bp.changereg.change_r9 then context^.r9:=bp.changereg.new_r9;
+    if bp.changereg.change_r10 then context^.r10:=bp.changereg.new_r10;
+    if bp.changereg.change_r11 then context^.r11:=bp.changereg.new_r11;
+    if bp.changereg.change_r12 then context^.r12:=bp.changereg.new_r12;
+    if bp.changereg.change_r13 then context^.r13:=bp.changereg.new_r13;
+    if bp.changereg.change_r14 then context^.r14:=bp.changereg.new_r14;
+    if bp.changereg.change_r15 then context^.r15:=bp.changereg.new_r15;
+    {$endif}
+
+    if bp.changereg.change_FP<>0 then
+    begin
+      b:=bp.changereg.change_FP;
+      for i:=0 to 7 do
       begin
-        n:=pointer(ptruint(@bp.changereg.new_FP0)+8*i);
-        {$ifdef cpu64}
-        copymemory(@context^.FltSave.FloatRegisters[i], n,10);
-        {$else}
-        copymemory(@context^.ext.FloatRegisters[i], n,10);
-        copymemory(@context^.FloatSave.RegisterArea[10*i], n,10);
-        {$endif}
+        if b and (1 shl i)>0 then
+        begin
+          n:=pointer(ptruint(@bp.changereg.new_FP0)+8*i);
+          {$ifdef cpu64}
+          copymemory(@context^.FltSave.FloatRegisters[i], n,10);
+          {$else}
+          copymemory(@context^.ext.FloatRegisters[i], n,10);
+          copymemory(@context^.FloatSave.RegisterArea[10*i], n,10);
+          {$endif}
+        end;
       end;
     end;
-  end;
 
-  if bp.changereg.change_XMM<>0 then
-  begin
-    for i:=0 to {$ifdef cpu64}15{$else}7{$endif} do
+    if bp.changereg.change_XMM<>0 then
     begin
-      //get the nibble for the xmm register
-      b:=(bp.changereg.change_XMM shr (i*4)) and $f;
-
-      if b>0 then //bits are set
+      for i:=0 to {$ifdef cpu64}15{$else}7{$endif} do
       begin
-        for j:=0 to 3 do
+        //get the nibble for the xmm register
+        b:=(bp.changereg.change_XMM shr (i*4)) and $f;
+
+        if b>0 then //bits are set
         begin
-          if b and (1 shl j)>0 then //bit is set
+          for j:=0 to 3 do
           begin
-            //change part j of xmm register i
-            {$ifdef cpu64}
-            PXMMFIELDS(@context^.FltSave.XmmRegisters[i])^[j]:=PXMMFIELDS(ptruint(@bp.changereg.new_XMM0)+16*i)^[j];
-            {$else}
-            PXMMFIELDS(@context^.ext.XMMRegisters[j])^[j]:=bp.changereg.new_XMM0[j];
-            {$endif}
+            if b and (1 shl j)>0 then //bit is set
+            begin
+              //change part j of xmm register i
+              {$ifdef cpu64}
+              PXMMFIELDS(@context^.FltSave.XmmRegisters[i])^[j]:=PXMMFIELDS(ptruint(@bp.changereg.new_XMM0)+16*i)^[j];
+              {$else}
+              PXMMFIELDS(@context^.ext.XMMRegisters[j])^[j]:=bp.changereg.new_XMM0[j];
+              {$endif}
+            end;
           end;
         end;
       end;
     end;
   end;
-
 end;
 
 procedure TDebugThreadHandler.continueDebugging(continueOption: TContinueOption; handled: boolean=true);
@@ -1596,7 +1627,7 @@ begin
       end;
 
 
-      bo_ChangeRegister:
+      bo_ChangeRegister,bo_ChangeRegisterEx:
       begin
         TDebuggerthread(debuggerthread).execlocation:=31;
         //modify accordingly

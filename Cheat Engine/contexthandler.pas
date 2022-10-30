@@ -681,6 +681,8 @@ begin
   result:=nameToEntryLookup.Data[regname];
 end;
 
+
+
 function TContextInfo.getCopy(context: pointer): pointer;
 {
 copies the given context in case the pointed at is volatile (debuggerthread and threads can get destroyed)
