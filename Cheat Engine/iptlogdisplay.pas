@@ -854,7 +854,6 @@ begin
       if current+iptracedata[i]^.listpos>c then
       begin
         //found the list that holds this entry
-        memorybrowser.backlist.Push(pointer(memorybrowser.disassemblerview.SelectedAddress));
         memorybrowser.disassemblerview.SelectedAddress:=iptracedata[i]^.list[c-current];
 
         memorybrowser.show;

@@ -49,6 +49,20 @@ type
   TVQEMapCmp = specialize TLess<PtrUInt>;
   TVQEMap = specialize TMap<PtrUInt, TVirtualQueryExCache, TVQEMapCmp>;
 
+  TCEServerOptionType=(netParent=0, //just a piece of text with child options under it
+                       netBoolean=1, netInteger=2, netFloat=3, netDouble=4, netText=5);
+
+  TCEServerOption=record
+    optname: string;  //this is the internal name of the option
+    parentoptname: string; //if this is a sibling, this holds the parent optname, else empty
+    optdescription: string; //text shown to the user
+    acceptablevalues: string; //allowed values (when set)
+    currentvalue: string; //the current value (1 for true in boolean)
+    optiontype: TCEServerOptionType;
+  end;
+
+  TCEServerOptions=array of TCEServerOption;
+
 
   TCEConnection=class
   private
@@ -56,6 +70,8 @@ type
     fConnected: boolean;
 
     version: integer;
+
+    executesInsideTarget: boolean; //if true, ptrace won't work.  Use sigtrap for debugging
 
     //todo: change rpmcache to a map
     rpmcache: array [0..15] of record //every connection is thread specific, so each thread has it's own rpmcache
@@ -77,6 +93,7 @@ type
     VirtualQueryExCacheMapCS: TCriticalSection;
 
 
+    function receiveString16: string; //read a string that is preceded by a 16 bit length indicator
 
     function receive(buffer: pointer; size: integer): integer;
     function send(buffer: pointer; size: integer): integer;
@@ -129,8 +146,11 @@ type
     function loadModule(hProcess: THandle; modulepath: string): boolean;
     function loadExtension(hProcess: Thandle): boolean;
     function speedhack_setSpeed(hProcess: THandle; speed: single): boolean;
-
     procedure setConnectionName(name: string);
+
+    procedure getOptions(var options: TCEServerOptions);
+    procedure getOption(name: string; var value: string);
+    procedure setOption(name: string; value: string);
 
     procedure TerminateServer;
 
@@ -197,6 +217,9 @@ const
   CMD_CREATETOOLHELP32SNAPSHOTEX =35;
 
   CMD_CHANGEMEMORYPROTECTION=36;
+  CMD_GETOPTIONS=37;
+  CMD_GETOPTION=38;
+  CMD_SETOPTION=39;
 
 
 
@@ -1851,6 +1874,11 @@ begin
       FreeMemAndNil(_name);
 
       result:=CeVersion.version;
+
+      if copy(_name,1,3)='lib' then
+        executesInsideTarget:=true;
+
+
       self.version:=result;
     end;
   end;
@@ -2193,6 +2221,66 @@ begin
   end;
 end;
 
+procedure TCEConnection.getOptions(var options: TCEServerOptions);
+var
+  command: uint8;
+  optioncount: UINT16;
+  i: integer;
+
+  b: byte;
+  t: integer;
+
+begin
+  command:=CMD_GETOPTIONS;
+  send(@command,1);
+  receive(@optioncount,sizeof(optioncount));
+
+  setlength(options, optioncount);
+  for i:=0 to optioncount-1 do
+  begin
+    options[i].optname:=receiveString16;
+    options[i].parentoptname:=receiveString16;
+    options[i].optdescription:=receiveString16;
+    options[i].acceptablevalues:=receiveString16;
+    options[i].currentvalue:=receiveString16;
+
+    receive(@t, sizeof(t));
+    options[i].optiontype:=TCEServerOptionType(t);
+  end;
+end;
+
+procedure TCEConnection.getOption(name: string; var value: string);
+var
+  buf: tmemorystream;
+begin
+  buf:=tmemorystream.create;
+  buf.WriteByte(CMD_GETOPTION);
+  buf.WriteWord(length(name));
+  buf.WriteBuffer(name[1],length(name));
+
+  send(buf.Memory, buf.Size);
+  buf.free;
+
+  value:=receiveString16;
+end;
+
+procedure TCEConnection.setOption(name: string; value: string);
+var
+  buf: tmemorystream;
+begin
+  buf:=tmemorystream.create;
+  buf.WriteByte(CMD_SETOPTION);
+  buf.WriteWord(length(name));
+  buf.WriteBuffer(name[1],length(name));
+  buf.WriteWord(length(value));
+  if length(value)>0 then
+    buf.WriteBuffer(value[1], length(value));
+
+  send(buf.Memory, buf.Size);
+  buf.free;
+end;
+
+
 function TCEConnection.isNetworkHandle(handle: THandle): boolean;
 begin
   result:=((handle shr 24) and $ff)= $ce;
@@ -2256,6 +2344,21 @@ begin
  // {$else}
   //  result:=fprecv(socket, buffer, size, MSG_WAITALL);
   //{$endif}
+end;
+
+function TCEConnection.receiveString16: string;
+var
+  l: uint16;
+  r: pchar;
+begin
+  receive(@l,sizeof(l));
+  if l=0 then exit('');
+
+  getmem(r,l);
+  receive(r,l);
+  r[l]:=#0;
+  result:=r;
+  freemem(r);
 end;
 
 constructor TCEConnection.create;

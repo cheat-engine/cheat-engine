@@ -674,7 +674,7 @@ type
     cancelsearch: boolean;
 
     ischild: boolean; //determines if it's the main memorybrowser or a child
-    backlist: TStack;
+//    backlist: TStack;
 
     frmiptlog: TfrmIPTLogDisplay;
 
@@ -708,7 +708,6 @@ type
     procedure miDifferenceClick(Sender: TObject);
     procedure miStopDifferenceClick(Sender: TObject);
     procedure Scrollboxscroll(sender: TObject);
-    procedure AddToDisassemblerBackList(address: pointer);
 
     procedure createcr3switcher;
     property cr3switcher: TfrmCR3Switcher read fcr3switcher;
@@ -2032,8 +2031,6 @@ var start,stop: ptrUint;
   s: string;
   infloop: integer;
 begin
-  backlist.Push(pointer(disassemblerview.SelectedAddress));
-
   //disassemble the code and find the last address
 //  parametervaluetype:=dvtaddress;
   d:=TDisassembler.create;
@@ -2743,7 +2740,6 @@ begin
   a:=disassemblerview.getReferencedByLineAtPos(m);
   if a<>0 then
   begin
-    backlist.Push(pointer(disassemblerview.SelectedAddress));
     disassemblerview.SelectedAddress:=a;
     exit;
   end;
@@ -2960,8 +2956,6 @@ begin
   disassemblerHistory:=TStringList.create;
   memorybrowserHistory:=TStringList.create;
   assemblerHistory:=TStringList.create;
-
-  backlist:=TStack.create;
 
   showvalues:=true;
   sbShowFloats.left:=scrollbox1.Clientwidth-sbShowFloats.width;
@@ -3375,15 +3369,11 @@ begin
     exit;
 
   try
-    oldAddress:=disassemblerview.SelectedAddress;
     try
       disassemblerview.SelectedAddress:=symhandler.getaddressfromname(newaddress);
     except
       disassemblerview.SelectedAddress:=getaddress(newaddress);
     end;
-
-    backlist.Push(pointer(oldAddress));
-
   except
     on e:exception do
       MessageDlg(e.Message,mtError,[mbok],0);
@@ -4330,10 +4320,7 @@ begin
       raise exception.Create(rsErrorAllocatingMemory);
 
     if messagedlg(Format(rsAtLeastBytesHaveBeenAllocatedAtGoThereNow, [IntToStr(memsize), IntToHex(ptrUint(baseaddress), 8)]), mtinformation, [mbyes, mbno], 0) = mryes then
-    begin
-      backlist.Push(pointer(disassemblerview.SelectedAddress));
       disassemblerview.SelectedAddress:=ptrUint(baseaddress);
-    end;
   end;
   {$endif}
   {$endif}
@@ -4517,7 +4504,7 @@ begin
   Findoutwhataddressesthisinstructionaccesses1.enabled:=processhandle<>0;
 
   follow1.visible:=isjumporcall(disassemblerview.SelectedAddress,x);
-  back1.Visible:=backlist.Count>0;
+  back1.Visible:=disassemblerview.hasbacklist;
 
   pluginhandler.handledisassemblerContextPopup(disassemblerview.SelectedAddress);
 
@@ -4764,10 +4751,7 @@ will change the selected disassembler address to the address this instructions j
 var address: ptrUint;
 begin
   if isjumporcall(disassemblerview.SelectedAddress,address) then
-  begin
-    backlist.Push(pointer(disassemblerview.SelectedAddress));
     disassemblerview.SelectedAddress:=address;
-  end;
 end;
 
 
@@ -4910,15 +4894,10 @@ begin
 
 end;
 
-procedure TMemoryBrowser.AddToDisassemblerBackList(address: pointer);
-begin
-  backlist.Push(address);
-end;
 
 procedure TMemoryBrowser.Back1Click(Sender: TObject);
 begin
-  if backlist.Count>0 then
-    disassemblerview.SelectedAddress:=ptrUint(backlist.pop);
+  disassemblerview.GoBack;
 end;
 
 procedure TMemoryBrowser.Showvaluesofstaticaddresses1Click(
@@ -5588,10 +5567,7 @@ begin
   if stacktrace2.checked then
   begin
     //go to the selected address
-    {x:=symhandler.getAddressFromName(pointed.Caption,false,haserror);
-    if not haserror then
-      disassemblerview.SelectedAddress:=x;  }
-    backlist.Push(pointer(disassemblerview.SelectedAddress));
+
     disassemblerview.SelectedAddress:=ptruint(pointed.Data);
   end
   else
@@ -5630,7 +5606,6 @@ begin
       ksh:=GetKeyShiftState;
       if ssShift in ksh then
       begin
-        backlist.Push(pointer(disassemblerview.SelectedAddress));
         disassemblerview.SelectedAddress:=x
       end
       else
@@ -5642,7 +5617,6 @@ begin
       else
       if isExecutableAddress(x) then
       begin
-        backlist.Push(pointer(disassemblerview.SelectedAddress));
         disassemblerview.SelectedAddress:=x
       end
       else
@@ -5940,7 +5914,6 @@ begin
 
   if changeselection then
   begin
-    backlist.Push(pointer(disassemblerview.SelectedAddress));
     disassemblerview.SelectedAddress:=contexthandler.InstructionPointerRegister^.getValue(context);
   end;
 

@@ -1,4 +1,4 @@
-implement {$nonops} so it rewrites the instruction to force the correct size and then reassembles from the start
+
 network compression dialog is too small on high dpi
 network change reg on bp. also fp regs
 dbvm cloak: amd pageboundaries
@@ -12,11 +12,9 @@ tracer search: keyboard focus should be on the input field
 structure spider freezes gui on generating stringmap
 structure spider dpi (editboxes are too small)
 
-rewrite mov reg,[addressover2g] into 
-push rax
-mov rax,[addressover2g]
-mov reg,rax
-pop rax
+
+implement {$nonops} so it rewrites the instruction to force the correct size and then reassembles from the start
+
 
 
 test nmi's in windows in dbvm

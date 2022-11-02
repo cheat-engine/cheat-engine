@@ -21180,7 +21180,7 @@ object MemoryBrowser: TMemoryBrowser
   end
   object pmDebugToolbar: TPopupMenu
     Images = mvImageList
-    Left = 336
+    Left = 368
     Top = 80
     object miHideToolbar: TMenuItem
       Caption = 'Hide toolbar'

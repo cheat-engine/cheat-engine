@@ -95,7 +95,7 @@ type
     procedure FindCodeByBP(address: uint_ptr; size: integer; bpt: TBreakpointTrigger; breakpointmethod: TBreakpointMethod); overload;
     procedure FindCodeByBP(address: uint_ptr; size: integer; bpt: TBreakpointTrigger); overload;
 
-    function AddBreakpoint(owner: PBreakpoint; address: uint_ptr; size: integer; bpt: TBreakpointTrigger; bpm: TBreakpointMethod; bpa: TBreakpointAction; debugregister: integer=-1; foundcodedialog: Tfoundcodedialog=nil; threadID: dword=0; frmchangedaddresses: Tfrmchangedaddresses=nil; FrmTracer: TFrmTracer=nil; tcount: integer=0; changereg: pregistermodificationBP=nil; OnBreakpoint: TBreakpointEvent=nil): PBreakpoint;
+    function AddBreakpoint(owner: PBreakpoint; address: uint_ptr; size: integer; bpt: TBreakpointTrigger; bpm: TBreakpointMethod; bpa: TBreakpointAction; debugregister: integer=-1; foundcodedialog: Tfoundcodedialog=nil; threadID: dword=0; frmchangedaddresses: Tfrmchangedaddresses=nil; FrmTracer: TFrmTracer=nil; tcount: integer=0; changereg: pointer=nil; OnBreakpoint: TBreakpointEvent=nil): PBreakpoint;
 
 
     function AdjustAccessRightsWithActiveBreakpoints(ar: TAccessRights; base: ptruint; size: integer): TAccessRights;
@@ -134,6 +134,7 @@ type
     function  isBreakpoint(address: uint_ptr; address2: uint_ptr=0; includeinactive: boolean=false): PBreakpoint;
     function  CodeFinderStop(codefinder: TFoundCodeDialog): boolean;
     function  setChangeRegBreakpoint(regmod: PRegisterModificationBP): PBreakpoint;
+    function  setChangeRegBreakpointEx(regmod: PRegisterModificationBPEx): PBreakpoint;
     procedure setBreakAndTraceBreakpoint(frmTracer: TFrmTracer; address: ptrUint; BreakpointTrigger: TBreakpointTrigger; breakpointmethod: TBReakpointmethod; bpsize: integer; count: integer; startcondition:string=''; stopcondition:string=''; stepover: boolean=false; stepoverrep: boolean=false; nosystem: boolean=false; stayInsideModule: boolean=false);
     function  stopBreakAndTrace(frmTracer: TFrmTracer): boolean;
     function FindWhatCodeAccesses(address: uint_ptr; FoundCodeDialog:TFoundCodeDialog=nil): tfrmChangedAddresses;
@@ -211,7 +212,7 @@ uses CEDebugger, KernelDebugger, formsettingsunit, FormDebugStringsUnit,
      frmBreakpointlistunit, plugin, memorybrowserformunit, autoassembler,
      pluginexports, networkInterfaceApi, ProcessHandlerUnit, Globals, LuaCaller,
      vmxfunctions, LuaHandler, frmDebuggerAttachTimeoutUnit, DBVMDebuggerInterface,
-     symbolhandlerstructs;
+     symbolhandlerstructs, contexthandler;
 
 //-----------Inside thread code---------
 
@@ -494,10 +495,12 @@ begin
       bp:=PBreakpoint(breakpointlist[i]);
       if bp^.markedfordeletion then
       begin
+        execlocation:=5021;
         if bp^.referencecount=0 then
         begin
           if not bp^.active then
           begin
+            execlocation:=5022;
             if (bp^.deletecountdown=0) or ((CurrentThread<>nil) and (currentthread.ThreadId=bp^.threadid)) then  //if countdown is 0, of it's a threadspecific bp and it's comming from the current threadid
             begin
               outputdebugstring('cleanupDeletedBreakpoints: deleting bp');
@@ -533,6 +536,16 @@ begin
 
               if assigned(bp^.OnBreakpoint) then
                 LuaCaller.CleanupLuaCall(TMethod(bp^.OnBreakpoint));
+
+              execlocation:=5023;
+              if bp^.changeregEx.context<>nil then
+                freememandnil(bp^.changeregEx.context);
+
+              if bp^.changeregEx.mask<>nil then
+                freememandnil(bp^.changeregEx.mask);
+
+              execlocation:=5024;
+
 
               freememandnil(bp);
 
@@ -1570,7 +1583,7 @@ begin
     queue(tthread.CurrentThread, frmBreakpointlist.updatebplist);
 end;
 
-function TDebuggerThread.AddBreakpoint(owner: PBreakpoint; address: uint_ptr; size: integer; bpt: TBreakpointTrigger; bpm: TBreakpointMethod; bpa: TBreakpointAction; debugregister: integer=-1; foundcodedialog: Tfoundcodedialog=nil; threadID: dword=0; frmchangedaddresses: Tfrmchangedaddresses=nil; FrmTracer: TFrmTracer=nil; tcount: integer=0; changereg: pregistermodificationBP=nil; OnBreakpoint: TBreakpointEvent=nil): PBreakpoint;
+function TDebuggerThread.AddBreakpoint(owner: PBreakpoint; address: uint_ptr; size: integer; bpt: TBreakpointTrigger; bpm: TBreakpointMethod; bpa: TBreakpointAction; debugregister: integer=-1; foundcodedialog: Tfoundcodedialog=nil; threadID: dword=0; frmchangedaddresses: Tfrmchangedaddresses=nil; FrmTracer: TFrmTracer=nil; tcount: integer=0; changereg: pointer=nil; OnBreakpoint: TBreakpointEvent=nil): PBreakpoint;
 var
   newbp: PBreakpoint;
   originalbyte: byte;
@@ -1630,7 +1643,21 @@ begin
   newbp^.tracecount:=tcount;
   newbp^.OnBreakpoint:=OnBreakpoint;
   if changereg<>nil then
-    newbp^.changereg:=changereg^;
+  begin
+    if bpa=bo_ChangeRegister then
+      newbp^.changereg:=pregistermodificationBP(changereg)^
+    else
+    begin
+      //copy the proved contexts to the breakpoint (caller can free it's copy)
+      i:=getBestContextHandler.ContextSize;
+      newbp^.changeregEx.context:=getmem(i);
+      newbp^.changeregEx.mask:=getmem(i);
+
+      copymemory(newbp^.changeregEx.mask, PRegisterModificationBPEx(changereg)^.mask,i);
+      copymemory(newbp^.changeregEx.context, PRegisterModificationBPEx(changereg)^.context,i);
+    end;
+
+  end;
 
 
   debuggercs.enter;
@@ -2204,6 +2231,46 @@ begin
   end;
 end;
 
+function TDebuggerthread.setChangeRegBreakpointEx(regmod: PRegisterModificationBPEx): PBreakpoint;
+var
+  method: TBreakpointMethod;
+  useddebugregister: integer;
+  address: ptruint;
+  bp: pbreakpoint;
+begin
+  result:=nil;
+
+  address:=regmod^.address;
+  bp:=isBreakpoint(address);
+
+  if bp<>nil then
+    RemoveBreakpoint(bp);
+
+
+  if CurrentDebuggerInterface is TDBVMDebugInterface then
+    method:=bpmDBVMNative
+  else
+    method:=preferedBreakpointMethod;
+
+  usedDebugRegister:=-1;
+  if method=bpmDebugRegister then
+  begin
+    usedDebugRegister := GetUsableDebugRegister(bptExecute);
+    if usedDebugRegister = -1 then
+    begin
+      if MessageDlg(
+        rsAllDebugRegistersAreUsedUpDoYouWantToUseASoftwareBP, mtConfirmation, [
+          mbNo, mbYes], 0) = mrYes then
+        method := bpmInt3
+      else
+        exit;
+
+    end;
+  end;
+
+  result:=AddBreakpoint(nil, regmod.address, 1, bptExecute, method, bo_ChangeRegisterEx, usedDebugRegister, nil, 0, nil,nil,0, regmod);
+end;
+
 function TDebuggerthread.setChangeRegBreakpoint(regmod: PRegisterModificationBP): PBreakpoint;
 var
   method: TBreakpointMethod;
@@ -2241,10 +2308,7 @@ begin
     end;
   end;
 
-  //todo: Make this breakpoint show up in the memory view
   result:=AddBreakpoint(nil, regmod.address, 1, bptExecute, method, bo_ChangeRegister, usedDebugRegister, nil, 0, nil,nil,0, regmod);
-
-
 end;
 
 procedure TDebuggerthread.setBreakAndTraceBreakpoint(frmTracer: TFrmTracer; address: ptrUint; BreakpointTrigger: TBreakpointTrigger; breakpointmethod: TBreakpointmethod; bpsize: integer; count: integer; startcondition:string=''; stopcondition:string=''; stepover: boolean=false; stepoverrep: boolean=false; nosystem: boolean=false; stayInsideModule: boolean=false);
@@ -2911,7 +2975,7 @@ begin
     for i := 0 to BreakpointList.Count - 1 do
       if (PBreakpoint(BreakpointList[i])^.address = address) and
         (PBreakpoint(BreakpointList[i])^.breakpointTrigger = bptExecute) and
-        ((PBreakpoint(BreakpointList[i])^.breakpointAction = bo_break) or (PBreakpoint(BreakpointList[i])^.breakpointAction = bo_ChangeRegister) ) and
+        ((PBreakpoint(BreakpointList[i])^.breakpointAction = bo_break) or (PBreakpoint(BreakpointList[i])^.breakpointAction = bo_ChangeRegister) or (PBreakpoint(BreakpointList[i])^.breakpointAction = bo_ChangeRegisterEx)  ) and
         (PBreakpoint(BreakpointList[i])^.active) then
       begin
         found := True;

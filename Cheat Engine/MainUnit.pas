@@ -312,6 +312,14 @@ type
     andlabel: TLabel;
     lblcompareToSavedScan: TLabel;
     MenuItem16: TMenuItem;
+    MenuItem17: TMenuItem;
+    MenuItem18: TMenuItem;
+    miNetworkReadUseProcMem: TMenuItem;
+    miNetworkReadUsePtrace: TMenuItem;
+    miNetworkReadUseVmread: TMenuItem;
+    miNetworkWriteUseProcMem: TMenuItem;
+    miNetworkWriteUsePtrace: TMenuItem;
+    miNetworkWriteUseVmWrite: TMenuItem;
     miDeleteSavedScanResults: TMenuItem;
     miOnlyShowCurrentCompareToColumn: TMenuItem;
     miLoadRecent: TMenuItem;
@@ -591,6 +599,8 @@ type
     procedure miChangeValueBackClick(Sender: TObject);
     procedure miDBVMFindWhatWritesOrAccessesClick(Sender: TObject);
     procedure miAlwaysHideChildrenClick(Sender: TObject);
+    procedure miNetworkClick(Sender: TObject);
+    procedure miNetworkReadUseProcMemClick(Sender: TObject);
     procedure miOnlyShowCurrentCompareToColumnClick(Sender: TObject);
     procedure miSignTableClick(Sender: TObject);
     procedure miAsyncScriptClick(Sender: TObject);
@@ -840,6 +850,9 @@ type
     RecentFiles: Tstringlist;
 
     InsideSetActivePreviousResult: boolean;
+
+    procedure updateNetworkOption(sender: TObject);
+    procedure updateNetworkOptions;
 
     procedure ClearRecentFiles(Sender:TObject);
     procedure RecentFilesClick(Sender:TObject);
@@ -1314,6 +1327,7 @@ resourcestring
   rsEnableSpeedHack = 'Enable '+strSpeedHack;
   rsPreviousValueList = 'Previous value list';
   rsSelectTheSavedResult = 'Select the saved results you wish to use';
+  rsNetworkOption = 'Network option :';
 
 const
   VARTYPE_INDEX_BINARY=0;
@@ -2908,6 +2922,9 @@ var
   DoNotOpenAssociatedTable: boolean;
   //set to true if the table had AA scripts enabled or the code list had nopped instruction
 begin
+  if getConnection<>nil then
+    updateNetworkOptions;
+
   {$ifdef windows}
   if aprilfools then decreaseCheatECoinCount;
   {$endif}
@@ -7796,6 +7813,182 @@ begin
     else
       addresslist.selectedRecord.options := addresslist.selectedRecord.options - [moAlwaysHideChildren];
   end;
+end;
+
+procedure TMainForm.miNetworkClick(Sender: TObject);
+begin
+  updateNetworkOptions;
+end;
+
+type
+  TCEServerOptionMenuItemData=class
+    data: TCEServerOption;
+  end;
+
+  TCEServerOptionMenuItemValue=class
+    value: string;
+  end;
+
+procedure TMainForm.updateNetworkOption(sender: TObject);
+var
+  mi: TMenuItem absolute sender;
+  data:  TCEServerOptionMenuItemData;
+  value: TCEServerOptionMenuItemValue;
+  v: string;
+  c: TCEConnection;
+begin
+
+  if (sender is TMenuItem) then
+  begin
+    if tobject(mi.tag) is TCEServerOptionMenuItemValue then
+    begin
+      value:=TCEServerOptionMenuItemValue(mi.tag);
+      data:=TCEServerOptionMenuItemData(mi.Parent.Tag);
+
+      v:=value.value;
+
+      c:=getConnection;
+      if c<>nil then
+      begin
+        c.setOption(data.data.optname, v);
+      end;
+    end
+    else
+    begin
+      data:=TCEServerOptionMenuItemData(mi.tag);
+      if data.data.optiontype=netBoolean then
+      begin
+        if mi.checked then v:='1' else v:='0';
+      end
+      else
+      begin
+        v:=data.data.currentvalue;
+        if InputQuery(rsNetworkOption+data.data.optname, rsChangeValue, v)<>true
+          then exit;
+      end;
+
+      c:=getConnection;
+      if c<>nil then
+      begin
+        c.setOption(data.data.optname, v);
+        c.getOption(data.data.optname, data.data.currentvalue);
+
+        mi.OnClick:=nil;
+        if data.data.optiontype=netBoolean then
+          mi.checked:=data.data.currentvalue='1'
+        else
+          mi.caption:=data.data.optdescription+' : '+data.data.currentvalue;
+
+        mi.OnClick:=updateNetworkOption;
+      end;
+    end;
+  end;
+end;
+
+procedure TMainForm.updateNetworkOptions;
+var
+  i,j: integer;
+  ol: TCEServerOptions;
+
+  mi: TMenuItem;
+  smi: TMenuItem;
+  data: TCEServerOptionMenuItemData;
+  value: TCEServerOptionMenuItemValue;
+  sl: TStringlist;
+
+  v: array of string;
+begin
+  //fetch the current available ceserver options, and show them in the menu
+  while miNetwork.Count>3 do
+  begin
+    if tobject(miNetwork.items[3].Tag) is TObject then
+      TObject(miNetwork.items[3].Tag).free;
+
+    miNetwork.Items[3].Free;
+  end;
+
+  ol:=[];
+  getConnection.getOptions(ol);
+
+  for i:=0 to length(ol)-1 do
+  begin
+    mi:=TMenuItem.Create(self);
+    mi.Caption:=ol[i].optdescription;
+
+    data:=TCEServerOptionMenuItemData.create;
+    data.data:=ol[i];
+    mi.Tag:=ptruint(data);
+
+
+    if ol[i].optiontype=netParent then
+    begin
+      //nothing else
+    end
+    else
+    begin
+      mi.onclick:=updateNetworkOption;
+      if ol[i].optiontype=netBoolean then
+      begin
+        mi.AutoCheck:=true;
+        mi.checked:=ol[i].currentvalue='1';
+      end
+      else
+      begin
+
+        if ol[i].acceptablevalues<>'' then
+        begin
+          mi.onclick:=nil;
+          //turn the options into subitems
+          sl:=TStringList.Create;
+          sl.LineBreak:=';';
+          sl.Text:=ol[i].acceptablevalues;
+
+          for j:=0 to sl.Count-1 do
+          begin
+            v:=sl[j].Split('=');
+            value:=TCEServerOptionMenuItemValue.Create;
+            value.value:=v[0];
+
+            smi:=TMenuItem.create(self);
+            smi.Caption:=v[1];
+            smi.RadioItem:=true;
+            smi.GroupIndex:=i+1;
+            smi.checked:=ol[i].currentvalue=v[0];
+            smi.tag:=ptruint(value);
+            smi.AutoCheck:=true;
+
+            smi.onclick:=updateNetworkOption;
+
+            mi.Add(smi);
+          end;
+
+          sl.free;
+        end
+        else
+          mi.caption:=mi.caption+' : '+ol[i].currentvalue;
+      end;
+    end;
+
+    if ol[i].parentoptname<>'' then
+    begin
+      for j:=0 to miNetwork.count-1 do
+      begin
+        if (tobject(miNetwork.items[j].Tag) is TCEServerOptionMenuItemData) and (TCEServerOptionMenuItemData(miNetwork.items[j].Tag).data.optname=ol[i].parentoptname) then
+        begin
+          miNetwork.items[j].Add(mi);
+          break;
+        end;
+      end;
+    end
+    else
+      miNetwork.Add(mi);
+  end;
+
+end;
+
+procedure TMainForm.miNetworkReadUseProcMemClick(Sender: TObject);
+begin
+
 end;
 
 procedure TMainForm.miOnlyShowCurrentCompareToColumnClick(Sender: TObject);

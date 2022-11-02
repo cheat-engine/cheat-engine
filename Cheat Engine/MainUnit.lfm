@@ -2545,6 +2545,7 @@ object MainForm: TMainForm
     object miNetwork: TMenuItem
       Caption = 'Network'
       Visible = False
+      OnClick = miNetworkClick
       object miCompression: TMenuItem
         Caption = 'Compression'
         OnClick = miCompressionClick
@@ -2560,6 +2561,48 @@ object MainForm: TMainForm
         Caption = 'Scan paged (physical) memory only'
         Checked = True
         OnClick = miScanPagedOnlyClick
+      end
+      object MenuItem17: TMenuItem
+        Caption = 'Memory read method'
+        object miNetworkReadUseProcMem: TMenuItem
+          AutoCheck = True
+          Caption = '0: /proc/pid/mem'
+          Checked = True
+          GroupIndex = 1
+          RadioItem = True
+          OnClick = miNetworkReadUseProcMemClick
+        end
+        object miNetworkReadUsePtrace: TMenuItem
+          AutoCheck = True
+          Caption = '1: ptrace peek'
+          GroupIndex = 1
+          RadioItem = True
+        end
+        object miNetworkReadUseVmread: TMenuItem
+          AutoCheck = True
+          Caption = '2: process_vm_readv'
+          GroupIndex = 1
+          RadioItem = True
+        end
+      end
+      object MenuItem18: TMenuItem
+        Caption = 'Memory write method'
+        object miNetworkWriteUseProcMem: TMenuItem
+          Caption = '0: /proc/pid/mem'
+          GroupIndex = 2
+          RadioItem = True
+        end
+        object miNetworkWriteUsePtrace: TMenuItem
+          Caption = '1: ptrace poke'
+          Checked = True
+          GroupIndex = 2
+          RadioItem = True
+        end
+        object miNetworkWriteUseVmWrite: TMenuItem
+          Caption = '2:process_vm_writev'
+          GroupIndex = 2
+          RadioItem = True
+        end
       end
     end
     object Plugins2: TMenuItem

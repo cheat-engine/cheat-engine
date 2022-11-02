@@ -206,7 +206,7 @@ end;
 
 function TFoundList.GetVarLength:integer;
 begin
-  result:=varlength;
+  result:=varlength; //freepascal bug: you'll have to build instead of compile...
 end;
 
 function TFoundList.getGCP: TGroupscanCommandParser;

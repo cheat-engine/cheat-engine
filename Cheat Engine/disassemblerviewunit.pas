@@ -30,7 +30,7 @@ uses {$ifdef darwin}macport,messages,lcltype,{$endif}
      ,cefreetype,FPCanvas, EasyLazFreeType, LazFreeTypeFontCollection, LazFreeTypeIntfDrawer,
      LazFreeTypeFPImageDrawer, IntfGraphics, fpimage, graphtype
      {$endif}
-     , betterControls;
+     , betterControls, Contnrs;
 
 
 
@@ -98,6 +98,8 @@ type TDisassemblerview=class(TPanel)
     fUseRelativeBase: boolean;
     fRelativeBase: ptruint;
 
+
+
     procedure updateScrollbox;
     procedure scrollboxResize(Sender: TObject);
 
@@ -133,6 +135,8 @@ type TDisassemblerview=class(TPanel)
 
     procedure setCR3(pa: QWORD);
   protected
+    backlist: TStack;
+    goingback: boolean;
     procedure HandleSpecialKey(key: word);
     procedure WndProc(var msg: TMessage); override;
     procedure DoEnter; override;
@@ -160,6 +164,9 @@ type TDisassemblerview=class(TPanel)
     {$endif}
 
 
+
+    procedure GoBack;
+    function hasBackList: boolean;
 
     procedure DoDisassemblerViewLineOverride(address: ptruint; var addressstring: string; var bytestring: string; var opcodestring: string; var parameterstring: string; var specialstring: string);
 
@@ -325,6 +332,9 @@ procedure TDisassemblerview.setSelectedAddress(address: ptrUint);
 var i: integer;
     found: boolean;
 begin
+  if (fselectedAddress<>address) and (not goingback) then
+    backlist.Push(pointer(address));
+
   fSelectedAddress:=address;
   fSelectedAddress2:=address;
 
@@ -355,6 +365,21 @@ begin
 
 
   update;
+end;
+
+procedure TDisassemblerview.GoBack;
+begin
+  if hasBackList then
+  begin
+    goingback:=true;
+    setSelectedAddress(ptruint(backlist.Pop));
+    goingback:=false;
+  end;
+end;
+
+function TDisassemblerview.hasBackList: boolean;
+begin
+  result:=backlist.count>0;
 end;
 
 procedure TDisassemblerview.MouseScroll(Sender: TObject; Shift: TShiftState; WheelDelta: Integer; MousePos: TPoint; var Handled: Boolean);
@@ -1208,6 +1233,9 @@ destructor TDisassemblerview.destroy;
 begin
   destroyed:=true;
 
+  if backlist<>nil then
+    freeandnil(backlist);
+
   reinitialize;
   if disassemblerlines<>nil then
     freeandnil(disassemblerlines);
@@ -1246,6 +1274,8 @@ var
   mi: TMenuItem;
 begin
   inherited create(AOwner);
+
+  backlist:=TStack.Create;
 
   if MainThreadID=GetCurrentThreadId then
     fCurrentDisassembler:=visibleDisassembler

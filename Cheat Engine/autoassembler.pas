@@ -4216,7 +4216,6 @@ begin
         begin
           if MessageDlg(rsTheCodeInjectionWasSuccessfull+s1+#13#10+rsGoTo+inttohex(testptr,8)+'?', mtInformation,[mbYes, mbNo], 0, mbno)=mrYes then
           begin
-            memorybrowser.backlist.Push(pointer(memorybrowser.disassemblerview.SelectedAddress));
             memorybrowser.disassemblerview.selectedaddress:=testptr;
             memorybrowser.show;
           end;
