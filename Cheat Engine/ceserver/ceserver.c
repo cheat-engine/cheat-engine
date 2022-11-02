@@ -34,6 +34,9 @@
 #include "symbols.h"
 #include "extensionfunctions.h"
 #include "native-api.h"
+#include "extensionloader.h"
+#include "options.h"
+
 pthread_t pth;
 pthread_t identifierthread;
 volatile int done;
@@ -45,6 +48,11 @@ __thread int debugfd;
 __thread char* threadname;
 
 #define CESERVERVERSION 4
+
+
+
+
+
 char versionstring[]="CHEATENGINE Network 2.2";
 
 ssize_t recvall (int s, void *buf, size_t size, int flags)
@@ -126,6 +134,48 @@ ssize_t sendall (int s, void *buf, size_t size, int flags)
   return totalsent;
 }
 
+ssize_t sendstring16(int s, char *str, int flags)
+{
+  uint16_t l;
+  if (str)
+    l=strlen(str);
+  else
+    l=0;
+
+  sendall(s, &l,sizeof(l),l?MSG_MORE:flags);
+  if (l)
+    sendall(s, str, l,flags);
+
+  return l;
+}
+
+int sendinteger(int s, int val, int flags)
+{
+  return sendall(s, &val,sizeof(val),flags);
+}
+
+
+char* receivestring16(int s)
+/* Receives a string that is preceded by a 16 bit length identifier (Allocates a string. Clean it up yourself)
+ * returns NULL if the length is 0 bytes
+ */
+
+{
+  char *str;
+  uint16_t l;
+  recvall(s, &l, sizeof(l),0);
+
+  if (l)
+  {
+    str=malloc(l+1);
+    recvall(s, str, l,0);
+    str[l+1]=0;
+    return str;
+  }
+  else
+    return NULL;
+}
+
 
 int DispatchCommand(int currentsocket, unsigned char command)
 {
@@ -139,11 +189,20 @@ int DispatchCommand(int currentsocket, unsigned char command)
       //debug_log("version request");
       fflush(stdout);
       int versionsize=strlen(versionstring);
+#ifdef SHARED_LIBRARY
+      versionsize+=3;
+#endif
       v=(PCeVersion)malloc(sizeof(CeVersion)+versionsize);
       v->stringsize=versionsize;
       v->version=CESERVERVERSION;
 
+#ifdef SHARED_LIBRARY
+      memcpy((char *)v+sizeof(CeVersion),"lib",3);//tell ce it's the lib version
+      memcpy((char *)v+sizeof(CeVersion)+3, versionstring, versionsize);
+
+#else
       memcpy((char *)v+sizeof(CeVersion), versionstring, versionsize);
+#endif
 
       //version request
       sendall(currentsocket, v, sizeof(CeVersion)+versionsize, 0);
@@ -225,7 +284,7 @@ int DispatchCommand(int currentsocket, unsigned char command)
       fflush(stdout);
       close(currentsocket);
 
-      return NULL;
+      return 0;
     }
 
     case CMD_TERMINATESERVER:
@@ -895,7 +954,6 @@ case CMD_SETTHREADCONTEXT:
     case CMD_VIRTUALQUERYEXFULL:
     {
       CeVirtualQueryExFullInput c;
-      CeVirtualQueryExFullOutput o;
 
       r=recvall(currentsocket, &c, sizeof(c), MSG_WAITALL);
       if (r>0)
@@ -985,7 +1043,7 @@ case CMD_SETTHREADCONTEXT:
         debug_log("Error\n");
         fflush(stdout);
         close(currentsocket);
-        return NULL;
+        return 0;
       }
       break;
     }
@@ -1006,7 +1064,6 @@ case CMD_SETTHREADCONTEXT:
         if (recvall(currentsocket, symbolpath, symbolpathsize, MSG_WAITALL)>0)
         {
           unsigned char *output=NULL;
-          int outputsize;
 
           //debug_log("symbolpath=%s\n", symbolpath);
 
@@ -1173,13 +1230,13 @@ case CMD_SETTHREADCONTEXT:
           newprotection=0;
           switch (c.windowsprotection)
           {
-            newprotection=0;
-
             case PAGE_EXECUTE_READWRITE: newprotection=PROT_WRITE | PROT_READ | PROT_EXEC; break;
             case PAGE_EXECUTE_READ: newprotection=PROT_READ | PROT_EXEC; break;
             case PAGE_EXECUTE: newprotection=PROT_EXEC; break;
             case PAGE_READWRITE: newprotection=PROT_READ | PROT_WRITE; break;
             case PAGE_READONLY: newprotection=PROT_READ; break;
+            default:
+              newprotection=0;
           }
 
           r=ext_changememoryprotection(c.hProcess, c.address, c.size, newprotection);
@@ -1194,6 +1251,24 @@ case CMD_SETTHREADCONTEXT:
       break;
     }
 
+    case CMD_GETOPTIONS:
+    {
+      handleGetOptions(currentsocket);
+      break;
+    }
+
+    case CMD_GETOPTIONVALUE:
+    {
+      handleGetOption(currentsocket);
+      break;
+    }
+
+    case CMD_SETOPTIONVALUE:
+    {
+      handleSetOption(currentsocket);
+      break;
+    }
+
 	case CMD_AOBSCAN:
 	{
 		CeAobScanInput c;
@@ -1203,7 +1278,7 @@ case CMD_SETTHREADCONTEXT:
 	
 			int n = c.scansize;
 			char* data = (char*)malloc(n*2);
-			uint64_t* match_addr = (int*)malloc(sizeof(uint64_t) * MAX_HIT_COUNT);
+			uint64_t* match_addr = (uint64_t*)malloc(sizeof(uint64_t) * MAX_HIT_COUNT);
 
 			if (recvall(currentsocket, data, n*2, 0)>0)
 			{
@@ -1234,6 +1309,8 @@ case CMD_SETTHREADCONTEXT:
 
 
   }
+
+  return 10000; //got to here
 }
 
 int CheckForAndDispatchCommand(int currentsocket)

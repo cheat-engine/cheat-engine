@@ -11,6 +11,7 @@ C_SRCS += \
 ../extensionfunctions.c \
 ../extensionloader.c \
 ../native-api.c \
+../options.c \
 ../porthelp.c \
 ../symbols.c \
 ../threads.c 
@@ -23,6 +24,7 @@ OBJS += \
 ./extensionfunctions.o \
 ./extensionloader.o \
 ./native-api.o \
+./options.o \
 ./porthelp.o \
 ./symbols.o \
 ./threads.o 
@@ -35,6 +37,7 @@ C_DEPS += \
 ./extensionfunctions.d \
 ./extensionloader.d \
 ./native-api.d \
+./options.d \
 ./porthelp.d \
 ./symbols.d \
 ./threads.d 
