@@ -312,6 +312,14 @@ type
     andlabel: TLabel;
     lblcompareToSavedScan: TLabel;
     MenuItem16: TMenuItem;
+    MenuItem17: TMenuItem;
+    MenuItem18: TMenuItem;
+    miNetworkReadUseProcMem: TMenuItem;
+    miNetworkReadUsePtrace: TMenuItem;
+    miNetworkReadUseVmread: TMenuItem;
+    miNetworkWriteUseProcMem: TMenuItem;
+    miNetworkWriteUsePtrace: TMenuItem;
+    miNetworkWriteUseVmWrite: TMenuItem;
     miDeleteSavedScanResults: TMenuItem;
     miOnlyShowCurrentCompareToColumn: TMenuItem;
     miLoadRecent: TMenuItem;
@@ -566,7 +574,6 @@ type
     procedure Copyselectedaddresses1Click(Sender: TObject);
     procedure EnableLCLClick(Sender: TObject);
     procedure cbFastScanChange(Sender: TObject);
-    procedure cbUnrandomizerChange(Sender: TObject);
     procedure Description1Click(Sender: TObject);
     procedure edtAlignmentKeyPress(Sender: TObject; var Key: char);
     procedure FormDropFiles(Sender: TObject; const FileNames: array of string);
@@ -577,8 +584,6 @@ type
       Item: TListItem; SubItem: Integer; State: TCustomDrawState;
       var DefaultDraw: Boolean);
     procedure CreateGroupClick(Sender: TObject);
-    procedure Foundlist3SelectItem(Sender: TObject; Item: TListItem;
-      Selected: boolean);
     procedure gbScanOptionsChangeBounds(Sender: TObject);
     procedure Label3Click(Sender: TObject);
     procedure MenuItem12Click(Sender: TObject);
@@ -594,6 +599,8 @@ type
     procedure miChangeValueBackClick(Sender: TObject);
     procedure miDBVMFindWhatWritesOrAccessesClick(Sender: TObject);
     procedure miAlwaysHideChildrenClick(Sender: TObject);
+    procedure miNetworkClick(Sender: TObject);
+    procedure miNetworkReadUseProcMemClick(Sender: TObject);
     procedure miOnlyShowCurrentCompareToColumnClick(Sender: TObject);
     procedure miSignTableClick(Sender: TObject);
     procedure miAsyncScriptClick(Sender: TObject);
@@ -653,13 +660,9 @@ type
     procedure miWireframeClick(Sender: TObject);
     procedure miZbufferClick(Sender: TObject);
     procedure miZeroTerminateClick(Sender: TObject);
-    procedure ools1Click(Sender: TObject);
-    procedure Panel1Click(Sender: TObject);
     procedure Panel5Resize(Sender: TObject);
     procedure pmTablistPopup(Sender: TObject);
     procedure pmValueTypePopup(Sender: TObject);
-    procedure ProcessLabelClick(Sender: TObject);
-    procedure rbAllMemoryChange(Sender: TObject);
     procedure rbFsmAlignedChange(Sender: TObject);
     procedure rtChange(Sender: TObject);
     procedure Save1Click(Sender: TObject);
@@ -695,8 +698,6 @@ type
     procedure Removeselectedaddresses1Click(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure CommentButtonClick(Sender: TObject);
-    procedure CommentButtonMouseMove(Sender: TObject; Shift: TShiftState;
-      X, Y: integer);
     procedure Copy1Click(Sender: TObject);
     procedure Cut1Click(Sender: TObject);
     procedure Paste1Click(Sender: TObject);
@@ -713,8 +714,6 @@ type
     procedure Copy2Click(Sender: TObject);
     procedure Paste2Click(Sender: TObject);
     procedure ccpmenuPopup(Sender: TObject);
-    procedure Splitter1CanResize(Sender: TObject; var NewSize: integer;
-      var Accept: boolean);
     procedure Splitter1Moved(Sender: TObject);
     procedure SettingsClick(Sender: TObject);
     procedure cbCaseSensitiveClick(Sender: TObject);
@@ -739,7 +738,6 @@ type
     procedure Forcerechecksymbols1Click(Sender: TObject);
     procedure Smarteditaddresses1Click(Sender: TObject);
     procedure Pointerscanforthisaddress1Click(Sender: TObject);
-    procedure Label53Click(Sender: TObject);
     procedure Foundlist3Data(Sender: TObject; Item: TListItem);
     procedure UpdateFoundlisttimerTimer(Sender: TObject);
     procedure Foundlist3KeyDown(Sender: TObject; var Key: word; Shift: TShiftState);
@@ -852,6 +850,9 @@ type
     RecentFiles: Tstringlist;
 
     InsideSetActivePreviousResult: boolean;
+
+    procedure updateNetworkOption(sender: TObject);
+    procedure updateNetworkOptions;
 
     procedure ClearRecentFiles(Sender:TObject);
     procedure RecentFilesClick(Sender:TObject);
@@ -1103,7 +1104,7 @@ uses cefuncproc, MainUnit2, ProcessWindowUnit, MemoryBrowserFormUnit, TypePopup,
   PointerscanresultReader, Parsers, Globals {$ifdef windows},GnuAssembler, xinput{$endif} ,DPIHelper,
   multilineinputqueryunit {$ifdef windows},winsapi{$endif} ,LuaClass, Filehandler{$ifdef windows}, feces{$endif}
   {$ifdef windows},frmDBVMWatchConfigUnit, frmDotNetObjectListUnit{$endif} ,ceregistry ,UnexpectedExceptionsHelper
-  ,frmFoundlistPreferencesUnit, fontSaveLoadRegistry{$ifdef windows}, cheatecoins{$endif},strutils;
+  ,frmFoundlistPreferencesUnit, fontSaveLoadRegistry{$ifdef windows}, cheatecoins{$endif},strutils, iptlogdisplay;
 
 resourcestring
   rsInvalidStartAddress = 'Invalid start address: %s';
@@ -1326,6 +1327,22 @@ resourcestring
   rsEnableSpeedHack = 'Enable '+strSpeedHack;
   rsPreviousValueList = 'Previous value list';
   rsSelectTheSavedResult = 'Select the saved results you wish to use';
+  rsNetworkOption = 'Network option :';
+
+const
+  VARTYPE_INDEX_BINARY=0;
+  VARTYPE_INDEX_BYTE=1;
+  VARTYPE_INDEX_WORD=2;
+  VARTYPE_INDEX_DWORD=3;
+  VARTYPE_INDEX_QWORD=4;
+  VARTYPE_INDEX_SINGLE=5;
+  VARTYPE_INDEX_DOUBLE=6;
+  VARTYPE_INDEX_TEXT=7;
+  VARTYPE_INDEX_AOB=8;
+  VARTYPE_INDEX_ALL=9;
+  VARTYPE_INDEX_GROUPED=10;
+  VARTYPE_INDEX_CUSTOMBASE=11;
+
 
 var
   ncol: TColor;
@@ -2528,6 +2545,7 @@ begin
   old2 := scantype.OnSelect;
   scantype.OnChange := nil;
   scantype.OnSelect := nil;
+  ct:=TCustomtype(vartype.Items.Objects[vartype.itemindex]);
 
   try
     OldIndex := Scantype.ItemIndex;
@@ -2539,59 +2557,73 @@ begin
 
     ScanText.Caption := strScantextcaptiontoValue;
 
-    if (varType.ItemIndex in [1, 2, 3, 4, 5, 6, 9,10]) or (vartype.ItemIndex >= 11) then
+
+
+    if (varType.ItemIndex in [VARTYPE_INDEX_BYTE, VARTYPE_INDEX_WORD, VARTYPE_INDEX_DWORD, VARTYPE_INDEX_QWORD,
+                              VARTYPE_INDEX_SINGLE, VARTYPE_INDEX_DOUBLE, VARTYPE_INDEX_ALL,VARTYPE_INDEX_GROUPED]) or
+       (vartype.ItemIndex >= VARTYPE_INDEX_CUSTOMBASE) then
       //byte-word-dword--8bytes-float-double-all   - custom
     begin
-
-      if (vartype.ItemIndex in [5, 6, 9, 10]) or (vartype.ItemIndex >= 11) then //float/all/grouped, custom
+      if (ct<>nil) and ct.scriptUsesString then
       begin
-        ct:=TCustomtype(vartype.Items.Objects[vartype.itemindex]);
-        if (ct=nil) or (ct.scriptUsesFloat) then
-        begin
-          //handle as a float value
-          if oldindex = 0 then
-            floatvis := True;
-
-          if vartype.ItemIndex <> 9 then
-            hexvis := False;
-        end;
-      end;
-
-      ScanType.Items.Add(strExactValue);
-      ScanType.Items.Add(strBiggerThan);
-      ScanType.Items.Add(strsmallerThan);
-      ScanType.Items.Add(strValueBetween);
-
-      if btnNextScan.Enabled then
-      begin
-        scantype.Items.Add(strIncreasedValue);
-        Scantype.Items.Add(strIncreasedValueBy);
-        ScanType.Items.Add(strDecreasedValue);
-        ScanType.Items.Add(strDecreasedValueBy);
-        ScanType.Items.add(strChangedValue);
-        ScanType.Items.Add(strUnchangedValue);
-        ScanType.Items.Add(strIgnoreValue);
-
-
-        cbCompareToSavedScan.visible:=true;
-        t:=tstringlist.create;
-        if memscan.getsavedresults(t)>1 then
-          cbCompareToSavedScan.caption:=rsCompareToSavedScan
-        else
-          cbCompareToSavedScan.caption:=strCompareToFirstScan;
-
-        t.free;
+        //same as stringscan
+        ScanText.Caption := strScanTextCaptionToText;
+        ScanType.Items.Add(strSearchForText);
+        hexvis := False;
       end
       else
       begin
-        ScanType.Items.Add(strUnknownInitialValue);
 
+        if (vartype.ItemIndex in [VARTYPE_INDEX_SINGLE, VARTYPE_INDEX_DOUBLE, VARTYPE_INDEX_ALL, VARTYPE_INDEX_GROUPED]) or (vartype.ItemIndex >= VARTYPE_INDEX_CUSTOMBASE) then //float/all/grouped, custom
+        begin
+
+          if (ct=nil) or (ct.scriptUsesFloat) then
+          begin
+            //handle as a float value
+            if oldindex = 0 then
+              floatvis := True;
+
+            if vartype.ItemIndex <> VARTYPE_INDEX_ALL then
+              hexvis := False;
+          end;
+        end;
+
+        ScanType.Items.Add(strExactValue);
+        ScanType.Items.Add(strBiggerThan);
+        ScanType.Items.Add(strsmallerThan);
+        ScanType.Items.Add(strValueBetween);
+
+        if btnNextScan.Enabled then
+        begin
+          scantype.Items.Add(strIncreasedValue);
+          Scantype.Items.Add(strIncreasedValueBy);
+          ScanType.Items.Add(strDecreasedValue);
+          ScanType.Items.Add(strDecreasedValueBy);
+          ScanType.Items.add(strChangedValue);
+          ScanType.Items.Add(strUnchangedValue);
+          ScanType.Items.Add(strIgnoreValue);
+
+
+          cbCompareToSavedScan.visible:=true;
+          t:=tstringlist.create;
+          if memscan.getsavedresults(t)>1 then
+            cbCompareToSavedScan.caption:=rsCompareToSavedScan
+          else
+            cbCompareToSavedScan.caption:=strCompareToFirstScan;
+
+          t.free;
+        end
+        else
+        begin
+          ScanType.Items.Add(strUnknownInitialValue);
+
+        end;
       end;
-
     end
     else
+
       case varType.ItemIndex of
-        0:
+        VARTYPE_INDEX_BINARY:
         begin
           ScanType.Items.Add(strExact);
 
@@ -2599,7 +2631,7 @@ begin
 
 
 
-        7:
+        VARTYPE_INDEX_TEXT:
         begin  //text
           ScanText.Caption := strScanTextCaptionToText;
           ScanType.Items.Add(strSearchForText);
@@ -2608,7 +2640,7 @@ begin
           hexvis := False;
         end;
 
-        8:
+        VARTYPE_INDEX_AOB:
         begin  //array of bytes
           ScanText.Caption := vartype.Items[8];
           ScanType.Items.Add(strSearchforarray);
@@ -2659,7 +2691,7 @@ begin
       Scanvalue.Visible := True;
       cbHexadecimal.Visible := hexvis;
 
-      cbNot.Visible:=not (vartype.itemindex in [0,7,8,10]);
+      cbNot.Visible:=not ((vartype.itemindex in [VARTYPE_INDEX_BINARY,VARTYPE_INDEX_TEXT,VARTYPE_INDEX_AOB,VARTYPE_INDEX_GROUPED]) or ((ct<>nil) and ct.scriptUsesString ));
     end;
 
     pnlfloat.Visible := floatvis;
@@ -2688,7 +2720,7 @@ begin
 
     cbRepeatUntilStopped.visible:=GetScanType=soUnchanged;
 
-    cbLuaFormula.visible:=(GetScanType=soExactValue) and (getVarType in [vtByte, vtWord, vtDword, vtQword, vtSingle, vtDouble, vtCustom, vtAll]);
+    cbLuaFormula.visible:=(GetScanType=soExactValue) and (getVarType in [vtByte, vtWord, vtDword, vtQword, vtSingle, vtDouble, vtCustom, vtAll]) and ((ct=nil) or (ct.scriptUsesString=false));
     cbNewLuaState.visible:=cbLuaFormula.checked;
   finally
     scantype.OnChange := old;
@@ -2890,6 +2922,9 @@ var
   DoNotOpenAssociatedTable: boolean;
   //set to true if the table had AA scripts enabled or the code list had nopped instruction
 begin
+  if getConnection<>nil then
+    updateNetworkOptions;
+
   {$ifdef windows}
   if aprilfools then decreaseCheatECoinCount;
   {$endif}
@@ -3159,10 +3194,6 @@ begin
   openProcessEpilogue(oldprocessname, oldprocess, oldprocesshandle);
 end;
 
-procedure TMainForm.rbAllMemoryChange(Sender: TObject);
-begin
-
-end;
 
 procedure TMainForm.rbFsmAlignedChange(Sender: TObject);
 begin
@@ -3533,13 +3564,6 @@ begin
   VarType.OnChange(vartype);
 end;
 
-procedure TMainForm.cbUnrandomizerChange(Sender: TObject);
-begin
-
-end;
-
-
-
 
 procedure TMainForm.CreateGroupClick(Sender: TObject);
 var
@@ -3563,26 +3587,16 @@ begin
   end;
 end;
 
-procedure TMainForm.Foundlist3SelectItem(Sender: TObject; Item: TListItem;
-  Selected: boolean);
-begin
-
-end;
-
 procedure TMainForm.gbScanOptionsChangeBounds(Sender: TObject);
-
 begin
-
   spawnBoundsUpdater;
-
-
 end;
 
 procedure TMainForm.Label3Click(Sender: TObject);
-
 begin
 
 end;
+
 
 procedure TMainForm.MenuItem16Click(Sender: TObject);
 {$ifdef darwin}
@@ -3657,6 +3671,7 @@ var
 
   tobedeleted: string;
 begin
+  tobedeleted:='';
   s:=tstringlist.create;
   i:=memscan.getsavedresults(s);
   if i=1 then exit;
@@ -3676,9 +3691,9 @@ begin
   if compareToSavedScan and (currentlySelectedSavedResultname=tobedeleted) then
     cbCompareToSavedScan.checked:=false;
 
+  if tobedeleted<>'' then
+    memscan.deleteSavedResult(tobedeleted);
 
-
-  memscan.deleteSavedResult(tobedeleted);
   reloadPreviousResults;
 end;
 
@@ -4728,9 +4743,11 @@ begin
     with assemblescreen.Lines do
     begin
       Add('--Note: keep the function base name unique.');
-      Add('typename="' + n + '" --shown as the typename in ce');
-      Add('bytecount=4  --number of bytes of this type');
-      Add('functionbasename="' + fbn + '"');
+      Add('local typename="' + n + '" --shown as the typename in ce');
+      Add('local bytecount=4  --number of bytes of this type');
+      Add('local functionbasename="' + fbn + '"');
+      Add('local usesfloat=false');
+      Add('local usesstring=false');
       Add('');
       Add('function ' + fbn + '_bytestovalue(b1,b2,b3,b4,address)');
       Add('--Add extra byte parameters as required');
@@ -4744,7 +4761,7 @@ begin
       Add('return 0,0,0,0');
       Add('');
       Add('end');
-      Add('return typename,bytecount,functionbasename');
+      Add('return typename, bytecount, functionbasename, usesfloat, usesstring');
     end;
     Show;
 
@@ -4774,6 +4791,8 @@ begin
       Add('alloc(TypeName,256)');
       Add('alloc(ByteSize,4)');
       Add('alloc(UsesFloat,1)');
+      Add('alloc(UsesString,1)');
+      Add('alloc(MaxStringSize,2)');
       Add('alloc(CallMethod,1)');
       Add('');
       Add('TypeName:');
@@ -4784,6 +4803,12 @@ begin
       Add('');
       Add('UsesFloat:');
       Add('db 0 //Change to 1 if this custom type should be treated as a float');
+      Add('');
+      Add('UsesString:');
+      Add('db 0');
+      Add('');
+      Add('MaxStringSize:');
+      Add('dw #100');
       Add('');
       Add('CallMethod:');
       Add('db 1 //Remove or change to 0 for legacy call mechanism');
@@ -5448,17 +5473,6 @@ begin
       addresslist.selectedRecord.Extra.stringData.ZeroTerminate;
 end;
 
-procedure TMainForm.ools1Click(Sender: TObject);
-begin
-
-end;
-
-procedure TMainForm.Panel1Click(Sender: TObject);
-begin
-
-end;
-
-
 procedure TMainForm.Panel5Resize(Sender: TObject);
 var
   widthleft,w,aw: integer;
@@ -5543,10 +5557,6 @@ begin
 
 end;
 
-procedure TMainForm.ProcessLabelClick(Sender: TObject);
-begin
-
-end;
 
 procedure TMainForm.miShowCustomTypeDebugClick(Sender: TObject);
 var ct: TCustomType;
@@ -5740,6 +5750,10 @@ var
   createlog: boolean;
   s: string;
 begin
+  mtid:=MainThreadID;
+
+  tthread.NameThreadForDebugging('Main GUI Thread', GetCurrentThreadId);
+
   PreviousResultList:=TPreviousResultList.Create;
 
 
@@ -6856,7 +6870,7 @@ var
   washex: boolean;
   oldvalue: string;
 
-
+  ct: TCustomType;
 begin
   //todo: rewrite this
   oldscantype := scantype.ItemIndex;
@@ -6877,22 +6891,22 @@ begin
   casevis := False;
 
   decbitvis := False;
+  ct:=TCustomType(vartype.Items.Objects[vartype.ItemIndex]);
 
   if rbFsmAligned.Checked and (not alignsizechangedbyuser) then
   begin
-    if vartype.Items.Objects[vartype.ItemIndex] <> nil then
+    if ct <> nil then
     begin
       //custom type is ALWAYS the decider
       if rbFsmAligned.Checked then
-        edtAlignment.Text := inttohex(
-          TCustomType(vartype.Items.Objects[vartype.ItemIndex]).preferedAlignment, 1);
+        edtAlignment.Text := inttohex(ct.preferedAlignment, 1);
     end
     else
     begin
       try
         case newvartype of
-          0, 1, 7, 8, 9: alignsize := 1; //byte, aob, string
-          2: alignsize := 2; //word
+          VARTYPE_INDEX_BINARY, VARTYPE_INDEX_BYTE, VARTYPE_INDEX_TEXT, VARTYPE_INDEX_AOB, VARTYPE_INDEX_ALL: alignsize := 1; //byte, aob, string
+          VARTYPE_INDEX_WORD: alignsize := 2; //word
           else
             alignsize := 4; //dword, float, single, etc...
         end;
@@ -6914,17 +6928,34 @@ begin
     exact_value, Advanced_Scan]) then
     scantype.ItemIndex := 0;
 
-  if (newvartype in [1, 2, 3, 4, 9]) or (newvartype >= 11) then //if normal or custom type
+
+
+  if (newvartype in [VARTYPE_INDEX_BYTE, VARTYPE_INDEX_WORD, VARTYPE_INDEX_DWORD, VARTYPE_INDEX_QWORD, VARTYPE_INDEX_ALL]) or (newvartype >= VARTYPE_INDEX_CUSTOMBASE) then //if normal or custom type
   begin
-    casevis := False;
-    hexvis := True;
-    scanvalue.MaxLength := 0;
-    cbHexadecimal.Enabled := btnNewScan.Enabled;
+    if (ct<>nil) and (ct.scriptUsesString) then
+    begin
+      scantype.ItemIndex := 0;
+      casevis := True;
+      if _oldvartype<>VARTYPE_INDEX_TEXT then
+        cbCasesensitive.Checked := True;
+
+      cbCasesensitive.ShowHint := False;
+      cbHexadecimal.Enabled := btnNewScan.Enabled;
+      hexvis := False;
+    end
+    else
+    begin
+      casevis := False;
+      hexvis := True;
+      scanvalue.MaxLength := 0;
+      cbHexadecimal.Enabled := btnNewScan.Enabled;
+    end;
     //cbHexadecimal.Checked:=hexstateForIntTypes;
   end
   else
+
     case newvartype of
-      0:
+      VARTYPE_INDEX_BINARY:
       begin //binary
         rbdec.Checked := True;
         cbHexadecimal.Checked := False;
@@ -6933,7 +6964,7 @@ begin
         Scantype.ItemIndex := 0;
       end;
 
-      5:
+      VARTYPE_INDEX_SINGLE:
       begin //float;
         casevis := False;
 
@@ -6942,7 +6973,7 @@ begin
         scanvalue.MaxLength := 0;
       end;
 
-      6:
+      VARTYPE_INDEX_DOUBLE:
       begin //double
         hexvis := False;
         temp := scanvalue.Text;
@@ -6953,25 +6984,21 @@ begin
         scanvalue.MaxLength := 0;
       end;
 
-      7:
+      VARTYPE_INDEX_TEXT:
       begin //text
         scantype.ItemIndex := 0;
         casevis := True;
-        if _oldvartype<>7 then
+        if _oldvartype<>VARTYPE_INDEX_TEXT then
           cbCasesensitive.Checked := True;
 
         cbCasesensitive.ShowHint := False;
         unicodevis := True;
 
-
-
         cbHexadecimal.Enabled := btnNewScan.Enabled;
-        //cbHexadecimal.checked:=cbCaseSensitive.checked;
         hexvis := False;
-        //hextext:='Unicode';
       end;
 
-      8:
+      VARTYPE_INDEX_AOB:
       begin  //array of byte
         scantype.ItemIndex := 0;
         scanvalue.MaxLength := 0;
@@ -7286,6 +7313,11 @@ begin
     miAutoAssembleErrorMessage.visible:=selectedrecord.LastAAExecutionFailed;
     if selectedrecord.LastAAExecutionFailed then
       miAutoAssembleErrorMessage.Caption:='<<'+selectedrecord.LastAAExecutionFailedReason+'>>';
+  end
+  else
+  begin
+    miAutoAssembleErrorMessage.visible:=false;
+    miAutoAssembleErrorMessage.Caption:='';
   end;
 end;
 
@@ -7586,18 +7618,33 @@ begin
     pluginhandler.free;
     pluginhandler:=nil;
   end;
+
+
+
+  if formsettings.cbSaveMemoryregionScanSettings.checked then
+  begin
+    //save to the registry
+    reg:=tregistry.Create;
+    try
+      Reg.RootKey := HKEY_CURRENT_USER;
+      if Reg.OpenKey('\Software\'+strCheatEngine,true) then
+      begin
+        reg.WriteInteger('scan CopyOnWrite', integer(cbCopyOnWrite.State));
+        reg.WriteInteger('scan Executable', integer(cbExecutable.State));
+        reg.WriteInteger('scan Writable', integer(cbWritable.State));
+      end;
+    except
+
+    end;
+
+    reg.free;
+  end;
 end;
 
 
 procedure TMainForm.CommentButtonClick(Sender: TObject);
 begin
   comments.Show;
-end;
-
-procedure TMainForm.CommentButtonMouseMove(Sender: TObject; Shift: TShiftState;
-  X, Y: integer);
-begin
-
 end;
 
 procedure TMainForm.CopySelectedRecords;
@@ -7766,6 +7813,182 @@ begin
     else
       addresslist.selectedRecord.options := addresslist.selectedRecord.options - [moAlwaysHideChildren];
   end;
+end;
+
+procedure TMainForm.miNetworkClick(Sender: TObject);
+begin
+  updateNetworkOptions;
+end;
+
+type
+  TCEServerOptionMenuItemData=class
+    data: TCEServerOption;
+  end;
+
+  TCEServerOptionMenuItemValue=class
+    value: string;
+  end;
+
+procedure TMainForm.updateNetworkOption(sender: TObject);
+var
+  mi: TMenuItem absolute sender;
+  data:  TCEServerOptionMenuItemData;
+  value: TCEServerOptionMenuItemValue;
+  v: string;
+  c: TCEConnection;
+begin
+
+  if (sender is TMenuItem) then
+  begin
+    if tobject(mi.tag) is TCEServerOptionMenuItemValue then
+    begin
+      value:=TCEServerOptionMenuItemValue(mi.tag);
+      data:=TCEServerOptionMenuItemData(mi.Parent.Tag);
+
+      v:=value.value;
+
+      c:=getConnection;
+      if c<>nil then
+      begin
+        c.setOption(data.data.optname, v);
+      end;
+    end
+    else
+    begin
+      data:=TCEServerOptionMenuItemData(mi.tag);
+      if data.data.optiontype=netBoolean then
+      begin
+        if mi.checked then v:='1' else v:='0';
+      end
+      else
+      begin
+        v:=data.data.currentvalue;
+        if InputQuery(rsNetworkOption+data.data.optname, rsChangeValue, v)<>true
+          then exit;
+      end;
+
+      c:=getConnection;
+      if c<>nil then
+      begin
+        c.setOption(data.data.optname, v);
+        c.getOption(data.data.optname, data.data.currentvalue);
+
+        mi.OnClick:=nil;
+        if data.data.optiontype=netBoolean then
+          mi.checked:=data.data.currentvalue='1'
+        else
+          mi.caption:=data.data.optdescription+' : '+data.data.currentvalue;
+
+        mi.OnClick:=updateNetworkOption;
+      end;
+    end;
+  end;
+end;
+
+procedure TMainForm.updateNetworkOptions;
+var
+  i,j: integer;
+  ol: TCEServerOptions;
+
+  mi: TMenuItem;
+  smi: TMenuItem;
+  data: TCEServerOptionMenuItemData;
+  value: TCEServerOptionMenuItemValue;
+  sl: TStringlist;
+
+  v: array of string;
+begin
+  //fetch the current available ceserver options, and show them in the menu
+  while miNetwork.Count>3 do
+  begin
+    if tobject(miNetwork.items[3].Tag) is TObject then
+      TObject(miNetwork.items[3].Tag).free;
+
+    miNetwork.Items[3].Free;
+  end;
+
+  ol:=[];
+  getConnection.getOptions(ol);
+
+  for i:=0 to length(ol)-1 do
+  begin
+    mi:=TMenuItem.Create(self);
+    mi.Caption:=ol[i].optdescription;
+
+    data:=TCEServerOptionMenuItemData.create;
+    data.data:=ol[i];
+    mi.Tag:=ptruint(data);
+
+
+    if ol[i].optiontype=netParent then
+    begin
+      //nothing else
+    end
+    else
+    begin
+      mi.onclick:=updateNetworkOption;
+      if ol[i].optiontype=netBoolean then
+      begin
+        mi.AutoCheck:=true;
+        mi.checked:=ol[i].currentvalue='1';
+      end
+      else
+      begin
+
+        if ol[i].acceptablevalues<>'' then
+        begin
+          mi.onclick:=nil;
+          //turn the options into subitems
+          sl:=TStringList.Create;
+          sl.LineBreak:=';';
+          sl.Text:=ol[i].acceptablevalues;
+
+          for j:=0 to sl.Count-1 do
+          begin
+            v:=sl[j].Split('=');
+            value:=TCEServerOptionMenuItemValue.Create;
+            value.value:=v[0];
+
+            smi:=TMenuItem.create(self);
+            smi.Caption:=v[1];
+            smi.RadioItem:=true;
+            smi.GroupIndex:=i+1;
+            smi.checked:=ol[i].currentvalue=v[0];
+            smi.tag:=ptruint(value);
+            smi.AutoCheck:=true;
+
+            smi.onclick:=updateNetworkOption;
+
+            mi.Add(smi);
+          end;
+
+          sl.free;
+        end
+        else
+          mi.caption:=mi.caption+' : '+ol[i].currentvalue;
+      end;
+    end;
+
+    if ol[i].parentoptname<>'' then
+    begin
+      for j:=0 to miNetwork.count-1 do
+      begin
+        if (tobject(miNetwork.items[j].Tag) is TCEServerOptionMenuItemData) and (TCEServerOptionMenuItemData(miNetwork.items[j].Tag).data.optname=ol[i].parentoptname) then
+        begin
+          miNetwork.items[j].Add(mi);
+          break;
+        end;
+      end;
+    end
+    else
+      miNetwork.Add(mi);
+  end;
+
+end;
+
+procedure TMainForm.miNetworkReadUseProcMemClick(Sender: TObject);
+begin
+
 end;
 
 procedure TMainForm.miOnlyShowCurrentCompareToColumnClick(Sender: TObject);
@@ -8620,12 +8843,6 @@ begin
   checkpaste;
 end;
 
-procedure TMainForm.Splitter1CanResize(Sender: TObject; var NewSize: integer;
-  var Accept: boolean);
-begin
-
-end;
-
 procedure TMainForm.Splitter1Moved(Sender: TObject);
 begin
   panel5.Repaint;
@@ -8635,16 +8852,20 @@ procedure TMainForm.SettingsClick(Sender: TObject);
 var
 
   oldScanDone, oldInitialScanDone, oldScanStart: TNotifyEvent;
+  oldKernelQueryMemoryRegion, oldKernelReadWriteProcessMemory, oldKernelOpenProcess: boolean;
 begin
 
   suspendhotkeyhandler;
 
 
+  oldKernelQueryMemoryRegion:=formsettings.cbKernelQueryMemoryRegion.Checked;
+  oldKernelReadWriteProcessMemory:=formsettings.cbKernelReadWriteProcessMemory.Checked;
+  oldKernelOpenProcess:=formsettings.cbKernelOpenProcess.Checked;
 
   if formsettings.ShowModal <> mrOk then
   begin
     resumehotkeyhandler;
-    LoadSettingsFromRegistry(true);
+    LoadSettingsFromRegistry(true, true);
     exit;
   end;
 
@@ -8653,18 +8874,29 @@ begin
 
   {$ifdef windows}
 
-  if formsettings.cbKernelQueryMemoryRegion.Checked then
-    UseDBKQueryMemoryRegion
-  else
-    DontUseDBKQueryMemoryRegion;
-  if formsettings.cbKernelReadWriteProcessMemory.Checked then
-    UseDBKReadWriteMemory
-  else
-    DontUseDBKReadWriteMemory;
-  if formsettings.cbKernelOpenProcess.Checked then
-    UseDBKOpenProcess
-  else
-    DontUseDBKOpenProcess;
+  if oldKernelQueryMemoryRegion<>formsettings.cbKernelQueryMemoryRegion.Checked then
+  begin
+    if formsettings.cbKernelQueryMemoryRegion.Checked then
+      UseDBKQueryMemoryRegion
+    else
+      DontUseDBKQueryMemoryRegion;
+  end;
+
+  if oldKernelReadWriteProcessMemory<>formsettings.cbKernelReadWriteProcessMemory.Checked then
+  begin
+    if formsettings.cbKernelReadWriteProcessMemory.Checked then
+      UseDBKReadWriteMemory
+    else
+      DontUseDBKReadWriteMemory;
+  end;
+
+  if oldKernelOpenProcess<>formsettings.cbKernelOpenProcess.Checked then
+  begin
+    if formsettings.cbKernelOpenProcess.Checked then
+      UseDBKOpenProcess
+    else
+      DontUseDBKOpenProcess;
+  end;
   {$endif}
 
   adjustbringtofronttext;
@@ -8916,6 +9148,7 @@ begin
     try
       LoadTable(Opendialog1.filename, merge);
       SaveDialog1.filename:=Opendialog1.filename;
+      SaveDialog1.InitialDir:=opendialog1.InitialDir;
 
       UserDefinedTableName:=Opendialog1.filename;
       reinterpretaddresses;
@@ -8960,6 +9193,7 @@ begin
 
     saveGotCanceled:=false;
     opendialog1.FileName := savedialog1.filename;
+    opendialog1.InitialDir:=savedialog1.InitialDir;
     SaveIntialTablesDir(extractfilepath(savedialog1.filename));
 
     UserDefinedTableName:=savedialog1.filename;
@@ -9226,16 +9460,6 @@ begin
     frmPointerScanner.Method3Fastspeedandaveragememoryusage1.Click;
 
   end;
-end;
-
-procedure testx(arg1: pointer; arg2: pointer; arg3: pointer); stdcall;
-begin
-
-end;
-
-procedure TMainForm.Label53Click(Sender: TObject);
-begin
-
 end;
 
 procedure TMainForm.OnToolsClick(Sender: TObject);
@@ -10414,6 +10638,8 @@ begin
   end;
 
 
+
+
 end;
 
 procedure TMainForm.tbSpeedChange(Sender: TObject);
@@ -10501,9 +10727,11 @@ begin
     except
       on e: Exception do
       begin
+        outputdebugstring('Normal speedhack activation failed. Checking for :"activateAlternateSpeedhack"');
         lua_getglobal(luavm, 'activateAlternateSpeedhack');//failure. check if there is an alternative in lua
         if lua_isfunction(luavm,-1) then
         begin
+          OutputDebugString('Calling activateAlternateSpeedhack');
           lua_pushboolean(luavm,true);
           lua_pcall(luavm, 1,0,0);
           exit;
@@ -10540,6 +10768,7 @@ var
 
   tempicon: Graphics.TIcon;
   tempp: tpicture;
+  p: integer;
 
 begin
   //fill with processlist
@@ -10562,11 +10791,21 @@ begin
       j := sl.Count - 1 - i;
       currentmi := TMenuItemExtra.Create(self);
       currentmi.Caption := sl[i];
-      currentmi.Default := dword(sl.Objects[i]) = ProcessID;
+      {$ifdef windows}
+      currentmi.Default := dword(ptrUint(PProcessListInfo(sl.Objects[i])^.processid)) = ProcessID;
       currentmi.Data := pointer(ptrUint(PProcessListInfo(sl.Objects[i])^.processid));
+      {$else}
+      if TryStrToInt('$'+copy(sl[i],1,pos('-',sl[i])), p) then
+      begin
+        currentmi.Data := pointer(p);
+        currentmi.default:=p=processid;
+      end;
+      {$endif}
+
       currentmi.OnClick := ProcessItemClick;
 
 
+      {$IFDEF WINDOWS}
       if PProcessListInfo(sl.Objects[i])^.processIcon > 0 then
       begin
         tempicon := Graphics.TIcon.Create;
@@ -10580,6 +10819,7 @@ begin
         tempicon.free;
       end
       else
+      {$ENDIF}
         currentmi.ImageIndex := -1;
 
       mi[j] := currentmi;
@@ -10823,17 +11063,17 @@ end;
 function TMainForm.getVarType: TVariableType;
 begin
   case VarType.ItemIndex of
-    0: result:=vtBinary; //binary
-    1: result:=vtByte; //byte
-    2: result:=vtWord; //2 bytes
-    3: result:=vtDword; //4 bytes
-    4: result:=vtQword; //8 bytes
-    5: result:=vtSingle; //float
-    6: result:=vtDouble; //double
-    7: result:=vtString; //text
-    8: result:=vtByteArray; //array of byte
-    9: result:=vtAll; //all, only for new memscan
-    10: result:=vtGrouped; //grouped, only for memscan
+    VARTYPE_INDEX_BINARY: result:=vtBinary; //binary
+    VARTYPE_INDEX_BYTE: result:=vtByte; //byte
+    VARTYPE_INDEX_WORD: result:=vtWord; //2 bytes
+    VARTYPE_INDEX_DWORD: result:=vtDword; //4 bytes
+    VARTYPE_INDEX_QWORD: result:=vtQword; //8 bytes
+    VARTYPE_INDEX_SINGLE: result:=vtSingle; //float
+    VARTYPE_INDEX_DOUBLE: result:=vtDouble; //double
+    VARTYPE_INDEX_TEXT: result:=vtString; //text
+    VARTYPE_INDEX_AOB: result:=vtByteArray; //array of byte
+    VARTYPE_INDEX_ALL: result:=vtAll; //all, only for new memscan
+    VARTYPE_INDEX_GROUPED: result:=vtGrouped; //grouped, only for memscan
     else
       result:=vtCustom;
   end;
@@ -10844,17 +11084,17 @@ begin
   if vartype.enabled then
   begin
     case vt of
-      vtBinary: vartype.itemindex:=0;
-      vtByte: vartype.itemindex:=1;
-      vtWord: vartype.itemindex:=2;
-      vtDword: vartype.itemindex:=3;
-      vtQword: vartype.itemindex:=4;
-      vtSingle: vartype.itemindex:=5;
-      vtDouble: vartype.itemindex:=6;
-      vtString: vartype.itemindex:=7;
-      vtByteArray: vartype.itemindex:=8;
-      vtAll: vartype.itemindex:=9;
-      vtGrouped: vartype.itemindex:=10;
+      vtBinary: vartype.itemindex:=VARTYPE_INDEX_BINARY;
+      vtByte: vartype.itemindex:=VARTYPE_INDEX_BYTE;
+      vtWord: vartype.itemindex:=VARTYPE_INDEX_WORD;
+      vtDword: vartype.itemindex:=VARTYPE_INDEX_DWORD;
+      vtQword: vartype.itemindex:=VARTYPE_INDEX_QWORD;
+      vtSingle: vartype.itemindex:=VARTYPE_INDEX_SINGLE;
+      vtDouble: vartype.itemindex:=VARTYPE_INDEX_DOUBLE;
+      vtString: vartype.itemindex:=VARTYPE_INDEX_TEXT;
+      vtByteArray: vartype.itemindex:=VARTYPE_INDEX_AOB;
+      vtAll: vartype.itemindex:=VARTYPE_INDEX_ALL;
+      vtGrouped: vartype.itemindex:=VARTYPE_INDEX_GROUPED;
     end;
 
     vartype.OnChange(vartype);

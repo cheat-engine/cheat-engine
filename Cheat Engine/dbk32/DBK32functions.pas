@@ -512,9 +512,11 @@ procedure ultimap2_disable;
 var
   cc,br: dword;
 begin
-  OutputDebugString('disable ultimap2');
-  cc:=IOCTL_CE_DISABLEULTIMAP2;
-  deviceiocontrol(hultimapdevice,cc,nil,0,nil,0,br,nil);
+  if (hUltimapDevice<>0) and (hUltimapDevice<>INVALID_HANDLE_VALUE) then
+  begin
+    cc:=IOCTL_CE_DISABLEULTIMAP2;
+    deviceiocontrol(hultimapdevice,cc,nil,0,nil,0,br,nil);
+  end;
 end;
 
 
@@ -3146,6 +3148,7 @@ var sav: pchar;
 
 //    servicestatus: _service_status;
 procedure DBK32Initialize;
+var le: integer;
 begin
 
   outputdebugstring('DBK32Initialize');
@@ -3381,13 +3384,21 @@ begin
 
           if not startservice(hservice,0,pointer(sav)) then
           begin
-            if getlasterror=577 then
+            le:=getlasterror;
+            if le=577 then
             begin
               if dbvm_version=0 then
                 messagebox(0,PChar(rsPleaseRebootAndPressF8DuringBoot),PChar(rsDbk32Error),MB_ICONERROR or mb_ok);
               failedduetodriversigning:=true;
             end; //else could already be started
+
+            if le<>1056 then
+            begin
+              if dbvm_version=0 then
+                messagebox(0,PChar('Failure starting dbk:'+inttostr(le)),PChar(rsDbk32Error),MB_ICONERROR or mb_ok);
+            end;
           end;
+
 
           closeservicehandle(hservice);
           hservice:=0;

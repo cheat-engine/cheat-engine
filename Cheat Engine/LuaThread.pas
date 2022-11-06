@@ -38,6 +38,7 @@ type
     newstate: boolean;
     newstate_script: string;
     fresult: string;
+    procedure setname(newname: string);
   public
     syncfunction: integer;
     syncparam: integer;
@@ -48,7 +49,7 @@ type
     constructor create(L: Plua_State; functionid: integer; suspended: boolean); overload;
     constructor create(script: string; suspended: boolean); overload;
   published
-    property name: string read fname write fname;
+    property name: string read fname write setname;
     property Terminated;
     property Finished;
     property Result: string read fresult;
@@ -81,6 +82,12 @@ begin
   end;
 
   lua_pcall(L, paramcount,1,0);
+end;
+
+procedure TCEThread.setname(newname: string);
+begin
+  fname:=newname;
+  NameThreadForDebugging(newname,GetCurrentThreadId);
 end;
 
 procedure TCEThread.execute;
@@ -194,6 +201,7 @@ begin
   //limited thread, it has to create the lua state itself, and also destroy it when done
   newstate:=true;
   l:=luaL_newstate;
+  luaL_openlibs(L);
   luaHandler.InitLimitedLuastate(L);
 
   newstate_script:=script;

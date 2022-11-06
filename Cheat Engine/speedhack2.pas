@@ -55,6 +55,11 @@ var i: integer;
 
     HookMachAbsoluteTime: boolean;
 
+    nokernelbase: boolean=false;
+    NoGetTickCount: boolean=false;
+    NoQPC: boolean=false;
+    NoGetTickCount64: boolean=false;
+
 begin
   initaddress:=0;
 
@@ -97,13 +102,20 @@ begin
 
       symhandler.waitforsymbolsloaded(true, 'kernel32.dll'); //speed it up (else it'll wait inside the symbol lookup of injectdll)
 
+      OutputDebugString('Speedhack: calling waitForExports');
       symhandler.waitForExports;
+      OutputDebugString('Speedhack: waitForExports returned');
       symhandler.getAddressFromName('speedhackversion_GetTickCount',false,e);
       if e then
       begin
+        OutputDebugString('Speedhack: speedhackversion_GetTickCount not found. Injecting DLL');
         injectdll(CheatEngineDir+fname);
+
+        OutputDebugString('Speedhack: after dll injection. Waiting for symbols reinitialized');
         symhandler.reinitialize;
-        symhandler.waitforsymbolsloaded(true)
+        symhandler.waitforsymbolsloaded(true);
+        OutputDebugString('Speedhack: after waitforsymbolsloaded. Calling symhandler.waitForExports');
+        symhandler.waitForExports;
       end;
       {$endif}
 
@@ -117,11 +129,12 @@ begin
     end;
   end;
 
-       
+
   script:=tstringlist.Create;
   try
     if processhandler.isNetwork then
     begin
+      OutputDebugString('Speedhack: networked');
       //linux
 
 
@@ -198,8 +211,10 @@ begin
     else
     begin
       //local
+      OutputDebugString('Speedhack: local');
 
       {$ifdef darwin}
+      OutputDebugString('Speedhack: mac');
       HookMachAbsoluteTime:=false;
       if speedhack_HookMachAbsoluteTime then
       begin
@@ -254,30 +269,60 @@ begin
       {$endif}
 
       {$ifdef windows}
+      OutputDebugString('Speedhack: windows');
+      noKernelBase:=false; //assume it present
 
-      if processhandler.is64bit then
-        script.Add('alloc(init,512, GetTickCount)')
-      else
-        script.Add('alloc(init,512)');
+
       //check if it already has a a speedhack script running
 
-      a:=symhandler.getAddressFromName('realgettickcount', true) ;
-      b:=0;
-      readprocessmemory(processhandle,pointer(a),@b,processhandler.pointersize,x);
-      if b<>0 then //already configured
-        generateAPIHookScript(script, 'GetTickCount', 'speedhackversion_GetTickCount')
-      else
-        generateAPIHookScript(script, 'GetTickCount', 'speedhackversion_GetTickCount', 'realgettickcount');
+      fname:='kernelbase.GetTickCount';
+      a:=symhandler.getAddressFromName(fname, true,e);
+      if e then
+      begin
+        noKernelBase:=true;
+        OutputDebugString('No kernelbase.GetTickCount');
 
-      //if ssCtrl in GetKeyShiftState then //debug code
-      //  Clipboard.AsText:=script.text;
+        fname:='kernel32.GetTickCount';
+        a:=symhandler.getAddressFromName(fname, true,e);
+
+        if e then
+        begin
+          outputdebugstring('No kernel32.GetTickCount');
+          fname:='GetTickCount';
+          a:=symhandler.getAddressFromName(fname, true,e);
+
+          if e then
+          begin
+            NoGetTickCount:=true;
+            outputdebugstring('No GetTickCount');
+          end;
+        end;
+      end;
+
+      if processhandler.is64bit then
+        script.Add('alloc(init,512,'+fname+')')
+      else
+        script.Add('alloc(init,512)');
+
+      if NoGetTickCount=false then
+      begin
+        OutputDebugString('Speedhack: hooking '+fname);
+        a:=symhandler.getAddressFromName('realgettickcount', true) ;
+        b:=0;
+        readprocessmemory(processhandle,pointer(a),@b,processhandler.pointersize,x);
+        if b<>0 then //already configured
+          generateAPIHookScript(script, fname, 'speedhackversion_GetTickCount')
+        else
+          generateAPIHookScript(script, fname, 'speedhackversion_GetTickCount', 'realgettickcount');
+      end;
       {$endif}
 
-      disableinfo:=TDisableInfo.create;
       try
         disableinfo:=TDisableInfo.create;
         try
-          autoassemble(script,false,true,false,false,disableinfo);
+          OutputDebugString('Speedhack: init1');
+          if autoassemble(script,false,true,false,false,disableinfo)=false then
+            OutputDebugString('Speedhack: Error assembling speedhack init 1');
           //clipboard.AsText:=script.text;
 
           //fill in the address for the init region
@@ -299,61 +344,139 @@ begin
           raise exception.Create(rsFailureConfiguringSpeedhackPart+' 1: '+e.message);
         end;
       end;
-
-
       {$ifdef windows}
+
+      if (NoGetTickCount=false) and (nokernelbase=false) then //hook kernel32.GetTickCount as well
+      begin
+        if symhandler.getAddressFromName('kernel32.GetTickCount',true,err)>0 then
+        begin
+          OutputDebugString('Speedhack: hooking kernel32.GetTickCount');
+          script.Clear;
+          script.Add('kernel32.GetTickCount:');
+          script.Add('jmp speedhackversion_GetTickCount');
+          try
+            autoassemble(script,false);
+          except //don't mind
+            on e: exception do
+            begin
+              OutputDebugString('Speedhack: Error hooking kernelbase.GetTickCount: '+e.message);
+            end;
+          end;
+        end;
+      end;
+
       //timegettime
       if symhandler.getAddressFromName('timeGetTime',true,err)>0 then //might not be loaded
       begin
+        OutputDebugString('Speedhack: hooking timeGetTime');
         script.Clear;
         script.Add('timeGetTime:');
         script.Add('jmp speedhackversion_GetTickCount');
         try
           autoassemble(script,false);
         except //don't mind
+          on e:exception do
+          begin
+            OutputDebugString('Speedhack: Error hooking timeGetTime: '+e.message);
+          end;
         end;
       end;
 
 
       //qpc
-      qpcaddress:=symhandler.getAddressFromName('ntdll.RtlQueryPerformanceCounter',true, err);
+      fname:='ntdll.RtlQueryPerformanceCounter';
+      qpcaddress:=symhandler.getAddressFromName(fname,true, err);
       if err then
-        qpcaddress:=symhandler.getAddressFromName('kernel32.RtlQueryPerformanceCounter',true);
+      begin
+        fname:='kernel32.QueryPerformanceCounter';
+        qpcaddress:=symhandler.getAddressFromName(fname,true, err);
+
+        if err then
+        begin
+          fname:='';
+          NoQPC:=true;
+        end;
+      end;
 
 
-      script.clear;
-      a:=symhandler.getAddressFromName('realQueryPerformanceCounter') ;
-      b:=0;
-      readprocessmemory(processhandle,pointer(a),@b,processhandler.pointersize,x);
+      if not noqpc then
+      begin
+        OutputDebugString('Speedhack: hooking '+fname);
+        script.clear;
+        a:=symhandler.getAddressFromName('realQueryPerformanceCounter') ;
+        b:=0;
+        readprocessmemory(processhandle,pointer(a),@b,processhandler.pointersize,x);
 
-      if b<>0 then //already configured
-        generateAPIHookScript(script, inttohex(qpcaddress,8), 'speedhackversion_QueryPerformanceCounter')
-      else
-        generateAPIHookScript(script, inttohex(qpcaddress,8), 'speedhackversion_QueryPerformanceCounter', 'realQueryPerformanceCounter');
+        if b<>0 then //already configured
+          generateAPIHookScript(script, inttohex(qpcaddress,8), 'speedhackversion_QueryPerformanceCounter')
+        else
+          generateAPIHookScript(script, inttohex(qpcaddress,8), 'speedhackversion_QueryPerformanceCounter', 'realQueryPerformanceCounter');
 
-      try
-        autoassemble(script,false);
-      except //do mind
-        raise exception.Create(rsFailureConfiguringSpeedhackPart+' 2');
+        try
+          autoassemble(script,false);
+        except //do mind
+          on e:exception do
+          begin
+            OutputDebugString('Speedhack: Error hooking '+fname+' : '+e.message);
+            raise exception.Create(rsFailureConfiguringSpeedhackPart+' 2');
+          end;
+        end;
       end;
 
       //gettickcount64
-      if symhandler.getAddressFromName('GetTickCount64',true,err)>0 then
+      fname:='kernelbase.GetTickCount64';
+      a:=symhandler.getAddressFromName(fname,true,err);
+      if err then
+      begin
+        nokernelbase:=true;
+        fname:='kernel32.GetTickCount64';
+        a:=symhandler.getAddressFromName(fname,true,err);
+        if err then
+        begin
+          fname:='GetTickCount64';
+          a:=symhandler.getAddressFromName(fname,true,err);
+          if err then
+            NoGetTickCount64:=true;
+        end;
+      end;
+
+      if not NoGetTickCount64 then
       begin
         script.clear;
         a:=symhandler.getAddressFromName('realGetTickCount64') ;
         b:=0;
         readprocessmemory(processhandle,pointer(a),@b,processhandler.pointersize,x);
         if b<>0 then //already configured
-          generateAPIHookScript(script, 'GetTickCount64', 'speedhackversion_GetTickCount64')
+          generateAPIHookScript(script, fname, 'speedhackversion_GetTickCount64')
         else
-          generateAPIHookScript(script, 'GetTickCount64', 'speedhackversion_GetTickCount64', 'realGetTickCount64');
+          generateAPIHookScript(script, fname, 'speedhackversion_GetTickCount64', 'realGetTickCount64');
 
         try
           autoassemble(script,false);
         except //do mind
-          raise exception.Create(rsFailureConfiguringSpeedhackPart+' 3');
+          on e:exception do
+          begin
+            OutputDebugString('Speedhack: Error hooking '+fname+' : '+e.message);
+            raise exception.Create(rsFailureConfiguringSpeedhackPart+' 3');
+          end;
         end;
+
+        if not nokernelbase then
+        begin
+          if symhandler.getAddressFromName('kernel32.GetTickCount64',true,err)>0 then
+          begin
+            script.Clear;
+            script.Add('kernel32.GetTickCount64:');
+            script.Add('jmp speedhackversion_GetTickCount64');
+            try
+              autoassemble(script,false);
+            except //don't mind
+              on e:exception do
+                OutputDebugString('Speedhack: Error hooking kernel32.GetTickCount64 : '+e.message);
+            end;
+          end;
+        end;
+
       end;
       {$endif}
 

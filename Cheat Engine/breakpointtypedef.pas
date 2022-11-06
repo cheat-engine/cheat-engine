@@ -72,7 +72,8 @@ type
     OneTimeOnly: boolean; //true if the breakpoint should be removed after the first time it is hit
     StepOverBp: boolean;
 
-    changereg: tregistermodificationBP;
+    changereg: tregistermodificationBP; //todo: obsolete this and replace by just changeregEx
+    changeregEx: TRegisterModificationBPEx;
 
     conditonalbreakpoint: record
       script: pchar;

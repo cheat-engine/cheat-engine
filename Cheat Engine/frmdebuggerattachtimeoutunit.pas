@@ -44,10 +44,16 @@ begin
   r:=event.WaitFor(1);
 
   if r=wrSignaled then
-    modalresult:=mrok
+  begin
+    modalresult:=mrok;
+    exit;
+  end
   else
   if r<>wrTimeout then
+  begin
     modalresult:=mrAbort;
+    exit;
+  end;
 
   if CurrentDebuggerInterface<>nil then
     lblStatus.caption:=CurrentDebuggerInterface.debuggerAttachStatus;

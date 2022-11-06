@@ -622,6 +622,7 @@ function TJvDesignSurface.GetSelected: TJvDesignObjectArray;
 var
   I: Integer;
 begin
+  result:=[];
   SetLength(Result, Count);
   for I := 0 to Count - 1 do
     Result[I] := Selector.Selection[I];

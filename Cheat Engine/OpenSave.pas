@@ -21,7 +21,7 @@ uses
      StructuresFrm2, comctrls,dom, xmlread,xmlwrite, FileUtil, ceguicomponents,
      zstream, luafile, disassemblerComments, commonTypeDefs, lazutf8, betterControls;
 
-const _CurrentTableVersion=42;
+const _CurrentTableVersion=44;
 
 var CurrentTableVersion: dword=_CurrentTableVersion;
     lastLoadedTableVersion: dword=_CurrentTableVersion;

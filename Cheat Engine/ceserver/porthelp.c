@@ -68,7 +68,7 @@ void *GetPointerFromHandle(int handle)
 
 handleType GetHandleType(int handle)
 {
-  if (handle<HandleList_max)
+  if ((handle>=0) && (handle<HandleList_max))
     return HandleList[handle].type;
   else
     return htEmpty;

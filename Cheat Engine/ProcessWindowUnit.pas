@@ -162,7 +162,7 @@ implementation
 
 
 uses MainUnit, formsettingsunit, advancedoptionsunit,frmProcessWatcherUnit,
-  memorybrowserformunit{$ifdef windows}, networkConfig{$endif}, ProcessHandlerUnit, processlist, globals,
+  memorybrowserformunit, networkConfig, ProcessHandlerUnit, processlist, globals,
   registry, fontSaveLoadRegistry, frmOpenFileAsProcessDialogUnit, networkInterfaceApi, MainUnit2;
 
 resourcestring
@@ -243,6 +243,7 @@ var
   e: PIconFetchEntry;
   pid: dword;
 begin
+  NameThreadForDebugging('TIconFetchThread', ThreadID);
   while not terminated do
   begin
     wr:=hasdata.WaitFor(1000);
@@ -482,7 +483,9 @@ end;
 procedure TProcessWindow.filterlist;
 var
     i:integer;
+{$IFDEF WINDOWS}
     pli: PProcessListInfo;
+{$ENDIF}
     s: string;
 begin
   if (filter='') and (commonProcessesList=nil) then exit;
@@ -492,10 +495,13 @@ begin
   i:=0;
   while i<processlist.Items.Count do
   begin
+    {$IFDEF WINDOWS}
     pli:=PProcessListInfo(processlist.items.Objects[i]);
+    {$ENDIF}
 
     if ((ffilter<>'') and (pos(ffilter,uppercase(processlist.Items[i]))=0)) or isInCommonProcessesList(processlist.Items[i]) then
     begin
+      {$IFDEF WINDOWS}
       if pli<>nil then
       begin
         if pli^.processIcon>0 then
@@ -508,6 +514,7 @@ begin
 
         freememandnil(pli);
       end;
+      {$ENDIF}
 
       processlist.Items.Delete(i);
     end
@@ -582,6 +589,8 @@ begin
   tsWindows.TabVisible:=false;
   tsWindows.Visible:=false;
   {$endif}
+
+
 
   {$ifdef windows}
   IconFetchThread:=TIconFetchThread.create;
@@ -679,13 +688,13 @@ end;
 
 procedure TProcessWindow.btnNetworkClick(Sender: TObject);
 begin
-  {$ifdef windows}
   if frmNetworkConfig=nil then
     frmNetworkConfig:=tfrmNetworkConfig.create(self);
 
   if frmNetworkConfig.ShowModal=mrok then
   begin
     tabheader.ShowTabs:=false;
+    TabHeaderResize(nil);
 
     if TabHeader.TabIndex=1 then
       refreshlist
@@ -695,7 +704,6 @@ begin
       refreshlist;
     end;
   end;
-  {$endif}
 end;
 
 procedure TProcessWindow.Button1Click(Sender: TObject);
@@ -1038,7 +1046,9 @@ var
 
   pids: string;
   pid: dword;
+  {$IFDEF WINDOWS}
   pli: PProcessListInfo;
+  {$ENDIF}
 begin
   wantedheight:=ProcessList.canvas.TextHeight('QqJjWwSs')+3;
   {i:=ProcessList.canvas.TextHeight('QqJjWwSs')+3;
@@ -1280,10 +1290,19 @@ procedure TProcessWindow.TabHeaderResize(Sender: TObject);
 var p: tpoint;
 begin
   p:=TabHeader.ClientToParent(point(0,0));
-  processlist.Top:=p.Y;
+
+  //if TabHeader.ShowTabs=false then
+ //   processlist.top:=tabheader.top
+ // else
+    processlist.Top:=p.Y;
+
   processlist.Left:=p.X;
   processlist.Width:=TabHeader.ClientWidth;
-  processlist.Height:=TabHeader.ClientHeight;
+
+ // if tabheader.ShowTabs=false then
+    processlist.Height:=TabHeader.ClientHeight
+ // else
+ //   processlist.Height:=tabheader.Height;
 end;
 
 procedure TProcessWindow.Timer1Timer(Sender: TObject);

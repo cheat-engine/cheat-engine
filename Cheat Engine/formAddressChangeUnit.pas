@@ -1442,6 +1442,9 @@ end;
 procedure TformAddressChange.DelayedResize;
 begin
   AdjustHeight;
+
+  clientwidth:=clientwidth+1; //force an update
+  clientwidth:=clientwidth-1;
 end;
 
 procedure TformAddressChange.PointerInfoResize(sender: TObject);
@@ -1528,6 +1531,7 @@ begin
   constraints.MinHeight:=btncancel.top+btnCancel.height+6;
   constraints.MaxHeight:=btncancel.top+btnCancel.height+6;
   clientheight:=btncancel.top+btnCancel.height+6;
+ // clientwidth:=
 end;
 
 procedure TFormAddressChange.ApplyMemoryRecord;

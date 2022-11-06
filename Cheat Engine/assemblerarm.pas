@@ -45,11 +45,11 @@ end;
 
 
 
-  function ArmAssemble(address: int32; instruction: string; var bytes: TAssemblerBytes): boolean;
+  function ArmAssemble(address: ptruint; instruction: string; var bytes: TAssemblerBytes): boolean;
 
 implementation
 
-uses DisassemblerArm, ProcessHandlerUnit, DisAssemblerARM64;
+uses DisassemblerArm, ProcessHandlerUnit, DisassemblerARM32, DisAssemblerARM64, disassemblerArm32Thumb;
 
 resourcestring
   rsTheValue = 'The value ';
@@ -1180,7 +1180,7 @@ begin
 end;
 
 
-function ArmAssemble(address: int32; instruction: string; var bytes: TAssemblerBytes): boolean;
+function ArmAssemble(address: ptruint; instruction: string; var bytes: TAssemblerBytes): boolean;
 var
   opcode: string;
   i,j: integer;
@@ -1190,7 +1190,10 @@ var
   b: Tassemblerbytes;
 
   oldlength: integer;
+  d32: TArm32Instructionset;
   d64: TArm64Instructionset;
+  dThumb: TThumbInstructionset;
+  len: integer;
 begin
   result:=false;
 
@@ -1205,7 +1208,39 @@ begin
       exit(false);
     end;
 
+  end
+  else
+  begin
+    if (address and 1) = 1 then
+    begin
+      try
+        dThumb.assemble(address, instruction);
+
+        bytes:=dthumb.LastDisassembleData.Bytes;
+        {setlength(bytes,len);
+        if len=2 then
+          pword(@bytes[0])^:=r
+        else
+          pdword(@bytes[0])^:=r;   }
+
+        exit(true);
+
+      except
+      end;
+    end
+    else
+    begin
+      try
+        r:=d32.assemble(address, instruction);
+        setlength(bytes,4);
+        pdword(@bytes[0])^:=r;
+        exit(true);
+      except
+      end;
+    end;
   end;
+
+  if (address and 1) = 1 then exit(FalsE);  //no thumb supported yet
 
   r:=$ffffffff;
   setlength(bytes,0);

@@ -19,7 +19,7 @@ uses
      memscan,plugin, hotkeyhandler,frmProcessWatcherUnit, newkernelhandler,
      debuggertypedefinitions, commonTypeDefs, betterControls;
 
-const ceversion=7.41;
+const ceversion=7.42;
 {$ifdef altname}  //i'd use $MACRO ON but fpc bugs out
   strCheatEngine='Runtime Modifier'; //if you change this, also change it in first.pas
   strCheatTable='Code Table';   //because it contains code.... duh.....
@@ -41,12 +41,12 @@ const ceversion=7.41;
 {$endif}
 
 resourcestring
-  cename = strCheatEngine+' 7.4.1';
+  cename = strCheatEngine+' 7.4.2';
   rsCheatEngine = strCheatEngine;
   rsPleaseWait = 'Please Wait!';
 
 procedure UpdateToolsMenu;
-procedure LoadSettingsFromRegistry(skipPlugins: boolean=false);
+procedure LoadSettingsFromRegistry(skipPlugins: boolean=false; skipkernelapply: boolean=false);
 procedure initcetitle;
 
 
@@ -118,7 +118,8 @@ implementation
 
 
 uses KernelDebugger,mainunit, DebugHelper, CustomTypeHandler, ProcessList, Globals,
-     frmEditHistoryUnit, DBK32functions, frameHotkeyConfigUnit, UnexpectedExceptionsHelper;
+     frmEditHistoryUnit, DBK32functions, frameHotkeyConfigUnit, UnexpectedExceptionsHelper,
+     TypInfo, StdCtrls;
 
 procedure UpdateToolsMenu;
 var i: integer;
@@ -145,7 +146,7 @@ begin
   end;
 end;
 
-procedure LoadSettingsFromRegistry(skipPlugins: boolean=false);
+procedure LoadSettingsFromRegistry(skipPlugins: boolean=false; skipkernelapply: boolean=false);
 var reg : TRegistry;
     i,j: integer;
     temphotkeylist: array [0..cehotkeycount-1] of commontypedefs.tkeycombo;
@@ -205,7 +206,7 @@ begin
           if reg.ValueExists('AllQWord') then cbAllQword.checked:=reg.readBool('AllQWord') else cbAllQWord.checked:=false;
           if reg.ValueExists('AllFloat') then cbAllSingle.checked:=reg.readBool('AllFloat') else cbAllSingle.checked:=true;
           if reg.ValueExists('AllDouble') then cbAllDouble.checked:=reg.readBool('AllDouble') else cbAllDouble.checked:=true;
-          if reg.ValueExists('AllCustom') then cbAllCustom.checked:=reg.readBool('AllCustom') else cbAllDouble.checked:=false;
+          if reg.ValueExists('AllCustom') then cbAllCustom.checked:=reg.readBool('AllCustom') else cbAllCustom.checked:=false;
 
           ScanAllTypes:=[];
           if cbAllByte.checked then ScanAllTypes:=ScanAllTypes+[vtByte];
@@ -656,6 +657,28 @@ begin
           if reg.ValueExists('Always AutoAttach') then
             cbAlwaysAutoAttach.checked:=reg.readbool('Always AutoAttach');
 
+          if reg.ValueExists('Skip PDB') then
+            cbSkipPDB.checked:=reg.readBool('Skip PDB');
+
+          skippdb:=cbSkipPDB.checked;
+
+          if reg.valueExists('Use Intel PT For Debug') then
+            cbUseIntelPT.checked:=reg.readBool('Use Intel PT For Debug');
+          useintelptfordebug:=cbUseIntelPT.checked;
+
+          if reg.valueExists('Hide IPT Capability') then
+            cbHideIPTCapability.checked:=reg.readbool('Hide IPT Capability');
+          hideiptcapability:=cbHideIPTCapability.checked;
+
+
+          if reg.ValueExists('Log IPT buffers inside FindWhat results') then
+            cbRecordIPTForFindWhatRoutines.checked:=reg.ReadBool('Log IPT buffers inside FindWhat results');
+          inteliptlogfindwhatroutines:=cbRecordIPTForFindWhatRoutines.checked;
+
+          if reg.ValueExists('Max IPT Size') then
+             cbIPTTraceSize.ItemIndex:=reg.readinteger('Max IPT Size');
+          maxiptconfigsize:=cbIPTTraceSize.ItemIndex;
+
 
           if reg.ValueExists('Replace incomplete opcodes with NOPS') then
             replacewithnops.checked:=reg.readBool('Replace incomplete opcodes with NOPS');
@@ -736,6 +759,31 @@ begin
 
           Skip_PAGE_WRITECOMBINE:=cbSkip_PAGE_WRITECOMBINE.Checked;
 
+          if reg.ValueExists('Save memoryregion scansettings') then
+          begin
+            cbSaveMemoryregionScanSettings.checked:=reg.readbool('Save memoryregion scansettings');
+            if cbSaveMemoryregionScanSettings.checked then
+            begin
+              //load from the registry if available
+              if reg.ValueExists('scan CopyOnWrite') then
+              begin
+                i:=reg.ReadInteger('scan CopyOnWrite');
+                mainform.cbCopyOnWrite.State:=TCheckBoxState(i);
+              end;
+
+              if reg.ValueExists('scan Executable') then
+              begin
+                i:=reg.ReadInteger('scan Executable');
+                mainform.cbExecutable.State:=TCheckBoxState(i);
+              end;
+
+              if reg.ValueExists('scan Writable') then
+              begin
+                i:=reg.ReadInteger('scan Writable');
+                mainform.cbWritable.State:=TCheckBoxState(i);
+              end;
+            end;
+          end;
 
           if reg.ValueExists('Pause when scanning on by default') then
             cbPauseWhenScanningOnByDefault.Checked:=reg.readbool('Pause when scanning on by default');
@@ -774,15 +822,24 @@ begin
 
 
 
-          try cbKernelQueryMemoryRegion.checked:=reg.ReadBool('Use dbk32 QueryMemoryRegionEx'); except end;
-          try cbKernelReadWriteProcessMemory.checked:=reg.ReadBool('Use dbk32 ReadWriteProcessMemory'); except end;
-          try cbKernelOpenProcess.checked:=reg.ReadBool('Use dbk32 OpenProcess'); except end;
 
 
-          try unrandomizersettings.defaultreturn:=reg.ReadInteger('Unrandomizer: default value'); except end;
-          try unrandomizersettings.incremental:=reg.ReadBool('Unrandomizer: incremental'); except end;
+          if reg.ValueExists('Unrandomizer: default value') then
+            unrandomizersettings.defaultreturn:=reg.ReadInteger('Unrandomizer: default value');
+
+          if reg.ValueExists('Unrandomizer: incremental') then
+            unrandomizersettings.incremental:=reg.ReadBool('Unrandomizer: incremental');
 
           {$ifdef windows}
+          if reg.ValueExists('Use dbk32 QueryMemoryRegionEx') then
+            cbKernelQueryMemoryRegion.checked:=reg.ReadBool('Use dbk32 QueryMemoryRegionEx');
+
+          if reg.ValueExists('Use dbk32 ReadWriteProcessMemory') then
+            cbKernelReadWriteProcessMemory.checked:=reg.ReadBool('Use dbk32 ReadWriteProcessMemory');
+
+          if reg.ValueExists('Use dbk32 OpenProcess') then
+            cbKernelOpenProcess.checked:=reg.ReadBool('Use dbk32 OpenProcess');
+
           if reg.ValueExists('ModuleList as Denylist') then
             DenyList:=reg.ReadBool('ModuleList as Denylist')
           else
@@ -910,9 +967,12 @@ begin
 
           {$ifdef windows}
 
-          if cbKernelQueryMemoryRegion.checked then UseDBKQueryMemoryRegion else DontUseDBKQueryMemoryRegion;
-          if cbKernelReadWriteProcessMemory.checked then UseDBKReadWriteMemory else DontUseDBKReadWriteMemory;
-          if cbKernelOpenProcess.Checked then UseDBKOpenProcess else DontUseDBKOpenProcess;
+          if skipkernelapply=false then
+          begin
+            if cbKernelQueryMemoryRegion.checked then UseDBKQueryMemoryRegion else DontUseDBKQueryMemoryRegion;
+            if cbKernelReadWriteProcessMemory.checked then UseDBKReadWriteMemory else DontUseDBKReadWriteMemory;
+            if cbKernelOpenProcess.Checked then UseDBKOpenProcess else DontUseDBKOpenProcess;
+          end;
 
           if cbProcessWatcher.Checked then
             if (frmProcessWatcher=nil) then //probably yes

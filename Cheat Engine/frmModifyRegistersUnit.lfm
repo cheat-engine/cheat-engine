@@ -13,7 +13,7 @@ object frmModifyRegisters: TfrmModifyRegisters
   OnResize = FormResize
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '2.0.6.0'
+  LCLVersion = '2.2.2.0'
   object Label25: TLabel
     AnchorSideLeft.Control = Owner
     AnchorSideTop.Control = Owner
@@ -85,7 +85,7 @@ object frmModifyRegisters: TfrmModifyRegisters
     ClientHeight = 471
     ClientWidth = 247
     TabOrder = 1
-    object Panel4: TPanel
+    object pnlRegisters: TPanel
       AnchorSideLeft.Control = Panel2
       Left = 0
       Height = 471
@@ -225,7 +225,7 @@ object frmModifyRegisters: TfrmModifyRegisters
       object edtEAX: TEdit
         AnchorSideTop.Control = edtPA
         AnchorSideTop.Side = asrBottom
-        AnchorSideRight.Control = Panel4
+        AnchorSideRight.Control = pnlRegisters
         AnchorSideRight.Side = asrBottom
         Left = 31
         Height = 23
@@ -573,7 +573,7 @@ object frmModifyRegisters: TfrmModifyRegisters
       end
       object cbUseDBVM: TCheckBox
         AnchorSideLeft.Control = edtEAX
-        AnchorSideTop.Control = Panel4
+        AnchorSideTop.Control = pnlRegisters
         Left = 31
         Height = 19
         Top = 2
@@ -614,8 +614,8 @@ object frmModifyRegisters: TfrmModifyRegisters
         ParentColor = False
       end
     end
-    object Panel3: TPanel
-      AnchorSideLeft.Control = Panel4
+    object pnlFlags: TPanel
+      AnchorSideLeft.Control = pnlRegisters
       AnchorSideLeft.Side = asrBottom
       AnchorSideTop.Control = Panel2
       Left = 202
@@ -627,9 +627,9 @@ object frmModifyRegisters: TfrmModifyRegisters
       ClientHeight = 129
       ClientWidth = 45
       TabOrder = 1
-      object Label16: TLabel
-        AnchorSideLeft.Control = Panel3
-        AnchorSideTop.Control = Panel3
+      object lblFlags: TLabel
+        AnchorSideLeft.Control = pnlFlags
+        AnchorSideTop.Control = pnlFlags
         AnchorSideRight.Side = asrBottom
         Left = 10
         Height = 15
@@ -640,8 +640,8 @@ object frmModifyRegisters: TfrmModifyRegisters
         ParentColor = False
       end
       object cbCF: TCheckBox
-        AnchorSideLeft.Control = Label16
-        AnchorSideTop.Control = Label16
+        AnchorSideLeft.Control = lblFlags
+        AnchorSideTop.Control = lblFlags
         AnchorSideTop.Side = asrBottom
         Left = 10
         Height = 19
@@ -654,7 +654,7 @@ object frmModifyRegisters: TfrmModifyRegisters
         TabOrder = 0
       end
       object cbPF: TCheckBox
-        AnchorSideLeft.Control = Label16
+        AnchorSideLeft.Control = lblFlags
         AnchorSideTop.Control = cbCF
         AnchorSideTop.Side = asrBottom
         Left = 10
@@ -668,7 +668,7 @@ object frmModifyRegisters: TfrmModifyRegisters
         TabOrder = 1
       end
       object cbAF: TCheckBox
-        AnchorSideLeft.Control = Label16
+        AnchorSideLeft.Control = lblFlags
         AnchorSideTop.Control = cbPF
         AnchorSideTop.Side = asrBottom
         Left = 10
@@ -682,7 +682,7 @@ object frmModifyRegisters: TfrmModifyRegisters
         TabOrder = 2
       end
       object cbZF: TCheckBox
-        AnchorSideLeft.Control = Label16
+        AnchorSideLeft.Control = lblFlags
         AnchorSideTop.Control = cbAF
         AnchorSideTop.Side = asrBottom
         Left = 10
@@ -696,7 +696,7 @@ object frmModifyRegisters: TfrmModifyRegisters
         TabOrder = 3
       end
       object cbSF: TCheckBox
-        AnchorSideLeft.Control = Label16
+        AnchorSideLeft.Control = lblFlags
         AnchorSideTop.Control = cbZF
         AnchorSideTop.Side = asrBottom
         Left = 10
@@ -710,7 +710,7 @@ object frmModifyRegisters: TfrmModifyRegisters
         TabOrder = 4
       end
       object cbOF: TCheckBox
-        AnchorSideLeft.Control = Label16
+        AnchorSideLeft.Control = lblFlags
         AnchorSideTop.Control = cbSF
         AnchorSideTop.Side = asrBottom
         Left = 10
@@ -728,12 +728,12 @@ object frmModifyRegisters: TfrmModifyRegisters
   object cbChangeExt: TCheckBox
     AnchorSideTop.Control = Panel2
     AnchorSideTop.Side = asrBottom
-    AnchorSideRight.Control = Panel4
+    AnchorSideRight.Control = pnlRegisters
     AnchorSideRight.Side = asrBottom
     Left = 32
     Height = 19
     Top = 486
-    Width = 206
+    Width = 207
     Caption = 'Change extended state (FPU/XMM)'
     OnChange = cbChangeExtChange
     TabOrder = 2

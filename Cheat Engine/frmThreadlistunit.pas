@@ -12,7 +12,7 @@ uses
   {$endif}
   LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
   Dialogs, ComCtrls, Menus, StdCtrls, LResources,cefuncproc, CEDebugger, debugHelper,
-  newkernelhandler, networkInterface, networkInterfaceApi, betterControls  {$ifdef darwin}
+  newkernelhandler, networkInterface, NetworkDebuggerInterface, networkInterfaceApi, betterControls  {$ifdef darwin}
   ,macport, macportdefines
   {$endif}  ;
 
@@ -24,6 +24,8 @@ type
   { TfrmThreadlist }
 
   TfrmThreadlist = class(TForm)
+    miRefresh: TMenuItem;
+    Separator1: TMenuItem;
     tlImageList: TImageList;
     lblIsWOW64: TLabel;
     MenuItem1: TMenuItem;
@@ -43,6 +45,7 @@ type
     procedure miClearDebugRegistersClick(Sender: TObject);
     procedure miCopyValueToClipboardClick(Sender: TObject);
     procedure miFreezeThreadClick(Sender: TObject);
+    procedure miRefreshClick(Sender: TObject);
     procedure miResumeThreadClick(Sender: TObject);
     procedure PopupMenu1Popup(Sender: TObject);
     procedure threadTreeviewDblClick(Sender: TObject);
@@ -205,7 +208,7 @@ begin
     end;
 
 
-    frmstacktrace.stacktrace(th, c);
+    frmstacktrace.stacktrace(th, @c);
 
     frmstacktrace.Show;
   end;
@@ -295,8 +298,8 @@ begin
   else
   begin
     //get the list using thread32first/next
-    ths:=CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD,0);
-    OutputDebugString('after CreateToolhelp32Snapshot ths='+inttohex(ths,8));
+    ths:=CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD,processid);
+    //OutputDebugString('after CreateToolhelp32Snapshot ths='+inttohex(ths,8));
 
     if ths<>INVALID_HANDLE_VALUE then
     begin
@@ -499,6 +502,11 @@ begin
 
   end;
   {$endif}
+end;
+
+procedure TfrmThreadlist.miRefreshClick(Sender: TObject);
+begin
+  FillThreadlist;
 end;
 
 procedure TfrmThreadlist.miResumeThreadClick(Sender: TObject);
@@ -868,107 +876,113 @@ begin
     cenet:=getConnection;
     if cenet<>nil then
     begin
-      if debuggerthread<>nil then
+      //if debuggerthread<>nil then
       begin
+
         if processhandler.SystemArchitecture=archArm then
         begin
           if processhandler.is64bit=false then
           begin
-            GetThreadContextArm(tid, ca);
-            with threadTreeview.items do
+            if NetworkDebuggerInterface.GetThreadContextArm(tid, ca) then
             begin
-              AddChild(node,'R0='+inttohex(ca.R0,8));
-              AddChild(node,'R1='+inttohex(ca.R1,8));
-              AddChild(node,'R2='+inttohex(ca.R2,8));
-              AddChild(node,'R3='+inttohex(ca.R3,8));
-              AddChild(node,'R4='+inttohex(ca.R4,8));
-              AddChild(node,'R5='+inttohex(ca.R5,8));
-              AddChild(node,'R6='+inttohex(ca.R6,8));
-              AddChild(node,'R7='+inttohex(ca.R7,8));
-              AddChild(node,'R8='+inttohex(ca.R8,8));
-              AddChild(node,'R9='+inttohex(ca.R9,8));
-              AddChild(node,'R10='+inttohex(ca.R10,8));
-              AddChild(node,'FP='+inttohex(ca.FP,8));
-              AddChild(node,'IP='+inttohex(ca.IP,8));
-              AddChild(node,'SP='+inttohex(ca.SP,8));
-              AddChild(node,'LR='+inttohex(ca.LR,8));
-              AddChild(node,'PC='+inttohex(ca.PC,8));
-              AddChild(node,'CPSR='+inttohex(ca.CPSR,8));
-              AddChild(node,'ORIG_R0='+inttohex(ca.ORIG_R0,8));
+              with threadTreeview.items do
+              begin
+                AddChild(node,'R0='+inttohex(ca.R0,8));
+                AddChild(node,'R1='+inttohex(ca.R1,8));
+                AddChild(node,'R2='+inttohex(ca.R2,8));
+                AddChild(node,'R3='+inttohex(ca.R3,8));
+                AddChild(node,'R4='+inttohex(ca.R4,8));
+                AddChild(node,'R5='+inttohex(ca.R5,8));
+                AddChild(node,'R6='+inttohex(ca.R6,8));
+                AddChild(node,'R7='+inttohex(ca.R7,8));
+                AddChild(node,'R8='+inttohex(ca.R8,8));
+                AddChild(node,'R9='+inttohex(ca.R9,8));
+                AddChild(node,'R10='+inttohex(ca.R10,8));
+                AddChild(node,'FP='+inttohex(ca.FP,8));
+                AddChild(node,'IP='+inttohex(ca.IP,8));
+                AddChild(node,'SP='+inttohex(ca.SP,8));
+                AddChild(node,'LR='+inttohex(ca.LR,8));
+                AddChild(node,'PC='+inttohex(ca.PC,8));
+                AddChild(node,'CPSR='+inttohex(ca.CPSR,8));
+                AddChild(node,'ORIG_R0='+inttohex(ca.ORIG_R0,8));
+              end;
             end;
           end
           else
           begin
-            GetThreadContextArm64(tid, ca64);
-            with threadTreeview.items do
+            if NetworkDebuggerInterface.GetThreadContextArm64(tid, ca64) then
             begin
-              for i:=0 to 30 do
-                AddChild(node,'X'+inttostr(i)+'='+inttohex(ca64.regs.X[i],16));
+              with threadTreeview.items do
+              begin
+                for i:=0 to 30 do
+                  AddChild(node,'X'+inttostr(i)+'='+inttohex(ca64.regs.X[i],16));
 
-              AddChild(node,'SP='+inttohex(ca64.SP,8));
-              AddChild(node,'PC='+inttohex(ca64.PC,8));
-              AddChild(node,'PSTATE='+inttohex(ca64.PSTATE,8));
+                AddChild(node,'SP='+inttohex(ca64.SP,8));
+                AddChild(node,'PC='+inttohex(ca64.PC,8));
+                AddChild(node,'PSTATE='+inttohex(ca64.PSTATE,8));
+              end;
             end;
           end;
 
         end
         else
         begin
-          GetThreadContext(tid, c);
-
-          if processhandler.is64Bit then
-            prefix:='r'
-          else
-            prefix:='e';
-
-          //no dr access yet for x86
-          with threadTreeview.items do
+          if NetworkDebuggerInterface.GetThreadContext(tid, c) then
           begin
-            AddChild(node,prefix+'ax='+inttohex(c.{$ifdef cpu64}rax{$else}eax{$endif},8));
-            AddChild(node,prefix+'bx='+inttohex(c.{$ifdef cpu64}rbx{$else}ebx{$endif},8));
-            AddChild(node,prefix+'cx='+inttohex(c.{$ifdef cpu64}rcx{$else}ecx{$endif},8));
-            AddChild(node,prefix+'dx='+inttohex(c.{$ifdef cpu64}rdx{$else}edx{$endif},8));
-            AddChild(node,prefix+'si='+inttohex(c.{$ifdef cpu64}rsi{$else}esi{$endif},8));
-            AddChild(node,prefix+'di='+inttohex(c.{$ifdef cpu64}rdi{$else}edi{$endif},8));
-            AddChild(node,prefix+'bp='+inttohex(c.{$ifdef cpu64}rbp{$else}ebp{$endif},8));
-            AddChild(node,prefix+'sp='+inttohex(c.{$ifdef cpu64}rsp{$else}esp{$endif},8));
-            AddChild(node,prefix+'ip='+inttohex(c.{$ifdef cpu64}rip{$else}eip{$endif},8));
 
-            {$ifdef cpu64}
-            if processhandler.is64bit then
+            if processhandler.is64Bit then
+              prefix:='r'
+            else
+              prefix:='e';
+
+            //no dr access yet for x86
+            with threadTreeview.items do
             begin
-              AddChild(node,'r8='+inttohex(c.r8,8));
-              AddChild(node,'r9='+inttohex(c.r9,8));
-              AddChild(node,'r10='+inttohex(c.r10,8));
-              AddChild(node,'r11='+inttohex(c.r11,8));
-              AddChild(node,'r12='+inttohex(c.r12,8));
-              AddChild(node,'r13='+inttohex(c.r13,8));
-              AddChild(node,'r14='+inttohex(c.r14,8));
-              AddChild(node,'r15='+inttohex(c.r15,8));
+              AddChild(node,prefix+'ax='+inttohex(c.{$ifdef cpu64}rax{$else}eax{$endif},8));
+              AddChild(node,prefix+'bx='+inttohex(c.{$ifdef cpu64}rbx{$else}ebx{$endif},8));
+              AddChild(node,prefix+'cx='+inttohex(c.{$ifdef cpu64}rcx{$else}ecx{$endif},8));
+              AddChild(node,prefix+'dx='+inttohex(c.{$ifdef cpu64}rdx{$else}edx{$endif},8));
+              AddChild(node,prefix+'si='+inttohex(c.{$ifdef cpu64}rsi{$else}esi{$endif},8));
+              AddChild(node,prefix+'di='+inttohex(c.{$ifdef cpu64}rdi{$else}edi{$endif},8));
+              AddChild(node,prefix+'bp='+inttohex(c.{$ifdef cpu64}rbp{$else}ebp{$endif},8));
+              AddChild(node,prefix+'sp='+inttohex(c.{$ifdef cpu64}rsp{$else}esp{$endif},8));
+              AddChild(node,prefix+'ip='+inttohex(c.{$ifdef cpu64}rip{$else}eip{$endif},8));
+
+              {$ifdef cpu64}
+              if processhandler.is64bit then
+              begin
+                AddChild(node,'r8='+inttohex(c.r8,8));
+                AddChild(node,'r9='+inttohex(c.r9,8));
+                AddChild(node,'r10='+inttohex(c.r10,8));
+                AddChild(node,'r11='+inttohex(c.r11,8));
+                AddChild(node,'r12='+inttohex(c.r12,8));
+                AddChild(node,'r13='+inttohex(c.r13,8));
+                AddChild(node,'r14='+inttohex(c.r14,8));
+                AddChild(node,'r15='+inttohex(c.r15,8));
+              end;
+              {$endif}
+
+              threadTreeview.items.AddChild(node,'cs='+inttohex(c.SegCs,8));
+              {$ifdef cpu64}
+              //context has room for some extra data
+              AddChild(node,'fsbase='+inttohex(c.P2Home,8));
+              AddChild(node,'gsbase='+inttohex(c.P3Home,8));
+              {$endif}
+
+
+
             end;
-            {$endif}
-
-            threadTreeview.items.AddChild(node,'cs='+inttohex(c.SegCs,8));
-            {$ifdef cpu64}
-            //context has room for some extra data
-            AddChild(node,'fsbase='+inttohex(c.P2Home,8));
-            AddChild(node,'gsbase='+inttohex(c.P3Home,8));
-            {$endif}
-
-
-
           end;
-
         end;
 
       end
-      else
+     { else
       begin
         //threads can only be inspected when debugging (for now)
         beep;
         allowexpansion:=false;
         exit;
-      end;
+      end; }
     end
     else
     begin

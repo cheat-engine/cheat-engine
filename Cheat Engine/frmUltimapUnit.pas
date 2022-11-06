@@ -14,7 +14,8 @@ uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls,
   DBK32functions, NewKernelHandler, cefuncproc, AvgLvlTree, ExtCtrls, ComCtrls,
   math,  symbolhandler, maps, Menus, disassembler, multicpuexecution, syncobjs,
-  genericHotkey, HotKeys, frmHotkeyExUnit, frmSelectionlistunit, commonTypeDefs, betterControls;
+  genericHotkey, HotKeys, frmHotkeyExUnit, frmSelectionlistunit, commonTypeDefs,
+  betterControls, Clipbrd;
 
 
 
@@ -86,6 +87,7 @@ type
     edtFilename: TEdit;
     edtWorkerCount: TEdit;
     Flusher: TTimer;
+    miCopyToClipboard: TMenuItem;
     umImageList: TImageList;
     Label1: TLabel;
     Label2: TLabel;
@@ -133,6 +135,7 @@ type
     procedure ListView1Data(Sender: TObject; Item: TListItem);
     procedure ListView1DblClick(Sender: TObject);
     procedure MenuItem1Click(Sender: TObject);
+    procedure miCopyToClipboardClick(Sender: TObject);
     procedure miSetHotkeyClick(Sender: TObject);
     procedure MenuItem2Click(Sender: TObject);
     procedure miRemoveHotkeyClick(Sender: TObject);
@@ -1014,6 +1017,32 @@ begin
       advancedoptions.AddToCodeList(a, a2-a,false,true);
     end;
   end;
+end;
+
+procedure TfrmUltimap.miCopyToClipboardClick(Sender: TObject);
+var
+  i: integer;
+  a,a2: ptruint;
+  size: integer;
+
+  r: tstringlist;
+  s: string;
+begin
+  r:=tstringlist.create;
+
+  for i:=0 to listview1.Items.count-1 do
+  begin
+    if listview1.Items[i].Selected then
+    begin
+      s:=listview1.Items[i].Caption;
+      s:=s+ '-'+ listview1.Items[i].SubItems[0];
+      s:=s+ '-'+ listview1.Items[i].SubItems[1];
+      r.add(s);
+    end;
+  end;
+
+  Clipboard.AsText:=r.Text;
+  r.free;
 end;
 
 procedure TfrmUltimap.miSetHotkeyClick(Sender: TObject);

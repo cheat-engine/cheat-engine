@@ -25,6 +25,8 @@ Global
 		Output to 64 Linux ABI (Release)|x64 = Output to 64 Linux ABI (Release)|x64
 		Output to AArch64 Linux ABI (Debug)|Win32 = Output to AArch64 Linux ABI (Debug)|Win32
 		Output to AArch64 Linux ABI (Debug)|x64 = Output to AArch64 Linux ABI (Debug)|x64
+		Output to AARCH64 Linux ABI (Release)|Win32 = Output to AARCH64 Linux ABI (Release)|Win32
+		Output to AARCH64 Linux ABI (Release)|x64 = Output to AARCH64 Linux ABI (Release)|x64
 		Output to tcc.exe test 64 (Debug)|Win32 = Output to tcc.exe test 64 (Debug)|Win32
 		Output to tcc.exe test 64 (Debug)|x64 = Output to tcc.exe test 64 (Debug)|x64
 	EndGlobalSection
@@ -65,6 +67,10 @@ Global
 		{E356254D-AC54-48FF-BDF6-2FBA174D0922}.Output to AArch64 Linux ABI (Debug)|Win32.Build.0 = Output to AArch64 Linux ABI (Debug)|Win32
 		{E356254D-AC54-48FF-BDF6-2FBA174D0922}.Output to AArch64 Linux ABI (Debug)|x64.ActiveCfg = Output to AArch64 Linux ABI (Debug)|x64
 		{E356254D-AC54-48FF-BDF6-2FBA174D0922}.Output to AArch64 Linux ABI (Debug)|x64.Build.0 = Output to AArch64 Linux ABI (Debug)|x64
+		{E356254D-AC54-48FF-BDF6-2FBA174D0922}.Output to AARCH64 Linux ABI (Release)|Win32.ActiveCfg = Output to AARCH64 Linux ABI (Release)|Win32
+		{E356254D-AC54-48FF-BDF6-2FBA174D0922}.Output to AARCH64 Linux ABI (Release)|Win32.Build.0 = Output to AARCH64 Linux ABI (Release)|Win32
+		{E356254D-AC54-48FF-BDF6-2FBA174D0922}.Output to AARCH64 Linux ABI (Release)|x64.ActiveCfg = Output to AARCH64 Linux ABI (Release)|x64
+		{E356254D-AC54-48FF-BDF6-2FBA174D0922}.Output to AARCH64 Linux ABI (Release)|x64.Build.0 = Output to AARCH64 Linux ABI (Release)|x64
 		{E356254D-AC54-48FF-BDF6-2FBA174D0922}.Output to tcc.exe test 64 (Debug)|Win32.ActiveCfg = Output to tcc.exe test 64 (Debug)|Win32
 		{E356254D-AC54-48FF-BDF6-2FBA174D0922}.Output to tcc.exe test 64 (Debug)|Win32.Build.0 = Output to tcc.exe test 64 (Debug)|Win32
 		{E356254D-AC54-48FF-BDF6-2FBA174D0922}.Output to tcc.exe test 64 (Debug)|x64.ActiveCfg = Output to tcc.exe test 64 (Debug)|x64

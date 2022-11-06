@@ -235,6 +235,14 @@ static int tcc_relocate_ex(TCCState *s1, void *ptr, addr_t ptr_diff)
     unsigned offset, length, align, max_align, i, k, f;
     addr_t mem, addr;
 
+	//Cheat Engine modification
+	unsigned run_section_alignment;
+	if (s1->section_align > RUN_SECTION_ALIGNMENT)
+		run_section_alignment = s1->section_align-1;
+	else
+		run_section_alignment = RUN_SECTION_ALIGNMENT;
+	//Cheat Engine modificiation
+
     if (NULL == ptr) {
         s1->nb_errors = 0;
 #ifdef TCC_TARGET_PE
@@ -262,8 +270,8 @@ static int tcc_relocate_ex(TCCState *s1, void *ptr, addr_t ptr_diff)
             if (k != !(s->sh_flags & SHF_EXECINSTR))
                 continue;
             align = s->sh_addralign - 1;
-            if (++f == 1 && align < RUN_SECTION_ALIGNMENT)
-                align = RUN_SECTION_ALIGNMENT;
+            if (++f == 1 && align < run_section_alignment) //cheat engine modification:  RUN_SECTION_ALIGNMENT->run_section_alignment
+                align = run_section_alignment;
             if (max_align < align)
                 max_align = align;
             offset += -(addr + offset) & align;
@@ -318,7 +326,7 @@ static int tcc_relocate_ex(TCCState *s1, void *ptr, addr_t ptr_diff)
 					void *zeromem = tcc_malloc(length);
                     memset(zeromem, 0, length);
 					//ZeroMemory(zeromem, length);
-					s1->binary_writer_func(s1->binary_writer_param, ptr, zeromem, length,0);
+					s1->binary_writer_func(s1->binary_writer_param, ptr, zeromem, length,2);
 					tcc_free(zeromem);
 				}
 				
@@ -332,14 +340,38 @@ static int tcc_relocate_ex(TCCState *s1, void *ptr, addr_t ptr_diff)
 			//cheat engine binary writer addition start
 			if (s1->binary_writer_func)
 			{
+				//MessageBoxA(0, "BLA", "BLA", 0);
 				if (length)
                 {
                     int protection=0;
-                    if (s->sh_flags & SHF_EXECINSTR)
-                        protection=1;
+
+					//MessageBoxA(0, "Checking if EXECUTABLE", "BLA", 0);
+					if (s->sh_flags & SHF_EXECINSTR)
+					{
+						//MessageBoxA(0, "IT IS!!!!", "BLA", 0);
+						protection = 1;
+					}
+					else
+					{
+						//MessageBoxA(0, "IT IS NOT!!!", "BLA", 0);
+
+					}
                     
-                    if (s->sh_flags & SHF_WRITE)
-                        protection=2;
+					//MessageBoxA(0, "Checking if WRITABLE", "BLA", 0);
+					if (s->sh_flags & SHF_WRITE)
+					{
+					//	MessageBoxA(0, "IT IS!!!!", "BLA", 0);
+						protection = 2;
+					}
+					else
+					{
+					//	MessageBoxA(0, "IT IS NOT!!!!", "BLA", 0);
+					}
+
+					if (protection == 0)
+					{
+						//MessageBoxA(0, "IT IS 0!!!! FUUUUUUUUUCK", "BLA", 0);
+					}
                     
 					s1->binary_writer_func(s1->binary_writer_param, ptr, s->data, length, protection);
                 }
@@ -750,9 +782,9 @@ static void rt_getcontext(ucontext_t *uc, rt_context *rc)
 #elif defined(__aarch64__) && defined(__OpenBSD__)
     rc->ip = uc->sc_elr;
     rc->fp = uc->sc_x[29];
-#elif defined(__aarch64__)
-    rc->ip = uc->uc_mcontext.pc;
-    rc->fp = uc->uc_mcontext.regs[29];
+#elif defined(__aarch64__) //darwin in this case  (Cheat engine modification start)
+    rc->ip = uc->uc_mcontext->__ss.__pc;
+    rc->fp = uc->uc_mcontext->__ss.__fp;  // (Cheat engine modification stop)
 #elif defined(__riscv)
     rc->ip = uc->uc_mcontext.__gregs[REG_PC];
     rc->fp = uc->uc_mcontext.__gregs[REG_S0];

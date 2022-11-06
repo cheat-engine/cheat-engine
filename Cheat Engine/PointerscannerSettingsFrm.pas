@@ -84,6 +84,7 @@ type TOffsetEntry=class(Tedit)
     procedure setOffset(x: dword);
   protected
     procedure KeyPress(var Key: Char); override;
+    procedure SetParent(NewParent: TWinControl); override;
   public
     constructor create(AOwner: TComponent); override;
   published
@@ -222,9 +223,13 @@ type
     codescan: boolean;
     threadcount: integer;
 
+    maxOffsetDeviation: integer;
+
 
     baseAddressRange: TComponentList;
 
+    lblOffsetListMaxDeviation: TLabel;
+    edtOffsetListMaxDeviation: tedit;
     offsetlist: TComponentList;
     btnAddOffset: TButton;
     btnRemoveOffset: TButton;
@@ -282,6 +287,9 @@ resourcestring
   rsLastOffset = 'Last offset';
   rsHasNotBeenGivenAValidAddress = '%s has not been given a valid address';
   rsLimitScanToSpecifiedRegionFile = 'Limit scan to specified region file';
+  rsMaxDeviation = 'Max deviation';
+  rsMaxDeviationExplentation = 'The maximum offset size by which the ending '
+    +'offset can differ';
 
 
 //helper
@@ -498,6 +506,9 @@ begin
 
   if assigned(fonsetfilename) then
     fonSetFileName(self);
+
+  if (cbAddress.Text='') and (cbAddress.items.count=1) then
+    cbAddress.ItemIndex:=0;
 end;
 
 
@@ -684,6 +695,14 @@ begin
     key:=#0;
 end;
 
+procedure TOffsetEntry.SetParent(NewParent: TWinControl);
+begin
+  inherited SetParent(newparent);
+
+  if (newparent<>nil) and (newparent is TCustomControl) then
+    Constraints.MinWidth:=TCustomControl(newparent).canvas.TextWidth(' XXX ');
+end;
+
 function TOffsetEntry.getOffset: dword;
 var o: integer;
 begin
@@ -703,6 +722,9 @@ var
   comparecount: integer=0;
   reg: TRegistry=nil;
 begin
+  if edtOffsetListMaxDeviation<>nil then
+    maxOffsetDeviation:=strtoint('$'+edtOffsetListMaxDeviation.Text);
+
   if cbMaxOffsetsPerNode.checked then
   begin
     maxOffsetsPerNode:=strtoint(edtMaxOffsetsPerNode.text);
@@ -979,6 +1001,33 @@ begin
     btnAddOffset.Width:=i;
     btnRemoveOffset.Width:=i;
 
+    lblOffsetListMaxDeviation:=TLabel.create(Self);
+    lblOffsetListMaxDeviation.parent:=panel10;
+    lblOffsetListMaxDeviation.Caption:=rsMaxDeviation;
+    lblOffsetListMaxDeviation.AutoSize:=true;
+    lblOffsetListMaxDeviation.AnchorSideLeft.Control:=cbMustEndWithSpecificOffset;
+    lblOffsetListMaxDeviation.AnchorSideLeft.Side:=asrRight;
+    lblOffsetListMaxDeviation.BorderSpacing.Left:=8;
+
+
+    edtOffsetListMaxDeviation:=TEdit.Create(self);
+    edtOffsetListMaxDeviation.parent:=panel10;
+    edtOffsetListMaxDeviation.AnchorSideLeft.Control:=lblOffsetListMaxDeviation;
+    edtOffsetListMaxDeviation.AnchorSideLeft.Side:=asrLeft;
+    edtOffsetListMaxDeviation.AnchorSideTop.Control:=offsetentry;
+    edtOffsetListMaxDeviation.AnchorSideTop.Side:=asrtop;
+    edtOffsetListMaxDeviation.Text:='0';
+    edtOffsetListMaxDeviation.Hint:=rsMaxDeviationExplentation;
+    edtOffsetListMaxDeviation.ShowHint:=true;
+
+    edtOffsetListMaxDeviation.Constraints.MinWidth:=canvas.TextWidth(' xxx ');
+
+    lblOffsetListMaxDeviation.AnchorSideBottom.Control:=edtOffsetListMaxDeviation;
+    lblOffsetListMaxDeviation.AnchorSideBottom.Side:=asrTop;
+
+    lblOffsetListMaxDeviation.Anchors:=[akLeft, akBottom];
+    edtOffsetListMaxDeviation.Anchors:=[akTop, akLeft];
+
   end
   else
   begin
@@ -988,6 +1037,12 @@ begin
     btnAddOffset.Visible:=false;
     btnRemoveOffset.Visible:=false;
     lblInfoLastOffset.Visible:=false;
+
+    if edtOffsetListMaxDeviation<>nil then
+      edtOffsetListMaxDeviation.free;
+
+    if lblOffsetListMaxDeviation<>nil then
+      lblOffsetListMaxDeviation.free;
   end;
 
   updatepositions;
@@ -1046,6 +1101,9 @@ begin
         begin
           tstrings(cbAddress.tag).LoadFromFile(odLoadPointermap.FileName+'.addresslist');
           UpdateAddressList(cbAddress);
+
+          if (cbAddress.Text='') and (cbAddress.Items.Count=1) then
+            cbAddress.ItemIndex:=0;
         end;
 
       end

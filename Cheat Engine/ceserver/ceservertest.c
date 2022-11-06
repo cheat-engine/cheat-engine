@@ -15,6 +15,14 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#ifndef __ANDROID__
+#include <sys/ptrace.h>
+#endif
+#include <asm/ptrace.h>
+#include <linux/types.h>
+
+
+
 #include "ceserver.h"
 #include "api.h" //for debugevent
 
@@ -147,6 +155,62 @@ int cenet_waitForDebugEvent(int fd, int pHandle, DebugEvent* devent, int timeout
 
 }
 
+BOOL cenet_getThreadContext(int fd, int pHandle, int tid, void* context)
+{
+#pragma pack(1)
+  struct
+  {
+    char command;
+    HANDLE hProcess;
+    int tid;
+    int type;
+  } gtc;
+#pragma pack()
+
+  uint32_t result;
+
+
+  debug_log("ceservertest: cenet_getThreadContext(%d, %d, %d, %p)\n", fd, pHandle, tid, context);
+
+  gtc.command=CMD_GETTHREADCONTEXT;
+  gtc.hProcess=pHandle;
+  gtc.tid=tid;
+  gtc.type=0;
+
+  sendall(fd, &gtc, sizeof(gtc), 0);
+  recv(fd, &result, sizeof(result), MSG_WAITALL);
+
+  debug_log("ceservertest cenet_getThreadContext returned %d\n", result);
+
+  if (result)
+  {
+    CONTEXT c;
+    uint32_t structsize;
+    recv(fd, &structsize, sizeof(uint32_t), MSG_WAITALL);
+
+    debug_log("structsize=%d\n", structsize);
+
+
+    if (structsize<=sizeof(c))
+    {
+      recv(fd, &c, structsize, MSG_WAITALL);
+
+      if (c.type==2)
+        debug_log("ARM32 context type\n");
+
+      if (c.type==3)
+        debug_log("ARM64 context type\n");
+
+      memcpy(context, &c, sizeof(c));
+    }
+    else
+      debug_log("Received context is too big\n");
+  }
+
+  return result;
+
+}
+
 int cenet_continueFromDebugEvent(int fd, int pHandle, int tid, int ignore)
 {
 #pragma pack(1)
@@ -179,25 +243,33 @@ int cenet_readProcessMemory(int fd, int pHandle, unsigned long long address, voi
   struct
   {
     char command;
-    int pHandle;
-    unsigned long long address;
-    int size;
+    uint32_t pHandle;
+    uint64_t address;
+    uint32_t size;
+    uint8_t compress;
+
   } rpm;
 #pragma pack()
 
   int result;
 
-  debug_log("cenet_readProcessMemory(%d, %d, %llx, %p, %d)", fd, pHandle, address, dest, size);
+ // printf("cenet_readProcessMemory\n");
+
+
+ // debug_log("cenet_readProcessMemory(%d, %d, %llx, %p, %d)", fd, pHandle, address, dest, size);
+ // fflush(stdout);
+
 
   rpm.command=CMD_READPROCESSMEMORY;
   rpm.pHandle=pHandle;
   rpm.address=address;
   rpm.size=size;
+  rpm.compress=0;
 
   sendall(fd, &rpm, sizeof(rpm), 0);
   recv(fd, &result, sizeof(result), MSG_WAITALL);
 
-  debug_log("result=%d\n", result);
+ // debug_log("result=%d\n", result);
   recv(fd, dest, result, MSG_WAITALL);
 
 
@@ -265,6 +337,26 @@ int cenet_removeBreakpoint(int fd, int pHandle, int tid, int debugreg, int waswa
   return result;
 }
 
+int cenet_loadExtension(int fd, int pHandle)
+{
+#pragma pack(1)
+    struct
+    {
+      char command;
+      HANDLE hProcess;
+    } le;
+#pragma pack()
+  int result;
+
+  le.command=CMD_LOADEXTENSION;
+  le.hProcess=pHandle;
+  sendall(fd, &le, sizeof(le), 0);
+
+  recv(fd, &result, sizeof(result),MSG_WAITALL);
+  return result;
+}
+
+
 #define ARM_DBG_READ(N, M, OP2, VAL) do {\
          asm volatile("mrc p14, 0, %0, " #N "," #M ", " #OP2 : "=r" (VAL));\
 } while (0)
@@ -286,9 +378,6 @@ int cenet_VirtualQueryExFull(int fd, int pHandle, DWORD flags)
     vqef.flags=flags;
 
     sendall(fd, &vqef, sizeof(vqef),0);
-
-
-
 }
 
 void *CESERVERTEST_DEBUGGERTHREAD(void *arg)
@@ -305,6 +394,7 @@ void *CESERVERTEST_DEBUGGERTHREAD(void *arg)
 
 
 
+  debug_log("calling cenet_startDebugger\n");
 
   if (cenet_startDebugger(fd, pHandle))
   {
@@ -336,19 +426,30 @@ void *CESERVERTEST_DEBUGGERTHREAD(void *arg)
       i=cenet_waitForDebugEvent(fd, pHandle, &devent, 2000);
       if (i)
       {
+        CONTEXT c;
+        debug_log("stopped with devent.debugevent %d\n", devent.debugevent);
+
+        cenet_getThreadContext(fd, pHandle, devent.threadid, &c);
+
 
         if (devent.debugevent==5)
         {
           debug_log("TRAP (thread %d)\n", devent.threadid);
-         // debug_log("Going to remove breakpoint\n");
-          //cenet_removeBreakpoint(fd, pHandle, devent.threadid,0,1);
 
-          //printf("After removeBreakpoint\n");
+
+
+          debug_log("Going to remove breakpoint\n");
+          cenet_removeBreakpoint(fd, pHandle, devent.threadid,0,1);
+          debug_log("After removeBreakpoint\n");
 
           cenet_continueFromDebugEvent(fd, pHandle, devent.threadid, 2); //single step
 
           i=cenet_waitForDebugEvent(fd, pHandle, &devent, 2000);
           debug_log("after single step. i=%d\n",i);
+
+          cenet_getThreadContext(fd, pHandle, devent.threadid, &c);
+
+
           debug_log("devent.debugevent=%d (thread %d)\n", devent.debugevent, devent.threadid);
 
         //  cenet_setBreakpoint(fd, pHandle, devent.threadid,0xce0000, 3,4,0);
@@ -398,11 +499,14 @@ int hp;
 
 void *CESERVERTEST(int pid )
 {
+  CONTEXT c;
   int fd;
   int arch;
+  int dest;
+  int i;
 
   pthread_t pth;
-  debug_log("CESERVERTEST: running\n");
+  debug_log("CESERVERTEST: running (v2)\n");
 
   //sleep(2);
   debug_log("connecting...\n");
@@ -414,12 +518,98 @@ void *CESERVERTEST(int pid )
   pHandle=cenet_OpenProcess(fd, pid);
 
   debug_log("pHandle=%d\n", pHandle);
+  memset(&c, 0xce,sizeof(c));
+/*
+  debug_log("calling cenet_loadExtension\n");
+  i=cenet_loadExtension(fd, pHandle);
+  debug_log("cenet_loadExtension returned %d\n", i);
+  return NULL;*/
 
-  arch=cenet_getArchitecture(fd, pHandle);
 
-  printf("arch=%d\n", arch);
 
-  return NULL;
+  debug_log("Getting thread context\n");
+  if (cenet_getThreadContext(fd, pHandle, pid, &c))
+  {
+    debug_log("Success:\n");
+
+#ifdef __x86_64__
+    debug_log("RIP=%x\n", c.regs.rip);
+#endif
+
+#ifdef __arm__
+    debug_log("PC=%x\n", c.regs.ARM_pc);
+    debug_log("ARM_cpsr=%x\n", c.regs.ARM_cpsr);
+#endif
+#ifdef __aarch64__
+
+    if (c.type==2)
+    {
+      debug_log("Success: 32-bit result\n");
+      debug_log("PC=%x\n", c.regs32.uregs[15]);
+      debug_log("ARM_cpsr=%x\n", c.regs32.uregs[16]);
+      for (i=0; i<32; i++)
+      {
+        debug_log("%.2d : ",i);
+
+        float *f=(float *)&c.fp32.fpregs[i];
+        uint32_t *d=(uint32_t *)&c.fp32.fpregs[i];
+
+        debug_log("%.8x - %.8x == %.2f %.2f\n",d[0],d[1],f[0],f[1]);
+      }
+    }
+
+    if (c.type==3)
+    {
+
+      __uint128_t v;
+
+      debug_log("Success:\n");
+      debug_log("PC=%llx\n", c.regs.pc);
+      debug_log("fp.fpsr=%x\n", c.fp.fpsr);
+      debug_log("fp.fpcr=%x\n", c.fp.fpcr);
+      for (i=0; i<32; i++)
+      {
+        debug_log("%.2d : ",i);
+
+        float *f=(float *)&c.fp.vregs[i];
+
+        debug_log("%.2f %.2f %.2f %.2f\n",f[0],f[1],f[2],f[3]);
+      }
+
+      debug_log("---------------------------------");
+      for (i=0; i<32; i++)
+      {
+        debug_log("%.2d : ",i);
+
+
+        double *d=(double *)&c.fp.vregs[i];
+
+        debug_log("%.2d %.2d\n",d[0],d[1]);
+      }
+    }
+#endif
+
+
+    return 1;
+  }
+  else
+    debug_log("Fail\n");
+
+
+  return 0;
+
+ // debug_log("going to read memory\n");
+
+ // while (1)
+ //   i=cenet_readProcessMemory(fd, pHandle, 0xffff0000, &dest,4);
+
+ // printf("i=%d",i);
+//  arch=cenet_getArchitecture(fd, pHandle);
+
+//  printf("arch=%d\n", arch);
+
+ // fflush(stdout);
+ // return NULL;
 
 
   //cenet_VirtualQueryExFull(fd, pHandle,  VQE_DIRTYONLY | VQE_PAGEDONLY);
@@ -429,7 +619,9 @@ void *CESERVERTEST(int pid )
 
 
   //launch the debuggerthread
-  //pthread_create(&pth, NULL, CESERVERTEST_DEBUGGERTHREAD, NULL);
+ // pthread_create(&pth, NULL, CESERVERTEST_DEBUGGERTHREAD, NULL);
+
+  debug_log("calling CESERVERTEST_DEBUGGERTHREAD\n");
   CESERVERTEST_DEBUGGERTHREAD(NULL);
 
   //launch the rpmthread
@@ -438,7 +630,7 @@ void *CESERVERTEST(int pid )
 
  // while (1);
 
-
+  debug_log("End of test\n");
   fflush(stdout);
 
   return NULL;

@@ -6,14 +6,14 @@ object FormDesigner: TFormDesigner
   AutoSize = True
   BorderStyle = bsSizeToolWin
   Caption = 'Form Designer'
-  ClientHeight = 55
+  ClientHeight = 35
   ClientWidth = 1217
   Menu = MainMenu1
   OnClose = FormClose
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   OnShow = FormShow
-  LCLVersion = '2.2.0.4'
+  LCLVersion = '2.2.2.0'
   object ToolBar1: TToolBar
     Left = 0
     Height = 34

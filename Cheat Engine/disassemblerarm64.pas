@@ -6,7 +6,7 @@ unit DisAssemblerARM64;
 interface
 
 uses
-  Classes, SysUtils, LastDisassembleData;
+  {$ifdef darwin}macport,{$endif}{$ifdef windows}windows,{$endif}Classes, SysUtils, LastDisassembleData;
 
 type
   
@@ -2699,7 +2699,7 @@ var
   i: integer;
   r: qword;
 begin
-  if sourcesize=0 then exit;
+  if sourcesize=0 then exit(0);
 
   repval:=v and zeroextend(v, sourcesize);
 
@@ -3192,7 +3192,7 @@ begin
 
       pt_addrlabel:
       begin
-        v:=((opcode shr 5) and $7FFFF) or ((opcode shr 29) and 3);
+        v:=(((opcode shr 5) and $7FFFF) shl 2) or ((opcode shr 29) and 3);
         v:=signextend(v,20);
         if plist[i].extra=1 then //page
         begin
@@ -3869,7 +3869,10 @@ begin
   for i:=0 to 15 do
   begin
     if param=ArmConditions[i] then
-       result:=result+[pt_cond];
+    begin
+      result:=result+[pt_cond];
+      break;
+    end;
   end;
 
 
@@ -4488,11 +4491,16 @@ begin
       if paramstr[1]='#' then paramstr:=paramstr.Substring(1);
 
       qv:=StrToInt64('$'+paramstr);
+
+      outputdebugstring(format('assembling pt_label.  origin=%.8x target destination=%.8x',[address, qv]));
       qv:=qv-address;
+
+      outputdebugstring(format('offset=%x abs offset=%x',[qv, abs(int64(qv))]));
+
 
       if address and %11 >0 then exit;
 
-      if abs(int64(qv)-int64(address))>param.maxval then exit;
+      if abs(int64(qv))>param.maxval then exit;
 
       qv:=qv shr 2;
       qv2:=qv and param.maxval;
@@ -4513,8 +4521,8 @@ begin
         qv:=qv shr 2;
 
         opcode:=opcode or ((qv and 3) shl 29);
-        qv:=qv shr 3;
-        opcode:=opcode or (qv shr 5);
+        qv:=qv shr 2;
+        opcode:=opcode or (qv shl 5);
       end
       else
       begin
@@ -4528,8 +4536,8 @@ begin
         qv:=qv shr 12;
 
         opcode:=opcode or ((qv and 3) shl 29);
-        qv:=qv shr 3;
-        opcode:=opcode or (qv shr 5);
+        qv:=qv shr 2;
+        opcode:=opcode or (qv shl 5);
       end;
     end;
 
@@ -5358,7 +5366,7 @@ var
   match: boolean;
 begin
   InitARM64Support;
-
+  outputdebugstring('Assembling ARM64 instruction '+instruction+' at '+inttohex(_address,8));
   result:=0;
   parameters:=[];
 

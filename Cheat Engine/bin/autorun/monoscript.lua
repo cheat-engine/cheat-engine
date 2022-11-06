@@ -21,6 +21,8 @@ local dpiscale=getScreenDPI()/96
 
 mono_timeout=3000 --change to 0 to never timeout (meaning: 0 will freeze your face off if it breaks on a breakpoint, just saying ...)
 
+MONO_DATACOLLECTORVERSION=22082022;
+
 MONOCMD_INITMONO=0
 MONOCMD_OBJECT_GETCLASS=1
 MONOCMD_ENUMDOMAINS=2
@@ -70,6 +72,7 @@ MONOCMD_FREE=43
 MONOCMD_GETIMAGEFILENAME=44
 MONOCMD_GETCLASSNESTINGTYPE=45
 MONOCMD_LIMITEDCONNECTION=46
+MONOCMD_GETMONODATACOLLECTORVERSION=47
 
 
 MONO_TYPE_END        = 0x00       -- End of List
@@ -649,6 +652,17 @@ function LaunchMonoDataCollector(internalReconnectDisconnectEachTime)
     return 0 --failure
   end
   
+  local v=mono_getMonoDatacollectorDLLVersion();
+  if (v==nil) or (v~=MONO_DATACOLLECTORVERSION) then
+    local s='There is an inconsistency with the monodatacollector dll and monoscript.lua . Unexpected behaviour and crashes are to be expected'
+    if inMainThread then
+      messageDialog(s, mtWarning)
+    else
+      print('Warning:'..s)
+    end
+  end
+    
+  
   monopipe.OnError=function(self)
     --print("monopipe error")
     monopipe.OnTimeout(self)
@@ -693,6 +707,9 @@ function LaunchMonoDataCollector(internalReconnectDisconnectEachTime)
     --  print("monopipe error. Last reattach too soon. Giving up")
     end
     
+    
+
+    
     lastMonoError=getTickCount()
     
   end
@@ -732,9 +749,7 @@ function LaunchMonoDataCollector(internalReconnectDisconnectEachTime)
 
   end
 
-  if (monoSettings==nil) then
-    monoSettings=getSettings("MonoExtension")  
-  end
+
   
   StructureElementCallbackID=registerStructureAndElementListCallback(mono_StructureListCallback, mono_ElementListCallback)
 
@@ -1089,6 +1104,19 @@ function mono_enumDomains()
 
   return result
 end
+
+function mono_getMonoDatacollectorDLLVersion()
+  local r=nil
+  monopipe.lock()
+  monopipe.writeByte(MONOCMD_GETMONODATACOLLECTORVERSION)
+  r=monopipe.readDword()  
+  if monopipe then
+    monopipe.unlock()
+  end
+  
+  return r
+end
+
 
 function mono_setCurrentDomain(domain)
   --if debug_canBreak() then return nil end
@@ -1487,7 +1515,25 @@ end
 
 --todo for the instance scanner: Get the fields and check that pointers are either nil or point to a valid address
 function mono_class_findInstancesOfClassListOnly(domain, klass, progressBar)
+
+  if debugInstanceLookup then 
+    if progressBar then
+      printf("progressBar is set. progressBar.ClassName=%s", progressBar.ClassName)
+    end
+  
+    print("mono_class_findInstancesOfClassListOnly")     
+  end
+
   local vtable=mono_class_getVTable(domain, klass)
+  if debugInstanceLookup then 
+    if vtable then
+      printf("vtable is %x", vtable)
+    else
+      print("vtable is nil") 
+    end
+  end
+
+  
   if (vtable) and (vtable~=0) then
     local ms=createMemScan(progressBar)  
     local scantype=vtDword
@@ -1497,7 +1543,10 @@ function mono_class_findInstancesOfClassListOnly(domain, klass, progressBar)
     
     ms.firstScan(soExactValue,scantype,rtRounded,string.format('%x',vtable),'', 0,0x7ffffffffffffffff, '', fsmAligned, "8",true, true,false,false)
 
-    ms.waitTillDone()  
+    ms.waitTillDone() 
+    if debugInstanceLookup then     
+      print("after ms.waitTillDone")
+    end
     
     local fl=createFoundList(ms)
     fl.initialize()
@@ -1508,8 +1557,13 @@ function mono_class_findInstancesOfClassListOnly(domain, klass, progressBar)
       result[i+1]=tonumber('0x'..fl[i])
     end
     
+    if debugInstanceLookup then print("Destroying fl and ms") end
+    
     fl.destroy()    
-    ms.destroy()    
+    ms.destroy()  
+    if debugInstanceLookup then 
+      printf("end of mono_class_findInstancesOfClassListOnly with valid vtable. #result=%d", #result)    
+    end
     
     return result
   end
@@ -2347,6 +2401,8 @@ function mono_method_getSignature(method)
   monopipe.writeQword(method)
 
   local paramcount=monopipe.readByte()
+  if paramcount==nil then return nil end --invalid method (monopipe is likely dead now)
+  
   local i
   
   for i=1, paramcount do
@@ -3129,6 +3185,9 @@ end
 
 
 function monoform_context_onpopup(sender)
+  if monopipe==nil then return end  
+  if tonumber(monopipe.ProcessID)~=getOpenedProcessID() then return end
+  
   local node=monoForm.TV.Selected
 
   local methodsEnabled = (node~=nil) and (node.Level==4) and (node.Parent.Text=='methods')
@@ -3617,20 +3676,22 @@ function mono_setMonoMenuItem(usesmono, usesdotnet)
         end
       end
     end
-
-    miMonoTopMenuItem.miMonoActivate.Visible=true
-    miMonoTopMenuItem.miMonoDissect.Visible=true
-    miMonoTopMenuItem.miDotNetSeperator.Visible=true
-      
-    if usesmono and not usesdotnet then
-      miMonoTopMenuItem.Caption=translate("Mono")
-    elseif usesdotnet and not usesmono then  
-      miMonoTopMenuItem.Caption=translate(".Net")
-      miMonoTopMenuItem.miMonoActivate.Visible=false
-      miMonoTopMenuItem.miMonoDissect.Visible=false      
-      miMonoTopMenuItem.miDotNetSeperator.Visible=false
-    else
-      miMonoTopMenuItem.Caption=translate("Mono/.Net")     
+    
+    if miMonoTopMenuItem then
+      miMonoTopMenuItem.miMonoActivate.Visible=true
+      miMonoTopMenuItem.miMonoDissect.Visible=true
+      miMonoTopMenuItem.miDotNetSeperator.Visible=true
+        
+      if usesmono and not usesdotnet then
+        miMonoTopMenuItem.Caption=translate("Mono")
+      elseif usesdotnet and not usesmono then  
+        miMonoTopMenuItem.Caption=translate(".Net")
+        miMonoTopMenuItem.miMonoActivate.Visible=false
+        miMonoTopMenuItem.miMonoDissect.Visible=false      
+        miMonoTopMenuItem.miDotNetSeperator.Visible=false
+      else
+        miMonoTopMenuItem.Caption=translate("Mono/.Net")     
+      end
     end
 
     
@@ -3706,7 +3767,9 @@ function mono_OpenProcessMT()
     end    
   end
   
-  mono_setMonoMenuItem(usesmono, usesdotnet)
+  synchronize(function()
+    mono_setMonoMenuItem(usesmono, usesdotnet)
+  end)
   
   if (usesmono==false) and (getOperatingSystem()==1) and (thread_checkifmonoanyhow==nil) then
     thread_checkifmonoanyhow=createThread(mono_checkifmonoanyhow)
@@ -3715,29 +3778,31 @@ function mono_OpenProcessMT()
 
   if (monopipe~=nil) and (monopipe.ProcessID~=getOpenedProcessID()) then
     --different process
-    monopipe.destroy()
-    monopipe=nil
+    synchronize(function()
+      monopipe.destroy()
+      monopipe=nil
 
-    if mono_AddressLookupID~=nil then
-      unregisterAddressLookupCallback(mono_AddressLookupID)
-      mono_AddressLookupID=nil
-    end
+      if mono_AddressLookupID~=nil then
+        unregisterAddressLookupCallback(mono_AddressLookupID)
+        mono_AddressLookupID=nil
+      end
 
 
-    if mono_SymbolLookupID~=nil then
-      unregisterSymbolLookupCallback(mono_SymbolLookupID)
-      mono_SymbolLookupID=nil
-    end
+      if mono_SymbolLookupID~=nil then
+        unregisterSymbolLookupCallback(mono_SymbolLookupID)
+        mono_SymbolLookupID=nil
+      end
 
-    if mono_StructureNameLookupID~=nil then
-      unregisterStructureNameLookup(mono_StructureNameLookupID)
-      mono_StructureNameLookupID=nil
-    end
+      if mono_StructureNameLookupID~=nil then
+        unregisterStructureNameLookup(mono_StructureNameLookupID)
+        mono_StructureNameLookupID=nil
+      end
 
-    if mono_StructureDissectOverrideID~=nil then
-      unregisterStructureDissectOverride(mono_StructureDissectOverrideID)
-      mono_StructureDissectOverrideID=nil
-    end
+      if mono_StructureDissectOverrideID~=nil then
+        unregisterStructureDissectOverride(mono_StructureDissectOverrideID)
+        mono_StructureDissectOverrideID=nil
+      end
+    end)
   end
 
 end
@@ -3747,8 +3812,18 @@ function mono_OnProcessOpened(processid, processhandle, caption)
   if mono_OldOnProcessOpened~=nil then
     mono_OldOnProcessOpened(processid, processhandle, caption)
   end
+  
+  if mono_OpenProcessMTThread==nil then --don't bother if it exists
+    mono_OpenProcessMTThread=createThread(function(t)       
+      t.Name='mono_OpenProcessMT'
+      --print("mono_OpenProcessMTThread")
+      mono_OpenProcessMT(t)
+      mono_OpenProcessMTThread=nil
+      --print("mono_OpenProcessMTThread finished")
+    end)  
+  end
 
-  mono_OpenProcessMT()
+  
 end
 
 function monoAA_USEMONO(parameters, syntaxcheckonly)
@@ -4652,6 +4727,8 @@ end
 
 function mono_initialize()
   --register a function to be called when a process is opened
+  monoSettings=getSettings("MonoExtension")  
+  
   if (mono_init1==nil) then
     mono_init1=true
     mono_OldOnProcessOpened=MainForm.OnProcessOpened

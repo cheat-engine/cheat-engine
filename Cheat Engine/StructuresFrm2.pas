@@ -5,6 +5,8 @@ unit StructuresFrm2;
 
 interface
 
+
+
 uses
   {$ifdef darwin}
   macport,
@@ -43,6 +45,9 @@ type
     fchildstruct: TDissectedStruct;
     fchildstructstart: integer; //offset into the childstruct where this pointer starts. Always 0 for local structs, can be higher than 0 for other defined structs
     fExpandChangesAddress: boolean;
+    {$ifdef NESTEDSTRUCTURES}
+    fNestedStructure: boolean; //when set it's not a real pointer
+    {$endif}
   public
     delayLoadedStructname: string;
     constructor createFromXMLElement(parent:TDissectedStruct; element: TDOMElement);
@@ -67,6 +72,10 @@ type
     procedure setvalue(address: ptruint; value: string);
     function getValueFromBase(baseaddress: ptruint): string;
     procedure setValueFromBase(baseaddress: ptruint; value: string);
+    {$ifdef NESTEDSTRUCTURES}
+    procedure setNestedStructure(state: boolean);
+    function getNestedStructure: boolean;
+    {$endif}
     function isPointer: boolean;
     function getChildStruct: TDissectedStruct;
     procedure setChildStruct(newChildStruct: TDissectedStruct);
@@ -91,6 +100,9 @@ type
     property index: integer read getIndex;
     property parent: TDissectedStruct read getParent;
     property ExpandChangesAddress: boolean read fExpandChangesAddress write fExpandChangesAddress;
+    {$ifdef NESTEDSTRUCTURES}
+    property NestedStructure: boolean read getNestedStructure write setNestedStructure;
+    {$endif}
   end;
 
 
@@ -534,6 +546,7 @@ type
       var AllowExpansion: Boolean);
   private
     { private declarations }
+    loadedPosition: boolean;
     fmainStruct: TDissectedStruct;
     fgroups: Tlist;
 
@@ -942,6 +955,8 @@ begin
   if self.CustomType<>nil then
     elementnode.SetAttribute('Customtype', self.CustomType.name);
 
+
+
   elementnode.SetAttribute('Bytesize', IntToStr(self.Bytesize));
   elementnode.SetAttribute('DisplayMethod', DisplaymethodToString(self.DisplayMethod));
 
@@ -958,6 +973,9 @@ begin
     begin
       //set childstruct as an attribute
       elementnode.SetAttribute('ChildStruct', utf8toansi(self.ChildStruct.Name));
+      if self.NestedStructure then
+        elementnode.SetAttribute('Nested','1');
+
     end
     else
     begin
@@ -1165,6 +1183,20 @@ begin
   setvalue(baseaddress+offset, value);
 end;
 
+{$ifdef NESTEDSTRUCTURES}
+procedure TStructelement.setNestedStructure(state: boolean);
+begin
+  fNestedStructure:=state;
+  parent.DoElementChangeNotification(self);
+end;
+
+function TStructelement.getNestedStructure: boolean;
+begin
+  result:=fNestedStructure and (vartype=vtPointer);
+end;
+
+{$endif}
+
 function TStructelement.isPointer: boolean;
 begin
   result:=vartype=vtPointer;
@@ -1297,6 +1329,9 @@ begin
       fchildstruct:=TDissectedStruct.createFromXMLNode(childnode)
     else
       delayLoadedStructname:=AnsiToUtf8(element.GetAttribute('ChildStruct'));
+
+
+    NestedStructure:=element.GetAttribute('Nested')='1';
   end;
 
 end;
@@ -1314,7 +1349,7 @@ begin
   structname:=newname;
   DoFullStructChangeNotification;
   if isInGlobalStructList then
-    CallGlobalStructureListUpdateNotifications();
+    CallGlobalStructureListUpdateNotifications(self);
 
 end;
 
@@ -3420,6 +3455,7 @@ begin
   setlength(x,3);
   if LoadFormPosition(self, x) then
   begin
+    loadedPosition:=true;
     if length(x)>0 then
     begin
       miShowAddresses.checked:=x[0]=1;
@@ -3448,6 +3484,14 @@ end;
 procedure TfrmStructures2.FormShow(Sender: TObject);
 begin
   HeaderControl1.Height:=canvas.TextHeight('XgjQh'+HeaderControl1.Sections[0].Text)+4;
+  if loadedPosition=false then
+  begin
+    HeaderControl1.Sections[0].Width:=canvas.textWidth('Offset - Description      ');
+    Width:=5*HeaderControl1.Sections[0].Width;
+    position:=poDesigned;
+    position:=poScreenCenter;
+  end;
+
   if (initialaddress<>0) and (columnCount=0) then  //add the initial address, else it looks so sad...
   begin
     addColumn;
@@ -3462,6 +3506,9 @@ begin
 
   if (frmStructuresConfig<>nil) and (frmStructuresConfig.customfont) then
     tvStructureView.font.Assign(frmStructuresConfig.GroupBox1.Font);
+
+
+
 end;
 
 
@@ -3599,6 +3646,20 @@ begin
     else
       displacement:=0;
 
+    {$ifdef NESTEDSTRUCTURES}
+    if parentelement.NestedStructure then
+    begin
+      n:=getStructElementFromNode(node);
+      if n<>nil then
+        inc(baseaddress,n.Offset);
+
+      node:=prevnode;
+      continue;
+    end;
+    {$endif}
+
+
+
     n:=getStructElementFromNode(node);
     if n=nil then
     begin
@@ -3612,6 +3673,10 @@ begin
 
     node:=prevnode;
   end;
+
+  {$ifdef NESTEDSTRUCTURES}
+  setlength(offsetlist,i);
+  {$endif}
 
   //now at node.level=1
   //add the starting offset
@@ -4635,6 +4700,9 @@ begin
     childstruct:=structelement.childstruct;
     hexadecimal:=structelement.displayMethod=dtHexadecimal;
     signed:=structelement.displaymethod=dtSignedInteger;
+    {$ifdef NESTEDSTRUCTURES}
+    nested:=structelement.NestedStructure;
+    {$endif}
 
     ExpandChangesAddress:=structelement.ExpandChangesAddress;
 
@@ -4683,6 +4751,9 @@ begin
           begin
             structElement.vartype:=vartype;
             structElement.CustomType:=customtype;
+            {$ifdef NESTEDSTRUCTURES}
+            structelement.NestedStructure:=nested;
+            {$endif}
           end;
 
           if changedBytesize then
@@ -4793,6 +4864,10 @@ begin
           structElement.DisplayMethod:=dtSignedInteger
         else
           structElement.DisplayMethod:=dtUnsignedInteger; //default, but set anyhow
+
+        {$ifdef NESTEDSTRUCTURES}
+        structElement.NestedStructure:=nested;
+        {$endif}
 
         //set the selection to this entry
         if not asChild then

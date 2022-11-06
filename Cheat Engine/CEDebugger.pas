@@ -46,8 +46,8 @@ type TDebugBreakProcess = function(processhandle:THandle):boolean; stdcall;
 type TDebugActiveProcessStop= function(pid: dword):boolean; stdcall;
 type TDebugSetProcessKillOnExit=function(KillOnExit: boolean):boolean; stdcall;
 type TIsDebuggerPresent=function:boolean; stdcall;
-type TntSuspendProcess=function(ProcessID:Dword):DWORD; stdcall;
-type TntResumeProcess=function(ProcessID:Dword):DWORD; stdcall;
+type TntSuspendProcess=function(ProcessID:HANDLE):DWORD; stdcall;
+type TntResumeProcess=function(ProcessID:HANDLE):DWORD; stdcall;
 
 
 
@@ -236,7 +236,7 @@ begin
       try
         Debuggerthread:=TDebuggerThread.MyCreate2(processid);
       except
-        raise exception.Create(rsDebugError);
+        raise EDebuggerAttachException.Create(rsDebugError);
       end;
 
       result:=true;

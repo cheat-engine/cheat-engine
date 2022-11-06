@@ -8,7 +8,7 @@ interface
 uses
   {$ifdef windows}windows,{$endif}
   {$ifdef darwin}macport, dl,macportdefines, {$endif}
-  Classes, SysUtils, syncobjs, maps, Generics.Collections;
+  Classes, SysUtils, syncobjs, maps, math, Generics.Collections;
 
 
 type
@@ -155,6 +155,10 @@ type
     destructor destroy; override;
   end;
 
+  TOpenFileCallback=function(filename: pchar; openflag: integer): integer; stdcall;
+  TReadFileCallback=function(fileHandle: integer; destination: pointer; maxcharcount: integer):integer;  stdcall;
+  TCloseFileCallback=function(fileHandle: integer): integer;  stdcall;
+
   TTCC=class(TObject)
   private
     cs: TCriticalSection; static;
@@ -186,6 +190,7 @@ type
 
 
     add_symbol:function(s: PTCCState; name: pchar; val: pointer): integer; cdecl;
+    install_filehook: procedure (OpenFileCallBack: TOpenFileCallback; ReadFileCallback: TReadFileCallback; CloseFileCallback: TCloseFileCallback); cdecl;
 
     procedure setupCompileEnvironment(s: PTCCState; textlog: tstrings; targetself: boolean=false; nodebug: boolean=false);
     procedure parseStabData(s: PTCCState; symbols: Tstrings; sourcecodeinfo: TSourceCodeInfo; stringsources: tstrings=nil);
@@ -204,13 +209,21 @@ type
 {$endif}
   function tccself: TTCC;
 
+
+
   procedure tcc_addCIncludePath(path: string);
   procedure tcc_removeCIncludePath(path: string);
 
+  {$ifdef darwin}  //test
+  var
+    tccrosetta: TTCC; //for compiling in c code
+  {$endif}
+
+
 implementation
 
-uses forms,dialogs, StrUtils {$ifndef standalonetest}, symbolhandler, ProcessHandlerUnit,
-  newkernelhandler, CEFuncProc, sourcecodehandler{$endif};
+uses forms,dialogs, StrUtils, Contnrs {$ifndef standalonetest}, symbolhandler, ProcessHandlerUnit,
+  newkernelhandler, CEFuncProc, sourcecodehandler, MainUnit, globals{$endif};
 const
   TCC_RELOCATE_AUTO=pointer(1); //relocate
   TCC_OUTPUT_MEMORY  = 1; { output will be run in memory (default) }
@@ -226,6 +239,7 @@ var
   {$ifdef cpu64}
   tcc64: TTCC;
   {$endif}
+
 
   {$ifdef windows}
   tcc32_linux: TTCC;
@@ -1120,6 +1134,76 @@ begin
 end;
 
 
+type
+  TTC_OpenFileInfo=record
+   s: TMemoryStream;
+  end;
+
+var
+  TCC_OpenFiles: classes.TList;
+
+function TCC_OpenFileCallback(filename: pchar; openflag: integer): integer; stdcall;
+var
+  i,j: integer;
+  temp: TMemoryStream;
+
+  index: integer;
+begin
+  //7ce00000
+  //check if filename is in mainform.tablefiles
+  for i:=0 to mainform.LuaFiles.Count-1 do
+    if mainform.LuaFiles[i].name=filename then
+    begin
+      //mainform.LuaFiles;
+      temp:=TMemoryStream.Create;
+      temp.CopyFrom(mainform.LuaFiles[i].stream,0);
+      temp.position:=0;
+
+      index:=0;
+      for j:=0 to TCC_OpenFiles.Count-1 do
+        if TCC_OpenFiles[i]=nil then
+        begin
+          TCC_OpenFiles[i]:=temp;
+          exit($7ce00000+j);
+        end;
+
+      exit($7ce00000+TCC_OpenFiles.Add(temp));
+    end;
+
+  result:=-1;
+end;
+
+//TCC doesn't use seek for header files, so this is acceptable
+function TCC_ReadFileCallback(fileHandle: integer; destination: pointer; maxcharcount: integer):integer;  stdcall;
+var
+  s: tmemorystream;
+  i: integer;
+begin
+  i:=filehandle-$7ce00000;
+  if (i>=0) and (i<TCC_OpenFiles.count) then
+  begin
+    s:=tmemorystream(TCC_OpenFiles[i]);
+    i:=s.Read(destination^, min(maxcharcount, s.Size-s.Position));
+    exit(i);
+  end;
+  result:=-1;
+end;
+
+function TCC_CloseFileCallback(fileHandle: integer): integer;  stdcall;
+var
+  s: tmemorystream;
+  i: integer;
+begin
+  i:=filehandle-$7ce00000;
+  if (i>=0) and (i<TCC_OpenFiles.count) then
+  begin
+    s:=tmemorystream(TCC_OpenFiles[i]);
+    s.free;
+    TCC_OpenFiles[i]:=nil;
+    exit(0);
+  end;
+  result:=-1;
+end;
 
 constructor TTCC.create(target: TTCCTarget);
 var
@@ -1140,6 +1224,8 @@ begin
     x86_64:  module:=loadlibrary({$ifdef standalonetest}'D:\git\cheat-engine\Cheat Engine\bin\'+{$endif}'tcc64-64.dll');
     i386_sysv: module:=loadlibrary({$ifdef standalonetest}'D:\git\cheat-engine\Cheat Engine\bin\'+{$endif}'tcc64-32-linux.dll'); //32-bit linux abi code
     x86_64_sysv: module:=loadlibrary({$ifdef standalonetest}'D:\git\cheat-engine\Cheat Engine\bin\'+{$endif}'tcc64-64-linux.dll'); //64-bit linux
+    else
+      module:=0;
   end;
   {$endif}
   {$else}
@@ -1191,6 +1277,9 @@ begin
 
   pointer(get_stab):=GetProcAddress(module,'tcc_get_stab');
 
+  pointer(install_filehook):=GetProcAddress(module,'tcc_install_filehook');
+
+
 
   working:=(module<>0) and
            assigned(new) and
@@ -1199,7 +1288,13 @@ begin
            assigned(compile_string) and
            assigned(output_file) and
            assigned(delete) and
-           assigned(get_stab);
+           assigned(get_stab) and
+           assigned(install_filehook);
+
+  if working then
+  begin
+    install_filehook(@TCC_OpenFileCallBack, @TCC_ReadFileCallback, @TCC_CloseFileCallback);
+  end;
 end;
 
 procedure ErrorLogger(opaque: pointer; msg: pchar); cdecl;
@@ -1353,7 +1448,13 @@ begin
 
   if textlog<>nil then set_error_func(s,textlog,@ErrorLogger);
 
-  params:='-nostdlib Wl,-section-alignment=4';
+  if SystemSupportsWritableExecutableMemory then
+    params:='-nostdlib'
+  else
+    params:='-nostdlib -Wl,-section-alignment='{$ifdef windows}+'1000'{$else}+inttohex(getPageSize,1){$endif};
+
+
+
   if nodebug=false then
     params:='-g '+params;
 
@@ -1684,6 +1785,7 @@ end;
 
 function initTCCLib: boolean;
 begin
+  TCC_OpenFiles:=classes.tlist.create;
 {$ifdef windows}
   {$ifndef standalonetest}
   tcc32:=ttcc.create(i386);
@@ -1695,10 +1797,10 @@ begin
 {$else}
   if MacIsArm64 then
   begin
-     {$ifndef standalonetest}
     tcc32:=ttcc.create(aarch64);
-     {$endif}
     tcc64:=ttcc.create(aarch64);
+
+    tccrosetta:=ttcc.create(x86_64);
   end
   else
   begin

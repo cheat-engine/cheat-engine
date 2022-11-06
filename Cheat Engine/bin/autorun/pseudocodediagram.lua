@@ -1450,7 +1450,7 @@ mi.Caption=translate('Spawn diagram')
 mi.Shortcut='Ctrl+Shift+D'
 mi.ImageIndex=33
 mi.OnClick=MenuSpawnDiagram
-mv.debuggerpopup.Items.insert(mv.MenuItem2.MenuIndex+1, mi)
+mv.debuggerpopup.Items.insert(mv.miSelectCurrentFunction.MenuIndex+1, mi)
 
 
 registerFormAddNotification(function(f)

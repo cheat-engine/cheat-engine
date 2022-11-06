@@ -1,4 +1,86 @@
-$C remove/rename symbols that are obtained from linking
+
+network compression dialog is too small on high dpi
+network change reg on bp. also fp regs
+dbvm cloak: amd pageboundaries
+
+single hotkey keys sometimes stuck? sunbeam
+type isn't saved on headers...
+
+tracer: on load trace the "referenced address" field is gone (search does work)
+tracer search: keyboard focus should be on the input field
+
+structure spider freezes gui on generating stringmap
+structure spider dpi (editboxes are too small)
+
+
+implement {$nonops} so it rewrites the instruction to force the correct size and then reassembles from the start
+
+
+
+test nmi's in windows in dbvm
+
+mac: hexview: implement meta+v for pasting
+mac: all modules are seen as 32-bit on a aarch64 target
+mac: aarch64 disassembler (addresses/labels should use the symbolhander)
+
+aarch64: adrp disassembles wrong
+
+
+fontcolor in ultimap2 edit fields for seconds and filesize is wrong in dark mode
+
+check if the system uses 'efficient' cores and if so, do not force the scans to use those affinity
+
+luacode and ccode in macos (ccode likely uses windows calling convention)
+
+
+ultimap2 default view is too small for high dpi
+
+import list of instructions from "what accesses this" into ultimap
+
+
+frmregisters seems to have the wrong values
+autoassemble execute seems to do a full symbollist enum ?
+assembling in thuimbmode seems to not negate the extra bit
+thumb might not be correct
+
+add option for big endian pointer support
+
+
+tcc: not all code is debugable/visible(see script at https://pastebin.com/MZGaJ0Su )
+
+break and trace compare gives access violation  (unreprocducable)
+fix/rewrite thumb disAssembler
+
+
+{$luacode sync} parameter
+{$luacode newluastate} parameter
+
+luacode for mac
+luacode for ceserver (create a socket in the target which connects to ceserver, and ceserver connects to ce)
+
+lua editor AND aa editor: when inside a string, the {$asm} inside the string disables lua mode.  Boith the parser and AA need to deal with that
+
+add symbol path configuration
+structure spider: dpi fixes (default window size and base address edit fields)
+structure spider: doubleclick on column 2 value should make you go there
+
+mac/aarch64: show S registers (similar to xmm)
+mac:pointerscan sort by offset
+mac: memview/disassembler updates in a seperate thread and only render when done
+
+hexview: Select bytes->show disassembly (easy shortcut)
+
+vehdebug on tutorial-i386 fails (dll inject crashes tutorial)
+.net info: invoke method: String  (need to create a sting obnject from string)
+
+.net info: doubleclick on type of a field brings you to that type
+.net info: typing in the classes search should wait 250 ms before scanning fore the input.  (really improve smoothess in general)
+structure dissect : Nested structure
+
+Hexview typelink/colors
+
+autoassembler coloring fix
+
 enumsymbols lua command: add way to figure out duplicates
 
 ce debug and dbvm: changeregonbp , add option for 1 time only

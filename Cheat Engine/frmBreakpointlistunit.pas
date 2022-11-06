@@ -180,7 +180,6 @@ begin
 
     if dbvmbpinfo.virtualAddress<>0 then
     begin
-      memorybrowser.AddToDisassemblerBackList(pointer(memorybrowser.disassemblerview.SelectedAddress));
       try
         memorybrowser.disassemblerview.SelectedAddress:=dbvmbpinfo.virtualAddress
       except
@@ -202,7 +201,6 @@ begin
         if bp.breakpointTrigger=bptExecute then
         begin
           //show in disassembler
-          memorybrowser.AddToDisassemblerBackList(pointer(memorybrowser.disassemblerview.SelectedAddress));
           memorybrowser.disassemblerview.SelectedAddress:=address;
         end
         else

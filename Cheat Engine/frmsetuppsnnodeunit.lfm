@@ -12,7 +12,7 @@ object frmSetupPSNNode: TfrmSetupPSNNode
   OnCreate = FormCreate
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '1.6.0.4'
+  LCLVersion = '2.2.2.0'
   object cbMaxFoundResults: TCheckBox
     AnchorSideLeft.Control = cbConnectToOtherNode
     AnchorSideTop.Control = edtConnectIP
@@ -21,7 +21,7 @@ object frmSetupPSNNode: TfrmSetupPSNNode
     Height = 19
     Hint = 'This will terminate all the children and disconnect from the parent after having found at least the given amount of results'#13#10'It''s slightly innacurate as the check is only done every 10 seconds or so'#13#10#13#10'Note: This only has effect when there is at least one parent in the queue. Otherwise it''s not going to disconnect'
     Top = 285
-    Width = 265
+    Width = 266
     BorderSpacing.Top = 3
     BorderSpacing.Right = 3
     Caption = 'Stop scans after finding max amount of results'
@@ -488,7 +488,7 @@ object frmSetupPSNNode: TfrmSetupPSNNode
       Left = 0
       Height = 15
       Top = 0
-      Width = 68
+      Width = 67
       Caption = 'Threadcount'
       ParentColor = False
     end

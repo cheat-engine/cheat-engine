@@ -393,13 +393,14 @@ function javaInjectAgent()
         mov rdx,arg0
         mov r8,arg1
         mov r9,arg2
-
-        mov [rsp],cmd
-        mov [rsp+8],arg0
-        mov [rsp+10],arg1
-        mov [rsp+18],arg2
-        mov [rsp+20],pipename
-
+        mov rax,pipename
+                       
+        mov [rsp],rcx
+        mov [rsp+8],rdx
+        mov [rsp+10],r8
+        mov [rsp+18],r9
+        mov [rsp+20],rax
+        
         call jvm.JVM_EnqueueOperation
         mov [result],eax
 
@@ -2289,58 +2290,60 @@ function java_OpenProcessAfterwards()
       break
     end
   end
+  
+  synchronize(function()
+    if usesjava or java.settings.cbAlwaysShowMenu.Checked then
+      if (miJavaTopMenuItem==nil) then
+        local mfm=getMainForm().Menu
+        local mi
 
-  if usesjava or java.settings.cbAlwaysShowMenu.Checked then
-    if (miJavaTopMenuItem==nil) then
-      local mfm=getMainForm().Menu
-      local mi
-
-      miJavaTopMenuItem=createMenuItem(mfm)
-      miJavaTopMenuItem.Caption="Java"
-      mfm.Items.insert(mfm.Items.Count-1, miJavaTopMenuItem) --add it before help
+        miJavaTopMenuItem=createMenuItem(mfm)
+        miJavaTopMenuItem.Caption="Java"
+        mfm.Items.insert(mfm.Items.Count-1, miJavaTopMenuItem) --add it before help
 
 
-      mi=createMenuItem(miJavaTopMenuItem)
-      mi.Caption=translate("Activate java features")
-      mi.OnClick=miJavaActivateClick
-    mi.Enabled=usesjava
-    mi.Name="miActivate"
-    mi.Visible=false
-      miJavaTopMenuItem.Add(mi)
+        mi=createMenuItem(miJavaTopMenuItem)
+        mi.Caption=translate("Activate java features")
+        mi.OnClick=miJavaActivateClick
+        mi.Enabled=usesjava
+        mi.Name="miActivate"
+        mi.Visible=false
+        miJavaTopMenuItem.Add(mi)
 
-      mi=createMenuItem(miJavaTopMenuItem)
-      mi.Caption=translate("Dissect java classes")
-      mi.Shortcut="Ctrl+Alt+J"
-      mi.OnClick=miJavaDissectClick
-    mi.Enabled=usesjava
-    mi.Name="miDissectJavaClasses"
-      miJavaTopMenuItem.Add(mi)
+        mi=createMenuItem(miJavaTopMenuItem)
+        mi.Caption=translate("Dissect java classes")
+        mi.Shortcut="Ctrl+Alt+J"
+        mi.OnClick=miJavaDissectClick
+        mi.Enabled=usesjava
+        mi.Name="miDissectJavaClasses"
+        miJavaTopMenuItem.Add(mi)
 
-      mi=createMenuItem(miJavaTopMenuItem)
-      mi.Caption=translate("Java variable scan")
-      mi.Shortcut="Ctrl+Alt+S"
-      mi.OnClick=miJavaVariableScanClick
-    mi.Enabled=usesjava
-    mi.Name="miJavaVariableScan"
-      miJavaTopMenuItem.Add(mi)
+        mi=createMenuItem(miJavaTopMenuItem)
+        mi.Caption=translate("Java variable scan")
+        mi.Shortcut="Ctrl+Alt+S"
+        mi.OnClick=miJavaVariableScanClick
+        mi.Enabled=usesjava
+        mi.Name="miJavaVariableScan"
+        miJavaTopMenuItem.Add(mi)
 
-    mi=createMenuItem(miJavaTopMenuItem)
-      mi.Caption="-"
-    miJavaTopMenuItem.Add(mi)
+        mi=createMenuItem(miJavaTopMenuItem)
+        mi.Caption="-"
+        miJavaTopMenuItem.Add(mi)
 
-    mi=createMenuItem(miJavaTopMenuItem)
-      mi.Caption=translate("Debug child processes")
-      mi.OnClick=miJavaSetEnvironmentClick
-    mi.Enabled=getOpenedProcessID()~=0
-    mi.Name="miDebugChildren"
-      miJavaTopMenuItem.Add(mi)
-  else
-    miJavaTopMenuItem.miActivate.enabled=usesjava
-    miJavaTopMenuItem.miDissectJavaClasses.enabled=usesjava
-    miJavaTopMenuItem.miJavaVariableScan.enabled=usesjava
-    miJavaTopMenuItem.miDebugChildren=getOpenedProcessID()~=0
-  end
-  end
+        mi=createMenuItem(miJavaTopMenuItem)
+        mi.Caption=translate("Debug child processes")
+        mi.OnClick=miJavaSetEnvironmentClick
+        mi.Enabled=getOpenedProcessID()~=0
+        mi.Name="miDebugChildren"
+        miJavaTopMenuItem.Add(mi)
+      else
+        miJavaTopMenuItem.miActivate.enabled=usesjava
+        miJavaTopMenuItem.miDissectJavaClasses.enabled=usesjava
+        miJavaTopMenuItem.miJavaVariableScan.enabled=usesjava
+        miJavaTopMenuItem.miDebugChildren=getOpenedProcessID()~=0
+      end
+    end
+  end)
 end
 
 function java_OpenProcess(processid)
@@ -2348,7 +2351,16 @@ function java_OpenProcess(processid)
     java.oldOnOpenProcess(processid)
   end
 
-  synchronize(java_OpenProcessAfterwards) --call this function when the whole OpenProcess routine is done (next sync check)
+  if java_OpenProcessAfterwards_Thread==nil then
+    java_OpenProcessAfterwards_Thread=createThread(function(t)
+      t.Name='java_OpenProcessAfterwards'
+      --print("java_OpenProcessAfterwards")
+      java_OpenProcessAfterwards()
+      java_OpenProcessAfterwards_Thread=nil    
+      --print("java_OpenProcessAfterwards done")
+    end )
+  end
+    --call this function when the whole OpenProcess routine is done (next sync check)
 end
 
 function javaAA_USEJAVA(parameters, syntaxcheckonly)

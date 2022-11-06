@@ -5,16 +5,20 @@ unit networkInterfaceApi;
 interface
 
 uses
+  {$ifdef windows}
+  jwawindows, windows,
+  {$endif}
+  Classes, SysUtils, networkInterface, NewKernelHandler, CEFuncProc
   {$ifdef JNI}
-    Classes, SysUtils, networkinterface, unixporthelper, newkernelhandler;
+  ,unixporthelper, newkernelhandler;
   {$else}
   {$ifdef darwin}
-  mactypes, macport,
+  ,mactypes, macport, macportdefines, dialogs;
   {$endif}
   {$ifdef windows}
-  {jwawindows,} windows, dialogs,
+  ,dialogs;
   {$endif}
-  Classes, SysUtils, networkinterface, newkernelhandler, CEFuncProc;
+
   {$endif}
 
 
@@ -28,6 +32,8 @@ function NetworkReadProcessMemory(hProcess: THandle; lpBaseAddress, lpBuffer: Po
 function NetworkWriteProcessMemory(hProcess: THandle; const lpBaseAddress: Pointer; lpBuffer: Pointer; nSize: size_t; var lpNumberOfBytesWritten: ptruint): BOOL; stdcall;
 
 function NetworkVirtualQueryEx(hProcess: THandle; lpAddress: Pointer; var lpBuffer: TMemoryBasicInformation; dwLength: DWORD): DWORD; stdcall;
+function NetworkVirtualProtectEx(hProcess: THandle; lpAddress: Pointer; dwSize, flNewProtect: DWORD; var OldProtect: DWORD): BOOL; stdcall;
+
 function NetworkOpenProcess(dwDesiredAccess:DWORD; bInheritHandle:WINBOOL; dwProcessId:DWORD):HANDLE; stdcall;
 function NetworkCreateToolhelp32Snapshot(dwFlags, th32ProcessID: DWORD): HANDLE; stdcall;
 function NetworkProcess32First(hSnapshot: HANDLE; var lppe: PROCESSENTRY32): BOOL; stdcall;
@@ -45,7 +51,7 @@ function NetworkGetRegionInfo(hProcess: THandle; lpAddress: Pointer; var lpBuffe
 implementation
 
 {$ifndef jni}
-uses networkConfig;
+uses networkConfig, syncobjs2, plugin, controls;
 {$endif}
 
 resourcestring
@@ -57,11 +63,14 @@ threadvar connection: TCEConnection;
 
 var threadManagerIsHooked: boolean=false;
     oldendthread: TEndThreadHandler;
+    quitQuestionActive: boolean;
 
 function getConnection: TCEConnection;
+var s: string;
 begin
   //OutputDebugString('getConnection');
   result:=nil;
+  if quitQuestionActive then exit(nil);
 
   if {$ifndef jni}networkconfig.{$endif}host.s_addr<>0 then
   begin
@@ -71,11 +80,35 @@ begin
       OutputDebugString('connection=nil. creating');
       disconnect;
 
+
+
       connection:=TCEConnection.create;
       if connection.connected then
-        result:=connection
+      begin
+        result:=connection;
+
+        {$ifdef THREADNAMESUPPORT}
+        s:=getthreadname;
+        if s<>'' then
+          connection.setConnectionName(s);
+        {$endif}
+      end
       else
+      begin
+
+        if MainThreadID=GetCurrentThreadId then
+        begin
+          //ask to disconnect
+          quitQuestionActive:=true;
+          if MessageDlg('The ceserver seems to be gone. Stop trying to reconnect?', mtConfirmation,[mbyes,mbno],0)=mryes then
+            networkconfig.host.s_addr:=0;
+
+          quitQuestionActive:=false;
+
+        end;
+
         OutputDebugString('connection.connected=false');
+      end;
 
     end
     else
@@ -125,7 +158,7 @@ end;
 
 function NetworkProcess32First(hSnapshot: HANDLE; var lppe: PROCESSENTRY32): BOOL; stdcall;
 begin
-  OutputDebugString('NetworkProcess32First');
+ // OutputDebugString('NetworkProcess32First');
   if getConnection<>nil then
     result:=connection.Process32First(hSnapshot, lppe)
   else
@@ -144,6 +177,22 @@ function NetworkModule32First(hSnapshot: HANDLE; var lpme: MODULEENTRY32): BOOL;
 begin
   if getConnection<>nil then
     result:=connection.Module32First(hSnapshot, lpme)
+  else
+    result:=FALSE;
+end;
+
+function NetworkThread32Next(hSnapshot: HANDLE; var lpte: THREADENTRY32): BOOL; stdcall;
+begin
+  if getConnection<>nil then
+    result:=connection.Thread32Next(hSnapshot, lpte)
+  else
+    result:=FALSE;
+end;
+
+function NetworkThread32First(hSnapshot: HANDLE; var lpte: THREADENTRY32): BOOL; stdcall;
+begin
+  if getConnection<>nil then
+    result:=connection.Thread32First(hSnapshot, lpte)
   else
     result:=FALSE;
 end;
@@ -298,18 +347,56 @@ end;
 
 function NetworkVirtualProtectEx(hProcess: THandle; lpAddress: Pointer; dwSize, flNewProtect: DWORD; var OldProtect: DWORD): BOOL; stdcall;
 begin
-  //for now don't bother with this
-  //todo: implement this someday
-  result:=true;
+  if getConnection<>nil then
+    result:=connection.VirtualProtectEx(hProcess, lpAddress, dwSize, flNewProtect, oldprotect)
+  else
+    result:=false;
 end;
+
+
+
+procedure ApplyNetworkAPIPointers;
+begin
+  newkernelhandler.OpenProcess:=@NetworkOpenProcess;
+  newkernelhandler.ReadProcessMemoryActual:=@NetworkReadProcessMemory;
+  newkernelhandler.WriteProcessMemoryActual:=@NetworkWriteProcessMemory;
+  newkernelhandler.VirtualProtectEx:=@NetworkVirtualProtectEx;
+  newkernelhandler.VirtualQueryExActual:=@NetworkVirtualQueryEx;
+  newkernelhandler.CreateToolhelp32Snapshot:=@NetworkCreateToolhelp32Snapshot;
+  newkernelhandler.Process32First:=@NetworkProcess32First;
+  newkernelhandler.Process32Next:=@NetworkProcess32Next;
+  newkernelhandler.Module32First:=@NetworkModule32First;
+  newkernelhandler.Module32Next:=@NetworkModule32Next;
+  newkernelhandler.Thread32First:=@NetworkThread32First;
+  newkernelhandler.Thread32Next:=@NetworkThread32Next;
+  newkernelhandler.closehandle:=@networkclosehandle;
+
+  newkernelhandler.VirtualAllocEx:=@networkVirtualAllocEx;
+  newkernelhandler.VirtualFreeEx:=@networkVirtualFreeEx;
+  newkernelhandler.CreateRemoteThread:=@networkCreateRemoteThread;
+
+  newkernelhandler.GetRegionInfo:=@NetworkGetRegionInfo;
+
+
+
+  newkernelhandler.VirtualQueryEx_StartCache:=@NetworkVirtualQueryEx_StartCache;
+  newkernelhandler.VirtualQueryEx_EndCache:=@NetworkVirtualQueryEx_EndCache;
+end;
+
+var oldApiPointerChange: TNotifyEvent;
+procedure NetworkApiPointerChange(sender: TObject);
+begin
+  ApplyNetworkAPIPointers;
+end;
+
 
 procedure InitializeNetworkInterface;
 var tm: TThreadManager;
     versionname: string;
+
+    m: TMethod;
 begin
   //hook the threadmanager if it hasn't been hooked yet
-
-  {$ifdef windows}
 
   OutputDebugString('InitializeNetworkInterface');
 
@@ -334,29 +421,13 @@ begin
     threadManagerIsHooked:=true;
   end;
 
-  newkernelhandler.OpenProcess:=@NetworkOpenProcess;
-  newkernelhandler.ReadProcessMemoryActual:=@NetworkReadProcessMemory;
-  newkernelhandler.WriteProcessMemoryActual:=@NetworkWriteProcessMemory;
-  newkernelhandler.VirtualProtectEx:=@NetworkVirtualProtectEx;
-  newkernelhandler.VirtualQueryExActual:=@NetworkVirtualQueryEx;
-  newkernelhandler.CreateToolhelp32Snapshot:=@NetworkCreateToolhelp32Snapshot;
-  newkernelhandler.Process32First:=@NetworkProcess32First;
-  newkernelhandler.Process32Next:=@NetworkProcess32Next;
-  newkernelhandler.Module32First:=@NetworkModule32First;
-  newkernelhandler.Module32Next:=@NetworkModule32Next;
-  newkernelhandler.closehandle:=@networkclosehandle;
 
-  newkernelhandler.VirtualAllocEx:=@networkVirtualAllocEx;
-  newkernelhandler.VirtualFreeEx:=@networkVirtualFreeEx;
-  newkernelhandler.CreateRemoteThread:=@networkCreateRemoteThread;
+  ApplyNetworkAPIPointers;
+  oldApiPointerChange:=onAPIPointerChange;
 
-  newkernelhandler.GetRegionInfo:=@NetworkGetRegionInfo;
-
-
-
-  newkernelhandler.VirtualQueryEx_StartCache:=@NetworkVirtualQueryEx_StartCache;
-  newkernelhandler.VirtualQueryEx_EndCache:=@NetworkVirtualQueryEx_EndCache;
-   {$endif}
+  m.Code:=@NetworkApiPointerChange;
+  m.Data:=nil;
+  onAPIPointerChange:=tnotifyevent(m);
 
 end;
 

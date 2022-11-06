@@ -1,7 +1,7 @@
 object FoundCodeDialog: TFoundCodeDialog
-  Left = 985
+  Left = 1254
   Height = 399
-  Top = 287
+  Top = 428
   Width = 430
   BorderIcons = [biSystemMenu]
   Caption = 'The following opcodes changed the selected address'
@@ -13,46 +13,47 @@ object FoundCodeDialog: TFoundCodeDialog
   OnDestroy = FormDestroy
   OnShow = FormShow
   Position = poOwnerFormCenter
-  LCLVersion = '2.2.0.4'
+  LCLVersion = '2.2.2.0'
   object Panel1: TPanel
-    Left = 288
+    Left = 294
     Height = 398
     Top = 0
-    Width = 142
+    Width = 136
     Align = alRight
     AutoSize = True
     BevelOuter = bvNone
     ClientHeight = 398
-    ClientWidth = 142
+    ClientWidth = 136
     TabOrder = 0
     object Description: TLabel
       Left = 0
       Height = 218
       Top = 140
-      Width = 142
+      Width = 136
       Align = alClient
       Alignment = taCenter
       AutoSize = False
       Caption = 'example'
+      ParentColor = False
       WordWrap = True
     end
     object Panel2: TPanel
       Left = 0
       Height = 40
       Top = 358
-      Width = 142
+      Width = 136
       Align = alBottom
       AutoSize = True
       BevelOuter = bvNone
       ClientHeight = 40
-      ClientWidth = 142
+      ClientWidth = 136
       ParentFont = False
       TabOrder = 0
       object btnOK: TButton
         AnchorSideLeft.Control = Panel2
         AnchorSideLeft.Side = asrCenter
         AnchorSideTop.Control = Panel2
-        Left = 34
+        Left = 31
         Height = 30
         Top = 5
         Width = 75
@@ -73,12 +74,12 @@ object FoundCodeDialog: TFoundCodeDialog
       Left = 0
       Height = 140
       Top = 0
-      Width = 142
+      Width = 136
       Align = alTop
       AutoSize = True
       BevelOuter = bvNone
       ClientHeight = 140
-      ClientWidth = 142
+      ClientWidth = 136
       ParentFont = False
       TabOrder = 1
       object btnExtraInfo: TButton
@@ -91,7 +92,7 @@ object FoundCodeDialog: TFoundCodeDialog
         Height = 30
         Hint = 'Shows more information about the state of the system when that instruction got executed'
         Top = 110
-        Width = 132
+        Width = 126
         Anchors = [akTop, akLeft, akRight]
         AutoSize = True
         BorderSpacing.Left = 5
@@ -117,7 +118,7 @@ object FoundCodeDialog: TFoundCodeDialog
         Height = 30
         Hint = 'The selected addresses will be added to the code list in the advanced options window.'
         Top = 75
-        Width = 132
+        Width = 126
         Anchors = [akTop, akLeft, akRight]
         AutoSize = True
         BorderSpacing.Left = 5
@@ -143,7 +144,7 @@ object FoundCodeDialog: TFoundCodeDialog
         Height = 30
         Hint = 'This will open the memoryview and bring the disassemblerview to the selected address'
         Top = 40
-        Width = 132
+        Width = 126
         Anchors = [akTop, akLeft, akRight]
         AutoSize = True
         BorderSpacing.Left = 5
@@ -168,7 +169,7 @@ object FoundCodeDialog: TFoundCodeDialog
         Height = 30
         Hint = 'This will replace the selected addresses with code that does nothing. (Nops)'
         Top = 5
-        Width = 132
+        Width = 126
         Anchors = [akTop, akLeft, akRight]
         AutoSize = True
         BorderSpacing.Left = 5
@@ -190,28 +191,27 @@ object FoundCodeDialog: TFoundCodeDialog
     Left = 0
     Height = 398
     Top = 0
-    Width = 288
+    Width = 294
     Align = alClient
     BevelOuter = bvNone
     ClientHeight = 398
-    ClientWidth = 288
+    ClientWidth = 294
     TabOrder = 1
     object FoundCodeList: TListView
       Left = 0
       Height = 236
       Top = 0
-      Width = 288
+      Width = 294
       Align = alClient
       AutoWidthLastColumn = True
       Columns = <      
         item
           Caption = 'Count'
           MinWidth = 40
-          Width = 40
         end      
         item
           Caption = 'Instruction'
-          Width = 269
+          Width = 250
         end>
       HideSelection = False
       MultiSelect = True
@@ -230,7 +230,7 @@ object FoundCodeDialog: TFoundCodeDialog
       Left = 0
       Height = 157
       Top = 241
-      Width = 288
+      Width = 294
       Align = alBottom
       ParentColor = True
       ReadOnly = True
@@ -243,7 +243,7 @@ object FoundCodeDialog: TFoundCodeDialog
       Left = 0
       Height = 5
       Top = 236
-      Width = 288
+      Width = 294
       Align = alBottom
       ResizeAnchor = akBottom
     end
@@ -254,6 +254,7 @@ object FoundCodeDialog: TFoundCodeDialog
     Top = 398
     Width = 430
     Align = alBottom
+    ParentColor = False
     Visible = False
   end
   object pmOptions: TPopupMenu

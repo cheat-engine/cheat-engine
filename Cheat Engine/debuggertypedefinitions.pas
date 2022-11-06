@@ -37,7 +37,7 @@ type
   TBreakpointMethod = (bpmInt3=0, bpmDebugRegister=1, bpmException=2, bpmDBVM=3, bpmDBVMNative=4);
 
 type
-  TBreakOption = (bo_Break = 0, bo_ChangeRegister = 1, bo_FindCode = 2, bo_FindWhatCodeAccesses = 3, bo_BreakAndTrace=4, bo_OnBreakpoint=5);
+  TBreakOption = (bo_Break = 0, bo_ChangeRegister = 1, bo_FindCode = 2, bo_FindWhatCodeAccesses = 3, bo_BreakAndTrace=4, bo_OnBreakpoint=5, bo_ChangeRegisterEx = 6);
   TBreakPointAction = TBreakOption;
 
 type
@@ -211,7 +211,7 @@ type
     new_XMM15: TXMMFIELDS;
 
     //for gui purposes only:
-    usesDouble: WORD; //each bit specifies an xmm field what weas edited using a double specifier
+    usesDouble: WORD; //each bit specifies an xmm field what was edited using a double specifier
 
   end;
 
@@ -231,6 +231,15 @@ type
 type
   PRegisterModificationBP = PRegisterModificationBP32;
 {$endif}
+
+
+TRegisterModificationBPEx=record
+  address: ptruint;
+  mask: pointer; //same size as the context. Bit 1 means it gets changed, else unchanged
+  context: Pointer; //full context to set. Bits get set according to the bits in the contextmask (currentcontext.field=(currentcontext.field and (not mask.field)) or context.field
+end;
+
+PRegisterModificationBPEx = ^TRegisterModificationBPEx;
 
 
 

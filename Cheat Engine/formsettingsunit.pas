@@ -92,6 +92,12 @@ type
     cbDBVMDebugTriggerCOW: TCheckBox;
     cbDBVMDebugTargetedProcessOnly: TCheckBox;
     cbDBVMDebugKernelmodeBreaks: TCheckBox;
+    cbSaveMemoryregionScanSettings: TCheckBox;
+    cbSkipPDB: TCheckBox;
+    cbUseIntelPT: TCheckBox;
+    cbRecordIPTForFindWhatRoutines: TCheckBox;
+    cbIPTTraceSize: TComboBox;
+    cbHideIPTCapability: TCheckBox;
     combothreadpriority: TComboBox;
     defaultbuffer: TPopupMenu;
     Default1: TMenuItem;
@@ -124,6 +130,7 @@ type
     Label17: TLabel;
     Label20: TLabel;
     Label25: TLabel;
+    lblMaxIPTSize: TLabel;
     lblRepeatDelay: TLabel;
     lblCurrentLanguage: TLabel;
     Label18: TLabel;
@@ -245,8 +252,10 @@ type
     procedure cbKernelQueryMemoryRegionChange(Sender: TObject);
     procedure cbOverrideDefaultFontChange(Sender: TObject);
     procedure cbProcessWatcherChange(Sender: TObject);
+    procedure cbUseIntelPTChange(Sender: TObject);
     procedure cbWriteLoggingOnChange(Sender: TObject);
     procedure CheckBox1Change(Sender: TObject);
+    procedure cbRecordIPTForFindWhatRoutinesChange(Sender: TObject);
     procedure EditBufSizeKeyPress(Sender: TObject; var Key: Char);
     procedure Default1Click(Sender: TObject);
     procedure FormChangeBounds(Sender: TObject);
@@ -365,7 +374,8 @@ uses
   aboutunit, MainUnit, MainUnit2, frmExcludeHideUnit, ModuleSafetyUnit,
   frmProcessWatcherUnit, CustomTypeHandler, processlist, commonTypeDefs,
   frmEditHistoryUnit, Globals, fontSaveLoadRegistry, CETranslator,
-  MemoryBrowserFormUnit, DBK32functions, feces, UnexpectedExceptionsHelper;
+  MemoryBrowserFormUnit, DBK32functions, feces, UnexpectedExceptionsHelper,
+  cpuidUnit, DPIHelper;
 
 
 type TLanguageEntry=class
@@ -613,6 +623,20 @@ begin
         reg.WriteInteger('Freeze interval',freezeinterval);
         reg.writebool('Show values as signed',cbShowAsSigned.checked);
 
+        reg.WriteBool('Skip PDB', cbSkipPDB.checked);
+        skippdb:=cbSkipPDB.checked;
+
+        reg.WriteBool('Use Intel PT For Debug', cbUseIntelPT.Checked);
+        useintelptfordebug:=cbUseIntelPT.Checked;
+
+        reg.writebool('Hide IPT Capability', cbHideIPTCapability.checked);
+        hideiptcapability:=cbHideIPTCapability.checked;
+
+        reg.WriteBool('Log IPT buffers inside FindWhat results', cbRecordIPTForFindWhatRoutines.Checked);
+        inteliptlogfindwhatroutines:=cbRecordIPTForFindWhatRoutines.Checked;
+
+        reg.writeInteger('Max IPT Size', cbIPTTraceSize.ItemIndex);
+        maxiptconfigsize:=cbIPTTraceSize.ItemIndex;
 
         reg.WriteBool('Replace incomplete opcodes with NOPS',replacewithnops.checked);
         reg.WriteBool('Ask for replace with NOPS',askforreplacewithnops.checked);
@@ -658,6 +682,9 @@ begin
         reg.writebool('skip PAGE_NOCACHE',cbSkip_PAGE_NOCACHE.Checked);
         reg.writebool('skip PAGE_WRITECOMBINE',cbSkip_PAGE_WRITECOMBINE.Checked);
         reg.writebool('Pause when scanning on by default',cbPauseWhenScanningOnByDefault.Checked);
+        reg.writebool('Save memoryregion scansettings', cbSaveMemoryregionScanSettings.checked);
+
+
 
 
         reg.WriteInteger('Repeat Delay',repeatDelay);
@@ -1267,6 +1294,15 @@ begin
   cbProcessWatcherOpensHandles.enabled:=cbProcessWatcher.Checked;
 end;
 
+procedure TformSettings.cbUseIntelPTChange(Sender: TObject);
+begin
+  cbRecordIPTForFindWhatRoutines.visible:=cbUseIntelPT.checked;
+  lblMaxIPTSize.visible:=cbUseIntelPT.checked;
+  cbIPTTraceSize.visible:=cbUseIntelPT.checked;
+
+  cbHideIPTCapability.visible:=not cbUseIntelPT.checked;
+end;
+
 procedure TformSettings.cbWriteLoggingOnChange(Sender: TObject);
 begin
   label8.enabled:=cbWriteLoggingOn.checked;
@@ -1276,6 +1312,11 @@ end;
 procedure TformSettings.CheckBox1Change(Sender: TObject);
 begin
   PreventDebuggerDetection:=checkbox1.checked;
+end;
+
+procedure TformSettings.cbRecordIPTForFindWhatRoutinesChange(Sender: TObject);
+begin
+
 end;
 
 
@@ -1468,6 +1509,8 @@ begin
  // GroupBox2.top:=gbDebuggerInterface.top+gbDebuggerInterface.height+4;
 
   unexpectedExceptionHandlerChanged:=false;
+
+  DPIHelper.AdjustComboboxSize(cbIPTTraceSize,canvas);
 
 end;
 
@@ -1711,7 +1754,6 @@ var i: integer;
 
   KVAShadowInfo: dword;
   rl: DWORD;
-
 begin
   tvMenuSelection.Items[0].Data:=GeneralSettings;
   tvMenuSelection.Items[1].Data:=tsTools;
@@ -1848,7 +1890,16 @@ begin
       btnMakeKernelDebugPossible.visible:=true;
     end;
   end;
+
+
+
+  cbUseIntelPT.enabled:=systemSupportsIntelPT;
+  cbHideIPTCapability.visible:=systemSupportsIntelPT;
+  {$else}
+  cbUseIntelPT.visible:=false;
+  cbHideIPTCapability.visible:=false;
   {$endif}
+
 
   //check if it should be disabled
   reg:=tregistry.create;
@@ -1929,6 +1980,8 @@ begin
   {$else}
   cbUseMacDebugger.visible:=false;
   {$endif}
+
+  pcSetting.ActivePageIndex:=0;
 end;
 
 procedure TformSettings.cbKernelQueryMemoryRegionClick(Sender: TObject);

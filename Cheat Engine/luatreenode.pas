@@ -297,6 +297,26 @@ begin
   result:=0;
 end;
 
+function treenode_getImageIndex(L: PLua_State): integer; cdecl;
+var
+  treenode: Ttreenode;
+begin
+  treenode:=luaclass_getClassObject(L);
+  lua_pushinteger(L, treenode.ImageIndex);
+  result:=1;
+end;
+
+function treenode_setImageIndex(L: PLua_State): integer; cdecl;
+var
+  treenode: Ttreenode;
+begin
+  treenode:=luaclass_getClassObject(L);
+  if lua_gettop(L)>=1 then
+    treenode.ImageIndex:=lua_tointeger(L, 1);
+
+  result:=0;
+end;
+
 function treenode_add(L: PLua_State): integer; cdecl;
 var
   treenode: Ttreenode;
@@ -348,6 +368,7 @@ begin
   Luaclass_addPropertyToTable(L, metatable, userdata, 'Level', treenode_getLevel, nil);
   Luaclass_addPropertyToTable(L, metatable, userdata, 'Count', treenode_getCount, nil);
   Luaclass_addPropertyToTable(L, metatable, userdata, 'AbsoluteIndex', treenode_getAbsoluteIndex, nil);
+  Luaclass_addPropertyToTable(L, metatable, userdata, 'ImageIndex', treenode_getImageIndex, treenode_setImageIndex);
   Luaclass_addPropertyToTable(L, metatable, userdata, 'Selected', treenode_getSelected, treenode_setSelected);
   Luaclass_addPropertyToTable(L, metatable, userdata, 'MultiSelected', treenode_getMultiSelected, treenode_setMultiSelected);
   Luaclass_addPropertyToTable(L, metatable, userdata, 'Parent', treenode_getParent, nil);

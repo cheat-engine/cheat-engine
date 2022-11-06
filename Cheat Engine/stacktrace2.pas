@@ -59,98 +59,105 @@ var
   offsetstring: string;
   pref: char;
 begin
-  if processhandler.is64bit then
-    pref:='r'
-  else
-    pref:='e';
-
-  originalesp:=esp;
-  i:=esp mod processhandler.pointersize;
-  if i>0 then
+  if processhandler.SystemArchitecture=archX86 then
   begin
-    //unalligned
-    alignedstack:=stack+(processhandler.pointersize-i);
-    dec(sizeinbytes,processhandler.pointersize-i);
-    inc(esp,i);
-  end else alignedstack:=stack;
-
-  dec(sizeinbytes,sizeinbytes mod processhandler.pointersize); //so it's a full boundary
-
-  Entries:=sizeinbytes div processhandler.pointersize;
-
-  i:=0;
-  while i<entries do
-  begin
-    oldi:=i;
-
-    if referenceaddress=0 then
-      offsetstring:='('+pref+'sp+'+inttohex(esp-originalesp,1)+')'
-    else
-    begin
-      offset:=esp-referenceaddress;
-      if offset<0 then
-        offsetstring:='('+referencename+'-'+inttohex(-offset,1)+')'
-      else
-        offsetstring:='('+referencename+'+'+inttohex(offset,1)+')';
-    end;
-
-    address:=inttohex(esp,8)+' '+offsetstring;
-
-
     if processhandler.is64bit then
+      pref := 'r'
+    else
+      pref := 'e';
+
+    originalesp := esp;
+    i := esp mod processhandler.pointersize;
+    if i > 0 then
     begin
-      currentStackpos:=ptruint(@alignedstack64[i]);
-      value:=inttohex(alignedstack64[i],16);
-      currentStackValue:=ptruint(alignedstack64[i]);
+      //unalligned
+      alignedstack := stack + (processhandler.pointersize - i);
+      Dec(sizeinbytes, processhandler.pointersize - i);
+      Inc(esp, i);
     end
     else
+      alignedstack := stack;
+
+    Dec(sizeinbytes, sizeinbytes mod processhandler.pointersize);
+    //so it's a full boundary
+
+    Entries := sizeinbytes div processhandler.pointersize;
+
+    i := 0;
+    while i < entries do
     begin
-      currentStackpos:=ptruint(@alignedstack32[i]);
-      value:=inttohex(alignedstack32[i],8);
-      currentStackValue:=ptruint(alignedstack32[i]);
-    end;
+      oldi := i;
 
-
-
-
-
-    v:=vtdword;
-
-    //figure out what alignedstack[i] is.
-
-    if showmodulesonly then
-    begin
-      if symhandler.inModule(currentStackValue) and ((not nosystemmodules) or (not symhandler.inSystemModule(currentStackValue))) then
-        v:=vtPointer
+      if referenceaddress = 0 then
+        offsetstring := '(' + pref + 'sp+' + inttohex(esp - originalesp, 1) + ')'
       else
       begin
-        inc(i);
-        inc(esp, (i-oldi)*processhandler.pointersize);
-        continue; //skip
+        offset := esp - referenceaddress;
+        if offset < 0 then
+          offsetstring := '(' + referencename + '-' + inttohex(-offset, 1) + ')'
+        else
+          offsetstring := '(' + referencename + '+' + inttohex(offset, 1) + ')';
       end;
-    end
-    else
-      v:=FindTypeOfData(esp,pointer(currentstackpos),sizeinbytes-(i*processhandler.pointersize));
 
-    if v in [vtbyte..vtQword] then
-    begin
-      //override into pointersize type
+      address := inttohex(esp, 8) + ' ' + offsetstring;
+
+
       if processhandler.is64bit then
-        v:=vtQword
+      begin
+        currentStackpos := ptruint(@alignedstack64[i]);
+        Value := inttohex(alignedstack64[i], 16);
+        currentStackValue := ptruint(alignedstack64[i]);
+      end
       else
-        v:=vtDword;
+      begin
+        currentStackpos := ptruint(@alignedstack32[i]);
+        Value := inttohex(alignedstack32[i], 8);
+        currentStackValue := ptruint(alignedstack32[i]);
+      end;
+
+
+
+
+      v := vtdword;
+
+      //figure out what alignedstack[i] is.
+
+      if showmodulesonly then
+      begin
+        if symhandler.inModule(currentStackValue) and
+          ((not nosystemmodules) or (not symhandler.inSystemModule(currentStackValue))) then
+          v := vtPointer
+        else
+        begin
+          Inc(i);
+          Inc(esp, (i - oldi) * processhandler.pointersize);
+          continue; //skip
+        end;
+      end
+      else
+        v := FindTypeOfData(esp, pointer(currentstackpos), sizeinbytes -
+          (i * processhandler.pointersize));
+
+      if v in [vtbyte..vtQword] then
+      begin
+        //override into pointersize type
+        if processhandler.is64bit then
+          v := vtQword
+        else
+          v := vtDword;
+      end;
+
+      secondary := DataToString(@currentStackValue, processhandler.pointersize, v);
+      //optional: find the lengts of a string and increase i with the number of stack elements used in the string
+      Inc(i);
+
+
+      trace.AddObject(address + ' - ' + Value + ' - ' + secondary, pointer(esp));
+      if (maxdepth > 0) and (trace.Count >= maxdepth) then exit;
+
+      Inc(esp, (i - oldi) * processhandler.pointersize);
+
     end;
-
-    secondary:=DataToString(@currentStackValue,processhandler.pointersize, v);
-    //optional: find the lengts of a string and increase i with the number of stack elements used in the string
-    inc(i);
-
-
-    trace.AddObject(address+' - '+value+' - '+secondary, pointer(esp));
-    if (maxdepth>0) and (trace.Count>=maxdepth) then exit;
-
-    inc(esp, (i-oldi)*processhandler.pointersize);
-
   end;
 end;
 

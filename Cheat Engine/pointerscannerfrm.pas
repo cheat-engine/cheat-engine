@@ -1123,6 +1123,8 @@ begin
         setlength(staticscanner.mustendwithoffsetlist, frmpointerscannersettings.offsetlist.count);
         for i:=0 to frmpointerscannersettings.offsetlist.count-1 do
           staticscanner.mustendwithoffsetlist[i]:=TOffsetEntry(frmpointerscannersettings.offsetlist[i]).offset;
+
+        staticscanner.mustEndWithSpecificOffsetMaxDeviation:=frmpointerscannersettings.maxOffsetDeviation;
       end;
 
       staticscanner.instantrescan:=frmpointerscannersettings.cbCompareToOtherPointermaps.checked;
@@ -1413,13 +1415,13 @@ begin
 
 
        if messagedlg(rsPSExportToDatabaseBiggerSizeOrNot, mtConfirmation, [mbyes, mbno], 0) = mryes then
-        begin
-          sqlite3.ExecuteDirect('create table results(ptrid integer not null, resultid integer, offsetcount integer, moduleid integer, moduleoffset integer '+offsetlist+', primary key (ptrid, resultid) );');
-          sqlite3.ExecuteDirect('CREATE INDEX "ptr_res_id_idx" ON "results"( ptrid, resultid );');
-          sqlite3.ExecuteDirect('CREATE INDEX "modid_modoff_idx" ON "results"( moduleid, moduleoffset );');
-        end
-        else
-          sqlite3.ExecuteDirect('create table results(ptrid integer not null, resultid integer, offsetcount integer, moduleid integer, moduleoffset integer '+offsetlist+');');
+       begin
+         sqlite3.ExecuteDirect('create table results(ptrid integer not null, resultid integer, offsetcount integer, moduleid integer, moduleoffset bigint '+offsetlist+', primary key (ptrid, resultid) );');
+         sqlite3.ExecuteDirect('CREATE INDEX "ptr_res_id_idx" ON "results"( ptrid, resultid );');
+         sqlite3.ExecuteDirect('CREATE INDEX "modid_modoff_idx" ON "results"( moduleid, moduleoffset );');
+       end
+       else
+         sqlite3.ExecuteDirect('create table results(ptrid integer not null, resultid integer, offsetcount integer, moduleid integer, moduleoffset bigint '+offsetlist+');');
       end
       else
       begin

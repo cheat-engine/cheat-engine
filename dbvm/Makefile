@@ -1,6 +1,6 @@
 #SERIALPORT is the port to communicate with the debugger, usually 0x3f8, on db's system it's 0xef00
-#SERIALPORT=0 #release/no serialport build
-SERIALPORT=0 #bochs and jtagged gigabyte test system
+SERIALPORT=0 #release/no serialport build
+#SERIALPORT=0x3f8 #bochs and jtagged gigabyte test system
 #SERIALPORT=0xbf00 #intel
 #SERIALPORT=0xec00 #amd
 #SERIALPORT=0xd010 #16 core test system

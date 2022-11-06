@@ -15,7 +15,7 @@ object ProcessWindow: TProcessWindow
   OnDestroy = FormDestroy
   OnShow = FormShow
   Position = poMainFormCenter
-  LCLVersion = '2.2.0.4'
+  LCLVersion = '2.2.2.0'
   object Panel1: TPanel
     Left = 0
     Height = 102
@@ -140,9 +140,9 @@ object ProcessWindow: TProcessWindow
     Height = 300
     Top = 0
     Width = 285
-    ActivePage = tsProcesses
+    ActivePage = tsWindows
     Align = alClient
-    TabIndex = 1
+    TabIndex = 2
     TabOrder = 2
     OnChange = TabHeaderChange
     OnResize = TabHeaderResize
@@ -157,10 +157,12 @@ object ProcessWindow: TProcessWindow
     end
   end
   object ProcessList: TListBox
+    AnchorSideTop.Control = TabHeader
     Left = 8
-    Height = 208
+    Height = 256
     Top = 32
     Width = 267
+    Anchors = [akLeft]
     BorderStyle = bsNone
     ItemHeight = 0
     OnDblClick = OKButtonClick

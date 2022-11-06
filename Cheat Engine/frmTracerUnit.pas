@@ -120,6 +120,7 @@ type
     pmTracer: TPopupMenu;
     ProgressBar1: TProgressBar;
     SaveDialog1: TSaveDialog;
+    SaveDialogText: TSaveDialog;
     sbShowFloats: TSpeedButton;
     sbShowstack: TSpeedButton;
     sflabel: TLabel;
@@ -790,7 +791,7 @@ var
   pref: string;
 begin
   //save the results of the trace to disk
-  if savedialog1.Execute then
+  if SaveDialogText.Execute then
   begin
     z:=tstringlist.create;
     try
@@ -851,7 +852,7 @@ begin
         end;
       end;
 
-      z.SaveToFile(savedialog1.filename);
+      z.SaveToFile(SaveDialogText.filename);
     finally
       z.free;
     end;
@@ -951,7 +952,7 @@ begin
           {$ifdef cpu64}
           different:=CompareMem(@compareinfo.c.FltSave.XmmRegisters[0], @thisinfo.c.FltSave.XmmRegisters[0], xmmcount*sizeof(M128A));
           {$else}
-          different:=CompareMem(@compareinfo.c.ext.XMMRegisters.LegacyXMM[0], @thisinfo.c.ext.XMMRegisters.LegacyXMM[0], xmmcount*sizeof(TJclXMMRegister));
+          different:=CompareMem(@compareinfo.c.ext.XMMRegisters[0], @thisinfo.c.ext.XMMRegisters[0], xmmcount*sizeof(M128A));
           {$endif}
 
           if not different then
@@ -1570,6 +1571,9 @@ begin
     try
       f.ReadBuffer(temp, sizeof(temp));
       version:=temp;
+      if not (version in [0,1]) then
+        raise exception.create('Unsupported tracefile');
+
 
       f.readbuffer(temp, sizeof(temp));
 
@@ -1586,8 +1590,15 @@ begin
       if version<>{$ifdef cpu64}1{$else}0{$endif} then
         raise exception.create('This trace was made with the '+{$ifdef cpu64}'32'{$else}'64'{$endif}+'-bit version of '+strCheatEngine+'. You need to use that version to see the register values and stacktrace');
 
+      dereference:=false;
       for i:=0 to lvTracer.Items.Count-1 do
+      begin
         lvTracer.Items[i].Data:=TTraceDebugInfo.createFromStream(f);
+        if not dereference and (TTraceDebugInfo(lvTracer.Items[i].Data).bytesize>0) then
+          dereference:=true;
+      end;
+
+
 
       miOpenTraceForCompare.Enabled:=true;
       miOpenTraceForCompare.Visible:=true;
@@ -1885,7 +1896,7 @@ begin
             script[1]:='local referencedBytes='+bytesToLuaByteTableString(TTraceDebugInfo(lvTracer.Items[i].data).bytes, TTraceDebugInfo(lvTracer.Items[i].data).bytesize);
 
           if usesInstruction then
-            script[2]:='local instruction=[['+TTraceDebugInfo(lvTracer.Items[i].data).instruction+']]';
+            script[2]:='local instruction=[['+TTraceDebugInfo(lvTracer.Items[i].data).instruction+' ]]';
 
           if CheckIfConditionIsMetContext(0, c, script.text) then
           begin

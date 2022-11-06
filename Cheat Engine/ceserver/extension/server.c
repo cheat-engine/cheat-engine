@@ -18,7 +18,7 @@
 #include <stdlib.h>
 #include <dlfcn.h>
 #include <stdarg.h>
-#ifdef ANDROID
+#ifdef __ANDROID__
 #include <android/log.h>
 #endif
 
@@ -347,7 +347,7 @@ int DispatchCommand(int currentsocket, unsigned char command)
       struct {
         float speed;
       } params;
-#pragma pack()
+
 
       uint32_t result;
 
@@ -358,6 +358,28 @@ int DispatchCommand(int currentsocket, unsigned char command)
         result=speedhack_initializeSpeed(params.speed);
         sendall(currentsocket, &result, sizeof(result), 0);
       }
+      break;
+    }
+
+    case EXTCMD_CHANGEMEMORYPROTECTION:
+    {
+#pragma pack(1)
+      struct {
+        uint64_t address;
+        int size;
+        int newprotection;
+      } params;
+#pragma pack()
+
+      printf("EXTCMD_CHANGEMEMORYPROTECTION\n");
+
+      if (recvall(currentsocket, &params, sizeof(params), 0)>0)
+      {
+        uint32_t result;
+        result=mprotect((void*)params.address, params.size, params.newprotection);
+        sendall(currentsocket, &result, sizeof(result), 0);
+      }
+
       break;
     }
 

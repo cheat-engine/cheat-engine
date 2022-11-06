@@ -17,7 +17,7 @@
 #include "extensionfunctions.h"
 #include "api.h"
 
-//todo: Make all of these fail if the debugger is waiting to continue from a debug event
+//todo: Make all of these fail if the debugger is waiting to continue from a debug event (or perhaps the pipe server thread can keep running)
 
 int ext_speedhack_setSpeed(HANDLE hProcess, float speed)
 {
@@ -241,7 +241,55 @@ uint64_t ext_alloc(HANDLE hProcess, uint64_t preferedBase, int size)
     debug_log("Returned from extension with result %llx\n", result);
 
   }
+  return result;
+}
 
+int ext_changememoryprotection(HANDLE hProcess, uint64_t address, uint32_t size, uint32_t protection)
+{
+  uint32_t result=0;
+
+  debug_log("ext_changememoryprotection(%d, %llx, %x,%x)\n", hProcess, address, size, protection);
+
+  if (GetHandleType(hProcess) == htProcesHandle )
+  {
+    PProcessData p=(PProcessData)GetPointerFromHandle(hProcess);
+    if (p->hasLoadedExtension==FALSE)
+    {
+      debug_log("hasLoadedExtension == FALSE");
+      if (loadCEServerExtension(hProcess)==FALSE)
+      {
+        debug_log("Failure to load the extension\n");
+        return 0;
+      }
+    }
+
+#pragma pack(1)
+    struct {
+      uint8_t command;
+      uint64_t address;
+      uint32_t size;
+      uint32_t protection;
+    } changeProtectionCommand;
+#pragma pack()
+
+
+    changeProtectionCommand.command=EXTCMD_CHANGEMEMORYPROTECTION;
+    changeProtectionCommand.address=address;
+    changeProtectionCommand.size=size;
+    changeProtectionCommand.protection=protection;
+
+    pthread_mutex_lock(&p->extensionMutex);
+
+    if (sendall(p->extensionFD, &changeProtectionCommand, sizeof(changeProtectionCommand), 0)>0)
+      recvall(p->extensionFD, &result, sizeof(result), 0);
+
+    pthread_mutex_unlock(&p->extensionMutex);
+
+    debug_log("Returned from extension with result %llx\n", result);
+
+
+
+  }
 
   return result;
 }

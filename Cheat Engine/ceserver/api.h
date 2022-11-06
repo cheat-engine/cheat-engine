@@ -60,6 +60,30 @@ typedef struct
 
 } ProcessListEntry, *PProcessListEntry;
 
+typedef struct
+{
+  int ReferenceCount;
+  int processListIterator;
+  int processCount;
+  PProcessListEntry processList;
+} ProcessList, *PProcessList;
+
+typedef struct
+{
+  int ReferenceCount;
+  int moduleListIterator;
+  int moduleCount;
+  PModuleListEntry moduleList;
+} ModuleList, *PModuleList;
+
+typedef struct
+{
+  int ReferenceCount;
+  int threadListIterator;
+  int threadCount;
+  int *threadList;
+} ThreadList, *PThreadList;
+
 #pragma pack(1)
 
 typedef struct
@@ -153,6 +177,9 @@ typedef struct {
   pthread_mutex_t debugEventQueueMutex; //probably not necessary as all queue operations are all done in the debuggerthread of the process
 
   struct debugEventQueueHead debugEventQueue;
+
+  uintptr_t dlopen;
+  uintptr_t dlopencaller;
 } ProcessData, *PProcessData;
 
 
@@ -240,12 +267,14 @@ int RemoveBreakpoint(HANDLE hProcess, int tid, int debugreg, int wasWatchpoint);
 int SuspendThread(HANDLE hProcess, int tid);
 int ResumeThread(HANDLE hProcess, int tid);
 
-int GetThreadContext(HANDLE hProcess, int tid, PCONTEXT Context, int type);
-int SetThreadContext(HANDLE hProcess, int tid, PCONTEXT Context, int type);
+BOOL GetThreadContext(HANDLE hProcess, int tid, PCONTEXT Context);
+BOOL SetThreadContext(HANDLE hProcess, int tid, PCONTEXT Context);
 
 PDebugEvent FindThreadDebugEventInQueue(PProcessData p, int tid);
 void AddDebugEventToQueue(PProcessData p, PDebugEvent devent);
 int RemoveThreadDebugEventFromQueue(PProcessData p, int tid);
+
+int ptrace_attach_andwait(int pid);
 
 void initAPI();
 

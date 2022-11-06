@@ -13,7 +13,8 @@ object Comments: TComments
   OnDestroy = FormDestroy
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '2.0.6.0'
+  LCLVersion = '2.2.2.0'
+  Scaled = False
   object Panel1: TPanel
     Left = 0
     Height = 33

@@ -5,13 +5,13 @@ unit LuaCustomImageList;
 interface
 
 uses
-  Classes, SysUtils, Controls, lua, lualib, lauxlib, ImgList;
+  Classes, SysUtils, Controls, lua, lualib, lauxlib, ImgList, GraphType;
 
 procedure initializeLuaCustomImageList;
 
 implementation
 
-uses luahandler, luaclass, LuaComponent, LuaCaller, Graphics, Forms;
+uses luahandler, luaclass, LuaComponent, LuaCaller, Graphics, Forms, TypInfo;
 
 function createImageList(L: Plua_State): integer; cdecl;
 var il: TImageList;
@@ -34,6 +34,7 @@ var
   x,y: integer;
   index: integer;
 begin
+
   result:=0;
   c:=luaclass_getClassObject(L);
 
@@ -46,8 +47,39 @@ begin
 
     c.DrawForPPI(canvas,x,y,index,c.width,screen.PixelsPerInch,1);
   end;
-
 end;
+
+function customimagelist_getBitmap(L: PLua_State): integer; cdecl;
+var
+  c: TCustomImageList;
+  index: integer;
+  image: tcustombitmap;
+  effect: TGraphicsDrawEffect;
+begin
+
+  result:=0;
+  c:=luaclass_getClassObject(L);
+
+  if lua_gettop(L)>=2 then
+  begin
+    index:=lua_tointeger(L,1);
+    image:=lua_touserdata(L,2);
+
+    if lua_gettop(L)>=3 then
+    begin
+      if lua_isinteger(L,3) then
+        effect:=TGraphicsDrawEffect(lua_tointeger(L,3))
+      else
+        effect:=TGraphicsDrawEffect(GetEnumValue(typeinfo(TGraphicsDrawEffect),lua_ToString(L,3)));
+    end
+    else
+      effect:=gdeNormal;
+
+    c.GetBitmap(index, image, effect);
+  end;
+end;
+
+
 
 function customimagelist_add(L: PLua_State): integer; cdecl;
 var
@@ -88,6 +120,7 @@ begin
   component_addMetaData(L, metatable, userdata);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'add', customimagelist_add);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'draw', customimagelist_draw);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'getBitmap', customimagelist_getBitmap);
 
 
 

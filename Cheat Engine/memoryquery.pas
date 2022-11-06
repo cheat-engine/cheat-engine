@@ -25,7 +25,7 @@ function isExecutableAddress(address: ptrUint):boolean;
 
 implementation
 
-uses {$ifdef windows}networkInterface, networkInterfaceApi,{$endif} ProcessHandlerUnit;
+uses networkInterface, networkInterfaceApi, ProcessHandlerUnit;
 
 {$ifdef jni}
 var

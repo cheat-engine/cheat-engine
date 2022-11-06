@@ -11,7 +11,7 @@ procedure initializeLuaTreeview;
 
 implementation
 
-uses LuaHandler, ceguicomponents;
+uses LuaHandler, lauxlib, ceguicomponents;
 
 function createTreeView(L: Plua_State): integer; cdecl;
 var
@@ -94,9 +94,60 @@ var
 begin
   Treeview:=luaclass_getClassObject(L);
   if lua_gettop(L)=1 then
-    treeview.SaveToFile(Lua_ToString(L, 1));
+  begin
+    try
+      treeview.SaveToFile(Lua_ToString(L, 1));
+      result:=1;
+      lua_pushboolean(L,true);
+    except
+      on e:exception do
+      begin
+        result:=2;
+        lua_pushboolean(L,false);
+        lua_pushstring(L,e.Message);
+      end;
+    end;
+  end
+  else
+  begin
+    result:=2;
+    lua_pushnil(L);
+    lua_pushstring(L,rsIncorrectNumberOfParameters);
+  end;
+
 
   result:=0;
+end;
+
+function treeview_loadFromToFile(L: PLua_State): integer; cdecl;
+var
+  Treeview: TCETreeview;
+  fn: string;
+begin
+  Treeview:=luaclass_getClassObject(L);
+  if lua_gettop(L)=1 then
+  begin
+    try
+      treeview.LoadFromFile(Lua_ToString(L, 1));
+      result:=1;
+      lua_pushboolean(L,true);
+    except
+      on e:exception do
+      begin
+        result:=2;
+        lua_pushboolean(L,false);
+        lua_pushstring(L,e.Message);
+      end;
+    end;
+  end
+  else
+  begin
+    result:=2;
+    lua_pushnil(L);
+    lua_pushstring(L,rsIncorrectNumberOfParameters);
+  end;
+
+
 end;
 
 
@@ -113,7 +164,7 @@ begin
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'endUpdate', treeview_endUpdate);
 
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'saveToFile', treeview_saveToFile);
-
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'loadFromToFile', treeview_loadFromToFile);
 
 
   Luaclass_addPropertyToTable(L, metatable, userdata, 'Selected', treeview_getSelected, treeview_setSelected);

@@ -52,6 +52,7 @@ type
     procedure AddToNoBreakList(threadid: integer); virtual;
     procedure RemoveFromNoBreakList(threadid: integer); virtual;
 
+    function canUseIPT: boolean; virtual;
     function canReportExactDebugRegisterTrigger: boolean; virtual;
     function needsToAttach: boolean; virtual;
     function controlsTheThreadList: boolean; virtual;
@@ -64,23 +65,28 @@ type
     property maxSharedBreakpointCount: integer read fmaxSharedBreakpointCount;
 
     property debuggerAttachStatus: string read getCurrentDebugggerAttachStatus write setCurrentDebuggerAttachStatus; //threadsafe getter/setter for a string
-
 end;
 
 implementation
 
 function TDebuggerInterface.getCurrentDebugggerAttachStatus: string;
 begin
-  statusmrew.Beginread;
-  result:=status;
-  statusmrew.Endread;
+  if statusmrew<>nil then
+  begin
+    statusmrew.Beginread;
+    result:=status;
+    statusmrew.Endread;
+  end;
 end;
 
 procedure TDebuggerInterface.setCurrentDebuggerAttachStatus(newstatus: string);
 begin
-  statusmrew.Beginwrite;
-  status:=newstatus;
-  statusmrew.Endwrite;
+  if statusmrew<>nil then
+  begin
+    statusmrew.Beginwrite;
+    status:=newstatus;
+    statusmrew.Endwrite;
+  end;
 end;
 
 function TDebuggerInterface.SetThreadContext(hThread: THandle; const lpContext: TContext; isFrozenThread: Boolean=false): BOOL;
@@ -167,6 +173,11 @@ begin
   end;
 end;
 
+function TDebuggerInterface.canUseIPT: boolean;
+begin
+  result:=false;
+end;
+
 function TDebuggerInterface.canReportExactDebugRegisterTrigger: boolean;
 begin
   result:=true;
@@ -198,7 +209,7 @@ end;
 
 destructor TDebuggerInterface.destroy;
 begin
-  statusmrew.Free;
+  freeandnil(statusmrew);
 end;
 
 end.

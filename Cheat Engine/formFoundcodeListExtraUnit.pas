@@ -60,6 +60,7 @@ type
     pmEmpty: TPopupMenu;
     sbShowFloats: TSpeedButton;
     sbShowStack: TSpeedButton;
+    sbShowIPT: TSpeedButton;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure Button1Click(Sender: TObject);
     procedure Copyaddresstoclipboard1Click(Sender: TObject);
@@ -72,6 +73,7 @@ type
     procedure RegisterMouseDown(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
     procedure Panel6Resize(Sender: TObject);
+    procedure sbShowIPTClick(Sender: TObject);
     procedure sbShowStackClick(Sender: TObject);
     procedure sbShowFloatsClick(Sender: TObject);
   private
@@ -83,10 +85,15 @@ type
     procedure setprobably(address:ptrUint);
   public
     { Public declarations }
-    context: Context;
+    context: PContext;  //needs to free this on destroy
     stack: record
       savedsize: dword;
       stack: pbyte;
+    end;
+
+    ipt: record
+      log: pointer;
+      size: integer;
     end;
 
     lblR8: tlabel;
@@ -106,12 +113,13 @@ type
 
 implementation
 
-uses MemoryBrowserFormUnit;
+uses MemoryBrowserFormUnit, ProcessHandlerUnit, globals, debughelper,
+  DebuggerInterfaceAPIWrapper, IPTLogDisplay, disassembler;
 
 resourcestring
-  rsTheValueOfThePointerNeededToFindThisAddressIsProba = 'The value of the '
-    +'pointer needed to find this address is probably %s';
+  rsTheValueOfThePointerNeededToFindThisAddressIsProba = 'The value of the pointer needed to find this address is probably %s';
   rsProbableBasePointer = 'Probable base pointer =%s';
+  rsNeedsIPTFindWhat = 'The debugger did not collect any IPT data. This may be due to the Intel PT feature not being enabled in settings/malfunctioning, or that the option to also log the trace in "find what..." results was disabled. Do you wish to enable this for this debugging session? You will need to recollect this information again though.'#13#10'(This is for this session only. If you wish to always turn it on from the start, go to settings->debugger options, and enable "Use Intel-PT feature" and the suboption for recording elements in "find what ..." routines)';
 
 procedure TFormFoundCodeListExtra.setprobably(address: ptrUint);
 begin
@@ -172,6 +180,8 @@ begin
 
   Font.Color:=clWindowtext;
   setFontColor(self, clWindowtext);
+
+  sbShowIPT.visible:=systemSupportsIntelPT and not hideiptcapability and (CurrentDebuggerInterface<>nil) and CurrentDebuggerInterface.canUseIPT;
 end;
 
 procedure TFormFoundCodeListExtra.FormDestroy(Sender: TObject);
@@ -179,8 +189,17 @@ begin
   if stackview<>nil then
     stackview.free;
 
+  if stack.stack<>nil then
+    freememandnil(stack.stack);
+
   if fpp<>nil then
     fpp.Free;
+
+  if context<>nil then
+    freememandnil(context);
+
+  if ipt.log<>nil then
+    freememandnil(ipt.log);
 
   saveformposition(self);
 end;
@@ -256,45 +275,37 @@ begin
 end;
 
 procedure TFormFoundCodeListExtra.Panel6Resize(Sender: TObject);
-var maxrightwidth: integer;
 begin
-  {maxrightwidth:=lblRBP.width;
-  maxrightwidth:=max(maxrightwidth, lblRSP.Width);
-  maxrightwidth:=max(maxrightwidth, lblRIP.Width);
-  if lblR10<>nil then
+
+end;
+
+procedure TFormFoundCodeListExtra.sbShowIPTClick(Sender: TObject);
+var
+  f: TfrmIPTLogDisplay;
+begin
+  {$IFDEF WINDOWS}
+  if (ipt.log=nil) then
   begin
-    maxrightwidth:=max(maxrightwidth, lblR10.Width);
-    maxrightwidth:=max(maxrightwidth, lblR13.Width);
-  end;
-
-  lblRBP.Left:=(panel6.ClientWidth-sbShowFloats.width)-maxrightwidth-lblRAX.Left;
-  lblRSP.left:=lblRBP.left;
-  lblRIP.Left:=lblRBP.Left;
-
-  lblRDX.Left:=((panel6.ClientWidth-sbShowFloats.width) div 2)-(lblRDX.Width div 2);
-  lblRSI.left:=lblRDX.left;
-  lblRDI.Left:=lblRDX.left;
-
-  if lblR8<>nil then
+    if debuggerthread<>nil then
+    begin
+      if (useintelptfordebug=false) or (inteliptlogfindwhatroutines=false) then
+      begin
+        if messagedlg(rsNeedsIPTFindWhat, mtConfirmation, [mbyes,mbno],0)=mryes then
+        begin
+          useintelptfordebug:=true;
+          inteliptlogfindwhatroutines:=true;
+          debuggerthread.initIntelPTTracing;
+        end;
+      end;
+    end;
+  end
+  else
   begin
-    lblR9.left:=lblRDX.left;
-    lblR12.Left:=lblRDX.Left;
-    lblR15.Left:=lblRDX.Left;
-
-    lblR10.left:=lblRBP.left;
-    lblR13.left:=lblRBP.left;
+    f:=TfrmIPTLogDisplay.create(application);
+    f.show;
+    f.loadlog('log'+GetTickCount64.ToHexString, ipt.log, ipt.size, context^.{$ifdef cpu64}Rip{$else}Eip{$endif});
   end;
-
-
-  sbShowFloats.top:=lblRSP.Top+(lblRSP.height div 2)-(sbShowFloats.height);
-  sbShowFloats.Left:=panel6.ClientWidth-sbShowFloats.Width;
-
-  sbShowstack.top:=lblRSP.Top+(lblRSP.height div 2);
-  sbShowstack.left:=sbShowFloats.left;
-
-  label18.top:=panel6.clientheight-label18.height;
-
-         }
+  {$ENDIF}
 end;
 
 procedure TFormFoundCodeListExtra.sbShowStackClick(Sender: TObject);
@@ -304,7 +315,7 @@ begin
   if Stackview=nil then
     stackview:=TfrmStackView.create(self);
 
-  stackview.SetContextPointer(@context, stack.stack, stack.savedsize);
+  stackview.SetContextPointer(context, stack.stack, stack.savedsize);
   stackview.show;
 end;
 
@@ -315,7 +326,7 @@ begin
 
   fpp.Left:=self.left+self.Width;
   fpp.Top:=self.top;
-  fpp.SetContextPointer(@context);
+  fpp.SetContextPointer(context);
   fpp.show;//pop to foreground
 end;
 

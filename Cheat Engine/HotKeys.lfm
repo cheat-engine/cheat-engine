@@ -10,9 +10,10 @@ object HotKeyForm: THotKeyForm
   ClientWidth = 582
   OnClose = FormClose
   OnCreate = FormCreate
+  OnShortCut = FormShortCut
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '2.0.6.0'
+  LCLVersion = '2.2.2.0'
   object ListView1: TListView
     Left = 0
     Height = 154
@@ -64,14 +65,14 @@ object HotKeyForm: THotKeyForm
       Height = 192
       Top = 1
       Width = 580
-      ActivePage = TabSheet2
+      ActivePage = TabSheet1
       Align = alClient
       ShowTabs = False
-      TabIndex = 1
+      TabIndex = 0
       TabOrder = 0
       object TabSheet1: TTabSheet
         Caption = 'TabSheet1'
-        ClientHeight = 27
+        ClientHeight = 184
         ClientWidth = 572
         object btnCreateHotkey: TButton
           AnchorSideLeft.Control = TabSheet1

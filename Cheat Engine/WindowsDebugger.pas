@@ -24,6 +24,7 @@ type
     function GetThreadContext(hThread: THandle; var lpContext: TContext; isFrozenThread: Boolean=false): BOOL; override;
     function DebugActiveProcess(dwProcessId: DWORD): WINBOOL; override;
     function DebugActiveProcessStop(dwProcessID: DWORD): BOOL; override;
+    function canUseIPT: boolean; override;
     constructor create;
 end;
 
@@ -65,6 +66,11 @@ end;
 function TWindowsDebuggerInterface.GetThreadContext(hThread: THandle; var lpContext: TContext; isFrozenThread: Boolean=false):BOOL;
 begin
   result:=newkernelhandler.GetThreadContext(hThread, lpContext);
+end;
+
+function TWindowsDebuggerInterface.canUseIPT: boolean;
+begin
+  result:=true;
 end;
 
 function TWindowsDebuggerInterface.DebugActiveProcessStop(dwProcessID: DWORD): BOOL;

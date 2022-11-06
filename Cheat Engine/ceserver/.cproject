@@ -49,7 +49,11 @@
                                 								
                                 <option id="gnu.c.compiler.option.debugging.level.1301812182" name="Debug Level" superClass="gnu.c.compiler.option.debugging.level" useByScannerDiscovery="false" value="gnu.c.debugging.level.none" valueType="enumerated"/>
                                 								
-                                <option id="gnu.c.compiler.option.include.paths.825108510" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" useByScannerDiscovery="false"/>
+                                <option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="gnu.c.compiler.option.include.paths.825108510" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" useByScannerDiscovery="false" valueType="includePath">
+                                    									
+                                    <listOptionValue builtIn="false" value="/home/eric/Android/Sdk/ndk/23.0.7599858/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include"/>
+                                    								
+                                </option>
                                 								
                                 <option id="gnu.c.compiler.option.misc.pic.1736182303" name="Position Independent Code (-fPIC)" superClass="gnu.c.compiler.option.misc.pic" useByScannerDiscovery="false" value="false" valueType="boolean"/>
                                 								
@@ -58,10 +62,24 @@
                                 <option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="gnu.c.compiler.option.preprocessor.def.symbols.1177892417" name="Defined symbols (-D)" superClass="gnu.c.compiler.option.preprocessor.def.symbols" useByScannerDiscovery="false" valueType="definedSymbols">
                                     									
                                     <listOptionValue builtIn="false" value="__ANDROID__"/>
+                                    									
+                                    <listOptionValue builtIn="false" value="__arm__"/>
                                     								
                                 </option>
                                 								
                                 <option id="gnu.c.compiler.option.dialect.std.1396749573" name="Language standard" superClass="gnu.c.compiler.option.dialect.std" useByScannerDiscovery="true" value="gnu.c.compiler.dialect.default" valueType="enumerated"/>
+                                								
+                                <option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="gnu.c.compiler.option.preprocessor.undef.symbol.1512884152" name="Undefined symbols (-U)" superClass="gnu.c.compiler.option.preprocessor.undef.symbol" useByScannerDiscovery="false" valueType="undefDefinedSymbols">
+                                    									
+                                    <listOptionValue builtIn="false" value="__i386__"/>
+                                    									
+                                    <listOptionValue builtIn="false" value="__amd64"/>
+                                    									
+                                    <listOptionValue builtIn="false" value="__amd64__"/>
+                                    									
+                                    <listOptionValue builtIn="false" value="__x86_64__"/>
+                                    								
+                                </option>
                                 								
                                 <inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.1024009009" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
                                 							
@@ -173,9 +191,9 @@
                         						
                         <toolChain id="cdt.managedbuild.toolchain.gnu.cross.exe.release.1490235525" name="Cross GCC" superClass="cdt.managedbuild.toolchain.gnu.cross.exe.release">
                             							
-                            <option id="cdt.managedbuild.option.gnu.cross.prefix.1482855532" name="Prefix" superClass="cdt.managedbuild.option.gnu.cross.prefix" value="" valueType="string"/>
+                            <option id="cdt.managedbuild.option.gnu.cross.prefix.1482855532" name="Prefix" superClass="cdt.managedbuild.option.gnu.cross.prefix" useByScannerDiscovery="false" value="" valueType="string"/>
                             							
-                            <option id="cdt.managedbuild.option.gnu.cross.path.1314176749" name="Path" superClass="cdt.managedbuild.option.gnu.cross.path" value="" valueType="string"/>
+                            <option id="cdt.managedbuild.option.gnu.cross.path.1314176749" name="Path" superClass="cdt.managedbuild.option.gnu.cross.path" useByScannerDiscovery="false" value="" valueType="string"/>
                             							
                             <targetPlatform archList="all" binaryParser="org.eclipse.cdt.core.ELF" id="cdt.managedbuild.targetPlatform.gnu.cross.1815825168" isAbstract="false" osList="all" superClass="cdt.managedbuild.targetPlatform.gnu.cross"/>
                             							
@@ -194,6 +212,8 @@
                                     <listOptionValue builtIn="false" value="_FILE_OFFSET_BITS=64"/>
                                     								
                                 </option>
+                                								
+                                <option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="true" id="gnu.c.compiler.option.include.paths.886208412" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" useByScannerDiscovery="false" valueType="includePath"/>
                                 								
                                 <inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.1259443605" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
                                 							
@@ -223,7 +243,7 @@
                             							
                             <tool id="cdt.managedbuild.tool.gnu.cross.c.linker.2046030030" name="Cross GCC Linker" superClass="cdt.managedbuild.tool.gnu.cross.c.linker">
                                 								
-                                <option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="gnu.c.link.option.libs.1687438319" name="Libraries (-l)" superClass="gnu.c.link.option.libs" valueType="libs">
+                                <option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="gnu.c.link.option.libs.1687438319" name="Libraries (-l)" superClass="gnu.c.link.option.libs" useByScannerDiscovery="false" valueType="libs">
                                     									
                                     <listOptionValue builtIn="false" value="pthread"/>
                                     									
@@ -307,7 +327,7 @@
                             							
                             <targetPlatform archList="all" binaryParser="org.eclipse.cdt.core.ELF" id="cdt.managedbuild.target.gnu.platform.base.961414452" name="Debug Platform" osList="linux,hpux,aix,qnx" superClass="cdt.managedbuild.target.gnu.platform.base"/>
                             							
-                            <builder buildPath="${workspace_loc:/ceserver/Debug-linux}" enableAutoBuild="true" id="cdt.managedbuild.target.gnu.builder.base.251682825" keepEnvironmentInBuildfile="false" name="Gnu Make Builder" superClass="cdt.managedbuild.target.gnu.builder.base"/>
+                            <builder buildPath="${workspace_loc:/ceserver/Debug-linux}" enableAutoBuild="false" id="cdt.managedbuild.target.gnu.builder.base.251682825" keepEnvironmentInBuildfile="false" name="Gnu Make Builder" superClass="cdt.managedbuild.target.gnu.builder.base"/>
                             							
                             <tool id="cdt.managedbuild.tool.gnu.archiver.base.197361360" name="GCC Archiver" superClass="cdt.managedbuild.tool.gnu.archiver.base"/>
                             							
@@ -321,13 +341,13 @@
                                 							
                             </tool>
                             							
-                            <tool id="cdt.managedbuild.tool.gnu.c.compiler.base.602044684" name="GCC C Compiler" superClass="cdt.managedbuild.tool.gnu.c.compiler.base">
+                            <tool command="gcc" id="cdt.managedbuild.tool.gnu.c.compiler.base.602044684" name="GCC C Compiler" superClass="cdt.managedbuild.tool.gnu.c.compiler.base">
                                 								
                                 <option defaultValue="gnu.c.optimization.level.none" id="gnu.c.compiler.option.optimization.level.209163659" name="Optimization Level" superClass="gnu.c.compiler.option.optimization.level" useByScannerDiscovery="false" valueType="enumerated"/>
                                 								
                                 <option id="gnu.c.compiler.option.debugging.level.178672705" name="Debug Level" superClass="gnu.c.compiler.option.debugging.level" useByScannerDiscovery="false" value="gnu.c.debugging.level.max" valueType="enumerated"/>
                                 								
-                                <option id="gnu.c.compiler.option.include.paths.1097985025" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" useByScannerDiscovery="false"/>
+                                <option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="true" id="gnu.c.compiler.option.include.paths.1097985025" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" useByScannerDiscovery="false" valueType="includePath"/>
                                 								
                                 <option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="gnu.c.compiler.option.preprocessor.def.symbols.2099347540" name="Defined symbols (-D)" superClass="gnu.c.compiler.option.preprocessor.def.symbols" useByScannerDiscovery="false" valueType="definedSymbols">
                                     									
@@ -339,13 +359,15 @@
                                 								
                                 <option id="gnu.c.compiler.option.misc.other.1679974632" name="Other flags" superClass="gnu.c.compiler.option.misc.other" useByScannerDiscovery="false" value="-c -fmessage-length=0" valueType="string"/>
                                 								
+                                <option id="gnu.c.compiler.option.dialect.std.138249317" name="Language standard" superClass="gnu.c.compiler.option.dialect.std" useByScannerDiscovery="true" value="gnu.c.compiler.dialect.default" valueType="enumerated"/>
+                                								
                                 <inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.394686060" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
                                 							
                             </tool>
                             							
                             <tool id="cdt.managedbuild.tool.gnu.c.linker.base.387168824" name="GCC C Linker" superClass="cdt.managedbuild.tool.gnu.c.linker.base">
                                 								
-                                <option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="gnu.c.link.option.libs.1730912098" name="Libraries (-l)" superClass="gnu.c.link.option.libs" valueType="libs">
+                                <option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="gnu.c.link.option.libs.1730912098" name="Libraries (-l)" superClass="gnu.c.link.option.libs" useByScannerDiscovery="false" valueType="libs">
                                     									
                                     <listOptionValue builtIn="false" value="pthread"/>
                                     									
@@ -431,37 +453,51 @@
             			
             <storageModule moduleId="cdtBuildSystem" version="4.0.0">
                 				
-                <configuration artifactName="${ProjName}_x86" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe,org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.release" cleanCommand="rm -rf" description="Build for the x86 version of android" id="cdt.managedbuild.config.gnu.cross.exe.release.11823139.1148271886" name="Release-android-x86" parent="cdt.managedbuild.config.gnu.cross.exe.release" postannouncebuildStep="copy file to android device" postbuildStep="adb push ${BuildArtifactFilePrefix}${BuildArtifactFileName} /data/data/ceserver">
+                <configuration artifactName="${ProjName}_x86" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe,org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.release" cleanCommand="rm -rf" description="Build for the x86 version of android" id="cdt.managedbuild.config.gnu.cross.exe.release.11823139.1148271886" name="Release-android-x86" parent="cdt.managedbuild.config.gnu.cross.exe.release" postannouncebuildStep="copy file to android device" postbuildStep="cp ${BuildArtifactFilePrefix}${BuildArtifactFileName} /run/user/1000/gvfs/smb-share:server=dbwin10,share=cheat-engine/ceserver">
                     					
                     <folderInfo id="cdt.managedbuild.config.gnu.cross.exe.release.11823139.1148271886." name="/" resourcePath="">
                         						
                         <toolChain id="cdt.managedbuild.toolchain.gnu.cross.exe.release.1618613238" name="Cross GCC" resourceTypeBasedDiscovery="true" superClass="cdt.managedbuild.toolchain.gnu.cross.exe.release">
                             							
-                            <option id="cdt.managedbuild.option.gnu.cross.prefix.641693850" name="Prefix" superClass="cdt.managedbuild.option.gnu.cross.prefix" value="i686-linux-android-" valueType="string"/>
+                            <option id="cdt.managedbuild.option.gnu.cross.prefix.641693850" name="Prefix" superClass="cdt.managedbuild.option.gnu.cross.prefix" useByScannerDiscovery="false" value="" valueType="string"/>
                             							
-                            <option id="cdt.managedbuild.option.gnu.cross.path.1896981034" name="Path" superClass="cdt.managedbuild.option.gnu.cross.path" value="/android-build-x86/" valueType="string"/>
+                            <option id="cdt.managedbuild.option.gnu.cross.path.1896981034" name="Path" superClass="cdt.managedbuild.option.gnu.cross.path" useByScannerDiscovery="false" value="/home/eric/Android/Sdk/ndk/23.0.7599858/toolchains/llvm/prebuilt/linux-x86_64/bin" valueType="string"/>
                             							
                             <targetPlatform archList="all" binaryParser="org.eclipse.cdt.core.ELF" id="cdt.managedbuild.targetPlatform.gnu.cross.129762827" isAbstract="false" osList="all" superClass="cdt.managedbuild.targetPlatform.gnu.cross"/>
                             							
                             <builder buildPath="${workspace_loc:/ceserver/Release}" id="cdt.managedbuild.builder.gnu.cross.1001599900" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="Gnu Make Builder" superClass="cdt.managedbuild.builder.gnu.cross"/>
                             							
-                            <tool command="gcc" id="cdt.managedbuild.tool.gnu.cross.c.compiler.2036646207" name="Cross GCC Compiler" superClass="cdt.managedbuild.tool.gnu.cross.c.compiler">
+                            <tool command="clang" id="cdt.managedbuild.tool.gnu.cross.c.compiler.2036646207" name="Cross GCC Compiler" superClass="cdt.managedbuild.tool.gnu.cross.c.compiler">
                                 								
                                 <option defaultValue="gnu.c.optimization.level.most" id="gnu.c.compiler.option.optimization.level.2137766483" name="Optimization Level" superClass="gnu.c.compiler.option.optimization.level" useByScannerDiscovery="false" valueType="enumerated"/>
                                 								
                                 <option id="gnu.c.compiler.option.debugging.level.1269138294" name="Debug Level" superClass="gnu.c.compiler.option.debugging.level" useByScannerDiscovery="false" value="gnu.c.debugging.level.none" valueType="enumerated"/>
                                 								
-                                <option id="gnu.c.compiler.option.include.paths.766534707" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" useByScannerDiscovery="false"/>
+                                <option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="gnu.c.compiler.option.include.paths.766534707" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" useByScannerDiscovery="false" valueType="includePath">
+                                    									
+                                    <listOptionValue builtIn="false" value="/home/eric/Android/Sdk/ndk/23.0.7599858/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include"/>
+                                    								
+                                </option>
                                 								
                                 <option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="gnu.c.compiler.option.preprocessor.def.symbols.1251840866" name="Defined symbols (-D)" superClass="gnu.c.compiler.option.preprocessor.def.symbols" useByScannerDiscovery="false" valueType="definedSymbols">
                                     									
                                     <listOptionValue builtIn="false" value="__ANDROID__"/>
                                     									
-                                    <listOptionValue builtIn="false" value="HAS_LINUX_USER_H"/>
+                                    <listOptionValue builtIn="false" value="__i386__"/>
                                     								
                                 </option>
                                 								
-                                <option id="gnu.c.compiler.option.misc.other.1452516432" name="Other flags" superClass="gnu.c.compiler.option.misc.other" useByScannerDiscovery="false" value="-c -fmessage-length=0 -fPIE -pie" valueType="string"/>
+                                <option id="gnu.c.compiler.option.misc.other.1452516432" name="Other flags" superClass="gnu.c.compiler.option.misc.other" useByScannerDiscovery="false" value="-c -fmessage-length=0 -fPIE -pie --target=i686-linux-android31" valueType="string"/>
+                                								
+                                <option id="gnu.c.compiler.option.dialect.std.1730831145" name="Language standard" superClass="gnu.c.compiler.option.dialect.std" useByScannerDiscovery="true" value="gnu.c.compiler.dialect.default" valueType="enumerated"/>
+                                								
+                                <option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="gnu.c.compiler.option.preprocessor.undef.symbol.2061344980" name="Undefined symbols (-U)" superClass="gnu.c.compiler.option.preprocessor.undef.symbol" useByScannerDiscovery="false" valueType="undefDefinedSymbols">
+                                    									
+                                    <listOptionValue builtIn="false" value="__amd64__"/>
+                                    									
+                                    <listOptionValue builtIn="false" value="__x86_64__"/>
+                                    								
+                                </option>
                                 								
                                 <inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.1700230856" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
                                 							
@@ -489,15 +525,17 @@
                                 							
                             </tool>
                             							
-                            <tool command="gcc" id="cdt.managedbuild.tool.gnu.cross.c.linker.142940611" name="Cross GCC Linker" superClass="cdt.managedbuild.tool.gnu.cross.c.linker">
+                            <tool command="clang" id="cdt.managedbuild.tool.gnu.cross.c.linker.142940611" name="Cross GCC Linker" superClass="cdt.managedbuild.tool.gnu.cross.c.linker">
                                 								
-                                <option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="gnu.c.link.option.libs.423342558" name="Libraries (-l)" superClass="gnu.c.link.option.libs" valueType="libs">
+                                <option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="gnu.c.link.option.libs.423342558" name="Libraries (-l)" superClass="gnu.c.link.option.libs" useByScannerDiscovery="false" valueType="libs">
                                     									
                                     <listOptionValue builtIn="false" value="z"/>
+                                    									
+                                    <listOptionValue builtIn="false" value="log"/>
                                     								
                                 </option>
                                 								
-                                <option id="gnu.c.link.option.ldflags.2118933546" name="Linker flags" superClass="gnu.c.link.option.ldflags" value="-fPIE -pie" valueType="string"/>
+                                <option id="gnu.c.link.option.ldflags.2118933546" name="Linker flags" superClass="gnu.c.link.option.ldflags" useByScannerDiscovery="false" value="-fPIE -pie --target=i686-linux-android31" valueType="string"/>
                                 								
                                 <inputType id="cdt.managedbuild.tool.gnu.c.linker.input.1603516296" superClass="cdt.managedbuild.tool.gnu.c.linker.input">
                                     									
@@ -565,7 +603,7 @@
             			
             <storageModule moduleId="cdtBuildSystem" version="4.0.0">
                 				
-                <configuration artifactName="${ProjName}_arm64" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe,org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.release" cleanCommand="rm -rf" description="Build for the arm 64-bit  ceserver" id="cdt.managedbuild.config.gnu.cross.exe.release.11823139.1148271886.47384382" name="Release-android-arm64" parent="cdt.managedbuild.config.gnu.cross.exe.release" postannouncebuildStep="copy file to android device" postbuildStep="adb push ${BuildArtifactFilePrefix}${BuildArtifactFileName} /sdcard/ceserver/">
+                <configuration artifactName="${ProjName}_arm64" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe,org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.release" cleanCommand="rm -rf" description="Build for the arm 64-bit  ceserver" id="cdt.managedbuild.config.gnu.cross.exe.release.11823139.1148271886.47384382" name="Release-android-arm64" parent="cdt.managedbuild.config.gnu.cross.exe.release" postannouncebuildStep="copy file to android device" postbuildStep="pwd;adb push ${BuildArtifactFilePrefix}${BuildArtifactFileName} /sdcard/ceserver/">
                     					
                     <folderInfo id="cdt.managedbuild.config.gnu.cross.exe.release.11823139.1148271886.47384382." name="/" resourcePath="">
                         						
@@ -587,7 +625,7 @@
                                 								
                                 <option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="gnu.c.compiler.option.include.paths.1001753016" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" useByScannerDiscovery="false" valueType="includePath">
                                     									
-                                    <listOptionValue builtIn="false" value="/home/eric/Android/Sdk/ndk/23.0.7599858/toolchains/llvm/prebuilt/linux-x86_64/include"/>
+                                    <listOptionValue builtIn="false" value="/home/eric/Android/Sdk/ndk/23.0.7599858/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include"/>
                                     								
                                 </option>
                                 								
@@ -596,12 +634,22 @@
                                     <listOptionValue builtIn="false" value="__ANDROID__"/>
                                     									
                                     <listOptionValue builtIn="false" value="__arch64__"/>
+                                    									
+                                    <listOptionValue builtIn="false" value="__aarch64__"/>
                                     								
                                 </option>
                                 								
                                 <option id="gnu.c.compiler.option.misc.other.1572072581" name="Other flags" superClass="gnu.c.compiler.option.misc.other" useByScannerDiscovery="false" value="-c -fmessage-length=0 -fPIE -pie --target=aarch64-linux-android31" valueType="string"/>
                                 								
                                 <option id="gnu.c.compiler.option.dialect.std.406797195" name="Language standard" superClass="gnu.c.compiler.option.dialect.std" useByScannerDiscovery="true" value="gnu.c.compiler.dialect.default" valueType="enumerated"/>
+                                								
+                                <option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="gnu.c.compiler.option.preprocessor.undef.symbol.357989287" name="Undefined symbols (-U)" superClass="gnu.c.compiler.option.preprocessor.undef.symbol" useByScannerDiscovery="false" valueType="undefDefinedSymbols">
+                                    									
+                                    <listOptionValue builtIn="false" value="__i386__"/>
+                                    									
+                                    <listOptionValue builtIn="false" value="__x86_64__"/>
+                                    								
+                                </option>
                                 								
                                 <inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.1499192609" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
                                 							
@@ -713,33 +761,33 @@
                         						
                         <toolChain errorParsers="" id="cdt.managedbuild.toolchain.gnu.cross.exe.release.29063516" name="Cross GCC" resourceTypeBasedDiscovery="true" superClass="cdt.managedbuild.toolchain.gnu.cross.exe.release">
                             							
-                            <option id="cdt.managedbuild.option.gnu.cross.prefix.882743477" name="Prefix" superClass="cdt.managedbuild.option.gnu.cross.prefix" value="arm-linux-androideabi-" valueType="string"/>
+                            <option id="cdt.managedbuild.option.gnu.cross.prefix.882743477" name="Prefix" superClass="cdt.managedbuild.option.gnu.cross.prefix" useByScannerDiscovery="false" value="" valueType="string"/>
                             							
-                            <option id="cdt.managedbuild.option.gnu.cross.path.1855607791" name="Path" superClass="cdt.managedbuild.option.gnu.cross.path" value="/home/eric/Android/Sdk/ndk/23.0.7599858/toolchains/llvm/prebuilt/linux-x86_64/bin" valueType="string"/>
+                            <option id="cdt.managedbuild.option.gnu.cross.path.1855607791" name="Path" superClass="cdt.managedbuild.option.gnu.cross.path" useByScannerDiscovery="false" value="/home/eric/Android/Sdk/ndk/23.0.7599858/toolchains/llvm/prebuilt/linux-x86_64/bin" valueType="string"/>
                             							
                             <targetPlatform archList="all" binaryParser="org.eclipse.cdt.core.ELF" id="cdt.managedbuild.targetPlatform.gnu.cross.1663799491" isAbstract="false" osList="all" superClass="cdt.managedbuild.targetPlatform.gnu.cross"/>
                             							
                             <builder buildPath="${workspace_loc:/ceserver/Release}" errorParsers="org.eclipse.cdt.core.GmakeErrorParser;org.eclipse.cdt.core.CWDLocator" id="cdt.managedbuild.builder.gnu.cross.130969306" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="Gnu Make Builder" superClass="cdt.managedbuild.builder.gnu.cross"/>
                             							
-                            <tool command="gcc" commandLinePattern="${COMMAND} ${FLAGS} ${OUTPUT_FLAG} ${OUTPUT_PREFIX}${OUTPUT} ${INPUTS}" errorParsers="org.eclipse.cdt.core.GCCErrorParser" id="cdt.managedbuild.tool.gnu.cross.c.compiler.1239570434" name="Cross GCC Compiler" superClass="cdt.managedbuild.tool.gnu.cross.c.compiler">
+                            <tool command="clang" commandLinePattern="${COMMAND} ${FLAGS} ${OUTPUT_FLAG} ${OUTPUT_PREFIX}${OUTPUT} ${INPUTS}" errorParsers="org.eclipse.cdt.core.GCCErrorParser" id="cdt.managedbuild.tool.gnu.cross.c.compiler.1239570434" name="Cross GCC Compiler" superClass="cdt.managedbuild.tool.gnu.cross.c.compiler">
                                 								
                                 <option defaultValue="gnu.c.optimization.level.most" id="gnu.c.compiler.option.optimization.level.361256899" name="Optimization Level" superClass="gnu.c.compiler.option.optimization.level" useByScannerDiscovery="false" valueType="enumerated"/>
                                 								
                                 <option id="gnu.c.compiler.option.debugging.level.630824532" name="Debug Level" superClass="gnu.c.compiler.option.debugging.level" useByScannerDiscovery="false" value="gnu.c.debugging.level.none" valueType="enumerated"/>
                                 								
-                                <option id="gnu.c.compiler.option.include.paths.1141080095" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" useByScannerDiscovery="false"/>
+                                <option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="gnu.c.compiler.option.include.paths.1141080095" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" useByScannerDiscovery="false" valueType="includePath">
+                                    									
+                                    <listOptionValue builtIn="false" value="/home/eric/Android/Sdk/ndk/23.0.7599858/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include"/>
+                                    								
+                                </option>
                                 								
                                 <option id="gnu.c.compiler.option.misc.pic.1809056300" name="Position Independent Code (-fPIC)" superClass="gnu.c.compiler.option.misc.pic" useByScannerDiscovery="false" value="true" valueType="boolean"/>
                                 								
-                                <option id="gnu.c.compiler.option.misc.other.2099392182" name="Other flags" superClass="gnu.c.compiler.option.misc.other" useByScannerDiscovery="false" value="-c -fmessage-length=0" valueType="string"/>
+                                <option id="gnu.c.compiler.option.misc.other.2099392182" name="Other flags" superClass="gnu.c.compiler.option.misc.other" useByScannerDiscovery="false" value="-c -fmessage-length=0 --target=arm-linux-android31" valueType="string"/>
                                 								
                                 <option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="gnu.c.compiler.option.preprocessor.def.symbols.875107495" name="Defined symbols (-D)" superClass="gnu.c.compiler.option.preprocessor.def.symbols" useByScannerDiscovery="false" valueType="definedSymbols">
                                     									
-                                    <listOptionValue builtIn="false" value="HAS_LINUX_USER_H"/>
-                                    									
-                                    <listOptionValue builtIn="false" value="_LARGEFILE64_SOURCE"/>
-                                    									
-                                    <listOptionValue builtIn="false" value="_FILE_OFFSET_BITS=64"/>
+                                    <listOptionValue builtIn="false" value="__ANDROID__"/>
                                     								
                                 </option>
                                 								
@@ -771,15 +819,17 @@
                                 							
                             </tool>
                             							
-                            <tool command="gcc" commandLinePattern="${COMMAND} ${FLAGS} ${OUTPUT_FLAG} ${OUTPUT_PREFIX}${OUTPUT} ${INPUTS}" errorParsers="org.eclipse.cdt.core.GLDErrorParser" id="cdt.managedbuild.tool.gnu.cross.c.linker.1896231311" name="Cross GCC Linker" superClass="cdt.managedbuild.tool.gnu.cross.c.linker">
+                            <tool command="clang" commandLinePattern="${COMMAND} ${FLAGS} ${OUTPUT_FLAG} ${OUTPUT_PREFIX}${OUTPUT} ${INPUTS}" errorParsers="org.eclipse.cdt.core.GLDErrorParser" id="cdt.managedbuild.tool.gnu.cross.c.linker.1896231311" name="Cross GCC Linker" superClass="cdt.managedbuild.tool.gnu.cross.c.linker">
                                 								
-                                <option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="gnu.c.link.option.libs.1560471935" name="Libraries (-l)" superClass="gnu.c.link.option.libs" valueType="libs">
+                                <option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="gnu.c.link.option.libs.1560471935" name="Libraries (-l)" superClass="gnu.c.link.option.libs" useByScannerDiscovery="false" valueType="libs">
                                     									
                                     <listOptionValue builtIn="false" value="z"/>
+                                    									
+                                    <listOptionValue builtIn="false" value="log"/>
                                     								
                                 </option>
                                 								
-                                <option id="gnu.c.link.option.ldflags.2112725021" name="Linker flags" superClass="gnu.c.link.option.ldflags" value="" valueType="string"/>
+                                <option id="gnu.c.link.option.ldflags.2112725021" name="Linker flags" superClass="gnu.c.link.option.ldflags" useByScannerDiscovery="false" value="--target=arm-linux-android31" valueType="string"/>
                                 								
                                 <inputType id="cdt.managedbuild.tool.gnu.c.linker.input.533359095" superClass="cdt.managedbuild.tool.gnu.c.linker.input">
                                     									
@@ -867,7 +917,11 @@
                                 								
                                 <option id="gnu.c.compiler.option.debugging.level.1791478574" name="Debug Level" superClass="gnu.c.compiler.option.debugging.level" useByScannerDiscovery="false" value="gnu.c.debugging.level.none" valueType="enumerated"/>
                                 								
-                                <option id="gnu.c.compiler.option.include.paths.619822259" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" useByScannerDiscovery="false"/>
+                                <option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="gnu.c.compiler.option.include.paths.619822259" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" useByScannerDiscovery="false" valueType="includePath">
+                                    									
+                                    <listOptionValue builtIn="false" value="/home/eric/Android/Sdk/ndk/23.0.7599858/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include"/>
+                                    								
+                                </option>
                                 								
                                 <option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="gnu.c.compiler.option.preprocessor.def.symbols.757128643" name="Defined symbols (-D)" superClass="gnu.c.compiler.option.preprocessor.def.symbols" useByScannerDiscovery="false" valueType="definedSymbols">
                                     									
@@ -950,6 +1004,146 @@
             <storageModule moduleId="org.eclipse.cdt.internal.ui.text.commentOwnerProjectMappings"/>
             		
         </cconfiguration>
+        		
+        <cconfiguration id="cdt.managedbuild.config.gnu.cross.exe.release.11823139.1148271886.156383425">
+            			
+            <storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="cdt.managedbuild.config.gnu.cross.exe.release.11823139.1148271886.156383425" moduleId="org.eclipse.cdt.core.settings" name="Release-android-x86_64">
+                				
+                <externalSettings/>
+                				
+                <extensions>
+                    					
+                    <extension id="org.eclipse.cdt.core.ELF" point="org.eclipse.cdt.core.BinaryParser"/>
+                    					
+                    <extension id="org.eclipse.cdt.core.GCCErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
+                    					
+                    <extension id="org.eclipse.cdt.core.GmakeErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
+                    					
+                    <extension id="org.eclipse.cdt.core.CWDLocator" point="org.eclipse.cdt.core.ErrorParser"/>
+                    					
+                    <extension id="org.eclipse.cdt.core.GLDErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
+                    					
+                    <extension id="org.eclipse.cdt.core.GASErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
+                    				
+                </extensions>
+                			
+            </storageModule>
+            			
+            <storageModule moduleId="cdtBuildSystem" version="4.0.0">
+                				
+                <configuration artifactName="${ProjName}_x86_64" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe,org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.release" cleanCommand="rm -rf" description="Build for the x86_64 version of android" id="cdt.managedbuild.config.gnu.cross.exe.release.11823139.1148271886.156383425" name="Release-android-x86_64" parent="cdt.managedbuild.config.gnu.cross.exe.release" postannouncebuildStep="copy file to android device" postbuildStep="adb push ${BuildArtifactFilePrefix}${BuildArtifactFileName} /sdcard/ceserver">
+                    					
+                    <folderInfo id="cdt.managedbuild.config.gnu.cross.exe.release.11823139.1148271886.156383425." name="/" resourcePath="">
+                        						
+                        <toolChain id="cdt.managedbuild.toolchain.gnu.cross.exe.release.731923187" name="Cross GCC" resourceTypeBasedDiscovery="true" superClass="cdt.managedbuild.toolchain.gnu.cross.exe.release">
+                            							
+                            <option id="cdt.managedbuild.option.gnu.cross.prefix.213935346" name="Prefix" superClass="cdt.managedbuild.option.gnu.cross.prefix" useByScannerDiscovery="false" value="" valueType="string"/>
+                            							
+                            <option id="cdt.managedbuild.option.gnu.cross.path.1229728759" name="Path" superClass="cdt.managedbuild.option.gnu.cross.path" useByScannerDiscovery="false" value="/home/eric/Android/Sdk/ndk/23.0.7599858/toolchains/llvm/prebuilt/linux-x86_64/bin" valueType="string"/>
+                            							
+                            <targetPlatform archList="all" binaryParser="org.eclipse.cdt.core.ELF" id="cdt.managedbuild.targetPlatform.gnu.cross.817018804" isAbstract="false" osList="all" superClass="cdt.managedbuild.targetPlatform.gnu.cross"/>
+                            							
+                            <builder buildPath="${workspace_loc:/ceserver/Release}" id="cdt.managedbuild.builder.gnu.cross.1216009881" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="Gnu Make Builder" superClass="cdt.managedbuild.builder.gnu.cross"/>
+                            							
+                            <tool command="clang" id="cdt.managedbuild.tool.gnu.cross.c.compiler.991070890" name="Cross GCC Compiler" superClass="cdt.managedbuild.tool.gnu.cross.c.compiler">
+                                								
+                                <option defaultValue="gnu.c.optimization.level.most" id="gnu.c.compiler.option.optimization.level.924502149" name="Optimization Level" superClass="gnu.c.compiler.option.optimization.level" useByScannerDiscovery="false" valueType="enumerated"/>
+                                								
+                                <option id="gnu.c.compiler.option.debugging.level.1292837521" name="Debug Level" superClass="gnu.c.compiler.option.debugging.level" useByScannerDiscovery="false" value="gnu.c.debugging.level.none" valueType="enumerated"/>
+                                								
+                                <option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="gnu.c.compiler.option.include.paths.1792931656" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" useByScannerDiscovery="false" valueType="includePath">
+                                    									
+                                    <listOptionValue builtIn="false" value="/home/eric/Android/Sdk/ndk/23.0.7599858/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include"/>
+                                    								
+                                </option>
+                                								
+                                <option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="gnu.c.compiler.option.preprocessor.def.symbols.770175739" name="Defined symbols (-D)" superClass="gnu.c.compiler.option.preprocessor.def.symbols" useByScannerDiscovery="false" valueType="definedSymbols">
+                                    									
+                                    <listOptionValue builtIn="false" value="__ANDROID__"/>
+                                    								
+                                </option>
+                                								
+                                <option id="gnu.c.compiler.option.misc.other.1664218772" name="Other flags" superClass="gnu.c.compiler.option.misc.other" useByScannerDiscovery="false" value="-c -fmessage-length=0 -fPIE -pie --target=x86_64-linux-android31" valueType="string"/>
+                                								
+                                <option id="gnu.c.compiler.option.dialect.std.163668468" name="Language standard" superClass="gnu.c.compiler.option.dialect.std" useByScannerDiscovery="true" value="gnu.c.compiler.dialect.default" valueType="enumerated"/>
+                                								
+                                <inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.1956945649" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
+                                							
+                            </tool>
+                            							
+                            <tool id="cdt.managedbuild.tool.gnu.cross.cpp.compiler.428778529" name="Cross G++ Compiler" superClass="cdt.managedbuild.tool.gnu.cross.cpp.compiler">
+                                								
+                                <option id="gnu.cpp.compiler.option.optimization.level.1686020212" name="Optimization Level" superClass="gnu.cpp.compiler.option.optimization.level" useByScannerDiscovery="false" value="gnu.cpp.compiler.optimization.level.most" valueType="enumerated"/>
+                                								
+                                <option id="gnu.cpp.compiler.option.debugging.level.732743295" name="Debug Level" superClass="gnu.cpp.compiler.option.debugging.level" useByScannerDiscovery="false" value="gnu.cpp.compiler.debugging.level.none" valueType="enumerated"/>
+                                								
+                                <inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.1184150892" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
+                                							
+                            </tool>
+                            							
+                            <tool id="cdt.managedbuild.tool.gnu.cross.cpp.linker.1913061330" name="Cross G++ Linker" superClass="cdt.managedbuild.tool.gnu.cross.cpp.linker">
+                                								
+                                <inputType id="cdt.managedbuild.tool.gnu.cpp.linker.input.247042555" superClass="cdt.managedbuild.tool.gnu.cpp.linker.input">
+                                    									
+                                    <additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
+                                    									
+                                    <additionalInput kind="additionalinput" paths="$(LIBS)"/>
+                                    								
+                                </inputType>
+                                							
+                            </tool>
+                            							
+                            <tool command="clang" id="cdt.managedbuild.tool.gnu.cross.c.linker.1676323184" name="Cross GCC Linker" superClass="cdt.managedbuild.tool.gnu.cross.c.linker">
+                                								
+                                <option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="gnu.c.link.option.libs.1842149115" name="Libraries (-l)" superClass="gnu.c.link.option.libs" useByScannerDiscovery="false" valueType="libs">
+                                    									
+                                    <listOptionValue builtIn="false" value="z"/>
+                                    									
+                                    <listOptionValue builtIn="false" value="log"/>
+                                    								
+                                </option>
+                                								
+                                <option id="gnu.c.link.option.ldflags.400794390" name="Linker flags" superClass="gnu.c.link.option.ldflags" useByScannerDiscovery="false" value="-fPIE -pie --target=x86_64-linux-android31" valueType="string"/>
+                                								
+                                <inputType id="cdt.managedbuild.tool.gnu.c.linker.input.593392701" superClass="cdt.managedbuild.tool.gnu.c.linker.input">
+                                    									
+                                    <additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
+                                    									
+                                    <additionalInput kind="additionalinput" paths="$(LIBS)"/>
+                                    								
+                                </inputType>
+                                							
+                            </tool>
+                            							
+                            <tool id="cdt.managedbuild.tool.gnu.cross.archiver.2006024033" name="Cross GCC Archiver" superClass="cdt.managedbuild.tool.gnu.cross.archiver"/>
+                            							
+                            <tool id="cdt.managedbuild.tool.gnu.cross.assembler.1060083999" name="Cross GCC Assembler" superClass="cdt.managedbuild.tool.gnu.cross.assembler">
+                                								
+                                <inputType id="cdt.managedbuild.tool.gnu.assembler.input.774976150" superClass="cdt.managedbuild.tool.gnu.assembler.input"/>
+                                							
+                            </tool>
+                            						
+                        </toolChain>
+                        					
+                    </folderInfo>
+                    					
+                    <sourceEntries>
+                        						
+                        <entry excluding="extension" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+                        					
+                    </sourceEntries>
+                    				
+                </configuration>
+                			
+            </storageModule>
+            			
+            <storageModule moduleId="org.eclipse.cdt.core.externalSettings"/>
+            			
+            <storageModule moduleId="org.eclipse.cdt.core.language.mapping"/>
+            			
+            <storageModule moduleId="org.eclipse.cdt.internal.ui.text.commentOwnerProjectMappings"/>
+            		
+        </cconfiguration>
         	
     </storageModule>
     	
@@ -962,6 +1156,12 @@
     <storageModule moduleId="refreshScope" versionNumber="2">
         		
         <configuration configurationName="Release-android">
+            			
+            <resource resourceType="PROJECT" workspacePath="/ceserver"/>
+            		
+        </configuration>
+        		
+        <configuration configurationName="Release-android-x86_64">
             			
             <resource resourceType="PROJECT" workspacePath="/ceserver"/>
             		
@@ -1815,9 +2015,181 @@
             		
         </scannerConfigBuildInfo>
         		
+        <scannerConfigBuildInfo instanceId="cdt.managedbuild.config.gnu.cross.exe.release.11823139.1148271886.207472972;cdt.managedbuild.config.gnu.cross.exe.release.11823139.1148271886.207472972.;cdt.managedbuild.tool.gnu.cross.c.compiler.1430626741;cdt.managedbuild.tool.gnu.c.compiler.input.1718835037">
+            			
+            <autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
+            			
+            <profile id="org.eclipse.cdt.make.core.GCCStandardMakePerProjectProfile">
+                				
+                <buildOutputProvider>
+                    					
+                    <openAction enabled="true" filePath=""/>
+                    					
+                    <parser enabled="true"/>
+                    				
+                </buildOutputProvider>
+                				
+                <scannerInfoProvider id="specsFile">
+                    					
+                    <runAction arguments="-E -P -v -dD ${plugin_state_location}/${specs_file}" command="gcc" useDefault="true"/>
+                    					
+                    <parser enabled="true"/>
+                    				
+                </scannerInfoProvider>
+                			
+            </profile>
+            			
+            <profile id="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfile">
+                				
+                <buildOutputProvider>
+                    					
+                    <openAction enabled="true" filePath=""/>
+                    					
+                    <parser enabled="true"/>
+                    				
+                </buildOutputProvider>
+                				
+                <scannerInfoProvider id="specsFile">
+                    					
+                    <runAction arguments="-E -P -v -dD ${plugin_state_location}/${specs_file}" command="gcc" useDefault="true"/>
+                    					
+                    <parser enabled="true"/>
+                    				
+                </scannerInfoProvider>
+                			
+            </profile>
+            			
+            <profile id="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileCPP">
+                				
+                <buildOutputProvider>
+                    					
+                    <openAction enabled="true" filePath=""/>
+                    					
+                    <parser enabled="true"/>
+                    				
+                </buildOutputProvider>
+                				
+                <scannerInfoProvider id="specsFile">
+                    					
+                    <runAction arguments="-E -P -v -dD ${plugin_state_location}/specs.cpp" command="g++" useDefault="true"/>
+                    					
+                    <parser enabled="true"/>
+                    				
+                </scannerInfoProvider>
+                			
+            </profile>
+            			
+            <profile id="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileC">
+                				
+                <buildOutputProvider>
+                    					
+                    <openAction enabled="true" filePath=""/>
+                    					
+                    <parser enabled="true"/>
+                    				
+                </buildOutputProvider>
+                				
+                <scannerInfoProvider id="specsFile">
+                    					
+                    <runAction arguments="-E -P -v -dD ${plugin_state_location}/specs.c" command="gcc" useDefault="true"/>
+                    					
+                    <parser enabled="true"/>
+                    				
+                </scannerInfoProvider>
+                			
+            </profile>
+            		
+        </scannerConfigBuildInfo>
+        		
         <scannerConfigBuildInfo instanceId="cdt.managedbuild.config.gnu.cross.exe.release.11823139.144500045;cdt.managedbuild.config.gnu.cross.exe.release.11823139.144500045.;cdt.managedbuild.tool.gnu.cross.c.compiler.1016869437;cdt.managedbuild.tool.gnu.c.compiler.input.1259443605">
             			
             <autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileC"/>
+            			
+            <profile id="org.eclipse.cdt.make.core.GCCStandardMakePerProjectProfile">
+                				
+                <buildOutputProvider>
+                    					
+                    <openAction enabled="true" filePath=""/>
+                    					
+                    <parser enabled="true"/>
+                    				
+                </buildOutputProvider>
+                				
+                <scannerInfoProvider id="specsFile">
+                    					
+                    <runAction arguments="-E -P -v -dD ${plugin_state_location}/${specs_file}" command="gcc" useDefault="true"/>
+                    					
+                    <parser enabled="true"/>
+                    				
+                </scannerInfoProvider>
+                			
+            </profile>
+            			
+            <profile id="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfile">
+                				
+                <buildOutputProvider>
+                    					
+                    <openAction enabled="true" filePath=""/>
+                    					
+                    <parser enabled="true"/>
+                    				
+                </buildOutputProvider>
+                				
+                <scannerInfoProvider id="specsFile">
+                    					
+                    <runAction arguments="-E -P -v -dD ${plugin_state_location}/${specs_file}" command="gcc" useDefault="true"/>
+                    					
+                    <parser enabled="true"/>
+                    				
+                </scannerInfoProvider>
+                			
+            </profile>
+            			
+            <profile id="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileCPP">
+                				
+                <buildOutputProvider>
+                    					
+                    <openAction enabled="true" filePath=""/>
+                    					
+                    <parser enabled="true"/>
+                    				
+                </buildOutputProvider>
+                				
+                <scannerInfoProvider id="specsFile">
+                    					
+                    <runAction arguments="-E -P -v -dD ${plugin_state_location}/specs.cpp" command="g++" useDefault="true"/>
+                    					
+                    <parser enabled="true"/>
+                    				
+                </scannerInfoProvider>
+                			
+            </profile>
+            			
+            <profile id="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileC">
+                				
+                <buildOutputProvider>
+                    					
+                    <openAction enabled="true" filePath=""/>
+                    					
+                    <parser enabled="true"/>
+                    				
+                </buildOutputProvider>
+                				
+                <scannerInfoProvider id="specsFile">
+                    					
+                    <runAction arguments="-E -P -v -dD ${plugin_state_location}/specs.c" command="gcc" useDefault="true"/>
+                    					
+                    <parser enabled="true"/>
+                    				
+                </scannerInfoProvider>
+                			
+            </profile>
+            		
+        </scannerConfigBuildInfo>
+        		
+        <scannerConfigBuildInfo instanceId="cdt.managedbuild.config.gnu.cross.exe.release.11823139.1148271886.156383425;cdt.managedbuild.config.gnu.cross.exe.release.11823139.1148271886.156383425.;cdt.managedbuild.tool.gnu.cross.c.compiler.991070890;cdt.managedbuild.tool.gnu.c.compiler.input.1956945649">
+            			
+            <autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
             			
             <profile id="org.eclipse.cdt.make.core.GCCStandardMakePerProjectProfile">
                 				

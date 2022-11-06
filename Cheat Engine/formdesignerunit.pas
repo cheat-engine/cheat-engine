@@ -10,8 +10,9 @@ uses
   Dialogs, ComCtrls, StdCtrls, ExtCtrls, Buttons, Menus, JvDesignSurface,
   JvDesignImp, JvDesignUtils, typinfo, PropEdits, ObjectInspector, LResources,
   maps, ExtDlgs, PopupNotifier, IDEDialogs, ceguicomponents, LMessages, luacaller,
-  luahandler, cefuncproc, ListViewPropEdit, TreeViewPropEdit, {AnchorEditor,}
-  LCLType, GraphicPropEdit, GraphPropEdits, registry, math, LCLVersion, betterControls;
+  luahandler, cefuncproc, ListViewPropEdit, TreeViewPropEdit,
+  LCLType, GraphicPropEdit, GraphPropEdits, registry, math, LCLVersion,
+  frmAnchorEditor, betterControls;
 
 
 
@@ -124,8 +125,6 @@ type
 
     ComponentTreeWindowProc: TWndMethod;
 
-    //anchorEditor: TAnchorDesigner;
-
     ObjectInspectorSelectionChangeCount: integer;
     DesignerSelectionChangeCount: integer;
 
@@ -135,6 +134,8 @@ type
     function MethodExists(const Name: String; TypeData: PTypeData; var MethodIsCompatible,MethodIsPublished,IdentIsMethod: boolean):boolean;
     function CompatibleMethodExists(const Name: String; InstProp: PInstProp; var MethodIsCompatible,MethodIsPublished,IdentIsMethod: boolean):boolean;
 
+    procedure OnObjectSelected(const ASelection: TPersistentSelectionList);
+    procedure OnObjectPropertyChanged(Sender: TObject);
     procedure OnComponentRenamed(AComponent: TComponent);
     procedure onRefreshPropertyValues;
     function onMethodFromLookupRoot(const Method:TMethod):boolean;
@@ -278,76 +279,45 @@ begin
   TCEForm(GlobalDesignHook.LookupRoot).designsurface.Change;
 end;
 
+procedure TFormDesigner.OnObjectSelected(const ASelection: TPersistentSelectionList);
+begin
+  if AnchorEditor<>nil then
+    AnchorEditor.setselection(aselection);
+end;
+
+procedure TFormDesigner.OnObjectPropertyChanged(Sender: TObject);
+begin
+  if anchoreditor<>nil then
+    AnchorEditor.OnObjectPropertyChanged(sender);
+
+  if oid<>nil then
+    oid.RefreshPropertyValues;
+end;
+
 procedure TFormDesigner.miAnchorEditorClick(Sender: TObject);
 var defaultwidth: integer;
 begin
-  {
-  if AnchorDesigner=nil then
+  if AnchorEditor=nil then
   begin
-    AnchorDesigner:=TAnchorDesigner.Create(self);
+    GlobalDesignHook.AddHandlerSetSelection(OnObjectSelected);
+    GlobalDesignHook.AddHandlerModified(OnObjectPropertyChanged);
+
+    AnchorEditor:=TAnchorEditor.Create(self);
+
+
 
     //this this is the most dpi unaware window I've seen
-    with AnchorDesigner do
+    with AnchorEditor do
     begin
-      DPIHelper.AdjustSpeedButtonSize(LeftRefLeftSpeedButton);
-      DPIHelper.AdjustSpeedButtonSize(LeftRefCenterSpeedButton);
-      DPIHelper.AdjustSpeedButtonSize(LeftRefRightSpeedButton);
-      DPIHelper.AdjustSpeedButtonSize(RightRefLeftSpeedButton);
-      DPIHelper.AdjustSpeedButtonSize(RightRefCenterSpeedButton);
-      DPIHelper.AdjustSpeedButtonSize(RightRefRightSpeedButton);
-      DPIHelper.AdjustSpeedButtonSize(TopRefTopSpeedButton);
-      DPIHelper.AdjustSpeedButtonSize(TopRefCenterSpeedButton);
-      DPIHelper.AdjustSpeedButtonSize(TopRefBottomSpeedButton);
-      DPIHelper.AdjustSpeedButtonSize(BottomRefTopSpeedButton);
-      DPIHelper.AdjustSpeedButtonSize(BottomRefCenterSpeedButton);
-      DPIHelper.AdjustSpeedButtonSize(BottomRefBottomSpeedButton);
-
-      defaultWidth:=canvas.TextWidth('10    ');
-      DPIHelper.AdjustEditBoxSize(LeftBorderSpaceSpinEdit, defaultwidth);
-      DPIHelper.AdjustEditBoxSize(TopBorderSpaceSpinEdit, defaultwidth);
-      DPIHelper.AdjustEditBoxSize(RightBorderSpaceSpinEdit, defaultwidth);
-      DPIHelper.AdjustEditBoxSize(BottomBorderSpaceSpinEdit, defaultwidth);
-      DPIHelper.AdjustEditBoxSize(AroundBorderSpaceSpinEdit, defaultwidth);
-
-      BorderSpaceGroupBox.Width:=(AroundBorderSpaceSpinEdit.width+5)*3;
-      Constraints.MinWidth:=(BorderSpaceGroupBox.Width)*4;
-
-
-      IDEImages.AssignImage(LeftRefLeftSpeedButton, 'anchor_left_left');
-      IDEImages.AssignImage(LeftRefCenterSpeedButton, 'anchor_left_center');
-      IDEImages.AssignImage(LeftRefRightSpeedButton, 'anchor_left_right');
-      IDEImages.AssignImage(RightRefLeftSpeedButton, 'anchor_right_left');
-      IDEImages.AssignImage(RightRefCenterSpeedButton, 'anchor_right_center');
-      IDEImages.AssignImage(RightRefRightSpeedButton, 'anchor_right_right');
-      IDEImages.AssignImage(TopRefTopSpeedButton, 'anchor_top_top');
-      IDEImages.AssignImage(TopRefCenterSpeedButton, 'anchor_top_center');
-      IDEImages.AssignImage(TopRefBottomSpeedButton, 'anchor_top_bottom');
-      IDEImages.AssignImage(BottomRefTopSpeedButton, 'anchor_bottom_top');
-      IDEImages.AssignImage(BottomRefCenterSpeedButton, 'anchor_bottom_center');
-      IDEImages.AssignImage(BottomRefBottomSpeedButton, 'anchor_bottom_bottom');
-
       show;
 
       DoAutoSize;
 
-      TopGroupBox.left:=BorderSpaceGroupBox.left;
-      BottomGroupBox.Left:=BorderSpaceGroupBox.left;
-      TopGroupBox.width:=BorderSpaceGroupBox.Width;
-      BottomGroupBox.Width:=BorderSpaceGroupBox.Width;
-
-
-      Constraints.MinHeight:=trunc(TopGroupBox.Height*3.2);
-
-      if height<Constraints.MinHeight then
-        height:=Constraints.MinHeight;
-
-
     end;
+    AnchorEditor.setSelection(oid.Selection);
   end
   else
-    AnchorDesigner.Show;
-
-    }
+    AnchorEditor.Show;
 end;
 
 procedure TFormDesigner.miDeleteClick(Sender: TObject);
@@ -420,7 +390,7 @@ begin
 
 
       TCEForm(GlobalDesignHook.LookupRoot).designsurface.Change;
-      {$if lcl_fullversion < 2020100}
+      {$if lcl_fullversion < 2020000}
       oid.ComponentTree.RebuildComponentNodes;
       {$else}
       oid.ComponentTree.BuildComponentNodes(true);
@@ -450,7 +420,7 @@ begin
       p.Insert(i-1, mi);
 
       TCEForm(GlobalDesignHook.LookupRoot).designsurface.Change;
-      {$if lcl_fullversion < 2020100}
+      {$if lcl_fullversion < 2020000}
       oid.ComponentTree.RebuildComponentNodes;
       {$else}
       oid.ComponentTree.BuildComponentNodes(true);
@@ -617,7 +587,7 @@ begin
   TCEform(GlobalDesignHook.LookupRoot).designsurface.UpdateDesigner;
 
 
-  {$if lcl_fullversion < 2020100}
+  {$if lcl_fullversion < 2020000}
   oid.ComponentTree.RebuildComponentNodes;
   {$else}
   oid.ComponentTree.BuildComponentNodes(true);
@@ -817,9 +787,9 @@ begin
           if p is tcontrol then
             surface.Selector.AddToSelection(tcontrol(p));
         end;
-       {
-        if AnchorDesigner<>nil then
-          GlobalDesignHook.SetSelection(oid.Selection);   }
+
+        if AnchorEditor<>nil then
+          GlobalDesignHook.SetSelection(oid.Selection);
           
         surface.onselectionchange:=designerSelectionChange;
       end;
@@ -895,9 +865,8 @@ begin
 
       oid.RefreshSelection;
     end;
-   {
-    if AnchorDesigner<>nil then
-      GlobalDesignHook.SetSelection(oid.Selection);  }
+
+    GlobalDesignHook.SetSelection(oid.Selection);
 
 
     //laz 2 not needed anymore. gets it from designhook
@@ -923,7 +892,7 @@ end;
 
 procedure TFormDesigner.surfaceOnChange(sender: tobject);
 begin
-  {$if lcl_fullversion < 2020100}
+  {$if lcl_fullversion < 2020000}
   oid.FillComponentList;
   {$else}
   oid.FillComponentList(true);
@@ -1116,9 +1085,9 @@ procedure TFormDesigner.FormClose(Sender: TObject; var CloseAction: TCloseAction
 begin
   if oid<>nil then
     FreeAndNil(oid);
-   {
-  if AnchorDesigner<>nil then
-    FreeAndNil(AnchorDesigner);}
+
+  if AnchorEditor<>nil then
+    FreeAndNil(AnchorEditor);
 
   if GlobalDesignHook<>nil then
     FreeAndNil(GlobalDesignHook);
@@ -1182,10 +1151,10 @@ end;
 
 procedure TFormDesigner.SAD(sender: tobject);
 begin
- { if AnchorDesigner=nil then
-    AnchorDesigner:=TAnchorDesigner.create(self);
+  if AnchorEditor=nil then
+    AnchorEditor:=TAnchorEditor.create(self);
 
-  AnchorDesigner.show;}
+  AnchorEditor.show;
 end;
 
 //{$define OLDLAZARUS11}
@@ -1359,12 +1328,6 @@ begin
     oid.MainPopupMenu.Items.Add(miChangeCheckboxSetting);
     {$endif}
 
-//    AnchorDesigner:=TAnchorDesigner.Create(oid);
-
-     {
-    ShowAnchorDesigner:=SAD; //panda       (I wanted to call it ShowAnchorDesigner but that was causing 'issues')
-        }
-
     ComponentTreeWindowProc:=oid.ComponentTree.WindowProc;
 
 
@@ -1444,7 +1407,7 @@ begin
 
 
   TCEForm(GlobalDesignHook.LookupRoot).designsurface.Change;
-  {$if lcl_fullversion < 2020100}
+  {$if lcl_fullversion < 2020000}
   oid.ComponentTree.RebuildComponentNodes;
   {$else}
   oid.ComponentTree.BuildComponentNodes(true);
@@ -1452,7 +1415,7 @@ begin
 
   oid.RefreshPropertyValues;
   oid.RebuildPropertyLists;
-  {$if lcl_fullversion < 2020100}
+  {$if lcl_fullversion < 2020000}
   oid.FillComponentList;
   {$else}
   oid.FillComponentList(true);

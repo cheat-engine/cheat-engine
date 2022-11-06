@@ -147,7 +147,7 @@ implementation
 { TfrmLuaEngine }
 
 uses LuaClass, SynPluginMultiCaret, SynEditTypes, globals, DPIHelper, frmSyntaxHighlighterEditor,
-  frmautoinjectunit, mainunit2;
+  frmautoinjectunit, mainunit2, TypInfo;
 
 resourcestring
   rsError = 'Script Error';
@@ -243,7 +243,7 @@ var
 
   r: string;
 begin
-  identchars:=['.','a'..'z','A'..'Z','0'..'9','_'];
+  identchars:=['.','a'..'z','A'..'Z','0'..'9','_','[',']'];
 
   extra:='';
   if s='' then exit('');
@@ -287,6 +287,8 @@ var
   c: TComponent absolute o;
 
   f: boolean;
+
+  pp: pproplist;
 begin
 
   scLuaCompleter.ItemList.Clear;
@@ -382,11 +384,15 @@ begin
                     properties.Add(c.Components[i].Name);
                 end;
 
-              temp:=ce_getPropertylist(o);
-              if temp<>nil then
-                properties.AddStrings(temp);
+              pp:=nil;
+              i:=GetPropList(c, pp);
+              if i>0 then
+                for j:=0 to i-1 do
+                  properties.Add(pp^[j].Name);
 
-              temp.free;
+              if pp<>nil then
+                freememandnil(pp);
+
             end;
 
             LUA_TTABLE:
@@ -427,6 +433,11 @@ begin
 
                 lua_pop(L,1);
               end;
+            end;
+
+            else
+            begin
+              outputdebugstring(pchar('unknown lua type: '+inttostr(lua_type(L, -1))));
             end;
 
           end;
@@ -1747,10 +1758,14 @@ begin
 
       CompleterInvokedByDot:=true;
 
-      scLuaCompleter.Execute('.',p2+p);
+      try
+        scLuaCompleter.Execute('.',p2+p);
 
-      if (scLuaCompleter.TheForm<>nil) and scLuaCompleter.TheForm.CanFocus then
-        scLuaCompleter.TheForm.SetFocus;
+        if (scLuaCompleter.TheForm<>nil) and scLuaCompleter.TheForm.CanFocus then
+          scLuaCompleter.TheForm.SetFocus;
+
+      except
+      end;
 
     end;
   end;

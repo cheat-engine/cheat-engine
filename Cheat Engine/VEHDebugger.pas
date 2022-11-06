@@ -10,7 +10,7 @@ uses
   jwaNtStatus, Windows,
   Classes, SysUtils,symbolhandler, symbolhandlerstructs,
   VEHDebugSharedMem,cefuncproc, autoassembler,newkernelhandler,DebuggerInterface,
-  Clipbrd;
+  Clipbrd,maps;
 
 type
 
@@ -29,7 +29,8 @@ type
     is64bit: boolean; //stored local so it doesn't have to evaluate the property (saves some time)
     hasPausedProcess: boolean;
 
-    fisInjectedEvent: boolean;
+    fisInjectedEvent: boolean; //obsolete(ish)
+    wasInjectedEvent: boolean;
     injectedEvents: TList;
 
     lastthreadlist: TStringList;
@@ -39,6 +40,10 @@ type
 
     CurrentThread: THandle;
 
+
+
+    threads: TMap;  //internal threadhandle map
+
     procedure SynchronizeNoBreakList;
     procedure DoThreadPoll;
   public
@@ -47,6 +52,8 @@ type
     function ContinueDebugEvent(dwProcessId: DWORD; dwThreadId: DWORD; dwContinueStatus: DWORD): BOOL; override;
     function SetThreadContext(hThread: THandle; const lpContext: TContext; isFrozenThread: Boolean=false): BOOL; override;
     function GetThreadContext(hThread: THandle; var lpContext: TContext; isFrozenThread: Boolean=false):  BOOL; override;
+
+    function canUseIPT: boolean; override;
 
     function DebugActiveProcess(dwProcessId: DWORD): WINBOOL; override;
     function DebugActiveProcessStop(dwProcessID: DWORD): WINBOOL; override;
@@ -138,6 +145,8 @@ begin
 
   lastthreadlist.Sorted:=true;
   lastthreadlist.Duplicates:=dupIgnore;
+
+  threads:=tmap.Create(ituPtrSize,sizeof(THandle));
 end;
 
 
@@ -159,6 +168,9 @@ begin
   if injectedEvents<>nil then
     freeandnil(InjectedEvents);
 
+  if threads<>nil then
+    freeandnil(threads);
+
   inherited destroy;
 end;
 
@@ -171,7 +183,7 @@ var c: PContext;
 begin
 
 
-  if isFrozenThread then //use the VEHDebugView context
+  if (not wasInjectedEvent) and isFrozenThread then //use the VEHDebugView context
   begin
     result:=true;
 
@@ -233,9 +245,9 @@ var c: PContext;
 {$endif}
 
 begin
-  if isFrozenThread then //use the VEHDebugView context
+  if (not wasInjectedEvent) and isFrozenThread then //use the VEHDebugView context
   begin
-    OutputDebugString('VEH GetThreadContext. From frozen');
+    //OutputDebugString('VEH GetThreadContext. From frozen');
     result:=true;
     c:=@VEHDebugView.CurrentContext[0];
     {$ifdef cpu64}
@@ -279,7 +291,7 @@ begin
   end
   else
   begin
-    OutputDebugString('VEH GetThreadContext. not frozen');
+   // OutputDebugString('VEH GetThreadContext. not frozen');
     result:=NewKernelHandler.GetThreadContext(hThread,lpContext);
   end;
 end;
@@ -296,15 +308,19 @@ var i: integer;
     c32: PContext32 absolute c;
 {$endif}
     inj: TInjectedEvent;
+    h: THandle;
 
+    r:dword;
 begin
   currentThread:=0;  //just making sure
 
+  fisInjectedEvent:=false;
+  wasInjectedEvent:=false;
   if injectedEvents.count>0 then
   begin
-    fisInjectedEvent:=true;
-    //fill in lpDebugEvent
+    wasInjectedEvent:=true;
 
+    //fill in lpDebugEvent
     inj:=TInjectedEvent(injectedEvents[0]);
     lpDebugEvent.dwProcessId:=processid;
     lpDebugEvent.dwThreadId:=inj.ThreadId;
@@ -312,31 +328,46 @@ begin
     if inj.eventtype=etThreadCreate then
     begin
       //create thread
+
       lpDebugEvent.dwDebugEventCode:=CREATE_THREAD_DEBUG_EVENT;
       lpDebugEvent.CreateThread.hThread:=OpenThread(THREAD_ALL_ACCESS,false, inj.ThreadId);
 
       lpDebugEvent.CreateThread.lpStartAddress:=nil;
       lpDebugEvent.CreateThread.lpThreadLocalBase:=nil;
 
-      CurrentThread:=OpenThread(THREAD_ALL_ACCESS,false, lpDebugEvent.dwThreadId);
-      suspendThread(CurrentThread);
+      if threads.GetData(lpDebugEvent.dwThreadId,currentthread)=false then
+      begin
+        CurrentThread:=OpenThread(THREAD_ALL_ACCESS,false, lpDebugEvent.dwThreadId);
+        threads.Add(lpDebugEvent.dwThreadId, currentthread);
+      end;
+
+      if CurrentThread<>0 then
+      begin
+        suspendThread(CurrentThread);
+      end;
     end
     else
     begin
       //destroy thread
       lpDebugEvent.dwDebugEventCode:=EXIT_THREAD_DEBUG_EVENT;
       lpDebugEvent.ExitThread.dwExitCode:=0;
+
+      if threads.GetData(lpDebugEvent.dwThreadId,h) then
+      begin
+        if h<>0 then
+          closehandle(h);
+        threads.Delete(lpDebugEvent.dwThreadId);
+      end;
     end;
 
     inj.free;
 
     injectedEvents.Delete(0);
     exit(true);
-  end
-  else
-    fisInjectedEvent:=false;
+  end;
 
-  result:=waitforsingleobject(HasDebugEvent, dwMilliseconds)=WAIT_OBJECT_0;
+  r:=waitforsingleobject(HasDebugEvent, dwMilliseconds);
+  result:=r=WAIT_OBJECT_0;
   if result then
   begin
     ZeroMemory(@lpDebugEvent, sizeof(TdebugEvent));
@@ -355,18 +386,32 @@ begin
         lpDebugEvent.dwDebugEventCode:=CREATE_PROCESS_DEBUG_EVENT;
         lpDebugEvent.CreateProcessInfo.hFile:=0;
         lpDebugEvent.CreateProcessInfo.hProcess:=processhandle;
-        lpDebugEvent.CreateProcessInfo.hThread:=OpenThread(THREAD_ALL_ACCESS,false, lpDebugEvent.dwThreadId);
+
+        if threads.GetData(lpDebugEvent.dwThreadId,lpDebugEvent.CreateProcessInfo.hThread)=false then
+        begin
+          lpDebugEvent.CreateProcessInfo.hThread:=OpenThread(THREAD_ALL_ACCESS,false, lpDebugEvent.dwThreadId);
+          threads.Add(lpDebugEvent.dwThreadId,lpDebugEvent.CreateProcessInfo.hThread);
+        end;
+
+        currentthread:=lpDebugEvent.CreateProcessInfo.hThread;
+        suspendthread(CurrentThread);
       end;
 
       $ce000001: //create thread
       begin
         lpDebugEvent.dwDebugEventCode:=CREATE_THREAD_DEBUG_EVENT;
-        lpDebugEvent.CreateThread.hThread:=OpenThread(THREAD_ALL_ACCESS,false, lpDebugEvent.dwThreadId);
+        if threads.GetData(lpDebugEvent.dwThreadId,lpDebugEvent.CreateThread.hThread)=false then
+        begin
+          lpDebugEvent.CreateThread.hThread:=OpenThread(THREAD_ALL_ACCESS,false, lpDebugEvent.dwThreadId);
+          threads.Add(lpDebugEvent.dwThreadId, lpDebugEvent.CreateThread.hThread);
+        end;
         lpDebugEvent.CreateThread.lpStartAddress:=nil;
         lpDebugEvent.CreateThread.lpThreadLocalBase:=nil;
         lastthreadlist.Add(inttohex(lpDebugEvent.dwThreadId,1));
         lastthreadpoll:=GetTickCount64;
 
+        currentthread:=lpDebugEvent.CreateThread.hThread;
+        suspendthread(CurrentThread);
 
       end;
 
@@ -374,6 +419,12 @@ begin
       begin
         lpDebugEvent.dwDebugEventCode:=EXIT_THREAD_DEBUG_EVENT;
         lpDebugEvent.ExitThread.dwExitCode:=0;
+
+        if threads.GetData(lpDebugEvent.dwThreadId,h) then
+        begin
+          closehandle(h);
+          threads.Delete(lpDebugEvent.dwThreadId);
+        end;
 
         i:=lastthreadlist.indexof(inttohex(lpDebugEvent.dwThreadId,1));
         if i<>-1 then
@@ -459,17 +510,16 @@ begin
   hasPausedProcess:=false;
   VEHDebugView.ContinueMethod:=dwContinueStatus;
 
-  if fisInjectedEvent then
-    fisInjectedEvent:=false
-  else
-    SetEvent(HasHandledDebugEvent);
-
   if currentthread<>0 then
   begin
     resumeThread(currentThread);
-    closeHandle(currentThread);
     currentThread:=0;
   end;
+
+  if wasInjectedEvent=false then
+    SetEvent(HasHandledDebugEvent);
+
+
 
   result:=true;
 end;
@@ -746,6 +796,12 @@ begin
 
   lastthreadpoll:=GetTickCount64;
 end;
+
+function TVEHDebugInterface.canUseIPT: boolean;
+begin
+  canUseIPT:=true;
+end;
+
 {$endif}
 
 end.

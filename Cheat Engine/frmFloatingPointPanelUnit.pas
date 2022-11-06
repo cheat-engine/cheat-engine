@@ -16,7 +16,8 @@ uses
   windows,
   {$endif}
   LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, ExtCtrls, cefuncproc, ComCtrls, LResources, NewKernelHandler, commonTypeDefs, betterControls;
+  Dialogs, StdCtrls, ExtCtrls, cefuncproc, ComCtrls, LResources, NewKernelHandler,
+  commonTypeDefs, betterControls, contexthandler;
 
 resourcestring
   rsFPPExtended = 'Extended (default)';
@@ -44,13 +45,14 @@ type
   private
     { Private declarations }
     context: PContext;
-    contextCopy: TContext;
+    contexthandler: TContextInfo;
+
     loadedFormPosition: boolean;
     procedure ValueDoubleClick(sender: TObject);
   public
     { Public declarations }
     procedure UpdatedContext;
-    procedure SetContextPointer(context: PContext);
+    procedure SetContextPointer(context: pointer);
   end;
 
 
@@ -64,7 +66,7 @@ var frmFloatingPointPanel:TfrmFloatingPointPanel;
 
 implementation
 
-uses MemoryBrowserFormUnit, processhandlerunit, debughelper, DPIHelper;
+uses MemoryBrowserFormUnit, processhandlerunit, debughelper, DPIHelper, networkInterfaceApi;
 
 {$ifdef cpux86_64}
 //coded by mgr.inz.player
@@ -109,11 +111,14 @@ procedure doubletoextended(float64:pointer; outextended:pointer); assembler;
 
 
 
-procedure TfrmFloatingPointPanel.SetContextPointer(context: PContext);
-var oldscrollpos: integer;
+procedure TfrmFloatingPointPanel.SetContextPointer(context: pointer);
+var
+  oldscrollpos: integer;
+  oldcontexthandler: TContextInfo;
 begin
+  oldcontexthandler:=contexthandler;
+  contexthandler:=getBestContextHandler;
   self.context:=context;
-  self.contextCopy:=context^;
 
   oldscrollpos:=mData.VertScrollBar.Position;
   UpdatedContext;
@@ -136,45 +141,21 @@ var
   v: string;
 
   vd: double;
+
+  e: PContextElement_register;
 begin
   p:=nil;
   if self<>frmFloatingPointPanel then exit; //readonly for all other panels
 
   if (debuggerthread=nil) or (debuggerthread.CurrentThread=nil) then exit;
 
+  p:=pointer(tlabel(Sender).tag);
 
-
-  offset:=tlabel(Sender).tag;
+  if p=nil then exit;
 
   v:=tlabel(sender).caption;
   if inputquery('FPU Edit', 'Enter the new value', v) then
   begin
-    case cbContextSection.itemindex of
-      0:
-      begin
-        //fpu
-        {$ifdef cpu64}
-        p:=@debuggerthread.CurrentThread.context.FltSave.FloatRegisters[0];
-        {$else}
-        p:=@debuggerthread.CurrentThread.context.FloatSave.RegisterArea[0];
-        {$endif}
-
-
-      end;
-
-      1:
-      begin
-        //xmm
-        {$ifdef cpu64}
-        p:=@debuggerthread.CurrentThread.context.FltSave.XmmRegisters[0];
-        {$else}
-        p:=@debuggerthread.CurrentThread.context.ext.XMMRegisters.LegacyXMM[0];
-        {$endif}
-      end;
-    end;
-
-    p:=@pba[offset];
-
     case cbDisplayType.itemindex of
       0: pb^:=strtoint('$'+v);
       1: pw^:=strtoint('$'+v);
@@ -194,12 +175,8 @@ begin
 
     end;
 
-
-    context^:=debuggerthread.CurrentThread.context^;
     UpdatedContext;
   end;
-
-
 end;
 
 procedure TfrmFloatingPointPanel.UpdatedContext;
@@ -208,6 +185,7 @@ Called by the debugger and initial display
 Will fetch the debuggerthread's context and show the floating point values
 }
 var i,j: integer;
+    lastentry: integer;
     line, row: integer;
     lbl: tlabel;
     s: single;
@@ -217,6 +195,7 @@ var i,j: integer;
     e: extended;
     str: string;
     tempstr: string;
+    regname: string;
 
     p: pointer;
     pba: pbytearray absolute p;
@@ -229,6 +208,7 @@ var i,j: integer;
 
     lw: longword;
     max: integer;
+    bytelength: integer;
 
     oldscrollpos: integer;
 
@@ -236,113 +216,178 @@ var i,j: integer;
 
     blocksize: integer;
 
-    procedure newLabel(text: string; id: integer);
+    oldcontexthandler: TContextInfo;
+
+    FPUList: PContextElementRegisterList;
+    altFPUList: PContextElementRegisterList;
+
+
+    procedure newLabel(text: string; contextpointer: pointer);
     begin
       lbl:=tlabel.create(sbData);
       lbl.caption:=text;
-      lbl.tag:=id;
+      lbl.tag:=ptruint(contextpointer);
       lbl.parent:=sbData;
-      if id<>-1 then
+      if contextpointer<>nil then
         lbl.OnDblClick:=ValueDoubleClick;
     end;
+
+
 begin
   if context=nil then exit;
+
+  fpulist:=contexthandler.getFloatingPointRegisters;
+  altFPUList:=contexthandler.getAlternateFloatingPointRegisters;
+  if altFPUList=nil then
+  begin
+    //no alternate, only use the main one
+    cbContextSection.enabled:=false;
+    cbContextSection.visible:=false;
+    cbContextSection.ItemIndex:=1;
+  end
+  else
+  begin
+    if not cbContextSection.enabled then
+      cbContextSection.enabled:=true;
+
+    if not cbContextSection.visible then
+      cbContextSection.visible:=true;
+  end;
 
   mData.lines.BeginUpdate;
   sbdata.BeginUpdateBounds;
   try
     mData.Clear;
-
-
-
     while sbdata.ComponentCount>0 do
       sbdata.Components[0].Free;
 
-
-
-
     case cbContextSection.ItemIndex of
-      0: //fpu
+      0: //fpu (old)
       begin
-        if cbDisplayType.Items.Count=6 then
+        if altFPUList=nil then exit;
+
+        if altFPUList^[0].size=10 then //extended type
         begin
-          cbDisplayType.Items.Add(rsFPPExtended);    //make it the default selection
-          cbDisplayType.OnSelect:=nil;
-          cbDisplayType.itemindex:=6;
-          cbDisplayType.OnSelect:=ComboBox1Select;
+          if cbDisplayType.Items.Count=6 then
+          begin
+            cbDisplayType.Items.Add(rsFPPExtended);    //make it the default selection
+            cbDisplayType.OnSelect:=nil;
+            cbDisplayType.itemindex:=6;
+            cbDisplayType.OnSelect:=ComboBox1Select;
+          end;
         end;
 
+
+        //if extended the other types are really useless, but it's there just in case...
         case cbDisplayType.ItemIndex of
-          0: sbData.ChildSizing.ControlsPerLine:=1+16; //byte
-          1: sbData.ChildSizing.ControlsPerLine:=1+8; //word
-          2: sbData.ChildSizing.ControlsPerLine:=1+4; //dword
-          3: sbData.ChildSizing.ControlsPerLine:=1+2; //8 byte
-          4: sbData.ChildSizing.ControlsPerLine:=1+4; //single
-          5: sbData.ChildSizing.ControlsPerLine:=1+2; //double
+          0: sbData.ChildSizing.ControlsPerLine:=1+altFPUList^[0].size; //byte
+          1: sbData.ChildSizing.ControlsPerLine:=1+altFPUList^[0].size div 2; //word
+          2: sbData.ChildSizing.ControlsPerLine:=1+altFPUList^[0].size div 4; //dword
+          3: sbData.ChildSizing.ControlsPerLine:=1+altFPUList^[0].size div 8; //8 byte
+          4: sbData.ChildSizing.ControlsPerLine:=1+altFPUList^[0].size div 4; //single
+          5: sbData.ChildSizing.ControlsPerLine:=1+altFPUList^[0].size div 8; //double
           6: sbData.ChildSizing.ControlsPerLine:=1+1; //extended
         end;
 
-        for i:=0 to 7 do
+        for i:=0 to length(altFPUList^)-1 do
         begin
-          newlabel('ST('+inttostr(i)+'):',-1);
+          newlabel(altFPUList^[i].name+':',nil);
+          p:=altFPUList^[i].getPointer(context);
 
-          {$ifdef cpu64}
-          p:=@context.FltSave.FloatRegisters[i];
-          {$else}
-          p:=@context.FloatSave.RegisterArea[i*10];
-          {$endif}
-
+          str:=altFPUList^[i].name+':';
           case cbDisplayType.ItemIndex of
             0: //byte
             begin
-              str:='';
-
-
-              for j:=0 to {$ifdef cpu64}15{$else}9{$endif} do
+              for j:=0 to altFPUList^[i].size-1 do
               begin
                 str:=str+inttohex(pba[j],2);
-                if j<15 then
+                if j<altFPUList^[i].size-1 then
                   str:=str+'  _  ';
 
-                newLabel(inttohex(pba[j],2), (i*{$ifdef cpu64}16{$else}10{$endif})+j);
+                newLabel(inttohex(pba[j],2), pointer(ptruint(p)+j));
               end;
 
               mData.Lines.Add(str);
             end;
 
-            1:
+            1: //word
             begin
-              mData.Lines.Add(inttohex(pwa[0],4)+'  _  '+inttohex(pwa[1],4)+'  _  '+inttohex(pwa[2],4)+'  _  '+inttohex(pwa[3],4)+'  _  '+inttohex(pwa[4],4){$ifdef cpu64}+'  _  '+inttohex(pwa[5],4)+'  _  '+inttohex(pwa[6],4)+'  _  '+inttohex(pwa[7],4){$endif}); //2byte
-              for j:=0 to {$ifdef cpu64}7{$else}3{$endif} do
-                newLabel(inttohex(pwa[j],4), (i*{$ifdef cpu64}16{$else}10{$endif})+(j*2));
+              lastentry:=(altFPUList^[i].size div 2)-1;
+
+              for j:=0 to lastentry do
+              begin
+                str:=str+inttohex(pwa[j],2);
+                if j<lastentry then
+                  str:=str+'  _  ';
+
+                newLabel(inttohex(pwa[j],4), pointer(ptruint(p)+j*2));
+              end;
+
+              mData.Lines.Add(str);
             end;
 
-            2:
+            2:  //dword
             begin
-              mData.Lines.Add(inttohex(pda[0],8)+'  _  '+inttohex(pda[1],8){$ifdef cpu64}+'  _  '+inttohex(pda[2],8)+'  _  '+inttohex(pda[3],8){$endif}); //4byte
-              for j:=0 to {$ifdef cpu64}3{$else}1{$endif} do
-                newLabel(inttohex(pda[j],8), (i*{$ifdef cpu64}16{$else}10{$endif})+(j*4));
+              lastentry:=(altFPUList^[i].size div 4)-1;
+
+              for j:=0 to lastentry do
+              begin
+                str:=str+inttohex(pda[j],2);
+                if j<lastentry then
+                  str:=str+'  _  ';
+
+                newLabel(inttohex(pda[j],8), pointer(ptruint(p)+j*4));
+              end;
+
+              mData.Lines.Add(str);
             end;
 
-            3:
+            3:  //qword
             begin
-              mData.Lines.Add(inttohex(pqa[0],16){$ifdef cpu64}+'  _  '+inttohex(pqa[1],16){$endif}); //8 byte
-              for j:=0 to {$ifdef cpu64}1{$else}0{$endif} do
-                newLabel(inttohex(pqa[j],17), (i*{$ifdef cpu64}16{$else}10{$endif})+(j*8));
+              lastentry:=(altFPUList^[i].size div 8)-1;
+
+              for j:=0 to lastentry do
+              begin
+                str:=str+inttohex(pqa[j],2);
+                if j<lastentry then
+                  str:=str+'  _  ';
+
+                newLabel(inttohex(pqa[j],16), pointer(ptruint(p)+j*8));
+              end;
+
+              mData.Lines.Add(str);
             end;
 
-            4:
+            4: //single
             begin
-              mData.Lines.Add(format('%f - %f'{$ifdef cpu64}+' - %f - %f'{$endif}, [psa[0], psa[1]{$ifdef cpu64}, psa[2], psa[3]{$endif}])); //single
-              for j:=0 to {$ifdef cpu64}3{$else}1{$endif} do
-                newLabel(format('%f',[psa[j]]),(i*{$ifdef cpu64}16{$else}10{$endif})+(j*4));
+              lastentry:=(altFPUList^[i].size div 4)-1;
+
+              for j:=0 to lastentry do
+              begin
+                str:=str+format('%f',[psa[j]]);
+                if j<lastentry then
+                  str:=str+'  _  ';
+
+                newLabel(format('%f',[psa[j]]), pointer(ptruint(p)+j*4));
+              end;
+
+              mData.Lines.Add(str);
             end;
 
-            5:
+            5: //double
             begin
-              mData.Lines.Add(format('%f'{$ifdef cpu64}+' - %f'{$endif}, [pssa[0]{$ifdef cpu64}, pssa[1]{$endif}]));  //double
-              for j:=0 to {$ifdef cpu64}1{$else}0{$endif} do
-                newLabel(format('%f',[pssa[j]]), (i*{$ifdef cpu64}16{$else}10{$endif})+(j*8));
+              lastentry:=(altFPUList^[i].size div 8)-1;
+
+              for j:=0 to lastentry do
+              begin
+                str:=str+format('%f',[pssa[j]]);
+                if j<lastentry then
+                  str:=str+'  _  ';
+
+                newLabel(format('%f',[pssa[j]]), pointer(ptruint(p)+j*8));
+              end;
+
+              mData.Lines.Add(str);
             end;
 
             6:
@@ -352,19 +397,19 @@ begin
               {$else}
               d:=pea[0];
               {$endif}
-              mData.Lines.Add(format('%f', [d])); //extended
+              mData.Lines.Add(str+format('%f', [d])); //extended
 
-              newLabel(format('%f',[d]), (i*{$ifdef cpu64}16{$else}10{$endif})); //(i*{$ifdef cpu64}16{$else}10{$endif}));
-
+              newLabel(format('%f',[d]), p);
             end;
           end;
         end;
       end;
 
-      1: //xmm
+      1: //xmm (main)
       begin
+        if fpulist=nil then exit;
 
-        if cbDisplayType.Items.Count>6 then
+        if cbDisplayType.Items.Count>6 then //no extended type
         begin
           if cbDisplayType.ItemIndex=6 then
           begin
@@ -376,124 +421,118 @@ begin
           cbDisplayType.Items.Delete(6);
         end;
 
-        {$ifdef cpu64}
-        if processhandler.is64bit then
-          max:=15
-        else
-        {$endif}
-          max:=7;
+        bytelength:=fpulist^[0].size;
+        max:=length(fpulist^);
+
 
         case cbDisplayType.ItemIndex of
-          0: sbData.ChildSizing.ControlsPerLine:=1+16; //byte
-          1: sbData.ChildSizing.ControlsPerLine:=1+8; //word
-          2: sbData.ChildSizing.ControlsPerLine:=1+4; //dword
-          3: sbData.ChildSizing.ControlsPerLine:=1+2; //8 byte
-          4: sbData.ChildSizing.ControlsPerLine:=1+4; //single
-          5: sbData.ChildSizing.ControlsPerLine:=1+2; //double
-          6: sbData.ChildSizing.ControlsPerLine:=1;
+          0: sbData.ChildSizing.ControlsPerLine:=1+bytelength; //byte
+          1: sbData.ChildSizing.ControlsPerLine:=1+bytelength div 2; //word
+          2: sbData.ChildSizing.ControlsPerLine:=1+bytelength div 4; //dword
+          3: sbData.ChildSizing.ControlsPerLine:=1+bytelength div 8; //8 byte
+          4: sbData.ChildSizing.ControlsPerLine:=1+bytelength div 4; //single
+          5: sbData.ChildSizing.ControlsPerLine:=1+bytelength div 8; //double
+          else
+            sbData.ChildSizing.ControlsPerLine:=1+bytelength div 8;
         end;
 
-        for i:=0 to max do
+        for i:=0 to max-1 do
         begin
-          {$ifdef cpu64}
-          p:=@context.FltSave.XmmRegisters[i];
-          {$else}
-          p:=@context.ext.XMMRegisters.LegacyXMM[i];
-          {$endif}
+          regname:=fpulist^[i].name;
+          p:=fpulist^[i].getPointer(context);
+          newLabel(regname+':', nil);
 
-          newLabel('XMM'+inttostr(i)+':', -1);
+          str:=regname+':';
 
           case cbDisplayType.ItemIndex of
             0: //byte
             begin
-              str:='';
-              for j:=0 to 15 do
+              lastentry:=bytelength-1;
+              for j:=0 to lastentry do
               begin
                 str:=str+inttohex(pba[j],2);
-                if j<15 then
+                if j<lastentry then
                   str:=str+'  _  ';
 
-                newLabel(inttohex(pba[j],2), i*16+j);
+                newLabel(inttohex(pba[j],2), pointer(ptruint(p)+j));
               end;
 
-              mData.Lines.Add('xmm'+inttostr(i)+':'+str);
+              mData.Lines.Add(str);
             end;
 
             1: //word
             begin
-              str:='';
-              for j:=0 to 7 do
+              lastentry:=(bytelength div 2)-1;
+              for j:=0 to lastentry do
               begin
                 str:=str+inttohex(pwa[j],4);
-                if j<7 then
+                if j<lastentry then
                   str:=str+'  _  ';
 
-                newLabel(inttohex(pwa[j],4), i*16+j*2);
+                newLabel(inttohex(pwa[j],4), pointer(ptruint(p)+j*2));
               end;
 
-              mData.Lines.Add('xmm'+inttostr(i)+':'+str);
-
-
+              mData.Lines.Add(str);
             end;
 
             2: //dword
             begin
-              str:='';
-              for j:=0 to 3 do
+              lastentry:=(bytelength div 4)-1;
+              for j:=0 to lastentry do
               begin
                 str:=str+inttohex(pda[j],8);
-                if j<3 then
+                if j<lastentry then
                   str:=str+'  _  ';
 
-                newLabel(inttohex(pda[j],8), i*16+j*4);
+                newLabel(inttohex(pda[j],8), pointer(ptruint(p)+j*4));
               end;
 
-              mData.Lines.Add('xmm'+inttostr(i)+':'+str);
+              mData.Lines.Add(str);
             end;
 
             3:   //8 byte
             begin
-              str:='';
-              for j:=0 to 1 do
+              lastentry:=(bytelength div 8)-1;
+              for j:=0 to lastentry do
               begin
                 str:=str+inttohex(pqa[j],16);
-                if j<1 then
+                if j<lastentry then
                   str:=str+'  _  ';
 
-                newLabel(inttohex(pqa[j],16), i*16+j*8);
+                newLabel(inttohex(pqa[j],16), pointer(ptruint(p)+j*8));
               end;
 
-              mData.Lines.Add('xmm'+inttostr(i)+':'+str);
+              mData.Lines.Add(str);
             end;
 
-            4:
+            4: //float
             begin
-              str:='';
-              for j:=0 to 3 do
+              lastentry:=(bytelength div 4)-1;
+              for j:=0 to lastentry do
               begin
                 str:=str+format('%f',[psa[j]]);
-                if j<3 then
+                if j<lastentry then
                   str:=str+'  _  ';
 
-                newLabel(format('%f',[psa[j]]), i*16+j*4);
+                newLabel(format('%f',[psa[j]]), pointer(ptruint(p)+j*4));
               end;
 
-              mData.Lines.Add('xmm'+inttostr(i)+':'+str);
+              mData.Lines.Add(str);
             end;
 
-            5:
+            5: //double
             begin
-              str:='';
-              for j:=0 to 1 do
+              lastentry:=(bytelength div 8)-1;
+              for j:=0 to lastentry do
               begin
                 str:=str+format('%f',[pssa[j]]);
-                if j<1 then
+                if j<lastentry then
                   str:=str+'  _  ';
 
-                newLabel(format('%f',[pssa[j]]), i*16+j*8);
+                newLabel(format('%f',[pssa[j]]), pointer(ptruint(p)+j*8));
               end;
 
-              mData.Lines.Add('xmm'+inttostr(i)+':'+str);
+              mData.Lines.Add(str);
             end;
           end;
         end;

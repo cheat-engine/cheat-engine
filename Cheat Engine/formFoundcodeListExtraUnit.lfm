@@ -2,30 +2,30 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
   Left = 867
   Height = 387
   Top = 208
-  Width = 625
+  Width = 592
   AutoSize = True
   Caption = 'Extra info'
   ClientHeight = 387
-  ClientWidth = 625
+  ClientWidth = 592
   OnClose = FormClose
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   OnShow = FormShow
   PopupMenu = pmCopy
   Position = poScreenCenter
-  LCLVersion = '2.0.6.0'
+  LCLVersion = '2.2.2.0'
   object Panel1: TPanel
     AnchorSideLeft.Control = Owner
     AnchorSideTop.Control = pnlEPTWatch
     AnchorSideTop.Side = asrBottom
     Left = 0
-    Height = 127
+    Height = 92
     Top = 54
-    Width = 98
+    Width = 58
     AutoSize = True
     BevelOuter = bvNone
-    ClientHeight = 127
-    ClientWidth = 98
+    ClientHeight = 92
+    ClientWidth = 58
     Font.CharSet = ANSI_CHARSET
     Font.Name = 'Courier New'
     ParentFont = False
@@ -35,9 +35,9 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
       AnchorSideTop.Control = Label3
       AnchorSideTop.Side = asrCenter
       Left = 0
-      Height = 22
-      Top = 55
-      Width = 24
+      Height = 15
+      Top = 41
+      Width = 14
       Caption = '>>'
       ParentColor = False
     end
@@ -46,10 +46,10 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
       AnchorSideLeft.Side = asrBottom
       AnchorSideTop.Control = Label2
       AnchorSideTop.Side = asrBottom
-      Left = 26
-      Height = 22
-      Top = 55
-      Width = 72
+      Left = 16
+      Height = 15
+      Top = 41
+      Width = 42
       BorderSpacing.Left = 2
       BorderSpacing.Top = 3
       Caption = 'Label3'
@@ -61,10 +61,10 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
       AnchorSideLeft.Side = asrBottom
       AnchorSideTop.Control = Label3
       AnchorSideTop.Side = asrBottom
-      Left = 26
-      Height = 22
-      Top = 80
-      Width = 72
+      Left = 16
+      Height = 15
+      Top = 59
+      Width = 42
       BorderSpacing.Left = 2
       BorderSpacing.Top = 3
       Caption = 'Label4'
@@ -76,10 +76,10 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
       AnchorSideLeft.Side = asrBottom
       AnchorSideTop.Control = Label4
       AnchorSideTop.Side = asrBottom
-      Left = 26
-      Height = 22
-      Top = 105
-      Width = 72
+      Left = 16
+      Height = 15
+      Top = 77
+      Width = 42
       BorderSpacing.Left = 2
       BorderSpacing.Top = 3
       Caption = 'Label5'
@@ -91,10 +91,10 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
       AnchorSideLeft.Side = asrBottom
       AnchorSideTop.Control = Label1
       AnchorSideTop.Side = asrBottom
-      Left = 26
-      Height = 22
-      Top = 30
-      Width = 72
+      Left = 16
+      Height = 15
+      Top = 23
+      Width = 42
       BorderSpacing.Left = 2
       BorderSpacing.Top = 3
       Caption = 'Label2'
@@ -105,10 +105,10 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
       AnchorSideLeft.Control = Label10
       AnchorSideLeft.Side = asrBottom
       AnchorSideTop.Control = Panel1
-      Left = 26
-      Height = 22
+      Left = 16
+      Height = 15
       Top = 5
-      Width = 72
+      Width = 42
       BorderSpacing.Left = 2
       BorderSpacing.Top = 5
       Caption = 'Label1'
@@ -122,7 +122,7 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
     AnchorSideTop.Side = asrBottom
     Left = 0
     Height = 34
-    Top = 181
+    Top = 146
     Width = 62
     AutoSize = True
     BevelOuter = bvNone
@@ -184,20 +184,20 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
     AnchorSideTop.Side = asrBottom
     Left = 0
     Height = 36
-    Top = 315
-    Width = 625
+    Top = 299
+    Width = 592
     Anchors = [akTop, akLeft, akRight]
     AutoSize = True
     BevelOuter = bvNone
     ClientHeight = 36
-    ClientWidth = 625
+    ClientWidth = 592
     ParentFont = False
     TabOrder = 2
     object Button1: TButton
       AnchorSideLeft.Control = Panel5
       AnchorSideLeft.Side = asrCenter
       AnchorSideTop.Control = Panel5
-      Left = 267
+      Left = 251
       Height = 32
       Top = 2
       Width = 90
@@ -222,16 +222,16 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
     AnchorSideRight.Control = Owner
     AnchorSideRight.Side = asrBottom
     Left = 4
-    Height = 72
-    Top = 220
-    Width = 621
+    Height = 91
+    Top = 185
+    Width = 588
     Anchors = [akTop, akLeft, akRight]
     AutoSize = True
     BorderSpacing.Left = 4
     BorderSpacing.Top = 5
     BevelOuter = bvNone
-    ClientHeight = 72
-    ClientWidth = 621
+    ClientHeight = 91
+    ClientWidth = 588
     ParentFont = False
     TabOrder = 3
     OnResize = Panel6Resize
@@ -239,9 +239,9 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
       AnchorSideLeft.Control = Panel6
       AnchorSideRight.Control = Panel8
       Left = 0
-      Height = 72
+      Height = 51
       Top = 0
-      Width = 596
+      Width = 563
       Anchors = [akTop, akLeft, akRight]
       AutoSize = True
       BorderSpacing.Right = 4
@@ -251,18 +251,18 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
       ChildSizing.EnlargeHorizontal = crsHomogenousChildResize
       ChildSizing.Layout = cclTopToBottomThenLeftToRight
       ChildSizing.ControlsPerLine = 3
-      ClientHeight = 72
-      ClientWidth = 596
+      ClientHeight = 51
+      ClientWidth = 563
       Font.CharSet = ANSI_CHARSET
       Font.Name = 'Courier New'
       ParentFont = False
       TabOrder = 0
       object lblRAX: TLabel
         Left = 0
-        Height = 22
+        Height = 15
         Top = 0
-        Width = 186
-        Caption = 'EAX=DDDDDDDD'
+        Width = 175
+        Caption = 'EAX=DDDDDDDDDDDDDDDD'
         ParentColor = False
         PopupMenu = pmEmpty
         OnDblClick = RegisterDblClick
@@ -270,9 +270,9 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
       end
       object lblRBX: TLabel
         Left = 0
-        Height = 22
-        Top = 25
-        Width = 186
+        Height = 15
+        Top = 18
+        Width = 175
         Caption = 'EBX=DDDDDDDD'
         ParentColor = False
         PopupMenu = pmEmpty
@@ -281,9 +281,9 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
       end
       object lblRCX: TLabel
         Left = 0
-        Height = 22
-        Top = 50
-        Width = 186
+        Height = 15
+        Top = 36
+        Width = 175
         Caption = 'ECX=DDDDDDDD'
         ParentColor = False
         PopupMenu = pmEmpty
@@ -291,21 +291,21 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
         OnMouseDown = RegisterMouseDown
       end
       object lblRDX: TLabel
-        Left = 206
-        Height = 22
+        Left = 195
+        Height = 15
         Top = 0
-        Width = 186
-        Caption = 'EDX=DDDDDDDD'
+        Width = 175
+        Caption = 'EDX=DDDDDDDDDDDDDDDD'
         ParentColor = False
         PopupMenu = pmEmpty
         OnDblClick = RegisterDblClick
         OnMouseDown = RegisterMouseDown
       end
       object lblRSI: TLabel
-        Left = 206
-        Height = 22
-        Top = 25
-        Width = 186
+        Left = 195
+        Height = 15
+        Top = 18
+        Width = 175
         Caption = 'ESI=DDDDDDDD'
         ParentColor = False
         PopupMenu = pmEmpty
@@ -313,10 +313,10 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
         OnMouseDown = RegisterMouseDown
       end
       object lblRDI: TLabel
-        Left = 206
-        Height = 22
-        Top = 50
-        Width = 186
+        Left = 195
+        Height = 15
+        Top = 36
+        Width = 175
         Caption = 'EDI=DDDDDDDD'
         ParentColor = False
         PopupMenu = pmEmpty
@@ -324,21 +324,21 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
         OnMouseDown = RegisterMouseDown
       end
       object lblRBP: TLabel
-        Left = 412
-        Height = 22
+        Left = 390
+        Height = 15
         Top = 0
-        Width = 184
-        Caption = 'EBP=DDDDDDDD'
+        Width = 173
+        Caption = 'EBP=DDDDDDDDDDDDDDDD'
         ParentColor = False
         PopupMenu = pmEmpty
         OnDblClick = RegisterDblClick
         OnMouseDown = RegisterMouseDown
       end
       object lblRSP: TLabel
-        Left = 412
-        Height = 22
-        Top = 25
-        Width = 184
+        Left = 390
+        Height = 15
+        Top = 18
+        Width = 173
         Caption = 'ESP=DDDDDDDD'
         ParentColor = False
         PopupMenu = pmEmpty
@@ -346,10 +346,10 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
         OnMouseDown = RegisterMouseDown
       end
       object lblRIP: TLabel
-        Left = 412
-        Height = 22
-        Top = 50
-        Width = 184
+        Left = 390
+        Height = 15
+        Top = 36
+        Width = 173
         Caption = 'EIP=DDDDDDDD'
         ParentColor = False
         PopupMenu = pmEmpty
@@ -363,14 +363,14 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
       AnchorSideTop.Side = asrCenter
       AnchorSideRight.Control = Panel6
       AnchorSideRight.Side = asrBottom
-      Left = 600
-      Height = 60
-      Top = 6
+      Left = 567
+      Height = 91
+      Top = 0
       Width = 21
       Anchors = [akTop, akRight]
       AutoSize = True
       BevelOuter = bvNone
-      ClientHeight = 60
+      ClientHeight = 91
       ClientWidth = 21
       ParentFont = False
       TabOrder = 1
@@ -384,6 +384,8 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
         Hint = 'Stack view'
         Top = 0
         Width = 21
+        Constraints.MinHeight = 30
+        Constraints.MinWidth = 21
         Caption = 'S'
         OnClick = sbShowStackClick
         ShowHint = True
@@ -392,17 +394,39 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
       end
       object sbShowFloats: TSpeedButton
         AnchorSideLeft.Control = Panel8
+        AnchorSideTop.Control = sbShowIPT
+        AnchorSideTop.Side = asrBottom
+        AnchorSideRight.Control = Panel8
+        AnchorSideRight.Side = asrBottom
+        Left = 0
+        Height = 31
+        Hint = 'Floating point registers'
+        Top = 60
+        Width = 21
+        Constraints.MinHeight = 31
+        Constraints.MinWidth = 21
+        Caption = 'F'
+        OnClick = sbShowFloatsClick
+        ShowHint = True
+        ParentFont = False
+        ParentShowHint = False
+      end
+      object sbShowIPT: TSpeedButton
+        AnchorSideLeft.Control = Panel8
         AnchorSideTop.Control = sbShowStack
         AnchorSideTop.Side = asrBottom
         AnchorSideRight.Control = Panel8
         AnchorSideRight.Side = asrBottom
         Left = 0
         Height = 30
-        Hint = 'Floating point registers'
+        Hint = 'Stack view'
         Top = 30
         Width = 21
-        Caption = 'F'
-        OnClick = sbShowFloatsClick
+        AutoSize = True
+        Constraints.MinHeight = 30
+        Constraints.MinWidth = 21
+        Caption = 'IPT'
+        OnClick = sbShowIPTClick
         ShowHint = True
         ParentFont = False
         ParentShowHint = False
@@ -415,8 +439,8 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
     AnchorSideTop.Side = asrBottom
     Left = 4
     Height = 15
-    Top = 300
-    Width = 720
+    Top = 284
+    Width = 687
     Anchors = [akTop, akLeft, akRight]
     BorderSpacing.Left = 4
     BorderSpacing.Top = 8
@@ -434,7 +458,7 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
     Left = 0
     Height = 54
     Top = 0
-    Width = 625
+    Width = 592
     Anchors = [akTop, akLeft, akRight]
     AutoSize = True
     ChildSizing.HorizontalSpacing = 30
@@ -442,7 +466,7 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
     ChildSizing.Layout = cclLeftToRightThenTopToBottom
     ChildSizing.ControlsPerLine = 2
     ClientHeight = 54
-    ClientWidth = 625
+    ClientWidth = 592
     ParentFont = False
     TabOrder = 4
     object lblPhysicalAddress: TLabel
@@ -539,39 +563,16 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
     Left = 208
     Top = 69
     Bitmap = {
-      4C69010000001000000010000000606060C4808080E0808080E0808080E08080
-      80E0808080E0808080E0777777E098989856FFFFFF00FFFFFF00FFFFFF00FFFF
-      FF00FFFFFF00FFFFFF00FFFFFF00808080E0FFFFFFFFFFFFFFFFFFFFFFFFFFFF
-      FFFFFFFFFFFFFFFFFFFFFFFFFFFF828282F6BCBCBC33FFFFFF00FFFFFF00FFFF
-      FF00FFFFFF00FFFFFF00FFFFFF00808080E0FFFFFFFFFFFFFFFFFFFFFFFFFFFF
-      FFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFEFEFF565656DCFFFFFF00FFFFFF00FFFF
-      FF00FFFFFF00FFFFFF00FFFFFF00808080E0FFFFFFFFFFFFFFFFFFFFFFFFFFFF
-      FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF6F6F6FF0FFFFFF00FFFFFF00FFFF
-      FF00FFFFFF00FFFFFF00FFFFFF00808080E0F9F9F9FFE1E1E1FFE1E1E1FFB7B7
-      B7FF6D6D6DFF7F7F7FFF7F7F7FFF7F7F7FFF606060FC676767C8676767C85555
-      55B6E8E8E80FFFFFFF00FFFFFF00808080E0FFFFFFFFFCFCFCFFFCFCFCFFBDBD
-      BDFFC0C0C0FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFECEC
-      ECFF5A5A5AB7F8F8F803FFFFFF00808080E0F9F9F9FFE1E1E1FFE1E1E1FFA9A9
-      A9FFC0C0C0FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
-      FFFFD5D5D5FF7F7F7F78FFFFFF00808080E0F8F8F8FFDEDEDEFFDEDEDEFFA6A6
-      A6FFC0C0C0FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
-      FFFFFFFFFFFF77777798FFFFFF00808080E0F8F8F8FFDEDEDEFFDEDEDEFFA6A6
-      A6FFC0C0C0FFF6F6F6FFEFEFEFFFEFEFEFFFEFEFEFFFEFEFEFFFEFEFEFFFF0F0
-      F0FFFFFFFFFF77777798FFFFFF00808080E0FFFFFFFFFFFFFFFFFFFFFFFFC0C0
-      C0FFC0C0C0FFF8F8F8FFF2F2F2FFF2F2F2FFF2F2F2FFF2F2F2FFF2F2F2FFF3F3
-      F3FFFFFFFFFF77777798FFFFFF00808080E0FFFFFFFFFFFFFFFFFFFFFFFFC0C0
-      C0FFC0C0C0FFECECECFFDEDEDEFFDEDEDEFFDEDEDEFFDEDEDEFFDEDEDEFFE0E0
-      E0FFFFFFFFFF77777798FFFFFF005C5C5CBD777777D8777777D8777777D85959
-      59E2C0C0C0FFEEEEEEFFE1E1E1FFE1E1E1FFE1E1E1FFE1E1E1FFE1E1E1FFE3E3
-      E3FFFFFFFFFF77777798FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00C0C0
-      C040C0C0C0FFF2F2F2FFE8E8E8FFE8E8E8FFE8E8E8FFE8E8E8FFE8E8E8FFE9E9
-      E9FFFFFFFFFF77777798FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00C0C0
-      C040C0C0C0FFFCFCFCFFF9F9F9FFF9F9F9FFF9F9F9FFF9F9F9FFF9F9F9FFF9F9
-      F9FFFFFFFFFF77777798FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00C0C0
-      C040C0C0C0FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
-      FFFFFFFFFFFF77777798FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00C0C0
-      C03C535353F06F6F6FF06F6F6FF06F6F6FF06F6F6FF06F6F6FF06F6F6FF06F6F
-      6FF06F6F6FF06A6A6A8EFFFFFF00
+      4C7A0100000010000000100000001C0100000000000078DA9D92316A84501040
+      0339400E933645EE200A8AC5EF04412C4DA77880D49E40F002B151B048910B08
+      5B04D1D828888A8228881347707157D7951D78F08B79F3879921847C6B9A166E
+      A1284A68180603004FB7C03CD8095DD71BC7715E1FF587610086617E1FF53164
+      592EF7FCAEEB208AA209DBB64192245055F50C21A41704E107A169FA2B499297
+      EBFFFBBE9F705D173CCFBBD94B9665C0719CDDB6EDF3D6FF9665EDFA18BEEF63
+      5F1FB33FD6822008264CD3BCEB638CBB35F6FCA669A0288A156559AEFC655D74
+      11AC5955D58ABAAE0FF938A7B9A72561185EF83CCFBBE3FB34C3B2EC1FFA799E
+      9F67BA248EE30BFF9AD17D471F7B1DF7BC224DD3433EDE02EE758B23FED1FD6D
+      F86F14459578F37B88A2F889F9FF98B23EAF
     }
   end
 end

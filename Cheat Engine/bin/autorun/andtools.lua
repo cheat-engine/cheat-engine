@@ -65,7 +65,7 @@ function andtools.patchAPK(packagename)
 
     local extractedPath=extractFileNameWithoutExt(localpath)
 
-    r,c=runCommand(andtools.path..[[jre\bin\java.exe]],{'-jar', andtools.path..'apktool.jar','d','-r','-s','-f', localpath, '-o',extractedPath})
+    r,c=runCommand(andtools.path..[[jre\bin\java.exe]],{'-jar', andtools.path..'apktool.jar','d','-s','-f', localpath, '-o',extractedPath})
 
 
     if (c==0) and fileExists(extractedPath..[[\AndroidManifest.xml]]) then
@@ -74,7 +74,7 @@ function andtools.patchAPK(packagename)
       end)
 
 
-      r,c=runCommand(andtools.path..[[jre\bin\java.exe]],{'-jar', andtools.path..'apktool.jar', 'b', extractedPath, '-o', extractedPath..'_patched.apk', '-d'})  -- -d sets debuggable to true .(alternatively, I could have used ce's xml access functions)
+      r,c=runCommand(andtools.path..[[jre\bin\java.exe]],{'-jar', andtools.path..'apktool.jar', 'b', extractedPath, '-d', '-o', extractedPath..'_patched.apk'})  -- -d sets debuggable to true .(alternatively, I could have used ce's xml access functions)
 
       if fileExists(extractedPath..'_patched.apk') then
         if not fileExists(andtools.workpath..'cekey.store') then

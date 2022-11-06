@@ -604,6 +604,8 @@ var
   ar:ptruint;
 
   imagesize: dword;
+
+  ordcount: integer;
 begin
   result:=false;
 
@@ -654,13 +656,14 @@ begin
     if (ptruint(addresslist)<=ptruint(header)) or (ptruint(addresslist)>=(ptruint(header)+imagesize)) then
       raise exception.create(rsPEIFNoExports);
 
+    ordcount:=ImageExportDirectory.NumberOfFunctions-ImageExportDirectory.NumberOfNames;
 
     for i:=0 to ImageExportDirectory.NumberOfNames-1 do
     begin
       functionname:=pchar(ptruint(header)+exportlist[i]);
 
       if functionname<>nil then
-        dllList.AddObject(functionname, pointer(ptruint(modulebase+addresslist[i])));
+        dllList.AddObject(functionname, pointer(ptruint(modulebase+addresslist[i+ordcount])));
     end;
     result:=true;
   finally

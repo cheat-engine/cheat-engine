@@ -8753,7 +8753,7 @@ msgstr "UTF-16"
 #: tmainform.cbunrandomizer.caption
 msgctxt "tmainform.cbunrandomizer.caption"
 msgid "Unrandomizer"
-msgstr "启用速度修改"
+msgstr "禁用随机"
 
 #: tmainform.cbwritable.caption
 msgid "Writable"

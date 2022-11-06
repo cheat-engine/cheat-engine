@@ -1,0 +1,126 @@
+object frmIPTLogDisplay: TfrmIPTLogDisplay
+  Left = 512
+  Height = 238
+  Top = 131
+  Width = 452
+  Caption = 'IPT Log Display'
+  ClientHeight = 238
+  ClientWidth = 452
+  Menu = MainMenu
+  OnClose = FormClose
+  OnCreate = FormCreate
+  OnDestroy = FormDestroy
+  OnShow = FormShow
+  Position = poOwnerFormCenter
+  LCLVersion = '2.2.2.0'
+  object Progressbar: TProgressBar
+    Left = 0
+    Height = 20
+    Top = 218
+    Width = 452
+    Align = alBottom
+    TabOrder = 0
+    Visible = False
+  end
+  object lvResults: TListView
+    Left = 0
+    Height = 174
+    Top = 44
+    Width = 452
+    Align = alClient
+    AutoWidthLastColumn = True
+    Columns = <    
+      item
+        Caption = 'Frequency'
+        Width = 70
+      end    
+      item
+        Caption = 'Address'
+        Width = 57
+      end    
+      item
+        Caption = 'Instruction'
+        Width = 321
+      end>
+    ColumnClick = False
+    HideSelection = False
+    OwnerData = True
+    ReadOnly = True
+    RowSelect = True
+    TabOrder = 1
+    ViewStyle = vsReport
+    OnData = lvResultsData
+    OnDblClick = lvResultsDblClick
+  end
+  object ButtonPanel: TPanel
+    Left = 0
+    Height = 44
+    Top = 0
+    Width = 452
+    Align = alTop
+    AutoSize = True
+    BevelOuter = bvNone
+    ClientHeight = 44
+    ClientWidth = 452
+    TabOrder = 2
+    object btnFetchMore: TButton
+      AnchorSideLeft.Control = ButtonPanel
+      AnchorSideTop.Control = ButtonPanel
+      Left = 4
+      Height = 25
+      Top = 4
+      Width = 86
+      AutoSize = True
+      BorderSpacing.Left = 4
+      BorderSpacing.Top = 4
+      Caption = 'Fetch more'
+      OnClick = btnFetchMoreClick
+      TabOrder = 0
+    end
+    object lblCount: TLabel
+      AnchorSideLeft.Control = ButtonPanel
+      AnchorSideTop.Control = btnFetchMore
+      AnchorSideTop.Side = asrBottom
+      Left = 4
+      Height = 15
+      Top = 29
+      Width = 6
+      BorderSpacing.Left = 4
+      Caption = '0'
+      ParentColor = False
+    end
+    object btnFetchAll: TButton
+      AnchorSideLeft.Control = btnFetchMore
+      AnchorSideLeft.Side = asrBottom
+      AnchorSideTop.Control = ButtonPanel
+      Left = 94
+      Height = 25
+      Top = 4
+      Width = 72
+      AutoSize = True
+      BorderSpacing.Left = 4
+      BorderSpacing.Top = 4
+      Caption = 'Fetch All'
+      OnClick = btnFetchAllClick
+      TabOrder = 1
+    end
+  end
+  object MainMenu: TMainMenu
+    Left = 138
+    Top = 6
+    object miFile: TMenuItem
+      Caption = 'File'
+      Visible = False
+      object miSavetoFile: TMenuItem
+        Caption = 'Save to file'
+      end
+    end
+  end
+  object Timer1: TTimer
+    Enabled = False
+    Interval = 250
+    OnTimer = Timer1Timer
+    Left = 185
+    Top = 127
+  end
+end

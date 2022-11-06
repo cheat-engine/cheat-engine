@@ -8,7 +8,7 @@ interface
 uses SysUtils, MacOSAll, MacOSXPosix, macport, macportdefines;
 {$else}
 uses jwawindows, windows,LCLIntf,sysutils, dialogs, classes, controls,
-     dbk32functions, vmxfunctions,debug, multicpuexecution, contnrs, Clipbrd, globals;
+     {$ifndef STANDALONECH}dbk32functions, vmxfunctions,debug, multicpuexecution,globals,{$endif} contnrs, Clipbrd;
 {$endif}
 
 const dbkdll='DBK32.dll';
@@ -63,14 +63,17 @@ TModuleEntry32 = MODULEENTRY32;
 {$ifdef cpu32}
 const
   CONTEXT_EXTENDED_REGISTERS = (CONTEXT_i386 or $00000020);
+
+type
+   M128A = record
+        Low: ULONGLONG;
+        High: LONGLONG;
+     end;
+   _M128A = M128A;
+   TM128A = M128A;
+   PM128A = TM128A;
+
 {$endif}
-
-{$ifdef cpu64}
-const
-  CONTEXT_EXTENDED_REGISTERS = 0;
-
-//  CONTEXT_XSTATE          = (CONTEXT_AMD64 or $00100040);
-  CONTEXT_XSTATE          = (CONTEXT_AMD64 or $00000040);
 
 
 type
@@ -95,6 +98,17 @@ type
    _XMM_SAVE_AREA32 = XMM_SAVE_AREA32;
    TXmmSaveArea = XMM_SAVE_AREA32;
    PXmmSaveArea = ^TXmmSaveArea;
+
+
+{$ifdef cpu64}
+const
+  CONTEXT_EXTENDED_REGISTERS = 0;
+
+//  CONTEXT_XSTATE          = (CONTEXT_AMD64 or $00100040);
+  CONTEXT_XSTATE          = (CONTEXT_AMD64 or $00000040);
+
+
+
 
 const
    LEGACY_SAVE_AREA_LENGTH = sizeof(XMM_SAVE_AREA32);
@@ -242,13 +256,16 @@ type
      R8: DWORD;
      R9: DWORD;
      R10: DWORD;
-     FP: DWORD;
-     IP: DWORD;
-     SP: DWORD;
-     LR: DWORD;
-     PC: DWORD;
+     FP: DWORD;  //R11
+     IP: DWORD;  //R12
+     SP: DWORD;  //R13
+     LR: DWORD;  //R14
+     PC: DWORD;  //R15
      CPSR: DWORD;
      ORIG_R0: DWORD;
+
+     fpu: array [0..31] of uint64;
+     fpureg: dword;
   end;
 
   PARMCONTEXT=^TARMCONTEXT;
@@ -295,13 +312,18 @@ type
    end;
 
   {$ifndef darwin}  //defined in macport.pas
-  TARM64CONTEXT=packed record
+  TARM64CONTEXT=record
+       regs: TARM64CONTEXT_REGISTERS;
+       SP:  QWORD;
+       PC:  QWORD;
+       PSTATE: QWORD;
 
-     regs: TARM64CONTEXT_REGISTERS;
-
-     SP:  QWORD;
-     PC:  QWORD;
-     PSTATE: QWORD;
+       fp: record
+         vregs: array [0..31] of m128a; //  __uint128_t vregs[32];
+         fpsr: UINT32; // __u32 fpsr;
+         fpcr: UINT32; // __u32 fpcr;
+         reserved: array [0..1] of UINT32; //             __u32 __reserved[2];
+       end;
   end;
 
   PARM64CONTEXT=^TARM64CONTEXT;
@@ -435,7 +457,7 @@ type
     Esp: DWORD;
     SegSs: DWORD;
 
-    ext: TExtendedRegisters;
+    ext: TXmmSaveArea;
   end;
   {$ifdef cpu64}
   CONTEXT32=_CONTEXT32;
@@ -444,6 +466,7 @@ type
   {$else}
   CONTEXT=_CONTEXT;
   CONTEXT32=_CONTEXT;
+  PCONTEXT32=^CONTEXT32;
   TContext=CONTEXT;
   PContext = ^TContext;
   {$endif}
@@ -526,13 +549,18 @@ type TGetThreadSelectorEntry=function(hThread: THandle; dwSelector: DWORD; var l
 type TSuspendThread=function(hThread: THandle): DWORD; stdcall;
 type TResumeThread=function(hThread: THandle): DWORD; stdcall;
 
+{$endif}
 type TCreateToolhelp32Snapshot=function(dwFlags, th32ProcessID: DWORD): THandle; stdcall;
+
+
 type TProcess32First=function(hSnapshot: THandle; var lppe: TProcessEntry32): BOOL; stdcall;
 type TProcess32Next=function(hSnapshot: THandle; var lppe: TProcessEntry32): BOOL; stdcall;
+
 type TThread32First=function (hSnapshot: THandle; var lpte: TThreadEntry32): BOOL; stdcall;
 type TThread32Next=function (hSnapshot: THandle; var lpte: TThreadENtry32): BOOL; stdcall;
 type TModule32First=function (hSnapshot: THandle; var lpme: TModuleEntry32): BOOL; stdcall;
 type TModule32Next=function (hSnapshot: THandle; var lpme: TModuleEntry32): BOOL; stdcall;
+{$ifdef windows}
 type THeap32ListFirst=function (hSnapshot: THandle; var lphl: THeapList32): BOOL; stdcall;
 type THeap32ListNext=function (hSnapshot: THandle; var lphl: THeapList32): BOOL; stdcall;
 type TIsWow64Process=function (processhandle: THandle; var isWow: BOOL): BOOL; stdcall;
@@ -540,14 +568,18 @@ type TIsWow64Process=function (processhandle: THandle; var isWow: BOOL): BOOL; s
 type TWaitForDebugEvent=function(var lpDebugEvent: TDebugEvent; dwMilliseconds: DWORD): BOOL; stdcall;
 type TContinueDebugEvent=function(dwProcessId, dwThreadId, dwContinueStatus: DWORD): BOOL; stdcall;
 type TDebugActiveProcess=function(dwProcessId: DWORD): BOOL; stdcall;
-type TVirtualFreeEx=function(hProcess: HANDLE; lpAddress: LPVOID; dwSize: SIZE_T; dwFreeType: DWORD): BOOL; stdcall;
+
 type TVirtualProtect=function(lpAddress: Pointer; dwSize, flNewProtect: DWORD; var OldProtect: DWORD): BOOL; stdcall;
-type TVirtualProtectEx=function(hProcess: THandle; lpAddress: Pointer; dwSize, flNewProtect: DWORD; var OldProtect: DWORD): BOOL; stdcall;
+
 {$endif}
+type TVirtualFreeEx=function(hProcess: HANDLE; lpAddress: LPVOID; dwSize: SIZE_T; dwFreeType: DWORD): BOOL; stdcall;
+type TVirtualProtectEx=function(hProcess: THandle; lpAddress: Pointer; dwSize, flNewProtect: DWORD; var OldProtect: DWORD): BOOL; stdcall;
 type TVirtualQueryEx=function(hProcess: THandle; lpAddress: Pointer; var lpBuffer: TMemoryBasicInformation; dwLength: DWORD): DWORD; stdcall;
-{$ifdef windows}
+
 type TVirtualAllocEx=function(hProcess: THandle; lpAddress: Pointer; dwSize, flAllocationType: DWORD; flProtect: DWORD): Pointer; stdcall;
 type TCreateRemoteThread=function(hProcess: THandle; lpThreadAttributes: Pointer; dwStackSize: DWORD; lpStartAddress: TFNThreadStartRoutine; lpParameter: Pointer;  dwCreationFlags: DWORD; var lpThreadId: DWORD): THandle; stdcall;
+
+{$ifdef windows}
 type TOpenThread=function(dwDesiredAccess:DWORD;bInheritHandle:BOOL;dwThreadId:DWORD):THANDLE; stdcall;
 type TGetPEProcess=function(ProcessID:DWORD):UINT64; stdcall;
 type TGetPEThread=function(Threadid: dword):UINT64; stdcall;
@@ -631,10 +663,11 @@ type Tdbvm_raise_privilege=function: DWORD; stdcall;
 type Tdbvm_read_physical_memory=function(PhysicalAddress: UINT64; destination: pointer; size: integer): dword; stdcall;
 type Tdbvm_write_physical_memory=function(PhysicalAddress: UINT64; source: pointer; size: integer): dword; stdcall;
 
-
+{$endif}
 type TVirtualQueryEx_StartCache=function(hProcess: THandle; flags: DWORD): boolean;
 type TVirtualQueryEx_EndCache=procedure(hProcess: THandle);
 
+{$ifdef windows}
 
 procedure DONTUseDBKQueryMemoryRegion;
 procedure DONTUseDBKReadWriteMemory;
@@ -731,13 +764,17 @@ var
   ResumeThread          :TResumeThread;
 
 
+  {$endif}
   CreateToolhelp32Snapshot: TCreateToolhelp32Snapshot;
+
   Process32First        :TProcess32First;
   Process32Next         :TProcess32Next;
+
   Thread32First         :TThread32First;
   Thread32Next          :TThread32Next;
   Module32First         :TModule32First;
   Module32Next          :TModule32Next;
+  {$ifdef windows}
   Heap32ListFirst       :THeap32ListFirst;
   Heap32ListNext        :THeap32ListNext;
   IsWow64Process        :TIsWow64Process;
@@ -750,13 +787,14 @@ var
 
   GetLargePageMinimum   :TGetLargePageMinimum;
   VirtualProtect        :TVirtualProtect;
+  {$endif}
   VirtualProtectEx      :TVirtualProtectEx;
-{$endif}
   VirtualQueryExActual  :TVirtualQueryEx;
-{$ifdef windows}
   VirtualAllocEx        :TVirtualAllocEx;
   VirtualFreeEx         :TVirtualFreeEx;
   CreateRemoteThread    :TCreateRemoteThread;
+    {$ifdef windows}
+
   OpenThread            :TOpenThread;
 //  GetPEProcess          :TGetPEProcess;
 //  GetPEThread           :TGetPEThread;
@@ -833,18 +871,20 @@ var
   DBKDebug_StopDebugging      : TDBKDebug_StopDebugging;
   DBKDebug_GD_SetBreakpoint   : TDBKDebug_GD_SetBreakpoint;
 
-
+  {$endif}
   closeHandle                 : function (hObject:HANDLE):WINBOOL; stdcall;
+  {$ifdef windows}
 
   GetLogicalProcessorInformation: function(Buffer: PSYSTEM_LOGICAL_PROCESSOR_INFORMATION; ReturnedLength: PDWORD): BOOL; stdcall;
   PrintWindow                 : function (hwnd: HWND; hdcBlt: HDC; nFlags: UINT): BOOL; stdcall;
   ChangeWindowMessageFilter   : function (msg: Cardinal; Action: Dword): BOOL; stdcall;
 
+    {$endif}
   VirtualQueryEx_StartCache: TVirtualQueryEx_StartCache;
   VirtualQueryEx_EndCache: TVirtualQueryEx_EndCache;
 
   GetRegionInfo: function (hProcess: THandle; lpAddress: Pointer; var lpBuffer: TMemoryBasicInformation; dwLength: DWORD; var mapsline: string): DWORD;  stdcall;
-
+  {$ifdef windows}
   SetProcessDEPPolicy: function(dwFlags: DWORD): BOOL; stdcall;
   GetProcessDEPPolicy: function(h: HANDLE; dwFlags: PDWORD; permanent: PBOOL):BOOL; stdcall;
 
@@ -896,6 +936,7 @@ var
 implementation
 
 {$ifndef JNI}
+{$ifndef STANDALONECH}
 uses
      {$ifdef cemain}
      plugin,
@@ -903,6 +944,7 @@ uses
      {$endif}
      Filehandler,  //so I can let readprocessmemory point to ReadProcessMemoryFile in filehandler
      autoassembler, frmEditHistoryUnit, frmautoinjectunit, cpuidUnit, MemoryBrowserFormUnit;
+{$endif}
 {$endif}
 
 
@@ -1342,7 +1384,9 @@ end;
 
 function WriteProcessMemory(hProcess: THandle; const lpBaseAddress: Pointer; lpBuffer: Pointer; nSize: DWORD; var lpNumberOfBytesWritten: PTRUINT): BOOL; stdcall;
 var
+{$ifndef STANDALONECH}
   wle: TWriteLogEntry;
+{$endif}
   x: PTRUINT;
   cr3: ptruint;
 begin
@@ -1355,7 +1399,9 @@ begin
    {$endif}
 
   result:=false;
+   {$ifndef STANDALONECH}
   wle:=nil;
+
   if logWrites then
   begin
     if nsize<64*1024*1024 then
@@ -1368,6 +1414,7 @@ begin
       wle.originalsize:=x;
     end;
   end;
+{$endif}
 
   {$ifdef windows}
   {$ifdef cpu64}
@@ -1387,6 +1434,7 @@ begin
   {$endif}
   result:=WriteProcessMemoryActual(hProcess, lpBaseAddress, lpbuffer, nSize, lpNumberOfBytesWritten);
 
+{$ifndef STANDALONECH}
   if result and logwrites and (wle<>nil) then
   begin
     getmem(wle.newbytes, lpNumberOfBytesWritten);
@@ -1394,6 +1442,7 @@ begin
     wle.newsize:=x;
     addWriteLogEntryToList(wle);
   end;
+{$endif}
 end;
 
 function ReadProcessMemory(hProcess: THandle; lpBaseAddress, lpBuffer: Pointer; nSize: size_t; var lpNumberOfBytesRead: PTRUINT): BOOL; stdcall;
@@ -1535,7 +1584,7 @@ var
   signed: BOOL;
   r: string;
 begin
-{$ifdef windows}
+{$if defined(windows) and not defined(STANDALONECH)}
   result:=isRunningDBVM;
   if result then exit;
 
@@ -1585,7 +1634,7 @@ end;
 
 function isRunningDBVM: boolean;
 begin
-{$ifdef windows}
+{$if defined(windows) and not defined(STANDALONECH)}
   result:=dbvm_version>0;
 {$else}
   result:=false;
@@ -1746,7 +1795,7 @@ const
   IA32_VMX_PROCBASED_CTLS2_MSR=$48b;
 var procbased1flags: DWORD;
 begin
-  {$ifdef windows}
+  {$if defined(windows) and not defined(STANDALONECH)}
   try
     result:=isDBVMCapable; //assume yes until proven otherwise
 
@@ -1794,7 +1843,7 @@ end;
 
 procedure LoadDBK32; stdcall;
 begin
-{$ifdef windows}
+{$if defined(windows) and not defined(STANDALONECH)}
   if not DBKLoaded then
   begin
     outputdebugstring('LoadDBK32');
@@ -1903,7 +1952,7 @@ end;
 procedure DBKFileAsMemory; overload;
 {Changes the redirection of ReadProcessMemory, WriteProcessMemory and VirtualQueryEx to FileHandler.pas's ReadProcessMemoryFile, WriteProcessMemoryFile and VirtualQueryExFile }
 begin
-{$ifdef windows}
+{$if defined(windows) and not defined(STANDALONECH)}
   UseFileAsMemory:=true;
   usephysical:=false;
   Usephysicaldbvm:=false;
@@ -1921,7 +1970,7 @@ end;
 
 procedure DBKFileAsMemory(fn:string; baseaddress: ptruint=0); overload;
 begin
-{$ifdef windows}
+{$if defined(windows) and not defined(STANDALONECH)}
   filehandler.filename:=filename;
   if filehandler.filedata<>nil then
     freeandnil(filehandler.filedata);
@@ -1938,7 +1987,7 @@ end;
 function VirtualQueryExPhysical(hProcess: THandle; lpAddress: Pointer; var lpBuffer: TMemoryBasicInformation; dwLength: DWORD): DWORD; stdcall;
 var buf:_MEMORYSTATUS;
 begin
-{$ifdef windows}
+{$if defined(windows) and not defined(STANDALONECH)}
 
   if dbk32functions.hdevice<>INVALID_HANDLE_VALUE then
   begin
@@ -1991,7 +2040,7 @@ end;
 
 procedure DBKPhysicalMemory;
 begin
-{$ifdef windows}
+{$if defined(windows) and not defined(STANDALONECH)}
   LoadDBK32;
   If DBKLoaded=false then exit;
 
@@ -2017,7 +2066,7 @@ end;
 
 procedure DBKProcessMemory;
 begin
-{$ifdef windows}
+{$if defined(windows) and not defined(STANDALONECH)}
   usephysical:=false;
   Usephysicaldbvm:=false;
 
@@ -2045,7 +2094,7 @@ end;
 procedure DontUseDBKQueryMemoryRegion;
 {Changes the redirection of VirtualQueryEx back to the windows API virtualQueryEx}
 begin
-{$ifdef windows}
+{$if defined(windows) and not defined(STANDALONECH)}
   VirtualQueryExActual:=GetProcAddress(WindowsKernel,'VirtualQueryEx');
   usedbkquery:=false;
   if usephysicaldbvm then DbkPhysicalMemoryDBVM;
@@ -2062,7 +2111,7 @@ end;
 procedure UseDBKQueryMemoryRegion;
 {Changes the redirection of VirtualQueryEx to the DBK32 equivalent}
 begin
-{$ifdef windows}
+{$if defined(windows) and not defined(STANDALONECH)}
   LoadDBK32;
   If DBKLoaded=false then exit;
   UseDBKOpenProcess;
@@ -2084,7 +2133,7 @@ end;
 procedure DontUseDBKReadWriteMemory;
 {Changes the redirection of ReadProcessMemory and WriteProcessMemory back to the windows API ReadProcessMemory and WriteProcessMemory }
 begin
-{$ifdef windows}
+{$if defined(windows) and not defined(STANDALONECH)}
   DBKReadWrite:=false;
   ReadProcessMemoryActual:=GetProcAddress(WindowsKernel,'ReadProcessMemory');
   WriteProcessMemoryActual:=GetProcAddress(WindowsKernel,'WriteProcessMemory');
@@ -2108,7 +2157,7 @@ var
   old: pointer;
   olds: string;
 begin
-{$ifdef windows}
+{$if defined(windows) and not defined(STANDALONECH)}
   LoadDBK32;
   If DBKLoaded=false then exit;
   UseDBKOpenProcess;
@@ -2150,7 +2199,7 @@ end;
 procedure DontUseDBKOpenProcess;
 {Changes the redirection of OpenProcess and VirtualAllocEx  back to the windows API OpenProcess and VirtualAllocEx }
 begin
-{$ifdef windows}
+{$if defined(windows) and not defined(STANDALONECH)}
   OpenProcess:=GetProcAddress(WindowsKernel,'OpenProcess');
   OpenThread:=GetProcAddress(WindowsKernel,'OpenThread');
 
@@ -2166,7 +2215,7 @@ var
   zwc: pointer;
   func: pointer;
 begin
-{$ifdef windows}
+{$if defined(windows) and not defined(STANDALONECH)}
   LoadDBK32;
   If DBKLoaded=false then exit;
   OpenProcess:=@OP; //gives back the real handle, or if it fails it gives back a value only valid for the dll
@@ -2225,6 +2274,8 @@ begin
 end;
 
 {$endif}
+
+{$ifndef STANDALONECH}
 procedure initMaxPhysMask;
 var cpuidr: TCPUIDResult;
 iswow: BOOL;
@@ -2261,6 +2312,7 @@ begin
 
   {$endif}
 end;
+{$endif}
 
 {$ifdef windows}
 procedure getLBROffset;
@@ -2316,8 +2368,10 @@ resourcestring
 {$endif}
 
 initialization
+  VirtualQueryEx_StartCache:=VirtualQueryEx_StartCache_stub;
+  VirtualQueryEx_EndCache:=VirtualQueryEx_EndCache_stub;
 
-  {$ifdef windows}
+  {$if defined(windows) and not defined(STANDALONECH)}
   DBKLoaded:=false;
 
   usephysical:=false;
@@ -2332,8 +2386,7 @@ initialization
   Denylist:= false;
   //globaldenylist:= false;
 
-  VirtualQueryEx_StartCache:=VirtualQueryEx_StartCache_stub;
-  VirtualQueryEx_EndCache:=VirtualQueryEx_EndCache_stub;
+
 
 
   WindowsKernel:=LoadLibrary('Kernel32.dll'); //there is no kernel33.dll
@@ -2432,7 +2485,10 @@ initialization
 
   getLBROffset;
   {$endif}
+
+  {$ifndef STANDALONECH}
   initMaxPhysMask;
+  {$endif}
 
   {$ifdef darwin}
   ReadProcessMemoryActual:=@macport.ReadProcessMemory;
@@ -2440,7 +2496,43 @@ initialization
   SetThreadContext:=@macport.SetThreadContext;
   GetThreadContext:=@macport.GetThreadContext;
   VirtualQueryExActual:=@macport.Virtualqueryex;
+  VirtualProtectEx:=@macport.VirtualProtectEx;
   OpenProcess:=@macport.OpenProcess;
+  CreateToolhelp32Snapshot:=@macport.CreateToolhelp32Snapshot;
+
+  Process32First:=@macport.Process32First;
+  Process32Next:=@macport.Process32Next;
+  Thread32First:=@macport.Thread32First;
+  Thread32Next:=@macport.Thread32Next;
+  Module32First:=@macport.Module32First;
+  Module32Next:=@macport.Module32Next;
+
+  closeHandle:=@macport.closeHandle;
+  VirtualAllocEx:=@macport.virtualallocex;
+  VirtualFreeEx:=@macport.virtualfreeex;
+  CreateRemoteThread:=@macport.CreateRemoteThread;
+
+  GetRegionInfo:=@macport.GetRegionInfo;
+
+  {$else}
+{
+  OutputDebugString('TARM64CONTEXT:');
+  OutputDebugString(format('regs at %p',[@PARM64CONTEXT(0).regs]));
+  OutputDebugString(format('SP at %p',[@PARM64CONTEXT(0).SP]));
+  OutputDebugString(format('PC at %p',[@PARM64CONTEXT(0).PC]));
+  OutputDebugString(format('PSTATE at %p',[@PARM64CONTEXT(0).PSTATE]));
+  OutputDebugString(format('fp at %p',[@PARM64CONTEXT(0).fp]));
+  OutputDebugString(format('vregs[0] at %p',[@PARM64CONTEXT(0).fp.vregs[0]]));
+  OutputDebugString(format('vregs[1] at %p',[@PARM64CONTEXT(0).fp.vregs[1]]));
+  OutputDebugString(format('vregs[2] at %p',[@PARM64CONTEXT(0).fp.vregs[2]]));
+  OutputDebugString(format('vregs[30] at %p',[@PARM64CONTEXT(0).fp.vregs[30]]));
+  OutputDebugString(format('vregs[31] at %p',[@PARM64CONTEXT(0).fp.vregs[31]]));
+  OutputDebugString(format('fpsr at %p',[@PARM64CONTEXT(0).fp.fpsr]));
+  OutputDebugString(format('fpcr at %p',[@PARM64CONTEXT(0).fp.fpcr]));
+  OutputDebugString(format('reserved[0] at %p',[@PARM64CONTEXT(0).fp.reserved[0]]));
+  OutputDebugString(format('reserved[1] at %p',[@PARM64CONTEXT(0).fp.reserved[1]]));
+
+  }
 
   {$endif}
 

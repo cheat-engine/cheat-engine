@@ -103,13 +103,15 @@ type
   TMemoryRecordActivateEvent=function (sender: TObject; before, currentstate: boolean): boolean of object;
   TGetDisplayValueEvent=function(sender: TObject; var value: string): boolean of object;
 
+  TMemoryRecordChangedValueEvent=procedure (sender: TObject; oldvalue: string; newvalue: string) of object;
+
   TMemoryRecord=class
   private
     fID: integer;
-    FrozenValue : string;
-    CurrentValue: string;
-    UndoValue   : string;  //keeps the last value before a manual edit
-
+    FrozenValue   : string;
+    CurrentValue  : string;
+    UndoValue     : string;  //keeps the last value before a manual edit
+    LastSeenValue : string;
 
     UnreadablePointer: boolean;
     BaseAddress: ptrUint; //Base address
@@ -172,6 +174,8 @@ type
     fonactivate, fondeactivate: TMemoryRecordActivateEvent;
     fOnDestroy: TNotifyEvent;
     fOnGetDisplayValue: TGetDisplayValueEvent;
+
+    fOnValueChanged, fOnValueChangedByUser: TMemoryRecordChangedValueEvent;
 
     fpointeroffsets: array of TMemrecOffset; //if longer than 0, this is a pointer
 
@@ -378,6 +382,9 @@ type
     property Description: string read fDescription write setDescription;
     property CachedAddress: ptruint read realAddress;
     property HasMouseFocus: boolean read hasMouseOver;
+
+    property OnValueChanged: TMemoryRecordChangedValueEvent read fOnValueChanged write fOnValuechanged;
+    property OnValueChangedByUser: TMemoryRecordChangedValueEvent read fOnValueChangedByUser write fOnValueChangedByUser;
   end;
 
   THKSoundFlag=(hksPlaySound=0, hksSpeakText=1, hksSpeakTextEnglish=2); //playSound excludes speakText
@@ -1574,7 +1581,7 @@ begin
 
         if tempnode.ChildNodes[i].NodeName='Hotkey' then
         begin
-          a:=tempnode.Attributes.GetNamedItem('OnlyWhileDown');
+          a:=tempnode.ChildNodes[i].Attributes.GetNamedItem('OnlyWhileDown');
           if (a<>nil) then
             hk.OnlyWhileDown:=a.TextContent='1';
 
@@ -2265,6 +2272,7 @@ begin
         end
         else
         begin
+          if (VarType=vtCustom) and (customtype.scriptUsesString) then exit;
           oldvalue:=StrToQWordEx(getvalue);
           increasevalue:=StrToQWordEx(value);
           setvalue(IntToStr(oldvalue+increasevalue));
@@ -2303,6 +2311,7 @@ begin
         end
         else
         begin
+          if (VarType=vtCustom) and (customtype.scriptUsesString) then exit;
           oldvalue:=StrToQWordEx(getvalue);
           decreasevalue:=StrToQWordEx(value);
           setvalue(IntToStr(oldvalue-decreasevalue));
@@ -2865,7 +2874,7 @@ begin
   begin
     try
 
-      if allowIncrease or allowDecrease then
+      if allowIncrease or allowDecrease  then
       begin
         //get the new value
         oldvalue:=frozenValue;
@@ -2873,6 +2882,8 @@ begin
         if showashex or (VarType in [vtByte..vtQword, vtCustom]) then
         begin
           //handle as a decimal
+
+
 
 
           if showAsHex then
@@ -2886,8 +2897,10 @@ begin
             olddecimalvalue:=StrToQWordEx(oldvalue);
           end;
 
-          if (allowIncrease and (newdecimalvalue>olddecimalvalue)) or
-             (allowDecrease and (newdecimalvalue<olddecimalvalue))
+          if (allowIncrease and ShowAsSigned and (int64(newdecimalvalue)>int64(olddecimalvalue))) or
+             (allowIncrease and (not ShowAsSigned) and (newdecimalvalue>olddecimalvalue)) or
+             (allowDecrease and (ShowAsSigned) and (int64(newdecimalvalue)<int64(olddecimalvalue))) or
+             (allowDecrease and (not ShowAsSigned) and (newdecimalvalue<olddecimalvalue))
           then
             frozenvalue:=newvalue;
 
@@ -3060,6 +3073,11 @@ begin
       begin
         if fcustomtype<>nil then
         begin
+          if fCustomType.scriptUsesString then
+          begin
+            result:=fCustomType.ConvertDataToString(buf, realaddress);
+          end
+          else
           if fcustomtype.scriptUsesFloat then
           begin
             if ShowAsHex then  //so stupid, but whatever
@@ -3133,6 +3151,11 @@ begin
   end;
 
   freememandnil(buf);
+
+  if assigned(fOnValueChanged) and (result<>LastSeenValue) then
+    fOnValueChanged(self, LastSeenValue, result);
+
+  LastSeenValue:=result;
 end;
 
 function TMemoryrecord.canUndo: boolean;
@@ -3345,6 +3368,7 @@ begin
   if fisGroupHeader then exit;
 
 
+
   currentValue:={utf8toansi}(v);
 
   if fShowAsHex and (not (vartype in [vtSingle, vtDouble, vtByteArray, vtString] )) then
@@ -3374,6 +3398,7 @@ begin
 
   getmem(buf,bufsize+2);
 
+  suspended:=false;
   if SystemSupportsWritableExecutableMemory or SkipVirtualProtectEx then
   begin
     vpe:=(SkipVirtualProtectEx=false) and VirtualProtectEx(processhandle, pointer(realAddress), bufsize, PAGE_EXECUTE_READWRITE, originalprotection);
@@ -3382,8 +3407,13 @@ begin
   begin
     if (SkipVirtualProtectEx=false) and (iswritable(realaddress)=false) then
     begin
-      suspended:=true;
-      ntsuspendProcess(processhandle);
+
+      if processid<>GetCurrentProcessId then
+      begin
+        ntsuspendProcess(processhandle);
+        suspended:=true;
+      end;
+
       vpe:=(SkipVirtualProtectEx=false) and VirtualProtectEx(processhandle, pointer(realAddress), bufsize, PAGE_READWRITE, originalprotection);
     end;
   end;
@@ -3427,6 +3457,11 @@ begin
       begin
         if fcustomtype<>nil then
         Begin
+          if fcustomtype.scriptUsesString then
+          begin
+            fCustomType.ConvertStringToData(pchar(v), pb, RealAddress); //utf8 format
+          end
+          else
           if fcustomtype.scriptUsesFloat then
           begin
             if not fShowAsHex then
@@ -3577,8 +3612,17 @@ begin
 
   frozenValue:=unparsedvalue;     //we got till the end, so update the frozen value
 
-  if (not isfreezer) and (GetValue<>newundovalue) then
-    undovalue:=newundovalue;
+  if (not isfreezer) then
+  begin
+    if (GetValue<>newundovalue) then
+      undovalue:=newundovalue;
+
+    if assigned(fOnValueChangedByUser) then
+      fOnValueChangedByUser(self, newundovalue, LastSeenValue);
+  end;
+
+
+
 
 end;
 

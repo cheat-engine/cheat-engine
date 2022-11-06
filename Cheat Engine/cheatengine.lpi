@@ -1,13 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CONFIG>
   <ProjectOptions>
-    <Version Value="11"/>
+    <Version Value="12"/>
     <PathDelim Value="\"/>
     <General>
+      <Flags>
+        <CompatibilityMode Value="True"/>
+      </Flags>
       <SessionStorage Value="InProjectDir"/>
-      <MainUnit Value="0"/>
       <AutoCreateForms Value="False"/>
-      <Title Value="Cheat Engine 7.4.1"/>
+      <Title Value="Cheat Engine 7.4.2"/>
       <UseXPManifest Value="True"/>
       <XPManifest>
         <DpiAware Value="True"/>
@@ -25,10 +27,11 @@
       <UseVersionInfo Value="True"/>
       <MajorVersionNr Value="7"/>
       <MinorVersionNr Value="4"/>
+      <RevisionNr Value="2"/>
       <BuildNr Value="7301"/>
       <Language Value=""/>
       <CharSet Value=""/>
-      <StringTable CompanyName="Cheat Engine" FileDescription="Cheat Engine" ProductVersion="7.4"/>
+      <StringTable CompanyName="Cheat Engine" FileDescription="Cheat Engine" ProductVersion="7.4.2"/>
     </VersionInfo>
     <BuildModes Count="10">
       <Item1 Name="Release 32-Bit" Default="True"/>
@@ -61,6 +64,7 @@
           </CodeGeneration>
           <Linking>
             <Debugging>
+              <DebugInfoType Value="dsDwarf2Set"/>
               <StripSymbols Value="True"/>
               <UseExternalDbgSyms Value="True"/>
             </Debugging>
@@ -84,8 +88,10 @@
 -dbenchmarkps
 -dcemain
 -dNDEBUG
--dDBVMFORAMDISWORKING"/>
-            <OtherDefines Count="14">
+-dDBVMFORAMDISWORKING
+-dNESTEDSTRUCTURES
+-dTHREADNAMESUPPORT"/>
+            <OtherDefines Count="18">
               <Define0 Value="NOTMULTITHREADED"/>
               <Define1 Value="benchmarkps"/>
               <Define2 Value="cemain"/>
@@ -99,7 +105,11 @@
               <Define10 Value="memorymapped"/>
               <Define11 Value="privatebuild"/>
               <Define12 Value="DBVMFORAMDISWORKING"/>
-              <Define13 Value="FORCEDDARKMODE"/>
+              <Define13 Value="NESTEDSTRUCTURES"/>
+              <Define14 Value="THREADNAMESUPPORT"/>
+              <Define15 Value="LINUXTCCTEST"/>
+              <Define16 Value="asserthexviewisthreadsafe"/>
+              <Define17 Value="DEBUGPROTOCOL"/>
             </OtherDefines>
           </Other>
         </CompilerOptions>
@@ -159,7 +169,8 @@
 -dbenchmarkps
 -dcemain
 -dNDEBUG
--dDBVMFORAMDISWORKING"/>
+-dDBVMFORAMDISWORKING
+-dNESTEDSTRUCTURES"/>
             <OtherDefines Count="13">
               <Define0 Value="NOTMULTITHREADED"/>
               <Define1 Value="benchmarkps"/>
@@ -232,7 +243,8 @@
 -dD3DDebug
 -dNOVMX
 -dCUSTOMFLOAT
--dUSELAZFREETYPE"/>
+-dUSELAZFREETYPE
+-dNESTEDSTRUCTURES"/>
             <OtherDefines Count="7">
               <Define0 Value="benchmarkps"/>
               <Define1 Value="cemain"/>
@@ -288,7 +300,7 @@
               <ShowHints Value="False"/>
             </Verbosity>
             <WriteFPCLogo Value="False"/>
-            <CustomOptions Value="-dbenchmarkps -dcemain -WB00400000 -dNDEBUG"/>
+            <CustomOptions Value="-dbenchmarkps -dcemain -WB00400000 -dNDEBUG -dNESTEDSTRUCTURES"/>
           </Other>
         </CompilerOptions>
       </Item5>
@@ -331,7 +343,7 @@
             <ConfigFile>
               <StopAfterErrCount Value="1000"/>
             </ConfigFile>
-            <CustomOptions Value="-dbenchmarkps -dcemain -WB00400000 -dNDEBUG -dD3DDebug -dNOVMX -dCUSTOMFLOAT"/>
+            <CustomOptions Value="-dbenchmarkps -dcemain -WB00400000 -dNDEBUG -dD3DDebug -dNOVMX -dCUSTOMFLOAT -dNESTEDSTRUCTURES"/>
             <OtherDefines Count="9">
               <Define0 Value="NOTMULTITHREADED"/>
               <Define1 Value="benchmarkps"/>
@@ -370,6 +382,9 @@
             </Optimizations>
           </CodeGeneration>
           <Linking>
+            <Debugging>
+              <DebugInfoType Value="dsDwarf2Set"/>
+            </Debugging>
             <Options>
               <Win32>
                 <GraphicApplication Value="True"/>
@@ -386,7 +401,22 @@
             <ConfigFile>
               <StopAfterErrCount Value="1000"/>
             </ConfigFile>
-            <CustomOptions Value="-dNOTMULTITHREADED -dbenchmarkps -dcemain -WB00400000 -dNDEBUG -dD3DDebug -dNOVMX -dCUSTOMFLOAT -dXDEBUG"/>
+            <CustomOptions Value="-dNOTMULTITHREADED -dbenchmarkps -dcemain -WB00400000 -dNDEBUG -dD3DDebug -dNOVMX -dCUSTOMFLOAT -dXDEBUG -dNESTEDSTRUCTURES"/>
+            <OtherDefines Count="13">
+              <Define0 Value="NOTMULTITHREADED"/>
+              <Define1 Value="benchmarkps"/>
+              <Define2 Value="cemain"/>
+              <Define3 Value="NDEBUG"/>
+              <Define4 Value="D3DDebug"/>
+              <Define5 Value="NOVMX"/>
+              <Define6 Value="CUSTOMFLOAT"/>
+              <Define7 Value="XDEBUG"/>
+              <Define8 Value="memleaksearch"/>
+              <Define9 Value="checkassembleralphabet"/>
+              <Define10 Value="memorymapped"/>
+              <Define11 Value="privatebuild"/>
+              <Define12 Value="DBVMFORAMDISWORKING"/>
+            </OtherDefines>
           </Other>
         </CompilerOptions>
       </Item7>
@@ -444,7 +474,22 @@
 -dNOVMX
 -dCUSTOMFLOAT
 -dXDEBUG
--dUSELAZFREETYPE"/>
+-dUSELAZFREETYPE
+-dNESTEDSTRUCTURES
+-dTHREADNAMESUPPORT"/>
+            <OtherDefines Count="11">
+              <Define0 Value="NOTMULTITHREADED"/>
+              <Define1 Value="benchmarkps"/>
+              <Define2 Value="cemain"/>
+              <Define3 Value="NDEBUG"/>
+              <Define4 Value="D3DDebug"/>
+              <Define5 Value="NOVMX"/>
+              <Define6 Value="CUSTOMFLOAT"/>
+              <Define7 Value="XDEBUG"/>
+              <Define8 Value="USELAZFREETYPE"/>
+              <Define9 Value="NESTEDSTRUCTURES"/>
+              <Define10 Value="THREADNAMESUPPORT"/>
+            </OtherDefines>
           </Other>
         </CompilerOptions>
       </Item8>
@@ -474,6 +519,10 @@
             </Optimizations>
           </CodeGeneration>
           <Linking>
+            <Debugging>
+              <DebugInfoType Value="dsDwarf2Set"/>
+              <UseExternalDbgSyms Value="True"/>
+            </Debugging>
             <Options>
               <Win32>
                 <GraphicApplication Value="True"/>
@@ -498,8 +547,9 @@
 -dD3DDebug
 -dNOVMX
 -dCUSTOMFLOAT
--dXDEBUG"/>
-            <OtherDefines Count="10">
+-dXDEBUG
+-dNESTEDSTRUCTURES"/>
+            <OtherDefines Count="13">
               <Define0 Value="NOTMULTITHREADED"/>
               <Define1 Value="benchmarkps"/>
               <Define2 Value="cemain"/>
@@ -510,6 +560,9 @@
               <Define7 Value="XDEBUG"/>
               <Define8 Value="memleaksearch"/>
               <Define9 Value="checkassembleralphabet"/>
+              <Define10 Value="memorymapped"/>
+              <Define11 Value="privatebuild"/>
+              <Define12 Value="DBVMFORAMDISWORKING"/>
             </OtherDefines>
           </Other>
         </CompilerOptions>
@@ -538,6 +591,7 @@
           </CodeGeneration>
           <Linking>
             <Debugging>
+              <DebugInfoType Value="dsDwarf2Set"/>
               <TrashVariables Value="True"/>
               <UseExternalDbgSyms Value="True"/>
             </Debugging>
@@ -567,8 +621,11 @@
 -dD3DDebug
 -dNOVMX
 -dCUSTOMFLOAT
--dXDEBUG"/>
-            <OtherDefines Count="14">
+-dXDEBUG
+-dNESTEDSTRUCTURES
+-dTHREADNAMESUPPORT
+-dLINUXTCCTEST"/>
+            <OtherDefines Count="18">
               <Define0 Value="NOTMULTITHREADED"/>
               <Define1 Value="benchmarkps"/>
               <Define2 Value="cemain"/>
@@ -582,7 +639,11 @@
               <Define10 Value="memorymapped"/>
               <Define11 Value="privatebuild"/>
               <Define12 Value="DBVMFORAMDISWORKING"/>
-              <Define13 Value="FORCEDDARKMODE"/>
+              <Define13 Value="NESTEDSTRUCTURES"/>
+              <Define14 Value="THREADNAMESUPPORT"/>
+              <Define15 Value="LINUXTCCTEST"/>
+              <Define16 Value="asserthexviewisthreadsafe"/>
+              <Define17 Value="DEBUGPROTOCOL"/>
             </OtherDefines>
           </Other>
         </CompilerOptions>
@@ -594,13 +655,13 @@
     </PublishOptions>
     <RunParams>
       <local>
-        <LaunchingApplication PathPlusParams="\usr\X11R6\bin\xterm -T 'Lazarus Run Output' -e $(LazarusDir)\tools\runwait.sh $(TargetCmdLine)"/>
+        <LaunchingApplication PathPlusParams="\usr\X11R6\bin\xterm -T &apos;Lazarus Run Output&apos; -e $(LazarusDir)\tools\runwait.sh $(TargetCmdLine)"/>
       </local>
       <FormatVersion Value="2"/>
       <Modes Count="1">
         <Mode0 Name="default">
           <local>
-            <LaunchingApplication PathPlusParams="\usr\X11R6\bin\xterm -T 'Lazarus Run Output' -e $(LazarusDir)\tools\runwait.sh $(TargetCmdLine)"/>
+            <LaunchingApplication PathPlusParams="\usr\X11R6\bin\xterm -T &apos;Lazarus Run Output&apos; -e $(LazarusDir)\tools\runwait.sh $(TargetCmdLine)"/>
           </local>
         </Mode0>
       </Modes>
@@ -633,7 +694,7 @@
         <PackageName Value="LCL"/>
       </Item8>
     </RequiredPackages>
-    <Units Count="412">
+    <Units Count="418">
       <Unit0>
         <Filename Value="cheatengine.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -1576,6 +1637,7 @@
       <Unit171>
         <Filename Value="luabrush.pas"/>
         <IsPartOfProject Value="True"/>
+        <UnitName Value="LuaBrush"/>
       </Unit171>
       <Unit172>
         <Filename Value="LuaPicture.pas"/>
@@ -2807,6 +2869,39 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="DisAssemblerARM64"/>
       </Unit411>
+      <Unit412>
+        <Filename Value="contexthandler.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit412>
+      <Unit413>
+        <Filename Value="disassemblerarm32.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="DisAssemblerARM32"/>
+      </Unit413>
+      <Unit414>
+        <Filename Value="frmanchoreditor.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="AnchorEditor"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+        <UnitName Value="frmAnchorEditor"/>
+      </Unit414>
+      <Unit415>
+        <Filename Value="disassemblerarm32thumb.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="disassemblerArm32Thumb"/>
+      </Unit415>
+      <Unit416>
+        <Filename Value="iptnative.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit416>
+      <Unit417>
+        <Filename Value="iptlogdisplay.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="frmIPTLogDisplay"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+      </Unit417>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
@@ -2855,8 +2950,8 @@
       <CompilerMessages>
         <IgnoredMessages idx6058="True"/>
       </CompilerMessages>
-      <CustomOptions Value="-dbenchmarkps -dcemain -WB00400000 -dNDEBUG -dDBVMFORAMDISWORKING"/>
-      <OtherDefines Count="13">
+      <CustomOptions Value="-dbenchmarkps -dcemain -WB00400000 -dNDEBUG -dDBVMFORAMDISWORKING -dNESTEDSTRUCTURES"/>
+      <OtherDefines Count="17">
         <Define0 Value="NOTMULTITHREADED"/>
         <Define1 Value="benchmarkps"/>
         <Define2 Value="cemain"/>
@@ -2870,11 +2965,15 @@
         <Define10 Value="memorymapped"/>
         <Define11 Value="privatebuild"/>
         <Define12 Value="DBVMFORAMDISWORKING"/>
+        <Define13 Value="NESTEDSTRUCTURES"/>
+        <Define14 Value="THREADNAMESUPPORT"/>
+        <Define15 Value="LINUXTCCTEST"/>
+        <Define16 Value="asserthexviewisthreadsafe"/>
       </OtherDefines>
     </Other>
   </CompilerOptions>
   <Debugging>
-    <Exceptions Count="18">
+    <Exceptions Count="19">
       <Item1>
         <Name Value="EAbort"/>
         <Enabled Value="False"/>
@@ -2913,7 +3012,6 @@
       </Item10>
       <Item11>
         <Name Value="EAssemblerException"/>
-        <Enabled Value="False"/>
       </Item11>
       <Item12>
         <Name Value="EAutoAssembler"/>
@@ -2923,7 +3021,6 @@
       </Item13>
       <Item14>
         <Name Value="EFileMapError"/>
-        <Enabled Value="False"/>
       </Item14>
       <Item15>
         <Name Value="EParserError"/>
@@ -2938,6 +3035,9 @@
       <Item18>
         <Name Value="EAdvancedOptionsDuplicateException"/>
       </Item18>
+      <Item19>
+        <Name Value="EDebuggerAttachException"/>
+      </Item19>
     </Exceptions>
   </Debugging>
 </CONFIG>

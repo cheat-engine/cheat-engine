@@ -14,7 +14,8 @@ uses
   LCLIntf, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls,CEFuncProc, ExtCtrls, ComCtrls, Menus, NewKernelHandler, LResources,
   disassembler, symbolhandler, byteinterpreter, CustomTypeHandler, maps, math, Clipbrd,
-  addressparser, commonTypeDefs, DBK32functions, vmxfunctions, betterControls, syncobjs;
+  addressparser, commonTypeDefs, DBK32functions, vmxfunctions, betterControls,
+  syncobjs, contexthandler;
 
 const
   cbDisplayTypeIndexByte=0;
@@ -28,14 +29,26 @@ const
 type
   TfrmChangedAddresses=class;
   TAddressEntry=class
+  private
+    fcontext: Pointer;
+    contexthandler: TContextInfo;
+
+    procedure setContext(c: pointer);
   public
     address: ptruint; //for whatever reason it could be used in the future
     base: ptruint;
-    context: TContext;
+
     stack: record
       stack: pbyte;
       savedsize: PtrUInt;
     end;
+
+    {$IFDEF WINDOWS}
+    ipt: record
+      log: pointer;
+      size: integer;
+    end;
+    {$ENDIF}
     count: integer;
 
     group: integer;
@@ -47,6 +60,8 @@ type
     procedure savestack;
     constructor create(AOwner: TfrmChangedAddresses);
     destructor destroy; override;
+
+    property context: pointer read fContext write setContext;
   end;
 
 
@@ -73,6 +88,7 @@ type
     editCodeAddress: TEdit;
     labelCodeAddress: TLabel;
     lblInfo: TLabel;
+    miShowIPTLog: TMenuItem;
     micbShowAsSigned: TMenuItem;
     miCodeAddressCopy: TMenuItem;
     miCopyValueToClipboard: TMenuItem;
@@ -125,6 +141,7 @@ type
     procedure miDissectClick(Sender: TObject);
     procedure miResetCountClick(Sender: TObject);
     procedure miScanForCommonalitiesClick(Sender: TObject);
+    procedure miShowIPTLogClick(Sender: TObject);
     procedure OKButtonClick(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormShow(Sender: TObject);
@@ -150,6 +167,8 @@ type
     currentFilter: string;
     currentFilterFunc: integer;
     filterExtraRegs: boolean;
+
+
     function checkFilter(entry: TaddressEntry): boolean;
     procedure rebuildListWithFilter;
 
@@ -187,7 +206,7 @@ uses CEDebugger, MainUnit, frmRegistersunit, MemoryBrowserFormUnit, debughelper,
   debugeventhandler, debuggertypedefinitions, FoundCodeUnit, StructuresFrm2,
   ProcessHandlerUnit, Globals, Parsers, frmStackViewUnit, frmSelectionlistunit,
   frmChangedAddressesCommonalityScannerUnit, LastDisassembleData, lua, lauxlib,
-  lualib, luahandler, BreakpointTypeDef;
+  lualib, luahandler, BreakpointTypeDef, DebuggerInterfaceAPIWrapper, iptlogdisplay;
 
 resourcestring
   rsStop='Stop';
@@ -210,12 +229,23 @@ resourcestring
   rsEnterLuaFormula = 'Enter a Lua formula to use to filter. E.g RCX==0x2301'
     +'adc0.  Empty for no filter';
 
+  rsNeedsIPTFindWhat = 'The debugger did not collect any IPT data. This may be due to the Intel PT feature not being enabled in settings/malfunctioning, or that the option to also log the trace in "find what..." results was disabled. Do you wish to enable this for this debugging session? You will need to recollect this information again though.'#13#10'(This is for this session only. If you wish to always turn it on from the start, go to settings->debugger options, and enable "Use Intel-PT feature" and the suboption for recording elements in "find what ..." routines)';
+
+
 
 
 destructor TAddressEntry.destroy;
 begin
   if stack.stack<>nil then
     freememandnil(stack.stack);
+
+  {$IFDEF WINDOWS}
+  if ipt.log<>nil then
+    freememandnil(ipt.log);
+  {$ENDIF}
+
+  if fcontext<>nil then
+    freememandnil(fcontext);
 
   inherited destroy;
 end;
@@ -225,26 +255,41 @@ begin
   owner:=aowner;
 end;
 
+procedure TAddressEntry.setContext(c: pointer);
+begin
+  if fcontext<>nil then
+    freememandnil(fcontext);
+
+  contexthandler:=getBestContextHandler;
+  fcontext:=contexthandler.getcopy(c);
+end;
+
+
 procedure TAddressEntry.fillBase;
 var ap: TAddressParser;
 begin
   if (base=0) and (owner<>nil) then
   begin
     ap:=TAddressParser.Create;
-    ap.setSpecialContext(@context);
+    ap.setSpecialContext(fcontext);
     base:=ap.getBaseAddress(owner.equation);
     ap.free;
   end;
 end;
 
 procedure TAddressEntry.savestack;
+var stackbase: ptruint;
 begin
   getmem(stack.stack, savedStackSize);
-  if ReadProcessMemory(processhandle, pointer(context.{$ifdef cpu64}Rsp{$else}esp{$endif}), stack.stack, savedStackSize, stack.savedsize)=false then
+  stackbase:=contexthandler.StackPointerRegister^.getValue(fcontext);
+
+
+
+  if ReadProcessMemory(processhandle, pointer(stackbase), stack.stack, savedStackSize, stack.savedsize)=false then
   begin
     //for some reason this sometimes returns 0 bytes read even if some of the bytes are readable.
-    stack.savedsize:=4096-(context.{$ifdef cpu64}Rsp{$else}esp{$endif} mod 4096);
-    ReadProcessMemory(processhandle, pointer(context.{$ifdef cpu64}Rsp{$else}esp{$endif}), stack.stack, stack.savedsize, stack.savedsize);
+    stack.savedsize:=4096-(stackbase mod 4096);
+    ReadProcessMemory(processhandle, pointer(stackbase), stack.stack, stack.savedsize, stack.savedsize);
   end;
 end;
 
@@ -363,7 +408,7 @@ begin
           end;
         end;
 
-        x.context:=c;
+        x.context:=@c;
 
         OutputDebugString('adding to the lists');
         s:=inttohex(address,8);
@@ -471,8 +516,9 @@ begin
 
   if foundcodedialog<>nil then
   begin
+     //TFoundCodeDialog(foundcodedialog).setChangedAddressCount(contexthan
+    TFoundCodeDialog(foundcodedialog).setChangedAddressCount(newRecord.contexthandler.InstructionPointerRegister^.getValue(newrecord.context));
 
-    TFoundCodeDialog(foundcodedialog).setChangedAddressCount(newRecord.context.{$ifdef cpu64}Rip{$else}eip{$endif});
     if (changedlist.Items.Count>=8) then //remove this breakpoint
       debuggerthread.FindWhatCodeAccessesStop(self);
   end;
@@ -560,7 +606,7 @@ begin
         if changedlist.Items[i].Selected then
         begin
           ae:=changedlist.items[i].data;
-          ap.setSpecialContext(@ae.context);
+          ap.setSpecialContext(ae.fcontext);
           address:=ap.getBaseAddress(equation);
 
           maxoffset:=max(maxoffset, 8+strtoint64('$'+changedlist.Items[i].Caption)-address);
@@ -856,7 +902,7 @@ function TfrmChangedAddresses.checkFilter(entry: TaddressEntry): boolean;
 begin
   if currentFilterFunc=-1 then exit(true);
 
-  LUA_SetCurrentContextState(0,@entry.context, filterExtraRegs);
+  LUA_SetCurrentContextState(0,entry.fcontext, filterExtraRegs);
   lua_rawgeti(LuaVM, LUA_REGISTRYINDEX, currentFilterFunc);
   if lua_pcall(LuaVM,0,1,0)=0 then
   begin
@@ -1098,6 +1144,40 @@ begin
   f.initlist;
 end;
 
+procedure TfrmChangedAddresses.miShowIPTLogClick(Sender: TObject);
+var
+  f: TfrmIPTLogDisplay;
+  ae: TAddressEntry;
+begin
+  {$IFDEF WINDOWS}
+  if changedlist.Selected=nil then exit;
+
+  ae:=TAddressEntry(changedlist.Selected.Data);
+
+  if (ae.ipt.log=nil) then
+  begin
+    if debuggerthread<>nil then
+    begin
+      if (useintelptfordebug=false) or (inteliptlogfindwhatroutines=false) then
+      begin
+        if messagedlg(rsNeedsIPTFindWhat, mtConfirmation, [mbyes,mbno],0)=mryes then
+        begin
+          useintelptfordebug:=true;
+          inteliptlogfindwhatroutines:=true;
+          debuggerthread.initIntelPTTracing;
+        end;
+      end;
+    end;
+  end
+  else
+  begin
+    f:=TfrmIPTLogDisplay.create(application);
+    f.show;
+    f.loadlog('log'+faddress.ToHexString+GetTickCount64.ToHexString, ae.ipt.log, ae.ipt.size, faddress);
+  end;
+  {$ENDIF}
+end;
+
 procedure TfrmChangedAddresses.miDeleteSelectedEntriesClick(Sender: TObject);
 var
   i: integer;
@@ -1324,7 +1404,7 @@ begin
 
       ae:=TAddressEntry(changedlist.Selected.Data);
 
-      SetContextPointer(@ae.context, ae.stack.stack, ae.stack.savedsize);
+      SetContextPointer(ae.context, ae.stack.stack, ae.stack.savedsize);
 
       show;
     end;
@@ -1407,6 +1487,9 @@ begin
 
   addresslistCS:=TCriticalSection.Create;
   addresslist:=TMap.Create(ituPtrSize,sizeof(pointer));
+
+  miShowIPTLog.Visible:=systemSupportsIntelPT and not hideiptcapability and (CurrentDebuggerInterface<>nil) and CurrentDebuggerInterface.canUseIPT;
+
 end;
 
 procedure TfrmChangedAddresses.stopdbvmwatch;

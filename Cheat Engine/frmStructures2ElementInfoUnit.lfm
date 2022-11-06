@@ -9,8 +9,9 @@ object frmStructures2ElementInfo: TfrmStructures2ElementInfo
   ClientHeight = 299
   ClientWidth = 314
   OnCreate = FormCreate
+  OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '2.0.6.0'
+  LCLVersion = '2.2.2.0'
   object Label1: TLabel
     AnchorSideLeft.Control = Label3
     AnchorSideTop.Control = edtOffset
@@ -170,7 +171,7 @@ object frmStructures2ElementInfo: TfrmStructures2ElementInfo
       'String'
       'Unicode String'
       'Array of Byte'
-      'Pointer'
+      'Pointer/Nested Structure'
     )
     OnChange = cbTypeChange
     Style = csDropDownList
@@ -218,11 +219,11 @@ object frmStructures2ElementInfo: TfrmStructures2ElementInfo
     AnchorSideLeft.Control = cbHexadecimal
     AnchorSideLeft.Side = asrBottom
     AnchorSideTop.Control = cbHexadecimal
-    Left = 125
+    Left = 117
     Height = 19
     Top = 130
     Width = 56
-    BorderSpacing.Left = 16
+    BorderSpacing.Left = 8
     Caption = 'Signed'
     OnChange = cbSignedChange
     TabOrder = 4
@@ -302,6 +303,20 @@ object frmStructures2ElementInfo: TfrmStructures2ElementInfo
     Enabled = False
     TabOrder = 11
   end
+  object cbNestedStructure: TCheckBox
+    AnchorSideLeft.Control = cbSigned
+    AnchorSideLeft.Side = asrBottom
+    AnchorSideTop.Control = cbSigned
+    Left = 181
+    Height = 19
+    Top = 130
+    Width = 108
+    BorderSpacing.Left = 8
+    Caption = 'Nested Structure'
+    OnChange = cbNestedStructureChange
+    TabOrder = 12
+    Visible = False
+  end
   object ColorDialog1: TColorDialog
     Color = clBlack
     CustomColors.Strings = (
@@ -326,7 +341,7 @@ object frmStructures2ElementInfo: TfrmStructures2ElementInfo
       'ColorS=F0FBFF'
       'ColorT=A4A0A0'
     )
-    Left = 180
+    Left = 232
     Top = 133
   end
 end

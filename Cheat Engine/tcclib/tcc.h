@@ -1891,3 +1891,21 @@ PUB_FUNC void tcc_exit_state(void);
 /* actually we could avoid the tcc_enter_state(s1) hack by using
    __VA_ARGS__ except that some compiler doesn't support it. */
 #endif
+
+//cheat engine modification start
+
+
+#ifndef NOREDIRECT
+int __cdecl redirectedopen(char const* _FileName, int _OpenFlag, ...);
+int __cdecl redirectedread(int _FileHandle, void* _DstBuf,  unsigned int _MaxCharCount);
+int __cdecl redirectedclose(int _FileHandle);
+
+#define read redirectedread
+#define open redirectedopen
+#define close redirectedclose
+
+//extern OPENFILE_OVERRIDE openfile_override;
+//cheat engine modification stop
+#endif
+
+

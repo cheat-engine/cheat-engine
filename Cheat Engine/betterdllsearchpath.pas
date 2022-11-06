@@ -15,8 +15,10 @@ const
 
 var
   AddDllDirectory: function(dir: PWideChar):pointer; stdcall;
+  RemoveDllDirectory: function(cookie: pointer): BOOL; stdcall;
   SetDefaultDllDirectories: function(v: dword):BOOL; stdcall;
 
+  DLLDirectoryCookie: pointer=nil;
 {$endif}
 
 implementation
@@ -25,6 +27,11 @@ implementation
 function AddDllDirectoryNI(dir: PWideChar):pointer; stdcall;
 begin
   result:=nil;
+end;
+
+function RemoveDllDirectoryNI(cookie: pointer): BOOL; stdcall;
+begin
+  result:=true;
 end;
 
 function SetDefaultDllDirectoriesNI(v:dword):BOOL; stdcall;
@@ -40,6 +47,7 @@ begin
   k:=LoadLibrary('kernel32.dll');
   SetDefaultDllDirectories:=GetProcAddress(k,'SetDefaultDllDirectories');
   AddDllDirectory:=GetProcAddress(k,'AddDllDirectory');
+  RemoveDllDirectory:=GetProcAddress(k,'AddDllDirectory');
 
   if assigned(SetDefaultDllDirectories) then
     SetDefaultDllDirectories(LOAD_LIBRARY_SEARCH_DEFAULT_DIRS or LOAD_LIBRARY_SEARCH_USER_DIRS)
@@ -54,10 +62,14 @@ begin
 {$else}
     p:=ExtractFilePath(ParamStr(0))+'win64';
 {$endif}
-    AddDllDirectory(@p[1]);
+    DLLDirectoryCookie:=AddDllDirectory(@p[1]);
   end
   else
     AddDllDirectory:=@AddDllDirectoryNI;
+
+  if assigned(RemoveDllDirectory)=false then
+    RemoveDllDirectory:=@RemoveDllDirectoryNI;
+
 {$warn 4104 on}
 end;
 

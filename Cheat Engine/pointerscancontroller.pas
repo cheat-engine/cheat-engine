@@ -309,6 +309,7 @@ type
 
 
     mustEndWithSpecificOffset: boolean;
+    mustEndWithSpecificOffsetMaxDeviation: dword;
     mustendwithoffsetlist: array of dword;
     onlyOneStaticInPath: boolean;
     noReadOnly: boolean;
@@ -551,7 +552,11 @@ begin
 
   if fcontroller.compressedptr then
   begin
-    EntrySize:=fcontroller.MaxBitCountModuleOffset+fcontroller.MaxBitCountModuleIndex+fcontroller.MaxBitCountLevel+fcontroller.MaxBitCountOffset*(fcontroller.maxlevel-length(fcontroller.mustendwithoffsetlist));
+    if fcontroller.mustEndWithSpecificOffsetMaxDeviation=0 then
+      EntrySize:=fcontroller.MaxBitCountModuleOffset+fcontroller.MaxBitCountModuleIndex+fcontroller.MaxBitCountLevel+fcontroller.MaxBitCountOffset*(fcontroller.maxlevel-length(fcontroller.mustendwithoffsetlist))
+    else
+      EntrySize:=fcontroller.MaxBitCountModuleOffset+fcontroller.MaxBitCountModuleIndex+fcontroller.MaxBitCountLevel+fcontroller.MaxBitCountOffset*(fcontroller.maxlevel);
+
     EntrySize:=(EntrySize+7) div 8;
   end
   else
@@ -801,6 +806,7 @@ begin
       s.WriteQWord(BaseStop);
       s.WriteByte(ifthen(onlyOneStaticInPath,1,0));
       s.writebyte(ifthen(mustEndWithSpecificOffset,1,0));
+      s.writeDword(mustEndWithSpecificOffsetMaxDeviation);
       s.writeWord(length(mustendwithoffsetlist));
       for i:=0 to length(mustendwithoffsetlist)-1 do
         s.WriteDWord(mustendwithoffsetlist[i]);
@@ -2578,8 +2584,10 @@ begin
             end;
           end;
 
-          if (childnodes[i].socket<>nil) and (childnodes[i].scandatauploader=nil) and (GetTickCount64-childnodes[i].LastUpdateReceived>120000) then
+          {$ifndef DEBUGPROTOCOL}
+          if (childnodes[i].socket<>nil) and (childnodes[i].scandatauploader=nil) and (childnodes[i].LastUpdateReceived<>0) and (GetTickCount64-childnodes[i].LastUpdateReceived>120000) then
             handleChildException(i, rsNoUpdateFromTheClientForOver120Sec); //marks the child as disconnected
+          {$endif}
 
           inc(i);
         end;
@@ -3503,7 +3511,11 @@ begin
         MaxBitCountModuleOffset:=32;
 
 
-      MaxBitCountLevel:=getMaxBitCount(maxlevel-length(mustendwithoffsetlist) , false); //counted from 1.  (if level=4 then value goes from 1,2,3,4) 0 means no offsets. This can happen in case of a pointerscan with specific end offsets, which do not get saved.
+      if mustEndWithSpecificOffsetMaxDeviation=0 then
+        MaxBitCountLevel:=getMaxBitCount(maxlevel-length(mustendwithoffsetlist) , false) //counted from 1.  (if level=4 then value goes from 1,2,3,4) 0 means no offsets. This can happen in case of a pointerscan with specific end offsets, which do not get saved.
+      else
+        MaxBitCountLevel:=getMaxBitCount(maxlevel, false);
+
       MaxBitCountOffset:=getMaxBitCount(sz, false);
       if unalligned=false then MaxBitCountOffset:=MaxBitCountOffset - 2;
 
@@ -3597,6 +3609,7 @@ begin
     BaseStop:=ReadQword;
     onlyOneStaticInPath:=readByte=1;
     mustEndWithSpecificOffset:=readbyte=1;
+    mustEndWithSpecificOffsetMaxDeviation:=ReadDWord;
     setlength(mustendwithoffsetlist, ReadWord);
     for i:=0 to length(mustendwithoffsetlist)-1 do
       mustendwithoffsetlist[i]:=ReadDWord;
@@ -4709,9 +4722,14 @@ begin
           result.writeByte(MaxBitCountLevel);
           result.writeByte(MaxBitCountOffset);
 
-          result.writeByte(length(mustendwithoffsetlist));
-          for i:=0 to length(mustendwithoffsetlist)-1 do
-            result.writeDword(mustendwithoffsetlist[i]);
+          if mustEndWithSpecificOffsetMaxDeviation=0 then
+          begin
+            result.writeByte(length(mustendwithoffsetlist));
+            for i:=0 to length(mustendwithoffsetlist)-1 do
+              result.writeDword(mustendwithoffsetlist[i]);
+          end
+          else
+            result.writeByte(0);
         end;
 
         result.writebyte(ifthen(mustStartWithBase,1,0));
@@ -4958,6 +4976,9 @@ begin
       child.trusted:=entry.trusted;
     end;
 
+    child.LastUpdateReceived:=GetTickCount64;
+
+
 
     len:=sizeof(ipname);
     if getpeername(sockethandle, ipname, len)<>SOCKET_ERROR then
@@ -5193,6 +5214,7 @@ begin
   scanner.OutOfDiskSpace:=@outofdiskspace;
 
   scanner.mustEndWithSpecificOffset:=mustEndWithSpecificOffset;
+  scanner.mustEndWithSpecificOffsetMaxDeviation:=mustEndWithSpecificOffsetMaxDeviation;
   scanner.mustendwithoffsetlist:=mustendwithoffsetlist;
   scanner.useHeapData:=useHeapData;
   scanner.useOnlyHeapData:=useHeapData;
@@ -5333,6 +5355,7 @@ LimitToMaxOffsetsPerNode: byte //boolean
 onlyOneStaticInPath: byte; //boolean
 instantrescan: byte //boolean (not really needed, but it's a nice padding)
 mustEndWithSpecificOffset: byte; //boolean ( ^ ^ )
+mustEndWithSpecificOffsetMaxDeviation: dword;
 maxoffsetspernode: integer;
 basestart: qword;
 basestop: qword;
@@ -5369,6 +5392,7 @@ begin
   s.writebyte(ifthen(onlyOneStaticInPath,1,0));
   s.writebyte(ifthen(instantrescan,1,0));
   s.writebyte(ifthen(mustEndWithSpecificOffset,1,0));
+  s.WriteDword(mustEndWithSpecificOffsetMaxDeviation);
   s.WriteDWord(maxoffsetspernode);
   s.WriteQWord(basestart);
   s.WriteQWord(basestop);

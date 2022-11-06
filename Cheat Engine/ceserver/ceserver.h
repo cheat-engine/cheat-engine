@@ -49,14 +49,21 @@
 #define CMD_VIRTUALQUERYEXFULL      31
 #define CMD_GETREGIONINFO           32
 #define CMD_GETABI                  33
+//4
+#define CMD_SET_CONNECTION_NAME     34
+
+#define CMD_CREATETOOLHELP32SNAPSHOTEX 35
+
+#define CMD_CHANGEMEMORYPROTECTION  36
+
+#define CMD_GETOPTIONS              37
+#define CMD_GETOPTIONVALUE          38
+#define CMD_SETOPTIONVALUE          39
 
 #define CMD_AOBSCAN					200
 
 //just in case I ever get over 255 commands this value will be reserved for a secondary command list (FF 00 -  FF 01 - ... - FF FE - FF FF 01 - FF FF 02 - .....
 #define CMD_COMMANDLIST2            255
-
-
-
 
 
 //extern char *versionstring;
@@ -238,6 +245,14 @@ typedef struct {
 } CeSpeedhackSetSpeedOutput, *PCeSpeedhackSetSpeedOutput;
 
 typedef struct {
+  HANDLE hProcess;
+  uint64_t address;
+  uint32_t size;
+  uint32_t windowsprotection;
+} CeChangeMemoryProtection, *PCeChangeMemoryProtection;
+
+
+typedef struct {
 	HANDLE hProcess;
 	uint64_t start;
 	uint64_t end;
@@ -249,10 +264,18 @@ typedef struct {
 
 ssize_t sendall (int s, void *buf, size_t size, int flags);
 ssize_t recvall (int s, void *buf, size_t size, int flags);
+
+ssize_t sendstring16(int s, char *str, int flags);
+char* receivestring16(int s);
+
+int sendinteger(int s, int val, int flags);
+
 int DispatchCommand(int currentsocket, unsigned char command);
 int CheckForAndDispatchCommand(int currentsocket);
 
 extern int PORT;
+extern __thread char* threadname;
+
 
 #if BUILD_OPTION == 1
   #define SHARED_LIBRARY

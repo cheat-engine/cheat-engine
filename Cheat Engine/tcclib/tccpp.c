@@ -1874,6 +1874,7 @@ ST_FUNC void preprocess(int is_bof)
 	    buf[len - 2] = '\0';
         }
 
+
         if (s1->include_stack_ptr >= s1->include_stack + INCLUDE_STACK_SIZE)
             tcc_error("#include recursion too deep");
         i = tok == TOK_INCLUDE_NEXT ? file->include_next_index + 1 : 0;
