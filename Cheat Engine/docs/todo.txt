@@ -1,4 +1,3 @@
-space on jmp doesn't properly register the backlog
 step over on linux-x86_64 seems to still be a step into
 
 network change reg on bp. also fp regs  (ugh)

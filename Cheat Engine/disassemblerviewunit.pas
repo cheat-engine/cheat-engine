@@ -332,8 +332,8 @@ procedure TDisassemblerview.setSelectedAddress(address: ptrUint);
 var i: integer;
     found: boolean;
 begin
-  if (fselectedAddress<>address) and (not goingback) then
-    backlist.Push(pointer(address));
+  if (fSelectedAddress<>0) and (fselectedAddress<>address) and (not goingback) then
+    backlist.Push(pointer(fselectedAddress));
 
   fSelectedAddress:=address;
   fSelectedAddress2:=address;
