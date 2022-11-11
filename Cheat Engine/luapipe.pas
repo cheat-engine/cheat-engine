@@ -13,7 +13,7 @@ uses
   {$ifdef windows}
   windows,
   {$endif}
-  Classes, SysUtils, lua, LuaClass, syncobjs, guisafecriticalsection;
+  Classes, SysUtils, lua, LuaClass, syncobjs, guisafecriticalsection, newkernelhandler;
 
 type
   TPipeConnection=class
@@ -73,7 +73,7 @@ procedure pipecontrol_addMetaData(L: PLua_state; metatable: integer; userdata: i
 implementation
 
 
-uses LuaObject, LuaByteTable;
+uses LuaObject, LuaByteTable, networkInterface, networkInterfaceApi;
 
 threadvar WaitEvent: THandle;
 
@@ -286,8 +286,10 @@ begin
 end;
 
 function TPipeConnection.WriteBytes(bytes: pointer; size: integer): boolean;
-{$ifdef windows}
+
 var
+  c: TCEConnection;
+  {$ifdef windows}
   bw: dword;
   o: OVERLAPPED;
   starttime: qword;
@@ -299,46 +301,56 @@ begin
 
   if (bytes<>nil) and (size>0) then
   begin
-    {$ifdef windows}
-    if foverlapped then
+    c:=getConnection;
+    if (c<>nil) and c.isNetworkHandle(handle) then
     begin
-      zeromemory(@o, sizeof(o));
-
-      if waitevent=0 then
-        waitevent:=CreateEvent(nil,false,false,nil);
-
-      o.hEvent:=waitevent;
-      resetevent(o.hEvent);
-
-      if writefile(pipe, bytes^, size, bw,@o)=false then
-      begin
-        if GetLastError=ERROR_IO_PENDING then
-          exit(ProcessOverlappedOperation(@o))
-        else
-        begin
-          closeConnection(fOnError);
-          exit(false);
-        end;
-      end;
-
+      fconnected:=c.writePipe(handle, bytes, size, ftimeout);
+      if fconnected=false then
+        closeConnection(fOnTimeout);
     end
     else
-      fconnected:=fconnected and writefile(pipe, bytes^, size, bw, nil);
-    {$endif}
-    {$ifdef darwin}
-    fconnected:=writepipe(pipe, bytes, size, ftimeout);
-    if fconnected=false then
-      closeConnection(fOnTimeout);
-    {$endif}
+    begin
+      {$ifdef windows}
+      if foverlapped then
+      begin
+        zeromemory(@o, sizeof(o));
 
+        if waitevent=0 then
+          waitevent:=CreateEvent(nil,false,false,nil);
+
+        o.hEvent:=waitevent;
+        resetevent(o.hEvent);
+
+        if writefile(pipe, bytes^, size, bw,@o)=false then
+        begin
+          if GetLastError=ERROR_IO_PENDING then
+            exit(ProcessOverlappedOperation(@o))
+          else
+          begin
+            closeConnection(fOnError);
+            exit(false);
+          end;
+        end;
+
+      end
+      else
+        fconnected:=fconnected and writefile(pipe, bytes^, size, bw, nil);
+      {$endif}
+      {$ifdef darwin}
+      fconnected:=writepipe(pipe, bytes, size, ftimeout);
+      if fconnected=false then
+        closeConnection(fOnTimeout);
+      {$endif}
+    end;
   end;
 
   result:=fconnected;
 end;
 
 function TPipeConnection.ReadBytes(bytes: pointer; size: integer): boolean;
-{$ifdef windows}
 var
+  c: TCEConnection;
+{$ifdef windows}
   br: dword;
   o: OVERLAPPED;
   i: integer;
@@ -349,34 +361,44 @@ begin
 
   if (bytes<>nil) and (size>0) then
   begin
-    {$ifdef windows}
-    if foverlapped then
+    c:=getConnection;
+    if (c<>nil) and c.isNetworkHandle(pipe) then
     begin
-      zeromemory(@o, sizeof(o));
-      if waitevent=0 then
-        waitevent:=CreateEvent(nil,false,false,nil);
-
-      o.hEvent:=waitevent;
-      resetevent(o.hEvent);
-      if Readfile(pipe, bytes^, size, br,@o)=false then
-      begin
-        if GetLastError=ERROR_IO_PENDING then
-          exit(ProcessOverlappedOperation(@o))
-        else
-        begin
-          closeConnection(fOnError);
-          exit(false);
-        end;
-      end;
+      fconnected:=c.readPipe(pipe, bytes, size, ftimeout);
+      if fconnected=false then
+        closeConnection(fOnTimeout);
     end
     else
-      fconnected:=fconnected and Readfile(pipe, bytes^, size, br, nil);
-    {$endif}
-    {$ifdef darwin}
-    fconnected:=readpipe(pipe,bytes,size,ftimeout);
-    if fconnected=false then
-      closeConnection(fOnTimeout);
-    {$endif}
+    begin
+      {$ifdef windows}
+      if foverlapped then
+      begin
+        zeromemory(@o, sizeof(o));
+        if waitevent=0 then
+          waitevent:=CreateEvent(nil,false,false,nil);
+
+        o.hEvent:=waitevent;
+        resetevent(o.hEvent);
+        if Readfile(pipe, bytes^, size, br,@o)=false then
+        begin
+          if GetLastError=ERROR_IO_PENDING then
+            exit(ProcessOverlappedOperation(@o))
+          else
+          begin
+            closeConnection(fOnError);
+            exit(false);
+          end;
+        end;
+      end
+      else
+        fconnected:=fconnected and Readfile(pipe, bytes^, size, br, nil);
+      {$endif}
+      {$ifdef darwin}
+      fconnected:=readpipe(pipe,bytes,size,ftimeout);
+      if fconnected=false then
+        closeConnection(fOnTimeout);
+      {$endif}
+    end;
   end;
 
 

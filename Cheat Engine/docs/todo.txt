@@ -1,7 +1,11 @@
+space on jmp doesn't properly register the backlog
+step over on linux-x86_64 seems to still be a step into
 
-network compression dialog is too small on high dpi
-network change reg on bp. also fp regs
-dbvm cloak: amd pageboundaries
+network change reg on bp. also fp regs  (ugh)
+comment update form for disassembler initial size is too small
+
+
+dbvm cloak: amd pageboundaries (maybe single step issue)
 
 single hotkey keys sometimes stuck? sunbeam
 type isn't saved on headers...

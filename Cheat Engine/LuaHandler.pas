@@ -8357,6 +8357,35 @@ begin
   result:=1;
 end;
 
+function targetIsX86(L: PLua_State): integer; cdecl;
+begin
+  lua_pop(L, lua_gettop(L));
+  lua_pushboolean(L, processhandler.SystemArchitecture=archX86);
+  result:=1;
+end;
+
+function targetIsArm(L: PLua_State): integer; cdecl;
+begin
+  lua_pop(L, lua_gettop(L));
+  lua_pushboolean(L, processhandler.SystemArchitecture=archArm);
+  result:=1;
+end;
+
+function targetIsAndroid(L: PLua_State): integer; cdecl;
+begin
+  lua_pop(L, lua_gettop(L));
+  if getConnection<>nil then
+    lua_pushboolean(L, getConnection.isAndroid)
+  else
+  begin
+    lua_pushboolean(L, {$ifdef android}true{$else}false{$endif});
+  end;
+
+  result:=1;
+end;
+
+
+
 function unregisterFormAddNotification(L: PLua_State): integer; cdecl;
 var lc: TLuacaller;
 begin
@@ -15890,6 +15919,22 @@ begin
   end;
 end;
 
+function lua_isConnectedToCEServer(L: Plua_State):integer; cdecl;
+begin
+  lua_pushboolean(L,getConnection<>nil);
+  result:=1;
+end;
+
+function lua_getCEServerPath(L: Plua_State):integer; cdecl;
+begin
+  if getconnection<>nil then
+    lua_pushstring(L, getconnection.getServerPath)
+  else
+    lua_pushnil(L);
+
+  result:=1;
+end;
+
 {$ifdef darwin}
 function lua_createMachThread(L: Plua_State):integer; cdecl;
 var
@@ -15962,6 +16007,13 @@ begin
   lua_register(L, 'sleep', lua_sleep);
   lua_register(L, 'cheatEngineIs64Bit', cheatEngineIs64Bit);
   lua_register(L, 'targetIs64Bit', targetIs64Bit);
+
+  lua_register(L, 'targetIsX86', targetIsX86);
+  lua_register(L, 'targetIsArm', targetIsArm);
+  lua_register(L, 'targetIsAndroid', targetIsAndroid);
+
+
+
 
   lua_register(L, 'readBytes', readbytes);
   lua_register(L, 'writeBytes', writebytes);
@@ -16092,6 +16144,10 @@ begin
   lua_register(L, 'enumRegisteredSymbols', lua_enumRegisteredSymbols);
 
   lua_register(L, 'deleteAllRegisteredSymbols', lua_deleteAllUserdefinedSymbols);
+
+
+  lua_register(L, 'isConnectedToCEServer', lua_isConnectedToCEServer);
+  lua_register(L, 'getCEServerPath',lua_getCEServerPath);
 
 
 {$ifdef darwin}

@@ -587,54 +587,80 @@ function LaunchMonoDataCollector(internalReconnectDisconnectEachTime)
 
 
   local dllname
+  local dllpath
   
-  if getOperatingSystem()==0 then
-    dllname="MonoDataCollector"
-    if targetIs64Bit() then
-      dllname=dllname.."64.dll"
-    else
-      dllname=dllname.."32.dll"
+  local skipsymbols=true
+  
+  
+  if isConnectedToCEServer() then
+    local basename='libMonoDataCollector'
+    if targetIsAndroid() then
+      dllname=basename    
+    else    
+      --assume linux
+      dllname=basename..'-linux'     
     end
     
+    if targetIsArm() then
+      if targetIs64Bit() then
+        dllname=dllname..'-aarch64.so'
+      else
+        dllname=dllname..'-arm.so'
+      end      
+    else
+      if targetIs64Bit() then
+        dllname=dllname..'-x86_64.so'
+      else
+        dllname=dllname..'-i386.so'
+      end
+    end
     
-    autoAssemble([[
-      mono-2.0-bdwgc.mono_error_ok:
-      mov eax,1
-      ret
-    ]]) --don't care if it fails
-
-
+    dllpath=getCEServerPath()..dllname
   else
+    if getOperatingSystem()==0 then
+      skipsymbols=false --for the alternative (can not create pipes) situation
+      dllname="MonoDataCollector"
+      if targetIs64Bit() then
+        dllname=dllname.."64.dll"
+      else
+        dllname=dllname.."32.dll"
+      end
     
-    dllname='libMonoDataCollectorMac.dylib'
-  end
-  
-  local skipsymbols=getOperatingSystem()==1  --do not skip symbols if windows. 
+    
+      autoAssemble([[
+        mono-2.0-bdwgc.mono_error_ok:
+        mov eax,1
+        ret
+      ]]) --don't care if it fails
 
-  local injectResult, injectError=injectLibrary(getAutorunPath()..libfolder..pathsep..dllname, skipsymbols)
-  if not injectResult then
-    if injectError then
-      print(translate("Failure injecting the MonoDatacollector library"..":"..injectError))
+
     else
-      print(translate("Failure injecting the MonoDatacollector library. No error given"))
-    end
-    return 0
+      dllname='libMonoDataCollectorMac.dylib'
+    end  
+    
+    dllpath=getAutorunPath()..libfolder..pathsep..dllname   
   end
   
-  if (getOperatingSystem()==0) and (getAddressSafe("MDC_ServerPipe")==nil) then
+  printf("Injecting %s\n", dllpath);
+
+
+  local injectResult, injectError=injectLibrary(dllpath, skipsymbols)
+  if (not injectResult) and isConnectedToCEServer() then --try the searchpath
+    injectResult, injectError=injectLibrary(dllname, skipsymbols)      
+  end
+    
+  if (skipsymbols==false) and (getAddressSafe("MDC_ServerPipe")==nil) then
     waitForExports()
     if getAddressSafe("MDC_ServerPipe")==nil then
       print("DLL Injection failed or invalid DLL version")
       return 0
     end
   end
-  
 
-  
   --wait till attached
   local timeout=getTickCount()+5000
   while (monopipe==nil) and (getTickCount()<timeout) do
-    if (getOperatingSystem()==0) and (readInteger(getAddressSafe("MDC_ServerPipe"))==0xdeadbeef) then
+    if (skipsymbols==false) and (readInteger(getAddressSafe("MDC_ServerPipe"))==0xdeadbeef) then
       --likely an UWP target which can not create a named pipe
       --print("UWP situation")
       local serverpipe=createPipe('cemonodc_pid'..getOpenedProcessID(), 256*1024,1024)      
@@ -725,8 +751,9 @@ function LaunchMonoDataCollector(internalReconnectDisconnectEachTime)
   monopipe.ProcessID=getOpenedProcessID()
   monoBase=monopipe.readQword()
   
-  if (monoBase==nil) or (monobase==0) then
-    return 0;
+  if (monoBase==nil) or (monoBase==0) then
+    print("Mono not usable in target")
+    return 0
   end
 
 
@@ -2471,7 +2498,9 @@ function mono_method_getClass(method)
   monopipe.writeQword(method)
   local result=monopipe.readQword()
 
-  monopipe.unlock()
+  if monopipe then
+    monopipe.unlock()
+  end
 
   return result;
 end

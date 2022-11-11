@@ -152,12 +152,22 @@ type
     procedure getOption(name: string; var value: string);
     procedure setOption(name: string; value: string);
 
-    procedure TerminateServer;
+    function connectNamedPipe(name: string; timeout:integer=0): HANDLE;
+    function readPipe(h: THandle; destination: pointer; size: integer; timeout:integer=0): boolean;
+    function writePipe(h: THandle; source: pointer; size: integer; timeout:integer=0): boolean;
 
-    property connected: boolean read fConnected;
+    function getServerPath: string;
+
+    function isAndroid: boolean;
+
+
+    procedure TerminateServer;
 
     constructor create;
     destructor destroy; override;
+  published
+    property connected: boolean read fConnected;
+    property path: string read getServerPath;
   end;
 
 
@@ -220,6 +230,16 @@ const
   CMD_GETOPTIONS=37;
   CMD_GETOPTION=38;
   CMD_SETOPTION=39;
+
+  CMD_PTRACE_MMAP=40;
+
+  CMD_OPENNAMEDPIPE=41;
+  CMD_PIPEREAD=42;
+  CMD_PIPEWRITE=43;
+
+
+  CMD_GETCESERVERPATH=44;
+  CMD_ISANDROID=45;
 
 
 
@@ -1203,6 +1223,7 @@ var
     hProcess: integer;
     preferedBase: qword;
     size: integer;
+    windowsprotection: integer;
   end;
 
   output: UINT64;
@@ -1214,6 +1235,7 @@ begin
     input.command:=CMD_ALLOC;
     input.hProcess:=hProcess and $ffffff;
     input.preferedBase:=ptruint(lpAddress);
+    input.windowsprotection:=flProtect;
     input.size:=dwsize;
 
     if send(@input, sizeof(input))>0 then
@@ -2123,7 +2145,7 @@ type
 
 var
   input: Pinput;
-  r:uint32;
+  r:uint64;
 begin
   result:=false;
   if isNetworkHandle(hProcess) then
@@ -2135,7 +2157,7 @@ begin
     input^.modulepathlength:=Length(modulepath);
     CopyMemory(@input^.modulename, @modulepath[1], length(modulepath));
 
-    if send(@input,  sizeof(TInput)+length(modulepath))>0 then
+    if send(input,  sizeof(TInput)+length(modulepath))>0 then
     begin
       receive(@r, sizeof(r));
       result:=r<>0;
@@ -2280,6 +2302,112 @@ begin
   buf.free;
 end;
 
+function TCEConnection.connectNamedPipe(name: string; timeout:integer=0): HANDLE;
+var
+  buf: tmemorystream;
+  r: uint32;
+begin
+  buf:=tmemorystream.Create;
+  buf.WriteByte(CMD_OPENNAMEDPIPE);
+  buf.WriteWord(length(name));
+  buf.WriteBuffer(name[1],length(name));
+  buf.WriteDWord(timeout);
+  send(buf.memory, buf.size);
+  buf.free;
+
+  receive(@r,sizeof(r));
+
+  if r<>0 then
+    result:=$ce000000 or r
+  else
+    result:=INVALID_HANDLE_VALUE;
+end;
+
+function TCEConnection.readPipe(h: THandle; destination: pointer; size: integer; timeout:integer=0): boolean;
+var
+  input: packed record
+    command: byte;
+    h: uint32;
+    size: uint32;
+    timeout: uint32;
+  end;
+
+  actualsize: int32;
+begin
+  if isNetworkHandle(h) then
+  begin
+    h:=h and $ffffff;
+
+    input.command:=CMD_PIPEREAD;
+    input.h:=h;
+    input.size:=size;
+    input.timeout:=timeout;
+    send(@input, sizeof(input));
+
+    receive(@actualsize, sizeof(actualsize));
+    if actualsize>size then
+    begin
+      //oh no....
+      fConnected:=false;
+      if socket<>0 then
+        CloseSocket(socket);
+
+      socket:=0;
+
+      exit(false);
+    end;
+
+    receive(destination, actualsize);
+
+    result:=actualsize=size;
+  end
+  else
+    result:=false;
+end;
+
+function TCEConnection.writePipe(h: THandle; source: pointer; size: integer; timeout:integer=0): boolean;
+var
+  buf: tmemorystream;
+  c: int32;
+begin
+  if isNetworkHandle(h) then
+  begin
+    h:=h and $ffffff;
+
+    buf:=tmemorystream.create;
+    buf.WriteByte(CMD_PIPEWRITE);
+    buf.WriteDWord(h);
+    buf.writeDword(size);
+    buf.writeDword(timeout);
+    buf.WriteBuffer(source^,size);
+    send(buf.memory, buf.size);
+    buf.free;
+
+    receive(@c,sizeof(c));
+
+    result:=c=size;
+
+  end
+  else
+    result:=false;
+end;
+
+function TCEConnection.getServerPath: string;
+var c: byte;
+begin
+  c:=CMD_GETCESERVERPATH;
+  send(@c,1);
+  result:=receiveString16;
+end;
+
+function TCEConnection.isAndroid: boolean;
+var command, r: byte;
+begin
+  command:=CMD_ISANDROID;
+  send(@command,1);
+  receive(@r,1);
+  result:=r<>0;
+end;
 
 function TCEConnection.isNetworkHandle(handle: THandle): boolean;
 begin
