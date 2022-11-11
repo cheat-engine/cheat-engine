@@ -35,6 +35,7 @@
 #include <sys/socket.h>
 #include <sys/stat.h>
 #include <sys/time.h>
+#include <sys/un.h>
 #include <fcntl.h>
 #include <unistd.h>
 
@@ -278,6 +279,50 @@ void mychildhandler(int signal, struct siginfo *info, void *context)
   int orig_errno = errno;
   WakeDebuggerThread();
   errno = orig_errno;
+}
+
+int windowsProtectionToLinux(uint32_t windowsprotection)
+{
+  int newprotection=0;
+  switch (windowsprotection)
+  {
+    case PAGE_EXECUTE_READWRITE: newprotection=PROT_WRITE | PROT_READ | PROT_EXEC; break;
+    case PAGE_EXECUTE_READ: newprotection=PROT_READ | PROT_EXEC; break;
+    case PAGE_EXECUTE: newprotection=PROT_EXEC; break;
+    case PAGE_READWRITE: newprotection=PROT_READ | PROT_WRITE; break;
+    case PAGE_READONLY: newprotection=PROT_READ; break;
+    default:
+      newprotection=0;
+  }
+
+  return newprotection;
+}
+
+uint32_t linuxProtectionToWindows(int prot)
+{
+  int r=0, w=0, x=0;
+
+  r=prot & PROT_READ;
+  w=prot & PROT_WRITE;
+  x=prot & PROT_EXEC;
+
+  if (r && w && x)
+    return PAGE_EXECUTE_READWRITE;
+
+  if (r && x)
+    return PAGE_EXECUTE_READ;
+
+  if (x)
+     return PAGE_EXECUTE;
+
+  if (r && w)
+    return PAGE_READWRITE;
+
+  if (r)
+    return PAGE_READONLY;
+
+  return PAGE_NOACCESS;
+
 }
 
 int getArchitecture(HANDLE hProcess)
@@ -2930,7 +2975,7 @@ int ReadProcessMemoryDebug(HANDLE hProcess, PProcessData p, void *lpAddress, voi
 
   int bytesread=0;
 
-  debug_log("ReadProcessMemoryDebug\n");
+ // debug_log("ReadProcessMemoryDebug\n");
 //  debug_log("lpAddress=%p\n", lpAddress);
 
 
@@ -2963,7 +3008,7 @@ int ReadProcessMemoryDebug(HANDLE hProcess, PProcessData p, void *lpAddress, voi
 
     if(MEMORY_SEARCH_OPTION== 0)
     {
-      debug_log("ReadProcessMemoryDebug: MEMORY_SEARCH_OPTION==0");
+     // debug_log("ReadProcessMemoryDebug: MEMORY_SEARCH_OPTION==0");
       
       int inflooptest=0;
 
@@ -3198,29 +3243,35 @@ int ReadProcessMemory(HANDLE hProcess, void *lpAddress, void *buffer, int size)
 
     if (MEMORY_SEARCH_OPTION == 2)
     {
-      struct iovec local;
-      struct iovec remote;
-
-      local.iov_base=buffer;
-      local.iov_len=size;
-
-      remote.iov_base=lpAddress;
-      remote.iov_len=size;
-
-      bread=process_vm_readv(p->pid,&local,1,&remote,1,0);
-      if (bread==-1)
+      if (process_vm_readv)
       {
-       // debug_log("process_vm_readv(%x, %d) failed: %s\n", lpAddress, size, strerror(errno));
-        bread=0;
-      }
+        struct iovec local;
+        struct iovec remote;
 
-      return bread;
+        local.iov_base=buffer;
+        local.iov_len=size;
+
+        remote.iov_base=lpAddress;
+        remote.iov_len=size;
+
+
+        bread=process_vm_readv(p->pid,&local,1,&remote,1,0);
+        if (bread==-1)
+        {
+         // debug_log("process_vm_readv(%x, %d) failed: %s\n", lpAddress, size, strerror(errno));
+          bread=0;
+        }
+
+        return bread;
+      }
+      else
+        MEMORY_SEARCH_OPTION=0;
     }
 
 
     if (p->isDebugged) //&& cannotdealwithotherthreads
     {
-      debug_log("RPM: This process is being debugged. Doing the Debug version\n");
+     // debug_log("RPM: This process is being debugged. Doing the Debug version\n");
       //use the debugger specific readProcessMemory implementation
       return ReadProcessMemoryDebug(hProcess, p, lpAddress, buffer, size);
     }
@@ -3770,6 +3821,83 @@ int SearchHandleListProcessCallback(PProcessData data, int *pid)
   return (data->pid==*pid);
 }
 
+HANDLE OpenPipe(char *pipename, int timeout) //the \\.\pipe\ part has already been stripped
+{
+  int i;
+  int s;
+  int al;
+  char name[256];
+  debug_log("OpenPipe(\"%s\")", pipename);
+  s=socket(AF_UNIX, SOCK_STREAM, 0);
+
+  sprintf(name, " %s",pipename);
+
+  struct sockaddr_un address;
+  address.sun_family=AF_UNIX;
+  strcpy(address.sun_path, name);
+
+  al=SUN_LEN(&address);
+
+  address.sun_path[0]=0;
+
+  debug_log("trying to connect to %s\n", pipename);
+  i=connect(s, (struct sockaddr *)&address, al);
+
+  if ((i!=0) && (timeout))
+  {
+    uint64_t starttime=getTickCount();
+    while ((i!=0) && (getTickCount()<starttime+timeout))
+    {
+      usleep(50*1000);
+      i=connect(s, (struct sockaddr *)&address, al);
+    }
+  }
+
+  debug_log("connect returned %d\n", i);
+
+  if (i==0)
+  {
+    PPipeData pd=(PPipeData)malloc(sizeof(PipeData));
+
+    pd->socket=s;
+    pd->pipename=strdup(pipename);
+
+    debug_log("Successful connection to %s\n", pd->pipename);
+
+    return CreateHandleFromPointer(pd, htPipeHandle);
+  }
+  else
+  {
+    debug_log("Failed connecting to %s\n", pipename);
+    close(s);
+    return 0;
+  }
+}
+
+int ReadPipe(HANDLE ph, void* destination, int size, int timeout) //todo: implement timeout
+{
+  PPipeData pd=(PPipeData)GetPointerFromHandle(ph);
+  if (pd)
+  {
+    debug_log("ReadPipe on socket %s\n", pd->pipename);
+    return recvall(pd->socket, destination, size,0);
+  }
+  else
+    return -1;
+}
+
+int WritePipe(HANDLE ph, void* source, int size, int timeout) //todo: implement timeout
+{
+  PPipeData pd=(PPipeData)GetPointerFromHandle(ph);
+  if (pd)
+  {
+    debug_log("WritePipe on socket %s\n", pd->pipename);
+    return sendall(pd->socket, source, size,0);
+  }
+  else
+    return -1;
+}
+
 HANDLE OpenProcess(DWORD pid)
 {
   //check if the process exists
@@ -3982,7 +4110,7 @@ BOOL Module32Next(HANDLE hSnapshot, PModuleListEntry moduleentry)
     }
     else
     {
-      debug_log("Module32First/Next: Returning false because ml->moduleListIterator=%d and ml->moduleCount=%d\n", ml->moduleListIterator, ml->moduleCount);
+      //debug_log("Module32First/Next: Returning false because ml->moduleListIterator=%d and ml->moduleCount=%d\n", ml->moduleListIterator, ml->moduleCount);
       return FALSE;
     }
   }
@@ -4420,9 +4548,28 @@ void CloseHandle(HANDLE h)
     RemoveHandle(h);
   }
   else
+  if (ht==htPipeHandle)
+  {
+    PPipeData pd=GetPointerFromHandle(h);
+    close(pd->socket);
+    free(pd->pipename);
+    free(pd);
+    RemoveHandle(h);
+  }
+  else
     RemoveHandle(h); //no idea what it is...
 
 
+}
+
+uint64_t getTickCount()
+{
+  struct timespec ts;
+  uint64_t r=0;
+  clock_gettime( CLOCK_MONOTONIC, &ts );
+  r  = ts.tv_nsec / 1000000;
+  r += ts.tv_sec * 1000;
+  return r;
 }
 
 void initAPI()

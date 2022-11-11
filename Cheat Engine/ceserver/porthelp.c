@@ -60,7 +60,7 @@ int CreateHandleFromPointer(void *p, handleType type)
 
 void *GetPointerFromHandle(int handle)
 {
-  if ((handle<HandleList_max) && (HandleList[handle].type != htEmpty))
+  if ((handle>0) && (handle<HandleList_max) && (HandleList[handle].type != htEmpty))
     return HandleList[handle].pointer;
   else
     return NULL;
@@ -68,7 +68,7 @@ void *GetPointerFromHandle(int handle)
 
 handleType GetHandleType(int handle)
 {
-  if ((handle>=0) && (handle<HandleList_max))
+  if ((handle>0) && (handle<HandleList_max))
     return HandleList[handle].type;
   else
     return htEmpty;

@@ -16,6 +16,7 @@
 #include <stdint.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <stdint.h>
 #include <dlfcn.h>
 #include <stdarg.h>
 #ifdef __ANDROID__
@@ -221,6 +222,7 @@ int DispatchCommand(int currentsocket, unsigned char command)
       struct {
         uint64_t preferedAddress;
         uint32_t size;
+        uint32_t prot;
       } params;
 #pragma pack()
       //printf("EXTCMD_ALLOC. Receiving params:\n");
@@ -230,8 +232,10 @@ int DispatchCommand(int currentsocket, unsigned char command)
 
        // debug_log("params.preferedAddress=%lx\n", params.preferedAddress);
         //printf("params.size=%d\n", params.size);
+        if (params.prot==0)
+          params.prot=PROT_READ | PROT_WRITE | PROT_EXEC;
 
-        uint64_t address=(uint64_t)mmap((void *)params.preferedAddress, params.size, PROT_READ | PROT_WRITE | PROT_EXEC, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+        uint64_t address=(uint64_t)mmap((void *)params.preferedAddress, params.size, params.prot, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
 
         //printf("Actually allocated at %lx\n", address);
         if (address)
@@ -322,22 +326,30 @@ int DispatchCommand(int currentsocket, unsigned char command)
     case EXTCMD_LOADMODULE:
     {
       uint32_t modulepathlength;
+      debug_log("EXTCMD_LOADMODULE\n");
+
       if (recvall(currentsocket, &modulepathlength, sizeof(modulepathlength), 0)>0)
       {
         char *modulepath[modulepathlength+1];
         if (recvall(currentsocket, modulepath, modulepathlength, 0)>0)
         {
           modulepath[modulepathlength]=0;
+          debug_log("EXTCMD_LOADMODULE: modulepath=%s\n",modulepath);
           uint64_t result;
-          result=(dlopen((const char *)modulepath, RTLD_NOW)!=NULL);
+          result=(uint64_t)(dlopen((const char *)modulepath, RTLD_NOW));
+
+          debug_log("EXTCMD_LOADMODULE: dlopen returned %p\n",(void*)result);
+
+          if (result==0)
+          {
+            debug_log("EXTCMD_LOADMODULE: %s\n",dlerror());
+
+
+          }
 
           sendall(currentsocket, &result, sizeof(result), 0);
-
         }
-
-
       }
-
       break;
     }
 
@@ -429,7 +441,9 @@ void *ServerThread(void *arg)
     struct sockaddr_un addr_client;
     socklen_t clisize;
     int a;
+    debug_log("extension:calling accept\n");
     a=accept(s, (struct sockaddr *)&addr_client, &clisize);
+    debug_log("accept returned\n");
 
     //printf("accept returned %d\n", a);
     if (a==-1)
@@ -518,6 +532,7 @@ __attribute__((constructor)) void moduleinit(void)
     int l;
     l=listen(s, 32);
     debug_log("listen=%d\n",l);
+
 
     if (l==0)
     {

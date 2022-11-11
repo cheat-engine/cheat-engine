@@ -79,6 +79,8 @@
                                     								
                                 </option>
                                 								
+                                <option id="gnu.c.compiler.option.dialect.std.1422037878" superClass="gnu.c.compiler.option.dialect.std" value="gnu.c.compiler.dialect.default" valueType="enumerated"/>
+                                								
                                 <inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.282826520" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
                                 							
                             </tool>
@@ -171,7 +173,7 @@
                         						
                         <entry flags="VALUE_WORKSPACE_PATH" kind="libraryPath" name="/ceserver-extension/Debug-Linux"/>
                         						
-                        <entry flags="RESOLVED" kind="libraryFile" name="ceserver-extension" srcPrefixMapping="" srcRootPath=""/>
+                        <entry flags="RESOLVED" kind="libraryFile" name="ceserver-extension_x86_64" srcPrefixMapping="" srcRootPath=""/>
                         					
                     </externalSetting>
                     				
@@ -197,7 +199,7 @@
             			
             <storageModule moduleId="cdtBuildSystem" version="4.0.0">
                 				
-                <configuration artifactExtension="so" artifactName="${ProjName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.sharedLib" buildProperties="org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.sharedLib,org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug" cleanCommand="rm -rf" description="" id="cdt.managedbuild.config.gnu.cross.exe.debug.1358909468.1869431552" name="Debug-Linux" parent="cdt.managedbuild.config.gnu.cross.exe.debug" postbuildStep="cp ${BuildArtifactFilePrefix}${BuildArtifactFileName} &quot;${WorkspaceDirPath}/ceserverbin&quot;">
+                <configuration artifactExtension="so" artifactName="${ProjName}_x86_64" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.sharedLib" buildProperties="org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.sharedLib,org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug" cleanCommand="rm -rf" description="" id="cdt.managedbuild.config.gnu.cross.exe.debug.1358909468.1869431552" name="Debug-Linux" parent="cdt.managedbuild.config.gnu.cross.exe.debug" postbuildStep="cp ${BuildArtifactFilePrefix}${BuildArtifactFileName} &quot;${WorkspaceDirPath}/ceserverbin&quot;;">
                     					
                     <folderInfo id="cdt.managedbuild.config.gnu.cross.exe.debug.1358909468.1869431552." name="/" resourcePath="">
                         						
@@ -221,17 +223,17 @@
                             							
                             <tool id="cdt.managedbuild.tool.gnu.c.compiler.base.114887136" name="GCC C Compiler" superClass="cdt.managedbuild.tool.gnu.c.compiler.base">
                                 								
-                                <option defaultValue="gnu.c.optimization.level.none" id="gnu.c.compiler.option.optimization.level.603871867" name="Optimization Level" superClass="gnu.c.compiler.option.optimization.level" valueType="enumerated"/>
+                                <option defaultValue="gnu.c.optimization.level.none" id="gnu.c.compiler.option.optimization.level.603871867" name="Optimization Level" superClass="gnu.c.compiler.option.optimization.level" useByScannerDiscovery="false" valueType="enumerated"/>
                                 								
-                                <option id="gnu.c.compiler.option.debugging.level.1444317331" name="Debug Level" superClass="gnu.c.compiler.option.debugging.level" value="gnu.c.debugging.level.max" valueType="enumerated"/>
+                                <option id="gnu.c.compiler.option.debugging.level.1444317331" name="Debug Level" superClass="gnu.c.compiler.option.debugging.level" useByScannerDiscovery="false" value="gnu.c.debugging.level.max" valueType="enumerated"/>
                                 								
-                                <option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="gnu.c.compiler.option.include.paths.1364940242" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" valueType="includePath">
+                                <option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="gnu.c.compiler.option.include.paths.1364940242" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" useByScannerDiscovery="false" valueType="includePath">
                                     									
                                     <listOptionValue builtIn="false" value="/usr/include/"/>
                                     								
                                 </option>
                                 								
-                                <option id="gnu.c.compiler.option.misc.pic.947765470" name="Position Independent Code (-fPIC)" superClass="gnu.c.compiler.option.misc.pic" value="true" valueType="boolean"/>
+                                <option id="gnu.c.compiler.option.misc.pic.947765470" name="Position Independent Code (-fPIC)" superClass="gnu.c.compiler.option.misc.pic" useByScannerDiscovery="false" value="true" valueType="boolean"/>
                                 								
                                 <inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.937758869" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
                                 							
@@ -239,7 +241,7 @@
                             							
                             <tool id="cdt.managedbuild.tool.gnu.c.linker.base.695199082" name="GCC C Linker" superClass="cdt.managedbuild.tool.gnu.c.linker.base">
                                 								
-                                <option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="gnu.c.link.option.libs.1435702158" name="Libraries (-l)" superClass="gnu.c.link.option.libs" valueType="libs">
+                                <option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="gnu.c.link.option.libs.1435702158" name="Libraries (-l)" superClass="gnu.c.link.option.libs" useByScannerDiscovery="false" valueType="libs">
                                     									
                                     <listOptionValue builtIn="false" value="pthread"/>
                                     									
@@ -253,7 +255,7 @@
                                     								
                                 </option>
                                 								
-                                <option id="gnu.c.link.option.shared.150339179" name="Shared (-shared)" superClass="gnu.c.link.option.shared" value="true" valueType="boolean"/>
+                                <option id="gnu.c.link.option.shared.150339179" name="Shared (-shared)" superClass="gnu.c.link.option.shared" useByScannerDiscovery="false" value="true" valueType="boolean"/>
                                 								
                                 <inputType id="cdt.managedbuild.tool.gnu.c.linker.input.528186688" superClass="cdt.managedbuild.tool.gnu.c.linker.input">
                                     									
@@ -541,9 +543,9 @@
                             							
                             <tool id="cdt.managedbuild.tool.gnu.cross.cpp.compiler.87704009" name="Cross G++ Compiler" superClass="cdt.managedbuild.tool.gnu.cross.cpp.compiler">
                                 								
-                                <option id="gnu.cpp.compiler.option.optimization.level.1224663064" name="Optimization Level" superClass="gnu.cpp.compiler.option.optimization.level" value="gnu.cpp.compiler.optimization.level.most" valueType="enumerated"/>
+                                <option id="gnu.cpp.compiler.option.optimization.level.1224663064" name="Optimization Level" superClass="gnu.cpp.compiler.option.optimization.level" useByScannerDiscovery="false" value="gnu.cpp.compiler.optimization.level.most" valueType="enumerated"/>
                                 								
-                                <option id="gnu.cpp.compiler.option.debugging.level.558032012" name="Debug Level" superClass="gnu.cpp.compiler.option.debugging.level" value="gnu.cpp.compiler.debugging.level.none" valueType="enumerated"/>
+                                <option id="gnu.cpp.compiler.option.debugging.level.558032012" name="Debug Level" superClass="gnu.cpp.compiler.option.debugging.level" useByScannerDiscovery="false" value="gnu.cpp.compiler.debugging.level.none" valueType="enumerated"/>
                                 								
                                 <inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.1919292083" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
                                 							

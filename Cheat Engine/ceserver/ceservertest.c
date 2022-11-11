@@ -362,6 +362,32 @@ int cenet_loadExtension(int fd, int pHandle)
 } while (0)
 
 
+uint64_t cenet_VirtualAllocEx(int fd, int pHandle, void *addr, size_t length, int windowsprotection)
+{
+#pragma pack(1)
+    struct
+    {
+      char command;
+      HANDLE hProcess;
+      uint64_t preferedBase;
+      uint32_t size;
+      uint32_t windowsprotection;
+    } vae;
+#pragma pack()
+    uint64_t result;
+    vae.command=CMD_ALLOC;
+    vae.hProcess=pHandle;
+    vae.preferedBase=(uint64_t)addr;
+    vae.size=length;
+    vae.windowsprotection=windowsprotection;
+
+    sendall(fd, &vae, sizeof(vae),0);
+
+    recvall(fd, &result, sizeof(result),0);
+
+    return result;
+}
+
 int cenet_VirtualQueryExFull(int fd, int pHandle, DWORD flags)
 {
 #pragma pack(1)
@@ -378,6 +404,44 @@ int cenet_VirtualQueryExFull(int fd, int pHandle, DWORD flags)
     vqef.flags=flags;
 
     sendall(fd, &vqef, sizeof(vqef),0);
+}
+
+uint64_t cenet_loadModule(int fd, int pHandle, char *path)
+{
+#pragma pack(1)
+    struct
+    {
+      char command;
+      HANDLE hProcess;
+      uint32_t modulepathlength;
+    } lm;
+#pragma pack()
+    uint64_t result;
+
+
+    lm.command=CMD_LOADMODULE;
+    lm.hProcess=pHandle;
+    lm.modulepathlength=strlen(path);
+    sendall(fd, &lm, sizeof(lm), MSG_MORE);
+    sendall(fd,path,strlen(path),0);
+
+    recvall(fd,&result,sizeof(result),0);
+
+    return result;
+}
+
+uint64_t cenet_openNamedPipe(int fd, char *pipename, int timeout)
+{
+  HANDLE h;
+  debug_log("cenet_openNamedPipe(%d, \"%s\", %d)\n",fd,pipename, timeout);
+  char command=CMD_OPENNAMEDPIPE;
+  sendall(fd, &command, 1,MSG_MORE);
+  sendstring16(fd,pipename,MSG_MORE);
+  sendall(fd, &timeout, sizeof(timeout),0);
+
+  recvall(fd, &h, sizeof(h),0);
+
+  return h;
 }
 
 void *CESERVERTEST_DEBUGGERTHREAD(void *arg)
@@ -504,6 +568,7 @@ void *CESERVERTEST(int pid )
   int arch;
   int dest;
   int i;
+  uint64_t a;
 
   pthread_t pth;
   debug_log("CESERVERTEST: running (v2)\n");
@@ -517,83 +582,46 @@ void *CESERVERTEST(int pid )
 
   pHandle=cenet_OpenProcess(fd, pid);
 
-  debug_log("pHandle=%d\n", pHandle);
-  memset(&c, 0xce,sizeof(c));
-/*
-  debug_log("calling cenet_loadExtension\n");
-  i=cenet_loadExtension(fd, pHandle);
-  debug_log("cenet_loadExtension returned %d\n", i);
-  return NULL;*/
+  char modulepath[256];
+  strcpy(modulepath, CESERVERPATH);
+  strcat(modulepath, "libMonoDataCollector-linux-x86_64.so");
 
+  uint64_t r=cenet_loadModule(fd, pHandle, modulepath);
 
+  debug_log("r=%p\n", (void*)r);
 
-  debug_log("Getting thread context\n");
-  if (cenet_getThreadContext(fd, pHandle, pid, &c))
+  if (r)
   {
-    debug_log("Success:\n");
+    char monopipename[255];
+    HANDLE pipehandle;
 
-#ifdef __x86_64__
-    debug_log("RIP=%x\n", c.regs.rip);
-#endif
+    sprintf(monopipename, "cemonodc_pid%d",pid);
+    debug_log("monopipename=%s\n",monopipename);
 
-#ifdef __arm__
-    debug_log("PC=%x\n", c.regs.ARM_pc);
-    debug_log("ARM_cpsr=%x\n", c.regs.ARM_cpsr);
-#endif
-#ifdef __aarch64__
+    pipehandle=cenet_openNamedPipe(fd,monopipename, 5000);
 
-    if (c.type==2)
+    if (pipehandle)
     {
-      debug_log("Success: 32-bit result\n");
-      debug_log("PC=%x\n", c.regs32.uregs[15]);
-      debug_log("ARM_cpsr=%x\n", c.regs32.uregs[16]);
-      for (i=0; i<32; i++)
+      debug_log("Success: Opened pipehandle\n");
+
+      //issue some mdc commands
       {
-        debug_log("%.2d : ",i);
+        char command=47; //MONOCMD_GETMONODATACOLLECTORVERSION;
+        DWORD mdcversion;
+        WritePipe(pipehandle, &command,1, 5000);
 
-        float *f=(float *)&c.fp32.fpregs[i];
-        uint32_t *d=(uint32_t *)&c.fp32.fpregs[i];
+        ReadPipe(pipehandle, &mdcversion,4, 5000);
 
-        debug_log("%.8x - %.8x == %.2f %.2f\n",d[0],d[1],f[0],f[1]);
+        debug_log("This is mdc version %d\n", mdcversion);
+
       }
+
+      CloseHandle(pipehandle);
     }
-
-    if (c.type==3)
-    {
-
-      __uint128_t v;
-
-      debug_log("Success:\n");
-      debug_log("PC=%llx\n", c.regs.pc);
-      debug_log("fp.fpsr=%x\n", c.fp.fpsr);
-      debug_log("fp.fpcr=%x\n", c.fp.fpcr);
-      for (i=0; i<32; i++)
-      {
-        debug_log("%.2d : ",i);
-
-        float *f=(float *)&c.fp.vregs[i];
-
-        debug_log("%.2f %.2f %.2f %.2f\n",f[0],f[1],f[2],f[3]);
-      }
-
-      debug_log("---------------------------------");
-      for (i=0; i<32; i++)
-      {
-        debug_log("%.2d : ",i);
-
-
-        double *d=(double *)&c.fp.vregs[i];
-
-        debug_log("%.2d %.2d\n",d[0],d[1]);
-      }
-    }
-#endif
-
-
-    return 1;
   }
-  else
-    debug_log("Fail\n");
+
+
+
 
 
   return 0;

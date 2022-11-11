@@ -84,6 +84,12 @@ typedef struct
   int *threadList;
 } ThreadList, *PThreadList;
 
+typedef struct
+{
+  int socket;
+  char* pipename;
+} PipeData, *PPipeData;
+
 #pragma pack(1)
 
 typedef struct
@@ -179,7 +185,9 @@ typedef struct {
   struct debugEventQueueHead debugEventQueue;
 
   uintptr_t dlopen;
+  int dlopenalt; //when not 0 this means that there is a 3th param: caller
   uintptr_t dlopencaller;
+  uintptr_t mmap;
 } ProcessData, *PProcessData;
 
 
@@ -275,6 +283,16 @@ void AddDebugEventToQueue(PProcessData p, PDebugEvent devent);
 int RemoveThreadDebugEventFromQueue(PProcessData p, int tid);
 
 int ptrace_attach_andwait(int pid);
+
+int WakeDebuggerThread();
+int windowsProtectionToLinux(uint32_t windowsprotection);
+uint32_t linuxProtectionToWindows(int prot);
+
+HANDLE OpenPipe(char *pipename, int timeout);
+int ReadPipe(HANDLE ph, void* destination, int size, int timeout);
+int WritePipe(HANDLE ph, void* source, int size, int timeout);
+
+uint64_t getTickCount();
 
 void initAPI();
 

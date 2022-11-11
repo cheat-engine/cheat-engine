@@ -60,6 +60,18 @@
 #define CMD_GETOPTIONVALUE          38
 #define CMD_SETOPTIONVALUE          39
 
+//when injection won't work but ptrace does:
+#define CMD_PTRACE_MMAP             40
+
+//returns a fake filehandle to be used by CE (handled by the internal handle list)
+#define CMD_OPENNAMEDPIPE           41
+#define CMD_PIPEREAD                42
+#define CMD_PIPEWRITE               43
+
+#define CMD_GETCESERVERPATH         44
+#define CMD_ISANDROID               45
+
+
 #define CMD_AOBSCAN					200
 
 //just in case I ever get over 255 commands this value will be reserved for a secondary command list (FF 00 -  FF 01 - ... - FF FE - FF FF 01 - FF FF 02 - .....
@@ -193,6 +205,7 @@ typedef struct {
   HANDLE hProcess;
   uint64_t preferedBase;
   uint32_t size;
+  uint32_t windowsprotection;
 } CeAllocInput, *PCeAllocInput;
 
 
@@ -251,6 +264,19 @@ typedef struct {
   uint32_t windowsprotection;
 } CeChangeMemoryProtection, *PCeChangeMemoryProtection;
 
+typedef struct {
+  HANDLE hPipe;
+  uint32_t size;
+  uint32_t timeout;
+} CeReadPipe, *PCeReadPipe;
+
+typedef struct {
+  HANDLE hPipe;
+  uint32_t size;
+  uint32_t timeout;
+  //data[size]
+} CeWritePipe, *PCeWritePipe;
+
 
 typedef struct {
 	HANDLE hProcess;
@@ -260,6 +286,7 @@ typedef struct {
 	int protection;
 	int scansize;
 } CeAobScanInput, * PCeAobScanInput;
+
 #pragma pack()
 
 ssize_t sendall (int s, void *buf, size_t size, int flags);
@@ -273,6 +300,10 @@ int sendinteger(int s, int val, int flags);
 int DispatchCommand(int currentsocket, unsigned char command);
 int CheckForAndDispatchCommand(int currentsocket);
 
+int getCEServerPath(char *path, int maxlen);
+
+extern char CESERVERPATH[256];
+extern int ALLOC_WITHOUT_EXTENSION;
 extern int PORT;
 extern __thread char* threadname;
 

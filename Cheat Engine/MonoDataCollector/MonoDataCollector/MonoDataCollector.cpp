@@ -1,5 +1,7 @@
 #ifdef _WINDOWS
 #include "stdafx.h"
+#elif __linux__
+#include "linuxport.h"
 #else
 #include "macport.h"
 #endif
@@ -82,8 +84,8 @@ DWORD WINAPI DataCollectorEntry(LPVOID lpThreadParameter)
 
 	pw=new CPipeServer();
     
-   
-    
+
+
 	pw->Start();
 
 	DataCollectorThread=0;
@@ -100,27 +102,23 @@ DWORD WINAPI DataCollectorEntry(LPVOID lpThreadParameter)
 	return 0;
 }
 
-#ifndef _WINDOWS
+#ifdef __APPLE__
 #include <syslog.h>
 void MacPortEntryPoint(void *param)
 {
     
     pthread_setname_np("MonoDataCollector Thread");
-    //called by a thread
-    //openlog((char*)"Cheat Engine MDC", 0, LOG_USER);
-    //setlogmask(LOG_UPTO(LOG_DEBUG));
-    //syslog(LOG_NOTICE, (char*)"CELOGX:FUUUCK");
-    
-    //OutputDebugString((char*)"MonoDataCollector for Mac loaded");
-   
     DataCollectorEntry(param);
     
 }
 #endif
 
-#ifndef _WINDOWS
+#ifdef __linux__
+void LinuxPortEntryPoint(void *param)
+{
+    DataCollectorEntry(param);
+}
 #endif
-
 
 DWORD WINAPI SuicideCheck(LPVOID lpThreadParameter)
 {
