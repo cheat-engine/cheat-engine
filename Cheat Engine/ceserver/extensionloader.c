@@ -1008,16 +1008,16 @@ uint64_t allocWithoutExtension(HANDLE hProcess, void *addr, size_t length, int p
 
 #ifdef __i386__
     newstate.esp-=4+4*6;
-    if ((ptrace(PTRACE_POKEDATA, pid, newregs.esp+0, returnaddress)!=0) ||
-       (ptrace(PTRACE_POKEDATA, pid, newregs.esp+4, addr)!=0) ||
-       (ptrace(PTRACE_POKEDATA, pid, newregs.esp+8, length)!=0) ||
-       (ptrace(PTRACE_POKEDATA, pid, newregs.esp+12, prot)!=0) ||
-       (ptrace(PTRACE_POKEDATA, pid, newregs.esp+16, MAP_PRIVATE | MAP_ANONYMOUS)!=0) ||
-       (ptrace(PTRACE_POKEDATA, pid, newregs.esp+20, 0)!=0) ||
-       (ptrace(PTRACE_POKEDATA, pid, newregs.esp+24, 0)!=0))
+    if ((ptrace(PTRACE_POKEDATA, pid, newstate.esp+0, returnaddress)!=0) ||
+       (ptrace(PTRACE_POKEDATA, pid, newstate.esp+4, addr)!=0) ||
+       (ptrace(PTRACE_POKEDATA, pid, newstate.esp+8, length)!=0) ||
+       (ptrace(PTRACE_POKEDATA, pid, newstate.esp+12, prot)!=0) ||
+       (ptrace(PTRACE_POKEDATA, pid, newstate.esp+16, MAP_PRIVATE | MAP_ANONYMOUS)!=0) ||
+       (ptrace(PTRACE_POKEDATA, pid, newstate.esp+20, 0)!=0) ||
+       (ptrace(PTRACE_POKEDATA, pid, newstate.esp+24, 0)!=0))
     {
       debug_log("Failed to write all parameters\n");
-      resumeProcess(p);
+      resumeProcess(p, pid);
       return 0;
     }
 
@@ -1175,7 +1175,7 @@ uint64_t allocWithoutExtension(HANDLE hProcess, void *addr, size_t length, int p
     uint64_t result=0;
 
 #ifdef __arm__
-    result=newstate.r0;
+    result=newstate.ARM_r0;
 #endif
 
 #ifdef __aarch64__

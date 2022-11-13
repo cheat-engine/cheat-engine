@@ -48,7 +48,6 @@
 #include <signal.h>
 
 #ifdef __ANDROID__
-#if defined (__arm__) || defined(__aarch64__)
 
 #ifndef SUN_LEN //missing in android (copy from linux sys/un.h)
 # include <string.h>    /* For prototype of `strlen'.  */
@@ -57,7 +56,7 @@
 # define SUN_LEN(ptr) ((size_t) (((struct sockaddr_un *) 0)->sun_path)        \
           + strlen ((ptr)->sun_path))
 #endif
-
+#if defined (__arm__) || defined(__aarch64__)
 #include <arm-linux-androideabi/asm/ptrace.h>
 #endif
 #endif
