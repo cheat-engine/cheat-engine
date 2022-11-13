@@ -101,6 +101,7 @@ begin
 
   Memo1.Constraints.MinHeight:=canvas.TextHeight('X')*3;
   constraints.MinWidth:=max(button1.Width+button2.width+panel2.width+32, widthneeded+GetSystemMetrics(SM_CXSIZE)*2+GetSystemMetrics(SM_CXMENUSIZE));
+  constraints.MinHeight:=lblPrompt.height+panel1.height+Memo1.Constraints.MinHeight;
 
   {$ifdef windows}
   if WindowsVersion>=wvVista then

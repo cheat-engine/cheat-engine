@@ -696,6 +696,9 @@ begin
   //no software breakpoint for now
   fDebuggerCapabilities:=[dbcHardwareBreakpoint];
 
+  if processhandler.SystemArchitecture=archX86 then
+    fDebuggerCapabilities:=fDebuggerCapabilities+[dbcCanUseInt1BasedBreakpoints];
+
 end;
 
 
