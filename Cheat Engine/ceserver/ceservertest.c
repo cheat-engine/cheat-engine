@@ -645,7 +645,6 @@ void *CESERVERTEST(int pid )
  // CreateToolhelp32Snapshot(TH32CS_SNAPMODULE, pid);
 
 
-
   //launch the debuggerthread
  // pthread_create(&pth, NULL, CESERVERTEST_DEBUGGERTHREAD, NULL);
 

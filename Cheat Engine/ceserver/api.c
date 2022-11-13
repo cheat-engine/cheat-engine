@@ -49,6 +49,15 @@
 
 #ifdef __ANDROID__
 #if defined (__arm__) || defined(__aarch64__)
+
+#ifndef SUN_LEN //missing in android (copy from linux sys/un.h)
+# include <string.h>    /* For prototype of `strlen'.  */
+
+/* Evaluate to actual length of the `sockaddr_un' structure.  */
+# define SUN_LEN(ptr) ((size_t) (((struct sockaddr_un *) 0)->sun_path)        \
+          + strlen ((ptr)->sun_path))
+#endif
+
 #include <arm-linux-androideabi/asm/ptrace.h>
 #endif
 #endif
@@ -223,7 +232,7 @@ int ptrace_attach_andwait(int pid)
 
         //not a sigstop
         debug_log("ptrace_attach_andwait:Received stop with signal %d instead of %d\n", WSTOPSIG(status), SIGSTOP);
-        safe_ptrace(PTRACE_CONT, pid, 0, WSTOPSIG(status));
+        safe_ptrace(PTRACE_CONT, pid, (void*)0, (void*)(uint64_t)WSTOPSIG(status));
         continue;
       }
 
@@ -1803,7 +1812,7 @@ int ResumeThread(HANDLE hProcess, int tid)
  * Decrease suspendcount. If 0, resume the thread by adding the stored debug event back to the queue
  */
 {
-  int result;
+  int result=-1;
 
   debug_log("ResumeThread(%d)\n", tid);
   if (GetHandleType(hProcess) == htProcesHandle )
@@ -1887,10 +1896,7 @@ int ResumeThread(HANDLE hProcess, int tid)
     }
   }
   else
-  {
     debug_log("invalid handle\n");
-    result=-1;
-  }
 
   return result;
 }
@@ -2200,9 +2206,6 @@ int WaitForDebugEvent(HANDLE hProcess, PDebugEvent devent, int timeout)
     if (p->debuggedThreadEvent.threadid==0)
     {
       int r=0;
-
-      int status;
-      int tid;
       struct DebugEventQueueElement *de=NULL;
 
       //check the queue (first one in the list)
@@ -2490,13 +2493,13 @@ int ContinueFromDebugEvent(HANDLE hProcess, int tid, int ignoresignal)
         if (result!=0)
         {
           debug_log("PTRACE_SINGLESTEP failed (%d). Shit happens\n", errno);
-          result=safe_ptrace(PTRACE_CONT, tid, 0,signal);
+          result=safe_ptrace(PTRACE_CONT, tid, 0,(void*)(size_t)signal);
         }
 
       }
       else
       {
-        result=safe_ptrace(PTRACE_CONT, tid, 0,signal);
+        result=safe_ptrace(PTRACE_CONT, tid, 0,(void*)(size_t)signal);
       }
 
 
@@ -2542,7 +2545,6 @@ int StopDebug(HANDLE hProcess)
     {
       for (i=0; i<p->threadlistpos;i++)
       {
-        int r;
         int tid;
         int status;
 
@@ -2570,7 +2572,7 @@ int StopDebug(HANDLE hProcess)
             {
               debug_log("It stopped but with a wrong signal (%d)\n", WSTOPSIG(status));
 
-              safe_ptrace(PTRACE_CONT, tid, 0, WSTOPSIG(status));
+              safe_ptrace(PTRACE_CONT, tid, 0, (void*)(size_t)WSTOPSIG(status));
             }
           }
           else
@@ -3162,7 +3164,6 @@ int ReadProcessMemoryDebug(HANDLE hProcess, PProcessData p, void *lpAddress, voi
   else
   {
 
-    int tid=p->pid; //p->threadlist[p->threadlistpos-1];
    // debug_log("ReadProcessMemoryDebug from outside the debuggerthread. Waking debuggerthread\n");
 
     //setup a rpm command
@@ -3905,9 +3906,8 @@ HANDLE OpenProcess(DWORD pid)
   int handle;
   sprintf(processpath, "/proc/%d/", pid);
 
-
   //check if this process has already been opened
-  handle=SearchHandleList(htProcesHandle, SearchHandleListProcessCallback, &pid);
+  handle=SearchHandleList(htProcesHandle, (HANDLESEARCHCALLBACK)SearchHandleListProcessCallback, &pid);
   if (handle)
   {
    // debug_log("Already opened. Returning same handle\n");
@@ -4293,10 +4293,8 @@ HANDLE CreateToolhelp32Snapshot(DWORD dwFlags, DWORD th32ProcessID)
 
       while (fgets(s, 511, f)) //read a line into s
       {
-
-        char *currentModule;
         unsigned long long start, stop;
-        char memoryrange[64],protectionstring[32],modulepath[511];
+        char protectionstring[32],modulepath[511];
         unsigned char elfident[8];
 
         modulepath[0]='\0';

@@ -985,7 +985,7 @@ uint64_t allocWithoutExtension(HANDLE hProcess, void *addr, size_t length, int p
     {
       newstate.regs[30]=returnaddress; //LR
       newstate.pc=p->mmap;
-      newstate.regs[0]=addr;
+      newstate.regs[0]=(uint64_t)addr;
       newstate.regs[1]=length;
       newstate.regs[2]=prot;
       newstate.regs[3]=MAP_PRIVATE | MAP_ANONYMOUS;
@@ -997,12 +997,12 @@ uint64_t allocWithoutExtension(HANDLE hProcess, void *addr, size_t length, int p
       newstate32.ARM_sp-=8;
       newstate32.ARM_lr=returnaddress;
       newstate32.ARM_pc=p->mmap;
-      newstate32.ARM_r0=addr;
+      newstate32.ARM_r0=(uint64_t)addr;
       newstate32.ARM_r1=length;
       newstate32.ARM_r2=prot;
       newstate32.ARM_r3=MAP_PRIVATE | MAP_ANONYMOUS;
-      ptrace(PTRACE_POKEDATA, pid, newstate.ARM_sp,0);
-      ptrace(PTRACE_POKEDATA, pid, newstate.ARM_sp+4,0);
+      ptrace(PTRACE_POKEDATA, pid, newstate32.ARM_sp,0);
+      ptrace(PTRACE_POKEDATA, pid, newstate32.ARM_sp+4,0);
     }
 #endif
 
@@ -1053,7 +1053,7 @@ uint64_t allocWithoutExtension(HANDLE hProcess, void *addr, size_t length, int p
       if (setProcessState32(pid,&newstate32))
       {
         debug_log("Failed to set 32-bit context\n");
-        resumeProcess(p);
+        resumeProcess(p, pid);
         return 0;
       }
     }

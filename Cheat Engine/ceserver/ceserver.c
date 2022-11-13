@@ -567,12 +567,6 @@ case CMD_SETTHREADCONTEXT:
           if (r)
           {
             PThreadList tl=(PThreadList)GetPointerFromHandle(r);
-
-            //debug_log("threadCount=%d\n", tl->threadCount);
-            int i;
-            //for (i=0; i<tl->threadCount; i++)
-            //  debug_log("%d=%d\n", i, tl->threadList[i]);
-
             sendall(currentsocket, &tl->threadCount, sizeof(int), MSG_MORE);
             sendall(currentsocket, &tl->threadList[0], tl->threadCount*sizeof(int),0);
 
@@ -1147,7 +1141,7 @@ case CMD_SETTHREADCONTEXT:
         {
           debug_log("ALLOC_WITHOUT_EXTENSION==1\n");
           fflush(stdout);
-          address=allocWithoutExtension(c.hProcess, c.preferedBase, c.size, windowsProtectionToLinux(c.windowsprotection));
+          address=allocWithoutExtension(c.hProcess, (void*)c.preferedBase, c.size, windowsProtectionToLinux(c.windowsprotection));
         }
         else
         {
@@ -1801,10 +1795,11 @@ int main(int argc, char *argv[])
     #ifndef SHARED_LIBRARY
     sigaction(SIGPIPE, &(struct sigaction){SIG_IGN}, NULL);
 
+
     if (TEST_MODE == 1)
     {
       debug_log("TESTMODE\n");
-      pthread_create(&pth, NULL, (void *)CESERVERTEST, TEST_PID);     
+      pthread_create(&pth, NULL, (void *)CESERVERTEST, (void*)(size_t)TEST_PID);
     }
 #ifdef traptest
 
