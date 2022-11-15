@@ -4923,6 +4923,7 @@ var mi: tmoduleinfo;
     mr: TMemoryrecord;
     contexthandler: TContextInfo;
     reg: PContextElement_register;
+    e: boolean;
 
     function ApplyTokenType(value: qword): qword;
     begin
@@ -5390,16 +5391,23 @@ begin
                 if lua_isstring(LuaVM, j+1) then
                 begin
                   s:=lua_tostring(LuaVM, j+1);
+
                   if pos('$',s)=0 then //prevent inf lua loops
                   begin
-                    try
-                      tokens[i]:=inttohex(ApplyTokenType(getAddressFromName(s)),8);
-                    except
-                      //fail, try one more time with quotes
-                      tokens[i]:=inttohex(ApplyTokenType(getAddressFromName('"'+s+'"')),8);
+                    e:=false;
+                    tokens[i]:=inttohex(ApplyTokenType(getAddressFromName(s,true,e)),8);
+                    if e then //fail, try one more time with quotes
+                      tokens[i]:=inttohex(ApplyTokenType(getAddressFromName('"'+s+'"',true,e)),8);
+
+                    if e then
+                    begin
+                      haserror:=true;
+                      exit;
                     end;
+
                     continue;
                   end;
+
                 end;
               finally
                 lua_settop(luavm,j);
