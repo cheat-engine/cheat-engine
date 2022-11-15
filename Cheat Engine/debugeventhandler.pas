@@ -903,7 +903,7 @@ begin
       co_stepinto, co_stepover:
       begin
         //single step
-        if (CurrentDebuggerInterface is TNetworkDebuggerInterface) then
+        if (CurrentDebuggerInterface is TNetworkDebuggerInterface) and (not (dbcCanUseInt1BasedBreakpoints in CurrentDebuggerInterface.DebuggerCapabilities)) then
           TNetworkDebuggerInterface(CurrentDebuggerInterface).SingleStepNextContinue:=true;
 
         singlestepping:=true;
@@ -950,6 +950,10 @@ begin
 
             if CurrentDebuggerInterface is TDBVMDebugInterface then
               singlestepping:=false; //dbvm checks this var if it should be a single step or not
+
+            if (CurrentDebuggerInterface is TNetworkDebuggerInterface) and (ProcessHandler.SystemArchitecture=archX86) then
+              singlestepping:=false;
+
           end
           else  //if not, single step
           begin
@@ -2049,7 +2053,7 @@ begin
       if (CurrentDebuggerInterface is TNetworkDebuggerInterface) then
       begin
         //the address that caused the break is stored in ExceptionRecord.exceptionaddress
-        if singlestepping or (uint_ptr(debugEvent.Exception.ExceptionRecord.ExceptionAddress)=1) then
+        if (singlestepping or (uint_ptr(debugEvent.Exception.ExceptionRecord.ExceptionAddress)=1)) then
           Result := SingleStep(dwContinueStatus) //only x86 returns this (on a rare occasion)
         else
           DispatchBreakpoint(uint_ptr(debugEvent.Exception.ExceptionRecord.ExceptionAddress), -1, dwContinueStatus);

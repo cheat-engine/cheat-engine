@@ -23,6 +23,7 @@
 #include <dlfcn.h>
 
 #include <sys/mman.h>
+#include <libgen.h>
 
 
 
@@ -42,18 +43,35 @@ pthread_t identifierthread;
 volatile int done;
 int PORT;
 
+int ALLOC_WITHOUT_EXTENSION=0; //in case extension loading fails
+
 __thread int isDebuggerThread; //0 when not, else it contains the processhandle
 __thread int debugfd;
 
 __thread char* threadname;
 
-#define CESERVERVERSION 4
-
-
-
+#define CESERVERVERSION 5
 
 
 char versionstring[]="CHEATENGINE Network 2.2";
+char CESERVERPATH[256];
+
+void initCESERVERPATH()
+{
+  int l;
+  CESERVERPATH[0]=0;
+
+  l=readlink("/proc/self/exe", CESERVERPATH, 256);
+  if (l!=-1)
+  {
+    dirname(CESERVERPATH);
+    strcat(CESERVERPATH,"/");
+  }
+  else
+  {
+     strcpy(CESERVERPATH,"./");
+  }
+}
 
 ssize_t recvall (int s, void *buf, size_t size, int flags)
 {
@@ -122,7 +140,7 @@ ssize_t sendall (int s, void *buf, size_t size, int flags)
         i=0;
       else
       {
-        debug_log("Error during sendall: %d. errno=%d\n",(int)i, errno);
+        debug_log("Error during sendall: %d. error=%s\n",(int)i, strerror(errno));
         return i;
       }
     }
@@ -169,7 +187,7 @@ char* receivestring16(int s)
   {
     str=malloc(l+1);
     recvall(s, str, l,0);
-    str[l+1]=0;
+    str[l]=0;
     return str;
   }
   else
@@ -536,7 +554,7 @@ case CMD_SETTHREADCONTEXT:
     case CMD_CREATETOOLHELP32SNAPSHOTEX:
     {
       CeCreateToolhelp32Snapshot params;
-      debug_log("CMD_CREATETOOLHELP32SNAPSHOTEX\n");
+      //debug_log("CMD_CREATETOOLHELP32SNAPSHOTEX\n");
 
       if (recvall(currentsocket, &params, sizeof(CeCreateToolhelp32Snapshot), MSG_WAITALL) > 0)
       {
@@ -549,12 +567,6 @@ case CMD_SETTHREADCONTEXT:
           if (r)
           {
             PThreadList tl=(PThreadList)GetPointerFromHandle(r);
-
-            debug_log("threadCount=%d\n", tl->threadCount);
-            int i;
-            for (i=0; i<tl->threadCount; i++)
-              debug_log("%d=%d\n", i, tl->threadList[i]);
-
             sendall(currentsocket, &tl->threadCount, sizeof(int), MSG_MORE);
             sendall(currentsocket, &tl->threadList[0], tl->threadCount*sizeof(int),0);
 
@@ -574,7 +586,7 @@ case CMD_SETTHREADCONTEXT:
           char *outputstream;
           int pos=0;
 
-          debug_log("CMD_CREATETOOLHELP32SNAPSHOTEX with TH32CS_SNAPMODULE\n");
+         // debug_log("CMD_CREATETOOLHELP32SNAPSHOTEX with TH32CS_SNAPMODULE\n");
 
           outputstream=malloc(65536);
           memset(outputstream,0,65536);
@@ -588,7 +600,7 @@ case CMD_SETTHREADCONTEXT:
             if ((pos+sizeof(CeModuleEntry)+namelen) > 65536)
             {
               //flush the stream
-              debug_log("CMD_CREATETOOLHELP32SNAPSHOTEX: ModuleList flush in loop\n");
+             // debug_log("CMD_CREATETOOLHELP32SNAPSHOTEX: ModuleList flush in loop\n");
               sendall(currentsocket, outputstream, pos, 0);
               pos=0;
             }
@@ -610,12 +622,12 @@ case CMD_SETTHREADCONTEXT:
 
           if (pos) //flush the stream
           {
-            debug_log("CMD_CREATETOOLHELP32SNAPSHOTEX: ModuleList flush after loop\n");
+           // debug_log("CMD_CREATETOOLHELP32SNAPSHOTEX: ModuleList flush after loop\n");
             sendall(currentsocket, outputstream, pos, 0);
           }
 
           //send the end of list module
-          debug_log("CMD_CREATETOOLHELP32SNAPSHOTEX: ModuleList end of list\n");
+         // debug_log("CMD_CREATETOOLHELP32SNAPSHOTEX: ModuleList end of list\n");
 
           CeModuleEntry eol;
           eol.result=0;
@@ -1119,11 +1131,25 @@ case CMD_SETTHREADCONTEXT:
       debug_log("CESERVER: CMD_ALLOC\n");
       if (recvall(currentsocket, &c, sizeof(c),0)>0)
       {
+        uint64_t address;
         debug_log("c.hProcess=%d\n", c.hProcess);
         debug_log("c.preferedBase=%llx\n", c.preferedBase);
         debug_log("c.size=%d\n", c.size);
+        debug_log("c.windowsprotection=%x\n", c.windowsprotection);
 
-        uint64_t address=ext_alloc(c.hProcess, c.preferedBase, c.size);
+        if (ALLOC_WITHOUT_EXTENSION)
+        {
+          debug_log("ALLOC_WITHOUT_EXTENSION==1\n");
+          fflush(stdout);
+          address=allocWithoutExtension(c.hProcess, (void*)c.preferedBase, c.size, windowsProtectionToLinux(c.windowsprotection));
+        }
+        else
+        {
+          debug_log("ALLOC_WITHOUT_EXTENSION==0\n");
+          fflush(stdout);
+
+          address=ext_alloc(c.hProcess, c.preferedBase, c.size, windowsProtectionToLinux(c.windowsprotection));
+        }
 
         sendall(currentsocket, &address, sizeof(address),0);
       }
@@ -1184,10 +1210,12 @@ case CMD_SETTHREADCONTEXT:
 
         if (recvall(currentsocket, &modulepath, c.modulepathlength,0)>0)
         {
-          uint32_t result;
+          uint64_t result;
           modulepath[c.modulepathlength]=0;
 
           result=ext_loadModule(c.hProcess, modulepath);
+
+
 
           sendall(currentsocket, &result, sizeof(result),0);
         }
@@ -1227,17 +1255,8 @@ case CMD_SETTHREADCONTEXT:
 
 
           //convert the given protection to a linux protection
-          newprotection=0;
-          switch (c.windowsprotection)
-          {
-            case PAGE_EXECUTE_READWRITE: newprotection=PROT_WRITE | PROT_READ | PROT_EXEC; break;
-            case PAGE_EXECUTE_READ: newprotection=PROT_READ | PROT_EXEC; break;
-            case PAGE_EXECUTE: newprotection=PROT_EXEC; break;
-            case PAGE_READWRITE: newprotection=PROT_READ | PROT_WRITE; break;
-            case PAGE_READONLY: newprotection=PROT_READ; break;
-            default:
-              newprotection=0;
-          }
+          newprotection=windowsProtectionToLinux(c.windowsprotection);
+
 
           r=ext_changememoryprotection(c.hProcess, c.address, c.size, newprotection);
         }
@@ -1268,6 +1287,96 @@ case CMD_SETTHREADCONTEXT:
       handleSetOption(currentsocket);
       break;
     }
+
+    case CMD_OPENNAMEDPIPE:
+    {
+      HANDLE pipehandle=0;
+      uint32_t timeout;
+      debug_log("CMD_OPENNAMEDPIPE\n");
+      char *pipename=receivestring16(currentsocket);
+      recvall(currentsocket, &timeout, sizeof(timeout),0);
+      if (pipename)
+      {
+        debug_log("pipename=%s\n", pipename);
+        pipehandle=OpenPipe(pipename, timeout);
+        free(pipename);
+      }
+
+      debug_log("sending pipehandle %d to caller\n",pipehandle);
+
+      sendall(currentsocket, &pipehandle, sizeof(HANDLE),0 );
+      break;
+    }
+
+    case CMD_PIPEREAD:
+    {
+      CeReadPipe c;
+      int32_t count=0;
+      recvall(currentsocket, &c, sizeof(c),0);
+
+      debug_log("CMD_PIPEREAD: %d bytes\n",c.size);
+      if (c.size)
+      {
+        void *buf=malloc(c.size);
+        count=ReadPipe(c.hPipe, buf, c.size, c.timeout);
+
+        sendall(currentsocket, &count, sizeof(count), count>0?MSG_MORE:0); //can be negative
+        if (count>0)
+          sendall(currentsocket, buf, count,0);
+      }
+      else
+        sendall(currentsocket, &count, sizeof(count), 0);
+
+
+      break;
+    }
+
+    case CMD_PIPEWRITE:
+    {
+      CeWritePipe c;
+      uint32_t count=0;
+      recvall(currentsocket, &c, sizeof(c),0);
+
+      debug_log("CMD_PIPEWRITE:hPipe=%d count=%d (ignored timeout:%d) \n",c.hPipe, c.size, c.timeout);
+
+      if (c.size)
+      {
+        void *buf=malloc(c.size);
+        if (buf)
+        {
+          count=recvall(currentsocket, buf, c.size,0);
+          if (count>0)
+            count=WritePipe(c.hPipe,buf, count, c.timeout);
+
+          free(buf);
+        }
+        else
+          debug_log("failed to allocate %d bytes\n", c.size);
+      }
+
+      sendall(currentsocket, &count, sizeof(count), 0);
+      break;
+    }
+
+    case CMD_GETCESERVERPATH:
+    {
+      sendstring16(currentsocket, CESERVERPATH, 0);
+      break;
+    }
+
+    case CMD_ISANDROID:
+    {
+      unsigned char r;
+#ifdef __ANDROID__
+      r=1;
+#else
+      r=0;
+#endif
+      sendall(currentsocket, &r,sizeof(r),0);
+
+      break;
+    }
+
 
 	case CMD_AOBSCAN:
 	{
@@ -1631,27 +1740,10 @@ int main(int argc, char *argv[])
   debug_log("sizeof(off64_t)=%d\n",sizeof(off64_t));
   debug_log("sizeof(uintptr_t)=%d\n",sizeof(uintptr_t));
   debug_log("sizeof(long)=%d\n",sizeof(long));
-/*
-  debug_log("TARM64CONTEXT:\n");
 
-  debug_log("structsize at %p\n", &((PCONTEXT)0)->structsize);
-  debug_log("structtype at %p\n", &((PCONTEXT)0)->type);
+  initCESERVERPATH();
+  debug_log("CESERVERPATH=%s\n", CESERVERPATH);
 
-  debug_log("regs at %p\n", &((PCONTEXT)0)->regs);
-  debug_log("SP at %p\n", &((PCONTEXT)0)->regs.sp);
-  debug_log("PC at %p\n", &((PCONTEXT)0)->regs.pc);
-  debug_log("PSTATE at %p\n", &((PCONTEXT)0)->regs.pstate);
-  debug_log("fp at %p\n", &((PCONTEXT)0)->fp);
-  debug_log("vregs[0] at %p\n", &((PCONTEXT)0)->fp.vregs[0]);
-  debug_log("vregs[1] at %p\n", &((PCONTEXT)0)->fp.vregs[1]);
-  debug_log("vregs[2] at %p\n", &((PCONTEXT)0)->fp.vregs[2]);
-  debug_log("vregs[30] at %p\n", &((PCONTEXT)0)->fp.vregs[30]);
-  debug_log("vregs[31] at %p\n", &((PCONTEXT)0)->fp.vregs[31]);
-  debug_log("fpsr at %p\n", &((PCONTEXT)0)->fp.fpsr);
-  debug_log("fpcr at %p\n", &((PCONTEXT)0)->fp.fpcr);
-  debug_log("reserved[0] at %p\n", &((PCONTEXT)0)->fp.__reserved[0]);
-  debug_log("reserved[1] at %p\n", &((PCONTEXT)0)->fp.__reserved[1]);
-*/
   debug_log("MEMORY_SEARCH_OPTION=%d\n", MEMORY_SEARCH_OPTION);
   debug_log("ATTACH_TO_ACCESS_MEMORY=%d\n", ATTACH_TO_ACCESS_MEMORY);
   debug_log("ATTACH_TO_WRITE_MEMORY=%d\n", ATTACH_TO_WRITE_MEMORY);
@@ -1701,10 +1793,13 @@ int main(int argc, char *argv[])
     memset(&addr_client, 0, sizeof(addr_client));
 
     #ifndef SHARED_LIBRARY
+    sigaction(SIGPIPE, &(struct sigaction){SIG_IGN}, NULL);
+
+
     if (TEST_MODE == 1)
     {
       debug_log("TESTMODE\n");
-      pthread_create(&pth, NULL, (void *)CESERVERTEST, TEST_PID);     
+      pthread_create(&pth, NULL, (void *)CESERVERTEST, (void*)(size_t)TEST_PID);
     }
 #ifdef traptest
 

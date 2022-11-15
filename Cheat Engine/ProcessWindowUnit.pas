@@ -703,6 +703,8 @@ begin
       TabHeader.Tabindex:=1;
       refreshlist;
     end;
+
+    processlist.SetFocus;
   end;
 end;
 

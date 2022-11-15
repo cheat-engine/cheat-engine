@@ -378,7 +378,6 @@ begin
   newkernelhandler.GetRegionInfo:=@NetworkGetRegionInfo;
 
 
-
   newkernelhandler.VirtualQueryEx_StartCache:=@NetworkVirtualQueryEx_StartCache;
   newkernelhandler.VirtualQueryEx_EndCache:=@NetworkVirtualQueryEx_EndCache;
 end;

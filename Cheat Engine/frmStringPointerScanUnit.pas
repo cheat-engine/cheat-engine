@@ -16,9 +16,10 @@ uses
   {$ifdef windows}
   windows,
   {$endif}
-  Classes, SysUtils, FileUtil, LResources, Forms, Controls, Graphics, Dialogs, StdCtrls, ExtCtrls, ComCtrls,
-  CEFuncProc, NewKernelHandler, frmStringMapUnit, MemFuncs, AvgLvlTree, Menus,
-  bigmemallochandler, math, maps, oldRegExpr, symbolhandler, commonTypeDefs, lmessages, LCLIntf, betterControls;
+  Classes, SysUtils, FileUtil, LResources, Forms, Controls, Graphics, Dialogs,
+  StdCtrls, ExtCtrls, ComCtrls, CEFuncProc, NewKernelHandler, frmStringMapUnit,
+  MemFuncs, AvgLvlTree, Menus, bigmemallochandler, math, maps, oldRegExpr,
+  symbolhandler, commonTypeDefs, lmessages, LCLIntf, betterControls, DPIHelper;
 
 const
   wm_sps_done=wm_user+1;
@@ -297,6 +298,8 @@ type
     procedure edtExtraChange(Sender: TObject);
     procedure FindDialog1Find(Sender: TObject);
     procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
+    procedure FormCreate(Sender: TObject);
+    procedure FormDestroy(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure ListView1CustomDrawItem(Sender: TCustomListView; Item: TListItem; State: TCustomDrawState; var DefaultDraw: Boolean);
 
@@ -314,6 +317,7 @@ type
     procedure statusupdaterTimer(Sender: TObject);
   private
     { private declarations }
+    loadedFormPosition: boolean;
     mappedRegions: TAvgLvlTree; //holds the map of the regions that have been mapped
 
     pointerlist: TAvgLvlTree; //holds the pointers in the app of the mapped regions
@@ -329,7 +333,7 @@ type
     shadowsize, shadowsize2: integer;
     hasAddress2: boolean;
 
-
+    scanning: boolean;
 
     function mapCompare(Tree: TAvgLvlTree; Data1, Data2: Pointer): integer;
     function pointerCompare(Tree: TAvgLvlTree; Data1, Data2: Pointer): integer;
@@ -1927,6 +1931,8 @@ end;
 
 procedure TfrmStringPointerScan.scanDone;
 begin
+  scanning:=false;
+
   if scanner<>nil then
     lblInfo.caption:=rsSPSUFound+inttostr(scanner.count);
 
@@ -2047,7 +2053,7 @@ var baseaddress: ptruint;
 begin
 
   vartype:=vtPointer;
-  if (scanner=nil) and (rescanner=nil) then
+  if (scanner=nil) and (rescanner=nil) and (scanning=false) then
   begin
     baseaddress:=symhandler.getAddressFromName(edtBase.text);
     baseaddress2:=0;
@@ -2138,63 +2144,85 @@ begin
       if rbStringscan.checked then
           vartype:=vtString;
 
-      if btnScan.tag=0 then //first scan
-      begin
-        mappedRegions:=TAvgLvlTree.CreateObjectCompare(mapCompare);
-        pointerlist:=TAvgLvlTree.CreateObjectCompare(pointerCompare);
-
-
-        bma:=TBigMemoryAllocHandler.create;
-
-        if rbStringscan.checked then
-        begin
-          vartype:=vtString;
-
-          if (frmStringMap<>nil) and (cbReuseStringmap.checked=false) then
-            freeandnil(frmStringMap);
-
-          if frmStringMap=nil then
-          begin
-            frmStringMap:=tfrmStringMap.Create(application);
-
-            //fill the stringmap
-            frmstringmap.cbRegExp.checked:=cbRegExp.checked;
-            frmstringmap.cbCaseSensitive.checked:=cbCaseSensitive.checked;
-            frmstringmap.cbMustBeStart.checked:=cbMustBeStart.checked;
-            frmstringmap.edtRegExp.text:=edtRegExp.text;
-
-            frmstringmap.btnScan.click;
-            lblInfo.caption:=rsGeneratingStringmap;
-            lblInfo.Repaint;
-            frmstringmap.scanner.WaitFor;
-
-          end;
-
-        end;
-        lblInfo.caption:=rsGeneratedScanning;
-
-        //everything has been configured
-
-
-
-        scanner:=Tscanner.create(rbDatascan.checked, cbPointerInRange.checked, alignsize, pointerstart, pointerstop, baseAddress, shadow, shadowsize, baseaddress2, shadow2, shadowsize2, diffkind, vartype, cbMapPointerValues.checked, structsize, maxlevel, mappedRegions, pointerlist, bma, savedialog1.filename, self);
-
-      end
-      else
-      begin
-        //next scan aka Rescan
-        listview1.items.count:=0;
-        rescanner:=trescan.create(false, address, address2, cbpointerinrange.checked, pointerstart, pointerstop, rbStringscan.checked, cbCaseSensitive.checked, cbMustBeStart.checked, edtRegExp.text, diffkind, vartype, oldpointerfile, savedialog1.filename , self);
-      end;
       btnScan.caption:=rsStop;
       btnScan.enabled:=true;
       progressbar1.visible:=true;
       statusupdater.enabled:=true;
+      scanning:=true;
+
+      try
+        if btnScan.tag=0 then //first scan
+        begin
+
+
+          mappedRegions:=TAvgLvlTree.CreateObjectCompare(mapCompare);
+          pointerlist:=TAvgLvlTree.CreateObjectCompare(pointerCompare);
+
+
+          bma:=TBigMemoryAllocHandler.create;
+
+          if rbStringscan.checked then
+          begin
+            vartype:=vtString;
+
+            if (frmStringMap<>nil) and (cbReuseStringmap.checked=false) then
+              freeandnil(frmStringMap);
+
+            if frmStringMap=nil then
+            begin
+              frmStringMap:=tfrmStringMap.Create(application);
+
+              //fill the stringmap
+              frmstringmap.cbRegExp.checked:=cbRegExp.checked;
+              frmstringmap.cbCaseSensitive.checked:=cbCaseSensitive.checked;
+              frmstringmap.cbMustBeStart.checked:=cbMustBeStart.checked;
+              frmstringmap.edtRegExp.text:=edtRegExp.text;
+
+              frmstringmap.btnScan.click;
+              lblInfo.caption:=rsGeneratingStringmap;
+              lblInfo.Repaint;
+            end;
+
+            while not frmstringmap.scanner.Finished do
+            begin
+              if scanning then
+                application.processmessages
+              else
+              begin
+                cleanup;
+                lblInfo.Caption:='';
+                progressbar1.Visible:=false;
+                btnScan.Caption:=rsScan;
+                enablegui;
+                exit;
+              end;
+            end;
+          end;
+          lblInfo.caption:=rsGeneratedScanning;
+
+          //everything has been configured
+
+
+
+          scanner:=Tscanner.create(rbDatascan.checked, cbPointerInRange.checked, alignsize, pointerstart, pointerstop, baseAddress, shadow, shadowsize, baseaddress2, shadow2, shadowsize2, diffkind, vartype, cbMapPointerValues.checked, structsize, maxlevel, mappedRegions, pointerlist, bma, savedialog1.filename, self);
+
+        end
+        else
+        begin
+          //next scan aka Rescan
+          listview1.items.count:=0;
+          rescanner:=trescan.create(false, address, address2, cbpointerinrange.checked, pointerstart, pointerstop, rbStringscan.checked, cbCaseSensitive.checked, cbMustBeStart.checked, edtRegExp.text, diffkind, vartype, oldpointerfile, savedialog1.filename , self);
+        end;
+      except
+        scanning:=false;
+        raise;
+      end;
     end;
 
   end
   else
   begin
+    scanning:=false;
     btnScan.enabled:=false;
     btnScan.caption:=rsTerminating;
 
@@ -2348,13 +2376,48 @@ end;
 
 procedure TfrmStringPointerScan.FormClose(Sender: TObject; var CloseAction: TCloseAction);
 begin
+  scanning:=false;
   cleanup;
+end;
+
+procedure TfrmStringPointerScan.FormCreate(Sender: TObject);
+begin
+  loadedFormPosition:=LoadFormPosition(self);
+end;
+
+procedure TfrmStringPointerScan.FormDestroy(Sender: TObject);
+begin
+  SaveFormPosition(self);
 end;
 
 procedure TfrmStringPointerScan.FormShow(Sender: TObject);
 begin
   //panel1.Constraints.MinHeight:=btnNewScan.Top+btnNewScan.Height+lblInfo.Height+4;
   cbHasShadowChange(nil);
+
+  AdjustEditBoxSize(edtPointerStart,canvas.GetTextWidth('  XXXXXXXXXXXXXXXX  '));
+  AdjustEditBoxSize(edtPointerStop,canvas.GetTextWidth('  XXXXXXXXXXXXXXXX  '));
+
+
+  AdjustEditBoxSize(edtBase,canvas.GetTextWidth('XXXXXXXXXXXXXXXX'));
+  AdjustEditBoxSize(edtExtra,canvas.GetTextWidth('XXXXXXXXXXXXXXXX'));
+  AdjustEditBoxSize(edtShadowAddress,canvas.GetTextWidth('XXXXXXXXXXXXXXXX'));
+  AdjustEditBoxSize(edtShadowAddress2,canvas.GetTextWidth('XXXXXXXXXXXXXXXX'));
+
+  AdjustEditBoxSize(edtShadowSize,canvas.GetTextWidth('999999'));
+  AdjustEditBoxSize(edtShadowSize2,canvas.GetTextWidth('999999'));
+
+  AdjustEditBoxSize(edtMaxLevel,canvas.GetTextWidth(' 999 '));
+  AdjustEditBoxSize(edtStructsize,canvas.GetTextWidth(' 999999 '));
+
+  AdjustComboboxSize(comboType,canvas);
+
+  if not loadedFormPosition then
+  begin
+    autosize:=false;
+    clientheight:=panel9.top+panel9.height+lblInfo.height+progressbar1.Height;
+    clientwidth:=panel1.width+panel6.width*2+16+max(lblvds.width, comboType.Width);
+  end;
 end;
 
 procedure TfrmStringPointerScan.miNewScanClick(Sender: TObject);

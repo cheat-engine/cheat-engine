@@ -11,7 +11,7 @@ Global Functions:
 getCEVersion(): Returns a floating point value specifying the version of cheat engine
 getCheatEngineFileVersion(): Returns the full version data of the cheat engine version. A raw integer, and a table containing major, minor, release and build
 
-getOperatingSystem(): Returns 0 for Windows, 1 for Mac
+getOperatingSystem(): Returns 0 if CE is running in Windows, 1 for Mac
 
 darkMode(): Returns true if CE is running in windows Dark Mode. Has no effect on mac
 
@@ -580,8 +580,9 @@ unhookWndProc(hwnd) - call this when done with the hook.  Not calling this will 
 
 cheatEngineIs64Bit(): Returns true if CE is 64-bit, false if 32-bit
 targetIs64Bit(): Returns true if the target process is 64-bit, false if 32-bit
-
-
+targetIsX86(): Returns true if the target process is x86 based
+targetIsArm(): Returns true if the target process is arm based 
+targetIsAndroid(): Returns true if the target process is running on the Android OS
 
 getCheatEngineDir(): Returns the folder Cheat Engine is located at
 getCheatEngineProcessID(): Returns the processid of cheat engine
@@ -670,8 +671,6 @@ getXBox360ControllerState(ControllerID OPTIONAL) : table - Fetches the state of 
 
 
 setXBox360ControllerVibration(ControllerID, leftMotor, rightMotor) - Sets the speed of the left and right vibrating motor inside the controller. Range (0 to 65535 where 0 is off)
-
-connectToCEServer(hostname,port) - Connects to the given host and port. On success, most commands subsequent will be handled by the server. Like processlist, memory reading, etc...
 
 
 
@@ -3916,6 +3915,12 @@ createXMLDocumentFromStream(stream) - reads the given stream and returns an XMLD
 
 properties
 methods
+
+----CEServer----
+connectToCEServer(hostname,port) - Connects to the given host and port. On success, most commands subsequent will be handled by the server. Like processlist, memory reading, etc...
+isConnectedToCEServer(): boolean - returns true if currently connected to a ceserver
+getCEServerPath(): string - returns the path where ceserver is located on the target
+
 
 
 ce lua extensions:

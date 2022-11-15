@@ -88,16 +88,24 @@ uint64_t ext_loadModule(HANDLE hProcess, char *modulepath)
       }
     }
 
+    debug_log("extension loaded. Calling EXTCMD_LOADMODULE on the extensionFD\n");
+
     loadModuleCommand.command=EXTCMD_LOADMODULE;
     loadModuleCommand.modulepathlength=strlen(modulepath);
 
+    debug_log("ext_loadModule: Locking extensionMutext\n");
     pthread_mutex_lock(&p->extensionMutex);
+
+
+    debug_log("ext_loadModule: Locked extensionMutext\n");
 
     if (sendall(p->extensionFD, &loadModuleCommand, sizeof(loadModuleCommand), MSG_MORE)>0)
     {
       if (sendall(p->extensionFD, modulepath, loadModuleCommand.modulepathlength, 0)>0)
       {
+        debug_log("ext_loadModule: Sent message. Waiting for result\n");
         recvall(p->extensionFD, &result, sizeof(result), 0);
+        debug_log("ext_loadModule: Received result: %p\n", (void*)result);
       }
     }
 
@@ -199,7 +207,7 @@ int ext_free(HANDLE hProcess, uint64_t address, int size)
   return result;
 }
 
-uint64_t ext_alloc(HANDLE hProcess, uint64_t preferedBase, int size)
+uint64_t ext_alloc(HANDLE hProcess, uint64_t preferedBase, int size, int prot)
 {
   uint64_t result=0;
   debug_log("ext_alloc(%d, %llx, %d)\n", hProcess, preferedBase, size);
@@ -213,6 +221,7 @@ uint64_t ext_alloc(HANDLE hProcess, uint64_t preferedBase, int size)
       uint8_t command;
       uint64_t preferedAddress;
       uint32_t size;
+      uint32_t prot;
     } allocCommand;
 #pragma pack()
 
@@ -226,10 +235,10 @@ uint64_t ext_alloc(HANDLE hProcess, uint64_t preferedBase, int size)
       }
     }
 
-
     allocCommand.command=EXTCMD_ALLOC;
     allocCommand.preferedAddress=preferedBase;
     allocCommand.size=size;
+    allocCommand.prot=prot;
 
     pthread_mutex_lock(&p->extensionMutex);
 
@@ -253,6 +262,7 @@ int ext_changememoryprotection(HANDLE hProcess, uint64_t address, uint32_t size,
   if (GetHandleType(hProcess) == htProcesHandle )
   {
     PProcessData p=(PProcessData)GetPointerFromHandle(hProcess);
+
     if (p->hasLoadedExtension==FALSE)
     {
       debug_log("hasLoadedExtension == FALSE");
