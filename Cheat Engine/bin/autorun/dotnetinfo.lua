@@ -1607,7 +1607,7 @@ local function FieldValueUpdaterTimer(frmDotNetInfo, sender)
     end  
   end
   
-  if address and Class then 
+  if address and Class and frmDotNetInfo.lvFields.TopItem then 
     for i=frmDotNetInfo.lvFields.TopItem.Index, math.min(frmDotNetInfo.lvFields.Items.Count-1, frmDotNetInfo.lvFields.TopItem.Index+frmDotNetInfo.lvFields.VisibleRowCount) do
     --for i=0, frmDotNetInfo.lvFields.Items.Count-1 do
       local ci=frmDotNetInfo.lvFields.Items[i].Data
