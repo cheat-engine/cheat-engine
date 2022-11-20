@@ -129,7 +129,7 @@ uses autoassembler, MainUnit, MainUnit2, LuaClass, frmluaengineunit, plugin, plu
   LazLogger, LuaSynedit, LuaRIPRelativeScanner, LuaCustomImageList ,ColorBox,
   rttihelper, LuaDotNetPipe, LuaRemoteExecutor, windows7taskbar, debugeventhandler,
   tcclib, dotnethost, CSharpCompiler, LuaCECustomButton, feces, process,
-  networkInterface, networkInterfaceApi;
+  networkInterface, networkInterfaceApi, LuaVirtualStringTree;
 
   {$warn 5044 off}
 
@@ -16888,6 +16888,7 @@ begin
     initializeLuaDotNetPipe;
     InitializeLuaRemoteExecutor;
     initializeLuaCECustomButton;
+    initializeLuaVirtualStringTree;
 
 
 

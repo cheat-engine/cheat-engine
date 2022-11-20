@@ -13,7 +13,7 @@ uses
   Classes, Controls, SysUtils, ceguicomponents, forms, lua, lualib, lauxlib,
   comctrls, StdCtrls, CEFuncProc, typinfo, Graphics, disassembler, LuaDisassembler,
   LastDisassembleData, Assemblerunit, commonTypeDefs, ExtCtrls, addresslist,
-  MemoryRecordUnit, math, diagramblock;
+  MemoryRecordUnit, math, diagramblock, laz.VirtualTrees;
 
 type
   TLuaCaller=class
@@ -102,6 +102,10 @@ type
       procedure MeasureItemEvent(Control: TWinControl; Index: Integer; var AHeight: Integer);
       procedure DisassemblerViewOverrideCallback(address: ptruint; var addressstring: string; var bytestring: string; var opcodestring: string; var parameterstring: string; var specialstring: string);
       function HelpEvent(Command: Word; Data: PtrInt; var CallHelp: Boolean): Boolean;
+      procedure VSTGetTextEvent(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType; var CellText: String);
+
+
+
 
 
       procedure synchronize;
@@ -1778,6 +1782,30 @@ begin
   end;
 end;
 
+procedure TLuaCaller.VSTGetTextEvent(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType; var CellText: String);
+var
+  oldstack: integer;
+begin
+  oldstack:=lua_gettop(Luavm);
+  try
+    pushFunction;
+    luaclass_newClass(LuaVM, sender);     //function(nodeindex, columnindex, node, texttype): string
+    if node<>nil then
+      lua_pushinteger(LuaVM, node^.Index)
+    else
+      lua_pushinteger(LuaVM, lua_Integer(-1));
+
+    lua_pushinteger(LuaVM, column);
+    lua_pushlightuserdata(LuaVM, Node);
+    lua_pushinteger(LuaVM, ord(TextType));
+    lua_pcall(LuaVM, 4,1,0);
+
+    CellText:=Lua_ToString(LuaVM,-1);
+  finally
+    lua_settop(LuaVM, oldstack);
+  end;
+end;
+
 //----------------------------Lua implementation-----------------------------
 function LuaCaller_NotifyEvent(L: PLua_state): integer; cdecl;
 var
@@ -3132,6 +3160,37 @@ begin
   end;
 end;
 
+
+function LuaCaller_VSTGetTextEvent(L: PLua_state): integer; cdecl; //procedure(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType; var CellText: String)
+var command: word;
+  sender: TBaseVirtualTree;
+  columnindex: integer;
+  node: PVirtualNode;
+  text: string;
+  texttype: TVSTTextType;
+  m: TMethod;
+begin
+  result:=0;
+  if lua_gettop(L)=5 then
+  begin
+    //passed as: function(sender, nodeindex, columnindex, node, texttype): string
+    //nodeindex is ignored (can be obtasisned from node)
+
+
+    m.code:=lua_touserdata(L, lua_upvalueindex(1));
+    m.data:=lua_touserdata(L, lua_upvalueindex(2));
+    sender:=lua_touserdata(L,1);
+    columnindex:=lua_tointeger(L,3);
+    node:=lua_toPointer(L,4);
+    texttype:=TVSTTextType(lua_tointeger(L,5));
+
+
+    TVSTGetTextEvent(m)(sender, node, columnindex, texttype, text);
+    lua_pushstring(L,text);
+    result:=1;
+  end;
+end;
+
 procedure registerLuaCall(typename: string; getmethodprop: lua_CFunction; setmethodprop: pointer; luafunctionheader: string);
 var t: TLuaCallData;
 begin
@@ -3214,6 +3273,11 @@ initialization
   registerLuaCall('TDisassemblerViewOverrideCallback', LuaCaller_DisassemblerViewOverrideCallback, pointer(TLuaCaller.DisassemblerViewOverrideCallback),'function %s(address, addressstring, bytestring, opcodestring, parameterstring, specialstring)'#13#10'  return addressstring, bytestring, opcodestring, parameterstring, specialstring'#13#10'end'#13#10);
 
   registerLuaCall('THelpEvent', LuaCaller_HelpEvent, pointer(TLuaCaller.HelpEvent),'function %s(command, data ,callhelp)'#13#10#13#10'  return result, callhelp'#13#10'end'#13#10);
+
+
+  registerLuaCall('TVSTGetTextEvent', LuaCaller_VSTGetTextEvent, pointer(TLuaCaller.VSTGetTextEvent),'function %s(sender, nodeindex, nodeinfo, column)'#13#10#13#10'  return ''text'''#13#10'end'#13#10);
+
+
 
 end.
 

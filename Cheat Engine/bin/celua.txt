@@ -3916,6 +3916,25 @@ createXMLDocumentFromStream(stream) - reads the given stream and returns an XMLD
 properties
 methods
 
+VirtualTreeColumn class:
+properties
+methods
+
+VirtualTreeColunmns class:
+properties
+methods
+  add() : Returns a new VirtualTreeColumn object
+
+VirtualStringTree class:
+properties
+  OnGetTextEvent: function(sender, columnindex, nodeindex, NodeInfo, texttype): string - return the string you wish the field to have
+methods
+  addChild(parent)
+  nodeInfoToTable(NodeInfo): table - Converts a NodeInfo pointer (userdata) to a readable structure. Fields: self, index, childcount, nodeheight, states, align, checkstate, totalcount, totalheight, parent, prevsibling, firstchild, lastchild, data
+  tableToNodeInfo(table): NodeInfo
+
+
+
 ----CEServer----
 connectToCEServer(hostname,port) - Connects to the given host and port. On success, most commands subsequent will be handled by the server. Like processlist, memory reading, etc...
 isConnectedToCEServer(): boolean - returns true if currently connected to a ceserver
