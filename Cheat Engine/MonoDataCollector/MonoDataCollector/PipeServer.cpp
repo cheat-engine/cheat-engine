@@ -112,14 +112,13 @@ void ErrorFilter(int signr, siginfo_t *info, void *uap)
 
 
 CPipeServer::CPipeServer(void)
-{
-  OutputDebugString("CPipeServer::CPipeServer\n");
-	attached = FALSE;
-	limitedConnection = FALSE;
-	il2cpp = FALSE;
-	UWPMode = FALSE;
-	mono_selfthread = NULL;
-	mono_runtime_is_shutting_down = NULL;
+{  
+  attached = FALSE;
+  limitedConnection = FALSE;
+  il2cpp = FALSE;
+  UWPMode = FALSE;
+  mono_selfthread = NULL;
+  mono_runtime_is_shutting_down = NULL;
 
 
 
@@ -421,7 +420,7 @@ void CPipeServer::InitMono()
 		x << "Mono dll found at " << std::hex << hMono << "\n";
 		//OutputDebugStringA(x.str().c_str());
 
-    #ifndef WINDOWS
+    #ifndef _WINDOWS
 		if (hasRealMonoHandle==0)
 		  hMono=RTLD_DEFAULT;
     #endif
@@ -501,6 +500,7 @@ void CPipeServer::InitMono()
 				mono_method_get_name = (MONO_METHOD_GET_NAME)GetProcAddress(hMono, "il2cpp_method_get_name");
 				mono_method_get_class = (MONO_METHOD_GET_CLASS)GetProcAddress(hMono, "il2cpp_method_get_class");
 				mono_method_get_header = (MONO_METHOD_GET_HEADER)GetProcAddress(hMono, "il2cpp_method_get_header");
+				mono_method_get_flags = (MONO_METHOD_GET_FLAGS)GetProcAddress(hMono, "il2cpp_method_get_flags");
 				mono_method_signature = (MONO_METHOD_SIG)GetProcAddress(hMono, "il2cpp_method_signature");
 				mono_method_get_param_names = (MONO_METHOD_GET_PARAM_NAMES)GetProcAddress(hMono, "il2cpp_method_get_param_names");
 
@@ -649,6 +649,7 @@ void CPipeServer::InitMono()
 				mono_method_get_name = (MONO_METHOD_GET_NAME)GetProcAddress(hMono, "mono_method_get_name");
 				mono_method_get_class = (MONO_METHOD_GET_CLASS)GetProcAddress(hMono, "mono_method_get_class");
 				mono_method_get_header = (MONO_METHOD_GET_HEADER)GetProcAddress(hMono, "mono_method_get_header");
+				mono_method_get_flags = (MONO_METHOD_GET_FLAGS)GetProcAddress(hMono, "mono_method_get_flags");
 				mono_method_signature = (MONO_METHOD_SIG)GetProcAddress(hMono, "mono_method_signature");
 				mono_method_get_param_names = (MONO_METHOD_GET_PARAM_NAMES)GetProcAddress(hMono, "mono_method_get_param_names");
 
@@ -716,7 +717,7 @@ void CPipeServer::InitMono()
 void CPipeServer::ConnectThreadToMonoRuntime()
 {
   mono_selfthread=NULL;
-  OutputDebugString("CPipeServer::ConnectThreadToMonoRuntime() : mono_thread_attach=%p\n",mono_thread_attach);
+  //OutputDebugString("CPipeServer::ConnectThreadToMonoRuntime() : mono_thread_attach=%p\n",mono_thread_attach);
   if (mono_thread_attach)
   {
 
@@ -1156,8 +1157,10 @@ void CPipeServer::EnumMethodsInClass()
 		if (method)
 		{
 			char *name;
+			uint32_t flags;
 
 			name = mono_method_get_name(method);
+			flags = mono_method_get_flags(method, NULL);
 
 			std::string sName = std::string(name);
 
@@ -1168,8 +1171,10 @@ void CPipeServer::EnumMethodsInClass()
 				sName = szUeName;
 			}
 
-				WriteWord((WORD)sName.size());
-				Write((PVOID)sName.c_str(), (WORD)sName.size());
+			WriteWord((WORD)sName.size());
+			Write((PVOID)sName.c_str(), (WORD)sName.size());
+
+			WriteDword(flags);
 		}
 	} while (method);
 
@@ -1379,6 +1384,7 @@ void CPipeServer::GetKlassName()
 
 void CPipeServer::GetClassNamespace()
 {
+
 	void *klass = (void *)ReadQword();
 	if (klass && mono_class_get_namespace)
 	{
@@ -1406,6 +1412,19 @@ void CPipeServer::FreeObject()
 void CPipeServer::GetMonoDataCollectorVersion()
 {
 	WriteDword(MONO_DATACOLLECTORVERSION);
+}
+
+void CPipeServer::NewString()
+{
+	void *domain = (void *)ReadQword();
+	if (domain == NULL)
+		domain = (void *)mono_get_root_domain();
+
+	char *s=ReadString();
+	free(s);
+
+	void *string=mono_string_new(domain, s);
+	WriteQword((UINT_PTR)string);
 }
 
 void CPipeServer::DisassembleMethod()
@@ -2239,7 +2258,7 @@ void CPipeServer::Start(void)
    
 	BYTE command;
 
-	OutputDebugString("CPipeServer::Start\n");
+	//OutputDebugString("CPipeServer::Start\n");
 	while (1)
 	{
 		if ((mono_runtime_is_shutting_down) && (mono_runtime_is_shutting_down()))
@@ -2265,7 +2284,7 @@ void CPipeServer::Start(void)
 
 				if (setjmp(onError))
 				{
-					OutputDebugString("setjmp returned 1");
+					//OutputDebugString("setjmp returned 1");
 					throw("Error during execution");
 				}
 
@@ -2435,9 +2454,9 @@ void CPipeServer::Start(void)
 					IsIL2CPP();
 					break;
                         
-        case MONOCMD_FILLOPTIONALFUNCTIONLIST:
-          FillOptionalFunctionList();
-          break;
+				case MONOCMD_FILLOPTIONALFUNCTIONLIST:
+				  FillOptionalFunctionList();
+				  break;
 
 				case MONOCMD_GETSTATICFIELDVALUE:
 					GetStaticFieldValue();
@@ -2464,9 +2483,13 @@ void CPipeServer::Start(void)
 					GetMonoDataCollectorVersion();
 					break;
 
+				case MONOCMD_NEWSTRING:
+					NewString();
+					break;
+
 				case MONOCMD_LIMITEDCONNECTION:
 					limitedConnection = true;
-					break;				
+					break;					
 
 				}
 

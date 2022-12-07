@@ -1298,11 +1298,9 @@ void CPipeServer::sendType(COR_TYPEID cortypeid)
 					WriteFile(pipehandle, &fields[j].field.token, sizeof(fields[j].field.token), &bw, NULL);
 					WriteFile(pipehandle, &fields[j].field.offset, sizeof(fields[j].field.offset), &bw, NULL);
 					WriteFile(pipehandle, &fieldtype, sizeof(fieldtype), &bw, NULL);
-
 					//optional name:
 
-					
-					WriteFile(pipehandle, &isStatic, 1, &bw, NULL);
+					WriteFile(pipehandle, &attr, sizeof(attr), &bw, NULL); //ce 7.5: Changed from writing just isStatic to the full attr
 
 					fieldnamelength = sizeof(WCHAR)*fieldnamelength;
 

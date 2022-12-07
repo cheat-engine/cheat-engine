@@ -1,35 +1,37 @@
 object frmStringPointerScan: TfrmStringPointerScan
-  Left = 570
-  Height = 530
-  Top = 382
+  Left = 602
+  Height = 534
+  Top = 171
   Width = 813
   AutoSize = True
   Caption = 'Structure spider'
-  ClientHeight = 530
+  ClientHeight = 514
   ClientWidth = 813
   Menu = MainMenu1
   OnClose = FormClose
+  OnCreate = FormCreate
+  OnDestroy = FormDestroy
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '2.2.0.4'
+  LCLVersion = '2.2.2.0'
   object Panel1: TPanel
     Left = 0
-    Height = 510
+    Height = 494
     Top = 0
-    Width = 206
+    Width = 189
     Align = alLeft
     AutoSize = True
     BevelOuter = bvNone
-    ClientHeight = 510
-    ClientWidth = 206
+    ClientHeight = 494
+    ClientWidth = 189
     TabOrder = 0
     object edtStructsize: TEdit
       AnchorSideLeft.Control = lblStructsize
       AnchorSideTop.Control = lblStructsize
       AnchorSideTop.Side = asrBottom
       Left = 87
-      Height = 22
-      Top = 24
+      Height = 23
+      Top = 23
       Width = 80
       TabOrder = 0
       Text = '4096'
@@ -39,11 +41,12 @@ object frmStringPointerScan: TfrmStringPointerScan
       AnchorSideLeft.Side = asrBottom
       AnchorSideTop.Control = Panel5
       Left = 87
-      Height = 16
+      Height = 15
       Top = 8
-      Width = 61
+      Width = 50
       BorderSpacing.Left = 3
       Caption = 'Structsize'
+      ParentColor = False
     end
     object edtRegExp: TEdit
       AnchorSideLeft.Control = lblString
@@ -51,9 +54,9 @@ object frmStringPointerScan: TfrmStringPointerScan
       AnchorSideRight.Control = Panel1
       AnchorSideRight.Side = asrBottom
       Left = 20
-      Height = 22
-      Top = 336
-      Width = 182
+      Height = 23
+      Top = 349
+      Width = 165
       Anchors = [akTop, akLeft, akRight]
       BorderSpacing.Right = 4
       Enabled = False
@@ -64,9 +67,9 @@ object frmStringPointerScan: TfrmStringPointerScan
       AnchorSideTop.Control = cbCaseSensitive
       AnchorSideTop.Side = asrBottom
       Left = 20
-      Height = 18
-      Top = 318
-      Width = 102
+      Height = 19
+      Top = 330
+      Width = 89
       Caption = 'Must be start'
       Enabled = False
       TabOrder = 8
@@ -76,9 +79,9 @@ object frmStringPointerScan: TfrmStringPointerScan
       AnchorSideTop.Control = cbRegExp
       AnchorSideTop.Side = asrBottom
       Left = 20
-      Height = 18
-      Top = 300
-      Width = 108
+      Height = 19
+      Top = 311
+      Width = 93
       Caption = 'Case sensitive'
       Enabled = False
       TabOrder = 7
@@ -88,9 +91,9 @@ object frmStringPointerScan: TfrmStringPointerScan
       AnchorSideTop.Control = cbReuseStringmap
       AnchorSideTop.Side = asrBottom
       Left = 20
-      Height = 18
-      Top = 282
-      Width = 182
+      Height = 19
+      Top = 292
+      Width = 165
       BorderSpacing.Left = 16
       BorderSpacing.Right = 4
       Caption = 'Strings must match reg exp'
@@ -102,9 +105,9 @@ object frmStringPointerScan: TfrmStringPointerScan
       AnchorSideTop.Control = Panel4
       AnchorSideTop.Side = asrBottom
       Left = 4
-      Height = 18
-      Top = 246
-      Width = 90
+      Height = 19
+      Top = 254
+      Width = 78
       Caption = 'String scan'
       OnChange = rbDatascanChange
       TabOrder = 5
@@ -114,9 +117,9 @@ object frmStringPointerScan: TfrmStringPointerScan
       AnchorSideTop.Control = edtRegExp
       AnchorSideTop.Side = asrBottom
       Left = 4
-      Height = 18
-      Top = 358
-      Width = 83
+      Height = 19
+      Top = 372
+      Width = 71
       Caption = 'Data scan'
       OnChange = rbDatascanChange
       TabOrder = 10
@@ -128,9 +131,9 @@ object frmStringPointerScan: TfrmStringPointerScan
       AnchorSideRight.Control = Panel1
       AnchorSideRight.Side = asrBottom
       Left = 20
-      Height = 22
-      Top = 392
-      Width = 182
+      Height = 23
+      Top = 406
+      Width = 165
       Anchors = [akTop, akLeft, akRight]
       BorderSpacing.Right = 4
       Enabled = False
@@ -142,12 +145,13 @@ object frmStringPointerScan: TfrmStringPointerScan
       AnchorSideTop.Control = rbDatascan
       AnchorSideTop.Side = asrBottom
       Left = 20
-      Height = 16
-      Top = 376
-      Width = 54
+      Height = 15
+      Top = 391
+      Width = 47
       BorderSpacing.Left = 16
       Caption = 'Alignsize'
       Enabled = False
+      ParentColor = False
     end
     object edtPointerStart: TEdit
       AnchorSideLeft.Control = cbPointerInRange
@@ -156,9 +160,9 @@ object frmStringPointerScan: TfrmStringPointerScan
       AnchorSideRight.Control = Panel1
       AnchorSideRight.Side = asrBottom
       Left = 4
-      Height = 22
-      Top = 66
-      Width = 198
+      Height = 23
+      Top = 67
+      Width = 181
       Anchors = [akTop, akLeft, akRight]
       BorderSpacing.Right = 4
       Enabled = False
@@ -169,9 +173,9 @@ object frmStringPointerScan: TfrmStringPointerScan
       AnchorSideTop.Control = Panel5
       AnchorSideTop.Side = asrBottom
       Left = 4
-      Height = 18
+      Height = 19
       Top = 48
-      Width = 165
+      Width = 150
       BorderSpacing.Top = 2
       Caption = 'Pointer must be in range'
       OnChange = cbPointerInRangeChange
@@ -182,11 +186,12 @@ object frmStringPointerScan: TfrmStringPointerScan
       AnchorSideTop.Control = edtPointerStart
       AnchorSideTop.Side = asrBottom
       Left = 4
-      Height = 16
-      Top = 88
-      Width = 23
+      Height = 15
+      Top = 90
+      Width = 20
       Caption = 'and'
       Enabled = False
+      ParentColor = False
     end
     object edtPointerStop: TEdit
       AnchorSideLeft.Control = cbPointerInRange
@@ -195,9 +200,9 @@ object frmStringPointerScan: TfrmStringPointerScan
       AnchorSideRight.Control = Panel1
       AnchorSideRight.Side = asrBottom
       Left = 4
-      Height = 22
-      Top = 104
-      Width = 198
+      Height = 23
+      Top = 105
+      Width = 181
       Anchors = [akTop, akLeft, akRight]
       BorderSpacing.Right = 4
       Enabled = False
@@ -208,33 +213,34 @@ object frmStringPointerScan: TfrmStringPointerScan
       AnchorSideTop.Control = cbMustBeStart
       AnchorSideTop.Side = asrBottom
       Left = 20
-      Height = 16
-      Top = 336
-      Width = 40
+      Height = 15
+      Top = 349
+      Width = 34
       Caption = 'String:'
       Enabled = False
+      ParentColor = False
     end
     object Panel4: TPanel
       AnchorSideLeft.Control = edtPointerStop
       AnchorSideTop.Control = edtPointerStop
       AnchorSideTop.Side = asrBottom
       Left = 4
-      Height = 116
-      Top = 130
-      Width = 166
+      Height = 122
+      Top = 132
+      Width = 148
       AutoSize = True
       BorderSpacing.Top = 4
       BevelOuter = bvNone
-      ClientHeight = 116
-      ClientWidth = 166
+      ClientHeight = 122
+      ClientWidth = 148
       TabOrder = 4
       object rbDiffDontCare: TRadioButton
         AnchorSideLeft.Control = Panel4
         AnchorSideTop.Control = Panel4
         Left = 0
-        Height = 18
+        Height = 19
         Top = 0
-        Width = 165
+        Width = 148
         Caption = 'Don''t care for difference'
         Checked = True
         Enabled = False
@@ -247,9 +253,9 @@ object frmStringPointerScan: TfrmStringPointerScan
         AnchorSideTop.Control = rbDiffDontCare
         AnchorSideTop.Side = asrBottom
         Left = 0
-        Height = 18
-        Top = 18
-        Width = 124
+        Height = 19
+        Top = 19
+        Width = 111
         Caption = 'Must be different'
         Enabled = False
         OnChange = rbDiffDontCareChange
@@ -260,9 +266,9 @@ object frmStringPointerScan: TfrmStringPointerScan
         AnchorSideTop.Control = rbMustBeDifferent
         AnchorSideTop.Side = asrBottom
         Left = 0
-        Height = 18
-        Top = 36
-        Width = 127
+        Height = 19
+        Top = 38
+        Width = 114
         Caption = 'Must be the same'
         Enabled = False
         OnChange = rbDiffDontCareChange
@@ -273,12 +279,12 @@ object frmStringPointerScan: TfrmStringPointerScan
         AnchorSideTop.Control = lblCompare
         AnchorSideTop.Side = asrBottom
         Left = 16
-        Height = 20
-        Top = 70
+        Height = 23
+        Top = 72
         Width = 124
         BorderSpacing.Left = 16
         Enabled = False
-        ItemHeight = 26
+        ItemHeight = 15
         ItemIndex = 3
         Items.Strings = (
           'String'
@@ -300,21 +306,22 @@ object frmStringPointerScan: TfrmStringPointerScan
         AnchorSideTop.Control = rbMustBeSame
         AnchorSideTop.Side = asrBottom
         Left = 0
-        Height = 16
-        Top = 54
-        Width = 85
+        Height = 15
+        Top = 57
+        Width = 75
         Caption = 'Compare type'
         Enabled = False
+        ParentColor = False
       end
       object cbMapPointerValues: TCheckBox
         AnchorSideLeft.Control = Panel4
         AnchorSideTop.Control = comboCompareType
         AnchorSideTop.Side = asrBottom
         Left = 0
-        Height = 18
+        Height = 19
         Hint = 'During the scan the values of pointer will be stored in memory for quick lookup when the same address is encountered again'#13#10'If the pointerlist has mostly unique addresses this can cause you to get out of memory errors'#13#10#13#10'Enabled: Fast- Memory gobbler'#13#10'Disabled: Slower- Not too much memory eaten'
-        Top = 98
-        Width = 166
+        Top = 103
+        Width = 148
         BorderSpacing.Top = 8
         Caption = 'Store values during scan'
         Checked = True
@@ -343,8 +350,8 @@ object frmStringPointerScan: TfrmStringPointerScan
         AnchorSideTop.Control = lblMaxLevel
         AnchorSideTop.Side = asrBottom
         Left = 0
-        Height = 22
-        Top = 16
+        Height = 23
+        Top = 15
         Width = 80
         TabOrder = 0
         Text = '2'
@@ -353,10 +360,11 @@ object frmStringPointerScan: TfrmStringPointerScan
         AnchorSideLeft.Control = Panel5
         AnchorSideTop.Control = Panel5
         Left = 0
-        Height = 16
+        Height = 15
         Top = 0
-        Width = 60
+        Width = 53
         Caption = 'Max Level'
+        ParentColor = False
       end
     end
     object Panel8: TPanel
@@ -368,22 +376,23 @@ object frmStringPointerScan: TfrmStringPointerScan
       AnchorSideBottom.Control = Panel1
       AnchorSideBottom.Side = asrBottom
       Left = 0
-      Height = 62
-      Top = 448
-      Width = 206
+      Height = 26
+      Top = 468
+      Width = 189
       Anchors = [akTop, akLeft, akRight, akBottom]
       AutoSize = True
       BevelOuter = bvNone
-      ClientHeight = 62
-      ClientWidth = 206
+      ClientHeight = 26
+      ClientWidth = 189
       TabOrder = 13
       object lblInfo: TLabel
         Left = 0
-        Height = 16
-        Top = 46
-        Width = 206
+        Height = 15
+        Top = 11
+        Width = 189
         Align = alBottom
         Caption = 'Info'
+        ParentColor = False
       end
     end
     object Panel9: TPanel
@@ -393,9 +402,9 @@ object frmStringPointerScan: TfrmStringPointerScan
       AnchorSideRight.Control = Panel1
       AnchorSideRight.Side = asrBottom
       Left = 0
-      Height = 34
-      Top = 414
-      Width = 206
+      Height = 39
+      Top = 429
+      Width = 189
       Anchors = [akTop, akLeft, akRight]
       AutoSize = True
       BevelOuter = bvNone
@@ -404,13 +413,13 @@ object frmStringPointerScan: TfrmStringPointerScan
       ChildSizing.EnlargeHorizontal = crsHomogenousSpaceResize
       ChildSizing.Layout = cclLeftToRightThenTopToBottom
       ChildSizing.ControlsPerLine = 2
-      ClientHeight = 34
-      ClientWidth = 206
+      ClientHeight = 39
+      ClientWidth = 189
       TabOrder = 14
       object btnNewScan: TButton
         AnchorSideLeft.Side = asrCenter
-        Left = 16
-        Height = 20
+        Left = 10
+        Height = 25
         Top = 7
         Width = 80
         AutoSize = True
@@ -424,8 +433,8 @@ object frmStringPointerScan: TfrmStringPointerScan
       end
       object btnScan: TButton
         AnchorSideLeft.Side = asrCenter
-        Left = 112
-        Height = 20
+        Left = 100
+        Height = 25
         Top = 7
         Width = 80
         AutoSize = True
@@ -444,9 +453,9 @@ object frmStringPointerScan: TfrmStringPointerScan
       AnchorSideTop.Control = rbStringscan
       AnchorSideTop.Side = asrBottom
       Left = 20
-      Height = 18
-      Top = 264
-      Width = 156
+      Height = 19
+      Top = 273
+      Width = 140
       BorderSpacing.Left = 16
       Caption = 'Use existing stringmap'
       Checked = True
@@ -456,20 +465,20 @@ object frmStringPointerScan: TfrmStringPointerScan
     end
   end
   object Panel2: TPanel
-    Left = 206
-    Height = 510
+    Left = 189
+    Height = 494
     Top = 0
-    Width = 607
+    Width = 624
     Align = alClient
     BevelOuter = bvNone
-    ClientHeight = 510
-    ClientWidth = 607
+    ClientHeight = 494
+    ClientWidth = 624
     TabOrder = 1
     object ListView1: TListView
       Left = 0
-      Height = 376
-      Top = 134
-      Width = 607
+      Height = 358
+      Top = 136
+      Width = 624
       Align = alClient
       Columns = <>
       HideSelection = False
@@ -485,14 +494,14 @@ object frmStringPointerScan: TfrmStringPointerScan
     end
     object Panel3: TPanel
       Left = 0
-      Height = 134
+      Height = 136
       Top = 0
-      Width = 607
+      Width = 624
       Align = alTop
       AutoSize = True
       BevelOuter = bvNone
-      ClientHeight = 134
-      ClientWidth = 607
+      ClientHeight = 136
+      ClientWidth = 624
       TabOrder = 1
       OnClick = Panel3Click
       object lblExtra: TLabel
@@ -500,19 +509,20 @@ object frmStringPointerScan: TfrmStringPointerScan
         AnchorSideLeft.Side = asrBottom
         AnchorSideTop.Control = Panel6
         Left = 133
-        Height = 16
+        Height = 15
         Top = 8
-        Width = 103
+        Width = 90
         BorderSpacing.Left = 6
         Caption = 'Compare against'
+        ParentColor = False
       end
       object edtExtra: TEdit
         AnchorSideLeft.Control = lblExtra
         AnchorSideTop.Control = lblExtra
         AnchorSideTop.Side = asrBottom
         Left = 133
-        Height = 22
-        Top = 24
+        Height = 23
+        Top = 23
         Width = 127
         OnChange = edtExtraChange
         TabOrder = 0
@@ -522,10 +532,10 @@ object frmStringPointerScan: TfrmStringPointerScan
         AnchorSideTop.Control = edtExtra
         AnchorSideTop.Side = asrBottom
         Left = 133
-        Height = 18
+        Height = 19
         Hint = 'Use this if you''re spidering a previously saved memory region that currently resides in a different location.'#13#10'Most commonly used for stacks where stack pointers point to it''s own structure'
         Top = 48
-        Width = 97
+        Width = 85
         BorderSpacing.Top = 2
         Caption = 'Has Shadow'
         OnChange = cbHasShadowChange
@@ -538,8 +548,8 @@ object frmStringPointerScan: TfrmStringPointerScan
         AnchorSideTop.Control = cbHasShadow2
         AnchorSideTop.Side = asrBottom
         Left = 133
-        Height = 22
-        Top = 66
+        Height = 23
+        Top = 67
         Width = 127
         OnChange = edtBaseChange
         TabOrder = 2
@@ -550,10 +560,11 @@ object frmStringPointerScan: TfrmStringPointerScan
         AnchorSideTop.Control = edtShadowAddress2
         AnchorSideTop.Side = asrBottom
         Left = 133
-        Height = 16
-        Top = 88
-        Width = 25
+        Height = 15
+        Top = 90
+        Width = 20
         Caption = 'Size'
+        ParentColor = False
         Visible = False
       end
       object edtShadowSize2: TEdit
@@ -561,8 +572,8 @@ object frmStringPointerScan: TfrmStringPointerScan
         AnchorSideTop.Control = lblsize2
         AnchorSideTop.Side = asrBottom
         Left = 133
-        Height = 22
-        Top = 104
+        Height = 23
+        Top = 105
         Width = 80
         BorderSpacing.Bottom = 8
         OnChange = edtBaseChange
@@ -573,14 +584,14 @@ object frmStringPointerScan: TfrmStringPointerScan
         AnchorSideLeft.Control = Panel3
         AnchorSideTop.Control = Panel3
         Left = 0
-        Height = 118
+        Height = 120
         Top = 8
         Width = 127
         AutoSize = True
         BorderSpacing.Top = 8
         BorderSpacing.Bottom = 8
         BevelOuter = bvNone
-        ClientHeight = 118
+        ClientHeight = 120
         ClientWidth = 127
         TabOrder = 4
         object edtShadowSize: TEdit
@@ -588,8 +599,8 @@ object frmStringPointerScan: TfrmStringPointerScan
           AnchorSideTop.Control = lblSize
           AnchorSideTop.Side = asrBottom
           Left = 0
-          Height = 22
-          Top = 96
+          Height = 23
+          Top = 97
           Width = 80
           OnChange = edtBaseChange
           TabOrder = 0
@@ -600,10 +611,11 @@ object frmStringPointerScan: TfrmStringPointerScan
           AnchorSideTop.Control = edtShadowAddress
           AnchorSideTop.Side = asrBottom
           Left = 0
-          Height = 16
-          Top = 80
-          Width = 25
+          Height = 15
+          Top = 82
+          Width = 20
           Caption = 'Size'
+          ParentColor = False
           Visible = False
         end
         object edtShadowAddress: TEdit
@@ -611,8 +623,8 @@ object frmStringPointerScan: TfrmStringPointerScan
           AnchorSideTop.Control = cbHasShadow
           AnchorSideTop.Side = asrBottom
           Left = 0
-          Height = 22
-          Top = 58
+          Height = 23
+          Top = 59
           Width = 127
           OnChange = edtBaseChange
           TabOrder = 1
@@ -623,10 +635,10 @@ object frmStringPointerScan: TfrmStringPointerScan
           AnchorSideTop.Control = edtBase
           AnchorSideTop.Side = asrBottom
           Left = 0
-          Height = 18
+          Height = 19
           Hint = 'Use this if you''re spidering a previously saved memory region that currently resides in a different location.'#13#10'Most commonly used for stacks where stack pointers point to it''s own structure'
           Top = 40
-          Width = 97
+          Width = 85
           BorderSpacing.Top = 2
           Caption = 'Has Shadow'
           OnChange = cbHasShadowChange
@@ -639,8 +651,8 @@ object frmStringPointerScan: TfrmStringPointerScan
           AnchorSideTop.Control = lblBaseRegion
           AnchorSideTop.Side = asrBottom
           Left = 0
-          Height = 22
-          Top = 16
+          Height = 23
+          Top = 15
           Width = 127
           OnChange = edtBaseChange
           TabOrder = 3
@@ -649,10 +661,11 @@ object frmStringPointerScan: TfrmStringPointerScan
           AnchorSideLeft.Control = Panel6
           AnchorSideTop.Control = Panel6
           Left = 0
-          Height = 16
+          Height = 15
           Top = 0
-          Width = 71
+          Width = 61
           Caption = 'Base region'
+          ParentColor = False
         end
       end
       object Panel7: TPanel
@@ -664,39 +677,40 @@ object frmStringPointerScan: TfrmStringPointerScan
         AnchorSideBottom.Control = Panel3
         AnchorSideBottom.Side = asrBottom
         Left = 268
-        Height = 134
+        Height = 136
         Top = 0
-        Width = 339
+        Width = 356
         Anchors = [akTop, akLeft, akRight, akBottom]
         AutoSize = True
         BorderSpacing.Left = 8
         BevelOuter = bvNone
-        ClientHeight = 134
-        ClientWidth = 339
+        ClientHeight = 136
+        ClientWidth = 356
         TabOrder = 5
         object lblvds: TLabel
           AnchorSideTop.Control = Panel7
           AnchorSideRight.Control = Panel7
           AnchorSideRight.Side = asrBottom
-          Left = 214
-          Height = 16
+          Left = 249
+          Height = 15
           Top = 8
-          Width = 125
+          Width = 107
           Anchors = [akTop, akRight]
           BorderSpacing.Top = 8
           Caption = 'Variable display type'
+          ParentColor = False
         end
         object comboType: TComboBox
           AnchorSideTop.Control = lblvds
           AnchorSideTop.Side = asrBottom
           AnchorSideRight.Control = Panel7
           AnchorSideRight.Side = asrBottom
-          Left = 215
-          Height = 20
-          Top = 24
+          Left = 232
+          Height = 23
+          Top = 23
           Width = 124
           Anchors = [akTop, akRight]
-          ItemHeight = 26
+          ItemHeight = 15
           ItemIndex = 0
           Items.Strings = (
             'String'
@@ -719,7 +733,7 @@ object frmStringPointerScan: TfrmStringPointerScan
   object ProgressBar1: TProgressBar
     Left = 0
     Height = 20
-    Top = 510
+    Top = 494
     Width = 813
     Align = alBottom
     Max = 1000

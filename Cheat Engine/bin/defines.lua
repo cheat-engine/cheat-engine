@@ -515,6 +515,7 @@ crSizeAll     = -22
   clTeal    = 0x808000
   clGray    = 0x808080
   clSilver  = 0xC0C0C0
+  clOrange  = 0x0080FF
   clRed     = 0x0000FF
   clLime    = 0x00FF00
   clYellow  = 0x00FFFF

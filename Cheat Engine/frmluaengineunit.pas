@@ -328,7 +328,9 @@ begin
           methods.CaseSensitive:=false;
 
           case lua_type(L, -1) of
-            LUA_TUSERDATA,LUA_TLIGHTUSERDATA:
+
+
+            LUA_TUSERDATA:
             begin
               o:=lua_ToCEUserData(L, -1);
 
@@ -1250,40 +1252,7 @@ begin
           end;
 
           templist.free;
-                           {
-          pc:=lua_tolstring(luavm, i,nil);
-          if pc<>nil then
-            mOutput.lines.add(':'+pc)
-          else
-          begin
-            if lua_islightuserdata(luavm,i) then //shouldn't occur anymore
-              moutput.lines.add(':'+p->'+inttohex(ptruint(lua_touserdata(luavm,i)),1))
-            else
-            if lua_isboolean(luavm,i) then
-              moutput.lines.add(':(boolean)'+BoolToStr(lua_toboolean(Luavm, i),'true','false'))
-            else
-            if lua_isnil(luavm,i) then
-              moutput.lines.add(':'+'nil')
-            else
-            if lua_istable(luavm, i) then
-              moutput.lines.add(':'+'table')
-            else
-            if lua_isfunction(luavm,i) then
-              moutput.lines.add(':'+'function')
-            else
-            if lua_isuserdata(luavm,i) then
-            begin
-              try
-                c:=lua_ToCEUserData(luavm, i);
-                moutput.lines.add(':'+'class object ('+c.ClassName+')')
-              except
-                moutput.lines.add(':'+'class object (corrupt)')
-              end;
-            end
-            else
-              moutput.lines.add(':'+'unknown')
 
-          end;}
         end;
 
 

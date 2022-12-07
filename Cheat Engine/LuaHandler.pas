@@ -510,7 +510,7 @@ begin
 
   if not lua_isnil(L, i) then
   begin
-    if lua_isuserdata(L, i) then
+    if lua_isheavyuserdata(L, i) then
     begin
       stackstart:=lua_gettop(L);
 
@@ -521,7 +521,7 @@ begin
         begin
           result:='Object of type '+o.ClassName;
           if o is TControl then
-            result:=result+#13#10+tcontrol(o).Name;
+            result:=result+' (Name='+tcontrol(o).Name+')'
         end;
       except
       end;
@@ -529,6 +529,9 @@ begin
       index:=lua_gettop(l);
       lua_settop(l, stackstart);
     end
+    else
+    if lua_isuserdata(L, i) then
+      result:='Pointer: '+inttohex(ptruint(lua_topointer(L,i)),8)
     else
     if lua_iscfunction(L, i) then
       result:='native function'
@@ -557,16 +560,16 @@ begin
           count:=count-1;
           if count<0 then
           begin
-
             result:=result+tablepad+'...'+#13#10;;
             break;
           end;
 
           if lua_type(L,-2)=LUA_TSTRING then
             fieldname:=Lua_ToString(L, -2)
+          else if lua_type(L,-2)=LUA_TLIGHTUSERDATA then
+            fieldname:='pointert: '+inttohex(lua_tointeger(L,-2),8)
           else
             fieldname:=inttostr(lua_tointeger(L, -2));
-
 
           valuedesc:=LuaValueToDescription(L, -1, recursivetablecount+1);
 
@@ -3573,6 +3576,7 @@ begin
     else
       lc.synchronizeparam:=0;
 
+//    tthread.ForceQueue(TThread.CurrentThread, lc.queue);
     tthread.ForceQueue(TThread.CurrentThread, lc.queue);
 
     result:=0;

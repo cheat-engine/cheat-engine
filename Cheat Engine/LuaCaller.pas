@@ -103,10 +103,11 @@ type
       procedure DisassemblerViewOverrideCallback(address: ptruint; var addressstring: string; var bytestring: string; var opcodestring: string; var parameterstring: string; var specialstring: string);
       function HelpEvent(Command: Word; Data: PtrInt; var CallHelp: Boolean): Boolean;
       procedure VSTGetTextEvent(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType; var CellText: String);
-
-
-
-
+      procedure VTFreeNodeEvent(Sender: TBaseVirtualTree; Node: PVirtualNode);
+      procedure VTInitNodeEvent(Sender: TBaseVirtualTree; ParentNode, Node: PVirtualNode; var InitialStates: TVirtualNodeInitStates);
+      procedure VTChangingEvent(Sender: TBaseVirtualTree; Node: PVirtualNode; var Allowed: Boolean);
+      procedure VTPaintText(Sender: TBaseVirtualTree; const TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex;  TextType: TVSTTextType);
+      procedure VTDrawTextEvent(Sender: TBaseVirtualTree; TargetCanvas: TCanvas; Node: PVirtualNode;  Column: TColumnIndex; const CellText: String; const CellRect: TRect; var DefaultDraw: Boolean);
 
       procedure synchronize;
       procedure queue;
@@ -162,7 +163,7 @@ implementation
 uses
   luahandler, LuaByteTable, MainUnit, disassemblerviewunit,
   hexviewunit, d3dhookUnit, LuaClass, debuggertypedefinitions, memscan,
-  symbolhandler, symbolhandlerstructs, menus, BreakpointTypeDef;
+  symbolhandler, symbolhandlerstructs, menus, BreakpointTypeDef, StringHashList;
 
 resourcestring
   rsThisTypeOfMethod = 'This type of method:';
@@ -176,7 +177,9 @@ type
     SetMethodProp: pointer; //used when we want to set a method property to a lua function (SetMethodProp)
     luafunctionheader: string;
   end;
-var LuaCallList: Tstringlist;
+
+var
+  LuaCallHashList: TStringHashList;
 
 
 function luacaller_getFunctionHeaderAndMethodForType(typeinfo: PTypeInfo; lc: pointer; name: string; header: tstrings) : Tmethod;
@@ -187,20 +190,15 @@ begin
   result.Code:=nil;
   result.data:=nil;
 
-
-  i:=LuaCallList.IndexOf(typeinfo.Name);
-  if i<>-1 then
+  lcd:=LuaCallHashList.Data[typeinfo.name];
+  if lcd<>nil then
   begin
-    lcd:=TLuaCallData(LuaCallList.Objects[i]);
     result.Code:=lcd.SetMethodProp;
     result.data:=lc;
 
     if header<>nil then
       header.Text:=format(lcd.luafunctionheader, [name]);
   end;
-
-
-
 end;
 
 procedure LuaCaller_setMethodProperty(L: PLua_state; var m: TMethod; typename: string; luafunctiononstack: integer);
@@ -209,6 +207,7 @@ var
   i,r: integer;
 
   newcode: pointer;
+  lcd: TLuaCallData;
 begin
 
   if lua_isnil(L, luafunctiononstack) then //nil, special case, always succeed
@@ -219,11 +218,11 @@ begin
     exit;
   end;
 
-  i:=LuaCallList.IndexOf(typename);
-  if i=-1 then
+  lcd:=LuaCallHashList.Data[typename];
+  if lcd=nil then
     raise exception.create(rsThisTypeOfMethod+typename+rsIsNotYetSupported);
 
-  newcode:=TLuaCallData(LuaCallList.Objects[i]).SetMethodProp;
+  newcode:=lcd.SetMethodProp;
 
   //proper type, let's clean it up
   CleanupLuaCall(m);
@@ -266,12 +265,13 @@ procedure luaCaller_pushMethodProperty(L: PLua_state; m: TMethod; typename: stri
 var
   f: lua_CFunction;
   i: integer;
+  lcd: TLuaCallData;
 begin
-  i:=LuaCallList.IndexOf(typename);
-  if i=-1 then
+  lcd:=LuaCallHashList.Data[typename];
+  if lcd=nil then
     raise exception.create(rsThisTypeOfMethod+typename+rsIsNotYetSupported);
 
-  f:=TLuaCallData(LuaCallList.Objects[i]).GetMethodProp;
+  f:=lcd.GetMethodProp;
 
 
   if m.data=nil then
@@ -281,7 +281,7 @@ begin
   end;
 
   if tobject(m.Data) is TLuaCaller then
-    TLuaCaller(m.data).pushFunction
+    TLuaCaller(m.data).pushFunction(L)
   else
   begin
     //not a lua function
@@ -382,11 +382,17 @@ begin
 end;
 
 procedure TLuaCaller.queue;
+var oldstack: integer;
 begin
-  selfdestructing:=true;
+  oldstack:=lua_gettop(Luavm);
+  try
+    selfdestructing:=true;
+    PushFunction(Luavm);
+    lua_pcall(Luavm, 0,0,0);
+  finally
+    lua_settop(Luavm, oldstack);
+  end;
 
-  PushFunction(syncvm);
-  lua_pcall(syncvm, 0,0,0);
   free;
 end;
 
@@ -1789,7 +1795,7 @@ begin
   oldstack:=lua_gettop(Luavm);
   try
     pushFunction;
-    luaclass_newClass(LuaVM, sender);     //function(nodeindex, columnindex, node, texttype): string
+    luaclass_newClass(LuaVM, sender);     //function(sender, nodeindex, columnindex, node, texttype)
     if node<>nil then
       lua_pushinteger(LuaVM, node^.Index)
     else
@@ -1798,9 +1804,104 @@ begin
     lua_pushinteger(LuaVM, column);
     lua_pushlightuserdata(LuaVM, Node);
     lua_pushinteger(LuaVM, ord(TextType));
-    lua_pcall(LuaVM, 4,1,0);
+    lua_pcall(LuaVM, 5,1,0);
 
     CellText:=Lua_ToString(LuaVM,-1);
+  finally
+    lua_settop(LuaVM, oldstack);
+  end;
+end;
+
+procedure TLuaCaller.VTFreeNodeEvent(Sender: TBaseVirtualTree; Node: PVirtualNode);
+var
+  oldstack: integer;
+begin
+  oldstack:=lua_gettop(Luavm);
+  try
+    pushFunction;
+    luaclass_newClass(LuaVM, sender);
+    lua_pushlightuserdata(LuaVM, node);
+    lua_pcall(LuaVM, 2,0,0);
+  finally
+    lua_settop(LuaVM, oldstack);
+  end;
+end;
+
+procedure TLuaCaller.VTInitNodeEvent(Sender: TBaseVirtualTree; ParentNode, Node: PVirtualNode; var InitialStates: TVirtualNodeInitStates);
+var
+  oldstack: integer;
+begin
+  //function (sender, parentnode, node, initialStates) return initialStates end
+
+  oldstack:=lua_gettop(Luavm);
+  try
+    pushFunction;
+    luaclass_newClass(LuaVM, sender);
+    lua_pushlightuserdata(LuaVM, Parentnode);
+    lua_pushlightuserdata(LuaVM, Node);
+    lua_pushstring(LuaVM, SetToString(ptypeinfo(typeinfo(TVirtualNodeInitStates)), @initialStates));
+    lua_pcall(LuaVM, 4,1,0);
+
+    StringToSet(ptypeinfo(typeinfo(TVirtualNodeInitStates)), Lua_ToString(LuaVM,-1), @InitialStates);
+  finally
+    lua_settop(LuaVM, oldstack);
+  end;
+end;
+
+procedure TLuaCaller.VTChangingEvent(Sender: TBaseVirtualTree; Node: PVirtualNode; var Allowed: Boolean);
+var
+  oldstack: integer;
+begin
+  oldstack:=lua_gettop(Luavm);
+  try
+    pushFunction;
+    luaclass_newClass(LuaVM, sender);
+    lua_pushlightuserdata(LuaVM, Node);
+    lua_pcall(LuaVM, 2,1,0);
+    allowed:=lua_toboolean(LuaVM,-1);
+  finally
+    lua_settop(LuaVM, oldstack);
+  end;
+end;
+
+procedure TLuaCaller.VTPaintText(Sender: TBaseVirtualTree; const TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex;  TextType: TVSTTextType);
+//lua: function (sender, canvas, node, column, texttype)
+//pascal: procedure (Sender: TBaseVirtualTree; const TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex;  TextType: TVSTTextType)
+var
+  oldstack: integer;
+begin
+  oldstack:=lua_gettop(Luavm);
+  try
+    pushFunction;
+    luaclass_newClass(LuaVM, sender);
+    luaclass_newClass(LuaVM, TargetCanvas);
+    lua_pushlightuserdata(LuaVM, Node);
+    lua_pushinteger(LuaVM, column);
+    lua_pushinteger(LuaVM, ord(TextType));
+
+    lua_pcall(LuaVM, 5,0,0);
+  finally
+    lua_settop(LuaVM, oldstack);
+  end;
+end;
+
+procedure TLuaCaller.VTDrawTextEvent(Sender: TBaseVirtualTree; TargetCanvas: TCanvas; Node: PVirtualNode;  Column: TColumnIndex; const CellText: String; const CellRect: TRect; var DefaultDraw: Boolean);
+//lua: function %s(sender, canvas, node, column, celltext, cellrect): defaultdraw
+//pascal: procedure(Sender: TBaseVirtualTree; TargetCanvas: TCanvas; Node: PVirtualNode;  Column: TColumnIndex; const CellText: String; const CellRect: TRect; var DefaultDraw: Boolean)
+var
+  oldstack: integer;
+begin
+  oldstack:=lua_gettop(Luavm);
+  try
+    pushFunction;
+    luaclass_newClass(LuaVM, sender);
+    luaclass_newClass(LuaVM, TargetCanvas);
+    lua_pushlightuserdata(LuaVM, Node);
+    lua_pushinteger(LuaVM, column);
+    lua_pushstring(LuaVM, celltext);
+    lua_pushrect(Luavm, CellRect);
+    lua_pcall(LuaVM, 6,1,0);
+    defaultdraw:=lua_toboolean(LuaVM,-1);
   finally
     lua_settop(LuaVM, oldstack);
   end;
@@ -3162,7 +3263,7 @@ end;
 
 
 function LuaCaller_VSTGetTextEvent(L: PLua_state): integer; cdecl; //procedure(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType; var CellText: String)
-var command: word;
+var
   sender: TBaseVirtualTree;
   columnindex: integer;
   node: PVirtualNode;
@@ -3179,7 +3280,7 @@ begin
 
     m.code:=lua_touserdata(L, lua_upvalueindex(1));
     m.data:=lua_touserdata(L, lua_upvalueindex(2));
-    sender:=lua_touserdata(L,1);
+    sender:=lua_ToCEUserData(L,1);
     columnindex:=lua_tointeger(L,3);
     node:=lua_toPointer(L,4);
     texttype:=TVSTTextType(lua_tointeger(L,5));
@@ -3191,6 +3292,132 @@ begin
   end;
 end;
 
+function LuaCaller_VTFreeNodeEvent(L: PLua_state): integer; cdecl; //procedure(tv,node)
+var
+  sender: TBaseVirtualTree;
+  node: PVirtualNode;
+  m: TMethod;
+begin
+  result:=0;
+  if lua_gettop(L)=2 then
+  begin
+    m.code:=lua_touserdata(L, lua_upvalueindex(1));
+    m.data:=lua_touserdata(L, lua_upvalueindex(2));
+    sender:=lua_ToCEUserData(L,1);
+    node:=lua_topointer(L,2);
+    TVTFreeNodeEvent(m)(sender, node);
+  end;
+end;
+
+function LuaCaller_VTInitNodeEvent(L: PLua_state): integer; cdecl;   //(sender, parentnode, node, initialStates): initialStates
+var
+  sender: TBaseVirtualTree;
+  parentnode: PVirtualNode;
+  node: PVirtualNode;
+  InitialStates: TVirtualNodeInitStates;
+  m: TMethod;
+begin
+  result:=0;
+  if lua_gettop(L)=4 then
+  begin
+    m.code:=lua_touserdata(L, lua_upvalueindex(1));
+    m.data:=lua_touserdata(L, lua_upvalueindex(2));
+    sender:=lua_ToCEUserData(L,1);
+    parentnode:=lua_topointer(L,2);
+    node:=lua_topointer(L,3);
+    StringToSet(ptypeinfo(typeinfo(TVirtualNodeInitStates)), Lua_ToString(L,4), @InitialStates);
+
+    TVTInitNodeEvent(m)(sender, parentnode, node, InitialStates);
+
+    lua_pushstring(L,SetToString(ptypeinfo(typeinfo(TVirtualNodeInitStates)), pointer(@InitialStates)));
+    result:=1;
+  end;
+end;
+
+function LuaCaller_VTChangingEvent(L: PLua_state): integer; cdecl;
+var
+  sender: TBaseVirtualTree;
+  node: PVirtualNode;
+  allow: boolean;
+  m: TMethod;
+begin
+  result:=0;
+  if lua_gettop(L)>=2 then
+  begin
+    m.code:=lua_touserdata(L, lua_upvalueindex(1));
+    m.data:=lua_touserdata(L, lua_upvalueindex(2));
+    sender:=lua_ToCEUserData(L,1);
+    node:=lua_topointer(L,2);
+
+    allow:=false;
+    TVTChangingEvent(m)(sender, node, allow);
+
+    lua_pushboolean(L, allow);
+
+
+    result:=1;
+  end;
+end;
+
+function LuaCaller_VTPaintText(L: PLua_state): integer; cdecl;
+//lua: function (sender, canvas, node, column, texttype)
+//pascal: procedure (Sender: TBaseVirtualTree; const TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex;  TextType: TVSTTextType)
+var
+  sender: TBaseVirtualTree;
+  canvas: TCanvas;
+  node: PVirtualNode;
+  column: TColumnIndex;
+  TextType: TVSTTextType;
+  m: tmethod;
+begin
+  result:=0;
+  if lua_gettop(L)>=5 then
+  begin
+    m.code:=lua_touserdata(L, lua_upvalueindex(1));
+    m.data:=lua_touserdata(L, lua_upvalueindex(2));
+    sender:=lua_ToCEUserData(L,1);
+    canvas:=lua_ToCEUserData(L,2);
+    node:=lua_topointer(L,3);
+    column:=lua_tointeger(L,4);
+    texttype:=TVSTTextType(lua_tointeger(L,5));
+
+    TVTPaintText(m)(sender, canvas, node, column, texttype);
+  end;
+end;
+
+function LuaCaller_VTDrawTextEvent(L: PLua_state): integer; cdecl;
+//lua: function %s(sender, canvas, node, column, celltext, cellrect): defaultdraw
+//pascal: procedure(Sender: TBaseVirtualTree; TargetCanvas: TCanvas; Node: PVirtualNode;  Column: TColumnIndex; const CellText: String; const CellRect: TRect; var DefaultDraw: Boolean)
+var
+  sender: TBaseVirtualTree;
+  canvas: TCanvas;
+  node: PVirtualNode;
+  Column: TColumnIndex;
+  CellText: String;
+  CellRect: Trect;
+  defaultdraw: boolean=true;
+
+  m: tmethod;
+begin
+  result:=0;
+  if lua_gettop(L)>=6 then
+  begin
+    m.code:=lua_touserdata(L, lua_upvalueindex(1));
+    m.data:=lua_touserdata(L, lua_upvalueindex(2));
+    sender:=lua_ToCEUserData(L,1);
+    canvas:=lua_ToCEUserData(L,2);
+    node:=lua_topointer(L,3);
+    column:=lua_tointeger(L,4);
+    celltext:=Lua_ToString(L,5);
+    cellrect:=lua_toRect(L,6);
+
+    TVTDrawTextEvent(m)(sender, canvas, node, column, celltext, cellrect, defaultdraw);
+
+    lua_pushboolean(L, defaultdraw);
+    result:=1;
+  end;
+end;
+
 procedure registerLuaCall(typename: string; getmethodprop: lua_CFunction; setmethodprop: pointer; luafunctionheader: string);
 var t: TLuaCallData;
 begin
@@ -3198,11 +3425,13 @@ begin
   t.getmethodprop:=getmethodprop;
   t.setmethodprop:=setmethodprop;
   t.luafunctionheader:=luafunctionheader;
-  LuaCallList.AddObject(typename, t);
+  LuaCallHashList.Add(typename,t);
 end;
 
+
 initialization
-  LuaCallList:=TStringList.create;
+  LuaCallHashList:=TStringHashList.Create(true);
+
   registerLuaCall('TNotifyEvent',  LuaCaller_NotifyEvent, pointer(TLuaCaller.NotifyEvent),'function %s(sender)'#13#10#13#10'end'#13#10);
   registerLuaCall('TSelectionChangeEvent', LuaCaller_SelectionChangeEvent, pointer(TLuaCaller.SelectionChangeEvent),'function %s(sender, user)'#13#10#13#10'end'#13#10);
   registerLuaCall('TCloseEvent', LuaCaller_CloseEvent, pointer(TLuaCaller.CloseEvent),'function %s(sender)'#13#10#13#10'return caHide --Possible options: caHide, caFree, caMinimize, caNone'#13#10'end'#13#10);
@@ -3272,12 +3501,15 @@ initialization
 
   registerLuaCall('TDisassemblerViewOverrideCallback', LuaCaller_DisassemblerViewOverrideCallback, pointer(TLuaCaller.DisassemblerViewOverrideCallback),'function %s(address, addressstring, bytestring, opcodestring, parameterstring, specialstring)'#13#10'  return addressstring, bytestring, opcodestring, parameterstring, specialstring'#13#10'end'#13#10);
 
-  registerLuaCall('THelpEvent', LuaCaller_HelpEvent, pointer(TLuaCaller.HelpEvent),'function %s(command, data ,callhelp)'#13#10#13#10'  return result, callhelp'#13#10'end'#13#10);
+  registerLuaCall('THelpEvent',       LuaCaller_HelpEvent,       pointer(TLuaCaller.HelpEvent),       'function %s(command, data ,callhelp)'#13#10#13#10'  return result, callhelp'#13#10'end'#13#10);
 
 
-  registerLuaCall('TVSTGetTextEvent', LuaCaller_VSTGetTextEvent, pointer(TLuaCaller.VSTGetTextEvent),'function %s(sender, nodeindex, nodeinfo, column)'#13#10#13#10'  return ''text'''#13#10'end'#13#10);
-
-
+  registerLuaCall('TVSTGetTextEvent', LuaCaller_VSTGetTextEvent, pointer(TLuaCaller.VSTGetTextEvent), 'function %s(sender, nodeindex, columnindex, node, texttype)   '#13#10#13#10'  return ''text'''#13#10'end'#13#10);
+  registerLuaCall('TVTFreeNodeEvent', LuaCaller_VTFreeNodeEvent, pointer(TLuaCaller.VTFreeNodeEvent), 'function %s(sender, node)'#13#10#13#10'end'#13#10);
+  registerLuaCall('TVTInitNodeEvent', LuaCaller_VTInitNodeEvent, pointer(TLuaCaller.VTInitNodeEvent), 'function %s(sender, parentnode, node, initialStates)'#13#10#13#10'  return initialStates'#13#10'end'#13#10);
+  registerLuaCall('TVTChangingEvent', LuaCaller_VTChangingEvent, pointer(TLuaCaller.VTChangingEvent), 'function %s(sender, node)'#13#10'  return allowed'#13#10'end'#13#10);
+  registerLuaCall('TVTPaintText',     LuaCaller_VTPaintText,     pointer(TLuaCaller.VTPaintText),     'function %s(sender, canvas, node, column, texttype)'#13#10#13#10'end'#13#10);
+  registerLuaCall('TVTDrawTextEvent', LuaCaller_VTDrawTextEvent, pointer(TLuaCaller.VTDrawTextEvent), 'function %s(sender, canvas, node, column, celltext, cellrect)'#13#10#13#10'  local DefaultDraw=true'#13#10'  return DefaultDraw'#13#10'end'#13#10);
 
 end.
 

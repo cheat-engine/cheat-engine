@@ -328,6 +328,9 @@
             </Optimizations>
           </CodeGeneration>
           <Linking>
+            <Debugging>
+              <DebugInfoType Value="dsDwarf2Set"/>
+            </Debugging>
             <Options>
               <Win32>
                 <GraphicApplication Value="True"/>
@@ -343,8 +346,16 @@
             <ConfigFile>
               <StopAfterErrCount Value="1000"/>
             </ConfigFile>
-            <CustomOptions Value="-dbenchmarkps -dcemain -WB00400000 -dNDEBUG -dD3DDebug -dNOVMX -dCUSTOMFLOAT -dNESTEDSTRUCTURES"/>
-            <OtherDefines Count="9">
+            <CustomOptions Value="-WB00400000
+-dbenchmarkps
+-dcemain
+-dNDEBUG
+-dD3DDebug
+-dNOVMX
+-dCUSTOMFLOAT
+-dNESTEDSTRUCTURES
+-doverflowdebug"/>
+            <OtherDefines Count="20">
               <Define0 Value="NOTMULTITHREADED"/>
               <Define1 Value="benchmarkps"/>
               <Define2 Value="cemain"/>
@@ -354,6 +365,17 @@
               <Define6 Value="CUSTOMFLOAT"/>
               <Define7 Value="XDEBUG"/>
               <Define8 Value="memleaksearch"/>
+              <Define9 Value="checkassembleralphabet"/>
+              <Define10 Value="memorymapped"/>
+              <Define11 Value="privatebuild"/>
+              <Define12 Value="DBVMFORAMDISWORKING"/>
+              <Define13 Value="NESTEDSTRUCTURES"/>
+              <Define14 Value="THREADNAMESUPPORT"/>
+              <Define15 Value="LINUXTCCTEST"/>
+              <Define16 Value="asserthexviewisthreadsafe"/>
+              <Define17 Value="DEBUGPROTOCOL"/>
+              <Define18 Value="NEWCHANGEREGONX86"/>
+              <Define19 Value="overflowdebug"/>
             </OtherDefines>
           </Other>
         </CompilerOptions>
@@ -625,7 +647,7 @@
 -dNESTEDSTRUCTURES
 -dTHREADNAMESUPPORT
 -dLINUXTCCTEST"/>
-            <OtherDefines Count="18">
+            <OtherDefines Count="19">
               <Define0 Value="NOTMULTITHREADED"/>
               <Define1 Value="benchmarkps"/>
               <Define2 Value="cemain"/>
@@ -644,6 +666,7 @@
               <Define15 Value="LINUXTCCTEST"/>
               <Define16 Value="asserthexviewisthreadsafe"/>
               <Define17 Value="DEBUGPROTOCOL"/>
+              <Define18 Value="NEWCHANGEREGONX86"/>
             </OtherDefines>
           </Other>
         </CompilerOptions>
@@ -666,35 +689,38 @@
         </Mode0>
       </Modes>
     </RunParams>
-    <RequiredPackages Count="8">
+    <RequiredPackages Count="9">
       <Item1>
-        <PackageName Value="FCL"/>
+        <PackageName Value="laz.virtualtreeview_package"/>
       </Item1>
       <Item2>
-        <PackageName Value="SQLDBLaz"/>
+        <PackageName Value="FCL"/>
       </Item2>
       <Item3>
-        <PackageName Value="LazControls"/>
+        <PackageName Value="SQLDBLaz"/>
       </Item3>
       <Item4>
-        <PackageName Value="LCLBase"/>
-        <MinVersion Major="1" Release="1" Valid="True"/>
+        <PackageName Value="LazControls"/>
       </Item4>
       <Item5>
-        <PackageName Value="IDEIntf"/>
+        <PackageName Value="LCLBase"/>
+        <MinVersion Major="1" Release="1" Valid="True"/>
       </Item5>
       <Item6>
-        <PackageName Value="CodeTools"/>
+        <PackageName Value="IDEIntf"/>
       </Item6>
       <Item7>
-        <PackageName Value="SynEdit"/>
-        <MinVersion Major="1" Valid="True"/>
+        <PackageName Value="CodeTools"/>
       </Item7>
       <Item8>
-        <PackageName Value="LCL"/>
+        <PackageName Value="SynEdit"/>
+        <MinVersion Major="1" Valid="True"/>
       </Item8>
+      <Item9>
+        <PackageName Value="LCL"/>
+      </Item9>
     </RequiredPackages>
-    <Units Count="418">
+    <Units Count="419">
       <Unit0>
         <Filename Value="cheatengine.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -2902,6 +2928,11 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
       </Unit417>
+      <Unit418>
+        <Filename Value="luavirtualstringtree.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="LuaVirtualStringTree"/>
+      </Unit418>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

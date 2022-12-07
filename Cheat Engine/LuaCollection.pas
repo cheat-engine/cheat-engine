@@ -44,6 +44,21 @@ begin
   result:=0;
 end;
 
+function collection_getItem(L: Plua_State): integer; cdecl;
+var
+  collection: TCollection;
+begin
+  result:=0;
+  collection:=luaclass_getClassObject(L);
+  if lua_gettop(L)>=1 then
+  begin
+    luaclass_newClass(L, collection.Items[lua_tointeger(L,1)]);
+    exit(1);
+  end;
+
+
+end;
+
 procedure collection_addMetaData(L: PLua_state; metatable: integer; userdata: integer );
 begin
   object_addMetaData(L, metatable, userdata);
@@ -52,6 +67,9 @@ begin
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'delete', collection_delete);
 
   luaclass_addPropertyToTable(L, metatable, userdata, 'Count', collection_getCount, nil);
+
+  luaclass_addArrayPropertyToTable(L, metatable, userdata, 'Items', collection_getItem, nil);
+  luaclass_setDefaultArrayProperty(L, metatable, userdata, collection_getItem,nil);
 end;
 
 procedure initializeLuaCollection;

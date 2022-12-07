@@ -1411,7 +1411,6 @@ object MemoryBrowser: TMemoryBrowser
     object miUserdefinedComment: TMenuItem
       Caption = 'Set/Change comment'
       ImageIndex = 6
-      ShortCut = 16397
       OnClick = miUserdefinedCommentClick
     end
     object miUserDefinedHeader: TMenuItem

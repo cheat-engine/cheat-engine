@@ -37,8 +37,8 @@ begin
     end
     else
     begin
-      paintinfo.TargetCanvas.pen.color:=clred;
-      paintinfo.TargetCanvas.brush.color:=clGreen;
+      paintinfo.TargetCanvas.pen.color:=colorset.ButtonBorderColor;
+      paintinfo.TargetCanvas.brush.color:=inccolor(colorset.TextBackground,8);
       paintinfo.TargetCanvas.Rectangle(PaintInfo.PaintRectangle);
     end;
   end;
@@ -63,6 +63,9 @@ begin
     header.Options:=header.Options+[hoOwnerDraw];
     OnHeaderDrawQueryElements:=@ohdqe;
     OnAdvancedHeaderDraw:=@oahd;
+
+    colors.UnfocusedSelectionColor:=inccolor(colors.FocusedSelectionColor,8);
+    colors.UnfocusedSelectionBorderColor:=inccolor(colors.FocusedSelectionBorderColor,8);
   end;
 end;
 
