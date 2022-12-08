@@ -720,7 +720,7 @@
         <PackageName Value="LCL"/>
       </Item9>
     </RequiredPackages>
-    <Units Count="419">
+    <Units Count="420">
       <Unit0>
         <Filename Value="cheatengine.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -2933,6 +2933,10 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="LuaVirtualStringTree"/>
       </Unit418>
+      <Unit419>
+        <Filename Value="userbytedisassembler.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit419>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
