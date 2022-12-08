@@ -2948,7 +2948,9 @@ begin
 
   if processid = $FFFFFFFF then
   begin
-    processlabel.Caption := strPhysicalMemory;
+    if ProcessHandler.ProcessHandle<>QWORD(-2) then
+      processlabel.Caption := strPhysicalMemory;
+
     cbPauseWhileScanning.visible:=false;
 
     if cbsaferPhysicalMemory=nil then
@@ -3029,7 +3031,8 @@ begin
     end
     else
     begin
-      processlabel.Caption := strPhysicalMemory;
+      if processhandle<>qword(-2) then
+        processlabel.Caption := strPhysicalMemory;
     end;
 
     UpdateScanType;
