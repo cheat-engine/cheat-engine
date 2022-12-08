@@ -9,7 +9,7 @@
       </Flags>
       <SessionStorage Value="InProjectDir"/>
       <AutoCreateForms Value="False"/>
-      <Title Value="Cheat Engine 7.4.2"/>
+      <Title Value="Cheat Engine 7.4.3"/>
       <UseXPManifest Value="True"/>
       <XPManifest>
         <DpiAware Value="True"/>
@@ -25,13 +25,14 @@
     </i18n>
     <VersionInfo>
       <UseVersionInfo Value="True"/>
+      <AutoIncrementBuild Value="True"/>
       <MajorVersionNr Value="7"/>
       <MinorVersionNr Value="4"/>
-      <RevisionNr Value="2"/>
-      <BuildNr Value="7301"/>
-      <Language Value=""/>
-      <CharSet Value=""/>
-      <StringTable CompanyName="Cheat Engine" FileDescription="Cheat Engine" ProductVersion="7.4.2"/>
+      <RevisionNr Value="3"/>
+      <BuildNr Value="7302"/>
+      <Language Value="041C"/>
+      <CharSet Value="04B0"/>
+      <StringTable CompanyName="Cheat Engine" FileDescription="Cheat Engine" ProductVersion="7.4.3"/>
     </VersionInfo>
     <BuildModes Count="10">
       <Item1 Name="Release 32-Bit" Default="True"/>
@@ -245,14 +246,18 @@
 -dCUSTOMFLOAT
 -dUSELAZFREETYPE
 -dNESTEDSTRUCTURES"/>
-            <OtherDefines Count="7">
-              <Define0 Value="benchmarkps"/>
-              <Define1 Value="cemain"/>
-              <Define2 Value="NDEBUG"/>
-              <Define3 Value="D3DDebug"/>
-              <Define4 Value="NOVMX"/>
-              <Define5 Value="CUSTOMFLOAT"/>
-              <Define6 Value="USELAZFREETYPE"/>
+            <OtherDefines Count="11">
+              <Define0 Value="NOTMULTITHREADED"/>
+              <Define1 Value="benchmarkps"/>
+              <Define2 Value="cemain"/>
+              <Define3 Value="NDEBUG"/>
+              <Define4 Value="D3DDebug"/>
+              <Define5 Value="NOVMX"/>
+              <Define6 Value="CUSTOMFLOAT"/>
+              <Define7 Value="XDEBUG"/>
+              <Define8 Value="USELAZFREETYPE"/>
+              <Define9 Value="NESTEDSTRUCTURES"/>
+              <Define10 Value="THREADNAMESUPPORT"/>
             </OtherDefines>
           </Other>
         </CompilerOptions>

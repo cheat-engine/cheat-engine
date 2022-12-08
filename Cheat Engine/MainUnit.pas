@@ -17,7 +17,9 @@ uses
   ceguicomponents,formdesignerunit,xmlutils,vartypestrings,plugin,byteinterpreter,
   MenuItemExtra,frmgroupscanalgoritmgeneratorunit
 
-  , macport,LCLVersion, UTF8Process, macportdefines, fgl, betterControls;     //last one
+  , macport,LCLVersion, UTF8Process, macportdefines, fgl, networkInterfaceApi,
+  networkInterface,
+  betterControls;     //last one
   {$endif}
 
   {$ifdef windows}

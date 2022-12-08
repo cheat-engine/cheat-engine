@@ -1,27 +1,30 @@
 #ifdef _WINDOWS
 #include "StdAfx.h"
+#endif
+
+#ifdef __APPLE__
+#include "macport.h"
+#endif
+
 #include <setjmp.h>
-#elif __linux__
-#include <setjmp.h>
+#ifdef __linux__
 #include <signal.h>
 #include <sys/types.h>
 #include <string.h>
-
-
 #include <unistd.h>
 #include <sys/syscall.h>
-
 
 #if __GLIBC__ == 2 && __GLIBC_MINOR__ < 30
 #define gettid() syscall(SYS_gettid)
 #endif
 
+#endif //linux
 
 
-#else
+
 #include <signal.h>
 #include <sys/types.h>
-#endif
+
 #include "PipeServer.h"
 
 
@@ -328,7 +331,7 @@ void CPipeServer::InitMono()
 {
 
     
-	  OutputDebugStringA("CPipeServer::InitMono");
+	  OutputDebugStringA((char *)"CPipeServer::InitMono");
     il2cpp = FALSE;
 
 #ifndef _WINDOWS

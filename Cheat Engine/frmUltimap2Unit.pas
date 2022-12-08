@@ -3626,6 +3626,7 @@ var
   startAddress: qword;
   endaddress: qword;
 begin
+  {$ifdef windows}
   if lvThreads.Selected<>nil then
   begin
     ti:=PUltimap2ThreadInfo(lvThreads.selected.data);
@@ -3634,6 +3635,7 @@ begin
       th:=openthread(THREAD_ALL_ACCESS, false, ti^.threadid);
       if th<>0 then
       begin
+
         if QueryThreadAddressFilterRange(th, 0,rc, startAddress, endAddress) then
           if rc=IptFilterRangeDisable then
             showmessage('disabled')
@@ -3650,6 +3652,7 @@ begin
       end;
     end;
   end;
+  {$endif}
 end;
 
 function TfrmUltimap2.ValidListCompare(Tree: TAvgLvlTree; Data1, Data2: Pointer): integer;

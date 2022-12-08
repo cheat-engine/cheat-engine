@@ -82,7 +82,7 @@ uses strutils, memscan, disassembler, networkInterface, networkInterfaceApi,
 {$else}
 
 
-uses simpleaobscanner, StrUtils, LuaHandler, memscan, disassembler{$ifdef windows}, networkInterface{$endif},
+uses simpleaobscanner, StrUtils, LuaHandler, memscan, disassembler, networkInterface,
      networkInterfaceApi, LuaCaller, SynHighlighterAA, Parsers, Globals, memoryQuery,
      MemoryBrowserFormUnit, MemoryRecordUnit{$ifdef windows}, vmxfunctions{$endif}, autoassemblerexeptionhandler,
      UnexpectedExceptionsHelper, types, autoassemblercode, System.UITypes;
@@ -1541,9 +1541,9 @@ var i: integer=0;
 
     potentiallabels: TStringlist=nil;
 
-     {$ifdef windows}
+
     connection: TCEConnection=nil;
-    {$endif}
+
 
     mi: TModuleInfo;
     aaid: longint=0;

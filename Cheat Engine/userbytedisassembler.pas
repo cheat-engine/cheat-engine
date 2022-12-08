@@ -8,7 +8,12 @@ Lets the user input bytes and those will then get disassembled
 interface
 
 uses
-  windows, Classes, SysUtils, disassembler;
+  {$ifdef darwin}
+  macport,
+  {$else}
+  windows,
+  {$endif}
+  Classes, SysUtils, disassembler,math;
 
 type
   TUserByteDisassembler=class(TDisassembler)
