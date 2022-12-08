@@ -129,7 +129,8 @@ uses autoassembler, MainUnit, MainUnit2, LuaClass, frmluaengineunit, plugin, plu
   LazLogger, LuaSynedit, LuaRIPRelativeScanner, LuaCustomImageList ,ColorBox,
   rttihelper, LuaDotNetPipe, LuaRemoteExecutor, windows7taskbar, debugeventhandler,
   tcclib, dotnethost, CSharpCompiler, LuaCECustomButton, feces, process,
-  networkInterface, networkInterfaceApi, LuaVirtualStringTree;
+  networkInterface, networkInterfaceApi, LuaVirtualStringTree, userbytedisassembler,
+  parsers;
 
   {$warn 5044 off}
 
@@ -8101,6 +8102,56 @@ begin
   end
   else
     lua_pop(L, parameters);
+end;
+
+function disassemblebytes(L: PLua_State): integer; cdecl;
+var
+  d: TUserByteDisassembler;
+  bytes: tbytes;
+  bytelength: integer;
+  address: ptruint=0;
+  s: string;
+  t: integer;
+begin
+  if lua_gettop(L)>=1 then
+  begin
+    if lua_istable(L,1) then
+    begin
+      bytelength:=lua_objlen(L,1);
+      setlength(bytes, bytelength);
+      readBytesFromTable(L,1,@bytes[0],bytelength);
+    end
+    else
+      ConvertStringToBytes(Lua_ToString(L,1), true, bytes);
+
+    if length(bytes)>0 then
+    begin
+      if lua_gettop(L)>=2 then
+        address:=lua_toaddress(L,2);
+
+      d:=TUserByteDisassembler.create;
+      d.setBytes(@bytes[0], length(bytes));
+      s:=d.disassemble(address);
+      lua_pushstring(L,s);
+      lua_newtable(L);
+      t:=lua_gettop(L);
+      LastDisassemblerDataToTable(L, t, d.LastDisassembleData);
+      d.free;
+      exit(2);
+    end
+    else
+    begin
+      lua_pushnil(L);
+      lua_pushstring(L,'Invalid hexadecimal bytestring or bytetable in the first parameter');
+      exit(2);
+    end;
+  end
+  else
+  begin
+    lua_pushnil(L);
+    lua_pushstring(L,rsIncorrectNumberOfParameters);
+    exit(2);
+  end;
 end;
 
 function disassemble_lua(L: PLua_State): integer; cdecl;
@@ -16521,6 +16572,7 @@ begin
     lua_register(L, 'splitDisassembledString', splitDisassembledString);
     lua_register(L, 'getInstructionSize', getInstructionSize);
     lua_Register(L, 'getPreviousOpcode', getPreviousOpcode);
+    lua_Register(L, 'disassembleBytes', disassembleBytes);
 
     initializegraphiccontrol;
 

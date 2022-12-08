@@ -596,6 +596,7 @@ splitDisassembledString(disassembledstring): Returns 4 strings. The address, byt
 getInstructionSize(address): Returns the size of an instruction (basically it disassembles the instruction and returns the number of bytes for you)
 getPreviousOpcode(address): Returns the address of the previous opcode (this is just an estimated guess)
 
+disassembleBytes(hexadecimalbytestring or {bytetable},address OPTIONAL) : Disassembles the given bytes and returns the result. 
 
 beep() : Plays the fabulous beep/ping sound!
 playSound(stream, waittilldone OPTIONAL): Plays the given memorystream containing a .WAV formatted memory object. If waittilldone is true the script will stop executing till the sound has stopped
