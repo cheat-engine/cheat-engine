@@ -410,6 +410,7 @@ getScreenWidth(): Returns the screen  width
 getWorkAreaHeight(): Returns the work area height
 getWorkAreaWidth(): Returns the work area width
 
+invertColor(color): Returns the inverted color
 getScreenCanvas(): Returns a Canvas object you can use to write to the screen (Note: Not as useful as you may think)
 
 getPixel(x,y) : returns the rgb value of the pixel at the specific screen coordinate
@@ -4079,6 +4080,8 @@ properties
   OnInitNode: function(sender, parentnode, node, initialStates) : initialStates - Called when a node gets created. Return the initialStates set (string) to set it's state. initialStates can be a comma seperated string containing one or more of:     ivsDisabled, ivsExpanded, ivsHasChildren, ivsMultiline, ivsSelected,ivsFiltered, ivsReInit 
   TreeOptions: StringTreeOptions 
   FullRowSelect: boolean - Shortcut to TreeOptions->SelectionOptions->toFullRowSelect
+  FocusedNode: node - gets/sets the focused node
+  FocusedColumn: integer - gets/sets the focused column index
 
   NodeParent[node]: node - gets/sets the node parent
   NodeHeight[node]: height of the node - gets/sets the height of the node

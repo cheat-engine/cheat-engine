@@ -399,7 +399,9 @@ local function getDomains()
   DataSource.Domains={}
     
   if monopipe then
-    local mr=mono_enumDomains()  
+    local mr=mono_enumDomains() 
+    if mr==nil then return DataSource.Domains end    
+    
     local i
     for i=1,#mr do
       local e={}
@@ -1933,15 +1935,79 @@ local function lvStaticFieldsDblClick(frmDotNetInfo,sender)
 end
 
 
-local function miBrowseFieldClick(frmDotNetInfo,sender)
-  local entry=frmDotNetInfo.lvFields.Selected
-  if entry then
-    local address=tonumber(entry.Caption,16)
-    if address then
-      getMemoryViewForm().HexadecimalView.Address=address
-      getMemoryViewForm().show()
+local function getAddressFromNode(frmDotNetInfo, node)
+  if node==nil then return nil, 'invalid node(nil)' end
+
+  if type(node)~='userdata' then return nil, 'invalid node(not userdata)' end
+  if userDataToInteger(node)==0 then return nil, 'invalid node(0)' end
+  
+  local address
+  local parentnode=frmDotNetInfo.lvFields2.getNodeParent(node)
+  if parentnode==nil then
+    --get the address from the editfield (todo: add support for usage in the static fields list)
+    if frmDotNetInfo.lvFields2_addresscache.address==nil then
+      
+      if (frmDotNetInfo.lvFields2_addresscache.string==nil) or --not yet tried
+         (getTickCount()>frmDotNetInfo.lvFields2_addresscache.lastquery+2000) then --it's been 2 seconds since last lookup
+         frmDotNetInfo.lvFields2_addresscache.string=frmDotNetInfo.comboFieldBaseAddress.Text               
+         frmDotNetInfo.lvFields2_addresscache.address=getAddressSafe(frmDotNetInfo.comboFieldBaseAddress.Text)
+         frmDotNetInfo.lvFields2_addresscache.lastquery=getTickCount()
+      end
+    else
+     -- print("frmDotNetInfo.lvFields2_addresscache.address~=nil")
+    end
+    address=frmDotNetInfo.lvFields2_addresscache.address        
+  else
+    --print("parentnode~=nil")
+    address=getAddressFromNode(frmDotNetInfo, parentnode)
+    
+    if address then         
+      address=readPointer(address)
+      if address==nil then
+        return nil,'unreadable pointer 2'
+      end
+    else
+      return nil,'unreadable pointer'
     end
   end
+   
+  if address then
+
+    --add the offset of this field    
+    
+    local ndi=frmDotNetInfo.lvFields2.getNodeDataAsInteger(node)
+    if ndi then
+      local Field=getRef(ndi)  
+     -- print("type field="..type(Field))                  
+      return address+Field.Offset
+    else
+     -- print("getNodeDataAsInteger=nil")
+      return nil, 'invalid node data'
+    end
+    return address
+  else
+    return nil,'unparsable address'
+  end
+end      
+
+local function miBrowseFieldClick(frmDotNetInfo,sender)
+  local address
+  if frmDotNetInfo.lvFields2==nil then
+    local entry=frmDotNetInfo.lvFields.Selected
+    if entry then
+      address=tonumber(entry.Caption,16)
+    end
+  else    
+    local node=frmDotNetInfo.lvFields2.FocusedNode
+    if node then      
+      address=getAddressFromNode(frmDotNetInfo, node)
+    end
+  end
+
+  if address then  
+    getMemoryViewForm().HexadecimalView.Address=address
+    getMemoryViewForm().show()
+  end  
 end
 
 local function lvFieldsDblClick(frmDotNetInfo,sender)
@@ -2199,7 +2265,11 @@ function miDotNetInfoClick(sender)
   frmDotNetInfo.miBrowseField.OnClick=function(sender) miBrowseFieldClick(frmDotNetInfo, sender) end
   
   frmDotNetInfo.pmFields.OnPopup=function(sender)
-    frmDotNetInfo.miBrowseField.Enabled=frmDotNetInfo.lvFields.Selected and frmDotNetInfo.comboFieldBaseAddress.Text~=''    
+    if frmDotNetInfo.lvFields2 then
+      frmDotNetInfo.miBrowseField.Enabled=frmDotNetInfo.lvFields2.FocusedNode and frmDotNetInfo.comboFieldBaseAddress.Text~=''           
+    else
+      frmDotNetInfo.miBrowseField.Enabled=frmDotNetInfo.lvFields.Selected and frmDotNetInfo.comboFieldBaseAddress.Text~=''    
+    end
   end
   
   frmDotNetInfo.pmMethods.OnPopup=function(sender)
@@ -2224,60 +2294,7 @@ function miDotNetInfoClick(sender)
     local cValue=frmDotNetInfo.lvFields2.Header.Columns.add('Value')
     frmDotNetInfo.lvFields2.FullRowSelect=true 
 
-    local function getAddressFromNode(node)
-      if node==nil then return nil, 'invalid node(nil)' end
 
-      if type(node)~='userdata' then return nil, 'invalid node(not userdata)' end
-      if userDataToInteger(node)==0 then return nil, 'invalid node(0)' end
-     
-      local address
-      local parentnode=fv.getNodeParent(node)
-      if parentnode==nil then
-        --get the address from the editfield (todo: add support for usage in the static fields list)
-        if frmDotNetInfo.lvFields2_addresscache.address==nil then
-          
-          if (frmDotNetInfo.lvFields2_addresscache.string==nil) or --not yet tried
-             (getTickCount()>frmDotNetInfo.lvFields2_addresscache.lastquery+2000) then --it's been 2 seconds since last lookup
-             frmDotNetInfo.lvFields2_addresscache.string=frmDotNetInfo.comboFieldBaseAddress.Text               
-             frmDotNetInfo.lvFields2_addresscache.address=getAddressSafe(frmDotNetInfo.comboFieldBaseAddress.Text)
-             frmDotNetInfo.lvFields2_addresscache.lastquery=getTickCount()
-          end
-        else
-         -- print("frmDotNetInfo.lvFields2_addresscache.address~=nil")
-        end
-        address=frmDotNetInfo.lvFields2_addresscache.address        
-      else
-        --print("parentnode~=nil")
-        address=getAddressFromNode(parentnode)
-        
-        if address then         
-          address=readPointer(address)
-          if address==nil then
-            return nil,'unreadable pointer 2'
-          end
-        else
-          return nil,'unreadable pointer'
-        end
-      end
-       
-      if address then
-    
-        --add the offset of this field    
-        
-        local ndi=fv.getNodeDataAsInteger(node)
-        if ndi then
-          local Field=getRef(ndi)  
-         -- print("type field="..type(Field))                  
-          return address+Field.Offset
-        else
-         -- print("getNodeDataAsInteger=nil")
-          return nil, 'invalid node data'
-        end
-        return address
-      else
-        return nil,'unparsable address'
-      end
-    end      
     
       
 
@@ -2293,7 +2310,7 @@ function miDotNetInfoClick(sender)
             else            
               local address
               local err
-              address,err=getAddressFromNode(node)
+              address,err=getAddressFromNode(frmDotNetInfo, node)
               if address then
                 return string.format("%.8x", address)
               else
@@ -2322,7 +2339,7 @@ function miDotNetInfoClick(sender)
           end,
           
       [4]=function(node) --value
-            local address,err=getAddressFromNode(node)
+            local address,err=getAddressFromNode(frmDotNetInfo, node)
             local Field=getRef(fv.getNodeDataAsInteger(node))
            
             if address==nil then
@@ -2364,23 +2381,28 @@ function miDotNetInfoClick(sender)
       local Field=getRef(fv.getNodeDataAsInteger(node))
       
       local AccessMask=Field.Attribs & FIELD_ATTRIBUTE_FIELD_ACCESS_MASK
-      canvas.Font.Color=AccessMaskToColor(AccessMask)
+      local c=AccessMaskToColor(AccessMask)
+      
+      if sender.Selected[node] then
+        c=invertColor(c)        
+      end
+      canvas.Font.Color=c
     end    
     
     frmDotNetInfo.lvFields2.OnExpanding=function(sender, node)
       --find the class this field describes, and get the dynamic fields 
-      print("Expanding node")
+      --print("Expanding node")
       local Field=getRef(fv.getNodeDataAsInteger(node))
       local Class=nil
       --if not found, check if it's not a namespace notation
       
       if fv.getFirstChild(node)~=nil then 
-        print("this node already has children")
+        --print("this node already has children")
         return true 
       end
       
       if frmDotNetInfo.ClassSearcher then
-        print("There was already a class searcher going on. Deleting it")
+        --print("There was already a class searcher going on. Deleting it")
         frmDotNetInfo.ClassSearcher.terminate()
         frmDotNetInfo.ClassSearcher.destroy()
         frmDotNetInfo.ClassSearcher=nil
@@ -2389,28 +2411,28 @@ function miDotNetInfoClick(sender)
       
       frmDotNetInfo.ClassSearcher,Class=SearchClassName(Field.VarTypeName, 
       function(c) --onFound
-        print("a result has been found. Reopening this node in 1 ms")
+        --print("a result has been found. Reopening this node in 1 ms")
         createTimer(1,function() --(try again) 
-          print("opening this node")        
+          --print("opening this node")        
           fv.Expanded[node]=true 
         end)
       end,
         
       function() --onDone
-        print("done scanning")
+        --print("done scanning")
         fv.Cursor=crDefault
       end        
       )  
      
       if frmDotNetInfo.ClassSearcher then --not found instantly, doing a scan
-        print("Unknown class. Searching...")
+        --print("Unknown class. Searching...")
         frmDotNetInfo.lvFields2.Cursor=crHourGlass      
         return false
       else
         --fill in using the returned class
-        print("Found the class. Filling in the results")
+        --print("Found the class. Filling in the results")
         if Class.Fields==nil then
-          print("Getting fields");
+          --print("Getting fields");
           DataSource.getClassFields(Class)
         end
         
@@ -2427,7 +2449,7 @@ function miDotNetInfoClick(sender)
           end
           return true
         else
-          print("no fields")
+          --print("no fields")
           return false
         end
       end

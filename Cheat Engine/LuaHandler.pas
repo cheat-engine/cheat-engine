@@ -16053,6 +16053,16 @@ begin
 end;
 {$endif}
 
+function lua_InvertColor(L: Plua_State):integer; cdecl;
+begin
+  result:=0;
+  if lua_gettop(L)>=1 then
+  begin
+    lua_pushinteger(L, InvertColor(lua_tointeger(L,1)));
+    result:=1;
+  end;
+end;
+
 procedure InitLimitedLuastate(L: Plua_State);
 begin
   //don't put functioncallback events in here, as limited luastates can be destroyed
@@ -16203,6 +16213,9 @@ begin
 
   lua_register(L, 'isConnectedToCEServer', lua_isConnectedToCEServer);
   lua_register(L, 'getCEServerPath',lua_getCEServerPath);
+
+  lua_register(L, 'invertColor',lua_InvertColor);
+
 
 
 {$ifdef darwin}

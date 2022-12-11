@@ -117,10 +117,11 @@ begin
   result:=0;
   tv:=TLazVirtualStringTree(luaclass_getClassObject(L));
   if lua_gettop(L)>=1 then
+  begin
     node:=lua_topointer(L,1);
-
-  if node<>nil then
-    tv.AddToSelection(node);
+    if node<>nil then
+      tv.AddToSelection(node);
+  end;
 end;
 
 function VirtualStringTree_removeFromSelection(L: Plua_State): integer; cdecl;
@@ -131,10 +132,11 @@ begin
   result:=0;
   tv:=TLazVirtualStringTree(luaclass_getClassObject(L));
   if lua_gettop(L)>=1 then
+  begin
     node:=lua_topointer(L,1);
-
-  if node<>nil then
-    tv.RemoveFromSelection(node);
+    if node<>nil then
+      tv.RemoveFromSelection(node);
+  end;
 end;
 
 
@@ -423,6 +425,7 @@ var
   node: PVirtualNode;
   p: pointer;
 begin
+  result:=0;
   tv:=TLazVirtualStringTree(luaclass_getClassObject(L));
 
   if lua_gettop(L)>=1 then
@@ -500,6 +503,7 @@ var
   tv: TLazVirtualStringTree;
   node: PVirtualNode;
 begin
+  result:=0;
   tv:=TLazVirtualStringTree(luaclass_getClassObject(L));
   if lua_gettop(L)>=1 then
   begin
@@ -524,6 +528,7 @@ var
   tv: TLazVirtualStringTree;
   node: PVirtualNode;
 begin
+  result:=0;
   tv:=TLazVirtualStringTree(luaclass_getClassObject(L));
   if lua_gettop(L)>=1 then
   begin
@@ -568,6 +573,60 @@ var
 begin
   tv:=TLazVirtualStringTree(luaclass_getClassObject(L));
   lua_pushboolean(L, toFullRowSelect in tv.TreeOptions.SelectionOptions);
+  result:=1;
+end;
+
+function virtualstringtree_setFocusedNode(L: Plua_State): integer; cdecl;
+var
+  tv: TLazVirtualStringTree;
+  node: PVirtualNode;
+begin
+  tv:=TLazVirtualStringTree(luaclass_getClassObject(L));
+  if lua_Gettop(L)>=1 then
+  begin
+    node:=lua_topointer(L,1);
+    tv.FocusedNode:=node;
+  end;
+  result:=0;
+end;
+
+function virtualstringtree_getFocusedNode(L: Plua_State): integer; cdecl;
+var
+  tv: TLazVirtualStringTree;
+  node: PVirtualNode;
+begin
+  tv:=TLazVirtualStringTree(luaclass_getClassObject(L));
+  node:=tv.FocusedNode;
+  if node=nil then
+    lua_pushnil(L)
+  else
+    lua_pushlightuserdata(L,node);
+
+  result:=1;
+end;
+
+function virtualstringtree_setFocusedColumn(L: Plua_State): integer; cdecl;
+var
+  tv: TLazVirtualStringTree;
+  c: integer;
+begin
+  tv:=TLazVirtualStringTree(luaclass_getClassObject(L));
+  if lua_Gettop(L)>=1 then
+  begin
+    c:=lua_tointeger(L,1);
+    tv.FocusedColumn:=c;
+  end;
+  result:=0;
+end;
+
+function virtualstringtree_getFocusedColumn(L: Plua_State): integer; cdecl;
+var
+  tv: TLazVirtualStringTree;
+  c: integer;
+begin
+  tv:=TLazVirtualStringTree(luaclass_getClassObject(L));
+  c:=tv.FocusedColumn;
+  lua_pushinteger(L,c);
   result:=1;
 end;
 
@@ -706,6 +765,9 @@ begin
 
 
   luaclass_addPropertyToTable(L, metatable, userdata,'FullRowSelect', virtualstringtree_getFullRowSelect, virtualstringtree_setFullRowSelect);
+  luaclass_addPropertyToTable(L, metatable, userdata,'FocusedNode', virtualstringtree_getFocusedNode, virtualstringtree_setFocusedNode);
+  luaclass_addPropertyToTable(L, metatable, userdata,'FocusedColumn', virtualstringtree_getFocusedColumn, virtualstringtree_setFocusedColumn);
+
 
   luaclass_addArrayPropertyToTable(L, metatable, userdata,'NodeParent', VirtualStringTree_getNodeParent, VirtualStringTree_setNodeParent);
   luaclass_addArrayPropertyToTable(L, metatable, userdata,'NodeHeight', VirtualStringTree_getNodeHeight, VirtualStringTree_setNodeHeight);

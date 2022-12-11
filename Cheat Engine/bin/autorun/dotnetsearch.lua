@@ -318,13 +318,13 @@ end
 function SearchClassName(classname, onFound, onDone)
   --create a thread that will scan for the given classname and call onFound when found and onNotFound when not
   --if the name is known return a Class instead
-  printf("SearchClassName for %s", classname)
+ -- printf("SearchClassName for %s", classname)
   if DataSource.ClassNameLookup==nil then
     DataSource.ClassNameLookup={}
   else
     local r=DataSource.ClassNameLookup[classname]
     if r then 
-      printf("Found a class with this name")
+      --printf("Found a class with this name")
       return nil,r
     end
   end
@@ -371,7 +371,7 @@ function SearchClassName(classname, onFound, onDone)
               
               if (found==nil) and (fullname==classname) then
                 found=DataSource.Domains[i].Images[j].Classes[k]
-                print("found a result")
+               -- print("found a result")
                 if onFound then
                   queue(function()
                     onFound(found)
@@ -390,7 +390,7 @@ function SearchClassName(classname, onFound, onDone)
         end
       end
       
-      print("not found")      
+     -- print("not found")      
     end
     scan()
     
