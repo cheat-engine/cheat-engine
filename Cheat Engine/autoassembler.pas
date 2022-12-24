@@ -2404,8 +2404,13 @@ begin
               if multilineinjection.count=0 then
                 raise exception.create(format(rsFailureGettingOriginalInstruction, [testptr]));
 
-              assemblerlines[length(assemblerlines)-1].linenr:=currentlinenr;
-              assemblerlines[length(assemblerlines)-1].line:=multilineinjection[0];
+              if trim(multilineinjection[0]).StartsWith('//') then    //skip comments
+                setlength(assemblerlines, length(assemblerlines)-1)
+              else
+              begin
+                assemblerlines[length(assemblerlines)-1].linenr:=currentlinenr;
+                assemblerlines[length(assemblerlines)-1].line:=multilineinjection[0];
+              end;
 
               for j:=1 to multilineinjection.Count-1 do
               begin
@@ -2416,6 +2421,7 @@ begin
 
 
               freeandnil(multilineinjection);
+              continue;
               {
               disassembler:=TDisassembler.create;
               disassembler.dataOnly:=true;
