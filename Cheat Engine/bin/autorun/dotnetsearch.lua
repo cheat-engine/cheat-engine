@@ -311,6 +311,95 @@ function spawnDotNetSearchDialog(DataSource, frmDotNetInfo, searchtype)
         
       end
     end
+  end  
+end
+
+
+function SearchClassName(classname, onFound, onDone)
+  --create a thread that will scan for the given classname and call onFound when found and onNotFound when not
+  --if the name is known return a Class instead
+ -- printf("SearchClassName for %s", classname)
+  if DataSource.ClassNameLookup==nil then
+    DataSource.ClassNameLookup={}
+  else
+    local r=DataSource.ClassNameLookup[classname]
+    if r then 
+      --printf("Found a class with this name")
+      return nil,r
+    end
   end
+  
+  return createThread(function(t)
+    t.freeOnTerminate(false)
+    t.Name='SearchClassName thread'
+    function scan()
+      local i,j,k
+      
+      if DataSource.Domains==nil then        
+        DataSource.getDomains()
+      end      
+      
+      if t.Terminated then return end
+      
+      for i=1,#DataSource.Domains do
+        if t.Terminated then return end
+        
+        if DataSource.Domains[i].Images==nil then
+          DataSource.getImages(DataSource.Domains[i])
+        end
+            
+        if DataSource.Domains[i].Images==nil then return end
+        
+        for j=1,#DataSource.Domains[i].Images do
+          if t.Terminated then return end
+          
+          if DataSource.Domains[i].Images[j].Classes==nil then
+            DataSource.Domains[i].Images[j].Classes={}
+            DataSource.Domains[i].Images[j].Classes.Busy=true 
+            DataSource.getClasses(DataSource.Domains[i].Images[j])
+            DataSource.Domains[i].Images[j].Classes.Busy=nil             
+          end
+          
+          if t.Terminated then return end
+          
+          local found=nil
+          if not DataSource.Domains[i].Images[j].ClassNameLookupDone then --skip this if it's already added to the name to class lookup table
+            for k=1,#DataSource.Domains[i].Images[j].Classes do
+              local fullname=DataSource.Domains[i].Images[j].Classes[k].FullName
+              
+              DataSource.ClassNameLookup[fullname]=DataSource.Domains[i].Images[j].Classes[k]
+              
+              if (found==nil) and (fullname==classname) then
+                found=DataSource.Domains[i].Images[j].Classes[k]
+               -- print("found a result")
+                if onFound then
+                  queue(function()
+                    onFound(found)
+                  end)                                   
+                 
+                end
+            
+              end
+            end 
+            
+            DataSource.Domains[i].Images[j].ClassNameLookupDone=true
+          end
+          if found then 
+            return
+          end          
+        end
+      end
+      
+     -- print("not found")      
+    end
+    scan()
+    
+    synchronize(function()
+      if t.Terminated==false then
+        onDone()
+      end
+    end)
+  end)
+ 
   
 end

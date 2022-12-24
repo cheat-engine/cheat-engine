@@ -509,7 +509,7 @@ end
 function dotnet_getModuleIDFromClassList(modulename, classnamelist)
   --scans for modules that contain all the given classnames. 
   --when found, apply to the dotnetmodulelist so it doesn't need to be found anymore
-  print("dotnet_getModuleIDFromClassList.  #classnamelist="..#classnamelist);
+ -- print("dotnet_getModuleIDFromClassList.  #classnamelist="..#classnamelist);
   
   if (classnamelist==nil) or (#classnamelist==0) then 
     print("empty classlist")

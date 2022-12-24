@@ -129,7 +129,8 @@ uses autoassembler, MainUnit, MainUnit2, LuaClass, frmluaengineunit, plugin, plu
   LazLogger, LuaSynedit, LuaRIPRelativeScanner, LuaCustomImageList ,ColorBox,
   rttihelper, LuaDotNetPipe, LuaRemoteExecutor, windows7taskbar, debugeventhandler,
   tcclib, dotnethost, CSharpCompiler, LuaCECustomButton, feces, process,
-  networkInterface, networkInterfaceApi, LuaVirtualStringTree;
+  networkInterface, networkInterfaceApi, LuaVirtualStringTree, userbytedisassembler,
+  parsers;
 
   {$warn 5044 off}
 
@@ -510,7 +511,7 @@ begin
 
   if not lua_isnil(L, i) then
   begin
-    if lua_isuserdata(L, i) then
+    if lua_isheavyuserdata(L, i) then
     begin
       stackstart:=lua_gettop(L);
 
@@ -521,7 +522,7 @@ begin
         begin
           result:='Object of type '+o.ClassName;
           if o is TControl then
-            result:=result+#13#10+tcontrol(o).Name;
+            result:=result+' (Name='+tcontrol(o).Name+')'
         end;
       except
       end;
@@ -529,6 +530,9 @@ begin
       index:=lua_gettop(l);
       lua_settop(l, stackstart);
     end
+    else
+    if lua_isuserdata(L, i) then
+      result:='Pointer: '+inttohex(ptruint(lua_topointer(L,i)),8)
     else
     if lua_iscfunction(L, i) then
       result:='native function'
@@ -557,16 +561,16 @@ begin
           count:=count-1;
           if count<0 then
           begin
-
             result:=result+tablepad+'...'+#13#10;;
             break;
           end;
 
           if lua_type(L,-2)=LUA_TSTRING then
             fieldname:=Lua_ToString(L, -2)
+          else if lua_type(L,-2)=LUA_TLIGHTUSERDATA then
+            fieldname:='pointert: '+inttohex(lua_tointeger(L,-2),8)
           else
             fieldname:=inttostr(lua_tointeger(L, -2));
-
 
           valuedesc:=LuaValueToDescription(L, -1, recursivetablecount+1);
 
@@ -3573,6 +3577,7 @@ begin
     else
       lc.synchronizeparam:=0;
 
+//    tthread.ForceQueue(TThread.CurrentThread, lc.queue);
     tthread.ForceQueue(TThread.CurrentThread, lc.queue);
 
     result:=0;
@@ -8097,6 +8102,56 @@ begin
   end
   else
     lua_pop(L, parameters);
+end;
+
+function disassemblebytes(L: PLua_State): integer; cdecl;
+var
+  d: TUserByteDisassembler;
+  bytes: tbytes;
+  bytelength: integer;
+  address: ptruint=0;
+  s: string;
+  t: integer;
+begin
+  if lua_gettop(L)>=1 then
+  begin
+    if lua_istable(L,1) then
+    begin
+      bytelength:=lua_objlen(L,1);
+      setlength(bytes, bytelength);
+      readBytesFromTable(L,1,@bytes[0],bytelength);
+    end
+    else
+      ConvertStringToBytes(Lua_ToString(L,1), true, bytes);
+
+    if length(bytes)>0 then
+    begin
+      if lua_gettop(L)>=2 then
+        address:=lua_toaddress(L,2);
+
+      d:=TUserByteDisassembler.create;
+      d.setBytes(@bytes[0], length(bytes));
+      s:=d.disassemble(address);
+      lua_pushstring(L,s);
+      lua_newtable(L);
+      t:=lua_gettop(L);
+      LastDisassemblerDataToTable(L, t, d.LastDisassembleData);
+      d.free;
+      exit(2);
+    end
+    else
+    begin
+      lua_pushnil(L);
+      lua_pushstring(L,'Invalid hexadecimal bytestring or bytetable in the first parameter');
+      exit(2);
+    end;
+  end
+  else
+  begin
+    lua_pushnil(L);
+    lua_pushstring(L,rsIncorrectNumberOfParameters);
+    exit(2);
+  end;
 end;
 
 function disassemble_lua(L: PLua_State): integer; cdecl;
@@ -15998,6 +16053,16 @@ begin
 end;
 {$endif}
 
+function lua_InvertColor(L: Plua_State):integer; cdecl;
+begin
+  result:=0;
+  if lua_gettop(L)>=1 then
+  begin
+    lua_pushinteger(L, InvertColor(lua_tointeger(L,1)));
+    result:=1;
+  end;
+end;
+
 procedure InitLimitedLuastate(L: Plua_State);
 begin
   //don't put functioncallback events in here, as limited luastates can be destroyed
@@ -16148,6 +16213,9 @@ begin
 
   lua_register(L, 'isConnectedToCEServer', lua_isConnectedToCEServer);
   lua_register(L, 'getCEServerPath',lua_getCEServerPath);
+
+  lua_register(L, 'invertColor',lua_InvertColor);
+
 
 
 {$ifdef darwin}
@@ -16517,6 +16585,7 @@ begin
     lua_register(L, 'splitDisassembledString', splitDisassembledString);
     lua_register(L, 'getInstructionSize', getInstructionSize);
     lua_Register(L, 'getPreviousOpcode', getPreviousOpcode);
+    lua_Register(L, 'disassembleBytes', disassembleBytes);
 
     initializegraphiccontrol;
 

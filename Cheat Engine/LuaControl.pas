@@ -498,6 +498,15 @@ begin
   end;
 end;
 
+function control_refresh(L: PLua_State): integer; cdecl;
+var
+  control: TControl;
+begin
+  control:=luaclass_getClassObject(L);
+  control.Refresh;
+  result:=0;
+end;
+
 procedure control_addMetaData(L: PLua_state; metatable: integer; userdata: integer);
 begin
   component_addMetaData(L, metatable, userdata);
@@ -540,6 +549,8 @@ begin
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'sendToBack', control_sendToBack);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'screenToClient', control_screenToClient);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'clientToScreen', control_clientToScreen);
+
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'refresh', control_refresh);
 
   //luaclass_addPropertyToTable(L, metatable, userdata, 'Caption', control_getCaption, control_setCaption);
   //luaclass_addPropertyToTable(L, metatable, userdata, 'Top', control_getTop, control_setTop);

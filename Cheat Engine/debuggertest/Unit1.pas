@@ -593,9 +593,16 @@ begin
   label1.caption:=format('%p : %d',[@health, health]);
 end;
 
+var oldt: TChangeHealthLikeAMofo;
 procedure TForm1.Timer2Timer(Sender: TObject);
 begin
  // button10.click;
+  if oldt<>nil then
+    freeandnil(oldt);
+
+  oldt:=TChangeHealthLikeAMofo.Create(false);
+
+  timer2.Interval:=1+random(2000);
 end;
 
 procedure TForm1.Timer3Timer(Sender: TObject);

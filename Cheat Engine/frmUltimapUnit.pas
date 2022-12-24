@@ -462,7 +462,7 @@ begin
 
 
 
-  if ultimap(target_cr3, (1 shl 6) or (1 shl 7) or (1 shl 9) or (1 shl 8), bufsize, false, pwidechar(filename), workercount) then
+  if ultimap(target_cr3, (1 shl 6) or (1 shl 7) or (1 shl 9) or (1 shl 8), bufsize, cbLogToFile.checked, pwidechar(filename), workercount) then
   begin
     hashandled:=CreateEvent(nil, true, false, nil);
     setlength(workers, workercount);

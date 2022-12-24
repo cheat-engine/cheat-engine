@@ -21,7 +21,7 @@ local dpiscale=getScreenDPI()/96
 
 mono_timeout=3000 --change to 0 to never timeout (meaning: 0 will freeze your face off if it breaks on a breakpoint, just saying ...)
 
-MONO_DATACOLLECTORVERSION=22082022;
+MONO_DATACOLLECTORVERSION=20221207
 
 MONOCMD_INITMONO=0
 MONOCMD_OBJECT_GETCLASS=1
@@ -73,6 +73,7 @@ MONOCMD_GETIMAGEFILENAME=44
 MONOCMD_GETCLASSNESTINGTYPE=45
 MONOCMD_LIMITEDCONNECTION=46
 MONOCMD_GETMONODATACOLLECTORVERSION=47
+MONOCMD_NEWSTRING=48
 
 
 MONO_TYPE_END        = 0x00       -- End of List
@@ -179,6 +180,33 @@ FIELD_ATTRIBUTE_RT_SPECIAL_NAME=0x0400
 FIELD_ATTRIBUTE_HAS_FIELD_MARSHAL=0x1000
 FIELD_ATTRIBUTE_HAS_DEFAULT=0x8000
 FIELD_ATTRIBUTE_HAS_FIELD_RVA=0x0100
+
+METHOD_ATTRIBUTE_MEMBER_ACCESS_MASK      =0x0007
+METHOD_ATTRIBUTE_COMPILER_CONTROLLED     =0x0000
+METHOD_ATTRIBUTE_PRIVATE                 =0x0001
+METHOD_ATTRIBUTE_FAM_AND_ASSEM           =0x0002
+METHOD_ATTRIBUTE_ASSEM                   =0x0003
+METHOD_ATTRIBUTE_FAMILY                  =0x0004
+METHOD_ATTRIBUTE_FAM_OR_ASSEM            =0x0005
+METHOD_ATTRIBUTE_PUBLIC                  =0x0006
+
+METHOD_ATTRIBUTE_STATIC                  =0x0010
+METHOD_ATTRIBUTE_FINAL                   =0x0020
+METHOD_ATTRIBUTE_VIRTUAL                 =0x0040
+METHOD_ATTRIBUTE_HIDE_BY_SIG             =0x0080
+
+METHOD_ATTRIBUTE_VTABLE_LAYOUT_MASK      =0x0100
+METHOD_ATTRIBUTE_REUSE_SLOT              =0x0000
+METHOD_ATTRIBUTE_NEW_SLOT                =0x0100
+
+METHOD_ATTRIBUTE_STRICT                  =0x0200
+METHOD_ATTRIBUTE_ABSTRACT                =0x0400
+METHOD_ATTRIBUTE_SPECIAL_NAME            =0x0800
+
+METHOD_ATTRIBUTE_PINVOKE_IMPL            =0x2000
+METHOD_ATTRIBUTE_UNMANAGED_EXPORT        =0x0008
+ 
+    
 
 MONO_TYPE_NAME_FORMAT_IL=0
 MONO_TYPE_NAME_FORMAT_REFLECTION=1
@@ -641,7 +669,7 @@ function LaunchMonoDataCollector(internalReconnectDisconnectEachTime)
     dllpath=getAutorunPath()..libfolder..pathsep..dllname   
   end
   
-  printf("Injecting %s\n", dllpath);
+ -- printf("Injecting %s\n", dllpath);
 
 
   local injectResult, injectError=injectLibrary(dllpath, skipsymbols)
@@ -1972,8 +2000,9 @@ function mono_class_enumMethods(class, includeParents)
       local namelength;
       methods[index]={}
       methods[index].method=method
-      namelength=monopipe.readWord();
-      methods[index].name=monopipe.readString(namelength);
+      namelength=monopipe.readWord()
+      methods[index].name=monopipe.readString(namelength)
+      methods[index].flags=monopipe.readDword()
       index=index+1
     end
 
@@ -2734,6 +2763,9 @@ function mono_invoke_method_dialog(domain, method, address)
     end
 
     local params=mono_method_get_parameters(method)
+    if params==nil then
+      return
+    end
 
     --use monoTypeToVartypeLookup to convert it to the type mono_method_invoke likes it
     local args={}
@@ -2855,6 +2887,22 @@ function mono_object_init(object)
   local result = monopipe.readByte()==1
   monopipe.unlock()
   return result;  
+end
+
+function mono_new_string(domain, utf8str)
+  if type(domain)=='string' and utf8str==nil then
+    utf8str=domain
+    domain=nil
+  end
+  
+  monopipe.lock()
+  monopipe.writeByte(MONOCMD_NEWSTRING)
+  monopipe.writeQword(domain)
+  monopipe.writeWord(#utf8str)
+  monopipe.writeString(utf8str)
+  local result = monopipe.readQword()
+  monopipe.unlock()
+  return result;    
 end
 
 --[[

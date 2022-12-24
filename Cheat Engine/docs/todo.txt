@@ -1,32 +1,18 @@
-step over on linux-x86_64 seems to still be a step into
-
-network change reg on bp. also fp regs  (ugh)
-comment update form for disassembler initial size is too small
-
-
-dbvm cloak: amd pageboundaries (maybe single step issue)
-
 single hotkey keys sometimes stuck? sunbeam
 type isn't saved on headers...
 
-tracer: on load trace the "referenced address" field is gone (search does work)
 tracer search: keyboard focus should be on the input field
-
-structure spider freezes gui on generating stringmap
-structure spider dpi (editboxes are too small)
 
 
 implement {$nonops} so it rewrites the instruction to force the correct size and then reassembles from the start
 
 
-
+dbvm cloak: amd pageboundaries (maybe single step issue)
 test nmi's in windows in dbvm
 
 mac: hexview: implement meta+v for pasting
 mac: all modules are seen as 32-bit on a aarch64 target
 mac: aarch64 disassembler (addresses/labels should use the symbolhander)
-
-aarch64: adrp disassembles wrong
 
 
 fontcolor in ultimap2 edit fields for seconds and filesize is wrong in dark mode
@@ -74,10 +60,15 @@ mac: memview/disassembler updates in a seperate thread and only render when done
 hexview: Select bytes->show disassembly (easy shortcut)
 
 vehdebug on tutorial-i386 fails (dll inject crashes tutorial)
-.net info: invoke method: String  (need to create a sting obnject from string)
+.net info: invoke method: String  (need to create a sting object from string)
 
-.net info: doubleclick on type of a field brings you to that type
-.net info: typing in the classes search should wait 250 ms before scanning fore the input.  (really improve smoothess in general)
+.net info: doubleclick on type of a field brings you to that type (in a new window, and if the value field is valid, set the address to that value)
+.net info: mono: editing the System.Boolean type doesn't work
+.net info: spawn the structure dissect window from the field list
+.net info: Rightclick option: copy value to clipboard
+
+
+
 structure dissect : Nested structure
 
 Hexview typelink/colors

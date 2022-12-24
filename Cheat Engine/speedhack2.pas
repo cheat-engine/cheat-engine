@@ -188,7 +188,7 @@ begin
         fname:=''; //give up
 
 
-      if fname<>'' then //hook gettimeofday
+      if fname<>'' then //hook clock_gettime
       begin
         //check if it already has a a speedhack running
         a:=symhandler.getAddressFromName('real_clock_gettime');

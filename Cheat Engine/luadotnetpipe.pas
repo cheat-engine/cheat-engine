@@ -326,7 +326,7 @@ begin
     for i:=0 to length(typedata.Fields)-1 do
     begin
       lua_pushinteger(L, i+1);
-      lua_createtable(L,0,5);
+      lua_createtable(L,0,7 );
 
       lua_pushstring(L,'Token');
       lua_pushinteger(L, typedata.fields[i].Token);
@@ -350,6 +350,10 @@ begin
 
       lua_pushstring(L,'IsStatic');
       lua_pushboolean(L, typedata.fields[i].IsStatic);
+      lua_settable(L,-3);
+
+      lua_pushstring(L,'Attribs');
+      lua_pushinteger(L, typedata.fields[i].attribs);
       lua_settable(L,-3);
 
 

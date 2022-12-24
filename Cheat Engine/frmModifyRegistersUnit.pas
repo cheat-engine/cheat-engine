@@ -1050,7 +1050,15 @@ begin
 
               d:=trim(TChangeRegFloatPanel(floatpanel.Controls[i]).edt.text).todouble;
               f:=d;
-              if reg^.size=10 then doubletoextended(@d, reg^.getPointer(regeditinfo.context)) else
+              if reg^.size=10 then
+              begin
+                {$ifdef cpu64}
+                doubletoextended(@d, reg^.getPointer(regeditinfo.context))
+                {$else}
+                pextended(reg^.getPointer(regeditinfo.context))^:=d;
+                {$endif}
+              end
+              else
               if reg^.size=4 then copymemory(reg^.getPointer(regeditinfo.context),@f,sizeof(f)) else
               if reg^.size=8 then copymemory(reg^.getPointer(regeditinfo.context),@d,sizeof(d))
               else

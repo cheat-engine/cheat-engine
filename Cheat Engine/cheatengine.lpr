@@ -121,7 +121,7 @@ uses
   LuaCECustomButton, DBVMDebuggerInterface, frmCR3SwitcherUnit, tcclib,
   sourcecodehandler, frmSourceDisplayUnit, disassemblerarm64, contexthandler,
   DisAssemblerARM32, frmAnchorEditor, disassemblerArm32Thumb, iptnative, 
-  iptlogdisplay, LuaVirtualStringTree;
+  iptlogdisplay, LuaVirtualStringTree, userbytedisassembler;
 
 {$R cheatengine.res}
 {$IFDEF windows}
@@ -288,7 +288,7 @@ var
   noautorun: boolean;
 
 begin
-  Application.Title:='Cheat Engine 7.4.2';
+  Application.Title:='Cheat Engine 7.4.3';
  //'Cheat Engine 7.3';
   {$ifdef darwin}
   macPortFixRegPath;

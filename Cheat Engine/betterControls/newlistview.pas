@@ -5,7 +5,7 @@ unit newListView;
 {
 For people wondering WHY the first subitem has a black background when
 highlighted and not the CE version released on the website:
-lazarus 2.0.6: win32wscustomlistview.inc subfunction HandleListViewCustomDraw of
+lazarus 2.0.6(and 2.2.2): win32wscustomlistview.inc subfunction HandleListViewCustomDraw of
 ListViewParentMsgHandler
 
 originalcode:

@@ -49,6 +49,7 @@ procedure luaclass_setAutoDestroy(L: PLua_State; metatable: integer; state: bool
 function luaclass_getClassObject(L: PLua_state; paramstart: pinteger=nil; paramcount: pinteger=nil): pointer; //inline;
 
 procedure luaclass_newClass(L: PLua_State; o: TObject); overload;
+procedure luaclass_newClass(L: PLua_State; o: pointer; InitialAddMetaDataFunction: TAddMetaDataFunction); overload;
 procedure luaclass_newClass(L: PLua_State; o: TObject; InitialAddMetaDataFunction: TAddMetaDataFunction); overload;
 procedure luaclass_newClassFunction(L: PLua_State; InitialAddMetaDataFunction: TAddMetaDataFunction);
 
@@ -60,16 +61,14 @@ implementation
 
 uses LuaClassArray, LuaObject, LuaComponent, luahandler;
 
-var classlist: Tlist;
-    lookuphelp: TPointerToPointerTree;
-    lookuphelpmrew: TMultiReadExclusiveWriteSynchronizer;
-
+var lookuphelp: TPointerToPointerTree; //does not update after initialization (static)
+    lookuphelp2: TPointerToPointerTree; //for classes that inherit from the main classes (can update after initialization, dynamic)
+    lookuphelp2MREW: TMultiReadExclusiveWriteSynchronizer;
     objectcomparefunctionref: integer=0;
 
 type
   TClasslistentry=record
     c: TClass;
-    depth: integer;
     f: TAddMetaDataFunction;
   end;
   PClassListEntry=^TClassListEntry;
@@ -117,67 +116,55 @@ procedure luaclass_register(c: TClass; InitialAddMetaDataFunction: TAddMetaDataF
 var cle: PClasslistentry;
     t: TClass;
 begin
-  if classlist=nil then
+  if lookuphelp=nil then
   begin
-    classlist:=tlist.create;
-    lookuphelpmrew:=TMultiReadExclusiveWriteSynchronizer.Create;
     lookuphelp:=TPointerToPointerTree.Create;
+    lookuphelp2:=TPointerToPointerTree.create;
+    lookuphelp2MREW:=TMultiReadExclusiveWriteSynchronizer.Create;
   end;
 
   getmem(cle, sizeof(TClasslistentry));
 
   cle.c:=c;
-  cle.depth:=0;
-  cle.f:=InitialAddMetaDataFunction;       //todo: change to a map
-  t:=c;
+  cle.f:=InitialAddMetaDataFunction;
 
-  while t<>nil do
-  begin
-    inc(cle.depth);
-    t:=t.ClassParent;
-  end;
-
-  classlist.Add(cle);
+  lookuphelp.Values[c]:=cle;
 end;
 
 function findBestClassForObject(O: TObject): TAddMetaDataFunction;
 var
-    i: integer;
-    cle: PClassListEntry;
-
-    best: PClassListEntry; //TClasslistentry;
-
-    oclass: Tclass;
+  best: PClassListEntry;
+  oclass: Tclass;
 begin
   result:=nil;
   if o=nil then exit;
 
   oclass:=o.ClassType;
 
-  lookuphelpmrew.Beginread;
   best:=lookuphelp.Values[oclass];
-  lookuphelpmrew.Endread;
+  if best<>nil then exit(best^.f);
 
-  if best<>nil then
-    exit(best^.f);
+  //not a main type, check the child types
+  lookuphelp2MREW.beginread;
+  best:=lookuphelp2.values[oclass];
+  lookuphelp2MREW.endread;
+  if best<>nil then exit(best^.f);
 
-  if classlist<>nil then
+  //find it in the static typestore
+  oclass:=oclass.ClassParent;
+  while oclass<>nil do
   begin
-    for i:=0 to classlist.Count-1 do
+    best:=lookuphelp.Values[oclass];
+    if best<>nil then
     begin
-      cle:=classlist[i];
-      if o.InheritsFrom(cle.c) and ((best=nil) or (cle.depth>best^.depth)) then
-        best:=cle;
+      //add to the secondary list
+      lookuphelp2MREW.Beginwrite;
+      lookuphelp2.values[o.classtype]:=best;
+      lookuphelp2MREW.endwrite;
+      exit(best^.f);
     end;
-
-    result:=best^.f;
-
-    lookuphelpmrew.Beginwrite;
-    lookuphelp.Values[oclass]:=best;
-    lookuphelpmrew.Endwrite;
+    oclass:=oclass.ClassParent;
   end;
-
-
 end;
 
 procedure luaclass_newClassFunction(L: PLua_State; InitialAddMetaDataFunction: TAddMetaDataFunction);
@@ -195,7 +182,8 @@ begin
   end;
 end;
 
-procedure luaclass_newClass(L: PLua_State; o: TObject; InitialAddMetaDataFunction: TAddMetaDataFunction);
+
+procedure luaclass_newClass(L: PLua_State; o: pointer; InitialAddMetaDataFunction: TAddMetaDataFunction);
 begin
   if (o<>nil) and (Assigned(InitialAddMetaDataFunction)) then
   begin
@@ -205,6 +193,13 @@ begin
   else
     lua_pushnil(L);
 end;
+
+procedure luaclass_newClass(L: PLua_State; o: TObject; InitialAddMetaDataFunction: TAddMetaDataFunction);
+begin
+  luaclass_newClass(L, pointer(o), InitialAddMetaDataFunction);
+end;
+
+
 
 
 procedure luaclass_newClass(L: PLua_State; o: TObject); overload;
