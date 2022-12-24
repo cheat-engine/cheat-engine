@@ -397,6 +397,7 @@ function GetUniqueAOB(mi: TModuleInfo; address: ptrUint; codesize: Integer; var 
 function GetNextAllocNumber(script: tstrings): integer;
 procedure AddSnapshotAsComment(script: tstrings; address: ptruint; radius: integer=10);
 
+procedure GetOriginalInstruction(var address: ptruint; instructioncode: tstrings; farjmp: boolean);
 
 procedure ReloadAllAutoInjectHighlighters;
 

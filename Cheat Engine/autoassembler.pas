@@ -85,7 +85,7 @@ uses strutils, memscan, disassembler, networkInterface, networkInterfaceApi,
 uses simpleaobscanner, StrUtils, LuaHandler, memscan, disassembler{$ifdef windows}, networkInterface{$endif},
      networkInterfaceApi, LuaCaller, SynHighlighterAA, Parsers, Globals, memoryQuery,
      MemoryBrowserFormUnit, MemoryRecordUnit{$ifdef windows}, vmxfunctions{$endif}, autoassemblerexeptionhandler,
-     UnexpectedExceptionsHelper, types, autoassemblercode, System.UITypes;
+     UnexpectedExceptionsHelper, types, autoassemblercode, System.UITypes, frmautoinjectunit;
 {$endif}
 
 
@@ -163,6 +163,7 @@ resourcestring
     +'prefered address.  Did you take into account that the JMP instruction is'
     +' going to be 14 bytes long?';
   rsFailureAlloc = 'Failure allocating memory near %.8x for variable named %s in script %s';
+  rsFailureGettingOriginalInstruction = 'Failure getting the instruction at %x';
 
 //type
 //  TregisteredAutoAssemblerCommands =  TFPGList<TRegisteredAutoAssemblerCommand>;
@@ -2396,6 +2397,26 @@ begin
                 raise exception.Create(format(rsXCouldNotBeFound, [s1]));
               end;
 
+
+              multilineinjection:=TStringList.create;
+              GetOriginalInstruction(testptr, multilineinjection, processhandler.is64Bit);
+
+              if multilineinjection.count=0 then
+                raise exception.create(format(rsFailureGettingOriginalInstruction, [testptr]));
+
+              assemblerlines[length(assemblerlines)-1].linenr:=currentlinenr;
+              assemblerlines[length(assemblerlines)-1].line:=multilineinjection[0];
+
+              for j:=1 to multilineinjection.Count-1 do
+              begin
+                setlength(assemblerlines, length(assemblerlines)+1);
+                assemblerlines[length(assemblerlines)-1].linenr:=currentlinenr;
+                assemblerlines[length(assemblerlines)-1].line:=multilineinjection[j];
+              end;
+
+
+              freeandnil(multilineinjection);
+              {
               disassembler:=TDisassembler.create;
               disassembler.dataOnly:=true;
               disassembler.disassemble(testptr, s1);
@@ -2405,7 +2426,7 @@ begin
 
               assemblerlines[length(assemblerlines)-1].linenr:=currentlinenr;
               assemblerlines[length(assemblerlines)-1].line:=currentline;
-              disassembler.free;
+              disassembler.free;                                        }
             end else raise exception.Create(rsWrongSyntaxReAssemble);
 
           end;
