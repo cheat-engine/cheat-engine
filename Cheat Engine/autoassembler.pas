@@ -164,6 +164,12 @@ resourcestring
     +' going to be 14 bytes long?';
   rsFailureAlloc = 'Failure allocating memory near %.8x for variable named %s in script %s';
   rsFailureGettingOriginalInstruction = 'Failure getting the instruction at %x';
+  rsNearbyAllocationError = 'Nearby allocation error';
+  rsNearbyAllocationErrorMessageQuestion = 'This script uses nearby allocation'
+    +' but it is impossible to allocate nearby %x. Please rewrite the script '
+    +'to function without nearby allocation.  Try executing the script anyhow '
+    +'and allocate on a region outside reach of 2GB? (The target will crash if'
+    +' the script was not designed with this failure in mind)';
 
 //type
 //  TregisteredAutoAssemblerCommands =  TFPGList<TRegisteredAutoAssemblerCommand>;
@@ -190,10 +196,12 @@ type
 procedure TAllocWarn.AllocFailedQuestion;
 var r:TModalResult;
 begin
-  r:=MessageDlg('This script uses nearby allocation but it is impossible to allocate nearby '+preferedaddress.ToHexString+'. Please rewrite the script to function without nearby allocation.  Try executing the script anyhow and allocate on a region outside reach of 2GB? The target will crash if the script was not designed with this failure in mind', mtError,[mbyes,mbno,mbYesToAll, mbNoToAll],0);
-  if r in [mryes,mrYesToAll] then NearbyAllocationFailureFatal:=false;
+  r:=MessageDlg(rsNearbyAllocationError, Format(
+    rsNearbyAllocationErrorMessageQuestion, [preferedaddress]),
+    mtError, [mbyes, mbno, mbYesToAll, mbNoToAll], 0);
+  NearbyAllocationFailureFatal:=r in [mryes,mrYesToAll];
 
-  if r=mrYesToAll then
+  if r in [mrYesToAll, mrNoToAll] then
     WarnOnNearbyAllocationFailure:=false;
 end;
 
@@ -3284,7 +3292,11 @@ begin
                 begin
                   with TAllocWarn.create do
                   begin
-                    preferedaddress:=prefered;
+                    if allocs[j].prefered<>0 then
+                      preferedaddress:=allocs[j].prefered
+                    else
+                      preferedaddress:=prefered;
+
                     warn;
                     free;
                   end;
@@ -3360,7 +3372,31 @@ begin
           allocs[j].address:=lastChanceAllocPrefered(prefered,x, protection);
 
         if allocs[j].address=0 then
-          raise EAssemblerException.create(format(rsFailureAlloc, [prefered,allocs[j].varname, code.text]));
+        begin
+          if WarnOnNearbyAllocationFailure then
+          begin
+            with TAllocWarn.create do
+            begin
+              if allocs[j].prefered<>0 then
+                preferedaddress:=allocs[j].prefered
+              else
+                preferedaddress:=prefered;
+              warn;
+              free;
+            end;
+          end;
+
+          if NearbyAllocationFailureFatal then
+            raise EAssemblerException.create(format(rsFailureAlloc, [prefered,allocs[j].varname, code.text]))
+          else
+          begin
+            if SystemSupportsWritableExecutableMemory then
+              allocs[j].address:=ptrUint(virtualallocex(processhandle,nil,x, MEM_RESERVE or MEM_COMMIT,PAGE_EXECUTE_READWRITE))
+            else
+              allocs[j].address:=ptrUint(virtualallocex(processhandle,nil,x, MEM_RESERVE or MEM_COMMIT,PAGE_READWRITE));
+          end;
+        end;
+
          // allocs[j].address:=ptrUint(virtualallocex(processhandle,nil,x, MEM_RESERVE or MEM_COMMIT,protection));
 
         if allocs[j].address=0 then raise EAssemblerException.create(rsFailureToAllocateMemory);
