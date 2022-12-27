@@ -162,7 +162,7 @@ resourcestring
   rsNoPreferedRangeAllocWarning = 'None of the ALLOC statements specify a '
     +'prefered address.  Did you take into account that the JMP instruction is'
     +' going to be 14 bytes long?';
-  rsFailureAlloc = 'Failure allocating memory near %.8x for variable named %s in script %s';
+  rsFailureAlloc = 'Failure allocating memory near %.8x for variable named %s';
   rsFailureGettingOriginalInstruction = 'Failure getting the instruction at %x';
   rsNearbyAllocationError = 'Nearby allocation error';
   rsNearbyAllocationErrorMessageQuestion = 'This script uses nearby allocation'
@@ -170,6 +170,7 @@ resourcestring
     +'to function without nearby allocation.  Try executing the script anyhow '
     +'and allocate on a region outside reach of 2GB? (The target will crash if'
     +' the script was not designed with this failure in mind)';
+  rsFailureAssembling = 'Failure assembling %s at %.8x';
 
 //type
 //  TregisteredAutoAssemblerCommands =  TFPGList<TRegisteredAutoAssemblerCommand>;
@@ -3303,7 +3304,7 @@ begin
                 end;
 
                 if NearbyAllocationFailureFatal then
-                  raise EAssemblerException.create(format(rsFailureAlloc, [prefered,allocs[j].varname, code.text]))
+                  raise EAssemblerException.create(format(rsFailureAlloc, [prefered,allocs[j].varname]))
                 else
                 begin
                   if SystemSupportsWritableExecutableMemory then
@@ -3387,7 +3388,7 @@ begin
           end;
 
           if NearbyAllocationFailureFatal then
-            raise EAssemblerException.create(format(rsFailureAlloc, [prefered,allocs[j].varname, code.text]))
+            raise EAssemblerException.create(format(rsFailureAlloc, [prefered,allocs[j].varname]))
           else
           begin
             if SystemSupportsWritableExecutableMemory then
@@ -3485,6 +3486,7 @@ begin
           begin
             if (tokencheck(currentline,labels[j].labelname)) then
             begin
+              //this instruction references a label
               if not labels[j].defined then
               begin
                 //the address hasn't been found yet
@@ -3665,7 +3667,7 @@ begin
 
         if ok1 then continue;
 
-        if currentline[length(currentline)]=':' then
+        if currentline[length(currentline)]=':' then //address setter/assigner
         begin
           ok1:=false;
           for j:=0 to length(labels)-1 do
@@ -3770,7 +3772,10 @@ begin
             assemble(currentline,currentaddress,assembled[length(assembled)-1].bytes);
         end
         else
-          assemble(currentline,currentaddress,assembled[length(assembled)-1].bytes);
+        begin
+          if assemble(currentline,currentaddress,assembled[length(assembled)-1].bytes) =false then
+            raise exception.create(Format(rsFailureAssembling, [currentline, currentaddress]));
+        end;
 
         inc(currentaddress,length(assembled[length(assembled)-1].bytes));
       end;
