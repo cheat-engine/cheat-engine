@@ -191,6 +191,8 @@ begin
   else
     c:=memorybrowser.context;
 
+  if c=nil then raise exception.Create(rsAPThisIsNotAValidAddress);
+
   if tmps[1] in ['X','Y'] then
   begin
     if tmps.Substring(1,2)='MM' then

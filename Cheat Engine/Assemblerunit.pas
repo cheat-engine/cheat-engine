@@ -2804,7 +2804,7 @@ resourcestring
   rsInvalidAddress = 'Invalid address';
   rsTheAssemblerTriedToSetARegisteValueThatIsTooHigh = 'The assembler tried to set a register value that is too high';
   rsAssemblerError = 'Assembler error';
-  rsOffsetTooBig = 'offset too big';
+  rsOffsetTooBig = 'This instruction can not be assembled because the distance between the current address and addressed address is too big. Try placing the address in a register first and use that';
   rsInvalidValueFor32Bit = 'The value provided can not be encoded in a 32-bit field';
   rsInvalid64BitValueFor32BitField = 'The value %.16x can not be encoded using a 32-bit signed value. But if you meant %.16x then that''s ok and you should have provided it like that in the first place.  Is it ok to change it to this?'#13#10'(This is the only time asked and will be remembered until you restart CE)';
 
@@ -4748,7 +4748,9 @@ var tokens: ttokens;
     //cpuinfo: TCPUIDResult;
 
     bts: TAssemblerBytes;
+    errorifnotfound: string;
 begin
+  errorifnotfound:='';
   i:=0;
   j:=0;
   k:=0;
@@ -6424,8 +6426,8 @@ begin
 
                 if v>$7fffffff then
                 begin
-                  OutputDebugString('Assembler could not assemble using r32,rm32: searching of alternatives');
-
+                  //OutputDebugString('Assembler could not assemble using r32,rm32: searching of alternatives');
+                 // errorifnotfound:=rsOffsetTooBig;
                   setlength(bytes,0);
                   paramtype1:=oldParamtype1;
                   paramtype2:=oldParamtype2;
@@ -8284,6 +8286,11 @@ begin
 
 
       end;
+    end
+    else
+    begin
+      if errorifnotfound<>'' then
+        raise exception.Create(errorifnotfound);
     end;
 
     if needsAddressSwitchPrefix then //add it
