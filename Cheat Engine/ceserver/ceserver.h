@@ -302,7 +302,7 @@ int CheckForAndDispatchCommand(int currentsocket);
 
 int getCEServerPath(char *path, int maxlen);
 
-extern char CESERVERPATH[256];
+extern char *CESERVERPATH;
 extern int ALLOC_WITHOUT_EXTENSION;
 extern int PORT;
 extern __thread char* threadname;
