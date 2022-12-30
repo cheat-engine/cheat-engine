@@ -159,11 +159,15 @@ int debug_log(const char * format , ...)
   va_list list;
   va_start(list,format);
   int ret = vprintf(format,list);
+  va_end(list);
+
 
   #ifdef __ANDROID__
-    LOGD(format,list);
-  #endif
+  va_start(list,format);
+  LOGD(format,list);
   va_end(list);
+  #endif
+
   return ret;
 }
 

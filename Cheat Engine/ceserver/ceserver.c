@@ -54,23 +54,30 @@ __thread char* threadname;
 
 
 char versionstring[]="CHEATENGINE Network 2.2";
-char CESERVERPATH[256];
+char *CESERVERPATH;
 
 void initCESERVERPATH()
 {
   int l;
+  CESERVERPATH=malloc(512);
   CESERVERPATH[0]=0;
 
   l=readlink("/proc/self/exe", CESERVERPATH, 256);
-  if (l!=-1)
+
+  //basename and basedir bahave different in android, so just do this:
+  while (l)
   {
-    dirname(CESERVERPATH);
-    strcat(CESERVERPATH,"/");
+    if (CESERVERPATH[l]=='/')
+      return;
+    else
+    {
+      CESERVERPATH[l]=0;
+      l--;
+    }
+
+
   }
-  else
-  {
-     strcpy(CESERVERPATH,"./");
-  }
+  strcpy(CESERVERPATH,"./");
 }
 
 ssize_t recvall (int s, void *buf, size_t size, int flags)
@@ -1741,12 +1748,17 @@ int main(int argc, char *argv[])
   debug_log("sizeof(uintptr_t)=%d\n",sizeof(uintptr_t));
   debug_log("sizeof(long)=%d\n",sizeof(long));
 
+  debug_log("---\n");
   initCESERVERPATH();
   debug_log("CESERVERPATH=%s\n", CESERVERPATH);
 
+  fflush(stdout);
   debug_log("MEMORY_SEARCH_OPTION=%d\n", MEMORY_SEARCH_OPTION);
+  fflush(stdout);
   debug_log("ATTACH_TO_ACCESS_MEMORY=%d\n", ATTACH_TO_ACCESS_MEMORY);
+  fflush(stdout);
   debug_log("ATTACH_TO_WRITE_MEMORY=%d\n", ATTACH_TO_WRITE_MEMORY);
+  fflush(stdout);
 
 
   if ((MEMORY_SEARCH_OPTION == 2) && (process_vm_readv==NULL)) //user explicitly wants to use process_vm_readv but it's not available
