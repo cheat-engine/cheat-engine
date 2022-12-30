@@ -71,6 +71,8 @@ type TDisassemblerview=class(TPanel)
     fShowJumplines: boolean; //defines if it should draw jumplines or not
     fShowjumplineState: TShowjumplineState;
 
+    fCenterOnAddressChangeOutsideView: boolean;
+
 
    // fdissectCode: TDissectCodeThread;
 
@@ -212,6 +214,7 @@ type TDisassemblerview=class(TPanel)
 
     property RelativeBase: ptruint read fRelativeBase write fRelativeBase;
     property UseRelativeBase: boolean read fUseRelativeBase write fUseRelativeBase;
+    property CenterOnAddressChangeOutsideView: boolean read fCenterOnAddressChangeOutsideView write fCenterOnAddressChangeOutsideView; //if false, top
 end;
 
 
@@ -331,12 +334,17 @@ end;
 procedure TDisassemblerview.setSelectedAddress(address: ptrUint);
 var i: integer;
     found: boolean;
+
+    viewchanged: boolean;
+    count: integer;
 begin
   if (fSelectedAddress<>0) and (fselectedAddress<>address) and (not goingback) then
     backlist.Push(pointer(fselectedAddress));
 
   fSelectedAddress:=address;
   fSelectedAddress2:=address;
+
+  viewchanged:=false;
 
   if (fTotalvisibledisassemblerlines>1) and (InRangeX(fSelectedAddress, Tdisassemblerline(disassemblerlines[0]).address, Tdisassemblerline(disassemblerlines[fTotalvisibledisassemblerlines-2]).address)) then
   begin
@@ -354,14 +362,31 @@ begin
     begin
       fTopAddress:=address;
       fTopSubline:=0;
+      viewchanged:=true;
     end;
 
   end else
   begin
     fTopAddress:=address;
     fTopSubline:=0;
+    viewchanged:=true;
   end;
 
+  if fCenterOnAddressChangeOutsideView and viewchanged then
+  begin
+    BeginUpdate;
+    count:=0;
+    repeat
+      fTopAddress:=fTopAddress-1;
+      update;
+      inc(count);
+    until (Tdisassemblerline(disassemblerlines[fTotalvisibledisassemblerlines div 2]).Address=address) or (Tdisassemblerline(disassemblerlines[fTotalvisibledisassemblerlines-1]).Address<address) or (count>1000);
+
+    if (Tdisassemblerline(disassemblerlines[fTotalvisibledisassemblerlines-1]).Address<address) or (count>1000) then //failed to center
+      fTopAddress:=address;
+
+    EndUpdate;
+  end;
 
 
   update;

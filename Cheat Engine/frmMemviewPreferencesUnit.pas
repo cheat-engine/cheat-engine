@@ -28,6 +28,7 @@ type
     cbColorGroup: TComboBox;
     cbShowStatusBar: TCheckBox;
     cbOriginalRenderingSystem: TCheckBox;
+    cbCenterDisassemblerWhenOutsideView: TCheckBox;
     ColorDialog1: TColorDialog;
     cbFontQuality: TComboBox;
     edtSpaceAboveLines: TEdit;

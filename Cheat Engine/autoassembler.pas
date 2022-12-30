@@ -3164,7 +3164,7 @@ begin
 
       end;
 
-
+    {
     //check for the 3th alloc parameter when testing the validity of the script, and ask if the user understands what will happen
     if popupmessages and processhandler.is64Bit and usesaobscan and (length(allocs)>0) then
     begin
@@ -3180,7 +3180,7 @@ begin
 
       if (prefered=0) and (MessageDlg(rsNoPreferedRangeAllocWarning, mtWarning, [mbyes, mbno], 0)<>mryes) then
         exit(false);
-    end;
+    end;}
 
     if syntaxcheckonly then
       exit(true);

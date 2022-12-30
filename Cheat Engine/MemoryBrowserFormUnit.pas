@@ -2510,6 +2510,8 @@ begin
     cbOriginalRenderingSystem.checked:=UseOriginalRenderingSystem;
     {$endif}
 
+    cbCenterDisassemblerWhenOutsideView.checked:=disassemblerview.CenterOnAddressChangeOutsideView;
+
 
     lblHexNormal.font.color:=hexview.normalFontColor;
     lblHexNormal.color:=hexview.normalBackgroundColor;
@@ -2554,6 +2556,10 @@ begin
 
       disassemblerview.jlThickness:=jlThickness;
       disassemblerview.jlSpacing:=jlSpacing;
+
+      disassemblerview.CenterOnAddressChangeOutsideView:=cbCenterDisassemblerWhenOutsideView.checked;
+
+
 
       hexview.HexFont:=fontdialog2.Font;
 
@@ -2624,6 +2630,9 @@ begin
       reg.writeInteger('spaceBelowLines', disassemblerview.SpaceBelowLines);
       reg.writeInteger('jlThickness', disassemblerview.jlThickness);
       reg.writeInteger('jlSpacing', disassemblerview.jlSpacing);
+
+
+      reg.WriteBool('CenterOnAddressChangeOutsideView', disassemblerview.CenterOnAddressChangeOutsideView);
     end;
 
     if reg.OpenKey('\Software\'+strCheatEngine+'\Disassemblerview '+inttostr(screen.PixelsPerInch)+'\Font'+darkmodestring,true) then
@@ -2882,6 +2891,9 @@ begin
 
       if reg.ValueExists('jlSpacing') then
         disassemblerview.jlSpacing:=reg.ReadInteger('jlSpacing');
+
+      if reg.ValueExists('CenterOnAddressChangeOutsideView') then
+        disassemblerview.CenterOnAddressChangeOutsideView:=reg.ReadBool('CenterOnAddressChangeOutsideView');
 
       disassemblerview.reinitialize;
     end;

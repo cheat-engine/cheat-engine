@@ -388,6 +388,9 @@ var i,j: integer;
     si,l: integer;
     x: dword;
     temp: string;
+
+    li: Tlistitem;
+    r: trect;
 begin
   setlength(oldvalues,0);
 
@@ -427,9 +430,8 @@ begin
       getaddress(i,x,temp);
       if temp<>oldvalues[j] then
       begin
-        foundlist.items[-1];
-        foundlist.Refresh;
-        foundlist.Refresh; (* lazarus bug bypass *)
+        li:=foundlist.items[-1];
+        foundlist.Invalidate;
         exit;
       end;
       inc(j);
