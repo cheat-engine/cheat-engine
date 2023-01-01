@@ -454,6 +454,9 @@ resourcestring
   rsAPCRules = 'APC rules';
   rsPleaseRunThe64BitVersionOfCE = 'Please run the 64-bit version of '+strCheatEngine;
   rsDBKError = 'DBK Error';
+  rsDBKBlockedDueToVulnerableDriverBlocklist = 'Failure starting dbk because '
+    +'the vulnerable driver blocklist is enabled and dbk has been added to it.'
+    +' Want to know how to disable this?';
 
 var dataloc: widestring;
     applicationPath: widestring;
@@ -3395,7 +3398,17 @@ begin
             if le<>1056 then
             begin
               if dbvm_version=0 then
-                messagebox(0,PChar('Failure starting dbk:'+inttostr(le)),PChar(rsDbk32Error),MB_ICONERROR or mb_ok);
+              begin
+                if dword(le)=$800B010C then
+                begin
+                  if messagebox(0, PChar(rsDBKBlockedDueToVulnerableDriverBlocklist), pchar(rsDbk32Error), MB_ICONERROR or MB_YESNO)=IDYES then
+                  begin
+                    shellexecute(0, 'open', 'https://cheatengine.org/dbkerror.php', nil, nil, sw_show);
+                  end;
+                end
+                else
+                  messagebox(0,PChar('Failure starting dbk:'+inttostr(le)),PChar(rsDbk32Error),MB_ICONERROR or mb_ok);
+              end;
             end;
           end;
 
