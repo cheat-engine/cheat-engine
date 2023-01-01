@@ -407,6 +407,7 @@ type
     keys: Tkeycombo;
     fAction: TMemrecHotkeyAction;
     fValue: string;
+    fActive: boolean;
 
     Down: boolean;
 
@@ -435,6 +436,7 @@ type
     property ID: integer read fID;
     property OnHotkey: TNotifyEvent read fOnHotkey write fOnHotkey;
     property OnPostHotkey: TNotifyEvent read fOnPostHotkey write fOnPostHotkey;
+    property Active: boolean read fActive write fActive;
   end;
 
   TMemoryRecordProcessingThread=class(TThread)
@@ -714,6 +716,8 @@ begin
   fowner.hotkeylist.Add(self);
 
   keys[0]:=0;
+
+  factive:=true;
 
 end;
 
@@ -1581,6 +1585,10 @@ begin
 
         if tempnode.ChildNodes[i].NodeName='Hotkey' then
         begin
+          a:=tempnode.ChildNodes[i].Attributes.GetNamedItem('Active');
+          if a<>nil then
+            hk.Active:=a.TextContent<>'0';
+
           a:=tempnode.ChildNodes[i].Attributes.GetNamedItem('OnlyWhileDown');
           if (a<>nil) then
             hk.OnlyWhileDown:=a.TextContent='1';
@@ -2005,12 +2013,22 @@ begin
     begin
       hk:=hks.AppendChild(doc.CreateElement('Hotkey'));
       hk.AppendChild(doc.CreateElement('Action')).TextContent:=MemRecHotkeyActionToText(hotkey[i].action);
+
+      if hotkey[i].Active=false then
+      begin
+        a:=doc.CreateAttribute('Active');
+        a.TextContent:='0';
+        hk.Attributes.SetNamedItem(a);
+      end;
+
       if hotkey[i].OnlyWhileDown then
       begin
         a:=doc.CreateAttribute('OnlyWhileDown');
         a.TextContent:='1';
         hk.Attributes.SetNamedItem(a);
       end;
+
+
 
       hkkc:=hk.AppendChild(doc.createElement('Keys'));
       j:=0;

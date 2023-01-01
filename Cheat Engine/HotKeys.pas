@@ -77,6 +77,7 @@ type
     procedure FormShortCut(var Msg: TLMKey; var Handled: Boolean);
     procedure FormShow(Sender: TObject);
     procedure ListView1DblClick(Sender: TObject);
+    procedure ListView1ItemChecked(Sender: TObject; Item: TListItem);
     procedure ListView1SelectItem(Sender: TObject; Item: TListItem;
       Selected: Boolean);
     procedure miAddSoundClick(Sender: TObject);
@@ -234,6 +235,8 @@ begin
 
         lblid.caption:=inttostr(hk.id);
 
+        li.checked:=hk.Active;
+
         li.Data:=hk;
       end;
     end;
@@ -252,6 +255,7 @@ begin
 
   pagecontrol1.ActivePage:=tabsheet2;
   li:=listview1.items.add;
+  li.Checked:=true;
   li.SubItems.add(''); //on hotkey
   li.SubItems.add(''); //value
   li.SubItems.add(''); //description
@@ -741,6 +745,14 @@ procedure THotKeyForm.ListView1DblClick(Sender: TObject);
 begin
   if btnEditHotkey.enabled then
     btnEditHotkey.click;
+end;
+
+procedure THotKeyForm.ListView1ItemChecked(Sender: TObject; Item: TListItem);
+var hk: TMemoryRecordHotkey;
+begin
+  hk:=TMemoryRecordHotkey(item.data);
+  if hk<>nil then
+    hk.active:=item.checked;
 end;
 
 procedure THotKeyForm.ListView1SelectItem(Sender: TObject; Item: TListItem;

@@ -2137,6 +2137,7 @@ properties
       mrhDecreaseValue(7):  Decreases the current value with the value property (see value)
   value: string - Value used depending on what kind of hotkey is used
   ID: integer - Unique id of this hotkey (ReadOnly)
+  Active: boolean - True if it's hotkey will be handled, false if this hotkey is ignored
   Description: string - The description of this hotkey  
   HotkeyString: string - The hotkey formatted as a string (ReadOnly)
   ActivateSound: string - Tablefile name of a WAV file inside the table which will get played on activate events

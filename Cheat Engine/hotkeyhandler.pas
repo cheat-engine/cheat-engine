@@ -677,7 +677,7 @@ begin
         for i:=0 to length(hotkeylist)-1 do
         begin
           if
-            ((state in [htsActive,htsMemrecOnly]) and (hotkeylist[i].memrechotkey<>nil) and (checkkeycombo(TMemoryrecordHotkey(hotkeylist[i].memrechotkey).keys))) or
+            ((state in [htsActive,htsMemrecOnly]) and (hotkeylist[i].memrechotkey<>nil) and TMemoryrecordHotkey(hotkeylist[i].memrechotkey).Active and (checkkeycombo(TMemoryrecordHotkey(hotkeylist[i].memrechotkey).keys))) or
             ((state in [htsActive,htsNoMemrec]) and (hotkeylist[i].genericHotkey<>nil) and (checkkeycombo(TGenericHotkey(hotkeylist[i].generichotkey).keys))) or
             ((state in [htsActive,htsNoMemrec]) and ((hotkeylist[i].memrechotkey=nil) and (hotkeylist[i].generichotkey=nil)) and checkkeycombo(hotkeylist[i].keys))
 
