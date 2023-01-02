@@ -934,6 +934,18 @@ end;
 
 procedure TfrmCodeFilter.btnFromUnwindInfoClick(Sender: TObject);
 {$ifdef windows}
+type
+  UNWIND_INFO=bitpacked record
+    version: 0..7;
+    flags: 0..31;
+    sizeOfProlog: byte;
+    countOfUnwindCodes: byte;
+    frameregister: 0..15;
+    frameregisteroffset: 0..15;
+  end;
+
+  PUNWIND_INFO=^UNWIND_INFO;
+
 var
   sellist: TfrmSelectionList;
   md: tmoduledata;
@@ -942,6 +954,12 @@ var
   i: integer;
 
   rte: TRunTimeEntry;
+
+  modulemem: PBytearray=nil;
+  br: ptruint;
+
+  pui: PUNWIND_INFO;
+
 {$endif}
 begin
   {$ifdef windows}
@@ -964,9 +982,36 @@ begin
       el:=peinfo_getExceptionList(md.moduleaddress);
       if el<>nil then
       begin
-        for i:=0 to el.Count-1 do
-          addAddress(md.moduleaddress+el[i].start);
+        getmem(modulemem, md.modulesize);
+        try
+          if (modulemem<>nil) and (readprocessmemory(processhandle, pointer(md.moduleaddress), modulemem,md.modulesize,br)=false) then
+            freememandnil(modulemem);
+
+          for i:=0 to el.Count-1 do
+          begin
+            rte:=el[i];
+
+            //check if unwind info is valid
+            if (modulemem<>nil) then
+            begin
+              pui:=@modulemem[rte.unwind];
+              if ((pui^.version<>1) or (pui^.flags=4)) or ((pui^.countOfUnwindCodes=0) and (pui^.sizeOfProlog=0) and (pui^.frameregister=0) and (pui^.frameregisteroffset=0)) then
+              begin
+                continue; //invalid
+              end;
+
+            end;
+
+            addAddress(md.moduleaddress+rte.start);
+          end;
+
+        finally
+          if (modulemem<>nil) then
+            freememandnil(modulemem);
+        end;
       end;
+
+      el.free;
     end;
 
     lblAddressList.caption:=format(rsAddressList, [callmap.Count]);
