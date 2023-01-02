@@ -62,6 +62,7 @@
 
 
 typedef struct {} MonoType;
+typedef struct {} MonoObject;
 typedef struct {} MonoMethodSignature;
 typedef void * gpointer;
 
@@ -182,7 +183,7 @@ typedef void* (__cdecl *MONO_OBJECT_NEW)(void *domain, void *klass);
 typedef void  (__cdecl *MONO_FREE)(void*);
 
 typedef void* (__cdecl *MONO_METHOD_DESC_SEARCH_IN_IMAGE)(void *desc, void *image);
-typedef void* (__cdecl *MONO_RUNTIME_INVOKE)(void *method, void *obj, void **params, void **exc);
+typedef void* (__cdecl *MONO_RUNTIME_INVOKE)(void *method, void *obj, void **params, MonoObject **exc);
 typedef void* (__cdecl *MONO_RUNTIME_INVOKE_ARRAY)(void *method, void *obj, void *params, void **exc);
 typedef void* (__cdecl *MONO_RUNTIME_OBJECT_INIT)(void *object);
 
@@ -371,7 +372,7 @@ private:
 	BOOL il2cpp;
 
 	BOOL UWPMode;
-	
+	void* domain;
 
 	void CreatePipeandWaitForconnect(void);
 
