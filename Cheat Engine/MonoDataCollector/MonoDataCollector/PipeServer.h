@@ -437,13 +437,13 @@ public:
 	void WriteString1(const char*);
 	void FreeString(char*);
 
-	void *ReadObjectArray(void* domain);
-	void FreeObjectArray(void *arr);
-	int GetObjectArraySize(void *arr);
-	void **GetObjectArrayArgs(void *arr);
+	//void *ReadObjectArray(void* domain);
+	//void FreeObjectArray(void *arr);
+	//int GetObjectArraySize(void *arr);
+	//void **GetObjectArrayArgs(void *arr);
 
-	int GetObjectSize(int);
-	void* ReadObject(void* domain, MonoTypeEnum type, void* addr);
-	void WriteObject(void*);
-	void WriteEmptyObject();
+	//int GetObjectSize(int);
+	//void* ReadObject(void* domain, MonoTypeEnum type, void* addr);
+	//void WriteObject(void*);
+	//void WriteEmptyObject();
 };
