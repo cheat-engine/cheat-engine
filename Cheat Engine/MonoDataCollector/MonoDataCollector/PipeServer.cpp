@@ -2048,7 +2048,7 @@ void CPipeServer::InvokeMethod(void)
 
 			try
 			{
-				result = mono_runtime_invoke(method, pThis, args, NULL /* exception */);				
+				result = mono_runtime_invoke(method, pThis, args, NULL);				
 			}
 			catch (...)
 			{
