@@ -134,8 +134,59 @@ BOOL CPipeServer::OpenOrAttachToProcess(void)
 
 	//Try CE's bin path or the system library search path
 	StrCpyW(dotnetcorepath, L""); //init as empty string
-	HMODULE hDbgShim = LoadLibraryA("dbgshim.dll");
-	
+	HMODULE hDbgShim = NULL;
+
+	if (hDbgShim == NULL)
+	{
+		//try the "System.Runtime.dll" path
+		ths = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE | TH32CS_SNAPMODULE32, processid);
+
+		if (ths == INVALID_HANDLE_VALUE)
+		{
+			int e = GetLastError();
+			if (e == 5)
+			{
+				return TRUE;
+			}
+
+			return FALSE;
+		}
+
+		ZeroMemory(&m, sizeof(m));
+		m.dwSize = sizeof(m);
+		if (!Module32First(ths, &m))
+		{
+			CloseHandle(ths);
+			return FALSE;
+		}
+
+		do
+		{
+			if (wcscmp(m.szModule, L"System.Runtime.dll") == 0) {
+
+				int i;
+				int l = lstrlen(m.szExePath);
+
+				for (i = l; (i > 0) && (m.szExePath[i] != L'\\'); i--)
+					m.szExePath[i] = 0;
+
+				StrCpyW(dotnetcorepath, m.szExePath);
+
+				WCHAR dotnetcorepath_short[MAX_PATH];
+				WCHAR dbgshim_dllpath[MAX_PATH];
+				GetShortPathName(dotnetcorepath, dotnetcorepath_short, MAX_PATH); //fix space char or special characters
+
+				StrCpyW(dbgshim_dllpath, dotnetcorepath_short);
+				StrCatW(dbgshim_dllpath, L"dbgshim.dll");
+				hDbgShim = LoadLibrary(dbgshim_dllpath);
+				break;
+			}
+
+		} while (Module32Next(ths, &m));
+
+		CloseHandle(ths);
+	}
+
 	if (hDbgShim == NULL)
 	{
 		
@@ -200,40 +251,8 @@ BOOL CPipeServer::OpenOrAttachToProcess(void)
 
 	if (hDbgShim==NULL)
 	{
-		//try the gamepath
-		ths = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE | TH32CS_SNAPMODULE32, processid);
-		if (ths == INVALID_HANDLE_VALUE)
-		{
-			int e = GetLastError();
-			if (e == 5)
-			{
-				return TRUE;
-			}
-
-			return FALSE;
-		}
-
-		ZeroMemory(&m, sizeof(m));
-		m.dwSize = sizeof(m);
-		if (Module32First(ths, &m))
-		{
-			int i;
-			int l=lstrlen(m.szExePath);
-
-			for (i = l; (i > 0) && (m.szExePath[i] != L'\\') ; i--)
-				m.szExePath[i] = 0;				
-
-			StrCpyW(dotnetcorepath, m.szExePath);
-
-			WCHAR dllpath[MAX_PATH];
-			StrCpyW(dllpath, dotnetcorepath);
-			StrCatW(dllpath, L"dbgshim.dll");
-
-			hDbgShim = LoadLibrary(dllpath);
-
-		}
-
-		CloseHandle(ths);
+		//try all env value path
+		hDbgShim = LoadLibraryA("dbgshim.dll");
 	}
 		
 	if (hDbgShim)
