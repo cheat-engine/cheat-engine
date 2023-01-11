@@ -1617,6 +1617,7 @@ var
     actualread: PtrUInt;
     startoffset, initialoffset: ptrUint;
     tempresult, tempdescription: string;
+    equationstr: string;
     tempst: string;
     wordptr: ^word;
     dwordptr: ^dword;
@@ -8934,66 +8935,100 @@ begin
 
                     $c2 : begin
                             lastdisassembledata.isfloat:=true;
+
+                            lastdisassembledata.parameters:=xmm(memory[2])+modrm(memory,prefix2,2,4,last,128,0,mRight);
+                            lastdisassembledata.parametervaluetype:=dvtvalue;
+                            lastdisassembledata.parametervalue:=memory[last];
+
+                            equationstr:='';
+
+                            case lastdisassembledata.parametervalue of
+                              0: equationstr:='eq';
+                              1: equationstr:='lt';
+                              2: equationstr:='le';
+                              3: equationstr:='unord';
+                              4: equationstr:='neq';
+                              5: equationstr:='nlt';
+                              6: equationstr:='nle';
+                              7: equationstr:='ord';
+                              else
+                              begin
+                                if hasvex then
+                                begin
+                                  case lastdisassembledata.parametervalue of
+                                     $8: equationstr:='eq_uq';
+                                     $9: equationstr:='nge';
+                                     $a: equationstr:='ngt';
+                                     $b: equationstr:='false';
+                                     $c: equationstr:='neq_oq';
+                                     $d: equationstr:='ge';
+                                     $e: equationstr:='gt';
+                                     $f: equationstr:='true';
+                                    $10: equationstr:='eq_os';
+                                    $11: equationstr:='lt_oq';
+                                    $12: equationstr:='le_oq';
+                                    $13: equationstr:='unord_s';
+                                    $14: equationstr:='neq_us';
+                                    $15: equationstr:='nlt_uq';
+                                    $16: equationstr:='nle_uq';
+                                    $17: equationstr:='ord_s';
+                                    $18: equationstr:='eq_us';
+                                    $19: equationstr:='nge_uq';
+                                    $1a: equationstr:='ngt_uq';
+                                    $1b: equationstr:='false_os';
+                                    $1c: equationstr:='neq_os';
+                                    $1d: equationstr:='ge_oq';
+                                    $1e: equationstr:='gt_oq';
+                                    $1f: equationstr:='true_us';
+                                  end;
+                                end
+                              end;
+                            end;
+
                             if $f2 in prefix2 then
                             begin
+                              description:='compare scalar double-precision floating-point values';
+                              lastdisassembledata.opcode:='cmp'+equationstr+'sd';
+                              if equationstr='' then
+                                lastdisassembledata.parameters:=lastdisassembledata.parameters+','+inttohexs(lastdisassembledata.parametervalue,2);
 
-                              description:='compare scalar dpuble-precision floating-point values';
-                              if hasvex then
-                                lastdisassembledata.opcode:='vcmpsd'
-                              else
-                                lastdisassembledata.opcode:='cmpsd';
-                              lastdisassembledata.parameters:=xmm(memory[2])+modrm(memory,prefix2,2,4,last,128,0,mRight);
-
-                              lastdisassembledata.parametervaluetype:=dvtvalue;
-                              lastdisassembledata.parametervalue:=memory[last];
-                              lastdisassembledata.parameters:=lastdisassembledata.parameters+','+inttohexs(lastdisassembledata.parametervalue,2);
-                              inc(offset,last);
+                              lastdisassembledata.datasize:=8;
                             end
                             else
                             if $f3 in prefix2 then
                             begin
                               description:='packed single-fp compare';
-                              if hasvex then
-                                lastdisassembledata.opcode:='vcmpss'
-                              else
-                                lastdisassembledata.opcode:='cmpss';
-                              lastdisassembledata.parameters:=xmm(memory[2])+modrm(memory,prefix2,2,4,last,128,0,mRight);
-                              lastdisassembledata.parametervaluetype:=dvtvalue;
-                              lastdisassembledata.parametervalue:=memory[last];
-                              lastdisassembledata.parameters:=lastdisassembledata.parameters+','+inttohexs(lastdisassembledata.parametervalue,2);
+                              lastdisassembledata.opcode:='cmp'+equationstr+'ss';
+                              if equationstr='' then
+                                lastdisassembledata.parameters:=lastdisassembledata.parameters+','+inttohexs(lastdisassembledata.parametervalue,2);
+
                               lastdisassembledata.datasize:=4;
-                              inc(offset,last);
                             end
                             else
                             begin
                               if $66 in prefix2 then
                               begin
                                 description:='compare packed double-precision floating-point values';
-                                if hasvex then
-                                  lastdisassembledata.opcode:='vcmppd'
-                                else
-                                  lastdisassembledata.opcode:='cmppd';
-                                lastdisassembledata.parameters:=xmm(memory[2])+modrm(memory,prefix2,2,4,last,128,0,mRight);
-                                lastdisassembledata.parametervaluetype:=dvtvalue;
-                                lastdisassembledata.parametervalue:=memory[last];
-                                lastdisassembledata.parameters:=lastdisassembledata.parameters+','+inttohexs(lastdisassembledata.parametervalue,2);
-                                inc(offset,last);
+                                lastdisassembledata.opcode:='cmp'+equationstr+'pd';
+                                if equationstr='' then
+                                  lastdisassembledata.parameters:=lastdisassembledata.parameters+','+inttohexs(lastdisassembledata.parametervalue,2);
+
                               end
                               else
                               begin
                                 description:='packed single-fp compare';
-                                if hasvex then
-                                  lastdisassembledata.opcode:='vcmpps'
-                                else
-                                  lastdisassembledata.opcode:='cmpps';
-                                lastdisassembledata.parameters:=xmm(memory[2])+modrm(memory,prefix2,2,4,last,128,0,mRight);
-                                lastdisassembledata.parametervaluetype:=dvtvalue;
-                                lastdisassembledata.parametervalue:=memory[last];
-                                lastdisassembledata.parameters:=lastdisassembledata.parameters+','+inttohexs(lastdisassembledata.parametervalue,2);
+                                lastdisassembledata.opcode:='cmp'+equationstr+'ps';
+                                if equationstr='' then
+                                  lastdisassembledata.parameters:=lastdisassembledata.parameters+','+inttohexs(lastdisassembledata.parametervalue,2);
+
                                 lastdisassembledata.datasize:=4;
-                                inc(offset,last);
                               end;
                             end;
+
+                            if hasvex then
+                              lastdisassembledata.opcode:='v'+lastdisassembledata.opcode;
+
+                            inc(offset,last);
                           end;
 
                     $c3 : begin
