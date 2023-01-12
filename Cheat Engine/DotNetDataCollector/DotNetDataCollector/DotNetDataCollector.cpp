@@ -3,6 +3,22 @@
 
 #include "PipeServer.h"
 
+BOOL SetProtection()
+{
+    HMODULE k = LoadLibraryA("kernel32.dll");
+    typedef BOOL  (WINAPI *SETPROCESSMITIGATIONPOLICY)(PROCESS_MITIGATION_POLICY MitigationPolicy, PVOID lpBuffer, SIZE_T dwLength);
+    SETPROCESSMITIGATIONPOLICY p=(SETPROCESSMITIGATIONPOLICY)GetProcAddress(k, "SetProcessMitigationPolicy");
+
+    PROCESS_MITIGATION_BINARY_SIGNATURE_POLICY policy;
+    ZeroMemory(&policy, sizeof(policy));
+    policy.MicrosoftSignedOnly = 1;
+    policy.MitigationOptIn = 1;
+    BOOL r;
+    r=p(ProcessSignaturePolicy, &policy, sizeof(policy));
+
+    return r;
+}
+
 BOOL SetPrivilege(
     HANDLE hToken,          // access token handle
     LPCTSTR lpszPrivilege,  // name of privilege to enable/disable
@@ -68,6 +84,8 @@ int WINAPI wWinMain(
 	OpenProcessToken( p, TOKEN_ADJUST_PRIVILEGES | TOKEN_QUERY, &hToken ); 	 
 	SetPrivilege( hToken, SE_DEBUG_NAME, TRUE );
 	CoInitialize(NULL);
+
+    SetProtection(); //remove this if it causes issues, but it should prevent mallicious apps from putting a fake dbgshim in their folder and cause havoc as admin
 
 	MSG m;
 	PeekMessage(&m, (HWND)-1, 0,0,PM_REMOVE); //this will tell windows that the app hasn't crashed

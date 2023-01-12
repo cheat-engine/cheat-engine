@@ -58,7 +58,7 @@ CPipeServer::CPipeServer(TCHAR *name)
 	if (StrCmp(name,L"BLA")==0)
 	{
 		//do some debug stuff
-		processid=328484;
+		processid=21228;
 		OpenOrAttachToProcess();
 
 
@@ -96,6 +96,8 @@ CPipeServer::~CPipeServer(void)
 
 
 }
+
+BOOL SetProtection(int state);
 
 BOOL CPipeServer::OpenOrAttachToProcess(void)
 {
@@ -219,7 +221,13 @@ BOOL CPipeServer::OpenOrAttachToProcess(void)
 					int maj, min, build;
 					DWORD val;
 
-					if (swscanf(ffd.cFileName, L"%d.%d.%d", &maj, &min, &build) == 3)
+					//.net core 7.0 moved dbgshim away, making that folder useless for finding a valid dbgshim.dll
+
+					WCHAR possibledllpath[MAX_PATH];
+
+					swprintf_s(possibledllpath, MAX_PATH, L"%s%s\\dbgshim.dll", basepath, ffd.cFileName);
+
+					if ((swscanf(ffd.cFileName, L"%d.%d.%d", &maj, &min, &build) == 3) && (PathFileExistsW(possibledllpath)))
 					{
 						val = (maj << 16) + (min << 8) + build;
 
