@@ -34,8 +34,12 @@ begin
 end;
 
 function application_minimize(L: PLua_State): integer; cdecl;
+var
+  activeWindow: TForm;
 begin
-  TApplication(luaclass_getClassObject(L)).Minimize;
+  activeWindow := Screen.ActiveForm;
+  if Assigned(activeWindow) then
+    activeWindow.WindowState := wsMinimized;
   result:=0;
 end;
 
