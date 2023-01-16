@@ -91,10 +91,11 @@ ar2,di2=autoAssemble([[
   
   //e.g: EmuBaseAddress=0x00400000
   //reading of address 0 should end up reading 0x00400000
-  
-  
-  sub rdx,[EmuVirtualBaseAddress]
-  add rdx,[EmuBaseAddress] //adjust the address
+  mov rax,[EmuVirtualBaseAddress]  
+  sub rdx,rax
+
+  mov rax,[EmuBaseAddress]
+  add rdx,rax //adjust the address
   [/64-bit]
 
   [32-bit]
@@ -114,8 +115,10 @@ ar2,di2=autoAssemble([[
 
   EmuWPM:
   [64-bit]
-  sub rdx,[EmuVirtualBaseAddress]
-  add rdx,[EmuBaseAddress] //adjust the address
+  mov rax,[EmuVirtualBaseAddress]
+  sub rdx,rax
+  mov rax,[EmuBaseAddress]
+  add rdx,rax //adjust the address
   [/64-bit]
 
   [32-bit]
@@ -143,7 +146,8 @@ EmuVQE:
   cmp rdx,rax
   jae invalidlength //actually unreadable, but has the same effect for ce
   
-  cmp rdx,[EmuVirtualBaseAddress]
+  mov rax,[EmuVirtualBaseAddress]
+  cmp rdx,rax
   jae insideregion
   
   //not yet there
@@ -173,7 +177,8 @@ insideregion:
   mov [r8+10],0x40 //allocation protect: page execute read write (actually a dword, but store as qword to zero the unused bytes)
 
 
-  sub rdx,[EmuVirtualBaseAddress]
+  mov rax,[EmuVirtualBaseAddress]
+  sub rdx,rax
   mov rax,[EmuSize]
   sub rax,rdx
 

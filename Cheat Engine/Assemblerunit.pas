@@ -6517,7 +6517,7 @@ begin
                 if v>$7fffffff then
                 begin
                   //OutputDebugString('Assembler could not assemble using r32,rm32: searching of alternatives');
-                 // errorifnotfound:=rsOffsetTooBig;
+                  errorifnotfound:=rsOffsetTooBig;
                   setlength(bytes,0);
                   paramtype1:=oldParamtype1;
                   paramtype2:=oldParamtype2;
@@ -8379,8 +8379,14 @@ begin
     end
     else
     begin
-      if errorifnotfound<>'' then
-        raise exception.Create(errorifnotfound);
+      if (errorifnotfound<>'') then
+      begin
+        if (skiprangecheck=false) then
+          raise EAssemblerExceptionOffsetTooBig.Create(errorifnotfound)
+        else
+          exit(true);  //just a syntaxcheck. Everything is ok except the range
+
+      end;
     end;
 
     if needsAddressSwitchPrefix then //add it

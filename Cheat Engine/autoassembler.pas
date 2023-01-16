@@ -712,6 +712,7 @@ procedure getPotentialLabels(code: Tstrings; labels: TStrings);
 var
   i: integer;
   currentline: string;
+  a: int64;
 begin
   for i:=0 to code.count-1 do
   begin
@@ -719,7 +720,11 @@ begin
     if (currentline<>'') and (currentline[length(currentline)]=':') then
     begin
       if (pos('+', currentline)=0) and (pos('.', currentline)=0) then
-        labels.add(copy(currentline,1,length(currentline)-1));
+      begin
+        currentline:=copy(currentline,1,length(currentline)-1);
+        if trystrtoint64('$'+currentline, a)=false then
+          labels.add(currentline);
+      end;
     end;
   end;
 end;
@@ -2954,6 +2959,7 @@ begin
             if not ok1 then
               raise EAutoAssembler.Create('bla');
           except
+            ShowMessage(code.text);
             raise EAutoAssembler.Create(rsThisInstructionCanTBeCompiled);
           end;
 
