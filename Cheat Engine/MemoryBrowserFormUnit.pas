@@ -235,6 +235,7 @@ type
     tbToggleBreakpoint: TToolButton;
     tbRunTill: TToolButton;
     tbSeparator3: TToolButton;
+    tbRunUnhandled: TToolButton;
     View1: TMenuItem;
     Stacktrace1: TMenuItem;
     ScrollBox1: TScrollBox;
@@ -5894,6 +5895,9 @@ begin
 
   if _debuggerthread<>nil then _debuggerthread.execlocation:=41305;
   miRunUnhandled.Visible:=miRunUnhandled.Enabled;
+  tbRunUnhandled.enabled:=miRunUnhandled.enabled;
+  tbRunUnhandled.visible:=miRunUnhandled.enabled;
+
   miDebugStep.Enabled:=true;
   tbStepInto.Enabled:=true; //enable toolbar step into button
   miDebugStepOver.Enabled:=true;

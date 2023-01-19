@@ -6871,7 +6871,8 @@ var
   starta,startb, stopa,stopb: ptruint;
 begin
  // OutputDebugString('TScanController.firstScan');
-  if OnlyOne or (luaformula and (newluastate=false)) then
+
+  if (OnlyOne and (not isUnique)) or (luaformula and (newluastate=false)) then
     threadcount:=1
   else
     threadcount:=GetCPUCount;
@@ -6909,7 +6910,7 @@ begin
   memRegionPos:=0;
 
 
-  if OnlyOne then //don't align at all. Some users want a byte perfect range...
+  if OnlyOne or isUnique then //don't align at all. Some users want a byte perfect range...
   begin
     //if (startaddress mod 8)>0 then //align on a 8 byte base
     // startaddress:=startaddress-(startaddress mod 8)+8;

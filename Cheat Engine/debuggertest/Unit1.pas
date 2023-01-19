@@ -35,7 +35,9 @@ type
     Button12: TButton;
     Button13: TButton;
     Button14: TButton;
+    Button15: TButton;
     Button2: TButton;
+    Edit1: TEdit;
     edtTimeout: TEdit;
     Label1: TLabel;
     Button3: TButton;
@@ -64,6 +66,7 @@ type
     procedure Button12Click(Sender: TObject);
     procedure Button13Click(Sender: TObject);
     procedure Button14Click(Sender: TObject);
+    procedure Button15Click(Sender: TObject);
     procedure Button1Click(Sender: TObject);
     procedure Button2Click(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -471,6 +474,44 @@ begin
 
   end;
   debugtest:=false;
+end;
+
+procedure TForm1.Button15Click(Sender: TObject);
+var
+  w: widestring;
+  s: UTF8String;
+  test: array [0..3] of PtrUInt;
+  ok1, ok2: boolean;
+begin
+  ok1:=false;
+  ok2:=false;
+  w:=edit1.text;
+  s:=edit1.text;
+ // OutputDebugStringW(pwidechar(@w[1]));
+
+ try
+   test[0]:=length(s);
+   test[1]:=ptruint(@s[1]);
+   test[2]:=0;
+   test[3]:=0;
+   RaiseException(DBG_PRINTEXCEPTION_C,0,4,@test[0]);
+   showmessage('debugger detected part 1');
+ except
+   ok1:=true;
+ end;
+
+ try
+   test[0]:=length(s);
+   test[1]:=ptruint(@s[1]);
+   test[2]:=0;
+   test[3]:=0;
+   RaiseException($4001000A,0,4,@test[0]);
+   showmessage('debugger detected part 2');
+ except
+   ok2:=true;
+ end;
+
+ if ok1 and ok2 then showmessage('everything ok');
 end;
 
 procedure TForm1.Button2Click(Sender: TObject);

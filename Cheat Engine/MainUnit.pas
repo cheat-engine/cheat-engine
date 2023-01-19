@@ -7876,7 +7876,7 @@ begin
       if c<>nil then
       begin
         c.setOption(data.data.optname, v);
-        c.getOption(data.data.optname, data.data.currentvalue);
+        data.data.currentvalue:=c.getOption(data.data.optname);
 
         mi.OnClick:=nil;
         if data.data.optiontype=netBoolean then

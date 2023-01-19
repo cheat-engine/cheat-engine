@@ -121,7 +121,8 @@ uses
   LuaCECustomButton, DBVMDebuggerInterface, frmCR3SwitcherUnit, tcclib,
   sourcecodehandler, frmSourceDisplayUnit, disassemblerarm64, contexthandler,
   DisAssemblerARM32, frmAnchorEditor, disassemblerArm32Thumb, iptnative, 
-  iptlogdisplay, LuaVirtualStringTree, userbytedisassembler;
+  iptlogdisplay, LuaVirtualStringTree, userbytedisassembler, 
+LuaNetworkInterface;
 
 {$R cheatengine.res}
 {$IFDEF windows}

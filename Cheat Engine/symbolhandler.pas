@@ -2738,15 +2738,7 @@ begin
 
             if symbolsloaded then
             begin
-
-
-
               symbolscleaned:=false;
-
-
-
-
-
 
               if kernelsymbols then LoadDriverSymbols(false);
               LoadDLLSymbols(false, needstoenumodules);

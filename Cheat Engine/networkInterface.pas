@@ -144,12 +144,13 @@ type
     function getABI: integer;
     function enumSymbolsFromFile(modulepath: string; modulebase: ptruint; callback: TNetworkEnumSymCallback): boolean;
     function loadModule(hProcess: THandle; modulepath: string): boolean;
+    function loadModuleEx(hProcess: THandle; dlopenaddress: ptruint; modulepath: string): boolean;
     function loadExtension(hProcess: Thandle): boolean;
     function speedhack_setSpeed(hProcess: THandle; speed: single): boolean;
     procedure setConnectionName(name: string);
 
     procedure getOptions(var options: TCEServerOptions);
-    procedure getOption(name: string; var value: string);
+    function getOption(name: string):string;
     procedure setOption(name: string; value: string);
 
     function connectNamedPipe(name: string; timeout:integer=0): HANDLE;
@@ -160,6 +161,17 @@ type
 
     function isAndroid: boolean;
 
+    function setCurrentPath(path: string): boolean;
+    function getCurrentPath: string;
+    procedure enumfiles(path: string; list: tstrings);
+    function getFilePermissions(path: string; out perms: UINT32): boolean;
+    function setFilePermissions(path: string; perms: UINT32): boolean;
+
+    function getFile(path: string; s: tstream): boolean;
+    function putFile(path: string; s: tstream): boolean;
+
+    function createDir(path: string): boolean;
+    function deleteFile(path: string): boolean;
 
     procedure TerminateServer;
 
@@ -240,6 +252,18 @@ const
 
   CMD_GETCESERVERPATH=44;
   CMD_ISANDROID=45;
+
+  CMD_LOADMODULEEX=46;
+
+  CMD_SETCURRENTPATH=47;
+  CMD_GETCURRENTPATH=48;
+  CMD_ENUMFILES=49;
+  CMD_GETFILEPERMISSIONS=50;
+  CMD_SETFILEPERMISSIONS=51;
+  CMD_GETFILE=52;
+  CMD_PUTFILE=53;
+  CMD_CREATEDIR=54;
+  CMD_DELETEFILE=55;
 
 
 
@@ -2133,6 +2157,43 @@ begin
 
 end;
 
+function TCEConnection.loadModuleEx(hProcess: THandle; dlopenaddress: ptruint; modulepath: string): boolean;
+type
+  TInput=packed record
+    command: uint8;
+    handle: uint32;
+    dlopenaddress: uint64;
+    modulepathlength: uint32;
+    modulename: packed record end;
+  end;
+  PInput=^TInput;
+
+var
+  input: Pinput;
+  r:uint64;
+begin
+  result:=false;
+  if isNetworkHandle(hProcess) then
+  begin
+    getmem(input, sizeof(TInput)+length(modulepath));
+
+    input^.command:=CMD_LOADMODULE;
+    input^.handle:=hProcess and $ffffff;
+    input^.dlopenaddress:=dlopenaddress;
+    input^.modulepathlength:=Length(modulepath);
+    CopyMemory(@input^.modulename, @modulepath[1], length(modulepath));
+
+    if send(input,  sizeof(TInput)+length(modulepath))>0 then
+    begin
+      receive(@r, sizeof(r));
+      result:=r<>0;
+    end;
+
+    FreeMemAndNil(input);
+
+  end;
+end;
+
 function TCEConnection.loadModule(hProcess: THandle; modulepath: string): boolean;
 type
   TInput=packed record
@@ -2271,7 +2332,7 @@ begin
   end;
 end;
 
-procedure TCEConnection.getOption(name: string; var value: string);
+function TCEConnection.getOption(name: string): string;
 var
   buf: tmemorystream;
 begin
@@ -2283,7 +2344,7 @@ begin
   send(buf.Memory, buf.Size);
   buf.free;
 
-  value:=receiveString16;
+  result:=receiveString16;
 end;
 
 procedure TCEConnection.setOption(name: string; value: string);
@@ -2405,6 +2466,165 @@ var command, r: byte;
 begin
   command:=CMD_ISANDROID;
   send(@command,1);
+  receive(@r,1);
+  result:=r<>0;
+end;
+
+function TCEConnection.setCurrentPath(path: string): boolean;
+var buf: Tmemorystream;
+  r: byte;
+begin
+  buf:=tmemorystream.create;
+  buf.writebyte(CMD_SETCURRENTPATH);
+  buf.WriteWord(length(path));
+  buf.WriteBuffer(path[1],word(length(path)));
+  send(buf.Memory, buf.Size);
+
+  buf.free;
+  receive(@r,1);
+
+  result:=r<>0;
+end;
+
+function TCEConnection.getCurrentPath: string;
+var command: byte;
+begin
+  command:=CMD_GETCURRENTPATH;
+  send(@command,1);
+  result:=receiveString16;
+end;
+
+procedure TCEConnection.enumfiles(path: string; list: tstrings);
+var buf: tmemorystream;
+  filecount: uint32;
+  i: uint32;
+  s: string;
+  t: byte;
+begin
+  buf:=tmemorystream.create;
+  buf.WriteByte(CMD_ENUMFILES);
+  buf.writeword(length(path));
+  buf.writebuffer(path[1],word(length(path)));
+  send(buf.memory,buf.size);
+  buf.free;
+
+  list.clear;
+  repeat
+    s:=receivestring16;
+
+    if s<>'' then
+    begin
+      receive(@t,1);
+      list.AddObject(s, tobject(pointer(t)));
+    end;
+  until s='';
+end;
+
+function TCEConnection.getFilePermissions(path: string; out perms: UINT32): boolean;
+var
+  buf: tmemorystream;
+  r: byte;
+begin
+  buf:=tmemorystream.create;
+  buf.Writebyte(CMD_GETFILEPERMISSIONS);
+  buf.writeword(length(path));
+  buf.writebuffer(path[1],word(length(path)));
+  send(buf.memory,buf.size);
+  buf.free;
+
+  receive(@r,1);
+  if r<>0 then
+    receive(@perms, sizeof(perms));
+
+  result:=r<>0;
+end;
+
+function TCEConnection.setFilePermissions(path: string; perms: UINT32): boolean;
+var
+  buf: tmemorystream;
+  r: byte;
+begin
+  buf:=tmemorystream.create;
+  buf.Writebyte(CMD_SETFILEPERMISSIONS);
+  buf.writeword(length(path));
+  buf.writebuffer(path[1],word(length(path)));
+  buf.writedword(perms);
+  send(buf.memory,buf.size);
+  buf.free;
+
+  receive(@r,1);
+  result:=r<>0;
+end;
+
+
+function TCEConnection.getFile(path: string; s: tstream): boolean;
+var
+  buf: tmemorystream;
+  filelength: uint32; //do not bother with 4GB+ files...
+  f: pointer;
+begin
+  buf:=tmemorystream.create;
+  buf.writeByte(CMD_GETFILE);
+  buf.writeword(length(path));
+  buf.writebuffer(path[1],word(length(path)));
+  send(buf.memory,buf.size);
+  buf.free;
+
+  receive(@filelength,sizeof(filelength));
+  if filelength<>$ffffffff then
+  begin
+    getmem(f,filelength);
+    receive(f,filelength);
+    s.Position:=0;
+    s.Size:=0;
+    s.WriteBuffer(f^,filelength);
+    freemem(f);
+  end;
+
+  result:=filelength<>$ffffffff;
+end;
+
+function TCEConnection.putFile(path: string; s: tstream): boolean;
+var
+  buf: tmemorystream;
+  r: byte;
+begin
+  buf:=tmemorystream.create;
+  buf.WriteByte(CMD_PUTFILE);
+  buf.WriteWord(length(path));
+  buf.writebuffer(path[1],word(length(path)));
+  buf.WriteDWord(s.Size);
+  buf.CopyFrom(s,0);
+  send(buf.Memory,buf.size);
+
+  receive(@r,1);
+  result:=r<>0;
+end;
+
+function TCEConnection.createDir(path: string): boolean;
+var
+  buf: tmemorystream;
+  r: byte;
+begin
+  buf:=tmemorystream.create;
+  buf.WriteByte(CMD_CREATEDIR);
+  buf.WriteWord(length(path));
+  buf.writebuffer(path[1],word(length(path)));
+  send(buf.Memory,buf.size);
+  receive(@r,1);
+  result:=r<>0;
+end;
+
+function TCEConnection.deleteFile(path: string): boolean;
+var
+  buf: tmemorystream;
+  r: byte;
+begin
+  buf:=tmemorystream.create;
+  buf.WriteByte(CMD_DELETEFILE);
+  buf.WriteWord(length(path));
+  buf.writebuffer(path[1],word(length(path)));
+  send(buf.Memory,buf.size);
   receive(@r,1);
   result:=r<>0;
 end;

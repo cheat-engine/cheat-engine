@@ -203,24 +203,3 @@ initialization
   {$i FindWindowUnit.lrs}
 
 end.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

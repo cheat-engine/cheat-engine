@@ -12,7 +12,7 @@ interface
 
 uses
   {$ifdef windows}
-  windows,
+  jwawindows, windows,
   {$endif}
   LCLIntf,SysUtils,classes, CEFuncProc,NewKernelHandler,FileMapping, commonTypeDefs;
 
@@ -315,13 +315,12 @@ type
     function getCount: integer;
   public
     function getRunTimeEntry(address: ptruint): PRuntimeEntry;
+    function isvalid(index: integer): boolean;
     constructor create(modulebase: ptruint; ela: ptruint; els: integer);
     destructor destroy; override;
     property ModuleBase: ptruint read fModuleBase;
     property Count: integer read getCount;
     property Entry[index: integer]: TRunTimeEntry read getEntry; default;
-
-
   end;
 
 
@@ -457,6 +456,10 @@ begin
   end;
 end;
 
+function TExceptionList.isvalid(index: integer): boolean;
+begin
+
+end;
 
 function TExceptionList.getEntry(index: integer): TRunTimeEntry;
 begin

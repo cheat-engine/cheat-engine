@@ -1,13 +1,14 @@
 object frmAutoInject: TfrmAutoInject
   Left = 419
-  Height = 313
+  Height = 391
   Top = 475
-  Width = 431
+  Width = 539
   HelpContext = 1089
   AllowDropFiles = True
   Caption = 'Auto assemble'
-  ClientHeight = 293
-  ClientWidth = 431
+  ClientHeight = 366
+  ClientWidth = 539
+  DesignTimePPI = 120
   Menu = MainMenu1
   OnClose = FormClose
   OnCreate = FormCreate
@@ -15,44 +16,44 @@ object frmAutoInject: TfrmAutoInject
   OnDropFiles = FormDropFiles
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '2.2.2.0'
+  LCLVersion = '2.2.4.0'
   object Panel1: TPanel
     Left = 0
-    Height = 34
-    Top = 259
-    Width = 431
+    Height = 42
+    Top = 324
+    Width = 539
     Align = alBottom
     AutoSize = True
     BevelOuter = bvNone
-    ClientHeight = 34
-    ClientWidth = 431
+    ClientHeight = 42
+    ClientWidth = 539
     TabOrder = 0
     OnResize = Panel1Resize
     object Panel3: TPanel
       AnchorSideLeft.Control = Panel1
       AnchorSideLeft.Side = asrCenter
-      Left = 168
-      Height = 34
+      Left = 210
+      Height = 42
       Top = 0
-      Width = 95
+      Width = 119
       AutoSize = True
       BevelOuter = bvNone
-      ClientHeight = 34
-      ClientWidth = 95
+      ClientHeight = 42
+      ClientWidth = 119
       TabOrder = 0
       object btnExecute: TButton
         AnchorSideLeft.Control = Panel3
         AnchorSideTop.Control = Panel3
         Left = 0
-        Height = 30
+        Height = 38
         Top = 2
-        Width = 95
+        Width = 119
         AutoSize = True
         BorderSpacing.Top = 2
         BorderSpacing.Bottom = 2
         Caption = 'Execute'
-        Constraints.MinHeight = 30
-        Constraints.MinWidth = 95
+        Constraints.MinHeight = 38
+        Constraints.MinWidth = 119
         OnClick = btnExecuteClick
         TabOrder = 0
       end
@@ -60,9 +61,9 @@ object frmAutoInject: TfrmAutoInject
   end
   object Panel2: TPanel
     Left = 0
-    Height = 259
+    Height = 324
     Top = 0
-    Width = 431
+    Width = 539
     Align = alClient
     BevelOuter = bvNone
     BorderStyle = bsSingle
@@ -70,8 +71,8 @@ object frmAutoInject: TfrmAutoInject
   end
   object MainMenu1: TMainMenu
     Images = aaImageList
-    Left = 184
-    Top = 120
+    Left = 230
+    Top = 150
     object File1: TMenuItem
       Caption = 'File'
       object miNewWindow: TMenuItem
@@ -221,21 +222,21 @@ object frmAutoInject: TfrmAutoInject
     Title = 'Open CE assembly file'
     DefaultExt = '.CEA'
     Filter = 'Cheat Engine Assembly (*.CEA)|*.CEA|All Files (*.*)|*.*'
-    Left = 8
-    Top = 40
+    Left = 10
+    Top = 50
   end
   object SaveDialog1: TSaveDialog
     Title = 'Save CE assembly file'
     DefaultExt = '.CEA'
     Filter = 'Cheat Engine Assembly (*.CEA)|*.CEA|All Files (*.*)|*.*'
     Options = [ofOverwritePrompt, ofHideReadOnly, ofEnableSizing]
-    Left = 40
-    Top = 40
+    Left = 50
+    Top = 50
   end
   object PopupMenu1: TPopupMenu
     Images = aaImageList
-    Left = 136
-    Top = 16
+    Left = 170
+    Top = 20
     object miCut: TMenuItem
       Caption = 'Cu&t'
       ImageIndex = 9
@@ -296,8 +297,8 @@ object frmAutoInject: TfrmAutoInject
   object TabMenu: TPopupMenu
     Images = aaImageList
     OnPopup = TabMenuPopup
-    Left = 232
-    Top = 48
+    Left = 290
+    Top = 60
     object miMoveLeft: TMenuItem
       Caption = 'Move left'
       ImageIndex = 16
@@ -321,25 +322,25 @@ object frmAutoInject: TfrmAutoInject
   end
   object FindDialog1: TFindDialog
     OnFind = FindDialog1Find
-    Left = 332
-    Top = 112
+    Left = 415
+    Top = 140
   end
   object undotimer: TTimer
     Interval = 250
-    Left = 40
-    Top = 72
+    Left = 50
+    Top = 90
   end
   object ReplaceDialog1: TReplaceDialog
     Options = [frDown, frReplace, frReplaceAll]
     OnFind = ReplaceDialog1Find
     OnReplace = ReplaceDialog1Replace
-    Left = 332
-    Top = 46
+    Left = 415
+    Top = 58
   end
   object aaImageList: TImageList
     Scaled = True
-    Left = 137
-    Top = 206
+    Left = 171
+    Top = 258
     Bitmap = {
       4C7A1100000010000000100000006B1000000000000078DAED9B09585357DAC7
       63D569B52E4C3BB633DA5AED323A8A33A24EB5EA3383AD22B6D5AA08C5AAE888

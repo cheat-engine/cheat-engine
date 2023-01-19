@@ -4128,7 +4128,24 @@ methods
 connectToCEServer(hostname,port) - Connects to the given host and port. On success, most commands subsequent will be handled by the server. Like processlist, memory reading, etc...
 isConnectedToCEServer(): boolean - returns true if currently connected to a ceserver
 getCEServerPath(): string - returns the path where ceserver is located on the target
+getCEServerInterface(): returns a ceserverInterface object 
 
+CEServerInterface class:
+properties
+  connected: boolean
+  path: string
+  Option[optionname]: string
+methods
+  getOptionList(): table - returns an indexed table with all available options. Each table entry contains: optname, parentoptname, optdescription, acceptablevalues, currentvalue, optiontype(0=not an option, just a label, 1=bool, 2=int, 3=float, 4=double, 5=text)
+  getCurrentPath(): Returns the current working path
+  setCurrentPath(): Changes the current working path 
+  enumFiles(path OPTIONAL): Returns an indexed list describing the contents of the given path.  It constists of tables containing 'name' and 'type'.  Type can be : DT_UNKNOWN, DT_FIFO, DT_CHR, DT_DIR, DT_BLK, DT_REG, DT_LNK, DT_SOCK, DT_WHT
+
+  createDir(path): Create the provided path
+  getFilePermission(path) : returns the filemode bitmask of the given file (parse the bitmask yourself)
+  setFilePermission(path, permissions) : sets the filemode bitmask of the given file
+  getFile(path, stream) : creates a file at the given path with the contents of the stream object
+  putFile(path, stream) : reads a file from the given path and stores it in the provided stream object
 
 
 ce lua extensions:

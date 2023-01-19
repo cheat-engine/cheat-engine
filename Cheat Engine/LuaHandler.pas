@@ -130,7 +130,7 @@ uses autoassembler, MainUnit, MainUnit2, LuaClass, frmluaengineunit, plugin, plu
   rttihelper, LuaDotNetPipe, LuaRemoteExecutor, windows7taskbar, debugeventhandler,
   tcclib, dotnethost, CSharpCompiler, LuaCECustomButton, feces, process,
   networkInterface, networkInterfaceApi, LuaVirtualStringTree, userbytedisassembler,
-  parsers;
+  parsers, LuaNetworkInterface;
 
   {$warn 5044 off}
 
@@ -16216,11 +16216,13 @@ begin
 
   lua_register(L, 'invertColor',lua_InvertColor);
 
-
+  initializeLuaNetworkInterface(L);
 
 {$ifdef darwin}
   lua_register(L, 'createMachThread', lua_createMachThread);
 {$endif}
+
+
 
 
 end;

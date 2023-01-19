@@ -29,7 +29,7 @@
       <MajorVersionNr Value="7"/>
       <MinorVersionNr Value="4"/>
       <RevisionNr Value="3"/>
-      <BuildNr Value="7302"/>
+      <BuildNr Value="7340"/>
       <Language Value="041C"/>
       <CharSet Value="04B0"/>
       <StringTable CompanyName="Cheat Engine" FileDescription="Cheat Engine" ProductVersion="7.4.3"/>
@@ -652,27 +652,6 @@
 -dNESTEDSTRUCTURES
 -dTHREADNAMESUPPORT
 -dLINUXTCCTEST"/>
-            <OtherDefines Count="19">
-              <Define0 Value="NOTMULTITHREADED"/>
-              <Define1 Value="benchmarkps"/>
-              <Define2 Value="cemain"/>
-              <Define3 Value="NDEBUG"/>
-              <Define4 Value="D3DDebug"/>
-              <Define5 Value="NOVMX"/>
-              <Define6 Value="CUSTOMFLOAT"/>
-              <Define7 Value="XDEBUG"/>
-              <Define8 Value="memleaksearch"/>
-              <Define9 Value="checkassembleralphabet"/>
-              <Define10 Value="memorymapped"/>
-              <Define11 Value="privatebuild"/>
-              <Define12 Value="DBVMFORAMDISWORKING"/>
-              <Define13 Value="NESTEDSTRUCTURES"/>
-              <Define14 Value="THREADNAMESUPPORT"/>
-              <Define15 Value="LINUXTCCTEST"/>
-              <Define16 Value="asserthexviewisthreadsafe"/>
-              <Define17 Value="DEBUGPROTOCOL"/>
-              <Define18 Value="NEWCHANGEREGONX86"/>
-            </OtherDefines>
           </Other>
         </CompilerOptions>
       </Item10>
@@ -725,7 +704,7 @@
         <PackageName Value="LCL"/>
       </Item9>
     </RequiredPackages>
-    <Units Count="420">
+    <Units Count="421">
       <Unit0>
         <Filename Value="cheatengine.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -2620,6 +2599,7 @@
         <Filename Value="frmexceptionregionlistunit.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="frmExceptionRegionList"/>
+        <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="frmExceptionRegionListUnit"/>
       </Unit359>
@@ -2942,6 +2922,11 @@
         <Filename Value="userbytedisassembler.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit419>
+      <Unit420>
+        <Filename Value="luanetworkinterface.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="LuaNetworkInterface"/>
+      </Unit420>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

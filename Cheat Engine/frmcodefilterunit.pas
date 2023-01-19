@@ -995,9 +995,11 @@ begin
             if (modulemem<>nil) then
             begin
               pui:=@modulemem[rte.unwind];
-              if ((pui^.version<>1) or (pui^.flags=4)) or ((pui^.countOfUnwindCodes=0) and (pui^.sizeOfProlog=0) and (pui^.frameregister=0) and (pui^.frameregisteroffset=0)) then
+              if ((pui^.version<>1) or (pui^.flags=4)) then
+              // or alternatively:
+              //if ((pui^.countOfUnwindCodes=0) and (pui^.sizeOfProlog=0) and (pui^.frameregister=0) and (pui^.frameregisteroffset=0)) then
               begin
-                continue; //invalid
+               // continue; //invalid
               end;
 
             end;
