@@ -106,16 +106,10 @@ void handleSetOption(int currentsocket)
           break;
         }
 
-
-        case 0:
-        default:
-          sendall(currentsocket, &r,1,0);
       }
 
 
     }
-    else
-      sendall(currentsocket, &r,1,0);
 
     free(optname);
     free(newvalue);

@@ -666,6 +666,7 @@ int loadExtension(PProcessData p, char *path)
       debug_log("new rdi=%lx\n", newregs.rdi);
       debug_log("new rsi=%lx\n", newregs.rsi);
       debug_log("new rdx=%lx\n", newregs.rdx);
+      debug_log("new rsp=%lx\n", newregs.rsp);
 #endif
 
 #ifdef __i386__
@@ -826,6 +827,91 @@ int loadExtension(PProcessData p, char *path)
 
     debug_log("si.si_signo=%d\n", si.si_signo);
 
+#ifdef __x86_64__
+    process_state rregs;
+    status=getProcessState(pid, &rregs);
+    debug_log("returned: RIP=%lx RAX=%lx (orig=%lx)\n", rregs.rip, rregs.rax, rregs.orig_rax);
+
+    if (rregs.rax==0)
+    {
+      debug_log("Looks like it failed. Trying dlerror\n");
+      newregs.rip=p->dlerror;
+      setProcessState(pid, &newregs);
+    }
+
+    ptr=ptrace(PTRACE_CONT,pid,(void *)0,(void *)SIGCONT);
+
+    debug_log("PRACE_CONT=%d\n", ptr);
+    if (ptr!=0)
+    {
+      debug_log("PTRACE_CONT FAILED\n");
+      return 1;
+    }
+
+    //wait for this thread to crash
+
+    pid2=-1;
+    while (pid2==-1)
+    {
+      pid2=waitpid(-1, &status,  WUNTRACED| __WALL);
+
+      if (WIFSTOPPED(status))
+      {
+        debug_log("Stopped with signal %d\n", WSTOPSIG(status));
+
+        if (pid2!=pid)
+        {
+          debug_log("It's a different thread\n");
+          if (!p->isDebugged)
+          {
+            debug_log("No debugger present. Continuing it unhandled\n");
+
+            if (WSTOPSIG(status)!=SIGSTOP)
+              ptrace(PTRACE_CONT,pid2,(void *)0,(void *)(uintptr_t)WSTOPSIG(status));
+            else
+              ptrace(PTRACE_CONT,pid2,(void *)0,0);
+          }
+          else
+          {
+            //add it to the debug events
+            DebugEvent de;
+            de.threadid=pid2;
+            de.debugevent=WSTOPSIG(status);
+            AddDebugEventToQueue(p, &de);
+
+            debug_log("Debugger present. Added to the queue\n");
+          }
+          pid2=-1;
+          continue;
+        }
+
+      }
+      else
+        debug_log("Unexpected status: %x\n", status);
+
+
+      if ((pid2==-1) && (errno!=EINTR))
+      {
+        debug_log("LoadExtension wait fail. :%d\n", errno);
+
+        return FALSE;
+      }
+
+      if (pid2==0)
+        pid2=-1;
+
+
+
+      debug_log(".");
+    }
+
+    debug_log("\nafter wait: pid=%d (status=%x)\n", pid, status);
+
+    status=getProcessState(pid, &rregs);
+    debug_log("returned2: RIP=%lx RAX=%lx (orig=%lx)\n", rregs.rip, rregs.rax, rregs.orig_rax);
+
+#endif
+
 //    if (si.si_signo==SIGSEGV)
       //debug_log("si._sifields._sigfault._addr=%x\n", si._sifields._sigfault._addr);
 
@@ -863,11 +949,16 @@ int loadExtension(PProcessData p, char *path)
 
 }
 
+void finddlerrorcallback(uintptr_t address, char *symbolname, PProcessData context)
+{
+  debug_log("found dlerror at %llx\n", address);
+  context->dlerror=address;
+}
+
 void finddlopencallback(uintptr_t address, char *symbolname, PProcessData context)
 {
   debug_log("found dlopen at %llx\n", address);
   context->dlopen=address;
-
 }
 
 void findmmapcallback(uintptr_t address, char *symbolname, PProcessData context)
@@ -1378,10 +1469,17 @@ int loadCEServerExtension(HANDLE hProcess)
       debug_log("Trying to find __loader_dlopen\n");
       FindSymbol(hProcess,"__loader_dlopen", (symcallback)finddlopencallback, p);
 
+      FindSymbol(hProcess,"__loader_dlerror", (symcallback)finddlerrorcallback, p);
+
       if (p->dlopen)
         debug_log("__loader_dlopen at %p\n", p->dlopen);
       else
         debug_log("__loader_dlopen not found\n");
+
+      if (p->dlerror)
+        debug_log("__loader_dlerror at %p\n", p->dlerror);
+      else
+        debug_log("__loader_dlerror not found\n");
 
       if (p->dlopencaller==0)
       {

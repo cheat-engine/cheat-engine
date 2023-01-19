@@ -323,6 +323,32 @@ int DispatchCommand(int currentsocket, unsigned char command)
       break;
     }
 
+    case EXTCMD_LOADMODULEEX:
+    {
+      debug_log("EXTCMD_LOADMODULEEX\n");
+#pragma pack(1)
+      struct {
+        uint64_t dlopenaddress;
+        uint32_t modulepathlength;
+      } params;
+#pragma pack()
+
+      if (recvall(currentsocket, &params, sizeof(params),0)>0)
+      {
+        char *modulepath[params.modulepathlength+1];
+        if (recvall(currentsocket, modulepath, params.modulepathlength, 0)>0)
+        {
+          typedef void* (*_dlopen)(const char *filename, int flags);
+          _dlopen __dlopen=(_dlopen)params.dlopenaddress;
+          uint64_t result;
+          result=(uint64_t)__dlopen(modulepath,RTLD_NOW);
+          sendall(currentsocket, &result, sizeof(result), 0);
+        }
+      }
+
+      break;
+    }
+
     case EXTCMD_LOADMODULE:
     {
       uint32_t modulepathlength;

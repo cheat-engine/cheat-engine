@@ -16,7 +16,9 @@
 #define TRACEPTRACE
 
 #define _FILE_OFFSET_BITS 64
+#ifndef _LARGEFILE64_SOURCE
 #define _LARGEFILE64_SOURCE
+#endif
 
 #include <stdio.h>
 #include <pthread.h>
@@ -1058,7 +1060,7 @@ int SetBreakpoint(HANDLE hProcess, int tid, int debugreg, void *address, int bpt
         //PTRACE_SETREGS
         int r,r2;
 
-        uintptr_t newdr7=safe_ptrace(PTRACE_PEEKUSER, wtid, offsetof(struct user, u_debugreg[7]), 0);
+        uintptr_t newdr7=safe_ptrace(PTRACE_PEEKUSER, wtid, (void *)(offsetof(struct user, u_debugreg[7])), 0);
 
 
         newdr7=newdr7 | (1<<debugreg*2);
@@ -1080,8 +1082,8 @@ int SetBreakpoint(HANDLE hProcess, int tid, int debugreg, void *address, int bpt
           newdr7=newdr7 | (3 << (18+(debugreg*4)));
 
 
-        r=safe_ptrace(PTRACE_POKEUSER, wtid, offsetof(struct user, u_debugreg[debugreg]), address);
-        r2=safe_ptrace(PTRACE_POKEUSER, wtid, offsetof(struct user, u_debugreg[7]), newdr7);
+        r=safe_ptrace(PTRACE_POKEUSER, wtid, (void*)(offsetof(struct user, u_debugreg[debugreg])), address);
+        r2=safe_ptrace(PTRACE_POKEUSER, wtid, (void*)(offsetof(struct user, u_debugreg[7])), (void*)newdr7);
 
         result=(r==0) && (r2==0);
         if (!result)
@@ -1359,16 +1361,16 @@ int RemoveBreakpoint(HANDLE hProcess, int tid, int debugreg,int wasWatchpoint)
         uintptr_t dr7=0;
         debug_log("x86\n");
 
-        dr7=safe_ptrace(PTRACE_PEEKUSER, wtid, offsetof(struct user, u_debugreg[7]), 0);
+        dr7=safe_ptrace(PTRACE_PEEKUSER, wtid, (void*)(offsetof(struct user, u_debugreg[7])), 0);
 
         dr7&=~(3 << (debugreg*2)); //disable G# and L#
         dr7&=~(15 << (16+debugreg*4)); //set len and type for this debugreg to 0
 
 
-        r=safe_ptrace(PTRACE_POKEUSER, wtid, offsetof(struct user, u_debugreg[debugreg]), 0);
+        r=safe_ptrace(PTRACE_POKEUSER, wtid, (void*)(offsetof(struct user, u_debugreg[debugreg])), 0);
 
 
-        r=safe_ptrace(PTRACE_POKEUSER, wtid, offsetof(struct user, u_debugreg[7]), dr7);
+        r=safe_ptrace(PTRACE_POKEUSER, wtid, (void*)(offsetof(struct user, u_debugreg[7])), (void*)dr7);
         if (r==0)
           result=TRUE;
         else
@@ -1475,7 +1477,7 @@ BOOL GetThreadContext(HANDLE hProcess, int tid, PCONTEXT Context)
     if (!p->isDebugged)
     {
       debug_log("GetThreadContext with no debugger attached\n");
-      int pid=ptrace_attach_andwait(p->pid);
+      int pid=ptrace_attach_andwait(tid);
       int k=getContext(pid, Context);
 
       safe_ptrace(PTRACE_DETACH, pid,0,0);
@@ -2274,16 +2276,16 @@ int WaitForDebugEvent(HANDLE hProcess, PDebugEvent devent, int timeout)
           IP=safe_ptrace(PTRACE_PEEKUSER, p->debuggedThreadEvent.threadid, offsetof(struct user, regs.eip), 0);
           SP=safe_ptrace(PTRACE_PEEKUSER, p->debuggedThreadEvent.threadid, offsetof(struct user, regs.esp), 0);
 #else
-          IP=safe_ptrace(PTRACE_PEEKUSER, p->debuggedThreadEvent.threadid, offsetof(struct user, regs.rip), 0);
-          SP=safe_ptrace(PTRACE_PEEKUSER, p->debuggedThreadEvent.threadid, offsetof(struct user, regs.rsp), 0);
+          IP=safe_ptrace(PTRACE_PEEKUSER, p->debuggedThreadEvent.threadid, (void*)offsetof(struct user, regs.rip), 0);
+          SP=safe_ptrace(PTRACE_PEEKUSER, p->debuggedThreadEvent.threadid, (void*)offsetof(struct user, regs.rsp), 0);
 #endif
-          DR0=safe_ptrace(PTRACE_PEEKUSER, p->debuggedThreadEvent.threadid, offsetof(struct user, u_debugreg[0]), 0);
-          DR1=safe_ptrace(PTRACE_PEEKUSER, p->debuggedThreadEvent.threadid, offsetof(struct user, u_debugreg[1]), 0);
-          DR2=safe_ptrace(PTRACE_PEEKUSER, p->debuggedThreadEvent.threadid, offsetof(struct user, u_debugreg[2]), 0);
-          DR3=safe_ptrace(PTRACE_PEEKUSER, p->debuggedThreadEvent.threadid, offsetof(struct user, u_debugreg[3]), 0);
+          DR0=safe_ptrace(PTRACE_PEEKUSER, p->debuggedThreadEvent.threadid, (void*)offsetof(struct user, u_debugreg[0]), 0);
+          DR1=safe_ptrace(PTRACE_PEEKUSER, p->debuggedThreadEvent.threadid, (void*)offsetof(struct user, u_debugreg[1]), 0);
+          DR2=safe_ptrace(PTRACE_PEEKUSER, p->debuggedThreadEvent.threadid, (void*)offsetof(struct user, u_debugreg[2]), 0);
+          DR3=safe_ptrace(PTRACE_PEEKUSER, p->debuggedThreadEvent.threadid, (void*)offsetof(struct user, u_debugreg[3]), 0);
 
-          DR6.value=safe_ptrace(PTRACE_PEEKUSER, p->debuggedThreadEvent.threadid, offsetof(struct user, u_debugreg[6]), 0);
-          DR7=safe_ptrace(PTRACE_PEEKUSER, p->debuggedThreadEvent.threadid, offsetof(struct user, u_debugreg[7]), 0);
+          DR6.value=safe_ptrace(PTRACE_PEEKUSER, p->debuggedThreadEvent.threadid, (void*)offsetof(struct user, u_debugreg[6]), 0);
+          DR7=safe_ptrace(PTRACE_PEEKUSER, p->debuggedThreadEvent.threadid, (void*)offsetof(struct user, u_debugreg[7]), 0);
 
           debug_log("sizeof(dr0)=%d\n", sizeof(DR0));
           debug_log("sizeof(long)=%d\n", sizeof(long));
@@ -2396,7 +2398,7 @@ int ContinueFromDebugEvent(HANDLE hProcess, int tid, int ignoresignal)
       }
 
 #if defined __i386__ || defined __x86_64__
-      safe_ptrace(PTRACE_POKEUSER, tid, offsetof(struct user, u_debugreg[6]), 0);
+      safe_ptrace(PTRACE_POKEUSER, tid, (void*)offsetof(struct user, u_debugreg[6]), 0);
 #endif
 
 
@@ -4200,15 +4202,15 @@ HANDLE CreateToolhelp32Snapshot(DWORD dwFlags, DWORD th32ProcessID)
       if (strspn(currentfile->d_name, "1234567890")==strlen(currentfile->d_name))
       {
         int pid;
-        char exepath[200];
+        char exepath[512];
         char processpath[512];
-        snprintf(exepath, 200, "/proc/%s/exe", currentfile->d_name);
-        exepath[199]=0; //'should' not be needed in linux, but I read that microsoft is an asshole with this function
+        snprintf(exepath, 512, "/proc/%s/exe", currentfile->d_name);
+        exepath[511]=0; //'should' not be needed in linux, but I read that microsoft is an asshole with this function
 
         int i=readlink(exepath, processpath, 254);
         if (i != -1)
         {
-          char extrafile[255];
+          char extrafile[512];
           int f;
 
           if (i>254)
@@ -4216,8 +4218,8 @@ HANDLE CreateToolhelp32Snapshot(DWORD dwFlags, DWORD th32ProcessID)
 
           processpath[i]=0;
 
-          snprintf(extrafile, 255, "/proc/%s/cmdline", currentfile->d_name);
-          extrafile[254]=0;
+          snprintf(extrafile, 512, "/proc/%s/cmdline", currentfile->d_name);
+          extrafile[511]=0;
 
           f=open(extrafile, O_RDONLY);
           if (f!=-1)

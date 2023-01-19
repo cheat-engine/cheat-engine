@@ -14,6 +14,7 @@ int getContext(int tid, CONTEXT *context)
   context->type=0;
   context->structsize=sizeof(CONTEXT);
 
+  debug_log("getContext(%d)\n", tid);
 
   debug_log("context=%p\n", context);
   debug_log("context->structsize=%p\n", &context->structsize);

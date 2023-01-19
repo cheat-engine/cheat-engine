@@ -71,6 +71,19 @@
 #define CMD_GETCESERVERPATH         44
 #define CMD_ISANDROID               45
 
+#define CMD_LOADMODULEEX            46
+
+#define CMD_SETCURRENTPATH          47
+#define CMD_GETCURRENTPATH          48
+#define CMD_ENUMFILES               49
+#define CMD_GETFILEPERMISSIONS      50
+#define CMD_SETFILEPERMISSIONS      51
+#define CMD_GETFILE                 52
+#define CMD_PUTFILE                 53
+#define CMD_CREATEDIR               54
+#define CMD_DELETEFILE              55
+
+
 
 #define CMD_AOBSCAN					200
 
@@ -241,6 +254,13 @@ typedef struct {
   //modulepath
 } CeLoadModuleInput, *PCeLoadModuleInput;
 
+typedef struct {
+  HANDLE hProcess;
+  uint64_t dlopenaddress;
+  uint32_t modulepathlength;
+  //modulepath
+} CeLoadModuleInputEx, *PCeLoadModuleInputEx;
+
 
 typedef struct {
   uint32_t result;
@@ -286,6 +306,8 @@ typedef struct {
 	int protection;
 	int scansize;
 } CeAobScanInput, * PCeAobScanInput;
+
+
 
 #pragma pack()
 

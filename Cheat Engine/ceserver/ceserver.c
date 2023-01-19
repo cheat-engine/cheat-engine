@@ -5,6 +5,7 @@
 #include <sys/select.h>
 #include <sys/socket.h>
 #include <sys/types.h>
+#include <sys/stat.h>
 #include <string.h>
 #include <netinet/in.h>
 #include <netinet/tcp.h>
@@ -24,6 +25,9 @@
 
 #include <sys/mman.h>
 #include <libgen.h>
+#include <dirent.h>
+#include <fcntl.h>
+
 
 
 
@@ -1206,6 +1210,30 @@ case CMD_SETTHREADCONTEXT:
       break;
     }
 
+    case CMD_LOADMODULEEX:
+    {
+      CeLoadModuleInputEx c;
+
+      debug_log("CESERVER: CMD_LOADMODULEEX\n");
+      if (recvall(currentsocket, &c, sizeof(c),0)>0)
+      {
+        char modulepath[c.modulepathlength+1];
+
+        if (recvall(currentsocket, &modulepath, c.modulepathlength,0)>0)
+        {
+          uint64_t result;
+          modulepath[c.modulepathlength]=0;
+
+          result=ext_loadModuleEx(c.hProcess, c.dlopenaddress, modulepath);
+
+
+
+          sendall(currentsocket, &result, sizeof(result),0);
+        }
+      }
+      break;
+    }
+
     case CMD_LOADMODULE:
     {
       CeLoadModuleInput c;
@@ -1384,6 +1412,197 @@ case CMD_SETTHREADCONTEXT:
       break;
     }
 
+    case CMD_SETCURRENTPATH:
+    {
+      char *path=receivestring16(currentsocket);
+      char r=chdir(path)==0;
+      sendall(currentsocket, &r,1,0);
+
+      free(path);
+      break;
+    }
+
+    case CMD_GETCURRENTPATH:
+    {
+      char *path=(char*)malloc(PATH_MAX);
+      char *p=getcwd(path, PATH_MAX-1);
+      sendstring16(currentsocket, p,0);
+      free(path);
+      break;
+    }
+
+    case CMD_ENUMFILES:
+    {
+      char *path=receivestring16(currentsocket);
+      DIR *d=opendir(path);
+      if (d)
+      {
+        struct dirent* dc;
+
+        while (dc=readdir(d))
+        {
+          if ((dc->d_name) && (strlen(dc->d_name)))
+          {
+            sendstring16(currentsocket, dc->d_name, MSG_MORE);
+            sendall(currentsocket, &dc->d_type,1,MSG_MORE);
+          }
+        }
+
+        closedir(d);
+      }
+      sendstring16(currentsocket, NULL,0);
+
+      free(path);
+
+
+      break;
+    }
+
+    case CMD_GETFILEPERMISSIONS:
+    {
+      char r;
+      char *path=receivestring16(currentsocket);
+      struct stat s;
+      if (lstat(path, &s)==0)
+      {
+        uint32_t mode=s.st_mode & 0xfff;
+        r=1;
+        sendall(currentsocket, &r,1,MSG_MORE);
+        sendall(currentsocket, &mode, sizeof(uint32_t),0);
+
+      }
+      else
+      {
+        r=0;
+        sendall(currentsocket, &r,1,0);
+      }
+
+      free(path);
+      break;
+    }
+
+    case CMD_SETFILEPERMISSIONS:
+    {
+      char *path=receivestring16(currentsocket);
+      uint32_t mode;
+      char r;
+      recvall(currentsocket, &mode, sizeof(mode),0);
+
+      r=chmod(path, mode)==0;
+
+
+      sendall(currentsocket, &r, 1,0);
+      free(path);
+      break;
+    }
+
+    case CMD_GETFILE:
+    {
+      char *path=receivestring16(currentsocket);
+      int f=open(path,O_RDONLY);
+
+      if (f!=-1)
+      {
+        uint32_t filesize=lseek(f,0, SEEK_END);
+
+        lseek(f,0, SEEK_SET);
+
+        if (filesize)
+        {
+          char *contents=malloc(filesize);
+          filesize=read(f, contents, filesize);
+
+          if (filesize!=0xffffffff)
+          {
+            sendall(currentsocket, &filesize, sizeof(filesize),MSG_MORE);
+            sendall(currentsocket, contents, filesize,0);
+          }
+          else
+            sendall(currentsocket, &filesize, sizeof(filesize),0); //read error
+
+          free(contents);
+        }
+        else
+          sendall(currentsocket, &filesize, sizeof(filesize),0); //filesize of 0
+      }
+      else
+      {
+        uint32_t invalid=0xffffffff;
+        sendall(currentsocket, &invalid,sizeof(uint32_t),0); //open file error
+      }
+
+      free(path);
+      break;
+    }
+
+    case CMD_PUTFILE:
+    {
+      char *path=receivestring16(currentsocket);
+      uint32_t filesize;
+      char *contents;
+      int f,r;
+      r=0;
+      recvall(currentsocket, &filesize,sizeof(filesize),0);
+
+      contents=malloc(filesize);
+      recvall(currentsocket, contents, filesize,0);
+
+      f=creat(path,0777);
+      if (f!=-1)
+      {
+        if (write(f,contents, filesize)!=-1)
+          r=1; //success
+      }
+
+
+      sendall(currentsocket, &r,1,0);
+
+      free(path);
+      free(contents);
+      break;
+    }
+
+    case CMD_CREATEDIR:
+    {
+      debug_log("CMD_CREATEDIR\n");
+      char *path=receivestring16(currentsocket);
+
+      debug_log("Creating %s\n", path);
+      int r=mkdir(path,0777)==0;
+
+      if (!r)
+      {
+        debug_log("mkdir error: %s\n", strerror(errno));
+      }
+      else
+        debug_log("success\n");
+
+
+      sendall(currentsocket, &r,1,0);
+
+      free(path);
+      break;
+    }
+
+    case CMD_DELETEFILE:
+    {
+      char *path=receivestring16(currentsocket);
+      int r=unlink(path)==0;
+
+      if (!r)
+      {
+        if (errno==EISDIR)
+        {
+          r=rmdir(path)==0;
+        }
+      }
+
+
+      sendall(currentsocket, &r,1,0);
+
+      free(path);
+      break;
+    }
 
 	case CMD_AOBSCAN:
 	{

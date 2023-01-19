@@ -185,6 +185,7 @@ typedef struct {
   struct debugEventQueueHead debugEventQueue;
 
   uintptr_t dlopen;
+  uintptr_t dlerror;
   int dlopenalt; //when not 0 this means that there is a 3th param: caller
   uintptr_t dlopencaller;
   uintptr_t mmap;
