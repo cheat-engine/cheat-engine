@@ -1183,7 +1183,7 @@ begin
               8: case inst of
                     0: if rex_w or (opperandsize=64) then result:='r8' else result:='r8d';
                     1: result:='r8w';
-                    2: result:='r8l';
+                    2: result:='r8b';
                     3: result:='mm8';
                     4: if opcodeflags.L then result:='ymm8' else result:='xmm8';
                  end;
@@ -1191,7 +1191,7 @@ begin
               9: case inst of
                    0: if rex_w or (opperandsize=64) then result:='r9' else result:='r9d';
                    1: result:='r9w';
-                   2: result:='r9l';
+                   2: result:='r9b';
                    3: result:='mm9';
                    4: if opcodeflags.L then result:='ymm9' else result:='xmm9';
                  end;
@@ -1199,7 +1199,7 @@ begin
              10: case inst of
                    0: if rex_w or (opperandsize=64) then result:='r10' else result:='r10d';
                    1: result:='r10w';
-                   2: result:='r10l';
+                   2: result:='r10b';
                    3: result:='mm10';
                    4: if opcodeflags.L then result:='ymm10' else result:='xmm10';
                  end;
@@ -1207,7 +1207,7 @@ begin
              11: case inst of
                    0: if rex_w or (opperandsize=64) then result:='r11' else result:='r11d';
                    1: result:='r11w';
-                   2: result:='r11l';
+                   2: result:='r11b';
                    3: result:='mm11';
                    4: if opcodeflags.L then result:='ymm11' else result:='xmm11';
                  end;
@@ -1223,7 +1223,7 @@ begin
              13: case inst of
                    0: if rex_w or (opperandsize=64) then result:='r13' else result:='r13d';
                    1: result:='r13w';
-                   2: result:='r13l';
+                   2: result:='r13b';
                    3: result:='mm13';
                    4: if opcodeflags.L then result:='ymm13' else result:='xmm13';
                  end;
@@ -1231,7 +1231,7 @@ begin
              14: case inst of
                    0: if rex_w or (opperandsize=64) then result:='r14' else result:='r14d';
                    1: result:='r14w';
-                   2: result:='r14l';
+                   2: result:='r14b';
                    3: result:='mm14';
                    4: if opcodeflags.L then result:='ymm14' else result:='xmm14';
                  end;
@@ -1239,7 +1239,7 @@ begin
              15: case inst of
                    0: if rex_w or (opperandsize=64) then result:='r15' else result:='r15d';
                    1: result:='r15w';
-                   2: result:='r15l';
+                   2: result:='r15b';
                    3: result:='mm15';
                    4: if opcodeflags.L then result:='ymm15' else result:='xmm15';
                  end;
