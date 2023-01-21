@@ -9,14 +9,19 @@ BOOL SetProtection()
     typedef BOOL  (WINAPI *SETPROCESSMITIGATIONPOLICY)(PROCESS_MITIGATION_POLICY MitigationPolicy, PVOID lpBuffer, SIZE_T dwLength);
     SETPROCESSMITIGATIONPOLICY p=(SETPROCESSMITIGATIONPOLICY)GetProcAddress(k, "SetProcessMitigationPolicy");
 
-    PROCESS_MITIGATION_BINARY_SIGNATURE_POLICY policy;
-    ZeroMemory(&policy, sizeof(policy));
-    policy.MicrosoftSignedOnly = 1;
-    policy.MitigationOptIn = 1;
-    BOOL r;
-    r=p(ProcessSignaturePolicy, &policy, sizeof(policy));
+    if (p)
+    {
+        PROCESS_MITIGATION_BINARY_SIGNATURE_POLICY policy;
+        ZeroMemory(&policy, sizeof(policy));
+        policy.MicrosoftSignedOnly = 1;
+        policy.MitigationOptIn = 1;
+        BOOL r;
+        r = p(ProcessSignaturePolicy, &policy, sizeof(policy));
 
-    return r;
+        return r;
+    }
+    else
+        return FALSE;
 }
 
 BOOL SetPrivilege(
