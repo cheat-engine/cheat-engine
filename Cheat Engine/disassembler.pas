@@ -9771,6 +9771,7 @@ begin
                                 lastdisassembledata.opcode:='cvtdq2pd';
                               lastdisassembledata.parameters:=xmm(memory[2])+',';
                               opcodeflags.L:=false;
+                              opcodeflags.skipExtraReg:=true;
                               lastdisassembledata.parameters:=lastdisassembledata.parameters+xmm(memory[2])+modrm(memory,prefix2,2,4,last,mRight);
 
                               inc(offset,last-1);
