@@ -242,11 +242,67 @@ begin
   luarefcs.leave;
 end;
 
-//todo: let the user define a default error function
+threadvar insideErrorHandler: boolean;
+function lua_defaulterrorhandler(L: Plua_State):integer; cdecl;
+var
+  e: string;
+  traceresult: string;
+begin
+  result:=0;
+  insideErrorHandler:=true;
+  try
+    lua_getglobal(L,'onLuaError');
+    if not lua_isnil(L,-1) then
+    begin
+      lua_pushvalue(L,1);
+      lua_pcall(L,1,1,0);
+      exit(1);
+    end;
+
+    //still here so no onLuaError
+    lua_pop(L,1);
+
+    //lual_traceback is also an option
+    lua_getglobal(L,'debug');
+    if not lua_istable(L,-1) then
+    begin
+      lua_pop(L,1);
+      exit(1);
+    end;
+
+    lua_pushstring(L,'traceback');
+    lua_gettable(L,-2);
+
+    if not lua_isfunction(L,-1) then
+    begin
+      lua_pop(L,2);
+      exit(1);
+    end;
+
+    e:=LuaValueToDescription(L,1);
+
+    lua_pushstring(L,e);
+    lua_pushinteger(L,2);
+    lua_pcall(L,2,1,0);
+    traceresult:=Lua_ToString(L,-1);
+
+    lua_pop(L,1);
+    lua_pushstring(L,traceresult);
+
+
+
+    result:=1;
+  except
+    result:=0;
+  end;
+  insideErrorHandler:=false;
+end;
+
 function lua_pcall(L: Plua_State; nargs, nresults, errf: Integer): Integer; cdecl;
 var
   error: string;
   usesluaengineform: boolean;
+  addedexceptionhandler: boolean;
 begin
   try
     if lua_isfunction(L, (-nargs)-1)=false then
@@ -258,7 +314,23 @@ begin
       exit(LUA_ERRRUN);
     end;
 
+
+    if (errf=0) and (not insideErrorHandler) then
+    begin
+      //add the default error handler
+      errf:=lua_gettop(L)-nargs;
+      lua_pushcfunction(L, @lua_defaulterrorhandler);
+      lua_insert(L,errf);
+
+      addedexceptionhandler:=true;
+    end
+    else
+      addedexceptionhandler:=false;
+
     result:=lua.lua_pcall(L, nargs, nresults, errf);
+
+    if addedexceptionhandler then
+      lua_remove(L,errf);
   except
     on e: exception do
     begin

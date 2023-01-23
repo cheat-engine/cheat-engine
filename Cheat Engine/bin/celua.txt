@@ -377,6 +377,8 @@ MainForm.OnProcessOpened: function(processid, processhandle, caption) - Define t
 
 function onTableLoad(before): If defined this function will be called twice when a table gets loaded. Once before the loading, and once after.
 
+function onLuaError(errorstring): if defined this function will be called when a lua error happens. The string returned will be the error shown
+
 
 getOpenedProcessID() : Returns the currently opened process. If none is open, returns 0
 getOpenedProcessHandle(): Returns the handle of the currently opened process
