@@ -16135,6 +16135,50 @@ begin
   end;
 end;
 
+function lua_convertToUTF8(L: Plua_State):integer; cdecl;
+var
+  s: rawbytestring;
+  b: pbytearray;
+  p: pchar;
+  size: size_t;
+
+  cp: TSystemCodePage;
+begin
+  result:=0;
+  if lua_gettop(L)>=2 then
+  begin
+
+
+    if lua_istable(L,1) then
+    begin
+      //aob
+      size:=lua_objlen(L, 2);
+      getmem(b, size+1);
+      readBytesFromTable(L,1,b,size);
+      b[size]:=0;
+      setlength(s,size);
+      copymemory(@s[1],b,size);
+
+      freemem(b);
+    end
+    else
+    begin
+      p:=lua_tolstring(L,1,@size);
+      setlength(s,size);
+      copymemory(@s[1],b,size);
+    end;
+
+
+    cp:=lua_tointeger(L,2);
+
+    SetCodePage(s,cp,false);
+    SetCodePage(s,CP_UTF8,true);
+
+    lua_pushstring(L,s);
+  end;
+
+end;
+
 procedure InitLimitedLuastate(L: Plua_State);
 begin
   //don't put functioncallback events in here, as limited luastates can be destroyed
@@ -16287,6 +16331,8 @@ begin
   lua_register(L, 'getCEServerPath',lua_getCEServerPath);
 
   lua_register(L, 'invertColor',lua_InvertColor);
+
+  lua_register(L, 'convertToUTF8',lua_convertToUTF8);
 
   initializeLuaNetworkInterface(L);
 
