@@ -1267,7 +1267,10 @@ begin
         //is currently shown inside the pcall function
         pc:=lua_tolstring(luavm, -1,nil);
         if pc<>nil then
-          mOutput.lines.add(rsError+':'+pc)
+        begin
+          mOutput.lines.AddText(rsError+':'+pc)  ;
+          mOutput.VertScrollBar.Position:=mOutput.VertScrollBar.Range;
+        end
         else
           moutput.lines.add(rsError+':'+'nil');
       end else moutput.lines.add(rsError);
