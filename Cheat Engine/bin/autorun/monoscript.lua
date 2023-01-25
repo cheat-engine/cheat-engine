@@ -128,7 +128,7 @@ monoTypeToVartypeLookup[MONO_TYPE_I8]=vtQword
 monoTypeToVartypeLookup[MONO_TYPE_U8]=vtQword
 monoTypeToVartypeLookup[MONO_TYPE_R4]=vtSingle
 monoTypeToVartypeLookup[MONO_TYPE_R8]=vtDouble
-monoTypeToVartypeLookup[MONO_TYPE_STRING]=vtPointer --pointer to a string object
+monoTypeToVartypeLookup[MONO_TYPE_STRING]=vtString --pointer to a string object
 monoTypeToVartypeLookup[MONO_TYPE_PTR]=vtPointer
 monoTypeToVartypeLookup[MONO_TYPE_BYREF]=vtPointer
 monoTypeToVartypeLookup[MONO_TYPE_CLASS]=vtPointer
@@ -461,7 +461,6 @@ function monoIL2CPPSymbolEnum(t)
       images[i].handle=mono_getImageFromAssembly(assemblies[i])
       images[i].name=mono_image_get_name(images[i].handle)
       images[i].parsed=false
-      
       if images[i].name=='Assembly-CSharp.dll' then
         priority=i
       end
@@ -2636,7 +2635,7 @@ end
 function mono_readObject()
   local vtype = monopipe.readByte()
   if vtype == MONO_TYPE_VOID then
-    return nil
+    return monopipe.readQword()
   elseif vtype == MONO_TYPE_STRING then
     local resultlength=monopipe.readWord();
     return monopipe.readString(resultlength);
@@ -2661,39 +2660,101 @@ function mono_readObject()
   return nil
 end
 
+--[[function mono_readObject()
+  local vtype = monopipe.readByte()
+  if vtype == MONO_TYPE_VOID then
+    return nil
+  elseif vtype == MONO_TYPE_STRING then
+    local resultlength=monopipe.readWord();
+    return monopipe.readString(resultlength);
+  end
+  
+  local vartype = monoTypeToVartypeLookup[vtype]
+  if vartype == vtByte then
+    return monopipe.readByte()
+  elseif vartype == vtWord then
+    return monopipe.readWord()
+  elseif vartype == vtDword then
+    return monopipe.readDword()
+  elseif vartype == vtQword then
+    return monopipe.readQword()
+  elseif vartype == vtSingle then
+    return monopipe.readFloat()
+  elseif vartype == vtDouble then
+    return monopipe.readDouble()
+  elseif vartype == vtPointer then
+    return monopipe.readQword()
+  end  
+  return nil
+end]]
+
 function mono_writeObject(vartype, value)
   if vartype == vtString then
-    -- monopipe.writeByte(MONO_TYPE_STRING)
+    monopipe.writeByte(MONO_TYPE_STRING)
     monopipe.writeWord(#value);
     monopipe.writeString(value);
   elseif vartype == vtByte then
-    -- monopipe.writeByte(MONO_TYPE_I1)
+    monopipe.writeByte(MONO_TYPE_I1)
     monopipe.writeByte(value)
   elseif vartype == vtWord then
-    -- monopipe.writeByte(MONO_TYPE_I2)
+    monopipe.writeByte(MONO_TYPE_I2)
     monopipe.writeWord(value)
   elseif vartype == vtDword then
-    -- monopipe.writeByte(MONO_TYPE_I4)
+    monopipe.writeByte(MONO_TYPE_I4)
     monopipe.writeDword(value)
   elseif vartype == vtPointer then
-    -- monopipe.writeByte(MONO_TYPE_PTR)
+    monopipe.writeByte(MONO_TYPE_PTR)
     monopipe.writeQword(value)
   elseif vartype == vtQword then
-    -- monopipe.writeByte(MONO_TYPE_I8)
+    monopipe.writeByte(MONO_TYPE_I8)
     monopipe.writeQword(value)
   elseif vartype == vtSingle then
-    -- monopipe.writeByte(MONO_TYPE_R4)
+    monopipe.writeByte(MONO_TYPE_R4)
     monopipe.writeFloat(value)
   elseif vartype == vtDouble then
-    -- monopipe.writeByte(MONO_TYPE_R8)
+    monopipe.writeByte(MONO_TYPE_R8)
     monopipe.writeDouble(value)
   else
-    -- monopipe.writeByte(MONO_TYPE_VOID)
+    monopipe.writeByte(MONO_TYPE_VOID)
+    monopipe.writeQword(value)
   end
   return nil
   
 end
 
+--[[function mono_writeObject(vartype, value)
+  if vartype == vtString then
+   -- monopipe.writeByte(MONO_TYPE_STRING)
+    monopipe.writeWord(#value);
+    monopipe.writeString(value);
+  elseif vartype == vtByte then
+   -- monopipe.writeByte(MONO_TYPE_I1)
+    monopipe.writeByte(value)
+  elseif vartype == vtWord then
+   -- monopipe.writeByte(MONO_TYPE_I2)
+    monopipe.writeWord(value)
+  elseif vartype == vtDword then
+   -- monopipe.writeByte(MONO_TYPE_I4)
+    monopipe.writeDword(value)
+  elseif vartype == vtPointer then
+  -- monopipe.writeByte(MONO_TYPE_PTR)
+    monopipe.writeQword(value)
+  elseif vartype == vtQword then
+ -- monopipe.writeByte(MONO_TYPE_I8)
+    monopipe.writeQword(value)
+  elseif vartype == vtSingle then
+   -- monopipe.writeByte(MONO_TYPE_R4)
+    monopipe.writeFloat(value)
+  elseif vartype == vtDouble then
+   -- monopipe.writeByte(MONO_TYPE_R8)
+    monopipe.writeDouble(value)
+  else
+    --monopipe.writeByte(MONO_TYPE_VOID)
+  end
+  return nil
+  
+end
+]]
 function mono_writeVarType(vartype)
   if vartype == vtString then
     monopipe.writeByte(MONO_TYPE_STRING)
@@ -2829,6 +2890,34 @@ function mono_invoke_method(domain, method, object, args)
   monopipe.lock()
   monopipe.writeByte(MONOCMD_INVOKEMETHOD)
   
+ -- monopipe.writeQword(domain)
+  monopipe.writeQword(method)
+  monopipe.writeQword(object)
+  --monopipe.writeWord(#args)
+ -- for i=1, #args do
+    --mono_writeVarType(args[i].type)
+  --end
+  for i=1, #args do
+    mono_writeObject(args[i].type, args[i].value)
+  end
+  
+  local result=mono_readObject()
+  
+  if monopipe then
+    monopipe.unlock()
+    return result      
+  else
+    --something bad happened
+    LaunchMonoDataCollector()
+    return nil
+  end
+  
+end
+
+--[[function mono_invoke_method(domain, method, object, args)
+  monopipe.lock()
+  monopipe.writeByte(MONOCMD_INVOKEMETHOD)
+  
   monopipe.writeQword(domain)
   monopipe.writeQword(method)
   monopipe.writeQword(object)
@@ -2851,7 +2940,7 @@ function mono_invoke_method(domain, method, object, args)
     return nil
   end
   
-end
+end]]
 
 function mono_loadAssemblyFromFile(fname)
   --if debug_canBreak() then return nil end

@@ -577,7 +577,7 @@ void CPipeServer::InitMono()
 				//mono_runtime_is_shutting_down = (MONO_RUNTIME_IS_SHUTTING_DOWN)GetProcAddress(hMono, "il2cpp_runtime_is_shutting_down");  //doesn't seem to exist in il2cpp....
 
 				mono_runtime_is_shutting_down = (MONO_RUNTIME_IS_SHUTTING_DOWN)GetProcAddress(hMono, "mono_runtime_is_shutting_down"); //some do, with this name...
-
+				domain = mono_domain_get();
 
 			}
 			else
@@ -706,7 +706,7 @@ void CPipeServer::InitMono()
 				mono_field_static_set_value = (MONO_FIELD_STATIC_SET_VALUE)GetProcAddress(hMono, "mono_field_static_set_value");
 
 				mono_runtime_is_shutting_down = (MONO_RUNTIME_IS_SHUTTING_DOWN)GetProcAddress(hMono, "mono_runtime_is_shutting_down");
-
+				domain = mono_get_root_domain();		
 			}
 
 			ConnectThreadToMonoRuntime();			
@@ -1745,7 +1745,7 @@ void CPipeServer::FindMethodByDesc(void)
 		FreeString(fqMethodName);
 	}
 }
-
+/*
 void *CPipeServer::ReadObjectArray(void *domain)
 {
 	int nargs = ReadWord();
@@ -2048,7 +2048,7 @@ void CPipeServer::InvokeMethod(void)
 
 			try
 			{
-				result = mono_runtime_invoke(method, pThis, args, NULL /* exception */);				
+				result = mono_runtime_invoke(method, pThis, args, NULL);				
 			}
 			catch (...)
 			{
@@ -2063,7 +2063,189 @@ void CPipeServer::InvokeMethod(void)
 	FreeObjectArray(arr);
 	WriteObject(result);
 }
+*/
+	
+void CPipeServer::InvokeMethod(void)
+{
 
+	void* method = (void*)ReadQword();
+	void* pThis = (void*)ReadQword();
+	void* result;
+	WORD nargs;
+	if (il2cpp)
+	{
+		nargs = il2cpp_method_get_param_count(method);
+	}
+	else
+	{
+		void* methodsignature = mono_method_signature(method);
+		nargs = methodsignature ? mono_signature_get_param_count(methodsignature) : 0;
+	}
+	void* arry[16];
+	UINT64 args[32];
+
+	for (int i = 0; i < nargs; i++)
+	{
+		switch (ReadByte())
+		{
+		case MONO_TYPE_VOID:
+			args[i] = ReadQword();
+			arry[i] = &args[i];
+			break;
+		case MONO_TYPE_CHAR:
+			arry[i] = ReadString();
+			break;
+		case MONO_TYPE_BOOLEAN:
+		case MONO_TYPE_U1:
+		case MONO_TYPE_I1:
+			args[i] = ReadByte();
+			arry[i] = &args[i];
+			break;
+		case MONO_TYPE_U2:
+		case MONO_TYPE_I2:
+			args[i] = ReadWord();
+			arry[i] = &args[i];
+			break;
+		case MONO_TYPE_U4:
+		case MONO_TYPE_I4:
+			args[i] = ReadDword();
+			arry[i] = &args[i];
+			break;
+		case MONO_TYPE_U8:
+		case MONO_TYPE_I8:
+		case MONO_TYPE_U:
+		case MONO_TYPE_I:
+			args[i] = ReadQword();
+			arry[i] = &args[i];
+			break;
+		case MONO_TYPE_R4:
+		{
+			void* f;
+		    Read(&f, 4);
+		    args[i] = (UINT64)(void*)f;
+		    arry[i] = &args[i];
+		}break;
+		case MONO_TYPE_R8:
+		{
+			void* d;
+			Read(&d, 8);
+			args[i] = (UINT64)(void*)d;
+			arry[i] = &args[i];
+		}break;
+		case MONO_TYPE_STRING:
+		{
+			char* ptr = ReadString();
+			arry[i] = mono_string_new(domain, ptr);
+		}break;
+		case MONO_TYPE_OBJECT:
+		case MONO_TYPE_PTR:
+		case MONO_TYPE_FNPTR:
+			arry[i] = (void*)ReadQword();
+			break;
+		default:
+			arry[i] = (void*)ReadQword();
+			break;
+		}
+	}
+	try
+	{
+		MonoObject* exception = {};
+		result = mono_runtime_invoke(method, pThis, arry, &exception);
+		void* klass = mono_object_get_class(result);
+		void* type = klass ? mono_class_get_type(klass) : NULL;
+		int returntype = type ? mono_type_get_type(type) : MONO_TYPE_VOID;
+		WriteByte(returntype);
+		switch (returntype)
+		{
+		case MONO_TYPE_STRING:
+		{
+			if (il2cpp)
+			{
+				wchar_t* ptr = il2cpp_string_chars(result);
+#ifdef _WINDOWS
+				int l = WideCharToMultiByte(CP_UTF8, 0, ptr, -1, NULL, 0, NULL, NULL);
+				char* c = (char*)malloc(l + 1);
+				l = WideCharToMultiByte(CP_UTF8, 0, ptr, -1, c, l, NULL, NULL);
+				c[l] = 0;
+				WriteString(c);
+				free(c);
+#else
+				//todo: unsure about this
+				std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> convert;
+				std::string dest = convert.to_bytes((char16_t*)ptr);
+				WriteString(dest.c_str());
+#endif
+				/*_bstr_t b((wchar_t*)il2cpp_string_chars(result));
+				WriteString((char*)b);*/
+
+			}
+			else
+			{
+				char* ptr = mono_string_to_utf8(result);
+				WriteString(ptr);
+				g_free(ptr);
+			}
+		}
+		break;
+		case MONO_TYPE_CHAR:
+			WriteString((char*)mono_object_unbox(result));
+			break;
+		case MONO_TYPE_R4:
+		{
+			float f = *(float*)mono_object_unbox(result);
+			Write(&f, 4);
+		}break;
+		case MONO_TYPE_R8:
+		{
+			double d = *(double*)mono_object_unbox(result);
+			Write(&d, 8);
+		}break;
+		case MONO_TYPE_I1:
+		case MONO_TYPE_U1:
+		case MONO_TYPE_BOOLEAN:
+			WriteByte(*(BYTE*)mono_object_unbox(result));
+			break;
+		case MONO_TYPE_I2:
+		case MONO_TYPE_U2:
+			WriteWord(*(WORD*)mono_object_unbox(result));
+			break;
+		case MONO_TYPE_I4:
+		case MONO_TYPE_U4:
+			WriteDword(*(DWORD*)mono_object_unbox(result));
+			break;
+		case MONO_TYPE_I:
+		case MONO_TYPE_U:
+		case MONO_TYPE_I8:
+		case MONO_TYPE_U8:
+			WriteQword(*(UINT64*)mono_object_unbox(result));
+			break;
+		case MONO_TYPE_VALUETYPE:
+			WriteQword((UINT64)mono_object_unbox(result));
+			break;
+			/*case MONO_TYPE_PTR:
+			case MONO_TYPE_BYREF:
+			case MONO_TYPE_CLASS:
+			case MONO_TYPE_FNPTR:
+			case MONO_TYPE_GENERICINST:
+			case MONO_TYPE_ARRAY:
+			case MONO_TYPE_SZARRAY:
+			case MONO_TYPE_VALUETYPE:
+			{
+				WriteQword((INT64)result);
+			}
+			break;*/
+
+		default:
+			WriteQword((INT64)result);
+			break;
+		}
+	}
+	catch (...)
+	{
+		WriteByte(0);
+	}
+}
+		
 void CPipeServer::LoadAssemblyFromFile(void)
 {
 	char *imageName = ReadString();
