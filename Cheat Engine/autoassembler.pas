@@ -2959,7 +2959,7 @@ begin
             if not ok1 then
               raise EAutoAssembler.Create('bla');
           except
-            ShowMessage(code.text);
+            //ShowMessage(code.text);
             raise EAutoAssembler.Create(rsThisInstructionCanTBeCompiled);
           end;
 
