@@ -10944,7 +10944,9 @@ begin
 
                     lastdisassembledata.parameters:=' '+r64(memory[1])+modrm(memory,prefix2,1,0,last,32,0,mRight);
                     inc(offset,last-1);
-                    description:='Move doubleword to quadword with signextension'
+                    description:='Move doubleword to quadword with signextension';
+
+                    LastDisassembleData.datasize:=4;
                   end
                   else
                   begin

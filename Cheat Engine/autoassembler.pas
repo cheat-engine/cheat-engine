@@ -3647,10 +3647,13 @@ begin
                 setlength(assembled,length(assembled)+1);
                 assembled[length(assembled)-1].createthreadandwait:=createthreadandwaitid;
                 assembled[length(assembled)-1].address:=currentaddress;
-                assemble(currentline,currentaddress,assembled[length(assembled)-1].bytes, apnone, true);
+                ok1:=assemble(currentline,currentaddress,assembled[length(assembled)-1].bytes, apnone, true); //far
                 a:=length(assembled[length(assembled)-1].bytes);
-                assemble(s1,currentaddress,assembled[length(assembled)-1].bytes, apnone, true);
+                ok2:=assemble(s1,currentaddress,assembled[length(assembled)-1].bytes, apnone, true); //close
                 b:=length(assembled[length(assembled)-1].bytes);
+
+                if not (ok1 or ok2) then
+                  raise exception.create(assemblerlines[l].line+' can not be assembled');
 
                 if a>b then //pick the biggest one
                   assemble(currentline,currentaddress,assembled[length(assembled)-1].bytes);
@@ -3699,10 +3702,12 @@ begin
                 s1:=replacetoken(assemblerlines[labels[j].references2[k]].line,labels[j].labelname,IntToHex(labels[j].address,8));
                 {$ifdef cpu64}
                 if processhandler.is64Bit then
-                  assemble(s1,assembled[labels[j].references[k]].address,assembled[labels[j].references[k]].bytes)
+                  ok1:=assemble(s1,assembled[labels[j].references[k]].address,assembled[labels[j].references[k]].bytes)
                 else
                 {$endif}
-                assemble(s1,assembled[labels[j].references[k]].address,assembled[labels[j].references[k]].bytes, apLong);
+                  ok1:=assemble(s1,assembled[labels[j].references[k]].address,assembled[labels[j].references[k]].bytes, apLong);
+
+                if not ok1 then raise exception.create(format(rsFailureAssembling,[s1, assembled[labels[j].references[k]].address]));
 
                 b:=length(assembled[labels[j].references[k]].bytes); //new size
                 setlength(assembled[labels[j].references[k]].bytes,a); //original size (original size is always bigger or equal than newsize)
