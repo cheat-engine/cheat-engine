@@ -15157,7 +15157,7 @@ begin
     else
       ignorecase:=false;
 
-    lua_pushboolean(L, s.EndsWith(s,ignorecase));
+    lua_pushboolean(L, s.EndsWith(endswith,ignorecase));
     result:=1;
   end;
 end;
