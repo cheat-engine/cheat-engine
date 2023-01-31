@@ -214,6 +214,7 @@ type
     menuAOBInjection: TMenuItem;
     menuFullInjection: TMenuItem;
     MenuItem1: TMenuItem;
+    mi1ByteExceptionJMP: TMenuItem;
     mi14ByteJMP: TMenuItem;
     mi5ByteJMP: TMenuItem;
     N1: TMenuItem;
@@ -248,6 +249,7 @@ type
     Coderelocation1: TMenuItem;
     miNewTab: TMenuItem;
     N2: TMenuItem;
+    Separator1: TMenuItem;
     Syntaxhighlighting1: TMenuItem;
     TabMenu: TPopupMenu;
     Close1: TMenuItem;
@@ -270,6 +272,7 @@ type
     procedure menuAOBInjectionClick(Sender: TObject);
     procedure menuFullInjectionClick(Sender: TObject);
     procedure MenuItem1Click(Sender: TObject);
+    procedure mi1ByteExceptionJMPClick(Sender: TObject);
     procedure miLuaSyntaxCheckClick(Sender: TObject);
     procedure miMoveLeftClick(Sender: TObject);
     procedure miMoveRightClick(Sender: TObject);
@@ -386,9 +389,9 @@ type
 
 
 procedure generateAPIHookScript(script: tstrings; address: string; addresstogoto: string; addresstostoreneworiginalfunction: string=''; nameextension:string='0'; targetself: boolean=false);
-procedure GenerateCodeInjectionScript(script: tstrings; addressstring: string; farjmp: boolean=false);
-procedure GenerateAOBInjectionScript(script: TStrings; address: string; symbolname: string; commentradius: integer=10; farjmp: boolean=false);
-procedure GenerateFullInjectionScript(Script: tstrings; address: string; commentradius: integer=10; farjmp: boolean=false);
+procedure GenerateCodeInjectionScript(script: tstrings; addressstring: string; farjmp: boolean=false; jmp1:boolean=false);
+procedure GenerateAOBInjectionScript(script: TStrings; address: string; symbolname: string; commentradius: integer=10; farjmp: boolean=false; jmp1: boolean=false);
+procedure GenerateFullInjectionScript(Script: tstrings; address: string; commentradius: integer=10; farjmp: boolean=false; jmp1: boolean=false);
 
 function registerAutoAssemblerTemplate(name: string; m: TAutoAssemblerTemplateCallback; shortcut: TShortCut=0): integer;
 procedure unregisterAutoAssemblerTemplate(id: integer);
@@ -454,6 +457,10 @@ resourcestring
   rsAAAOBTemplate_Author = 'Author';
   rsAAAOBTemplate_blabla = 'This script does blah blah blah';
   rsOriginalCode = 'Original code';
+  rsLessThan2GBDistance = '<2GB Distance';
+  rsMoreThan2GBDistance = '>2GB Distance';
+  rs5ByteJMP = '5 Byte JMP (<2GB Distance)';
+  rs14ByteJMP = '14 Byte JMP (>2GB Distance)';
 
 var
   AutoAssemblerTemplates: TAutoAssemblerTemplates;
@@ -1229,7 +1236,7 @@ begin
   d.free;
 end;
 
-procedure GenerateCodeInjectionScript(script: tstrings; addressstring: string; farjmp: boolean=false);
+procedure GenerateCodeInjectionScript(script: tstrings; addressstring: string; farjmp: boolean=false; jmp1: boolean=false);
 function inttostr(i:int64):string;
 begin
   if i=0 then result:='' else result:=sysutils.IntToStr(i);
@@ -1260,7 +1267,12 @@ begin
   if not processhandler.is64Bit then
     farjmp:=false;
 
-  jmpsize:=ifthen(farjmp, 14, 5);
+
+
+  if jmp1 then
+    jmpsize:=1
+  else
+    jmpsize:=ifthen(farjmp, 14, 5);
 
   try
     a:=StrToQWordEx('$'+addressstring);
@@ -1313,10 +1325,16 @@ begin
 
       add('');
       add(addressstring+':');
-      if farjmp then
-        add('jmp far newmem'+inttostr(injectnr)+'')
+      if jmp1 then
+        add('jmp1 newmem')
       else
-        add('jmp newmem'+inttostr(injectnr)+'');
+      begin
+        if farjmp then
+          add('jmp far newmem'+inttostr(injectnr)+'')
+        else
+          add('jmp newmem'+inttostr(injectnr)+'');
+      end;
+
       if codesize>jmpsize then
       begin
         if codesize-jmpsize>1 then
@@ -1400,7 +1418,7 @@ begin
 
 
   if inputquery(rsCodeInjectTemplate, rsOnWhatAddressDoYouWantTheJump, address) then
-    GenerateCodeInjectionScript(assemblescreen.lines, address, (ssCtrl in GetKeyShiftState) or mi14ByteJMP.checked);
+    GenerateCodeInjectionScript(assemblescreen.lines, address, (ssCtrl in GetKeyShiftState) or mi14ByteJMP.checked, mi1ByteExceptionJMP.checked);
 end;
 
 procedure TfrmAutoInject.Panel1Resize(Sender: TObject);
@@ -3077,7 +3095,7 @@ begin
 end;
 
 // \/   http://forum.cheatengine.org/viewtopic.php?t=566415 (jgoemat and some mods by db)
-procedure GenerateFullInjectionScript(Script: tstrings; address: string; commentRadius: integer=10; farjmp: boolean=false);
+procedure GenerateFullInjectionScript(Script: tstrings; address: string; commentRadius: integer=10; farjmp: boolean=false; jmp1:boolean=false);
 var
   originalcode: tstringlist;
   originalbytes: array of byte;
@@ -3117,7 +3135,10 @@ begin
   if not processhandler.is64Bit then
     farjmp:=false;
 
-  jmpsize:=ifthen(farjmp, 14, 5);
+  if jmp1 then
+    jmpsize:=1
+  else
+    jmpsize:=ifthen(farjmp, 14, 5);
 
   try
     a:=StrToQWordEx('$'+address);
@@ -3211,10 +3232,16 @@ begin
 
       add('');
       add('address'+nr+':');
-      if farjmp then
-        add('  jmp far newmem'+nr+'')
+      if jmp1 then
+        add('  jmp1 newmem')
       else
-        add('  jmp newmem'+nr+'');
+      begin
+        if farjmp then
+          add('  jmp far newmem'+nr+'')
+        else
+          add('  jmp newmem'+nr+'');
+      end;
+
       if codesize>jmpsize then
       begin
         if codesize-jmpsize>1 then
@@ -3305,7 +3332,7 @@ begin
     mi14ByteJMP.Checked:=true;
 
   if inputquery(rsCodeInjectTemplate, rsOnWhatAddressDoYouWantTheJump, address) then
-    generateFullInjectionScript(assemblescreen.Lines, address, 10, (ssCtrl in GetKeyShiftState) or mi14ByteJMP.checked);
+    generateFullInjectionScript(assemblescreen.Lines, address, 10, (ssCtrl in GetKeyShiftState) or mi14ByteJMP.checked, mi1ByteExceptionJMP.checked);
 end;
 
 procedure TfrmAutoInject.miReplaceClick(Sender: TObject);
@@ -3371,7 +3398,22 @@ begin
   frmHighlighterEditor.free;
 end;
 
-procedure GenerateAOBInjectionScript(script: TStrings; address: string; symbolname: string; commentradius: integer=10; farjmp: boolean=false);
+procedure TfrmAutoInject.mi1ByteExceptionJMPClick(Sender: TObject);
+begin
+  if mi1ByteExceptionJMP.checked then
+  begin
+    mi5ByteJMP.Caption:=rsLessThan2GBDistance;
+    mi14ByteJMP.Caption:=rsMoreThan2GBDistance;
+  end
+  else
+  begin
+    mi5ByteJMP.Caption:=rs5ByteJMP;
+    mi14ByteJMP.Caption:=rs14ByteJMP;
+  end;
+
+end;
+
+procedure GenerateAOBInjectionScript(script: TStrings; address: string; symbolname: string; commentradius: integer=10; farjmp: boolean=false; jmp1:boolean=false);
 var
   a,a2: ptrUint;                  // pointer to injection point
   originalcode: tstringlist;      // disassembled code we're replacing
@@ -3417,7 +3459,12 @@ begin
   if not processhandler.is64Bit then
     farjmp:=false;
 
-  jmpsize:=ifthen(farjmp, 14, 5);
+
+  if jmp1 then
+    jmpsize:=1
+  else
+    jmpsize:=ifthen(farjmp, 14, 5);
+
 
   try
     a:=StrToQWordEx('$'+address);
@@ -3515,10 +3562,16 @@ begin
 
       add('');
       add(symbolNameWithOffset + ':');
-      if farjmp then
-        add('  jmp far newmem' + nr + '')
+      if jmp1 then
+        add('  jmp1 newmem')
       else
-        add('  jmp newmem' + nr + '');
+      begin
+        if farjmp then
+          add('  jmp far newmem' + nr + '')
+        else
+          add('  jmp newmem' + nr + '');
+      end;
+
       if codesize>jmpsize then
       begin
         if codesize-jmpsize>1 then
@@ -3621,7 +3674,7 @@ begin
     symbolname:='INJECT'+nr;
 
     if inputquery(rsCodeInjectTemplate, rsWhatIdentifierDoYouWantToUse, symbolName) then
-      GenerateAOBInjectionScript(assemblescreen.Lines, address, symbolname, 10, (ssCtrl in GetKeyShiftState) or mi14ByteJMP.checked);
+      GenerateAOBInjectionScript(assemblescreen.Lines, address, symbolname, 10, (ssCtrl in GetKeyShiftState) or mi14ByteJMP.checked, mi1ByteExceptionJMP.checked);
   end;
 end;
 

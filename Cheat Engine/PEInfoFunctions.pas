@@ -315,7 +315,6 @@ type
     function getCount: integer;
   public
     function getRunTimeEntry(address: ptruint): PRuntimeEntry;
-    function isvalid(index: integer): boolean;
     constructor create(modulebase: ptruint; ela: ptruint; els: integer);
     destructor destroy; override;
     property ModuleBase: ptruint read fModuleBase;
@@ -454,11 +453,6 @@ begin
     if InRangeQ(address, list^[i].start, list^[i].stop-1) then
       exit(@list^[i]);
   end;
-end;
-
-function TExceptionList.isvalid(index: integer): boolean;
-begin
-
 end;
 
 function TExceptionList.getEntry(index: integer): TRunTimeEntry;

@@ -21,13 +21,30 @@ type
 
   TAAExceptionInfoList=array of TAAExceptionInfo;
 
+  {$ifdef onebytejumps}
+  TAAExceptionRIPChangeInfo=record
+    originaddress: ptruint;
+    destinationlabel: string;
+  end;
+
+  TAAExceptionRIPChangeInfoList=array of TAAExceptionRIPChangeInfo;
+  {$endif}
+
 
 procedure InitializeAutoAssemblerExceptionHandler;
 procedure AutoAssemblerExceptionHandlerRemoveExceptionRange(startaddress: ptruint);
 procedure AutoAssemblerExceptionHandlerAddExceptionRange(tryaddress: ptruint; exceptionAddress: ptruint);
+
+{$ifdef onebytejumps}
+procedure AutoAssemblerExceptionHandlerAddChangeRIPEntry(rip: ptruint; newrip: ptruint);
+procedure AutoAssemblerExceptionHandlerRemoveChangeRIPEntry(rip: ptruint);
+function IsAutoAssemblerExceptionRIPChanger(address: ptruint; out destination: ptruint): boolean;
+{$endif}
+
 procedure AutoAssemblerExceptionHandlerApplyChanges;
 
 function AutoAssemblerExceptionHandlerHasEntries: boolean;
+
 
 implementation
 
@@ -37,17 +54,26 @@ type
   TAAExceptionListEntry=record
     tryaddress: ptruint;
     exceptionaddress: ptruint;
+    {$ifdef onebytejumps}
+    entrytype: ptruint; //0=exception, 1=rip change
+    {$endif}
   end;
   TAAExceptionList=array of TAAExceptionListEntry;
 
   TAAExceptionListEntry32=record
     tryaddress: dword;
     exceptionaddress: dword;
+    {$ifdef onebytejumps}
+    entrytype: dword;
+    {$endif}
   end;
 
   TAAExceptionListEntry64=record
     tryaddress: qword;
     exceptionaddress: qword;
+    {$ifdef onebytejumps}
+    entrytype: qword;
+    {$endif}
   end;
 
   TAAExceptionList32=array of TAAExceptionListEntry32;
@@ -73,6 +99,9 @@ begin
   setlength(exceptionlist, i+1);
   exceptionlist[i].tryaddress:=tryaddress;
   exceptionlist[i].exceptionaddress:=ExceptionAddress;
+  {$ifdef onebytejumps}
+  exceptionlist[i].entrytype:=0;
+  {$endif}
 end;
 
 procedure AutoAssemblerExceptionHandlerRemoveExceptionRange(startaddress: ptruint);
@@ -92,6 +121,48 @@ begin
       inc(i);
   end;
 end;
+
+{$ifdef onebytejumps}
+procedure AutoAssemblerExceptionHandlerAddChangeRIPEntry(rip: ptruint; newrip: ptruint);
+var i: integer;
+begin
+  for i:=0 to length(exceptionlist)-1 do
+    if (exceptionlist[i].tryaddress=rip) and (exceptionlist[i].entrytype=1) then
+    begin
+      //just update the destination
+      exceptionlist[i].tryaddress:=rip;
+      exceptionlist[i].exceptionaddress:=newrip;
+      exceptionlist[i].entrytype:=1;
+      exit;
+    end;
+
+  i:=length(exceptionlist);
+  setlength(exceptionlist, i+1);
+  exceptionlist[i].tryaddress:=rip;
+  exceptionlist[i].exceptionaddress:=newrip;
+  exceptionlist[i].entrytype:=1;
+end;
+
+procedure AutoAssemblerExceptionHandlerRemoveChangeRIPEntry(rip: ptruint);
+begin
+  AutoAssemblerExceptionHandlerRemoveExceptionRange(rip);
+end;
+
+function IsAutoAssemblerExceptionRIPChanger(address: ptruint; out destination: ptruint): boolean;
+var i: integer;
+begin
+  result:=false;
+  for i:=0 to length(exceptionlist)-1 do
+    if (exceptionlist[i].entrytype=1) and (exceptionlist[i].tryaddress=address) then
+    begin
+      destination:=exceptionlist[i].exceptionaddress;
+      exit(true);
+    end;
+end;
+
+{$endif}
+
+
 
 procedure AutoAssemblerExceptionHandlerApplyChanges;
 var
@@ -131,13 +202,17 @@ begin
     begin
       templist64[i].tryaddress:=exceptionlist[i].tryaddress;
       templist64[i].exceptionaddress:=exceptionlist[i].exceptionaddress;
+
+      {$ifdef onebytejumps}
+      templist64[i].entrytype:=exceptionlist[i].entrytype;
+      {$endif}
     end;
     params64.listsize:=length(exceptionlist);
     if params64.listsize=0 then
       params64.list:=0
     else
     begin
-      params64.list:=ptruint(VirtualAllocEx(processhandle, nil,length(templist64)*sizeof(TAAExceptionList64),mem_commit or mem_Reserve, PAGE_READWRITE));
+      params64.list:=ptruint(VirtualAllocEx(processhandle, nil,length(templist64)*sizeof(TAAExceptionListEntry64),mem_commit or mem_Reserve, PAGE_READWRITE));
       writeprocessmemory(processhandle, pointer(ptruint(params64.list)), @templist64[0], length(templist64)*sizeof(TAAExceptionListEntry64), x);
     end;
 
@@ -151,13 +226,16 @@ begin
     begin
       templist32[i].tryaddress:=exceptionlist[i].tryaddress;
       templist32[i].exceptionaddress:=exceptionlist[i].exceptionaddress;
+      {$ifdef onebytejumps}
+      templist32[i].entrytype:=exceptionlist[i].entrytype;
+      {$endif}
     end;
     params32.listsize:=length(exceptionlist);
     if params32.listsize=0 then
       params32.list:=0
     else
     begin
-      params32.list:=ptruint(VirtualAllocEx(processhandle, nil,length(templist32)*sizeof(TAAExceptionList32),mem_commit or mem_Reserve, PAGE_READWRITE));
+      params32.list:=ptruint(VirtualAllocEx(processhandle, nil,length(templist32)*sizeof(TAAExceptionListEntry32),mem_commit or mem_Reserve, PAGE_READWRITE));
       writeprocessmemory(processhandle, pointer(ptruint(params32.list)), @templist32[0], length(templist32)*sizeof(TAAExceptionListEntry32), x);
     end;
 
@@ -229,7 +307,10 @@ begin
     init.add('alloc(ExceptionHandler,1024)');
     init.add('alloc(SetList,1024)');
     init.add('alloc(registereh,128)');
-
+    init.add('label(next)');
+    init.add('label(nomatch)');
+    init.add('label(match)');
+    init.add('label(ExceptionHandler_exit)');
     init.add('');
     init.add('Signature:');
     init.add('db ''AAEH'''); //signature
@@ -325,23 +406,42 @@ begin
       init.add('mov rcx,[ListSize]');
 
       init.add('next:');
+
       init.add('mov r9,[r8]');  //try address
-      init.add('mov r10,[r8+8]');  //except address
+      init.add('mov r10,[r8+8]');  //except address/new rip
+
+
+      {$ifdef onebytejumps}
+      init.add('cmp dword [r8+10],1');
+      init.add('jne exceptionhandlerentry');
+
+      //change rip entry
       init.add('cmp [rax],r9');
-      init.add('jb nomatch');
+      init.add('je match');
+
+      init.add('exceptionhandlerentry:');
+      {$endif}
+
+      init.add('cmp [rax],r9');
+      init.add('jb nomatch');  //if before the try instruction, it's not a match
 
       init.add('cmp [rax],r10');
-      init.add('jb match');
+      init.add('jb match'); //if after try, but before except, then it is match
 
       init.add('nomatch:');
+
+      {$ifdef onebytejumps}
+      init.add('add r8,18');
+      {$else}
       init.add('add r8,10');
+      {$endif}
       init.add('loop next');
 
       init.add('xor rax,rax');  //end of the list and not in it
       init.add('jmp ExceptionHandler_exit');
 
       init.add('match:');
-      init.add('mov [rax],r10');
+      init.add('mov [rax],r10'); //change RIP to the exception handler address (or new RIP)
       init.add('mov eax,ffffffff');
 
       init.add('ExceptionHandler_exit:');
@@ -387,6 +487,18 @@ begin
       init.add('next:');
       init.add('mov ebx,[esi]'); //try address
       init.add('mov edx,[esi+4]'); //except address
+
+      {$ifdef onebytejumps}
+      init.add('cmp dword [esi+8],1');
+      init.add('jne exceptionhandlerentry');
+
+      //change rip entry
+      init.add('cmp [eax],ebx');
+      init.add('je match');
+
+      init.add('exceptionhandlerentry:');
+      {$endif}
+
       init.add('cmp [eax],ebx');
       init.add('jb nomatch');
 
@@ -394,7 +506,11 @@ begin
       init.add('jb match');
 
       init.add('nomatch:');
+      {$ifdef onebytejumps}
+      init.add('add esi,c');
+      {$else}
       init.add('add esi,8');
+      {$endif}
       init.add('loop next');
       init.add('mov eax,0'); //not in the list, continue unhandled
       init.add('jmp ExceptionHandler_exit');
@@ -441,7 +557,7 @@ begin
 
     init.add('createthreadandwait(registereh)');
 
-    //Clipboard.AsText:=init.text;
+    Clipboard.AsText:=init.text;
     disableinfo:=TDisableInfo.create;
 
     try

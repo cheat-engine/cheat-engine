@@ -1,14 +1,13 @@
 object frmAutoInject: TfrmAutoInject
-  Left = 419
-  Height = 391
-  Top = 475
-  Width = 539
+  Left = 540
+  Height = 313
+  Top = 364
+  Width = 431
   HelpContext = 1089
   AllowDropFiles = True
   Caption = 'Auto assemble'
-  ClientHeight = 366
-  ClientWidth = 539
-  DesignTimePPI = 120
+  ClientHeight = 293
+  ClientWidth = 431
   Menu = MainMenu1
   OnClose = FormClose
   OnCreate = FormCreate
@@ -16,44 +15,44 @@ object frmAutoInject: TfrmAutoInject
   OnDropFiles = FormDropFiles
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '2.2.4.0'
+  LCLVersion = '2.2.2.0'
   object Panel1: TPanel
     Left = 0
-    Height = 42
-    Top = 324
-    Width = 539
+    Height = 34
+    Top = 259
+    Width = 431
     Align = alBottom
     AutoSize = True
     BevelOuter = bvNone
-    ClientHeight = 42
-    ClientWidth = 539
+    ClientHeight = 34
+    ClientWidth = 431
     TabOrder = 0
     OnResize = Panel1Resize
     object Panel3: TPanel
       AnchorSideLeft.Control = Panel1
       AnchorSideLeft.Side = asrCenter
-      Left = 210
-      Height = 42
+      Left = 168
+      Height = 34
       Top = 0
-      Width = 119
+      Width = 95
       AutoSize = True
       BevelOuter = bvNone
-      ClientHeight = 42
-      ClientWidth = 119
+      ClientHeight = 34
+      ClientWidth = 95
       TabOrder = 0
       object btnExecute: TButton
         AnchorSideLeft.Control = Panel3
         AnchorSideTop.Control = Panel3
         Left = 0
-        Height = 38
+        Height = 30
         Top = 2
-        Width = 119
+        Width = 95
         AutoSize = True
         BorderSpacing.Top = 2
         BorderSpacing.Bottom = 2
         Caption = 'Execute'
-        Constraints.MinHeight = 38
-        Constraints.MinWidth = 119
+        Constraints.MinHeight = 30
+        Constraints.MinWidth = 95
         OnClick = btnExecuteClick
         TabOrder = 0
       end
@@ -61,9 +60,9 @@ object frmAutoInject: TfrmAutoInject
   end
   object Panel2: TPanel
     Left = 0
-    Height = 324
+    Height = 259
     Top = 0
-    Width = 539
+    Width = 431
     Align = alClient
     BevelOuter = bvNone
     BorderStyle = bsSingle
@@ -71,8 +70,8 @@ object frmAutoInject: TfrmAutoInject
   end
   object MainMenu1: TMainMenu
     Images = aaImageList
-    Left = 230
-    Top = 150
+    Left = 184
+    Top = 120
     object File1: TMenuItem
       Caption = 'File'
       object miNewWindow: TMenuItem
@@ -157,20 +156,28 @@ object frmAutoInject: TfrmAutoInject
       Caption = 'Template'
       object mi5ByteJMP: TMenuItem
         AutoCheck = True
-        Caption = '5 byte JMP'
+        Caption = '5 Byte JMP (<2GB Distance)'
         Checked = True
         RadioItem = True
       end
       object mi14ByteJMP: TMenuItem
         AutoCheck = True
-        Caption = '14 byte JMP'
+        Caption = '14 Byte JMP (>2GB Distance)'
         RadioItem = True
       end
       object N1: TMenuItem
         Caption = '-'
       end
+      object mi1ByteExceptionJMP: TMenuItem
+        AutoCheck = True
+        Caption = '1 Byte Exception JMP'
+        OnClick = mi1ByteExceptionJMPClick
+      end
+      object Separator1: TMenuItem
+        Caption = '-'
+      end
       object Codeinjection1: TMenuItem
-        Caption = 'Code injection'
+        Caption = 'Code Injection'
         ShortCut = 16457
         OnClick = Codeinjection1Click
       end
@@ -180,12 +187,12 @@ object frmAutoInject: TfrmAutoInject
         OnClick = APIHook1Click
       end
       object Coderelocation1: TMenuItem
-        Caption = 'Code relocation'
+        Caption = 'Code Relocation'
         ShortCut = 16466
         OnClick = Coderelocation1Click
       end
       object miCallLua: TMenuItem
-        Caption = 'Call CE lua function'
+        Caption = 'Call CE Lua Function'
         ShortCut = 16460
         OnClick = miCallLuaClick
       end
@@ -200,7 +207,7 @@ object frmAutoInject: TfrmAutoInject
         OnClick = menuFullInjectionClick
       end
       object CheatTablecompliantcodee1: TMenuItem
-        Caption = 'Cheat Table framework code'
+        Caption = 'Cheat Table Framework Code'
         ShortCut = 49236
         OnClick = CheatTablecompliantcodee1Click
       end
@@ -222,21 +229,21 @@ object frmAutoInject: TfrmAutoInject
     Title = 'Open CE assembly file'
     DefaultExt = '.CEA'
     Filter = 'Cheat Engine Assembly (*.CEA)|*.CEA|All Files (*.*)|*.*'
-    Left = 10
-    Top = 50
+    Left = 8
+    Top = 40
   end
   object SaveDialog1: TSaveDialog
     Title = 'Save CE assembly file'
     DefaultExt = '.CEA'
     Filter = 'Cheat Engine Assembly (*.CEA)|*.CEA|All Files (*.*)|*.*'
     Options = [ofOverwritePrompt, ofHideReadOnly, ofEnableSizing]
-    Left = 50
-    Top = 50
+    Left = 40
+    Top = 40
   end
   object PopupMenu1: TPopupMenu
     Images = aaImageList
-    Left = 170
-    Top = 20
+    Left = 136
+    Top = 16
     object miCut: TMenuItem
       Caption = 'Cu&t'
       ImageIndex = 9
@@ -297,8 +304,8 @@ object frmAutoInject: TfrmAutoInject
   object TabMenu: TPopupMenu
     Images = aaImageList
     OnPopup = TabMenuPopup
-    Left = 290
-    Top = 60
+    Left = 232
+    Top = 48
     object miMoveLeft: TMenuItem
       Caption = 'Move left'
       ImageIndex = 16
@@ -322,25 +329,25 @@ object frmAutoInject: TfrmAutoInject
   end
   object FindDialog1: TFindDialog
     OnFind = FindDialog1Find
-    Left = 415
-    Top = 140
+    Left = 332
+    Top = 112
   end
   object undotimer: TTimer
     Interval = 250
-    Left = 50
-    Top = 90
+    Left = 40
+    Top = 72
   end
   object ReplaceDialog1: TReplaceDialog
     Options = [frDown, frReplace, frReplaceAll]
     OnFind = ReplaceDialog1Find
     OnReplace = ReplaceDialog1Replace
-    Left = 415
-    Top = 58
+    Left = 332
+    Top = 46
   end
   object aaImageList: TImageList
     Scaled = True
-    Left = 171
-    Top = 258
+    Left = 137
+    Top = 206
     Bitmap = {
       4C7A1100000010000000100000006B1000000000000078DAED9B09585357DAC7
       63D569B52E4C3BB633DA5AED323A8A33A24EB5EA3383AD22B6D5AA08C5AAE888

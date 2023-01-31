@@ -1523,6 +1523,9 @@ var i: integer=0;
     end=[];
 
     exceptionlist: TAAExceptionInfoList=[];
+    {$ifdef onebytejumps}
+    onebytejumps: TAAExceptionRIPChangeInfoList=[];
+    {$endif}
 
     varsize: integer=0;
     tokens: tstringlist=nil;
@@ -2258,6 +2261,16 @@ begin
 
 
           {$ifndef jni}
+
+          {$ifdef ONEBYTEJUMPS}
+          if uppercase(copy(currentline,1,5))='JMP1 ' then
+          begin
+            s1:=copy(currentline, 6);
+            assemblerlines[length(assemblerlines)-1].linenr:=currentlinenr;
+            assemblerlines[length(assemblerlines)-1].line:='<JMP1 '+s1+'>';
+            continue;
+          end;
+          {$endif}
 
           if uppercase(copy(currentline,1,12))='LOADLIBRARY(' then
           begin
@@ -3779,8 +3792,25 @@ begin
             setlength(assembled[length(assembled)-1].bytes, readmems[l].bytelength);
             CopyMemory(@assembled[length(assembled)-1].bytes[0], readmems[l].bytes, readmems[l].bytelength);
           end
+          {$ifdef onebytejumps}
           else
+          if copy(currentline,1,6)='<JMP1 ' then
+          begin
+            s1:=copy(currentline,7);
+            s1:=copy(s1,1,length(s1)-1);
+
+            setlength(onebytejumps, length(onebytejumps)+1);
+            onebytejumps[length(onebytejumps)-1].destinationlabel:=s1;
+            onebytejumps[length(onebytejumps)-1].originaddress:=currentaddress;
+
+            setlength(assembled[length(assembled)-1].bytes,1);
+            assembled[length(assembled)-1].bytes[0]:=$cc;
+          end
+          {$endif}
+          else
+          begin
             assemble(currentline,currentaddress,assembled[length(assembled)-1].bytes);
+          end;
         end
         else
         begin
@@ -3937,16 +3967,27 @@ begin
 
     //we're still here so inject the rest of it
     //addresses are known here, so parse the exception list if there is one
-    if length(exceptionlist)>0 then
-    begin
+
+
+    if (length(exceptionlist)>0) {$ifdef onebytejumps}or (length(onebytejumps)>0){$endif} then
       InitializeAutoAssemblerExceptionHandler;
+
+
+    if length(exceptionlist)>0 then
       for i:=length(exceptionlist)-1 downto 0 do //add it in the reverse order so the nested try/excepts come first
         AutoAssemblerExceptionHandlerAddExceptionRange(getAddressFromScript(exceptionlist[i].trylabel), getAddressFromScript(exceptionlist[i].exceptlabel));
 
+    {$ifdef onebytejumps}
+    if length(onebytejumps)>0 then
+      for i:=0 to length(onebytejumps)-1 do
+        AutoAssemblerExceptionHandlerAddChangeRIPEntry(onebytejumps[i].originaddress, getAddressFromScript(onebytejumps[i].destinationlabel));
+    {$endif}
+
+    if (length(exceptionlist)>0) {$ifdef onebytejumps}or (length(onebytejumps)>0){$endif} then
       AutoAssemblerExceptionHandlerApplyChanges;
-    end;
 
     {$ifdef windows}
+
     connection:=getconnection;
     if connection<>nil then
       connection.beginWriteProcessMemory; //group all writes

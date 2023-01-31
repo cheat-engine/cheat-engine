@@ -763,7 +763,8 @@ uses Valuechange, MainUnit, debugeventhandler, findwindowunit,
   frmExceptionRegionListUnit, frmExceptionIgnoreListUnit, frmcodefilterunit,
   frmDBVMWatchConfigUnit, DBK32functions, DPIHelper, DebuggerInterface,
   DebuggerInterfaceAPIWrapper, BreakpointTypeDef, CustomTypeHandler,
-  frmSourceDisplayUnit, sourcecodehandler, tcclib, mainunit2;
+  frmSourceDisplayUnit, sourcecodehandler, tcclib, mainunit2
+  {$ifdef ONEBYTEJUMPS}, autoassemblerexeptionhandler{$endif};
 
 
 resourcestring
@@ -3559,7 +3560,7 @@ begin
 end;
 
 procedure TMemoryBrowser.AssemblePopup(x:string);
-var assemblercode,desc: string;
+var assemblercode,desc,s: string;
     totalbytes: TAssemblerBytes;
     bytes: tassemblerbytes;
     a,b,original,written:ptrUint;
@@ -3582,6 +3583,11 @@ var assemblercode,desc: string;
     address: ptruint;
 
     oldbp: PBreakpoint=nil;
+
+    {$ifdef ONEBYTEJUMPS}
+    isjmp1: boolean;
+    jmp1target: ptruint;
+    {$endif}
 begin
 
   //make sure it doesnt have a breakpoint
@@ -3638,6 +3644,23 @@ begin
       end;
 
 
+      {$ifdef ONEBYTEJUMPS}
+      s:=lowercase(trim(assemblercode));
+      if s.StartsWith('jmp1 ') then
+      begin
+        isjmp1:=true;
+        s:=copy(s,6);
+
+        jmp1target:=symhandler.getAddressFromName(s);
+
+        //still here, so the address is valid
+        assemblercode:='db cc';
+      end
+      else
+        isjmp1:=false;
+      {$endif}
+
+
       if Assemble(assemblercode,Address,bytes) then
       begin
         if originalsize<>length(bytes) then
@@ -3676,6 +3699,15 @@ begin
           end;
         end;
 
+        {$ifdef ONEBYTEJUMPS}
+        if isjmp1 then
+        begin
+          InitializeAutoAssemblerExceptionHandler;
+          AutoAssemblerExceptionHandlerAddChangeRIPEntry(address, jmp1target);
+
+          AutoAssemblerExceptionHandlerApplyChanges;
+        end;
+        {$endif}
         //note to self, check the size of the current opcode and give the option to replace the missing or too many bytes with nops
         //and put in a option to disable showing that message, and use a default action
 

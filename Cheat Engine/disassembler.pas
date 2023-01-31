@@ -258,7 +258,7 @@ uses Assemblerunit, StrUtils, Parsers, memoryQuery;
 {$ifdef windows}
 uses Assemblerunit,CEDebugger, debughelper, StrUtils, debuggertypedefinitions,
   Parsers, memoryQuery, binutils, luacaller, vmxfunctions, frmcodefilterunit,
-  BreakpointTypeDef, frmEditHistoryUnit, dialogs;
+  BreakpointTypeDef, frmEditHistoryUnit, dialogs{$ifdef onebytejumps}, autoassemblerexeptionhandler {$endif};
 {$endif}
 
 {$ifdef darwin}
@@ -13236,6 +13236,19 @@ begin
                   //should not be shown if its being debugged using int 3'
                   description:='call to interrupt procedure-3:trap to debugger';
                   lastdisassembledata.opcode:='int 3';
+
+                  {$ifdef onebytejumps}
+                  if AutoAssemblerExceptionHandlerHasEntries then
+                  begin
+                    if IsAutoAssemblerExceptionRIPChanger(LastDisassembleData.address, tempaddress) then
+                    begin
+                      lastdisassembledata.opcode:='jmp1';
+                      LastDisassembleData.parameters:=inttohexs(tempaddress,8);
+                    end;
+                  end;
+                  {$endif}
+
+
                 end;
 
           $cd : begin

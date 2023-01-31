@@ -891,7 +891,8 @@ end;
 function TSynAASyn.Func39: TtkTokenKind; //enable
 begin
   if KeyComp('enable') then Result := tkspace else
-    Result := tkIdentifier;
+    if KeyComp('jmp1') then Result := tkopcode else
+      Result := tkIdentifier;
 end;
 
 function TSynAASyn.Func40: TtkTokenKind; //esp/sil
