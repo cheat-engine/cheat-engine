@@ -331,7 +331,11 @@ type
 
   {$ifdef windows}
 type
-
+  PSAPI_WORKING_SET_INFORMATION=record
+    NumberOfEntries: ULONG_PTR;
+    WorkingSetInfo: array [0..0] of ULONG_PTR; //first 12 bits are flags, the rest is the address
+  end;
+  PPSAPI_WORKING_SET_INFORMATION=^PSAPI_WORKING_SET_INFORMATION;
 
 
 //credits to jedi code library for filling in the "extended registers"
@@ -735,6 +739,8 @@ var
   EnumDeviceDrivers       :TEnumDeviceDrivers;
   GetDeviceDriverBaseNameA:TGetDeviceDriverBaseNameA;
   GetDeviceDriverFileName :TGetDeviceDriverFileName;
+
+  QueryWorkingSet: function(hProcess: HANDLE; pv: PVOID; cb: DWORD): BOOL; stdcall;
 {$endif}
 
 
@@ -2464,10 +2470,19 @@ initialization
   psa:=loadlibrary('Psapi.dll');
   EnumDeviceDrivers:=GetProcAddress(psa,'EnumDeviceDrivers');
   GetDevicedriverBaseNameA:=GetProcAddress(psa,'GetDeviceDriverBaseNameA');
+  QueryWorkingSet:=GetProcAddress(psa,'QueryWorkingSet');
+  if not assigned(QueryWorkingSet) then
+    QueryWorkingSet:=GetProcAddress(WindowsKernel,'K32QueryWorkingSet');
+
+
 
   u32:=loadlibrary('user32.dll');
   PrintWindow:=GetProcAddress(u32,'PrintWindow');
   ChangeWindowMessageFilter:=GetProcAddress(u32,'ChangeWindowMessageFilter');
+
+
+
+
 
 
   ReadPhysicalMemory:=@dbk32functions.ReadPhysicalMemory;

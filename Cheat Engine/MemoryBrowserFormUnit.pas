@@ -2780,6 +2780,8 @@ var x: array of integer;
   i: integer;
   c: tcolor;
 begin
+
+
   registerpanelfont:=tfont.Create;
 
   MemoryBrowsers.Add(self);

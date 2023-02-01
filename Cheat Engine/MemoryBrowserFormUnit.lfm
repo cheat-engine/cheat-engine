@@ -5,9 +5,8 @@ object MemoryBrowser: TMemoryBrowser
   Width = 801
   HelpContext = 12
   Caption = 'Memory Viewer'
-  ClientHeight = 505
+  ClientHeight = 510
   ClientWidth = 801
-  DesignTimePPI = 120
   Menu = MainMenu1
   OnActivate = FormActivate
   OnClose = FormClose
@@ -16,7 +15,7 @@ object MemoryBrowser: TMemoryBrowser
   OnResize = FormResize
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '2.2.4.0'
+  LCLVersion = '2.2.2.0'
   Scaled = False
   object Splitter1: TSplitter
     Cursor = crVSplit
@@ -93,14 +92,14 @@ object MemoryBrowser: TMemoryBrowser
           ShowHint = True
         end
         object tbSeparator1: TToolButton
-          Left = 133
+          Left = 105
           Height = 40
           Top = 2
           Caption = 'tbSeparator1'
           Style = tbsDivider
         end
         object tbRun: TToolButton
-          Left = 138
+          Left = 110
           Hint = 'F9'
           Top = 2
           Caption = 'Run'
@@ -111,7 +110,7 @@ object MemoryBrowser: TMemoryBrowser
           ShowHint = True
         end
         object tbStepInto: TToolButton
-          Left = 287
+          Left = 234
           Hint = 'F7'
           Top = 2
           Caption = 'Step Into'
@@ -122,7 +121,7 @@ object MemoryBrowser: TMemoryBrowser
           ShowHint = True
         end
         object tbStepOver: TToolButton
-          Left = 356
+          Left = 289
           Hint = 'F8'
           Top = 2
           Caption = 'Step Over'
@@ -133,7 +132,7 @@ object MemoryBrowser: TMemoryBrowser
           ShowHint = True
         end
         object tbStepOut: TToolButton
-          Left = 430
+          Left = 348
           Hint = 'Shift+F8'
           Top = 2
           Caption = 'Step Out'
@@ -144,14 +143,14 @@ object MemoryBrowser: TMemoryBrowser
           ShowHint = True
         end
         object tbSeparator2: TToolButton
-          Left = 282
+          Left = 229
           Height = 40
           Top = 2
           Caption = 'tbSeparator2'
           Style = tbsDivider
         end
         object tbRunTill: TToolButton
-          Left = 502
+          Left = 407
           Hint = 'F4'
           Top = 2
           Caption = 'Run till...'
@@ -162,14 +161,14 @@ object MemoryBrowser: TMemoryBrowser
           ShowHint = True
         end
         object tbSeparator3: TToolButton
-          Left = 497
+          Left = 402
           Height = 40
           Top = 2
           Caption = 'tbSeparator3'
           Style = tbsDivider
         end
         object tbRunUnhandled: TToolButton
-          Left = 172
+          Left = 139
           Hint = 'Shift+F9'
           Top = 2
           Caption = 'Run Unhandled'
@@ -685,19 +684,19 @@ object MemoryBrowser: TMemoryBrowser
   end
   object Panel4: TPanel
     Left = 0
-    Height = 136
+    Height = 141
     Top = 369
     Width = 801
     Align = alClient
     BevelOuter = bvNone
     BorderWidth = 1
-    ClientHeight = 136
+    ClientHeight = 141
     ClientWidth = 801
     ParentFont = False
     TabOrder = 1
     object Splitter3: TSplitter
       Left = 586
-      Height = 134
+      Height = 139
       Top = 1
       Width = 5
       Align = alRight
@@ -708,7 +707,7 @@ object MemoryBrowser: TMemoryBrowser
     end
     object Panel3: TPanel
       Left = 1
-      Height = 134
+      Height = 139
       Top = 1
       Width = 585
       Align = alClient
@@ -718,12 +717,12 @@ object MemoryBrowser: TMemoryBrowser
     end
     object pnlStacktrace: TPanel
       Left = 591
-      Height = 134
+      Height = 139
       Top = 1
       Width = 209
       Align = alRight
       BevelInner = bvLowered
-      ClientHeight = 134
+      ClientHeight = 139
       ClientWidth = 209
       ParentFont = False
       PopupMenu = pmStacktrace
@@ -731,7 +730,7 @@ object MemoryBrowser: TMemoryBrowser
       Visible = False
       object lvStacktraceData: TListView
         Left = 2
-        Height = 130
+        Height = 135
         Hint = 'Shows the current stack.'#13#10'Tip: When doubleclicking the value and it represents an address, then you can hold shift to make it show in the disassembler, and ctrl to make it show in the memory view. Else Cheat Engine will guess it for you based on if it''s executable memory or not'
         Top = 2
         Width = 205

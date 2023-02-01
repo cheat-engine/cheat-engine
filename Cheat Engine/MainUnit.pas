@@ -308,6 +308,7 @@ type
     cbCompareToSavedScan: TCheckBox;
     cbLuaFormula: TCheckBox;
     cbNewLuaState: TCheckBox;
+    cbPresentMemoryOnly: TCheckBox;
     ColorDialog1: TColorDialog;
     CreateGroup: TMenuItem;
     FromAddress: TEdit;
@@ -3022,14 +3023,10 @@ begin
     cbSpeedhack.Enabled := False;
     cbUnrandomizer.Enabled := False;
 
-
-
     if processid <> $FFFFFFFF then
     begin
-
       processlabel.Caption := strError;
       raise Exception.Create(strErrorWhileOpeningProcess{$ifdef darwin}+strErrorwhileOpeningProcessMac{$endif});
-
     end
     else
     begin
@@ -7637,6 +7634,8 @@ begin
         reg.WriteInteger('scan CopyOnWrite', integer(cbCopyOnWrite.State));
         reg.WriteInteger('scan Executable', integer(cbExecutable.State));
         reg.WriteInteger('scan Writable', integer(cbWritable.State));
+
+        reg.WriteBool('scan PresentMemoryOnly', cbPresentMemoryOnly.checked);
       end;
     except
 
@@ -10254,6 +10253,7 @@ begin
     memscan.luaformula:=cbLuaFormula.visible and cbLuaFormula.checked;
     memscan.NewLuaState:=cbNewLuaState.Checked;
     memscan.busyformIsModal:=true;
+    memscan.workingsetonly:=(getConnection=nil) and cbPresentMemoryOnly.checked;  //workingsetonly is false when networked
 
     memscan.firstscan(GetScanType2, getVarType2, roundingtype,
       scanvalue.Text, svalue2, scanStart, scanStop,

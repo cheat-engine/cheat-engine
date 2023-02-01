@@ -299,9 +299,9 @@ object frmUltimap: TfrmUltimap
           Left = 8
           Height = 15
           Top = 152
-          Width = 75
+          Width = 79
           BorderSpacing.Top = 8
-          Caption = 'Banch targets:'
+          Caption = 'Branch targets:'
           ParentColor = False
         end
         object cbPreemptiveFlush: TCheckBox

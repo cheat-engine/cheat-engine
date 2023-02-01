@@ -7,7 +7,7 @@ interface
 
 {$ifdef windows}
 uses
-  Classes, SysUtils, uitypes, bcrypt, DOM, xmlutils, XmlRead, XMLWrite, dialogs, windows,
+  Classes, SysUtils, System.uitypes, bcrypt, DOM, xmlutils, XmlRead, XMLWrite, dialogs, windows,
   graphics, math;
 
 function canSignTables: boolean;

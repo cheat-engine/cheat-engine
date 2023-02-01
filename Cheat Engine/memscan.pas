@@ -520,6 +520,8 @@ type
     isStaticPointerLookupTree: TAvgLvlTree; //init once and reuse by all threads
     isDynamicPointerLookupTree: TAvgLvlTree; // same ^
     isExecutablePointerLookupTree: TAvgLvlTree; // same ^
+
+    function isValidregion(address: ptruint): boolean;
     procedure FillPointerLookupTrees(pointertypes: TPointertypes);
     function isPointer(address: ptruint; pointertypes: TPointerTypes): boolean;
     procedure CleanupIsPointerLookupTree(var lookupTree: TAvgLvlTree);
@@ -601,6 +603,8 @@ type
     newluastate: boolean;
     isUnique: boolean;
 
+    workingsetonly: boolean;
+
     procedure execute; override;
     constructor create(suspended: boolean);
     destructor destroy; override;
@@ -657,6 +661,8 @@ type
     savedresults: tstringlist;
     fonlyOne: boolean;
     fIsUnique: boolean;
+
+    fworkingsetonly: boolean;
 
 
     ffloatscanWithoutExponents: boolean;
@@ -789,6 +795,9 @@ type
     property Fastscanmethod: TFastScanMethod read ffastscanmethod write ffastscanmethod;
     property Fastscanparameter: string read ffastscanparameter write ffastscanparameter;
     property Customtype: TCustomType read fcustomtype write fcustomtype;
+    property WorkingSetOnly: boolean read fworkingsetonly write fworkingsetonly;
+    property PresentOnly: boolean read fworkingsetonly write fworkingsetonly;
+
 
     //next scan specific:
     property Percentage: boolean read fPercentage write fPercentage;
@@ -6842,6 +6851,63 @@ begin
     NextNextScan;
 end;
 
+function TScanController.isValidregion(address: ptruint): boolean;
+var
+  mbi : TMemoryBasicInformation;
+  isWritable, isExecutable, isCopyOnWrite: boolean;
+
+begin
+  result:=false;
+  if VirtualQueryEx(processhandle, pointer(address), mbi, sizeof(mbi))<>0 then
+  begin
+    result:=(mbi.State=mem_commit);
+    if not result then exit; //unreadable, ignore the rest
+
+    result:=result and (PtrUint(mbi.BaseAddress)<stopaddress);
+    result:=result and ((mbi.Protect and page_guard)=0);
+    result:=result and ((mbi.protect and page_noaccess)=0);
+    result:=result and (not (not scan_mem_private and (mbi._type=mem_private)));
+    result:=result and (not (not scan_mem_image and (mbi._type=mem_image)));
+    result:=result and (not (not scan_mem_mapped and (mbi._type=mem_mapped)));
+    result:=result and (not (Skip_PAGE_NOCACHE and ((mbi._type and PAGE_NOCACHE)>0)));
+    result:=result and (not (Skip_PAGE_WRITECOMBINE and ((mbi._type and PAGE_WRITECOMBINE)>0)));
+
+    if result then
+    begin
+      //initial check passed, check the other protection flags to see if it should be scanned
+
+      //fill in isWritable, isExecutable, isCopyOnWrite: boolean;
+      isWritable:=((mbi.protect and PAGE_READWRITE)>0) or
+                  ((mbi.protect and PAGE_WRITECOPY)>0) or //writecopy IS writable
+                  ((mbi.protect and PAGE_EXECUTE_READWRITE)>0) or
+                  ((mbi.protect and PAGE_EXECUTE_WRITECOPY)>0);
+
+      isExecutable:=((mbi.protect and PAGE_EXECUTE)>0) or
+                    ((mbi.protect and PAGE_EXECUTE_READ)>0) or
+                    ((mbi.protect and PAGE_EXECUTE_READWRITE)>0) or
+                    ((mbi.protect and PAGE_EXECUTE_WRITECOPY)>0);
+
+      isCopyOnWrite:=((mbi.protect and PAGE_WRITECOPY)>0) or
+                     ((mbi.protect and PAGE_EXECUTE_WRITECOPY)>0);
+
+      case scanWritable of
+        scanInclude: result:=result and isWritable;
+        scanExclude: result:=result and (not isWritable);
+      end;
+
+      case scanExecutable of
+        scanInclude: result:=result and isExecutable;
+        scanExclude: result:=result and (not isExecutable);
+      end;
+
+      case scanCopyOnWrite of
+        scanInclude: result:=result and isCopyOnWrite;
+        scanExclude: result:=result and (not isCopyOnWrite);
+      end;
+    end;
+  end;
+end;
+
 procedure TScanController.firstScan;
 {
 first scan will gather the memory regions, open the files, and spawn scanners
@@ -6869,8 +6935,13 @@ var
   vqecacheflag: dword;
 
   starta,startb, stopa,stopb: ptruint;
+
+  wsisize: dword;
+  wsi: PPSAPI_WORKING_SET_INFORMATION;
 begin
  // OutputDebugString('TScanController.firstScan');
+
+
 
   if (OnlyOne and (not isUnique)) or (luaformula and (newluastate=false)) then
     threadcount:=1
@@ -6949,6 +7020,51 @@ begin
   VirtualQueryEx_StartCache(processhandle, vqecacheflag);
   {$endif}
 
+  if workingsetonly and assigned(QueryWorkingSet) then
+  begin
+    wsisize:=sizeof(PSAPI_WORKING_SET_INFORMATION);
+    getmem(wsi, sizeof(PSAPI_WORKING_SET_INFORMATION));
+    while (QueryWorkingSet(processhandle, wsi, wsisize)=false) do
+    begin
+      if GetLastError<>ERROR_BAD_LENGTH then
+        raise exception.create('Failure querying present memory');
+
+      wsisize:=(wsi^.NumberOfEntries+(wsi^.NumberOfEntries shr 1))*sizeof(ptruint);  //add a little bit extra
+      freemem(wsi);
+      getmem(wsi, wsisize);
+    end;
+
+    for i:=0 to wsi^.NumberOfEntries-1 do
+    begin
+     // if (wsi^.WorkingSetInfo[i] and (1 shl 8)) <>0 then continue;
+
+      if (i=0) or ((wsi^.WorkingSetInfo[i-1] and $fff)<>(wsi^.WorkingSetInfo[i] and $fff)) or ((wsi^.WorkingSetInfo[i-1] shr 12)+1<>(wsi^.WorkingSetInfo[i-1] shr 12)) then
+      begin
+        //new section
+        if (memregionpos<>0) and (isValidRegion(memRegion[memRegionPos-1].BaseAddress)=false) then
+          dec(memregionPos);
+
+        memRegion[memRegionPos].BaseAddress:=wsi^.WorkingSetInfo[i] and qword($fffffffffffff000);
+        memRegion[memRegionPos].MemorySize:=4096;
+        memRegion[memRegionPos].startaddress:=pointer(ptrUint(totalProcessMemorySize));
+
+        inc(memRegionPos);
+        if (memRegionPos mod 16)=0 then //add another 16 to it
+          setlength(memRegion,length(memRegion)+16);
+      end
+      else
+      begin
+        //append to the current section
+        inc(memRegion[memRegionPos-1].MemorySize,4096);
+      end;
+
+      inc(totalProcessMemorySize, 4096);
+    end;
+
+    if (memregionpos<>0) and (isValidRegion(memRegion[memRegionPos].BaseAddress)=false) then
+      dec(memregionPos);
+  end
+  else
   while (Virtualqueryex(processhandle,pointer(currentBaseAddress),mbi,sizeof(mbi))<>0) and (currentBaseAddress<stopaddress) and ((currentBaseAddress+mbi.RegionSize)>currentBaseAddress) do   //last check is done to see if it wasn't a 64-bit overflow.
   begin
   //  OutputDebugString(format('R=%x-%x',[ptruint(mbi.BaseAddress), ptruint(mbi.BaseAddress)+mbi.RegionSize]));
@@ -8447,6 +8563,7 @@ begin
   scancontroller.newluastate:=fNewLuaState;
   scancontroller.isUnique:=fIsUnique;
   scanController.OnlyOne:=fOnlyOne;
+  scancontroller.workingsetonly:=fworkingsetonly;
 
   fLastscantype:=stFirstScan;
   fLastScanValue:=scanValue1;

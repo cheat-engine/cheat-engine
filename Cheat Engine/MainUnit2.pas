@@ -19,7 +19,7 @@ uses
      memscan,plugin, hotkeyhandler,frmProcessWatcherUnit, newkernelhandler,
      debuggertypedefinitions, commonTypeDefs, betterControls;
 
-const ceversion=7.43;
+const ceversion=7.44;
 {$ifdef altname}  //i'd use $MACRO ON but fpc bugs out
   strCheatEngine='Runtime Modifier'; //if you change this, also change it in first.pas
   strCheatTable='Code Table';   //because it contains code.... duh.....
@@ -41,7 +41,7 @@ const ceversion=7.43;
 {$endif}
 
 resourcestring
-  cename = strCheatEngine+' 7.4.3';
+  cename = strCheatEngine+' 7.5';
   rsCheatEngine = strCheatEngine;
   rsPleaseWait = 'Please Wait!';
 
@@ -50,7 +50,7 @@ procedure LoadSettingsFromRegistry(skipPlugins: boolean=false; skipkernelapply: 
 procedure initcetitle;
 
 
-const beta=''; //empty this for a release
+const beta='Pre Release'; //empty this for a release
 
 var
   CEnorm:string;
@@ -782,6 +782,10 @@ begin
                 i:=reg.ReadInteger('scan Writable');
                 mainform.cbWritable.State:=TCheckBoxState(i);
               end;
+
+              if reg.ValueExists('scan PresentMemoryOnly') then
+                mainform.cbPresentMemoryOnly.checked:=reg.ReadBool('scan PresentMemoryOnly');
+
             end;
           end;
 

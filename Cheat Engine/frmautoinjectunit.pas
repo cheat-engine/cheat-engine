@@ -2524,6 +2524,10 @@ var
 
   fq: TFontQuality;
 begin
+  {$ifndef ONEBYTEJUMPS}
+  mi1ByteExceptionJMP.visible:=false;
+  Separator1.visible:=false;
+  {$endif}
 
 
   {$ifndef standalonetrainerwithassembler}
