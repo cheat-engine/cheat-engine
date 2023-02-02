@@ -317,6 +317,7 @@ type
     MenuItem16: TMenuItem;
     MenuItem17: TMenuItem;
     MenuItem18: TMenuItem;
+    miClearWorkingSet: TMenuItem;
     miNetworkReadUseProcMem: TMenuItem;
     miNetworkReadUsePtrace: TMenuItem;
     miNetworkReadUseVmread: TMenuItem;
@@ -342,6 +343,7 @@ type
     miDotNET: TMenuItem;
     miGetDotNetObjectList: TMenuItem;
     miDBVMFindWhatWritesOrAccesses: TMenuItem;
+    pmPresentMemoryOnly: TPopupMenu;
     sep2: TMenuItem;
     miChangeValueBack: TMenuItem;
     miSignTable: TMenuItem;
@@ -353,6 +355,7 @@ type
     miLanguages: TMenuItem;
     ScanText2: TLabel;
     scanvalue2: TEdit;
+    sbClearActiveMemory: TSpeedButton;
     tLuaGCPassive: TTimer;
     tLuaGCActive: TTimer;
     ToAddress: TEdit;
@@ -592,6 +595,7 @@ type
     procedure MenuItem12Click(Sender: TObject);
     procedure MenuItem15Click(Sender: TObject);
     procedure MenuItem16Click(Sender: TObject);
+    procedure miClearWorkingSetClick(Sender: TObject);
     procedure miDeleteSavedScanResultsClick(Sender: TObject);
     procedure miFoundListPreferencesClick(Sender: TObject);
     procedure miAutoAssembleErrorMessageClick(Sender: TObject);
@@ -1331,6 +1335,10 @@ resourcestring
   rsPreviousValueList = 'Previous value list';
   rsSelectTheSavedResult = 'Select the saved results you wish to use';
   rsNetworkOption = 'Network option :';
+  rsClearingMeansSlowness = 'Clearing the assigned memory for this process '
+    +'will cause it to obtain all the memory it needs again which can cause a '
+    +'temporary slowdown in the target. Make sure the value you''re interested '
+    +'in gets accessed once before you scan. Continue?';
 
 const
   VARTYPE_INDEX_BINARY=0;
@@ -3222,6 +3230,8 @@ begin
     savetable(savedialog1.FileName);
 end;
 
+
+
 procedure TMainForm.Description1Click(Sender: TObject);
 begin
   addresslist.doDescriptionChange;
@@ -3613,6 +3623,16 @@ begin
   p.Executable:=(path);
   p.Execute;
   {$endif}
+end;
+
+procedure TMainForm.miClearWorkingSetClick(Sender: TObject);
+begin
+  if assigned(EmptyWorkingSet) then
+  begin
+    if messagedlg(rsClearingMeansSlowness, mtInformation, [mbyes, mbno], 0)=
+      mryes then
+      EmptyWorkingSet(processhandle);
+  end;
 end;
 
 procedure TMainForm.MenuItem12Click(Sender: TObject);

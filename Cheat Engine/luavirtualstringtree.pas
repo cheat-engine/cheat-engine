@@ -724,6 +724,20 @@ begin
   end;
 end;
 
+function VirtualStringTree_absoluteIndex(L: Plua_State): integer; cdecl;
+var
+  tv: TLazVirtualStringTree;
+  node: PVirtualNode;
+begin
+  result:=0;
+  tv:=TLazVirtualStringTree(luaclass_getClassObject(L));
+  if lua_gettop(L)>=1 then
+  begin
+    node:=lua_toPointer(L, 1);
+    lua_pushinteger(L, tv.AbsoluteIndex(node));
+    result:=1;
+  end;
+end;
 
 procedure virtualstringtree_addMetaData(L: PLua_state; metatable: integer; userdata: integer );
 begin
@@ -760,6 +774,8 @@ begin
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'getNextSibling', VirtualStringTree_getNextSibling);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'saveToFile', VirtualStringTree_saveToFile);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'loadFromFile', VirtualStringTree_loadFromFile);
+
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'absoluteIndex', VirtualStringTree_absoluteIndex);
 
 
 

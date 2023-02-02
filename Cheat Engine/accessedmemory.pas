@@ -5,8 +5,9 @@ unit AccessedMemory;
 interface
 
 uses
-  Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls,
-  ExtCtrls, Menus, ComCtrls, genericHotkey, DBK32functions, commonTypeDefs, betterControls;
+  windows, Classes, SysUtils, FileUtil, laz.VirtualTrees, Forms, Controls, Graphics,
+  Dialogs, StdCtrls, ExtCtrls, Menus, ComCtrls, genericHotkey, DBK32functions,
+  commonTypeDefs, newkernelhandler, betterControls,AvgLvlTree, Laz_AVL_Tree;
 
 resourcestring
   rsAMError = 'Error';
@@ -26,19 +27,15 @@ type
     Edit2: TEdit;
     famrImageList: TImageList;
     Label1: TLabel;
-    Label2: TLabel;
+    lblLost: TLabel;
     Label3: TLabel;
-    ListView1: TListView;
-    MainMenu1: TMainMenu;
-    MenuItem1: TMenuItem;
-    MenuItem2: TMenuItem;
-    MenuItem3: TMenuItem;
+    tReader: TTimer;
+    vsResults: TLazVirtualStringTree;
     MenuItem4: TMenuItem;
     OpenDialog1: TOpenDialog;
     Panel1: TPanel;
     PopupMenu1: TPopupMenu;
     SaveDialog1: TSaveDialog;
-    Splitter1: TSplitter;
     procedure btnClearSmallSnapshot1Click(Sender: TObject);
     procedure btnClearSmallSnapshotClick(Sender: TObject);
     procedure Button1Click(Sender: TObject);
@@ -46,6 +43,7 @@ type
     procedure Edit1KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure Edit2KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure FormCreate(Sender: TObject);
+    procedure FormDestroy(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure ListView1Data(Sender: TObject; Item: TListItem);
     procedure MenuItem2Click(Sender: TObject);
@@ -54,6 +52,12 @@ type
 
     procedure startMonitor(sender: TObject);
     procedure stopMonitor(sender: TObject);
+    procedure tReaderTimer(Sender: TObject);
+    procedure vsResultsDblClick(Sender: TObject);
+    procedure vsResultsExpanding(Sender: TBaseVirtualTree; Node: PVirtualNode;
+      var Allowed: Boolean);
+    procedure vsResultsGetText(Sender: TBaseVirtualTree; Node: PVirtualNode;
+      Column: TColumnIndex; TextType: TVSTTextType; var CellText: String);
 
   private
     { private declarations }
@@ -62,8 +66,13 @@ type
     hkStart: TGenericHotkey;
     hkStop: TGenericHotkey;
 
-    ranges: TPRangeDynArray;
+    results: TIndexedAVLTree;
+    watchinfo: PPSAPI_WS_WATCH_INFORMATION;
+    watchinfosize: dword;
 
+    flost: integer;
+    procedure setLost(count: integer);
+    property lost: integer read flost write setLost;
   public
     { public declarations }
 
@@ -77,39 +86,192 @@ implementation
 
 {$R *.lfm}
 
-uses ProcessHandlerUnit, CEFuncProc;
+uses ProcessHandlerUnit, CEFuncProc, math, symbolhandler, MemoryBrowserFormUnit;
 
 { TfrmAccessedMemory }
+
+type
+  TPListDescriptor=record
+    address: ptruint;
+    count: dword;
+    list: PUintPtr;
+  end;
+
+  PPListDescriptor=^TPListDescriptor;
+
+procedure TfrmAccessedMemory.setLost(count: integer);
+begin
+  flost:=count;
+  lbllost.caption:='Lost: '+inttostr(count);
+  if (flost<>0) and (lbllost.visible=false) then lbllost.visible:=true;
+end;
+
+function ResultCompare(Item1, Item2: Pointer): Integer;
+begin
+  result:=CompareValue(PPListDescriptor(Item1)^.address, PPListDescriptor(Item2)^.address);
+end;
 
 procedure TfrmAccessedMemory.startMonitor(sender: TObject);
 begin
   {$ifdef windows}
-  DBK32Initialize;
-  MarkAllPagesAsNonAccessed(ProcessHandle);
-  button3.enabled:=true;
+  if results=nil then
+    results:=TIndexedAVLTree.Create(@ResultCompare);
+
+  if InitializeProcessForWsWatch(processhandle) then
+  begin
+    EmptyWorkingSet(processhandle);
+    button3.enabled:=true;
+    tReader.enabled:=true;
+  end;
   {$endif}
+
 end;
 
 procedure TfrmAccessedMemory.stopMonitor(sender: TObject);
 begin
   {$ifdef windows}
-  if button3.enabled then
-  begin
-    EnumAndGetAccessedPages(processhandle, ranges);
-    listview1.items.count:=length(ranges);
-
-    button3.enabled:=false;
-  end;
+  treader.enabled:=false;
+  tReaderTimer(treader);
   {$endif}
+end;
+
+procedure TfrmAccessedMemory.tReaderTimer(Sender: TObject);
+var
+  i,j: integer;
+  listcount: integer;
+  plist: PPListDescriptor;
+  found: boolean;
+  search: TPListDescriptor;
+  n: TAVLTreeNode;
+begin
+  if watchinfo=nil then
+  begin
+    watchinfosize:=64*1024*1024;
+    getmem(watchinfo, watchinfosize);
+  end;
+
+  while GetWsChanges(processhandle, watchinfo, watchinfosize)=false do
+  begin
+    if getlasterror=ERROR_INSUFFICIENT_BUFFER then
+    begin
+      watchinfosize:=watchinfosize*2;
+      ReAllocMem(watchinfo, watchinfosize);
+    end
+    else
+      break;
+  end;
+
+  listcount:=watchinfosize div sizeof(PSAPI_WS_WATCH_INFORMATION);
+
+  for i:=0 to listcount-1 do
+  begin
+    if watchinfo[i].FaultingPc=0 then
+    begin
+      lost:=lost+watchinfo[i].FaultingVa;
+      break;
+    end;
+
+    watchinfo[i].FaultingVa:=watchinfo[i].FaultingVa and qword($fffffffffffff000);
+
+    search.address:=watchinfo[i].FaultingVa;
+    n:=results.Find(@search);
+    if n=nil then
+    begin
+      getmem(plist, sizeof(TPListDescriptor));
+
+      plist^.address:=watchinfo[i].FaultingVa and qword($fffffffffffff000);
+      plist^.Count:=1;
+      plist^.list:=getmem(sizeof(pointer));
+      plist^.list[0]:=watchinfo[i].FaultingPC;
+
+      results.Add(plist);
+      vsResults.AddChild(nil);
+    end
+    else
+    begin
+      found:=false;
+      plist:=n.Data;
+      for j:=0 to plist^.count-1 do
+      begin
+        if plist^.list[j]=watchinfo[i].FaultingPc then
+        begin
+          found:=true;
+          break;
+        end;
+      end;
+
+      if not found then
+      begin
+        inc(plist^.count);
+        ReAllocMem(plist^.list, plist^.count*sizeof(pointer));
+        plist^.list[plist^.count-1]:=watchinfo[i].FaultingPc;
+      end;
+    end;
+  end;
+end;
+
+procedure TfrmAccessedMemory.vsResultsDblClick(Sender: TObject);
+begin
+  if vsResults.FocusedNode<>nil then
+    MemoryBrowser.disassemblerview.SelectedAddress:=symhandler.getAddressFromName(vsResults.Text[vsResults.FocusedNode,1]);
+end;
+
+procedure TfrmAccessedMemory.vsResultsExpanding(Sender: TBaseVirtualTree;
+  Node: PVirtualNode; var Allowed: Boolean);
+var d: PPListDescriptor;
+begin
+  if vsResults.GetNodeLevel(node)=0 then
+  begin
+    d:=results[Node^.index];
+    allowed:=d^.count>1;
+
+    vsResults.AddChild(node, nil);
+  end;
+
+
+end;
+
+procedure TfrmAccessedMemory.vsResultsGetText(Sender: TBaseVirtualTree;
+  Node: PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType;
+  var CellText: String);
+var d: PPListDescriptor;
+begin
+  if vsResults.GetNodeLevel(node)=0 then
+  begin
+    d:=results[Node^.index];
+    if column=0 then
+      celltext:=d^.address.ToHexString(8)
+    else
+      celltext:=symhandler.getNameFromAddress(d^.list[0]);
+
+    vsResults.HasChildren[node]:=d^.count>1;
+  end
+  else
+  begin
+    d:=results[vsResults.NodeParent[node]^.Index];
+    if column=0 then
+      celltext:=''
+    else
+      celltext:=symhandler.getNameFromAddress(d^.list[node^.Index+1]);
+  end;
 end;
 
 procedure TfrmAccessedMemory.FormCreate(Sender: TObject);
 begin
+  LoadFormPosition(self);
 
+
+end;
+
+procedure TfrmAccessedMemory.FormDestroy(Sender: TObject);
+begin
+  SaveFormPosition(self);
 end;
 
 procedure TfrmAccessedMemory.FormShow(Sender: TObject);
 begin
+  autosize:=false;
+
   btnClearSmallSnapshot.autosize:=true;
   btnClearSmallSnapshot1.autosize:=true;
   btnClearSmallSnapshot.autosize:=false;
@@ -125,55 +287,27 @@ begin
 
   if button2.width>button3.width then button3.width:=button2.width else button2.width:=button3.width;
 
-  panel1.autosize:=false;
-  autosize:=false;
+  width:=panel1.width+canvas.TextWidth('                                             ');
 end;
 
 procedure TfrmAccessedMemory.ListView1Data(Sender: TObject; Item: TListItem);
 begin
-  if (item.index>=0) and (item.index<length(ranges)) then
-  begin
-    item.caption:=inttostr(item.index)+':'+inttohex(ranges[item.index].startAddress,8);
-    item.SubItems.Add(inttohex(ranges[item.index].endaddress,8));
-  end
-  else
-    item.Caption:=rsAMError;
+
 end;
 
 procedure TfrmAccessedMemory.MenuItem2Click(Sender: TObject);
-var f: tfilestream;
 begin
-  if OpenDialog1.Execute then
-  begin
-    f:=tfilestream.Create(opendialog1.filename, fmOpenRead);
-    setlength(ranges, f.Size div sizeof(TPRange));
-    f.ReadBuffer(ranges[0], f.size);
-    f.free;
 
-    listview1.Items.count:=length(ranges);
-  end;
 end;
 
 procedure TfrmAccessedMemory.MenuItem3Click(Sender: TObject);
-var f:tfilestream;
 begin
-  if length(ranges)=0 then
-    MessageDlg(rsAMYouCantSaveAnEmptyList, mtError, [mbok], 0)
-  else
-  if savedialog1.execute then
-  begin
-    f:=tfilestream.Create(savedialog1.filename, fmcreate);
-    f.WriteBuffer(ranges[0], length(ranges)*sizeof(TPRange));
-    f.free;
-  end;
+
 end;
 
 procedure TfrmAccessedMemory.MenuItem4Click(Sender: TObject);
 begin
-  listview1.Items.Count:=0;
-  listview1.Clear;
 
-  setlength(ranges,0);
 end;
 
 procedure TfrmAccessedMemory.Button2Click(Sender: TObject);
@@ -197,6 +331,7 @@ begin
   end;
 
   edit1.Text:=ConvertKeyComboToString(startk);
+  button1.visible:=true;
 end;
 
 procedure TfrmAccessedMemory.Edit2KeyDown(Sender: TObject; var Key: Word;
@@ -215,6 +350,7 @@ begin
   end;
 
   edit2.Text:=ConvertKeyComboToString(stopk);
+  button2.visible:=true;
 end;
 
 

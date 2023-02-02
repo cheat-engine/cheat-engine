@@ -145,9 +145,8 @@ loadPOFile(path): Loads a .PO file used for translation
 translate(string): Returns a translation of the string. Returns the same string if it can't be found
 translateID(translationid: string, originalstring: string OPTIONAL): Returns a translation of the string id
 
-convertToUTF8(string/bytetable, originalcodepagenumber): Conversts a given string/bytearray into a utf8 converted from the gtiven codepage number
-ansiToUTF8(string): Converts a string in Ansi encoding to UTF8
-UTF8ToAnsi(string): Converts a string in UTF8 encoding to Ansi
+ansiToUtf8(string): Converts a string in Ansi encoding to UTF8
+utf8ToAnsi(string): Converts a string in UTF8 encoding to Ansi
 Note: GUI components mainly show in UTF8, some other functions use Ansi, try to find out which ones...
 
 
@@ -192,6 +191,7 @@ waitForDotNet(): Waits till all .NET symbols are loaded (this includes DLL Expor
 waitForPDB(): Waits till all PDB symbols are loaded (this includes DLL Exports, and .NET)
 searchPDBWhileLoading(state: boolean): Will interrupt symbol enum to query the debughelp symbol handler about a specific symbol. This can take a while. Default is false
 
+releaseDebugFiles() : Stops the symbolloader from processing any debug files and releases what it had open
 
 errorOnLookupFailure(state): If set to true (default) address lookups in stringform will raise an error if it can not be looked up. This includes symbolnames that are not defined and pointers that are bad. If set to false it will return 0 in those cases
   (Useful for pointers that don't work 100% of the time)
@@ -377,8 +377,6 @@ function onOpenProcess(processid):
 MainForm.OnProcessOpened: function(processid, processhandle, caption) - Define this if you want to be notified when a new process has been opened. Called only once from the main thread. It is recommended to use this instead of onOpenProcess
 
 function onTableLoad(before): If defined this function will be called twice when a table gets loaded. Once before the loading, and once after.
-
-function onLuaError(errorstring): if defined this function will be called when a lua error happens. The string returned will be the error shown
 
 
 getOpenedProcessID() : Returns the currently opened process. If none is open, returns 0
@@ -2140,7 +2138,6 @@ properties
       mrhDecreaseValue(7):  Decreases the current value with the value property (see value)
   value: string - Value used depending on what kind of hotkey is used
   ID: integer - Unique id of this hotkey (ReadOnly)
-  Active: boolean - True if it's hotkey will be handled, false if this hotkey is ignored
   Description: string - The description of this hotkey  
   HotkeyString: string - The hotkey formatted as a string (ReadOnly)
   ActivateSound: string - Tablefile name of a WAV file inside the table which will get played on activate events
@@ -4107,6 +4104,7 @@ methods
 
   getRootNode(): node - returns the rootnode
 
+  absoluteIndex(node): integer - returns the absolute index of the given node
   nodeSelected(node): boolean - returns true if the node is selected
   nodeChecked(node): boolean - returns true if the node is checked
   enumSelectedNodes(): table - returns an indexed table of selected nodes
@@ -4131,24 +4129,7 @@ methods
 connectToCEServer(hostname,port) - Connects to the given host and port. On success, most commands subsequent will be handled by the server. Like processlist, memory reading, etc...
 isConnectedToCEServer(): boolean - returns true if currently connected to a ceserver
 getCEServerPath(): string - returns the path where ceserver is located on the target
-getCEServerInterface(): returns a ceserverInterface object 
 
-CEServerInterface class:
-properties
-  connected: boolean
-  path: string
-  Option[optionname]: string
-methods
-  getOptionList(): table - returns an indexed table with all available options. Each table entry contains: optname, parentoptname, optdescription, acceptablevalues, currentvalue, optiontype(0=not an option, just a label, 1=bool, 2=int, 3=float, 4=double, 5=text)
-  getCurrentPath(): Returns the current working path
-  setCurrentPath(): Changes the current working path 
-  enumFiles(path OPTIONAL): Returns an indexed list describing the contents of the given path.  It constists of tables containing 'name' and 'type'.  Type can be : DT_UNKNOWN, DT_FIFO, DT_CHR, DT_DIR, DT_BLK, DT_REG, DT_LNK, DT_SOCK, DT_WHT
-
-  createDir(path): Create the provided path
-  getFilePermission(path) : returns the filemode bitmask of the given file (parse the bitmask yourself)
-  setFilePermission(path, permissions) : sets the filemode bitmask of the given file
-  getFile(path, stream) : creates a file at the given path with the contents of the stream object
-  putFile(path, stream) : reads a file from the given path and stores it in the provided stream object
 
 
 ce lua extensions:

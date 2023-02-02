@@ -581,8 +581,28 @@ object MainForm: TMainForm
           BorderSpacing.Left = 2
           Caption = 'Active memory only'
           ParentShowHint = False
+          PopupMenu = pmPresentMemoryOnly
           ShowHint = True
           TabOrder = 4
+        end
+        object sbClearActiveMemory: TSpeedButton
+          AnchorSideLeft.Control = cbPresentMemoryOnly
+          AnchorSideLeft.Side = asrBottom
+          AnchorSideTop.Control = cbPresentMemoryOnly
+          AnchorSideTop.Side = asrCenter
+          AnchorSideBottom.Side = asrBottom
+          Left = 139
+          Height = 20
+          Hint = 'Clear RAM usage of target process'
+          Top = -1
+          Width = 20
+          AutoSize = True
+          BorderSpacing.Left = 10
+          Images = mfImageList
+          ImageIndex = 22
+          OnClick = miClearWorkingSetClick
+          ShowHint = True
+          ParentShowHint = False
         end
       end
     end
@@ -13697,5 +13717,15 @@ object MainForm: TMainForm
       23F8C31FFEF0873FFCE10FFF8CFC8FEF9FEEBE1FD557623820FFB6DE871AA176
       56FE08218410420821841042082184104208218410420821F7F5FF5C590B2F
     }
+  end
+  object pmPresentMemoryOnly: TPopupMenu
+    Images = mfImageList
+    Left = 264
+    Top = 321
+    object miClearWorkingSet: TMenuItem
+      Caption = 'Clear active memory'
+      ImageIndex = 22
+      OnClick = miClearWorkingSetClick
+    end
   end
 end

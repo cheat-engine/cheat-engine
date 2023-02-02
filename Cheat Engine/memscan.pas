@@ -521,6 +521,8 @@ type
     isDynamicPointerLookupTree: TAvgLvlTree; // same ^
     isExecutablePointerLookupTree: TAvgLvlTree; // same ^
 
+    vqevalidcache: TAvgLvlTree;
+
     function isValidregion(address: ptruint): boolean;
     procedure FillPointerLookupTrees(pointertypes: TPointertypes);
     function isPointer(address: ptruint; pointertypes: TPointerTypes): boolean;
@@ -6851,17 +6853,55 @@ begin
     NextNextScan;
 end;
 
+type
+  TVQEValidCacheEntry=class
+    address: ptruint;
+    size: size_t;
+    valid: boolean;
+  end;
+
+
+function vqevalidcachecompare(Item1, Item2: Pointer): Integer;
+begin
+  if InRangeX(TVQEValidCacheEntry(Item1).address, TVQEValidCacheEntry(Item2).address, TVQEValidCacheEntry(Item2).address+TVQEValidCacheEntry(Item2).size-1) then
+    exit(0)
+  else
+    result:=CompareValue(TVQEValidCacheEntry(Item1).address, TVQEValidCacheEntry(Item2).address);
+end;
+
 function TScanController.isValidregion(address: ptruint): boolean;
 var
   mbi : TMemoryBasicInformation;
   isWritable, isExecutable, isCopyOnWrite: boolean;
 
+  e: TVQEValidCacheEntry;
+  n: TAVLTreeNode;
 begin
   result:=false;
+
+  e:=TVQEValidCacheEntry.Create;
+  e.address:=address;
+  n:=vqevalidcache.Find(e);
+
+  e.free;
+
+  if n<>nil then
+    exit(TVQEValidCacheEntry(n.Data).valid);
+
   if VirtualQueryEx(processhandle, pointer(address), mbi, sizeof(mbi))<>0 then
   begin
+    e:=TVQEValidCacheEntry.Create;
+    e.address:=ptruint(mbi.BaseAddress);
+    e.size:=mbi.RegionSize;
+    e.valid:=false;
+
+
     result:=(mbi.State=mem_commit);
-    if not result then exit; //unreadable, ignore the rest
+    if not result then
+    begin
+      vqevalidcache.Add(e);
+      exit;
+    end;
 
     result:=result and (PtrUint(mbi.BaseAddress)<stopaddress);
     result:=result and ((mbi.Protect and page_guard)=0);
@@ -6905,6 +6945,9 @@ begin
         scanExclude: result:=result and (not isCopyOnWrite);
       end;
     end;
+
+    e.valid:=result;
+    vqevalidcache.Add(e);
   end;
 end;
 
@@ -7004,7 +7047,7 @@ begin
  // OutputDebugString('scanExecutable='+inttostr(integer(scanExecutable)));
  // OutputDebugString('scanCopyOnWrite='+inttostr(integer(scanCopyOnWrite)));
 
-
+  {$ifndef darwin}
   vqecacheflag:=0;
 
   if not Scan_MEM_MAPPED then
@@ -7016,55 +7059,72 @@ begin
   if scan_dirtyonly and (scanWritable=scanInclude) then
     vqecacheflag:=vqecacheflag or VQE_DIRTYONLY;  //2
 
-  {$ifndef darwin}
+
   VirtualQueryEx_StartCache(processhandle, vqecacheflag);
   {$endif}
 
+  {$ifdef windows}
   if workingsetonly and assigned(QueryWorkingSet) then
   begin
+    vqevalidcache:=TAvgLvlTree.Create(@vqevalidcachecompare);
+
     wsisize:=sizeof(PSAPI_WORKING_SET_INFORMATION);
     getmem(wsi, sizeof(PSAPI_WORKING_SET_INFORMATION));
     while (QueryWorkingSet(processhandle, wsi, wsisize)=false) do
     begin
       if GetLastError<>ERROR_BAD_LENGTH then
-        raise exception.create('Failure querying present memory');
+        raise exception.create('Failure querying present memory: unexpected error');
 
       wsisize:=(wsi^.NumberOfEntries+(wsi^.NumberOfEntries shr 1))*sizeof(ptruint);  //add a little bit extra
       freemem(wsi);
+      if wsisize=0 then raise exception.create('Failure querying present memory: invalid size');
       getmem(wsi, wsisize);
     end;
 
+    validregion:=false;
     for i:=0 to wsi^.NumberOfEntries-1 do
     begin
      // if (wsi^.WorkingSetInfo[i] and (1 shl 8)) <>0 then continue;
 
-      if (i=0) or ((wsi^.WorkingSetInfo[i-1] and $fff)<>(wsi^.WorkingSetInfo[i] and $fff)) or ((wsi^.WorkingSetInfo[i-1] shr 12)+1<>(wsi^.WorkingSetInfo[i-1] shr 12)) then
+      if (not validregion) or ((wsi^.WorkingSetInfo[i-1] and $fff)<>(wsi^.WorkingSetInfo[i] and $fff)) or ((wsi^.WorkingSetInfo[i-1] shr 12)+1<>(wsi^.WorkingSetInfo[i-1] shr 12)) then
       begin
-        //new section
-        if (memregionpos<>0) and (isValidRegion(memRegion[memRegionPos-1].BaseAddress)=false) then
-          dec(memregionPos);
+        //new section or became valid ?
 
-        memRegion[memRegionPos].BaseAddress:=wsi^.WorkingSetInfo[i] and qword($fffffffffffff000);
-        memRegion[memRegionPos].MemorySize:=4096;
-        memRegion[memRegionPos].startaddress:=pointer(ptrUint(totalProcessMemorySize));
+        if isValidRegion(wsi^.WorkingSetInfo[i] and qword($fffffffffffff000)) then
+        begin
+          memRegion[memRegionPos].BaseAddress:=wsi^.WorkingSetInfo[i] and qword($fffffffffffff000);
+          memRegion[memRegionPos].MemorySize:=4096;
+          memRegion[memRegionPos].startaddress:=pointer(ptrUint(totalProcessMemorySize));
 
-        inc(memRegionPos);
-        if (memRegionPos mod 16)=0 then //add another 16 to it
-          setlength(memRegion,length(memRegion)+16);
+          inc(totalProcessMemorySize, 4096);
+          inc(memRegionPos);
+          validregion:=true;
+
+
+          if (memRegionPos mod 16)=0 then //add another 16 to it
+            setlength(memRegion,length(memRegion)+16);
+        end
+        else
+          validregion:=false;
       end
       else
       begin
-        //append to the current section
-        inc(memRegion[memRegionPos-1].MemorySize,4096);
+        if validregion then //append to the current section
+        begin
+          inc(memRegion[memRegionPos-1].MemorySize,4096);
+          inc(totalProcessMemorySize, 4096);
+        end;
       end;
 
-      inc(totalProcessMemorySize, 4096);
+
     end;
 
-    if (memregionpos<>0) and (isValidRegion(memRegion[memRegionPos].BaseAddress)=false) then
-      dec(memregionPos);
+    //cleanup vqe valid cache
+    vqevalidcache.FreeAndClear;
+    vqevalidcache.free;
   end
   else
+  {$endif}
   while (Virtualqueryex(processhandle,pointer(currentBaseAddress),mbi,sizeof(mbi))<>0) and (currentBaseAddress<stopaddress) and ((currentBaseAddress+mbi.RegionSize)>currentBaseAddress) do   //last check is done to see if it wasn't a 64-bit overflow.
   begin
   //  OutputDebugString(format('R=%x-%x',[ptruint(mbi.BaseAddress), ptruint(mbi.BaseAddress)+mbi.RegionSize]));
