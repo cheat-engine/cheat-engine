@@ -22,7 +22,7 @@ uses
   LCLIntf, dialogs, SysUtils, classes, ComCtrls, CEFuncProc,
      NewKernelHandler, symbolhandler, symbolhandlerstructs, math,
      bigmemallochandler, maps, luahandler, lua, lauxlib, lualib, LuaClass,
-     LuaObject, zstream, commonTypeDefs;
+     LuaObject, zstream, commonTypeDefs, AvgLvlTree, Laz_AVL_Tree;
 
 const scandataversion=1;
 
@@ -95,8 +95,12 @@ type
     bigalloc: TBigMemoryAllocHandler;
 
     specificBaseAsStaticOnly: boolean;
+    start,stop: ptruint;
     basestart: ptruint;
     basestop: ptruint;
+
+    includeSystemModules: boolean;
+    noreadonly: boolean;
 
 
     useStacks: boolean;
@@ -114,6 +118,8 @@ type
     progressbar: TProgressbar;
     progressbarmax: integer;
 
+    vqevalidcache: TAvgLvlTree;
+    function isValidregion(address: ptruint): boolean;
 
     function BinSearchMemRegions(address: ptrUint): integer;
     function isModulePointer(address: ptrUint): boolean;
@@ -152,7 +158,7 @@ type
     procedure saveModuleListToResults(s: TStream);
 
     function findPointerValue(startvalue: ptrUint; var stopvalue: ptrUint): PPointerList;
-    constructor create(start, stop: ptrUint; alligned: boolean; _progressbar: tprogressbar; noreadonly: boolean; mustbeclasspointers, allowNonModulePointers: boolean; useStacks: boolean; stacksAsStaticOnly: boolean; threadstacks: integer; stacksize: integer; specificBaseAsStaticOnly: boolean; baseStart: ptruint; baseStop: ptruint; includeSystemModules: boolean=false; regionfilename: string=''; shouldquit: pboolean=nil);
+    constructor create(start, stop: ptrUint; alligned: boolean; _progressbar: tprogressbar; scanpagedmemoryonly: boolean; noreadonly: boolean; mustbeclasspointers, allowNonModulePointers: boolean; useStacks: boolean; stacksAsStaticOnly: boolean; threadstacks: integer; stacksize: integer; specificBaseAsStaticOnly: boolean; baseStart: ptruint; baseStop: ptruint; includeSystemModules: boolean=false; regionfilename: string=''; shouldquit: pboolean=nil);
     constructor createFromStream(s: TStream; progressbar: tprogressbar=nil);
     constructor createFromStreamHeaderOnly(s: TStream);
     destructor destroy; override;
@@ -966,7 +972,63 @@ begin
 
 end;
 
-constructor TReversePointerListHandler.create(start, stop: ptrUint; alligned: boolean; _progressbar: tprogressbar; noreadonly: boolean; mustbeclasspointers, allowNonModulePointers: boolean; useStacks: boolean; stacksAsStaticOnly: boolean; threadstacks: integer; stacksize: integer; specificBaseAsStaticOnly: boolean; baseStart: ptruint; baseStop: ptruint; includeSystemModules: boolean=false; regionfilename: string=''; ShouldQuit: pboolean=nil);
+type
+  TVQEValidCacheEntry=class
+    address: ptruint;
+    size: size_t;
+    valid: boolean;
+  end;
+
+function vqecachecompare(Item1, Item2: Pointer): Integer;
+begin
+  if InRangeX(TVQEValidCacheEntry(Item1).address, TVQEValidCacheEntry(Item2).address, TVQEValidCacheEntry(Item2).address+TVQEValidCacheEntry(Item2).size-1) then
+    exit(0)
+  else
+    result:=CompareValue(TVQEValidCacheEntry(Item1).address, TVQEValidCacheEntry(Item2).address);
+end;
+
+function TReversePointerListHandler.isValidregion(address: ptruint): boolean;
+var
+  mbi: _MEMORY_BASIC_INFORMATION;
+  e: TVQEValidCacheEntry;
+  n: TAVLTreeNode;
+begin
+  result:=false;
+
+  if address<start then exit(false);
+  if address>stop then exit(false);
+
+  e:=TVQEValidCacheEntry.Create;
+  e.address:=address;
+  n:=vqevalidcache.Find(e);
+
+  e.free;
+
+  if n<>nil then
+    exit(TVQEValidCacheEntry(n.Data).valid);
+
+  if VirtualQueryEx(processhandle, pointer(address), mbi,sizeof(mbi))<>0 then
+  begin
+    e:=TVQEValidCacheEntry.Create;
+    e.address:=ptruint(mbi.BaseAddress);
+    e.size:=mbi.RegionSize;
+
+    if (mbi.State=mem_commit) and (includeSystemModules or (not symhandler.inSystemModule(ptrUint(mbi.baseAddress))) ) and (not (not scan_mem_private and (mbi._type=mem_private))) and (not (not scan_mem_image and (mbi._type=mem_image))) and (not (not scan_mem_mapped and ((mbi._type and mem_mapped)>0))) and (mbi.State=mem_commit) and ((mbi.Protect and page_guard)=0) and ((mbi.protect and page_noaccess)=0) then  //look if it is commited
+    begin
+      if (Skip_PAGE_NOCACHE and ((mbi.AllocationProtect and PAGE_NOCACHE)=PAGE_NOCACHE)) or
+         {$ifdef windows}(Skip_PAGE_WRITECOMBINE and ((mbi.AllocationProtect and PAGE_WRITECOMBINE)=PAGE_WRITECOMBINE)) or{$endif}
+         (noreadonly and (mbi.protect in [PAGE_READONLY, PAGE_EXECUTE, PAGE_EXECUTE_READ]))  then
+        result:=false
+      else
+        result:=true;
+    end;
+
+    e.valid:=result;
+    vqevalidcache.Add(e);
+  end;
+end;
+
+constructor TReversePointerListHandler.create(start, stop: ptrUint; alligned: boolean; _progressbar: tprogressbar; scanpagedmemoryonly: boolean; noreadonly: boolean; mustbeclasspointers, allowNonModulePointers: boolean; useStacks: boolean; stacksAsStaticOnly: boolean; threadstacks: integer; stacksize: integer; specificBaseAsStaticOnly: boolean; baseStart: ptruint; baseStop: ptruint; includeSystemModules: boolean=false; regionfilename: string=''; ShouldQuit: pboolean=nil);
 var bytepointer: PByte;
     dwordpointer: PDword absolute bytepointer;
     qwordpointer: PQword absolute bytepointer;
@@ -1000,6 +1062,8 @@ var bytepointer: PByte;
     regionfile: TFilestream;
     prangelist: TPRangeDynArray;
 
+    wsisize: dword;
+    wsi: PPSAPI_WORKING_SET_INFORMATION;
 begin
   self.progressbar:=_progressbar;
   OutputDebugString('TReversePointerListHandler.create');
@@ -1022,8 +1086,13 @@ begin
     {$endif}
 
     self.specificBaseAsStaticOnly:=specificBaseAsStaticOnly;
+    self.start:=start;
+    self.stop:=stop;
     self.baseStart:=baseStart;
     self.baseStop:=baseStop;
+
+    self.includeSystemModules:=includeSystemModules;
+    self.noreadonly:=noreadonly;
 
     //fill the stacklist
     {$ifdef windows}
@@ -1094,7 +1163,57 @@ begin
 
     address:=start;
 
+    {$ifdef windows}
+    if scanpagedmemoryonly and assigned(QueryWorkingSet) then
+    begin
+      vqevalidcache:=TAvgLvlTree.Create(@vqecachecompare);
 
+      wsisize:=sizeof(PSAPI_WORKING_SET_INFORMATION);
+      getmem(wsi, sizeof(PSAPI_WORKING_SET_INFORMATION));
+      while (QueryWorkingSet(processhandle, wsi, wsisize)=false) do
+      begin
+        if GetLastError<>ERROR_BAD_LENGTH then
+          raise exception.create('Failure querying present memory: unexpected error');
+
+        wsisize:=(wsi^.NumberOfEntries+(wsi^.NumberOfEntries shr 1))*sizeof(ptruint);  //add a little bit extra
+        freemem(wsi);
+        if wsisize=0 then raise exception.create('Failure querying present memory: invalid size');
+        getmem(wsi, wsisize);
+      end;
+
+      valid:=false;
+      for i:=0 to wsi^.NumberOfEntries-1 do
+      begin
+        if (not valid) or ((wsi^.WorkingSetInfo[i-1] and $fff)<>(wsi^.WorkingSetInfo[i] and $fff)) or ((wsi^.WorkingSetInfo[i-1] shr 12)+1<>(wsi^.WorkingSetInfo[i-1] shr 12)) then
+        begin
+          //new section or became valid ?
+          if isValidRegion(wsi^.WorkingSetInfo[i] and qword($fffffffffffff000)) then
+          begin
+            j:=length(memoryregion);
+            setlength(memoryregion,length(memoryregion)+1);
+            memoryregion[j].BaseAddress:=wsi^.WorkingSetInfo[i] and qword($fffffffffffff000);
+            memoryregion[j].MemorySize:=4096;
+            memoryregion[j].InModule:=symhandler.inModule(ptrUint(mbi.baseaddress));
+
+            memoryregion[j].ValidPointerRange:=true;
+
+            valid:=true;
+          end
+          else
+            valid:=false;
+        end
+        else
+        begin
+          if valid then //append to the current section
+            inc(memoryregion[length(memoryregion)-1].MemorySize,4096);
+        end;
+      end;
+
+      vqevalidcache.FreeAndClear;
+      vqevalidcache.free;
+    end
+    else
+    {$endif}
     while (Virtualqueryex(processhandle,pointer(address),mbi,sizeof(mbi))<>0) and (address<stop) and ((address+mbi.RegionSize)>address) do
     begin
       if (includeSystemModules or (not symhandler.inSystemModule(ptrUint(mbi.baseAddress))) ) and (not (not scan_mem_private and (mbi._type=mem_private))) and (not (not scan_mem_image and (mbi._type=mem_image))) and (not (not scan_mem_mapped and ((mbi._type and mem_mapped)>0))) and (mbi.State=mem_commit) and ((mbi.Protect and page_guard)=0) and ((mbi.protect and page_noaccess)=0) then  //look if it is commited

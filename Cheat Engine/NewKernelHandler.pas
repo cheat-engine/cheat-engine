@@ -337,6 +337,13 @@ type
   end;
   PPSAPI_WORKING_SET_INFORMATION=^PSAPI_WORKING_SET_INFORMATION;
 
+  PSAPI_WS_WATCH_INFORMATION=record
+    FaultingPc: ptruint;
+    FaultingVa: ptruint;
+  end;
+
+  PPSAPI_WS_WATCH_INFORMATION=^PSAPI_WS_WATCH_INFORMATION;
+
 
 //credits to jedi code library for filling in the "extended registers"
 
@@ -741,6 +748,9 @@ var
   GetDeviceDriverFileName :TGetDeviceDriverFileName;
 
   QueryWorkingSet: function(hProcess: HANDLE; pv: PVOID; cb: DWORD): BOOL; stdcall;
+  EmptyWorkingSet: function(hProcess: HANDLE): BOOL; stdcall;
+  InitializeProcessForWsWatch: function(hProcess: HANDLE): BOOL; stdcall;
+  GetWsChanges: function(hProcess: HANDLE; lpWatchInfo: PPSAPI_WS_WATCH_INFORMATION; cb: DWORD): BOOL; stdcall;
 {$endif}
 
 
@@ -2270,12 +2280,14 @@ end;
 
 procedure OutputDebugString(msg: string);
 begin
-{$ifdef windows}
-  windows.outputdebugstring(pchar(msg));
-{$endif}
+{$ifndef NoODS}
+  {$ifdef windows}
+    windows.outputdebugstring(pchar(msg));
+  {$endif}
 
-{$ifdef android}
-  log(msg);
+  {$ifdef android}
+    log(msg);
+  {$endif}
 {$endif}
 end;
 
@@ -2474,15 +2486,21 @@ initialization
   if not assigned(QueryWorkingSet) then
     QueryWorkingSet:=GetProcAddress(WindowsKernel,'K32QueryWorkingSet');
 
+  EmptyWorkingSet:=GetProcAddress(psa,'EmptyWorkingSet');
+  if not assigned(EmptyWorkingSet) then
+    EmptyWorkingSet:=GetProcAddress(WindowsKernel,'K32EmptyWorkingSet');
 
+  InitializeProcessForWsWatch:=GetProcAddress(psa,'InitializeProcessForWsWatch');
+  if not assigned(InitializeProcessForWsWatch) then
+    InitializeProcessForWsWatch:=GetProcAddress(WindowsKernel,'K32InitializeProcessForWsWatch');
+
+  GetWsChanges:=GetProcAddress(psa,'GetWsChanges');
+  if not assigned(InitializeProcessForWsWatch) then
+    InitializeProcessForWsWatch:=GetProcAddress(WindowsKernel,'K32GetWsChanges');
 
   u32:=loadlibrary('user32.dll');
   PrintWindow:=GetProcAddress(u32,'PrintWindow');
   ChangeWindowMessageFilter:=GetProcAddress(u32,'ChangeWindowMessageFilter');
-
-
-
-
 
 
   ReadPhysicalMemory:=@dbk32functions.ReadPhysicalMemory;

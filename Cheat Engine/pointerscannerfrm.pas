@@ -1183,6 +1183,8 @@ begin
 
       staticscanner.onlyOneStaticInPath:=frmpointerscannersettings.cbOnlyOneStatic.checked;
 
+      staticscanner.scanPagedMemoryOnly:=frmpointerscannersettings.cbScanResidentMemory.checked;
+
       staticscanner.useHeapData:=frmpointerscannersettings.cbUseHeapData.Checked;
       staticscanner.useOnlyHeapData:=frmpointerscannersettings.cbHeapOnly.checked;
 

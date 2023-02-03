@@ -6879,6 +6879,9 @@ var
 begin
   result:=false;
 
+  if address<startaddress then exit(false);
+  if address>stopaddress then exit(false);
+
   e:=TVQEValidCacheEntry.Create;
   e.address:=address;
   n:=vqevalidcache.Find(e);

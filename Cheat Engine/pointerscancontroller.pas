@@ -295,6 +295,8 @@ type
     useheapdata: boolean;
     useOnlyHeapData: boolean;
 
+    scanPagedMemoryOnly: boolean;
+
     findValueInsteadOfAddress: boolean;
     valuetype: TVariableType;
     valuescandword: dword;
@@ -4546,7 +4548,7 @@ begin
 
       progressbar.Position:=0;
       try
-        pointerlisthandler:=TReversePointerListHandler.Create(startaddress,stopaddress,not unalligned,progressbar, noreadonly, MustBeClassPointers, acceptNonModuleClasses, useStacks, stacksAsStaticOnly, threadstacks, stacksize, mustStartWithBase, BaseStart, BaseStop, includeSystemModules, RegionFilename, @fShouldQuit);
+        pointerlisthandler:=TReversePointerListHandler.Create(startaddress,stopaddress,not unalligned,progressbar, scanPagedMemoryOnly, noreadonly, MustBeClassPointers, acceptNonModuleClasses, useStacks, stacksAsStaticOnly, threadstacks, stacksize, mustStartWithBase, BaseStart, BaseStop, includeSystemModules, RegionFilename, @fShouldQuit);
         progressbar.position:=100;
 
         if terminated then

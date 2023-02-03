@@ -2310,6 +2310,7 @@ begin
                   symhandler.reinitialize;
                 end;
                 symhandler.waitforsymbolsloaded;
+                symhandler.waitForExports;
               except
                 raise exception.create(Format(rsCouldNotBeInjected, [s1]));
               end;

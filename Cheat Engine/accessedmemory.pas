@@ -270,8 +270,6 @@ end;
 
 procedure TfrmAccessedMemory.FormShow(Sender: TObject);
 begin
-  autosize:=false;
-
   btnClearSmallSnapshot.autosize:=true;
   btnClearSmallSnapshot1.autosize:=true;
   btnClearSmallSnapshot.autosize:=false;
@@ -287,7 +285,7 @@ begin
 
   if button2.width>button3.width then button3.width:=button2.width else button2.width:=button3.width;
 
-  width:=panel1.width+canvas.TextWidth('                                             ');
+
 end;
 
 procedure TfrmAccessedMemory.ListView1Data(Sender: TObject; Item: TListItem);
