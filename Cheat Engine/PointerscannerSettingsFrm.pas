@@ -122,6 +122,7 @@ type
     cbShowAdvancedOptions: TCheckBox;
     cbAddress: TComboBox;
     cbNegativeOffsets: TCheckBox;
+    cbScanResidentMemory: TCheckBox;
     ComboBox1: TComboBox;
     editMaxLevel: TEdit;
     editStructsize: TEdit;

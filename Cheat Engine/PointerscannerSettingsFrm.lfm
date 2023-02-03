@@ -1,12 +1,12 @@
 object frmPointerScannerSettings: TfrmPointerScannerSettings
-  Left = 747
-  Height = 523
-  Top = 213
+  Left = 708
+  Height = 538
+  Top = 149
   Width = 682
   AutoSize = True
   BorderStyle = bsSingle
   Caption = 'Pointerscanner scanoptions'
-  ClientHeight = 523
+  ClientHeight = 538
   ClientWidth = 682
   OnCreate = FormCreate
   OnDestroy = FormDestroy
@@ -140,14 +140,14 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
     AnchorSideTop.Control = cbShowAdvancedOptions
     AnchorSideTop.Side = asrBottom
     Left = 8
-    Height = 202
+    Height = 218
     Top = 108
     Width = 672
     AutoSize = True
     BorderSpacing.Top = 1
     BevelOuter = bvNone
     BorderStyle = bsSingle
-    ClientHeight = 198
+    ClientHeight = 214
     ClientWidth = 668
     Color = clWindow
     ParentColor = False
@@ -157,12 +157,12 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
       AnchorSideLeft.Control = Panel3
       AnchorSideTop.Control = Panel3
       Left = 0
-      Height = 195
+      Height = 214
       Top = 0
       Width = 299
       AutoSize = True
       BevelOuter = bvNone
-      ClientHeight = 195
+      ClientHeight = 214
       ClientWidth = 299
       TabOrder = 0
       object cbIncludeSystemModules: TCheckBox
@@ -171,7 +171,7 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
         AnchorSideTop.Side = asrBottom
         Left = 7
         Height = 19
-        Top = 176
+        Top = 195
         Width = 148
         Caption = 'Include system modules'
         TabOrder = 0
@@ -183,7 +183,7 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
         Left = 23
         Height = 19
         Hint = 'If the address you search for isn''t a heap address, the scan will return 0 results'
-        Top = 157
+        Top = 176
         Width = 273
         BorderSpacing.Left = 16
         Caption = 'Only allow static and heap addresses in the path'
@@ -195,12 +195,12 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
       end
       object cbUseHeapData: TCheckBox
         AnchorSideLeft.Control = CbAlligned
-        AnchorSideTop.Control = Panel5
+        AnchorSideTop.Control = cbScanResidentMemory
         AnchorSideTop.Side = asrBottom
         Left = 7
         Height = 19
         Hint = 'When this is checked the heap is used to figure out the offset sizes, instead of blindly guessing them.'#13#10'pro: Greatly improve speed and a lot less useless results'#13#10'con: if the game allocates gigantic chunks of heap memory, and then divides it up itself, this will give wrong results.'#13#10#13#10'In other cases this will give perfect pointers '
-        Top = 138
+        Top = 157
         Width = 260
         Caption = 'Improve pointerscan with gathered heap data'
         OnClick = cbUseHeapDataClick
@@ -354,6 +354,20 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
           Caption = 'To:'
           ParentColor = False
         end
+      end
+      object cbScanResidentMemory: TCheckBox
+        AnchorSideLeft.Control = CbAlligned
+        AnchorSideTop.Control = Panel5
+        AnchorSideTop.Side = asrBottom
+        Left = 7
+        Height = 19
+        Hint = 'Skip paged out memory pages'
+        Top = 138
+        Width = 165
+        Caption = 'Only scan resident memory'
+        ParentShowHint = False
+        ShowHint = True
+        TabOrder = 8
       end
     end
     object Panel6: TPanel
@@ -564,7 +578,7 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
     AnchorSideTop.Side = asrBottom
     Left = 174
     Height = 86
-    Top = 429
+    Top = 445
     Width = 335
     AutoSize = True
     BorderSpacing.Top = 8
@@ -749,7 +763,7 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
     AnchorSideTop.Side = asrBottom
     Left = 8
     Height = 111
-    Top = 310
+    Top = 326
     Width = 597
     AutoSize = True
     BevelOuter = bvNone

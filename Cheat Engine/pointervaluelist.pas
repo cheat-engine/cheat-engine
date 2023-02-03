@@ -1193,7 +1193,7 @@ begin
             setlength(memoryregion,length(memoryregion)+1);
             memoryregion[j].BaseAddress:=wsi^.WorkingSetInfo[i] and qword($fffffffffffff000);
             memoryregion[j].MemorySize:=4096;
-            memoryregion[j].InModule:=symhandler.inModule(ptrUint(mbi.baseaddress));
+            memoryregion[j].InModule:=symhandler.inModule(memoryregion[j].BaseAddress);
 
             memoryregion[j].ValidPointerRange:=true;
 
