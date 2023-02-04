@@ -505,6 +505,15 @@ type
     destructor destroy; override;
   end;
 
+  TVQEValidCacheEntry=class
+  private
+    address: ptruint;
+    size: size_t;
+    valid: boolean;
+    function containsaddress(a: ptruint): boolean;
+  end;
+
+
   TScanController=class(tthread)
   {
     The ScanController will configure the scanners and wait till they are done, mainly a idle thread
@@ -522,6 +531,7 @@ type
     isExecutablePointerLookupTree: TAvgLvlTree; // same ^
 
     vqevalidcache: TAvgLvlTree;
+    vqecache_lastregion: TVQEValidCacheEntry;
 
     function isValidregion(address: ptruint): boolean;
     procedure FillPointerLookupTrees(pointertypes: TPointertypes);
@@ -6853,12 +6863,7 @@ begin
     NextNextScan;
 end;
 
-type
-  TVQEValidCacheEntry=class
-    address: ptruint;
-    size: size_t;
-    valid: boolean;
-  end;
+
 
 
 function vqevalidcachecompare(Item1, Item2: Pointer): Integer;
@@ -6867,6 +6872,12 @@ begin
     exit(0)
   else
     result:=CompareValue(TVQEValidCacheEntry(Item1).address, TVQEValidCacheEntry(Item2).address);
+end;
+
+
+function TVQEValidCacheEntry.containsaddress(a: ptruint): boolean;
+begin
+  result:=(a>=address) and (a<address+size);
 end;
 
 function TScanController.isValidregion(address: ptruint): boolean;
@@ -6882,6 +6893,9 @@ begin
   if address<startaddress then exit(false);
   if address>stopaddress then exit(false);
 
+  if (vqecache_lastregion<>nil) and (vqecache_lastregion.containsaddress(address)) then
+    exit(vqecache_lastregion.valid);
+
   e:=TVQEValidCacheEntry.Create;
   e.address:=address;
   n:=vqevalidcache.Find(e);
@@ -6889,7 +6903,10 @@ begin
   e.free;
 
   if n<>nil then
+  begin
+    vqecache_lastregion:=TVQEValidCacheEntry(n.Data);
     exit(TVQEValidCacheEntry(n.Data).valid);
+  end;
 
   if VirtualQueryEx(processhandle, pointer(address), mbi, sizeof(mbi))<>0 then
   begin
@@ -7125,6 +7142,8 @@ begin
     //cleanup vqe valid cache
     vqevalidcache.FreeAndClear;
     vqevalidcache.free;
+
+    vqecache_lastregion:=nil;
   end
   else
   {$endif}
