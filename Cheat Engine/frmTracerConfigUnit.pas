@@ -181,6 +181,10 @@ begin
   begin
     cbStepOverRep.enabled:=false;
     cbStepOverRep.checked:=true;
+  end
+  else
+  begin
+    cbStepOverRep.enabled:=true;
   end;
 end;
 
