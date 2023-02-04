@@ -200,7 +200,7 @@ begin
   r:=MessageDlg(rsNearbyAllocationError, Format(
     rsNearbyAllocationErrorMessageQuestion, [preferedaddress]),
     mtError, [mbyes, mbno, mbYesToAll, mbNoToAll], 0);
-  NearbyAllocationFailureFatal:=r in [mryes,mrYesToAll];
+  NearbyAllocationFailureFatal:=r in [mrNo,mrNoToAll];
 
   if r in [mrYesToAll, mrNoToAll] then
     WarnOnNearbyAllocationFailure:=false;
