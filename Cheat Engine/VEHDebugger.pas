@@ -40,8 +40,6 @@ type
 
     CurrentThread: THandle;
 
-
-
     threads: TMap;  //internal threadhandle map
 
     procedure SynchronizeNoBreakList;
@@ -508,7 +506,6 @@ end;
 function TVEHDebugInterface.ContinueDebugEvent(dwProcessId: DWORD; dwThreadId: DWORD; dwContinueStatus: DWORD): BOOL;
 begin
   hasPausedProcess:=false;
-  VEHDebugView.ContinueMethod:=dwContinueStatus;
 
   if currentthread<>0 then
   begin
@@ -517,8 +514,10 @@ begin
   end;
 
   if wasInjectedEvent=false then
+  begin
+    VEHDebugView^.ContinueMethod:=dwContinueStatus;
     SetEvent(HasHandledDebugEvent);
-
+  end;
 
 
   result:=true;
