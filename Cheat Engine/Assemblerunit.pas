@@ -3063,6 +3063,7 @@ end;
 {old obsolete but still being called}
 function getreg(reg: string;exceptonerror:boolean): integer; overload;
 begin
+  reg:=uppercase(reg);
   result:=-1;
   if processhandler.SystemArchitecture=archX86 then
   begin
@@ -3139,6 +3140,8 @@ end;
 
 function TSingleLineAssembler.getreg(reg: string;exceptonerror:boolean): integer; overload;
 begin
+  reg:=uppercase(reg);
+
   result:=1000;
   if (reg='RAX') or (reg='EAX') or (reg='AX') or (reg='AL') or (reg='MM0') or (reg='XMM0') or (reg='YMM0') or (reg='ST(0)') or (reg='ST') or (reg='ES') or (reg='CR0') or (reg='DR0') then exit(0);
   if (reg='RCX') or (reg='ECX') or (reg='CX') or (reg='CL') or (reg='MM1') or (reg='XMM1') or (reg='YMM1') or (reg='ST(1)') or (reg='CS') or (reg='CR1') or (reg='DR1') then exit(1);
@@ -3177,6 +3180,7 @@ end;
 function TokenToRegisterbit(token:string): TCEAATokenType;
 //todo: Optimize with a case statement A->AL/AH/AX , B->BL/ .....
 begin
+  token:=uppercase(token);
   result:=ttRegister32bit;
 
   if length(token)>=2 then
@@ -3420,15 +3424,16 @@ begin
   brp:=pos('[',token);
   if brp>0 then
   begin
-    if (pos('YMMWORD',token) in [1..brp]) then result:=ttMemorylocation256 else
-    if (pos('XMMWORD',token) in [1..brp]) then result:=ttMemorylocation128 else
-    if (pos('DQWORD',token) in [1..brp]) then result:=ttMemorylocation128 else
-    if (pos('TBYTE',token) in [1..brp]) then result:=ttMemorylocation80 else
-    if (pos('TWORD',token) in [1..brp]) then result:=ttMemorylocation80 else
-    if (pos('QWORD',token) in [1..brp]) then result:=ttMemorylocation64 else
-    if (pos('DWORD',token) in [1..brp]) then result:=ttMemorylocation32 else
-    if (pos('WORD',token) in [1..brp]) then result:=ttMemorylocation16 else
-    if (pos('BYTE',token) in [1..brp]) then result:=ttMemorylocation8 else
+    temp:=uppercase(token);
+    if (pos('YMMWORD',temp) in [1..brp]) then result:=ttMemorylocation256 else
+    if (pos('XMMWORD',temp) in [1..brp]) then result:=ttMemorylocation128 else
+    if (pos('DQWORD',temp) in [1..brp]) then result:=ttMemorylocation128 else
+    if (pos('TBYTE',temp) in [1..brp]) then result:=ttMemorylocation80 else
+    if (pos('TWORD',temp) in [1..brp]) then result:=ttMemorylocation80 else
+    if (pos('QWORD',temp) in [1..brp]) then result:=ttMemorylocation64 else
+    if (pos('DWORD',temp) in [1..brp]) then result:=ttMemorylocation32 else
+    if (pos('WORD',temp) in [1..brp]) then result:=ttMemorylocation16 else
+    if (pos('BYTE',temp) in [1..brp]) then result:=ttMemorylocation8 else
       result:=ttMemorylocation;
   end;
 
@@ -3513,6 +3518,7 @@ end;
 
 function isReservedToken(t: string): boolean;
 begin
+  t:=uppercase(t);
   result:=false;
   if length(t)<3 then exit(false);
 
@@ -3840,6 +3846,8 @@ begin
       tokens[length(tokens)-1]:=copy(opcode,last,j);
 
 
+      //7.5: Removed the "everything is uppercase" assumption.  Start being case sensitive
+       {
       if (j>0) and (tokens[length(tokens)-1][1]<>'$') and ((j<7) or (pos('KERNEL_',uppercase(tokens[length(tokens)-1]))=0)) then //only uppercase if it's not kernel_
       begin
         //don't uppercase empty strings, kernel_ strings or strings starting with $
@@ -3851,11 +3859,11 @@ begin
         end
         else
           tokens[length(tokens)-1]:=uppercase(tokens[length(tokens)-1]);
-      end;
+      end; }
 
 
       //6.1: Optimized this lookup. Instead of a 18 compares a full string lookup on each token it now only compares up to 4 times
-      t:=tokens[length(tokens)-1];
+      t:=uppercase(tokens[length(tokens)-1]);
 
 
       isPartial:=false;
@@ -4016,6 +4024,7 @@ var
   hasmultiply: boolean;
   s: string;
 begin
+  reg:=uppercase(reg);
   hasmultiply:=false;
 
   for i:=1 to length(reg)-1 do
@@ -4274,6 +4283,9 @@ begin
   end;
 
   try
+    reg[k]:=uppercase(reg[k]);
+    reg[-k]:=uppercase(reg[-k]);
+
     if (reg[k]='ESP') or (reg[-k]='ESP') or (reg[k]='RSP') or (reg[-k]='RSP') then //esp takes precedence
     begin
       if reg[-k]='ESP' then k:=-k;
@@ -4570,6 +4582,9 @@ begin
   begin
     //register //modrm c0 to ff
     setmod(modrm[0],3);
+
+    param:=uppercase(param);
+    //todo: case
     if (param='RAX') or (param='EAX')  or (param='AX')   or (param='AL')   or (param='MM0') or (param='XMM0') or (param='YMM0') then setrm(modrm[0],0) else
     if (param='RCX') or (param='ECX')  or (param='CX')   or (param='CL')   or (param='MM1') or (param='XMM1') or (param='YMM1') then setrm(modrm[0],1) else
     if (param='RDX') or (param='EDX')  or (param='DX')   or (param='DL')   or (param='MM2') or (param='XMM2') or (param='YMM2') then setrm(modrm[0],2) else
@@ -4805,6 +4820,7 @@ var tokens: ttokens;
     oldParamtype1, oldParamtype2: TCEAATokenType;
     paramtype1,paramtype2,paramtype3,paramtype4: TCEAATokenType;
     parameter1,parameter2,parameter3,parameter4: string;
+    parameter1uc, parameter2uc: string; //uppercase variant of parameter1 and 2
     vtype,v2type: integer;
     signedvtype,signedv2type: integer;
 
@@ -4898,6 +4914,9 @@ begin
 
 
   if nroftokens=0 then exit;
+
+  tokens[0]:=uppercase(tokens[0]);
+
 
   case tokens[0][1] of
     'A':  //A* //allign
@@ -5083,7 +5102,8 @@ begin
   mnemonic:=-1;
   for i:=0 to length(tokens)-1 do
   begin
-    if not ((tokens[i]='LOCK') or (tokens[i]='REP') or (tokens[i]='REPNE') or (tokens[i]='REPE')) then
+    tempstring:=uppercase(tokens[i]);
+    if not ((tempstring='LOCK') or (tempstring='REP') or (tempstring='REPNE') or (tempstring='REPE')) then
     begin
       mnemonic:=i;
       break;
@@ -5091,6 +5111,9 @@ begin
   end;
 
   if mnemonic=-1 then exit;
+
+  for i:=mnemonic downto 0 do //uppercase everything preceding and including the mnemonic
+    tokens[i]:=uppercase(tokens[i]);
 
   if handlePseudoOps(tokens, mnemonic) then
     nroftokens:=length(tokens);
@@ -5117,13 +5140,14 @@ begin
   if (nroftokens-1)>=mnemonic+3 then parameter3:=tokens[mnemonic+3] else parameter3:='';
   if (nroftokens-1)>=mnemonic+4 then parameter4:=tokens[mnemonic+4] else parameter4:='';
 
-  tempstring:=uppercase(parameter1);
+  parameter1uc:=uppercase(parameter1);
+  parameter2uc:=uppercase(parameter2);
 
 
-  overrideShort:=Pos('SHORT ',tempstring)>0;
-  overrideLong:=Pos('LONG ',tempstring)>0;
+  overrideShort:=Pos('SHORT ',parameter1uc)>0;
+  overrideLong:=Pos('LONG ',parameter1uc)>0;
   if processhandler.is64Bit then
-    overrideFar:=(Pos('FAR ',tempstring)>0)
+    overrideFar:=(Pos('FAR ',parameter1uc)>0)
   else
     overrideFar:=overrideLong or (Pos('FAR ',tempstring)>0);
 
@@ -5220,19 +5244,19 @@ begin
 
   if (paramtype1>=ttMemorylocation) and (paramtype1<=ttMemorylocation128) then
   begin
-    if pos('ES:',parameter1)>0 then
+    if pos('ES:',parameter1uc)>0 then
     begin
       setlength(bytes,length(bytes)+1);
       bytes[length(bytes)-1]:=$26;
     end;
 
-    if pos('CS:',parameter1)>0 then
+    if pos('CS:',parameter1uc)>0 then
     begin
       setlength(bytes,length(bytes)+1);
       bytes[length(bytes)-1]:=$2e;
     end;
 
-    if pos('SS:',parameter1)>0 then
+    if pos('SS:',parameter1uc)>0 then
     begin
       setlength(bytes,length(bytes)+1);
       bytes[length(bytes)-1]:=$36;
@@ -5248,13 +5272,13 @@ begin
     end;
     }
 
-    if pos('FS:',parameter1)>0 then
+    if pos('FS:',parameter1uc)>0 then
     begin
       setlength(bytes,length(bytes)+1);
       bytes[length(bytes)-1]:=$64;
     end;
 
-    if pos('GS:',parameter1)>0 then
+    if pos('GS:',parameter1uc)>0 then
     begin
       setlength(bytes,length(bytes)+1);
       bytes[length(bytes)-1]:=$65;
@@ -5263,19 +5287,19 @@ begin
 
   if (paramtype2>=ttMemorylocation) and (paramtype2<=ttMemorylocation128) then
   begin
-    if pos('ES:',parameter2)>0 then
+    if pos('ES:',parameter2uc)>0 then
     begin
       setlength(bytes,length(bytes)+1);
       bytes[length(bytes)-1]:=$26;
     end;
 
-    if pos('CS:',parameter2)>0 then
+    if pos('CS:',parameter2uc)>0 then
     begin
       setlength(bytes,length(bytes)+1);
       bytes[length(bytes)-1]:=$2e;
     end;
 
-    if pos('SS:',parameter2)>0 then
+    if pos('SS:',parameter2uc)>0 then
     begin
       setlength(bytes,length(bytes)+1);
       bytes[length(bytes)-1]:=$36;
@@ -5289,13 +5313,13 @@ begin
     end;
     }
 
-    if pos('FS:',parameter2)>0 then
+    if pos('FS:',parameter2uc)>0 then
     begin
       setlength(bytes,length(bytes)+1);
       bytes[length(bytes)-1]:=$64;
     end;
 
-    if pos('GS:',parameter2)>0 then
+    if pos('GS:',parameter2uc)>0 then
     begin
       setlength(bytes,length(bytes)+1);
       bytes[length(bytes)-1]:=$65;
@@ -5486,7 +5510,7 @@ begin
       par_imm8: if (paramtype1=ttValue) then
       begin
         //imm8,
-        if (opcodes[j].paramtype2=par_al) and (parameter2='AL') then
+        if (opcodes[j].paramtype2=par_al) and (parameter2uc='AL') then
         begin
           //imm8,al
           addopcode(bytes,j);
@@ -5495,7 +5519,7 @@ begin
           exit;
         end;
 
-        if (opcodes[j].paramtype2=par_ax) and (parameter2='AX') then
+        if (opcodes[j].paramtype2=par_ax) and (parameter2uc='AX') then
         begin
           //imm8,ax /?
           addopcode(bytes,j);
@@ -5504,7 +5528,7 @@ begin
           exit;
         end;
 
-        if (opcodes[j].paramtype2=par_eax) and ((parameter2='EAX') or (parameter2='RAX')) then
+        if (opcodes[j].paramtype2=par_eax) and ((parameter2uc='EAX') or (parameter2uc='RAX')) then
         begin
           //imm8,eax
           addopcode(bytes,j);
@@ -5630,7 +5654,7 @@ begin
 
       par_moffs8: if ((paramtype1=ttMemorylocation8) or (ismemorylocationdefault(parameter1)  )) then
       begin
-        if (opcodes[j].paramtype2=par_al) and (parameter2='AL') then
+        if (opcodes[j].paramtype2=par_al) and (parameter2uc='AL') then
         begin
           if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
           begin
@@ -5656,7 +5680,7 @@ begin
 
       par_moffs16: if ((paramtype1=ttMemorylocation16) or (ismemorylocationdefault(parameter1)  )) then
       begin
-        if (opcodes[j].paramtype2=par_ax) and (parameter2='AX') then
+        if (opcodes[j].paramtype2=par_ax) and (parameter2uc='AX') then
         begin
           if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
           begin
@@ -5681,7 +5705,7 @@ begin
 
       par_moffs32: if (paramtype1=ttMemorylocation32) then
       begin
-        if (opcodes[j].paramtype2=par_eax) and ((parameter2='EAX') or (parameter2='RAX')) then
+        if (opcodes[j].paramtype2=par_eax) and ((parameter2uc='EAX') or (parameter2uc='RAX')) then
         begin
           if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
           begin
@@ -5712,11 +5736,11 @@ begin
         exit;
       end;
 
-      PAR_AL: if (parameter1='AL') then
+      PAR_AL: if (parameter1uc='AL') then
       begin
         //AL,
 
-        if (opcodes[j].paramtype2=par_dx) and (parameter2='DX') then
+        if (opcodes[j].paramtype2=par_dx) and (parameter2uc='DX') then
         begin
           //opcode al,dx
           addopcode(bytes,j);
@@ -5766,10 +5790,10 @@ begin
         end;
       end;
 
-      PAR_AX: if (parameter1='AX') then
+      PAR_AX: if (parameter1uc='AX') then
       begin
         //AX,
-        if (opcodes[j].paramtype2=par_noparam) and (parameter2='') then
+        if (opcodes[j].paramtype2=par_noparam) and (parameter2uc='') then
         begin
           //opcode AX
           addopcode(bytes,j);
@@ -5777,7 +5801,7 @@ begin
           exit;
         end;
 
-        if (opcodes[j].paramtype2=par_dx) and (parameter2='DX') then
+        if (opcodes[j].paramtype2=par_dx) and (parameter2uc='DX') then
         begin
           //opcode ax,dx
           addopcode(bytes,j);
@@ -5844,10 +5868,10 @@ begin
 
       end;
 
-      PAR_EAX: if ((parameter1='EAX') or (parameter1='RAX')) then
+      PAR_EAX: if ((parameter1uc='EAX') or (parameter1uc='RAX')) then
       begin
         //eAX,
-        if (opcodes[j].paramtype2=par_dx) and (parameter2='DX') then
+        if (opcodes[j].paramtype2=par_dx) and (parameter2uc='DX') then
         begin
           //opcode eax,dx
           addopcode(bytes,j);
@@ -5958,23 +5982,23 @@ begin
       end;
 
 
-      par_dx: if (parameter1='DX') then
+      par_dx: if (parameter1uc='DX') then
       begin
-        if (opcodes[j].paramtype2=par_al) and (parameter2='AL') then
+        if (opcodes[j].paramtype2=par_al) and (parameter2uc='AL') then
         begin
           addopcode(bytes,j);
           result:=true;
           exit;
         end;
 
-        if (opcodes[j].paramtype2=par_ax) and (parameter2='AX') then
+        if (opcodes[j].paramtype2=par_ax) and (parameter2uc='AX') then
         begin
           addopcode(bytes,j);
           result:=true;
           exit;
         end;
 
-        if (opcodes[j].paramtype2=par_eax) and ((parameter2='EAX') or (parameter2='RAX')) then
+        if (opcodes[j].paramtype2=par_eax) and ((parameter2uc='EAX') or (parameter2uc='RAX')) then
         begin
           addopcode(bytes,j);
           result:=true;
@@ -5982,17 +6006,7 @@ begin
         end;
       end;
 
-      par_cs: if (parameter1='CS') then
-      begin
-        if (opcodes[j].paramtype2=par_noparam) and (parameter2='') then
-        begin
-          addopcode(bytes,j);
-          result:=true;
-          exit;
-        end;
-      end;
-
-      par_ds: if (parameter1='DS') then
+      par_cs: if (parameter1uc='CS') then
       begin
         if (opcodes[j].paramtype2=par_noparam) and (parameter2='') then
         begin
@@ -6002,7 +6016,7 @@ begin
         end;
       end;
 
-      par_es: if (parameter1='ES') then
+      par_ds: if (parameter1uc='DS') then
       begin
         if (opcodes[j].paramtype2=par_noparam) and (parameter2='') then
         begin
@@ -6012,7 +6026,7 @@ begin
         end;
       end;
 
-      par_ss: if (parameter1='SS') then
+      par_es: if (parameter1uc='ES') then
       begin
         if (opcodes[j].paramtype2=par_noparam) and (parameter2='') then
         begin
@@ -6022,7 +6036,7 @@ begin
         end;
       end;
 
-      par_fs: if (parameter1='FS') then
+      par_ss: if (parameter1uc='SS') then
       begin
         if (opcodes[j].paramtype2=par_noparam) and (parameter2='') then
         begin
@@ -6032,7 +6046,17 @@ begin
         end;
       end;
 
-      par_gs: if (parameter1='GS') then
+      par_fs: if (parameter1uc='FS') then
+      begin
+        if (opcodes[j].paramtype2=par_noparam) and (parameter2='') then
+        begin
+          addopcode(bytes,j);
+          result:=true;
+          exit;
+        end;
+      end;
+
+      par_gs: if (parameter1uc='GS') then
       begin
         if (opcodes[j].paramtype2=par_noparam) and (parameter2='') then
         begin
@@ -6118,7 +6142,7 @@ begin
           end;
         end;
 
-        if (opcodes[j].paramtype2=par_ax) and (parameter2='AX') then
+        if (opcodes[j].paramtype2=par_ax) and (parameter2uc='AX') then
         begin
           //r16,ax,
           if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
@@ -6313,7 +6337,7 @@ begin
 
 
         //eax
-        if (opcodes[j].paramtype2=par_eax) and ((parameter2='EAX') or (parameter2='RAX')) then
+        if (opcodes[j].paramtype2=par_eax) and ((parameter2uc='EAX') or (parameter2uc='RAX')) then
         begin
           //r32,eax,
           if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
@@ -6726,7 +6750,7 @@ begin
           exit;
         end;
 
-        if (opcodes[j].paramtype2=par_cl) and (parameter2='CL') then
+        if (opcodes[j].paramtype2=par_cl) and (parameter2uc='CL') then
         begin
           addopcode(bytes,j);
           result:=createmodrm(bytes,eotoreg(opcodes[j].opcode1),parameter1);
@@ -6895,7 +6919,7 @@ begin
           end;
         end;
 
-        if (opcodes[j].paramtype2=par_cl) and (parameter2='CL') then
+        if (opcodes[j].paramtype2=par_cl) and (parameter2uc='CL') then
         begin
           //rm16,cl
           addopcode(bytes,j);
@@ -7002,7 +7026,7 @@ begin
           end;
         end;
 
-        if (opcodes[j].paramtype2=par_cl) and (parameter2='CL') then
+        if (opcodes[j].paramtype2=par_cl) and (parameter2uc='CL') then
         begin
           //rm32,cl
           addopcode(bytes,j);
@@ -8199,7 +8223,7 @@ begin
         end;
       end;
 
-      par_st0: if ((parameter1='ST(0)') or (parameter1='ST')) then
+      par_st0: if ((parameter1uc='ST(0)') or (parameter1uc='ST')) then
       begin
         //st(0),
         if (opcodes[j].paramtype2=par_st) and (paramtype2=ttRegisterst) then
@@ -8244,7 +8268,7 @@ begin
           exit;
         end;
 
-        if (opcodes[j].paramtype2=par_st0) and ((parameter2='ST(0)') or (parameter2='ST')) then
+        if (opcodes[j].paramtype2=par_st0) and ((parameter2uc='ST(0)') or (parameter2uc='ST')) then
         begin
           //st(x),st(0)
           if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
