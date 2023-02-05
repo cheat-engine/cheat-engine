@@ -3408,17 +3408,21 @@ begin
   token:=StringReplace(token,'FAR ','',[rfIgnoreCase]);   
 
   temp:=ConvertHexStrToRealStr(token);
-  val(temp,i64,err);
-  if err=0 then
+  if temp<>'' then
   begin
-    result:=ttValue;
-    token:=temp;
+    val(temp,i64,err);
+    if err=0 then
+    begin
+      result:=ttValue;
+      token:=temp;
+    end;
   end;
 
 
   //see if it is a memorylocation
   //can start with [ or ptr [
   //temp:=StringReplace(token,'PTR [', '[',[rfIgnoreCase]);
+
 
 
   brp:=pos('[',token);
@@ -5141,8 +5145,6 @@ begin
   if (nroftokens-1)>=mnemonic+4 then parameter4:=tokens[mnemonic+4] else parameter4:='';
 
   parameter1uc:=uppercase(parameter1);
-  parameter2uc:=uppercase(parameter2);
-
 
   overrideShort:=Pos('SHORT ',parameter1uc)>0;
   overrideLong:=Pos('LONG ',parameter1uc)>0;
@@ -5166,6 +5168,9 @@ begin
   paramtype2:=gettokentype(parameter2,parameter1);
   paramtype3:=gettokentype(parameter3,'');
   paramtype4:=gettokentype(parameter4,'');
+
+  parameter1uc:=uppercase(parameter1);  //might have been updated by gettokentype
+  parameter2uc:=uppercase(parameter2);
 
   if processhandler.is64Bit then
   begin

@@ -4162,9 +4162,14 @@ begin
     functionname:='';
     {$endif}
 
-    InjectDll(dll,functionname);
-    symhandler.reinitialize(true);
-    showmessage(rsDLLInjected);
+    try
+      InjectDll(dll,functionname);
+      symhandler.reinitialize(true);
+      showmessage(rsDLLInjected);
+    except
+      on e:exception do
+        MessageDlg(e.message,mtError,[mbok],0);
+    end;
   end;
 
 end;

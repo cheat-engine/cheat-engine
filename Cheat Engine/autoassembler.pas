@@ -2427,7 +2427,7 @@ begin
 
 
               multilineinjection:=TStringList.create;
-              GetOriginalInstruction(testptr, multilineinjection, processhandler.is64Bit);
+              GetOriginalInstruction(testptr, multilineinjection, processhandler.is64Bit,true); //don't take on the symbol.  (module and section are ok, not symbols)
 
               if multilineinjection.count=0 then
                 raise exception.create(format(rsFailureGettingOriginalInstruction, [testptr]));

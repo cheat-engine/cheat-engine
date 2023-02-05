@@ -400,7 +400,7 @@ function GetUniqueAOB(mi: TModuleInfo; address: ptrUint; codesize: Integer; var 
 function GetNextAllocNumber(script: tstrings): integer;
 procedure AddSnapshotAsComment(script: tstrings; address: ptruint; radius: integer=10);
 
-procedure GetOriginalInstruction(var address: ptruint; instructioncode: tstrings; farjmp: boolean);
+procedure GetOriginalInstruction(var address: ptruint; instructioncode: tstrings; farjmp: boolean; skipsymbols: boolean=FALSE);
 
 procedure ReloadAllAutoInjectHighlighters;
 
@@ -1098,7 +1098,7 @@ begin
   end;
 end;
 
-procedure GetOriginalInstruction(var address: ptruint; instructioncode: tstrings; farjmp: boolean);
+procedure GetOriginalInstruction(var address: ptruint; instructioncode: tstrings; farjmp: boolean; skipsymbols: boolean=false);
 var
   d: TDisassembler;
 
@@ -1113,7 +1113,11 @@ var
   rewritten: boolean;
 begin
   d:=TDisassembler.create;
-  d.showsymbols:=symhandler.showsymbols;
+  if skipsymbols then
+    d.showsymbols:=false
+  else
+    d.showsymbols:=symhandler.showsymbols;
+
   d.showmodules:=symhandler.showmodules;
   d.showsections:=symhandler.showsections;
   d.disassemble(address);
