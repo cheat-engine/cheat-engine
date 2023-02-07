@@ -271,7 +271,7 @@ begin
 
     elements[j].uservalue:=value;
 
-    if length(command)>=nextchar then
+    while length(command)>=nextchar do
     begin
       case command[nextchar] of
         'P': elements[j].picked:=true; //elements marked picked will be added when doubleclicked in the addresslist
@@ -291,6 +291,8 @@ begin
         else
           raise exception.create(rsGSCPInvalidGroupscanCommand);
       end;
+
+      inc(nextchar);
     end;
 
 
