@@ -395,6 +395,8 @@ var ishex: string;
     f: single;
     d: double;
     err: boolean;
+
+    su: string;
 begin
   if s='' then exit('');
 
@@ -455,9 +457,10 @@ begin
 
       '(' :
       begin
-        if copy(s,1,5)='(INT)' then
+        su:=uppercase(s);
+        if copy(su,1,5)='(INT)' then
         begin
-          t:=copy(s,6);
+          t:=copy(su,6);
           try
             q:=StrToQWordEx(t);
             result:='$'+inttohex(q,8);
@@ -466,27 +469,27 @@ begin
           end;
         end;
 
-        if copy(s,1,8)='(DOUBLE)' then
+        if copy(su,1,8)='(DOUBLE)' then
         begin
-          t:=copy(s,9);
+          t:=copy(su,9);
           val(t, d,j);
           if j=0 then
           begin
             result:='$'+inttohex(PINT64(@d)^,8);
 
-            if s[1]='-' then
+            if su[1]='-' then
               result:='-'+result;
 
-            if s[1]='+' then
+            if su[1]='+' then
               result:='+'+result;
 
             exit;
           end;
         end;
 
-        if copy(s,1,11)='(DOUBLE32L)' then
+        if copy(su,1,11)='(DOUBLE32L)' then
         begin
-          t:=copy(s,12);
+          t:=copy(su,12);
           val(t, d,j);
           if j=0 then
           begin
@@ -496,9 +499,9 @@ begin
           end;
         end;
 
-        if copy(s,1,11)='(DOUBLE32H)' then
+        if copy(su,1,11)='(DOUBLE32H)' then
         begin
-          t:=copy(s,12);
+          t:=copy(su,12);
           val(t, d,j);
           if j=0 then
           begin
@@ -508,18 +511,18 @@ begin
           end;
         end;
 
-        if copy(s,1,7)='(FLOAT)' then
+        if copy(su,1,7)='(FLOAT)' then
         begin
-          t:=copy(s,8);
+          t:=copy(su,8);
           val(t, f,j);
           if j=0 then
           begin
             result:='$'+inttohex(pdword(@f)^,8);
 
-            if s[1]='-' then
+            if su[1]='-' then
               result:='-'+result;
 
-            if s[1]='+' then
+            if su[1]='+' then
               result:='+'+result;
 
             exit;
