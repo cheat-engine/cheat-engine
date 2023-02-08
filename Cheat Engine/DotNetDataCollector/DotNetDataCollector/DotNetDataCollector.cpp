@@ -14,7 +14,7 @@ BOOL SetProtection()
         PROCESS_MITIGATION_BINARY_SIGNATURE_POLICY policy;
         ZeroMemory(&policy, sizeof(policy));
         policy.MicrosoftSignedOnly = 1;
-        policy.MitigationOptIn = 1;
+        //policy.MitigationOptIn = 1;
         BOOL r;
         r = p(ProcessSignaturePolicy, &policy, sizeof(policy));
 

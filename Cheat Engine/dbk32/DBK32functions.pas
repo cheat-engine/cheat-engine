@@ -432,7 +432,8 @@ var kernel32dll: thandle;
 implementation
 
 {$ifdef windows}
-uses vmxfunctions, DBK64SecondaryLoader, NewKernelHandler, frmDriverLoadedUnit, CEFuncProc, Parsers, mainunit2;
+uses vmxfunctions, DBK64SecondaryLoader, NewKernelHandler, frmDriverLoadedUnit,
+  CEFuncProc, Parsers, mainunit2, libcepack;
 
 resourcestring
 
@@ -3225,6 +3226,13 @@ begin
         end;
 
         driverloc:=extractfilepath(apppath)+sysfile;
+
+        if FileExists(driverloc)=false then
+        begin
+          if FileExists(ChangeFileExt(driverloc,'.cepack')) then
+            ceunpackfile(ChangeFileExt(driverloc,'.cepack'), driverloc, true);
+        end;
+
         ultimapdriverloc:=extractfilepath(apppath)+ultimapsysfile;
       finally
         freememandnil(apppath);

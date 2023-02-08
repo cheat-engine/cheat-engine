@@ -428,6 +428,7 @@ begin
   begin
     //create it
     trainerform:=TTrainerForm.CreateNew(nil);
+    trainerform.scaled:=false;
     trainerform.AutoSize:=false;
     trainerform.defaultTrainer:=true;
     trainerform.DesignTimePPI:=screen.PixelsPerInch;

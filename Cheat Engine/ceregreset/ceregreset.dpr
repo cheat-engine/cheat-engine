@@ -144,6 +144,8 @@ end;
 
 
 
+{$R *.res}
+
 begin
   resetSettings;
 end.

@@ -2665,10 +2665,10 @@ object MainForm: TMainForm
         ImageIndex = 23
         OnClick = miTutorialClick
       end
-      object MenuItem12: TMenuItem
+      object miTutorial64: TMenuItem
         Caption = 'Cheat Engine Tutorial (x86_64)'
         ImageIndex = 24
-        OnClick = MenuItem12Click
+        OnClick = miTutorial64Click
       end
       object MenuItem16: TMenuItem
         Caption = 'Cheat Engine Tutorial (AArch64)'

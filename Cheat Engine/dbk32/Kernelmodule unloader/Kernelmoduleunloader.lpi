@@ -1,10 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CONFIG>
   <ProjectOptions>
-    <Version Value="11"/>
+    <Version Value="12"/>
     <PathDelim Value="\"/>
     <General>
-      <MainUnit Value="0"/>
+      <Flags>
+        <CompatibilityMode Value="True"/>
+      </Flags>
       <ResourceType Value="res"/>
       <UseXPManifest Value="True"/>
       <XPManifest>
@@ -37,7 +39,7 @@
         <IsVisibleTab Value="True"/>
         <EditorIndex Value="1"/>
         <TopLine Value="294"/>
-        <CursorPos Y="327"/>
+        <CursorPos X="29" Y="306"/>
         <UsageCount Value="20"/>
         <Loaded Value="True"/>
       </Unit0>
@@ -73,7 +75,7 @@
         <Loaded Value="True"/>
       </Unit4>
     </Units>
-    <JumpHistory Count="30" HistoryIndex="29">
+    <JumpHistory Count="29" HistoryIndex="28">
       <Position1>
         <Filename Value="Kernelmoduleunloader.lpr"/>
         <Caret Line="228" TopLine="210"/>
@@ -190,10 +192,6 @@
         <Filename Value="Kernelmoduleunloader.lpr"/>
         <Caret Line="333" TopLine="305"/>
       </Position29>
-      <Position30>
-        <Filename Value="Kernelmoduleunloader.lpr"/>
-        <Caret Line="455" Column="41" TopLine="457"/>
-      </Position30>
     </JumpHistory>
   </ProjectOptions>
   <CompilerOptions>

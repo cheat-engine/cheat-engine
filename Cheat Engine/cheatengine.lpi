@@ -9,7 +9,7 @@
       </Flags>
       <SessionStorage Value="InProjectDir"/>
       <AutoCreateForms Value="False"/>
-      <Title Value="Cheat Engine 7.4.3"/>
+      <Title Value="Cheat Engine 7.5"/>
       <UseXPManifest Value="True"/>
       <XPManifest>
         <DpiAware Value="True"/>
@@ -27,12 +27,11 @@
       <UseVersionInfo Value="True"/>
       <AutoIncrementBuild Value="True"/>
       <MajorVersionNr Value="7"/>
-      <MinorVersionNr Value="4"/>
-      <RevisionNr Value="3"/>
-      <BuildNr Value="7340"/>
+      <MinorVersionNr Value="5"/>
+      <BuildNr Value="7431"/>
       <Language Value="041C"/>
       <CharSet Value="04B0"/>
-      <StringTable CompanyName="Cheat Engine" FileDescription="Cheat Engine" ProductVersion="7.4.3"/>
+      <StringTable CompanyName="Cheat Engine" FileDescription="Cheat Engine" ProductVersion="7.5"/>
     </VersionInfo>
     <BuildModes Count="10">
       <Item1 Name="Release 32-Bit" Default="True"/>
@@ -91,8 +90,10 @@
 -dNDEBUG
 -dDBVMFORAMDISWORKING
 -dNESTEDSTRUCTURES
--dTHREADNAMESUPPORT"/>
-            <OtherDefines Count="18">
+-dTHREADNAMESUPPORT
+-donebytejumps
+-dNoODS"/>
+            <OtherDefines Count="20">
               <Define0 Value="NOTMULTITHREADED"/>
               <Define1 Value="benchmarkps"/>
               <Define2 Value="cemain"/>
@@ -111,6 +112,8 @@
               <Define15 Value="LINUXTCCTEST"/>
               <Define16 Value="asserthexviewisthreadsafe"/>
               <Define17 Value="DEBUGPROTOCOL"/>
+              <Define18 Value="NEWCHANGEREGONX86"/>
+              <Define19 Value="overflowdebug"/>
             </OtherDefines>
           </Other>
         </CompilerOptions>
@@ -171,8 +174,10 @@
 -dcemain
 -dNDEBUG
 -dDBVMFORAMDISWORKING
--dNESTEDSTRUCTURES"/>
-            <OtherDefines Count="13">
+-dNESTEDSTRUCTURES
+-donebytejumps
+-dNoODS"/>
+            <OtherDefines Count="20">
               <Define0 Value="NOTMULTITHREADED"/>
               <Define1 Value="benchmarkps"/>
               <Define2 Value="cemain"/>
@@ -186,6 +191,13 @@
               <Define10 Value="memorymapped"/>
               <Define11 Value="privatebuild"/>
               <Define12 Value="DBVMFORAMDISWORKING"/>
+              <Define13 Value="NESTEDSTRUCTURES"/>
+              <Define14 Value="THREADNAMESUPPORT"/>
+              <Define15 Value="LINUXTCCTEST"/>
+              <Define16 Value="asserthexviewisthreadsafe"/>
+              <Define17 Value="DEBUGPROTOCOL"/>
+              <Define18 Value="NEWCHANGEREGONX86"/>
+              <Define19 Value="overflowdebug"/>
             </OtherDefines>
           </Other>
         </CompilerOptions>
@@ -651,7 +663,30 @@
 -dXDEBUG
 -dNESTEDSTRUCTURES
 -dTHREADNAMESUPPORT
--dLINUXTCCTEST"/>
+-dLINUXTCCTEST
+-donebytejumps"/>
+            <OtherDefines Count="20">
+              <Define0 Value="NOTMULTITHREADED"/>
+              <Define1 Value="benchmarkps"/>
+              <Define2 Value="cemain"/>
+              <Define3 Value="NDEBUG"/>
+              <Define4 Value="D3DDebug"/>
+              <Define5 Value="NOVMX"/>
+              <Define6 Value="CUSTOMFLOAT"/>
+              <Define7 Value="XDEBUG"/>
+              <Define8 Value="memleaksearch"/>
+              <Define9 Value="checkassembleralphabet"/>
+              <Define10 Value="memorymapped"/>
+              <Define11 Value="privatebuild"/>
+              <Define12 Value="DBVMFORAMDISWORKING"/>
+              <Define13 Value="NESTEDSTRUCTURES"/>
+              <Define14 Value="THREADNAMESUPPORT"/>
+              <Define15 Value="LINUXTCCTEST"/>
+              <Define16 Value="asserthexviewisthreadsafe"/>
+              <Define17 Value="DEBUGPROTOCOL"/>
+              <Define18 Value="NEWCHANGEREGONX86"/>
+              <Define19 Value="overflowdebug"/>
+            </OtherDefines>
           </Other>
         </CompilerOptions>
       </Item10>
@@ -704,7 +739,7 @@
         <PackageName Value="LCL"/>
       </Item9>
     </RequiredPackages>
-    <Units Count="421">
+    <Units Count="422">
       <Unit0>
         <Filename Value="cheatengine.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -2927,6 +2962,10 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="LuaNetworkInterface"/>
       </Unit420>
+      <Unit421>
+        <Filename Value="libcepack.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit421>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
@@ -2975,8 +3014,15 @@
       <CompilerMessages>
         <IgnoredMessages idx6058="True"/>
       </CompilerMessages>
-      <CustomOptions Value="-dbenchmarkps -dcemain -WB00400000 -dNDEBUG -dDBVMFORAMDISWORKING -dNESTEDSTRUCTURES"/>
-      <OtherDefines Count="17">
+      <CustomOptions Value="-WB00400000
+-dbenchmarkps
+-dcemain
+-dNDEBUG
+-dDBVMFORAMDISWORKING
+-dNESTEDSTRUCTURES
+-donebytejumps
+-dNoODS"/>
+      <OtherDefines Count="20">
         <Define0 Value="NOTMULTITHREADED"/>
         <Define1 Value="benchmarkps"/>
         <Define2 Value="cemain"/>
@@ -2994,6 +3040,9 @@
         <Define14 Value="THREADNAMESUPPORT"/>
         <Define15 Value="LINUXTCCTEST"/>
         <Define16 Value="asserthexviewisthreadsafe"/>
+        <Define17 Value="DEBUGPROTOCOL"/>
+        <Define18 Value="NEWCHANGEREGONX86"/>
+        <Define19 Value="overflowdebug"/>
       </OtherDefines>
     </Other>
   </CompilerOptions>

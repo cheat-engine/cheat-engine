@@ -1,5 +1,37 @@
 Additions and changes:
- 
+
+from 7.4.3 to 7.5:
+  removed the driver requirement for the access memory regions tool
+  added 1 byte jmp instructions (that will install an exeption handler and place an int3 at the location)
+  added a scanoption so you can skip unpaged memory. (should prevent targets from eating up RAM when scanned)
+  reassemble() now rewrites an instruction using multiple lines when needed 
+  make some error messages more descriptive
+  added an option to center the highlighted disassembler code to the center
+  added an explanation why the driver won't load and a link with info on how to get it to load for now
+  memoryrecord hotkeys can now be disabled individually
+  codefilter: unwind info now gives less bad results
+  added support for pseudo-ops like cmpss/sd/ps/pd
+  lua: added ceserver commands
+  lua: show a stacktrace on execution error
+  lua: added convertToUTF8(stringbytetable, regioncode)
+  made loading CT files with signatures possible under wine and proton
+  
+
+from 7.4.2-7.4.3:
+  ceserver: pipe support (mono data dissector)
+  ceserver: added change memory protection capability
+  ceserver: Available options can now be sent to the CE GUI
+  .netinfo: Replaced the fields view with a tree
+  network config: The processlist now has focus after opening a server
+  lua: added virtualstringtree
+  lua: added invertColor
+  lua: added disassembleBytes(bytestring)
+  autoassembler: now a visual warning is shown when nearby allocation fails
+  autoassembler: the templates now generate 14 byte jmp safe original code blocks as well
+  pointerscan now has a deviation option for "pointer must end with offset" to help find pointers back after update
+  ultimap: added copy selected results to clipboard
+
+
 from 7.4.1-7.4.2:
   ipt: Added intel process trace feature provided by microsoft.
   ceserver: Improve the modulelist fetch speed, more stable
@@ -56,6 +88,26 @@ from 7.4-7.4.1:
   the diffcount in "find out what accessess/writes" will now stay even when disabling the option to find the number of different addresses an instruction accesses
 
 Fixes:
+from 7.4.3 to 7.5:
+  monodatacollector: fixed invoke method
+  dotnetdatacollector: Fixed issue of loading a wrong version of dbgshim.dll
+  fixed disassembling cvtdq2pd
+
+
+from 7.4.2-7.4.3:
+  ceserver: Fixed extension loading in some cases
+  ceserver: fixed stepping on x86 targets
+  fixed the name showing as [physical memory] instead of the filename when opening a file
+  fixed a rare error when scanning using specific options
+  fixed some documentation in celua at some points
+  fixed stackview in "more info" being garbage/access violation
+  fixed tracer search for instructions ending with ]
+  fixed enumExports lua function
+  fixed issue where vehdebug would crash
+  fixed the assembler from handing [rex+reg*x] as a symbol when debugging
+  fixed the disassembler backlist
+  fixed termination issue on the memscan object
+
 from 7.4.1-7.4.2:
   Fixed the tracer search for instructions ending with a ]
   VEH debug: Fixed the potential of invalid handles being used

@@ -1,5 +1,7 @@
 unit iptlogdisplay;
 
+//todo: virtualtreeview this
+
 {$mode ObjFPC}{$H+}
 
 interface
@@ -239,6 +241,7 @@ begin
     begin
       if  insn.iclass=ptic_error then
         insn.ip:=0;
+
 
       ripcounter:=ripseen.GetDataPtr(insn.ip);
       if ripcounter<>nil then
@@ -799,7 +802,7 @@ var
   timesseen: pqword;
 begin
   {$IFDEF WINDOWS}
- current:=0;
+  current:=0;
   c:=item.Index;
 
 

@@ -1,237 +1,236 @@
 object Form1: TForm1
   Left = 372
-  Height = 359
+  Height = 287
   Top = 368
-  Width = 1460
+  Width = 1168
   BorderStyle = bsSingle
   Caption = 'Form1'
-  ClientHeight = 359
-  ClientWidth = 1460
-  DesignTimePPI = 120
-  Font.Height = -18
+  ClientHeight = 287
+  ClientWidth = 1168
+  Font.Height = -14
   Font.Name = 'MS Sans Serif'
   OnClose = FormClose
   OnCreate = FormCreate
   Position = poScreenCenter
-  LCLVersion = '2.2.4.0'
+  LCLVersion = '2.2.2.0'
   object Label1: TLabel
-    Left = 150
-    Height = 24
-    Top = 74
-    Width = 56
+    Left = 120
+    Height = 16
+    Top = 59
+    Width = 41
     Caption = 'Label1'
     ParentColor = False
   end
   object Label2: TLabel
-    Left = 149
-    Height = 24
-    Top = 198
-    Width = 56
+    Left = 119
+    Height = 16
+    Top = 158
+    Width = 41
     Caption = 'Label2'
     ParentColor = False
   end
   object Label3: TLabel
-    Left = 308
-    Height = 24
-    Top = 61
-    Width = 56
+    Left = 246
+    Height = 16
+    Top = 49
+    Width = 41
     Caption = 'Label3'
     ParentColor = False
   end
   object Label4: TLabel
-    Left = 308
-    Height = 24
-    Top = 86
-    Width = 56
+    Left = 246
+    Height = 16
+    Top = 69
+    Width = 41
     Caption = 'Label4'
     ParentColor = False
   end
   object Label5: TLabel
-    Left = 308
-    Height = 24
-    Top = 111
-    Width = 56
+    Left = 246
+    Height = 16
+    Top = 89
+    Width = 41
     Caption = 'Label5'
     ParentColor = False
   end
   object Label6: TLabel
-    Left = 308
-    Height = 24
-    Top = 135
-    Width = 56
+    Left = 246
+    Height = 16
+    Top = 108
+    Width = 41
     Caption = 'Label6'
     ParentColor = False
   end
   object Label7: TLabel
-    Left = 308
-    Height = 24
-    Top = 160
-    Width = 56
+    Left = 246
+    Height = 16
+    Top = 128
+    Width = 41
     Caption = 'Label7'
     ParentColor = False
   end
   object Label8: TLabel
-    Left = 308
-    Height = 24
-    Top = 185
-    Width = 56
+    Left = 246
+    Height = 16
+    Top = 148
+    Width = 41
     Caption = 'Label8'
     ParentColor = False
   end
   object Label9: TLabel
-    Left = 12
-    Height = 24
-    Top = 251
-    Width = 56
+    Left = 10
+    Height = 16
+    Top = 201
+    Width = 41
     Caption = 'Label9'
     ParentColor = False
   end
   object Button1: TButton
-    Left = 12
-    Height = 39
-    Top = 12
-    Width = 210
+    Left = 10
+    Height = 31
+    Top = 10
+    Width = 168
     Caption = 'Test expected BP'
     OnClick = Button1Click
     TabOrder = 0
   end
   object Button2: TButton
-    Left = 12
-    Height = 26
-    Top = 74
-    Width = 125
+    Left = 10
+    Height = 21
+    Top = 59
+    Width = 100
     Caption = 'Change health'
     OnClick = Button2Click
     TabOrder = 1
   end
   object Button3: TButton
-    Left = 12
-    Height = 39
-    Top = 190
-    Width = 125
+    Left = 10
+    Height = 31
+    Top = 152
+    Width = 100
     Caption = 'Execute code'
     OnClick = Button3Click
     TabOrder = 2
   end
   object Button4: TButton
-    Left = 308
-    Height = 39
-    Top = 12
-    Width = 115
+    Left = 246
+    Height = 31
+    Top = 10
+    Width = 92
     Caption = 'Get DR''s'
     OnClick = Button4Click
     TabOrder = 3
   end
   object Button5: TButton
-    Left = 12
-    Height = 38
-    Top = 290
-    Width = 186
+    Left = 10
+    Height = 30
+    Top = 232
+    Width = 149
     Caption = 'Make non executable'
     OnClick = Button5Click
     TabOrder = 4
   end
   object Button6: TButton
-    Left = 332
-    Height = 38
-    Top = 271
-    Width = 115
+    Left = 266
+    Height = 30
+    Top = 217
+    Width = 92
     Caption = 'Crash'
     OnClick = Button6Click
     TabOrder = 5
   end
   object Button7: TButton
-    Left = 12
-    Height = 26
-    Top = 110
-    Width = 125
+    Left = 10
+    Height = 21
+    Top = 88
+    Width = 100
     Caption = 'With Thread'
     OnClick = Button7Click
     TabOrder = 6
   end
   object Button8: TButton
-    Left = 330
-    Height = 31
-    Top = 230
-    Width = 131
+    Left = 264
+    Height = 25
+    Top = 184
+    Width = 105
     Caption = 'Integrity check'
     OnClick = Button8Click
     TabOrder = 7
   end
   object Button9: TButton
-    Left = 470
-    Height = 31
-    Top = 10
-    Width = 211
+    Left = 376
+    Height = 25
+    Top = 8
+    Width = 169
     Caption = 'Create thread longterm'
     OnClick = Button9Click
     TabOrder = 8
   end
   object Button10: TButton
-    Left = 810
-    Height = 31
-    Top = 40
-    Width = 94
+    Left = 648
+    Height = 25
+    Top = 32
+    Width = 75
     Caption = 'Button10'
     OnClick = Button10Click
     TabOrder = 9
   end
   object Button11: TButton
-    Left = 140
-    Height = 26
-    Top = 111
-    Width = 125
+    Left = 112
+    Height = 21
+    Top = 89
+    Width = 100
     Caption = 'Like a mofo'
     OnClick = Button11Click
     TabOrder = 10
   end
   object Button12: TButton
-    Left = 12
-    Height = 31
-    Top = 138
-    Width = 138
+    Left = 10
+    Height = 25
+    Top = 110
+    Width = 110
     Caption = 'With new thread'
     OnClick = Button12Click
     TabOrder = 11
   end
   object edtTimeout: TEdit
-    Left = 165
-    Height = 32
-    Top = 140
-    Width = 100
+    Left = 132
+    Height = 24
+    Top = 112
+    Width = 80
     TabOrder = 12
     Text = '0'
   end
   object Label10: TLabel
-    Left = 670
-    Height = 24
-    Top = 270
-    Width = 66
+    Left = 536
+    Height = 16
+    Top = 216
+    Width = 48
     Caption = 'Label10'
     ParentColor = False
   end
   object Label11: TLabel
-    Left = 660
-    Height = 24
-    Top = 230
-    Width = 158
+    Left = 528
+    Height = 16
+    Top = 184
+    Width = 110
     Caption = 'int3 bp exceptions:'
     ParentColor = False
   end
   object Button13: TButton
-    Left = 810
-    Height = 31
-    Top = 86
-    Width = 94
+    Left = 648
+    Height = 25
+    Top = 69
+    Width = 75
     Caption = 'Button13'
     OnClick = Button13Click
     TabOrder = 13
   end
   object Memo1: TMemo
-    Left = 920
-    Height = 316
-    Top = 24
-    Width = 508
+    Left = 736
+    Height = 253
+    Top = 19
+    Width = 406
     Lines.Strings = (
       'Memo1'
     )
@@ -239,46 +238,73 @@ object Form1: TForm1
     TabOrder = 14
   end
   object Button14: TButton
-    Left = 720
-    Height = 31
-    Top = 140
-    Width = 184
+    Left = 576
+    Height = 25
+    Top = 112
+    Width = 147
     Caption = 'Test dbvm detect'
     OnClick = Button14Click
     TabOrder = 15
   end
   object Button15: TButton
-    Left = 472
-    Height = 31
-    Top = 120
-    Width = 94
+    Left = 378
+    Height = 25
+    Top = 97
+    Width = 75
     Caption = 'dbgmsg'
     OnClick = Button15Click
     TabOrder = 16
   end
   object Edit1: TEdit
-    Left = 477
-    Height = 32
-    Top = 85
-    Width = 100
+    Left = 382
+    Height = 24
+    Top = 68
+    Width = 80
     TabOrder = 17
     Text = '尸ヨ几工己'
   end
+  object Button16: TButton
+    Left = 433
+    Height = 25
+    Top = 221
+    Width = 75
+    Caption = 'Button16'
+    OnClick = Button16Click
+    TabOrder = 18
+  end
+  object Button17: TButton
+    Left = 456
+    Height = 26
+    Top = 96
+    Width = 56
+    AutoSize = True
+    Caption = 'flood'
+    OnClick = Button17Click
+    TabOrder = 19
+  end
+  object Label12: TLabel
+    Left = 541
+    Height = 16
+    Top = 256
+    Width = 48
+    Caption = 'Label12'
+    ParentColor = False
+  end
   object Timer1: TTimer
     OnTimer = Timer1Timer
-    Left = 230
-    Top = 160
+    Left = 184
+    Top = 128
   end
   object Timer2: TTimer
     Interval = 30
     OnTimer = Timer2Timer
-    Left = 670
-    Top = 160
+    Left = 536
+    Top = 128
   end
   object Timer3: TTimer
     Interval = 10
     OnTimer = Timer3Timer
-    Left = 820
-    Top = 260
+    Left = 656
+    Top = 208
   end
 end

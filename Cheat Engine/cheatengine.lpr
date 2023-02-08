@@ -122,7 +122,7 @@ uses
   sourcecodehandler, frmSourceDisplayUnit, disassemblerarm64, contexthandler,
   DisAssemblerARM32, frmAnchorEditor, disassemblerArm32Thumb, iptnative, 
   iptlogdisplay, LuaVirtualStringTree, userbytedisassembler, 
-LuaNetworkInterface;
+LuaNetworkInterface, libcepack;
 
 {$R cheatengine.res}
 {$IFDEF windows}
@@ -289,7 +289,7 @@ var
   noautorun: boolean;
 
 begin
-  Application.Title:='Cheat Engine 7.4.3';
+  Application.Title:='Cheat Engine 7.5';
  //'Cheat Engine 7.3';
   {$ifdef darwin}
   macPortFixRegPath;

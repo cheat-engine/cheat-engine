@@ -333,7 +333,7 @@ type
     mfImageList: TImageList;
     lblSigned: TLabel;
     MainMenu2: TMainMenu;
-    MenuItem12: TMenuItem;
+    miTutorial64: TMenuItem;
     MenuItem14: TMenuItem;
     MenuItem15: TMenuItem;
     Copyselectedaddresses1: TMenuItem;
@@ -592,7 +592,7 @@ type
     procedure CreateGroupClick(Sender: TObject);
     procedure gbScanOptionsChangeBounds(Sender: TObject);
     procedure Label3Click(Sender: TObject);
-    procedure MenuItem12Click(Sender: TObject);
+    procedure miTutorial64Click(Sender: TObject);
     procedure MenuItem15Click(Sender: TObject);
     procedure MenuItem16Click(Sender: TObject);
     procedure miClearWorkingSetClick(Sender: TObject);
@@ -1111,7 +1111,8 @@ uses cefuncproc, MainUnit2, ProcessWindowUnit, MemoryBrowserFormUnit, TypePopup,
   PointerscanresultReader, Parsers, Globals {$ifdef windows},GnuAssembler, xinput{$endif} ,DPIHelper,
   multilineinputqueryunit {$ifdef windows},winsapi{$endif} ,LuaClass, Filehandler{$ifdef windows}, feces{$endif}
   {$ifdef windows},frmDBVMWatchConfigUnit, frmDotNetObjectListUnit{$endif} ,ceregistry ,UnexpectedExceptionsHelper
-  ,frmFoundlistPreferencesUnit, fontSaveLoadRegistry{$ifdef windows}, cheatecoins{$endif},strutils, iptlogdisplay;
+  ,frmFoundlistPreferencesUnit, fontSaveLoadRegistry{$ifdef windows}, cheatecoins{$endif},strutils, iptlogdisplay,
+  libcepack;
 
 resourcestring
   rsInvalidStartAddress = 'Invalid start address: %s';
@@ -3635,7 +3636,7 @@ begin
   end;
 end;
 
-procedure TMainForm.MenuItem12Click(Sender: TObject);
+procedure TMainForm.miTutorial64Click(Sender: TObject);
 {$ifdef darwin}
 var p: TProcessUTF8;
   path: string;
@@ -8334,9 +8335,13 @@ begin
 
     if messagedlg(rsTryTutorial, mtConfirmation, [mbYes, mbNo], 0) = mrYes then
     {$ifdef darwin}
-      MenuItem12.click;
+      miTutorial64.click;
     {$else}
+      {$ifdef cpu32}
       miTutorial.Click;
+      {$else}
+      miTutorial64.Click;
+      {$endif}
     {$endif}
   end;
 
@@ -9840,6 +9845,12 @@ end;
 
 procedure TMainForm.miTutorialClick(Sender: TObject);
 begin
+  if not fileexists(cheatenginedir+{$ifdef altname}'rtmtutorial-i386.exe'{$else}'Tutorial-i386.exe'{$endif}) then
+  begin
+    if fileexists(cheatenginedir+{$ifdef altname}'rtmtutorial-i386.cepack'{$else}'Tutorial-i386.cepack'{$endif}) then
+      ceunpackfile(cheatenginedir+{$ifdef altname}'rtmtutorial-i386.cepack'{$else}'Tutorial-i386.cepack'{$endif}, cheatenginedir+{$ifdef altname}'rtmtutorial-i386.exe'{$else}'Tutorial-i386.exe'{$endif}, false);
+  end;
+
   shellexecute(0, 'open', pchar(cheatenginedir+{$ifdef altname}'rtmtutorial-i386.exe'{$else}'Tutorial-i386.exe'{$endif}), nil, nil, sw_show);
 end;
 
@@ -11020,7 +11031,15 @@ procedure TMainForm.DoGroupconfigButtonClick(sender: tobject);
 var gcf: TfrmGroupScanAlgoritmGenerator;
 begin
   gcf:=TfrmGroupScanAlgoritmGenerator.create(self);
-  gcf.parseParameters(scanvalue.text);
+  try
+    gcf.parseParameters(scanvalue.text);
+  except
+    on e:exception do
+    begin
+      MessageDlg(e.message,mtError,[mbok],0);
+      exit;
+    end;
+  end;
 
   if gcf.showmodal=mrok then
     scanvalue.text:=gcf.getparameters;
