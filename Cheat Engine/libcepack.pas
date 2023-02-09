@@ -14,7 +14,7 @@ procedure ceunpackfile(source, destination: string; askpermission: boolean);
 
 implementation
 
-uses zstream, dialogs, controls;
+uses zstream, dialogs{$ifndef cepackexe}, controls{$endif};
 
 {$ifndef cepackexe}
 resourcestring
