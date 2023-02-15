@@ -355,6 +355,8 @@ begin
   cbStructType.Items.Clear;
   cbStructType.items.add(rsUndefined);
 
+  cbStructType.itemindex:=0;
+
   //fill the type combobox (for translations)
 
   cbtype.items.BeginUpdate;
