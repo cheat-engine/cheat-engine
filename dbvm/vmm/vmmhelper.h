@@ -754,8 +754,9 @@ typedef struct _regCR4
 #define CR4_FSGSBASE    (1<<16)
 #define CR4_PCIDE       (1<<17)
 #define CR4_OSXSAVE     (1<<18)
-#define CR4_SMEP		(1<<20)
-#define CR4_SMAP		(1<<21)
+#define CR4_SMEP        (1<<20)
+#define CR4_SMAP        (1<<21)
+#define CR4_CET         (1<<23)
 
 #define CR0_PE          (1<<0)
 #define CR0_NE          (1<<5)

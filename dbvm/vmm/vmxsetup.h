@@ -57,6 +57,7 @@ extern int hasVPIDSupport;
 extern int canToggleCR3Exit;
 extern int canExitOnNMI;
 extern int hasVMCSShadowingSupport;
+extern int hasCETSupport;
 
 extern int has_VPID_INVVPIDIndividualAddress;
 extern int has_VPID_INVVPIDSingleContext;

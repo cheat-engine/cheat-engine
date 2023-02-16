@@ -58,6 +58,7 @@ int hasUnrestrictedSupport;
 int hasVPIDSupport;
 int canToggleCR3Exit;
 int hasVMCSShadowingSupport;
+int hasCETSupport;
 
 int has_VPID_INVVPIDIndividualAddress;
 int has_VPID_INVVPIDSingleContext;
@@ -1842,6 +1843,17 @@ void setupVMX(pcpuinfo currentcpuinfo)
   vmwrite(0x600a,(UINT64)0); //cr3-target value 1
   vmwrite(0x600c,(UINT64)0); //cr3-target value 2
   vmwrite(0x600e,(UINT64)0); //cr3-target value 3
+
+
+  {
+    DWORD a=7,b=0,c=0,d=0;
+    _cpuid(&a,&b,&c,&d);
+
+    hasCETSupport=c & (1 << 7);
+  }
+
+
+
 
   //if useEPT  (the user might want to save that memory)
   hasEPTsupport=setupEPT(currentcpuinfo); //needed for unrestricted guest and could be useful for other things (like protecting the memory of DBVM)

@@ -2174,7 +2174,6 @@ int setVM_CR0(pcpuinfo currentcpuinfo, UINT64 newcr0)
 {
   QWORD cr4=vmread(vm_guest_cr4);
   UINT64 oldcr0=currentcpuinfo->guestCR0;//;vmread(0x6004); //fake cr0
-  currentcpuinfo->guestCR0=newcr0;
 
 
   if (hasUnrestrictedSupport)
@@ -2191,6 +2190,15 @@ int setVM_CR0(pcpuinfo currentcpuinfo, UINT64 newcr0)
     raiseGeneralProtectionFault(0);
     return 2;
   }
+
+  if (hasCETSupport && ((cr4 & CR4_CET) && ((newcr0 & CR0_WP)==0)))
+  {
+    raiseGeneralProtectionFault(0);
+    return 2;
+  }
+
+  currentcpuinfo->guestCR0=newcr0;
+
 
   if (hasUnrestrictedSupport==0)
   {
@@ -2700,6 +2708,16 @@ int setVM_CR4(pcpuinfo currentcpuinfo, UINT64 newcr4)
     sendstringf("CR4: THE GUEST OS WANTS TO SET A BIT THAT SHOULD STAY 0\n\r");
     return 1;
   }
+
+  if (hasCETSupport)
+  {
+    UINT64 CR0=vmread(vm_guest_cr0);
+    if ((newCR4 & CR4_CET) && ((CR0 & CR0_WP)==0)) //CET is set but WP is false. not allowed
+      raiseGeneralProtectionFault(0);
+
+    return 2;
+  }
+
 
   if (hasVPIDSupport & (((newCR4 & (CR4_PGE))) != ((oldCR4 & (CR4_PGE)))))
   {
