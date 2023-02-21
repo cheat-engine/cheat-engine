@@ -2625,7 +2625,13 @@ int WriteProcessMemoryDebug(HANDLE hProcess, PProcessData p, void *lpAddress, vo
   int byteswritten=0;
   int i;
 
-  debug_log("WriteProcessMemoryDebug:");
+
+  if (threadname)
+    debug_log("%s: WriteProcessMemoryDebug:",threadname);
+  else
+    debug_log("WriteProcessMemoryDebug:");
+
+
   for (i=0; i<size; i++)
   {
     debug_log("%.2x ", ((unsigned char *)buffer)[i]);
@@ -2645,13 +2651,14 @@ int WriteProcessMemoryDebug(HANDLE hProcess, PProcessData p, void *lpAddress, vo
 
     if (!isdebugged)
     {
-     // debug_log("Not currently debugging a thread. Suspending a random thread\n");
+      debug_log("Not currently debugging a thread. Suspending a random thread\n");
       kill(p->pid, SIGSTOP);
 
       //printf("Going to wait for debug event\n");
       WaitForDebugEventNative(p, &event, -1, -1); //wait for it myself
 
-     // debug_log("After WaitForDebugEventNative (tid=%d)\n", event.threadid);
+
+      debug_log("After WaitForDebugEventNative (tid=%d)\n", event.threadid);
     }
 
 
@@ -2667,7 +2674,7 @@ int WriteProcessMemoryDebug(HANDLE hProcess, PProcessData p, void *lpAddress, vo
       while (offset<max)
       {
         debug_log("offset=%d max=%d\n", offset, max);
-        safe_ptrace(PTRACE_POKEDATA, p->pid, (void*)((uintptr_t)lpAddress+offset), (void *)*address);
+        safe_ptrace(PTRACE_POKEDATA, event.threadid, (void*)((uintptr_t)lpAddress+offset), (void *)*address);
 
         address++;
         offset+=sizeof(long int);
@@ -2679,7 +2686,7 @@ int WriteProcessMemoryDebug(HANDLE hProcess, PProcessData p, void *lpAddress, vo
         debug_log("WPMD: Still some bytes left: %d\n", size-offset);
         //still a few bytes left
         uintptr_t oldvalue=0;
-        oldvalue=safe_ptrace(PTRACE_PEEKDATA, p->pid,  (void *)(uintptr_t)lpAddress+offset, (void*)0);
+        oldvalue=safe_ptrace(PTRACE_PEEKDATA, event.threadid,  (void *)(uintptr_t)lpAddress+offset, (void*)0);
         #ifdef __x86_64__
           //Even with 64 bits, peek_data can read only 4 bytes.
           debug_log("64-bit: oldvalue=%lx\n", oldvalue);
@@ -2699,7 +2706,7 @@ int WriteProcessMemoryDebug(HANDLE hProcess, PProcessData p, void *lpAddress, vo
         debug_log("newvalue=%lx\n", oldvalue);
 
 
-        i=safe_ptrace(PTRACE_POKEDATA, p->pid, (void*)((uintptr_t)lpAddress+offset), (void *)oldvalue);
+        i=safe_ptrace(PTRACE_POKEDATA, event.threadid, (void*)((uintptr_t)lpAddress+offset), (void *)oldvalue);
 
         debug_log("ptrace poke returned %d\n", i);
         if (i>=0)
