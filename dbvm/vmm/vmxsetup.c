@@ -1846,7 +1846,7 @@ void setupVMX(pcpuinfo currentcpuinfo)
 
 
   {
-    DWORD a=7,b=0,c=0,d=0;
+    QWORD a=7,b=0,c=0,d=0;
     _cpuid(&a,&b,&c,&d);
 
     hasCETSupport=c & (1 << 7);
