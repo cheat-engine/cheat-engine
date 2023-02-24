@@ -11034,6 +11034,12 @@ begin
   result:=0;
 end;
 
+function getPointerSize(L:PLua_state): integer; cdecl;
+begin
+  lua_pushinteger(L, processhandler.pointersize);
+  result:=1;
+end;
+
 
 function getDebugContext(L:PLua_state): integer; cdecl;
 var extraregs: boolean;
@@ -16858,6 +16864,7 @@ begin
 
     lua_register(L, 'registerBinUtil', lua_registerBinUtil);
     lua_register(L, 'setPointerSize', setPointerSize);
+    lua_register(L, 'getPointerSize', getPointerSize);
 
 
     lua_register(L, 'executeCode', executeCode);
