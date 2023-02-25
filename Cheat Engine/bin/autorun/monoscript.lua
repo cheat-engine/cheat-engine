@@ -4315,6 +4315,7 @@ function monoform_exportStructInternal(s, caddr, recursive, static, structmap, m
       --print(string.format("  Field: %d: %d: %d: %s", e.Offset, e.Vartype, ft, fieldname))
 
       if ft==MONO_TYPE_STRING then
+        e.Vartype=vtPointer
 --print(string.format("  Field: %d: %d: %d: %s", e.Offset, e.Vartype, ft, fieldname))
 
          if mono_StringStruct==nil then

@@ -1666,7 +1666,12 @@ local function getFieldValue(Field, fieldaddress)
   if (Field.VarType==ELEMENT_TYPE_STRING) or (Field.VarTypeName == "System.String") then
     local a=readPointer(a)
     if a then 
-      return '"'..readDotNetString(a, Field)..'"' 
+      local str=readDotNetString(a, Field)
+      if str then
+        return '"'..readDotNetString(a, Field)..'"' 
+      else
+        return '<nil>'
+      end
     else
       return '?'
     end

@@ -252,7 +252,7 @@ begin
   insideErrorHandler:=true;
   try
     lua_getglobal(L,'onLuaError');
-    if not lua_isfunction(L,-1) then
+    if lua_isfunction(L,-1) then
     begin
       lua_pushvalue(L,1);
       lua_pcall(L,1,1,0);

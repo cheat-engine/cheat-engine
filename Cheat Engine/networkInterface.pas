@@ -2177,7 +2177,7 @@ begin
   begin
     getmem(input, sizeof(TInput)+length(modulepath));
 
-    input^.command:=CMD_LOADMODULE;
+    input^.command:=CMD_LOADMODULEEX;
     input^.handle:=hProcess and $ffffff;
     input^.dlopenaddress:=dlopenaddress;
     input^.modulepathlength:=Length(modulepath);
