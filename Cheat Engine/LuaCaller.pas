@@ -1237,15 +1237,18 @@ begin
   oldstack:=lua_gettop(Luavm);
 
   try
-
-    if canRun then
-    begin
-      PushFunction;
-      luaclass_newClass(luavm, form);
-      lua_pcall(Luavm, 1,0,0)
+    try
+      if canRun then
+      begin
+        PushFunction;
+        luaclass_newClass(luavm, form);
+        lua_pcall(Luavm, 1,0,0)
+      end;
+    finally
+      lua_settop(Luavm, oldstack);
     end;
-  finally
-    lua_settop(Luavm, oldstack);
+  except
+    //exceptions suck here
   end;
 end;
 

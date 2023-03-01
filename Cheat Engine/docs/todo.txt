@@ -1,3 +1,16 @@
+branch mapper dpi issues
+
+if you select <pointersize> bytes in hexview and press ctrl+space , the disassembler should change to the selected address
+
+.net info: getting the classlist takes long and it looks like nothing happens, and seems to wait till the symbol enum is done
+.net info: add some grouped commands for data gathering
+.net info: add option to skip the value fetcher
+.net info: lookup instances should grey the button while the scan is going
+.net info: verify that pointers are actually null or point to a valid location, and booleans can only be 0 or 1
+.net info: when il2cpp is being scanned, add a rightclick to the label to cancel the enum
+
+
+
 single hotkey keys sometimes stuck? sunbeam
 type isn't saved on headers...
 

@@ -2,7 +2,7 @@ Additions and changes:
 
 from 7.4.3 to 7.5:
   removed the driver requirement for the access memory regions tool
-  added 1 byte jmp instructions (that will install an exeption handler and place an int3 at the location)
+  added 1 byte jmp instructions (that will install an exception handler and place an int3 at the location)
   added a scanoption so you can skip unpaged memory. (should prevent targets from eating up RAM when scanned)
   reassemble() now rewrites an instruction using multiple lines when needed 
   make some error messages more descriptive
@@ -44,8 +44,8 @@ from 7.4.1-7.4.2:
   mono: the dll now has a versioncheck so that you don't accidentally mix monodatacollector dll's
   mono: deal with situations where there is no mainform
   mono/.net: the methodlist is now sorted by name
-  better arm disassmbler and assembler
-  better arm64 disassmbler and assembler  
+  better arm disassembler and assembler
+  better arm64 disassembler and assembler  
   the scanregions can be saved/loaded upon close/start ce (seperate option in settings)
   added an option to skip loading .PDB files
   a lot more functions are exposed to newstate threads
@@ -89,6 +89,7 @@ from 7.4-7.4.1:
 
 Fixes:
 from 7.4.3 to 7.5:
+  vehdebug: Fixed a case where a new thread creation or other event would cause another event that would trigger at exactly the same time to get the exception ignored and just continued
   monodatacollector: fixed invoke method
   dotnetdatacollector: Fixed issue of loading a wrong version of dbgshim.dll
   fixed disassembling cvtdq2pd

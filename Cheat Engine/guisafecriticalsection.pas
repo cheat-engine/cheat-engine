@@ -31,6 +31,8 @@ type
 
 implementation
 
+uses SyncObjs2;
+
 resourcestring
   rsCriticalsectionLeaveWithoutEnter = 'Criticalsection leave without enter';
 
@@ -54,10 +56,15 @@ begin
    // if maxtimeout=INFINITE then maxtimeout:=10000; //10 seconds max for the main gui
     maxtimeout:=maxtimeout div 10;
 
-    while (e.WaitFor(10) = wrTimeout) and ((maxtimeout=INFINITE) or (deadlockprevention<maxtimeout)) do
+    while (e.WaitFor(10) = wrTimeout) do
     begin
       CheckSynchronize;
       inc(deadlockprevention);
+
+      if (maxtimeout<>INFINITE) and (deadlockprevention>maxtimeout) then
+      begin
+        raise exception.create('Pipe lock timeout. Still in use by thread '+inttostr(lockedthreadid)+' ('+GetThreadName(lockedthreadid)+')');
+      end;
     end;
   end
   else

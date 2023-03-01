@@ -1082,7 +1082,10 @@ begin
   try
     c:=getConnection;
     if (c<>nil) and (c.isNetworkHandle(processhandle)) then //network loadModule
-      c.loadModule(processhandle, dllname)
+    begin
+      if c.loadModule(processhandle, dllname)=false then
+        raise exception.create('Failed to load '+dllname);
+    end
     else
     begin
       //todo: Change this to a full AA script (but make sure not to call injectdll in there :)  )

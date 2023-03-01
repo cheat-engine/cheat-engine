@@ -725,17 +725,7 @@ begin
   val('$'+ProcessIDString,ProcessHandler.processid,i);
   if i<>0 then raise exception.Create(Format(rsIsnTAValidProcessID, [processidstring]));
   if Processhandle<>0 then
-  begin
-    if (processhandle<>0) and (processhandle<>INVALID_HANDLE_VALUE) and (processhandle<>$FFFFFFFF) then
-    begin
-      try
-        CloseHandle(ProcessHandle);
-      except
-      end;
-    end;
-
     ProcessHandler.ProcessHandle:=0;
-  end;
 
   with mainform do
   begin

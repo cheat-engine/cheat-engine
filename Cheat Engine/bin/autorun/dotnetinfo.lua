@@ -491,6 +491,7 @@ local function StartClassFetch(frmDotNetInfo, Image, OnDataFunction, FetchDoneFu
     --create a thread that fetches the classes
     frmDotNetInfo.ClassFetchThread=createThread(function(t)
       --get the classess
+      t.Name='frmDotNetInfo_ClassFetchThread'
       t.FreeOnTerminate(false)
       getClasses(Image)      
       Image.Classes.Busy=nil

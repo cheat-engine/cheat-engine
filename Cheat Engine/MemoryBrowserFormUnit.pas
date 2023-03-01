@@ -3082,7 +3082,15 @@ begin
   try
     hexview.address:=getaddress(newaddress);
   except
-    hexview.address:=symhandler.getAddressFromName(newaddress);
+    try
+      hexview.address:=symhandler.getAddressFromName(newaddress);
+    except
+      on e: exception do
+      begin
+        MessageDlg(e.message, mtError,[mbok],0);
+        exit;
+      end
+    end;
   end;
 
   if old<>hexview.address then

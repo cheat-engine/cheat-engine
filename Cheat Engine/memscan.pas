@@ -7001,6 +7001,12 @@ var
 
   wsisize: dword;
   wsi: PPSAPI_WORKING_SET_INFORMATION;
+
+  getmemtimestart: qword;
+  getmemtimestop: qword;
+
+  parseregiontimestart: qword;
+  parseregiontimestop: qword;
 begin
  // OutputDebugString('TScanController.firstScan');
 
@@ -7086,6 +7092,7 @@ begin
   {$ifdef windows}
   if workingsetonly and assigned(QueryWorkingSet) then
   begin
+    getmemtimestart:=GetTickCount64;
     vqevalidcache:=TAvgLvlTree.Create(@vqevalidcachecompare);
 
     wsisize:=sizeof(PSAPI_WORKING_SET_INFORMATION);
@@ -7101,6 +7108,9 @@ begin
       getmem(wsi, wsisize);
     end;
 
+    getmemtimestop:=GetTickCount64;
+
+    parseregiontimestart:=GetTickCount64;
     validregion:=false;
     for i:=0 to wsi^.NumberOfEntries-1 do
     begin
@@ -7138,6 +7148,8 @@ begin
 
 
     end;
+
+    parseregiontimestop:=GetTickCount64;
 
     //cleanup vqe valid cache
     vqevalidcache.FreeAndClear;

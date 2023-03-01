@@ -902,6 +902,10 @@ function LaunchMonoDataCollector(internalReconnectDisconnectEachTime)
 
   mono_clearcache()  
   
+  if miMonoTopMenuItem==nil then --launched mono with lua before it was detected
+    mono_setMonoMenuItem(true,false) 
+  end
+  
   return monoBase
 end
 
@@ -3899,8 +3903,9 @@ end
 function mono_checkifmonoanyhow(t)
   while t.Terminated==false do
     local r=getAddressSafe('mono_thread_attach')
+    local r2=getAddressSafe('il2cpp_thread_attach')
     
-    if r~=nil then
+    if (r~=nil) or (r2~=nil) then
       --print("thread_checkifmonoanyhow found the mono_thread_attach export")
       thread_checkifmonoanyhow=nil
       synchronize(mono_setMonoMenuItem, true)
@@ -3922,13 +3927,12 @@ function mono_OpenProcessMT()
   local i
   for i=1, #m do
    -- print(m[i].Name)
-    if (m[i].Name=='mono.dll') or (string.sub(m[i].Name,1,5)=='mono-') or (string.sub(m[i].Name,1,7)=='libmono') or (m[i].Name=='GameAssembly.dll') or (m[i].Name=='UnityPlayer.dll')  then
-      
+    if (m[i].Name=='mono.dll') or (string.sub(m[i].Name,1,5)=='mono-') or (string.sub(m[i].Name,1,7)=='libmono') or (string.sub(m[i].Name,1,9)=='libil2cpp') or (m[i].Name=='GameAssembly.dll') or (m[i].Name=='UnityPlayer.dll')  then
       usesmono=true
-    end
+    end   
+    
     
     if (m[i].Name=='clr.dll') or (m[i].Name=='coreclr.dll') or (m[i].Name=='clrjit.dll') then
-
       usesdotnet=true
     end    
   end

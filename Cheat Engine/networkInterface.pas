@@ -2208,19 +2208,22 @@ var
   input: Pinput;
   r:uint64;
 begin
+  OutputDebugString('TCEConnection.loadModule('+modulepath+')');
   result:=false;
-  if isNetworkHandle(hProcess) then
+   if isNetworkHandle(hProcess) then
   begin
-    getmem(input, sizeof(TInput)+length(modulepath));
+    getmem(input, sizeof(TInput)+length(modulepath)+1);
 
     input^.command:=CMD_LOADMODULE;
     input^.handle:=hProcess and $ffffff;
-    input^.modulepathlength:=Length(modulepath);
-    CopyMemory(@input^.modulename, @modulepath[1], length(modulepath));
+    input^.modulepathlength:=Length(modulepath)+1;
+    CopyMemory(@input^.modulename, @modulepath[1], length(modulepath)+1); //also include 0 terminator
 
-    if send(input,  sizeof(TInput)+length(modulepath))>0 then
+    if send(input,  sizeof(TInput)+length(modulepath)+1)>0 then
     begin
       receive(@r, sizeof(r));
+
+      OutputDebugString('CMD_LOADMODULE returned '+r.ToString);
       result:=r<>0;
     end;
 

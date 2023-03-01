@@ -95,7 +95,9 @@ begin
   if (headersize=0) or (PImageDosHeader(header)^._lfanew<=headersize-sizeof(TImageNtHeaders)) then
   begin
     ImageNTHeader:=PImageNtHeaders(ptrUint(header)+PImageDosHeader(header)^._lfanew);
+    {$ifndef cpu64}
     result:=ImageNTHeader^.OptionalHeader.BaseOfData;
+    {$endif}
   end;
 end;
 

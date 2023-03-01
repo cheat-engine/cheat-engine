@@ -87,10 +87,14 @@ begin
       begin
         result:=connection;
 
+
         {$ifdef THREADNAMESUPPORT}
-        s:=getthreadname;
-        if s<>'' then
-          connection.setConnectionName(s);
+        if connection<>nil then
+        begin
+          s:=getthreadname;
+          if s<>'' then
+            connection.setConnectionName(s);
+        end;
         {$endif}
       end
       else
