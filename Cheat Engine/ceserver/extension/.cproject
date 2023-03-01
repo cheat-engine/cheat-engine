@@ -173,7 +173,7 @@
                         						
                         <entry flags="VALUE_WORKSPACE_PATH" kind="libraryPath" name="/ceserver-extension/Debug-Linux"/>
                         						
-                        <entry flags="RESOLVED" kind="libraryFile" name="ceserver-extension_x86_64" srcPrefixMapping="" srcRootPath=""/>
+                        <entry flags="RESOLVED" kind="libraryFile" name="ceserver-extension_x86_64_linux" srcPrefixMapping="" srcRootPath=""/>
                         					
                     </externalSetting>
                     				
@@ -199,7 +199,7 @@
             			
             <storageModule moduleId="cdtBuildSystem" version="4.0.0">
                 				
-                <configuration artifactExtension="so" artifactName="${ProjName}_x86_64" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.sharedLib" buildProperties="org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.sharedLib,org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug" cleanCommand="rm -rf" description="" id="cdt.managedbuild.config.gnu.cross.exe.debug.1358909468.1869431552" name="Debug-Linux" parent="cdt.managedbuild.config.gnu.cross.exe.debug" postbuildStep="cp ${BuildArtifactFilePrefix}${BuildArtifactFileName} &quot;${WorkspaceDirPath}/ceserverbin&quot;;">
+                <configuration artifactExtension="so" artifactName="${ProjName}_x86_64_linux" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.sharedLib" buildProperties="org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.sharedLib,org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug" cleanCommand="rm -rf" description="" id="cdt.managedbuild.config.gnu.cross.exe.debug.1358909468.1869431552" name="Debug-Linux" parent="cdt.managedbuild.config.gnu.cross.exe.debug" postbuildStep="cp ${BuildArtifactFilePrefix}${BuildArtifactFileName} &quot;${WorkspaceDirPath}/ceserverbin&quot;;">
                     					
                     <folderInfo id="cdt.managedbuild.config.gnu.cross.exe.debug.1358909468.1869431552." name="/" resourcePath="">
                         						
@@ -973,7 +973,7 @@
             			
             <storageModule moduleId="cdtBuildSystem" version="4.0.0">
                 				
-                <configuration artifactExtension="so" artifactName="${ProjName}_x86" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.sharedLib" buildProperties="org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.sharedLib,org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.release" cleanCommand="rm -rf" description="" id="cdt.managedbuild.config.gnu.cross.exe.release.11823139.878848786.59856166.524055484.1038984815" name="Release-Android-x86" parent="cdt.managedbuild.config.gnu.cross.exe.release" postannouncebuildStep="copy file to android device" postbuildStep="adb push libceserver-extension_x86.so /data/data/ceserver">
+                <configuration artifactExtension="so" artifactName="${ProjName}_x86" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.sharedLib" buildProperties="org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.sharedLib,org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.release" cleanCommand="rm -rf" description="" id="cdt.managedbuild.config.gnu.cross.exe.release.11823139.878848786.59856166.524055484.1038984815" name="Release-Android-x86" parent="cdt.managedbuild.config.gnu.cross.exe.release" postannouncebuildStep="copy file to android device" postbuildStep="adb push libceserver-extension_x86.so /data/data/ceserver;cp ${BuildArtifactFilePrefix}${BuildArtifactFileName} &quot;${WorkspaceDirPath}/ceserverbin&quot;">
                     					
                     <folderInfo id="cdt.managedbuild.config.gnu.cross.exe.release.11823139.878848786.59856166.524055484.1038984815." name="/" resourcePath="">
                         						

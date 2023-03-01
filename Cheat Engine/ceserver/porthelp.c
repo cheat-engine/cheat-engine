@@ -15,6 +15,7 @@ typedef struct
 {
   handleType type;
   void *pointer;
+  int Handle;
 
 } HandleListEntry, *PHandleListEntry;
 
@@ -26,8 +27,8 @@ int CreateHandleFromPointer(void *p, handleType type)
   if (HandleList==NULL)
   {
     //Initialize the handlelist
-    HandleList_max=4096 / sizeof(HandleListEntry); //allocate around the size of 4KB
-    HandleList=(PHandleListEntry)malloc(HandleList_max*4096);
+    HandleList_max=256;
+    HandleList=(PHandleListEntry)malloc(256*sizeof(HandleListEntry));
 
     memset((void *)HandleList, 0, sizeof(HandleListEntry)*256);
   }
@@ -45,12 +46,15 @@ int CreateHandleFromPointer(void *p, handleType type)
   }
 
   //still here so not a single spot was free (wtf?)
+
+  debug_log("Reached max amount of handles (%d). Leaking some memory to make a larger list (hope for the best, and fix this handle leak that is going on)\n",HandleList_max);
+  HandleListEntry *NewHandleList=malloc(HandleList_max * 2 * sizeof(HandleListEntry));
+  memset((void *)NewHandleList, 0, HandleList_max * 2 * sizeof(HandleListEntry));
+  memcpy(NewHandleList,HandleList, sizeof(HandleList_max * sizeof(HandleListEntry)));
+
+  HandleList=NewHandleList;
   i=HandleList_max;
-
   HandleList_max=HandleList_max * 2;
-
-  HandleList=(PHandleListEntry)realloc((void *)HandleList, HandleList_max * sizeof(HandleListEntry));
-  memset((void *)&HandleList[i], 0, i); //zero the new block (i contains the old size which is the appended new size)
 
   HandleList[i].pointer=p;
   HandleList[i].type=type;

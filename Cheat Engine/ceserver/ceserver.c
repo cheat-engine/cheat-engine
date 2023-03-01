@@ -60,6 +60,10 @@ __thread char* threadname;
 char versionstring[]="CHEATENGINE Network 2.2";
 char *CESERVERPATH;
 
+volatile int connections=0;
+pthread_mutex_t connectionsCS;
+
+
 void initCESERVERPATH()
 {
   int l;
@@ -1251,6 +1255,7 @@ case CMD_SETTHREADCONTEXT:
           result=ext_loadModule(c.hProcess, modulepath);
 
 
+          debug_log("ext_loadModule returned %llx\n", result);
 
           sendall(currentsocket, &result, sizeof(result),0);
         }
@@ -1349,7 +1354,7 @@ case CMD_SETTHREADCONTEXT:
       int32_t count=0;
       recvall(currentsocket, &c, sizeof(c),0);
 
-      debug_log("CMD_PIPEREAD: %d bytes\n",c.size);
+     // debug_log("CMD_PIPEREAD: %d bytes\n",c.size);
       if (c.size)
       {
         void *buf=malloc(c.size);
@@ -1372,7 +1377,7 @@ case CMD_SETTHREADCONTEXT:
       uint32_t count=0;
       recvall(currentsocket, &c, sizeof(c),0);
 
-      debug_log("CMD_PIPEWRITE:hPipe=%d count=%d (ignored timeout:%d) \n",c.hPipe, c.size, c.timeout);
+   //  debug_log("CMD_PIPEWRITE:hPipe=%d count=%d  timeout:%d\n",c.hPipe, c.size, c.timeout);
 
       if (c.size)
       {
@@ -1386,7 +1391,7 @@ case CMD_SETTHREADCONTEXT:
           free(buf);
         }
         else
-          debug_log("failed to allocate %d bytes\n", c.size);
+          debug_log("CMD_PIPEWRITE: failed to allocate %d bytes\n", c.size);
       }
 
       sendall(currentsocket, &count, sizeof(count), 0);
@@ -1663,12 +1668,46 @@ int CheckForAndDispatchCommand(int currentsocket)
   return 0;
 }
 
+
+
+void threadStartedEvent(int socket)
+{
+  pthread_mutex_lock(&connectionsCS); //so there's no ptrace_attach busy when attaching after opening and reading memory
+  connections++;
+  pthread_mutex_unlock(&connectionsCS);
+}
+
+void threadClosedEvent(int socket)
+{
+  pthread_mutex_lock(&connectionsCS);
+  connections--;
+
+  if (connections==0)
+  {
+    debug_log("All connections gone. Closing all pipes (if any)\n");
+    CloseAllPipes();
+  }
+
+  if (connections<0)
+  {
+    debug_log("Connection counter is fucked!\n");
+    CloseAllPipes();
+
+    connections=0;
+  }
+  pthread_mutex_unlock(&connectionsCS);
+
+}
+
+
 void *newconnection(void *arg)
 {
   int s=(uintptr_t)arg;
   unsigned char command;
 
   int currentsocket=s;
+
+  threadStartedEvent(currentsocket);
 
   threadname=NULL;
   isDebuggerThread=0;
@@ -1739,7 +1778,10 @@ void *newconnection(void *arg)
     {
       debug_log("read error on socket %d (%d)\n", s, errno);
       fflush(stdout);
+
+      threadClosedEvent(currentsocket);
       close(currentsocket);
+
       return NULL;
     }
     else
@@ -1763,11 +1805,14 @@ void *newconnection(void *arg)
       else
         debug_log("Peer has disconnected\n");
       fflush(stdout);
+
+      threadClosedEvent(currentsocket);
       close(currentsocket);
       return NULL;
     }
   }
 
+  threadClosedEvent(s);
   close(s);
 
   return NULL;
@@ -1882,6 +1927,8 @@ int main(int argc, char *argv[])
   int b;
   int l;
   int a;
+
+  pthread_mutex_init(&connectionsCS, NULL);
 
   initAPI();
 

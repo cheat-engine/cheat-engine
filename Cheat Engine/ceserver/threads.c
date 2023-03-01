@@ -46,6 +46,7 @@ void AddThreadToProcess(PProcessData p, PThreadData threaddata)
 int RemoveThreadFromProcess(PProcessData p, int tid)
 {
   int i;
+
   for (i=0; i<p->threadlistpos; i++)
     if (p->threadlist[i].tid==tid)
     {

@@ -149,7 +149,7 @@ uint64_t ext_loadModule(HANDLE hProcess, char *modulepath)
     debug_log("extension loaded. Calling EXTCMD_LOADMODULE on the extensionFD\n");
 
     loadModuleCommand.command=EXTCMD_LOADMODULE;
-    loadModuleCommand.modulepathlength=strlen(modulepath);
+    loadModuleCommand.modulepathlength=strlen(modulepath)+1;
 
     debug_log("ext_loadModule: Locking extensionMutext\n");
     pthread_mutex_lock(&p->extensionMutex);
