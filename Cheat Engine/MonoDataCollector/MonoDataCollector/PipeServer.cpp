@@ -2443,7 +2443,7 @@ void CPipeServer::Start(void)
    
 	BYTE command;
 
-	//OutputDebugString("CPipeServer::Start\n");
+	OutputDebugString("CPipeServer::Start\n");
 	while (1)
 	{
 		if ((mono_runtime_is_shutting_down) && (mono_runtime_is_shutting_down()))

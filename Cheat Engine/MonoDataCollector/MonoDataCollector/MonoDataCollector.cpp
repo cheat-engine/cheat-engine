@@ -81,11 +81,13 @@ DWORD WINAPI DataCollectorEntry(LPVOID lpThreadParameter)
 #endif
 #endif
 
+	OutputDebugString("DataCollectorEntry\n");
 
+	OutputDebugString("creating new CPipeServer instance\n");
 	pw=new CPipeServer();
     
 
-
+	OutputDebugString("starting CPipeServer instance\n");
 	pw->Start();
 
 	DataCollectorThread=0;
@@ -113,7 +115,7 @@ void MacPortEntryPoint(void *param)
 }
 #endif
 
-#ifdef __linux__
+#if defined(__linux__) || defined(__ANDROID__)
 void LinuxPortEntryPoint(void *param)
 {
     DataCollectorEntry(param);

@@ -12,6 +12,8 @@
 #include <sys/un.h>
 #include <sys/types.h>
 #include <unistd.h>
+
+
 #include <chrono>
 #include <thread>
 
@@ -20,11 +22,20 @@
 #include <pthread.h>
 #include <signal.h>
 
+#include <string.h>
+
+
+
 
 
 
 #ifdef __ANDROID__
 #include <android/log.h>
+
+# define SUN_LEN(ptr) ((size_t) (((struct sockaddr_un *) 0)->sun_path)        \
+          + strlen ((ptr)->sun_path))
+
+
 #elif __linux__
 #include <syslog.h>
 #endif
@@ -38,7 +49,7 @@
 char lastpath[255];
 
 #ifdef __ANDROID__
-  #define LOG_TAG "CESERVER_EXTENSION"
+  #define LOG_TAG "MonoDataCollector"
   #define LOGD(fmt, args...) __android_log_vprint(ANDROID_LOG_DEBUG, LOG_TAG, fmt, ##args)
 #endif
 
@@ -78,6 +89,7 @@ int GetCurrentProcessId(void)
 
 int Sleep(int ms)
 {
+
     std::this_thread::sleep_for(std::chrono::milliseconds(ms));
 
     return 0;
@@ -87,19 +99,15 @@ int Sleep(int ms)
 int OutputDebugString(const char * format , ...)
 {
   va_list list;
-
-
-#ifdef __linux__
-  va_start(list,format);
-  vsyslog(LOG_NOTICE, format, list);
-  va_end(list);
-#endif
-
   va_start(list,format);
   int ret = vprintf(format,list);
+  va_end(list);
+
 
   #ifdef __ANDROID__
-    LOGD(format,list);
+  va_start(list,format);
+  LOGD(format,list);
+  va_end(list);
   #endif
 
   return ret;

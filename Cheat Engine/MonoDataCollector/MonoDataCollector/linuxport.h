@@ -9,6 +9,7 @@
 #define MONODATACOLLECTOR_LINUXPORT_H_
 
 
+
 #include <cstdint>
 #include <vector>
 #include <string>
@@ -19,6 +20,8 @@
 #include <strings.h>
 #include <stdio.h>
 #include <dlfcn.h>
+
+#include <errno.h>
 
 
 
@@ -31,6 +34,7 @@ typedef uint16_t WORD;
 typedef uint32_t DWORD, *LPDWORD;
 typedef uint32_t UINT32;
 typedef uint64_t QWORD;
+typedef int64_t INT64;
 typedef uint64_t UINT64, *PUINT64;
 
 
