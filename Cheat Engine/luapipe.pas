@@ -253,6 +253,7 @@ begin
       end;
     end;
 
+    bt:=0;
     if fconnected and (GetOverlappedResult(pipe, o^, bt,false)=false) then   //todo: check for GetOverlappedResultEx and use that
     begin
       i:=getlasterror;
@@ -265,7 +266,10 @@ begin
       end;
     end
     else
+    begin
+      o^.Internal:=bt;
       exit(fconnected);
+    end;
    end;
 
    closeConnection(fOnTimeout);
@@ -298,6 +302,7 @@ var
   starttime: qword;
   i: integer;
   overlappedevent: thandle;
+  totalwritten: dword;
   {$endif}
 begin
   if not fconnected then exit(false);
@@ -316,25 +321,42 @@ begin
       {$ifdef windows}
       if foverlapped then
       begin
-        zeromemory(@o, sizeof(o));
-
-        if waitevent=0 then
-          waitevent:=CreateEvent(nil,false,false,nil);
-
-        o.hEvent:=waitevent;
-        resetevent(o.hEvent);
-
-        if writefile(pipe, bytes^, size, bw,@o)=false then
+        totalwritten:=0;
+        while fconnected and (totalwritten<size) do
         begin
-          if GetLastError=ERROR_IO_PENDING then
-            exit(ProcessOverlappedOperation(@o))
+          zeromemory(@o, sizeof(o));
+
+          if waitevent=0 then
+            waitevent:=CreateEvent(nil,false,false,nil);
+
+
+          o.hEvent:=waitevent;
+          resetevent(o.hEvent);
+
+          if writefile(pipe, bytes^, size, bw,@o)=false then
+          begin
+            if GetLastError=ERROR_IO_PENDING then
+            begin
+              if ProcessOverlappedOperation(@o) then
+              begin
+                inc(totalwritten, o.Internal);
+                inc(bytes,o.Internal);
+              end
+              else
+                exit(false);
+            end
+            else
+            begin
+              closeConnection(fOnError);
+              exit(false);
+            end;
+          end
           else
           begin
-            closeConnection(fOnError);
-            exit(false);
+            inc(totalwritten,bw);
+            inc(bytes,bw);
           end;
         end;
-
       end
       else
         fconnected:=fconnected and writefile(pipe, bytes^, size, bw, nil);
@@ -358,6 +380,8 @@ var
   o: OVERLAPPED;
   i: integer;
   starttime: qword;
+
+  totalread: dword;
 {$endif}
 begin
   if not fconnected then exit(false);
@@ -369,38 +393,66 @@ begin
     begin
       fconnected:=c.readPipe(pipe, bytes, size, ftimeout);
       if fconnected=false then
-        closeConnection(fOnTimeout);
+        closeConnection(fOnError);
     end
     else
     begin
       {$ifdef windows}
+      starttime:=GetTickCount64;
+      totalread:=0;
+
       if foverlapped then
       begin
-        zeromemory(@o, sizeof(o));
-        if waitevent=0 then
-          waitevent:=CreateEvent(nil,false,false,nil);
-
-        o.hEvent:=waitevent;
-        resetevent(o.hEvent);
-        if Readfile(pipe, bytes^, size, br,@o)=false then
+        while fconnected and (totalread<size) do
         begin
-          if GetLastError=ERROR_IO_PENDING then
-            exit(ProcessOverlappedOperation(@o))
+          zeromemory(@o, sizeof(o));
+          if waitevent=0 then
+            waitevent:=CreateEvent(nil,false,false,nil);
+
+          o.hEvent:=waitevent;
+          resetevent(o.hEvent);
+          if Readfile(pipe, bytes^, size, br,@o)=false then
+          begin
+            if GetLastError=ERROR_IO_PENDING then
+            begin
+              if ProcessOverlappedOperation(@o) then
+              begin
+                inc(totalread, o.Internal);
+                inc(bytes, o.Internal);
+              end
+              else
+                exit(false);
+            end
+            else
+            begin
+              closeConnection(fOnError);
+              exit(false);
+            end;
+          end
           else
           begin
-            closeConnection(fOnError);
-            exit(false);
+            inc(totalread, br);
+            inc(bytes, br);
           end;
+
         end;
       end
       else
-        fconnected:=fconnected and Readfile(pipe, bytes^, size, br, nil);
+      begin
+        while fconnected and (totalread<size) do
+        begin
+          fconnected:=fconnected and Readfile(pipe, bytes^, size, br, nil);
+          inc(totalread,br);
+          inc(bytes, br);
+        end;
+      end;
       {$endif}
       {$ifdef darwin}
       fconnected:=readpipe(pipe,bytes,size,ftimeout);
       if fconnected=false then
         closeConnection(fOnTimeout);
       {$endif}
+
     end;
   end;
 
@@ -527,6 +579,37 @@ begin
   end;
 end;
 
+function pipecontrol_readQwords(L: PLua_State): integer; cdecl;
+var
+  p: TPipeconnection;
+  v: QWord;
+  count: integer;
+  results: array of qword;
+  i: integer;
+begin
+  result:=0;
+  p:=luaclass_getClassObject(L);
+  if lua_gettop(L)>=1 then
+  begin
+    count:=lua_tointeger(L,1);
+    setlength(results, count);
+
+    p.ReadBytes(@results[0],count*8);
+    if p.connected then
+    begin
+      lua_createtable(L,count,0);
+      for i:=0 to count-1 do
+      begin
+        lua_pushinteger(L,i+1);
+        lua_pushinteger(L,results[i]);
+        lua_settable(L,-3);
+      end;
+
+      result:=1;
+    end;
+  end;
+end;
+
 function pipecontrol_readDword(L: PLua_State): integer; cdecl;
 var
   p: TPipeconnection;
@@ -542,6 +625,37 @@ begin
   end;
 end;
 
+function pipecontrol_readDwords(L: PLua_State): integer; cdecl;
+var
+  p: TPipeconnection;
+  v: QWord;
+  count: integer;
+  results: array of dword;
+  i: integer;
+begin
+  result:=0;
+  p:=luaclass_getClassObject(L);
+  if lua_gettop(L)>=1 then
+  begin
+    count:=lua_tointeger(L,1);
+    setlength(results, count);
+
+    p.ReadBytes(@results[0],count*4);
+    if p.connected then
+    begin
+      lua_createtable(L,count,0);
+      for i:=0 to count-1 do
+      begin
+        lua_pushinteger(L,i+1);
+        lua_pushinteger(L,results[i]);
+        lua_settable(L,-3);
+      end;
+
+      result:=1;
+    end;
+  end;
+end;
+
 function pipecontrol_readWord(L: PLua_State): integer; cdecl;
 var
   p: TPipeconnection;
@@ -554,6 +668,37 @@ begin
   begin
     lua_pushinteger(L, v);
     result:=1;
+  end;
+end;
+
+function pipecontrol_readWords(L: PLua_State): integer; cdecl;
+var
+  p: TPipeconnection;
+  v: QWord;
+  count: integer;
+  results: array of word;
+  i: integer;
+begin
+  result:=0;
+  p:=luaclass_getClassObject(L);
+  if lua_gettop(L)>=1 then
+  begin
+    count:=lua_tointeger(L,1);
+    setlength(results, count);
+
+    p.ReadBytes(@results[0],count*2);
+    if p.connected then
+    begin
+      lua_createtable(L,count,0);
+      for i:=0 to count-1 do
+      begin
+        lua_pushinteger(L,i+1);
+        lua_pushinteger(L,results[i]);
+        lua_settable(L,-3);
+      end;
+
+      result:=1;
+    end;
   end;
 end;
 
@@ -842,8 +987,11 @@ begin
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'readDouble', pipecontrol_readDouble);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'readFloat', pipecontrol_readFloat);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'readQword', pipecontrol_readQword);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'readQwords', pipecontrol_readQwords);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'readDword', pipecontrol_readDword);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'readDwords', pipecontrol_readDwords);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'readWord', pipecontrol_readWord);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'readWords', pipecontrol_readWords);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'readByte', pipecontrol_readByte);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'readString', pipecontrol_readString);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'readWideString', pipecontrol_readWideString);
