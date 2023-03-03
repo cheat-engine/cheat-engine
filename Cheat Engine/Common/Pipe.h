@@ -1,8 +1,13 @@
 #pragma once
 
 #ifndef _WINDOWS
-#include "macport.h"
-#endif
+  #ifdef _APPLE_
+    #include "macport.h"
+  #else
+    #include "linuxport.h"
+  #endif //_APPLE_
+#endif //_WINDOWS
+
 
 class Pipe
 {
