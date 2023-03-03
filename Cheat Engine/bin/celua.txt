@@ -2032,6 +2032,8 @@ methods
   writeDword(integer)
   readQword(): integer
   writeQword(integer)
+  readString(stringlengthinbytes) : Reads a given stringcount
+  writeString(string, include0terminator: boolean OPTIONAL=false)
   readAnsiString(): string
   writeAnsiString(string)
 
@@ -2047,7 +2049,7 @@ methods
   saveToFile(filename) : Writes the contents of the memory stream to the specified file
   loadFromFileNoError(filename):boolean,string - Replaces the contents in the memory stream with the contents of a file on disk. On success returns true, else false with a secondary return the error message
   saveToFileNoError(filename):boolean,string - Writes the contents of the memory stream to the specified file. On success returns true, else false with a secondary return the error message
-
+  clear(): sets the size to 0
 
 
 FileStream Class (Inheritance: HandleStream->Stream->Object)
@@ -3163,8 +3165,11 @@ methods
   readDouble(): Read a double from the pipe, nil on failure
   readFloat(): Read a float from the pipe, nil on failure
   readQword(): Read an 8 byte value from the pipe, nil on failure
+  readQwords(count): Reads 'count' times 8 byte values from the pipe and returns it as a table
   readDword(): Read a 4 byte value from the pipe, nil on failure
+  readDwords(count): Reads 'count' times 4 byte values from the pipe and returns it as a table
   readWord(): Read a 2 byte value from the pipe, nil on failure
+  readWords(count): Reads 'count' times 2 byte values from the pipe and returns it as a table
   readByte(): Read a byte from the pipe, nil on failure
 
   readString(size: integer): Reads a string from the pipe, nil on failure.  (Can support 0-byte chars)

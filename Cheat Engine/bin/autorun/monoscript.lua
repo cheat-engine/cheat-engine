@@ -19,9 +19,9 @@ local dpiscale=getScreenDPI()/96
 
 --[[local]] monocache={}
 
-mono_timeout=3000 --change to 0 to never timeout (meaning: 0 will freeze your face off if it breaks on a breakpoint, just saying ...)
+mono_timeout=0--3000 --change to 0 to never timeout (meaning: 0 will freeze your face off if it breaks on a breakpoint, just saying ...)
 
-MONO_DATACOLLECTORVERSION=20221207
+MONO_DATACOLLECTORVERSION=20230302
 
 MONOCMD_INITMONO=0
 MONOCMD_OBJECT_GETCLASS=1
@@ -74,6 +74,9 @@ MONOCMD_GETCLASSNESTINGTYPE=45
 MONOCMD_LIMITEDCONNECTION=46
 MONOCMD_GETMONODATACOLLECTORVERSION=47
 MONOCMD_NEWSTRING=48
+
+MONOCMD_ENUMIMAGES=49 
+MONOCMD_ENUMCLASSESINIMAGEEX=50
 
 
 MONO_TYPE_END        = 0x00       -- End of List
@@ -832,6 +835,11 @@ function LaunchMonoDataCollector(internalReconnectDisconnectEachTime)
           pb=createProgressBar(MainForm.Panel4)
           pb.Align=alBottom
           pb.Max=100
+          
+          local pmCancelEnum=createPopupMenu(pb)
+          local miCancelEnum=createMenuItem(pmCancelEnum)
+          miCancelEnum.Caption=translate('Cancel symbol enum')          
+          pb.PopupMenu=pmCancelEnum
 
           local pbl=createLabel(pb)
           pbl.Caption=translate('IL2CPP symbol enum: 0%')
@@ -1120,6 +1128,103 @@ function mono_object_getClass(address)
   end
 end
 
+function mono_image_enumClassesEx(image)
+
+  --printf("mono_image_enumClassesEx(%.8x)", image)
+  local result=nil
+  
+  if monopipe then
+    m=createMemoryStream()      
+    m.writeByte(MONOCMD_ENUMCLASSESINIMAGEEX)
+    m.writeQword(image)
+    m.Position=0    
+    
+    monopipe.lock()   
+   -- printf("calling writeFromStream with %d bytes", m.size)
+    monopipe.writeFromStream(m,m.size)    
+    
+   -- printf("after write")
+    m.clear()
+    
+    local datasize=monopipe.readDword()
+    
+  --  printf("datasize=%d", datasize);
+    
+    monopipe.readIntoStream(m, datasize)    
+    monopipe.unlock()
+    
+    result={}
+    --parse the received data
+    m.Position=0
+    local count=m.readDword()
+    for i=1,count do    
+      local Class={}
+      local l
+      Class.Handle=m.readQword()
+      Class.ParentHandle=m.readQword()
+      Class.NestingTypeHandle=m.readQword()
+      l=m.readWord()      
+      Class.Name=m.readString(l)
+      l=m.readWord()
+      Class.NameSpace=m.readString(l)
+      l=m.readWord()
+      Class.FullName=m.readString(l)
+      
+      if Class.NestingTypeHandle==0 then
+        if Class.NameSpace~='' then
+          Class.FullName=Class.NameSpace..'.'..Class.Name
+        else
+          Class.FullName=Class.Name
+        end
+      end
+
+      
+      table.insert(result,Class)
+    end    
+    
+    m.destroy()   
+    
+  end
+  
+  return result
+
+end
+
+function mono_enumImagesEx(domain) 
+  --returns all the image object and the full paths to the images in one go
+
+  local result=nil
+  --if debug_canBreak() then return nil end
+  if monopipe then
+    monopipe.lock()
+    monopipe.writeByte(MONOCMD_ENUMIMAGES)
+    local datasize=monopipe.readDword()
+    
+    local m=createMemoryStream()    
+    monopipe.readIntoStream(m, datasize)
+    monopipe.unlock()
+    
+    result={}
+    --parse the received data
+    m.Position=0
+    while m.Position<m.Size do
+      local img={}
+      img.Image=m.readQword()
+      
+      local sl=m.readWord()
+      img.Path=m.readString(sl)
+      
+      table.insert(result,img)
+    end    
+    
+    m.destroy()   
+    
+
+    
+  end
+  return result
+end
+
 
 function mono_enumImages(onImage)
   local assemblies=mono_enumAssemblies()
@@ -1188,7 +1293,7 @@ function mono_setCurrentDomain(domain)
   return result;
 end
 
-function mono_enumAssemblies()
+function mono_enumAssembliesOld()
   local result=nil
   --if debug_canBreak() then return nil end
   if monopipe then
@@ -1208,8 +1313,35 @@ function mono_enumAssemblies()
   return result
 end
 
+
+
+function mono_enumAssemblies()
+  local result=nil
+  --if debug_canBreak() then return nil end
+  if monopipe then
+    monopipe.lock()
+   -- print("calling mono_enumAssemblies")
+    monopipe.writeByte(MONOCMD_ENUMASSEMBLIES)
+    local count=monopipe.readDword()
+    
+  --  printf("mono_enumAssemblies: count=%d", count)
+    
+    if count~=nil then
+      result=monopipe.readQwords(count)      
+    end
+
+    
+    monopipe.unlock()
+  --  print("after mono_enumAssemblies")
+  end
+  return result
+end
+
 function mono_getImageFromAssembly(assembly)
   --if debug_canBreak() then return nil end
+  if assembly==nil then error('mono_getImageFromAssembly: assembly is nil') end
+  if assembly==0 then error('mono_getImageFromAssembly: assembly is 0') end  
+  
   if monopipe==nil then return nil end
   monopipe.lock()  
   if monopipe==nil then return nil end

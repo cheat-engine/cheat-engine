@@ -9,6 +9,10 @@ if you select <pointersize> bytes in hexview and press ctrl+space , the disassem
 .net info: verify that pointers are actually null or point to a valid location, and booleans can only be 0 or 1
 .net info: when il2cpp is being scanned, add a rightclick to the label to cancel the enum
 
+ceserver:  accept new .elf files inside .apk.>0
+
+dbvm: Change memory while on a breakpoint doesn't seem to apply it to the cloaked page
+
 
 
 single hotkey keys sometimes stuck? sunbeam

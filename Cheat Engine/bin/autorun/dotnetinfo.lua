@@ -298,6 +298,33 @@ local function getClasses(Image)
   --get the classlist
   local i
   if (Image.Domain.Control==CONTROL_MONO) then
+    local classlist=mono_image_enumClassesEx(Image.Handle)
+    if classlist then         
+      for i=1,#classlist do
+        local e={}        
+        e.NestingTypeHandle=classlist[i].NestingTypeHandle        
+        if e.NestingTypeHandle==0 then e.NestingTypeHandle=nil end   
+        
+        e.Name=classlist[i].Name
+        e.NameSpace=classlist[i].NameSpace
+        
+        if e.NestingTypeHandle then
+          e.FullName=classlist[i].FullName
+        else
+          if e.NameSpace~='' then
+            e.FullName=e.NameSpace..'.'..e.Name
+          else
+            e.FullName=e.Name
+          end
+        end
+        e.Handle=classlist[i].Handle
+        e.ParentHandle=classlist[i].ParentHandle          
+        e.Image=Image        
+        
+        table.insert(Image.Classes,e)        
+      end     
+    end
+  --[[
     local classlist=mono_image_enumClasses(Image.Handle)        
     if classlist then         
       for i=1,#classlist do
@@ -326,6 +353,7 @@ local function getClasses(Image)
         table.insert(Image.Classes,e)        
       end     
     end
+    --]]
   else
     local classlist=DataSource.DotNetDataCollector.EnumTypeDefs(Image.Handle)  
     for i=1,#classlist do
@@ -357,13 +385,12 @@ local function getImages(Domain)
   Domain.Images.HandleLookup={}
   
   if Domain.Control==CONTROL_MONO then
-    --mono
-    local a=mono_enumAssemblies(Domain.DomainHandle)
-    for i=1,#a do
-      local image=mono_getImageFromAssembly(a[i])
+    local imagesinfo=mono_enumImagesEx(Domain.DomainHandle)
+    
+    for i=1,#imagesinfo do
       local e={}
-      e.Handle=image
-      e.Name=mono_image_get_name(image) --full path
+      e.Handle=imagesinfo[i].Image
+      e.Name=imagesinfo[i].Path
       e.FileName=extractFileName(e.Name)
       e.Domain=Domain
       table.insert(Domain.Images,e)

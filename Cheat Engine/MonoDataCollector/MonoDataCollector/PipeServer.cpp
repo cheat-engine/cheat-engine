@@ -26,7 +26,9 @@
 #include <sys/types.h>
 
 #include "PipeServer.h"
+#include "CMemStream.h"
 
+//todo: Make this multithreaded. So: Make a list of threads that can AV
 
 
 BOOL ExpectingAccessViolations = FALSE;
@@ -244,8 +246,8 @@ void CPipeServer::CreatePipeandWaitForconnect(void)
 	{
 		//OutputDebugStringA("UWPMode connection. Fetching the new serverpipe\n");
 
-		MDC_ServerPipe = (HANDLE)0xdeadbeef; //tell monoscript that it has to provide a serverpipe itself
-		while (MDC_ServerPipe == (HANDLE)0xdeadbeef)
+		MDC_ServerPipe = (HANDLE)(UINT_PTR)0xdeadbeef; //tell monoscript that it has to provide a serverpipe itself
+		while (MDC_ServerPipe == (HANDLE)(UINT_PTR)0xdeadbeef)
 			Sleep(50);
 
 		pipehandle = MDC_ServerPipe;
@@ -380,7 +382,7 @@ void CPipeServer::InitMono()
 #endif
     
 #ifdef _WINDOWS
-	HMODULE hMono = GetModuleHandle(L"mono.dll");
+	HMODULE hMono = GetModuleHandleA("mono.dll");
 	
 		
 
@@ -853,16 +855,16 @@ void CPipeServer::SetCurrentDomain(void)
 	WriteDword(r);	
 }
 
-void _cdecl AssemblyEnumerator(void *domain, std::vector<UINT64> *v)
+void _cdecl AssemblyEnumerator(void *assembly, std::vector<UINT64> *v)
 {
-	v->push_back((UINT_PTR)domain);
+	v->push_back((UINT_PTR)assembly);
 }
 
 void CPipeServer::EnumAssemblies()
 {
 	unsigned int i;
 	std::vector<UINT64> v;
-	//OutputDebugStringA("EnumAssemblies");
+
 
 	if (il2cpp)
 	{
@@ -870,7 +872,7 @@ void CPipeServer::EnumAssemblies()
 		
 		SIZE_T nrofassemblies=0;	
 		UINT_PTR *assemblies;
-		assemblies = il2cpp_domain_get_assemblies(mono_domain_get(), &nrofassemblies);
+		assemblies = il2cpp_domain_get_assemblies(mono_domain_get(), &nrofassemblies); //in il2cpp you don't need to free this
 
 		WriteDword((DWORD)nrofassemblies);
 		for (i = 0; i < (DWORD)nrofassemblies; i++)
@@ -893,6 +895,71 @@ void CPipeServer::EnumAssemblies()
 		}
 	}
 }
+
+
+void CPipeServer::EnumImages()
+{
+	//first enum all assemblies
+	unsigned int i;
+	std::vector<UINT64> v;
+
+	if (il2cpp)
+	{
+		SIZE_T nrofassemblies = 0;
+		UINT_PTR *assemblies;
+		assemblies = il2cpp_domain_get_assemblies(mono_domain_get(), &nrofassemblies); 
+
+		for (i = 0; i < nrofassemblies; i++)
+			v.push_back((UINT_PTR)assemblies[i]);
+	}
+	else
+	{
+		if (mono_assembly_foreach)
+			mono_assembly_foreach((GFunc)AssemblyEnumerator, &v);
+	}
+
+	//now build the reply
+	int32_t replypos = 0;
+	int replysize = (int)v.size() * 256;
+	char *reply = (char*)malloc(replysize);
+
+	for (i = 0; i < v.size(); i++)
+	{	
+		if ((replypos + 512+8+2) >= replysize) //512+8+2 : max size of path allowed, image pointer and stringlength
+		{
+			replysize = replysize * 2 + 512+8+2;  
+			reply = (char*)realloc(reply, replysize);
+		}
+
+		void* image=mono_assembly_get_image((void*)v[i]);
+		*(UINT64 *)&reply[replypos] = (UINT_PTR)image;
+
+		replypos += 8;
+
+		char* name = mono_image_get_name(image);
+		int len;
+		if (name)
+			len = (int)strlen(name);
+		else
+			len = 0;
+
+		if (len > 512)
+			len = 512;
+
+		*(WORD *)&reply[replypos] = (WORD)len;
+		replypos += 2;
+
+		memcpy(&reply[replypos], name, len);
+		replypos += len;
+	}
+
+	Write(&replypos, sizeof(replypos));
+
+	Write(reply, replypos);
+
+	free(reply);
+}
+
 
 void CPipeServer::GetImageFromAssembly()
 {
@@ -940,6 +1007,127 @@ WORD UTF8TOUTF16(char* szUtf8) {
 	return *(WORD*)&dest[0];
 #endif
 }
+
+void CPipeServer::EnumClassesInImageEx()
+{
+	
+	void *image = (void *)ReadQword();
+	if (image == NULL)
+	{
+		WriteDword(0);
+		return;
+	}
+
+	std::vector<UINT64> classes;
+	CMemStream reply;
+	int i;
+	
+	if (il2cpp)
+	{
+		int count = 0;
+		if ((il2cpp_image_get_class_count) && (il2cpp_image_get_class))
+			count = il2cpp_image_get_class_count(image);
+
+		reply.WriteDword(count);
+
+		for (i = 0; i < count; i++)
+		{
+			void *c = il2cpp_image_get_class(image, i);
+			reply.WriteQword((UINT64)c);
+
+			if (c)
+			{
+
+				void *parent = mono_class_get_parent ? mono_class_get_parent(c) : 0;
+				reply.WriteQword((UINT64)parent);
+
+				void *nestingtype = mono_class_get_nesting_type ? mono_class_get_nesting_type(c) : 0;
+				reply.WriteQword((UINT64)parent);
+
+				char *name = mono_class_get_name(c);
+				WORD sl = (WORD)strlen(name);
+				reply.WriteWord(sl);
+				reply.Write(name, sl);
+
+				char *ns = mono_class_get_namespace(c);
+				sl = (WORD)strlen(ns);
+				reply.WriteWord(sl);
+				reply.Write(ns, sl);
+
+				std::string fullname = GetFullTypeNameStr(c, 1, MONO_TYPE_NAME_FORMAT_REFLECTION);
+				
+				reply.WriteWord((WORD)fullname.size());
+				reply.Write((PVOID)fullname.c_str(), (unsigned int)fullname.size());
+			}
+			else
+			{
+				reply.WriteQword(0);
+				reply.WriteQword(0);
+				reply.WriteWord(0);
+				reply.WriteWord(0);
+				reply.WriteWord(0);
+			}
+
+		}
+
+	}
+	else
+	{
+		//mono
+				
+		void *tdef = mono_image_get_table_info ? mono_image_get_table_info(image, MONO_TABLE_TYPEDEF) : NULL;
+		if (tdef)
+		{
+			int tdefcount = mono_table_info_get_rows ? mono_table_info_get_rows(tdef) : NULL;
+			reply.WriteDword(tdefcount);
+
+			for (i = 0; i < tdefcount; i++)
+			{
+				void *c = mono_class_get(image, MONO_TOKEN_TYPE_DEF | (i + 1));
+				reply.WriteQword((UINT64)c);
+				if (c != NULL)
+				{				
+
+					void *parent = mono_class_get_parent ? mono_class_get_parent(c) : 0;
+					reply.WriteQword((UINT64)parent);
+
+					void *nestingtype = mono_class_get_nesting_type ? mono_class_get_nesting_type(c) : 0;
+					reply.WriteQword((UINT64)nestingtype);
+
+					char *name = mono_class_get_name(c);
+					WORD sl = (WORD)strlen(name);
+					reply.WriteWord(sl);
+					reply.Write(name, sl);
+
+					char *ns = mono_class_get_namespace(c);
+					sl = (WORD)strlen(ns);
+					reply.WriteWord(sl);
+					reply.Write(ns, sl);
+
+					std::string fullname = GetFullTypeNameStr(c, 1, MONO_TYPE_NAME_FORMAT_REFLECTION);
+
+					reply.WriteWord((WORD)fullname.size());
+					reply.Write((PVOID)fullname.c_str(), (unsigned int)fullname.size());
+				}
+				else
+				{
+					reply.WriteQword(0);
+					reply.WriteQword(0);
+					reply.WriteWord(0);
+					reply.WriteWord(0);
+					reply.WriteWord(0);
+				}
+			}
+		}
+		else
+			reply.WriteDword(0);
+		
+	}
+
+	WriteDword(reply.GetSize());
+	Write(reply.GetMemory(), reply.GetSize());
+}
+
 void CPipeServer::EnumClassesInImage()
 {
 	int i;
@@ -954,14 +1142,8 @@ void CPipeServer::EnumClassesInImage()
 	{
 		int count = 0;
 		if (il2cpp_image_get_class_count)
-		{
 			count = il2cpp_image_get_class_count(image);
-		}
-		/*
-		else
-		{
-			count = *(DWORD*)(((UINT_PTR)image) + 0x1c);
-		}*/
+
 		
 		WriteDword(count);
 
@@ -1041,53 +1223,6 @@ void CPipeServer::EnumClassesInImage()
 			WriteDword(0);
 		}
 	}
-	
-
-	/*
-	void *tdef = mono_image_get_table_info(image, MONO_TABLE_TYPEREF);
-	if (tdef)
-	{
-		int tdefcount = mono_table_info_get_rows(tdef);
-		WriteDword(tdefcount);
-
-		for (i = 0; i < tdefcount; i++)
-		{
-			void *c;
-			char *name = mono_class_name_from_token(image, MONO_TOKEN_TYPE_REF | (i + 1));
-			
-			c = mono_class_from_typeref(image, MONO_TOKEN_TYPE_REF | (i + 1));
-			if (c != NULL)
-			{
-				char *name = mono_class_get_name(c);
-
-				WriteQword((UINT_PTR)c);
-
-				if (c)
-				{
-					WriteWord(strlen(name));
-					Write(name, strlen(name));
-				}
-				else
-					WriteWord(0);
-
-				name = mono_class_get_namespace(c);
-				if (name)
-				{
-					WriteWord(strlen(name));
-					Write(name, strlen(name));
-				}
-				else
-					WriteWord(0);
-			}
-			else
-				WriteQword(0);
-		}
-	}
-	else
-	{
-		WriteDword(0);
-	}
-	*/
 }
 
 void CPipeServer::EnumFieldsInClass()
@@ -2275,6 +2410,56 @@ void CPipeServer::LoadAssemblyFromFile(void)
 	}
 }
 
+std::string CPipeServer::GetFullTypeNameStr(void* klass, char isKlass, int nameformat)
+//Returns a string with the full typename
+{
+	try
+	{
+		void *ptype = klass && isKlass ? mono_class_get_type(klass) : klass;
+	
+		if (ptype)
+		{
+			char *fullname;
+			if (il2cpp)
+				fullname = il2cpp_type_get_name(ptype);
+			else
+				fullname = mono_type_get_name_full ? mono_type_get_name_full(ptype, nameformat) : mono_type_get_name(ptype); //fallback on type_get_name in case of non exported mono_type_get_name_full
+
+			if (fullname)
+			{
+				std::string sName = std::string(fullname);
+
+				if ((BYTE)fullname[0] == 0xEE) {
+					char szUeName[32];
+					auto plus = strchr(fullname, '+');
+					if (plus) {
+						sprintf_s(szUeName, 32, "\\u%04X+\\u%04X", UTF8TOUTF16(fullname), UTF8TOUTF16(plus + 1));
+						sName = szUeName;
+					}
+					else {
+						sprintf_s(szUeName, 32, "\\u%04X", UTF8TOUTF16(fullname));
+						sName = szUeName;
+					}
+				}
+
+				return sName;
+			}
+			else
+				return "";
+		}
+		else
+		{
+			return "<invalid ptype>";
+		}
+	}
+	catch (...)
+	{
+		return "(exception)";		
+	}
+
+
+}
+
 void CPipeServer::GetFullTypeName(void)
 {
 	//ExpectingAccessViolations = TRUE;
@@ -2507,6 +2692,10 @@ void CPipeServer::Start(void)
 					EnumAssemblies();
 					break;
 
+				case MONOCMD_ENUMIMAGES:
+					EnumImages();
+					break;
+
 				case MONOCMD_GETIMAGEFROMASSEMBLY:
 					GetImageFromAssembly();
 					break;
@@ -2522,6 +2711,10 @@ void CPipeServer::Start(void)
 
 				case MONOCMD_ENUMCLASSESINIMAGE:
 					EnumClassesInImage();
+					break;
+
+				case MONOCMD_ENUMCLASSESINIMAGEEX:
+					EnumClassesInImageEx();
 					break;
 
 				case MONOCMD_ENUMFIELDSINCLASS:

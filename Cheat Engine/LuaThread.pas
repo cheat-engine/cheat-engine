@@ -25,7 +25,7 @@ implementation
 uses LuaClass, LuaObject;
 
 resourcestring
-  rsErrorInNativeThreadCalled = 'Error in native thread called ';
+  rsErrorInNativeThreadCalled = 'Error in thread called ';
   rsInNativeCode = ' in native code:';
   rsInvalidFirstParameterForCreateNativeThread = 'Invalid first parameter for createNativeThread';
 

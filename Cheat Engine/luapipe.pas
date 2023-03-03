@@ -73,7 +73,7 @@ procedure pipecontrol_addMetaData(L: PLua_state; metatable: integer; userdata: i
 implementation
 
 
-uses LuaObject, LuaByteTable, networkInterface, networkInterfaceApi;
+uses LuaObject, LuaByteTable, networkInterface, networkInterfaceApi, LuaHandler;
 
 threadvar WaitEvent: THandle;
 
@@ -955,6 +955,64 @@ begin
   end;
 end;
 
+function pipecontrol_readIntoStream(L: PLua_State): integer; cdecl;
+var
+  p: TPipeconnection;
+  stream: tstream;
+  size: integer;
+  buf: pointer;
+begin
+  result:=0;
+  p:=luaclass_getClassObject(L);
+
+  if lua_gettop(L)>=2 then
+  begin
+    stream:=lua_ToCEUserData(L,1);
+    size:=lua_tointeger(L,2);
+
+    buf:=getmem(size);
+    try
+      if p.ReadBytes(buf,size) then
+      begin
+        lua_pushinteger(L, stream.Write(buf^,size));
+        result:=1;
+      end;
+    finally
+      freemem(buf);
+    end;
+  end
+end;
+
+function pipecontrol_writeFromStream(L: PLua_State): integer; cdecl;
+var
+  p: TPipeconnection;
+  stream: tstream;
+  size: integer;
+  buf: pointer;
+begin
+  result:=0;
+  p:=luaclass_getClassObject(L);
+
+  if lua_gettop(L)>=2 then
+  begin
+    stream:=lua_ToCEUserData(L,1);
+    size:=lua_tointeger(L,2);
+
+    buf:=getmem(size);
+    try
+      stream.read(buf^,size);
+
+      if p.WriteBytes(buf,size) then
+      begin
+        lua_pushinteger(L, stream.Write(buf^,size));
+        result:=1;
+      end;
+    finally
+      freemem(buf);
+    end;
+  end
+end;
+
 function pipecontrol_lock(L: PLua_State): integer; cdecl;
 var
   p: TPipeconnection;
@@ -996,6 +1054,10 @@ begin
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'readString', pipecontrol_readString);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'readWideString', pipecontrol_readWideString);
 
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'readIntoStream', pipecontrol_readIntoStream);
+
+
+
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'writeDouble', pipecontrol_writeDouble);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'writeFloat', pipecontrol_writeFloat);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'writeQword', pipecontrol_writeQword);
@@ -1004,6 +1066,10 @@ begin
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'writeByte', pipecontrol_writeByte);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'writeString', pipecontrol_writeString);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'writeWideString', pipecontrol_writeWideString);
+
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'writeFromStream', pipecontrol_writeFromStream);
+
+
 end;
 
 initialization

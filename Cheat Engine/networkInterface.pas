@@ -2642,7 +2642,6 @@ var i: integer;
   B: BOOL=TRUE;
 begin
   result:=0;
-  fpsetsockopt(socket, IPPROTO_TCP, TCP_NODELAY, @B, sizeof(B));
 
 
   while (result<size) do
@@ -2751,7 +2750,11 @@ begin
   while not (fConnected) and (retry<5) do
   begin
     if fpconnect(socket, @SockAddr, sizeof(SockAddr)) >=0 then
-      fConnected:=true
+    begin
+      b:=TRUE;
+      fpsetsockopt(socket, IPPROTO_TCP, TCP_NODELAY, @B, sizeof(B)); //just to be sure
+      fConnected:=true;
+    end
     else
     begin
       inc(retry);

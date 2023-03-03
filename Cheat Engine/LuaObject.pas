@@ -81,6 +81,10 @@ begin
     lua_pushstring(L, '__autodestroy');
     lua_pushboolean(L, false); //make it so it doesn't need to be destroyed (again)
     lua_settable(L, metatable);
+
+    lua_pushstring(L, '__destroyed'); //it has been destroyed, but the luaside needs to garbage collect it still
+    lua_pushboolean(L, true);
+    lua_settable(L, metatable);
   end;
 end;
 
@@ -138,9 +142,11 @@ begin
   if parameters=1 then
   begin
     c:=lua_toceuserdata(L, -1);
+
     lua_pop(L, lua_gettop(l));
 
     luaclass_newClass(L, ce_getPropertylist(c));
+
     result:=1;
   end else lua_pop(L, lua_gettop(l));
 end;

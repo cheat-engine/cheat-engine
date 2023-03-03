@@ -7,7 +7,12 @@
 
 
                                 //yyyymmdd
-#define MONO_DATACOLLECTORVERSION 20221207 
+#define MONO_DATACOLLECTORVERSION 20230302 
+
+#define MONO_TYPE_NAME_FORMAT_IL  0
+#define MONO_TYPE_NAME_FORMAT_REFLECTION  1
+#define MONO_TYPE_NAME_FORMAT_FULL_NAME  2
+#define MONO_TYPE_NAME_FORMAT_ASSEMBLY_QUALIFIED  3
 
 #define MONOCMD_INITMONO 0
 #define MONOCMD_OBJECT_GETCLASS 1
@@ -59,6 +64,8 @@
 #define MONOCMD_LIMITEDCONNECTION 46
 #define MONOCMD_GETMONODATACOLLECTORVERSION 47
 #define MONOCMD_NEWSTRING 48
+#define MONOCMD_ENUMIMAGES 49
+#define MONOCMD_ENUMCLASSESINIMAGEEX 50
 
 
 typedef struct {} MonoType;
@@ -386,7 +393,9 @@ private:
 	void GetImageFromAssembly();
 	void GetImageName();
 	void GetImageFileName();
+	void EnumImages();
 	void EnumClassesInImage();
+	void EnumClassesInImageEx();
 	void EnumFieldsInClass();
 	void EnumMethodsInClass();
 	void CompileMethod();
@@ -416,6 +425,7 @@ private:
 	void InvokeMethod();
 	void LoadAssemblyFromFile();
 	void GetFullTypeName();
+	std::string GetFullTypeNameStr(void* klass, char isKlass, int nameformat);
 	void Object_New();
 	void Object_Init();
 	void IsGenericClass();
