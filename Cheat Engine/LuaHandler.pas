@@ -164,7 +164,6 @@ var
   printoutput: TStrings;
 
   waitforsymbols: boolean=true;
-  safepointers: boolean=true;
 
   autorunpath: string;
 
@@ -552,26 +551,7 @@ begin
   result:=lua_touserdata(L,i);
 
   if (result<>nil) and (lua_isheavyuserdata(L, i)) then   //once the conversion is done this if check if it's userdata can go as it will always be userdata
-  begin
-    if safepointers then
-    begin
-      if lua_getmetatable(L,i)<>0 then
-      begin
-        lua_pushstring(L,'__destroyed');
-        lua_gettable(L,-2);
-
-        if not lua_isnil(L,-1) then
-        begin
-          if lua_toboolean(L,-1)=true then exit(nil);
-        end;
-        lua_pop(L,1);
-      end
-      else
-        exit(nil); //object without metadata...
-    end;
-
     result:=ppointer(result)^;
-  end;
 end;
 
 
@@ -16205,22 +16185,6 @@ begin
 
 end;
 
-function lua_setSafePointers(L: Plua_State): integer; cdecl;
-begin
-  if lua_gettop(L)>=1 then
-  begin
-    safepointers:=lua_toboolean(L,1);
-    lua_pushboolean(L,true);
-    exit(1);
-  end
-  else
-  begin
-    lua_pushboolean(L,false);
-    lua_pushstring(L,rsIncorrectNumberOfParameters);
-    exit(2);
-  end;
-end;
-
 procedure InitLimitedLuastate(L: Plua_State);
 begin
   //don't put functioncallback events in here, as limited luastates can be destroyed
@@ -16381,10 +16345,6 @@ begin
 {$ifdef darwin}
   lua_register(L, 'createMachThread', lua_createMachThread);
 {$endif}
-
-  lua_register(L, 'setSafePointers', lua_setSafePointers);
-
-
 
 
 end;

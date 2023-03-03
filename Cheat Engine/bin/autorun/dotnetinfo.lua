@@ -324,36 +324,6 @@ local function getClasses(Image)
         table.insert(Image.Classes,e)        
       end     
     end
-  --[[
-    local classlist=mono_image_enumClasses(Image.Handle)        
-    if classlist then         
-      for i=1,#classlist do
-        local e={}        
-        e.NestingTypeHandle=mono_class_getNestingType(classlist[i].class)
-        if e.NestingTypeHandle==0 then e.NestingTypeHandle=nil end   
-        
-        e.Name=classlist[i].classname
-        e.NameSpace=classlist[i].namespace
-        
-        if e.NestingTypeHandle then
-          e.FullName=mono_class_getFullName(classlist[i].class)        
-        else
-          if e.NameSpace~='' then
-            e.FullName=e.NameSpace..'.'..e.Name
-          else
-            e.FullName=e.Name
-          end
-        end
-        e.Handle=classlist[i].class
-        e.ParentHandle=mono_class_getParent(e.Handle)                 
-          
-        e.Image=Image       
-        
-        
-        table.insert(Image.Classes,e)        
-      end     
-    end
-    --]]
   else
     local classlist=DataSource.DotNetDataCollector.EnumTypeDefs(Image.Handle)  
     for i=1,#classlist do
@@ -448,7 +418,7 @@ local function getDomains()
       table.insert(DataSource.Domains,e)
    end
   end
-  
+   
   return DataSource.Domains
 end
 
@@ -463,7 +433,7 @@ local function clearClassInformation(frmDotNetInfo)
   frmDotNetInfo.CurrentlyDisplayedClass=nil
 end
 
-local function ClassFetchWaitTillReadyAndSendData(thread, frmDotNetInfo, Image, OnDataFunction, FetchDoneFunction)
+local function ClassFetchWaitTillReadyAndSendData(thread, frmDotNetInfo, Image, Filter, FetchDoneFunction)
   --print("ClassFetchWaitTillReadyAndSendData")
   if Image.Classes==nil then 
     print("ClassFetchWaitTillReadyAndSendData Error: Image.Classes is nil")
@@ -471,6 +441,7 @@ local function ClassFetchWaitTillReadyAndSendData(thread, frmDotNetInfo, Image, 
   end
   
   while Image.Classes.Busy and (not thread.Terminated) do 
+    print("ClassFetchWaitTillReadyAndSendData: Image.Classes = busy") --'should' never happen
     sleep(100)    
   end
   
@@ -480,25 +451,19 @@ local function ClassFetchWaitTillReadyAndSendData(thread, frmDotNetInfo, Image, 
   local i
   local block={}
   local StartIndex=1
-  for i=1,#Image.Classes do
-    local j=1+((i-1) % 20)
-    block[j]=Image.Classes[i]
-    
-    if j==20 then
-      synchronize(OnDataFunction,thread, block, StartIndex)
-      StartIndex=i+1
-      block={}      
-    end
-  end
   
-  if #block>0 then
-    synchronize(OnDataFunction,thread, block, StartIndex)
-  end
+  if Filter~='' then       
+    for i=1,#Image.Classes do  
+      if Image.Classes[i].FullName:upper():find(Filter,1,true) then                
+        table.insert(frmDotNetInfo.FilteredClassList, Image.Classes[i]) 
+      end      
+    end
+  end  
   
   synchronize(FetchDoneFunction)  
 end
 
-local function StartClassFetch(frmDotNetInfo, Image, OnDataFunction, FetchDoneFunction)
+local function StartClassFetch(frmDotNetInfo, Image, Filter, FetchDoneFunction)
   --create a thread that fetches the full classlist if needed and then calls the OnDataFunction untill full 
   --StartClassFetch called while frmDotNetInfo.ClassFetchThread is not nil. Destroy the old one first  
   if frmDotNetInfo.ClassFetchThread then
@@ -507,8 +472,12 @@ local function StartClassFetch(frmDotNetInfo, Image, OnDataFunction, FetchDoneFu
     frmDotNetInfo.ClassFetchThread.waitfor()
     frmDotNetInfo.ClassFetchThread.destroy()
     frmDotNetInfo.ClassFetchThread=nil
-    
-    
+  end
+  
+  if Filter=='' then
+    frmDotNetInfo.FilteredClassList=nil
+  else
+    frmDotNetInfo.FilteredClassList={}
   end
   
   if Image.Classes==nil then
@@ -529,14 +498,14 @@ local function StartClassFetch(frmDotNetInfo, Image, OnDataFunction, FetchDoneFu
       end
       
       --all classes are fetched, send to the waiting form
-      ClassFetchWaitTillReadyAndSendData(t, frmDotNetInfo, Image, OnDataFunction, FetchDoneFunction)      
+      ClassFetchWaitTillReadyAndSendData(t, frmDotNetInfo, Image, Filter, FetchDoneFunction)      
     end)  
   else
     --create a thread that waits until Busy is false/gone and fill the list normally
     --print("Already has list")
     frmDotNetInfo.ClassFetchThread=createThread(function(t)
       t.FreeOnTerminate(false)
-      ClassFetchWaitTillReadyAndSendData(t, frmDotNetInfo, Image, OnDataFunction, FetchDoneFunction) 
+      ClassFetchWaitTillReadyAndSendData(t, frmDotNetInfo, Image, Filter, FetchDoneFunction) 
     end)
   end
   
@@ -695,10 +664,19 @@ local function edtClassFilterChange(frmDotNetInfo, sender)
   frmDotNetInfo.lbImages.OnSelectionChange(frmDotNetInfo.lbImages)
 end
 
+local function ClassListDataRequest(frmDotNetInfo, sender, listitem)
+  if frmDotNetInfo.FilteredClassList then    
+    listitem.Caption=frmDotNetInfo.FilteredClassList[listitem.index+1].FullName
+  else    
+    listitem.Caption=DataSource.Domains[frmDotNetInfo.lbDomains.ItemIndex+1].Images[frmDotNetInfo.lbImages.ItemIndex+1].Classes[listitem.index+1].FullName
+  end
+end
+
+
 
 local function ClassSelectionChange(frmDotNetInfo, sender)
   --printf("ClassSelectionChange.  ItemIndex=%d",sender.ItemIndex)
-  --printf("frmDotNetInfo.lbClasses.ItemIndex=%d",frmDotNetInfo.lbClasses.ItemIndex)  
+  --printf("frmDotNetInfo.lvClasses.ItemIndex=%d",frmDotNetInfo.lvClasses.ItemIndex)  
   
   if sender.ItemIndex>=0 then
 
@@ -707,13 +685,19 @@ local function ClassSelectionChange(frmDotNetInfo, sender)
     
     if Image.Classes==nil then return end
     
-    local lbc=frmDotNetInfo.lbClasses    
-    if lbc.ItemIndex==-1 then return end
-    
+    local lvc=frmDotNetInfo.lvClasses    
+    if lvc.ItemIndex==-1 then return end
+
+    local Class
+    if frmDotNetInfo.FilteredClassList then
+      Class=frmDotNetInfo.FilteredClassList[lvc.ItemIndex]
+    else
+      Class=Image.Classes[lvc.ItemIndex]  
+    end
 
     
-    local ClassIndex=lbc.Items.Data[lbc.ItemIndex]    
-    local Class=Image.Classes[ClassIndex]      
+   -- local ClassIndex=lvc.Items[lvc.ItemIndex].Data
+  --  local Class=Image.Classes[ClassIndex]      
     if Class==nil then return end
     
     _G.LastClass=Class 
@@ -798,12 +782,12 @@ end
 
 
 local function ImageSelectionChange(frmDotNetInfo, sender)
-  frmDotNetInfo.lbClasses.Items.clear()
+  frmDotNetInfo.lvClasses.Items.count=0
   clearClassInformation(frmDotNetInfo)
 
   if sender.ItemIndex>=0 then   
-    frmDotNetInfo.lbClasses.Enabled=false
-    frmDotNetInfo.lbClasses.Cursor=crHourGlass
+    frmDotNetInfo.lvClasses.Enabled=false
+    frmDotNetInfo.lvClasses.Cursor=crHourGlass
     
     local Domain=DataSource.Domains[frmDotNetInfo.lbDomains.ItemIndex+1]
     local Image=Domain.Images[frmDotNetInfo.lbImages.ItemIndex+1]
@@ -811,7 +795,22 @@ local function ImageSelectionChange(frmDotNetInfo, sender)
     
     
     
-    StartClassFetch(frmDotNetInfo, Image, function(thread, classlistchunk, StartIndex)
+    StartClassFetch(frmDotNetInfo, Image, frmDotNetInfo.edtClassFilter.Text:upper(),
+      function()
+        --called when done
+        if frmDotNetInfo.FilteredClassList then
+          frmDotNetInfo.lvClasses.Items.count=#frmDotNetInfo.FilteredClassList 
+        else
+          frmDotNetInfo.lvClasses.Items.count=#Image.Classes
+        end
+        
+        frmDotNetInfo.lvClasses.Enabled=true
+        frmDotNetInfo.lvClasses.Cursor=crDefault      
+      end
+    )
+    
+    --[[
+    , function(thread, classlistchunk, StartIndex)
       --print("StartIndex="..StartIndex)
       --executed every 10 lines or so, in the main thread
       local ClassFilterText=frmDotNetInfo.edtClassFilter.Text:upper()  --assume case insentivie
@@ -858,7 +857,7 @@ local function ImageSelectionChange(frmDotNetInfo, sender)
       frmDotNetInfo.lbClasses.Enabled=true
       frmDotNetInfo.lbClasses.Cursor=crDefault      
     end)
-    
+    --]]
     
   end
 end
@@ -867,7 +866,7 @@ end
 local function DomainSelectionChange(frmDotNetInfo, sender)
 
   frmDotNetInfo.lbImages.Items.clear()
-  frmDotNetInfo.lbClasses.Items.clear()
+  frmDotNetInfo.lvClasses.Items.count=0
   clearClassInformation(frmDotNetInfo)
 
   if sender.ItemIndex>=0 then
@@ -887,6 +886,54 @@ local function DomainSelectionChange(frmDotNetInfo, sender)
       frmDotNetInfo.lbImages.Items.Add(s)
     end
   end
+end
+
+local function FindInListView(listview)
+  _G.lb=lb
+  local fd=createFindDialog(frmDotNetInfo)
+  fd.Options='[frDown, frHideWholeWord,  frHideEntireScope, frHideUpDown]'
+  fd.Title='Search in '..listbox.name
+
+  
+    
+  fd.OnFind=function()
+    local caseSensitive=fd.Options:find('frMatchCase')~=nil
+    local start=listview.ItemIndex
+    start=start+1
+    
+    local needle=fd.FindText
+    if not caseSensitive then
+      needle=needle:upper()
+    end
+    
+    for i=start, listview.Items.Count-1 do      
+      local haystack=listview.Items[i].Caption      
+      
+      if not caseSensitive then
+        haystack=haystack:upper()
+      end
+           
+      if haystack:find(needle,0,true)~=nil then
+        listview.itemIndex=i
+        return
+      end
+    end
+    beep() 
+  end
+  
+  
+  fd.execute()  
+
+  local x,y
+  x=(listbox.height / 2)
+  x=x-(fd.height/2)
+  
+  y=(listbox.width / 2)
+  x=y-(fd.width / 2)
+  
+  x,y=listview.clientToScreen(x,y)
+  fd.top=y
+  fd.left=x
 end
 
 local function FindInListBox(listbox)
@@ -1060,7 +1107,7 @@ local function GeneratePatchTemplateForMethod(frmDotNetInfo)
     getClassMethods(Class) --reload the methods
     
     --reload the list and reselect the correct entry
-    ClassSelectionChange(frmDotNetInfo, frmDotNetInfo.lbClasses)
+    ClassSelectionChange(frmDotNetInfo, frmDotNetInfo.lvClasses)
         
     local i
     for i=1, #Class.Methods do
@@ -2102,7 +2149,7 @@ local function InjectInvasiveCollector()
     
     
     for i=1, #frmDotNetInfos do --refresh
-      if (frmDotNetInfos[i].lbClasses.ItemIndex~=-1) then ClassSelectionChange(frmDotNetInfos[i], frmDotNetInfo.lbClasses) end
+      if (frmDotNetInfos[i].lvClasses.ItemIndex~=-1) then ClassSelectionChange(frmDotNetInfos[i], frmDotNetInfo.lvClasses) end
     end
   end
 end
@@ -2194,7 +2241,7 @@ function miDotNetInfoClick(sender)
   frmDotNetInfo.miImageFind.ShortCut=textToShortCut('Ctrl+F')
   
   frmDotNetInfo.miClassFind.OnClick=function(f)
-    FindInListBox(frmDotNetInfo.lbClasses)
+    FindInListView(frmDotNetInfo.lvClasses)
   end  
   frmDotNetInfo.miClassFind.ShortCut=textToShortCut('Ctrl+F')
   
@@ -2261,10 +2308,11 @@ function miDotNetInfoClick(sender)
   frmDotNetInfo.lbImages.OnSelectionChange=function(sender) ImageSelectionChange(frmDotNetInfo, sender) end
   
   --Classes box setup
-  frmDotNetInfo.lbClasses.OnSelectionChange=function(sender) ClassSelectionChange(frmDotNetInfo, sender) end
+  frmDotNetInfo.lvClasses.OnSelectItem=function(sender, listitem, selected) ClassSelectionChange(frmDotNetInfo, sender) end
+  frmDotNetInfo.lvClasses.OnData=function(sender, listitem) ClassListDataRequest(frmDotNetInfo, sender, listitem) end
   
   frmDotNetInfo.edtClassFilter.OnChange=function(sender) edtClassFilterChange(frmDotNetInfo, sender) end
-  frmDotNetInfo.edtClassFilter.OnKeyDown=function(sender, key) if key==VK_DOWN then frmDotNetInfo.lbClasses.setFocus() else return key end end
+  frmDotNetInfo.edtClassFilter.OnKeyDown=function(sender, key) if key==VK_DOWN then frmDotNetInfo.lvClasses.setFocus() else return key end end
       
   --Class info setup
   
