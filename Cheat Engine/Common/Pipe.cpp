@@ -3,7 +3,11 @@
 #ifdef _WINDOWS
 #include <Windows.h>
 #else
-#include "macport.h"
+  #ifdef _APPLE_
+    #include "macport.h"
+  #else
+    #include "linuxport.h"
+  #endif
 
 #define ReadFile ReadFilePipeWrapper
 #define WriteFile WriteFilePipeWrapper
