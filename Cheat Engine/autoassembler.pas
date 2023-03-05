@@ -913,6 +913,7 @@ var i,j,k, m: integer;
       name: string;
       entries: array of TAOBEntry;
       minaddress, maxaddress: ptruint;
+      protection: string;
       memscan: TMemScan;
     end;
 
@@ -1004,6 +1005,72 @@ begin
   begin
     //AOBSCAN(variable,aobtring)  (works like define)
     currentline:=code[i];
+
+    if uppercase(copy(currentline,1,10))='AOBSCANEX(' then
+    begin
+      //convert this line from AOBSCANEX(varname,bytestring) to DEFINE(varname,address)
+      a:=pos('(',currentline);
+      b:=pos(',',currentline);
+      c:=pos(')',currentline);
+
+      if (a>0) and (b>0) and (c>0) then
+      begin
+        s1:=trim(copy(currentline,a+1,b-a-1));
+        s2:=trim(copy(currentline,b+1,c-b-1));
+
+
+        //s1=varname
+        //s2=AOBstring
+        testPtr:=0;
+        if (not syntaxcheckonly) then
+        begin
+
+          //find the ' ' module (single space)
+          m:=-1;
+          for j:=0 to length(aobscanmodules)-1 do
+            if aobscanmodules[j].name=' ' then
+            begin
+              m:=j;
+              break;
+            end;
+
+          if m=-1 then
+          begin
+            setlength(aobscanmodules, length(aobscanmodules)+1);
+            m:=length(aobscanmodules)-1;
+
+            aobscanmodules[m].name:=' ';
+            aobscanmodules[m].minaddress:=0;
+            aobscanmodules[m].protection:='*C*W+X'; //don't care about copy on write or writable, but executable must be set
+
+            {$ifdef cpu64}
+            if processhandler.is64Bit then
+              aobscanmodules[m].maxaddress:=qword($7fffffffffffffff)
+            else
+            {$endif}
+            begin
+              if Is64bitOS then
+                aobscanmodules[m].maxaddress:=$ffffffff
+              else
+                aobscanmodules[m].maxaddress:=$7fffffff;
+            end;
+
+            aobscanmodules[m].maxaddress:=qword($ffffffffffffffff);
+            setlength(aobscanmodules[m].entries,0); //shouldn't be needed, but do it anyhow
+          end;
+
+          j:=length(aobscanmodules[m].entries);
+          setlength(aobscanmodules[m].entries, j+1);
+          aobscanmodules[m].entries[j].name:=s1;
+          aobscanmodules[m].entries[j].aobstring:=s2;
+          aobscanmodules[m].entries[j].linenumber:=i;
+        end
+        else
+          code[i]:='DEFINE('+s1+', 00000000)';
+
+
+      end else raise exception.Create(rsWrongSyntaxAOBSCANName11223355);
+    end;
 
     if uppercase(copy(currentline,1,8))='AOBSCAN(' then
     begin
@@ -1226,9 +1293,9 @@ begin
       aobstrings:=aobstrings+'('+aobscanmodules[i].entries[j].aobstring+')';
 
     if length(aobscanmodules[i].entries)=1 then //bytearrays is slightly slower, so only use it if more than one entry is to be scanned
-      aobscanmodules[i].memscan.firstscan(soExactValue, vtByteArray, rtRounded, aobscanmodules[i].entries[0].aobstring, '', aobscanmodules[i].minaddress, aobscanmodules[i].maxaddress, true, false, false, false, fsmNotAligned)
+      aobscanmodules[i].memscan.firstscan(soExactValue, vtByteArray, rtRounded, aobscanmodules[i].entries[0].aobstring, aobscanmodules[i].protection, aobscanmodules[i].minaddress, aobscanmodules[i].maxaddress, true, false, false, false, fsmNotAligned)
     else
-      aobscanmodules[i].memscan.firstscan(soExactValue, vtByteArrays, rtRounded, aobstrings, '', aobscanmodules[i].minaddress, aobscanmodules[i].maxaddress, true, false, false, false, fsmNotAligned);
+      aobscanmodules[i].memscan.firstscan(soExactValue, vtByteArrays, rtRounded, aobstrings, aobscanmodules[i].protection, aobscanmodules[i].minaddress, aobscanmodules[i].maxaddress, true, false, false, false, fsmNotAligned);
   end;
 
   //now wait till all are finished

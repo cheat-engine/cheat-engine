@@ -330,6 +330,7 @@ type
     function Func68: TtkTokenKind; //include
     function Func81: TtkTokenKind; //allocnx
     function Func82: TtkTokenKind; //assert //allocxo
+    function Func84: TtkTokenKind; //aobscanex
     function Func92: TtkTokenKind; //globalalloc
     function Func99: TtkTokenKind; //reassemble
     function Func101: TtkTokenKind; //fullaccess/loadbinary/struct
@@ -623,6 +624,7 @@ begin
   fIdentFuncTable[68] := {$IFDEF FPC}@{$ENDIF}Func68;
   fIdentFuncTable[81] := {$IFDEF FPC}@{$ENDIF}Func81;
   fIdentFuncTable[82] := {$IFDEF FPC}@{$ENDIF}Func82;
+  fIdentFuncTable[84] := {$IFDEF FPC}@{$ENDIF}Func84;
   fIdentFuncTable[92] := {$IFDEF FPC}@{$ENDIF}Func92;
   fIdentFuncTable[99] := {$IFDEF FPC}@{$ENDIF}Func99;
   fIdentFuncTable[101] := {$IFDEF FPC}@{$ENDIF}Func101;
@@ -1045,6 +1047,12 @@ begin
   if KeyComp('assert') then Result := tkKey else
     if KeyComp('allocxo') then Result := tkKey else
       Result := tkIdentifier;
+end;
+
+function TSynAASyn.Func84: TtkTokenKind; //aobscanex
+begin
+  if KeyComp('aobscanex') then Result := tkKey else
+    Result := tkIdentifier;
 end;
 
 function TSynAASyn.Func92: TtkTokenKind; //globalalloc
