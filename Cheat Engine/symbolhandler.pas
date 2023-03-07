@@ -2556,7 +2556,10 @@ procedure TSymbolloaderthread.execute;
 type
   TModInfo=record
     baseaddress: qword;
+    fileoffset: dword;
     size: qword;
+    path: pchar;
+    part: integer;
   end;
   PModInfo=^TModInfo;
 var sp: pchar;
@@ -2934,7 +2937,10 @@ begin
           begin
             getmem(modinfo, sizeof(TModInfo));
             modinfo^.baseaddress:=self.owner.modulelist[i].baseaddress;
+            modinfo^.fileoffset:=self.owner.modulelist[i].elffileoffset;
             modinfo^.size:=self.owner.modulelist[i].basesize;
+            modinfo^.path:=strnew(pchar(self.owner.modulelist[i].modulepath));
+            modinfo^.part:=self.owner.modulelist[i].elfpart;
             mpl.AddObject(self.owner.modulelist[i].modulepath, tobject(modinfo));
           end;
         finally
@@ -2948,12 +2954,23 @@ begin
         begin
           modinfo:=pmodinfo(mpl.Objects[i]);
 
-          if self.owner.modulelist[i].elfpart=0 then
-            c.enumSymbolsFromFile(self.owner.modulelist[i].modulepath, modinfo^.baseaddress, NetworkES);
+          //if self.owner.modulelist[i].elfpart=0 then
+          if string(modinfo^.path).EndsWith('.apk') then
+          asm
+          nop
+          end;
+
+          if modinfo^.part=0 then
+            s:=''
+          else
+            s:='.'+inttostr(modinfo.part);
+
+          c.enumSymbolsFromFile(modinfo^.path, modinfo^.fileoffset, modinfo^.baseaddress, NetworkES,s);
 
           inc(enumeratedModules);
           fprogress:=ceil((i/modulecount)*100);
 
+          strdispose(modinfo^.path);
           freememandnil(modinfo);
 
         end;
@@ -4376,7 +4393,7 @@ begin
 
 
     symbollistsMREW.Beginread;
-    for i:=0 to length(symbollists)-1 do
+    for i:=length(symbollists)-1 downto 0 do
     begin
       si:=symbollists[i].FindFirstSymbolFromBase(mi.baseaddress);
       while (si<>nil) and inrangeq(si.address, mi.baseaddress, mi.baseaddress+mi.basesize) do
@@ -4448,7 +4465,7 @@ begin
 
 
   symbollistsMREW.BeginRead;
-  for i:=0 to length(symbollists)-1 do
+  for i:=length(symbollists)-1 downto 0 do
   begin
     setlength(list2,0);
     symbollists[i].GetModuleList(list2);
@@ -4546,7 +4563,7 @@ begin
 
 
       symbollistsMREW.beginread;
-      for i:=0 to length(symbollists)-1 do
+      for i:=length(symbollists)-1 downto 0 do
       begin
         result:=symbollists[i].getModuleByAddress(address, mi);
         if result then break;
@@ -4589,7 +4606,7 @@ begin
   if not result then
   begin
     symbollistsMREW.beginread;
-    for i:=0 to length(symbollists)-1 do
+    for i:=length(symbollists)-1 downto 0 do
     begin
       result:=symbollists[i].getModuleByName(moduleNameToFind,mi);
       if result then break;
@@ -4701,7 +4718,7 @@ begin
           begin
             //check the symbollists registered by the user
             symbollistsMREW.Beginread;
-            for i:=0 to length(symbollists)-1 do
+            for i:=length(symbollists)-1 downto 0 do
             begin
               si:=symbollists[i].FindAddress(address);
               if si<>nil then break;
@@ -5217,7 +5234,7 @@ begin
                 if si=nil then
                 begin
                   symbollistsMREW.Beginread;
-                  for j:=0 to length(symbollists)-1 do
+                  for j:=length(symbollists)-1 downto 0 do
                   begin
                     if (symbollists[j].PID=0) or (processid=symbollists[j].PID) then
                     begin
@@ -5845,6 +5862,7 @@ begin
                     newmodulelist[newmodulelistpos].isSystemModule:=true;
 
                   newmodulelist[newmodulelistpos].elfpart:=me32.GlblcntUsage;
+                  newmodulelist[newmodulelistpos].elffileoffset:=me32.ProccntUsage;
                 end;
 
                 if (not newmodulelist[newmodulelistpos].isSystemModule) and (commonModuleList<>nil) then //check if it's a common module (e.g nvidia physx dll's)

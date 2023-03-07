@@ -57,6 +57,7 @@ type TModuleInfo=record
   hasStructInfo: boolean;
   databaseModuleID: dword;
   elfpart: integer; //for network module list.  if elfpart is not 0, it's not the base so no need for symbols
+  elffileoffset: dword;
   sections: array of record
     name: string;
     size: dword;

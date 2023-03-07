@@ -3112,7 +3112,6 @@ begin
       for i:=0 to length(createthread)-1 do
       begin
         ok1:=true;
-
         try
           testptr:=symhandler.getAddressFromName(createthread[i]);
         except
@@ -4000,6 +3999,7 @@ begin
             if labels[j].labelname=dataForAACodePass2.cdata.symbols[k].name then
             begin
               labels[j].address:=dataForAACodePass2.cdata.symbols[k].address;
+              labels[j].defined:=true;
               ok1:=labels[j].address<>0;
               break;
             end;
@@ -4303,52 +4303,8 @@ begin
       begin
         for i:=0 to length(createthread)-1 do
         begin
-          ok1:=true;
-          try
-            testptr:=symhandler.getAddressFromName(createthread[i]);
-          except
-            ok1:=false;
-          end;
-
-          if not ok1 then
-            for j:=0 to length(labels)-1 do
-              if uppercase(labels[j].labelname)=uppercase(createthread[i]) then
-              begin
-                ok1:=true;
-                testptr:=labels[j].address;
-                break;
-              end;
-
-          if not ok1 then
-            for j:=0 to length(allocs)-1 do
-              if uppercase(allocs[j].varname)=uppercase(createthread[i]) then
-              begin
-                ok1:=true;
-                testptr:=allocs[j].address;
-                break;
-              end;
-
-          if not ok1 then
-            for j:=0 to length(kallocs)-1 do
-              if uppercase(kallocs[j].varname)=uppercase(createthread[i]) then
-              begin
-                ok1:=true;
-                testptr:=kallocs[j].address;
-                break;
-              end;
-
-          if not ok1 then
-            for j:=0 to length(defines)-1 do
-              if uppercase(defines[j].name)=uppercase(createthread[i]) then
-              begin
-                try
-                  testptr:=symhandler.getAddressFromName(defines[j].whatever);
-                  ok1:=true;
-                except
-                end;
-
-                break;
-              end;
+          testptr:=getAddressFromScript(createthread[i]);
+          ok1:=testptr<>0;
 
           if ok1 then //address found
           begin
