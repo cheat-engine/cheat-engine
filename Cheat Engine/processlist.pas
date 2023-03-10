@@ -45,7 +45,11 @@ var
   ModuleEntry: MODULEENTRY32;
 begin
   result:='';
-  SNAPHandle:=CreateToolhelp32Snapshot(TH32CS_SNAPMODULE{$ifdef darwin}or TH32CS_SNAPMODULEFIRSTONLY{$endif},processid);
+  if getconnection<>nil then
+    SNAPHandle:=CreateToolhelp32Snapshot(TH32CS_SNAPFIRSTMODULE{$ifdef darwin}or TH32CS_SNAPMODULEFIRSTONLY{$endif},processid)
+  else
+    SNAPHandle:=CreateToolhelp32Snapshot(TH32CS_SNAPMODULE{$ifdef darwin}or TH32CS_SNAPMODULEFIRSTONLY{$endif},processid);
+
   if SNAPHandle<>0 then
   begin
     ModuleEntry.dwSize:=sizeof(moduleentry);

@@ -10,6 +10,27 @@ if you select <pointersize> bytes in hexview and press ctrl+space , the disassem
 .net info: when il2cpp is being scanned, add a rightclick to the label to cancel the enum
 
 ceserver:  accept new .elf files inside .apk.>0
+CE connected to ceserver: Hide "Active memory only" option(s)
+
+ceserver: did a binary scan. froze at the end
+ceserver: did an aobscan (exec, ignore rest). froze at the end
+ceserver: when debugging, also use multibyte writes using the available apis
+
+autoassembler: add autocomplete for stuff like createthread, alloc, etc...
+autoassembler: Add a checkbox or something so it won't ask if you wish to keep certain symbols (always yes/always no?)
+
+enum modules and symbols: add f3 support in search
+
+ceserver: try to demangle names (register both manged and demangled names)
+
+{$c}/{ccode}:  Provide a list of warnings
+
+
+
+
+
+AddressList : Make check expand/collapse icons dpi aware
+---
 
 dbvm: Change memory while on a breakpoint doesn't seem to apply it to the cloaked page
 

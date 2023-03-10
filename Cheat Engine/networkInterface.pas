@@ -142,7 +142,7 @@ type
     function getVersion(var name: string): integer;
     function getArchitecture(hProcess: THandle): integer;
     function getABI: integer;
-    function enumSymbolsFromFile(modulepath: string; modulebase: ptruint; callback: TNetworkEnumSymCallback): boolean;
+    function enumSymbolsFromFile(modulepath: string; fileoffset: dword; modulebase: ptruint; callback: TNetworkEnumSymCallback; nameaddendum: string=''): boolean;
     function loadModule(hProcess: THandle; modulepath: string): boolean;
     function loadModuleEx(hProcess: THandle; dlopenaddress: ptruint; modulepath: string): boolean;
     function loadExtension(hProcess: Thandle): boolean;
@@ -271,6 +271,7 @@ const
 type
   TLocalModuleListEntry=class
     baseaddress: ptruint;
+    fileoffset: dword;
     size: dword;
     part: integer;
     name: string;
@@ -388,6 +389,7 @@ var ModulelistCommand: packed record
     modulebase: qword;
     modulepart: dword;
     modulesize: dword;
+    modulefileoffset: dword;
     stringlength: dword;
   end;
 
@@ -429,6 +431,8 @@ begin
     lpme.modBaseAddr:=pointer(mle.baseaddress);
     lpme.modBaseSize:=mle.size;
     lpme.GlblcntUsage:=mle.part;
+    lpme.ProccntUsage:=mle.fileoffset;
+
     copymemory(@lpme.szExePath[0], @mle.name[1], min(length(mle.name)+1, MAX_PATH));
     lpme.szExePath[MAX_PATH-1]:=#0;
 
@@ -476,6 +480,7 @@ begin
           lpme.modBaseAddr:=pointer(r.modulebase);
           lpme.modBaseSize:=r.modulesize;
           lpme.GlblcntUsage:=r.modulepart;
+          lpme.ProccntUsage:=r.modulefileoffset;
           {$ifdef darwin}
           lpme.is64bit:=processhandler.is64Bit;
           {$endif}
@@ -622,6 +627,7 @@ var CTSCommand: packed record
         modulebase: qword;
         modulepart: dword;
         modulesize: dword;
+        modulefileoffset: dword;
         stringlength: dword;
     end;
 
@@ -761,6 +767,7 @@ begin
             mle.baseaddress:=r2.modulebase;
             mle.part:=r2.modulepart;
             mle.size:=r2.modulesize;
+            mle.fileoffset:=r2.modulefileoffset;
             mle.name:=mname;
             if r2.modulepart<>0 then
               mle.name:=mle.name+'.'+inttostr(r2.modulepart);
@@ -1913,8 +1920,9 @@ begin
   begin
     if receive(@CeVersion, sizeof(CeVersion))>0 then
     begin
-      getmem(_name, CeVersion.stringsize);
+      getmem(_name, CeVersion.stringsize+1);
       receive(_name, CeVersion.stringsize);
+      _name[CeVersion.stringsize]:=#0;
 
       name:=_name;
       FreeMemAndNil(_name);
@@ -2000,10 +2008,11 @@ begin
 
 end;
 
-function TCEConnection.enumSymbolsFromFile(modulepath: string; modulebase: ptruint; callback: TNetworkEnumSymCallback): boolean;
+function TCEConnection.enumSymbolsFromFile(modulepath: string; fileoffset: dword; modulebase: ptruint; callback: TNetworkEnumSymCallback; nameaddendum: string=''): boolean;
 type
   TCeGetSymbolList=packed record
     command: byte;
+    fileoffset: uint32;
     symbolpathsize: uint32;
     path: array [0..0] of char;
   end;
@@ -2057,13 +2066,18 @@ begin
 
 
 
-  msgsize:=5+length(modulepath);
+  msgsize:=1+4+4+length(modulepath);
   getmem(msg, msgsize);
 
   msg^.command:=CMD_GETSYMBOLLISTFROMFILE;
+  msg^.fileoffset:=fileoffset;
   msg^.symbolpathsize:=length(modulepath);
   CopyMemory(@msg^.path, @modulepath[1], length(modulepath));
 
+  if fileoffset<>0 then
+  asm
+  nop
+  end;
 
   if send(msg,  msgsize)>0 then
   begin
@@ -2133,8 +2147,8 @@ begin
                   end
                   else
                   begin
-                    if (callback(shortenedmodulename, symname, modulebase+currentsymbol^.address, currentsymbol^.size, false) and
-                        callback(modulename, symname, modulebase+currentsymbol^.address, currentsymbol^.size, true))=false then
+                    if (callback(shortenedmodulename+nameaddendum, symname, modulebase+currentsymbol^.address, currentsymbol^.size, false) and
+                        callback(modulename+nameaddendum, symname, modulebase+currentsymbol^.address, currentsymbol^.size, true))=false then
                       break;
                   end;
                 end;
