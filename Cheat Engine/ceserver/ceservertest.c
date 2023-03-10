@@ -571,7 +571,14 @@ void *CESERVERTEST(int pid )
   uint64_t a;
 
   pthread_t pth;
+
+  char *output;
   debug_log("CESERVERTEST: running (v2)\n");
+
+  GetSymbolListFromFile("/home/eric/eclipse-workspace/ceserverbin/libart.so",0, &output);
+
+  if (1)
+    return NULL;
 
   //sleep(2);
   debug_log("connecting...\n");

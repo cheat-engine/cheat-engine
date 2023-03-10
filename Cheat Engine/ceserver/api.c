@@ -4160,6 +4160,7 @@ BOOL Module32Next(HANDLE hSnapshot, PModuleListEntry moduleentry)
       moduleentry->moduleName=ml->moduleList[ml->moduleListIterator].moduleName;
       moduleentry->moduleSize=ml->moduleList[ml->moduleListIterator].moduleSize;
       moduleentry->part=ml->moduleList[ml->moduleListIterator].part;
+      moduleentry->fileOffset=ml->moduleList[ml->moduleListIterator].fileOffset;
       moduleentry->is64bit=ml->moduleList[ml->moduleListIterator].is64bit;
 
       ml->moduleListIterator++;
@@ -4354,6 +4355,7 @@ HANDLE CreateToolhelp32Snapshot(DWORD dwFlags, DWORD th32ProcessID)
       while (fgets(s, 511, f)) //read a line into s
       {
         unsigned long long start, stop;
+        uint32_t fileoffset;
         char protectionstring[32],modulepath[511];
         unsigned char elfident[8];
 
@@ -4361,10 +4363,10 @@ HANDLE CreateToolhelp32Snapshot(DWORD dwFlags, DWORD th32ProcessID)
         memset(modulepath, 0, 255);
 
 
-        sscanf(s, "%llx-%llx %s %*s %*s %*s %[^\t\n]\n", &start, &stop, protectionstring, modulepath);
+        sscanf(s, "%llx-%llx %s %x %*s %*s %[^\t\n]\n", &start, &stop, protectionstring, &fileoffset, modulepath);
 
-        if (ProtectionStringToType(protectionstring)==MEM_MAPPED)
-          continue;
+        //if (ProtectionStringToType(protectionstring)==MEM_MAPPED)
+        //  continue;
 
         if (modulepath[0]) //it's something
         {
@@ -4372,7 +4374,7 @@ HANDLE CreateToolhelp32Snapshot(DWORD dwFlags, DWORD th32ProcessID)
           if (strcmp(modulepath, "[heap]")==0)  //not static enough to mark as a 'module'
             continue;
 
-         // debug_log("%s\n", modulepath);
+        //  debug_log("Checking if %s is a module\n", modulepath);
 
           if (strcmp(modulepath, "[vdso]")!=0)  //temporary patch as to not rename vdso, because it is treated differently by the ce symbol loader
           {
@@ -4393,6 +4395,7 @@ HANDLE CreateToolhelp32Snapshot(DWORD dwFlags, DWORD th32ProcessID)
           if (i==0)
           {
             //printf("%s is unreadable(%llx)\n", modulepath, start);
+          //  debug_log("unreadable so no");
             continue; //unreadable
           }
 
@@ -4410,20 +4413,25 @@ HANDLE CreateToolhelp32Snapshot(DWORD dwFlags, DWORD th32ProcessID)
             }
           }
 
-          if ((part==0) && ((elfident[0]!=ELFMAG0) || (elfident[1]!=ELFMAG1) || (elfident[2]!=ELFMAG2) || (elfident[3]!=ELFMAG3) ) )  //  7f 45 4c 46 , not yet in the list, and not an ELF
+          if (((elfident[0]!=ELFMAG0) || (elfident[1]!=ELFMAG1) || (elfident[2]!=ELFMAG2) || (elfident[3]!=ELFMAG3) ) )  //  7f 45 4c 46 , not yet in the list, and not an ELF
           {
-            //printf("%s is not an ELF(%llx).  tempbuf=%s\n", modulepath, start, tempbuf);
+         //   debug_log("%s is not an ELF (%p = %.2x %.2x %.2x %.2x)\n", modulepath, start, elfident[0], elfident[1], elfident[2], elfident[3] );
             continue; //not an ELF
           }
 
           //it's either an ELF, or there is another entry with this name in the list that is an ELF
 
-          if (dwFlags & TH32CS_SNAPFIRSTMODULE)
-            debug_log("Adding %s as a module\n", modulepath);
+          //e.g:
+          //71e8f0f86000-71e8f0fb5000 r-xp 00001000 08:13 5488717                    /data/app/com.unciv.app-8m-YznaBZ84t5VpB6J6Stg==/split_config.x86_64.apk
+
+
+          //if (dwFlags & TH32CS_SNAPFIRSTMODULE)
+         // debug_log("Adding %s as a module\n", modulepath);
 
           mle=&ml->moduleList[ml->moduleCount];
           mle->moduleName=strdup(modulepath);
           mle->baseAddress=start;
+          mle->fileOffset=fileoffset;
           mle->moduleSize=stop-start; //GetModuleSize(modulepath, 0); GetModuleSize is not a good idea as some modules have gaps in them, and alloc will use those gaps (e.g ld*.so)
           mle->part=part;
 
