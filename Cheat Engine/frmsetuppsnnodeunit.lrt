@@ -15,9 +15,9 @@ TFRMSETUPPSNNODE.LBLPRIORITY.CAPTION=Priority
 TFRMSETUPPSNNODE.LBLPUBLICNAME.CAPTION=Public name
 TFRMSETUPPSNNODE.LBLLISTENPORT.CAPTION=Listen port
 TFRMSETUPPSNNODE.EDTPORT.TEXT=52737
-TFRMSETUPPSNNODE.CBCONNECTTOOTHERNODE.HINT=Connect to another system as it's parent or child
+TFRMSETUPPSNNODE.CBCONNECTTOOTHERNODE.HINT=Connect to another system as its parent or child
 TFRMSETUPPSNNODE.CBCONNECTTOOTHERNODE.CAPTION=Connect to other node as
-TFRMSETUPPSNNODE.CBAUTOTRUSTCHILDREN.HINT=Normally when a worker terminates before the scan is done it will send all it's paths to it's connected node and then close, but if the system would crash it wouldn't be able to send it's queues to the node, causing in a loss of possible paths to examine
+TFRMSETUPPSNNODE.CBAUTOTRUSTCHILDREN.HINT=Normally when a worker terminates before the scan is done it will send all its paths to its connected node and then close, but if the system would crash it wouldn't be able to send its queues to the node, causing in a loss of possible paths to examine
 
 When unchecked the owning controller/scanner will only send it one pointerpath queue element at a time and remembers that queue element until the worker reports that it has 0 queue elements, meaning it successfully completed the work item.
 Also note that under normal circumstaces the node will accept new paths from the worker, but in the case of non stable workers this is not done and the worker has to do all the sub paths it generated itself
