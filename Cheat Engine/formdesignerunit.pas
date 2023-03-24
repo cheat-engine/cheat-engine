@@ -22,6 +22,7 @@ type
   { TFormDesigner }
 
   TFormDesigner = Class(TForm)
+    LazVirtualStringTree: TToolButton;
     FindDialog: TToolButton;
     ImageList1: TImageList;
     MainMenu1: TMainMenu;
