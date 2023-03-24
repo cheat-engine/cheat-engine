@@ -1364,7 +1364,7 @@ case CMD_SETTHREADCONTEXT:
       int32_t count=0;
       recvall(currentsocket, &c, sizeof(c),0);
 
-     // debug_log("CMD_PIPEREAD: %d bytes\n",c.size);
+      debug_log("CMD_PIPEREAD: %d bytes\n",c.size);
       if (c.size)
       {
         void *buf=malloc(c.size);
@@ -1385,18 +1385,29 @@ case CMD_SETTHREADCONTEXT:
     {
       CeWritePipe c;
       uint32_t count=0;
+      c.size=0;
       recvall(currentsocket, &c, sizeof(c),0);
 
-   //  debug_log("CMD_PIPEWRITE:hPipe=%d count=%d  timeout:%d\n",c.hPipe, c.size, c.timeout);
+     // debug_log("CMD_PIPEWRITE:hPipe=%d count=%d  timeout:%d\n",c.hPipe, c.size, c.timeout);
 
       if (c.size)
       {
+       // debug_log("valid size");
         void *buf=malloc(c.size);
         if (buf)
         {
+         // debug_log("allocated memory. Calling recvall\n");
           count=recvall(currentsocket, buf, c.size,0);
           if (count>0)
+          {
+            //debug_log("recvall returned %d\n", count);
+            //debug_log("Sending this to the pipe\n", count);
+
+           // fflush(stdout);
             count=WritePipe(c.hPipe,buf, count, c.timeout);
+
+            //debug_log("WritePipe returned %d\n", count);
+          }
 
           free(buf);
         }

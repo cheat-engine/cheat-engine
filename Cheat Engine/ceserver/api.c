@@ -3941,7 +3941,7 @@ int ReadPipe(HANDLE ph, void* destination, int size, int timeout) //todo: implem
   if (pd)
   {
     //debug_log("ReadPipe on socket %s\n", pd->pipename);
-    return recvall(pd->socket, destination, size,0);
+    return recvall(pd->socket, destination, size,MSG_NOSIGNAL);
   }
   else
     return -1;
@@ -3949,14 +3949,19 @@ int ReadPipe(HANDLE ph, void* destination, int size, int timeout) //todo: implem
 
 int WritePipe(HANDLE ph, void* source, int size, int timeout) //todo: implement timeout
 {
+ // debug_log("WritePipe %d, %p, %d, %d\n", ph, source, size, timeout);
+
   PPipeData pd=(PPipeData)GetPointerFromHandle(ph);
   if (pd)
   {
-    //debug_log("WritePipe on socket %s\n", pd->pipename);
-    return sendall(pd->socket, source, size,0);
+   // debug_log("WritePipe on socket %s\n", pd->pipename);
+    return sendall(pd->socket, source, size,MSG_NOSIGNAL);
   }
   else
+  {
+    debug_log("WritePipe: invalid handle\n");
     return -1;
+  }
 }
 
 HANDLE OpenProcess(DWORD pid)
