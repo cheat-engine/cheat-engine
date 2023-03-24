@@ -243,6 +243,7 @@ begin
 end;
 
 threadvar insideErrorHandler: boolean;
+
 function lua_defaulterrorhandler(L: Plua_State):integer; cdecl;
 var
   e: string;
@@ -250,6 +251,7 @@ var
 begin
   result:=0;
   insideErrorHandler:=true;
+
   try
     lua_getglobal(L,'onLuaError');
     if lua_isfunction(L,-1) then
@@ -288,14 +290,10 @@ begin
 
     lua_pop(L,1);
     lua_pushstring(L,traceresult);
-
-
-
     result:=1;
-  except
-    result:=0;
+  finally
+    insideErrorHandler:=false;
   end;
-  insideErrorHandler:=false;
 end;
 
 function lua_pcall(L: Plua_State; nargs, nresults, errf: Integer): Integer; cdecl;
@@ -330,12 +328,19 @@ begin
     result:=lua.lua_pcall(L, nargs, nresults, errf);
 
     if addedexceptionhandler then
+    begin
       lua_remove(L,errf);
+      errf:=0;
+    end;
+
   except
     on e: exception do
     begin
       lua_pop(L, lua_gettop(L));
       result:=LUA_ERRRUN;
+      if addedexceptionhandler then
+        errf:=0;
+
       lua_pushstring(l, e.Message);
 
       if (GetCurrentThreadId=MainThreadID) and (e.Message='Access violation') and mainform.miEnableLCLDebug.checked then
@@ -350,8 +355,6 @@ begin
   begin
     if GetCurrentThreadId=MainThreadID then
     begin
-
-
       //lua_Debug
       error:=Lua_ToString(l, -1);
       if (error<>'') then
@@ -366,7 +369,7 @@ begin
           usesluaengineform:=true;
         end;
 
-        printoutput.add(rsError+error);
+        printoutput.AddText(rsError+error);
 
         if (frmLuaEngine<>nil) and usesluaengineform and (frmLuaEngine.cbShowOnPrint.checked) then
           frmLuaEngine.show;

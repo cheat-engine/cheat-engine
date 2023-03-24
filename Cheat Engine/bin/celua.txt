@@ -1440,6 +1440,7 @@ properties
   Items: Strings - Strings derived object containings all the items in the list
   ItemIndex: integer - Get selected index. -1 is nothing selected
   Canvas: Canvas - The canvas object used to render on the object
+  DroppedDown: boolean - True if currently dropped down (can be set as well)
 
 methods
   clear()
@@ -3159,6 +3160,9 @@ properties
 methods
   lock() : Acquire a lick on this pipe till unlock is called. If lock can not be acquired, wait. Recursive calls are allowed
   unlock()
+  readIntoStream(stream,size)
+  writeFromStream(stream,size OPTIONAL) : Writes the contents of the stream for size bytes into the pipe. If size is omitted, it sends all from the current pointer
+
   writeBytes(ByteTable, size OPTIONAL): Writes the provided byte table to the pipe. if size is not provided, the whole table is sent. Returns the number of bytes sent, or nil on failure
   readBytes(size: integer): returns a byte table from the pipe, or nil on failure
 

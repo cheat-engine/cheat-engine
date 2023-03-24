@@ -101,6 +101,26 @@ begin
   result:=1;
 end;
 
+function combobox_getDroppedDown(L: PLua_State): integer; cdecl;
+var
+  combobox: TCustomcombobox;
+begin
+  combobox:=luaclass_getClassObject(L);
+  lua_pushboolean(L, combobox.DroppedDown);
+  result:=1;
+end;
+
+function combobox_setDroppedDown(L: PLua_State): integer; cdecl;
+var
+  combobox: TCustomcombobox;
+  state: boolean;
+begin
+  result:=0;
+  combobox:=luaclass_getClassObject(L);
+  if lua_gettop(L)>=1 then
+    combobox.DroppedDown:=lua_toboolean(L,1);
+end;
+
 function combobox_getExtraWidth(L: PLua_State): integer; cdecl;
 var
   combobox: TCustomcombobox;
@@ -140,6 +160,7 @@ begin
   luaclass_addPropertyToTable(L, metatable, userdata, 'Items', combobox_getItems, combobox_setItems);
   luaclass_addPropertyToTable(L, metatable, userdata, 'ItemIndex', combobox_getItemIndex, combobox_setItemIndex);
   luaclass_addPropertyToTable(L, metatable, userdata, 'Canvas', combobox_getCanvas, nil);
+  luaclass_addPropertyToTable(L, metatable, userdata, 'DroppedDown', combobox_getDroppedDown, combobox_setDroppedDown);
 end;
 
 procedure initializeLuaCombobox;
