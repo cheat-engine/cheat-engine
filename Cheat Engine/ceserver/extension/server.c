@@ -167,7 +167,7 @@ ssize_t recvall (int s, void *buf, size_t size, int flags)
       }
       else
       {
-        debug_log("Error during recvall: %d. errno=%d\n",(int)i, errno);
+        debug_log("Error during recvall: %d. errno=%d (%s)\n",(int)i, errno, strerror(errno));
         return i; //read error, or disconnected
       }
 
@@ -474,7 +474,7 @@ void *ServerThread(void *arg)
   while (!done)
   {
     struct sockaddr_un addr_client;
-    socklen_t clisize;
+    socklen_t clisize=sizeof(addr_client);
     int a;
     debug_log("extension:calling accept\n");
     a=accept(s, (struct sockaddr *)&addr_client, &clisize);
