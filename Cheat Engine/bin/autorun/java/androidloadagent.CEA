@@ -1,0 +1,152 @@
+{$c}
+#define LOG_TAG "CEJAVADC"
+
+#include <stdarg.h>
+#include <jni.h>
+#include <jvmti.h>
+
+#include <celog.h>
+#include <cejvmtiagent.c>
+
+JavaVM *vmlist[1];
+
+JNIEnv *env;
+jvmtiEnv *jvmtienv;
+
+jvmtiCapabilities wantedcap;
+
+int ceagentloadstatus;
+
+void JavaInjectAgent()
+{
+
+  struct
+  {
+    void* thread;
+    void* env;
+    void* javavm;
+  } soa;
+
+  int count;
+  jint err;
+  debug_log("Java init code");
+
+  jobject cl;
+  jclass clc;
+
+
+  if (err=JNI_GetCreatedJavaVMs(vmlist, 1, &count)!=JNI_OK)
+  {
+    debug_log("Failure getting JavaVM: %d", err);
+    ceagentloadstatus=-1;
+    return;
+  }
+
+
+  debug_log("Obtained java VM: %p", vmlist[0]);
+
+
+  JavaVM *vm;
+
+  vm=vmlist[0];
+
+  debug_log("vm=%p", vm);
+
+  env=NULL;
+
+  if (err=(*vm)->AttachCurrentThread(vm, &env, NULL)!=JNI_OK)
+  {
+    debug_log("Failure calling AttachCurrentThread: %d", err);
+    ceagentloadstatus=-2;
+    return;
+  }
+  debug_log("env=%p", env);
+  soa.thread=*(void**)((unsigned long long)env+8);
+  soa.env=env;
+  soa.javavm=*(void**)((unsigned long long)env+10);
+
+
+
+  jclass d=(*env)->FindClass(env,"android/os/Debug");
+  jclass classclass=(*env)->FindClass(env,"java/lang/Class");
+  jclass objectclass=(*env)->FindClass(env,"java/lang/Object");
+  jclass classloaderclass=(*env)->FindClass(env,"java/lang/ClassLoader");
+
+  jmethodID m;
+
+  //maybe patch IsJdwpAllowed to return 1
+  m=(*env)->GetStaticMethodID(env, d,"attachJvmtiAgent","(Ljava/lang/String;Ljava/lang/String;Ljava/lang/ClassLoader;)V");
+  debug_log("m=%p\n", m);
+
+  if (m)
+  {
+    jstring library;
+    jobject options=NULL;
+    jobject loader=NULL;
+    library=(*env)->NewStringUTF(env, "/somefakeshit/bla.so");
+    (*env)->CallStaticVoidMethod(env, d, m, library, options,loader);
+    (*env)->ExceptionClear(env);
+  }
+
+
+  if (err=(*vm)->GetEnv(vm, &jvmtienv, JVMTI_VERSION_1_2 | 0x40000000 /*0x70010200*/)!=JNI_OK)
+  {
+    debug_log("Failure getting JVMTI environment: %d", err);
+    ceagentloadstatus=-3;
+    return;
+  };
+  debug_log("jvmtienv is %p", jvmtienv);
+
+  jvmtiCapabilities potcap;
+
+  if (err=(*jvmtienv)->GetPotentialCapabilities(jvmtienv, &potcap)!=JVMTI_ERROR_NONE)
+  {
+    debug_log("Failure getting JVMTI potential capabilities: %d", err);
+    ceagentloadstatus=-4;
+    return;
+  }
+
+  debug_log("potcap=%x",potcap);
+
+  memset(&wantedcap,0, sizeof(wantedcap));
+  wantedcap.can_access_local_variables=potcap.can_access_local_variables; //debug
+  wantedcap.can_generate_all_class_hook_events=potcap.can_generate_all_class_hook_events; //runtime class editing
+ // wantedcap.can_generate_breakpoint_events=potcap.can_generate_breakpoint_events; //debug
+ // wantedcap.can_generate_compiled_method_load_events=potcap.can_generate_compiled_method_load_events; //runtime lookup
+  wantedcap.can_generate_field_access_events=potcap.can_generate_field_access_events; //find what reads
+  wantedcap.can_generate_field_modification_events=potcap.can_generate_field_modification_events; //find what writes
+  wantedcap.can_generate_single_step_events=potcap.can_generate_single_step_events; //debug, because why not...
+  wantedcap.can_get_bytecodes=potcap.can_get_bytecodes;  //runtime lookup and debug
+  wantedcap.can_get_constant_pool=potcap.can_get_constant_pool; //runtime lookup and debug
+
+  wantedcap.can_generate_method_entry_events=potcap.can_generate_method_entry_events;
+ // wantedcap.can_maintain_original_method_order=potcap.can_maintain_original_method_order; //debug, whatever
+ // wantedcap.can_redefine_any_class=potcap.can_redefine_any_class; //runtime class editing
+ // wantedcap.can_redefine_classes=potcap.can_redefine_classes; //runtime class editing
+  wantedcap.can_retransform_any_class=potcap.can_retransform_any_class; //runtime class editing
+  wantedcap.can_retransform_classes=potcap.can_redefine_classes; //runtime class editing
+  wantedcap.can_tag_objects=potcap.can_tag_objects; //runtime object searching
+
+  if (err=(*jvmtienv)->AddCapabilities(jvmtienv, &wantedcap)!=JVMTI_ERROR_NONE)
+  {
+    debug_log("Failure adding JVMTI capabilities: %d", err);
+    ceagentloadstatus=-5;
+    return;
+  }
+
+
+  debug_log("still alive, launching java jvmti server");
+
+  ceagentloadstatus=1;
+  launchCEJVMTIServer(env, jvmtienv, &soa);
+
+  ceagentloadstatus=2;
+  debug_log("launchCEJVMTIServer returned. Detaching");
+
+  (*vm)->DetachCurrentThread(vm);
+}
+
+{$asm}
+
+createthread(JavaInjectAgent)
+

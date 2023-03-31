@@ -675,6 +675,7 @@ end
 
 
 local function ClassSelectionChange(frmDotNetInfo, sender)
+  
   --printf("ClassSelectionChange.  ItemIndex=%d",sender.ItemIndex)
   --printf("frmDotNetInfo.lvClasses.ItemIndex=%d",frmDotNetInfo.lvClasses.ItemIndex)  
   
@@ -987,6 +988,9 @@ end
 local delayedResize
 
 local function InheritanceResize(gbInheritance, now)
+  local oldresize=gbInheritance.OnResize
+  gbInheritance.OnResize=nil
+  
   if delayedResize==nil then
     local f=function()
       local i,x,y
@@ -1021,7 +1025,9 @@ local function InheritanceResize(gbInheritance, now)
     --reset timer
     delayedResize.Enabled=false
     delayedResize.Enabled=true
-  end
+  end  
+  
+  gbInheritance.OnResize=oldresize
 end
 
 local function getMethodAddress(Method)
@@ -2433,7 +2439,7 @@ function miDotNetInfoClick(sender)
             
             if frmDotNetInfo.lvFields2_valuecache[node]==nil then
                
-              frmDotNetInfo.lvFields2_valuecache[node]=getFieldValue(Field, address)   --string.format("%x=%s",address, getFieldValue(Field, address)) 
+              frmDotNetInfo.lvFields2_valuecache[node]=getFieldValue(Field, address)   
             end            
               
             return frmDotNetInfo.lvFields2_valuecache[node]

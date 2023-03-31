@@ -65,6 +65,9 @@ void CJavaServer::GetLoadedClasses(void)
 	jclass *classes=NULL;
 	if (jvmti->GetLoadedClasses(&classcount, &classes)==JVMTI_ERROR_NONE) //note: this creates to the returned classes. Should be managed
 	{
+
+		//todo: now sends a stream
+
 		
 
 		WriteDword(classcount);
@@ -158,7 +161,9 @@ void CJavaServer::GetClassMethods(void)
 	jclass klass=(jclass)ReadQword();
 	jint count;
 	jmethodID *methods=NULL;
+	char *name = NULL, *sig = NULL, *gen = NULL;
 
+	
 
 
 	if (jvmti->GetClassMethods(klass, &count, &methods)==JVMTI_ERROR_NONE)
@@ -168,7 +173,47 @@ void CJavaServer::GetClassMethods(void)
 		for (i=0; i<count; i++)
 		{
 			WriteQword(UINT64(methods[i]));
-			SendMethodName(methods[i]);				
+			
+			int len;
+
+			if (jvmti->GetMethodName(methods[i], &name, &sig, &gen) == JVMTI_ERROR_NONE)
+			{
+				if (name)
+				{
+					len = (int)strlen(name);
+					WriteWord(len);
+					Write(name, len);
+					jvmti->Deallocate((unsigned char *)name);
+				}
+				else
+					WriteWord(0);
+
+				if (sig)
+				{
+					len = (int)strlen(sig);
+					WriteWord(len);
+					Write(sig, len);
+					jvmti->Deallocate((unsigned char *)sig);
+				}
+				else
+					WriteWord(0);
+
+				if (gen)
+				{
+					len = (int)strlen(gen);
+					WriteWord(len);
+					Write(gen, len);
+					jvmti->Deallocate((unsigned char *)gen);
+				}
+				else
+					WriteWord(0);
+			}
+			else
+			{
+				WriteWord(0);
+				WriteWord(0);
+				WriteWord(0);
+			}
 		}
 		jvmti->Deallocate((unsigned char *)methods);
 
@@ -216,12 +261,15 @@ void CJavaServer::SendFieldName(jclass klass, jfieldID field)
 		}
 		else
 			WriteWord(0);
+
+		WriteDword(0xffffffff);
 	}
 	else
 	{
 		WriteWord(0);
 		WriteWord(0);
 		WriteWord(0);
+		WriteDword(0xffffffff);
 	}
 }
 
@@ -628,6 +676,8 @@ void CJavaServer::GetCapabilities(void)
 	jvmtiCapabilities cap;
 	jvmti->GetCapabilities(&cap);
 
+	Write(&cap, sizeof(cap));
+/*
 	WriteByte(cap.can_access_local_variables);
 	WriteByte(cap.can_generate_all_class_hook_events);
 	WriteByte(cap.can_generate_breakpoint_events);
@@ -642,7 +692,7 @@ void CJavaServer::GetCapabilities(void)
 	WriteByte(cap.can_redefine_classes);
 	WriteByte(cap.can_retransform_any_class);
 	WriteByte(cap.can_retransform_classes);
-	WriteByte(cap.can_tag_objects);	
+	WriteByte(cap.can_tag_objects);	*/
 }
 
 void CJavaServer::GetMethodName(void)

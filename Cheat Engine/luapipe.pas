@@ -31,7 +31,8 @@ type
     cs: TGuiSafeCriticalSection;
     foverlapped: boolean;
     ftimeout: integer;
-
+    fWarnOnMainThreadLockObtaining: boolean; //to debug mainthread locks
+    fErrorOnMainThreadLockObtaining: boolean;
   public
     procedure lock;
     procedure unlock;
@@ -65,6 +66,8 @@ type
     property OnTimeout: TNotifyEvent read fOnTimeout write fOnTimeout;
     property OnError: TNotifyEvent read fOnError write fOnError;
     property Handle: THandle read pipe write pipe;
+    property WarnOnMainThreadLockObtaining: boolean read fWarnOnMainThreadLockObtaining write fWarnOnMainThreadLockObtaining;
+    property ErrorOnMainThreadLockObtaining: boolean read fErrorOnMainThreadLockObtaining write fErrorOnMainThreadLockObtaining;
   end;
 
 procedure pipecontrol_addMetaData(L: PLua_state; metatable: integer; userdata: integer );
@@ -96,6 +99,18 @@ end;
 
 procedure TPipeConnection.lock;
 begin
+  if fErrorOnMainThreadLockObtaining or fWarnOnMainThreadLockObtaining and (MainThreadID=GetCurrentThreadId) then
+  begin
+    if fErrorOnMainThreadLockObtaining then
+    begin
+      raise exception.create('No mainthread access to this pipe allowed');
+    end;
+
+    lua_getglobal(LuaVM,'print');
+    lua_pushstring(LuaVM,'Warning: pipe access from main thread');
+    lua_pcall(LuaVM,1,0,0);
+  end;
+
   if ftimeout<>0 then
     cs.Enter(ftimeout)
   else
@@ -993,10 +1008,14 @@ begin
   result:=0;
   p:=luaclass_getClassObject(L);
 
-  if lua_gettop(L)>=2 then
+  if lua_gettop(L)>=1 then
   begin
     stream:=lua_ToCEUserData(L,1);
-    size:=lua_tointeger(L,2);
+
+    if lua_gettop(L)>=2 then
+      size:=lua_tointeger(L,2)
+    else
+      size:=stream.Size-stream.Position;
 
     buf:=getmem(size);
     try
@@ -1031,12 +1050,14 @@ begin
   p.unlock;
 end;
 
+
 procedure pipecontrol_addMetaData(L: PLua_state; metatable: integer; userdata: integer );
 begin
   object_addMetaData(L, metatable, userdata);
 
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'lock', pipecontrol_lock);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'unlock', pipecontrol_unlock);
+
 
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'writeBytes', pipecontrol_writeBytes);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'readBytes', pipecontrol_readBytes);
@@ -1068,7 +1089,6 @@ begin
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'writeWideString', pipecontrol_writeWideString);
 
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'writeFromStream', pipecontrol_writeFromStream);
-
 
 end;
 

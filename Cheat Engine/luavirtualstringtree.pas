@@ -139,6 +139,23 @@ begin
   end;
 end;
 
+function VirtualStringTree_getNodeLevel(L: Plua_State): integer; cdecl;
+var
+  tv: TLazVirtualStringTree;
+  node: PVirtualNode;
+begin
+  result:=0;
+  tv:=TLazVirtualStringTree(luaclass_getClassObject(L));
+  if lua_gettop(L)>=1 then
+  begin
+    node:=lua_topointer(L,1);
+    if node<>nil then
+    begin
+      lua_pushinteger(L,tv.GetNodeLevel(node));
+      exit(1);
+    end;
+  end;
+end;
 
 function VirtualStringTree_getNodeParent(L: Plua_State): integer; cdecl;
 var
@@ -211,6 +228,42 @@ begin
     height:=lua_tointeger(L,2);
     if node<>nil then
       tv.NodeHeight[node]:=height;
+  end;
+end;
+
+function VirtualStringTree_getNodeChildCount(L: Plua_State): integer; cdecl;
+var
+  tv: TLazVirtualStringTree;
+  node: PVirtualNode;
+begin
+  result:=0;
+  tv:=TLazVirtualStringTree(luaclass_getClassObject(L));
+  if lua_gettop(L)>=1 then
+  begin
+    node:=lua_topointer(L,1);
+    if node<>nil then
+    begin
+      lua_pushinteger(L, node^.ChildCount);
+      result:=1;
+    end;
+  end;
+end;
+
+function VirtualStringTree_getNodeIndex(L: Plua_State): integer; cdecl;
+var
+  tv: TLazVirtualStringTree;
+  node: PVirtualNode;
+begin
+  result:=0;
+  tv:=TLazVirtualStringTree(luaclass_getClassObject(L));
+  if lua_gettop(L)>=1 then
+  begin
+    node:=lua_topointer(L,1);
+    if node<>nil then
+    begin
+      lua_pushinteger(L, node^.Index);
+      result:=1;
+    end;
   end;
 end;
 
@@ -753,6 +806,8 @@ begin
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'removeFromSelection', VirtualStringTree_removeFromSelection);
 
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'getNodeParent', VirtualStringTree_getNodeParent);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'getNodeLevel', VirtualStringTree_getNodeLevel);
+
 
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'enumSelectedNodes', VirtualStringTree_enumSelectedNodes);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'enumCheckedNodes', VirtualStringTree_enumCheckedNodes);
@@ -788,6 +843,8 @@ begin
   luaclass_addArrayPropertyToTable(L, metatable, userdata,'NodeParent', VirtualStringTree_getNodeParent, VirtualStringTree_setNodeParent);
   luaclass_addArrayPropertyToTable(L, metatable, userdata,'NodeHeight', VirtualStringTree_getNodeHeight, VirtualStringTree_setNodeHeight);
   luaclass_addArrayPropertyToTable(L, metatable, userdata,'HasChildren', VirtualStringTree_getHasChildren, VirtualStringTree_setHasChildren);
+  luaclass_addArrayPropertyToTable(L, metatable, userdata,'NodeChildCount', VirtualStringTree_getNodeChildCount, nil);
+  luaclass_addArrayPropertyToTable(L, metatable, userdata,'NodeIndex', VirtualStringTree_getNodeIndex, nil);
   luaclass_addArrayPropertyToTable(L, metatable, userdata,'Selected', VirtualStringTree_getSelected, VirtualStringTree_setSelected);
   luaclass_addArrayPropertyToTable(L, metatable, userdata,'Checked', VirtualStringTree_getChecked, VirtualStringTree_setChecked);
   luaclass_addArrayPropertyToTable(L, metatable, userdata,'Expanded', VirtualStringTree_getExpanded, VirtualStringTree_setExpanded);

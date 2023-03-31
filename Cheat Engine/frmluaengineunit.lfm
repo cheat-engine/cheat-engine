@@ -1,34 +1,33 @@
 object frmLuaEngine: TfrmLuaEngine
   Left = 658
-  Height = 422
+  Height = 338
   Top = 282
-  Width = 712
+  Width = 570
   HelpContext = 19
   Caption = 'Lua Engine'
-  ClientHeight = 397
-  ClientWidth = 712
-  DesignTimePPI = 120
+  ClientHeight = 318
+  ClientWidth = 570
   Menu = MainMenu1
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '2.2.4.0'
+  LCLVersion = '2.2.2.0'
   object GroupBox1: TGroupBox
     Left = 0
-    Height = 227
+    Height = 182
     Top = 0
-    Width = 712
+    Width = 570
     Align = alClient
     Caption = 'Output'
-    ClientHeight = 202
-    ClientWidth = 708
+    ClientHeight = 162
+    ClientWidth = 566
     TabOrder = 1
     object mOutput: TMemo
       Left = 0
-      Height = 202
+      Height = 162
       Top = 0
-      Width = 708
+      Width = 566
       Align = alClient
       ReadOnly = True
       ScrollBars = ssAutoBoth
@@ -37,19 +36,19 @@ object frmLuaEngine: TfrmLuaEngine
   end
   object Panel1: TPanel
     Left = 0
-    Height = 164
-    Top = 233
-    Width = 712
+    Height = 131
+    Top = 187
+    Width = 570
     Align = alBottom
     BevelOuter = bvNone
-    ClientHeight = 164
-    ClientWidth = 712
+    ClientHeight = 131
+    ClientWidth = 570
     TabOrder = 0
     object tbDebug: TToolBar
       Left = 0
-      Height = 30
+      Height = 24
       Top = 0
-      Width = 712
+      Width = 570
       AutoSize = True
       Caption = 'tbDebug'
       Enabled = False
@@ -67,7 +66,7 @@ object frmLuaEngine: TfrmLuaEngine
         ShowHint = True
       end
       object tbSingleStep: TToolButton
-        Left = 30
+        Left = 24
         Hint = 'Single Step'
         Top = 2
         Caption = 'tbSingleStep'
@@ -77,14 +76,14 @@ object frmLuaEngine: TfrmLuaEngine
         ShowHint = True
       end
       object ToolButton1: TToolButton
-        Left = 59
-        Height = 28
+        Left = 47
+        Height = 22
         Top = 2
         Caption = 'ToolButton1'
         Style = tbsDivider
       end
       object tbStopDebug: TToolButton
-        Left = 65
+        Left = 51
         Hint = 'Stop'
         Top = 2
         Caption = 'tbStopDebug'
@@ -96,24 +95,24 @@ object frmLuaEngine: TfrmLuaEngine
     end
     object Panel2: TPanel
       Left = 0
-      Height = 134
-      Top = 30
-      Width = 712
+      Height = 107
+      Top = 24
+      Width = 570
       Align = alClient
       BevelOuter = bvNone
-      ClientHeight = 134
-      ClientWidth = 712
+      ClientHeight = 107
+      ClientWidth = 570
       TabOrder = 0
       object Panel3: TPanel
-        Left = 610
-        Height = 134
+        Left = 489
+        Height = 107
         Top = 0
-        Width = 102
+        Width = 81
         Align = alRight
         AutoSize = True
         BevelOuter = bvNone
-        ClientHeight = 134
-        ClientWidth = 102
+        ClientHeight = 107
+        ClientWidth = 81
         TabOrder = 1
         OnResize = Panel2Resize
         object btnExecute: TButton
@@ -121,29 +120,29 @@ object frmLuaEngine: TfrmLuaEngine
           AnchorSideTop.Control = Panel3
           AnchorSideBottom.Control = Panel3
           AnchorSideBottom.Side = asrBottom
-          Left = 4
-          Height = 84
-          Top = 25
-          Width = 94
+          Left = 3
+          Height = 67
+          Top = 20
+          Width = 75
           Anchors = [akTop, akLeft, akBottom]
           AutoSize = True
-          BorderSpacing.Left = 4
-          BorderSpacing.Top = 25
-          BorderSpacing.Right = 4
-          BorderSpacing.Bottom = 25
+          BorderSpacing.Left = 3
+          BorderSpacing.Top = 20
+          BorderSpacing.Right = 3
+          BorderSpacing.Bottom = 20
           Caption = 'Execute'
-          Constraints.MinWidth = 94
+          Constraints.MinWidth = 75
           OnClick = btnExecuteClick
           TabOrder = 0
         end
       end
       inline mScript: TSynEdit
         Left = 0
-        Height = 134
+        Height = 107
         Top = 0
-        Width = 610
+        Width = 489
         Align = alClient
-        Font.Height = -16
+        Font.Height = -13
         Font.Name = 'Courier New'
         Font.Pitch = fpFixed
         Font.Quality = fqNonAntialiased
@@ -158,7 +157,7 @@ object frmLuaEngine: TfrmLuaEngine
         OnMouseMove = mScriptMouseMove
         OnMouseLink = mScriptMouseLink
         BookMarkOptions.BookmarkImages = ilSyneditDebug
-        Gutter.Width = 67
+        Gutter.Width = 53
         Gutter.MouseActions = <        
           item
             ClickCount = ccAny
@@ -694,14 +693,14 @@ object frmLuaEngine: TfrmLuaEngine
         OnShowHint = mScriptShowHint
         inline SynLeftGutterPartList1: TSynGutterPartList
           object SynGutterMarks1: TSynGutterMarks
-            Width = 30
+            Width = 24
             MouseActions = <            
               item
                 Command = emcOnMainGutterClick
               end>
           end
           object SynGutterLineNumber1: TSynGutterLineNumber
-            Width = 21
+            Width = 17
             MouseActions = <>
             MarkupInfo.Background = clBtnFace
             MarkupInfo.Foreground = clNone
@@ -711,20 +710,19 @@ object frmLuaEngine: TfrmLuaEngine
             LeadingZeros = False
           end
           object SynGutterChanges1: TSynGutterChanges
-            Width = 5
+            Width = 4
             Visible = False
             MouseActions = <>
             ModifiedColor = 59900
             SavedColor = clGreen
           end
           object SynGutterSeparator1: TSynGutterSeparator
-            Width = 3
+            Width = 2
             MouseActions = <>
             MarkupInfo.Background = clWhite
             MarkupInfo.Foreground = clGray
           end
           object SynGutterCodeFolding1: TSynGutterCodeFolding
-            Width = 13
             MouseActions = <            
               item
                 Button = mbRight
@@ -782,16 +780,16 @@ object frmLuaEngine: TfrmLuaEngine
   object Splitter1: TSplitter
     Cursor = crVSplit
     Left = 0
-    Height = 6
-    Top = 227
-    Width = 712
+    Height = 5
+    Top = 182
+    Width = 570
     Align = alBottom
     ResizeAnchor = akBottom
   end
   object MainMenu1: TMainMenu
     Images = leImageList
-    Left = 329
-    Top = 54
+    Left = 263
+    Top = 43
     object MenuItem1: TMenuItem
       Caption = 'File'
       object MenuItem11: TMenuItem
@@ -863,19 +861,19 @@ object frmLuaEngine: TfrmLuaEngine
   object OpenDialog1: TOpenDialog
     DefaultExt = '.LUA'
     Filter = 'Lua files (*.lua)|*.lua'
-    Left = 70
-    Top = 51
+    Left = 56
+    Top = 41
   end
   object SaveDialog1: TSaveDialog
     DefaultExt = '.LUA'
     Filter = 'Lua files (*.lua)|*.lua'
-    Left = 160
-    Top = 54
+    Left = 128
+    Top = 43
   end
   object pmEditor: TPopupMenu
     Images = leImageList
-    Left = 80
-    Top = 190
+    Left = 64
+    Top = 152
     object miCut: TMenuItem
       Caption = 'Cut'
       ImageIndex = 7
@@ -945,12 +943,12 @@ object frmLuaEngine: TfrmLuaEngine
     Options = [frDown, frReplaceAll]
     OnFind = dlgReplaceFind
     OnReplace = dlgReplaceReplace
-    Left = 380
-    Top = 230
+    Left = 304
+    Top = 184
   end
   object ilLuaDebug: TImageList
-    Left = 440
-    Top = 54
+    Left = 352
+    Top = 43
     Bitmap = {
       4C7A050000001000000010000000220600000000000078DACD97694C545714C7
       F9D02F4D6A5325D5B669636AD3A8A99AD426A452B52E41E206750594C5AA65D8
@@ -1005,8 +1003,8 @@ object frmLuaEngine: TfrmLuaEngine
     }
   end
   object ilSyneditDebug: TImageList
-    Left = 560
-    Top = 51
+    Left = 448
+    Top = 41
     Bitmap = {
       4C7A030000001000000010000000950300000000000078DAED957B4853511CC7
       6F4F7A97E68AD9B6348B2C22D232873DA9CCA59599624F4D6791F6704AA69473
@@ -1044,13 +1042,13 @@ object frmLuaEngine: TfrmLuaEngine
     Enabled = False
     Interval = 500
     OnTimer = tShowHintTimer
-    Left = 160
-    Top = 230
+    Left = 128
+    Top = 184
   end
   object FindDialog1: TFindDialog
     OnFind = dlgReplaceFind
-    Left = 269
-    Top = 230
+    Left = 215
+    Top = 184
   end
   object scLuaCompleter: TSynCompletion
     OnExecute = scLuaCompleterExecute
@@ -1068,13 +1066,13 @@ object frmLuaEngine: TfrmLuaEngine
     ExecCommandID = ecSynCompletionExecute
     Editor = mScript
     ToggleReplaceWhole = False
-    Left = 520
-    Top = 230
+    Left = 416
+    Top = 184
   end
   object leImageList: TImageList
     Scaled = True
-    Left = 276
-    Top = 150
+    Left = 221
+    Top = 120
     Bitmap = {
       4C7A0D0000001000000010000000440D00000000000078DADD9A0958535716C7
       D3A99DB6B69DB1F673A6635B46BBE1A7D871EB68ABADD8160B7671C15811D771

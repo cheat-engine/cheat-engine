@@ -3961,6 +3961,8 @@ methods
 
 VirtualTreeColunmns class:
 properties
+  []: VirtualTreeColunmn
+
 methods
   add(text OPTIONAL) : Created ands returns a new VirtualTreeColumn object
 
@@ -4101,6 +4103,8 @@ properties
   HasChildren[node]: boolean - gets/sets the state that the node has children
   Selected[node]: boolean - gets/sets the selected state of the node
   Expanded[node]: boolean - gets/sets if the node is expanded (calls onExpanding when set to true)
+  NodeChildCount[node]: integer - Gets the number of childnodes
+  NodeIndex[node]: integer - Gets the index of the node in relation to it's parent
 
 methods
   saveToFile(filepath)
@@ -4134,7 +4138,7 @@ methods
   getNodeParent(node): node - returns a parent node, or nil
   getFirstChild(node): node - returns the first child of a node
   getNextSibling(node): node - gets the next sibling
-
+  getNodeLevel(node): integer - gets the level at which this node resided (it does this by calling getNodeParent until it hits nil)
 
 ----CEServer----
 connectToCEServer(hostname,port) - Connects to the given host and port. On success, most commands subsequent will be handled by the server. Like processlist, memory reading, etc...

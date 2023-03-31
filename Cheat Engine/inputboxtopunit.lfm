@@ -11,7 +11,7 @@ object InputboxTop: TInputboxTop
   FormStyle = fsStayOnTop
   OnShow = FormShow
   Position = poOwnerFormCenter
-  LCLVersion = '2.0.6.0'
+  LCLVersion = '2.2.2.0'
   object Label1: TLabel
     Left = 3
     Height = 15

@@ -1,13 +1,17 @@
 branch mapper dpi issues
 
-if you select <pointersize> bytes in hexview and press ctrl+space , the disassembler should change to the selected address
+if you select 4/8 bytes in hexview and press ctrl+space , the disassembler should change to the selected address
+if you select 4 bytes and press space then also go to that address
+
+fix jvmti on windows (I messed up the lua)
 
 .net info: getting the classlist takes long and it looks like nothing happens, and seems to wait till the symbol enum is done
 .net info: add some grouped commands for data gathering
 .net info: add option to skip the value fetcher
-.net info: lookup instances should grey the button while the scan is going
-.net info: verify that pointers are actually null or point to a valid location, and booleans can only be 0 or 1
-.net info: when il2cpp is being scanned, add a rightclick to the label to cancel the enum
+.net info: lookup instances should grey the button while the scan is going, and when done, dropdown the list for you
+.net info: instance lookup: verify that pointers are actually null or point to a valid location (preferably of the correct classtype?), and booleans can only be 0 or 1
+.net info: when il2cpp is being scanned, add a rightclick to the label at the bottom of ce's main screen that shows the progress, to cancel the enum
+.net info: Make the static fields list also a virtualstringtree
 
 ceserver:  accept new .elf files inside .apk.>0
 CE connected to ceserver: Hide "Active memory only" option(s)
@@ -23,13 +27,37 @@ enum modules and symbols: add f3 support in search
 
 ceserver: try to demangle names (register both manged and demangled names)
 
+symhandler: if _errno can't be found, look for a __errno instead (android thing)
+
+enumerate dll's doesn't show some value entries like _ZN3art7Runtime9instance_E
+
+lua engine code completion: string..get<ctrl+space> doesn't work. needs string.. get<ctrl+space> change it to .. does work
+lua engine debug: highlight over array[index].name doesn't get the value. (Check if it is a table, and if so, get the table and then query the field)
+lua engine debug: highlight over a table shows the table, but if you highlight table[index] it still shows the whole table instead of just that indexed entry
+
 {$c}/{ccode}:  Provide a list of warnings
+{$c}/{$ccode}: fix kernel allocation
 
-
-
+codelist: Replace with nops: If a module in the list doesn't exist (or different process) an error is shown and it won't nop
+codelist: replace with nops: if the address is already in the list it'll ask to add again.  It should just nop
 
 
 AddressList : Make check expand/collapse icons dpi aware
+
+lua doesn't show errors anymore if the error is inside a component/luacaller   e.g: blax==nil and then blax.xxxx();
+for class fetching in java for android, add a downloadbar/progressbar
+
+processlist with ceserver: rightclick refresh does nothing
+
+ceserver: Add a pthread_create call that can be done without .so injection (so c-code can run all by itself)
+
+
+memscan lua formula scan: value>oldvalue+1000 and value<oldvalue+2000 crashes CE  : value>previousvalue+1000 and value<previousvalue+2000 works  So: add syntaxchecking with values before starting the scan
+
+auto assembler: 6 byte jmp option where CE will do a scan for a 8 byte codecave
+auto assembler: 5 byte jmp option where CE will do a scan for a 14 byte codecave
+DPI: form designer: anchor editor has crappy size on first time show
+
 ---
 
 dbvm: Change memory while on a breakpoint doesn't seem to apply it to the cloaked page

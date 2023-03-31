@@ -4418,7 +4418,8 @@ begin
       freeandnil(tokens);
 
     {$IFNDEF jni}
-    pluginhandler.handleAutoAssemblerPlugin(@currentlinep, 3,aaid); //tell the plugins to free their data
+    if pluginhandler<>nil then
+      pluginhandler.handleAutoAssemblerPlugin(@currentlinep, 3,aaid); //tell the plugins to free their data
 
     if targetself then
     begin

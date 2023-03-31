@@ -999,7 +999,7 @@ begin
               // or alternatively:
               //if ((pui^.countOfUnwindCodes=0) and (pui^.sizeOfProlog=0) and (pui^.frameregister=0) and (pui^.frameregisteroffset=0)) then
               begin
-               // continue; //invalid
+                continue; //invalid
               end;
 
             end;

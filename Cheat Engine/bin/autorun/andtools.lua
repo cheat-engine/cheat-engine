@@ -1,7 +1,7 @@
 require("lfs")
 andtools={}
 
-andtools.path=getAutorunPath()..[[andtools\]]
+andtools.path=getAutorunPath()..[[andtools\]]  --todo: if nox is running, use the adb tool from nox instead
 andtools.workpath=andtools.path..[[temp\]] --getTempFolder()
 lfs.mkdir(andtools.workpath)
 andtools.deviceidselectioncommand=''
@@ -253,4 +253,4 @@ end
 --end
 
 
-return andtools.getDeviceList()
+--return andtools.getDeviceList()

@@ -66,11 +66,13 @@ var
 begin
   SourceCodeInfo.getRange(searchkey.startaddress, searchkey.stopaddress);
   n:=collection.Find(@searchkey);
-
-  if n<>nil then
+  while n<>nil do
   begin
-    freemem(n.Data);
+    if (n.data<>nil) then
+      FreeMemAndNil(n.Data);
+
     collection.Delete(n);
+    n:=collection.Find(@searchkey);
   end;
 end;
 

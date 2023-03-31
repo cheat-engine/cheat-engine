@@ -3107,6 +3107,7 @@ begin
 end;
 
 function TScanner.DWordLuaFormula(newvalue,oldvalue: pointer): boolean;
+var t: integer;
 begin
   lua_pushvalue(L,-1);
 
