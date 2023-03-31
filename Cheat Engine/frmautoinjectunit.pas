@@ -1111,6 +1111,7 @@ var
   temps: string;
 
   rewritten: boolean;
+  commapos: integer;
 begin
   d:=TDisassembler.create;
   if skipsymbols then
@@ -1123,6 +1124,7 @@ begin
   d.disassemble(address);
 
   addressSpecifierIndexPos:=d.LastDisassembleData.parameters.IndexOf('[');
+  commapos:=d.LastDisassembleData.parameters.IndexOf(',')
 
   if (processhandler.SystemArchitecture=archX86) and (farjmp) and (d.LastDisassembleData.riprelative>0) and (addressSpecifierIndexPos<>-1 ) then
   begin
@@ -1160,17 +1162,25 @@ begin
       end;
     end;
 
-
     if rewritten=false then
     begin
       //not a write, or formatted in a way not handled
-
       usedReg:='';
       usedReg2:='';
-      if d.LastDisassembleData.parameters.Contains('rax')=false then
+      if not (d.LastDisassembleData.parameters.Contains('rax') or
+         d.LastDisassembleData.parameters.Contains('eax') or
+         d.LastDisassembleData.parameters.Contains('ax') or
+         d.LastDisassembleData.parameters.Contains('ah') or
+         d.LastDisassembleData.parameters.Contains('al'))
+      then
         usedReg:='rax'
       else
-      if d.LastDisassembleData.parameters.Contains('rbx')=false then
+      if not (d.LastDisassembleData.parameters.Contains('rbx') or
+         d.LastDisassembleData.parameters.Contains('ebx') or
+         d.LastDisassembleData.parameters.Contains('bx') or
+         d.LastDisassembleData.parameters.Contains('bh') or
+         d.LastDisassembleData.parameters.Contains('bl'))
+      then
       begin
         if usedReg='' then
           usedreg:='rbx'
@@ -1178,7 +1188,12 @@ begin
           usedreg2:='rbx';
       end
       else
-      if d.LastDisassembleData.parameters.Contains('rcx')=false then
+      if not (d.LastDisassembleData.parameters.Contains('rcx') or
+         d.LastDisassembleData.parameters.Contains('ecx') or
+         d.LastDisassembleData.parameters.Contains('cx') or
+         d.LastDisassembleData.parameters.Contains('ch') or
+         d.LastDisassembleData.parameters.Contains('cl'))
+      then
       begin
         if usedReg='' then
           usedreg:='rcx'
@@ -1186,7 +1201,12 @@ begin
           usedreg2:='rcx';
       end
       else
-      if d.LastDisassembleData.parameters.Contains('rdx')=false then
+      if not (d.LastDisassembleData.parameters.Contains('rdx') or
+         d.LastDisassembleData.parameters.Contains('edx') or
+         d.LastDisassembleData.parameters.Contains('dx') or
+         d.LastDisassembleData.parameters.Contains('dh') or
+         d.LastDisassembleData.parameters.Contains('dl'))
+      then
       begin
         if usedReg='' then
           usedreg:='rdx'
@@ -1194,7 +1214,7 @@ begin
           usedreg2:='rdx';
       end
       else
-      if d.LastDisassembleData.parameters.Contains('r8')=false then
+      if not d.LastDisassembleData.parameters.Contains('r8') then
       begin
         if usedReg='' then   //impossible...
           usedreg:='r8'
