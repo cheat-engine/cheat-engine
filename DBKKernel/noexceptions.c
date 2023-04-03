@@ -62,7 +62,7 @@ BOOL NoExceptions_Enter()
 						//alloc failed, cleanup and quit
 						int j;
 						for (j = i - 1; j >= 0; j--)
-							ExFreePool(cpustate[i].NoExceptionVectorList);
+							ExFreePool(cpustate[j].NoExceptionVectorList);
 
 						cpustate = NULL;
 						return FALSE;
