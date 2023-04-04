@@ -433,11 +433,23 @@ begin
     lpme.GlblcntUsage:=mle.part;
     lpme.ProccntUsage:=mle.fileoffset;
 
-    copymemory(@lpme.szExePath[0], @mle.name[1], min(length(mle.name)+1, MAX_PATH));
+    mnames:=mle.name;
+
+    if mle.part>0 then
+    asm
+    nop
+    end;
+
+    copymemory(@lpme.szExePath[0], @mnames[1], min(length(mnames)+1, MAX_PATH));
     lpme.szExePath[MAX_PATH-1]:=#0;
 
-    copymemory(@lpme.szModule[0], @mle.name[1], min(length(mle.name)+1, MAX_MODULE_NAME32));
+    if mle.part<>0 then
+      mnames:=mnames+'.'+inttostr(mle.part);
+
+    copymemory(@lpme.szModule[0], @mnames[1], min(length(mnames)+1, MAX_MODULE_NAME32));
     lpme.szModule[MAX_MODULE_NAME32-1]:=#0;
+
+
 
     inc(lpme.th32ModuleID);
     exit(true);
@@ -470,11 +482,6 @@ begin
           if mname<>nil then
             FreeMemAndNil(mname);
 
-          if r.modulepart<>0 then
-            mnames:=mnames+'.'+inttostr(r.modulepart);
-
-
-
           ZeroMemory(@lpme, sizeof(lpme));
           lpme.hModule:=r.modulebase;
           lpme.modBaseAddr:=pointer(r.modulebase);
@@ -484,8 +491,17 @@ begin
           {$ifdef darwin}
           lpme.is64bit:=processhandler.is64Bit;
           {$endif}
+
+          if r.modulepart>0 then
+          asm
+          nop
+          end;
+
           copymemory(@lpme.szExePath[0], @mnames[1], min(length(mnames)+1, MAX_PATH));
           lpme.szExePath[MAX_PATH-1]:=#0;
+
+          if r.modulepart<>0 then
+            mnames:=mnames+'.'+inttostr(mle.part);
 
           copymemory(@lpme.szModule[0], @mnames[1], min(length(mnames)+1, MAX_MODULE_NAME32));
           lpme.szModule[MAX_MODULE_NAME32-1]:=#0;
@@ -769,9 +785,6 @@ begin
             mle.size:=r2.modulesize;
             mle.fileoffset:=r2.modulefileoffset;
             mle.name:=mname;
-            if r2.modulepart<>0 then
-              mle.name:=mle.name+'.'+inttostr(r2.modulepart);
-
             ths.list.add(mle);
           end;
         end;

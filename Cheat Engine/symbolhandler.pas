@@ -5764,8 +5764,12 @@ begin
           try
             if module32first(ths,me32) then
             repeat
-              s:=WinCPToUTF8(pchar(@me32.szExePath[0]));
-              x:=s;
+              if me32.GlblcntUsage>0 then
+              asm
+              nop
+              end;
+              s:=WinCPToUTF8(pchar(@me32.szModule[0]));
+              x:=WinCPToUTF8(pchar(@me32.szExePath[0]));
               if (s[1]<>'[') then //do not extract the filename if it's a 'special' marker
                 modulename:=extractfilename(s)
               else

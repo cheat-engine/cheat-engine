@@ -1124,7 +1124,7 @@ begin
   d.disassemble(address);
 
   addressSpecifierIndexPos:=d.LastDisassembleData.parameters.IndexOf('[');
-  commapos:=d.LastDisassembleData.parameters.IndexOf(',')
+  commapos:=d.LastDisassembleData.parameters.IndexOf(',');
 
   if (processhandler.SystemArchitecture=archX86) and (farjmp) and (d.LastDisassembleData.riprelative>0) and (addressSpecifierIndexPos<>-1 ) then
   begin
