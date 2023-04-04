@@ -601,6 +601,8 @@ int loadExtension(PProcessData p, char *path)
 #endif
 
 #ifdef __x86_64__
+
+
       //allocate stackspace
       newregs.rsp=newregs.rsp-0x28-(8*((pathlen+7) / 8));
 
@@ -615,44 +617,88 @@ int loadExtension(PProcessData p, char *path)
 
         debug_log(" is now %llx\n", newregs.rsp);
       }
-      //set the return address
 
-      debug_log("Writing 0x0ce0 to %lx\n", newregs.rsp);
+      //write the path at rsp+18
 
+      str=newregs.rsp+0x18;
+      writeString(pid, str, path);
+      debug_log("str=%p\n", (void *)str);
 
-      if (ptrace(PTRACE_POKEDATA, pid, newregs.rsp, returnaddress)!=0)
+      if (p->is64bit==0)
       {
-        debug_log("Failed to write return address\n");
-        resumeProcess(p, pid);
-        return FALSE;
+        if (ptrace(PTRACE_POKEDATA, pid, newregs.rsp+0, returnaddress)!=0)
+        {
+          debug_log("Fuck\n");
+          safe_ptrace(PTRACE_DETACH, pid,0,0);
+
+          return FALSE;
+        }
+
+        if (ptrace(PTRACE_POKEDATA, pid, newregs.rsp+4, newregs.rsp+0x18)!=0)
+        {
+          debug_log("Fuck2\n");
+          safe_ptrace(PTRACE_DETACH, pid,0,0);
+
+          return FALSE;
+        }
+
+        if (ptrace(PTRACE_POKEDATA, pid, newregs.rsp+8, RTLD_NOW)!=0)
+        {
+          debug_log("Fuck3\n");
+          safe_ptrace(PTRACE_DETACH, pid,0,0);
+
+          return FALSE;
+        }
+
+        if (p->dlopencaller)
+        {
+          if (ptrace(PTRACE_POKEDATA, pid, newregs.rsp+12, p->dlopencaller)!=0)
+          {
+            debug_log("Fuck4\n");
+            safe_ptrace(PTRACE_DETACH, pid,0,0);
+
+            return FALSE;
+          }
+        }
+      }
+      else
+      {
+
+
+        //set the return address
+
+        debug_log("Writing 0x0ce0 to %lx\n", newregs.rsp);
+
+
+        if (ptrace(PTRACE_POKEDATA, pid, newregs.rsp, returnaddress)!=0)
+        {
+          debug_log("Failed to write return address\n");
+          resumeProcess(p, pid);
+          return FALSE;
+        }
+
+        if (ptrace(PTRACE_POKEDATA, pid, newregs.rsp-8, returnaddress)!=0)
+        {
+          debug_log("Fuck\n");
+          resumeProcess(p, pid);
+          return FALSE;
+        }
+
+        if (ptrace(PTRACE_POKEDATA, pid, newregs.rsp+8, returnaddress)!=0)
+        {
+          debug_log("Fuck\n");
+          resumeProcess(p, pid);
+          return FALSE;
+        }
       }
 
-      if (ptrace(PTRACE_POKEDATA, pid, newregs.rsp-8, returnaddress)!=0)
-      {
-        debug_log("Fuck\n");
-        resumeProcess(p, pid);
-        return FALSE;
-      }
-
-      if (ptrace(PTRACE_POKEDATA, pid, newregs.rsp+8, returnaddress)!=0)
-      {
-        debug_log("Fuck\n");
-        resumeProcess(p, pid);
-        return FALSE;
-      }
-
-
-     //write the path at rsp+10
-
-     str=newregs.rsp+0x18;
-     writeString(pid, str, path);
-
-     debug_log("str=%p\n", (void *)str);
 
 
 
-     returnaddress=ptrace(PTRACE_PEEKDATA, pid, newregs.rsp, 0);
-     debug_log("[%lx]=%lx", newregs.rsp, returnaddress);
+
+
+      returnaddress=ptrace(PTRACE_PEEKDATA, pid, newregs.rsp, 0);
+      debug_log("[%lx]=%lx", newregs.rsp, returnaddress);
 
 
       newregs.rip=p->dlopen;
@@ -667,6 +713,7 @@ int loadExtension(PProcessData p, char *path)
       debug_log("new rsi=%lx\n", newregs.rsi);
       debug_log("new rdx=%lx\n", newregs.rdx);
       debug_log("new rsp=%lx\n", newregs.rsp);
+
 #endif
 
 #ifdef __i386__
@@ -706,7 +753,7 @@ int loadExtension(PProcessData p, char *path)
       return FALSE;
     }
 
-    if (ptrace(PTRACE_POKEDATA, pid, newregs.esp+4, newregs.esp+12)!=0)
+    if (ptrace(PTRACE_POKEDATA, pid, newregs.esp+4, newregs.esp+16)!=0)
     {
       debug_log("Fuck2\n");
       safe_ptrace(PTRACE_DETACH, pid,0,0);
@@ -722,7 +769,18 @@ int loadExtension(PProcessData p, char *path)
       return FALSE;
     }
 
-    writeString(pid, newregs.esp+12, path);
+    if (p->dlopencaller)
+    {
+      if (ptrace(PTRACE_POKEDATA, pid, newregs.rsp+12, p->dlopencaller)!=0)
+      {
+        debug_log("Fuck4\n");
+        safe_ptrace(PTRACE_DETACH, pid,0,0);
+
+        return FALSE;
+      }
+    }
+
+    writeString(pid, newregs.esp+16, path);
 
     newregs.eip=p->dlopen;
     newregs.orig_eax=0;
@@ -765,9 +823,11 @@ int loadExtension(PProcessData p, char *path)
     {
       pid2=waitpid(-1, &status,  WUNTRACED| __WALL);
 
+
       if (WIFSTOPPED(status))
       {
-        debug_log("Stopped with signal %d\n", WSTOPSIG(status));
+        debug_log("thread %d Stopped with signal %d\n", pid2, WSTOPSIG(status));
+
 
         if (pid2!=pid)
         {
@@ -793,6 +853,17 @@ int loadExtension(PProcessData p, char *path)
           }
           pid2=-1;
           continue;
+        }
+        else
+        {
+          debug_log("Stopped in the correct thread\n");
+          if (WSTOPSIG(status)==SIGSTOP)
+          {
+            debug_log("It got stopped with a SIGSTOP.  Continuing it as it is not what we are waiting for\n");
+            ptrace(PTRACE_CONT,pid2,(void *)0,0);
+            pid2=-1;
+            continue;
+          }
         }
 
       }
