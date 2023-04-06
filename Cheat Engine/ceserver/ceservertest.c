@@ -575,7 +575,7 @@ void *CESERVERTEST(int pid )
   char *output;
   debug_log("CESERVERTEST: running (v2)\n");
 
-  GetSymbolListFromFile("/home/eric/eclipse-workspace/ceserverbin/libart.so",0, &output);
+  GetModuleSize("/home/eric/x/bla2.so",0, 123);
 
   if (1)
     return NULL;

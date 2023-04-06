@@ -190,6 +190,7 @@ char *PTraceToString(int request)
     case PTRACE_SINGLESTEP: return "PTRACE_SINGLESTEP";
     case PTRACE_SETREGS: return "PTRACE_SETREGS";
     case PTRACE_GETREGS: return "PTRACE_GETREGS";
+    case PTRACE_GETFPREGS: return "PTRACE_GETFPREGS";
 #ifdef PT_GETFPXREGS
     case PTRACE_GETFPXREGS: return "PTRACE_GETFPXREGS";
 #endif
@@ -4437,7 +4438,9 @@ HANDLE CreateToolhelp32Snapshot(DWORD dwFlags, DWORD th32ProcessID)
           mle->moduleName=strdup(modulepath);
           mle->baseAddress=start;
           mle->fileOffset=fileoffset;
-          mle->moduleSize=stop-start; //GetModuleSize(modulepath, 0); GetModuleSize is not a good idea as some modules have gaps in them, and alloc will use those gaps (e.g ld*.so)
+          mle->moduleSize=/*stop-start;*/GetModuleSize(modulepath, fileoffset,0);
+          if (mle->moduleSize==-1)
+            mle->moduleSize=stop-start;
           mle->part=part;
 
           if (part==0)

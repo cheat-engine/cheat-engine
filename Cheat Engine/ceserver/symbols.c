@@ -814,18 +814,19 @@ int GetModuleSize32(int f, uint32_t fileoffset, Elf32_Ehdr *b)
 
 
   int i;
-  unsigned long long lowest=0;//programHeaders[0].p_vaddr;
-  unsigned long long highest=0;//programHeaders[0].p_vaddr+programHeaders[0].p_memsz;
+  unsigned long long lowest=0x1000;//programHeaders[0].p_vaddr;
+  unsigned long long highest=0x1000;//programHeaders[0].p_vaddr+programHeaders[0].p_memsz;
 
   for (i=0; i<b->e_phnum; i++)
   {
-     if (programHeaders[i].p_memsz>0)
-     {
-       if ((i==0) || (programHeaders[i].p_vaddr<lowest))
-          lowest=programHeaders[i].p_vaddr;
 
-       if ((i==0) || (programHeaders[i].p_vaddr+programHeaders[i].p_memsz>highest))
-          highest=programHeaders[i].p_vaddr+programHeaders[i].p_memsz;
+    if ((programHeaders[i].p_type==PT_LOAD) && (programHeaders[i].p_memsz>0))
+    {
+      if ((i==0) || (programHeaders[i].p_vaddr<lowest))
+         lowest=programHeaders[i].p_vaddr;
+
+      if ((i==0) || (programHeaders[i].p_vaddr+programHeaders[i].p_memsz>highest))
+         highest=programHeaders[i].p_vaddr+programHeaders[i].p_memsz;
 
 
 /*
@@ -833,15 +834,18 @@ int GetModuleSize32(int f, uint32_t fileoffset, Elf32_Ehdr *b)
        debug_log("Virtual Address: %llx-%llx:\n", (long long unsigned int)programHeaders[i].p_vaddr,(long long unsigned int)programHeaders[i].p_vaddr+(long long unsigned int)programHeaders[i].p_memsz);
        debug_log("Size: %d (%x)\n", (int)programHeaders[i].p_memsz, (int)programHeaders[i].p_memsz);
        */
-     }
+    }
   }
 
-    if (programHeaders)
-      free(programHeaders);
+  if (programHeaders)
+    free(programHeaders);
 
  // debug_log("lowest=%llx highest=%llx\n", lowest, highest);
  // debug_log("size=%llx\n", highest-lowest);
-   return highest-lowest;
+  if (lowest) //lowest is not 0, error
+    return -1;
+  else
+    return highest;
 }
 
 int GetModuleSize64(int f, uint32_t fileoffset, Elf64_Ehdr *b)
@@ -870,12 +874,12 @@ int GetModuleSize64(int f, uint32_t fileoffset, Elf64_Ehdr *b)
 
 
   int i;
-  unsigned long long lowest=0;//programHeaders[0].p_vaddr;
-  unsigned long long highest=0;//programHeaders[0].p_vaddr+programHeaders[0].p_memsz;
+  unsigned long long lowest=0x1000;//programHeaders[0].p_vaddr;
+  unsigned long long highest=0x1000;//programHeaders[0].p_vaddr+programHeaders[0].p_memsz;
 
   for (i=0; i<b->e_phnum; i++)
   {
-     if (programHeaders[i].p_memsz>0)
+     if ((programHeaders[i].p_type==PT_LOAD) && (programHeaders[i].p_memsz>0))
      {
        if ((i==0) || (programHeaders[i].p_vaddr<lowest))
           lowest=programHeaders[i].p_vaddr;
@@ -897,7 +901,11 @@ int GetModuleSize64(int f, uint32_t fileoffset, Elf64_Ehdr *b)
 
  // debug_log("lowest=%llx highest=%llx\n", lowest, highest);
  // debug_log("size=%llx\n", highest-lowest);
-   return highest-lowest;
+
+   if (lowest) //lowest is not 0, error
+     return -1;
+   else
+     return highest;
 }
 
 
