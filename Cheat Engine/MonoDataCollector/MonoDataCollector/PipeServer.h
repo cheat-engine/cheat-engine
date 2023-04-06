@@ -136,6 +136,7 @@ typedef char* (__cdecl *MONO_TYPE_GET_NAME)(void *type);
 typedef int (__cdecl *MONO_TYPE_GET_TYPE)(void *type);
 typedef char* (__cdecl *MONO_TYPE_GET_NAME_FULL)(void *type, int format);
 typedef int (__cdecl *MONO_FIELD_GET_FLAGS)(void *type);
+typedef void* (__cdecl * MONO_FIELD_GET_VALUE_OBJECT)(void *domain, void* field, void* object);
 
 
 
@@ -202,6 +203,8 @@ typedef void* (__cdecl *IL2CPP_FIELD_STATIC_SET_VALUE)(void* field, void* input)
 
 typedef void* (__cdecl *MONO_VALUE_BOX)(void *domain, void *klass, void* val);
 typedef void* (__cdecl *MONO_OBJECT_UNBOX)(void *obj);
+typedef void* (__cdecl *MONO_OBJECT_ISINST)(void *obj, void* kls);
+typedef void* (__cdecl *MONO_GET_ENUM_CLASS)(void);
 typedef void* (__cdecl *MONO_CLASS_GET_TYPE)(void *klass);
 typedef void* (__cdecl *MONO_CLASS_GET_NESTING_TYPE)(void *klass);
 
@@ -298,6 +301,7 @@ private:
 	MONO_TYPE_GET_TYPE mono_type_get_type;
 	MONO_TYPE_GET_NAME_FULL mono_type_get_name_full;
 	MONO_FIELD_GET_FLAGS mono_field_get_flags;
+	MONO_FIELD_GET_VALUE_OBJECT mono_field_get_value_object;
 
 	MONO_METHOD_GET_FLAGS mono_method_get_flags;
 	MONO_METHOD_GET_NAME mono_method_get_name;
@@ -340,6 +344,9 @@ private:
 	MONO_FREE mono_free;
 	MONO_VALUE_BOX mono_value_box;
 	MONO_OBJECT_UNBOX mono_object_unbox;
+	MONO_OBJECT_ISINST mono_object_isinst;
+	MONO_GET_ENUM_CLASS mono_get_enum_class;
+
 	MONO_CLASS_GET_TYPE mono_class_get_type;
 	MONO_CLASS_GET_NESTING_TYPE mono_class_get_nesting_type;
 

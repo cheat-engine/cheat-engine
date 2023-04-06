@@ -646,6 +646,7 @@ void CPipeServer::InitMono()
 				mono_field_get_parent = (MONO_FIELD_GET_PARENT)GetProcAddress(hMono, "mono_field_get_parent");
 				mono_field_get_offset = (MONO_FIELD_GET_OFFSET)GetProcAddress(hMono, "mono_field_get_offset");
 				mono_field_get_flags = (MONO_FIELD_GET_FLAGS)GetProcAddress(hMono, "mono_field_get_flags");
+				mono_field_get_value_object = (MONO_FIELD_GET_VALUE_OBJECT)GetProcAddress(hMono, "mono_field_get_value_object");
 
 				mono_type_get_name = (MONO_TYPE_GET_NAME)GetProcAddress(hMono, "mono_type_get_name");
 				mono_type_get_type = (MONO_TYPE_GET_TYPE)GetProcAddress(hMono, "mono_type_get_type");
@@ -690,6 +691,8 @@ void CPipeServer::InitMono()
 				mono_value_box = (MONO_VALUE_BOX)GetProcAddress(hMono, "mono_value_box");
 				mono_object_unbox = (MONO_OBJECT_UNBOX)GetProcAddress(hMono, "mono_object_unbox");
 				mono_object_new = (MONO_OBJECT_NEW)GetProcAddress(hMono, "mono_object_new");
+				mono_object_isinst = (MONO_OBJECT_ISINST)GetProcAddress(hMono, "mono_object_isinst");
+				mono_get_enum_class = (MONO_GET_ENUM_CLASS)GetProcAddress(hMono, "mono_get_enum_class");
 
 				mono_class_get_type = (MONO_CLASS_GET_TYPE)GetProcAddress(hMono, "mono_class_get_type");
 				mono_class_get_nesting_type = (MONO_CLASS_GET_NESTING_TYPE)GetProcAddress(hMono, "mono_class_get_nesting_type");
@@ -2563,35 +2566,46 @@ void CPipeServer::GetStaticFieldValue()
             if (mono_field_get_flags)
             {
                 int flags=mono_field_get_flags(Field);
-                if (flags & 0x10) //0x10=FIELD_ATTRIBUTE_STATIC
+				if (flags & 0x10) //0x10=FIELD_ATTRIBUTE_STATIC
                 {
-                    if (mono_vtable_get_static_field_data)
-                    {
-                        void *sfd=mono_vtable_get_static_field_data(Vtable);
-                        
-                        if (sfd>(void*)0x10000)
-                        {
-	
-							if (mono_class_instance_size)
-							{
-								int sizeNeeded = mono_class_instance_size(mono_class_from_mono_type(mono_field_get_type(Field)));
-
-								if (sizeNeeded <= 8)
-								{
-									mono_field_static_get_value(Vtable, Field, &val);
-								}
-							}
-                            
-                        }
-                        
-                        
-                    }
+					if ((flags & 0x8040) && mono_field_get_value_object && mono_object_unbox && mono_object_isinst && mono_get_enum_class) //FIELD_ATTRIBUTE_LITERAL | FIELD_ATTRIBUTE_HAS_DEFAULT (for constant/enum fields)
+					{
+						void* obj = mono_field_get_value_object(mono_get_root_domain(), Field, nullptr);
+						static void* EnumClass = mono_get_enum_class();
+						if (EnumClass && mono_object_isinst(obj, EnumClass))
+						{
+							int v = *(int*)mono_object_unbox(obj);
+							val = v;
+						}
+						else
+							goto NOTENUM;
+					}
 					else
 					{
-						int sizeNeeded = mono_class_instance_size(mono_class_from_mono_type(mono_field_get_type(Field)));
-						if (sizeNeeded <= 8)
+						NOTENUM:
+						if (mono_vtable_get_static_field_data)
 						{
-							mono_field_static_get_value(Vtable, Field, &val);
+							void *sfd=mono_vtable_get_static_field_data(Vtable);
+                    
+							if (sfd>(void*)0x10000)
+							{
+								if (mono_class_instance_size)
+								{
+									int sizeNeeded = mono_class_instance_size(mono_class_from_mono_type(mono_field_get_type(Field)));
+									if (sizeNeeded <= 8)
+									{
+										mono_field_static_get_value(Vtable, Field, &val);
+									}
+								}   
+							}
+						}
+						else
+						{
+							int sizeNeeded = mono_class_instance_size(mono_class_from_mono_type(mono_field_get_type(Field)));
+							if (sizeNeeded <= 8)
+							{
+								mono_field_static_get_value(Vtable, Field, &val);
+							}
 						}
 					}
                 }
