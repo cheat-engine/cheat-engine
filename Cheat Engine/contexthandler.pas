@@ -825,7 +825,7 @@ begin
   for i:=0 to 7 do
   begin
     e.name:='FP('+inttostr(i)+')';
-    e.ContextOffset:=integer(@PCONTEXT(nil)^.FltSave.FloatRegisters[0]);
+    e.ContextOffset:=integer(@PCONTEXT(nil)^.FltSave.FloatRegisters[i]);
     X86_32Context_fpu2[i]:=e;
     ContextInfo_X86_32.nameToEntryLookup.Add(e.name,@X86_32Context_fpu2[i]);
   end;
