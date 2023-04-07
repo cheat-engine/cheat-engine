@@ -239,7 +239,7 @@ begin
     else
       includeterminator:=false;
 
-    stream.WriteBuffer(s[1],sizeof(s));
+    stream.WriteBuffer(s[1],length(s));
     if includeterminator then
       stream.WriteByte(0);
   end
