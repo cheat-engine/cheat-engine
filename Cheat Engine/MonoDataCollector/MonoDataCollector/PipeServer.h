@@ -141,8 +141,11 @@ typedef void* (__cdecl *MONO_FIELD_GET_PARENT)(void *field);
 typedef int (__cdecl *MONO_FIELD_GET_OFFSET)(void *field);
 
 typedef char* (__cdecl *MONO_TYPE_GET_NAME)(void *type);
+typedef void* (__cdecl* MONO_TYPE_GET_CLASS)(void* type);
 typedef int (__cdecl *MONO_TYPE_GET_TYPE)(void *type);
 typedef char* (__cdecl *MONO_TYPE_GET_NAME_FULL)(void *type, int format);
+typedef bool(__cdecl* MONO_TYPE_IS_STRUCT)(void* type);
+
 typedef int (__cdecl *MONO_FIELD_GET_FLAGS)(void *type);
 typedef void* (__cdecl * MONO_FIELD_GET_VALUE_OBJECT)(void *domain, void* field, void* object);
 
@@ -353,6 +356,7 @@ private:
 	MONO_STRING_NEW mono_string_new;
 	MONO_STRING_TO_UTF8 mono_string_to_utf8;
 	MONO_ARRAY_NEW mono_array_new;
+	MONO_ARRAY_ELEMENT_SIZE mono_array_element_size;
 	MONO_OBJECT_TO_STRING mono_object_to_string;
 	MONO_OBJECT_NEW mono_object_new;
 	MONO_FREE mono_free;
