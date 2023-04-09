@@ -504,6 +504,7 @@ void CPipeServer::InitMono()
 
 				mono_type_get_name = (MONO_TYPE_GET_NAME)GetProcAddress(hMono, "il2cpp_type_get_name");
 				mono_type_get_type = (MONO_TYPE_GET_TYPE)GetProcAddress(hMono, "il2cpp_type_get_type");
+				mono_type_get_object = (MONO_TYPE_GET_OBJECT)GetProcAddress(hMono, "il2cpp_type_get_object");
 				mono_type_get_name_full = (MONO_TYPE_GET_NAME_FULL)GetProcAddress(hMono, "il2cpp_type_get_name_full");
 
 				mono_method_get_name = (MONO_METHOD_GET_NAME)GetProcAddress(hMono, "il2cpp_method_get_name");
@@ -661,6 +662,7 @@ void CPipeServer::InitMono()
 
 				mono_type_get_name = (MONO_TYPE_GET_NAME)GetProcAddress(hMono, "mono_type_get_name");
 				mono_type_get_type = (MONO_TYPE_GET_TYPE)GetProcAddress(hMono, "mono_type_get_type");
+				mono_type_get_object = (MONO_TYPE_GET_OBJECT)GetProcAddress(hMono, "mono_type_get_object");
 				mono_type_get_name_full = (MONO_TYPE_GET_NAME_FULL)GetProcAddress(hMono, "mono_type_get_name_full");
 
 				mono_method_get_name = (MONO_METHOD_GET_NAME)GetProcAddress(hMono, "mono_method_get_name");
@@ -1829,6 +1831,12 @@ void CPipeServer::GetTypeOfMonoType()
 	WriteDword((UINT64)mono_type_get_type(type));
 }
 
+void CPipeServer::GetReflectionTypeOfClassType()
+{
+	void* type = (void*)ReadQword(); //MonoType*
+	WriteDword((UINT64)mono_type_get_object(type)); //ReflectionType*
+}
+
 
 void CPipeServer::GetVTableFromClass(void)
 {
@@ -2957,6 +2965,10 @@ void CPipeServer::Start(void)
 					
 				case MONOCMD_GETTYPEOFMONOTYPE:
 					GetTypeOfMonoType();
+					break;
+
+				case MONOCMD_GETREFLECTIONTYPEOFCLASSTYPE:
+					GetReflectionTypeOfClassType();
 					break;
 
 

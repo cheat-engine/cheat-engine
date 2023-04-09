@@ -72,7 +72,8 @@
 #define MONOCMD_ARRAYELEMENTSIZE 54
 #define MONOCMD_GETCLASSTYPE 55
 #define MONOCMD_GETCLASSOFTYPE 56
-#define MONOCMD_GETTYPEOFMONOTYPE 57					 
+#define MONOCMD_GETTYPEOFMONOTYPE 57
+#define MONOCMD_GETREFLECTIONTYPEOFCLASSTYPE 58					 
 
 
 typedef struct {} MonoType;
@@ -143,6 +144,7 @@ typedef int (__cdecl *MONO_FIELD_GET_OFFSET)(void *field);
 typedef char* (__cdecl *MONO_TYPE_GET_NAME)(void *type);
 typedef void* (__cdecl* MONO_TYPE_GET_CLASS)(void* type);
 typedef int (__cdecl *MONO_TYPE_GET_TYPE)(void *type);
+typedef void* (__cdecl *MONO_TYPE_GET_OBJECT)(void *type);
 typedef char* (__cdecl *MONO_TYPE_GET_NAME_FULL)(void *type, int format);
 typedef bool(__cdecl* MONO_TYPE_IS_STRUCT)(void* type);
 
@@ -314,6 +316,7 @@ private:
 
 	MONO_TYPE_GET_NAME mono_type_get_name;
 	MONO_TYPE_GET_TYPE mono_type_get_type;
+	MONO_TYPE_GET_OBJECT mono_type_get_object; //return a ReflectionType* object
 	MONO_TYPE_IS_STRUCT mono_type_is_struct;
 	MONO_TYPE_GET_CLASS mono_type_get_class;													  
 	MONO_TYPE_GET_NAME_FULL mono_type_get_name_full;
@@ -445,6 +448,7 @@ private:
 	void GetClassType();
 	void GetClassOfType();
 	void GetTypeOfMonoType();
+	void GetReflectionTypeOfClassType();
 	void GetVTableFromClass();
 	void GetStaticFieldAddressFromClass();
 	void GetTypeClass();
