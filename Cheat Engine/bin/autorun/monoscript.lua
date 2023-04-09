@@ -84,6 +84,7 @@ MONOCMD_ARRAYELEMENTSIZE = 54
 MONOCMD_GETCLASSTYPE = 55
 MONOCMD_GETCLASSOFTYPE = 56
 MONOCMD_GETTYPEOFMONOTYPE = 57
+MONOCMD_GETREFLECTIONTYPEOFCLASSTYPE = 58
 
 MONO_TYPE_END        = 0x00       -- End of List
 MONO_TYPE_VOID       = 0x01
@@ -1725,6 +1726,17 @@ function mono_type_get_type(monotype)
   monopipe.unlock()
  return retv
 end
+
+function mono_classtype_get_reflectiontype(monotype)
+  if not monotype or monotype==0 then return end
+  monopipe.lock()
+  monopipe.writeByte(MONOCMD_GETREFLECTIONTYPEOFCLASSTYPE)
+  monopipe.writeQword(monotype)
+  local retv = monopipe.readQword()
+  monopipe.unlock()
+  return retv
+end
+
 function mono_class_getArrayElementClass(klass)
   --if debug_canBreak() then return nil end
 
@@ -1770,10 +1782,40 @@ function mono_class_getVTable(domain, klass)
   return result  
 end
 
+local function GetInstancesOfClass(kls)
+  local reskls = mono_findClass("UnityEngine","Resources")
+  local mthds = mono_class_enumMethods(reskls)
+  local fn
+  for k,v in pairs(mthds) do
+    if v.name == 'FindObjectsOfTypeAll' then
+      local prms = mono_method_get_parameters(v.method)
+      if #prms.parameters == 1 and prms.parameters[1].name=="type" then fn = v.method break end
+    end
+  end
+  if not fn then return end
+  local sig = mono_method_getSignature(fn)
+  local klstype = mono_class_get_type(kls)
+  local reftype = mono_classtype_get_reflectiontype(klstype)
+  if not reftype or reftype==0 then return end
+  return mono_invoke_method(nil,fn,0,{{type=vtPointer,value=reftype}})
+end
+
 
 --todo for the instance scanner: Get the fields and check that pointers are either nil or point to a valid address
 function mono_class_findInstancesOfClassListOnly(domain, klass, progressBar)
-
+  local inst = GetInstancesOfClass(klass)
+   if inst and readPointer(inst) and readPointer(inst)~=0 then
+     local countoff =  targetIs64Bit() and 0x18 or 0xC
+	 local elementsoff = targetIs64Bit() and 0x20 or 0x10
+	 local elesize = targetIs64Bit() and 8 or 4
+	 local arr = inst--readPointer(inst)
+	 local count =readInteger(arr+countoff)
+	 local result = {}
+	 for i=0,count-1 do
+		result[#result+1] = readPointer(inst+i*elesize+elementsoff)
+	 end
+	 return result
+   end
   if debugInstanceLookup then 
     if progressBar then
       printf("progressBar is set. progressBar.ClassName=%s", progressBar.ClassName)
@@ -2167,7 +2209,7 @@ function mono_class_enumFields(class, includeParents, expandedStructs)
   if expandedStructs then
     for k,v in pairs(mainFields) do
       local lockls = mono_field_getClass(v.field)
-      if ((v.monotype==MONO_TYPE_VALUETYPE or v.monotype==MONO_TYPE_GENERICINST) and not(mono_class_isEnum(lockls))) then
+      if ((v.monotype==MONO_TYPE_VALUETYPE) and not(mono_class_isEnum(lockls))) then
          local subFields = GetFields(lockls, includeParents, expandedStructs)
          --print(v.name, v.typename, fu(v.monotype))
          if #subFields >0 then
