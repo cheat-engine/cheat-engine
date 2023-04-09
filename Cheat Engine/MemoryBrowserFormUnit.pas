@@ -5113,7 +5113,7 @@ begin
   frmFloatingPointPanel.Top:=self.top+(self.ClientOrigin.y-self.top)-(frmFloatingPointPanel.ClientOrigin.y-frmFloatingPointPanel.top);
   frmFloatingPointPanel.ClientHeight:=scrollbox1.Height;
 
-  frmFloatingPointPanel.SetContextPointer(context);
+  frmFloatingPointPanel.SetContextPointer(debuggerthread.CurrentThread.context);
 
   frmFloatingPointPanel.show;//pop to foreground
 end;
