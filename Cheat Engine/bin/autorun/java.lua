@@ -49,9 +49,10 @@ JAVACMD_GETFIELDVALUES=36
 JAVACMD_COLLECTGARBAGE=37
 
 JAVACMD_ANDROID_DECODEOBJECT=38
-JAVACMD_FINDFIELDSWITHSPECIFICSIGNATURE=39
-JAVACMD_FINDFIELDSWITHSPECIFICNAME=40
+JAVACMD_FINDFIELDS=39
+JAVACMD_FINDMETHODS=40
 JAVAVMD_GETOBJECTCLASSNAME=41 --gets the name of the class instead of just a local ref
+JAVACMD_SETFIELDVALUES=42
 
 
 JAVACMD_TERMINATESERVER=255
@@ -393,6 +394,18 @@ function javaInjectAgent()
           local status=readInteger("ceagentloadstatus")
 
           if (status==nil) or (status<0) or (status==2) then
+            if not fileExists(getAutorunPath()..'java/jvmti.h') then
+              local l=getInternet()
+              local r=l.getURL('https://github.com/openjdk-mirror/jdk7u-jdk/raw/master/src/share/javavm/export/jvmti.h')
+
+              local ss=createStringStream(r)
+              local tf=createTableFile('include/jvmti.h')
+              tf.DoNotSave=true
+              tf.Stream.copyFrom(ss,0)
+              ss.destroy()
+              ss=nil
+            end
+          
             local spath=getAutorunPath()..'java/androidloadagent.CEA'
             local sl=createStringList()
             if sl.loadFromFile(spath)==false then
@@ -991,7 +1004,9 @@ function java_dereferenceGlobalObjects(objects)
   
   javapipe.lock()
   javapipe.writeFromStream(ms)
-  javapipe.unlock()    
+  javapipe.unlock()   
+
+  ms.destroy()  
 end
 
 function java_cleanClasslist(classlist)
@@ -1045,9 +1060,16 @@ function java_getClassMethods(class)
     result[i].static=(result[i].modifiers & ACC_STATIC)==ACC_STATIC
   end
 
-  ms.destroy();
+  ms.destroy()
   
   table.sort(result,function(a,b) return a.name<b.name end)
+  
+  result.jmethodidLookup={}
+  for i=1,#result do
+    result.jmethodidLookup[result[i].jmethodid]=result[i]    
+  end
+  
+  
   return result
 end
 
@@ -1112,6 +1134,17 @@ function java_getClassFields(class)
   else
     table.sort(result,function(a,b) return a.name<b.name end)
   end
+  
+  result.jfieldidLookup={}
+  for i=1,#result do
+    result.jfieldidLookup[result[i].jfieldid]=result[i]    
+  end
+  
+  for i=1,#staticresult do
+    result.jfieldidLookup[staticresult[i].jfieldid]=staticresult[i]    
+  end
+    
+  
   return result,staticresult
 end
 
@@ -1462,17 +1495,6 @@ function java_findMethod(class, name, sig)
   return nil --still here
 end
 
-function java_findClass(signature)
-  local result=nil
-  javapipe.lock()
-  javapipe.writeByte(JAVACMD_FINDCLASS)
-  javapipe.writeWord(#signature)
-  javapipe.writeString(signature)
-  result=javapipe.readQword()
-
-  javapipe.unlock()
-  return result
-end
 
 
 function java_findAllInstancesFromClass(jClass, lookupmethod)
@@ -1561,6 +1583,130 @@ function java_getFieldSignature(klass, fieldid)
   return result
 end
 
+local trueboolstr={}
+trueboolstr[tostring(true)]=true
+trueboolstr['1']=true
+
+java_writers={} --function(stream,stringvalue) end : returns true if parsed properly
+java_writers[0]=function(s) return true end
+java_writers[1]=function(s,v) s.writeByte(trueboolstr[v] and 1 or 0) return true end --boolean
+java_writers[2]=function(s,v)  --byte
+  local vn=tonumber(v) 
+  if vn then 
+    s.writeByte(vn) 
+    return true 
+  end 
+end --byte
+java_writers[3]=function(s,v)  --2 byte (hex formatted)
+  local vn
+  if v:startsWith('0x') then
+    vn=tonumber(v)
+  else
+    vn=tonumber(v,16)
+  end
+  if vn then s.writeWord(vn) 
+    return true
+  end 
+end --boolean
+java_writers[4]=function(s,v)  --word
+  local vn=tonumber(v) 
+  if vn then 
+    s.writeWord(vn) 
+    return true 
+  end 
+end 
+java_writers[5]=function(s,v)  --dword
+  local vn=tonumber(v) 
+  if vn then 
+    s.writeDword(vn) 
+    return true 
+  end 
+end 
+java_writers[6]=function(s,v)  --qword
+  local vn=tonumber(v) 
+  if vn then 
+    s.writeQword(vn) 
+    return true 
+  end 
+end 
+java_writers[7]=function(s,v)  --float
+  local vn=tonumber(v) 
+  if vn then 
+    local bt=floatToByteTable(v)
+    s.write(bt)
+    return true 
+  end 
+end 
+java_writers[8]=function(s,v)  --double
+  local vn=tonumber(v) 
+  if vn then 
+    local bt=doubleToByteTable(v)
+    s.write(bt)
+    return true
+  end 
+end 
+java_writers[9]=java_writers[6] --object (jObject)
+java_writers[10]=java_writers[6]  --array (jObject)
+java_writers[11]=function(s,v) --string  (utf8 formatted)  
+  s.writeWord(#v)
+  s.writeString(v)
+  return true
+end
+ 
+
+function java_setFieldValues(newValues)   
+  --newValues is a table where each entry contains
+  --  ObjectOrClass (the object or class to change)
+  --  Field
+  --  Value (Value is a string)
+  
+  if #newValues>65535 then
+    error('Do not call java_setFieldValues with more than 65535 entries...')
+  end
+  
+
+  
+  
+  local ms=createMemoryStream()
+  ms.writeByte(JAVACMD_SETFIELDVALUES)
+  ms.writeWord(#newValues)
+  
+  for i=1,#newValues do
+    local t
+    if newValues[i].Field.InternalType==nil then    
+      t=Java_TypeSigToIDConversion[string.sub(newValues[i].Fields.signature,1,1)]
+      
+      if (t==9) and (Fields[i].signature=='Ljava/lang/String;') then 
+        t=11 --handle string special 
+      end
+      
+      newValues[i].Field.InternalType=t
+    else
+      t=newValues[i].Field.InternalType
+    end
+    
+    ms.writeQword(newValues[i].ObjectOrClass)     
+    ms.writeQword(newValues[i].Field.jfieldid)
+    ms.writeByte(t)
+    ms.writeByte(newValues[i].Field.static and 1 or 0)
+    
+    local writer=java_writers[t]
+    if writer==nil then error('Invalid internal field type at index '..i) end
+    
+    if writer(ms,newValues[i].Value)~=true then return nil,'Failed interpreting the string :'..newValues[i].Value end
+    
+    ms.Position=0
+    
+    javapipe.lock()
+    javapipe.writeFromStream(ms, ms.Size)
+    javapipe.unlock()
+    ms.clear()
+  
+  end
+  
+  
+end
+
 function java_getFieldValuesFromObject(jobject, Fields)
 --gets the value of a group of fields all at once
   
@@ -1590,11 +1736,7 @@ function java_getFieldValuesFromObject(jobject, Fields)
    
    
     ms.writeByte(t)
-    if Fields[i].static then
-      ms.writeByte(1)
-    else
-      ms.writeByte(0)
-    end    
+    ms.writeByte(Fields[i].static and 1 or 0)      
   end
   
   ms.position=0
@@ -1628,7 +1770,7 @@ function java_getFieldValuesFromObject(jobject, Fields)
   end --double     
   readers[9]=function()  
     local o=ms.readQword()
-    if o==0 then --just returns true if it's not nil
+    if o==0 then
       return {Value='nil'}
     else
       return {Value='<object>', Object=o}
@@ -1668,6 +1810,7 @@ function java_getFieldValuesFromObject(jobject, Fields)
     end
   end
   
+  ms.destroy()
   return results
 end
 
@@ -2137,12 +2280,27 @@ function java_getSuperClass(jClass)
 end
 
 
-function java_findFieldsWithSpecificSignature(signature, caseSensitive)
+function java_findFields(name, signature, caseSensitive)
+  if (name==nil or name=='') and (signature==nil or signature=='') then return {} end
+ 
   javapipe.lock()
-  javapipe.writeByte(JAVACMD_FINDFIELDSWITHSPECIFICSIGNATURE)
+  javapipe.writeByte(JAVACMD_FINDFIELDS)
   javapipe.writeByte((caseSensitive and 1) or 0)
-  javapipe.writeWord(#signature)
-  javapipe.writeString(signature)
+  
+  if name then
+    javapipe.writeWord(#name)  
+    javapipe.writeString(name)  
+  else 
+    javapipe.writeWord(0)
+  end
+  
+  
+  if signature then  
+    javapipe.writeWord(#signature)  
+    javapipe.writeString(signature)
+  else
+   javapipe.writeWord(0)
+  end
   
   local streamsize=javapipe.readDword()
   local ms=createMemoryStream()
@@ -2165,12 +2323,27 @@ function java_findFieldsWithSpecificSignature(signature, caseSensitive)
   return result
 end
 
-function java_findFieldsWithSpecificName(name, caseSensitive)
+function java_findMethods(name, signature, caseSensitive)
+  if (name==nil or name=='') and (signature==nil or signature=='') then return {} end
+ 
   javapipe.lock()
-  javapipe.writeByte(JAVACMD_FINDFIELDSWITHSPECIFICNAME)
+  javapipe.writeByte(JAVACMD_FINDMETHODS)
   javapipe.writeByte((caseSensitive and 1) or 0)
-  javapipe.writeWord(#name)
-  javapipe.writeString(name)
+  
+  if name then
+    javapipe.writeWord(#name)  
+    javapipe.writeString(name)  
+  else 
+    javapipe.writeWord(0)
+  end
+  
+  
+  if signature then  
+    javapipe.writeWord(#signature)  
+    javapipe.writeString(signature)
+  else
+   javapipe.writeWord(0)
+  end
   
   local streamsize=javapipe.readDword()
   local ms=createMemoryStream()
@@ -2184,7 +2357,7 @@ function java_findFieldsWithSpecificName(name, caseSensitive)
   while ms.Position<ms.Size do
     local e={}
     e.jclass=ms.readQword()
-    e.fieldid=ms.readQword()
+    e.methodid=ms.readQword()
     table.insert(result,e)
   end
   

@@ -1,5 +1,7 @@
 branch mapper dpi issues
 
+ceserver debug: add option to exclude some threads from debugging
+
 if you select 4/8 bytes in hexview and press ctrl+space , the disassembler should change to the selected address
 if you select 4 bytes and press space then also go to that address
 
@@ -57,6 +59,14 @@ memscan lua formula scan: value>oldvalue+1000 and value<oldvalue+2000 crashes CE
 auto assembler: 6 byte jmp option where CE will do a scan for a 8 byte codecave
 auto assembler: 5 byte jmp option where CE will do a scan for a 14 byte codecave
 DPI: form designer: anchor editor has crappy size on first time show
+
+java info: add a "case sensitive" checkbox to the classlist filter
+java info: expand arrays (max 20 or so)
+
+form editor: add an order change option (not just bring to front/send to back)
+form editor: deleting a column from a listview keeps it in the object inspector
+form editor: when loading a form, the save dialog still points to the old one. Change that to the newly loaded formname
+form editor: save objectinspector treeview height
 
 ---
 

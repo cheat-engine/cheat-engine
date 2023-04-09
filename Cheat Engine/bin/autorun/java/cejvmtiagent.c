@@ -76,9 +76,10 @@ int _ZN3art9ArtMethod18HasAnyCompiledCodeEv(void* ArtMethod);
 #define JAVACMD_COLLECTGARBAGE 37
 #define JAVACMD_ANDROID_DECODEOBJECT 38
 
-#define JAVACMD_FINDFIELDSWITHSPECIFICSIGNATURE 39
-#define JAVACMD_FINDFIELDSWITHSPECIFICNAME 40
+#define JAVACMD_FINDFIELDS 39
+#define JAVACMD_FINDMETHODS 40
 #define JAVAVMD_GETOBJECTCLASSNAME 41
+#define JAVACMD_SETFIELDVALUES 42
 
 
 
@@ -610,7 +611,7 @@ void js_findClassInstances(PCEJVMTIAgent agent)
         
     debug_log("initializing callbacks");
     memset(&callbacks,0,sizeof(callbacks));
-    callbacks.heap_iteration_callback=ce_heap_iteration_callback;
+    callbacks.heap_iteration_callback=(jvmtiHeapIterationCallback)ce_heap_iteration_callback;
     callbacks.heap_reference_callback=NULL;
     callbacks.primitive_field_callback=NULL;
     callbacks.array_primitive_value_callback=NULL;
@@ -647,18 +648,18 @@ void js_findClassInstances(PCEJVMTIAgent agent)
           objptr=Thread_DecodeJObject(agent->soa->thread, g_c);
           debug_log("%d: %d -> %p", i, g_c, objptr);
                 
-          ms_writeQword(ms,g_c);  //ce has to delete this global ref manually
-          ms_writeQword(ms,objptr);
+          ms_writeQword(ms,(uint64_t)g_c);  //ce has to delete this global ref manually
+          ms_writeQword(ms,(uint64_t)objptr);
 
           _env->DeleteLocalRef(agent->env, results[i]);
         }
               
         
-        _jvmti->Deallocate(agent->jvmti, results);
+        _jvmti->Deallocate(agent->jvmti, (unsigned char*)results);
       }
       
       if (tags)
-        _jvmti->Deallocate(agent->jvmti, tags);
+        _jvmti->Deallocate(agent->jvmti, (unsigned char*)tags);
       
       ps_writeMemStream(agent->pipe, ms);
       ms_destroy(ms);      
@@ -746,8 +747,8 @@ void js_findClassInstances(PCEJVMTIAgent agent)
               objptr=Thread_DecodeJObject(agent->soa->thread, g_c);
               debug_log("%d -> %p", g_c,objptr);
               
-              ms_writeQword(ms,g_c);  //ce has to delete this global ref manually
-              ms_writeQword(ms,objptr);
+              ms_writeQword(ms,(uint64_t)g_c);  //ce has to delete this global ref manually
+              ms_writeQword(ms,(uint64_t)objptr);
 
               _env->DeleteLocalRef(agent->env, c);
             }
@@ -780,9 +781,193 @@ void js_findClassInstances(PCEJVMTIAgent agent)
   }
 }
 
+void js_setFieldValues(PCEJVMTIAgent agent) 
+/*
+Sets a bunch of values to the provided objects and fields
+*/
+{
+  debug_log("js_setFieldValues");
+  int count=ps_readWord(agent->pipe);
+  
+  debug_log("Going to modify %d fields", count);
+    
+  int i;
+  for (i=0; i<count; i++)
+  {
+    debug_log("%d:",i);    
+    jobject objectorclass=(jobject)ps_readQword(agent->pipe);
+    debug_log("   objectorclass=%d", objectorclass);
+    jfieldID fieldid=(jfieldID)ps_readQword(agent->pipe);    
+    debug_log("   fieldid=%d", fieldid);
+    unsigned char fieldtype=ps_readByte(agent->pipe);    
+    debug_log("   fieldtype=%d", fieldtype);
+    unsigned char isstatic=ps_readByte(agent->pipe);
+    debug_log("   static=%d", isstatic);
+    
+    jobject obj;
+    jclass class;
+    if (isstatic)
+    {
+      class=objectorclass;
+      debug_log("   class=%d", class);
+    }
+    else
+    {
+      obj=objectorclass;
+      debug_log("   obj=%d", obj);
+    }
+      
+    
+    switch (fieldtype)
+    {
+      case 0: //void
+        break;
+        
+      case 1: //boolean
+      {
+        jboolean v=ps_readByte(agent->pipe);        
+        if (!isstatic)
+          _env->SetBooleanField(agent->env, obj, fieldid, v);
+        else        
+          _env->SetStaticBooleanField(agent->env, class, fieldid, v);
+        
+        break;
+      }
+      
+      case 2: //byte
+      {
+        jbyte v=ps_readByte(agent->pipe);        
+        if (!isstatic)
+          _env->SetByteField(agent->env, obj, fieldid, v);
+        else        
+          _env->SetStaticByteField(agent->env, class, fieldid, v);
+        
+        break;
+      }
+      
+      case 3: //char
+      {
+        jchar v=ps_readWord(agent->pipe);        
+        if (!isstatic)
+          _env->SetCharField(agent->env, obj, fieldid, v);
+        else        
+          _env->SetStaticCharField(agent->env, class, fieldid, v);
+        
+        break;
+      }  
+
+      case 4: //word
+      {
+        jshort v=ps_readWord(agent->pipe);        
+        if (!isstatic)
+          _env->SetShortField(agent->env, obj, fieldid, v);
+        else        
+          _env->SetStaticShortField(agent->env, class, fieldid, v);
+        
+        break;
+      } 
+
+      case 5: //dword
+      {
+        jint v=ps_readDword(agent->pipe);        
+        if (!isstatic)
+          _env->SetIntField(agent->env, obj, fieldid, v);
+        else        
+          _env->SetStaticIntField(agent->env, class, fieldid, v);
+        
+        break;
+      }  
+      
+      case 6: //qword/long
+      {
+        jlong v=ps_readQword(agent->pipe);        
+        if (!isstatic)
+          _env->SetLongField(agent->env, obj, fieldid, v);
+        else        
+          _env->SetStaticLongField(agent->env, class, fieldid, v);
+        
+        break;
+      }      
+
+      case 7: //float
+      {
+        jfloat v;
+        ps_read(agent->pipe, &v, 4);        
+        if (!isstatic)
+          _env->SetFloatField(agent->env, obj, fieldid, v);
+        else        
+          _env->SetStaticFloatField(agent->env, class, fieldid, v);
+        
+        break;
+      }   
+      
+      case 8: //double
+      {
+        jdouble v;
+        ps_read(agent->pipe, &v, 8);        
+        if (!isstatic)
+          _env->SetDoubleField(agent->env, obj, fieldid, v);
+        else        
+          _env->SetStaticDoubleField(agent->env, class, fieldid, v);
+        
+        break;
+      }   
+
+      
+      case 9: //object 
+      case 10:
+      {
+        uint64_t v=ps_readQword(agent->pipe);
+        jobject o=(jobject)v;
+        
+        if (!isstatic)
+          _env->SetObjectField(agent->env, obj, fieldid, o);
+        else
+          _env->SetStaticObjectField(agent->env, class, fieldid, o);
+        
+        break;
+      }
+      case 11:
+      {
+        debug_log("String change");   
+        uint16_t strlen=ps_readWord(agent->pipe);
+        char *str=(char*)malloc(strlen+1);
+        
+        ps_read(agent->pipe, str,strlen);
+        str[strlen]=0;
+
+        debug_log("new string=%s",str);
+        
+        jobject newstr=_env->NewStringUTF(agent->env, str);
+        
+        debug_log("newstr=%d");
+        
+        if (!isstatic)
+        {
+          debug_log("setting on object field");
+          _env->SetObjectField(agent->env, obj, fieldid, newstr);
+        }
+        else
+        {
+          debug_log("setting on class static field");
+          _env->SetStaticObjectField(agent->env, class, fieldid, newstr);
+        }
+        
+        debug_log("Done. Cleaning up ref");
+        if (newstr)
+          _env->DeleteLocalRef(agent->env, newstr);
+        
+        if (str)
+          free(str);
+        break;
+      }
+    }
+  }
+}
+
 void js_getFieldValues(PCEJVMTIAgent agent) 
 /*
-Retrieve a list of strings for the given fieldid's and the object provided
+Retrieve a list of values for the given fieldid's and the object provided
 */
 {
   debug_log("js_getFieldValues");
@@ -799,7 +984,7 @@ Retrieve a list of strings for the given fieldid's and the object provided
 
   for (i=0; i<count; i++)
   {
-    jfieldID field=ps_readQword(agent->pipe);
+    jfieldID field=(jfieldID)ps_readQword(agent->pipe);
     int fieldtype=ps_readByte(agent->pipe);
     int isstatic=ps_readByte(agent->pipe);
     
@@ -926,7 +1111,7 @@ Retrieve a list of strings for the given fieldid's and the object provided
         if (r)
         {
           jobject g_r=_env->NewGlobalRef(agent->env,r);
-          ms_writeQword(ms,g_r);
+          ms_writeQword(ms,(uint64_t)g_r);
           _env->DeleteLocalRef(agent->env, r);
         }
         else
@@ -955,7 +1140,7 @@ Retrieve a list of strings for the given fieldid's and the object provided
         if (r)
         {
           jobject g_r=_env->NewGlobalRef(agent->env,r);
-          ms_writeQword(ms,g_r);
+          ms_writeQword(ms,(uint64_t)g_r);
           
           debug_log("10: is now globalref %d",g_r);
           _env->DeleteLocalRef(agent->env, r);
@@ -983,7 +1168,7 @@ Retrieve a list of strings for the given fieldid's and the object provided
           debug_log("stringobj is valid");
           
           ms_writeByte(ms,1);          
-          char *r=_env->GetStringUTFChars(agent->env, stringobj, NULL);
+          char *r=(char *)_env->GetStringUTFChars(agent->env, stringobj, NULL);
           ms_writeString(ms,r);
           
           _env->ReleaseStringUTFChars(agent->env, stringobj, r);
@@ -1030,10 +1215,12 @@ void js_android_decodeObject(PCEJVMTIAgent agent)
   jobject obj=(jobject)ps_readQword(agent->pipe);
   void *objptr;
   objptr=Thread_DecodeJObject(agent->soa->thread, obj);
-  ps_writeQword(agent->pipe, objptr);
+  ps_writeQword(agent->pipe, (uint64_t)objptr);
 }
 
-void js_findFieldsWithSpecificName(PCEJVMTIAgent agent) 
+typedef char * (*stringcomparefunction)(const char *haystack, const char *needle);
+  
+void js_findFields(PCEJVMTIAgent agent) 
 {
   debug_log("js_findFieldsWithSpecificName");
   if (agent->classlist==NULL)
@@ -1046,31 +1233,55 @@ void js_findFieldsWithSpecificName(PCEJVMTIAgent agent)
     return;
   }
   
-  typedef (*comparefunction)(const char *haystack, const char *needle);
-  
-  comparefunction comp;
+  stringcomparefunction comp;
   
   int caseSensitive=ps_readByte(agent->pipe);
   if (caseSensitive)
   {
-    comp=strstr;
+    comp=(stringcomparefunction)strstr;
     debug_log("case sensitive");
   }
   else
   {
-    comp=strcasestr;
+    comp=(stringcomparefunction)strcasestr;
     debug_log("case insensitive");
   }
   
 
-  short l=ps_readWord(agent->pipe);
-  char *searchname=(char*)malloc(l+1);
-  ps_read(agent->pipe, searchname,l);
-  searchname[l]=0; 
+  short l;
+  char *searchname=NULL;
+  char *searchsig=NULL;
   
+  l=ps_readWord(agent->pipe);
+  if (l)
+  {
+    searchname=(char*)malloc(l+1);
+    ps_read(agent->pipe, searchname,l);
+    searchname[l]=0; 
+  }
   
+  l=ps_readWord(agent->pipe);
+  if (l)
+  {
+    searchsig=(char*)malloc(l+1);
+    ps_read(agent->pipe, searchsig,l);
+    searchsig[l]=0; 
+  }  
   
-  debug_log("scanning for %s",searchname);
+  if (searchname && searchsig)  
+    debug_log("scanning for name:%s and sig:%s",searchname, searchsig);
+  else
+  if (searchname)
+    debug_log("scanning for name:%s", searchname);
+  else
+  if (searchsig)
+    debug_log("scanning for sig:%s", searchsig);
+  else
+  {
+    debug_log("scanning for nothing");
+    ps_writeDword(agent->pipe,0);
+    return;    
+  }
   
   int i;
   jint count;
@@ -1091,35 +1302,33 @@ void js_findFieldsWithSpecificName(PCEJVMTIAgent agent)
         
         if ((fields[j]) && (_jvmti->GetFieldName(agent->jvmti, agent->classlist[i], fields[j], &name, &sig, &gen)==JVMTI_ERROR_NONE))
         {
+          int valid=0;
           if (name)
           {
-            if (comp(name, searchname))
-            {
-              ms_writeQword(ms, agent->classlist[i]);
-              ms_writeQword(ms, fields[j]);
-              
-              char *sig2, *gen2;
-              if ((*(agent->jvmti))->GetClassSignature(agent->jvmti, agent->classlist[i], &sig2, &gen2)==JVMTI_ERROR_NONE)
-              {        
-                debug_log("found %s : %s in class %s",name,sig,sig2);
-                
-                if (sig2)
-                  _jvmti->Deallocate(agent->jvmti, (unsigned char *)sig2); 
-                
-                if (gen2)
-                  _jvmti->Deallocate(agent->jvmti, (unsigned char *)gen2);                 
-              }
-              
-              
-            }            
+            
+            if (searchname && comp(name, searchname))
+              valid=1;
+            
             _jvmti->Deallocate(agent->jvmti, (unsigned char *)name);  
           }
           
           if (sig)
+          {
+            if (searchsig && comp(sig, searchsig))
+              valid=1;
+            
             _jvmti->Deallocate(agent->jvmti, (unsigned char *)sig);
+          }
           
           if (gen)
             _jvmti->Deallocate(agent->jvmti, (unsigned char *)gen);  
+          
+          if (valid)
+          {
+            ms_writeQword(ms, (uint64_t)agent->classlist[i]);
+            ms_writeQword(ms, (uint64_t)fields[j]);
+          }
+              
         }
       }
     } 
@@ -1132,13 +1341,16 @@ void js_findFieldsWithSpecificName(PCEJVMTIAgent agent)
   
   debug_log("scan done");
   
-  free(searchname);
+  if (searchname)
+    free(searchname);
+  
+  if (searchsig)
+    free(searchsig);
 }
 
-void js_findFieldsWithSpecificSignature(PCEJVMTIAgent agent) 
-{  
-  debug_log("js_findFieldsWithSpecificSignature");
-
+void js_findMethods(PCEJVMTIAgent agent) 
+{
+  debug_log("js_findFieldsWithSpecificName");
   if (agent->classlist==NULL)
     fillClassList(agent);
   
@@ -1148,35 +1360,66 @@ void js_findFieldsWithSpecificSignature(PCEJVMTIAgent agent)
     ps_writeDword(agent->pipe,0);
     return;
   }
-
-  typedef (*comparefunction)(const char *haystack, const char *needle);
   
-  comparefunction comp;
+  stringcomparefunction comp;
   
   int caseSensitive=ps_readByte(agent->pipe);
   if (caseSensitive)
+  {
     comp=strstr;
+    debug_log("case sensitive");
+  }
   else
+  {
     comp=strcasestr;
+    debug_log("case insensitive");
+  }
   
+
+  short l;
+  char *searchname=NULL;
+  char *searchsig=NULL;
   
-  short l=ps_readWord(agent->pipe);
-  char *searchsig=(char*)malloc(l+1);
-  ps_read(agent->pipe, searchsig,l);
-  searchsig[l]=0; 
+  l=ps_readWord(agent->pipe);
+  if (l)
+  {
+    searchname=(char*)malloc(l+1);
+    ps_read(agent->pipe, searchname,l);
+    searchname[l]=0; 
+  }
   
-  debug_log("scanning for %s",searchsig);
+  l=ps_readWord(agent->pipe);
+  if (l)
+  {
+    searchsig=(char*)malloc(l+1);
+    ps_read(agent->pipe, searchsig,l);
+    searchsig[l]=0; 
+  }  
+  
+  if (searchname && searchsig)  
+      debug_log("scanning for name:%s and sig:%s",searchname, searchsig);
+  else
+  if (searchname)
+    debug_log("scanning for name:%s", searchname);
+  else
+  if (searchsig)
+    debug_log("scanning for sig:%s", searchsig);
+  else
+  {
+    debug_log("scanning for nothing");
+    ps_writeDword(agent->pipe,0);
+    return;    
+  }
   
   int i;
   jint count;
-  jfieldID *fields=NULL;  
+  jmethodID *methods=NULL;  
 
-  PMemoryStream ms=ms_create(16*1024);  
+  PMemoryStream ms=ms_create(16*1024);
   
   for (i=0; i<agent->classcount; i++)
-  {
-   
-    if (_jvmti->GetClassFields(agent->jvmti, agent->classlist[i], &count, &fields)==JVMTI_ERROR_NONE)
+  {   
+    if (_jvmti->GetClassMethods(agent->jvmti, agent->classlist[i], &count, &methods)==JVMTI_ERROR_NONE)
 	  {
       int j;
       for (j=0; j<count; j++)
@@ -1185,37 +1428,54 @@ void js_findFieldsWithSpecificSignature(PCEJVMTIAgent agent)
         char *sig;
         char *gen;
         
-        if ((fields[j]) && (_jvmti->GetFieldName(agent->jvmti, agent->classlist[i], fields[j], &name, &sig, &gen)==JVMTI_ERROR_NONE))
+        if ((methods[j]) && (_jvmti->GetMethodName(agent->jvmti, methods[j], &name, &sig, &gen)==JVMTI_ERROR_NONE))
         {
+          int valid=0;
           if (name)
+          {            
+            if (searchname && comp(name, searchname))
+              valid=1;
+            
             _jvmti->Deallocate(agent->jvmti, (unsigned char *)name);  
+          }
           
           if (sig)
           {
-            if (comp(sig, searchsig))
-            {
-              ms_writeQword(ms, agent->classlist[i]);
-              ms_writeQword(ms, fields[j]);              
-            }
+            if (searchsig && comp(sig, searchsig))
+              valid=1;
+            
             _jvmti->Deallocate(agent->jvmti, (unsigned char *)sig);
           }
           
           if (gen)
-            _jvmti->Deallocate(agent->jvmti, (unsigned char *)gen);
+            _jvmti->Deallocate(agent->jvmti, (unsigned char *)gen);  
+          
+          if (valid)
+          {
+            ms_writeQword(ms, (uint64_t)agent->classlist[i]);
+            ms_writeQword(ms, (uint64_t)methods[j]);
+          }
+              
         }
       }
     } 
-
-    _jvmti->Deallocate(agent->jvmti, (unsigned char *)fields);    
+    _jvmti->Deallocate(agent->jvmti, (unsigned char *)methods);    
   }
   
+  debug_log("ms->pos=%d", ms->pos);
   ps_writeMemStream(agent->pipe, ms);
-  ms_destroy(ms);  
+  ms_destroy(ms);
   
   debug_log("scan done");
   
-  free(searchsig);
+  
+  if (searchname)
+    free(searchname);
+  
+  if (searchsig)
+    free(searchsig);
 }
+
 
 void launchCEJVMTIServer(JNIEnv *env, jvmtiEnv *jvmti, void* soa) 
 {
@@ -1307,7 +1567,7 @@ void launchCEJVMTIServer(JNIEnv *env, jvmtiEnv *jvmti, void* soa)
           case JAVACMD_FINDCLASSINSTANCES:
             js_findClassInstances(agent);
             break;
-            
+                        
           case JAVACMD_GETCAPABILITIES:
             js_getCapabilities(agent);
             break;
@@ -1321,6 +1581,11 @@ void launchCEJVMTIServer(JNIEnv *env, jvmtiEnv *jvmti, void* soa)
             js_getFieldValues(agent);
             break;
             
+          case JAVACMD_SETFIELDVALUES:
+            debug_log("JAVACMD_SETFIELDVALUES");
+            js_setFieldValues(agent);
+            break;
+            
           case JAVACMD_COLLECTGARBAGE:
             js_collectGarbage(agent);
             break;
@@ -1329,13 +1594,13 @@ void launchCEJVMTIServer(JNIEnv *env, jvmtiEnv *jvmti, void* soa)
             js_android_decodeObject(agent);
             break;
             
-          case JAVACMD_FINDFIELDSWITHSPECIFICSIGNATURE:
-            js_findFieldsWithSpecificSignature(agent);
+          case JAVACMD_FINDFIELDS:
+            js_findFields(agent);
             break;
             
-          case JAVACMD_FINDFIELDSWITHSPECIFICNAME:
-            js_findFieldsWithSpecificName(agent);
-            break;
+          case JAVACMD_FINDMETHODS:
+            js_findMethods(agent);
+            break;            
             
           case JAVAVMD_GETOBJECTCLASSNAME:
             js_getObjectClassName(agent);
