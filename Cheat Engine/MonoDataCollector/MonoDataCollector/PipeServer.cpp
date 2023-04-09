@@ -1834,7 +1834,7 @@ void CPipeServer::GetTypeOfMonoType()
 void CPipeServer::GetReflectionTypeOfClassType()
 {
 	void* type = (void*)ReadQword(); //MonoType*
-	WriteDword((UINT64)mono_type_get_object(type)); //ReflectionType*
+	WriteQword((UINT64)mono_type_get_object(type)); //ReflectionType*
 }
 
 
@@ -2328,6 +2328,12 @@ void CPipeServer::InvokeMethod(void)
 	{
 		MonoObject* exception = {};
 		result = mono_runtime_invoke(method, pThis, arry, &exception);
+		if (!result)
+		{
+			WriteByte(MONO_TYPE_VOID);
+			WriteQword((UINT64)result);
+			return;
+		}
 		void* klass = mono_object_get_class(result);
 		void* type = klass ? mono_class_get_type(klass) : NULL;
 		int returntype = type ? mono_type_get_type(type) : MONO_TYPE_VOID;
