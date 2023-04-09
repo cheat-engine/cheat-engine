@@ -2073,6 +2073,7 @@ createTableFile(filename, filepath OPTIONAL): TableFile - Add a new file to your
 properties
   Name: string
   Stream: MemoryStream
+  DoNotSave: boolean
 
 methods
   delete() : Deletes this file from your table.

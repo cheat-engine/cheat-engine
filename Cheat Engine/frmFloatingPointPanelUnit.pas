@@ -48,7 +48,7 @@ type
     contexthandler: TContextInfo;
 
     loadedFormPosition: boolean;
-    procedure ValueDoubleClick(sender: TObject);
+    procedure ValueDoubleClick(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
   public
     { Public declarations }
     procedure UpdatedContext;
@@ -126,7 +126,7 @@ begin
     mData.VertScrollBar.Position:=oldscrollpos;
 end;
 
-procedure TfrmFloatingPointPanel.ValueDoubleClick(sender: TObject);
+procedure TfrmFloatingPointPanel.ValueDoubleClick(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 var
   offset: integer;
   p: pointer;
@@ -144,8 +144,10 @@ var
 
   e: PContextElement_register;
 begin
+
   p:=nil;
   if self<>frmFloatingPointPanel then exit; //readonly for all other panels
+  if button<>mbLeft then exit;
 
   if (debuggerthread=nil) or (debuggerthread.CurrentThread=nil) then exit;
 
@@ -229,7 +231,10 @@ var i,j: integer;
       lbl.tag:=ptruint(contextpointer);
       lbl.parent:=sbData;
       if contextpointer<>nil then
-        lbl.OnDblClick:=ValueDoubleClick;
+      begin
+        //lbl.OnDblClick:=ValueDoubleClick;
+        lbl.OnMouseDown:=ValueDoubleClick;
+      end;
     end;
 
 
