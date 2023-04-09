@@ -1323,6 +1323,7 @@ end
 
 
 function mono_enumAssemblies()
+  if 1 then return mono_enumAssembliesOld() end --please remove it only when launching the next update
   local result=nil
   --if debug_canBreak() then return nil end
   if monopipe then
