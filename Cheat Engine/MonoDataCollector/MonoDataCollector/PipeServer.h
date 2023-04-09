@@ -66,6 +66,13 @@
 #define MONOCMD_NEWSTRING 48
 #define MONOCMD_ENUMIMAGES 49
 #define MONOCMD_ENUMCLASSESINIMAGEEX 50
+#define MONOCMD_ISCLASSENUM 51
+#define MONOCMD_ISCLASSVALUETYPE 52
+#define MONOCMD_ISCLASSISSUBCLASSOF 53
+#define MONOCMD_ARRAYELEMENTSIZE 54
+#define MONOCMD_GETCLASSTYPE 55
+#define MONOCMD_GETCLASSOFTYPE 56
+#define MONOCMD_GETTYPEOFMONOTYPE 57					 
 
 
 typedef struct {} MonoType;
@@ -121,8 +128,9 @@ typedef int (__cdecl *MONO_CLASS_INSTANCE_SIZE)(void *klass);
 typedef void* (__cdecl *MONO_CLASS_FROM_MONO_TYPE)(void *type);
 typedef void* (__cdecl *MONO_CLASS_GET_ELEMENT_CLASS)(void *klass);
 typedef int (__cdecl *MONO_CLASS_IS_GENERIC)(void *klass);
-
-
+typedef bool (__cdecl *MONO_CLASS_IS_ENUM)(void *klass);
+typedef bool (__cdecl *MONO_CLASS_IS_VALUETYPE)(void *klass);
+typedef bool (__cdecl *MONO_CLASS_IS_SUBCLASS_OF)(void *klass, void* parentKlass, bool check_interface);
 
 typedef int (__cdecl *MONO_CLASS_NUM_FIELDS)(void *klass);
 typedef int (__cdecl *MONO_CLASS_NUM_METHODS)(void *klass);
@@ -138,7 +146,8 @@ typedef char* (__cdecl *MONO_TYPE_GET_NAME_FULL)(void *type, int format);
 typedef int (__cdecl *MONO_FIELD_GET_FLAGS)(void *type);
 typedef void* (__cdecl * MONO_FIELD_GET_VALUE_OBJECT)(void *domain, void* field, void* object);
 
-
+typedef int (__cdecl *MONO_FIELD_GET_FLAGS)(void *type);
+typedef void* (__cdecl * MONO_FIELD_GET_VALUE_OBJECT)(void *domain, void* field, void* object);
 
 
 typedef char* (__cdecl *MONO_METHOD_GET_NAME)(void *method);
@@ -184,6 +193,7 @@ typedef void* (__cdecl *MONO_IMAGE_LOADED)(void *aname);
 typedef void* (__cdecl *MONO_STRING_NEW)(void *domain, const char *text);
 typedef char* (__cdecl *MONO_STRING_TO_UTF8)(void*);
 typedef void* (__cdecl *MONO_ARRAY_NEW)(void *domain, void *eclass, uintptr_t n);
+typedef int (__cdecl *MONO_ARRAY_ELEMENT_SIZE)(void * klass);
 typedef void* (__cdecl *MONO_OBJECT_TO_STRING)(void *object, void **exc);
 typedef void* (__cdecl *MONO_OBJECT_NEW)(void *domain, void *klass);
 
@@ -256,7 +266,9 @@ private:
 	MONO_CLASS_INSTANCE_SIZE mono_class_instance_size;
 	MONO_CLASS_FROM_MONO_TYPE mono_class_from_mono_type;
 	MONO_CLASS_IS_GENERIC mono_class_is_generic;
-
+	MONO_CLASS_IS_ENUM mono_class_is_enum;
+	MONO_CLASS_IS_VALUETYPE mono_class_is_valuetype;
+	MONO_CLASS_IS_SUBCLASS_OF mono_class_is_subclass_of;
 	MONO_DOMAIN_FOREACH mono_domain_foreach;
 	MONO_DOMAIN_SET mono_domain_set;
 	MONO_DOMAIN_GET mono_domain_get;
@@ -299,6 +311,8 @@ private:
 
 	MONO_TYPE_GET_NAME mono_type_get_name;
 	MONO_TYPE_GET_TYPE mono_type_get_type;
+	MONO_TYPE_IS_STRUCT mono_type_is_struct;
+	MONO_TYPE_GET_CLASS mono_type_get_class;													  
 	MONO_TYPE_GET_NAME_FULL mono_type_get_name_full;
 	MONO_FIELD_GET_FLAGS mono_field_get_flags;
 	MONO_FIELD_GET_VALUE_OBJECT mono_field_get_value_object;
@@ -424,6 +438,9 @@ private:
 	void GetParentClass();
 	void GetClassNestingType();
 	void GetClassImage();
+	void GetClassType();
+	void GetClassOfType();
+	void GetTypeOfMonoType();
 	void GetVTableFromClass();
 	void GetStaticFieldAddressFromClass();
 	void GetTypeClass();
@@ -436,8 +453,12 @@ private:
 	void Object_New();
 	void Object_Init();
 	void IsGenericClass();
+	void IsEnumClass();
+	void IsValueTypeClass();
+	void IsSubClassOf();
+	void GetArrayElementSize();
 	void IsIL2CPP();
-    void FillOptionalFunctionList(); //mainly for unixbased systems
+	void FillOptionalFunctionList(); //mainly for unixbased systems
 	void GetStaticFieldValue();
 	void SetStaticFieldValue();
 	void GetMonoDataCollectorVersion();
