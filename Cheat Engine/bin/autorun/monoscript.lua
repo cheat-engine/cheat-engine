@@ -2145,7 +2145,7 @@ function mono_class_getStaticFieldAddress(domain, class)
 end
 
 function mono_class_enumFields(class, includeParents, expandedStructs)
-  local function GetFields(class, includeParents, expandedStructs)
+  local function GetFields(class, includeParents, expandedStructs, staticnoinclude)
     local classfield;
     local index=1;
     local fields={}
@@ -2191,7 +2191,11 @@ function mono_class_enumFields(class, includeParents, expandedStructs)
 
         namelength=monopipe.readWord();
         fields[index].typename=monopipe.readString(namelength);
-        index=index+1
+		if (staticnoinclude and fields[index].isStatic) then
+		  fields[index] = nil
+		else
+         index=index+1
+		end
         
       end
 
@@ -2207,8 +2211,8 @@ function mono_class_enumFields(class, includeParents, expandedStructs)
   if expandedStructs then
     for k,v in pairs(mainFields) do
       local lockls = mono_field_getClass(v.field)
-      if ((v.monotype==MONO_TYPE_VALUETYPE) and not(mono_class_isEnum(lockls)) and not(mono_class_isSubClassOf(mono_field_getClass(v.field),class))) then --does not want to infinitely loop if the struct has some static member of the same class
-         local subFields = GetFields(lockls, includeParents, expandedStructs)
+      if ((v.monotype==MONO_TYPE_VALUETYPE) and not(mono_class_isEnum(lockls)) and not(mono_class_isSubClassOf(mono_field_getClass(v.field),class))) and not(v.isStatic or v.isConst) then --does not want to infinitely loop if the struct has some static member of the same class
+         local subFields = GetFields(lockls, includeParents, expandedStructs, true)
          --print(v.name, v.typename, fu(v.monotype))
          if #subFields >0 then
             if subFields[1].offset == 0x10 then
@@ -4696,7 +4700,7 @@ function monoform_exportArrayStructInternal(acs, arraytype, elemtype, recursive,
         end
       local elementkls = mono_class_getArrayElementClass(arraytype)
       local elementmonotype = mono_type_get_type(mono_class_get_type(elementkls))
-      if ((elementmonotype==MONO_TYPE_VALUETYPE or elementmonotype==MONO_TYPE_GENERICINST) and not(mono_class_isEnum(elementkls)) and #mono_class_enumFields(elementkls,true,true) > 0) then
+      if ((elementmonotype==MONO_TYPE_VALUETYPE) and not(mono_class_isEnum(elementkls)) and #mono_class_enumFields(elementkls,true,true) > 0) then
          --print("yep, a struct")
          local subfield = mono_class_enumFields(elementkls)
          local suboffset = subfield[1].offset == 0x10 and 0x10 or 0
