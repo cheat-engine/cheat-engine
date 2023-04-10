@@ -2191,11 +2191,8 @@ function mono_class_enumFields(class, includeParents, expandedStructs)
 
         namelength=monopipe.readWord();
         fields[index].typename=monopipe.readString(namelength);
-        if not(expandedStructs) or (not(fields[index].isStatic) and not(fields[index].isConst)) then --do not want to include static fields for structs cause they may cause endless cycle e.g. in Vector2
-          index=index+1
-        else
-          fields[index] = nil
-        end
+        index=index+1
+        
       end
 
     until (classfield==nil) or (classfield==0)
@@ -2210,7 +2207,7 @@ function mono_class_enumFields(class, includeParents, expandedStructs)
   if expandedStructs then
     for k,v in pairs(mainFields) do
       local lockls = mono_field_getClass(v.field)
-      if ((v.monotype==MONO_TYPE_VALUETYPE) and not(mono_class_isEnum(lockls))) then
+      if ((v.monotype==MONO_TYPE_VALUETYPE) and not(mono_class_isEnum(lockls)) and not(mono_class_isSubClassOf(mono_field_getClass(v.field),class))) then --does not want to infinitely loop if the struct has some static member of the same class
          local subFields = GetFields(lockls, includeParents, expandedStructs)
          --print(v.name, v.typename, fu(v.monotype))
          if #subFields >0 then
