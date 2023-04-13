@@ -148,7 +148,7 @@ end;
 procedure timer_addMetaData(L: PLua_state; metatable: integer; userdata: integer );
 begin
   component_addMetaData(L, metatable, userdata);
-  luaclass_addClassFunctionToTable(L, metatable, userdata, 'getInterval', timer_setInterval);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'getInterval', timer_getInterval);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'setInterval', timer_setInterval);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'getOnTimer', timer_getonTimer);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'setOnTimer', timer_setonTimer);
