@@ -3971,6 +3971,7 @@ Header class:
 properties
   AutoSizeIndex: integer - When Options contains hoAutoResize this determines which column will be resized on resize of the control
   AutoResize: boolean - shortcut to access the hoAutoResize flag in Options
+  MainColumn: integer - Column index to draw the treepart in.  (e.g: column0 is not visible)
   Columns: VirtualTreeColunmns  
   Options: set(string) - Options is a comma seperated string which can be one of the following:
               hoAutoResize            - Adjust a column so that the header never exceeds the client width of the owner control.
