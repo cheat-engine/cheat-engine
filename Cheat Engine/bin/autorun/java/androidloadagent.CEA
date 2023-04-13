@@ -2,11 +2,16 @@
 #define LOG_TAG "CEJAVADC"
 
 #include <stdarg.h>
+
 #include <jni.h>
 #include <jvmti.h>
 
+
 #include <celog.h>
+#include <cepipelib.c>
+
 #include <cejvmtiagent.c>
+
 
 JavaVM *vmlist[1];
 
@@ -14,22 +19,30 @@ JNIEnv *env;
 jvmtiEnv *jvmtienv;
 
 jvmtiCapabilities wantedcap;
+jvmtiCapabilities potcap;
 
 int ceagentloadstatus;
 
 void JavaInjectAgent()
 {
-
+#ifdef ANDROID
   struct
   {
     void* thread;
     void* env;
     void* javavm;
   } soa;
+#else
+  void* soa;
+#endif
 
   int count;
   jint err;
   debug_log("Java init code");
+
+  err=123;
+
+  debug_log("Debug log supports va_list: %d (should be 123)", err);
 
   jobject cl;
   jclass clc;
@@ -61,6 +74,8 @@ void JavaInjectAgent()
     return;
   }
   debug_log("env=%p", env);
+
+#ifdef ANDROID
   soa.thread=*(void**)((unsigned long long)env+8);
   soa.env=env;
   soa.javavm=*(void**)((unsigned long long)env+10);
@@ -87,9 +102,14 @@ void JavaInjectAgent()
     (*env)->CallStaticVoidMethod(env, d, m, library, options,loader);
     (*env)->ExceptionClear(env);
   }
+#endif
 
+  int usedJVMTI_VERSION=JVMTI_VERSION_1_2;
+#ifdef ANDROID
+  usedJVMTI_VERSION|=0x40000000; //0x70010200
+#endif
 
-  if (err=(*vm)->GetEnv(vm, &jvmtienv, JVMTI_VERSION_1_2 | 0x40000000 /*0x70010200*/)!=JNI_OK)
+  if (err=(*vm)->GetEnv(vm, &jvmtienv, usedJVMTI_VERSION)!=JNI_OK)
   {
     debug_log("Failure getting JVMTI environment: %d", err);
     ceagentloadstatus=-3;
@@ -97,7 +117,7 @@ void JavaInjectAgent()
   };
   debug_log("jvmtienv is %p", jvmtienv);
 
-  jvmtiCapabilities potcap;
+
 
   if (err=(*jvmtienv)->GetPotentialCapabilities(jvmtienv, &potcap)!=JVMTI_ERROR_NONE)
   {
@@ -106,7 +126,7 @@ void JavaInjectAgent()
     return;
   }
 
-  debug_log("potcap=%x",potcap);
+  debug_log("potcap=%llx",*(uint64_t *)&potcap);
 
   memset(&wantedcap,0, sizeof(wantedcap));
   wantedcap.can_access_local_variables=potcap.can_access_local_variables; //debug
@@ -139,6 +159,7 @@ void JavaInjectAgent()
 
   ceagentloadstatus=1;
   launchCEJVMTIServer(env, jvmtienv, &soa);
+
 
   ceagentloadstatus=2;
   debug_log("launchCEJVMTIServer returned. Detaching");

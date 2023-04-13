@@ -33,6 +33,8 @@ type
     ftimeout: integer;
     fWarnOnMainThreadLockObtaining: boolean; //to debug mainthread locks
     fErrorOnMainThreadLockObtaining: boolean;
+
+    procedure setTimeout(newtimeout: integer);
   public
     procedure lock;
     procedure unlock;
@@ -63,6 +65,7 @@ type
     destructor destroy; override;
   published
     property connected: boolean read fConnected;
+    property Timeout: Integer read ftimeout write setTimeout;
     property OnTimeout: TNotifyEvent read fOnTimeout write fOnTimeout;
     property OnError: TNotifyEvent read fOnError write fOnError;
     property Handle: THandle read pipe write pipe;
@@ -119,6 +122,13 @@ end;
 
 procedure TPipeconnection.unlock;
 begin
+  cs.leave;
+end;
+
+procedure TPipeConnection.setTimeout(newtimeout: integer);
+begin
+  cs.enter;
+  ftimeout:=newtimeout;
   cs.leave;
 end;
 
@@ -230,10 +240,13 @@ function TPipeConnection.ProcessOverlappedOperation(o: POVERLAPPED): boolean;
 var
   starttime: qword;
   i: integer;
-  bt: dword;
+  bt, lastbt: dword;
   r: dword;
 begin
   starttime:=GetTickCount64;
+  bt:=0;
+  lastbt:=0;
+
   while fconnected and ((ftimeout=0) or (gettickcount64<starttime+ftimeout)) do
   begin
     if MainThreadID=GetCurrentThreadId then
@@ -268,9 +281,14 @@ begin
       end;
     end;
 
-    bt:=0;
+
     if fconnected and (GetOverlappedResult(pipe, o^, bt,false)=false) then   //todo: check for GetOverlappedResultEx and use that
     begin
+      if bt<>lastbt then
+        starttime:=GetTickCount64;
+
+      lastbt:=bt;
+
       i:=getlasterror;
       if ((i=ERROR_IO_PENDING) or (i=ERROR_IO_INCOMPLETE)) then
         continue
@@ -285,10 +303,10 @@ begin
       o^.Internal:=bt;
       exit(fconnected);
     end;
-   end;
+  end;
 
-   closeConnection(fOnTimeout);
-   exit(false);
+  closeConnection(fOnTimeout);
+  exit(false);
 end;
 {$endif}
 

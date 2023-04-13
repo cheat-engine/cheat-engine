@@ -7,12 +7,21 @@
 #include <stddef.h>
 #include <errno.h>
 
-//ifdef android:
+#ifdef ANDROID
 //alternatively, registersymbol('_errno','__errno')
 int *__cdecl __errno(void);
 #undef errno
 #define errno (*__errno())
-//endif android
+#endif
+
+#ifdef _WIN32
+#include <windowslite.h>
+
+    
+#else
+typedef int HANDLE;
+#endif
+
 
 char *strerror(int errnum);
 
@@ -28,8 +37,10 @@ void free(void *ptr);
 char *strdup(const char *s);
 void *memcpy(void *dest, const void *src, size_t n);
 
+#ifndef _WIN32
 ssize_t recv(int sockfd, void *buf, size_t len, int flags);
 ssize_t send(int sockfd, const void *buf, size_t len, int flags);
+#endif
 
 
 char *defaultpipename="unnamed pipe";
@@ -46,7 +57,7 @@ typedef struct
 {
   char *pipename;
   char *debugname;  
-  int handle;
+  HANDLE handle;
 } PipeServer, *PPipeServer;
 
 
@@ -176,19 +187,34 @@ void ps_setDebugName(PPipeServer this, char *name)
   this->debugname=strdup(name);
 }
 
-ssize_t recvall (int s, void *buf, size_t size, int flags)
+ssize_t recvall (HANDLE s, void *buf, size_t size, int flags)
 {
   ssize_t totalreceived=0;
   ssize_t sizeleft=size;
-  unsigned char *buffer=(unsigned char*)buf;
-
-  //printf("enter recvall\n");
-  #ifdef _WINDOWS
-    flags=flags | MSG_WAITALL;
-#endif
-
+  unsigned char *buffer=(unsigned char*)buf;  
+  
+  debug_log("recvall: Reading %d bytes", size);
+  
   while (sizeleft>0)
   {
+#ifdef _WIN32
+   
+    DWORD br=0;       
+
+    if (ReadFile(s, &buffer[totalreceived], sizeleft, &br, NULL) == FALSE)
+    {
+      debug_log("recvall: ReadFile returned FALSE.  br=%d", br);
+      if (br==0)
+        return totalreceived;
+    }
+    else
+    {
+      debug_log("successfully read %d bytes", br);
+    }
+
+    totalreceived += br;
+    sizeleft-= br;
+#else
     ssize_t i=recv(s, &buffer[totalreceived], sizeleft, flags);
 
     if (i==0)
@@ -216,13 +242,14 @@ ssize_t recvall (int s, void *buf, size_t size, int flags)
 
     totalreceived+=i;
     sizeleft-=i;
+#endif    
   }
 
   //printf("leave recvall\n");
   return totalreceived;
 }
 
-ssize_t sendall (int s, void *buf, size_t size, int flags)
+ssize_t sendall (HANDLE s, void *buf, size_t size, int flags)
 {
   ssize_t totalsent=0;
   ssize_t sizeleft=size;
@@ -230,6 +257,18 @@ ssize_t sendall (int s, void *buf, size_t size, int flags)
 
   while (sizeleft>0)
   {
+#ifdef _WIN32
+    DWORD bw;
+    if (WriteFile(s, &buffer[totalsent], sizeleft, &bw, NULL) == FALSE)
+    {
+      debug_log("sendall: WriteFile returned FALSE.  bw=%d (size was %d)", bw, size);
+      if (bw==0)
+        return totalsent;
+    }
+
+    totalsent += bw;
+    sizeleft-= bw;
+#else    
     ssize_t i=send(s, &buffer[totalsent], sizeleft, flags);
 
     if (i==0)
@@ -250,6 +289,7 @@ ssize_t sendall (int s, void *buf, size_t size, int flags)
 
     totalsent+=i;
     sizeleft-=i;
+#endif    
   }
 
   return totalsent;
@@ -258,12 +298,18 @@ ssize_t sendall (int s, void *buf, size_t size, int flags)
 
 void ps_read(PPipeServer this, void* buf, int count)
 {
+  
   if (this->handle)
   {
     int r=recvall(this->handle, buf,count,0);
     if (r!=count)
     {
+      debug_log("ps_read: r!=count");
+#ifdef _WIN32   
+        CloseHandle(this->handle);
+#else
         close(this->handle);
+#endif      
         this->handle=0;
     }
   }
@@ -275,8 +321,13 @@ void ps_write(PPipeServer this, void* buf, int count)
   {
     int r=sendall(this->handle, buf,count,0);
     if (r!=count)
-    {
+    { 
+      debug_log("ps_write: r!=count");      
+#ifdef _WIN32         
+        CloseHandle(this->handle);
+#else
         close(this->handle);
+#endif
         this->handle=0;
     }
   }
@@ -344,96 +395,151 @@ int ps_isvalid(PPipeServer this)
 }
 
 void ps_destroy(PPipeServer this)
-{
-  if (this->pipename)
-    free(this->pipename);
+{  
+  debug_log("ps_destroy called");
+  if (this)
+  {
   
-  if (this->debugname)
-    free(this->debugname);
+    if (this->pipename)
+    {
+      debug_log("Freeing pipename %s", this->pipename);
+      free(this->pipename);
+    }
+    
+    if (this->debugname)
+    {
+      debug_log("Freeing debugname");
+      free(this->debugname);
+    }
+    else
+      debug_log("no debugname to free");
+    
+
+    if (this->handle)
+    {
+      
+      
+#ifdef _WIN32  
+      DisconnectNamedPipe(this->handle);
+      CloseHandle(this->handle);      
+#else
+      close(this->handle);
+#endif
+    }
+    else
+      debug_log("no handle to close");
+    
+    
+    debug_log("Freeing this");
+    free(this);  
+  }
   
-  if (this->handle)
-    close(this->handle);
-  
-  free(this);  
+  debug_log("returning from ps_destroy");
 }
 
 PipeServer *CreatePipeServer(char *name)
 {
-    //single connect system
-    int s;
-    debug_log("CreatePipeServer(\"%s\")\n",name);
-    s=socket(AF_UNIX, SOCK_STREAM,0);
-    if (s)
-    {
-        char *path=malloc(100);
-
-        snprintf(path,100," %s", name);
-
-        struct sockaddr_un address;
-        address.sun_family=AF_UNIX;
-        strcpy(address.sun_path, path);
-
-        int al=(int)SUN_LEN(&address);
-        
-        debug_log("al=%d\n",al);
-
-        address.sun_path[0]=0;
-
-        int optval=1;
-        setsockopt(s, SOL_SOCKET, SO_REUSEADDR, &optval, optval);
-
-        int i;
-        i=bind(s,(struct sockaddr *)&address, al);
-        if (i==0)
-        {
-            debug_log((char*)"Starting to listen\n");
-            i=listen(s,32);
-
-            debug_log("Listen returned %d\n",i);
-            if (i==0)
-            {
-                struct sockaddr_un addr_client;
-                socklen_t clisize=sizeof(addr_client);
-                int a=-1;
-
-
-                while (a==-1)
-                {
-                  debug_log("Calling accept (clisize=%d)",clisize);
-                  a=accept(s, (struct sockaddr *)&addr_client, &clisize);
-
-                  if (a!=-1)
-                  {
-                      debug_log("Connection accepted");
-                      debug_log("Closing the listener");
-                      close(s); //stop listening
-                      
-                      PPipeServer t=malloc(sizeof(PipeServer));                      
-                      t->pipename=strdup(name);
-                      t->debugname=NULL;
-                      t->handle=a;
-                      return t;
-                  }
-                  else
-                  {
-                    debug_log("accept returned %d (%d - %s )", a, errno, strerror(errno));                    
-                    close(s);
-                    break;
-                  }
-                }
-
-            }
-            else
-                debug_log((char*)"Listen failed");
-
-        }
-        else
-          debug_log((char*)"Bind failed\n");
-    }
-    else
-        debug_log((char*)"Failure creating socket\n");
-
+  //single connect system
+  int s;
+  debug_log("CreatePipeServer(\"%s\")\n",name);
+  
+#ifdef _WIN32
+  //windows:
+  HANDLE pipehandle;
+  debug_log("Calling CreateNamedPipeA");
+  pipehandle = CreateNamedPipeA(name, PIPE_ACCESS_DUPLEX, PIPE_TYPE_BYTE | PIPE_READMODE_BYTE | PIPE_WAIT, 1, 256 * 1024, 16, INFINITE, NULL);
+  debug_log("pipehandle=%p", pipehandle);
+  
+  if ((pipehandle==NULL) || (pipehandle==INVALID_HANDLE_VALUE)) 
+  {
+    //todo: UWP shit with duplicatehandle etc...
     return (void*)0;
+  }
+  
+  debug_log("Calling ConnectNamedPipe");
+  ConnectNamedPipe(pipehandle, NULL);
+  debug_log("ConnectNamedPipe returned. So there was a connection");
+
+  PPipeServer t=malloc(sizeof(PipeServer));                      
+  t->pipename=strdup(name);
+  t->debugname=NULL;
+  t->handle=pipehandle;
+  return t;
+#else
+  //not windows:
+  s=socket(AF_UNIX, SOCK_STREAM,0);
+  if (s)
+  {
+      char *path=malloc(100);
+
+      snprintf(path,100," %s", name);
+
+      struct sockaddr_un address;
+      address.sun_family=AF_UNIX;
+      strcpy(address.sun_path, path);
+
+      int al=(int)SUN_LEN(&address);
+      
+      debug_log("al=%d\n",al);
+
+      address.sun_path[0]=0;
+
+      int optval=1;
+      setsockopt(s, SOL_SOCKET, SO_REUSEADDR, &optval, optval);
+
+      int i;
+      i=bind(s,(struct sockaddr *)&address, al);
+      if (i==0)
+      {
+          debug_log((char*)"Starting to listen\n");
+          i=listen(s,32);
+
+          debug_log("Listen returned %d\n",i);
+          if (i==0)
+          {
+              struct sockaddr_un addr_client;
+              socklen_t clisize=sizeof(addr_client);
+              int a=-1;
+
+
+              while (a==-1)
+              {
+                debug_log("Calling accept (clisize=%d)",clisize);
+                a=accept(s, (struct sockaddr *)&addr_client, &clisize);
+
+                if (a!=-1)
+                {
+                    debug_log("Connection accepted");
+                    debug_log("Closing the listener");
+                    close(s); //stop listening
+                    
+                    PPipeServer t=malloc(sizeof(PipeServer));                      
+                    t->pipename=strdup(name);
+                    t->debugname=NULL;
+                    t->handle=a;
+                    return t;
+                }
+                else
+                {
+                  debug_log("accept returned %d (%d - %s )", a, errno, strerror(errno));                    
+                  close(s);
+                  break;
+                }
+              }
+
+          }
+          else
+              debug_log((char*)"Listen failed");
+
+      }
+      else
+        debug_log((char*)"Bind failed\n");
+  }
+  else
+      debug_log((char*)"Failure creating socket\n");
+
+  return (void*)0;
+#endif
 }
 
 

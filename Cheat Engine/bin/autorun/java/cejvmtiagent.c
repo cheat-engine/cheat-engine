@@ -16,8 +16,16 @@ int sprintf(char *str, const char *format, ...);
 int snprintf(char *str, int max, const char *format, ...);
 void *memset(void *s, int c, size_t n);
 char *strstr(const char *haystack, const char *needle);
-char *strcasestr(const char *haystack, const char *needle);
 
+#ifdef _WIN32
+//strcasestr does not exist, but StrStrIA does
+char *StrStrIA(const char *haystack, const char *needle);
+#define strcasestr StrStrIA
+#else
+char *strcasestr(const char *haystack, const char *needle);
+#endif
+
+#ifdef ANDROID
 void* jit_load(void* something);
 void jit_unload(void* handle);
 void* jit_compile_method(void* handle, void* method, void* self, int baseline, int osr);
@@ -31,6 +39,7 @@ int _ZN3art9ArtMethod18HasAnyCompiledCodeEv(void* ArtMethod);
 #define Thread_DecodeJObject _ZNK3art6Thread13DecodeJObjectEP8_jobject
 #define VMDebug_getInstancesOfClasses _ZN3artL29VMDebug_getInstancesOfClassesEP7_JNIEnvP7_jclassP13_jobjectArrayh
 #define ArtMethod_HasAnyCompiledCode _ZN3art9ArtMethod18HasAnyCompiledCodeEv 
+#endif
 
 
 #define JAVACMD_STARTCODECALLBACKS 0
@@ -74,7 +83,9 @@ int _ZN3art9ArtMethod18HasAnyCompiledCodeEv(void* ArtMethod);
 #define JAVACMD_DEREFERENCEGLOBALOBJECTS 35
 #define JAVACMD_GETFIELDVALUES 36
 #define JAVACMD_COLLECTGARBAGE 37
+#ifdef ANDROID
 #define JAVACMD_ANDROID_DECODEOBJECT 38
+#endif
 
 #define JAVACMD_FINDFIELDS 39
 #define JAVACMD_FINDMETHODS 40
@@ -103,7 +114,9 @@ typedef struct
   jclass *classlist; //js_getLoadedClasses fills this
   jint classcount;
   PPipeServer pipe;   
+#ifdef ANDROID
   jmethodID m_Field_getOffset;
+#endif  
   jlong nextSearchTag; 
   
 } CEJVMTIAgent, *PCEJVMTIAgent;
@@ -249,6 +262,7 @@ void js_getClassFields(PCEJVMTIAgent agent)
         //debug_log("field modifiers=%x",modifiers);
         
         //if the modifiers are unreadable, then getOffset may fail as well
+#ifdef ANDROID        
         if (((modifiers & ACC_STATIC)==0) && (agent->m_Field_getOffset))
         {
          // debug_log("Not static so getting offset");
@@ -264,6 +278,7 @@ void js_getClassFields(PCEJVMTIAgent agent)
             _env->DeleteLocalRef(agent->env, fieldo);                        
           }
         }
+#endif        
       }
 
       ms_writeDword(ms, modifiers);
@@ -509,6 +524,7 @@ void js_getCapabilities(PCEJVMTIAgent agent)
 void js_compileMethod(PCEJVMTIAgent agent) 
 {
   debug_log("js_compileMethod");
+#ifdef ANDROID
   void* Method=(void*)ps_readQword(agent->pipe);
   debug_log("Method=%p",Method);
   void* something=NULL;
@@ -525,6 +541,9 @@ void js_compileMethod(PCEJVMTIAgent agent)
     
    // jit_unload(cr);
   }
+#else
+  debug_log("Not yet implemented");
+#endif
 }
 
 jvmtiIterationControl JNICALL FindClassObjects_callback(jlong class_tag, jlong size, jlong* tag_ptr, void* user_data)
@@ -598,7 +617,9 @@ void js_findClassInstances(PCEJVMTIAgent agent)
   (*jvmtienv)->GetObjectsWithTags(
   */
   debug_log("lookupmethod=%d", lookupmethod);
+#ifndef ANDROID  
   if (lookupmethod==1)
+#endif    
   {
     jint r;
     jvmtiHeapCallbacks callbacks;
@@ -644,9 +665,12 @@ void js_findClassInstances(PCEJVMTIAgent agent)
         {          
           jobject g_c=_env->NewGlobalRef(agent->env, results[i]);
           
-          void *objptr;
+          void *objptr=NULL;
+#ifdef ANDROID
           objptr=Thread_DecodeJObject(agent->soa->thread, g_c);
+#endif            
           debug_log("%d: %d -> %p", i, g_c, objptr);
+        
                 
           ms_writeQword(ms,(uint64_t)g_c);  //ce has to delete this global ref manually
           ms_writeQword(ms,(uint64_t)objptr);
@@ -668,6 +692,7 @@ void js_findClassInstances(PCEJVMTIAgent agent)
       ps_writeDword(agent->pipe,0);
      
   }
+#ifdef ANDROID  
   else  
   if (lookupmethod==0) //does work on android if called from native (dalvik.system.VMDebug.getInstancesOfClasses)
   {
@@ -779,6 +804,7 @@ void js_findClassInstances(PCEJVMTIAgent agent)
     
     
   }
+#endif  
 }
 
 void js_setFieldValues(PCEJVMTIAgent agent) 
@@ -1210,6 +1236,7 @@ void js_collectGarbage(PCEJVMTIAgent agent)
 }
 
 //todo: ifdef android in case I ever port this to windows
+#ifdef ANDROID
 void js_android_decodeObject(PCEJVMTIAgent agent) 
 {
   jobject obj=(jobject)ps_readQword(agent->pipe);
@@ -1217,6 +1244,7 @@ void js_android_decodeObject(PCEJVMTIAgent agent)
   objptr=Thread_DecodeJObject(agent->soa->thread, obj);
   ps_writeQword(agent->pipe, (uint64_t)objptr);
 }
+#endif
 
 typedef char * (*stringcomparefunction)(const char *haystack, const char *needle);
   
@@ -1491,6 +1519,7 @@ void launchCEJVMTIServer(JNIEnv *env, jvmtiEnv *jvmti, void* soa)
   
   agent->nextSearchTag=0xce000000;
   
+#ifdef ANDROID
   //fill in agent->m_getOffset (Android has this method)
   jclass reflectFieldclass=(*env)->FindClass(env,"java/lang/reflect/Field");
   if (reflectFieldclass)
@@ -1505,10 +1534,13 @@ void launchCEJVMTIServer(JNIEnv *env, jvmtiEnv *jvmti, void* soa)
   
   jclass VMDebugClass=(*env)->FindClass(env,"dalvik/system/VMDebug");
   debug_log("VMDebugClass=%d",VMDebugClass);  
-
+#endif
   
-  
+#ifdef _WIN32
+  snprintf(xpipename, 99, "\\\\.\\pipe\\cejavadc_pid%d", pid);
+#else  
   snprintf(xpipename, 99, "cejavadc_pid%d", pid);
+#endif
   
   debug_log("Creating pipe %s", xpipename);
   
@@ -1590,9 +1622,11 @@ void launchCEJVMTIServer(JNIEnv *env, jvmtiEnv *jvmti, void* soa)
             js_collectGarbage(agent);
             break;
             
+#ifdef ANDROID            
           case JAVACMD_ANDROID_DECODEOBJECT:
             js_android_decodeObject(agent);
             break;
+#endif            
             
           case JAVACMD_FINDFIELDS:
             js_findFields(agent);

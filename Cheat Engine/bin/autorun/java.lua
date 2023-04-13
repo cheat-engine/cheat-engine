@@ -329,7 +329,7 @@ function javaOpenAgent()
     JavaSymbols.clear()
   end    
   
-  javapipe=connectToPipe('cejavadc_pid'.. getOpenedProcessID(),1000)
+  javapipe=connectToPipe('cejavadc_pid'.. getOpenedProcessID(),10000)
   
   if javapipe then
     java.capabilities=java_getCapabilities()
@@ -340,6 +340,16 @@ function javaOpenAgent()
     end
     
     javaInjectedProcesses[getOpenedProcessID()]=true
+    
+    javapipe.OnTimeout=function()
+      print("javapipe timeout")
+    end
+    
+    javapipe.OnError=function()
+      print("javapipe error")
+    end
+    
+    
     
     return true
   end    
@@ -362,7 +372,7 @@ function javaInjectAgent()
   end
 
 
-  if java.android then
+  if true then --java.android then
     local errorstr
     if not inMainThread() then error('Only call javaInjectAgent from the main thread') end
     
@@ -392,9 +402,14 @@ function javaInjectAgent()
       createThread(function(t)
         function injectAndroidAgent()
           local status=readInteger("ceagentloadstatus")
-
+          local extra=createStringList()
+          if targetIsAndroid() then
+            extra.add('#define ANDROID')          
+          end 
+         
+          
           if (status==nil) or (status<0) or (status==2) then
-            if not fileExists(getAutorunPath()..'java/jvmti.h') then
+            if not fileExists(getAutorunPath()..'java/jvmti.h') and (findTableFile('include/jvmti.h')==nil) then
               local l=getInternet()
               local r=l.getURL('https://github.com/openjdk-mirror/jdk7u-jdk/raw/master/src/share/javavm/export/jvmti.h')
 
@@ -408,11 +423,14 @@ function javaInjectAgent()
           
             local spath=getAutorunPath()..'java/androidloadagent.CEA'
             local sl=createStringList()
+            
+            
             if sl.loadFromFile(spath)==false then
               errorstr='Failure reading '..spath
               return
             end
-            local injectagentscript=sl.Text
+                        
+            local injectagentscript=extra.text..'\n'..sl.Text
             sl.destroy()
           
             local r,di=autoAssemble(injectagentscript);
@@ -455,6 +473,9 @@ function javaInjectAgent()
        
     return javaOpenAgent()
   end
+  
+  printf("old code reached")
+  if true then return end
   
 
   createNativeThread(CollectJavaSymbolsNonInjected)
