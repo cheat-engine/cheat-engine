@@ -2975,7 +2975,13 @@ function java_OpenProcessAfterwards()
         mi=createMenuItem(miJavaTopMenuItem)
         mi.Caption=translate("Java Info")
         mi.Shortcut="Ctrl+Alt+J"
-        mi.OnClick=miJavaInfoClick
+        mi.OnClick=function(sender)
+		  if miJavaInfoClick then		
+		    miJavaInfoClick(sender)
+		  else
+		    messageDialog('JavaInfo extension is not present', mtError, mbOK)
+		  end
+		end
         mi.Enabled=usesjava
         mi.Name="miDissectJavaClasses"
         miJavaTopMenuItem.Add(mi)
