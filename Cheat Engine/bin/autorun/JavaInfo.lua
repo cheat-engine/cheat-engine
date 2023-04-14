@@ -537,13 +537,19 @@ function lvClassesSelectionChange(frmJavaInfo, sender)
     frmJavaInfo.CurrentlySelectedClass=class    
     
     getClassFieldsAndMethods(class)
+    local methodList=class.Methods
+    
+    if frmJavaInfo.cbShowInherited.checked then     
+      getAllClassFieldsAndMethods(class)
+      methodList=class.AllMethods
+    end
     
     frmJavaInfo.lvMethods.beginUpdate()
     frmJavaInfo.lvMethods.items.clear()
-    for i=1,#class.Methods do
+    for i=1,#methodList do
       local li=frmJavaInfo.lvMethods.items.add()
-      li.caption=class.Methods[i].name
-      li.subItems.add(class.Methods[i].signature);
+      li.caption=methodList[i].name
+      li.subItems.add(methodList[i].signature);
     end
     frmJavaInfo.lvMethods.endUpdate()
 
