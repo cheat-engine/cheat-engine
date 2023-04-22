@@ -674,11 +674,72 @@ begin
     result:='nil';
 end;
 
+procedure LoadLuaScriptsFromPath(path: string);
+var
+  DirInfo: TSearchRec;
+  i,r: integer;
+begin
+  ZeroMemory(@DirInfo,sizeof(TSearchRec));
+  r := FindFirst(path+'*.lua', FaAnyfile, DirInfo);
+
+  while (r = 0) do
+  begin
+    if (DirInfo.Attr and FaVolumeId <> FaVolumeID) then
+    begin
+      if ((DirInfo.Attr and FaDirectory) <> FaDirectory) then
+      begin
+        i:=lua_dofile(luavm, pchar( UTF8ToWinCP(autorunpath+DirInfo.name)));
+        if i<>0 then //error
+        begin
+          i:=lua_gettop(luavm);
+          if i>0 then
+          begin
+            pc:=lua_tolstring(luavm, -1,nil);
+            if pc<>nil then
+              showmessage(DirInfo.name+rsError2+pc)
+            else
+              showmessage(DirInfo.name+rsError3);
+          end
+          else showmessage(DirInfo.name+rsError3);
+        end;
+
+        //reset stack
+        lua_pop(LuaVM, lua_gettop(luavm));
+
+        if mainformwasset then
+        begin
+          lua_getglobal(LuaVM,'MainForm');
+          if lua_isnil(LuaVM,-1) then
+          begin
+            MessageDlg(format(rsScriptCorruptedVar, [autorunpath+DirInfo.name, 'MainForm']), mtError,[mbOK],0);
+            mainformwasset:=false;
+          end;
+          lua_pop(LuaVM,1);
+        end;
+
+        if addresslistwasset then
+        begin
+          lua_getglobal(LuaVM,'AddressList');
+          if lua_isnil(LuaVM,-1) then
+          begin
+            MessageDlg(format(rsScriptCorruptedVar, [autorunpath+DirInfo.name, 'AddressList']), mtError,[mbOK],0);
+            addresslistwasset:=false;
+          end;
+          lua_pop(LuaVM,1);
+        end;
+
+      end;
+    end;
+    r := FindNext(DirInfo);
+  end;
+  FindClose(DirInfo);
+end;
+
 procedure InitializeLuaScripts(noautorun: boolean=false);
 var f: string;
   i,r: integer;
   pc: pchar;
-  DirInfo: TSearchRec;
+
   mainformwasset: boolean=true;
   addresslistwasset: boolean=true;
 
@@ -746,68 +807,11 @@ begin
   end;
 
   //autorun folder
-
   if noautorun=false then
   begin
-
-
-    ZeroMemory(@DirInfo,sizeof(TSearchRec));
-    r := FindFirst(autorunpath+'*.lua', FaAnyfile, DirInfo);
-
-    while (r = 0) do
-    begin
-      if (DirInfo.Attr and FaVolumeId <> FaVolumeID) then
-      begin
-        if ((DirInfo.Attr and FaDirectory) <> FaDirectory) then
-        begin
-          i:=lua_dofile(luavm, pchar( UTF8ToWinCP(autorunpath+DirInfo.name)));
-          if i<>0 then //error
-          begin
-            i:=lua_gettop(luavm);
-            if i>0 then
-            begin
-              pc:=lua_tolstring(luavm, -1,nil);
-              if pc<>nil then
-                showmessage(DirInfo.name+rsError2+pc)
-              else
-                showmessage(DirInfo.name+rsError3);
-            end
-            else showmessage(DirInfo.name+rsError3);
-          end;
-
-          //reset stack
-          lua_pop(LuaVM, lua_gettop(luavm));
-
-          if mainformwasset then
-          begin
-            lua_getglobal(LuaVM,'MainForm');
-            if lua_isnil(LuaVM,-1) then
-            begin
-              MessageDlg(format(rsScriptCorruptedVar, [autorunpath+DirInfo.name, 'MainForm']), mtError,[mbOK],0);
-              mainformwasset:=false;
-            end;
-            lua_pop(LuaVM,1);
-          end;
-
-          if addresslistwasset then
-          begin
-            lua_getglobal(LuaVM,'AddressList');
-            if lua_isnil(LuaVM,-1) then
-            begin
-              MessageDlg(format(rsScriptCorruptedVar, [autorunpath+DirInfo.name, 'AddressList']), mtError,[mbOK],0);
-              addresslistwasset:=false;
-            end;
-            lua_pop(LuaVM,1);
-          end;
-
-        end;
-      end;
-      r := FindNext(DirInfo);
-    end;
-    FindClose(DirInfo);
+    loadLuaScriptsFromPath(autorunpath);
+    LoadLuaScriptsFromPath(autorunpath+'custom'+PathDelim);
   end;
-
-
 
   if translationfilepath<>'' then
   begin
